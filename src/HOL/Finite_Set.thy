@@ -2937,37 +2937,6 @@ qed
 
 end
 
-context complete_lattice
-begin
-
-text {*
-  Coincidence on finite sets in complete lattices:
-*}
-
-lemma Inf_fin_Inf:
-  assumes "finite A" and "A \<noteq> {}"
-  shows "\<Sqinter>\<^bsub>fin\<^esub>A = Inf A"
-proof -
-    interpret ab_semigroup_idem_mult inf
-    by (rule ab_semigroup_idem_mult_inf)
-  from assms show ?thesis
-  unfolding Inf_fin_def by (induct A set: finite)
-    (simp_all add: Inf_insert_simp)
-qed
-
-lemma Sup_fin_Sup:
-  assumes "finite A" and "A \<noteq> {}"
-  shows "\<Squnion>\<^bsub>fin\<^esub>A = Sup A"
-proof -
-  interpret ab_semigroup_idem_mult sup
-    by (rule ab_semigroup_idem_mult_sup)
-  from assms show ?thesis
-  unfolding Sup_fin_def by (induct A set: finite)
-    (simp_all add: Sup_insert_simp)
-qed
-
-end
-
 
 subsubsection {* Fold1 in linear orders with @{const min} and @{const max} *}
 
@@ -3345,15 +3314,15 @@ lemma fun_left_comm_idem_remove:
 proof
 qed auto
 
-lemma fun_left_comm_idem_inter:
-  "fun_left_comm_idem op \<inter>"
+lemma (in lower_semilattice) fun_left_comm_idem_inf:
+  "fun_left_comm_idem inf"
 proof
-qed auto
+qed (auto simp add: inf_left_commute)
 
-lemma fun_left_comm_idem_union:
-  "fun_left_comm_idem op \<union>"
+lemma (in upper_semilattice) fun_left_comm_idem_sup:
+  "fun_left_comm_idem sup"
 proof
-qed auto
+qed (auto simp add: sup_left_commute)
 
 lemma union_fold_insert:
   assumes "finite A"
@@ -3371,60 +3340,95 @@ proof -
   from `finite A` show ?thesis by (induct A arbitrary: B) auto
 qed
 
-lemma inter_Inter_fold_inter:
+context complete_lattice
+begin
+
+lemma inf_Inf_fold_inf:
   assumes "finite A"
-  shows "B \<inter> Inter A = fold (op \<inter>) B A"
+  shows "inf B (Inf A) = fold inf B A"
 proof -
-  interpret fun_left_comm_idem "op \<inter>" by (fact fun_left_comm_idem_inter)
+  interpret fun_left_comm_idem inf by (fact fun_left_comm_idem_inf)
   from `finite A` show ?thesis by (induct A arbitrary: B)
-    (simp_all add: fold_fun_comm Int_commute)
+    (simp_all add: Inf_empty Inf_insert inf_commute fold_fun_comm)
 qed
 
-lemma union_Union_fold_union:
+lemma sup_Sup_fold_sup:
   assumes "finite A"
-  shows "B \<union> Union A = fold (op \<union>) B A"
+  shows "sup B (Sup A) = fold sup B A"
 proof -
-  interpret fun_left_comm_idem "op \<union>" by (fact fun_left_comm_idem_union)
+  interpret fun_left_comm_idem sup by (fact fun_left_comm_idem_sup)
   from `finite A` show ?thesis by (induct A arbitrary: B)
-    (simp_all add: fold_fun_comm Un_commute)
+    (simp_all add: Sup_empty Sup_insert sup_commute fold_fun_comm)
 qed
 
-lemma Inter_fold_inter:
+lemma Inf_fold_inf:
   assumes "finite A"
-  shows "Inter A = fold (op \<inter>) UNIV A"
-  using assms inter_Inter_fold_inter [of A UNIV] by simp
+  shows "Inf A = fold inf top A"
+  using assms inf_Inf_fold_inf [of A top] by (simp add: inf_absorb2)
 
-lemma Union_fold_union:
+lemma Sup_fold_sup:
   assumes "finite A"
-  shows "Union A = fold (op \<union>) {} A"
-  using assms union_Union_fold_union [of A "{}"] by simp
+  shows "Sup A = fold sup bot A"
+  using assms sup_Sup_fold_sup [of A bot] by (simp add: sup_absorb2)
 
-lemma inter_INTER_fold_inter:
+lemma Inf_fin_Inf:
+  assumes "finite A" and "A \<noteq> {}"
+  shows "\<Sqinter>\<^bsub>fin\<^esub>A = Inf A"
+proof -
+  interpret ab_semigroup_idem_mult inf
+    by (rule ab_semigroup_idem_mult_inf)
+  from `A \<noteq> {}` obtain b B where "A = insert b B" by auto
+  moreover with `finite A` have "finite B" by simp
+  ultimately show ?thesis  
+  by (simp add: Inf_fin_def fold1_eq_fold_idem inf_Inf_fold_inf [symmetric])
+    (simp add: Inf_fold_inf)
+qed
+
+lemma Sup_fin_Sup:
+  assumes "finite A" and "A \<noteq> {}"
+  shows "\<Squnion>\<^bsub>fin\<^esub>A = Sup A"
+proof -
+  interpret ab_semigroup_idem_mult sup
+    by (rule ab_semigroup_idem_mult_sup)
+  from `A \<noteq> {}` obtain b B where "A = insert b B" by auto
+  moreover with `finite A` have "finite B" by simp
+  ultimately show ?thesis  
+  by (simp add: Sup_fin_def fold1_eq_fold_idem sup_Sup_fold_sup [symmetric])
+    (simp add: Sup_fold_sup)
+qed
+
+lemma inf_INFI_fold_inf:
   assumes "finite A"
-  shows "B \<inter> INTER A f = fold (\<lambda>A. op \<inter> (f A)) B A" (is "?inter = ?fold") 
+  shows "inf B (INFI A f) = fold (\<lambda>A. inf (f A)) B A" (is "?inf = ?fold") 
 proof (rule sym)
-  interpret fun_left_comm_idem "op \<inter>" by (fact fun_left_comm_idem_inter)
-  interpret fun_left_comm_idem "\<lambda>A. op \<inter> (f A)" by (fact fun_left_comm_idem_apply)
-  from `finite A` show "?fold = ?inter" by (induct A arbitrary: B) auto
+  interpret fun_left_comm_idem inf by (fact fun_left_comm_idem_inf)
+  interpret fun_left_comm_idem "\<lambda>A. inf (f A)" by (fact fun_left_comm_idem_apply)
+  from `finite A` show "?fold = ?inf"
+  by (induct A arbitrary: B)
+    (simp_all add: INFI_def Inf_empty Inf_insert inf_left_commute)
 qed
 
-lemma union_UNION_fold_union:
+lemma sup_SUPR_fold_sup:
   assumes "finite A"
-  shows "B \<union> UNION A f = fold (\<lambda>A. op \<union> (f A)) B A" (is "?union = ?fold") 
+  shows "sup B (SUPR A f) = fold (\<lambda>A. sup (f A)) B A" (is "?sup = ?fold") 
 proof (rule sym)
-  interpret fun_left_comm_idem "op \<union>" by (fact fun_left_comm_idem_union)
-  interpret fun_left_comm_idem "\<lambda>A. op \<union> (f A)" by (fact fun_left_comm_idem_apply)
-  from `finite A` show "?fold = ?union" by (induct A arbitrary: B) auto
+  interpret fun_left_comm_idem sup by (fact fun_left_comm_idem_sup)
+  interpret fun_left_comm_idem "\<lambda>A. sup (f A)" by (fact fun_left_comm_idem_apply)
+  from `finite A` show "?fold = ?sup"
+  by (induct A arbitrary: B)
+    (simp_all add: SUPR_def Sup_empty Sup_insert sup_left_commute)
 qed
 
-lemma INTER_fold_inter:
+lemma INFI_fold_inf:
   assumes "finite A"
-  shows "INTER A f = fold (\<lambda>A. op \<inter> (f A)) UNIV A"
-  using assms inter_INTER_fold_inter [of A UNIV] by simp
+  shows "INFI A f = fold (\<lambda>A. inf (f A)) top A"
+  using assms inf_INFI_fold_inf [of A top] by simp
 
-lemma UNION_fold_union:
+lemma SUPR_fold_sup:
   assumes "finite A"
-  shows "UNION A f = fold (\<lambda>A. op \<union> (f A)) {} A"
-  using assms union_UNION_fold_union [of A "{}"] by simp
+  shows "SUPR A f = fold (\<lambda>A. sup (f A)) bot A"
+  using assms sup_SUPR_fold_sup [of A bot] by simp
+
+end
 
 end

@@ -11,6 +11,25 @@ authentic syntax.  INCOMPATIBILITY.
 
 * Code generation: ML and OCaml code is decorated with signatures.
 
+* Complete_Lattice.thy: lemmas top_def and bot_def have been replaced
+by the more convenient lemmas Inf_empty and Sup_empty.  Dropped lemmas
+Inf_insert_simp adn Sup_insert_simp, which are subsumed by Inf_insert and
+Sup_insert.  Lemmas Inf_UNIV and Sup_UNIV replace former Inf_Univ and Sup_Univ.
+Lemmas inf_top_right and sup_bot_right subsume inf_top and sup_bot respectively.
+INCOMPATIBILITY.
+
+* Finite_Set.thy and List.thy: some lemmas have been generalized from sets to lattices:
+  fun_left_comm_idem_inter      ~> fun_left_comm_idem_inf
+  fun_left_comm_idem_union      ~> fun_left_comm_idem_sup
+  inter_Inter_fold_inter        ~> inf_Inf_fold_inf
+  union_Union_fold_union        ~> sup_Sup_fold_sup
+  Inter_fold_inter              ~> Inf_fold_inf
+  Union_fold_union              ~> Sup_fold_sup
+  inter_INTER_fold_inter        ~> inf_INFI_fold_inf
+  union_UNION_fold_union        ~> sup_SUPR_fold_sup
+  INTER_fold_inter              ~> INFI_fold_inf
+  UNION_fold_union              ~> SUPR_fold_sup
+
 
 *** ML ***
 

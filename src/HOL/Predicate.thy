@@ -726,7 +726,7 @@ lemma sup_code [code]:
 proof (cases "f ()")
   case Empty
   thus ?thesis
-    unfolding Seq_def by (simp add: sup_commute [of "\<bottom>"]  sup_bot)
+    unfolding Seq_def by (simp add: sup_commute [of "\<bottom>"])
 next
   case Insert
   thus ?thesis

@@ -85,50 +85,6 @@ lemma project_set:
   "project P (set xs) = set (filter P xs)"
   by (auto simp add: project_def)
 
-text {* FIXME move the following to @{text Finite_Set.thy} *}
-
-lemma fun_left_comm_idem_inf:
-  "fun_left_comm_idem inf"
-proof
-qed (auto simp add: inf_left_commute)
-
-lemma fun_left_comm_idem_sup:
-  "fun_left_comm_idem sup"
-proof
-qed (auto simp add: sup_left_commute)
-
-lemma inf_Inf_fold_inf:
-  fixes A :: "'a::complete_lattice set"
-  assumes "finite A"
-  shows "inf B (Inf A) = fold inf B A"
-proof -
-  interpret fun_left_comm_idem inf by (fact fun_left_comm_idem_inf)
-  from `finite A` show ?thesis by (induct A arbitrary: B)
-    (simp_all add: top_def [symmetric] Inf_insert inf_commute fold_fun_comm)
-qed
-
-lemma sup_Sup_fold_sup:
-  fixes A :: "'a::complete_lattice set"
-  assumes "finite A"
-  shows "sup B (Sup A) = fold sup B A"
-proof -
-  interpret fun_left_comm_idem sup by (fact fun_left_comm_idem_sup)
-  from `finite A` show ?thesis by (induct A arbitrary: B)
-    (simp_all add: bot_def [symmetric] Sup_insert sup_commute fold_fun_comm)
-qed
-
-lemma Inf_fold_inf:
-  fixes A :: "'a::complete_lattice set"
-  assumes "finite A"
-  shows "Inf A = fold inf top A"
-  using assms inf_Inf_fold_inf [of A top] by (simp add: inf_absorb2)
-
-lemma Sup_fold_sup:
-  fixes A :: "'a::complete_lattice set"
-  assumes "finite A"
-  shows "Sup A = fold sup bot A"
-  using assms sup_Sup_fold_sup [of A bot] by (simp add: sup_absorb2)
-
 
 subsection {* Functorial set operations *}
 
@@ -148,14 +104,6 @@ proof -
   show ?thesis
     by (simp add: minus_fold_remove [of _ A] fold_set)
 qed
-
-lemma INFI_set_fold: -- "FIXME move to List.thy"
-  "INFI (set xs) f = foldl (\<lambda>y x. inf (f x) y) top xs"
-  unfolding INFI_def image_set Inf_set_fold foldl_map by (simp add: inf_commute)
-
-lemma SUPR_set_fold: -- "FIXME move to List.thy"
-  "SUPR (set xs) f = foldl (\<lambda>y x. sup (f x) y) bot xs"
-  unfolding SUPR_def image_set Sup_set_fold foldl_map by (simp add: sup_commute)
 
 
 subsection {* Derived set operations *}

@@ -70,7 +70,7 @@ lemma le_iff_inf:
 
 lemma mono_inf:
   fixes f :: "'a \<Rightarrow> 'b\<Colon>lower_semilattice"
-  shows "mono f \<Longrightarrow> f (A \<sqinter> B) \<le> f A \<sqinter> f B"
+  shows "mono f \<Longrightarrow> f (A \<sqinter> B) \<sqsubseteq> f A \<sqinter> f B"
   by (auto simp add: mono_def intro: Lattices.inf_greatest)
 
 end
@@ -104,7 +104,7 @@ lemma le_iff_sup:
 
 lemma mono_sup:
   fixes f :: "'a \<Rightarrow> 'b\<Colon>upper_semilattice"
-  shows "mono f \<Longrightarrow> f A \<squnion> f B \<le> f (A \<squnion> B)"
+  shows "mono f \<Longrightarrow> f A \<squnion> f B \<sqsubseteq> f (A \<squnion> B)"
   by (auto simp add: mono_def intro: Lattices.sup_least)
 
 end
@@ -241,22 +241,22 @@ context upper_semilattice
 begin
 
 lemma less_supI1:
-  "x < a \<Longrightarrow> x < a \<squnion> b"
+  "x \<sqsubset> a \<Longrightarrow> x \<sqsubset> a \<squnion> b"
 proof -
   interpret dual: lower_semilattice "op \<ge>" "op >" sup
     by (fact dual_semilattice)
-  assume "x < a"
-  then show "x < a \<squnion> b"
+  assume "x \<sqsubset> a"
+  then show "x \<sqsubset> a \<squnion> b"
     by (fact dual.less_infI1)
 qed
 
 lemma less_supI2:
-  "x < b \<Longrightarrow> x < a \<squnion> b"
+  "x \<sqsubset> b \<Longrightarrow> x \<sqsubset> a \<squnion> b"
 proof -
   interpret dual: lower_semilattice "op \<ge>" "op >" sup
     by (fact dual_semilattice)
-  assume "x < b"
-  then show "x < a \<squnion> b"
+  assume "x \<sqsubset> b"
+  then show "x \<sqsubset> a \<squnion> b"
     by (fact dual.less_infI2)
 qed
 
@@ -294,58 +294,46 @@ lemmas distrib =
 end
 
 
-subsection {* Boolean algebras *}
+subsection {* Bounded lattices and boolean algebras *}
 
-class boolean_algebra = distrib_lattice + top + bot + minus + uminus +
-  assumes inf_compl_bot: "x \<sqinter> - x = bot"
-    and sup_compl_top: "x \<squnion> - x = top"
-  assumes diff_eq: "x - y = x \<sqinter> - y"
+class bounded_lattice = lattice + top + bot
 begin
 
-lemma dual_boolean_algebra:
-  "boolean_algebra (\<lambda>x y. x \<squnion> - y) uminus (op \<ge>) (op >) (op \<squnion>) (op \<sqinter>) top bot"
-  by (rule boolean_algebra.intro, rule dual_distrib_lattice)
-    (unfold_locales,
-      auto simp add: inf_compl_bot sup_compl_top diff_eq less_le_not_le)
-
-lemma compl_inf_bot:
-  "- x \<sqinter> x = bot"
-  by (simp add: inf_commute inf_compl_bot)
-
-lemma compl_sup_top:
-  "- x \<squnion> x = top"
-  by (simp add: sup_commute sup_compl_top)
+lemma dual_bounded_lattice:
+  "bounded_lattice (op \<ge>) (op >) (op \<squnion>) (op \<sqinter>) \<top> \<bottom>"
+  by (rule bounded_lattice.intro, rule dual_lattice)
+    (unfold_locales, auto simp add: less_le_not_le)
 
 lemma inf_bot_left [simp]:
-  "bot \<sqinter> x = bot"
+  "\<bottom> \<sqinter> x = \<bottom>"
   by (rule inf_absorb1) simp
 
 lemma inf_bot_right [simp]:
-  "x \<sqinter> bot = bot"
+  "x \<sqinter> \<bottom> = \<bottom>"
   by (rule inf_absorb2) simp
 
 lemma sup_top_left [simp]:
-  "top \<squnion> x = top"
+  "\<top> \<squnion> x = \<top>"
   by (rule sup_absorb1) simp
 
 lemma sup_top_right [simp]:
-  "x \<squnion> top = top"
+  "x \<squnion> \<top> = \<top>"
   by (rule sup_absorb2) simp
 
 lemma inf_top_left [simp]:
-  "top \<sqinter> x = x"
+  "\<top> \<sqinter> x = x"
   by (rule inf_absorb2) simp
 
 lemma inf_top_right [simp]:
-  "x \<sqinter> top = x"
+  "x \<sqinter> \<top> = x"
   by (rule inf_absorb1) simp
 
 lemma sup_bot_left [simp]:
-  "bot \<squnion> x = x"
+  "\<bottom> \<squnion> x = x"
   by (rule sup_absorb2) simp
 
 lemma sup_bot_right [simp]:
-  "x \<squnion> bot = x"
+  "x \<squnion> \<bottom> = x"
   by (rule sup_absorb1) simp
 
 lemma inf_eq_top_eq1:
@@ -354,8 +342,8 @@ lemma inf_eq_top_eq1:
 proof (cases "B = \<top>")
   case True with assms show ?thesis by simp
 next
-  case False with top_greatest have "B < \<top>" by (auto intro: neq_le_trans)
-  then have "A \<sqinter> B < \<top>" by (rule less_infI2)
+  case False with top_greatest have "B \<sqsubset> \<top>" by (auto intro: neq_le_trans)
+  then have "A \<sqinter> B \<sqsubset> \<top>" by (rule less_infI2)
   with assms show ?thesis by simp
 qed
 
@@ -368,8 +356,8 @@ lemma sup_eq_bot_eq1:
   assumes "A \<squnion> B = \<bottom>"
   shows "A = \<bottom>"
 proof -
-  interpret dual: boolean_algebra "\<lambda>x y. x \<squnion> - y" uminus "op \<ge>" "op >" "op \<squnion>" "op \<sqinter>" top bot
-    by (rule dual_boolean_algebra)
+  interpret dual: bounded_lattice "op \<ge>" "op >" "op \<squnion>" "op \<sqinter>" \<top> \<bottom>
+    by (rule dual_bounded_lattice)
   from dual.inf_eq_top_eq1 assms show ?thesis .
 qed
 
@@ -377,14 +365,35 @@ lemma sup_eq_bot_eq2:
   assumes "A \<squnion> B = \<bottom>"
   shows "B = \<bottom>"
 proof -
-  interpret dual: boolean_algebra "\<lambda>x y. x \<squnion> - y" uminus "op \<ge>" "op >" "op \<squnion>" "op \<sqinter>" top bot
-    by (rule dual_boolean_algebra)
+  interpret dual: bounded_lattice "op \<ge>" "op >" "op \<squnion>" "op \<sqinter>" \<top> \<bottom>
+    by (rule dual_bounded_lattice)
   from dual.inf_eq_top_eq2 assms show ?thesis .
 qed
 
+end
+
+class boolean_algebra = distrib_lattice + bounded_lattice + minus + uminus +
+  assumes inf_compl_bot: "x \<sqinter> - x = \<bottom>"
+    and sup_compl_top: "x \<squnion> - x = \<top>"
+  assumes diff_eq: "x - y = x \<sqinter> - y"
+begin
+
+lemma dual_boolean_algebra:
+  "boolean_algebra (\<lambda>x y. x \<squnion> - y) uminus (op \<ge>) (op >) (op \<squnion>) (op \<sqinter>) \<top> \<bottom>"
+  by (rule boolean_algebra.intro, rule dual_bounded_lattice, rule dual_distrib_lattice)
+    (unfold_locales, auto simp add: inf_compl_bot sup_compl_top diff_eq)
+
+lemma compl_inf_bot:
+  "- x \<sqinter> x = \<bottom>"
+  by (simp add: inf_commute inf_compl_bot)
+
+lemma compl_sup_top:
+  "- x \<squnion> x = \<top>"
+  by (simp add: sup_commute sup_compl_top)
+
 lemma compl_unique:
-  assumes "x \<sqinter> y = bot"
-    and "x \<squnion> y = top"
+  assumes "x \<sqinter> y = \<bottom>"
+    and "x \<squnion> y = \<top>"
   shows "- x = y"
 proof -
   have "(x \<sqinter> - x) \<squnion> (- x \<sqinter> y) = (x \<sqinter> y) \<squnion> (- x \<sqinter> y)"
@@ -393,7 +402,7 @@ proof -
     by (simp add: inf_commute)
   then have "- x \<sqinter> (x \<squnion> y) = y \<sqinter> (x \<squnion> - x)"
     by (simp add: inf_sup_distrib1)
-  then have "- x \<sqinter> top = y \<sqinter> top"
+  then have "- x \<sqinter> \<top> = y \<sqinter> \<top>"
     using sup_compl_top assms(2) by simp
   then show "- x = y" by (simp add: inf_top_right)
 qed
@@ -406,8 +415,8 @@ lemma compl_eq_compl_iff [simp]:
   "- x = - y \<longleftrightarrow> x = y"
 proof
   assume "- x = - y"
-  then have "- x \<sqinter> y = bot"
-    and "- x \<squnion> y = top"
+  then have "- x \<sqinter> y = \<bottom>"
+    and "- x \<squnion> y = \<top>"
     by (simp_all add: compl_inf_bot compl_sup_top)
   then have "- (- x) = y" by (rule compl_unique)
   then show "x = y" by simp
@@ -417,16 +426,16 @@ next
 qed
 
 lemma compl_bot_eq [simp]:
-  "- bot = top"
+  "- \<bottom> = \<top>"
 proof -
-  from sup_compl_top have "bot \<squnion> - bot = top" .
+  from sup_compl_top have "\<bottom> \<squnion> - \<bottom> = \<top>" .
   then show ?thesis by simp
 qed
 
 lemma compl_top_eq [simp]:
-  "- top = bot"
+  "- \<top> = \<bottom>"
 proof -
-  from inf_compl_bot have "top \<sqinter> - top = bot" .
+  from inf_compl_bot have "\<top> \<sqinter> - \<top> = \<bottom>" .
   then show ?thesis by simp
 qed
 
@@ -437,21 +446,21 @@ proof (rule compl_unique)
     by (rule inf_sup_distrib1)
   also have "... = (y \<sqinter> (x \<sqinter> - x)) \<squnion> (x \<sqinter> (y \<sqinter> - y))"
     by (simp only: inf_commute inf_assoc inf_left_commute)
-  finally show "(x \<sqinter> y) \<sqinter> (- x \<squnion> - y) = bot"
+  finally show "(x \<sqinter> y) \<sqinter> (- x \<squnion> - y) = \<bottom>"
     by (simp add: inf_compl_bot)
 next
   have "(x \<sqinter> y) \<squnion> (- x \<squnion> - y) = (x \<squnion> (- x \<squnion> - y)) \<sqinter> (y \<squnion> (- x \<squnion> - y))"
     by (rule sup_inf_distrib2)
   also have "... = (- y \<squnion> (x \<squnion> - x)) \<sqinter> (- x \<squnion> (y \<squnion> - y))"
     by (simp only: sup_commute sup_assoc sup_left_commute)
-  finally show "(x \<sqinter> y) \<squnion> (- x \<squnion> - y) = top"
+  finally show "(x \<sqinter> y) \<squnion> (- x \<squnion> - y) = \<top>"
     by (simp add: sup_compl_top)
 qed
 
 lemma compl_sup [simp]:
   "- (x \<squnion> y) = - x \<sqinter> - y"
 proof -
-  interpret boolean_algebra "\<lambda>x y. x \<squnion> - y" uminus "op \<ge>" "op >" "op \<squnion>" "op \<sqinter>" top bot
+  interpret boolean_algebra "\<lambda>x y. x \<squnion> - y" uminus "op \<ge>" "op >" "op \<squnion>" "op \<sqinter>" \<top> \<bottom>
     by (rule dual_boolean_algebra)
   then show ?thesis by simp
 qed
@@ -463,26 +472,26 @@ subsection {* Uniqueness of inf and sup *}
 
 lemma (in lower_semilattice) inf_unique:
   fixes f (infixl "\<triangle>" 70)
-  assumes le1: "\<And>x y. x \<triangle> y \<le> x" and le2: "\<And>x y. x \<triangle> y \<le> y"
-  and greatest: "\<And>x y z. x \<le> y \<Longrightarrow> x \<le> z \<Longrightarrow> x \<le> y \<triangle> z"
+  assumes le1: "\<And>x y. x \<triangle> y \<sqsubseteq> x" and le2: "\<And>x y. x \<triangle> y \<sqsubseteq> y"
+  and greatest: "\<And>x y z. x \<sqsubseteq> y \<Longrightarrow> x \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> y \<triangle> z"
   shows "x \<sqinter> y = x \<triangle> y"
 proof (rule antisym)
-  show "x \<triangle> y \<le> x \<sqinter> y" by (rule le_infI) (rule le1, rule le2)
+  show "x \<triangle> y \<sqsubseteq> x \<sqinter> y" by (rule le_infI) (rule le1, rule le2)
 next
-  have leI: "\<And>x y z. x \<le> y \<Longrightarrow> x \<le> z \<Longrightarrow> x \<le> y \<triangle> z" by (blast intro: greatest)
-  show "x \<sqinter> y \<le> x \<triangle> y" by (rule leI) simp_all
+  have leI: "\<And>x y z. x \<sqsubseteq> y \<Longrightarrow> x \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> y \<triangle> z" by (blast intro: greatest)
+  show "x \<sqinter> y \<sqsubseteq> x \<triangle> y" by (rule leI) simp_all
 qed
 
 lemma (in upper_semilattice) sup_unique:
   fixes f (infixl "\<nabla>" 70)
-  assumes ge1 [simp]: "\<And>x y. x \<le> x \<nabla> y" and ge2: "\<And>x y. y \<le> x \<nabla> y"
-  and least: "\<And>x y z. y \<le> x \<Longrightarrow> z \<le> x \<Longrightarrow> y \<nabla> z \<le> x"
+  assumes ge1 [simp]: "\<And>x y. x \<sqsubseteq> x \<nabla> y" and ge2: "\<And>x y. y \<sqsubseteq> x \<nabla> y"
+  and least: "\<And>x y z. y \<sqsubseteq> x \<Longrightarrow> z \<sqsubseteq> x \<Longrightarrow> y \<nabla> z \<sqsubseteq> x"
   shows "x \<squnion> y = x \<nabla> y"
 proof (rule antisym)
-  show "x \<squnion> y \<le> x \<nabla> y" by (rule le_supI) (rule ge1, rule ge2)
+  show "x \<squnion> y \<sqsubseteq> x \<nabla> y" by (rule le_supI) (rule ge1, rule ge2)
 next
-  have leI: "\<And>x y z. x \<le> z \<Longrightarrow> y \<le> z \<Longrightarrow> x \<nabla> y \<le> z" by (blast intro: least)
-  show "x \<nabla> y \<le> x \<squnion> y" by (rule leI) simp_all
+  have leI: "\<And>x y z. x \<sqsubseteq> z \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<nabla> y \<sqsubseteq> z" by (blast intro: least)
+  show "x \<nabla> y \<sqsubseteq> x \<squnion> y" by (rule leI) simp_all
 qed
   
 
@@ -567,6 +576,8 @@ end
 instance "fun" :: (type, distrib_lattice) distrib_lattice
 proof
 qed (simp_all add: inf_fun_eq sup_fun_eq sup_inf_distrib1)
+
+instance "fun" :: (type, bounded_lattice) bounded_lattice ..
 
 instantiation "fun" :: (type, uminus) uminus
 begin

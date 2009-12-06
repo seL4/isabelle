@@ -236,12 +236,12 @@ lemma union_insert [code]:
 lemma Inf_inf [code]:
   "Inf (Set xs) = foldl inf (top :: 'a::complete_lattice) xs"
   "Inf (Coset []) = (bot :: 'a::complete_lattice)"
-  by (simp_all add: Inf_Univ bot_def [symmetric] Inf_set_fold)
+  by (simp_all add: Inf_UNIV Inf_set_fold)
 
 lemma Sup_sup [code]:
   "Sup (Set xs) = foldl sup (bot :: 'a::complete_lattice) xs"
   "Sup (Coset []) = (top :: 'a::complete_lattice)"
-  by (simp_all add: Sup_Univ top_def [symmetric] Sup_set_fold)
+  by (simp_all add: Sup_UNIV Sup_set_fold)
 
 lemma Inter_inter [code]:
   "Inter (Set xs) = foldl inter (Coset []) xs"
