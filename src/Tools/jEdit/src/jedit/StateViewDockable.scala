@@ -72,8 +72,7 @@ class StateViewDockable(view : View, position : String) extends JPanel {
   try_file("$ISABELLE_HOME/lib/html/isabelle.css") + "\n" +
 """
 body {
-  white-space: pre;
-  font-family: IsabelleMono;
+  font-family: IsabelleText;
   font-size: 14pt;
 }
 """ +
@@ -85,7 +84,7 @@ body {
 """)))
   }
 
-  val empty_body = XML.document_node(doc, HTML.body(Nil))
+  val empty_body = XML.document_node(doc, XML.elem(HTML.BODY))
   doc.appendChild(empty_body)
 
   panel.setDocument(doc, rcontext)
@@ -98,10 +97,16 @@ body {
 
     val node =
       if (cmd == null) empty_body
-      else XML.document_node(doc, HTML.body(
-        cmd.results(theory_view.current_document).map((t: XML.Tree) => HTML.div(HTML.spans(t)))))
-    doc.removeChild(doc.getLastChild())
-    doc.appendChild(node)
-    panel.delayedRelayout(node.asInstanceOf[NodeImpl])
+      else {
+        val xml = XML.elem(HTML.BODY,
+          cmd.results(theory_view.current_document).
+            map((t: XML.Tree) => XML.elem(HTML.PRE, HTML.spans(t))))
+        XML.document_node(doc, xml)
+      }
+    Swing_Thread.later {
+      doc.removeChild(doc.getLastChild())
+      doc.appendChild(node)
+      panel.delayedRelayout(node.asInstanceOf[NodeImpl])
+    }
   })
 }
