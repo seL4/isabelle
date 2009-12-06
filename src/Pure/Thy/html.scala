@@ -61,7 +61,7 @@ object HTML
             case "\\<^sub>" | "\\<^isub>" => add(hidden(s1)); add(sub(s2))
             case "\\<^sup>" | "\\<^isup>" => add(hidden(s1)); add(sup(s2))
             case "\\<^bold>" => add(hidden(s1)); add(span("bold", List(XML.Text(s2))))
-            case "\\<^loc>" => add(hidden(s2)); add(span("loc", List(XML.Text(s2))))
+            case "\\<^loc>" => add(hidden(s1)); add(span("loc", List(XML.Text(s2))))
             case _ => t ++ s1
           }
         }
