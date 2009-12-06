@@ -26,6 +26,9 @@ object XML
   case class Elem(name: String, attributes: Attributes, body: List[Tree]) extends Tree
   case class Text(content: String) extends Tree
 
+  def elem(name: String, body: List[Tree]) = Elem(name, Nil, body)
+  def elem(name: String) = Elem(name, Nil, Nil)
+
 
   /* string representation */
 
