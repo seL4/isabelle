@@ -51,17 +51,17 @@ object HTML
         val syms = Symbol.elements(txt)
         while (syms.hasNext) {
           val s1 = syms.next
-          lazy val s2 = if (syms.hasNext) syms.next else ""
+          def s2() = if (syms.hasNext) syms.next else ""
           s1 match {
             case "\n" => add(XML.elem(BR))
             case "\\<^bsub>" => t ++ s1  // FIXME
             case "\\<^esub>" => t ++ s1  // FIXME
             case "\\<^bsup>" => t ++ s1  // FIXME
             case "\\<^esup>" => t ++ s1  // FIXME
-            case "\\<^sub>" | "\\<^isub>" => add(hidden(s1)); add(sub(s2))
-            case "\\<^sup>" | "\\<^isup>" => add(hidden(s1)); add(sup(s2))
-            case "\\<^bold>" => add(hidden(s1)); add(span("bold", List(XML.Text(s2))))
-            case "\\<^loc>" => add(hidden(s1)); add(span("loc", List(XML.Text(s2))))
+            case "\\<^sub>" | "\\<^isub>" => add(hidden(s1)); add(sub(s2()))
+            case "\\<^sup>" | "\\<^isup>" => add(hidden(s1)); add(sup(s2()))
+            case "\\<^bold>" => add(hidden(s1)); add(span("bold", List(XML.Text(s2()))))
+            case "\\<^loc>" => add(hidden(s1)); add(span("loc", List(XML.Text(s2()))))
             case _ => t ++ s1
           }
         }
