@@ -45,7 +45,7 @@ object Symbol
   private def could_open(c: Char): Boolean =
     c == '\\' || Character.isHighSurrogate(c)
 
-  def elements(text: CharSequence) = new Iterator[CharSequence] {
+  def elements(text: CharSequence) = new Iterator[String] {
     private val matcher = regex.pattern.matcher(text)
     private var i = 0
     def hasNext = i < text.length
@@ -58,7 +58,7 @@ object Symbol
         else 1
       val s = text.subSequence(i, i + len)
       i += len
-      s
+      s.toString
     }
   }
 
