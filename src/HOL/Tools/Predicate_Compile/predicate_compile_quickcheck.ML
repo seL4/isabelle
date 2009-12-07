@@ -106,7 +106,7 @@ fun quickcheck ctxt t =
       mk_split_lambda (map Free vs') (mk_return (HOLogic.mk_list @{typ term}
       (map2 HOLogic.mk_term_of (map snd vs') (map Free vs'))))))
     val _ = tracing (Syntax.string_of_term ctxt' qc_term)
-    val compile = Code_ML.eval (SOME target) ("Predicate_Compile_Quickcheck.test_ref", test_ref)
+    val compile = Code_Eval.eval (SOME target) ("Predicate_Compile_Quickcheck.test_ref", test_ref)
       (fn proc => fn g => fn s => g s #>> (Predicate.map o map) proc)
       thy'' qc_term []
   in
