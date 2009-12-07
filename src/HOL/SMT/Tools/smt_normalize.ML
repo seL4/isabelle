@@ -75,8 +75,26 @@ local
     | Abs _ => Conv.abs_conv (norm_conv o snd)
     | _ $ _ => Conv.comb_conv o norm_conv
     | _ => K Conv.all_conv) ctxt ct
+
+  fun is_normed t =
+    (case t of
+      Const (@{const_name All}, _) $ Abs (_, _, u) => is_normed u
+    | Const (@{const_name All}, _) $ _ => false
+    | Const (@{const_name All}, _) => false
+    | Const (@{const_name Ex}, _) $ Abs (_, _, u) => is_normed u
+    | Const (@{const_name Ex}, _) $ _ => false
+    | Const (@{const_name Ex}, _) => false
+    | Const (@{const_name Let}, _) $ u1 $ Abs (_, _, u2) =>
+        is_normed u1 andalso is_normed u2
+    | Const (@{const_name Let}, _) $ _ $ _ => false
+    | Const (@{const_name Let}, _) $ _ => false
+    | Const (@{const_name Let}, _) => false
+    | Abs (_, _, u) => is_normed u
+    | u1 $ u2 => is_normed u1 andalso is_normed u2
+    | _ => true)
 in
-val norm_binder_conv = norm_conv
+fun norm_binder_conv ctxt ct =
+  if is_normed (Thm.term_of ct) then Conv.all_conv ct else norm_conv ctxt ct
 end
 
 fun cert ctxt = Thm.cterm_of (ProofContext.theory_of ctxt)
@@ -94,6 +112,19 @@ fun norm_def ctxt thm =
       norm_def ctxt (thm RS @{thm fun_cong})
   | _ => thm)
 
+fun atomize_conv ctxt ct =
+  (case Thm.term_of ct of
+    @{term "op ==>"} $ _ $ _ =>
+      Conv.binop_conv (atomize_conv ctxt) then_conv
+      Conv.rewr_conv @{thm atomize_imp}
+  | Const (@{const_name "=="}, _) $ _ $ _ =>
+      Conv.binop_conv (atomize_conv ctxt) then_conv
+      Conv.rewr_conv @{thm atomize_eq}
+  | Const (@{const_name all}, _) $ Abs _ =>
+      More_Conv.binder_conv atomize_conv ctxt then_conv
+      Conv.rewr_conv @{thm atomize_all}
+  | _ => Conv.all_conv) ct
+
 fun normalize_rule ctxt =
   Conv.fconv_rule (
     Thm.beta_conversion true then_conv
@@ -101,7 +132,7 @@ fun normalize_rule ctxt =
     norm_binder_conv ctxt) #>
   norm_def ctxt #>
   Drule.forall_intr_vars #>
-  Conv.fconv_rule (ObjectLogic.atomize then_conv norm_binder_conv ctxt)
+  Conv.fconv_rule (atomize_conv ctxt)
 
 fun instantiate_free (cv, ct) thm =
   if Term.exists_subterm (equal (Thm.term_of cv)) (Thm.prop_of thm)
@@ -289,14 +320,20 @@ local
   fun add_sym t = if AList.defined (op =) defs t then insert (op =) t else I
   fun add_syms thms = fold (Term.fold_aterms add_sym o Thm.prop_of) thms []
 
-  fun unfold_conv ct =
-    (case AList.lookup (op =) defs (Term.head_of (Thm.term_of ct)) of
+  fun unfold_def_conv ds ct =
+    (case AList.lookup (op =) ds (Term.head_of (Thm.term_of ct)) of
       SOME (_, eq) => Conv.rewr_conv eq
     | NONE => Conv.all_conv) ct
+
+  fun unfold_conv ctxt thm =
+    (case filter (member (op =) (add_syms [thm]) o fst) defs of
+      [] => thm
+    | ds => thm |> Conv.fconv_rule
+        (More_Conv.bottom_conv (K (unfold_def_conv ds)) ctxt))
 in
 fun add_abs_min_max_rules ctxt thms =
   if Config.get ctxt unfold_defs
-  then map (Conv.fconv_rule (More_Conv.bottom_conv (K unfold_conv) ctxt)) thms
+  then map (unfold_conv ctxt) thms
   else map fst (map_filter (AList.lookup (op =) defs) (add_syms thms)) @ thms
 end
 
@@ -361,13 +398,23 @@ local
         in_abs repl cvs ct #-> (fn thm =>
         replace ctxt cvs (Thm.rhs_of thm) #>> Thm.transitive thm)
     in repl [] end
+
+  fun has_free_lambdas t =
+    (case t of
+      Const (@{const_name All}, _) $ Abs (_, _, u) => has_free_lambdas u
+    | Const (@{const_name Ex}, _) $ Abs (_, _, u) => has_free_lambdas u
+    | Const (@{const_name Let}, _) $ u1 $ Abs (_, _, u2) =>
+        has_free_lambdas u1 orelse has_free_lambdas u2
+    | Abs _ => true
+    | u1 $ u2 => has_free_lambdas u1 orelse has_free_lambdas u2
+    | _ => false)
 in
 fun lift_lambdas ctxt thms =
   let
     val declare_frees = fold (Thm.fold_terms Term.declare_term_frees)
     fun rewrite f thm cx =
-      let val (thm', cx') = f (Thm.cprop_of thm) cx
-      in (Thm.equal_elim thm' thm, cx') end
+      if not (has_free_lambdas (Thm.prop_of thm)) then (thm, cx)
+      else f (Thm.cprop_of thm) cx |>> (fn thm' => Thm.equal_elim thm' thm)
 
     val rev_int_fst_ord = rev_order o int_ord o pairself fst
     fun ordered_values tab =
@@ -425,8 +472,18 @@ fun explicit_application ctxt thms =
         Conv.rewr_conv apply_rule then_conv
         binop_conv (apply_conv tb ctxt (i-1)) (sub_conv tb ctxt)) ct
 
+    fun needs_exp_app tab = Term.exists_subterm (fn
+        Bound _ $ _ => true
+      | Const (n, _) => Symtab.defined tab (const n)
+      | Free (n, _) => Symtab.defined tab (free n)
+      | _ => false)
+
+    fun rewrite tab ctxt thm =
+      if not (needs_exp_app tab (Thm.prop_of thm)) then thm
+      else Conv.fconv_rule (sub_conv tab ctxt) thm
+
     val tab = prune_tab (fold (traverse o Thm.prop_of) thms Symtab.empty)
-  in map (Conv.fconv_rule (sub_conv tab ctxt)) thms end
+  in map (rewrite tab ctxt) thms end
 end
 
 

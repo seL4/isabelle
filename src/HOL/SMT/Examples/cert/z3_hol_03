@@ -3,11 +3,13 @@
 :extrafuns (
   (uf_3 T2)
   (uf_1 T1 T1)
-  (uf_2 T2 T2)
   (uf_4 T1)
  )
+:extrapreds (
+  (up_2 T2)
+ )
 :assumption (forall (?x1 T1) (= (uf_1 ?x1) ?x1))
-:assumption (forall (?x2 T2) (iff (= (uf_2 ?x2) uf_3) (= ?x2 uf_3)))
-:assumption (not (and (= (uf_1 uf_4) uf_4) (iff (= (uf_2 uf_3) uf_3) true)))
+:assumption (forall (?x2 T2) (iff (up_2 ?x2) (= ?x2 uf_3)))
+:assumption (not (and (= (uf_1 uf_4) uf_4) (iff (up_2 uf_3) true)))
 :formula true
 )

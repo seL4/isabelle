@@ -12,10 +12,10 @@ end
 structure Boogie_Loader: BOOGIE_LOADER =
 struct
 
-fun log verbose text args thy =
-  if verbose
-  then (Pretty.writeln (Pretty.big_list text (map Pretty.str args)); thy)
-  else thy
+fun log verbose text args x =
+  if verbose andalso not (null args)
+  then (Pretty.writeln (Pretty.big_list text (map Pretty.str args)); x)
+  else x
 
 val isabelle_name =
   let 
@@ -35,7 +35,7 @@ val short_name =
 
 fun label_name line col = "L_" ^ string_of_int line ^ "_" ^ string_of_int col
 
-datatype attribute_value = StringValue of string | TermValue of Term.term
+datatype attribute_value = StringValue of string | TermValue of term
 
 
 
@@ -51,27 +51,28 @@ local
       else NONE
     end
 
+  fun log_new bname name = bname ^ " (as " ^ name ^ ")"
+  fun log_ex bname name = "[" ^ bname ^ " has already been declared as " ^
+    name ^ "]"
+
   fun declare (name, arity) thy =
     let val isa_name = isabelle_name name
     in
       (case lookup_type_name thy isa_name arity of
-        SOME type_name => ((type_name, false), thy)
+        SOME type_name => (((name, type_name), log_ex name type_name), thy)
       | NONE =>
           let
             val args = Name.variant_list [] (replicate arity "'")
             val (T, thy') =
               ObjectLogic.typedecl (Binding.name isa_name, args, NoSyn) thy
             val type_name = fst (Term.dest_Type T)
-          in ((type_name, true), thy') end)
+          in (((name, type_name), log_new name type_name), thy') end)
     end
-
-  fun type_names ((name, _), (new_name, new)) =
-    if new then SOME (new_name ^ " (was " ^ name ^ ")") else NONE
 in
 fun declare_types verbose tys =
-  fold_map declare tys #-> (fn tds =>
-  log verbose "Declared types:" (map_filter type_names (tys ~~ tds)) #>
-  rpair (Symtab.make (map fst tys ~~ map fst tds)))
+  fold_map declare tys #>> split_list #-> (fn (tds, logs) =>
+  log verbose "Declared types:" logs #>
+  rpair (Symtab.make tds))
 end
 
 
@@ -146,23 +147,26 @@ local
       else NONE
     end
 
-  fun declare (name, ((Ts, T), atts)) thy =
-    let val isa_name = isabelle_name name and U = Ts ---> T
-    in
-      (case lookup_const thy isa_name U of
-        SOME t => (((name, t), false), thy)
-      | NONE => 
-          (case maybe_builtin U atts of
-            SOME t => (((name, t), false), thy)
-          | NONE =>
-              thy
-              |> Sign.declare_const ((Binding.name isa_name, U),
-                   mk_syntax name (length Ts))
-              |> apfst (rpair true o pair name)))
-    end
+  fun log_term thy t = Syntax.string_of_term_global thy t
+  fun log_new thy name t = name ^ " (as " ^ log_term thy t ^ ")"
+  fun log_ex thy name t = "[" ^ name ^ " has already been declared as " ^
+    log_term thy t ^ "]"
+  fun log_builtin thy name t = "[" ^ name ^ " has been identified as " ^
+    log_term thy t ^ "]"
 
-  fun new_names ((name, t), new) =
-    if new then SOME (fst (Term.dest_Const t) ^ " (as " ^ name ^ ")") else NONE
+  fun declare' name isa_name T arity atts thy =
+    (case lookup_const thy isa_name T of
+      SOME t => (((name, t), log_ex thy name t), thy)
+    | NONE =>
+        (case maybe_builtin T atts of
+          SOME t => (((name, t), log_builtin thy name t), thy)
+        | NONE =>
+            thy
+            |> Sign.declare_const ((Binding.name isa_name, T),
+                 mk_syntax name arity)
+            |> (fn (t, thy') => (((name, t), log_new thy' name t), thy'))))
+  fun declare (name, ((Ts, T), atts)) =
+    declare' name (isabelle_name name) (Ts ---> T) (length Ts) atts
 
   fun uniques fns fds =
     let
@@ -182,9 +186,9 @@ local
     end
 in
 fun declare_functions verbose fns =
-  fold_map declare fns #-> (fn fds =>
-  log verbose "Declared constants:" (map_filter new_names fds) #>
-  rpair (` (uniques fns) (Symtab.make (map fst fds))))
+  fold_map declare fns #>> split_list #-> (fn (fds, logs) =>
+  log verbose "Loaded constants:" logs #>
+  rpair (` (uniques fns) (Symtab.make fds)))
 end
 
 
@@ -194,17 +198,41 @@ local
     let fun mk_name idx = "axiom_" ^ string_of_int (idx + 1)
     in map_index (fn (idx, t) => (mk_name idx, HOLogic.mk_Trueprop t)) axs end
 
-  fun only_new_boogie_axioms thy =
-    let val baxs = map Thm.prop_of (Boogie_Axioms.get (ProofContext.init thy))
-    in filter_out (member (op aconv) baxs o snd) end
+  datatype kind = Unused of thm | Used of thm | New of string
+
+  fun mark (name, t) axs =
+    (case Termtab.lookup axs t of
+      SOME (Unused thm) => Termtab.update (t, Used thm) axs
+    | NONE => Termtab.update (t, New name) axs
+    | SOME _ => axs)
+
+  val sort_fst_str = sort (prod_ord fast_string_ord (K EQUAL)) 
+  fun split_list_kind thy axs =
+    let
+      fun split (_, Used thm) (used, new) = (thm :: used, new)
+        | split (t, New name) (used, new) = (used, (name, t) :: new)
+        | split (t, Unused thm) (used, new) =
+           (warning (Pretty.str_of
+             (Pretty.big_list "This background axiom has not been loaded:"
+               [Display.pretty_thm_global thy thm]));
+            (used, new))
+    in apsnd sort_fst_str (fold split axs ([], [])) end
+
+  fun mark_axioms thy axs =
+    Boogie_Axioms.get (ProofContext.init thy)
+    |> Termtab.make o map (fn thm => (Thm.prop_of thm, Unused thm))
+    |> fold mark axs
+    |> split_list_kind thy o Termtab.dest
 in
 fun add_axioms verbose axs thy =
-  let val axs' = only_new_boogie_axioms thy (name_axioms axs)
+  let val (used, new) = mark_axioms thy (name_axioms axs)
   in
     thy
-    |> PureThy.add_axioms (map (rpair [] o apfst Binding.name) axs')
+    |> PureThy.add_axioms (map (rpair [] o apfst Binding.name) new)
     |-> Context.theory_map o fold Boogie_Axioms.add_thm
-    |> log verbose "The following axioms were added:" (map fst axs')
+    |> log verbose "The following axioms were added:" (map fst new)
+    |> (fn thy' => log verbose "The following axioms already existed:"
+         (map (Display.string_of_thm_global thy') used) thy')
     |> Context.theory_map (fn context => fold Split_VC_SMT_Rules.add_thm
          (Boogie_Axioms.get (Context.proof_of context)) context)
   end

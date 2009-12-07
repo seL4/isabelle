@@ -928,9 +928,9 @@ fun read_const_exprs thy =
           | NONE => thy;
         val cs = Symtab.fold (fn (c, (_, NONE)) => cons c | _ => I)
           ((snd o #constants o Consts.dest o #consts o Sign.rep_sg) thy') [];
-        fun belongs_here c =
-          not (exists (fn thy'' => Sign.declared_const thy'' c) (Theory.parents_of thy'))
-      in if is_some some_thyname then cs else filter belongs_here cs end;
+        fun belongs_here c = forall
+          (fn thy'' => not (Sign.declared_const thy'' c)) (Theory.parents_of thy')
+      in if is_some some_thyname then filter belongs_here cs else cs end;
     fun read_const_expr "*" = ([], consts_of NONE)
       | read_const_expr s = if String.isSuffix ".*" s
           then ([], consts_of (SOME (unsuffix ".*" s)))
