@@ -58,7 +58,8 @@ local
   val hidden = XML.text #> (span Markup.hiddenN |-> enclose);
 
   val html_syms = Symtab.make
-   [("\n", (0, "<br/>")),
+   [("", (0, "")),
+    ("\n", (0, "<br/>")),
     ("'", (1, "&#39;")),
     ("\\<spacespace>", (2, "&nbsp;&nbsp;")),
     ("\\<exclamdown>", (1, "&iexcl;")),
@@ -221,13 +222,14 @@ local
   val output_bold = output_markup (span "bold");
   val output_loc = output_markup (span "loc");
 
-  fun output_syms (s1 :: s2 :: ss) =
-        if s1 = "\\<^sub>" orelse s1 = "\\<^isub>" then output_sub s1 s2 :: output_syms ss
-        else if s1 = "\\<^sup>" orelse s1 = "\\<^isup>" then output_sup s1 s2 :: output_syms ss
-        else if s1 = "\\<^bold>" then output_bold s1 s2 :: output_syms ss
-        else if s1 = "\\<^loc>" then output_loc s1 s2 :: output_syms ss
-        else output_sym s1 :: output_syms (s2 :: ss)
-    | output_syms (s :: ss) = output_sym s :: output_syms ss
+  fun output_syms (s1 :: rest) =
+        let val (s2, ss) = (case rest of [] => ("", []) | s2 :: ss => (s2, ss)) in
+          if s1 = "\\<^sub>" orelse s1 = "\\<^isub>" then output_sub s1 s2 :: output_syms ss
+          else if s1 = "\\<^sup>" orelse s1 = "\\<^isup>" then output_sup s1 s2 :: output_syms ss
+          else if s1 = "\\<^bold>" then output_bold s1 s2 :: output_syms ss
+          else if s1 = "\\<^loc>" then output_loc s1 s2 :: output_syms ss
+          else output_sym s1 :: output_syms rest
+        end
     | output_syms [] = [];
 in
 
