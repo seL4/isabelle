@@ -7,7 +7,6 @@
 
 package isabelle.jedit
 
-import isabelle.renderer.UserAgent
 import isabelle.XML
 
 import java.io.StringReader
