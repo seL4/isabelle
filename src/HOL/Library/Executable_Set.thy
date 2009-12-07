@@ -1,103 +1,271 @@
 (*  Title:      HOL/Library/Executable_Set.thy
     Author:     Stefan Berghofer, TU Muenchen
+    Author:     Florian Haftmann, TU Muenchen
 *)
 
-header {* Implementation of finite sets by lists *}
+header {* A crude implementation of finite sets by lists -- avoid using this at any cost! *}
 
 theory Executable_Set
-imports Main Fset SML_Quickcheck
+imports List_Set
 begin
 
-subsection {* Preprocessor setup *}
+declare mem_def [code del]
+declare Collect_def [code del]
+declare insert_code [code del]
+declare vimage_code [code del]
 
-declare member [code] 
+subsection {* Set representation *}
+
+setup {*
+  Code.add_type_cmd "set"
+*}
+
+definition Set :: "'a list \<Rightarrow> 'a set" where
+  [simp]: "Set = set"
+
+definition Coset :: "'a list \<Rightarrow> 'a set" where
+  [simp]: "Coset xs = - set xs"
+
+setup {*
+  Code.add_signature_cmd ("Set", "'a list \<Rightarrow> 'a set")
+  #> Code.add_signature_cmd ("Coset", "'a list \<Rightarrow> 'a set")
+  #> Code.add_signature_cmd ("set", "'a list \<Rightarrow> 'a set")
+  #> Code.add_signature_cmd ("op \<in>", "'a \<Rightarrow> 'a set \<Rightarrow> bool")
+*}
+
+code_datatype Set Coset
+
+consts_code
+  Coset ("\<module>Coset")
+  Set ("\<module>Set")
+attach {*
+  datatype 'a set = Set of 'a list | Coset of 'a list;
+*} -- {* This assumes that there won't be a @{text Coset} without a @{text Set} *}
+
+
+subsection {* Basic operations *}
+
+lemma [code]:
+  "set xs = Set (remdups xs)"
+  by simp
+
+lemma [code]:
+  "x \<in> Set xs \<longleftrightarrow> member x xs"
+  "x \<in> Coset xs \<longleftrightarrow> \<not> member x xs"
+  by (simp_all add: mem_iff)
+
+definition is_empty :: "'a set \<Rightarrow> bool" where
+  [simp]: "is_empty A \<longleftrightarrow> A = {}"
+
+lemma [code_unfold]:
+  "A = {} \<longleftrightarrow> is_empty A"
+  by simp
 
 definition empty :: "'a set" where
-  "empty = {}"
+  [simp]: "empty = {}"
 
-declare empty_def [symmetric, code_unfold]
+lemma [code_unfold]:
+  "{} = empty"
+  by simp
 
-definition inter :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" where
-  "inter = op \<inter>"
+lemma [code_unfold, code_inline del]:
+  "empty = Set []"
+  by simp -- {* Otherwise @{text \<eta>}-expansion produces funny things. *}
 
-declare inter_def [symmetric, code_unfold]
+setup {*
+  Code.add_signature_cmd ("is_empty", "'a set \<Rightarrow> bool")
+  #> Code.add_signature_cmd ("empty", "'a set")
+  #> Code.add_signature_cmd ("insert", "'a \<Rightarrow> 'a set \<Rightarrow> 'a set")
+  #> Code.add_signature_cmd ("List_Set.remove", "'a \<Rightarrow> 'a set \<Rightarrow> 'a set")
+  #> Code.add_signature_cmd ("image", "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b set")
+  #> Code.add_signature_cmd ("List_Set.project", "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set")
+  #> Code.add_signature_cmd ("Ball", "'a set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool")
+  #> Code.add_signature_cmd ("Bex", "'a set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool")
+  #> Code.add_signature_cmd ("card", "'a set \<Rightarrow> nat")
+*}
 
-definition union :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" where
-  "union = op \<union>"
+lemma is_empty_Set [code]:
+  "is_empty (Set xs) \<longleftrightarrow> null xs"
+  by (simp add: empty_null)
 
-declare union_def [symmetric, code_unfold]
+lemma empty_Set [code]:
+  "empty = Set []"
+  by simp
+
+lemma insert_Set [code]:
+  "insert x (Set xs) = Set (List_Set.insert x xs)"
+  "insert x (Coset xs) = Coset (remove_all x xs)"
+  by (simp_all add: insert_set insert_set_compl)
+
+lemma remove_Set [code]:
+  "remove x (Set xs) = Set (remove_all x xs)"
+  "remove x (Coset xs) = Coset (List_Set.insert x xs)"
+  by (simp_all add:remove_set remove_set_compl)
+
+lemma image_Set [code]:
+  "image f (Set xs) = Set (remdups (map f xs))"
+  by simp
+
+lemma project_Set [code]:
+  "project P (Set xs) = Set (filter P xs)"
+  by (simp add: project_set)
+
+lemma Ball_Set [code]:
+  "Ball (Set xs) P \<longleftrightarrow> list_all P xs"
+  by (simp add: ball_set)
+
+lemma Bex_Set [code]:
+  "Bex (Set xs) P \<longleftrightarrow> list_ex P xs"
+  by (simp add: bex_set)
+
+lemma card_Set [code]:
+  "card (Set xs) = length (remdups xs)"
+proof -
+  have "card (set (remdups xs)) = length (remdups xs)"
+    by (rule distinct_card) simp
+  then show ?thesis by simp
+qed
+
+
+subsection {* Derived operations *}
+
+definition set_eq :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
+  [simp]: "set_eq = op ="
+
+lemma [code_unfold]:
+  "op = = set_eq"
+  by simp
+
+definition subset_eq :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
+  [simp]: "subset_eq = op \<subseteq>"
+
+lemma [code_unfold]:
+  "op \<subseteq> = subset_eq"
+  by simp
 
 definition subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
-  "subset = op \<le>"
+  [simp]: "subset = op \<subset>"
 
-declare subset_def [symmetric, code_unfold]
+lemma [code_unfold]:
+  "op \<subset> = subset"
+  by simp
 
-lemma [code]:
-  "subset A B \<longleftrightarrow> (\<forall>x\<in>A. x \<in> B)"
-  by (simp add: subset_def subset_eq)
+setup {*
+  Code.add_signature_cmd ("set_eq", "'a set \<Rightarrow> 'a set \<Rightarrow> bool")
+  #> Code.add_signature_cmd ("subset_eq", "'a set \<Rightarrow> 'a set \<Rightarrow> bool")
+  #> Code.add_signature_cmd ("subset", "'a set \<Rightarrow> 'a set \<Rightarrow> bool")
+*}
 
-definition eq_set :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
-  [code del]: "eq_set = op ="
+lemma set_eq_subset_eq [code]:
+  "set_eq A B \<longleftrightarrow> subset_eq A B \<and> subset_eq B A"
+  by auto
 
-(*declare eq_set_def [symmetric, code_unfold]*)
+lemma subset_eq_forall [code]:
+  "subset_eq A B \<longleftrightarrow> (\<forall>x\<in>A. x \<in> B)"
+  by (simp add: subset_eq)
 
-lemma [code]:
-  "eq_set A B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
-  by (simp add: eq_set_def set_eq)
+lemma subset_subset_eq [code]:
+  "subset A B \<longleftrightarrow> subset_eq A B \<and> \<not> subset_eq B A"
+  by (simp add: subset)
 
-declare inter [code]
 
-declare List_Set.project_def [symmetric, code_unfold]
+subsection {* Functorial operations *}
+
+definition inter :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" where
+  [simp]: "inter = op \<inter>"
+
+lemma [code_unfold]:
+  "op \<inter> = inter"
+  by simp
+
+definition subtract :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" where
+  [simp]: "subtract A B = B - A"
+
+lemma [code_unfold]:
+  "B - A = subtract A B"
+  by simp
+
+definition union :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" where
+  [simp]: "union = op \<union>"
+
+lemma [code_unfold]:
+  "op \<union> = union"
+  by simp
+
+definition Inf :: "'a::complete_lattice set \<Rightarrow> 'a" where
+  [simp]: "Inf = Complete_Lattice.Inf"
+
+lemma [code_unfold]:
+  "Complete_Lattice.Inf = Inf"
+  by simp
+
+definition Sup :: "'a::complete_lattice set \<Rightarrow> 'a" where
+  [simp]: "Sup = Complete_Lattice.Sup"
+
+lemma [code_unfold]:
+  "Complete_Lattice.Sup = Sup"
+  by simp
 
 definition Inter :: "'a set set \<Rightarrow> 'a set" where
-  "Inter = Complete_Lattice.Inter"
+  [simp]: "Inter = Inf"
 
-declare Inter_def [symmetric, code_unfold]
+lemma [code_unfold]:
+  "Inf = Inter"
+  by simp
 
 definition Union :: "'a set set \<Rightarrow> 'a set" where
-  "Union = Complete_Lattice.Union"
+  [simp]: "Union = Sup"
 
-declare Union_def [symmetric, code_unfold]
+lemma [code_unfold]:
+  "Sup = Union"
+  by simp
 
-
-subsection {* Code generator setup *}
-
-ML {*
-nonfix inter;
-nonfix union;
-nonfix subset;
+setup {*
+  Code.add_signature_cmd ("inter", "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set")
+  #> Code.add_signature_cmd ("subtract", "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set")
+  #> Code.add_signature_cmd ("union", "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set")
+  #> Code.add_signature_cmd ("Inf", "'a set \<Rightarrow> 'a")
+  #> Code.add_signature_cmd ("Sup", "'a set \<Rightarrow> 'a")
+  #> Code.add_signature_cmd ("Inter", "'a set set \<Rightarrow> 'a set")
+  #> Code.add_signature_cmd ("Union", "'a set set \<Rightarrow> 'a set")
 *}
 
-definition flip :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c" where
-  "flip f a b = f b a"
+lemma inter_project [code]:
+  "inter A (Set xs) = Set (List.filter (\<lambda>x. x \<in> A) xs)"
+  "inter A (Coset xs) = foldl (\<lambda>A x. remove x A) A xs"
+  by (simp add: inter project_def, simp add: Diff_eq [symmetric] minus_set)
 
-types_code
-  fset ("(_/ \<module>fset)")
-attach {*
-datatype 'a fset = Set of 'a list | Coset of 'a list;
-*}
+lemma subtract_remove [code]:
+  "subtract (Set xs) A = foldl (\<lambda>A x. remove x A) A xs"
+  "subtract (Coset xs) A = Set (List.filter (\<lambda>x. x \<in> A) xs)"
+  by (auto simp add: minus_set)
 
-consts_code
-  Set ("\<module>Set")
-  Coset ("\<module>Coset")
+lemma union_insert [code]:
+  "union (Set xs) A = foldl (\<lambda>A x. insert x A) A xs"
+  "union (Coset xs) A = Coset (List.filter (\<lambda>x. x \<notin> A) xs)"
+  by (auto simp add: union_set)
 
-consts_code
-  "empty"             ("{*Fset.empty*}")
-  "List_Set.is_empty" ("{*Fset.is_empty*}")
-  "Set.insert"        ("{*Fset.insert*}")
-  "List_Set.remove"   ("{*Fset.remove*}")
-  "Set.image"         ("{*Fset.map*}")
-  "List_Set.project"  ("{*Fset.filter*}")
-  "Ball"              ("{*flip Fset.forall*}")
-  "Bex"               ("{*flip Fset.exists*}")
-  "union"             ("{*Fset.union*}")
-  "inter"             ("{*Fset.inter*}")
-  "op - \<Colon> 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" ("{*flip Fset.subtract*}")
-  "Union"             ("{*Fset.Union*}")
-  "Inter"             ("{*Fset.Inter*}")
-  card                ("{*Fset.card*}")
-  fold                ("{*foldl o flip*}")
+lemma Inf_inf [code]:
+  "Inf (Set xs) = foldl inf (top :: 'a::complete_lattice) xs"
+  "Inf (Coset []) = (bot :: 'a::complete_lattice)"
+  by (simp_all add: Inf_UNIV Inf_set_fold)
 
-hide (open) const empty inter union subset eq_set Inter Union flip
+lemma Sup_sup [code]:
+  "Sup (Set xs) = foldl sup (bot :: 'a::complete_lattice) xs"
+  "Sup (Coset []) = (top :: 'a::complete_lattice)"
+  by (simp_all add: Sup_UNIV Sup_set_fold)
+
+lemma Inter_inter [code]:
+  "Inter (Set xs) = foldl inter (Coset []) xs"
+  "Inter (Coset []) = empty"
+  unfolding Inter_def Inf_inf by simp_all
+
+lemma Union_union [code]:
+  "Union (Set xs) = foldl union empty xs"
+  "Union (Coset []) = Coset []"
+  unfolding Union_def Sup_sup by simp_all
+
+hide (open) const is_empty empty remove
+  set_eq subset_eq subset inter union subtract Inf Sup Inter Union
 
 end
