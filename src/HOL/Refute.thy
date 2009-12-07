@@ -10,8 +10,6 @@ header {* Refute *}
 theory Refute
 imports Hilbert_Choice List
 uses
-  "Tools/prop_logic.ML"
-  "Tools/sat_solver.ML"
   "Tools/refute.ML"
   "Tools/refute_isar.ML"
 begin

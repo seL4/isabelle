@@ -1192,9 +1192,15 @@ struct
         val fm_u  = (if negate then toFalse else toTrue) (hd intrs)
         val fm_ax = PropLogic.all (map toTrue (tl intrs))
         val fm    = PropLogic.all [#wellformed args, fm_ax, fm_u]
+        val solver =
+          SatSolver.invoke_solver satsolver
+          handle Option.Option =>
+                 error ("Unknown SAT solver: " ^ quote satsolver ^
+                        ". Available solvers: " ^
+                        commas (map (quote o fst) (!SatSolver.solvers)) ^ ".")
       in
         priority "Invoking SAT solver...";
-        (case SatSolver.invoke_solver satsolver fm of
+        (case solver fm of
           SatSolver.SATISFIABLE assignment =>
           (priority ("*** Model found: ***\n" ^ print_model thy model
             (fn i => case assignment i of SOME b => b | NONE => true));
