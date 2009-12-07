@@ -9,6 +9,7 @@ package isabelle
 import java.util.regex.Pattern
 import java.util.Locale
 import java.io.{BufferedReader, InputStreamReader, FileInputStream, File, IOException}
+import java.awt.{GraphicsEnvironment, Font}
 
 import scala.io.Source
 import scala.util.matching.Regex
@@ -331,4 +332,20 @@ class Isabelle_System
   val symbols = new Symbol.Interpretation(
     read_symbols("$ISABELLE_HOME/etc/symbols") ++
     read_symbols("$ISABELLE_HOME_USER/etc/symbols"))
+
+
+  /* fonts */
+
+  val font_family = "IsabelleText"
+
+  private def create_font(name: String) =
+    Font.createFont(Font.TRUETYPE_FONT, platform_file(name))
+
+  def register_fonts(): Boolean =
+  {
+    val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
+    val ok1 = ge.registerFont(create_font("~~/lib/fonts/IsabelleText.ttf"))
+    val ok2 = ge.registerFont(create_font("~~/lib/fonts/IsabelleTextBold.ttf"))
+    ok1 && ok2
+  }
 }
