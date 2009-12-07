@@ -366,7 +366,7 @@ let
       val case2 = Syntax.const "_case1" $ Syntax.const Term.dummy_patternN
                                         $ NilC;
       val cs = Syntax.const "_case2" $ case1 $ case2
-      val ft = DatatypeCase.case_tr false Datatype.info_of_constr
+      val ft = Datatype_Case.case_tr false Datatype.info_of_constr
                  ctxt [x, cs]
     in lambda x ft end;
 
@@ -2359,15 +2359,29 @@ qed
 
 lemma (in complete_lattice) Inf_set_fold [code_unfold]:
   "Inf (set xs) = foldl inf top xs"
-  by (cases xs)
-    (simp_all add: Inf_fin_Inf [symmetric] Inf_fin_set_fold
-      inf_commute del: set.simps, simp add: top_def)
+proof -
+  interpret fun_left_comm_idem "inf :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
+    by (fact fun_left_comm_idem_inf)
+  show ?thesis by (simp add: Inf_fold_inf fold_set inf_commute)
+qed
 
 lemma (in complete_lattice) Sup_set_fold [code_unfold]:
   "Sup (set xs) = foldl sup bot xs"
-  by (cases xs)
-    (simp_all add: Sup_fin_Sup [symmetric] Sup_fin_set_fold
-      sup_commute del: set.simps, simp add: bot_def)
+proof -
+  interpret fun_left_comm_idem "sup :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
+    by (fact fun_left_comm_idem_sup)
+  show ?thesis by (simp add: Sup_fold_sup fold_set sup_commute)
+qed
+
+lemma (in complete_lattice) INFI_set_fold:
+  "INFI (set xs) f = foldl (\<lambda>y x. inf (f x) y) top xs"
+  unfolding INFI_def set_map [symmetric] Inf_set_fold foldl_map
+    by (simp add: inf_commute)
+
+lemma (in complete_lattice) SUPR_set_fold:
+  "SUPR (set xs) f = foldl (\<lambda>y x. sup (f x) y) bot xs"
+  unfolding SUPR_def set_map [symmetric] Sup_set_fold foldl_map
+    by (simp add: sup_commute)
 
 
 subsubsection {* List summation: @{const listsum} and @{text"\<Sum>"}*}
@@ -2665,6 +2679,10 @@ apply(subgoal_tac "length (remdups xs) <= length xs")
 apply(rule length_remdups_leq)
 done
 
+lemma remdups_filter: "remdups(filter P xs) = filter P (remdups xs)"
+apply(induct xs)
+apply auto
+done
 
 lemma distinct_map:
   "distinct(map f xs) = (distinct xs & inj_on f (set xs))"

@@ -40,6 +40,11 @@ object Markup
   val LOCATION = "location"
 
 
+  /* hidden text */
+
+  val HIDDEN = "hidden"
+
+
   /* logical entities */
 
   val TCLASS = "tclass"

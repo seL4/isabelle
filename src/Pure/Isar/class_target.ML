@@ -278,7 +278,7 @@ fun synchronize_class_syntax sort base_sort ctxt =
     fun improve (c, ty) = (case AList.lookup (op =) primary_constraints c
      of SOME ty' => (case try (Type.raw_match (ty', ty)) Vartab.empty
          of SOME tyenv => (case Vartab.lookup tyenv (Name.aT, 0)
-             of SOME (_, ty' as TVar (tvar as (vi, sort))) =>
+             of SOME (_, ty' as TVar (vi, sort)) =>
                   if TypeInfer.is_param vi
                     andalso Sorts.sort_le algebra (base_sort, sort)
                       then SOME (ty', TFree (Name.aT, base_sort))
@@ -434,9 +434,10 @@ fun read_multi_arity thy (raw_tycos, raw_sorts, raw_sort) =
 
 fun synchronize_inst_syntax ctxt =
   let
-    val Instantiation { arities = (_, _, sort), params = params } = Instantiation.get ctxt;
+    val Instantiation { params, ... } = Instantiation.get ctxt;
 
-    val lookup_inst_param = AxClass.lookup_inst_param (Sign.consts_of (ProofContext.theory_of ctxt)) params;
+    val lookup_inst_param = AxClass.lookup_inst_param
+      (Sign.consts_of (ProofContext.theory_of ctxt)) params;
     fun subst (c, ty) = case lookup_inst_param (c, ty)
      of SOME (v_ty as (_, ty)) => SOME (ty, Free v_ty)
       | NONE => NONE;
@@ -502,7 +503,7 @@ fun init_instantiation (tycos, vs, sort) thy =
     val consts = Sign.consts_of thy;
     val improve_constraints = AList.lookup (op =)
       (map (fn (_, (class, (c, _))) => (c, [[class]])) class_params);
-    fun resort_check ts ctxt = case resort_terms pp algebra consts improve_constraints ts
+    fun resort_check ts ctxt = case resort_terms (Syntax.pp ctxt) algebra consts improve_constraints ts
      of NONE => NONE
       | SOME ts' => SOME (ts', ctxt);
     val lookup_inst_param = AxClass.lookup_inst_param consts params;
@@ -563,8 +564,7 @@ fun prove_instantiation_exit_result f tac x lthy =
 
 fun conclude_instantiation lthy =
   let
-    val { arities, params } = the_instantiation lthy;
-    val (tycos, vs, sort) = arities;
+    val (tycos, vs, sort) = (#arities o the_instantiation) lthy;
     val thy = ProofContext.theory_of lthy;
     val _ = map (fn tyco => if Sign.of_sort thy
         (Type (tyco, map TFree vs), sort)
@@ -574,8 +574,7 @@ fun conclude_instantiation lthy =
 
 fun pretty_instantiation lthy =
   let
-    val { arities, params } = the_instantiation lthy;
-    val (tycos, vs, sort) = arities;
+    val { arities = (tycos, vs, sort), params } = the_instantiation lthy;
     val thy = ProofContext.theory_of lthy;
     fun pr_arity tyco = Syntax.pretty_arity lthy (tyco, map snd vs, sort);
     fun pr_param ((c, _), (v, ty)) =

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Nitpick/Tools/nitpick.ML
+(*  Title:      HOL/Tools/Nitpick/nitpick.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2008, 2009
 
@@ -655,7 +655,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
               update_checked_problems problems (unsat_js @ map fst lib_ps);
               if null con_ps then
                 let
-                  val num_genuine = Library.take (max_potential, lib_ps)
+                  val num_genuine = take max_potential lib_ps
                                     |> map (print_and_check false)
                                     |> filter (equal (SOME true)) |> length
                   val max_genuine = max_genuine - num_genuine
@@ -689,7 +689,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
                 end
               else
                 let
-                  val _ = Library.take (max_genuine, con_ps)
+                  val _ = take max_genuine con_ps
                           |> List.app (ignore o print_and_check true)
                   val max_genuine = max_genuine - length con_ps
                 in

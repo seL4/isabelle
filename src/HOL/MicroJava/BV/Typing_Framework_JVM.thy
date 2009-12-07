@@ -1,13 +1,13 @@
 (*  Title:      HOL/MicroJava/BV/JVM.thy
-    ID:         $Id$
     Author:     Tobias Nipkow, Gerwin Klein
     Copyright   2000 TUM
 *)
 
 header {* \isaheader{The Typing Framework for the JVM}\label{sec:JVM} *}
 
-theory Typing_Framework_JVM imports Typing_Framework_err JVMType EffectMono BVSpec begin
-
+theory Typing_Framework_JVM
+imports "../DFA/Abstract_BV" JVMType EffectMono BVSpec
+begin
 
 constdefs
   exec :: "jvm_prog \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> exception_table \<Rightarrow> instr list \<Rightarrow> JVMType.state step_type"

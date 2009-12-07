@@ -285,7 +285,7 @@ fun init build info doc doc_graph doc_versions path name doc_prefix2
     (browser_info := empty_browser_info; session_info := NONE)
   else
     let
-      val parent_name = name_of_session (Library.take (length path - 1, path));
+      val parent_name = name_of_session (take (length path - 1) path);
       val session_name = name_of_session path;
       val sess_prefix = Path.make path;
       val html_prefix = Path.append (Path.expand output_path) sess_prefix;

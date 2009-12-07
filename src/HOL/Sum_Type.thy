@@ -1,5 +1,4 @@
 (*  Title:      HOL/Sum_Type.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 *)
@@ -7,224 +6,187 @@
 header{*The Disjoint Sum of Two Types*}
 
 theory Sum_Type
-imports Typedef Fun
+imports Typedef Inductive Fun
 begin
 
-text{*The representations of the two injections*}
+subsection {* Construction of the sum type and its basic abstract operations *}
 
-constdefs
-  Inl_Rep :: "['a, 'a, 'b, bool] => bool"
-  "Inl_Rep == (%a. %x y p. x=a & p)"
+definition Inl_Rep :: "'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool \<Rightarrow> bool" where
+  "Inl_Rep a x y p \<longleftrightarrow> x = a \<and> p"
 
-  Inr_Rep :: "['b, 'a, 'b, bool] => bool"
-  "Inr_Rep == (%b. %x y p. y=b & ~p)"
-
+definition Inr_Rep :: "'b \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool \<Rightarrow> bool" where
+  "Inr_Rep b x y p \<longleftrightarrow> y = b \<and> \<not> p"
 
 global
 
-typedef (Sum)
-  ('a, 'b) "+"          (infixr "+" 10)
-    = "{f. (? a. f = Inl_Rep(a::'a)) | (? b. f = Inr_Rep(b::'b))}"
+typedef (Sum) ('a, 'b) "+" (infixr "+" 10) = "{f. (\<exists>a. f = Inl_Rep (a::'a)) \<or> (\<exists>b. f = Inr_Rep (b::'b))}"
   by auto
 
 local
 
+lemma Inl_RepI: "Inl_Rep a \<in> Sum"
+  by (auto simp add: Sum_def)
 
-text{*abstract constants and syntax*}
+lemma Inr_RepI: "Inr_Rep b \<in> Sum"
+  by (auto simp add: Sum_def)
 
-constdefs
-  Inl :: "'a => 'a + 'b"
-   "Inl == (%a. Abs_Sum(Inl_Rep(a)))"
+lemma inj_on_Abs_Sum: "A \<subseteq> Sum \<Longrightarrow> inj_on Abs_Sum A"
+  by (rule inj_on_inverseI, rule Abs_Sum_inverse) auto
 
-  Inr :: "'b => 'a + 'b"
-   "Inr == (%b. Abs_Sum(Inr_Rep(b)))"
+lemma Inl_Rep_inject: "inj_on Inl_Rep A"
+proof (rule inj_onI)
+  show "\<And>a c. Inl_Rep a = Inl_Rep c \<Longrightarrow> a = c"
+    by (auto simp add: Inl_Rep_def expand_fun_eq)
+qed
 
-  Plus :: "['a set, 'b set] => ('a + 'b) set"        (infixr "<+>" 65)
-   "A <+> B == (Inl`A) Un (Inr`B)"
-    --{*disjoint sum for sets; the operator + is overloaded with wrong type!*}
+lemma Inr_Rep_inject: "inj_on Inr_Rep A"
+proof (rule inj_onI)
+  show "\<And>b d. Inr_Rep b = Inr_Rep d \<Longrightarrow> b = d"
+    by (auto simp add: Inr_Rep_def expand_fun_eq)
+qed
 
-  Part :: "['a set, 'b => 'a] => 'a set"
-   "Part A h == A Int {x. ? z. x = h(z)}"
-    --{*for selecting out the components of a mutually recursive definition*}
+lemma Inl_Rep_not_Inr_Rep: "Inl_Rep a \<noteq> Inr_Rep b"
+  by (auto simp add: Inl_Rep_def Inr_Rep_def expand_fun_eq)
 
+definition Inl :: "'a \<Rightarrow> 'a + 'b" where
+  "Inl = Abs_Sum \<circ> Inl_Rep"
 
-
-(** Inl_Rep and Inr_Rep: Representations of the constructors **)
-
-(*This counts as a non-emptiness result for admitting 'a+'b as a type*)
-lemma Inl_RepI: "Inl_Rep(a) : Sum"
-by (auto simp add: Sum_def)
-
-lemma Inr_RepI: "Inr_Rep(b) : Sum"
-by (auto simp add: Sum_def)
-
-lemma inj_on_Abs_Sum: "inj_on Abs_Sum Sum"
-apply (rule inj_on_inverseI)
-apply (erule Abs_Sum_inverse)
-done
-
-subsection{*Freeness Properties for @{term Inl} and  @{term Inr}*}
-
-text{*Distinctness*}
-
-lemma Inl_Rep_not_Inr_Rep: "Inl_Rep(a) ~= Inr_Rep(b)"
-by (auto simp add: Inl_Rep_def Inr_Rep_def expand_fun_eq)
-
-lemma Inl_not_Inr [iff]: "Inl(a) ~= Inr(b)"
-apply (simp add: Inl_def Inr_def)
-apply (rule inj_on_Abs_Sum [THEN inj_on_contraD])
-apply (rule Inl_Rep_not_Inr_Rep)
-apply (rule Inl_RepI)
-apply (rule Inr_RepI)
-done
-
-lemmas Inr_not_Inl = Inl_not_Inr [THEN not_sym, standard]
-declare Inr_not_Inl [iff]
-
-lemmas Inl_neq_Inr = Inl_not_Inr [THEN notE, standard]
-lemmas Inr_neq_Inl = sym [THEN Inl_neq_Inr, standard]
-
-
-text{*Injectiveness*}
-
-lemma Inl_Rep_inject: "Inl_Rep(a) = Inl_Rep(c) ==> a=c"
-by (auto simp add: Inl_Rep_def expand_fun_eq)
-
-lemma Inr_Rep_inject: "Inr_Rep(b) = Inr_Rep(d) ==> b=d"
-by (auto simp add: Inr_Rep_def expand_fun_eq)
+definition Inr :: "'b \<Rightarrow> 'a + 'b" where
+  "Inr = Abs_Sum \<circ> Inr_Rep"
 
 lemma inj_Inl [simp]: "inj_on Inl A"
-apply (simp add: Inl_def)
-apply (rule inj_onI)
-apply (erule inj_on_Abs_Sum [THEN inj_onD, THEN Inl_Rep_inject])
-apply (rule Inl_RepI)
-apply (rule Inl_RepI)
-done
+by (auto simp add: Inl_def intro!: comp_inj_on Inl_Rep_inject inj_on_Abs_Sum Inl_RepI)
 
-lemmas Inl_inject = inj_Inl [THEN injD, standard]
+lemma Inl_inject: "Inl x = Inl y \<Longrightarrow> x = y"
+using inj_Inl by (rule injD)
 
 lemma inj_Inr [simp]: "inj_on Inr A"
-apply (simp add: Inr_def)
-apply (rule inj_onI)
-apply (erule inj_on_Abs_Sum [THEN inj_onD, THEN Inr_Rep_inject])
-apply (rule Inr_RepI)
-apply (rule Inr_RepI)
-done
+by (auto simp add: Inr_def intro!: comp_inj_on Inr_Rep_inject inj_on_Abs_Sum Inr_RepI)
 
-lemmas Inr_inject = inj_Inr [THEN injD, standard]
+lemma Inr_inject: "Inr x = Inr y \<Longrightarrow> x = y"
+using inj_Inr by (rule injD)
 
-lemma Inl_eq [iff]: "(Inl(x)=Inl(y)) = (x=y)"
-by (blast dest!: Inl_inject)
+lemma Inl_not_Inr: "Inl a \<noteq> Inr b"
+proof -
+  from Inl_RepI [of a] Inr_RepI [of b] have "{Inl_Rep a, Inr_Rep b} \<subseteq> Sum" by auto
+  with inj_on_Abs_Sum have "inj_on Abs_Sum {Inl_Rep a, Inr_Rep b}" .
+  with Inl_Rep_not_Inr_Rep [of a b] inj_on_contraD have "Abs_Sum (Inl_Rep a) \<noteq> Abs_Sum (Inr_Rep b)" by auto
+  then show ?thesis by (simp add: Inl_def Inr_def)
+qed
 
-lemma Inr_eq [iff]: "(Inr(x)=Inr(y)) = (x=y)"
-by (blast dest!: Inr_inject)
+lemma Inr_not_Inl: "Inr b \<noteq> Inl a" 
+  using Inl_not_Inr by (rule not_sym)
+
+lemma sumE: 
+  assumes "\<And>x::'a. s = Inl x \<Longrightarrow> P"
+    and "\<And>y::'b. s = Inr y \<Longrightarrow> P"
+  shows P
+proof (rule Abs_Sum_cases [of s])
+  fix f 
+  assume "s = Abs_Sum f" and "f \<in> Sum"
+  with assms show P by (auto simp add: Sum_def Inl_def Inr_def)
+qed
+
+rep_datatype (sum) Inl Inr
+proof -
+  fix P
+  fix s :: "'a + 'b"
+  assume x: "\<And>x\<Colon>'a. P (Inl x)" and y: "\<And>y\<Colon>'b. P (Inr y)"
+  then show "P s" by (auto intro: sumE [of s])
+qed (auto dest: Inl_inject Inr_inject simp add: Inl_not_Inr)
 
 
-subsection{*The Disjoint Sum of Sets*}
+subsection {* Projections *}
 
-(** Introduction rules for the injections **)
+lemma sum_case_KK [simp]: "sum_case (\<lambda>x. a) (\<lambda>x. a) = (\<lambda>x. a)"
+  by (rule ext) (simp split: sum.split)
 
-lemma InlI [intro!]: "a : A ==> Inl(a) : A <+> B"
+lemma surjective_sum: "sum_case (\<lambda>x::'a. f (Inl x)) (\<lambda>y::'b. f (Inr y)) = f"
+proof
+  fix s :: "'a + 'b"
+  show "(case s of Inl (x\<Colon>'a) \<Rightarrow> f (Inl x) | Inr (y\<Colon>'b) \<Rightarrow> f (Inr y)) = f s"
+    by (cases s) simp_all
+qed
+
+lemma sum_case_inject:
+  assumes a: "sum_case f1 f2 = sum_case g1 g2"
+  assumes r: "f1 = g1 \<Longrightarrow> f2 = g2 \<Longrightarrow> P"
+  shows P
+proof (rule r)
+  show "f1 = g1" proof
+    fix x :: 'a
+    from a have "sum_case f1 f2 (Inl x) = sum_case g1 g2 (Inl x)" by simp
+    then show "f1 x = g1 x" by simp
+  qed
+  show "f2 = g2" proof
+    fix y :: 'b
+    from a have "sum_case f1 f2 (Inr y) = sum_case g1 g2 (Inr y)" by simp
+    then show "f2 y = g2 y" by simp
+  qed
+qed
+
+lemma sum_case_weak_cong:
+  "s = t \<Longrightarrow> sum_case f g s = sum_case f g t"
+  -- {* Prevents simplification of @{text f} and @{text g}: much faster. *}
+  by simp
+
+primrec Projl :: "'a + 'b \<Rightarrow> 'a" where
+  Projl_Inl: "Projl (Inl x) = x"
+
+primrec Projr :: "'a + 'b \<Rightarrow> 'b" where
+  Projr_Inr: "Projr (Inr x) = x"
+
+primrec Suml :: "('a \<Rightarrow> 'c) \<Rightarrow> 'a + 'b \<Rightarrow> 'c" where
+  "Suml f (Inl x) = f x"
+
+primrec Sumr :: "('b \<Rightarrow> 'c) \<Rightarrow> 'a + 'b \<Rightarrow> 'c" where
+  "Sumr f (Inr x) = f x"
+
+lemma Suml_inject:
+  assumes "Suml f = Suml g" shows "f = g"
+proof
+  fix x :: 'a
+  let ?s = "Inl x \<Colon> 'a + 'b"
+  from assms have "Suml f ?s = Suml g ?s" by simp
+  then show "f x = g x" by simp
+qed
+
+lemma Sumr_inject:
+  assumes "Sumr f = Sumr g" shows "f = g"
+proof
+  fix x :: 'b
+  let ?s = "Inr x \<Colon> 'a + 'b"
+  from assms have "Sumr f ?s = Sumr g ?s" by simp
+  then show "f x = g x" by simp
+qed
+
+
+subsection {* The Disjoint Sum of Sets *}
+
+definition Plus :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a + 'b) set" (infixr "<+>" 65) where
+  "A <+> B = Inl ` A \<union> Inr ` B"
+
+lemma InlI [intro!]: "a \<in> A \<Longrightarrow> Inl a \<in> A <+> B"
 by (simp add: Plus_def)
 
-lemma InrI [intro!]: "b : B ==> Inr(b) : A <+> B"
+lemma InrI [intro!]: "b \<in> B \<Longrightarrow> Inr b \<in> A <+> B"
 by (simp add: Plus_def)
 
-(** Elimination rules **)
+text {* Exhaustion rule for sums, a degenerate form of induction *}
 
 lemma PlusE [elim!]: 
-    "[| u: A <+> B;   
-        !!x. [| x:A;  u=Inl(x) |] ==> P;  
-        !!y. [| y:B;  u=Inr(y) |] ==> P  
-     |] ==> P"
+  "u \<in> A <+> B \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> u = Inl x \<Longrightarrow> P) \<Longrightarrow> (\<And>y. y \<in> B \<Longrightarrow> u = Inr y \<Longrightarrow> P) \<Longrightarrow> P"
 by (auto simp add: Plus_def)
 
-
-
-text{*Exhaustion rule for sums, a degenerate form of induction*}
-lemma sumE: 
-    "[| !!x::'a. s = Inl(x) ==> P;  !!y::'b. s = Inr(y) ==> P  
-     |] ==> P"
-apply (rule Abs_Sum_cases [of s]) 
-apply (auto simp add: Sum_def Inl_def Inr_def)
-done
-
+lemma Plus_eq_empty_conv [simp]: "A <+> B = {} \<longleftrightarrow> A = {} \<and> B = {}"
+by auto
 
 lemma UNIV_Plus_UNIV [simp]: "UNIV <+> UNIV = UNIV"
-apply (rule set_ext)
-apply(rename_tac s)
-apply(rule_tac s=s in sumE)
-apply auto
-done
+proof (rule set_ext)
+  fix u :: "'a + 'b"
+  show "u \<in> UNIV <+> UNIV \<longleftrightarrow> u \<in> UNIV" by (cases u) auto
+qed
 
-lemma Plus_eq_empty_conv[simp]: "A <+> B = {} \<longleftrightarrow> A = {} \<and> B = {}"
-by(auto)
-
-subsection{*The @{term Part} Primitive*}
-
-lemma Part_eqI [intro]: "[| a : A;  a=h(b) |] ==> a : Part A h"
-by (auto simp add: Part_def)
-
-lemmas PartI = Part_eqI [OF _ refl, standard]
-
-lemma PartE [elim!]: "[| a : Part A h;  !!z. [| a : A;  a=h(z) |] ==> P |] ==> P"
-by (auto simp add: Part_def)
-
-
-lemma Part_subset: "Part A h <= A"
-by (auto simp add: Part_def)
-
-lemma Part_mono: "A<=B ==> Part A h <= Part B h"
-by blast
-
-lemmas basic_monos = basic_monos Part_mono
-
-lemma PartD1: "a : Part A h ==> a : A"
-by (simp add: Part_def)
-
-lemma Part_id: "Part A (%x. x) = A"
-by blast
-
-lemma Part_Int: "Part (A Int B) h = (Part A h) Int (Part B h)"
-by blast
-
-lemma Part_Collect: "Part (A Int {x. P x}) h = (Part A h) Int {x. P x}"
-by blast
-
-
-ML
-{*
-val Inl_RepI = thm "Inl_RepI";
-val Inr_RepI = thm "Inr_RepI";
-val inj_on_Abs_Sum = thm "inj_on_Abs_Sum";
-val Inl_Rep_not_Inr_Rep = thm "Inl_Rep_not_Inr_Rep";
-val Inl_not_Inr = thm "Inl_not_Inr";
-val Inr_not_Inl = thm "Inr_not_Inl";
-val Inl_neq_Inr = thm "Inl_neq_Inr";
-val Inr_neq_Inl = thm "Inr_neq_Inl";
-val Inl_Rep_inject = thm "Inl_Rep_inject";
-val Inr_Rep_inject = thm "Inr_Rep_inject";
-val inj_Inl = thm "inj_Inl";
-val Inl_inject = thm "Inl_inject";
-val inj_Inr = thm "inj_Inr";
-val Inr_inject = thm "Inr_inject";
-val Inl_eq = thm "Inl_eq";
-val Inr_eq = thm "Inr_eq";
-val InlI = thm "InlI";
-val InrI = thm "InrI";
-val PlusE = thm "PlusE";
-val sumE = thm "sumE";
-val Part_eqI = thm "Part_eqI";
-val PartI = thm "PartI";
-val PartE = thm "PartE";
-val Part_subset = thm "Part_subset";
-val Part_mono = thm "Part_mono";
-val PartD1 = thm "PartD1";
-val Part_id = thm "Part_id";
-val Part_Int = thm "Part_Int";
-val Part_Collect = thm "Part_Collect";
-
-val basic_monos = thms "basic_monos";
-*}
+hide (open) const Suml Sumr Projl Projr
 
 end

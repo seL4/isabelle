@@ -1282,7 +1282,7 @@ fun compile_match compilation_modifiers compfuns additional_arguments
     val v' = Free (name', T);
   in
     lambda v (fst (Datatype.make_case
-      (ProofContext.init thy) DatatypeCase.Quiet [] v
+      (ProofContext.init thy) Datatype_Case.Quiet [] v
       [(HOLogic.mk_tuple out_ts,
         if null eqs'' then success_t
         else Const (@{const_name HOL.If}, HOLogic.boolT --> U --> U --> U) $

@@ -779,14 +779,6 @@ lemma gcd_exp_int: "gcd ((a::int)^n) (b^n) = (gcd a b)^n"
   apply auto
 done
 
-lemma coprime_divprod_nat: "(d::nat) dvd a * b  \<Longrightarrow> coprime d a \<Longrightarrow> d dvd b"
-  using coprime_dvd_mult_iff_nat[of d a b]
-  by (auto simp add: mult_commute)
-
-lemma coprime_divprod_int: "(d::int) dvd a * b  \<Longrightarrow> coprime d a \<Longrightarrow> d dvd b"
-  using coprime_dvd_mult_iff_int[of d a b]
-  by (auto simp add: mult_commute)
-
 lemma division_decomp_nat: assumes dc: "(a::nat) dvd b * c"
   shows "\<exists>b' c'. a = b' * c' \<and> b' dvd b \<and> c' dvd c"
 proof-

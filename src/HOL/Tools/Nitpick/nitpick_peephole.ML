@@ -1,4 +1,4 @@
-(*  Title:      HOL/Nitpick/Tools/nitpick_peephole.ML
+(*  Title:      HOL/Tools/Nitpick/nitpick_peephole.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2008, 2009
 

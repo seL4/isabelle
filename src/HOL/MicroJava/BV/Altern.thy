@@ -1,15 +1,12 @@
 (*  Title:      HOL/MicroJava/BV/Altern.thy
-    ID:         $Id$
     Author:     Martin Strecker
 *)
 
+header {* Alternative definition of well-typing of bytecode,  used in compiler type correctness proof *}
 
-(* Alternative definition of well-typing of bytecode, 
-   used in compiler type correctness proof *)
-
-
-theory Altern imports BVSpec begin
-
+theory Altern
+imports BVSpec
+begin
 
 constdefs
   check_type :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> JVMType.state \<Rightarrow> bool"

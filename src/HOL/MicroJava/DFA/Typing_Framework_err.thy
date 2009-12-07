@@ -1,8 +1,6 @@
 (*  Title:      HOL/MicroJava/BV/Typing_Framework_err.thy
-    ID:         $Id$
     Author:     Gerwin Klein
     Copyright   2000 TUM
-
 *)
 
 header {* \isaheader{Lifting the Typing Framework to err, app, and eff} *}

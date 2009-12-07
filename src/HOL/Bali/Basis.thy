@@ -216,8 +216,8 @@ syntax
          In1l   :: "'al \<Rightarrow> ('al + 'ar, 'b, 'c) sum3"
          In1r   :: "'ar \<Rightarrow> ('al + 'ar, 'b, 'c) sum3"
 translations
-        "In1l e" == "In1 (Inl e)"
-        "In1r c" == "In1 (Inr c)"
+        "In1l e" == "In1 (CONST Inl e)"
+        "In1r c" == "In1 (CONST Inr c)"
 
 syntax the_In1l :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> 'al"
        the_In1r :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> 'ar"
@@ -233,7 +233,7 @@ fun sum3_instantiate ctxt thm = map (fn s =>
 (* e.g. lemmas is_stmt_rews = is_stmt_def [of "In1l x", simplified] *)
 
 translations
-  "option"<= (type) "Datatype.option"
+  "option"<= (type) "Option.option"
   "list"  <= (type) "List.list"
   "sum3"  <= (type) "Basis.sum3"
 

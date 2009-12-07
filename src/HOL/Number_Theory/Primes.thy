@@ -360,16 +360,15 @@ proof-
     from prime_dvd_mult_nat[OF p pab']
     have "p dvd a \<or> p dvd b" .
     moreover
-    {assume pa: "p dvd a"
-      have pnba: "p^n dvd b*a" using pab by (simp add: mult_commute)
+    { assume pa: "p dvd a"
       from coprime_common_divisor_nat [OF ab, OF pa] p have "\<not> p dvd b" by auto
       with p have "coprime b p"
         by (subst gcd_commute_nat, intro prime_imp_coprime_nat)
       hence pnb: "coprime (p^n) b"
         by (subst gcd_commute_nat, rule coprime_exp_nat)
-      from coprime_divprod_nat[OF pnba pnb] have ?thesis by blast }
+      from coprime_dvd_mult_nat[OF pnb pab] have ?thesis by blast }
     moreover
-    {assume pb: "p dvd b"
+    { assume pb: "p dvd b"
       have pnba: "p^n dvd b*a" using pab by (simp add: mult_commute)
       from coprime_common_divisor_nat [OF ab, of p] pb p have "\<not> p dvd a"
         by auto
@@ -377,7 +376,7 @@ proof-
         by (subst gcd_commute_nat, intro prime_imp_coprime_nat)
       hence pna: "coprime (p^n) a"
         by (subst gcd_commute_nat, rule coprime_exp_nat)
-      from coprime_divprod_nat[OF pab pna] have ?thesis by blast }
+      from coprime_dvd_mult_nat[OF pna pnba] have ?thesis by blast }
     ultimately have ?thesis by blast}
   ultimately show ?thesis by blast
 qed

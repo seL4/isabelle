@@ -280,11 +280,11 @@ end;
 
 fun align_left msg xs ys =
   let val m = length xs and n = length ys
-  in if m < n then error msg else (Library.take (n, xs) ~~ ys) end;
+  in if m < n then error msg else (take n xs ~~ ys) end;
 
 fun align_right msg xs ys =
   let val m = length xs and n = length ys
-  in if m < n then error msg else (Library.drop (m - n, xs) ~~ ys) end;
+  in if m < n then error msg else (drop (m - n) xs ~~ ys) end;
 
 
 (* prep_inst *)

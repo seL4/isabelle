@@ -110,7 +110,7 @@ lemma comp_classname: "is_class G C
 by (case_tac "class G C", auto simp: is_class_def dest: comp_class_imp)
 
 lemma comp_subcls1: "subcls1 (comp G) = subcls1 G"
-by (auto simp add: subcls1_def2 comp_classname comp_is_class expand_fun_eq)
+by (auto simp add: subcls1_def2 comp_classname comp_is_class)
 
 lemma comp_widen: "widen (comp G) = widen G"
   apply (simp add: expand_fun_eq)
@@ -183,17 +183,17 @@ apply (auto simp add: comp_ws_cdecl [THEN sym] TranslComp.comp_def)
 done
 
 
-lemma comp_class_rec: " wfP ((subcls1 G)^--1) \<Longrightarrow> 
+lemma comp_class_rec: " wf ((subcls1 G)^-1) \<Longrightarrow> 
 class_rec (comp G) C t f = 
   class_rec G C t (\<lambda> C' fs' ms' r'. f C' fs' (map (compMethod G C') ms') r')"
-apply (rule_tac a = C in  wfP_induct) apply assumption
-apply (subgoal_tac "wfP ((subcls1 (comp G))\<inverse>\<inverse>)")
+apply (rule_tac a = C in  wf_induct) apply assumption
+apply (subgoal_tac "wf ((subcls1 (comp G))^-1)")
 apply (subgoal_tac "(class G x = None) \<or> (\<exists> D fs ms. (class G x = Some (D, fs, ms)))")
 apply (erule disjE)
 
   (* case class G x = None *)
 apply (simp (no_asm_simp) add: class_rec_def comp_subcls1
-  wfrec [to_pred, where r="(subcls1 G)^--1", simplified])
+  wfrec [where r="(subcls1 G)^-1", simplified])
 apply (simp add: comp_class_None)
 
   (* case \<exists> D fs ms. (class G x = Some (D, fs, ms)) *)
@@ -218,11 +218,11 @@ apply auto
 apply (simp add: comp_subcls1)
 done
 
-lemma comp_fields: "wfP ((subcls1 G)^--1) \<Longrightarrow> 
+lemma comp_fields: "wf ((subcls1 G)^-1) \<Longrightarrow> 
   fields (comp G,C) = fields (G,C)" 
 by (simp add: fields_def comp_class_rec)
 
-lemma comp_field: "wfP ((subcls1 G)^--1) \<Longrightarrow> 
+lemma comp_field: "wf ((subcls1 G)^-1) \<Longrightarrow> 
   field (comp G,C) = field (G,C)" 
 by (simp add: TypeRel.field_def comp_fields)
 
@@ -234,7 +234,7 @@ lemma class_rec_relation [rule_format (no_asm)]: "\<lbrakk>  ws_prog G;
   \<Longrightarrow> ((class G C) \<noteq> None) \<longrightarrow> 
   R (class_rec G C t1 f1) (class_rec G C t2 f2)"
 apply (frule wf_subcls1) (* establish wf ((subcls1 G)^-1) *)
-apply (rule_tac a = C in  wfP_induct) apply assumption
+apply (rule_tac a = C in  wf_induct) apply assumption
 apply (intro strip)
 apply (subgoal_tac "(\<exists>D rT mb. class G x = Some (D, rT, mb))")
   apply (erule exE)+

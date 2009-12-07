@@ -128,7 +128,7 @@ SCALA_FILES = General/event_bus.scala General/linear_set.scala		\
   System/cygwin.scala System/gui_setup.scala				\
   System/isabelle_process.scala System/isabelle_syntax.scala		\
   System/isabelle_system.scala System/platform.scala			\
-  Thy/completion.scala Thy/thy_header.scala
+  Thy/completion.scala Thy/html.scala Thy/thy_header.scala
 
 JAR_DIR = $(ISABELLE_HOME)/lib/classes
 PURE_JAR = $(JAR_DIR)/Pure.jar

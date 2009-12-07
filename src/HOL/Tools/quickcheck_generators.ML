@@ -246,10 +246,10 @@ fun mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us) =
               mk_const @{const_name random_fun_lift} [fTs ---> T, fT] $
                 mk_random_fun_lift fTs t;
         val t = mk_random_fun_lift fTs (nth random_auxs k $ size_pred $ size');
-        val size = Option.map snd (DatatypeCodegen.find_shortest_path descr k)
+        val size = Option.map snd (Datatype_Aux.find_shortest_path descr k)
           |> the_default 0;
       in (SOME size, (t, fTs ---> T)) end;
-    val tss = DatatypeAux.interpret_construction descr vs
+    val tss = Datatype_Aux.interpret_construction descr vs
       { atyp = mk_random_call, dtyp = mk_random_aux_call };
     fun mk_consexpr simpleT (c, xs) =
       let
@@ -287,9 +287,9 @@ fun mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us) =
 
 fun mk_random_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
   let
-    val _ = DatatypeAux.message config "Creating quickcheck generators ...";
+    val _ = Datatype_Aux.message config "Creating quickcheck generators ...";
     val mk_prop_eq = HOLogic.mk_Trueprop o HOLogic.mk_eq;
-    fun mk_size_arg k = case DatatypeCodegen.find_shortest_path descr k
+    fun mk_size_arg k = case Datatype_Aux.find_shortest_path descr k
      of SOME (_, l) => if l = 0 then size
           else @{term "max :: code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"}
             $ HOLogic.mk_number @{typ code_numeral} l $ size
@@ -328,10 +328,10 @@ fun ensure_random_datatype config raw_tycos thy =
     val typerep_vs = (map o apsnd)
       (curry (Sorts.inter_sort algebra) @{sort typerep}) raw_vs;
     val random_insts = (map (rpair @{sort random}) o flat o maps snd o maps snd)
-      (DatatypeAux.interpret_construction descr typerep_vs
+      (Datatype_Aux.interpret_construction descr typerep_vs
         { atyp = single, dtyp = (K o K o K) [] });
     val term_of_insts = (map (rpair @{sort term_of}) o flat o maps snd o maps snd)
-      (DatatypeAux.interpret_construction descr typerep_vs
+      (Datatype_Aux.interpret_construction descr typerep_vs
         { atyp = K [], dtyp = K o K });
     val has_inst = exists (fn tyco =>
       can (Sorts.mg_domain algebra tyco) @{sort random}) tycos;

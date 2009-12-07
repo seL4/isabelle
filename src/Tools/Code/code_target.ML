@@ -46,6 +46,7 @@ sig
   val add_syntax_tyco: string -> string -> tyco_syntax option -> theory -> theory
   val add_syntax_const: string -> string -> proto_const_syntax option -> theory -> theory
   val add_reserved: string -> string -> theory -> theory
+  val add_include: string -> string * (string * string list) option -> theory -> theory
 end;
 
 structure Code_Target : CODE_TARGET =
@@ -165,10 +166,9 @@ fun the_module_alias (Target { module_alias , ... }) = module_alias;
 
 val abort_allowed = snd o CodeTargetData.get;
 
-fun assert_target thy target =
-  case Symtab.lookup (fst (CodeTargetData.get thy)) target
-   of SOME data => target
-    | NONE => error ("Unknown code target language: " ^ quote target);
+fun assert_target thy target = if Symtab.defined (fst (CodeTargetData.get thy)) target
+  then target
+  else error ("Unknown code target language: " ^ quote target);
 
 fun put_target (target, seri) thy =
   let
@@ -238,7 +238,7 @@ fun cert_tyco thy tyco =
 
 fun read_tyco thy = cert_tyco thy o Sign.intern_type thy;
 
-fun gen_add_syntax_class prep_class prep_const target raw_class raw_syn thy =
+fun gen_add_syntax_class prep_class target raw_class raw_syn thy =
   let
     val class = prep_class thy raw_class;
   in case raw_syn
@@ -318,7 +318,7 @@ fun gen_add_include read_const target args thy =
       | add (name, NONE) incls = Symtab.delete name incls;
   in map_includes target (add args) thy end;
 
-val add_include = gen_add_include Code.check_const;
+val add_include = gen_add_include (K I);
 val add_include_cmd = gen_add_include Code.read_const;
 
 fun add_module_alias target (thyname, modlname) =
@@ -355,14 +355,15 @@ fun parse_multi_syntax parse_thing parse_syntax =
 
 in
 
-val add_syntax_class = gen_add_syntax_class cert_class (K I);
+val add_syntax_class = gen_add_syntax_class cert_class;
 val add_syntax_inst = gen_add_syntax_inst cert_class cert_tyco;
 val add_syntax_tyco = gen_add_syntax_tyco cert_tyco;
 val add_syntax_const = gen_add_syntax_const (K I);
 val allow_abort = gen_allow_abort (K I);
 val add_reserved = add_reserved;
+val add_include = add_include;
 
-val add_syntax_class_cmd = gen_add_syntax_class read_class Code.read_const;
+val add_syntax_class_cmd = gen_add_syntax_class read_class;
 val add_syntax_inst_cmd = gen_add_syntax_inst read_class read_tyco;
 val add_syntax_tyco_cmd = gen_add_syntax_tyco read_tyco;
 val add_syntax_const_cmd = gen_add_syntax_const Code.read_const;
@@ -606,7 +607,7 @@ fun shell_command thyname cmd = Toplevel.program (fn _ =>
     ((filter OuterLex.is_proper o OuterSyntax.scan Position.none) cmd)
    of SOME f => (writeln "Now generating code..."; f (theory thyname))
     | NONE => error ("Bad directive " ^ quote cmd)))
-  handle TOPLEVEL_ERROR => OS.Process.exit OS.Process.failure;
+  handle Runtime.TOPLEVEL_ERROR => OS.Process.exit OS.Process.failure;
 
 end; (*local*)
 

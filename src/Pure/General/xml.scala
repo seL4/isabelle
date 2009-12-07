@@ -86,18 +86,10 @@ object XML
   }
 
 
-  /* document object model (DOM) */
+  /* document object model (W3C DOM) */
 
-  def document(tree: Tree, styles: String*) = {
-    val doc = DocumentBuilderFactory.newInstance.newDocumentBuilder.newDocument
-    doc.appendChild(doc.createProcessingInstruction("xml", "version=\"1.0\""))
-
-    for (style <- styles) {
-      doc.appendChild(doc.createProcessingInstruction("xml-stylesheet",
-        "href=\"" + style + "\" type=\"text/css\""))
-    }
-
-    // main body
+  def document_node(doc: Document, tree: Tree): Node =
+  {
     def DOM(tr: Tree): Node = tr match {
       case Elem(name, atts, ts) => {
         val node = doc.createElement(name)
@@ -107,9 +99,21 @@ object XML
       }
       case Text(txt) => doc.createTextNode(txt)
     }
+    DOM(tree)
+  }
+
+  def document(tree: Tree, styles: String*): Document =
+  {
+    val doc = DocumentBuilderFactory.newInstance.newDocumentBuilder.newDocument
+    doc.appendChild(doc.createProcessingInstruction("xml", "version=\"1.0\""))
+
+    for (style <- styles) {
+      doc.appendChild(doc.createProcessingInstruction("xml-stylesheet",
+        "href=\"" + style + "\" type=\"text/css\""))
+    }
     val root_elem = tree match {
-      case Elem(_, _, _) => DOM(tree)
-      case Text(_) => DOM(Elem(Markup.ROOT, Nil, List(tree)))
+      case Elem(_, _, _) => document_node(doc, tree)
+      case Text(_) => document_node(doc, (Elem(Markup.ROOT, Nil, List(tree))))
     }
     doc.appendChild(root_elem)
     doc

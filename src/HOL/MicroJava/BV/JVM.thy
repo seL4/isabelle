@@ -5,8 +5,9 @@
 
 header {* \isaheader{Kildall for the JVM}\label{sec:JVM} *}
 
-theory JVM imports Kildall Typing_Framework_JVM begin
-
+theory JVM
+imports Typing_Framework_JVM
+begin
 
 constdefs
   kiljvm :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> exception_table \<Rightarrow> 
@@ -39,7 +40,7 @@ theorem is_bcv_kiljvm:
          simp add: symmetric sl_triple_conv)
       apply (simp (no_asm) add: JVM_le_unfold)
       apply (blast intro!: order_widen wf_converse_subcls1_impl_acc_subtype
-                   dest: wf_subcls1 wfP_acyclicP wf_prog_ws_prog)
+                   dest: wf_subcls1 wf_acyclic wf_prog_ws_prog)
      apply (simp add: JVM_le_unfold)
     apply (erule exec_pres_type)
    apply assumption

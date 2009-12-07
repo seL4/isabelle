@@ -1,10 +1,11 @@
 (*  Title:      HOL/Bali/State.thy
-    ID:         $Id$
     Author:     David von Oheimb
 *)
 header {* State for evaluation of Java expressions and statements *}
 
-theory State imports DeclConcepts begin
+theory State
+imports DeclConcepts
+begin
 
 text {*
 design issues:
@@ -138,8 +139,8 @@ syntax
   Stat  :: "qtname \<Rightarrow> oref"
 
 translations
-  "Heap" => "Inl"
-  "Stat" => "Inr"
+  "Heap" => "CONST Inl"
+  "Stat" => "CONST Inr"
   "oref" <= (type) "loc + qtname"
 
 constdefs
@@ -328,7 +329,7 @@ syntax
   init_class_obj :: "prog \<Rightarrow> qtname \<Rightarrow> st \<Rightarrow> st"
 
 translations
- "init_class_obj G C" == "init_obj G CONST undefined (Inr C)"
+ "init_class_obj G C" == "init_obj G CONST undefined (CONST Inr C)"
 
 lemma gupd_def2 [simp]: "gupd(r\<mapsto>obj) (st g l) = st (g(r\<mapsto>obj)) l"
 apply (unfold gupd_def)

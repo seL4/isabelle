@@ -7,10 +7,10 @@ imports Set
 begin
 
 notation
-  less_eq  (infix "\<sqsubseteq>" 50) and
+  less_eq (infix "\<sqsubseteq>" 50) and
   less (infix "\<sqsubset>" 50) and
-  inf  (infixl "\<sqinter>" 70) and
-  sup  (infixl "\<squnion>" 65) and
+  inf (infixl "\<sqinter>" 70) and
+  sup (infixl "\<squnion>" 65) and
   top ("\<top>") and
   bot ("\<bottom>")
 
@@ -25,7 +25,7 @@ class Sup =
 
 subsection {* Abstract complete lattices *}
 
-class complete_lattice = lattice + bot + top + Inf + Sup +
+class complete_lattice = bounded_lattice + Inf + Sup +
   assumes Inf_lower: "x \<in> A \<Longrightarrow> \<Sqinter>A \<sqsubseteq> x"
      and Inf_greatest: "(\<And>x. x \<in> A \<Longrightarrow> z \<sqsubseteq> x) \<Longrightarrow> z \<sqsubseteq> \<Sqinter>A"
   assumes Sup_upper: "x \<in> A \<Longrightarrow> x \<sqsubseteq> \<Squnion>A"
@@ -34,22 +34,23 @@ begin
 
 lemma dual_complete_lattice:
   "complete_lattice Sup Inf (op \<ge>) (op >) (op \<squnion>) (op \<sqinter>) \<top> \<bottom>"
-  by (auto intro!: complete_lattice.intro dual_lattice
-    bot.intro top.intro dual_preorder, unfold_locales)
-      (fact bot_least top_greatest
-        Sup_upper Sup_least Inf_lower Inf_greatest)+
+  by (auto intro!: complete_lattice.intro dual_bounded_lattice)
+    (unfold_locales, (fact bot_least top_greatest
+        Sup_upper Sup_least Inf_lower Inf_greatest)+)
 
-lemma Inf_Sup: "\<Sqinter>A = \<Squnion>{b. \<forall>a \<in> A. b \<le> a}"
+lemma Inf_Sup: "\<Sqinter>A = \<Squnion>{b. \<forall>a \<in> A. b \<sqsubseteq> a}"
   by (auto intro: antisym Inf_lower Inf_greatest Sup_upper Sup_least)
 
-lemma Sup_Inf:  "\<Squnion>A = \<Sqinter>{b. \<forall>a \<in> A. a \<le> b}"
+lemma Sup_Inf:  "\<Squnion>A = \<Sqinter>{b. \<forall>a \<in> A. a \<sqsubseteq> b}"
   by (auto intro: antisym Inf_lower Inf_greatest Sup_upper Sup_least)
 
-lemma Inf_Univ: "\<Sqinter>UNIV = \<Squnion>{}"
-  unfolding Sup_Inf by auto
+lemma Inf_empty:
+  "\<Sqinter>{} = \<top>"
+  by (auto intro: antisym Inf_greatest)
 
-lemma Sup_Univ: "\<Squnion>UNIV = \<Sqinter>{}"
-  unfolding Inf_Sup by auto
+lemma Sup_empty:
+  "\<Squnion>{} = \<bottom>"
+  by (auto intro: antisym Sup_least)
 
 lemma Inf_insert: "\<Sqinter>insert a A = a \<sqinter> \<Sqinter>A"
   by (auto intro: le_infI le_infI1 le_infI2 antisym Inf_greatest Inf_lower)
@@ -65,37 +66,21 @@ lemma Sup_singleton [simp]:
   "\<Squnion>{a} = a"
   by (auto intro: antisym Sup_upper Sup_least)
 
-lemma Inf_insert_simp:
-  "\<Sqinter>insert a A = (if A = {} then a else a \<sqinter> \<Sqinter>A)"
-  by (cases "A = {}") (simp_all, simp add: Inf_insert)
-
-lemma Sup_insert_simp:
-  "\<Squnion>insert a A = (if A = {} then a else a \<squnion> \<Squnion>A)"
-  by (cases "A = {}") (simp_all, simp add: Sup_insert)
-
 lemma Inf_binary:
   "\<Sqinter>{a, b} = a \<sqinter> b"
-  by (auto simp add: Inf_insert_simp)
+  by (simp add: Inf_empty Inf_insert)
 
 lemma Sup_binary:
   "\<Squnion>{a, b} = a \<squnion> b"
-  by (auto simp add: Sup_insert_simp)
+  by (simp add: Sup_empty Sup_insert)
 
-lemma bot_def:
-  "bot = \<Squnion>{}"
-  by (auto intro: antisym Sup_least)
+lemma Inf_UNIV:
+  "\<Sqinter>UNIV = bot"
+  by (simp add: Sup_Inf Sup_empty [symmetric])
 
-lemma top_def:
-  "top = \<Sqinter>{}"
-  by (auto intro: antisym Inf_greatest)
-
-lemma sup_bot [simp]:
-  "x \<squnion> bot = x"
-  using bot_least [of x] by (simp add: sup_commute sup_absorb2)
-
-lemma inf_top [simp]:
-  "x \<sqinter> top = x"
-  using top_greatest [of x] by (simp add: inf_commute inf_absorb2)
+lemma Sup_UNIV:
+  "\<Squnion>UNIV = top"
+  by (simp add: Inf_Sup Inf_empty [symmetric])
 
 definition SUPR :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
   "SUPR A f = \<Squnion> (f ` A)"
@@ -129,16 +114,16 @@ Syntax.preserve_binder_abs2_tr' @{const_syntax INFI} "_INF"
 context complete_lattice
 begin
 
-lemma le_SUPI: "i : A \<Longrightarrow> M i \<le> (SUP i:A. M i)"
+lemma le_SUPI: "i : A \<Longrightarrow> M i \<sqsubseteq> (SUP i:A. M i)"
   by (auto simp add: SUPR_def intro: Sup_upper)
 
-lemma SUP_leI: "(\<And>i. i : A \<Longrightarrow> M i \<le> u) \<Longrightarrow> (SUP i:A. M i) \<le> u"
+lemma SUP_leI: "(\<And>i. i : A \<Longrightarrow> M i \<sqsubseteq> u) \<Longrightarrow> (SUP i:A. M i) \<sqsubseteq> u"
   by (auto simp add: SUPR_def intro: Sup_least)
 
-lemma INF_leI: "i : A \<Longrightarrow> (INF i:A. M i) \<le> M i"
+lemma INF_leI: "i : A \<Longrightarrow> (INF i:A. M i) \<sqsubseteq> M i"
   by (auto simp add: INFI_def intro: Inf_lower)
 
-lemma le_INFI: "(\<And>i. i : A \<Longrightarrow> u \<le> M i) \<Longrightarrow> u \<le> (INF i:A. M i)"
+lemma le_INFI: "(\<And>i. i : A \<Longrightarrow> u \<sqsubseteq> M i) \<Longrightarrow> u \<sqsubseteq> (INF i:A. M i)"
   by (auto simp add: INFI_def intro: Inf_greatest)
 
 lemma SUP_const[simp]: "A \<noteq> {} \<Longrightarrow> (SUP i:A. M) = M"

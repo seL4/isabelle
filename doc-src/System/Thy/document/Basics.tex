@@ -308,7 +308,11 @@ Any directory may be registered as an explicit \emph{Isabelle
   itself.  After initializing all of its sub-components recursively,
   \hyperlink{setting.ISABELLE-HOME-USER}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}HOME{\isacharunderscore}USER}}}} is included in the same manner (if
   that directory exists).  Thus users can easily add private
-  components to \verb|$ISABELLE_HOME_USER/etc/components|.%
+  components to \verb|$ISABELLE_HOME_USER/etc/components|.
+
+  It is also possible to initialize components programmatically via
+  the \verb,init_component, shell function, say within the
+  \verb,settings, script of another component.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

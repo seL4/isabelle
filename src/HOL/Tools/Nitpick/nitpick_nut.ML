@@ -1,4 +1,4 @@
-(*  Title:      HOL/Nitpick/Tools/nitpick_nut.ML
+(*  Title:      HOL/Tools/Nitpick/nitpick_nut.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2008, 2009
 

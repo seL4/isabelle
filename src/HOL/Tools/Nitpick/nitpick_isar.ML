@@ -1,4 +1,4 @@
-(*  Title:      HOL/Nitpick/Tools/nitpick_isar.ML
+(*  Title:      HOL/Tools/Nitpick/nitpick_isar.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2008, 2009
 

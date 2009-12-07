@@ -726,7 +726,7 @@ lemma sup_code [code]:
 proof (cases "f ()")
   case Empty
   thus ?thesis
-    unfolding Seq_def by (simp add: sup_commute [of "\<bottom>"]  sup_bot)
+    unfolding Seq_def by (simp add: sup_commute [of "\<bottom>"])
 next
   case Insert
   thus ?thesis
@@ -831,6 +831,8 @@ where
 lemma the_eq[code]: "the A = singleton (\<lambda>x. not_unique A) A"
 by (auto simp add: the_def singleton_def not_unique_def)
 
+code_abort not_unique
+
 ML {*
 signature PREDICATE =
 sig
@@ -875,8 +877,6 @@ code_type pred and seq
 
 code_const Seq and Empty and Insert and Join
   (Eval "Predicate.Seq" and "Predicate.Empty" and "Predicate.Insert/ (_,/ _)" and "Predicate.Join/ (_,/ _)")
-
-code_abort not_unique
 
 no_notation
   inf (infixl "\<sqinter>" 70) and

@@ -1,7 +1,7 @@
-(*  Title:      HOL/Tools/datatype_aux.ML
+(*  Title:      HOL/Tools/Datatype/datatype_aux.ML
     Author:     Stefan Berghofer, TU Muenchen
 
-Auxiliary functions for defining datatypes.
+Datatype package: auxiliary data structures and functions.
 *)
 
 signature DATATYPE_COMMON =
@@ -79,9 +79,10 @@ sig
   val unfold_datatypes : 
     theory -> descr -> (string * sort) list -> info Symtab.table ->
       descr -> int -> descr list * int
+  val find_shortest_path : descr -> int -> (string * int) option
 end;
 
-structure DatatypeAux : DATATYPE_AUX =
+structure Datatype_Aux : DATATYPE_AUX =
 struct
 
 (* datatype option flags *)
@@ -364,5 +365,24 @@ fun unfold_datatypes sign orig_descr sorts (dt_info : info Symtab.table) descr i
     val (i', descr', descrs) = fold unfold_datatype descr (i, [], []);
 
   in (descr' :: descrs, i') end;
+
+(* find shortest path to constructor with no recursive arguments *)
+
+fun find_nonempty descr is i =
+  let
+    fun arg_nonempty (_, DtRec i) = if member (op =) is i
+          then NONE
+          else Option.map (Integer.add 1 o snd) (find_nonempty descr (i::is) i)
+      | arg_nonempty _ = SOME 0;
+    fun max_inf (SOME i) (SOME j) = SOME (Integer.max i j)
+      | max_inf _ _ = NONE;
+    fun max xs = fold max_inf xs (SOME 0);
+    val (_, _, constrs) = the (AList.lookup (op =) descr i);
+    val xs = sort (int_ord o pairself snd)
+      (map_filter (fn (s, dts) => Option.map (pair s)
+        (max (map (arg_nonempty o strip_dtyp) dts))) constrs)
+  in if null xs then NONE else SOME (hd xs) end;
+
+fun find_shortest_path descr i = find_nonempty descr [i] i;
 
 end;

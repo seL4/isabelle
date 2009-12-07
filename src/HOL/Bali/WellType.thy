@@ -1,10 +1,11 @@
 (*  Title:      HOL/Bali/WellType.thy
-    ID:         $Id$
     Author:     David von Oheimb
 *)
 header {* Well-typedness of Java programs *}
 
-theory WellType imports DeclConcepts begin
+theory WellType
+imports DeclConcepts
+begin
 
 text {*
 improvements over Java Specification 1.0:
@@ -443,10 +444,10 @@ syntax (xsymbols)
 
 translations
         "E\<turnstile>t\<Colon> T" == "E,empty_dt\<Turnstile>t\<Colon> T"
-        "E\<turnstile>s\<Colon>\<surd>"  == "E\<turnstile>In1r s\<Colon>Inl (PrimT Void)"
-        "E\<turnstile>e\<Colon>-T" == "E\<turnstile>In1l e\<Colon>Inl T"
-        "E\<turnstile>e\<Colon>=T" == "E\<turnstile>In2  e\<Colon>Inl T"
-        "E\<turnstile>e\<Colon>\<doteq>T" == "E\<turnstile>In3  e\<Colon>Inr T"
+        "E\<turnstile>s\<Colon>\<surd>"  == "E\<turnstile>In1r s\<Colon>CONST Inl (PrimT Void)"
+        "E\<turnstile>e\<Colon>-T" == "E\<turnstile>In1l e\<Colon>CONST Inl T"
+        "E\<turnstile>e\<Colon>=T" == "E\<turnstile>In2  e\<Colon>CONST Inl T"
+        "E\<turnstile>e\<Colon>\<doteq>T" == "E\<turnstile>In3  e\<Colon>CONST Inr T"
 
 
 declare not_None_eq [simp del] 

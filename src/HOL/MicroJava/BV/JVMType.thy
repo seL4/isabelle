@@ -1,13 +1,13 @@
 (*  Title:      HOL/MicroJava/BV/JVM.thy
-    ID:         $Id$
     Author:     Gerwin Klein
     Copyright   2000 TUM
-
 *)
 
 header {* \isaheader{The JVM Type System as Semilattice} *}
 
-theory JVMType imports Opt Product Listn JType begin
+theory JVMType
+imports JType
+begin
 
 types
   locvars_type = "ty err list"

@@ -1,13 +1,13 @@
 (*  Title:      HOL/MicroJava/BV/EffMono.thy
-    ID:         $Id$
     Author:     Gerwin Klein
     Copyright   2000 Technische Universitaet Muenchen
 *)
 
 header {* \isaheader{Monotonicity of eff and app} *}
 
-theory EffectMono imports Effect begin
-
+theory EffectMono
+imports Effect
+begin
 
 lemma PrimT_PrimT: "(G \<turnstile> xb \<preceq> PrimT p) = (xb = PrimT p)"
   by (auto elim: widen.cases)

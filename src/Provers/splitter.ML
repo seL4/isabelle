@@ -122,8 +122,8 @@ fun mk_cntxt Ts t pos T maxi =
       fun down [] t i = Bound 0
         | down (p::ps) t i =
             let val (h,ts) = strip_comb t
-                val v1 = ListPair.map var (Library.take(p,ts), i upto (i+p-1))
-                val u::us = Library.drop(p,ts)
+                val v1 = ListPair.map var (take p ts, i upto (i+p-1))
+                val u::us = drop p ts
                 val v2 = ListPair.map var (us, (i+p) upto (i+length(ts)-2))
       in list_comb(h,v1@[down ps u (i+length ts)]@v2) end;
   in Abs("", T, down (rev pos) t maxi) end;
@@ -191,7 +191,7 @@ fun type_test (T, lbnos, apsns) =
 fun mk_split_pack (thm, T: typ, T', n, ts, apsns, pos, TB, t) =
   if n > length ts then []
   else let val lev = length apsns
-           val lbnos = fold add_lbnos (Library.take (n, ts)) []
+           val lbnos = fold add_lbnos (take n ts) []
            val flbnos = filter (fn i => i < lev) lbnos
            val tt = incr_boundvars (~lev) t
        in if null flbnos then
@@ -259,7 +259,7 @@ fun split_posns (cmap : (string * (typ * term * thm * typ * int) list) list) sg 
                 Const(c, cT) =>
                   let fun find [] = []
                         | find ((gcT, pat, thm, T, n)::tups) =
-                            let val t2 = list_comb (h, Library.take (n, ts))
+                            let val t2 = list_comb (h, take n ts)
                             in if Sign.typ_instance sg (cT, gcT)
                                   andalso fomatch sg (Ts,pat,t2)
                                then mk_split_pack(thm,T,T',n,ts,apsns,pos,type_of1(Ts,t2),t2)

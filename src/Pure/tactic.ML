@@ -173,7 +173,7 @@ fun distinct_tac (i, k) =
   perm_tac 0 (1 - i);
 
 fun distinct_subgoal_tac i st =
-  (case Library.drop (i - 1, Thm.prems_of st) of
+  (case drop (i - 1) (Thm.prems_of st) of
     [] => no_tac st
   | A :: Bs =>
       st |> EVERY (fold (fn (B, k) =>

@@ -81,6 +81,8 @@ sig
   val filter: ('a -> bool) -> 'a list -> 'a list
   val filter_out: ('a -> bool) -> 'a list -> 'a list
   val map_filter: ('a -> 'b option) -> 'a list -> 'b list
+  val take: int -> 'a list -> 'a list
+  val drop: int -> 'a list -> 'a list
   val chop: int -> 'a list -> 'a list * 'a list
   val dropwhile: ('a -> bool) -> 'a list -> 'a list
   val nth: 'a list -> int -> 'a
@@ -224,8 +226,6 @@ sig
   val foldl: ('a * 'b -> 'a) -> 'a * 'b list -> 'a
   val foldr: ('a * 'b -> 'b) -> 'a list * 'b -> 'b
   val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
-  val take: int * 'a list -> 'a list
-  val drop: int * 'a list -> 'a list
   val last_elem: 'a list -> 'a
 end;
 
@@ -423,19 +423,19 @@ val filter = List.filter;
 fun filter_out f = filter (not o f);
 val map_filter = List.mapPartial;
 
+fun take (0: int) xs = []
+  | take _ [] = []
+  | take n (x :: xs) =
+      if n > 0 then x :: take (n - 1) xs else [];
+
+fun drop (0: int) xs = xs
+  | drop _ [] = []
+  | drop n (x :: xs) =
+      if n > 0 then drop (n - 1) xs else x :: xs;
+
 fun chop (0: int) xs = ([], xs)
   | chop _ [] = ([], [])
   | chop n (x :: xs) = chop (n - 1) xs |>> cons x;
-
-(*take the first n elements from a list*)
-fun take (n: int, []) = []
-  | take (n, x :: xs) =
-      if n > 0 then x :: take (n - 1, xs) else [];
-
-(*drop the first n elements from a list*)
-fun drop (n: int, []) = []
-  | drop (n, x :: xs) =
-      if n > 0 then drop (n - 1, xs) else x :: xs;
 
 fun dropwhile P [] = []
   | dropwhile P (ys as x::xs) = if P x then dropwhile P xs else ys;

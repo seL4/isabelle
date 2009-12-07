@@ -105,42 +105,6 @@ proof -
     by (simp add: minus_fold_remove [of _ A] fold_set)
 qed
 
-lemma Inter_set:
-  "Inter (set As) = foldl (op \<inter>) UNIV As"
-proof -
-  have "fold (op \<inter>) UNIV (set As) = foldl (\<lambda>y x. x \<inter> y) UNIV As"
-    by (rule fun_left_comm_idem.fold_set, unfold_locales, auto)
-  then show ?thesis
-    by (simp only: Inter_fold_inter finite_set Int_commute)
-qed
-
-lemma Union_set:
-  "Union (set As) = foldl (op \<union>) {} As"
-proof -
-  have "fold (op \<union>) {} (set As) = foldl (\<lambda>y x. x \<union> y) {} As"
-    by (rule fun_left_comm_idem.fold_set, unfold_locales, auto)
-  then show ?thesis
-    by (simp only: Union_fold_union finite_set Un_commute)
-qed
-
-lemma INTER_set:
-  "INTER (set As) f = foldl (\<lambda>B A. f A \<inter> B) UNIV As"
-proof -
-  have "fold (\<lambda>A. op \<inter> (f A)) UNIV (set As) = foldl (\<lambda>B A. f A \<inter> B) UNIV As"
-    by (rule fun_left_comm_idem.fold_set, unfold_locales, auto)
-  then show ?thesis
-    by (simp only: INTER_fold_inter finite_set)
-qed
-
-lemma UNION_set:
-  "UNION (set As) f = foldl (\<lambda>B A. f A \<union> B) {} As"
-proof -
-  have "fold (\<lambda>A. op \<union> (f A)) {} (set As) = foldl (\<lambda>B A. f A \<union> B) {} As"
-    by (rule fun_left_comm_idem.fold_set, unfold_locales, auto)
-  then show ?thesis
-    by (simp only: UNION_fold_union finite_set)
-qed
-
 
 subsection {* Derived set operations *}
 

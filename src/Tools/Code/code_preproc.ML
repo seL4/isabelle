@@ -111,7 +111,7 @@ fun apply_functrans thy c _ [] = []
       -- perhaps by means of upcoming code certificates with a corresponding
          preprocessor protocol*);
 
-fun rhs_conv conv thm = Thm.transitive thm ((conv o Thm.rhs_of) thm);
+fun trans_conv_rule conv thm = Thm.transitive thm ((conv o Thm.rhs_of) thm);
 
 fun eqn_conv conv =
   let
@@ -148,7 +148,7 @@ fun preprocess_conv thy ct =
   in
     ct
     |> Simplifier.rewrite pre
-    |> rhs_conv (AxClass.unoverload_conv thy)
+    |> trans_conv_rule (AxClass.unoverload_conv thy)
   end;
 
 fun postprocess_conv thy ct =
@@ -157,7 +157,7 @@ fun postprocess_conv thy ct =
   in
     ct
     |> AxClass.overload_conv thy
-    |> rhs_conv (Simplifier.rewrite post)
+    |> trans_conv_rule (Simplifier.rewrite post)
   end;
 
 fun postprocess_term thy = term_of_conv thy (postprocess_conv thy);

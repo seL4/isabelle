@@ -1,38 +1,39 @@
-(*  Title:      HOL/Tools/datatype_prop.ML
+(*  Title:      HOL/Tools/Datatype/datatype_prop.ML
     Author:     Stefan Berghofer, TU Muenchen
 
-Characteristic properties of datatypes.
+Datatype package: characteristic properties of datatypes.
 *)
 
 signature DATATYPE_PROP =
 sig
+  include DATATYPE_COMMON
   val indexify_names: string list -> string list
   val make_tnames: typ list -> string list
-  val make_injs : DatatypeAux.descr list -> (string * sort) list -> term list list
-  val make_distincts : DatatypeAux.descr list ->
+  val make_injs : descr list -> (string * sort) list -> term list list
+  val make_distincts : descr list ->
     (string * sort) list -> (int * term list) list (*no symmetric inequalities*)
-  val make_ind : DatatypeAux.descr list -> (string * sort) list -> term
-  val make_casedists : DatatypeAux.descr list -> (string * sort) list -> term list
-  val make_primrec_Ts : DatatypeAux.descr list -> (string * sort) list ->
+  val make_ind : descr list -> (string * sort) list -> term
+  val make_casedists : descr list -> (string * sort) list -> term list
+  val make_primrec_Ts : descr list -> (string * sort) list ->
     string list -> typ list * typ list
-  val make_primrecs : string list -> DatatypeAux.descr list ->
+  val make_primrecs : string list -> descr list ->
     (string * sort) list -> theory -> term list
-  val make_cases : string list -> DatatypeAux.descr list ->
+  val make_cases : string list -> descr list ->
     (string * sort) list -> theory -> term list list
-  val make_splits : string list -> DatatypeAux.descr list ->
+  val make_splits : string list -> descr list ->
     (string * sort) list -> theory -> (term * term) list
-  val make_weak_case_congs : string list -> DatatypeAux.descr list ->
+  val make_weak_case_congs : string list -> descr list ->
     (string * sort) list -> theory -> term list
-  val make_case_congs : string list -> DatatypeAux.descr list ->
+  val make_case_congs : string list -> descr list ->
     (string * sort) list -> theory -> term list
-  val make_nchotomys : DatatypeAux.descr list ->
+  val make_nchotomys : descr list ->
     (string * sort) list -> term list
 end;
 
-structure DatatypeProp : DATATYPE_PROP =
+structure Datatype_Prop : DATATYPE_PROP =
 struct
 
-open DatatypeAux;
+open Datatype_Aux;
 
 fun indexify_names names =
   let
@@ -72,7 +73,7 @@ fun make_injs descr sorts =
         end;
   in
     map2 (fn d => fn T => fold_rev (make_inj T) (#3 (snd d)) [])
-      (hd descr) (Library.take (length (hd descr), get_rec_types descr' sorts))
+      (hd descr) (take (length (hd descr)) (get_rec_types descr' sorts))
   end;
 
 
@@ -82,7 +83,7 @@ fun make_distincts descr sorts =
   let
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
-    val newTs = Library.take (length (hd descr), recTs);
+    val newTs = take (length (hd descr)) recTs;
 
     fun prep_constr (cname, cargs) = (cname, map (typ_of_dtyp descr' sorts) cargs);
 
@@ -168,14 +169,12 @@ fun make_casedists descr sorts =
           HOLogic.mk_Trueprop (Free ("P", HOLogic.boolT))))
       end;
 
-    fun make_casedist ((_, (_, _, constrs)), T) =
+    fun make_casedist ((_, (_, _, constrs))) T =
       let val prems = map (make_casedist_prem T) constrs
       in Logic.list_implies (prems, HOLogic.mk_Trueprop (Free ("P", HOLogic.boolT)))
       end
 
-  in map make_casedist
-    ((hd descr) ~~ Library.take (length (hd descr), get_rec_types descr' sorts))
-  end;
+  in map2 make_casedist (hd descr) (take (length (hd descr)) (get_rec_types descr' sorts)) end;
 
 (*************** characteristic equations for primrec combinator **************)
 
@@ -257,7 +256,7 @@ fun make_case_combs new_type_names descr sorts thy fname =
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
     val used = List.foldr OldTerm.add_typ_tfree_names [] recTs;
-    val newTs = Library.take (length (hd descr), recTs);
+    val newTs = take (length (hd descr)) recTs;
     val T' = TFree (Name.variant used "'t", HOLogic.typeS);
 
     val case_fn_Ts = map (fn (i, (_, _, constrs)) =>
@@ -280,7 +279,7 @@ fun make_cases new_type_names descr sorts thy =
   let
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
-    val newTs = Library.take (length (hd descr), recTs);
+    val newTs = take (length (hd descr)) recTs;
 
     fun make_case T comb_t ((cname, cargs), f) =
       let
@@ -304,7 +303,7 @@ fun make_splits new_type_names descr sorts thy =
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
     val used' = List.foldr OldTerm.add_typ_tfree_names [] recTs;
-    val newTs = Library.take (length (hd descr), recTs);
+    val newTs = take (length (hd descr)) recTs;
     val T' = TFree (Name.variant used' "'t", HOLogic.typeS);
     val P = Free ("P", T' --> HOLogic.boolT);
 
@@ -415,7 +414,7 @@ fun make_nchotomys descr sorts =
   let
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
-    val newTs = Library.take (length (hd descr), recTs);
+    val newTs = take (length (hd descr)) recTs;
 
     fun mk_eqn T (cname, cargs) =
       let
