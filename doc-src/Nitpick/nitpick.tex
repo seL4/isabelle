@@ -1517,15 +1517,13 @@ Notice that we deliberately commented out the application of \textit{skew} and
 \hbox{}\qquad Free variables: \nopagebreak \\
 \hbox{}\qquad\qquad $t = N~a_3~1~\Lambda~\Lambda$ \\
 \hbox{}\qquad\qquad $x = a_4$ \\[2\smallskipamount]
-Hint: Maybe you forgot a type constraint?
 \postw
 
-It's hard to see why this is a counterexample. The hint is of no help here. To
-improve readability, we will restrict the theorem to \textit{nat}, so that we
-don't need to look up the value of the $\textit{op}~{<}$ constant to find out
-which element is smaller than the other. In addition, we will tell Nitpick to
-display the value of $\textit{insort}~t~x$ using the \textit{eval} option. This
-gives
+It's hard to see why this is a counterexample. To improve readability, we will
+restrict the theorem to \textit{nat}, so that we don't need to look up the value
+of the $\textit{op}~{<}$ constant to find out which element is smaller than the
+other. In addition, we will tell Nitpick to display the value of
+$\textit{insort}~t~x$ using the \textit{eval} option. This gives
 
 \prew
 \textbf{theorem} \textit{wf\_insort\_nat}:\kern.4em ``$\textit{wf}~t\,\Longrightarrow\, \textit{wf}~(\textit{insort}~t~(x\Colon\textit{nat}))$'' \\

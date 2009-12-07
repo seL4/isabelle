@@ -164,17 +164,15 @@ fun passed_deadline NONE = false
 (* ('a * bool option) list -> bool *)
 fun none_true asgns = forall (not_equal (SOME true) o snd) asgns
 
-val weaselly_sorts =
-  [@{sort default}, @{sort zero}, @{sort one}, @{sort plus}, @{sort minus},
-   @{sort uminus}, @{sort times}, @{sort inverse}, @{sort abs}, @{sort sgn},
-   @{sort ord}, @{sort eq}, @{sort number}]
-(* theory -> typ -> bool *)
-fun is_tfree_with_weaselly_sort thy (TFree (_, S)) =
-    exists (curry (Sign.subsort thy) S) weaselly_sorts
-  | is_tfree_with_weaselly_sort _ _ = false
-(* theory term -> bool *)
-val has_weaselly_sorts =
-  exists_type o exists_subtype o is_tfree_with_weaselly_sort
+val syntactic_sorts =
+  @{sort "{default,zero,one,plus,minus,uminus,times,inverse,abs,sgn,ord,eq}"} @
+  @{sort number}
+(* typ -> bool *)
+fun has_tfree_syntactic_sort (TFree (_, S as _ :: _)) =
+    subset (op =) (S, syntactic_sorts)
+  | has_tfree_syntactic_sort _ = false
+(* term -> bool *)
+val has_syntactic_sorts = exists_type (exists_subtype has_tfree_syntactic_sort)
 
 (* (unit -> string) -> Pretty.T *)
 fun plazy f = Pretty.blk (0, pstrs (f ()))
@@ -575,7 +573,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
               | NONE => print "No confirmation by \"auto\".")
            else
              ();
-           if has_weaselly_sorts thy orig_t then
+           if has_syntactic_sorts orig_t then
              print "Hint: Maybe you forgot a type constraint?"
            else
              ();
