@@ -9,11 +9,6 @@
 			wm.addDockableWindow("isabelle-state");
 		</CODE>
 	</ACTION>
-  <ACTION NAME="isabelle.show-scroller">
-		<CODE>
-			wm.addDockableWindow("isabelle-scroller");
-		</CODE>
-	</ACTION>
   <ACTION NAME="isabelle.show-browser">
 		<CODE>
 			wm.addDockableWindow("isabelle-browser");
