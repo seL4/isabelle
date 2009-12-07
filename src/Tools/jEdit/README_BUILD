@@ -23,10 +23,6 @@ Requirements to build from sources
     Netbeans Library "ErrorList" = $HOME/.jedit/jars/ErrorList.jar
     Netbeans Library "Hyperlink" = $HOME/.jedit/jars/Hyperlinks.jar
 
-* Flying Saucer XHTML renderer
-  https://xhtmlrenderer.dev.java.net/
-  Netbeans Library "Flying-Saucer" = .../core-renderer.jar
-
 * Cobra Renderer
   http://lobobrowser.org/cobra.jsp
   Netbeans Library "Cobra-Renderer" = .../cobra.jar
