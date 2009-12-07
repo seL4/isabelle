@@ -38,10 +38,6 @@ class OptionPane extends AbstractOptionPane("isabelle")
     Isabelle.Property("logic") = logic
 
     val size = font_size.getValue().asInstanceOf[Int]
-    if (Isabelle.Int_Property("font-size") != size)
-    {
-      Isabelle.Int_Property("font-size") = size
-      Swing_Thread.later { Isabelle.plugin.set_font(size) }
-    }
+    Isabelle.Int_Property("font-size") = size
   }
 }

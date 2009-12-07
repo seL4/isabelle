@@ -84,20 +84,6 @@ object Isabelle
 
 class Plugin extends EBPlugin
 {
-  /* Isabelle font */
-
-  var font: Font = null
-  val font_changed = new Event_Bus[Font]
-
-  def set_font(size: Int)
-  {
-    font = Font.createFont(Font.TRUETYPE_FONT,
-        Isabelle.system.platform_file("~~/lib/fonts/IsabelleMono.ttf")).
-      deriveFont(Font.PLAIN, (size max 1).toFloat)
-    font_changed.event(font)
-  }
-
-
   /* event buses */
 
   val state_update = new Event_Bus[Command]
@@ -154,9 +140,10 @@ class Plugin extends EBPlugin
 
   override def start()
   {
-    Isabelle.system = new Isabelle_System
     Isabelle.plugin = this
-    set_font(Isabelle.Int_Property("font-size"))
+    Isabelle.system = new Isabelle_System
+    if (!Isabelle.system.register_fonts())
+      System.err.println("Failed to register Isabelle fonts")
   }
 
   override def stop()
