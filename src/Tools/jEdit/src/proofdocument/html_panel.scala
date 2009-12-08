@@ -73,7 +73,8 @@ class HTML_Panel(sys: Isabelle_System, initial_font_size: Int) extends HtmlPanel
       react {
         case Init(font_size) =>
           val src = template(font_size)
-          def parse() = builder.parse(new InputSourceImpl(new StringReader(src)))
+          def parse() =
+            builder.parse(new InputSourceImpl(new StringReader(src), "http://localhost"))
           doc1 = parse()
           doc2 = parse()
           Swing_Thread.now { setDocument(doc1, rcontext) }
