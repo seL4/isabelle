@@ -3,6 +3,7 @@
  *
  * @author Johannes Hölzl, TU Munich
  * @author Fabian Immler, TU Munich
+ * @author Makarius
  */
 
 package isabelle.jedit
@@ -14,8 +15,7 @@ import javax.swing.JScrollPane
 
 import scala.collection.mutable
 
-import isabelle.prover.{Prover, Command}
-import isabelle.proofdocument.ProofDocument
+import isabelle.proofdocument.{Command, Proof_Document, Prover}
 import isabelle.Isabelle_System
 
 import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, EditPane, ServiceManager, View}
@@ -98,12 +98,12 @@ class Plugin extends EBPlugin
 
   /* mapping buffer <-> prover */
 
-  private val mapping = new mutable.HashMap[JEditBuffer, ProverSetup]
+  private val mapping = new mutable.HashMap[JEditBuffer, Prover_Setup]
 
   private def install(view: View)
   {
     val buffer = view.getBuffer
-    val prover_setup = new ProverSetup(buffer)
+    val prover_setup = new Prover_Setup(buffer)
     mapping.update(buffer, prover_setup)
     prover_setup.activate(view)
   }
@@ -115,7 +115,7 @@ class Plugin extends EBPlugin
     if (mapping.isDefinedAt(view.getBuffer)) uninstall(view)
     else install(view)
 
-  def prover_setup(buffer: JEditBuffer): Option[ProverSetup] = mapping.get(buffer)
+  def prover_setup(buffer: JEditBuffer): Option[Prover_Setup] = mapping.get(buffer)
   def is_active (buffer: JEditBuffer) = mapping.isDefinedAt(buffer)
 
 

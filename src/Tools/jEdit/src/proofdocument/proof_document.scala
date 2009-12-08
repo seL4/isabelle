@@ -8,14 +8,13 @@
 
 package isabelle.proofdocument
 
+
 import scala.actors.Actor, Actor._
 
 import java.util.regex.Pattern
 
-import isabelle.prover.{Prover, Command, Command_State}
 
-
-object ProofDocument
+object Proof_Document
 {
   // Be careful when changing this regex. Not only must it handle the
   // spurious end of a token but also:  
@@ -34,14 +33,14 @@ object ProofDocument
       "[()\\[\\]{}:;]", Pattern.MULTILINE)
 
   val empty =
-    new ProofDocument(isabelle.jedit.Isabelle.system.id(),
+    new Proof_Document(isabelle.jedit.Isabelle.system.id(),
       Linear_Set(), Map(), Linear_Set(), Map(), _ => false)
 
   type StructureChange = List[(Option[Command], Option[Command])]
 
 }
 
-class ProofDocument(
+class Proof_Document(
   val id: String,
   val tokens: Linear_Set[Token],
   val token_start: Map[Token, Int],
@@ -49,10 +48,10 @@ class ProofDocument(
   var states: Map[Command, Command_State],   // FIXME immutable
   is_command_keyword: String => Boolean)
 {
-  import ProofDocument.StructureChange
+  import Proof_Document.StructureChange
 
-  def set_command_keyword(f: String => Boolean): ProofDocument =
-    new ProofDocument(id, tokens, token_start, commands, states, f)
+  def set_command_keyword(f: String => Boolean): Proof_Document =
+    new Proof_Document(id, tokens, token_start, commands, states, f)
 
   def content = Token.string_from_tokens(Nil ++ tokens, token_start)
 
@@ -60,9 +59,9 @@ class ProofDocument(
   
   /** token view **/
 
-  def text_changed(change: Change): (ProofDocument, StructureChange) =
+  def text_changed(change: Change): (Proof_Document, StructureChange) =
   {
-    def edit_doc(doc_chgs: (ProofDocument, StructureChange), edit: Edit) = {
+    def edit_doc(doc_chgs: (Proof_Document, StructureChange), edit: Edit) = {
       val (doc, chgs) = doc_chgs
       val (new_doc, chg) = doc.text_edit(edit, change.id)
       (new_doc, chgs ++ chg)
@@ -70,7 +69,7 @@ class ProofDocument(
     ((this, Nil: StructureChange) /: change.edits)(edit_doc)
   }
 
-  def text_edit(e: Edit, id: String): (ProofDocument, StructureChange) =
+  def text_edit(e: Edit, id: String): (Proof_Document, StructureChange) =
   {
     case class TextChange(start: Int, added: String, removed: String)
     val change = e match {
@@ -116,7 +115,7 @@ class ProofDocument(
 
     val match_start = invalid_tokens.firstOption.map(start(_)).getOrElse(0)
     val matcher =
-      ProofDocument.token_pattern.matcher(Token.string_from_tokens(invalid_tokens, start))
+      Proof_Document.token_pattern.matcher(Token.string_from_tokens(invalid_tokens, start))
 
     while (matcher.find() && invalid_tokens != Nil) {
 			val kind =
@@ -158,7 +157,7 @@ class ProofDocument(
     after_change: Option[Token],
     new_tokens: List[Token],
     new_token_start: Map[Token, Int]):
-  (ProofDocument, StructureChange) =
+  (Proof_Document, StructureChange) =
   {
     val new_tokenset = Linear_Set[Token]() ++ new_tokens
     val cmd_before_change = before_change match {
@@ -236,7 +235,7 @@ class ProofDocument(
 
 
     val doc =
-      new ProofDocument(new_id, new_tokenset, new_token_start, new_commandset,
+      new Proof_Document(new_id, new_tokenset, new_token_start, new_commandset,
         states -- removed_commands, is_command_keyword)
 
     val removes =

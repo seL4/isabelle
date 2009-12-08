@@ -8,7 +8,7 @@
 package isabelle.jedit
 
 
-import isabelle.prover.Prover
+import isabelle.proofdocument.Prover
 import isabelle.Markup
 
 import org.gjt.sp.jedit.buffer.JEditBuffer
@@ -20,7 +20,7 @@ import java.awt.Font
 import javax.swing.text.Segment;
 
 
-object DynamicTokenMarker
+object Isabelle_Token_Marker
 {
   /* line context */
 
@@ -100,15 +100,14 @@ object DynamicTokenMarker
 }
 
 
-class DynamicTokenMarker(buffer: JEditBuffer, prover: Prover)
-  extends TokenMarker
+class Isabelle_Token_Marker(buffer: JEditBuffer, prover: Prover) extends TokenMarker
 {
   override def markTokens(prev: TokenMarker.LineContext,
       handler: TokenHandler, line_segment: Segment): TokenMarker.LineContext =
   {
-    val previous = prev.asInstanceOf[DynamicTokenMarker.LineContext]
+    val previous = prev.asInstanceOf[Isabelle_Token_Marker.LineContext]
     val line = if (prev == null) 0 else previous.line + 1
-    val context = new DynamicTokenMarker.LineContext(line, previous)
+    val context = new Isabelle_Token_Marker.LineContext(line, previous)
     val start = buffer.getLineStartOffset(line)
     val stop = start + line_segment.count
 
@@ -128,7 +127,7 @@ class DynamicTokenMarker(buffer: JEditBuffer, prover: Prover)
         abs_stop = to(command_start + markup.stop)
         if (abs_stop > start)
         if (abs_start < stop)
-        byte = DynamicTokenMarker.choose_byte(markup.info.toString)
+        byte = Isabelle_Token_Marker.choose_byte(markup.info.toString)
         token_start = (abs_start - start) max 0
         token_length =
           (abs_stop - abs_start) -

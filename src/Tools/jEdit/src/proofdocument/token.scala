@@ -8,9 +8,6 @@
 package isabelle.proofdocument
 
 
-import isabelle.prover.Command
-
-
 object Token {
   object Kind extends Enumeration
   {

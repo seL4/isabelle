@@ -6,6 +6,7 @@
 
 package isabelle.jedit
 
+
 import org.gjt.sp.jedit.io.Encoding
 import org.gjt.sp.jedit.buffer.JEditBuffer
 

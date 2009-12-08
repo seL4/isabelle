@@ -5,14 +5,13 @@
  * @author Fabian Immler, TU Munich
  */
 
-package isabelle.prover
+package isabelle.proofdocument
 
 
 import scala.actors.Actor, Actor._
 
 import scala.collection.mutable
 
-import isabelle.proofdocument.{Token, ProofDocument}
 import isabelle.jedit.{Isabelle, Plugin}
 import isabelle.XML
 
@@ -70,8 +69,8 @@ class Command(
   def content(i: Int, j: Int): String = content.substring(i, j)
   val symbol_index = new Symbol.Index(content)
 
-  def start(doc: ProofDocument) = doc.token_start(tokens.first)
-  def stop(doc: ProofDocument) = doc.token_start(tokens.last) + tokens.last.length
+  def start(doc: Proof_Document) = doc.token_start(tokens.first)
+  def stop(doc: Proof_Document) = doc.token_start(tokens.last) + tokens.last.length
 
   def contains(p: Token) = tokens.contains(p)
 
@@ -93,15 +92,15 @@ class Command(
   /* results, markup, ... */
 
   private val empty_cmd_state = new Command_State(this)
-  private def cmd_state(doc: ProofDocument) =
+  private def cmd_state(doc: Proof_Document) =
     doc.states.getOrElse(this, empty_cmd_state)
 
-  def status(doc: ProofDocument) = cmd_state(doc).state.status
-  def results(doc: ProofDocument) = cmd_state(doc).results
-  def markup_root(doc: ProofDocument) = cmd_state(doc).markup_root
-  def highlight(doc: ProofDocument) = cmd_state(doc).highlight
-  def type_at(doc: ProofDocument, offset: Int) = cmd_state(doc).type_at(offset)
-  def ref_at(doc: ProofDocument, offset: Int) = cmd_state(doc).ref_at(offset)
+  def status(doc: Proof_Document) = cmd_state(doc).state.status
+  def results(doc: Proof_Document) = cmd_state(doc).results
+  def markup_root(doc: Proof_Document) = cmd_state(doc).markup_root
+  def highlight(doc: Proof_Document) = cmd_state(doc).highlight
+  def type_at(doc: Proof_Document, offset: Int) = cmd_state(doc).type_at(offset)
+  def ref_at(doc: Proof_Document, offset: Int) = cmd_state(doc).ref_at(offset)
 }
 
 

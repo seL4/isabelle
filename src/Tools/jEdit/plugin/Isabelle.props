@@ -6,12 +6,11 @@
 plugin.isabelle.jedit.Plugin.name=Isabelle
 plugin.isabelle.jedit.Plugin.author=Johannes Hölzl, Fabian Immler, Makarius Wenzel
 plugin.isabelle.jedit.Plugin.version=0.0.1
-plugin.isabelle.jedit.Plugin.description=Isabelle/Isar live document editing
+plugin.isabelle.jedit.Plugin.description=Isabelle/Isar asynchronous proof processing
 
 #system parameters
 plugin.isabelle.jedit.Plugin.activate=defer
 plugin.isabelle.jedit.Plugin.usePluginHome=false
-plugin.isabelle.jedit.Plugin.jars=
 
 #dependencies
 plugin.isabelle.jedit.Plugin.depend.0=jdk 1.6
@@ -23,23 +22,23 @@ plugin.isabelle.jedit.Plugin.depend.4=plugin gatchan.jedit.hyperlinks.Hyperlinks
 #options
 plugin.isabelle.jedit.Plugin.option-pane=isabelle
 options.isabelle.label=Isabelle
-options.isabelle.code=new isabelle.jedit.OptionPane();
+options.isabelle.code=new isabelle.jedit.Isabelle_Options();
 options.isabelle.logic.title=Logic
 options.isabelle.font-size.title=Font Size
 options.isabelle.font-size=14
 
 #menu actions
 plugin.isabelle.jedit.Plugin.menu.label=Isabelle
-plugin.isabelle.jedit.Plugin.menu=isabelle.activate isabelle.show-state isabelle.show-output isabelle.show-browser
+plugin.isabelle.jedit.Plugin.menu=isabelle.activate isabelle.show-results isabelle.show-raw-output isabelle.show-history
 isabelle.activate.label=Activate current buffer
-isabelle.show-state.label=Show State
-isabelle.show-output.label=Show Output
-isabelle.show-browser.label=Show Version-Browser
+isabelle.show-results.label=Show Results
+isabelle.show-raw-output.label=Show Raw Output
+isabelle.show-history.label=Show History
 
 #dockables
-isabelle-output.title=Isabelle Output
-isabelle-state.title=Isabelle State
-isabelle-browser.title=Isabelle Browse-Version
+isabelle-results.title=Results
+isabelle-raw-output.title=Raw Output
+isabelle-history.title=History
 
 #SideKick
 sidekick.parser.isabelle.label=Isabelle

@@ -1,19 +1,7 @@
+<?xml version="1.0"?>
+<!DOCTYPE ACTIONS SYSTEM "actions.dtd">
+
 <ACTIONS>
-	<ACTION NAME="isabelle.show-output">
-		<CODE>
-			wm.addDockableWindow("isabelle-output");
-		</CODE>
-	</ACTION>
-	<ACTION NAME="isabelle.show-state">
-		<CODE>
-			wm.addDockableWindow("isabelle-state");
-		</CODE>
-	</ACTION>
-  <ACTION NAME="isabelle.show-browser">
-		<CODE>
-			wm.addDockableWindow("isabelle-browser");
-		</CODE>
-	</ACTION>
   <ACTION NAME="isabelle.activate">
 		<CODE>
 			isabelle.jedit.Isabelle.plugin().switch_active(view);
@@ -21,5 +9,20 @@
 		<IS_SELECTED>
 			return isabelle.jedit.Isabelle.plugin().is_active(view.getBuffer());
 		</IS_SELECTED>
+	</ACTION>
+	<ACTION NAME="isabelle.show-results">
+		<CODE>
+			wm.addDockableWindow("isabelle-results");
+		</CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.show-raw-output">
+		<CODE>
+			wm.addDockableWindow("isabelle-raw-output");
+		</CODE>
+	</ACTION>
+  <ACTION NAME="isabelle.show-history">
+		<CODE>
+			wm.addDockableWindow("isabelle-history");
+		</CODE>
 	</ACTION>
 </ACTIONS>

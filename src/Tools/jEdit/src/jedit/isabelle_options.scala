@@ -6,12 +6,13 @@
 
 package isabelle.jedit
 
+
 import javax.swing.{JComboBox, JSpinner}
 
 import org.gjt.sp.jedit.AbstractOptionPane
 
 
-class OptionPane extends AbstractOptionPane("isabelle")
+class Isabelle_Options extends AbstractOptionPane("isabelle")
 {
   private val logic_name = new JComboBox()
   private val font_size = new JSpinner()

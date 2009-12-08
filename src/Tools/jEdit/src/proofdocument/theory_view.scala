@@ -6,13 +6,11 @@
  * @author Makarius
  */
 
-package isabelle.jedit
+package isabelle.proofdocument
+
 
 import scala.actors.Actor, Actor._
 import scala.collection.mutable
-
-import isabelle.proofdocument.{ProofDocument, Change, Edit, Insert, Remove}
-import isabelle.prover.{Prover, Command}
 
 import java.awt.{Color, Graphics2D}
 import javax.swing.event.{CaretListener, CaretEvent}
@@ -21,10 +19,12 @@ import org.gjt.sp.jedit.buffer.{BufferListener, JEditBuffer}
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextAreaExtension, TextAreaPainter}
 import org.gjt.sp.jedit.syntax.{ModeProvider, SyntaxStyle}
 
+import isabelle.jedit.{Document_Overview, Isabelle, Isabelle_Token_Marker, Raw_Output_Dockable}
 
-object TheoryView
+
+object Theory_View
 {
-  def choose_color(command: Command, doc: ProofDocument): Color =
+  def choose_color(command: Command, doc: Proof_Document): Color =
   {
     command.status(doc) match {
       case Command.Status.UNPROCESSED => new Color(255, 228, 225)
@@ -36,7 +36,7 @@ object TheoryView
 }
 
 
-class TheoryView(text_area: JEditTextArea)
+class Theory_View(text_area: JEditTextArea)
 {
   private val buffer = text_area.getBuffer
 
@@ -115,8 +115,8 @@ class TheoryView(text_area: JEditTextArea)
       screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int)
     {
       val document = current_document()
-      def from_current(pos: Int) = TheoryView.this.from_current(document, pos)
-      def to_current(pos: Int) = TheoryView.this.to_current(document, pos)
+      def from_current(pos: Int) = Theory_View.this.from_current(document, pos)
+      def to_current(pos: Int) = Theory_View.this.to_current(document, pos)
       val saved_color = gfx.getColor
 
       val metrics = text_area.getPainter.getFontMetrics
@@ -128,7 +128,7 @@ class TheoryView(text_area: JEditTextArea)
         val begin = start max to_current(e.start(document))
         val finish = (end - 1) min to_current(e.stop(document))
         encolor(gfx, y, metrics.getHeight, begin, finish,
-          TheoryView.choose_color(e, document), true)
+          Theory_View.choose_color(e, document), true)
         cmd = document.commands.next(e)
       }
 
@@ -166,18 +166,19 @@ class TheoryView(text_area: JEditTextArea)
     }
   }
 
-  def activate() {
+  def activate()
+  {
     text_area.addCaretListener(selected_state_controller)
     text_area.addLeftOfScrollBar(overview)
     text_area.getPainter.
       addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, text_area_extension)
-    buffer.setTokenMarker(new DynamicTokenMarker(buffer, prover))
+    buffer.setTokenMarker(new Isabelle_Token_Marker(buffer, prover))
     buffer.addBufferListener(buffer_listener)
 
     val dockable =
-      text_area.getView.getDockableWindowManager.getDockable("isabelle-output")
+      text_area.getView.getDockableWindowManager.getDockable("isabelle-raw-output")
     if (dockable != null) {
-      val output_dockable = dockable.asInstanceOf[OutputDockable]
+      val output_dockable = dockable.asInstanceOf[Raw_Output_Dockable]
       val output_text_view = prover.output_text_view
       output_dockable.set_text(output_text_view)
     }
@@ -196,7 +197,7 @@ class TheoryView(text_area: JEditTextArea)
 
   /* history of changes */
 
-  private def doc_or_pred(c: Change): ProofDocument =
+  private def doc_or_pred(c: Change): Proof_Document =
     prover.document(c.id).getOrElse(doc_or_pred(c.parent.get))
 
   def current_document() = doc_or_pred(current_change)
@@ -254,14 +255,14 @@ class TheoryView(text_area: JEditTextArea)
 
   /* transforming offsets */
 
-  private def changes_from(doc: ProofDocument): List[Edit] =
+  private def changes_from(doc: Proof_Document): List[Edit] =
     List.flatten(current_change.ancestors(_.id == doc.id).reverse.map(_.edits)) :::
       edits.toList
 
-  def from_current(doc: ProofDocument, offset: Int): Int =
+  def from_current(doc: Proof_Document, offset: Int): Int =
     (offset /: changes_from(doc).reverse) ((i, change) => change before i)
 
-  def to_current(doc: ProofDocument, offset: Int): Int =
+  def to_current(doc: Proof_Document, offset: Int): Int =
     (offset /: changes_from(doc)) ((i, change) => change after i)
 
 

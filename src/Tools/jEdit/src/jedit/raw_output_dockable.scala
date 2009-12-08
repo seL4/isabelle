@@ -15,8 +15,8 @@ import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.gui.DockableWindowManager
 
 
-class OutputDockable(view : View, position : String) extends JPanel {
-
+class Raw_Output_Dockable(view: View, position: String) extends JPanel
+{
   if (position == DockableWindowManager.FLOATING)
     setPreferredSize(new Dimension(500, 250))
 

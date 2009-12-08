@@ -5,7 +5,7 @@
  * @author Makarius
  */
 
-package isabelle.prover
+package isabelle.proofdocument
 
 
 class State(

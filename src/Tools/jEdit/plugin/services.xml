@@ -1,13 +1,14 @@
 <?xml version="1.0"?>
 <!DOCTYPE SERVICES SYSTEM "services.dtd">
+
 <SERVICES>
 	<SERVICE NAME="UTF-8-Isabelle" CLASS="org.gjt.sp.jedit.io.Encoding">
 		new isabelle.jedit.Isabelle_Encoding();
 	</SERVICE>
 	<SERVICE NAME="isabelle" CLASS="sidekick.SideKickParser">
-		new isabelle.jedit.IsabelleSideKickParser();
+		new isabelle.jedit.Isabelle_Sidekick();
 	</SERVICE>
   <SERVICE NAME="isabelle" CLASS="gatchan.jedit.hyperlinks.HyperlinkSource">
-    new isabelle.jedit.IsabelleHyperlinkSource();
+    new isabelle.jedit.Isabelle_Hyperlinks();
   </SERVICE>
 </SERVICES>

@@ -7,6 +7,7 @@
 
 package isabelle.jedit
 
+
 import scala.collection.Set
 import scala.collection.immutable.TreeSet
 
@@ -18,11 +19,10 @@ import org.gjt.sp.jedit.{Buffer, EditPane, TextUtilities, View}
 import errorlist.DefaultErrorSource
 import sidekick.{SideKickParser, SideKickParsedData, SideKickCompletion, IAsset}
 
-import isabelle.prover.{Command, Markup_Node}
-import isabelle.proofdocument.ProofDocument
+import isabelle.proofdocument.{Command, Markup_Node, Proof_Document}
 
 
-class IsabelleSideKickParser extends SideKickParser("isabelle")
+class Isabelle_Sidekick extends SideKickParser("isabelle")
 {
   /* parsing */
 

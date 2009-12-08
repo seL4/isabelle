@@ -6,7 +6,7 @@
  * @author Makarius
  */
 
-package isabelle.prover
+package isabelle.proofdocument
 
 
 import scala.actors.Actor, Actor._
@@ -14,7 +14,6 @@ import scala.actors.Actor, Actor._
 import javax.swing.JTextArea
 
 import isabelle.jedit.Isabelle
-import isabelle.proofdocument.{ProofDocument, Change, Token}
 
 
 class Prover(system: Isabelle_System, logic: String)
@@ -41,7 +40,7 @@ class Prover(system: Isabelle_System, logic: String)
   /* outgoing messages */
 
   val command_change = new Event_Bus[Command]
-  val document_change = new Event_Bus[ProofDocument]
+  val document_change = new Event_Bus[Proof_Document]
 
 
   /* prover process */
@@ -67,12 +66,12 @@ class Prover(system: Isabelle_System, logic: String)
   @volatile private var states = Map[Isar_Document.State_ID, Command_State]()
   @volatile private var commands = Map[Isar_Document.Command_ID, Command]()
   val document_0 =
-    ProofDocument.empty.
+    Proof_Document.empty.
     set_command_keyword((s: String) => command_decls().contains(s))
   @volatile private var document_versions = List(document_0)
 
   def command(id: Isar_Document.Command_ID): Option[Command] = commands.get(id)
-  def document(id: Isar_Document.Document_ID): Option[ProofDocument] =
+  def document(id: Isar_Document.Document_ID): Option[Proof_Document] =
     document_versions.find(_.id == id)
 
 

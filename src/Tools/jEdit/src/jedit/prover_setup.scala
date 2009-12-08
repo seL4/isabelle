@@ -9,18 +9,18 @@ package isabelle.jedit
 
 import org.gjt.sp.jedit.{Buffer, View}
 
-import isabelle.prover.Prover
+import isabelle.proofdocument.{Prover, Theory_View}
 
 
-class ProverSetup(buffer: Buffer)
+class Prover_Setup(buffer: Buffer)
 {
   var prover: Prover = null
-  var theory_view: TheoryView = null
+  var theory_view: Theory_View = null
 
   def activate(view: View)
   {
-    // TheoryView starts prover
-    theory_view = new TheoryView(view.getTextArea)
+    // Theory_View starts prover
+    theory_view = new Theory_View(view.getTextArea)
     prover = theory_view.prover
 
     theory_view.activate()

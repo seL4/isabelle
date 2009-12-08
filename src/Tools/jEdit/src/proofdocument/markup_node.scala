@@ -2,14 +2,14 @@
  * Document markup nodes, with connection to Swing tree model
  *
  * @author Fabian Immler, TU Munich
+ * @author Makarius
  */
 
-package isabelle.prover
+package isabelle.proofdocument
 
 
 import javax.swing.tree.DefaultMutableTreeNode
 
-import isabelle.proofdocument.ProofDocument
 
 
 class Markup_Node(val start: Int, val stop: Int, val info: Any)

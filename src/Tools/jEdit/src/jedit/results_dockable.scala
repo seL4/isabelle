@@ -7,13 +7,14 @@
 
 package isabelle.jedit
 
+
 import isabelle.XML
+
+import scala.swing.{BorderPanel, Component}
 
 import java.io.StringReader
 import java.awt.{BorderLayout, Dimension}
-
 import javax.swing.{JButton, JPanel, JScrollPane}
-
 import java.util.logging.{Logger, Level}
 
 import org.lobobrowser.html.parser._
@@ -31,12 +32,12 @@ import org.gjt.sp.jedit.textarea.AntiAlias
 import scala.io.Source
 
 
-class StateViewDockable(view : View, position : String) extends JPanel {
-
+class Results_Dockable(view : View, position : String) extends BorderPanel
+{
   // outer panel
+
   if (position == DockableWindowManager.FLOATING)
-    setPreferredSize(new Dimension(500, 250))
-  setLayout(new BorderLayout)
+    preferredSize = new Dimension(500, 250)
 
 
   // global logging
@@ -87,7 +88,8 @@ body {
   doc.appendChild(empty_body)
 
   panel.setDocument(doc, rcontext)
-  add(panel, BorderLayout.CENTER)
+
+  add(Component.wrap(panel), BorderPanel.Position.Center)
 
   
   // register for state-view

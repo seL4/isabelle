@@ -6,8 +6,8 @@
 
 package isabelle.jedit
 
-import isabelle.prover.{Prover, Command}
-import isabelle.proofdocument.ProofDocument
+
+import isabelle.proofdocument.{Command, Proof_Document, Prover, Theory_View}
 
 import javax.swing.{JPanel, ToolTipManager}
 import java.awt.event.{MouseAdapter, MouseEvent}
@@ -21,7 +21,7 @@ import org.gjt.sp.jedit.buffer.JEditBuffer
 class Document_Overview(
     prover: Prover,
     text_area: JEditTextArea,
-    to_current: (ProofDocument, Int) => Int)
+    to_current: (Proof_Document, Int) => Int)
   extends JPanel(new BorderLayout)
 {
   private val WIDTH = 10
@@ -67,7 +67,7 @@ class Document_Overview(
       val line2 = buffer.getLineOfOffset(to_current(doc, command.stop(doc))) + 1
       val y = line_to_y(line1)
       val height = HEIGHT * (line2 - line1)
-      gfx.setColor(TheoryView.choose_color(command, doc))
+      gfx.setColor(Theory_View.choose_color(command, doc))
       gfx.fillRect(0, y, getWidth - 1, height)
     }
   }
