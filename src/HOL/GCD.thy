@@ -25,7 +25,7 @@ Tobias Nipkow cleaned up a lot.
 *)
 
 
-header {* GCD *}
+header {* Greates common divisor and least common multiple *}
 
 theory GCD
 imports Fact Parity
@@ -33,7 +33,7 @@ begin
 
 declare One_nat_def [simp del]
 
-subsection {* gcd *}
+subsection {* GCD and LCM definitions *}
 
 class gcd = zero + one + dvd +
 
@@ -50,11 +50,7 @@ where
 
 end
 
-
-(* definitions for the natural numbers *)
-
 instantiation nat :: gcd
-
 begin
 
 fun
@@ -72,11 +68,7 @@ instance proof qed
 
 end
 
-
-(* definitions for the integers *)
-
 instantiation int :: gcd
-
 begin
 
 definition
@@ -94,8 +86,7 @@ instance proof qed
 end
 
 
-subsection {* Set up Transfer *}
-
+subsection {* Transfer setup *}
 
 lemma transfer_nat_int_gcd:
   "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> gcd (nat x) (nat y) = nat (gcd x y)"
@@ -125,7 +116,7 @@ declare TransferMorphism_int_nat[transfer add return:
     transfer_int_nat_gcd transfer_int_nat_gcd_closures]
 
 
-subsection {* GCD *}
+subsection {* GCD properties *}
 
 (* was gcd_induct *)
 lemma gcd_nat_induct:
@@ -546,6 +537,10 @@ apply(rule Max_eqI[THEN sym])
  apply (metis gcd_greatest_iff_int gcd_pos_int zdvd_imp_le)
 apply simp
 done
+
+lemma gcd_code_int [code]:
+  "gcd k l = \<bar>if l = (0::int) then k else gcd l (\<bar>k\<bar> mod \<bar>l\<bar>)\<bar>"
+  by (simp add: gcd_int_def nat_mod_distrib gcd_non_0_nat)
 
 
 subsection {* Coprimality *}
@@ -1225,9 +1220,9 @@ proof-
 qed
 
 
-subsection {* LCM *}
+subsection {* LCM properties *}
 
-lemma lcm_altdef_int: "lcm (a::int) b = (abs a) * (abs b) div gcd a b"
+lemma lcm_altdef_int [code]: "lcm (a::int) b = (abs a) * (abs b) div gcd a b"
   by (simp add: lcm_int_def lcm_nat_def zdiv_int
     zmult_int [symmetric] gcd_int_def)
 
@@ -1442,6 +1437,7 @@ by (metis gcd_1_nat lcm_unique_nat nat_mult_1 prod_gcd_lcm_nat)
 
 lemma lcm_1_iff_int[simp]: "lcm (m::int) n = 1 \<longleftrightarrow> (m=1 \<or> m = -1) \<and> (n=1 \<or> n = -1)"
 by (auto simp add: abs_mult_self trans [OF lcm_unique_int eq_commute, symmetric] zmult_eq_1_iff)
+
 
 subsubsection {* The complete divisibility lattice *}
 
