@@ -142,8 +142,7 @@ class Plugin extends EBPlugin
   {
     Isabelle.plugin = this
     Isabelle.system = new Isabelle_System
-    if (!Isabelle.system.register_fonts())
-      System.err.println("Failed to register Isabelle fonts")
+    Isabelle.system.register_fonts()
   }
 
   override def stop()
