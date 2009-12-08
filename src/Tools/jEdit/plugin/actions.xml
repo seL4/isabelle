@@ -10,14 +10,14 @@
 			return isabelle.jedit.Isabelle.plugin().is_active(view.getBuffer());
 		</IS_SELECTED>
 	</ACTION>
-	<ACTION NAME="isabelle.show-results">
+	<ACTION NAME="isabelle.show-output">
 		<CODE>
-			wm.addDockableWindow("isabelle-results");
+			wm.addDockableWindow("isabelle-output");
 		</CODE>
 	</ACTION>
-	<ACTION NAME="isabelle.show-raw-output">
+	<ACTION NAME="isabelle.show-protocol">
 		<CODE>
-			wm.addDockableWindow("isabelle-raw-output");
+			wm.addDockableWindow("isabelle-protocol");
 		</CODE>
 	</ACTION>
   <ACTION NAME="isabelle.show-history">

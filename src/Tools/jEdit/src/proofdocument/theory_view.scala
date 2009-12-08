@@ -19,7 +19,7 @@ import org.gjt.sp.jedit.buffer.{BufferListener, JEditBuffer}
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextAreaExtension, TextAreaPainter}
 import org.gjt.sp.jedit.syntax.{ModeProvider, SyntaxStyle}
 
-import isabelle.jedit.{Document_Overview, Isabelle, Isabelle_Token_Marker, Raw_Output_Dockable}
+import isabelle.jedit.{Document_Overview, Isabelle, Isabelle_Token_Marker}
 
 
 object Theory_View

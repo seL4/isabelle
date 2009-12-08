@@ -19,7 +19,7 @@ import org.gjt.sp.jedit.gui.DockableWindowManager
 
 
 
-class Results_Dockable(view: View, position: String) extends JPanel
+class Output_Dockable(view: View, position: String) extends JPanel
 {
   /* outer panel */
 
@@ -37,7 +37,7 @@ class Results_Dockable(view: View, position: String) extends JPanel
 
   /* actor wiring */
 
-  private val results_actor = actor {
+  private val output_actor = actor {
     loop {
       react {
         case cmd: Command =>
@@ -47,7 +47,7 @@ class Results_Dockable(view: View, position: String) extends JPanel
             else cmd.results(theory_view.current_document)
           html_panel.render(body)
           
-        case bad => System.err.println("results_actor: ignoring bad message " + bad)
+        case bad => System.err.println("output_actor: ignoring bad message " + bad)
       }
     }
   }
@@ -63,12 +63,12 @@ class Results_Dockable(view: View, position: String) extends JPanel
 
   override def addNotify() {
     super.addNotify()
-    Isabelle.plugin.state_update += results_actor
+    Isabelle.plugin.state_update += output_actor
     Isabelle.plugin.properties_changed += properties_actor
   }
 
   override def removeNotify() {
-    Isabelle.plugin.state_update -= results_actor
+    Isabelle.plugin.state_update -= output_actor
     Isabelle.plugin.properties_changed -= properties_actor
     super.removeNotify()
   }

@@ -16,7 +16,7 @@ import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.gui.DockableWindowManager
 
 
-class Raw_Output_Dockable(view: View, position: String) extends JPanel
+class Protocol_Dockable(view: View, position: String) extends JPanel
 {
   // outer panel
 
