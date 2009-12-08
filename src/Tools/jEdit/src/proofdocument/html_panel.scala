@@ -90,7 +90,7 @@ class HTML_Panel(sys: Isabelle_System, initial_font_size: Int) extends HtmlPanel
           doc1 = doc
           Swing_Thread.now { setDocument(doc1, rcontext) }
 
-        case bad => System.err.println("prover: ignoring bad message " + bad)
+        case bad => System.err.println("main_actor: ignoring bad message " + bad)
       }
     }
   }

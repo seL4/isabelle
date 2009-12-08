@@ -47,7 +47,7 @@ class Results_Dockable(view: View, position: String) extends JPanel
             else cmd.results(theory_view.current_document)
           html_panel.render(body)
           
-        case bad => System.err.println("prover: ignoring bad message " + bad)
+        case bad => System.err.println("results_actor: ignoring bad message " + bad)
       }
     }
   }
@@ -56,7 +56,7 @@ class Results_Dockable(view: View, position: String) extends JPanel
     loop {
       react {
         case _: Unit => html_panel.init(Isabelle.Int_Property("font-size"))
-        case bad => System.err.println("prover: ignoring bad message " + bad)
+        case bad => System.err.println("properties: ignoring bad message " + bad)
       }
     }
   }

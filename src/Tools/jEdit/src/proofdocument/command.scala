@@ -27,7 +27,7 @@ trait Accumulator extends Actor
     loop {
       react {
         case (prover: Prover, message: XML.Tree) => _state = _state.+(prover, message)
-        case bad => System.err.println("prover: ignoring bad message " + bad)
+        case bad => System.err.println("Accumulator: ignoring bad message " + bad)
       }
     }
   }

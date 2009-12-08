@@ -28,7 +28,7 @@ class Prover(system: Isabelle_System, logic: String)
         react {
           case result: Isabelle_Process.Result => handle_result(result)
           case change: Change if prover_ready => handle_change(change)
-          case bad if prover_ready => System.err.println("prover: ignoring bad message " + bad)
+          case bad if prover_ready => System.err.println("receiver: ignoring bad message " + bad)
         }
       }
     }
