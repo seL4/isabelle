@@ -279,7 +279,7 @@ struct
 val eval_ref = Unsynchronized.ref (NONE : (unit -> term) option);
 
 fun eval_term thy t =
-  Code_ML.eval NONE ("Eval.eval_ref", eval_ref) I thy (HOLogic.mk_term_of (fastype_of t) t) [];
+  Code_Eval.eval NONE ("Eval.eval_ref", eval_ref) I thy (HOLogic.mk_term_of (fastype_of t) t) [];
 
 end;
 *}

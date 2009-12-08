@@ -6,9 +6,9 @@ Serializer for SML and OCaml.
 
 signature CODE_ML =
 sig
-  val eval: string option -> string * (unit -> 'a) option Unsynchronized.ref
-    -> ((term -> term) -> 'a -> 'a) -> theory -> term -> string list -> 'a
-  val target_Eval: string
+  val target_SML: string
+  val evaluation_code_of: theory -> string -> string
+    -> Code_Thingol.naming -> Code_Thingol.program -> string list -> string * string option list
   val setup: theory -> theory
 end;
 
@@ -26,7 +26,6 @@ infixr 5 @|;
 
 val target_SML = "SML";
 val target_OCaml = "OCaml";
-val target_Eval = "Eval";
 
 datatype ml_binding =
     ML_Function of string * (typscheme * ((iterm list * iterm) * (thm * bool)) list)
@@ -340,7 +339,9 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
           end;
   in print_stmt end;
 
-fun print_sml_module name some_decls body = Pretty.chunks2 (
+fun print_sml_module name some_decls body = if name = ""
+  then Pretty.chunks2 body
+  else Pretty.chunks2 (
     Pretty.chunks (
       str ("structure " ^ name ^ (if is_some some_decls then " : sig" else " ="))
       :: (the_list o Option.map (Pretty.indent 2 o Pretty.chunks)) some_decls
@@ -664,7 +665,9 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
           end;
   in print_stmt end;
 
-fun print_ocaml_module name some_decls body = Pretty.chunks2 (
+fun print_ocaml_module name some_decls body = if name = ""
+  then Pretty.chunks2 body
+  else Pretty.chunks2 (
     Pretty.chunks (
       str ("module " ^ name ^ (if is_some some_decls then " : sig" else " ="))
       :: (the_list o Option.map (Pretty.indent 2 o Pretty.chunks)) some_decls
@@ -937,141 +940,14 @@ fun serialize_ml target compile print_module print_stmt raw_module_name with_sig
 end; (*local*)
 
 
-(** ML (system language) code for evaluation and instrumentalization **)
+(** for instrumentalization **)
 
-val eval_struct_name = "Code"
-
-fun eval_code_of some_target with_struct thy =
-  let
-    val target = the_default target_Eval some_target;
-    val serialize = if with_struct then fn _ => fn [] =>
-        serialize_ml target_SML (SOME (K ())) print_sml_module print_sml_stmt (SOME eval_struct_name) true
-      else fn _ => fn [] => 
-        serialize_ml target_SML (SOME (K ())) ((K o K) Pretty.chunks2) print_sml_stmt (SOME eval_struct_name) true;
-  in Code_Target.serialize_custom thy (target, (serialize, literals_sml)) end;
-
-
-(* evaluation *)
-
-fun eval some_target reff postproc thy t args =
-  let
-    val ctxt = ProofContext.init thy;
-    fun evaluator naming program ((_, (_, ty)), t) deps =
-      let
-        val _ = if Code_Thingol.contains_dictvar t then
-          error "Term to be evaluated contains free dictionaries" else ();
-        val value_name = "Value.VALUE.value"
-        val program' = program
-          |> Graph.new_node (value_name,
-              Code_Thingol.Fun (Term.dummy_patternN, (([], ty), [(([], t), (Drule.dummy_thm, true))])))
-          |> fold (curry Graph.add_edge value_name) deps;
-        val (value_code, [SOME value_name']) = eval_code_of some_target false thy naming program' [value_name];
-        val sml_code = "let\n" ^ value_code ^ "\nin " ^ value_name'
-          ^ space_implode " " (map (enclose "(" ")") args) ^ " end";
-      in ML_Context.evaluate ctxt false reff sml_code end;
-  in Code_Thingol.eval thy postproc evaluator t end;
-
-
-(* instrumentalization by antiquotation *)
-
-local
-
-structure CodeAntiqData = Proof_Data
-(
-  type T = (string list * string list) * (bool * (string
-    * (string * ((string * string) list * (string * string) list)) lazy));
-  fun init _ = (([], []), (true, ("", Lazy.value ("", ([], [])))));
-);
-
-val is_first_occ = fst o snd o CodeAntiqData.get;
-
-fun delayed_code thy tycos consts () =
-  let
-    val (consts', (naming, program)) = Code_Thingol.consts_program thy consts;
-    val tycos' = map (the o Code_Thingol.lookup_tyco naming) tycos;
-    val (ml_code, target_names) = eval_code_of NONE true thy naming program (consts' @ tycos');
-    val (consts'', tycos'') = chop (length consts') target_names;
-    val consts_map = map2 (fn const => fn NONE =>
-        error ("Constant " ^ (quote o Code.string_of_const thy) const
-          ^ "\nhas a user-defined serialization")
-      | SOME const'' => (const, const'')) consts consts''
-    val tycos_map = map2 (fn tyco => fn NONE =>
-        error ("Type " ^ (quote o Sign.extern_type thy) tyco
-          ^ "\nhas a user-defined serialization")
-      | SOME tyco'' => (tyco, tyco'')) tycos tycos'';
-  in (ml_code, (tycos_map, consts_map)) end;
-
-fun register_code new_tycos new_consts ctxt =
-  let
-    val ((tycos, consts), (_, (struct_name, _))) = CodeAntiqData.get ctxt;
-    val tycos' = fold (insert (op =)) new_tycos tycos;
-    val consts' = fold (insert (op =)) new_consts consts;
-    val (struct_name', ctxt') = if struct_name = ""
-      then ML_Antiquote.variant eval_struct_name ctxt
-      else (struct_name, ctxt);
-    val acc_code = Lazy.lazy (delayed_code (ProofContext.theory_of ctxt) tycos' consts');
-  in CodeAntiqData.put ((tycos', consts'), (false, (struct_name', acc_code))) ctxt' end;
-
-fun register_const const = register_code [] [const];
-
-fun register_datatype tyco constrs = register_code [tyco] constrs;
-
-fun print_const const all_struct_name tycos_map consts_map =
-  (Long_Name.append all_struct_name o the o AList.lookup (op =) consts_map) const;
-
-fun print_datatype tyco constrs all_struct_name tycos_map consts_map =
-  let
-    val upperize = implode o nth_map 0 Symbol.to_ascii_upper o explode;
-    fun check_base name name'' =
-      if upperize (Long_Name.base_name name) = upperize name''
-      then () else error ("Name as printed " ^ quote name''
-        ^ "\ndiffers from logical base name " ^ quote (Long_Name.base_name name) ^ "; sorry.");
-    val tyco'' = (the o AList.lookup (op =) tycos_map) tyco;
-    val constrs'' = map (the o AList.lookup (op =) consts_map) constrs;
-    val _ = check_base tyco tyco'';
-    val _ = map2 check_base constrs constrs'';
-  in "datatype " ^ tyco'' ^ " = datatype " ^ Long_Name.append all_struct_name tyco'' end;
-
-fun print_code struct_name is_first print_it ctxt =
-  let
-    val (_, (_, (struct_code_name, acc_code))) = CodeAntiqData.get ctxt;
-    val (ml_code, (tycos_map, consts_map)) = Lazy.force acc_code;
-    val ml_code = if is_first then ml_code
-      else "";
-    val all_struct_name = Long_Name.append struct_name struct_code_name;
-  in (ml_code, print_it all_struct_name tycos_map consts_map) end;
-
-in
-
-fun ml_code_antiq raw_const {struct_name, background} =
-  let
-    val const = Code.check_const (ProofContext.theory_of background) raw_const;
-    val is_first = is_first_occ background;
-    val background' = register_const const background;
-  in (print_code struct_name is_first (print_const const), background') end;
-
-fun ml_code_datatype_antiq (raw_tyco, raw_constrs) {struct_name, background} =
-  let
-    val thy = ProofContext.theory_of background;
-    val tyco = Sign.intern_type thy raw_tyco;
-    val constrs = map (Code.check_const thy) raw_constrs;
-    val constrs' = (map fst o snd o Code.get_datatype thy) tyco;
-    val _ = if eq_set (op =) (constrs, constrs') then ()
-      else error ("Type " ^ quote tyco ^ ": given constructors diverge from real constructors")
-    val is_first = is_first_occ background;
-    val background' = register_datatype tyco constrs background;
-  in (print_code struct_name is_first (print_datatype tyco constrs), background') end;
-
-end; (*local*)
+fun evaluation_code_of thy target struct_name =
+  Code_Target.serialize_custom thy (target, (fn _ => fn [] =>
+    serialize_ml target (SOME (K ())) print_sml_module print_sml_stmt (SOME struct_name) true, literals_sml));
 
 
 (** Isar setup **)
-
-val _ = ML_Context.add_antiq "code" (fn _ => Args.term >> ml_code_antiq);
-val _ = ML_Context.add_antiq "code_datatype" (fn _ =>
-  (Args.tyname --| Scan.lift (Args.$$$ "=")
-    -- (Args.term ::: Scan.repeat (Scan.lift (Args.$$$ "|") |-- Args.term)))
-      >> ml_code_datatype_antiq);
 
 fun isar_seri_sml module_name =
   Code_Target.parse_args (Scan.optional (Args.$$$ "no_signatures" >> K false) true
@@ -1087,7 +963,6 @@ fun isar_seri_ocaml module_name =
 val setup =
   Code_Target.add_target (target_SML, (isar_seri_sml, literals_sml))
   #> Code_Target.add_target (target_OCaml, (isar_seri_ocaml, literals_ocaml))
-  #> Code_Target.extend_target (target_Eval, (target_SML, K I))
   #> Code_Target.add_syntax_tyco target_SML "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy [
         print_typ (INFX (1, X)) ty1,

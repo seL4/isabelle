@@ -14,7 +14,6 @@ imports
   Continuity
   ContNotDenum
   Countable
-  Crude_Executable_Set
   Diagonalize
   Efficient_Nat
   Enum

@@ -217,11 +217,163 @@ fun map_module_alias target =
   map_target_data target o apsnd o apsnd o apsnd;
 
 
+(** serializer usage **)
+
+(* montage *)
+
+fun the_literals thy =
+  let
+    val (targets, _) = CodeTargetData.get thy;
+    fun literals target = case Symtab.lookup targets target
+     of SOME data => (case the_serializer data
+         of Serializer (_, literals) => literals
+          | Extends (super, _) => literals super)
+      | NONE => error ("Unknown code target language: " ^ quote target);
+  in literals end;
+
+local
+
+fun activate_syntax lookup_name src_tab = Symtab.empty
+  |> fold_map (fn thing_identifier => fn tab => case lookup_name thing_identifier
+       of SOME name => (SOME name,
+            Symtab.update_new (name, the (Symtab.lookup src_tab thing_identifier)) tab)
+        | NONE => (NONE, tab)) (Symtab.keys src_tab)
+  |>> map_filter I;
+
+fun activate_const_syntax thy literals src_tab naming = (Symtab.empty, naming)
+  |> fold_map (fn thing_identifier => fn (tab, naming) =>
+      case Code_Thingol.lookup_const naming thing_identifier
+       of SOME name => let
+              val (syn, naming') = Code_Printer.activate_const_syntax thy
+                literals (the (Symtab.lookup src_tab thing_identifier)) naming
+            in (SOME name, (Symtab.update_new (name, syn) tab, naming')) end
+        | NONE => (NONE, (tab, naming))) (Symtab.keys src_tab)
+  |>> map_filter I;
+
+fun invoke_serializer thy abortable serializer literals reserved abs_includes 
+    module_alias class instance tyco const module args naming program2 names1 =
+  let
+    val (names_class, class') =
+      activate_syntax (Code_Thingol.lookup_class naming) class;
+    val names_inst = map_filter (Code_Thingol.lookup_instance naming)
+      (Symreltab.keys instance);
+    val (names_tyco, tyco') =
+      activate_syntax (Code_Thingol.lookup_tyco naming) tyco;
+    val (names_const, (const', _)) =
+      activate_const_syntax thy literals const naming;
+    val names_hidden = names_class @ names_inst @ names_tyco @ names_const;
+    val names2 = subtract (op =) names_hidden names1;
+    val program3 = Graph.subgraph (not o member (op =) names_hidden) program2;
+    val names_all = Graph.all_succs program3 names2;
+    val includes = abs_includes names_all;
+    val program4 = Graph.subgraph (member (op =) names_all) program3;
+    val empty_funs = filter_out (member (op =) abortable)
+      (Code_Thingol.empty_funs program3);
+    val _ = if null empty_funs then () else error ("No code equations for "
+      ^ commas (map (Sign.extern_const thy) empty_funs));
+  in
+    serializer module args (Code_Thingol.labelled_name thy program2) reserved includes
+      (Symtab.lookup module_alias) (Symtab.lookup class')
+      (Symtab.lookup tyco') (Symtab.lookup const')
+      program4 names2
+  end;
+
+fun mount_serializer thy alt_serializer target module args naming program names =
+  let
+    val (targets, abortable) = CodeTargetData.get thy;
+    fun collapse_hierarchy target =
+      let
+        val data = case Symtab.lookup targets target
+         of SOME data => data
+          | NONE => error ("Unknown code target language: " ^ quote target);
+      in case the_serializer data
+       of Serializer _ => (I, data)
+        | Extends (super, modify) => let
+            val (modify', data') = collapse_hierarchy super
+          in (modify' #> modify naming, merge_target false target (data', data)) end
+      end;
+    val (modify, data) = collapse_hierarchy target;
+    val (serializer, _) = the_default (case the_serializer data
+     of Serializer seri => seri) alt_serializer;
+    val reserved = the_reserved data;
+    fun select_include names_all (name, (content, cs)) =
+      if null cs then SOME (name, content)
+      else if exists (fn c => case Code_Thingol.lookup_const naming c
+       of SOME name => member (op =) names_all name
+        | NONE => false) cs
+      then SOME (name, content) else NONE;
+    fun includes names_all = map_filter (select_include names_all)
+      ((Symtab.dest o the_includes) data);
+    val module_alias = the_module_alias data;
+    val { class, instance, tyco, const } = the_name_syntax data;
+    val literals = the_literals thy target;
+  in
+    invoke_serializer thy abortable serializer literals reserved
+      includes module_alias class instance tyco const module args naming (modify program) names
+  end;
+
+in
+
+fun serialize thy = mount_serializer thy NONE;
+
+fun serialize_custom thy (target_name, seri) naming program names =
+  mount_serializer thy (SOME seri) target_name NONE [] naming program names (String [])
+  |> the;
+
+end; (* local *)
+
+
+(* code presentation *)
+
+fun code_of thy target module_name cs names_stmt =
+  let
+    val (names_cs, (naming, program)) = Code_Thingol.consts_program thy cs;
+  in
+    string (names_stmt naming) (serialize thy target (SOME module_name) []
+      naming program names_cs)
+  end;
+
+
+(* code generation *)
+
+fun transitivly_non_empty_funs thy naming program =
+  let
+    val cs = subtract (op =) (abort_allowed thy) (Code_Thingol.empty_funs program);
+    val names = map_filter (Code_Thingol.lookup_const naming) cs;
+  in subtract (op =) (Graph.all_preds program names) (Graph.keys program) end;
+
+fun read_const_exprs thy cs =
+  let
+    val (cs1, cs2) = Code_Thingol.read_const_exprs thy cs;
+    val (names3, (naming, program)) = Code_Thingol.consts_program thy cs2;
+    val names4 = transitivly_non_empty_funs thy naming program;
+    val cs5 = map_filter
+      (fn (c, name) => if member (op =) names4 name then SOME c else NONE) (cs2 ~~ names3);
+  in fold (insert (op =)) cs5 cs1 end;
+
+fun cached_program thy = 
+  let
+    val (naming, program) = Code_Thingol.cached_program thy;
+  in (transitivly_non_empty_funs thy naming program, (naming, program)) end
+
+fun export_code thy cs seris =
+  let
+    val (cs', (naming, program)) = if null cs then cached_program thy
+      else Code_Thingol.consts_program thy cs;
+    fun mk_seri_dest dest = case dest
+     of NONE => compile
+      | SOME "-" => export
+      | SOME f => file (Path.explode f)
+    val _ = map (fn (((target, module), dest), args) =>
+      (mk_seri_dest dest (serialize thy target module args naming program cs'))) seris;
+  in () end;
+
+fun export_code_cmd raw_cs seris thy = export_code thy (read_const_exprs thy raw_cs) seris;
+
+
 (** serializer configuration **)
 
 (* data access *)
-
-local
 
 fun cert_class thy class =
   let
@@ -345,6 +497,8 @@ fun zip_list (x::xs) f g =
 
 (* concrete syntax *)
 
+local
+
 structure P = OuterParse
 and K = OuterKeyword
 
@@ -369,164 +523,10 @@ val add_syntax_tyco_cmd = gen_add_syntax_tyco read_tyco;
 val add_syntax_const_cmd = gen_add_syntax_const Code.read_const;
 val allow_abort_cmd = gen_allow_abort Code.read_const;
 
-fun the_literals thy =
-  let
-    val (targets, _) = CodeTargetData.get thy;
-    fun literals target = case Symtab.lookup targets target
-     of SOME data => (case the_serializer data
-         of Serializer (_, literals) => literals
-          | Extends (super, _) => literals super)
-      | NONE => error ("Unknown code target language: " ^ quote target);
-  in literals end;
-
-
-(** serializer usage **)
-
-(* montage *)
-
-local
-
-fun activate_syntax lookup_name src_tab = Symtab.empty
-  |> fold_map (fn thing_identifier => fn tab => case lookup_name thing_identifier
-       of SOME name => (SOME name,
-            Symtab.update_new (name, the (Symtab.lookup src_tab thing_identifier)) tab)
-        | NONE => (NONE, tab)) (Symtab.keys src_tab)
-  |>> map_filter I;
-
-fun activate_const_syntax thy literals src_tab naming = (Symtab.empty, naming)
-  |> fold_map (fn thing_identifier => fn (tab, naming) =>
-      case Code_Thingol.lookup_const naming thing_identifier
-       of SOME name => let
-              val (syn, naming') = Code_Printer.activate_const_syntax thy
-                literals (the (Symtab.lookup src_tab thing_identifier)) naming
-            in (SOME name, (Symtab.update_new (name, syn) tab, naming')) end
-        | NONE => (NONE, (tab, naming))) (Symtab.keys src_tab)
-  |>> map_filter I;
-
-fun invoke_serializer thy abortable serializer literals reserved abs_includes 
-    module_alias class instance tyco const module args naming program2 names1 =
-  let
-    val (names_class, class') =
-      activate_syntax (Code_Thingol.lookup_class naming) class;
-    val names_inst = map_filter (Code_Thingol.lookup_instance naming)
-      (Symreltab.keys instance);
-    val (names_tyco, tyco') =
-      activate_syntax (Code_Thingol.lookup_tyco naming) tyco;
-    val (names_const, (const', _)) =
-      activate_const_syntax thy literals const naming;
-    val names_hidden = names_class @ names_inst @ names_tyco @ names_const;
-    val names2 = subtract (op =) names_hidden names1;
-    val program3 = Graph.subgraph (not o member (op =) names_hidden) program2;
-    val names_all = Graph.all_succs program3 names2;
-    val includes = abs_includes names_all;
-    val program4 = Graph.subgraph (member (op =) names_all) program3;
-    val empty_funs = filter_out (member (op =) abortable)
-      (Code_Thingol.empty_funs program3);
-    val _ = if null empty_funs then () else error ("No code equations for "
-      ^ commas (map (Sign.extern_const thy) empty_funs));
-  in
-    serializer module args (Code_Thingol.labelled_name thy program2) reserved includes
-      (Symtab.lookup module_alias) (Symtab.lookup class')
-      (Symtab.lookup tyco') (Symtab.lookup const')
-      program4 names2
-  end;
-
-fun mount_serializer thy alt_serializer target module args naming program names =
-  let
-    val (targets, abortable) = CodeTargetData.get thy;
-    fun collapse_hierarchy target =
-      let
-        val data = case Symtab.lookup targets target
-         of SOME data => data
-          | NONE => error ("Unknown code target language: " ^ quote target);
-      in case the_serializer data
-       of Serializer _ => (I, data)
-        | Extends (super, modify) => let
-            val (modify', data') = collapse_hierarchy super
-          in (modify' #> modify naming, merge_target false target (data', data)) end
-      end;
-    val (modify, data) = collapse_hierarchy target;
-    val (serializer, _) = the_default (case the_serializer data
-     of Serializer seri => seri) alt_serializer;
-    val reserved = the_reserved data;
-    fun select_include names_all (name, (content, cs)) =
-      if null cs then SOME (name, content)
-      else if exists (fn c => case Code_Thingol.lookup_const naming c
-       of SOME name => member (op =) names_all name
-        | NONE => false) cs
-      then SOME (name, content) else NONE;
-    fun includes names_all = map_filter (select_include names_all)
-      ((Symtab.dest o the_includes) data);
-    val module_alias = the_module_alias data;
-    val { class, instance, tyco, const } = the_name_syntax data;
-    val literals = the_literals thy target;
-  in
-    invoke_serializer thy abortable serializer literals reserved
-      includes module_alias class instance tyco const module args naming (modify program) names
-  end;
-
-in
-
-fun serialize thy = mount_serializer thy NONE;
-
-fun serialize_custom thy (target_name, seri) naming program names =
-  mount_serializer thy (SOME seri) target_name NONE [] naming program names (String [])
-  |> the;
-
-end; (* local *)
-
 fun parse_args f args =
   case Scan.read OuterLex.stopper f args
    of SOME x => x
     | NONE => error "Bad serializer arguments";
-
-
-(* code presentation *)
-
-fun code_of thy target module_name cs names_stmt =
-  let
-    val (names_cs, (naming, program)) = Code_Thingol.consts_program thy cs;
-  in
-    string (names_stmt naming) (serialize thy target (SOME module_name) []
-      naming program names_cs)
-  end;
-
-
-(* code generation *)
-
-fun transitivly_non_empty_funs thy naming program =
-  let
-    val cs = subtract (op =) (abort_allowed thy) (Code_Thingol.empty_funs program);
-    val names = map_filter (Code_Thingol.lookup_const naming) cs;
-  in subtract (op =) (Graph.all_preds program names) (Graph.keys program) end;
-
-fun read_const_exprs thy cs =
-  let
-    val (cs1, cs2) = Code_Thingol.read_const_exprs thy cs;
-    val (names3, (naming, program)) = Code_Thingol.consts_program thy cs2;
-    val names4 = transitivly_non_empty_funs thy naming program;
-    val cs5 = map_filter
-      (fn (c, name) => if member (op =) names4 name then SOME c else NONE) (cs2 ~~ names3);
-  in fold (insert (op =)) cs5 cs1 end;
-
-fun cached_program thy = 
-  let
-    val (naming, program) = Code_Thingol.cached_program thy;
-  in (transitivly_non_empty_funs thy naming program, (naming, program)) end
-
-fun export_code thy cs seris =
-  let
-    val (cs', (naming, program)) = if null cs then cached_program thy
-      else Code_Thingol.consts_program thy cs;
-    fun mk_seri_dest dest = case dest
-     of NONE => compile
-      | SOME "-" => export
-      | SOME f => file (Path.explode f)
-    val _ = map (fn (((target, module), dest), args) =>
-      (mk_seri_dest dest (serialize thy target module args naming program cs'))) seris;
-  in () end;
-
-fun export_code_cmd raw_cs seris thy = export_code thy (read_const_exprs thy raw_cs) seris;
 
 
 (** Isar setup **)
