@@ -19,9 +19,9 @@ Requirements to build from sources
   Netbeans Project "jEdit": install official sources as ./contrib/jEdit/.
 
 * jEdit plugins:
-    Netbeans Library "SideKick" = $HOME/.jedit/jars/SideKick.jar
-    Netbeans Library "ErrorList" = $HOME/.jedit/jars/ErrorList.jar
-    Netbeans Library "Hyperlinks" = $HOME/.jedit/jars/Hyperlinks.jar
+  Netbeans Library "SideKick" = $HOME/.jedit/jars/SideKick.jar
+  Netbeans Library "ErrorList" = $HOME/.jedit/jars/ErrorList.jar
+  Netbeans Library "Hyperlinks" = $HOME/.jedit/jars/Hyperlinks.jar
 
 * Cobra Renderer
   http://lobobrowser.org/cobra.jsp
@@ -50,3 +50,24 @@ Running the application within Netbeans
     (3) or via JVM system properties (cf. "Run / VM Options")
     	e.g. -Disabelle.home=.../Isabelle
 
+
+Misc notes
+==========
+
+- Netbeans config/Editors/Preferences/...-CustomPreferences.xml
+
+    <entry javaType="java.lang.Integer" name="caret-blink-rate" xml:space="preserve">
+        <value><![CDATA[0]]></value>
+    </entry>
+
+-----------------------------------------------------------------------
+To run jedit with remote debugging enabled, I use the following
+command: "java
+-agentlib:jdwp=transport=dt_socket,suspend=y,server=y,address=XXXX
+-jar jedit.jar"
+
+where XXXX is any open port number you wish. The above invocation
+works for Sun's JDK 5.0.  There's an alternate incantation for earlier
+releases. (See
+http://java.sun.com/j2se/1.5.0/docs/guide/jpda/conninv.html)
+-----------------------------------------------------------------------
