@@ -19,9 +19,9 @@ Requirements to build from sources
   Netbeans Project "jEdit": install official sources as ./contrib/jEdit/.
 
 * jEdit plugins:
-    Netbeans Library "Sidekick" = $HOME/.jedit/jars/SideKick.jar
+    Netbeans Library "SideKick" = $HOME/.jedit/jars/SideKick.jar
     Netbeans Library "ErrorList" = $HOME/.jedit/jars/ErrorList.jar
-    Netbeans Library "Hyperlink" = $HOME/.jedit/jars/Hyperlinks.jar
+    Netbeans Library "Hyperlinks" = $HOME/.jedit/jars/Hyperlinks.jar
 
 * Cobra Renderer
   http://lobobrowser.org/cobra.jsp
