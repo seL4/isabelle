@@ -10,6 +10,8 @@ package isabelle
 import javax.swing.{SwingUtilities, Timer}
 import java.awt.event.{ActionListener, ActionEvent}
 
+import scala.actors.{Future, Futures}
+
 
 object Swing_Thread
 {
@@ -21,12 +23,16 @@ object Swing_Thread
 
   /* main dispatch queue */
 
-  def now[A](body: => A): A = {
+  def now[A](body: => A): A =
+  {
     var result: Option[A] = None
     if (SwingUtilities.isEventDispatchThread()) { result = Some(body) }
     else SwingUtilities.invokeAndWait(new Runnable { def run = { result = Some(body) } })
     result.get
   }
+
+  def future[A](body: => A): Future[A] =
+    Futures.future(now(body))
 
   def later(body: => Unit) {
     if (SwingUtilities.isEventDispatchThread()) body
