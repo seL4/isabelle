@@ -3,12 +3,12 @@
 
 <DOCKABLES>
 	<DOCKABLE NAME="isabelle-results" MOVABLE="TRUE">
-		new isabelle.jedit.Results_Dockable(view, position).peer();
+		new isabelle.jedit.Results_Dockable(view, position);
 	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-raw-output" MOVABLE="TRUE">
 		new isabelle.jedit.Raw_Output_Dockable(view, position);
 	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-history" MOVABLE="TRUE">
-		new isabelle.jedit.History_Dockable(view, position).peer();
+		new isabelle.jedit.History_Dockable(view, position).peer ();
 	</DOCKABLE>
 </DOCKABLES>

@@ -7,36 +7,69 @@
 package isabelle.jedit
 
 
-import isabelle.proofdocument.HTML_Panel
+import isabelle.proofdocument.{Command, HTML_Panel}
 
 import scala.io.Source
-import scala.swing.{BorderPanel, Component}
+import scala.actors.Actor._
 
-import java.awt.Dimension
+import javax.swing.JPanel
+import java.awt.{BorderLayout, Dimension}
 
 import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.gui.DockableWindowManager
 
 
 
-class Results_Dockable(view: View, position: String) extends BorderPanel
+class Results_Dockable(view: View, position: String) extends JPanel
 {
   // outer panel
 
   if (position == DockableWindowManager.FLOATING)
-    preferredSize = new Dimension(500, 250)
+    setPreferredSize(new Dimension(500, 250))
+  setLayout(new BorderLayout)
 
 
   // HTML panel
 
-  val html_panel = new HTML_Panel(Isabelle.system, Isabelle.Int_Property("font-size"))
-  add(Component.wrap(html_panel), BorderPanel.Position.Center)
+  private val html_panel = new HTML_Panel(Isabelle.system, Isabelle.Int_Property("font-size"))
+  add(html_panel, BorderLayout.CENTER)
 
-  Isabelle.plugin.state_update += (cmd => {
-    val theory_view = Isabelle.prover_setup(view.getBuffer).get.theory_view
-    val body =
-      if (cmd == null) Nil  // FIXME ??
-      else cmd.results(theory_view.current_document)
-    html_panel.render(body)
-  })
+
+  /* actor wiring */
+
+  private val results_actor = actor {
+    loop {
+      react {
+        case cmd: Command =>
+          val theory_view = Isabelle.prover_setup(view.getBuffer).get.theory_view
+          val body =
+            if (cmd == null) Nil  // FIXME ??
+            else cmd.results(theory_view.current_document)
+          html_panel.render(body)
+          
+        case bad => System.err.println("prover: ignoring bad message " + bad)
+      }
+    }
+  }
+
+  private val properties_actor = actor {
+    loop {
+      react {
+        case _: Unit => html_panel.init(Isabelle.Int_Property("font-size"))
+        case bad => System.err.println("prover: ignoring bad message " + bad)
+      }
+    }
+  }
+
+  override def addNotify() {
+    super.addNotify()
+    Isabelle.plugin.state_update += results_actor
+    Isabelle.plugin.properties_changed += properties_actor
+  }
+
+  override def removeNotify() {
+    Isabelle.plugin.state_update -= results_actor
+    Isabelle.plugin.properties_changed -= properties_actor
+    super.removeNotify()
+  }
 }
