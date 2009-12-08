@@ -46,6 +46,8 @@ function usage() {
   echo "    * minimize_timeout=TIME: timeout for each minimization step (seconds of"
   echo "      process time)"
   echo "    * metis: apply metis to the theorems found by sledgehammer"
+  echo "    * metis_ft: apply metis with fully-typed encoding to the theorems found"
+  echo "      by sledgehammer"
   echo
   echo "  FILES is a list of theory files, where each file is either NAME.thy"
   echo "  or NAME.thy[START:END] and START and END are numbers indicating the"

@@ -12,6 +12,7 @@ val keepK = "keep"
 val full_typesK = "full_types"
 val minimizeK = "minimize"
 val minimize_timeoutK = "minimize_timeout"
+val metis_ftK = "metis_ft"
 
 fun sh_tag id = "#" ^ string_of_int id ^ " sledgehammer: "
 fun minimize_tag id = "#" ^ string_of_int id ^ " minimize (sledgehammer): "
@@ -45,11 +46,6 @@ datatype min_data = MinData of {
   it_ratios: int
   }
 
-(* The first me_data component is only used if "minimize" is on.
-   Then it records how metis behaves with un-minimized lemmas.
-*)
-datatype data = Data of sh_data * me_data * min_data * me_data
-
 fun make_sh_data
       (calls,success,lemmas,max_lems,time_isa,time_atp,time_atp_fail) =
   ShData{calls=calls, success=success, lemmas=lemmas, max_lems=max_lems,
@@ -62,28 +58,63 @@ fun make_me_data (calls,success,proofs,time,timeout,lemmas,posns) =
   MeData{calls=calls, success=success, proofs=proofs, time=time,
          timeout=timeout, lemmas=lemmas, posns=posns}
 
-val empty_data =
-  Data(make_sh_data (0, 0, 0, 0, 0, 0, 0),
-       make_me_data(0, 0, 0, 0, 0, (0,0,0), []),
-       MinData{succs=0, ab_ratios=0, it_ratios=0},
-       make_me_data(0, 0, 0, 0, 0, (0,0,0), []))
+val empty_sh_data = make_sh_data (0, 0, 0, 0, 0, 0, 0)
+val empty_min_data = make_min_data(0, 0, 0)
+val empty_me_data = make_me_data(0, 0, 0, 0, 0, (0,0,0), [])
 
-fun map_sh_data f
-    (Data(ShData{calls,success,lemmas,max_lems,time_isa,time_atp,time_atp_fail},
-          meda0, minda, meda)) =
-  Data (make_sh_data (f (calls,success,lemmas,max_lems,
-                         time_isa,time_atp,time_atp_fail)),
-        meda0, minda, meda)
+fun tuple_of_sh_data (ShData {calls, success, lemmas, max_lems, time_isa,
+  time_atp, time_atp_fail}) = (calls, success, lemmas, max_lems, time_isa,
+  time_atp, time_atp_fail)
 
-fun map_min_data f
-  (Data(shda, meda0, MinData{succs,ab_ratios,it_ratios}, meda)) =
-  Data(shda, meda0, make_min_data(f(succs,ab_ratios,it_ratios)), meda)
+fun tuple_of_min_data (MinData {succs, ab_ratios, it_ratios}) =
+  (succs, ab_ratios, it_ratios)
 
-fun map_me_data0 f (Data (shda, MeData{calls,success,proofs,time,timeout,lemmas,posns}, minda, meda)) =
-  Data(shda, make_me_data(f (calls,success,proofs,time,timeout,lemmas,posns)), minda, meda)
+fun tuple_of_me_data (MeData {calls, success, proofs, time, timeout, lemmas,
+  posns}) = (calls, success, proofs, time, timeout, lemmas, posns)
 
-fun map_me_data f (Data (shda, meda0, minda, MeData{calls,success,proofs,time,timeout,lemmas,posns})) =
-  Data(shda, meda0, minda, make_me_data(f (calls,success,proofs,time,timeout,lemmas,posns)))
+
+datatype metis = Unminimized | Minimized | UnminimizedFT | MinimizedFT
+
+datatype data = Data of {
+  sh: sh_data,
+  min: min_data,
+  me_u: me_data, (* metis with unminimized set of lemmas *)
+  me_m: me_data, (* metis with minimized set of lemmas *)
+  me_uft: me_data, (* metis with unminimized set of lemmas and fully-typed *)
+  me_mft: me_data, (* metis with minimized set of lemmas and fully-typed *)
+  mini: bool   (* with minimization *)
+  }
+
+fun make_data (sh, min, me_u, me_m, me_uft, me_mft, mini) =
+  Data {sh=sh, min=min, me_u=me_u, me_m=me_m, me_uft=me_uft, me_mft=me_mft,
+    mini=mini}
+
+val empty_data = make_data (empty_sh_data, empty_min_data,
+  empty_me_data, empty_me_data, empty_me_data, empty_me_data, false)
+
+fun map_sh_data f (Data {sh, min, me_u, me_m, me_uft, me_mft, mini}) =
+  let val sh' = make_sh_data (f (tuple_of_sh_data sh))
+  in make_data (sh', min, me_u, me_m, me_uft, me_mft, mini) end
+
+fun map_min_data f (Data {sh, min, me_u, me_m, me_uft, me_mft, mini}) =
+  let val min' = make_min_data (f (tuple_of_min_data min))
+  in make_data (sh, min', me_u, me_m, me_uft, me_mft, mini) end
+
+fun map_me_data f m (Data {sh, min, me_u, me_m, me_uft, me_mft, mini}) =
+  let
+    fun map_me g Unminimized   (u, m, uft, mft) = (g u, m, uft, mft)
+      | map_me g Minimized     (u, m, uft, mft) = (u, g m, uft, mft)
+      | map_me g UnminimizedFT (u, m, uft, mft) = (u, m, g uft, mft)
+      | map_me g MinimizedFT   (u, m, uft, mft) = (u, m, uft, g mft)
+
+    val f' = make_me_data o f o tuple_of_me_data
+
+    val (me_u', me_m', me_uft', me_mft') =
+      map_me f' m (me_u, me_m, me_uft, me_mft)
+  in make_data (sh, min, me_u', me_m', me_uft', me_mft', mini) end
+
+fun set_mini mini (Data {sh, min, me_u, me_m, me_uft, me_mft, ...}) =
+  make_data (sh, min, me_u, me_m, me_uft, me_mft, mini)
 
 fun inc_max (n:int) (s,sos,m) = (s+n, sos + n*n, Int.max(m,n));
 
@@ -136,49 +167,21 @@ val inc_metis_proofs = map_me_data
   (fn (calls,success,proofs,time,timeout,lemmas,posns)
     => (calls, success, proofs + 1, time, timeout, lemmas,posns))
 
-fun inc_metis_time t = map_me_data
+fun inc_metis_time m t = map_me_data
  (fn (calls,success,proofs,time,timeout,lemmas,posns)
-  => (calls, success, proofs, time + t, timeout, lemmas,posns))
+  => (calls, success, proofs, time + t, timeout, lemmas,posns)) m
 
 val inc_metis_timeout = map_me_data
   (fn (calls,success,proofs,time,timeout,lemmas,posns)
     => (calls, success, proofs, time, timeout + 1, lemmas,posns))
 
-fun inc_metis_lemmas n = map_me_data
+fun inc_metis_lemmas m n = map_me_data
   (fn (calls,success,proofs,time,timeout,lemmas,posns)
-    => (calls, success, proofs, time, timeout, inc_max n lemmas, posns))
+    => (calls, success, proofs, time, timeout, inc_max n lemmas, posns)) m
 
-fun inc_metis_posns pos = map_me_data
+fun inc_metis_posns m pos = map_me_data
   (fn (calls,success,proofs,time,timeout,lemmas,posns)
-    => (calls, success, proofs, time, timeout, lemmas, pos::posns))
-
-val inc_metis_calls0 = map_me_data0 
-  (fn (calls,success,proofs,time,timeout,lemmas,posns)
-    => (calls + 1, success, proofs, time, timeout, lemmas,posns))
-
-val inc_metis_success0 = map_me_data0
-  (fn (calls,success,proofs,time,timeout,lemmas,posns)
-    => (calls, success + 1, proofs, time, timeout, lemmas,posns))
-
-val inc_metis_proofs0 = map_me_data0
-  (fn (calls,success,proofs,time,timeout,lemmas,posns)
-    => (calls, success, proofs + 1, time, timeout, lemmas,posns))
-
-fun inc_metis_time0 t = map_me_data0
-  (fn (calls,success,proofs,time,timeout,lemmas,posns)
-    => (calls, success, proofs, time + t, timeout, lemmas,posns))
-
-val inc_metis_timeout0 = map_me_data0
-  (fn (calls,success,proofs,time,timeout,lemmas,posns)
-    => (calls, success, proofs, time, timeout + 1, lemmas,posns))
-
-fun inc_metis_lemmas0 n = map_me_data0
-  (fn (calls,success,proofs,time,timeout,lemmas,posns)
-    => (calls, success, proofs, time, timeout, inc_max n lemmas, posns))
-
-fun inc_metis_posns0 pos = map_me_data0
-  (fn (calls,success,proofs,time,timeout,lemmas,posns)
-    => (calls, success, proofs, time, timeout, lemmas, pos::posns))
+    => (calls, success, proofs, time, timeout, lemmas, pos::posns)) m
 
 local
 
@@ -189,7 +192,8 @@ fun time t = Real.fromInt t / 1000.0
 fun avg_time t n =
   if n > 0 then (Real.fromInt t / 1000.0) / Real.fromInt n else 0.0
 
-fun log_sh_data log calls success lemmas max_lems time_isa time_atp time_atp_fail =
+fun log_sh_data log
+    (calls, success, lemmas, max_lems, time_isa, time_atp, time_atp_fail) =
  (log ("Total number of sledgehammer calls: " ^ str calls);
   log ("Number of successful sledgehammer calls: " ^ str success);
   log ("Number of sledgehammer lemmas: " ^ str lemmas);
@@ -211,8 +215,9 @@ fun str_of_pos pos =
   let val str0 = string_of_int o the_default 0
   in str0 (Position.line_of pos) ^ ":" ^ str0 (Position.column_of pos) end
 
-fun log_metis_data log tag sh_calls sh_success metis_calls metis_success metis_proofs metis_time
-    metis_timeout (lemmas, lems_sos, lems_max) metis_posns =
+fun log_me_data log tag sh_calls (metis_calls, metis_success,
+    metis_proofs, metis_time, metis_timeout, (lemmas, lems_sos, lems_max),
+    metis_posns) =
  (log ("Total number of " ^ tag ^ "metis calls: " ^ str metis_calls);
   log ("Number of successful " ^ tag ^ "metis calls: " ^ str metis_success ^
     " (proof: " ^ str metis_proofs ^ ")");
@@ -222,14 +227,14 @@ fun log_metis_data log tag sh_calls sh_success metis_calls metis_success metis_p
   log ("SOS of successful " ^ tag ^ "metis lemmas: " ^ str lems_sos);
   log ("Max number of successful " ^ tag ^ "metis lemmas: " ^ str lems_max);
   log ("Total time for successful " ^ tag ^ "metis calls: " ^ str3 (time metis_time));
-  log ("Average time for successful metis calls: " ^
+  log ("Average time for successful " ^ tag ^ "metis calls: " ^
     str3 (avg_time metis_time metis_success));
   if tag=""
   then log ("Proved: " ^ space_implode " " (map str_of_pos metis_posns))
   else ()
  )
 
-fun log_min_data log succs ab_ratios it_ratios =
+fun log_min_data log (succs, ab_ratios, it_ratios) =
   (log ("Number of successful minimizations: " ^ string_of_int succs);
    log ("After/before ratios: " ^ string_of_int ab_ratios);
    log ("Iterations ratios: " ^ string_of_int it_ratios)
@@ -237,31 +242,32 @@ fun log_min_data log succs ab_ratios it_ratios =
 
 in
 
-fun log_data id log (Data
-   (ShData{calls=sh_calls, lemmas=sh_lemmas,  max_lems=sh_max_lems, success=sh_success,
-      time_isa=sh_time_isa,time_atp=sh_time_atp,time_atp_fail=sh_time_atp_fail},
-    MeData{calls=metis_calls0, proofs=metis_proofs0,
-      success=metis_success0, time=metis_time0, timeout=metis_timeout0,
-      lemmas=metis_lemmas0, posns=metis_posns0},
-    MinData{succs=min_succs, ab_ratios=ab_ratios, it_ratios=it_ratios},
-    MeData{calls=metis_calls, proofs=metis_proofs,
-      success=metis_success, time=metis_time, timeout=metis_timeout,
-      lemmas=metis_lemmas, posns=metis_posns})) =
-  if sh_calls > 0
-  then
-   (log ("\n\n\nReport #" ^ string_of_int id ^ ":\n");
-    log_sh_data log sh_calls sh_success sh_lemmas sh_max_lems sh_time_isa sh_time_atp sh_time_atp_fail;
-    log "";
-    if metis_calls > 0 then log_metis_data log "" sh_calls sh_success metis_calls
-      metis_success metis_proofs metis_time metis_timeout metis_lemmas metis_posns else ();
-    log "";
-    if metis_calls0 > 0
-      then (log_min_data log min_succs ab_ratios it_ratios; log "";
-            log_metis_data log "unminimized " sh_calls sh_success metis_calls0
-              metis_success0 metis_proofs0 metis_time0 metis_timeout0 metis_lemmas0 metis_posns0)
-      else ()
-   )
-  else ()
+fun log_data id log (Data {sh, min, me_u, me_m, me_uft, me_mft, mini}) =
+  let
+    val ShData {calls=sh_calls, ...} = sh
+
+    fun app_if (MeData {calls, ...}) f = if calls > 0 then f () else ()
+    fun log_me tag m =
+      log_me_data log tag sh_calls (tuple_of_me_data m)
+    fun log_metis (tag1, m1) (tag2, m2) = app_if m1 (fn () =>
+      (log_me tag1 m1; log ""; app_if m2 (fn () => log_me tag2 m2)))
+  in
+    if sh_calls > 0
+    then
+     (log ("\n\n\nReport #" ^ string_of_int id ^ ":\n");
+      log_sh_data log (tuple_of_sh_data sh);
+      log "";
+      if not mini
+      then log_metis ("", me_u) ("fully-typed ", me_uft)
+      else
+        app_if me_u (fn () =>
+         (log_metis ("unminimized ", me_u) ("unminimized fully-typed ", me_uft);
+          log "";
+          app_if me_m (fn () =>
+            (log_min_data log (tuple_of_min_data min); log "";
+             log_metis ("", me_m) ("fully-typed ", me_mft))))))
+    else ()
+  end
 
 end
 
@@ -397,54 +403,63 @@ fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
   end
 
 
-fun run_metis (inc_metis_calls, inc_metis_success, inc_metis_proofs, inc_metis_time, inc_metis_timeout,
-    inc_metis_lemmas, inc_metis_posns) args name named_thms id
+fun run_metis full m name named_thms id
     ({pre=st, timeout, log, pos, ...}: Mirabelle.run_args) =
   let
-    fun metis thms ctxt = MetisTools.metis_tac ctxt thms
+    fun metis thms ctxt =
+      if full then MetisTools.metisFT_tac ctxt thms
+      else MetisTools.metis_tac ctxt thms
     fun apply_metis thms = Mirabelle.can_apply timeout (metis thms) st
 
     fun with_time (false, t) = "failed (" ^ string_of_int t ^ ")"
-      | with_time (true, t) = (change_data id inc_metis_success;
-          change_data id (inc_metis_lemmas (length named_thms));
-          change_data id (inc_metis_time t);
-          change_data id (inc_metis_posns pos);
-          if name = "proof" then change_data id inc_metis_proofs else ();
+      | with_time (true, t) = (change_data id (inc_metis_success m);
+          change_data id (inc_metis_lemmas m (length named_thms));
+          change_data id (inc_metis_time m t);
+          change_data id (inc_metis_posns m pos);
+          if name = "proof" then change_data id (inc_metis_proofs m) else ();
           "succeeded (" ^ string_of_int t ^ ")")
     fun timed_metis thms = with_time (Mirabelle.cpu_time apply_metis thms)
-      handle TimeLimit.TimeOut => (change_data id inc_metis_timeout; "timeout")
+      handle TimeLimit.TimeOut => (change_data id (inc_metis_timeout m); "timeout")
            | ERROR msg => "error: " ^ msg
 
     val _ = log separator
-    val _ = change_data id inc_metis_calls
+    val _ = change_data id (inc_metis_calls m)
   in
     maps snd named_thms
     |> timed_metis
     |> log o prefix (metis_tag id) 
   end
 
-fun sledgehammer_action args id (st as {log, pre, name, ...}: Mirabelle.run_args) =
+fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
   let val goal = Thm.major_prem_of (#goal (Proof.raw_goal pre))  (* FIXME ?? *) in
   if can Logic.dest_conjunction goal orelse can Logic.dest_equals goal
   then () else
   let
-    val metis_fns = (inc_metis_calls, inc_metis_success, inc_metis_proofs, inc_metis_time,
-        inc_metis_timeout, inc_metis_lemmas, inc_metis_posns)
-    val metis0_fns = (inc_metis_calls0, inc_metis_success0, inc_metis_proofs0, inc_metis_time0,
-        inc_metis_timeout0, inc_metis_lemmas0, inc_metis_posns0)
     val named_thms = Unsynchronized.ref (NONE : (string * thm list) list option)
     val minimize = AList.defined (op =) args minimizeK
+    val metis_ft = AList.defined (op =) args metis_ftK
+
+    fun apply_metis m1 m2 =
+      if metis_ft
+      then
+        Mirabelle.app_timeout metis_tag
+          (run_metis false m1 name (these (!named_thms)))
+          (Mirabelle.catch metis_tag
+            (run_metis true m2 name (these (!named_thms)))) id st
+      else
+        Mirabelle.catch metis_tag
+          (run_metis false m1 name (these (!named_thms))) id st
   in 
+    change_data id (set_mini minimize);
     Mirabelle.catch sh_tag (run_sledgehammer args named_thms) id st;
     if is_some (!named_thms)
+    then
+     (apply_metis Unminimized UnminimizedFT;
+      if minimize andalso not (null (these (!named_thms)))
       then
-       (if minimize
-          then Mirabelle.catch metis_tag (run_metis metis0_fns args name (these (!named_thms))) id st
-          else ();
-       if minimize andalso not(null(these(!named_thms)))
-         then Mirabelle.catch minimize_tag (run_minimize args named_thms) id st
-         else ();
-       Mirabelle.catch metis_tag (run_metis metis_fns args name (these (!named_thms))) id st)
+       (Mirabelle.catch minimize_tag (run_minimize args named_thms) id st;
+        apply_metis Minimized MinimizedFT)
+      else ())
     else ()
   end
   end
