@@ -379,7 +379,7 @@ fun compile_generator_expr thy t =
   let
     val Ts = (map snd o fst o strip_abs) t;
     val t' = mk_generator_expr thy t Ts;
-    val compile = Code_ML.eval (SOME target) ("Quickcheck_Generators.eval_ref", eval_ref)
+    val compile = Code_Eval.eval (SOME target) ("Quickcheck_Generators.eval_ref", eval_ref)
       (fn proc => fn g => fn s => g s #>> (Option.map o map) proc) thy t' [];
   in compile #> Random_Engine.run end;
 
@@ -388,7 +388,7 @@ fun compile_generator_expr thy t =
 
 val setup = Typecopy.interpretation ensure_random_typecopy
   #> Datatype.interpretation ensure_random_datatype
-  #> Code_Target.extend_target (target, (Code_ML.target_Eval, K I))
+  #> Code_Target.extend_target (target, (Code_Eval.target, K I))
   #> Quickcheck.add_generator ("code", compile_generator_expr o ProofContext.theory_of);
 
 end;
