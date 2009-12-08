@@ -16,6 +16,7 @@ uses
   "~~/src/Tools/Code/code_printer.ML"
   "~~/src/Tools/Code/code_target.ML"
   "~~/src/Tools/Code/code_ml.ML"
+  "~~/src/Tools/Code/code_eval.ML"
   "~~/src/Tools/Code/code_haskell.ML"
   "~~/src/Tools/nbe.ML"
 begin
@@ -23,6 +24,7 @@ begin
 setup {*
   Code_Preproc.setup
   #> Code_ML.setup
+  #> Code_Eval.setup
   #> Code_Haskell.setup
   #> Nbe.setup
 *}
