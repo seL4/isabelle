@@ -21,14 +21,14 @@ struct
 
 val target = "Eval";
 
-val eval_struct_name = "Code"
+val eval_struct_name = "Code";
 
 fun evaluation_code thy tycos consts =
   let
     val (consts', (naming, program)) = Code_Thingol.consts_program thy consts;
     val tycos' = map (the o Code_Thingol.lookup_tyco naming) tycos;
     val (ml_code, target_names) = Code_ML.evaluation_code_of thy target
-      (SOME eval_struct_name) naming program (consts' @ tycos');
+      eval_struct_name naming program (consts' @ tycos');
     val (consts'', tycos'') = chop (length consts') target_names;
     val consts_map = map2 (fn const => fn NONE =>
         error ("Constant " ^ (quote o Code.string_of_const thy) const
@@ -56,7 +56,7 @@ fun eval some_target reff postproc thy t args =
               Code_Thingol.Fun (Term.dummy_patternN, (([], ty), [(([], t), (Drule.dummy_thm, true))])))
           |> fold (curry Graph.add_edge value_name) deps;
         val (value_code, [SOME value_name']) = Code_ML.evaluation_code_of thy
-          (the_default target some_target) NONE naming program' [value_name];
+          (the_default target some_target) "" naming program' [value_name];
         val sml_code = "let\n" ^ value_code ^ "\nin " ^ value_name'
           ^ space_implode " " (map (enclose "(" ")") args) ^ " end";
       in ML_Context.evaluate ctxt false reff sml_code end;

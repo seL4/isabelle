@@ -7,7 +7,7 @@ Serializer for SML and OCaml.
 signature CODE_ML =
 sig
   val target_SML: string
-  val evaluation_code_of: theory -> string -> string option
+  val evaluation_code_of: theory -> string -> string
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> string * string option list
   val setup: theory -> theory
 end;
@@ -339,7 +339,9 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
           end;
   in print_stmt end;
 
-fun print_sml_module name some_decls body = Pretty.chunks2 (
+fun print_sml_module name some_decls body = if name = ""
+  then Pretty.chunks2 body
+  else Pretty.chunks2 (
     Pretty.chunks (
       str ("structure " ^ name ^ (if is_some some_decls then " : sig" else " ="))
       :: (the_list o Option.map (Pretty.indent 2 o Pretty.chunks)) some_decls
@@ -663,7 +665,9 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
           end;
   in print_stmt end;
 
-fun print_ocaml_module name some_decls body = Pretty.chunks2 (
+fun print_ocaml_module name some_decls body = if name = ""
+  then Pretty.chunks2 body
+  else Pretty.chunks2 (
     Pretty.chunks (
       str ("module " ^ name ^ (if is_some some_decls then " : sig" else " ="))
       :: (the_list o Option.map (Pretty.indent 2 o Pretty.chunks)) some_decls
@@ -938,13 +942,9 @@ end; (*local*)
 
 (** for instrumentalization **)
 
-fun evaluation_code_of thy target some_struct_name =
-  let
-    val serialize = if is_some some_struct_name then fn _ => fn [] =>
-        serialize_ml target (SOME (K ())) print_sml_module print_sml_stmt some_struct_name true
-      else fn _ => fn [] => 
-        serialize_ml target (SOME (K ())) ((K o K) Pretty.chunks2) print_sml_stmt some_struct_name true;
-  in Code_Target.serialize_custom thy (target, (serialize, literals_sml)) end;
+fun evaluation_code_of thy target struct_name =
+  Code_Target.serialize_custom thy (target, (fn _ => fn [] =>
+    serialize_ml target (SOME (K ())) print_sml_module print_sml_stmt (SOME struct_name) true, literals_sml));
 
 
 (** Isar setup **)
