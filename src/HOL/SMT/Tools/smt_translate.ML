@@ -284,7 +284,7 @@ local
     | mark f false t = f false t #>> app formula_marker o single
   fun mark' f false t = f true t #>> app term_marker o single
     | mark' f true t = f true t
-  val mark_term = app term_marker o single
+  fun mark_term (t : (sym, typ) sterm) = app term_marker [t]
   fun lift_term_marker c ts =
     let val rem = (fn SApp (SConst (@{const_name term}, _), [t]) => t | t => t)
     in mark_term (SApp (c, map rem ts)) end
