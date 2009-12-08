@@ -94,15 +94,15 @@ body {
   Isabelle.plugin.state_update += (cmd => {
     val theory_view = Isabelle.prover_setup(view.getBuffer).get.theory_view
 
-    val node =
-      if (cmd == null) empty_body
-      else {
-        val xml = XML.elem(HTML.BODY,
-          cmd.results(theory_view.current_document).
-            map((t: XML.Tree) => XML.elem(HTML.PRE, HTML.spans(t))))
-        XML.document_node(doc, xml)
-      }
     Swing_Thread.later {
+      val node =
+        if (cmd == null) empty_body
+        else {
+          val xml = XML.elem(HTML.BODY,
+            cmd.results(theory_view.current_document).
+              map((t: XML.Tree) => XML.elem(HTML.PRE, HTML.spans(t))))
+          XML.document_node(doc, xml)
+        }
       doc.removeChild(doc.getLastChild())
       doc.appendChild(node)
       panel.delayedRelayout(node.asInstanceOf[NodeImpl])
