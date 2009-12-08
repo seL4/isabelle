@@ -9,7 +9,6 @@ package isabelle.jedit
 
 import isabelle.proofdocument.{Command, HTML_Panel}
 
-import scala.io.Source
 import scala.actors.Actor._
 
 import javax.swing.JPanel
@@ -22,14 +21,15 @@ import org.gjt.sp.jedit.gui.DockableWindowManager
 
 class Results_Dockable(view: View, position: String) extends JPanel
 {
-  // outer panel
+  /* outer panel */
 
   if (position == DockableWindowManager.FLOATING)
     setPreferredSize(new Dimension(500, 250))
+
   setLayout(new BorderLayout)
 
 
-  // HTML panel
+  /* HTML panel */
 
   private val html_panel = new HTML_Panel(Isabelle.system, Isabelle.Int_Property("font-size"))
   add(html_panel, BorderLayout.CENTER)
@@ -56,7 +56,7 @@ class Results_Dockable(view: View, position: String) extends JPanel
     loop {
       react {
         case _: Unit => html_panel.init(Isabelle.Int_Property("font-size"))
-        case bad => System.err.println("properties: ignoring bad message " + bad)
+        case bad => System.err.println("properties_actor: ignoring bad message " + bad)
       }
     }
   }
