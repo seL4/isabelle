@@ -111,7 +111,7 @@ class Plugin extends EBPlugin
   private def uninstall(view: View) =
     mapping.removeKey(view.getBuffer).get.deactivate
 
-  def switch_active (view: View) =
+  def switch_active(view: View) =
     if (mapping.isDefinedAt(view.getBuffer)) uninstall(view)
     else install(view)
 
