@@ -43,10 +43,11 @@ class HTML_Panel(sys: Isabelle_System, initial_font_size: Int) extends HtmlPanel
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<style media="all" type="text/css">""" +
+<style media="all" type="text/css">
+""" +
   try_file("$ISABELLE_HOME/lib/html/isabelle.css") + "\n" +
-  "body { font-family: " + sys.font_family + "; font-size: " + font_size + "px }\n" +
   try_file("$ISABELLE_HOME_USER/etc/isabelle.css") + "\n" +
+  "body { font-family: " + sys.font_family + "; font-size: " + font_size + "px }" +
 """
 </style>
 </head>
