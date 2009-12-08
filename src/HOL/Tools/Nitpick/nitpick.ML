@@ -182,8 +182,16 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
                            orig_t =
   let
     val timer = Timer.startRealTimer ()
-    val thy = Proof.theory_of state
+    val user_thy = Proof.theory_of state
+    val nitpick_thy = ThyInfo.get_theory "Nitpick"
+    val nitpick_thy_missing = not (Theory.subthy (nitpick_thy, user_thy))
+    val thy = if nitpick_thy_missing then
+                Theory.begin_theory "Nitpick_Internal" [nitpick_thy, user_thy]
+                |> Theory.checkpoint
+              else
+                user_thy
     val ctxt = Proof.context_of state
+               |> nitpick_thy_missing ? Context.raw_transfer thy
     val {cards_assigns, maxes_assigns, iters_assigns, bisim_depths, boxes,
          monos, wfs, sat_solver, blocking, falsify, debug, verbose, overlord,
          user_axioms, assms, merge_type_vars, destroy_constrs, specialize,
@@ -799,7 +807,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
     (* int -> int -> scope list -> int * int * int -> Kodkod.outcome *)
     fun run_batches _ _ [] (max_potential, max_genuine, donno) =
         if donno > 0 andalso max_genuine > 0 then
-          (print_m (fn () => excipit "ran into difficulties"); "unknown")
+          (print_m (fn () => excipit "ran out of juice"); "unknown")
         else if max_genuine = original_max_genuine then
           if max_potential = original_max_potential then
             (print_m (K ("Nitpick found no " ^ word_model ^ ".")); "none")
