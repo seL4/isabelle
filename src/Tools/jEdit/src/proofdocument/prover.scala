@@ -77,13 +77,9 @@ class Prover(system: Isabelle_System, logic: String)
 
   /* prover results */
 
-  val output_text_view = new JTextArea    // FIXME separate jEdit component
-
   private def handle_result(result: Isabelle_Process.Result)
   {
-    // FIXME separate jEdit component
-    Swing_Thread.later { output_text_view.append(result.toString + "\n") }
-
+    Isabelle.plugin.raw_results.event(result)
     val message = Isabelle_Process.parse_message(system, result)
 
     val state =

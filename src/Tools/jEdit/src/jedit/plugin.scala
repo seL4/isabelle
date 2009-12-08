@@ -86,8 +86,9 @@ class Plugin extends EBPlugin
 {
   /* event buses */
 
-  val state_update = new Event_Bus[Command]
   val properties_changed = new Event_Bus[Unit]
+  val raw_results = new Event_Bus[Isabelle_Process.Result]
+  val state_update = new Event_Bus[Command]
 
 
   /* selected state */
