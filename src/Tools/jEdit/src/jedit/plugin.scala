@@ -87,6 +87,7 @@ class Plugin extends EBPlugin
   /* event buses */
 
   val state_update = new Event_Bus[Command]
+  val properties_changed = new Event_Bus[Unit]
 
 
   /* selected state */
@@ -121,12 +122,12 @@ class Plugin extends EBPlugin
 
   /* main plugin plumbing */
 
-  override def handleMessage(msg: EBMessage)
+  override def handleMessage(message: EBMessage)
   {
-    msg match {
-      case epu: EditPaneUpdate =>
-        val buffer = epu.getEditPane.getBuffer
-        epu.getWhat match {
+    message match {
+      case msg: EditPaneUpdate =>
+        val buffer = msg.getEditPane.getBuffer
+        msg.getWhat match {
           case EditPaneUpdate.BUFFER_CHANGED =>
             (mapping get buffer) map (_.theory_view.activate)
           case EditPaneUpdate.BUFFER_CHANGING =>
@@ -134,6 +135,7 @@ class Plugin extends EBPlugin
               (mapping get buffer) map (_.theory_view.deactivate)
           case _ =>
         }
+      case msg: PropertiesChanged => properties_changed.event(())
       case _ =>
     }
   }
