@@ -341,11 +341,11 @@ class Isabelle_System
   private def create_font(name: String) =
     Font.createFont(Font.TRUETYPE_FONT, platform_file(name))
 
-  def register_fonts(): Boolean =
-  {
+  def register_fonts() {
     val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
     val ok1 = ge.registerFont(create_font("~~/lib/fonts/IsabelleText.ttf"))
     val ok2 = ge.registerFont(create_font("~~/lib/fonts/IsabelleTextBold.ttf"))
-    ok1 && ok2
+    if (!(ok1 && ok2) && !ge.getAvailableFontFamilyNames.contains(font_family))
+      error("Font family " + font_family + " unavailable")
   }
 }
