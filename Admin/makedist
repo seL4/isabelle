@@ -148,8 +148,6 @@ mkdir -p contrib
 
 cp doc/isabelle*.eps lib/logo
 
-rm Isabelle Isabelle.exe
-
 
 if [ -z "$RELEASE" ]; then
   {
