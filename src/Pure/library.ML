@@ -425,13 +425,11 @@ val map_filter = List.mapPartial;
 
 fun take (0: int) xs = []
   | take _ [] = []
-  | take n (x :: xs) =
-      if n > 0 then x :: take (n - 1) xs else [];
+  | take n (x :: xs) = x :: take (n - 1) xs;
 
 fun drop (0: int) xs = xs
   | drop _ [] = []
-  | drop n (x :: xs) =
-      if n > 0 then drop (n - 1) xs else x :: xs;
+  | drop n (x :: xs) = drop (n - 1) xs;
 
 fun chop (0: int) xs = ([], xs)
   | chop _ [] = ([], [])
