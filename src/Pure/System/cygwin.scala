@@ -81,11 +81,16 @@ object Cygwin
 
   // new-style setup (Cygwin 1.7)
   private val CYGWIN_SETUP1 = "Software\\Cygwin\\setup"
-  private val CYGWIN_SETUP2 = "Software\\Wow6432Node\\Cygwin\\setup"  // !?
+  private val CYGWIN_SETUP2 = "Software\\Wow6432Node\\Cygwin\\setup"
 
   def config(): (String, String) =
   {
-    query_registry(CYGWIN_SETUP1, "rootdir") match {
+    val cygwin_root = java.lang.System.getenv("CYGWIN_ROOT")
+
+    (if (cygwin_root != null && cygwin_root != "") Some(cygwin_root) else None) orElse
+    query_registry(CYGWIN_SETUP1, "rootdir") orElse
+      query_registry(CYGWIN_SETUP2, "rootdir") match
+    {
       case Some(root) => (root, "/cygdrive")
       case None =>
         val root =

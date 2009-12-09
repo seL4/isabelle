@@ -51,6 +51,7 @@ function choosefrom ()
 if [ "$OSTYPE" = cygwin ]; then
   CLASSPATH="$(cygpath -u -p "$CLASSPATH")"
   function jvmpath() { cygpath -w -p "$@"; }
+  CYGWIN_ROOT="$(jvmpath "/")"
 else
   function jvmpath() { echo "$@"; }
 fi
