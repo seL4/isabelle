@@ -363,11 +363,11 @@ fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
           |> map Long_Name.qualifier
           |> distinct (op =);
         fun print_import_include (name, _) = str ("import qualified " ^ name ^ ";");
-        val print_import_module = str o (if qualified
-          then prefix "import qualified "
-          else prefix "import ") o suffix ";";
+        fun print_import_module name = str ((if qualified
+          then "import qualified "
+          else "import ") ^ name ^ ";");
         val import_ps = map print_import_include includes @ map print_import_module imports
-        val content = Pretty.chunks2 (if null import_ps then [] else [Pretty.block import_ps]
+        val content = Pretty.chunks2 (if null import_ps then [] else [Pretty.chunks import_ps]
             @ map_filter
               (fn (name, (_, SOME stmt)) => SOME (print_stmt qualified (name, stmt))
                 | (_, (_, NONE)) => NONE) stmts

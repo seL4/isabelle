@@ -16,6 +16,10 @@ datatype 'a fset = Fset "'a set"
 primrec member :: "'a fset \<Rightarrow> 'a set" where
   "member (Fset A) = A"
 
+lemma member_inject [simp]:
+  "member A = member B \<Longrightarrow> A = B"
+  by (cases A, cases B) simp
+
 lemma Fset_member [simp]:
   "Fset (member A) = A"
   by (cases A) simp
@@ -53,6 +57,54 @@ proof -
 qed
 
 
+subsection {* Lattice instantiation *}
+
+instantiation fset :: (type) boolean_algebra
+begin
+
+definition less_eq_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" where
+  [simp]: "A \<le> B \<longleftrightarrow> member A \<subseteq> member B"
+
+definition less_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" where
+  [simp]: "A < B \<longleftrightarrow> member A \<subset> member B"
+
+definition inf_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
+  [simp]: "inf A B = Fset (member A \<inter> member B)"
+
+definition sup_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
+  [simp]: "sup A B = Fset (member A \<union> member B)"
+
+definition bot_fset :: "'a fset" where
+  [simp]: "bot = Fset {}"
+
+definition top_fset :: "'a fset" where
+  [simp]: "top = Fset UNIV"
+
+definition uminus_fset :: "'a fset \<Rightarrow> 'a fset" where
+  [simp]: "- A = Fset (- (member A))"
+
+definition minus_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
+  [simp]: "A - B = Fset (member A - member B)"
+
+instance proof
+qed auto
+
+end
+
+instantiation fset :: (type) complete_lattice
+begin
+
+definition Inf_fset :: "'a fset set \<Rightarrow> 'a fset" where
+  [simp, code del]: "Inf_fset As = Fset (Inf (image member As))"
+
+definition Sup_fset :: "'a fset set \<Rightarrow> 'a fset" where
+  [simp, code del]: "Sup_fset As = Fset (Sup (image member As))"
+
+instance proof
+qed (auto simp add: le_fun_def le_bool_def)
+
+end
+
 subsection {* Basic operations *}
 
 definition is_empty :: "'a fset \<Rightarrow> bool" where
@@ -62,12 +114,13 @@ lemma is_empty_Set [code]:
   "is_empty (Set xs) \<longleftrightarrow> null xs"
   by (simp add: is_empty_set)
 
-definition empty :: "'a fset" where
-  [simp]: "empty = Fset {}"
-
 lemma empty_Set [code]:
-  "empty = Set []"
-  by (simp add: Set_def)
+  "bot = Set []"
+  by simp
+
+lemma UNIV_Set [code]:
+  "top = Coset []"
+  by simp
 
 definition insert :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
   [simp]: "insert x A = Fset (Set.insert x (member A))"
@@ -127,112 +180,80 @@ qed
 
 subsection {* Derived operations *}
 
-definition subfset_eq :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" where
-  [simp]: "subfset_eq A B \<longleftrightarrow> member A \<subseteq> member B"
-
 lemma subfset_eq_forall [code]:
-  "subfset_eq A B \<longleftrightarrow> forall (member B) A"
+  "A \<le> B \<longleftrightarrow> forall (member B) A"
   by (simp add: subset_eq)
 
-definition subfset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" where
-  [simp]: "subfset A B \<longleftrightarrow> member A \<subset> member B"
-
 lemma subfset_subfset_eq [code]:
-  "subfset A B \<longleftrightarrow> subfset_eq A B \<and> \<not> subfset_eq B A"
-  by (simp add: subset)
+  "A < B \<longleftrightarrow> A \<le> B \<and> \<not> B \<le> (A :: 'a fset)"
+  by (fact less_le_not_le)
 
 lemma eq_fset_subfset_eq [code]:
-  "eq_class.eq A B \<longleftrightarrow> subfset_eq A B \<and> subfset_eq B A"
+  "eq_class.eq A B \<longleftrightarrow> A \<le> B \<and> B \<le> (A :: 'a fset)"
   by (cases A, cases B) (simp add: eq set_eq)
 
 
 subsection {* Functorial operations *}
 
-definition inter :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
-  [simp]: "inter A B = Fset (member A \<inter> member B)"
-
 lemma inter_project [code]:
-  "inter A (Set xs) = Set (List.filter (member A) xs)"
-  "inter A (Coset xs) = foldl (\<lambda>A x. remove x A) A xs"
+  "inf A (Set xs) = Set (List.filter (member A) xs)"
+  "inf A (Coset xs) = foldl (\<lambda>A x. remove x A) A xs"
 proof -
-  show "inter A (Set xs) = Set (List.filter (member A) xs)"
+  show "inf A (Set xs) = Set (List.filter (member A) xs)"
     by (simp add: inter project_def Set_def)
   have "foldl (\<lambda>A x. List_Set.remove x A) (member A) xs =
     member (foldl (\<lambda>A x. Fset (List_Set.remove x (member A))) A xs)"
     by (rule foldl_apply_inv) simp
-  then show "inter A (Coset xs) = foldl (\<lambda>A x. remove x A) A xs"
+  then show "inf A (Coset xs) = foldl (\<lambda>A x. remove x A) A xs"
     by (simp add: Diff_eq [symmetric] minus_set)
 qed
 
-definition subtract :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
-  [simp]: "subtract A B = Fset (member B - member A)"
-
 lemma subtract_remove [code]:
-  "subtract (Set xs) A = foldl (\<lambda>A x. remove x A) A xs"
-  "subtract (Coset xs) A = Set (List.filter (member A) xs)"
+  "A - Set xs = foldl (\<lambda>A x. remove x A) A xs"
+  "A - Coset xs = Set (List.filter (member A) xs)"
 proof -
   have "foldl (\<lambda>A x. List_Set.remove x A) (member A) xs =
     member (foldl (\<lambda>A x. Fset (List_Set.remove x (member A))) A xs)"
     by (rule foldl_apply_inv) simp
-  then show "subtract (Set xs) A = foldl (\<lambda>A x. remove x A) A xs"
+  then show "A - Set xs = foldl (\<lambda>A x. remove x A) A xs"
     by (simp add: minus_set)
-  show "subtract (Coset xs) A = Set (List.filter (member A) xs)"
+  show "A - Coset xs = Set (List.filter (member A) xs)"
     by (auto simp add: Coset_def Set_def)
 qed
 
-definition union :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
-  [simp]: "union A B = Fset (member A \<union> member B)"
-
 lemma union_insert [code]:
-  "union (Set xs) A = foldl (\<lambda>A x. insert x A) A xs"
-  "union (Coset xs) A = Coset (List.filter (Not \<circ> member A) xs)"
+  "sup (Set xs) A = foldl (\<lambda>A x. insert x A) A xs"
+  "sup (Coset xs) A = Coset (List.filter (Not \<circ> member A) xs)"
 proof -
   have "foldl (\<lambda>A x. Set.insert x A) (member A) xs =
     member (foldl (\<lambda>A x. Fset (Set.insert x (member A))) A xs)"
     by (rule foldl_apply_inv) simp
-  then show "union (Set xs) A = foldl (\<lambda>A x. insert x A) A xs"
+  then show "sup (Set xs) A = foldl (\<lambda>A x. insert x A) A xs"
     by (simp add: union_set)
-  show "union (Coset xs) A = Coset (List.filter (Not \<circ> member A) xs)"
+  show "sup (Coset xs) A = Coset (List.filter (Not \<circ> member A) xs)"
     by (auto simp add: Coset_def)
 qed
 
-definition Inter :: "'a fset fset \<Rightarrow> 'a fset" where
-  [simp]: "Inter A = Fset (Complete_Lattice.Inter (member ` member A))"
+context complete_lattice
+begin
 
-lemma Inter_inter [code]:
-  "Inter (Set As) = foldl inter (Coset []) As"
-  "Inter (Coset []) = empty"
-proof -
-  have [simp]: "Coset [] = Fset UNIV"
-    by (simp add: Coset_def)
-  note Inter_image_eq [simp del] set_map [simp del] set.simps [simp del]
-  have "foldl (op \<inter>) (member (Coset [])) (List.map member As) = 
-    member (foldl (\<lambda>B A. Fset (member B \<inter> A)) (Coset []) (List.map member As))"
-    by (rule foldl_apply_inv) simp
-  then show "Inter (Set As) = foldl inter (Coset []) As"
-    by (simp add: Inf_set_fold image_set inter inter_def_raw foldl_map)
-  show "Inter (Coset []) = empty"
-    by simp
-qed
+definition Infimum :: "'a fset \<Rightarrow> 'a" where
+  [simp]: "Infimum A = Inf (member A)"
 
-definition Union :: "'a fset fset \<Rightarrow> 'a fset" where
-  [simp]: "Union A = Fset (Complete_Lattice.Union (member ` member A))"
+lemma Infimum_inf [code]:
+  "Infimum (Set As) = foldl inf top As"
+  "Infimum (Coset []) = bot"
+  by (simp_all add: Inf_set_fold Inf_UNIV)
 
-lemma Union_union [code]:
-  "Union (Set As) = foldl union empty As"
-  "Union (Coset []) = Coset []"
-proof -
-  have [simp]: "Coset [] = Fset UNIV"
-    by (simp add: Coset_def)
-  note Union_image_eq [simp del] set_map [simp del]
-  have "foldl (op \<union>) (member empty) (List.map member As) = 
-    member (foldl (\<lambda>B A. Fset (member B \<union> A)) empty (List.map member As))"
-    by (rule foldl_apply_inv) simp
-  then show "Union (Set As) = foldl union empty As"
-    by (simp add: Sup_set_fold image_set union_def_raw foldl_map)
-  show "Union (Coset []) = Coset []"
-    by simp
-qed
+definition Supremum :: "'a fset \<Rightarrow> 'a" where
+  [simp]: "Supremum A = Sup (member A)"
+
+lemma Supremum_sup [code]:
+  "Supremum (Set As) = foldl sup bot As"
+  "Supremum (Coset []) = top"
+  by (simp_all add: Sup_set_fold Sup_UNIV)
+
+end
 
 
 subsection {* Misc operations *}
@@ -271,7 +292,7 @@ declare filter_def [simp del]
 declare mem_def [simp del]
 
 
-hide (open) const is_empty empty insert remove map filter forall exists card
-  subfset_eq subfset inter union subtract Inter Union
+hide (open) const is_empty insert remove map filter forall exists card
+  Inter Union
 
 end
