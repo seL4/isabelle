@@ -76,36 +76,23 @@ object Cygwin
 
   /* Cygwin installation */
 
-  // old-style mount points (Cygwin 1.5)
-  private val CYGWIN_MOUNTS = "Software\\Cygnus Solutions\\Cygwin\\mounts v2"
-
-  // new-style setup (Cygwin 1.7)
   private val CYGWIN_SETUP1 = "Software\\Cygwin\\setup"
   private val CYGWIN_SETUP2 = "Software\\Wow6432Node\\Cygwin\\setup"
 
-  def config(): (String, String) =
+  def check_root(): String =
   {
-    val cygwin_root = java.lang.System.getenv("CYGWIN_ROOT")
-
-    (if (cygwin_root != null && cygwin_root != "") Some(cygwin_root) else None) orElse
-    query_registry(CYGWIN_SETUP1, "rootdir") orElse
-      query_registry(CYGWIN_SETUP2, "rootdir") match
-    {
-      case Some(root) => (root, "/cygdrive")
-      case None =>
-        val root =
-          query_registry(CYGWIN_MOUNTS + "\\/", "native") getOrElse "C:\\cygwin"
-        val cygdrive =
-          query_registry(CYGWIN_MOUNTS, "cygdrive prefix") getOrElse "cygdrive"
-        (root, cygdrive)
-    }
+    val root_env = java.lang.System.getenv("CYGWIN_ROOT")
+    val root =
+      if (root_env != null && root_env != "") root_env
+      else
+        query_registry(CYGWIN_SETUP1, "rootdir") orElse
+        query_registry(CYGWIN_SETUP2, "rootdir") getOrElse
+        error("Failed to determine Cygwin installation -- version 1.7 required")
+    val ok =
+      new File(root + "\\bin\\bash.exe").isFile &&
+      new File(root + "\\bin\\env.exe").isFile
+    if (!ok) error("Bad Cygwin installation: " + root)
+    root
   }
-
-
-  /* basic sanity check */
-
-  def check(root: String): Boolean =
-    new File(root + "\\bin\\bash.exe").isFile &&
-    new File(root + "\\bin\\env.exe").isFile
 }
 

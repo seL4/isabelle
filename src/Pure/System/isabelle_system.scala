@@ -62,8 +62,8 @@ class Isabelle_System
   private val (platform_root, drive_prefix, shell_prefix) =
   {
     if (Platform.is_windows) {
-      val (root, drive) = Cygwin.config()
-      if (!Cygwin.check(root)) error("Bad Cygwin installation: " + root)
+      val root = Cygwin.check_root()
+      val drive = "/cygdrive"
       val shell = List(root + "\\bin\\bash", "-l")
       (root, drive, shell)
     }

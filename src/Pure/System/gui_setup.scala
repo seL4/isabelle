@@ -51,7 +51,7 @@ object GUI_Setup extends GUIApplication
         text.append("Alternative platform: " + name2 + "\n")
     }
     if (Platform.is_windows) {
-      text.append("Cygwin root: " + Cygwin.config()._1 + "\n")
+      text.append("Cygwin root: " + Cygwin.check_root() + "\n")
     }
     try {
       val isabelle_system = new Isabelle_System
