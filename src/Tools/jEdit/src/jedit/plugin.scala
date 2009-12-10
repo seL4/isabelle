@@ -145,7 +145,7 @@ class Plugin extends EBPlugin
   {
     Isabelle.plugin = this
     Isabelle.system = new Isabelle_System
-    Isabelle.system.register_fonts()
+    Isabelle.system.install_fonts()
   }
 
   override def stop()
