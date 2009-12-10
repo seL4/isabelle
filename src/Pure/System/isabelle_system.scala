@@ -62,8 +62,8 @@ class Isabelle_System
   private val (platform_root, drive_prefix, shell_prefix) =
   {
     if (Platform.is_windows) {
-      val (root, drive) = Cygwin.config()
-      if (!Cygwin.check(root)) error("Bad Cygwin installation: " + root)
+      val root = Cygwin.check_root()
+      val drive = "/cygdrive"
       val shell = List(root + "\\bin\\bash", "-l")
       (root, drive, shell)
     }
@@ -338,14 +338,20 @@ class Isabelle_System
 
   val font_family = "IsabelleText"
 
+  private def check_font(): Boolean =
+    new Font(font_family, Font.PLAIN, 1).getFamily == font_family
+
   private def create_font(name: String) =
     Font.createFont(Font.TRUETYPE_FONT, platform_file(name))
 
-  def register_fonts() {
-    val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
-    val ok1 = ge.registerFont(create_font("~~/lib/fonts/IsabelleText.ttf"))
-    val ok2 = ge.registerFont(create_font("~~/lib/fonts/IsabelleTextBold.ttf"))
-    if (!(ok1 && ok2) && !ge.getAvailableFontFamilyNames.contains(font_family))
-      error("Font family " + font_family + " unavailable")
+  def install_fonts()
+  {
+    if (!check_font()) {
+      val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
+      ge.registerFont(create_font("$ISABELLE_HOME/lib/fonts/IsabelleText.ttf"))
+      ge.registerFont(create_font("$ISABELLE_HOME/lib/fonts/IsabelleTextBold.ttf"))
+      if (!check_font())
+        error("Failed to install IsabelleText fonts")
+    }
   }
 }

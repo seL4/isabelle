@@ -34,7 +34,8 @@ object HTML
 
   def spans(tree: XML.Tree): List[XML.Tree] =
     tree match {
-      case XML.Elem(name, _, ts) => List(span(name, ts.flatMap(spans)))
+      case XML.Elem(name, _, ts) =>
+        List(XML.elem(Markup.DATA, List(tree, span(name, ts.flatMap(spans)))))
       case XML.Text(txt) =>
         val ts = new ListBuffer[XML.Tree]
         val t = new StringBuilder

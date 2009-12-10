@@ -185,6 +185,6 @@ object Markup
   /* content */
 
   val ROOT = "root"
-  val RAW = "raw"
   val BAD = "bad"
+  val DATA = "data"
 }
