@@ -51,7 +51,7 @@ class HTML_Panel(
   private def try_file(name: String): String =
   {
     val file = sys.platform_file(name)
-    if (file.exists) Source.fromFile(file).mkString else ""
+    if (file.isFile) Source.fromFile(file).mkString else ""
   }
 
   private def template(font_size: Int): String =
