@@ -8,7 +8,6 @@
 package isabelle.jedit
 
 
-import isabelle.proofdocument.Prover
 import isabelle.Markup
 
 import org.gjt.sp.jedit.buffer.JEditBuffer
@@ -100,7 +99,7 @@ object Isabelle_Token_Marker
 }
 
 
-class Isabelle_Token_Marker(buffer: JEditBuffer, prover: Prover) extends TokenMarker
+class Isabelle_Token_Marker(buffer: JEditBuffer) extends TokenMarker
 {
   override def markTokens(prev: TokenMarker.LineContext,
       handler: TokenHandler, line_segment: Segment): TokenMarker.LineContext =
@@ -111,7 +110,7 @@ class Isabelle_Token_Marker(buffer: JEditBuffer, prover: Prover) extends TokenMa
     val start = buffer.getLineStartOffset(line)
     val stop = start + line_segment.count
 
-    val theory_view = Isabelle.prover_setup(buffer).get.theory_view
+    val theory_view = Isabelle.plugin.theory_view(buffer).get  // FIXME total?
     val document = theory_view.current_document()
     def to: Int => Int = theory_view.to_current(document, _)
     def from: Int => Int = theory_view.from_current(document, _)

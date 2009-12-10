@@ -45,38 +45,35 @@ class Isabelle_Hyperlinks extends HyperlinkSource
 {
 	def getHyperlink(buffer: Buffer, original_offset: Int): Hyperlink =
 	{
-    val prover = Isabelle.prover_setup(buffer).map(_.prover)
-    val theory_view_opt = Isabelle.prover_setup(buffer).map(_.theory_view)
-    if (prover.isEmpty || theory_view_opt.isEmpty) null
-    else if (prover.get == null || theory_view_opt.get == null) null
-    else {
-      val theory_view = theory_view_opt.get
-      val document = theory_view.current_document()
-      val offset = theory_view.from_current(document, original_offset)
-      document.command_at(offset) match {
-        case Some(command) =>
-          command.ref_at(document, offset - command.start(document)) match {
-            case Some(ref) =>
-              val command_start = command.start(document)
-              val begin = theory_view.to_current(document, command_start + ref.start)
-              val line = buffer.getLineOfOffset(begin)
-              val end = theory_view.to_current(document, command_start + ref.stop)
-              ref.info match {
-                case Command.RefInfo(Some(ref_file), Some(ref_line), _, _) =>
-                  new External_Hyperlink(begin, end, line, ref_file, ref_line)
-                case Command.RefInfo(_, _, Some(id), Some(offset)) =>
-                  prover.get.command(id) match {
-                    case Some(ref_cmd) =>
-                      new Internal_Hyperlink(begin, end, line,
-                        theory_view.to_current(document, ref_cmd.start(document) + offset - 1))
-                    case None => null
-                  }
-                case _ => null
-              }
-            case None => null
-          }
-        case None => null
-      }
+    Isabelle.plugin.theory_view(buffer) match {
+      case Some(theory_view) =>
+        val document = theory_view.current_document()
+        val offset = theory_view.from_current(document, original_offset)
+        document.command_at(offset) match {
+          case Some(command) =>
+            command.ref_at(document, offset - command.start(document)) match {
+              case Some(ref) =>
+                val command_start = command.start(document)
+                val begin = theory_view.to_current(document, command_start + ref.start)
+                val line = buffer.getLineOfOffset(begin)
+                val end = theory_view.to_current(document, command_start + ref.stop)
+                ref.info match {
+                  case Command.RefInfo(Some(ref_file), Some(ref_line), _, _) =>
+                    new External_Hyperlink(begin, end, line, ref_file, ref_line)
+                  case Command.RefInfo(_, _, Some(id), Some(offset)) =>
+                    Isabelle.session.command(id) match {
+                      case Some(ref_cmd) =>
+                        new Internal_Hyperlink(begin, end, line,
+                          theory_view.to_current(document, ref_cmd.start(document) + offset - 1))
+                      case None => null
+                    }
+                  case _ => null
+                }
+              case None => null
+            }
+          case None => null
+        }
+      case None => null
     }
   }
 }

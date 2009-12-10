@@ -7,7 +7,7 @@
 package isabelle.jedit
 
 
-import isabelle.proofdocument.Change
+import isabelle.proofdocument.{Change, Theory_View}
 
 import java.awt.Dimension
 import scala.swing.{ListView, FlowPanel}
@@ -22,11 +22,12 @@ class History_Dockable(view: View, position: String) extends FlowPanel
   if (position == DockableWindowManager.FLOATING)
     preferredSize = new Dimension(500, 250)
 
-  def prover_setup(): Option[Prover_Setup] = Isabelle.prover_setup(view.getBuffer)
+  def dynamic_theory_view(): Option[Theory_View] =
+    Isabelle.plugin.theory_view(view.getBuffer)
   def get_versions() =
-    prover_setup() match {
+    dynamic_theory_view() match {
       case None => Nil
-      case Some(setup) => setup.theory_view.changes
+      case Some(theory_view) => theory_view.changes
     }
 
   val list = new ListView[Change]
@@ -37,8 +38,9 @@ class History_Dockable(view: View, position: String) extends FlowPanel
   listenTo(list.selection)
   reactions += {
     case ListSelectionChanged(source, range, false) =>
-      prover_setup().map(_.theory_view.set_version(list.listData(range.start)))
+      dynamic_theory_view().map(_.set_version(list.listData(range.start)))
   }
 
-  prover_setup.foreach(_.prover.document_change += (_ => list.listData = get_versions()))
+  if (dynamic_theory_view().isDefined)
+    Isabelle.session.document_change += (_ => list.listData = get_versions())
 }

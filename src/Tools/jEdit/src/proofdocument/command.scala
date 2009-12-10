@@ -12,7 +12,7 @@ import scala.actors.Actor, Actor._
 
 import scala.collection.mutable
 
-import isabelle.jedit.{Isabelle, Plugin}
+import isabelle.jedit.Isabelle
 import isabelle.XML
 
 
@@ -26,7 +26,7 @@ trait Accumulator extends Actor
   override def act() {
     loop {
       react {
-        case (prover: Prover, message: XML.Tree) => _state = _state.+(prover, message)
+        case (session: Session, message: XML.Tree) => _state = _state.+(session, message)
         case bad => System.err.println("Accumulator: ignoring bad message " + bad)
       }
     }

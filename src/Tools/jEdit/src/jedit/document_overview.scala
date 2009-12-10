@@ -7,7 +7,7 @@
 package isabelle.jedit
 
 
-import isabelle.proofdocument.{Command, Proof_Document, Prover, Theory_View}
+import isabelle.proofdocument.{Command, Proof_Document, Theory_View}
 
 import javax.swing.{JPanel, ToolTipManager}
 import java.awt.event.{MouseAdapter, MouseEvent}
@@ -15,11 +15,9 @@ import java.awt.{BorderLayout, Graphics, Dimension}
 
 import org.gjt.sp.jedit.gui.RolloverButton
 import org.gjt.sp.jedit.textarea.JEditTextArea
-import org.gjt.sp.jedit.buffer.JEditBuffer
 
 
 class Document_Overview(
-    prover: Prover,
     text_area: JEditTextArea,
     to_current: (Proof_Document, Int) => Int)
   extends JPanel(new BorderLayout)
@@ -56,10 +54,11 @@ class Document_Overview(
     else ""
   }
 
-  override def paintComponent(gfx: Graphics) {
+  override def paintComponent(gfx: Graphics)
+  {
     super.paintComponent(gfx)
     val buffer = text_area.getBuffer
-    val theory_view = Isabelle.prover_setup(buffer).get.theory_view
+    val theory_view = Isabelle.plugin.theory_view(buffer).get
     val doc = theory_view.current_document()
 
     for (command <- doc.commands) {

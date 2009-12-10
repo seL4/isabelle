@@ -19,7 +19,7 @@ import org.gjt.sp.jedit.buffer.{BufferListener, JEditBuffer}
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextAreaExtension, TextAreaPainter}
 import org.gjt.sp.jedit.syntax.{ModeProvider, SyntaxStyle}
 
-import isabelle.jedit.{Document_Overview, Isabelle, Isabelle_Token_Marker}
+import isabelle.jedit.{Document_Overview, Isabelle, Isabelle_Token_Marker}  // FIXME wrong layer
 
 
 object Theory_View
@@ -36,16 +36,14 @@ object Theory_View
 }
 
 
-class Theory_View(text_area: JEditTextArea)
+class Theory_View(session: Session, text_area: JEditTextArea)
 {
   private val buffer = text_area.getBuffer
 
 
   /* prover setup */
 
-  val prover: Prover = new Prover(Isabelle.system, Isabelle.default_logic())
-
-  prover.command_change += ((command: Command) =>
+  session.command_change += ((command: Command) =>
     if (current_document().commands.contains(command))
       Swing_Thread.later {
         // FIXME proper handling of buffer vs. text areas
@@ -60,7 +58,7 @@ class Theory_View(text_area: JEditTextArea)
 
   /* changes vs. edits */
 
-  private val change_0 = new Change(prover.document_0.id, None, Nil)
+  private val change_0 = new Change(Isabelle.session.document_0.id, None, Nil)  // FIXME !?
   private var _changes = List(change_0)   // owned by Swing/AWT thread
   def changes = _changes
   private var current_change = change_0
@@ -71,7 +69,7 @@ class Theory_View(text_area: JEditTextArea)
     if (!edits.isEmpty) {
       val change = new Change(Isabelle.system.id(), Some(current_change), edits.toList)
       _changes ::= change
-      prover.input(change)
+      session.input(change)
       current_change = change
       edits.clear
     }
@@ -151,7 +149,7 @@ class Theory_View(text_area: JEditTextArea)
 
   /* activation */
 
-  private val overview = new Document_Overview(prover, text_area, to_current)
+  private val overview = new Document_Overview(text_area, to_current)
 
   private val selected_state_controller = new CaretListener {
     override def caretUpdate(e: CaretEvent) {
@@ -159,8 +157,8 @@ class Theory_View(text_area: JEditTextArea)
       doc.command_at(e.getDot) match {
         case Some(cmd)
           if (doc.token_start(cmd.tokens.first) <= e.getDot &&
-            Isabelle.plugin.selected_state != cmd) =>
-          Isabelle.plugin.selected_state = cmd
+            Isabelle.session.selected_state != cmd) =>
+          Isabelle.session.selected_state = cmd
         case _ =>
       }
     }
@@ -172,7 +170,7 @@ class Theory_View(text_area: JEditTextArea)
     text_area.addLeftOfScrollBar(overview)
     text_area.getPainter.
       addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, text_area_extension)
-    buffer.setTokenMarker(new Isabelle_Token_Marker(buffer, prover))
+    buffer.setTokenMarker(new Isabelle_Token_Marker(buffer))
     buffer.addBufferListener(buffer_listener)
     buffer.propertiesChanged()
   }
@@ -190,7 +188,7 @@ class Theory_View(text_area: JEditTextArea)
   /* history of changes */
 
   private def doc_or_pred(c: Change): Proof_Document =
-    prover.document(c.id).getOrElse(doc_or_pred(c.parent.get))
+    session.document(c.id).getOrElse(doc_or_pred(c.parent.get))
 
   def current_document() = doc_or_pred(current_change)
 
@@ -282,8 +280,8 @@ class Theory_View(text_area: JEditTextArea)
     val (start, stop) = lines_of_command(cmd)
     text_area.invalidateLineRange(start, stop)
 
-    if (Isabelle.plugin.selected_state == cmd)
-      Isabelle.plugin.selected_state = cmd  // update State view
+    if (Isabelle.session.selected_state == cmd)
+      Isabelle.session.selected_state = cmd
   }
 
   private def invalidate_all() =
@@ -312,8 +310,6 @@ class Theory_View(text_area: JEditTextArea)
 
 
   /* init */
-
-  prover.start()
 
   edits += Insert(0, buffer.getText(0, buffer.getLength))
   edits_delay()

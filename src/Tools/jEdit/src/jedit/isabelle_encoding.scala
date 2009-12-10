@@ -34,7 +34,7 @@ class Isabelle_Encoding extends Encoding
   {
     def source(): Source =
       BufferedSource.fromInputStream(in, decoder, BUFSIZE, { () => source() })
-    new CharArrayReader(Isabelle.symbols.decode(source.mkString).toArray)
+    new CharArrayReader(Isabelle.system.symbols.decode(source.mkString).toArray)
   }
 
 	override def getTextReader(in: InputStream): Reader =
@@ -53,7 +53,7 @@ class Isabelle_Encoding extends Encoding
     val buffer = new ByteArrayOutputStream(BUFSIZE) {
       override def flush()
       {
-        val text = Isabelle.symbols.encode(toString(Isabelle_System.charset))
+        val text = Isabelle.system.symbols.encode(toString(Isabelle_System.charset))
         out.write(text.getBytes(Isabelle_System.charset))
         out.flush()
       }

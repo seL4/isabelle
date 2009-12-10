@@ -42,11 +42,15 @@ class Output_Dockable(view: View, position: String) extends JPanel
     loop {
       react {
         case cmd: Command =>
-          val theory_view = Isabelle.prover_setup(view.getBuffer).get.theory_view
-          val body =
-            if (cmd == null) Nil  // FIXME ??
-            else cmd.results(theory_view.current_document)
-          html_panel.render(body)
+          Isabelle.plugin.theory_view(view.getBuffer)  // FIXME total!?!
+          match {
+            case None =>
+            case Some(theory_view) =>
+              val body =
+                if (cmd == null) Nil  // FIXME ??
+                else cmd.results(theory_view.current_document)
+              html_panel.render(body)
+          }
           
         case bad => System.err.println("output_actor: ignoring bad message " + bad)
       }
@@ -62,15 +66,17 @@ class Output_Dockable(view: View, position: String) extends JPanel
     }
   }
 
-  override def addNotify() {
+  override def addNotify()
+  {
     super.addNotify()
-    Isabelle.plugin.state_update += output_actor
-    Isabelle.plugin.properties_changed += properties_actor
+    Isabelle.session.results += output_actor
+    Isabelle.session.global_settings += properties_actor
   }
 
-  override def removeNotify() {
-    Isabelle.plugin.state_update -= output_actor
-    Isabelle.plugin.properties_changed -= properties_actor
+  override def removeNotify()
+  {
+    Isabelle.session.results -= output_actor
+    Isabelle.session.global_settings -= properties_actor
     super.removeNotify()
   }
 }

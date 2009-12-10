@@ -9,14 +9,13 @@
 package isabelle.jedit
 
 
+import isabelle.proofdocument.{Session, Theory_View}
+
 import java.io.{FileInputStream, IOException}
 import java.awt.Font
 import javax.swing.JScrollPane
 
 import scala.collection.mutable
-
-import isabelle.proofdocument.{Command, Proof_Document, Prover}
-import isabelle.Isabelle_System
 
 import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, EditPane, ServiceManager, View}
 import org.gjt.sp.jedit.buffer.JEditBuffer
@@ -54,16 +53,9 @@ object Isabelle
   }
 
 
-  /* Isabelle system instance */
-
-  var system: Isabelle_System = null
-  def symbols = system.symbols
-  lazy val completion = new Completion + symbols
-
-
   /* settings */
 
-  def default_logic(): String =
+  def get_logic(): String =
   {
     val logic = Isabelle.Property("logic")
     if (logic != null) logic
@@ -74,51 +66,44 @@ object Isabelle
   /* plugin instance */
 
   var plugin: Plugin = null
-
-
-  /* running provers */
-
-  def prover_setup(buffer: JEditBuffer) = plugin.prover_setup(buffer)
+  var system: Isabelle_System = null
+  var session: Session = null
 }
 
 
 class Plugin extends EBPlugin
 {
-  /* event buses */
+  /* mapping buffer <-> theory view */
 
-  val properties_changed = new Event_Bus[Unit]
-  val raw_results = new Event_Bus[Isabelle_Process.Result]
-  val state_update = new Event_Bus[Command]
-
-
-  /* selected state */
-
-  private var _selected_state: Command = null
-  def selected_state = _selected_state
-  def selected_state_=(state: Command) { _selected_state = state; state_update.event(state) }
-
-
-  /* mapping buffer <-> prover */
-
-  private val mapping = new mutable.HashMap[JEditBuffer, Prover_Setup]
+  private var mapping = Map[JEditBuffer, Theory_View]()
 
   private def install(view: View)
   {
+    val text_area = view.getTextArea
     val buffer = view.getBuffer
-    val prover_setup = new Prover_Setup(buffer)
-    mapping.update(buffer, prover_setup)
-    prover_setup.activate(view)
+
+ 
+    val theory_view = new Theory_View(Isabelle.session, text_area)   // FIXME multiple text areas!?
+    mapping += (buffer -> theory_view)
+
+    Isabelle.session.start(Isabelle.get_logic())
+    theory_view.activate()
+    Isabelle.session.begin_document(buffer.getName)
   }
 
-  private def uninstall(view: View) =
-    mapping.removeKey(view.getBuffer).get.deactivate
+  private def uninstall(view: View)
+  {
+    val buffer = view.getBuffer
+    mapping(buffer).deactivate
+    mapping -= buffer
+  }
 
   def switch_active(view: View) =
     if (mapping.isDefinedAt(view.getBuffer)) uninstall(view)
     else install(view)
 
-  def prover_setup(buffer: JEditBuffer): Option[Prover_Setup] = mapping.get(buffer)
-  def is_active (buffer: JEditBuffer) = mapping.isDefinedAt(buffer)
+  def theory_view(buffer: JEditBuffer): Option[Theory_View] = mapping.get(buffer)
+  def is_active(buffer: JEditBuffer) = mapping.isDefinedAt(buffer)
 
 
   /* main plugin plumbing */
@@ -130,13 +115,14 @@ class Plugin extends EBPlugin
         val buffer = msg.getEditPane.getBuffer
         msg.getWhat match {
           case EditPaneUpdate.BUFFER_CHANGED =>
-            (mapping get buffer) map (_.theory_view.activate)
+            theory_view(buffer)map(_.activate)
           case EditPaneUpdate.BUFFER_CHANGING =>
             if (buffer != null)
-              (mapping get buffer) map (_.theory_view.deactivate)
+              theory_view(buffer).map(_.deactivate)
           case _ =>
         }
-      case msg: PropertiesChanged => properties_changed.event(())
+      case msg: PropertiesChanged =>
+        Isabelle.session.global_settings.event(())
       case _ =>
     }
   }
@@ -146,11 +132,13 @@ class Plugin extends EBPlugin
     Isabelle.plugin = this
     Isabelle.system = new Isabelle_System
     Isabelle.system.install_fonts()
+    Isabelle.session = new Session(Isabelle.system)  // FIXME dialog!?
   }
 
   override def stop()
   {
-    // TODO: proper cleanup
+    Isabelle.session.stop()  // FIXME dialog!?
+    Isabelle.session = null
     Isabelle.system = null
     Isabelle.plugin = null
   }

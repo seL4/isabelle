@@ -1,52 +1,78 @@
 /*
- * Higher-level prover communication: interactive document model
+ * Isabelle session, potentially with running prover
  *
- * @author Johannes Hölzl, TU Munich
- * @author Fabian Immler, TU Munich
  * @author Makarius
  */
 
 package isabelle.proofdocument
 
 
-import scala.actors.Actor, Actor._
-
-import javax.swing.JTextArea
-
-import isabelle.jedit.Isabelle
+import scala.actors.Actor._
 
 
-class Prover(system: Isabelle_System, logic: String)
+class Session(system: Isabelle_System)
 {
-  /* incoming messages */
+  /* main actor */
 
+  private case class Start(logic: String)
+  private case object Stop
+
+  private var prover: Isabelle_Process with Isar_Document = null
+  private var prover_logic = ""
   private var prover_ready = false
 
-  private val receiver = new Actor {
-    def act() {
-      loop {
-        react {
-          case result: Isabelle_Process.Result => handle_result(result)
-          case change: Change if prover_ready => handle_change(change)
-          case bad if prover_ready => System.err.println("receiver: ignoring bad message " + bad)
-        }
+  private val session_actor = actor {
+    loop {
+      react {
+        case Start(logic) =>
+          if (prover == null) {
+            // FIXME only once
+            prover =  // FIXME rebust error handling (via results)
+              new Isabelle_Process(system, self,   // FIXME improve options
+                  "-m", "xsymbols", "-m", "no_brackets", "-m", "no_type_brackets", logic)
+                with Isar_Document
+            prover_logic = logic
+            reply(())
+          }
+
+        case Stop =>
+          if (prover != null)
+            prover.kill
+          prover = null   // FIXME later (via results)!?
+          prover_ready = false // FIXME !??
+          
+        case change: Change if prover_ready =>
+          handle_change(change)
+
+        case result: Isabelle_Process.Result =>
+          handle_result(result)
+
+        case bad if prover_ready =>
+          System.err.println("session_actor: ignoring bad message " + bad)
       }
     }
   }
 
-  def input(change: Change) { receiver ! change }
+  def start(logic: String) { session_actor !? Start(logic) }
+  def stop() { session_actor ! Stop }
+  def input(change: Change) { session_actor ! change }
 
 
-  /* outgoing messages */
+  /* pervasive event buses */
+
+  val global_settings = new Event_Bus[Unit]
+  val raw_results = new Event_Bus[Isabelle_Process.Result]
+  val results = new Event_Bus[Command]
 
   val command_change = new Event_Bus[Command]
   val document_change = new Event_Bus[Proof_Document]
 
 
-  /* prover process */
+  /* selected state */  // FIXME!? races!?
 
-  private val process =
-    new Isabelle_Process(system, receiver, "-m", "xsymbols", logic) with Isar_Document
+  private var _selected_state: Command = null
+  def selected_state = _selected_state
+  def selected_state_=(state: Command) { _selected_state = state; results.event(state) }
 
 
   /* outer syntax keywords and completion */
@@ -57,7 +83,7 @@ class Prover(system: Isabelle_System, logic: String)
   @volatile private var _keyword_decls = Set[String]()
   def keyword_decls() = _keyword_decls
 
-  @volatile private var _completion = Isabelle.completion
+  @volatile private var _completion = new Completion + system.symbols
   def completion() = _completion
 
 
@@ -67,7 +93,7 @@ class Prover(system: Isabelle_System, logic: String)
   @volatile private var commands = Map[Isar_Document.Command_ID, Command]()
   val document_0 =
     Proof_Document.empty.
-    set_command_keyword((s: String) => command_decls().contains(s))
+    set_command_keyword((s: String) => command_decls().contains(s))  // FIXME !?
   @volatile private var document_versions = List(document_0)
 
   def command(id: Isar_Document.Command_ID): Option[Command] = commands.get(id)
@@ -75,11 +101,41 @@ class Prover(system: Isabelle_System, logic: String)
     document_versions.find(_.id == id)
 
 
+  /* document changes */
+
+  def begin_document(path: String)
+  {
+    prover.begin_document(document_0.id, path)   // FIXME fresh id!?!
+  }
+
+  def handle_change(change: Change)
+  {
+    val old = document(change.parent.get.id).get
+    val (doc, changes) = old.text_changed(change)
+    document_versions ::= doc
+
+    val id_changes = changes map {
+      case (c1, c2) =>
+        (c1.map(_.id).getOrElse(document_0.id),
+         c2 match {
+            case None => None
+            case Some(command) =>
+              commands += (command.id -> command)
+              prover.define_command(command.id, system.symbols.encode(command.content))
+              Some(command.id)
+          })
+    }
+    prover.edit_document(old.id, doc.id, id_changes)
+
+    document_change.event(doc)
+  }
+
+
   /* prover results */
 
   private def handle_result(result: Isabelle_Process.Result)
   {
-    Isabelle.plugin.raw_results.event(result)
+    raw_results.event(result)
     val message = Isabelle_Process.parse_message(system, result)
 
     val state =
@@ -133,38 +189,4 @@ class Prover(system: Isabelle_System, logic: String)
       //}}}
     }
   }
-
-
-  /* document changes */
-
-  def begin_document(path: String) {
-    process.begin_document(document_0.id, path)
-  }
-
-  def handle_change(change: Change) {
-    val old = document(change.parent.get.id).get
-    val (doc, changes) = old.text_changed(change)
-    document_versions ::= doc
-
-    val id_changes = changes map { case (c1, c2) =>
-        (c1.map(_.id).getOrElse(document_0.id),
-         c2 match {
-            case None => None
-            case Some(command) =>
-              commands += (command.id -> command)
-              process.define_command(command.id, system.symbols.encode(command.content))
-              Some(command.id)
-          })
-    }
-    process.edit_document(old.id, doc.id, id_changes)
-
-    document_change.event(doc)
-  }
-
-
-  /* main controls */
-
-  def start() { receiver.start() }
-
-  def stop() { process.kill() }
 }

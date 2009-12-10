@@ -40,38 +40,37 @@ class Isabelle_Sidekick extends SideKickParser("isabelle")
     val root = data.root
     data.getAsset(root).setEnd(buffer.getLength)
 
-    val prover_setup = Isabelle.prover_setup(buffer)
-    if (prover_setup.isDefined) {
-      val document = prover_setup.get.theory_view.current_document()
-      for (command <- document.commands if !stopped) {
-        root.add(command.markup_root(document).swing_tree((node: Markup_Node) =>
-            {
-              val content = command.content(node.start, node.stop)
-              val command_start = command.start(document)
-              val id = command.id
+    Isabelle.plugin.theory_view(buffer) match {
+      case Some(theory_view) =>
+        val document = theory_view.current_document()
+        for (command <- document.commands if !stopped) {
+          root.add(command.markup_root(document).swing_tree((node: Markup_Node) =>
+              {
+                val content = command.content(node.start, node.stop)
+                val command_start = command.start(document)
+                val id = command.id
 
-              new DefaultMutableTreeNode(new IAsset {
-                override def getIcon: Icon = null
-                override def getShortString: String = content
-                override def getLongString: String = node.info.toString
-                override def getName: String = id
-                override def setName(name: String) = ()
-                override def setStart(start: Position) = ()
-                override def getStart: Position = command_start + node.start
-                override def setEnd(end: Position) = ()
-                override def getEnd: Position = command_start + node.stop
-                override def toString = id + ": " + content + "[" + getStart + " - " + getEnd + "]"
-              })
-            }))
-      }
-      if (stopped) root.add(new DefaultMutableTreeNode("<parser stopped>"))
+                new DefaultMutableTreeNode(new IAsset {
+                  override def getIcon: Icon = null
+                  override def getShortString: String = content
+                  override def getLongString: String = node.info.toString
+                  override def getName: String = id
+                  override def setName(name: String) = ()
+                  override def setStart(start: Position) = ()
+                  override def getStart: Position = command_start + node.start
+                  override def setEnd(end: Position) = ()
+                  override def getEnd: Position = command_start + node.stop
+                  override def toString = id + ": " + content + "[" + getStart + " - " + getEnd + "]"
+                })
+              }))
+        }
+        if (stopped) root.add(new DefaultMutableTreeNode("<parser stopped>"))
+      case None => root.add(new DefaultMutableTreeNode("<buffer inactive>"))
     }
-    else root.add(new DefaultMutableTreeNode("<buffer inactive>"))
-
     data
   }
 
-
+  
   /* completion */
 
   override def supportsCompletion = true
@@ -85,8 +84,7 @@ class Isabelle_Sidekick extends SideKickParser("isabelle")
     val start = buffer.getLineStartOffset(line)
     val text = buffer.getSegment(start, caret - start)
 
-    val completion =
-      Isabelle.prover_setup(buffer).map(_.prover.completion()).getOrElse(Isabelle.completion)
+    val completion = Isabelle.session.completion()
 
     completion.complete(text) match {
       case None => null

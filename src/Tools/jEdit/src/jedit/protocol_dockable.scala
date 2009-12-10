@@ -48,12 +48,12 @@ class Protocol_Dockable(view: View, position: String) extends JPanel
   override def addNotify()
   {
     super.addNotify()
-    Isabelle.plugin.raw_results += raw_actor
+    Isabelle.session.raw_results += raw_actor
   }
 
   override def removeNotify()
   {
-    Isabelle.plugin.raw_results -= raw_actor
+    Isabelle.session.raw_results -= raw_actor
     super.removeNotify()
   }
 }
