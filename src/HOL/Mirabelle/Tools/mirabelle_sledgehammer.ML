@@ -418,16 +418,19 @@ fun run_metis full m name named_thms id
           change_data id (inc_metis_posns m pos);
           if name = "proof" then change_data id (inc_metis_proofs m) else ();
           "succeeded (" ^ string_of_int t ^ ")")
-    fun timed_metis thms = with_time (Mirabelle.cpu_time apply_metis thms)
-      handle TimeLimit.TimeOut => (change_data id (inc_metis_timeout m); "timeout")
-           | ERROR msg => "error: " ^ msg
+    fun timed_metis thms =
+      (with_time (Mirabelle.cpu_time apply_metis thms), true)
+      handle TimeLimit.TimeOut => (change_data id (inc_metis_timeout m);
+               ("timeout", false))
+           | ERROR msg => ("error: " ^ msg, false)
 
     val _ = log separator
     val _ = change_data id (inc_metis_calls m)
   in
     maps snd named_thms
     |> timed_metis
-    |> log o prefix (metis_tag id) 
+    |>> log o prefix (metis_tag id)
+    |> snd
   end
 
 fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
@@ -442,13 +445,15 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
     fun apply_metis m1 m2 =
       if metis_ft
       then
-        Mirabelle.app_timeout metis_tag
-          (run_metis false m1 name (these (!named_thms)))
-          (Mirabelle.catch metis_tag
-            (run_metis true m2 name (these (!named_thms)))) id st
+        if not (Mirabelle.catch_result metis_tag false
+            (run_metis false m1 name (these (!named_thms))) id st)
+        then
+          (Mirabelle.catch_result metis_tag false
+            (run_metis true m2 name (these (!named_thms))) id st; ())
+        else ()
       else
-        Mirabelle.catch metis_tag
-          (run_metis false m1 name (these (!named_thms))) id st
+        (Mirabelle.catch_result metis_tag false
+          (run_metis false m1 name (these (!named_thms))) id st; ())
   in 
     change_data id (set_mini minimize);
     Mirabelle.catch sh_tag (run_sledgehammer args named_thms) id st;

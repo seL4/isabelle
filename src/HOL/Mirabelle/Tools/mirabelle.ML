@@ -20,7 +20,8 @@ sig
   type run_action = int -> run_args -> unit
   type action = init_action * run_action * done_action
   val catch : (int -> string) -> run_action -> run_action
-  val app_timeout : (int -> string) -> run_action -> run_action -> run_action
+  val catch_result : (int -> string) -> 'a -> (int -> run_args -> 'a) ->
+    int -> run_args -> 'a
   val register : action -> theory -> theory
   val step_hook : Toplevel.transition -> Toplevel.state -> Toplevel.state ->
     unit
@@ -70,21 +71,15 @@ structure Actions = Theory_Data
 )
 
 
-fun app_with f g x = (g x; ())
-  handle (exn as Exn.Interrupt) => reraise exn | exn => (f exn; ())
-
 fun log_exn log tag id e = log (tag id ^ "exception:\n" ^ General.exnMessage e)
 
-fun catch tag f id (st as {log, ...}: run_args) =
-  app_with (log_exn log tag id) (f id) st
+fun catch tag f id (st as {log, ...}: run_args) = (f id st; ())
+  handle (exn as Exn.Interrupt) => reraise exn
+       | exn => (log_exn log tag id exn; ())
 
-fun app_timeout tag f g id (st as {log, ...}: run_args) =
-  let
-    val continue = (f id st; true)
-      handle (exn as Exn.Interrupt) => reraise exn
-           | (exn as TimeLimit.TimeOut) => (log_exn log tag id exn; false)
-           | _ => true
-  in if continue then g id st else () end
+fun catch_result tag d f id (st as {log, ...}: run_args) = f id st
+  handle (exn as Exn.Interrupt) => reraise exn
+       | exn => (log_exn log tag id exn; d)
 
 fun register (init, run, done) thy =
   let val id = length (Actions.get thy) + 1
