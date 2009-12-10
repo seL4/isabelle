@@ -31,7 +31,8 @@ class Output_Dockable(view: View, position: String) extends JPanel
 
   /* HTML panel */
 
-  private val html_panel = new HTML_Panel(Isabelle.system, Isabelle.Int_Property("font-size"))
+  private val html_panel =
+    new HTML_Panel(Isabelle.system, Isabelle.Int_Property("font-size"), null)
   add(html_panel, BorderLayout.CENTER)
 
 

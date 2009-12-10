@@ -9,10 +9,13 @@ package isabelle.proofdocument
 
 import java.io.StringReader
 import java.awt.{BorderLayout, Dimension}
+import java.awt.event.MouseEvent
+
 import javax.swing.{JButton, JPanel, JScrollPane}
 import java.util.logging.{Logger, Level}
 
 import org.w3c.dom.Document
+import org.w3c.dom.html2.HTMLElement
 
 import org.lobobrowser.html.parser.{DocumentBuilderImpl, InputSourceImpl}
 import org.lobobrowser.html.gui.HtmlPanel
@@ -23,7 +26,21 @@ import scala.io.Source
 import scala.actors.Actor._
 
 
-class HTML_Panel(sys: Isabelle_System, initial_font_size: Int) extends HtmlPanel
+object HTML_Panel
+{
+  sealed abstract class Event { val element: HTMLElement; val mouse: MouseEvent }
+  case class Context_Menu(val element: HTMLElement, mouse: MouseEvent) extends Event
+  case class Mouse_Click(val element: HTMLElement, mouse: MouseEvent) extends Event
+  case class Double_Click(val element: HTMLElement, mouse: MouseEvent) extends Event
+  case class Mouse_Over(val element: HTMLElement, mouse: MouseEvent) extends Event
+  case class Mouse_Out(val element: HTMLElement, mouse: MouseEvent) extends Event
+}
+
+
+class HTML_Panel(
+  sys: Isabelle_System,
+  initial_font_size: Int,
+  handler: PartialFunction[HTML_Panel.Event, Unit]) extends HtmlPanel
 {
   // global logging
   Logger.getLogger("org.lobobrowser").setLevel(Level.WARNING)
@@ -59,7 +76,25 @@ class HTML_Panel(sys: Isabelle_System, initial_font_size: Int) extends HtmlPanel
   /* actor with local state */
 
   private val ucontext = new SimpleUserAgentContext
+
   private val rcontext = new SimpleHtmlRendererContext(this, ucontext)
+  {
+    private def handle(event: HTML_Panel.Event): Boolean =
+      if (handler != null && handler.isDefinedAt(event)) { handler(event); true }
+      else false
+
+    override def onContextMenu(elem: HTMLElement, event: MouseEvent): Boolean =
+      handle(HTML_Panel.Context_Menu(elem, event))
+    override def onMouseClick(elem: HTMLElement, event: MouseEvent): Boolean =
+      handle(HTML_Panel.Mouse_Click(elem, event))
+    override def onDoubleClick(elem: HTMLElement, event: MouseEvent): Boolean =
+      handle(HTML_Panel.Double_Click(elem, event))
+    override def onMouseOver(elem: HTMLElement, event: MouseEvent)
+      { handle(HTML_Panel.Mouse_Over(elem, event)) }
+    override def onMouseOut(elem: HTMLElement, event: MouseEvent)
+      { handle(HTML_Panel.Mouse_Out(elem, event)) }
+  }
+
   private val builder = new DocumentBuilderImpl(ucontext, rcontext)
 
   private case class Init(font_size: Int)
