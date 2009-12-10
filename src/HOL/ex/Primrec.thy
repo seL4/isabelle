@@ -103,14 +103,15 @@ text {* PROPERTY A 7, monotonicity for @{text "<"} [not clear why
   @{thm [source] ack_1} is now needed first!] *}
 
 lemma ack_less_mono1_aux: "ack i k < ack (Suc (i +i')) k"
-apply (induct i k rule: ack.induct)
-  apply simp_all
- prefer 2
- apply (blast intro: less_trans ack_less_mono2)
-apply (induct_tac i' n rule: ack.induct)
-  apply simp_all
-apply (blast intro: Suc_leI [THEN le_less_trans] ack_less_mono2)
-done
+proof (induct i k rule: ack.induct)
+  case (1 n) show ?case
+    by (simp, metis ack_less_ack_Suc1 less_ack2 less_trans_Suc) 
+next
+  case (2 m) thus ?case by simp
+next
+  case (3 m n) thus ?case
+    by (simp, blast intro: less_trans ack_less_mono2)
+qed
 
 lemma ack_less_mono1: "i < j ==> ack i k < ack j k"
 apply (drule less_imp_Suc_add)
@@ -258,14 +259,8 @@ lemma COMP_case:
   \<forall>f \<in> set fs. PRIMREC f \<and> (\<exists>kf. \<forall>l. f l < ack kf (listsum l))
   ==> \<exists>k. \<forall>l. COMP g fs  l < ack k (listsum l)"
 apply (unfold COMP_def)
-  --{*Now, if meson tolerated map, we could finish with
-@{text "(drule COMP_map_aux, meson ack_less_mono2 ack_nest_bound less_trans)"} *}
-apply (erule COMP_map_aux [THEN exE])
-apply (rule exI)
-apply (rule allI)
-apply (drule spec)+
-apply (erule less_trans)
-apply (blast intro: ack_less_mono2 ack_nest_bound less_trans)
+apply (drule COMP_map_aux)
+apply (meson ack_less_mono2 ack_nest_bound less_trans)
 done
 
 

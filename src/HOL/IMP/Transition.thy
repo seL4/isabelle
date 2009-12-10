@@ -380,7 +380,7 @@ next
         with n IH
         have "\<langle>c1,s\<rangle> \<longrightarrow>\<^sub>c s'" by blast
         with If True
-        have "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s'" by simp
+        have "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s'" by blast
       }
       moreover
       { assume False: "b s = False"
@@ -389,7 +389,7 @@ next
         with n IH
         have "\<langle>c2,s\<rangle> \<longrightarrow>\<^sub>c s'" by blast
         with If False
-        have "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s'" by simp
+        have "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s'" by blast
       }
       ultimately
       show "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s'" by (cases "b s") auto
@@ -468,8 +468,8 @@ apply (fast intro: converse_rtrancl_into_rtrancl)
 apply (fast intro: converse_rtrancl_into_rtrancl)
 
 -- WHILE
-apply fast
-apply (fast dest: rtrancl_imp_UN_rel_pow intro: converse_rtrancl_into_rtrancl semiI)
+apply blast
+apply (blast dest: rtrancl_imp_UN_rel_pow intro: converse_rtrancl_into_rtrancl semiI)
 
 done
 
