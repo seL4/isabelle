@@ -266,6 +266,81 @@ lemma assert_cong [fundef_cong]:
   shows "(assert P x >>= f) = (assert P' x >>= f')"
   using assms by (auto simp add: assert_def return_bind raise_bind)
 
+subsubsection {* A monadic combinator for simple recursive functions *}
+ 
+function (default "\<lambda>(f,g,x,h). (Inr Exn, undefined)") 
+  mrec 
+where
+  "mrec f g x h = 
+   (case Heap_Monad.execute (f x) h of
+     (Inl (Inl r), h') \<Rightarrow> (Inl r, h')
+   | (Inl (Inr s), h') \<Rightarrow> 
+          (case mrec f g s h' of
+             (Inl z, h'') \<Rightarrow> Heap_Monad.execute (g x s z) h''
+           | (Inr e, h'') \<Rightarrow> (Inr e, h''))
+   | (Inr e, h') \<Rightarrow> (Inr e, h')
+   )"
+by auto
+
+lemma graph_implies_dom:
+	"mrec_graph x y \<Longrightarrow> mrec_dom x"
+apply (induct rule:mrec_graph.induct) 
+apply (rule accpI)
+apply (erule mrec_rel.cases)
+by simp
+
+lemma f_default: "\<not> mrec_dom (f, g, x, h) \<Longrightarrow> mrec f g x h = (Inr Exn, undefined)"
+	unfolding mrec_def 
+  by (rule fundef_default_value[OF mrec_sumC_def graph_implies_dom, of _ _ "(f, g, x, h)", simplified])
+
+lemma f_di_reverse: 
+  assumes "\<not> mrec_dom (f, g, x, h)"
+  shows "
+   (case Heap_Monad.execute (f x) h of
+     (Inl (Inl r), h') \<Rightarrow> mrecalse
+   | (Inl (Inr s), h') \<Rightarrow> \<not> mrec_dom (f, g, s, h')
+   | (Inr e, h') \<Rightarrow> mrecalse
+   )" 
+using assms
+by (auto split:prod.splits sum.splits)
+ (erule notE, rule accpI, elim mrec_rel.cases, simp)+
+
+
+lemma mrec_rule:
+  "mrec f g x h = 
+   (case Heap_Monad.execute (f x) h of
+     (Inl (Inl r), h') \<Rightarrow> (Inl r, h')
+   | (Inl (Inr s), h') \<Rightarrow> 
+          (case mrec f g s h' of
+             (Inl z, h'') \<Rightarrow> Heap_Monad.execute (g x s z) h''
+           | (Inr e, h'') \<Rightarrow> (Inr e, h''))
+   | (Inr e, h') \<Rightarrow> (Inr e, h')
+   )"
+apply (cases "mrec_dom (f,g,x,h)", simp)
+apply (frule f_default)
+apply (frule f_di_reverse, simp)
+by (auto split: sum.split prod.split simp: f_default)
+
+
+definition
+  "MREC f g x = Heap (mrec f g x)"
+
+lemma MREC_rule:
+  "MREC f g x = 
+  (do y \<leftarrow> f x;
+                (case y of 
+                Inl r \<Rightarrow> return r
+              | Inr s \<Rightarrow> 
+                do z \<leftarrow> MREC f g s ;
+                   g x s z
+                done) done)"
+  unfolding MREC_def
+  unfolding bindM_def return_def
+  apply simp
+  apply (rule ext)
+  apply (unfold mrec_rule[of f g x])
+  by (auto split:prod.splits sum.splits)
+
 hide (open) const heap execute
 
 

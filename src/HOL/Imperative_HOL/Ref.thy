@@ -60,9 +60,9 @@ subsection {* Code generator setup *}
 
 subsubsection {* SML *}
 
-code_type ref (SML "_/ ref")
+code_type ref (SML "_/ Unsynchronized.ref")
 code_const Ref (SML "raise/ (Fail/ \"bare Ref\")")
-code_const Ref.new (SML "(fn/ ()/ =>/ ref/ _)")
+code_const Ref.new (SML "(fn/ ()/ =>/ Unsynchronized.ref/ _)")
 code_const Ref.lookup (SML "(fn/ ()/ =>/ !/ _)")
 code_const Ref.update (SML "(fn/ ()/ =>/ _/ :=/ _)")
 

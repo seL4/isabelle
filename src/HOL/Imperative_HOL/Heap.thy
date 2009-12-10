@@ -365,6 +365,10 @@ lemma ref_present_set_ref [simp]:
   "ref_present r (set_ref r' v h) = ref_present r h"
   by (simp add: set_ref_def ref_present_def)
 
+lemma noteq_refsI: "\<lbrakk> ref_present r h; \<not>ref_present r' h \<rbrakk>  \<Longrightarrow> r =!= r'"
+  unfolding noteq_refs_def ref_present_def
+  by auto
+
 lemma array_ranI: "\<lbrakk> Some b = get_array a h ! i; i < Heap.length a h \<rbrakk> \<Longrightarrow> b \<in> array_ran a h"
 unfolding array_ran_def Heap.length_def by simp
 
