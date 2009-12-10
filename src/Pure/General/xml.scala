@@ -16,7 +16,7 @@ object XML
 
   type Attributes = List[(String, String)]
 
-  abstract class Tree {
+  sealed abstract class Tree {
     override def toString = {
       val s = new StringBuilder
       append_tree(this, s)
@@ -97,12 +97,17 @@ object XML
   def document_node(doc: Document, tree: Tree): Node =
   {
     def DOM(tr: Tree): Node = tr match {
-      case Elem(name, atts, ts) => {
+      case Elem(Markup.DATA, Nil, List(data, t)) =>
+        val node = DOM(t)
+        node.setUserData(Markup.DATA, data, null)
+        node
+      case Elem(name, atts, ts) =>
+        if (name == Markup.DATA)
+          error("Malformed data element: " + tr.toString)
         val node = doc.createElement(name)
         for ((name, value) <- atts) node.setAttribute(name, value)
         for (t <- ts) node.appendChild(DOM(t))
         node
-      }
       case Text(txt) => doc.createTextNode(txt)
     }
     DOM(tree)
