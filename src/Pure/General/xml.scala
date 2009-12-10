@@ -94,6 +94,12 @@ object XML
 
   /* document object model (W3C DOM) */
 
+  def get_data(node: Node): Option[XML.Tree] =
+    node.getUserData(Markup.DATA) match {
+      case tree: XML.Tree => Some(tree)
+      case _ => None
+    }
+
   def document_node(doc: Document, tree: Tree): Node =
   {
     def DOM(tr: Tree): Node = tr match {
