@@ -790,8 +790,11 @@ lemma convex_convex_hull: "convex(convex hull s)"
   unfolding hull_def using convex_Inter[of "{t\<in>convex. s\<subseteq>t}"]
   unfolding mem_def by auto
 
-lemma convex_hull_eq: "(convex hull s = s) \<longleftrightarrow> convex s" apply(rule hull_eq[unfolded mem_def])
-  using convex_Inter[unfolded Ball_def mem_def] by auto
+lemma convex_hull_eq: "convex hull s = s \<longleftrightarrow> convex s"
+  apply (rule hull_eq [unfolded mem_def])
+  apply (rule convex_Inter [unfolded Ball_def mem_def])
+  apply (simp add: le_fun_def le_bool_def)
+  done
 
 lemma bounded_convex_hull:
   fixes s :: "'a::real_normed_vector set"
