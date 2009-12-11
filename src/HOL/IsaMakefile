@@ -1049,9 +1049,9 @@ $(LOG)/TLA-Memory.gz: $(OUT)/TLA TLA/Memory/MemClerk.thy		\
 
 ## HOL-Multivariate_Analysis
 
-HOL-Multivariate_Analysis: HOL $(OUT)/HOL-Multivariate_Analysis
+HOL-Multivariate_Analysis: HOL-SMT $(OUT)/HOL-Multivariate_Analysis
 
-$(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL		\
+$(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL-SMT	\
   Multivariate_Analysis/ROOT.ML				\
   Multivariate_Analysis/Multivariate_Analysis.thy	\
   Multivariate_Analysis/Determinants.thy		\
@@ -1061,7 +1061,7 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL		\
   Multivariate_Analysis/Convex_Euclidean_Space.thy      \
   Multivariate_Analysis/Brouwer_Fixpoint.thy            \
   Multivariate_Analysis/Derivative.thy
-	@cd Multivariate_Analysis; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Multivariate_Analysis
+	@cd Multivariate_Analysis; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-SMT HOL-Multivariate_Analysis
 
 
 ## HOL-Probability
