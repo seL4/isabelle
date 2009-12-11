@@ -1,4 +1,4 @@
-(*  Title:      HOL/Boogie/Examples/Boogie_Dijkstra.thy
+(*  Title:      HOL/Boogie/Examples/Boogie_Max.thy
     Author:     Sascha Boehme, TU Muenchen
 *)
 
@@ -38,40 +38,10 @@ implementation max(array : [int]int, length : int) returns (max : int)
 
 boogie_open "~~/src/HOL/Boogie/Examples/Boogie_Max"
 
-text {*
-Approach 1: Discharge the verification condition fully automatically by SMT:
-*}
 boogie_vc max
-  unfolding labels
-  using [[smt_cert="~~/src/HOL/Boogie/Examples/cert/Boogie_max"]]
   using [[z3_proofs=true]]
-  by (smt boogie)
-
-text {*
-Approach 2: Split the verification condition, try to solve the splinters by
-a selection of automated proof tools, and show the remaining subgoals by an
-explicit proof. This approach is most useful in an interactive debug-and-fix
-mode. 
-*}
-boogie_vc max
-proof (split_vc (verbose) try: fast simp)
-  print_cases
-  case L_14_5c
-  thus ?case by (metis less_le_not_le zle_add1_eq_le zless_linear)
-next
-  case L_14_5b
-  thus ?case by (metis less_le_not_le xt1(10) zle_linear zless_add1_eq)
-next
-  case L_14_5a
-  note max0 = `max0 = array 0`
-  {
-    fix i :: int
-    assume "0 \<le> i \<and> i < 1"
-    hence "i = 0" by simp
-    with max0 have "array i \<le> max0" by simp
-  }
-  thus ?case by simp
-qed
+  using [[smt_cert="~~/src/HOL/Boogie/Examples/cert/Boogie_max"]]
+  by boogie
 
 boogie_end
 

@@ -33,7 +33,16 @@ val isabelle_name =
 val short_name =
   translate_string (fn s => if Symbol.is_letdig s then s else "")
 
-fun label_name line col = "L_" ^ string_of_int line ^ "_" ^ string_of_int col
+(* these prefixes must be distinct: *)
+val var_prefix = "V_"
+val label_prefix = "L_"
+val position_prefix = "P_"
+
+val no_label_name = label_prefix ^ "unknown"
+fun label_name line col =
+  if line = 0 orelse col = 0 then no_label_name
+  else label_prefix ^ string_of_int line ^ "_" ^ string_of_int col
+
 
 datatype attribute_value = StringValue of string | TermValue of term
 
@@ -99,33 +108,42 @@ local
   fun maybe_builtin T =
     let
       fun const name = SOME (Const (name, T))
+      fun const2_abs name =
+        let
+          val U = Term.domain_type T
+          val T' = Term.range_type (Term.range_type T)
+        in
+          SOME (Abs (Name.uu, U, Abs (Name.uu, U,
+            Const (name, T) $ Bound 0 $ Bound 1)))
+        end
 
       fun choose builtin =
         (case builtin of
-          "bvnot" => const @{const_name z3_bvnot}
-        | "bvand" => const @{const_name z3_bvand}
-        | "bvor" => const @{const_name z3_bvor}
-        | "bvxor" => const @{const_name z3_bvxor}
-        | "bvadd" => const @{const_name z3_bvadd}
-        | "bvneg" => const @{const_name z3_bvneg}
-        | "bvsub" => const @{const_name z3_bvsub}
-        | "bvmul" => const @{const_name z3_bvmul}
-        | "bvudiv" => const @{const_name z3_bvudiv}
-        | "bvurem" => const @{const_name z3_bvurem}
-        | "bvsdiv" => const @{const_name z3_bvsdiv}
-        | "bvsrem" => const @{const_name z3_bvsrem}
-        | "bvshl" => const @{const_name z3_bvshl}
-        | "bvlshr" => const @{const_name z3_bvlshr}
-        | "bvashr" => const @{const_name z3_bvashr}
-        | "bvult" => const @{const_name z3_bvult}
-        | "bvule" => const @{const_name z3_bvule}
-        | "bvugt" => const @{const_name z3_bvugt}
-        | "bvuge" => const @{const_name z3_bvuge}
-        | "bvslt" => const @{const_name z3_bvslt}
-        | "bvsle" => const @{const_name z3_bvsle}
-        | "bvsgt" => const @{const_name z3_bvsgt}
-        | "bvsge" => const @{const_name z3_bvsge}
-        | "sign_extend" => const @{const_name z3_sign_extend}
+          "bvnot" => const @{const_name bitNOT}
+        | "bvand" => const @{const_name bitAND}
+        | "bvor" => const @{const_name bitOR}
+        | "bvxor" => const @{const_name bitXOR}
+        | "bvadd" => const @{const_name plus}
+        | "bvneg" => const @{const_name uminus}
+        | "bvsub" => const @{const_name minus}
+        | "bvmul" => const @{const_name times}
+        | "bvudiv" => const @{const_name div}
+        | "bvurem" => const @{const_name mod}
+        | "bvsdiv" => const @{const_name sdiv}
+        | "bvsrem" => const @{const_name srem}
+        | "bvshl" => const @{const_name bv_shl}
+        | "bvlshr" => const @{const_name bv_lshr}
+        | "bvashr" => const @{const_name bv_ashr}
+        | "bvult" => const @{const_name less}
+        | "bvule" => const @{const_name less_eq}
+        | "bvugt" => const2_abs @{const_name less}
+        | "bvuge" => const2_abs @{const_name less_eq}
+        | "bvslt" => const @{const_name word_sless}
+        | "bvsle" => const @{const_name word_sle}
+        | "bvsgt" => const2_abs @{const_name word_sless}
+        | "bvsge" => const2_abs @{const_name word_sle}
+        | "zero_extend" => const @{const_name ucast}
+        | "sign_extend" => const @{const_name scast}
         | _ => NONE)
 
       fun is_builtin att =
@@ -170,7 +188,7 @@ local
 
   fun uniques fns fds =
     let
-      fun is_unique (name, (([], T), atts)) =
+      fun is_unique (name, (([], _), atts)) =
             (case AList.lookup (op =) atts "unique" of
               SOME _ => Symtab.lookup fds name
             | NONE => NONE)
@@ -211,7 +229,7 @@ local
     let
       fun split (_, Used thm) (used, new) = (thm :: used, new)
         | split (t, New name) (used, new) = (used, (name, t) :: new)
-        | split (t, Unused thm) (used, new) =
+        | split (_, Unused thm) (used, new) =
            (warning (Pretty.str_of
              (Pretty.big_list "This background axiom has not been loaded:"
                [Display.pretty_thm_global thy thm]));
@@ -233,8 +251,6 @@ fun add_axioms verbose axs thy =
     |> log verbose "The following axioms were added:" (map fst new)
     |> (fn thy' => log verbose "The following axioms already existed:"
          (map (Display.string_of_thm_global thy') used) thy')
-    |> Context.theory_map (fn context => fold Split_VC_SMT_Rules.add_thm
-         (Boogie_Axioms.get (Context.proof_of context)) context)
   end
 end
 
@@ -260,11 +276,7 @@ local
     |> indexed
 in
 fun add_vcs verbose vcs thy =
-  let
-    val vcs' =
-      vcs
-      |> burrow_fst rename
-      |> map (apsnd HOLogic.mk_Trueprop)
+  let val vcs' = burrow_fst rename vcs
   in
     thy
     |> Boogie_VCs.set vcs'
@@ -396,53 +408,70 @@ local
   fun mk_trigger [] t = t
     | mk_trigger ps t = @{term trigger} $ HOLogic.mk_list patternT ps $ t
 
-  val label_kind =
-    $$$ "pos" >> K @{term block_at} ||
-    $$$ "neg" >> K @{term assert_at} ||
+  fun make_label (line, col) = Free (label_name line col, @{typ bool})
+  fun labelled_by kind pos t = kind $ make_label pos $ t
+  val label =
+    $$$ "pos" |-- num -- num >> (fn (pos as (line, col)) =>
+      if label_name line col = no_label_name then I
+      else labelled_by @{term block_at} pos) ||
+    $$$ "neg" |-- num -- num >> labelled_by @{term assert_at} ||
     scan_fail "illegal label kind"
-
-  fun mk_select (m, k) =
-    let
-      val mT = Term.fastype_of m and kT = Term.fastype_of k
-      val vT = Term.range_type mT
-    in Const (@{const_name boogie_select}, mT --> kT --> vT) $ m $ k end
 
   fun mk_store ((m, k), v) =
     let
       val mT = Term.fastype_of m and kT = Term.fastype_of k
       val vT = Term.fastype_of v
-    in
-      Const (@{const_name boogie_store}, mT --> kT --> vT --> mT) $ m $ k $ v
-    end
+    in Const (@{const_name fun_upd}, mT --> kT --> vT --> mT) $ m $ k $ v end
   
   fun mk_extract ((msb, lsb), t) =
     let
       val dT = Term.fastype_of t and rT = mk_wordT (msb - lsb)
       val nT = @{typ nat}
       val mk_nat_num = HOLogic.mk_number @{typ nat}
-    in
-      Const (@{const_name boogie_bv_extract}, [nT, nT, dT] ---> rT) $
-        mk_nat_num msb $ mk_nat_num lsb $ t
-    end
+    in Const (@{const_name slice}, [nT, dT] ---> rT) $ mk_nat_num lsb $ t end
 
   fun mk_concat (t1, t2) =
     let
       val T1 = Term.fastype_of t1 and T2 = Term.fastype_of t2
       val U = mk_wordT (dest_wordT T1 + dest_wordT T2)
-    in Const (@{const_name boogie_bv_concat}, [T1, T2] ---> U) $ t1 $ t2 end
+    in Const (@{const_name word_cat}, [T1, T2] ---> U) $ t1 $ t2 end
 
-  val var_name = str >> prefix "V"
-  val dest_var_name = unprefix "V"
+  fun unique_labels t =
+    let
+      fun names_of (@{term assert_at} $ Free (n, _) $ t) = cons n #> names_of t
+        | names_of (t $ u) = names_of t #> names_of u
+        | names_of (Abs (_, _, t)) = names_of t
+        | names_of _ = I
+      val nctxt = Name.make_context (duplicates (op =) (names_of t []))
+
+      fun fresh (i, nctxt) = (position_prefix ^ string_of_int i, (i+1, nctxt))
+      fun renamed n (i, nctxt) =
+        yield_singleton Name.variants n nctxt ||> pair i
+      fun mk_label (name, t) = @{term assert_at} $ Free (name, @{typ bool}) $ t
+
+      fun unique t =
+        (case t of
+          @{term assert_at} $ Free (n, _) $ u =>
+            if n = no_label_name
+            then fresh ##>> unique u #>> mk_label
+            else renamed n ##>> unique u #>> mk_label
+        | u1 $ u2 => unique u1 ##>> unique u2 #>> (op $)
+        | Abs (n, T, u) => unique u #>> (fn u' => Abs (n, T, u'))
+        | _ => pair t)
+    in fst (unique t (1, nctxt)) end
+
+  val var_name = str >> prefix var_prefix
+  val dest_var_name = unprefix var_prefix
   fun rename_variables t =
     let
-      fun make_context names = Name.make_context (duplicates (op =) names)
       fun short_var_name n = short_name (dest_var_name n)
 
+      val all_names = Term.add_free_names t []
       val (names, nctxt) =
-        Term.add_free_names t []
+        all_names
         |> map_filter (try (fn n => (n, short_var_name n)))
         |> split_list
-        ||>> (fn names => Name.variants names (make_context names))
+        ||>> (fn names => Name.variants names (Name.make_context all_names))
         |>> Symtab.make o (op ~~)
 
       fun rename_free n = the_default n (Symtab.lookup names n)
@@ -484,10 +513,7 @@ fun expr tds fds =
         scan_count (attribute tds fds) i --
         exp >> (fn (((vs, ps), _), t) =>
           fold_rev (mk_quant q) vs (mk_trigger ps t))) ||
-      scan_line "label" (label_kind -- num -- num) -- exp >>
-        (fn (((l, line), col), t) =>
-          if line = 0 orelse col = 0 then t
-          else l $ Free (label_name line col, @{typ bool}) $ t) ||
+      scan_line "label" label -- exp >> (fn (mk, t) => mk t) ||
       scan_line "int-num" num >> HOLogic.mk_number @{typ int} ||
       binexp "<" (binop @{term "op < :: int => _"}) ||
       binexp "<=" (binop @{term "op <= :: int => _"}) ||
@@ -499,8 +525,7 @@ fun expr tds fds =
       binexp "/" (binop @{term boogie_div}) ||
       binexp "%" (binop @{term boogie_mod}) ||
       scan_line "select" num :|-- (fn arity =>
-        exp -- (scan_count exp (arity - 1) >> HOLogic.mk_tuple) >>
-          mk_select) ||
+        exp -- (scan_count exp (arity - 1) >> HOLogic.mk_tuple) >> (op $)) ||
       scan_line "store" num :|-- (fn arity =>
         exp -- (scan_count exp (arity - 2) >> HOLogic.mk_tuple) -- exp >> 
           mk_store) ||
@@ -509,7 +534,7 @@ fun expr tds fds =
       scan_line "bv-extract" (num -- num) -- exp >> mk_extract ||
       binexp "bv-concat" mk_concat ||
       scan_fail "illegal expression") st
-  in exp >> rename_variables end
+  in exp >> (rename_variables o unique_labels) end
 
 and attribute tds fds =
   let
@@ -548,8 +573,7 @@ fun var_decls tds fds = Scan.depend (fn thy =>
 
 fun vcs verbose tds fds = Scan.depend (fn thy =>
   Scan.repeat (scan_line "vc" (str -- num) -- 
-    (expr tds fds >> Sign.cert_term thy)) >>
-    (fn vcs => ((), add_vcs verbose vcs thy)))
+    (expr tds fds)) >> (fn vcs => ((), add_vcs verbose vcs thy)))
 
 fun parse verbose thy = Scan.pass thy
  (type_decls verbose :|-- (fn tds =>
