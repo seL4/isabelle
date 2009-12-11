@@ -19,6 +19,53 @@ notation
 
 subsection {* Predicates as (complete) lattices *}
 
+
+text {*
+  Handy introduction and elimination rules for @{text "\<le>"}
+  on unary and binary predicates
+*}
+
+lemma predicate1I:
+  assumes PQ: "\<And>x. P x \<Longrightarrow> Q x"
+  shows "P \<le> Q"
+  apply (rule le_funI)
+  apply (rule le_boolI)
+  apply (rule PQ)
+  apply assumption
+  done
+
+lemma predicate1D [Pure.dest?, dest?]:
+  "P \<le> Q \<Longrightarrow> P x \<Longrightarrow> Q x"
+  apply (erule le_funE)
+  apply (erule le_boolE)
+  apply assumption+
+  done
+
+lemma rev_predicate1D:
+  "P x ==> P <= Q ==> Q x"
+  by (rule predicate1D)
+
+lemma predicate2I [Pure.intro!, intro!]:
+  assumes PQ: "\<And>x y. P x y \<Longrightarrow> Q x y"
+  shows "P \<le> Q"
+  apply (rule le_funI)+
+  apply (rule le_boolI)
+  apply (rule PQ)
+  apply assumption
+  done
+
+lemma predicate2D [Pure.dest, dest]:
+  "P \<le> Q \<Longrightarrow> P x y \<Longrightarrow> Q x y"
+  apply (erule le_funE)+
+  apply (erule le_boolE)
+  apply assumption+
+  done
+
+lemma rev_predicate2D:
+  "P x y ==> P <= Q ==> Q x y"
+  by (rule predicate2D)
+
+
 subsubsection {* Equality *}
 
 lemma pred_equals_eq: "((\<lambda>x. x \<in> R) = (\<lambda>x. x \<in> S)) = (R = S)"

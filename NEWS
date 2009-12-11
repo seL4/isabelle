@@ -33,7 +33,7 @@ INCOMPATIBILITY.
 
 *** ML ***
 
-* Curried take and drop.  INCOMPATIBILITY.
+* Curried take and drop;  negative length is interpreted as infinity.  INCOMPATIBILITY.
 
 
 New in Isabelle2009-1 (December 2009)

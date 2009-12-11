@@ -205,10 +205,7 @@ text {* The paper has no Example 10! *}
 lemma "(\<forall>A. 0 \<in> A \<and> (\<forall>x \<in> A. Suc x \<in> A) \<longrightarrow> n \<in> A) \<and>
   P 0 \<and> (\<forall>x. P x \<longrightarrow> P (Suc x)) \<longrightarrow> P n"
   -- {* Example 11: needs a hint. *}
-  apply clarify
-  apply (drule_tac x = "{x. P x}" in spec)
-  apply force
-  done
+by(metis Nat.induct)
 
 lemma
   "(\<forall>A. (0, 0) \<in> A \<and> (\<forall>x y. (x, y) \<in> A \<longrightarrow> (Suc x, Suc y) \<in> A) \<longrightarrow> (n, m) \<in> A)
@@ -223,8 +220,7 @@ lemma
       to require arithmetic reasoning. *}
   apply clarify
   apply (rule_tac x = "{x. \<exists>u. x = 2 * u}" in exI, auto)
-   apply (case_tac v, auto)
-  apply (drule_tac x = "Suc v" and P = "\<lambda>x. ?a x \<noteq> ?b x" in spec, force)
+   apply metis+
   done
 
 end

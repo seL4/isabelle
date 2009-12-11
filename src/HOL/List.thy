@@ -3463,7 +3463,7 @@ inductive_cases listsE [elim!,noatp]: "x#l : lists A"
 inductive_cases listspE [elim!,noatp]: "listsp A (x # l)"
 
 lemma listsp_mono [mono]: "A \<le> B ==> listsp A \<le> listsp B"
-by (rule predicate1I, erule listsp.induct, blast+)
+by (rule predicate1I, erule listsp.induct, (blast dest: predicate1D)+)
 
 lemmas lists_mono = listsp_mono [to_set pred_subset_eq]
 

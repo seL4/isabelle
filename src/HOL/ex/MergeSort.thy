@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/Merge.thy
+(*  Title:      HOL/ex/MergeSort.thy
     Author:     Tobias Nipkow
     Copyright   2002 TU Muenchen
 *)
@@ -50,9 +50,7 @@ by (induct xs rule: msort.induct) simp_all
 theorem multiset_of_msort: "multiset_of (msort xs) = multiset_of xs"
 apply (induct xs rule: msort.induct)
   apply simp_all
-apply (subst union_commute)
-apply (simp del:multiset_of_append add:multiset_of_append[symmetric] union_assoc)
-apply (simp add: union_ac)
+apply (metis append_take_drop_id drop_Suc_Cons multiset_of.simps(2) multiset_of_append take_Suc_Cons)
 done
 
 end
