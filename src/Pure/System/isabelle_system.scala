@@ -48,13 +48,6 @@ object Isabelle_System
 
 class Isabelle_System
 {
-  /** unique ids **/
-
-  private var id_count: BigInt = 0
-  def id(): String = synchronized { id_count += 1; "j" + id_count }
-
-
-
   /** Isabelle environment **/
 
   /* platform prefixes */
