@@ -51,12 +51,12 @@ object Command
 
 
 class Command(
+    val id: String,
     val tokens: List[Token],
     val starts: Map[Token, Int]) extends Accumulator
 {
   require(!tokens.isEmpty)
 
-  val id = Isabelle.system.id()
   override def hashCode = id.hashCode
 
 

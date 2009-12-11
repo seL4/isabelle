@@ -67,7 +67,7 @@ class Theory_View(session: Session, text_area: JEditTextArea)
 
   private val edits_delay = Swing_Thread.delay_last(300) {
     if (!edits.isEmpty) {
-      val change = new Change(Isabelle.system.id(), Some(current_change), edits.toList)
+      val change = new Change(session.create_id(), Some(current_change), edits.toList)
       _changes ::= change
       session.input(change)
       current_change = change

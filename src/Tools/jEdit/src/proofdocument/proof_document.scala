@@ -32,26 +32,21 @@ object Proof_Document
       "`([^\\\\`]?(\\\\(.|\\z))?)*+(`|\\z)|" +
       "[()\\[\\]{}:;]", Pattern.MULTILINE)
 
-  val empty =
-    new Proof_Document(isabelle.jedit.Isabelle.system.id(),
-      Linear_Set(), Map(), Linear_Set(), Map(), _ => false)
+  def empty(id: String): Proof_Document =
+    new Proof_Document(id, Linear_Set(), Map(), Linear_Set(), Map())
 
   type StructureChange = List[(Option[Command], Option[Command])]
-
 }
+
 
 class Proof_Document(
   val id: String,
   val tokens: Linear_Set[Token],
   val token_start: Map[Token, Int],
   val commands: Linear_Set[Command],
-  var states: Map[Command, Command_State],   // FIXME immutable
-  is_command_keyword: String => Boolean)
+  var states: Map[Command, Command_State])   // FIXME immutable
 {
   import Proof_Document.StructureChange
-
-  def set_command_keyword(f: String => Boolean): Proof_Document =
-    new Proof_Document(id, tokens, token_start, commands, states, f)
 
   def content = Token.string_from_tokens(Nil ++ tokens, token_start)
 
@@ -59,17 +54,17 @@ class Proof_Document(
   
   /** token view **/
 
-  def text_changed(change: Change): (Proof_Document, StructureChange) =
+  def text_changed(session: Session, change: Change): (Proof_Document, StructureChange) =
   {
     def edit_doc(doc_chgs: (Proof_Document, StructureChange), edit: Edit) = {
       val (doc, chgs) = doc_chgs
-      val (new_doc, chg) = doc.text_edit(edit, change.id)
+      val (new_doc, chg) = doc.text_edit(session, edit, change.id)
       (new_doc, chgs ++ chg)
     }
     ((this, Nil: StructureChange) /: change.edits)(edit_doc)
   }
 
-  def text_edit(e: Edit, id: String): (Proof_Document, StructureChange) =
+  def text_edit(session: Session, e: Edit, id: String): (Proof_Document, StructureChange) =
   {
     case class TextChange(start: Int, added: String, removed: String)
     val change = e match {
@@ -119,7 +114,7 @@ class Proof_Document(
 
     while (matcher.find() && invalid_tokens != Nil) {
 			val kind =
-        if (is_command_keyword(matcher.group))
+        if (session.is_command_keyword(matcher.group))
           Token.Kind.COMMAND_START
         else if (matcher.end - matcher.start > 2 && matcher.group.substring(0, 2) == "(*")
           Token.Kind.COMMENT
@@ -143,7 +138,7 @@ class Proof_Document(
     }
     val insert = new_tokens.reverse
     val new_token_list = begin ::: insert ::: old_suffix
-    token_changed(id, begin.lastOption, insert,
+    token_changed(session, id, begin.lastOption, insert,
       old_suffix.firstOption, new_token_list, start)
   }
 
@@ -151,6 +146,7 @@ class Proof_Document(
   /** command view **/
 
   private def token_changed(
+    session: Session,
     new_id: String,
     before_change: Option[Token],
     inserted_tokens: List[Token],
@@ -192,7 +188,7 @@ class Proof_Document(
         case t :: ts =>
           val (cmd, rest) =
             ts.span(t => t.kind != Token.Kind.COMMAND_START && t.kind != Token.Kind.COMMENT)
-          new Command(t :: cmd, new_token_start) :: tokens_to_commands(rest)
+          new Command(session.create_id(), t :: cmd, new_token_start) :: tokens_to_commands(rest)
       }
     }
 
@@ -236,7 +232,7 @@ class Proof_Document(
 
     val doc =
       new Proof_Document(new_id, new_tokenset, new_token_start, new_commandset,
-        states -- removed_commands, is_command_keyword)
+        states -- removed_commands)
 
     val removes =
       for (cmd <- removed_commands) yield (cmd_before_change -> None)

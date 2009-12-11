@@ -12,13 +12,18 @@ import scala.actors.Actor._
 
 class Session(system: Isabelle_System)
 {
+  /* unique ids */
+
+  private var id_count: BigInt = 0
+  def create_id(): String = synchronized { id_count += 1; "j" + id_count }
+
+
   /* main actor */
 
   private case class Start(logic: String)
   private case object Stop
 
   private var prover: Isabelle_Process with Isar_Document = null
-  private var prover_logic = ""
   private var prover_ready = false
 
   private val session_actor = actor {
@@ -26,20 +31,17 @@ class Session(system: Isabelle_System)
       react {
         case Start(logic) =>
           if (prover == null) {
-            // FIXME only once
-            prover =  // FIXME rebust error handling (via results)
-              new Isabelle_Process(system, self,   // FIXME improve options
+            prover =
+              new Isabelle_Process(system, self,   // FIXME avoid hardwired options
                   "-m", "xsymbols", "-m", "no_brackets", "-m", "no_type_brackets", logic)
                 with Isar_Document
-            prover_logic = logic
             reply(())
           }
 
         case Stop =>
           if (prover != null)
             prover.kill
-          prover = null   // FIXME later (via results)!?
-          prover_ready = false // FIXME !??
+          prover_ready = false
           
         case change: Change if prover_ready =>
           handle_change(change)
@@ -86,14 +88,14 @@ class Session(system: Isabelle_System)
   @volatile private var _completion = new Completion + system.symbols
   def completion() = _completion
 
+  def is_command_keyword(s: String): Boolean = command_decls().contains(s)
+
 
   /* document state information */
 
   @volatile private var states = Map[Isar_Document.State_ID, Command_State]()
   @volatile private var commands = Map[Isar_Document.Command_ID, Command]()
-  val document_0 =
-    Proof_Document.empty.
-    set_command_keyword((s: String) => command_decls().contains(s))  // FIXME !?
+  val document_0 = Proof_Document.empty(create_id())  // FIXME fresh id (!??)
   @volatile private var document_versions = List(document_0)
 
   def command(id: Isar_Document.Command_ID): Option[Command] = commands.get(id)
@@ -105,13 +107,13 @@ class Session(system: Isabelle_System)
 
   def begin_document(path: String)
   {
-    prover.begin_document(document_0.id, path)   // FIXME fresh id!?!
+    prover.begin_document(document_0.id, path)   // FIXME fresh document!?!
   }
 
   def handle_change(change: Change)
   {
     val old = document(change.parent.get.id).get
-    val (doc, changes) = old.text_changed(change)
+    val (doc, changes) = old.text_changed(this, change)
     document_versions ::= doc
 
     val id_changes = changes map {
@@ -181,12 +183,14 @@ class Session(system: Isabelle_System)
               // process ready (after initialization)
               case XML.Elem(Markup.READY, _, _) => prover_ready = true
 
-              case _ =>
+            case _ =>
             }
           }
         case _ =>
       }
       //}}}
     }
+    else if (result.kind == Isabelle_Process.Kind.EXIT)
+      prover = null
   }
 }
