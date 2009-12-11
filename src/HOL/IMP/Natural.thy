@@ -1,7 +1,7 @@
 (*  Title:        HOL/IMP/Natural.thy
     ID:           $Id$
     Author:       Tobias Nipkow & Robert Sandner, TUM
-    Isar Version: Gerwin Klein, 2001
+    Isar Version: Gerwin Klein, 2001; additional proofs by Lawrence Paulson
     Copyright     1996 TUM
 *)
 
@@ -55,43 +55,49 @@ The induction principle induced by this definition looks like this:
   meta symbols for @{text "\<forall>"} and @{text "\<longrightarrow>"})
 *}
 
-
 text {*
   The rules of @{text evalc} are syntax directed, i.e.~for each
   syntactic category there is always only one rule applicable. That
-  means we can use the rules in both directions. The proofs for this
-  are all the same: one direction is trivial, the other one is shown
-  by using the @{text evalc} rules backwards:
+  means we can use the rules in both directions.  This property is called rule inversion.
 *}
+inductive_cases skipE [elim!]:   "\<langle>\<SKIP>,s\<rangle> \<longrightarrow>\<^sub>c s'"
+inductive_cases semiE [elim!]:   "\<langle>c0; c1, s\<rangle> \<longrightarrow>\<^sub>c s'"
+inductive_cases assignE [elim!]: "\<langle>x :== a,s\<rangle> \<longrightarrow>\<^sub>c s'"
+inductive_cases ifE [elim!]:     "\<langle>\<IF> b \<THEN> c0 \<ELSE> c1, s\<rangle> \<longrightarrow>\<^sub>c s'"
+inductive_cases whileE [elim]:  "\<langle>\<WHILE> b \<DO> c,s\<rangle> \<longrightarrow>\<^sub>c s'"
+
+text {* The next proofs are all trivial by rule inversion.
+*}
+
 lemma skip:
   "\<langle>\<SKIP>,s\<rangle> \<longrightarrow>\<^sub>c s' = (s' = s)"
-  by (rule, erule evalc.cases) auto
+  by auto
 
 lemma assign:
   "\<langle>x :== a,s\<rangle> \<longrightarrow>\<^sub>c s' = (s' = s[x\<mapsto>a s])"
-  by (rule, erule evalc.cases) auto
+  by auto
 
 lemma semi:
   "\<langle>c0; c1, s\<rangle> \<longrightarrow>\<^sub>c s' = (\<exists>s''. \<langle>c0,s\<rangle> \<longrightarrow>\<^sub>c s'' \<and> \<langle>c1,s''\<rangle> \<longrightarrow>\<^sub>c s')"
-  by (rule, erule evalc.cases) auto
+  by auto
 
 lemma ifTrue:
   "b s \<Longrightarrow> \<langle>\<IF> b \<THEN> c0 \<ELSE> c1, s\<rangle> \<longrightarrow>\<^sub>c s' = \<langle>c0,s\<rangle> \<longrightarrow>\<^sub>c s'"
-  by (rule, erule evalc.cases) auto
+  by auto
 
 lemma ifFalse:
   "\<not>b s \<Longrightarrow> \<langle>\<IF> b \<THEN> c0 \<ELSE> c1, s\<rangle> \<longrightarrow>\<^sub>c s' = \<langle>c1,s\<rangle> \<longrightarrow>\<^sub>c s'"
-  by (rule, erule evalc.cases) auto
+  by auto
 
 lemma whileFalse:
   "\<not> b s \<Longrightarrow> \<langle>\<WHILE> b \<DO> c,s\<rangle> \<longrightarrow>\<^sub>c s' = (s' = s)"
-  by (rule, erule evalc.cases) auto
+  by auto
 
 lemma whileTrue:
   "b s \<Longrightarrow>
   \<langle>\<WHILE> b \<DO> c, s\<rangle> \<longrightarrow>\<^sub>c s' =
   (\<exists>s''. \<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s'' \<and> \<langle>\<WHILE> b \<DO> c, s''\<rangle> \<longrightarrow>\<^sub>c s')"
-  by (rule, erule evalc.cases) auto
+  by auto
 
 text "Again, Isabelle may use these rules in automatic proofs:"
 lemmas evalc_cases [simp] = skip assign ifTrue ifFalse whileFalse semi whileTrue
@@ -136,8 +142,8 @@ proof -
   { fix s s' assume w: "\<langle>?w, s\<rangle> \<longrightarrow>\<^sub>c s'"
     -- "as a first thing we note that, if @{text b} is @{text False} in state @{text s},"
     -- "then both statements do nothing:"
-    hence "\<not>b s \<Longrightarrow> s = s'" by simp
-    hence "\<not>b s \<Longrightarrow> \<langle>?if, s\<rangle> \<longrightarrow>\<^sub>c s'" by simp
+    hence "\<not>b s \<Longrightarrow> s = s'" by blast
+    hence "\<not>b s \<Longrightarrow> \<langle>?if, s\<rangle> \<longrightarrow>\<^sub>c s'" by blast
     moreover
     -- "on the other hand, if @{text b} is @{text True} in state @{text s},"
     -- {* then only the @{text WhileTrue} rule can have been used to derive @{text "\<langle>?w, s\<rangle> \<longrightarrow>\<^sub>c s'"} *}
@@ -159,8 +165,8 @@ proof -
   { fix s s' assume "if": "\<langle>?if, s\<rangle> \<longrightarrow>\<^sub>c s'"
     -- "again, if @{text b} is @{text False} in state @{text s}, then the False-branch"
     -- "of the @{text \<IF>} is executed, and both statements do nothing:"
-    hence "\<not>b s \<Longrightarrow> s = s'" by simp
-    hence "\<not>b s \<Longrightarrow> \<langle>?w, s\<rangle> \<longrightarrow>\<^sub>c s'" by simp
+    hence "\<not>b s \<Longrightarrow> s = s'" by blast
+    hence "\<not>b s \<Longrightarrow> \<langle>?w, s\<rangle> \<longrightarrow>\<^sub>c s'" by blast
     moreover
     -- "on the other hand, if @{text b} is @{text True} in state @{text s},"
     -- {* then this time only the @{text IfTrue} rule can have be used *}
@@ -181,8 +187,79 @@ proof -
   show ?thesis by blast
 qed
 
+text {*
+   Happily, such lengthy proofs are seldom necessary.  Isabelle can prove many such facts automatically.
+*}
+
+lemma 
+  "(\<WHILE> b \<DO> c) \<sim> (\<IF> b \<THEN> c; \<WHILE> b \<DO> c \<ELSE> \<SKIP>)"
+by blast
+
+lemma triv_if:
+  "(\<IF> b \<THEN> c \<ELSE> c) \<sim> c"
+by blast
+
+lemma commute_if:
+  "(\<IF> b1 \<THEN> (\<IF> b2 \<THEN> c11 \<ELSE> c12) \<ELSE> c2) 
+   \<sim> 
+   (\<IF> b2 \<THEN> (\<IF> b1 \<THEN> c11 \<ELSE> c2) \<ELSE> (\<IF> b1 \<THEN> c12 \<ELSE> c2))"
+by blast
+
+lemma while_equiv:
+  "\<langle>c0, s\<rangle> \<longrightarrow>\<^sub>c u \<Longrightarrow> c \<sim> c' \<Longrightarrow> (c0 = \<WHILE> b \<DO> c) \<Longrightarrow> \<langle>\<WHILE> b \<DO> c', s\<rangle> \<longrightarrow>\<^sub>c u" 
+by (induct rule: evalc.induct) (auto simp add: equiv_c_def) 
+
+lemma equiv_while:
+  "c \<sim> c' \<Longrightarrow> (\<WHILE> b \<DO> c) \<sim> (\<WHILE> b \<DO> c')"
+by (simp add: equiv_c_def) (metis equiv_c_def while_equiv) 
+
+
+text {*
+    Program equivalence is an equivalence relation.
+*}
+
+lemma equiv_refl:
+  "c \<sim> c"
+by blast
+
+lemma equiv_sym:
+  "c1 \<sim> c2 \<Longrightarrow> c2 \<sim> c1"
+by (auto simp add: equiv_c_def) 
+
+lemma equiv_trans:
+  "c1 \<sim> c2 \<Longrightarrow> c2 \<sim> c3 \<Longrightarrow> c1 \<sim> c3"
+by (auto simp add: equiv_c_def) 
+
+text {*
+    Program constructions preserve equivalence.
+*}
+
+lemma equiv_semi:
+  "c1 \<sim> c1' \<Longrightarrow> c2 \<sim> c2' \<Longrightarrow> (c1; c2) \<sim> (c1'; c2')"
+by (force simp add: equiv_c_def) 
+
+lemma equiv_if:
+  "c1 \<sim> c1' \<Longrightarrow> c2 \<sim> c2' \<Longrightarrow> (\<IF> b \<THEN> c1 \<ELSE> c2) \<sim> (\<IF> b \<THEN> c1' \<ELSE> c2')"
+by (force simp add: equiv_c_def) 
+
+lemma while_never: "\<langle>c, s\<rangle> \<longrightarrow>\<^sub>c u \<Longrightarrow> c \<noteq> \<WHILE> (\<lambda>s. True) \<DO> c1"
+apply (induct rule: evalc.induct)
+apply auto
+done
+
+lemma equiv_while_True:
+  "(\<WHILE> (\<lambda>s. True) \<DO> c1) \<sim> (\<WHILE> (\<lambda>s. True) \<DO> c2)" 
+by (blast dest: while_never) 
+
 
 subsection "Execution is deterministic"
+
+text {*
+This proof is automatic.
+*}
+theorem "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t \<Longrightarrow> \<langle>c,s\<rangle> \<longrightarrow>\<^sub>c u \<Longrightarrow> u = t"
+by (induct arbitrary: u rule: evalc.induct) blast+
+
 
 text {*
 The following proof presents all the details:
@@ -193,10 +270,10 @@ theorem com_det:
   using prems
 proof (induct arbitrary: u set: evalc)
   fix s u assume "\<langle>\<SKIP>,s\<rangle> \<longrightarrow>\<^sub>c u"
-  thus "u = s" by simp
+  thus "u = s" by blast
 next
   fix a s x u assume "\<langle>x :== a,s\<rangle> \<longrightarrow>\<^sub>c u"
-  thus "u = s[x \<mapsto> a s]" by simp
+  thus "u = s[x \<mapsto> a s]" by blast
 next
   fix c0 c1 s s1 s2 u
   assume IH0: "\<And>u. \<langle>c0,s\<rangle> \<longrightarrow>\<^sub>c u \<Longrightarrow> u = s2"
@@ -215,19 +292,19 @@ next
   assume IH: "\<And>u. \<langle>c0,s\<rangle> \<longrightarrow>\<^sub>c u \<Longrightarrow> u = s1"
 
   assume "b s" and "\<langle>\<IF> b \<THEN> c0 \<ELSE> c1,s\<rangle> \<longrightarrow>\<^sub>c u"
-  hence "\<langle>c0, s\<rangle> \<longrightarrow>\<^sub>c u" by simp
+  hence "\<langle>c0, s\<rangle> \<longrightarrow>\<^sub>c u" by blast
   with IH show "u = s1" by blast
 next
   fix b c0 c1 s s1 u
   assume IH: "\<And>u. \<langle>c1,s\<rangle> \<longrightarrow>\<^sub>c u \<Longrightarrow> u = s1"
 
   assume "\<not>b s" and "\<langle>\<IF> b \<THEN> c0 \<ELSE> c1,s\<rangle> \<longrightarrow>\<^sub>c u"
-  hence "\<langle>c1, s\<rangle> \<longrightarrow>\<^sub>c u" by simp
+  hence "\<langle>c1, s\<rangle> \<longrightarrow>\<^sub>c u" by blast
   with IH show "u = s1" by blast
 next
   fix b c s u
   assume "\<not>b s" and "\<langle>\<WHILE> b \<DO> c,s\<rangle> \<longrightarrow>\<^sub>c u"
-  thus "u = s" by simp
+  thus "u = s" by blast
 next
   fix b c s s1 s2 u
   assume "IH\<^sub>c": "\<And>u. \<langle>c,s\<rangle> \<longrightarrow>\<^sub>c u \<Longrightarrow> u = s2"
@@ -255,7 +332,7 @@ theorem
 proof (induct arbitrary: u)
   -- "the simple @{text \<SKIP>} case for demonstration:"
   fix s u assume "\<langle>\<SKIP>,s\<rangle> \<longrightarrow>\<^sub>c u"
-  thus "u = s" by simp
+  thus "u = s" by blast
 next
   -- "and the only really interesting case, @{text \<WHILE>}:"
   fix b c s s1 s2 u
@@ -270,6 +347,6 @@ next
 
   from c "IH\<^sub>c" have "s' = s2" by blast
   with w "IH\<^sub>w" show "u = s1" by blast
-qed (best dest: evalc_cases [THEN iffD1])+ -- "prove the rest automatically"
+qed blast+ -- "prove the rest automatically"
 
 end

@@ -47,22 +47,20 @@ apply (unfold Gamma_def)
 apply (subst lfp_unfold[OF Gamma_mono, simplified Gamma_def])
 apply fast
 apply (subst lfp_unfold[OF Gamma_mono, simplified Gamma_def])
-apply fast
+apply auto 
 done
 
 (* Denotational Semantics implies Operational Semantics *)
 
 lemma com2: "(s,t) \<in> C(c) \<Longrightarrow> \<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t"
 apply (induct c arbitrary: s t)
-
-apply simp_all
-apply fast
-apply fast
+apply auto 
+apply blast
 
 (* while *)
 apply (erule lfp_induct2 [OF _ Gamma_mono])
 apply (unfold Gamma_def)
-apply fast
+apply auto
 done
 
 

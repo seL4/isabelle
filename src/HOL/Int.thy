@@ -1791,16 +1791,28 @@ subsection{*Products and 1, by T. M. Rasmussen*}
 lemma zabs_less_one_iff [simp]: "(\<bar>z\<bar> < 1) = (z = (0::int))"
 by arith
 
-lemma abs_zmult_eq_1: "(\<bar>m * n\<bar> = 1) ==> \<bar>m\<bar> = (1::int)"
-apply (cases "\<bar>n\<bar>=1") 
-apply (simp add: abs_mult) 
-apply (rule ccontr) 
-apply (auto simp add: linorder_neq_iff abs_mult) 
-apply (subgoal_tac "2 \<le> \<bar>m\<bar> & 2 \<le> \<bar>n\<bar>")
- prefer 2 apply arith 
-apply (subgoal_tac "2*2 \<le> \<bar>m\<bar> * \<bar>n\<bar>", simp) 
-apply (rule mult_mono, auto) 
-done
+lemma abs_zmult_eq_1:
+  assumes mn: "\<bar>m * n\<bar> = 1"
+  shows "\<bar>m\<bar> = (1::int)"
+proof -
+  have 0: "m \<noteq> 0 & n \<noteq> 0" using mn
+    by auto
+  have "~ (2 \<le> \<bar>m\<bar>)"
+  proof
+    assume "2 \<le> \<bar>m\<bar>"
+    hence "2*\<bar>n\<bar> \<le> \<bar>m\<bar>*\<bar>n\<bar>"
+      by (simp add: mult_mono 0) 
+    also have "... = \<bar>m*n\<bar>" 
+      by (simp add: abs_mult)
+    also have "... = 1"
+      by (simp add: mn)
+    finally have "2*\<bar>n\<bar> \<le> 1" .
+    thus "False" using 0
+      by auto
+  qed
+  thus ?thesis using 0
+    by auto
+qed
 
 lemma pos_zmult_eq_1_iff_lemma: "(m * n = 1) ==> m = (1::int) | m = -1"
 by (insert abs_zmult_eq_1 [of m n], arith)
