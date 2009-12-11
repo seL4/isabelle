@@ -605,7 +605,7 @@ fun mk_psimps thy globals R clauses valthms f_iff graph_is_function =
 (** Induction rule **)
 
 
-val acc_subset_induct = @{thm Orderings.predicate1I} RS @{thm accp_subset_induct}
+val acc_subset_induct = @{thm predicate1I} RS @{thm accp_subset_induct}
 
 
 fun mk_partial_induct_rule thy globals R complete_thm clauses =
