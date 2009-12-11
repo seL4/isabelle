@@ -144,7 +144,7 @@ fun make is_open rule_struct (thy, prop) cases =
           (Option.map (curry Logic.nth_prem i) rule_struct, Logic.nth_prem (i, prop))) () of
         NONE => (name, NONE)
       | SOME p => (name, extract_case is_open thy p name concls)) :: cs, i - 1);
-  in fold_rev add_case (drop (n - nprems) cases) ([], n) |> #1 end;
+  in fold_rev add_case (drop (Int.max (n - nprems, 0)) cases) ([], n) |> #1 end;
 
 in
 
