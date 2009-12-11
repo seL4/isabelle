@@ -319,7 +319,7 @@ fun haskell_program_of_program labelled_name module_name module_prefix reserved 
 
 fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
     raw_reserved includes raw_module_alias
-    syntax_class syntax_tyco syntax_const program cs destination =
+    syntax_class syntax_tyco syntax_const (code_of_pretty, code_writeln) program cs destination =
   let
     val stmt_names = Code_Target.stmt_names_of_destination destination;
     val module_name = if null stmt_names then raw_module_name else SOME "Code";
@@ -367,7 +367,7 @@ fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
           then "import qualified "
           else "import ") ^ name ^ ";");
         val import_ps = map print_import_include includes @ map print_import_module imports
-        val content = Pretty.chunks2 (if null import_ps then [] else [Pretty.chunks import_ps]
+        val content = Pretty.chunks2 ((if null import_ps then [] else [Pretty.chunks import_ps])
             @ map_filter
               (fn (name, (_, SOME stmt)) => SOME (print_stmt qualified (name, stmt))
                 | (_, (_, NONE)) => NONE) stmts
@@ -393,13 +393,13 @@ fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
         val _ = File.mkdir (Path.dir pathname);
       in File.write pathname
         ("{-# OPTIONS_GHC -fglasgow-exts #-}\n\n"
-          ^ Code_Target.code_of_pretty content)
+          ^ code_of_pretty content)
       end
   in
     Code_Target.mk_serialization target NONE
-      (fn NONE => K () o map (Code_Target.code_writeln o snd) | SOME file => K () o map
+      (fn NONE => K () o map (code_writeln o snd) | SOME file => K () o map
         (write_module (check_destination file)))
-      (rpair [] o cat_lines o map (Code_Target.code_of_pretty o snd))
+      (rpair [] o cat_lines o map (code_of_pretty o snd))
       (map (uncurry print_module) includes
         @ map serialize_module (Symtab.dest hs_program))
       destination

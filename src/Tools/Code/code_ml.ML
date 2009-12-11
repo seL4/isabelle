@@ -902,7 +902,7 @@ fun ml_node_of_program labelled_name module_name reserved raw_module_alias progr
   in (deresolver, nodes) end;
 
 fun serialize_ml target compile print_module print_stmt raw_module_name with_signatures labelled_name
-  reserved includes raw_module_alias _ syntax_tyco syntax_const program stmt_names destination =
+  reserved includes raw_module_alias _ syntax_tyco syntax_const (code_of_pretty, code_writeln) program stmt_names destination =
   let
     val is_cons = Code_Thingol.is_cons program;
     val presentation_stmt_names = Code_Target.stmt_names_of_destination destination;
@@ -932,9 +932,9 @@ fun serialize_ml target compile print_module print_stmt raw_module_name with_sig
     val p = Pretty.chunks2 (map snd includes @ snd (print_nodes [] nodes));
   in
     Code_Target.mk_serialization target
-      (case compile of SOME compile => SOME (compile o Code_Target.code_of_pretty) | NONE => NONE)
-      (fn NONE => Code_Target.code_writeln | SOME file => File.write file o Code_Target.code_of_pretty)
-      (rpair stmt_names' o Code_Target.code_of_pretty) p destination
+      (case compile of SOME compile => SOME (compile o code_of_pretty) | NONE => NONE)
+      (fn NONE => code_writeln | SOME file => File.write file o code_of_pretty)
+      (rpair stmt_names' o code_of_pretty) p destination
   end;
 
 end; (*local*)

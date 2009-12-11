@@ -21,6 +21,8 @@ sig
   val semicolon: Pretty.T list -> Pretty.T
   val doublesemicolon: Pretty.T list -> Pretty.T
   val enum_default: string -> string -> string -> string -> Pretty.T list -> Pretty.T
+  val string_of_pretty: int -> Pretty.T -> string
+  val writeln_pretty: int -> Pretty.T -> unit
 
   val first_upper: string -> string
   val first_lower: string -> string
@@ -89,7 +91,7 @@ open Code_Thingol;
 
 fun eqn_error thm s = error (s ^ ",\nin equation " ^ Display.string_of_thm_without_context thm);
 
-(** assembling text pieces **)
+(** assembling and printing text pieces **)
 
 infixr 5 @@;
 infixr 5 @|;
@@ -102,6 +104,9 @@ fun semicolon ps = Pretty.block [concat ps, str ";"];
 fun doublesemicolon ps = Pretty.block [concat ps, str ";;"];
 fun enum_default default sep opn cls [] = str default
   | enum_default default sep opn cls xs = Pretty.enum sep opn cls xs;
+
+fun string_of_pretty width p = PrintMode.setmp [] (Pretty.setmp_margin_CRITICAL width Pretty.string_of) p ^ "\n";
+fun writeln_pretty width p = PrintMode.setmp [] (Pretty.setmp_margin_CRITICAL width Pretty.writeln) p;
 
 
 (** names and variable name contexts **)

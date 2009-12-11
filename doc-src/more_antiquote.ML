@@ -126,7 +126,7 @@ val _ = ThyOutput.antiquotation "code_stmts"
   (fn {context = ctxt, ...} => fn ((mk_cs, mk_stmtss), target) =>
     let val thy = ProofContext.theory_of ctxt in
       Code_Target.code_of thy
-        target "Example" (mk_cs thy)
+        target NONE "Example" (mk_cs thy)
         (fn naming => maps (fn f => f thy naming) mk_stmtss)
       |> typewriter
     end);
