@@ -19,10 +19,11 @@ class Isabelle_Options extends AbstractOptionPane("isabelle")
 
   override def _init()
   {
+    val logic = Isabelle.Property("logic")
     addComponent(Isabelle.Property("logic.title"), {
-      for (name <- Isabelle.system.find_logics()) {
+      for (name <- "default" :: Isabelle.system.find_logics()) {
         logic_name.addItem(name)
-        if (name == Isabelle.Property("logic"))
+        if (name == logic)
           logic_name.setSelectedItem(name)
       }
       logic_name

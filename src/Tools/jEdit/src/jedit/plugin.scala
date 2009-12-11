@@ -60,7 +60,7 @@ object Isabelle
     val modes = system.getenv("JEDIT_PRINT_MODE").split(",").toList.map("-m" + _)
     val logic = {
       val logic1 = Isabelle.Property("logic")
-      if (logic1 != null && logic1 != "") logic1
+      if (logic1 != null && logic1 != "" && logic1 != "default") logic1
       else {
         val logic2 = system.getenv("JEDIT_LOGIC")
         if (logic2 != "") logic2
