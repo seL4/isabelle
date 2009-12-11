@@ -1389,7 +1389,7 @@ HOL-Boogie: HOL-SMT $(OUT)/HOL-Boogie
 
 $(OUT)/HOL-Boogie: $(OUT)/HOL-SMT Boogie/ROOT.ML Boogie/Boogie.thy	\
   Boogie/Tools/boogie_vcs.ML Boogie/Tools/boogie_loader.ML		\
-  Boogie/Tools/boogie_commands.ML Boogie/Tools/boogie_split.ML
+  Boogie/Tools/boogie_commands.ML Boogie/Tools/boogie_tactics.ML
 	@cd Boogie; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-SMT HOL-Boogie
 
 
@@ -1406,7 +1406,8 @@ $(LOG)/HOL-Boogie-Examples.gz: $(OUT)/HOL-Boogie			\
   Boogie/Examples/cert/Boogie_Dijkstra					\
   Boogie/Examples/cert/Boogie_Dijkstra.proof				\
   Boogie/Examples/cert/VCC_maximum					\
-  Boogie/Examples/cert/VCC_maximum.proof
+  Boogie/Examples/cert/VCC_maximum.proof				\
+  Boogie/Examples/Boogie_Max_Stepwise.thy
 	@cd Boogie; $(ISABELLE_TOOL) usedir $(OUT)/HOL-Boogie Examples
 
 
