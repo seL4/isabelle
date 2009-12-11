@@ -20,7 +20,7 @@ class Session(system: Isabelle_System)
 
   /* main actor */
 
-  private case class Start(logic: String)
+  private case class Start(args: List[String])
   private case object Stop
 
   private var prover: Isabelle_Process with Isar_Document = null
@@ -29,12 +29,9 @@ class Session(system: Isabelle_System)
   private val session_actor = actor {
     loop {
       react {
-        case Start(logic) =>
+        case Start(args) =>
           if (prover == null) {
-            prover =
-              new Isabelle_Process(system, self,   // FIXME avoid hardwired options
-                  "-m", "xsymbols", "-m", "no_brackets", "-m", "no_type_brackets", logic)
-                with Isar_Document
+            prover = new Isabelle_Process(system, self, args:_*) with Isar_Document
             reply(())
           }
 
@@ -55,7 +52,7 @@ class Session(system: Isabelle_System)
     }
   }
 
-  def start(logic: String) { session_actor !? Start(logic) }
+  def start(args: List[String]) { session_actor !? Start(args) }
   def stop() { session_actor ! Stop }
   def input(change: Change) { session_actor ! change }
 

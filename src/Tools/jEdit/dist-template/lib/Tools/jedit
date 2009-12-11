@@ -43,50 +43,56 @@ fail()
 JEDIT_LOGIC="$ISABELLE_LOGIC"
 JEDIT_PRINT_MODE=""
 
-declare -a JAVA_OPTIONS; eval "JAVA_OPTIONS=($JEDIT_JAVA_OPTIONS)"
-declare -a OPTIONS; eval "OPTIONS=($JEDIT_OPTIONS)"
+getoptions()
+{
+  OPTIND=1
+  while getopts "J:dj:l:m:" OPT
+  do
+    case "$OPT" in
+      J)
+        JAVA_ARGS["${#JAVA_ARGS[@]}"]="$OPTARG"
+        ;;
+      d)
+        JAVA_ARGS["${#JAVA_ARGS[@]}"]="-Xdebug"
+        JAVA_ARGS["${#JAVA_ARGS[@]}"]="-Xrunjdwp:transport=dt_socket,server=y,suspend=n"
+        ;;
+      j)
+        ARGS["${#ARGS[@]}"]="$OPTARG"
+        ;;
+      l)
+        JEDIT_LOGIC="$OPTARG"
+        ;;
+      m)
+        if [ -z "$JEDIT_PRINT_MODE" ]; then
+          JEDIT_PRINT_MODE="$OPTARG"
+        else
+          JEDIT_PRINT_MODE="$JEDIT_PRINT_MODE,$OPTARG"
+        fi
+        ;;
+      \?)
+        usage
+        ;;
+    esac
+  done
+}
 
-while getopts "J:dj:l:m:" OPT
-do
-  case "$OPT" in
-    J)
-      JAVA_OPTIONS["${#JAVA_OPTIONS[@]}"]="$OPTARG"
-      ;;
-    d)
-      JAVA_OPTIONS["${#JAVA_OPTIONS[@]}"]="-Xdebug"
-      JAVA_OPTIONS["${#JAVA_OPTIONS[@]}"]="-Xrunjdwp:transport=dt_socket,server=y,suspend=n"
-      ;;
-    j)
-      OPTIONS["${#OPTIONS[@]}"]="$OPTARG"
-      ;;
-    l)
-      JEDIT_LOGIC="$OPTARG"
-      ;;
-    m)
-      if [ -z "$PRINT_MODE" ]; then
-        PRINT_MODE="$OPTARG"
-      else
-        PRINT_MODE="$PRINT_MODE,$OPTARG"
-      fi
-      ;;
-    \?)
-      usage
-      ;;
-  esac
-done
+declare -a JAVA_ARGS; eval "JAVA_ARGS=($JEDIT_JAVA_ARGS)"
+declare -a ARGS; eval "ARGS=($JEDIT_OPTIONS)"
 
+declare -a OPTIONS; eval "OPTIONS=($ISABELLE_JEDIT_OPTIONS)"
+getoptions "${OPTIONS[@]}"
+
+getoptions "$@"
 shift $(($OPTIND - 1))
 
 
 # args
 
-declare -a FILES=()
-
 if [ "$#" -eq 0 ]; then
-  FILES["${#FILES[@]}"]="Scratch.thy"
+  ARGS["${#ARGS[@]}"]="Scratch.thy"
 else
   while [ "$#" -gt 0 ]; do
-    FILES["${#FILES[@]}"]="$(jvmpath "$1")"
+    ARGS["${#ARGS[@]}"]="$(jvmpath "$1")"
     shift
   done
 fi
@@ -104,6 +110,6 @@ esac
 
 export JEDIT_LOGIC JEDIT_PRINT_MODE
 
-exec "$ISABELLE_TOOL" java "${JAVA_OPTIONS[@]}" \
+exec "$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" \
   -jar "$(jvmpath "$JEDIT_HOME/jedit.jar")" \
-  "-settings=$(jvmpath "$ISABELLE_HOME_USER/jedit")" "${OPTIONS[@]}" "${FILES[@]}"
+  "-settings=$(jvmpath "$ISABELLE_HOME_USER/jedit")" "${ARGS[@]}"

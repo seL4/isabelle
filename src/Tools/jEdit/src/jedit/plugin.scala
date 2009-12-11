@@ -55,11 +55,19 @@ object Isabelle
 
   /* settings */
 
-  def get_logic(): String =
+  def cmd_args(): List[String] =
   {
-    val logic = Isabelle.Property("logic")
-    if (logic != null) logic
-    else system.getenv_strict("ISABELLE_LOGIC")
+    val modes = system.getenv("JEDIT_PRINT_MODE").split(",").toList.map("-m" + _)
+    val logic = {
+      val logic1 = Isabelle.Property("logic")
+      if (logic1 != null && logic1 != "") logic1
+      else {
+        val logic2 = system.getenv("JEDIT_LOGIC")
+        if (logic2 != "") logic2
+        else system.getenv_strict("ISABELLE_LOGIC")
+      }
+    }
+    modes ++ List(logic)
   }
 
 
@@ -86,7 +94,7 @@ class Plugin extends EBPlugin
     val theory_view = new Theory_View(Isabelle.session, text_area)   // FIXME multiple text areas!?
     mapping += (buffer -> theory_view)
 
-    Isabelle.session.start(Isabelle.get_logic())
+    Isabelle.session.start(Isabelle.cmd_args())
     theory_view.activate()
     Isabelle.session.begin_document(buffer.getName)
   }

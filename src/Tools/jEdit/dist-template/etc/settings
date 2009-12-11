@@ -4,4 +4,6 @@ JEDIT_JAVA_OPTIONS="-Xms128m -Xmx512m"
 #JEDIT_JAVA_OPTIONS="-server -Xms128m -Xmx1024m"
 JEDIT_OPTIONS="-reuseview -noserver -nobackground"
 
+ISABELLE_JEDIT_OPTIONS="-m xsymbols -m no_brackets -m no_type_brackets"
+
 ISABELLE_TOOLS="$ISABELLE_TOOLS:$JEDIT_HOME/lib/Tools"
