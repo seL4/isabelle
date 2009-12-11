@@ -94,7 +94,8 @@ class Plugin extends EBPlugin
   private def uninstall(view: View)
   {
     val buffer = view.getBuffer
-    mapping(buffer).deactivate
+    Isabelle.session.stop()
+    mapping(buffer).deactivate()
     mapping -= buffer
   }
 
