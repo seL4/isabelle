@@ -57,7 +57,8 @@ fun boogie_vc (vc_opts, vc_name) lthy =
   end
 
 
-fun write_list head pp xs = Pretty.writeln (Pretty.big_list head (map pp xs))
+fun write_list head xs =
+  Pretty.writeln (Pretty.big_list head (map Pretty.str xs))
 
 val prefix_string_ord = dict_ord string_ord o pairself explode
 
@@ -66,12 +67,11 @@ fun boogie_status thy =
     fun string_of_state Boogie_VCs.Proved = "proved"
       | string_of_state Boogie_VCs.NotProved = "not proved"
       | string_of_state Boogie_VCs.PartiallyProved = "partially proved"
-
-    fun pretty_vc_name (name, proved) =
-      Pretty.str (name ^ " (" ^ string_of_state proved ^ ")")
   in
     Boogie_VCs.state_of thy
-    |> write_list "Boogie verification conditions:" pretty_vc_name
+    |> map (fn (name, proved) => name ^ " (" ^ string_of_state proved ^ ")")
+    |> sort prefix_string_ord
+    |> write_list "Boogie verification conditions:"
   end
 
 fun boogie_status_vc (full, vc_name) thy =
@@ -82,10 +82,10 @@ fun boogie_status_vc (full, vc_name) thy =
   in
     if full
     then write_list ("Assertions of Boogie verification condition " ^
-      quote vc_name ^ ":") Pretty.str (sort prefix_string_ord
+      quote vc_name ^ ":") (sort prefix_string_ord
         (map (pretty "proved") ps @ map (pretty "not proved") us))
     else write_list ("Unproved assertions of Boogie verification condition " ^
-      quote vc_name ^ ":") Pretty.str (sort prefix_string_ord us)
+      quote vc_name ^ ":") (sort prefix_string_ord us)
   end
 
 
@@ -149,7 +149,7 @@ fun boogie_narrow_vc ((timeout, vc_name), meth) thy =
     then writeln ("Completely solved Boogie verification condition " ^
       quote vc_name ^ ".")
     else write_list ("Unsolved assertions of Boogie verification condition " ^
-      quote vc_name ^ ":") Pretty.str (sort prefix_string_ord unsolved)
+      quote vc_name ^ ":") (sort prefix_string_ord unsolved)
   end
 end
 
