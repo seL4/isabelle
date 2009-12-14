@@ -405,23 +405,23 @@ fun gen_add_syntax upd del mapp check_x get_check_syn prep target raw_x some_syn
     | NONE => (map_name_syntax target o mapp) (del x) thy
   end;
 
-val gen_add_syntax_class =
-  gen_add_syntax Symtab.update Symtab.delete_safe (apfst o apfst) (K I) I;
+fun gen_add_syntax_class prep =
+  gen_add_syntax Symtab.update Symtab.delete_safe (apfst o apfst) (K I) I prep;
 
-val gen_add_syntax_inst =
-  gen_add_syntax Symreltab.update Symreltab.delete_safe (apfst o apsnd) (K I) I;
+fun gen_add_syntax_inst prep =
+  gen_add_syntax Symreltab.update Symreltab.delete_safe (apfst o apsnd) (K I) I prep;
 
-val gen_add_syntax_tyco =
+fun gen_add_syntax_tyco prep =
   gen_add_syntax Symtab.update Symtab.delete_safe (apsnd o apfst)
     (fn thy => fn tyco => fn (n, _) => if n <> Sign.arity_number thy tyco
       then error ("Number of arguments mismatch in syntax for type constructor " ^ quote tyco)
-      else ()) I;
+      else ()) I prep;
 
-val gen_add_syntax_const =
+fun gen_add_syntax_const prep =
   gen_add_syntax Symtab.update Symtab.delete_safe (apsnd o apsnd)
     (fn thy => fn c => fn (n, _) => if n > Code.args_number thy c
       then error ("Too many arguments in syntax for constant " ^ quote c)
-      else ()) I;
+      else ()) I prep;
 
 fun add_reserved target =
   let
