@@ -105,7 +105,7 @@ val negated_params =
 fun is_known_raw_param s =
   AList.defined (op =) default_default_params s
   orelse AList.defined (op =) negated_params s
-  orelse s mem ["max", "eval", "expect"]
+  orelse s = "max" orelse s = "eval" orelse s = "expect"
   orelse exists (fn p => String.isPrefix (p ^ " ") s)
                 ["card", "max", "iter", "box", "dont_box", "mono", "non_mono",
                  "wf", "non_wf", "format"]
@@ -409,7 +409,7 @@ fun handle_exceptions ctxt f x =
          error ("Unhandled Refute error (" ^ quote loc ^ "): " ^ details ^ ".")
 
 (* raw_param list -> bool -> int -> Proof.state -> bool * Proof.state *)
-fun pick_nits override_params auto subgoal state =
+fun pick_nits override_params auto i state =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
@@ -423,26 +423,25 @@ fun pick_nits override_params auto subgoal state =
       |> (if auto then perhaps o try
           else if debug then fn f => fn x => f x
           else handle_exceptions ctxt)
-         (fn (_, state) => pick_nits_in_subgoal state params auto subgoal
-                           |>> equal "genuine")
+         (fn (_, state) => pick_nits_in_subgoal state params auto i
+                           |>> curry (op =) "genuine")
   in
     if auto orelse blocking then go ()
     else (Toplevel.thread true (fn () => (go (); ())); (false, state))
   end
 
-(* (TableFun().key * string list) list option * int option
-   -> Toplevel.transition -> Toplevel.transition *)
-fun nitpick_trans (opt_params, opt_subgoal) =
+(* raw_param list option * int option -> Toplevel.transition
+   -> Toplevel.transition *)
+fun nitpick_trans (opt_params, opt_i) =
   Toplevel.keep (K ()
-      o snd o pick_nits (these opt_params) false (the_default 1 opt_subgoal)
+      o snd o pick_nits (these opt_params) false (the_default 1 opt_i)
       o Toplevel.proof_of)
 
 (* raw_param -> string *)
 fun string_for_raw_param (name, value) =
   name ^ " = " ^ stringify_raw_param_value value
 
-(* (TableFun().key * string) list option -> Toplevel.transition
-   -> Toplevel.transition *)
+(* raw_param list option -> Toplevel.transition -> Toplevel.transition *)
 fun nitpick_params_trans opt_params =
   Toplevel.theory
       (fold set_default_raw_param (these opt_params)

@@ -82,7 +82,7 @@ fun univ_card nat_card int_card main_j0 bounds formula =
 
 (* Proof.context -> bool -> string -> typ -> rep -> string *)
 fun bound_comment ctxt debug nick T R =
-  short_const_name nick ^
+  short_name nick ^
   (if debug then " :: " ^ plain_string_from_yxml (Syntax.string_of_typ ctxt T)
    else "") ^ " : " ^ string_for_rep R
 
@@ -725,7 +725,7 @@ val empty_rel = Kodkod.Product (Kodkod.None, Kodkod.None)
 (* nfa_table -> typ -> typ -> Kodkod.rel_expr list *)
 fun direct_path_rel_exprs nfa start final =
   case AList.lookup (op =) nfa final of
-    SOME trans => map fst (filter (equal start o snd) trans)
+    SOME trans => map fst (filter (curry (op =) start o snd) trans)
   | NONE => []
 (* kodkod_constrs -> nfa_table -> typ list -> typ -> typ -> Kodkod.rel_expr *)
 and any_path_rel_expr ({kk_union, ...} : kodkod_constrs) nfa [] start final =
@@ -1031,7 +1031,7 @@ fun kodkod_formula_from_nut ofs liberal
                   fold (kk_or o (kk_no o to_r)) opt_arg_us
                        (kk_rel_eq (to_rep min_R u1) (to_rep min_R u2))
                 else
-                  kk_no (kk_difference (to_rep min_R u1) (to_rep min_R u2))
+                  kk_subset (to_rep min_R u1) (to_rep min_R u2)
               end)
          | Op2 (Eq, T, R, u1, u2) =>
            (case min_rep (rep_of u1) (rep_of u2) of
@@ -1067,7 +1067,7 @@ fun kodkod_formula_from_nut ofs liberal
                            kk_subset (kk_product r1 r2) Kodkod.Iden
                          else if not both_opt then
                            (r1, r2) |> is_opt_rep (rep_of u2) ? swap
-                                    |> uncurry kk_difference |> kk_no
+                                    |-> kk_subset
                          else
                            raise SAME ()
                        else

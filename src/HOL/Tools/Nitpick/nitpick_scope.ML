@@ -85,12 +85,12 @@ type block = row list
 
 (* dtype_spec list -> typ -> dtype_spec option *)
 fun datatype_spec (dtypes : dtype_spec list) T =
-  List.find (equal T o #typ) dtypes
+  List.find (curry (op =) T o #typ) dtypes
 
 (* dtype_spec list -> styp -> constr_spec *)
 fun constr_spec [] x = raise TERM ("Nitpick_Scope.constr_spec", [Const x])
   | constr_spec ({constrs, ...} :: dtypes : dtype_spec list) (x as (s, T)) =
-    case List.find (equal (s, body_type T) o (apsnd body_type o #const))
+    case List.find (curry (op =) (s, body_type T) o (apsnd body_type o #const))
                    constrs of
       SOME c => c
     | NONE => constr_spec dtypes x
@@ -125,7 +125,7 @@ fun quintuple_for_scope quote ({ext_ctxt as {thy, ctxt, ...}, card_assigns,
                                 bisim_depth, datatypes, ...} : scope) =
   let
     val (iter_asgns, card_asgns) =
-      card_assigns |> filter_out (equal @{typ bisim_iterator} o fst)
+      card_assigns |> filter_out (curry (op =) @{typ bisim_iterator} o fst)
                    |> List.partition (is_fp_iterator_type o fst)
     val (unimportant_card_asgns, important_card_asgns) =
       card_asgns |> List.partition ((is_integer_type orf is_datatype thy) o fst)
@@ -262,14 +262,14 @@ fun all_combinations_ordered_smartly ks =
     (* int list -> int *)
     fun cost_with_monos [] = 0
       | cost_with_monos (k :: ks) =
-        if k < sync_threshold andalso forall (equal k) ks then
+        if k < sync_threshold andalso forall (curry (op =) k) ks then
           k - sync_threshold
         else
           k * (k + 1) div 2 + Integer.sum ks
     fun cost_without_monos [] = 0
       | cost_without_monos [k] = k
       | cost_without_monos (_ :: k :: ks) =
-        if k < sync_threshold andalso forall (equal k) ks then
+        if k < sync_threshold andalso forall (curry (op =) k) ks then
           k - sync_threshold
         else
           Integer.sum (k :: ks)
@@ -282,7 +282,7 @@ fun all_combinations_ordered_smartly ks =
 
 (* typ -> bool *)
 fun is_self_recursive_constr_type T =
-  exists (exists_subtype (equal (body_type T))) (binder_types T)
+  exists (exists_subtype (curry (op =) (body_type T))) (binder_types T)
 
 (* (styp * int) list -> styp -> int *)
 fun constr_max maxes x = the_default ~1 (AList.lookup (op =) maxes x)
@@ -436,12 +436,12 @@ fun add_constr_spec (card_asgns, max_asgns) co card sum_dom_cards num_self_recs
 fun datatype_spec_from_scope_descriptor (ext_ctxt as {thy, ...}) shallow_dataTs
                                         (desc as (card_asgns, _)) (T, card) =
   let
-    val shallow = T mem shallow_dataTs
+    val shallow = member (op =) shallow_dataTs T
     val co = is_codatatype thy T
     val xs = boxed_datatype_constrs ext_ctxt T
     val self_recs = map (is_self_recursive_constr_type o snd) xs
     val (num_self_recs, num_non_self_recs) =
-      List.partition (equal true) self_recs |> pairself length
+      List.partition (curry (op =) true) self_recs |> pairself length
     val precise = (card = bounded_precise_card_of_type ext_ctxt (card + 1) 0
                                                        card_asgns T)
     (* int -> int *)

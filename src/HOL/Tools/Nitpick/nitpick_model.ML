@@ -60,7 +60,7 @@ fun atom_suffix s j =
      ? prefix "\<^isub>,"
 (* string -> typ -> int -> string *)
 fun atom_name prefix (T as Type (s, _)) j =
-    prefix ^ substring (short_name s, 0, 1) ^ atom_suffix s j
+    prefix ^ substring (shortest_name s, 0, 1) ^ atom_suffix s j
   | atom_name prefix (T as TFree (s, _)) j =
     prefix ^ perhaps (try (unprefix "'")) s ^ atom_suffix s j
   | atom_name _ T _ = raise TYPE ("Nitpick_Model.atom_name", [T], [])
@@ -125,7 +125,8 @@ fun make_plain_fun maybe_opt T1 T2 =
         $ aux T1 T2 ps $ t1 $ t2
   in aux T1 T2 o rev end
 (* term -> bool *)
-fun is_plain_fun (Const (s, _)) = s mem [@{const_name undefined}, non_opt_name]
+fun is_plain_fun (Const (s, _)) =
+    (s = @{const_name undefined} orelse s = non_opt_name)
   | is_plain_fun (Const (@{const_name fun_upd}, _) $ t0 $ _ $ _) =
     is_plain_fun t0
   | is_plain_fun _ = false
@@ -350,7 +351,8 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
             val real_j = j + offset_of_type ofs T
             val constr_x as (constr_s, constr_T) =
               get_first (fn (jss, {const, ...}) =>
-                            if [real_j] mem jss then SOME const else NONE)
+                            if member (op =) jss [real_j] then SOME const
+                            else NONE)
                         (discr_jsss ~~ constrs) |> the
             val arg_Ts = curried_binder_types constr_T
             val sel_xs = map (boxed_nth_sel_for_constr ext_ctxt constr_x)
@@ -369,7 +371,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
                                         else NONE)) sel_jsss
             val uncur_arg_Ts = binder_types constr_T
           in
-            if co andalso (T, j) mem seen then
+            if co andalso member (op =) seen (T, j) then
               Var (var ())
             else
               let
@@ -408,7 +410,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
               in
                 if co then
                   let val var = var () in
-                    if exists_subterm (equal (Var var)) t then
+                    if exists_subterm (curry (op =) (Var var)) t then
                       Const (@{const_name The}, (T --> bool_T) --> T)
                       $ Abs ("\<omega>", T,
                              Const (@{const_name "op ="}, [T, T] ---> bool_T)
@@ -449,7 +451,8 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
           val ts1 = map (term_for_rep seen T1 T1 R1 o single) jss1
           val ts2 =
             map (fn js => term_for_rep seen T2 T2 (Atom (2, 0))
-                                       [[int_for_bool (js mem jss)]]) jss1
+                                       [[int_for_bool (member (op =) jss js)]])
+                jss1
         in make_fun false T1 T2 T' ts1 ts2 end
       | term_for_rep seen (Type ("fun", [T1, T2])) T' (Func (R1, R2)) jss =
         let
@@ -517,7 +520,7 @@ fun bisimilar_values _ 0 _ = true
         let
           val ((head1, args1), (head2, args2)) =
             pairself (strip_comb o unfold_outer_the_binders) (t1, t2)
-          val max_depth = max_depth - (if T mem coTs then 1 else 0)
+          val max_depth = max_depth - (if member (op =) coTs T then 1 else 0)
         in
           head1 = head2
           andalso forall (bisimilar_values coTs max_depth) (args1 ~~ args2)
@@ -639,10 +642,12 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
     val (eval_names, noneval_nonskolem_nonsel_names) =
       List.partition (String.isPrefix eval_prefix o nickname_of)
                      nonskolem_nonsel_names
-      ||> filter_out (equal @{const_name bisim_iterator_max} o nickname_of)
+      ||> filter_out (curry (op =) @{const_name bisim_iterator_max}
+                      o nickname_of)
     val free_names =
       map (fn x as (s, T) =>
-              case filter (equal x o pairf nickname_of (unbox_type o type_of))
+              case filter (curry (op =) x
+                           o pairf nickname_of (unbox_type o type_of))
                           free_names of
                 [name] => name
               | [] => FreeName (s, T, Any)
