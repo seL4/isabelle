@@ -409,7 +409,7 @@ fun find_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
 
         val len = length matches;
         val lim = the_default (! limit) opt_limit;
-      in (SOME len, drop (len - lim) matches) end;
+      in (SOME len, drop (Int.max (len - lim, 0)) matches) end;
 
     val find =
       if rem_dups orelse is_none opt_limit
