@@ -111,7 +111,7 @@ sig
   val boxed_constr_for_sel : extended_context -> styp -> styp
   val card_of_type : (typ * int) list -> typ -> int
   val bounded_card_of_type : int -> int -> (typ * int) list -> typ -> int
-  val bounded_precise_card_of_type :
+  val bounded_exact_card_of_type :
     extended_context -> int -> int -> (typ * int) list -> typ -> int
   val is_finite_type : extended_context -> typ -> bool
   val all_axioms_of : theory -> term list * term list * term list
@@ -897,42 +897,42 @@ fun constr_expand (ext_ctxt as {thy, ...}) T t =
          end
 
 (* (typ * int) list -> typ -> int *)
-fun card_of_type asgns (Type ("fun", [T1, T2])) =
-    reasonable_power (card_of_type asgns T2) (card_of_type asgns T1)
-  | card_of_type asgns (Type ("*", [T1, T2])) =
-    card_of_type asgns T1 * card_of_type asgns T2
+fun card_of_type assigns (Type ("fun", [T1, T2])) =
+    reasonable_power (card_of_type assigns T2) (card_of_type assigns T1)
+  | card_of_type assigns (Type ("*", [T1, T2])) =
+    card_of_type assigns T1 * card_of_type assigns T2
   | card_of_type _ (Type (@{type_name itself}, _)) = 1
   | card_of_type _ @{typ prop} = 2
   | card_of_type _ @{typ bool} = 2
   | card_of_type _ @{typ unit} = 1
-  | card_of_type asgns T =
-    case AList.lookup (op =) asgns T of
+  | card_of_type assigns T =
+    case AList.lookup (op =) assigns T of
       SOME k => k
     | NONE => if T = @{typ bisim_iterator} then 0
               else raise TYPE ("Nitpick_HOL.card_of_type", [T], [])
 (* int -> (typ * int) list -> typ -> int *)
-fun bounded_card_of_type max default_card asgns (Type ("fun", [T1, T2])) =
+fun bounded_card_of_type max default_card assigns (Type ("fun", [T1, T2])) =
     let
-      val k1 = bounded_card_of_type max default_card asgns T1
-      val k2 = bounded_card_of_type max default_card asgns T2
+      val k1 = bounded_card_of_type max default_card assigns T1
+      val k2 = bounded_card_of_type max default_card assigns T2
     in
       if k1 = max orelse k2 = max then max
       else Int.min (max, reasonable_power k2 k1)
     end
-  | bounded_card_of_type max default_card asgns (Type ("*", [T1, T2])) =
+  | bounded_card_of_type max default_card assigns (Type ("*", [T1, T2])) =
     let
-      val k1 = bounded_card_of_type max default_card asgns T1
-      val k2 = bounded_card_of_type max default_card asgns T2
+      val k1 = bounded_card_of_type max default_card assigns T1
+      val k2 = bounded_card_of_type max default_card assigns T2
     in if k1 = max orelse k2 = max then max else Int.min (max, k1 * k2) end
-  | bounded_card_of_type max default_card asgns T =
+  | bounded_card_of_type max default_card assigns T =
     Int.min (max, if default_card = ~1 then
-                    card_of_type asgns T
+                    card_of_type assigns T
                   else
-                    card_of_type asgns T
+                    card_of_type assigns T
                     handle TYPE ("Nitpick_HOL.card_of_type", _, _) =>
                            default_card)
 (* extended_context -> int -> (typ * int) list -> typ -> int *)
-fun bounded_precise_card_of_type ext_ctxt max default_card asgns T =
+fun bounded_exact_card_of_type ext_ctxt max default_card assigns T =
   let
     (* typ list -> typ -> int *)
     fun aux avoid T =
@@ -975,12 +975,13 @@ fun bounded_precise_card_of_type ext_ctxt max default_card asgns T =
               else Integer.sum constr_cards
             end)
        | _ => raise SAME ())
-      handle SAME () => AList.lookup (op =) asgns T |> the_default default_card
+      handle SAME () =>
+             AList.lookup (op =) assigns T |> the_default default_card
   in Int.min (max, aux [] T) end
 
 (* extended_context -> typ -> bool *)
 fun is_finite_type ext_ctxt =
-  not_equal 0 o bounded_precise_card_of_type ext_ctxt 1 2 []
+  not_equal 0 o bounded_exact_card_of_type ext_ctxt 1 2 []
 
 (* term -> bool *)
 fun is_ground_term (t1 $ t2) = is_ground_term t1 andalso is_ground_term t2

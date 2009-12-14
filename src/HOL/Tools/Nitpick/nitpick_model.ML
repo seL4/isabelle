@@ -238,7 +238,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
                                   [T1, T1 --> T2] ---> T1 --> T2)
         (* (term * term) list -> term *)
         fun aux [] =
-            if maybe_opt andalso not (is_precise_type datatypes T1) then
+            if maybe_opt andalso not (is_complete_type datatypes T1) then
               insert_const $ Const (unrep, T1) $ empty_const
             else
               empty_const
@@ -262,7 +262,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
                Const (@{const_name None}, _) => aux' ps
              | _ => update_const $ aux' ps $ t1 $ t2)
         fun aux ps =
-          if not (is_precise_type datatypes T1) then
+          if not (is_complete_type datatypes T1) then
             update_const $ aux' ps $ Const (unrep, T1)
             $ (Const (@{const_name Some}, T2' --> T2) $ Const (unknown, T2'))
           else
@@ -601,17 +601,17 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
              Pretty.str oper, Syntax.pretty_term ctxt t2])
       end
     (* dtype_spec -> Pretty.T *)
-    fun pretty_for_datatype ({typ, card, precise, ...} : dtype_spec) =
+    fun pretty_for_datatype ({typ, card, complete, ...} : dtype_spec) =
       Pretty.block (Pretty.breaks
           [Syntax.pretty_typ ctxt (unbox_type typ), Pretty.str "=",
            Pretty.enum "," "{" "}"
                (map (Syntax.pretty_term ctxt o nth_value_of_type typ card)
                     (index_seq 0 card) @
-                (if precise then [] else [Pretty.str unrep]))])
+                (if complete then [] else [Pretty.str unrep]))])
     (* typ -> dtype_spec list *)
     fun integer_datatype T =
       [{typ = T, card = card_of_type card_assigns T, co = false,
-        precise = false, shallow = false, constrs = []}]
+        complete = false, concrete = true, shallow = false, constrs = []}]
       handle TYPE ("Nitpick_HOL.card_of_type", _, _) => []
     val (codatatypes, datatypes) =
       datatypes |> filter_out #shallow

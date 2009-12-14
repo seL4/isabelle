@@ -466,11 +466,11 @@ fun prop_for_comp (a1, a2, Eq, []) =
     PropLogic.SOr (prop_for_exists_eq xs Neg, prop_for_comp (a1, a2, cmp, []))
 
 (* var -> (int -> bool option) -> literal list -> literal list *)
-fun literals_from_assignments max_var asgns lits =
+fun literals_from_assignments max_var assigns lits =
   fold (fn x => fn accum =>
            if AList.defined (op =) lits x then
              accum
-           else case asgns x of
+           else case assigns x of
              SOME b => (x, sign_from_bool b) :: accum
            | NONE => accum) (max_var downto 1) lits
 
@@ -505,10 +505,13 @@ fun solve _ UnsolvableCSet = (print_g "*** Problem: Unsolvable"; NONE)
       val prop = PropLogic.all (map prop_for_literal lits @
                                 map prop_for_comp comps @
                                 map prop_for_sign_expr sexps)
+      (* use the first ML solver (to avoid startup overhead) *)
+      val solvers = !SatSolver.solvers
+                    |> filter (member (op =) ["dptsat", "dpll"] o fst)
     in
-      case SatSolver.invoke_solver "dpll" prop of
-        SatSolver.SATISFIABLE asgns =>
-        SOME (literals_from_assignments max_var asgns lits
+      case snd (hd solvers) prop of
+        SatSolver.SATISFIABLE assigns =>
+        SOME (literals_from_assignments max_var assigns lits
               |> tap print_solution)
       | _ => NONE
     end

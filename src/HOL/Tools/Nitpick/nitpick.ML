@@ -162,7 +162,7 @@ fun passed_deadline NONE = false
   | passed_deadline (SOME time) = Time.compare (Time.now (), time) <> LESS
 
 (* ('a * bool option) list -> bool *)
-fun none_true asgns = forall (not_equal (SOME true) o snd) asgns
+fun none_true assigns = forall (not_equal (SOME true) o snd) assigns
 
 val syntactic_sorts =
   @{sort "{default,zero,one,plus,minus,uminus,times,inverse,abs,sgn,ord,eq}"} @
@@ -413,9 +413,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
                                        string_of_int j0))
                          (Typtab.dest ofs)
 *)
-        val all_precise = forall (is_precise_type datatypes) Ts
+        val all_exact = forall (is_exact_type datatypes) Ts
         (* nut list -> rep NameTable.table -> nut list * rep NameTable.table *)
-        val repify_consts = choose_reps_for_consts scope all_precise
+        val repify_consts = choose_reps_for_consts scope all_exact
         val main_j0 = offset_of_type ofs bool_T
         val (nat_card, nat_j0) = spec_of_type scope nat_T
         val (int_card, int_j0) = spec_of_type scope int_T
