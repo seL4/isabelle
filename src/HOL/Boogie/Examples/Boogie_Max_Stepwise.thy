@@ -50,7 +50,7 @@ boogie_status (full) max -- {* shows the state of all assertions
 text {* Let's find out which assertions of @{text max} are hard to prove: *}
 
 boogie_status (narrow timeout: 4) max
-  (try: (simp add: labels, (fast | blast)?))
+  (try: (simp add: labels, (fast | metis)?))
   -- {* The argument @{text timeout} is optional, restricting the runtime of
         each narrowing step by the given number of seconds. *}
   -- {* The tag @{text try} expects a method to be applied at each narrowing
