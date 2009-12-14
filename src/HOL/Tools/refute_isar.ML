@@ -12,8 +12,9 @@ struct
 
 (*optional list of arguments of the form [name1=value1, name2=value2, ...]*)
 
-val scan_parm = OuterParse.name -- (OuterParse.$$$ "=" |-- OuterParse.name);
-
+val scan_parm =
+  OuterParse.name
+  -- (Scan.optional (OuterParse.$$$ "=" |-- OuterParse.name) "true")
 val scan_parms = Scan.optional
   (OuterParse.$$$ "[" |-- OuterParse.list scan_parm --| OuterParse.$$$ "]") [];
 
@@ -27,9 +28,9 @@ val _ =
       (fn (parms, i) =>
         Toplevel.keep (fn state =>
           let
-            val thy = Toplevel.theory_of state;
+            val ctxt = Toplevel.context_of state;
             val {goal = st, ...} = Proof.raw_goal (Toplevel.proof_of state);
-          in Refute.refute_goal thy parms st i end)));
+          in Refute.refute_goal ctxt parms st i end)));
 
 
 (* 'refute_params' command *)
