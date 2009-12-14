@@ -11,7 +11,8 @@ theory Pattern_Nits
 imports Main
 begin
 
-nitpick_params [card = 14]
+nitpick_params [sat_solver = MiniSatJNI, max_threads = 1, timeout = 60 s,
+                card = 14]
 
 lemma "x = (case u of () \<Rightarrow> y)"
 nitpick [expect = genuine]

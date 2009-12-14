@@ -137,7 +137,7 @@ nitpick [expect = none]
 by (rule Inl_Rep_not_Inr_Rep)
 
 lemma "Abs_Sum (Rep_Sum a) = a"
-nitpick [card = 1\<midarrow>2, timeout = 30 s, expect = none]
+nitpick [card = 1\<midarrow>2, timeout = 60 s, expect = none]
 by (rule Rep_Sum_inverse)
 
 lemma "0::nat \<equiv> Abs_Nat Zero_Rep"
@@ -157,15 +157,15 @@ nitpick [expect = none]
 by (rule Rep_Nat_inverse)
 
 lemma "0 \<equiv> Abs_Integ (intrel `` {(0, 0)})"
-nitpick [card = 1, timeout = 30 s, max_potential = 0, expect = none]
+nitpick [card = 1, timeout = 60 s, max_potential = 0, expect = none]
 by (rule Zero_int_def_raw)
 
 lemma "Abs_Integ (Rep_Integ a) = a"
-nitpick [card = 1, timeout = 30 s, max_potential = 0, expect = none]
+nitpick [card = 1, timeout = 60 s, max_potential = 0, expect = none]
 by (rule Rep_Integ_inverse)
 
 lemma "Abs_list (Rep_list a) = a"
-nitpick [card = 1\<midarrow>2, timeout = 30 s, expect = none]
+nitpick [card = 1\<midarrow>2, timeout = 60 s, expect = none]
 by (rule Rep_list_inverse)
 
 record point =

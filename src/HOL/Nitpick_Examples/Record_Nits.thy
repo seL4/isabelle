@@ -11,6 +11,8 @@ theory Record_Nits
 imports Main
 begin
 
+nitpick_params [sat_solver = MiniSatJNI, max_threads = 1, timeout = 60 s]
+
 record point2d =
   xc :: int
   yc :: int

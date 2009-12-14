@@ -11,7 +11,8 @@ theory Special_Nits
 imports Main
 begin
 
-nitpick_params [card = 4, debug, show_consts, timeout = 10 s]
+nitpick_params [sat_solver = MiniSatJNI, max_threads = 1, timeout = 60 s,
+                card = 4]
 
 fun f1 :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat" where
 "f1 a b c d e = a + b + c + d + e"

@@ -11,7 +11,7 @@ theory Core_Nits
 imports Main
 begin
 
-nitpick_params [sat_solver = MiniSatJNI]
+nitpick_params [sat_solver = MiniSatJNI, max_threads = 1, timeout = 60 s]
 
 subsection {* Curry in a Hurry *}
 
