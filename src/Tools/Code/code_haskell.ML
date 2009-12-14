@@ -330,11 +330,12 @@ fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
     fun deriving_show tyco =
       let
         fun deriv _ "fun" = false
-          | deriv tycos tyco = member (op =) tycos tyco orelse
-              case try (Graph.get_node program) tyco
+          | deriv tycos tyco = not (tyco = Code_Thingol.fun_tyco)
+              andalso (member (op =) tycos tyco
+              orelse case try (Graph.get_node program) tyco
                 of SOME (Code_Thingol.Datatype (_, (_, cs))) => forall (deriv' (tyco :: tycos))
                     (maps snd cs)
-                 | NONE => true
+                 | NONE => true)
         and deriv' tycos (tyco `%% tys) = deriv tycos tyco
               andalso forall (deriv' tycos) tys
           | deriv' _ (ITyVar _) = true
