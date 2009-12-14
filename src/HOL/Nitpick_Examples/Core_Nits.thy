@@ -11,6 +11,8 @@ theory Core_Nits
 imports Main
 begin
 
+nitpick_params [sat_solver = MiniSatJNI]
+
 subsection {* Curry in a Hurry *}
 
 lemma "(\<lambda>f x y. (curry o split) f x y) = (\<lambda>f x y. (\<lambda>x. x) f x y)"
@@ -135,7 +137,7 @@ nitpick [card = 1\<midarrow>100, expect = none]
 by (auto simp: Id_def Collect_def)
 
 lemma "Id ((a\<Colon>'a, b\<Colon>'a), (a, b))"
-nitpick [card = 1\<midarrow>20, expect = none]
+nitpick [card = 1\<midarrow>10, expect = none]
 by (auto simp: Id_def Collect_def)
 
 lemma "UNIV (x\<Colon>'a\<times>'a)"
