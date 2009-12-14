@@ -36,6 +36,7 @@ end;
 signature CODE_THINGOL =
 sig
   include BASIC_CODE_THINGOL
+  val fun_tyco: string
   val unfoldl: ('a -> ('a * 'b) option) -> 'a -> 'a * 'b list
   val unfoldr: ('a -> ('b * 'a) option) -> 'a -> 'b list * 'a
   val unfold_fun: itype -> itype list * itype
@@ -388,8 +389,10 @@ fun ensure_declared_const thy const naming =
    of SOME const' => (const', naming)
     | NONE => declare_const thy const naming;
 
+val fun_tyco = "Pure.fun.tyco" (*depends on suffix_tyco and namify_tyco!*);
+
 val unfold_fun = unfoldr
-  (fn "Pure.fun.tyco" `%% [ty1, ty2] => SOME (ty1, ty2)
+  (fn tyco `%% [ty1, ty2] => if tyco = fun_tyco then SOME (ty1, ty2) else NONE
     | _ => NONE); (*depends on suffix_tyco and namify_tyco!*)
 
 end; (* local *)
