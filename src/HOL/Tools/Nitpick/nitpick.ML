@@ -133,7 +133,7 @@ fun pretties_for_formulas _ _ [] = []
     [Pretty.str (s ^ plural_s_for_list ts ^ ":"),
      Pretty.indent indent_size (Pretty.chunks
          (map2 (fn j => fn t =>
-                   Pretty.block [t |> shorten_const_names_in_term
+                   Pretty.block [t |> shorten_names_in_term
                                    |> Syntax.pretty_term ctxt,
                                  Pretty.str (if j = 1 then "." else ";")])
                (length ts downto 1) ts))]
@@ -315,7 +315,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
                      (core_u :: def_us @ nondef_us)
 *)
 
-    val unique_scope = forall (equal 1 o length o snd) cards_assigns
+    val unique_scope = forall (curry (op =) 1 o length o snd) cards_assigns
     (* typ -> bool *)
     fun is_free_type_monotonic T =
       unique_scope orelse
@@ -331,7 +331,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
         orelse is_number_type thy T
         orelse formulas_monotonic ext_ctxt T def_ts nondef_ts core_t
     fun is_datatype_shallow T =
-      not (exists (equal T o domain_type o type_of) sel_names)
+      not (exists (curry (op =) T o domain_type o type_of) sel_names)
     val Ts = ground_types_in_terms ext_ctxt (core_t :: def_ts @ nondef_ts)
              |> sort TermOrd.typ_ord
     val (all_dataTs, all_free_Ts) =
@@ -375,8 +375,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
     val need_incremental = Int.max (max_potential, max_genuine) >= 2
     val effective_sat_solver =
       if sat_solver <> "smart" then
-        if need_incremental andalso
-           not (sat_solver mem Kodkod_SAT.configured_sat_solvers true) then
+        if need_incremental
+           andalso not (member (op =) (Kodkod_SAT.configured_sat_solvers true)
+                               sat_solver) then
           (print_m (K ("An incremental SAT solver is required: \"SAT4J\" will \
                        \be used instead of " ^ quote sat_solver ^ "."));
            "SAT4J")
@@ -418,7 +419,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
         val main_j0 = offset_of_type ofs bool_T
         val (nat_card, nat_j0) = spec_of_type scope nat_T
         val (int_card, int_j0) = spec_of_type scope int_T
-        val _ = forall (equal main_j0) [nat_j0, int_j0]
+        val _ = (nat_j0 = main_j0 andalso int_j0 = main_j0)
                 orelse raise BAD ("Nitpick.pick_them_nits_in_term.\
                                   \problem_for_scope", "bad offsets")
         val kk = kodkod_constrs peephole_optim nat_card int_card main_j0
@@ -663,7 +664,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
                 let
                   val num_genuine = take max_potential lib_ps
                                     |> map (print_and_check false)
-                                    |> filter (equal (SOME true)) |> length
+                                    |> filter (curry (op =) (SOME true))
+                                    |> length
                   val max_genuine = max_genuine - num_genuine
                   val max_potential = max_potential
                                       - (length lib_ps - num_genuine)
@@ -859,8 +861,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
              error "Nitpick was interrupted."
 
 (* Proof.state -> params -> bool -> term -> string * Proof.state *)
-fun pick_nits_in_term state (params as {debug, timeout, expect, ...})
-                      auto orig_assm_ts orig_t =
+fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) auto
+                      orig_assm_ts orig_t =
   if getenv "KODKODI" = "" then
     (if auto then ()
      else warning (Pretty.string_of (plazy install_kodkodi_message));
@@ -878,7 +880,7 @@ fun pick_nits_in_term state (params as {debug, timeout, expect, ...})
     end
 
 (* Proof.state -> params -> thm -> int -> string * Proof.state *)
-fun pick_nits_in_subgoal state params auto subgoal =
+fun pick_nits_in_subgoal state params auto i =
   let
     val ctxt = Proof.context_of state
     val t = state |> Proof.raw_goal |> #goal |> prop_of
@@ -888,7 +890,7 @@ fun pick_nits_in_subgoal state params auto subgoal =
     else
       let
         val assms = map term_of (Assumption.all_assms_of ctxt)
-        val (t, frees) = Logic.goal_params t subgoal
+        val (t, frees) = Logic.goal_params t i
       in pick_nits_in_term state params auto assms (subst_bounds (frees, t)) end
   end
 

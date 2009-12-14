@@ -996,7 +996,7 @@ val fudge_ms = 250
 (* bool -> Time.time option -> int -> int -> problem list -> outcome *)
 fun solve_any_problem overlord deadline max_threads max_solutions problems =
   let
-    val j = find_index (equal True o #formula) problems
+    val j = find_index (curry (op =) True o #formula) problems
     val indexed_problems = if j >= 0 then
                              [(j, nth problems j)]
                            else

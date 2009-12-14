@@ -716,16 +716,16 @@ fun choose_rep_for_const (scope as {ext_ctxt as {thy, ctxt, ...}, datatypes,
              else if is_rep_fun thy x then
                Func oo best_non_opt_symmetric_reps_for_fun_type
              else if all_precise orelse is_skolem_name v
-                     orelse original_name s
-                            mem [@{const_name undefined_fast_The},
-                                 @{const_name undefined_fast_Eps},
-                                 @{const_name bisim},
-                                 @{const_name bisim_iterator_max}] then
+                     orelse member (op =) [@{const_name undefined_fast_The},
+                                           @{const_name undefined_fast_Eps},
+                                           @{const_name bisim},
+                                           @{const_name bisim_iterator_max}]
+                                          (original_name s) then
                best_non_opt_set_rep_for_type
-             else if original_name s
-                     mem [@{const_name set}, @{const_name distinct},
-                          @{const_name ord_class.less},
-                          @{const_name ord_class.less_eq}] then
+             else if member (op =) [@{const_name set}, @{const_name distinct},
+                                    @{const_name ord_class.less},
+                                    @{const_name ord_class.less_eq}]
+                                   (original_name s) then
                best_set_rep_for_type
              else
                best_opt_set_rep_for_type) scope T
@@ -934,20 +934,21 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
             Cst (NormFrac, T, Func (R1, Func (R1, Opt (Struct [R1, R1]))))
           end
         | Cst (cst, T, _) =>
-          if cst mem [Unknown, Unrep] then
+          if cst = Unknown orelse cst = Unrep then
             case (is_boolean_type T, polar) of
               (true, Pos) => Cst (False, T, Formula Pos)
             | (true, Neg) => Cst (True, T, Formula Neg)
             | _ => Cst (cst, T, best_opt_set_rep_for_type scope T)
-          else if cst mem [Add, Subtract, Multiply, Divide, Modulo, Gcd,
-                           Lcm] then
+          else if member (op =) [Add, Subtract, Multiply, Divide, Modulo, Gcd,
+                                 Lcm] cst then
             let
               val T1 = domain_type T
               val R1 = Atom (spec_of_type scope T1)
               val total =
-                T1 = nat_T andalso cst mem [Subtract, Divide, Modulo, Gcd]
+                T1 = nat_T andalso (cst = Subtract orelse cst = Divide
+                                    orelse cst = Modulo orelse cst = Gcd)
             in Cst (cst, T, Func (R1, Func (R1, (not total ? Opt) R1))) end
-          else if cst mem [NatToInt, IntToNat] then
+          else if cst = NatToInt orelse cst = IntToNat then
             let
               val (nat_card, nat_j0) = spec_of_type scope nat_T
               val (int_card, int_j0) = spec_of_type scope int_T
@@ -1113,7 +1114,7 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
              in s_op2 Lambda T R u1' u2' end
            | R => raise NUT ("Nitpick_Nut.aux.choose_reps_in_nut", [u]))
         | Op2 (oper, T, _, u1, u2) =>
-          if oper mem [All, Exist] then
+          if oper = All orelse oper = Exist then
             let
               val table' = fold (choose_rep_for_bound_var scope) (untuple I u1)
                                 table
@@ -1140,7 +1141,7 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
                     end
                 end
             end
-          else if oper mem [Or, And] then
+          else if oper = Or orelse oper = And then
             let
               val u1' = gsub def polar u1
               val u2' = gsub def polar u2
@@ -1159,7 +1160,7 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
                  raise SAME ())
               handle SAME () => s_op2 oper T (Formula polar) u1' u2'
             end
-          else if oper mem [The, Eps] then
+          else if oper = The orelse oper = Eps then
             let
               val u1' = sub u1
               val opt1 = is_opt_rep (rep_of u1')
@@ -1210,7 +1211,7 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
           let
             val Rs = map (best_one_rep_for_type scope o type_of) us
             val us = map sub us
-            val R = if forall (equal Unit) Rs then Unit else Struct Rs
+            val R = if forall (curry (op =) Unit) Rs then Unit else Struct Rs
             val R' = (exists (is_opt_rep o rep_of) us ? opt_rep ofs T) R
           in s_tuple T R' us end
         | Construct (us', T, _, us) =>
@@ -1331,7 +1332,7 @@ fun rename_vars_in_nut pool table u =
     Cst _ => u
   | Op1 (oper, T, R, u1) => Op1 (oper, T, R, rename_vars_in_nut pool table u1)
   | Op2 (oper, T, R, u1, u2) =>
-    if oper mem [All, Exist, Lambda] then
+    if oper = All orelse oper = Exist orelse oper = Lambda then
       let
         val (_, pool, table) = fold (rename_n_ary_var false) (untuple I u1)
                                     ([], pool, table)

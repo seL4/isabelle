@@ -101,7 +101,7 @@ val string_for_ctype =
            string_for_sign_atom a ^ "\<^esup> " ^ aux prec C2
          | CPair (C1, C2) => aux (prec + 1) C1 ^ " \<times> " ^ aux prec C2
          | CType (s, []) =>
-           if s mem [@{type_name prop}, @{type_name bool}] then "o" else s
+           if s = @{type_name prop} orelse s = @{type_name bool} then "o" else s
          | CType (s, Cs) => "(" ^ commas (map (aux 0) Cs) ^ ") " ^ s
          | CRec (s, _) => "[" ^ s ^ "]") ^
         (if need_parens then ")" else "")
@@ -125,9 +125,10 @@ fun could_exist_alpha_subtype alpha_T (T as Type (_, Ts)) =
                         andalso exists (could_exist_alpha_subtype alpha_T) Ts)
   | could_exist_alpha_subtype alpha_T T = (T = alpha_T)
 (* theory -> typ -> typ -> bool *)
-fun could_exist_alpha_sub_ctype _ (alpha_T as TFree _) =
-    could_exist_alpha_subtype alpha_T
-  | could_exist_alpha_sub_ctype thy alpha_T = equal alpha_T orf is_datatype thy
+fun could_exist_alpha_sub_ctype _ (alpha_T as TFree _) T =
+    could_exist_alpha_subtype alpha_T T
+  | could_exist_alpha_sub_ctype thy alpha_T T =
+    (T = alpha_T orelse is_datatype thy T)
 
 (* ctype -> bool *)
 fun exists_alpha_sub_ctype CAlpha = true
@@ -164,7 +165,7 @@ fun repair_ctype _ _ CAlpha = CAlpha
   | repair_ctype cache seen (CRec (z as (s, _))) =
     case AList.lookup (op =) cache z |> the of
       CRec _ => CType (s, [])
-    | C => if C mem seen then CType (s, [])
+    | C => if member (op =) seen C then CType (s, [])
            else repair_ctype cache (C :: seen) C
 
 (* ((string * typ list) * ctype) list Unsynchronized.ref -> unit *)
@@ -490,7 +491,7 @@ fun print_problem lits comps sexps =
 
 (* literal list -> unit *)
 fun print_solution lits =
-  let val (pos, neg) = List.partition (equal Pos o snd) lits in
+  let val (pos, neg) = List.partition (curry (op =) Pos o snd) lits in
     print_g ("*** Solution:\n" ^
              "+: " ^ commas (map (string_for_var o fst) pos) ^ "\n" ^
              "-: " ^ commas (map (string_for_var o fst) neg))
