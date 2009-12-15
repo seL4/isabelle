@@ -42,7 +42,7 @@ class Output_Dockable(view: View, position: String) extends JPanel
     loop {
       react {
         case cmd: Command =>
-          Document_Model(view.getBuffer) match {
+          Swing_Thread.now { Document_Model(view.getBuffer) } match {
             case None =>
             case Some(model) =>
               val body =

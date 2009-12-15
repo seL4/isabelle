@@ -40,6 +40,7 @@ object Document_View
 
   def init(model: Document_Model, text_area: TextArea): Document_View =
   {
+    Swing_Thread.assert()
     val doc_view = new Document_View(model, text_area)
     text_area.putClientProperty(key, doc_view)
     doc_view.activate()
@@ -48,6 +49,7 @@ object Document_View
 
   def apply(text_area: TextArea): Option[Document_View] =
   {
+    Swing_Thread.assert()
     text_area.getClientProperty(key) match {
       case doc_view: Document_View => Some(doc_view)
       case _ => None
@@ -56,6 +58,7 @@ object Document_View
 
   def exit(text_area: TextArea)
   {
+    Swing_Thread.assert()
     apply(text_area) match {
       case None => error("No document view for text area: " + text_area)
       case Some(doc_view) =>

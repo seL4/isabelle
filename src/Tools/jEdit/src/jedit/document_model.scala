@@ -26,6 +26,7 @@ object Document_Model
 
   def init(session: Session, buffer: Buffer): Document_Model =
   {
+    Swing_Thread.assert()
     val model = new Document_Model(session, buffer)
     buffer.setProperty(key, model)
     model.activate()
@@ -34,6 +35,7 @@ object Document_Model
 
   def apply(buffer: Buffer): Option[Document_Model] =
   {
+    Swing_Thread.assert()
     buffer.getProperty(key) match {
       case model: Document_Model => Some(model)
       case _ => None
@@ -42,6 +44,7 @@ object Document_Model
 
   def exit(buffer: Buffer)
   {
+    Swing_Thread.assert()
     apply(buffer) match {
       case None => error("No document model for buffer: " + buffer)
       case Some(model) =>

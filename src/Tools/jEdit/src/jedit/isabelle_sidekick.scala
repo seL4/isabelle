@@ -36,11 +36,12 @@ class Isabelle_Sidekick extends SideKickParser("isabelle")
 
     stopped = false
 
+    // FIXME lock buffer !??
     val data = new SideKickParsedData(buffer.getName)
     val root = data.root
     data.getAsset(root).setEnd(buffer.getLength)
 
-    Document_Model(buffer) match {
+    Swing_Thread.now { Document_Model(buffer) } match {
       case Some(model) =>
         val document = model.current_document()
         for (command <- document.commands if !stopped) {
