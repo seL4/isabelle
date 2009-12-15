@@ -23,7 +23,7 @@ Requirements to build from sources
   Netbeans Library "ErrorList" = $HOME/.jedit/jars/ErrorList.jar
   Netbeans Library "Hyperlinks" = $HOME/.jedit/jars/Hyperlinks.jar
 
-* Cobra Renderer
+* Cobra Renderer 0.98.4
   http://lobobrowser.org/cobra.jsp
   Netbeans Library "Cobra-Renderer" = .../cobra.jar
   Netbenas Library "Rhino-JavaScript" = .../js.jar
