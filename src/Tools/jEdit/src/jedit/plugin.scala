@@ -143,19 +143,22 @@ class Plugin extends EBPlugin
         val buffer = edit_pane.getBuffer
         val text_area = edit_pane.getTextArea
 
+        def init_view()
+        {
+          Document_Model.get(buffer) match {
+            case Some(model) => Document_View.init(model, text_area)
+            case None =>
+          }
+        }
+        def exit_view()
+        {
+          if (Document_View.get(text_area).isDefined)
+            Document_View.exit(text_area)
+        }
         msg.getWhat match {
-          case EditPaneUpdate.BUFFER_CHANGED =>
-            if (Document_View.get(text_area).isDefined)
-              Document_View.exit(text_area)
-            Document_Model.get(buffer) match {
-              case Some(model) => Document_View.init(model, text_area)
-              case None =>
-            }
-
-          case EditPaneUpdate.DESTROYED =>
-            if (Document_View.get(text_area).isDefined)
-              Document_View.exit(text_area)
-
+          case EditPaneUpdate.BUFFER_CHANGED => exit_view(); init_view()
+          case EditPaneUpdate.CREATED => init_view()
+          case EditPaneUpdate.DESTROYED => exit_view()
           case _ =>
         }
 
