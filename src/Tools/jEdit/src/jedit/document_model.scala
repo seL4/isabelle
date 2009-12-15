@@ -32,7 +32,7 @@ object Document_Model
     model
   }
 
-  def get(buffer: Buffer): Option[Document_Model] =
+  def apply(buffer: Buffer): Option[Document_Model] =
   {
     buffer.getProperty(key) match {
       case model: Document_Model => Some(model)
@@ -42,7 +42,7 @@ object Document_Model
 
   def exit(buffer: Buffer)
   {
-    get(buffer) match {
+    apply(buffer) match {
       case None => error("No document model for buffer: " + buffer)
       case Some(model) =>
         model.deactivate()

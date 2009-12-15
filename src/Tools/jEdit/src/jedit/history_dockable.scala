@@ -23,7 +23,7 @@ class History_Dockable(view: View, position: String) extends FlowPanel
     preferredSize = new Dimension(500, 250)
 
   def get_versions() =
-    Document_Model.get(view.getBuffer) match {
+    Document_Model(view.getBuffer) match {
       case None => Nil
       case Some(model) => model.changes
     }
@@ -36,9 +36,9 @@ class History_Dockable(view: View, position: String) extends FlowPanel
   listenTo(list.selection)
   reactions += {
     case ListSelectionChanged(source, range, false) =>
-      Document_Model.get(view.getBuffer).map(_.set_version(list.listData(range.start)))
+      Document_Model(view.getBuffer).map(_.set_version(list.listData(range.start)))
   }
 
-  if (Document_Model.get(view.getBuffer).isDefined)
+  if (Document_Model(view.getBuffer).isDefined)
     Isabelle.session.document_change += (_ => list.listData = get_versions())
 }

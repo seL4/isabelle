@@ -45,7 +45,7 @@ class Isabelle_Hyperlinks extends HyperlinkSource
 {
 	def getHyperlink(buffer: Buffer, original_offset: Int): Hyperlink =
 	{
-    Document_Model.get(buffer) match {
+    Document_Model(buffer) match {
       case Some(model) =>
         val document = model.current_document()
         val offset = model.from_current(document, original_offset)

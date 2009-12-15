@@ -40,7 +40,7 @@ class Isabelle_Sidekick extends SideKickParser("isabelle")
     val root = data.root
     data.getAsset(root).setEnd(buffer.getLength)
 
-    Document_Model.get(buffer) match {
+    Document_Model(buffer) match {
       case Some(model) =>
         val document = model.current_document()
         for (command <- document.commands if !stopped) {

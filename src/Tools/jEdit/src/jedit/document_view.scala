@@ -46,7 +46,7 @@ object Document_View
     doc_view
   }
 
-  def get(text_area: TextArea): Option[Document_View] =
+  def apply(text_area: TextArea): Option[Document_View] =
   {
     text_area.getClientProperty(key) match {
       case doc_view: Document_View => Some(doc_view)
@@ -56,7 +56,7 @@ object Document_View
 
   def exit(text_area: TextArea)
   {
-    get(text_area) match {
+    apply(text_area) match {
       case None => error("No document view for text area: " + text_area)
       case Some(doc_view) =>
         doc_view.deactivate()

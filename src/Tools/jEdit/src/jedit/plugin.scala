@@ -122,12 +122,12 @@ object Isabelle
   def switch_active(view: View) =
   {
     val buffer = view.getBuffer
-    if (Document_Model.get(buffer).isDefined) deactivate_buffer(buffer)
+    if (Document_Model(buffer).isDefined) deactivate_buffer(buffer)
     else activate_buffer(buffer)
   }
 
   def is_active(view: View): Boolean =
-    Document_Model.get(view.getBuffer).isDefined
+    Document_Model(view.getBuffer).isDefined
 }
 
 
@@ -145,14 +145,14 @@ class Plugin extends EBPlugin
 
         def init_view()
         {
-          Document_Model.get(buffer) match {
+          Document_Model(buffer) match {
             case Some(model) => Document_View.init(model, text_area)
             case None =>
           }
         }
         def exit_view()
         {
-          if (Document_View.get(text_area).isDefined)
+          if (Document_View(text_area).isDefined)
             Document_View.exit(text_area)
         }
         msg.getWhat match {
