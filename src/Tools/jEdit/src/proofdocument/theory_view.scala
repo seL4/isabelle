@@ -9,17 +9,17 @@
 package isabelle.proofdocument
 
 
+import isabelle.jedit.{Document_Overview, Isabelle, Isabelle_Token_Marker}  // FIXME wrong layer
+
 import scala.actors.Actor, Actor._
 import scala.collection.mutable
 
 import java.awt.{Color, Graphics2D}
 import javax.swing.event.{CaretListener, CaretEvent}
 
-import org.gjt.sp.jedit.buffer.{BufferListener, JEditBuffer}
+import org.gjt.sp.jedit.buffer.{BufferAdapter, BufferListener, JEditBuffer}
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextAreaExtension, TextAreaPainter}
 import org.gjt.sp.jedit.syntax.{ModeProvider, SyntaxStyle}
-
-import isabelle.jedit.{Document_Overview, Isabelle, Isabelle_Token_Marker}  // FIXME wrong layer
 
 
 object Theory_View
@@ -78,8 +78,8 @@ class Theory_View(session: Session, text_area: JEditTextArea)
 
   /* buffer_listener */
 
-  private val buffer_listener = new BufferListener {
-    override def preContentInserted(buffer: JEditBuffer,
+  private val buffer_listener: BufferListener = new BufferAdapter {
+    override def contentInserted(buffer: JEditBuffer,
       start_line: Int, offset: Int, num_lines: Int, length: Int)
     {
       edits += Insert(offset, buffer.getText(offset, length))
@@ -92,17 +92,6 @@ class Theory_View(session: Session, text_area: JEditTextArea)
       edits += Remove(start, buffer.getText(start, removed_length))
       edits_delay()
     }
-
-    override def contentInserted(buffer: JEditBuffer,
-      start_line: Int, offset: Int, num_lines: Int, length: Int) { }
-
-    override def contentRemoved(buffer: JEditBuffer,
-      start_line: Int, offset: Int, num_lines: Int, length: Int) { }
-
-    override def bufferLoaded(buffer: JEditBuffer) { }
-    override def foldHandlerChanged(buffer: JEditBuffer) { }
-    override def foldLevelChanged(buffer: JEditBuffer, start_line: Int, end_line: Int) { }
-    override def transactionComplete(buffer: JEditBuffer) { }
   }
 
 
