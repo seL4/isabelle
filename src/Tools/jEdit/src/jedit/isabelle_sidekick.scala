@@ -40,9 +40,9 @@ class Isabelle_Sidekick extends SideKickParser("isabelle")
     val root = data.root
     data.getAsset(root).setEnd(buffer.getLength)
 
-    Isabelle.plugin.theory_view(buffer) match {
-      case Some(theory_view) =>
-        val document = theory_view.current_document()
+    Document_Model.get(buffer) match {
+      case Some(model) =>
+        val document = model.current_document()
         for (command <- document.commands if !stopped) {
           root.add(command.markup_root(document).swing_tree((node: Markup_Node) =>
               {

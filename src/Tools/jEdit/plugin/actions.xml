@@ -4,10 +4,10 @@
 <ACTIONS>
   <ACTION NAME="isabelle.activate">
 		<CODE>
-			isabelle.jedit.Isabelle.plugin().switch_active(view);
+			isabelle.jedit.Isabelle.switch_active(view);
 		</CODE>
 		<IS_SELECTED>
-			return isabelle.jedit.Isabelle.plugin().is_active(view.getBuffer());
+			return isabelle.jedit.Isabelle.is_active(view);
 		</IS_SELECTED>
 	</ACTION>
 	<ACTION NAME="isabelle.show-output">

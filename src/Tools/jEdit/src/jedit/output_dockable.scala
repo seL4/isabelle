@@ -42,13 +42,12 @@ class Output_Dockable(view: View, position: String) extends JPanel
     loop {
       react {
         case cmd: Command =>
-          Isabelle.plugin.theory_view(view.getBuffer)  // FIXME total!?!
-          match {
+          Document_Model.get(view.getBuffer) match {
             case None =>
-            case Some(theory_view) =>
+            case Some(model) =>
               val body =
                 if (cmd == null) Nil  // FIXME ??
-                else cmd.results(theory_view.current_document)
+                else cmd.results(model.current_document)
               html_panel.render(body)
           }
           

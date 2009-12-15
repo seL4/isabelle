@@ -9,7 +9,7 @@
 package isabelle.jedit
 
 
-import isabelle.proofdocument.{Session, Theory_View}
+import isabelle.proofdocument.Session
 
 import java.io.{FileInputStream, IOException}
 import java.awt.Font
@@ -25,6 +25,13 @@ import org.gjt.sp.jedit.msg.{EditPaneUpdate, PropertiesChanged}
 
 object Isabelle
 {
+  /* plugin instance */
+
+  var plugin: Plugin = null
+  var system: Isabelle_System = null
+  var session: Session = null
+
+
   /* name */
 
   val NAME = "Isabelle"
@@ -66,7 +73,7 @@ object Isabelle
   {
     val modes = system.getenv("JEDIT_PRINT_MODE").split(",").toList.map("-m" + _)
     val logic = {
-      val logic = Isabelle.Property("logic")
+      val logic = Property("logic")
       if (logic != null && logic != "") logic
       else default_logic()
     }
@@ -74,67 +81,87 @@ object Isabelle
   }
 
 
-  /* plugin instance */
+  /* main jEdit components */  // FIXME ownership!?
 
-  var plugin: Plugin = null
-  var system: Isabelle_System = null
-  var session: Session = null
+  def jedit_buffers(): Iterator[Buffer] = Iterator.fromArray(jEdit.getBuffers())
+
+  def jedit_views(): Iterator[View] = Iterator.fromArray(jEdit.getViews())
+
+  def jedit_text_areas(view: View): Iterator[JEditTextArea] =
+    Iterator.fromArray(view.getEditPanes).map(_.getTextArea)
+
+  def jedit_text_areas(): Iterator[JEditTextArea] =
+    jedit_views().flatMap(jedit_text_areas(_))
+
+  def jedit_text_areas(buffer: JEditBuffer): Iterator[JEditTextArea] =
+    jedit_text_areas().filter(_.getBuffer == buffer)
+
+
+  /* activation */
+
+  def activate_buffer(buffer: Buffer)
+  {
+    val model = Document_Model.init(session, buffer)
+    for (text_area <- jedit_text_areas(buffer))
+      Document_View.init(model, text_area)
+
+    session.start(Isabelle.isabelle_args())
+    // FIXME theory_view.activate()
+    session.begin_document(buffer.getName)
+  }
+
+  def deactivate_buffer(buffer: Buffer)
+  {
+    session.stop()  // FIXME not yet
+
+    for (text_area <- jedit_text_areas(buffer))
+      Document_View.exit(text_area)
+    Document_Model.exit(buffer)
+  }
+
+  def switch_active(view: View) =
+  {
+    val buffer = view.getBuffer
+    if (Document_Model.get(buffer).isDefined) deactivate_buffer(buffer)
+    else activate_buffer(buffer)
+  }
+
+  def is_active(view: View): Boolean =
+    Document_Model.get(view.getBuffer).isDefined
 }
 
 
 class Plugin extends EBPlugin
 {
-  /* mapping buffer <-> theory view */
-
-  private var mapping = Map[JEditBuffer, Theory_View]()
-
-  private def install(view: View)
-  {
-    val text_area = view.getTextArea
-    val buffer = view.getBuffer
-
- 
-    val theory_view = new Theory_View(Isabelle.session, text_area)   // FIXME multiple text areas!?
-    mapping += (buffer -> theory_view)
-
-    Isabelle.session.start(Isabelle.isabelle_args())
-    theory_view.activate()
-    Isabelle.session.begin_document(buffer.getName)
-  }
-
-  private def uninstall(view: View)
-  {
-    val buffer = view.getBuffer
-    Isabelle.session.stop()
-    mapping(buffer).deactivate()
-    mapping -= buffer
-  }
-
-  def switch_active(view: View) =
-    if (mapping.isDefinedAt(view.getBuffer)) uninstall(view)
-    else install(view)
-
-  def theory_view(buffer: JEditBuffer): Option[Theory_View] = mapping.get(buffer)
-  def is_active(buffer: JEditBuffer) = mapping.isDefinedAt(buffer)
-
-
   /* main plugin plumbing */
 
   override def handleMessage(message: EBMessage)
   {
     message match {
       case msg: EditPaneUpdate =>
-        val buffer = msg.getEditPane.getBuffer
+        val edit_pane = msg.getEditPane
+        val buffer = edit_pane.getBuffer
+        val text_area = edit_pane.getTextArea
+
         msg.getWhat match {
           case EditPaneUpdate.BUFFER_CHANGED =>
-            theory_view(buffer)map(_.activate)
-          case EditPaneUpdate.BUFFER_CHANGING =>
-            if (buffer != null)
-              theory_view(buffer).map(_.deactivate)
+            if (Document_View.get(text_area).isDefined)
+              Document_View.exit(text_area)
+            Document_Model.get(buffer) match {
+              case Some(model) => Document_View.init(model, text_area)
+              case None =>
+            }
+
+          case EditPaneUpdate.DESTROYED =>
+            if (Document_View.get(text_area).isDefined)
+              Document_View.exit(text_area)
+
           case _ =>
         }
+
       case msg: PropertiesChanged =>
         Isabelle.session.global_settings.event(())
+
       case _ =>
     }
   }
