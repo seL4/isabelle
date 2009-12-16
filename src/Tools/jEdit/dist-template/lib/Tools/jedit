@@ -76,7 +76,7 @@ getoptions()
   done
 }
 
-declare -a JAVA_ARGS; eval "JAVA_ARGS=($JEDIT_JAVA_ARGS)"
+declare -a JAVA_ARGS; eval "JAVA_ARGS=($JEDIT_JAVA_OPTIONS)"
 declare -a ARGS; eval "ARGS=($JEDIT_OPTIONS)"
 
 declare -a OPTIONS; eval "OPTIONS=($ISABELLE_JEDIT_OPTIONS)"
