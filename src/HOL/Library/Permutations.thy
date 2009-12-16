@@ -15,7 +15,6 @@ definition permutes (infixr "permutes" 41) where
 (* Transpositions.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-declare swap_self[simp]
 lemma swapid_sym: "Fun.swap a b id = Fun.swap b a id"
   by (auto simp add: expand_fun_eq swap_def fun_upd_def)
 lemma swap_id_refl: "Fun.swap a a id = id" by simp
