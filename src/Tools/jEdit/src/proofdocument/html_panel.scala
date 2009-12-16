@@ -101,7 +101,7 @@ class HTML_Panel(
   private case class Render(body: List[XML.Tree])
 
   private val main_actor = actor {
-    // double buffering
+    // crude double buffering
     var doc1: Document = null
     var doc2: Document = null
 

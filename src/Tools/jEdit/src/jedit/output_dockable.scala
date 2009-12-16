@@ -7,7 +7,7 @@
 package isabelle.jedit
 
 
-import isabelle.proofdocument.{Command, HTML_Panel}
+import isabelle.proofdocument.{Command, HTML_Panel, Session}
 
 import scala.actors.Actor._
 
@@ -19,17 +19,10 @@ import org.gjt.sp.jedit.gui.DockableWindowManager
 
 
 
-class Output_Dockable(view: View, position: String) extends JPanel
+class Output_Dockable(view: View, position: String) extends JPanel(new BorderLayout)
 {
-  /* outer panel */
-
   if (position == DockableWindowManager.FLOATING)
     setPreferredSize(new Dimension(500, 250))
-
-  setLayout(new BorderLayout)
-
-
-  /* HTML panel */
 
   private val html_panel =
     new HTML_Panel(Isabelle.system, Isabelle.Int_Property("font-size"), null)
@@ -50,17 +43,11 @@ class Output_Dockable(view: View, position: String) extends JPanel
                 else cmd.results(model.current_document)
               html_panel.render(body)
           }
+
+        case Session.Global_Settings =>
+          html_panel.init(Isabelle.Int_Property("font-size"))
           
         case bad => System.err.println("output_actor: ignoring bad message " + bad)
-      }
-    }
-  }
-
-  private val properties_actor = actor {
-    loop {
-      react {
-        case _: Unit => html_panel.init(Isabelle.Int_Property("font-size"))
-        case bad => System.err.println("properties_actor: ignoring bad message " + bad)
       }
     }
   }
@@ -69,13 +56,13 @@ class Output_Dockable(view: View, position: String) extends JPanel
   {
     super.addNotify()
     Isabelle.session.results += output_actor
-    Isabelle.session.global_settings += properties_actor
+    Isabelle.session.global_settings += output_actor
   }
 
   override def removeNotify()
   {
     Isabelle.session.results -= output_actor
-    Isabelle.session.global_settings -= properties_actor
+    Isabelle.session.global_settings -= output_actor
     super.removeNotify()
   }
 }

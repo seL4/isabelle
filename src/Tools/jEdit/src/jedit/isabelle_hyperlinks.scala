@@ -6,19 +6,13 @@
 
 package isabelle.jedit
 
+import isabelle.proofdocument.Command
 
 import java.io.File
 
-import gatchan.jedit.hyperlinks.Hyperlink
-import gatchan.jedit.hyperlinks.HyperlinkSource
-import gatchan.jedit.hyperlinks.AbstractHyperlink
+import gatchan.jedit.hyperlinks.{Hyperlink, HyperlinkSource, AbstractHyperlink}
 
-import org.gjt.sp.jedit.View
-import org.gjt.sp.jedit.jEdit
-import org.gjt.sp.jedit.Buffer
-import org.gjt.sp.jedit.TextUtilities
-
-import isabelle.proofdocument.Command
+import org.gjt.sp.jedit.{View, jEdit, Buffer, TextUtilities}
 
 
 private class Internal_Hyperlink(start: Int, end: Int, line: Int, ref_offset: Int)

@@ -9,6 +9,11 @@ package isabelle.proofdocument
 
 import scala.actors.Actor._
 
+object Session
+{
+  case object Global_Settings
+}
+
 
 class Session(system: Isabelle_System)
 {
@@ -59,7 +64,7 @@ class Session(system: Isabelle_System)
 
   /* pervasive event buses */
 
-  val global_settings = new Event_Bus[Unit]
+  val global_settings = new Event_Bus[Session.Global_Settings.type]
   val raw_results = new Event_Bus[Isabelle_Process.Result]
   val results = new Event_Bus[Command]
 

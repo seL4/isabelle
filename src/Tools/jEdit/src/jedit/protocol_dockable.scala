@@ -16,17 +16,10 @@ import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.gui.DockableWindowManager
 
 
-class Protocol_Dockable(view: View, position: String) extends JPanel
+class Protocol_Dockable(view: View, position: String) extends JPanel(new BorderLayout)
 {
-  // outer panel
-
   if (position == DockableWindowManager.FLOATING)
     setPreferredSize(new Dimension(500, 250))
-
-  setLayout(new BorderLayout)
-
-
-  // text area
 
   private val text_area = new JTextArea
   add(new JScrollPane(text_area), BorderLayout.CENTER)
