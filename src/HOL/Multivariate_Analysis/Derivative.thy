@@ -208,13 +208,14 @@ lemma has_derivative_vmul_component: fixes c::"real^'a::finite \<Rightarrow> rea
     have *:"\<And>x. x - vec 0 = (x::real^'n)" by auto 
     have **:"\<And>d x. d * (c x $ k - (c (netlimit net) $ k + c' (x - netlimit net) $ k)) = (d *\<^sub>R (c x - (c (netlimit net) + c' (x - netlimit net) ))) $k" by(auto simp add:field_simps)
     fix e assume "\<not> trivial_limit net" "0 < (e::real)"
-    then obtain A where A:"A\<in>Rep_net net" "\<forall>x\<in>A. dist ((1 / norm (x - netlimit net)) *\<^sub>R (c x - (c (netlimit net) + c' (x - netlimit net)))) 0 < e"
-      using assms[unfolded has_derivative_def Lim] unfolding eventually_def by auto
-    show "eventually (\<lambda>x. dist (1 / norm (x - netlimit net) * (c x $ k - (c (netlimit net) $ k + c' (x - netlimit net) $ k))) 0 < e) net"
-      unfolding eventually_def apply(rule_tac x=A in bexI) apply rule proof-
-      case goal1 thus ?case apply -apply(drule A(2)[rule_format]) unfolding vector_dist_norm vec1_vec apply(rule le_less_trans) prefer 2 apply assumption unfolding * ** and norm_vec1[unfolded vec1_vec]
-	using component_le_norm[of "(1 / norm (x - netlimit net)) *\<^sub>R (c x - (c (netlimit net) + c' (x - netlimit net))) - 0" k] by auto
-      qed(insert A, auto) qed(insert assms[unfolded has_derivative_def], auto simp add:linear_conv_bounded_linear) qed 
+    then have "eventually (\<lambda>x. dist ((1 / norm (x - netlimit net)) *\<^sub>R (c x - (c (netlimit net) + c' (x - netlimit net)))) 0 < e) net"
+      using assms[unfolded has_derivative_def Lim] by auto
+    thus "eventually (\<lambda>x. dist (1 / norm (x - netlimit net) * (c x $ k - (c (netlimit net) $ k + c' (x - netlimit net) $ k))) 0 < e) net"
+      proof (rule eventually_elim1)
+      case goal1 thus ?case apply - unfolding vector_dist_norm vec1_vec apply(rule le_less_trans) prefer 2 apply assumption unfolding * ** and norm_vec1[unfolded vec1_vec]
+        using component_le_norm[of "(1 / norm (x - netlimit net)) *\<^sub>R (c x - (c (netlimit net) + c' (x - netlimit net))) - 0" k] by auto
+      qed
+      qed(insert assms[unfolded has_derivative_def], auto simp add:linear_conv_bounded_linear) qed 
 
 lemma has_derivative_vmul_within: fixes c::"real \<Rightarrow> real" and v::"real^'a::finite"
   assumes "(c has_derivative c') (at x within s)"

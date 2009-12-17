@@ -458,13 +458,16 @@ definition
 where
   "swap a b f = f (a := f b, b:= f a)"
 
-lemma swap_self: "swap a a f = f"
+lemma swap_self [simp]: "swap a a f = f"
 by (simp add: swap_def)
 
 lemma swap_commute: "swap a b f = swap b a f"
 by (rule ext, simp add: fun_upd_def swap_def)
 
 lemma swap_nilpotent [simp]: "swap a b (swap a b f) = f"
+by (rule ext, simp add: fun_upd_def swap_def)
+
+lemma comp_swap: "f \<circ> swap a b g = swap a b (f \<circ> g)"
 by (rule ext, simp add: fun_upd_def swap_def)
 
 lemma inj_on_imp_inj_on_swap:
