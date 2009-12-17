@@ -204,6 +204,9 @@ proof -
   qed
 qed
 
+lemma rev_finite_subset: "finite B ==> A \<subseteq> B ==> finite A"
+by (rule finite_subset)
+
 lemma finite_Un [iff]: "finite (F Un G) = (finite F & finite G)"
 by (blast intro: finite_subset [of _ "X Un Y", standard] finite_UnI)
 
@@ -354,6 +357,18 @@ lemma finite_vimageI: "[|finite F; inj h|] ==> finite (h -` F)"
   apply (subst vimage_insert)
   apply (simp add: finite_Un finite_subset [OF inj_vimage_singleton])
   done
+
+lemma finite_vimageD:
+  assumes fin: "finite (h -` F)" and surj: "surj h"
+  shows "finite F"
+proof -
+  have "finite (h ` (h -` F))" using fin by (rule finite_imageI)
+  also have "h ` (h -` F) = F" using surj by (rule surj_image_vimage_eq)
+  finally show "finite F" .
+qed
+
+lemma finite_vimage_iff: "bij h \<Longrightarrow> finite (h -` F) \<longleftrightarrow> finite F"
+  unfolding bij_def by (auto elim: finite_vimageD finite_vimageI)
 
 
 text {* The finite UNION of finite sets *}
