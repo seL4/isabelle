@@ -6,8 +6,11 @@ Simple XML tree values.
 
 package isabelle
 
-import org.w3c.dom.{Node, Document}
+import java.util.WeakHashMap
+import java.lang.ref.WeakReference
 import javax.xml.parsers.DocumentBuilderFactory
+
+import org.w3c.dom.{Node, Document}
 
 
 object XML
@@ -89,6 +92,56 @@ object XML
       case Some((s, rest)) => { state = get_nexts(rest); s }
       case None => throw new NoSuchElementException("next on empty iterator")
     }
+  }
+
+
+  /* cache for partial sharing -- NOT THREAD SAFE */
+
+  class Cache(initial_size: Int)
+  {
+    private val table = new WeakHashMap[Any, WeakReference[Any]](initial_size)
+
+    private def lookup[A](x: A): Option[A] =
+    {
+      val ref = table.get(x)
+      if (ref == null) None
+      else {
+        val y = ref.asInstanceOf[WeakReference[A]].get
+        if (y == null) None
+        else Some(y)
+      }
+    }
+    private def store[A](x: A): A =
+    {
+      table.put(x, new WeakReference[Any](x))
+      x
+    }
+
+    def cache_string(x: String): String =
+      lookup(x) match {
+        case Some(y) => y
+        case None => store(x)
+      }
+    def cache_props(x: List[(String, String)]): List[(String, String)] =
+      lookup(x) match {
+        case Some(y) => y
+        case None => store(x.map(p => (cache_string(p._1), cache_string(p._2))))
+      }
+    def apply(x: XML.Tree): XML.Tree =
+      lookup(x) match {
+        case Some(y) => y
+        case None =>
+          x match {
+            case XML.Elem(name, props, body) =>
+              store(XML.Elem(cache_string(name), cache_props(props), apply(body)))
+            case XML.Text(text) => XML.Text(cache_string(text))
+          }
+      }
+    def apply(x: List[XML.Tree]): List[XML.Tree] =
+      lookup(x) match {
+        case Some(y) => y
+        case None => x.map(apply(_))
+      }
   }
 
 
