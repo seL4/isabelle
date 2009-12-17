@@ -100,6 +100,9 @@ object Isabelle_Process
     def is_raw = Kind.is_raw(kind)
     def is_control = Kind.is_control(kind)
     def is_system = Kind.is_system(kind)
+
+    def cache(table: XML.Cache): Result =
+      new Result(kind, table.cache_props(props), table(body))
   }
 }
 
