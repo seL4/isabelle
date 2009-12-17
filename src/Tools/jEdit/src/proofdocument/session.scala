@@ -140,55 +140,50 @@ class Session(system: Isabelle_System)
   private def handle_result(result: Isabelle_Process.Result)
   {
     raw_results.event(result)
-    val message = Isabelle_Process.parse_message(system, result)
 
     val state =
       Position.id_of(result.props) match {
         case None => None
         case Some(id) => commands.get(id) orElse states.get(id) orElse None
       }
-    if (state.isDefined) state.get ! (this, message)
+    if (state.isDefined) state.get ! (this, result.message)
     else if (result.kind == Isabelle_Process.Kind.STATUS) {
       //{{{ global status message
-      message match {
-        case XML.Elem(Markup.MESSAGE, _, elems) =>
-          for (elem <- elems) {
-            elem match {
-              // document edits
-              case XML.Elem(Markup.EDITS, (Markup.ID, doc_id) :: _, edits) =>
-                document_versions.find(_.id == doc_id) match {
-                  case Some(doc) =>
-                    for {
-                      XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _)
-                      <- edits }
-                    {
-                      commands.get(cmd_id) match {
-                        case Some(cmd) =>
-                          val state = new Command_State(cmd)
-                          states += (state_id -> state)
-                          doc.states += (cmd -> state)
-                          command_change.event(cmd)   // FIXME really!?
-                        case None =>
-                      }
-                    }
-                  case None =>
+      for (elem <- result.body) {
+        elem match {
+          // document edits
+          case XML.Elem(Markup.EDITS, (Markup.ID, doc_id) :: _, edits) =>
+            document_versions.find(_.id == doc_id) match {
+              case Some(doc) =>
+                for {
+                  XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _)
+                  <- edits }
+                {
+                  commands.get(cmd_id) match {
+                    case Some(cmd) =>
+                      val state = new Command_State(cmd)
+                      states += (state_id -> state)
+                      doc.states += (cmd -> state)
+                      command_change.event(cmd)   // FIXME really!?
+                    case None =>
+                  }
                 }
-
-              // command and keyword declarations
-              case XML.Elem(Markup.COMMAND_DECL, (Markup.NAME, name) :: (Markup.KIND, kind) :: _, _) =>
-                _command_decls += (name -> kind)
-                _completion += name
-              case XML.Elem(Markup.KEYWORD_DECL, (Markup.NAME, name) :: _, _) =>
-                _keyword_decls += name
-                _completion += name
-
-              // process ready (after initialization)
-              case XML.Elem(Markup.READY, _, _) => prover_ready = true
-
-            case _ =>
+              case None =>
             }
-          }
+
+          // command and keyword declarations
+          case XML.Elem(Markup.COMMAND_DECL, (Markup.NAME, name) :: (Markup.KIND, kind) :: _, _) =>
+            _command_decls += (name -> kind)
+            _completion += name
+          case XML.Elem(Markup.KEYWORD_DECL, (Markup.NAME, name) :: _, _) =>
+            _keyword_decls += name
+            _completion += name
+
+          // process ready (after initialization)
+          case XML.Elem(Markup.READY, _, _) => prover_ready = true
+
         case _ =>
+        }
       }
       //}}}
     }
