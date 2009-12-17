@@ -214,7 +214,7 @@ object Symbol
        new Recoder(mapping map { case (x, y) => (y, x) }))
     }
 
-    def decode(text: String) = decoder.recode(text)
-    def encode(text: String) = encoder.recode(text)
+    def decode(text: String): String = decoder.recode(text)
+    def encode(text: String): String = encoder.recode(text)
   }
 }
