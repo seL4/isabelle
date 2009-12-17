@@ -2052,6 +2052,9 @@ lemma finite_UNIV_card_ge_0:
 lemma card_eq_0_iff: "(card A = 0) = (A = {} | ~ finite A)"
   by auto
 
+lemma card_gt_0_iff: "(0 < card A) = (A \<noteq> {} & finite A)"
+  by (simp add: neq0_conv [symmetric] card_eq_0_iff) 
+
 lemma card_Suc_Diff1: "finite A ==> x: A ==> Suc (card (A - {x})) = card A"
 apply(rule_tac t = A in insert_Diff [THEN subst], assumption)
 apply(simp del:insert_Diff_single)
@@ -2107,6 +2110,14 @@ by (simp add: card_Un_Int)
 lemma card_Diff_subset:
   "finite B ==> B <= A ==> card (A - B) = card A - card B"
 by(simp add:card_def setsum_diff_nat)
+
+lemma card_Diff_subset_Int:
+  assumes AB: "finite (A \<inter> B)" shows "card (A - B) = card A - card (A \<inter> B)"
+proof -
+  have "A - B = A - A \<inter> B" by auto
+  thus ?thesis
+    by (simp add: card_Diff_subset AB) 
+qed
 
 lemma card_Diff1_less: "finite A ==> x: A ==> card (A - {x}) < card A"
 apply (rule Suc_less_SucD)
