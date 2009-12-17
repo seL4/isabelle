@@ -371,21 +371,38 @@ notation (HTML output)
   Inf_many  (binder "\<exists>\<^sub>\<infinity>" 10) and
   Alm_all  (binder "\<forall>\<^sub>\<infinity>" 10)
 
-lemma INFM_EX:
-  "(\<exists>\<^sub>\<infinity>x. P x) \<Longrightarrow> (\<exists>x. P x)"
-  unfolding Inf_many_def
-proof (rule ccontr)
-  assume inf: "infinite {x. P x}"
-  assume "\<not> ?thesis" then have "{x. P x} = {}" by simp
-  then have "finite {x. P x}" by simp
-  with inf show False by simp
-qed
+lemma INFM_iff_infinite: "(INFM x. P x) \<longleftrightarrow> infinite {x. P x}"
+  unfolding Inf_many_def ..
 
-lemma MOST_iff_finiteNeg: "(\<forall>\<^sub>\<infinity>x. P x) = finite {x. \<not> P x}"
-  by (simp add: Alm_all_def Inf_many_def)
+lemma MOST_iff_cofinite: "(MOST x. P x) \<longleftrightarrow> finite {x. \<not> P x}"
+  unfolding Alm_all_def Inf_many_def by simp
+
+(* legacy name *)
+lemmas MOST_iff_finiteNeg = MOST_iff_cofinite
+
+lemma not_INFM [simp]: "\<not> (INFM x. P x) \<longleftrightarrow> (MOST x. \<not> P x)"
+  unfolding Alm_all_def not_not ..
+
+lemma not_MOST [simp]: "\<not> (MOST x. P x) \<longleftrightarrow> (INFM x. \<not> P x)"
+  unfolding Alm_all_def not_not ..
+
+lemma INFM_const [simp]: "(INFM x::'a. P) \<longleftrightarrow> P \<and> infinite (UNIV::'a set)"
+  unfolding Inf_many_def by simp
+
+lemma MOST_const [simp]: "(MOST x::'a. P) \<longleftrightarrow> P \<or> finite (UNIV::'a set)"
+  unfolding Alm_all_def by simp
+
+lemma INFM_EX: "(\<exists>\<^sub>\<infinity>x. P x) \<Longrightarrow> (\<exists>x. P x)"
+  by (erule contrapos_pp, simp)
 
 lemma ALL_MOST: "\<forall>x. P x \<Longrightarrow> \<forall>\<^sub>\<infinity>x. P x"
-  by (simp add: MOST_iff_finiteNeg)
+  by simp
+
+lemma INFM_E: assumes "INFM x. P x" obtains x where "P x"
+  using INFM_EX [OF assms] by (rule exE)
+
+lemma MOST_I: assumes "\<And>x. P x" shows "MOST x. P x"
+  using assms by simp
 
 lemma INFM_mono:
   assumes inf: "\<exists>\<^sub>\<infinity>x. P x" and q: "\<And>x. P x \<Longrightarrow> Q x"
@@ -404,30 +421,88 @@ lemma INFM_disj_distrib:
   "(\<exists>\<^sub>\<infinity>x. P x \<or> Q x) \<longleftrightarrow> (\<exists>\<^sub>\<infinity>x. P x) \<or> (\<exists>\<^sub>\<infinity>x. Q x)"
   unfolding Inf_many_def by (simp add: Collect_disj_eq)
 
+lemma INFM_imp_distrib:
+  "(INFM x. P x \<longrightarrow> Q x) \<longleftrightarrow> ((MOST x. P x) \<longrightarrow> (INFM x. Q x))"
+  by (simp only: imp_conv_disj INFM_disj_distrib not_MOST)
+
 lemma MOST_conj_distrib:
   "(\<forall>\<^sub>\<infinity>x. P x \<and> Q x) \<longleftrightarrow> (\<forall>\<^sub>\<infinity>x. P x) \<and> (\<forall>\<^sub>\<infinity>x. Q x)"
   unfolding Alm_all_def by (simp add: INFM_disj_distrib del: disj_not1)
+
+lemma MOST_conjI:
+  "MOST x. P x \<Longrightarrow> MOST x. Q x \<Longrightarrow> MOST x. P x \<and> Q x"
+  by (simp add: MOST_conj_distrib)
 
 lemma MOST_rev_mp:
   assumes "\<forall>\<^sub>\<infinity>x. P x" and "\<forall>\<^sub>\<infinity>x. P x \<longrightarrow> Q x"
   shows "\<forall>\<^sub>\<infinity>x. Q x"
 proof -
   have "\<forall>\<^sub>\<infinity>x. P x \<and> (P x \<longrightarrow> Q x)"
-    using prems by (simp add: MOST_conj_distrib)
+    using assms by (rule MOST_conjI)
   thus ?thesis by (rule MOST_mono) simp
 qed
 
-lemma not_INFM [simp]: "\<not> (INFM x. P x) \<longleftrightarrow> (MOST x. \<not> P x)"
-unfolding Alm_all_def not_not ..
+lemma MOST_imp_iff:
+  assumes "MOST x. P x"
+  shows "(MOST x. P x \<longrightarrow> Q x) \<longleftrightarrow> (MOST x. Q x)"
+proof
+  assume "MOST x. P x \<longrightarrow> Q x"
+  with assms show "MOST x. Q x" by (rule MOST_rev_mp)
+next
+  assume "MOST x. Q x"
+  then show "MOST x. P x \<longrightarrow> Q x" by (rule MOST_mono) simp
+qed
 
-lemma not_MOST [simp]: "\<not> (MOST x. P x) \<longleftrightarrow> (INFM x. \<not> P x)"
-unfolding Alm_all_def not_not ..
+lemma INFM_MOST_simps [simp]:
+  "\<And>P Q. (INFM x. P x \<and> Q) \<longleftrightarrow> (INFM x. P x) \<and> Q"
+  "\<And>P Q. (INFM x. P \<and> Q x) \<longleftrightarrow> P \<and> (INFM x. Q x)"
+  "\<And>P Q. (MOST x. P x \<or> Q) \<longleftrightarrow> (MOST x. P x) \<or> Q"
+  "\<And>P Q. (MOST x. P \<or> Q x) \<longleftrightarrow> P \<or> (MOST x. Q x)"
+  "\<And>P Q. (MOST x. P x \<longrightarrow> Q) \<longleftrightarrow> ((INFM x. P x) \<longrightarrow> Q)"
+  "\<And>P Q. (MOST x. P \<longrightarrow> Q x) \<longleftrightarrow> (P \<longrightarrow> (MOST x. Q x))"
+  unfolding Alm_all_def Inf_many_def
+  by (simp_all add: Collect_conj_eq)
 
-lemma INFM_const [simp]: "(INFM x::'a. P) \<longleftrightarrow> P \<and> infinite (UNIV::'a set)"
-  unfolding Inf_many_def by simp
+text {* Properties of quantifiers with injective functions. *}
 
-lemma MOST_const [simp]: "(MOST x::'a. P) \<longleftrightarrow> P \<or> finite (UNIV::'a set)"
-  unfolding Alm_all_def by simp
+lemma INFM_inj:
+  "INFM x. P (f x) \<Longrightarrow> inj f \<Longrightarrow> INFM x. P x"
+  unfolding INFM_iff_infinite
+  by (clarify, drule (1) finite_vimageI, simp)
+
+lemma MOST_inj:
+  "MOST x. P x \<Longrightarrow> inj f \<Longrightarrow> MOST x. P (f x)"
+  unfolding MOST_iff_cofinite
+  by (drule (1) finite_vimageI, simp)
+
+text {* Properties of quantifiers with singletons. *}
+
+lemma not_INFM_eq [simp]:
+  "\<not> (INFM x. x = a)"
+  "\<not> (INFM x. a = x)"
+  unfolding INFM_iff_infinite by simp_all
+
+lemma MOST_neq [simp]:
+  "MOST x. x \<noteq> a"
+  "MOST x. a \<noteq> x"
+  unfolding MOST_iff_cofinite by simp_all
+
+lemma INFM_neq [simp]:
+  "(INFM x::'a. x \<noteq> a) \<longleftrightarrow> infinite (UNIV::'a set)"
+  "(INFM x::'a. a \<noteq> x) \<longleftrightarrow> infinite (UNIV::'a set)"
+  unfolding INFM_iff_infinite by simp_all
+
+lemma MOST_eq [simp]:
+  "(MOST x::'a. x = a) \<longleftrightarrow> finite (UNIV::'a set)"
+  "(MOST x::'a. a = x) \<longleftrightarrow> finite (UNIV::'a set)"
+  unfolding MOST_iff_cofinite by simp_all
+
+lemma MOST_eq_imp:
+  "MOST x. x = a \<longrightarrow> P x"
+  "MOST x. a = x \<longrightarrow> P x"
+  unfolding MOST_iff_cofinite by simp_all
+
+text {* Properties of quantifiers over the naturals. *}
 
 lemma INFM_nat: "(\<exists>\<^sub>\<infinity>n. P (n::nat)) = (\<forall>m. \<exists>n. m<n \<and> P n)"
   by (simp add: Inf_many_def infinite_nat_iff_unbounded)
