@@ -8,7 +8,7 @@ package isabelle
 
 import java.util.regex.Pattern
 import java.util.Locale
-import java.io.{BufferedReader, InputStreamReader, FileInputStream, File, IOException}
+import java.io.{BufferedInputStream, FileInputStream, File, IOException}
 import java.awt.{GraphicsEnvironment, Font}
 
 import scala.io.Source
@@ -279,13 +279,13 @@ class Isabelle_System
     if (rc != 0) error(result)
   }
 
-  def fifo_reader(fifo: String): BufferedReader =
+  def fifo_stream(fifo: String): BufferedInputStream =
   {
     // blocks until writer is ready
     val stream =
       if (Platform.is_windows) execute(false, "cat", fifo).getInputStream
       else new FileInputStream(fifo)
-    new BufferedReader(new InputStreamReader(stream, Isabelle_System.charset))
+    new BufferedInputStream(stream)
   }
 
 
