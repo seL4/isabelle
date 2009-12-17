@@ -433,6 +433,13 @@ lemma MOST_conjI:
   "MOST x. P x \<Longrightarrow> MOST x. Q x \<Longrightarrow> MOST x. P x \<and> Q x"
   by (simp add: MOST_conj_distrib)
 
+lemma INFM_conjI:
+  "INFM x. P x \<Longrightarrow> MOST x. Q x \<Longrightarrow> INFM x. P x \<and> Q x"
+  unfolding MOST_iff_cofinite INFM_iff_infinite
+  apply (drule (1) Diff_infinite_finite)
+  apply (simp add: Collect_conj_eq Collect_neg_eq)
+  done
+
 lemma MOST_rev_mp:
   assumes "\<forall>\<^sub>\<infinity>x. P x" and "\<forall>\<^sub>\<infinity>x. P x \<longrightarrow> Q x"
   shows "\<forall>\<^sub>\<infinity>x. Q x"
