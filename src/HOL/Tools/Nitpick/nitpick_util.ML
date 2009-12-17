@@ -12,7 +12,8 @@ sig
 
   exception ARG of string * string
   exception BAD of string * string
-  exception LIMIT of string * string
+  exception TOO_SMALL of string * string
+  exception TOO_LARGE of string * string
   exception NOT_SUPPORTED of string
   exception SAME of unit
 
@@ -51,7 +52,6 @@ sig
   val bool_T : typ
   val nat_T : typ
   val int_T : typ
-  val subscript : string -> string
   val nat_subscript : int -> string
   val time_limit : Time.time option -> ('a -> 'b) -> 'a -> 'b
   val DETERM_TIMEOUT : Time.time option -> tactic -> tactic
@@ -71,7 +71,8 @@ datatype polarity = Pos | Neg | Neut
 
 exception ARG of string * string
 exception BAD of string * string
-exception LIMIT of string * string
+exception TOO_SMALL of string * string
+exception TOO_LARGE of string * string
 exception NOT_SUPPORTED of string
 exception SAME of unit
 
@@ -96,14 +97,16 @@ fun reasonable_power a 0 = 1
   | reasonable_power 0 _ = 0
   | reasonable_power 1 _ = 1
   | reasonable_power a b =
-    if b < 0 orelse b > max_exponent then
-      raise LIMIT ("Nitpick_Util.reasonable_power",
-                   "too large exponent (" ^ signed_string_of_int b ^ ")")
+    if b < 0 then
+      raise ARG ("Nitpick_Util.reasonable_power",
+                 "negative exponent (" ^ signed_string_of_int b ^ ")")
+    else if b > max_exponent then
+      raise TOO_LARGE ("Nitpick_Util.reasonable_power",
+                       "too large exponent (" ^ signed_string_of_int b ^ ")")
     else
-      let
-        val c = reasonable_power a (b div 2) in
-          c * c * reasonable_power a (b mod 2)
-        end
+      let val c = reasonable_power a (b div 2) in
+        c * c * reasonable_power a (b mod 2)
+      end
 
 (* int -> int -> int *)
 fun exact_log m n =
@@ -247,7 +250,11 @@ val int_T = @{typ int}
 (* string -> string *)
 val subscript = implode o map (prefix "\<^isub>") o explode
 (* int -> string *)
-val nat_subscript = subscript o signed_string_of_int
+fun nat_subscript n =
+  (* cheap trick to ensure proper alphanumeric ordering for one- and two-digit
+     numbers *)
+  if n <= 9 then "\<^bsub>" ^ signed_string_of_int n ^ "\<^esub>"
+  else subscript (string_of_int n)
 
 (* Time.time option -> ('a -> 'b) -> 'a -> 'b *)
 fun time_limit NONE = I

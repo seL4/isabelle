@@ -30,6 +30,7 @@ sig
   type scope = {
     ext_ctxt: extended_context,
     card_assigns: (typ * int) list,
+    bits: int,
     bisim_depth: int,
     datatypes: dtype_spec list,
     ofs: int Typtab.table}
@@ -48,7 +49,8 @@ sig
   val all_scopes :
     extended_context -> int -> (typ option * int list) list
     -> (styp option * int list) list -> (styp option * int list) list
-    -> int list -> typ list -> typ list -> typ list -> int * scope list
+    -> int list -> int list -> typ list -> typ list -> typ list
+    -> int * scope list
 end;
 
 structure Nitpick_Scope : NITPICK_SCOPE =
@@ -77,6 +79,7 @@ type dtype_spec = {
 type scope = {
   ext_ctxt: extended_context,
   card_assigns: (typ * int) list,
+  bits: int,
   bisim_depth: int,
   datatypes: dtype_spec list,
   ofs: int Typtab.table}
@@ -104,7 +107,8 @@ fun is_complete_type dtypes (Type ("fun", [T1, T2])) =
   | is_complete_type dtypes (Type ("*", Ts)) =
     forall (is_complete_type dtypes) Ts
   | is_complete_type dtypes T =
-    not (is_integer_type T) andalso #complete (the (datatype_spec dtypes T))
+    not (is_integer_type T) andalso not (is_bit_type T)
+    andalso #complete (the (datatype_spec dtypes T))
     handle Option.Option => true
 and is_concrete_type dtypes (Type ("fun", [T1, T2])) =
     is_complete_type dtypes T1 andalso is_concrete_type dtypes T2
@@ -128,13 +132,16 @@ fun spec_of_type ({card_assigns, ofs, ...} : scope) T =
 (* (string -> string) -> scope
    -> string list * string list * string list * string list * string list *)
 fun quintuple_for_scope quote ({ext_ctxt as {thy, ctxt, ...}, card_assigns,
-                                bisim_depth, datatypes, ...} : scope) =
+                                bits, bisim_depth, datatypes, ...} : scope) =
   let
+    val boring_Ts = [@{typ unsigned_bit}, @{typ signed_bit},
+                     @{typ bisim_iterator}]
     val (iter_assigns, card_assigns) =
-      card_assigns |> filter_out (curry (op =) @{typ bisim_iterator} o fst)
+      card_assigns |> filter_out (member (op =) boring_Ts o fst)
                    |> List.partition (is_fp_iterator_type o fst)
-    val (unimportant_card_assigns, important_card_assigns) =
-      card_assigns |> List.partition ((is_integer_type orf is_datatype thy) o fst)
+    val (secondary_card_assigns, primary_card_assigns) =
+      card_assigns |> List.partition ((is_integer_type orf is_datatype thy)
+                                      o fst)
     val cards =
       map (fn (T, k) => quote (string_for_type ctxt T) ^ " = " ^
                         string_of_int k)
@@ -152,23 +159,24 @@ fun quintuple_for_scope quote ({ext_ctxt as {thy, ctxt, ...}, card_assigns,
               quote (Syntax.string_of_term ctxt
                          (Const (const_for_iterator_type T))) ^ " = " ^
               string_of_int (k - 1)) iter_assigns
-    fun bisims () =
-      if bisim_depth < 0 andalso forall (not o #co) datatypes then []
-      else ["bisim_depth = " ^ string_of_int bisim_depth]
+    fun miscs () =
+      (if bits = 0 then [] else ["bits = " ^ string_of_int bits]) @
+      (if bisim_depth < 0 andalso forall (not o #co) datatypes then []
+       else ["bisim_depth = " ^ string_of_int bisim_depth])
   in
     setmp_show_all_types
-        (fn () => (cards important_card_assigns, cards unimportant_card_assigns,
-                   maxes (), iters (), bisims ())) ()
+        (fn () => (cards primary_card_assigns, cards secondary_card_assigns,
+                   maxes (), iters (), miscs ())) ()
   end
 
 (* scope -> bool -> Pretty.T list *)
 fun pretties_for_scope scope verbose =
   let
-    val (important_cards, unimportant_cards, maxes, iters, bisim_depths) =
+    val (primary_cards, secondary_cards, maxes, iters, bisim_depths) =
       quintuple_for_scope maybe_quote scope
-    val ss = map (prefix "card ") important_cards @
+    val ss = map (prefix "card ") primary_cards @
              (if verbose then
-                map (prefix "card ") unimportant_cards @
+                map (prefix "card ") secondary_cards @
                 map (prefix "max ") maxes @
                 map (prefix "iter ") iters @
                 bisim_depths
@@ -182,9 +190,9 @@ fun pretties_for_scope scope verbose =
 (* scope -> string *)
 fun multiline_string_for_scope scope =
   let
-    val (important_cards, unimportant_cards, maxes, iters, bisim_depths) =
+    val (primary_cards, secondary_cards, maxes, iters, bisim_depths) =
       quintuple_for_scope I scope
-    val cards = important_cards @ unimportant_cards
+    val cards = primary_cards @ secondary_cards
   in
     case (if null cards then [] else ["card: " ^ commas cards]) @
          (if null maxes then [] else ["max: " ^ commas maxes]) @
@@ -230,15 +238,21 @@ fun row_for_constr thy maxes_assigns constr =
   SOME (Max constr, lookup_const_ints_assign thy maxes_assigns constr)
   handle TERM ("lookup_const_ints_assign", _) => NONE
 
+val max_bits = 31 (* Kodkod limit *)
+
 (* extended_context -> (typ option * int list) list
    -> (styp option * int list) list -> (styp option * int list) list -> int list
-   -> typ -> block *)
+   -> int list -> typ -> block *)
 fun block_for_type (ext_ctxt as {thy, ...}) cards_assigns maxes_assigns
-                   iters_assigns bisim_depths T =
-  if T = @{typ bisim_iterator} then
-    [(Card T, map (fn k => Int.max (0, k) + 1) bisim_depths)]
+                   iters_assigns bitss bisim_depths T =
+  if T = @{typ unsigned_bit} then
+    [(Card T, map (Integer.min max_bits o Integer.max 1) bitss)]
+  else if T = @{typ signed_bit} then
+    [(Card T, map (Integer.add 1 o Integer.min max_bits o Integer.max 1) bitss)]
+  else if T = @{typ bisim_iterator} then
+    [(Card T, map (Integer.add 1 o Integer.max 0) bisim_depths)]
   else if is_fp_iterator_type T then
-    [(Card T, map (fn k => Int.max (0, k) + 1)
+    [(Card T, map (Integer.add 1 o Integer.max 0)
                   (lookup_const_ints_assign thy iters_assigns
                                             (const_for_iterator_type T)))]
   else
@@ -249,13 +263,13 @@ fun block_for_type (ext_ctxt as {thy, ...}) cards_assigns maxes_assigns
 
 (* extended_context -> (typ option * int list) list
    -> (styp option * int list) list -> (styp option * int list) list -> int list
-   -> typ list -> typ list -> block list *)
-fun blocks_for_types ext_ctxt cards_assigns maxes_assigns iters_assigns
+   -> int list -> typ list -> typ list -> block list *)
+fun blocks_for_types ext_ctxt cards_assigns maxes_assigns iters_assigns bitss
                      bisim_depths mono_Ts nonmono_Ts =
   let
     (* typ -> block *)
     val block_for = block_for_type ext_ctxt cards_assigns maxes_assigns
-                                   iters_assigns bisim_depths
+                                   iters_assigns bitss bisim_depths
     val mono_block = maps block_for mono_Ts
     val nonmono_blocks = map block_for nonmono_Ts
   in mono_block :: nonmono_blocks end
@@ -388,7 +402,7 @@ fun offset_table_for_card_assigns thy assigns dtypes =
        -> int Typtab.table *)
     fun aux next _ [] = Typtab.update_new (dummyT, next)
       | aux next reusable ((T, k) :: assigns) =
-        if k = 1 orelse is_integer_type T then
+        if k = 1 orelse is_integer_type T orelse is_bit_type T then
           aux next reusable assigns
         else if length (these (Option.map #constrs (datatype_spec dtypes T)))
                 > 1 then
@@ -472,6 +486,14 @@ fun datatype_spec_from_scope_descriptor (ext_ctxt as {thy, ...}) shallow_dataTs
      shallow = shallow, constrs = constrs}
   end
 
+(* int -> int *)
+fun min_bits_for_nat_value n = if n <= 0 then 0 else IntInf.log2 n + 1
+(* scope_desc -> int *)
+fun min_bits_for_max_assigns (_, []) = 0
+  | min_bits_for_max_assigns (card_assigns, max_assigns) =
+    min_bits_for_nat_value (fold Integer.max
+        (map snd card_assigns @ map snd max_assigns) 0)
+
 (* extended_context -> int -> typ list -> scope_desc -> scope *)
 fun scope_from_descriptor (ext_ctxt as {thy, ...}) sym_break shallow_dataTs
                           (desc as (card_assigns, _)) =
@@ -479,25 +501,29 @@ fun scope_from_descriptor (ext_ctxt as {thy, ...}) sym_break shallow_dataTs
     val datatypes =
       map (datatype_spec_from_scope_descriptor ext_ctxt shallow_dataTs desc)
           (filter (is_datatype thy o fst) card_assigns)
+    val bits = card_of_type card_assigns @{typ signed_bit} - 1
+               handle TYPE ("Nitpick_HOL.card_of_type", _, _) =>
+                      card_of_type card_assigns @{typ unsigned_bit}
+                      handle TYPE ("Nitpick_HOL.card_of_type", _, _) => 0
     val bisim_depth = card_of_type card_assigns @{typ bisim_iterator} - 1
   in
     {ext_ctxt = ext_ctxt, card_assigns = card_assigns, datatypes = datatypes,
-     bisim_depth = bisim_depth,
+     bits = bits, bisim_depth = bisim_depth,
      ofs = if sym_break <= 0 then Typtab.empty
            else offset_table_for_card_assigns thy card_assigns datatypes}
   end
 
 (* theory -> typ list -> (typ option * int list) list
    -> (typ option * int list) list *)
-fun fix_cards_assigns_wrt_boxing _ _ [] = []
-  | fix_cards_assigns_wrt_boxing thy Ts ((SOME T, ks) :: cards_assigns) =
+fun repair_cards_assigns_wrt_boxing _ _ [] = []
+  | repair_cards_assigns_wrt_boxing thy Ts ((SOME T, ks) :: cards_assigns) =
     (if is_fun_type T orelse is_pair_type T then
-       Ts |> filter (curry (type_match thy o swap) T o unbox_type)
+       Ts |> filter (curry (type_match thy o swap) T o unbit_and_unbox_type)
           |> map (rpair ks o SOME)
      else
-       [(SOME T, ks)]) @ fix_cards_assigns_wrt_boxing thy Ts cards_assigns
-  | fix_cards_assigns_wrt_boxing thy Ts ((NONE, ks) :: cards_assigns) =
-    (NONE, ks) :: fix_cards_assigns_wrt_boxing thy Ts cards_assigns
+       [(SOME T, ks)]) @ repair_cards_assigns_wrt_boxing thy Ts cards_assigns
+  | repair_cards_assigns_wrt_boxing thy Ts ((NONE, ks) :: cards_assigns) =
+    (NONE, ks) :: repair_cards_assigns_wrt_boxing thy Ts cards_assigns
 
 val max_scopes = 4096
 val distinct_threshold = 512
@@ -506,11 +532,14 @@ val distinct_threshold = 512
    -> (styp option * int list) list -> (styp option * int list) list -> int list
    -> typ list -> typ list -> typ list -> int * scope list *)
 fun all_scopes (ext_ctxt as {thy, ...}) sym_break cards_assigns maxes_assigns
-               iters_assigns bisim_depths mono_Ts nonmono_Ts shallow_dataTs =
+               iters_assigns bitss bisim_depths mono_Ts nonmono_Ts
+               shallow_dataTs =
   let
-    val cards_assigns = fix_cards_assigns_wrt_boxing thy mono_Ts cards_assigns
+    val cards_assigns = repair_cards_assigns_wrt_boxing thy mono_Ts
+                                                        cards_assigns
     val blocks = blocks_for_types ext_ctxt cards_assigns maxes_assigns
-                                  iters_assigns bisim_depths mono_Ts nonmono_Ts
+                                  iters_assigns bitss bisim_depths mono_Ts
+                                  nonmono_Ts
     val ranks = map rank_of_block blocks
     val all = all_combinations_ordered_smartly (map (rpair 0) ranks)
     val head = take max_scopes all

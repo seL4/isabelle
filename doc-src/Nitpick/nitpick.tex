@@ -436,12 +436,10 @@ Nitpick with \textit{dont\_skolemize}. See \S\ref{optimizations} for details.
 \label{natural-numbers-and-integers}
 
 Because of the axiom of infinity, the type \textit{nat} does not admit any
-finite models. To deal with this, Nitpick considers prefixes $\{0,\, 1,\,
-\ldots,\, K - 1\}$ of \textit{nat} (where $K = \textit{card}~\textit{nat}$) and
-maps all other numbers to the undefined value ($\unk$). The type \textit{int} is
-handled in a similar way: If $K = \textit{card}~\textit{int}$, the subset of
-\textit{int} known to Nitpick is $\{-\lceil K/2 \rceil + 1,\, \ldots,\, +\lfloor
-K/2 \rfloor\}$. Undefined values lead to a three-valued logic.
+finite models. To deal with this, Nitpick's approach is to consider finite
+subsets $N$ of \textit{nat} and maps all numbers $\notin N$ to the undefined
+value (displayed as `$\unk$'). The type \textit{int} is handled similarly.
+Internally, undefined values lead to a three-valued logic.
 
 Here is an example involving \textit{int}:
 
@@ -456,15 +454,26 @@ Here is an example involving \textit{int}:
 \hbox{}\qquad\qquad $n = 0$
 \postw
 
+Internally, Nitpick uses either a unary or a binary representation of numbers.
+The unary representation is more efficient but only suitable for numbers very
+close to zero. By default, Nitpick attempts to choose the more appropriate
+encoding by inspecting the formula at hand. This behavior can be overridden by
+passing either \textit{unary\_ints} or \textit{binary\_ints} as option. For
+binary notation, the number of bits to use can be specified using
+the \textit{bits} option. For example:
+
+\prew
+\textbf{nitpick} [\textit{binary\_ints}, \textit{bits}${} = 16$]
+\postw
+
 With infinite types, we don't always have the luxury of a genuine counterexample
 and must often content ourselves with a potential one. The tedious task of
 finding out whether the potential counterexample is in fact genuine can be
-outsourced to \textit{auto} by passing the option \textit{check\_potential}. For
-example:
+outsourced to \textit{auto} by passing \textit{check\_potential}. For example:
 
 \prew
 \textbf{lemma} ``$\forall n.\; \textit{Suc}~n \mathbin{\not=} n \,\Longrightarrow\, P$'' \\
-\textbf{nitpick} [\textit{card~nat}~= 100,\, \textit{check\_potential}] \\[2\smallskipamount]
+\textbf{nitpick} [\textit{card~nat}~= 100, \textit{check\_potential}] \\[2\smallskipamount]
 \slshape Nitpick found a potential counterexample: \\[2\smallskipamount]
 \hbox{}\qquad Free variable: \nopagebreak \\
 \hbox{}\qquad\qquad $P = \textit{False}$ \\[2\smallskipamount]
@@ -482,7 +491,7 @@ can never be falsified.
 
 Incidentally, if you distrust the so-called genuine counterexamples, you can
 enable \textit{check\_\allowbreak genuine} to verify them as well. However, be
-aware that \textit{auto} will often fail to prove that the counterexample is
+aware that \textit{auto} will usually fail to prove that the counterexample is
 genuine or spurious.
 
 Some conjectures involving elementary number theory make Nitpick look like a
@@ -495,10 +504,11 @@ giant with feet of clay:
 Nitpick found no counterexample.
 \postw
 
-For any cardinality $k$, \textit{Suc} is the partial function $\{0 \mapsto 1,\,
-1 \mapsto 2,\, \ldots,\, k - 1 \mapsto \unk\}$, which evaluates to $\unk$ when
-it is passed as argument to $P$. As a result, $P~\textit{Suc}$ is always $\unk$.
-The next example is similar:
+On any finite set $N$, \textit{Suc} is a partial function; for example, if $N =
+\{0, 1, \ldots, k\}$, then \textit{Suc} is $\{0 \mapsto 1,\, 1 \mapsto 2,\,
+\ldots,\, k \mapsto \unk\}$, which evaluates to $\unk$ when passed as
+argument to $P$. As a result, $P~\textit{Suc}$ is always $\unk$. The next
+example is similar:
 
 \prew
 \textbf{lemma} ``$P~(\textit{op}~{+}\Colon
@@ -822,7 +832,7 @@ In the next formula, $\textit{even}'$ occurs both positively and negatively:
 
 \prew
 \textbf{lemma} ``$\textit{even}'~(n - 2) \,\Longrightarrow\, \textit{even}'~n$'' \\
-\textbf{nitpick} [\textit{card nat} = 10,\, \textit{show\_consts}] \\[2\smallskipamount]
+\textbf{nitpick} [\textit{card nat} = 10, \textit{show\_consts}] \\[2\smallskipamount]
 \slshape Nitpick found a counterexample: \\[2\smallskipamount]
 \hbox{}\qquad Free variable: \nopagebreak \\
 \hbox{}\qquad\qquad $n = 1$ \\
@@ -989,7 +999,7 @@ predicate or as an after-the-fact check) to prevent spurious counterexamples:
 \prew
 \textbf{lemma} ``$\lbrakk xs = \textit{LCons}~a~\textit{xs};\>\, \textit{ys} = \textit{LCons}~a~\textit{ys}\rbrakk
 \,\Longrightarrow\, \textit{xs} = \textit{ys}$'' \\
-\textbf{nitpick} [\textit{bisim\_depth} = $-1$,\, \textit{show\_datatypes}] \\[2\smallskipamount]
+\textbf{nitpick} [\textit{bisim\_depth} = $-1$, \textit{show\_datatypes}] \\[2\smallskipamount]
 \slshape Nitpick found a likely genuine counterexample for $\textit{card}~'a$ = 2: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
 \hbox{}\qquad\qquad $a = a_2$ \\
@@ -1687,23 +1697,7 @@ simultaneously.
 
 \begin{enum}
 \opu{card}{type}{int\_seq}
-Specifies the sequence of cardinalities to use for a given type. For
-\textit{nat} and \textit{int}, the cardinality fully specifies the subset used
-to approximate the type. For example:
-%
-$$\hbox{\begin{tabular}{@{}rll@{}}%
-\textit{card nat} = 4 & induces & $\{0,\, 1,\, 2,\, 3\}$ \\
-\textit{card int} = 4 & induces & $\{-1,\, 0,\, +1,\, +2\}$ \\
-\textit{card int} = 5 & induces & $\{-2,\, -1,\, 0,\, +1,\, +2\}.$%
-\end{tabular}}$$
-%
-In general:
-%
-$$\hbox{\begin{tabular}{@{}rll@{}}%
-\textit{card nat} = $K$ & induces & $\{0,\, \ldots,\, K - 1\}$ \\
-\textit{card int} = $K$ & induces & $\{-\lceil K/2 \rceil + 1,\, \ldots,\, +\lfloor K/2 \rfloor\}.$%
-\end{tabular}}$$
-%
+Specifies the sequence of cardinalities to use for a given type.
 For free types, and often also for \textbf{typedecl}'d types, it usually makes
 sense to specify cardinalities as a range of the form \textit{$1$--$n$}.
 Although function and product types are normally mapped directly to the
@@ -1730,6 +1724,44 @@ datatypes equipped with several constructors.
 Specifies the default sequence of maximum multiplicities to use for
 (co)in\-duc\-tive datatype constructors. This can be overridden on a per-constructor
 basis using the \textit{max}~\qty{const} option described above.
+
+\opsmart{binary\_ints}{unary\_ints}
+Specifies whether natural numbers and integers should be encoded using a unary
+or binary notation. In unary mode, the cardinality fully specifies the subset
+used to approximate the type. For example:
+%
+$$\hbox{\begin{tabular}{@{}rll@{}}%
+\textit{card nat} = 4 & induces & $\{0,\, 1,\, 2,\, 3\}$ \\
+\textit{card int} = 4 & induces & $\{-1,\, 0,\, +1,\, +2\}$ \\
+\textit{card int} = 5 & induces & $\{-2,\, -1,\, 0,\, +1,\, +2\}.$%
+\end{tabular}}$$
+%
+In general:
+%
+$$\hbox{\begin{tabular}{@{}rll@{}}%
+\textit{card nat} = $K$ & induces & $\{0,\, \ldots,\, K - 1\}$ \\
+\textit{card int} = $K$ & induces & $\{-\lceil K/2 \rceil + 1,\, \ldots,\, +\lfloor K/2 \rfloor\}.$%
+\end{tabular}}$$
+%
+In binary mode, the cardinality specifies the number of distinct values that can
+be constructed. Each of these value is represented by a bit pattern whose length
+is specified by the \textit{bits} (\S\ref{scope-of-search}) option. By default,
+Nitpick attempts to choose the more appropriate encoding by inspecting the
+formula at hand, preferring the binary notation for problems involving
+multiplicative operators or large constants.
+
+\textbf{Warning:} For technical reasons, Nitpick always reverts to unary for
+problems that refer to the types \textit{rat} or \textit{real} or the constants
+\textit{gcd} or \textit{lcm}.
+
+{\small See also \textit{bits} (\S\ref{scope-of-search}) and
+\textit{show\_datatypes} (\S\ref{output-format}).}
+
+\opt{bits}{int\_seq}{$\mathbf{1},\mathbf{2},\mathbf{3},\mathbf{4},\mathbf{6},\mathbf{8},\mathbf{10},\mathbf{12}$}
+Specifies the number of bits to use to represent natural numbers and integers in
+binary, excluding the sign bit. The minimum is 1 and the maximum is 31.
+
+{\small See also \textit{binary\_ints} (\S\ref{scope-of-search}).}
 
 \opusmart{wf}{const}{non\_wf}
 Specifies whether the specified (co)in\-duc\-tively defined predicate is

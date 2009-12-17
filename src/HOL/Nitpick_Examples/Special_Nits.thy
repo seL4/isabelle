@@ -135,7 +135,7 @@ sorry
 lemma "\<forall>a. g a = a
        \<Longrightarrow> \<exists>b\<^isub>1 b\<^isub>2 b\<^isub>3 b\<^isub>4 b\<^isub>5 b\<^isub>6 b\<^isub>7 b\<^isub>8 b\<^isub>9 b\<^isub>10 (b\<^isub>11\<Colon>nat).
            b\<^isub>1 < b\<^isub>11 \<and> f5 g x = f5 (\<lambda>a. if b\<^isub>1 < b\<^isub>11 then a else h b\<^isub>2) x"
-nitpick [expect = potential]
+nitpick [expect = none]
 nitpick [dont_specialize, expect = none]
 nitpick [dont_box, expect = none]
 nitpick [dont_box, dont_specialize, expect = none]
@@ -163,7 +163,7 @@ lemma "\<forall>a. g a = a
                               else
                                 h b\<^isub>2 + h b\<^isub>3 + h b\<^isub>4 + h b\<^isub>5 + h b\<^isub>6 + h b\<^isub>7 + h b\<^isub>8
                                 + h b\<^isub>9 + h b\<^isub>10) x"
-nitpick [card nat = 2, card 'a = 1, expect = none]
+nitpick [card nat = 2, card 'a = 1, expect = potential]
 nitpick [card nat = 2, card 'a = 1, dont_box, expect = potential]
 nitpick [card nat = 2, card 'a = 1, dont_specialize, expect = potential]
 nitpick [card nat = 2, card 'a = 1, dont_box, dont_specialize,

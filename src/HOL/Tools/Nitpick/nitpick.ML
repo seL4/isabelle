@@ -12,6 +12,7 @@ sig
     cards_assigns: (typ option * int list) list,
     maxes_assigns: (styp option * int list) list,
     iters_assigns: (styp option * int list) list,
+    bitss: int list,
     bisim_depths: int list,
     boxes: (typ option * bool option) list,
     monos: (typ option * bool option) list,
@@ -25,6 +26,7 @@ sig
     user_axioms: bool option,
     assms: bool,
     merge_type_vars: bool,
+    binary_ints: bool option,
     destroy_constrs: bool,
     specialize: bool,
     skolemize: bool,
@@ -77,6 +79,7 @@ type params = {
   cards_assigns: (typ option * int list) list,
   maxes_assigns: (styp option * int list) list,
   iters_assigns: (styp option * int list) list,
+  bitss: int list,
   bisim_depths: int list,
   boxes: (typ option * bool option) list,
   monos: (typ option * bool option) list,
@@ -90,6 +93,7 @@ type params = {
   user_axioms: bool option,
   assms: bool,
   merge_type_vars: bool,
+  binary_ints: bool option,
   destroy_constrs: bool,
   specialize: bool,
   skolemize: bool,
@@ -186,20 +190,21 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
     val nitpick_thy = ThyInfo.get_theory "Nitpick"
     val nitpick_thy_missing = not (Theory.subthy (nitpick_thy, user_thy))
     val thy = if nitpick_thy_missing then
-                Theory.begin_theory "Nitpick_Internal" [nitpick_thy, user_thy]
+                Theory.begin_theory "Nitpick_Internal_Name_Do_Not_Use_XYZZY"
+                                    [nitpick_thy, user_thy]
                 |> Theory.checkpoint
               else
                 user_thy
     val ctxt = Proof.context_of state
                |> nitpick_thy_missing ? Context.raw_transfer thy
-    val {cards_assigns, maxes_assigns, iters_assigns, bisim_depths, boxes,
-         monos, wfs, sat_solver, blocking, falsify, debug, verbose, overlord,
-         user_axioms, assms, merge_type_vars, destroy_constrs, specialize,
-         skolemize, star_linear_preds, uncurry, fast_descrs, peephole_optim,
-         tac_timeout, sym_break, sharing_depth, flatten_props, max_threads,
-         show_skolems, show_datatypes, show_consts, evals, formats,
-         max_potential, max_genuine, check_potential, check_genuine, batch_size,
-         ...} =
+    val {cards_assigns, maxes_assigns, iters_assigns, bitss, bisim_depths,
+         boxes, monos, wfs, sat_solver, blocking, falsify, debug, verbose,
+         overlord, user_axioms, assms, merge_type_vars, binary_ints,
+         destroy_constrs, specialize, skolemize, star_linear_preds, uncurry,
+         fast_descrs, peephole_optim, tac_timeout, sym_break, sharing_depth,
+         flatten_props, max_threads, show_skolems, show_datatypes, show_consts,
+         evals, formats, max_potential, max_genuine, check_potential,
+         check_genuine, batch_size, ...} =
       params
     val state_ref = Unsynchronized.ref state
     (* Pretty.T -> unit *)
@@ -260,10 +265,11 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
     val (ext_ctxt as {wf_cache, ...}) =
       {thy = thy, ctxt = ctxt, max_bisim_depth = max_bisim_depth, boxes = boxes,
        user_axioms = user_axioms, debug = debug, wfs = wfs,
-       destroy_constrs = destroy_constrs, specialize = specialize,
-       skolemize = skolemize, star_linear_preds = star_linear_preds,
-       uncurry = uncurry, fast_descrs = fast_descrs, tac_timeout = tac_timeout,
-       evals = evals, case_names = case_names, def_table = def_table,
+       binary_ints = binary_ints, destroy_constrs = destroy_constrs,
+       specialize = specialize, skolemize = skolemize,
+       star_linear_preds = star_linear_preds, uncurry = uncurry,
+       fast_descrs = fast_descrs, tac_timeout = tac_timeout, evals = evals,
+       case_names = case_names, def_table = def_table,
        nondef_table = nondef_table, user_nondefs = user_nondefs,
        simp_table = simp_table, psimp_table = psimp_table,
        intro_table = intro_table, ground_thm_table = ground_thm_table,
@@ -321,19 +327,27 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
       unique_scope orelse
       case triple_lookup (type_match thy) monos T of
         SOME (SOME b) => b
-      | _ => formulas_monotonic ext_ctxt T def_ts nondef_ts core_t
+      | _ => is_bit_type T
+             orelse formulas_monotonic ext_ctxt T def_ts nondef_ts core_t
     fun is_datatype_monotonic T =
       unique_scope orelse
       case triple_lookup (type_match thy) monos T of
         SOME (SOME b) => b
-      | _ =>
-        not (is_pure_typedef thy T) orelse is_univ_typedef thy T
-        orelse is_number_type thy T
-        orelse formulas_monotonic ext_ctxt T def_ts nondef_ts core_t
-    fun is_datatype_shallow T =
-      not (exists (curry (op =) T o domain_type o type_of) sel_names)
+      | _ => not (is_pure_typedef thy T) orelse is_univ_typedef thy T
+             orelse is_number_type thy T
+             orelse formulas_monotonic ext_ctxt T def_ts nondef_ts core_t
+    fun is_datatype_deep T =
+      is_word_type T
+      orelse exists (curry (op =) T o domain_type o type_of) sel_names
     val Ts = ground_types_in_terms ext_ctxt (core_t :: def_ts @ nondef_ts)
              |> sort TermOrd.typ_ord
+    val _ = if verbose andalso binary_ints = SOME true
+               andalso exists (member (op =) [nat_T, int_T]) Ts then
+              print_v (K "The option \"binary_ints\" will be ignored because \
+                         \of the presence of rationals, reals, \"gcd\", or \
+                         \\"lcm\" in the problem.")
+            else
+              ()
     val (all_dataTs, all_free_Ts) =
       List.partition (is_integer_type orf is_datatype thy) Ts
     val (mono_dataTs, nonmono_dataTs) =
@@ -341,11 +355,13 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
     val (mono_free_Ts, nonmono_free_Ts) =
       List.partition is_free_type_monotonic all_free_Ts
 
+    val interesting_mono_free_Ts = filter_out is_bit_type mono_free_Ts
     val _ =
-      if not unique_scope andalso not (null mono_free_Ts) then
+      if not unique_scope andalso not (null interesting_mono_free_Ts) then
         print_v (fn () =>
                     let
-                      val ss = map (quote o string_for_type ctxt) mono_free_Ts
+                      val ss = map (quote o string_for_type ctxt)
+                                   interesting_mono_free_Ts
                     in
                       "The type" ^ plural_s_for_list ss ^ " " ^
                       space_implode " " (serial_commas "and" ss) ^ " " ^
@@ -360,7 +376,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
         ()
     val mono_Ts = mono_dataTs @ mono_free_Ts
     val nonmono_Ts = nonmono_dataTs @ nonmono_free_Ts
-    val shallow_dataTs = filter is_datatype_shallow mono_dataTs
+    val shallow_dataTs = filter_out is_datatype_deep mono_dataTs
 (*
     val _ = priority "Monotonic datatypes:"
     val _ = List.app (priority o string_for_type ctxt) mono_dataTs
@@ -400,12 +416,12 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
 
     (* bool -> scope -> rich_problem option *)
     fun problem_for_scope liberal
-            (scope as {card_assigns, bisim_depth, datatypes, ofs, ...}) =
+            (scope as {card_assigns, bits, bisim_depth, datatypes, ofs, ...}) =
       let
         val _ = not (exists (fn other => scope_less_eq other scope)
                             (!too_big_scopes))
-                orelse raise LIMIT ("Nitpick.pick_them_nits_in_term.\
-                                    \problem_for_scope", "too big scope")
+                orelse raise TOO_LARGE ("Nitpick.pick_them_nits_in_term.\
+                                        \problem_for_scope", "too large scope")
 (*
         val _ = priority "Offsets:"
         val _ = List.app (fn (T, j0) =>
@@ -454,7 +470,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
         val def_us = map (rename_vars_in_nut pool rel_table) def_us
         val nondef_us = map (rename_vars_in_nut pool rel_table) nondef_us
         (* nut -> Kodkod.formula *)
-        val to_f = kodkod_formula_from_nut ofs liberal kk
+        val to_f = kodkod_formula_from_nut bits ofs liberal kk
         val core_f = to_f core_u
         val def_fs = map to_f def_us
         val nondef_fs = map to_f nondef_us
@@ -463,6 +479,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
                       PrintMode.setmp [] multiline_string_for_scope scope
         val kodkod_sat_solver = Kodkod_SAT.sat_solver_spec effective_sat_solver
                                 |> snd
+        val bit_width = if bits = 0 then 16 else bits + 1
         val delay = if liberal then
                       Option.map (fn time => Time.- (time, Time.now ()))
                                  deadline
@@ -471,7 +488,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
                       0
         val settings = [("solver", commas (map quote kodkod_sat_solver)),
                         ("skolem_depth", "-1"),
-                        ("bit_width", "16"),
+                        ("bit_width", string_of_int bit_width),
                         ("symmetry_breaking", signed_string_of_int sym_break),
                         ("sharing", signed_string_of_int sharing_depth),
                         ("flatten", Bool.toString flatten_props),
@@ -480,7 +497,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
         val plain_bounds = map (bound_for_plain_rel ctxt debug) plain_rels
         val plain_axioms = map (declarative_axiom_for_plain_rel kk) plain_rels
         val sel_bounds = map (bound_for_sel_rel ctxt debug datatypes) sel_rels
-        val dtype_axioms = declarative_axioms_for_datatypes ext_ctxt ofs kk
+        val dtype_axioms = declarative_axioms_for_datatypes ext_ctxt bits ofs kk
                                                             rel_table datatypes
         val declarative_axioms = plain_axioms @ dtype_axioms
         val univ_card = univ_card nat_card int_card main_j0
@@ -492,35 +509,44 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
         val highest_arity =
           fold Integer.max (map (fst o fst) (maps fst bounds)) 0
         val formula = fold_rev s_and declarative_axioms formula
+        val _ = if bits = 0 then () else check_bits bits formula
         val _ = if formula = Kodkod.False then ()
                 else check_arity univ_card highest_arity
       in
         SOME ({comment = comment, settings = settings, univ_card = univ_card,
                tuple_assigns = [], bounds = bounds,
-               int_bounds = sequential_int_bounds univ_card,
+               int_bounds =
+                   if bits = 0 then sequential_int_bounds univ_card
+                   else pow_of_two_int_bounds bits main_j0 univ_card,
                expr_assigns = [], formula = formula},
               {free_names = free_names, sel_names = sel_names,
                nonsel_names = nonsel_names, rel_table = rel_table,
                liberal = liberal, scope = scope, core = core_f,
                defs = nondef_fs @ def_fs @ declarative_axioms})
       end
-      handle LIMIT (loc, msg) =>
+      handle TOO_LARGE (loc, msg) =>
              if loc = "Nitpick_Kodkod.check_arity"
                 andalso not (Typtab.is_empty ofs) then
                problem_for_scope liberal
                    {ext_ctxt = ext_ctxt, card_assigns = card_assigns,
-                    bisim_depth = bisim_depth, datatypes = datatypes,
-                    ofs = Typtab.empty}
+                    bits = bits, bisim_depth = bisim_depth,
+                    datatypes = datatypes, ofs = Typtab.empty}
              else if loc = "Nitpick.pick_them_nits_in_term.\
                            \problem_for_scope" then
                NONE
              else
                (Unsynchronized.change too_big_scopes (cons scope);
                 print_v (fn () => ("Limit reached: " ^ msg ^
-                                   ". Dropping " ^ (if liberal then "potential"
+                                   ". Skipping " ^ (if liberal then "potential"
                                                     else "genuine") ^
                                    " component of scope."));
                 NONE)
+           | TOO_SMALL (loc, msg) =>
+             (print_v (fn () => ("Limit reached: " ^ msg ^
+                                 ". Skipping " ^ (if liberal then "potential"
+                                                  else "genuine") ^
+                                 " component of scope."));
+              NONE)
 
     (* int -> (''a * int list list) list -> ''a -> Kodkod.tuple_set *)
     fun tuple_set_for_rel univ_card =
@@ -809,7 +835,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
     (* int -> int -> scope list -> int * int * int -> Kodkod.outcome *)
     fun run_batches _ _ [] (max_potential, max_genuine, donno) =
         if donno > 0 andalso max_genuine > 0 then
-          (print_m (fn () => excipit "ran out of juice"); "unknown")
+          (print_m (fn () => excipit "ran out of some resource"); "unknown")
         else if max_genuine = original_max_genuine then
           if max_potential = original_max_potential then
             (print_m (K ("Nitpick found no " ^ word_model ^ ".")); "none")
@@ -827,9 +853,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
 
     val (skipped, the_scopes) =
       all_scopes ext_ctxt sym_break cards_assigns maxes_assigns iters_assigns
-                 bisim_depths mono_Ts nonmono_Ts shallow_dataTs
+                 bitss bisim_depths mono_Ts nonmono_Ts shallow_dataTs
     val _ = if skipped > 0 then
-              print_m (fn () => "Too many scopes. Dropping " ^
+              print_m (fn () => "Too many scopes. Skipping " ^
                                 string_of_int skipped ^ " scope" ^
                                 plural_s skipped ^
                                 ". (Consider using \"mono\" or \

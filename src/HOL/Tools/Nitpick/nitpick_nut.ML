@@ -26,7 +26,6 @@ sig
     Subtract |
     Multiply |
     Divide |
-    Modulo |
     Gcd |
     Lcm |
     Fracs |
@@ -144,7 +143,6 @@ datatype cst =
   Subtract |
   Multiply |
   Divide |
-  Modulo |
   Gcd |
   Lcm |
   Fracs |
@@ -218,7 +216,6 @@ fun string_for_cst Unity = "Unity"
   | string_for_cst Subtract = "Subtract"
   | string_for_cst Multiply = "Multiply"
   | string_for_cst Divide = "Divide"
-  | string_for_cst Modulo = "Modulo"
   | string_for_cst Gcd = "Gcd"
   | string_for_cst Lcm = "Lcm"
   | string_for_cst Fracs = "Fracs"
@@ -614,8 +611,6 @@ fun nut_from_term (ext_ctxt as {thy, fast_descrs, special_funs, ...}) eq =
           Cst (Multiply, T, Any)
         | (Const (@{const_name div_nat_inst.div_nat}, T), []) =>
           Cst (Divide, T, Any)
-        | (Const (@{const_name div_nat_inst.mod_nat}, T), []) =>
-          Cst (Modulo, T, Any)
         | (Const (@{const_name ord_nat_inst.less_nat}, T), [t1, t2]) =>
           Op2 (Less, bool_T, Any, sub t1, sub t2)
         | (Const (@{const_name ord_nat_inst.less_eq_nat}, T), [t1, t2]) =>
@@ -634,12 +629,12 @@ fun nut_from_term (ext_ctxt as {thy, fast_descrs, special_funs, ...}) eq =
           Cst (Multiply, T, Any)
         | (Const (@{const_name div_int_inst.div_int}, T), []) =>
           Cst (Divide, T, Any)
-        | (Const (@{const_name div_int_inst.mod_int}, T), []) =>
-          Cst (Modulo, T, Any)
         | (Const (@{const_name uminus_int_inst.uminus_int}, T), []) =>
-          Op2 (Apply, int_T --> int_T, Any,
-               Cst (Subtract, [int_T, int_T] ---> int_T, Any),
-               Cst (Num 0, int_T, Any))
+          let val num_T = domain_type T in
+            Op2 (Apply, num_T --> num_T, Any,
+                 Cst (Subtract, num_T --> num_T --> num_T, Any),
+                 Cst (Num 0, num_T, Any))
+          end
         | (Const (@{const_name ord_int_inst.less_int}, T), [t1, t2]) =>
           Op2 (Less, bool_T, Any, sub t1, sub t2)
         | (Const (@{const_name ord_int_inst.less_eq_int}, T), [t1, t2]) =>
@@ -649,6 +644,9 @@ fun nut_from_term (ext_ctxt as {thy, fast_descrs, special_funs, ...}) eq =
         | (Const (@{const_name Frac}, T), []) => Cst (Fracs, T, Any)
         | (Const (@{const_name norm_frac}, T), []) => Cst (NormFrac, T, Any)
         | (Const (@{const_name of_nat}, T as @{typ "nat => int"}), []) =>
+          Cst (NatToInt, T, Any)
+        | (Const (@{const_name of_nat},
+                  T as @{typ "unsigned_bit word => signed_bit word"}), []) =>
           Cst (NatToInt, T, Any)
         | (Const (@{const_name lower_semilattice_fun_inst.inf_fun}, T),
                   [t1, t2]) =>
@@ -742,12 +740,14 @@ fun choose_reps_for_consts scope all_exact vs table =
 
 (* scope -> styp -> int -> nut list * rep NameTable.table
    -> nut list * rep NameTable.table *)
-fun choose_rep_for_nth_sel_for_constr (scope as {ext_ctxt, ...}) x n
+fun choose_rep_for_nth_sel_for_constr (scope as {ext_ctxt, ...}) (x as (_, T)) n
                                       (vs, table) =
   let
     val (s', T') = boxed_nth_sel_for_constr ext_ctxt x n
-    val R' = if n = ~1 then best_non_opt_set_rep_for_type scope T'
-             else best_opt_set_rep_for_type scope T' |> unopt_rep
+    val R' = if n = ~1 orelse is_word_type (body_type T) then
+               best_non_opt_set_rep_for_type scope T'
+             else
+               best_opt_set_rep_for_type scope T' |> unopt_rep
     val v = ConstName (s', T', R')
   in (v :: vs, NameTable.update (v, R') table) end
 (* scope -> styp -> nut list * rep NameTable.table
@@ -780,7 +780,8 @@ fun is_constructive u =
   (not (is_fun_type (type_of u)) andalso not (is_opt_rep (rep_of u))) orelse
   case u of
     Cst (Num _, _, _) => true
-  | Cst (cst, T, _) => cst = Suc orelse (body_type T = nat_T andalso cst = Add)
+  | Cst (cst, T, _) =>
+    cst = Suc orelse (body_type T = nat_T andalso cst = Add)
   | Op2 (Apply, _, _, u1, u2) => forall is_constructive [u1, u2]
   | Op3 (If, _, _, u1, u2, u3) =>
     not (is_opt_rep (rep_of u1)) andalso forall is_constructive [u2, u3]
@@ -883,7 +884,8 @@ fun untuple f (Tuple (_, _, us)) = maps (untuple f) us
 
 (* scope -> bool -> rep NameTable.table -> bool -> nut -> nut *)
 fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
-                                  datatypes, ofs, ...}) liberal table def =
+                                  bits, datatypes, ofs, ...})
+                       liberal table def =
   let
     val bool_atom_R = Atom (2, offset_of_type ofs bool_T)
     (* polarity -> bool -> rep *)
@@ -912,17 +914,23 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
           Cst (False, T, _) => Cst (False, T, Formula Neut)
         | Cst (True, T, _) => Cst (True, T, Formula Neut)
         | Cst (Num j, T, _) =>
-          (case spec_of_type scope T of
-             (1, j0) => if j = 0 then Cst (Unity, T, Unit)
-                        else Cst (Unrep, T, Opt (Atom (1, j0)))
-           | (k, j0) =>
-             let
-               val ok = (if T = int_T then atom_for_int (k, j0) j <> ~1
-                         else j < k)
-             in
-               if ok then Cst (Num j, T, Atom (k, j0))
-               else Cst (Unrep, T, Opt (Atom (k, j0)))
-             end)
+          if is_word_type T then
+            if is_twos_complement_representable bits j then
+              Cst (Num j, T, best_non_opt_set_rep_for_type scope T)
+            else
+              Cst (Unrep, T, best_opt_set_rep_for_type scope T)
+          else
+            (case spec_of_type scope T of
+               (1, j0) => if j = 0 then Cst (Unity, T, Unit)
+                          else Cst (Unrep, T, Opt (Atom (1, j0)))
+             | (k, j0) =>
+               let
+                 val ok = (if T = int_T then atom_for_int (k, j0) j <> ~1
+                           else j < k)
+               in
+                 if ok then Cst (Num j, T, Atom (k, j0))
+                 else Cst (Unrep, T, Opt (Atom (k, j0)))
+               end)
         | Cst (Suc, T as Type ("fun", [T1, _]), _) =>
           let val R = Atom (spec_of_type scope T1) in
             Cst (Suc, T, Func (R, Opt R))
@@ -939,31 +947,27 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
               (true, Pos) => Cst (False, T, Formula Pos)
             | (true, Neg) => Cst (True, T, Formula Neg)
             | _ => Cst (cst, T, best_opt_set_rep_for_type scope T)
-          else if member (op =) [Add, Subtract, Multiply, Divide, Modulo, Gcd,
-                                 Lcm] cst then
+          else if member (op =) [Add, Subtract, Multiply, Divide, Gcd, Lcm]
+                         cst then
             let
               val T1 = domain_type T
               val R1 = Atom (spec_of_type scope T1)
-              val total =
-                T1 = nat_T andalso (cst = Subtract orelse cst = Divide
-                                    orelse cst = Modulo orelse cst = Gcd)
+              val total = T1 = nat_T
+                          andalso (cst = Subtract orelse cst = Divide
+                                   orelse cst = Gcd)
             in Cst (cst, T, Func (R1, Func (R1, (not total ? Opt) R1))) end
           else if cst = NatToInt orelse cst = IntToNat then
             let
-              val (nat_card, nat_j0) = spec_of_type scope nat_T
-              val (int_card, int_j0) = spec_of_type scope int_T
+              val (dom_card, dom_j0) = spec_of_type scope (domain_type T)
+              val (ran_card, ran_j0) = spec_of_type scope (range_type T)
+              val total = not (is_word_type (domain_type T))
+                          andalso (if cst = NatToInt then
+                                    max_int_for_card ran_card >= dom_card + 1
+                                  else
+                                    max_int_for_card dom_card < ran_card)
             in
-              if cst = NatToInt then
-                let val total = (max_int_for_card int_card >= nat_card + 1) in
-                  Cst (cst, T,
-                       Func (Atom (nat_card, nat_j0),
-                             (not total ? Opt) (Atom (int_card, int_j0))))
-                end
-              else
-                let val total = (max_int_for_card int_card < nat_card) in
-                  Cst (cst, T, Func (Atom (int_card, int_j0),
-                       Atom (nat_card, nat_j0)) |> not total ? Opt)
-                end
+              Cst (cst, T, Func (Atom (dom_card, dom_j0),
+                                 Atom (ran_card, ran_j0) |> not total ? Opt))
             end
           else
             Cst (cst, T, best_set_rep_for_type scope T)
@@ -1313,7 +1317,18 @@ fun rename_n_ary_var rename_free v (ws, pool, table) =
       in (ws' @ ws, pool, NameTable.update (v, shape_tuple T R ws') table) end
     else
       let
-        val (j, pool) = fresh arity pool
+        val (j, pool) =
+          case v of
+            ConstName _ =>
+            if is_sel_like_and_no_discr nick then
+              case domain_type T of
+                @{typ "unsigned_bit word"} =>
+                (snd unsigned_bit_word_sel_rel, pool)
+              | @{typ "signed_bit word"} => (snd signed_bit_word_sel_rel, pool)
+              | _ => fresh arity pool
+            else
+              fresh arity pool
+          | _ => fresh arity pool
         val w = constr ((arity, j), T, R, nick)
       in (w :: ws, pool, NameTable.update (v, w) table) end
   end

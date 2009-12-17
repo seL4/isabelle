@@ -19,10 +19,12 @@ sig
 
   val univ_card :
     int -> int -> int -> Kodkod.bound list -> Kodkod.formula -> int
+  val check_bits : int -> Kodkod.formula -> unit
   val check_arity : int -> int -> unit
   val kk_tuple : bool -> int -> int list -> Kodkod.tuple
   val tuple_set_from_atom_schema : (int * int) list -> Kodkod.tuple_set
   val sequential_int_bounds : int -> Kodkod.int_bound list
+  val pow_of_two_int_bounds : int -> int -> int -> Kodkod.int_bound list
   val bounds_for_built_in_rels_in_formula :
     bool -> int -> int -> int -> int -> Kodkod.formula -> Kodkod.bound list
   val bound_for_plain_rel : Proof.context -> bool -> nut -> Kodkod.bound
@@ -31,10 +33,10 @@ sig
   val merge_bounds : Kodkod.bound list -> Kodkod.bound list
   val declarative_axiom_for_plain_rel : kodkod_constrs -> nut -> Kodkod.formula
   val declarative_axioms_for_datatypes :
-    extended_context -> int Typtab.table -> kodkod_constrs
+    extended_context -> int -> int Typtab.table -> kodkod_constrs
     -> nut NameTable.table -> dtype_spec list -> Kodkod.formula list
   val kodkod_formula_from_nut :
-    int Typtab.table -> bool -> kodkod_constrs -> nut -> Kodkod.formula
+    int -> int Typtab.table -> bool -> kodkod_constrs -> nut -> Kodkod.formula
 end;
 
 structure Nitpick_Kodkod : NITPICK_KODKOD =
@@ -80,18 +82,28 @@ fun univ_card nat_card int_card main_j0 bounds formula =
                |> Kodkod.fold_formula expr_F formula
   in Int.max (main_j0 + fold Integer.max [2, nat_card, int_card] 0, card) end
 
-(* Proof.context -> bool -> string -> typ -> rep -> string *)
-fun bound_comment ctxt debug nick T R =
-  short_name nick ^
-  (if debug then " :: " ^ plain_string_from_yxml (Syntax.string_of_typ ctxt T)
-   else "") ^ " : " ^ string_for_rep R
+(* int -> Kodkod.formula -> unit *)
+fun check_bits bits formula =
+  let
+    (* Kodkod.int_expr -> unit -> unit *)
+    fun int_expr_func (Kodkod.Num k) () =
+        if is_twos_complement_representable bits k then
+          ()
+        else
+          raise TOO_SMALL ("Nitpick_Kodkod.check_bits",
+                           "\"bits\" value " ^ string_of_int bits ^
+                           " too small for problem")
+      | int_expr_func _ () = ()
+    val expr_F = {formula_func = K I, rel_expr_func = K I,
+                  int_expr_func = int_expr_func}
+  in Kodkod.fold_formula expr_F formula () end
 
 (* int -> int -> unit *)
 fun check_arity univ_card n =
   if n > Kodkod.max_arity univ_card then
-    raise LIMIT ("Nitpick_Kodkod.check_arity",
-                 "arity " ^ string_of_int n ^ " too large for universe of \
-                 \cardinality " ^ string_of_int univ_card)
+    raise TOO_LARGE ("Nitpick_Kodkod.check_arity",
+                     "arity " ^ string_of_int n ^ " too large for universe of \
+                     \cardinality " ^ string_of_int univ_card)
   else
     ()
 
@@ -109,20 +121,34 @@ val tuple_set_from_atom_schema =
 (* rep -> Kodkod.tuple_set *)
 val upper_bound_for_rep = tuple_set_from_atom_schema o atom_schema_of_rep
 
+(* int -> Kodkod.tuple_set *)
+val single_atom = Kodkod.TupleSet o single o Kodkod.Tuple o single
 (* int -> Kodkod.int_bound list *)
-fun sequential_int_bounds n =
-  [(NONE, map (Kodkod.TupleSet o single o Kodkod.Tuple o single)
-              (index_seq 0 n))]
+fun sequential_int_bounds n = [(NONE, map single_atom (index_seq 0 n))]
+(* int -> int -> Kodkod.int_bound list *)
+fun pow_of_two_int_bounds bits j0 univ_card =
+  let
+    (* int -> int -> int -> Kodkod.int_bound list *)
+    fun aux 0  _ _ = []
+      | aux 1 pow_of_two j =
+        if j < univ_card then [(SOME (~ pow_of_two), [single_atom j])] else []
+      | aux iter pow_of_two j =
+        (SOME pow_of_two, [single_atom j]) ::
+        aux (iter - 1) (2 * pow_of_two) (j + 1)
+  in aux (bits + 1) 1 j0 end
 
 (* Kodkod.formula -> Kodkod.n_ary_index list *)
 fun built_in_rels_in_formula formula =
   let
     (* Kodkod.rel_expr -> Kodkod.n_ary_index list -> Kodkod.n_ary_index list *)
-    fun rel_expr_func (Kodkod.Rel (n, j)) rels =
-        (case AList.lookup (op =) (#rels initial_pool) n of
-           SOME k => (j < k ? insert (op =) (n, j)) rels
-         | NONE => rels)
-      | rel_expr_func _ rels = rels
+    fun rel_expr_func (r as Kodkod.Rel (x as (n, j))) =
+        if x = unsigned_bit_word_sel_rel orelse x = signed_bit_word_sel_rel then
+          I
+        else
+          (case AList.lookup (op =) (#rels initial_pool) n of
+             SOME k => j < k ? insert (op =) x
+           | NONE => I)
+      | rel_expr_func _ = I
     val expr_F = {formula_func = K I, rel_expr_func = rel_expr_func,
                   int_expr_func = K I}
   in Kodkod.fold_formula expr_F formula [] end
@@ -132,8 +158,8 @@ val max_table_size = 65536
 (* int -> unit *)
 fun check_table_size k =
   if k > max_table_size then
-    raise LIMIT ("Nitpick_Kodkod.check_table_size",
-                 "precomputed table too large (" ^ string_of_int k ^ ")")
+    raise TOO_LARGE ("Nitpick_Kodkod.check_table_size",
+                     "precomputed table too large (" ^ string_of_int k ^ ")")
   else
     ()
 
@@ -205,43 +231,39 @@ fun isa_norm_frac (m, n) =
    -> string * bool * Kodkod.tuple list *)
 fun tabulate_built_in_rel debug univ_card nat_card int_card j0 (x as (n, _)) =
   (check_arity univ_card n;
-   if Kodkod.Rel x = not3_rel then
+   if x = not3_rel then
      ("not3", tabulate_func1 debug univ_card (2, j0) (curry (op -) 1))
-   else if Kodkod.Rel x = suc_rel then
+   else if x = suc_rel then
      ("suc", tabulate_func1 debug univ_card (univ_card - j0 - 1, j0)
                             (Integer.add 1))
-   else if Kodkod.Rel x = nat_add_rel then
+   else if x = nat_add_rel then
      ("nat_add", tabulate_nat_op2 debug univ_card (nat_card, j0) (op +))
-   else if Kodkod.Rel x = int_add_rel then
+   else if x = int_add_rel then
      ("int_add", tabulate_int_op2 debug univ_card (int_card, j0) (op +))
-   else if Kodkod.Rel x = nat_subtract_rel then
+   else if x = nat_subtract_rel then
      ("nat_subtract",
       tabulate_op2 debug univ_card (nat_card, j0) j0 (uncurry nat_minus))
-   else if Kodkod.Rel x = int_subtract_rel then
+   else if x = int_subtract_rel then
      ("int_subtract", tabulate_int_op2 debug univ_card (int_card, j0) (op -))
-   else if Kodkod.Rel x = nat_multiply_rel then
+   else if x = nat_multiply_rel then
      ("nat_multiply", tabulate_nat_op2 debug univ_card (nat_card, j0) (op * ))
-   else if Kodkod.Rel x = int_multiply_rel then
+   else if x = int_multiply_rel then
      ("int_multiply", tabulate_int_op2 debug univ_card (int_card, j0) (op * ))
-   else if Kodkod.Rel x = nat_divide_rel then
+   else if x = nat_divide_rel then
      ("nat_divide", tabulate_nat_op2 debug univ_card (nat_card, j0) isa_div)
-   else if Kodkod.Rel x = int_divide_rel then
+   else if x = int_divide_rel then
      ("int_divide", tabulate_int_op2 debug univ_card (int_card, j0) isa_div)
-   else if Kodkod.Rel x = nat_modulo_rel then
-     ("nat_modulo", tabulate_nat_op2 debug univ_card (nat_card, j0) isa_mod)
-   else if Kodkod.Rel x = int_modulo_rel then
-     ("int_modulo", tabulate_int_op2 debug univ_card (int_card, j0) isa_mod)
-   else if Kodkod.Rel x = nat_less_rel then
+   else if x = nat_less_rel then
      ("nat_less", tabulate_nat_op2 debug univ_card (nat_card, j0)
                                    (int_for_bool o op <))
-   else if Kodkod.Rel x = int_less_rel then
+   else if x = int_less_rel then
      ("int_less", tabulate_int_op2 debug univ_card (int_card, j0)
                                    (int_for_bool o op <))
-   else if Kodkod.Rel x = gcd_rel then
+   else if x = gcd_rel then
      ("gcd", tabulate_nat_op2 debug univ_card (nat_card, j0) isa_gcd)
-   else if Kodkod.Rel x = lcm_rel then
+   else if x = lcm_rel then
      ("lcm", tabulate_nat_op2 debug univ_card (nat_card, j0) isa_lcm)
-   else if Kodkod.Rel x = norm_frac_rel then
+   else if x = norm_frac_rel then
      ("norm_frac", tabulate_int_op2_2 debug univ_card (int_card, j0)
                                       isa_norm_frac)
    else
@@ -260,12 +282,18 @@ fun bounds_for_built_in_rels_in_formula debug univ_card nat_card int_card j0 =
   map (bound_for_built_in_rel debug univ_card nat_card int_card j0)
   o built_in_rels_in_formula
 
+(* Proof.context -> bool -> string -> typ -> rep -> string *)
+fun bound_comment ctxt debug nick T R =
+  short_name nick ^
+  (if debug then " :: " ^ plain_string_from_yxml (Syntax.string_of_typ ctxt T)
+   else "") ^ " : " ^ string_for_rep R
+
 (* Proof.context -> bool -> nut -> Kodkod.bound *)
 fun bound_for_plain_rel ctxt debug (u as FreeRel (x, T, R, nick)) =
     ([(x, bound_comment ctxt debug nick T R)],
      if nick = @{const_name bisim_iterator_max} then
        case R of
-         Atom (k, j0) => [Kodkod.TupleSet [Kodkod.Tuple [k - 1 + j0]]]
+         Atom (k, j0) => [single_atom (k - 1 + j0)]
        | _ => raise NUT ("Nitpick_Kodkod.bound_for_plain_rel", [u])
      else
        [Kodkod.TupleSet [], upper_bound_for_rep R])
@@ -369,17 +397,17 @@ fun d_n_ary_function ({kk_all, kk_join, kk_lone, kk_one, ...} : kodkod_constrs)
     else
       Kodkod.True
   end
-fun kk_n_ary_function kk R (r as Kodkod.Rel _) =
+fun kk_n_ary_function kk R (r as Kodkod.Rel x) =
     if not (is_opt_rep R) then
-      if r = suc_rel then
+      if x = suc_rel then
         Kodkod.False
-      else if r = nat_add_rel then
+      else if x = nat_add_rel then
         formula_for_bool (card_of_rep (body_rep R) = 1)
-      else if r = nat_multiply_rel then
+      else if x = nat_multiply_rel then
         formula_for_bool (card_of_rep (body_rep R) <= 2)
       else
         d_n_ary_function kk R r
-    else if r = nat_subtract_rel then
+    else if x = nat_subtract_rel then
       Kodkod.True
     else
       d_n_ary_function kk R r
@@ -393,27 +421,27 @@ fun kk_disjoint_sets _ [] = Kodkod.True
 
 (* int -> kodkod_constrs -> (Kodkod.rel_expr -> Kodkod.rel_expr)
    -> Kodkod.rel_expr -> Kodkod.rel_expr *)
-fun basic_rel_let j ({kk_rel_let, ...} : kodkod_constrs) f r =
+fun basic_rel_rel_let j ({kk_rel_let, ...} : kodkod_constrs) f r =
   if inline_rel_expr r then
     f r
   else
     let val x = (Kodkod.arity_of_rel_expr r, j) in
       kk_rel_let [Kodkod.AssignRelReg (x, r)] (f (Kodkod.RelReg x))
     end
-
 (* kodkod_constrs -> (Kodkod.rel_expr -> Kodkod.rel_expr) -> Kodkod.rel_expr
    -> Kodkod.rel_expr *)
-val single_rel_let = basic_rel_let 0
+val single_rel_rel_let = basic_rel_rel_let 0
 (* kodkod_constrs -> (Kodkod.rel_expr -> Kodkod.rel_expr -> Kodkod.rel_expr)
    -> Kodkod.rel_expr -> Kodkod.rel_expr -> Kodkod.rel_expr *)
-fun double_rel_let kk f r1 r2 =
-  single_rel_let kk (fn r1 => basic_rel_let 1 kk (f r1) r2) r1
+fun double_rel_rel_let kk f r1 r2 =
+  single_rel_rel_let kk (fn r1 => basic_rel_rel_let 1 kk (f r1) r2) r1
 (* kodkod_constrs
    -> (Kodkod.rel_expr -> Kodkod.rel_expr -> Kodkod.rel_expr -> Kodkod.rel_expr)
    -> Kodkod.rel_expr -> Kodkod.rel_expr -> Kodkod.rel_expr
    -> Kodkod.rel_expr *)
-fun triple_rel_let kk f r1 r2 r3 =
-  double_rel_let kk (fn r1 => fn r2 => basic_rel_let 2 kk (f r1 r2) r3) r1 r2
+fun tripl_rel_rel_let kk f r1 r2 r3 =
+  double_rel_rel_let kk
+      (fn r1 => fn r2 => basic_rel_rel_let 2 kk (f r1 r2) r3) r1 r2
 
 (* kodkod_constrs -> int -> Kodkod.formula -> Kodkod.rel_expr *)
 fun atom_from_formula ({kk_rel_if, ...} : kodkod_constrs) j0 f =
@@ -469,8 +497,8 @@ fun lone_rep_fallback kk new_R old_R r =
       if is_lone_rep old_R andalso is_lone_rep new_R
          andalso card = card_of_rep new_R then
         if card >= lone_rep_fallback_max_card then
-          raise LIMIT ("Nitpick_Kodkod.lone_rep_fallback",
-                       "too high cardinality (" ^ string_of_int card ^ ")")
+          raise TOO_LARGE ("Nitpick_Kodkod.lone_rep_fallback",
+                           "too high cardinality (" ^ string_of_int card ^ ")")
         else
           kk_case_switch kk old_R new_R r (all_singletons_for_rep old_R)
                          (all_singletons_for_rep new_R)
@@ -672,6 +700,21 @@ and rel_expr_from_rel_expr kk new_R old_R r =
 (* kodkod_constrs -> rep -> rep -> rep -> Kodkod.rel_expr -> Kodkod.rel_expr *)
 and rel_expr_to_func kk R1 R2 = rel_expr_from_rel_expr kk (Func (R1, R2))
 
+(* kodkod_constrs -> typ -> Kodkod.rel_expr -> Kodkod.rel_expr *)
+fun bit_set_from_atom ({kk_join, ...} : kodkod_constrs) T r =
+  kk_join r (Kodkod.Rel (if T = @{typ "unsigned_bit word"} then
+                           unsigned_bit_word_sel_rel
+                         else
+                           signed_bit_word_sel_rel))
+(* kodkod_constrs -> typ -> Kodkod.rel_expr -> Kodkod.int_expr *)
+val int_expr_from_atom = Kodkod.SetSum ooo bit_set_from_atom
+(* kodkod_constrs -> typ -> rep -> Kodkod.int_expr -> Kodkod.rel_expr *)
+fun atom_from_int_expr (kk as {kk_rel_eq, kk_comprehension, ...}
+                        : kodkod_constrs) T R i =
+  kk_comprehension (decls_for_atom_schema ~1 (atom_schema_of_rep R))
+                   (kk_rel_eq (bit_set_from_atom kk T (Kodkod.Var (1, ~1)))
+                              (Kodkod.Bits i))
+
 (* kodkod_constrs -> nut -> Kodkod.formula *)
 fun declarative_axiom_for_plain_rel kk (FreeRel (x, _, R as Func _, nick)) =
     kk_n_ary_function kk (R |> nick = @{const_name List.set} ? unopt_rep)
@@ -804,9 +847,9 @@ fun sel_axiom_for_sel ext_ctxt j0
                               (kk_no r'))
       end
   end
-(* extended_context -> int -> kodkod_constrs -> nut NameTable.table
+(* extended_context -> int -> int -> kodkod_constrs -> nut NameTable.table
    -> constr_spec -> Kodkod.formula list *)
-fun sel_axioms_for_constr ext_ctxt j0 kk rel_table
+fun sel_axioms_for_constr ext_ctxt bits j0 kk rel_table
         (constr as {const, delta, epsilon, explicit_max, ...}) =
   let
     val honors_explicit_max =
@@ -818,19 +861,25 @@ fun sel_axioms_for_constr ext_ctxt j0 kk rel_table
       let
         val ran_r = discr_rel_expr rel_table const
         val max_axiom =
-          if honors_explicit_max then Kodkod.True
-          else Kodkod.LE (Kodkod.Cardinality ran_r, Kodkod.Num explicit_max)
+          if honors_explicit_max then
+            Kodkod.True
+          else if is_twos_complement_representable bits (epsilon - delta) then
+            Kodkod.LE (Kodkod.Cardinality ran_r, Kodkod.Num explicit_max)
+          else
+            raise TOO_SMALL ("Nitpick_Kodkod.sel_axioms_for_constr",
+                             "\"bits\" value " ^ string_of_int bits ^
+                             " too small for \"max\"")
       in
         max_axiom ::
         map (sel_axiom_for_sel ext_ctxt j0 kk rel_table ran_r constr)
             (index_seq 0 (num_sels_for_constr_type (snd const)))
       end
   end
-(* extended_context -> int -> kodkod_constrs -> nut NameTable.table
+(* extended_context -> int -> int -> kodkod_constrs -> nut NameTable.table
    -> dtype_spec -> Kodkod.formula list *)
-fun sel_axioms_for_datatype ext_ctxt j0 kk rel_table
+fun sel_axioms_for_datatype ext_ctxt bits j0 kk rel_table
                             ({constrs, ...} : dtype_spec) =
-  maps (sel_axioms_for_constr ext_ctxt j0 kk rel_table) constrs
+  maps (sel_axioms_for_constr ext_ctxt bits j0 kk rel_table) constrs
 
 (* extended_context -> kodkod_constrs -> nut NameTable.table -> constr_spec
    -> Kodkod.formula list *)
@@ -881,24 +930,25 @@ fun partition_axioms_for_datatype j0 (kk as {kk_rel_eq, kk_union, ...})
        kk_disjoint_sets kk rs]
     end
 
-(* extended_context -> int Typtab.table -> kodkod_constrs -> nut NameTable.table
-   -> dtype_spec -> Kodkod.formula list *)
-fun other_axioms_for_datatype _ _ _ _ {shallow = true, ...} = []
-  | other_axioms_for_datatype ext_ctxt ofs kk rel_table (dtype as {typ, ...}) =
+(* extended_context -> int -> int Typtab.table -> kodkod_constrs
+   -> nut NameTable.table -> dtype_spec -> Kodkod.formula list *)
+fun other_axioms_for_datatype _ _ _ _ _ {shallow = true, ...} = []
+  | other_axioms_for_datatype ext_ctxt bits ofs kk rel_table
+                              (dtype as {typ, ...}) =
     let val j0 = offset_of_type ofs typ in
-      sel_axioms_for_datatype ext_ctxt j0 kk rel_table dtype @
+      sel_axioms_for_datatype ext_ctxt bits j0 kk rel_table dtype @
       uniqueness_axioms_for_datatype ext_ctxt kk rel_table dtype @
       partition_axioms_for_datatype j0 kk rel_table dtype
     end
 
-(* extended_context -> int Typtab.table -> kodkod_constrs -> nut NameTable.table
-   -> dtype_spec list -> Kodkod.formula list *)
-fun declarative_axioms_for_datatypes ext_ctxt ofs kk rel_table dtypes =
+(* extended_context -> int -> int Typtab.table -> kodkod_constrs
+   -> nut NameTable.table -> dtype_spec list -> Kodkod.formula list *)
+fun declarative_axioms_for_datatypes ext_ctxt bits ofs kk rel_table dtypes =
   acyclicity_axioms_for_datatypes ext_ctxt kk rel_table dtypes @
-  maps (other_axioms_for_datatype ext_ctxt ofs kk rel_table) dtypes
+  maps (other_axioms_for_datatype ext_ctxt bits ofs kk rel_table) dtypes
 
-(* int Typtab.table -> bool -> kodkod_constrs -> nut -> Kodkod.formula *)
-fun kodkod_formula_from_nut ofs liberal
+(* int -> int Typtab.table -> bool -> kodkod_constrs -> nut -> Kodkod.formula *)
+fun kodkod_formula_from_nut bits ofs liberal
         (kk as {kk_all, kk_exist, kk_formula_let, kk_formula_if, kk_or, kk_not,
                 kk_iff, kk_implies, kk_and, kk_subset, kk_rel_eq, kk_no, kk_one,
                 kk_some, kk_rel_let, kk_rel_if, kk_union, kk_difference,
@@ -924,12 +974,12 @@ fun kodkod_formula_from_nut ofs liberal
     fun kk_notimplies f1 f2 = kk_and f1 (kk_not f2)
     (* Kodkod.rel_expr -> Kodkod.rel_expr -> Kodkod.rel_expr *)
     val kk_or3 =
-      double_rel_let kk
+      double_rel_rel_let kk
           (fn r1 => fn r2 =>
               kk_rel_if (kk_subset true_atom (kk_union r1 r2)) true_atom
                         (kk_intersect r1 r2))
     val kk_and3 =
-      double_rel_let kk
+      double_rel_rel_let kk
           (fn r1 => fn r2 =>
               kk_rel_if (kk_subset false_atom (kk_union r1 r2)) false_atom
                         (kk_intersect r1 r2))
@@ -1153,38 +1203,98 @@ fun kodkod_formula_from_nut ofs liberal
       | Cst (Iden, T, Func (Atom (1, j0), Formula Neut)) => Kodkod.Atom j0
       | Cst (Iden, T as Type ("fun", [T1, _]), R as Func (R1, _)) =>
         to_rep R (Cst (Iden, T, Func (one_rep ofs T1 R1, Formula Neut)))
-      | Cst (Num j, @{typ int}, R) =>
-         (case atom_for_int (card_of_rep R, offset_of_type ofs int_T) j of
+      | Cst (Num j, T, R) =>
+        if is_word_type T then
+          atom_from_int_expr kk T R (Kodkod.Num j)
+        else if T = int_T then
+          case atom_for_int (card_of_rep R, offset_of_type ofs int_T) j of
             ~1 => if is_opt_rep R then Kodkod.None
                   else raise NUT ("Nitpick_Kodkod.to_r (Num)", [u])
-          | j' => Kodkod.Atom j')
-      | Cst (Num j, T, R) =>
-        if j < card_of_rep R then Kodkod.Atom (j + offset_of_type ofs T)
-        else if is_opt_rep R then Kodkod.None
-        else raise NUT ("Nitpick_Kodkod.to_r", [u])
+          | j' => Kodkod.Atom j'
+        else
+          if j < card_of_rep R then Kodkod.Atom (j + offset_of_type ofs T)
+          else if is_opt_rep R then Kodkod.None
+          else raise NUT ("Nitpick_Kodkod.to_r (Num)", [u])
       | Cst (Unknown, _, R) => empty_rel_for_rep R
       | Cst (Unrep, _, R) => empty_rel_for_rep R
       | Cst (Suc, T, Func (Atom x, _)) =>
-        if domain_type T <> nat_T then suc_rel
-        else kk_intersect suc_rel (kk_product Kodkod.Univ (Kodkod.AtomSeq x))
-      | Cst (Add, Type ("fun", [@{typ nat}, _]), _) => nat_add_rel
-      | Cst (Add, Type ("fun", [@{typ int}, _]), _) => int_add_rel
-      | Cst (Subtract, Type ("fun", [@{typ nat}, _]), _) => nat_subtract_rel
-      | Cst (Subtract, Type ("fun", [@{typ int}, _]), _) => int_subtract_rel
-      | Cst (Multiply, Type ("fun", [@{typ nat}, _]), _) => nat_multiply_rel
-      | Cst (Multiply, Type ("fun", [@{typ int}, _]), _) => int_multiply_rel
-      | Cst (Divide, Type ("fun", [@{typ nat}, _]), _) => nat_divide_rel
-      | Cst (Divide, Type ("fun", [@{typ int}, _]), _) => int_divide_rel
-      | Cst (Modulo, Type ("fun", [@{typ nat}, _]), _) => nat_modulo_rel
-      | Cst (Modulo, Type ("fun", [@{typ int}, _]), _) => int_modulo_rel
-      | Cst (Gcd, _, _) => gcd_rel
-      | Cst (Lcm, _, _) => lcm_rel
+        if domain_type T <> nat_T then
+          Kodkod.Rel suc_rel
+        else
+          kk_intersect (Kodkod.Rel suc_rel)
+                       (kk_product Kodkod.Univ (Kodkod.AtomSeq x))
+      | Cst (Add, Type ("fun", [@{typ nat}, _]), _) => Kodkod.Rel nat_add_rel
+      | Cst (Add, Type ("fun", [@{typ int}, _]), _) => Kodkod.Rel int_add_rel
+      | Cst (Add, T as Type ("fun", [@{typ "unsigned_bit word"}, _]), R) =>
+        to_bit_word_binary_op T R NONE (SOME (curry Kodkod.Add))
+      | Cst (Add, T as Type ("fun", [@{typ "signed_bit word"}, _]), R) =>
+        to_bit_word_binary_op T R
+            (SOME (fn i1 => fn i2 => fn i3 =>
+                 kk_implies (Kodkod.LE (Kodkod.Num 0, Kodkod.BitXor (i1, i2)))
+                            (Kodkod.LE (Kodkod.Num 0, Kodkod.BitXor (i2, i3)))))
+            (SOME (curry Kodkod.Add))
+      | Cst (Subtract, Type ("fun", [@{typ nat}, _]), _) =>
+        Kodkod.Rel nat_subtract_rel
+      | Cst (Subtract, Type ("fun", [@{typ int}, _]), _) =>
+        Kodkod.Rel int_subtract_rel
+      | Cst (Subtract, T as Type ("fun", [@{typ "unsigned_bit word"}, _]), R) =>
+        to_bit_word_binary_op T R NONE
+            (SOME (fn i1 => fn i2 =>
+                      Kodkod.IntIf (Kodkod.LE (i1, i2), Kodkod.Num 0,
+                                    Kodkod.Sub (i1, i2))))
+      | Cst (Subtract, T as Type ("fun", [@{typ "signed_bit word"}, _]), R) =>
+        to_bit_word_binary_op T R
+            (SOME (fn i1 => fn i2 => fn i3 =>
+                 kk_implies (Kodkod.LT (Kodkod.BitXor (i1, i2), Kodkod.Num 0))
+                            (Kodkod.LT (Kodkod.BitXor (i2, i3), Kodkod.Num 0))))
+            (SOME (curry Kodkod.Sub))
+      | Cst (Multiply, Type ("fun", [@{typ nat}, _]), _) =>
+        Kodkod.Rel nat_multiply_rel
+      | Cst (Multiply, Type ("fun", [@{typ int}, _]), _) =>
+        Kodkod.Rel int_multiply_rel
+      | Cst (Multiply,
+             T as Type ("fun", [Type (@{type_name word}, [bit_T]), _]), R) =>
+        to_bit_word_binary_op T R
+            (SOME (fn i1 => fn i2 => fn i3 =>
+                kk_or (Kodkod.IntEq (i2, Kodkod.Num 0))
+                      (Kodkod.IntEq (Kodkod.Div (i3, i2), i1)
+                       |> bit_T = @{typ signed_bit}
+                          ? kk_and (Kodkod.LE (Kodkod.Num 0,
+                                          foldl1 Kodkod.BitAnd [i1, i2, i3])))))
+            (SOME (curry Kodkod.Mult))
+      | Cst (Divide, Type ("fun", [@{typ nat}, _]), _) =>
+        Kodkod.Rel nat_divide_rel
+      | Cst (Divide, Type ("fun", [@{typ int}, _]), _) =>
+        Kodkod.Rel int_divide_rel
+      | Cst (Divide, T as Type ("fun", [@{typ "unsigned_bit word"}, _]), R) =>
+        to_bit_word_binary_op T R NONE
+            (SOME (fn i1 => fn i2 =>
+                      Kodkod.IntIf (Kodkod.IntEq (i2, Kodkod.Num 0),
+                                    Kodkod.Num 0, Kodkod.Div (i1, i2))))
+      | Cst (Divide, T as Type ("fun", [@{typ "signed_bit word"}, _]), R) =>
+        to_bit_word_binary_op T R
+            (SOME (fn i1 => fn i2 => fn i3 =>
+                Kodkod.LE (Kodkod.Num 0, foldl1 Kodkod.BitAnd [i1, i2, i3])))
+            (SOME (fn i1 => fn i2 =>
+                 Kodkod.IntIf (kk_and (Kodkod.LT (i1, Kodkod.Num 0))
+                                      (Kodkod.LT (Kodkod.Num 0, i2)),
+                     Kodkod.Sub (Kodkod.Div (Kodkod.Add (i1, Kodkod.Num 1), i2),
+                                 Kodkod.Num 1),
+                     Kodkod.IntIf (kk_and (Kodkod.LT (Kodkod.Num 0, i1))
+                                          (Kodkod.LT (i2, Kodkod.Num 0)),
+                         Kodkod.Sub (Kodkod.Div (Kodkod.Sub (i1, Kodkod.Num 1),
+                                                 i2), Kodkod.Num 1),
+                         Kodkod.IntIf (Kodkod.IntEq (i2, Kodkod.Num 0),
+                                       Kodkod.Num 0, Kodkod.Div (i1, i2))))))
+      | Cst (Gcd, _, _) => Kodkod.Rel gcd_rel
+      | Cst (Lcm, _, _) => Kodkod.Rel lcm_rel
       | Cst (Fracs, _, Func (Atom (1, _), _)) => Kodkod.None
       | Cst (Fracs, _, Func (Struct _, _)) =>
-        kk_project_seq norm_frac_rel 2 2
-      | Cst (NormFrac, _, _) => norm_frac_rel
-      | Cst (NatToInt, _, Func (Atom _, Atom _)) => Kodkod.Iden
-      | Cst (NatToInt, _,
+        kk_project_seq (Kodkod.Rel norm_frac_rel) 2 2
+      | Cst (NormFrac, _, _) => Kodkod.Rel norm_frac_rel
+      | Cst (NatToInt, Type ("fun", [@{typ nat}, _]), Func (Atom _, Atom _)) =>
+        Kodkod.Iden
+      | Cst (NatToInt, Type ("fun", [@{typ nat}, _]),
              Func (Atom (nat_k, nat_j0), Opt (Atom (int_k, int_j0)))) =>
         if nat_j0 = int_j0 then
           kk_intersect Kodkod.Iden
@@ -1192,7 +1302,10 @@ fun kodkod_formula_from_nut ofs liberal
                           Kodkod.Univ)
         else
           raise BAD ("Nitpick_Kodkod.to_r (NatToInt)", "\"nat_j0 <> int_j0\"")
-      | Cst (IntToNat, _, Func (Atom (int_k, int_j0), nat_R)) =>
+      | Cst (NatToInt, T as Type ("fun", [@{typ "unsigned_bit word"}, _]), R) =>
+        to_bit_word_unary_op T R I
+      | Cst (IntToNat, Type ("fun", [@{typ int}, _]),
+             Func (Atom (int_k, int_j0), nat_R)) =>
         let
           val abs_card = max_int_for_card int_k + 1
           val (nat_k, nat_j0) = the_single (atom_schema_of_rep nat_R)
@@ -1208,6 +1321,10 @@ fun kodkod_formula_from_nut ofs liberal
           else
             raise BAD ("Nitpick_Kodkod.to_r (IntToNat)", "\"nat_j0 <> int_j0\"")
         end
+      | Cst (IntToNat, T as Type ("fun", [@{typ "signed_bit word"}, _]), R) =>
+        to_bit_word_unary_op T R
+            (fn i => Kodkod.IntIf (Kodkod.LE (i, Kodkod.Num 0),
+                                   Kodkod.Num 0, i))
       | Op1 (Not, _, R, u1) => kk_not3 (to_rep R u1)
       | Op1 (Finite, _, Opt (Atom _), _) => Kodkod.None
       | Op1 (Converse, T, R, u1) =>
@@ -1241,7 +1358,7 @@ fun kodkod_formula_from_nut ofs liberal
             val R' = rep_to_binary_rel_rep ofs T1 (unopt_rep (rep_of u1))
             val R'' = opt_rep ofs T1 R'
           in
-            single_rel_let kk
+            single_rel_rel_let kk
                 (fn r =>
                     let
                       val true_r = kk_closure (kk_join r true_atom)
@@ -1266,7 +1383,7 @@ fun kodkod_formula_from_nut ofs liberal
            Func (R1, Formula Neut) => to_rep R1 u1
          | Func (Unit, Opt R) => to_guard [u1] R true_atom
          | Func (R1, R2 as Opt _) =>
-           single_rel_let kk
+           single_rel_rel_let kk
                (fn r => kk_rel_if (kk_no r) (empty_rel_for_rep R)
                             (rel_expr_to_func kk R1 bool_atom_R
                                               (Func (R1, Formula Neut)) r))
@@ -1309,12 +1426,22 @@ fun kodkod_formula_from_nut ofs liberal
         if is_opt_rep (rep_of u1) then kk_rel_if (to_f u2) (to_r u1) false_atom
         else kk_rel_if (to_f u1) (to_r u2) false_atom
       | Op2 (Less, _, _, u1, u2) =>
-        if type_of u1 = nat_T then
-          if is_Cst Unrep u1 then to_compare_with_unrep u2 false_atom
-          else if is_Cst Unrep u2 then to_compare_with_unrep u1 true_atom
-          else kk_nat_less (to_integer u1) (to_integer u2)
-        else
-          kk_int_less (to_integer u1) (to_integer u2)
+        (case type_of u1 of
+           @{typ nat} =>
+           if is_Cst Unrep u1 then to_compare_with_unrep u2 false_atom
+           else if is_Cst Unrep u2 then to_compare_with_unrep u1 true_atom
+           else kk_nat_less (to_integer u1) (to_integer u2)
+         | @{typ int} => kk_int_less (to_integer u1) (to_integer u2)
+         | _ => double_rel_rel_let kk
+                    (fn r1 => fn r2 =>
+                        kk_rel_if
+                            (fold kk_and (map_filter (fn (u, r) =>
+                                 if is_opt_rep (rep_of u) then SOME (kk_some r)
+                                 else NONE) [(u1, r1), (u2, r2)]) Kodkod.True)
+                            (atom_from_formula kk bool_j0 (Kodkod.LT (pairself
+                                (int_expr_from_atom kk (type_of u1)) (r1, r2))))
+                            Kodkod.None)
+                    (to_r u1) (to_r u2))
       | Op2 (The, T, R, u1, u2) =>
         if is_opt_rep R then
           let val r1 = to_opt (Func (unopt_rep R, bool_atom_R)) u1 in
@@ -1468,7 +1595,7 @@ fun kodkod_formula_from_nut ofs liberal
         if is_Cst Unrep u2 andalso not (is_opt_rep (rep_of u1)) then
           Kodkod.Atom (offset_of_type ofs nat_T)
         else
-          fold kk_join [to_integer u1, to_integer u2] nat_subtract_rel
+          fold kk_join (map to_integer [u1, u2]) (Kodkod.Rel nat_subtract_rel)
       | Op2 (Apply, _, R, u1, u2) =>
         if is_Cst Unrep u2 andalso is_set_type (type_of u1)
            andalso is_FreeName u1 then
@@ -1494,7 +1621,7 @@ fun kodkod_formula_from_nut ofs liberal
         kk_rel_let [to_expr_assign u1 u2] (to_rep R u3)
       | Op3 (If, _, R, u1, u2, u3) =>
         if is_opt_rep (rep_of u1) then
-          triple_rel_let kk
+          tripl_rel_rel_let kk
               (fn r1 => fn r2 => fn r3 =>
                   let val empty_r = empty_rel_for_rep R in
                     fold1 kk_union
@@ -1686,7 +1813,7 @@ fun kodkod_formula_from_nut ofs liberal
              | Func (_, Formula Neut) => set_oper r1 r2
              | Func (Unit, _) => connective3 r1 r2
              | Func (R1, _) =>
-               double_rel_let kk
+               double_rel_rel_let kk
                    (fn r1 => fn r2 =>
                        kk_union
                            (kk_product
@@ -1701,6 +1828,43 @@ fun kodkod_formula_from_nut ofs liberal
                                 false_atom))
                    r1 r2
              | _ => raise REP ("Nitpick_Kodkod.to_set_op", [min_R]))
+      end
+    (* typ -> rep -> (Kodkod.int_expr -> Kodkod.int_expr) -> Kodkod.rel_expr *)
+    and to_bit_word_unary_op T R oper =
+      let
+        val Ts = strip_type T ||> single |> op @
+        (* int -> Kodkod.int_expr *)
+        fun int_arg j = int_expr_from_atom kk (nth Ts j) (Kodkod.Var (1, j))
+      in
+        kk_comprehension (decls_for_atom_schema 0 (atom_schema_of_rep R))
+            (Kodkod.FormulaLet
+                 (map (fn j => Kodkod.AssignIntReg (j, int_arg j)) (0 upto 1),
+                  Kodkod.IntEq (Kodkod.IntReg 1, oper (Kodkod.IntReg 0))))
+      end
+    (* typ -> rep
+       -> (Kodkod.int_expr -> Kodkod.int_expr -> Kodkod.int_expr -> bool) option
+       -> (Kodkod.int_expr -> Kodkod.int_expr -> Kodkod.int_expr) option
+       -> Kodkod.rel_expr *)
+    and to_bit_word_binary_op T R opt_guard opt_oper =
+      let
+        val Ts = strip_type T ||> single |> op @
+        (* int -> Kodkod.int_expr *)
+        fun int_arg j = int_expr_from_atom kk (nth Ts j) (Kodkod.Var (1, j))
+      in
+        kk_comprehension (decls_for_atom_schema 0 (atom_schema_of_rep R))
+            (Kodkod.FormulaLet
+                 (map (fn j => Kodkod.AssignIntReg (j, int_arg j)) (0 upto 2),
+                  fold1 kk_and
+                        ((case opt_guard of
+                            NONE => []
+                          | SOME guard =>
+                            [guard (Kodkod.IntReg 0) (Kodkod.IntReg 1)
+                                   (Kodkod.IntReg 2)]) @
+                         (case opt_oper of
+                            NONE => []
+                          | SOME oper =>
+                            [Kodkod.IntEq (Kodkod.IntReg 2,
+                                 oper (Kodkod.IntReg 0) (Kodkod.IntReg 1))]))))
       end
     (* rep -> rep -> Kodkod.rel_expr -> nut -> Kodkod.rel_expr *)
     and to_apply res_R func_u arg_u =

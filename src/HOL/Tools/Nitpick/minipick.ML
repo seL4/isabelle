@@ -314,7 +314,8 @@ fun pick_nits_in_term ctxt raw_card t =
        bounds = bounds, int_bounds = [], expr_assigns = [], formula = formula}
   in
     case solve_any_problem overlord NONE 0 1 [problem] of
-      Normal ([], _) => "none"
+      NotInstalled => "unknown"
+    | Normal ([], _) => "none"
     | Normal _ => "genuine"
     | TimedOut _ => "unknown"
     | Interrupted _ => "unknown"
