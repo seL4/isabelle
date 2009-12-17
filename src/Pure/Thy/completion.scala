@@ -32,7 +32,7 @@ private object Completion
 
     override def toString: String =
     {
-      val buf = new StringBuffer(length)
+      val buf = new StringBuilder(length)
       for (i <- 0 until length)
         buf.append(charAt(i))
       buf.toString
