@@ -60,7 +60,8 @@ object YXML
       def flush()
       {
         if (code != -1) {
-          if (rest == 0) buf.appendCodePoint(code)
+          if (rest == 0 && Character.isValidCodePoint(code))
+            buf.appendCodePoint(code)
           else buf.append('\uFFFD')
           code = -1
           rest = 0
