@@ -22,7 +22,7 @@ object Isabelle_Encoding
   val NAME = "UTF-8-Isabelle"
 
   def is_active(buffer: JEditBuffer): Boolean =
-    buffer.getProperty(JEditBuffer.ENCODING).asInstanceOf[String] == NAME
+    buffer.getStringProperty(JEditBuffer.ENCODING).asInstanceOf[String] == NAME
 }
 
 class Isabelle_Encoding extends Encoding
