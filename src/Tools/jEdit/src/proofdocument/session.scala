@@ -32,6 +32,7 @@ class Session(system: Isabelle_System)
   private var prover_ready = false
 
   private val session_actor = actor {
+    val xml_cache = new XML.Cache(131071)
     loop {
       react {
         case Start(args) =>
@@ -49,7 +50,7 @@ class Session(system: Isabelle_System)
           handle_change(change)
 
         case result: Isabelle_Process.Result =>
-          handle_result(result)
+          handle_result(result.cache(xml_cache))
 
         case bad if prover_ready =>
           System.err.println("session_actor: ignoring bad message " + bad)
