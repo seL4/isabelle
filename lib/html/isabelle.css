@@ -23,19 +23,19 @@ hr { height: 0px; border: 0px; }
 .hidden, hidden { font-size: 0.1pt; visibility: hidden; }
 
 .tclass, tclass               { color: red; }
-.tfree, tfree                 { color: purple; }
-.tvar, tvar                   { color: purple; }
+.tfree, tfree                 { color: #A020F0; }
+.tvar, tvar                   { color: #A020F0; }
 .free, free                   { color: blue; }
-.skolem, skolem               { color: brown; }
+.skolem, skolem               { color: #D2691E; }
 .bound, bound                 { color: green; }
-.var, var                     { color: blue; }
+.var, var                     { color: #00009B; }
 .numeral, numeral             { }
 .literal, literal             { font-weight: bold; }
-.inner_string, inner_string   { color: brown; }
+.inner_string, inner_string   { color: #D2691E; }
 .inner_comment, inner_comment { color: #8B0000; }
 
 .bold, bold  { font-weight: bold; }
-.loc, loc  { color: brown; }
+.loc, loc  { color: #D2691E; }
 
 .keyword, keyword      { font-weight: bold; }
 .command, command      { font-weight: bold; }
