@@ -127,20 +127,20 @@ object XML
         case Some(y) => y
         case None => store(x.map(p => (cache_string(p._1), cache_string(p._2))))
       }
-    def apply(x: XML.Tree): XML.Tree =
+    def cache_tree(x: XML.Tree): XML.Tree =
       lookup(x) match {
         case Some(y) => y
         case None =>
           x match {
             case XML.Elem(name, props, body) =>
-              store(XML.Elem(cache_string(name), cache_props(props), apply(body)))
+              store(XML.Elem(cache_string(name), cache_props(props), cache_trees(body)))
             case XML.Text(text) => XML.Text(cache_string(text))
           }
       }
-    def apply(x: List[XML.Tree]): List[XML.Tree] =
+    def cache_trees(x: List[XML.Tree]): List[XML.Tree] =
       lookup(x) match {
         case Some(y) => y
-        case None => x.map(apply(_))
+        case None => x.map(cache_tree(_))
       }
   }
 
