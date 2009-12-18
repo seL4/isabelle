@@ -127,20 +127,20 @@ object XML
         case Some(y) => y
         case None => store(x.map(p => (cache_string(p._1), cache_string(p._2))))
       }
-    def apply(x: XML.Tree): XML.Tree =
+    def cache_tree(x: XML.Tree): XML.Tree =
       lookup(x) match {
         case Some(y) => y
         case None =>
           x match {
             case XML.Elem(name, props, body) =>
-              store(XML.Elem(cache_string(name), cache_props(props), apply(body)))
+              store(XML.Elem(cache_string(name), cache_props(props), cache_trees(body)))
             case XML.Text(text) => XML.Text(cache_string(text))
           }
       }
-    def apply(x: List[XML.Tree]): List[XML.Tree] =
+    def cache_trees(x: List[XML.Tree]): List[XML.Tree] =
       lookup(x) match {
         case Some(y) => y
-        case None => x.map(apply(_))
+        case None => x.map(cache_tree(_))
       }
   }
 
@@ -170,22 +170,5 @@ object XML
       case Text(txt) => doc.createTextNode(txt)
     }
     DOM(tree)
-  }
-
-  def document(tree: Tree, styles: String*): Document =
-  {
-    val doc = DocumentBuilderFactory.newInstance.newDocumentBuilder.newDocument
-    doc.appendChild(doc.createProcessingInstruction("xml", "version=\"1.0\""))
-
-    for (style <- styles) {
-      doc.appendChild(doc.createProcessingInstruction("xml-stylesheet",
-        "href=\"" + style + "\" type=\"text/css\""))
-    }
-    val root_elem = tree match {
-      case Elem(_, _, _) => document_node(doc, tree)
-      case Text(_) => document_node(doc, (Elem(Markup.ROOT, Nil, List(tree))))
-    }
-    doc.appendChild(root_elem)
-    doc
   }
 }

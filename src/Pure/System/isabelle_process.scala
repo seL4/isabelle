@@ -101,8 +101,8 @@ object Isabelle_Process
     def is_control = Kind.is_control(kind)
     def is_system = Kind.is_system(kind)
 
-    def cache(table: XML.Cache): Result =
-      new Result(kind, table.cache_props(props), table(body))
+    def cache(c: XML.Cache): Result =
+      new Result(kind, c.cache_props(props), c.cache_trees(body))
   }
 }
 
