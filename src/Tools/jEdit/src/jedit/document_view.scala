@@ -28,7 +28,7 @@ object Document_View
     command.status(doc) match {
       case Command.Status.UNPROCESSED => new Color(255, 228, 225)
       case Command.Status.FINISHED => new Color(234, 248, 255)
-      case Command.Status.FAILED => new Color(255, 106, 106)
+      case Command.Status.FAILED => new Color(255, 193, 193)
       case _ => Color.red
     }
   }
