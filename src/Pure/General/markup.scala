@@ -182,9 +182,7 @@ object Markup
   val READY = "ready"
 
 
-  /* content */
+  /* system data */
 
-  val ROOT = "root"
-  val BAD = "bad"
   val DATA = "data"
 }
