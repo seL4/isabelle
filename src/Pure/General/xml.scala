@@ -123,10 +123,12 @@ object XML
         case None => store(x)
       }
     def cache_props(x: List[(String, String)]): List[(String, String)] =
-      lookup(x) match {
-        case Some(y) => y
-        case None => store(x.map(p => (cache_string(p._1), cache_string(p._2))))
-      }
+      if (x.isEmpty) x
+      else
+        lookup(x) match {
+          case Some(y) => y
+          case None => store(x.map(p => (cache_string(p._1), cache_string(p._2))))
+        }
     def cache_tree(x: XML.Tree): XML.Tree =
       lookup(x) match {
         case Some(y) => y
@@ -138,10 +140,12 @@ object XML
           }
       }
     def cache_trees(x: List[XML.Tree]): List[XML.Tree] =
-      lookup(x) match {
-        case Some(y) => y
-        case None => x.map(cache_tree(_))
-      }
+      if (x.isEmpty) x
+      else
+        lookup(x) match {
+          case Some(y) => y
+          case None => x.map(cache_tree(_))
+        }
   }
 
 
