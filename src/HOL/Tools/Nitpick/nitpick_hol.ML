@@ -21,6 +21,7 @@ sig
     wfs: (styp option * bool option) list,
     user_axioms: bool option,
     debug: bool,
+    binary_ints: bool option,
     destroy_constrs: bool,
     specialize: bool,
     skolemize: bool,
@@ -49,12 +50,12 @@ sig
   val skolem_prefix : string
   val eval_prefix : string
   val original_name : string -> string
-  val unbox_type : typ -> typ
+  val unbit_and_unbox_type : typ -> typ
   val string_for_type : Proof.context -> typ -> string
   val prefix_name : string -> string -> string
+  val shortest_name : string -> string
   val short_name : string -> string
-  val short_const_name : string -> string
-  val shorten_const_names_in_term : term -> term
+  val shorten_names_in_term : term -> term
   val type_match : theory -> typ * typ -> bool
   val const_match : theory -> styp * styp -> bool
   val term_match : theory -> term * term -> bool
@@ -68,6 +69,8 @@ sig
   val is_fp_iterator_type : typ -> bool
   val is_boolean_type : typ -> bool
   val is_integer_type : typ -> bool
+  val is_bit_type : typ -> bool
+  val is_word_type : typ -> bool
   val is_record_type : typ -> bool
   val is_number_type : theory -> typ -> bool
   val const_for_iterator_type : typ -> styp
@@ -91,6 +94,7 @@ sig
   val is_constr : theory -> styp -> bool
   val is_stale_constr : theory -> styp -> bool
   val is_sel : string -> bool
+  val is_sel_like_and_no_discr : string -> bool
   val discr_for_constr : styp -> styp
   val num_sels_for_constr_type : typ -> int
   val nth_sel_name_for_constr_name : string -> int -> string
@@ -111,7 +115,7 @@ sig
   val boxed_constr_for_sel : extended_context -> styp -> styp
   val card_of_type : (typ * int) list -> typ -> int
   val bounded_card_of_type : int -> int -> (typ * int) list -> typ -> int
-  val bounded_precise_card_of_type :
+  val bounded_exact_card_of_type :
     extended_context -> int -> int -> (typ * int) list -> typ -> int
   val is_finite_type : extended_context -> typ -> bool
   val all_axioms_of : theory -> term list * term list * term list
@@ -161,6 +165,7 @@ type extended_context = {
   wfs: (styp option * bool option) list,
   user_axioms: bool option,
   debug: bool,
+  binary_ints: bool option,
   destroy_constrs: bool,
   specialize: bool,
   skolemize: bool,
@@ -197,12 +202,14 @@ structure Data = Theory_Data(
 (* term * term -> term *)
 fun s_conj (t1, @{const True}) = t1
   | s_conj (@{const True}, t2) = t2
-  | s_conj (t1, t2) = if @{const False} mem [t1, t2] then @{const False}
-                      else HOLogic.mk_conj (t1, t2)
+  | s_conj (t1, t2) =
+    if t1 = @{const False} orelse t2 = @{const False} then @{const False}
+    else HOLogic.mk_conj (t1, t2)
 fun s_disj (t1, @{const False}) = t1
   | s_disj (@{const False}, t2) = t2
-  | s_disj (t1, t2) = if @{const True} mem [t1, t2] then @{const True}
-                      else HOLogic.mk_disj (t1, t2)
+  | s_disj (t1, t2) =
+    if t1 = @{const True} orelse t2 = @{const True} then @{const True}
+    else HOLogic.mk_disj (t1, t2)
 (* term -> term -> term *)
 fun mk_exists v t =
   HOLogic.exists_const (fastype_of v) $ lambda v (incr_boundvars 1 t)
@@ -213,7 +220,7 @@ fun strip_connective conn_t (t as (t0 $ t1 $ t2)) =
   | strip_connective _ t = [t]
 (* term -> term list * term *)
 fun strip_any_connective (t as (t0 $ t1 $ t2)) =
-    if t0 mem [@{const "op &"}, @{const "op |"}] then
+    if t0 = @{const "op &"} orelse t0 = @{const "op |"} then
       (strip_connective t0 t, t0)
     else
       ([t], @{const Not})
@@ -305,7 +312,6 @@ val built_in_consts =
    (@{const_name minus_nat_inst.minus_nat}, 0),
    (@{const_name times_nat_inst.times_nat}, 0),
    (@{const_name div_nat_inst.div_nat}, 0),
-   (@{const_name div_nat_inst.mod_nat}, 0),
    (@{const_name ord_nat_inst.less_nat}, 2),
    (@{const_name ord_nat_inst.less_eq_nat}, 2),
    (@{const_name nat_gcd}, 0),
@@ -316,7 +322,6 @@ val built_in_consts =
    (@{const_name minus_int_inst.minus_int}, 0),
    (@{const_name times_int_inst.times_int}, 0),
    (@{const_name div_int_inst.div_int}, 0),
-   (@{const_name div_int_inst.mod_int}, 0),
    (@{const_name uminus_int_inst.uminus_int}, 0),
    (@{const_name ord_int_inst.less_int}, 2),
    (@{const_name ord_int_inst.less_eq_int}, 2),
@@ -327,7 +332,8 @@ val built_in_descr_consts =
   [(@{const_name The}, 1),
    (@{const_name Eps}, 1)]
 val built_in_typed_consts =
-  [((@{const_name of_nat}, nat_T --> int_T), 0)]
+  [((@{const_name of_nat}, nat_T --> int_T), 0),
+   ((@{const_name of_nat}, @{typ "unsigned_bit word => signed_bit word"}), 0)]
 val built_in_set_consts =
   [(@{const_name lower_semilattice_fun_inst.inf_fun}, 2),
    (@{const_name upper_semilattice_fun_inst.sup_fun}, 2),
@@ -335,31 +341,45 @@ val built_in_set_consts =
    (@{const_name ord_fun_inst.less_eq_fun}, 2)]
 
 (* typ -> typ *)
-fun unbox_type (Type (@{type_name fun_box}, Ts)) =
-    Type ("fun", map unbox_type Ts)
-  | unbox_type (Type (@{type_name pair_box}, Ts)) =
-    Type ("*", map unbox_type Ts)
-  | unbox_type (Type (s, Ts)) = Type (s, map unbox_type Ts)
-  | unbox_type T = T
+fun unbit_type @{typ "unsigned_bit word"} = nat_T
+  | unbit_type @{typ "signed_bit word"} = int_T
+  | unbit_type @{typ bisim_iterator} = nat_T
+  | unbit_type (Type (s, Ts as _ :: _)) = Type (s, map unbit_type Ts)
+  | unbit_type T = T
+fun unbit_and_unbox_type (Type (@{type_name fun_box}, Ts)) =
+    unbit_and_unbox_type (Type ("fun", Ts))
+  | unbit_and_unbox_type (Type (@{type_name pair_box}, Ts)) =
+    Type ("*", map unbit_and_unbox_type Ts)
+  | unbit_and_unbox_type @{typ "unsigned_bit word"} = nat_T
+  | unbit_and_unbox_type @{typ "signed_bit word"} = int_T
+  | unbit_and_unbox_type @{typ bisim_iterator} = nat_T
+  | unbit_and_unbox_type (Type (s, Ts as _ :: _)) =
+    Type (s, map unbit_and_unbox_type Ts)
+  | unbit_and_unbox_type T = T
 (* Proof.context -> typ -> string *)
-fun string_for_type ctxt = Syntax.string_of_typ ctxt o unbox_type
+fun string_for_type ctxt = Syntax.string_of_typ ctxt o unbit_and_unbox_type
 
 (* string -> string -> string *)
 val prefix_name = Long_Name.qualify o Long_Name.base_name
 (* string -> string *)
-fun short_name s = List.last (space_explode "." s) handle List.Empty => ""
+fun shortest_name s = List.last (space_explode "." s) handle List.Empty => ""
 (* string -> term -> term *)
 val prefix_abs_vars = Term.map_abs_vars o prefix_name
 (* term -> term *)
-val shorten_abs_vars = Term.map_abs_vars short_name
+val shorten_abs_vars = Term.map_abs_vars shortest_name
 (* string -> string *)
-fun short_const_name s =
+fun short_name s =
   case space_explode name_sep s of
     [_] => s |> String.isPrefix nitpick_prefix s ? unprefix nitpick_prefix
-  | ss => map short_name ss |> space_implode "_"
+  | ss => map shortest_name ss |> space_implode "_"
+(* typ -> typ *)
+fun shorten_names_in_type (Type (s, Ts)) =
+    Type (short_name s, map shorten_names_in_type Ts)
+  | shorten_names_in_type T = T
 (* term -> term *)
-val shorten_const_names_in_term =
-  map_aterms (fn Const (s, T) => Const (short_const_name s, T) | t => t)
+val shorten_names_in_term =
+  map_aterms (fn Const (s, T) => Const (short_name s, T) | t => t)
+  #> map_types shorten_names_in_type
 
 (* theory -> typ * typ -> bool *)
 fun type_match thy (T1, T2) =
@@ -371,7 +391,7 @@ fun const_match thy ((s1, T1), (s2, T2)) =
 (* theory -> term * term -> bool *)
 fun term_match thy (Const x1, Const x2) = const_match thy (x1, x2)
   | term_match thy (Free (s1, T1), Free (s2, T2)) =
-    const_match thy ((short_name s1, T1), (short_name s2, T2))
+    const_match thy ((shortest_name s1, T1), (shortest_name s2, T2))
   | term_match thy (t1, t2) = t1 aconv t2
 
 (* typ -> bool *)
@@ -391,9 +411,12 @@ fun is_lfp_iterator_type (Type (s, _)) = String.isPrefix lfp_iterator_prefix s
 fun is_gfp_iterator_type (Type (s, _)) = String.isPrefix gfp_iterator_prefix s
   | is_gfp_iterator_type _ = false
 val is_fp_iterator_type = is_lfp_iterator_type orf is_gfp_iterator_type
-val is_boolean_type = equal prop_T orf equal bool_T
+fun is_boolean_type T = (T = prop_T orelse T = bool_T)
 val is_integer_type =
   member (op =) [nat_T, int_T, @{typ bisim_iterator}] orf is_fp_iterator_type
+fun is_bit_type T = (T = @{typ unsigned_bit} orelse T = @{typ signed_bit})
+fun is_word_type (Type (@{type_name word}, _)) = true
+  | is_word_type _ = false
 val is_record_type = not o null o Record.dest_recTs
 (* theory -> typ -> bool *)
 fun is_frac_type thy (Type (s, [])) =
@@ -447,16 +470,13 @@ fun dest_n_tuple_type 1 T = [T]
   | dest_n_tuple_type _ T =
     raise TYPE ("Nitpick_HOL.dest_n_tuple_type", [T], [])
 
-(* (typ * typ) list -> typ -> typ *)
-fun typ_subst [] T = T
-  | typ_subst ps T =
-    let
-      (* typ -> typ *)
-      fun subst T =
-        case AList.lookup (op =) ps T of
-          SOME T' => T'
-        | NONE => case T of Type (s, Ts) => Type (s, map subst Ts) | _ => T
-    in subst T end
+(* FIXME: Use antiquotation for "code_numeral" below or detect "rep_datatype",
+   e.g., by adding a field to "Datatype_Aux.info". *)
+(* string -> bool *)
+val is_basic_datatype =
+    member (op =) [@{type_name "*"}, @{type_name bool}, @{type_name unit},
+                   @{type_name nat}, @{type_name int},
+                   "Code_Numeral.code_numeral"]
 
 (* theory -> typ -> typ -> typ -> typ *)
 fun instantiate_type thy T1 T1' T2 =
@@ -486,8 +506,11 @@ fun register_codatatype co_T case_name constr_xs thy =
     val constr_xs = map (apsnd (repair_constr_type thy co_T)) constr_xs
     val (co_s, co_Ts) = dest_Type co_T
     val _ =
-      if forall is_TFree co_Ts andalso not (has_duplicates (op =) co_Ts) then ()
-      else raise TYPE ("Nitpick_HOL.register_codatatype", [co_T], [])
+      if forall is_TFree co_Ts andalso not (has_duplicates (op =) co_Ts)
+         andalso co_s <> "fun" andalso not (is_basic_datatype co_s) then
+        ()
+      else
+        raise TYPE ("Nitpick_HOL.register_codatatype", [co_T], [])
     val codatatypes = AList.update (op =) (co_s, (case_name, constr_xs))
                                    codatatypes
   in Data.put {frac_types = frac_types, codatatypes = codatatypes} thy end
@@ -516,12 +539,6 @@ fun typedef_info thy s =
           Rep_inverse = SOME Rep_inverse}
   | NONE => NONE
 
-(* FIXME: use antiquotation for "code_numeral" below or detect "rep_datatype",
-   e.g., by adding a field to "Datatype_Aux.info". *)
-(* string -> bool *)
-fun is_basic_datatype s =
-    s mem [@{type_name "*"}, @{type_name bool}, @{type_name unit},
-           @{type_name nat}, @{type_name int}, "Code_Numeral.code_numeral"]
 (* theory -> string -> bool *)
 val is_typedef = is_some oo typedef_info
 val is_real_datatype = is_some oo Datatype.get_info
@@ -568,14 +585,15 @@ fun is_record_constr (x as (s, T)) =
 val num_record_fields = Integer.add 1 o length o fst oo Record.get_extT_fields
 (* theory -> string -> typ -> int *)
 fun no_of_record_field thy s T1 =
-  find_index (equal s o fst) (Record.get_extT_fields thy T1 ||> single |> op @)
+  find_index (curry (op =) s o fst)
+             (Record.get_extT_fields thy T1 ||> single |> op @)
 (* theory -> styp -> bool *)
 fun is_record_get thy (s, Type ("fun", [T1, _])) =
-    exists (equal s o fst) (all_record_fields thy T1)
+    exists (curry (op =) s o fst) (all_record_fields thy T1)
   | is_record_get _ _ = false
 fun is_record_update thy (s, T) =
   String.isSuffix Record.updateN s andalso
-  exists (equal (unsuffix Record.updateN s) o fst)
+  exists (curry (op =) (unsuffix Record.updateN s) o fst)
          (all_record_fields thy (body_type T))
   handle TYPE _ => false
 fun is_abs_fun thy (s, Type ("fun", [_, Type (s', _)])) =
@@ -608,11 +626,11 @@ fun is_coconstr thy (s, T) =
   end
   handle TYPE ("dest_Type", _, _) => false
 fun is_constr_like thy (s, T) =
-  s mem [@{const_name FunBox}, @{const_name PairBox}] orelse
-  let val (x as (s, T)) = (s, unbox_type T) in
+  s = @{const_name FunBox} orelse s = @{const_name PairBox} orelse
+  let val (x as (s, T)) = (s, unbit_and_unbox_type T) in
     Refute.is_IDT_constructor thy x orelse is_record_constr x
     orelse (is_abs_fun thy x andalso is_pure_typedef thy (range_type T))
-    orelse s mem [@{const_name Zero_Rep}, @{const_name Suc_Rep}]
+    orelse s = @{const_name Zero_Rep} orelse s = @{const_name Suc_Rep}
     orelse x = (@{const_name zero_nat_inst.zero_nat}, nat_T)
     orelse is_coconstr thy x
   end
@@ -621,7 +639,7 @@ fun is_stale_constr thy (x as (_, T)) =
   andalso not (is_coconstr thy x)
 fun is_constr thy (x as (_, T)) =
   is_constr_like thy x
-  andalso not (is_basic_datatype (fst (dest_Type (body_type T))))
+  andalso not (is_basic_datatype (fst (dest_Type (unbit_type (body_type T)))))
   andalso not (is_stale_constr thy x)
 (* string -> bool *)
 val is_sel = String.isPrefix discr_prefix orf String.isPrefix sel_prefix
@@ -644,10 +662,11 @@ fun in_fun_rhs_for InConstr = InConstr
 fun is_boxing_worth_it (ext_ctxt : extended_context) boxy T =
   case T of
     Type ("fun", _) =>
-    boxy mem [InPair, InFunLHS] andalso not (is_boolean_type (body_type T))
+    (boxy = InPair orelse boxy = InFunLHS)
+    andalso not (is_boolean_type (body_type T))
   | Type ("*", Ts) =>
-    boxy mem [InPair, InFunRHS1, InFunRHS2]
-    orelse (boxy mem [InExpr, InFunLHS]
+    boxy = InPair orelse boxy = InFunRHS1 orelse boxy = InFunRHS2
+    orelse ((boxy = InExpr orelse boxy = InFunLHS)
             andalso exists (is_boxing_worth_it ext_ctxt InPair)
                            (map (box_type ext_ctxt InPair) Ts))
   | _ => false
@@ -660,7 +679,7 @@ and should_box_type (ext_ctxt as {thy, boxes, ...}) boxy (z as (s, Ts)) =
 and box_type ext_ctxt boxy T =
   case T of
     Type (z as ("fun", [T1, T2])) =>
-    if not (boxy mem [InConstr, InSel])
+    if boxy <> InConstr andalso boxy <> InSel
        andalso should_box_type ext_ctxt boxy z then
       Type (@{type_name fun_box},
             [box_type ext_ctxt InFunLHS T1, box_type ext_ctxt InFunRHS1 T2])
@@ -672,8 +691,8 @@ and box_type ext_ctxt boxy T =
       Type (@{type_name pair_box}, map (box_type ext_ctxt InSel) Ts)
     else
       Type ("*", map (box_type ext_ctxt
-                               (if boxy mem [InConstr, InSel] then boxy
-                                else InPair)) Ts)
+                          (if boxy = InConstr orelse boxy = InSel then boxy
+                           else InPair)) Ts)
   | _ => T
 
 (* styp -> styp *)
@@ -872,7 +891,7 @@ fun constr_expand (ext_ctxt as {thy, ...}) T t =
            val x' as (_, T') =
              if is_pair_type T then
                let val (T1, T2) = HOLogic.dest_prodT T in
-                 (@{const_name Pair}, [T1, T2] ---> T)
+                 (@{const_name Pair}, T1 --> T2 --> T)
                end
              else
                datatype_constrs ext_ctxt T |> the_single
@@ -883,46 +902,46 @@ fun constr_expand (ext_ctxt as {thy, ...}) T t =
          end
 
 (* (typ * int) list -> typ -> int *)
-fun card_of_type asgns (Type ("fun", [T1, T2])) =
-    reasonable_power (card_of_type asgns T2) (card_of_type asgns T1)
-  | card_of_type asgns (Type ("*", [T1, T2])) =
-    card_of_type asgns T1 * card_of_type asgns T2
+fun card_of_type assigns (Type ("fun", [T1, T2])) =
+    reasonable_power (card_of_type assigns T2) (card_of_type assigns T1)
+  | card_of_type assigns (Type ("*", [T1, T2])) =
+    card_of_type assigns T1 * card_of_type assigns T2
   | card_of_type _ (Type (@{type_name itself}, _)) = 1
   | card_of_type _ @{typ prop} = 2
   | card_of_type _ @{typ bool} = 2
   | card_of_type _ @{typ unit} = 1
-  | card_of_type asgns T =
-    case AList.lookup (op =) asgns T of
+  | card_of_type assigns T =
+    case AList.lookup (op =) assigns T of
       SOME k => k
     | NONE => if T = @{typ bisim_iterator} then 0
               else raise TYPE ("Nitpick_HOL.card_of_type", [T], [])
 (* int -> (typ * int) list -> typ -> int *)
-fun bounded_card_of_type max default_card asgns (Type ("fun", [T1, T2])) =
+fun bounded_card_of_type max default_card assigns (Type ("fun", [T1, T2])) =
     let
-      val k1 = bounded_card_of_type max default_card asgns T1
-      val k2 = bounded_card_of_type max default_card asgns T2
+      val k1 = bounded_card_of_type max default_card assigns T1
+      val k2 = bounded_card_of_type max default_card assigns T2
     in
       if k1 = max orelse k2 = max then max
       else Int.min (max, reasonable_power k2 k1)
     end
-  | bounded_card_of_type max default_card asgns (Type ("*", [T1, T2])) =
+  | bounded_card_of_type max default_card assigns (Type ("*", [T1, T2])) =
     let
-      val k1 = bounded_card_of_type max default_card asgns T1
-      val k2 = bounded_card_of_type max default_card asgns T2
+      val k1 = bounded_card_of_type max default_card assigns T1
+      val k2 = bounded_card_of_type max default_card assigns T2
     in if k1 = max orelse k2 = max then max else Int.min (max, k1 * k2) end
-  | bounded_card_of_type max default_card asgns T =
+  | bounded_card_of_type max default_card assigns T =
     Int.min (max, if default_card = ~1 then
-                    card_of_type asgns T
+                    card_of_type assigns T
                   else
-                    card_of_type asgns T
+                    card_of_type assigns T
                     handle TYPE ("Nitpick_HOL.card_of_type", _, _) =>
                            default_card)
 (* extended_context -> int -> (typ * int) list -> typ -> int *)
-fun bounded_precise_card_of_type ext_ctxt max default_card asgns T =
+fun bounded_exact_card_of_type ext_ctxt max default_card assigns T =
   let
     (* typ list -> typ -> int *)
     fun aux avoid T =
-      (if T mem avoid then
+      (if member (op =) avoid T then
          0
        else case T of
          Type ("fun", [T1, T2]) =>
@@ -949,7 +968,8 @@ fun bounded_precise_card_of_type ext_ctxt max default_card asgns T =
        | @{typ unit} => 1
        | Type _ =>
          (case datatype_constrs ext_ctxt T of
-            [] => if is_integer_type T then 0 else raise SAME ()
+            [] => if is_integer_type T orelse is_bit_type T then 0
+                  else raise SAME ()
           | constrs =>
             let
               val constr_cards =
@@ -957,16 +977,17 @@ fun bounded_precise_card_of_type ext_ctxt max default_card asgns T =
                 |> map (Integer.prod o map (aux (T :: avoid)) o binder_types
                         o snd)
             in
-              if exists (equal 0) constr_cards then 0
+              if exists (curry (op =) 0) constr_cards then 0
               else Integer.sum constr_cards
             end)
        | _ => raise SAME ())
-      handle SAME () => AList.lookup (op =) asgns T |> the_default default_card
+      handle SAME () =>
+             AList.lookup (op =) assigns T |> the_default default_card
   in Int.min (max, aux [] T) end
 
 (* extended_context -> typ -> bool *)
 fun is_finite_type ext_ctxt =
-  not_equal 0 o bounded_precise_card_of_type ext_ctxt 1 2 []
+  not_equal 0 o bounded_exact_card_of_type ext_ctxt 1 2 []
 
 (* term -> bool *)
 fun is_ground_term (t1 $ t2) = is_ground_term t1 andalso is_ground_term t2
@@ -989,8 +1010,8 @@ fun abs_var ((s, j), T) body = Abs (s, T, abstract_over (Var ((s, j), T), body))
 
 (* theory -> string -> bool *)
 fun is_funky_typedef_name thy s =
-  s mem [@{type_name unit}, @{type_name "*"}, @{type_name "+"},
-         @{type_name int}]
+  member (op =) [@{type_name unit}, @{type_name "*"}, @{type_name "+"},
+                 @{type_name int}] s
   orelse is_frac_type thy (Type (s, []))
 (* theory -> term -> bool *)
 fun is_funky_typedef thy (Type (s, _)) = is_funky_typedef_name thy s
@@ -1063,10 +1084,11 @@ fun all_axioms_of thy =
     val (built_in_nondefs, user_nondefs) =
       List.partition (is_typedef_axiom thy false) user_nondefs
       |>> append built_in_nondefs
-    val defs = (thy |> PureThy.all_thms_of
-                    |> filter (equal Thm.definitionK o Thm.get_kind o snd)
-                    |> map (prop_of o snd) |> filter is_plain_definition) @
-               user_defs @ built_in_defs
+    val defs =
+      (thy |> PureThy.all_thms_of
+           |> filter (curry (op =) Thm.definitionK o Thm.get_kind o snd)
+           |> map (prop_of o snd) |> filter is_plain_definition) @
+      user_defs @ built_in_defs
   in (defs, built_in_nondefs, user_nondefs) end
 
 (* bool -> styp -> int option *)
@@ -1111,7 +1133,7 @@ fun def_props_for_const thy fast_descrs table (x as (s, _)) =
   else
     these (Symtab.lookup table s)
     |> map_filter (try (Refute.specialize_type thy x))
-    |> filter (equal (Const x) o term_under_def)
+    |> filter (curry (op =) (Const x) o term_under_def)
 
 (* theory -> term -> term option *)
 fun normalized_rhs_of thy t =
@@ -1152,7 +1174,8 @@ fun is_mutually_inductive_pred_def thy table t =
     (* term -> bool *)
     fun is_good_arg (Bound _) = true
       | is_good_arg (Const (s, _)) =
-        s mem [@{const_name True}, @{const_name False}, @{const_name undefined}]
+        s = @{const_name True} orelse s = @{const_name False}
+        orelse s = @{const_name undefined}
       | is_good_arg _ = false
   in
     case t |> strip_abs_body |> strip_comb of
@@ -1307,7 +1330,7 @@ fun constr_case_body thy (j, (x as (_, T))) =
   end
 (* extended_context -> typ -> int * styp -> term -> term *)
 fun add_constr_case (ext_ctxt as {thy, ...}) res_T (j, x) res_t =
-  Const (@{const_name If}, [bool_T, res_T, res_T] ---> res_T)
+  Const (@{const_name If}, bool_T --> res_T --> res_T --> res_T)
   $ discriminate_value ext_ctxt x (Bound 0) $ constr_case_body thy (j, x)
   $ res_t
 (* extended_context -> typ -> typ -> term *)
@@ -1538,10 +1561,10 @@ fun unfold_defs_in_term (ext_ctxt as {thy, destroy_constrs, fast_descrs,
               else case def_of_const thy def_table x of
                 SOME def =>
                 if depth > unfold_max_depth then
-                  raise LIMIT ("Nitpick_HOL.unfold_defs_in_term",
-                               "too many nested definitions (" ^
-                               string_of_int depth ^ ") while expanding " ^
-                               quote s)
+                  raise TOO_LARGE ("Nitpick_HOL.unfold_defs_in_term",
+                                   "too many nested definitions (" ^
+                                   string_of_int depth ^ ") while expanding " ^
+                                   quote s)
                 else if s = @{const_name wfrec'} then
                   (do_term (depth + 1) Ts (betapplys (def, ts)), [])
                 else
@@ -1556,7 +1579,7 @@ fun codatatype_bisim_axioms (ext_ctxt as {thy, ...}) T =
     val xs = datatype_constrs ext_ctxt T
     val set_T = T --> bool_T
     val iter_T = @{typ bisim_iterator}
-    val bisim_const = Const (@{const_name bisim}, [iter_T, T, T] ---> bool_T)
+    val bisim_const = Const (@{const_name bisim}, iter_T --> T --> T --> bool_T)
     val bisim_max = @{const bisim_iterator_max}
     val n_var = Var (("n", 0), iter_T)
     val n_var_minus_1 =
@@ -1586,7 +1609,7 @@ fun codatatype_bisim_axioms (ext_ctxt as {thy, ...}) T =
         $ (betapplys (optimized_case_def ext_ctxt T bool_T,
                       map case_func xs @ [x_var]))),
      HOLogic.eq_const set_T $ (bisim_const $ bisim_max $ x_var)
-     $ (Const (@{const_name insert}, [T, set_T] ---> set_T)
+     $ (Const (@{const_name insert}, T --> set_T --> set_T)
         $ x_var $ Const (@{const_name bot_fun_inst.bot_fun}, set_T))]
     |> map HOLogic.mk_Trueprop
   end
@@ -1598,9 +1621,9 @@ fun triple_for_intro_rule thy x t =
   let
     val prems = Logic.strip_imp_prems t |> map (ObjectLogic.atomize_term thy)
     val concl = Logic.strip_imp_concl t |> ObjectLogic.atomize_term thy
-    val (main, side) = List.partition (exists_Const (equal x)) prems
+    val (main, side) = List.partition (exists_Const (curry (op =) x)) prems
     (* term -> bool *)
-     val is_good_head = equal (Const x) o head_of
+     val is_good_head = curry (op =) (Const x) o head_of
   in
     if forall is_good_head main then (side, main, concl) else raise NO_TRIPLE ()
   end
@@ -1693,7 +1716,7 @@ fun is_well_founded_inductive_pred
         (x as (s, _)) =
   case triple_lookup (const_match thy) wfs x of
     SOME (SOME b) => b
-  | _ => s mem [@{const_name Nats}, @{const_name fold_graph'}]
+  | _ => s = @{const_name Nats} orelse s = @{const_name fold_graph'}
          orelse case AList.lookup (op =) (!wf_cache) x of
                   SOME (_, wf) => wf
                 | NONE =>
@@ -1730,7 +1753,7 @@ val is_linear_inductive_pred_def =
       | do_disjunct j t =
         case num_occs_of_bound_in_term j t of
           0 => true
-        | 1 => exists (equal (Bound j) o head_of) (conjuncts t)
+        | 1 => exists (curry (op =) (Bound j) o head_of) (conjuncts t)
         | _ => false
     (* term -> bool *)
     fun do_lfp_def (Const (@{const_name lfp}, _) $ t2) =
@@ -1774,7 +1797,7 @@ val linear_pred_base_and_step_rhss =
                   t
               end
           val (nonrecs, recs) =
-            List.partition (equal 0 o num_occs_of_bound_in_term j)
+            List.partition (curry (op =) 0 o num_occs_of_bound_in_term j)
                            (disjuncts body)
           val base_body = nonrecs |> List.foldl s_disj @{const False}
           val step_body = recs |> map (repair_rec j)
@@ -1923,7 +1946,7 @@ fun add_ground_types ext_ctxt T accum =
   | Type ("*", Ts) => fold (add_ground_types ext_ctxt) Ts accum
   | Type (@{type_name itself}, [T1]) => add_ground_types ext_ctxt T1 accum
   | Type (_, Ts) =>
-    if T mem @{typ prop} :: @{typ bool} :: @{typ unit} :: accum then
+    if member (op =) (@{typ prop} :: @{typ bool} :: @{typ unit} :: accum) T then
       accum
     else
       T :: accum
@@ -1962,7 +1985,7 @@ fun pull_out_constr_comb thy Ts relax k level t args seen =
          andalso has_heavy_bounds_or_vars Ts level t_comb
          andalso not (loose_bvar (t_comb, level)) then
         let
-          val (j, seen) = case find_index (equal t_comb) seen of
+          val (j, seen) = case find_index (curry (op =) t_comb) seen of
                             ~1 => (0, t_comb :: seen)
                           | j => (j, seen)
         in (fresh_value_var Ts k (length seen) j t_comb, seen) end
@@ -2046,8 +2069,8 @@ fun destroy_pulled_out_constrs (ext_ctxt as {thy, ...}) axiom t =
          (Const (x as (s, T)), args) =>
          let val arg_Ts = binder_types T in
            if length arg_Ts = length args
-              andalso (is_constr thy x orelse s mem [@{const_name Pair}]
-                       orelse x = dest_Const @{const Suc})
+              andalso (is_constr thy x orelse s = @{const_name Pair}
+                       orelse x = (@{const_name Suc}, nat_T --> nat_T))
               andalso (not careful orelse not (is_Var t1)
                        orelse String.isPrefix val_var_prefix
                                               (fst (fst (dest_Var t1)))) then
@@ -2141,7 +2164,8 @@ val destroy_universal_equalities =
     (* term list -> (indexname * typ) list -> indexname * typ -> term -> term
        -> term -> term *)
     and aux_eq prems zs z t' t1 t2 =
-      if not (z mem zs) andalso not (exists_subterm (equal (Var z)) t') then
+      if not (member (op =) zs z)
+         andalso not (exists_subterm (curry (op =) (Var z)) t') then
         aux prems zs (subst_free [(Var z, t')] t2)
       else
         aux (t1 :: prems) (Term.add_vars t1 zs) t2
@@ -2299,8 +2323,8 @@ fun push_quantifiers_inward thy =
          (t0 as Const (s0, _)) $ Abs (s1, T1, t1 as _ $ _) =>
          if s0 = quant_s andalso length Ts < quantifier_cluster_max_size then
            aux s0 (s1 :: ss) (T1 :: Ts) t1
-         else if quant_s = ""
-                 andalso s0 mem [@{const_name All}, @{const_name Ex}] then
+         else if quant_s = "" andalso (s0 = @{const_name All}
+                                       orelse s0 = @{const_name Ex}) then
            aux s0 [s1] [T1] t1
          else
            raise SAME ()
@@ -2330,7 +2354,8 @@ fun push_quantifiers_inward thy =
                      | cost boundss_cum_costs (j :: js) =
                        let
                          val (yeas, nays) =
-                           List.partition (fn (bounds, _) => j mem bounds)
+                           List.partition (fn (bounds, _) =>
+                                              member (op =) bounds j)
                                           boundss_cum_costs
                          val yeas_bounds = big_union fst yeas
                          val yeas_cost = Integer.sum (map snd yeas)
@@ -2339,7 +2364,7 @@ fun push_quantifiers_inward thy =
                    val js = all_permutations (index_seq 0 num_Ts)
                             |> map (`(cost (t_boundss ~~ t_costs)))
                             |> sort (int_ord o pairself fst) |> hd |> snd
-                   val back_js = map (fn j => find_index (equal j) js)
+                   val back_js = map (fn j => find_index (curry (op =) j) js)
                                      (index_seq 0 num_Ts)
                    val ts = map (renumber_bounds 0 num_Ts (nth back_js o flip))
                                 ts
@@ -2355,7 +2380,8 @@ fun push_quantifiers_inward thy =
                      | build ts_cum_bounds (j :: js) =
                        let
                          val (yeas, nays) =
-                           List.partition (fn (_, bounds) => j mem bounds)
+                           List.partition (fn (_, bounds) =>
+                                              member (op =) bounds j)
                                           ts_cum_bounds
                            ||> map (apfst (incr_boundvars ~1))
                        in
@@ -2476,7 +2502,7 @@ fun skolemize_term_and_more (ext_ctxt as {thy, def_table, skolems, ...})
                                   map Bound (length trunk_arg_Ts - 1 downto 0))
                    in
                      List.foldr absdummy
-                                (Const (set_oper, [set_T, set_T] ---> set_T)
+                                (Const (set_oper, set_T --> set_T --> set_T)
                                         $ app pos $ app neg) trunk_arg_Ts
                    end
                  else
@@ -2548,7 +2574,7 @@ fun specialize_fun_axiom x x' fixed_js fixed_args extra_args t =
         if t = Const x then
           list_comb (Const x', extra_args @ filter_out_indices fixed_js args)
         else
-          let val j = find_index (equal t) fixed_params in
+          let val j = find_index (curry (op =) t) fixed_params in
             list_comb (if j >= 0 then nth fixed_args j else t, args)
           end
   in aux [] t end
@@ -2582,7 +2608,7 @@ fun specialize_consts_in_term (ext_ctxt as {thy, specialize, simp_table,
                       else case term_under_def t of Const x => [x] | _ => []
       (* term list -> typ list -> term -> term *)
       fun aux args Ts (Const (x as (s, T))) =
-          ((if not (x mem blacklist) andalso not (null args)
+          ((if not (member (op =) blacklist x) andalso not (null args)
                andalso not (String.isPrefix special_prefix s)
                andalso is_equational_fun ext_ctxt x then
               let
@@ -2607,7 +2633,8 @@ fun specialize_consts_in_term (ext_ctxt as {thy, specialize, simp_table,
                 (* int -> term *)
                 fun var_for_bound_no j =
                   Var ((bound_var_prefix ^
-                        nat_subscript (find_index (equal j) bound_js + 1), k),
+                        nat_subscript (find_index (curry (op =) j) bound_js
+                                       + 1), k),
                        nth Ts j)
                 val fixed_args_in_axiom =
                   map (curry subst_bounds
@@ -2739,7 +2766,8 @@ fun box_fun_and_pair_in_term (ext_ctxt as {thy, fast_descrs, ...}) def orig_t =
                                \coerce_term", [t']))
         | (Type (new_s, new_Ts as [new_T1, new_T2]),
            Type (old_s, old_Ts as [old_T1, old_T2])) =>
-          if old_s mem [@{type_name fun_box}, @{type_name pair_box}, "*"] then
+          if old_s = @{type_name fun_box} orelse old_s = @{type_name pair_box}
+             orelse old_s = "*" then
             case constr_expand ext_ctxt old_T t of
               Const (@{const_name FunBox}, _) $ t1 =>
               if new_s = "fun" then
@@ -2770,13 +2798,13 @@ fun box_fun_and_pair_in_term (ext_ctxt as {thy, fast_descrs, ...}) def orig_t =
            fold (add_boxed_types_for_var z) [(T1, t1), (T2, t2)]
          | _ => raise TYPE ("Nitpick_HOL.box_fun_and_pair_in_term.\
                             \add_boxed_types_for_var", [T'], []))
-      | _ => exists_subterm (equal (Var z)) t' ? insert (op =) T
+      | _ => exists_subterm (curry (op =) (Var z)) t' ? insert (op =) T
     (* typ list -> typ list -> term -> indexname * typ -> typ *)
     fun box_var_in_def new_Ts old_Ts t (z as (_, T)) =
       case t of
         @{const Trueprop} $ t1 => box_var_in_def new_Ts old_Ts t1 z
       | Const (s0, _) $ t1 $ _ =>
-        if s0 mem [@{const_name "=="}, @{const_name "op ="}] then
+        if s0 = @{const_name "=="} orelse s0 = @{const_name "op ="} then
           let
             val (t', args) = strip_comb t1
             val T' = fastype_of1 (new_Ts, do_term new_Ts old_Ts Neut t')
@@ -2811,7 +2839,7 @@ fun box_fun_and_pair_in_term (ext_ctxt as {thy, fast_descrs, ...}) def orig_t =
         val (T1, T2) = pairself (curry fastype_of1 new_Ts) (t1, t2)
         val T = [T1, T2] |> sort TermOrd.typ_ord |> List.last
       in
-        list_comb (Const (s0, [T, T] ---> body_type T0),
+        list_comb (Const (s0, T --> T --> body_type T0),
                    map2 (coerce_term new_Ts T) [T1, T2] [t1, t2])
       end
     (* string -> typ -> term *)
@@ -2855,7 +2883,8 @@ fun box_fun_and_pair_in_term (ext_ctxt as {thy, fast_descrs, ...}) def orig_t =
       | Const (s as @{const_name Eps}, T) => do_description_operator s T
       | Const (s as @{const_name Tha}, T) => do_description_operator s T
       | Const (x as (s, T)) =>
-        Const (s, if s mem [@{const_name converse}, @{const_name trancl}] then
+        Const (s, if s = @{const_name converse}
+                     orelse s = @{const_name trancl} then
                     box_relational_operator_type T
                   else if is_built_in_const fast_descrs x
                           orelse s = @{const_name Sigma} then
@@ -2954,7 +2983,7 @@ fun special_congruence_axioms (ext_ctxt as {special_funs, ...}) xs =
       |> map (fn ((x, js, ts), x') => (x, (js, ts, x')))
       |> AList.group (op =)
       |> filter_out (is_equational_fun_surely_complete ext_ctxt o fst)
-      |> map (fn (x, zs) => (x, zs |> (x mem xs) ? cons ([], [], x)))
+      |> map (fn (x, zs) => (x, zs |> member (op =) xs x ? cons ([], [], x)))
     (* special -> int *)
     fun generality (js, _, _) = ~(length js)
     (* special -> special -> bool *)
@@ -3022,14 +3051,15 @@ fun axioms_for_term
       case t of
         t1 $ t2 => accum |> fold (add_axioms_for_term depth) [t1, t2]
       | Const (x as (s, T)) =>
-        (if x mem xs orelse is_built_in_const fast_descrs x then
+        (if member (op =) xs x orelse is_built_in_const fast_descrs x then
            accum
          else
            let val accum as (xs, _) = (x :: xs, axs) in
              if depth > axioms_max_depth then
-               raise LIMIT ("Nitpick_HOL.axioms_for_term.add_axioms_for_term",
-                            "too many nested axioms (" ^ string_of_int depth ^
-                            ")")
+               raise TOO_LARGE ("Nitpick_HOL.axioms_for_term.\
+                                \add_axioms_for_term",
+                                "too many nested axioms (" ^
+                                string_of_int depth ^ ")")
              else if Refute.is_const_of_class thy x then
                let
                  val class = Logic.class_of_const s
@@ -3172,10 +3202,10 @@ fun lookup_format thy def_table formats t =
 (* int list -> int list -> typ -> typ *)
 fun format_type default_format format T =
   let
-    val T = unbox_type T
+    val T = unbit_and_unbox_type T
     val format = format |> filter (curry (op <) 0)
   in
-    if forall (equal 1) format then
+    if forall (curry (op =) 1) format then
       T
     else
       let
@@ -3211,7 +3241,8 @@ fun user_friendly_const ({thy, evals, def_table, skolems, special_funs, ...}
            (* term -> term *)
            val do_term = map_aterms (fn Const x => fst (do_const x) | t' => t')
            val (x' as (_, T'), js, ts) =
-             AList.find (op =) (!special_funs) (s, unbox_type T) |> the_single
+             AList.find (op =) (!special_funs) (s, unbit_and_unbox_type T)
+             |> the_single
            val max_j = List.last js
            val Ts = List.take (binder_types T', max_j + 1)
            val missing_js = filter_out (member (op =) js) (0 upto max_j)
@@ -3226,7 +3257,8 @@ fun user_friendly_const ({thy, evals, def_table, skolems, special_funs, ...}
                                 SOME t => do_term t
                               | NONE =>
                                 Var (nth missing_vars
-                                         (find_index (equal j) missing_js)))
+                                         (find_index (curry (op =) j)
+                                                     missing_js)))
                           Ts (0 upto max_j)
            val t = do_const x' |> fst
            val format =
@@ -3299,8 +3331,8 @@ fun user_friendly_const ({thy, evals, def_table, skolems, special_funs, ...}
          let val t = Const (original_name s, T) in
            (t, format_term_type thy def_table formats t)
          end)
-      |>> map_types (typ_subst [(@{typ bisim_iterator}, nat_T)] o unbox_type)
-      |>> shorten_const_names_in_term |>> shorten_abs_vars
+      |>> map_types unbit_and_unbox_type
+      |>> shorten_names_in_term |>> shorten_abs_vars
   in do_const end
 
 (* styp -> string *)
@@ -3314,10 +3346,45 @@ fun assign_operator_for_const (s, T) =
   else
     "="
 
+val binary_int_threshold = 4
+
+(* term -> bool *)
+fun may_use_binary_ints (t1 $ t2) =
+    may_use_binary_ints t1 andalso may_use_binary_ints t2
+  | may_use_binary_ints (t as Const (s, _)) =
+    t <> @{const Suc} andalso
+    not (member (op =) [@{const_name Abs_Frac}, @{const_name Rep_Frac},
+                        @{const_name nat_gcd}, @{const_name nat_lcm},
+                        @{const_name Frac}, @{const_name norm_frac}] s)
+  | may_use_binary_ints (Abs (_, _, t')) = may_use_binary_ints t'
+  | may_use_binary_ints _ = true
+fun should_use_binary_ints (t1 $ t2) =
+    should_use_binary_ints t1 orelse should_use_binary_ints t2
+  | should_use_binary_ints (Const (s, _)) =
+    member (op =) [@{const_name times_nat_inst.times_nat},
+                   @{const_name div_nat_inst.div_nat},
+                   @{const_name times_int_inst.times_int},
+                   @{const_name div_int_inst.div_int}] s
+    orelse (String.isPrefix numeral_prefix s andalso
+            let val n = the (Int.fromString (unprefix numeral_prefix s)) in
+              n <= ~ binary_int_threshold orelse n >= binary_int_threshold
+            end)
+  | should_use_binary_ints (Abs (_, _, t')) = should_use_binary_ints t'
+  | should_use_binary_ints _ = false
+
+(* typ -> typ *)
+fun binarize_nat_and_int_in_type @{typ nat} = @{typ "unsigned_bit word"}
+  | binarize_nat_and_int_in_type @{typ int} = @{typ "signed_bit word"}
+  | binarize_nat_and_int_in_type (Type (s, Ts)) =
+    Type (s, map binarize_nat_and_int_in_type Ts)
+  | binarize_nat_and_int_in_type T = T
+(* term -> term *)
+val binarize_nat_and_int_in_term = map_types binarize_nat_and_int_in_type
+
 (* extended_context -> term
    -> ((term list * term list) * (bool * bool)) * term *)
-fun preprocess_term (ext_ctxt as {thy, destroy_constrs, boxes, skolemize,
-                                  uncurry, ...}) t =
+fun preprocess_term (ext_ctxt as {thy, binary_ints, destroy_constrs, boxes,
+                                  skolemize, uncurry, ...}) t =
   let
     val skolem_depth = if skolemize then 4 else ~1
     val (((def_ts, nondef_ts), (got_all_mono_user_axioms, no_poly_user_axioms)),
@@ -3326,14 +3393,22 @@ fun preprocess_term (ext_ctxt as {thy, destroy_constrs, boxes, skolemize,
                      |> skolemize_term_and_more ext_ctxt skolem_depth
                      |> specialize_consts_in_term ext_ctxt 0
                      |> `(axioms_for_term ext_ctxt)
-    val maybe_box = exists (not_equal (SOME false) o snd) boxes
+    val binarize =
+      case binary_ints of
+        SOME false => false
+      | _ =>
+        forall may_use_binary_ints (core_t :: def_ts @ nondef_ts) andalso
+        (binary_ints = SOME true
+         orelse exists should_use_binary_ints (core_t :: def_ts @ nondef_ts))
+    val box = exists (not_equal (SOME false) o snd) boxes
     val table =
       Termtab.empty |> uncurry
         ? fold (add_to_uncurry_table thy) (core_t :: def_ts @ nondef_ts)
     (* bool -> bool -> term -> term *)
     fun do_rest def core =
-      uncurry ? uncurry_term table
-      #> maybe_box ? box_fun_and_pair_in_term ext_ctxt def
+      binarize ? binarize_nat_and_int_in_term
+      #> uncurry ? uncurry_term table
+      #> box ? box_fun_and_pair_in_term ext_ctxt def
       #> destroy_constrs ? (pull_out_universal_constrs thy def
                             #> pull_out_existential_constrs thy
                             #> destroy_pulled_out_constrs ext_ctxt def)

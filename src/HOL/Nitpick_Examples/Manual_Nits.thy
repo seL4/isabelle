@@ -59,7 +59,7 @@ lemma "refl r \<Longrightarrow> sym r"
 nitpick
 oops
 
-subsection {* 3.5. Numbers *}
+subsection {* 3.5. Natural Numbers and Integers *}
 
 lemma "\<lbrakk>i \<le> j; n \<le> (m\<Colon>int)\<rbrakk> \<Longrightarrow> i * n + j * m \<le> i * m + j * n"
 nitpick
@@ -121,11 +121,11 @@ inductive even where
 "even n \<Longrightarrow> even (Suc (Suc n))"
 
 lemma "\<exists>n. even n \<and> even (Suc n)"
-nitpick [card nat = 100, verbose]
+nitpick [card nat = 100, unary_ints, verbose]
 oops
 
 lemma "\<exists>n \<le> 99. even n \<and> even (Suc n)"
-nitpick [card nat = 100]
+nitpick [card nat = 100, unary_ints, verbose]
 oops
 
 inductive even' where
@@ -134,7 +134,7 @@ inductive even' where
 "\<lbrakk>even' m; even' n\<rbrakk> \<Longrightarrow> even' (m + n)"
 
 lemma "\<exists>n \<in> {0, 2, 4, 6, 8}. \<not> even' n"
-nitpick [card nat = 10, verbose, show_consts]
+nitpick [card nat = 10, unary_ints, verbose, show_consts] (* FIXME: should be genuine *)
 oops
 
 lemma "even' (n - 2) \<Longrightarrow> even' n"

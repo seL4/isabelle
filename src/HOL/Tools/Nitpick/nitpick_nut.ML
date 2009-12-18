@@ -26,7 +26,6 @@ sig
     Subtract |
     Multiply |
     Divide |
-    Modulo |
     Gcd |
     Lcm |
     Fracs |
@@ -131,6 +130,8 @@ open Nitpick_Scope
 open Nitpick_Peephole
 open Nitpick_Rep
 
+structure KK = Kodkod
+
 datatype cst =
   Unity |
   False |
@@ -144,7 +145,6 @@ datatype cst =
   Subtract |
   Multiply |
   Divide |
-  Modulo |
   Gcd |
   Lcm |
   Fracs |
@@ -198,8 +198,8 @@ datatype nut =
   BoundName of int * typ * rep * string |
   FreeName of string * typ * rep |
   ConstName of string * typ * rep |
-  BoundRel of Kodkod.n_ary_index * typ * rep * string |
-  FreeRel of Kodkod.n_ary_index * typ * rep * string |
+  BoundRel of KK.n_ary_index * typ * rep * string |
+  FreeRel of KK.n_ary_index * typ * rep * string |
   RelReg of int * typ * rep |
   FormulaReg of int * typ * rep
 
@@ -218,7 +218,6 @@ fun string_for_cst Unity = "Unity"
   | string_for_cst Subtract = "Subtract"
   | string_for_cst Multiply = "Multiply"
   | string_for_cst Divide = "Divide"
-  | string_for_cst Modulo = "Modulo"
   | string_for_cst Gcd = "Gcd"
   | string_for_cst Lcm = "Lcm"
   | string_for_cst Fracs = "Fracs"
@@ -442,7 +441,7 @@ fun the_name table name =
   case NameTable.lookup table name of
     SOME u => u
   | NONE => raise NUT ("Nitpick_Nut.the_name", [name])
-(* nut NameTable.table -> nut -> Kodkod.n_ary_index *)
+(* nut NameTable.table -> nut -> KK.n_ary_index *)
 fun the_rel table name =
   case the_name table name of
     FreeRel (x, _, _, _) => x
@@ -614,8 +613,6 @@ fun nut_from_term (ext_ctxt as {thy, fast_descrs, special_funs, ...}) eq =
           Cst (Multiply, T, Any)
         | (Const (@{const_name div_nat_inst.div_nat}, T), []) =>
           Cst (Divide, T, Any)
-        | (Const (@{const_name div_nat_inst.mod_nat}, T), []) =>
-          Cst (Modulo, T, Any)
         | (Const (@{const_name ord_nat_inst.less_nat}, T), [t1, t2]) =>
           Op2 (Less, bool_T, Any, sub t1, sub t2)
         | (Const (@{const_name ord_nat_inst.less_eq_nat}, T), [t1, t2]) =>
@@ -634,12 +631,12 @@ fun nut_from_term (ext_ctxt as {thy, fast_descrs, special_funs, ...}) eq =
           Cst (Multiply, T, Any)
         | (Const (@{const_name div_int_inst.div_int}, T), []) =>
           Cst (Divide, T, Any)
-        | (Const (@{const_name div_int_inst.mod_int}, T), []) =>
-          Cst (Modulo, T, Any)
         | (Const (@{const_name uminus_int_inst.uminus_int}, T), []) =>
-          Op2 (Apply, int_T --> int_T, Any,
-               Cst (Subtract, [int_T, int_T] ---> int_T, Any),
-               Cst (Num 0, int_T, Any))
+          let val num_T = domain_type T in
+            Op2 (Apply, num_T --> num_T, Any,
+                 Cst (Subtract, num_T --> num_T --> num_T, Any),
+                 Cst (Num 0, num_T, Any))
+          end
         | (Const (@{const_name ord_int_inst.less_int}, T), [t1, t2]) =>
           Op2 (Less, bool_T, Any, sub t1, sub t2)
         | (Const (@{const_name ord_int_inst.less_eq_int}, T), [t1, t2]) =>
@@ -649,6 +646,9 @@ fun nut_from_term (ext_ctxt as {thy, fast_descrs, special_funs, ...}) eq =
         | (Const (@{const_name Frac}, T), []) => Cst (Fracs, T, Any)
         | (Const (@{const_name norm_frac}, T), []) => Cst (NormFrac, T, Any)
         | (Const (@{const_name of_nat}, T as @{typ "nat => int"}), []) =>
+          Cst (NatToInt, T, Any)
+        | (Const (@{const_name of_nat},
+                  T as @{typ "unsigned_bit word => signed_bit word"}), []) =>
           Cst (NatToInt, T, Any)
         | (Const (@{const_name lower_semilattice_fun_inst.inf_fun}, T),
                   [t1, t2]) =>
@@ -708,24 +708,24 @@ fun choose_rep_for_free_var scope v (vs, table) =
 (* scope -> bool -> nut -> nut list * rep NameTable.table
    -> nut list * rep NameTable.table *)
 fun choose_rep_for_const (scope as {ext_ctxt as {thy, ctxt, ...}, datatypes,
-                                    ofs, ...}) all_precise v (vs, table) =
+                                    ofs, ...}) all_exact v (vs, table) =
   let
     val x as (s, T) = (nickname_of v, type_of v)
     val R = (if is_abs_fun thy x then
                rep_for_abs_fun
              else if is_rep_fun thy x then
                Func oo best_non_opt_symmetric_reps_for_fun_type
-             else if all_precise orelse is_skolem_name v
-                     orelse original_name s
-                            mem [@{const_name undefined_fast_The},
-                                 @{const_name undefined_fast_Eps},
-                                 @{const_name bisim},
-                                 @{const_name bisim_iterator_max}] then
+             else if all_exact orelse is_skolem_name v
+                     orelse member (op =) [@{const_name undefined_fast_The},
+                                           @{const_name undefined_fast_Eps},
+                                           @{const_name bisim},
+                                           @{const_name bisim_iterator_max}]
+                                          (original_name s) then
                best_non_opt_set_rep_for_type
-             else if original_name s
-                     mem [@{const_name set}, @{const_name distinct},
-                          @{const_name ord_class.less},
-                          @{const_name ord_class.less_eq}] then
+             else if member (op =) [@{const_name set}, @{const_name distinct},
+                                    @{const_name ord_class.less},
+                                    @{const_name ord_class.less_eq}]
+                                   (original_name s) then
                best_set_rep_for_type
              else
                best_opt_set_rep_for_type) scope T
@@ -737,17 +737,19 @@ fun choose_reps_for_free_vars scope vs table =
   fold (choose_rep_for_free_var scope) vs ([], table)
 (* scope -> bool -> nut list -> rep NameTable.table
    -> nut list * rep NameTable.table *)
-fun choose_reps_for_consts scope all_precise vs table =
-  fold (choose_rep_for_const scope all_precise) vs ([], table)
+fun choose_reps_for_consts scope all_exact vs table =
+  fold (choose_rep_for_const scope all_exact) vs ([], table)
 
 (* scope -> styp -> int -> nut list * rep NameTable.table
    -> nut list * rep NameTable.table *)
-fun choose_rep_for_nth_sel_for_constr (scope as {ext_ctxt, ...}) x n
+fun choose_rep_for_nth_sel_for_constr (scope as {ext_ctxt, ...}) (x as (_, T)) n
                                       (vs, table) =
   let
     val (s', T') = boxed_nth_sel_for_constr ext_ctxt x n
-    val R' = if n = ~1 then best_non_opt_set_rep_for_type scope T'
-             else best_opt_set_rep_for_type scope T' |> unopt_rep
+    val R' = if n = ~1 orelse is_word_type (body_type T) then
+               best_non_opt_set_rep_for_type scope T'
+             else
+               best_opt_set_rep_for_type scope T' |> unopt_rep
     val v = ConstName (s', T', R')
   in (v :: vs, NameTable.update (v, R') table) end
 (* scope -> styp -> nut list * rep NameTable.table
@@ -780,7 +782,8 @@ fun is_constructive u =
   (not (is_fun_type (type_of u)) andalso not (is_opt_rep (rep_of u))) orelse
   case u of
     Cst (Num _, _, _) => true
-  | Cst (cst, T, _) => cst = Suc orelse (body_type T = nat_T andalso cst = Add)
+  | Cst (cst, T, _) =>
+    cst = Suc orelse (body_type T = nat_T andalso cst = Add)
   | Op2 (Apply, _, _, u1, u2) => forall is_constructive [u1, u2]
   | Op3 (If, _, _, u1, u2, u3) =>
     not (is_opt_rep (rep_of u1)) andalso forall is_constructive [u2, u3]
@@ -883,7 +886,8 @@ fun untuple f (Tuple (_, _, us)) = maps (untuple f) us
 
 (* scope -> bool -> rep NameTable.table -> bool -> nut -> nut *)
 fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
-                                  datatypes, ofs, ...}) liberal table def =
+                                  bits, datatypes, ofs, ...})
+                       liberal table def =
   let
     val bool_atom_R = Atom (2, offset_of_type ofs bool_T)
     (* polarity -> bool -> rep *)
@@ -912,17 +916,21 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
           Cst (False, T, _) => Cst (False, T, Formula Neut)
         | Cst (True, T, _) => Cst (True, T, Formula Neut)
         | Cst (Num j, T, _) =>
-          (case spec_of_type scope T of
-             (1, j0) => if j = 0 then Cst (Unity, T, Unit)
-                        else Cst (Unrep, T, Opt (Atom (1, j0)))
-           | (k, j0) =>
-             let
-               val ok = (if T = int_T then atom_for_int (k, j0) j <> ~1
-                         else j < k)
-             in
-               if ok then Cst (Num j, T, Atom (k, j0))
-               else Cst (Unrep, T, Opt (Atom (k, j0)))
-             end)
+          if is_word_type T then
+            Cst (if is_twos_complement_representable bits j then Num j
+                 else Unrep, T, best_opt_set_rep_for_type scope T)
+          else
+            (case spec_of_type scope T of
+               (1, j0) => if j = 0 then Cst (Unity, T, Unit)
+                          else Cst (Unrep, T, Opt (Atom (1, j0)))
+             | (k, j0) =>
+               let
+                 val ok = (if T = int_T then atom_for_int (k, j0) j <> ~1
+                           else j < k)
+               in
+                 if ok then Cst (Num j, T, Atom (k, j0))
+                 else Cst (Unrep, T, Opt (Atom (k, j0)))
+               end)
         | Cst (Suc, T as Type ("fun", [T1, _]), _) =>
           let val R = Atom (spec_of_type scope T1) in
             Cst (Suc, T, Func (R, Opt R))
@@ -934,35 +942,32 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
             Cst (NormFrac, T, Func (R1, Func (R1, Opt (Struct [R1, R1]))))
           end
         | Cst (cst, T, _) =>
-          if cst mem [Unknown, Unrep] then
+          if cst = Unknown orelse cst = Unrep then
             case (is_boolean_type T, polar) of
               (true, Pos) => Cst (False, T, Formula Pos)
             | (true, Neg) => Cst (True, T, Formula Neg)
             | _ => Cst (cst, T, best_opt_set_rep_for_type scope T)
-          else if cst mem [Add, Subtract, Multiply, Divide, Modulo, Gcd,
-                           Lcm] then
+          else if member (op =) [Add, Subtract, Multiply, Divide, Gcd, Lcm]
+                         cst then
             let
               val T1 = domain_type T
               val R1 = Atom (spec_of_type scope T1)
-              val total =
-                T1 = nat_T andalso cst mem [Subtract, Divide, Modulo, Gcd]
+              val total = T1 = nat_T
+                          andalso (cst = Subtract orelse cst = Divide
+                                   orelse cst = Gcd)
             in Cst (cst, T, Func (R1, Func (R1, (not total ? Opt) R1))) end
-          else if cst mem [NatToInt, IntToNat] then
+          else if cst = NatToInt orelse cst = IntToNat then
             let
-              val (nat_card, nat_j0) = spec_of_type scope nat_T
-              val (int_card, int_j0) = spec_of_type scope int_T
+              val (dom_card, dom_j0) = spec_of_type scope (domain_type T)
+              val (ran_card, ran_j0) = spec_of_type scope (range_type T)
+              val total = not (is_word_type (domain_type T))
+                          andalso (if cst = NatToInt then
+                                    max_int_for_card ran_card >= dom_card + 1
+                                  else
+                                    max_int_for_card dom_card < ran_card)
             in
-              if cst = NatToInt then
-                let val total = (max_int_for_card int_card >= nat_card + 1) in
-                  Cst (cst, T,
-                       Func (Atom (nat_card, nat_j0),
-                             (not total ? Opt) (Atom (int_card, int_j0))))
-                end
-              else
-                let val total = (max_int_for_card int_card < nat_card) in
-                  Cst (cst, T, Func (Atom (int_card, int_j0),
-                       Atom (nat_card, nat_j0)) |> not total ? Opt)
-                end
+              Cst (cst, T, Func (Atom (dom_card, dom_j0),
+                                 Atom (ran_card, ran_j0) |> not total ? Opt))
             end
           else
             Cst (cst, T, best_set_rep_for_type scope T)
@@ -997,7 +1002,7 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
             if is_opt_rep R then
               triad_fn (fn polar => s_op2 Subset T (Formula polar) u1 u2)
             else if opt andalso polar = Pos andalso
-                    not (is_fully_comparable_type datatypes (type_of u1)) then
+                    not (is_concrete_type datatypes (type_of u1)) then
               Cst (False, T, Formula Pos)
             else
               s_op2 Subset T R u1 u2
@@ -1023,7 +1028,7 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
               else opt_opt_case ()
           in
             if liberal orelse polar = Neg
-               orelse is_fully_comparable_type datatypes (type_of u1) then
+               orelse is_concrete_type datatypes (type_of u1) then
               case (is_opt_rep (rep_of u1'), is_opt_rep (rep_of u2')) of
                 (true, true) => opt_opt_case ()
               | (true, false) => hybrid_case u1'
@@ -1113,7 +1118,7 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
              in s_op2 Lambda T R u1' u2' end
            | R => raise NUT ("Nitpick_Nut.aux.choose_reps_in_nut", [u]))
         | Op2 (oper, T, _, u1, u2) =>
-          if oper mem [All, Exist] then
+          if oper = All orelse oper = Exist then
             let
               val table' = fold (choose_rep_for_bound_var scope) (untuple I u1)
                                 table
@@ -1126,7 +1131,7 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
                 let val quant_u = s_op2 oper T (Formula polar) u1' u2' in
                   if def
                      orelse (liberal andalso (polar = Pos) = (oper = All))
-                     orelse is_precise_type datatypes (type_of u1) then
+                     orelse is_complete_type datatypes (type_of u1) then
                     quant_u
                   else
                     let
@@ -1140,7 +1145,7 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
                     end
                 end
             end
-          else if oper mem [Or, And] then
+          else if oper = Or orelse oper = And then
             let
               val u1' = gsub def polar u1
               val u2' = gsub def polar u2
@@ -1159,7 +1164,7 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
                  raise SAME ())
               handle SAME () => s_op2 oper T (Formula polar) u1' u2'
             end
-          else if oper mem [The, Eps] then
+          else if oper = The orelse oper = Eps then
             let
               val u1' = sub u1
               val opt1 = is_opt_rep (rep_of u1')
@@ -1169,7 +1174,7 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
                       else unopt_R |> opt ? opt_rep ofs T
               val u = Op2 (oper, T, R, u1', sub u2)
             in
-              if is_precise_type datatypes T orelse not opt1 then
+              if is_complete_type datatypes T orelse not opt1 then
                 u
               else
                 let
@@ -1210,7 +1215,7 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
           let
             val Rs = map (best_one_rep_for_type scope o type_of) us
             val us = map sub us
-            val R = if forall (equal Unit) Rs then Unit else Struct Rs
+            val R = if forall (curry (op =) Unit) Rs then Unit else Struct Rs
             val R' = (exists (is_opt_rep o rep_of) us ? opt_rep ofs T) R
           in s_tuple T R' us end
         | Construct (us', T, _, us) =>
@@ -1234,8 +1239,8 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
       |> optimize_unit
   in aux table def Pos end
 
-(* int -> Kodkod.n_ary_index list -> Kodkod.n_ary_index list
-   -> int * Kodkod.n_ary_index list *)
+(* int -> KK.n_ary_index list -> KK.n_ary_index list
+   -> int * KK.n_ary_index list *)
 fun fresh_n_ary_index n [] ys = (0, (n, 1) :: ys)
   | fresh_n_ary_index n ((m, j) :: xs) ys =
     if m = n then (j, ys @ ((m, j + 1) :: xs))
@@ -1312,7 +1317,18 @@ fun rename_n_ary_var rename_free v (ws, pool, table) =
       in (ws' @ ws, pool, NameTable.update (v, shape_tuple T R ws') table) end
     else
       let
-        val (j, pool) = fresh arity pool
+        val (j, pool) =
+          case v of
+            ConstName _ =>
+            if is_sel_like_and_no_discr nick then
+              case domain_type T of
+                @{typ "unsigned_bit word"} =>
+                (snd unsigned_bit_word_sel_rel, pool)
+              | @{typ "signed_bit word"} => (snd signed_bit_word_sel_rel, pool)
+              | _ => fresh arity pool
+            else
+              fresh arity pool
+          | _ => fresh arity pool
         val w = constr ((arity, j), T, R, nick)
       in (w :: ws, pool, NameTable.update (v, w) table) end
   end
@@ -1331,7 +1347,7 @@ fun rename_vars_in_nut pool table u =
     Cst _ => u
   | Op1 (oper, T, R, u1) => Op1 (oper, T, R, rename_vars_in_nut pool table u1)
   | Op2 (oper, T, R, u1, u2) =>
-    if oper mem [All, Exist, Lambda] then
+    if oper = All orelse oper = Exist orelse oper = Lambda then
       let
         val (_, pool, table) = fold (rename_n_ary_var false) (untuple I u1)
                                     ([], pool, table)

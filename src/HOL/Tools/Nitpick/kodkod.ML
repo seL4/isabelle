@@ -506,12 +506,13 @@ fun problems_equivalent (p1 : problem) (p2 : problem) =
           = filter (is_relevant_setting o fst) (#settings p2)
 
 (* int -> string *)
-fun base_name j = if j < 0 then Int.toString (~j - 1) ^ "'" else Int.toString j
+fun base_name j =
+  if j < 0 then string_of_int (~j - 1) ^ "'" else string_of_int j
 
 (* n_ary_index -> string -> string -> string -> string *)
 fun n_ary_name (1, j) prefix _ _ = prefix ^ base_name j
   | n_ary_name (2, j) _ prefix _ = prefix ^ base_name j
-  | n_ary_name (n, j) _ _ prefix = prefix ^ Int.toString n ^ "_" ^ base_name j
+  | n_ary_name (n, j) _ _ prefix = prefix ^ string_of_int n ^ "_" ^ base_name j
 
 (* int -> string *)
 fun atom_name j = "A" ^ base_name j
@@ -574,7 +575,7 @@ fun string_for_tuple_set tuple_set =
            sub ts1 prec ^ " - " ^ sub ts1 (prec + 1)
          | TupleIntersect (ts1, ts2) => sub ts1 prec ^ " & " ^ sub ts1 prec
          | TupleProduct (ts1, ts2) => sub ts1 prec ^ "->" ^ sub ts2 prec
-         | TupleProject (ts, c) => sub ts prec ^ "[" ^ Int.toString c ^ "]"
+         | TupleProject (ts, c) => sub ts prec ^ "[" ^ string_of_int c ^ "]"
          | TupleSet ts => "{" ^ commas (map string_for_tuple ts) ^ "}"
          | TupleRange (t1, t2) =>
            "{" ^ string_for_tuple t1 ^
@@ -602,7 +603,7 @@ fun string_for_bound (zs, tss) =
 (* int_bound -> string *)
 fun int_string_for_bound (opt_n, tss) =
   (case opt_n of
-     SOME n => Int.toString n ^ ": "
+     SOME n => signed_string_of_int n ^ ": "
    | NONE => "") ^ "[" ^ commas (map string_for_tuple_set tss) ^ "]"
 
 val prec_All = 1
@@ -823,7 +824,7 @@ fun write_problem_file out problems =
          | Neg i => (out "-"; out_i i prec)
          | Absolute i => (out "abs "; out_i i prec)
          | Signum i => (out "sgn "; out_i i prec)
-         | Num k => out (Int.toString k)
+         | Num k => out (signed_string_of_int k)
          | IntReg j => out (int_reg_name j));
         (if need_parens then out ")" else ())
       end
@@ -996,7 +997,7 @@ val fudge_ms = 250
 (* bool -> Time.time option -> int -> int -> problem list -> outcome *)
 fun solve_any_problem overlord deadline max_threads max_solutions problems =
   let
-    val j = find_index (equal True o #formula) problems
+    val j = find_index (curry (op =) True o #formula) problems
     val indexed_problems = if j >= 0 then
                              [(j, nth problems j)]
                            else
@@ -1048,12 +1049,12 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
                         \LD_LIBRARY_PATH=\"$KODKODI_JAVA_LIBRARY_PATH:\
                         \$LD_LIBRARY_PATH\" \
                         \\"$KODKODI\"/bin/kodkodi" ^
-                        (if ms >= 0 then " -max-msecs " ^ Int.toString ms
+                        (if ms >= 0 then " -max-msecs " ^ string_of_int ms
                          else "") ^
                         (if max_solutions > 1 then " -solve-all" else "") ^
-                        " -max-solutions " ^ Int.toString max_solutions ^
+                        " -max-solutions " ^ string_of_int max_solutions ^
                         (if max_threads > 0 then
-                           " -max-threads " ^ Int.toString max_threads
+                           " -max-threads " ^ string_of_int max_threads
                          else
                            "") ^
                         " < " ^ Path.implode in_path ^

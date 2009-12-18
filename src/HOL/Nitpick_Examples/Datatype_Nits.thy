@@ -14,21 +14,11 @@ begin
 nitpick_params [sat_solver = MiniSatJNI, max_threads = 1, timeout = 60 s]
 
 primrec rot where
-"rot Nibble0 = Nibble1" |
-"rot Nibble1 = Nibble2" |
-"rot Nibble2 = Nibble3" |
-"rot Nibble3 = Nibble4" |
-"rot Nibble4 = Nibble5" |
-"rot Nibble5 = Nibble6" |
-"rot Nibble6 = Nibble7" |
-"rot Nibble7 = Nibble8" |
-"rot Nibble8 = Nibble9" |
-"rot Nibble9 = NibbleA" |
-"rot NibbleA = NibbleB" |
-"rot NibbleB = NibbleC" |
-"rot NibbleC = NibbleD" |
-"rot NibbleD = NibbleE" |
-"rot NibbleE = NibbleF" |
+"rot Nibble0 = Nibble1" | "rot Nibble1 = Nibble2" | "rot Nibble2 = Nibble3" |
+"rot Nibble3 = Nibble4" | "rot Nibble4 = Nibble5" | "rot Nibble5 = Nibble6" |
+"rot Nibble6 = Nibble7" | "rot Nibble7 = Nibble8" | "rot Nibble8 = Nibble9" |
+"rot Nibble9 = NibbleA" | "rot NibbleA = NibbleB" | "rot NibbleB = NibbleC" |
+"rot NibbleC = NibbleD" | "rot NibbleD = NibbleE" | "rot NibbleE = NibbleF" |
 "rot NibbleF = Nibble0"
 
 lemma "rot n \<noteq> n"

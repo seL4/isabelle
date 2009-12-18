@@ -163,7 +163,7 @@ lemma "\<forall>a. g a = a
                               else
                                 h b\<^isub>2 + h b\<^isub>3 + h b\<^isub>4 + h b\<^isub>5 + h b\<^isub>6 + h b\<^isub>7 + h b\<^isub>8
                                 + h b\<^isub>9 + h b\<^isub>10) x"
-nitpick [card nat = 2, card 'a = 1, expect = none]
+nitpick [card nat = 2, card 'a = 1, expect = potential]
 nitpick [card nat = 2, card 'a = 1, dont_box, expect = potential]
 nitpick [card nat = 2, card 'a = 1, dont_specialize, expect = potential]
 nitpick [card nat = 2, card 'a = 1, dont_box, dont_specialize,

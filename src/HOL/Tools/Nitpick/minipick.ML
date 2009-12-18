@@ -232,7 +232,7 @@ fun kodkod_formula_for_term ctxt card frees =
        | Const (@{const_name snd}, _) => raise SAME ()
        | Const (_, @{typ bool}) => atom_from_formula (to_F Ts t)
        | Free (x as (_, T)) =>
-         Rel (arity_of RRep card T, find_index (equal x) frees)
+         Rel (arity_of RRep card T, find_index (curry (op =) x) frees)
        | Term.Var _ => raise NOT_SUPPORTED "schematic variables"
        | Bound j => raise SAME ()
        | Abs (_, T, t') =>
@@ -314,7 +314,8 @@ fun pick_nits_in_term ctxt raw_card t =
        bounds = bounds, int_bounds = [], expr_assigns = [], formula = formula}
   in
     case solve_any_problem overlord NONE 0 1 [problem] of
-      Normal ([], _) => "none"
+      NotInstalled => "unknown"
+    | Normal ([], _) => "none"
     | Normal _ => "genuine"
     | TimedOut _ => "unknown"
     | Interrupted _ => "unknown"

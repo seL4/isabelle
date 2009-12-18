@@ -876,7 +876,7 @@ nitpick [expect = none]
 by auto
 
 lemma "I = (\<lambda>x\<Colon>'a set. x) \<Longrightarrow> uminus = (\<lambda>x. uminus (I x))"
-nitpick [expect = none]
+nitpick [card = 1\<midarrow>7, expect = none]
 by auto
 
 lemma "A \<union> - A = UNIV"
@@ -892,7 +892,7 @@ nitpick [card 'a = 10, expect = genuine]
 oops
 
 lemma "I = (\<lambda>x. x) \<Longrightarrow> finite = (\<lambda>x. finite (I x))"
-nitpick [expect = none]
+nitpick [card = 1\<midarrow>7, expect = none]
 oops
 
 lemma "finite A"

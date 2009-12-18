@@ -45,13 +45,16 @@ sig
   val get_default_params : theory -> (string * string) list
   val actual_params      : theory -> (string * string) list -> params
 
-  val find_model : theory -> params -> term -> bool -> unit
+  val find_model : theory -> params -> term list -> term -> bool -> unit
 
   (* tries to find a model for a formula: *)
-  val satisfy_term   : theory -> (string * string) list -> term -> unit
+  val satisfy_term :
+    theory -> (string * string) list -> term list -> term -> unit
   (* tries to find a model that refutes a formula: *)
-  val refute_term : theory -> (string * string) list -> term -> unit
-  val refute_goal : theory -> (string * string) list -> thm -> int -> unit
+  val refute_term :
+    theory -> (string * string) list -> term list -> term -> unit
+  val refute_goal :
+    Proof.context -> (string * string) list -> thm -> int -> unit
 
   val setup : theory -> theory
 
@@ -153,8 +156,10 @@ struct
 (*                       formula.                                            *)
 (* "maxtime"     int     If >0, terminate after at most 'maxtime' seconds.   *)
 (* "satsolver"   string  SAT solver to be used.                              *)
+(* "no_assms"    bool    If "true", assumptions in structured proofs are     *)
+(*                       not considered.                                     *)
 (* "expect"      string  Expected result ("genuine", "potential", "none", or *)
-(*                       "unknown")                                          *)
+(*                       "unknown").                                         *)
 (* ------------------------------------------------------------------------- *)
 
   type params =
@@ -165,6 +170,7 @@ struct
       maxvars  : int,
       maxtime  : int,
       satsolver: string,
+      no_assms : bool,
       expect   : string
     };
 
@@ -360,6 +366,15 @@ struct
 
   fun actual_params thy override =
   let
+    (* (string * string) list * string -> bool *)
+    fun read_bool (parms, name) =
+      case AList.lookup (op =) parms name of
+        SOME "true" => true
+      | SOME "false" => false
+      | SOME s => error ("parameter " ^ quote name ^
+        " (value is " ^ quote s ^ ") must be \"true\" or \"false\"")
+      | NONE   => error ("parameter " ^ quote name ^
+          " must be assigned a value")
     (* (string * string) list * string -> int *)
     fun read_int (parms, name) =
       case AList.lookup (op =) parms name of
@@ -385,6 +400,7 @@ struct
     val maxtime   = read_int (allparams, "maxtime")
     (* string *)
     val satsolver = read_string (allparams, "satsolver")
+    val no_assms = read_bool (allparams, "no_assms")
     val expect = the_default "" (AList.lookup (op =) allparams "expect")
     (* all remaining parameters of the form "string=int" are collected in *)
     (* 'sizes'                                                            *)
@@ -395,10 +411,10 @@ struct
       (fn (name, value) => Option.map (pair name) (Int.fromString value))
       (filter (fn (name, _) => name<>"minsize" andalso name<>"maxsize"
         andalso name<>"maxvars" andalso name<>"maxtime"
-        andalso name<>"satsolver") allparams)
+        andalso name<>"satsolver" andalso name<>"no_assms") allparams)
   in
     {sizes=sizes, minsize=minsize, maxsize=maxsize, maxvars=maxvars,
-      maxtime=maxtime, satsolver=satsolver, expect=expect}
+      maxtime=maxtime, satsolver=satsolver, no_assms=no_assms, expect=expect}
   end;
 
 
@@ -1118,6 +1134,7 @@ struct
 (*             the model to the user by calling 'print_model'                *)
 (* thy       : the current theory                                            *)
 (* {...}     : parameters that control the translation/model generation      *)
+(* assm_ts   : assumptions to be considered unless "no_assms" is specified   *)
 (* t         : term to be translated into a propositional formula            *)
 (* negate    : if true, find a model that makes 't' false (rather than true) *)
 (* ------------------------------------------------------------------------- *)
@@ -1125,7 +1142,7 @@ struct
   (* theory -> params -> Term.term -> bool -> unit *)
 
   fun find_model thy {sizes, minsize, maxsize, maxvars, maxtime, satsolver,
-    expect} t negate =
+    no_assms, expect} assm_ts t negate =
   let
     (* string -> unit *)
     fun check_expect outcome_code =
@@ -1135,6 +1152,9 @@ struct
     fun wrapper () =
     let
       val timer  = Timer.startRealTimer ()
+      val t = if no_assms then t
+              else if negate then Logic.list_implies (assm_ts, t)
+              else Logic.mk_conjunction_list (t :: assm_ts)
       val u      = unfold_defs thy t
       val _      = tracing ("Unfolded term: " ^ Syntax.string_of_term_global thy u)
       val axioms = collect_axioms thy u
@@ -1270,10 +1290,10 @@ struct
 (*               parameters                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-  (* theory -> (string * string) list -> Term.term -> unit *)
+  (* theory -> (string * string) list -> Term.term list -> Term.term -> unit *)
 
-  fun satisfy_term thy params t =
-    find_model thy (actual_params thy params) t false;
+  fun satisfy_term thy params assm_ts t =
+    find_model thy (actual_params thy params) assm_ts t false;
 
 (* ------------------------------------------------------------------------- *)
 (* refute_term: calls 'find_model' to find a model that refutes 't'          *)
@@ -1281,9 +1301,9 @@ struct
 (*              parameters                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-  (* theory -> (string * string) list -> Term.term -> unit *)
+  (* theory -> (string * string) list -> Term.term list -> Term.term -> unit *)
 
-  fun refute_term thy params t =
+  fun refute_term thy params assm_ts t =
   let
     (* disallow schematic type variables, since we cannot properly negate  *)
     (* terms containing them (their logical meaning is that there EXISTS a *)
@@ -1332,15 +1352,29 @@ struct
     val frees   = Term.rename_wrt_term strip_t (strip_all_vars ex_closure)
     val subst_t = Term.subst_bounds (map Free frees, strip_t)
   in
-    find_model thy (actual_params thy params) subst_t true
+    find_model thy (actual_params thy params) assm_ts subst_t true
+    handle REFUTE (s, s') => error ("REFUTE " ^ s ^ " " ^ s') (* ### *)
   end;
 
 (* ------------------------------------------------------------------------- *)
 (* refute_goal                                                               *)
 (* ------------------------------------------------------------------------- *)
 
-  fun refute_goal thy params st i =
-    refute_term thy params (Logic.get_goal (Thm.prop_of st) i);
+  fun refute_goal ctxt params th i =
+  let
+    val t = th |> prop_of
+  in
+    if Logic.count_prems t = 0 then
+      priority "No subgoal!"
+    else
+      let
+        val assms = map term_of (Assumption.all_assms_of ctxt)
+        val (t, frees) = Logic.goal_params t i
+      in
+        refute_term (ProofContext.theory_of ctxt) params assms
+        (subst_bounds (frees, t))
+      end
+  end
 
 
 (* ------------------------------------------------------------------------- *)

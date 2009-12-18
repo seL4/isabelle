@@ -6,9 +6,8 @@ Nitpick examples.
 *)
 
 theory Nitpick_Examples
-imports Core_Nits Datatype_Nits Induct_Nits Manual_Nits Mini_Nits Mono_Nits
-        Pattern_Nits Record_Nits Refute_Nits Special_Nits Tests_Nits
+imports Core_Nits Datatype_Nits Induct_Nits Integer_Nits Manual_Nits Mini_Nits
+        Mono_Nits Pattern_Nits Record_Nits Refute_Nits Special_Nits Tests_Nits
         Typedef_Nits
 begin
-
 end
