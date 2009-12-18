@@ -213,7 +213,7 @@ ML_SYSTEM_BASE=$(echo "$ML_SYSTEM" | cut -f1 -d-)
 
 NICE="nice"
 if [ -n "$WRAPPER_OUTPUT" ]; then
-#  [ "$WRAPPER_OUTPUT" = "-" -o -p "$WRAPPER_OUTPUT" ] || fail "Bad named pipe: $WRAPPER_OUTPUT"
+  [ "$WRAPPER_OUTPUT" = "-" -o -p "$WRAPPER_OUTPUT" ] || fail "Bad named pipe: $WRAPPER_OUTPUT"
   MLTEXT="$MLTEXT; Isabelle_Process.init \"$WRAPPER_OUTPUT\";"
 elif [ -n "$PGIP" ]; then
   MLTEXT="$MLTEXT; ProofGeneralPgip.init_pgip $ISAR;"
