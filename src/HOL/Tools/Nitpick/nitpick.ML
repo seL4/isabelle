@@ -75,6 +75,8 @@ open Nitpick_Nut
 open Nitpick_Kodkod
 open Nitpick_Model
 
+structure KK = Kodkod
+
 type params = {
   cards_assigns: (typ option * int list) list,
   maxes_assigns: (styp option * int list) list,
@@ -126,10 +128,10 @@ type problem_extension = {
   rel_table: nut NameTable.table,
   liberal: bool,
   scope: scope,
-  core: Kodkod.formula,
-  defs: Kodkod.formula list}
+  core: KK.formula,
+  defs: KK.formula list}
 
-type rich_problem = Kodkod.problem * problem_extension
+type rich_problem = KK.problem * problem_extension
 
 (* Proof.context -> string -> term list -> Pretty.T list *)
 fun pretties_for_formulas _ _ [] = []
@@ -344,8 +346,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
     val _ = if verbose andalso binary_ints = SOME true
                andalso exists (member (op =) [nat_T, int_T]) Ts then
               print_v (K "The option \"binary_ints\" will be ignored because \
-                         \of the presence of rationals, reals, \"gcd\", or \
-                         \\"lcm\" in the problem.")
+                         \of the presence of rationals, reals, \"Suc\", \
+                         \\"gcd\", or \"lcm\" in the problem.")
             else
               ()
     val (all_dataTs, all_free_Ts) =
@@ -447,7 +449,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
           NameTable.fold (curry Int.max o arity_of_rep o snd) rep_table 1
         val min_univ_card =
           NameTable.fold (curry Int.max o min_univ_card_of_rep o snd) rep_table
-                         (univ_card nat_card int_card main_j0 [] Kodkod.True)
+                         (univ_card nat_card int_card main_j0 [] KK.True)
         val _ = check_arity min_univ_card min_highest_arity
 
         val core_u = choose_reps_in_nut scope liberal rep_table false core_u
@@ -469,7 +471,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
         val core_u = rename_vars_in_nut pool rel_table core_u
         val def_us = map (rename_vars_in_nut pool rel_table) def_us
         val nondef_us = map (rename_vars_in_nut pool rel_table) nondef_us
-        (* nut -> Kodkod.formula *)
+        (* nut -> KK.formula *)
         val to_f = kodkod_formula_from_nut bits ofs liberal kk
         val core_f = to_f core_u
         val def_fs = map to_f def_us
@@ -510,7 +512,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
           fold Integer.max (map (fst o fst) (maps fst bounds)) 0
         val formula = fold_rev s_and declarative_axioms formula
         val _ = if bits = 0 then () else check_bits bits formula
-        val _ = if formula = Kodkod.False then ()
+        val _ = if formula = KK.False then ()
                 else check_arity univ_card highest_arity
       in
         SOME ({comment = comment, settings = settings, univ_card = univ_card,
@@ -525,7 +527,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
                defs = nondef_fs @ def_fs @ declarative_axioms})
       end
       handle TOO_LARGE (loc, msg) =>
-             if loc = "Nitpick_Kodkod.check_arity"
+             if loc = "Nitpick_KK.check_arity"
                 andalso not (Typtab.is_empty ofs) then
                problem_for_scope liberal
                    {ext_ctxt = ext_ctxt, card_assigns = card_assigns,
@@ -548,10 +550,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
                                  " component of scope."));
               NONE)
 
-    (* int -> (''a * int list list) list -> ''a -> Kodkod.tuple_set *)
+    (* int -> (''a * int list list) list -> ''a -> KK.tuple_set *)
     fun tuple_set_for_rel univ_card =
-      Kodkod.TupleSet o map (kk_tuple debug univ_card) o the
-      oo AList.lookup (op =)
+      KK.TupleSet o map (kk_tuple debug univ_card) o the oo AList.lookup (op =)
 
     val word_model = if falsify then "counterexample" else "model"
 
@@ -566,7 +567,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
       List.app (Unsynchronized.change checked_problems o Option.map o cons
                 o nth problems)
 
-    (* bool -> Kodkod.raw_bound list -> problem_extension -> bool option *)
+    (* bool -> KK.raw_bound list -> problem_extension -> bool option *)
     fun print_and_check_model genuine bounds
             ({free_names, sel_names, nonsel_names, rel_table, scope, ...}
              : problem_extension) =
@@ -663,7 +664,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
       let
         val max_potential = Int.max (0, max_potential)
         val max_genuine = Int.max (0, max_genuine)
-        (* bool -> int * Kodkod.raw_bound list -> bool option *)
+        (* bool -> int * KK.raw_bound list -> bool option *)
         fun print_and_check genuine (j, bounds) =
           print_and_check_model genuine bounds (snd (nth problems j))
         val max_solutions = max_potential + max_genuine
@@ -672,15 +673,15 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
         if max_solutions <= 0 then
           (0, 0, donno)
         else
-          case Kodkod.solve_any_problem overlord deadline max_threads
-                                        max_solutions (map fst problems) of
-            Kodkod.NotInstalled =>
+          case KK.solve_any_problem overlord deadline max_threads max_solutions
+                                    (map fst problems) of
+            KK.NotInstalled =>
             (print_m install_kodkodi_message;
              (max_potential, max_genuine, donno + 1))
-          | Kodkod.Normal ([], unsat_js) =>
+          | KK.Normal ([], unsat_js) =>
             (update_checked_problems problems unsat_js;
              (max_potential, max_genuine, donno))
-          | Kodkod.Normal (sat_ps, unsat_js) =>
+          | KK.Normal (sat_ps, unsat_js) =>
             let
               val (lib_ps, con_ps) =
                 List.partition (#liberal o snd o nth problems o fst) sat_ps
@@ -739,13 +740,12 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
                     in solve_any_problem 0 max_genuine donno false problems end
                 end
             end
-          | Kodkod.TimedOut unsat_js =>
+          | KK.TimedOut unsat_js =>
             (update_checked_problems problems unsat_js; raise TimeLimit.TimeOut)
-          | Kodkod.Interrupted NONE =>
-            (checked_problems := NONE; do_interrupted ())
-          | Kodkod.Interrupted (SOME unsat_js) =>
+          | KK.Interrupted NONE => (checked_problems := NONE; do_interrupted ())
+          | KK.Interrupted (SOME unsat_js) =>
             (update_checked_problems problems unsat_js; do_interrupted ())
-          | Kodkod.Error (s, unsat_js) =>
+          | KK.Error (s, unsat_js) =>
             (update_checked_problems problems unsat_js;
              print_v (K ("Kodkod error: " ^ s ^ "."));
              (max_potential, max_genuine, donno + 1))
@@ -787,8 +787,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
              SOME problem =>
              (problems
               |> (null problems orelse
-                  not (Kodkod.problems_equivalent (fst problem)
-                                                  (fst (hd problems))))
+                  not (KK.problems_equivalent (fst problem)
+                                              (fst (hd problems))))
                   ? cons problem, donno)
            | NONE => (problems, donno + 1))
         val (problems, donno) =
@@ -832,7 +832,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
            "") ^ "."
       end
 
-    (* int -> int -> scope list -> int * int * int -> Kodkod.outcome *)
+    (* int -> int -> scope list -> int * int * int -> KK.outcome *)
     fun run_batches _ _ [] (max_potential, max_genuine, donno) =
         if donno > 0 andalso max_genuine > 0 then
           (print_m (fn () => excipit "ran out of some resource"); "unknown")

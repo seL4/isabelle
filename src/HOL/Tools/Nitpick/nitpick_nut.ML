@@ -130,6 +130,8 @@ open Nitpick_Scope
 open Nitpick_Peephole
 open Nitpick_Rep
 
+structure KK = Kodkod
+
 datatype cst =
   Unity |
   False |
@@ -196,8 +198,8 @@ datatype nut =
   BoundName of int * typ * rep * string |
   FreeName of string * typ * rep |
   ConstName of string * typ * rep |
-  BoundRel of Kodkod.n_ary_index * typ * rep * string |
-  FreeRel of Kodkod.n_ary_index * typ * rep * string |
+  BoundRel of KK.n_ary_index * typ * rep * string |
+  FreeRel of KK.n_ary_index * typ * rep * string |
   RelReg of int * typ * rep |
   FormulaReg of int * typ * rep
 
@@ -439,7 +441,7 @@ fun the_name table name =
   case NameTable.lookup table name of
     SOME u => u
   | NONE => raise NUT ("Nitpick_Nut.the_name", [name])
-(* nut NameTable.table -> nut -> Kodkod.n_ary_index *)
+(* nut NameTable.table -> nut -> KK.n_ary_index *)
 fun the_rel table name =
   case the_name table name of
     FreeRel (x, _, _, _) => x
@@ -915,10 +917,8 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
         | Cst (True, T, _) => Cst (True, T, Formula Neut)
         | Cst (Num j, T, _) =>
           if is_word_type T then
-            if is_twos_complement_representable bits j then
-              Cst (Num j, T, best_non_opt_set_rep_for_type scope T)
-            else
-              Cst (Unrep, T, best_opt_set_rep_for_type scope T)
+            Cst (if is_twos_complement_representable bits j then Num j
+                 else Unrep, T, best_opt_set_rep_for_type scope T)
           else
             (case spec_of_type scope T of
                (1, j0) => if j = 0 then Cst (Unity, T, Unit)
@@ -1239,8 +1239,8 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
       |> optimize_unit
   in aux table def Pos end
 
-(* int -> Kodkod.n_ary_index list -> Kodkod.n_ary_index list
-   -> int * Kodkod.n_ary_index list *)
+(* int -> KK.n_ary_index list -> KK.n_ary_index list
+   -> int * KK.n_ary_index list *)
 fun fresh_n_ary_index n [] ys = (0, (n, 1) :: ys)
   | fresh_n_ary_index n ((m, j) :: xs) ys =
     if m = n then (j, ys @ ((m, j + 1) :: xs))

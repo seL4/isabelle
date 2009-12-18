@@ -968,7 +968,8 @@ fun bounded_exact_card_of_type ext_ctxt max default_card assigns T =
        | @{typ unit} => 1
        | Type _ =>
          (case datatype_constrs ext_ctxt T of
-            [] => if is_integer_type T then 0 else raise SAME ()
+            [] => if is_integer_type T orelse is_bit_type T then 0
+                  else raise SAME ()
           | constrs =>
             let
               val constr_cards =
@@ -1220,7 +1221,7 @@ fun case_const_names thy =
 
 (* Proof.context -> term list -> const_table *)
 fun const_def_table ctxt ts =
-  table_for (rev o map prop_of o Nitpick_Defs.get) ctxt
+  table_for (map prop_of o Nitpick_Defs.get) ctxt
   |> fold (fn (s, t) => Symtab.map_default (s, []) (cons t))
           (map pair_for_prop ts)
 (* term list -> const_table *)
@@ -3350,13 +3351,13 @@ val binary_int_threshold = 4
 (* term -> bool *)
 fun may_use_binary_ints (t1 $ t2) =
     may_use_binary_ints t1 andalso may_use_binary_ints t2
-  | may_use_binary_ints (Const (s, _)) =
+  | may_use_binary_ints (t as Const (s, _)) =
+    t <> @{const Suc} andalso
     not (member (op =) [@{const_name Abs_Frac}, @{const_name Rep_Frac},
-                        @{const_name Frac}, @{const_name norm_frac},
-                        @{const_name nat_gcd}, @{const_name nat_lcm}] s)
+                        @{const_name nat_gcd}, @{const_name nat_lcm},
+                        @{const_name Frac}, @{const_name norm_frac}] s)
   | may_use_binary_ints (Abs (_, _, t')) = may_use_binary_ints t'
   | may_use_binary_ints _ = true
-
 fun should_use_binary_ints (t1 $ t2) =
     should_use_binary_ints t1 orelse should_use_binary_ints t2
   | should_use_binary_ints (Const (s, _)) =

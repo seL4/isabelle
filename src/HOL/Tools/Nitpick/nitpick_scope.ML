@@ -249,6 +249,10 @@ fun block_for_type (ext_ctxt as {thy, ...}) cards_assigns maxes_assigns
     [(Card T, map (Integer.min max_bits o Integer.max 1) bitss)]
   else if T = @{typ signed_bit} then
     [(Card T, map (Integer.add 1 o Integer.min max_bits o Integer.max 1) bitss)]
+  else if T = @{typ "unsigned_bit word"} then
+    [(Card T, lookup_type_ints_assign thy cards_assigns nat_T)]
+  else if T = @{typ "signed_bit word"} then
+    [(Card T, lookup_type_ints_assign thy cards_assigns int_T)]
   else if T = @{typ bisim_iterator} then
     [(Card T, map (Integer.add 1 o Integer.max 0) bisim_depths)]
   else if is_fp_iterator_type T then
@@ -316,32 +320,20 @@ fun is_surely_inconsistent_card_assign ext_ctxt (card_assigns, max_assigns)
     [] => false
   | xs =>
     let
-      val exact_cards =
-        map (Integer.prod
-             o map (bounded_exact_card_of_type ext_ctxt k 0 card_assigns)
+      val dom_cards =
+        map (Integer.prod o map (bounded_card_of_type k ~1 card_assigns)
              o binder_types o snd) xs
       val maxes = map (constr_max max_assigns) xs
       (* int -> int -> int *)
-      fun effective_max 0 ~1 = k
-        | effective_max 0 max = max
-        | effective_max card ~1 = card
+      fun effective_max card ~1 = card
         | effective_max card max = Int.min (card, max)
-      val max = map2 effective_max exact_cards maxes |> Integer.sum
-      (* unit -> int *)
-      fun doms_card () =
-        xs |> map (Integer.prod o map (bounded_card_of_type k ~1 card_assigns)
-                   o binder_types o snd)
-           |> Integer.sum
-    in
-      max < k
-      orelse (forall (not_equal 0) exact_cards andalso doms_card () < k)
-    end
-    handle TYPE ("Nitpick_HOL.card_of_type", _, _) => false
-
-(* extended_context -> scope_desc -> bool *)
-fun is_surely_inconsistent_scope_description ext_ctxt
-                                             (desc as (card_assigns, _)) =
-  exists (is_surely_inconsistent_card_assign ext_ctxt desc) card_assigns
+      val max = map2 effective_max dom_cards maxes |> Integer.sum
+    in max < k end
+(* extended_context -> (typ * int) list -> (typ * int) list
+   -> (styp * int) list -> bool *)
+fun is_surely_inconsistent_scope_description ext_ctxt seen rest max_assigns =
+  exists (is_surely_inconsistent_card_assign ext_ctxt
+                                             (seen @ rest, max_assigns)) seen
 
 (* extended_context -> scope_desc -> (typ * int) list option *)
 fun repair_card_assigns ext_ctxt (card_assigns, max_assigns) =
@@ -349,15 +341,15 @@ fun repair_card_assigns ext_ctxt (card_assigns, max_assigns) =
     (* (typ * int) list -> (typ * int) list -> (typ * int) list option *)
     fun aux seen [] = SOME seen
       | aux seen ((T, 0) :: _) = NONE
-      | aux seen ((T, k) :: assigns) =
-        (if is_surely_inconsistent_scope_description ext_ctxt
-                ((T, k) :: seen, max_assigns) then
+      | aux seen ((T, k) :: rest) =
+        (if is_surely_inconsistent_scope_description ext_ctxt ((T, k) :: seen)
+                                                     rest max_assigns then
            raise SAME ()
          else
-           case aux ((T, k) :: seen) assigns of
+           case aux ((T, k) :: seen) rest of
              SOME assigns => SOME assigns
            | NONE => raise SAME ())
-        handle SAME () => aux seen ((T, k - 1) :: assigns)
+        handle SAME () => aux seen ((T, k - 1) :: rest)
   in aux [] (rev card_assigns) end
 
 (* theory -> (typ * int) list -> typ * int -> typ * int *)

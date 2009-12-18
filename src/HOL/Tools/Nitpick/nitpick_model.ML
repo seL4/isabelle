@@ -40,6 +40,8 @@ open Nitpick_Peephole
 open Nitpick_Rep
 open Nitpick_Nut
 
+structure KK = Kodkod
+
 type params = {
   show_skolems: bool,
   show_datatypes: bool,
@@ -71,19 +73,22 @@ fun atom for_auto T j =
   else
     Const (atom_name "" T j, T)
 
+(* term -> real *)
+fun extract_real_number (Const (@{const_name HOL.divide}, _) $ t1 $ t2) =
+    real (snd (HOLogic.dest_number t1)) / real (snd (HOLogic.dest_number t2))
+  | extract_real_number t = real (snd (HOLogic.dest_number t))
 (* term * term -> order *)
 fun nice_term_ord (Abs (_, _, t1), Abs (_, _, t2)) = nice_term_ord (t1, t2)
-  | nice_term_ord (t1, t2) =
-    int_ord (snd (HOLogic.dest_number t1), snd (HOLogic.dest_number t2))
+  | nice_term_ord tp = Real.compare (pairself extract_real_number tp)
     handle TERM ("dest_number", _) =>
-           case (t1, t2) of
+           case tp of
              (t11 $ t12, t21 $ t22) =>
              (case nice_term_ord (t11, t21) of
                 EQUAL => nice_term_ord (t12, t22)
               | ord => ord)
-           | _ => TermOrd.term_ord (t1, t2)
+           | _ => TermOrd.fast_term_ord tp
 
-(* nut NameTable.table -> Kodkod.raw_bound list -> nut -> int list list *)
+(* nut NameTable.table -> KK.raw_bound list -> nut -> int list list *)
 fun tuple_list_for_name rel_table bounds name =
   the (AList.lookup (op =) bounds (the_rel rel_table name)) handle NUT _ => [[]]
 
@@ -240,8 +245,8 @@ fun mk_tuple (Type ("*", [T1, T2])) ts =
   | mk_tuple T [] = raise TYPE ("Nitpick_Model.mk_tuple", [T], [])
 
 (* string * string * string * string -> scope -> nut list -> nut list
-   -> nut list -> nut NameTable.table -> Kodkod.raw_bound list -> typ -> typ
-   -> rep -> int list list -> term *)
+   -> nut list -> nut NameTable.table -> KK.raw_bound list -> typ -> typ -> rep
+   -> int list list -> term *)
 fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
         ({ext_ctxt as {thy, ctxt, ...}, card_assigns, bits, datatypes, ofs, ...}
          : scope) sel_names rel_table bounds =
@@ -324,7 +329,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
              | _ => t
     (* bool -> typ -> typ -> typ -> term list -> term list -> term *)
     fun make_fun maybe_opt T1 T2 T' ts1 ts2 =
-      ts1 ~~ ts2 |> T1 = @{typ bisim_iterator} ? rev
+      ts1 ~~ ts2 |> sort (nice_term_ord o pairself fst)
                  |> make_plain_fun (maybe_opt andalso not for_auto) T1 T2
                  |> unbit_and_unbox_term
                  |> typecast_fun (unbit_and_unbox_type T')
@@ -506,7 +511,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
     oooo term_for_rep []
   end
 
-(* scope -> nut list -> nut NameTable.table -> Kodkod.raw_bound list -> nut
+(* scope -> nut list -> nut NameTable.table -> KK.raw_bound list -> nut
    -> term *)
 fun term_for_name scope sel_names rel_table bounds name =
   let val T = type_of name in
@@ -563,7 +568,7 @@ fun bisimilar_values _ 0 _ = true
     end
 
 (* params -> scope -> (term option * int list) list -> styp list -> nut list
-  -> nut list -> nut list -> nut NameTable.table -> Kodkod.raw_bound list
+  -> nut list -> nut list -> nut NameTable.table -> KK.raw_bound list
   -> Pretty.T * bool *)
 fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
         ({ext_ctxt as {thy, ctxt, max_bisim_depth, boxes, wfs, user_axioms,
@@ -704,7 +709,7 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
   end
 
 (* scope -> Time.time option -> nut list -> nut list -> nut NameTable.table
-   -> Kodkod.raw_bound list -> term -> bool option *)
+   -> KK.raw_bound list -> term -> bool option *)
 fun prove_hol_model (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns, ...})
                     auto_timeout free_names sel_names rel_table bounds prop =
   let

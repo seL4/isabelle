@@ -740,7 +740,7 @@ Let's try an example:
 
 \prew
 \textbf{lemma} ``$\exists n.\; \textit{even}~n \mathrel{\land} \textit{even}~(\textit{Suc}~n)$'' \\
-\textbf{nitpick}~[\textit{card nat}~= 100,\, \textit{verbose}] \\[2\smallskipamount]
+\textbf{nitpick}~[\textit{card nat}~= 100, \textit{unary\_ints}, \textit{verbose}] \\[2\smallskipamount]
 \slshape The inductive predicate ``\textit{even}'' was proved well-founded.
 Nitpick can compute it efficiently. \\[2\smallskipamount]
 Trying 1 scope: \\
@@ -758,7 +758,7 @@ existential quantifier:
 
 \prew
 \textbf{lemma} ``$\exists n \mathbin{\le} 99.\; \textit{even}~n \mathrel{\land} \textit{even}~(\textit{Suc}~n)$'' \\
-\textbf{nitpick}~[\textit{card nat}~= 100] \\[2\smallskipamount]
+\textbf{nitpick}~[\textit{card nat}~= 100, \textit{unary\_ints}] \\[2\smallskipamount]
 \slshape Nitpick found a counterexample: \\[2\smallskipamount]
 \hbox{}\qquad Empty assignment
 \postw
@@ -1752,7 +1752,7 @@ multiplicative operators or large constants.
 
 \textbf{Warning:} For technical reasons, Nitpick always reverts to unary for
 problems that refer to the types \textit{rat} or \textit{real} or the constants
-\textit{gcd} or \textit{lcm}.
+\textit{Suc}, \textit{gcd}, or \textit{lcm}.
 
 {\small See also \textit{bits} (\S\ref{scope-of-search}) and
 \textit{show\_datatypes} (\S\ref{output-format}).}

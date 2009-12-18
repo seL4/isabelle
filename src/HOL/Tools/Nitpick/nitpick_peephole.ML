@@ -266,7 +266,7 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
 
     (* bool -> int *)
     val from_bool = atom_for_bool main_j0
-    (* int -> Kodkod.rel_expr *)
+    (* int -> rel_expr *)
     fun from_nat n = Atom (n + main_j0)
     val from_int = Atom o atom_for_int (int_card, main_j0)
     (* int -> int *)
@@ -347,7 +347,7 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
     (* rel_expr -> formula *)
     fun s_no None = True
       | s_no (Product (r1, r2)) = s_or (s_no r1) (s_no r2)
-      | s_no (Intersect (Closure (Kodkod.Rel x), Kodkod.Iden)) = Acyclic x
+      | s_no (Intersect (Closure (Rel x), Iden)) = Acyclic x
       | s_no r = if is_one_rel_expr r then False else No r
     fun s_lone None = True
       | s_lone r = if is_one_rel_expr r then True else Lone r
@@ -409,8 +409,8 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
                     s_formula_if f (s_rel_eq r11 r2) (s_rel_eq r12 r2)
                   else
                     RelEq (r1, r2)
-               | (_, Kodkod.None) => s_no r1
-               | (Kodkod.None, _) => s_no r2
+               | (_, None) => s_no r1
+               | (None, _) => s_no r2
                | _ => RelEq (r1, r2)
     fun s_subset (Atom j1) (Atom j2) = formula_for_bool (j1 = j2)
       | s_subset (Atom j) (AtomSeq (k, j0)) =
