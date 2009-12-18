@@ -26,7 +26,7 @@ hr { height: 0px; border: 0px; }
 .tfree, tfree                 { color: #A020F0; }
 .tvar, tvar                   { color: #A020F0; }
 .free, free                   { color: blue; }
-.skolem, skolem               { color: #D2691E; }
+.skolem, skolem               { color: #D2691E; font-weight: bold; }
 .bound, bound                 { color: green; }
 .var, var                     { color: #00009B; }
 .numeral, numeral             { }
