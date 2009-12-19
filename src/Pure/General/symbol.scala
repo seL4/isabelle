@@ -29,37 +29,45 @@ object Symbol
   // total pattern
   val regex = new Regex(plain + "|" + symbol + "|" + bad_symbol + "| .")
 
-  // prefix of another symbol
+
+  /* basic matching */
+
+  def is_open(c: Char): Boolean =
+    c == '\\' || Character.isHighSurrogate(c)
+
   def is_open(s: CharSequence): Boolean =
   {
-    val len = s.length
-    len == 1 && Character.isHighSurrogate(s.charAt(0)) ||
-    s == "\\" ||
-    s == "\\<" ||
-    len > 2 && s.charAt(len - 1) != '>'   // FIXME bad_symbol !??
+    if (s.length == 1) is_open(s.charAt(0))
+    else bad_symbol.pattern.matcher(s).matches
+  }
+
+  class Matcher(text: CharSequence)
+  {
+    private val matcher = regex.pattern.matcher(text)
+    def apply(start: Int, end: Int): Int =
+    {
+      require(0 <= start && start < end && end <= text.length)
+      if (is_open(text.charAt(start))) {
+        matcher.region(start, end).lookingAt
+        matcher.group.length
+      }
+      else 1
+    }
   }
 
 
   /* elements */
 
-  def could_open(c: Char): Boolean =
-    c == '\\' || Character.isHighSurrogate(c)
-
-  def elements(text: CharSequence) = new Iterator[String]
+  def elements(text: CharSequence) = new Iterator[CharSequence]
   {
-    private val matcher = regex.pattern.matcher(text)
+    private val matcher = new Matcher(text)
     private var i = 0
     def hasNext = i < text.length
     def next = {
-      val len =
-        if (could_open(text.charAt(i))) {
-          matcher.region(i, text.length).lookingAt
-          matcher.group.length
-        }
-        else 1
-      val s = text.subSequence(i, i + len)
-      i += len
-      s.toString
+      val n = matcher(i, text.length)
+      val s = text.subSequence(i, i + n)
+      i += n
+      s
     }
   }
 
@@ -71,20 +79,15 @@ object Symbol
     case class Entry(chr: Int, sym: Int)
     val index: Array[Entry] =
     {
-      val matcher = regex.pattern.matcher(text)
+      val matcher = new Matcher(text)
       val buf = new mutable.ArrayBuffer[Entry]
       var chr = 0
       var sym = 0
       while (chr < text.length) {
-        val len =
-          if (could_open(text.charAt(chr))) {
-            matcher.region(chr, text.length).lookingAt
-            matcher.group.length
-          }
-          else 1
-        chr += len
+        val n = matcher(chr, text.length)
+        chr += n
         sym += 1
-        if (len > 1) buf += Entry(chr, sym)
+        if (n > 1) buf += Entry(chr, sym)
       }
       buf.toArray
     }
@@ -153,7 +156,7 @@ object Symbol
 
   /** Symbol interpretation **/
 
-  class Interpretation(symbol_decls: Iterator[String])
+  class Interpretation(symbol_decls: List[String])
   {
     /* read symbols */
 
@@ -180,7 +183,7 @@ object Symbol
     }
 
     private val symbols: List[(String, Map[String, String])] =
-      for (decl <- symbol_decls.toList if !empty.pattern.matcher(decl).matches)
+      for (decl <- symbol_decls if !empty.pattern.matcher(decl).matches)
         yield read_decl(decl)
 
 

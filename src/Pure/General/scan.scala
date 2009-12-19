@@ -103,11 +103,14 @@ object Scan
     def ++ (elems: Iterator[String]): Lexicon = (this /: elems) ((s, elem) => s + elem)
 
 
-    /* RegexParsers methods */
+    /** RegexParsers methods **/
 
     override val whiteSpace = "".r
 
     type Result = (String, Boolean)
+
+
+    /* keywords from lexicon */
 
     def keyword: Parser[Result] = new Parser[Result]
     {
@@ -134,18 +137,38 @@ object Scan
       }
     }.named("keyword")
 
-    def symbol: Parser[String] = new Parser[String]
-    {
-      private val symbol_regex = regex(Symbol.regex)
-      def apply(in: Input) =
+
+    /* symbols */
+
+    def symbols(pred: String => Boolean, min_count: Int, max_count: Int): Parser[CharSequence] =
+      new Parser[CharSequence]
       {
-        val source = in.source
-        val offset = in.offset
-        if (offset >= source.length) Failure("input expected", in)
-        else if (Symbol.could_open(source.charAt(offset))) symbol_regex(in)
-        else Success(source.subSequence(offset, offset + 1).toString, in.drop(1))
-      }
-    }.named("symbol")
+        def apply(in: Input) =
+        {
+          val start = in.offset
+          val end = in.source.length
+          val matcher = new Symbol.Matcher(in.source)
+
+          var i = start
+          var count = 0
+          var finished = false
+          while (!finished) {
+            if (i < end && count < max_count) {
+              val n = matcher(i, end)
+              val sym = in.source.subSequence(i, i + n).toString
+              if (pred(sym)) { i += n; count += 1 }
+              else finished = true
+            }
+            else finished = true
+          }
+          if (count < min_count) Failure("bad symbols", in)
+          else Success(in.source.subSequence(start, i), in.drop(i - start))
+        }
+      }.named("symbols")
+
+    def one(pred: String => Boolean): Parser[CharSequence] = symbols(pred, 1, 1)
+    def many(pred: String => Boolean): Parser[CharSequence] = symbols(pred, 0, Integer.MAX_VALUE)
+    def many1(pred: String => Boolean): Parser[CharSequence] = symbols(pred, 1, Integer.MAX_VALUE)
   }
 }
 

@@ -49,7 +49,7 @@ object HTML
           flush()
           ts + elem
         }
-        val syms = Symbol.elements(txt)
+        val syms = Symbol.elements(txt).map(_.toString)
         while (syms.hasNext) {
           val s1 = syms.next
           def s2() = if (syms.hasNext) syms.next else ""
