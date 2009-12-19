@@ -7,9 +7,11 @@ Defines new types satisfying the given domain equations.
 signature DOMAIN_ISOMORPHISM =
 sig
   val domain_isomorphism:
-    (string list * binding * mixfix * typ) list -> theory -> theory
+    (string list * binding * mixfix * typ * (binding * binding) option) list
+      -> theory -> theory
   val domain_isomorphism_cmd:
-    (string list * binding * mixfix * string) list -> theory -> theory
+    (string list * binding * mixfix * string * (binding * binding) option) list
+      -> theory -> theory
   val add_type_constructor:
     (string * term * string * thm  * thm * thm) -> theory -> theory
   val get_map_tab:
@@ -316,7 +318,7 @@ fun cert_typ sign raw_T sorts =
 
 fun gen_domain_isomorphism
     (prep_typ: theory -> 'a -> (string * sort) list -> typ * (string * sort) list)
-    (doms_raw: (string list * binding * mixfix * 'a) list)
+    (doms_raw: (string list * binding * mixfix * 'a * (binding * binding) option) list)
     (thy: theory)
     : theory =
   let
@@ -325,26 +327,26 @@ fun gen_domain_isomorphism
     (* this theory is used just for parsing *)
     val tmp_thy = thy |>
       Theory.copy |>
-      Sign.add_types (map (fn (tvs, tname, mx, _) =>
+      Sign.add_types (map (fn (tvs, tname, mx, _, morphs) =>
         (tname, length tvs, mx)) doms_raw);
 
-    fun prep_dom thy (vs, t, mx, typ_raw) sorts =
+    fun prep_dom thy (vs, t, mx, typ_raw, morphs) sorts =
       let val (typ, sorts') = prep_typ thy typ_raw sorts
-      in ((vs, t, mx, typ), sorts') end;
+      in ((vs, t, mx, typ, morphs), sorts') end;
 
-    val (doms : (string list * binding * mixfix * typ) list,
+    val (doms : (string list * binding * mixfix * typ * (binding * binding) option) list,
          sorts : (string * sort) list) =
       fold_map (prep_dom tmp_thy) doms_raw [];
 
     (* domain equations *)
-    fun mk_dom_eqn (vs, tbind, mx, rhs) =
+    fun mk_dom_eqn (vs, tbind, mx, rhs, morphs) =
       let fun arg v = TFree (v, the (AList.lookup (op =) sorts v));
       in (Type (Sign.full_name tmp_thy tbind, map arg vs), rhs) end;
     val dom_eqns = map mk_dom_eqn doms;
 
     (* check for valid type parameters *)
-    val (tyvars, _, _, _)::_ = doms;
-    val new_doms = map (fn (tvs, tname, mx, _) =>
+    val (tyvars, _, _, _, _)::_ = doms;
+    val new_doms = map (fn (tvs, tname, mx, _, _) =>
       let val full_tname = Sign.full_name tmp_thy tname
       in
         (case duplicates (op =) tvs of
@@ -354,10 +356,11 @@ fun gen_domain_isomorphism
         | dups => error ("Duplicate parameter(s) for domain " ^ quote (Binding.str_of tname) ^
             " : " ^ commas dups))
       end) doms;
-    val dom_binds = map (fn (_, tbind, _, _) => tbind) doms;
+    val dom_binds = map (fn (_, tbind, _, _, _) => tbind) doms;
+    val morphs = map (fn (_, _, _, _, morphs) => morphs) doms;
 
     (* declare deflation combinator constants *)
-    fun declare_defl_const (vs, tbind, mx, rhs) thy =
+    fun declare_defl_const (vs, tbind, mx, rhs, morphs) thy =
       let
         val defl_type = Library.foldr cfunT (map (K deflT) vs, deflT);
         val defl_bind = Binding.suffix_name "_defl" tbind;
@@ -383,7 +386,7 @@ fun gen_domain_isomorphism
       add_fixdefs (defl_binds ~~ defl_specs) thy;
 
     (* define types using deflation combinators *)
-    fun make_repdef ((vs, tbind, mx, _), defl_const) thy =
+    fun make_repdef ((vs, tbind, mx, _, _), defl_const) thy =
       let
         fun tfree a = TFree (a, the (AList.lookup (op =) sorts a))
         val reps = map (mk_Rep_of o tfree) vs;
@@ -416,12 +419,13 @@ fun gen_domain_isomorphism
         (REP_eq_binds ~~ REP_eq_thms);
 
     (* define rep/abs functions *)
-    fun mk_rep_abs (tbind, (lhsT, rhsT)) thy =
+    fun mk_rep_abs ((tbind, morphs), (lhsT, rhsT)) thy =
       let
         val rep_type = cfunT (lhsT, rhsT);
         val abs_type = cfunT (rhsT, lhsT);
         val rep_bind = Binding.suffix_name "_rep" tbind;
         val abs_bind = Binding.suffix_name "_abs" tbind;
+        val (rep_bind, abs_bind) = the_default (rep_bind, abs_bind) morphs;
         val (rep_const, thy) = thy |>
           Sign.declare_const ((rep_bind, rep_type), NoSyn);
         val (abs_const, thy) = thy |>
@@ -436,7 +440,7 @@ fun gen_domain_isomorphism
         (((rep_const, abs_const), (rep_def, abs_def)), thy)
       end;
     val ((rep_abs_consts, rep_abs_defs), thy) = thy
-      |> fold_map mk_rep_abs (dom_binds ~~ dom_eqns)
+      |> fold_map mk_rep_abs (dom_binds ~~ morphs ~~ dom_eqns)
       |>> ListPair.unzip;
 
     (* prove isomorphism and isodefl rules *)
@@ -693,9 +697,12 @@ local
 
 structure P = OuterParse and K = OuterKeyword
 
-val parse_domain_iso : (string list * binding * mixfix * string) parser =
-  (P.type_args -- P.binding -- P.opt_infix -- (P.$$$ "=" |-- P.typ))
-    >> (fn (((vs, t), mx), rhs) => (vs, t, mx, rhs));
+val parse_domain_iso :
+    (string list * binding * mixfix * string * (binding * binding) option)
+      parser =
+  (P.type_args -- P.binding -- P.opt_infix -- (P.$$$ "=" |-- P.typ) --
+    Scan.option (P.$$$ "morphisms" |-- P.!!! (P.binding -- P.binding)))
+    >> (fn ((((vs, t), mx), rhs), morphs) => (vs, t, mx, rhs, morphs));
 
 val parse_domain_isos = P.and_list1 parse_domain_iso;
 

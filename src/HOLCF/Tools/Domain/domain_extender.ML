@@ -222,7 +222,7 @@ fun gen_add_new_domain
     val thy'' = thy''' |>
       Domain_Isomorphism.domain_isomorphism
         (map (fn ((vs, dname, mx, _), eq) =>
-                 (map fst vs, dname, mx, mk_eq_typ eq))
+                 (map fst vs, dname, mx, mk_eq_typ eq, NONE))
              (eqs''' ~~ eqs'))
 
     val thy' = thy'' |> Domain_Syntax.add_syntax true comp_dnam eqs';
