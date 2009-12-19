@@ -159,21 +159,26 @@ class group_add = minus + uminus + monoid_add +
   assumes diff_minus: "a - b = a + (- b)"
 begin
 
-lemma minus_add_cancel: "- a + (a + b) = b"
-by (simp add: add_assoc[symmetric])
+lemma minus_unique:
+  assumes "a + b = 0" shows "- a = b"
+proof -
+  have "- a = - a + (a + b)" using assms by simp
+  also have "\<dots> = b" by (simp add: add_assoc [symmetric])
+  finally show ?thesis .
+qed
+
+lemmas equals_zero_I = minus_unique (* legacy name *)
 
 lemma minus_zero [simp]: "- 0 = 0"
 proof -
-  have "- 0 = - 0 + (0 + 0)" by (simp only: add_0_right)
-  also have "\<dots> = 0" by (rule minus_add_cancel)
-  finally show ?thesis .
+  have "0 + 0 = 0" by (rule add_0_right)
+  thus "- 0 = 0" by (rule minus_unique)
 qed
 
 lemma minus_minus [simp]: "- (- a) = a"
 proof -
-  have "- (- a) = - (- a) + (- a + a)" by simp
-  also have "\<dots> = a" by (rule minus_add_cancel)
-  finally show ?thesis .
+  have "- a + a = 0" by (rule left_minus)
+  thus "- (- a) = a" by (rule minus_unique)
 qed
 
 lemma right_minus [simp]: "a + - a = 0"
@@ -181,6 +186,20 @@ proof -
   have "a + - a = - (- a) + - a" by simp
   also have "\<dots> = 0" by (rule left_minus)
   finally show ?thesis .
+qed
+
+lemma minus_add_cancel: "- a + (a + b) = b"
+by (simp add: add_assoc [symmetric])
+
+lemma add_minus_cancel: "a + (- a + b) = b"
+by (simp add: add_assoc [symmetric])
+
+lemma minus_add: "- (a + b) = - b + - a"
+proof -
+  have "(a + b) + (- b + - a) = 0"
+    by (simp add: add_assoc add_minus_cancel)
+  thus "- (a + b) = - b + - a"
+    by (rule minus_unique)
 qed
 
 lemma right_minus_eq: "a - b = 0 \<longleftrightarrow> a = b"
@@ -192,16 +211,6 @@ proof
 next
   assume "a = b" thus "a - b = 0" by (simp add: diff_minus)
 qed
-
-lemma minus_unique:
-  assumes "a + b = 0" shows "- a = b"
-proof -
-  have "- a = - a + (a + b)" using assms by simp
-  also have "\<dots> = b" by (simp add: add_assoc[symmetric])
-  finally show ?thesis .
-qed
-
-lemmas equals_zero_I = minus_unique (* legacy name *)
 
 lemma diff_self [simp]: "a - a = 0"
 by (simp add: diff_minus)
@@ -1311,9 +1320,6 @@ by (simp only: eq_iff_diff_eq_0[of x y] eq_iff_diff_eq_0[of x' y'])
 
 lemma diff_def: "(x::'a::ab_group_add) - y == x + (-y)"
 by (simp add: diff_minus)
-
-lemma add_minus_cancel: "(a::'a::ab_group_add) + (-a + b) = b"
-by (simp add: add_assoc[symmetric])
 
 lemma le_add_right_mono: 
   assumes 
