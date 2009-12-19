@@ -23,7 +23,8 @@ refute_params
   maxsize=8,
   maxvars=10000,
   maxtime=60,
-  satsolver="auto"]
+  satsolver="auto",
+  no_assms="false"]
 
 ML {* structure sat = SATFunc(cnf) *}
 

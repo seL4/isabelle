@@ -32,24 +32,27 @@ val _ =
 (* quickcheck configuration -- default parameters, test generators *)
 
 datatype test_params = Test_Params of
-  { size: int, iterations: int, default_type: typ option };
+  { size: int, iterations: int, default_type: typ option, no_assms: bool };
 
-fun dest_test_params (Test_Params { size, iterations, default_type }) =
-  ((size, iterations), default_type);
-fun make_test_params ((size, iterations), default_type) =
-  Test_Params { size = size, iterations = iterations, default_type = default_type };
-fun map_test_params f (Test_Params { size, iterations, default_type}) =
-  make_test_params (f ((size, iterations), default_type));
-fun merge_test_params (Test_Params { size = size1, iterations = iterations1, default_type = default_type1 },
-  Test_Params { size = size2, iterations = iterations2, default_type = default_type2 }) =
+fun dest_test_params (Test_Params { size, iterations, default_type, no_assms }) =
+  ((size, iterations), (default_type, no_assms));
+fun make_test_params ((size, iterations), (default_type, no_assms)) =
+  Test_Params { size = size, iterations = iterations, default_type = default_type,
+                no_assms = no_assms };
+fun map_test_params f (Test_Params { size, iterations, default_type, no_assms }) =
+  make_test_params (f ((size, iterations), (default_type, no_assms)));
+fun merge_test_params (Test_Params { size = size1, iterations = iterations1, default_type = default_type1,
+                                     no_assms = no_assms1 },
+  Test_Params { size = size2, iterations = iterations2, default_type = default_type2,
+                no_assms = no_assms2 }) =
   make_test_params ((Int.max (size1, size2), Int.max (iterations1, iterations2)),
-    case default_type1 of NONE => default_type2 | _ => default_type1);
+    (case default_type1 of NONE => default_type2 | _ => default_type1, no_assms1 orelse no_assms2));
 
 structure Data = Theory_Data
 (
   type T = (string * (Proof.context -> term -> int -> term list option)) list
     * test_params;
-  val empty = ([], Test_Params { size = 10, iterations = 100, default_type = NONE });
+  val empty = ([], Test_Params { size = 10, iterations = 100, default_type = NONE, no_assms = false });
   val extend = I;
   fun merge ((generators1, params1), (generators2, params2)) : T =
     (AList.merge (op =) (K true) (generators1, generators2),
@@ -130,7 +133,7 @@ fun monomorphic_term thy insts default_T =
       | subst T = T;
   in (map_types o map_atyps) subst end;
 
-fun test_goal quiet generator_name size iterations default_T insts i assms state =
+fun test_goal quiet generator_name size iterations default_T no_assms insts i assms state =
   let
     val ctxt = Proof.context_of state;
     val thy = Proof.theory_of state;
@@ -138,7 +141,8 @@ fun test_goal quiet generator_name size iterations default_T insts i assms state
       | strip t = t;
     val {goal = st, ...} = Proof.raw_goal state;
     val (gi, frees) = Logic.goal_params (prop_of st) i;
-    val gi' = Logic.list_implies (assms, subst_bounds (frees, strip gi))
+    val gi' = Logic.list_implies (if no_assms then [] else assms,
+                                  subst_bounds (frees, strip gi))
       |> monomorphic_term thy insts default_T
       |> ObjectLogic.atomize_term thy;
   in test_term ctxt quiet generator_name size iterations gi' end;
@@ -159,10 +163,10 @@ fun auto_quickcheck state =
     let
       val ctxt = Proof.context_of state;
       val assms = map term_of (Assumption.all_assms_of ctxt);
-      val Test_Params { size, iterations, default_type } =
+      val Test_Params { size, iterations, default_type, no_assms } =
         (snd o Data.get o Proof.theory_of) state;
       val res =
-        try (test_goal true NONE size iterations default_type [] 1 assms) state;
+        try (test_goal true NONE size iterations default_type no_assms [] 1 assms) state;
     in
       case res of
         NONE => (false, state)
@@ -180,15 +184,20 @@ fun read_nat s = case (Library.read_int o Symbol.explode) s
  of (k, []) => if k >= 0 then k
       else error ("Not a natural number: " ^ s)
   | (_, _ :: _) => error ("Not a natural number: " ^ s);
+fun read_bool "false" = false
+  | read_bool "true" = true
+  | read_bool s = error ("Not a Boolean value: " ^ s)
 
 fun parse_test_param ctxt ("size", arg) =
       (apfst o apfst o K) (read_nat arg)
   | parse_test_param ctxt ("iterations", arg) =
       (apfst o apsnd o K) (read_nat arg)
   | parse_test_param ctxt ("default_type", arg) =
-      (apsnd o K o SOME) (ProofContext.read_typ ctxt arg)
+      (apsnd o apfst o K o SOME) (ProofContext.read_typ ctxt arg)
+  | parse_test_param ctxt ("no_assms", arg) =
+      (apsnd o apsnd o K) (read_bool arg)
   | parse_test_param ctxt (name, _) =
-      error ("Bad test parameter: " ^ name);
+      error ("Unknown test parameter: " ^ name);
 
 fun parse_test_param_inst ctxt ("generator", arg) =
       (apsnd o apfst o K o SOME) arg
@@ -211,12 +220,13 @@ fun quickcheck args i state =
   let
     val thy = Proof.theory_of state;
     val ctxt = Proof.context_of state;
+    val assms = map term_of (Assumption.all_assms_of ctxt);
     val default_params = (dest_test_params o snd o Data.get) thy;
     val f = fold (parse_test_param_inst ctxt) args;
-    val (((size, iterations), default_type), (generator_name, insts)) =
+    val (((size, iterations), (default_type, no_assms)), (generator_name, insts)) =
       f (default_params, (NONE, []));
   in
-    test_goal false generator_name size iterations default_type insts i [] state
+    test_goal false generator_name size iterations default_type no_assms insts i assms state
   end;
 
 fun quickcheck_cmd args i state =
@@ -225,7 +235,8 @@ fun quickcheck_cmd args i state =
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val parse_arg = P.name --| P.$$$ "=" -- P.name;
+val parse_arg = P.name -- (Scan.optional (P.$$$ "=" |-- P.name) "true")
+
 val parse_args = P.$$$ "[" |-- P.list1 parse_arg --| P.$$$ "]"
   || Scan.succeed [];
 

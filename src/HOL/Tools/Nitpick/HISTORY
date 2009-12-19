@@ -1,5 +1,6 @@
 Version 2010
 
+  * Added and implemented "binary_ints" and "bits" options
   * Fixed soundness bug in "destroy_constrs" optimization
 
 Version 2009-1

@@ -37,6 +37,7 @@ type raw_param = string * string list
 val default_default_params =
   [("card", ["1\<midarrow>8"]),
    ("iter", ["0,1,2,4,8,12,16,24"]),
+   ("bits", ["1,2,3,4,6,8,10,12"]),
    ("bisim_depth", ["7"]),
    ("box", ["smart"]),
    ("mono", ["smart"]),
@@ -48,6 +49,7 @@ val default_default_params =
    ("user_axioms", ["smart"]),
    ("assms", ["true"]),
    ("merge_type_vars", ["false"]),
+   ("binary_ints", ["smart"]),
    ("destroy_constrs", ["true"]),
    ("specialize", ["true"]),
    ("skolemize", ["true"]),
@@ -83,6 +85,7 @@ val negated_params =
    ("no_user_axioms", "user_axioms"),
    ("no_assms", "assms"),
    ("dont_merge_type_vars", "merge_type_vars"),
+   ("unary_ints", "binary_ints"),
    ("dont_destroy_constrs", "destroy_constrs"),
    ("dont_specialize", "specialize"),
    ("dont_skolemize", "skolemize"),
@@ -105,7 +108,7 @@ val negated_params =
 fun is_known_raw_param s =
   AList.defined (op =) default_default_params s
   orelse AList.defined (op =) negated_params s
-  orelse s mem ["max", "eval", "expect"]
+  orelse s = "max" orelse s = "eval" orelse s = "expect"
   orelse exists (fn p => String.isPrefix (p ^ " ") s)
                 ["card", "max", "iter", "box", "dont_box", "mono", "non_mono",
                  "wf", "non_wf", "format"]
@@ -283,6 +286,7 @@ fun extract_params ctxt auto default_params override_params =
     val cards_assigns = lookup_ints_assigns read_type_polymorphic "card" 1
     val maxes_assigns = lookup_ints_assigns read_const_polymorphic "max" ~1
     val iters_assigns = lookup_ints_assigns read_const_polymorphic "iter" 0
+    val bitss = lookup_int_seq "bits" 1
     val bisim_depths = lookup_int_seq "bisim_depth" ~1
     val boxes =
       lookup_bool_option_assigns read_type_polymorphic "box" @
@@ -303,6 +307,7 @@ fun extract_params ctxt auto default_params override_params =
     val user_axioms = lookup_bool_option "user_axioms"
     val assms = lookup_bool "assms"
     val merge_type_vars = lookup_bool "merge_type_vars"
+    val binary_ints = lookup_bool_option "binary_ints"
     val destroy_constrs = lookup_bool "destroy_constrs"
     val specialize = lookup_bool "specialize"
     val skolemize = lookup_bool "skolemize"
@@ -333,15 +338,16 @@ fun extract_params ctxt auto default_params override_params =
     val expect = lookup_string "expect"
   in
     {cards_assigns = cards_assigns, maxes_assigns = maxes_assigns,
-     iters_assigns = iters_assigns, bisim_depths = bisim_depths, boxes = boxes,
-     monos = monos, wfs = wfs, sat_solver = sat_solver, blocking = blocking,
-     falsify = falsify, debug = debug, verbose = verbose, overlord = overlord,
-     user_axioms = user_axioms, assms = assms,
-     merge_type_vars = merge_type_vars, destroy_constrs = destroy_constrs,
-     specialize = specialize, skolemize = skolemize,
-     star_linear_preds = star_linear_preds, uncurry = uncurry,
-     fast_descrs = fast_descrs, peephole_optim = peephole_optim,
-     timeout = timeout, tac_timeout = tac_timeout, sym_break = sym_break,
+     iters_assigns = iters_assigns, bitss = bitss, bisim_depths = bisim_depths,
+     boxes = boxes, monos = monos, wfs = wfs, sat_solver = sat_solver,
+     blocking = blocking, falsify = falsify, debug = debug, verbose = verbose,
+     overlord = overlord, user_axioms = user_axioms, assms = assms,
+     merge_type_vars = merge_type_vars, binary_ints = binary_ints,
+     destroy_constrs = destroy_constrs, specialize = specialize,
+     skolemize = skolemize, star_linear_preds = star_linear_preds,
+     uncurry = uncurry, fast_descrs = fast_descrs,
+     peephole_optim = peephole_optim, timeout = timeout,
+     tac_timeout = tac_timeout, sym_break = sym_break,
      sharing_depth = sharing_depth, flatten_props = flatten_props,
      max_threads = max_threads, show_skolems = show_skolems,
      show_datatypes = show_datatypes, show_consts = show_consts,
@@ -379,8 +385,6 @@ fun handle_exceptions ctxt f x =
          error ("Bad argument(s) to " ^ quote loc ^ ": " ^ details ^ ".")
        | BAD (loc, details) =>
          error ("Internal error (" ^ quote loc ^ "): " ^ details ^ ".")
-       | LIMIT (_, details) =>
-         (warning ("Limit reached: " ^ details ^ "."); x)
        | NOT_SUPPORTED details =>
          (warning ("Unsupported case: " ^ details ^ "."); x)
        | NUT (loc, us) =>
@@ -394,6 +398,10 @@ fun handle_exceptions ctxt f x =
          error ("Invalid term" ^ plural_s_for_list ts ^
                 " (" ^ quote loc ^ "): " ^
                 commas (map (Syntax.string_of_term ctxt) ts) ^ ".")
+       | TOO_LARGE (_, details) =>
+         (warning ("Limit reached: " ^ details ^ "."); x)
+       | TOO_SMALL (_, details) =>
+         (warning ("Limit reached: " ^ details ^ "."); x)
        | TYPE (loc, Ts, ts) =>
          error ("Invalid type" ^ plural_s_for_list Ts ^
                 (if null ts then
@@ -409,7 +417,7 @@ fun handle_exceptions ctxt f x =
          error ("Unhandled Refute error (" ^ quote loc ^ "): " ^ details ^ ".")
 
 (* raw_param list -> bool -> int -> Proof.state -> bool * Proof.state *)
-fun pick_nits override_params auto subgoal state =
+fun pick_nits override_params auto i state =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
@@ -423,26 +431,25 @@ fun pick_nits override_params auto subgoal state =
       |> (if auto then perhaps o try
           else if debug then fn f => fn x => f x
           else handle_exceptions ctxt)
-         (fn (_, state) => pick_nits_in_subgoal state params auto subgoal
-                           |>> equal "genuine")
+         (fn (_, state) => pick_nits_in_subgoal state params auto i
+                           |>> curry (op =) "genuine")
   in
     if auto orelse blocking then go ()
     else (Toplevel.thread true (fn () => (go (); ())); (false, state))
   end
 
-(* (TableFun().key * string list) list option * int option
-   -> Toplevel.transition -> Toplevel.transition *)
-fun nitpick_trans (opt_params, opt_subgoal) =
+(* raw_param list option * int option -> Toplevel.transition
+   -> Toplevel.transition *)
+fun nitpick_trans (opt_params, opt_i) =
   Toplevel.keep (K ()
-      o snd o pick_nits (these opt_params) false (the_default 1 opt_subgoal)
+      o snd o pick_nits (these opt_params) false (the_default 1 opt_i)
       o Toplevel.proof_of)
 
 (* raw_param -> string *)
 fun string_for_raw_param (name, value) =
   name ^ " = " ^ stringify_raw_param_value value
 
-(* (TableFun().key * string) list option -> Toplevel.transition
-   -> Toplevel.transition *)
+(* raw_param list option -> Toplevel.transition -> Toplevel.transition *)
 fun nitpick_params_trans opt_params =
   Toplevel.theory
       (fold set_default_raw_param (these opt_params)

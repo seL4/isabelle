@@ -6,8 +6,11 @@ Simple XML tree values.
 
 package isabelle
 
-import org.w3c.dom.{Node, Document}
+import java.util.WeakHashMap
+import java.lang.ref.WeakReference
 import javax.xml.parsers.DocumentBuilderFactory
+
+import org.w3c.dom.{Node, Document}
 
 
 object XML
@@ -92,6 +95,60 @@ object XML
   }
 
 
+  /* cache for partial sharing -- NOT THREAD SAFE */
+
+  class Cache(initial_size: Int)
+  {
+    private val table = new WeakHashMap[Any, WeakReference[Any]](initial_size)
+
+    private def lookup[A](x: A): Option[A] =
+    {
+      val ref = table.get(x)
+      if (ref == null) None
+      else {
+        val y = ref.asInstanceOf[WeakReference[A]].get
+        if (y == null) None
+        else Some(y)
+      }
+    }
+    private def store[A](x: A): A =
+    {
+      table.put(x, new WeakReference[Any](x))
+      x
+    }
+
+    def cache_string(x: String): String =
+      lookup(x) match {
+        case Some(y) => y
+        case None => store(x)
+      }
+    def cache_props(x: List[(String, String)]): List[(String, String)] =
+      if (x.isEmpty) x
+      else
+        lookup(x) match {
+          case Some(y) => y
+          case None => store(x.map(p => (cache_string(p._1), cache_string(p._2))))
+        }
+    def cache_tree(x: XML.Tree): XML.Tree =
+      lookup(x) match {
+        case Some(y) => y
+        case None =>
+          x match {
+            case XML.Elem(name, props, body) =>
+              store(XML.Elem(cache_string(name), cache_props(props), cache_trees(body)))
+            case XML.Text(text) => XML.Text(cache_string(text))
+          }
+      }
+    def cache_trees(x: List[XML.Tree]): List[XML.Tree] =
+      if (x.isEmpty) x
+      else
+        lookup(x) match {
+          case Some(y) => y
+          case None => x.map(cache_tree(_))
+        }
+  }
+
+
   /* document object model (W3C DOM) */
 
   def get_data(node: Node): Option[XML.Tree] =
@@ -117,22 +174,5 @@ object XML
       case Text(txt) => doc.createTextNode(txt)
     }
     DOM(tree)
-  }
-
-  def document(tree: Tree, styles: String*): Document =
-  {
-    val doc = DocumentBuilderFactory.newInstance.newDocumentBuilder.newDocument
-    doc.appendChild(doc.createProcessingInstruction("xml", "version=\"1.0\""))
-
-    for (style <- styles) {
-      doc.appendChild(doc.createProcessingInstruction("xml-stylesheet",
-        "href=\"" + style + "\" type=\"text/css\""))
-    }
-    val root_elem = tree match {
-      case Elem(_, _, _) => document_node(doc, tree)
-      case Text(_) => document_node(doc, (Elem(Markup.ROOT, Nil, List(tree))))
-    }
-    doc.appendChild(root_elem)
-    doc
   }
 }

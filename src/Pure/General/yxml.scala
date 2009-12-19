@@ -60,7 +60,8 @@ object YXML
       def flush()
       {
         if (code != -1) {
-          if (rest == 0) buf.appendCodePoint(code)
+          if (rest == 0 && Character.isValidCodePoint(code))
+            buf.appendCodePoint(code)
           else buf.append('\uFFFD')
           code = -1
           rest = 0
@@ -170,7 +171,7 @@ object YXML
   /* failsafe parsing */
 
   private def markup_failsafe(source: CharSequence) =
-    XML.Elem (Markup.BAD, Nil,
+    XML.Elem (Markup.MALFORMED, Nil,
       List(XML.Text(source.toString.replace(X_string, "\\<^X>").replace(Y_string, "\\<^Y>"))))
 
   def parse_body_failsafe(source: CharSequence): List[XML.Tree] =

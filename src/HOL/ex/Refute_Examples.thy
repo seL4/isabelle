@@ -1516,6 +1516,17 @@ lemma "P (inverse (p::'a\<times>'b))"
   refute
 oops
 
+text {* Structured proofs *}
+
+lemma "x = y"
+proof cases
+  assume "x = y"
+  show ?thesis
+  refute
+  refute [no_assms]
+  refute [no_assms = false]
+oops
+
 refute_params [satsolver="auto"]
 
 end

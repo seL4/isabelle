@@ -11,7 +11,7 @@ theory Typedef_Nits
 imports Main Rational
 begin
 
-nitpick_params [card = 1\<midarrow>4, timeout = 5 s]
+nitpick_params [card = 1\<midarrow>4, timeout = 30 s]
 
 typedef three = "{0\<Colon>nat, 1, 2}"
 by blast
@@ -67,7 +67,7 @@ nitpick [expect = none]
 sorry
 
 lemma "x \<noteq> (y\<Colon>(bool \<times> bool) bounded) \<Longrightarrow> z = x \<or> z = y"
-nitpick [card = 1\<midarrow>5, timeout = 10 s, expect = genuine]
+nitpick [card = 1\<midarrow>5, expect = genuine]
 oops
 
 lemma "True \<equiv> ((\<lambda>x\<Colon>bool. x) = (\<lambda>x. x))"
@@ -157,15 +157,15 @@ nitpick [expect = none]
 by (rule Rep_Nat_inverse)
 
 lemma "0 \<equiv> Abs_Integ (intrel `` {(0, 0)})"
-nitpick [card = 1, timeout = 60 s, max_potential = 0, expect = none]
+nitpick [card = 1, unary_ints, max_potential = 0, expect = none]
 by (rule Zero_int_def_raw)
 
 lemma "Abs_Integ (Rep_Integ a) = a"
-nitpick [card = 1, timeout = 60 s, max_potential = 0, expect = none]
+nitpick [card = 1, unary_ints, max_potential = 0, expect = none]
 by (rule Rep_Integ_inverse)
 
 lemma "Abs_list (Rep_list a) = a"
-nitpick [card = 1\<midarrow>2, timeout = 60 s, expect = none]
+nitpick [card = 1\<midarrow>2, expect = none]
 by (rule Rep_list_inverse)
 
 record point =
