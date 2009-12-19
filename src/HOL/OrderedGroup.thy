@@ -193,13 +193,15 @@ next
   assume "a = b" thus "a - b = 0" by (simp add: diff_minus)
 qed
 
-lemma equals_zero_I:
+lemma minus_unique:
   assumes "a + b = 0" shows "- a = b"
 proof -
   have "- a = - a + (a + b)" using assms by simp
   also have "\<dots> = b" by (simp add: add_assoc[symmetric])
   finally show ?thesis .
 qed
+
+lemmas equals_zero_I = minus_unique (* legacy name *)
 
 lemma diff_self [simp]: "a - a = 0"
 by (simp add: diff_minus)
@@ -291,7 +293,7 @@ by (simp add:diff_minus add_commute)
 
 lemma minus_add_distrib [simp]:
   "- (a + b) = - a + - b"
-by (rule equals_zero_I) (simp add: add_ac)
+by (rule minus_unique) (simp add: add_ac)
 
 lemma minus_diff_eq [simp]:
   "- (a - b) = b - a"

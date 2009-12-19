@@ -161,7 +161,7 @@ by transfer (rule complex_Im_minus)
 
 lemma hcomplex_add_minus_eq_minus:
       "x + y = (0::hcomplex) ==> x = -y"
-apply (drule OrderedGroup.equals_zero_I)
+apply (drule OrderedGroup.minus_unique)
 apply (simp add: minus_equation_iff [of x y])
 done
 

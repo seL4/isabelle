@@ -438,7 +438,7 @@ next
     hence 2: "x + h \<noteq> 0"
       apply (rule contrapos_nn)
       apply (rule sym)
-      apply (erule equals_zero_I)
+      apply (erule minus_unique)
       done
     show "norm (?inv (x + h) - ?inv x - - (?inv x * h * ?inv x)) / norm h
           = norm ((?inv (x + h) - ?inv x) * h * ?inv x) / norm h"

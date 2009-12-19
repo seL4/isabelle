@@ -228,10 +228,10 @@ subclass semiring_0_cancel ..
 text {* Distribution rules *}
 
 lemma minus_mult_left: "- (a * b) = - a * b"
-by (rule equals_zero_I) (simp add: left_distrib [symmetric]) 
+by (rule minus_unique) (simp add: left_distrib [symmetric]) 
 
 lemma minus_mult_right: "- (a * b) = a * - b"
-by (rule equals_zero_I) (simp add: right_distrib [symmetric]) 
+by (rule minus_unique) (simp add: right_distrib [symmetric]) 
 
 text{*Extract signs from products*}
 lemmas mult_minus_left [simp, noatp] = minus_mult_left [symmetric]

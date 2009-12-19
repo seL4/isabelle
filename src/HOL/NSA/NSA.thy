@@ -1711,7 +1711,7 @@ done
 lemma Infinitesimal_add_not_zero:
      "[| h \<in> Infinitesimal; x \<noteq> 0 |] ==> star_of x + h \<noteq> 0"
 apply auto
-apply (subgoal_tac "h = - star_of x", auto intro: equals_zero_I [symmetric])
+apply (subgoal_tac "h = - star_of x", auto intro: minus_unique [symmetric])
 done
 
 lemma Infinitesimal_square_cancel [simp]:
