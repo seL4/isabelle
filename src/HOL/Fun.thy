@@ -467,6 +467,11 @@ by (rule ext, simp add: fun_upd_def swap_def)
 lemma swap_nilpotent [simp]: "swap a b (swap a b f) = f"
 by (rule ext, simp add: fun_upd_def swap_def)
 
+lemma swap_triple:
+  assumes "a \<noteq> c" and "b \<noteq> c"
+  shows "swap a b (swap b c (swap a b f)) = swap a c f"
+  using assms by (simp add: expand_fun_eq swap_def)
+
 lemma comp_swap: "f \<circ> swap a b g = swap a b (f \<circ> g)"
 by (rule ext, simp add: fun_upd_def swap_def)
 
