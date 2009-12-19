@@ -23,7 +23,7 @@ LOG = $(OUT)/log
 
 BOOTSTRAP_FILES = ML-Systems/compiler_polyml-5.0.ML			\
   ML-Systems/compiler_polyml-5.2.ML ML-Systems/compiler_polyml-5.3.ML	\
-  ML-Systems/exn.ML ML-Systems/ml_name_space.ML				\
+  ML-Systems/ml_name_space.ML				\
   ML-Systems/ml_pretty.ML ML-Systems/mosml.ML				\
   ML-Systems/multithreading.ML ML-Systems/multithreading_polyml.ML	\
   ML-Systems/overloading_smlnj.ML ML-Systems/polyml-5.0.ML		\
@@ -51,38 +51,38 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES) Concurrent/cache.ML			\
   Concurrent/synchronized_sequential.ML Concurrent/task_queue.ML	\
   General/alist.ML General/antiquote.ML General/balanced_tree.ML	\
   General/basics.ML General/binding.ML General/buffer.ML		\
-  General/file.ML General/graph.ML General/heap.ML General/integer.ML	\
-  General/long_name.ML General/markup.ML General/name_space.ML		\
-  General/ord_list.ML General/output.ML General/path.ML			\
-  General/position.ML General/pretty.ML General/print_mode.ML		\
-  General/properties.ML General/queue.ML General/same.ML		\
-  General/scan.ML General/secure.ML General/seq.ML General/source.ML	\
-  General/stack.ML General/symbol.ML General/symbol_pos.ML		\
-  General/table.ML General/url.ML General/xml.ML General/yxml.ML	\
-  Isar/args.ML Isar/attrib.ML Isar/auto_bind.ML Isar/calculation.ML	\
-  Isar/class.ML Isar/class_target.ML Isar/code.ML Isar/constdefs.ML	\
-  Isar/context_rules.ML Isar/element.ML Isar/expression.ML		\
-  Isar/isar_cmd.ML Isar/isar_document.ML Isar/isar_syn.ML		\
-  Isar/local_defs.ML Isar/local_syntax.ML Isar/local_theory.ML		\
-  Isar/locale.ML Isar/method.ML Isar/object_logic.ML Isar/obtain.ML	\
-  Isar/outer_keyword.ML Isar/outer_lex.ML Isar/outer_parse.ML		\
-  Isar/outer_syntax.ML Isar/overloading.ML Isar/proof.ML		\
-  Isar/proof_context.ML Isar/proof_display.ML Isar/proof_node.ML	\
-  Isar/rule_cases.ML Isar/rule_insts.ML Isar/runtime.ML			\
-  Isar/skip_proof.ML Isar/spec_parse.ML Isar/spec_rules.ML		\
-  Isar/specification.ML Isar/theory_target.ML Isar/toplevel.ML		\
-  Isar/value_parse.ML ML/ml_antiquote.ML ML/ml_compiler.ML		\
-  ML/ml_compiler_polyml-5.3.ML ML/ml_context.ML ML/ml_env.ML		\
-  ML/ml_lex.ML ML/ml_parse.ML ML/ml_syntax.ML ML/ml_thms.ML		\
-  ML-Systems/install_pp_polyml.ML ML-Systems/install_pp_polyml-5.3.ML	\
-  ML-Systems/use_context.ML Proof/extraction.ML				\
-  Proof/proof_rewrite_rules.ML Proof/proof_syntax.ML			\
-  Proof/proofchecker.ML Proof/reconstruct.ML ProofGeneral/pgip.ML	\
-  ProofGeneral/pgip_input.ML ProofGeneral/pgip_isabelle.ML		\
-  ProofGeneral/pgip_markup.ML ProofGeneral/pgip_output.ML		\
-  ProofGeneral/pgip_parser.ML ProofGeneral/pgip_tests.ML		\
-  ProofGeneral/pgip_types.ML ProofGeneral/preferences.ML		\
-  ProofGeneral/proof_general_emacs.ML					\
+  General/exn.ML General/file.ML General/graph.ML General/heap.ML	\
+  General/integer.ML General/long_name.ML General/markup.ML		\
+  General/name_space.ML General/ord_list.ML General/output.ML		\
+  General/path.ML General/position.ML General/pretty.ML			\
+  General/print_mode.ML General/properties.ML General/queue.ML		\
+  General/same.ML General/scan.ML General/secure.ML General/seq.ML	\
+  General/source.ML General/stack.ML General/symbol.ML			\
+  General/symbol_pos.ML General/table.ML General/url.ML General/xml.ML	\
+  General/yxml.ML Isar/args.ML Isar/attrib.ML Isar/auto_bind.ML		\
+  Isar/calculation.ML Isar/class.ML Isar/class_target.ML Isar/code.ML	\
+  Isar/constdefs.ML Isar/context_rules.ML Isar/element.ML		\
+  Isar/expression.ML Isar/isar_cmd.ML Isar/isar_document.ML		\
+  Isar/isar_syn.ML Isar/local_defs.ML Isar/local_syntax.ML		\
+  Isar/local_theory.ML Isar/locale.ML Isar/method.ML			\
+  Isar/object_logic.ML Isar/obtain.ML Isar/outer_keyword.ML		\
+  Isar/outer_lex.ML Isar/outer_parse.ML Isar/outer_syntax.ML		\
+  Isar/overloading.ML Isar/proof.ML Isar/proof_context.ML		\
+  Isar/proof_display.ML Isar/proof_node.ML Isar/rule_cases.ML		\
+  Isar/rule_insts.ML Isar/runtime.ML Isar/skip_proof.ML			\
+  Isar/spec_parse.ML Isar/spec_rules.ML Isar/specification.ML		\
+  Isar/theory_target.ML Isar/toplevel.ML Isar/value_parse.ML		\
+  ML/ml_antiquote.ML ML/ml_compiler.ML ML/ml_compiler_polyml-5.3.ML	\
+  ML/ml_context.ML ML/ml_env.ML ML/ml_lex.ML ML/ml_parse.ML		\
+  ML/ml_syntax.ML ML/ml_thms.ML ML-Systems/install_pp_polyml.ML		\
+  ML-Systems/install_pp_polyml-5.3.ML ML-Systems/use_context.ML		\
+  Proof/extraction.ML Proof/proof_rewrite_rules.ML			\
+  Proof/proof_syntax.ML Proof/proofchecker.ML Proof/reconstruct.ML	\
+  ProofGeneral/pgip.ML ProofGeneral/pgip_input.ML			\
+  ProofGeneral/pgip_isabelle.ML ProofGeneral/pgip_markup.ML		\
+  ProofGeneral/pgip_output.ML ProofGeneral/pgip_parser.ML		\
+  ProofGeneral/pgip_tests.ML ProofGeneral/pgip_types.ML			\
+  ProofGeneral/preferences.ML ProofGeneral/proof_general_emacs.ML	\
   ProofGeneral/proof_general_pgip.ML Pure.thy ROOT.ML Syntax/ast.ML	\
   Syntax/lexicon.ML Syntax/mixfix.ML Syntax/parser.ML			\
   Syntax/printer.ML Syntax/simple_syntax.ML Syntax/syn_ext.ML		\
@@ -121,14 +121,15 @@ clean:
 
 ## Scala material
 
-SCALA_FILES = General/event_bus.scala General/linear_set.scala		\
-  General/markup.scala General/position.scala General/scan.scala	\
-  General/swing_thread.scala General/symbol.scala General/xml.scala	\
-  General/yxml.scala Isar/isar_document.scala Isar/outer_keyword.scala	\
-  System/cygwin.scala System/gui_setup.scala				\
+SCALA_FILES = General/event_bus.scala General/exn.scala			\
+  General/linear_set.scala General/markup.scala General/position.scala	\
+  General/scan.scala General/swing_thread.scala General/symbol.scala	\
+  General/xml.scala General/yxml.scala Isar/isar_document.scala		\
+  Isar/outer_keyword.scala System/cygwin.scala System/gui_setup.scala	\
   System/isabelle_process.scala System/isabelle_syntax.scala		\
   System/isabelle_system.scala System/platform.scala			\
-  Thy/completion.scala Thy/html.scala Thy/thy_header.scala
+  Thy/completion.scala Thy/html.scala Thy/thy_header.scala		\
+  library.scala
 
 JAR_DIR = $(ISABELLE_HOME)/lib/classes
 PURE_JAR = $(JAR_DIR)/Pure.jar
