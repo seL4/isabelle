@@ -36,16 +36,17 @@ object Symbol
     len == 1 && Character.isHighSurrogate(s.charAt(0)) ||
     s == "\\" ||
     s == "\\<" ||
-    len > 2 && s.charAt(len - 1) != '>'
+    len > 2 && s.charAt(len - 1) != '>'   // FIXME bad_symbol !??
   }
 
 
   /* elements */
 
-  private def could_open(c: Char): Boolean =
+  def could_open(c: Char): Boolean =
     c == '\\' || Character.isHighSurrogate(c)
 
-  def elements(text: CharSequence) = new Iterator[String] {
+  def elements(text: CharSequence) = new Iterator[String]
+  {
     private val matcher = regex.pattern.matcher(text)
     private var i = 0
     def hasNext = i < text.length
@@ -185,7 +186,8 @@ object Symbol
 
     /* misc properties */
 
-    val names: Map[String, String] = {
+    val names: Map[String, String] =
+    {
       val name = new Regex("""\\<([A-Za-z][A-Za-z0-9_']*)>""")
       Map((for ((sym @ name(a), _) <- symbols) yield (sym -> a)): _*)
     }
@@ -216,5 +218,63 @@ object Symbol
 
     def decode(text: String): String = decoder.recode(text)
     def encode(text: String): String = encoder.recode(text)
+
+
+    /* classification */
+
+    private val raw_letters = Set(
+      "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+      "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+      "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
+      "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
+
+      "\\<A>", "\\<B>", "\\<C>", "\\<D>", "\\<E>", "\\<F>", "\\<G>",
+      "\\<H>", "\\<I>", "\\<J>", "\\<K>", "\\<L>", "\\<M>", "\\<N>",
+      "\\<O>", "\\<P>", "\\<Q>", "\\<R>", "\\<S>", "\\<T>", "\\<U>",
+      "\\<V>", "\\<W>", "\\<X>", "\\<Y>", "\\<Z>", "\\<a>", "\\<b>",
+      "\\<c>", "\\<d>", "\\<e>", "\\<f>", "\\<g>", "\\<h>", "\\<i>",
+      "\\<j>", "\\<k>", "\\<l>", "\\<m>", "\\<n>", "\\<o>", "\\<p>",
+      "\\<q>", "\\<r>", "\\<s>", "\\<t>", "\\<u>", "\\<v>", "\\<w>",
+      "\\<x>", "\\<y>", "\\<z>",
+
+      "\\<AA>", "\\<BB>", "\\<CC>", "\\<DD>", "\\<EE>", "\\<FF>",
+      "\\<GG>", "\\<HH>", "\\<II>", "\\<JJ>", "\\<KK>", "\\<LL>",
+      "\\<MM>", "\\<NN>", "\\<OO>", "\\<PP>", "\\<QQ>", "\\<RR>",
+      "\\<SS>", "\\<TT>", "\\<UU>", "\\<VV>", "\\<WW>", "\\<XX>",
+      "\\<YY>", "\\<ZZ>", "\\<aa>", "\\<bb>", "\\<cc>", "\\<dd>",
+      "\\<ee>", "\\<ff>", "\\<gg>", "\\<hh>", "\\<ii>", "\\<jj>",
+      "\\<kk>", "\\<ll>", "\\<mm>", "\\<nn>", "\\<oo>", "\\<pp>",
+      "\\<qq>", "\\<rr>", "\\<ss>", "\\<tt>", "\\<uu>", "\\<vv>",
+      "\\<ww>", "\\<xx>", "\\<yy>", "\\<zz>",
+
+      "\\<alpha>", "\\<beta>", "\\<gamma>", "\\<delta>", "\\<epsilon>",
+      "\\<zeta>", "\\<eta>", "\\<theta>", "\\<iota>", "\\<kappa>",
+      "\\<mu>", "\\<nu>", "\\<xi>", "\\<pi>", "\\<rho>", "\\<sigma>",
+      "\\<tau>", "\\<upsilon>", "\\<phi>", "\\<chi>", "\\<psi>",
+      "\\<omega>", "\\<Gamma>", "\\<Delta>", "\\<Theta>", "\\<Lambda>",
+      "\\<Xi>", "\\<Pi>", "\\<Sigma>", "\\<Upsilon>", "\\<Phi>",
+      "\\<Psi>", "\\<Omega>",
+
+      "\\<^isub>", "\\<^isup>")
+
+    private val letters = raw_letters ++ raw_letters.map(decode(_))
+
+    def is_letter(sym: String): Boolean = letters.contains(sym)
+
+    def is_digit(sym: String): Boolean =
+      if (sym.length == 1) {
+        val c = sym(0)
+        '0' <= c && c <= '9'
+      }
+      else false
+
+    def is_quasi(sym: String): Boolean = sym == "_" || sym == "'"
+
+
+    private val raw_blanks =
+      Set(" ", "\t", "\n", "\u000B", "\f", "\r", "\\<spacespace>", "\\<^newline>")
+    private val blanks = raw_blanks ++ raw_blanks.map(decode(_))
+
+    def is_blank(sym: String): Boolean = blanks.contains(sym)
   }
 }
