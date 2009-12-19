@@ -91,7 +91,8 @@ object Scan
                 Tree(tree.branches +
                   (c -> (if (end) elem else "", extend(Lexicon.empty_tree, i + 1))))
             }
-          } else tree
+          }
+          else tree
         val old = this
         new Lexicon { override val main_tree = extend(old.main_tree, 0) }
       }
@@ -106,28 +107,45 @@ object Scan
 
     override val whiteSpace = "".r
 
-    def keyword: Parser[String] = new Parser[String] {
+    type Result = (String, Boolean)
+
+    def keyword: Parser[Result] = new Parser[Result]
+    {
       def apply(in: Input) =
       {
         val source = in.source
         val offset = in.offset
         val len = source.length - offset
 
-        def scan(tree: Tree, text: String, i: Int): String =
+        def scan(tree: Tree, result: Result, i: Int): Result =
         {
           if (i < len) {
             tree.branches.get(source.charAt(offset + i)) match {
-              case Some((s, tr)) => scan(tr, if (s.isEmpty) text else s, i + 1)
-              case None => text
+              case Some((s, tr)) =>
+                scan(tr, if (s.isEmpty) result else (s, tr.branches.isEmpty), i + 1)
+              case None => result
             }
-          } else text
+          }
+          else result
         }
-        val text = scan(main_tree, "", 0)
+        val result @ (text, terminated) = scan(main_tree, ("", false), 0)
         if (text.isEmpty) Failure("keyword expected", in)
-        else Success(text, in.drop(text.length))
+        else Success(result, in.drop(text.length))
       }
     }.named("keyword")
 
+    def symbol: Parser[String] = new Parser[String]
+    {
+      private val symbol_regex = regex(Symbol.regex)
+      def apply(in: Input) =
+      {
+        val source = in.source
+        val offset = in.offset
+        if (offset >= source.length) Failure("input expected", in)
+        else if (Symbol.could_open(source.charAt(offset))) symbol_regex(in)
+        else Success(source.subSequence(offset, offset + 1).toString, in.drop(1))
+      }
+    }.named("symbol")
   }
 }
 

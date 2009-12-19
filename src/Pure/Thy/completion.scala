@@ -114,7 +114,7 @@ class Completion
   def complete(line: CharSequence): Option[(String, List[String])] =
   {
     abbrevs_lex.parse(abbrevs_lex.keyword, new Completion.Reverse(line)) match {
-      case abbrevs_lex.Success(rev_a, _) =>
+      case abbrevs_lex.Success((rev_a, _), _) =>
         val (word, c) = abbrevs_map(rev_a)
         if (word == c) None
         else Some(word, List(c))
