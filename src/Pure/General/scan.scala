@@ -275,10 +275,8 @@ object Scan
 
       /* tokens */
 
-      // FIXME right-assoc !?
-
-      (string | alt_string | verbatim ^^ Verbatim | comment ^^ Comment | space) |
-      ((ident | var_ | type_ident | type_var | nat_ | sym_ident) |||
+      (space | (string | (alt_string | (verbatim ^^ Verbatim | comment ^^ Comment)))) |
+      ((ident | (var_ | (type_ident | (type_var | (nat_ | sym_ident))))) |||
         keyword ^^ (x => if (is_command(x)) Command(x) else Keyword(x))) |
       bad_input
     }
