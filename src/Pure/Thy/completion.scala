@@ -12,34 +12,6 @@ import scala.util.parsing.combinator.RegexParsers
 
 private object Completion
 {
-  /** String/CharSequence utilities */
-
-  def length_ord(s1: String, s2: String): Boolean =
-    s1.length < s2.length || s1.length == s2.length && s1 <= s2
-
-  class Reverse(text: CharSequence, start: Int, end: Int) extends CharSequence
-  {
-    require(0 <= start && start <= end && end <= text.length)
-
-    def this(text: CharSequence) = this(text, 0, text.length)
-
-    def length: Int = end - start
-    def charAt(i: Int): Char = text.charAt(end - i - 1)
-
-    def subSequence(i: Int, j: Int): CharSequence =
-      if (0 <= i && i <= j && j <= length) new Reverse(text, end - j, end - i)
-      else throw new IndexOutOfBoundsException
-
-    override def toString: String =
-    {
-      val buf = new StringBuilder(length)
-      for (i <- 0 until length)
-        buf.append(charAt(i))
-      buf.toString
-    }
-  }
-
-
   /** word completion **/
 
   val word_regex = "[a-zA-Z0-9_']+".r
@@ -55,7 +27,7 @@ private object Completion
 
     def read(in: CharSequence): Option[String] =
     {
-      val rev_in = new Reverse(in)
+      val rev_in = new Library.Reverse(in)
       parse((rev_symbol | rev_symb | word) ^^ (_.reverse), rev_in) match {
         case Success(result, _) => Some(result)
         case _ => None
@@ -113,8 +85,8 @@ class Completion
 
   def complete(line: CharSequence): Option[(String, List[String])] =
   {
-    abbrevs_lex.parse(abbrevs_lex.keyword, new Completion.Reverse(line)) match {
-      case abbrevs_lex.Success((rev_a, _), _) =>
+    abbrevs_lex.parse(abbrevs_lex.keyword, new Library.Reverse(line)) match {
+      case abbrevs_lex.Success(rev_a, _) =>
         val (word, c) = abbrevs_map(rev_a)
         if (word == c) None
         else Some(word, List(c))
@@ -123,7 +95,7 @@ class Completion
           case Some(word) =>
             words_lex.completions(word).map(words_map(_)).filter(_ != word) match {
               case Nil => None
-              case cs => Some (word, cs.sort(Completion.length_ord _))
+              case cs => Some(word, cs.sort(_ < _))
             }
           case None => None
         }
