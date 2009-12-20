@@ -107,12 +107,10 @@ object Scan
 
     override val whiteSpace = "".r
 
-    type Result = (String, Boolean)
-
 
     /* keywords from lexicon */
 
-    def keyword: Parser[Result] = new Parser[Result]
+    def keyword: Parser[String] = new Parser[String]
     {
       def apply(in: Input) =
       {
@@ -120,28 +118,27 @@ object Scan
         val offset = in.offset
         val len = source.length - offset
 
-        def scan(tree: Tree, result: Result, i: Int): Result =
+        def scan(tree: Tree, result: String, i: Int): String =
         {
           if (i < len) {
             tree.branches.get(source.charAt(offset + i)) match {
-              case Some((s, tr)) =>
-                scan(tr, if (s.isEmpty) result else (s, tr.branches.isEmpty), i + 1)
+              case Some((s, tr)) => scan(tr, if (s.isEmpty) result else s, i + 1)
               case None => result
             }
           }
           else result
         }
-        val result @ (text, terminated) = scan(main_tree, ("", false), 0)
-        if (text.isEmpty) Failure("keyword expected", in)
-        else Success(result, in.drop(text.length))
+        val result = scan(main_tree, "", 0)
+        if (result.isEmpty) Failure("keyword expected", in)
+        else Success(result, in.drop(result.length))
       }
     }.named("keyword")
 
 
     /* symbols */
 
-    def symbols(pred: String => Boolean, min_count: Int, max_count: Int): Parser[CharSequence] =
-      new Parser[CharSequence]
+    def symbols(pred: String => Boolean, min_count: Int, max_count: Int): Parser[String] =
+      new Parser[String]
       {
         def apply(in: Input) =
         {
@@ -161,14 +158,86 @@ object Scan
             }
             else finished = true
           }
-          if (count < min_count) Failure("bad symbols", in)
-          else Success(in.source.subSequence(start, i), in.drop(i - start))
+          if (count < min_count) Failure("bad input", in)
+          else Success(in.source.subSequence(start, i).toString, in.drop(i - start))
         }
       }.named("symbols")
 
-    def one(pred: String => Boolean): Parser[CharSequence] = symbols(pred, 1, 1)
-    def many(pred: String => Boolean): Parser[CharSequence] = symbols(pred, 0, Integer.MAX_VALUE)
-    def many1(pred: String => Boolean): Parser[CharSequence] = symbols(pred, 1, Integer.MAX_VALUE)
+    def one(pred: String => Boolean): Parser[String] = symbols(pred, 1, 1)
+    def many(pred: String => Boolean): Parser[String] = symbols(pred, 0, Integer.MAX_VALUE)
+    def many1(pred: String => Boolean): Parser[String] = symbols(pred, 1, Integer.MAX_VALUE)
+
+
+    /* delimited text */
+
+    def quoted(quote: String) =
+      quote ~
+        rep(many1(sym => sym != quote && sym != "\\" && Symbol.is_closed(sym)) |
+          "\\" + quote | "\\\\" |
+          (("""\\\d\d\d""".r) ^? { case x if x.substring(1, 4).toInt <= 255 => x })) ~
+      quote ^^ { case x ~ ys ~ z => x + ys.mkString + z }
+
+    def quoted_content(quote: String, source: String): String =
+    {
+      require(parseAll(quoted(quote), source).successful)
+      source.substring(1, source.length - 1)  // FIXME proper escapes, recode utf8 (!?)
+    }
+
+
+    def verbatim =
+      "{*" ~ rep(many1(sym => sym != "*" && Symbol.is_closed(sym)) | """\*(?!\})""".r) ~ "*}" ^^
+        { case x ~ ys ~ z => x + ys.mkString + z }
+
+    def verbatim_content(source: String): String =
+    {
+      require(parseAll(verbatim, source).successful)
+      source.substring(2, source.length - 2)
+    }
+
+
+    /* outer syntax tokens */
+
+    def token(symbols: Symbol.Interpretation, is_command: String => Boolean):
+      Parser[Outer_Lex.Token] =
+    {
+      import Outer_Lex._
+
+      val id = one(symbols.is_letter) ~ many(symbols.is_letdig) ^^ { case x ~ y => x + y }
+      val nat = many1(symbols.is_digit)
+      val id_nat = id ~ opt("." ~ nat) ^^ { case x ~ Some(y ~ z) => x + y + z case x ~ None => x }
+
+      val ident = id ~ rep("." ~> id) ^^
+        { case x ~ Nil => Ident(x)
+          case x ~ ys => Long_Ident((x :: ys).mkString(".")) }
+
+      val var_ = "?" ~ id_nat ^^ { case x ~ y => Var(x + y) }
+      val type_ident = "'" ~ id ^^ { case x ~ y => Type_Ident(x + y) }
+      val type_var = "?'" ~ id_nat ^^ { case x ~ y => Type_Var(x + y) }
+      val nat_ = nat ^^ Nat
+
+      val sym_ident =
+        (many1(symbols.is_symbolic_char) |
+          one(sym => symbols.is_symbolic(sym) & Symbol.is_closed(sym))) ^^ Sym_Ident
+
+      val space = many1(symbols.is_blank) ^^ Space
+
+      val string = quoted("\"") ^^ String_Token
+      val alt_string = quoted("`") ^^ Alt_String_Token
+
+      val comment: Parser[Token] = failure("FIXME")
+
+      val bad_input = many1(sym => !(symbols.is_blank(sym))) ^^ Bad_Input
+
+
+      /* tokens */
+
+      // FIXME right-assoc !?
+
+      (string | alt_string | verbatim ^^ Verbatim | comment | space) |
+      ((ident | var_ | type_ident | type_var | nat_ | sym_ident) |||
+        keyword ^^ (x => if (is_command(x)) Command(x) else Keyword(x))) |
+      bad_input
+    }
   }
 }
 
