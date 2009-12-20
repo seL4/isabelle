@@ -32,13 +32,13 @@ object Symbol
 
   /* basic matching */
 
-  def is_open(c: Char): Boolean =
-    c == '\\' || Character.isHighSurrogate(c)
+  def is_closed(c: Char): Boolean =
+    !(c == '\\' || Character.isHighSurrogate(c))
 
-  def is_open(s: CharSequence): Boolean =
+  def is_closed(s: CharSequence): Boolean =
   {
-    if (s.length == 1) is_open(s.charAt(0))
-    else bad_symbol.pattern.matcher(s).matches
+    if (s.length == 1) is_closed(s.charAt(0))
+    else !bad_symbol.pattern.matcher(s).matches
   }
 
   class Matcher(text: CharSequence)
@@ -47,11 +47,11 @@ object Symbol
     def apply(start: Int, end: Int): Int =
     {
       require(0 <= start && start < end && end <= text.length)
-      if (is_open(text.charAt(start))) {
+      if (is_closed(text.charAt(start))) 1
+      else {
         matcher.region(start, end).lookingAt
         matcher.group.length
       }
-      else 1
     }
   }
 
@@ -225,7 +225,16 @@ object Symbol
 
     /* classification */
 
-    private val raw_letters = Set(
+    private object Decode_Set
+    {
+      def apply(elems: String*): Set[String] =
+      {
+        val content = elems.toList
+        Set((content ::: content.map(decode)): _*)
+      }
+    }
+
+    private val letters = Decode_Set(
       "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
       "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
       "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
@@ -260,24 +269,18 @@ object Symbol
 
       "\\<^isub>", "\\<^isup>")
 
-    private val letters = raw_letters ++ raw_letters.map(decode(_))
+    private val blanks =
+      Decode_Set(" ", "\t", "\n", "\u000B", "\f", "\r", "\\<spacespace>", "\\<^newline>")
+
+    private val sym_chars =
+      Set("!", "#", "$", "%", "&", "*", "+", "-", "/", "<", "=", ">", "?", "@", "^", "_", "|", "~")
 
     def is_letter(sym: String): Boolean = letters.contains(sym)
-
-    def is_digit(sym: String): Boolean =
-      if (sym.length == 1) {
-        val c = sym(0)
-        '0' <= c && c <= '9'
-      }
-      else false
-
+    def is_digit(sym: String): Boolean = sym.length == 1 && '0' <= sym(0) && sym(0) <= '9'
     def is_quasi(sym: String): Boolean = sym == "_" || sym == "'"
-
-
-    private val raw_blanks =
-      Set(" ", "\t", "\n", "\u000B", "\f", "\r", "\\<spacespace>", "\\<^newline>")
-    private val blanks = raw_blanks ++ raw_blanks.map(decode(_))
-
+    def is_letdig(sym: String): Boolean = is_letter(sym) || is_digit(sym) || is_quasi(sym)
     def is_blank(sym: String): Boolean = blanks.contains(sym)
+    def is_symbolic_char(sym: String): Boolean = sym_chars.contains(sym)
+    def is_symbolic(sym: String): Boolean = sym.startsWith("\\<") && !sym.startsWith("\\<^")
   }
 }
