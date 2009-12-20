@@ -168,14 +168,16 @@ object Scan
     def many1(pred: String => Boolean): Parser[String] = symbols(pred, 1, Integer.MAX_VALUE)
 
 
-    /* delimited text */
+    /* quoted strings */
 
-    def quoted(quote: String) =
+    private def quoted(quote: String): Parser[String] =
+    {
       quote ~
         rep(many1(sym => sym != quote && sym != "\\" && Symbol.is_closed(sym)) |
           "\\" + quote | "\\\\" |
           (("""\\\d\d\d""".r) ^? { case x if x.substring(1, 4).toInt <= 255 => x })) ~
       quote ^^ { case x ~ ys ~ z => x + ys.mkString + z }
+    }.named("quoted")
 
     def quoted_content(quote: String, source: String): String =
     {
@@ -184,13 +186,57 @@ object Scan
     }
 
 
-    def verbatim =
+    /* verbatim text */
+
+    private def verbatim: Parser[String] =
+    {
       "{*" ~ rep(many1(sym => sym != "*" && Symbol.is_closed(sym)) | """\*(?!\})""".r) ~ "*}" ^^
         { case x ~ ys ~ z => x + ys.mkString + z }
+    }.named("verbatim")
 
     def verbatim_content(source: String): String =
     {
       require(parseAll(verbatim, source).successful)
+      source.substring(2, source.length - 2)
+    }
+
+
+    /* nested comments */
+
+    def comment: Parser[String] = new Parser[String]
+    {
+      val comment_text =
+        rep(many1(sym => sym != "*" && sym != "(" && Symbol.is_closed(sym)) |
+          """\*(?!\))|\((?!\*)""".r)
+      val comment_open = "(*" ~ comment_text ^^ (_ => ())
+      val comment_close = comment_text ~ "*)" ^^ (_ => ())
+
+      def apply(in: Input) =
+      {
+        var rest = in
+        def try_parse(p: Parser[Unit]): Boolean =
+        {
+          parse(p, rest) match {
+            case Success(_, next) => { rest = next; true }
+            case _ => false
+          }
+        }
+        var depth = 0
+        var finished = false
+        while (!finished) {
+          if (try_parse(comment_open)) depth += 1
+          else if (depth > 0 && try_parse(comment_close)) depth -= 1
+          else finished = true
+        }
+        if (in.offset < rest.offset && depth == 0)
+          Success(in.source.subSequence(in.offset, rest.offset).toString, rest)
+        else Failure("comment expected", in)
+      }
+    }.named("comment")
+
+    def comment_content(source: String): String =
+    {
+      require(parseAll(comment, source).successful)
       source.substring(2, source.length - 2)
     }
 
@@ -224,8 +270,6 @@ object Scan
       val string = quoted("\"") ^^ String_Token
       val alt_string = quoted("`") ^^ Alt_String_Token
 
-      val comment: Parser[Token] = failure("FIXME")
-
       val bad_input = many1(sym => !(symbols.is_blank(sym))) ^^ Bad_Input
 
 
@@ -233,11 +277,10 @@ object Scan
 
       // FIXME right-assoc !?
 
-      (string | alt_string | verbatim ^^ Verbatim | comment | space) |
+      (string | alt_string | verbatim ^^ Verbatim | comment ^^ Comment | space) |
       ((ident | var_ | type_ident | type_var | nat_ | sym_ident) |||
         keyword ^^ (x => if (is_command(x)) Command(x) else Keyword(x))) |
       bad_input
     }
   }
 }
-

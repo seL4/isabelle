@@ -89,6 +89,7 @@ object Outer_Lex
 
   case class Comment(val source: String) extends Token
   {
+    override def content = Scan.Lexicon.empty.comment_content(source)
     override def is_delimited = true
     override def is_comment = true
   }
