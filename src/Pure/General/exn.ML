@@ -1,4 +1,4 @@
-(*  Title:      Pure/ML-Systems/exn.ML
+(*  Title:      Pure/General/exn.ML
     Author:     Makarius
 
 Extra support for exceptions.
@@ -6,7 +6,7 @@ Extra support for exceptions.
 
 signature EXN =
 sig
-  datatype 'a result = Exn of exn | Result of 'a
+  datatype 'a result = Result of 'a | Exn of exn
   val get_result: 'a result -> 'a option
   val get_exn: 'a result -> exn option
   val capture: ('a -> 'b) -> 'a -> 'b result

@@ -29,36 +29,45 @@ object Symbol
   // total pattern
   val regex = new Regex(plain + "|" + symbol + "|" + bad_symbol + "| .")
 
-  // prefix of another symbol
-  def is_open(s: CharSequence): Boolean =
+
+  /* basic matching */
+
+  def is_closed(c: Char): Boolean =
+    !(c == '\\' || Character.isHighSurrogate(c))
+
+  def is_closed(s: CharSequence): Boolean =
   {
-    val len = s.length
-    len == 1 && Character.isHighSurrogate(s.charAt(0)) ||
-    s == "\\" ||
-    s == "\\<" ||
-    len > 2 && s.charAt(len - 1) != '>'
+    if (s.length == 1) is_closed(s.charAt(0))
+    else !bad_symbol.pattern.matcher(s).matches
+  }
+
+  class Matcher(text: CharSequence)
+  {
+    private val matcher = regex.pattern.matcher(text)
+    def apply(start: Int, end: Int): Int =
+    {
+      require(0 <= start && start < end && end <= text.length)
+      if (is_closed(text.charAt(start))) 1
+      else {
+        matcher.region(start, end).lookingAt
+        matcher.group.length
+      }
+    }
   }
 
 
   /* elements */
 
-  private def could_open(c: Char): Boolean =
-    c == '\\' || Character.isHighSurrogate(c)
-
-  def elements(text: CharSequence) = new Iterator[String] {
-    private val matcher = regex.pattern.matcher(text)
+  def elements(text: CharSequence) = new Iterator[CharSequence]
+  {
+    private val matcher = new Matcher(text)
     private var i = 0
     def hasNext = i < text.length
     def next = {
-      val len =
-        if (could_open(text.charAt(i))) {
-          matcher.region(i, text.length).lookingAt
-          matcher.group.length
-        }
-        else 1
-      val s = text.subSequence(i, i + len)
-      i += len
-      s.toString
+      val n = matcher(i, text.length)
+      val s = text.subSequence(i, i + n)
+      i += n
+      s
     }
   }
 
@@ -70,20 +79,15 @@ object Symbol
     case class Entry(chr: Int, sym: Int)
     val index: Array[Entry] =
     {
-      val matcher = regex.pattern.matcher(text)
+      val matcher = new Matcher(text)
       val buf = new mutable.ArrayBuffer[Entry]
       var chr = 0
       var sym = 0
       while (chr < text.length) {
-        val len =
-          if (could_open(text.charAt(chr))) {
-            matcher.region(chr, text.length).lookingAt
-            matcher.group.length
-          }
-          else 1
-        chr += len
+        val n = matcher(chr, text.length)
+        chr += n
         sym += 1
-        if (len > 1) buf += Entry(chr, sym)
+        if (n > 1) buf += Entry(chr, sym)
       }
       buf.toArray
     }
@@ -152,7 +156,7 @@ object Symbol
 
   /** Symbol interpretation **/
 
-  class Interpretation(symbol_decls: Iterator[String])
+  class Interpretation(symbol_decls: List[String])
   {
     /* read symbols */
 
@@ -179,13 +183,14 @@ object Symbol
     }
 
     private val symbols: List[(String, Map[String, String])] =
-      for (decl <- symbol_decls.toList if !empty.pattern.matcher(decl).matches)
+      for (decl <- symbol_decls if !empty.pattern.matcher(decl).matches)
         yield read_decl(decl)
 
 
     /* misc properties */
 
-    val names: Map[String, String] = {
+    val names: Map[String, String] =
+    {
       val name = new Regex("""\\<([A-Za-z][A-Za-z0-9_']*)>""")
       Map((for ((sym @ name(a), _) <- symbols) yield (sym -> a)): _*)
     }
@@ -216,5 +221,66 @@ object Symbol
 
     def decode(text: String): String = decoder.recode(text)
     def encode(text: String): String = encoder.recode(text)
+
+
+    /* classification */
+
+    private object Decode_Set
+    {
+      def apply(elems: String*): Set[String] =
+      {
+        val content = elems.toList
+        Set((content ::: content.map(decode)): _*)
+      }
+    }
+
+    private val letters = Decode_Set(
+      "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+      "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+      "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
+      "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
+
+      "\\<A>", "\\<B>", "\\<C>", "\\<D>", "\\<E>", "\\<F>", "\\<G>",
+      "\\<H>", "\\<I>", "\\<J>", "\\<K>", "\\<L>", "\\<M>", "\\<N>",
+      "\\<O>", "\\<P>", "\\<Q>", "\\<R>", "\\<S>", "\\<T>", "\\<U>",
+      "\\<V>", "\\<W>", "\\<X>", "\\<Y>", "\\<Z>", "\\<a>", "\\<b>",
+      "\\<c>", "\\<d>", "\\<e>", "\\<f>", "\\<g>", "\\<h>", "\\<i>",
+      "\\<j>", "\\<k>", "\\<l>", "\\<m>", "\\<n>", "\\<o>", "\\<p>",
+      "\\<q>", "\\<r>", "\\<s>", "\\<t>", "\\<u>", "\\<v>", "\\<w>",
+      "\\<x>", "\\<y>", "\\<z>",
+
+      "\\<AA>", "\\<BB>", "\\<CC>", "\\<DD>", "\\<EE>", "\\<FF>",
+      "\\<GG>", "\\<HH>", "\\<II>", "\\<JJ>", "\\<KK>", "\\<LL>",
+      "\\<MM>", "\\<NN>", "\\<OO>", "\\<PP>", "\\<QQ>", "\\<RR>",
+      "\\<SS>", "\\<TT>", "\\<UU>", "\\<VV>", "\\<WW>", "\\<XX>",
+      "\\<YY>", "\\<ZZ>", "\\<aa>", "\\<bb>", "\\<cc>", "\\<dd>",
+      "\\<ee>", "\\<ff>", "\\<gg>", "\\<hh>", "\\<ii>", "\\<jj>",
+      "\\<kk>", "\\<ll>", "\\<mm>", "\\<nn>", "\\<oo>", "\\<pp>",
+      "\\<qq>", "\\<rr>", "\\<ss>", "\\<tt>", "\\<uu>", "\\<vv>",
+      "\\<ww>", "\\<xx>", "\\<yy>", "\\<zz>",
+
+      "\\<alpha>", "\\<beta>", "\\<gamma>", "\\<delta>", "\\<epsilon>",
+      "\\<zeta>", "\\<eta>", "\\<theta>", "\\<iota>", "\\<kappa>",
+      "\\<mu>", "\\<nu>", "\\<xi>", "\\<pi>", "\\<rho>", "\\<sigma>",
+      "\\<tau>", "\\<upsilon>", "\\<phi>", "\\<chi>", "\\<psi>",
+      "\\<omega>", "\\<Gamma>", "\\<Delta>", "\\<Theta>", "\\<Lambda>",
+      "\\<Xi>", "\\<Pi>", "\\<Sigma>", "\\<Upsilon>", "\\<Phi>",
+      "\\<Psi>", "\\<Omega>",
+
+      "\\<^isub>", "\\<^isup>")
+
+    private val blanks =
+      Decode_Set(" ", "\t", "\n", "\u000B", "\f", "\r", "\\<spacespace>", "\\<^newline>")
+
+    private val sym_chars =
+      Set("!", "#", "$", "%", "&", "*", "+", "-", "/", "<", "=", ">", "?", "@", "^", "_", "|", "~")
+
+    def is_letter(sym: String): Boolean = letters.contains(sym)
+    def is_digit(sym: String): Boolean = sym.length == 1 && '0' <= sym(0) && sym(0) <= '9'
+    def is_quasi(sym: String): Boolean = sym == "_" || sym == "'"
+    def is_letdig(sym: String): Boolean = is_letter(sym) || is_digit(sym) || is_quasi(sym)
+    def is_blank(sym: String): Boolean = blanks.contains(sym)
+    def is_symbolic_char(sym: String): Boolean = sym_chars.contains(sym)
+    def is_symbolic(sym: String): Boolean = sym.startsWith("\\<") && !sym.startsWith("\\<^")
   }
 }

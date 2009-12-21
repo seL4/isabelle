@@ -316,14 +316,14 @@ class Isabelle_System
 
   /* symbols */
 
-  private def read_symbols(path: String): Iterator[String] =
+  private def read_symbols(path: String): List[String] =
   {
     val file = new File(platform_path(path))
-    if (file.isFile) Source.fromFile(file).getLines
-    else Iterator.empty
+    if (file.isFile) Source.fromFile(file).getLines.toList
+    else Nil
   }
   val symbols = new Symbol.Interpretation(
-    read_symbols("$ISABELLE_HOME/etc/symbols") ++
+    read_symbols("$ISABELLE_HOME/etc/symbols") :::
     read_symbols("$ISABELLE_HOME_USER/etc/symbols"))
 
 
