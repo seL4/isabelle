@@ -59,8 +59,8 @@ text {*
   time as the intermediate terms are @{text "O(log(n))"} in size and
   the types needed have size bounded by K.  To enable this analagous
   traversal, we define the functions seen below: @{text
-  "istuple_fst"}, @{text "istuple_snd"}, @{text "istuple_fst_update"}
-  and @{text "istuple_snd_update"}. These functions generalise tuple
+  "iso_tuple_fst"}, @{text "iso_tuple_snd"}, @{text "iso_tuple_fst_update"}
+  and @{text "iso_tuple_snd_update"}. These functions generalise tuple
   operations by taking a parameter that encapsulates a tuple
   isomorphism.  The rewrites needed on these functions now need an
   additional assumption which is that the isomorphism works.
@@ -79,278 +79,259 @@ text {*
 
 subsection {* Operators and lemmas for types isomorphic to tuples *}
 
-datatype ('a, 'b, 'c) tuple_isomorphism = TupleIsomorphism "'a \<Rightarrow> 'b \<times> 'c" "'b \<times> 'c \<Rightarrow> 'a"
+datatype ('a, 'b, 'c) tuple_isomorphism = Tuple_Isomorphism "'a \<Rightarrow> 'b \<times> 'c" "'b \<times> 'c \<Rightarrow> 'a"
 
 primrec repr :: "('a, 'b, 'c) tuple_isomorphism \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'c" where
-  "repr (TupleIsomorphism r a) = r"
+  "repr (Tuple_Isomorphism r a) = r"
 
 primrec abst :: "('a, 'b, 'c) tuple_isomorphism \<Rightarrow> 'b \<times> 'c \<Rightarrow> 'a" where
-  "abst (TupleIsomorphism r a) = a"
+  "abst (Tuple_Isomorphism r a) = a"
 
-definition istuple_fst :: "('a, 'b, 'c) tuple_isomorphism \<Rightarrow> 'a \<Rightarrow> 'b" where
-  "istuple_fst isom = fst \<circ> repr isom"
+definition iso_tuple_fst :: "('a, 'b, 'c) tuple_isomorphism \<Rightarrow> 'a \<Rightarrow> 'b" where
+  "iso_tuple_fst isom = fst \<circ> repr isom"
 
-definition istuple_snd :: "('a, 'b, 'c) tuple_isomorphism \<Rightarrow> 'a \<Rightarrow> 'c" where
-  "istuple_snd isom = snd \<circ> repr isom"
+definition iso_tuple_snd :: "('a, 'b, 'c) tuple_isomorphism \<Rightarrow> 'a \<Rightarrow> 'c" where
+  "iso_tuple_snd isom = snd \<circ> repr isom"
 
-definition istuple_fst_update :: "('a, 'b, 'c) tuple_isomorphism \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'a)" where
-  "istuple_fst_update isom f = abst isom \<circ> apfst f \<circ> repr isom"
+definition iso_tuple_fst_update :: "('a, 'b, 'c) tuple_isomorphism \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'a)" where
+  "iso_tuple_fst_update isom f = abst isom \<circ> apfst f \<circ> repr isom"
 
-definition istuple_snd_update :: "('a, 'b, 'c) tuple_isomorphism \<Rightarrow> ('c \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'a)" where
-  "istuple_snd_update isom f = abst isom \<circ> apsnd f \<circ> repr isom"
+definition iso_tuple_snd_update :: "('a, 'b, 'c) tuple_isomorphism \<Rightarrow> ('c \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'a)" where
+  "iso_tuple_snd_update isom f = abst isom \<circ> apsnd f \<circ> repr isom"
 
-definition istuple_cons :: "('a, 'b, 'c) tuple_isomorphism \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'a" where
-  "istuple_cons isom = curry (abst isom)"
+definition iso_tuple_cons :: "('a, 'b, 'c) tuple_isomorphism \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'a" where
+  "iso_tuple_cons isom = curry (abst isom)"
 
 
 subsection {* Logical infrastructure for records *}
 
-definition istuple_surjective_proof_assist :: "'a \<Rightarrow> 'b \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
-  "istuple_surjective_proof_assist x y f \<longleftrightarrow> f x = y"
+definition iso_tuple_surjective_proof_assist :: "'a \<Rightarrow> 'b \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
+  "iso_tuple_surjective_proof_assist x y f \<longleftrightarrow> f x = y"
 
-definition istuple_update_accessor_cong_assist :: "(('b \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'a)) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
-  "istuple_update_accessor_cong_assist upd acc \<longleftrightarrow> 
+definition iso_tuple_update_accessor_cong_assist :: "(('b \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'a)) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
+  "iso_tuple_update_accessor_cong_assist upd acc \<longleftrightarrow> 
      (\<forall>f v. upd (\<lambda>x. f (acc v)) v = upd f v) \<and> (\<forall>v. upd id v = v)"
 
-definition istuple_update_accessor_eq_assist :: "(('b \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'a)) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool" where
-  "istuple_update_accessor_eq_assist upd acc v f v' x \<longleftrightarrow>
-     upd f v = v' \<and> acc v = x \<and> istuple_update_accessor_cong_assist upd acc"
+definition iso_tuple_update_accessor_eq_assist :: "(('b \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'a)) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool" where
+  "iso_tuple_update_accessor_eq_assist upd acc v f v' x \<longleftrightarrow>
+     upd f v = v' \<and> acc v = x \<and> iso_tuple_update_accessor_cong_assist upd acc"
 
 lemma update_accessor_congruence_foldE:
-  assumes uac: "istuple_update_accessor_cong_assist upd acc"
+  assumes uac: "iso_tuple_update_accessor_cong_assist upd acc"
   and       r: "r = r'" and v: "acc r' = v'"
   and       f: "\<And>v. v' = v \<Longrightarrow> f v = f' v"
   shows        "upd f r = upd f' r'"
   using uac r v [symmetric]
   apply (subgoal_tac "upd (\<lambda>x. f (acc r')) r' = upd (\<lambda>x. f' (acc r')) r'")
-   apply (simp add: istuple_update_accessor_cong_assist_def)
+   apply (simp add: iso_tuple_update_accessor_cong_assist_def)
   apply (simp add: f)
   done
 
 lemma update_accessor_congruence_unfoldE:
-  "istuple_update_accessor_cong_assist upd acc \<Longrightarrow> r = r' \<Longrightarrow> acc r' = v' \<Longrightarrow> (\<And>v. v = v' \<Longrightarrow> f v = f' v)
+  "iso_tuple_update_accessor_cong_assist upd acc \<Longrightarrow> r = r' \<Longrightarrow> acc r' = v' \<Longrightarrow> (\<And>v. v = v' \<Longrightarrow> f v = f' v)
      \<Longrightarrow> upd f r = upd f' r'"
   apply (erule(2) update_accessor_congruence_foldE)
   apply simp
   done
 
-lemma istuple_update_accessor_cong_assist_id:
-  "istuple_update_accessor_cong_assist upd acc \<Longrightarrow> upd id = id"
-  by rule (simp add: istuple_update_accessor_cong_assist_def)
+lemma iso_tuple_update_accessor_cong_assist_id:
+  "iso_tuple_update_accessor_cong_assist upd acc \<Longrightarrow> upd id = id"
+  by rule (simp add: iso_tuple_update_accessor_cong_assist_def)
 
 lemma update_accessor_noopE:
-  assumes uac: "istuple_update_accessor_cong_assist upd acc"
+  assumes uac: "iso_tuple_update_accessor_cong_assist upd acc"
       and acc: "f (acc x) = acc x"
   shows        "upd f x = x"
-using uac by (simp add: acc istuple_update_accessor_cong_assist_id [OF uac, unfolded id_def]
+using uac by (simp add: acc iso_tuple_update_accessor_cong_assist_id [OF uac, unfolded id_def]
   cong: update_accessor_congruence_unfoldE [OF uac])
 
 lemma update_accessor_noop_compE:
-  assumes uac: "istuple_update_accessor_cong_assist upd acc"
+  assumes uac: "iso_tuple_update_accessor_cong_assist upd acc"
   assumes acc: "f (acc x) = acc x"
   shows      "upd (g \<circ> f) x = upd g x"
   by (simp add: acc cong: update_accessor_congruence_unfoldE[OF uac])
 
 lemma update_accessor_cong_assist_idI:
-  "istuple_update_accessor_cong_assist id id"
-  by (simp add: istuple_update_accessor_cong_assist_def)
+  "iso_tuple_update_accessor_cong_assist id id"
+  by (simp add: iso_tuple_update_accessor_cong_assist_def)
 
 lemma update_accessor_cong_assist_triv:
-  "istuple_update_accessor_cong_assist upd acc \<Longrightarrow> istuple_update_accessor_cong_assist upd acc"
+  "iso_tuple_update_accessor_cong_assist upd acc \<Longrightarrow> iso_tuple_update_accessor_cong_assist upd acc"
   by assumption
 
 lemma update_accessor_accessor_eqE:
-  "istuple_update_accessor_eq_assist upd acc v f v' x \<Longrightarrow> acc v = x"
-  by (simp add: istuple_update_accessor_eq_assist_def)
+  "iso_tuple_update_accessor_eq_assist upd acc v f v' x \<Longrightarrow> acc v = x"
+  by (simp add: iso_tuple_update_accessor_eq_assist_def)
 
 lemma update_accessor_updator_eqE:
-  "istuple_update_accessor_eq_assist upd acc v f v' x \<Longrightarrow> upd f v = v'"
-  by (simp add: istuple_update_accessor_eq_assist_def)
+  "iso_tuple_update_accessor_eq_assist upd acc v f v' x \<Longrightarrow> upd f v = v'"
+  by (simp add: iso_tuple_update_accessor_eq_assist_def)
 
-lemma istuple_update_accessor_eq_assist_idI:
-  "v' = f v \<Longrightarrow> istuple_update_accessor_eq_assist id id v f v' v"
-  by (simp add: istuple_update_accessor_eq_assist_def update_accessor_cong_assist_idI)
+lemma iso_tuple_update_accessor_eq_assist_idI:
+  "v' = f v \<Longrightarrow> iso_tuple_update_accessor_eq_assist id id v f v' v"
+  by (simp add: iso_tuple_update_accessor_eq_assist_def update_accessor_cong_assist_idI)
 
-lemma istuple_update_accessor_eq_assist_triv:
-  "istuple_update_accessor_eq_assist upd acc v f v' x \<Longrightarrow> istuple_update_accessor_eq_assist upd acc v f v' x"
+lemma iso_tuple_update_accessor_eq_assist_triv:
+  "iso_tuple_update_accessor_eq_assist upd acc v f v' x \<Longrightarrow> iso_tuple_update_accessor_eq_assist upd acc v f v' x"
   by assumption
 
-lemma istuple_update_accessor_cong_from_eq:
-  "istuple_update_accessor_eq_assist upd acc v f v' x \<Longrightarrow> istuple_update_accessor_cong_assist upd acc"
-  by (simp add: istuple_update_accessor_eq_assist_def)
+lemma iso_tuple_update_accessor_cong_from_eq:
+  "iso_tuple_update_accessor_eq_assist upd acc v f v' x \<Longrightarrow> iso_tuple_update_accessor_cong_assist upd acc"
+  by (simp add: iso_tuple_update_accessor_eq_assist_def)
 
-lemma o_eq_dest:
-  "a o b = c o d \<Longrightarrow> a (b v) = c (d v)"
-  apply (clarsimp simp: o_def)
-  apply (erule fun_cong)
-  done
+lemma iso_tuple_surjective_proof_assistI:
+  "f x = y \<Longrightarrow> iso_tuple_surjective_proof_assist x y f"
+  by (simp add: iso_tuple_surjective_proof_assist_def)
 
-lemma o_eq_elim:
-  "a o b = c o d \<Longrightarrow> ((\<And>v. a (b v) = c (d v)) \<Longrightarrow> R) \<Longrightarrow> R"
-  apply (erule meta_mp)
-  apply (erule o_eq_dest)
-  done
-
-lemma istuple_surjective_proof_assistI:
-  "f x = y \<Longrightarrow> istuple_surjective_proof_assist x y f"
-  by (simp add: istuple_surjective_proof_assist_def)
-
-lemma istuple_surjective_proof_assist_idE:
-  "istuple_surjective_proof_assist x y id \<Longrightarrow> x = y"
-  by (simp add: istuple_surjective_proof_assist_def)
+lemma iso_tuple_surjective_proof_assist_idE:
+  "iso_tuple_surjective_proof_assist x y id \<Longrightarrow> x = y"
+  by (simp add: iso_tuple_surjective_proof_assist_def)
 
 locale isomorphic_tuple =
   fixes isom :: "('a, 'b, 'c) tuple_isomorphism"
-    and repr and abst
-  defines "repr \<equiv> Record.repr isom"
-  defines "abst \<equiv> Record.abst isom"
-  assumes repr_inv: "\<And>x. abst (repr x) = x"
-  assumes abst_inv: "\<And>y. repr (abst y) = y"
+  assumes repr_inv: "\<And>x. abst isom (repr isom x) = x"
+  assumes abst_inv: "\<And>y. repr isom (abst isom y) = y"
 begin
 
 lemma repr_inj:
-  "repr x = repr y \<longleftrightarrow> x = y"
-  apply (rule iffI, simp_all)
-  apply (drule_tac f=abst in arg_cong, simp add: repr_inv)
-  done
+  "repr isom x = repr isom y \<longleftrightarrow> x = y"
+  by (auto dest: arg_cong [of "repr isom x" "repr isom y" "abst isom"] simp add: repr_inv)
 
 lemma abst_inj:
-  "abst x = abst y \<longleftrightarrow> x = y"
-  apply (rule iffI, simp_all)
-  apply (drule_tac f=repr in arg_cong, simp add: abst_inv)
-  done
+  "abst isom x = abst isom y \<longleftrightarrow> x = y"
+  by (auto dest: arg_cong [of "abst isom x" "abst isom y" "repr isom"] simp add: abst_inv)
 
-lemmas simps = Let_def repr_inv abst_inv repr_inj abst_inj repr_def [symmetric] abst_def [symmetric]
+lemmas simps = Let_def repr_inv abst_inv repr_inj abst_inj
 
-lemma istuple_access_update_fst_fst:
+lemma iso_tuple_access_update_fst_fst:
   "f o h g = j o f \<Longrightarrow>
-    (f o istuple_fst isom) o (istuple_fst_update isom o h) g
-          = j o (f o istuple_fst isom)"
-  by (clarsimp simp: istuple_fst_update_def istuple_fst_def simps
+    (f o iso_tuple_fst isom) o (iso_tuple_fst_update isom o h) g
+          = j o (f o iso_tuple_fst isom)"
+  by (clarsimp simp: iso_tuple_fst_update_def iso_tuple_fst_def simps
              intro!: ext elim!: o_eq_elim)
 
-lemma istuple_access_update_snd_snd:
+lemma iso_tuple_access_update_snd_snd:
   "f o h g = j o f \<Longrightarrow>
-    (f o istuple_snd isom) o (istuple_snd_update isom o h) g
-          = j o (f o istuple_snd isom)"
-  by (clarsimp simp: istuple_snd_update_def istuple_snd_def simps
+    (f o iso_tuple_snd isom) o (iso_tuple_snd_update isom o h) g
+          = j o (f o iso_tuple_snd isom)"
+  by (clarsimp simp: iso_tuple_snd_update_def iso_tuple_snd_def simps
              intro!: ext elim!: o_eq_elim)
 
-lemma istuple_access_update_fst_snd:
-  "(f o istuple_fst isom) o (istuple_snd_update isom o h) g
-          = id o (f o istuple_fst isom)"
-  by (clarsimp simp: istuple_snd_update_def istuple_fst_def simps
+lemma iso_tuple_access_update_fst_snd:
+  "(f o iso_tuple_fst isom) o (iso_tuple_snd_update isom o h) g
+          = id o (f o iso_tuple_fst isom)"
+  by (clarsimp simp: iso_tuple_snd_update_def iso_tuple_fst_def simps
              intro!: ext elim!: o_eq_elim)
 
-lemma istuple_access_update_snd_fst:
-  "(f o istuple_snd isom) o (istuple_fst_update isom o h) g
-          = id o (f o istuple_snd isom)"
-  by (clarsimp simp: istuple_fst_update_def istuple_snd_def simps
+lemma iso_tuple_access_update_snd_fst:
+  "(f o iso_tuple_snd isom) o (iso_tuple_fst_update isom o h) g
+          = id o (f o iso_tuple_snd isom)"
+  by (clarsimp simp: iso_tuple_fst_update_def iso_tuple_snd_def simps
              intro!: ext elim!: o_eq_elim)
 
-lemma istuple_update_swap_fst_fst:
+lemma iso_tuple_update_swap_fst_fst:
   "h f o j g = j g o h f \<Longrightarrow>
-    (istuple_fst_update isom o h) f o (istuple_fst_update isom o j) g
-          = (istuple_fst_update isom o j) g o (istuple_fst_update isom o h) f"
-  by (clarsimp simp: istuple_fst_update_def simps apfst_compose intro!: ext)
+    (iso_tuple_fst_update isom o h) f o (iso_tuple_fst_update isom o j) g
+          = (iso_tuple_fst_update isom o j) g o (iso_tuple_fst_update isom o h) f"
+  by (clarsimp simp: iso_tuple_fst_update_def simps apfst_compose intro!: ext)
 
-lemma istuple_update_swap_snd_snd:
+lemma iso_tuple_update_swap_snd_snd:
   "h f o j g = j g o h f \<Longrightarrow>
-    (istuple_snd_update isom o h) f o (istuple_snd_update isom o j) g
-          = (istuple_snd_update isom o j) g o (istuple_snd_update isom o h) f"
-  by (clarsimp simp: istuple_snd_update_def simps apsnd_compose intro!: ext)
+    (iso_tuple_snd_update isom o h) f o (iso_tuple_snd_update isom o j) g
+          = (iso_tuple_snd_update isom o j) g o (iso_tuple_snd_update isom o h) f"
+  by (clarsimp simp: iso_tuple_snd_update_def simps apsnd_compose intro!: ext)
 
-lemma istuple_update_swap_fst_snd:
-  "(istuple_snd_update isom o h) f o (istuple_fst_update isom o j) g
-          = (istuple_fst_update isom o j) g o (istuple_snd_update isom o h) f"
-  by (clarsimp simp: istuple_fst_update_def istuple_snd_update_def simps intro!: ext)
+lemma iso_tuple_update_swap_fst_snd:
+  "(iso_tuple_snd_update isom o h) f o (iso_tuple_fst_update isom o j) g
+          = (iso_tuple_fst_update isom o j) g o (iso_tuple_snd_update isom o h) f"
+  by (clarsimp simp: iso_tuple_fst_update_def iso_tuple_snd_update_def simps intro!: ext)
 
-lemma istuple_update_swap_snd_fst:
-  "(istuple_fst_update isom o h) f o (istuple_snd_update isom o j) g
-          = (istuple_snd_update isom o j) g o (istuple_fst_update isom o h) f"
-  by (clarsimp simp: istuple_fst_update_def istuple_snd_update_def simps intro!: ext)
+lemma iso_tuple_update_swap_snd_fst:
+  "(iso_tuple_fst_update isom o h) f o (iso_tuple_snd_update isom o j) g
+          = (iso_tuple_snd_update isom o j) g o (iso_tuple_fst_update isom o h) f"
+  by (clarsimp simp: iso_tuple_fst_update_def iso_tuple_snd_update_def simps intro!: ext)
 
-lemma istuple_update_compose_fst_fst:
+lemma iso_tuple_update_compose_fst_fst:
   "h f o j g = k (f o g) \<Longrightarrow>
-    (istuple_fst_update isom o h) f o (istuple_fst_update isom o j) g
-          = (istuple_fst_update isom o k) (f o g)"
-  by (clarsimp simp: istuple_fst_update_def simps apfst_compose intro!: ext)
+    (iso_tuple_fst_update isom o h) f o (iso_tuple_fst_update isom o j) g
+          = (iso_tuple_fst_update isom o k) (f o g)"
+  by (clarsimp simp: iso_tuple_fst_update_def simps apfst_compose intro!: ext)
 
-lemma istuple_update_compose_snd_snd:
+lemma iso_tuple_update_compose_snd_snd:
   "h f o j g = k (f o g) \<Longrightarrow>
-    (istuple_snd_update isom o h) f o (istuple_snd_update isom o j) g
-          = (istuple_snd_update isom o k) (f o g)"
-  by (clarsimp simp: istuple_snd_update_def simps apsnd_compose intro!: ext)
+    (iso_tuple_snd_update isom o h) f o (iso_tuple_snd_update isom o j) g
+          = (iso_tuple_snd_update isom o k) (f o g)"
+  by (clarsimp simp: iso_tuple_snd_update_def simps apsnd_compose intro!: ext)
 
-lemma istuple_surjective_proof_assist_step:
-  "istuple_surjective_proof_assist v a (istuple_fst isom o f) \<Longrightarrow>
-     istuple_surjective_proof_assist v b (istuple_snd isom o f)
-      \<Longrightarrow> istuple_surjective_proof_assist v (istuple_cons isom a b) f"
-  by (clarsimp simp: istuple_surjective_proof_assist_def simps
-    istuple_fst_def istuple_snd_def istuple_cons_def)
+lemma iso_tuple_surjective_proof_assist_step:
+  "iso_tuple_surjective_proof_assist v a (iso_tuple_fst isom o f) \<Longrightarrow>
+     iso_tuple_surjective_proof_assist v b (iso_tuple_snd isom o f)
+      \<Longrightarrow> iso_tuple_surjective_proof_assist v (iso_tuple_cons isom a b) f"
+  by (clarsimp simp: iso_tuple_surjective_proof_assist_def simps
+    iso_tuple_fst_def iso_tuple_snd_def iso_tuple_cons_def)
 
-lemma istuple_fst_update_accessor_cong_assist:
-  assumes "istuple_update_accessor_cong_assist f g"
-  shows "istuple_update_accessor_cong_assist (istuple_fst_update isom o f) (g o istuple_fst isom)"
+lemma iso_tuple_fst_update_accessor_cong_assist:
+  assumes "iso_tuple_update_accessor_cong_assist f g"
+  shows "iso_tuple_update_accessor_cong_assist (iso_tuple_fst_update isom o f) (g o iso_tuple_fst isom)"
 proof -
-  from assms have "f id = id" by (rule istuple_update_accessor_cong_assist_id)
-  with assms show ?thesis by (clarsimp simp: istuple_update_accessor_cong_assist_def simps
-    istuple_fst_update_def istuple_fst_def)
+  from assms have "f id = id" by (rule iso_tuple_update_accessor_cong_assist_id)
+  with assms show ?thesis by (clarsimp simp: iso_tuple_update_accessor_cong_assist_def simps
+    iso_tuple_fst_update_def iso_tuple_fst_def)
 qed
 
-lemma istuple_snd_update_accessor_cong_assist:
-  assumes "istuple_update_accessor_cong_assist f g"
-  shows "istuple_update_accessor_cong_assist (istuple_snd_update isom o f) (g o istuple_snd isom)"
+lemma iso_tuple_snd_update_accessor_cong_assist:
+  assumes "iso_tuple_update_accessor_cong_assist f g"
+  shows "iso_tuple_update_accessor_cong_assist (iso_tuple_snd_update isom o f) (g o iso_tuple_snd isom)"
 proof -
-  from assms have "f id = id" by (rule istuple_update_accessor_cong_assist_id)
-  with assms show ?thesis by (clarsimp simp: istuple_update_accessor_cong_assist_def simps
-    istuple_snd_update_def istuple_snd_def)
+  from assms have "f id = id" by (rule iso_tuple_update_accessor_cong_assist_id)
+  with assms show ?thesis by (clarsimp simp: iso_tuple_update_accessor_cong_assist_def simps
+    iso_tuple_snd_update_def iso_tuple_snd_def)
 qed
 
-lemma istuple_fst_update_accessor_eq_assist:
-  assumes "istuple_update_accessor_eq_assist f g a u a' v"
-  shows "istuple_update_accessor_eq_assist (istuple_fst_update isom o f) (g o istuple_fst isom)
-    (istuple_cons isom a b) u (istuple_cons isom a' b) v"
+lemma iso_tuple_fst_update_accessor_eq_assist:
+  assumes "iso_tuple_update_accessor_eq_assist f g a u a' v"
+  shows "iso_tuple_update_accessor_eq_assist (iso_tuple_fst_update isom o f) (g o iso_tuple_fst isom)
+    (iso_tuple_cons isom a b) u (iso_tuple_cons isom a' b) v"
 proof -
   from assms have "f id = id"
-    by (auto simp add: istuple_update_accessor_eq_assist_def intro: istuple_update_accessor_cong_assist_id)
-  with assms show ?thesis by (clarsimp simp: istuple_update_accessor_eq_assist_def
-    istuple_fst_update_def istuple_fst_def istuple_update_accessor_cong_assist_def istuple_cons_def simps)
+    by (auto simp add: iso_tuple_update_accessor_eq_assist_def intro: iso_tuple_update_accessor_cong_assist_id)
+  with assms show ?thesis by (clarsimp simp: iso_tuple_update_accessor_eq_assist_def
+    iso_tuple_fst_update_def iso_tuple_fst_def iso_tuple_update_accessor_cong_assist_def iso_tuple_cons_def simps)
 qed
 
-lemma istuple_snd_update_accessor_eq_assist:
-  assumes "istuple_update_accessor_eq_assist f g b u b' v"
-  shows "istuple_update_accessor_eq_assist (istuple_snd_update isom o f) (g o istuple_snd isom)
-    (istuple_cons isom a b) u (istuple_cons isom a b') v"
+lemma iso_tuple_snd_update_accessor_eq_assist:
+  assumes "iso_tuple_update_accessor_eq_assist f g b u b' v"
+  shows "iso_tuple_update_accessor_eq_assist (iso_tuple_snd_update isom o f) (g o iso_tuple_snd isom)
+    (iso_tuple_cons isom a b) u (iso_tuple_cons isom a b') v"
 proof -
   from assms have "f id = id"
-    by (auto simp add: istuple_update_accessor_eq_assist_def intro: istuple_update_accessor_cong_assist_id)
-  with assms show ?thesis by (clarsimp simp: istuple_update_accessor_eq_assist_def
-    istuple_snd_update_def istuple_snd_def istuple_update_accessor_cong_assist_def istuple_cons_def simps)
+    by (auto simp add: iso_tuple_update_accessor_eq_assist_def intro: iso_tuple_update_accessor_cong_assist_id)
+  with assms show ?thesis by (clarsimp simp: iso_tuple_update_accessor_eq_assist_def
+    iso_tuple_snd_update_def iso_tuple_snd_def iso_tuple_update_accessor_cong_assist_def iso_tuple_cons_def simps)
 qed
 
-lemma istuple_cons_conj_eqI:
+lemma iso_tuple_cons_conj_eqI:
   "a = c \<and> b = d \<and> P \<longleftrightarrow> Q \<Longrightarrow>
-    istuple_cons isom a b = istuple_cons isom c d \<and> P \<longleftrightarrow> Q"
-  by (clarsimp simp: istuple_cons_def simps)
+    iso_tuple_cons isom a b = iso_tuple_cons isom c d \<and> P \<longleftrightarrow> Q"
+  by (clarsimp simp: iso_tuple_cons_def simps)
 
 lemmas intros =
-    istuple_access_update_fst_fst
-    istuple_access_update_snd_snd
-    istuple_access_update_fst_snd
-    istuple_access_update_snd_fst
-    istuple_update_swap_fst_fst
-    istuple_update_swap_snd_snd
-    istuple_update_swap_fst_snd
-    istuple_update_swap_snd_fst
-    istuple_update_compose_fst_fst
-    istuple_update_compose_snd_snd
-    istuple_surjective_proof_assist_step
-    istuple_fst_update_accessor_eq_assist
-    istuple_snd_update_accessor_eq_assist
-    istuple_fst_update_accessor_cong_assist
-    istuple_snd_update_accessor_cong_assist
-    istuple_cons_conj_eqI
+    iso_tuple_access_update_fst_fst
+    iso_tuple_access_update_snd_snd
+    iso_tuple_access_update_fst_snd
+    iso_tuple_access_update_snd_fst
+    iso_tuple_update_swap_fst_fst
+    iso_tuple_update_swap_snd_snd
+    iso_tuple_update_swap_fst_snd
+    iso_tuple_update_swap_snd_fst
+    iso_tuple_update_compose_fst_fst
+    iso_tuple_update_compose_snd_snd
+    iso_tuple_surjective_proof_assist_step
+    iso_tuple_fst_update_accessor_eq_assist
+    iso_tuple_snd_update_accessor_eq_assist
+    iso_tuple_fst_update_accessor_cong_assist
+    iso_tuple_snd_update_accessor_cong_assist
+    iso_tuple_cons_conj_eqI
 
 end
 
@@ -358,29 +339,32 @@ lemma isomorphic_tuple_intro:
   fixes repr abst
   assumes repr_inj: "\<And>x y. repr x = repr y \<longleftrightarrow> x = y"
      and abst_inv: "\<And>z. repr (abst z) = z"
-  assumes v: "v \<equiv> TupleIsomorphism repr abst"
+  assumes v: "v \<equiv> Tuple_Isomorphism repr abst"
   shows "isomorphic_tuple v"
-  apply (rule isomorphic_tuple.intro)
-  apply (simp_all add: abst_inv v)
-  apply (cut_tac x="abst (repr x)" and y="x" in repr_inj)
-  apply (simp add: abst_inv)
-  done
+proof
+  have "\<And>x. repr (abst (repr x)) = repr x"
+    by (simp add: abst_inv)
+  then show "\<And>x. Record.abst v (Record.repr v x) = x"
+    by (simp add: v repr_inj)
+  show P: "\<And>y. Record.repr v (Record.abst v y) = y"
+    by (simp add: v) (fact abst_inv)
+qed
 
 definition
-  "tuple_istuple \<equiv> TupleIsomorphism id id"
+  "tuple_iso_tuple \<equiv> Tuple_Isomorphism id id"
 
-lemma tuple_istuple:
-  "isomorphic_tuple tuple_istuple"
-  by (simp add: isomorphic_tuple_intro [OF _ _ reflexive] tuple_istuple_def)
+lemma tuple_iso_tuple:
+  "isomorphic_tuple tuple_iso_tuple"
+  by (simp add: isomorphic_tuple_intro [OF _ _ reflexive] tuple_iso_tuple_def)
 
 lemma refl_conj_eq:
   "Q = R \<Longrightarrow> P \<and> Q \<longleftrightarrow> P \<and> R"
   by simp
 
-lemma istuple_UNIV_I: "x \<in> UNIV \<equiv> True"
+lemma iso_tuple_UNIV_I: "x \<in> UNIV \<equiv> True"
   by simp
 
-lemma istuple_True_simp: "(True \<Longrightarrow> PROP P) \<equiv> PROP P"
+lemma iso_tuple_True_simp: "(True \<Longrightarrow> PROP P) \<equiv> PROP P"
   by simp
 
 lemma prop_subst: "s = t \<Longrightarrow> PROP P t \<Longrightarrow> PROP P s"
@@ -437,9 +421,9 @@ subsection {* Record package *}
 use "Tools/record.ML"
 setup Record.setup
 
-hide (open) const TupleIsomorphism repr abst istuple_fst istuple_snd
-  istuple_fst_update istuple_snd_update istuple_cons
-  istuple_surjective_proof_assist istuple_update_accessor_cong_assist
-  istuple_update_accessor_eq_assist tuple_istuple
+hide (open) const Tuple_Isomorphism repr abst iso_tuple_fst iso_tuple_snd
+  iso_tuple_fst_update iso_tuple_snd_update iso_tuple_cons
+  iso_tuple_surjective_proof_assist iso_tuple_update_accessor_cong_assist
+  iso_tuple_update_accessor_eq_assist tuple_iso_tuple
 
 end
