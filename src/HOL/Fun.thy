@@ -74,6 +74,14 @@ by (simp add: comp_def)
 lemma o_id [simp]: "f o id = f"
 by (simp add: comp_def)
 
+lemma o_eq_dest:
+  "a o b = c o d \<Longrightarrow> a (b v) = c (d v)"
+  by (simp only: o_def) (fact fun_cong)
+
+lemma o_eq_elim:
+  "a o b = c o d \<Longrightarrow> ((\<And>v. a (b v) = c (d v)) \<Longrightarrow> R) \<Longrightarrow> R"
+  by (erule meta_mp) (fact o_eq_dest) 
+
 lemma image_compose: "(f o g) ` r = f`(g`r)"
 by (simp add: comp_def, blast)
 

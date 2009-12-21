@@ -6,9 +6,8 @@ Serializer from intermediate language ("Thin-gol") to target languages.
 
 signature CODE_TARGET =
 sig
-  include CODE_PRINTER
-
   type serializer
+  type literals = Code_Printer.literals
   val add_target: string * (serializer * literals) -> theory -> theory
   val extend_target: string *
       (string * (Code_Thingol.naming -> Code_Thingol.program -> Code_Thingol.program))
@@ -39,6 +38,8 @@ sig
   val shell_command: string (*theory name*) -> string (*export_code expr*) -> unit
 
   val allow_abort: string -> theory -> theory
+  type tyco_syntax = Code_Printer.tyco_syntax
+  type proto_const_syntax = Code_Printer.proto_const_syntax
   val add_syntax_class: string -> class -> string option -> theory -> theory
   val add_syntax_inst: string -> class * string -> unit option -> theory -> theory
   val add_syntax_tyco: string -> string -> tyco_syntax option -> theory -> theory
@@ -51,7 +52,11 @@ structure Code_Target : CODE_TARGET =
 struct
 
 open Basic_Code_Thingol;
-open Code_Printer;
+
+type literals = Code_Printer.literals;
+type tyco_syntax = Code_Printer.tyco_syntax;
+type proto_const_syntax = Code_Printer.proto_const_syntax;
+
 
 (** basics **)
 
@@ -78,8 +83,8 @@ fun mk_serialization target (SOME comp) _ _ code Compile = (comp code; NONE)
 datatype name_syntax_table = NameSyntaxTable of {
   class: string Symtab.table,
   instance: unit Symreltab.table,
-  tyco: tyco_syntax Symtab.table,
-  const: proto_const_syntax Symtab.table
+  tyco: Code_Printer.tyco_syntax Symtab.table,
+  const: Code_Printer.proto_const_syntax Symtab.table
 };
 
 fun mk_name_syntax_table ((class, instance), (tyco, const)) =
@@ -103,14 +108,14 @@ type serializer =
   -> (string * Pretty.T) list           (*includes*)
   -> (string -> string option)          (*module aliasses*)
   -> (string -> string option)          (*class syntax*)
-  -> (string -> tyco_syntax option)
-  -> (string -> const_syntax option)
+  -> (string -> Code_Printer.tyco_syntax option)
+  -> (string -> Code_Printer.const_syntax option)
   -> ((Pretty.T -> string) * (Pretty.T -> unit))
   -> Code_Thingol.program
   -> string list                        (*selected statements*)
   -> serialization;
 
-datatype serializer_entry = Serializer of serializer * literals
+datatype serializer_entry = Serializer of serializer * Code_Printer.literals
   | Extends of string * (Code_Thingol.naming -> Code_Thingol.program -> Code_Thingol.program);
 
 datatype target = Target of {
@@ -273,7 +278,7 @@ fun invoke_serializer thy abortable serializer literals reserved abs_includes
     serializer module args (Code_Thingol.labelled_name thy program2) reserved includes
       (Symtab.lookup module_alias) (Symtab.lookup class')
       (Symtab.lookup tyco') (Symtab.lookup const')
-      (string_of_pretty width, writeln_pretty width)
+      (Code_Printer.string_of_pretty width, Code_Printer.writeln_pretty width)
       program4 names2
   end;
 
@@ -396,32 +401,32 @@ fun cert_inst thy (class, tyco) =
 fun read_inst thy (raw_tyco, raw_class) =
   (read_class thy raw_class, read_tyco thy raw_tyco);
 
-fun gen_add_syntax upd del mapp check_x get_check_syn prep target raw_x some_syn thy =
+fun gen_add_syntax upd del mapp check_x check_raw_syn prep_syn prep_x target raw_x some_raw_syn thy =
   let
-    val x = prep thy raw_x;
-    fun check_syn thy syn = ();
-  in case some_syn
-   of SOME syn => (map_name_syntax target o mapp) (upd (x, (check_x thy x; check_syn thy syn; syn))) thy
+    val x = prep_x thy raw_x |> tap (check_x thy);
+    fun prep_check raw_syn = prep_syn (raw_syn |> tap (check_raw_syn thy target));
+  in case some_raw_syn
+   of SOME raw_syn => (map_name_syntax target o mapp) (upd (x, prep_check raw_syn)) thy
     | NONE => (map_name_syntax target o mapp) (del x) thy
   end;
 
-fun gen_add_syntax_class prep =
-  gen_add_syntax Symtab.update Symtab.delete_safe (apfst o apfst) (K I) I prep;
+fun gen_add_syntax_class prep_class =
+  gen_add_syntax Symtab.update Symtab.delete_safe (apfst o apfst) (K I) ((K o K o K) ()) I prep_class;
 
-fun gen_add_syntax_inst prep =
-  gen_add_syntax Symreltab.update Symreltab.delete_safe (apfst o apsnd) (K I) I prep;
+fun gen_add_syntax_inst prep_inst =
+  gen_add_syntax Symreltab.update Symreltab.delete_safe (apfst o apsnd) (K I) ((K o K o K) ()) I prep_inst;
 
-fun gen_add_syntax_tyco prep =
+fun gen_add_syntax_tyco prep_tyco =
   gen_add_syntax Symtab.update Symtab.delete_safe (apsnd o apfst)
     (fn thy => fn tyco => fn (n, _) => if n <> Sign.arity_number thy tyco
       then error ("Number of arguments mismatch in syntax for type constructor " ^ quote tyco)
-      else ()) I prep;
+      else ()) ((K o K o K) ()) I prep_tyco;
 
-fun gen_add_syntax_const prep =
+fun gen_add_syntax_const prep_const check_raw_syn prep_syn =
   gen_add_syntax Symtab.update Symtab.delete_safe (apsnd o apsnd)
     (fn thy => fn c => fn (n, _) => if n > Code.args_number thy c
       then error ("Too many arguments in syntax for constant " ^ quote c)
-      else ()) I prep;
+      else ()) check_raw_syn prep_syn prep_const;
 
 fun add_reserved target =
   let
@@ -438,7 +443,7 @@ fun gen_add_include read_const target args thy =
               then warning ("Overwriting existing include " ^ name)
               else ();
             val cs = map (read_const thy) raw_cs;
-          in Symtab.update (name, (str content, cs)) incls end
+          in Symtab.update (name, (Code_Printer.str content, cs)) incls end
       | add (name, NONE) incls = Symtab.delete name incls;
   in map_includes target (add args) thy end;
 
@@ -460,12 +465,6 @@ fun gen_allow_abort prep_const raw_c thy =
     val c = prep_const thy raw_c;
   in thy |> (CodeTargetData.map o apfst o apsnd) (insert (op =) c) end;
 
-fun zip_list (x::xs) f g =
-  f
-  #-> (fn y =>
-    fold_map (fn x => g |-- f >> pair x) xs
-    #-> (fn xys => pair ((x, y) :: xys)));
-
 
 (* concrete syntax *)
 
@@ -473,6 +472,12 @@ local
 
 structure P = OuterParse
 and K = OuterKeyword
+
+fun zip_list (x::xs) f g =
+  f
+  #-> (fn y =>
+    fold_map (fn x => g |-- f >> pair x) xs
+    #-> (fn xys => pair ((x, y) :: xys)));
 
 fun parse_multi_syntax parse_thing parse_syntax =
   P.and_list1 parse_thing
@@ -484,7 +489,8 @@ in
 val add_syntax_class = gen_add_syntax_class cert_class;
 val add_syntax_inst = gen_add_syntax_inst cert_inst;
 val add_syntax_tyco = gen_add_syntax_tyco cert_tyco;
-val add_syntax_const = gen_add_syntax_const (K I);
+val add_syntax_const_simple = gen_add_syntax_const (K I) ((K o K o K) ()) Code_Printer.simple_const_syntax;
+val add_syntax_const = gen_add_syntax_const (K I) ((K o K o K) ()) I;
 val allow_abort = gen_allow_abort (K I);
 val add_reserved = add_reserved;
 val add_include = add_include;
@@ -492,7 +498,9 @@ val add_include = add_include;
 val add_syntax_class_cmd = gen_add_syntax_class read_class;
 val add_syntax_inst_cmd = gen_add_syntax_inst read_inst;
 val add_syntax_tyco_cmd = gen_add_syntax_tyco read_tyco;
-val add_syntax_const_cmd = gen_add_syntax_const Code.read_const;
+val add_syntax_const_simple_cmd = gen_add_syntax_const Code.read_const ((K o K o K) ()) Code_Printer.simple_const_syntax;
+val add_syntax_const_cmd = gen_add_syntax_const Code.read_const ((K o K o K) ()) I;
+
 val allow_abort_cmd = gen_allow_abort Code.read_const;
 
 fun parse_args f args =
@@ -524,25 +532,23 @@ val _ =
 
 val _ =
   OuterSyntax.command "code_instance" "define code syntax for instance" K.thy_decl (
-    parse_multi_syntax (P.xname --| P.$$$ "::" -- P.xname)
-      (Scan.option (P.minus >> K ()))
+    parse_multi_syntax (P.xname --| P.$$$ "::" -- P.xname) (Scan.option (P.minus >> K ()))
     >> (Toplevel.theory oo fold) (fn (target, syns) =>
           fold (fn (raw_inst, add_del) => add_syntax_inst_cmd target raw_inst add_del) syns)
   );
 
 val _ =
   OuterSyntax.command "code_type" "define code syntax for type constructor" K.thy_decl (
-    parse_multi_syntax P.xname (parse_syntax I)
+    parse_multi_syntax P.xname (Code_Printer.parse_syntax I)
     >> (Toplevel.theory oo fold) (fn (target, syns) =>
           fold (fn (raw_tyco, syn) => add_syntax_tyco_cmd target raw_tyco syn) syns)
   );
 
 val _ =
   OuterSyntax.command "code_const" "define code syntax for constant" K.thy_decl (
-    parse_multi_syntax P.term_group (parse_syntax fst)
+    parse_multi_syntax P.term_group (Code_Printer.parse_syntax fst)
     >> (Toplevel.theory oo fold) (fn (target, syns) =>
-      fold (fn (raw_const, syn) => add_syntax_const_cmd target raw_const
-        (Code_Printer.simple_const_syntax syn)) syns)
+      fold (fn (raw_const, syn) => add_syntax_const_simple_cmd target raw_const syn) syns)
   );
 
 val _ =

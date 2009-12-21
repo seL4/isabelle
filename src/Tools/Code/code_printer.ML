@@ -59,16 +59,16 @@ sig
   val brackify_block: fixity -> Pretty.T -> Pretty.T list -> Pretty.T -> Pretty.T
 
   type tyco_syntax
-  type const_syntax
+  type simple_const_syntax
   type proto_const_syntax
+  type const_syntax
   val parse_infix: ('a -> 'b) -> lrx * int -> string
     -> int * ((fixity -> 'b -> Pretty.T)
     -> fixity -> 'a list -> Pretty.T)
   val parse_syntax: ('a -> 'b) -> OuterParse.token list
     -> (int * ((fixity -> 'b -> Pretty.T)
     -> fixity -> 'a list -> Pretty.T)) option * OuterParse.token list
-  val simple_const_syntax: (int * ((fixity -> iterm -> Pretty.T)
-    -> fixity -> (iterm * itype) list -> Pretty.T)) option -> proto_const_syntax option
+  val simple_const_syntax: simple_const_syntax -> proto_const_syntax
   val activate_const_syntax: theory -> literals
     -> proto_const_syntax -> Code_Thingol.naming -> const_syntax * Code_Thingol.naming
   val gen_print_app: (thm -> var_ctxt -> const * iterm list -> Pretty.T list)
@@ -219,15 +219,17 @@ fun brackify_block fxy_ctxt p1 ps p2 =
 
 type tyco_syntax = int * ((fixity -> itype -> Pretty.T)
   -> fixity -> itype list -> Pretty.T);
-type const_syntax = int * ((var_ctxt -> fixity -> iterm -> Pretty.T)
-  -> thm -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T);
+
+type simple_const_syntax = int * ((fixity -> iterm -> Pretty.T)
+  -> fixity -> (iterm * itype) list -> Pretty.T);
 type proto_const_syntax = int * (string list * (literals -> string list
   -> (var_ctxt -> fixity -> iterm -> Pretty.T)
     -> thm -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T));
+type const_syntax = int * ((var_ctxt -> fixity -> iterm -> Pretty.T)
+  -> thm -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T);
 
-fun simple_const_syntax (SOME (n, f)) = SOME (n,
-      ([], (fn _ => fn _ => fn print => fn thm => fn vars => f (print vars))))
-  | simple_const_syntax NONE = NONE;
+val simple_const_syntax =
+  apsnd (fn f => ([], (fn _ => fn _ => fn print => fn _ => fn vars => f (print vars))));
 
 fun activate_const_syntax thy literals (n, (cs, f)) naming =
   fold_map (Code_Thingol.ensure_declared_const thy) cs naming
@@ -307,7 +309,7 @@ val (infixK, infixlK, infixrK) = ("infix", "infixl", "infixr");
 
 fun parse_syntax prep_arg xs =
   Scan.option ((
-      ((OuterParse.$$$ infixK  >> K X)
+      ((OuterParse.$$$ infixK >> K X)
         || (OuterParse.$$$ infixlK >> K L)
         || (OuterParse.$$$ infixrK >> K R))
         -- OuterParse.nat >> parse_infix prep_arg

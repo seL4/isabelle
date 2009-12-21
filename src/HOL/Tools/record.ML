@@ -50,24 +50,24 @@ sig
 end;
 
 
-signature ISTUPLE_SUPPORT =
+signature ISO_TUPLE_SUPPORT =
 sig
-  val add_istuple_type: bstring * string list -> typ * typ -> theory -> (term * term) * theory
+  val add_iso_tuple_type: bstring * string list -> typ * typ -> theory -> (term * term) * theory
   val mk_cons_tuple: term * term -> term
   val dest_cons_tuple: term -> term * term
-  val istuple_intros_tac: int -> tactic
+  val iso_tuple_intros_tac: int -> tactic
   val named_cterm_instantiate: (string * cterm) list -> thm -> thm
 end;
 
-structure IsTupleSupport: ISTUPLE_SUPPORT =
+structure Iso_Tuple_Support: ISO_TUPLE_SUPPORT =
 struct
 
-val isomN = "_TupleIsom";
+val isoN = "_Tuple_Iso";
 
-val istuple_intro = @{thm isomorphic_tuple_intro};
-val istuple_intros = Tactic.build_net @{thms isomorphic_tuple.intros};
+val iso_tuple_intro = @{thm isomorphic_tuple_intro};
+val iso_tuple_intros = Tactic.build_net @{thms isomorphic_tuple.intros};
 
-val tuple_istuple = (@{const_name tuple_istuple}, @{thm tuple_istuple});
+val tuple_iso_tuple = (@{const_name tuple_iso_tuple}, @{thm tuple_iso_tuple});
 
 fun named_cterm_instantiate values thm =
   let
@@ -81,10 +81,10 @@ fun named_cterm_instantiate values thm =
     cterm_instantiate (map (apfst getvar) values) thm
   end;
 
-structure IsTupleThms = Theory_Data
+structure Iso_Tuple_Thms = Theory_Data
 (
   type T = thm Symtab.table;
-  val empty = Symtab.make [tuple_istuple];
+  val empty = Symtab.make [tuple_iso_tuple];
   val extend = I;
   fun merge data = Symtab.merge Thm.eq_thm_prop data;   (* FIXME handle Symtab.DUP ?? *)
 );
@@ -96,7 +96,7 @@ fun do_typedef name repT alphas thy =
         val SOME {Rep_inject = rep_inject, Abs_name = absN, abs_type = absT,
           Abs_inverse = abs_inverse, ...} = Typedef.get_info thy name;
         val rewrite_rule =
-          MetaSimplifier.rewrite_rule [@{thm istuple_UNIV_I}, @{thm istuple_True_simp}];
+          MetaSimplifier.rewrite_rule [@{thm iso_tuple_UNIV_I}, @{thm iso_tuple_True_simp}];
       in
         (map rewrite_rule [rep_inject, abs_inverse], Const (absN, repT --> absT), absT)
       end;
@@ -112,14 +112,14 @@ fun mk_cons_tuple (left, right) =
     val prodT = HOLogic.mk_prodT (leftT, rightT);
     val isomT = Type (@{type_name tuple_isomorphism}, [prodT, leftT, rightT]);
   in
-    Const (@{const_name istuple_cons}, isomT --> leftT --> rightT --> prodT) $
-      Const (fst tuple_istuple, isomT) $ left $ right
+    Const (@{const_name iso_tuple_cons}, isomT --> leftT --> rightT --> prodT) $
+      Const (fst tuple_iso_tuple, isomT) $ left $ right
   end;
 
-fun dest_cons_tuple (Const (@{const_name istuple_cons}, _) $ Const _ $ t $ u) = (t, u)
+fun dest_cons_tuple (Const (@{const_name iso_tuple_cons}, _) $ Const _ $ t $ u) = (t, u)
   | dest_cons_tuple t = raise TERM ("dest_cons_tuple", [t]);
 
-fun add_istuple_type (name, alphas) (leftT, rightT) thy =
+fun add_iso_tuple_type (name, alphas) (leftT, rightT) thy =
   let
     val repT = HOLogic.mk_prodT (leftT, rightT);
 
@@ -131,39 +131,39 @@ fun add_istuple_type (name, alphas) (leftT, rightT) thy =
     (*construct a type and body for the isomorphism constant by
       instantiating the theorem to which the definition will be applied*)
     val intro_inst =
-      rep_inject RS named_cterm_instantiate [("abst", cterm_of typ_thy absC)] istuple_intro;
+      rep_inject RS named_cterm_instantiate [("abst", cterm_of typ_thy absC)] iso_tuple_intro;
     val (_, body) = Logic.dest_equals (List.last (prems_of intro_inst));
     val isomT = fastype_of body;
-    val isom_bind = Binding.name (name ^ isomN);
+    val isom_bind = Binding.name (name ^ isoN);
     val isom_name = Sign.full_name typ_thy isom_bind;
     val isom = Const (isom_name, isomT);
-    val isom_spec = (Thm.def_name (name ^ isomN), Logic.mk_equals (isom, body));
+    val isom_spec = (Thm.def_name (name ^ isoN), Logic.mk_equals (isom, body));
 
     val ([isom_def], cdef_thy) =
       typ_thy
       |> Sign.add_consts_i [Syntax.no_syn (isom_bind, isomT)]
       |> PureThy.add_defs false [Thm.no_attributes (apfst Binding.name isom_spec)];
 
-    val istuple = isom_def RS (abs_inverse RS (rep_inject RS istuple_intro));
-    val cons = Const (@{const_name istuple_cons}, isomT --> leftT --> rightT --> absT);
+    val iso_tuple = isom_def RS (abs_inverse RS (rep_inject RS iso_tuple_intro));
+    val cons = Const (@{const_name iso_tuple_cons}, isomT --> leftT --> rightT --> absT);
 
     val thm_thy =
       cdef_thy
-      |> IsTupleThms.map (Symtab.insert Thm.eq_thm_prop (isom_name, istuple))
+      |> Iso_Tuple_Thms.map (Symtab.insert Thm.eq_thm_prop (isom_name, iso_tuple))
       |> Sign.parent_path
       |> Code.add_default_eqn isom_def;
   in
     ((isom, cons $ isom), thm_thy)
   end;
 
-val istuple_intros_tac = resolve_from_net_tac istuple_intros THEN'
+val iso_tuple_intros_tac = resolve_from_net_tac iso_tuple_intros THEN'
   CSUBGOAL (fn (cgoal, i) =>
     let
       val thy = Thm.theory_of_cterm cgoal;
       val goal = Thm.term_of cgoal;
 
-      val isthms = IsTupleThms.get thy;
-      fun err s t = raise TERM ("istuple_intros_tac: " ^ s, [t]);
+      val isthms = Iso_Tuple_Thms.get thy;
+      fun err s t = raise TERM ("iso_tuple_intros_tac: " ^ s, [t]);
 
       val goal' = Envir.beta_eta_contract goal;
       val is =
@@ -197,13 +197,13 @@ val Not_eq_iff = @{thm Not_eq_iff};
 
 val refl_conj_eq = @{thm refl_conj_eq};
 
-val surject_assistI = @{thm "istuple_surjective_proof_assistI"};
-val surject_assist_idE = @{thm "istuple_surjective_proof_assist_idE"};
+val surject_assistI = @{thm "iso_tuple_surjective_proof_assistI"};
+val surject_assist_idE = @{thm "iso_tuple_surjective_proof_assist_idE"};
 
 val updacc_accessor_eqE = @{thm "update_accessor_accessor_eqE"};
 val updacc_updator_eqE = @{thm "update_accessor_updator_eqE"};
-val updacc_eq_idI = @{thm "istuple_update_accessor_eq_assist_idI"};
-val updacc_eq_triv = @{thm "istuple_update_accessor_eq_assist_triv"};
+val updacc_eq_idI = @{thm "iso_tuple_update_accessor_eq_assist_idI"};
+val updacc_eq_triv = @{thm "iso_tuple_update_accessor_eq_assist_triv"};
 
 val updacc_foldE = @{thm "update_accessor_congruence_foldE"};
 val updacc_unfoldE = @{thm "update_accessor_congruence_unfoldE"};
@@ -211,7 +211,7 @@ val updacc_noopE = @{thm "update_accessor_noopE"};
 val updacc_noop_compE = @{thm "update_accessor_noop_compE"};
 val updacc_cong_idI = @{thm "update_accessor_cong_assist_idI"};
 val updacc_cong_triv = @{thm "update_accessor_cong_assist_triv"};
-val updacc_cong_from_eq = @{thm "istuple_update_accessor_cong_from_eq"};
+val updacc_cong_from_eq = @{thm "iso_tuple_update_accessor_cong_from_eq"};
 
 val o_eq_dest = @{thm o_eq_dest};
 val o_eq_id_dest = @{thm o_eq_id_dest};
@@ -1066,7 +1066,7 @@ fun get_accupd_simps thy term defset =
           Goal.prove (ProofContext.init thy) [] [] prop
             (fn _ =>
               simp_tac defset 1 THEN
-              REPEAT_DETERM (IsTupleSupport.istuple_intros_tac 1) THEN
+              REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac 1) THEN
               TRY (simp_tac (HOL_ss addsimps id_o_apps) 1));
         val dest =
           if is_sel_upd_pair thy acc upd
@@ -1089,7 +1089,7 @@ fun get_updupd_simp thy defset u u' comp =
       Goal.prove (ProofContext.init thy) [] [] prop
         (fn _ =>
           simp_tac defset 1 THEN
-          REPEAT_DETERM (IsTupleSupport.istuple_intros_tac 1) THEN
+          REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac 1) THEN
           TRY (simp_tac (HOL_ss addsimps [id_apply]) 1));
     val dest = if comp then o_eq_dest_lhs else o_eq_dest;
   in Drule.standard (othm RS dest) end;
@@ -1117,7 +1117,7 @@ fun get_updupd_simps thy term defset =
           else swaps_needed us (u :: prev) (Symtab.insert (K true) (cname u, ()) seen) swaps;
   in swaps_needed upd_funs [] Symtab.empty Symreltab.empty end;
 
-val named_cterm_instantiate = IsTupleSupport.named_cterm_instantiate;
+val named_cterm_instantiate = Iso_Tuple_Support.named_cterm_instantiate;
 
 fun prove_unfold_defs thy ex_simps ex_simprs prop =
   let
@@ -1222,7 +1222,7 @@ fun get_upd_acc_cong_thm upd acc thy simpset =
     Goal.prove (ProofContext.init thy) [] [] prop
       (fn _ =>
         simp_tac simpset 1 THEN
-        REPEAT_DETERM (IsTupleSupport.istuple_intros_tac 1) THEN
+        REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac 1) THEN
         TRY (resolve_tac [updacc_cong_idI] 1))
   end;
 
@@ -1612,22 +1612,22 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
     (*before doing anything else, create the tree of new types
       that will back the record extension*)
 
-    val mktreeV = Balanced_Tree.make IsTupleSupport.mk_cons_tuple;
+    val mktreeV = Balanced_Tree.make Iso_Tuple_Support.mk_cons_tuple;
 
-    fun mk_istuple (left, right) (thy, i) =
+    fun mk_iso_tuple (left, right) (thy, i) =
       let
         val suff = if i = 0 then ext_typeN else inner_typeN ^ string_of_int i;
         val nm = suffix suff (Long_Name.base_name name);
         val ((_, cons), thy') =
-          IsTupleSupport.add_istuple_type
+          Iso_Tuple_Support.add_iso_tuple_type
             (nm, alphas_zeta) (fastype_of left, fastype_of right) thy;
       in
         (cons $ left $ right, (thy', i + 1))
       end;
 
-    (*trying to create a 1-element istuple will fail, and is pointless anyway*)
-    fun mk_even_istuple [arg] = pair arg
-      | mk_even_istuple args = mk_istuple (IsTupleSupport.dest_cons_tuple (mktreeV args));
+    (*trying to create a 1-element iso_tuple will fail, and is pointless anyway*)
+    fun mk_even_iso_tuple [arg] = pair arg
+      | mk_even_iso_tuple args = mk_iso_tuple (Iso_Tuple_Support.dest_cons_tuple (mktreeV args));
 
     fun build_meta_tree_type i thy vars more =
       let val len = length vars in
@@ -1637,12 +1637,12 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
             fun group16 [] = []
               | group16 xs = take 16 xs :: group16 (drop 16 xs);
             val vars' = group16 vars;
-            val (composites, (thy', i')) = fold_map mk_even_istuple vars' (thy, i);
+            val (composites, (thy', i')) = fold_map mk_even_iso_tuple vars' (thy, i);
           in
             build_meta_tree_type i' thy' composites more
           end
         else
-          let val (term, (thy', _)) = mk_istuple (mktreeV vars, more) (thy, 0)
+          let val (term, (thy', _)) = mk_iso_tuple (mktreeV vars, more) (thy, 0)
           in (term, thy') end
       end;
 
@@ -1712,7 +1712,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
             simp_tac (HOL_basic_ss addsimps [ext_def]) 1 THEN
             REPEAT_DETERM
               (rtac refl_conj_eq 1 ORELSE
-                IsTupleSupport.istuple_intros_tac 1 ORELSE
+                Iso_Tuple_Support.iso_tuple_intros_tac 1 ORELSE
                 rtac refl 1)));
 
     val inject = timeit_msg "record extension inject proof:" inject_prf;
@@ -1730,7 +1730,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
         val start = named_cterm_instantiate [("y", cterm_ext)] surject_assist_idE;
         val tactic1 =
           simp_tac (HOL_basic_ss addsimps [ext_def]) 1 THEN
-          REPEAT_ALL_NEW IsTupleSupport.istuple_intros_tac 1;
+          REPEAT_ALL_NEW Iso_Tuple_Support.iso_tuple_intros_tac 1;
         val tactic2 = REPEAT (rtac surject_assistI 1 THEN rtac refl 1);
         val [halfway] = Seq.list_of (tactic1 start);
         val [surject] = Seq.list_of (tactic2 (Drule.standard halfway));
@@ -1954,7 +1954,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     val ext_defs = ext_def :: map #extdef parents;
 
-    (*Theorems from the istuple intros.
+    (*Theorems from the iso_tuple intros.
       This is complex enough to deserve a full comment.
       By unfolding ext_defs from r_rec0 we create a tree of constructor
       calls (many of them Pair, but others as well). The introduction
@@ -1979,7 +1979,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
         val terminal = rtac updacc_eq_idI 1 THEN rtac refl 1;
         val tactic =
           simp_tac (HOL_basic_ss addsimps ext_defs) 1 THEN
-          REPEAT (IsTupleSupport.istuple_intros_tac 1 ORELSE terminal);
+          REPEAT (Iso_Tuple_Support.iso_tuple_intros_tac 1 ORELSE terminal);
         val updaccs = Seq.list_of (tactic init_thm);
       in
         (updaccs RL [updacc_accessor_eqE],
@@ -2207,7 +2207,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
              [rtac surject_assist_idE 1,
               simp_tac init_ss 1,
               REPEAT
-                (IsTupleSupport.istuple_intros_tac 1 ORELSE
+                (Iso_Tuple_Support.iso_tuple_intros_tac 1 ORELSE
                   (rtac surject_assistI 1 THEN simp_tac leaf_ss 1))])
       end;
     val surjective = timeit_msg "record surjective proof:" surjective_prf;
