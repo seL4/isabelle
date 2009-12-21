@@ -28,12 +28,11 @@
 %
 \begin{isamarkuptext}%
 We have already seen how by default equations stemming from
-  \hyperlink{command.definition}{\mbox{\isa{\isacommand{definition}}}}/\hyperlink{command.primrec}{\mbox{\isa{\isacommand{primrec}}}}/\hyperlink{command.fun}{\mbox{\isa{\isacommand{fun}}}}
+  \hyperlink{command.definition}{\mbox{\isa{\isacommand{definition}}}}, \hyperlink{command.primrec}{\mbox{\isa{\isacommand{primrec}}}} and \hyperlink{command.fun}{\mbox{\isa{\isacommand{fun}}}}
   statements are used for code generation.  This default behaviour
-  can be changed, e.g. by providing different code equations.
-  All kinds of customisation shown in this section is \emph{safe}
-  in the sense that the user does not have to worry about
-  correctness -- all programs generatable that way are partially
+  can be changed, e.g.\ by providing different code equations.
+  The customisations shown in this section are \emph{safe}
+  as regards correctness: all programs that can be generated are partially
   correct.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -88,10 +87,10 @@ Coming back to our introductory example, we
 \isatypewriter%
 \noindent%
 \hspace*{0pt}dequeue ::~forall a.~Queue a -> (Maybe a,~Queue a);\\
-\hspace*{0pt}dequeue (AQueue xs (y :~ys)) = (Just y,~AQueue xs ys);\\
-\hspace*{0pt}dequeue (AQueue xs []) =\\
+\hspace*{0pt}dequeue {\char123}{\char92}isacharparenleft{\char125}AQueue xs {\char123}{\char92}isacharparenleft{\char125}y :~ys{\char123}{\char92}isacharparenright{\char125}{\char123}{\char92}isacharparenright{\char125}~= (Just y,~AQueue xs ys);\\
+\hspace*{0pt}dequeue {\char123}{\char92}isacharparenleft{\char125}AQueue xs []{\char123}{\char92}isacharparenright{\char125}~=\\
 \hspace*{0pt} ~(if nulla xs then (Nothing,~AQueue [] [])\\
-\hspace*{0pt} ~~~else dequeue (AQueue [] (rev xs)));%
+\hspace*{0pt} ~~~else dequeue {\char123}{\char92}isacharparenleft{\char125}AQueue [] {\char123}{\char92}isacharparenleft{\char125}rev xs{\char123}{\char92}isacharparenright{\char125}{\char123}{\char92}isacharparenright{\char125});%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -112,7 +111,7 @@ Coming back to our introductory example, we
 
   As told in \secref{sec:concept}, code generation is based
   on a structured collection of code theorems.
-  For explorative purpose, this collection
+  This collection
   may be inspected using the \hyperlink{command.code-thms}{\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}} command:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -260,7 +259,7 @@ Concerning type classes and code generation, let us examine an example
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent The corresponding code:%
+\noindent The corresponding code in Haskell uses that language's native classes:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -275,23 +274,22 @@ Concerning type classes and code generation, let us examine an example
 \noindent%
 \hspace*{0pt}module Example where {\char123}\\
 \hspace*{0pt}\\
-\hspace*{0pt}\\
 \hspace*{0pt}data Nat = Zero{\char95}nat | Suc Nat;\\
 \hspace*{0pt}\\
 \hspace*{0pt}class Semigroup a where {\char123}\\
 \hspace*{0pt} ~mult ::~a -> a -> a;\\
 \hspace*{0pt}{\char125};\\
 \hspace*{0pt}\\
-\hspace*{0pt}class (Semigroup a) => Monoid a where {\char123}\\
+\hspace*{0pt}class {\char123}{\char92}isacharparenleft{\char125}Semigroup a{\char123}{\char92}isacharparenright{\char125}~=> Monoid a where {\char123}\\
 \hspace*{0pt} ~neutral ::~a;\\
 \hspace*{0pt}{\char125};\\
 \hspace*{0pt}\\
-\hspace*{0pt}pow ::~forall a.~(Monoid a) => Nat -> a -> a;\\
+\hspace*{0pt}pow ::~forall a.~{\char123}{\char92}isacharparenleft{\char125}Monoid a{\char123}{\char92}isacharparenright{\char125}~=> Nat -> a -> a;\\
 \hspace*{0pt}pow Zero{\char95}nat a = neutral;\\
-\hspace*{0pt}pow (Suc n) a = mult a (pow n a);\\
+\hspace*{0pt}pow {\char123}{\char92}isacharparenleft{\char125}Suc n{\char123}{\char92}isacharparenright{\char125}~a = mult a {\char123}{\char92}isacharparenleft{\char125}pow n a{\char123}{\char92}isacharparenright{\char125};\\
 \hspace*{0pt}\\
 \hspace*{0pt}plus{\char95}nat ::~Nat -> Nat -> Nat;\\
-\hspace*{0pt}plus{\char95}nat (Suc m) n = plus{\char95}nat m (Suc n);\\
+\hspace*{0pt}plus{\char95}nat {\char123}{\char92}isacharparenleft{\char125}Suc m{\char123}{\char92}isacharparenright{\char125}~n = plus{\char95}nat m {\char123}{\char92}isacharparenleft{\char125}Suc n{\char123}{\char92}isacharparenright{\char125};\\
 \hspace*{0pt}plus{\char95}nat Zero{\char95}nat n = n;\\
 \hspace*{0pt}\\
 \hspace*{0pt}neutral{\char95}nat ::~Nat;\\
@@ -299,7 +297,7 @@ Concerning type classes and code generation, let us examine an example
 \hspace*{0pt}\\
 \hspace*{0pt}mult{\char95}nat ::~Nat -> Nat -> Nat;\\
 \hspace*{0pt}mult{\char95}nat Zero{\char95}nat n = Zero{\char95}nat;\\
-\hspace*{0pt}mult{\char95}nat (Suc m) n = plus{\char95}nat n (mult{\char95}nat m n);\\
+\hspace*{0pt}mult{\char95}nat {\char123}{\char92}isacharparenleft{\char125}Suc m{\char123}{\char92}isacharparenright{\char125}~n = plus{\char95}nat n {\char123}{\char92}isacharparenleft{\char125}mult{\char95}nat m n{\char123}{\char92}isacharparenright{\char125};\\
 \hspace*{0pt}\\
 \hspace*{0pt}instance Semigroup Nat where {\char123}\\
 \hspace*{0pt} ~mult = mult{\char95}nat;\\
@@ -310,7 +308,7 @@ Concerning type classes and code generation, let us examine an example
 \hspace*{0pt}{\char125};\\
 \hspace*{0pt}\\
 \hspace*{0pt}bexp ::~Nat -> Nat;\\
-\hspace*{0pt}bexp n = pow n (Suc (Suc Zero{\char95}nat));\\
+\hspace*{0pt}bexp n = pow n {\char123}{\char92}isacharparenleft{\char125}Suc {\char123}{\char92}isacharparenleft{\char125}Suc Zero{\char95}nat{\char123}{\char92}isacharparenright{\char125}{\char123}{\char92}isacharparenright{\char125};\\
 \hspace*{0pt}\\
 \hspace*{0pt}{\char125}%
 \end{isamarkuptext}%
@@ -338,35 +336,48 @@ Concerning type classes and code generation, let us examine an example
 \begin{isamarkuptext}%
 \isatypewriter%
 \noindent%
-\hspace*{0pt}structure Example = \\
-\hspace*{0pt}struct\\
+\hspace*{0pt}structure Example :~sig\\
+\hspace*{0pt}{\char92}~{\char92}~datatype nat = Zero{\char95}nat | Suc of nat\\
+\hspace*{0pt} ~type 'a semigroup\\
+\hspace*{0pt} ~val mult :~'a semigroup{\char92}~{\char123}{\char92}isacharminus{\char125}{\char123}{\char92}isachargreater{\char125}~'a -> 'a -> 'a\\
+\hspace*{0pt} ~type 'a monoid\\
+\hspace*{0pt} ~val semigroup{\char95}monoid :~'a monoid{\char92}~{\char123}{\char92}isacharminus{\char125}{\char123}{\char92}isachargreater{\char125}~'a semigroup\\
+\hspace*{0pt} ~val neutral :~'a monoid{\char92}~{\char123}{\char92}isacharminus{\char125}{\char123}{\char92}isachargreater{\char125}~'a\\
+\hspace*{0pt} ~val pow :~'a monoid{\char92}~{\char123}{\char92}isacharminus{\char125}{\char123}{\char92}isachargreater{\char125}~nat -> 'a -> 'a\\
+\hspace*{0pt} ~val plus{\char95}nat :~nat -> nat -> nat\\
+\hspace*{0pt} ~val neutral{\char95}nat :~nat\\
+\hspace*{0pt} ~val mult{\char95}nat :~nat -> nat -> nat\\
+\hspace*{0pt} ~val semigroup{\char95}nat :~nat semigroup\\
+\hspace*{0pt} ~val monoid{\char95}nat :~nat monoid\\
+\hspace*{0pt} ~val bexp :~nat -> nat\\
+\hspace*{0pt}end = struct\\
 \hspace*{0pt}\\
 \hspace*{0pt}datatype nat = Zero{\char95}nat | Suc of nat;\\
 \hspace*{0pt}\\
-\hspace*{0pt}type 'a semigroup = {\char123}mult :~'a -> 'a -> 'a{\char125};\\
-\hspace*{0pt}fun mult (A{\char95}:'a semigroup) = {\char35}mult A{\char95};\\
+\hspace*{0pt}type 'a semigroup = {\char123}{\char92}isacharbraceleft{\char125}mult :~'a -> 'a -> 'a{\char123}{\char92}isacharbraceright{\char125}{\char123}{\char92}isacharsemicolon{\char125}\\
+\hspace*{0pt}val mult = {\char35}mult :~'a semigroup{\char92}~{\char123}{\char92}isacharminus{\char125}{\char123}{\char92}isachargreater{\char125}~'a -> 'a -> 'a;\\
 \hspace*{0pt}\\
-\hspace*{0pt}type 'a monoid = {\char123}semigroup{\char95}monoid :~'a semigroup,~neutral :~'a{\char125};\\
-\hspace*{0pt}fun semigroup{\char95}monoid (A{\char95}:'a monoid) = {\char35}semigroup{\char95}monoid A{\char95};\\
-\hspace*{0pt}fun neutral (A{\char95}:'a monoid) = {\char35}neutral A{\char95};\\
+\hspace*{0pt}type 'a monoid = {\char123}{\char92}isacharbraceleft{\char125}semigroup{\char95}monoid :~'a semigroup{\char123}{\char92}isacharcomma{\char125}~neutral :~'a{\char123}{\char92}isacharbraceright{\char125}{\char123}{\char92}isacharsemicolon{\char125}\\
+\hspace*{0pt}val semigroup{\char95}monoid = {\char35}semigroup{\char95}monoid :~'a monoid{\char92}~{\char123}{\char92}isacharminus{\char125}{\char123}{\char92}isachargreater{\char125}~'a semigroup;\\
+\hspace*{0pt}val neutral = {\char35}neutral :~'a monoid{\char92}~{\char123}{\char92}isacharminus{\char125}{\char123}{\char92}isachargreater{\char125}~'a;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun pow A{\char95}~Zero{\char95}nat a = neutral A{\char95}\\
-\hspace*{0pt} ~| pow A{\char95}~(Suc n) a = mult (semigroup{\char95}monoid A{\char95}) a (pow A{\char95}~n a);\\
+\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~pow A{\char95}~{\char123}{\char92}isacharparenleft{\char125}Suc n{\char123}{\char92}isacharparenright{\char125}~a = mult {\char123}{\char92}isacharparenleft{\char125}semigroup{\char95}monoid A{\char95}{\char123}{\char92}isacharparenright{\char125}~a {\char123}{\char92}isacharparenleft{\char125}pow A{\char95}~n a{\char123}{\char92}isacharparenright{\char125};\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun plus{\char95}nat (Suc m) n = plus{\char95}nat m (Suc n)\\
-\hspace*{0pt} ~| plus{\char95}nat Zero{\char95}nat n = n;\\
+\hspace*{0pt}fun plus{\char123}{\char92}isacharunderscore{\char125}nat {\char123}{\char92}isacharparenleft{\char125}Suc m{\char123}{\char92}isacharparenright{\char125}~n = plus{\char95}nat m {\char123}{\char92}isacharparenleft{\char125}Suc n{\char123}{\char92}isacharparenright{\char125}\\
+\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~plus{\char123}{\char92}isacharunderscore{\char125}nat Zero{\char95}nat n = n;\\
 \hspace*{0pt}\\
 \hspace*{0pt}val neutral{\char95}nat :~nat = Suc Zero{\char95}nat;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun mult{\char95}nat Zero{\char95}nat n = Zero{\char95}nat\\
-\hspace*{0pt} ~| mult{\char95}nat (Suc m) n = plus{\char95}nat n (mult{\char95}nat m n);\\
+\hspace*{0pt}fun mult{\char123}{\char92}isacharunderscore{\char125}nat Zero{\char95}nat n = Zero{\char95}nat\\
+\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~mult{\char123}{\char92}isacharunderscore{\char125}nat {\char123}{\char92}isacharparenleft{\char125}Suc m{\char123}{\char92}isacharparenright{\char125}~n = plus{\char95}nat n {\char123}{\char92}isacharparenleft{\char125}mult{\char95}nat m n{\char123}{\char92}isacharparenright{\char125};\\
 \hspace*{0pt}\\
-\hspace*{0pt}val semigroup{\char95}nat = {\char123}mult = mult{\char95}nat{\char125}~:~nat semigroup;\\
+\hspace*{0pt}val semigroup{\char95}nat = {\char123}{\char92}isacharbraceleft{\char125}mult = mult{\char95}nat{\char123}{\char92}isacharbraceright{\char125}~:~nat semigroup;\\
 \hspace*{0pt}\\
-\hspace*{0pt}val monoid{\char95}nat = {\char123}semigroup{\char95}monoid = semigroup{\char95}nat,~neutral = neutral{\char95}nat{\char125}\\
+\hspace*{0pt}val monoid{\char95}nat = {\char123}{\char92}isacharbraceleft{\char125}semigroup{\char95}monoid = semigroup{\char95}nat{\char123}{\char92}isacharcomma{\char125}~neutral = neutral{\char95}nat{\char123}{\char92}isacharbraceright{\char125}\\
 \hspace*{0pt} ~:~nat monoid;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun bexp n = pow monoid{\char95}nat n (Suc (Suc Zero{\char95}nat));\\
+\hspace*{0pt}fun bexp n = pow monoid{\char95}nat n {\char123}{\char92}isacharparenleft{\char125}Suc {\char123}{\char92}isacharparenleft{\char125}Suc Zero{\char95}nat{\char123}{\char92}isacharparenright{\char125}{\char123}{\char92}isacharparenright{\char125};\\
 \hspace*{0pt}\\
 \hspace*{0pt}end;~(*struct Example*)%
 \end{isamarkuptext}%
@@ -380,7 +391,7 @@ Concerning type classes and code generation, let us examine an example
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent Note the parameters with trailing underscore (\verb|A_|)
+\noindent Note the parameters with trailing underscore (\verb|A_|),
     which are the dictionary parameters.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -395,14 +406,14 @@ Before selected function theorems are turned into abstract
   out: \emph{preprocessing}.  In essence, the preprocessor
   consists of two components: a \emph{simpset} and \emph{function transformers}.
 
-  The \emph{simpset} allows to employ the full generality of the
+  The \emph{simpset} can apply the full generality of the
   Isabelle simplifier.  Due to the interpretation of theorems as code
   equations, rewrites are applied to the right hand side and the
   arguments of the left hand side of an equation, but never to the
   constant heading the left hand side.  An important special case are
-  \emph{unfold theorems} which may be declared and undeclared using
+  \emph{unfold theorems},  which may be declared and removed using
   the \hyperlink{attribute.code-unfold}{\mbox{\isa{code{\isacharunderscore}unfold}}} or \emph{\hyperlink{attribute.code-unfold}{\mbox{\isa{code{\isacharunderscore}unfold}}} del}
-  attribute respectively.
+  attribute, respectively.
 
   Some common applications:%
 \end{isamarkuptext}%
@@ -515,7 +526,7 @@ Conceptually, any datatype is spanned by a set of
   queue example given in \secref{sec:intro}.  The amortised
   representation is convenient for generating code but exposes its
   \qt{implementation} details, which may be cumbersome when proving
-  theorems about it.  Therefore, here a simple, straightforward
+  theorems about it.  Therefore, here is a simple, straightforward
   representation of queues:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -654,27 +665,34 @@ Conceptually, any datatype is spanned by a set of
 \begin{isamarkuptext}%
 \isatypewriter%
 \noindent%
-\hspace*{0pt}structure Example = \\
-\hspace*{0pt}struct\\
+\hspace*{0pt}structure Example :~sig\\
+\hspace*{0pt}{\char92}~{\char92}~val foldl :~{\char123}{\char92}isacharparenleft{\char125}'a -> 'b -> 'a{\char123}{\char92}isacharparenright{\char125}~-> 'a -> 'b list -> 'a\\
+\hspace*{0pt} ~val rev :~'a list -> 'a list\\
+\hspace*{0pt} ~val null :~'a list -> bool\\
+\hspace*{0pt} ~datatype 'a queue = AQueue of 'a list{\char92}~{\char123}{\char92}isacharasterisk{\char125}~'a list\\
+\hspace*{0pt} ~val empty :~'a queue\\
+\hspace*{0pt} ~val dequeue :~'a queue -> 'a option * 'a queue\\
+\hspace*{0pt} ~val enqueue :~'a -> 'a queue -> 'a queue\\
+\hspace*{0pt}end = struct\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun foldl f a [] = a\\
-\hspace*{0pt} ~| foldl f a (x ::~xs) = foldl f (f a x) xs;\\
+\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~foldl f a {\char123}{\char92}isacharparenleft{\char125}x ::~xs{\char123}{\char92}isacharparenright{\char125}~= foldl f {\char123}{\char92}isacharparenleft{\char125}f a x{\char123}{\char92}isacharparenright{\char125}~xs;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun rev xs = foldl (fn xsa => fn x => x ::~xsa) [] xs;\\
+\hspace*{0pt}fun rev xs = foldl {\char123}{\char92}isacharparenleft{\char125}fn xsa => fn x => x ::~xsa{\char123}{\char92}isacharparenright{\char125}~[] xs;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun null [] = true\\
-\hspace*{0pt} ~| null (x ::~xs) = false;\\
+\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~null {\char123}{\char92}isacharparenleft{\char125}x ::~xs{\char123}{\char92}isacharparenright{\char125}~= false;\\
 \hspace*{0pt}\\
-\hspace*{0pt}datatype 'a queue = AQueue of 'a list * 'a list;\\
+\hspace*{0pt}datatype 'a queue = AQueue of 'a list{\char92}~{\char123}{\char92}isacharasterisk{\char125}~'a list;\\
 \hspace*{0pt}\\
-\hspace*{0pt}val empty :~'a queue = AQueue ([],~[]);\\
+\hspace*{0pt}val empty :~'a queue = AQueue {\char123}{\char92}isacharparenleft{\char125}[]{\char123}{\char92}isacharcomma{\char125}~[]{\char123}{\char92}isacharparenright{\char125};\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun dequeue (AQueue (xs,~y ::~ys)) = (SOME y,~AQueue (xs,~ys))\\
-\hspace*{0pt} ~| dequeue (AQueue (xs,~[])) =\\
-\hspace*{0pt} ~~~(if null xs then (NONE,~AQueue ([],~[]))\\
-\hspace*{0pt} ~~~~~else dequeue (AQueue ([],~rev xs)));\\
+\hspace*{0pt}fun dequeue {\char123}{\char92}isacharparenleft{\char125}AQueue {\char123}{\char92}isacharparenleft{\char125}xs{\char123}{\char92}isacharcomma{\char125}~y ::~ys{\char123}{\char92}isacharparenright{\char125}{\char123}{\char92}isacharparenright{\char125}~= (SOME y,~AQueue {\char123}{\char92}isacharparenleft{\char125}xs{\char123}{\char92}isacharcomma{\char125}~ys{\char123}{\char92}isacharparenright{\char125})\\
+\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~dequeue {\char123}{\char92}isacharparenleft{\char125}AQueue {\char123}{\char92}isacharparenleft{\char125}xs{\char123}{\char92}isacharcomma{\char125}~[]{\char123}{\char92}isacharparenright{\char125}{\char123}{\char92}isacharparenright{\char125}~=\\
+\hspace*{0pt} ~~~(if null xs then (NONE,~AQueue {\char123}{\char92}isacharparenleft{\char125}[]{\char123}{\char92}isacharcomma{\char125}~[]{\char123}{\char92}isacharparenright{\char125})\\
+\hspace*{0pt} ~~~~~else dequeue {\char123}{\char92}isacharparenleft{\char125}AQueue {\char123}{\char92}isacharparenleft{\char125}[]{\char123}{\char92}isacharcomma{\char125}~rev xs{\char123}{\char92}isacharparenright{\char125}{\char123}{\char92}isacharparenright{\char125});\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun enqueue x (AQueue (xs,~ys)) = AQueue (x ::~xs,~ys);\\
+\hspace*{0pt}fun enqueue x {\char123}{\char92}isacharparenleft{\char125}AQueue {\char123}{\char92}isacharparenleft{\char125}xs{\char123}{\char92}isacharcomma{\char125}~ys{\char123}{\char92}isacharparenright{\char125}{\char123}{\char92}isacharparenright{\char125}~= AQueue {\char123}{\char92}isacharparenleft{\char125}x ::~xs{\char123}{\char92}isacharcomma{\char125}~ys{\char123}{\char92}isacharparenright{\char125};\\
 \hspace*{0pt}\\
 \hspace*{0pt}end;~(*struct Example*)%
 \end{isamarkuptext}%
@@ -759,23 +777,29 @@ Surely you have already noticed how equality is treated
 \begin{isamarkuptext}%
 \isatypewriter%
 \noindent%
-\hspace*{0pt}structure Example = \\
-\hspace*{0pt}struct\\
+\hspace*{0pt}structure Example :~sig\\
+\hspace*{0pt}{\char92}~{\char92}~type 'a eq\\
+\hspace*{0pt} ~val eq :~'a eq{\char92}~{\char123}{\char92}isacharminus{\char125}{\char123}{\char92}isachargreater{\char125}~'a -> 'a -> bool\\
+\hspace*{0pt} ~val eqa :~'a eq{\char92}~{\char123}{\char92}isacharminus{\char125}{\char123}{\char92}isachargreater{\char125}~'a -> 'a -> bool\\
+\hspace*{0pt} ~val member :~'a eq{\char92}~{\char123}{\char92}isacharminus{\char125}{\char123}{\char92}isachargreater{\char125}~'a -> 'a list -> bool\\
+\hspace*{0pt} ~val collect{\char95}duplicates :\\
+\hspace*{0pt} ~~~'a eq{\char92}~{\char123}{\char92}isacharminus{\char125}{\char123}{\char92}isachargreater{\char125}~'a list -> 'a list -> 'a list -> 'a list\\
+\hspace*{0pt}end = struct\\
 \hspace*{0pt}\\
-\hspace*{0pt}type 'a eq = {\char123}eq :~'a -> 'a -> bool{\char125};\\
-\hspace*{0pt}fun eq (A{\char95}:'a eq) = {\char35}eq A{\char95};\\
+\hspace*{0pt}type 'a eq = {\char123}{\char92}isacharbraceleft{\char125}eq :~'a -> 'a -> bool{\char123}{\char92}isacharbraceright{\char125}{\char123}{\char92}isacharsemicolon{\char125}\\
+\hspace*{0pt}val eq = {\char35}eq :~'a eq{\char92}~{\char123}{\char92}isacharminus{\char125}{\char123}{\char92}isachargreater{\char125}~'a -> 'a -> bool;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun eqa A{\char95}~a b = eq A{\char95}~a b;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun member A{\char95}~x [] = false\\
-\hspace*{0pt} ~| member A{\char95}~x (y ::~ys) = eqa A{\char95}~x y orelse member A{\char95}~x ys;\\
+\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~member A{\char95}~x {\char123}{\char92}isacharparenleft{\char125}y ::~ys{\char123}{\char92}isacharparenright{\char125}~= eqa A{\char95}~x y orelse member A{\char95}~x ys;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun collect{\char95}duplicates A{\char95}~xs ys [] = xs\\
-\hspace*{0pt} ~| collect{\char95}duplicates A{\char95}~xs ys (z ::~zs) =\\
+\hspace*{0pt}fun collect{\char123}{\char92}isacharunderscore{\char125}duplicates A{\char95}~xs ys [] = xs\\
+\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~collect{\char123}{\char92}isacharunderscore{\char125}duplicates A{\char95}~xs ys {\char123}{\char92}isacharparenleft{\char125}z ::~zs{\char123}{\char92}isacharparenright{\char125}~=\\
 \hspace*{0pt} ~~~(if member A{\char95}~z xs\\
 \hspace*{0pt} ~~~~~then (if member A{\char95}~z ys then collect{\char95}duplicates A{\char95}~xs ys zs\\
-\hspace*{0pt} ~~~~~~~~~~~~else collect{\char95}duplicates A{\char95}~xs (z ::~ys) zs)\\
-\hspace*{0pt} ~~~~~else collect{\char95}duplicates A{\char95}~(z ::~xs) (z ::~ys) zs);\\
+\hspace*{0pt} ~~~~~~~~~~~~else collect{\char95}duplicates A{\char95}~xs {\char123}{\char92}isacharparenleft{\char125}z ::~ys{\char123}{\char92}isacharparenright{\char125}~zs)\\
+\hspace*{0pt} ~~~~~else collect{\char95}duplicates A{\char95}~{\char123}{\char92}isacharparenleft{\char125}z ::~xs{\char123}{\char92}isacharparenright{\char125}~{\char123}{\char92}isacharparenleft{\char125}z ::~ys{\char123}{\char92}isacharparenright{\char125}~zs);\\
 \hspace*{0pt}\\
 \hspace*{0pt}end;~(*struct Example*)%
 \end{isamarkuptext}%
@@ -851,11 +875,11 @@ Partiality usually enters the game by partial patterns, as
 \isatypewriter%
 \noindent%
 \hspace*{0pt}strict{\char95}dequeue ::~forall a.~Queue a -> (a,~Queue a);\\
-\hspace*{0pt}strict{\char95}dequeue (AQueue xs []) =\\
+\hspace*{0pt}strict{\char95}dequeue {\char123}{\char92}isacharparenleft{\char125}AQueue xs []{\char123}{\char92}isacharparenright{\char125}~=\\
 \hspace*{0pt} ~let {\char123}\\
-\hspace*{0pt} ~~~(y :~ys) = rev xs;\\
+\hspace*{0pt} ~~~{\char123}{\char92}isacharparenleft{\char125}y :~ys{\char123}{\char92}isacharparenright{\char125}~= rev xs;\\
 \hspace*{0pt} ~{\char125}~in (y,~AQueue [] ys);\\
-\hspace*{0pt}strict{\char95}dequeue (AQueue xs (y :~ys)) = (y,~AQueue xs ys);%
+\hspace*{0pt}strict{\char95}dequeue {\char123}{\char92}isacharparenleft{\char125}AQueue xs {\char123}{\char92}isacharparenleft{\char125}y :~ys{\char123}{\char92}isacharparenright{\char125}{\char123}{\char92}isacharparenright{\char125}~= (y,~AQueue xs ys);%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -900,13 +924,12 @@ Partiality usually enters the game by partial patterns, as
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-Observe that on the right hand side of the definition of \isa{strict{\isacharunderscore}dequeue{\isacharprime}} the constant \isa{empty{\isacharunderscore}queue} occurs
-  which is unspecified.
+Observe that on the right hand side of the definition of \isa{strict{\isacharunderscore}dequeue{\isacharprime}}, the unspecified constant \isa{empty{\isacharunderscore}queue} occurs.
 
   Normally, if constants without any code equations occur in a
   program, the code generator complains (since in most cases this is
-  not what the user expects).  But such constants can also be thought
-  of as function definitions with no equations which always fail,
+  indeed an error).  But such constants can also be thought
+  of as function definitions which always fail,
   since there is never a successful pattern match on the left hand
   side.  In order to categorise a constant into that category
   explicitly, use \hyperlink{command.code-abort}{\mbox{\isa{\isacommand{code{\isacharunderscore}abort}}}}:%
@@ -946,10 +969,10 @@ Observe that on the right hand side of the definition of \isa{strict{\isacharund
 \hspace*{0pt}empty{\char95}queue = error {\char34}empty{\char95}queue{\char34};\\
 \hspace*{0pt}\\
 \hspace*{0pt}strict{\char95}dequeue' ::~forall a.~Queue a -> (a,~Queue a);\\
-\hspace*{0pt}strict{\char95}dequeue' (AQueue xs (y :~ys)) = (y,~AQueue xs ys);\\
-\hspace*{0pt}strict{\char95}dequeue' (AQueue xs []) =\\
+\hspace*{0pt}strict{\char95}dequeue' {\char123}{\char92}isacharparenleft{\char125}AQueue xs {\char123}{\char92}isacharparenleft{\char125}y :~ys{\char123}{\char92}isacharparenright{\char125}{\char123}{\char92}isacharparenright{\char125}~= (y,~AQueue xs ys);\\
+\hspace*{0pt}strict{\char95}dequeue' {\char123}{\char92}isacharparenleft{\char125}AQueue xs []{\char123}{\char92}isacharparenright{\char125}~=\\
 \hspace*{0pt} ~(if nulla xs then empty{\char95}queue\\
-\hspace*{0pt} ~~~else strict{\char95}dequeue' (AQueue [] (rev xs)));%
+\hspace*{0pt} ~~~else strict{\char95}dequeue' {\char123}{\char92}isacharparenleft{\char125}AQueue [] {\char123}{\char92}isacharparenleft{\char125}rev xs{\char123}{\char92}isacharparenright{\char125}{\char123}{\char92}isacharparenright{\char125});%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

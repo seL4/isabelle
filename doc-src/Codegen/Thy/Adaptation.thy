@@ -38,10 +38,10 @@ text {*
 
   \begin{itemize}
     \item The safe configuration methods act uniformly on every target language,
-      whereas for adaptation you have to treat each target language separate.
+      whereas for adaptation you have to treat each target language separately.
     \item Application is extremely tedious since there is no abstraction
       which would allow for a static check, making it easy to produce garbage.
-    \item More or less subtle errors can be introduced unconsciously.
+    \item Subtle errors can be introduced unconsciously.
   \end{itemize}
 
   \noindent However, even if you ought refrain from setting up adaptation

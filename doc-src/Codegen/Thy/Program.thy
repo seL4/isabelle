@@ -8,12 +8,11 @@ subsection {* The @{text "Isabelle/HOL"} default setup *}
 
 text {*
   We have already seen how by default equations stemming from
-  @{command definition}/@{command primrec}/@{command fun}
+  @{command definition}, @{command primrec} and @{command fun}
   statements are used for code generation.  This default behaviour
-  can be changed, e.g. by providing different code equations.
-  All kinds of customisation shown in this section is \emph{safe}
-  in the sense that the user does not have to worry about
-  correctness -- all programs generatable that way are partially
+  can be changed, e.g.\ by providing different code equations.
+  The customisations shown in this section are \emph{safe}
+  as regards correctness: all programs that can be generated are partially
   correct.
 *}
 
@@ -52,7 +51,7 @@ text {*
 
   As told in \secref{sec:concept}, code generation is based
   on a structured collection of code theorems.
-  For explorative purpose, this collection
+  This collection
   may be inspected using the @{command code_thms} command:
 *}
 
@@ -128,7 +127,7 @@ definition %quote bexp :: "nat \<Rightarrow> nat" where
   "bexp n = pow n (Suc (Suc 0))"
 
 text {*
-  \noindent The corresponding code:
+  \noindent The corresponding code in Haskell uses that language's native classes:
 *}
 
 text %quote {*@{code_stmts bexp (Haskell)}*}
@@ -141,7 +140,7 @@ text {*
 text %quote {*@{code_stmts bexp (SML)}*}
 
 text {*
-  \noindent Note the parameters with trailing underscore (@{verbatim "A_"})
+  \noindent Note the parameters with trailing underscore (@{verbatim "A_"}),
     which are the dictionary parameters.
 *}
 
@@ -153,14 +152,14 @@ text {*
   out: \emph{preprocessing}.  In essence, the preprocessor
   consists of two components: a \emph{simpset} and \emph{function transformers}.
 
-  The \emph{simpset} allows to employ the full generality of the
+  The \emph{simpset} can apply the full generality of the
   Isabelle simplifier.  Due to the interpretation of theorems as code
   equations, rewrites are applied to the right hand side and the
   arguments of the left hand side of an equation, but never to the
   constant heading the left hand side.  An important special case are
-  \emph{unfold theorems} which may be declared and undeclared using
+  \emph{unfold theorems},  which may be declared and removed using
   the @{attribute code_unfold} or \emph{@{attribute code_unfold} del}
-  attribute respectively.
+  attribute, respectively.
 
   Some common applications:
 *}
@@ -232,7 +231,7 @@ text {*
   queue example given in \secref{sec:intro}.  The amortised
   representation is convenient for generating code but exposes its
   \qt{implementation} details, which may be cumbersome when proving
-  theorems about it.  Therefore, here a simple, straightforward
+  theorems about it.  Therefore, here is a simple, straightforward
   representation of queues:
 *}
 
@@ -402,13 +401,12 @@ lemma %quote strict_dequeue'_AQueue [code]:
 
 text {*
   Observe that on the right hand side of the definition of @{const
-  "strict_dequeue'"} the constant @{const empty_queue} occurs
-  which is unspecified.
+  "strict_dequeue'"}, the unspecified constant @{const empty_queue} occurs.
 
   Normally, if constants without any code equations occur in a
   program, the code generator complains (since in most cases this is
-  not what the user expects).  But such constants can also be thought
-  of as function definitions with no equations which always fail,
+  indeed an error).  But such constants can also be thought
+  of as function definitions which always fail,
   since there is never a successful pattern match on the left hand
   side.  In order to categorise a constant into that category
   explicitly, use @{command "code_abort"}:

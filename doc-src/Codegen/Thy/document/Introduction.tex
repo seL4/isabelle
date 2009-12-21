@@ -25,25 +25,24 @@
 \begin{isamarkuptext}%
 This tutorial introduces a generic code generator for the
   \isa{Isabelle} system.
-  Generic in the sense that the
-  \qn{target language} for which code shall ultimately be
-  generated is not fixed but may be an arbitrary state-of-the-art
-  functional programming language (currently, the implementation
+  The
+  \qn{target language} for which code is
+  generated is not fixed, but may be one of several
+  functional programming languages (currently, the implementation
   supports \isa{SML} \cite{SML}, \isa{OCaml} \cite{OCaml} and \isa{Haskell}
   \cite{haskell-revised-report}).
 
   Conceptually the code generator framework is part
   of Isabelle's \hyperlink{theory.Pure}{\mbox{\isa{Pure}}} meta logic framework; the logic
-  \hyperlink{theory.HOL}{\mbox{\isa{HOL}}} which is an extension of \hyperlink{theory.Pure}{\mbox{\isa{Pure}}}
+  \hyperlink{theory.HOL}{\mbox{\isa{HOL}}} \cite{isa-tutorial}, which is an extension of \hyperlink{theory.Pure}{\mbox{\isa{Pure}}},
   already comes with a reasonable framework setup and thus provides
-  a good working horse for raising code-generation-driven
+  a good basis for creating code-generation-driven
   applications.  So, we assume some familiarity and experience
   with the ingredients of the \hyperlink{theory.HOL}{\mbox{\isa{HOL}}} distribution theories.
-  (see also \cite{isa-tutorial}).
 
   The code generator aims to be usable with no further ado
-  in most cases while allowing for detailed customisation.
-  This manifests in the structure of this tutorial: after a short
+  in most cases, while allowing for detailed customisation.
+  This can be seen in the structure of this tutorial: after a short
   conceptual introduction with an example (\secref{sec:intro}),
   we discuss the generic customisation facilities (\secref{sec:program}).
   A further section (\secref{sec:adaptation}) is dedicated to the matter of
@@ -78,7 +77,7 @@ The key concept for understanding \isa{Isabelle}'s code generation is
   Inside \hyperlink{theory.HOL}{\mbox{\isa{HOL}}}, the \hyperlink{command.datatype}{\mbox{\isa{\isacommand{datatype}}}} and
   \hyperlink{command.definition}{\mbox{\isa{\isacommand{definition}}}}/\hyperlink{command.primrec}{\mbox{\isa{\isacommand{primrec}}}}/\hyperlink{command.fun}{\mbox{\isa{\isacommand{fun}}}} declarations form
   the core of a functional programming language.  The default code generator setup
-  allows to turn those into functional programs immediately.
+   transforms those into functional programs immediately.
   This means that \qt{naive} code generation can proceed without further ado.
   For example, here a simple \qt{implementation} of amortised queues:%
 \end{isamarkuptext}%
@@ -147,31 +146,38 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \begin{isamarkuptext}%
 \isatypewriter%
 \noindent%
-\hspace*{0pt}structure Example = \\
-\hspace*{0pt}struct\\
+\hspace*{0pt}structure Example :~sig\\
+\hspace*{0pt}{\char92}~{\char92}~val foldl :~{\char123}{\char92}isacharparenleft{\char125}'a -> 'b -> 'a{\char123}{\char92}isacharparenright{\char125}~-> 'a -> 'b list -> 'a\\
+\hspace*{0pt} ~val rev :~'a list -> 'a list\\
+\hspace*{0pt} ~val list{\char95}case :~'a -> {\char123}{\char92}isacharparenleft{\char125}'b -> 'b list -> 'a{\char123}{\char92}isacharparenright{\char125}~-> 'b list -> 'a\\
+\hspace*{0pt} ~datatype 'a queue = AQueue of 'a list{\char92}~{\char123}{\char92}isacharasterisk{\char125}~'a list\\
+\hspace*{0pt} ~val empty :~'a queue\\
+\hspace*{0pt} ~val dequeue :~'a queue -> 'a option * 'a queue\\
+\hspace*{0pt} ~val enqueue :~'a -> 'a queue -> 'a queue\\
+\hspace*{0pt}end = struct\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun foldl f a [] = a\\
-\hspace*{0pt} ~| foldl f a (x ::~xs) = foldl f (f a x) xs;\\
+\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~foldl f a {\char123}{\char92}isacharparenleft{\char125}x ::~xs{\char123}{\char92}isacharparenright{\char125}~= foldl f {\char123}{\char92}isacharparenleft{\char125}f a x{\char123}{\char92}isacharparenright{\char125}~xs;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun rev xs = foldl (fn xsa => fn x => x ::~xsa) [] xs;\\
+\hspace*{0pt}fun rev xs = foldl {\char123}{\char92}isacharparenleft{\char125}fn xsa => fn x => x ::~xsa{\char123}{\char92}isacharparenright{\char125}~[] xs;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun list{\char95}case f1 f2 (a ::~lista) = f2 a lista\\
-\hspace*{0pt} ~| list{\char95}case f1 f2 [] = f1;\\
+\hspace*{0pt}fun list{\char123}{\char92}isacharunderscore{\char125}case f1 f2 {\char123}{\char92}isacharparenleft{\char125}a ::~lista{\char123}{\char92}isacharparenright{\char125}~= f2 a lista\\
+\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~list{\char123}{\char92}isacharunderscore{\char125}case f1 f2 [] = f1;\\
 \hspace*{0pt}\\
-\hspace*{0pt}datatype 'a queue = AQueue of 'a list * 'a list;\\
+\hspace*{0pt}datatype 'a queue = AQueue of 'a list{\char92}~{\char123}{\char92}isacharasterisk{\char125}~'a list;\\
 \hspace*{0pt}\\
-\hspace*{0pt}val empty :~'a queue = AQueue ([],~[]);\\
+\hspace*{0pt}val empty :~'a queue = AQueue {\char123}{\char92}isacharparenleft{\char125}[]{\char123}{\char92}isacharcomma{\char125}~[]{\char123}{\char92}isacharparenright{\char125};\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun dequeue (AQueue ([],~[])) = (NONE,~AQueue ([],~[]))\\
-\hspace*{0pt} ~| dequeue (AQueue (xs,~y ::~ys)) = (SOME y,~AQueue (xs,~ys))\\
-\hspace*{0pt} ~| dequeue (AQueue (v ::~va,~[])) =\\
+\hspace*{0pt}fun dequeue {\char123}{\char92}isacharparenleft{\char125}AQueue {\char123}{\char92}isacharparenleft{\char125}[]{\char123}{\char92}isacharcomma{\char125}~[]{\char123}{\char92}isacharparenright{\char125}{\char123}{\char92}isacharparenright{\char125}~= (NONE,~AQueue {\char123}{\char92}isacharparenleft{\char125}[]{\char123}{\char92}isacharcomma{\char125}~[]{\char123}{\char92}isacharparenright{\char125})\\
+\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~dequeue {\char123}{\char92}isacharparenleft{\char125}AQueue {\char123}{\char92}isacharparenleft{\char125}xs{\char123}{\char92}isacharcomma{\char125}~y ::~ys{\char123}{\char92}isacharparenright{\char125}{\char123}{\char92}isacharparenright{\char125}~= (SOME y,~AQueue {\char123}{\char92}isacharparenleft{\char125}xs{\char123}{\char92}isacharcomma{\char125}~ys{\char123}{\char92}isacharparenright{\char125})\\
+\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~dequeue {\char123}{\char92}isacharparenleft{\char125}AQueue {\char123}{\char92}isacharparenleft{\char125}v ::~va{\char123}{\char92}isacharcomma{\char125}~[]{\char123}{\char92}isacharparenright{\char125}{\char123}{\char92}isacharparenright{\char125}~=\\
 \hspace*{0pt} ~~~let\\
-\hspace*{0pt} ~~~~~val y ::~ys = rev (v ::~va);\\
+\hspace*{0pt} ~~~~~val y ::~ys = rev {\char123}{\char92}isacharparenleft{\char125}v ::~va{\char123}{\char92}isacharparenright{\char125};\\
 \hspace*{0pt} ~~~in\\
-\hspace*{0pt} ~~~~~(SOME y,~AQueue ([],~ys))\\
+\hspace*{0pt} ~~~~~(SOME y,~AQueue {\char123}{\char92}isacharparenleft{\char125}[]{\char123}{\char92}isacharcomma{\char125}~ys{\char123}{\char92}isacharparenright{\char125})\\
 \hspace*{0pt} ~~~end;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun enqueue x (AQueue (xs,~ys)) = AQueue (x ::~xs,~ys);\\
+\hspace*{0pt}fun enqueue x {\char123}{\char92}isacharparenleft{\char125}AQueue {\char123}{\char92}isacharparenleft{\char125}xs{\char123}{\char92}isacharcomma{\char125}~ys{\char123}{\char92}isacharparenright{\char125}{\char123}{\char92}isacharparenright{\char125}~= AQueue {\char123}{\char92}isacharparenleft{\char125}x ::~xs{\char123}{\char92}isacharcomma{\char125}~ys{\char123}{\char92}isacharparenright{\char125};\\
 \hspace*{0pt}\\
 \hspace*{0pt}end;~(*struct Example*)%
 \end{isamarkuptext}%
@@ -213,7 +219,7 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent This is how the corresponding code in \isa{Haskell} looks like:%
+\noindent This is the corresponding code in \isa{Haskell}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -228,16 +234,15 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \noindent%
 \hspace*{0pt}module Example where {\char123}\\
 \hspace*{0pt}\\
-\hspace*{0pt}\\
-\hspace*{0pt}foldla ::~forall a b.~(a -> b -> a) -> a -> [b] -> a;\\
+\hspace*{0pt}foldla ::~forall a b.~{\char123}{\char92}isacharparenleft{\char125}a -> b -> a{\char123}{\char92}isacharparenright{\char125}~-> a -> [b] -> a;\\
 \hspace*{0pt}foldla f a [] = a;\\
-\hspace*{0pt}foldla f a (x :~xs) = foldla f (f a x) xs;\\
+\hspace*{0pt}foldla f a {\char123}{\char92}isacharparenleft{\char125}x :~xs{\char123}{\char92}isacharparenright{\char125}~= foldla f {\char123}{\char92}isacharparenleft{\char125}f a x{\char123}{\char92}isacharparenright{\char125}~xs;\\
 \hspace*{0pt}\\
 \hspace*{0pt}rev ::~forall a.~[a] -> [a];\\
-\hspace*{0pt}rev xs = foldla ({\char92}~xsa x -> x :~xsa) [] xs;\\
+\hspace*{0pt}rev xs = foldla {\char123}{\char92}isacharparenleft{\char125}{\char92}~xsa x -> x :~xsa{\char123}{\char92}isacharparenright{\char125}~[] xs;\\
 \hspace*{0pt}\\
-\hspace*{0pt}list{\char95}case ::~forall a b.~a -> (b -> [b] -> a) -> [b] -> a;\\
-\hspace*{0pt}list{\char95}case f1 f2 (a :~list) = f2 a list;\\
+\hspace*{0pt}list{\char95}case ::~forall a b.~a -> {\char123}{\char92}isacharparenleft{\char125}b -> [b] -> a{\char123}{\char92}isacharparenright{\char125}~-> [b] -> a;\\
+\hspace*{0pt}list{\char95}case f1 f2 {\char123}{\char92}isacharparenleft{\char125}a :~list{\char123}{\char92}isacharparenright{\char125}~= f2 a list;\\
 \hspace*{0pt}list{\char95}case f1 f2 [] = f1;\\
 \hspace*{0pt}\\
 \hspace*{0pt}data Queue a = AQueue [a] [a];\\
@@ -246,15 +251,15 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \hspace*{0pt}empty = AQueue [] [];\\
 \hspace*{0pt}\\
 \hspace*{0pt}dequeue ::~forall a.~Queue a -> (Maybe a,~Queue a);\\
-\hspace*{0pt}dequeue (AQueue [] []) = (Nothing,~AQueue [] []);\\
-\hspace*{0pt}dequeue (AQueue xs (y :~ys)) = (Just y,~AQueue xs ys);\\
-\hspace*{0pt}dequeue (AQueue (v :~va) []) =\\
+\hspace*{0pt}dequeue {\char123}{\char92}isacharparenleft{\char125}AQueue [] []{\char123}{\char92}isacharparenright{\char125}~= (Nothing,~AQueue [] []);\\
+\hspace*{0pt}dequeue {\char123}{\char92}isacharparenleft{\char125}AQueue xs {\char123}{\char92}isacharparenleft{\char125}y :~ys{\char123}{\char92}isacharparenright{\char125}{\char123}{\char92}isacharparenright{\char125}~= (Just y,~AQueue xs ys);\\
+\hspace*{0pt}dequeue {\char123}{\char92}isacharparenleft{\char125}AQueue {\char123}{\char92}isacharparenleft{\char125}v :~va{\char123}{\char92}isacharparenright{\char125}~[]{\char123}{\char92}isacharparenright{\char125}~=\\
 \hspace*{0pt} ~let {\char123}\\
-\hspace*{0pt} ~~~(y :~ys) = rev (v :~va);\\
+\hspace*{0pt} ~~~{\char123}{\char92}isacharparenleft{\char125}y :~ys{\char123}{\char92}isacharparenright{\char125}~= rev {\char123}{\char92}isacharparenleft{\char125}v :~va{\char123}{\char92}isacharparenright{\char125};\\
 \hspace*{0pt} ~{\char125}~in (Just y,~AQueue [] ys);\\
 \hspace*{0pt}\\
 \hspace*{0pt}enqueue ::~forall a.~a -> Queue a -> Queue a;\\
-\hspace*{0pt}enqueue x (AQueue xs ys) = AQueue (x :~xs) ys;\\
+\hspace*{0pt}enqueue x {\char123}{\char92}isacharparenleft{\char125}AQueue xs ys{\char123}{\char92}isacharparenright{\char125}~= AQueue {\char123}{\char92}isacharparenleft{\char125}x :~xs{\char123}{\char92}isacharparenright{\char125}~ys;\\
 \hspace*{0pt}\\
 \hspace*{0pt}{\char125}%
 \end{isamarkuptext}%
@@ -280,7 +285,7 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \begin{isamarkuptext}%
 What you have seen so far should be already enough in a lot of cases.  If you
   are content with this, you can quit reading here.  Anyway, in order to customise
-  and adapt the code generator, it is inevitable to gain some understanding
+  and adapt the code generator, it is necessary to gain some understanding
   how it works.
 
   \begin{figure}[h]
@@ -305,16 +310,15 @@ What you have seen so far should be already enough in a lot of cases.  If you
 
   \begin{itemize}
 
-    \item Starting point is a collection of raw code equations in a
-      theory; due to proof irrelevance it is not relevant where they
-      stem from but typically they are either descendant of specification
-      tools or explicit proofs by the user.
+    \item The starting point is a collection of raw code equations in a
+      theory. It is not relevant where they
+      stem from, but typically they were either produced by specification
+      tools or proved explicitly by the user.
       
-    \item Before these raw code equations are continued
-      with, they can be subjected to theorem transformations.  This
-      \qn{preprocessor} is an interface which allows to apply the full
+    \item These raw code equations can be subjected to theorem transformations.  This
+      \qn{preprocessor} can apply the full
       expressiveness of ML-based theorem transformations to code
-      generation.  The result of the preprocessing step is a
+      generation.  The result of preprocessing is a
       structured collection of code equations.
 
     \item These code equations are \qn{translated} to a program in an

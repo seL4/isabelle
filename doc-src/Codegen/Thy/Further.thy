@@ -7,8 +7,8 @@ section {* Further issues \label{sec:further} *}
 subsection {* Further reading *}
 
 text {*
-  Do dive deeper into the issue of code generation, you should visit
-  the Isabelle/Isar Reference Manual \cite{isabelle-isar-ref} which
+  To dive deeper into the issue of code generation, you should visit
+  the Isabelle/Isar Reference Manual \cite{isabelle-isar-ref}, which
   contains exhaustive syntax diagrams.
 *}
 
@@ -36,7 +36,7 @@ code_modulename %quote SML
   B ABC
   C ABC
 
-text {*
+text {*\noindent
   we explicitly map all those modules on \emph{ABC},
   resulting in an ad-hoc merge of this three modules
   at serialisation time.
@@ -47,7 +47,7 @@ subsection {* Evaluation oracle *}
 text {*
   Code generation may also be used to \emph{evaluate} expressions
   (using @{text SML} as target language of course).
-  For instance, the @{command value} allows to reduce an expression to a
+  For instance, the @{command value} reduces an expression to a
   normal form with respect to the underlying code equations:
 *}
 
@@ -106,7 +106,7 @@ text {*
   If you consider imperative data structures as inevitable for a specific
   application, you should consider
   \emph{Imperative Functional Programming with Isabelle/HOL}
-  (\cite{bulwahn-et-al:2008:imperative});
+  \cite{bulwahn-et-al:2008:imperative};
   the framework described there is available in theory @{theory Imperative_HOL}.
 *}
 

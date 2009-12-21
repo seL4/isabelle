@@ -7,25 +7,24 @@ section {* Introduction and Overview *}
 text {*
   This tutorial introduces a generic code generator for the
   @{text Isabelle} system.
-  Generic in the sense that the
-  \qn{target language} for which code shall ultimately be
-  generated is not fixed but may be an arbitrary state-of-the-art
-  functional programming language (currently, the implementation
+  The
+  \qn{target language} for which code is
+  generated is not fixed, but may be one of several
+  functional programming languages (currently, the implementation
   supports @{text SML} \cite{SML}, @{text OCaml} \cite{OCaml} and @{text Haskell}
   \cite{haskell-revised-report}).
 
   Conceptually the code generator framework is part
   of Isabelle's @{theory Pure} meta logic framework; the logic
-  @{theory HOL} which is an extension of @{theory Pure}
+  @{theory HOL} \cite{isa-tutorial}, which is an extension of @{theory Pure},
   already comes with a reasonable framework setup and thus provides
-  a good working horse for raising code-generation-driven
+  a good basis for creating code-generation-driven
   applications.  So, we assume some familiarity and experience
   with the ingredients of the @{theory HOL} distribution theories.
-  (see also \cite{isa-tutorial}).
 
   The code generator aims to be usable with no further ado
-  in most cases while allowing for detailed customisation.
-  This manifests in the structure of this tutorial: after a short
+  in most cases, while allowing for detailed customisation.
+  This can be seen in the structure of this tutorial: after a short
   conceptual introduction with an example (\secref{sec:intro}),
   we discuss the generic customisation facilities (\secref{sec:program}).
   A further section (\secref{sec:adaptation}) is dedicated to the matter of
@@ -58,7 +57,7 @@ text {*
   Inside @{theory HOL}, the @{command datatype} and
   @{command definition}/@{command primrec}/@{command fun} declarations form
   the core of a functional programming language.  The default code generator setup
-  allows to turn those into functional programs immediately.
+   transforms those into functional programs immediately.
   This means that \qt{naive} code generation can proceed without further ado.
   For example, here a simple \qt{implementation} of amortised queues:
 *}
@@ -102,7 +101,7 @@ export_code %quote empty dequeue enqueue in Haskell
   module_name Example file "examples/"
 
 text {*
-  \noindent This is how the corresponding code in @{text Haskell} looks like:
+  \noindent This is the corresponding code in @{text Haskell}:
 *}
 
 text %quote {*@{code_stmts empty enqueue dequeue (Haskell)}*}
@@ -117,7 +116,7 @@ subsection {* Code generator architecture \label{sec:concept} *}
 text {*
   What you have seen so far should be already enough in a lot of cases.  If you
   are content with this, you can quit reading here.  Anyway, in order to customise
-  and adapt the code generator, it is inevitable to gain some understanding
+  and adapt the code generator, it is necessary to gain some understanding
   how it works.
 
   \begin{figure}[h]
@@ -142,16 +141,15 @@ text {*
 
   \begin{itemize}
 
-    \item Starting point is a collection of raw code equations in a
-      theory; due to proof irrelevance it is not relevant where they
-      stem from but typically they are either descendant of specification
-      tools or explicit proofs by the user.
+    \item The starting point is a collection of raw code equations in a
+      theory. It is not relevant where they
+      stem from, but typically they were either produced by specification
+      tools or proved explicitly by the user.
       
-    \item Before these raw code equations are continued
-      with, they can be subjected to theorem transformations.  This
-      \qn{preprocessor} is an interface which allows to apply the full
+    \item These raw code equations can be subjected to theorem transformations.  This
+      \qn{preprocessor} can apply the full
       expressiveness of ML-based theorem transformations to code
-      generation.  The result of the preprocessing step is a
+      generation.  The result of preprocessing is a
       structured collection of code equations.
 
     \item These code equations are \qn{translated} to a program in an
