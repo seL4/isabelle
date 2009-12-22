@@ -114,7 +114,7 @@ class Proof_Document(
 
     while (matcher.find() && invalid_tokens != Nil) {
 			val kind =
-        if (session.is_command_keyword(matcher.group))
+        if (session.keywords.is_command(matcher.group))
           Token.Kind.COMMAND_START
         else if (matcher.end - matcher.start > 2 && matcher.group.substring(0, 2) == "(*")
           Token.Kind.COMMENT

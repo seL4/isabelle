@@ -28,6 +28,9 @@ class Session(system: Isabelle_System)
   private case class Start(args: List[String])
   private case object Stop
 
+  @volatile private var _keywords = new Outer_Keyword(system.symbols)
+  def keywords = _keywords
+
   private var prover: Isabelle_Process with Isar_Document = null
   private var prover_ready = false
 
@@ -78,20 +81,6 @@ class Session(system: Isabelle_System)
   private var _selected_state: Command = null
   def selected_state = _selected_state
   def selected_state_=(state: Command) { _selected_state = state; results.event(state) }
-
-
-  /* outer syntax keywords and completion */
-
-  @volatile private var _command_decls = Map[String, String]()
-  def command_decls() = _command_decls
-
-  @volatile private var _keyword_decls = Set[String]()
-  def keyword_decls() = _keyword_decls
-
-  @volatile private var _completion = new Completion + system.symbols
-  def completion() = _completion
-
-  def is_command_keyword(s: String): Boolean = command_decls().contains(s)
 
 
   /* document state information */
@@ -174,11 +163,9 @@ class Session(system: Isabelle_System)
 
           // command and keyword declarations
           case XML.Elem(Markup.COMMAND_DECL, (Markup.NAME, name) :: (Markup.KIND, kind) :: _, _) =>
-            _command_decls += (name -> kind)
-            _completion += name
+            _keywords += (name, kind)
           case XML.Elem(Markup.KEYWORD_DECL, (Markup.NAME, name) :: _, _) =>
-            _keyword_decls += name
-            _completion += name
+            _keywords += name
 
           // process ready (after initialization)
           case XML.Elem(Markup.READY, _, _) => prover_ready = true
