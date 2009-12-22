@@ -7,9 +7,6 @@ Isar command keyword classification and keyword tables.
 package isabelle
 
 
-import scala.util.parsing.input.{Reader, CharSequenceReader}
-
-
 object Outer_Keyword
 {
   val MINOR = "minor"
@@ -48,46 +45,3 @@ object Outer_Keyword
   val improper = Set(THY_SCRIPT, PRF_SCRIPT)
 }
 
-
-class Outer_Keyword(symbols: Symbol.Interpretation)
-{
-  protected val keywords: Map[String, String] = Map((";" -> Outer_Keyword.DIAG))
-  protected val lexicon: Scan.Lexicon = Scan.Lexicon.empty
-  lazy val completion: Completion = new Completion + symbols
-
-  def + (name: String, kind: String): Outer_Keyword =
-  {
-    val new_keywords = keywords + (name -> kind)
-    val new_lexicon = lexicon + name
-    val new_completion = completion + name
-    new Outer_Keyword(symbols) {
-      override val lexicon = new_lexicon
-      override val keywords = new_keywords
-      override lazy val completion = new_completion
-    }
-  }
-
-  def + (name: String): Outer_Keyword = this + (name, Outer_Keyword.MINOR)
-
-  def is_command(name: String): Boolean =
-    keywords.get(name) match {
-      case Some(kind) => kind != Outer_Keyword.MINOR
-      case None => false
-    }
-
-
-  /* tokenize */
-
-  def tokenize(input: Reader[Char]): List[Outer_Lex.Token] =
-  {
-    import lexicon._
-
-    parseAll(rep(token(symbols, is_command)), input) match {
-      case Success(tokens, _) => tokens
-      case _ => error("Failed to tokenize input:\n" + input.source.toString)
-    }
-  }
-
-  def tokenize(input: CharSequence): List[Outer_Lex.Token] =
-    tokenize(new CharSequenceReader(input))
-}
