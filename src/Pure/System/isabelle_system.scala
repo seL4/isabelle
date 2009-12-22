@@ -58,6 +58,7 @@ object Isabelle_System
       buf.append(c.toChar)
       c = reader.read
     }
+    reader.close
     buf.toString
   }
 }
