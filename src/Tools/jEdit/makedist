@@ -87,7 +87,7 @@ cp -R "$THIS/dist-template/." "$JEDIT/."
 
 perl -i -e 'while (<>) { if (m/NAME="javacc"/) {
   print qq,<MODE NAME="isabelle" FILE="isabelle.xml" FILE_NAME_GLOB="*.thy"/>\n\n,;
-  print qq,<MODE NAME="isabelle-session" FILE="isabelle-session.xml" FILE_NAME_GLOB="session.info"/>\n\n,; }
+  print qq,<MODE NAME="isabelle-session" FILE="isabelle-session.xml" FILE_NAME_GLOB="session.root"/>\n\n,; }
   print; }' "$JEDIT/modes/catalog"
 
 
