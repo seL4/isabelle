@@ -8,7 +8,8 @@ package isabelle
 
 import java.util.regex.Pattern
 import java.util.Locale
-import java.io.{BufferedInputStream, FileInputStream, File, IOException}
+import java.io.{BufferedInputStream, FileInputStream, BufferedReader, InputStreamReader,
+  File, IOException}
 import java.awt.{GraphicsEnvironment, Font}
 
 import scala.io.Source
@@ -42,6 +43,21 @@ object Isabelle_System
     val output = Source.fromInputStream(proc.getInputStream, charset).mkString
     val rc = proc.waitFor
     (output, rc)
+  }
+
+
+  /* platform files */
+
+  def read_file(file: File): String =
+  {
+    val buf = new StringBuilder(file.length.toInt)
+    val reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))
+    var c = reader.read
+    while (c != -1) {
+      buf.append(c.toChar)
+      c = reader.read
+    }
+    buf.toString
   }
 }
 
