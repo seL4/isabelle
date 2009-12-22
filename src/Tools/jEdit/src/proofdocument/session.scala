@@ -29,7 +29,7 @@ class Session(system: Isabelle_System)
   private case object Stop
 
   @volatile private var _keywords = new Outer_Keyword(system.symbols)
-  def keywords = _keywords
+  def keywords(): Outer_Keyword = _keywords
 
   private var prover: Isabelle_Process with Isar_Document = null
   private var prover_ready = false
