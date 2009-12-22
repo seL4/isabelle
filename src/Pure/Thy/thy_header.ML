@@ -35,7 +35,7 @@ val header_lexicon = Scan.make_lexicon
 val file_name = P.group "file name" P.name;
 val theory_name = P.group "theory name" P.name;
 
-val file = (P.$$$ "(" |-- P.!!! (file_name --| P.$$$ ")")) >> rpair false || file_name >> rpair true;
+val file = P.$$$ "(" |-- P.!!! (file_name --| P.$$$ ")") >> rpair false || file_name >> rpair true;
 val uses = Scan.optional (P.$$$ usesN |-- P.!!! (Scan.repeat1 file)) [];
 
 val args =
