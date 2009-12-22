@@ -14,6 +14,7 @@ import java.awt.{GraphicsEnvironment, Font}
 
 import scala.io.Source
 import scala.util.matching.Regex
+import scala.collection.mutable
 
 
 object Isabelle_System
@@ -319,7 +320,7 @@ class Isabelle_System
   def find_logics(): List[String] =
   {
     val ml_ident = getenv_strict("ML_IDENTIFIER")
-    var logics: Set[String] = Set()
+    val logics = new mutable.ListBuffer[String]
     for (dir <- getenv_strict("ISABELLE_PATH").split(":")) {
       val files = platform_file(dir + "/" + ml_ident).listFiles()
       if (files != null) {
