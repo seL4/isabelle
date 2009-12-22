@@ -41,16 +41,28 @@ object Outer_Parse
       }
     }
 
+    def atom(s: String, pred: Elem => Boolean): Parser[String] =
+      token(s, pred) ^^ (_.content)
+
     def not_eof: Parser[Elem] = token("input token", _ => true)
 
-    def keyword(name: String): Parser[Elem] =
-      token(Outer_Lex.Token_Kind.KEYWORD.toString + " \"" + name + "\"",
+    def keyword(name: String): Parser[String] =
+      atom(Outer_Lex.Token_Kind.KEYWORD.toString + " \"" + name + "\"",
         tok => tok.kind == Outer_Lex.Token_Kind.KEYWORD && tok.content == name)
 
-    def name: Parser[Elem] = token("name declaration", _.is_name)
-    def xname: Parser[Elem] = token("name reference", _.is_xname)
-    def text: Parser[Elem] = token("text", _.is_text)
-    def path: Parser[Elem] = token("file name/path specification", _.is_name)
+    def name: Parser[String] = atom("name declaration", _.is_name)
+    def xname: Parser[String] = atom("name reference", _.is_xname)
+    def text: Parser[String] = atom("text", _.is_text)
+    def ML_source: Parser[String] = atom("ML source", _.is_text)
+    def doc_source: Parser[String] = atom("document source", _.is_text)
+    def path: Parser[String] = atom("file name/path specification", _.is_name)
+
+    private def tag_name: Parser[String] =
+      atom("tag name", tok =>
+          tok.kind == Outer_Lex.Token_Kind.IDENT ||
+          tok.kind == Outer_Lex.Token_Kind.STRING)
+
+    def tags: Parser[List[String]] = rep(keyword("%") ~> tag_name)
 
 
     /* wrappers */
