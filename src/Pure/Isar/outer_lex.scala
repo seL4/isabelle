@@ -9,92 +9,84 @@ package isabelle
 
 object Outer_Lex
 {
-  sealed abstract class Token
-  {
-    def source: String
-    def content: String = source
+  /* tokens */
 
-    def is_delimited: Boolean = false
-    def is_name: Boolean = false
-    def is_xname: Boolean = false
-    def is_text: Boolean = false
-    def is_space: Boolean = false
-    def is_comment: Boolean = false
+  object Token_Kind extends Enumeration
+  {
+    val COMMAND = Value("command")
+    val KEYWORD = Value("keyword")
+    val IDENT = Value("identifier")
+    val LONG_IDENT = Value("long identifier")
+    val SYM_IDENT = Value("symbolic identifier")
+    val VAR = Value("schematic variable")
+    val TYPE_IDENT = Value("type variable")
+    val TYPE_VAR = Value("schematic type variable")
+    val NAT = Value("number")
+    val STRING = Value("string")
+    val ALT_STRING = Value("back-quoted string")
+    val VERBATIM = Value("verbatim text")
+    val SPACE = Value("white space")
+    val COMMENT = Value("comment text")
+    val BAD_INPUT = Value("bad input")
+    val UNPARSED = Value("unparsed input")
+  }
+
+  sealed case class Token(val kind: Token_Kind.Value, val source: String)
+  {
+    def is_delimited: Boolean =
+      kind == Token_Kind.STRING ||
+      kind == Token_Kind.ALT_STRING ||
+      kind == Token_Kind.VERBATIM ||
+      kind == Token_Kind.COMMENT
+    def is_name: Boolean =
+      kind == Token_Kind.IDENT ||
+      kind == Token_Kind.SYM_IDENT ||
+      kind == Token_Kind.STRING ||
+      kind == Token_Kind.NAT
+    def is_xname: Boolean = is_name || kind == Token_Kind.LONG_IDENT
+    def is_text: Boolean = is_xname || kind == Token_Kind.VERBATIM
+    def is_space: Boolean = kind == Token_Kind.SPACE
+    def is_comment: Boolean = kind == Token_Kind.COMMENT
     def is_proper: Boolean = !(is_space || is_comment)
+
+    def content: String =
+      if (kind == Token_Kind.STRING) Scan.Lexicon.empty.quoted_content("\"", source)
+      else if (kind == Token_Kind.ALT_STRING) Scan.Lexicon.empty.quoted_content("`", source)
+      else if (kind == Token_Kind.VERBATIM) Scan.Lexicon.empty.verbatim_content(source)
+      else if (kind == Token_Kind.COMMENT) Scan.Lexicon.empty.comment_content(source)
+      else source
+
+    def text: (String, String) =
+      if (kind == Token_Kind.COMMAND && source == ";") ("terminator", "")
+      else (kind.toString, source)
   }
 
-  case class Command(val source: String) extends Token
 
-  case class Keyword(val source: String) extends Token
+  /* token reader */
 
-  case class Ident(val source: String) extends Token
+  class Line_Position(val line: Int) extends scala.util.parsing.input.Position
   {
-    override def is_name = true
-    override def is_xname = true
-    override def is_text = true
+    def column = 0
+    def lineContents = ""
+    override def toString = line.toString
+
+    def advance(token: Token): Line_Position =
+    {
+      var n = 0
+      for (c <- token.content if c == '\n') n += 1
+      if (n == 0) this else new Line_Position(line + n)
+    }
   }
 
-  case class Long_Ident(val source: String) extends Token
+  abstract class Reader extends scala.util.parsing.input.Reader[Token]
+
+  private class Token_Reader(tokens: List[Token], val pos: Line_Position) extends Reader
   {
-    override def is_xname = true
-    override def is_text = true
+    def first = tokens.head
+    def rest = new Token_Reader(tokens.tail, pos.advance(first))
+    def atEnd = tokens.isEmpty
   }
 
-  case class Sym_Ident(val source: String) extends Token
-  {
-    override def is_name = true
-    override def is_xname = true
-    override def is_text = true
-  }
-
-  case class Var(val source: String) extends Token
-
-  case class Type_Ident(val source: String) extends Token
-
-  case class Type_Var(val source: String) extends Token
-
-  case class Nat(val source: String) extends Token
-  {
-    override def is_name = true
-    override def is_xname = true
-    override def is_text = true
-  }
-
-  case class String_Token(val source: String) extends Token
-  {
-    override def content = Scan.Lexicon.empty.quoted_content("\"", source)
-    override def is_delimited = true
-    override def is_name = true
-    override def is_xname = true
-    override def is_text = true
-  }
-
-  case class Alt_String_Token(val source: String) extends Token
-  {
-    override def content = Scan.Lexicon.empty.quoted_content("`", source)
-    override def is_delimited = true
-  }
-
-  case class Verbatim(val source: String) extends Token
-  {
-    override def content = Scan.Lexicon.empty.verbatim_content(source)
-    override def is_delimited = true
-    override def is_text = true
-  }
-
-  case class Space(val source: String) extends Token
-  {
-    override def is_space = true
-  }
-
-  case class Comment(val source: String) extends Token
-  {
-    override def content = Scan.Lexicon.empty.comment_content(source)
-    override def is_delimited = true
-    override def is_comment = true
-  }
-
-  case class Bad_Input(val source: String) extends Token
-  case class Unparsed(val source: String) extends Token
+  def reader(tokens: List[Token]): Reader = new Token_Reader(tokens, new Line_Position(1))
 }
 
