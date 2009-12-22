@@ -28,8 +28,8 @@ class Session(system: Isabelle_System)
   private case class Start(args: List[String])
   private case object Stop
 
-  @volatile private var _keywords = new Outer_Keyword(system.symbols)
-  def keywords(): Outer_Keyword = _keywords
+  @volatile private var _syntax = new Outer_Syntax(system.symbols)
+  def syntax(): Outer_Syntax = _syntax
 
   private var prover: Isabelle_Process with Isar_Document = null
   private var prover_ready = false
@@ -163,9 +163,9 @@ class Session(system: Isabelle_System)
 
           // command and keyword declarations
           case XML.Elem(Markup.COMMAND_DECL, (Markup.NAME, name) :: (Markup.KIND, kind) :: _, _) =>
-            _keywords += (name, kind)
+            _syntax += (name, kind)
           case XML.Elem(Markup.KEYWORD_DECL, (Markup.NAME, name) :: _, _) =>
-            _keywords += name
+            _syntax += name
 
           // process ready (after initialization)
           case XML.Elem(Markup.READY, _, _) => prover_ready = true

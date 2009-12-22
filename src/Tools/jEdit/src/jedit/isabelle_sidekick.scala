@@ -85,7 +85,7 @@ class Isabelle_Sidekick extends SideKickParser("isabelle")
     val start = buffer.getLineStartOffset(line)
     val text = buffer.getSegment(start, caret - start)
 
-    val completion = Isabelle.session.keywords().completion
+    val completion = Isabelle.session.syntax().completion
 
     completion.complete(text) match {
       case None => null
