@@ -11,21 +11,25 @@ import scala.util.parsing.combinator.Parsers
 
 object Outer_Parse
 {
+  /* parsing tokens */
+
   trait Parser extends Parsers
   {
     type Elem = Outer_Lex.Token
 
-
-    /* basic parsers */
+    private def proper(in: Input): Input =
+      if (in.atEnd || in.first.is_proper) in
+      else proper(in.rest)
 
     def token(s: String, pred: Elem => Boolean): Parser[Elem] = new Parser[Elem]
     {
-      def apply(in: Input) =
+      def apply(raw_input: Input) =
       {
+        val in = proper(raw_input)
         if (in.atEnd) Failure(s + " expected (past end-of-file!)", in)
         else {
           val token = in.first
-          if (pred(token)) Success(token, in.rest)
+          if (pred(token)) Success(token, proper(in.rest))
           else
             token.text match {
               case (txt, "") =>
@@ -47,6 +51,12 @@ object Outer_Parse
     def xname: Parser[Elem] = token("name reference", _.is_xname)
     def text: Parser[Elem] = token("text", _.is_text)
     def path: Parser[Elem] = token("file name/path specification", _.is_name)
+
+
+    /* wrappers */
+
+    def parse[T](p: Parser[T], in: Outer_Lex.Reader): ParseResult[T] = p(in)
+    def parse_all[T](p: Parser[T], in: Outer_Lex.Reader): ParseResult[T] = parse(phrase(p), in)
   }
 }
 
