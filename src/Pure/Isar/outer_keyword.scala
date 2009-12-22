@@ -51,20 +51,23 @@ object Outer_Keyword
 
 class Outer_Keyword(symbols: Symbol.Interpretation)
 {
-  protected val lexicon: Scan.Lexicon = Scan.Lexicon.empty
   protected val keywords: Map[String, String] = Map((";" -> Outer_Keyword.DIAG))
+  protected val lexicon: Scan.Lexicon = Scan.Lexicon.empty
+  lazy val completion: Completion = new Completion + symbols
 
-  def keyword(name: String, kind: String): Outer_Keyword =
+  def + (name: String, kind: String): Outer_Keyword =
   {
-    val new_lexicon = lexicon + name
     val new_keywords = keywords + (name -> kind)
+    val new_lexicon = lexicon + name
+    val new_completion = completion + name
     new Outer_Keyword(symbols) {
       override val lexicon = new_lexicon
       override val keywords = new_keywords
+      override lazy val completion = new_completion
     }
   }
 
-  def keyword(name: String): Outer_Keyword = keyword(name, Outer_Keyword.MINOR)
+  def + (name: String): Outer_Keyword = this + (name, Outer_Keyword.MINOR)
 
   def is_command(name: String): Boolean =
     keywords.get(name) match {
