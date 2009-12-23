@@ -46,21 +46,32 @@ boogie_status max -- {* shows the names of all unproved assertions
 boogie_status (full) max -- {* shows the state of all assertions
   of the verification condition @{text max} *}
 
+boogie_status (paths) max -- {* shows the names of all unproved assertions,
+  grouped by program paths, of the verification condition @{text max} *}
+
+boogie_status (full paths) max -- {* shows the state of all assertions
+  of the verification condition @{text max}, grouped by program paths,
+  with already proved or irrelevant assertions written in parentheses *}
+
 
 text {* Let's find out which assertions of @{text max} are hard to prove: *}
 
 boogie_status (narrow timeout: 4) max
-  (try: (simp add: labels, (fast | metis)?))
+  (simp add: labels, (fast | metis)?)
   -- {* The argument @{text timeout} is optional, restricting the runtime of
         each narrowing step by the given number of seconds. *}
-  -- {* The tag @{text try} expects a method to be applied at each narrowing
+  -- {* The last argument should be a method to be applied at each narrowing
         step. Note that different methods may be composed to one method by
         a language similar to regular expressions. *}
+
+boogie_status (scan timeout: 4) max
+  (simp add: labels, (fast | metis)?)
+  -- {* finds the first hard assertion wrt. to the given method *}
 
 
 text {* Now, let's prove the three hard assertions of @{text max}: *}
 
-boogie_vc (only: L_14_5c L_14_5b L_14_5a) max
+boogie_vc max (examine: L_14_5c L_14_5b L_14_5a) 
 proof boogie_cases
   case L_14_5c
   thus ?case by (metis less_le_not_le zle_add1_eq_le zless_linear)
@@ -84,6 +95,10 @@ boogie_status max -- {* the above proved assertions are not shown anymore *}
 
 boogie_status (full) max -- {* states the above proved assertions as proved
   and all other assertions as not proved *}
+
+boogie_status (paths) max
+
+boogie_status (full paths) max
 
 
 text {* Now we prove the remaining assertions all at once: *}
