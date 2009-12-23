@@ -9,8 +9,8 @@ imports SMT
 uses
   ("Tools/boogie_vcs.ML")
   ("Tools/boogie_loader.ML")
-  ("Tools/boogie_commands.ML")
   ("Tools/boogie_tactics.ML")
+  ("Tools/boogie_commands.ML")
 begin
 
 text {*
@@ -95,10 +95,10 @@ setup Boogie_Axioms.setup
 
 use "Tools/boogie_vcs.ML"
 use "Tools/boogie_loader.ML"
-use "Tools/boogie_commands.ML"
-setup Boogie_Commands.setup
-
 use "Tools/boogie_tactics.ML"
 setup Boogie_Tactics.setup
+
+use "Tools/boogie_commands.ML"
+setup Boogie_Commands.setup
 
 end

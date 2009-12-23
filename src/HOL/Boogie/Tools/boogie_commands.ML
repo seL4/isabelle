@@ -14,7 +14,7 @@ struct
 
 (* commands *)
 
-fun boogie_load (quiet, base_name) thy =
+fun boogie_open (quiet, base_name) thy =
   let
     val path = Path.explode (base_name ^ ".b2i")
     val _ = File.exists path orelse
@@ -25,7 +25,12 @@ fun boogie_load (quiet, base_name) thy =
   in Boogie_Loader.load_b2i (not quiet) path thy end
 
 
-datatype vc_opts = VC_full of bool | VC_only of string list
+datatype vc_opts =
+  VC_Complete |
+  VC_Take of int list * (bool * string list) option |
+  VC_Only of string list |
+  VC_Without of string list |
+  VC_Examine of string list 
 
 fun get_vc thy vc_name =
   (case Boogie_VCs.lookup thy vc_name of
@@ -37,18 +42,24 @@ fun get_vc thy vc_name =
       | _ => error ("There is no verification condition " ^
           quote vc_name ^ ".")))
 
-fun boogie_vc (vc_opts, vc_name) lthy =
+fun boogie_vc (vc_name, vc_opts) lthy =
   let
     val thy = ProofContext.theory_of lthy
     val vc = get_vc thy vc_name
 
-    val (sks, ts) = split_list
+    val vcs =
       (case vc_opts of
-        VC_full paths => [vc] |> paths ? maps Boogie_VCs.paths_of
-      | VC_only assertions => map_filter (Boogie_VCs.extract vc) assertions)
+        VC_Complete => [vc]
+      | VC_Take (ps, NONE) => [Boogie_VCs.paths_and ps [] vc]
+      | VC_Take (ps, SOME (true, ls)) => [Boogie_VCs.paths_and ps ls vc]
+      | VC_Take (ps, SOME (false, ls)) => [Boogie_VCs.paths_without ps ls vc]
+      | VC_Only ls => [Boogie_VCs.only ls vc]
+      | VC_Without ls => [Boogie_VCs.without ls vc]
+      | VC_Examine ls => map_filter (Boogie_VCs.extract vc) ls)
+    val ts = map Boogie_VCs.prop_of_vc vcs
 
     val discharge = fold (Boogie_VCs.discharge o pair vc_name)
-    fun after_qed [thms] = Local_Theory.theory (discharge (sks ~~ thms))
+    fun after_qed [thms] = Local_Theory.theory (discharge (vcs ~~ thms))
       | after_qed _ = I
   in
     lthy
@@ -57,10 +68,11 @@ fun boogie_vc (vc_opts, vc_name) lthy =
   end
 
 
-fun write_list head xs =
-  Pretty.writeln (Pretty.big_list head (map Pretty.str xs))
+fun write_list head =
+  map Pretty.str o sort (dict_ord string_ord o pairself explode) #>
+  Pretty.writeln o Pretty.big_list head
 
-val prefix_string_ord = dict_ord string_ord o pairself explode
+fun parens s = "(" ^ s ^ ")"
 
 fun boogie_status thy =
   let
@@ -69,23 +81,46 @@ fun boogie_status thy =
       | string_of_state Boogie_VCs.PartiallyProved = "partially proved"
   in
     Boogie_VCs.state_of thy
-    |> map (fn (name, proved) => name ^ " (" ^ string_of_state proved ^ ")")
-    |> sort prefix_string_ord
+    |> map (fn (name, proved) => name ^ " " ^ parens (string_of_state proved))
     |> write_list "Boogie verification conditions:"
   end
 
-fun boogie_status_vc (full, vc_name) thy =
+fun boogie_status_vc full vc_name thy =
   let
-    fun pretty tag s = s ^ " (" ^ tag ^ ")"
+    fun pretty tag s = s ^ " " ^ parens tag
 
-    val (ps, us) = Boogie_VCs.state_of_vc thy vc_name
+    val (not_proved, proved) = Boogie_VCs.state_of_vc thy vc_name
   in
     if full
     then write_list ("Assertions of Boogie verification condition " ^
-      quote vc_name ^ ":") (sort prefix_string_ord
-        (map (pretty "proved") ps @ map (pretty "not proved") us))
+      quote vc_name ^ ":")
+      (map (pretty "proved") proved @ map (pretty "not proved") not_proved)
     else write_list ("Unproved assertions of Boogie verification condition " ^
-      quote vc_name ^ ":") (sort prefix_string_ord us)
+      quote vc_name ^ ":") not_proved
+  end
+
+fun boogie_status_vc_paths full vc_name thy =
+  let
+    fun labels ls = Pretty.blk (0, Pretty.breaks (map Pretty.str ls))
+
+    fun pp (i, ns) =
+      if full
+      then
+        [Pretty.big_list ("Path " ^ string_of_int (i+1) ^ ":")
+          [labels (map (fn (n, true) => n | (n, _) => parens n) ns)]]
+      else
+        let val ns' = map_filter (fn (n, true) => SOME n | _ => NONE) ns
+        in
+          if null ns' then []
+          else
+            [Pretty.big_list ("Unproved assertions of path " ^
+              string_of_int (i+1) ^ ":") [labels ns']]
+        end
+  in
+    Pretty.writeln
+      (Pretty.big_list
+        ("Paths of Boogie verification condition " ^ quote vc_name ^ ":")
+        (flat (map_index pp (Boogie_VCs.path_names_of (get_vc thy vc_name)))))
   end
 
 
@@ -94,7 +129,7 @@ local
   fun success_on s = tracing ("Succeeded on " ^ s ^ ".")
   fun failure_on s c = tracing ("Failed on " ^ s ^ c)
 
-  fun string_of_asserts goal = space_implode ", " (Boogie_VCs.names_of goal)
+  fun string_of_asserts vc = space_implode ", " (fst (Boogie_VCs.names_of vc))
 
   fun string_of_path (i, n) =
     "path " ^ string_of_int i ^ " of " ^ string_of_int n
@@ -105,51 +140,65 @@ local
 
   fun par_map f = flat o Par_List.map f
 
-  fun divide f goal =
-    let val n = Boogie_VCs.size_of goal
+  fun divide f vc =
+    let val n = Boogie_VCs.size_of vc
     in
-      if n = 1 then Boogie_VCs.names_of goal
+      if n <= 1 then fst (Boogie_VCs.names_of vc)
       else
-        let val (goal1, goal2) = Boogie_VCs.split_path (n div 2) goal
-        in par_map f [goal1, goal2] end
+        let val (vc1, vc2) = the (Boogie_VCs.split_path (n div 2) vc)
+        in par_map f [vc1, vc2] end
     end
 
-  fun prove thy meth (_, goal) =
+  fun prove thy meth vc =
     ProofContext.init thy
-    |> Proof.theorem_i NONE (K I) [[(goal, [])]]
+    |> Proof.theorem_i NONE (K I) [[(Boogie_VCs.prop_of_vc vc, [])]]
     |> Proof.apply meth
     |> Seq.hd
     |> Proof.global_done_proof
 in
-fun boogie_narrow_vc ((timeout, vc_name), meth) thy =
+fun boogie_narrow_vc timeout vc_name meth thy =
   let
     val tp = TimeLimit.timeLimit (Time.fromSeconds timeout) (prove thy meth)
 
-    fun try_goal (tag, split_tag) split goal = (trying tag;
-      (case try tp goal of
+    fun try_vc (tag, split_tag) split vc = (trying tag;
+      (case try tp vc of
         SOME _ => (success_on tag; [])
-      | NONE => (failure_on tag split_tag; split goal)))
+      | NONE => (failure_on tag split_tag; split vc)))
 
-    fun group_goal goal =
-      try_goal (string_of_asserts goal,
-        if Boogie_VCs.size_of goal = 1 then "." else ", further splitting ...")
-        (divide group_goal) goal
+    fun some_asserts vc =
+      try_vc (string_of_asserts vc,
+        if Boogie_VCs.size_of vc = 1 then "." else ", further splitting ...")
+        (divide some_asserts) vc
 
-    fun path_goal p =
-      try_goal (string_of_path p, ", splitting into assertions ...")
-        (divide group_goal)
+    fun single_path p =
+      try_vc (string_of_path p, ", splitting into assertions ...")
+        (divide some_asserts)
 
-    val full_goal =
-      try_goal ("full goal", ", splitting into paths ...")
-        (par_map (uncurry path_goal) o itemize_paths o Boogie_VCs.paths_of)
+    val complete_vc =
+      try_vc ("full goal", ", splitting into paths ...")
+        (par_map (uncurry single_path) o itemize_paths o Boogie_VCs.paths_of)
 
-    val unsolved = full_goal (get_vc thy vc_name)
+    val unsolved = complete_vc (get_vc thy vc_name)
   in
     if null unsolved
     then writeln ("Completely solved Boogie verification condition " ^
       quote vc_name ^ ".")
     else write_list ("Unsolved assertions of Boogie verification condition " ^
-      quote vc_name ^ ":") (sort prefix_string_ord unsolved)
+      quote vc_name ^ ":") unsolved
+  end
+
+fun boogie_scan_vc timeout vc_name meth thy =
+  let
+    val tp = TimeLimit.timeLimit (Time.fromSeconds timeout) (prove thy meth)
+
+    val vc = get_vc thy vc_name
+    fun prove_assert name =
+      (trying name; tp (the (Boogie_VCs.extract vc name)))
+    val find_first_failure = find_first (is_none o try prove_assert)
+  in
+    (case find_first_failure (fst (Boogie_VCs.names_of vc)) of
+      SOME name => writeln ("failed on " ^ quote name)
+    | NONE => writeln "succeeded")
   end
 end
 
@@ -174,39 +223,59 @@ fun boogie_end thy =
 
 fun scan_val n f = Args.$$$ n -- Args.colon |-- f
 fun scan_arg f = Args.parens f
-fun scan_opt n = Scan.optional (scan_arg (Args.$$$ n) >> K true) false
-
+fun scan_opt n = Scan.optional (scan_arg (Args.$$$ n >> K true)) false
 
 val _ =
   OuterSyntax.command "boogie_open"
     "Open a new Boogie environment and load a Boogie-generated .b2i file."
     OuterKeyword.thy_decl
-    (scan_opt "quiet" -- OuterParse.name >> (Toplevel.theory o boogie_load))
+    (scan_opt "quiet" -- OuterParse.name >> (Toplevel.theory o boogie_open))
 
 
 val vc_name = OuterParse.name
-val vc_opts =
-  scan_arg (scan_val "only" (Scan.repeat1 OuterParse.name)) >> VC_only ||
-  scan_opt "paths" >> VC_full
 
-fun vc_cmd f = Toplevel.print o Toplevel.local_theory_to_proof NONE f
+val vc_labels = Scan.repeat1 OuterParse.name
+
+val vc_paths =
+  OuterParse.nat -- (Args.$$$ "-" |-- OuterParse.nat) >> (op upto) ||
+  OuterParse.nat >> single
+
+val vc_opts =
+  scan_arg
+   (scan_val "examine" vc_labels >> VC_Examine ||
+    scan_val "take" ((OuterParse.list vc_paths >> flat) -- Scan.option (
+      scan_val "without" vc_labels >> pair false ||
+      scan_val "and_also" vc_labels >> pair true) >> VC_Take) ||
+    scan_val "only" vc_labels >> VC_Only ||
+    scan_val "without" vc_labels >> VC_Without) ||
+  Scan.succeed VC_Complete  
 
 val _ =
   OuterSyntax.command "boogie_vc"
     "Enter into proof mode for a specific verification condition."
     OuterKeyword.thy_goal
-    (vc_opts -- vc_name >> (vc_cmd o boogie_vc))
+    (vc_name -- vc_opts >> (fn args =>
+      (Toplevel.print o Toplevel.local_theory_to_proof NONE (boogie_vc args))))
 
 
 val default_timeout = 5
 
-val status_narrow_vc =
-  scan_arg (Args.$$$ "narrow" |--
+val status_test =
+  scan_arg (
+    (Args.$$$ "scan" >> K boogie_scan_vc ||
+     Args.$$$ "narrow" >> K boogie_narrow_vc) --
     Scan.optional (scan_val "timeout" OuterParse.nat) default_timeout) --
-  vc_name --
-  scan_arg (scan_val "try" Method.parse)
+  vc_name -- Method.parse >>
+  (fn (((f, timeout), vc_name), meth) => f timeout vc_name meth)
 
-val status_vc_opts = scan_opt "full"
+val status_vc =
+  (scan_arg
+    (Args.$$$ "full" |--
+      (Args.$$$ "paths" >> K (boogie_status_vc_paths true) ||
+       Scan.succeed (boogie_status_vc true)) ||
+     Args.$$$ "paths" >> K (boogie_status_vc_paths false)) ||
+   Scan.succeed (boogie_status_vc false)) --
+  vc_name >> (fn (f, vc_name) => f vc_name)
 
 fun status_cmd f = Toplevel.no_timing o Toplevel.keep (fn state =>
   f (Toplevel.theory_of state))
@@ -215,8 +284,8 @@ val _ =
   OuterSyntax.improper_command "boogie_status"
     "Show the name and state of all loaded verification conditions."
     OuterKeyword.diag
-    (status_narrow_vc >> (status_cmd o boogie_narrow_vc) ||
-     status_vc_opts -- vc_name >> (status_cmd o boogie_status_vc) ||
+    (status_test >> status_cmd ||
+     status_vc >> status_cmd ||
      Scan.succeed (status_cmd boogie_status))
 
 

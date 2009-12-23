@@ -109,9 +109,7 @@ local
     let
       fun const name = SOME (Const (name, T))
       fun const2_abs name =
-        let
-          val U = Term.domain_type T
-          val T' = Term.range_type (Term.range_type T)
+        let val U = Term.domain_type T
         in
           SOME (Abs (Name.uu, U, Abs (Name.uu, U,
             Const (name, T) $ Bound 0 $ Bound 1)))

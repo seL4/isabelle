@@ -6,6 +6,7 @@ Boogie tactics and Boogie methods.
 
 signature BOOGIE_TACTICS =
 sig
+  val unfold_labels_tac: Proof.context -> int -> tactic
   val boogie_tac: Proof.context -> thm list -> int -> tactic
   val boogie_all_tac: Proof.context -> thm list -> tactic
   val setup: theory -> theory
@@ -49,8 +50,8 @@ local
   fun prep_tac facts =
     Method.insert_tac facts
     THEN' REPEAT_ALL_NEW
-     (Tactic.resolve_tac [@{thm impI}, @{thm conjI}, @{thm TrueI}]
-      ORELSE' Tactic.eresolve_tac [@{thm conjE}, @{thm TrueE}])
+      (Tactic.resolve_tac [@{thm impI}, @{thm conjI}, @{thm TrueI}]
+       ORELSE' Tactic.etac @{thm conjE})
 
   val drop_assert_at = Conv.concl_conv ~1 (Conv.try_conv (Conv.arg_conv
     (Conv.rewr_conv assert_at_def)))

@@ -6,295 +6,247 @@ Store for Boogie's verification conditions.
 
 signature BOOGIE_VCS =
 sig
-  datatype skel = Nil of string | Imp of skel | Con1 of skel | Con2 of skel |
-    Conj of skel * skel
-  val size_of: skel * 'a -> int
-  val names_of: skel * 'a -> string list
-  val paths_of: skel * term -> (skel * term) list
-  val split_path: int -> skel * term -> (skel * term) * (skel * term)
-  val extract: skel * term -> string -> (skel * term) option
-
-  val set: (string * term) list -> theory -> theory
-  val lookup: theory -> string -> (skel * term) option
-  val discharge: string * (skel * thm) -> theory -> theory
-  val close: theory -> theory
-  val is_closed: theory -> bool
+  type vc
+  val prop_of_vc: vc -> term
+  val size_of: vc -> int
+  val names_of: vc -> string list * string list
+  val path_names_of: vc -> (string * bool) list list
+  val paths_of: vc -> vc list
+  val split_path: int -> vc -> (vc * vc) option
+  val extract: vc -> string -> vc option
+  val only: string list -> vc -> vc
+  val without: string list -> vc -> vc
+  val paths_and: int list -> string list -> vc -> vc
+  val paths_without: int list -> string list -> vc -> vc
 
   datatype state = Proved | NotProved | PartiallyProved
+  val set: (string * term) list -> theory -> theory
+  val lookup: theory -> string -> vc option
+  val discharge: string * (vc * thm) -> theory -> theory
   val state_of: theory -> (string * state) list
   val state_of_vc: theory -> string -> string list * string list
+  val close: theory -> theory
+  val is_closed: theory -> bool
 end
 
 structure Boogie_VCs: BOOGIE_VCS =
 struct
 
-(* simplify VCs: drop True, fold premises into conjunctions *)
-
-local
-  val dest_eq = HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of
-
-  val true_rules = map dest_eq @{lemma
-    "(True & P) = P" 
-    "(P & True) = P"
-    "(P --> True) = True"
-    "(True --> P) = P"
-    by simp_all}
-
-  val fold_prems =
-    dest_eq @{lemma "(P1 --> P2 --> Q) = ((P1 & P2) --> Q)" by fast}
-in
-fun simp_vc thy = Pattern.rewrite_term thy (true_rules @ [fold_prems]) []
-end
-
-
-(* VC skeleton: reflect the structure of implications and conjunctions *)
-
-datatype skel =
-  Nil of string |  (* assertion with label name *)
-  Imp of skel |    (* implication: only conclusion is relevant *)
-  Con1 of skel |   (* only left conjunct *)
-  Con2 of skel |   (* right left conjunct *)
-  Conj of skel * skel   (* full conjunction *)
-
-val skel_of =
-  let
-    fun skel (@{term "op -->"} $ _ $ u) = Imp (skel u)
-      | skel (@{term "op &"} $ t $ u) = Conj (skel t, skel u)
-      | skel (@{term assert_at} $ Free (n, _) $ _) = Nil n
-      | skel t = raise TERM ("skel_of", [t])
-  in skel o HOLogic.dest_Trueprop end
-
-fun size (Nil _) = 1
-  | size (Imp sk) = size sk
-  | size (Con1 sk) = size sk
-  | size (Con2 sk) = size sk
-  | size (Conj (sk1, sk2)) = size sk1 + size sk2
-
-fun size_of (sk, _) = size sk
-
-fun add_names (Nil name) = cons name   (* label names are unique! *)
-  | add_names (Imp sk) = add_names sk
-  | add_names (Con1 sk) = add_names sk
-  | add_names (Con2 sk) = add_names sk
-  | add_names (Conj (sk1, sk2)) = add_names sk1 #> add_names sk2
-
-fun names_of (sk, _) = add_names sk []
-
-
-fun make_app t u = t $ u
-fun dest_app (t $ u) = (t, u)
-  | dest_app t = raise TERM ("dest_app", [t])
-
-val make_prop = HOLogic.mk_Trueprop
-val dest_prop = HOLogic.dest_Trueprop
-
-val make_imp = curry HOLogic.mk_imp
-val dest_imp = HOLogic.dest_imp
-
-val make_conj = curry HOLogic.mk_conj
-fun dest_conj (@{term "op &"} $ t $ u) = (t, u)
-  | dest_conj t = raise TERM ("dest_conj", [t])
-
-
 fun app_both f g (x, y) = (f x, g y)
+fun app_hd_tl f g = (fn [] => [] | x :: xs => f x :: map g xs)
 
-fun under_imp f r (sk, t) =
-  let val (t1, t2) = dest_imp t
-  in f (sk, t2) |> r (app_both Imp (make_imp t1)) end
 
-fun split_conj f r1 r2 r (sk1, sk2, t) =
-  let val (t1, t2) = dest_conj t
-  in
-    f (sk2, t2)
-    |>> r1 (app_both (Conj o pair sk1) (make_conj t1))
-    ||> r2 (apfst Con2)
-    |> r
-  end
+(* abstract representation of verification conditions *)
 
-val paths_of =
+datatype vc =
+  Assume of term * vc |
+  Assert of (string * term) * vc |
+  Ignore of vc |
+  Proved of string * vc |
+  Choice of vc * vc |
+  True
+
+val assume = curry Assume and assert = curry Assert
+and proved = curry Proved and choice = curry Choice
+and choice' = curry (Choice o swap)
+
+val vc_of_term =
   let
-    fun chop1 xs = (hd xs, tl xs)     
+    fun vc_of @{term True} = NONE
+      | vc_of (@{term assert_at} $ Free (n, _) $ t) =
+          SOME (Assert ((n, t), True))
+      | vc_of (@{term "op -->"} $ @{term True} $ u) = vc_of u
+      | vc_of (@{term "op -->"} $ t $ u) =
+          vc_of u |> Option.map (assume t)
+      | vc_of (@{term "op &"} $ (@{term assert_at} $ Free (n, _) $ t) $ u) =
+          SOME (vc_of u |> the_default True |> assert (n, t))
+      | vc_of (@{term "op &"} $ t $ u) =
+          (case (vc_of t, vc_of u) of
+            (NONE, r) => r
+          | (l, NONE) => l
+          | (SOME lv, SOME rv) => SOME (Choice (lv, rv)))
+      | vc_of t = raise TERM ("vc_of_term", [t])
+  in the_default True o vc_of end
 
-    fun split (sk, t) =
-      (case sk of
-        Nil _ => [(sk, t)]
-      | Imp sk' => under_imp split map (sk', t)
-      | Con1 sk1 => splt Con1 (sk1, t)
-      | Con2 sk2 => splt Con2 (sk2, t)
-      | Conj (sk1 as Nil _, sk2) =>
-          split_conj (chop1 o split) I map (op ::) (sk1, sk2, t)
-      | Conj (sk1, sk2) =>
-          let val (t1, t2) = dest_conj t
-          in splt Con1 (sk1, t1) @ splt Con2 (sk2, t2) end)
-    and splt c st = split st |> map (apfst c)
-
-  in map (apsnd make_prop) o split o apsnd dest_prop end
-
-fun split_path i =
+val prop_of_vc =
   let
-    fun split_at i (sk, t) =
-      (case sk of
-        Imp sk' => under_imp (split_at i) pairself (sk', t)
-      | Con1 sk1 => split_at i (sk1, t) |> pairself (apfst Con1)
-      | Con2 sk2 => split_at i (sk2, t) |> pairself (apfst Con2)
-      | Conj (sk1, sk2) =>
+    fun mk_conj t u = @{term "op &"} $ t $ u
+
+    fun term_of (Assume (t, v)) = @{term "op -->"} $ t $ term_of v
+      | term_of (Assert ((n, t), v)) =
+          mk_conj (@{term assert_at} $ Free (n, @{typ bool}) $ t) (term_of v)
+      | term_of (Ignore v) = term_of v
+      | term_of (Proved (_, v)) = term_of v
+      | term_of (Choice (lv, rv)) = mk_conj (term_of lv) (term_of rv)
+      | term_of True = @{term True}
+  in HOLogic.mk_Trueprop o term_of end
+
+
+(* properties of verification conditions *)
+
+fun size_of (Assume (_, v)) = size_of v
+  | size_of (Assert (_, v)) = size_of v + 1
+  | size_of (Ignore v) = size_of v
+  | size_of (Proved (_, v)) = size_of v
+  | size_of (Choice (lv, rv)) = size_of lv + size_of rv
+  | size_of True = 0
+
+val names_of =
+  let
+    fun add (Assume (_, v)) = add v
+      | add (Assert ((n, _), v)) = apfst (cons n) #> add v
+      | add (Ignore v) = add v
+      | add (Proved (n, v)) = apsnd (cons n) #> add v
+      | add (Choice (lv, rv)) = add lv #> add rv
+      | add True = I
+  in (fn vc => pairself rev (add vc ([], []))) end
+
+fun path_names_of (Assume (_, v)) = path_names_of v
+  | path_names_of (Assert ((n, _), v)) =
+      path_names_of v
+      |> app_hd_tl (cons (n, true)) (cons (n, false))
+  | path_names_of (Ignore v) = path_names_of v
+  | path_names_of (Proved (n, v)) = map (cons (n, false)) (path_names_of v)
+  | path_names_of (Choice (lv, rv)) = path_names_of lv @ path_names_of rv
+  | path_names_of True = [[]]
+
+fun count_paths (Assume (_, v)) = count_paths v
+  | count_paths (Assert (_, v)) = count_paths v
+  | count_paths (Ignore v) = count_paths v
+  | count_paths (Proved (_, v)) = count_paths v
+  | count_paths (Choice (lv, rv)) = count_paths lv + count_paths rv
+  | count_paths True = 1
+
+
+(* extract parts of a verification condition *)
+
+fun paths_of (Assume (t, v)) = paths_of v |> map (assume t)
+  | paths_of (Assert (a, v)) = paths_of v |> app_hd_tl (assert a) Ignore
+  | paths_of (Ignore v) = paths_of v |> map Ignore
+  | paths_of (Proved (n, v)) = paths_of v |> app_hd_tl (proved n) Ignore
+  | paths_of (Choice (lv, rv)) =
+      map (choice' True) (paths_of lv) @ map (choice True) (paths_of rv)
+  | paths_of True = [True]
+
+fun prune f (Assume (t, v)) = Option.map (assume t) (prune f v)
+  | prune f (Assert (a, v)) = f a v
+  | prune f (Ignore v) = Option.map Ignore (prune f v)
+  | prune f (Proved (n, v)) = Option.map (proved n) (prune f v)
+  | prune f (Choice (lv, rv)) =
+      (case (prune f lv, prune f rv) of
+        (NONE, r) => r |> Option.map (choice True)
+      | (l, NONE) => l |> Option.map (choice' True)
+      | (SOME lv', SOME rv') => SOME (Choice (lv', rv')))
+  | prune _ True = NONE
+
+val split_path =
+  let
+    fun app f = Option.map (pairself f)
+
+    fun split i (Assume (t, v)) = app (assume t) (split i v)
+      | split i (Assert (a, v)) =
           if i > 1
-          then split_conj (split_at (i-1)) I I I (sk1, sk2, t)
-          else app_both (pair (Con1 sk1)) (pair (Con2 sk2)) (dest_conj t)
-      | _ => raise TERM ("split_path: " ^ string_of_int i, [t]))
-  in pairself (apsnd make_prop) o split_at i o apsnd dest_prop end
+          then Option.map (app_both (assert a) Ignore) (split (i-1) v)
+          else Option.map (pair (Assert (a, True)))
+            (prune (SOME o Assert oo pair) (Ignore v))
+      | split i (Ignore v) = app Ignore (split i v)
+      | split i (Proved (n, v)) = app (proved n) (split i v)
+      | split i (Choice (v, True)) = app (choice' True) (split i v)
+      | split i (Choice (True, v)) = app (choice True) (split i v)
+      | split _ _ = NONE
+  in split end
 
-fun extract (sk, t) name =
+fun select_labels P =
   let
-    fun is_in (Nil n) = (n = name, false)
-      | is_in (Imp sk) = is_in sk
-      | is_in (Con1 sk) = is_in sk
-      | is_in (Con2 sk) = is_in sk
-      | is_in (Conj (sk1, sk2)) =
-          if fst (is_in sk1) then (true, true) else is_in sk2 ||> K true
+    fun assert (a as (n, _)) v =
+      if P n then SOME (Assert (a, the_default True v))
+      else Option.map Ignore v
+    fun sel vc = prune (fn a => assert a o sel) vc
+  in sel end
 
-    fun extr (sk, t) =
-      (case sk of
-        Nil _ => (sk, t)
-      | Imp sk' => under_imp extr I (sk', t)
-      | Con1 sk1 => extr (sk1, t) |> apfst Con1
-      | Con2 sk2 => extr (sk2, t) |> apfst Con2
-      | Conj (sk1, sk2) =>
-          (case is_in sk1 of
-            (true, true) => extr (sk1, fst (dest_conj t)) |> apfst Con1
-          | (true, false) => (Con1 sk1, fst (dest_conj t))
-          | (false, _) => extr (sk2, snd (dest_conj t)) |> apfst Con2))
-  in
-    (case is_in sk of
-      (true, true) => SOME ((sk, dest_prop t) |> extr |> apsnd make_prop)
-    | (true, false) => SOME (sk, t)
-    | (false, _) => NONE)
-  end
+fun extract vc l = select_labels (equal l) vc
+fun only ls = the_default True o select_labels (member (op =) ls)
+fun without ls = the_default True o select_labels (not o member (op =) ls)
 
-
-fun cut thy =
+fun select_paths ps sub_select =
   let
-    fun opt_map_both f g = Option.map (app_both f g)
+    fun disjoint pp = null (inter (op =) ps pp)
 
-    fun cut_err (u, t) = raise TERM ("cut: not matching", [u, t])
-
-    val matches = Pattern.matches thy
-
-    fun sub (usk, u) (sk, t) =
-      (case (usk, sk) of
-        (Nil _, Nil _) => if matches (u, t) then NONE else cut_err (u, t)
-      | (Imp usk', Imp sk') => sub_imp (usk', u) (sk', t)
-
-      | (Con1 usk1, Con1 sk1) =>
-          sub (usk1, u) (sk1, t) |> Option.map (apfst Con1)
-      | (Con2 usk2, Con2 sk2) =>
-          sub (usk2, u) (sk2, t) |> Option.map (apfst Con2)
-
-      | (Con1 _, Con2 _) => SOME (sk, t)
-      | (Con2 _, Con1 _) => SOME (sk, t)
-
-      | (Con1 usk1, Conj (sk1, sk2)) =>
-          let val (t1, t2) = dest_conj t
+    fun sel pp (Assume (t, v)) = Assume (t, sel pp v)
+      | sel pp (Assert (a, v)) =
+          if member (op =) ps (hd pp)
+          then Assert (a, sel pp v)
+          else Ignore (sel pp v)
+      | sel pp (Ignore v) = Ignore (sel pp v)
+      | sel pp (Proved (n, v)) = Proved (n, sel pp v)
+      | sel pp (Choice (lv, rv)) =
+          let val (lpp, rpp) = chop (count_paths lv) pp
           in
-            sub (usk1, u) (sk1, t1)
-            |> opt_map_both (Conj o rpair sk2) (fn t1' => make_conj t1' t2)
-            |> SOME o the_default (Con2 sk2, t2)
+            if disjoint lpp then Choice (sub_select lv, sel rpp rv)
+            else if disjoint rpp then Choice (sel lpp lv, sub_select rv)
+            else Choice (sel lpp lv, sel rpp rv)
           end
-      | (Con2 usk2, Conj (sk1, sk2)) => 
-          let val (t1, t2) = dest_conj t
-          in
-            sub (usk2, u) (sk2, t2)
-            |> opt_map_both (Conj o pair sk1) (make_conj t1)
-            |> SOME o the_default (Con1 sk1, t1)
-          end
-      | (Conj (usk1, _), Con1 sk1) =>
-          let val (u1, _) = dest_conj u
-          in sub (usk1, u1) (sk1, t) |> Option.map (apfst Con1) end
-      | (Conj (_, usk2), Con2 sk2) =>
-          let val (_, u2) = dest_conj u
-          in sub (usk2, u2) (sk2, t) |> Option.map (apfst Con2) end
+      | sel _ True = True
 
-      | (Conj (usk1, usk2), Conj (sk1, sk2)) =>
-          sub_conj (usk1, usk2, u) (sk1, sk2, t)
+    fun sel0 vc =
+      let val pp = 1 upto count_paths vc
+      in if disjoint pp then True else sel pp vc end
+  in sel0 end
 
-      | _ => cut_err (u, t))
+fun paths_and ps ls = select_paths ps (only ls)
+fun paths_without ps ls = without ls o select_paths ps (K True)
 
-    and sub_imp (usk', u) (sk', t) =
-      let
-        val (u1, u2) = dest_imp u
-        val (t1, t2) = dest_imp t
-      in
-        if matches (u1, t1)
-        then sub (usk', u2) (sk', t2) |> opt_map_both Imp (make_imp t1)
-        else cut_err (u, t)
-      end
 
-    and sub_conj (usk1, usk2, u) (sk1, sk2, t) =
-      let
-        val (u1, u2) = dest_conj u
-        val (t1, t2) = dest_conj t
-      in
-        (case (sub (usk1, u1) (sk1, t1), sub (usk2, u2) (sk2, t2)) of
-          (NONE, NONE) => NONE
-        | (NONE, SOME (sk2', t2')) => SOME (Con2 sk2', t2')
-        | (SOME (sk1', t1'), NONE) => SOME (Con1 sk1', t1')
-        | (SOME (sk1', t1'), SOME (sk2', t2')) =>
-            SOME (Conj (sk1', sk2'), make_conj t1' t2'))
-      end
-  in
-    (fn su => fn st =>
-    (su, st)
-    |> pairself (apsnd dest_prop)
-    |> uncurry sub
-    |> Option.map (apsnd make_prop))
-  end
-
+(* discharge parts of a verification condition *)
 
 local
-  fun imp f (lsk, lthm) (rsk, rthm) =
-    let
-      val mk_prop = Thm.capply @{cterm Trueprop}
-      val ct = Thm.cprop_of lthm |> Thm.dest_arg |> Thm.dest_arg1 |> mk_prop
-      val th = Thm.assume ct
-      fun imp_elim thm = @{thm mp} OF [thm, th]
-      fun imp_intr thm = Thm.implies_intr ct thm COMP_INCR @{thm impI}
-      val (sk, thm) = f (lsk, imp_elim lthm) (rsk, imp_elim rthm)
-    in (Imp sk, imp_intr thm) end
-
+  fun cprop_of thy t = Thm.cterm_of thy (HOLogic.mk_Trueprop t)
+  fun imp_intr ct thm = Thm.implies_intr ct thm COMP_INCR @{thm impI}
+  fun imp_elim th thm = @{thm mp} OF [thm, th]
   fun conj1 thm = @{thm conjunct1} OF [thm]
   fun conj2 thm = @{thm conjunct2} OF [thm]
+  fun conj_intr lth rth = @{thm conjI} OF [lth, rth]
 in
-fun join (lsk, lthm) (rsk, rthm) =
-  (case (lsk, rsk) of
-    (Nil _, Nil _) => (lsk, lthm)
-  | (Imp lsk', Imp rsk') => imp join (lsk', lthm) (rsk', rthm)
+fun thm_of thy (Assume (t, v)) = imp_intr (cprop_of thy t) (thm_of thy v)
+  | thm_of thy (Assert (_, v)) = thm_of thy v
+  | thm_of thy (Ignore v) = thm_of thy v
+  | thm_of thy (Proved (_, v)) = thm_of thy v
+  | thm_of thy (Choice (lv, rv)) = conj_intr (thm_of thy lv) (thm_of thy rv)
+  | thm_of _ True = @{thm TrueI}
 
-  | (Con1 lsk1, Con1 rsk1) => join (lsk1, lthm) (rsk1, rthm) |>> Con1
-  | (Con2 lsk2, Con2 rsk2) => join (lsk2, lthm) (rsk2, rthm) |>> Con2
-
-  | (Con1 lsk1, Con2 rsk2) => (Conj (lsk1, rsk2), @{thm conjI} OF [lthm, rthm])
-  | (Con2 lsk2, Con1 rsk1) => (Conj (rsk1, lsk2), @{thm conjI} OF [rthm, lthm])
-
-  | (Con1 lsk1, Conj (rsk1, rsk2)) =>
-      let val (sk1, thm) = join (lsk1, lthm) (rsk1, conj1 rthm)
-      in (Conj (sk1, rsk2), @{thm conjI} OF [thm, conj2 rthm]) end
-  | (Con2 lsk2, Conj (rsk1, rsk2)) =>
-      let val (sk2, thm) = join (lsk2, lthm) (rsk2, conj2 rthm)
-      in (Conj (rsk1, sk2), @{thm conjI} OF [conj1 rthm, thm]) end
-  | (Conj (lsk1, lsk2), Con1 rsk1) =>
-      let val (sk1, thm) = join (lsk1, conj1 lthm) (rsk1, rthm)
-      in (Conj (sk1, lsk2), @{thm conjI} OF [thm, conj2 lthm]) end
-  | (Conj (lsk1, lsk2), Con2 rsk2) =>
-      let val (sk2, thm) = join (lsk2, conj2 lthm) (rsk2, rthm)
-      in (Conj (lsk1, sk2), @{thm conjI} OF [conj1 lthm, thm]) end
-
-  | (Conj (lsk1, lsk2), Conj (rsk1, rsk2)) =>
+fun join (Assume (_, pv), pthm) (Assume (t, v), thm) =
       let
-        val (sk1, th1) = join (lsk1, conj1 lthm) (rsk1, conj1 rthm)
-        val (sk2, th2) = join (lsk2, conj2 lthm) (rsk2, conj2 rthm)
-      in (Conj (sk1, sk2), @{thm conjI} OF [th1, th2]) end
-
-  | _ => raise THM ("join: different structure", 0, [lthm, rthm]))
+        val mk_prop = Thm.capply @{cterm Trueprop}
+        val ct = Thm.cprop_of thm |> Thm.dest_arg |> Thm.dest_arg1 |> mk_prop
+        val th = Thm.assume ct
+        val (v', thm') = join (pv, imp_elim th pthm) (v, imp_elim th thm)
+      in (Assume (t, v'), imp_intr ct thm') end
+  | join (Assert ((pn, pt), pv), pthm) (Assert ((n, t), v), thm) =
+      let val pthm1 = conj1 pthm
+      in
+        if pn = n andalso pt aconv t
+        then
+          let val (v', thm') = join (pv, conj2 pthm) (v, thm)
+          in (Proved (n, v'), conj_intr pthm1 thm') end
+        else raise THM ("join: not matching", 1, [thm, pthm])
+      end
+  | join (Ignore pv, pthm) (Assert (a, v), thm) =
+      join (pv, pthm) (v, thm) |>> assert a
+  | join (Proved (_, pv), pthm) (Proved (n, v), thm) =
+      let val (v', thm') = join (pv, pthm) (v, conj2 thm)
+      in (Proved (n, v'), conj_intr (conj1 thm) thm') end
+  | join (Ignore pv, pthm) (Proved (n, v), thm) =
+      let val (v', thm') = join (pv, pthm) (v, conj2 thm)
+      in (Proved (n, v'), conj_intr (conj1 thm) thm') end
+  | join (Choice (plv, prv), pthm) (Choice (lv, rv), thm) =
+      let
+        val (lv', lthm) = join (plv, conj1 pthm) (lv, conj1 thm)
+        val (rv', rthm) = join (prv, conj2 pthm) (rv, conj2 thm)
+      in (Choice (lv', rv'), conj_intr lthm rthm) end
+  | join (True, pthm) (v, thm) =
+      if Thm.prop_of pthm aconv @{prop True} then (v, thm)
+      else raise THM ("join: not True", 1, [pthm])
+  | join (_, pthm) (_, thm) = raise THM ("join: not matching", 1, [thm, pthm])
 end
 
 
@@ -302,29 +254,16 @@ end
 
 fun err_vcs () = error "undischarged Boogie verification conditions found"
 
-datatype vc =
-  VC_NotProved of skel * term |
-  VC_PartiallyProved of (skel * term) * (skel * thm) |
-  VC_Proved of skel * thm
-
-fun goal_of (VC_NotProved g) = SOME g
-  | goal_of (VC_PartiallyProved (g, _)) = SOME g
-  | goal_of (VC_Proved _) = NONE
-
-fun proof_of (VC_NotProved _) = NONE
-  | proof_of (VC_PartiallyProved (_, p)) = SOME p
-  | proof_of (VC_Proved p) = SOME p
-
 structure VCs = Theory_Data
 (
-  type T = vc Symtab.table option
+  type T = (vc * thm) Symtab.table option
   val empty = NONE
   val extend = I
   fun merge (NONE, NONE) = NONE
     | merge _ = err_vcs ()
 )
 
-fun prep thy t = VC_NotProved (` skel_of (simp_vc thy (HOLogic.mk_Trueprop t)))
+fun prep thy t = vc_of_term t |> (fn vc => (vc, thm_of thy vc))
 
 fun set vcs thy = VCs.map (fn
     NONE => SOME (Symtab.make (map (apsnd (prep thy)) vcs))
@@ -332,52 +271,34 @@ fun set vcs thy = VCs.map (fn
 
 fun lookup thy name =
   (case VCs.get thy of
-    SOME vcs =>
-      (case Symtab.lookup vcs name of
-        SOME vc => goal_of vc
-      | NONE => NONE)
+    SOME vcs => Option.map fst (Symtab.lookup vcs name)
   | NONE => NONE)
 
-fun discharge (name, prf) thy = thy |> VCs.map (Option.map
-  (Symtab.map_entry name (fn
-      VC_NotProved goal =>
-        (case cut thy (apsnd Thm.prop_of prf) goal of
-          SOME goal' => VC_PartiallyProved (goal', prf)
-        | NONE => VC_Proved prf)
-    | VC_PartiallyProved (goal, proof) =>
-        (case cut thy (apsnd Thm.prop_of prf) goal of
-          SOME goal' => VC_PartiallyProved (goal', join prf proof)
-        | NONE => VC_Proved (join prf proof))
-    | VC_Proved proof => VC_Proved proof)))
-
-val close = VCs.map (fn
-    SOME vcs =>
-      if Symtab.exists (is_some o goal_of o snd) vcs
-      then err_vcs ()
-      else NONE
-  | NONE => NONE)
-
-val is_closed = is_none o VCs.get
-
+fun discharge (name, prf) =
+  VCs.map (Option.map (Symtab.map_entry name (join prf)))
 
 datatype state = Proved | NotProved | PartiallyProved
 
+fun state_of_vc thy name =
+  (case lookup thy name of
+    SOME vc => names_of vc
+  | NONE => ([], []))
+
 fun state_of thy =
   (case VCs.get thy of
-    SOME vcs => Symtab.dest vcs |> map (apsnd (fn
-        VC_NotProved _ => NotProved
-      | VC_PartiallyProved _ => PartiallyProved
-      | VC_Proved _ => Proved))
+    SOME vcs => Symtab.dest vcs |> map (apsnd (fst #> names_of #> (fn
+        ([], _) => Proved
+      | (_, []) => NotProved
+      | (_, _) => PartiallyProved)))
   | NONE => [])
 
-fun names_of' skx = these (Option.map names_of skx)
+fun close thy = thy |> VCs.map (fn
+    SOME _ =>
+      if forall (fn (_, Proved) => true | _ => false) (state_of thy)
+      then NONE
+      else err_vcs ()
+  | NONE => NONE)
 
-fun state_of_vc thy name =
-  (case VCs.get thy of
-    SOME vcs =>
-      (case Symtab.lookup vcs name of
-        SOME vc => (names_of' (proof_of vc), names_of' (goal_of vc))
-      | NONE => ([], []))
-  | NONE => ([], []))
+val is_closed = is_none o VCs.get
 
 end
