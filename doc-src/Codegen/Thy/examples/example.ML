@@ -1,5 +1,12 @@
-structure Example = 
-struct
+structure Example : sig
+  val foldl : ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
+  val rev : 'a list -> 'a list
+  val list_case : 'a -> ('b -> 'b list -> 'a) -> 'b list -> 'a
+  datatype 'a queue = AQueue of 'a list * 'a list
+  val empty : 'a queue
+  val dequeue : 'a queue -> 'a option * 'a queue
+  val enqueue : 'a -> 'a queue -> 'a queue
+end = struct
 
 fun foldl f a [] = a
   | foldl f a (x :: xs) = foldl f (f a x) xs;

@@ -2,7 +2,6 @@
 
 module Example where {
 
-
 foldla :: forall a b. (a -> b -> a) -> a -> [b] -> a;
 foldla f a [] = a;
 foldla f a (x : xs) = foldla f (f a x) xs;
