@@ -18,9 +18,12 @@ sig
   val str: string -> Pretty.T
   val concat: Pretty.T list -> Pretty.T
   val brackets: Pretty.T list -> Pretty.T
+  val enclose: string -> string -> Pretty.T list -> Pretty.T
+  val enum: string -> string -> string -> Pretty.T list -> Pretty.T
+  val enum_default: string -> string -> string -> string -> Pretty.T list -> Pretty.T
   val semicolon: Pretty.T list -> Pretty.T
   val doublesemicolon: Pretty.T list -> Pretty.T
-  val enum_default: string -> string -> string -> string -> Pretty.T list -> Pretty.T
+  val indent: int -> Pretty.T -> Pretty.T
   val string_of_pretty: int -> Pretty.T -> string
   val writeln_pretty: int -> Pretty.T -> unit
 
@@ -99,11 +102,14 @@ fun x @@ y = [x, y];
 fun xs @| y = xs @ [y];
 val str = PrintMode.setmp [] Pretty.str;
 val concat = Pretty.block o Pretty.breaks;
-val brackets = Pretty.enclose "(" ")" o Pretty.breaks;
+fun enclose l r = PrintMode.setmp [] (Pretty.enclose l r);
+val brackets = enclose "(" ")" o Pretty.breaks;
+fun enum sep l r = PrintMode.setmp [] (Pretty.enum sep l r);
+fun enum_default default sep l r [] = str default
+  | enum_default default sep l r xs = enum sep l r xs;
 fun semicolon ps = Pretty.block [concat ps, str ";"];
 fun doublesemicolon ps = Pretty.block [concat ps, str ";;"];
-fun enum_default default sep opn cls [] = str default
-  | enum_default default sep opn cls xs = Pretty.enum sep opn cls xs;
+fun indent i = PrintMode.setmp [] (Pretty.indent i);
 
 fun string_of_pretty width p = PrintMode.setmp [] (Pretty.setmp_margin_CRITICAL width Pretty.string_of) p ^ "\n";
 fun writeln_pretty width p = PrintMode.setmp [] (Pretty.setmp_margin_CRITICAL width Pretty.writeln) p;
@@ -198,7 +204,7 @@ fun fixity NOBR _ = false
   | fixity _ _ = true;
 
 fun gen_brackify _ [p] = p
-  | gen_brackify true (ps as _::_) = Pretty.enclose "(" ")" ps
+  | gen_brackify true (ps as _::_) = enclose "(" ")" ps
   | gen_brackify false (ps as _::_) = Pretty.block ps;
 
 fun brackify fxy_ctxt =
@@ -210,7 +216,7 @@ fun brackify_infix infx fxy_ctxt =
 fun brackify_block fxy_ctxt p1 ps p2 =
   let val p = Pretty.block_enclose (p1, p2) ps
   in if fixity BR fxy_ctxt
-    then Pretty.enclose "(" ")" [p]
+    then enclose "(" ")" [p]
     else p
   end;
 

@@ -32,7 +32,7 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
       | SOME class => class;
     fun print_typcontext tyvars vs = case maps (fn (v, sort) => map (pair v) sort) vs
      of [] => []
-      | classbinds => Pretty.list "(" ")" (
+      | classbinds => enum "," "(" ")" (
           map (fn (v, class) =>
             str (class_name class ^ " " ^ lookup_var tyvars v)) classbinds)
           @@ str " => ";
@@ -412,11 +412,11 @@ val literals = let
       val s = ML_Syntax.print_char c;
     in if s = "'" then "\\'" else s end;
 in Literals {
-  literal_char = enclose "'" "'" o char_haskell,
+  literal_char = Library.enclose "'" "'" o char_haskell,
   literal_string = quote o translate_string char_haskell,
   literal_numeral = fn unbounded => fn k => if k >= 0 then string_of_int k
-    else enclose "(" ")" (signed_string_of_int k),
-  literal_list = Pretty.enum "," "[" "]",
+    else Library.enclose "(" ")" (signed_string_of_int k),
+  literal_list = enum "," "[" "]",
   infix_cons = (5, ":")
 } end;
 
@@ -451,7 +451,7 @@ fun pretty_haskell_monad c_bind =
           val (ps, vars') = fold_map (print_monad (gen_print_bind (K print_term) thm) print_term)
             (bind :: binds) vars;
         in
-          (brackify fxy o single o Pretty.enclose "do {" "}" o Pretty.breaks)
+          (brackify fxy o single o enclose "do {" "}" o Pretty.breaks)
             (ps @| print_term vars' NOBR t'')
         end
       | NONE => brackify_infix (1, L) fxy

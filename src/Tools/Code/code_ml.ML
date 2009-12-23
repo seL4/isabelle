@@ -51,11 +51,11 @@ fun stmt_names_of (ML_Exc (name, _)) = [name]
 
 fun print_product _ [] = NONE
   | print_product print [x] = SOME (print x)
-  | print_product print xs = (SOME o Pretty.enum " *" "" "") (map print xs);
+  | print_product print xs = (SOME o enum " *" "" "") (map print xs);
 
 fun print_tuple _ _ [] = NONE
   | print_tuple print fxy [x] = SOME (print fxy x)
-  | print_tuple print _ xs = SOME (Pretty.list "(" ")" (map (print NOBR) xs));
+  | print_tuple print _ xs = SOME (enum "," "(" ")" (map (print NOBR) xs));
 
 
 (** SML serializer **)
@@ -66,13 +66,13 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
       | print_tyco_expr fxy (tyco, [ty]) =
           concat [print_typ BR ty, (str o deresolve) tyco]
       | print_tyco_expr fxy (tyco, tys) =
-          concat [Pretty.list "(" ")" (map (print_typ BR) tys), (str o deresolve) tyco]
+          concat [enum "," "(" ")" (map (print_typ BR) tys), (str o deresolve) tyco]
     and print_typ fxy (tyco `%% tys) = (case syntax_tyco tyco
          of NONE => print_tyco_expr fxy (tyco, tys)
           | SOME (i, print) => print print_typ fxy tys)
       | print_typ fxy (ITyVar v) = str ("'" ^ v);
     fun print_dicttyp (class, ty) = print_tyco_expr NOBR (class, [ty]);
-    fun print_typscheme_prefix (vs, p) = Pretty.enum " ->" "" ""
+    fun print_typscheme_prefix (vs, p) = enum " ->" "" ""
       (map_filter (fn (v, sort) =>
         (print_product (fn class => print_dicttyp (class, ITyVar v)) sort)) vs @| p);
     fun print_typscheme (vs, ty) = print_typscheme_prefix (vs, print_typ NOBR ty);
@@ -89,7 +89,7 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
            of [] => v_p
             | [classrel] => brackets [(str o deresolve) classrel, v_p]
             | classrels => brackets
-                [Pretty.enum " o" "(" ")" (map (str o deresolve) classrels), v_p]
+                [enum " o" "(" ")" (map (str o deresolve) classrels), v_p]
           end
     and print_dicts is_pseudo_fun = print_tuple (print_dict is_pseudo_fun);
     val print_dict_args = map_filter (fn (v, sort) => print_dicts (K false) BR
@@ -145,9 +145,9 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
             val (ps, vars') = fold_map print_match binds vars;
           in
             Pretty.chunks [
-              Pretty.block [str ("let"), Pretty.fbrk, Pretty.chunks ps],
-              Pretty.block [str ("in"), Pretty.fbrk, print_term is_pseudo_fun thm vars' NOBR body],
-              str ("end")
+              Pretty.block [str "let", Pretty.fbrk, Pretty.chunks ps],
+              Pretty.block [str "in", Pretty.fbrk, print_term is_pseudo_fun thm vars' NOBR body],
+              str "end"
             ]
           end
       | print_case is_pseudo_fun thm vars fxy (((t, ty), clause :: clauses), _) =
@@ -174,7 +174,7 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
       let
         fun print_co (co, []) = str (deresolve co)
           | print_co (co, tys) = concat [str (deresolve co), str "of",
-              Pretty.enum " *" "" "" (map (print_typ (INFX (2, X))) tys)];
+              enum " *" "" "" (map (print_typ (INFX (2, X))) tys)];
       in
         concat (
           str definer
@@ -196,7 +196,7 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
                        (insert (op =)) ts []);
                 val prolog = if needs_typ then
                   concat [str definer, (str o deresolve) name, str ":", print_typ NOBR ty]
-                    else Pretty.strs [definer, deresolve name];
+                    else (concat o map str) [definer, deresolve name];
               in
                 concat (
                   prolog
@@ -240,7 +240,7 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
               :: (if is_pseudo_fun inst then [str "()"]
                   else print_dict_args vs)
               @ str "="
-              :: Pretty.list "{" "}"
+              :: enum "," "{" "}"
                 (map print_superinst superinsts @ map print_classparam classparams)
               :: str ":"
               @@ print_tyco_expr NOBR (class, [tyco `%% map (ITyVar o fst) vs])
@@ -328,7 +328,7 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
                 str ("type '" ^ v),
                 (str o deresolve) class,
                 str "=",
-                Pretty.list "{" "};" (
+                enum "," "{" "};" (
                   map print_superclass_field superclasses
                   @ map print_classparam_field classparams
                 )
@@ -344,7 +344,7 @@ fun print_sml_module name some_decls body = if name = ""
   else Pretty.chunks2 (
     Pretty.chunks (
       str ("structure " ^ name ^ (if is_some some_decls then " : sig" else " ="))
-      :: (the_list o Option.map (Pretty.indent 2 o Pretty.chunks)) some_decls
+      :: (the_list o Option.map (indent 2 o Pretty.chunks)) some_decls
       @| (if is_some some_decls then str "end = struct" else str "struct")
     )
     :: body
@@ -357,7 +357,7 @@ val literals_sml = Literals {
   literal_numeral = fn unbounded => fn k =>
     if unbounded then "(" ^ string_of_int k ^ " : IntInf.int)"
     else string_of_int k,
-  literal_list = Pretty.list "[" "]",
+  literal_list = enum "," "[" "]",
   infix_cons = (7, "::")
 };
 
@@ -370,13 +370,13 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
       | print_tyco_expr fxy (tyco, [ty]) =
           concat [print_typ BR ty, (str o deresolve) tyco]
       | print_tyco_expr fxy (tyco, tys) =
-          concat [Pretty.list "(" ")" (map (print_typ BR) tys), (str o deresolve) tyco]
+          concat [enum "," "(" ")" (map (print_typ BR) tys), (str o deresolve) tyco]
     and print_typ fxy (tyco `%% tys) = (case syntax_tyco tyco
          of NONE => print_tyco_expr fxy (tyco, tys)
           | SOME (i, print) => print print_typ fxy tys)
       | print_typ fxy (ITyVar v) = str ("'" ^ v);
     fun print_dicttyp (class, ty) = print_tyco_expr NOBR (class, [ty]);
-    fun print_typscheme_prefix (vs, p) = Pretty.enum " ->" "" ""
+    fun print_typscheme_prefix (vs, p) = enum " ->" "" ""
       (map_filter (fn (v, sort) =>
         (print_product (fn class => print_dicttyp (class, ITyVar v)) sort)) vs @| p);
     fun print_typscheme (vs, ty) = print_typscheme_prefix (vs, print_typ NOBR ty);
@@ -465,7 +465,7 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
       let
         fun print_co (co, []) = str (deresolve co)
           | print_co (co, tys) = concat [str (deresolve co), str "of",
-              Pretty.enum " *" "" "" (map (print_typ (INFX (2, X))) tys)];
+              enum " *" "" "" (map (print_typ (INFX (2, X))) tys)];
       in
         concat (
           str definer
@@ -543,7 +543,7 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
                   end;
             val prolog = if needs_typ then
               concat [str definer, (str o deresolve) name, str ":", print_typ NOBR ty]
-                else Pretty.strs [definer, deresolve name];
+                else (concat o map str) [definer, deresolve name];
           in pair
             (print_val_decl print_typscheme (name, vs_ty))
             (concat (
@@ -670,7 +670,7 @@ fun print_ocaml_module name some_decls body = if name = ""
   else Pretty.chunks2 (
     Pretty.chunks (
       str ("module " ^ name ^ (if is_some some_decls then " : sig" else " ="))
-      :: (the_list o Option.map (Pretty.indent 2 o Pretty.chunks)) some_decls
+      :: (the_list o Option.map (indent 2 o Pretty.chunks)) some_decls
       @| (if is_some some_decls then str "end = struct" else str "struct")
     )
     :: body
@@ -693,15 +693,15 @@ val literals_ocaml = let
     then "(Big_int.big_int_of_int " ^ string_of_int k ^ ")"
     else "(Big_int.big_int_of_string " ^ quote (string_of_int k) ^ ")"
 in Literals {
-  literal_char = enclose "'" "'" o char_ocaml,
+  literal_char = Library.enclose "'" "'" o char_ocaml,
   literal_string = quote o translate_string char_ocaml,
   literal_numeral = fn unbounded => fn k => if k >= 0 then
       if unbounded then bignum_ocaml k
       else string_of_int k
     else
       if unbounded then "(Big_int.minus_big_int " ^ bignum_ocaml (~ k) ^ ")"
-      else (enclose "(" ")" o prefix "-" o string_of_int o op ~) k,
-  literal_list = Pretty.enum ";" "[" "]",
+      else (Library.enclose "(" ")" o prefix "-" o string_of_int o op ~) k,
+  literal_list = enum ";" "[" "]",
   infix_cons = (6, "::")
 } end;
 
