@@ -228,8 +228,8 @@ type proto_const_syntax = int * (string list * (literals -> string list
 type const_syntax = int * ((var_ctxt -> fixity -> iterm -> Pretty.T)
   -> thm -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T);
 
-val simple_const_syntax =
-  apsnd (fn f => ([], (fn _ => fn _ => fn print => fn _ => fn vars => f (print vars))));
+fun simple_const_syntax syn =
+  apsnd (fn f => ([], (fn _ => fn _ => fn print => fn _ => fn vars => f (print vars)))) syn;
 
 fun activate_const_syntax thy literals (n, (cs, f)) naming =
   fold_map (Code_Thingol.ensure_declared_const thy) cs naming
