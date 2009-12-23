@@ -4,6 +4,12 @@ Isabelle NEWS -- history user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** Pure ***
+
+* Code generator: details of internal data cache have no impact on
+the user space functionality any longer.
+
+
 *** HOL ***
 
 * Reorganized theory Sum_Type.thy; Inl and Inr now have
@@ -13,7 +19,7 @@ authentic syntax.  INCOMPATIBILITY.
 
 * Complete_Lattice.thy: lemmas top_def and bot_def have been replaced
 by the more convenient lemmas Inf_empty and Sup_empty.  Dropped lemmas
-Inf_insert_simp adn Sup_insert_simp, which are subsumed by Inf_insert
+Inf_insert_simp and Sup_insert_simp, which are subsumed by Inf_insert
 and Sup_insert.  Lemmas Inf_UNIV and Sup_UNIV replace former Inf_Univ
 and Sup_Univ.  Lemmas inf_top_right and sup_bot_right subsume inf_top
 and sup_bot respectively.  INCOMPATIBILITY.
