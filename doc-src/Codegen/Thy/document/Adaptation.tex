@@ -230,7 +230,7 @@ Consider the following function and its corresponding
 \isatypewriter%
 \noindent%
 \hspace*{0pt}structure Example :~sig\\
-\hspace*{0pt}{\char92}~{\char92}~datatype nat = Zero{\char95}nat | Suc of nat\\
+\hspace*{0pt} ~datatype nat = Zero{\char95}nat | Suc of nat\\
 \hspace*{0pt} ~datatype boola = True | False\\
 \hspace*{0pt} ~val anda :~boola -> boola -> boola\\
 \hspace*{0pt} ~val less{\char95}nat :~nat -> nat -> boola\\
@@ -243,16 +243,16 @@ Consider the following function and its corresponding
 \hspace*{0pt}datatype boola = True | False;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun anda p True = p\\
-\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~anda p False = False\\
-\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~anda True p = p\\
-\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~anda False p = False;\\
+\hspace*{0pt} ~| anda p False = False\\
+\hspace*{0pt} ~| anda True p = p\\
+\hspace*{0pt} ~| anda False p = False;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun less{\char123}{\char92}isacharunderscore{\char125}nat m {\char123}{\char92}isacharparenleft{\char125}Suc n{\char123}{\char92}isacharparenright{\char125}~= less{\char95}eq{\char95}nat m n\\
-\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~less{\char123}{\char92}isacharunderscore{\char125}nat n Zero{\char95}nat = False\\
-\hspace*{0pt}and less{\char123}{\char92}isacharunderscore{\char125}eq{\char123}{\char92}isacharunderscore{\char125}nat {\char123}{\char92}isacharparenleft{\char125}Suc m{\char123}{\char92}isacharparenright{\char125}~n = less{\char95}nat m n\\
-\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~less{\char123}{\char92}isacharunderscore{\char125}eq{\char123}{\char92}isacharunderscore{\char125}nat Zero{\char95}nat n = True;\\
+\hspace*{0pt}fun less{\char95}nat m (Suc n) = less{\char95}eq{\char95}nat m n\\
+\hspace*{0pt} ~| less{\char95}nat n Zero{\char95}nat = False\\
+\hspace*{0pt}and less{\char95}eq{\char95}nat (Suc m) n = less{\char95}nat m n\\
+\hspace*{0pt} ~| less{\char95}eq{\char95}nat Zero{\char95}nat n = True;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun in{\char123}{\char92}isacharunderscore{\char125}interval (k,~l) n = anda {\char123}{\char92}isacharparenleft{\char125}less{\char95}eq{\char95}nat k n{\char123}{\char92}isacharparenright{\char125}~{\char123}{\char92}isacharparenleft{\char125}less{\char95}eq{\char95}nat n l{\char123}{\char92}isacharparenright{\char125};\\
+\hspace*{0pt}fun in{\char95}interval (k,~l) n = anda (less{\char95}eq{\char95}nat k n) (less{\char95}eq{\char95}nat n l);\\
 \hspace*{0pt}\\
 \hspace*{0pt}end;~(*struct Example*)%
 \end{isamarkuptext}%
@@ -319,7 +319,7 @@ Consider the following function and its corresponding
 \isatypewriter%
 \noindent%
 \hspace*{0pt}structure Example :~sig\\
-\hspace*{0pt}{\char92}~{\char92}~datatype nat = Zero{\char95}nat | Suc of nat\\
+\hspace*{0pt} ~datatype nat = Zero{\char95}nat | Suc of nat\\
 \hspace*{0pt} ~val less{\char95}nat :~nat -> nat -> bool\\
 \hspace*{0pt} ~val less{\char95}eq{\char95}nat :~nat -> nat -> bool\\
 \hspace*{0pt} ~val in{\char95}interval :~nat * nat -> nat -> bool\\
@@ -327,12 +327,12 @@ Consider the following function and its corresponding
 \hspace*{0pt}\\
 \hspace*{0pt}datatype nat = Zero{\char95}nat | Suc of nat;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun less{\char123}{\char92}isacharunderscore{\char125}nat m {\char123}{\char92}isacharparenleft{\char125}Suc n{\char123}{\char92}isacharparenright{\char125}~= less{\char95}eq{\char95}nat m n\\
-\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~less{\char123}{\char92}isacharunderscore{\char125}nat n Zero{\char95}nat = false\\
-\hspace*{0pt}and less{\char123}{\char92}isacharunderscore{\char125}eq{\char123}{\char92}isacharunderscore{\char125}nat {\char123}{\char92}isacharparenleft{\char125}Suc m{\char123}{\char92}isacharparenright{\char125}~n = less{\char95}nat m n\\
-\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~less{\char123}{\char92}isacharunderscore{\char125}eq{\char123}{\char92}isacharunderscore{\char125}nat Zero{\char95}nat n = true;\\
+\hspace*{0pt}fun less{\char95}nat m (Suc n) = less{\char95}eq{\char95}nat m n\\
+\hspace*{0pt} ~| less{\char95}nat n Zero{\char95}nat = false\\
+\hspace*{0pt}and less{\char95}eq{\char95}nat (Suc m) n = less{\char95}nat m n\\
+\hspace*{0pt} ~| less{\char95}eq{\char95}nat Zero{\char95}nat n = true;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun in{\char123}{\char92}isacharunderscore{\char125}interval (k,~l) n = {\char123}{\char92}isacharparenleft{\char125}less{\char95}eq{\char95}nat k n{\char123}{\char92}isacharparenright{\char125}~andalso {\char123}{\char92}isacharparenleft{\char125}less{\char95}eq{\char95}nat n l{\char123}{\char92}isacharparenright{\char125};\\
+\hspace*{0pt}fun in{\char95}interval (k,~l) n = (less{\char95}eq{\char95}nat k n) andalso (less{\char95}eq{\char95}nat n l);\\
 \hspace*{0pt}\\
 \hspace*{0pt}end;~(*struct Example*)%
 \end{isamarkuptext}%
@@ -380,7 +380,7 @@ Consider the following function and its corresponding
 \isatypewriter%
 \noindent%
 \hspace*{0pt}structure Example :~sig\\
-\hspace*{0pt}{\char92}~{\char92}~datatype nat = Zero{\char95}nat | Suc of nat\\
+\hspace*{0pt} ~datatype nat = Zero{\char95}nat | Suc of nat\\
 \hspace*{0pt} ~val less{\char95}nat :~nat -> nat -> bool\\
 \hspace*{0pt} ~val less{\char95}eq{\char95}nat :~nat -> nat -> bool\\
 \hspace*{0pt} ~val in{\char95}interval :~nat * nat -> nat -> bool\\
@@ -388,12 +388,12 @@ Consider the following function and its corresponding
 \hspace*{0pt}\\
 \hspace*{0pt}datatype nat = Zero{\char95}nat | Suc of nat;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun less{\char123}{\char92}isacharunderscore{\char125}nat m {\char123}{\char92}isacharparenleft{\char125}Suc n{\char123}{\char92}isacharparenright{\char125}~= less{\char95}eq{\char95}nat m n\\
-\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~less{\char123}{\char92}isacharunderscore{\char125}nat n Zero{\char95}nat = false\\
-\hspace*{0pt}and less{\char123}{\char92}isacharunderscore{\char125}eq{\char123}{\char92}isacharunderscore{\char125}nat {\char123}{\char92}isacharparenleft{\char125}Suc m{\char123}{\char92}isacharparenright{\char125}~n = less{\char95}nat m n\\
-\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~less{\char123}{\char92}isacharunderscore{\char125}eq{\char123}{\char92}isacharunderscore{\char125}nat Zero{\char95}nat n = true;\\
+\hspace*{0pt}fun less{\char95}nat m (Suc n) = less{\char95}eq{\char95}nat m n\\
+\hspace*{0pt} ~| less{\char95}nat n Zero{\char95}nat = false\\
+\hspace*{0pt}and less{\char95}eq{\char95}nat (Suc m) n = less{\char95}nat m n\\
+\hspace*{0pt} ~| less{\char95}eq{\char95}nat Zero{\char95}nat n = true;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun in{\char123}{\char92}isacharunderscore{\char125}interval (k,~l) n = less{\char95}eq{\char95}nat k n andalso less{\char95}eq{\char95}nat n l;\\
+\hspace*{0pt}fun in{\char95}interval (k,~l) n = less{\char95}eq{\char95}nat k n andalso less{\char95}eq{\char95}nat n l;\\
 \hspace*{0pt}\\
 \hspace*{0pt}end;~(*struct Example*)%
 \end{isamarkuptext}%

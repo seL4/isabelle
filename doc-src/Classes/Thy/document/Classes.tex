@@ -1148,7 +1148,6 @@ Turning back to the first motivation for type classes,
 \noindent%
 \hspace*{0pt}module Example where {\char123}\\
 \hspace*{0pt}\\
-\hspace*{0pt}\\
 \hspace*{0pt}data Nat = Zero{\char95}nat | Suc Nat;\\
 \hspace*{0pt}\\
 \hspace*{0pt}nat{\char95}aux ::~Integer -> Nat -> Nat;\\
@@ -1233,8 +1232,31 @@ Turning back to the first motivation for type classes,
 \begin{isamarkuptext}%
 \isatypewriter%
 \noindent%
-\hspace*{0pt}structure Example = \\
-\hspace*{0pt}struct\\
+\hspace*{0pt}structure Example :~sig\\
+\hspace*{0pt} ~datatype nat = Zero{\char95}nat | Suc of nat\\
+\hspace*{0pt} ~val nat{\char95}aux :~IntInf.int -> nat -> nat\\
+\hspace*{0pt} ~val nat :~IntInf.int -> nat\\
+\hspace*{0pt} ~type 'a semigroup\\
+\hspace*{0pt} ~val mult :~'a semigroup -> 'a -> 'a -> 'a\\
+\hspace*{0pt} ~type 'a monoidl\\
+\hspace*{0pt} ~val semigroup{\char95}monoidl :~'a monoidl -> 'a semigroup\\
+\hspace*{0pt} ~val neutral :~'a monoidl -> 'a\\
+\hspace*{0pt} ~type 'a monoid\\
+\hspace*{0pt} ~val monoidl{\char95}monoid :~'a monoid -> 'a monoidl\\
+\hspace*{0pt} ~type 'a group\\
+\hspace*{0pt} ~val monoid{\char95}group :~'a group -> 'a monoid\\
+\hspace*{0pt} ~val inverse :~'a group -> 'a -> 'a\\
+\hspace*{0pt} ~val inverse{\char95}int :~IntInf.int -> IntInf.int\\
+\hspace*{0pt} ~val neutral{\char95}int :~IntInf.int\\
+\hspace*{0pt} ~val mult{\char95}int :~IntInf.int -> IntInf.int -> IntInf.int\\
+\hspace*{0pt} ~val semigroup{\char95}int :~IntInf.int semigroup\\
+\hspace*{0pt} ~val monoidl{\char95}int :~IntInf.int monoidl\\
+\hspace*{0pt} ~val monoid{\char95}int :~IntInf.int monoid\\
+\hspace*{0pt} ~val group{\char95}int :~IntInf.int group\\
+\hspace*{0pt} ~val pow{\char95}nat :~'a monoid -> nat -> 'a -> 'a\\
+\hspace*{0pt} ~val pow{\char95}int :~'a group -> IntInf.int -> 'a -> 'a\\
+\hspace*{0pt} ~val example :~IntInf.int\\
+\hspace*{0pt}end = struct\\
 \hspace*{0pt}\\
 \hspace*{0pt}datatype nat = Zero{\char95}nat | Suc of nat;\\
 \hspace*{0pt}\\
@@ -1245,18 +1267,18 @@ Turning back to the first motivation for type classes,
 \hspace*{0pt}fun nat i = nat{\char95}aux i Zero{\char95}nat;\\
 \hspace*{0pt}\\
 \hspace*{0pt}type 'a semigroup = {\char123}mult :~'a -> 'a -> 'a{\char125};\\
-\hspace*{0pt}fun mult (A{\char95}:'a semigroup) = {\char35}mult A{\char95};\\
+\hspace*{0pt}val mult = {\char35}mult :~'a semigroup -> 'a -> 'a -> 'a;\\
 \hspace*{0pt}\\
 \hspace*{0pt}type 'a monoidl = {\char123}semigroup{\char95}monoidl :~'a semigroup,~neutral :~'a{\char125};\\
-\hspace*{0pt}fun semigroup{\char95}monoidl (A{\char95}:'a monoidl) = {\char35}semigroup{\char95}monoidl A{\char95};\\
-\hspace*{0pt}fun neutral (A{\char95}:'a monoidl) = {\char35}neutral A{\char95};\\
+\hspace*{0pt}val semigroup{\char95}monoidl = {\char35}semigroup{\char95}monoidl :~'a monoidl -> 'a semigroup;\\
+\hspace*{0pt}val neutral = {\char35}neutral :~'a monoidl -> 'a;\\
 \hspace*{0pt}\\
 \hspace*{0pt}type 'a monoid = {\char123}monoidl{\char95}monoid :~'a monoidl{\char125};\\
-\hspace*{0pt}fun monoidl{\char95}monoid (A{\char95}:'a monoid) = {\char35}monoidl{\char95}monoid A{\char95};\\
+\hspace*{0pt}val monoidl{\char95}monoid = {\char35}monoidl{\char95}monoid :~'a monoid -> 'a monoidl;\\
 \hspace*{0pt}\\
 \hspace*{0pt}type 'a group = {\char123}monoid{\char95}group :~'a monoid,~inverse :~'a -> 'a{\char125};\\
-\hspace*{0pt}fun monoid{\char95}group (A{\char95}:'a group) = {\char35}monoid{\char95}group A{\char95};\\
-\hspace*{0pt}fun inverse (A{\char95}:'a group) = {\char35}inverse A{\char95};\\
+\hspace*{0pt}val monoid{\char95}group = {\char35}monoid{\char95}group :~'a group -> 'a monoid;\\
+\hspace*{0pt}val inverse = {\char35}inverse :~'a group -> 'a -> 'a;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun inverse{\char95}int i = IntInf.{\char126}~i;\\
 \hspace*{0pt}\\
