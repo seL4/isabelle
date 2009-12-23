@@ -8,11 +8,13 @@ package isabelle
 
 import java.util.regex.Pattern
 import java.util.Locale
-import java.io.{BufferedInputStream, FileInputStream, File, IOException}
+import java.io.{BufferedInputStream, FileInputStream, BufferedReader, InputStreamReader,
+  File, IOException}
 import java.awt.{GraphicsEnvironment, Font}
 
 import scala.io.Source
 import scala.util.matching.Regex
+import scala.collection.mutable
 
 
 object Isabelle_System
@@ -42,6 +44,22 @@ object Isabelle_System
     val output = Source.fromInputStream(proc.getInputStream, charset).mkString
     val rc = proc.waitFor
     (output, rc)
+  }
+
+
+  /* platform files */
+
+  def read_file(file: File): String =
+  {
+    val buf = new StringBuilder(file.length.toInt)
+    val reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))
+    var c = reader.read
+    while (c != -1) {
+      buf.append(c.toChar)
+      c = reader.read
+    }
+    reader.close
+    buf.toString
   }
 }
 
@@ -303,7 +321,7 @@ class Isabelle_System
   def find_logics(): List[String] =
   {
     val ml_ident = getenv_strict("ML_IDENTIFIER")
-    var logics: Set[String] = Set()
+    val logics = new mutable.ListBuffer[String]
     for (dir <- getenv_strict("ISABELLE_PATH").split(":")) {
       val files = platform_file(dir + "/" + ml_ident).listFiles()
       if (files != null) {

@@ -1,13 +1,13 @@
 /*  Title:      Pure/Isar/outer_keyword.scala
     Author:     Makarius
 
-Isar command keyword classification.
+Isar command keyword classification and keyword tables.
 */
 
 package isabelle
 
 
-object OuterKeyword
+object Outer_Keyword
 {
   val MINOR = "minor"
   val CONTROL = "control"
