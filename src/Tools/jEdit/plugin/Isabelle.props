@@ -9,7 +9,7 @@ plugin.isabelle.jedit.Plugin.version=0.0.1
 plugin.isabelle.jedit.Plugin.description=Isabelle/Isar asynchronous proof processing
 
 #system parameters
-plugin.isabelle.jedit.Plugin.activate=defer
+plugin.isabelle.jedit.Plugin.activate=startup
 plugin.isabelle.jedit.Plugin.usePluginHome=false
 
 #dependencies
