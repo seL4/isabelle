@@ -505,18 +505,10 @@ fun term_of_univ thy program idx_tab t =
 
 (* function store *)
 
-structure Nbe_Functions = Code_Data_Fun
+structure Nbe_Functions = Code_Data
 (
   type T = Code_Thingol.naming * ((Univ option * int) Graph.T * (int * string Inttab.table));
   val empty = (Code_Thingol.empty_naming, (Graph.empty, (0, Inttab.empty)));
-  fun purge thy cs (naming, (gr, (maxidx, idx_tab))) =
-    let
-      val names_delete = cs
-        |> map_filter (Code_Thingol.lookup_const naming)
-        |> filter (can (Graph.get_node gr))
-        |> Graph.all_preds gr;
-      val gr' = Graph.del_nodes names_delete gr;
-    in (naming, (gr', (maxidx, idx_tab))) end;
 );
 
 (* compilation, evaluation and reification *)

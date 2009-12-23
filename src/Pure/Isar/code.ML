@@ -1,8 +1,9 @@
 (*  Title:      Pure/Isar/code.ML
     Author:     Florian Haftmann, TU Muenchen
 
-Abstract executable code of theory.  Management of data dependent on
-executable code.  Cache assumes non-concurrent processing of a single theory.
+Abstract executable ingredients of theory.  Management of data
+dependent on executable ingredients as synchronized cache; purged
+on any change of underlying executable ingredients.
 *)
 
 signature CODE =
@@ -70,13 +71,11 @@ signature CODE_DATA_ARGS =
 sig
   type T
   val empty: T
-  val purge: theory -> string list -> T -> T
 end;
 
 signature CODE_DATA =
 sig
   type T
-  val get: theory -> T
   val change: theory -> (T -> T) -> T
   val change_yield: theory -> (T -> 'a * T) -> 'a * T
 end;
@@ -84,10 +83,7 @@ end;
 signature PRIVATE_CODE =
 sig
   include CODE
-  val declare_data: Object.T -> (theory -> string list -> Object.T -> Object.T)
-    -> serial
-  val get_data: serial * ('a -> Object.T) * (Object.T -> 'a)
-    -> theory -> 'a
+  val declare_data: Object.T -> serial
   val change_data: serial * ('a -> Object.T) * (Object.T -> 'a)
     -> theory -> ('a -> 'a) -> 'a
   val change_yield_data: serial * ('a -> Object.T) * (Object.T -> 'a)
@@ -211,13 +207,9 @@ structure Datatab = Table(type key = int val ord = int_ord);
 
 local
 
-type kind = {
-  empty: Object.T,
-  purge: theory -> string list -> Object.T -> Object.T
-};
+type kind = { empty: Object.T };
 
 val kinds = Unsynchronized.ref (Datatab.empty: kind Datatab.table);
-val kind_keys = Unsynchronized.ref ([]: serial list);
 
 fun invoke f k = case Datatab.lookup (! kinds) k
  of SOME kind => f kind
@@ -225,19 +217,14 @@ fun invoke f k = case Datatab.lookup (! kinds) k
 
 in
 
-fun declare_data empty purge =
+fun declare_data empty =
   let
     val k = serial ();
-    val kind = {empty = empty, purge = purge};
-    val _ = Unsynchronized.change kinds (Datatab.update (k, kind));
-    val _ = Unsynchronized.change kind_keys (cons k);
+    val kind = { empty = empty };
+    val _ = CRITICAL (fn () => Unsynchronized.change kinds (Datatab.update (k, kind)));
   in k end;
 
 fun invoke_init k = invoke (fn kind => #empty kind) k;
-
-fun invoke_purge_all thy cs =
-  fold (fn k => Datatab.map_entry k
-    (invoke (fn kind => #purge kind thy cs) k)) (! kind_keys);
 
 end; (*local*)
 
@@ -247,26 +234,27 @@ end; (*local*)
 local
 
 type data = Object.T Datatab.table;
-val empty_data = Datatab.empty : data;
+fun create_data data = Synchronized.var "code data" data;
+fun empty_data () = create_data Datatab.empty;
 
 structure Code_Data = TheoryDataFun
 (
-  type T = spec * data Unsynchronized.ref;
+  type T = spec * data Synchronized.var;
   val empty = (make_spec (false, (((Symtab.empty, Symtab.empty), Symtab.empty),
-    (Symtab.empty, (Symtab.empty, Symtab.empty)))), Unsynchronized.ref empty_data);
-  fun copy (spec, data) = (spec, Unsynchronized.ref (! data));
+    (Symtab.empty, (Symtab.empty, Symtab.empty)))), empty_data ());
+  fun copy (spec, data) = (spec, create_data (Synchronized.value data));
   val extend = copy;
   fun merge _ ((spec1, _), (spec2, _)) =
-    (merge_spec (spec1, spec2), Unsynchronized.ref empty_data);
+    (merge_spec (spec1, spec2), empty_data ());
 );
 
 fun thy_data f thy = f ((snd o Code_Data.get) thy);
 
-fun get_ensure_init kind data_ref =
-  case Datatab.lookup (! data_ref) kind
+fun get_ensure_init kind data =
+  case Datatab.lookup (Synchronized.value data) kind
    of SOME x => x
     | NONE => let val y = invoke_init kind
-        in (Unsynchronized.change data_ref (Datatab.update (kind, y)); y) end;
+        in (Synchronized.change data (Datatab.update (kind, y)); y) end;
 
 in
 
@@ -274,19 +262,12 @@ in
 
 val the_exec = fst o Code_Data.get;
 
-fun complete_class_params thy cs =
-  fold (fn c => case AxClass.inst_of_param thy c
-   of NONE => insert (op =) c
-    | SOME (c', _) => insert (op =) c' #> insert (op =) c) cs [];
+fun map_exec_purge f =
+  Code_Data.map (fn (exec, data) => (f exec, empty_data ()));
 
-fun map_exec_purge touched f thy =
-  Code_Data.map (fn (exec, data) => (f exec, Unsynchronized.ref (case touched
-   of SOME cs => invoke_purge_all thy (complete_class_params thy cs) (! data)
-    | NONE => empty_data))) thy;
+val purge_data = (Code_Data.map o apsnd) (fn _ => empty_data ());
 
-val purge_data = (Code_Data.map o apsnd) (fn _ => Unsynchronized.ref empty_data);
-
-fun change_eqns delete c f = (map_exec_purge (SOME [c]) o map_eqns
+fun change_eqns delete c f = (map_exec_purge o map_eqns
   o (if delete then Symtab.map_entry c else Symtab.map_default (c, ((false, (true, [])), [])))
     o apfst) (fn (_, eqns) => (true, f eqns));
 
@@ -323,15 +304,13 @@ val _ = Context.>> (Context.map_theory (Code_Data.init
 
 (* access to data dependent on abstract executable code *)
 
-fun get_data (kind, _, dest) = thy_data (get_ensure_init kind #> dest);
-
 fun change_data (kind, mk, dest) =
   let
     fun chnge data_ref f =
       let
         val data = get_ensure_init kind data_ref;
         val data' = f (dest data);
-      in (Unsynchronized.change data_ref (Datatab.update (kind, mk data')); data') end;
+      in (Synchronized.change data_ref (Datatab.update (kind, mk data')); data') end;
   in thy_data chnge end;
 
 fun change_yield_data (kind, mk, dest) =
@@ -340,7 +319,7 @@ fun change_yield_data (kind, mk, dest) =
       let
         val data = get_ensure_init kind data_ref;
         val (x, data') = f (dest data);
-      in (x, (Unsynchronized.change data_ref (Datatab.update (kind, mk data')); data')) end;
+      in (x, (Synchronized.change data_ref (Datatab.update (kind, mk data')); data')) end;
   in thy_data chnge end;
 
 end; (*local*)
@@ -707,7 +686,7 @@ fun print_codesetup thy =
 fun add_type tyco thy =
   case Symtab.lookup ((snd o #types o Type.rep_tsig o Sign.tsig_of) thy) tyco
    of SOME (Type.Abbreviation (vs, _, _)) =>
-          (map_exec_purge NONE o map_signatures o apfst)
+          (map_exec_purge o map_signatures o apfst)
             (Symtab.update (tyco, length vs)) thy
     | _ => error ("No such type abbreviation: " ^ quote tyco);
 
@@ -723,7 +702,7 @@ fun gen_add_signature prep_const prep_signature (raw_c, raw_ty) thy =
       error ("Illegal constant signature: " ^ Syntax.string_of_typ_global thy ty);
   in
     thy
-    |> (map_exec_purge NONE o map_signatures o apsnd) (Symtab.update (c, ty))
+    |> (map_exec_purge o map_signatures o apsnd) (Symtab.update (c, ty))
   end;
 
 val add_signature = gen_add_signature (K I) cert_signature;
@@ -747,7 +726,7 @@ fun add_datatype raw_cs thy =
   in
     thy
     |> fold (del_eqns o fst) cs
-    |> map_exec_purge NONE
+    |> map_exec_purge
         ((map_dtyps o Symtab.map_default (tyco, [])) (cons (serial (), vs_cos))
         #> (map_cases o apfst) drop_outdated_cases)
     |> Type_Interpretation.data (tyco, serial ())
@@ -838,29 +817,27 @@ fun add_case thm thy =
      of [] => ()
       | cs => error ("Non-constructor(s) in case certificate: " ^ commas (map quote cs));
     val entry = (1 + Int.max (1, length case_pats), (k, case_pats))
-  in (map_exec_purge (SOME [c]) o map_cases o apfst) (Symtab.update (c, entry)) thy end;
+  in (map_exec_purge o map_cases o apfst) (Symtab.update (c, entry)) thy end;
 
 fun add_undefined c thy =
-  (map_exec_purge (SOME [c]) o map_cases o apsnd) (Symtab.update (c, ())) thy;
+  (map_exec_purge o map_cases o apsnd) (Symtab.update (c, ())) thy;
 
 end; (*struct*)
 
 
 (** type-safe interfaces for data dependent on executable code **)
 
-functor Code_Data_Fun(Data: CODE_DATA_ARGS): CODE_DATA =
+functor Code_Data(Data: CODE_DATA_ARGS): CODE_DATA =
 struct
 
 type T = Data.T;
 exception Data of T;
 fun dest (Data x) = x
 
-val kind = Code.declare_data (Data Data.empty)
-  (fn thy => fn cs => fn Data x => Data (Data.purge thy cs x));
+val kind = Code.declare_data (Data Data.empty);
 
 val data_op = (kind, Data, dest);
 
-val get = Code.get_data data_op;
 val change = Code.change_data data_op;
 fun change_yield thy = Code.change_yield_data data_op thy;
 

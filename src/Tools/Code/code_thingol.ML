@@ -90,7 +90,6 @@ sig
   val canonize_thms: theory -> thm list -> thm list
   val read_const_exprs: theory -> string list -> string list * string list
   val consts_program: theory -> string list -> string list * (naming * program)
-  val cached_program: theory -> naming * program
   val eval_conv: theory
     -> (naming -> program -> ((string * sort) list * typscheme) * iterm -> string list -> cterm -> thm)
     -> cterm -> thm
@@ -843,21 +842,11 @@ and translate_dicts thy (algbr as (proj_sort, algebra)) eqngr thm (ty, sort) =
 
 (* store *)
 
-structure Program = Code_Data_Fun
+structure Program = Code_Data
 (
   type T = naming * program;
   val empty = (empty_naming, Graph.empty);
-  fun purge thy cs (naming, program) =
-    let
-      val names_delete = cs
-        |> map_filter (lookup_const naming)
-        |> filter (can (Graph.get_node program))
-        |> Graph.all_preds program;
-      val program' = Graph.del_nodes names_delete program;
-    in (naming, program') end;
 );
-
-val cached_program = Program.get;
 
 fun invoke_generation thy (algebra, eqngr) f name =
   Program.change_yield thy (fn naming_program => (NONE, naming_program)
@@ -943,10 +932,10 @@ fun read_const_exprs thy =
 fun code_depgr thy consts =
   let
     val (_, eqngr) = Code_Preproc.obtain thy consts [];
-    val select = Graph.all_succs eqngr consts;
+    val all_consts = Graph.all_succs eqngr consts;
   in
     eqngr
-    |> not (null consts) ? Graph.subgraph (member (op =) select) 
+    |> Graph.subgraph (member (op =) all_consts) 
     |> Graph.map_nodes ((apsnd o map o apfst) (AxClass.overload thy))
   end;
 
@@ -983,13 +972,13 @@ in
 
 val _ =
   OuterSyntax.improper_command "code_thms" "print system of code equations for code" OuterKeyword.diag
-    (Scan.repeat P.term_group
+    (Scan.repeat1 P.term_group
       >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
         o Toplevel.keep ((fn thy => code_thms_cmd thy cs) o Toplevel.theory_of)));
 
 val _ =
   OuterSyntax.improper_command "code_deps" "visualize dependencies of code equations for code" OuterKeyword.diag
-    (Scan.repeat P.term_group
+    (Scan.repeat1 P.term_group
       >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
         o Toplevel.keep ((fn thy => code_deps_cmd thy cs) o Toplevel.theory_of)));
 

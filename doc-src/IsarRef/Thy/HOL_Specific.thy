@@ -1139,7 +1139,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    'export\_code' ( constexpr + ) ? \\
+    'export\_code' ( constexpr + ) \\
       ( ( 'in' target ( 'module\_name' string ) ? \\
         ( 'file' ( string | '-' ) ) ? ( '(' args ')' ) ?) + ) ?
     ;
@@ -1216,10 +1216,8 @@ text {*
 
   \item @{command (HOL) "export_code"} is the canonical interface for
   generating and serializing code: for a given list of constants, code
-  is generated for the specified target languages.  Abstract code is
-  cached incrementally.  If no constant is given, the currently cached
-  code is serialized.  If no serialization instruction is given, only
-  abstract code is cached.
+  is generated for the specified target languages.  If no serialization
+  instruction is given, only abstract code is generated internally.
 
   Constants may be specified by giving them literally, referring to
   all executable contants within a certain theory by giving @{text
@@ -1239,20 +1237,21 @@ text {*
   code internally in the context of the current ML session.
 
   Serializers take an optional list of arguments in parentheses.  For
-  \emph{Haskell} a module name prefix may be given using the ``@{text
+  \emph{SML} and \emph{OCaml}, ``@{text no_signatures}`` omits
+  explicit module signatures.
+  
+  For \emph{Haskell} a module name prefix may be given using the ``@{text
   "root:"}'' argument; ``@{text string_classes}'' adds a ``@{verbatim
   "deriving (Read, Show)"}'' clause to each appropriate datatype
   declaration.
 
   \item @{command (HOL) "code_thms"} prints a list of theorems
   representing the corresponding program containing all given
-  constants; if no constants are given, the currently cached code
-  theorems are printed.
+  constants.
 
   \item @{command (HOL) "code_deps"} visualizes dependencies of
   theorems representing the corresponding program containing all given
-  constants; if no constants are given, the currently cached code
-  theorems are visualized.
+  constants.
 
   \item @{command (HOL) "code_datatype"} specifies a constructor set
   for a logical type.
