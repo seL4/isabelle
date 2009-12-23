@@ -356,15 +356,9 @@ fun read_const_exprs thy cs =
       (fn (c, name) => if member (op =) names4 name then SOME c else NONE) (cs2 ~~ names3);
   in fold (insert (op =)) cs5 cs1 end;
 
-fun cached_program thy = 
-  let
-    val (naming, program) = Code_Thingol.cached_program thy;
-  in (transitivly_non_empty_funs thy naming program, (naming, program)) end
-
 fun export_code thy cs seris =
   let
-    val (cs', (naming, program)) = if null cs then cached_program thy
-      else Code_Thingol.consts_program thy cs;
+    val (cs', (naming, program)) = Code_Thingol.consts_program thy cs;
     fun mk_seri_dest dest = case dest
      of NONE => compile
       | SOME "-" => export
@@ -514,7 +508,7 @@ fun parse_args f args =
 val (inK, module_nameK, fileK) = ("in", "module_name", "file");
 
 val code_exprP =
-  (Scan.repeat P.term_group
+  (Scan.repeat1 P.term_group
   -- Scan.repeat (P.$$$ inK |-- P.name
      -- Scan.option (P.$$$ module_nameK |-- P.name)
      -- Scan.option (P.$$$ fileK |-- P.name)

@@ -445,22 +445,10 @@ fun extend_arities_eqngr thy cs ts (arities, (eqngr : code_graph)) =
 
 (** store for preprocessed arities and code equations **)
 
-structure Wellsorted = Code_Data_Fun
+structure Wellsorted = Code_Data
 (
   type T = ((string * class) * sort list) list * code_graph;
   val empty = ([], Graph.empty);
-  fun purge thy cs (arities, eqngr) =
-    let
-      val del_cs = ((Graph.all_preds eqngr
-        o filter (can (Graph.get_node eqngr))) cs);
-      val del_arities = del_cs
-        |> map_filter (AxClass.inst_of_param thy)
-        |> maps (fn (c, tyco) =>
-             (map (rpair tyco) o Sign.complete_sort thy o the_list
-               o AxClass.class_of_param thy) c);
-      val arities' = fold (AList.delete (op =)) del_arities arities;
-      val eqngr' = Graph.del_nodes del_cs eqngr;
-    in (arities', eqngr') end;
 );
 
 
