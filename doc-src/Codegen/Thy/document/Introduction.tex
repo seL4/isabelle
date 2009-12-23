@@ -147,37 +147,37 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \isatypewriter%
 \noindent%
 \hspace*{0pt}structure Example :~sig\\
-\hspace*{0pt}{\char92}~{\char92}~val foldl :~{\char123}{\char92}isacharparenleft{\char125}'a -> 'b -> 'a{\char123}{\char92}isacharparenright{\char125}~-> 'a -> 'b list -> 'a\\
+\hspace*{0pt} ~val foldl :~('a -> 'b -> 'a) -> 'a -> 'b list -> 'a\\
 \hspace*{0pt} ~val rev :~'a list -> 'a list\\
-\hspace*{0pt} ~val list{\char95}case :~'a -> {\char123}{\char92}isacharparenleft{\char125}'b -> 'b list -> 'a{\char123}{\char92}isacharparenright{\char125}~-> 'b list -> 'a\\
-\hspace*{0pt} ~datatype 'a queue = AQueue of 'a list{\char92}~{\char123}{\char92}isacharasterisk{\char125}~'a list\\
+\hspace*{0pt} ~val list{\char95}case :~'a -> ('b -> 'b list -> 'a) -> 'b list -> 'a\\
+\hspace*{0pt} ~datatype 'a queue = AQueue of 'a list * 'a list\\
 \hspace*{0pt} ~val empty :~'a queue\\
 \hspace*{0pt} ~val dequeue :~'a queue -> 'a option * 'a queue\\
 \hspace*{0pt} ~val enqueue :~'a -> 'a queue -> 'a queue\\
 \hspace*{0pt}end = struct\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun foldl f a [] = a\\
-\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~foldl f a {\char123}{\char92}isacharparenleft{\char125}x ::~xs{\char123}{\char92}isacharparenright{\char125}~= foldl f {\char123}{\char92}isacharparenleft{\char125}f a x{\char123}{\char92}isacharparenright{\char125}~xs;\\
+\hspace*{0pt} ~| foldl f a (x ::~xs) = foldl f (f a x) xs;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun rev xs = foldl {\char123}{\char92}isacharparenleft{\char125}fn xsa => fn x => x ::~xsa{\char123}{\char92}isacharparenright{\char125}~[] xs;\\
+\hspace*{0pt}fun rev xs = foldl (fn xsa => fn x => x ::~xsa) [] xs;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun list{\char123}{\char92}isacharunderscore{\char125}case f1 f2 {\char123}{\char92}isacharparenleft{\char125}a ::~lista{\char123}{\char92}isacharparenright{\char125}~= f2 a lista\\
-\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~list{\char123}{\char92}isacharunderscore{\char125}case f1 f2 [] = f1;\\
+\hspace*{0pt}fun list{\char95}case f1 f2 (a ::~lista) = f2 a lista\\
+\hspace*{0pt} ~| list{\char95}case f1 f2 [] = f1;\\
 \hspace*{0pt}\\
-\hspace*{0pt}datatype 'a queue = AQueue of 'a list{\char92}~{\char123}{\char92}isacharasterisk{\char125}~'a list;\\
+\hspace*{0pt}datatype 'a queue = AQueue of 'a list * 'a list;\\
 \hspace*{0pt}\\
-\hspace*{0pt}val empty :~'a queue = AQueue {\char123}{\char92}isacharparenleft{\char125}[]{\char123}{\char92}isacharcomma{\char125}~[]{\char123}{\char92}isacharparenright{\char125};\\
+\hspace*{0pt}val empty :~'a queue = AQueue ([],~[]);\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun dequeue {\char123}{\char92}isacharparenleft{\char125}AQueue {\char123}{\char92}isacharparenleft{\char125}[]{\char123}{\char92}isacharcomma{\char125}~[]{\char123}{\char92}isacharparenright{\char125}{\char123}{\char92}isacharparenright{\char125}~= (NONE,~AQueue {\char123}{\char92}isacharparenleft{\char125}[]{\char123}{\char92}isacharcomma{\char125}~[]{\char123}{\char92}isacharparenright{\char125})\\
-\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~dequeue {\char123}{\char92}isacharparenleft{\char125}AQueue {\char123}{\char92}isacharparenleft{\char125}xs{\char123}{\char92}isacharcomma{\char125}~y ::~ys{\char123}{\char92}isacharparenright{\char125}{\char123}{\char92}isacharparenright{\char125}~= (SOME y,~AQueue {\char123}{\char92}isacharparenleft{\char125}xs{\char123}{\char92}isacharcomma{\char125}~ys{\char123}{\char92}isacharparenright{\char125})\\
-\hspace*{0pt} ~{\char123}{\char92}isacharbar{\char125}~dequeue {\char123}{\char92}isacharparenleft{\char125}AQueue {\char123}{\char92}isacharparenleft{\char125}v ::~va{\char123}{\char92}isacharcomma{\char125}~[]{\char123}{\char92}isacharparenright{\char125}{\char123}{\char92}isacharparenright{\char125}~=\\
+\hspace*{0pt}fun dequeue (AQueue ([],~[])) = (NONE,~AQueue ([],~[]))\\
+\hspace*{0pt} ~| dequeue (AQueue (xs,~y ::~ys)) = (SOME y,~AQueue (xs,~ys))\\
+\hspace*{0pt} ~| dequeue (AQueue (v ::~va,~[])) =\\
 \hspace*{0pt} ~~~let\\
-\hspace*{0pt} ~~~~~val y ::~ys = rev {\char123}{\char92}isacharparenleft{\char125}v ::~va{\char123}{\char92}isacharparenright{\char125};\\
+\hspace*{0pt} ~~~~~val y ::~ys = rev (v ::~va);\\
 \hspace*{0pt} ~~~in\\
-\hspace*{0pt} ~~~~~(SOME y,~AQueue {\char123}{\char92}isacharparenleft{\char125}[]{\char123}{\char92}isacharcomma{\char125}~ys{\char123}{\char92}isacharparenright{\char125})\\
+\hspace*{0pt} ~~~~~(SOME y,~AQueue ([],~ys))\\
 \hspace*{0pt} ~~~end;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun enqueue x {\char123}{\char92}isacharparenleft{\char125}AQueue {\char123}{\char92}isacharparenleft{\char125}xs{\char123}{\char92}isacharcomma{\char125}~ys{\char123}{\char92}isacharparenright{\char125}{\char123}{\char92}isacharparenright{\char125}~= AQueue {\char123}{\char92}isacharparenleft{\char125}x ::~xs{\char123}{\char92}isacharcomma{\char125}~ys{\char123}{\char92}isacharparenright{\char125};\\
+\hspace*{0pt}fun enqueue x (AQueue (xs,~ys)) = AQueue (x ::~xs,~ys);\\
 \hspace*{0pt}\\
 \hspace*{0pt}end;~(*struct Example*)%
 \end{isamarkuptext}%
@@ -234,15 +234,15 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \noindent%
 \hspace*{0pt}module Example where {\char123}\\
 \hspace*{0pt}\\
-\hspace*{0pt}foldla ::~forall a b.~{\char123}{\char92}isacharparenleft{\char125}a -> b -> a{\char123}{\char92}isacharparenright{\char125}~-> a -> [b] -> a;\\
+\hspace*{0pt}foldla ::~forall a b.~(a -> b -> a) -> a -> [b] -> a;\\
 \hspace*{0pt}foldla f a [] = a;\\
-\hspace*{0pt}foldla f a {\char123}{\char92}isacharparenleft{\char125}x :~xs{\char123}{\char92}isacharparenright{\char125}~= foldla f {\char123}{\char92}isacharparenleft{\char125}f a x{\char123}{\char92}isacharparenright{\char125}~xs;\\
+\hspace*{0pt}foldla f a (x :~xs) = foldla f (f a x) xs;\\
 \hspace*{0pt}\\
 \hspace*{0pt}rev ::~forall a.~[a] -> [a];\\
-\hspace*{0pt}rev xs = foldla {\char123}{\char92}isacharparenleft{\char125}{\char92}~xsa x -> x :~xsa{\char123}{\char92}isacharparenright{\char125}~[] xs;\\
+\hspace*{0pt}rev xs = foldla ({\char92}~xsa x -> x :~xsa) [] xs;\\
 \hspace*{0pt}\\
-\hspace*{0pt}list{\char95}case ::~forall a b.~a -> {\char123}{\char92}isacharparenleft{\char125}b -> [b] -> a{\char123}{\char92}isacharparenright{\char125}~-> [b] -> a;\\
-\hspace*{0pt}list{\char95}case f1 f2 {\char123}{\char92}isacharparenleft{\char125}a :~list{\char123}{\char92}isacharparenright{\char125}~= f2 a list;\\
+\hspace*{0pt}list{\char95}case ::~forall a b.~a -> (b -> [b] -> a) -> [b] -> a;\\
+\hspace*{0pt}list{\char95}case f1 f2 (a :~list) = f2 a list;\\
 \hspace*{0pt}list{\char95}case f1 f2 [] = f1;\\
 \hspace*{0pt}\\
 \hspace*{0pt}data Queue a = AQueue [a] [a];\\
@@ -251,15 +251,15 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \hspace*{0pt}empty = AQueue [] [];\\
 \hspace*{0pt}\\
 \hspace*{0pt}dequeue ::~forall a.~Queue a -> (Maybe a,~Queue a);\\
-\hspace*{0pt}dequeue {\char123}{\char92}isacharparenleft{\char125}AQueue [] []{\char123}{\char92}isacharparenright{\char125}~= (Nothing,~AQueue [] []);\\
-\hspace*{0pt}dequeue {\char123}{\char92}isacharparenleft{\char125}AQueue xs {\char123}{\char92}isacharparenleft{\char125}y :~ys{\char123}{\char92}isacharparenright{\char125}{\char123}{\char92}isacharparenright{\char125}~= (Just y,~AQueue xs ys);\\
-\hspace*{0pt}dequeue {\char123}{\char92}isacharparenleft{\char125}AQueue {\char123}{\char92}isacharparenleft{\char125}v :~va{\char123}{\char92}isacharparenright{\char125}~[]{\char123}{\char92}isacharparenright{\char125}~=\\
+\hspace*{0pt}dequeue (AQueue [] []) = (Nothing,~AQueue [] []);\\
+\hspace*{0pt}dequeue (AQueue xs (y :~ys)) = (Just y,~AQueue xs ys);\\
+\hspace*{0pt}dequeue (AQueue (v :~va) []) =\\
 \hspace*{0pt} ~let {\char123}\\
-\hspace*{0pt} ~~~{\char123}{\char92}isacharparenleft{\char125}y :~ys{\char123}{\char92}isacharparenright{\char125}~= rev {\char123}{\char92}isacharparenleft{\char125}v :~va{\char123}{\char92}isacharparenright{\char125};\\
+\hspace*{0pt} ~~~(y :~ys) = rev (v :~va);\\
 \hspace*{0pt} ~{\char125}~in (Just y,~AQueue [] ys);\\
 \hspace*{0pt}\\
 \hspace*{0pt}enqueue ::~forall a.~a -> Queue a -> Queue a;\\
-\hspace*{0pt}enqueue x {\char123}{\char92}isacharparenleft{\char125}AQueue xs ys{\char123}{\char92}isacharparenright{\char125}~= AQueue {\char123}{\char92}isacharparenleft{\char125}x :~xs{\char123}{\char92}isacharparenright{\char125}~ys;\\
+\hspace*{0pt}enqueue x (AQueue xs ys) = AQueue (x :~xs) ys;\\
 \hspace*{0pt}\\
 \hspace*{0pt}{\char125}%
 \end{isamarkuptext}%
