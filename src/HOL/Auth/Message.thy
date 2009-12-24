@@ -197,17 +197,13 @@ lemma parts_Un [simp]: "parts(G \<union> H) = parts(G) \<union> parts(H)"
 by (intro equalityI parts_Un_subset1 parts_Un_subset2)
 
 lemma parts_insert: "parts (insert X H) = parts {X} \<union> parts H"
-apply (subst insert_is_Un [of _ H])
-apply (simp only: parts_Un)
-done
+by (metis insert_is_Un parts_Un)
 
 text{*TWO inserts to avoid looping.  This rewrite is better than nothing.
   Not suitable for Addsimps: its behaviour can be strange.*}
 lemma parts_insert2:
      "parts (insert X (insert Y H)) = parts {X} \<union> parts {Y} \<union> parts H"
-apply (simp add: Un_assoc)
-apply (simp add: parts_insert [symmetric])
-done
+by (metis Un_commute Un_empty_right Un_insert_right insert_is_Un parts_Un)
 
 lemma parts_UN_subset1: "(\<Union>x\<in>A. parts(H x)) \<subseteq> parts(\<Union>x\<in>A. H x)"
 by (intro UN_least parts_mono UN_upper)
@@ -242,10 +238,7 @@ lemma parts_idem [simp]: "parts (parts H) = parts H"
 by blast
 
 lemma parts_subset_iff [simp]: "(parts G \<subseteq> parts H) = (G \<subseteq> parts H)"
-apply (rule iffI)
-apply (iprover intro: subset_trans parts_increasing)  
-apply (frule parts_mono, simp) 
-done
+by (metis equalityE parts_idem parts_increasing parts_mono subset_trans)
 
 lemma parts_trans: "[| X\<in> parts G;  G \<subseteq> parts H |] ==> X\<in> parts H"
 by (drule parts_mono, blast)
@@ -322,10 +315,10 @@ text{*In any message, there is an upper bound N on its greatest nonce.*}
 lemma msg_Nonce_supply: "\<exists>N. \<forall>n. N\<le>n --> Nonce n \<notin> parts {msg}"
 apply (induct msg)
 apply (simp_all (no_asm_simp) add: exI parts_insert2)
- txt{*MPair case: blast works out the necessary sum itself!*}
- prefer 2 apply auto apply (blast elim!: add_leE)
 txt{*Nonce case*}
-apply (rule_tac x = "N + Suc nat" in exI, auto) 
+apply (metis Suc_n_not_le_n)
+txt{*MPair case: metis works out the necessary sum itself!*}
+apply (metis le_trans nat_le_linear)
 done
 
 
@@ -374,10 +367,7 @@ lemmas not_parts_not_analz = analz_subset_parts [THEN contra_subsetD, standard]
 
 
 lemma parts_analz [simp]: "parts (analz H) = parts H"
-apply (rule equalityI)
-apply (rule analz_subset_parts [THEN parts_mono, THEN subset_trans], simp)
-apply (blast intro: analz_increasing [THEN parts_mono, THEN subsetD])
-done
+by (metis analz_increasing analz_subset_parts equalityI parts_mono parts_subset_iff)
 
 lemma analz_parts [simp]: "analz (parts H) = parts H"
 apply auto
@@ -514,10 +504,7 @@ lemma analz_idem [simp]: "analz (analz H) = analz H"
 by blast
 
 lemma analz_subset_iff [simp]: "(analz G \<subseteq> analz H) = (G \<subseteq> analz H)"
-apply (rule iffI)
-apply (iprover intro: subset_trans analz_increasing)  
-apply (frule analz_mono, simp) 
-done
+by (metis analz_idem analz_increasing analz_mono subset_trans)
 
 lemma analz_trans: "[| X\<in> analz G;  G \<subseteq> analz H |] ==> X\<in> analz H"
 by (drule analz_mono, blast)
@@ -626,10 +613,7 @@ lemma synth_idem: "synth (synth H) = synth H"
 by blast
 
 lemma synth_subset_iff [simp]: "(synth G \<subseteq> synth H) = (G \<subseteq> synth H)"
-apply (rule iffI)
-apply (iprover intro: subset_trans synth_increasing)  
-apply (frule synth_mono, simp add: synth_idem) 
-done
+by (metis equalityE subset_trans synth_idem synth_increasing synth_mono)
 
 lemma synth_trans: "[| X\<in> synth G;  G \<subseteq> synth H |] ==> X\<in> synth H"
 by (drule synth_mono, blast)
@@ -684,30 +668,26 @@ apply (blast intro: analz.Fst analz.Snd analz.Decrypt)+
 done
 
 lemma analz_synth [simp]: "analz (synth H) = analz H \<union> synth H"
-apply (cut_tac H = "{}" in analz_synth_Un)
-apply (simp (no_asm_use))
-done
+by (metis Un_empty_right analz_synth_Un)
 
 
 subsubsection{*For reasoning about the Fake rule in traces *}
 
 lemma parts_insert_subset_Un: "X\<in> G ==> parts(insert X H) \<subseteq> parts G \<union> parts H"
-by (rule subset_trans [OF parts_mono parts_Un_subset2], blast)
+by (metis UnCI Un_upper2 insert_subset parts_Un parts_mono)
 
 text{*More specifically for Fake.  Very occasionally we could do with a version
   of the form  @{term"parts{X} \<subseteq> synth (analz H) \<union> parts H"} *}
 lemma Fake_parts_insert:
      "X \<in> synth (analz H) ==>  
       parts (insert X H) \<subseteq> synth (analz H) \<union> parts H"
-apply (drule parts_insert_subset_Un)
-apply (simp (no_asm_use))
-apply blast
-done
+by (metis Un_commute analz_increasing insert_subset parts_analz parts_mono 
+          parts_synth synth_mono synth_subset_iff)
 
 lemma Fake_parts_insert_in_Un:
      "[|Z \<in> parts (insert X H);  X: synth (analz H)|] 
-      ==> Z \<in>  synth (analz H) \<union> parts H";
-by (blast dest: Fake_parts_insert  [THEN subsetD, dest])
+      ==> Z \<in>  synth (analz H) \<union> parts H"
+by (metis Fake_parts_insert set_mp)
 
 text{*@{term H} is sometimes @{term"Key ` KK \<union> spies evs"}, so can't put 
   @{term "G=H"}.*}
@@ -715,10 +695,8 @@ lemma Fake_analz_insert:
      "X\<in> synth (analz G) ==>  
       analz (insert X H) \<subseteq> synth (analz G) \<union> analz (G \<union> H)"
 apply (rule subsetI)
-apply (subgoal_tac "x \<in> analz (synth (analz G) \<union> H) ")
-prefer 2 apply (blast intro: analz_mono [THEN [2] rev_subsetD] analz_mono [THEN synth_mono, THEN [2] rev_subsetD])
-apply (simp (no_asm_use))
-apply blast
+apply (subgoal_tac "x \<in> analz (synth (analz G) \<union> H)", force)
+apply (blast intro: analz_mono [THEN [2] rev_subsetD] analz_mono [THEN synth_mono, THEN [2] rev_subsetD])
 done
 
 lemma analz_conj_parts [simp]:
@@ -908,14 +886,8 @@ by (iprover intro: synth_mono analz_mono)
 
 lemma Fake_analz_eq [simp]:
      "X \<in> synth(analz H) ==> synth (analz (insert X H)) = synth (analz H)"
-apply (drule Fake_analz_insert[of _ _ "H"])
-apply (simp add: synth_increasing[THEN Un_absorb2])
-apply (drule synth_mono)
-apply (simp add: synth_idem)
-apply (rule equalityI)
-apply (simp add: );
-apply (rule synth_analz_mono, blast)   
-done
+by (metis Fake_analz_insert Un_absorb Un_absorb1 Un_commute equalityI
+          subset_insertI synth_analz_mono synth_increasing synth_subset_iff)
 
 text{*Two generalizations of @{text analz_insert_eq}*}
 lemma gen_analz_insert_eq [rule_format]:
@@ -930,11 +902,8 @@ apply (simp_all add: gen_analz_insert_eq subset_trans [OF _ subset_insertI])
 done
 
 lemma Fake_parts_sing:
-     "X \<in> synth (analz H) ==> parts{X} \<subseteq> synth (analz H) \<union> parts H";
-apply (rule subset_trans) 
- apply (erule_tac [2] Fake_parts_insert)
-apply (rule parts_mono, blast)
-done
+     "X \<in> synth (analz H) ==> parts{X} \<subseteq> synth (analz H) \<union> parts H"
+by (metis Fake_parts_insert empty_subsetI insert_mono parts_mono subset_trans)
 
 lemmas Fake_parts_sing_imp_Un = Fake_parts_sing [THEN [2] rev_subsetD]
 
