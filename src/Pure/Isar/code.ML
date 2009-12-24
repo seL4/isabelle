@@ -235,7 +235,7 @@ local
 
 type data = Object.T Datatab.table;
 fun create_data data = Synchronized.var "code data" data;
-fun empty_data () = create_data Datatab.empty;
+fun empty_data () = create_data Datatab.empty : data Synchronized.var;
 
 structure Code_Data = TheoryDataFun
 (
