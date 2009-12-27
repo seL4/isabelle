@@ -187,7 +187,14 @@ object Scan
     def quoted_content(quote: String, source: String): String =
     {
       require(parseAll(quoted(quote), source).successful)
-      source.substring(1, source.length - 1)  // FIXME proper escapes
+      val body = source.substring(1, source.length - 1)
+      if (body.exists(_ == '\\')) {
+        val content =
+          rep(many1(sym => sym != quote && sym != "\\" && Symbol.is_closed(sym)) |
+              "\\" ~> (quote | "\\" | """\d\d\d""".r ^^ { case x => x.toInt.toChar.toString }))
+        parseAll(content ^^ (_.mkString), body).get
+      }
+      else body
     }
 
 
