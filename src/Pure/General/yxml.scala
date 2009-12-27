@@ -51,48 +51,7 @@ object YXML
       new Decode_Chars(decode, buffer, start + i, start + j)
 
     // toString with adhoc decoding: abuse of CharSequence interface
-    // see also http://en.wikipedia.org/wiki/UTF-8#Description
-    override def toString: String =
-    {
-      val buf = new java.lang.StringBuilder(length)
-      var code = -1
-      var rest = 0
-      def flush()
-      {
-        if (code != -1) {
-          if (rest == 0 && Character.isValidCodePoint(code))
-            buf.appendCodePoint(code)
-          else buf.append('\uFFFD')
-          code = -1
-          rest = 0
-        }
-      }
-      def init(x: Int, n: Int)
-      {
-        flush()
-        code = x
-        rest = n
-      }
-      def push(x: Int)
-      {
-        if (rest <= 0) init(x, -1)
-        else {
-          code <<= 6
-          code += x
-          rest -= 1
-        }
-      }
-      for (i <- 0 until length) {
-        val c = charAt(i)
-        if (c < 128) { flush(); buf.append(c) }
-        else if ((c & 0xC0) == 0x80) push(c & 0x3F)
-        else if ((c & 0xE0) == 0xC0) init(c & 0x1F, 1)
-        else if ((c & 0xF0) == 0xE0) init(c & 0x0F, 2)
-        else if ((c & 0xF8) == 0xF0) init(c & 0x07, 3)
-      }
-      flush()
-      decode(buf.toString)
-    }
+    override def toString: String = decode(Library.decode_permissive_utf8(this))
   }
 
   def decode_chars(decode: String => String,
