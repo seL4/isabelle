@@ -6,7 +6,12 @@ Efficient scanning of keywords.
 
 package isabelle
 
+
+import scala.collection.immutable.PagedSeq
+import scala.util.parsing.input.{OffsetPosition, Position => InputPosition, Reader}
 import scala.util.parsing.combinator.RegexParsers
+
+import java.io.{File, InputStream, BufferedInputStream, FileInputStream}
 
 
 object Scan
@@ -182,7 +187,7 @@ object Scan
     def quoted_content(quote: String, source: String): String =
     {
       require(parseAll(quoted(quote), source).successful)
-      source.substring(1, source.length - 1)  // FIXME proper escapes, recode utf8 (!?)
+      source.substring(1, source.length - 1)  // FIXME proper escapes
     }
 
 
@@ -283,5 +288,63 @@ object Scan
         keyword ^^ (x => Token(if (is_command(x)) Token_Kind.COMMAND else Token_Kind.KEYWORD, x))) |
       bad_input
     }
+  }
+
+
+
+  /** read file without decoding -- enables efficient length operation **/
+
+  private class Restricted_Seq(seq: RandomAccessSeq[Char], start: Int, end: Int)
+    extends CharSequence
+  {
+    def charAt(i: Int): Char =
+      if (0 <= i && i < length) seq(start + i)
+      else throw new IndexOutOfBoundsException
+
+    def length: Int = end - start  // avoid potentially expensive seq.length
+
+    def subSequence(i: Int, j: Int): CharSequence =
+      if (0 <= i && i <= j && j <= length) new Restricted_Seq(seq, start + i, start + j)
+      else throw new IndexOutOfBoundsException
+
+    override def toString: String =
+    {
+      val buf = new StringBuilder(length)
+      for (offset <- start until end) buf.append(seq(offset))
+      buf.toString
+    }
+  }
+
+  abstract class Byte_Reader extends Reader[Char] { def close: Unit }
+
+  def byte_reader(file: File): Byte_Reader =
+  {
+    val stream = new BufferedInputStream(new FileInputStream(file))
+    val seq = new PagedSeq(
+      (buf: Array[Char], offset: Int, length: Int) =>
+        {
+          var i = 0
+          var c = 0
+          var eof = false
+          while (!eof && i < length) {
+            c = stream.read
+            if (c == -1) eof = true
+            else { buf(offset + i) = c.toChar; i += 1 }
+          }
+          if (i > 0) i else -1
+        })
+    val restricted_seq = new Restricted_Seq(seq, 0, file.length.toInt)
+
+    class Paged_Reader(override val offset: Int) extends Byte_Reader
+    {
+      override lazy val source: CharSequence = restricted_seq
+      def first: Char = if (seq.isDefinedAt(offset)) seq(offset) else '\032'
+      def rest: Paged_Reader = if (seq.isDefinedAt(offset)) new Paged_Reader(offset + 1) else this
+      def pos: InputPosition = new OffsetPosition(source, offset)
+      def atEnd: Boolean = !seq.isDefinedAt(offset)
+      override def drop(n: Int): Paged_Reader = new Paged_Reader(offset + n)
+      def close { stream.close }
+    }
+    new Paged_Reader(0)
   }
 }
