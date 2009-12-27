@@ -22,6 +22,8 @@ object Thy_Header
   val BEGIN = "begin"
 
   val lexicon = Scan.Lexicon("%", "(", ")", ";", BEGIN, HEADER, IMPORTS, THEORY, USES)
+
+  sealed case class Header(val name: String, val imports: List[String], val uses: List[String])
 }
 
 
@@ -32,7 +34,7 @@ class Thy_Header(symbols: Symbol.Interpretation) extends Outer_Parse.Parser
 
   /* header */
 
-  val header: Parser[(String, List[String], List[String])] =
+  val header: Parser[Header] =
   {
     val file_name = atom("file name", _.is_name)
     val theory_name = atom("theory name", _.is_name)
@@ -44,7 +46,7 @@ class Thy_Header(symbols: Symbol.Interpretation) extends Outer_Parse.Parser
 
     val args =
       theory_name ~ (keyword(IMPORTS) ~! (rep1(theory_name) ~ uses ~ keyword(BEGIN))) ^^
-        { case x ~ (_ ~ (ys ~ zs ~ _)) => (x, ys, zs) }
+        { case x ~ (_ ~ (ys ~ zs ~ _)) => Header(x, ys, zs) }
 
     (keyword(HEADER) ~ tags) ~!
       ((doc_source ~ rep(keyword(";")) ~ keyword(THEORY) ~ tags) ~> args) ^^ { case _ ~ x => x } |
@@ -52,9 +54,9 @@ class Thy_Header(symbols: Symbol.Interpretation) extends Outer_Parse.Parser
   }
 
 
-  /* scan -- lazy approximation */
+  /* read -- lazy scanning */
 
-  def scan(file: File): List[Outer_Lex.Token] =
+  def read(file: File): Header =
   {
     val token = lexicon.token(symbols, _ => false)
     val toks = new mutable.ListBuffer[Outer_Lex.Token]
@@ -69,9 +71,12 @@ class Thy_Header(symbols: Symbol.Interpretation) extends Outer_Parse.Parser
         case _ =>
       }
     }
-
     val reader = Scan.byte_reader(file)
     try { scan_to_begin(reader) } finally { reader.close }
-    toks.toList
+
+    parse(commit(header), Outer_Lex.reader(toks.toList)) match {
+      case Success(result, _) => result
+      case bad => error(bad.toString)
+    }
   }
 }
