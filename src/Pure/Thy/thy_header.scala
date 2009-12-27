@@ -10,6 +10,8 @@ package isabelle
 import scala.collection.mutable
 import scala.util.parsing.input.{Reader, CharSequenceReader}
 
+import java.io.File
+
 
 object Thy_Header
 {
@@ -52,21 +54,24 @@ class Thy_Header(symbols: Symbol.Interpretation) extends Outer_Parse.Parser
 
   /* scan -- lazy approximation */
 
-  def scan(text: CharSequence): List[Outer_Lex.Token] =
+  def scan(file: File): List[Outer_Lex.Token] =
   {
     val token = lexicon.token(symbols, _ => false)
     val toks = new mutable.ListBuffer[Outer_Lex.Token]
-    def scan_until_begin(in: Reader[Char])
+
+    def scan_to_begin(in: Reader[Char])
     {
       token(in) match {
         case lexicon.Success(tok, rest) =>
           toks += tok
           if (!(tok.kind == Outer_Lex.Token_Kind.KEYWORD && tok.content == BEGIN))
-            scan_until_begin(rest)
+            scan_to_begin(rest)
         case _ =>
       }
     }
-    scan_until_begin(new CharSequenceReader(text))
+
+    val reader = Scan.byte_reader(file)
+    try { scan_to_begin(reader) } finally { reader.close }
     toks.toList
   }
 }
