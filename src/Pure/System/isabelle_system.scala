@@ -45,22 +45,6 @@ object Isabelle_System
     val rc = proc.waitFor
     (output, rc)
   }
-
-
-  /* platform files */
-
-  def read_file(file: File): String =
-  {
-    val buf = new StringBuilder(file.length.toInt)
-    val reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))
-    var c = reader.read
-    while (c != -1) {
-      buf.append(c.toChar)
-      c = reader.read
-    }
-    reader.close
-    buf.toString
-  }
 }
 
 
