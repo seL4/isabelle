@@ -94,5 +94,14 @@ object Cygwin
     if (!ok) error("Bad Cygwin installation: " + root)
     root
   }
+
+  def setup(exe: String, root: String): Int =
+  {
+    val (output, rc) = Standard_System.process_output(
+    	Standard_System.raw_execute(null, true, exe, "-R", root, "-P", "perl,python", "-q", "-n"))
+    val root_dir = new File(root)
+    if (root_dir.isDirectory) Standard_System.write_file(new File(root, "setup.log"), output)
+    rc
+  }
 }
 
