@@ -22,8 +22,6 @@ class Isabelle_System extends Standard_System
 {
   /** Isabelle environment **/
 
-  /* bash environment */
-
   private val environment: Map[String, String] =
   {
     import scala.collection.jcl.Conversions._
@@ -58,6 +56,17 @@ class Isabelle_System extends Standard_System
           ("HOME" -> java.lang.System.getenv("HOME")) +
           ("PATH" -> java.lang.System.getenv("PATH"))
       }
+  }
+
+
+  /* external processes */
+
+  def execute(redirect: Boolean, args: String*): Process =
+  {
+    val cmdline =
+      if (Platform.is_windows) List(platform_root + "\\bin\\env.exe") ++ args
+      else args
+    Standard_System.raw_execute(environment, redirect, cmdline: _*)
   }
 
 
@@ -153,16 +162,6 @@ class Isabelle_System extends Standard_System
 
 
   /** system tools **/
-
-  /* external processes */
-
-  def execute(redirect: Boolean, args: String*): Process =
-  {
-    val cmdline =
-      if (Platform.is_windows) List(jvm_path("/bin/env")) ++ args
-      else args
-    Standard_System.raw_execute(environment, redirect, cmdline: _*)
-  }
 
   def system_out(script: String): (String, Int) =
   {
