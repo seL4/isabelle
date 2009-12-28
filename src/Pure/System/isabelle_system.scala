@@ -398,11 +398,11 @@ class Isabelle_System
 
   def isabelle_tool(name: String, args: String*): (String, Int) =
   {
-    getenv_strict("ISABELLE_TOOLS").split(":").find(dir => {
+    getenv_strict("ISABELLE_TOOLS").split(":").find { dir =>
       val file = platform_file(dir + "/" + name)
       try { file.isFile && file.canRead && file.canExecute }
       catch { case _: SecurityException => false }
-    }) match {
+    } match {
       case Some(dir) =>
         Isabelle_System.process_output(
           execute(true, (List(expand_path(dir + "/" + name)) ++ args): _*))
