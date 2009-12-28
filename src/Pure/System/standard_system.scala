@@ -107,8 +107,10 @@ object Standard_System
     for (s <- args) cmdline.add(s)
 
     val proc = new ProcessBuilder(cmdline)
-    proc.environment.clear
-    for ((x, y) <- env) proc.environment.put(x, y)
+    if (env != null) {
+      proc.environment.clear
+      for ((x, y) <- env) proc.environment.put(x, y)
+    }
     proc.redirectErrorStream(redirect)
 
     try { proc.start }
