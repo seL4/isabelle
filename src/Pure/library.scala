@@ -7,6 +7,7 @@ Basic library.
 package isabelle
 
 import java.lang.System
+import java.io.File
 
 
 object Library
@@ -79,6 +80,18 @@ object Library
     }
     flush()
     buf.toString
+  }
+
+
+  /* temporary file */
+
+  def with_tmp_file[A](prefix: String)(body: File => A): A =
+  {
+    val file = File.createTempFile(prefix, null)
+    val result =
+      try { body(file) }
+      finally { file.delete }
+    result
   }
 
 

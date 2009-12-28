@@ -90,8 +90,7 @@ class Isabelle_System
         case Some(path) => path
       }
 
-    val dump = File.createTempFile("isabelle", null)
-    try {
+    Library.with_tmp_file("isabelle_settings") { dump =>
       val cmdline = shell_prefix :::
         List(isabelle_home + "/bin/isabelle", "getenv", "-d", dump.toString)
       val (output, rc) =
@@ -108,7 +107,6 @@ class Isabelle_System
         ("HOME" -> java.lang.System.getenv("HOME")) +
         ("PATH" -> java.lang.System.getenv("PATH"))
     }
-    finally { dump.delete }
   }
 
 
