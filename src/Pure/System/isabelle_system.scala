@@ -347,21 +347,26 @@ class Isabelle_System
             expand_path("$ISABELLE_HOME/lib/scripts/system.pl"), "group",
             script_file.getPath, pid_file.getPath, output_file.getPath)
 
-          def kill() =
+          def kill(strict: Boolean) =
           {
-            val (pid, running0) =
-              try { (Isabelle_System.read_file(pid_file), true) }
-              catch { case _: IOException => ("", false) }
-
-            var running = running0
-            for (n <- 1 to 10 if running) {
-              if (execute(true, "kill", "-INT", "-" + pid).waitFor == 0)
-                Thread.sleep(100)
-              else running = false
+            val pid =
+              try { Some(Isabelle_System.read_file(pid_file)) }
+              catch { case _: IOException => None }
+            if (pid.isDefined) {
+              var running = true
+              var count = 10
+              while (running && count > 0) {
+                if (execute(true, "kill", "-INT", "-" + pid.get).waitFor != 0)
+                  running = false
+                else {
+                  Thread.sleep(100)
+                  if (!strict) count -= 1
+                }
+              }
             }
           }
 
-          val shutdown_hook = new Thread { override def run = kill() }
+          val shutdown_hook = new Thread { override def run = kill(true) }
           Runtime.getRuntime.addShutdownHook(shutdown_hook)
 
           def cleanup() =
@@ -371,7 +376,7 @@ class Isabelle_System
           val rc =
             try {
               try { proc.waitFor }  // FIXME read stderr (!??)
-              catch { case e: InterruptedException => Thread.interrupted; kill(); throw e }
+              catch { case e: InterruptedException => Thread.interrupted; kill(false); throw e }
             }
             finally {
               proc.getOutputStream.close
