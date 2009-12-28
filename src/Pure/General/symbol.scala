@@ -177,8 +177,8 @@ object Symbol
         }
       }
       decl.split("\\s+").toList match {
-        case Nil => err()
-        case sym :: props => (sym, read_props(props))
+        case sym :: props if sym.length > 1 && is_closed(sym) => (sym, read_props(props))
+        case _ => err()
       }
     }
 
@@ -214,7 +214,10 @@ object Symbol
               case _: NumberFormatException => error("Bad code for symbol " + sym)
             }
           val ch = new String(Character.toChars(code))
-        } yield (sym, ch)
+        } yield {
+          if (code < 128) error("Illegal ASCII code for symbol " + sym)
+          else (sym, ch)
+        }
       (new Recoder(mapping),
        new Recoder(mapping map { case (x, y) => (y, x) }))
     }
