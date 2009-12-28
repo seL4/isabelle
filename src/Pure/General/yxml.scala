@@ -51,7 +51,7 @@ object YXML
       new Decode_Chars(decode, buffer, start + i, start + j)
 
     // toString with adhoc decoding: abuse of CharSequence interface
-    override def toString: String = decode(Library.decode_permissive_utf8(this))
+    override def toString: String = decode(Isabelle_System.decode_permissive_utf8(this))
   }
 
   def decode_chars(decode: String => String,

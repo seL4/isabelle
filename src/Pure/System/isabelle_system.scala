@@ -8,7 +8,8 @@ package isabelle
 
 import java.util.regex.Pattern
 import java.util.Locale
-import java.io.{BufferedInputStream, FileInputStream, BufferedReader, InputStreamReader,
+import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream,
+  BufferedInputStream, FileInputStream, BufferedReader, InputStreamReader,
   File, IOException}
 import java.awt.{GraphicsEnvironment, Font}
 
@@ -20,6 +21,84 @@ import scala.collection.mutable
 object Isabelle_System
 {
   val charset = "UTF-8"
+
+
+  /* permissive UTF-8 decoding */
+
+  // see also http://en.wikipedia.org/wiki/UTF-8#Description
+  def decode_permissive_utf8(text: CharSequence): String =
+  {
+    val buf = new java.lang.StringBuilder(text.length)
+    var code = -1
+    var rest = 0
+    def flush()
+    {
+      if (code != -1) {
+        if (rest == 0 && Character.isValidCodePoint(code))
+          buf.appendCodePoint(code)
+        else buf.append('\uFFFD')
+        code = -1
+        rest = 0
+      }
+    }
+    def init(x: Int, n: Int)
+    {
+      flush()
+      code = x
+      rest = n
+    }
+    def push(x: Int)
+    {
+      if (rest <= 0) init(x, -1)
+      else {
+        code <<= 6
+        code += x
+        rest -= 1
+      }
+    }
+    for (i <- 0 until text.length) {
+      val c = text.charAt(i)
+      if (c < 128) { flush(); buf.append(c) }
+      else if ((c & 0xC0) == 0x80) push(c & 0x3F)
+      else if ((c & 0xE0) == 0xC0) init(c & 0x1F, 1)
+      else if ((c & 0xF0) == 0xE0) init(c & 0x0F, 2)
+      else if ((c & 0xF8) == 0xF0) init(c & 0x07, 3)
+    }
+    flush()
+    buf.toString
+  }
+
+
+  /* basic file operations */
+
+  def with_tmp_file[A](prefix: String)(body: File => A): A =
+  {
+    val file = File.createTempFile(prefix, null)
+    val result =
+      try { body(file) }
+      finally { file.delete }
+    result
+  }
+
+  def read_file(file: File): String =
+  {
+    val buf = new StringBuilder(file.length.toInt)
+    val reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))
+    var c = reader.read
+    while (c != -1) {
+      buf.append(c.toChar)
+      c = reader.read
+    }
+    reader.close
+    buf.toString
+  }
+
+  def write_file(file: File, text: CharSequence)
+  {
+    val writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), charset))
+    try { writer.append(text) }
+    finally { writer.close }
+  }
 
 
   /* shell processes */
@@ -90,7 +169,7 @@ class Isabelle_System
         case Some(path) => path
       }
 
-    Library.with_tmp_file("isabelle_settings") { dump =>
+    Isabelle_System.with_tmp_file("isabelle_settings") { dump =>
       val cmdline = shell_prefix :::
         List(isabelle_home + "/bin/isabelle", "getenv", "-d", dump.toString)
       val (output, rc) =
@@ -254,6 +333,62 @@ class Isabelle_System
       if (Platform.is_windows) List(platform_path("/bin/env")) ++ args
       else args
     Isabelle_System.raw_execute(environment, redirect, cmdline: _*)
+  }
+
+  def system_out(script: String): (String, Int) =
+  {
+    Isabelle_System.with_tmp_file("isabelle_script") { script_file =>
+      Isabelle_System.with_tmp_file("isabelle_pid") { pid_file =>
+        Isabelle_System.with_tmp_file("isabelle_output") { output_file =>
+
+          Isabelle_System.write_file(script_file, script)
+
+          val proc = execute(true, "perl", "-w",
+            expand_path("$ISABELLE_HOME/lib/scripts/system.pl"), "group",
+            script_file.getPath, pid_file.getPath, output_file.getPath)
+
+          def kill() =
+          {
+            val (pid, running0) =
+              try { (Isabelle_System.read_file(pid_file), true) }
+              catch { case _: IOException => ("", false) }
+
+            var running = running0
+            for (n <- 1 to 10 if running) {
+              if (execute(true, "kill", "-INT", "-" + pid).waitFor == 0)
+                Thread.sleep(100)
+              else running = false
+            }
+          }
+
+          val shutdown_hook = new Thread { override def run = kill() }
+          Runtime.getRuntime.addShutdownHook(shutdown_hook)
+
+          def cleanup() =
+            try { Runtime.getRuntime.removeShutdownHook(shutdown_hook) }
+            catch { case _: IllegalStateException => }
+
+          val rc =
+            try {
+              try { proc.waitFor }  // FIXME read stderr (!??)
+              catch { case e: InterruptedException => Thread.interrupted; kill(); throw e }
+            }
+            finally {
+              proc.getOutputStream.close
+              proc.getInputStream.close
+              proc.getErrorStream.close
+              proc.destroy
+              cleanup()
+            }
+
+          val output =
+            try { Isabelle_System.read_file(output_file) }
+            catch { case _: IOException => "" }
+
+          (output, rc)
+        }
+      }
+    }
   }
 
   def isabelle_tool(name: String, args: String*): (String, Int) =

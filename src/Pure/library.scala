@@ -7,7 +7,6 @@ Basic library.
 package isabelle
 
 import java.lang.System
-import java.io.File
 
 
 object Library
@@ -34,64 +33,6 @@ object Library
         buf.append(charAt(i))
       buf.toString
     }
-  }
-
-
-  /* permissive UTF-8 decoding */
-
-  // see also http://en.wikipedia.org/wiki/UTF-8#Description
-  def decode_permissive_utf8(text: CharSequence): String =
-  {
-    val buf = new java.lang.StringBuilder(text.length)
-    var code = -1
-    var rest = 0
-    def flush()
-    {
-      if (code != -1) {
-        if (rest == 0 && Character.isValidCodePoint(code))
-          buf.appendCodePoint(code)
-        else buf.append('\uFFFD')
-        code = -1
-        rest = 0
-      }
-    }
-    def init(x: Int, n: Int)
-    {
-      flush()
-      code = x
-      rest = n
-    }
-    def push(x: Int)
-    {
-      if (rest <= 0) init(x, -1)
-      else {
-        code <<= 6
-        code += x
-        rest -= 1
-      }
-    }
-    for (i <- 0 until text.length) {
-      val c = text.charAt(i)
-      if (c < 128) { flush(); buf.append(c) }
-      else if ((c & 0xC0) == 0x80) push(c & 0x3F)
-      else if ((c & 0xE0) == 0xC0) init(c & 0x1F, 1)
-      else if ((c & 0xF0) == 0xE0) init(c & 0x0F, 2)
-      else if ((c & 0xF8) == 0xF0) init(c & 0x07, 3)
-    }
-    flush()
-    buf.toString
-  }
-
-
-  /* temporary file */
-
-  def with_tmp_file[A](prefix: String)(body: File => A): A =
-  {
-    val file = File.createTempFile(prefix, null)
-    val result =
-      try { body(file) }
-      finally { file.delete }
-    result
   }
 
 
