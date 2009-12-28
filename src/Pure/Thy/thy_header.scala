@@ -36,8 +36,8 @@ class Thy_Header(symbols: Symbol.Interpretation) extends Outer_Parse.Parser
 
   val header: Parser[Header] =
   {
-    val file_name = atom("file name", _.is_name) ^^ Isabelle_System.decode_permissive_utf8
-    val theory_name = atom("theory name", _.is_name) ^^ Isabelle_System.decode_permissive_utf8
+    val file_name = atom("file name", _.is_name) ^^ Standard_System.decode_permissive_utf8
+    val theory_name = atom("theory name", _.is_name) ^^ Standard_System.decode_permissive_utf8
 
     val file =
       keyword("(") ~! (file_name ~ keyword(")")) ^^ { case _ ~ (x ~ _) => x } | file_name

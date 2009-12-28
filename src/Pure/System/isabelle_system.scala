@@ -1,7 +1,7 @@
 /*  Title:      Pure/System/isabelle_system.scala
     Author:     Makarius
 
-Isabelle system support, with basic Cygwin/Posix compatibility.
+Isabelle system support (settings environment etc.).
 */
 
 package isabelle
@@ -18,139 +18,9 @@ import scala.util.matching.Regex
 import scala.collection.mutable
 
 
-object Isabelle_System
-{
-  val charset = "UTF-8"
-
-
-  /* permissive UTF-8 decoding */
-
-  // see also http://en.wikipedia.org/wiki/UTF-8#Description
-  def decode_permissive_utf8(text: CharSequence): String =
-  {
-    val buf = new java.lang.StringBuilder(text.length)
-    var code = -1
-    var rest = 0
-    def flush()
-    {
-      if (code != -1) {
-        if (rest == 0 && Character.isValidCodePoint(code))
-          buf.appendCodePoint(code)
-        else buf.append('\uFFFD')
-        code = -1
-        rest = 0
-      }
-    }
-    def init(x: Int, n: Int)
-    {
-      flush()
-      code = x
-      rest = n
-    }
-    def push(x: Int)
-    {
-      if (rest <= 0) init(x, -1)
-      else {
-        code <<= 6
-        code += x
-        rest -= 1
-      }
-    }
-    for (i <- 0 until text.length) {
-      val c = text.charAt(i)
-      if (c < 128) { flush(); buf.append(c) }
-      else if ((c & 0xC0) == 0x80) push(c & 0x3F)
-      else if ((c & 0xE0) == 0xC0) init(c & 0x1F, 1)
-      else if ((c & 0xF0) == 0xE0) init(c & 0x0F, 2)
-      else if ((c & 0xF8) == 0xF0) init(c & 0x07, 3)
-    }
-    flush()
-    buf.toString
-  }
-
-
-  /* basic file operations */
-
-  def with_tmp_file[A](prefix: String)(body: File => A): A =
-  {
-    val file = File.createTempFile(prefix, null)
-    val result =
-      try { body(file) }
-      finally { file.delete }
-    result
-  }
-
-  def read_file(file: File): String =
-  {
-    val buf = new StringBuilder(file.length.toInt)
-    val reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))
-    var c = reader.read
-    while (c != -1) {
-      buf.append(c.toChar)
-      c = reader.read
-    }
-    reader.close
-    buf.toString
-  }
-
-  def write_file(file: File, text: CharSequence)
-  {
-    val writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), charset))
-    try { writer.append(text) }
-    finally { writer.close }
-  }
-
-
-  /* shell processes */
-
-  private def raw_execute(env: Map[String, String], redirect: Boolean, args: String*): Process =
-  {
-    val cmdline = new java.util.LinkedList[String]
-    for (s <- args) cmdline.add(s)
-
-    val proc = new ProcessBuilder(cmdline)
-    proc.environment.clear
-    for ((x, y) <- env) proc.environment.put(x, y)
-    proc.redirectErrorStream(redirect)
-
-    try { proc.start }
-    catch { case e: IOException => error(e.getMessage) }
-  }
-
-  private def process_output(proc: Process): (String, Int) =
-  {
-    proc.getOutputStream.close
-    val output = Source.fromInputStream(proc.getInputStream, charset).mkString
-    val rc =
-      try { proc.waitFor }
-      finally {
-        proc.getInputStream.close
-        proc.getErrorStream.close
-        proc.destroy
-        Thread.interrupted
-      }
-    (output, rc)
-  }
-}
-
-
-class Isabelle_System
+class Isabelle_System extends Standard_System
 {
   /** Isabelle environment **/
-
-  /* platform prefixes */
-
-  private val (platform_root, drive_prefix, shell_prefix) =
-  {
-    if (Platform.is_windows) {
-      val root = Cygwin.check_root()
-      val drive = "/cygdrive"
-      val shell = List(root + "\\bin\\bash", "-l")
-      (root, drive, shell)
-    }
-    else ("/", "", Nil)
-  }
-
 
   /* bash environment */
 
@@ -169,23 +39,25 @@ class Isabelle_System
         case Some(path) => path
       }
 
-    Isabelle_System.with_tmp_file("isabelle_settings") { dump =>
-      val cmdline = shell_prefix :::
-        List(isabelle_home + "/bin/isabelle", "getenv", "-d", dump.toString)
-      val (output, rc) =
-        Isabelle_System.process_output(Isabelle_System.raw_execute(env0, true, cmdline: _*))
-      if (rc != 0) error(output)
+    Standard_System.with_tmp_file("settings") { dump =>
+        val shell_prefix =
+          if (Platform.is_windows) List(platform_root + "\\bin\\bash", "-l") else Nil
+        val cmdline =
+          shell_prefix ::: List(isabelle_home + "/bin/isabelle", "getenv", "-d", dump.toString)
+        val (output, rc) =
+          Standard_System.process_output(Standard_System.raw_execute(env0, true, cmdline: _*))
+        if (rc != 0) error(output)
 
-      val entries =
-        for (entry <- Source.fromFile(dump).mkString split "\0" if entry != "") yield {
-          val i = entry.indexOf('=')
-          if (i <= 0) (entry -> "")
-          else (entry.substring(0, i) -> entry.substring(i + 1))
-        }
-      Map(entries: _*) +
-        ("HOME" -> java.lang.System.getenv("HOME")) +
-        ("PATH" -> java.lang.System.getenv("PATH"))
-    }
+        val entries =
+          for (entry <- Source.fromFile(dump).mkString split "\0" if entry != "") yield {
+            val i = entry.indexOf('=')
+            if (i <= 0) (entry -> "")
+            else (entry.substring(0, i) -> entry.substring(i + 1))
+          }
+        Map(entries: _*) +
+          ("HOME" -> java.lang.System.getenv("HOME")) +
+          ("PATH" -> java.lang.System.getenv("PATH"))
+      }
   }
 
 
@@ -255,53 +127,10 @@ class Isabelle_System
 
   /* platform_path */
 
-  private val Cygdrive =
-    new Regex(Pattern.quote(drive_prefix) + "/([a-zA-Z])($|/.*)")
-
   def platform_path(isabelle_path: String): String =
-  {
-    val result_path = new StringBuilder
-    val rest =
-      expand_path(isabelle_path) match {
-        case Cygdrive(drive, rest) if Platform.is_windows =>
-          result_path ++= (drive + ":" + File.separator)
-          rest
-        case path if path.startsWith("/") =>
-          result_path ++= platform_root
-          path
-        case path => path
-      }
-    for (p <- rest.split("/") if p != "") {
-      val len = result_path.length
-      if (len > 0 && result_path(len - 1) != File.separatorChar)
-        result_path += File.separatorChar
-      result_path ++= p
-    }
-    result_path.toString
-  }
+    jvm_path(expand_path(isabelle_path))
 
   def platform_file(path: String) = new File(platform_path(path))
-
-
-  /* isabelle_path */
-
-  private val Platform_Root = new Regex("(?i)" +
-    Pattern.quote(platform_root) + """(?:\\+|\z)(.*)""")
-  private val Drive = new Regex("""([a-zA-Z]):\\*(.*)""")
-
-  def isabelle_path(platform_path: String): String =
-  {
-    if (Platform.is_windows) {
-      platform_path.replace('/', '\\') match {
-        case Platform_Root(rest) => "/" + rest.replace('\\', '/')
-        case Drive(letter, rest) =>
-          drive_prefix + "/" + letter.toLowerCase(Locale.ENGLISH) +
-            (if (rest == "") "" else "/" + rest.replace('\\', '/'))
-        case path => path.replace('\\', '/')
-      }
-    }
-    else platform_path
-  }
 
 
   /* source files */
@@ -313,7 +142,7 @@ class Isabelle_System
     if (path.startsWith("/") || path == "")
       try_file(platform_file(path))
     else {
-      val pure_file = platform_file("~~/src/Pure/" + path)
+      val pure_file = platform_file("$ISABELLE_HOME/src/Pure/" + path)
       if (pure_file.isFile) Some(pure_file)
       else if (getenv("ML_SOURCES") != "")
         try_file(platform_file("$ML_SOURCES/" + path))
@@ -330,18 +159,18 @@ class Isabelle_System
   def execute(redirect: Boolean, args: String*): Process =
   {
     val cmdline =
-      if (Platform.is_windows) List(platform_path("/bin/env")) ++ args
+      if (Platform.is_windows) List(jvm_path("/bin/env")) ++ args
       else args
-    Isabelle_System.raw_execute(environment, redirect, cmdline: _*)
+    Standard_System.raw_execute(environment, redirect, cmdline: _*)
   }
 
   def system_out(script: String): (String, Int) =
   {
-    Isabelle_System.with_tmp_file("isabelle_script") { script_file =>
-      Isabelle_System.with_tmp_file("isabelle_pid") { pid_file =>
-        Isabelle_System.with_tmp_file("isabelle_output") { output_file =>
+    Standard_System.with_tmp_file("isabelle_script") { script_file =>
+      Standard_System.with_tmp_file("isabelle_pid") { pid_file =>
+        Standard_System.with_tmp_file("isabelle_output") { output_file =>
 
-          Isabelle_System.write_file(script_file, script)
+          Standard_System.write_file(script_file, script)
 
           val proc = execute(true, "perl", "-w",
             expand_path("$ISABELLE_HOME/lib/scripts/system.pl"), "group",
@@ -350,7 +179,7 @@ class Isabelle_System
           def kill(strict: Boolean) =
           {
             val pid =
-              try { Some(Isabelle_System.read_file(pid_file)) }
+              try { Some(Standard_System.read_file(pid_file)) }
               catch { case _: IOException => None }
             if (pid.isDefined) {
               var running = true
@@ -367,7 +196,7 @@ class Isabelle_System
           }
 
           val shutdown_hook = new Thread { override def run = kill(true) }
-          Runtime.getRuntime.addShutdownHook(shutdown_hook)
+          Runtime.getRuntime.addShutdownHook(shutdown_hook)  // FIXME tmp files during shutdown?!?
 
           def cleanup() =
             try { Runtime.getRuntime.removeShutdownHook(shutdown_hook) }
@@ -387,7 +216,7 @@ class Isabelle_System
             }
 
           val output =
-            try { Isabelle_System.read_file(output_file) }
+            try { Standard_System.read_file(output_file) }
             catch { case _: IOException => "" }
 
           (output, rc)
@@ -404,7 +233,7 @@ class Isabelle_System
       catch { case _: SecurityException => false }
     } match {
       case Some(dir) =>
-        Isabelle_System.process_output(
+        Standard_System.process_output(
           execute(true, (List(expand_path(dir + "/" + name)) ++ args): _*))
       case None => ("Unknown Isabelle tool: " + name, 2)
     }
