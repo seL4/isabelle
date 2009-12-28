@@ -42,7 +42,14 @@ object Isabelle_System
   {
     proc.getOutputStream.close
     val output = Source.fromInputStream(proc.getInputStream, charset).mkString
-    val rc = proc.waitFor
+    val rc =
+      try { proc.waitFor }
+      finally {
+        proc.getInputStream.close
+        proc.getErrorStream.close
+        proc.destroy
+        Thread.interrupted
+      }
     (output, rc)
   }
 }
@@ -87,8 +94,8 @@ class Isabelle_System
     try {
       val cmdline = shell_prefix :::
         List(isabelle_home + "/bin/isabelle", "getenv", "-d", dump.toString)
-      val proc = Isabelle_System.raw_execute(env0, true, cmdline: _*)
-      val (output, rc) = Isabelle_System.process_output(proc)
+      val (output, rc) =
+        Isabelle_System.process_output(Isabelle_System.raw_execute(env0, true, cmdline: _*))
       if (rc != 0) error(output)
 
       val entries =
@@ -259,8 +266,8 @@ class Isabelle_System
       catch { case _: SecurityException => false }
     }) match {
       case Some(dir) =>
-        val proc = execute(true, (List(platform_path(dir + "/" + name)) ++ args): _*)
-        Isabelle_System.process_output(proc)
+        Isabelle_System.process_output(
+          execute(true, (List(platform_path(dir + "/" + name)) ++ args): _*))
       case None => ("Unknown Isabelle tool: " + name, 2)
     }
   }
@@ -285,7 +292,12 @@ class Isabelle_System
   {
     // blocks until writer is ready
     val stream =
-      if (Platform.is_windows) execute(false, "cat", fifo).getInputStream
+      if (Platform.is_windows) {
+        val proc = execute(false, "cat", fifo)
+        proc.getOutputStream.close
+        proc.getErrorStream.close
+        proc.getInputStream
+      }
       else new FileInputStream(fifo)
     new BufferedInputStream(stream)
   }
