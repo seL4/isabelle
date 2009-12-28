@@ -267,7 +267,7 @@ class Isabelle_System
     }) match {
       case Some(dir) =>
         Isabelle_System.process_output(
-          execute(true, (List(platform_path(dir + "/" + name)) ++ args): _*))
+          execute(true, (List(expand_path(dir + "/" + name)) ++ args): _*))
       case None => ("Unknown Isabelle tool: " + name, 2)
     }
   }
@@ -332,7 +332,7 @@ class Isabelle_System
 
   private def read_symbols(path: String): List[String] =
   {
-    val file = new File(platform_path(path))
+    val file = platform_file(path)
     if (file.isFile) Source.fromFile(file).getLines.toList
     else Nil
   }
