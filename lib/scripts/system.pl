@@ -17,7 +17,7 @@ if ($group eq "group") {
 }
 
 open (PID_FILE, ">", $pid_name) || die $!;
-print PID_FILE "$$\n";
+print PID_FILE "$$";
 close PID_FILE;
 
 
