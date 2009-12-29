@@ -142,11 +142,11 @@ class Document_View(model: Document_Model, text_area: TextArea)
   /* caret_listener */
 
   private var _selected_command: Command = null
-  def selected_command = _selected_command
-  def selected_command_=(state: Command)
+  private def selected_command = _selected_command
+  private def selected_command_=(cmd: Command)
   {
-    _selected_command = state
-    session.results.event(state)
+    _selected_command = cmd
+    session.results.event(cmd)
   }
 
   private val caret_listener = new CaretListener
