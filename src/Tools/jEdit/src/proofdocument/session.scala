@@ -44,7 +44,7 @@ class Session(system: Isabelle_System)
             reply(())
           }
 
-        case Stop =>
+        case Stop =>  // FIXME clarify
           if (prover != null)
             prover.kill
           prover_ready = false
@@ -102,7 +102,7 @@ class Session(system: Isabelle_System)
     prover.begin_document(document_0.id, path)   // FIXME fresh document!?!
   }
 
-  def handle_change(change: Change)
+  private def handle_change(change: Change)
   {
     val old = document(change.parent.get.id).get
     val (doc, changes) = old.text_changed(this, change)
