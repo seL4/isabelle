@@ -17,6 +17,7 @@ images: \
   HOL-NSA \
   HOL-Nominal \
   HOL-Plain \
+  HOL-Proofs \
   HOL-SMT \
   HOL-Word \
   HOL4 \
@@ -30,7 +31,6 @@ test: \
   HOL-Bali \
   HOL-Boogie-Examples \
   HOL-Decision_Procs \
-  HOL-Extraction \
   HOL-Hahn_Banach \
   HOL-Hoare \
   HOL-Hoare_Parallel \
@@ -41,7 +41,6 @@ test: \
   HOL-Import \
   HOL-Induct \
   HOL-Isar_Examples \
-  HOL-Lambda \
   HOL-Lattice \
   HOL-Matrix \
   HOL-Metis_Examples \
@@ -55,6 +54,8 @@ test: \
   HOL-Old_Number_Theory \
   HOL-Probability \
   HOL-Prolog \
+  HOL-Proofs-Extraction \
+  HOL-Proofs-Lambda \
   HOL-SET_Protocol \
   HOL-SMT-Examples \
   HOL-Statespace \
@@ -68,8 +69,6 @@ test: \
   HOL-Word-Examples \
   HOL-ZF
     # ^ this is the sort position
-
-proofterms: HOL HOL-Extraction HOL-Lambda
 
 all: test images
 
@@ -90,6 +89,8 @@ HOL-Base: Pure $(OUT)/HOL-Base
 HOL-Plain: Pure $(OUT)/HOL-Plain
 
 HOL-Main: Pure $(OUT)/HOL-Main
+
+HOL-Proofs: Pure $(OUT)/HOL-Proofs
 
 Pure:
 	@cd $(SRC)/Pure; $(ISABELLE_TOOL) make Pure
@@ -324,7 +325,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
 $(OUT)/HOL-Main: main.ML $(MAIN_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -f main.ML -g true $(OUT)/Pure HOL-Main
 
-$(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
+HOL_DEPENDENCIES = $(MAIN_DEPENDENCIES) \
   Archimedean_Field.thy \
   Complex.thy \
   Complex_Main.thy \
@@ -357,7 +358,13 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Tools/Qelim/ferrante_rackoff.ML \
   Tools/Qelim/langford_data.ML \
   Tools/Qelim/langford.ML
-	@$(ISABELLE_TOOL) usedir $(HOL_USEDIR_OPTIONS) -b -g true $(OUT)/Pure HOL
+
+$(OUT)/HOL: ROOT.ML $(HOL_DEPENDENCIES)
+	@$(ISABELLE_TOOL) usedir -b -g true $(OUT)/Pure HOL
+
+$(OUT)/HOL-Proofs: ROOT.ML $(HOL_DEPENDENCIES)
+	@$(ISABELLE_TOOL) usedir -b -g true -p 2 -q 0 $(OUT)/Pure HOL-Proofs
+
 
 
 ## HOL-Library
@@ -800,17 +807,17 @@ $(LOG)/HOL-Docs.gz: $(OUT)/HOL Docs/Main_Doc.thy Docs/ROOT.ML	\
 	@$(ISABELLE_TOOL) usedir -D generated $(OUT)/HOL Docs
 
 
-## HOL-Lambda
+## HOL-Proofs-Lambda
 
-HOL-Lambda: HOL $(LOG)/HOL-Lambda.gz
+HOL-Proofs-Lambda: HOL-Proofs $(LOG)/HOL-Proofs-Lambda.gz
 
-$(LOG)/HOL-Lambda.gz: $(OUT)/HOL Lambda/Commutation.thy Lambda/Eta.thy	\
-  Lambda/InductTermi.thy Lambda/Lambda.thy Lambda/ListApplication.thy	\
-  Lambda/ListBeta.thy Lambda/ListOrder.thy Lambda/NormalForm.thy	\
-  Lambda/ParRed.thy Lambda/Standardization.thy Lambda/StrongNorm.thy	\
-  Lambda/Type.thy Lambda/WeakNorm.thy Lambda/ROOT.ML			\
-  Lambda/document/root.bib Lambda/document/root.tex
-	@$(ISABELLE_TOOL) usedir -g true -m no_brackets $(OUT)/HOL Lambda
+$(LOG)/HOL-Proofs-Lambda.gz: $(OUT)/HOL-Proofs Lambda/Commutation.thy	\
+  Lambda/Eta.thy Lambda/InductTermi.thy Lambda/Lambda.thy		\
+  Lambda/ListApplication.thy Lambda/ListBeta.thy Lambda/ListOrder.thy	\
+  Lambda/NormalForm.thy Lambda/ParRed.thy Lambda/Standardization.thy	\
+  Lambda/StrongNorm.thy Lambda/Type.thy Lambda/WeakNorm.thy		\
+  Lambda/ROOT.ML Lambda/document/root.bib Lambda/document/root.tex
+	@$(ISABELLE_TOOL) usedir -g true -m no_brackets $(OUT)/HOL-Proofs Lambda
 
 
 ## HOL-Prolog
@@ -893,17 +900,17 @@ $(LOG)/HOL-Bali.gz: $(OUT)/HOL Bali/Bali.thy Bali/AxCompl.thy		\
 	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Bali
 
 
-## HOL-Extraction
+## HOL-Proofs-Extraction
 
-HOL-Extraction: HOL $(LOG)/HOL-Extraction.gz
+HOL-Proofs-Extraction: HOL-Proofs $(LOG)/HOL-Proofs-Extraction.gz
 
-$(LOG)/HOL-Extraction.gz: $(OUT)/HOL Library/Efficient_Nat.thy	\
-  Extraction/Euclid.thy Extraction/Greatest_Common_Divisor.thy	\
-  Extraction/Higman.thy Extraction/Pigeonhole.thy		\
-  Extraction/QuotRem.thy Extraction/ROOT.ML Extraction/Util.thy	\
-  Extraction/Warshall.thy Extraction/document/root.tex		\
-  Extraction/document/root.bib
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Extraction
+$(LOG)/HOL-Proofs-Extraction.gz: $(OUT)/HOL-Proofs			\
+  Library/Efficient_Nat.thy Extraction/Euclid.thy			\
+  Extraction/Greatest_Common_Divisor.thy Extraction/Higman.thy		\
+  Extraction/Pigeonhole.thy Extraction/QuotRem.thy Extraction/ROOT.ML	\
+  Extraction/Util.thy Extraction/Warshall.thy				\
+  Extraction/document/root.tex Extraction/document/root.bib
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL-Proofs Extraction
 
 
 ## HOL-IOA
@@ -1417,18 +1424,17 @@ clean:
 	@rm -f $(LOG)/HOL-Algebra.gz $(LOG)/HOL-Auth.gz			\
 		$(LOG)/HOL-Bali.gz $(LOG)/HOL-Base.gz			\
 		$(LOG)/HOL-Boogie-Examples.gz $(LOG)/HOL-Boogie.gz	\
-		$(LOG)/HOL-Decision_Procs.gz $(LOG)/HOL-Extraction.gz	\
-		$(LOG)/HOL-Hahn_Banach.gz $(LOG)/HOL-Hoare.gz		\
-		$(LOG)/HOL-Hoare_Parallel.gz $(LOG)/HOL-IMP.gz		\
-		$(LOG)/HOL-IMPP.gz $(LOG)/HOL-IOA.gz			\
+		$(LOG)/HOL-Decision_Procs.gz $(LOG)/HOL-Hahn_Banach.gz	\
+		$(LOG)/HOL-Hoare.gz $(LOG)/HOL-Hoare_Parallel.gz	\
+		$(LOG)/HOL-IMP.gz $(LOG)/HOL-IMPP.gz $(LOG)/HOL-IOA.gz	\
 		$(LOG)/HOL-Imperative_HOL.gz $(LOG)/HOL-Import.gz	\
 		$(LOG)/HOL-Induct.gz $(LOG)/HOL-Isar_Examples.gz	\
-		$(LOG)/HOL-Lambda.gz $(LOG)/HOL-Lattice			\
-		$(LOG)/HOL-Lattice.gz $(LOG)/HOL-Lex.gz			\
-		$(LOG)/HOL-Library.gz $(LOG)/HOL-Main.gz		\
-		$(LOG)/HOL-Matrix $(LOG)/HOL-Matrix.gz			\
-		$(LOG)/HOL-Metis_Examples.gz $(LOG)/HOL-MicroJava.gz	\
-		$(LOG)/HOL-Mirabelle.gz $(LOG)/HOL-Modelcheck.gz	\
+		$(LOG)/HOL-Lattice $(LOG)/HOL-Lattice.gz		\
+		$(LOG)/HOL-Lex.gz $(LOG)/HOL-Library.gz			\
+		$(LOG)/HOL-Main.gz $(LOG)/HOL-Matrix			\
+		$(LOG)/HOL-Matrix.gz $(LOG)/HOL-Metis_Examples.gz	\
+		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-Mirabelle.gz		\
+		$(LOG)/HOL-Modelcheck.gz				\
 		$(LOG)/HOL-Multivariate_Analysis.gz			\
 		$(LOG)/HOL-NSA-Examples.gz $(LOG)/HOL-NSA.gz		\
 		$(LOG)/HOL-NanoJava.gz $(LOG)/HOL-Nitpick_Examples.gz	\
@@ -1436,8 +1442,9 @@ clean:
 		$(LOG)/HOL-Number_Theory.gz				\
 		$(LOG)/HOL-Old_Number_Theory.gz $(LOG)/HOL-Plain.gz	\
 		$(LOG)/HOL-Probability.gz $(LOG)/HOL-Prolog.gz		\
-		$(LOG)/HOL-SET_Protocol.gz $(LOG)/HOL-SMT-Examples.gz	\
-		$(LOG)/HOL-SMT.gz					\
+		$(LOG)/HOL-Proofs.gz $(LOG)/HOL-Proofs-Extraction.gz	\
+		$(LOG)/HOL-Proofs-Lambda.gz $(LOG)/HOL-SET_Protocol.gz	\
+		$(LOG)/HOL-SMT-Examples.gz $(LOG)/HOL-SMT.gz		\
 		$(LOG)/HOL-Statespace.gz $(LOG)/HOL-Subst.gz		\
 		$(LOG)/HOL-UNITY.gz $(LOG)/HOL-Unix.gz			\
 		$(LOG)/HOL-W0.gz $(LOG)/HOL-Word-Examples.gz		\
@@ -1447,5 +1454,5 @@ clean:
 		$(OUT)/HOL $(OUT)/HOL-Algebra $(OUT)/HOL-Base		\
 		$(OUT)/HOL-Boogie $(OUT)/HOL-Main			\
 		$(OUT)/HOL-Multivariate_Analysis $(OUT)/HOL-NSA		\
-		$(OUT)/HOL-Nominal $(OUT)/HOL-Plain $(OUT)/HOL-SMT	\
-		$(OUT)/HOL-Word $(OUT)/HOL4 $(OUT)/TLA
+		$(OUT)/HOL-Nominal $(OUT)/HOL-Plain $(OUT)/HOL-Proofs	\
+		$(OUT)/HOL-SMT $(OUT)/HOL-Word $(OUT)/HOL4 $(OUT)/TLA
