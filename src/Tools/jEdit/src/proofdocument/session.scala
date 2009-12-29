@@ -27,6 +27,7 @@ class Session(system: Isabelle_System)
 
   private case class Start(args: List[String])
   private case object Stop
+  private case class Begin_Document(path: String)
 
   @volatile private var _syntax = new Outer_Syntax(system.symbols)
   def syntax(): Outer_Syntax = _syntax
@@ -48,7 +49,14 @@ class Session(system: Isabelle_System)
           if (prover != null)
             prover.kill
           prover_ready = false
-          
+
+        case Begin_Document(path: String) if prover_ready =>
+          val id = create_id()
+          val doc = Proof_Document.empty(id)
+          documents += (id -> doc)
+          prover.begin_document(id, path)
+          reply(doc)
+        
         case change: Change if prover_ready =>
           handle_change(change)
 
@@ -87,38 +95,35 @@ class Session(system: Isabelle_System)
 
   @volatile private var states = Map[Isar_Document.State_ID, Command_State]()
   @volatile private var commands = Map[Isar_Document.Command_ID, Command]()
-  val document_0 = Proof_Document.empty(create_id())  // FIXME fresh id (!??)
-  @volatile private var document_versions = List(document_0)
+  @volatile private var documents = Map[Isar_Document.Document_ID, Proof_Document]()
 
+  def state(id: Isar_Document.State_ID): Option[Command_State] = states.get(id)
   def command(id: Isar_Document.Command_ID): Option[Command] = commands.get(id)
-  def document(id: Isar_Document.Document_ID): Option[Proof_Document] =
-    document_versions.find(_.id == id)
+  def document(id: Isar_Document.Document_ID): Option[Proof_Document] = documents.get(id)
 
 
   /* document changes */
 
-  def begin_document(path: String)
-  {
-    prover.begin_document(document_0.id, path)   // FIXME fresh document!?!
-  }
+  def begin_document(path: String): Proof_Document =
+    (session_actor !? Begin_Document(path)).asInstanceOf[Proof_Document]
 
   private def handle_change(change: Change)
   {
     val old = document(change.parent.get.id).get
     val (doc, changes) = old.text_changed(this, change)
-    document_versions ::= doc
 
     val id_changes = changes map {
       case (c1, c2) =>
-        (c1.map(_.id).getOrElse(document_0.id),
+        (c1.map(_.id).getOrElse(""),
          c2 match {
             case None => None
-            case Some(command) =>
+            case Some(command) =>  // FIXME clarify -- may reuse existing commands!??
               commands += (command.id -> command)
               prover.define_command(command.id, system.symbols.encode(command.content))
               Some(command.id)
           })
     }
+    documents += (doc.id -> doc)
     prover.edit_document(old.id, doc.id, id_changes)
 
     document_change.event(doc)
@@ -143,7 +148,8 @@ class Session(system: Isabelle_System)
         elem match {
           // document edits
           case XML.Elem(Markup.EDITS, (Markup.ID, doc_id) :: _, edits) =>
-            document_versions.find(_.id == doc_id) match {
+            document(doc_id) match {
+              case None =>  // FIXME clarify
               case Some(doc) =>
                 for {
                   XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _)
@@ -158,7 +164,6 @@ class Session(system: Isabelle_System)
                     case None =>
                   }
                 }
-              case None =>
             }
 
           // command and keyword declarations

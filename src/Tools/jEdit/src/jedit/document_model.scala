@@ -58,8 +58,10 @@ class Document_Model(val session: Session, val buffer: Buffer)
 {
   /* changes vs. edits */
 
-  private val change_0 = new Change(Isabelle.session.document_0.id, None, Nil)  // FIXME !?
-  private var _changes = List(change_0)   // owned by Swing/AWT thread
+  private val document_0 = session.begin_document(buffer.getName)
+
+  private val change_0 = new Change(document_0.id, None, Nil)  // FIXME !?
+  private var _changes = List(change_0)   // owned by Swing thread
   def changes = _changes
   private var current_change = change_0
 

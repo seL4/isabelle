@@ -101,13 +101,10 @@ object Isabelle
 
   def activate_buffer(buffer: Buffer)
   {
+    session.start(Isabelle.isabelle_args())
     val model = Document_Model.init(session, buffer)
     for (text_area <- jedit_text_areas(buffer))
       Document_View.init(model, text_area)
-
-    session.start(Isabelle.isabelle_args())
-    // FIXME theory_view.activate()
-    session.begin_document(buffer.getName)
   }
 
   def deactivate_buffer(buffer: Buffer)

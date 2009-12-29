@@ -30,7 +30,7 @@ object Proof_Document
       "`([^\\\\`]?(\\\\(.|\\z))?)*+(`|\\z)|" +
       "[()\\[\\]{}:;]", Pattern.MULTILINE)
 
-  def empty(id: String): Proof_Document =
+  def empty(id: Isar_Document.Document_ID): Proof_Document =
     new Proof_Document(id, Linear_Set(), Map(), Linear_Set(), Map())
 
   type StructureChange = List[(Option[Command], Option[Command])]
@@ -38,11 +38,11 @@ object Proof_Document
 
 
 class Proof_Document(
-  val id: String,
+  val id: Isar_Document.Document_ID,
   val tokens: Linear_Set[Token],   // FIXME plain List, inside Command
   val token_start: Map[Token, Int],  // FIXME eliminate
   val commands: Linear_Set[Command],
-  var states: Map[Command, Command_State])   // FIXME immutable
+  var states: Map[Command, Command_State])   // FIXME immutable, eliminate!?
 {
   import Proof_Document.StructureChange
 

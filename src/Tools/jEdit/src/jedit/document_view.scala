@@ -262,7 +262,7 @@ class Document_View(model: Document_Model, text_area: TextArea)
 
   /* activation */
 
-  def activate()
+  private def activate()
   {
     text_area.addCaretListener(selected_state_controller)
     text_area.addLeftOfScrollBar(overview)
@@ -271,7 +271,7 @@ class Document_View(model: Document_Model, text_area: TextArea)
     session.command_change += command_change_actor
   }
 
-  def deactivate()
+  private def deactivate()
   {
     session.command_change -= command_change_actor
     command_change_actor !? Exit
