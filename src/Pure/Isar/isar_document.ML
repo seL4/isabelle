@@ -9,11 +9,12 @@ sig
   type state_id = string
   type command_id = string
   type document_id = string
+  val no_id: string
+  val create_id: unit -> string
   val define_command: command_id -> Toplevel.transition -> unit
   val begin_document: document_id -> Path.T -> unit
   val end_document: document_id -> unit
   val edit_document: document_id -> document_id -> (command_id * command_id option) list -> unit
-  val init: unit -> unit
 end;
 
 structure Isar_Document: ISAR_DOCUMENT =
@@ -25,10 +26,20 @@ type state_id = string;
 type command_id = string;
 type document_id = string;
 
-fun make_id () = "i" ^ serial_string ();
+val no_id = "";
+
+local
+  val id_count = Synchronized.var "id" 0;
+in
+  fun create_id () =
+    Synchronized.change_result id_count
+      (fn i =>
+        let val i' = i + 1
+        in ("i" ^ string_of_int i', i') end);
+end;
 
 fun err_dup kind id = error ("Duplicate " ^ kind ^ ": " ^ quote id);
-fun err_undef kind id = error ("Unknown " ^ kind ^ ": " ^ quote id);
+fun err_undef kind id = error ("Undefined " ^ kind ^ ": " ^ quote id);
 
 
 
@@ -57,16 +68,15 @@ fun set_entry_state (id, state_id) = put_entry_state id (SOME state_id);
 (* document *)
 
 datatype document = Document of
- {dir: Path.T,                    (*master directory*)
-  name: string,                   (*theory name*)
-  start: command_id,              (*empty start command*)
-  entries: entry Symtab.table};   (*unique command entries indexed by command_id*)
+ {dir: Path.T,                   (*master directory*)
+  name: string,                  (*theory name*)
+  entries: entry Symtab.table};  (*unique command entries indexed by command_id, start with no_id*)
 
-fun make_document dir name start entries =
-  Document {dir = dir, name = name, start = start, entries = entries};
+fun make_document dir name entries =
+  Document {dir = dir, name = name, entries = entries};
 
-fun map_entries f (Document {dir, name, start, entries}) =
-  make_document dir name start (f entries);
+fun map_entries f (Document {dir, name, entries}) =
+  make_document dir name (f entries);
 
 
 (* iterate entries *)
@@ -79,13 +89,13 @@ fun fold_entries id0 f (Document {entries, ...}) =
           in apply (#next entry) (f (id, entry) x) end;
   in if Symtab.defined entries id0 then apply (SOME id0) else I end;
 
-fun first_entry P (Document {start, entries, ...}) =
+fun first_entry P (Document {entries, ...}) =
   let
     fun first _ NONE = NONE
       | first prev (SOME id) =
           let val entry = the_entry entries id
           in if P (id, entry) then SOME (prev, id, entry) else first (SOME id) (#next entry) end;
-  in first NONE (SOME start) end;
+  in first NONE (SOME no_id) end;
 
 
 (* modify entries *)
@@ -112,67 +122,72 @@ fun delete_after (id: command_id) = map_entries (fn entries =>
 
 (** global configuration **)
 
+(* states *)
+
+val empty_state = Future.value (SOME Toplevel.toplevel);
+
 local
-  val global_states = Unsynchronized.ref (Symtab.empty: Toplevel.state option future Symtab.table);
-  val global_commands = Unsynchronized.ref (Symtab.empty: Toplevel.transition Symtab.table);
-  val global_documents = Unsynchronized.ref (Symtab.empty: document Symtab.table);
+
+val global_states =
+  Synchronized.var "global_states" (Symtab.make [(no_id, empty_state)]);
+
 in
 
-fun change_states f = NAMED_CRITICAL "Isar" (fn () => Unsynchronized.change global_states f);
-fun get_states () = ! global_states;
+fun define_state (id: state_id) =
+  Synchronized.change global_states (Symtab.update_new (id, empty_state))
+    handle Symtab.DUP dup => err_dup "state" dup;
 
-fun change_commands f = NAMED_CRITICAL "Isar" (fn () => Unsynchronized.change global_commands f);
-fun get_commands () = ! global_commands;
+fun put_state (id: state_id) state =
+  Synchronized.change global_states (Symtab.update (id, state));
 
-fun change_documents f = NAMED_CRITICAL "Isar" (fn () => Unsynchronized.change global_documents f);
-fun get_documents () = ! global_documents;
-
-fun init () = NAMED_CRITICAL "Isar" (fn () =>
- (global_states := Symtab.empty;
-  global_commands := Symtab.empty;
-  global_documents := Symtab.empty));
+fun the_state (id: state_id) =
+  (case Symtab.lookup (Synchronized.value global_states) id of
+    NONE => err_undef "state" id
+  | SOME state => state);
 
 end;
 
 
-(* state *)
+(* commands *)
 
-val empty_state = Future.value (SOME Toplevel.toplevel);
+local
 
-fun define_state (id: state_id) =
-  change_states (Symtab.update_new (id, empty_state))
-    handle Symtab.DUP dup => err_dup "state" dup;
+val global_commands =
+  Synchronized.var "global_commands" (Symtab.make [(no_id, Toplevel.empty)]);
 
-fun put_state (id: state_id) state = change_states (Symtab.update (id, state));
-
-fun the_state (id: state_id) =
-  (case Symtab.lookup (get_states ()) id of
-    NONE => err_undef "state" id
-  | SOME state => state);
-
-
-(* command *)
+in
 
 fun define_command id tr =
-  change_commands (Symtab.update_new (id, Toplevel.put_id id tr))
+  Synchronized.change global_commands (Symtab.update_new (id, Toplevel.put_id id tr))
     handle Symtab.DUP dup => err_dup "command" dup;
 
 fun the_command (id: command_id) =
-  (case Symtab.lookup (get_commands ()) id of
+  (case Symtab.lookup (Synchronized.value global_commands) id of
     NONE => err_undef "command" id
   | SOME tr => tr);
 
+end;
 
-(* document *)
+
+(* documents *)
+
+local
+
+val global_documents =
+  Synchronized.var "global_documents" (Symtab.empty: document Symtab.table);
+
+in
 
 fun define_document (id: document_id) document =
-  change_documents (Symtab.update_new (id, document))
+  Synchronized.change global_documents (Symtab.update_new (id, document))
     handle Symtab.DUP dup => err_dup "document" dup;
 
 fun the_document (id: document_id) =
-  (case Symtab.lookup (get_documents ()) id of
+  (case Symtab.lookup (Synchronized.value global_documents) id of
     NONE => err_undef "document" id
   | SOME document => document);
+
+end;
 
 
 
@@ -180,13 +195,12 @@ fun the_document (id: document_id) =
 
 (* begin/end document *)
 
+val no_entries = Symtab.make [(no_id, make_entry NONE (SOME no_id))];
+
 fun begin_document (id: document_id) path =
   let
     val (dir, name) = ThyLoad.split_thy_path path;
-    val _ = define_command id Toplevel.empty;
-    val _ = define_state id;
-    val entries = Symtab.make [(id, make_entry NONE (SOME id))];
-    val _ = define_document id (make_document dir name id entries);
+    val _ = define_document id (make_document dir name no_entries);
   in () end;
 
 fun end_document (id: document_id) =
@@ -217,7 +231,7 @@ fun is_changed entries' (id, {next = _, state}) =
 
 fun new_state name (id, _) (state_id, updates) =
   let
-    val state_id' = make_id ();
+    val state_id' = create_id ();
     val _ = define_state state_id';
     val tr = Toplevel.put_id state_id' (the_command id);
     fun make_state' () =

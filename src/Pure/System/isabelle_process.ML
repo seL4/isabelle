@@ -95,7 +95,6 @@ fun init out =
  (Unsynchronized.change print_mode (update (op =) isabelle_processN);
   setup_channels out |> init_message;
   OuterKeyword.report ();
-  Isar_Document.init ();
   Output.status (Markup.markup Markup.ready "");
   Isar.toplevel_loop {init = true, welcome = false, sync = true, secure = true});
 
