@@ -139,6 +139,31 @@ class Document_View(model: Document_Model, text_area: TextArea)
   }
 
 
+  /* caret_listener */
+
+  private var _selected_command: Command = null
+  def selected_command = _selected_command
+  def selected_command_=(state: Command)
+  {
+    _selected_command = state
+    session.results.event(state)
+  }
+
+  private val caret_listener = new CaretListener
+  {
+    override def caretUpdate(e: CaretEvent) {
+      val doc = model.current_document()
+      doc.command_at(e.getDot) match {
+        case Some(cmd)
+          if (doc.token_start(cmd.tokens.first) <= e.getDot &&
+            selected_command != cmd) =>
+          selected_command = cmd  // FIXME !?
+        case _ =>
+      }
+    }
+  }
+
+
   /* (re)painting */
 
   private val update_delay = Swing_Thread.delay_first(500) { model.buffer.propertiesChanged() }
@@ -156,8 +181,8 @@ class Document_View(model: Document_Model, text_area: TextArea)
     val (start, stop) = model.lines_of_command(cmd)
     text_area.invalidateLineRange(start, stop)
 
-    if (Isabelle.session.selected_state == cmd)
-      Isabelle.session.selected_state = cmd
+    if (selected_command == cmd)
+      selected_command = cmd
   }
 
   private def invalidate_all() =
@@ -245,29 +270,14 @@ class Document_View(model: Document_Model, text_area: TextArea)
   }
 
 
-  private val selected_state_controller = new CaretListener
-  {
-    override def caretUpdate(e: CaretEvent) {
-      val doc = model.current_document()
-      doc.command_at(e.getDot) match {
-        case Some(cmd)
-          if (doc.token_start(cmd.tokens.first) <= e.getDot &&
-            Isabelle.session.selected_state != cmd) =>
-          Isabelle.session.selected_state = cmd  // FIXME !?
-        case _ =>
-      }
-    }
-  }
-
-
   /* activation */
 
   private def activate()
   {
-    text_area.addCaretListener(selected_state_controller)
-    text_area.addLeftOfScrollBar(overview)
     text_area.getPainter.
       addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, text_area_extension)
+    text_area.addCaretListener(caret_listener)
+    text_area.addLeftOfScrollBar(overview)
     session.command_change += command_change_actor
   }
 
@@ -275,8 +285,8 @@ class Document_View(model: Document_Model, text_area: TextArea)
   {
     session.command_change -= command_change_actor
     command_change_actor !? Exit
-    text_area.getPainter.removeExtension(text_area_extension)
     text_area.removeLeftOfScrollBar(overview)
-    text_area.removeCaretListener(selected_state_controller)
+    text_area.removeCaretListener(caret_listener)
+    text_area.getPainter.removeExtension(text_area_extension)
   }
 }

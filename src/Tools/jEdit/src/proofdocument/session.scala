@@ -33,7 +33,7 @@ class Session(system: Isabelle_System)
   def create_id(): String = synchronized { id_count += 1; "j" + id_count }
 
 
-  /* document state information -- vars belong to session_actor */
+  /* document state information -- owned by session_actor */
 
   @volatile private var outer_syntax = new Outer_Syntax(system.symbols)
   def syntax(): Outer_Syntax = outer_syntax
@@ -184,11 +184,4 @@ class Session(system: Isabelle_System)
 
   def begin_document(path: String): Proof_Document =
     (session_actor !? Begin_Document(path)).asInstanceOf[Proof_Document]
-
-
-  /* selected state */  // FIXME eliminate!?!
-
-  private var _selected_state: Command = null
-  def selected_state = _selected_state
-  def selected_state_=(state: Command) { _selected_state = state; results.event(state) }
 }
