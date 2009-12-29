@@ -192,6 +192,8 @@ class Document_View(model: Document_Model, text_area: TextArea)
     private val WIDTH = 10
     private val HEIGHT = 2
 
+    setPreferredSize(new Dimension(WIDTH, 0))
+
     setRequestFocusEnabled(false)
 
     addMouseListener(new MouseAdapter {
@@ -234,8 +236,6 @@ class Document_View(model: Document_Model, text_area: TextArea)
         gfx.fillRect(0, y, getWidth - 1, height)
       }
     }
-
-    override def getPreferredSize = new Dimension(WIDTH, 0)
 
     private def line_to_y(line: Int): Int =
       (line * getHeight) / (text_area.getBuffer.getLineCount max text_area.getVisibleLines)
