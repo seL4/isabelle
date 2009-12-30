@@ -13,7 +13,7 @@ Requirements to build from sources
   http://blogtrader.net/dcaoyuan/category/NetBeans
   http://wiki.netbeans.org/Scala
 
-* jEdit 4.3pre18
+* jEdit 4.3 (final)
   http://www.jedit.org/
 
   Netbeans Project "jEdit": install official sources as ./contrib/jEdit/.
