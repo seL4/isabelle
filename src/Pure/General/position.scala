@@ -24,19 +24,19 @@ object Position
     }
   }
 
-  def line_of(pos: T) = get_int(Markup.LINE, pos)
-  def column_of(pos: T) = get_int(Markup.COLUMN, pos)
-  def offset_of(pos: T) = get_int(Markup.OFFSET, pos)
-  def end_line_of(pos: T) = get_int(Markup.END_LINE, pos)
-  def end_column_of(pos: T) = get_int(Markup.END_COLUMN, pos)
-  def end_offset_of(pos: T) = get_int(Markup.END_OFFSET, pos)
-  def file_of(pos: T) = get_string(Markup.FILE, pos)
-  def id_of(pos: T) = get_string(Markup.ID, pos)
+  def get_line(pos: T): Option[Int] = get_int(Markup.LINE, pos)
+  def get_column(pos: T): Option[Int] = get_int(Markup.COLUMN, pos)
+  def get_offset(pos: T): Option[Int] = get_int(Markup.OFFSET, pos)
+  def get_end_line(pos: T): Option[Int] = get_int(Markup.END_LINE, pos)
+  def get_end_column(pos: T): Option[Int] = get_int(Markup.END_COLUMN, pos)
+  def get_end_offset(pos: T): Option[Int] = get_int(Markup.END_OFFSET, pos)
+  def get_file(pos: T): Option[String] = get_string(Markup.FILE, pos)
+  def get_id(pos: T): Option[String] = get_string(Markup.ID, pos)
 
-  def offsets_of(pos: T): (Option[Int], Option[Int]) =
+  def get_offsets(pos: T): (Option[Int], Option[Int]) =
   {
-    val begin = offset_of(pos)
-    val end = end_offset_of(pos)
+    val begin = get_offset(pos)
+    val end = get_end_offset(pos)
     (begin, if (end.isDefined) end else begin.map(_ + 1))
   }
 }
