@@ -101,6 +101,8 @@ object Isabelle_Process
     def is_control = Kind.is_control(kind)
     def is_system = Kind.is_system(kind)
 
+    def is_ready = kind == Kind.STATUS && body == List(XML.Elem(Markup.READY, Nil, Nil))
+
     def cache(c: XML.Cache): Result =
       new Result(kind, c.cache_props(props), c.cache_trees(body))
   }
