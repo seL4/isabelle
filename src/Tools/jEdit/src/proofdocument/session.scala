@@ -7,6 +7,7 @@
 package isabelle.proofdocument
 
 
+import scala.actors.TIMEOUT
 import scala.actors.Actor._
 
 
@@ -64,14 +65,13 @@ class Session(system: Isabelle_System)
   /** main actor **/
 
   private case class Register(entity: Session.Entity)
-  private case class Start(args: List[String])
+  private case class Start(timeout: Int, args: List[String])
   private case object Stop
   private case class Begin_Document(path: String)
 
   private val session_actor = actor {
 
     var prover: Isabelle_Process with Isar_Document = null
-    var prover_ready = false
 
     def register(entity: Session.Entity) { entities += (entity.id -> entity) }
 
@@ -124,10 +124,7 @@ class Session(system: Isabelle_System)
             case XML.Elem(Markup.KEYWORD_DECL, (Markup.NAME, name) :: _, _) =>
               syntax += name
 
-            // process ready (after initialization)
-            case XML.Elem(Markup.READY, _, _) => prover_ready = true
-
-          case _ =>
+            case _ =>
           }
         }
       }
@@ -135,10 +132,49 @@ class Session(system: Isabelle_System)
         prover = null
     }
 
-    val xml_cache = new XML.Cache(131071)
+
+    /* prover startup */
+
+    def startup_error(): String =
+    {
+      val buf = new StringBuilder
+      while (
+        receiveWithin(0) {
+          case result: Isabelle_Process.Result =>
+            if (result.is_raw) {
+              for (text <- XML.content(result.message))
+                buf.append(text)
+            }
+            true
+          case TIMEOUT => false
+        }) {}
+      buf.toString
+    }
+
+    def prover_startup(timeout: Int): Option[String] =
+    {
+      receiveWithin(timeout) {
+        case result: Isabelle_Process.Result
+          if result.kind == Isabelle_Process.Kind.INIT =>
+          while (receive {
+            case result: Isabelle_Process.Result =>
+              handle_result(result); !result.is_ready
+            }) {}
+          None
+
+        case result: Isabelle_Process.Result
+          if result.kind == Isabelle_Process.Kind.EXIT =>
+          Some(startup_error())
+
+        case TIMEOUT =>  // FIXME clarify
+          prover.kill; Some(startup_error())
+      }
+    }
 
 
     /* main loop */
+
+    val xml_cache = new XML.Cache(131071)
 
     loop {
       react {
@@ -146,18 +182,23 @@ class Session(system: Isabelle_System)
           register(entity)
           reply(())
 
-        case Start(args) =>
+        case Start(timeout, args) =>
           if (prover == null) {
             prover = new Isabelle_Process(system, self, args:_*) with Isar_Document
-            reply(())
+            val origin = sender
+            val opt_err = prover_startup(timeout)
+            if (opt_err.isDefined) prover = null
+            origin ! opt_err
+          }
+          else reply(None)
+
+        case Stop =>  // FIXME clarify; synchronous
+          if (prover != null) {
+            prover.kill
+            prover = null
           }
 
-        case Stop =>  // FIXME clarify
-          if (prover != null)
-            prover.kill
-          prover_ready = false
-
-        case Begin_Document(path: String) if prover_ready =>
+        case Begin_Document(path: String) if prover != null =>
           val id = create_id()
           val doc = Proof_Document.empty(id)
           register(doc)
@@ -165,13 +206,13 @@ class Session(system: Isabelle_System)
           prover.begin_document(id, path)
           reply(doc)
 
-        case change: Change if prover_ready =>
+        case change: Change if prover != null =>
           handle_change(change)
 
         case result: Isabelle_Process.Result =>
           handle_result(result.cache(xml_cache))
 
-        case bad if prover_ready =>
+        case bad if prover != null =>
           System.err.println("session_actor: ignoring bad message " + bad)
       }
     }
@@ -182,7 +223,9 @@ class Session(system: Isabelle_System)
 
   def register_entity(entity: Session.Entity) { session_actor !? Register(entity) }
 
-  def start(args: List[String]) { session_actor !? Start(args) }
+  def start(timeout: Int, args: List[String]): Option[String] =
+    (session_actor !? Start(timeout, args)).asInstanceOf[Option[String]]
+
   def stop() { session_actor ! Stop }
   def input(change: Change) { session_actor ! change }
 

@@ -21,6 +21,7 @@ import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, EditPane, ServiceMa
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.JEditTextArea
 import org.gjt.sp.jedit.msg.{EditPaneUpdate, PropertiesChanged}
+import org.gjt.sp.jedit.gui.EnhancedDialog
 
 
 object Isabelle
@@ -97,14 +98,34 @@ object Isabelle
     jedit_text_areas().filter(_.getBuffer == buffer)
 
 
+  /* manage prover */
+
+  private def prover_started(view: View): Boolean =
+  {
+    val timeout = Int_Property("startup-timeout") max 1000
+    session.start(timeout, Isabelle.isabelle_args()) match {
+      case Some(err) =>
+        // FIXME proper dialog
+        val dialog = new EnhancedDialog(view, "Failed to start prover:\n" + err, true) {
+          def ok { dispose }
+          def cancel { dispose }
+        }
+        dialog.setVisible(true)
+        false
+      case None => true
+    }
+  }
+
+
   /* activation */
 
-  def activate_buffer(buffer: Buffer)
+  def activate_buffer(view: View, buffer: Buffer)
   {
-    session.start(Isabelle.isabelle_args())
-    val model = Document_Model.init(session, buffer)
-    for (text_area <- jedit_text_areas(buffer))
-      Document_View.init(model, text_area)
+    if (prover_started(view)) {
+      val model = Document_Model.init(session, buffer)
+      for (text_area <- jedit_text_areas(buffer))
+        Document_View.init(model, text_area)
+    }
   }
 
   def deactivate_buffer(buffer: Buffer)
@@ -120,7 +141,7 @@ object Isabelle
   {
     val buffer = view.getBuffer
     if (Document_Model(buffer).isDefined) deactivate_buffer(buffer)
-    else activate_buffer(buffer)
+    else activate_buffer(view, buffer)
   }
 
   def is_active(view: View): Boolean =
