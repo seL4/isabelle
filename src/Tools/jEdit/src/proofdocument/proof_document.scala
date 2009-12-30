@@ -42,7 +42,7 @@ class Proof_Document(
   val tokens: Linear_Set[Token],   // FIXME plain List, inside Command
   val token_start: Map[Token, Int],  // FIXME eliminate
   val commands: Linear_Set[Command],
-  var states: Map[Command, Command_State])   // FIXME immutable, eliminate!?
+  var states: Map[Command, Command])   // FIXME immutable, eliminate!?
 {
   import Proof_Document.StructureChange
 

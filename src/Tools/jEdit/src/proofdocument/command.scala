@@ -9,29 +9,9 @@ package isabelle.proofdocument
 
 
 import scala.actors.Actor, Actor._
-
 import scala.collection.mutable
 
 import isabelle.jedit.Isabelle
-import isabelle.XML
-
-
-trait Accumulator extends Actor
-{
-  start() // start actor
-
-  protected var _state: State
-  def state = _state
-
-  override def act() {
-    loop {
-      react {
-        case (session: Session, message: XML.Tree) => _state = _state.+(session, message)
-        case bad => System.err.println("Accumulator: ignoring bad message " + bad)
-      }
-    }
-  }
-}
 
 
 object Command
@@ -53,14 +33,13 @@ object Command
 class Command(
     val id: Isar_Document.Command_ID,
     val tokens: List[Token],
-    val starts: Map[Token, Int]) extends Accumulator with Session.Entity
+    val starts: Map[Token, Int])
+  extends Session.Entity
 {
   require(!tokens.isEmpty)
 
   // FIXME override equality as well
   override def hashCode = id.hashCode
-
-  def consume(session: Session, message: XML.Tree) { this ! (session, message) }
 
 
   /* content */
@@ -77,7 +56,38 @@ class Command(
 
   def contains(p: Token) = tokens.contains(p)
 
-  protected override var _state = new State(this)
+
+  /* accumulated messages */
+
+  @volatile protected var state = new State(this)
+  def current_state: State = state
+
+  private case class Consume(session: Session, message: XML.Tree)
+  private case object Finish
+
+  private val accumulator = actor {
+    var finished = false
+    loop {
+      react {
+        case Consume(session: Session, message: XML.Tree) if !finished =>
+          state = state.+(session, message)
+
+        case Finish => finished = true; reply(())
+
+        case bad => System.err.println("command accumulator: ignoring bad message " + bad)
+      }
+    }
+  }
+
+  def consume(session: Session, message: XML.Tree) { accumulator ! Consume(session, message) }
+
+  def finish_static(state_id: Isar_Document.State_ID): Command =
+  {
+    val cmd = new Command(state_id, tokens, starts)
+    accumulator !? Finish
+    cmd.state = current_state
+    cmd
+  }
 
 
   /* markup */
@@ -92,39 +102,22 @@ class Command(
   }
 
 
-  /* results, markup, ... */
+  /* results, markup, etc. */
 
-  private val empty_cmd_state = new Command_State("", this)  // FIXME ?
-  private def cmd_state(doc: Proof_Document) =  // FIXME clarify
-    doc.states.getOrElse(this, empty_cmd_state)
+  def results: List[XML.Tree] = current_state.results
+  def markup_root: Markup_Text = current_state.markup_root
+  def type_at(pos: Int): Option[String] = current_state.type_at(pos)
+  def ref_at(pos: Int): Option[Markup_Node] = current_state.ref_at(pos)
+  def highlight: Markup_Text = current_state.highlight
 
-  def status(doc: Proof_Document) = cmd_state(doc).state.status
+
+  private def cmd_state(doc: Proof_Document): State =  // FIXME clarify
+    doc.states.getOrElse(this, this).current_state
+
+  def status(doc: Proof_Document) = cmd_state(doc).status
   def results(doc: Proof_Document) = cmd_state(doc).results
   def markup_root(doc: Proof_Document) = cmd_state(doc).markup_root
   def highlight(doc: Proof_Document) = cmd_state(doc).highlight
   def type_at(doc: Proof_Document, offset: Int) = cmd_state(doc).type_at(offset)
   def ref_at(doc: Proof_Document, offset: Int) = cmd_state(doc).ref_at(offset)
-}
-
-
-class Command_State(
-  override val id: Isar_Document.State_ID,
-  val command: Command) extends Accumulator with Session.Entity
-{
-  protected override var _state = new State(command)
-
-  def consume(session: Session, message: XML.Tree) { this ! (session, message) }
-
-  def results: List[XML.Tree] =
-    command.state.results ::: state.results
-
-  def markup_root: Markup_Text =
-    (command.state.markup_root /: state.markup_root.markup)(_ + _)
-
-  def type_at(pos: Int): Option[String] = state.type_at(pos)
-
-  def ref_at(pos: Int): Option[Markup_Node] = state.ref_at(pos)
-
-  def highlight: Markup_Text =
-    (command.state.highlight /: state.highlight.markup)(_ + _)
 }

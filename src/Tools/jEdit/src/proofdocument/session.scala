@@ -9,6 +9,7 @@ package isabelle.proofdocument
 
 import scala.actors.Actor._
 
+
 object Session
 {
   /* events */
@@ -51,11 +52,11 @@ class Session(system: Isabelle_System)
   @volatile private var outer_syntax = new Outer_Syntax(system.symbols)
   def syntax(): Outer_Syntax = outer_syntax
 
-  @volatile private var states = Map[Isar_Document.State_ID, Command_State]()
+  @volatile private var states = Map[Isar_Document.State_ID, Command]()
   @volatile private var commands = Map[Isar_Document.Command_ID, Command]()
   @volatile private var documents = Map[Isar_Document.Document_ID, Proof_Document]()
 
-  def state(id: Isar_Document.State_ID): Option[Command_State] = states.get(id)
+  def state(id: Isar_Document.State_ID): Option[Command] = states.get(id)
   def command(id: Isar_Document.Command_ID): Option[Command] = commands.get(id)
   def document(id: Isar_Document.Document_ID): Option[Proof_Document] = documents.get(id)
 
@@ -124,7 +125,7 @@ class Session(system: Isabelle_System)
                   {
                     commands.get(cmd_id) match {
                       case Some(cmd) =>
-                        val state = new Command_State(state_id, cmd)
+                        val state = cmd.finish_static(state_id)
                         states += (state_id -> state)
                         doc.states += (cmd -> state)
                         command_change.event(cmd)   // FIXME really!?
