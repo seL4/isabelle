@@ -44,11 +44,7 @@ fun standard_message out_stream ch body =
   message out_stream ch (Position.properties_of (Position.thread_data ())) body;
 
 fun init_message out_stream =
-  let
-    val pid = (Markup.pidN, process_id ());
-    val session = (Markup.sessionN, List.last (Session.id ()) handle List.Empty => "unknown");
-    val text = Session.welcome ();
-  in message out_stream "A" [pid, session] text end;
+  message out_stream "A" [(Markup.pidN, process_id ())] (Session.welcome ());
 
 end;
 

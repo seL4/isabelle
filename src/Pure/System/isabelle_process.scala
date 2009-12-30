@@ -124,8 +124,6 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
   @volatile private var proc: Process = null
   @volatile private var closing = false
   @volatile private var pid: String = null
-  @volatile private var the_session: String = null
-  def session = the_session
 
 
   /* results */
@@ -133,9 +131,7 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
   private def put_result(kind: Kind.Value, props: List[(String, String)], body: List[XML.Tree])
   {
     if (kind == Kind.INIT) {
-      val map = Map(props: _*)
-      if (map.isDefinedAt(Markup.PID)) pid = map(Markup.PID)
-      if (map.isDefinedAt(Markup.SESSION)) the_session = map(Markup.SESSION)
+      for ((Markup.PID, p) <- props) pid = p
     }
     receiver ! new Result(kind, props, body)
   }

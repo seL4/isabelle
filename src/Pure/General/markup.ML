@@ -107,7 +107,6 @@ sig
   val disposedN: string val disposed: T
   val editN: string val edit: string -> string -> T
   val pidN: string
-  val sessionN: string
   val promptN: string val prompt: T
   val readyN: string val ready: T
   val no_output: output * output
@@ -313,7 +312,6 @@ fun edit id state_id : T = (editN, [(idN, id), (stateN, state_id)]);
 (* messages *)
 
 val pidN = "pid";
-val sessionN = "session";
 
 val (promptN, prompt) = markup_elem "prompt";
 val (readyN, ready) = markup_elem "ready";

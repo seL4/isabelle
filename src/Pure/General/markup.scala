@@ -159,7 +159,6 @@ object Markup
   /* messages */
 
   val PID = "pid"
-  val SESSION = "session"
 
   val MESSAGE = "message"
   val CLASS = "class"
