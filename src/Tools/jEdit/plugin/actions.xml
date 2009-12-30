@@ -20,9 +20,4 @@
 			wm.addDockableWindow("isabelle-protocol");
 		</CODE>
 	</ACTION>
-  <ACTION NAME="isabelle.show-history">
-		<CODE>
-			wm.addDockableWindow("isabelle-history");
-		</CODE>
-	</ACTION>
 </ACTIONS>

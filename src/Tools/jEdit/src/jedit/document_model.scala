@@ -106,59 +106,6 @@ class Document_Model(val session: Session, val buffer: Buffer)
   def current_document() = doc_or_pred(current_change)
 
 
-  /* update to desired version */
-
-  def set_version(goal: Change)
-  {
-    // changes in buffer must be ignored
-    buffer.removeBufferListener(buffer_listener)
-
-    def apply(change: Change): Unit =
-      change.edits.foreach {
-        case Insert(start, text) => buffer.insert(start, text)
-        case Remove(start, text) => buffer.remove(start, text.length)
-      }
-
-    def unapply(change: Change): Unit =
-      change.edits.reverse.foreach {
-        case Insert(start, text) => buffer.remove(start, text.length)
-        case Remove(start, text) => buffer.insert(start, text)
-      }
-
-    // undo/redo changes
-    val ancs_current = current_change.ancestors
-    val ancs_goal = goal.ancestors
-    val paired = ancs_current.reverse zip ancs_goal.reverse
-    def last_common[A](xs: List[(A, A)]): Option[A] = {
-      xs match {
-        case (x, y) :: xs =>
-          if (x == y)
-            xs match {
-              case (a, b) :: ys =>
-                if (a == b) last_common(xs)
-                else Some(x)
-              case _ => Some(x)
-            }
-          else None
-        case _ => None
-      }
-    }
-    val common_anc = last_common(paired).get
-
-    ancs_current.takeWhile(_ != common_anc) map unapply
-    ancs_goal.takeWhile(_ != common_anc).reverse map apply
-
-    current_change = goal
-    // invoke repaint
-    buffer.propertiesChanged()
-    // invalidate_all()  FIXME
-    // overview.repaint()  FIXME
-
-    // track changes in buffer
-    buffer.addBufferListener(buffer_listener)
-  }
-
-
   /* transforming offsets */
 
   private def changes_from(doc: Proof_Document): List[Edit] =

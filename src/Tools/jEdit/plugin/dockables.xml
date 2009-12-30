@@ -8,7 +8,4 @@
 	<DOCKABLE NAME="isabelle-protocol" MOVABLE="TRUE">
 		new isabelle.jedit.Protocol_Dockable(view, position);
 	</DOCKABLE>
-	<DOCKABLE NAME="isabelle-history" MOVABLE="TRUE">
-		new isabelle.jedit.History_Dockable(view, position).peer ();
-	</DOCKABLE>
 </DOCKABLES>

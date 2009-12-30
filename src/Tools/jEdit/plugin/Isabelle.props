@@ -29,16 +29,14 @@ options.isabelle.font-size=14
 
 #menu actions
 plugin.isabelle.jedit.Plugin.menu.label=Isabelle
-plugin.isabelle.jedit.Plugin.menu=isabelle.activate isabelle.show-output isabelle.show-protocol isabelle.show-history
+plugin.isabelle.jedit.Plugin.menu=isabelle.activate isabelle.show-output isabelle.show-protocol
 isabelle.activate.label=Activate current buffer
 isabelle.show-output.label=Show Output
 isabelle.show-protocol.label=Show Protocol
-isabelle.show-history.label=Show History
 
 #dockables
 isabelle-output.title=Output
 isabelle-protocol.title=Protocol
-isabelle-history.title=History
 
 #SideKick
 sidekick.parser.isabelle.label=Isabelle
