@@ -102,7 +102,7 @@ sleep 15
 #sleep 15
 $SSH macbroy21 "$MAKEALL $HOME/settings/at64-poly-5.1-para"
 sleep 15
-$SSH macbroy23 "$MAKEALL -l HOL images $HOME/settings/at-sml-dev-e"
+$SSH macbroy23 "$MAKEALL -l HOL HOL-ex $HOME/settings/at-sml-dev-e"
 sleep 15
 $SSH macbroy24 "$MAKEALL $HOME/settings/at64-poly"
 sleep 15
