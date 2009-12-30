@@ -55,11 +55,11 @@ class Isabelle_Hyperlinks extends HyperlinkSource
                   case Command.RefInfo(Some(ref_file), Some(ref_line), _, _) =>
                     new External_Hyperlink(begin, end, line, ref_file, ref_line)
                   case Command.RefInfo(_, _, Some(id), Some(offset)) =>
-                    Isabelle.session.command(id) match {
-                      case Some(ref_cmd) =>
+                    Isabelle.session.lookup_entity(id) match {
+                      case Some(ref_cmd: Command) =>
                         new Internal_Hyperlink(begin, end, line,
                           model.to_current(document, ref_cmd.start(document) + offset - 1))
-                      case None => null
+                      case _ => null
                     }
                   case _ => null
                 }

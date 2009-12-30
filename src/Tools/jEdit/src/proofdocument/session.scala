@@ -52,17 +52,16 @@ class Session(system: Isabelle_System)
   @volatile private var outer_syntax = new Outer_Syntax(system.symbols)
   def syntax(): Outer_Syntax = outer_syntax
 
-  @volatile private var states = Map[Isar_Document.State_ID, Command]()
-  @volatile private var commands = Map[Isar_Document.Command_ID, Command]()
-  @volatile private var documents = Map[Isar_Document.Document_ID, Proof_Document]()
+  @volatile private var entities = Map[Session.Entity_ID, Session.Entity]()
+  def lookup_entity(id: Session.Entity_ID): Option[Session.Entity] = entities.get(id)
 
-  def state(id: Isar_Document.State_ID): Option[Command] = states.get(id)
-  def command(id: Isar_Document.Command_ID): Option[Command] = commands.get(id)
+  @volatile private var documents = Map[Isar_Document.Document_ID, Proof_Document]()
   def document(id: Isar_Document.Document_ID): Option[Proof_Document] = documents.get(id)
 
 
   /** main actor **/
 
+  private case class Register(entity: Session.Entity)
   private case class Start(args: List[String])
   private case object Stop
   private case class Begin_Document(path: String)
@@ -71,6 +70,8 @@ class Session(system: Isabelle_System)
 
     var prover: Isabelle_Process with Isar_Document = null
     var prover_ready = false
+
+    def register(entity: Session.Entity) { entities += (entity.id -> entity) }
 
 
     /* document changes */
@@ -86,7 +87,7 @@ class Session(system: Isabelle_System)
            c2 match {
               case None => None
               case Some(command) =>  // FIXME clarify -- may reuse existing commands!??
-                commands += (command.id -> command)
+                register(command)
                 prover.define_command(command.id, system.symbols.encode(command.content))
                 Some(command.id)
             })
@@ -107,7 +108,7 @@ class Session(system: Isabelle_System)
       val target: Option[Session.Entity] =
         Position.id_of(result.props) match {
           case None => None
-          case Some(id) => commands.get(id) orElse states.get(id) orElse None
+          case Some(id) => entities.get(id)
         }
       if (target.isDefined) target.get.consume(this, result.message)
       else if (result.kind == Isabelle_Process.Kind.STATUS) {
@@ -123,13 +124,13 @@ class Session(system: Isabelle_System)
                     XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _)
                     <- edits }
                   {
-                    commands.get(cmd_id) match {
-                      case Some(cmd) =>
+                    entities.get(cmd_id) match {
+                      case Some(cmd: Command) =>
                         val state = cmd.finish_static(state_id)
-                        states += (state_id -> state)
-                        doc.states += (cmd -> state)
+                        register(state)
+                        doc.states += (cmd -> state)  // FIXME !?
                         command_change.event(cmd)   // FIXME really!?
-                      case None =>
+                      case _ =>
                     }
                   }
               }
@@ -159,6 +160,10 @@ class Session(system: Isabelle_System)
 
     loop {
       react {
+        case Register(entity: Session.Entity) =>
+          register(entity)
+          reply(())
+
         case Start(args) =>
           if (prover == null) {
             prover = new Isabelle_Process(system, self, args:_*) with Isar_Document
@@ -191,6 +196,8 @@ class Session(system: Isabelle_System)
 
 
   /* main methods */
+
+  def register_entity(entity: Session.Entity) { session_actor !? Register(entity) }
 
   def start(args: List[String]) { session_actor !? Start(args) }
   def stop() { session_actor ! Stop }
