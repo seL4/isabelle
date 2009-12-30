@@ -9,22 +9,24 @@
 package isabelle.proofdocument
 
 
+import scala.actors.Actor._
+
 import java.util.regex.Pattern
 
 
 object Proof_Document
 {
   // Be careful when changing this regex. Not only must it handle the
-  // spurious end of a token but also:  
+  // spurious end of a token but also:
   // Bug ID: 5050507 Pattern.matches throws StackOverflow Error
   // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=5050507
-  
-  val token_pattern = 
+
+  val token_pattern =
     Pattern.compile(
       "\\{\\*([^*]|\\*[^}]|\\*\\z)*(\\z|\\*\\})|" +
       "\\(\\*([^*]|\\*[^)]|\\*\\z)*(\\z|\\*\\))|" +
-      "(\\?'?|')[A-Za-z_0-9.]*|" + 
-      "[A-Za-z_0-9.]+|" + 
+      "(\\?'?|')[A-Za-z_0-9.]*|" +
+      "[A-Za-z_0-9.]+|" +
       "[!#$%&*+-/<=>?@^_|~]+|" +
       "\"([^\\\\\"]?(\\\\(.|\\z))?)*+(\"|\\z)|" +
       "`([^\\\\`]?(\\\\(.|\\z))?)*+(`|\\z)|" +
@@ -38,18 +40,51 @@ object Proof_Document
 
 
 class Proof_Document(
-  val id: Isar_Document.Document_ID,
-  val tokens: Linear_Set[Token],   // FIXME plain List, inside Command
-  val token_start: Map[Token, Int],  // FIXME eliminate
-  val commands: Linear_Set[Command],
-  var states: Map[Command, Command])   // FIXME immutable, eliminate!?
+    val id: Isar_Document.Document_ID,
+    val tokens: Linear_Set[Token],   // FIXME plain List, inside Command
+    val token_start: Map[Token, Int],  // FIXME eliminate
+    val commands: Linear_Set[Command],
+    var states: Map[Command, Command])   // FIXME immutable, eliminate!?
+  extends Session.Entity
 {
   import Proof_Document.StructureChange
 
   def content = Token.string_from_tokens(Nil ++ tokens, token_start)
 
 
-  
+  /* accumulated messages */
+
+  private val accumulator = actor {
+    loop {
+      react {
+        case (session: Session, message: XML.Tree) =>
+          message match {
+            case XML.Elem(Markup.MESSAGE, (Markup.CLASS, Markup.STATUS) :: _, elems) =>
+              for {
+                XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _)
+                  <- elems
+              } {
+                session.lookup_entity(cmd_id) match {
+                  case Some(cmd: Command) =>
+                    val state = cmd.finish_static(state_id)
+                    session.register_entity(state)
+                    states += (cmd -> state)  // FIXME !?
+                    session.command_change.event(cmd)   // FIXME really!?
+                  case _ =>
+                }
+              }
+            case _ =>
+          }
+
+        case bad => System.err.println("document accumulator: ignoring bad message " + bad)
+      }
+    }
+  }
+
+  def consume(session: Session, message: XML.Tree) { accumulator ! (session, message) }
+
+
+
   /** token view **/
 
   def text_changed(session: Session, change: Change): (Proof_Document, StructureChange) =
@@ -101,7 +136,7 @@ class Proof_Document(
 
     val ins = new Token(change.added, Token.Kind.OTHER)
     start += (ins -> change.start)
-    
+
     var invalid_tokens = split_begin ::: ins :: split_end ::: end
     var new_tokens: List[Token] = Nil
     var old_suffix: List[Token] = Nil
@@ -140,7 +175,7 @@ class Proof_Document(
       old_suffix.firstOption, new_token_list, start)
   }
 
-  
+
   /** command view **/
 
   private def token_changed(

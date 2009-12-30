@@ -55,8 +55,10 @@ class Session(system: Isabelle_System)
   @volatile private var entities = Map[Session.Entity_ID, Session.Entity]()
   def lookup_entity(id: Session.Entity_ID): Option[Session.Entity] = entities.get(id)
 
+  // FIXME eliminate
   @volatile private var documents = Map[Isar_Document.Document_ID, Proof_Document]()
   def document(id: Isar_Document.Document_ID): Option[Proof_Document] = documents.get(id)
+
 
 
   /** main actor **/
@@ -92,6 +94,7 @@ class Session(system: Isabelle_System)
                 Some(command.id)
             })
       }
+      register(doc)
       documents += (doc.id -> doc)
       prover.edit_document(old.id, doc.id, id_changes)
 
@@ -112,29 +115,9 @@ class Session(system: Isabelle_System)
         }
       if (target.isDefined) target.get.consume(this, result.message)
       else if (result.kind == Isabelle_Process.Kind.STATUS) {
-        //{{{ global status message
+        // global status message
         for (elem <- result.body) {
           elem match {
-            // document edits
-            case XML.Elem(Markup.EDITS, (Markup.ID, doc_id) :: _, edits) =>
-              document(doc_id) match {
-                case None =>  // FIXME clarify
-                case Some(doc) =>
-                  for {
-                    XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _)
-                    <- edits }
-                  {
-                    entities.get(cmd_id) match {
-                      case Some(cmd: Command) =>
-                        val state = cmd.finish_static(state_id)
-                        register(state)
-                        doc.states += (cmd -> state)  // FIXME !?
-                        command_change.event(cmd)   // FIXME really!?
-                      case _ =>
-                    }
-                  }
-              }
-
             // command and keyword declarations
             case XML.Elem(Markup.COMMAND_DECL, (Markup.NAME, name) :: (Markup.KIND, kind) :: _, _) =>
               outer_syntax += (name, kind)
@@ -147,7 +130,6 @@ class Session(system: Isabelle_System)
           case _ =>
           }
         }
-        //}}}
       }
       else if (result.kind == Isabelle_Process.Kind.EXIT)
         prover = null
@@ -178,6 +160,7 @@ class Session(system: Isabelle_System)
         case Begin_Document(path: String) if prover_ready =>
           val id = create_id()
           val doc = Proof_Document.empty(id)
+          register(doc)
           documents += (id -> doc)
           prover.begin_document(id, path)
           reply(doc)
