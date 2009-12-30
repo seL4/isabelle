@@ -27,9 +27,8 @@ axiomatization
   Suc_Rep :: "ind => ind"
 where
   -- {* the axiom of infinity in 2 parts *}
-  inj_Suc_Rep:          "inj Suc_Rep" and
+  Suc_Rep_inject:       "Suc_Rep x = Suc_Rep y ==> x = y" and
   Suc_Rep_not_Zero_Rep: "Suc_Rep x \<noteq> Zero_Rep"
-
 
 subsection {* Type nat *}
 
@@ -69,6 +68,9 @@ lemma Suc_not_Zero: "Suc m \<noteq> 0"
 lemma Zero_not_Suc: "0 \<noteq> Suc m"
   by (rule not_sym, rule Suc_not_Zero not_sym)
 
+lemma Suc_Rep_inject': "Suc_Rep x = Suc_Rep y \<longleftrightarrow> x = y"
+  by (rule iffI, rule Suc_Rep_inject) simp_all
+
 rep_datatype "0 \<Colon> nat" Suc
   apply (unfold Zero_nat_def Suc_def)
      apply (rule Rep_Nat_inverse [THEN subst]) -- {* types force good instantiation *}
@@ -77,7 +79,7 @@ rep_datatype "0 \<Colon> nat" Suc
     apply (simp_all add: Abs_Nat_inject [unfolded mem_def] Rep_Nat [unfolded mem_def]
       Suc_RepI Zero_RepI Suc_Rep_not_Zero_Rep [unfolded mem_def]
       Suc_Rep_not_Zero_Rep [unfolded mem_def, symmetric]
-      inj_Suc_Rep [THEN inj_eq] Rep_Nat_inject)
+      Suc_Rep_inject' Rep_Nat_inject)
   done
 
 lemma nat_induct [case_names 0 Suc, induct type: nat]:

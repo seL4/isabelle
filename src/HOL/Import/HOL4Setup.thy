@@ -29,7 +29,7 @@ lemma ONE_ONE_rew: "ONE_ONE f = inj_on f UNIV"
 lemma INFINITY_AX: "EX (f::ind \<Rightarrow> ind). (inj f & ~(surj f))"
 proof (rule exI,safe)
   show "inj Suc_Rep"
-    by (rule inj_Suc_Rep)
+    by (rule injI) (rule Suc_Rep_inject)
 next
   assume "surj Suc_Rep"
   hence "ALL y. EX x. y = Suc_Rep x"
