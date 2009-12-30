@@ -116,7 +116,7 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
 
   def this(args: String*) =
     this(new Isabelle_System,
-      new Actor { def act = loop { react { case res => Console.println(res) } } }.start, args: _*)
+      actor { loop { react { case res => Console.println(res) } } }, args: _*)
 
 
   /* process information */
@@ -214,7 +214,7 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
 
   /* stdin */
 
-  private class StdinThread(out_stream: OutputStream) extends Thread("isabelle: stdin") {
+  private class Stdin_Thread(out_stream: OutputStream) extends Thread("isabelle: stdin") {
     override def run() = {
       val writer = new BufferedWriter(new OutputStreamWriter(out_stream, Standard_System.charset))
       var finished = false
@@ -244,7 +244,7 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
 
   /* stdout */
 
-  private class StdoutThread(in_stream: InputStream) extends Thread("isabelle: stdout") {
+  private class Stdout_Thread(in_stream: InputStream) extends Thread("isabelle: stdout") {
     override def run() = {
       val reader = new BufferedReader(new InputStreamReader(in_stream, Standard_System.charset))
       var result = new StringBuilder(100)
@@ -282,7 +282,7 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
 
   /* messages */
 
-  private class MessageThread(fifo: String) extends Thread("isabelle: messages")
+  private class Message_Thread(fifo: String) extends Thread("isabelle: messages")
   {
     private class Protocol_Error(msg: String) extends Exception(msg)
     override def run()
@@ -363,21 +363,12 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
   /** main **/
 
   {
-    /* isabelle version */
-
-    {
-      val (msg, rc) = system.isabelle_tool("version")
-      if (rc != 0) error("Version check failed -- bad Isabelle installation:\n" + msg)
-      put_result(Kind.SYSTEM, msg)
-    }
-
-
     /* messages */
 
     val message_fifo = system.mk_fifo()
     def rm_fifo() = system.rm_fifo(message_fifo)
 
-    val message_thread = new MessageThread(message_fifo)
+    val message_thread = new Message_Thread(message_fifo)
     message_thread.start
 
 
@@ -396,8 +387,8 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
 
     /* stdin/stdout */
 
-    new StdinThread(proc.getOutputStream).start
-    new StdoutThread(proc.getInputStream).start
+    new Stdin_Thread(proc.getOutputStream).start
+    new Stdout_Thread(proc.getInputStream).start
 
 
     /* exit */
@@ -411,6 +402,5 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
         rm_fifo()
       }
     }.start
-
   }
 }
