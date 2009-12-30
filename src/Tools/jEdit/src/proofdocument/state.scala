@@ -81,7 +81,7 @@ class State(
               case XML.Elem(Markup.FINISHED, _, _) => state.set_status(Command.Status.FINISHED)
               case XML.Elem(Markup.FAILED, _, _) => state.set_status(Command.Status.FAILED)
               case XML.Elem(kind, atts, body) =>
-                val (begin, end) = Position.offsets_of(atts)
+                val (begin, end) = Position.get_offsets(atts)
                 if (begin.isEmpty || end.isEmpty) state
                 else if (kind == Markup.ML_TYPING) {
                   val info = body.first.asInstanceOf[XML.Text].content   // FIXME proper match!?
@@ -94,10 +94,10 @@ class State(
                       state.add_markup(command.markup_node(
                         begin.get - 1, end.get - 1,
                         Command.RefInfo(
-                          Position.file_of(atts),
-                          Position.line_of(atts),
-                          Position.id_of(atts),
-                          Position.offset_of(atts))))
+                          Position.get_file(atts),
+                          Position.get_line(atts),
+                          Position.get_id(atts),
+                          Position.get_offset(atts))))
                     case _ => state
                   }
                 }

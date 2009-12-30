@@ -106,7 +106,7 @@ class Session(system: Isabelle_System)
       raw_results.event(result)
 
       val target: Option[Session.Entity] =
-        Position.id_of(result.props) match {
+        Position.get_id(result.props) match {
           case None => None
           case Some(id) => entities.get(id)
         }
