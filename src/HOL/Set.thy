@@ -517,10 +517,10 @@ text {*
 *}
 
 lemma equalityD1: "A = B ==> A \<subseteq> B"
-  by (simp add: subset_refl)
+  by simp
 
 lemma equalityD2: "A = B ==> B \<subseteq> A"
-  by (simp add: subset_refl)
+  by simp
 
 text {*
   \medskip Be careful when adding this to the claset as @{text
@@ -529,7 +529,7 @@ text {*
 *}
 
 lemma equalityE: "A = B ==> (A \<subseteq> B ==> B \<subseteq> A ==> P) ==> P"
-  by (simp add: subset_refl)
+  by simp
 
 lemma equalityCE [elim]:
     "A = B ==> (c \<in> A ==> c \<in> B ==> P) ==> (c \<notin> A ==> c \<notin> B ==> P) ==> P"
@@ -629,7 +629,7 @@ lemma Pow_bottom: "{} \<in> Pow B"
   by simp
 
 lemma Pow_top: "A \<in> Pow A"
-  by (simp add: subset_refl)
+  by simp
 
 
 subsubsection {* Set complement *}

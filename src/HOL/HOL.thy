@@ -869,7 +869,6 @@ declare iffCE [elim!]
   and impCE [elim!]
   and disjE [elim!]
   and conjE [elim!]
-  and conjE [elim!]
 
 declare ex_ex1I [intro!]
   and allI [intro!]

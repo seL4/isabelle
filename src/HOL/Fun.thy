@@ -171,7 +171,7 @@ lemma surj_id[simp]: "surj id"
 by (simp add: surj_def) 
 
 lemma bij_id[simp]: "bij id"
-by (simp add: bij_def inj_on_id surj_id) 
+by (simp add: bij_def)
 
 lemma inj_onI:
     "(!! x y. [|  x:A;  y:A;  f(x) = f(y) |] ==> x=y) ==> inj_on f A"
@@ -432,14 +432,14 @@ lemma fun_upd_twist: "a ~= c ==> (m(a:=b))(c:=d) = (m(c:=d))(a:=b)"
 by (rule ext, auto)
 
 lemma inj_on_fun_updI: "\<lbrakk> inj_on f A; y \<notin> f`A \<rbrakk> \<Longrightarrow> inj_on (f(x:=y)) A"
-by(fastsimp simp:inj_on_def image_def)
+by (fastsimp simp:inj_on_def image_def)
 
 lemma fun_upd_image:
      "f(x:=y) ` A = (if x \<in> A then insert y (f ` (A-{x})) else f ` A)"
 by auto
 
 lemma fun_upd_comp: "f \<circ> (g(x := y)) = (f \<circ> g)(x := f y)"
-by(auto intro: ext)
+by (auto intro: ext)
 
 
 subsection {* @{text override_on} *}
@@ -496,7 +496,7 @@ proof
   thus "inj_on f A" by simp 
 next
   assume "inj_on f A"
-  with A show "inj_on (swap a b f) A" by(iprover intro: inj_on_imp_inj_on_swap)
+  with A show "inj_on (swap a b f) A" by (iprover intro: inj_on_imp_inj_on_swap)
 qed
 
 lemma surj_imp_surj_swap: "surj f ==> surj (swap a b f)"
@@ -529,7 +529,7 @@ definition the_inv_into :: "'a set => ('a => 'b) => ('b => 'a)" where
 lemma the_inv_into_f_f:
   "[| inj_on f A;  x : A |] ==> the_inv_into A f (f x) = x"
 apply (simp add: the_inv_into_def inj_on_def)
-apply (blast intro: the_equality)
+apply blast
 done
 
 lemma f_the_inv_into_f:
