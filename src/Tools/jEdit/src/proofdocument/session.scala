@@ -49,8 +49,8 @@ class Session(system: Isabelle_System)
 
   /* document state information -- owned by session_actor */
 
-  @volatile private var outer_syntax = new Outer_Syntax(system.symbols)
-  def syntax(): Outer_Syntax = outer_syntax
+  @volatile private var syntax = new Outer_Syntax(system.symbols)
+  def current_syntax: Outer_Syntax = syntax
 
   @volatile private var entities = Map[Session.Entity_ID, Session.Entity]()
   def lookup_entity(id: Session.Entity_ID): Option[Session.Entity] = entities.get(id)
@@ -120,9 +120,9 @@ class Session(system: Isabelle_System)
           elem match {
             // command and keyword declarations
             case XML.Elem(Markup.COMMAND_DECL, (Markup.NAME, name) :: (Markup.KIND, kind) :: _, _) =>
-              outer_syntax += (name, kind)
+              syntax += (name, kind)
             case XML.Elem(Markup.KEYWORD_DECL, (Markup.NAME, name) :: _, _) =>
-              outer_syntax += name
+              syntax += name
 
             // process ready (after initialization)
             case XML.Elem(Markup.READY, _, _) => prover_ready = true
