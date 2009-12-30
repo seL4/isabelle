@@ -11,7 +11,20 @@ import scala.actors.Actor._
 
 object Session
 {
+  /* events */
+
   case object Global_Settings
+
+
+  /* managed entities */
+
+  type Entity_ID = String
+
+  trait Entity
+  {
+    val id: Entity_ID
+    def consume(session: Session, message: XML.Tree): Unit
+  }
 }
 
 
@@ -30,7 +43,7 @@ class Session(system: Isabelle_System)
   /* unique ids */
 
   private var id_count: BigInt = 0
-  def create_id(): String = synchronized { id_count += 1; "j" + id_count }
+  def create_id(): Session.Entity_ID = synchronized { id_count += 1; "j" + id_count }
 
 
   /* document state information -- owned by session_actor */
@@ -90,12 +103,12 @@ class Session(system: Isabelle_System)
     {
       raw_results.event(result)
 
-      val state =
+      val target: Option[Session.Entity] =
         Position.id_of(result.props) match {
           case None => None
           case Some(id) => commands.get(id) orElse states.get(id) orElse None
         }
-      if (state.isDefined) state.get ! (this, result.message)
+      if (target.isDefined) target.get.consume(this, result.message)
       else if (result.kind == Isabelle_Process.Kind.STATUS) {
         //{{{ global status message
         for (elem <- result.body) {
@@ -111,7 +124,7 @@ class Session(system: Isabelle_System)
                   {
                     commands.get(cmd_id) match {
                       case Some(cmd) =>
-                        val state = new Command_State(cmd)
+                        val state = new Command_State(state_id, cmd)
                         states += (state_id -> state)
                         doc.states += (cmd -> state)
                         command_change.event(cmd)   // FIXME really!?

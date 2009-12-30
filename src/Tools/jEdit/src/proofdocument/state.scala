@@ -11,7 +11,7 @@ package isabelle.proofdocument
 class State(
   val command: Command,
   val status: Command.Status.Value,
-  rev_results: List[XML.Tree],
+  val rev_results: List[XML.Tree],
   val markup_root: Markup_Text)
 {
   def this(command: Command) =

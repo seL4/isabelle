@@ -51,13 +51,16 @@ object Command
 
 
 class Command(
-    val id: String,
+    val id: Isar_Document.Command_ID,
     val tokens: List[Token],
-    val starts: Map[Token, Int]) extends Accumulator
+    val starts: Map[Token, Int]) extends Accumulator with Session.Entity
 {
   require(!tokens.isEmpty)
 
+  // FIXME override equality as well
   override def hashCode = id.hashCode
+
+  def consume(session: Session, message: XML.Tree) { this ! (session, message) }
 
 
   /* content */
@@ -91,8 +94,8 @@ class Command(
 
   /* results, markup, ... */
 
-  private val empty_cmd_state = new Command_State(this)
-  private def cmd_state(doc: Proof_Document) =
+  private val empty_cmd_state = new Command_State("", this)  // FIXME ?
+  private def cmd_state(doc: Proof_Document) =  // FIXME clarify
     doc.states.getOrElse(this, empty_cmd_state)
 
   def status(doc: Proof_Document) = cmd_state(doc).state.status
@@ -104,9 +107,13 @@ class Command(
 }
 
 
-class Command_State(val command: Command) extends Accumulator
+class Command_State(
+  override val id: Isar_Document.State_ID,
+  val command: Command) extends Accumulator with Session.Entity
 {
   protected override var _state = new State(command)
+
+  def consume(session: Session, message: XML.Tree) { this ! (session, message) }
 
   def results: List[XML.Tree] =
     command.state.results ::: state.results
