@@ -4,20 +4,7 @@
 Interactive Isar documents.
 *)
 
-signature ISAR_DOCUMENT =
-sig
-  type state_id = string
-  type command_id = string
-  type document_id = string
-  val no_id: string
-  val create_id: unit -> string
-  val define_command: command_id -> Toplevel.transition -> unit
-  val begin_document: document_id -> Path.T -> unit
-  val end_document: document_id -> unit
-  val edit_document: document_id -> document_id -> (command_id * command_id option) list -> unit
-end;
-
-structure Isar_Document: ISAR_DOCUMENT =
+structure Isar_Document: sig end =
 struct
 
 (* unique identifiers *)
@@ -245,11 +232,10 @@ fun new_state name (id, _) (state_id, updates) =
       in put_state state_id' state' end;
   in (state_id', ((id, state_id'), make_state') :: updates) end;
 
-fun report_updates _ [] = ()
-  | report_updates (document_id: document_id) updates =
-      implode (map (fn (id, state_id) => Markup.markup (Markup.edit id state_id) "") updates)
-      |> Markup.markup (Markup.edits document_id)
-      |> Output.status;
+fun report_updates [] = ()
+  | report_updates updates =
+      Output.status
+        (implode (map (fn (id, state_id) => Markup.markup (Markup.edit id state_id) "") updates));
 
 in
 
@@ -279,7 +265,7 @@ fun edit_document (old_id: document_id) (new_id: document_id) edits =
             in (rev updates, new_document') end);
 
       val _ = define_document new_id new_document';
-      val _ = report_updates new_id (map #1 updates);
+      val _ = report_updates (map #1 updates);
       val _ = List.app (fn (_, run) => run ()) updates;
     in () end);
 
@@ -310,7 +296,9 @@ val _ =
 val _ =
   OuterSyntax.internal_command "Isar.edit_document"
     (P.string -- P.string -- V.list (P.string -- (P.string >> SOME) || P.string >> rpair NONE)
-      >> (fn ((id, new_id), edits) => Toplevel.imperative (fn () => edit_document id new_id edits)));
+      >> (fn ((id, new_id), edits) =>
+        Toplevel.position (Position.id_only new_id) o
+        Toplevel.imperative (fn () => edit_document id new_id edits)));
 
 end;
 

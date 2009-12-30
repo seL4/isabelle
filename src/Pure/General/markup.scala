@@ -153,7 +153,6 @@ object Markup
 
   /* interactive documents */
 
-  val EDITS = "edits"
   val EDIT = "edit"
 
 
