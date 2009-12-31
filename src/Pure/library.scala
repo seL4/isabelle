@@ -7,6 +7,8 @@ Basic library.
 package isabelle
 
 import java.lang.System
+import java.awt.Component
+import javax.swing.JOptionPane
 
 
 object Library
@@ -34,6 +36,21 @@ object Library
       buf.toString
     }
   }
+
+
+  /* simple dialogs */
+
+  private def simple_dialog(kind: Int, default_title: String)
+    (parent: Component, title: String, message: Any*)
+  {
+    JOptionPane.showMessageDialog(parent,
+      message.toArray.asInstanceOf[Array[AnyRef]],
+      if (title == null) default_title else title, kind)
+  }
+
+  def dialog = simple_dialog(JOptionPane.PLAIN_MESSAGE, null) _
+  def warning_dialog = simple_dialog(JOptionPane.WARNING_MESSAGE, "Warning") _
+  def error_dialog = simple_dialog(JOptionPane.ERROR_MESSAGE, "Error") _
 
 
   /* timing */
