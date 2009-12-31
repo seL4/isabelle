@@ -13,7 +13,7 @@ import isabelle.proofdocument.Session
 
 import java.io.{FileInputStream, IOException}
 import java.awt.Font
-import javax.swing.{JScrollPane, JOptionPane}
+import javax.swing.JTextArea
 
 import scala.collection.mutable
 
@@ -104,8 +104,8 @@ object Isabelle
     val timeout = Int_Property("startup-timeout") max 1000
     session.start(timeout, Isabelle.isabelle_args()) match {
       case Some(err) =>
-        JOptionPane.showMessageDialog(
-          view, err, "Failed to start prover", JOptionPane.ERROR_MESSAGE)
+        val text = new JTextArea(err); text.setEditable(false)
+        Library.error_dialog(view, null, "Failed to start Isabelle process", text)
         false
       case None => true
     }
