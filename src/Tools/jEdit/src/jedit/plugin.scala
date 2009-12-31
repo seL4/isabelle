@@ -13,7 +13,7 @@ import isabelle.proofdocument.Session
 
 import java.io.{FileInputStream, IOException}
 import java.awt.Font
-import javax.swing.JScrollPane
+import javax.swing.{JScrollPane, JOptionPane}
 
 import scala.collection.mutable
 
@@ -21,7 +21,6 @@ import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, EditPane, ServiceMa
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.JEditTextArea
 import org.gjt.sp.jedit.msg.{EditPaneUpdate, PropertiesChanged}
-import org.gjt.sp.jedit.gui.EnhancedDialog
 
 
 object Isabelle
@@ -105,12 +104,8 @@ object Isabelle
     val timeout = Int_Property("startup-timeout") max 1000
     session.start(timeout, Isabelle.isabelle_args()) match {
       case Some(err) =>
-        // FIXME proper dialog
-        val dialog = new EnhancedDialog(view, "Failed to start prover:\n" + err, true) {
-          def ok { dispose }
-          def cancel { dispose }
-        }
-        dialog.setVisible(true)
+        JOptionPane.showMessageDialog(
+          view, err, "Failed to start prover", JOptionPane.ERROR_MESSAGE)
         false
       case None => true
     }
