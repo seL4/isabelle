@@ -121,11 +121,11 @@ clean:
 
 ## Scala material
 
-SCALA_FILES = Concurrent/future.scala General/event_bus.scala		\
-  General/exn.scala General/linear_set.scala General/markup.scala	\
-  General/position.scala General/scan.scala General/swing_thread.scala	\
-  General/symbol.scala General/xml.scala General/yxml.scala		\
-  Isar/isar_document.scala Isar/outer_keyword.scala			\
+SCALA_FILES = Concurrent/future.scala General/download.scala		\
+  General/event_bus.scala General/exn.scala General/linear_set.scala	\
+  General/markup.scala General/position.scala General/scan.scala	\
+  General/swing_thread.scala General/symbol.scala General/xml.scala	\
+  General/yxml.scala Isar/isar_document.scala Isar/outer_keyword.scala	\
   Isar/outer_lex.scala Isar/outer_parse.scala Isar/outer_syntax.scala	\
   System/cygwin.scala System/gui_setup.scala				\
   System/isabelle_process.scala System/isabelle_syntax.scala		\
