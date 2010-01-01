@@ -1689,11 +1689,10 @@ lemma mult_inj_if_coprime_nat:
   "inj_on f A \<Longrightarrow> inj_on g B \<Longrightarrow> ALL a:A. ALL b:B. coprime (f a) (g b)
    \<Longrightarrow> inj_on (%(a,b). f a * g b::nat) (A \<times> B)"
 apply(auto simp add:inj_on_def)
-apply (metis coprime_dvd_mult_nat dvd.eq_iff gcd_lcm_lattice_nat.inf_sup_absorb
-     gcd_semilattice_nat.inf_le2 lcm_proj2_iff_nat nat_mult_1 prod_gcd_lcm_nat)
-apply (metis coprime_dvd_mult_nat gcd_proj1_if_dvd_nat
-       gcd_semilattice_nat.inf_commute lcm_dvd1_nat nat_mult_1
-       nat_mult_commute prod_gcd_lcm_nat)
+apply (metis gcd_semilattice_nat.inf_commute coprime_dvd_mult_iff_nat
+             dvd.neq_le_trans dvd_triv_left)
+apply (metis gcd_semilattice_nat.inf_commute coprime_dvd_mult_iff_nat
+             dvd.neq_le_trans dvd_triv_right mult_commute)
 done
 
 text{* Nitpick: *}

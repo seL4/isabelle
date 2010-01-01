@@ -1737,6 +1737,13 @@ lemma setsum_product:
   shows "setsum f A * setsum g B = (\<Sum>i\<in>A. \<Sum>j\<in>B. f i * g j)"
   by (simp add: setsum_right_distrib setsum_left_distrib) (rule setsum_commute)
 
+lemma setsum_mult_setsum_if_inj:
+fixes f :: "'a => ('b::semiring_0)"
+shows "inj_on (%(a,b). f a * g b) (A \<times> B) ==>
+  setsum f A * setsum g B = setsum id {f a * g b|a b. a:A & b:B}"
+by(auto simp: setsum_product setsum_cartesian_product
+        intro!:  setsum_reindex_cong[symmetric])
+
 
 subsection {* Generalized product over a set *}
 

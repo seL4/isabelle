@@ -820,6 +820,14 @@ qed
 lemma coprime_divisors: "d dvd a \<Longrightarrow> e dvd b \<Longrightarrow> coprime a b \<Longrightarrow> coprime d e"
   by (auto simp add: dvd_def coprime)
 
+lemma mult_inj_if_coprime_nat:
+  "inj_on f A \<Longrightarrow> inj_on g B \<Longrightarrow> ALL a:A. ALL b:B. coprime (f a) (g b)
+   \<Longrightarrow> inj_on (%(a,b). f a * g b::nat) (A \<times> B)"
+apply(auto simp add:inj_on_def)
+apply(metis coprime_def dvd_triv_left gcd_proj2_if_dvd_nat gcd_semilattice_nat.inf_commute relprime_dvd_mult)
+apply(metis coprime_commute coprime_divprod dvd.neq_le_trans dvd_triv_right)
+done
+
 declare power_Suc0[simp del]
 declare even_dvd[simp del]
 
