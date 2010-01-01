@@ -878,7 +878,6 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-(* FIXME move to Divides(?) *)
 lemma pow_divides_eq_nat [simp]: "n ~= 0 \<Longrightarrow> ((a::nat)^n dvd b^n) = (a dvd b)"
   by (auto intro: pow_divides_pow_nat dvd_power_same)
 
