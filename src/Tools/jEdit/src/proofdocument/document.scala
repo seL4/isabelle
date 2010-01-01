@@ -9,8 +9,6 @@
 package isabelle.proofdocument
 
 
-import scala.actors.Future
-import scala.actors.Futures._
 import scala.actors.Actor._
 import scala.collection.mutable
 

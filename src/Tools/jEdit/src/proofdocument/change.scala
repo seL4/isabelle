@@ -8,9 +8,6 @@
 package isabelle.proofdocument
 
 
-import scala.actors.Future
-
-
 sealed abstract class Edit
 {
   val start: Int
@@ -54,6 +51,6 @@ class Change(
     else this :: parent.map(_.ancestors(done)).getOrElse(Nil)
   def ancestors: List[Change] = ancestors(_ => false)
 
-  def document: Document = result()._1
-  def document_edits: List[Document.Structure_Edit] = result()._2
+  def document: Document = result.join._1
+  def document_edits: List[Document.Structure_Edit] = result.join._2
 }
