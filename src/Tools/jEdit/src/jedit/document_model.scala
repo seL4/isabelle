@@ -56,56 +56,17 @@ object Document_Model
 
 class Document_Model(val session: Session, val buffer: Buffer)
 {
-  /* changes vs. edits */
+  /* history */
 
   private val document_0 = session.begin_document(buffer.getName)
-
   private val change_0 = new Change(None, Nil, Future.value(document_0, Nil))
-  private var _changes = List(change_0)   // owned by Swing thread
-  def changes = _changes
-  private var current_change = change_0
 
-  private val edits = new mutable.ListBuffer[Edit]   // owned by Swing thread
-
-  private val edits_delay = Swing_Thread.delay_last(300) {
-    if (!edits.isEmpty) {
-      val new_id = session.create_id()
-      val eds = edits.toList
-      val change1 = current_change
-      val result: Future[Document.Result] = Future.fork {
-        val old_doc = change1.document
-        Document.text_edits(session, old_doc, new_id, eds)
-      }
-      val change2 = new Change(Some(change1), eds, result)
-      _changes ::= change2
-      session.input(change2)
-      current_change = change2
-      edits.clear
-    }
-  }
+  @volatile private var history = List(change_0)   // owned by Swing thread
+  def changes = history
+  def current_change: Change = history.first
 
 
-  /* buffer listener */
-
-  private val buffer_listener: BufferListener = new BufferAdapter
-  {
-    override def contentInserted(buffer: JEditBuffer,
-      start_line: Int, offset: Int, num_lines: Int, length: Int)
-    {
-      edits += Insert(offset, buffer.getText(offset, length))
-      edits_delay()
-    }
-
-    override def preContentRemoved(buffer: JEditBuffer,
-      start_line: Int, start: Int, num_lines: Int, removed_length: Int)
-    {
-      edits += Remove(start, buffer.getText(start, removed_length))
-      edits_delay()
-    }
-  }
-
-
-  /* history of changes */
+    /* history of changes */
 
   def recent_document(): Document =
   {
@@ -119,8 +80,11 @@ class Document_Model(val session: Session, val buffer: Buffer)
   /* transforming offsets */
 
   private def changes_from(doc: Document): List[Edit] =
+  {
+    Swing_Thread.assert()
     List.flatten(current_change.ancestors(_.document.id == doc.id).reverse.map(_.edits)) :::
-      edits.toList
+      edits_buffer.toList
+  }
 
   def from_current(doc: Document, offset: Int): Int =
     (offset /: changes_from(doc).reverse) ((i, change) => change before i)
@@ -136,15 +100,54 @@ class Document_Model(val session: Session, val buffer: Buffer)
   }
 
 
+  /* text edits */
+
+  private val edits_buffer = new mutable.ListBuffer[Edit]   // owned by Swing thread
+
+  private val edits_delay = Swing_Thread.delay_last(300) {
+    if (!edits_buffer.isEmpty) {
+      val edits = edits_buffer.toList
+      val change1 = current_change
+      val result: Future[Document.Result] = Future.fork {
+        Document.text_edits(session, change1.document, session.create_id(), edits)
+      }
+      val change2 = new Change(Some(change1), edits, result)  // FIXME edits!?
+      history ::= change2
+      result.map(_ => session.input(change2))
+      edits_buffer.clear
+    }
+  }
+
+
+  /* buffer listener */
+
+  private val buffer_listener: BufferListener = new BufferAdapter
+  {
+    override def contentInserted(buffer: JEditBuffer,
+      start_line: Int, offset: Int, num_lines: Int, length: Int)
+    {
+      edits_buffer += Insert(offset, buffer.getText(offset, length))
+      edits_delay()
+    }
+
+    override def preContentRemoved(buffer: JEditBuffer,
+      start_line: Int, start: Int, num_lines: Int, removed_length: Int)
+    {
+      edits_buffer += Remove(start, buffer.getText(start, removed_length))
+      edits_delay()
+    }
+  }
+
+
   /* activation */
 
   def activate()
   {
-    buffer.setTokenMarker(new Isabelle_Token_Marker(this))  // FIXME tune!?
+    buffer.setTokenMarker(new Isabelle_Token_Marker(this))
     buffer.addBufferListener(buffer_listener)
     buffer.propertiesChanged()
 
-    edits += Insert(0, buffer.getText(0, buffer.getLength))
+    edits_buffer += Insert(0, buffer.getText(0, buffer.getLength))
     edits_delay()
   }
 
