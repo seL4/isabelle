@@ -60,7 +60,7 @@ class Document_Model(val session: Session, val buffer: Buffer)
 
   private val document_0 = session.begin_document(buffer.getName)
 
-  private val change_0 = new Change(document_0.id, None, Nil, Future.value(document_0, Nil))
+  private val change_0 = new Change(None, Nil, Future.value(document_0, Nil))
   private var _changes = List(change_0)   // owned by Swing thread
   def changes = _changes
   private var current_change = change_0
@@ -76,7 +76,7 @@ class Document_Model(val session: Session, val buffer: Buffer)
         val old_doc = change1.document
         Document.text_edits(session, old_doc, new_id, eds)
       }
-      val change2 = new Change(new_id, Some(change1), eds, result)
+      val change2 = new Change(Some(change1), eds, result)
       _changes ::= change2
       session.input(change2)
       current_change = change2
@@ -119,7 +119,7 @@ class Document_Model(val session: Session, val buffer: Buffer)
   /* transforming offsets */
 
   private def changes_from(doc: Document): List[Edit] =
-    List.flatten(current_change.ancestors(_.id == doc.id).reverse.map(_.edits)) :::
+    List.flatten(current_change.ancestors(_.document.id == doc.id).reverse.map(_.edits)) :::
       edits.toList
 
   def from_current(doc: Document, offset: Int): Int =

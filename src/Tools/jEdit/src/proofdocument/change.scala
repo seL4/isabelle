@@ -40,7 +40,6 @@ case class Remove(start: Int, text: String) extends Edit
 
 
 class Change(
-  val id: Isar_Document.Document_ID,
   val parent: Option[Change],
   val edits: List[Edit],
   val result: Future[Document.Result])
