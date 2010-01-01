@@ -58,12 +58,10 @@ class Document_Model(val session: Session, val buffer: Buffer)
 {
   /* history */
 
-  private val document_0 = session.begin_document(buffer.getName)
-  private val change_0 = new Change(None, Nil, Future.value(document_0, Nil))
+  @volatile private var history =  // owned by Swing thread
+    new Change(None, Nil, Future.value(session.begin_document(buffer.getName), Nil))
 
-  @volatile private var history = List(change_0)   // owned by Swing thread
-
-  def current_change(): Change = history.first
+  def current_change(): Change = history
 
   def recent_document(): Document =
   {
@@ -109,7 +107,7 @@ class Document_Model(val session: Session, val buffer: Buffer)
         Document.text_edits(session, change1.document, session.create_id(), edits)
       }
       val change2 = new Change(Some(change1), edits, result)
-      history ::= change2
+      history = change2
       result.map(_ => session.input(change2))
       edits_buffer.clear
     }
