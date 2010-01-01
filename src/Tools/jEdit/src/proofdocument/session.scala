@@ -48,21 +48,14 @@ class Session(system: Isabelle_System)
   def create_id(): Session.Entity_ID = synchronized { id_count += 1; "j" + id_count }
 
 
-  /* document state information -- owned by session_actor */
+
+  /** main actor **/
 
   @volatile private var syntax = new Outer_Syntax(system.symbols)
   def current_syntax: Outer_Syntax = syntax
 
   @volatile private var entities = Map[Session.Entity_ID, Session.Entity]()
   def lookup_entity(id: Session.Entity_ID): Option[Session.Entity] = entities.get(id)
-
-  // FIXME eliminate
-  @volatile private var documents = Map[Isar_Document.Document_ID, Document]()
-  def document(id: Isar_Document.Document_ID): Option[Document] = documents.get(id)
-
-
-
-  /** main actor **/
 
   private case class Register(entity: Session.Entity)
   private case class Start(timeout: Int, args: List[String])
@@ -95,7 +88,6 @@ class Session(system: Isabelle_System)
             })
       }
       register(doc)
-      documents += (doc.id -> doc)  // FIXME remove
       prover.edit_document(change.parent.get.document.id, doc.id, id_changes)
 
       document_change.event(doc)
@@ -202,7 +194,6 @@ class Session(system: Isabelle_System)
           val id = create_id()
           val doc = Document.empty(id)
           register(doc)
-          documents += (id -> doc)
           prover.begin_document(id, path)
           reply(doc)
 
@@ -221,7 +212,6 @@ class Session(system: Isabelle_System)
 
   /* main methods */
 
-  // FIXME private?
   def register_entity(entity: Session.Entity) { session_actor !? Register(entity) }
 
   def start(timeout: Int, args: List[String]): Option[String] =

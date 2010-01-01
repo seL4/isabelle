@@ -60,7 +60,7 @@ class Document(
     val tokens: Linear_Set[Token],   // FIXME plain List, inside Command
     val token_start: Map[Token, Int],  // FIXME eliminate
     val commands: Linear_Set[Command],
-    var states: Map[Command, Command])   // FIXME immutable, eliminate!?
+    @volatile var states: Map[Command, Command])   // FIXME immutable, eliminate!?
   extends Session.Entity
 {
   def content = Token.string_from_tokens(Nil ++ tokens, token_start)
