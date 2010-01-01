@@ -43,7 +43,7 @@ class Isabelle_Sidekick extends SideKickParser("isabelle")
 
     Swing_Thread.now { Document_Model(buffer) } match {
       case Some(model) =>
-        val document = model.current_document()
+        val document = model.recent_document()
         for (command <- document.commands if !stopped) {
           root.add(command.markup_root(document).swing_tree((node: Markup_Node) =>
               {

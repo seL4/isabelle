@@ -8,6 +8,9 @@
 package isabelle.proofdocument
 
 
+import scala.actors.Future
+
+
 sealed abstract class Edit
 {
   val start: Int
@@ -40,15 +43,17 @@ case class Remove(start: Int, text: String) extends Edit
 
 
 class Change(
-  val id: String,
+  val id: Isar_Document.Document_ID,
   val parent: Option[Change],
-  val edits: List[Edit])
+  val edits: List[Edit],
+  val result: Future[Document.Result])
 {
+  // FIXME iterator
   def ancestors(done: Change => Boolean): List[Change] =
     if (done(this)) Nil
     else this :: parent.map(_.ancestors(done)).getOrElse(Nil)
   def ancestors: List[Change] = ancestors(_ => false)
 
-  override def toString =
-    "Change(" + id + " <- " + parent.map(_.id) + ", " + edits + ")"
+  def document: Document = result()._1
+  def document_edits: List[Document.Structure_Edit] = result()._2
 }

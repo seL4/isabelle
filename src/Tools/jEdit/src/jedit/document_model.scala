@@ -10,6 +10,8 @@ package isabelle.jedit
 
 import isabelle.proofdocument.{Change, Command, Edit, Insert, Remove, Document, Session}
 
+import scala.actors.Future
+import scala.actors.Futures._
 import scala.actors.Actor, Actor._
 import scala.collection.mutable
 
@@ -60,7 +62,8 @@ class Document_Model(val session: Session, val buffer: Buffer)
 
   private val document_0 = session.begin_document(buffer.getName)
 
-  private val change_0 = new Change(document_0.id, None, Nil)  // FIXME !?
+  private val change_0 =
+    new Change(document_0.id, None, Nil, future { (document_0, Nil) })  // FIXME more robust history start
   private var _changes = List(change_0)   // owned by Swing thread
   def changes = _changes
   private var current_change = change_0
@@ -69,10 +72,18 @@ class Document_Model(val session: Session, val buffer: Buffer)
 
   private val edits_delay = Swing_Thread.delay_last(300) {
     if (!edits.isEmpty) {
-      val change = new Change(session.create_id(), Some(current_change), edits.toList)
-      _changes ::= change
-      session.input(change)
-      current_change = change
+      val new_id = session.create_id()
+      val eds = edits.toList
+      val change1 = current_change
+      val result: Future[Document.Result] = future {
+        val old_doc = change1.document
+        Document.text_edits(session, old_doc, new_id, eds)
+      }
+      result()  // FIXME !?!?!?
+      val change2 = new Change(new_id, Some(change1), eds, result)
+      _changes ::= change2
+      session.input(change2)
+      current_change = change2
       edits.clear
     }
   }
@@ -100,10 +111,13 @@ class Document_Model(val session: Session, val buffer: Buffer)
 
   /* history of changes */
 
-  private def doc_or_pred(c: Change): Document =
-    session.document(c.id).getOrElse(doc_or_pred(c.parent.get))
-
-  def current_document() = doc_or_pred(current_change)
+  def recent_document(): Document =
+  {
+    def find(change: Change): Document =
+      if (change.result.isSet || !change.parent.isDefined) change.document
+      else find(change.parent.get)
+    find(current_change)
+  }
 
 
   /* transforming offsets */
@@ -120,7 +134,7 @@ class Document_Model(val session: Session, val buffer: Buffer)
 
   def lines_of_command(cmd: Command): (Int, Int) =
   {
-    val document = current_document()
+    val document = recent_document()
     (buffer.getLineOfOffset(to_current(document, cmd.start(document))),
      buffer.getLineOfOffset(to_current(document, cmd.stop(document))))
   }

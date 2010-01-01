@@ -110,7 +110,7 @@ class Isabelle_Token_Marker(model: Document_Model) extends TokenMarker
     val start = model.buffer.getLineStartOffset(line)
     val stop = start + line_segment.count
 
-    val document = model.current_document()
+    val document = model.recent_document()
     def to: Int => Int = model.to_current(document, _)
     def from: Int => Int = model.from_current(document, _)
 

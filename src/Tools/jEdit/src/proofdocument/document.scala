@@ -9,7 +9,10 @@
 package isabelle.proofdocument
 
 
+import scala.actors.Future
+import scala.actors.Futures._
 import scala.actors.Actor._
+import scala.collection.mutable
 
 import java.util.regex.Pattern
 
@@ -35,7 +38,22 @@ object Document
   def empty(id: Isar_Document.Document_ID): Document =
     new Document(id, Linear_Set(), Map(), Linear_Set(), Map())
 
-  type StructureChange = List[(Option[Command], Option[Command])]
+  type Structure_Edit = (Option[Command], Option[Command])
+  type Structure_Change = List[Structure_Edit]
+  type Result = (Document, List[Structure_Edit])
+
+  def text_edits(session: Session, old_doc: Document, new_id: Isar_Document.Document_ID,
+    edits: List[Edit]): Result =
+  {
+    val changes = new mutable.ListBuffer[Structure_Edit]
+    val new_doc = (old_doc /: edits)((doc1: Document, edit: Edit) =>
+      {
+        val (doc2, chgs) = doc1.text_edit(session, edit, new_id)  // FIXME odd multiple use of id
+        changes ++ chgs
+        doc2
+      })
+    (new_doc, changes.toList)
+  }
 }
 
 
@@ -47,8 +65,6 @@ class Document(
     var states: Map[Command, Command])   // FIXME immutable, eliminate!?
   extends Session.Entity
 {
-  import Document.StructureChange
-
   def content = Token.string_from_tokens(Nil ++ tokens, token_start)
 
 
@@ -66,7 +82,7 @@ class Document(
               } {
                 session.lookup_entity(cmd_id) match {
                   case Some(cmd: Command) =>
-                    val state = cmd.finish_static(state_id)
+                    val state = cmd.finish_static(state_id)   // FIXME more explicit typing
                     session.register_entity(state)
                     states += (cmd -> state)  // FIXME !?
                     session.command_change.event(cmd)   // FIXME really!?
@@ -87,17 +103,7 @@ class Document(
 
   /** token view **/
 
-  def text_changed(session: Session, change: Change): (Document, StructureChange) =
-  {
-    def edit_doc(doc_chgs: (Document, StructureChange), edit: Edit) = {
-      val (doc, chgs) = doc_chgs
-      val (new_doc, chg) = doc.text_edit(session, edit, change.id)
-      (new_doc, chgs ++ chg)
-    }
-    ((this, Nil: StructureChange) /: change.edits)(edit_doc)
-  }
-
-  def text_edit(session: Session, e: Edit, id: String): (Document, StructureChange) =
+  def text_edit(session: Session, e: Edit, id: String): Document.Result =
   {
     case class TextChange(start: Int, added: String, removed: String)
     val change = e match {
@@ -179,14 +185,14 @@ class Document(
   /** command view **/
 
   private def token_changed(
-    session: Session,
-    new_id: String,
-    before_change: Option[Token],
-    inserted_tokens: List[Token],
-    after_change: Option[Token],
-    new_tokens: List[Token],
-    new_token_start: Map[Token, Int]):
-  (Document, StructureChange) =
+      session: Session,
+      new_id: String,
+      before_change: Option[Token],
+      inserted_tokens: List[Token],
+      after_change: Option[Token],
+      new_tokens: List[Token],
+      new_token_start: Map[Token, Int]):
+    Document.Result =
   {
     val new_tokenset = Linear_Set[Token]() ++ new_tokens
     val cmd_before_change = before_change match {
@@ -278,7 +284,7 @@ class Document(
   val commands_offsets = {
     var last_stop = 0
     (for (c <- commands) yield {
-      val r = c -> (last_stop,c.stop(this))
+      val r = c -> (last_stop, c.stop(this))
       last_stop = c.stop(this)
       r
     }).toArray

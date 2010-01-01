@@ -82,7 +82,7 @@ class Document_View(model: Document_Model, text_area: TextArea)
     loop {
       react {
         case command: Command =>
-          if (model.current_document().commands.contains(command))
+          if (model.recent_document().commands.contains(command))
             Swing_Thread.now {
               update_syntax(command)
               invalidate_line(command)
@@ -104,7 +104,7 @@ class Document_View(model: Document_Model, text_area: TextArea)
     override def paintValidLine(gfx: Graphics2D,
       screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int)
     {
-      val document = model.current_document()
+      val document = model.recent_document()
       def from_current(pos: Int) = model.from_current(document, pos)
       def to_current(pos: Int) = model.to_current(document, pos)
       val saved_color = gfx.getColor
@@ -127,7 +127,7 @@ class Document_View(model: Document_Model, text_area: TextArea)
 
     override def getToolTipText(x: Int, y: Int): String =
     {
-      val document = model.current_document()
+      val document = model.recent_document()
       val offset = model.from_current(document, text_area.xyToOffset(x, y))
       document.command_at(offset) match {
         case Some(cmd) =>
@@ -152,7 +152,7 @@ class Document_View(model: Document_Model, text_area: TextArea)
   private val caret_listener = new CaretListener
   {
     override def caretUpdate(e: CaretEvent) {
-      val doc = model.current_document()
+      val doc = model.recent_document()
       doc.command_at(e.getDot) match {
         case Some(cmd)
           if (doc.token_start(cmd.tokens.first) <= e.getDot &&
@@ -249,7 +249,7 @@ class Document_View(model: Document_Model, text_area: TextArea)
     override def paintComponent(gfx: Graphics)
     {
       super.paintComponent(gfx)
-      val doc = model.current_document()
+      val doc = model.recent_document()
       val buffer = model.buffer
 
       for (command <- doc.commands) {
