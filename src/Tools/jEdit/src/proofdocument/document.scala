@@ -14,7 +14,7 @@ import scala.actors.Actor._
 import java.util.regex.Pattern
 
 
-object Proof_Document
+object Document
 {
   // Be careful when changing this regex. Not only must it handle the
   // spurious end of a token but also:
@@ -32,14 +32,14 @@ object Proof_Document
       "`([^\\\\`]?(\\\\(.|\\z))?)*+(`|\\z)|" +
       "[()\\[\\]{}:;]", Pattern.MULTILINE)
 
-  def empty(id: Isar_Document.Document_ID): Proof_Document =
-    new Proof_Document(id, Linear_Set(), Map(), Linear_Set(), Map())
+  def empty(id: Isar_Document.Document_ID): Document =
+    new Document(id, Linear_Set(), Map(), Linear_Set(), Map())
 
   type StructureChange = List[(Option[Command], Option[Command])]
 }
 
 
-class Proof_Document(
+class Document(
     val id: Isar_Document.Document_ID,
     val tokens: Linear_Set[Token],   // FIXME plain List, inside Command
     val token_start: Map[Token, Int],  // FIXME eliminate
@@ -47,7 +47,7 @@ class Proof_Document(
     var states: Map[Command, Command])   // FIXME immutable, eliminate!?
   extends Session.Entity
 {
-  import Proof_Document.StructureChange
+  import Document.StructureChange
 
   def content = Token.string_from_tokens(Nil ++ tokens, token_start)
 
@@ -87,9 +87,9 @@ class Proof_Document(
 
   /** token view **/
 
-  def text_changed(session: Session, change: Change): (Proof_Document, StructureChange) =
+  def text_changed(session: Session, change: Change): (Document, StructureChange) =
   {
-    def edit_doc(doc_chgs: (Proof_Document, StructureChange), edit: Edit) = {
+    def edit_doc(doc_chgs: (Document, StructureChange), edit: Edit) = {
       val (doc, chgs) = doc_chgs
       val (new_doc, chg) = doc.text_edit(session, edit, change.id)
       (new_doc, chgs ++ chg)
@@ -97,7 +97,7 @@ class Proof_Document(
     ((this, Nil: StructureChange) /: change.edits)(edit_doc)
   }
 
-  def text_edit(session: Session, e: Edit, id: String): (Proof_Document, StructureChange) =
+  def text_edit(session: Session, e: Edit, id: String): (Document, StructureChange) =
   {
     case class TextChange(start: Int, added: String, removed: String)
     val change = e match {
@@ -143,7 +143,7 @@ class Proof_Document(
 
     val match_start = invalid_tokens.firstOption.map(start(_)).getOrElse(0)
     val matcher =
-      Proof_Document.token_pattern.matcher(Token.string_from_tokens(invalid_tokens, start))
+      Document.token_pattern.matcher(Token.string_from_tokens(invalid_tokens, start))
 
     while (matcher.find() && invalid_tokens != Nil) {
 			val kind =
@@ -186,7 +186,7 @@ class Proof_Document(
     after_change: Option[Token],
     new_tokens: List[Token],
     new_token_start: Map[Token, Int]):
-  (Proof_Document, StructureChange) =
+  (Document, StructureChange) =
   {
     val new_tokenset = Linear_Set[Token]() ++ new_tokens
     val cmd_before_change = before_change match {
@@ -264,7 +264,7 @@ class Proof_Document(
 
 
     val doc =
-      new Proof_Document(new_id, new_tokenset, new_token_start, new_commandset,
+      new Document(new_id, new_tokenset, new_token_start, new_commandset,
         states -- removed_commands)
 
     val removes =

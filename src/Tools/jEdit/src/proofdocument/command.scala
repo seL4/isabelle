@@ -51,8 +51,8 @@ class Command(
   def content(i: Int, j: Int): String = content.substring(i, j)
   val symbol_index = new Symbol.Index(content)
 
-  def start(doc: Proof_Document) = doc.token_start(tokens.first)
-  def stop(doc: Proof_Document) = doc.token_start(tokens.last) + tokens.last.length
+  def start(doc: Document) = doc.token_start(tokens.first)
+  def stop(doc: Document) = doc.token_start(tokens.last) + tokens.last.length
 
   def contains(p: Token) = tokens.contains(p)
 
@@ -111,13 +111,13 @@ class Command(
   def highlight: Markup_Text = current_state.highlight
 
 
-  private def cmd_state(doc: Proof_Document): State =  // FIXME clarify
+  private def cmd_state(doc: Document): State =  // FIXME clarify
     doc.states.getOrElse(this, this).current_state
 
-  def status(doc: Proof_Document) = cmd_state(doc).status
-  def results(doc: Proof_Document) = cmd_state(doc).results
-  def markup_root(doc: Proof_Document) = cmd_state(doc).markup_root
-  def highlight(doc: Proof_Document) = cmd_state(doc).highlight
-  def type_at(doc: Proof_Document, offset: Int) = cmd_state(doc).type_at(offset)
-  def ref_at(doc: Proof_Document, offset: Int) = cmd_state(doc).ref_at(offset)
+  def status(doc: Document) = cmd_state(doc).status
+  def results(doc: Document) = cmd_state(doc).results
+  def markup_root(doc: Document) = cmd_state(doc).markup_root
+  def highlight(doc: Document) = cmd_state(doc).highlight
+  def type_at(doc: Document, offset: Int) = cmd_state(doc).type_at(offset)
+  def ref_at(doc: Document, offset: Int) = cmd_state(doc).ref_at(offset)
 }

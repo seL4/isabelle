@@ -8,7 +8,7 @@
 package isabelle.jedit
 
 
-import isabelle.proofdocument.{Change, Command, Edit, Insert, Remove, Proof_Document, Session}
+import isabelle.proofdocument.{Change, Command, Edit, Insert, Remove, Document, Session}
 
 import scala.actors.Actor, Actor._
 import scala.collection.mutable
@@ -100,7 +100,7 @@ class Document_Model(val session: Session, val buffer: Buffer)
 
   /* history of changes */
 
-  private def doc_or_pred(c: Change): Proof_Document =
+  private def doc_or_pred(c: Change): Document =
     session.document(c.id).getOrElse(doc_or_pred(c.parent.get))
 
   def current_document() = doc_or_pred(current_change)
@@ -108,14 +108,14 @@ class Document_Model(val session: Session, val buffer: Buffer)
 
   /* transforming offsets */
 
-  private def changes_from(doc: Proof_Document): List[Edit] =
+  private def changes_from(doc: Document): List[Edit] =
     List.flatten(current_change.ancestors(_.id == doc.id).reverse.map(_.edits)) :::
       edits.toList
 
-  def from_current(doc: Proof_Document, offset: Int): Int =
+  def from_current(doc: Document, offset: Int): Int =
     (offset /: changes_from(doc).reverse) ((i, change) => change before i)
 
-  def to_current(doc: Proof_Document, offset: Int): Int =
+  def to_current(doc: Document, offset: Int): Int =
     (offset /: changes_from(doc)) ((i, change) => change after i)
 
   def lines_of_command(cmd: Command): (Int, Int) =

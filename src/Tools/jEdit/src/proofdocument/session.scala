@@ -39,7 +39,7 @@ class Session(system: Isabelle_System)
   val results = new Event_Bus[Command]
 
   val command_change = new Event_Bus[Command]
-  val document_change = new Event_Bus[Proof_Document]
+  val document_change = new Event_Bus[Document]
 
 
   /* unique ids */
@@ -57,8 +57,8 @@ class Session(system: Isabelle_System)
   def lookup_entity(id: Session.Entity_ID): Option[Session.Entity] = entities.get(id)
 
   // FIXME eliminate
-  @volatile private var documents = Map[Isar_Document.Document_ID, Proof_Document]()
-  def document(id: Isar_Document.Document_ID): Option[Proof_Document] = documents.get(id)
+  @volatile private var documents = Map[Isar_Document.Document_ID, Document]()
+  def document(id: Isar_Document.Document_ID): Option[Document] = documents.get(id)
 
 
 
@@ -200,7 +200,7 @@ class Session(system: Isabelle_System)
 
         case Begin_Document(path: String) if prover != null =>
           val id = create_id()
-          val doc = Proof_Document.empty(id)
+          val doc = Document.empty(id)
           register(doc)
           documents += (id -> doc)
           prover.begin_document(id, path)
@@ -229,6 +229,6 @@ class Session(system: Isabelle_System)
   def stop() { session_actor ! Stop }
   def input(change: Change) { session_actor ! change }
 
-  def begin_document(path: String): Proof_Document =
-    (session_actor !? Begin_Document(path)).asInstanceOf[Proof_Document]
+  def begin_document(path: String): Document =
+    (session_actor !? Begin_Document(path)).asInstanceOf[Document]
 }

@@ -8,7 +8,7 @@
 package isabelle.jedit
 
 
-import isabelle.proofdocument.{Command, Proof_Document, Session}
+import isabelle.proofdocument.{Command, Document, Session}
 
 import scala.actors.Actor._
 
@@ -23,7 +23,7 @@ import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaExtension, Te
 
 object Document_View
 {
-  def choose_color(command: Command, doc: Proof_Document): Color =
+  def choose_color(command: Command, doc: Document): Color =
   {
     command.status(doc) match {
       case Command.Status.UNPROCESSED => new Color(255, 228, 225)

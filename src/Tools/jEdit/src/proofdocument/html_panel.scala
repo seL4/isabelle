@@ -14,7 +14,6 @@ import java.awt.event.MouseEvent
 import javax.swing.{JButton, JPanel, JScrollPane}
 import java.util.logging.{Logger, Level}
 
-import org.w3c.dom.Document
 import org.w3c.dom.html2.HTMLElement
 
 import org.lobobrowser.html.parser.{DocumentBuilderImpl, InputSourceImpl}
@@ -102,8 +101,8 @@ class HTML_Panel(
 
   private val main_actor = actor {
     // crude double buffering
-    var doc1: Document = null
-    var doc2: Document = null
+    var doc1: org.w3c.dom.Document = null
+    var doc2: org.w3c.dom.Document = null
 
     loop {
       react {

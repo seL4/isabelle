@@ -19,7 +19,7 @@ import org.gjt.sp.jedit.{Buffer, EditPane, TextUtilities, View}
 import errorlist.DefaultErrorSource
 import sidekick.{SideKickParser, SideKickParsedData, SideKickCompletion, IAsset}
 
-import isabelle.proofdocument.{Command, Markup_Node, Proof_Document}
+import isabelle.proofdocument.{Command, Markup_Node, Document}
 
 
 class Isabelle_Sidekick extends SideKickParser("isabelle")
