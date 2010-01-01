@@ -62,18 +62,15 @@ class Document_Model(val session: Session, val buffer: Buffer)
   private val change_0 = new Change(None, Nil, Future.value(document_0, Nil))
 
   @volatile private var history = List(change_0)   // owned by Swing thread
-  def changes = history
-  def current_change: Change = history.first
 
-
-    /* history of changes */
+  def current_change(): Change = history.first
 
   def recent_document(): Document =
   {
     def find(change: Change): Document =
       if (change.result.is_finished || !change.parent.isDefined) change.document
       else find(change.parent.get)
-    find(current_change)
+    find(current_change())
   }
 
 
@@ -107,11 +104,11 @@ class Document_Model(val session: Session, val buffer: Buffer)
   private val edits_delay = Swing_Thread.delay_last(300) {
     if (!edits_buffer.isEmpty) {
       val edits = edits_buffer.toList
-      val change1 = current_change
+      val change1 = current_change()
       val result: Future[Document.Result] = Future.fork {
         Document.text_edits(session, change1.document, session.create_id(), edits)
       }
-      val change2 = new Change(Some(change1), edits, result)  // FIXME edits!?
+      val change2 = new Change(Some(change1), edits, result)
       history ::= change2
       result.map(_ => session.input(change2))
       edits_buffer.clear
