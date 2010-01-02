@@ -24,8 +24,6 @@ uses
   ("Tools/Function/fun.ML")
   ("Tools/Function/induction_schema.ML")
   ("Tools/Function/termination.ML")
-  ("Tools/Function/decompose.ML")
-  ("Tools/Function/descent.ML")
   ("Tools/Function/scnp_solve.ML")
   ("Tools/Function/scnp_reconstruct.ML")
 begin
@@ -309,8 +307,6 @@ by (auto simp: pair_less_def pair_leq_def)
 subsection {* Tool setup *}
 
 use "Tools/Function/termination.ML"
-use "Tools/Function/decompose.ML"
-use "Tools/Function/descent.ML"
 use "Tools/Function/scnp_solve.ML"
 use "Tools/Function/scnp_reconstruct.ML"
 

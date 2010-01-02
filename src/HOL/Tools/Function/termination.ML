@@ -13,10 +13,6 @@ sig
 
   val mk_sumcases : data -> typ -> term list -> term
 
-  val note_measure : int -> term -> data -> data
-  val note_chain   : term -> term -> thm option -> data -> data
-  val note_descent : term -> term -> term -> cell -> data -> data
-
   val get_num_points : data -> int
   val get_types      : data -> int -> typ
   val get_measures   : data -> int -> term list
@@ -24,10 +20,6 @@ sig
   (* read from cache *)
   val get_chain      : data -> term -> term -> thm option option
   val get_descent    : data -> term -> term -> term -> cell option
-
-  (* writes *)
-  val derive_descent  : theory -> tactic -> term -> term -> term -> data -> data
-  val derive_descents : theory -> tactic -> term -> data -> data
 
   val dest_call : data -> term -> ((string * typ) list * int * term * int * term * term)
 
@@ -41,6 +33,15 @@ sig
   val REPEAT : ttac -> ttac
 
   val wf_union_tac : Proof.context -> tactic
+
+  val decompose_tac : Proof.context -> tactic -> ttac
+
+  val derive_diag : Proof.context -> tactic -> 
+    (data -> int -> tactic) -> data -> int -> tactic
+
+  val derive_all  : Proof.context -> tactic ->
+    (data -> int -> tactic) -> data -> int -> tactic
+
 end
 
 
@@ -128,11 +129,9 @@ type data =
   * (cell Term3tab.table)         (* local descents *)
 
 
-fun map_measures f (p, T, M, C, D) = (p, T, f M, C, D)
-fun map_chains f   (p, T, M, C, D) = (p, T, M, f C, D)
-fun map_descent f  (p, T, M, C, D) = (p, T, M, C, f D)
+fun map_chains f (p, T, M, C, D) = (p, T, M, f C, D)
+fun map_descent f (p, T, M, C, D) = (p, T, M, C, f D)
 
-fun note_measure p m = map_measures (Inttab.insert_list (op aconv) (p, m))
 fun note_chain c1 c2 res = map_chains (Term2tab.update ((c1, c2), res))
 fun note_descent c m1 m2 res = map_descent (Term3tab.update ((c,(m1, m2)), res))
 
@@ -222,13 +221,6 @@ fun derive_desc_aux thy tac c (vs, _, l', _, r', Gam) m1 m2 D =
 fun derive_descent thy tac c m1 m2 D =
   derive_desc_aux thy tac c (dest_call D c) m1 m2 D
 
-(* all descents in one go *)
-fun derive_descents thy tac c D =
-  let val cdesc as (_, p, _, q, _, _) = dest_call D c
-  in fold_product (derive_desc_aux thy tac c cdesc)
-       (get_measures D p) (get_measures D q) D
-  end
-
 fun CALLS tac i st =
   if Thm.no_prems st then all_tac st
   else case Thm.term_of (Thm.cprem_of st i) of
@@ -317,7 +309,110 @@ end
 fun REPEAT ttac cont err_cont =
     ttac (fn D => fn i => (REPEAT ttac cont cont D i)) err_cont
 
+(*** DEPENDENCY GRAPHS ***)
 
+structure TermGraph = Graph(type key = term val ord = TermOrd.fast_term_ord);
+
+
+fun prove_chain thy chain_tac c1 c2 =
+  let
+    val goal =
+      HOLogic.mk_eq (HOLogic.mk_binop @{const_name Relation.rel_comp} (c1, c2),
+        Const (@{const_name Set.empty}, fastype_of c1))
+      |> HOLogic.mk_Trueprop (* "C1 O C2 = {}" *)
+  in
+    case Function_Lib.try_proof (cterm_of thy goal) chain_tac of
+      Function_Lib.Solved thm => SOME thm
+    | _ => NONE
+  end
+
+fun derive_chains ctxt chain_tac cont D = CALLS (fn (cs, i) =>
+  let
+      val thy = ProofContext.theory_of ctxt
+
+      fun derive_chain c1 c2 D =
+        if is_some (get_chain D c1 c2) then D else
+        note_chain c1 c2 (prove_chain thy chain_tac c1 c2) D
+  in
+    cont (fold_product derive_chain cs cs D) i
+  end)
+
+
+fun mk_dgraph D cs =
+    TermGraph.empty
+    |> fold (fn c => TermGraph.new_node (c,())) cs
+    |> fold_product (fn c1 => fn c2 =>
+         if is_none (get_chain D c1 c2 |> the_default NONE)
+         then TermGraph.add_edge (c1, c2) else I)
+       cs cs
+
+
+fun ucomp_empty_tac T =
+    REPEAT_ALL_NEW (rtac @{thm union_comp_emptyR}
+                    ORELSE' rtac @{thm union_comp_emptyL}
+                    ORELSE' SUBGOAL (fn (_ $ (_ $ (_ $ c1 $ c2) $ _), i) => rtac (T c1 c2) i))
+
+fun regroup_calls_tac cs = CALLS (fn (cs', i) =>
+   let
+     val is = map (fn c => find_index (curry op aconv c) cs') cs
+   in
+     CONVERSION (Conv.arg_conv (Conv.arg_conv (Function_Lib.regroup_union_conv is))) i
+   end)
+
+
+fun solve_trivial_tac D = CALLS
+(fn ([c], i) =>
+    (case get_chain D c c of
+       SOME (SOME thm) => rtac @{thm wf_no_loop} i
+                          THEN rtac thm i
+     | _ => no_tac)
+  | _ => no_tac)
+
+fun decompose_tac' cont err_cont D = CALLS (fn (cs, i) =>
+    let
+      val G = mk_dgraph D cs
+      val sccs = TermGraph.strong_conn G
+
+      fun split [SCC] i = (solve_trivial_tac D i ORELSE cont D i)
+        | split (SCC::rest) i =
+            regroup_calls_tac SCC i
+            THEN rtac @{thm wf_union_compatible} i
+            THEN rtac @{thm less_by_empty} (i + 2)
+            THEN ucomp_empty_tac (the o the oo get_chain D) (i + 2)
+            THEN split rest (i + 1)
+            THEN (solve_trivial_tac D i ORELSE cont D i)
+    in
+      if length sccs > 1 then split sccs i
+      else solve_trivial_tac D i ORELSE err_cont D i
+    end)
+
+fun decompose_tac ctxt chain_tac cont err_cont =
+    derive_chains ctxt chain_tac
+    (decompose_tac' cont err_cont)
+
+
+(*** Local Descent Proofs ***)
+
+fun gen_descent diag ctxt tac cont D = CALLS (fn (cs, i) =>
+  let
+    val thy = ProofContext.theory_of ctxt
+    val measures_of = get_measures D
+
+    fun derive c D =
+      let
+        val (_, p, _, q, _, _) = dest_call D c
+      in
+        if diag andalso p = q
+        then fold (fn m => derive_descent thy tac c m m) (measures_of p) D
+        else fold_product (derive_descent thy tac c)
+               (measures_of p) (measures_of q) D
+      end
+  in
+    cont (Function_Common.PROFILE "deriving descents" (fold derive cs) D) i
+  end)
+
+val derive_diag = gen_descent true
+val derive_all = gen_descent false
 
 
 end

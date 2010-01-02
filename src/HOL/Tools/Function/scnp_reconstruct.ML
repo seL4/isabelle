@@ -361,9 +361,9 @@ fun single_scnp_tac use_tags orders ctxt cont err_cont D = Termination.CALLS (fn
 fun gen_decomp_scnp_tac orders autom_tac ctxt err_cont =
   let
     open Termination
-    val derive_diag = Descent.derive_diag ctxt autom_tac
-    val derive_all = Descent.derive_all ctxt autom_tac
-    val decompose = Decompose.decompose_tac ctxt autom_tac
+    val derive_diag = Termination.derive_diag ctxt autom_tac
+    val derive_all = Termination.derive_all ctxt autom_tac
+    val decompose = Termination.decompose_tac ctxt autom_tac
     val scnp_no_tags = single_scnp_tac false orders ctxt
     val scnp_full = single_scnp_tac true orders ctxt
 
