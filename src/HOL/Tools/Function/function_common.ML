@@ -19,6 +19,8 @@ type info =
   R : term,
   psimps: thm list,
   pinducts: thm list,
+  simps : thm list option,
+  inducts : thm list option,
   termination: thm
  }  
 
@@ -38,6 +40,8 @@ type info =
   R : term,
   psimps: thm list,
   pinducts: thm list,
+  simps : thm list option,
+  inducts : thm list option,
   termination: thm
  }  
 
@@ -99,14 +103,15 @@ datatype function_result =
      }
 
 fun morph_function_data ({add_simps, case_names, fs, R, psimps, pinducts,
-  termination, defname, is_partial} : info) phi =
+  simps, inducts, termination, defname, is_partial} : info) phi =
     let
       val term = Morphism.term phi val thm = Morphism.thm phi val fact = Morphism.fact phi
       val name = Binding.name_of o Morphism.binding phi o Binding.name
     in
       { add_simps = add_simps, case_names = case_names,
         fs = map term fs, R = term R, psimps = fact psimps, 
-        pinducts = fact pinducts, termination = thm termination,
+        pinducts = fact pinducts, simps = Option.map fact simps,
+        inducts = Option.map fact inducts, termination = thm termination,
         defname = name defname, is_partial=is_partial }
     end
 

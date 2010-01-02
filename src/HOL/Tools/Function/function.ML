@@ -110,8 +110,8 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config lth
             ||> fold_option (snd oo curry Local_Theory.note (qualify "domintros", [])) domintros
 
           val info = { add_simps=addsmps, case_names=cnames, psimps=psimps',
-            pinducts=snd pinducts', termination=termination', fs=fs, R=R,
-            defname=defname, is_partial=true }
+            pinducts=snd pinducts', simps=NONE, inducts=NONE, termination=termination',
+            fs=fs, R=R, defname=defname, is_partial=true }
 
           val _ =
             if not is_external then ()
@@ -151,19 +151,22 @@ fun gen_termination_proof prep_term raw_term_opt lthy =
             val tsimps = map remove_domain_condition psimps
             val tinduct = map remove_domain_condition pinducts
 
-            val info' = { is_partial=false, defname=defname, add_simps=add_simps,
-              case_names=case_names, fs=fs, R=R, psimps=psimps, pinducts=pinducts,
-              termination=termination }
             fun qualify n = Binding.name n
               |> Binding.qualify true defname
           in
             lthy
-            |> add_simps I "simps" I simp_attribs tsimps |> snd
-            |> Local_Theory.note
+            |> add_simps I "simps" I simp_attribs tsimps
+            ||>> Local_Theory.note
                ((qualify "induct",
                  [Attrib.internal (K (Rule_Cases.case_names case_names))]),
-                tinduct) |> snd
-            |> Local_Theory.declaration false (add_function_data o morph_function_data info')
+                tinduct)
+            |-> (fn (simps, (_, inducts)) =>
+              let val info' = { is_partial=false, defname=defname, add_simps=add_simps,
+                case_names=case_names, fs=fs, R=R, psimps=psimps, pinducts=pinducts,
+                simps=SOME simps, inducts=SOME inducts, termination=termination }
+              in
+                Local_Theory.declaration false (add_function_data o morph_function_data info')
+              end)
           end
     in
       lthy
