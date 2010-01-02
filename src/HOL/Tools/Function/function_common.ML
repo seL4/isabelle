@@ -5,8 +5,48 @@ A package for general recursive function definitions.
 Common definitions and other infrastructure.
 *)
 
+signature FUNCTION_DATA =
+sig
+
+type info =
+ {is_partial : bool,
+  defname : string,
+    (* contains no logical entities: invariant under morphisms: *)
+  add_simps : (binding -> binding) -> string -> (binding -> binding) ->
+    Attrib.src list -> thm list -> local_theory -> thm list * local_theory,
+  case_names : string list,
+  fs : term list,
+  R : term,
+  psimps: thm list,
+  pinducts: thm list,
+  termination: thm
+ }  
+
+end
+
+structure Function_Data : FUNCTION_DATA =
+struct
+
+type info =
+ {is_partial : bool,
+  defname : string,
+    (* contains no logical entities: invariant under morphisms: *)
+  add_simps : (binding -> binding) -> string -> (binding -> binding) ->
+    Attrib.src list -> thm list -> local_theory -> thm list * local_theory,
+  case_names : string list,
+  fs : term list,
+  R : term,
+  psimps: thm list,
+  pinducts: thm list,
+  termination: thm
+ }  
+
+end
+
 structure Function_Common =
 struct
+
+open Function_Data
 
 local open Function_Lib in
 
@@ -58,41 +98,21 @@ datatype function_result =
       domintros : thm list option
      }
 
-
-datatype function_context_data =
-  FunctionCtxData of
-     {
-      defname : string,
-
-      (* contains no logical entities: invariant under morphisms *)
-      add_simps : (binding -> binding) -> string -> (binding -> binding) ->
-        Attrib.src list -> thm list -> local_theory -> thm list * local_theory,
-
-      case_names : string list,
-
-      fs : term list,
-      R : term,
-      
-      psimps: thm list,
-      pinducts: thm list,
-      termination: thm
-     }
-
-fun morph_function_data (FunctionCtxData {add_simps, case_names, fs, R, 
-                                      psimps, pinducts, termination, defname}) phi =
+fun morph_function_data ({add_simps, case_names, fs, R, psimps, pinducts,
+  termination, defname, is_partial} : info) phi =
     let
       val term = Morphism.term phi val thm = Morphism.thm phi val fact = Morphism.fact phi
       val name = Binding.name_of o Morphism.binding phi o Binding.name
     in
-      FunctionCtxData { add_simps = add_simps, case_names = case_names,
-                      fs = map term fs, R = term R, psimps = fact psimps, 
-                      pinducts = fact pinducts, termination = thm termination,
-                      defname = name defname }
+      { add_simps = add_simps, case_names = case_names,
+        fs = map term fs, R = term R, psimps = fact psimps, 
+        pinducts = fact pinducts, termination = thm termination,
+        defname = name defname, is_partial=is_partial }
     end
 
 structure FunctionData = Generic_Data
 (
-  type T = (term * function_context_data) Item_Net.T;
+  type T = (term * info) Item_Net.T;
   val empty : T = Item_Net.init (op aconv o pairself fst) (single o fst);
   val extend = I;
   fun merge tabs : T = Item_Net.merge tabs;
@@ -135,7 +155,7 @@ fun import_last_function ctxt =
 
 val all_function_data = Item_Net.content o get_function
 
-fun add_function_data (data as FunctionCtxData {fs, termination, ...}) =
+fun add_function_data (data : info as {fs, termination, ...}) =
     FunctionData.map (fold (fn f => Item_Net.update (f, data)) fs)
     #> store_termination_rule termination
 

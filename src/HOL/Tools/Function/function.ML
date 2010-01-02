@@ -7,6 +7,8 @@ Isar commands.
 
 signature FUNCTION =
 sig
+    include FUNCTION_DATA
+
     val add_function :  (binding * typ option * mixfix) list
                        -> (Attrib.binding * term) list
                        -> Function_Common.function_config
@@ -23,6 +25,8 @@ sig
 
     val setup : theory -> theory
     val get_congs : Proof.context -> thm list
+
+    val get_info : Proof.context -> term -> info
 end
 
 
@@ -105,15 +109,16 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config lth
                    [Attrib.internal (K (Rule_Cases.case_names cnames))]), [cases]))
             ||> fold_option (snd oo curry Local_Theory.note (qualify "domintros", [])) domintros
 
-          val cdata = FunctionCtxData { add_simps=addsmps, case_names=cnames, psimps=psimps',
-                                      pinducts=snd pinducts', termination=termination',
-                                      fs=fs, R=R, defname=defname }
+          val info = { add_simps=addsmps, case_names=cnames, psimps=psimps',
+            pinducts=snd pinducts', termination=termination', fs=fs, R=R,
+            defname=defname, is_partial=true }
+
           val _ =
             if not is_external then ()
             else Specification.print_consts lthy (K false) (map fst fixes)
         in
           lthy
-          |> Local_Theory.declaration false (add_function_data o morph_function_data cdata)
+          |> Local_Theory.declaration false (add_function_data o morph_function_data info)
         end
     in
       lthy
@@ -127,14 +132,14 @@ val add_function_cmd = gen_add_function true Specification.read_spec "_::type"
 fun gen_termination_proof prep_term raw_term_opt lthy =
     let
       val term_opt = Option.map (prep_term lthy) raw_term_opt
-      val data = the (case term_opt of
+      val info = the (case term_opt of
                         SOME t => (import_function_data t lthy
                           handle Option.Option =>
                             error ("Not a function: " ^ quote (Syntax.string_of_term lthy t)))
                       | NONE => (import_last_function lthy handle Option.Option => error "Not a function"))
 
-        val FunctionCtxData { termination, R, add_simps, case_names, psimps,
-                            pinducts, defname, ...} = data
+        val { termination, fs, R, add_simps, case_names, psimps,
+          pinducts, defname, ...} = info
         val domT = domain_type (fastype_of R)
         val goal = HOLogic.mk_Trueprop
                      (HOLogic.mk_all ("x", domT, mk_acc domT R $ Free ("x", domT)))
@@ -145,6 +150,10 @@ fun gen_termination_proof prep_term raw_term_opt lthy =
               full_simplify (HOL_basic_ss addsimps [totality, True_implies_equals])
             val tsimps = map remove_domain_condition psimps
             val tinduct = map remove_domain_condition pinducts
+
+            val info' = { is_partial=false, defname=defname, add_simps=add_simps,
+              case_names=case_names, fs=fs, R=R, psimps=psimps, pinducts=pinducts,
+              termination=termination }
             fun qualify n = Binding.name n
               |> Binding.qualify true defname
           in
@@ -154,6 +163,7 @@ fun gen_termination_proof prep_term raw_term_opt lthy =
                ((qualify "induct",
                  [Attrib.internal (K (Rule_Cases.case_names case_names))]),
                 tinduct) |> snd
+            |> Local_Theory.declaration false (add_function_data o morph_function_data info')
           end
     in
       lthy
@@ -196,6 +206,8 @@ val setup =
 
 val get_congs = Function_Ctx_Tree.get_function_congs
 
+fun get_info ctxt t = Item_Net.retrieve (get_function ctxt) t
+  |> the_single |> snd
 
 (* outer syntax *)
 
