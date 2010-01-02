@@ -7,26 +7,23 @@ Isar commands.
 
 signature FUNCTION =
 sig
-    include FUNCTION_DATA
+  include FUNCTION_DATA
 
-    val add_function :  (binding * typ option * mixfix) list
-                       -> (Attrib.binding * term) list
-                       -> Function_Common.function_config
-                       -> local_theory
-                       -> Proof.state
-    val add_function_cmd :  (binding * string option * mixfix) list
-                      -> (Attrib.binding * string) list
-                      -> Function_Common.function_config
-                      -> local_theory
-                      -> Proof.state
+  val add_function: (binding * typ option * mixfix) list ->
+    (Attrib.binding * term) list -> Function_Common.function_config ->
+    local_theory -> Proof.state
 
-    val termination_proof : term option -> local_theory -> Proof.state
-    val termination_proof_cmd : string option -> local_theory -> Proof.state
+  val add_function_cmd: (binding * string option * mixfix) list ->
+    (Attrib.binding * string) list -> Function_Common.function_config ->
+    local_theory -> Proof.state
 
-    val setup : theory -> theory
-    val get_congs : Proof.context -> thm list
+  val termination_proof : term option -> local_theory -> Proof.state
+  val termination_proof_cmd : string option -> local_theory -> Proof.state
 
-    val get_info : Proof.context -> term -> info
+  val setup : theory -> theory
+  val get_congs : Proof.context -> thm list
+
+  val get_info : Proof.context -> term -> info
 end
 
 
@@ -37,148 +34,149 @@ open Function_Lib
 open Function_Common
 
 val simp_attribs = map (Attrib.internal o K)
-    [Simplifier.simp_add,
-     Code.add_default_eqn_attribute,
-     Nitpick_Simps.add]
+  [Simplifier.simp_add,
+   Code.add_default_eqn_attribute,
+   Nitpick_Simps.add]
 
 val psimp_attribs = map (Attrib.internal o K)
-    [Simplifier.simp_add,
-     Nitpick_Psimps.add]
+  [Simplifier.simp_add,
+   Nitpick_Psimps.add]
 
 fun mk_defname fixes = fixes |> map (fst o fst) |> space_implode "_"
 
-fun add_simps fnames post sort extra_qualify label mod_binding moreatts simps lthy =
-    let
-      val spec = post simps
-                   |> map (apfst (apsnd (fn ats => moreatts @ ats)))
-                   |> map (apfst (apfst extra_qualify))
+fun add_simps fnames post sort extra_qualify label mod_binding moreatts
+  simps lthy =
+  let
+    val spec = post simps
+      |> map (apfst (apsnd (fn ats => moreatts @ ats)))
+      |> map (apfst (apfst extra_qualify))
 
-      val (saved_spec_simps, lthy) =
-        fold_map Local_Theory.note spec lthy
+    val (saved_spec_simps, lthy) =
+      fold_map Local_Theory.note spec lthy
 
-      val saved_simps = maps snd saved_spec_simps
-      val simps_by_f = sort saved_simps
+    val saved_simps = maps snd saved_spec_simps
+    val simps_by_f = sort saved_simps
 
-      fun add_for_f fname simps =
-        Local_Theory.note
-          ((mod_binding (Binding.qualify true fname (Binding.name label)), []), simps)
-        #> snd
-    in
-      (saved_simps,
-       fold2 add_for_f fnames simps_by_f lthy)
-    end
+    fun add_for_f fname simps =
+      Local_Theory.note
+        ((mod_binding (Binding.qualify true fname (Binding.name label)), []), simps)
+      #> snd
+  in
+    (saved_simps, fold2 add_for_f fnames simps_by_f lthy)
+  end
 
 fun gen_add_function is_external prep default_constraint fixspec eqns config lthy =
-    let
-      val constrn_fxs = map (fn (b, T, mx) => (b, SOME (the_default default_constraint T), mx))
-      val ((fixes0, spec0), ctxt') = prep (constrn_fxs fixspec) eqns lthy
-      val fixes = map (apfst (apfst Binding.name_of)) fixes0;
-      val spec = map (fn (bnd, prop) => (bnd, [prop])) spec0;
-      val (eqs, post, sort_cont, cnames) = get_preproc lthy config ctxt' fixes spec
+  let
+    val constrn_fxs = map (fn (b, T, mx) => (b, SOME (the_default default_constraint T), mx))
+    val ((fixes0, spec0), ctxt') = prep (constrn_fxs fixspec) eqns lthy
+    val fixes = map (apfst (apfst Binding.name_of)) fixes0;
+    val spec = map (fn (bnd, prop) => (bnd, [prop])) spec0;
+    val (eqs, post, sort_cont, cnames) = get_preproc lthy config ctxt' fixes spec
 
-      val defname = mk_defname fixes
-      val FunctionConfig {partials, ...} = config
+    val defname = mk_defname fixes
+    val FunctionConfig {partials, ...} = config
 
-      val ((goalstate, cont), lthy) =
-          Function_Mutual.prepare_function_mutual config defname fixes eqs lthy
+    val ((goalstate, cont), lthy) =
+      Function_Mutual.prepare_function_mutual config defname fixes eqs lthy
 
-      fun afterqed [[proof]] lthy =
-        let
-          val FunctionResult {fs, R, psimps, trsimps,  simple_pinducts, termination,
-                            domintros, cases, ...} =
+    fun afterqed [[proof]] lthy =
+      let
+        val FunctionResult {fs, R, psimps, trsimps,  simple_pinducts,
+          termination, domintros, cases, ...} =
           cont (Thm.close_derivation proof)
 
-          val fnames = map (fst o fst) fixes
-          fun qualify n = Binding.name n
-            |> Binding.qualify true defname
-          val conceal_partial = if partials then I else Binding.conceal
+        val fnames = map (fst o fst) fixes
+        fun qualify n = Binding.name n
+          |> Binding.qualify true defname
+        val conceal_partial = if partials then I else Binding.conceal
 
-          val addsmps = add_simps fnames post sort_cont
+        val addsmps = add_simps fnames post sort_cont
 
-          val (((psimps', pinducts'), (_, [termination'])), lthy) =
-            lthy
-            |> addsmps (conceal_partial o Binding.qualify false "partial")
-                 "psimps" conceal_partial psimp_attribs psimps
-            ||> fold_option (snd oo addsmps I "simps" I simp_attribs) trsimps
-            ||>> Local_Theory.note ((conceal_partial (qualify "pinduct"),
-                   [Attrib.internal (K (Rule_Cases.case_names cnames)),
-                    Attrib.internal (K (Rule_Cases.consumes 1)),
-                    Attrib.internal (K (Induct.induct_pred ""))]), simple_pinducts)
-            ||>> Local_Theory.note ((Binding.conceal (qualify "termination"), []), [termination])
-            ||> (snd o Local_Theory.note ((qualify "cases",
-                   [Attrib.internal (K (Rule_Cases.case_names cnames))]), [cases]))
-            ||> fold_option (snd oo curry Local_Theory.note (qualify "domintros", [])) domintros
-
-          val info = { add_simps=addsmps, case_names=cnames, psimps=psimps',
-            pinducts=snd pinducts', simps=NONE, inducts=NONE, termination=termination',
-            fs=fs, R=R, defname=defname, is_partial=true }
-
-          val _ =
-            if not is_external then ()
-            else Specification.print_consts lthy (K false) (map fst fixes)
-        in
+        val (((psimps', pinducts'), (_, [termination'])), lthy) =
           lthy
-          |> Local_Theory.declaration false (add_function_data o morph_function_data info)
-        end
-    in
-      lthy
-        |> Proof.theorem_i NONE afterqed [[(Logic.unprotect (concl_of goalstate), [])]]
-        |> Proof.refine (Method.primitive_text (fn _ => goalstate)) |> Seq.hd
-    end
+          |> addsmps (conceal_partial o Binding.qualify false "partial")
+               "psimps" conceal_partial psimp_attribs psimps
+          ||> fold_option (snd oo addsmps I "simps" I simp_attribs) trsimps
+          ||>> Local_Theory.note ((conceal_partial (qualify "pinduct"),
+                 [Attrib.internal (K (Rule_Cases.case_names cnames)),
+                  Attrib.internal (K (Rule_Cases.consumes 1)),
+                  Attrib.internal (K (Induct.induct_pred ""))]), simple_pinducts)
+          ||>> Local_Theory.note ((Binding.conceal (qualify "termination"), []), [termination])
+          ||> (snd o Local_Theory.note ((qualify "cases",
+                 [Attrib.internal (K (Rule_Cases.case_names cnames))]), [cases]))
+          ||> fold_option (snd oo curry Local_Theory.note (qualify "domintros", [])) domintros
 
-val add_function = gen_add_function false Specification.check_spec (TypeInfer.anyT HOLogic.typeS)
+        val info = { add_simps=addsmps, case_names=cnames, psimps=psimps',
+          pinducts=snd pinducts', simps=NONE, inducts=NONE, termination=termination',
+          fs=fs, R=R, defname=defname, is_partial=true }
+
+        val _ =
+          if not is_external then ()
+          else Specification.print_consts lthy (K false) (map fst fixes)
+      in
+        lthy
+        |> Local_Theory.declaration false (add_function_data o morph_function_data info)
+      end
+  in
+    lthy
+    |> Proof.theorem_i NONE afterqed [[(Logic.unprotect (concl_of goalstate), [])]]
+    |> Proof.refine (Method.primitive_text (fn _ => goalstate)) |> Seq.hd
+  end
+
+val add_function =
+  gen_add_function false Specification.check_spec (TypeInfer.anyT HOLogic.typeS)
 val add_function_cmd = gen_add_function true Specification.read_spec "_::type"
 
 fun gen_termination_proof prep_term raw_term_opt lthy =
-    let
-      val term_opt = Option.map (prep_term lthy) raw_term_opt
-      val info = the (case term_opt of
-                        SOME t => (import_function_data t lthy
-                          handle Option.Option =>
-                            error ("Not a function: " ^ quote (Syntax.string_of_term lthy t)))
-                      | NONE => (import_last_function lthy handle Option.Option => error "Not a function"))
+  let
+    val term_opt = Option.map (prep_term lthy) raw_term_opt
+    val info = the (case term_opt of
+                      SOME t => (import_function_data t lthy
+                        handle Option.Option =>
+                          error ("Not a function: " ^ quote (Syntax.string_of_term lthy t)))
+                    | NONE => (import_last_function lthy handle Option.Option => error "Not a function"))
 
-        val { termination, fs, R, add_simps, case_names, psimps,
-          pinducts, defname, ...} = info
-        val domT = domain_type (fastype_of R)
-        val goal = HOLogic.mk_Trueprop
-                     (HOLogic.mk_all ("x", domT, mk_acc domT R $ Free ("x", domT)))
-        fun afterqed [[totality]] lthy =
-          let
-            val totality = Thm.close_derivation totality
-            val remove_domain_condition =
-              full_simplify (HOL_basic_ss addsimps [totality, True_implies_equals])
-            val tsimps = map remove_domain_condition psimps
-            val tinduct = map remove_domain_condition pinducts
+      val { termination, fs, R, add_simps, case_names, psimps,
+        pinducts, defname, ...} = info
+      val domT = domain_type (fastype_of R)
+      val goal = HOLogic.mk_Trueprop
+                   (HOLogic.mk_all ("x", domT, mk_acc domT R $ Free ("x", domT)))
+      fun afterqed [[totality]] lthy =
+        let
+          val totality = Thm.close_derivation totality
+          val remove_domain_condition =
+            full_simplify (HOL_basic_ss addsimps [totality, True_implies_equals])
+          val tsimps = map remove_domain_condition psimps
+          val tinduct = map remove_domain_condition pinducts
 
-            fun qualify n = Binding.name n
-              |> Binding.qualify true defname
-          in
-            lthy
-            |> add_simps I "simps" I simp_attribs tsimps
-            ||>> Local_Theory.note
-               ((qualify "induct",
-                 [Attrib.internal (K (Rule_Cases.case_names case_names))]),
-                tinduct)
-            |-> (fn (simps, (_, inducts)) =>
-              let val info' = { is_partial=false, defname=defname, add_simps=add_simps,
-                case_names=case_names, fs=fs, R=R, psimps=psimps, pinducts=pinducts,
-                simps=SOME simps, inducts=SOME inducts, termination=termination }
-              in
-                Local_Theory.declaration false (add_function_data o morph_function_data info')
-              end)
-          end
-    in
-      lthy
-      |> ProofContext.note_thmss ""
-         [((Binding.empty, [Context_Rules.rule_del]), [([allI], [])])] |> snd
-      |> ProofContext.note_thmss ""
-         [((Binding.empty, [Context_Rules.intro_bang (SOME 1)]), [([allI], [])])] |> snd
-      |> ProofContext.note_thmss ""
-         [((Binding.name "termination", [Context_Rules.intro_bang (SOME 0)]),
-           [([Goal.norm_result termination], [])])] |> snd
-      |> Proof.theorem_i NONE afterqed [[(goal, [])]]
-    end
+          fun qualify n = Binding.name n
+            |> Binding.qualify true defname
+        in
+          lthy
+          |> add_simps I "simps" I simp_attribs tsimps
+          ||>> Local_Theory.note
+             ((qualify "induct",
+               [Attrib.internal (K (Rule_Cases.case_names case_names))]),
+              tinduct)
+          |-> (fn (simps, (_, inducts)) =>
+            let val info' = { is_partial=false, defname=defname, add_simps=add_simps,
+              case_names=case_names, fs=fs, R=R, psimps=psimps, pinducts=pinducts,
+              simps=SOME simps, inducts=SOME inducts, termination=termination }
+            in
+              Local_Theory.declaration false (add_function_data o morph_function_data info')
+            end)
+        end
+  in
+    lthy
+    |> ProofContext.note_thmss ""
+       [((Binding.empty, [Context_Rules.rule_del]), [([allI], [])])] |> snd
+    |> ProofContext.note_thmss ""
+       [((Binding.empty, [Context_Rules.intro_bang (SOME 1)]), [([allI], [])])] |> snd
+    |> ProofContext.note_thmss ""
+       [((Binding.name "termination", [Context_Rules.intro_bang (SOME 0)]),
+         [([Goal.norm_result termination], [])])] |> snd
+    |> Proof.theorem_i NONE afterqed [[(goal, [])]]
+  end
 
 val termination_proof = gen_termination_proof Syntax.check_term
 val termination_proof_cmd = gen_termination_proof Syntax.read_term
@@ -188,11 +186,13 @@ val termination_proof_cmd = gen_termination_proof Syntax.read_term
 
 
 fun add_case_cong n thy =
-    Context.theory_map (Function_Ctx_Tree.map_function_congs (Thm.add_thm
-                          (Datatype.the_info thy n
-                           |> #case_cong
-                           |> safe_mk_meta_eq)))
-                       thy
+  let
+    val cong = #case_cong (Datatype.the_info thy n)
+      |> safe_mk_meta_eq
+  in
+    Context.theory_map
+      (Function_Ctx_Tree.map_function_congs (Thm.add_thm cong)) thy
+  end
 
 val setup_case_cong = Datatype.interpretation (K (fold add_case_cong))
 

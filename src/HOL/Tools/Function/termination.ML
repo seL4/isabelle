@@ -245,66 +245,65 @@ fun TERMINATION ctxt tac =
 (* A tactic to convert open to closed termination goals *)
 local
 fun dest_term (t : term) = (* FIXME, cf. Lexicographic order *)
-    let
-      val (vars, prop) = Function_Lib.dest_all_all t
-      val (prems, concl) = Logic.strip_horn prop
-      val (lhs, rhs) = concl
-                         |> HOLogic.dest_Trueprop
-                         |> HOLogic.dest_mem |> fst
-                         |> HOLogic.dest_prod
-    in
-      (vars, prems, lhs, rhs)
-    end
+  let
+    val (vars, prop) = Function_Lib.dest_all_all t
+    val (prems, concl) = Logic.strip_horn prop
+    val (lhs, rhs) = concl
+      |> HOLogic.dest_Trueprop
+      |> HOLogic.dest_mem |> fst
+      |> HOLogic.dest_prod
+  in
+    (vars, prems, lhs, rhs)
+  end
 
 fun mk_pair_compr (T, qs, l, r, conds) =
-    let
-      val pT = HOLogic.mk_prodT (T, T)
-      val n = length qs
-      val peq = HOLogic.eq_const pT $ Bound n $ (HOLogic.pair_const T T $ l $ r)
-      val conds' = if null conds then [HOLogic.true_const] else conds
-    in
-      HOLogic.Collect_const pT $
-      Abs ("uu_", pT,
-           (foldr1 HOLogic.mk_conj (peq :: conds')
-            |> fold_rev (fn v => fn t => HOLogic.exists_const (fastype_of v) $ lambda v t) qs))
-    end
+  let
+    val pT = HOLogic.mk_prodT (T, T)
+    val n = length qs
+    val peq = HOLogic.eq_const pT $ Bound n $ (HOLogic.pair_const T T $ l $ r)
+    val conds' = if null conds then [HOLogic.true_const] else conds
+  in
+    HOLogic.Collect_const pT $
+    Abs ("uu_", pT,
+      (foldr1 HOLogic.mk_conj (peq :: conds')
+      |> fold_rev (fn v => fn t => HOLogic.exists_const (fastype_of v) $ lambda v t) qs))
+  end
 
 in
 
 fun wf_union_tac ctxt st =
-    let
-      val thy = ProofContext.theory_of ctxt
-      val cert = cterm_of (theory_of_thm st)
-      val ((_ $ (_ $ rel)) :: ineqs) = prems_of st
+  let
+    val thy = ProofContext.theory_of ctxt
+    val cert = cterm_of (theory_of_thm st)
+    val ((_ $ (_ $ rel)) :: ineqs) = prems_of st
 
-      fun mk_compr ineq =
-          let
-            val (vars, prems, lhs, rhs) = dest_term ineq
-          in
-            mk_pair_compr (fastype_of lhs, vars, lhs, rhs, map (ObjectLogic.atomize_term thy) prems)
-          end
+    fun mk_compr ineq =
+      let
+        val (vars, prems, lhs, rhs) = dest_term ineq
+      in
+        mk_pair_compr (fastype_of lhs, vars, lhs, rhs, map (ObjectLogic.atomize_term thy) prems)
+      end
 
-      val relation =
-          if null ineqs then
-              Const (@{const_name Set.empty}, fastype_of rel)
-          else
-              foldr1 (HOLogic.mk_binop @{const_name Lattices.sup}) (map mk_compr ineqs)
+    val relation =
+      if null ineqs
+      then Const (@{const_name Set.empty}, fastype_of rel)
+      else map mk_compr ineqs
+        |> foldr1 (HOLogic.mk_binop @{const_name Lattices.sup})
 
-      fun solve_membership_tac i =
-          (EVERY' (replicate (i - 2) (rtac @{thm UnI2}))  (* pick the right component of the union *)
-          THEN' (fn j => TRY (rtac @{thm UnI1} j))
-          THEN' (rtac @{thm CollectI})                    (* unfold comprehension *)
-          THEN' (fn i => REPEAT (rtac @{thm exI} i))      (* Turn existentials into schematic Vars *)
-          THEN' ((rtac @{thm refl})                       (* unification instantiates all Vars *)
-                 ORELSE' ((rtac @{thm conjI})
-                          THEN' (rtac @{thm refl})
-                          THEN' (blast_tac (claset_of ctxt))))  (* Solve rest of context... not very elegant *)
-          ) i
-    in
-      ((PRIMITIVE (Drule.cterm_instantiate [(cert rel, cert relation)])
-      THEN ALLGOALS (fn i => if i = 1 then all_tac else solve_membership_tac i))) st
-    end
-
+    fun solve_membership_tac i =
+      (EVERY' (replicate (i - 2) (rtac @{thm UnI2}))  (* pick the right component of the union *)
+      THEN' (fn j => TRY (rtac @{thm UnI1} j))
+      THEN' (rtac @{thm CollectI})                    (* unfold comprehension *)
+      THEN' (fn i => REPEAT (rtac @{thm exI} i))      (* Turn existentials into schematic Vars *)
+      THEN' ((rtac @{thm refl})                       (* unification instantiates all Vars *)
+        ORELSE' ((rtac @{thm conjI})
+          THEN' (rtac @{thm refl})
+          THEN' (blast_tac (claset_of ctxt))))  (* Solve rest of context... not very elegant *)
+      ) i
+  in
+    ((PRIMITIVE (Drule.cterm_instantiate [(cert rel, cert relation)])
+     THEN ALLGOALS (fn i => if i = 1 then all_tac else solve_membership_tac i))) st
+  end
 
 end
 
@@ -332,67 +331,65 @@ fun prove_chain thy chain_tac c1 c2 =
 
 fun derive_chains ctxt chain_tac cont D = CALLS (fn (cs, i) =>
   let
-      val thy = ProofContext.theory_of ctxt
+    val thy = ProofContext.theory_of ctxt
 
-      fun derive_chain c1 c2 D =
-        if is_some (get_chain D c1 c2) then D else
-        note_chain c1 c2 (prove_chain thy chain_tac c1 c2) D
+    fun derive_chain c1 c2 D =
+      if is_some (get_chain D c1 c2) then D else
+      note_chain c1 c2 (prove_chain thy chain_tac c1 c2) D
   in
     cont (fold_product derive_chain cs cs D) i
   end)
 
 
 fun mk_dgraph D cs =
-    TermGraph.empty
-    |> fold (fn c => TermGraph.new_node (c,())) cs
-    |> fold_product (fn c1 => fn c2 =>
-         if is_none (get_chain D c1 c2 |> the_default NONE)
-         then TermGraph.add_edge (c1, c2) else I)
-       cs cs
-
+  TermGraph.empty
+  |> fold (fn c => TermGraph.new_node (c,())) cs
+  |> fold_product (fn c1 => fn c2 =>
+     if is_none (get_chain D c1 c2 |> the_default NONE)
+     then TermGraph.add_edge (c1, c2) else I)
+     cs cs
 
 fun ucomp_empty_tac T =
-    REPEAT_ALL_NEW (rtac @{thm union_comp_emptyR}
-                    ORELSE' rtac @{thm union_comp_emptyL}
-                    ORELSE' SUBGOAL (fn (_ $ (_ $ (_ $ c1 $ c2) $ _), i) => rtac (T c1 c2) i))
+  REPEAT_ALL_NEW (rtac @{thm union_comp_emptyR}
+    ORELSE' rtac @{thm union_comp_emptyL}
+    ORELSE' SUBGOAL (fn (_ $ (_ $ (_ $ c1 $ c2) $ _), i) => rtac (T c1 c2) i))
 
 fun regroup_calls_tac cs = CALLS (fn (cs', i) =>
-   let
-     val is = map (fn c => find_index (curry op aconv c) cs') cs
-   in
-     CONVERSION (Conv.arg_conv (Conv.arg_conv (Function_Lib.regroup_union_conv is))) i
-   end)
+ let
+   val is = map (fn c => find_index (curry op aconv c) cs') cs
+ in
+   CONVERSION (Conv.arg_conv (Conv.arg_conv
+     (Function_Lib.regroup_union_conv is))) i
+ end)
 
 
-fun solve_trivial_tac D = CALLS
-(fn ([c], i) =>
-    (case get_chain D c c of
-       SOME (SOME thm) => rtac @{thm wf_no_loop} i
-                          THEN rtac thm i
-     | _ => no_tac)
+fun solve_trivial_tac D = CALLS (fn ([c], i) =>
+  (case get_chain D c c of
+     SOME (SOME thm) => rtac @{thm wf_no_loop} i
+                        THEN rtac thm i
+   | _ => no_tac)
   | _ => no_tac)
 
 fun decompose_tac' cont err_cont D = CALLS (fn (cs, i) =>
-    let
-      val G = mk_dgraph D cs
-      val sccs = TermGraph.strong_conn G
+  let
+    val G = mk_dgraph D cs
+    val sccs = TermGraph.strong_conn G
 
-      fun split [SCC] i = (solve_trivial_tac D i ORELSE cont D i)
-        | split (SCC::rest) i =
-            regroup_calls_tac SCC i
-            THEN rtac @{thm wf_union_compatible} i
-            THEN rtac @{thm less_by_empty} (i + 2)
-            THEN ucomp_empty_tac (the o the oo get_chain D) (i + 2)
-            THEN split rest (i + 1)
-            THEN (solve_trivial_tac D i ORELSE cont D i)
-    in
-      if length sccs > 1 then split sccs i
-      else solve_trivial_tac D i ORELSE err_cont D i
-    end)
+    fun split [SCC] i = (solve_trivial_tac D i ORELSE cont D i)
+      | split (SCC::rest) i =
+        regroup_calls_tac SCC i
+        THEN rtac @{thm wf_union_compatible} i
+        THEN rtac @{thm less_by_empty} (i + 2)
+        THEN ucomp_empty_tac (the o the oo get_chain D) (i + 2)
+        THEN split rest (i + 1)
+        THEN (solve_trivial_tac D i ORELSE cont D i)
+  in
+    if length sccs > 1 then split sccs i
+    else solve_trivial_tac D i ORELSE err_cont D i
+  end)
 
 fun decompose_tac ctxt chain_tac cont err_cont =
-    derive_chains ctxt chain_tac
-    (decompose_tac' cont err_cont)
+  derive_chains ctxt chain_tac (decompose_tac' cont err_cont)
 
 
 (*** Local Descent Proofs ***)
