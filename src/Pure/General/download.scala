@@ -7,7 +7,8 @@ Download URLs -- with progress monitor.
 package isabelle
 
 
-import java.io.{BufferedInputStream, BufferedOutputStream, FileOutputStream, File}
+import java.io.{BufferedInputStream, BufferedOutputStream, FileOutputStream,
+  File, InterruptedIOException}
 import java.net.{URL, URLConnection}
 import java.awt.{Component, HeadlessException}
 import javax.swing.ProgressMonitorInputStream
@@ -29,20 +30,24 @@ object Download
     (connection, new BufferedInputStream(stream))
   }
 
-  // FIXME error handling (dialogs)
-  def file(parent: Component, url: URL, file: File): Boolean =
+  def file(parent: Component, url: URL, file: File)
   {
-    val outstream = new BufferedOutputStream(new FileOutputStream(file))
-
     val (connection, instream) = stream(parent, url)
     val mod_time = connection.getLastModified
 
-    var c: Int = 0
-    while ({ c = instream.read; c != -1}) outstream.write(c)
-
-    instream.close
-    outstream.close
-    file.setLastModified(mod_time)
+    def read() =
+      try { instream.read }
+      catch { case _ : InterruptedIOException => error("Download canceled!") }
+    try {
+      val outstream = new BufferedOutputStream(new FileOutputStream(file))
+      try {
+        var c: Int = 0
+        while ({ c = read(); c != -1}) outstream.write(c)
+      }
+      finally { outstream.close }
+      if (mod_time > 0) file.setLastModified(mod_time)
+    }
+    finally { instream.close }
   }
 }
 
