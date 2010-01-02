@@ -194,32 +194,36 @@ fun dest_call D (Const (@{const_name Collect}, _) $ Abs (_, _, c)) =
   | dest_call D t = error "dest_call"
 
 
-fun derive_desc_aux thy tac c (vs, _, l', _, r', Gam) m1 m2 D =
-  case get_descent D c m1 m2 of
-    SOME _ => D
-  | NONE => let
-    fun cgoal rel =
-      Term.list_all (vs,
-        Logic.mk_implies (HOLogic.mk_Trueprop Gam,
-          HOLogic.mk_Trueprop (Const (rel, @{typ "nat => nat => bool"})
-            $ (m2 $ r') $ (m1 $ l'))))
-      |> cterm_of thy
-    in
-      note_descent c m1 m2
-        (case try_proof (cgoal @{const_name HOL.less}) tac of
-           Solved thm => Less thm
-         | Stuck thm =>
-           (case try_proof (cgoal @{const_name HOL.less_eq}) tac of
-              Solved thm2 => LessEq (thm2, thm)
-            | Stuck thm2 =>
-              if prems_of thm2 = [HOLogic.Trueprop $ HOLogic.false_const]
-              then False thm2 else None (thm2, thm)
-            | _ => raise Match) (* FIXME *)
-         | _ => raise Match) D
-      end
+fun mk_desc thy tac vs Gam l r m1 m2 =
+  let
+    fun try rel =
+      try_proof (cterm_of thy
+        (Term.list_all (vs,
+           Logic.mk_implies (HOLogic.mk_Trueprop Gam,
+             HOLogic.mk_Trueprop (Const (rel, @{typ "nat => nat => bool"})
+               $ (m2 $ r) $ (m1 $ l)))))) tac
+  in
+    case try @{const_name HOL.less} of
+       Solved thm => Less thm
+     | Stuck thm =>
+       (case try @{const_name HOL.less_eq} of
+          Solved thm2 => LessEq (thm2, thm)
+        | Stuck thm2 =>
+          if prems_of thm2 = [HOLogic.Trueprop $ HOLogic.false_const]
+          then False thm2 else None (thm2, thm)
+        | _ => raise Match) (* FIXME *)
+     | _ => raise Match
+end
 
 fun derive_descent thy tac c m1 m2 D =
-  derive_desc_aux thy tac c (dest_call D c) m1 m2 D
+  case get_descent D c m1 m2 of
+    SOME _ => D
+  | NONE => 
+    let
+      val (vs, _, l, _, r, Gam) = dest_call D c
+    in 
+      note_descent c m1 m2 (mk_desc thy tac vs Gam l r m1 m2) D
+    end
 
 fun CALLS tac i st =
   if Thm.no_prems st then all_tac st
