@@ -29,8 +29,8 @@ object Download
     (connection, new BufferedInputStream(stream))
   }
 
-  // FIXME error handling
-  def file(parent: Component, url: URL, file: File)
+  // FIXME error handling (dialogs)
+  def file(parent: Component, url: URL, file: File): Boolean =
   {
     val outstream = new BufferedOutputStream(new FileOutputStream(file))
 

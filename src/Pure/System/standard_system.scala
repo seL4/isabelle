@@ -101,12 +101,13 @@ object Standard_System
 
   /* shell processes */
 
-  def raw_execute(env: Map[String, String], redirect: Boolean, args: String*): Process =
+  def raw_execute(cwd: File, env: Map[String, String], redirect: Boolean, args: String*): Process =
   {
     val cmdline = new java.util.LinkedList[String]
     for (s <- args) cmdline.add(s)
 
     val proc = new ProcessBuilder(cmdline)
+    if (cwd != null) proc.directory(cwd)
     if (env != null) {
       proc.environment.clear
       for ((x, y) <- env) proc.environment.put(x, y)

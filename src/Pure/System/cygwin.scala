@@ -8,6 +8,8 @@ package isabelle
 
 import java.lang.reflect.Method
 import java.io.File
+import java.net.URL
+import java.awt.Component
 
 
 object Cygwin
@@ -95,13 +97,23 @@ object Cygwin
     root
   }
 
-  def setup(exe: String, root: String): Int =
+  // FIXME error handling (dialogs)
+  def setup(parent: Component, root: File)
   {
-    val (output, rc) = Standard_System.process_output(
-    	Standard_System.raw_execute(null, true, exe, "-R", root, "-P", "perl,python", "-q", "-n"))
-    val root_dir = new File(root)
-    if (root_dir.isDirectory) Standard_System.write_file(new File(root, "setup.log"), output)
-    rc
+    if (!root.mkdirs) error("Failed to create root directory: " + root)
+
+    val download = new File(root, "download")
+    if (!download.mkdir) error("Failed to create download directory: " + download)
+
+    val setup_exe = new File(root, "setup.exe")
+    if (!Download.file(parent, new URL("http://www.cygwin.com/setup.exe"), setup_exe))
+      error("Failed to download Cygwin setup program")
+
+    val (_, rc) = Standard_System.process_output(
+    	Standard_System.raw_execute(root, null, true,
+    	  setup_exe.toString, "-R", root.toString, "-l", download.toString,
+    	    "-P", "perl,python", "-q", "-n"))
+    if (rc != 0) error("Cygwin setup failed!")
   }
 }
 
