@@ -210,14 +210,14 @@ proof -
   let ?phi  = "map OK phi"
   let ?cert = "make_cert ?step ?phi (OK None)"
 
-  from wt obtain 
+  from wt have
     0:          "0 < length ins" and
     length:     "length ins = length ?phi" and
     ck_bounded: "check_bounded ins et" and
     ck_types:   "check_types G mxs ?mxr ?phi" and
     wt_start:   "wt_start G C pTs mxl phi" and
     app_eff:    "wt_app_eff (sup_state_opt G) ?app ?eff phi"
-    by (simp (asm_lr) add: wt_method_def2)
+    by (simp_all add: wt_method_def2)
   
   have "semilat (JVMType.sl G mxs ?mxr)" 
     by (rule semilat_JVM_slI) (rule wf_prog_ws_prog [OF wf])
