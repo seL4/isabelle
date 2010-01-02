@@ -2322,7 +2322,7 @@ declare TransferMorphism_int_nat [transfer add return:
 text{*Suggested by Matthias Daum*}
 lemma int_div_less_self: "\<lbrakk>0 < x; 1 < k\<rbrakk> \<Longrightarrow> x div k < (x::int)"
 apply (subgoal_tac "nat x div nat k < nat x")
- apply (simp (asm_lr) add: nat_div_distrib [symmetric])
+ apply (simp add: nat_div_distrib [symmetric])
 apply (rule Divides.div_less_dividend, simp_all)
 done
 
