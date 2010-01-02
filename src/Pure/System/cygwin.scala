@@ -8,6 +8,8 @@ package isabelle
 
 import java.lang.reflect.Method
 import java.io.File
+import java.net.URL
+import java.awt.Component
 
 
 object Cygwin
@@ -79,6 +81,14 @@ object Cygwin
   private val CYGWIN_SETUP1 = "Software\\Cygwin\\setup"
   private val CYGWIN_SETUP2 = "Software\\Wow6432Node\\Cygwin\\setup"
 
+  private def sanity_check(root: File)
+  {
+    if (!new File(root, "bin\\bash.exe").isFile ||
+        !new File(root, "bin\\env.exe").isFile ||
+        !new File(root, "bin\\tar.exe").isFile)
+      error("Bad Cygwin installation: " + root.toString)
+  }
+
   def check_root(): String =
   {
     val root_env = java.lang.System.getenv("CYGWIN_ROOT")
@@ -88,20 +98,29 @@ object Cygwin
         query_registry(CYGWIN_SETUP1, "rootdir") orElse
         query_registry(CYGWIN_SETUP2, "rootdir") getOrElse
         error("Failed to determine Cygwin installation -- version 1.7 required")
-    val ok =
-      new File(root + "\\bin\\bash.exe").isFile &&
-      new File(root + "\\bin\\env.exe").isFile
-    if (!ok) error("Bad Cygwin installation: " + root)
+    sanity_check(new File(root))
     root
   }
 
-  def setup(exe: String, root: String): Int =
+  def setup(parent: Component, root: File)
   {
-    val (output, rc) = Standard_System.process_output(
-    	Standard_System.raw_execute(null, true, exe, "-R", root, "-P", "perl,python", "-q", "-n"))
-    val root_dir = new File(root)
-    if (root_dir.isDirectory) Standard_System.write_file(new File(root, "setup.log"), output)
-    rc
+    if (!root.mkdirs) error("Failed to create root directory: " + root)
+
+    val download = new File(root, "download")
+    if (!download.mkdir) error("Failed to create download directory: " + download)
+
+    val setup_exe = new File(root, "setup.exe")
+
+    try { Download.file(parent, new URL("http://www.cygwin.com/setup.exe"), setup_exe) }
+    catch { case _: RuntimeException => error("Failed to download Cygwin setup program") }
+
+    val (_, rc) = Standard_System.process_output(
+    	Standard_System.raw_execute(root, null, true,
+    	  setup_exe.toString, "-R", root.toString, "-l", download.toString,
+    	    "-P", "perl,python", "-q", "-n"))
+    if (rc != 0) error("Cygwin setup failed!")
+
+    sanity_check(root)
   }
 }
 

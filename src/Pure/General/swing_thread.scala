@@ -10,8 +10,6 @@ package isabelle
 import javax.swing.{SwingUtilities, Timer}
 import java.awt.event.{ActionListener, ActionEvent}
 
-import scala.actors.{Future, Futures}
-
 
 object Swing_Thread
 {
@@ -31,8 +29,7 @@ object Swing_Thread
     result.get
   }
 
-  def future[A](body: => A): Future[A] =
-    Futures.future(now(body))
+  def future[A](body: => A): Future[A] = Future.fork { now(body) }
 
   def later(body: => Unit) {
     if (SwingUtilities.isEventDispatchThread()) body
