@@ -89,11 +89,10 @@ class Document_Model(val session: Session, val buffer: Buffer)
   def to_current(doc: Document, offset: Int): Int =
     (offset /: changes_from(doc)) ((i, change) => change after i)
 
-  def lines_of_command(cmd: Command): (Int, Int) =
+  def lines_of_command(doc: Document, cmd: Command): (Int, Int) =
   {
-    val document = recent_document()
-    (buffer.getLineOfOffset(to_current(document, cmd.start(document))),
-     buffer.getLineOfOffset(to_current(document, cmd.stop(document))))
+    (buffer.getLineOfOffset(to_current(doc, cmd.start(doc))),
+     buffer.getLineOfOffset(to_current(doc, cmd.stop(doc))))
   }
 
 

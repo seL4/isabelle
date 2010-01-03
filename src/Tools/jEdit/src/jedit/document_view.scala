@@ -74,6 +74,28 @@ class Document_View(model: Document_Model, text_area: TextArea)
   private val session = model.session
 
 
+  /* visible document -- owned by Swing thread */
+
+  @volatile private var document = model.recent_document()
+
+
+  /* buffer of changed commands -- owned by Swing thread */
+
+  @volatile private var changed_commands: Set[Command] = Set()
+
+  private val changed_delay = Swing_Thread.delay_first(100) {
+    if (!changed_commands.isEmpty) {
+      document = model.recent_document()
+      for (cmd <- changed_commands if document.commands.contains(cmd)) { // FIXME cover doc states as well!!?
+        update_syntax(cmd)
+        invalidate_line(cmd)
+        overview.repaint()
+      }
+      changed_commands = Set()
+    }
+  }
+
+
   /* command change actor */
 
   private case object Exit
@@ -81,13 +103,11 @@ class Document_View(model: Document_Model, text_area: TextArea)
   private val command_change_actor = actor {
     loop {
       react {
-        case command: Command =>
-          if (model.recent_document().commands.contains(command))
-            Swing_Thread.now {
-              update_syntax(command)
-              invalidate_line(command)
-              overview.repaint()
-            }
+        case command: Command =>  // FIXME rough filtering according to document family!?
+          Swing_Thread.now {
+            changed_commands += command
+            changed_delay()
+          }
 
         case Exit => reply(()); exit()
 
@@ -104,7 +124,6 @@ class Document_View(model: Document_Model, text_area: TextArea)
     override def paintValidLine(gfx: Graphics2D,
       screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int)
     {
-      val document = model.recent_document()
       def from_current(pos: Int) = model.from_current(document, pos)
       def to_current(pos: Int) = model.to_current(document, pos)
       val saved_color = gfx.getColor
@@ -127,7 +146,6 @@ class Document_View(model: Document_Model, text_area: TextArea)
 
     override def getToolTipText(x: Int, y: Int): String =
     {
-      val document = model.recent_document()
       val offset = model.from_current(document, text_area.xyToOffset(x, y))
       document.command_at(offset) match {
         case Some(cmd) =>
@@ -152,10 +170,9 @@ class Document_View(model: Document_Model, text_area: TextArea)
   private val caret_listener = new CaretListener
   {
     override def caretUpdate(e: CaretEvent) {
-      val doc = model.recent_document()
-      doc.command_at(e.getDot) match {
+      document.command_at(e.getDot) match {
         case Some(cmd)
-          if (doc.token_start(cmd.tokens.first) <= e.getDot &&
+          if (document.token_start(cmd.tokens.first) <= e.getDot &&
             selected_command != cmd) =>
           selected_command = cmd  // FIXME !?
         case _ =>
@@ -170,7 +187,7 @@ class Document_View(model: Document_Model, text_area: TextArea)
 
   private def update_syntax(cmd: Command)
   {
-    val (line1, line2) = model.lines_of_command(cmd)
+    val (line1, line2) = model.lines_of_command(document, cmd)
     if (line2 >= text_area.getFirstLine &&
       line1 <= text_area.getFirstLine + text_area.getVisibleLines)
         update_delay()
@@ -178,11 +195,11 @@ class Document_View(model: Document_Model, text_area: TextArea)
 
   private def invalidate_line(cmd: Command) =
   {
-    val (start, stop) = model.lines_of_command(cmd)
+    val (start, stop) = model.lines_of_command(document, cmd)
     text_area.invalidateLineRange(start, stop)
 
     if (selected_command == cmd)
-      selected_command = cmd
+      session.results.event(cmd)
   }
 
   private def invalidate_all() =
@@ -212,7 +229,7 @@ class Document_View(model: Document_Model, text_area: TextArea)
 
   /* overview of command status left of scrollbar */
 
-  val overview = new JPanel(new BorderLayout)
+  private val overview = new JPanel(new BorderLayout)
   {
     private val WIDTH = 10
     private val HEIGHT = 2
@@ -249,15 +266,14 @@ class Document_View(model: Document_Model, text_area: TextArea)
     override def paintComponent(gfx: Graphics)
     {
       super.paintComponent(gfx)
-      val doc = model.recent_document()
       val buffer = model.buffer
 
-      for (command <- doc.commands) {
-        val line1 = buffer.getLineOfOffset(model.to_current(doc, command.start(doc)))
-        val line2 = buffer.getLineOfOffset(model.to_current(doc, command.stop(doc))) + 1
+      for (command <- document.commands) {
+        val line1 = buffer.getLineOfOffset(model.to_current(document, command.start(document)))
+        val line2 = buffer.getLineOfOffset(model.to_current(document, command.stop(document))) + 1
         val y = line_to_y(line1)
         val height = HEIGHT * (line2 - line1)
-        gfx.setColor(Document_View.choose_color(command, doc))
+        gfx.setColor(Document_View.choose_color(command, document))
         gfx.fillRect(0, y, getWidth - 1, height)
       }
     }
