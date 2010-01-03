@@ -412,8 +412,8 @@ fun gen_descent diag ctxt tac cont D = CALLS (fn (cs, i) =>
     cont (Function_Common.PROFILE "deriving descents" (fold derive cs) D) i
   end)
 
-val derive_diag = gen_descent true
-val derive_all = gen_descent false
+fun derive_diag ctxt = gen_descent true ctxt
+fun derive_all ctxt = gen_descent false ctxt
 
 
 end
