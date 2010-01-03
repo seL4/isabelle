@@ -1,4 +1,3 @@
-
 header {* \section{The Single Mutator Case} *}
 
 theory Gar_Coll imports Graph OG_Syntax begin
@@ -203,12 +202,11 @@ apply force
 apply clarify
 apply simp
 apply(subgoal_tac "ind x = length (E x)")
- apply (rotate_tac -1)
- apply (simp (asm_lr))
+ apply (simp)
  apply(drule Graph1)
    apply simp
-  apply clarify  
- apply(erule allE, erule impE, assumption)
+  apply clarify
+  apply(erule allE, erule impE, assumption)
   apply force
  apply force
 apply arith
@@ -318,12 +316,11 @@ apply (simp add: BtoW_def)
 apply clarify
 apply simp
 apply(subgoal_tac "ind x = length (E x)")
- apply (rotate_tac -1)
- apply (simp (asm_lr))
+ apply (simp)
  apply(drule Graph1)
    apply simp
   apply clarify  
- apply(erule allE, erule impE, assumption)
+  apply(erule allE, erule impE, assumption)
   apply force
  apply force
 apply arith

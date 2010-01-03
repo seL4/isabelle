@@ -120,12 +120,11 @@ apply(rule Parallel)
    apply clarify
    apply simp
    apply(subgoal_tac "j=0")
-    apply (rotate_tac -1)
-    apply (simp (asm_lr))
+    apply (simp)
    apply arith
   apply clarify
   apply(case_tac i,simp,simp)
- apply clarify   
+ apply clarify
  apply simp
  apply(erule_tac x=0 in all_dupE)
  apply(erule_tac x=1 in allE,simp)

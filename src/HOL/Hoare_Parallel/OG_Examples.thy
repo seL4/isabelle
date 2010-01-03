@@ -1,4 +1,3 @@
-
 header {* \section{Examples} *}
 
 theory OG_Examples imports OG_Syntax begin
@@ -434,16 +433,14 @@ apply oghoare
 apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
 --{* 112 subgoals left *}
 apply(simp_all (no_asm))
+--{* 97 subgoals left *}
 apply(tactic {*ALLGOALS (conjI_Tac (K all_tac)) *})
 --{* 930 subgoals left *}
 apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
-apply(simp_all (asm_lr) only:length_0_conv [THEN sym])
---{* 44 subgoals left *}
-apply (simp_all (asm_lr) del:length_0_conv add: neq0_conv nth_list_update mod_less_divisor mod_lemma)
---{* 32 subgoals left *}
-apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
-
-apply(tactic {* TRYALL (Lin_Arith.tac @{context}) *})
+--{* 99 subgoals left *}
+apply(simp_all (*asm_lr*) only:length_0_conv [THEN sym])
+--{* 20 subgoals left *}
+apply (simp_all (*asm_lr*) del:length_0_conv length_greater_0_conv add: nth_list_update mod_lemma)
 --{* 9 subgoals left *}
 apply (force simp add:less_Suc_eq)
 apply(drule sym)
