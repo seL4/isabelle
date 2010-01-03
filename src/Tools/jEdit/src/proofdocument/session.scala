@@ -39,7 +39,6 @@ class Session(system: Isabelle_System)
   val results = new Event_Bus[Command]
 
   val command_change = new Event_Bus[Command]
-  val document_change = new Event_Bus[Document]
 
 
   /* unique ids */
@@ -81,7 +80,7 @@ class Session(system: Isabelle_System)
           (c1.map(_.id).getOrElse(""),
            c2 match {
               case None => None
-              case Some(command) =>  // FIXME clarify -- may reuse existing commands!??
+              case Some(command) =>  // FIXME register/define only commands unknown to prover
                 register(command)
                 prover.define_command(command.id, system.symbols.encode(command.content))
                 Some(command.id)
@@ -89,8 +88,6 @@ class Session(system: Isabelle_System)
       }
       register(doc)
       prover.edit_document(change.parent.get.document.id, doc.id, id_changes)
-
-      document_change.event(doc)
     }
 
 
