@@ -25,7 +25,7 @@ object Document_View
 {
   def choose_color(command: Command, doc: Document): Color =
   {
-    command.status(doc) match {
+    doc.current_state(command).status match {
       case Command.Status.UNPROCESSED => new Color(255, 228, 225)
       case Command.Status.FINISHED => new Color(234, 248, 255)
       case Command.Status.FAILED => new Color(255, 193, 193)
@@ -132,7 +132,7 @@ class Document_View(model: Document_Model, text_area: TextArea)
       document.command_at(offset) match {
         case Some(cmd) =>
           document.token_start(cmd.tokens.first)
-          cmd.type_at(document, offset - cmd.start(document)).getOrElse(null)
+          document.current_state(cmd).type_at(offset - cmd.start(document)).getOrElse(null)
         case None => null
       }
     }

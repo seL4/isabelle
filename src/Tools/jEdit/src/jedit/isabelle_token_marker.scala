@@ -119,7 +119,7 @@ class Isabelle_Token_Marker(model: Document_Model) extends TokenMarker
     while (cmd.isDefined && cmd.get.start(document) < from(stop)) {
       val command = cmd.get
       for {
-        markup <- command.highlight(document).flatten
+        markup <- document.current_state(command).highlight.flatten
         command_start = command.start(document)
         abs_start = to(command_start + markup.start)
         abs_stop = to(command_start + markup.stop)

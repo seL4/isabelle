@@ -40,7 +40,7 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
             case Some(model) =>
               val body =
                 if (cmd == null) Nil  // FIXME ??
-                else cmd.results(model.recent_document)
+                else model.recent_document.current_state(cmd).results
               html_panel.render(body)
           }
 

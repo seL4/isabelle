@@ -60,13 +60,18 @@ class Document(
     val tokens: Linear_Set[Token],   // FIXME plain List, inside Command
     val token_start: Map[Token, Int],  // FIXME eliminate
     val commands: Linear_Set[Command],
-    @volatile var states: Map[Command, Command])   // FIXME immutable, eliminate!?
+    old_states: Map[Command, Command])
   extends Session.Entity
 {
   def content = Token.string_from_tokens(Nil ++ tokens, token_start)
 
 
   /* accumulated messages */
+
+  @volatile private var states = old_states
+
+  def current_state(cmd: Command): State =
+    states.getOrElse(cmd, cmd).current_state
 
   private val accumulator = actor {
     loop {
@@ -80,10 +85,9 @@ class Document(
               } {
                 session.lookup_entity(cmd_id) match {
                   case Some(cmd: Command) =>
-                    val state = cmd.finish_static(state_id)   // FIXME more explicit typing
+                    val state = cmd.assign_state(state_id)
                     session.register_entity(state)
-                    states += (cmd -> state)  // FIXME !?
-                    session.command_change.event(cmd)   // FIXME really!?
+                    states += (cmd -> state)
                   case _ =>
                 }
               }

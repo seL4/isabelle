@@ -33,7 +33,7 @@ object Command
 class Command(
     val id: Isar_Document.Command_ID,
     val tokens: List[Token],
-    val starts: Map[Token, Int])
+    val starts: Map[Token, Int])   // FIXME eliminate
   extends Session.Entity
 {
   require(!tokens.isEmpty)
@@ -49,7 +49,7 @@ class Command(
   val name = tokens.head.content
   val content: String = Token.string_from_tokens(tokens, starts)
   def content(i: Int, j: Int): String = content.substring(i, j)
-  val symbol_index = new Symbol.Index(content)
+  lazy val symbol_index = new Symbol.Index(content)
 
   def start(doc: Document) = doc.token_start(tokens.first)
   def stop(doc: Document) = doc.token_start(tokens.last) + tokens.last.length
@@ -63,16 +63,18 @@ class Command(
   def current_state: State = state
 
   private case class Consume(session: Session, message: XML.Tree)
-  private case object Finish
+  private case object Assign
 
   private val accumulator = actor {
-    var finished = false
+    var assigned = false
     loop {
       react {
-        case Consume(session: Session, message: XML.Tree) if !finished =>
+        case Consume(session: Session, message: XML.Tree) if !assigned =>
           state = state.+(session, message)
 
-        case Finish => finished = true; reply(())
+        case Assign =>
+          assigned = true  // single assigment
+          reply(())
 
         case bad => System.err.println("command accumulator: ignoring bad message " + bad)
       }
@@ -81,10 +83,10 @@ class Command(
 
   def consume(session: Session, message: XML.Tree) { accumulator ! Consume(session, message) }
 
-  def finish_static(state_id: Isar_Document.State_ID): Command =
+  def assign_state(state_id: Isar_Document.State_ID): Command =
   {
     val cmd = new Command(state_id, tokens, starts)
-    accumulator !? Finish
+    accumulator !? Assign
     cmd.state = current_state
     cmd
   }
@@ -100,24 +102,4 @@ class Command(
     val stop = symbol_index.decode(end)
     new Markup_Tree(new Markup_Node(start, stop, info), Nil)
   }
-
-
-  /* results, markup, etc. */
-
-  def results: List[XML.Tree] = current_state.results
-  def markup_root: Markup_Text = current_state.markup_root
-  def type_at(pos: Int): Option[String] = current_state.type_at(pos)
-  def ref_at(pos: Int): Option[Markup_Node] = current_state.ref_at(pos)
-  def highlight: Markup_Text = current_state.highlight
-
-
-  private def cmd_state(doc: Document): State =  // FIXME clarify
-    doc.states.getOrElse(this, this).current_state
-
-  def status(doc: Document) = cmd_state(doc).status
-  def results(doc: Document) = cmd_state(doc).results
-  def markup_root(doc: Document) = cmd_state(doc).markup_root
-  def highlight(doc: Document) = cmd_state(doc).highlight
-  def type_at(doc: Document, offset: Int) = cmd_state(doc).type_at(offset)
-  def ref_at(doc: Document, offset: Int) = cmd_state(doc).ref_at(offset)
 }

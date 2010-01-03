@@ -45,7 +45,7 @@ class Isabelle_Sidekick extends SideKickParser("isabelle")
       case Some(model) =>
         val document = model.recent_document()
         for (command <- document.commands if !stopped) {
-          root.add(command.markup_root(document).swing_tree((node: Markup_Node) =>
+          root.add(document.current_state(command).markup_root.swing_tree((node: Markup_Node) =>
               {
                 val content = command.content(node.start, node.stop)
                 val command_start = command.start(document)
