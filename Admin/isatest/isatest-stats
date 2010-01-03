@@ -12,21 +12,23 @@ ISABELLE_SESSIONS="\
   HOL-Plain \
   HOL-Main \
   HOL \
+  HOL-Proofs \
   HOL-Algebra \
   HOL-Auth \
   HOL-Bali \
   HOL-Decision_Procs \
-  HOL-Extraction \
   HOL-Hoare \
   HOL-Hoare_Parallel \
-  HOL-Lambda \
   HOL-Library \
   HOL-Metis_Examples \
   HOL-MicroJava \
+  HOL-Multivariate_Analysis \
   HOL-NSA \
   HOL-Nominal-Examples \
   HOL-Number_Theory \
   HOL-Old_Number_Theory \
+  HOL-Proofs-Extraction \
+  HOL-Proofs-Lambda \
   HOL-SET_Protocol \
   HOL-UNITY \
   HOL-Word \
