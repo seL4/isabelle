@@ -29,7 +29,7 @@ fun constrains_tac(cs,ss) i =
               full_simp_tac ss 1,
               REPEAT (FIRSTGOAL (etac disjE)),
               ALLGOALS (clarify_tac cs),
-              ALLGOALS (asm_lr_simp_tac ss)]) i;
+              ALLGOALS (asm_full_simp_tac ss)]) i;
 
 (*proves "ensures/leadsTo" properties when the program is specified*)
 fun ensures_tac(cs,ss) sact =
