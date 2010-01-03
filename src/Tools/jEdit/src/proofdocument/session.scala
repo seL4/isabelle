@@ -87,7 +87,7 @@ class Session(system: Isabelle_System)
             })
       }
       register(doc)
-      prover.edit_document(change.parent.get.document.id, doc.id, id_changes)
+      prover.edit_document(change.parent.get.id, doc.id, id_changes)
     }
 
 

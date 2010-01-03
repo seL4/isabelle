@@ -58,8 +58,10 @@ class Document_Model(val session: Session, val buffer: Buffer)
 {
   /* history */
 
+  private val document_0 = session.begin_document(buffer.getName)
+
   @volatile private var history =  // owned by Swing thread
-    new Change(None, Nil, Future.value(session.begin_document(buffer.getName), Nil))
+    new Change(None, Nil, document_0.id, Future.value(document_0, Nil))
 
   def current_change(): Change = history
 
@@ -77,8 +79,8 @@ class Document_Model(val session: Session, val buffer: Buffer)
   private def changes_from(doc: Document): List[Edit] =
   {
     Swing_Thread.assert()
-    List.flatten(current_change.ancestors(_.document.id == doc.id).reverse.map(_.edits)) :::
-      edits_buffer.toList
+    (edits_buffer.toList /:
+      current_change.ancestors.takeWhile(_.id != doc.id))((edits, change) => change.edits ::: edits)
   }
 
   def from_current(doc: Document, offset: Int): Int =
@@ -103,10 +105,11 @@ class Document_Model(val session: Session, val buffer: Buffer)
     if (!edits_buffer.isEmpty) {
       val edits = edits_buffer.toList
       val change1 = current_change()
+      val result_id = session.create_id()
       val result: Future[Document.Result] = Future.fork {
-        Document.text_edits(session, change1.document, session.create_id(), edits)
+        Document.text_edits(session, change1.document, result_id, edits)
       }
-      val change2 = new Change(Some(change1), edits, result)
+      val change2 = new Change(Some(change1), edits, result_id, result)
       history = change2
       result.map(_ => session.input(change2))
       edits_buffer.clear

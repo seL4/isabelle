@@ -42,13 +42,19 @@ case class Remove(start: Int, text: String) extends Edit
 class Change(
   val parent: Option[Change],
   val edits: List[Edit],
+  val id: Isar_Document.Document_ID,
   val result: Future[Document.Result])
 {
-  // FIXME iterator
-  def ancestors(done: Change => Boolean): List[Change] =
-    if (done(this)) Nil
-    else this :: parent.map(_.ancestors(done)).getOrElse(Nil)
-  def ancestors: List[Change] = ancestors(_ => false)
+  def ancestors: Iterator[Change] = new Iterator[Change]
+  {
+    private var state: Option[Change] = Some(Change.this)
+    def hasNext = state.isDefined
+    def next =
+      state match {
+        case Some(change) => state = change.parent; change
+        case None => throw new NoSuchElementException("next on empty iterator")
+      }
+  }
 
   def document: Document = result.join._1
   def document_edits: List[Document.Structure_Edit] = result.join._2
