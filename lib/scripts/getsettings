@@ -22,11 +22,6 @@ fi
 ISABELLE_PROCESS="$ISABELLE_HOME/bin/isabelle-process"
 ISABELLE_TOOL="$ISABELLE_HOME/bin/isabelle"
 
-function isabelle-process ()
-{
-  "$ISABELLE_PROCESS" "$@"
-}
-
 function isabelle ()
 {
   "$ISABELLE_TOOL" "$@"
