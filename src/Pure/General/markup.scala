@@ -153,6 +153,7 @@ object Markup
 
   /* interactive documents */
 
+  val ASSIGN = "assign"
   val EDIT = "edit"
 
 

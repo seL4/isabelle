@@ -21,6 +21,7 @@ object Future
 {
   def value[A](x: A): Future[A] = new Finished_Future(x)
   def fork[A](body: => A): Future[A] = new Pending_Future(body)
+  def promise[A]: Promise[A] = new Promise_Future
 }
 
 abstract class Future[A]
@@ -36,6 +37,11 @@ abstract class Future[A]
       case Some(Exn.Exn(_)) => "<failed>"
       case Some(Exn.Res(x)) => x.toString
     }
+}
+
+abstract class Promise[A] extends Future[A]
+{
+  def fulfill(x: A): Unit
 }
 
 private class Finished_Future[A](x: A) extends Future[A]
@@ -64,4 +70,37 @@ private class Pending_Future[A](body: => A) extends Future[A]
     }
 }
 
+private class Promise_Future[A] extends Promise[A]
+{
+  @volatile private var result: Option[A] = None
+
+  private case object Read
+  private case class Write(x: A)
+
+  private val receiver = actor {
+    loop {
+      react {
+        case Read if result.isDefined => reply(result.get)
+        case Write(x) =>
+          if (result.isDefined) reply(false)
+          else { result = Some(x); reply(true) }
+      }
+    }
+  }
+
+  def peek: Option[Exn.Result[A]] = result.map(Exn.Res(_))
+
+  def join: A =
+    result match {
+      case Some(res) => res
+      case None => (receiver !? Read).asInstanceOf[A]
+    }
+
+  def fulfill(x: A) {
+    receiver !? Write(x) match {
+      case false => error("Duplicate fulfillment of promise")
+      case _ =>
+    }
+  }
+}
 

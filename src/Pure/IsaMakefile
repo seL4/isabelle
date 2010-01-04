@@ -143,7 +143,6 @@ jars: $(FULL_JAR)
 $(FULL_JAR): $(SCALA_FILES)
 	@rm -rf classes && mkdir classes
 	"$(SCALA_HOME)/bin/scalac" -unchecked -deprecation -d classes -target jvm-1.5 $(SCALA_FILES)
-	"$(SCALA_HOME)/bin/scaladoc" -d classes $(SCALA_FILES)
 	@cp $(SCALA_FILES) classes/isabelle
 	@mkdir -p "$(JAR_DIR)"
 	@cd classes; jar cfe `jvmpath "$(PURE_JAR)"` isabelle.GUI_Setup isabelle

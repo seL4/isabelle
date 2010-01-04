@@ -234,8 +234,9 @@ fun new_state name (id, _) (state_id, updates) =
 
 fun report_updates [] = ()
   | report_updates updates =
-      Output.status
-        (implode (map (fn (id, state_id) => Markup.markup (Markup.edit id state_id) "") updates));
+      implode (map (fn (id, state_id) => Markup.markup (Markup.edit id state_id) "") updates)
+      |> Markup.markup Markup.assign
+      |> Output.status;
 
 in
 

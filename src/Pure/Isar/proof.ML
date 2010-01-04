@@ -862,14 +862,10 @@ fun generic_qed after_ctxt state =
     val results =
       tl (conclude_goal goal_ctxt goal stmt)
       |> burrow (ProofContext.export goal_ctxt outer_ctxt);
-
-    val (after_local, after_global) = after_qed;
-    fun after_local' x y = Position.setmp_thread_data pos (fn () => after_local x y) ();
-    fun after_global' x y = Position.setmp_thread_data pos (fn () => after_global x y) ();
   in
     outer_state
     |> map_context (after_ctxt props)
-    |> pair ((after_local', after_global'), results)
+    |> pair (after_qed, results)
   end;
 
 end;
