@@ -426,9 +426,9 @@ struct
 val declare = declare_theory_data;
 
 fun get k dest thy =
-  dest (case Datatab.lookup (data_of thy) k of
+  (case Datatab.lookup (data_of thy) k of
     SOME x => x
-  | NONE => invoke_empty k);   (*adhoc value*)
+  | NONE => invoke_empty k) |> dest;
 
 fun put k mk x = modify_thy (Datatab.update (k, mk x));
 
@@ -582,16 +582,15 @@ sig
   val merge: Pretty.pp -> T * T -> T
 end;
 
-signature OLD_THEORY_DATA =
+signature THEORY_DATA =
 sig
   type T
   val get: theory -> T
   val put: T -> theory -> theory
   val map: (T -> T) -> theory -> theory
-  val init: theory -> theory
 end;
 
-functor TheoryDataFun(Data: OLD_THEORY_DATA_ARGS): OLD_THEORY_DATA =
+functor TheoryDataFun(Data: OLD_THEORY_DATA_ARGS): THEORY_DATA =
 struct
 
 type T = Data.T;
@@ -606,8 +605,6 @@ val get = Context.Theory_Data.get kind (fn Data x => x);
 val put = Context.Theory_Data.put kind Data;
 fun map f thy = put (f (get thy)) thy;
 
-fun init thy = map I thy;
-
 end;
 
 signature THEORY_DATA_ARGS =
@@ -616,14 +613,6 @@ sig
   val empty: T
   val extend: T -> T
   val merge: T * T -> T
-end;
-
-signature THEORY_DATA =
-sig
-  type T
-  val get: theory -> T
-  val put: T -> theory -> theory
-  val map: (T -> T) -> theory -> theory
 end;
 
 functor Theory_Data(Data: THEORY_DATA_ARGS): THEORY_DATA =
