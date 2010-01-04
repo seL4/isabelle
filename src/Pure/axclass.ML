@@ -114,7 +114,7 @@ fun merge_inst_params ((const_param1, param_const1), (const_param2, param_const2
 
 (* setup data *)
 
-structure AxClassData = TheoryDataFun
+structure AxClassData = Theory_Data_PP
 (
   type T = axclasses * (instances * inst_params);
   val empty = ((Symtab.empty, []), (([], Symtab.empty), (Symtab.empty, Symtab.empty)));

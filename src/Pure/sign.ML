@@ -148,7 +148,7 @@ datatype sign = Sign of
 fun make_sign (naming, syn, tsig, consts) =
   Sign {naming = naming, syn = syn, tsig = tsig, consts = consts};
 
-structure SignData = TheoryDataFun
+structure SignData = Theory_Data_PP
 (
   type T = sign;
   fun extend (Sign {syn, tsig, consts, ...}) =

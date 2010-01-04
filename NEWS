@@ -47,6 +47,11 @@ as infinity (as in chop).  INCOMPATIBILITY.
 * Subgoal.FOCUS (and variants): resulting goal state is normalized as
 usual for resolution.  Rare INCOMPATIBILITY.
 
+* Discontinued old TheoryDataFun with its copy/init operation -- data
+needs to be pure.  Functor Theory_Data_PP retains the traditional
+Pretty.pp argument to merge, which is absent in the standard
+Theory_Data version.
+
 
 *** System ***
 

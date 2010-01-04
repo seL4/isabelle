@@ -86,7 +86,7 @@ datatype thy = Thy of
 
 fun make_thy (axioms, defs, wrappers) = Thy {axioms = axioms, defs = defs, wrappers = wrappers};
 
-structure ThyData = TheoryDataFun
+structure ThyData = Theory_Data_PP
 (
   type T = thy;
   val empty_axioms = Name_Space.empty_table "axiom" : term Name_Space.table;

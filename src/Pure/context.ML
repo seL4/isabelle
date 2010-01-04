@@ -574,12 +574,20 @@ open Basic_Context;
 
 (** theory data **)
 
-signature OLD_THEORY_DATA_ARGS =
+signature THEORY_DATA_PP_ARGS =
 sig
   type T
   val empty: T
   val extend: T -> T
   val merge: Pretty.pp -> T * T -> T
+end;
+
+signature THEORY_DATA_ARGS =
+sig
+  type T
+  val empty: T
+  val extend: T -> T
+  val merge: T * T -> T
 end;
 
 signature THEORY_DATA =
@@ -590,7 +598,7 @@ sig
   val map: (T -> T) -> theory -> theory
 end;
 
-functor TheoryDataFun(Data: OLD_THEORY_DATA_ARGS): THEORY_DATA =
+functor Theory_Data_PP(Data: THEORY_DATA_PP_ARGS): THEORY_DATA =
 struct
 
 type T = Data.T;
@@ -607,28 +615,14 @@ fun map f thy = put (f (get thy)) thy;
 
 end;
 
-signature THEORY_DATA_ARGS =
-sig
-  type T
-  val empty: T
-  val extend: T -> T
-  val merge: T * T -> T
-end;
-
 functor Theory_Data(Data: THEORY_DATA_ARGS): THEORY_DATA =
-struct
-
-structure Result = TheoryDataFun
-(
-  type T = Data.T;
-  val empty = Data.empty;
-  val extend = Data.extend;
-  fun merge _ = Data.merge;
-);
-
-open Result;
-
-end;
+  Theory_Data_PP
+  (
+    type T = Data.T;
+    val empty = Data.empty;
+    val extend = Data.extend;
+    fun merge _ = Data.merge;
+  );
 
 
 
