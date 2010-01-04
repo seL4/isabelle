@@ -104,7 +104,7 @@ object Cygwin
 
   def setup(parent: Component, root: File)
   {
-    if (!root.mkdirs) error("Failed to create root directory: " + root)
+    if (!root.isDirectory && !root.mkdirs) error("Failed to create root directory: " + root)
 
     val download = new File(root, "download")
     if (!download.mkdir) error("Failed to create download directory: " + download)
@@ -114,10 +114,9 @@ object Cygwin
     try { Download.file(parent, new URL("http://www.cygwin.com/setup.exe"), setup_exe) }
     catch { case _: RuntimeException => error("Failed to download Cygwin setup program") }
 
-    val (_, rc) = Standard_System.process_output(
-    	Standard_System.raw_execute(root, null, true,
-    	  setup_exe.toString, "-R", root.toString, "-l", download.toString,
-    	    "-P", "make,perl,python", "-q", "-n"))
+    val (_, rc) = Standard_System.raw_exec(root, null, true,
+        setup_exe.toString, "-R", root.toString, "-l", download.toString,
+    	    "-P", "make,perl,python", "-q", "-n")
     if (rc != 0) error("Cygwin setup failed!")
 
     sanity_check(root)

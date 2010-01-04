@@ -42,8 +42,7 @@ class Isabelle_System extends Standard_System
           if (Platform.is_windows) List(platform_root + "\\bin\\bash", "-l") else Nil
         val cmdline =
           shell_prefix ::: List(isabelle_home + "/bin/isabelle", "getenv", "-d", dump.toString)
-        val (output, rc) =
-          Standard_System.process_output(Standard_System.raw_execute(null, env0, true, cmdline: _*))
+        val (output, rc) = Standard_System.raw_exec(null, env0, true, cmdline: _*)
         if (rc != 0) error(output)
 
         val entries =

@@ -132,6 +132,9 @@ object Standard_System
       }
     (output, rc)
   }
+
+  def raw_exec(cwd: File, env: Map[String, String], redirect: Boolean, args: String*):
+    (String, Int) = process_output(raw_execute(cwd, env, redirect, args: _*))
 }
 
 
