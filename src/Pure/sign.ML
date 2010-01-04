@@ -151,7 +151,6 @@ fun make_sign (naming, syn, tsig, consts) =
 structure SignData = TheoryDataFun
 (
   type T = sign;
-  val copy = I;
   fun extend (Sign {syn, tsig, consts, ...}) =
     make_sign (Name_Space.default_naming, syn, tsig, consts);
 

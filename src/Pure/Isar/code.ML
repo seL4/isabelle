@@ -76,8 +76,8 @@ end;
 signature CODE_DATA =
 sig
   type T
-  val change: theory -> (T -> T) -> T
-  val change_yield: theory -> (T -> 'a * T) -> 'a * T
+  val change: theory -> (theory -> T -> T) -> T
+  val change_yield: theory -> (theory -> T -> 'a * T) -> 'a * T
 end;
 
 signature PRIVATE_CODE =
@@ -85,9 +85,9 @@ sig
   include CODE
   val declare_data: Object.T -> serial
   val change_data: serial * ('a -> Object.T) * (Object.T -> 'a)
-    -> theory -> ('a -> 'a) -> 'a
+    -> theory -> (theory -> 'a -> 'a) -> 'a
   val change_yield_data: serial * ('a -> Object.T) * (Object.T -> 'a)
-    -> theory -> ('a -> 'b * 'a) -> 'b * 'a
+    -> theory -> (theory -> 'a -> 'b * 'a) -> 'b * 'a
 end;
 
 structure Code : PRIVATE_CODE =
@@ -234,27 +234,17 @@ end; (*local*)
 local
 
 type data = Object.T Datatab.table;
-fun create_data data = Synchronized.var "code data" data;
-fun empty_data () = create_data Datatab.empty : data Synchronized.var;
+fun empty_dataref () = Synchronized.var "code data" (NONE : (data * theory_ref) option);
 
-structure Code_Data = TheoryDataFun
+structure Code_Data = Theory_Data
 (
-  type T = spec * data Synchronized.var;
+  type T = spec * (data * theory_ref) option Synchronized.var;
   val empty = (make_spec (false, (((Symtab.empty, Symtab.empty), Symtab.empty),
-    (Symtab.empty, (Symtab.empty, Symtab.empty)))), empty_data ());
-  fun copy (spec, data) = (spec, create_data (Synchronized.value data));
-  val extend = copy;
-  fun merge _ ((spec1, _), (spec2, _)) =
-    (merge_spec (spec1, spec2), empty_data ());
+    (Symtab.empty, (Symtab.empty, Symtab.empty)))), empty_dataref ());
+  val extend = I
+  fun merge ((spec1, _), (spec2, _)) =
+    (merge_spec (spec1, spec2), empty_dataref ());
 );
-
-fun thy_data f thy = f ((snd o Code_Data.get) thy);
-
-fun get_ensure_init kind data =
-  case Datatab.lookup (Synchronized.value data) kind
-   of SOME x => x
-    | NONE => let val y = invoke_init kind
-        in (Synchronized.change data (Datatab.update (kind, y)); y) end;
 
 in
 
@@ -262,24 +252,16 @@ in
 
 val the_exec = fst o Code_Data.get;
 
-fun map_exec_purge f =
-  Code_Data.map (fn (exec, data) => (f exec, empty_data ()));
+fun map_exec_purge f = Code_Data.map (fn (exec, _) => (f exec, empty_dataref ()));
 
-val purge_data = (Code_Data.map o apsnd) (fn _ => empty_data ());
+val purge_data = (Code_Data.map o apsnd) (fn _ => empty_dataref ());
 
 fun change_eqns delete c f = (map_exec_purge o map_eqns
   o (if delete then Symtab.map_entry c else Symtab.map_default (c, ((false, (true, [])), [])))
     o apfst) (fn (_, eqns) => (true, f eqns));
 
-fun del_eqns c = change_eqns true c (K (false, []));
-
 
 (* tackling equation history *)
-
-fun get_eqns thy c =
-  Symtab.lookup ((the_eqns o the_exec) thy) c
-  |> Option.map (snd o snd o fst)
-  |> these;
 
 fun continue_history thy = if (history_concluded o the_exec) thy
   then thy
@@ -297,30 +279,26 @@ fun conclude_history thy = if (history_concluded o the_exec) thy
         #> map_history_concluded (K true))
     |> SOME;
 
-val _ = Context.>> (Context.map_theory (Code_Data.init
-  #> Theory.at_begin continue_history
-  #> Theory.at_end conclude_history));
+val _ = Context.>> (Context.map_theory (Theory.at_begin continue_history #> Theory.at_end conclude_history));
 
 
 (* access to data dependent on abstract executable code *)
 
-fun change_data (kind, mk, dest) =
+fun change_yield_data (kind, mk, dest) theory f =
   let
-    fun chnge data_ref f =
-      let
-        val data = get_ensure_init kind data_ref;
-        val data' = f (dest data);
-      in (Synchronized.change data_ref (Datatab.update (kind, mk data')); data') end;
-  in thy_data chnge end;
+    val dataref = (snd o Code_Data.get) theory;
+    val (datatab, thy, thy_ref) = case Synchronized.value dataref
+     of SOME (datatab, thy_ref) => (datatab, Theory.deref thy_ref, thy_ref)
+      | NONE => (Datatab.empty, theory, Theory.check_thy theory)
+    val data = case Datatab.lookup datatab kind
+     of SOME data => data
+      | NONE => invoke_init kind;
+    val result as (x, data') = f thy (dest data);
+    val _ = Synchronized.change dataref
+      ((K o SOME) (Datatab.update (kind, mk data') datatab, thy_ref));
+  in result end;
 
-fun change_yield_data (kind, mk, dest) =
-  let
-    fun chnge data_ref f =
-      let
-        val data = get_ensure_init kind data_ref;
-        val (x, data') = f (dest data);
-      in (x, (Synchronized.change data_ref (Datatab.update (kind, mk data')); data')) end;
-  in thy_data chnge end;
+fun change_data ops theory f = change_yield_data ops theory (pair () oo f) |> snd;
 
 end; (*local*)
 
@@ -574,7 +552,9 @@ fun standard_typscheme thy thms =
   in map2 (fn vs => Thm.certify_instantiate (vs ~~ vts, [])) vss thms end;
 
 fun these_eqns thy c =
-  get_eqns thy c
+  Symtab.lookup ((the_eqns o the_exec) thy) c
+  |> Option.map (snd o snd o fst)
+  |> these
   |> (map o apfst) (Thm.transfer thy)
   |> burrow_fst (standard_typscheme thy);
 
@@ -709,38 +689,6 @@ val add_signature = gen_add_signature (K I) cert_signature;
 val add_signature_cmd = gen_add_signature read_const read_signature;
 
 
-(* datatypes *)
-
-structure Type_Interpretation =
-  Interpretation(type T = string * serial val eq = eq_snd (op =) : T * T -> bool);
-
-fun add_datatype raw_cs thy =
-  let
-    val cs = map (fn c_ty as (_, ty) => (AxClass.unoverload_const thy c_ty, ty)) raw_cs;
-    val (tyco, vs_cos) = constrset_of_consts thy cs;
-    val old_cs = (map fst o snd o get_datatype thy) tyco;
-    fun drop_outdated_cases cases = fold Symtab.delete_safe
-      (Symtab.fold (fn (c, (_, (_, cos))) =>
-        if exists (member (op =) old_cs) cos
-          then insert (op =) c else I) cases []) cases;
-  in
-    thy
-    |> fold (del_eqns o fst) cs
-    |> map_exec_purge
-        ((map_dtyps o Symtab.map_default (tyco, [])) (cons (serial (), vs_cos))
-        #> (map_cases o apfst) drop_outdated_cases)
-    |> Type_Interpretation.data (tyco, serial ())
-  end;
-
-fun type_interpretation f =  Type_Interpretation.interpretation
-  (fn (tyco, _) => fn thy => f (tyco, get_datatype thy tyco) thy);
-
-fun add_datatype_cmd raw_cs thy =
-  let
-    val cs = map (read_bare_const thy) raw_cs;
-  in add_datatype cs thy end;
-
-
 (* code equations *)
 
 fun gen_add_eqn default (thm, proper) thy =
@@ -773,6 +721,56 @@ fun del_eqn thm thy = case mk_eqn_liberal thy thm
  of SOME (thm, _) => change_eqns true (const_eqn thy thm) (del_thm thm) thy
   | NONE => thy;
 
+fun del_eqns c = change_eqns true c (K (false, []));
+
+
+(* cases *)
+
+fun add_case thm thy =
+  let
+    val (c, (k, case_pats)) = case_cert thm;
+    val _ = case filter_out (is_constr thy) case_pats
+     of [] => ()
+      | cs => error ("Non-constructor(s) in case certificate: " ^ commas (map quote cs));
+    val entry = (1 + Int.max (1, length case_pats), (k, case_pats))
+  in (map_exec_purge o map_cases o apfst) (Symtab.update (c, entry)) thy end;
+
+fun add_undefined c thy =
+  (map_exec_purge o map_cases o apsnd) (Symtab.update (c, ())) thy;
+
+
+(* datatypes *)
+
+structure Type_Interpretation =
+  Interpretation(type T = string * serial val eq = eq_snd (op =) : T * T -> bool);
+
+fun add_datatype raw_cs thy =
+  let
+    val cs = map (fn c_ty as (_, ty) => (AxClass.unoverload_const thy c_ty, ty)) raw_cs;
+    val (tyco, vs_cos) = constrset_of_consts thy cs;
+    val old_cs = (map fst o snd o get_datatype thy) tyco;
+    fun drop_outdated_cases cases = fold Symtab.delete_safe
+      (Symtab.fold (fn (c, (_, (_, cos))) =>
+        if exists (member (op =) old_cs) cos
+          then insert (op =) c else I) cases []) cases;
+  in
+    thy
+    |> fold (del_eqns o fst) cs
+    |> map_exec_purge
+        ((map_dtyps o Symtab.map_default (tyco, [])) (cons (serial (), vs_cos))
+        #> (map_cases o apfst) drop_outdated_cases)
+    |> Type_Interpretation.data (tyco, serial ())
+  end;
+
+fun type_interpretation f =  Type_Interpretation.interpretation
+  (fn (tyco, _) => fn thy => f (tyco, get_datatype thy tyco) thy);
+
+fun add_datatype_cmd raw_cs thy =
+  let
+    val cs = map (read_bare_const thy) raw_cs;
+  in add_datatype cs thy end;
+
+
 (* c.f. src/HOL/Tools/recfun_codegen.ML *)
 
 structure Code_Target_Attr = Theory_Data
@@ -789,7 +787,6 @@ fun code_target_attr prefix thm thy =
   let
     val attr = the_default ((K o K) I) (Code_Target_Attr.get thy);
   in thy |> add_warning_eqn thm |> attr prefix thm end;
-
 (* setup *)
 
 val _ = Context.>> (Context.map_theory
@@ -806,21 +803,6 @@ val _ = Context.>> (Context.map_theory
     #> Attrib.setup (Binding.name "code") (Scan.lift code_attribute_parser)
         "declare theorems for code generation"
   end));
-
-
-(* cases *)
-
-fun add_case thm thy =
-  let
-    val (c, (k, case_pats)) = case_cert thm;
-    val _ = case filter_out (is_constr thy) case_pats
-     of [] => ()
-      | cs => error ("Non-constructor(s) in case certificate: " ^ commas (map quote cs));
-    val entry = (1 + Int.max (1, length case_pats), (k, case_pats))
-  in (map_exec_purge o map_cases o apfst) (Symtab.update (c, entry)) thy end;
-
-fun add_undefined c thy =
-  (map_exec_purge o map_cases o apsnd) (Symtab.update (c, ())) thy;
 
 end; (*struct*)
 

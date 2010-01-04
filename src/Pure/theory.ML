@@ -91,7 +91,6 @@ structure ThyData = TheoryDataFun
   type T = thy;
   val empty_axioms = Name_Space.empty_table "axiom" : term Name_Space.table;
   val empty = make_thy (empty_axioms, Defs.empty, ([], []));
-  val copy = I;
 
   fun extend (Thy {axioms = _, defs, wrappers}) = make_thy (empty_axioms, defs, wrappers);
 

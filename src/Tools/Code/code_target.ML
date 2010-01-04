@@ -153,7 +153,7 @@ fun the_includes (Target { includes, ... }) = includes;
 fun the_name_syntax (Target { name_syntax_table = NameSyntaxTable x, ... }) = x;
 fun the_module_alias (Target { module_alias , ... }) = module_alias;
 
-structure CodeTargetData = Theory_Data
+structure Targets = Theory_Data
 (
   type T = (target Symtab.table * string list) * int;
   val empty = ((Symtab.empty, []), 80);
@@ -163,17 +163,17 @@ structure CodeTargetData = Theory_Data
       Library.merge (op =) (exc1, exc2)), Int.max (width1, width2));
 );
 
-val abort_allowed = snd o fst o CodeTargetData.get;
+val abort_allowed = snd o fst o Targets.get;
 
-val the_default_width = snd o CodeTargetData.get;
+val the_default_width = snd o Targets.get;
 
-fun assert_target thy target = if Symtab.defined ((fst o fst) (CodeTargetData.get thy)) target
+fun assert_target thy target = if Symtab.defined ((fst o fst) (Targets.get thy)) target
   then target
   else error ("Unknown code target language: " ^ quote target);
 
 fun put_target (target, seri) thy =
   let
-    val lookup_target = Symtab.lookup ((fst o fst) (CodeTargetData.get thy));
+    val lookup_target = Symtab.lookup ((fst o fst) (Targets.get thy));
     val _ = case seri
      of Extends (super, _) => if is_some (lookup_target super) then ()
           else error ("Unknown code target language: " ^ quote super)
@@ -189,11 +189,10 @@ fun put_target (target, seri) thy =
       else (); 
   in
     thy
-    |> (CodeTargetData.map o apfst o apfst oo Symtab.map_default)
+    |> (Targets.map o apfst o apfst o Symtab.update)
           (target, make_target ((serial (), seri), (([], Symtab.empty),
             (mk_name_syntax_table ((Symtab.empty, Symreltab.empty), (Symtab.empty, Symtab.empty)),
               Symtab.empty))))
-          ((map_target o apfst o apsnd o K) seri)
   end;
 
 fun add_target (target, seri) = put_target (target, Serializer seri);
@@ -205,7 +204,7 @@ fun map_target_data target f thy =
     val _ = assert_target thy target;
   in
     thy
-    |> (CodeTargetData.map o apfst o apfst o Symtab.map_entry target o map_target) f
+    |> (Targets.map o apfst o apfst o Symtab.map_entry target o map_target) f
   end;
 
 fun map_reserved target =
@@ -217,7 +216,7 @@ fun map_name_syntax target =
 fun map_module_alias target =
   map_target_data target o apsnd o apsnd o apsnd;
 
-fun set_default_code_width k = (CodeTargetData.map o apsnd) (K k);
+fun set_default_code_width k = (Targets.map o apsnd) (K k);
 
 
 (** serializer usage **)
@@ -226,7 +225,7 @@ fun set_default_code_width k = (CodeTargetData.map o apsnd) (K k);
 
 fun the_literals thy =
   let
-    val ((targets, _), _) = CodeTargetData.get thy;
+    val ((targets, _), _) = Targets.get thy;
     fun literals target = case Symtab.lookup targets target
      of SOME data => (case the_serializer data
          of Serializer (_, literals) => literals
@@ -284,7 +283,7 @@ fun invoke_serializer thy abortable serializer literals reserved abs_includes
 
 fun mount_serializer thy alt_serializer target some_width module args naming program names =
   let
-    val ((targets, abortable), default_width) = CodeTargetData.get thy;
+    val ((targets, abortable), default_width) = Targets.get thy;
     fun collapse_hierarchy target =
       let
         val data = case Symtab.lookup targets target
@@ -457,7 +456,7 @@ fun add_module_alias target (thyname, modlname) =
 fun gen_allow_abort prep_const raw_c thy =
   let
     val c = prep_const thy raw_c;
-  in thy |> (CodeTargetData.map o apfst o apsnd) (insert (op =) c) end;
+  in thy |> (Targets.map o apfst o apsnd) (insert (op =) c) end;
 
 
 (* concrete syntax *)

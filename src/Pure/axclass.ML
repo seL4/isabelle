@@ -118,7 +118,6 @@ structure AxClassData = TheoryDataFun
 (
   type T = axclasses * (instances * inst_params);
   val empty = ((Symtab.empty, []), (([], Symtab.empty), (Symtab.empty, Symtab.empty)));
-  val copy = I;
   val extend = I;
   fun merge pp ((axclasses1, (instances1, inst_params1)), (axclasses2, (instances2, inst_params2))) =
     (merge_axclasses pp (axclasses1, axclasses2),
