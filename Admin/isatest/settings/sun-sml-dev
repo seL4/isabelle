@@ -25,4 +25,3 @@ ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 # ISABELLE_USEDIR_OPTIONS="-i true -d dvi -g true -v true"
 ISABELLE_USEDIR_OPTIONS="-i true -d pdf -v true"
 
-HOL_USEDIR_OPTIONS="-p 2"

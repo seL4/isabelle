@@ -48,6 +48,13 @@ as infinity (as in chop).  INCOMPATIBILITY.
 usual for resolution.  Rare INCOMPATIBILITY.
 
 
+*** System ***
+
+* Discontinued special HOL_USEDIR_OPTIONS for the main HOL image;
+ISABELLE_USEDIR_OPTIONS applies uniformly to all sessions.  Note that
+proof terms are enabled unconditionally in the new HOL-Proofs image.
+
+
 
 New in Isabelle2009-1 (December 2009)
 -------------------------------------

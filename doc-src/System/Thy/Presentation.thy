@@ -459,7 +459,6 @@ Usage: usedir [OPTIONS] LOGIC NAME
   information (HTML etc.) according to settings.
 
   ISABELLE_USEDIR_OPTIONS=
-  HOL_USEDIR_OPTIONS=
 
   ML_PLATFORM=x86-linux
   ML_HOME=/usr/local/polyml-5.2.1/x86-linux
@@ -474,11 +473,6 @@ Usage: usedir [OPTIONS] LOGIC NAME
   work, one may control compilation options globally via above
   variable. In particular, generation of \rmindex{HTML} browsing
   information and document preparation is controlled here.
-
-  The @{setting_ref HOL_USEDIR_OPTIONS} setting is specific to the
-  plain and main Isabelle/HOL images; its value is appended to
-  @{setting ISABELLE_USEDIR_OPTIONS} for these particular sessions
-  only.
 *}
 
 

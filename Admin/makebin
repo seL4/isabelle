@@ -88,7 +88,6 @@ cd "$ISABELLE_NAME"
 
 perl -pi \
   -e 's:^ISABELLE_USEDIR_OPTIONS=.*$:ISABELLE_USEDIR_OPTIONS="-M 1 -p 1":;' \
-  -e 's:^HOL_USEDIR_OPTIONS=.*$:HOL_USEDIR_OPTIONS="-M 1 -p 2":;' \
   etc/settings
 
 if [ -n "$DO_LIBRARY" ]; then

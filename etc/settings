@@ -89,10 +89,6 @@ ISABELLE_LINE_EDITOR=""
 
 ISABELLE_USEDIR_OPTIONS="-M max -p 1 -q 2 -v true -V outline=/proof,/ML"
 
-# Specifically for the HOL image
-HOL_USEDIR_OPTIONS=""
-#HOL_USEDIR_OPTIONS="-p 2 -q 1"
-
 #Source file identification (default: full name + date stamp)
 ISABELLE_FILE_IDENT=""
 #ISABELLE_FILE_IDENT="md5"
