@@ -848,8 +848,8 @@ structure Program = Code_Data
   val empty = (empty_naming, Graph.empty);
 );
 
-fun invoke_generation thy (algebra, eqngr) f name =
-  Program.change_yield thy (fn naming_program => (NONE, naming_program)
+fun invoke_generation theory (algebra, eqngr) f name =
+  Program.change_yield theory (fn thy => fn naming_program => (NONE, naming_program)
     |> f thy algebra eqngr name
     |-> (fn name => fn (_, naming_program) => (name, naming_program)));
 

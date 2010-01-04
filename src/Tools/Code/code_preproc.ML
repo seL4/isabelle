@@ -454,8 +454,8 @@ structure Wellsorted = Code_Data
 
 (** retrieval and evaluation interfaces **)
 
-fun obtain thy cs ts = apsnd snd
-  (Wellsorted.change_yield thy (extend_arities_eqngr thy cs ts));
+fun obtain theory cs ts = apsnd snd
+  (Wellsorted.change_yield theory (fn thy => extend_arities_eqngr thy cs ts));
 
 fun gen_eval thy cterm_of conclude_evaluation evaluator proto_ct =
   let
