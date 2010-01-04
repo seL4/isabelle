@@ -68,7 +68,8 @@ class Document_Model(val session: Session, val buffer: Buffer)
   def recent_document(): Document =
   {
     def find(change: Change): Document =
-      if (change.result.is_finished || !change.parent.isDefined) change.document
+      if (change.result.is_finished && change.document.is_assigned || !change.parent.isDefined)
+        change.document
       else find(change.parent.get)
     find(current_change())
   }

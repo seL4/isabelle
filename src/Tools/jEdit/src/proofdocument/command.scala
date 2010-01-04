@@ -73,7 +73,7 @@ class Command(
           state = state.+(session, message)
 
         case Assign =>
-          assigned = true  // single assigment
+          assigned = true  // single assignment
           reply(())
 
         case bad => System.err.println("command accumulator: ignoring bad message " + bad)

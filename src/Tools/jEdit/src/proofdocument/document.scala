@@ -34,7 +34,11 @@ object Document
       "[()\\[\\]{}:;]", Pattern.MULTILINE)
 
   def empty(id: Isar_Document.Document_ID): Document =
-    new Document(id, Linear_Set(), Map(), Linear_Set(), Map())
+  {
+    val doc = new Document(id, Linear_Set(), Map(), Linear_Set(), Map())
+    doc.assign_states(Nil)
+    doc
+  }
 
   type Structure_Edit = (Option[Command], Option[Command])
   type Structure_Change = List[Structure_Edit]
@@ -61,45 +65,28 @@ class Document(
     val token_start: Map[Token, Int],  // FIXME eliminate
     val commands: Linear_Set[Command],
     old_states: Map[Command, Command])
-  extends Session.Entity
 {
   def content = Token.string_from_tokens(Nil ++ tokens, token_start)
 
 
-  /* accumulated messages */
+  /* command/state assignment */
 
-  @volatile private var states = old_states
+  val assignment = Future.promise[Map[Command, Command]]
+  def is_assigned = assignment.is_finished
 
-  def current_state(cmd: Command): State =
-    states.getOrElse(cmd, cmd).current_state
+  @volatile private var tmp_states = old_states
 
-  private val accumulator = actor {
-    loop {
-      react {
-        case (session: Session, message: XML.Tree) =>
-          message match {
-            case XML.Elem(Markup.MESSAGE, (Markup.CLASS, Markup.STATUS) :: _, elems) =>
-              for {
-                XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _)
-                  <- elems
-              } {
-                session.lookup_entity(cmd_id) match {
-                  case Some(cmd: Command) =>
-                    val state = cmd.assign_state(state_id)
-                    session.register_entity(state)
-                    states += (cmd -> state)
-                  case _ =>
-                }
-              }
-            case _ =>
-          }
-
-        case bad => System.err.println("document accumulator: ignoring bad message " + bad)
-      }
-    }
+  def assign_states(new_states: List[(Command, Command)])
+  {
+    assignment.fulfill(tmp_states ++ new_states)
+    tmp_states = Map()
   }
 
-  def consume(session: Session, message: XML.Tree) { accumulator ! (session, message) }
+  def current_state(cmd: Command): State =
+  {
+    require(assignment.is_finished)
+    (assignment.join)(cmd).current_state
+  }
 
 
 
@@ -196,6 +183,8 @@ class Document(
       new_token_start: Map[Token, Int]):
     Document.Result =
   {
+    require(assignment.is_finished)
+
     val new_tokenset = Linear_Set[Token]() ++ new_tokens
     val cmd_before_change = before_change match {
       case None => None
@@ -273,7 +262,7 @@ class Document(
 
     val doc =
       new Document(new_id, new_tokenset, new_token_start, new_commandset,
-        states -- removed_commands)
+        assignment.join -- removed_commands)
 
     val removes =
       for (cmd <- removed_commands) yield (cmd_before_change -> None)
