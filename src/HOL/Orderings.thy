@@ -550,44 +550,6 @@ end
 *}
 
 
-subsection {* Name duplicates *}
-
-lemmas order_less_le = less_le
-lemmas order_eq_refl = preorder_class.eq_refl
-lemmas order_less_irrefl = preorder_class.less_irrefl
-lemmas order_le_less = order_class.le_less
-lemmas order_le_imp_less_or_eq = order_class.le_imp_less_or_eq
-lemmas order_less_imp_le = preorder_class.less_imp_le
-lemmas order_less_imp_not_eq = order_class.less_imp_not_eq
-lemmas order_less_imp_not_eq2 = order_class.less_imp_not_eq2
-lemmas order_neq_le_trans = order_class.neq_le_trans
-lemmas order_le_neq_trans = order_class.le_neq_trans
-
-lemmas order_antisym = antisym
-lemmas order_less_not_sym = preorder_class.less_not_sym
-lemmas order_less_asym = preorder_class.less_asym
-lemmas order_eq_iff = order_class.eq_iff
-lemmas order_antisym_conv = order_class.antisym_conv
-lemmas order_less_trans = preorder_class.less_trans
-lemmas order_le_less_trans = preorder_class.le_less_trans
-lemmas order_less_le_trans = preorder_class.less_le_trans
-lemmas order_less_imp_not_less = preorder_class.less_imp_not_less
-lemmas order_less_imp_triv = preorder_class.less_imp_triv
-lemmas order_less_asym' = preorder_class.less_asym'
-
-lemmas linorder_linear = linear
-lemmas linorder_less_linear = linorder_class.less_linear
-lemmas linorder_le_less_linear = linorder_class.le_less_linear
-lemmas linorder_le_cases = linorder_class.le_cases
-lemmas linorder_not_less = linorder_class.not_less
-lemmas linorder_not_le = linorder_class.not_le
-lemmas linorder_neq_iff = linorder_class.neq_iff
-lemmas linorder_neqE = linorder_class.neqE
-lemmas linorder_antisym_conv1 = linorder_class.antisym_conv1
-lemmas linorder_antisym_conv2 = linorder_class.antisym_conv2
-lemmas linorder_antisym_conv3 = linorder_class.antisym_conv3
-
-
 subsection {* Bounded quantifiers *}
 
 syntax
@@ -698,7 +660,7 @@ proof -
   assume r: "!!x y. x < y ==> f x < f y"
   assume "a < b" hence "f a < f b" by (rule r)
   also assume "f b < c"
-  finally (order_less_trans) show ?thesis .
+  finally (less_trans) show ?thesis .
 qed
 
 lemma order_less_subst1: "(a::'a::order) < f b ==> (b::'b::order) < c ==>
@@ -707,7 +669,7 @@ proof -
   assume r: "!!x y. x < y ==> f x < f y"
   assume "a < f b"
   also assume "b < c" hence "f b < f c" by (rule r)
-  finally (order_less_trans) show ?thesis .
+  finally (less_trans) show ?thesis .
 qed
 
 lemma order_le_less_subst2: "(a::'a::order) <= b ==> f b < (c::'c::order) ==>
@@ -716,7 +678,7 @@ proof -
   assume r: "!!x y. x <= y ==> f x <= f y"
   assume "a <= b" hence "f a <= f b" by (rule r)
   also assume "f b < c"
-  finally (order_le_less_trans) show ?thesis .
+  finally (le_less_trans) show ?thesis .
 qed
 
 lemma order_le_less_subst1: "(a::'a::order) <= f b ==> (b::'b::order) < c ==>
@@ -725,7 +687,7 @@ proof -
   assume r: "!!x y. x < y ==> f x < f y"
   assume "a <= f b"
   also assume "b < c" hence "f b < f c" by (rule r)
-  finally (order_le_less_trans) show ?thesis .
+  finally (le_less_trans) show ?thesis .
 qed
 
 lemma order_less_le_subst2: "(a::'a::order) < b ==> f b <= (c::'c::order) ==>
@@ -734,7 +696,7 @@ proof -
   assume r: "!!x y. x < y ==> f x < f y"
   assume "a < b" hence "f a < f b" by (rule r)
   also assume "f b <= c"
-  finally (order_less_le_trans) show ?thesis .
+  finally (less_le_trans) show ?thesis .
 qed
 
 lemma order_less_le_subst1: "(a::'a::order) < f b ==> (b::'b::order) <= c ==>
@@ -743,7 +705,7 @@ proof -
   assume r: "!!x y. x <= y ==> f x <= f y"
   assume "a < f b"
   also assume "b <= c" hence "f b <= f c" by (rule r)
-  finally (order_less_le_trans) show ?thesis .
+  finally (less_le_trans) show ?thesis .
 qed
 
 lemma order_subst1: "(a::'a::order) <= f b ==> (b::'b::order) <= c ==>
@@ -875,8 +837,6 @@ lemmas order_trans_rules =
   ord_less_eq_trans
   ord_eq_less_trans
   trans
-
-(* FIXME cleanup *)
 
 text {* These support proving chains of decreasing inequalities
     a >= b >= c ... in Isar proofs. *}
@@ -1070,12 +1030,12 @@ by (simp add: max_def)
 
 lemma min_leastR: "(\<And>x\<Colon>'a\<Colon>order. least \<le> x) \<Longrightarrow> min x least = least"
 apply (simp add: min_def)
-apply (blast intro: order_antisym)
+apply (blast intro: antisym)
 done
 
 lemma max_leastR: "(\<And>x\<Colon>'a\<Colon>order. least \<le> x) \<Longrightarrow> max x least = x"
 apply (simp add: max_def)
-apply (blast intro: order_antisym)
+apply (blast intro: antisym)
 done
 
 
@@ -1107,7 +1067,7 @@ begin
 lemma wellorder_Least_lemma:
   fixes k :: 'a
   assumes "P k"
-  shows "P (LEAST x. P x)" and "(LEAST x. P x) \<le> k"
+  shows LeastI: "P (LEAST x. P x)" and Least_le: "(LEAST x. P x) \<le> k"
 proof -
   have "P (LEAST x. P x) \<and> (LEAST x. P x) \<le> k"
   using assms proof (induct k rule: less_induct)
@@ -1131,9 +1091,6 @@ proof -
   qed
   then show "P (LEAST x. P x)" and "(LEAST x. P x) \<le> k" by auto
 qed
-
-lemmas LeastI   = wellorder_Least_lemma(1)
-lemmas Least_le = wellorder_Least_lemma(2)
 
 -- "The following 3 lemmas are due to Brian Huffman"
 lemma LeastI_ex: "\<exists>x. P x \<Longrightarrow> P (Least P)"
@@ -1174,7 +1131,7 @@ definition
   bot_bool_eq: "bot = False"
 
 instance proof
-qed (auto simp add: le_bool_def less_bool_def top_bool_eq bot_bool_eq)
+qed (auto simp add: bot_bool_eq top_bool_eq less_bool_def, auto simp add: le_bool_def)
 
 end
 
@@ -1221,10 +1178,10 @@ end
 
 instance "fun" :: (type, preorder) preorder proof
 qed (auto simp add: le_fun_def less_fun_def
-  intro: order_trans order_antisym intro!: ext)
+  intro: order_trans antisym intro!: ext)
 
 instance "fun" :: (type, order) order proof
-qed (auto simp add: le_fun_def intro: order_antisym ext)
+qed (auto simp add: le_fun_def intro: antisym ext)
 
 instantiation "fun" :: (type, top) top
 begin
@@ -1256,5 +1213,43 @@ lemma le_funE: "f \<le> g \<Longrightarrow> (f x \<le> g x \<Longrightarrow> P) 
 
 lemma le_funD: "f \<le> g \<Longrightarrow> f x \<le> g x"
   unfolding le_fun_def by simp
+
+
+subsection {* Name duplicates *}
+
+lemmas order_eq_refl = preorder_class.eq_refl
+lemmas order_less_irrefl = preorder_class.less_irrefl
+lemmas order_less_imp_le = preorder_class.less_imp_le
+lemmas order_less_not_sym = preorder_class.less_not_sym
+lemmas order_less_asym = preorder_class.less_asym
+lemmas order_less_trans = preorder_class.less_trans
+lemmas order_le_less_trans = preorder_class.le_less_trans
+lemmas order_less_le_trans = preorder_class.less_le_trans
+lemmas order_less_imp_not_less = preorder_class.less_imp_not_less
+lemmas order_less_imp_triv = preorder_class.less_imp_triv
+lemmas order_less_asym' = preorder_class.less_asym'
+
+lemmas order_less_le = order_class.less_le
+lemmas order_le_less = order_class.le_less
+lemmas order_le_imp_less_or_eq = order_class.le_imp_less_or_eq
+lemmas order_less_imp_not_eq = order_class.less_imp_not_eq
+lemmas order_less_imp_not_eq2 = order_class.less_imp_not_eq2
+lemmas order_neq_le_trans = order_class.neq_le_trans
+lemmas order_le_neq_trans = order_class.le_neq_trans
+lemmas order_antisym = order_class.antisym
+lemmas order_eq_iff = order_class.eq_iff
+lemmas order_antisym_conv = order_class.antisym_conv
+
+lemmas linorder_linear = linorder_class.linear
+lemmas linorder_less_linear = linorder_class.less_linear
+lemmas linorder_le_less_linear = linorder_class.le_less_linear
+lemmas linorder_le_cases = linorder_class.le_cases
+lemmas linorder_not_less = linorder_class.not_less
+lemmas linorder_not_le = linorder_class.not_le
+lemmas linorder_neq_iff = linorder_class.neq_iff
+lemmas linorder_neqE = linorder_class.neqE
+lemmas linorder_antisym_conv1 = linorder_class.antisym_conv1
+lemmas linorder_antisym_conv2 = linorder_class.antisym_conv2
+lemmas linorder_antisym_conv3 = linorder_class.antisym_conv3
 
 end
