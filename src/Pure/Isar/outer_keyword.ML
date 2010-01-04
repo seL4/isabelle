@@ -43,6 +43,7 @@ sig
   val dest_commands: unit -> string list
   val command_keyword: string -> T option
   val command_tags: string -> string list
+  val keyword_status_reportN: string
   val report: unit -> unit
   val keyword: string -> unit
   val command: string -> T -> unit
@@ -142,33 +143,38 @@ fun command_tags name = these (Option.map tags_of (command_keyword name));
 
 (* report *)
 
+val keyword_status_reportN = "keyword_status_report";
+
+fun report_message s =
+  (if print_mode_active keyword_status_reportN then Output.status else writeln) s;
+
 fun report_keyword name =
-  Pretty.mark (Markup.keyword_decl name)
-    (Pretty.str ("Outer syntax keyword: " ^ quote name));
+  report_message (Markup.markup (Markup.keyword_decl name)
+    ("Outer syntax keyword: " ^ quote name));
 
 fun report_command (name, kind) =
-  Pretty.mark (Markup.command_decl name (kind_of kind))
-    (Pretty.str ("Outer syntax command: " ^ quote name ^ " (" ^ kind_of kind ^ ")"));
-
-fun status_writeln s = (Output.status s; writeln s);
+  report_message (Markup.markup (Markup.command_decl name (kind_of kind))
+    ("Outer syntax command: " ^ quote name ^ " (" ^ kind_of kind ^ ")"));
 
 fun report () =
   let val (keywords, commands) = CRITICAL (fn () =>
     (dest_keywords (), sort_wrt #1 (Symtab.dest (get_commands ()))))
-  in map report_keyword keywords @ map report_command commands end
-  |> Pretty.chunks |> Pretty.string_of |> status_writeln;
+  in
+    List.app report_keyword keywords;
+    List.app report_command commands
+  end;
 
 
 (* augment tables *)
 
 fun keyword name =
  (change_lexicons (apfst (Scan.extend_lexicon (Symbol.explode name)));
-  status_writeln (Pretty.string_of (report_keyword name)));
+  report_keyword name);
 
 fun command name kind =
  (change_lexicons (apsnd (Scan.extend_lexicon (Symbol.explode name)));
   change_commands (Symtab.update (name, kind));
-  status_writeln (Pretty.string_of (report_command (name, kind))));
+  report_command (name, kind));
 
 
 (* command categories *)
