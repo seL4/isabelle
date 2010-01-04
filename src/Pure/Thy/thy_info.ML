@@ -389,14 +389,16 @@ fun schedule_futures task_graph = uninterruptible (fn _ => fn () =>
 
     val futures = fold fork tasks Symtab.empty;
 
-    val exns = tasks |> maps (fn (name, _) =>
+    val failed = tasks |> maps (fn (name, _) =>
       let
         val after_load = Future.join (the (Symtab.lookup futures name));
         val _ = join_thy name;
         val _ = after_load ();
-      in [] end handle exn => (kill_thy name; [exn]));
+      in [] end handle exn => [(name, exn)]) |> rev;
 
-  in ignore (Exn.release_all (map Exn.Exn (rev exns))) end) ();
+    val _ = List.app (kill_thy o #1) failed;
+    val _ = Exn.release_all (map (Exn.Exn o #2) failed);
+  in () end) ();
 
 fun schedule_seq tasks =
   Graph.topological_order tasks
