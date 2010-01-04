@@ -21,9 +21,6 @@ fi
 #key executables
 ISABELLE_PROCESS="$ISABELLE_HOME/bin/isabelle-process"
 ISABELLE_TOOL="$ISABELLE_HOME/bin/isabelle"
-#legacy settings
-ISABELLE="$ISABELLE_PROCESS"
-ISATOOL="$ISABELLE_TOOL"
 
 function isabelle-process ()
 {

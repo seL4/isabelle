@@ -54,6 +54,10 @@ usual for resolution.  Rare INCOMPATIBILITY.
 ISABELLE_USEDIR_OPTIONS applies uniformly to all sessions.  Note that
 proof terms are enabled unconditionally in the new HOL-Proofs image.
 
+* Discontinued old ISABELLE and ISATOOL environment settings (legacy
+feature since Isabelle2009).  Use ISABELLE_PROCESS and ISABELLE_TOOL,
+respectively.
+
 
 
 New in Isabelle2009-1 (December 2009)
