@@ -25,6 +25,16 @@ ISABELLE_TOOL="$ISABELLE_HOME/bin/isabelle"
 ISABELLE="$ISABELLE_PROCESS"
 ISATOOL="$ISABELLE_TOOL"
 
+function isabelle-process ()
+{
+  "$ISABELLE_PROCESS" "$@"
+}
+
+function isabelle ()
+{
+  "$ISABELLE_TOOL" "$@"
+}
+
 #Isabelle distribution identifier -- filled in automatically!
 ISABELLE_IDENTIFIER=""
 
