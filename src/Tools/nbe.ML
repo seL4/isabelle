@@ -513,14 +513,15 @@ structure Nbe_Functions = Code_Data
 
 (* compilation, evaluation and reification *)
 
-fun compile_eval theory naming program vs_t deps =
+fun compile_eval thy naming program vs_t deps =
   let
+    val ctxt = ProofContext.init thy;
     val (_, (gr, (_, idx_tab))) =
-      Nbe_Functions.change theory (fn thy => ensure_stmts (ProofContext.init thy) naming program o snd);
+      Nbe_Functions.change thy (ensure_stmts ctxt naming program o snd);
   in
     vs_t
-    |> eval_term (ProofContext.init theory) gr deps
-    |> term_of_univ theory program idx_tab
+    |> eval_term ctxt gr deps
+    |> term_of_univ thy program idx_tab
   end;
 
 (* evaluation with type reconstruction *)

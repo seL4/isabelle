@@ -76,8 +76,8 @@ end;
 signature CODE_DATA =
 sig
   type T
-  val change: theory -> (theory -> T -> T) -> T
-  val change_yield: theory -> (theory -> T -> 'a * T) -> 'a * T
+  val change: theory -> (T -> T) -> T
+  val change_yield: theory -> (T -> 'a * T) -> 'a * T
 end;
 
 signature PRIVATE_CODE =
@@ -85,9 +85,9 @@ sig
   include CODE
   val declare_data: Object.T -> serial
   val change_data: serial * ('a -> Object.T) * (Object.T -> 'a)
-    -> theory -> (theory -> 'a -> 'a) -> 'a
+    -> theory -> ('a -> 'a) -> 'a
   val change_yield_data: serial * ('a -> Object.T) * (Object.T -> 'a)
-    -> theory -> (theory -> 'a -> 'b * 'a) -> 'b * 'a
+    -> theory -> ('a -> 'b * 'a) -> 'b * 'a
 end;
 
 structure Code : PRIVATE_CODE =
@@ -287,18 +287,20 @@ val _ = Context.>> (Context.map_theory (Theory.at_begin continue_history #> Theo
 fun change_yield_data (kind, mk, dest) theory f =
   let
     val dataref = (snd o Code_Data.get) theory;
-    val (datatab, thy, thy_ref) = case Synchronized.value dataref
-     of SOME (datatab, thy_ref) => (datatab, Theory.deref thy_ref, thy_ref)
-      | NONE => (Datatab.empty, theory, Theory.check_thy theory)
+    val (datatab, thy_ref) = case Synchronized.value dataref
+     of SOME (datatab, thy_ref) => if Theory.eq_thy (theory, Theory.deref thy_ref)
+          then (datatab, thy_ref)
+          else (Datatab.empty, Theory.check_thy theory)
+      | NONE => (Datatab.empty, Theory.check_thy theory)
     val data = case Datatab.lookup datatab kind
      of SOME data => data
       | NONE => invoke_init kind;
-    val result as (x, data') = f thy (dest data);
+    val result as (x, data') = f (dest data);
     val _ = Synchronized.change dataref
       ((K o SOME) (Datatab.update (kind, mk data') datatab, thy_ref));
   in result end;
 
-fun change_data ops theory f = change_yield_data ops theory (pair () oo f) |> snd;
+fun change_data ops theory f = change_yield_data ops theory (f #> pair ()) |> snd;
 
 end; (*local*)
 

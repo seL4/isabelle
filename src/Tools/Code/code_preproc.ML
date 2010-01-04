@@ -282,7 +282,7 @@ fun obtain_instance thy arities (inst as (class, tyco)) =
    of SOME classess => (classess, ([], []))
     | NONE => let
         val all_classes = complete_proper_sort thy [class];
-        val superclasses = remove (op =) class all_classes
+        val superclasses = remove (op =) class all_classes;
         val classess = map (complete_proper_sort thy)
           (Sign.arity_sorts thy tyco [class]);
         val inst_params = inst_params thy tyco all_classes;
@@ -454,8 +454,8 @@ structure Wellsorted = Code_Data
 
 (** retrieval and evaluation interfaces **)
 
-fun obtain theory cs ts = apsnd snd
-  (Wellsorted.change_yield theory (fn thy => extend_arities_eqngr thy cs ts));
+fun obtain thy cs ts = apsnd snd
+  (Wellsorted.change_yield thy (extend_arities_eqngr thy cs ts));
 
 fun gen_eval thy cterm_of conclude_evaluation evaluator proto_ct =
   let
