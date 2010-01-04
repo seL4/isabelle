@@ -83,7 +83,7 @@ sig
   include CONTEXT
   structure Theory_Data:
   sig
-    val declare: Object.T -> (Object.T -> Object.T) -> (Object.T -> Object.T) ->
+    val declare: Object.T -> (Object.T -> Object.T) ->
       (Pretty.pp -> Object.T * Object.T -> Object.T) -> serial
     val get: serial -> (Object.T -> 'a) -> theory -> 'a
     val put: serial -> ('a -> Object.T) -> 'a -> theory -> theory
@@ -112,7 +112,6 @@ local
 
 type kind =
  {empty: Object.T,
-  copy: Object.T -> Object.T,
   extend: Object.T -> Object.T,
   merge: Pretty.pp -> Object.T * Object.T -> Object.T};
 
@@ -126,18 +125,16 @@ fun invoke f k =
 in
 
 fun invoke_empty k = invoke (K o #empty) k ();
-val invoke_copy = invoke #copy;
 val invoke_extend = invoke #extend;
 fun invoke_merge pp = invoke (fn kind => #merge kind pp);
 
-fun declare_theory_data empty copy extend merge =
+fun declare_theory_data empty extend merge =
   let
     val k = serial ();
-    val kind = {empty = empty, copy = copy, extend = extend, merge = merge};
+    val kind = {empty = empty, extend = extend, merge = merge};
     val _ = CRITICAL (fn () => Unsynchronized.change kinds (Datatab.update (k, kind)));
   in k end;
 
-val copy_data = Datatab.map' invoke_copy;
 val extend_data = Datatab.map' invoke_extend;
 
 fun merge_data pp (data1, data2) =
@@ -341,7 +338,7 @@ fun change_thy draft' f thy =
     val (self', data', ancestry') =
       if draft then (self, data, ancestry)    (*destructive change!*)
       else if #stage history > 0
-      then (NONE, copy_data data, ancestry)
+      then (NONE, data, ancestry)
       else (NONE, extend_data data, make_ancestry [thy] (extend_ancestors_of thy));
     val ids' = insert_id draft id ids;
     val data'' = f data';
@@ -357,9 +354,8 @@ fun copy_thy thy =
   let
     val Theory ({draft, id, ids, ...}, data, ancestry, history) = thy;
     val ids' = insert_id draft id ids;
-    val data' = copy_data data;
     val thy' = SYNCHRONIZED (fn () =>
-      (check_thy thy; create_thy NONE true ids' data' ancestry history));
+      (check_thy thy; create_thy NONE true ids' data ancestry history));
   in thy' end;
 
 val pre_pure_thy = create_thy NONE true Inttab.empty
@@ -430,9 +426,9 @@ struct
 val declare = declare_theory_data;
 
 fun get k dest thy =
-  dest ((case Datatab.lookup (data_of thy) k of
+  dest (case Datatab.lookup (data_of thy) k of
     SOME x => x
-  | NONE => invoke_copy k (invoke_empty k)));   (*adhoc value*)
+  | NONE => invoke_empty k);   (*adhoc value*)
 
 fun put k mk x = modify_thy (Datatab.update (k, mk x));
 
@@ -582,7 +578,6 @@ signature OLD_THEORY_DATA_ARGS =
 sig
   type T
   val empty: T
-  val copy: T -> T
   val extend: T -> T
   val merge: Pretty.pp -> T * T -> T
 end;
@@ -604,7 +599,6 @@ exception Data of T;
 
 val kind = Context.Theory_Data.declare
   (Data Data.empty)
-  (fn Data x => Data (Data.copy x))
   (fn Data x => Data (Data.extend x))
   (fn pp => fn (Data x1, Data x2) => Data (Data.merge pp (x1, x2)));
 
@@ -639,7 +633,6 @@ structure Result = TheoryDataFun
 (
   type T = Data.T;
   val empty = Data.empty;
-  val copy = I;
   val extend = Data.extend;
   fun merge _ = Data.merge;
 );
