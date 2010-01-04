@@ -102,6 +102,11 @@ class Session(system: Isabelle_System)
 
     /* prover results */
 
+    def bad_result(result: Isabelle_Process.Result)
+    {
+      System.err.println("Ignoring prover result: " + result)
+    }
+
     def handle_result(result: Isabelle_Process.Result)
     {
       raw_results.event(result)
@@ -115,38 +120,38 @@ class Session(system: Isabelle_System)
       if (target.isDefined) target.get.consume(this, result.message)
       else if (result.kind == Isabelle_Process.Kind.STATUS) {
         // global status message
-        for (elem <- result.body) {
-          elem match {
-            // document state assigment
-            case XML.Elem(Markup.ASSIGN, _, edits) if target_id.isDefined =>
-              documents.get(target_id.get) match {
-                case Some(doc) =>
-                  val states =
-                    for {
-                      XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _)
-                        <- edits
-                      cmd <- lookup_command(cmd_id)
-                    } yield {
-                      val st = cmd.assign_state(state_id)
-                      register(st)
-                      (cmd, st)
-                    }
-                  doc.assign_states(states)
-                case None =>
-              }
+        result.body match {
 
-            // command and keyword declarations
-            case XML.Elem(Markup.COMMAND_DECL, (Markup.NAME, name) :: (Markup.KIND, kind) :: _, _) =>
-              syntax += (name, kind)
-            case XML.Elem(Markup.KEYWORD_DECL, (Markup.NAME, name) :: _, _) =>
-              syntax += name
+          // document state assigment
+          case List(XML.Elem(Markup.ASSIGN, _, edits)) if target_id.isDefined =>
+            documents.get(target_id.get) match {
+              case Some(doc) =>
+                val states =
+                  for {
+                    XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _)
+                      <- edits
+                    cmd <- lookup_command(cmd_id)
+                  } yield {
+                    val st = cmd.assign_state(state_id)
+                    register(st)
+                    (cmd, st)
+                  }
+                doc.assign_states(states)
+              case None => bad_result(result)
+            }
 
-            case _ =>
-          }
+          // command and keyword declarations
+          case List(XML.Elem(Markup.COMMAND_DECL, (Markup.NAME, name) :: (Markup.KIND, kind) :: _, _)) =>
+            syntax += (name, kind)
+          case List(XML.Elem(Markup.KEYWORD_DECL, (Markup.NAME, name) :: _, _)) =>
+            syntax += name
+
+          case _ => bad_result(result)
         }
       }
       else if (result.kind == Isabelle_Process.Kind.EXIT)
         prover = null
+      else if (result.kind != Isabelle_Process.Kind.STDIN) bad_result(result)
     }
 
 
