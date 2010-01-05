@@ -220,8 +220,8 @@ object Scan
       val comment_text =
         rep(many1(sym => sym != "*" && sym != "(" && Symbol.is_closed(sym)) |
           """\*(?!\))|\((?!\*)""".r)
-      val comment_open = "(*" ~ comment_text ^^ (_ => ())
-      val comment_close = comment_text ~ "*)" ^^ (_ => ())
+      val comment_open = "(*" ~ comment_text ^^^ ()
+      val comment_close = comment_text ~ "*)" ^^^ ()
 
       def apply(in: Input) =
       {
