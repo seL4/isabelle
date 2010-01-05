@@ -7,7 +7,7 @@ Ordered queue of grouped tasks.
 signature TASK_QUEUE =
 sig
   type task
-  val new_task: int -> task
+  val dummy_task: task
   val pri_of_task: task -> int
   val str_of_task: task -> string
   type group
@@ -20,10 +20,11 @@ sig
   val str_of_group: group -> string
   type queue
   val empty: queue
-  val is_empty: queue -> bool
-  val status: queue -> {ready: int, pending: int, running: int}
+  val all_passive: queue -> bool
+  val status: queue -> {ready: int, pending: int, running: int, passive: int}
   val cancel: queue -> group -> bool
   val cancel_all: queue -> group list
+  val enqueue_passive: group -> queue -> task * queue
   val enqueue: group -> task list -> int -> (bool -> bool) -> queue -> (task * bool) * queue
   val extend: task -> (bool -> bool) -> queue -> queue option
   val dequeue: Thread.thread -> queue -> (task * group * (bool -> bool) list) option * queue
@@ -38,13 +39,14 @@ struct
 
 (* tasks *)
 
-datatype task = Task of int * serial;
+datatype task = Task of int option * serial;
+val dummy_task = Task (NONE, ~1);
 fun new_task pri = Task (pri, serial ());
 
-fun pri_of_task (Task (pri, _)) = pri;
+fun pri_of_task (Task (pri, _)) = the_default 0 pri;
 fun str_of_task (Task (_, i)) = string_of_int i;
 
-fun task_ord (Task t1, Task t2) = prod_ord (rev_order o int_ord) int_ord (t1, t2);
+fun task_ord (Task t1, Task t2) = prod_ord (rev_order o option_ord int_ord) int_ord (t1, t2);
 structure Task_Graph = Graph(type key = task val ord = task_ord);
 
 
@@ -91,7 +93,8 @@ fun str_of_group group =
 
 datatype job =
   Job of (bool -> bool) list |
-  Running of Thread.thread;
+  Running of Thread.thread |
+  Passive;
 
 type jobs = (group * job) Task_Graph.T;
 
@@ -123,20 +126,24 @@ datatype queue = Queue of
 fun make_queue groups jobs cache = Queue {groups = groups, jobs = jobs, cache = cache};
 
 val empty = make_queue Inttab.empty Task_Graph.empty No_Result;
-fun is_empty (Queue {jobs, ...}) = Task_Graph.is_empty jobs;
+
+fun all_passive (Queue {jobs, ...}) =
+  Task_Graph.get_first NONE
+    ((fn Job _ => SOME () | Running _ => SOME () | Passive => NONE) o #2 o #1 o #2) jobs |> is_none;
 
 
 (* queue status *)
 
 fun status (Queue {jobs, ...}) =
   let
-    val (x, y, z) =
-      Task_Graph.fold (fn (_, ((_, job), (deps, _))) => fn (x, y, z) =>
+    val (x, y, z, w) =
+      Task_Graph.fold (fn (_, ((_, job), (deps, _))) => fn (x, y, z, w) =>
           (case job of
-            Job _ => if null deps then (x + 1, y, z) else (x, y + 1, z)
-          | Running _ => (x, y, z + 1)))
-        jobs (0, 0, 0);
-  in {ready = x, pending = y, running = z} end;
+            Job _ => if null deps then (x + 1, y, z, w) else (x, y + 1, z, w)
+          | Running _ => (x, y, z + 1, w)
+          | Passive => (x, y, z, w + 1)))
+        jobs (0, 0, 0, 0);
+  in {ready = x, pending = y, running = z, passive = w} end;
 
 
 (* cancel -- peers and sub-groups *)
@@ -154,18 +161,27 @@ fun cancel_all (Queue {jobs, ...}) =
   let
     fun cancel_job (group, job) (groups, running) =
       (cancel_group group Exn.Interrupt;
-        (case job of Running t => (insert eq_group group groups, insert Thread.equal t running)
+        (case job of
+          Running t => (insert eq_group group groups, insert Thread.equal t running)
         | _ => (groups, running)));
-    val (groups, running) = Task_Graph.fold (cancel_job o #1 o #2) jobs ([], []);
+    val (running_groups, running) = Task_Graph.fold (cancel_job o #1 o #2) jobs ([], []);
     val _ = List.app SimpleThread.interrupt running;
-  in groups end;
+  in running_groups end;
 
 
 (* enqueue *)
 
+fun enqueue_passive group (Queue {groups, jobs, cache}) =
+  let
+    val task = new_task NONE;
+    val groups' = groups
+      |> fold (fn gid => Inttab.cons_list (gid, task)) (group_ancestry group);
+    val jobs' = jobs |> Task_Graph.new_node (task, (group, Passive));
+  in (task, make_queue groups' jobs' cache) end;
+
 fun enqueue group deps pri job (Queue {groups, jobs, cache}) =
   let
-    val task = new_task pri;
+    val task = new_task (SOME pri);
     val groups' = groups
       |> fold (fn gid => Inttab.cons_list (gid, task)) (group_ancestry group);
     val jobs' = jobs
