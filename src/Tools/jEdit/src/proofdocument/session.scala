@@ -151,7 +151,8 @@ class Session(system: Isabelle_System)
       }
       else if (result.kind == Isabelle_Process.Kind.EXIT)
         prover = null
-      else if (result.kind != Isabelle_Process.Kind.STDIN) bad_result(result)
+      else if (result.kind != Isabelle_Process.Kind.STDIN && !result.is_ready)
+        bad_result(result)
     }
 
 
