@@ -116,16 +116,10 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
           end
       | print_case tyvars thm vars fxy ((_, []), _) =
           (brackify fxy o Pretty.breaks o map str) ["error", "\"empty case\""];
-    fun print_stmt (name, Code_Thingol.Fun (_, ((vs, ty), []))) =
+    fun print_stmt (name, Code_Thingol.Fun (_, ((vs, ty), raw_eqs))) =
           let
             val tyvars = intro_vars (map fst vs) reserved;
-            val n = (length o fst o Code_Thingol.unfold_fun) ty;
-          in
-            Pretty.chunks [
-              semicolon [
-                (str o suffix " ::" o deresolve_base) name,
-                print_typscheme tyvars (vs, ty)
-              ],
+            fun print_err n =
               semicolon (
                 (str o deresolve_base) name
                 :: map str (replicate n "_")
@@ -133,13 +127,7 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
                 :: str "error"
                 @@ (str o ML_Syntax.print_string
                     o Long_Name.base_name o Long_Name.qualifier) name
-              )
-            ]
-          end
-      | print_stmt (name, Code_Thingol.Fun (_, ((vs, ty), raw_eqs))) =
-          let
-            val eqs = filter (snd o snd) raw_eqs;
-            val tyvars = intro_vars (map fst vs) reserved;
+              );
             fun print_eqn ((ts, t), (thm, _)) =
               let
                 val consts = fold Code_Thingol.add_constnames (t :: ts) [];
@@ -162,7 +150,9 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
                 (str o suffix " ::" o deresolve_base) name,
                 print_typscheme tyvars (vs, ty)
               ]
-              :: map print_eqn eqs
+              :: (case filter (snd o snd) raw_eqs
+               of [] => [print_err ((length o fst o Code_Thingol.unfold_fun) ty)]
+                | eqs => map print_eqn eqs)
             )
           end
       | print_stmt (name, Code_Thingol.Datatype (_, (vs, []))) =
