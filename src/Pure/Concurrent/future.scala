@@ -41,7 +41,8 @@ abstract class Future[A]
 
 abstract class Promise[A] extends Future[A]
 {
-  def fulfill(x: A): Unit
+  def fulfill_result(res: Exn.Result[A]): Unit
+  def fulfill(x: A) { fulfill_result(Exn.Res(x)) }
 }
 
 private class Finished_Future[A](x: A) extends Future[A]
@@ -72,32 +73,34 @@ private class Pending_Future[A](body: => A) extends Future[A]
 
 private class Promise_Future[A] extends Promise[A]
 {
-  @volatile private var result: Option[A] = None
+  @volatile private var result: Option[Exn.Result[A]] = None
 
   private case object Read
-  private case class Write(x: A)
+  private case class Write(res: Exn.Result[A])
 
   private val receiver = actor {
     loop {
       react {
         case Read if result.isDefined => reply(result.get)
-        case Write(x) =>
+        case Write(res) =>
           if (result.isDefined) reply(false)
-          else { result = Some(x); reply(true) }
+          else { result = Some(res); reply(true) }
       }
     }
   }
 
-  def peek: Option[Exn.Result[A]] = result.map(Exn.Res(_))
+  def peek: Option[Exn.Result[A]] = result
 
   def join: A =
-    result match {
-      case Some(res) => res
-      case None => (receiver !? Read).asInstanceOf[A]
+    Exn.release {
+      result match {
+        case Some(res) => res
+        case None => (receiver !? Read).asInstanceOf[Exn.Result[A]]
+      }
     }
 
-  def fulfill(x: A) {
-    receiver !? Write(x) match {
+  def fulfill_result(res: Exn.Result[A]) {
+    receiver !? Write(res) match {
       case false => error("Duplicate fulfillment of promise")
       case _ =>
     }

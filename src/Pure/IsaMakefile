@@ -132,7 +132,7 @@ SCALA_FILES = Concurrent/future.scala General/download.scala		\
   System/isabelle_system.scala System/platform.scala			\
   System/session_manager.scala System/standard_system.scala		\
   Thy/completion.scala Thy/html.scala Thy/thy_header.scala		\
-  library.scala
+  Thy/thy_syntax.scala library.scala
 
 JAR_DIR = $(ISABELLE_HOME)/lib/classes
 PURE_JAR = $(JAR_DIR)/Pure.jar

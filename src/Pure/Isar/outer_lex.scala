@@ -33,6 +33,7 @@ object Outer_Lex
 
   sealed case class Token(val kind: Token_Kind.Value, val source: String)
   {
+    def is_command: Boolean = kind == Token_Kind.COMMAND
     def is_delimited: Boolean =
       kind == Token_Kind.STRING ||
       kind == Token_Kind.ALT_STRING ||
@@ -48,6 +49,7 @@ object Outer_Lex
     def is_space: Boolean = kind == Token_Kind.SPACE
     def is_comment: Boolean = kind == Token_Kind.COMMENT
     def is_proper: Boolean = !(is_space || is_comment)
+    def is_unparsed: Boolean = kind == Token_Kind.UNPARSED
 
     def content: String =
       if (kind == Token_Kind.STRING) Scan.Lexicon.empty.quoted_content("\"", source)

@@ -45,7 +45,7 @@ class Outer_Syntax(symbols: Symbol.Interpretation)
 
     parseAll(rep(token(symbols, is_command)), input) match {
       case Success(tokens, _) => tokens
-      case _ => error("Failed to tokenize input:\n" + input.source.toString)
+      case _ => error("Unexpected failure of tokenizing input:\n" + input.source.toString)
     }
   }
 
