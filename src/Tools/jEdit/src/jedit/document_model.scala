@@ -8,7 +8,7 @@
 package isabelle.jedit
 
 
-import isabelle.proofdocument.{Change, Command, Edit, Insert, Remove, Document, Session}
+import isabelle.proofdocument.{Change, Command, Document, Session}
 
 import scala.actors.Actor, Actor._
 import scala.collection.mutable
@@ -77,7 +77,7 @@ class Document_Model(val session: Session, val buffer: Buffer)
 
   /* transforming offsets */
 
-  private def changes_from(doc: Document): List[Edit] =
+  private def changes_from(doc: Document): List[Text_Edit] =
   {
     Swing_Thread.assert()
     (edits_buffer.toList /:
@@ -99,7 +99,7 @@ class Document_Model(val session: Session, val buffer: Buffer)
 
   /* text edits */
 
-  private val edits_buffer = new mutable.ListBuffer[Edit]   // owned by Swing thread
+  private val edits_buffer = new mutable.ListBuffer[Text_Edit]   // owned by Swing thread
 
   private val edits_delay = Swing_Thread.delay_last(300) {
     if (!edits_buffer.isEmpty) {
@@ -124,14 +124,14 @@ class Document_Model(val session: Session, val buffer: Buffer)
     override def contentInserted(buffer: JEditBuffer,
       start_line: Int, offset: Int, num_lines: Int, length: Int)
     {
-      edits_buffer += Insert(offset, buffer.getText(offset, length))
+      edits_buffer += Text_Edit.Insert(offset, buffer.getText(offset, length))
       edits_delay()
     }
 
     override def preContentRemoved(buffer: JEditBuffer,
       start_line: Int, start: Int, num_lines: Int, removed_length: Int)
     {
-      edits_buffer += Remove(start, buffer.getText(start, removed_length))
+      edits_buffer += Text_Edit.Remove(start, buffer.getText(start, removed_length))
       edits_delay()
     }
   }
@@ -145,7 +145,7 @@ class Document_Model(val session: Session, val buffer: Buffer)
     buffer.addBufferListener(buffer_listener)
     buffer.propertiesChanged()
 
-    edits_buffer += Insert(0, buffer.getText(0, buffer.getLength))
+    edits_buffer += Text_Edit.Insert(0, buffer.getText(0, buffer.getLength))
     edits_delay()
   }
 

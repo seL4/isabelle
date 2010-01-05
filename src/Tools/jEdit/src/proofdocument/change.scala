@@ -1,47 +1,16 @@
 /*
  * Changes of plain text
  *
- * @author Johannes Hölzl, TU Munich
  * @author Fabian Immler, TU Munich
+ * @author Makarius
  */
 
 package isabelle.proofdocument
 
 
-sealed abstract class Edit
-{
-  val start: Int
-  def before(offset: Int): Int
-  def after(offset: Int): Int
-}
-
-
-case class Insert(start: Int, text: String) extends Edit
-{
-  def before(offset: Int): Int =
-    if (start > offset) offset
-    else (offset - text.length) max start
-
-  def after(offset: Int): Int =
-    if (start <= offset) offset + text.length else offset
-}
-
-
-case class Remove(start: Int, text: String) extends Edit
-{
-  def before(offset: Int): Int =
-    if (start <= offset) offset + text.length else offset
-
-  def after(offset: Int): Int =
-    if (start > offset) offset
-    else (offset - text.length) max start
-}
-// TODO: merge multiple inserts?
-
-
 class Change(
   val parent: Option[Change],
-  val edits: List[Edit],
+  val edits: List[Text_Edit],
   val id: Isar_Document.Document_ID,
   val result: Future[Document.Result])
 {

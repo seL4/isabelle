@@ -45,10 +45,10 @@ object Document
   type Result = (Document, List[Structure_Edit])
 
   def text_edits(session: Session, old_doc: Document, new_id: Isar_Document.Document_ID,
-    edits: List[Edit]): Result =
+    edits: List[Text_Edit]): Result =
   {
     val changes = new mutable.ListBuffer[Structure_Edit]
-    val new_doc = (old_doc /: edits)((doc1: Document, edit: Edit) =>
+    val new_doc = (old_doc /: edits)((doc1: Document, edit: Text_Edit) =>
       {
         val (doc2, chgs) = doc1.text_edit(session, edit, new_id)  // FIXME odd multiple use of id
         changes ++ chgs
@@ -92,12 +92,12 @@ class Document(
 
   /** token view **/
 
-  def text_edit(session: Session, e: Edit, id: String): Document.Result =
+  def text_edit(session: Session, e: Text_Edit, id: String): Document.Result =
   {
     case class TextChange(start: Int, added: String, removed: String)
     val change = e match {
-      case Insert(s, a) => TextChange(s, a, "")
-      case Remove(s, r) => TextChange(s, "", r)
+      case Text_Edit.Insert(s, a) => TextChange(s, a, "")
+      case Text_Edit.Remove(s, r) => TextChange(s, "", r)
     }
     //indices of tokens
     var start: Map[Token, Int] = token_start
