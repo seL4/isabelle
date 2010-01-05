@@ -21,4 +21,8 @@ function fail()
 INTERFACE="$PROOFGENERAL_HOME/isar/interface"
 [ ! -x "$INTERFACE" ] && fail "Bad interface script: \"$INTERFACE\""
 
+#legacy settings
+export ISABELLE="$ISABELLE_PROCESS"
+export ISATOOL="$ISABELLE_TOOL"
+
 exec "$INTERFACE" "$@"
