@@ -317,9 +317,14 @@ fun build_tsig thy =
   let
     val (tycos, _) = (the_signatures o the_exec) thy;
     val decls = (#types o Type.rep_tsig o Sign.tsig_of) thy
-      |> apsnd (Symtab.fold (fn (tyco, n) =>
-          Symtab.update (tyco, Type.LogicalType n)) tycos);
-  in Type.build_tsig ((Name_Space.empty "", Sorts.empty_algebra), [], decls) end;
+      |> snd 
+      |> Symtab.fold (fn (tyco, n) =>
+          Symtab.update (tyco, Type.LogicalType n)) tycos;
+  in
+    Type.empty_tsig
+    |> Symtab.fold (fn (tyco, Type.LogicalType n) => Type.add_type Name_Space.default_naming
+        (Binding.qualified_name tyco, n) | _ => I) decls
+  end;
 
 fun cert_signature thy = Logic.varifyT o Type.cert_typ (build_tsig thy) o Type.no_tvars;
 
