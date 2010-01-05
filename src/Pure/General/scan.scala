@@ -283,17 +283,20 @@ object Scan
       val string = quoted("\"") ^^ (x => Token(Token_Kind.STRING, x))
       val alt_string = quoted("`") ^^ (x => Token(Token_Kind.ALT_STRING, x))
 
-      val bad_input = many1(sym => !(symbols.is_blank(sym))) ^^
-        (x => Token(Token_Kind.BAD_INPUT, x))
+      val junk = many1(sym => !(symbols.is_blank(sym)))
+      val bad_delimiter =
+        ("\"" | "`" | "{*" | "(*") ~ junk ^^ { case x ~ y => Token(Token_Kind.BAD_INPUT, x + y) }
+      val bad = junk ^^ (x => Token(Token_Kind.BAD_INPUT, x))
 
 
       /* tokens */
 
       (space | (string | (alt_string | (verbatim ^^ (x => Token(Token_Kind.VERBATIM, x)) |
         comment ^^ (x => Token(Token_Kind.COMMENT, x)))))) |
+      bad_delimiter |
       ((ident | (var_ | (type_ident | (type_var | (nat_ | sym_ident))))) |||
         keyword ^^ (x => Token(if (is_command(x)) Token_Kind.COMMAND else Token_Kind.KEYWORD, x))) |
-      bad_input
+      bad
     }
   }
 
