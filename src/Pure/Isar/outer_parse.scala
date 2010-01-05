@@ -68,17 +68,6 @@ object Outer_Parse
     def tags: Parser[List[String]] = rep(keyword("%") ~> tag_name)
 
 
-    /* command spans */
-
-    def command_span: Parser[List[Elem]] =
-    {
-      val whitespace = token("white space", tok => tok.is_space || tok.is_comment)
-      val command = token("command keyword", _.is_command)
-      val body = not(rep(whitespace) ~ (command | eof)) ~> not_eof
-      command ~ rep(body) ^^ { case x ~ ys => x :: ys } | rep1(whitespace) | rep1(body)
-    }
-
-
     /* wrappers */
 
     def parse[T](p: Parser[T], in: Outer_Lex.Reader): ParseResult[T] = p(in)
