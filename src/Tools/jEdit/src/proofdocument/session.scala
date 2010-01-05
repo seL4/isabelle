@@ -146,12 +146,12 @@ class Session(system: Isabelle_System)
           case List(XML.Elem(Markup.KEYWORD_DECL, (Markup.NAME, name) :: _, _)) =>
             syntax += name
 
-          case _ => bad_result(result)
+          case _ => if (!result.is_ready) bad_result(result)
         }
       }
       else if (result.kind == Isabelle_Process.Kind.EXIT)
         prover = null
-      else if (result.kind != Isabelle_Process.Kind.STDIN && !result.is_ready)
+      else if (result.kind != Isabelle_Process.Kind.STDIN && !result.is_raw)
         bad_result(result)
     }
 
