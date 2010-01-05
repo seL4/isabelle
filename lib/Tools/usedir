@@ -261,7 +261,7 @@ if [ "$RC" -eq 0 ]; then
 else
   { echo "$ITEM FAILED";
     echo "(see also $LOG)";
-    echo; tail -40 "$LOG"; echo; } >&2
+    echo; tail -20 "$LOG"; echo; } >&2
 fi
 
 exit "$RC"
