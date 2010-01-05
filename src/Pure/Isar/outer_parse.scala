@@ -17,8 +17,10 @@ object Outer_Parse
   {
     type Elem = Outer_Lex.Token
 
+    def filter_proper = true
+
     private def proper(in: Input): Input =
-      if (in.atEnd || in.first.is_proper) in
+      if (in.atEnd || in.first.is_proper || !filter_proper) in
       else proper(in.rest)
 
     def token(s: String, pred: Elem => Boolean): Parser[Elem] = new Parser[Elem]
@@ -41,10 +43,11 @@ object Outer_Parse
       }
     }
 
+    def not_eof: Parser[Elem] = token("input token", _ => true)
+    def eof: Parser[Unit] = not(not_eof)
+
     def atom(s: String, pred: Elem => Boolean): Parser[String] =
       token(s, pred) ^^ (_.content)
-
-    def not_eof: Parser[Elem] = token("input token", _ => true)
 
     def keyword(name: String): Parser[String] =
       atom(Outer_Lex.Token_Kind.KEYWORD.toString + " \"" + name + "\"",
@@ -63,6 +66,17 @@ object Outer_Parse
           tok.kind == Outer_Lex.Token_Kind.STRING)
 
     def tags: Parser[List[String]] = rep(keyword("%") ~> tag_name)
+
+
+    /* command spans */
+
+    def command_span: Parser[List[Elem]] =
+    {
+      val whitespace = token("white space", tok => tok.is_space || tok.is_comment)
+      val command = token("command keyword", _.is_command)
+      val body = not(rep(whitespace) ~ (command | eof)) ~> not_eof
+      command ~ rep(body) ^^ { case x ~ ys => x :: ys } | rep1(whitespace) | rep1(body)
+    }
 
 
     /* wrappers */
