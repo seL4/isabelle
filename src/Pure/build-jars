@@ -55,9 +55,11 @@ declare -a SOURCES=(
   library.scala
 )
 
-JAR_DIR="$ISABELLE_HOME/lib/classes"
-PURE_JAR="$JAR_DIR/Pure.jar"
-FULL_JAR="$JAR_DIR/isabelle-scala.jar"
+TARGET_DIR="$ISABELLE_HOME/lib/classes"
+PURE_JAR="$TARGET_DIR/Pure.jar"
+FULL_JAR="$TARGET_DIR/isabelle-scala.jar"
+
+declare -a TARGETS=("$PURE_JAR" "$FULL_JAR")
 
 
 ## main
@@ -67,13 +69,14 @@ OUTDATED=false
 for SOURCE in "${SOURCES[@]}"
 do
   [ ! -e "$SOURCE" ] && fail "Missing source file: $SOURCE"
-  for TARGET in "$PURE_JAR" "$FULL_JAR"
+  for TARGET in "${TARGETS[@]}"
   do
     [ ! -e "$TARGET" -o "$SOURCE" -nt "$TARGET" ] && OUTDATED=true
   done
 done
 
-if [ "$OUTDATED" = true ]; then
+if [ "$OUTDATED" = true ]
+then
   echo "###"
   echo "### Building Isabelle/Scala components ..."
   echo "###"
@@ -81,7 +84,7 @@ if [ "$OUTDATED" = true ]; then
   rm -rf classes && mkdir classes
   "$SCALA_HOME/bin/scalac" -unchecked -deprecation -d classes -target jvm-1.5 "${SOURCES[@]}" || \
     fail "Failed to compile sources"
-  mkdir -p "$JAR_DIR" || fail "Failed to create directory $JAR_DIR"
+  mkdir -p "$TARGET_DIR" || fail "Failed to create directory $TARGET_DIR"
   (
     cd classes
     jar cfe "$(jvmpath "$PURE_JAR")" isabelle.GUI_Setup isabelle || \

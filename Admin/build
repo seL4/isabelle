@@ -84,7 +84,7 @@ function build_doc ()
 function build_jars ()
 {
   pushd "$ISABELLE_HOME/src/Pure" >/dev/null
-  "$ISABELLE_TOOL" env ./mk-jars || fail "Failed."
+  "$ISABELLE_TOOL" env ./build-jars || fail "Failed!"
   popd >/dev/null
 }
 
