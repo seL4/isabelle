@@ -60,6 +60,8 @@ GRAPHFILE=""
 
 ## main
 
+[ -e "$ISABELLE_HOME/Admin/build" ] && "$ISABELLE_HOME/Admin/build" browser
+
 classpath "$ISABELLE_HOME/lib/browser/GraphBrowser.jar"
 
 if [ -z "$GRAPHFILE" ]; then

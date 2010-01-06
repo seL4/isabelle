@@ -58,12 +58,9 @@ function build_all ()
 
 function build_browser ()
 {
-  echo "###"
-  echo "### Building graph browser ..."
-  echo "###"
-
-  cd "$ISABELLE_HOME/lib/browser"
-  make clean all || fail "Failed to build graph browser!"
+  pushd "$ISABELLE_HOME/lib/browser" >/dev/null
+  "$ISABELLE_TOOL" env ./build || fail "Failed!"
+  popd >/dev/null
 }
 
 
