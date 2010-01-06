@@ -179,7 +179,7 @@ fun future_job group (e: unit -> 'a) =
   in (result, job) end;
 
 fun cancel_now group = (*requires SYNCHRONIZED*)
-  Unsynchronized.change_result queue (Task_Queue.cancel group);
+  Task_Queue.cancel (! queue) group;
 
 fun cancel_later group = (*requires SYNCHRONIZED*)
  (Unsynchronized.change canceled (insert Task_Queue.eq_group group);
@@ -351,7 +351,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
   in continue end
   handle Exn.Interrupt =>
    (Multithreading.tracing 1 (fn () => "Interrupt");
-    List.app cancel_later (Unsynchronized.change_result queue Task_Queue.cancel_all);
+    List.app cancel_later (Task_Queue.cancel_all (! queue));
     broadcast_work (); true);
 
 fun scheduler_loop () =
