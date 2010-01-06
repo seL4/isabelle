@@ -505,7 +505,8 @@ fun interruptible_task f x =
   else interruptible f x;
 
 (*cancel: present and future group members will be interrupted eventually*)
-fun cancel_group group = SYNCHRONIZED "cancel" (fn () => cancel_later group);
+fun cancel_group group =
+  SYNCHRONIZED "cancel" (fn () => if cancel_now group then () else cancel_later group);
 fun cancel x = cancel_group (group_of x);
 
 
