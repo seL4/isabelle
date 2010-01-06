@@ -117,39 +117,3 @@ $(LOG)/Pure-ProofGeneral.gz: $(OUT)/Pure ProofGeneral/proof_general_keywords.ML
 clean:
 	@rm -f $(OUT)/Pure $(LOG)/Pure.gz $(OUT)/RAW $(LOG)/RAW.gz \
           $(LOG)/Pure-ProofGeneral.gz
-
-
-## Scala material
-
-SCALA_FILES = Concurrent/future.scala General/download.scala		\
-  General/event_bus.scala General/exn.scala General/linear_set.scala	\
-  General/markup.scala General/position.scala General/scan.scala	\
-  General/swing_thread.scala General/symbol.scala General/xml.scala	\
-  General/yxml.scala Isar/isar_document.scala Isar/outer_keyword.scala	\
-  Isar/outer_lex.scala Isar/outer_parse.scala Isar/outer_syntax.scala	\
-  System/cygwin.scala System/gui_setup.scala				\
-  System/isabelle_process.scala System/isabelle_syntax.scala		\
-  System/isabelle_system.scala System/platform.scala			\
-  System/session_manager.scala System/standard_system.scala		\
-  Thy/completion.scala Thy/html.scala Thy/text_edit.scala		\
-  Thy/thy_header.scala Thy/thy_syntax.scala library.scala
-
-JAR_DIR = $(ISABELLE_HOME)/lib/classes
-PURE_JAR = $(JAR_DIR)/Pure.jar
-FULL_JAR = $(JAR_DIR)/isabelle-scala.jar
-
-jars: $(FULL_JAR)
-
-$(FULL_JAR): $(SCALA_FILES)
-	@rm -rf classes && mkdir classes
-	"$(SCALA_HOME)/bin/scalac" -unchecked -deprecation -d classes -target jvm-1.5 $(SCALA_FILES)
-	@cp $(SCALA_FILES) classes/isabelle
-	@mkdir -p "$(JAR_DIR)"
-	@cd classes; jar cfe `jvmpath "$(PURE_JAR)"` isabelle.GUI_Setup isabelle
-	@cd classes; cp "$(SCALA_HOME)/lib/scala-swing.jar" .; jar xf scala-swing.jar; \
-          cp "$(SCALA_HOME)/lib/scala-library.jar" "$(FULL_JAR)"; \
-          jar ufe `jvmpath $(FULL_JAR)` isabelle.GUI_Setup isabelle scala
-	@rm -rf classes
-
-clean-jars:
-	@rm -f "$(PURE_JAR)" "$(FULL_JAR)"

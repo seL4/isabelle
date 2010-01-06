@@ -16,12 +16,14 @@ ISABELLE_HOME="$(cd "$(dirname "$0")"; pwd -P)"
 source "$ISABELLE_HOME/lib/scripts/getsettings" || exit 2
 
 unset ISABELLE_SETTINGS_PRESENT
+unset ISABELLE_SITE_SETTINGS_PRESENT
 
 
 ## main
 
-CLASSPATH="$(jvmpath "$CLASSPATH")"
+[ -e "$ISABELLE_HOME/Admin/build" ] && "$ISABELLE_HOME/Admin/build" jars
 
+CLASSPATH="$(jvmpath "$CLASSPATH")"
 exec "$ISABELLE_JAVA" \
   "-Disabelle.home=$(jvmpath "$ISABELLE_HOME")" \
   -jar "$(jvmpath "$ISABELLE_HOME/lib/classes/isabelle-scala.jar")" "$@"

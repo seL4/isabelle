@@ -2,21 +2,12 @@
 #
 # Administrative build for Isabelle source distribution.
 
-## global environment
-
-#paranoia setting for sunbroy
-PATH="/usr/local/dist/DIR/j2sdk1.5.0/bin:$PATH"
-
-PATH="/home/scala/current/bin:$PATH"
-if [ -z "$SCALA_HOME" ]; then
-  export SCALA_HOME="$(dirname "$(dirname "$(type -p scalac)")")"
-fi
-
-
 ## directory layout
 
-ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
-ISABELLE_TOOL="$ISABELLE_HOME/bin/isabelle"
+if [ -z "$ISABELLE_HOME" ]; then
+  ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
+  ISABELLE_TOOL="$ISABELLE_HOME/bin/isabelle"
+fi
 
 
 ## diagnostics
@@ -35,7 +26,7 @@ Usage: $PRG [MODULES]
     all             all modules below
     browser         graph browser (requires jdk)
     doc             documentation (requires latex and rail)
-    jars            Scala/JVM components (requires scala)
+    jars            Scala/JVM components (requires scala in SCALA_HOME)
 
 EOF
   exit 1
@@ -95,14 +86,8 @@ function build_doc ()
 
 function build_jars ()
 {
-  echo "###"
-  echo "### Building Scala/JVM components ..."
-  echo "###"
-
-  [ -z "$SCALA_HOME" ] && fail "Scala unavailable: unknown SCALA_HOME"
-
   pushd "$ISABELLE_HOME/src/Pure" >/dev/null
-  "$ISABELLE_TOOL" make jars || fail "Failed to build isabelle-scala.jar"
+  "$ISABELLE_TOOL" env ./mk-jars || fail "Failed."
   popd >/dev/null
 }
 
