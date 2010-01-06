@@ -1,7 +1,8 @@
 (*  Title:      Pure/Concurrent/lazy_sequential.ML
     Author:     Florian Haftmann and Makarius, TU Muenchen
 
-Lazy evaluation with memoing (sequential version).
+Lazy evaluation with memoing of results and regular exceptions
+(sequential version).
 *)
 
 structure Lazy: LAZY =
@@ -28,9 +29,16 @@ fun value a = Lazy (Unsynchronized.ref (Result (Exn.Result a)));
 (* force result *)
 
 fun force_result (Lazy r) =
-  (case ! r of
-    Expr e => Exn.capture e ()
-  | Result res => res);
+  let
+    val result =
+      (case ! r of
+        Expr e => Exn.capture e ()
+      | Result res => res);
+    val _ =
+      (case result of
+        Exn.Exn Exn.Interrupt => ()
+      | _ => r := result);
+  in result end;
 
 fun force r = Exn.release (force_result r);
 
