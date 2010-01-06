@@ -47,52 +47,31 @@ object Document
   def text_edits(session: Session, old_doc: Document, new_id: Isar_Document.Document_ID,
     edits: List[Text_Edit]): Result =
   {
+    require(old_doc.assignment.is_finished)
+    val doc0 =
+      Document_Body(old_doc.tokens, old_doc.token_start, old_doc.commands, old_doc.assignment.join)
+
     val changes = new mutable.ListBuffer[Structure_Edit]
-    val new_doc = (old_doc /: edits)((doc1: Document, edit: Text_Edit) =>
+    val doc = (doc0 /: edits)((doc1: Document_Body, edit: Text_Edit) =>
       {
-        val (doc2, chgs) = doc1.text_edit(session, edit, new_id)  // FIXME odd multiple use of id
+        val (doc2, chgs) = doc1.text_edit(session, edit)
         changes ++ chgs
         doc2
       })
+    val new_doc = new Document(new_id, doc.tokens, doc.token_start, doc.commands, doc.states)
     (new_doc, changes.toList)
   }
 }
 
-
-class Document(
-    val id: Isar_Document.Document_ID,
-    val tokens: Linear_Set[Token],   // FIXME plain List, inside Command
-    val token_start: Map[Token, Int],  // FIXME eliminate
-    val commands: Linear_Set[Command],
-    old_states: Map[Command, Command])
+private case class Document_Body(
+  val tokens: Linear_Set[Token],   // FIXME plain List, inside Command
+  val token_start: Map[Token, Int],  // FIXME eliminate
+  val commands: Linear_Set[Command],
+  val states: Map[Command, Command])
 {
-  def content = Token.string_from_tokens(Nil ++ tokens, token_start)
+  /* token view */
 
-
-  /* command/state assignment */
-
-  val assignment = Future.promise[Map[Command, Command]]
-  def is_assigned = assignment.is_finished
-
-  @volatile private var tmp_states = old_states
-
-  def assign_states(new_states: List[(Command, Command)])
-  {
-    assignment.fulfill(tmp_states ++ new_states)
-    tmp_states = Map()
-  }
-
-  def current_state(cmd: Command): State =
-  {
-    require(assignment.is_finished)
-    (assignment.join)(cmd).current_state
-  }
-
-
-
-  /** token view **/
-
-  def text_edit(session: Session, e: Text_Edit, id: String): Document.Result =
+  def text_edit(session: Session, e: Text_Edit): (Document_Body, List[Document.Structure_Edit]) =
   {
     case class TextChange(start: Int, added: String, removed: String)
     val change = e match {
@@ -166,25 +145,21 @@ class Document(
     }
     val insert = new_tokens.reverse
     val new_token_list = begin ::: insert ::: old_suffix
-    token_changed(session, id, begin.lastOption, insert,
+    token_changed(session, begin.lastOption, insert,
       old_suffix.firstOption, new_token_list, start)
   }
 
 
-  /** command view **/
+  /* command view */
 
   private def token_changed(
       session: Session,
-      new_id: String,
       before_change: Option[Token],
       inserted_tokens: List[Token],
       after_change: Option[Token],
       new_tokens: List[Token],
-      new_token_start: Map[Token, Int]):
-    Document.Result =
+      new_token_start: Map[Token, Int]): (Document_Body, Document.Structure_Change) =
   {
-    require(assignment.is_finished)
-
     val new_tokenset = Linear_Set[Token]() ++ new_tokens
     val cmd_before_change = before_change match {
       case None => None
@@ -261,16 +236,45 @@ class Document(
 
 
     val doc =
-      new Document(new_id, new_tokenset, new_token_start, new_commandset,
-        assignment.join -- removed_commands)
+      new Document_Body(new_tokenset, new_token_start, new_commandset, states -- removed_commands)
 
     val removes =
       for (cmd <- removed_commands) yield (cmd_before_change -> None)
     val inserts =
       for (cmd <- inserted_commands) yield (doc.commands.prev(cmd) -> Some(cmd))
 
-    return (doc, removes.toList ++ inserts)
+    (doc, removes.toList ++ inserts)
   }
+}
+
+class Document(
+    val id: Isar_Document.Document_ID,
+    val tokens: Linear_Set[Token],   // FIXME plain List, inside Command
+    val token_start: Map[Token, Int],  // FIXME eliminate
+    val commands: Linear_Set[Command],
+    old_states: Map[Command, Command])
+{
+  def content = Token.string_from_tokens(Nil ++ tokens, token_start)
+
+
+  /* command/state assignment */
+
+  val assignment = Future.promise[Map[Command, Command]]
+
+  @volatile private var tmp_states = old_states
+
+  def assign_states(new_states: List[(Command, Command)])
+  {
+    assignment.fulfill(tmp_states ++ new_states)
+    tmp_states = Map()
+  }
+
+  def current_state(cmd: Command): State =
+  {
+    require(assignment.is_finished)
+    (assignment.join)(cmd).current_state
+  }
+
 
   val commands_offsets = {
     var last_stop = 0
