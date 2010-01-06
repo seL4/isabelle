@@ -232,11 +232,10 @@ fun new_state name (id, _) (state_id, updates) =
       in put_state state_id' state' end;
   in (state_id', ((id, state_id'), make_state') :: updates) end;
 
-fun report_updates [] = ()
-  | report_updates updates =
-      implode (map (fn (id, state_id) => Markup.markup (Markup.edit id state_id) "") updates)
-      |> Markup.markup Markup.assign
-      |> Output.status;
+fun report_updates updates =
+  implode (map (fn (id, state_id) => Markup.markup (Markup.edit id state_id) "") updates)
+  |> Markup.markup Markup.assign
+  |> Output.status;
 
 in
 
