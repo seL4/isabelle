@@ -126,9 +126,6 @@ in
 
 fun SYNCHRONIZED name = SimpleThread.synchronized name lock;
 
-fun raw_wait cond = (*requires SYNCHRONIZED*)
-  ConditionVar.wait (cond, lock);
-
 fun wait cond = (*requires SYNCHRONIZED*)
   Multithreading.sync_wait NONE NONE cond lock;
 
@@ -181,7 +178,10 @@ fun future_job group (e: unit -> 'a) =
       in assign_result group result res end;
   in (result, job) end;
 
-fun do_cancel group = (*requires SYNCHRONIZED*)
+fun cancel_now group = (*requires SYNCHRONIZED*)
+  Unsynchronized.change_result queue (Task_Queue.cancel group);
+
+fun cancel_later group = (*requires SYNCHRONIZED*)
  (Unsynchronized.change canceled (insert Task_Queue.eq_group group);
   broadcast scheduler_event);
 
@@ -195,8 +195,8 @@ fun execute (task, group, jobs) =
         val maximal = Unsynchronized.change_result queue (Task_Queue.finish task);
         val _ =
           if ok then ()
-          else if Task_Queue.cancel (! queue) group then ()
-          else do_cancel group;
+          else if cancel_now group then ()
+          else cancel_later group;
         val _ = broadcast work_finished;
         val _ = if maximal then () else signal work_available;
       in () end);
@@ -332,7 +332,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
       else
        (Multithreading.tracing 1 (fn () =>
           string_of_int (length (! canceled)) ^ " canceled groups");
-        Unsynchronized.change canceled (filter_out (Task_Queue.cancel (! queue)));
+        Unsynchronized.change canceled (filter_out cancel_now);
         broadcast_work ());
 
 
@@ -351,7 +351,8 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
   in continue end
   handle Exn.Interrupt =>
    (Multithreading.tracing 1 (fn () => "Interrupt");
-    List.app do_cancel (Task_Queue.cancel_all (! queue)); true);
+    List.app cancel_later (Unsynchronized.change_result queue Task_Queue.cancel_all);
+    broadcast_work (); true);
 
 fun scheduler_loop () =
   while
@@ -504,7 +505,7 @@ fun interruptible_task f x =
   else interruptible f x;
 
 (*cancel: present and future group members will be interrupted eventually*)
-fun cancel_group group = SYNCHRONIZED "cancel" (fn () => do_cancel group);
+fun cancel_group group = SYNCHRONIZED "cancel" (fn () => cancel_later group);
 fun cancel x = cancel_group (group_of x);
 
 
@@ -514,7 +515,7 @@ fun shutdown () =
   if Multithreading.available then
     SYNCHRONIZED "shutdown" (fn () =>
      while scheduler_active () do
-      (raw_wait scheduler_event; broadcast_work ()))
+      (wait scheduler_event; broadcast_work ()))
   else ();
 
 
