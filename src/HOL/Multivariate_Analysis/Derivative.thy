@@ -205,7 +205,7 @@ lemma has_derivative_vmul_component: fixes c::"real^'a::finite \<Rightarrow> rea
     apply(subst vector_smult_lzero[THEN sym, of v]) unfolding scaleR_scaleR smult_conv_scaleR apply(rule Lim_vmul)
     using assms[unfolded has_derivative_def] unfolding Lim o_def apply- apply(cases "trivial_limit net")
     apply(rule,assumption,rule disjI2,rule,rule) proof-
-    have *:"\<And>x. x - vec 0 = (x::real^'n)" by auto 
+    have *:"\<And>x. x - vec 0 = (x::real^'n::finite)" by auto 
     have **:"\<And>d x. d * (c x $ k - (c (netlimit net) $ k + c' (x - netlimit net) $ k)) = (d *\<^sub>R (c x - (c (netlimit net) + c' (x - netlimit net) ))) $k" by(auto simp add:field_simps)
     fix e assume "\<not> trivial_limit net" "0 < (e::real)"
     then have "eventually (\<lambda>x. dist ((1 / norm (x - netlimit net)) *\<^sub>R (c x - (c (netlimit net) + c' (x - netlimit net)))) 0 < e) net"

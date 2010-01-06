@@ -34,7 +34,7 @@ lemma brouwer_compactness_lemma:
   thus ?thesis apply(rule that) using x(2) unfolding o_def by auto qed(rule that[of 1], auto)
 
 lemma kuhn_labelling_lemma:
-  assumes "(\<forall>x::real^'n. P x \<longrightarrow> P (f x))"  "\<forall>x. P x \<longrightarrow> (\<forall>i::'n. Q i \<longrightarrow> 0 \<le> x$i \<and> x$i \<le> 1)"
+  assumes "(\<forall>x::real^_. P x \<longrightarrow> P (f x))"  "\<forall>x. P x \<longrightarrow> (\<forall>i. Q i \<longrightarrow> 0 \<le> x$i \<and> x$i \<le> 1)"
   shows "\<exists>l. (\<forall>x i. l x i \<le> (1::nat)) \<and>
              (\<forall>x i. P x \<and> Q i \<and> (x$i = 0) \<longrightarrow> (l x i = 0)) \<and>
              (\<forall>x i. P x \<and> Q i \<and> (x$i = 1) \<longrightarrow> (l x i = 1)) \<and>

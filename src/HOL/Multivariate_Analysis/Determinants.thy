@@ -67,22 +67,22 @@ using setprod_le[OF fS f] unfolding setprod_1 .
 
 subsection{* Trace *}
 
-definition trace :: "'a::semiring_1^'n^'n \<Rightarrow> 'a" where
+definition trace :: "'a::semiring_1^'n^'n::finite \<Rightarrow> 'a" where
   "trace A = setsum (\<lambda>i. ((A$i)$i)) (UNIV::'n set)"
 
 lemma trace_0: "trace(mat 0) = 0"
   by (simp add: trace_def mat_def)
 
-lemma trace_I: "trace(mat 1 :: 'a::semiring_1^'n^'n) = of_nat(CARD('n))"
+lemma trace_I: "trace(mat 1 :: 'a::semiring_1^'n^'n::finite) = of_nat(CARD('n))"
   by (simp add: trace_def mat_def)
 
-lemma trace_add: "trace ((A::'a::comm_semiring_1^'n^'n) + B) = trace A + trace B"
+lemma trace_add: "trace ((A::'a::comm_semiring_1^'n^'n::finite) + B) = trace A + trace B"
   by (simp add: trace_def setsum_addf)
 
-lemma trace_sub: "trace ((A::'a::comm_ring_1^'n^'n) - B) = trace A - trace B"
+lemma trace_sub: "trace ((A::'a::comm_ring_1^'n^'n::finite) - B) = trace A - trace B"
   by (simp add: trace_def setsum_subtractf)
 
-lemma trace_mul_sym:"trace ((A::'a::comm_semiring_1^'n^'n) ** B) = trace (B**A)"
+lemma trace_mul_sym:"trace ((A::'a::comm_semiring_1^'n^'n::finite) ** B) = trace (B**A)"
   apply (simp add: trace_def matrix_matrix_mult_def)
   apply (subst setsum_commute)
   by (simp add: mult_commute)
@@ -91,7 +91,7 @@ lemma trace_mul_sym:"trace ((A::'a::comm_semiring_1^'n^'n) ** B) = trace (B**A)"
 (* Definition of determinant.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-definition det:: "'a::comm_ring_1^'n^'n \<Rightarrow> 'a" where
+definition det:: "'a::comm_ring_1^'n^'n::finite \<Rightarrow> 'a" where
   "det A = setsum (\<lambda>p. of_int (sign p) * setprod (\<lambda>i. A$i$p i) (UNIV :: 'n set)) {p. p permutes (UNIV :: 'n set)}"
 
 (* ------------------------------------------------------------------------- *)
@@ -495,7 +495,7 @@ by (metis d det_dependent_rows rows_transp det_transp)
 (* Multilinearity and the multiplication formula.                            *)
 (* ------------------------------------------------------------------------- *)
 
-lemma Cart_lambda_cong: "(\<And>x. f x = g x) \<Longrightarrow> (Cart_lambda f::'a^'n) = (Cart_lambda g :: 'a^'n)"
+lemma Cart_lambda_cong: "(\<And>x. f x = g x) \<Longrightarrow> (Cart_lambda f::'a^'n) = (Cart_lambda g :: 'a^'n::finite)"
   apply (rule iffD1[OF Cart_lambda_unique]) by vector
 
 lemma det_linear_row_setsum:
@@ -840,7 +840,7 @@ lemma orthogonal_transformation: "orthogonal_transformation f \<longleftrightarr
   apply (simp add: real_vector_norm_def)
   by (simp add: dot_norm  linear_add[symmetric])
 
-definition "orthogonal_matrix (Q::'a::semiring_1^'n^'n) \<longleftrightarrow> transp Q ** Q = mat 1 \<and> Q ** transp Q = mat 1"
+definition "orthogonal_matrix (Q::'a::semiring_1^'n^'n::finite) \<longleftrightarrow> transp Q ** Q = mat 1 \<and> Q ** transp Q = mat 1"
 
 lemma orthogonal_matrix: "orthogonal_matrix (Q:: real ^'n^'n::finite)  \<longleftrightarrow> transp Q ** Q = mat 1"
   by (metis matrix_left_right_inverse orthogonal_matrix_def)

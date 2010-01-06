@@ -5563,7 +5563,7 @@ qed
 subsection{* Some properties of a canonical subspace.                                  *}
 
 lemma subspace_substandard:
- "subspace {x::real^'n. (\<forall>i. P i \<longrightarrow> x$i = 0)}"
+ "subspace {x::real^_. (\<forall>i. P i \<longrightarrow> x$i = 0)}"
   unfolding subspace_def by(auto simp add: vector_add_component vector_smult_component elim!: ballE)
 
 lemma closed_substandard:

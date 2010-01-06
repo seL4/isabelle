@@ -19,8 +19,6 @@ declare dot_ladd[simp] dot_radd[simp] dot_lsub[simp] dot_rsub[simp]
 declare dot_lmult[simp] dot_rmult[simp] dot_lneg[simp] dot_rneg[simp]
 declare UNIV_1[simp]
 
-term "(x::real^'n \<Rightarrow> real) 0"
-
 lemma dim1in[intro]:"Suc 0 \<in> {1::nat .. CARD(1)}" by auto
 
 lemmas vector_component_simps = vector_minus_component vector_smult_component vector_add_component vector_le_def Cart_lambda_beta dest_vec1_def basis_component vector_uminus_component
@@ -1053,7 +1051,7 @@ lemma convex_hull_3:
 proof-
   have fin:"finite {a,b,c}" "finite {b,c}" "finite {c}" by auto
   have *:"\<And>x y z ::real. x + y + z = 1 \<longleftrightarrow> x = 1 - y - z"
-         "\<And>x y z ::real^'n. x + y + z = 1 \<longleftrightarrow> x = 1 - y - z" by (auto simp add: ring_simps)
+         "\<And>x y z ::real^_. x + y + z = 1 \<longleftrightarrow> x = 1 - y - z" by (auto simp add: ring_simps)
   show ?thesis unfolding convex_hull_finite[OF fin(1)] and Collect_def and convex_hull_finite_step[OF fin(2)] and *
     unfolding convex_hull_finite_step[OF fin(3)] apply(rule ext) apply simp apply auto
     apply(rule_tac x=va in exI) apply (rule_tac x="u c" in exI) apply simp
@@ -1903,7 +1901,7 @@ proof- have *:"\<And>x. (if f x < 0 then f x else 0) + (if 0 < f x then f x else
     using assms(2) by assumption qed
 
 lemma radon_v_lemma:
-  assumes "finite s" "setsum f s = 0" "\<forall>x. g x = (0::real) \<longrightarrow> f x = (0::real^'n)"
+  assumes "finite s" "setsum f s = 0" "\<forall>x. g x = (0::real) \<longrightarrow> f x = (0::real^_)"
   shows "(setsum f {x\<in>s. 0 < g x}) = - setsum f {x\<in>s. g x < 0}"
 proof-
   have *:"\<And>x. (if 0 < g x then f x else 0) + (if g x < 0 then f x else 0) = f x" using assms(3) by auto 
@@ -2245,7 +2243,7 @@ lemma homeomorphic_convex_compact: fixes s::"(real^'n::finite) set" and t::"(rea
 
 subsection {* Epigraphs of convex functions. *}
 
-definition "epigraph s (f::real^'n \<Rightarrow> real) = {xy. fstcart xy \<in> s \<and> f(fstcart xy) \<le> dest_vec1 (sndcart xy)}"
+definition "epigraph s (f::real^'n::finite \<Rightarrow> real) = {xy. fstcart xy \<in> s \<and> f(fstcart xy) \<le> dest_vec1 (sndcart xy)}"
 
 lemma mem_epigraph: "(pastecart x (vec1 y)) \<in> epigraph s f \<longleftrightarrow> x \<in> s \<and> f x \<le> y" unfolding epigraph_def by auto
 
