@@ -746,7 +746,9 @@ fun choose_rep_for_nth_sel_for_constr (scope as {ext_ctxt, ...}) (x as (_, T)) n
                                       (vs, table) =
   let
     val (s', T') = boxed_nth_sel_for_constr ext_ctxt x n
-    val R' = if n = ~1 orelse is_word_type (body_type T) then
+    val R' = if n = ~1 orelse is_word_type (body_type T)
+                orelse (is_fun_type (range_type T')
+                        andalso is_boolean_type (body_type T')) then
                best_non_opt_set_rep_for_type scope T'
              else
                best_opt_set_rep_for_type scope T' |> unopt_rep

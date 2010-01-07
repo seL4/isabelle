@@ -1629,7 +1629,7 @@ fun kodkod_formula_from_nut bits ofs liberal
                                (KK.Atom j0) KK.None)
          | _ => raise NUT ("Nitpick_Kodkod.to_r (Tuple)", [u]))
       | Construct ([u'], _, _, []) => to_r u'
-      | Construct (_ :: sel_us, T, R, arg_us) =>
+      | Construct (discr_u :: sel_us, T, R, arg_us) =>
         let
           val set_rs =
             map2 (fn sel_u => fn arg_u =>
@@ -1642,8 +1642,7 @@ fun kodkod_formula_from_nut bits ofs liberal
                          kk_n_fold_join kk true R2 R1 arg_r
                               (kk_project sel_r (flip_nums (arity_of_rep R2)))
                        else
-                         kk_comprehension
-                             (decls_for_atom_schema ~1 (atom_schema_of_rep R1))
+                         kk_comprehension [KK.DeclOne ((1, ~1), to_r discr_u)]
                              (kk_rel_eq (kk_join (KK.Var (1, ~1)) sel_r) arg_r)
                      end) sel_us arg_us
         in fold1 kk_intersect set_rs end
