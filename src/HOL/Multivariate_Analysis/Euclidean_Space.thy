@@ -2017,30 +2017,14 @@ lemma adjoint_unique:
 
 text{* Matrix notation. NB: an MxN matrix is of type @{typ "'a^'n^'m"}, not @{typ "'a^'m^'n"} *}
 
-consts generic_mult :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" (infixr "\<star>" 75)
+definition matrix_matrix_mult :: "('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'p^'n \<Rightarrow> 'a ^ 'p ^'m"  (infixl "**" 70)
+  where "m ** m' == (\<chi> i j. setsum (\<lambda>k. ((m$i)$k) * ((m'$k)$j)) (UNIV :: 'n set)) ::'a ^ 'p ^'m"
 
-defs (overloaded)
-matrix_matrix_mult_def: "(m:: ('a::semiring_1) ^'n^'m) \<star> (m' :: 'a ^'p^'n) \<equiv> (\<chi> i j. setsum (\<lambda>k. ((m$i)$k) * ((m'$k)$j)) (UNIV :: 'n set)) ::'a ^ 'p ^'m"
+definition matrix_vector_mult :: "('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'n \<Rightarrow> 'a ^ 'm"  (infixl "*v" 70)
+  where "m *v x \<equiv> (\<chi> i. setsum (\<lambda>j. ((m$i)$j) * (x$j)) (UNIV ::'n set)) :: 'a^'m"
 
-abbreviation
-  matrix_matrix_mult' :: "('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'p^'n \<Rightarrow> 'a ^ 'p ^'m"  (infixl "**" 70)
-  where "m ** m' == m\<star> m'"
-
-defs (overloaded)
-  matrix_vector_mult_def: "(m::('a::semiring_1) ^'n^'m) \<star> (x::'a ^'n) \<equiv> (\<chi> i. setsum (\<lambda>j. ((m$i)$j) * (x$j)) (UNIV ::'n set)) :: 'a^'m"
-
-abbreviation
-  matrix_vector_mult' :: "('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'n \<Rightarrow> 'a ^ 'm"  (infixl "*v" 70)
-  where
-  "m *v v == m \<star> v"
-
-defs (overloaded)
-  vector_matrix_mult_def: "(x::'a^'m) \<star> (m::('a::semiring_1) ^'n^'m) \<equiv> (\<chi> j. setsum (\<lambda>i. ((m$i)$j) * (x$i)) (UNIV :: 'm set)) :: 'a^'n"
-
-abbreviation
-  vactor_matrix_mult' :: "'a ^ 'm \<Rightarrow> ('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'n "  (infixl "v*" 70)
-  where
-  "v v* m == v \<star> m"
+definition vector_matrix_mult :: "'a ^ 'm \<Rightarrow> ('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'n "  (infixl "v*" 70)
+  where "v v* m == (\<chi> j. setsum (\<lambda>i. ((m$i)$j) * (v$i)) (UNIV :: 'm set)) :: 'a^'n"
 
 definition "(mat::'a::zero => 'a ^'n^'n) k = (\<chi> i j. if i = j then k else 0)"
 definition "(transp::'a^'n^'m \<Rightarrow> 'a^'m^'n) A = (\<chi> i j. ((A$j)$i))"
@@ -2050,7 +2034,7 @@ definition "rows(A::'a^'n^'m) = { row i A | i. i \<in> (UNIV :: 'm set)}"
 definition "columns(A::'a^'n^'m) = { column i A | i. i \<in> (UNIV :: 'n set)}"
 
 lemma mat_0[simp]: "mat 0 = 0" by (vector mat_def)
-lemma matrix_add_ldistrib: "(A ** (B + C)) = (A \<star> B) + (A \<star> C)"
+lemma matrix_add_ldistrib: "(A ** (B + C)) = (A ** B) + (A ** C)"
   by (vector matrix_matrix_mult_def setsum_addf[symmetric] ring_simps)
 
 lemma matrix_mul_lid:
