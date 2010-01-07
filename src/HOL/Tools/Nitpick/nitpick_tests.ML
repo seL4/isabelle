@@ -322,7 +322,7 @@ fun problem_for_nut ctxt name u =
 
 (* string -> unit *)
 fun run_test name =
-  case Kodkod.solve_any_problem true NONE 0 1
+  case Kodkod.solve_any_problem false NONE 0 1
            [problem_for_nut @{context} name
                             (the (AList.lookup (op =) tests name))] of
     Kodkod.Normal ([], _) => ()
