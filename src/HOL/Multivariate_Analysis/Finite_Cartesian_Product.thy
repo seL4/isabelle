@@ -19,6 +19,26 @@ notation Cart_nth (infixl "$" 90)
 
 notation (xsymbols) Cart_lambda (binder "\<chi>" 10)
 
+(*
+  Translate "'b ^ 'n" into "'b ^ ('n :: finite)". When 'n needs more than one
+  type class write "cart 'b ('n::{finite, ...})"
+*)
+
+syntax "_finite_cart" :: "type \<Rightarrow> type \<Rightarrow> type" ("(_ ^/ _)" [15, 16] 15)
+
+parse_translation {*
+let
+  fun cart t u = Syntax.const @{type_name cart} $ t $ u
+  fun finite_cart_tr [t, u as Free (x, _)] =
+        if Syntax.is_tid x
+        then cart t (Syntax.const "_ofsort" $ u $ Syntax.const (hd @{sort finite}))
+        else cart t u
+    | finite_cart_tr [t, u] = cart t u
+in
+  [("_finite_cart", finite_cart_tr)]
+end
+*}
+
 lemma stupid_ext: "(\<forall>x. f x = g x) \<longleftrightarrow> (f = g)"
   apply auto
   apply (rule ext)
