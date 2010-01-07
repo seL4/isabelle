@@ -11,4 +11,7 @@
   <SERVICE NAME="isabelle" CLASS="gatchan.jedit.hyperlinks.HyperlinkSource">
     new isabelle.jedit.Isabelle_Hyperlinks();
   </SERVICE>
+ 	<SERVICE CLASS="console.Shell" NAME="Scala">
+		new isabelle.jedit.Scala_Console();
+	</SERVICE>
 </SERVICES>
