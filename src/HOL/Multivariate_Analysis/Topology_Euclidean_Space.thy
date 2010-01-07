@@ -532,7 +532,7 @@ apply (clarify, rule_tac x="x + e/2" in bexI)
 apply (auto simp add: dist_norm)
 done
 
-instance "^" :: (perfect_space, finite) perfect_space
+instance cart :: (perfect_space, finite) perfect_space
 proof
   fix x :: "'a ^ 'b"
   {
@@ -565,7 +565,7 @@ lemma closed_limpt: "closed S \<longleftrightarrow> (\<forall>x. x islimpt S \<l
 lemma islimpt_EMPTY[simp]: "\<not> x islimpt {}"
   unfolding islimpt_def by auto
 
-lemma closed_positive_orthant: "closed {x::real^'n::finite. \<forall>i. 0 \<le>x$i}"
+lemma closed_positive_orthant: "closed {x::real^'n. \<forall>i. 0 \<le>x$i}"
 proof-
   let ?U = "UNIV :: 'n set"
   let ?O = "{x::real^'n. \<forall>i. x$i\<ge>0}"
@@ -1296,7 +1296,7 @@ proof(simp add: tendsto_iff, rule+)
 qed
 
 lemma Lim_component:
-  fixes f :: "'a \<Rightarrow> 'b::metric_space ^ 'n::finite"
+  fixes f :: "'a \<Rightarrow> 'b::metric_space ^ 'n"
   shows "(f ---> l) net \<Longrightarrow> ((\<lambda>a. f a $i) ---> l$i) net"
   unfolding tendsto_iff
   apply (clarify)
@@ -2284,7 +2284,7 @@ apply (rule order_trans [OF dist_nth_le], simp)
 done
 
 lemma compact_lemma:
-  fixes f :: "nat \<Rightarrow> 'a::heine_borel ^ 'n::finite"
+  fixes f :: "nat \<Rightarrow> 'a::heine_borel ^ 'n"
   assumes "bounded s" and "\<forall>n. f n \<in> s"
   shows "\<forall>d.
         \<exists>l r. subseq r \<and>
@@ -2317,7 +2317,7 @@ proof
   qed
 qed
 
-instance "^" :: (heine_borel, finite) heine_borel
+instance cart :: (heine_borel, finite) heine_borel
 proof
   fix s :: "('a ^ 'b) set" and f :: "nat \<Rightarrow> 'a ^ 'b"
   assume s: "bounded s" and f: "\<forall>n. f n \<in> s"
@@ -4283,7 +4283,7 @@ proof-
 qed
 
 lemma closed_pastecart:
-  fixes s :: "(real ^ 'a::finite) set" (* FIXME: generalize *)
+  fixes s :: "(real ^ 'a) set" (* FIXME: generalize *)
   assumes "closed s"  "closed t"
   shows "closed {pastecart x y | x y . x \<in> s \<and> y \<in> t}"
 proof-
@@ -4623,12 +4623,12 @@ qed
 
 (* A cute way of denoting open and closed intervals using overloading.       *)
 
-lemma interval: fixes a :: "'a::ord^'n::finite" shows
+lemma interval: fixes a :: "'a::ord^'n" shows
   "{a <..< b} = {x::'a^'n. \<forall>i. a$i < x$i \<and> x$i < b$i}" and
   "{a .. b} = {x::'a^'n. \<forall>i. a$i \<le> x$i \<and> x$i \<le> b$i}"
   by (auto simp add: expand_set_eq vector_less_def vector_le_def)
 
-lemma mem_interval: fixes a :: "'a::ord^'n::finite" shows
+lemma mem_interval: fixes a :: "'a::ord^'n" shows
   "x \<in> {a<..<b} \<longleftrightarrow> (\<forall>i. a$i < x$i \<and> x$i < b$i)"
   "x \<in> {a .. b} \<longleftrightarrow> (\<forall>i. a$i \<le> x$i \<and> x$i \<le> b$i)"
   using interval[of a b] by(auto simp add: expand_set_eq vector_less_def vector_le_def)
@@ -4647,7 +4647,7 @@ lemma vec1_interval:fixes a::"real" shows
   apply(rule_tac x="dest_vec1 x" in bexI) by auto
 
 
-lemma interval_eq_empty: fixes a :: "real^'n::finite" shows
+lemma interval_eq_empty: fixes a :: "real^'n" shows
  "({a <..< b} = {} \<longleftrightarrow> (\<exists>i. b$i \<le> a$i))" (is ?th1) and
  "({a  ..  b} = {} \<longleftrightarrow> (\<exists>i. b$i < a$i))" (is ?th2)
 proof-
@@ -4682,12 +4682,12 @@ proof-
   ultimately show ?th2 by blast
 qed
 
-lemma interval_ne_empty: fixes a :: "real^'n::finite" shows
+lemma interval_ne_empty: fixes a :: "real^'n" shows
   "{a  ..  b} \<noteq> {} \<longleftrightarrow> (\<forall>i. a$i \<le> b$i)" and
   "{a <..< b} \<noteq> {} \<longleftrightarrow> (\<forall>i. a$i < b$i)"
   unfolding interval_eq_empty[of a b] by (auto simp add: not_less not_le) (* BH: Why doesn't just "auto" work here? *)
 
-lemma subset_interval_imp: fixes a :: "real^'n::finite" shows
+lemma subset_interval_imp: fixes a :: "real^'n" shows
  "(\<forall>i. a$i \<le> c$i \<and> d$i \<le> b$i) \<Longrightarrow> {c .. d} \<subseteq> {a .. b}" and
  "(\<forall>i. a$i < c$i \<and> d$i < b$i) \<Longrightarrow> {c .. d} \<subseteq> {a<..<b}" and
  "(\<forall>i. a$i \<le> c$i \<and> d$i \<le> b$i) \<Longrightarrow> {c<..<d} \<subseteq> {a .. b}" and
@@ -4695,14 +4695,14 @@ lemma subset_interval_imp: fixes a :: "real^'n::finite" shows
   unfolding subset_eq[unfolded Ball_def] unfolding mem_interval
   by (auto intro: order_trans less_le_trans le_less_trans less_imp_le) (* BH: Why doesn't just "auto" work here? *)
 
-lemma interval_sing: fixes a :: "'a::linorder^'n::finite" shows
+lemma interval_sing: fixes a :: "'a::linorder^'n" shows
  "{a .. a} = {a} \<and> {a<..<a} = {}"
 apply(auto simp add: expand_set_eq vector_less_def vector_le_def Cart_eq)
 apply (simp add: order_eq_iff)
 apply (auto simp add: not_less less_imp_le)
 done
 
-lemma interval_open_subset_closed:  fixes a :: "'a::preorder^'n::finite" shows
+lemma interval_open_subset_closed:  fixes a :: "'a::preorder^'n" shows
  "{a<..<b} \<subseteq> {a .. b}"
 proof(simp add: subset_eq, rule)
   fix x
@@ -4723,7 +4723,7 @@ proof(simp add: subset_eq, rule)
     by(simp add: expand_set_eq vector_less_def vector_le_def Cart_eq)
 qed
 
-lemma subset_interval: fixes a :: "real^'n::finite" shows
+lemma subset_interval: fixes a :: "real^'n" shows
  "{c .. d} \<subseteq> {a .. b} \<longleftrightarrow> (\<forall>i. c$i \<le> d$i) --> (\<forall>i. a$i \<le> c$i \<and> d$i \<le> b$i)" (is ?th1) and
  "{c .. d} \<subseteq> {a<..<b} \<longleftrightarrow> (\<forall>i. c$i \<le> d$i) --> (\<forall>i. a$i < c$i \<and> d$i < b$i)" (is ?th2) and
  "{c<..<d} \<subseteq> {a .. b} \<longleftrightarrow> (\<forall>i. c$i < d$i) --> (\<forall>i. a$i \<le> c$i \<and> d$i \<le> b$i)" (is ?th3) and
@@ -4775,7 +4775,7 @@ proof-
   thus ?th4 unfolding subset_eq and Ball_def and mem_interval apply auto apply (erule_tac x=ia in allE, simp)+ by (erule_tac x=i in allE, erule_tac x=i in allE, simp)+
 qed
 
-lemma disjoint_interval: fixes a::"real^'n::finite" shows
+lemma disjoint_interval: fixes a::"real^'n" shows
   "{a .. b} \<inter> {c .. d} = {} \<longleftrightarrow> (\<exists>i. (b$i < a$i \<or> d$i < c$i \<or> b$i < c$i \<or> d$i < a$i))" (is ?th1) and
   "{a .. b} \<inter> {c<..<d} = {} \<longleftrightarrow> (\<exists>i. (b$i < a$i \<or> d$i \<le> c$i \<or> b$i \<le> c$i \<or> d$i \<le> a$i))" (is ?th2) and
   "{a<..<b} \<inter> {c .. d} = {} \<longleftrightarrow> (\<exists>i. (b$i \<le> a$i \<or> d$i < c$i \<or> b$i \<le> c$i \<or> d$i \<le> a$i))" (is ?th3) and
@@ -4789,7 +4789,7 @@ proof-
   done
 qed
 
-lemma inter_interval: fixes a :: "'a::linorder^'n::finite" shows
+lemma inter_interval: fixes a :: "'a::linorder^'n" shows
  "{a .. b} \<inter> {c .. d} =  {(\<chi> i. max (a$i) (c$i)) .. (\<chi> i. min (b$i) (d$i))}"
   unfolding expand_set_eq and Int_iff and mem_interval
   by (auto simp add: less_divide_eq_number_of1 intro!: bexI)
@@ -4800,7 +4800,7 @@ lemma open_interval_lemma: fixes x :: "real" shows
  "a < x \<Longrightarrow> x < b ==> (\<exists>d>0. \<forall>x'. abs(x' - x) < d --> a < x' \<and> x' < b)"
   by(rule_tac x="min (x - a) (b - x)" in exI, auto)
 
-lemma open_interval: fixes a :: "real^'n::finite" shows "open {a<..<b}"
+lemma open_interval: fixes a :: "real^'n" shows "open {a<..<b}"
 proof-
   { fix x assume x:"x\<in>{a<..<b}"
     { fix i
@@ -4834,7 +4834,7 @@ lemma open_interval_real: fixes a :: "real" shows "open {a<..<b}"
   unfolding subset_eq mem_ball apply(rule) defer apply(rule,erule conjE,erule_tac x="vec1 xa" in ballE)
   by(auto simp add: vec1_dest_vec1_simps vector_less_def forall_1) 
 
-lemma closed_interval: fixes a :: "real^'n::finite" shows "closed {a .. b}"
+lemma closed_interval: fixes a :: "real^'n" shows "closed {a .. b}"
 proof-
   { fix x i assume as:"\<forall>e>0. \<exists>x'\<in>{a..b}. x' \<noteq> x \<and> dist x' x < e"(* and xab:"a$i > x$i \<or> b$i < x$i"*)
     { assume xa:"a$i > x$i"
@@ -4853,7 +4853,7 @@ proof-
   thus ?thesis unfolding closed_limpt islimpt_approachable mem_interval by auto
 qed
 
-lemma interior_closed_interval: fixes a :: "real^'n::finite" shows
+lemma interior_closed_interval: fixes a :: "real^'n" shows
  "interior {a .. b} = {a<..<b}" (is "?L = ?R")
 proof(rule subset_antisym)
   show "?R \<subseteq> ?L" using interior_maximal[OF interval_open_subset_closed open_interval] by auto
@@ -4878,7 +4878,7 @@ next
   thus "?L \<subseteq> ?R" unfolding interior_def and subset_eq by auto
 qed
 
-lemma bounded_closed_interval: fixes a :: "real^'n::finite" shows
+lemma bounded_closed_interval: fixes a :: "real^'n" shows
  "bounded {a .. b}"
 proof-
   let ?b = "\<Sum>i\<in>UNIV. \<bar>a$i\<bar> + \<bar>b$i\<bar>"
@@ -4890,23 +4890,23 @@ proof-
   thus ?thesis unfolding interval and bounded_iff by auto
 qed
 
-lemma bounded_interval: fixes a :: "real^'n::finite" shows
+lemma bounded_interval: fixes a :: "real^'n" shows
  "bounded {a .. b} \<and> bounded {a<..<b}"
   using bounded_closed_interval[of a b]
   using interval_open_subset_closed[of a b]
   using bounded_subset[of "{a..b}" "{a<..<b}"]
   by simp
 
-lemma not_interval_univ: fixes a :: "real^'n::finite" shows
+lemma not_interval_univ: fixes a :: "real^'n" shows
  "({a .. b} \<noteq> UNIV) \<and> ({a<..<b} \<noteq> UNIV)"
   using bounded_interval[of a b]
   by auto
 
-lemma compact_interval: fixes a :: "real^'n::finite" shows
+lemma compact_interval: fixes a :: "real^'n" shows
  "compact {a .. b}"
   using bounded_closed_imp_compact using bounded_interval[of a b] using closed_interval[of a b] by auto
 
-lemma open_interval_midpoint: fixes a :: "real^'n::finite"
+lemma open_interval_midpoint: fixes a :: "real^'n"
   assumes "{a<..<b} \<noteq> {}" shows "((1/2) *\<^sub>R (a + b)) \<in> {a<..<b}"
 proof-
   { fix i
@@ -4917,7 +4917,7 @@ proof-
   thus ?thesis unfolding mem_interval by auto
 qed
 
-lemma open_closed_interval_convex: fixes x :: "real^'n::finite"
+lemma open_closed_interval_convex: fixes x :: "real^'n"
   assumes x:"x \<in> {a<..<b}" and y:"y \<in> {a .. b}" and e:"0 < e" "e \<le> 1"
   shows "(e *\<^sub>R x + (1 - e) *\<^sub>R y) \<in> {a<..<b}"
 proof-
@@ -4941,7 +4941,7 @@ proof-
   thus ?thesis unfolding mem_interval by auto
 qed
 
-lemma closure_open_interval: fixes a :: "real^'n::finite"
+lemma closure_open_interval: fixes a :: "real^'n"
   assumes "{a<..<b} \<noteq> {}"
   shows "closure {a<..<b} = {a .. b}"
 proof-
@@ -4973,7 +4973,7 @@ proof-
   thus ?thesis using closure_minimal[OF interval_open_subset_closed closed_interval, of a b] by blast
 qed
 
-lemma bounded_subset_open_interval_symmetric: fixes s::"(real^'n::finite) set"
+lemma bounded_subset_open_interval_symmetric: fixes s::"(real^'n) set"
   assumes "bounded s"  shows "\<exists>a. s \<subseteq> {-a<..<a}"
 proof-
   obtain b where "b>0" and b:"\<forall>x\<in>s. norm x \<le> b" using assms[unfolded bounded_pos] by auto
@@ -4987,12 +4987,12 @@ proof-
 qed
 
 lemma bounded_subset_open_interval:
-  fixes s :: "(real ^ 'n::finite) set"
+  fixes s :: "(real ^ 'n) set"
   shows "bounded s ==> (\<exists>a b. s \<subseteq> {a<..<b})"
   by (auto dest!: bounded_subset_open_interval_symmetric)
 
 lemma bounded_subset_closed_interval_symmetric:
-  fixes s :: "(real ^ 'n::finite) set"
+  fixes s :: "(real ^ 'n) set"
   assumes "bounded s" shows "\<exists>a. s \<subseteq> {-a .. a}"
 proof-
   obtain a where "s \<subseteq> {- a<..<a}" using bounded_subset_open_interval_symmetric[OF assms] by auto
@@ -5000,7 +5000,7 @@ proof-
 qed
 
 lemma bounded_subset_closed_interval:
-  fixes s :: "(real ^ 'n::finite) set"
+  fixes s :: "(real ^ 'n) set"
   shows "bounded s ==> (\<exists>a b. s \<subseteq> {a .. b})"
   using bounded_subset_closed_interval_symmetric[of s] by auto
 
@@ -5018,7 +5018,7 @@ next
   case False thus ?thesis unfolding frontier_def and closure_open_interval[OF False] and interior_open[OF open_interval] by auto
 qed
 
-lemma inter_interval_mixed_eq_empty: fixes a :: "real^'n::finite"
+lemma inter_interval_mixed_eq_empty: fixes a :: "real^'n"
   assumes "{c<..<d} \<noteq> {}"  shows "{a<..<b} \<inter> {c .. d} = {} \<longleftrightarrow> {a<..<b} \<inter> {c<..<d} = {}"
   unfolding closure_open_interval[OF assms, THEN sym] unfolding open_inter_closure_eq_empty[OF open_interval] ..
 
@@ -5081,7 +5081,7 @@ lemma closed_open_interval_1: "dest_vec1 (a::real^1) \<le> dest_vec1 b ==> {a ..
 
 (* Some stuff for half-infinite intervals too; FIXME: notation?  *)
 
-lemma closed_interval_left: fixes b::"real^'n::finite"
+lemma closed_interval_left: fixes b::"real^'n"
   shows "closed {x::real^'n. \<forall>i. x$i \<le> b$i}"
 proof-
   { fix i
@@ -5093,7 +5093,7 @@ proof-
   thus ?thesis unfolding closed_limpt unfolding islimpt_approachable by blast
 qed
 
-lemma closed_interval_right: fixes a::"real^'n::finite"
+lemma closed_interval_right: fixes a::"real^'n"
   shows "closed {x::real^'n. \<forall>i. a$i \<le> x$i}"
 proof-
   { fix i
@@ -5109,7 +5109,7 @@ subsection{* Intervals in general, including infinite and mixtures of open and c
 
 definition "is_interval s \<longleftrightarrow> (\<forall>a\<in>s. \<forall>b\<in>s. \<forall>x. (\<forall>i. ((a$i \<le> x$i \<and> x$i \<le> b$i) \<or> (b$i \<le> x$i \<and> x$i \<le> a$i)))  \<longrightarrow> x \<in> s)"
 
-lemma is_interval_interval: "is_interval {a .. b::real^'n::finite}" (is ?th1) "is_interval {a<..<b}" (is ?th2) proof - 
+lemma is_interval_interval: "is_interval {a .. b::real^'n}" (is ?th1) "is_interval {a<..<b}" (is ?th2) proof - 
   have *:"\<And>x y z::real. x < y \<Longrightarrow> y < z \<Longrightarrow> x < z" by auto
   show ?th1 ?th2  unfolding is_interval_def mem_interval Ball_def atLeastAtMost_iff
     by(meson real_le_trans le_less_trans less_le_trans *)+ qed
@@ -5158,11 +5158,11 @@ proof-
 qed
 
 lemma closed_halfspace_component_le:
-  shows "closed {x::real^'n::finite. x$i \<le> a}"
+  shows "closed {x::real^'n. x$i \<le> a}"
   using closed_halfspace_le[of "(basis i)::real^'n" a] unfolding inner_basis[OF assms] by auto
 
 lemma closed_halfspace_component_ge:
-  shows "closed {x::real^'n::finite. x$i \<ge> a}"
+  shows "closed {x::real^'n. x$i \<ge> a}"
   using closed_halfspace_ge[of a "(basis i)::real^'n"] unfolding inner_basis[OF assms] by auto
 
 text{* Openness of halfspaces.                                                   *}
@@ -5180,16 +5180,16 @@ proof-
 qed
 
 lemma open_halfspace_component_lt:
-  shows "open {x::real^'n::finite. x$i < a}"
+  shows "open {x::real^'n. x$i < a}"
   using open_halfspace_lt[of "(basis i)::real^'n" a] unfolding inner_basis[OF assms] by auto
 
 lemma open_halfspace_component_gt:
-  shows "open {x::real^'n::finite. x$i  > a}"
+  shows "open {x::real^'n. x$i  > a}"
   using open_halfspace_gt[of a "(basis i)::real^'n"] unfolding inner_basis[OF assms] by auto
 
 text{* This gives a simple derivation of limit component bounds.                 *}
 
-lemma Lim_component_le: fixes f :: "'a \<Rightarrow> real^'n::finite"
+lemma Lim_component_le: fixes f :: "'a \<Rightarrow> real^'n"
   assumes "(f ---> l) net" "\<not> (trivial_limit net)"  "eventually (\<lambda>x. f(x)$i \<le> b) net"
   shows "l$i \<le> b"
 proof-
@@ -5198,7 +5198,7 @@ proof-
     using closed_halfspace_le[of "(basis i)::real^'n" b] and assms(1,2,3) by auto
 qed
 
-lemma Lim_component_ge: fixes f :: "'a \<Rightarrow> real^'n::finite"
+lemma Lim_component_ge: fixes f :: "'a \<Rightarrow> real^'n"
   assumes "(f ---> l) net"  "\<not> (trivial_limit net)"  "eventually (\<lambda>x. b \<le> (f x)$i) net"
   shows "b \<le> l$i"
 proof-
@@ -5207,7 +5207,7 @@ proof-
     using closed_halfspace_ge[of b "(basis i)::real^'n"] and assms(1,2,3) by auto
 qed
 
-lemma Lim_component_eq: fixes f :: "'a \<Rightarrow> real^'n::finite"
+lemma Lim_component_eq: fixes f :: "'a \<Rightarrow> real^'n"
   assumes net:"(f ---> l) net" "~(trivial_limit net)" and ev:"eventually (\<lambda>x. f(x)$i = b) net"
   shows "l$i = b"
   using ev[unfolded order_eq_iff eventually_and] using Lim_component_ge[OF net, of b i] and Lim_component_le[OF net, of i b] by auto
@@ -5270,7 +5270,7 @@ proof(rule ccontr)
   ultimately show False using assms(1)[unfolded connected_def not_ex, THEN spec[where x="?A"], THEN spec[where x="?B"]] and assms(2-5) by auto
 qed
 
-lemma connected_ivt_component: fixes x::"real^'n::finite" shows
+lemma connected_ivt_component: fixes x::"real^'n" shows
  "connected s \<Longrightarrow> x \<in> s \<Longrightarrow> y \<in> s \<Longrightarrow> x$k \<le> a \<Longrightarrow> a \<le> y$k \<Longrightarrow> (\<exists>z\<in>s.  z$k = a)"
   using connected_ivt_hyperplane[of s x y "(basis k)::real^'n" a] by (auto simp add: inner_basis)
 
@@ -5456,7 +5456,7 @@ qed
 text{* "Isometry" (up to constant bounds) of injective linear map etc.           *}
 
 lemma cauchy_isometric:
-  fixes x :: "nat \<Rightarrow> real ^ 'n::finite"
+  fixes x :: "nat \<Rightarrow> real ^ 'n"
   assumes e:"0 < e" and s:"subspace s" and f:"bounded_linear f" and normf:"\<forall>x\<in>s. norm(f x) \<ge> e * norm(x)" and xs:"\<forall>n::nat. x n \<in> s" and cf:"Cauchy(f o x)"
   shows "Cauchy x"
 proof-
@@ -5499,7 +5499,7 @@ lemma dist_0_norm:
   shows "dist 0 x = norm x"
 unfolding dist_norm by simp
 
-lemma injective_imp_isometric: fixes f::"real^'m::finite \<Rightarrow> real^'n::finite"
+lemma injective_imp_isometric: fixes f::"real^'m \<Rightarrow> real^'n"
   assumes s:"closed s"  "subspace s"  and f:"bounded_linear f" "\<forall>x\<in>s. (f x = 0) \<longrightarrow> (x = 0)"
   shows "\<exists>e>0. \<forall>x\<in>s. norm (f x) \<ge> e * norm(x)"
 proof(cases "s \<subseteq> {0::real^'m}")
@@ -5567,7 +5567,7 @@ lemma subspace_substandard:
   unfolding subspace_def by(auto simp add: vector_add_component vector_smult_component elim!: ballE)
 
 lemma closed_substandard:
- "closed {x::real^'n::finite. \<forall>i. P i --> x$i = 0}" (is "closed ?A")
+ "closed {x::real^'n. \<forall>i. P i --> x$i = 0}" (is "closed ?A")
 proof-
   let ?D = "{i. P i}"
   let ?Bs = "{{x::real^'n. inner (basis i) x = 0}| i. i \<in> ?D}"
@@ -5587,7 +5587,7 @@ proof-
 qed
 
 lemma dim_substandard:
-  shows "dim {x::real^'n::finite. \<forall>i. i \<notin> d \<longrightarrow> x$i = 0} = card d" (is "dim ?A = _")
+  shows "dim {x::real^'n. \<forall>i. i \<notin> d \<longrightarrow> x$i = 0} = card d" (is "dim ?A = _")
 proof-
   let ?D = "UNIV::'n set"
   let ?B = "(basis::'n\<Rightarrow>real^'n) ` d"
@@ -5653,7 +5653,7 @@ apply (rule_tac x="insert x A" in exI, simp)
 apply (subgoal_tac "A \<noteq> UNIV", auto)
 done
 
-lemma closed_subspace: fixes s::"(real^'n::finite) set"
+lemma closed_subspace: fixes s::"(real^'n) set"
   assumes "subspace s" shows "closed s"
 proof-
   have "dim s \<le> card (UNIV :: 'n set)" using dim_subset_univ by auto
@@ -5742,7 +5742,7 @@ lemma vector_eq_affinity:
   by metis
 
 lemma image_affinity_interval: fixes m::real
-  fixes a b c :: "real^'n::finite"
+  fixes a b c :: "real^'n"
   shows "(\<lambda>x. m *\<^sub>R x + c) ` {a .. b} =
             (if {a .. b} = {} then {}
             else (if 0 \<le> m then {m *\<^sub>R a + c .. m *\<^sub>R b + c}
@@ -5780,7 +5780,7 @@ next
   ultimately show ?thesis using False by auto
 qed
 
-lemma image_smult_interval:"(\<lambda>x. m *\<^sub>R (x::real^'n::finite)) ` {a..b} =
+lemma image_smult_interval:"(\<lambda>x. m *\<^sub>R (x::real^'n)) ` {a..b} =
   (if {a..b} = {} then {} else if 0 \<le> m then {m *\<^sub>R a..m *\<^sub>R b} else {m *\<^sub>R b..m *\<^sub>R a})"
   using image_affinity_interval[of m 0 a b] by auto
 

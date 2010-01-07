@@ -35,7 +35,7 @@ lemma dest_vec1_simps[simp]: fixes a::"real^1"
 
 lemma nequals0I:"x\<in>A \<Longrightarrow> A \<noteq> {}" by auto
 
-lemma norm_not_0:"(x::real^'n::finite)\<noteq>0 \<Longrightarrow> norm x \<noteq> 0" by auto
+lemma norm_not_0:"(x::real^'n)\<noteq>0 \<Longrightarrow> norm x \<noteq> 0" by auto
 
 lemma setsum_delta_notmem: assumes "x\<notin>s"
   shows "setsum (\<lambda>y. if (y = x) then P x else Q y) s = setsum Q s"
@@ -61,7 +61,7 @@ lemma mem_interval_1: fixes x :: "real^1" shows
  "(x \<in> {a<..<b} \<longleftrightarrow> dest_vec1 a < dest_vec1 x \<and> dest_vec1 x < dest_vec1 b)"
 by(simp_all add: Cart_eq vector_less_def vector_le_def dest_vec1_def all_1)
 
-lemma image_smult_interval:"(\<lambda>x. m *\<^sub>R (x::real^'n::finite)) ` {a..b} =
+lemma image_smult_interval:"(\<lambda>x. m *\<^sub>R (x::real^'n)) ` {a..b} =
   (if {a..b} = {} then {} else if 0 \<le> m then {m *\<^sub>R a..m *\<^sub>R b} else {m *\<^sub>R b..m *\<^sub>R a})"
   using image_affinity_interval[of m 0 a b] by auto
 
@@ -90,7 +90,7 @@ proof- have *:"x - y + (y - z) = x - z" by auto
     by(auto simp add:norm_minus_commute) qed
 
 lemma norm_eqI:"x = y \<Longrightarrow> norm x = norm y" by auto 
-lemma norm_minus_eqI:"(x::real^'n::finite) = - y \<Longrightarrow> norm x = norm y" by auto
+lemma norm_minus_eqI:"(x::real^'n) = - y \<Longrightarrow> norm x = norm y" by auto
 
 lemma Min_grI: assumes "finite A" "A \<noteq> {}" "\<forall>a\<in>A. x < a" shows "x < Min A"
   unfolding Min_gr_iff[OF assms(1,2)] using assms(3) by auto
@@ -418,7 +418,7 @@ lemma convex_halfspace_lt: "convex {x. inner a x < b}"
 lemma convex_halfspace_gt: "convex {x. inner a x > b}"
    using convex_halfspace_lt[of "-a" "-b"] by auto
 
-lemma convex_positive_orthant: "convex {x::real^'n::finite. (\<forall>i. 0 \<le> x$i)}"
+lemma convex_positive_orthant: "convex {x::real^'n. (\<forall>i. 0 \<le> x$i)}"
   unfolding convex_def apply auto apply(erule_tac x=i in allE)+
   apply(rule add_nonneg_nonneg) by(auto simp add: mult_nonneg_nonneg)
 
@@ -1140,7 +1140,7 @@ proof-
   thus ?thesis unfolding convex_def cone_def by auto
 qed
 
-lemma affine_dependent_biggerset: fixes s::"(real^'n::finite) set"
+lemma affine_dependent_biggerset: fixes s::"(real^'n) set"
   assumes "finite s" "card s \<ge> CARD('n) + 2"
   shows "affine_dependent s"
 proof-
@@ -1155,7 +1155,7 @@ proof-
     apply(rule dependent_biggerset) by auto qed
 
 lemma affine_dependent_biggerset_general:
-  assumes "finite (s::(real^'n::finite) set)" "card s \<ge> dim s + 2"
+  assumes "finite (s::(real^'n) set)" "card s \<ge> dim s + 2"
   shows "affine_dependent s"
 proof-
   from assms(2) have "s \<noteq> {}" by auto
@@ -1174,7 +1174,7 @@ proof-
 
 subsection {* Caratheodory's theorem. *}
 
-lemma convex_hull_caratheodory: fixes p::"(real^'n::finite) set"
+lemma convex_hull_caratheodory: fixes p::"(real^'n) set"
   shows "convex hull p = {y. \<exists>s u. finite s \<and> s \<subseteq> p \<and> card s \<le> CARD('n) + 1 \<and>
   (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> setsum (\<lambda>v. u v *\<^sub>R v) s = y}"
   unfolding convex_hull_explicit expand_set_eq mem_Collect_eq
@@ -1231,7 +1231,7 @@ proof(rule,rule)
 qed auto
 
 lemma caratheodory:
- "convex hull p = {x::real^'n::finite. \<exists>s. finite s \<and> s \<subseteq> p \<and>
+ "convex hull p = {x::real^'n. \<exists>s. finite s \<and> s \<subseteq> p \<and>
       card s \<le> CARD('n) + 1 \<and> x \<in> convex hull s}"
   unfolding expand_set_eq apply(rule, rule) unfolding mem_Collect_eq proof-
   fix x assume "x \<in> convex hull p"
@@ -1338,7 +1338,7 @@ proof-
     done
 qed
 
-lemma compact_convex_hull: fixes s::"(real^'n::finite) set"
+lemma compact_convex_hull: fixes s::"(real^'n) set"
   assumes "compact s"  shows "compact(convex hull s)"
 proof(cases "s={}")
   case True thus ?thesis using compact_empty by simp
@@ -1546,7 +1546,7 @@ lemma simplex_extremal_le_exists:
 subsection {* Closest point of a convex set is unique, with a continuous projection. *}
 
 definition
-  closest_point :: "(real ^ 'n::finite) set \<Rightarrow> real ^ 'n \<Rightarrow> real ^ 'n" where
+  closest_point :: "(real ^ 'n) set \<Rightarrow> real ^ 'n \<Rightarrow> real ^ 'n" where
  "closest_point s a = (SOME x. x \<in> s \<and> (\<forall>y\<in>s. dist a x \<le> dist a y))"
 
 lemma closest_point_exists:
@@ -1580,7 +1580,7 @@ lemma norm_lt: "norm x < norm y \<longleftrightarrow> inner x x < inner y y"
 lemma norm_le: "norm x \<le> norm y \<longleftrightarrow> inner x x \<le> inner y y"
   unfolding norm_eq_sqrt_inner by simp
 
-lemma closer_points_lemma: fixes y::"real^'n::finite"
+lemma closer_points_lemma: fixes y::"real^'n"
   assumes "inner y z > 0"
   shows "\<exists>u>0. \<forall>v>0. v \<le> u \<longrightarrow> norm(v *\<^sub>R z - y) < norm y"
 proof- have z:"inner z z > 0" unfolding inner_gt_zero_iff using assms by auto
@@ -1591,7 +1591,7 @@ proof- have z:"inner z z > 0" unfolding inner_gt_zero_iff using assms by auto
   qed(rule divide_pos_pos, auto) qed
 
 lemma closer_point_lemma:
-  fixes x y z :: "real ^ 'n::finite"
+  fixes x y z :: "real ^ 'n"
   assumes "inner (y - x) (z - x) > 0"
   shows "\<exists>u>0. u \<le> 1 \<and> dist (x + u *\<^sub>R (z - x)) y < dist x y"
 proof- obtain u where "u>0" and u:"\<forall>v>0. v \<le> u \<longrightarrow> norm (v *\<^sub>R (z - x) - (y - x)) < norm (y - x)"
@@ -1718,10 +1718,10 @@ next
 qed
 
 lemma separating_hyperplane_closed_0:
-  assumes "convex (s::(real^'n::finite) set)" "closed s" "0 \<notin> s"
+  assumes "convex (s::(real^'n) set)" "closed s" "0 \<notin> s"
   shows "\<exists>a b. a \<noteq> 0 \<and> 0 < b \<and> (\<forall>x\<in>s. inner a x > b)"
   proof(cases "s={}") guess a using UNIV_witness[where 'a='n] ..
-  case True have "norm ((basis a)::real^'n::finite) = 1" 
+  case True have "norm ((basis a)::real^'n) = 1" 
     using norm_basis and dimindex_ge_1 by auto
   thus ?thesis apply(rule_tac x="basis a" in exI, rule_tac x=1 in exI) using True by auto
 next case False thus ?thesis using False using separating_hyperplane_closed_point[OF assms]
@@ -1730,7 +1730,7 @@ next case False thus ?thesis using False using separating_hyperplane_closed_poin
 subsection {* Now set-to-set for closed/compact sets. *}
 
 lemma separating_hyperplane_closed_compact:
-  assumes "convex (s::(real^'n::finite) set)" "closed s" "convex t" "compact t" "t \<noteq> {}" "s \<inter> t = {}"
+  assumes "convex (s::(real^'n) set)" "closed s" "convex t" "compact t" "t \<noteq> {}" "s \<inter> t = {}"
   shows "\<exists>a b. (\<forall>x\<in>s. inner a x < b) \<and> (\<forall>x\<in>t. inner a x > b)"
 proof(cases "s={}")
   case True
@@ -1772,7 +1772,7 @@ proof- obtain a b where "(\<forall>x\<in>t. inner a x < b) \<and> (\<forall>x\<i
 subsection {* General case without assuming closure and getting non-strict separation. *}
 
 lemma separating_hyperplane_set_0:
-  assumes "convex s" "(0::real^'n::finite) \<notin> s"
+  assumes "convex s" "(0::real^'n) \<notin> s"
   shows "\<exists>a. a \<noteq> 0 \<and> (\<forall>x\<in>s. 0 \<le> inner a x)"
 proof- let ?k = "\<lambda>c. {x::real^'n. 0 \<le> inner c x}"
   have "frontier (cball 0 1) \<inter> (\<Inter> (?k ` s)) \<noteq> {}"
@@ -1794,7 +1794,7 @@ proof- let ?k = "\<lambda>c. {x::real^'n. 0 \<le> inner c x}"
   thus ?thesis apply(rule_tac x=x in exI) by(auto simp add: inner_commute) qed
 
 lemma separating_hyperplane_sets:
-  assumes "convex s" "convex (t::(real^'n::finite) set)" "s \<noteq> {}" "t \<noteq> {}" "s \<inter> t = {}"
+  assumes "convex s" "convex (t::(real^'n) set)" "s \<noteq> {}" "t \<noteq> {}" "s \<inter> t = {}"
   shows "\<exists>a b. a \<noteq> 0 \<and> (\<forall>x\<in>s. inner a x \<le> b) \<and> (\<forall>x\<in>t. inner a x \<ge> b)"
 proof- from separating_hyperplane_set_0[OF convex_differences[OF assms(2,1)]]
   obtain a where "a\<noteq>0" "\<forall>x\<in>{x - y |x y. x \<in> t \<and> y \<in> s}. 0 \<le> inner a x" 
@@ -1955,7 +1955,7 @@ proof- from assms[unfolded affine_dependent_explicit] guess s .. then guess u ..
 
 subsection {* Helly's theorem. *}
 
-lemma helly_induct: fixes f::"(real^'n::finite) set set"
+lemma helly_induct: fixes f::"(real^'n) set set"
   assumes "card f = n" "n \<ge> CARD('n) + 1"
   "\<forall>s\<in>f. convex s" "\<forall>t\<subseteq>f. card t = CARD('n) + 1 \<longrightarrow> \<Inter> t \<noteq> {}"
   shows "\<Inter> f \<noteq> {}"
@@ -1993,7 +1993,7 @@ show "\<Inter> f \<noteq> {}" apply(cases "n = CARD('n)") apply(rule Suc(5)[rule
     thus ?thesis unfolding f using mp(3)[unfolded gh] by blast qed
 qed(insert dimindex_ge_1, auto) qed(auto)
 
-lemma helly: fixes f::"(real^'n::finite) set set"
+lemma helly: fixes f::"(real^'n) set set"
   assumes "card f \<ge> CARD('n) + 1" "\<forall>s\<in>f. convex s"
           "\<forall>t\<subseteq>f. card t = CARD('n) + 1 \<longrightarrow> \<Inter> t \<noteq> {}"
   shows "\<Inter> f \<noteq>{}"
@@ -2062,9 +2062,9 @@ proof-
     apply(rule,rule,rule ccontr) apply(rule u_max) by auto qed
 
 lemma starlike_compact_projective:
-  assumes "compact s" "cball (0::real^'n::finite) 1 \<subseteq> s "
+  assumes "compact s" "cball (0::real^'n) 1 \<subseteq> s "
   "\<forall>x\<in>s. \<forall>u. 0 \<le> u \<and> u < 1 \<longrightarrow> (u *\<^sub>R x) \<in> (s - frontier s )"
-  shows "s homeomorphic (cball (0::real^'n::finite) 1)"
+  shows "s homeomorphic (cball (0::real^'n) 1)"
 proof-
   have fs:"frontier s \<subseteq> s" apply(rule frontier_subset_closed) using compact_imp_closed[OF assms(1)] by simp
   def pi \<equiv> "\<lambda>x::real^'n. inverse (norm x) *\<^sub>R x"
@@ -2200,7 +2200,7 @@ proof-
         ultimately show ?thesis using injpi by auto qed qed
   qed auto qed
 
-lemma homeomorphic_convex_compact_lemma: fixes s::"(real^'n::finite) set"
+lemma homeomorphic_convex_compact_lemma: fixes s::"(real^'n) set"
   assumes "convex s" "compact s" "cball 0 1 \<subseteq> s"
   shows "s homeomorphic (cball (0::real^'n) 1)"
   apply(rule starlike_compact_projective[OF assms(2-3)]) proof(rule,rule,rule,erule conjE)
@@ -2218,9 +2218,9 @@ lemma homeomorphic_convex_compact_lemma: fixes s::"(real^'n::finite) set"
       using as unfolding scaleR_scaleR by auto qed auto
   thus "u *\<^sub>R x \<in> s - frontier s" using frontier_def and interior_subset by auto qed
 
-lemma homeomorphic_convex_compact_cball: fixes e::real and s::"(real^'n::finite) set"
+lemma homeomorphic_convex_compact_cball: fixes e::real and s::"(real^'n) set"
   assumes "convex s" "compact s" "interior s \<noteq> {}" "0 < e"
-  shows "s homeomorphic (cball (b::real^'n::finite) e)"
+  shows "s homeomorphic (cball (b::real^'n) e)"
 proof- obtain a where "a\<in>interior s" using assms(3) by auto
   then obtain d where "d>0" and d:"cball a d \<subseteq> s" unfolding mem_interior_cball by auto
   let ?d = "inverse d" and ?n = "0::real^'n"
@@ -2235,7 +2235,7 @@ proof- obtain a where "a\<in>interior s" using assms(3) by auto
     apply(rule homeomorphic_trans[OF homeomorphic_affinity[of "?d" s "?d *\<^sub>R -a"]])
     using `d>0` `e>0` by(auto simp add: uminus_add_conv_diff scaleR_right_diff_distrib) qed
 
-lemma homeomorphic_convex_compact: fixes s::"(real^'n::finite) set" and t::"(real^'n) set"
+lemma homeomorphic_convex_compact: fixes s::"(real^'n) set" and t::"(real^'n) set"
   assumes "convex s" "compact s" "interior s \<noteq> {}"
           "convex t" "compact t" "interior t \<noteq> {}"
   shows "s homeomorphic t"
@@ -2243,7 +2243,7 @@ lemma homeomorphic_convex_compact: fixes s::"(real^'n::finite) set" and t::"(rea
 
 subsection {* Epigraphs of convex functions. *}
 
-definition "epigraph s (f::real^'n::finite \<Rightarrow> real) = {xy. fstcart xy \<in> s \<and> f(fstcart xy) \<le> dest_vec1 (sndcart xy)}"
+definition "epigraph s (f::real^'n \<Rightarrow> real) = {xy. fstcart xy \<in> s \<and> f(fstcart xy) \<le> dest_vec1 (sndcart xy)}"
 
 lemma mem_epigraph: "(pastecart x (vec1 y)) \<in> epigraph s f \<longleftrightarrow> x \<in> s \<and> f x \<le> y" unfolding epigraph_def by auto
 
@@ -2317,7 +2317,7 @@ lemma is_interval_connected:
   shows "is_interval s \<Longrightarrow> connected s"
   using is_interval_convex convex_connected by auto
 
-lemma convex_interval: "convex {a .. b}" "convex {a<..<b::real^'n::finite}"
+lemma convex_interval: "convex {a .. b}" "convex {a<..<b::real^'n}"
   apply(rule_tac[!] is_interval_convex) using is_interval_interval by auto
 
 subsection {* On @{text "real^1"}, @{text "is_interval"}, @{text "convex"} and @{text "connected"} are all equivalent. *}
@@ -2351,7 +2351,7 @@ lemma convex_connected_1:
 
 subsection {* Another intermediate value theorem formulation. *}
 
-lemma ivt_increasing_component_on_1: fixes f::"real^1 \<Rightarrow> real^'n::finite"
+lemma ivt_increasing_component_on_1: fixes f::"real^1 \<Rightarrow> real^'n"
   assumes "dest_vec1 a \<le> dest_vec1 b" "continuous_on {a .. b} f" "(f a)$k \<le> y" "y \<le> (f b)$k"
   shows "\<exists>x\<in>{a..b}. (f x)$k = y"
 proof- have "f a \<in> f ` {a..b}" "f b \<in> f ` {a..b}" apply(rule_tac[!] imageI) 
@@ -2360,20 +2360,20 @@ proof- have "f a \<in> f ` {a..b}" "f b \<in> f ` {a..b}" apply(rule_tac[!] imag
     using connected_continuous_image[OF assms(2) convex_connected[OF convex_interval(1)]]
     using assms by(auto intro!: imageI) qed
 
-lemma ivt_increasing_component_1: fixes f::"real^1 \<Rightarrow> real^'n::finite"
+lemma ivt_increasing_component_1: fixes f::"real^1 \<Rightarrow> real^'n"
   assumes "dest_vec1 a \<le> dest_vec1 b"
   "\<forall>x\<in>{a .. b}. continuous (at x) f" "f a$k \<le> y" "y \<le> f b$k"
   shows "\<exists>x\<in>{a..b}. (f x)$k = y"
   apply(rule ivt_increasing_component_on_1) using assms using continuous_at_imp_continuous_on by auto
 
-lemma ivt_decreasing_component_on_1: fixes f::"real^1 \<Rightarrow> real^'n::finite"
+lemma ivt_decreasing_component_on_1: fixes f::"real^1 \<Rightarrow> real^'n"
   assumes "dest_vec1 a \<le> dest_vec1 b" "continuous_on {a .. b} f" "(f b)$k \<le> y" "y \<le> (f a)$k"
   shows "\<exists>x\<in>{a..b}. (f x)$k = y"
   apply(subst neg_equal_iff_equal[THEN sym]) unfolding vector_uminus_component[THEN sym]
   apply(rule ivt_increasing_component_on_1) using assms using continuous_on_neg
   by(auto simp add:vector_uminus_component)
 
-lemma ivt_decreasing_component_1: fixes f::"real^1 \<Rightarrow> real^'n::finite"
+lemma ivt_decreasing_component_1: fixes f::"real^1 \<Rightarrow> real^'n"
   assumes "dest_vec1 a \<le> dest_vec1 b" "\<forall>x\<in>{a .. b}. continuous (at x) f" "f b$k \<le> y" "y \<le> f a$k"
   shows "\<exists>x\<in>{a..b}. (f x)$k = y"
   apply(rule ivt_decreasing_component_on_1) using assms using continuous_at_imp_continuous_on by auto
@@ -2394,7 +2394,7 @@ lemma convex_on_convex_hull_bound:
     unfolding obt(2-3) using obt(1) and hull_subset[unfolded subset_eq, rule_format, of _ s] by auto qed
 
 lemma unit_interval_convex_hull:
-  "{0::real^'n::finite .. 1} = convex hull {x. \<forall>i. (x$i = 0) \<or> (x$i = 1)}" (is "?int = convex hull ?points")
+  "{0::real^'n .. 1} = convex hull {x. \<forall>i. (x$i = 0) \<or> (x$i = 1)}" (is "?int = convex hull ?points")
 proof- have 01:"{0,1} \<subseteq> convex hull ?points" apply rule apply(rule_tac hull_subset[unfolded subset_eq, rule_format]) by auto
   { fix n x assume "x\<in>{0::real^'n .. 1}" "n \<le> CARD('n)" "card {i. x$i \<noteq> 0} \<le> n" 
   hence "x\<in>convex hull ?points" proof(induct n arbitrary: x)
@@ -2430,8 +2430,8 @@ proof- have 01:"{0,1} \<subseteq> convex hull ?points" apply rule apply(rule_tac
             using Suc(2)[unfolded mem_interval, rule_format, of j] by(auto simp add:field_simps Cart_lambda_beta) 
           hence "0 \<le> ?y j \<and> ?y j \<le> 1" by auto }
         moreover have "i\<in>{j. x$j \<noteq> 0} - {j. ((\<chi> j. ?y j)::real^'n) $ j \<noteq> 0}" using i01 by(auto simp add: Cart_lambda_beta)
-        hence "{j. x$j \<noteq> 0} \<noteq> {j. ((\<chi> j. ?y j)::real^'n::finite) $ j \<noteq> 0}" by auto
-        hence **:"{j. ((\<chi> j. ?y j)::real^'n::finite) $ j \<noteq> 0} \<subset> {j. x$j \<noteq> 0}" apply - apply rule by(auto simp add: Cart_lambda_beta)  
+        hence "{j. x$j \<noteq> 0} \<noteq> {j. ((\<chi> j. ?y j)::real^'n) $ j \<noteq> 0}" by auto
+        hence **:"{j. ((\<chi> j. ?y j)::real^'n) $ j \<noteq> 0} \<subset> {j. x$j \<noteq> 0}" apply - apply rule by(auto simp add: Cart_lambda_beta)  
         have "card {j. ((\<chi> j. ?y j)::real^'n) $ j \<noteq> 0} \<le> n" using less_le_trans[OF psubset_card_mono[OF _ **] Suc(4)] by auto
         ultimately show ?thesis apply(subst *) apply(rule convex_convex_hull[unfolded convex_def, rule_format])
           apply(rule_tac hull_subset[unfolded subset_eq, rule_format]) defer apply(rule Suc(1))
@@ -2444,9 +2444,9 @@ proof- have 01:"{0,1} \<subseteq> convex hull ?points" apply rule apply(rule_tac
 
 subsection {* And this is a finite set of vertices. *}
 
-lemma unit_cube_convex_hull: obtains s where "finite s" "{0 .. 1::real^'n::finite} = convex hull s"
-  apply(rule that[of "{x::real^'n::finite. \<forall>i. x$i=0 \<or> x$i=1}"])
-  apply(rule finite_subset[of _ "(\<lambda>s. (\<chi> i. if i\<in>s then 1::real else 0)::real^'n::finite) ` UNIV"])
+lemma unit_cube_convex_hull: obtains s where "finite s" "{0 .. 1::real^'n} = convex hull s"
+  apply(rule that[of "{x::real^'n. \<forall>i. x$i=0 \<or> x$i=1}"])
+  apply(rule finite_subset[of _ "(\<lambda>s. (\<chi> i. if i\<in>s then 1::real else 0)::real^'n) ` UNIV"])
   prefer 3 apply(rule unit_interval_convex_hull) apply rule unfolding mem_Collect_eq proof-
   fix x::"real^'n" assume as:"\<forall>i. x $ i = 0 \<or> x $ i = 1"
   show "x \<in> (\<lambda>s. \<chi> i. if i \<in> s then 1 else 0) ` UNIV" apply(rule image_eqI[where x="{i. x$i = 1}"])
@@ -2455,7 +2455,7 @@ lemma unit_cube_convex_hull: obtains s where "finite s" "{0 .. 1::real^'n::finit
 subsection {* Hence any cube (could do any nonempty interval). *}
 
 lemma cube_convex_hull:
-  assumes "0 < d" obtains s::"(real^'n::finite) set" where "finite s" "{x - (\<chi> i. d) .. x + (\<chi> i. d)} = convex hull s" proof-
+  assumes "0 < d" obtains s::"(real^'n) set" where "finite s" "{x - (\<chi> i. d) .. x + (\<chi> i. d)} = convex hull s" proof-
   let ?d = "(\<chi> i. d)::real^'n"
   have *:"{x - ?d .. x + ?d} = (\<lambda>y. x - ?d + (2 * d) *\<^sub>R y) ` {0 .. 1}" apply(rule set_ext, rule)
     unfolding image_iff defer apply(erule bexE) proof-
@@ -2552,7 +2552,7 @@ next case False fix y assume "y\<in>cball x e"
 subsection {* Hence a convex function on an open set is continuous. *}
 
 lemma convex_on_continuous:
-  assumes "open (s::(real^'n::finite) set)" "convex_on s f" 
+  assumes "open (s::(real^'n) set)" "convex_on s f" 
   shows "continuous_on s f"
   unfolding continuous_on_eq_continuous_at[OF assms(1)] proof
   note dimge1 = dimindex_ge_1[where 'a='n]
@@ -2597,15 +2597,15 @@ subsection {* Line segments, Starlike Sets, etc.*}
    segment[a,b] is closed and segment(a,b) is open relative to affine hull. *)
 
 definition
-  midpoint :: "real ^ 'n::finite \<Rightarrow> real ^ 'n \<Rightarrow> real ^ 'n" where
+  midpoint :: "real ^ 'n \<Rightarrow> real ^ 'n \<Rightarrow> real ^ 'n" where
   "midpoint a b = (inverse (2::real)) *\<^sub>R (a + b)"
 
 definition
-  open_segment :: "real ^ 'n::finite \<Rightarrow> real ^ 'n \<Rightarrow> (real ^ 'n) set" where
+  open_segment :: "real ^ 'n \<Rightarrow> real ^ 'n \<Rightarrow> (real ^ 'n) set" where
   "open_segment a b = {(1 - u) *\<^sub>R a + u *\<^sub>R b | u::real.  0 < u \<and> u < 1}"
 
 definition
-  closed_segment :: "real ^ 'n::finite \<Rightarrow> real ^ 'n \<Rightarrow> (real ^ 'n) set" where
+  closed_segment :: "real ^ 'n \<Rightarrow> real ^ 'n \<Rightarrow> (real ^ 'n) set" where
   "closed_segment a b = {(1 - u) *\<^sub>R a + u *\<^sub>R b | u::real. 0 \<le> u \<and> u \<le> 1}"
 
 definition "between = (\<lambda> (a,b). closed_segment a b)"
@@ -2625,8 +2625,8 @@ lemma dist_midpoint:
   "dist (midpoint a b) a = (dist a b) / 2" (is ?t3)
   "dist (midpoint a b) b = (dist a b) / 2" (is ?t4)
 proof-
-  have *: "\<And>x y::real^'n::finite. 2 *\<^sub>R x = - y \<Longrightarrow> norm x = (norm y) / 2" unfolding equation_minus_iff by auto
-  have **:"\<And>x y::real^'n::finite. 2 *\<^sub>R x =   y \<Longrightarrow> norm x = (norm y) / 2" by auto
+  have *: "\<And>x y::real^'n. 2 *\<^sub>R x = - y \<Longrightarrow> norm x = (norm y) / 2" unfolding equation_minus_iff by auto
+  have **:"\<And>x y::real^'n. 2 *\<^sub>R x =   y \<Longrightarrow> norm x = (norm y) / 2" by auto
   note scaleR_right_distrib [simp]
   show ?t1 unfolding midpoint_def dist_norm apply (rule **) by(auto,vector)
   show ?t2 unfolding midpoint_def dist_norm apply (rule *)  by(auto,vector)
@@ -2634,7 +2634,7 @@ proof-
   show ?t4 unfolding midpoint_def dist_norm apply (rule **) by(auto,vector) qed
 
 lemma midpoint_eq_endpoint:
-  "midpoint a b = a \<longleftrightarrow> a = (b::real^'n::finite)"
+  "midpoint a b = a \<longleftrightarrow> a = (b::real^'n)"
   "midpoint a b = b \<longleftrightarrow> a = b"
   unfolding dist_eq_0_iff[where 'a="real^'n", THEN sym] dist_midpoint by auto
 
@@ -2679,7 +2679,7 @@ lemma segment_refl:"closed_segment a a = {a}" unfolding segment by (auto simp ad
 lemma between_mem_segment: "between (a,b) x \<longleftrightarrow> x \<in> closed_segment a b"
   unfolding between_def mem_def by auto
 
-lemma between:"between (a,b) (x::real^'n::finite) \<longleftrightarrow> dist a b = (dist a x) + (dist x b)"
+lemma between:"between (a,b) (x::real^'n) \<longleftrightarrow> dist a b = (dist a x) + (dist x b)"
 proof(cases "a = b")
   case True thus ?thesis unfolding between_def split_conv mem_def[of x, symmetric]
     by(auto simp add:segment_refl dist_commute) next
@@ -2706,7 +2706,7 @@ proof(cases "a = b")
           finally show "x $ i = ((1 - norm (a - x) / norm (a - b)) *\<^sub>R a + (norm (a - x) / norm (a - b)) *\<^sub>R b) $ i" by auto
         qed(insert Fal2, auto) qed qed
 
-lemma between_midpoint: fixes a::"real^'n::finite" shows
+lemma between_midpoint: fixes a::"real^'n" shows
   "between (a,b) (midpoint a b)" (is ?t1) 
   "between (b,a) (midpoint a b)" (is ?t2)
 proof- have *:"\<And>x y z. x = (1/2::real) *\<^sub>R z \<Longrightarrow> y = (1/2) *\<^sub>R z \<Longrightarrow> norm z = norm x + norm y" by auto
@@ -2776,7 +2776,7 @@ lemma simplex:
 
 lemma std_simplex:
   "convex hull (insert 0 { basis i | i. i\<in>UNIV}) =
-        {x::real^'n::finite . (\<forall>i. 0 \<le> x$i) \<and> setsum (\<lambda>i. x$i) UNIV \<le> 1 }" (is "convex hull (insert 0 ?p) = ?s")
+        {x::real^'n . (\<forall>i. 0 \<le> x$i) \<and> setsum (\<lambda>i. x$i) UNIV \<le> 1 }" (is "convex hull (insert 0 ?p) = ?s")
 proof- let ?D = "UNIV::'n set"
   have "0\<notin>?p" by(auto simp add: basis_nonzero)
   have "{(basis i)::real^'n |i. i \<in> ?D} = basis ` ?D" by auto
@@ -2796,7 +2796,7 @@ proof- let ?D = "UNIV::'n set"
 
 lemma interior_std_simplex:
   "interior (convex hull (insert 0 { basis i| i. i\<in>UNIV})) =
-  {x::real^'n::finite. (\<forall>i. 0 < x$i) \<and> setsum (\<lambda>i. x$i) UNIV < 1 }"
+  {x::real^'n. (\<forall>i. 0 < x$i) \<and> setsum (\<lambda>i. x$i) UNIV < 1 }"
   apply(rule set_ext) unfolding mem_interior std_simplex unfolding subset_eq mem_Collect_eq Ball_def mem_ball
   unfolding Ball_def[symmetric] apply rule apply(erule exE, (erule conjE)+) defer apply(erule conjE) proof-
   fix x::"real^'n" and e assume "0<e" and as:"\<forall>xa. dist x xa < e \<longrightarrow> (\<forall>x. 0 \<le> xa $ x) \<and> setsum (op $ xa) UNIV \<le> 1"
@@ -2813,7 +2813,7 @@ lemma interior_std_simplex:
     also have "\<dots> \<le> 1" using ** apply(drule_tac as[rule_format]) by auto
     finally show "setsum (op $ x) UNIV < 1" by auto qed
 next
-  fix x::"real^'n::finite" assume as:"\<forall>i. 0 < x $ i" "setsum (op $ x) UNIV < 1"
+  fix x::"real^'n" assume as:"\<forall>i. 0 < x $ i" "setsum (op $ x) UNIV < 1"
   guess a using UNIV_witness[where 'a='b] ..
   let ?d = "(1 - setsum (op $ x) UNIV) / real (CARD('n))"
   have "Min ((op $ x) ` UNIV) > 0" apply(rule Min_grI) using as(1) dimindex_ge_1 by auto
@@ -2832,7 +2832,7 @@ next
       thus "0 \<le> y$i" using component_le_norm[of "x - y" i] and as(1)[rule_format, of i] by(auto simp add: vector_component_simps)
     qed auto qed auto qed
 
-lemma interior_std_simplex_nonempty: obtains a::"real^'n::finite" where
+lemma interior_std_simplex_nonempty: obtains a::"real^'n" where
   "a \<in> interior(convex hull (insert 0 {basis i | i . i \<in> UNIV}))" proof-
   let ?D = "UNIV::'n set" let ?a = "setsum (\<lambda>b::real^'n. inverse (2 * real CARD('n)) *\<^sub>R b) {(basis i) | i. i \<in> ?D}"
   have *:"{basis i :: real ^ 'n | i. i \<in> ?D} = basis ` ?D" by auto
@@ -2849,7 +2849,7 @@ lemma interior_std_simplex_nonempty: obtains a::"real^'n::finite" where
 
 subsection {* Paths. *}
 
-definition "path (g::real^1 \<Rightarrow> real^'n::finite) \<longleftrightarrow> continuous_on {0 .. 1} g"
+definition "path (g::real^1 \<Rightarrow> real^'n) \<longleftrightarrow> continuous_on {0 .. 1} g"
 
 definition "pathstart (g::real^1 \<Rightarrow> real^'n) = g 0"
 
@@ -3138,7 +3138,7 @@ lemma path_image_shiftpath:
 subsection {* Special case of straight-line paths. *}
 
 definition
-  linepath :: "real ^ 'n::finite \<Rightarrow> real ^ 'n \<Rightarrow> real ^ 1 \<Rightarrow> real ^ 'n" where
+  linepath :: "real ^ 'n \<Rightarrow> real ^ 'n \<Rightarrow> real ^ 1 \<Rightarrow> real ^ 'n" where
   "linepath a b = (\<lambda>x. (1 - dest_vec1 x) *\<^sub>R a + dest_vec1 x *\<^sub>R b)"
 
 lemma pathstart_linepath[simp]: "pathstart(linepath a b) = a"
@@ -3323,7 +3323,7 @@ lemma path_connected_Un: assumes "path_connected s" "path_connected t" "s \<inte
 subsection {* sphere is path-connected. *}
 
 lemma path_connected_punctured_universe:
- assumes "2 \<le> CARD('n::finite)" shows "path_connected((UNIV::(real^'n::finite) set) - {a})" proof-
+ assumes "2 \<le> CARD('n::finite)" shows "path_connected((UNIV::(real^'n) set) - {a})" proof-
   obtain \<psi> where \<psi>:"bij_betw \<psi> {1..CARD('n)} (UNIV::'n set)" using ex_bij_betw_nat_finite_1[OF finite_UNIV] by auto
   let ?U = "UNIV::(real^'n) set" let ?u = "?U - {0}"
   let ?basis = "\<lambda>k. basis (\<psi> k)"
@@ -3366,7 +3366,7 @@ lemma path_connected_punctured_universe:
   show ?thesis unfolding * apply(rule path_connected_continuous_image) apply(rule continuous_on_intros)+ 
     unfolding ** apply(rule lem[THEN bspec[where x="CARD('n)"], unfolded ***]) using assms by auto qed
 
-lemma path_connected_sphere: assumes "2 \<le> CARD('n::finite)" shows "path_connected {x::real^'n::finite. norm(x - a) = r}" proof(cases "r\<le>0")
+lemma path_connected_sphere: assumes "2 \<le> CARD('n::finite)" shows "path_connected {x::real^'n. norm(x - a) = r}" proof(cases "r\<le>0")
   case True thus ?thesis proof(cases "r=0") 
     case False hence "{x::real^'n. norm(x - a) = r} = {}" using True by auto
     thus ?thesis using path_connected_empty by auto
@@ -3381,7 +3381,7 @@ lemma path_connected_sphere: assumes "2 \<le> CARD('n::finite)" shows "path_conn
   thus ?thesis unfolding * ** using path_connected_punctured_universe[OF assms]
     by(auto intro!: path_connected_continuous_image continuous_on_intros continuous_on_mul) qed
 
-lemma connected_sphere: "2 \<le> CARD('n) \<Longrightarrow> connected {x::real^'n::finite. norm(x - a) = r}"
+lemma connected_sphere: "2 \<le> CARD('n) \<Longrightarrow> connected {x::real^'n. norm(x - a) = r}"
   using path_connected_sphere path_connected_imp_connected by auto
- 
+
 end

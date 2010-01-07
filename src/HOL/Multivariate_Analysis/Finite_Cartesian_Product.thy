@@ -11,8 +11,7 @@ begin
 subsection {* Finite Cartesian products, with indexing and lambdas. *}
 
 typedef (open Cart)
-  ('a, 'b) "^" (infixl "^" 15)
-    = "UNIV :: (('b::finite) \<Rightarrow> 'a) set"
+  ('a, 'b) cart = "UNIV :: (('b::finite) \<Rightarrow> 'a) set"
   morphisms Cart_nth Cart_lambda ..
 
 notation Cart_nth (infixl "$" 90)
@@ -20,8 +19,8 @@ notation Cart_nth (infixl "$" 90)
 notation (xsymbols) Cart_lambda (binder "\<chi>" 10)
 
 (*
-  Translate "'b ^ 'n" into "'b ^ ('n :: finite)". When 'n needs more than one
-  type class write "cart 'b ('n::{finite, ...})"
+  Translate "'b ^ 'n" into "'b ^ ('n :: finite)". When 'n has already more than
+  the finite type class write "cart 'b 'n"
 *)
 
 syntax "_finite_cart" :: "type \<Rightarrow> type \<Rightarrow> type" ("(_ ^/ _)" [15, 16] 15)
@@ -45,15 +44,13 @@ lemma stupid_ext: "(\<forall>x. f x = g x) \<longleftrightarrow> (f = g)"
   apply auto
   done
 
-lemma Cart_eq: "((x:: 'a ^ 'b::finite) = y) \<longleftrightarrow> (\<forall>i. x$i = y$i)"
+lemma Cart_eq: "(x = y) \<longleftrightarrow> (\<forall>i. x$i = y$i)"
   by (simp add: Cart_nth_inject [symmetric] expand_fun_eq)
 
 lemma Cart_lambda_beta [simp]: "Cart_lambda g $ i = g i"
   by (simp add: Cart_lambda_inverse)
 
-lemma Cart_lambda_unique:
-  fixes f :: "'a ^ 'b::finite"
-  shows "(\<forall>i. f$i = g i) \<longleftrightarrow> Cart_lambda g = f"
+lemma Cart_lambda_unique: "(\<forall>i. f$i = g i) \<longleftrightarrow> Cart_lambda g = f"
   by (auto simp add: Cart_eq)
 
 lemma Cart_lambda_eta: "(\<chi> i. (g$i)) = g"
@@ -61,14 +58,9 @@ lemma Cart_lambda_eta: "(\<chi> i. (g$i)) = g"
 
 text{* A non-standard sum to "paste" Cartesian products. *}
 
-definition pastecart :: "'a ^ 'm::finite \<Rightarrow> 'a ^ 'n::finite \<Rightarrow> 'a ^ ('m + 'n)" where
-  "pastecart f g = (\<chi> i. case i of Inl a \<Rightarrow> f$a | Inr b \<Rightarrow> g$b)"
-
-definition fstcart:: "'a ^('m::finite + 'n::finite) \<Rightarrow> 'a ^ 'm" where
-  "fstcart f = (\<chi> i. (f$(Inl i)))"
-
-definition sndcart:: "'a ^('m::finite + 'n::finite) \<Rightarrow> 'a ^ 'n" where
-  "sndcart f = (\<chi> i. (f$(Inr i)))"
+definition "pastecart f g = (\<chi> i. case i of Inl a \<Rightarrow> f$a | Inr b \<Rightarrow> g$b)"
+definition "fstcart f = (\<chi> i. (f$(Inl i)))"
+definition "sndcart f = (\<chi> i. (f$(Inr i)))"
 
 lemma nth_pastecart_Inl [simp]: "pastecart f g $ Inl a = f$a"
   unfolding pastecart_def by simp
@@ -85,10 +77,10 @@ lemma nth_sndtcart [simp]: "sndcart f $ i = f $ Inr i"
 lemma finite_sum_image: "(UNIV::('a + 'b) set) = range Inl \<union> range Inr"
 by (auto, case_tac x, auto)
 
-lemma fstcart_pastecart: "fstcart (pastecart (x::'a ^'m::finite ) (y:: 'a ^ 'n::finite)) = x"
+lemma fstcart_pastecart: "fstcart (pastecart x y) = x"
   by (simp add: Cart_eq)
 
-lemma sndcart_pastecart: "sndcart (pastecart (x::'a ^'m::finite ) (y:: 'a ^ 'n::finite)) = y"
+lemma sndcart_pastecart: "sndcart (pastecart x y) = y"
   by (simp add: Cart_eq)
 
 lemma pastecart_fst_snd: "pastecart (fstcart z) (sndcart z) = z"

@@ -61,38 +61,39 @@ lemma setsum_3: "setsum f (UNIV::3 set) = f 1 + f 2 + f 3"
 
 subsection{* Basic componentwise operations on vectors. *}
 
-instantiation "^" :: (plus,finite) plus
+instantiation cart :: (plus,finite) plus
 begin
 definition  vector_add_def : "op + \<equiv> (\<lambda> x y.  (\<chi> i. (x$i) + (y$i)))"
 instance ..
 end
 
-instantiation "^" :: (times,finite) times
+instantiation cart :: (times,finite) times
 begin
   definition vector_mult_def : "op * \<equiv> (\<lambda> x y.  (\<chi> i. (x$i) * (y$i)))"
   instance ..
 end
 
-instantiation "^" :: (minus,finite) minus begin
+instantiation cart :: (minus,finite) minus begin
   definition vector_minus_def : "op - \<equiv> (\<lambda> x y.  (\<chi> i. (x$i) - (y$i)))"
 instance ..
 end
 
-instantiation "^" :: (uminus,finite) uminus begin
+instantiation cart :: (uminus,finite) uminus begin
   definition vector_uminus_def : "uminus \<equiv> (\<lambda> x.  (\<chi> i. - (x$i)))"
 instance ..
 end
-instantiation "^" :: (zero,finite) zero begin
+
+instantiation cart :: (zero,finite) zero begin
   definition vector_zero_def : "0 \<equiv> (\<chi> i. 0)"
 instance ..
 end
 
-instantiation "^" :: (one,finite) one begin
+instantiation cart :: (one,finite) one begin
   definition vector_one_def : "1 \<equiv> (\<chi> i. 1)"
 instance ..
 end
 
-instantiation "^" :: (ord,finite) ord
+instantiation cart :: (ord,finite) ord
  begin
 definition vector_le_def:
   "less_eq (x :: 'a ^'b) y = (ALL i. x$i <= y$i)"
@@ -101,7 +102,7 @@ definition vector_less_def: "less (x :: 'a ^'b) y = (ALL i. x$i < y$i)"
 instance by (intro_classes)
 end
 
-instantiation "^" :: (scaleR, finite) scaleR
+instantiation cart :: (scaleR, finite) scaleR
 begin
 definition vector_scaleR_def: "scaleR = (\<lambda> r x.  (\<chi> i. scaleR r (x$i)))"
 instance ..
@@ -109,7 +110,7 @@ end
 
 text{* Also the scalar-vector multiplication. *}
 
-definition vector_scalar_mult:: "'a::times \<Rightarrow> 'a ^'n::finite \<Rightarrow> 'a ^ 'n" (infixl "*s" 70)
+definition vector_scalar_mult:: "'a::times \<Rightarrow> 'a ^ 'n \<Rightarrow> 'a ^ 'n" (infixl "*s" 70)
   where "c *s x = (\<chi> i. c * (x$i))"
 
 text{* Constant Vectors *} 
@@ -118,7 +119,7 @@ definition "vec x = (\<chi> i. x)"
 
 text{* Dot products. *}
 
-definition dot :: "'a::{comm_monoid_add, times} ^ 'n::finite \<Rightarrow> 'a ^ 'n \<Rightarrow> 'a" (infix "\<bullet>" 70) where
+definition dot :: "'a::{comm_monoid_add, times} ^ 'n \<Rightarrow> 'a ^ 'n \<Rightarrow> 'a" (infix "\<bullet>" 70) where
   "x \<bullet> y = setsum (\<lambda>i. x$i * y$i) UNIV"
 
 lemma dot_1[simp]: "(x::'a::{comm_monoid_add, times}^1) \<bullet> y = (x$1) * (y$1)"
@@ -162,37 +163,25 @@ lemma vec_1[simp]: "vec 1 = 1" by (vector vector_one_def)
 
 text{* Obvious "component-pushing". *}
 
-lemma vec_component [simp]: "(vec x :: 'a ^ 'n::finite)$i = x"
+lemma vec_component [simp]: "vec x $ i = x"
   by (vector vec_def)
 
-lemma vector_add_component [simp]:
-  fixes x y :: "'a::{plus} ^ 'n::finite"
-  shows "(x + y)$i = x$i + y$i"
+lemma vector_add_component [simp]: "(x + y)$i = x$i + y$i"
   by vector
 
-lemma vector_minus_component [simp]:
-  fixes x y :: "'a::{minus} ^ 'n::finite"
-  shows "(x - y)$i = x$i - y$i"
+lemma vector_minus_component [simp]: "(x - y)$i = x$i - y$i"
   by vector
 
-lemma vector_mult_component [simp]:
-  fixes x y :: "'a::{times} ^ 'n::finite"
-  shows "(x * y)$i = x$i * y$i"
+lemma vector_mult_component [simp]: "(x * y)$i = x$i * y$i"
   by vector
 
-lemma vector_smult_component [simp]:
-  fixes y :: "'a::{times} ^ 'n::finite"
-  shows "(c *s y)$i = c * (y$i)"
+lemma vector_smult_component [simp]: "(c *s y)$i = c * (y$i)"
   by vector
 
-lemma vector_uminus_component [simp]:
-  fixes x :: "'a::{uminus} ^ 'n::finite"
-  shows "(- x)$i = - (x$i)"
+lemma vector_uminus_component [simp]: "(- x)$i = - (x$i)"
   by vector
 
-lemma vector_scaleR_component [simp]:
-  fixes x :: "'a::scaleR ^ 'n::finite"
-  shows "(scaleR r x)$i = scaleR r (x$i)"
+lemma vector_scaleR_component [simp]: "(scaleR r x)$i = scaleR r (x$i)"
   by vector
 
 lemma cond_component: "(if b then x else y)$i = (if b then x$i else y$i)" by vector
@@ -204,95 +193,96 @@ lemmas vector_component =
 
 subsection {* Some frequently useful arithmetic lemmas over vectors. *}
 
-instance "^" :: (semigroup_add,finite) semigroup_add
+instance cart :: (semigroup_add,finite) semigroup_add
   apply (intro_classes) by (vector add_assoc)
 
 
-instance "^" :: (monoid_add,finite) monoid_add
+instance cart :: (monoid_add,finite) monoid_add
   apply (intro_classes) by vector+
 
-instance "^" :: (group_add,finite) group_add
+instance cart :: (group_add,finite) group_add
   apply (intro_classes) by (vector algebra_simps)+
 
-instance "^" :: (ab_semigroup_add,finite) ab_semigroup_add
+instance cart :: (ab_semigroup_add,finite) ab_semigroup_add
   apply (intro_classes) by (vector add_commute)
 
-instance "^" :: (comm_monoid_add,finite) comm_monoid_add
+instance cart :: (comm_monoid_add,finite) comm_monoid_add
   apply (intro_classes) by vector
 
-instance "^" :: (ab_group_add,finite) ab_group_add
+instance cart :: (ab_group_add,finite) ab_group_add
   apply (intro_classes) by vector+
 
-instance "^" :: (cancel_semigroup_add,finite) cancel_semigroup_add
+instance cart :: (cancel_semigroup_add,finite) cancel_semigroup_add
   apply (intro_classes)
   by (vector Cart_eq)+
 
-instance "^" :: (cancel_ab_semigroup_add,finite) cancel_ab_semigroup_add
+instance cart :: (cancel_ab_semigroup_add,finite) cancel_ab_semigroup_add
   apply (intro_classes)
   by (vector Cart_eq)
 
-instance "^" :: (real_vector, finite) real_vector
+instance cart :: (real_vector, finite) real_vector
   by default (vector scaleR_left_distrib scaleR_right_distrib)+
 
-instance "^" :: (semigroup_mult,finite) semigroup_mult
+instance cart :: (semigroup_mult,finite) semigroup_mult
   apply (intro_classes) by (vector mult_assoc)
 
-instance "^" :: (monoid_mult,finite) monoid_mult
+instance cart :: (monoid_mult,finite) monoid_mult
   apply (intro_classes) by vector+
 
-instance "^" :: (ab_semigroup_mult,finite) ab_semigroup_mult
+instance cart :: (ab_semigroup_mult,finite) ab_semigroup_mult
   apply (intro_classes) by (vector mult_commute)
 
-instance "^" :: (ab_semigroup_idem_mult,finite) ab_semigroup_idem_mult
+instance cart :: (ab_semigroup_idem_mult,finite) ab_semigroup_idem_mult
   apply (intro_classes) by (vector mult_idem)
 
-instance "^" :: (comm_monoid_mult,finite) comm_monoid_mult
+instance cart :: (comm_monoid_mult,finite) comm_monoid_mult
   apply (intro_classes) by vector
 
-fun vector_power :: "('a::{one,times} ^'n::finite) \<Rightarrow> nat \<Rightarrow> 'a^'n" where
+fun vector_power where
   "vector_power x 0 = 1"
   | "vector_power x (Suc n) = x * vector_power x n"
 
-instance "^" :: (semiring,finite) semiring
+instance cart :: (semiring,finite) semiring
   apply (intro_classes) by (vector ring_simps)+
 
-instance "^" :: (semiring_0,finite) semiring_0
+instance cart :: (semiring_0,finite) semiring_0
   apply (intro_classes) by (vector ring_simps)+
-instance "^" :: (semiring_1,finite) semiring_1
+instance cart :: (semiring_1,finite) semiring_1
   apply (intro_classes) by vector
-instance "^" :: (comm_semiring,finite) comm_semiring
+instance cart :: (comm_semiring,finite) comm_semiring
   apply (intro_classes) by (vector ring_simps)+
 
-instance "^" :: (comm_semiring_0,finite) comm_semiring_0 by (intro_classes)
-instance "^" :: (cancel_comm_monoid_add, finite) cancel_comm_monoid_add ..
-instance "^" :: (semiring_0_cancel,finite) semiring_0_cancel by (intro_classes)
-instance "^" :: (comm_semiring_0_cancel,finite) comm_semiring_0_cancel by (intro_classes)
-instance "^" :: (ring,finite) ring by (intro_classes)
-instance "^" :: (semiring_1_cancel,finite) semiring_1_cancel by (intro_classes)
-instance "^" :: (comm_semiring_1,finite) comm_semiring_1 by (intro_classes)
+instance cart :: (comm_semiring_0,finite) comm_semiring_0 by (intro_classes)
+instance cart :: (cancel_comm_monoid_add, finite) cancel_comm_monoid_add ..
+instance cart :: (semiring_0_cancel,finite) semiring_0_cancel by (intro_classes)
+instance cart :: (comm_semiring_0_cancel,finite) comm_semiring_0_cancel by (intro_classes)
+instance cart :: (ring,finite) ring by (intro_classes)
+instance cart :: (semiring_1_cancel,finite) semiring_1_cancel by (intro_classes)
+instance cart :: (comm_semiring_1,finite) comm_semiring_1 by (intro_classes)
 
-instance "^" :: (ring_1,finite) ring_1 ..
+instance cart :: (ring_1,finite) ring_1 ..
 
-instance "^" :: (real_algebra,finite) real_algebra
+instance cart :: (real_algebra,finite) real_algebra
   apply intro_classes
   apply (simp_all add: vector_scaleR_def ring_simps)
   apply vector
   apply vector
   done
 
-instance "^" :: (real_algebra_1,finite) real_algebra_1 ..
+instance cart :: (real_algebra_1,finite) real_algebra_1 ..
 
 lemma of_nat_index:
-  "(of_nat n :: 'a::semiring_1 ^'n::finite)$i = of_nat n"
+  "(of_nat n :: 'a::semiring_1 ^'n)$i = of_nat n"
   apply (induct n)
   apply vector
   apply vector
   done
+
 lemma zero_index[simp]:
-  "(0 :: 'a::zero ^'n::finite)$i = 0" by vector
+  "(0 :: 'a::zero ^'n)$i = 0" by vector
 
 lemma one_index[simp]:
-  "(1 :: 'a::one ^'n::finite)$i = 1" by vector
+  "(1 :: 'a::one ^'n)$i = 1" by vector
 
 lemma one_plus_of_nat_neq_0: "(1::'a::semiring_char_0) + of_nat n \<noteq> 0"
 proof-
@@ -301,15 +291,15 @@ proof-
   finally show ?thesis by simp
 qed
 
-instance "^" :: (semiring_char_0,finite) semiring_char_0
+instance cart :: (semiring_char_0,finite) semiring_char_0
 proof (intro_classes)
   fix m n ::nat
   show "(of_nat m :: 'a^'b) = of_nat n \<longleftrightarrow> m = n"
     by (simp add: Cart_eq of_nat_index)
 qed
 
-instance "^" :: (comm_ring_1,finite) comm_ring_1 by intro_classes
-instance "^" :: (ring_char_0,finite) ring_char_0 by intro_classes
+instance cart :: (comm_ring_1,finite) comm_ring_1 by intro_classes
+instance cart :: (ring_char_0,finite) ring_char_0 by intro_classes
 
 lemma vector_smult_assoc: "a *s (b *s x) = ((a::'a::semigroup_mult) * b) *s x"
   by (vector mult_assoc)
@@ -324,7 +314,7 @@ lemma vector_ssub_ldistrib: "(c::'a::ring) *s (x - y) = c *s x - c *s y"
 lemma vector_smult_rneg: "(c::'a::ring) *s -x = -(c *s x)" by vector
 lemma vector_smult_lneg: "- (c::'a::ring) *s x = -(c *s x)" by vector
 lemma vector_sneg_minus1: "-x = (- (1::'a::ring_1)) *s x" by vector
-lemma vector_smult_rzero[simp]: "c *s 0 = (0::'a::mult_zero ^ 'n::finite)" by vector
+lemma vector_smult_rzero[simp]: "c *s 0 = (0::'a::mult_zero ^ 'n)" by vector
 lemma vector_sub_rdistrib: "((a::'a::ring) - b) *s x = a *s x - b *s x"
   by (vector ring_simps)
 
@@ -333,7 +323,7 @@ lemma vec_eq[simp]: "(vec m = vec n) \<longleftrightarrow> (m = n)"
 
 subsection {* Topological space *}
 
-instantiation "^" :: (topological_space, finite) topological_space
+instantiation cart :: (topological_space, finite) topological_space
 begin
 
 definition open_vector_def:
@@ -589,7 +579,7 @@ apply (clarify, rename_tac y)
 apply (rule_tac x="f(x:=y)" in exI, simp)
 done
 
-instantiation "^" :: (metric_space, finite) metric_space
+instantiation cart :: (metric_space, finite) metric_space
 begin
 
 definition dist_vector_def:
@@ -667,7 +657,7 @@ lemma Cauchy_Cart_nth:
 unfolding Cauchy_def by (fast intro: le_less_trans [OF dist_nth_le])
 
 lemma LIMSEQ_vector:
-  fixes X :: "nat \<Rightarrow> 'a::metric_space ^ 'n::finite"
+  fixes X :: "nat \<Rightarrow> 'a::metric_space ^ 'n"
   assumes X: "\<And>i. (\<lambda>n. X n $ i) ----> (a $ i)"
   shows "X ----> a"
 proof (rule metric_LIMSEQ_I)
@@ -700,7 +690,7 @@ proof (rule metric_LIMSEQ_I)
 qed
 
 lemma Cauchy_vector:
-  fixes X :: "nat \<Rightarrow> 'a::metric_space ^ 'n::finite"
+  fixes X :: "nat \<Rightarrow> 'a::metric_space ^ 'n"
   assumes X: "\<And>i. Cauchy (\<lambda>n. X n $ i)"
   shows "Cauchy (\<lambda>n. X n)"
 proof (rule metric_CauchyI)
@@ -733,7 +723,7 @@ proof (rule metric_CauchyI)
   then show "\<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m) (X n) < r" ..
 qed
 
-instance "^" :: (complete_space, finite) complete_space
+instance cart :: (complete_space, finite) complete_space
 proof
   fix X :: "nat \<Rightarrow> 'a ^ 'b" assume "Cauchy X"
   have "\<And>i. (\<lambda>n. X n $ i) ----> lim (\<lambda>n. X n $ i)"
@@ -747,7 +737,7 @@ qed
 
 subsection {* Norms *}
 
-instantiation "^" :: (real_normed_vector, finite) real_normed_vector
+instantiation cart :: (real_normed_vector, finite) real_normed_vector
 begin
 
 definition norm_vector_def:
@@ -792,11 +782,11 @@ apply (rule vector_scaleR_component)
 apply (rule_tac x="1" in exI, simp add: norm_nth_le)
 done
 
-instance "^" :: (banach, finite) banach ..
+instance cart :: (banach, finite) banach ..
 
 subsection {* Inner products *}
 
-instantiation "^" :: (real_inner, finite) real_inner
+instantiation cart :: (real_inner, finite) real_inner
 begin
 
 definition inner_vector_def:
@@ -828,20 +818,20 @@ end
 
 subsection{* Properties of the dot product.  *}
 
-lemma dot_sym: "(x::'a:: {comm_monoid_add, ab_semigroup_mult} ^ 'n::finite) \<bullet> y = y \<bullet> x"
+lemma dot_sym: "(x::'a:: {comm_monoid_add, ab_semigroup_mult} ^ 'n) \<bullet> y = y \<bullet> x"
   by (vector mult_commute)
-lemma dot_ladd: "((x::'a::ring ^ 'n::finite) + y) \<bullet> z = (x \<bullet> z) + (y \<bullet> z)"
+lemma dot_ladd: "((x::'a::ring ^ 'n) + y) \<bullet> z = (x \<bullet> z) + (y \<bullet> z)"
   by (vector ring_simps)
-lemma dot_radd: "x \<bullet> (y + (z::'a::ring ^ 'n::finite)) = (x \<bullet> y) + (x \<bullet> z)"
+lemma dot_radd: "x \<bullet> (y + (z::'a::ring ^ 'n)) = (x \<bullet> y) + (x \<bullet> z)"
   by (vector ring_simps)
-lemma dot_lsub: "((x::'a::ring ^ 'n::finite) - y) \<bullet> z = (x \<bullet> z) - (y \<bullet> z)"
+lemma dot_lsub: "((x::'a::ring ^ 'n) - y) \<bullet> z = (x \<bullet> z) - (y \<bullet> z)"
   by (vector ring_simps)
-lemma dot_rsub: "(x::'a::ring ^ 'n::finite) \<bullet> (y - z) = (x \<bullet> y) - (x \<bullet> z)"
+lemma dot_rsub: "(x::'a::ring ^ 'n) \<bullet> (y - z) = (x \<bullet> y) - (x \<bullet> z)"
   by (vector ring_simps)
 lemma dot_lmult: "(c *s x) \<bullet> y = (c::'a::ring) * (x \<bullet> y)" by (vector ring_simps)
 lemma dot_rmult: "x \<bullet> (c *s y) = (c::'a::comm_ring) * (x \<bullet> y)" by (vector ring_simps)
-lemma dot_lneg: "(-x) \<bullet> (y::'a::ring ^ 'n::finite) = -(x \<bullet> y)" by vector
-lemma dot_rneg: "(x::'a::ring ^ 'n::finite) \<bullet> (-y) = -(x \<bullet> y)" by vector
+lemma dot_lneg: "(-x) \<bullet> (y::'a::ring ^ 'n) = -(x \<bullet> y)" by vector
+lemma dot_rneg: "(x::'a::ring ^ 'n) \<bullet> (-y) = -(x \<bullet> y)" by vector
 lemma dot_lzero[simp]: "0 \<bullet> x = (0::'a::{comm_monoid_add, mult_zero})" by vector
 lemma dot_rzero[simp]: "x \<bullet> 0 = (0::'a::{comm_monoid_add, mult_zero})" by vector
 lemma dot_pos_le[simp]: "(0::'a\<Colon>ordered_ring_strict) <= x \<bullet> x"
@@ -860,10 +850,10 @@ next
   show ?case by (simp add: h)
 qed
 
-lemma dot_eq_0: "x \<bullet> x = 0 \<longleftrightarrow> (x::'a::{ordered_ring_strict,ring_no_zero_divisors} ^ 'n::finite) = 0"
+lemma dot_eq_0: "x \<bullet> x = 0 \<longleftrightarrow> (x::'a::{ordered_ring_strict,ring_no_zero_divisors} ^ 'n) = 0"
   by (simp add: dot_def setsum_squares_eq_0_iff Cart_eq)
 
-lemma dot_pos_lt[simp]: "(0 < x \<bullet> x) \<longleftrightarrow> (x::'a::{ordered_ring_strict,ring_no_zero_divisors} ^ 'n::finite) \<noteq> 0" using dot_eq_0[of x] dot_pos_le[of x]
+lemma dot_pos_lt[simp]: "(0 < x \<bullet> x) \<longleftrightarrow> (x::'a::{ordered_ring_strict,ring_no_zero_divisors} ^ 'n) \<noteq> 0" using dot_eq_0[of x] dot_pos_le[of x]
   by (auto simp add: le_less)
 
 subsection{* The collapse of the general concepts to dimension one. *}
@@ -1005,7 +995,7 @@ lemma real_vector_norm_def: "norm x = sqrt (x \<bullet> x)"
   by (simp add: norm_vector_def setL2_def dot_def power2_eq_square)
 lemma norm_pow_2: "norm x ^ 2 = x \<bullet> x"
   by (simp add: real_vector_norm_def)
-lemma norm_eq_0_imp: "norm x = 0 ==> x = (0::real ^'n::finite)" by (metis norm_eq_zero)
+lemma norm_eq_0_imp: "norm x = 0 ==> x = (0::real ^'n)" by (metis norm_eq_zero)
 lemma vector_mul_eq_0[simp]: "(a *s x = 0) \<longleftrightarrow> a = (0::'a::idom) \<or> x = 0"
   by vector
 lemma vector_mul_lcancel[simp]: "a *s x = a *s y \<longleftrightarrow> a = (0::real) \<or> x = y"
@@ -1017,7 +1007,7 @@ lemma vector_mul_lcancel_imp: "a \<noteq> (0::real) ==>  a *s x = a *s y ==> (x 
 lemma vector_mul_rcancel_imp: "x \<noteq> 0 \<Longrightarrow> (a::real) *s x = b *s x ==> a = b"
   by (metis vector_mul_rcancel)
 lemma norm_cauchy_schwarz:
-  fixes x y :: "real ^ 'n::finite"
+  fixes x y :: "real ^ 'n"
   shows "x \<bullet> y <= norm x * norm y"
 proof-
   {assume "norm x = 0"
@@ -1040,7 +1030,7 @@ proof-
 qed
 
 lemma norm_cauchy_schwarz_abs:
-  fixes x y :: "real ^ 'n::finite"
+  fixes x y :: "real ^ 'n"
   shows "\<bar>x \<bullet> y\<bar> \<le> norm x * norm y"
   using norm_cauchy_schwarz[of x y] norm_cauchy_schwarz[of x "-y"]
   by (simp add: real_abs_def dot_rneg)
@@ -1050,38 +1040,36 @@ lemma norm_triangle_sub:
   shows "norm x \<le> norm y  + norm (x - y)"
   using norm_triangle_ineq[of "y" "x - y"] by (simp add: ring_simps)
 
-lemma norm_triangle_le: "norm(x::real ^'n::finite) + norm y <= e ==> norm(x + y) <= e"
+lemma norm_triangle_le: "norm(x::real ^ 'n) + norm y <= e ==> norm(x + y) <= e"
   by (metis order_trans norm_triangle_ineq)
-lemma norm_triangle_lt: "norm(x::real ^'n::finite) + norm(y) < e ==> norm(x + y) < e"
+lemma norm_triangle_lt: "norm(x::real ^ 'n) + norm(y) < e ==> norm(x + y) < e"
   by (metis basic_trans_rules(21) norm_triangle_ineq)
 
-lemma component_le_norm: "\<bar>x$i\<bar> <= norm (x::real ^ 'n::finite)"
+lemma component_le_norm: "\<bar>x$i\<bar> <= norm x"
   apply (simp add: norm_vector_def)
   apply (rule member_le_setL2, simp_all)
   done
 
-lemma norm_bound_component_le: "norm(x::real ^ 'n::finite) <= e
-                ==> \<bar>x$i\<bar> <= e"
+lemma norm_bound_component_le: "norm x <= e ==> \<bar>x$i\<bar> <= e"
   by (metis component_le_norm order_trans)
 
-lemma norm_bound_component_lt: "norm(x::real ^ 'n::finite) < e
-                ==> \<bar>x$i\<bar> < e"
+lemma norm_bound_component_lt: "norm x < e ==> \<bar>x$i\<bar> < e"
   by (metis component_le_norm basic_trans_rules(21))
 
-lemma norm_le_l1: "norm (x:: real ^'n::finite) <= setsum(\<lambda>i. \<bar>x$i\<bar>) UNIV"
+lemma norm_le_l1: "norm x <= setsum(\<lambda>i. \<bar>x$i\<bar>) UNIV"
   by (simp add: norm_vector_def setL2_le_setsum)
 
-lemma real_abs_norm: "\<bar>norm x\<bar> = norm (x :: real ^ _)"
+lemma real_abs_norm: "\<bar>norm x\<bar> = norm x"
   by (rule abs_norm_cancel)
-lemma real_abs_sub_norm: "\<bar>norm(x::real ^'n::finite) - norm y\<bar> <= norm(x - y)"
+lemma real_abs_sub_norm: "\<bar>norm (x::real ^ 'n) - norm y\<bar> <= norm(x - y)"
   by (rule norm_triangle_ineq3)
-lemma norm_le: "norm(x::real ^ _) <= norm(y) \<longleftrightarrow> x \<bullet> x <= y \<bullet> y"
+lemma norm_le: "norm(x::real ^ 'n) <= norm(y) \<longleftrightarrow> x \<bullet> x <= y \<bullet> y"
   by (simp add: real_vector_norm_def)
-lemma norm_lt: "norm(x::real ^ _) < norm(y) \<longleftrightarrow> x \<bullet> x < y \<bullet> y"
+lemma norm_lt: "norm(x::real ^ 'n) < norm(y) \<longleftrightarrow> x \<bullet> x < y \<bullet> y"
   by (simp add: real_vector_norm_def)
-lemma norm_eq: "norm (x::real ^ _) = norm y \<longleftrightarrow> x \<bullet> x = y \<bullet> y"
+lemma norm_eq: "norm(x::real ^ 'n) = norm y \<longleftrightarrow> x \<bullet> x = y \<bullet> y"
   by (simp add: order_eq_iff norm_le)
-lemma norm_eq_1: "norm(x::real ^ _) = 1 \<longleftrightarrow> x \<bullet> x = 1"
+lemma norm_eq_1: "norm(x::real ^ 'n) = 1 \<longleftrightarrow> x \<bullet> x = 1"
   by (simp add: real_vector_norm_def)
 
 text{* Squaring equations and inequalities involving norms.  *}
@@ -1127,7 +1115,7 @@ lemma dot_norm_neg: "x \<bullet> y = ((norm x ^ 2 + norm y ^ 2) - norm(x - y) ^ 
 
 text{* Equality of vectors in terms of @{term "op \<bullet>"} products.    *}
 
-lemma vector_eq: "(x:: real ^ 'n::finite) = y \<longleftrightarrow> x \<bullet> x = x \<bullet> y\<and> y \<bullet> y = x \<bullet> x" (is "?lhs \<longleftrightarrow> ?rhs")
+lemma vector_eq: "(x:: real ^ 'n) = y \<longleftrightarrow> x \<bullet> x = x \<bullet> y\<and> y \<bullet> y = x \<bullet> x" (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   assume "?lhs" then show ?rhs by simp
 next
@@ -1299,7 +1287,7 @@ lemma dist_triangle_add_half:
   by norm
 
 lemma setsum_component [simp]:
-  fixes f:: " 'a \<Rightarrow> ('b::comm_monoid_add) ^'n::finite"
+  fixes f:: " 'a \<Rightarrow> ('b::comm_monoid_add) ^'n"
   shows "(setsum f S)$i = setsum (\<lambda>x. (f x)$i) S"
   by (cases "finite S", induct S set: finite, simp_all)
 
@@ -1313,7 +1301,7 @@ lemma setsum_clauses:
   by (auto simp add: insert_absorb)
 
 lemma setsum_cmul:
-  fixes f:: "'c \<Rightarrow> ('a::semiring_1)^'n::finite"
+  fixes f:: "'c \<Rightarrow> ('a::semiring_1)^'n"
   shows "setsum (\<lambda>x. c *s f x) S = c *s setsum f S"
   by (simp add: Cart_eq setsum_right_distrib)
 
@@ -1332,7 +1320,7 @@ next
 qed
 
 lemma real_setsum_norm:
-  fixes f :: "'a \<Rightarrow> real ^'n::finite"
+  fixes f :: "'a \<Rightarrow> real ^'n"
   assumes fS: "finite S"
   shows "norm (setsum f S) <= setsum (\<lambda>x. norm(f x)) S"
 proof(induct rule: finite_induct[OF fS])
@@ -1358,7 +1346,7 @@ proof-
 qed
 
 lemma real_setsum_norm_le:
-  fixes f :: "'a \<Rightarrow> real ^ 'n::finite"
+  fixes f :: "'a \<Rightarrow> real ^ 'n"
   assumes fS: "finite S"
   and fg: "\<forall>x \<in> S. norm (f x) \<le> g x"
   shows "norm (setsum f S) \<le> setsum g S"
@@ -1378,7 +1366,7 @@ lemma setsum_norm_bound:
   by simp
 
 lemma real_setsum_norm_bound:
-  fixes f :: "'a \<Rightarrow> real ^ 'n::finite"
+  fixes f :: "'a \<Rightarrow> real ^ 'n"
   assumes fS: "finite S"
   and K: "\<forall>x \<in> S. norm (f x) \<le> K"
   shows "norm (setsum f S) \<le> of_nat (card S) * K"
@@ -1414,7 +1402,7 @@ apply (rule setsum_mono_zero_right[OF fT fST])
 by (auto intro: setsum_0')
 
 lemma vsum_norm_allsubsets_bound:
-  fixes f:: "'a \<Rightarrow> real ^'n::finite"
+  fixes f:: "'a \<Rightarrow> real ^'n"
   assumes fP: "finite P" and fPs: "\<And>Q. Q \<subseteq> P \<Longrightarrow> norm (setsum f Q) \<le> e"
   shows "setsum (\<lambda>x. norm (f x)) P \<le> 2 * real CARD('n) *  e"
 proof-
@@ -1452,10 +1440,10 @@ proof-
   finally show ?thesis .
 qed
 
-lemma dot_lsum: "finite S \<Longrightarrow> setsum f S \<bullet> (y::'a::{comm_ring}^'n::finite) = setsum (\<lambda>x. f x \<bullet> y) S "
+lemma dot_lsum: "finite S \<Longrightarrow> setsum f S \<bullet> (y::'a::{comm_ring}^'n) = setsum (\<lambda>x. f x \<bullet> y) S "
   by (induct rule: finite_induct, auto simp add: dot_lzero dot_ladd dot_radd)
 
-lemma dot_rsum: "finite S \<Longrightarrow> (y::'a::{comm_ring}^'n::finite) \<bullet> setsum f S = setsum (\<lambda>x. y \<bullet> f x) S "
+lemma dot_rsum: "finite S \<Longrightarrow> (y::'a::{comm_ring}^'n) \<bullet> setsum f S = setsum (\<lambda>x. y \<bullet> f x) S "
   by (induct rule: finite_induct, auto simp add: dot_rzero dot_radd)
 
 subsection{* Basis vectors in coordinate directions. *}
@@ -1470,7 +1458,7 @@ lemma delta_mult_idempotent:
   "(if k=a then 1 else (0::'a::semiring_1)) * (if k=a then 1 else 0) = (if k=a then 1 else 0)" by (cases "k=a", auto)
 
 lemma norm_basis:
-  shows "norm (basis k :: real ^'n::finite) = 1"
+  shows "norm (basis k :: real ^'n) = 1"
   apply (simp add: basis_def real_vector_norm_def dot_def)
   apply (vector delta_mult_idempotent)
   using setsum_delta[of "UNIV :: 'n set" "k" "\<lambda>k. 1::real"]
@@ -1480,12 +1468,12 @@ lemma norm_basis:
 lemma norm_basis_1: "norm(basis 1 :: real ^'n::{finite,one}) = 1"
   by (rule norm_basis)
 
-lemma vector_choose_size: "0 <= c ==> \<exists>(x::real^'n::finite). norm x = c"
+lemma vector_choose_size: "0 <= c ==> \<exists>(x::real^'n). norm x = c"
   apply (rule exI[where x="c *s basis arbitrary"])
   by (simp only: norm_mul norm_basis)
 
 lemma vector_choose_dist: assumes e: "0 <= e"
-  shows "\<exists>(y::real^'n::finite). dist x y = e"
+  shows "\<exists>(y::real^'n). dist x y = e"
 proof-
   from vector_choose_size[OF e] obtain c:: "real ^'n"  where "norm c = e"
     by blast
@@ -1493,42 +1481,42 @@ proof-
   then show ?thesis by blast
 qed
 
-lemma basis_inj: "inj (basis :: 'n \<Rightarrow> real ^'n::finite)"
+lemma basis_inj: "inj (basis :: 'n \<Rightarrow> real ^'n)"
   by (simp add: inj_on_def Cart_eq)
 
 lemma cond_value_iff: "f (if b then x else y) = (if b then f x else f y)"
   by auto
 
 lemma basis_expansion:
-  "setsum (\<lambda>i. (x$i) *s basis i) UNIV = (x::('a::ring_1) ^'n::finite)" (is "?lhs = ?rhs" is "setsum ?f ?S = _")
+  "setsum (\<lambda>i. (x$i) *s basis i) UNIV = (x::('a::ring_1) ^'n)" (is "?lhs = ?rhs" is "setsum ?f ?S = _")
   by (auto simp add: Cart_eq cond_value_iff setsum_delta[of "?S", where ?'b = "'a", simplified] cong del: if_weak_cong)
 
 lemma basis_expansion_unique:
-  "setsum (\<lambda>i. f i *s basis i) UNIV = (x::('a::comm_ring_1) ^'n::finite) \<longleftrightarrow> (\<forall>i. f i = x$i)"
+  "setsum (\<lambda>i. f i *s basis i) UNIV = (x::('a::comm_ring_1) ^'n) \<longleftrightarrow> (\<forall>i. f i = x$i)"
   by (simp add: Cart_eq setsum_delta cond_value_iff cong del: if_weak_cong)
 
 lemma cond_application_beta: "(if b then f else g) x = (if b then f x else g x)"
   by auto
 
 lemma dot_basis:
-  shows "basis i \<bullet> x = x$i" "x \<bullet> (basis i :: 'a^'n::finite) = (x$i :: 'a::semiring_1)"
+  shows "basis i \<bullet> x = x$i" "x \<bullet> (basis i :: 'a^'n) = (x$i :: 'a::semiring_1)"
   by (auto simp add: dot_def basis_def cond_application_beta  cond_value_iff setsum_delta cong del: if_weak_cong)
 
 lemma inner_basis:
-  fixes x :: "'a::{real_inner, real_algebra_1} ^ 'n::finite"
+  fixes x :: "'a::{real_inner, real_algebra_1} ^ 'n"
   shows "inner (basis i) x = inner 1 (x $ i)"
     and "inner x (basis i) = inner (x $ i) 1"
   unfolding inner_vector_def basis_def
   by (auto simp add: cond_application_beta  cond_value_iff setsum_delta cong del: if_weak_cong)
 
-lemma basis_eq_0: "basis i = (0::'a::semiring_1^'n::finite) \<longleftrightarrow> False"
+lemma basis_eq_0: "basis i = (0::'a::semiring_1^'n) \<longleftrightarrow> False"
   by (auto simp add: Cart_eq)
 
 lemma basis_nonzero:
-  shows "basis k \<noteq> (0:: 'a::semiring_1 ^'n::finite)"
+  shows "basis k \<noteq> (0:: 'a::semiring_1 ^'n)"
   by (simp add: basis_eq_0)
 
-lemma vector_eq_ldot: "(\<forall>x. x \<bullet> y = x \<bullet> z) \<longleftrightarrow> y = (z::'a::semiring_1^'n::finite)"
+lemma vector_eq_ldot: "(\<forall>x. x \<bullet> y = x \<bullet> z) \<longleftrightarrow> y = (z::'a::semiring_1^'n)"
   apply (auto simp add: Cart_eq dot_basis)
   apply (erule_tac x="basis i" in allE)
   apply (simp add: dot_basis)
@@ -1537,7 +1525,7 @@ lemma vector_eq_ldot: "(\<forall>x. x \<bullet> y = x \<bullet> z) \<longleftrig
   apply (simp add: Cart_eq)
   done
 
-lemma vector_eq_rdot: "(\<forall>z. x \<bullet> z = y \<bullet> z) \<longleftrightarrow> x = (y::'a::semiring_1^'n::finite)"
+lemma vector_eq_rdot: "(\<forall>z. x \<bullet> z = y \<bullet> z) \<longleftrightarrow> x = (y::'a::semiring_1^'n)"
   apply (auto simp add: Cart_eq dot_basis)
   apply (erule_tac x="basis i" in allE)
   apply (simp add: dot_basis)
@@ -1551,16 +1539,16 @@ subsection{* Orthogonality. *}
 definition "orthogonal x y \<longleftrightarrow> (x \<bullet> y = 0)"
 
 lemma orthogonal_basis:
-  shows "orthogonal (basis i :: 'a^'n::finite) x \<longleftrightarrow> x$i = (0::'a::ring_1)"
+  shows "orthogonal (basis i :: 'a^'n) x \<longleftrightarrow> x$i = (0::'a::ring_1)"
   by (auto simp add: orthogonal_def dot_def basis_def cond_value_iff cond_application_beta setsum_delta cong del: if_weak_cong)
 
 lemma orthogonal_basis_basis:
-  shows "orthogonal (basis i :: 'a::ring_1^'n::finite) (basis j) \<longleftrightarrow> i \<noteq> j"
+  shows "orthogonal (basis i :: 'a::ring_1^'n) (basis j) \<longleftrightarrow> i \<noteq> j"
   unfolding orthogonal_basis[of i] basis_component[of j] by simp
 
   (* FIXME : Maybe some of these require less than comm_ring, but not all*)
 lemma orthogonal_clauses:
-  "orthogonal a (0::'a::comm_ring ^'n::finite)"
+  "orthogonal a (0::'a::comm_ring ^'n)"
   "orthogonal a x ==> orthogonal a (c *s x)"
   "orthogonal a x ==> orthogonal a (-x)"
   "orthogonal a x \<Longrightarrow> orthogonal a y ==> orthogonal a (x + y)"
@@ -1574,7 +1562,7 @@ lemma orthogonal_clauses:
   dot_lzero dot_rzero dot_lneg dot_lmult dot_ladd dot_lsub
   by simp_all
 
-lemma orthogonal_commute: "orthogonal (x::'a::{ab_semigroup_mult,comm_monoid_add} ^'n::finite)y \<longleftrightarrow> orthogonal y x"
+lemma orthogonal_commute: "orthogonal (x::'a::{ab_semigroup_mult,comm_monoid_add} ^'n)y \<longleftrightarrow> orthogonal y x"
   by (simp add: orthogonal_def dot_sym)
 
 subsection{* Explicit vector construction from lists. *}
@@ -1648,12 +1636,12 @@ lemma linearI: assumes "\<And>x y. f (x + y) = f x + f y" "\<And>c x. f (c *s x)
 lemma linear_compose_cmul: "linear f ==> linear (\<lambda>x. (c::'a::comm_semiring) *s f x)"
   by (vector linear_def Cart_eq ring_simps)
 
-lemma linear_compose_neg: "linear (f :: 'a ^'n::finite \<Rightarrow> 'a::comm_ring ^'m::finite) ==> linear (\<lambda>x. -(f(x)))" by (vector linear_def Cart_eq)
+lemma linear_compose_neg: "linear (f :: 'a ^'n \<Rightarrow> 'a::comm_ring ^'m) ==> linear (\<lambda>x. -(f(x)))" by (vector linear_def Cart_eq)
 
-lemma linear_compose_add: "linear (f :: 'a ^'n::finite \<Rightarrow> 'a::semiring_1 ^'m::finite) \<Longrightarrow> linear g ==> linear (\<lambda>x. f(x) + g(x))"
+lemma linear_compose_add: "linear (f :: 'a ^'n \<Rightarrow> 'a::semiring_1 ^'m) \<Longrightarrow> linear g ==> linear (\<lambda>x. f(x) + g(x))"
   by (vector linear_def Cart_eq ring_simps)
 
-lemma linear_compose_sub: "linear (f :: 'a ^'n::finite \<Rightarrow> 'a::ring_1 ^'m::finite) \<Longrightarrow> linear g ==> linear (\<lambda>x. f x - g x)"
+lemma linear_compose_sub: "linear (f :: 'a ^'n \<Rightarrow> 'a::ring_1 ^'m) \<Longrightarrow> linear g ==> linear (\<lambda>x. f x - g x)"
   by (vector linear_def Cart_eq ring_simps)
 
 lemma linear_compose: "linear f \<Longrightarrow> linear g ==> linear (g o f)"
@@ -1661,24 +1649,24 @@ lemma linear_compose: "linear f \<Longrightarrow> linear g ==> linear (g o f)"
 
 lemma linear_id: "linear id" by (simp add: linear_def id_def)
 
-lemma linear_zero: "linear (\<lambda>x. 0::'a::semiring_1 ^ 'n::finite)" by (simp add: linear_def)
+lemma linear_zero: "linear (\<lambda>x. 0::'a::semiring_1 ^ 'n)" by (simp add: linear_def)
 
 lemma linear_compose_setsum:
-  assumes fS: "finite S" and lS: "\<forall>a \<in> S. linear (f a :: 'a::semiring_1 ^ 'n::finite \<Rightarrow> 'a ^ 'm::finite)"
-  shows "linear(\<lambda>x. setsum (\<lambda>a. f a x :: 'a::semiring_1 ^'m::finite) S)"
+  assumes fS: "finite S" and lS: "\<forall>a \<in> S. linear (f a :: 'a::semiring_1 ^ 'n \<Rightarrow> 'a ^'m)"
+  shows "linear(\<lambda>x. setsum (\<lambda>a. f a x :: 'a::semiring_1 ^'m) S)"
   using lS
   apply (induct rule: finite_induct[OF fS])
   by (auto simp add: linear_zero intro: linear_compose_add)
 
 lemma linear_vmul_component:
-  fixes f:: "'a::semiring_1^'m::finite \<Rightarrow> 'a^'n::finite"
+  fixes f:: "'a::semiring_1^'m \<Rightarrow> 'a^'n"
   assumes lf: "linear f"
   shows "linear (\<lambda>x. f x $ k *s v)"
   using lf
   apply (auto simp add: linear_def )
   by (vector ring_simps)+
 
-lemma linear_0: "linear f ==> f 0 = (0::'a::semiring_1 ^'n::finite)"
+lemma linear_0: "linear f ==> f 0 = (0::'a::semiring_1 ^'n)"
   unfolding linear_def
   apply clarsimp
   apply (erule allE[where x="0::'a"])
@@ -1687,17 +1675,17 @@ lemma linear_0: "linear f ==> f 0 = (0::'a::semiring_1 ^'n::finite)"
 
 lemma linear_cmul: "linear f ==> f(c*s x) = c *s f x" by (simp add: linear_def)
 
-lemma linear_neg: "linear (f :: 'a::ring_1 ^'n::finite \<Rightarrow> _) ==> f (-x) = - f x"
+lemma linear_neg: "linear (f :: 'a::ring_1 ^'n \<Rightarrow> _) ==> f (-x) = - f x"
   unfolding vector_sneg_minus1
   using linear_cmul[of f] by auto
 
 lemma linear_add: "linear f ==> f(x + y) = f x + f y" by (metis linear_def)
 
-lemma linear_sub: "linear (f::'a::ring_1 ^'n::finite \<Rightarrow> _) ==> f(x - y) = f x - f y"
+lemma linear_sub: "linear (f::'a::ring_1 ^'n \<Rightarrow> _) ==> f(x - y) = f x - f y"
   by (simp add: diff_def linear_add linear_neg)
 
 lemma linear_setsum:
-  fixes f:: "'a::semiring_1^'n::finite \<Rightarrow> _"
+  fixes f:: "'a::semiring_1^'n \<Rightarrow> _"
   assumes lf: "linear f" and fS: "finite S"
   shows "f (setsum g S) = setsum (f o g) S"
 proof (induct rule: finite_induct[OF fS])
@@ -1712,14 +1700,14 @@ next
 qed
 
 lemma linear_setsum_mul:
-  fixes f:: "'a ^'n::finite \<Rightarrow> 'a::semiring_1^'m::finite"
+  fixes f:: "'a ^'n \<Rightarrow> 'a::semiring_1^'m"
   assumes lf: "linear f" and fS: "finite S"
   shows "f (setsum (\<lambda>i. c i *s v i) S) = setsum (\<lambda>i. c i *s f (v i)) S"
   using linear_setsum[OF lf fS, of "\<lambda>i. c i *s v i" , unfolded o_def]
   linear_cmul[OF lf] by simp
 
 lemma linear_injective_0:
-  assumes lf: "linear (f:: 'a::ring_1 ^ 'n::finite \<Rightarrow> _)"
+  assumes lf: "linear (f:: 'a::ring_1 ^ 'n \<Rightarrow> _)"
   shows "inj f \<longleftrightarrow> (\<forall>x. f x = 0 \<longrightarrow> x = 0)"
 proof-
   have "inj f \<longleftrightarrow> (\<forall> x y. f x = f y \<longrightarrow> x = y)" by (simp add: inj_on_def)
@@ -1731,7 +1719,7 @@ proof-
 qed
 
 lemma linear_bounded:
-  fixes f:: "real ^'m::finite \<Rightarrow> real ^'n::finite"
+  fixes f:: "real ^'m \<Rightarrow> real ^'n"
   assumes lf: "linear f"
   shows "\<exists>B. \<forall>x. norm (f x) \<le> B * norm x"
 proof-
@@ -1760,7 +1748,7 @@ proof-
 qed
 
 lemma linear_bounded_pos:
-  fixes f:: "real ^'n::finite \<Rightarrow> real ^ 'm::finite"
+  fixes f:: "real ^'n \<Rightarrow> real ^'m"
   assumes lf: "linear f"
   shows "\<exists>B > 0. \<forall>x. norm (f x) \<le> B * norm x"
 proof-
@@ -1815,7 +1803,7 @@ next
     by (simp add: f.add f.scaleR)
 qed
 
-lemma bounded_linearI': fixes f::"real^'n::finite \<Rightarrow> real^'m::finite"
+lemma bounded_linearI': fixes f::"real^'n \<Rightarrow> real^'m"
   assumes "\<And>x y. f (x + y) = f x + f y" "\<And>c x. f (c *s x) = c *s f x"
   shows "bounded_linear f" unfolding linear_conv_bounded_linear[THEN sym]
   by(rule linearI[OF assms])
@@ -1835,17 +1823,17 @@ lemma bilinear_lmul: "bilinear h ==> h (c *s x) y = c *s (h x y)"
 lemma bilinear_rmul: "bilinear h ==> h x (c *s y) = c *s (h x y)"
   by (simp add: bilinear_def linear_def)
 
-lemma bilinear_lneg: "bilinear h ==> h (- (x:: 'a::ring_1 ^ 'n::finite)) y = -(h x y)"
+lemma bilinear_lneg: "bilinear h ==> h (- (x:: 'a::ring_1 ^ 'n)) y = -(h x y)"
   by (simp only: vector_sneg_minus1 bilinear_lmul)
 
-lemma bilinear_rneg: "bilinear h ==> h x (- (y:: 'a::ring_1 ^ 'n::finite)) = - h x y"
+lemma bilinear_rneg: "bilinear h ==> h x (- (y:: 'a::ring_1 ^ 'n)) = - h x y"
   by (simp only: vector_sneg_minus1 bilinear_rmul)
 
 lemma  (in ab_group_add) eq_add_iff: "x = x + y \<longleftrightarrow> y = 0"
   using add_imp_eq[of x y 0] by auto
 
 lemma bilinear_lzero:
-  fixes h :: "'a::ring^'n::finite \<Rightarrow> _" assumes bh: "bilinear h" shows "h 0 x = 0"
+  fixes h :: "'a::ring^'n \<Rightarrow> _" assumes bh: "bilinear h" shows "h 0 x = 0"
   using bilinear_ladd[OF bh, of 0 0 x]
     by (simp add: eq_add_iff ring_simps)
 
@@ -1876,7 +1864,7 @@ proof-
 qed
 
 lemma bilinear_bounded:
-  fixes h:: "real ^'m::finite \<Rightarrow> real^'n::finite \<Rightarrow> real ^ 'k::finite"
+  fixes h:: "real ^'m \<Rightarrow> real^'n \<Rightarrow> real ^'k"
   assumes bh: "bilinear h"
   shows "\<exists>B. \<forall>x y. norm (h x y) \<le> B * norm x * norm y"
 proof-
@@ -1903,7 +1891,7 @@ proof-
 qed
 
 lemma bilinear_bounded_pos:
-  fixes h:: "real ^'m::finite \<Rightarrow> real^'n::finite \<Rightarrow> real ^ 'k::finite"
+  fixes h:: "real ^'m \<Rightarrow> real^'n \<Rightarrow> real ^'k"
   assumes bh: "bilinear h"
   shows "\<exists>B > 0. \<forall>x y. norm (h x y) \<le> B * norm x * norm y"
 proof-
@@ -1965,7 +1953,7 @@ definition "adjoint f = (SOME f'. \<forall>x y. f x \<bullet> y = x \<bullet> f'
 lemma choice_iff: "(\<forall>x. \<exists>y. P x y) \<longleftrightarrow> (\<exists>f. \<forall>x. P x (f x))" by metis
 
 lemma adjoint_works_lemma:
-  fixes f:: "'a::ring_1 ^'n::finite \<Rightarrow> 'a ^ 'm::finite"
+  fixes f:: "'a::ring_1 ^'n \<Rightarrow> 'a ^'m"
   assumes lf: "linear f"
   shows "\<forall>x y. f x \<bullet> y = x \<bullet> adjoint f y"
 proof-
@@ -1993,34 +1981,34 @@ proof-
 qed
 
 lemma adjoint_works:
-  fixes f:: "'a::ring_1 ^'n::finite \<Rightarrow> 'a ^ 'm::finite"
+  fixes f:: "'a::ring_1 ^'n \<Rightarrow> 'a ^'m"
   assumes lf: "linear f"
   shows "x \<bullet> adjoint f y = f x \<bullet> y"
   using adjoint_works_lemma[OF lf] by metis
 
 
 lemma adjoint_linear:
-  fixes f :: "'a::comm_ring_1 ^'n::finite \<Rightarrow> 'a ^ 'm::finite"
+  fixes f :: "'a::comm_ring_1 ^'n \<Rightarrow> 'a ^'m"
   assumes lf: "linear f"
   shows "linear (adjoint f)"
   by (simp add: linear_def vector_eq_ldot[symmetric] dot_radd dot_rmult adjoint_works[OF lf])
 
 lemma adjoint_clauses:
-  fixes f:: "'a::comm_ring_1 ^'n::finite \<Rightarrow> 'a ^ 'm::finite"
+  fixes f:: "'a::comm_ring_1 ^'n \<Rightarrow> 'a ^'m"
   assumes lf: "linear f"
   shows "x \<bullet> adjoint f y = f x \<bullet> y"
   and "adjoint f y \<bullet> x = y \<bullet> f x"
   by (simp_all add: adjoint_works[OF lf] dot_sym )
 
 lemma adjoint_adjoint:
-  fixes f:: "'a::comm_ring_1 ^ 'n::finite \<Rightarrow> 'a ^ 'm::finite"
+  fixes f:: "'a::comm_ring_1 ^ 'n \<Rightarrow> 'a ^'m"
   assumes lf: "linear f"
   shows "adjoint (adjoint f) = f"
   apply (rule ext)
   by (simp add: vector_eq_ldot[symmetric] adjoint_clauses[OF adjoint_linear[OF lf]] adjoint_clauses[OF lf])
 
 lemma adjoint_unique:
-  fixes f:: "'a::comm_ring_1 ^ 'n::finite \<Rightarrow> 'a ^ 'm::finite"
+  fixes f:: "'a::comm_ring_1 ^ 'n \<Rightarrow> 'a ^'m"
   assumes lf: "linear f" and u: "\<forall>x y. f' x \<bullet> y = x \<bullet> f y"
   shows "f' = adjoint f"
   apply (rule ext)
@@ -2032,14 +2020,14 @@ text{* Matrix notation. NB: an MxN matrix is of type @{typ "'a^'n^'m"}, not @{ty
 consts generic_mult :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" (infixr "\<star>" 75)
 
 defs (overloaded)
-matrix_matrix_mult_def: "(m:: ('a::semiring_1) ^('n::finite)^'m::finite) \<star> (m' :: 'a ^('p::finite)^'n) \<equiv> (\<chi> i j. setsum (\<lambda>k. ((m$i)$k) * ((m'$k)$j)) (UNIV :: 'n set)) ::'a ^ 'p ^'m"
+matrix_matrix_mult_def: "(m:: ('a::semiring_1) ^'n^'m) \<star> (m' :: 'a ^'p^'n) \<equiv> (\<chi> i j. setsum (\<lambda>k. ((m$i)$k) * ((m'$k)$j)) (UNIV :: 'n set)) ::'a ^ 'p ^'m"
 
 abbreviation
-  matrix_matrix_mult' :: "('a::semiring_1) ^('n::finite)^'m::finite \<Rightarrow> 'a ^('p::finite)^'n \<Rightarrow> 'a ^ 'p ^'m"  (infixl "**" 70)
+  matrix_matrix_mult' :: "('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'p^'n \<Rightarrow> 'a ^ 'p ^'m"  (infixl "**" 70)
   where "m ** m' == m\<star> m'"
 
 defs (overloaded)
-  matrix_vector_mult_def: "(m::('a::semiring_1) ^('n::finite)^('m::finite)) \<star> (x::'a ^'n) \<equiv> (\<chi> i. setsum (\<lambda>j. ((m$i)$j) * (x$j)) (UNIV ::'n set)) :: 'a^'m"
+  matrix_vector_mult_def: "(m::('a::semiring_1) ^'n^'m) \<star> (x::'a ^'n) \<equiv> (\<chi> i. setsum (\<lambda>j. ((m$i)$j) * (x$j)) (UNIV ::'n set)) :: 'a^'m"
 
 abbreviation
   matrix_vector_mult' :: "('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'n \<Rightarrow> 'a ^ 'm"  (infixl "*v" 70)
@@ -2047,26 +2035,26 @@ abbreviation
   "m *v v == m \<star> v"
 
 defs (overloaded)
-  vector_matrix_mult_def: "(x::'a^('m::finite)) \<star> (m::('a::semiring_1) ^('n::finite)^'m) \<equiv> (\<chi> j. setsum (\<lambda>i. ((m$i)$j) * (x$i)) (UNIV :: 'm set)) :: 'a^'n"
+  vector_matrix_mult_def: "(x::'a^'m) \<star> (m::('a::semiring_1) ^'n^'m) \<equiv> (\<chi> j. setsum (\<lambda>i. ((m$i)$j) * (x$i)) (UNIV :: 'm set)) :: 'a^'n"
 
 abbreviation
   vactor_matrix_mult' :: "'a ^ 'm \<Rightarrow> ('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'n "  (infixl "v*" 70)
   where
   "v v* m == v \<star> m"
 
-definition "(mat::'a::zero => 'a ^('n::finite)^'n::finite) k = (\<chi> i j. if i = j then k else 0)"
-definition "(transp::'a^('n::finite)^('m::finite) \<Rightarrow> 'a^'m^'n) A = (\<chi> i j. ((A$j)$i))"
-definition "(row::'m::finite => 'a ^'n^'m \<Rightarrow> 'a ^'n::finite) i A = (\<chi> j. ((A$i)$j))"
-definition "(column::'n::finite =>'a^'n^'m =>'a^'m::finite) j A = (\<chi> i. ((A$i)$j))"
-definition "rows(A::'a^('n::finite)^'m::finite) = { row i A | i. i \<in> (UNIV :: 'm set)}"
-definition "columns(A::'a^('n::finite)^'m::finite) = { column i A | i. i \<in> (UNIV :: 'n set)}"
+definition "(mat::'a::zero => 'a ^'n^'n) k = (\<chi> i j. if i = j then k else 0)"
+definition "(transp::'a^'n^'m \<Rightarrow> 'a^'m^'n) A = (\<chi> i j. ((A$j)$i))"
+definition "(row::'m => 'a ^'n^'m \<Rightarrow> 'a ^'n) i A = (\<chi> j. ((A$i)$j))"
+definition "(column::'n =>'a^'n^'m =>'a^'m) j A = (\<chi> i. ((A$i)$j))"
+definition "rows(A::'a^'n^'m) = { row i A | i. i \<in> (UNIV :: 'm set)}"
+definition "columns(A::'a^'n^'m) = { column i A | i. i \<in> (UNIV :: 'n set)}"
 
 lemma mat_0[simp]: "mat 0 = 0" by (vector mat_def)
 lemma matrix_add_ldistrib: "(A ** (B + C)) = (A \<star> B) + (A \<star> C)"
   by (vector matrix_matrix_mult_def setsum_addf[symmetric] ring_simps)
 
 lemma matrix_mul_lid:
-  fixes A :: "'a::semiring_1 ^ ('m::finite) ^ _"
+  fixes A :: "'a::semiring_1 ^ 'm ^ 'n"
   shows "mat 1 ** A = A"
   apply (simp add: matrix_matrix_mult_def mat_def)
   apply vector
@@ -2074,7 +2062,7 @@ lemma matrix_mul_lid:
 
 
 lemma matrix_mul_rid:
-  fixes A :: "'a::semiring_1 ^ 'm::finite ^ _::finite"
+  fixes A :: "'a::semiring_1 ^ 'm ^ 'n"
   shows "A ** mat 1 = A"
   apply (simp add: matrix_matrix_mult_def mat_def)
   apply vector
@@ -2092,7 +2080,7 @@ lemma matrix_vector_mul_assoc: "A *v (B *v x) = (A ** B) *v x"
   apply simp
   done
 
-lemma matrix_vector_mul_lid: "mat 1 *v x = (x::'a::semiring_1 ^ 'n::finite)"
+lemma matrix_vector_mul_lid: "mat 1 *v x = (x::'a::semiring_1 ^ 'n)"
   apply (vector matrix_vector_mult_def mat_def)
   by (simp add: cond_value_iff cond_application_beta
     setsum_delta' cong del: if_weak_cong)
@@ -2101,7 +2089,7 @@ lemma matrix_transp_mul: "transp(A ** B) = transp B ** transp (A::'a::comm_semir
   by (simp add: matrix_matrix_mult_def transp_def Cart_eq mult_commute)
 
 lemma matrix_eq:
-  fixes A B :: "'a::semiring_1 ^ 'n::finite ^ _::finite"
+  fixes A B :: "'a::semiring_1 ^ 'n ^ 'm"
   shows "A = B \<longleftrightarrow>  (\<forall>x. A *v x = B *v x)" (is "?lhs \<longleftrightarrow> ?rhs")
   apply auto
   apply (subst Cart_eq)
@@ -2146,16 +2134,16 @@ text{* Two sometimes fruitful ways of looking at matrix-vector multiplication. *
 lemma matrix_mult_dot: "A *v x = (\<chi> i. A$i \<bullet> x)"
   by (simp add: matrix_vector_mult_def dot_def)
 
-lemma matrix_mult_vsum: "(A::'a::comm_semiring_1^('n::finite)^'m::finite) *v x = setsum (\<lambda>i. (x$i) *s column i A) (UNIV:: 'n set)"
+lemma matrix_mult_vsum: "(A::'a::comm_semiring_1^'n^'m) *v x = setsum (\<lambda>i. (x$i) *s column i A) (UNIV:: 'n set)"
   by (simp add: matrix_vector_mult_def Cart_eq column_def mult_commute)
 
 lemma vector_componentwise:
-  "(x::'a::ring_1^'n::finite) = (\<chi> j. setsum (\<lambda>i. (x$i) * (basis i :: 'a^'n)$j) (UNIV :: 'n set))"
+  "(x::'a::ring_1^'n) = (\<chi> j. setsum (\<lambda>i. (x$i) * (basis i :: 'a^'n)$j) (UNIV :: 'n set))"
   apply (subst basis_expansion[symmetric])
   by (vector Cart_eq setsum_component)
 
 lemma linear_componentwise:
-  fixes f:: "'a::ring_1 ^ 'm::finite \<Rightarrow> 'a ^ _"
+  fixes f:: "'a::ring_1 ^'m \<Rightarrow> 'a ^ _"
   assumes lf: "linear f"
   shows "(f x)$j = setsum (\<lambda>i. (x$i) * (f (basis i)$j)) (UNIV :: 'm set)" (is "?lhs = ?rhs")
 proof-
@@ -2171,41 +2159,41 @@ qed
 
 text{* Inverse matrices  (not necessarily square) *}
 
-definition "invertible(A::'a::semiring_1^('n::finite)^'m::finite) \<longleftrightarrow> (\<exists>A'::'a^'m^'n. A ** A' = mat 1 \<and> A' ** A = mat 1)"
+definition "invertible(A::'a::semiring_1^'n^'m) \<longleftrightarrow> (\<exists>A'::'a^'m^'n. A ** A' = mat 1 \<and> A' ** A = mat 1)"
 
-definition "matrix_inv(A:: 'a::semiring_1^('n::finite)^'m::finite) =
+definition "matrix_inv(A:: 'a::semiring_1^'n^'m) =
         (SOME A'::'a^'m^'n. A ** A' = mat 1 \<and> A' ** A = mat 1)"
 
 text{* Correspondence between matrices and linear operators. *}
 
-definition matrix:: "('a::{plus,times, one, zero}^'m::finite \<Rightarrow> 'a ^ 'n::finite) \<Rightarrow> 'a^'m^'n"
+definition matrix:: "('a::{plus,times, one, zero}^'m \<Rightarrow> 'a ^ 'n) \<Rightarrow> 'a^'m^'n"
 where "matrix f = (\<chi> i j. (f(basis j))$i)"
 
 lemma matrix_vector_mul_linear: "linear(\<lambda>x. A *v (x::'a::comm_semiring_1 ^ _))"
   by (simp add: linear_def matrix_vector_mult_def Cart_eq ring_simps setsum_right_distrib setsum_addf)
 
-lemma matrix_works: assumes lf: "linear f" shows "matrix f *v x = f (x::'a::comm_ring_1 ^ 'n::finite)"
+lemma matrix_works: assumes lf: "linear f" shows "matrix f *v x = f (x::'a::comm_ring_1 ^ 'n)"
 apply (simp add: matrix_def matrix_vector_mult_def Cart_eq mult_commute)
 apply clarify
 apply (rule linear_componentwise[OF lf, symmetric])
 done
 
-lemma matrix_vector_mul: "linear f ==> f = (\<lambda>x. matrix f *v (x::'a::comm_ring_1 ^ 'n::finite))" by (simp add: ext matrix_works)
+lemma matrix_vector_mul: "linear f ==> f = (\<lambda>x. matrix f *v (x::'a::comm_ring_1 ^ 'n))" by (simp add: ext matrix_works)
 
-lemma matrix_of_matrix_vector_mul: "matrix(\<lambda>x. A *v (x :: 'a:: comm_ring_1 ^ 'n::finite)) = A"
+lemma matrix_of_matrix_vector_mul: "matrix(\<lambda>x. A *v (x :: 'a:: comm_ring_1 ^ 'n)) = A"
   by (simp add: matrix_eq matrix_vector_mul_linear matrix_works)
 
 lemma matrix_compose:
-  assumes lf: "linear (f::'a::comm_ring_1^'n::finite \<Rightarrow> 'a^'m::finite)"
-  and lg: "linear (g::'a::comm_ring_1^'m::finite \<Rightarrow> 'a^_)"
+  assumes lf: "linear (f::'a::comm_ring_1^'n \<Rightarrow> 'a^'m)"
+  and lg: "linear (g::'a::comm_ring_1^'m \<Rightarrow> 'a^_)"
   shows "matrix (g o f) = matrix g ** matrix f"
   using lf lg linear_compose[OF lf lg] matrix_works[OF linear_compose[OF lf lg]]
   by (simp  add: matrix_eq matrix_works matrix_vector_mul_assoc[symmetric] o_def)
 
-lemma matrix_vector_column:"(A::'a::comm_semiring_1^('n::finite)^_) *v x = setsum (\<lambda>i. (x$i) *s ((transp A)$i)) (UNIV:: 'n set)"
+lemma matrix_vector_column:"(A::'a::comm_semiring_1^'n^_) *v x = setsum (\<lambda>i. (x$i) *s ((transp A)$i)) (UNIV:: 'n set)"
   by (simp add: matrix_vector_mult_def transp_def Cart_eq mult_commute)
 
-lemma adjoint_matrix: "adjoint(\<lambda>x. (A::'a::comm_ring_1^'n::finite^'m::finite) *v x) = (\<lambda>x. transp A *v x)"
+lemma adjoint_matrix: "adjoint(\<lambda>x. (A::'a::comm_ring_1^'n^'m) *v x) = (\<lambda>x. transp A *v x)"
   apply (rule adjoint_unique[symmetric])
   apply (rule matrix_vector_mul_linear)
   apply (simp add: transp_def dot_def matrix_vector_mult_def setsum_left_distrib setsum_right_distrib)
@@ -2213,7 +2201,7 @@ lemma adjoint_matrix: "adjoint(\<lambda>x. (A::'a::comm_ring_1^'n::finite^'m::fi
   apply (auto simp add: mult_ac)
   done
 
-lemma matrix_adjoint: assumes lf: "linear (f :: 'a::comm_ring_1^'n::finite \<Rightarrow> 'a ^ 'm::finite)"
+lemma matrix_adjoint: assumes lf: "linear (f :: 'a::comm_ring_1^'n \<Rightarrow> 'a ^'m)"
   shows "matrix(adjoint f) = transp(matrix f)"
   apply (subst matrix_vector_mul[OF lf])
   unfolding adjoint_matrix matrix_of_matrix_vector_mul ..
@@ -2287,7 +2275,7 @@ qed
 
 
 lemma lambda_skolem: "(\<forall>i. \<exists>x. P i x) \<longleftrightarrow>
-   (\<exists>x::'a ^ 'n::finite. \<forall>i. P i (x$i))" (is "?lhs \<longleftrightarrow> ?rhs")
+   (\<exists>x::'a ^ 'n. \<forall>i. P i (x$i))" (is "?lhs \<longleftrightarrow> ?rhs")
 proof-
   let ?S = "(UNIV :: 'n set)"
   {assume H: "?rhs"
@@ -2310,7 +2298,7 @@ subsection{* Operator norm. *}
 definition "onorm f = Sup {norm (f x)| x. norm x = 1}"
 
 lemma norm_bound_generalize:
-  fixes f:: "real ^'n::finite \<Rightarrow> real^'m::finite"
+  fixes f:: "real ^'n \<Rightarrow> real^'m"
   assumes lf: "linear f"
   shows "(\<forall>x. norm x = 1 \<longrightarrow> norm (f x) \<le> b) \<longleftrightarrow> (\<forall>x. norm (f x) \<le> b * norm x)" (is "?lhs \<longleftrightarrow> ?rhs")
 proof-
@@ -2343,7 +2331,7 @@ proof-
 qed
 
 lemma onorm:
-  fixes f:: "real ^'n::finite \<Rightarrow> real ^'m::finite"
+  fixes f:: "real ^'n \<Rightarrow> real ^'m"
   assumes lf: "linear f"
   shows "norm (f x) <= onorm f * norm x"
   and "\<forall>x. norm (f x) <= b * norm x \<Longrightarrow> onorm f <= b"
@@ -2367,10 +2355,10 @@ proof-
   }
 qed
 
-lemma onorm_pos_le: assumes lf: "linear (f::real ^'n::finite \<Rightarrow> real ^'m::finite)" shows "0 <= onorm f"
+lemma onorm_pos_le: assumes lf: "linear (f::real ^'n \<Rightarrow> real ^'m)" shows "0 <= onorm f"
   using order_trans[OF norm_ge_zero onorm(1)[OF lf, of "basis arbitrary"], unfolded norm_basis] by simp
 
-lemma onorm_eq_0: assumes lf: "linear (f::real ^'n::finite \<Rightarrow> real ^'m::finite)"
+lemma onorm_eq_0: assumes lf: "linear (f::real ^'n \<Rightarrow> real ^'m)"
   shows "onorm f = 0 \<longleftrightarrow> (\<forall>x. f x = 0)"
   using onorm[OF lf]
   apply (auto simp add: onorm_pos_le)
@@ -2380,7 +2368,7 @@ lemma onorm_eq_0: assumes lf: "linear (f::real ^'n::finite \<Rightarrow> real ^'
   apply arith
   done
 
-lemma onorm_const: "onorm(\<lambda>x::real^'n::finite. (y::real ^ 'm::finite)) = norm y"
+lemma onorm_const: "onorm(\<lambda>x::real^'n. (y::real ^'m)) = norm y"
 proof-
   let ?f = "\<lambda>x::real^'n. (y::real ^ 'm)"
   have th: "{norm (?f x)| x. norm x = 1} = {norm y}"
@@ -2390,14 +2378,14 @@ proof-
     apply (rule Sup_unique) by (simp_all  add: setle_def)
 qed
 
-lemma onorm_pos_lt: assumes lf: "linear (f::real ^ 'n::finite \<Rightarrow> real ^'m::finite)"
+lemma onorm_pos_lt: assumes lf: "linear (f::real ^ 'n \<Rightarrow> real ^'m)"
   shows "0 < onorm f \<longleftrightarrow> ~(\<forall>x. f x = 0)"
   unfolding onorm_eq_0[OF lf, symmetric]
   using onorm_pos_le[OF lf] by arith
 
 lemma onorm_compose:
-  assumes lf: "linear (f::real ^'n::finite \<Rightarrow> real ^'m::finite)"
-  and lg: "linear (g::real^'k::finite \<Rightarrow> real^'n::finite)"
+  assumes lf: "linear (f::real ^'n \<Rightarrow> real ^'m)"
+  and lg: "linear (g::real^'k \<Rightarrow> real^'n)"
   shows "onorm (f o g) <= onorm f * onorm g"
   apply (rule onorm(2)[OF linear_compose[OF lg lf], rule_format])
   unfolding o_def
@@ -2409,18 +2397,18 @@ lemma onorm_compose:
   apply (rule onorm_pos_le[OF lf])
   done
 
-lemma onorm_neg_lemma: assumes lf: "linear (f::real ^'n::finite \<Rightarrow> real^'m::finite)"
+lemma onorm_neg_lemma: assumes lf: "linear (f::real ^'n \<Rightarrow> real^'m)"
   shows "onorm (\<lambda>x. - f x) \<le> onorm f"
   using onorm[OF linear_compose_neg[OF lf]] onorm[OF lf]
   unfolding norm_minus_cancel by metis
 
-lemma onorm_neg: assumes lf: "linear (f::real ^'n::finite \<Rightarrow> real^'m::finite)"
+lemma onorm_neg: assumes lf: "linear (f::real ^'n \<Rightarrow> real^'m)"
   shows "onorm (\<lambda>x. - f x) = onorm f"
   using onorm_neg_lemma[OF lf] onorm_neg_lemma[OF linear_compose_neg[OF lf]]
   by simp
 
 lemma onorm_triangle:
-  assumes lf: "linear (f::real ^'n::finite \<Rightarrow> real ^'m::finite)" and lg: "linear g"
+  assumes lf: "linear (f::real ^'n \<Rightarrow> real ^'m)" and lg: "linear g"
   shows "onorm (\<lambda>x. f x + g x) <= onorm f + onorm g"
   apply(rule onorm(2)[OF linear_compose_add[OF lf lg], rule_format])
   apply (rule order_trans)
@@ -2431,14 +2419,14 @@ lemma onorm_triangle:
   apply (rule onorm(1)[OF lg])
   done
 
-lemma onorm_triangle_le: "linear (f::real ^'n::finite \<Rightarrow> real ^'m::finite) \<Longrightarrow> linear g \<Longrightarrow> onorm(f) + onorm(g) <= e
+lemma onorm_triangle_le: "linear (f::real ^'n \<Rightarrow> real ^'m) \<Longrightarrow> linear g \<Longrightarrow> onorm(f) + onorm(g) <= e
   \<Longrightarrow> onorm(\<lambda>x. f x + g x) <= e"
   apply (rule order_trans)
   apply (rule onorm_triangle)
   apply assumption+
   done
 
-lemma onorm_triangle_lt: "linear (f::real ^'n::finite \<Rightarrow> real ^'m::finite) \<Longrightarrow> linear g \<Longrightarrow> onorm(f) + onorm(g) < e
+lemma onorm_triangle_lt: "linear (f::real ^'n \<Rightarrow> real ^'m) \<Longrightarrow> linear g \<Longrightarrow> onorm(f) + onorm(g) < e
   ==> onorm(\<lambda>x. f x + g x) < e"
   apply (rule order_le_less_trans)
   apply (rule onorm_triangle)
@@ -2548,7 +2536,7 @@ lemma linear_from_scalars:
   apply (auto simp add: Cart_eq matrix_vector_mult_def dest_vec1_def column_def  mult_commute UNIV_1)
   done
 
-lemma linear_to_scalars: assumes lf: "linear (f::'a::comm_ring_1 ^'n::finite \<Rightarrow> 'a^1)"
+lemma linear_to_scalars: assumes lf: "linear (f::'a::comm_ring_1 ^'n \<Rightarrow> 'a^1)"
   shows "f = (\<lambda>x. vec1(row 1 (matrix f) \<bullet> x))"
   apply (rule ext)
   apply (subst matrix_works[OF lf, symmetric])
@@ -2683,7 +2671,7 @@ qed
 lemma dist_sndcart: "dist(sndcart (x::real^_)) (sndcart y) <= dist x y"
   unfolding dist_norm by (metis sndcart_sub[symmetric] norm_sndcart)
 
-lemma dot_pastecart: "(pastecart (x1::'a::{times,comm_monoid_add}^'n::finite) (x2::'a::{times,comm_monoid_add}^'m::finite)) \<bullet> (pastecart y1 y2) =  x1 \<bullet> y1 + x2 \<bullet> y2"
+lemma dot_pastecart: "(pastecart (x1::'a::{times,comm_monoid_add}^'n) (x2::'a::{times,comm_monoid_add}^'m)) \<bullet> (pastecart y1 y2) =  x1 \<bullet> y1 + x2 \<bullet> y2"
   by (simp add: dot_def setsum_UNIV_sum pastecart_def)
 
 text {* TODO: move to NthRoot *}
@@ -3029,7 +3017,7 @@ inductive span_induct_alt_help for S:: "'a::semiring_1^_ \<Rightarrow> bool"
   | span_induct_alt_help_S: "x \<in> S \<Longrightarrow> span_induct_alt_help S z \<Longrightarrow> span_induct_alt_help S (c *s x + z)"
 
 lemma span_induct_alt':
-  assumes h0: "h (0::'a::semiring_1^'n::finite)" and hS: "\<And>c x y. x \<in> S \<Longrightarrow> h y \<Longrightarrow> h (c*s x + y)" shows "\<forall>x \<in> span S. h x"
+  assumes h0: "h (0::'a::semiring_1^'n)" and hS: "\<And>c x y. x \<in> S \<Longrightarrow> h y \<Longrightarrow> h (c*s x + y)" shows "\<forall>x \<in> span S. h x"
 proof-
   {fix x:: "'a^'n" assume x: "span_induct_alt_help S x"
     have "h x"
@@ -3078,7 +3066,7 @@ proof-
 qed
 
 lemma span_induct_alt:
-  assumes h0: "h (0::'a::semiring_1^'n::finite)" and hS: "\<And>c x y. x \<in> S \<Longrightarrow> h y \<Longrightarrow> h (c*s x + y)" and x: "x \<in> span S"
+  assumes h0: "h (0::'a::semiring_1^'n)" and hS: "\<And>c x y. x \<in> S \<Longrightarrow> h y \<Longrightarrow> h (c*s x + y)" and x: "x \<in> span S"
   shows "h x"
 using span_induct_alt'[of h S] h0 hS x by blast
 
@@ -3424,7 +3412,7 @@ qed
 
 (* Standard bases are a spanning set, and obviously finite.                  *)
 
-lemma span_stdbasis:"span {basis i :: 'a::ring_1^'n::finite | i. i \<in> (UNIV :: 'n set)} = UNIV"
+lemma span_stdbasis:"span {basis i :: 'a::ring_1^'n | i. i \<in> (UNIV :: 'n set)} = UNIV"
 apply (rule set_ext)
 apply auto
 apply (subst basis_expansion[symmetric])
@@ -3436,13 +3424,13 @@ apply (rule span_superset)
 apply (auto simp add: Collect_def mem_def)
 done
 
-lemma finite_stdbasis: "finite {basis i ::real^'n::finite |i. i\<in> (UNIV:: 'n set)}" (is "finite ?S")
+lemma finite_stdbasis: "finite {basis i ::real^'n |i. i\<in> (UNIV:: 'n set)}" (is "finite ?S")
 proof-
   have eq: "?S = basis ` UNIV" by blast
   show ?thesis unfolding eq by auto
 qed
 
-lemma card_stdbasis: "card {basis i ::real^'n::finite |i. i\<in> (UNIV :: 'n set)} = CARD('n)" (is "card ?S = _")
+lemma card_stdbasis: "card {basis i ::real^'n |i. i\<in> (UNIV :: 'n set)} = CARD('n)" (is "card ?S = _")
 proof-
   have eq: "?S = basis ` UNIV" by blast
   show ?thesis unfolding eq using card_image[OF basis_inj] by simp
@@ -3466,7 +3454,7 @@ proof-
    using x span_induct[of ?B ?P x] iS by blast
 qed
 
-lemma independent_stdbasis: "independent {basis i ::real^'n::finite |i. i\<in> (UNIV :: 'n set)}"
+lemma independent_stdbasis: "independent {basis i ::real^'n |i. i\<in> (UNIV :: 'n set)}"
 proof-
   let ?I = "UNIV :: 'n set"
   let ?b = "basis :: _ \<Rightarrow> real ^'n"
@@ -3566,7 +3554,7 @@ qed
 (* The general case of the Exchange Lemma, the key to what follows.  *)
 
 lemma exchange_lemma:
-  assumes f:"finite (t:: ('a::field^'n::finite) set)" and i: "independent s"
+  assumes f:"finite (t:: ('a::field^'n) set)" and i: "independent s"
   and sp:"s \<subseteq> span t"
   shows "\<exists>t'. (card t' = card t) \<and> finite t' \<and> s \<subseteq> t' \<and> t' \<subseteq> s \<union> t \<and> s \<subseteq> span t'"
 using f i sp
@@ -3666,7 +3654,7 @@ qed
 
 
 lemma independent_bound:
-  fixes S:: "(real^'n::finite) set"
+  fixes S:: "(real^'n) set"
   shows "independent S \<Longrightarrow> finite S \<and> card S <= CARD('n)"
   apply (subst card_stdbasis[symmetric])
   apply (rule independent_span_bound)
@@ -3676,13 +3664,13 @@ lemma independent_bound:
   apply (rule subset_UNIV)
   done
 
-lemma dependent_biggerset: "(finite (S::(real ^'n::finite) set) ==> card S > CARD('n)) ==> dependent S"
+lemma dependent_biggerset: "(finite (S::(real ^'n) set) ==> card S > CARD('n)) ==> dependent S"
   by (metis independent_bound not_less)
 
 (* Hence we can create a maximal independent subset.                         *)
 
 lemma maximal_independent_subset_extend:
-  assumes sv: "(S::(real^'n::finite) set) \<subseteq> V" and iS: "independent S"
+  assumes sv: "(S::(real^'n) set) \<subseteq> V" and iS: "independent S"
   shows "\<exists>B. S \<subseteq> B \<and> B \<subseteq> V \<and> independent B \<and> V \<subseteq> span B"
   using sv iS
 proof(induct d\<equiv> "CARD('n) - card S" arbitrary: S rule: nat_less_induct)
@@ -3715,14 +3703,14 @@ proof(induct d\<equiv> "CARD('n) - card S" arbitrary: S rule: nat_less_induct)
 qed
 
 lemma maximal_independent_subset:
-  "\<exists>(B:: (real ^'n::finite) set). B\<subseteq> V \<and> independent B \<and> V \<subseteq> span B"
+  "\<exists>(B:: (real ^'n) set). B\<subseteq> V \<and> independent B \<and> V \<subseteq> span B"
   by (metis maximal_independent_subset_extend[of "{}:: (real ^'n) set"] empty_subsetI independent_empty)
 
 (* Notion of dimension.                                                      *)
 
 definition "dim V = (SOME n. \<exists>B. B \<subseteq> V \<and> independent B \<and> V \<subseteq> span B \<and> (card B = n))"
 
-lemma basis_exists:  "\<exists>B. (B :: (real ^'n::finite) set) \<subseteq> V \<and> independent B \<and> V \<subseteq> span B \<and> (card B = dim V)"
+lemma basis_exists:  "\<exists>B. (B :: (real ^'n) set) \<subseteq> V \<and> independent B \<and> V \<subseteq> span B \<and> (card B = dim V)"
 unfolding dim_def some_eq_ex[of "\<lambda>n. \<exists>B. B \<subseteq> V \<and> independent B \<and> V \<subseteq> span B \<and> (card B = n)"]
 using maximal_independent_subset[of V] independent_bound
 by auto
@@ -3730,7 +3718,7 @@ by auto
 (* Consequences of independence or spanning for cardinality.                 *)
 
 lemma independent_card_le_dim: 
-  assumes "(B::(real ^'n::finite) set) \<subseteq> V" and "independent B" shows "card B \<le> dim V"
+  assumes "(B::(real ^'n) set) \<subseteq> V" and "independent B" shows "card B \<le> dim V"
 proof -
   from basis_exists[of V] `B \<subseteq> V`
   obtain B' where "independent B'" and "B \<subseteq> span B'" and "card B' = dim V" by blast
@@ -3738,34 +3726,34 @@ proof -
   show ?thesis by auto
 qed
 
-lemma span_card_ge_dim:  "(B::(real ^'n::finite) set) \<subseteq> V \<Longrightarrow> V \<subseteq> span B \<Longrightarrow> finite B \<Longrightarrow> dim V \<le> card B"
+lemma span_card_ge_dim:  "(B::(real ^'n) set) \<subseteq> V \<Longrightarrow> V \<subseteq> span B \<Longrightarrow> finite B \<Longrightarrow> dim V \<le> card B"
   by (metis basis_exists[of V] independent_span_bound subset_trans)
 
 lemma basis_card_eq_dim:
-  "B \<subseteq> (V:: (real ^'n::finite) set) \<Longrightarrow> V \<subseteq> span B \<Longrightarrow> independent B \<Longrightarrow> finite B \<and> card B = dim V"
+  "B \<subseteq> (V:: (real ^'n) set) \<Longrightarrow> V \<subseteq> span B \<Longrightarrow> independent B \<Longrightarrow> finite B \<and> card B = dim V"
   by (metis order_eq_iff independent_card_le_dim span_card_ge_dim independent_mono independent_bound)
 
-lemma dim_unique: "(B::(real ^'n::finite) set) \<subseteq> V \<Longrightarrow> V \<subseteq> span B \<Longrightarrow> independent B \<Longrightarrow> card B = n \<Longrightarrow> dim V = n"
+lemma dim_unique: "(B::(real ^'n) set) \<subseteq> V \<Longrightarrow> V \<subseteq> span B \<Longrightarrow> independent B \<Longrightarrow> card B = n \<Longrightarrow> dim V = n"
   by (metis basis_card_eq_dim)
 
 (* More lemmas about dimension.                                              *)
 
-lemma dim_univ: "dim (UNIV :: (real^'n::finite) set) = CARD('n)"
+lemma dim_univ: "dim (UNIV :: (real^'n) set) = CARD('n)"
   apply (rule dim_unique[of "{basis i |i. i\<in> (UNIV :: 'n set)}"])
   by (auto simp only: span_stdbasis card_stdbasis finite_stdbasis independent_stdbasis)
 
 lemma dim_subset:
-  "(S:: (real ^'n::finite) set) \<subseteq> T \<Longrightarrow> dim S \<le> dim T"
+  "(S:: (real ^'n) set) \<subseteq> T \<Longrightarrow> dim S \<le> dim T"
   using basis_exists[of T] basis_exists[of S]
   by (metis independent_card_le_dim subset_trans)
 
-lemma dim_subset_univ: "dim (S:: (real^'n::finite) set) \<le> CARD('n)"
+lemma dim_subset_univ: "dim (S:: (real^'n) set) \<le> CARD('n)"
   by (metis dim_subset subset_UNIV dim_univ)
 
 (* Converses to those.                                                       *)
 
 lemma card_ge_dim_independent:
-  assumes BV:"(B::(real ^'n::finite) set) \<subseteq> V" and iB:"independent B" and dVB:"dim V \<le> card B"
+  assumes BV:"(B::(real ^'n) set) \<subseteq> V" and iB:"independent B" and dVB:"dim V \<le> card B"
   shows "V \<subseteq> span B"
 proof-
   {fix a assume aV: "a \<in> V"
@@ -3779,7 +3767,7 @@ proof-
 qed
 
 lemma card_le_dim_spanning:
-  assumes BV: "(B:: (real ^'n::finite) set) \<subseteq> V" and VB: "V \<subseteq> span B"
+  assumes BV: "(B:: (real ^'n) set) \<subseteq> V" and VB: "V \<subseteq> span B"
   and fB: "finite B" and dVB: "dim V \<ge> card B"
   shows "independent B"
 proof-
@@ -3800,7 +3788,7 @@ proof-
   then show ?thesis unfolding dependent_def by blast
 qed
 
-lemma card_eq_dim: "(B:: (real ^'n::finite) set) \<subseteq> V \<Longrightarrow> card B = dim V \<Longrightarrow> finite B \<Longrightarrow> independent B \<longleftrightarrow> V \<subseteq> span B"
+lemma card_eq_dim: "(B:: (real ^'n) set) \<subseteq> V \<Longrightarrow> card B = dim V \<Longrightarrow> finite B \<Longrightarrow> independent B \<longleftrightarrow> V \<subseteq> span B"
   by (metis order_eq_iff card_le_dim_spanning
     card_ge_dim_independent)
 
@@ -3809,13 +3797,13 @@ lemma card_eq_dim: "(B:: (real ^'n::finite) set) \<subseteq> V \<Longrightarrow>
 (* ------------------------------------------------------------------------- *)
 
 lemma independent_bound_general:
-  "independent (S:: (real^'n::finite) set) \<Longrightarrow> finite S \<and> card S \<le> dim S"
+  "independent (S:: (real^'n) set) \<Longrightarrow> finite S \<and> card S \<le> dim S"
   by (metis independent_card_le_dim independent_bound subset_refl)
 
-lemma dependent_biggerset_general: "(finite (S:: (real^'n::finite) set) \<Longrightarrow> card S > dim S) \<Longrightarrow> dependent S"
+lemma dependent_biggerset_general: "(finite (S:: (real^'n) set) \<Longrightarrow> card S > dim S) \<Longrightarrow> dependent S"
   using independent_bound_general[of S] by (metis linorder_not_le)
 
-lemma dim_span: "dim (span (S:: (real ^'n::finite) set)) = dim S"
+lemma dim_span: "dim (span (S:: (real ^'n) set)) = dim S"
 proof-
   have th0: "dim S \<le> dim (span S)"
     by (auto simp add: subset_eq intro: dim_subset span_superset)
@@ -3828,10 +3816,10 @@ proof-
     using fB(2)  by arith
 qed
 
-lemma subset_le_dim: "(S:: (real ^'n::finite) set) \<subseteq> span T \<Longrightarrow> dim S \<le> dim T"
+lemma subset_le_dim: "(S:: (real ^'n) set) \<subseteq> span T \<Longrightarrow> dim S \<le> dim T"
   by (metis dim_span dim_subset)
 
-lemma span_eq_dim: "span (S:: (real ^'n::finite) set) = span T ==> dim S = dim T"
+lemma span_eq_dim: "span (S:: (real ^'n) set) = span T ==> dim S = dim T"
   by (metis dim_span)
 
 lemma spans_image:
@@ -3841,8 +3829,8 @@ lemma spans_image:
   by (metis VB image_mono)
 
 lemma dim_image_le:
-  fixes f :: "real^'n::finite \<Rightarrow> real^'m::finite"
-  assumes lf: "linear f" shows "dim (f ` S) \<le> dim (S:: (real ^'n::finite) set)"
+  fixes f :: "real^'n \<Rightarrow> real^'m"
+  assumes lf: "linear f" shows "dim (f ` S) \<le> dim (S:: (real ^'n) set)"
 proof-
   from basis_exists[of S] obtain B where
     B: "B \<subseteq> S" "independent B" "S \<subseteq> span B" "card B = dim S" by blast
@@ -3886,14 +3874,14 @@ qed
     (* FIXME : Move to some general theory ?*)
 definition "pairwise R S \<longleftrightarrow> (\<forall>x \<in> S. \<forall>y\<in> S. x\<noteq>y \<longrightarrow> R x y)"
 
-lemma vector_sub_project_orthogonal: "(b::'a::ordered_field^'n::finite) \<bullet> (x - ((b \<bullet> x) / (b\<bullet>b)) *s b) = 0"
+lemma vector_sub_project_orthogonal: "(b::'a::ordered_field^'n) \<bullet> (x - ((b \<bullet> x) / (b\<bullet>b)) *s b) = 0"
   apply (cases "b = 0", simp)
   apply (simp add: dot_rsub dot_rmult)
   unfolding times_divide_eq_right[symmetric]
   by (simp add: field_simps dot_eq_0)
 
 lemma basis_orthogonal:
-  fixes B :: "(real ^'n::finite) set"
+  fixes B :: "(real ^'n) set"
   assumes fB: "finite B"
   shows "\<exists>C. finite C \<and> card C \<le> card B \<and> span C = span B \<and> pairwise orthogonal C"
   (is " \<exists>C. ?P B C")
@@ -3969,7 +3957,7 @@ next
 qed
 
 lemma orthogonal_basis_exists:
-  fixes V :: "(real ^'n::finite) set"
+  fixes V :: "(real ^'n) set"
   shows "\<exists>B. independent B \<and> B \<subseteq> span V \<and> V \<subseteq> span B \<and> (card B = dim V) \<and> pairwise orthogonal B"
 proof-
   from basis_exists[of V] obtain B where B: "B \<subseteq> V" "independent B" "V \<subseteq> span B" "card B = dim V" by blast
@@ -3997,7 +3985,7 @@ lemma span_eq: "span S = span T \<longleftrightarrow> S \<subseteq> span T \<and
 
 lemma span_not_univ_orthogonal:
   assumes sU: "span S \<noteq> UNIV"
-  shows "\<exists>(a:: real ^'n::finite). a \<noteq>0 \<and> (\<forall>x \<in> span S. a \<bullet> x = 0)"
+  shows "\<exists>(a:: real ^'n). a \<noteq>0 \<and> (\<forall>x \<in> span S. a \<bullet> x = 0)"
 proof-
   from sU obtain a where a: "a \<notin> span S" by blast
   from orthogonal_basis_exists obtain B where
@@ -4036,13 +4024,13 @@ proof-
 qed
 
 lemma span_not_univ_subset_hyperplane:
-  assumes SU: "span S \<noteq> (UNIV ::(real^'n::finite) set)"
+  assumes SU: "span S \<noteq> (UNIV ::(real^'n) set)"
   shows "\<exists> a. a \<noteq>0 \<and> span S \<subseteq> {x. a \<bullet> x = 0}"
   using span_not_univ_orthogonal[OF SU] by auto
 
 lemma lowdim_subset_hyperplane:
   assumes d: "dim S < CARD('n::finite)"
-  shows "\<exists>(a::real ^'n::finite). a  \<noteq> 0 \<and> span S \<subseteq> {x. a \<bullet> x = 0}"
+  shows "\<exists>(a::real ^'n). a  \<noteq> 0 \<and> span S \<subseteq> {x. a \<bullet> x = 0}"
 proof-
   {assume "span S = UNIV"
     hence "dim (span S) = dim (UNIV :: (real ^'n) set)" by simp
@@ -4109,7 +4097,7 @@ qed
 
 lemma linear_independent_extend_lemma:
   assumes fi: "finite B" and ib: "independent B"
-  shows "\<exists>g. (\<forall>x\<in> span B. \<forall>y\<in> span B. g ((x::'a::field^'n::finite) + y) = g x + g y)
+  shows "\<exists>g. (\<forall>x\<in> span B. \<forall>y\<in> span B. g ((x::'a::field^'n) + y) = g x + g y)
            \<and> (\<forall>x\<in> span B. \<forall>c. g (c*s x) = c *s g x)
            \<and> (\<forall>x\<in> B. g x = f x)"
 using ib fi
@@ -4193,7 +4181,7 @@ next
 qed
 
 lemma linear_independent_extend:
-  assumes iB: "independent (B:: (real ^'n::finite) set)"
+  assumes iB: "independent (B:: (real ^'n) set)"
   shows "\<exists>g. linear g \<and> (\<forall>x\<in>B. g x = f x)"
 proof-
   from maximal_independent_subset_extend[of B UNIV] iB
@@ -4246,8 +4234,8 @@ proof-
 qed
 
 lemma subspace_isomorphism:
-  assumes s: "subspace (S:: (real ^'n::finite) set)"
-  and t: "subspace (T :: (real ^ 'm::finite) set)"
+  assumes s: "subspace (S:: (real ^'n) set)"
+  and t: "subspace (T :: (real ^'m) set)"
   and d: "dim S = dim T"
   shows "\<exists>f. linear f \<and> f ` S = T \<and> inj_on f S"
 proof-
@@ -4320,7 +4308,7 @@ proof-
 qed
 
 lemma linear_eq_stdbasis:
-  assumes lf: "linear (f::'a::ring_1^'m::finite \<Rightarrow> 'a^'n::finite)" and lg: "linear g"
+  assumes lf: "linear (f::'a::ring_1^'m \<Rightarrow> 'a^'n)" and lg: "linear g"
   and fg: "\<forall>i. f (basis i) = g(basis i)"
   shows "f = g"
 proof-
@@ -4365,7 +4353,7 @@ proof-
 qed
 
 lemma bilinear_eq_stdbasis:
-  assumes bf: "bilinear (f:: 'a::ring_1^'m::finite \<Rightarrow> 'a^'n::finite \<Rightarrow> 'a^_)"
+  assumes bf: "bilinear (f:: 'a::ring_1^'m \<Rightarrow> 'a^'n \<Rightarrow> 'a^_)"
   and bg: "bilinear g"
   and fg: "\<forall>i j. f (basis i) (basis j) = g (basis i) (basis j)"
   shows "f = g"
@@ -4385,7 +4373,7 @@ lemma right_invertible_transp:
   by (metis matrix_transp_mul transp_mat transp_transp)
 
 lemma linear_injective_left_inverse:
-  assumes lf: "linear (f::real ^'n::finite \<Rightarrow> real ^'m::finite)" and fi: "inj f"
+  assumes lf: "linear (f::real ^'n \<Rightarrow> real ^'m)" and fi: "inj f"
   shows "\<exists>g. linear g \<and> g o f = id"
 proof-
   from linear_independent_extend[OF independent_injective_image, OF independent_stdbasis, OF lf fi]
@@ -4401,7 +4389,7 @@ proof-
 qed
 
 lemma linear_surjective_right_inverse:
-  assumes lf: "linear (f:: real ^'m::finite \<Rightarrow> real ^'n::finite)" and sf: "surj f"
+  assumes lf: "linear (f:: real ^'m \<Rightarrow> real ^'n)" and sf: "surj f"
   shows "\<exists>g. linear g \<and> f o g = id"
 proof-
   from linear_independent_extend[OF independent_stdbasis]
@@ -4420,7 +4408,7 @@ proof-
 qed
 
 lemma matrix_left_invertible_injective:
-"(\<exists>B. (B::real^'m^'n) ** (A::real^'n::finite^'m::finite) = mat 1) \<longleftrightarrow> (\<forall>x y. A *v x = A *v y \<longrightarrow> x = y)"
+"(\<exists>B. (B::real^'m^'n) ** (A::real^'n^'m) = mat 1) \<longleftrightarrow> (\<forall>x y. A *v x = A *v y \<longrightarrow> x = y)"
 proof-
   {fix B:: "real^'m^'n" and x y assume B: "B ** A = mat 1" and xy: "A *v x = A*v y"
     from xy have "B*v (A *v x) = B *v (A*v y)" by simp
@@ -4439,13 +4427,13 @@ proof-
 qed
 
 lemma matrix_left_invertible_ker:
-  "(\<exists>B. (B::real ^'m::finite^'n::finite) ** (A::real^'n^'m) = mat 1) \<longleftrightarrow> (\<forall>x. A *v x = 0 \<longrightarrow> x = 0)"
+  "(\<exists>B. (B::real ^'m^'n) ** (A::real^'n^'m) = mat 1) \<longleftrightarrow> (\<forall>x. A *v x = 0 \<longrightarrow> x = 0)"
   unfolding matrix_left_invertible_injective
   using linear_injective_0[OF matrix_vector_mul_linear, of A]
   by (simp add: inj_on_def)
 
 lemma matrix_right_invertible_surjective:
-"(\<exists>B. (A::real^'n::finite^'m::finite) ** (B::real^'m^'n) = mat 1) \<longleftrightarrow> surj (\<lambda>x. A *v x)"
+"(\<exists>B. (A::real^'n^'m) ** (B::real^'m^'n) = mat 1) \<longleftrightarrow> surj (\<lambda>x. A *v x)"
 proof-
   {fix B :: "real ^'m^'n"  assume AB: "A ** B = mat 1"
     {fix x :: "real ^ 'm"
@@ -4469,7 +4457,7 @@ proof-
 qed
 
 lemma matrix_left_invertible_independent_columns:
-  fixes A :: "real^'n::finite^'m::finite"
+  fixes A :: "real^'n^'m"
   shows "(\<exists>(B::real ^'m^'n). B ** A = mat 1) \<longleftrightarrow> (\<forall>c. setsum (\<lambda>i. c i *s column i A) (UNIV :: 'n set) = 0 \<longrightarrow> (\<forall>i. c i = 0))"
    (is "?lhs \<longleftrightarrow> ?rhs")
 proof-
@@ -4495,14 +4483,14 @@ proof-
 qed
 
 lemma matrix_right_invertible_independent_rows:
-  fixes A :: "real^'n::finite^'m::finite"
+  fixes A :: "real^'n^'m"
   shows "(\<exists>(B::real^'m^'n). A ** B = mat 1) \<longleftrightarrow> (\<forall>c. setsum (\<lambda>i. c i *s row i A) (UNIV :: 'm set) = 0 \<longrightarrow> (\<forall>i. c i = 0))"
   unfolding left_invertible_transp[symmetric]
     matrix_left_invertible_independent_columns
   by (simp add: column_transp)
 
 lemma matrix_right_invertible_span_columns:
-  "(\<exists>(B::real ^'n::finite^'m::finite). (A::real ^'m^'n) ** B = mat 1) \<longleftrightarrow> span (columns A) = UNIV" (is "?lhs = ?rhs")
+  "(\<exists>(B::real ^'n^'m). (A::real ^'m^'n) ** B = mat 1) \<longleftrightarrow> span (columns A) = UNIV" (is "?lhs = ?rhs")
 proof-
   let ?U = "UNIV :: 'm set"
   have fU: "finite ?U" by simp
@@ -4564,7 +4552,7 @@ proof-
 qed
 
 lemma matrix_left_invertible_span_rows:
-  "(\<exists>(B::real^'m::finite^'n::finite). B ** (A::real^'n^'m) = mat 1) \<longleftrightarrow> span (rows A) = UNIV"
+  "(\<exists>(B::real^'m^'n). B ** (A::real^'n^'m) = mat 1) \<longleftrightarrow> span (rows A) = UNIV"
   unfolding right_invertible_transp[symmetric]
   unfolding columns_transp[symmetric]
   unfolding matrix_right_invertible_span_columns
@@ -4573,7 +4561,7 @@ lemma matrix_left_invertible_span_rows:
 (* An injective map real^'n->real^'n is also surjective.                       *)
 
 lemma linear_injective_imp_surjective:
-  assumes lf: "linear (f:: real ^'n::finite \<Rightarrow> real ^'n)" and fi: "inj f"
+  assumes lf: "linear (f:: real ^'n \<Rightarrow> real ^'n)" and fi: "inj f"
   shows "surj f"
 proof-
   let ?U = "UNIV :: (real ^'n) set"
@@ -4635,7 +4623,7 @@ proof-
 qed
 
 lemma linear_surjective_imp_injective:
-  assumes lf: "linear (f::real ^'n::finite => real ^'n)" and sf: "surj f"
+  assumes lf: "linear (f::real ^'n => real ^'n)" and sf: "surj f"
   shows "inj f"
 proof-
   let ?U = "UNIV :: (real ^'n) set"
@@ -4694,14 +4682,14 @@ lemma isomorphism_expand:
   by (simp add: expand_fun_eq o_def id_def)
 
 lemma linear_injective_isomorphism:
-  assumes lf: "linear (f :: real^'n::finite \<Rightarrow> real ^'n)" and fi: "inj f"
+  assumes lf: "linear (f :: real^'n \<Rightarrow> real ^'n)" and fi: "inj f"
   shows "\<exists>f'. linear f' \<and> (\<forall>x. f' (f x) = x) \<and> (\<forall>x. f (f' x) = x)"
 unfolding isomorphism_expand[symmetric]
 using linear_surjective_right_inverse[OF lf linear_injective_imp_surjective[OF lf fi]] linear_injective_left_inverse[OF lf fi]
 by (metis left_right_inverse_eq)
 
 lemma linear_surjective_isomorphism:
-  assumes lf: "linear (f::real ^'n::finite \<Rightarrow> real ^'n)" and sf: "surj f"
+  assumes lf: "linear (f::real ^'n \<Rightarrow> real ^'n)" and sf: "surj f"
   shows "\<exists>f'. linear f' \<and> (\<forall>x. f' (f x) = x) \<and> (\<forall>x. f (f' x) = x)"
 unfolding isomorphism_expand[symmetric]
 using linear_surjective_right_inverse[OF lf sf] linear_injective_left_inverse[OF lf linear_surjective_imp_injective[OF lf sf]]
@@ -4710,7 +4698,7 @@ by (metis left_right_inverse_eq)
 (* Left and right inverses are the same for R^N->R^N.                        *)
 
 lemma linear_inverse_left:
-  assumes lf: "linear (f::real ^'n::finite \<Rightarrow> real ^'n)" and lf': "linear f'"
+  assumes lf: "linear (f::real ^'n \<Rightarrow> real ^'n)" and lf': "linear f'"
   shows "f o f' = id \<longleftrightarrow> f' o f = id"
 proof-
   {fix f f':: "real ^'n \<Rightarrow> real ^'n"
@@ -4728,7 +4716,7 @@ qed
 (* Moreover, a one-sided inverse is automatically linear.                    *)
 
 lemma left_inverse_linear:
-  assumes lf: "linear (f::real ^'n::finite \<Rightarrow> real ^'n)" and gf: "g o f = id"
+  assumes lf: "linear (f::real ^'n \<Rightarrow> real ^'n)" and gf: "g o f = id"
   shows "linear g"
 proof-
   from gf have fi: "inj f" apply (auto simp add: inj_on_def o_def id_def stupid_ext[symmetric])
@@ -4743,7 +4731,7 @@ proof-
 qed
 
 lemma right_inverse_linear:
-  assumes lf: "linear (f:: real ^'n::finite \<Rightarrow> real ^'n)" and gf: "f o g = id"
+  assumes lf: "linear (f:: real ^'n \<Rightarrow> real ^'n)" and gf: "f o g = id"
   shows "linear g"
 proof-
   from gf have fi: "surj f" apply (auto simp add: surj_def o_def id_def stupid_ext[symmetric])
@@ -4760,7 +4748,7 @@ qed
 (* The same result in terms of square matrices.                              *)
 
 lemma matrix_left_right_inverse:
-  fixes A A' :: "real ^'n::finite^'n"
+  fixes A A' :: "real ^'n^'n"
   shows "A ** A' = mat 1 \<longleftrightarrow> A' ** A = mat 1"
 proof-
   {fix A A' :: "real ^'n^'n" assume AA': "A ** A' = mat 1"
@@ -4798,11 +4786,11 @@ lemma dot_rowvector_columnvector:
   "columnvector (A *v v) = A ** columnvector v"
   by (vector columnvector_def matrix_matrix_mult_def matrix_vector_mult_def)
 
-lemma dot_matrix_product: "(x::'a::semiring_1^'n::finite) \<bullet> y = (((rowvector x ::'a^'n^1) ** (columnvector y :: 'a^1^'n))$1)$1"
+lemma dot_matrix_product: "(x::'a::semiring_1^'n) \<bullet> y = (((rowvector x ::'a^'n^1) ** (columnvector y :: 'a^1^'n))$1)$1"
   by (vector matrix_matrix_mult_def rowvector_def columnvector_def dot_def)
 
 lemma dot_matrix_vector_mul:
-  fixes A B :: "real ^'n::finite ^'n" and x y :: "real ^'n"
+  fixes A B :: "real ^'n ^'n" and x y :: "real ^'n"
   shows "(A *v x) \<bullet> (B *v y) =
       (((rowvector x :: real^'n^1) ** ((transp A ** B) ** (columnvector y :: real ^1^'n)))$1)$1"
 unfolding dot_matrix_product transp_columnvector[symmetric]
@@ -4810,7 +4798,7 @@ unfolding dot_matrix_product transp_columnvector[symmetric]
 
 (* Infinity norm.                                                            *)
 
-definition "infnorm (x::real^'n::finite) = Sup {abs(x$i) |i. i\<in> (UNIV :: 'n set)}"
+definition "infnorm (x::real^'n) = Sup {abs(x$i) |i. i\<in> (UNIV :: 'n set)}"
 
 lemma numseg_dimindex_nonempty: "\<exists>i. i \<in> (UNIV :: 'n set)"
   by auto
@@ -4820,18 +4808,18 @@ lemma infnorm_set_image:
   (\<lambda>i. abs(x$i)) ` (UNIV)" by blast
 
 lemma infnorm_set_lemma:
-  shows "finite {abs((x::'a::abs ^'n::finite)$i) |i. i\<in> (UNIV :: 'n set)}"
+  shows "finite {abs((x::'a::abs ^'n)$i) |i. i\<in> (UNIV :: 'n set)}"
   and "{abs(x$i) |i. i\<in> (UNIV :: 'n::finite set)} \<noteq> {}"
   unfolding infnorm_set_image
   by (auto intro: finite_imageI)
 
-lemma infnorm_pos_le: "0 \<le> infnorm (x::real^'n::finite)"
+lemma infnorm_pos_le: "0 \<le> infnorm (x::real^'n)"
   unfolding infnorm_def
   unfolding Sup_finite_ge_iff[ OF infnorm_set_lemma]
   unfolding infnorm_set_image
   by auto
 
-lemma infnorm_triangle: "infnorm ((x::real^'n::finite) + y) \<le> infnorm x + infnorm y"
+lemma infnorm_triangle: "infnorm ((x::real^'n) + y) \<le> infnorm x + infnorm y"
 proof-
   have th: "\<And>x y (z::real). x - y <= z \<longleftrightarrow> x - z <= y" by arith
   have th1: "\<And>S f. f ` S = { f i| i. i \<in> S}" by blast
@@ -4852,7 +4840,7 @@ proof-
   done
 qed
 
-lemma infnorm_eq_0: "infnorm x = 0 \<longleftrightarrow> (x::real ^'n::finite) = 0"
+lemma infnorm_eq_0: "infnorm x = 0 \<longleftrightarrow> (x::real ^'n) = 0"
 proof-
   have "infnorm x <= 0 \<longleftrightarrow> x = 0"
     unfolding infnorm_def
@@ -4894,7 +4882,7 @@ lemma real_abs_infnorm: " \<bar>infnorm x\<bar> = infnorm x"
   using infnorm_pos_le[of x] by arith
 
 lemma component_le_infnorm:
-  shows "\<bar>x$i\<bar> \<le> infnorm (x::real^'n::finite)"
+  shows "\<bar>x$i\<bar> \<le> infnorm (x::real^'n)"
 proof-
   let ?U = "UNIV :: 'n set"
   let ?S = "{\<bar>x$i\<bar> |i. i\<in> ?U}"
@@ -4947,7 +4935,7 @@ lemma infnorm_le_norm: "infnorm x \<le> norm x"
   unfolding infnorm_set_image  ball_simps
   by (metis component_le_norm)
 lemma card_enum: "card {1 .. n} = n" by auto
-lemma norm_le_infnorm: "norm(x) <= sqrt(real CARD('n)) * infnorm(x::real ^'n::finite)"
+lemma norm_le_infnorm: "norm(x) <= sqrt(real CARD('n)) * infnorm(x::real ^'n)"
 proof-
   let ?d = "CARD('n)"
   have "real ?d \<ge> 0" by simp
@@ -4973,7 +4961,7 @@ qed
 
 (* Equality in Cauchy-Schwarz and triangle inequalities.                     *)
 
-lemma norm_cauchy_schwarz_eq: "(x::real ^'n::finite) \<bullet> y = norm x * norm y \<longleftrightarrow> norm x *s y = norm y *s x" (is "?lhs \<longleftrightarrow> ?rhs")
+lemma norm_cauchy_schwarz_eq: "(x::real ^'n) \<bullet> y = norm x * norm y \<longleftrightarrow> norm x *s y = norm y *s x" (is "?lhs \<longleftrightarrow> ?rhs")
 proof-
   {assume h: "x = 0"
     hence ?thesis by simp}
@@ -5000,7 +4988,7 @@ proof-
 qed
 
 lemma norm_cauchy_schwarz_abs_eq:
-  fixes x y :: "real ^ 'n::finite"
+  fixes x y :: "real ^ 'n"
   shows "abs(x \<bullet> y) = norm x * norm y \<longleftrightarrow>
                 norm x *s y = norm y *s x \<or> norm(x) *s y = - norm y *s x" (is "?lhs \<longleftrightarrow> ?rhs")
 proof-
@@ -5019,7 +5007,7 @@ proof-
 qed
 
 lemma norm_triangle_eq:
-  fixes x y :: "real ^ 'n::finite"
+  fixes x y :: "real ^ 'n"
   shows "norm(x + y) = norm x + norm y \<longleftrightarrow> norm x *s y = norm y *s x"
 proof-
   {assume x: "x =0 \<or> y =0"
@@ -5099,7 +5087,7 @@ proof-
 qed
 
 lemma norm_cauchy_schwarz_equal:
-  fixes x y :: "real ^ 'n::finite"
+  fixes x y :: "real ^ 'n"
   shows "abs(x \<bullet> y) = norm x * norm y \<longleftrightarrow> collinear {(0::real^'n),x,y}"
 unfolding norm_cauchy_schwarz_abs_eq
 apply (cases "x=0", simp_all add: collinear_2)

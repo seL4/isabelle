@@ -25,7 +25,7 @@ begin
 declare norm_scaleR[simp]
  
 lemma brouwer_compactness_lemma:
-  assumes "compact s" "continuous_on s f" "\<not> (\<exists>x\<in>s. (f x = (0::real^'n::finite)))"
+  assumes "compact s" "continuous_on s f" "\<not> (\<exists>x\<in>s. (f x = (0::real^'n)))"
   obtains d where "0 < d" "\<forall>x\<in>s. d \<le> norm(f x)" proof(cases "s={}") case False
   have "continuous_on s (norm \<circ> f)" by(rule continuous_on_intros continuous_on_norm assms(2))+
   then obtain x where x:"x\<in>s" "\<forall>y\<in>s. (norm \<circ> f) x \<le> (norm \<circ> f) y"
@@ -1161,7 +1161,7 @@ lemma kuhn_labelling_lemma':
         apply(drule_tac assms(1)[rule_format]) by auto }
     hence "?R 0 \<or> ?R 1" by auto thus ?case by auto qed qed 
 
-lemma brouwer_cube: fixes f::"real^'n::finite \<Rightarrow> real^'n::finite"
+lemma brouwer_cube: fixes f::"real^'n \<Rightarrow> real^'n"
   assumes "continuous_on {0..1} f" "f ` {0..1} \<subseteq> {0..1}"
   shows "\<exists>x\<in>{0..1}. f x = x" apply(rule ccontr) proof-
   def n \<equiv> "CARD('n)" have n:"1 \<le> n" "0 < n" "n \<noteq> 0" unfolding n_def by auto
@@ -1291,7 +1291,7 @@ lemma brouwer_cube: fixes f::"real^'n::finite \<Rightarrow> real^'n::finite"
 
 subsection {* Retractions. *}
 
-definition "retraction s t (r::real^'n::finite\<Rightarrow>real^'n) \<longleftrightarrow>
+definition "retraction s t (r::real^'n\<Rightarrow>real^'n) \<longleftrightarrow>
   t \<subseteq> s \<and> continuous_on s r \<and> (r ` s \<subseteq> t) \<and> (\<forall>x\<in>t. r x = x)"
 
 definition retract_of (infixl "retract'_of" 12) where
@@ -1302,7 +1302,7 @@ lemma retraction_idempotent: "retraction s t r \<Longrightarrow> x \<in> s \<Lon
 
 subsection {*preservation of fixpoints under (more general notion of) retraction. *}
 
-lemma invertible_fixpoint_property: fixes s::"(real^'n::finite) set" and t::"(real^'m::finite) set" 
+lemma invertible_fixpoint_property: fixes s::"(real^'n) set" and t::"(real^'m) set" 
   assumes "continuous_on t i" "i ` t \<subseteq> s" "continuous_on s r" "r ` s \<subseteq> t" "\<forall>y\<in>t. r (i y) = y"
   "\<forall>f. continuous_on s f \<and> f ` s \<subseteq> s \<longrightarrow> (\<exists>x\<in>s. f x = x)" "continuous_on t g" "g ` t \<subseteq> t"
   obtains y where "y\<in>t" "g y = y" proof-
@@ -1315,7 +1315,7 @@ lemma invertible_fixpoint_property: fixes s::"(real^'n::finite) set" and t::"(re
       unfolding assms(5)[rule_format,OF *] using assms(4) by auto qed
 
 lemma homeomorphic_fixpoint_property:
-  fixes s::"(real^'n::finite) set" and t::"(real^'m::finite) set" assumes "s homeomorphic t"
+  fixes s::"(real^'n) set" and t::"(real^'m) set" assumes "s homeomorphic t"
   shows "(\<forall>f. continuous_on s f \<and> f ` s \<subseteq> s \<longrightarrow> (\<exists>x\<in>s. f x = x)) \<longleftrightarrow>
          (\<forall>g. continuous_on t g \<and> g ` t \<subseteq> t \<longrightarrow> (\<exists>y\<in>t. g y = y))" proof-
   guess r using assms[unfolded homeomorphic_def homeomorphism_def] .. then guess i ..
@@ -1332,7 +1332,7 @@ lemma retract_fixpoint_property:
 
 subsection {*So the Brouwer theorem for any set with nonempty interior. *}
 
-lemma brouwer_weak: fixes f::"real^'n::finite \<Rightarrow> real^'n::finite"
+lemma brouwer_weak: fixes f::"real^'n \<Rightarrow> real^'n"
   assumes "compact s" "convex s" "interior s \<noteq> {}" "continuous_on s f" "f ` s \<subseteq> s"
   obtains x where "x \<in> s" "f x = x" proof-
   have *:"interior {0..1::real^'n} \<noteq> {}" unfolding interior_closed_interval interval_eq_empty by auto
@@ -1343,7 +1343,7 @@ lemma brouwer_weak: fixes f::"real^'n::finite \<Rightarrow> real^'n::finite"
 
 subsection {* And in particular for a closed ball. *}
 
-lemma brouwer_ball: fixes f::"real^'n::finite \<Rightarrow> real^'n::finite"
+lemma brouwer_ball: fixes f::"real^'n \<Rightarrow> real^'n"
   assumes "0 < e" "continuous_on (cball a e) f" "f ` (cball a e) \<subseteq> (cball a e)"
   obtains x where "x \<in> cball a e" "f x = x"
   using brouwer_weak[OF compact_cball convex_cball,of a e f] unfolding interior_cball ball_eq_empty
@@ -1353,7 +1353,7 @@ text {*Still more general form; could derive this directly without using the
   rather involved HOMEOMORPHIC_CONVEX_COMPACT theorem, just using
   a scaling and translation to put the set inside the unit cube. *}
 
-lemma brouwer: fixes f::"real^'n::finite \<Rightarrow> real^'n::finite"
+lemma brouwer: fixes f::"real^'n \<Rightarrow> real^'n"
   assumes "compact s" "convex s" "s \<noteq> {}" "continuous_on s f" "f ` s \<subseteq> s"
   obtains x where "x \<in> s" "f x = x" proof-
   have "\<exists>e>0. s \<subseteq> cball 0 e" using compact_imp_bounded[OF assms(1)] unfolding bounded_pos
@@ -1389,7 +1389,7 @@ lemma no_retraction_cball: assumes "0 < e"
 
 subsection {*Bijections between intervals. *}
 
-definition "interval_bij = (\<lambda> (a,b) (u,v) (x::real^'n::finite).
+definition "interval_bij = (\<lambda> (a,b) (u,v) (x::real^'n).
     (\<chi> i. u$i + (x$i - a$i) / (b$i - a$i) * (v$i - u$i))::real^'n)"
 
 lemma interval_bij_affine:
@@ -1399,7 +1399,7 @@ lemma interval_bij_affine:
   by(auto simp add:group_simps field_simps add_divide_distrib[THEN sym]) 
 
 lemma continuous_interval_bij:
-  "continuous (at x) (interval_bij (a,b::real^'n::finite) (u,v))" 
+  "continuous (at x) (interval_bij (a,b::real^'n) (u,v))" 
   unfolding interval_bij_affine apply(rule continuous_intros)
     apply(rule linear_continuous_at) unfolding linear_conv_bounded_linear[THEN sym]
     unfolding linear_def unfolding Cart_eq unfolding Cart_lambda_beta defer
@@ -1413,7 +1413,7 @@ lemma divide_nonneg_nonneg:assumes "a \<ge> 0" "b \<ge> 0" shows "0 \<le> a / (b
   apply(cases "b=0") defer apply(rule divide_nonneg_pos) using assms by auto
 
 lemma in_interval_interval_bij: assumes "x \<in> {a..b}" "{u..v} \<noteq> {}"
-  shows "interval_bij (a,b) (u,v) x \<in> {u..v::real^'n::finite}" 
+  shows "interval_bij (a,b) (u,v) x \<in> {u..v::real^'n}" 
   unfolding interval_bij_def split_conv mem_interval Cart_lambda_beta proof(rule,rule) 
   fix i::'n have "{a..b} \<noteq> {}" using assms by auto
   hence *:"a$i \<le> b$i" "u$i \<le> v$i" using assms(2) unfolding interval_eq_empty not_ex apply-
@@ -1979,5 +1979,4 @@ let CONNECTED_ARC_COMPLEMENT = prove
        ==> connected((:real^N) DIFF path_image p)`,
   SIMP_TAC[PATH_CONNECTED_ARC_COMPLEMENT; PATH_CONNECTED_IMP_CONNECTED]);; *)
 
-end 
-   
+end
