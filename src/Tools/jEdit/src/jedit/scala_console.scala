@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import console.{Console, ConsolePane, Shell, Output}
 
-import org.gjt.sp.jedit.jEdit
+import org.gjt.sp.jedit.{jEdit, JARClassLoader}
 import org.gjt.sp.jedit.MiscUtilities
 
 import java.io.{Writer, PrintWriter}
@@ -64,7 +64,21 @@ class Scala_Console extends Shell("Scala")
   {
     val settings = new GenericRunnerSettings(report_error)
     val printer = new PrintWriter(new Console_Writer, true)
-    interpreters += (console -> new Interpreter(settings, printer))
+    val interp = new Interpreter(settings, printer)
+    {
+      override def parentClassLoader = new JARClassLoader
+    }
+    interp.setContextClassLoader
+
+    val view = console.getView
+    val edit_pane = view.getEditPane
+    interp.bind("view", "org.gjt.sp.jedit.View", view)
+    interp.bind("editPane", "org.gjt.sp.jedit.EditPane", edit_pane)
+    interp.bind("buffer", "org.gjt.sp.jedit.Buffer", edit_pane.getBuffer)
+    interp.bind("textArea", "org.gjt.sp.jedit.textarea.JEditTextArea", edit_pane.getTextArea)
+    interp.bind("wm", "org.gjt.sp.jedit.gui.DockableWindowManager", view.getDockableWindowManager)
+
+    interpreters += (console -> interp)
   }
 
   override def closeConsole(console: Console)
@@ -75,14 +89,12 @@ class Scala_Console extends Shell("Scala")
   override def printPrompt(console: Console, out: Output)
 	{
     out.writeAttrs(ConsolePane.colorAttributes(console.getInfoColor), "scala>")
-		out.writeAttrs(null," ")
+		out.writeAttrs(ConsolePane.colorAttributes(console.getPlainColor), " ")
 	}
 
   override def execute(console: Console, input: String, out: Output, err: Output, command: String)
   {
-    with_console(console, out, err) {
-      interpreters(console).interpret(command)
-    }
+    with_console(console, out, err) { interpreters(console).interpret(command) }
     if (err != null) err.commandDone()
 		out.commandDone()
   }
