@@ -37,7 +37,7 @@ fun force_result (Lazy r) =
     val _ =
       (case result of
         Exn.Exn Exn.Interrupt => ()
-      | _ => r := result);
+      | _ => r := Result result);
   in result end;
 
 fun force r = Exn.release (force_result r);
