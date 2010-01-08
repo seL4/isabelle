@@ -18,6 +18,7 @@ uses
   "~~/src/Tools/Code/code_ml.ML"
   "~~/src/Tools/Code/code_eval.ML"
   "~~/src/Tools/Code/code_haskell.ML"
+  "~~/src/Tools/Code/code_scala.ML"
   "~~/src/Tools/nbe.ML"
 begin
 
@@ -26,6 +27,7 @@ setup {*
   #> Code_ML.setup
   #> Code_Eval.setup
   #> Code_Haskell.setup
+  #> Code_Scala.setup
   #> Nbe.setup
 *}
 
