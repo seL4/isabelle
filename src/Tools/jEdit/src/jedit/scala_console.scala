@@ -7,7 +7,7 @@
 package isabelle.jedit
 
 
-import console.{Console, Shell, Output}
+import console.{Console, ConsolePane, Shell, Output}
 
 import org.gjt.sp.jedit.jEdit
 import org.gjt.sp.jedit.MiscUtilities
@@ -24,6 +24,18 @@ class Scala_Console extends Shell("Scala")
   private var global_console: Console = null
   private var global_out: Output = null
   private var global_err: Output = null
+
+  private def with_console[A](console: Console, out: Output, err: Output)(e: => A): A =
+  {
+    global_console = console
+    global_out = out
+    global_err = if (err == null) out else err
+    val res = Exn.capture { e }
+    global_console = null
+    global_out = null
+    global_err = null
+    Exn.release(res)
+  }
 
   private def report_error(str: String)
   {
@@ -62,19 +74,16 @@ class Scala_Console extends Shell("Scala")
 
   override def printPrompt(console: Console, out: Output)
 	{
-    out.print(console.getInfoColor, "scala> ")
+    out.writeAttrs(ConsolePane.colorAttributes(console.getInfoColor), "scala>")
+		out.writeAttrs(null," ")
 	}
 
   override def execute(console: Console, input: String, out: Output, err: Output, command: String)
   {
-    global_console = console
-    global_out = out
-    global_err = (if (err == null) out else err)
-
-    interpreters(console).interpret(command)
-
-    global_console = null
-    global_out = null
-    global_err = null
+    with_console(console, out, err) {
+      interpreters(console).interpret(command)
+    }
+    if (err != null) err.commandDone()
+		out.commandDone()
   }
 }
