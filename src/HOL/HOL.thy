@@ -1913,6 +1913,7 @@ code_type bool
   (SML "bool")
   (OCaml "bool")
   (Haskell "Bool")
+  (Scala "Boolean")
 
 code_const True and False and Not and "op &" and "op |" and If
   (SML "true" and "false" and "not"
@@ -1925,11 +1926,17 @@ code_const True and False and Not and "op &" and "op |" and If
     and infixl 3 "&&" and infixl 2 "||"
     and "!(if (_)/ then (_)/ else (_))")
 
+code_const True and False
+  (Scala "true" and "false")
+
 code_reserved SML
   bool true false not
 
 code_reserved OCaml
   bool not
+
+code_reserved Scala
+  Boolean
 
 text {* using built-in Haskell equality *}
 
