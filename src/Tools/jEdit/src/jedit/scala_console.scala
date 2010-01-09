@@ -12,9 +12,10 @@ import console.{Console, ConsolePane, Shell, Output}
 import org.gjt.sp.jedit.{jEdit, JARClassLoader}
 import org.gjt.sp.jedit.MiscUtilities
 
-import java.io.{Writer, PrintWriter}
+import java.io.{File, Writer, PrintWriter}
 
 import scala.tools.nsc.{Interpreter, GenericRunnerSettings, NewLinePrintWriter, ConsoleWriter}
+import scala.collection.mutable
 
 
 class Scala_Console extends Shell("Scala")
@@ -43,6 +44,19 @@ class Scala_Console extends Shell("Scala")
     else global_err.print(global_console.getErrorColor, str)
   }
 
+  private def construct_classpath(): String =
+  {
+    def find_jars(start: String): List[String] =
+      if (start != null)
+        Standard_System.find_files(new File(start),
+          entry => entry.isFile && entry.getName.endsWith(".jar")).map(_.getAbsolutePath)
+      else Nil
+    val path =
+      (jEdit.getJEditHome + File.separator + "jedit.jar") ::
+        (find_jars(jEdit.getSettingsDirectory) ::: find_jars(jEdit.getJEditHome))
+     path.mkString(File.pathSeparator)
+  }
+
   private class Console_Writer extends Writer
   {
     def close {}
@@ -63,21 +77,14 @@ class Scala_Console extends Shell("Scala")
   override def openConsole(console: Console)
   {
     val settings = new GenericRunnerSettings(report_error)
+    settings.classpath.value = construct_classpath()
     val printer = new PrintWriter(new Console_Writer, true)
     val interp = new Interpreter(settings, printer)
     {
       override def parentClassLoader = new JARClassLoader
     }
     interp.setContextClassLoader
-
-    val view = console.getView
-    val edit_pane = view.getEditPane
-    interp.bind("view", "org.gjt.sp.jedit.View", view)
-    interp.bind("editPane", "org.gjt.sp.jedit.EditPane", edit_pane)
-    interp.bind("buffer", "org.gjt.sp.jedit.Buffer", edit_pane.getBuffer)
-    interp.bind("textArea", "org.gjt.sp.jedit.textarea.JEditTextArea", edit_pane.getTextArea)
-    interp.bind("wm", "org.gjt.sp.jedit.gui.DockableWindowManager", view.getDockableWindowManager)
-
+    interp.bind("view", "org.gjt.sp.jedit.View", console.getView)
     interpreters += (console -> interp)
   }
 
@@ -94,7 +101,8 @@ class Scala_Console extends Shell("Scala")
 
   override def execute(console: Console, input: String, out: Output, err: Output, command: String)
   {
-    with_console(console, out, err) { interpreters(console).interpret(command) }
+    val interp = interpreters(console)
+    with_console(console, out, err) { interp.interpret(command) }
     if (err != null) err.commandDone()
 		out.commandDone()
   }
