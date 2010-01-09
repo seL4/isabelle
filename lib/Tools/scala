@@ -4,7 +4,7 @@
 #
 # DESCRIPTION: invoke Scala within the Isabelle environment
 
-[ -e "$ISABELLE_HOME/Admin/build" ] && "$ISABELLE_HOME/Admin/build" jars
+[ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
 
 CLASSPATH="$(jvmpath "$CLASSPATH")"
 exec "$ISABELLE_SCALA" "$@"

@@ -60,7 +60,7 @@ GRAPHFILE=""
 
 ## main
 
-[ -e "$ISABELLE_HOME/Admin/build" ] && "$ISABELLE_HOME/Admin/build" browser
+[ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" browser || exit $?; }
 
 classpath "$ISABELLE_HOME/lib/browser/GraphBrowser.jar"
 

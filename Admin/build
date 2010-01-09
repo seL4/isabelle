@@ -59,7 +59,7 @@ function build_all ()
 function build_browser ()
 {
   pushd "$ISABELLE_HOME/lib/browser" >/dev/null
-  "$ISABELLE_TOOL" env ./build || fail "Failed!"
+  "$ISABELLE_TOOL" env ./build || exit $?
   popd >/dev/null
 }
 
@@ -84,7 +84,7 @@ function build_doc ()
 function build_jars ()
 {
   pushd "$ISABELLE_HOME/src/Pure" >/dev/null
-  "$ISABELLE_TOOL" env ./build-jars || fail "Failed!"
+  "$ISABELLE_TOOL" env ./build-jars || exit $?
   popd >/dev/null
 }
 
