@@ -10,7 +10,7 @@ import java.util.regex.Pattern
 import java.util.Locale
 import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream,
   BufferedInputStream, FileInputStream, BufferedReader, InputStreamReader,
-  File, IOException}
+  File, FileFilter, IOException}
 
 import scala.io.Source
 import scala.util.matching.Regex
@@ -96,6 +96,19 @@ object Standard_System
     val writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), charset))
     try { writer.append(text) }
     finally { writer.close }
+  }
+
+  def find_files(start: File, ok: File => Boolean): List[File] =
+  {
+    val files = new mutable.ListBuffer[File]
+    val filter = new FileFilter { def accept(entry: File) = entry.isDirectory || ok(entry) }
+    def find_entry(entry: File)
+    {
+      if (ok(entry)) files += entry
+      if (entry.isDirectory) entry.listFiles(filter).foreach(find_entry)
+    }
+    find_entry(start)
+    files.toList
   }
 
 
