@@ -29,9 +29,14 @@ object Swing_Thread
     result.get
   }
 
-  def future[A](body: => A): Future[A] = Future.fork { now(body) }
+  def future[A](body: => A): Future[A] =
+  {
+    if (SwingUtilities.isEventDispatchThread()) Future.value(body)
+    else Future.fork { now(body) }
+  }
 
-  def later(body: => Unit) {
+  def later(body: => Unit)
+  {
     if (SwingUtilities.isEventDispatchThread()) body
     else SwingUtilities.invokeLater(new Runnable { def run = body })
   }
