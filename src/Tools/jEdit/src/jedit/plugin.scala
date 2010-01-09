@@ -27,7 +27,6 @@ object Isabelle
 {
   /* plugin instance */
 
-  var plugin: Plugin = null
   var system: Isabelle_System = null
   var session: Session = null
 
@@ -184,7 +183,6 @@ class Plugin extends EBPlugin
 
   override def start()
   {
-    Isabelle.plugin = this
     Isabelle.system = new Isabelle_System
     Isabelle.system.install_fonts()
     Isabelle.session = new Session(Isabelle.system)  // FIXME dialog!?
@@ -195,6 +193,5 @@ class Plugin extends EBPlugin
     Isabelle.session.stop()  // FIXME dialog!?
     Isabelle.session = null
     Isabelle.system = null
-    Isabelle.plugin = null
   }
 }
