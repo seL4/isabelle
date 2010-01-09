@@ -12,7 +12,7 @@ import console.{Console, ConsolePane, Shell, Output}
 import org.gjt.sp.jedit.{jEdit, JARClassLoader}
 import org.gjt.sp.jedit.MiscUtilities
 
-import java.io.{File, Writer, PrintWriter}
+import java.io.{File, OutputStream, Writer, PrintWriter}
 
 import scala.tools.nsc.{Interpreter, GenericRunnerSettings, NewLinePrintWriter, ConsoleWriter}
 import scala.collection.mutable
@@ -20,6 +20,20 @@ import scala.collection.mutable
 
 class Scala_Console extends Shell("Scala")
 {
+  /* reconstructed jEdit/plugin classpath */
+
+  private def reconstruct_classpath(): String =
+  {
+    def find_jars(start: String): List[String] =
+      if (start != null)
+        Standard_System.find_files(new File(start),
+          entry => entry.isFile && entry.getName.endsWith(".jar")).map(_.getAbsolutePath)
+      else Nil
+    val path = find_jars(jEdit.getSettingsDirectory) ::: find_jars(jEdit.getJEditHome)
+    path.mkString(File.pathSeparator)
+  }
+
+
   /* global state -- owned by Swing thread */
 
   private var interpreters = Map[Console, Interpreter]()
@@ -28,12 +42,44 @@ class Scala_Console extends Shell("Scala")
   private var global_out: Output = null
   private var global_err: Output = null
 
+  private val console_stream = new OutputStream
+  {
+    val buf = new StringBuilder
+    override def flush()
+    {
+      val str = Standard_System.decode_permissive_utf8(buf.toString)
+      buf.clear
+      if (global_out == null) System.out.print(str)
+      else Swing_Thread.now { global_out.writeAttrs(null, str) }
+    }
+    override def close() { flush () }
+    def write(byte: Int) { buf.append(byte.toChar) }
+  }
+
+  private val console_writer = new Writer
+  {
+    def flush() {}
+    def close() {}
+
+    def write(cbuf: Array[Char], off: Int, len: Int)
+    {
+      if (len > 0) write(new String(cbuf.subArray(off, off + len)))
+    }
+
+    override def write(str: String)
+    {
+      if (global_out == null) System.out.println(str)
+      else global_out.print(null, str)
+    }
+  }
+
   private def with_console[A](console: Console, out: Output, err: Output)(e: => A): A =
   {
     global_console = console
     global_out = out
     global_err = if (err == null) out else err
-    val res = Exn.capture { e }
+    val res = Exn.capture { scala.Console.withOut(console_stream)(e) }
+    console_stream.flush
     global_console = null
     global_out = null
     global_err = null
@@ -43,52 +89,25 @@ class Scala_Console extends Shell("Scala")
   private def report_error(str: String)
   {
     if (global_console == null || global_err == null) System.err.println(str)
-    else global_err.print(global_console.getErrorColor, str)
+    else Swing_Thread.now { global_err.print(global_console.getErrorColor, str) }
   }
 
-  private def construct_classpath(): String =
-  {
-    def find_jars(start: String): List[String] =
-      if (start != null)
-        Standard_System.find_files(new File(start),
-          entry => entry.isFile && entry.getName.endsWith(".jar")).map(_.getAbsolutePath)
-      else Nil
-    val path =
-      (jEdit.getJEditHome + File.separator + "jedit.jar") ::
-        (find_jars(jEdit.getSettingsDirectory) ::: find_jars(jEdit.getJEditHome))
-     path.mkString(File.pathSeparator)
-  }
 
-  private class Console_Writer extends Writer
-  {
-    def close {}
-    def flush {}
-
-    override def write(str: String)
-    {
-      if (global_out == null) System.out.println(str)
-      else global_out.print(null, str)
-    }
-
-    def write(cbuf: Array[Char], off: Int, len: Int)
-    {
-      if (len > 0) write(new String(cbuf.subArray(off, off + len)))
-    }
-  }
+  /* jEdit console methods */
 
   override def openConsole(console: Console)
   {
     val settings = new GenericRunnerSettings(report_error)
-    settings.classpath.value = construct_classpath()
-    val printer = new PrintWriter(new Console_Writer, true)
+    settings.classpath.value = reconstruct_classpath()
 
-    val interp = new Interpreter(settings, printer)
+    val interp = new Interpreter(settings, new PrintWriter(console_writer, true))
     {
       override def parentClassLoader = new JARClassLoader
     }
     interp.setContextClassLoader
     interp.bind("view", "org.gjt.sp.jedit.View", console.getView)
     interp.bind("session", "isabelle.proofdocument.Session", Isabelle.session)
+
     interpreters += (console -> interp)
   }
 
