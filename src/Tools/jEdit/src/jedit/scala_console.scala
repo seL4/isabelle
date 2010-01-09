@@ -20,6 +20,8 @@ import scala.collection.mutable
 
 class Scala_Console extends Shell("Scala")
 {
+  /* global state -- owned by Swing thread */
+
   private var interpreters = Map[Console, Interpreter]()
 
   private var global_console: Console = null
@@ -62,15 +64,15 @@ class Scala_Console extends Shell("Scala")
     def close {}
     def flush {}
 
-    def write(cbuf: Array[Char], off: Int, len: Int)
-    {
-      if (len > 0) write(new String(cbuf.subArray(off, off + len)))
-    }
-
     override def write(str: String)
     {
       if (global_out == null) System.out.println(str)
       else global_out.print(null, str)
+    }
+
+    def write(cbuf: Array[Char], off: Int, len: Int)
+    {
+      if (len > 0) write(new String(cbuf.subArray(off, off + len)))
     }
   }
 
@@ -79,18 +81,29 @@ class Scala_Console extends Shell("Scala")
     val settings = new GenericRunnerSettings(report_error)
     settings.classpath.value = construct_classpath()
     val printer = new PrintWriter(new Console_Writer, true)
+
     val interp = new Interpreter(settings, printer)
     {
       override def parentClassLoader = new JARClassLoader
     }
     interp.setContextClassLoader
     interp.bind("view", "org.gjt.sp.jedit.View", console.getView)
+    interp.bind("session", "isabelle.proofdocument.Session", Isabelle.session)
     interpreters += (console -> interp)
   }
 
   override def closeConsole(console: Console)
   {
     interpreters -= console
+  }
+
+  override def printInfoMessage(out: Output)
+  {
+    out.print(null,
+     "This shell evaluates Isabelle/Scala expressions.\n\n" +
+     "The following special toplevel bindings are provided:\n" +
+     "  view    -- current jEdit/Swing view (e.g. view.getBuffer, view.getTextArea)\n" +
+     "  session -- Isabelle session (e.g. session.isabelle_system)\n")
   }
 
   override def printPrompt(console: Console, out: Output)
@@ -105,5 +118,15 @@ class Scala_Console extends Shell("Scala")
     with_console(console, out, err) { interp.interpret(command) }
     if (err != null) err.commandDone()
 		out.commandDone()
+  }
+
+  override def stop(console: Console)
+  {
+    closeConsole(console)
+    console.clear
+    openConsole(console)
+    val out = console.getOutput
+    out.commandDone
+    printPrompt(console, out)
   }
 }
