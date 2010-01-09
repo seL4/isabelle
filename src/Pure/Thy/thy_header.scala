@@ -23,7 +23,7 @@ object Thy_Header
 
   val lexicon = Scan.Lexicon("%", "(", ")", ";", BEGIN, HEADER, IMPORTS, THEORY, USES)
 
-  sealed case class Header(val name: String, val imports: List[String], val uses: List[String])
+  final case class Header(val name: String, val imports: List[String], val uses: List[String])
 }
 
 

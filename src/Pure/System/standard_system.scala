@@ -98,6 +98,7 @@ object Standard_System
     finally { writer.close }
   }
 
+  // FIXME handle (potentially cyclic) directory graph
   def find_files(start: File, ok: File => Boolean): List[File] =
   {
     val files = new mutable.ListBuffer[File]

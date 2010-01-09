@@ -17,7 +17,7 @@ object Exn
 
   def capture[A](e: => A): Result[A] =
     try { Res(e) }
-    catch { case exn: RuntimeException => Exn[A](exn) }
+    catch { case exn: RuntimeException => Exn[A](exn) }   // FIXME *all* exceptions (!?), cf. ML version
 
   def release[A](result: Result[A]): A =
     result match {
