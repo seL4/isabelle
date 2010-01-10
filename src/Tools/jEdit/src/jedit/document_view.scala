@@ -263,9 +263,9 @@ class Document_View(model: Document_Model, text_area: TextArea)
       super.paintComponent(gfx)
       val buffer = model.buffer
 
-      for (command <- document.commands) {
-        val line1 = buffer.getLineOfOffset(model.to_current(document, command.start(document)))
-        val line2 = buffer.getLineOfOffset(model.to_current(document, command.stop(document))) + 1
+      for ((command, start) <- document.command_range(0)) {
+        val line1 = buffer.getLineOfOffset(model.to_current(document, start))
+        val line2 = buffer.getLineOfOffset(model.to_current(document, start + command.length)) + 1
         val y = line_to_y(line1)
         val height = HEIGHT * (line2 - line1)
         gfx.setColor(Document_View.choose_color(command, document))

@@ -84,8 +84,10 @@ class Document_Model(val session: Session, val buffer: Buffer)
 
   def lines_of_command(doc: Document, cmd: Command): (Int, Int) =
   {
-    (buffer.getLineOfOffset(to_current(doc, cmd.start(doc))),
-     buffer.getLineOfOffset(to_current(doc, cmd.stop(doc))))
+    val start = cmd.start(doc)
+    val stop = start + cmd.length
+    (buffer.getLineOfOffset(to_current(doc, start)),
+     buffer.getLineOfOffset(to_current(doc, stop)))
   }
 
 
