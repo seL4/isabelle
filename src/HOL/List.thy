@@ -578,13 +578,13 @@ apply(case_tac zs)
 apply fastsimp
 done
 
-lemma same_append_eq [iff]: "(xs @ ys = xs @ zs) = (ys = zs)"
+lemma same_append_eq [iff, induct_simp]: "(xs @ ys = xs @ zs) = (ys = zs)"
 by simp
 
 lemma append1_eq_conv [iff]: "(xs @ [x] = ys @ [y]) = (xs = ys \<and> x = y)"
 by simp
 
-lemma append_same_eq [iff]: "(ys @ xs = zs @ xs) = (ys = zs)"
+lemma append_same_eq [iff, induct_simp]: "(ys @ xs = zs @ xs) = (ys = zs)"
 by simp
 
 lemma append_self_conv2 [iff]: "(xs @ ys = ys) = (xs = [])"
