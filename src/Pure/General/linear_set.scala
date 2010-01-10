@@ -118,14 +118,16 @@ class Linear_Set[A] extends scala.collection.immutable.Set[A]
   override def isEmpty: Boolean = !rep.first.isDefined
   def size: Int = if (isEmpty) 0 else rep.nexts.size + 1
 
-  def elements = new Iterator[A] {
+  def elements: Iterator[A] = new Iterator[A] {
     private var next_elem = rep.first
     def hasNext = next_elem.isDefined
-    def next = {
-      val elem = next_elem.get
-      next_elem = rep.nexts.get(elem)
-      elem
-    }
+    def next =
+      next_elem match {
+        case Some(elem) =>
+          next_elem = rep.nexts.get(elem)
+          elem
+        case None => throw new NoSuchElementException("next on empty iterator")
+      }
   }
 
   def contains(elem: A): Boolean =

@@ -108,6 +108,7 @@ object Scan
     def ++ (elems: Iterator[String]): Lexicon = (this /: elems) ((s, elem) => s + elem)
 
 
+
     /** RegexParsers methods **/
 
     override val whiteSpace = "".r
