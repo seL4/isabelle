@@ -51,8 +51,10 @@ class Command(
   def content(i: Int, j: Int): String = content.substring(i, j)
   lazy val symbol_index = new Symbol.Index(content)
 
+  def length: Int = content.length
+
   def start(doc: Document) = doc.token_start(tokens.first)
-  def stop(doc: Document) = doc.token_start(tokens.last) + tokens.last.length
+  def stop(doc: Document) = start(doc) + length
 
   def contains(p: Token) = tokens.contains(p)
 

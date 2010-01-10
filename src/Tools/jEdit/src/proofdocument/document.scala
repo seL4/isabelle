@@ -245,6 +245,7 @@ private case class Document_Body(
   }
 }
 
+
 class Document(
     val id: Isar_Document.Document_ID,
     val tokens: Linear_Set[Token],   // FIXME plain List, inside Command
@@ -252,10 +253,41 @@ class Document(
     val commands: Linear_Set[Command],
     old_states: Map[Command, Command])
 {
+  // FIXME eliminate
   def content = Token.string_from_tokens(Nil ++ tokens, token_start)
 
 
-  /* command/state assignment */
+  /* command source positions */
+
+  def command_starts: Iterator[(Command, Int)] =
+  {
+    var offset = 0
+    for (cmd <- commands.elements) yield {
+      // val start = offset  FIXME new
+      val start = token_start(cmd.tokens.first)   // FIXME old
+      offset += cmd.length
+      (cmd, start)
+    }
+  }
+
+  def command_start(cmd: Command): Option[Int] =
+    command_starts.find(_._1 == cmd).map(_._2)
+
+  def command_range(i: Int): Iterator[(Command, Int)] =
+    command_starts dropWhile { case (cmd, start) => start + cmd.length <= i }
+
+  def command_range(i: Int, j: Int): Iterator[(Command, Int)] =
+    command_range(i) takeWhile { case (_, start) => start < j }
+
+  def command_at(i: Int): Option[(Command, Int)] =
+  {
+    val range = command_range(i)
+    if (range.hasNext) Some(range.next) else None
+  }
+
+
+
+  /* command state assignment */
 
   val assignment = Future.promise[Map[Command, Command]]
   def await_assignment { assignment.join }
@@ -272,34 +304,5 @@ class Document(
   {
     require(assignment.is_finished)
     (assignment.join)(cmd).current_state
-  }
-
-
-  val commands_offsets = {
-    var last_stop = 0
-    (for (c <- commands) yield {
-      val r = c -> (last_stop, c.stop(this))
-      last_stop = c.stop(this)
-      r
-    }).toArray
-  }
-
-  def command_at(pos: Int): Option[Command] =
-    find_command(pos, 0, commands_offsets.length)
-
-  // use a binary search to find commands for a given offset
-  private def find_command(pos: Int, array_start: Int, array_stop: Int): Option[Command] =
-  {
-    val middle_index = (array_start + array_stop) / 2
-    if (middle_index >= commands_offsets.length) return None
-    val (middle, (start, stop)) = commands_offsets(middle_index)
-    // does middle contain pos?
-    if (start <= pos && pos < stop)
-      Some(middle)
-    else if (start > pos)
-      find_command(pos, array_start, middle_index)
-    else if (stop <= pos)
-      find_command(pos, middle_index + 1, array_stop)
-    else error("impossible")
   }
 }

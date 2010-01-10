@@ -126,31 +126,27 @@ class Document_View(model: Document_Model, text_area: TextArea)
     {
       def from_current(pos: Int) = model.from_current(document, pos)
       def to_current(pos: Int) = model.to_current(document, pos)
-      val saved_color = gfx.getColor
-
       val metrics = text_area.getPainter.getFontMetrics
-
-      // encolor phase
-      var cmd = document.command_at(from_current(start))
-      while (cmd.isDefined && cmd.get.start(document) < end) {
-        val e = cmd.get
-        val begin = start max to_current(e.start(document))
-        val finish = (end - 1) min to_current(e.stop(document))
-        encolor(gfx, y, metrics.getHeight, begin, finish,
-          Document_View.choose_color(e, document), true)
-        cmd = document.commands.next(e)
+      val saved_color = gfx.getColor
+      try {
+        for ((command, command_start) <-
+          document.command_range(from_current(start), from_current(end)))
+        {
+          val begin = start max to_current(command_start)
+          val finish = (end - 1) min to_current(command_start + command.length)
+          encolor(gfx, y, metrics.getHeight, begin, finish,
+            Document_View.choose_color(command, document), true)
+        }
       }
-
-      gfx.setColor(saved_color)
+      finally { gfx.setColor(saved_color) }
     }
 
     override def getToolTipText(x: Int, y: Int): String =
     {
       val offset = model.from_current(document, text_area.xyToOffset(x, y))
       document.command_at(offset) match {
-        case Some(cmd) =>
-          document.token_start(cmd.tokens.first)
-          document.current_state(cmd).type_at(offset - cmd.start(document)).getOrElse(null)
+        case Some((command, command_start)) =>
+          document.current_state(command).type_at(offset - command_start).getOrElse(null)
         case None => null
       }
     }
@@ -169,12 +165,11 @@ class Document_View(model: Document_Model, text_area: TextArea)
 
   private val caret_listener = new CaretListener
   {
-    override def caretUpdate(e: CaretEvent) {
+    override def caretUpdate(e: CaretEvent)
+    {
       document.command_at(e.getDot) match {
-        case Some(cmd)
-          if (document.token_start(cmd.tokens.first) <= e.getDot &&
-            selected_command != cmd) =>
-          selected_command = cmd  // FIXME !?
+        case Some((command, command_start)) if (selected_command != command) =>
+          selected_command = command
         case _ =>
       }
     }

@@ -115,37 +115,32 @@ class Isabelle_Token_Marker(model: Document_Model) extends TokenMarker
     def from: Int => Int = model.from_current(document, _)
 
     var next_x = start
-    var cmd = document.command_at(from(start))
-    while (cmd.isDefined && cmd.get.start(document) < from(stop)) {
-      val command = cmd.get
-      for {
-        markup <- document.current_state(command).highlight.flatten
-        command_start = command.start(document)
-        abs_start = to(command_start + markup.start)
-        abs_stop = to(command_start + markup.stop)
-        if (abs_stop > start)
-        if (abs_start < stop)
-        byte = Isabelle_Token_Marker.choose_byte(markup.info.toString)
-        token_start = (abs_start - start) max 0
-        token_length =
-          (abs_stop - abs_start) -
-          ((start - abs_start) max 0) -
-          ((abs_stop - stop) max 0)
-      } {
+    for {
+      (command, command_start) <- document.command_range(from(start), from(stop))
+      markup <- document.current_state(command).highlight.flatten
+      val abs_start = to(command_start + markup.start)
+      val abs_stop = to(command_start + markup.stop)
+      if (abs_stop > start)
+      if (abs_start < stop)
+      val byte = Isabelle_Token_Marker.choose_byte(markup.info.toString)
+      val token_start = (abs_start - start) max 0
+      val token_length =
+        (abs_stop - abs_start) -
+        ((start - abs_start) max 0) -
+        ((abs_stop - stop) max 0)
+      }
+      {
         if (start + token_start > next_x)
           handler.handleToken(line_segment, 1,
             next_x - start, start + token_start - next_x, context)
-        handler.handleToken(line_segment, byte,
-          token_start, token_length, context)
+        handler.handleToken(line_segment, byte, token_start, token_length, context)
         next_x = start + token_start + token_length
       }
-      cmd = document.commands.next(command)
-    }
     if (next_x < stop)
       handler.handleToken(line_segment, 1, next_x - start, stop - next_x, context)
 
     handler.handleToken(line_segment, JToken.END, line_segment.count, 0, context)
     handler.setLineContext(context)
-    return context
+    context
   }
 }
