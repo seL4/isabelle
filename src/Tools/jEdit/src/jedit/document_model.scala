@@ -64,14 +64,7 @@ class Document_Model(val session: Session, val buffer: Buffer)
     new Change(document_0.id, None, Nil, Future.value(Nil, document_0))
 
   def current_change(): Change = history
-
-  def recent_document(): Document =
-  {
-    def find(change: Change): Change =
-      if (change.result.is_finished && change.join_document.assignment.is_finished) change
-      else find(change.parent.get)
-    find(current_change()).join_document
-  }
+  def recent_document(): Document = current_change().ancestors.find(_.is_assigned).get.join_document
 
 
   /* transforming offsets */

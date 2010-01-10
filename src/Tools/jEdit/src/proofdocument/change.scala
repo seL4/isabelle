@@ -26,6 +26,7 @@ class Change(
   }
 
   def join_document: Document = result.join._2
+  def is_assigned: Boolean = result.is_finished && join_document.assignment.is_finished
 
   def edit(session: Session, edits: List[Text_Edit]): Change =
   {
