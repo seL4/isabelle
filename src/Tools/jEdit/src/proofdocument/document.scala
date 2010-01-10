@@ -40,18 +40,16 @@ object Document
     doc
   }
 
-  type Structure_Edit = (Option[Command], Option[Command])
-  type Structure_Change = List[Structure_Edit]
-  type Result = (Document, List[Structure_Edit])
+  type Edit = (Option[Command], Option[Command])
 
   def text_edits(session: Session, old_doc: Document, new_id: Isar_Document.Document_ID,
-    edits: List[Text_Edit]): Result =
+    edits: List[Text_Edit]): (List[Edit], Document) =
   {
     require(old_doc.assignment.is_finished)
     val doc0 =
       Document_Body(old_doc.tokens, old_doc.token_start, old_doc.commands, old_doc.assignment.join)
 
-    val changes = new mutable.ListBuffer[Structure_Edit]
+    val changes = new mutable.ListBuffer[Edit]
     val doc = (doc0 /: edits)((doc1: Document_Body, edit: Text_Edit) =>
       {
         val (doc2, chgs) = doc1.text_edit(session, edit)
@@ -59,7 +57,7 @@ object Document
         doc2
       })
     val new_doc = new Document(new_id, doc.tokens, doc.token_start, doc.commands, doc.states)
-    (new_doc, changes.toList)
+    (changes.toList, new_doc)
   }
 }
 
@@ -71,7 +69,7 @@ private case class Document_Body(
 {
   /* token view */
 
-  def text_edit(session: Session, e: Text_Edit): (Document_Body, List[Document.Structure_Edit]) =
+  def text_edit(session: Session, e: Text_Edit): (Document_Body, List[Document.Edit]) =
   {
     case class TextChange(start: Int, added: String, removed: String)
     val change = e match {
@@ -158,7 +156,7 @@ private case class Document_Body(
       inserted_tokens: List[Token],
       after_change: Option[Token],
       new_tokens: List[Token],
-      new_token_start: Map[Token, Int]): (Document_Body, Document.Structure_Change) =
+      new_token_start: Map[Token, Int]): (Document_Body, List[Document.Edit]) =
   {
     val new_tokenset = Linear_Set[Token]() ++ new_tokens
     val cmd_before_change = before_change match {
@@ -260,6 +258,7 @@ class Document(
   /* command/state assignment */
 
   val assignment = Future.promise[Map[Command, Command]]
+  def await_assignment { assignment.join }
 
   @volatile private var tmp_states = old_states
 

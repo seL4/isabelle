@@ -81,7 +81,7 @@ class Session(system: Isabelle_System)
     {
       require(change.parent.isDefined)
 
-      val (doc, changes) = change.result.join
+      val (changes, doc) = change.result.join
       val id_changes = changes map {
         case (c1, c2) =>
           (c1.map(_.id).getOrElse(""),
