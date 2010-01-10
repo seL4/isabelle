@@ -60,7 +60,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved args_num is
                 then print_case tyvars thm vars fxy cases
                 else print_app tyvars is_pat thm vars fxy c_ts
             | NONE => print_case tyvars thm vars fxy cases)
-    and print_app tyvars is_pat thm vars fxy (app as ((c, ((tys, _), _)), ts)) =
+    and print_app tyvars is_pat thm vars fxy (app as ((c, ((tys, _), tys_args)), ts)) =
       let
         val k = length ts;
         val l = case syntax_const c of NONE => args_num c | SOME (l, _) => l;
@@ -71,7 +71,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved args_num is
               (applify "[" "]" NOBR ((str o deresolve) c) (map (print_typ tyvars NOBR) tys'))
                 (map (print_term tyvars is_pat thm vars NOBR) ts))
           | SOME (_, print) => (false, fn ts =>
-              print (print_term tyvars is_pat thm) thm vars fxy (ts ~~ take k tys));
+              print (print_term tyvars is_pat thm) thm vars fxy (ts ~~ take k tys_args));
       in if k = l then print' ts
       else if k < l then
         print_term tyvars is_pat thm vars fxy (Code_Thingol.eta_expand l app)

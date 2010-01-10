@@ -156,7 +156,7 @@ fun desymbolize upper "" = if upper then "X" else "x"
           if Symbol.is_ascii_letter x orelse Symbol.is_symbolic x then xs
           else "x" :: xs;
         fun is_valid x =
-          Symbol.is_ascii_letter x orelse Symbol.is_ascii_digit x orelse x = "'";
+          Symbol.is_ascii_letter x orelse Symbol.is_ascii_digit x;
         fun sep [] = []
           | sep (xs as "_" :: _) = xs
           | sep xs = "_" :: xs;

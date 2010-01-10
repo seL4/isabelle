@@ -10,5 +10,6 @@ begin
 export_code * in SML module_name CodegenTest
   in OCaml module_name CodegenTest file -
   in Haskell file -
+  in Scala file -
 
 end
