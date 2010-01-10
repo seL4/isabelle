@@ -97,6 +97,8 @@ class Scala_Console extends Shell("Scala")
 
   override def openConsole(console: Console)
   {
+    console.getOutputPane.getCaret.setBlinkRate(0)  // FIXME property!?
+
     val settings = new GenericRunnerSettings(report_error)
     settings.classpath.value = reconstruct_classpath()
 
@@ -106,6 +108,7 @@ class Scala_Console extends Shell("Scala")
     }
     interp.setContextClassLoader
     interp.bind("view", "org.gjt.sp.jedit.View", console.getView)
+    interp.bind("console", "console.Console", console)
     interp.interpret("import isabelle.jedit.Isabelle")
 
     interpreters += (console -> interp)
@@ -122,7 +125,8 @@ class Scala_Console extends Shell("Scala")
      "This shell evaluates Isabelle/Scala expressions.\n\n" +
      "The following special toplevel bindings are provided:\n" +
      "  view      -- current jEdit/Swing view (e.g. view.getBuffer, view.getTextArea)\n" +
-     "  Isabelle  -- main Isabelle plugin instance (e.g. Isabelle.system, Isabelle.session)\n")
+     "  console   -- jEdit Console plugin instance\n" +
+     "  Isabelle  -- Isabelle plugin instance (e.g. Isabelle.system, Isabelle.session)\n")
   }
 
   override def printPrompt(console: Console, out: Output)
