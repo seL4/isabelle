@@ -1398,6 +1398,8 @@ constdefs
   induct_implies where "induct_implies A B == A \<longrightarrow> B"
   induct_equal where "induct_equal x y == x = y"
   induct_conj where "induct_conj A B == A \<and> B"
+  induct_true where "induct_true == True"
+  induct_false where "induct_false == False"
 
 lemma induct_forall_eq: "(!!x. P x) == Trueprop (induct_forall (\<lambda>x. P x))"
   by (unfold atomize_all induct_forall_def)
@@ -1411,10 +1413,13 @@ lemma induct_equal_eq: "(x == y) == Trueprop (induct_equal x y)"
 lemma induct_conj_eq: "(A &&& B) == Trueprop (induct_conj A B)"
   by (unfold atomize_conj induct_conj_def)
 
-lemmas induct_atomize = induct_forall_eq induct_implies_eq induct_equal_eq induct_conj_eq
+lemmas induct_atomize' = induct_forall_eq induct_implies_eq induct_conj_eq
+lemmas induct_atomize = induct_atomize' induct_equal_eq
+lemmas induct_rulify' [symmetric, standard] = induct_atomize'
 lemmas induct_rulify [symmetric, standard] = induct_atomize
 lemmas induct_rulify_fallback =
   induct_forall_def induct_implies_def induct_equal_def induct_conj_def
+  induct_true_def induct_false_def
 
 
 lemma induct_forall_conj: "induct_forall (\<lambda>x. induct_conj (A x) (B x)) =
@@ -1436,7 +1441,8 @@ qed
 
 lemmas induct_conj = induct_forall_conj induct_implies_conj induct_conj_curry
 
-hide const induct_forall induct_implies induct_equal induct_conj
+lemma induct_trueI: "induct_true"
+  by (simp add: induct_true_def)
 
 text {* Method setup. *}
 
@@ -1445,12 +1451,93 @@ structure Induct = Induct
 (
   val cases_default = @{thm case_split}
   val atomize = @{thms induct_atomize}
-  val rulify = @{thms induct_rulify}
+  val rulify = @{thms induct_rulify'}
   val rulify_fallback = @{thms induct_rulify_fallback}
+  fun dest_def (Const (@{const_name induct_equal}, _) $ t $ u) = SOME (t, u)
+    | dest_def _ = NONE
+  val trivial_tac = match_tac @{thms induct_trueI}
 )
 *}
 
-setup Induct.setup
+setup {*
+  Induct.setup #>
+  Context.theory_map (Induct.map_simpset (fn ss => ss
+    setmksimps (Simpdata.mksimps Simpdata.mksimps_pairs #>
+      map (Simplifier.rewrite_rule (map Thm.symmetric
+        @{thms induct_rulify_fallback induct_true_def induct_false_def})))
+    addsimprocs
+      [Simplifier.simproc @{theory} "swap_induct_false"
+         ["induct_false ==> PROP P ==> PROP Q"]
+         (fn _ => fn _ =>
+            (fn _ $ (P as _ $ @{const induct_false}) $ (_ $ Q $ _) =>
+                  if P <> Q then SOME Drule.swap_prems_eq else NONE
+              | _ => NONE)),
+       Simplifier.simproc @{theory} "induct_equal_conj_curry"
+         ["induct_conj P Q ==> PROP R"]
+         (fn _ => fn _ =>
+            (fn _ $ (_ $ P) $ _ =>
+                let
+                  fun is_conj (@{const induct_conj} $ P $ Q) =
+                        is_conj P andalso is_conj Q
+                    | is_conj (Const (@{const_name induct_equal}, _) $ _ $ _) = true
+                    | is_conj @{const induct_true} = true
+                    | is_conj @{const induct_false} = true
+                    | is_conj _ = false
+                in if is_conj P then SOME @{thm induct_conj_curry} else NONE end
+              | _ => NONE))]))
+*}
+
+text {* Pre-simplification of induction and cases rules *}
+
+lemma [induct_simp]: "(!!x. induct_equal x t ==> PROP P x) == PROP P t"
+  unfolding induct_equal_def
+proof
+  assume R: "!!x. x = t ==> PROP P x"
+  show "PROP P t" by (rule R [OF refl])
+next
+  fix x assume "PROP P t" "x = t"
+  then show "PROP P x" by simp
+qed
+
+lemma [induct_simp]: "(!!x. induct_equal t x ==> PROP P x) == PROP P t"
+  unfolding induct_equal_def
+proof
+  assume R: "!!x. t = x ==> PROP P x"
+  show "PROP P t" by (rule R [OF refl])
+next
+  fix x assume "PROP P t" "t = x"
+  then show "PROP P x" by simp
+qed
+
+lemma [induct_simp]: "(induct_false ==> P) == Trueprop induct_true"
+  unfolding induct_false_def induct_true_def
+  by (iprover intro: equal_intr_rule)
+
+lemma [induct_simp]: "(induct_true ==> PROP P) == PROP P"
+  unfolding induct_true_def
+proof
+  assume R: "True \<Longrightarrow> PROP P"
+  from TrueI show "PROP P" by (rule R)
+next
+  assume "PROP P"
+  then show "PROP P" .
+qed
+
+lemma [induct_simp]: "(PROP P ==> induct_true) == Trueprop induct_true"
+  unfolding induct_true_def
+  by (iprover intro: equal_intr_rule)
+
+lemma [induct_simp]: "(!!x. induct_true) == Trueprop induct_true"
+  unfolding induct_true_def
+  by (iprover intro: equal_intr_rule)
+
+lemma [induct_simp]: "induct_implies induct_true P == P"
+  by (simp add: induct_implies_def induct_true_def)
+
+lemma [induct_simp]: "(x = x) = True" 
+  by (rule simp_thms)
+
+hide const induct_forall induct_implies induct_equal induct_conj induct_true induct_false
 
 use "~~/src/Tools/induct_tacs.ML"
 setup InductTacs.setup
