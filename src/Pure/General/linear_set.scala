@@ -118,8 +118,11 @@ class Linear_Set[A] extends scala.collection.immutable.Set[A]
   override def isEmpty: Boolean = !rep.first.isDefined
   def size: Int = if (isEmpty) 0 else rep.nexts.size + 1
 
-  def elements: Iterator[A] = new Iterator[A] {
-    private var next_elem = rep.first
+  def contains(elem: A): Boolean =
+    !isEmpty && (rep.last.get == elem || rep.nexts.isDefinedAt(elem))
+
+  private def elements_from(start: Option[A]): Iterator[A] = new Iterator[A] {
+    private var next_elem = start
     def hasNext = next_elem.isDefined
     def next =
       next_elem match {
@@ -130,8 +133,11 @@ class Linear_Set[A] extends scala.collection.immutable.Set[A]
       }
   }
 
-  def contains(elem: A): Boolean =
-    !isEmpty && (rep.last.get == elem || rep.nexts.isDefinedAt(elem))
+  def elements: Iterator[A] = elements_from(rep.first)
+
+  def elements(elem: A): Iterator[A] =
+    if (contains(elem)) elements_from(Some(elem))
+    else throw new Linear_Set.Undefined(elem.toString)
 
   def + (elem: A): Linear_Set[A] = insert_after(rep.last, elem)
 
