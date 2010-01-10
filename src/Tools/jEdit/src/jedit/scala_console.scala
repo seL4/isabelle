@@ -97,8 +97,6 @@ class Scala_Console extends Shell("Scala")
 
   override def openConsole(console: Console)
   {
-    console.getOutputPane.getCaret.setBlinkRate(0)  // FIXME property!?
-
     val settings = new GenericRunnerSettings(report_error)
     settings.classpath.value = reconstruct_classpath()
 
