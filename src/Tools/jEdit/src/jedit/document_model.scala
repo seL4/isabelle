@@ -84,7 +84,7 @@ class Document_Model(val session: Session, val buffer: Buffer)
 
   def lines_of_command(doc: Document, cmd: Command): (Int, Int) =
   {
-    val start = cmd.start(doc)
+    val start = doc.command_start(cmd).get  // FIXME total?
     val stop = start + cmd.length
     (buffer.getLineOfOffset(to_current(doc, start)),
      buffer.getLineOfOffset(to_current(doc, stop)))

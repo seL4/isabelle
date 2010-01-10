@@ -44,11 +44,10 @@ class Isabelle_Sidekick extends SideKickParser("isabelle")
     Swing_Thread.now { Document_Model(buffer) } match {
       case Some(model) =>
         val document = model.recent_document()
-        for (command <- document.commands if !stopped) {
+        for ((command, command_start) <- document.command_range(0) if !stopped) {
           root.add(document.current_state(command).markup_root.swing_tree((node: Markup_Node) =>
               {
                 val content = command.content(node.start, node.stop)
-                val command_start = command.start(document)
                 val id = command.id
 
                 new DefaultMutableTreeNode(new IAsset {

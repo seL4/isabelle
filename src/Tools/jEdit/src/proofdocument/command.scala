@@ -53,8 +53,6 @@ class Command(
 
   def length: Int = content.length
 
-  def start(doc: Document) = doc.token_start(tokens.first)
-
   // FIXME eliminate
   def contains(p: Token) = tokens.contains(p)
 
