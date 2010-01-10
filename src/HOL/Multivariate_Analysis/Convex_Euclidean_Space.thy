@@ -170,8 +170,8 @@ next
   next assume "card s > 2" thus ?thesis using as and n_def proof(induct n arbitrary: u s)
       case (Suc n) fix s::"'a set" and u::"'a \<Rightarrow> real"
       assume IA:"\<And>u s.  \<lbrakk>2 < card s; \<forall>x\<in>V. \<forall>y\<in>V. \<forall>u v. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> V; finite s;
-               s \<noteq> {}; s \<subseteq> V; setsum u s = 1; n \<equiv> card s \<rbrakk> \<Longrightarrow> (\<Sum>x\<in>s. u x *\<^sub>R x) \<in> V" and
-        as:"Suc n \<equiv> card s" "2 < card s" "\<forall>x\<in>V. \<forall>y\<in>V. \<forall>u v. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> V"
+               s \<noteq> {}; s \<subseteq> V; setsum u s = 1; n = card s \<rbrakk> \<Longrightarrow> (\<Sum>x\<in>s. u x *\<^sub>R x) \<in> V" and
+        as:"Suc n = card s" "2 < card s" "\<forall>x\<in>V. \<forall>y\<in>V. \<forall>u v. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> V"
            "finite s" "s \<noteq> {}" "s \<subseteq> V" "setsum u s = 1"
       have "\<exists>x\<in>s. u x \<noteq> 1" proof(rule_tac ccontr)
         assume " \<not> (\<exists>x\<in>s. u x \<noteq> 1)" hence "setsum u s = real_of_nat (card s)" unfolding card_eq_setsum by auto
@@ -1345,7 +1345,7 @@ proof(cases "s={}")
 next
   case False then obtain w where "w\<in>s" by auto
   show ?thesis unfolding caratheodory[of s]
-  proof(induct "CARD('n) + 1")
+  proof(induct ("CARD('n) + 1"))
     have *:"{x.\<exists>sa. finite sa \<and> sa \<subseteq> s \<and> card sa \<le> 0 \<and> x \<in> convex hull sa} = {}" 
       using compact_empty by (auto simp add: convex_hull_empty)
     case 0 thus ?case unfolding * by simp

@@ -1,5 +1,4 @@
 (*  Title:      HOL/Bali/WellForm.thy
-    ID:         $Id$
     Author:     David von Oheimb and Norbert Schirmer
 *)
 
@@ -1409,8 +1408,7 @@ proof -
   from clsC ws 
   show "methd G C sig = Some m 
         \<Longrightarrow> G\<turnstile>(mdecl (sig,mthd m)) declared_in (declclass m)"
-    (is "PROP ?P C") 
-  proof (induct ?P C rule: ws_class_induct')
+  proof (induct C rule: ws_class_induct')
     case Object
     assume "methd G Object sig = Some m" 
     with wf show ?thesis
@@ -1755,28 +1753,20 @@ lemma bexI': "x \<in> A \<Longrightarrow> P x \<Longrightarrow> \<exists>x\<in>A
 lemma ballE': "\<forall>x\<in>A. P x \<Longrightarrow> (x \<notin> A \<Longrightarrow> Q) \<Longrightarrow> (P x \<Longrightarrow> Q) \<Longrightarrow> Q" by blast
 
 lemma subint_widen_imethds: 
- "\<lbrakk>G\<turnstile>I\<preceq>I J; wf_prog G; is_iface G J; jm \<in> imethds G J sig\<rbrakk> \<Longrightarrow>   
-  \<exists> im \<in> imethds G I sig. is_static im = is_static jm \<and> 
+  assumes irel: "G\<turnstile>I\<preceq>I J"
+  and wf: "wf_prog G"
+  and is_iface: "is_iface G J"
+  and jm: "jm \<in> imethds G J sig"
+  shows "\<exists>im \<in> imethds G I sig. is_static im = is_static jm \<and> 
                           accmodi im = accmodi jm \<and>
                           G\<turnstile>resTy im\<preceq>resTy jm"
-proof -
-  assume irel: "G\<turnstile>I\<preceq>I J" and
-           wf: "wf_prog G" and
-     is_iface: "is_iface G J"
-  from irel show "jm \<in> imethds G J sig \<Longrightarrow> ?thesis" 
-               (is "PROP ?P I" is "PROP ?Prem J \<Longrightarrow> ?Concl I")
-  proof (induct ?P I rule: converse_rtrancl_induct) 
-    case Id
-    assume "jm \<in> imethds G J sig"
-    then show "?Concl J" by  (blast elim: bexI')
+  using irel jm
+proof (induct rule: converse_rtrancl_induct)
+    case base
+    then show ?case by  (blast elim: bexI')
   next
-    case Step
-    fix I SI
-    assume subint1_I_SI: "G\<turnstile>I \<prec>I1 SI" and 
-            subint_SI_J: "G\<turnstile>SI \<preceq>I J" and
-                    hyp: "PROP ?P SI" and
-                     jm: "jm \<in> imethds G J sig"
-    from subint1_I_SI 
+    case (step I SI)
+    from `G\<turnstile>I \<prec>I1 SI`
     obtain i where
       ifI: "iface G I = Some i" and
        SI: "SI \<in> set (isuperIfs i)"
@@ -1784,10 +1774,10 @@ proof -
 
     let ?newMethods 
           = "(Option.set \<circ> table_of (map (\<lambda>(sig, mh). (sig, I, mh)) (imethods i)))"
-    show "?Concl I"
+    show ?case
     proof (cases "?newMethods sig = {}")
       case True
-      with ifI SI hyp wf jm 
+      with ifI SI step wf
       show "?thesis" 
         by (auto simp add: imethds_rec) 
     next
@@ -1816,7 +1806,7 @@ proof -
         wf_SI: "wf_idecl G (SI,si)" 
         by (auto dest!: wf_idecl_supD is_acc_ifaceD
                   dest: wf_prog_idecl)
-      from jm hyp 
+      from step
       obtain sim::"qtname \<times> mhead"  where
                       sim: "sim \<in> imethds G SI sig" and
          eq_static_sim_jm: "is_static sim = is_static jm" and 
@@ -1841,7 +1831,6 @@ proof -
       show ?thesis 
         by auto 
     qed
-  qed
 qed
      
 (* Tactical version *)
@@ -1974,30 +1963,20 @@ proof -
   from clsC ws 
   show "\<And> m d. \<lbrakk>methd G C sig = Some m; class G (declclass m) = Some d\<rbrakk>
         \<Longrightarrow> table_of (methods d) sig  = Some (mthd m)" 
-         (is "PROP ?P C") 
-  proof (induct ?P C rule: ws_class_induct)
+  proof (induct rule: ws_class_induct)
     case Object
-    fix m d
-    assume "methd G Object sig = Some m" 
-           "class G (declclass m) = Some d"
     with wf show "?thesis m d" by auto
   next
-    case Subcls
-    fix C c m d
-    assume hyp: "PROP ?P (super c)"
-    and      m: "methd G C sig = Some m"
-    and  declC: "class G (declclass m) = Some d"
-    and   clsC: "class G C = Some c"
-    and   nObj: "C \<noteq> Object"
+    case (Subcls C c)
     let ?newMethods = "table_of (map (\<lambda>(s, m). (s, C, m)) (methods c)) sig"
     show "?thesis m d" 
     proof (cases "?newMethods")
       case None
-      from None clsC nObj ws m declC
-      show "?thesis" by (auto simp add: methd_rec) (rule hyp)
+      from None ws Subcls
+      show "?thesis" by (auto simp add: methd_rec) (rule Subcls)
     next
       case Some
-      from Some clsC nObj ws m declC
+      from Some ws Subcls
       show "?thesis" 
         by (auto simp add: methd_rec
                      dest: wf_prog_cdecl wf_cdecl_supD is_acc_class_is_class)

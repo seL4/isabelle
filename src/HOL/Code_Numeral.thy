@@ -83,7 +83,7 @@ proof -
     then have "\<And>n. P (of_nat n) \<Longrightarrow> P (Suc_code_numeral (of_nat n))" .
     then have step: "\<And>n. P (of_nat n) \<Longrightarrow> P (of_nat (Suc n))" by simp
   from init step have "P (of_nat (nat_of k))"
-    by (induct "nat_of k") simp_all
+    by (induct ("nat_of k")) simp_all
   then show "P k" by simp
 qed simp_all
 
@@ -100,7 +100,7 @@ proof (rule ext)
   fix k
   have "code_numeral_size k = nat_size (nat_of k)"
     by (induct k rule: code_numeral.induct) (simp_all del: zero_code_numeral_def Suc_code_numeral_def, simp_all)
-  also have "nat_size (nat_of k) = nat_of k" by (induct "nat_of k") simp_all
+  also have "nat_size (nat_of k) = nat_of k" by (induct ("nat_of k")) simp_all
   finally show "code_numeral_size k = nat_of k" .
 qed
 

@@ -73,7 +73,7 @@ proof (induct n \<equiv> "a x" arbitrary: x)
   show "P (a x)" sorry
 next
   case (Suc n)
-  note hyp = `\<And>x. A (a x) \<Longrightarrow> n = a x \<Longrightarrow> P (a x)`
+  note hyp = `\<And>x. n = a x \<Longrightarrow> A (a x) \<Longrightarrow> P (a x)`
     and prem = `A (a x)`
     and defn = `Suc n = a x`
   show "P (a x)" sorry

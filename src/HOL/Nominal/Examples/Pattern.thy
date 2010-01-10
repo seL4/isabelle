@@ -410,37 +410,34 @@ lemma subst_type_aux:
   and b: "\<Gamma> \<turnstile> u : U"
   shows "\<Delta> @ \<Gamma> \<turnstile> t[x\<mapsto>u] : T" using a b
 proof (nominal_induct \<Gamma>'\<equiv>"\<Delta> @ [(x, U)] @ \<Gamma>" t T avoiding: x u \<Delta> rule: typing.strong_induct)
-  case (Var \<Gamma>' y T x u \<Delta>)
-  then have a1: "valid (\<Delta> @ [(x, U)] @ \<Gamma>)" 
-       and  a2: "(y, T) \<in> set (\<Delta> @ [(x, U)] @ \<Gamma>)" 
-       and  a3: "\<Gamma> \<turnstile> u : U" by simp_all
-  from a1 have a4: "valid (\<Delta> @ \<Gamma>)" by (rule valid_insert)
+  case (Var y T x u \<Delta>)
+  from `valid (\<Delta> @ [(x, U)] @ \<Gamma>)`
+  have valid: "valid (\<Delta> @ \<Gamma>)" by (rule valid_insert)
   show "\<Delta> @ \<Gamma> \<turnstile> Var y[x\<mapsto>u] : T"
   proof cases
     assume eq: "x = y"
-    from a1 a2 have "T = U" using eq by (auto intro: context_unique)
-    with a3 show "\<Delta> @ \<Gamma> \<turnstile> Var y[x\<mapsto>u] : T" using eq a4 by (auto intro: weakening)
+    from Var eq have "T = U" by (auto intro: context_unique)
+    with Var eq valid show "\<Delta> @ \<Gamma> \<turnstile> Var y[x\<mapsto>u] : T" by (auto intro: weakening)
   next
     assume ineq: "x \<noteq> y"
-    from a2 have "(y, T) \<in> set (\<Delta> @ \<Gamma>)" using ineq by simp
-    then show "\<Delta> @ \<Gamma> \<turnstile> Var y[x\<mapsto>u] : T" using ineq a4 by auto
+    from Var ineq have "(y, T) \<in> set (\<Delta> @ \<Gamma>)" by simp
+    then show "\<Delta> @ \<Gamma> \<turnstile> Var y[x\<mapsto>u] : T" using ineq valid by auto
   qed
 next
-  case (Tuple \<Gamma>' t\<^isub>1 T\<^isub>1 t\<^isub>2 T\<^isub>2)
-  from `\<Gamma> \<turnstile> u : U` `\<Gamma>' = \<Delta> @ [(x, U)] @ \<Gamma>`
+  case (Tuple t\<^isub>1 T\<^isub>1 t\<^isub>2 T\<^isub>2)
+  from refl `\<Gamma> \<turnstile> u : U`
   have "\<Delta> @ \<Gamma> \<turnstile> t\<^isub>1[x\<mapsto>u] : T\<^isub>1" by (rule Tuple)
-  moreover from `\<Gamma> \<turnstile> u : U` `\<Gamma>' = \<Delta> @ [(x, U)] @ \<Gamma>`
+  moreover from refl `\<Gamma> \<turnstile> u : U`
   have "\<Delta> @ \<Gamma> \<turnstile> t\<^isub>2[x\<mapsto>u] : T\<^isub>2" by (rule Tuple)
   ultimately have "\<Delta> @ \<Gamma> \<turnstile> \<langle>t\<^isub>1[x\<mapsto>u], t\<^isub>2[x\<mapsto>u]\<rangle> : T\<^isub>1 \<otimes> T\<^isub>2" ..
   then show ?case by simp
 next
-  case (Let p t \<Gamma>' T \<Delta>' s S)
-  from `\<Gamma> \<turnstile> u : U` `\<Gamma>' = \<Delta> @ [(x, U)] @ \<Gamma>`
+  case (Let p t T \<Delta>' s S)
+  from refl `\<Gamma> \<turnstile> u : U`
   have "\<Delta> @ \<Gamma> \<turnstile> t[x\<mapsto>u] : T" by (rule Let)
   moreover note `\<turnstile> p : T \<Rightarrow> \<Delta>'`
-  moreover from `\<Gamma>' = \<Delta> @ [(x, U)] @ \<Gamma>`
-  have "\<Delta>' @ \<Gamma>' = (\<Delta>' @ \<Delta>) @ [(x, U)] @ \<Gamma>" by simp
-  with `\<Gamma> \<turnstile> u : U` have "(\<Delta>' @ \<Delta>) @ \<Gamma> \<turnstile> s[x\<mapsto>u] : S" by (rule Let)
+  moreover have "\<Delta>' @ (\<Delta> @ [(x, U)] @ \<Gamma>) = (\<Delta>' @ \<Delta>) @ [(x, U)] @ \<Gamma>" by simp
+  then have "(\<Delta>' @ \<Delta>) @ \<Gamma> \<turnstile> s[x\<mapsto>u] : S" using `\<Gamma> \<turnstile> u : U` by (rule Let)
   then have "\<Delta>' @ \<Delta> @ \<Gamma> \<turnstile> s[x\<mapsto>u] : S" by simp
   ultimately have "\<Delta> @ \<Gamma> \<turnstile> (LET p = t[x\<mapsto>u] IN s[x\<mapsto>u]) : S"
     by (rule better_T_Let)
@@ -448,10 +445,10 @@ next
     by (simp add: fresh_star_def fresh_list_nil fresh_list_cons)
   ultimately show ?case by simp
 next
-  case (Abs y T \<Gamma>' t S)
-  from `\<Gamma>' = \<Delta> @ [(x, U)] @ \<Gamma>` have "(y, T) # \<Gamma>' = ((y, T) # \<Delta>) @ [(x, U)] @ \<Gamma>"
+  case (Abs y T t S)
+  have "(y, T) # \<Delta> @ [(x, U)] @ \<Gamma> = ((y, T) # \<Delta>) @ [(x, U)] @ \<Gamma>"
     by simp
-  with `\<Gamma> \<turnstile> u : U` have "((y, T) # \<Delta>) @ \<Gamma> \<turnstile> t[x\<mapsto>u] : S" by (rule Abs)
+  then have "((y, T) # \<Delta>) @ \<Gamma> \<turnstile> t[x\<mapsto>u] : S" using `\<Gamma> \<turnstile> u : U` by (rule Abs)
   then have "(y, T) # \<Delta> @ \<Gamma> \<turnstile> t[x\<mapsto>u] : S" by simp
   then have "\<Delta> @ \<Gamma> \<turnstile> (\<lambda>y:T. t[x\<mapsto>u]) : T \<rightarrow> S"
     by (rule typing.Abs)
@@ -459,10 +456,10 @@ next
     by (simp add: fresh_list_nil fresh_list_cons)
   ultimately show ?case by simp
 next
-  case (App \<Gamma>' t\<^isub>1 T S t\<^isub>2)
-  from `\<Gamma> \<turnstile> u : U` `\<Gamma>' = \<Delta> @ [(x, U)] @ \<Gamma>`
+  case (App t\<^isub>1 T S t\<^isub>2)
+  from refl `\<Gamma> \<turnstile> u : U`
   have "\<Delta> @ \<Gamma> \<turnstile> t\<^isub>1[x\<mapsto>u] : T \<rightarrow> S" by (rule App)
-  moreover from `\<Gamma> \<turnstile> u : U` `\<Gamma>' = \<Delta> @ [(x, U)] @ \<Gamma>`
+  moreover from refl `\<Gamma> \<turnstile> u : U`
   have "\<Delta> @ \<Gamma> \<turnstile> t\<^isub>2[x\<mapsto>u] : T" by (rule App)
   ultimately have "\<Delta> @ \<Gamma> \<turnstile> (t\<^isub>1[x\<mapsto>u]) \<cdot> (t\<^isub>2[x\<mapsto>u]) : S"
     by (rule typing.App)

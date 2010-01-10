@@ -694,13 +694,8 @@ done
 
 lemma basis_emb_mono:
   "x \<sqsubseteq> y \<Longrightarrow> ubasis_le (basis_emb x) (basis_emb y)"
-proof (induct n \<equiv> "max (place x) (place y)" arbitrary: x y rule: less_induct)
-  case (less n)
-  hence IH:
-    "\<And>(a::'a compact_basis) b.
-     \<lbrakk>max (place a) (place b) < max (place x) (place y); a \<sqsubseteq> b\<rbrakk>
-        \<Longrightarrow> ubasis_le (basis_emb a) (basis_emb b)"
-    by simp
+proof (induct "max (place x) (place y)" arbitrary: x y rule: less_induct)
+  case less
   show ?case proof (rule linorder_cases)
     assume "place x < place y"
     then have "rank x < rank y"
@@ -709,7 +704,7 @@ proof (induct n \<equiv> "max (place x) (place y)" arbitrary: x y rule: less_ind
       apply (case_tac "y = compact_bot", simp)
       apply (simp add: basis_emb.simps [of y])
       apply (rule ubasis_le_trans [OF _ ubasis_le_lower [OF fin2]])
-      apply (rule IH)
+      apply (rule less)
        apply (simp add: less_max_iff_disj)
        apply (erule place_sub_less)
       apply (erule rank_less_imp_below_sub [OF `x \<sqsubseteq> y`])
@@ -724,7 +719,7 @@ proof (induct n \<equiv> "max (place x) (place y)" arbitrary: x y rule: less_ind
       apply (case_tac "x = compact_bot", simp add: ubasis_le_minimal)
       apply (simp add: basis_emb.simps [of x])
       apply (rule ubasis_le_upper [OF fin2], simp)
-      apply (rule IH)
+      apply (rule less)
        apply (simp add: less_max_iff_disj)
        apply (erule place_sub_less)
       apply (erule rev_below_trans)

@@ -987,16 +987,14 @@ lemma isnpolyh_zero_iff:
   assumes nq: "isnpolyh p n0" and eq :"\<forall>bs. wf_bs bs p \<longrightarrow> \<lparr>p\<rparr>\<^sub>p\<^bsup>bs\<^esup> = (0::'a::{ring_char_0,power,division_by_zero,field})"
   shows "p = 0\<^sub>p"
 using nq eq
-proof (induct n\<equiv>"maxindex p" arbitrary: p n0 rule: nat_less_induct)
-  fix n p n0
-  assume H: "\<forall>m<n. \<forall>p n0. isnpolyh p n0 \<longrightarrow>
-    (\<forall>bs. wf_bs bs p \<longrightarrow> \<lparr>p\<rparr>\<^sub>p\<^bsup>bs\<^esup> = (0::'a)) \<longrightarrow> m = maxindex p \<longrightarrow> p = 0\<^sub>p"
-    and np: "isnpolyh p n0" and zp: "\<forall>bs. wf_bs bs p \<longrightarrow> \<lparr>p\<rparr>\<^sub>p\<^bsup>bs\<^esup> = (0::'a)" and n: "n = maxindex p"
-  {assume nz: "n = 0"
-    then obtain c where "p = C c" using n np by (cases p, auto)
+proof (induct "maxindex p" arbitrary: p n0 rule: less_induct)
+  case less
+  note np = `isnpolyh p n0` and zp = `\<forall>bs. wf_bs bs p \<longrightarrow> \<lparr>p\<rparr>\<^sub>p\<^bsup>bs\<^esup> = (0::'a)`
+  {assume nz: "maxindex p = 0"
+    then obtain c where "p = C c" using np by (cases p, auto)
     with zp np have "p = 0\<^sub>p" unfolding wf_bs_def by simp}
   moreover
-  {assume nz: "n \<noteq> 0"
+  {assume nz: "maxindex p \<noteq> 0"
     let ?h = "head p"
     let ?hd = "decrpoly ?h"
     let ?ihd = "maxindex ?hd"
@@ -1005,24 +1003,23 @@ proof (induct n\<equiv>"maxindex p" arbitrary: p n0 rule: nat_less_induct)
     hence nhd: "isnpolyh ?hd (n0 - 1)" using decrpoly_normh by blast
     
     from maxindex_coefficients[of p] coefficients_head[of p, symmetric]
-    have mihn: "maxindex ?h \<le> n" unfolding n by auto
-    with decr_maxindex[OF h(2)] nz  have ihd_lt_n: "?ihd < n" by auto
+    have mihn: "maxindex ?h \<le> maxindex p" by auto
+    with decr_maxindex[OF h(2)] nz  have ihd_lt_n: "?ihd < maxindex p" by auto
     {fix bs:: "'a list"  assume bs: "wf_bs bs ?hd"
       let ?ts = "take ?ihd bs"
       let ?rs = "drop ?ihd bs"
       have ts: "wf_bs ?ts ?hd" using bs unfolding wf_bs_def by simp
       have bs_ts_eq: "?ts@ ?rs = bs" by simp
       from wf_bs_decrpoly[OF ts] have tsh: " \<forall>x. wf_bs (x#?ts) ?h" by simp
-      from ihd_lt_n have "ALL x. length (x#?ts) \<le> n" by simp
-      with length_le_list_ex obtain xs where xs:"length ((x#?ts) @ xs) = n" by blast
-      hence "\<forall> x. wf_bs ((x#?ts) @ xs) p" using n unfolding wf_bs_def by simp
+      from ihd_lt_n have "ALL x. length (x#?ts) \<le> maxindex p" by simp
+      with length_le_list_ex obtain xs where xs:"length ((x#?ts) @ xs) = maxindex p" by blast
+      hence "\<forall> x. wf_bs ((x#?ts) @ xs) p" unfolding wf_bs_def by simp
       with zp have "\<forall> x. Ipoly ((x#?ts) @ xs) p = 0" by blast
       hence "\<forall> x. Ipoly (x#(?ts @ xs)) p = 0" by simp
       with polypoly_poly[OF np, where ?'a = 'a] polypoly_polypoly'[OF np, where ?'a = 'a]
       have "\<forall>x. poly (polypoly' (?ts @ xs) p) x = poly [] x"  by simp
       hence "poly (polypoly' (?ts @ xs) p) = poly []" by (auto intro: ext) 
       hence "\<forall> c \<in> set (coefficients p). Ipoly (?ts @ xs) (decrpoly c) = 0"
-        thm poly_zero
         using poly_zero[where ?'a='a] by (simp add: polypoly'_def list_all_iff)
       with coefficients_head[of p, symmetric]
       have th0: "Ipoly (?ts @ xs) ?hd = 0" by simp
@@ -1031,7 +1028,7 @@ proof (induct n\<equiv>"maxindex p" arbitrary: p n0 rule: nat_less_induct)
       with wf'' wf_bs_I[of ?ts ?hd ?rs] bs_ts_eq have "\<lparr>?hd\<rparr>\<^sub>p\<^bsup>bs\<^esup> = 0" by simp }
     then have hdz: "\<forall>bs. wf_bs bs ?hd \<longrightarrow> \<lparr>?hd\<rparr>\<^sub>p\<^bsup>bs\<^esup> = (0::'a)" by blast
     
-    from H[rule_format, OF ihd_lt_n nhd] hdz have "?hd = 0\<^sub>p" by blast
+    from less(1)[OF ihd_lt_n nhd] hdz have "?hd = 0\<^sub>p" by blast
     hence "?h = 0\<^sub>p" by simp
     with head_nz[OF np] have "p = 0\<^sub>p" by simp}
   ultimately show "p = 0\<^sub>p" by blast
@@ -1357,8 +1354,8 @@ lemma polydivide_aux_properties:
   (polydivide_aux (a,n,p,k,s) = (k',r) \<longrightarrow> (k' \<ge> k) \<and> (degree r = 0 \<or> degree r < degree p) 
           \<and> (\<exists>nr. isnpolyh r nr) \<and> (\<exists>q n1. isnpolyh q n1 \<and> ((polypow (k' - k) a) *\<^sub>p s = p *\<^sub>p q +\<^sub>p r)))"
   using ns
-proof(induct d\<equiv>"degree s" arbitrary: s k k' r n1 rule: nat_less_induct)
-  fix d s k k' r n1
+proof(induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
+  case less
   let ?D = "polydivide_aux_dom"
   let ?dths = "?D (a, n, p, k, s)"
   let ?qths = "\<exists>q n1. isnpolyh q n1 \<and> (a ^\<^sub>p (k' - k) *\<^sub>p s = p *\<^sub>p q +\<^sub>p r)"
@@ -1366,20 +1363,13 @@ proof(induct d\<equiv>"degree s" arbitrary: s k k' r n1 rule: nat_less_induct)
     \<and> (\<exists>nr. isnpolyh r nr) \<and> ?qths"
   let ?ths = "?dths \<and> ?qrths"
   let ?b = "head s"
-  let ?p' = "funpow (d - n) shift1 p"
-  let ?xdn = "funpow (d - n) shift1 1\<^sub>p"
+  let ?p' = "funpow (degree s - n) shift1 p"
+  let ?xdn = "funpow (degree s - n) shift1 1\<^sub>p"
   let ?akk' = "a ^\<^sub>p (k' - k)"
-  assume H: "\<forall>m<d. \<forall>x xa xb xc xd.
-    isnpolyh x xd \<longrightarrow>
-    m = degree x \<longrightarrow> ?D (a, n, p, xa, x) \<and>
-    (polydivide_aux (a, n, p, xa, x) = (xb, xc) \<longrightarrow>
-    xa \<le> xb \<and> (degree xc = 0 \<or> degree xc < degree p) \<and> 
-    (\<exists> nr. isnpolyh xc nr) \<and>
-    (\<exists>q n1. isnpolyh q n1 \<and> a ^\<^sub>p xb - xa *\<^sub>p x = p *\<^sub>p q +\<^sub>p xc))"
-    and ns: "isnpolyh s n1" and ds: "d = degree s"
+  note ns = `isnpolyh s n1`
   from np have np0: "isnpolyh p 0" 
     using isnpolyh_mono[where n="n0" and n'="0" and p="p"]  by simp
-  have np': "isnpolyh ?p' 0" using funpow_shift1_isnpoly[OF np0[simplified isnpoly_def[symmetric]] pnz, where n="d -n"] isnpoly_def by simp
+  have np': "isnpolyh ?p' 0" using funpow_shift1_isnpoly[OF np0[simplified isnpoly_def[symmetric]] pnz, where n="degree s - n"] isnpoly_def by simp
   have headp': "head ?p' = head p" using funpow_shift1_head[OF np pnz] by simp
   from funpow_shift1_isnpoly[where p="1\<^sub>p"] have nxdn: "isnpolyh ?xdn 0" by (simp add: isnpoly_def)
   from polypow_normh [OF head_isnpolyh[OF np0], where k="k' - k"] ap 
@@ -1391,31 +1381,31 @@ proof(induct d\<equiv>"degree s" arbitrary: s k k' r n1 rule: nat_less_induct)
     hence ?ths using dom by blast}
   moreover
   {assume sz: "s \<noteq> 0\<^sub>p"
-    {assume dn: "d < n"
-      with sz ds  have dom:"?dths" by - (rule polydivide_aux_real_domintros,simp_all) 
-      from polydivide_aux.psimps[OF dom] sz dn ds
+    {assume dn: "degree s < n"
+      with sz have dom:"?dths" by - (rule polydivide_aux_real_domintros,simp_all) 
+      from polydivide_aux.psimps[OF dom] sz dn
       have "?qrths" using ns ndp np by auto (rule exI[where x="0\<^sub>p"],simp)
       with dom have ?ths by blast}
     moreover 
-    {assume dn': "\<not> d < n" hence dn: "d \<ge> n" by arith
+    {assume dn': "\<not> degree s < n" hence dn: "degree s \<ge> n" by arith
       have degsp': "degree s = degree ?p'" 
-        using ds dn ndp funpow_shift1_degree[where k = "d - n" and p="p"] by simp
+        using dn ndp funpow_shift1_degree[where k = "degree s - n" and p="p"] by simp
       {assume ba: "?b = a"
         hence headsp': "head s = head ?p'" using ap headp' by simp
         have nr: "isnpolyh (s -\<^sub>p ?p') 0" using polysub_normh[OF ns np'] by simp
-        from ds degree_polysub_samehead[OF ns np' headsp' degsp']
-        have "degree (s -\<^sub>p ?p') < d \<or> s -\<^sub>p ?p' = 0\<^sub>p" by simp
+        from degree_polysub_samehead[OF ns np' headsp' degsp']
+        have "degree (s -\<^sub>p ?p') < degree s \<or> s -\<^sub>p ?p' = 0\<^sub>p" by simp
         moreover 
-        {assume deglt:"degree (s -\<^sub>p ?p') < d"
-          from  H[rule_format, OF deglt nr,simplified] 
+        {assume deglt:"degree (s -\<^sub>p ?p') < degree s"
+          from  less(1)[OF deglt nr] 
           have domsp: "?D (a, n, p, k, s -\<^sub>p ?p')" by blast 
           have dom: ?dths apply (rule polydivide_aux_real_domintros) 
-            using ba ds dn' domsp by simp_all
-          from polydivide_aux.psimps[OF dom] sz dn' ba ds
+            using ba dn' domsp by simp_all
+          from polydivide_aux.psimps[OF dom] sz dn' ba
           have eq: "polydivide_aux (a,n,p,k,s) = polydivide_aux (a,n,p,k, s -\<^sub>p ?p')"
             by (simp add: Let_def)
           {assume h1: "polydivide_aux (a, n, p, k, s) = (k', r)"
-            from H[rule_format, OF deglt nr, where xa = "k" and xb="k'" and xc="r", simplified]
+            from less(1)[OF deglt nr, of k k' r]
               trans[OF eq[symmetric] h1]
             have kk': "k \<le> k'" and nr:"\<exists>nr. isnpolyh r nr" and dr: "degree r = 0 \<or> degree r < degree p"
               and q1:"\<exists>q nq. isnpolyh q nq \<and> (a ^\<^sub>p k' - k *\<^sub>p (s -\<^sub>p ?p') = p *\<^sub>p q +\<^sub>p r)" by auto
@@ -1434,19 +1424,19 @@ proof(induct d\<equiv>"degree s" arbitrary: s k k' r n1 rule: nat_less_induct)
               Ipoly bs (a^\<^sub>p (k' - k)) * Ipoly bs ?p' + Ipoly bs p * Ipoly bs q + Ipoly bs r" 
               by (simp add: ring_simps)
             hence " \<forall>(bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = 
-              Ipoly bs (a^\<^sub>p (k' - k)) * Ipoly bs (funpow (d - n) shift1 1\<^sub>p *\<^sub>p p) 
+              Ipoly bs (a^\<^sub>p (k' - k)) * Ipoly bs (funpow (degree s - n) shift1 1\<^sub>p *\<^sub>p p) 
               + Ipoly bs p * Ipoly bs q + Ipoly bs r"
               by (auto simp only: funpow_shift1_1) 
             hence "\<forall>(bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = 
-              Ipoly bs p * (Ipoly bs (a^\<^sub>p (k' - k)) * Ipoly bs (funpow (d - n) shift1 1\<^sub>p) 
+              Ipoly bs p * (Ipoly bs (a^\<^sub>p (k' - k)) * Ipoly bs (funpow (degree s - n) shift1 1\<^sub>p) 
               + Ipoly bs q) + Ipoly bs r" by (simp add: ring_simps)
             hence "\<forall>(bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = 
-              Ipoly bs (p *\<^sub>p ((a^\<^sub>p (k' - k)) *\<^sub>p (funpow (d - n) shift1 1\<^sub>p) +\<^sub>p q) +\<^sub>p r)" by simp
+              Ipoly bs (p *\<^sub>p ((a^\<^sub>p (k' - k)) *\<^sub>p (funpow (degree s - n) shift1 1\<^sub>p) +\<^sub>p q) +\<^sub>p r)" by simp
             with isnpolyh_unique[OF nakks' nqr']
             have "a ^\<^sub>p (k' - k) *\<^sub>p s = 
-              p *\<^sub>p ((a^\<^sub>p (k' - k)) *\<^sub>p (funpow (d - n) shift1 1\<^sub>p) +\<^sub>p q) +\<^sub>p r" by blast
+              p *\<^sub>p ((a^\<^sub>p (k' - k)) *\<^sub>p (funpow (degree s - n) shift1 1\<^sub>p) +\<^sub>p q) +\<^sub>p r" by blast
             hence ?qths using nq'
-              apply (rule_tac x="(a^\<^sub>p (k' - k)) *\<^sub>p (funpow (d - n) shift1 1\<^sub>p) +\<^sub>p q" in exI)
+              apply (rule_tac x="(a^\<^sub>p (k' - k)) *\<^sub>p (funpow (degree s - n) shift1 1\<^sub>p) +\<^sub>p q" in exI)
               apply (rule_tac x="0" in exI) by simp
             with kk' nr dr have "k \<le> k' \<and> (degree r = 0 \<or> degree r < degree p) \<and> (\<exists>nr. isnpolyh r nr) \<and> ?qths"
               by blast } hence ?qrths by blast
@@ -1456,25 +1446,23 @@ proof(induct d\<equiv>"degree s" arbitrary: s k k' r n1 rule: nat_less_induct)
           hence domsp: "?D (a, n, p, k, s -\<^sub>p ?p')" 
             apply (simp) by (rule polydivide_aux_real_domintros, simp_all)
           have dom: ?dths apply (rule polydivide_aux_real_domintros) 
-            using ba ds dn' domsp by simp_all
+            using ba dn' domsp by simp_all
           from spz isnpolyh_unique[OF polysub_normh[OF ns np'], where q="0\<^sub>p", symmetric, where ?'a = "'a::{ring_char_0,division_by_zero,field}"]
           have " \<forall>(bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs s = Ipoly bs ?p'" by simp
           hence "\<forall>(bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs s = Ipoly bs (?xdn *\<^sub>p p)" using np nxdn apply simp
             by (simp only: funpow_shift1_1) simp
           hence sp': "s = ?xdn *\<^sub>p p" using isnpolyh_unique[OF ns polymul_normh[OF nxdn np]] by blast
           {assume h1: "polydivide_aux (a,n,p,k,s) = (k',r)"
-            from polydivide_aux.psimps[OF dom] sz dn' ba ds
+            from polydivide_aux.psimps[OF dom] sz dn' ba
             have eq: "polydivide_aux (a,n,p,k,s) = polydivide_aux (a,n,p,k, s -\<^sub>p ?p')"
               by (simp add: Let_def)
             also have "\<dots> = (k,0\<^sub>p)" using polydivide_aux.psimps[OF domsp] spz by simp
             finally have "(k',r) = (k,0\<^sub>p)" using h1 by simp
-            with sp' ns np nxdn polyadd_0(1)[OF polymul_normh[OF np nxdn]]
+            with sp'[symmetric] ns np nxdn polyadd_0(1)[OF polymul_normh[OF np nxdn]]
               polyadd_0(2)[OF polymul_normh[OF np nxdn]] have ?qrths
               apply auto
               apply (rule exI[where x="?xdn"])        
-              apply auto
-              apply (rule polymul_commute)
-              apply simp_all
+              apply (auto simp add: polymul_commute[of p])
               done}
           with dom have ?ths by blast}
         ultimately have ?ths by blast }
@@ -1488,31 +1476,30 @@ proof(induct d\<equiv>"degree s" arbitrary: s k k' r n1 rule: nat_less_induct)
             polymul_eq0_iff[OF head_isnpolyh[OF ns] np']head_nz[OF np0] ap pnz sz head_nz[OF ns]
             funpow_shift1_nz[OF pnz] by simp_all
         from polymul_head_polyeq[OF head_isnpolyh[OF np] ns] head_nz[OF np] sz ap head_head[OF np] pnz
-          polymul_head_polyeq[OF head_isnpolyh[OF ns] np'] head_nz [OF ns] sz funpow_shift1_nz[OF pnz, where n="d - n"]
+          polymul_head_polyeq[OF head_isnpolyh[OF ns] np'] head_nz [OF ns] sz funpow_shift1_nz[OF pnz, where n="degree s - n"]
         have hdth: "head (a *\<^sub>p s) = head (?b *\<^sub>p ?p')" 
           using head_head[OF ns] funpow_shift1_head[OF np pnz]
             polymul_commute[OF head_isnpolyh[OF np] head_isnpolyh[OF ns]]
           by (simp add: ap)
         from polymul_degreen[OF head_isnpolyh[OF np] ns, where m="0"]
           head_nz[OF np] pnz sz ap[symmetric]
-          funpow_shift1_nz[OF pnz, where n="d - n"]
+          funpow_shift1_nz[OF pnz, where n="degree s - n"]
           polymul_degreen[OF head_isnpolyh[OF ns] np', where m="0"]  head_nz[OF ns]
-          ndp ds[symmetric] dn
+          ndp dn
         have degth: "degree (a *\<^sub>p s) = degree (?b *\<^sub>p ?p') "
           by (simp add: degree_eq_degreen0[symmetric] funpow_shift1_degree)
-        {assume dth: "degree ((a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p')) < d"
+        {assume dth: "degree ((a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p')) < degree s"
           have th: "?D (a, n, p, Suc k, (a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p'))"
-            using H[rule_format, OF dth nth, simplified] by blast 
-          have dom: ?dths
-            using ba ds dn' th apply simp apply (rule polydivide_aux_real_domintros)  
-            using ba ds dn'  by simp_all
+            using less(1)[OF dth nth] by blast 
+          have dom: ?dths using ba dn' th
+            by - (rule polydivide_aux_real_domintros, simp_all)
           from polysub_normh[OF polymul_normh[OF head_isnpolyh[OF np] ns] polymul_normh[OF head_isnpolyh[OF ns]np']]
           ap have nasbp': "isnpolyh ((a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p')) 0" by simp
           {assume h1:"polydivide_aux (a,n,p,k,s) = (k', r)"
-            from h1  polydivide_aux.psimps[OF dom] sz dn' ba ds
+            from h1  polydivide_aux.psimps[OF dom] sz dn' ba
             have eq:"polydivide_aux (a,n,p,Suc k,(a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p')) = (k',r)"
               by (simp add: Let_def)
-            with H[rule_format, OF dth nasbp', simplified, where xa="Suc k" and xb="k'" and xc="r"]
+            with less(1)[OF dth nasbp', of "Suc k" k' r]
             obtain q nq nr where kk': "Suc k \<le> k'" and nr: "isnpolyh r nr" and nq: "isnpolyh q nq" 
               and dr: "degree r = 0 \<or> degree r < degree p"
               and qr: "a ^\<^sub>p (k' - Suc k) *\<^sub>p ((a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p')) = p *\<^sub>p q +\<^sub>p r" by auto
@@ -1524,7 +1511,7 @@ proof(induct d\<equiv>"degree s" arbitrary: s k k' r n1 rule: nat_less_induct)
             hence "Ipoly bs a ^ (Suc (k' - Suc k)) * Ipoly bs s = Ipoly bs p * Ipoly bs q + Ipoly bs a ^ (k' - Suc k) * Ipoly bs ?b * Ipoly bs ?p' + Ipoly bs r"
               by (simp add: ring_simps power_Suc)
             hence "Ipoly bs a ^ (k' - k)  * Ipoly bs s = Ipoly bs p * Ipoly bs q + Ipoly bs a ^ (k' - Suc k) * Ipoly bs ?b * Ipoly bs ?xdn * Ipoly bs p + Ipoly bs r"
-              by (simp add:kk'' funpow_shift1_1[where n="d - n" and p="p"])
+              by (simp add:kk'' funpow_shift1_1[where n="degree s - n" and p="p"])
             hence "Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = Ipoly bs p * (Ipoly bs q + Ipoly bs a ^ (k' - Suc k) * Ipoly bs ?b * Ipoly bs ?xdn) + Ipoly bs r"
               by (simp add: ring_simps)}
             hence ieq:"\<forall>(bs :: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = 
@@ -1546,13 +1533,13 @@ proof(induct d\<equiv>"degree s" arbitrary: s k k' r n1 rule: nat_less_induct)
         {assume spz: "a *\<^sub>p s -\<^sub>p (?b *\<^sub>p ?p') = 0\<^sub>p"
           hence domsp: "?D (a, n, p, Suc k, a *\<^sub>p s -\<^sub>p (?b *\<^sub>p ?p'))" 
             apply (simp) by (rule polydivide_aux_real_domintros, simp_all)
-          have dom: ?dths using sz ba dn' ds domsp 
+          have dom: ?dths using sz ba dn' domsp 
             by - (rule polydivide_aux_real_domintros, simp_all)
           {fix bs :: "'a::{ring_char_0,division_by_zero,field} list"
             from isnpolyh_unique[OF nth, where ?'a="'a" and q="0\<^sub>p",simplified,symmetric] spz
           have "Ipoly bs (a*\<^sub>p s) = Ipoly bs ?b * Ipoly bs ?p'" by simp
           hence "Ipoly bs (a*\<^sub>p s) = Ipoly bs (?b *\<^sub>p ?xdn) * Ipoly bs p" 
-            by (simp add: funpow_shift1_1[where n="d - n" and p="p"])
+            by (simp add: funpow_shift1_1[where n="degree s - n" and p="p"])
           hence "Ipoly bs (a*\<^sub>p s) = Ipoly bs (p *\<^sub>p (?b *\<^sub>p ?xdn))" by simp
         }
         hence hth: "\<forall> (bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a*\<^sub>p s) = Ipoly bs (p *\<^sub>p (?b *\<^sub>p ?xdn))" ..
@@ -1562,7 +1549,7 @@ proof(induct d\<equiv>"degree s" arbitrary: s k k' r n1 rule: nat_less_induct)
                     polymul_normh[OF np polymul_normh[OF head_isnpolyh[OF ns] nxdn]],
               simplified ap] by simp
           {assume h1: "polydivide_aux (a,n,p,k,s) = (k', r)"
-          from h1 sz ds ba dn' spz polydivide_aux.psimps[OF dom] polydivide_aux.psimps[OF domsp] 
+          from h1 sz ba dn' spz polydivide_aux.psimps[OF dom] polydivide_aux.psimps[OF domsp] 
           have "(k',r) = (Suc k, 0\<^sub>p)" by (simp add: Let_def)
           with h1 np head_isnpolyh[OF np, simplified ap] ns polymul_normh[OF head_isnpolyh[OF ns] nxdn]
             polymul_normh[OF np polymul_normh[OF head_isnpolyh[OF ns] nxdn]] asq
@@ -1573,7 +1560,7 @@ proof(induct d\<equiv>"degree s" arbitrary: s k k' r n1 rule: nat_less_induct)
         hence ?qrths by blast
         with dom have ?ths by blast}
         ultimately have ?ths using  degree_polysub_samehead[OF polymul_normh[OF head_isnpolyh[OF np0, simplified ap] ns] polymul_normh[OF head_isnpolyh[OF ns] np'] hdth degth] polymul_degreen[OF head_isnpolyh[OF np] ns, where m="0"]
-          head_nz[OF np] pnz sz ap[symmetric] ds[symmetric] 
+          head_nz[OF np] pnz sz ap[symmetric]
           by (simp add: degree_eq_degreen0[symmetric]) blast }
       ultimately have ?ths by blast
     }
