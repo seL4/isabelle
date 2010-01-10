@@ -106,7 +106,7 @@ class Scala_Console extends Shell("Scala")
     }
     interp.setContextClassLoader
     interp.bind("view", "org.gjt.sp.jedit.View", console.getView)
-    interp.bind("session", "isabelle.proofdocument.Session", Isabelle.session)
+    interp.interpret("import isabelle.jedit.Isabelle")
 
     interpreters += (console -> interp)
   }
@@ -121,8 +121,8 @@ class Scala_Console extends Shell("Scala")
     out.print(null,
      "This shell evaluates Isabelle/Scala expressions.\n\n" +
      "The following special toplevel bindings are provided:\n" +
-     "  view    -- current jEdit/Swing view (e.g. view.getBuffer, view.getTextArea)\n" +
-     "  session -- Isabelle session (e.g. session.isabelle_system)\n")
+     "  view      -- current jEdit/Swing view (e.g. view.getBuffer, view.getTextArea)\n" +
+     "  Isabelle  -- main Isabelle plugin instance (e.g. Isabelle.system, Isabelle.session)\n")
   }
 
   override def printPrompt(console: Console, out: Output)

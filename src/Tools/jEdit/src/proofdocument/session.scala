@@ -30,7 +30,7 @@ object Session
 }
 
 
-class Session(val isabelle_system: Isabelle_System)
+class Session(system: Isabelle_System)
 {
   /* pervasive event buses */
 
@@ -50,7 +50,7 @@ class Session(val isabelle_system: Isabelle_System)
 
   /** main actor **/
 
-  @volatile private var syntax = new Outer_Syntax(isabelle_system.symbols)
+  @volatile private var syntax = new Outer_Syntax(system.symbols)
   def current_syntax: Outer_Syntax = syntax
 
   @volatile private var entities = Map[Session.Entity_ID, Session.Entity]()
@@ -90,7 +90,7 @@ class Session(val isabelle_system: Isabelle_System)
               case Some(command) =>
                 if (!lookup_command(command.id).isDefined) {
                   register(command)
-                  prover.define_command(command.id, isabelle_system.symbols.encode(command.content))
+                  prover.define_command(command.id, system.symbols.encode(command.content))
                 }
                 Some(command.id)
             })
@@ -203,7 +203,7 @@ class Session(val isabelle_system: Isabelle_System)
       react {
         case Start(timeout, args) =>
           if (prover == null) {
-            prover = new Isabelle_Process(isabelle_system, self, args:_*) with Isar_Document
+            prover = new Isabelle_Process(system, self, args:_*) with Isar_Document
             val origin = sender
             val opt_err = prover_startup(timeout)
             if (opt_err.isDefined) prover = null
