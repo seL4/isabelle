@@ -1559,7 +1559,7 @@ qed
 instance matrix :: (lordered_ab_group_add) lordered_ab_group_add_meet ..
 instance matrix :: (lordered_ab_group_add) lordered_ab_group_add_join ..
 
-instance matrix :: (ring) ring
+instance matrix :: (semiring_0) semiring_0
 proof
   fix A B C :: "'a matrix"
   show "A * B * C = A * (B * C)"
@@ -1577,7 +1577,11 @@ proof
     apply (rule r_distributive_matrix[simplified r_distributive_def, THEN spec, THEN spec, THEN spec])
     apply (simp_all add: associative_def commutative_def algebra_simps)
     done
-qed  
+  show "0 * A = 0" by (simp add: times_matrix_def)
+  show "A * 0 = 0" by (simp add: times_matrix_def)
+qed
+
+instance matrix :: (ring) ring ..
 
 instance matrix :: (pordered_ring) pordered_ring
 proof
@@ -1607,7 +1611,7 @@ lemma Rep_matrix_add[simp]:
   "Rep_matrix ((a::('a::monoid_add)matrix)+b) j i  = (Rep_matrix a j i) + (Rep_matrix b j i)"
   by (simp add: plus_matrix_def)
 
-lemma Rep_matrix_mult: "Rep_matrix ((a::('a::ring) matrix) * b) j i = 
+lemma Rep_matrix_mult: "Rep_matrix ((a::('a::semiring_0) matrix) * b) j i = 
   foldseq (op +) (% k.  (Rep_matrix a j k) * (Rep_matrix b k i)) (max (ncols a) (nrows b))"
 apply (simp add: times_matrix_def)
 apply (simp add: Rep_mult_matrix)
@@ -1626,10 +1630,10 @@ apply (rule ext)+
 apply (simp)
 done
 
-lemma nrows_mult: "nrows ((A::('a::ring) matrix) * B) <= nrows A"
+lemma nrows_mult: "nrows ((A::('a::semiring_0) matrix) * B) <= nrows A"
 by (simp add: times_matrix_def mult_nrows)
 
-lemma ncols_mult: "ncols ((A::('a::ring) matrix) * B) <= ncols B"
+lemma ncols_mult: "ncols ((A::('a::semiring_0) matrix) * B) <= ncols B"
 by (simp add: times_matrix_def mult_ncols)
 
 definition
@@ -1656,7 +1660,7 @@ proof -
   ultimately show "?r = n" by simp
 qed
 
-lemma one_matrix_mult_right[simp]: "ncols A <= n \<Longrightarrow> (A::('a::{ring_1}) matrix) * (one_matrix n) = A"
+lemma one_matrix_mult_right[simp]: "ncols A <= n \<Longrightarrow> (A::('a::{semiring_1}) matrix) * (one_matrix n) = A"
 apply (subst Rep_matrix_inject[THEN sym])
 apply (rule ext)+
 apply (simp add: times_matrix_def Rep_mult_matrix)
@@ -1664,7 +1668,7 @@ apply (rule_tac j1="xa" in ssubst[OF foldseq_almostzero])
 apply (simp_all)
 by (simp add: ncols)
 
-lemma one_matrix_mult_left[simp]: "nrows A <= n \<Longrightarrow> (one_matrix n) * A = (A::('a::ring_1) matrix)"
+lemma one_matrix_mult_left[simp]: "nrows A <= n \<Longrightarrow> (one_matrix n) * A = (A::('a::semiring_1) matrix)"
 apply (subst Rep_matrix_inject[THEN sym])
 apply (rule ext)+
 apply (simp add: times_matrix_def Rep_mult_matrix)
@@ -1730,7 +1734,7 @@ lemma inverse_matrix_inject: "\<lbrakk> inverse_matrix A X; inverse_matrix A Y \
 lemma one_matrix_inverse: "inverse_matrix (one_matrix n) (one_matrix n)"
   by (simp add: inverse_matrix_def left_inverse_matrix_def right_inverse_matrix_def)
 
-lemma zero_imp_mult_zero: "(a::'a::ring) = 0 | b = 0 \<Longrightarrow> a * b = 0"
+lemma zero_imp_mult_zero: "(a::'a::semiring_0) = 0 | b = 0 \<Longrightarrow> a * b = 0"
 by auto
 
 lemma Rep_matrix_zero_imp_mult_zero:
@@ -1746,7 +1750,7 @@ apply (rule combine_nrows)
 apply (simp_all)
 done
 
-lemma move_matrix_row_mult: "move_matrix ((A::('a::ring) matrix) * B) j 0 = (move_matrix A j 0) * B"
+lemma move_matrix_row_mult: "move_matrix ((A::('a::semiring_0) matrix) * B) j 0 = (move_matrix A j 0) * B"
 apply (subst Rep_matrix_inject[symmetric])
 apply (rule ext)+
 apply (auto simp add: Rep_matrix_mult foldseq_zero)
@@ -1757,7 +1761,7 @@ apply (rule ncols_move_matrix_le)
 apply (simp add: max1)
 done
 
-lemma move_matrix_col_mult: "move_matrix ((A::('a::ring) matrix) * B) 0 i = A * (move_matrix B 0 i)"
+lemma move_matrix_col_mult: "move_matrix ((A::('a::semiring_0) matrix) * B) 0 i = A * (move_matrix B 0 i)"
 apply (subst Rep_matrix_inject[symmetric])
 apply (rule ext)+
 apply (auto simp add: Rep_matrix_mult foldseq_zero)
@@ -1774,7 +1778,7 @@ apply (rule ext)+
 apply (simp)
 done
 
-lemma move_matrix_mult: "move_matrix ((A::('a::ring) matrix)*B) j i = (move_matrix A j 0) * (move_matrix B 0 i)"
+lemma move_matrix_mult: "move_matrix ((A::('a::semiring_0) matrix)*B) j i = (move_matrix A j 0) * (move_matrix B 0 i)"
 by (simp add: move_matrix_ortho[of "A*B"] move_matrix_col_mult move_matrix_row_mult)
 
 constdefs
