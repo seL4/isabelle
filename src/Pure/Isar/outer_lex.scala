@@ -48,7 +48,7 @@ object Outer_Lex
     def is_text: Boolean = is_xname || kind == Token_Kind.VERBATIM
     def is_space: Boolean = kind == Token_Kind.SPACE
     def is_comment: Boolean = kind == Token_Kind.COMMENT
-    def is_proper: Boolean = !(is_space || is_comment)
+    def is_ignored: Boolean = is_space || is_comment
     def is_unparsed: Boolean = kind == Token_Kind.UNPARSED
 
     def content: String =

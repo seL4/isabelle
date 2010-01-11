@@ -1,7 +1,7 @@
 /*  Title:      Pure/General/exn.scala
     Author:     Makarius
 
-Extra support for exceptions.
+Extra support for exceptions (arbitrary throwables).
 */
 
 package isabelle
@@ -13,11 +13,11 @@ object Exn
 
   sealed abstract class Result[A]
   case class Res[A](val result: A) extends Result[A]
-  case class Exn[A](val exn: Exception) extends Result[A]
+  case class Exn[A](val exn: Throwable) extends Result[A]
 
   def capture[A](e: => A): Result[A] =
     try { Res(e) }
-    catch { case exn: RuntimeException => Exn[A](exn) }   // FIXME *all* exceptions (!?), cf. ML version
+    catch { case exn: Throwable => Exn[A](exn) }
 
   def release[A](result: Result[A]): A =
     result match {

@@ -1,0 +1,48 @@
+## Isabelle plugin properties
+##
+##:encoding=ISO-8859-1:
+
+#identification
+plugin.isabelle.jedit.Plugin.name=Isabelle
+plugin.isabelle.jedit.Plugin.author=Johannes Hölzl, Fabian Immler, Makarius Wenzel
+plugin.isabelle.jedit.Plugin.version=0.0.1
+plugin.isabelle.jedit.Plugin.description=Isabelle/Isar asynchronous proof processing
+
+#system parameters
+plugin.isabelle.jedit.Plugin.activate=startup
+plugin.isabelle.jedit.Plugin.usePluginHome=false
+
+#dependencies
+plugin.isabelle.jedit.Plugin.depend.0=jdk 1.6
+plugin.isabelle.jedit.Plugin.depend.1=jedit 04.03.17.00
+plugin.isabelle.jedit.Plugin.depend.2=plugin errorlist.ErrorListPlugin 1.7
+plugin.isabelle.jedit.Plugin.depend.3=plugin sidekick.SideKickPlugin 0.7.6
+plugin.isabelle.jedit.Plugin.depend.4=plugin gatchan.jedit.hyperlinks.HyperlinksPlugin 1.0.1
+
+#options
+plugin.isabelle.jedit.Plugin.option-pane=isabelle
+options.isabelle.label=Isabelle
+options.isabelle.code=new isabelle.jedit.Isabelle_Options();
+options.isabelle.logic.title=Logic
+options.isabelle.font-size.title=Font Size
+options.isabelle.font-size=14
+options.isabelle.startup-timeout=10000
+
+#menu actions
+plugin.isabelle.jedit.Plugin.menu.label=Isabelle
+plugin.isabelle.jedit.Plugin.menu=isabelle.activate isabelle.show-output isabelle.show-protocol
+isabelle.activate.label=Activate current buffer
+isabelle.show-output.label=Show Output
+isabelle.show-protocol.label=Show Protocol
+
+#dockables
+isabelle-output.title=Output
+isabelle-protocol.title=Protocol
+
+#SideKick
+sidekick.parser.isabelle.label=Isabelle
+mode.isabelle.sidekick.parser=isabelle
+mode.ml.sidekick.parser=isabelle
+
+#Hyperlinks
+mode.isabelle.hyperlink.source=isabelle

@@ -55,12 +55,13 @@ object Library
 
   /* timing */
 
-  def timeit[A](e: => A) =
+  def timeit[A](message: String)(e: => A) =
   {
     val start = System.currentTimeMillis()
     val result = Exn.capture(e)
     val stop = System.currentTimeMillis()
-    System.err.println((stop - start) + "ms elapsed time")
+    System.err.println(
+      (if (message.isEmpty) "" else message + ": ") + (stop - start) + "ms elapsed time")
     Exn.release(result)
   }
 }

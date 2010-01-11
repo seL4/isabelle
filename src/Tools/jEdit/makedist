@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+#
+# makedist -- make Isabelle/jEdit distribution
+
+## self references
+
+PRG=$(basename "$0")
+THIS=$(cd "$(dirname "$0")"; pwd)
+SUPER=$(cd "$THIS/.."; pwd)
+
+
+## diagnostics
+
+JEDIT_HOME="/home/isajedit/jedit-orig/4.3pre17"
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG [OPTIONS]"
+  echo
+  echo "  Options are:"
+  echo "    -j DIR       specify original jEdit distribution"
+  echo "                 (default: $JEDIT_HOME)"
+  echo
+  echo "  Produce Isabelle/jEdit distribution from Netbeans build"
+  echo "  in $THIS/dist"
+  echo
+  exit 1
+}
+
+fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+# options
+
+while getopts "j:s:" OPT
+do
+  case "$OPT" in
+    j)
+      JEDIT_HOME="$OPTARG"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+[ "$#" -ne 0 ] && usage
+
+
+## main
+
+cd "$THIS/dist" || fail "Bad directory: $THIS/dist"
+
+
+# target name
+
+VERSION=$(basename "$JEDIT_HOME")
+JEDIT="jedit-${VERSION}"
+
+rm -rf "$JEDIT" jedit
+mkdir "$JEDIT"
+ln -s "$JEDIT" jedit
+
+
+# copy stuff
+
+[ "$JEDIT_HOME/jedit.jar" ] || fail "Bad original jEdit directory: $JEDIT_HOME"
+cp -R "$JEDIT_HOME/." "$JEDIT/."
+rm -rf "$JEDIT/jEdit" "$JEDIT/build-support"
+
+mkdir -p "$JEDIT/jars"
+cp -R jars/. "$JEDIT/jars/."
+
+cp -R "$THIS/dist-template/." "$JEDIT/."
+
+perl -i -e 'while (<>) { if (m/NAME="javacc"/) {
+  print qq,<MODE NAME="isabelle" FILE="isabelle.xml" FILE_NAME_GLOB="*.thy"/>\n\n,;
+  print qq,<MODE NAME="isabelle-session" FILE="isabelle-session.xml" FILE_NAME_GLOB="session.root"/>\n\n,; }
+  print; }' "$JEDIT/modes/catalog"
+
+
+# build archive
+
+echo "${JEDIT}.tar.gz"
+tar czf "${JEDIT}.tar.gz" "$JEDIT" jedit
+ln -sf "${JEDIT}.tar.gz" jedit.tar.gz

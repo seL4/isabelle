@@ -10,8 +10,6 @@ import java.util.WeakHashMap
 import java.lang.ref.WeakReference
 import javax.xml.parsers.DocumentBuilderFactory
 
-import org.w3c.dom.{Node, Document}
-
 
 object XML
 {
@@ -151,15 +149,15 @@ object XML
 
   /* document object model (W3C DOM) */
 
-  def get_data(node: Node): Option[XML.Tree] =
+  def get_data(node: org.w3c.dom.Node): Option[XML.Tree] =
     node.getUserData(Markup.DATA) match {
       case tree: XML.Tree => Some(tree)
       case _ => None
     }
 
-  def document_node(doc: Document, tree: Tree): Node =
+  def document_node(doc: org.w3c.dom.Document, tree: Tree): org.w3c.dom.Node =
   {
-    def DOM(tr: Tree): Node = tr match {
+    def DOM(tr: Tree): org.w3c.dom.Node = tr match {
       case Elem(Markup.DATA, Nil, List(data, t)) =>
         val node = DOM(t)
         node.setUserData(Markup.DATA, data, null)

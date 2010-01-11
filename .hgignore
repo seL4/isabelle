@@ -24,4 +24,7 @@ syntax: regexp
 ^doc-src/.*\.rao
 ^doc-src/.*\.toc
 
-
+^src/Tools/jEdit/nbproject/private/
+^src/Tools/jEdit/build/
+^src/Tools/jEdit/dist/
+^src/Tools/jEdit/contrib/

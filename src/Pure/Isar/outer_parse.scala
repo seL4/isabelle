@@ -20,7 +20,7 @@ object Outer_Parse
     def filter_proper = true
 
     private def proper(in: Input): Input =
-      if (in.atEnd || in.first.is_proper || !filter_proper) in
+      if (in.atEnd || !in.first.is_ignored || !filter_proper) in
       else proper(in.rest)
 
     def token(s: String, pred: Elem => Boolean): Parser[Elem] = new Parser[Elem]

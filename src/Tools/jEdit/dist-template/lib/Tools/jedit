@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: Isabelle/jEdit interface wrapper
+
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+usage()
+{
+  echo
+  echo "Usage: isabelle $PRG [OPTIONS] [FILES ...]"
+  echo
+  echo "  Options are:"
+  echo "    -J OPTION    add JVM runtime option"
+  echo "                 (default JEDIT_JAVA_OPTIONS=$JEDIT_JAVA_OPTIONS)"
+  echo "    -d           enable debugger"
+  echo "    -j OPTION    add jEdit runtime option"
+  echo "                 (default JEDIT_OPTIONS=$JEDIT_OPTIONS)"
+  echo "    -l NAME      logic image name (default ISABELLE_LOGIC=$ISABELLE_LOGIC)"
+  echo "    -m MODE      add print mode for output"
+  echo
+  echo "Start jEdit with Isabelle plugin setup and opens theory FILES"
+  echo "(default ~/Scratch.thy)."
+  echo
+  exit 1
+}
+
+fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+# options
+
+JEDIT_LOGIC="$ISABELLE_LOGIC"
+JEDIT_PRINT_MODE=""
+
+getoptions()
+{
+  OPTIND=1
+  while getopts "J:dj:l:m:" OPT
+  do
+    case "$OPT" in
+      J)
+        JAVA_ARGS["${#JAVA_ARGS[@]}"]="$OPTARG"
+        ;;
+      d)
+        JAVA_ARGS["${#JAVA_ARGS[@]}"]="-Xdebug"
+        JAVA_ARGS["${#JAVA_ARGS[@]}"]="-Xrunjdwp:transport=dt_socket,server=y,suspend=n"
+        ;;
+      j)
+        ARGS["${#ARGS[@]}"]="$OPTARG"
+        ;;
+      l)
+        JEDIT_LOGIC="$OPTARG"
+        ;;
+      m)
+        if [ -z "$JEDIT_PRINT_MODE" ]; then
+          JEDIT_PRINT_MODE="$OPTARG"
+        else
+          JEDIT_PRINT_MODE="$JEDIT_PRINT_MODE,$OPTARG"
+        fi
+        ;;
+      \?)
+        usage
+        ;;
+    esac
+  done
+}
+
+declare -a JAVA_ARGS; eval "JAVA_ARGS=($JEDIT_JAVA_OPTIONS)"
+[ -n "$SCALA_HOME" ] && JAVA_ARGS["${#JAVA_ARGS[@]}"]="-Dscala.home=$SCALA_HOME"
+
+declare -a ARGS; eval "ARGS=($JEDIT_OPTIONS)"
+
+declare -a OPTIONS; eval "OPTIONS=($ISABELLE_JEDIT_OPTIONS)"
+getoptions "${OPTIONS[@]}"
+
+getoptions "$@"
+shift $(($OPTIND - 1))
+
+
+# args
+
+if [ "$#" -eq 0 ]; then
+  ARGS["${#ARGS[@]}"]="Scratch.thy"
+else
+  while [ "$#" -gt 0 ]; do
+    ARGS["${#ARGS[@]}"]="$(jvmpath "$1")"
+    shift
+  done
+fi
+
+
+## main
+
+case "$JEDIT_LOGIC" in
+  /*)
+    ;;
+  */*)
+    JEDIT_LOGIC="$(pwd -P)/$JEDIT_LOGIC"
+    ;;
+esac
+
+export JEDIT_LOGIC JEDIT_PRINT_MODE
+
+exec "$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" \
+  -jar "$(jvmpath "$JEDIT_HOME/jedit.jar")" \
+  "-settings=$(jvmpath "$ISABELLE_HOME_USER/jedit")" "${ARGS[@]}"

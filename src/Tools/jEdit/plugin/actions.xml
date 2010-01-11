@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!DOCTYPE ACTIONS SYSTEM "actions.dtd">
+
+<ACTIONS>
+  <ACTION NAME="isabelle.activate">
+		<CODE>
+			isabelle.jedit.Isabelle.switch_active(view);
+		</CODE>
+		<IS_SELECTED>
+			return isabelle.jedit.Isabelle.is_active(view);
+		</IS_SELECTED>
+	</ACTION>
+	<ACTION NAME="isabelle.show-output">
+		<CODE>
+			wm.addDockableWindow("isabelle-output");
+		</CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.show-protocol">
+		<CODE>
+			wm.addDockableWindow("isabelle-protocol");
+		</CODE>
+	</ACTION>
+</ACTIONS>
