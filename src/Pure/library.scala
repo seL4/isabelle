@@ -61,7 +61,7 @@ object Library
     val result = Exn.capture(e)
     val stop = System.currentTimeMillis()
     System.err.println(
-      (if (message.isEmpty) "" else message + " ") + (stop - start) + "ms elapsed time")
+      (if (message.isEmpty) "" else message + ": ") + (stop - start) + "ms elapsed time")
     Exn.release(result)
   }
 }
