@@ -32,29 +32,30 @@ object Command
 
 class Command(
     val id: Isar_Document.Command_ID,
-    val tokens: List[Token],
-    val starts: Map[Token, Int])   // FIXME eliminate
+    val span: Thy_Syntax.Span)
   extends Session.Entity
 {
-  require(!tokens.isEmpty)
-
   // FIXME override equality as well
   override def hashCode = id.hashCode
 
 
-  /* content */
+  /* classification */
 
-  override def toString = name
+  def is_command: Boolean = !span.isEmpty && span.first.is_command
+  def is_ignored: Boolean = span.forall(tok => tok.is_space || tok.is_comment)
+  def is_malformed: Boolean = !is_command && !is_ignored
 
-  val name = tokens.head.content
-  val content: String = Token.string_from_tokens(tokens, starts)
-  def content(i: Int, j: Int): String = content.substring(i, j)
-  lazy val symbol_index = new Symbol.Index(content)
+  def name: String = if (is_command) span.first.content else ""
+  override def toString = if (is_command) name else if (is_ignored) "<ignored>" else "<malformed>"
 
-  def length: Int = content.length
 
-  // FIXME eliminate
-  def contains(p: Token) = tokens.contains(p)
+  /* source text */
+
+  val source: String = span.map(_.source).mkString
+  def source(i: Int, j: Int): String = source.substring(i, j)
+  def length: Int = source.length
+
+  lazy val symbol_index = new Symbol.Index(source)
 
 
   /* accumulated messages */
@@ -85,7 +86,7 @@ class Command(
 
   def assign_state(state_id: Isar_Document.State_ID): Command =
   {
-    val cmd = new Command(state_id, tokens, starts)
+    val cmd = new Command(state_id, span)
     accumulator !? Assign
     cmd.state = current_state
     cmd
@@ -94,7 +95,7 @@ class Command(
 
   /* markup */
 
-  lazy val empty_markup = new Markup_Text(Nil, content)
+  lazy val empty_markup = new Markup_Text(Nil, source)
 
   def markup_node(begin: Int, end: Int, info: Any): Markup_Tree =
   {

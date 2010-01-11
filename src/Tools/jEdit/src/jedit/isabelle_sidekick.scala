@@ -47,7 +47,7 @@ class Isabelle_Sidekick extends SideKickParser("isabelle")
         for ((command, command_start) <- document.command_range(0) if !stopped) {
           root.add(document.current_state(command).markup_root.swing_tree((node: Markup_Node) =>
               {
-                val content = command.content(node.start, node.stop)
+                val content = command.source(node.start, node.stop)
                 val id = command.id
 
                 new DefaultMutableTreeNode(new IAsset {

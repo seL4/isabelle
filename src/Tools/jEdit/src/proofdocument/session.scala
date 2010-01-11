@@ -90,7 +90,7 @@ class Session(system: Isabelle_System)
               case Some(command) =>
                 if (!lookup_command(command.id).isDefined) {
                   register(command)
-                  prover.define_command(command.id, system.symbols.encode(command.content))
+                  prover.define_command(command.id, system.symbols.encode(command.source))
                 }
                 Some(command.id)
             })

@@ -52,7 +52,7 @@ class State(
     types.find(t => t.start <= pos && pos < t.stop) match {
       case Some(t) =>
         t.info match {
-          case Command.TypeInfo(ty) => Some(command.content(t.start, t.stop) + ": " + ty)
+          case Command.TypeInfo(ty) => Some(command.source(t.start, t.stop) + ": " + ty)
           case _ => None
         }
       case None => None
