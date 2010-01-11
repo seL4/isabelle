@@ -7,7 +7,7 @@ Superficial theory syntax: command spans.
 package isabelle
 
 
-class Thy_Syntax
+object Thy_Syntax
 {
   private val parser = new Outer_Parse.Parser
   {

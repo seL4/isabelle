@@ -11,8 +11,10 @@ package isabelle
 sealed abstract class Text_Edit
 {
   val start: Int
+  def text: String
   def after(offset: Int): Int
   def before(offset: Int): Int
+  def can_edit(string_length: Int, shift: Int): Boolean
   def edit(string: String, shift: Int): (Option[Text_Edit], String)
 }
 
