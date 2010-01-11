@@ -10,6 +10,10 @@ package isabelle
 
 class Text_Edit(val is_insert: Boolean, val start: Int, val text: String)
 {
+  override def toString =
+    (if (is_insert) "Insert(" else "Remove(") + (start, text).toString + ")"
+
+
   /* transform offsets */
 
   private def transform(do_insert: Boolean, offset: Int): Int =
