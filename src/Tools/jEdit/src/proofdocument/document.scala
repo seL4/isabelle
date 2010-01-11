@@ -180,11 +180,13 @@ class Document(
   def await_assignment { assignment.join }
 
   @volatile private var tmp_states = former_states
+  private val time0 = System.currentTimeMillis
 
   def assign_states(new_states: List[(Command, Command)])
   {
     assignment.fulfill(tmp_states ++ new_states)
     tmp_states = Map()
+    System.err.println("assign_states: " + (System.currentTimeMillis - time0) + " ms elapsed time")
   }
 
   def current_state(cmd: Command): Option[State] =
