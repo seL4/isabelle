@@ -112,14 +112,14 @@ class Document_Model(val session: Session, val buffer: Buffer)
     override def contentInserted(buffer: JEditBuffer,
       start_line: Int, offset: Int, num_lines: Int, length: Int)
     {
-      edits_buffer += Text_Edit.Insert(offset, buffer.getText(offset, length))
+      edits_buffer += new Text_Edit(true, offset, buffer.getText(offset, length))
       edits_delay()
     }
 
     override def preContentRemoved(buffer: JEditBuffer,
       start_line: Int, start: Int, num_lines: Int, removed_length: Int)
     {
-      edits_buffer += Text_Edit.Remove(start, buffer.getText(start, removed_length))
+      edits_buffer += new Text_Edit(false, start, buffer.getText(start, removed_length))
       edits_delay()
     }
   }
@@ -133,7 +133,7 @@ class Document_Model(val session: Session, val buffer: Buffer)
     buffer.addBufferListener(buffer_listener)
     buffer.propertiesChanged()
 
-    edits_buffer += Text_Edit.Insert(0, buffer.getText(0, buffer.getLength))
+    edits_buffer += new Text_Edit(true, 0, buffer.getText(0, buffer.getLength))
     edits_delay()
   }
 
