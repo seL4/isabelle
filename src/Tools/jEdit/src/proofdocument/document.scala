@@ -37,7 +37,6 @@ object Document
   var phase1: Linear_Set[Command] = null
   var phase2: Linear_Set[Command] = null
   var phase3: List[Edit] = null
-  var raw_source: String = null
 
 
 
@@ -50,8 +49,6 @@ object Document
   {
     require(old_doc.assignment.is_finished)
 
-    phase0 = edits
-
 
     /* unparsed dummy commands */
 
@@ -60,43 +57,36 @@ object Document
 
     def is_unparsed(command: Command) = command.id == null
 
-    assert(!old_doc.commands.exists(is_unparsed))
+    assert(!old_doc.commands.exists(is_unparsed))   // FIXME remove
 
 
     /* phase 1: edit individual command source */
 
-    var commands = old_doc.commands
-
-    def edit_text(eds: List[Text_Edit]): Unit =
+    def edit_text(eds: List[Text_Edit], commands: Linear_Set[Command]): Linear_Set[Command] =
     {
       eds match {
         case e :: es =>
           command_starts(commands).find {   // FIXME relative search!
             case (cmd, cmd_start) => e.can_edit(cmd.length, cmd_start)
-          } match {  // FIXME try to append after command
+          } match {
+            // FIXME try to append after command
             case Some((cmd, cmd_start)) =>
               val (rest, source) = e.edit(cmd.source, cmd_start)
-              // FIXME Linear_Set.edit (?)
-              commands = commands.insert_after(Some(cmd), unparsed(source))
-              commands -= cmd
-              edit_text(rest.toList ::: es)
+              val new_commands = commands.insert_after(Some(cmd), unparsed(source)) - cmd
+              edit_text(rest.toList ::: es, new_commands)
 
             case None =>
               require(e.isInstanceOf[Text_Edit.Insert] && e.start == 0)
-              commands = commands.insert_after(None, unparsed(e.text))
-              edit_text(es)
+              edit_text(es, commands.insert_after(None, unparsed(e.text)))
           }
-        case Nil =>
+        case Nil => commands
       }
     }
-    edit_text(edits)
-
-    phase1 = commands
 
 
     /* phase 2: command range edits */
 
-    def edit_commands(): Unit =
+    def edit_commands(commands: Linear_Set[Command]): Linear_Set[Command] =
     {
       // FIXME relative search!
       commands.elements.find(is_unparsed) match {
@@ -105,52 +95,51 @@ object Document
           val body = commands.elements(first_unparsed).takeWhile(is_unparsed).toList
           val suffix = commands.next(body.last)
 
-          val source =
-            (prefix.toList ::: body ::: suffix.toList).flatMap(_.span.map(_.source)).mkString
-          assert(source != "")
-          raw_source = source
-          
-          val spans0 = Thy_Syntax.parse_spans(session.current_syntax.scan(source))
+          val sources = (prefix.toList ::: body ::: suffix.toList).flatMap(_.span.map(_.source))
+          val span = Thy_Syntax.parse_spans(session.current_syntax.scan(sources.mkString))
 
           val (before_edit, spans1) =
-            if (!spans0.isEmpty && Some(spans0.first) == prefix.map(_.span))
-              (prefix, spans0.tail)
-            else (if (prefix.isDefined) commands.prev(prefix.get) else None, spans0)
+            if (!span.isEmpty && Some(span.first) == prefix.map(_.span))
+              (prefix, span.tail)
+            else (if (prefix.isDefined) commands.prev(prefix.get) else None, span)
 
           val (after_edit, spans2) =
             if (!spans1.isEmpty && Some(spans1.last) == suffix.map(_.span))
               (suffix, spans1.take(spans1.length - 1))
             else (if (suffix.isDefined) commands.next(suffix.get) else None, spans1)
 
-          val new_commands = spans2.map(span => new Command(session.create_id(), span))
+          val inserted = spans2.map(span => new Command(session.create_id(), span))
+          val new_commands =
+            commands.delete_between(before_edit, after_edit).append_after(before_edit, inserted)
+          edit_commands(new_commands)
 
-          commands = commands.delete_between(before_edit, after_edit)
-          commands = commands.append_after(before_edit, new_commands)
-
-          edit_commands()
-
-        case None =>
+        case None => commands
       }
     }
-    edit_commands()
-    
-    phase2 = commands
 
 
     /* phase 3: resulting document edits */
 
-    val removed_commands = old_doc.commands.elements.filter(!commands.contains(_)).toList
-    val inserted_commands = commands.elements.filter(!old_doc.commands.contains(_)).toList
+    val commands0 = old_doc.commands
+    val commands1 = edit_text(edits, commands0)
+    val commands2 = edit_commands(commands1)
 
-    // FIXME proper order
+    val removed_commands = commands0.elements.filter(!commands2.contains(_)).toList
+    val inserted_commands = commands2.elements.filter(!commands0.contains(_)).toList
+
+    // FIXME tune
     val doc_edits =
-      removed_commands.reverse.map(cmd => (commands.prev(cmd), None)) :::
-      inserted_commands.map(cmd => (commands.prev(cmd), Some(cmd)))
+      removed_commands.reverse.map(cmd => (commands0.prev(cmd), None)) :::
+      inserted_commands.map(cmd => (commands2.prev(cmd), Some(cmd)))
 
     val former_states = old_doc.assignment.join -- removed_commands
 
+    phase0 = edits
+    phase1 = commands1
+    phase2 = commands2
     phase3 = doc_edits
-    (doc_edits, new Document(new_id, commands, former_states))
+
+    (doc_edits, new Document(new_id, commands2, former_states))
   }
 }
 
