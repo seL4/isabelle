@@ -38,7 +38,7 @@ class Command(
   /* classification */
 
   def is_command: Boolean = !span.isEmpty && span.first.is_command
-  def is_ignored: Boolean = span.forall(tok => tok.is_space || tok.is_comment)
+  def is_ignored: Boolean = span.forall(_.is_ignored)
   def is_malformed: Boolean = !is_command && !is_ignored
 
   def name: String = if (is_command) span.first.content else ""
