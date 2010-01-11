@@ -23,7 +23,7 @@ sig
   val constrset_of_consts: theory -> (string * typ) list
     -> string * ((string * sort) list * (string * typ list) list)
 
-  (*code equations*)
+  (*code equations and certificates*)
   val mk_eqn: theory -> thm * bool -> thm * bool
   val mk_eqn_warning: theory -> thm -> (thm * bool) option
   val mk_eqn_liberal: theory -> thm -> (thm * bool) option
@@ -34,6 +34,11 @@ sig
   val typscheme_eqn: theory -> thm -> (string * sort) list * typ
   val typscheme_eqns: theory -> string -> thm list -> (string * sort) list * typ
   val standard_typscheme: theory -> thm list -> thm list
+  type cert = thm * bool list
+  val cert_of_eqns: theory -> (thm * bool) list -> cert
+  val constrain_cert: theory -> sort list -> cert -> cert
+  val dest_cert: theory -> cert -> (string * ((string * sort) list * typ)) * ((term list * term) * bool) list
+  val eqns_of_cert: theory -> cert -> (thm * bool) list
 
   (*executable code*)
   val add_type: string -> theory -> theory
@@ -57,7 +62,7 @@ sig
   val get_datatype: theory -> string -> ((string * sort) list * (string * typ list) list)
   val get_datatype_of_constr: theory -> string -> string option
   val these_eqns: theory -> string -> (thm * bool) list
-  val all_eqns: theory -> (thm * bool) list
+  val eqn_cert: theory -> string -> cert
   val get_case_scheme: theory -> string -> (int * (int * string list)) option
   val undefineds: theory -> string list
   val print_codesetup: theory -> unit
@@ -414,7 +419,7 @@ fun get_datatype_of_constr thy c =
 fun is_constr thy = is_some o get_datatype_of_constr thy;
 
 
-(* code equations *)
+(* bare code equations *)
 
 exception BAD_THM of string;
 fun bad_thm msg = raise BAD_THM msg;
@@ -521,10 +526,10 @@ fun const_typ_eqn thy thm =
 
 fun const_eqn thy = fst o const_typ_eqn thy;
 
-fun raw_typscheme thy (c, ty) =
+fun logical_typscheme thy (c, ty) =
   (map dest_TFree (Sign.const_typargs thy (c, ty)), Type.strip_sorts ty);
 
-fun typscheme thy (c, ty) = raw_typscheme thy (c, subst_signature thy c ty);
+fun typscheme thy (c, ty) = logical_typscheme thy (c, subst_signature thy c ty);
 
 fun typscheme_eqn thy = typscheme thy o apsnd Logic.unvarifyT o const_typ_eqn thy;
 
@@ -537,7 +542,7 @@ fun typscheme_eqns thy c [] =
           | NONE => Name.invent_list [] Name.aT (length tvars)
               |> map (fn v => TFree (v, []));
         val ty = typ_subst_TVars (tvars ~~ tvars') raw_ty;
-      in raw_typscheme thy (c, ty) end
+      in logical_typscheme thy (c, ty) end
   | typscheme_eqns thy c (thm :: _) = typscheme_eqn thy thm;
 
 fun assert_eqns_const thy c eqns =
@@ -546,6 +551,9 @@ fun assert_eqns_const thy c eqns =
       then eqn else error ("Wrong head of code equation,\nexpected constant "
         ^ string_of_const thy c ^ "\n" ^ Display.string_of_thm_global thy thm)
   in map (cert o assert_eqn thy) eqns end;
+
+
+(* code equation certificates *)
 
 fun standard_typscheme thy thms =
   let
@@ -558,6 +566,69 @@ fun standard_typscheme thy thms =
       |> map (fn (v, sort) => TVar ((v, 0), sort));
   in map2 (fn vs => Thm.certify_instantiate (vs ~~ vts, [])) vss thms end;
 
+type cert = thm * bool list;
+
+fun cert_of_eqns thy [] = (Drule.dummy_thm, [])
+  | cert_of_eqns thy eqns = 
+      let
+        val propers = map snd eqns;
+        val thms as thm :: _ = (map Thm.freezeT o standard_typscheme thy o map fst) eqns; (*FIXME*)
+        val (c, ty) = head_eqn thm;
+        val head_thm = Thm.assume (Thm.cterm_of thy (Logic.mk_equals
+          (Free ("HEAD", ty), Const (c, ty)))) |> Thm.symmetric;
+        fun head_conv ct = if can Thm.dest_comb ct
+          then Conv.fun_conv head_conv ct
+          else Conv.rewr_conv head_thm ct;
+        val rewrite_head = Conv.fconv_rule (Conv.arg1_conv head_conv);
+        val cert = Conjunction.intr_balanced (map rewrite_head thms);
+      in (cert, propers) end;
+
+fun head_cert thy cert =
+  let
+    val [head] = Thm.hyps_of cert;
+    val (Free (h, _), Const (c, ty)) = (Logic.dest_equals o the_single o Thm.hyps_of) cert;
+  in ((c, typscheme thy (AxClass.unoverload_const thy (c, ty), ty)), (head, h)) end;
+
+fun constrain_cert thy sorts (cert, []) = (cert, [])
+  | constrain_cert thy sorts (cert, propers) =
+      let
+        val ((c, (vs, _)), (head, _)) = head_cert thy cert;
+        val subst = map2 (fn (v, _) => fn sort => (v, sort)) vs sorts;
+        val head' = (map_types o map_atyps)
+          (fn TFree (v, _) => TFree (v, the (AList.lookup (op =) subst v))) head;
+        val inst = (map2 (fn (v, sort) => fn sort' =>
+          pairself (Thm.ctyp_of thy) (TVar ((v, 0), sort), TFree (v, sort'))) vs sorts ,[]);
+        val cert' = cert
+          |> Thm.implies_intr (Thm.cterm_of thy head)
+          |> Thm.varifyT
+          |> Thm.instantiate inst
+          |> Thm.elim_implies (Thm.assume (Thm.cterm_of thy head'))
+      in (cert', propers) end;
+
+fun dest_cert thy (cert, propers) =
+  let
+    val (c_vs_ty, (head, h)) = head_cert thy cert;
+    val equations = cert
+      |> Thm.prop_of
+      |> Logic.dest_conjunction_balanced (length propers)
+      |> map Logic.dest_equals
+      |> (map o apfst) strip_comb
+      |> (map o apfst) (fn (Free (h', _), ts) => case h = h' of True => ts)
+  in (c_vs_ty, equations ~~ propers) end;
+
+fun eqns_of_cert thy (cert, []) = []
+  | eqns_of_cert thy (cert, propers) =
+      let
+        val (_, (head, _)) = head_cert thy cert;
+        val thms = cert
+          |> LocalDefs.expand [Thm.cterm_of thy head]
+          |> Thm.varifyT
+          |> Conjunction.elim_balanced (length propers)
+      in thms ~~ propers end;
+
+
+(* code equation access *)
+
 fun these_eqns thy c =
   Symtab.lookup ((the_eqns o the_exec) thy) c
   |> Option.map (snd o snd o fst)
@@ -565,9 +636,12 @@ fun these_eqns thy c =
   |> (map o apfst) (Thm.transfer thy)
   |> burrow_fst (standard_typscheme thy);
 
-fun all_eqns thy =
-  Symtab.dest ((the_eqns o the_exec) thy)
-  |> maps (snd o snd o fst o snd);
+fun eqn_cert thy c =
+  Symtab.lookup ((the_eqns o the_exec) thy) c
+  |> Option.map (snd o snd o fst)
+  |> these
+  |> (map o apfst) (Thm.transfer thy)
+  |> cert_of_eqns thy;
 
 
 (* cases *)
