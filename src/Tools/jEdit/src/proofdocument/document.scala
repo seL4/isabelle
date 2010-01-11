@@ -45,7 +45,7 @@ object Document
   var phase1: Linear_Set[Command] = null
   var phase2: Linear_Set[Command] = null
   var phase3: List[Edit] = null
-  var raw_source = ""
+  var raw_source: String = null
 
 
 
@@ -58,18 +58,17 @@ object Document
   {
     require(old_doc.assignment.is_finished)
 
-    System.err.println(edits)
     phase0 = edits
 
 
     /* unparsed dummy commands */
 
     def unparsed(source: String) =
-      new Command(session.create_id(), List(Outer_Lex.Token(Outer_Lex.Token_Kind.UNPARSED, source)))
+      new Command(null, List(Outer_Lex.Token(Outer_Lex.Token_Kind.UNPARSED, source)))
 
-    def is_unparsed(command: Command) = command.span.exists(_.is_unparsed)
+    def is_unparsed(command: Command) = command.id == null
 
-    require(!old_doc.commands.exists(is_unparsed))
+    assert(!old_doc.commands.exists(is_unparsed))
 
 
     /* phase 1: edit individual command source */
@@ -82,7 +81,7 @@ object Document
         case e :: es =>
           command_starts(commands).find {   // FIXME relative search!
             case (cmd, cmd_start) => e.can_edit(cmd.length, cmd_start)
-          } match {
+          } match {  // FIXME try to append after command
             case Some((cmd, cmd_start)) =>
               val (rest, source) = e.edit(cmd.source, cmd_start)
               // FIXME Linear_Set.edit (?)
@@ -116,6 +115,7 @@ object Document
 
           val source =
             (prefix.toList ::: body ::: suffix.toList).flatMap(_.span.map(_.source)).mkString
+          assert(source != "")
           raw_source = source
           
           val spans0 = Thy_Syntax.parse_spans(session.current_syntax.scan(source))
@@ -140,7 +140,8 @@ object Document
         case None =>
       }
     }
-
+    edit_commands()
+    
     phase2 = commands
 
 
@@ -149,9 +150,9 @@ object Document
     val removed_commands = old_doc.commands.elements.filter(!commands.contains(_)).toList
     val inserted_commands = commands.elements.filter(!old_doc.commands.contains(_)).toList
 
-    // FIXME tune
+    // FIXME proper order
     val doc_edits =
-      removed_commands.reverse.map(cmd => (Some(cmd), None)) :::
+      removed_commands.reverse.map(cmd => (commands.prev(cmd), None)) :::
       inserted_commands.map(cmd => (commands.prev(cmd), Some(cmd)))
 
     val former_states = old_doc.assignment.join -- removed_commands

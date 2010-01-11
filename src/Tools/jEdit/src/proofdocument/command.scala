@@ -35,10 +35,6 @@ class Command(
     val span: Thy_Syntax.Span)
   extends Session.Entity
 {
-  // FIXME override equality as well
-  override def hashCode = id.hashCode
-
-
   /* classification */
 
   def is_command: Boolean = !span.isEmpty && span.first.is_command
