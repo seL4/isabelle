@@ -11,8 +11,7 @@ package isabelle.jedit
 import isabelle.Markup
 
 import org.gjt.sp.jedit.buffer.JEditBuffer
-import org.gjt.sp.jedit.syntax.{Token => JToken,
-  TokenMarker, TokenHandler, SyntaxStyle, ParserRuleSet}
+import org.gjt.sp.jedit.syntax.{Token, TokenMarker, TokenHandler, SyntaxStyle, ParserRuleSet}
 
 import java.awt.Color
 import java.awt.Font
@@ -33,7 +32,7 @@ object Isabelle_Token_Marker
 
   private val choose_byte: Map[String, Byte] =
   {
-    import JToken._
+    import Token._
     Map[String, Byte](
       // logical entities
       Markup.TCLASS -> LABEL,
@@ -139,7 +138,7 @@ class Isabelle_Token_Marker(model: Document_Model) extends TokenMarker
     if (next_x < stop)
       handler.handleToken(line_segment, 1, next_x - start, stop - next_x, context)
 
-    handler.handleToken(line_segment, JToken.END, line_segment.count, 0, context)
+    handler.handleToken(line_segment, Token.END, line_segment.count, 0, context)
     handler.setLineContext(context)
     context
   }
