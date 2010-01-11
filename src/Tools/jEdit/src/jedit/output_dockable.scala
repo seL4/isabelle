@@ -7,8 +7,6 @@
 package isabelle.jedit
 
 
-import isabelle.proofdocument.{Command, HTML_Panel, Session}
-
 import scala.actors.Actor._
 
 import javax.swing.JPanel

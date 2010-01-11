@@ -5,7 +5,7 @@
  * @author Makarius
  */
 
-package isabelle.proofdocument
+package isabelle
 
 
 class Change(

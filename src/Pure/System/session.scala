@@ -4,7 +4,7 @@
  * @author Makarius
  */
 
-package isabelle.proofdocument
+package isabelle
 
 
 import scala.actors.TIMEOUT

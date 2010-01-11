@@ -4,7 +4,7 @@
  * @author Makarius
  */
 
-package isabelle.proofdocument
+package isabelle.jedit
 
 
 import java.io.StringReader

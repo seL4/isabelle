@@ -5,7 +5,7 @@
  * @author Makarius
  */
 
-package isabelle.proofdocument
+package isabelle
 
 
 import javax.swing.tree.DefaultMutableTreeNode

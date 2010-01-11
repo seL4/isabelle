@@ -5,13 +5,11 @@
  * @author Fabian Immler, TU Munich
  */
 
-package isabelle.proofdocument
+package isabelle
 
 
 import scala.actors.Actor, Actor._
 import scala.collection.mutable
-
-import isabelle.jedit.Isabelle
 
 
 object Command

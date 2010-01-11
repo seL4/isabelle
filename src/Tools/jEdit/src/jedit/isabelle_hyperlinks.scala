@@ -6,7 +6,6 @@
 
 package isabelle.jedit
 
-import isabelle.proofdocument.Command
 
 import java.io.File
 

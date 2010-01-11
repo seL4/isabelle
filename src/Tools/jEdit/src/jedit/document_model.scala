@@ -8,8 +8,6 @@
 package isabelle.jedit
 
 
-import isabelle.proofdocument.{Change, Command, Document, Session}
-
 import scala.actors.Actor, Actor._
 import scala.collection.mutable
 

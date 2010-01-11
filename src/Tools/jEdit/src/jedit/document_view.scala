@@ -8,8 +8,6 @@
 package isabelle.jedit
 
 
-import isabelle.proofdocument.{Command, Document, Session}
-
 import scala.actors.Actor._
 
 import java.awt.event.{MouseAdapter, MouseEvent}
