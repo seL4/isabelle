@@ -84,7 +84,7 @@ done
 if [ "$OUTDATED" = true ]
 then
   echo "###"
-  echo "### Building Isabelle/Scala components ..."
+  echo "### Building Isabelle/Scala layer ..."
   echo "###"
 
   rm -rf classes && mkdir classes
