@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!DOCTYPE MODE SYSTEM "xmode.dtd">
+
+<!-- Isabelle session mode -->
+<MODE>
+  <PROPS>
+    <PROPERTY NAME="commentStart" VALUE="(*"/>
+    <PROPERTY NAME="commentEnd" VALUE="*)"/>
+    <PROPERTY NAME="noWordSep" VALUE="_'.?"/>
+    <PROPERTY NAME="unalignedOpenBrackets" VALUE="(" />
+    <PROPERTY NAME="unalignedCloseBrackets" VALUE=")" />
+    <PROPERTY NAME="tabSize" VALUE="2" />
+    <PROPERTY NAME="indentSize" VALUE="2" />
+  </PROPS>
+  <RULES IGNORE_CASE="FALSE" HIGHLIGHT_DIGITS="FALSE" ESCAPE="\">
+    <SPAN TYPE="COMMENT1">
+      <BEGIN>(*</BEGIN>
+      <END>*)</END>
+    </SPAN>
+    <SPAN TYPE="COMMENT3">
+      <BEGIN>{*</BEGIN>
+      <END>*}</END>
+    </SPAN>
+    <SPAN TYPE="LITERAL1">
+      <BEGIN>`</BEGIN>
+      <END>`</END>
+    </SPAN>
+    <SPAN TYPE="LITERAL3">
+      <BEGIN>"</BEGIN>
+      <END>"</END>
+    </SPAN>
+    <KEYWORDS>
+      <KEYWORD1>session</KEYWORD1>
+      <KEYWORD2>parent</KEYWORD2>
+      <KEYWORD2>imports</KEYWORD2>
+      <KEYWORD2>uses</KEYWORD2>
+      <KEYWORD2>options</KEYWORD2>
+      <KEYWORD2>dependencies</KEYWORD2>
+    </KEYWORDS>
+  </RULES>
+</MODE>

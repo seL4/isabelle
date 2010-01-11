@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://www.netbeans.org/ns/project/1">
+    <type>org.netbeans.modules.scala.project</type>
+    <configuration>
+        <data xmlns="http://www.netbeans.org/ns/scala-project/1">
+            <name>Isabelle-jEdit</name>
+            <minimum-ant-version>1.6.5</minimum-ant-version>
+            <source-roots>
+                <root id="src.dir"/>
+            </source-roots>
+            <test-roots/>
+        </data>
+        <references xmlns="http://www.netbeans.org/ns/ant-project-references/1">
+            <reference>
+                <foreign-project>jEdit</foreign-project>
+                <artifact-type>jar</artifact-type>
+                <script>build-nb.xml</script>
+                <target>build</target>
+                <clean-target>clean</clean-target>
+                <id>build</id>
+            </reference>
+        </references>
+    </configuration>
+</project>

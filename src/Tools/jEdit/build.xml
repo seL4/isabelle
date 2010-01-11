@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- You may freely edit this file. See commented blocks below for -->
+<!-- some examples of how to customize the build. -->
+<!-- (If you delete it and reopen the project it will be recreated.) -->
+<project name="Isabelle-jEdit" default="default" basedir=".">
+    <description>Builds, tests, and runs the project Isabelle-jEdit.</description>
+    <import file="nbproject/build-impl.xml"/>
+    <!--
+
+    There exist several targets which are by default empty and which can be 
+    used for execution of your tasks. These targets are usually executed 
+    before and after some main targets. They are: 
+
+      -pre-init:                 called before initialization of project properties
+      -post-init:                called after initialization of project properties
+      -pre-compile:              called before javac compilation
+      -post-compile:             called after javac compilation
+      -pre-compile-single:       called before javac compilation of single file
+      -post-compile-single:      called after javac compilation of single file
+      -pre-compile-test:         called before javac compilation of JUnit tests
+      -post-compile-test:        called after javac compilation of JUnit tests
+      -pre-compile-test-single:  called before javac compilation of single JUnit test
+      -post-compile-test-single: called after javac compilation of single JUunit test
+      -pre-jar:                  called before JAR building
+      -post-jar:                 called after JAR building
+      -post-clean:               called after cleaning build products
+
+    (Targets beginning with '-' are not intended to be called on their own.)
+
+    Example of inserting an obfuscator after compilation could look like this:
+
+        <target name="-post-compile">
+            <obfuscate>
+                <fileset dir="${build.classes.dir}"/>
+            </obfuscate>
+        </target>
+
+    For list of available properties check the imported 
+    nbproject/build-impl.xml file. 
+
+
+    Another way to customize the build is by overriding existing main targets.
+    The targets of interest are: 
+
+      -init-macrodef-javac:     defines macro for javac compilation
+      -init-macrodef-junit:     defines macro for junit execution
+      -init-macrodef-debug:     defines macro for class debugging
+      -init-macrodef-java:      defines macro for class execution
+      -do-jar-with-manifest:    JAR building (if you are using a manifest)
+      -do-jar-without-manifest: JAR building (if you are not using a manifest)
+      run:                      execution of project 
+      -javadoc-build:           Javadoc generation
+      test-report:              JUnit report generation
+
+    An example of overriding the target for project execution could look like this:
+
+        <target name="run" depends="Isabelle-jEdit-impl.jar">
+            <exec dir="bin" executable="launcher.exe">
+                <arg file="${dist.jar}"/>
+            </exec>
+        </target>
+
+    Notice that the overridden target depends on the jar target and not only on 
+    the compile target as the regular run target does. Again, for a list of available 
+    properties which you can use, check the target you are overriding in the
+    nbproject/build-impl.xml file. 
+
+    -->
+    <target name="run" depends="Isabelle-jEdit-impl.jar,Isabelle-jEdit-impl.run">
+    </target>
+    <target name="debug" depends="Isabelle-jEdit-impl.jar,Isabelle-jEdit-impl.debug">
+    </target>
+    <target name="-pre-jar">
+      <copy file="plugin/services.xml" todir="${build.classes.dir}" />
+      <copy file="plugin/dockables.xml" todir="${build.classes.dir}" />
+      <copy file="plugin/actions.xml" todir="${build.classes.dir}" />
+      <copy file="plugin/Isabelle.props" todir="${build.classes.dir}" />
+    </target>
+    <target name="-post-jar">
+      <!-- jars -->
+      <delete file="${dist.dir}/jars/lib/jEdit.jar" />
+      <move todir="${dist.dir}/jars">
+        <fileset dir="${dist.dir}/jars/lib" />
+      </move>
+      <copy file="${scala.library}" todir="${dist.dir}/jars" />
+      <copy file="${scala.lib}/scala-swing.jar" todir="${dist.dir}/jars" />
+      <!-- clean up -->
+      <delete dir="{dist.dir}/jars/lib" />
+      <!-- dist-template -->
+      <copy file="dist-template/properties/jedit.props" tofile="${dist.dir}/properties" />
+      <copy todir="${dist.dir}/modes">
+        <fileset dir="dist-template/modes" />
+      </copy>
+      <copy todir="${dist.dir}/modes" overwrite="true">
+        <fileset dir="${project.jEdit}/modes" />
+      </copy>
+      <replaceregexp byline="true" file="${dist.dir}/modes/catalog">
+        <regexp pattern='(^.*NAME="javacc".*$)'/>
+        <substitution expression="&lt;MODE NAME=&quot;isabelle&quot; FILE=&quot;isabelle.xml&quot; FILE_NAME_GLOB=&quot;*.thy&quot;/&gt;${line.separator}${line.separator}\1"/>
+      </replaceregexp>
+    </target>
+</project>
