@@ -67,16 +67,19 @@ object Document
       eds match {
         case e :: es =>
           command_starts(commands).find {   // FIXME relative search!
-            case (cmd, cmd_start) => e.can_edit(cmd.length, cmd_start)
+            case (cmd, cmd_start) =>
+              e.can_edit(cmd.source, cmd_start) || e.is_insert && e.start == cmd_start + cmd.length
           } match {
-            // FIXME try to append after command
-            case Some((cmd, cmd_start)) =>
-              val (rest, source) = e.edit(cmd.source, cmd_start)
-              val new_commands = commands.insert_after(Some(cmd), unparsed(source)) - cmd
+            case Some((cmd, cmd_start)) if e.can_edit(cmd.source, cmd_start) =>
+              val (rest, text) = e.edit(cmd.source, cmd_start)
+              val new_commands = commands.insert_after(Some(cmd), unparsed(text)) - cmd
               edit_text(rest.toList ::: es, new_commands)
 
+            case Some((cmd, cmd_start)) =>
+              edit_text(es, commands.insert_after(Some(cmd), unparsed(e.text)))
+
             case None =>
-              require(e.isInstanceOf[Text_Edit.Insert] && e.start == 0)
+              require(e.is_insert && e.start == 0)
               edit_text(es, commands.insert_after(None, unparsed(e.text)))
           }
         case Nil => commands
@@ -84,9 +87,9 @@ object Document
     }
 
 
-    /* phase 2: command range edits */
+    /* phase 2: recover command spans */
 
-    def edit_commands(commands: Linear_Set[Command]): Linear_Set[Command] =
+    def parse_spans(commands: Linear_Set[Command]): Linear_Set[Command] =
     {
       // FIXME relative search!
       commands.elements.find(is_unparsed) match {
@@ -96,12 +99,12 @@ object Document
           val suffix = commands.next(body.last)
 
           val sources = (prefix.toList ::: body ::: suffix.toList).flatMap(_.span.map(_.source))
-          val span = Thy_Syntax.parse_spans(session.current_syntax.scan(sources.mkString))
+          val spans0 = Thy_Syntax.parse_spans(session.current_syntax.scan(sources.mkString))
 
           val (before_edit, spans1) =
-            if (!span.isEmpty && Some(span.first) == prefix.map(_.span))
-              (prefix, span.tail)
-            else (if (prefix.isDefined) commands.prev(prefix.get) else None, span)
+            if (!spans0.isEmpty && Some(spans0.first) == prefix.map(_.span))
+              (prefix, spans0.tail)
+            else (if (prefix.isDefined) commands.prev(prefix.get) else None, spans0)
 
           val (after_edit, spans2) =
             if (!spans1.isEmpty && Some(spans1.last) == suffix.map(_.span))
@@ -111,7 +114,7 @@ object Document
           val inserted = spans2.map(span => new Command(session.create_id(), span))
           val new_commands =
             commands.delete_between(before_edit, after_edit).append_after(before_edit, inserted)
-          edit_commands(new_commands)
+          parse_spans(new_commands)
 
         case None => commands
       }
@@ -122,12 +125,11 @@ object Document
 
     val commands0 = old_doc.commands
     val commands1 = edit_text(edits, commands0)
-    val commands2 = edit_commands(commands1)
+    val commands2 = parse_spans(commands1)
 
     val removed_commands = commands0.elements.filter(!commands2.contains(_)).toList
     val inserted_commands = commands2.elements.filter(!commands0.contains(_)).toList
 
-    // FIXME tune
     val doc_edits =
       removed_commands.reverse.map(cmd => (commands0.prev(cmd), None)) :::
       inserted_commands.map(cmd => (commands2.prev(cmd), Some(cmd)))
