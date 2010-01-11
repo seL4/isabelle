@@ -15,7 +15,7 @@ object Thy_Syntax
 
     val command_span: Parser[Span] =
     {
-      val whitespace = token("white space", tok => tok.is_space || tok.is_comment)
+      val whitespace = token("white space", _.is_ignored)
       val command = token("command keyword", _.is_command)
       val body = not(rep(whitespace) ~ (command | eof)) ~> not_eof
       command ~ rep(body) ^^ { case x ~ ys => x :: ys } | rep1(whitespace) | rep1(body)
