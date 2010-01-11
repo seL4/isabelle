@@ -179,7 +179,7 @@ object Scan
     private def quoted(quote: String): Parser[String] =
     {
       quote ~
-        rep(many1(sym => sym != quote && sym != "\\" && Symbol.is_closed(sym)) |
+        rep(many1(sym => sym != quote && sym != "\\" && Symbol.is_wellformed(sym)) |
           "\\" + quote | "\\\\" |
           (("""\\\d\d\d""".r) ^? { case x if x.substring(1, 4).toInt <= 255 => x })) ~
       quote ^^ { case x ~ ys ~ z => x + ys.mkString + z }
@@ -191,7 +191,7 @@ object Scan
       val body = source.substring(1, source.length - 1)
       if (body.exists(_ == '\\')) {
         val content =
-          rep(many1(sym => sym != quote && sym != "\\" && Symbol.is_closed(sym)) |
+          rep(many1(sym => sym != quote && sym != "\\" && Symbol.is_wellformed(sym)) |
               "\\" ~> (quote | "\\" | """\d\d\d""".r ^^ { case x => x.toInt.toChar.toString }))
         parseAll(content ^^ (_.mkString), body).get
       }
@@ -203,7 +203,7 @@ object Scan
 
     private def verbatim: Parser[String] =
     {
-      "{*" ~ rep(many1(sym => sym != "*" && Symbol.is_closed(sym)) | """\*(?!\})""".r) ~ "*}" ^^
+      "{*" ~ rep(many1(sym => sym != "*" && Symbol.is_wellformed(sym)) | """\*(?!\})""".r) ~ "*}" ^^
         { case x ~ ys ~ z => x + ys.mkString + z }
     }.named("verbatim")
 
@@ -219,7 +219,7 @@ object Scan
     def comment: Parser[String] = new Parser[String]
     {
       val comment_text =
-        rep(many1(sym => sym != "*" && sym != "(" && Symbol.is_closed(sym)) |
+        rep(many1(sym => sym != "*" && sym != "(" && Symbol.is_wellformed(sym)) |
           """\*(?!\))|\((?!\*)""".r)
       val comment_open = "(*" ~ comment_text ^^^ ()
       val comment_close = comment_text ~ "*)" ^^^ ()
@@ -276,7 +276,7 @@ object Scan
 
       val sym_ident =
         (many1(symbols.is_symbolic_char) |
-          one(sym => symbols.is_symbolic(sym) & Symbol.is_closed(sym))) ^^
+          one(sym => symbols.is_symbolic(sym) & Symbol.is_wellformed(sym))) ^^
         (x => Token(Token_Kind.SYM_IDENT, x))
 
       val space = many1(symbols.is_blank) ^^ (x => Token(Token_Kind.SPACE, x))

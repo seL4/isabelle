@@ -23,6 +23,8 @@ object Symbol
       \^? [A-Za-z][A-Za-z0-9_']* |
       \^raw: [\x20-\x7e\u0100-\uffff && [^.>]]* ) >""")
 
+  // FIXME cover bad surrogates!?
+  // FIXME check wrt. ML version
   private val bad_symbol = new Regex("(?xs) (?!" + symbol + ")" +
     """ \\ < (?: (?! \s | [\"`\\] | \(\* | \*\) | \{\* | \*\} ) . )*""")
 
@@ -32,14 +34,10 @@ object Symbol
 
   /* basic matching */
 
-  def is_closed(c: Char): Boolean =
-    !(c == '\\' || Character.isHighSurrogate(c))
+  def is_plain(c: Char): Boolean = !(c == '\\' || '\ud800' <= c && c <= '\udfff')
 
-  def is_closed(s: CharSequence): Boolean =
-  {
-    if (s.length == 1) is_closed(s.charAt(0))
-    else !bad_symbol.pattern.matcher(s).matches
-  }
+  def is_wellformed(s: CharSequence): Boolean =
+    s.length == 1 && is_plain(s.charAt(0)) || !bad_symbol.pattern.matcher(s).matches
 
   class Matcher(text: CharSequence)
   {
@@ -47,7 +45,7 @@ object Symbol
     def apply(start: Int, end: Int): Int =
     {
       require(0 <= start && start < end && end <= text.length)
-      if (is_closed(text.charAt(start))) 1
+      if (is_plain(text.charAt(start))) 1
       else {
         matcher.region(start, end).lookingAt
         matcher.group.length
@@ -177,7 +175,7 @@ object Symbol
         }
       }
       decl.split("\\s+").toList match {
-        case sym :: props if sym.length > 1 && is_closed(sym) => (sym, read_props(props))
+        case sym :: props if sym.length > 1 && is_wellformed(sym) => (sym, read_props(props))
         case _ => err()
       }
     }
