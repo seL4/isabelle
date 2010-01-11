@@ -1,18 +1,10 @@
 /*
- * Document as list of commands, consisting of lists of tokens
+ * Document as editable list of commands
  *
- * @author Johannes Hölzl, TU Munich
- * @author Fabian Immler, TU Munich
  * @author Makarius
  */
 
 package isabelle.proofdocument
-
-
-import scala.actors.Actor._
-import scala.collection.mutable
-
-import java.util.regex.Pattern
 
 
 object Document
