@@ -123,25 +123,28 @@ object Document
 
     /* phase 3: resulting document edits */
 
-    val commands0 = old_doc.commands
-    val commands1 = edit_text(edits, commands0)
-    val commands2 = parse_spans(commands1)
+    val result = Library.timeit("text_edits") {
+      val commands0 = old_doc.commands
+      val commands1 = Library.timeit("edit_text") { edit_text(edits, commands0) }
+      val commands2 = Library.timeit("parse_spans") { parse_spans(commands1) }
 
-    val removed_commands = commands0.elements.filter(!commands2.contains(_)).toList
-    val inserted_commands = commands2.elements.filter(!commands0.contains(_)).toList
+      val removed_commands = commands0.elements.filter(!commands2.contains(_)).toList
+      val inserted_commands = commands2.elements.filter(!commands0.contains(_)).toList
 
-    val doc_edits =
-      removed_commands.reverse.map(cmd => (commands0.prev(cmd), None)) :::
-      inserted_commands.map(cmd => (commands2.prev(cmd), Some(cmd)))
+      val doc_edits =
+        removed_commands.reverse.map(cmd => (commands0.prev(cmd), None)) :::
+        inserted_commands.map(cmd => (commands2.prev(cmd), Some(cmd)))
 
-    val former_states = old_doc.assignment.join -- removed_commands
+      val former_states = old_doc.assignment.join -- removed_commands
 
-    phase0 = edits
-    phase1 = commands1
-    phase2 = commands2
-    phase3 = doc_edits
+      phase0 = edits
+      phase1 = commands1
+      phase2 = commands2
+      phase3 = doc_edits
 
-    (doc_edits, new Document(new_id, commands2, former_states))
+      (doc_edits, new Document(new_id, commands2, former_states))
+    }
+    result
   }
 }
 
@@ -184,9 +187,9 @@ class Document(
     tmp_states = Map()
   }
 
-  def current_state(cmd: Command): State =
+  def current_state(cmd: Command): Option[State] =
   {
     require(assignment.is_finished)
-    (assignment.join)(cmd).current_state
+    (assignment.join).get(cmd).map(_.current_state)
   }
 }

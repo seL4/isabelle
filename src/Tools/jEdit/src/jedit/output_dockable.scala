@@ -38,9 +38,7 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
           Swing_Thread.now { Document_Model(view.getBuffer) } match {
             case None =>
             case Some(model) =>
-              val body =
-                if (cmd == null) Nil  // FIXME ??
-                else model.recent_document.current_state(cmd).results
+              val body = model.recent_document.current_state(cmd).map(_.results) getOrElse Nil
               html_panel.render(body)
           }
 

@@ -45,7 +45,7 @@ class Isabelle_Hyperlinks extends HyperlinkSource
         val offset = model.from_current(document, original_offset)
         document.command_at(offset) match {
           case Some((command, command_start)) =>
-            document.current_state(command).ref_at(offset - command_start) match {
+            document.current_state(command).get.ref_at(offset - command_start) match {
               case Some(ref) =>
                 val begin = model.to_current(document, command_start + ref.start)
                 val line = buffer.getLineOfOffset(begin)

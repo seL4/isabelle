@@ -25,10 +25,10 @@ object Document_View
 {
   def choose_color(command: Command, doc: Document): Color =
   {
-    doc.current_state(command).status match {
-      case Command.Status.UNPROCESSED => new Color(255, 228, 225)
-      case Command.Status.FINISHED => new Color(234, 248, 255)
-      case Command.Status.FAILED => new Color(255, 193, 193)
+    doc.current_state(command).map(_.status) match {
+      case Some(Command.Status.UNPROCESSED) => new Color(255, 228, 225)
+      case Some(Command.Status.FINISHED) => new Color(234, 248, 255)
+      case Some(Command.Status.FAILED) => new Color(255, 193, 193)
       case _ => Color.red
     }
   }
@@ -146,7 +146,7 @@ class Document_View(model: Document_Model, text_area: TextArea)
       val offset = model.from_current(document, text_area.xyToOffset(x, y))
       document.command_at(offset) match {
         case Some((command, command_start)) =>
-          document.current_state(command).type_at(offset - command_start).getOrElse(null)
+          document.current_state(command).get.type_at(offset - command_start).getOrElse(null)
         case None => null
       }
     }
