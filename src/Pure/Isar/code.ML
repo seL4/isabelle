@@ -28,17 +28,13 @@ sig
   val mk_eqn_warning: theory -> thm -> (thm * bool) option
   val mk_eqn_liberal: theory -> thm -> (thm * bool) option
   val assert_eqn: theory -> thm * bool -> thm * bool
-  val assert_eqns_const: theory -> string
-    -> (thm * bool) list -> (thm * bool) list
   val const_typ_eqn: theory -> thm -> string * typ
-  val typscheme_eqn: theory -> thm -> (string * sort) list * typ
-  val typscheme_eqns: theory -> string -> thm list -> (string * sort) list * typ
-  val standard_typscheme: theory -> thm list -> thm list
   type cert = thm * bool list
-  val cert_of_eqns: theory -> (thm * bool) list -> cert
+  val empty_cert: theory -> string -> cert
+  val cert_of_eqns: theory -> string -> (thm * bool) list -> cert
   val constrain_cert: theory -> sort list -> cert -> cert
-  val dest_cert: theory -> cert -> (string * ((string * sort) list * typ)) * ((term list * term) * bool) list
   val eqns_of_cert: theory -> cert -> (thm * bool) list
+  val dest_cert: theory -> cert -> ((string * sort) list * typ) * ((term list * term) * (thm * bool)) list
 
   (*executable code*)
   val add_type: string -> theory -> theory
@@ -61,8 +57,7 @@ sig
   val add_undefined: string -> theory -> theory
   val get_datatype: theory -> string -> ((string * sort) list * (string * typ list) list)
   val get_datatype_of_constr: theory -> string -> string option
-  val these_eqns: theory -> string -> (thm * bool) list
-  val eqn_cert: theory -> string -> cert
+  val get_cert: theory -> ((thm * bool) list -> (thm * bool) list) -> string -> cert
   val get_case_scheme: theory -> string -> (int * (int * string list)) option
   val undefineds: theory -> string list
   val print_codesetup: theory -> unit
@@ -531,20 +526,6 @@ fun logical_typscheme thy (c, ty) =
 
 fun typscheme thy (c, ty) = logical_typscheme thy (c, subst_signature thy c ty);
 
-fun typscheme_eqn thy = typscheme thy o apsnd Logic.unvarifyT o const_typ_eqn thy;
-
-fun typscheme_eqns thy c [] = 
-      let
-        val raw_ty = const_typ thy c;
-        val tvars = Term.add_tvar_namesT raw_ty [];
-        val tvars' = case AxClass.class_of_param thy c
-         of SOME class => [TFree (Name.aT, [class])]
-          | NONE => Name.invent_list [] Name.aT (length tvars)
-              |> map (fn v => TFree (v, []));
-        val ty = typ_subst_TVars (tvars ~~ tvars') raw_ty;
-      in logical_typscheme thy (c, ty) end
-  | typscheme_eqns thy c (thm :: _) = typscheme_eqn thy thm;
-
 fun assert_eqns_const thy c eqns =
   let
     fun cert (eqn as (thm, _)) = if c = const_eqn thy thm
@@ -555,93 +536,97 @@ fun assert_eqns_const thy c eqns =
 
 (* code equation certificates *)
 
-fun standard_typscheme thy thms =
-  let
-    fun tvars_of T = rev (Term.add_tvarsT T []);
-    val vss = map (tvars_of o snd o head_eqn) thms;
-    fun inter_sorts vs =
-      fold (curry (Sorts.inter_sort (Sign.classes_of thy)) o snd) vs [];
-    val sorts = map_transpose inter_sorts vss;
-    val vts = Name.names Name.context Name.aT sorts
-      |> map (fn (v, sort) => TVar ((v, 0), sort));
-  in map2 (fn vs => Thm.certify_instantiate (vs ~~ vts, [])) vss thms end;
-
 type cert = thm * bool list;
 
-fun cert_of_eqns thy [] = (Drule.dummy_thm, [])
-  | cert_of_eqns thy eqns = 
+fun mk_head_cterm thy (c, ty) =
+  Thm.cterm_of thy (Logic.mk_equals (Free ("HEAD", ty), Const (c, ty)));
+
+fun empty_cert thy c = 
+  let
+    val raw_ty = const_typ thy c;
+    val tvars = Term.add_tvar_namesT raw_ty [];
+    val tvars' = case AxClass.class_of_param thy c
+     of SOME class => [TFree (Name.aT, [class])]
+      | NONE => Name.invent_list [] Name.aT (length tvars)
+          |> map (fn v => TFree (v, []));
+    val ty = typ_subst_TVars (tvars ~~ tvars') raw_ty;
+    val chead = mk_head_cterm thy (c, ty);
+  in (Thm.weaken chead Drule.dummy_thm, []) end;
+
+fun cert_of_eqns thy c [] = empty_cert thy c
+  | cert_of_eqns thy c eqns = 
       let
-        val propers = map snd eqns;
-        val thms as thm :: _ = (map Thm.freezeT o standard_typscheme thy o map fst) eqns; (*FIXME*)
-        val (c, ty) = head_eqn thm;
-        val head_thm = Thm.assume (Thm.cterm_of thy (Logic.mk_equals
-          (Free ("HEAD", ty), Const (c, ty)))) |> Thm.symmetric;
+        val _ = assert_eqns_const thy c eqns;
+        val (thms, propers) = split_list eqns;
+        fun tvars_of T = rev (Term.add_tvarsT T []);
+        val vss = map (tvars_of o snd o head_eqn) thms;
+        fun inter_sorts vs =
+          fold (curry (Sorts.inter_sort (Sign.classes_of thy)) o snd) vs [];
+        val sorts = map_transpose inter_sorts vss;
+        val vts = Name.names Name.context Name.aT sorts;
+        val thms as thm :: _ =
+          map2 (fn vs => Thm.certify_instantiate (vs ~~ map TFree vts, [])) vss thms;
+        val head_thm = Thm.symmetric (Thm.assume (mk_head_cterm thy (head_eqn (hd thms))));
         fun head_conv ct = if can Thm.dest_comb ct
           then Conv.fun_conv head_conv ct
           else Conv.rewr_conv head_thm ct;
         val rewrite_head = Conv.fconv_rule (Conv.arg1_conv head_conv);
-        val cert = Conjunction.intr_balanced (map rewrite_head thms);
-      in (cert, propers) end;
+        val cert_thm = Conjunction.intr_balanced (map rewrite_head thms);
+      in (cert_thm, propers) end;
 
-fun head_cert thy cert =
+fun head_cert thy cert_thm =
   let
-    val [head] = Thm.hyps_of cert;
-    val (Free (h, _), Const (c, ty)) = (Logic.dest_equals o the_single o Thm.hyps_of) cert;
-  in ((c, typscheme thy (AxClass.unoverload_const thy (c, ty), ty)), (head, h)) end;
+    val [head] = Thm.hyps_of cert_thm;
+    val (Free (h, _), Const (c, ty)) = Logic.dest_equals head;
+  in ((c, typscheme thy (c, ty)), (head, h)) end;
 
-fun constrain_cert thy sorts (cert, []) = (cert, [])
-  | constrain_cert thy sorts (cert, propers) =
-      let
-        val ((c, (vs, _)), (head, _)) = head_cert thy cert;
-        val subst = map2 (fn (v, _) => fn sort => (v, sort)) vs sorts;
-        val head' = (map_types o map_atyps)
-          (fn TFree (v, _) => TFree (v, the (AList.lookup (op =) subst v))) head;
-        val inst = (map2 (fn (v, sort) => fn sort' =>
-          pairself (Thm.ctyp_of thy) (TVar ((v, 0), sort), TFree (v, sort'))) vs sorts ,[]);
-        val cert' = cert
-          |> Thm.implies_intr (Thm.cterm_of thy head)
-          |> Thm.varifyT
-          |> Thm.instantiate inst
-          |> Thm.elim_implies (Thm.assume (Thm.cterm_of thy head'))
-      in (cert', propers) end;
-
-fun dest_cert thy (cert, propers) =
+fun constrain_cert thy sorts (cert_thm, propers) =
   let
-    val (c_vs_ty, (head, h)) = head_cert thy cert;
-    val equations = cert
-      |> Thm.prop_of
-      |> Logic.dest_conjunction_balanced (length propers)
-      |> map Logic.dest_equals
-      |> (map o apfst) strip_comb
-      |> (map o apfst) (fn (Free (h', _), ts) => case h = h' of True => ts)
-  in (c_vs_ty, equations ~~ propers) end;
+    val ((c, (vs, _)), (head, _)) = head_cert thy cert_thm;
+    val subst = map2 (fn (v, _) => fn sort => (v, sort)) vs sorts;
+    val head' = (map_types o map_atyps)
+      (fn TFree (v, _) => TFree (v, the (AList.lookup (op =) subst v))) head;
+    val inst = (map2 (fn (v, sort) => fn sort' =>
+      pairself (Thm.ctyp_of thy) (TVar ((v, 0), sort), TFree (v, sort'))) vs sorts, []);
+    val cert_thm' = cert_thm
+      |> Thm.implies_intr (Thm.cterm_of thy head)
+      |> Thm.varifyT
+      |> Thm.instantiate inst
+      |> Thm.elim_implies (Thm.assume (Thm.cterm_of thy head'));
+  in (cert_thm', propers) end;
 
-fun eqns_of_cert thy (cert, []) = []
-  | eqns_of_cert thy (cert, propers) =
+fun eqns_of_cert thy (cert_thm, []) = []
+  | eqns_of_cert thy (cert_thm, propers) =
       let
-        val (_, (head, _)) = head_cert thy cert;
-        val thms = cert
+        val (_, (head, _)) = head_cert thy cert_thm;
+        val thms = cert_thm
           |> LocalDefs.expand [Thm.cterm_of thy head]
           |> Thm.varifyT
           |> Conjunction.elim_balanced (length propers)
       in thms ~~ propers end;
 
+fun dest_cert thy (cert as (cert_thm, propers)) =
+  let
+    val eqns = eqns_of_cert thy cert;
+    val ((_, vs_ty), _) = head_cert thy cert_thm;
+    val equations = if null propers then [] else cert_thm
+      |> Thm.prop_of
+      |> Logic.dest_conjunction_balanced (length propers)
+      |> map Logic.dest_equals
+      |> (map o apfst) (snd o strip_comb)
+  in (vs_ty, equations ~~ eqns) end;
+
 
 (* code equation access *)
 
-fun these_eqns thy c =
+fun get_cert thy f c =
   Symtab.lookup ((the_eqns o the_exec) thy) c
   |> Option.map (snd o snd o fst)
   |> these
   |> (map o apfst) (Thm.transfer thy)
-  |> burrow_fst (standard_typscheme thy);
-
-fun eqn_cert thy c =
-  Symtab.lookup ((the_eqns o the_exec) thy) c
-  |> Option.map (snd o snd o fst)
-  |> these
-  |> (map o apfst) (Thm.transfer thy)
-  |> cert_of_eqns thy;
+  |> f
+  |> (map o apfst) (AxClass.unoverload thy)
+  |> cert_of_eqns thy c;
 
 
 (* cases *)

@@ -447,7 +447,7 @@ fun desymbolize_vars thy thm =
   in Thm.certify_instantiate ([], var_subst) thm end;
 
 fun canonize_thms thy = map (Thm.transfer thy)
-  #> Code.standard_typscheme thy #> desymbolize_tvars thy
+  #> desymbolize_tvars thy
   #> same_arity thy #> map (desymbolize_vars thy);
 
 
@@ -612,10 +612,10 @@ and ensure_const thy algbr eqngr c =
     fun stmt_classparam class =
       ensure_class thy algbr eqngr class
       #>> (fn class => Classparam (c, class));
-    fun stmt_fun raw_eqns =
+    fun stmt_fun cert =
       let
-        val eqns = burrow_fst (canonize_thms thy) raw_eqns;
-        val (vs, ty) = Code.typscheme_eqns thy c (map fst eqns);
+        val ((vs, ty), raw_eqns) = Code.dest_cert thy cert;
+        val eqns = burrow_fst (canonize_thms thy) (map snd raw_eqns);
       in
         fold_map (translate_tyvar_sort thy algbr eqngr) vs
         ##>> translate_typ thy algbr eqngr ty
@@ -626,7 +626,7 @@ and ensure_const thy algbr eqngr c =
      of SOME tyco => stmt_datatypecons tyco
       | NONE => (case AxClass.class_of_param thy c
          of SOME class => stmt_classparam class
-          | NONE => stmt_fun (Code_Preproc.eqns eqngr c))
+          | NONE => stmt_fun (Code_Preproc.cert eqngr c))
   in ensure_stmt lookup_const (declare_const thy) stmt_const c end
 and ensure_class thy (algbr as (_, algebra)) eqngr class =
   let
@@ -933,11 +933,7 @@ fun code_depgr thy consts =
   let
     val (_, eqngr) = Code_Preproc.obtain thy consts [];
     val all_consts = Graph.all_succs eqngr consts;
-  in
-    eqngr
-    |> Graph.subgraph (member (op =) all_consts) 
-    |> Graph.map_nodes ((apsnd o map o apfst) (AxClass.overload thy))
-  end;
+  in Graph.subgraph (member (op =) all_consts) eqngr end;
 
 fun code_thms thy = Pretty.writeln o Code_Preproc.pretty thy o code_depgr thy;
 
