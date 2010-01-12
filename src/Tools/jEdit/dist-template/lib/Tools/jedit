@@ -106,7 +106,7 @@ mkdir -p "$JEDIT_SETTINGS/DockableWindowManager"
 
 if [ ! -e "$JEDIT_SETTINGS/perspective.xml" ]; then
   cat > "$JEDIT_SETTINGS/DockableWindowManager/perspective-view0.xml" <<EOF
-    <DOCKING LEFT="" TOP="" RIGHT="" BOTTOM="" LEFT_POS="0" TOP_POS="0" RIGHT_POS="172" BOTTOM_POS="183" />
+    <DOCKING LEFT="" TOP="" RIGHT="" BOTTOM="" LEFT_POS="0" TOP_POS="0" RIGHT_POS="250" BOTTOM_POS="250" />
 EOF
   cat > "$JEDIT_SETTINGS/perspective.xml" <<EOF
 <?xml version="1.0" encoding="UTF-8" ?>
