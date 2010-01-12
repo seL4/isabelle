@@ -80,10 +80,6 @@ val strong_congs = [@{thm "if_cong"}]
 (* needed to avoid warnings about overwritten congs *)
 val weak_congs   = [@{thm "if_weak_cong"}]
 
-(* FIXME comment *)
-(* a tactical which fails if the tactic taken as an argument generates does not solve the sub goal i *)
-fun SOLVEI t = t THEN_ALL_NEW (fn i => no_tac);
-
 (* debugging *)
 fun DEBUG_tac (msg,tac) = 
     CHANGED (EVERY [print_tac ("before "^msg), tac, print_tac ("after "^msg)]); 
@@ -410,7 +406,7 @@ fun local_simp_meth_setup tac =
 fun basic_simp_meth_setup debug tac =
   Scan.depend (fn ctxt => Scan.succeed (Simplifier.map_ss (fn _ => HOL_basic_ss) ctxt, ())) --
   Method.sections (Simplifier.simp_modifiers' @ Splitter.split_modifiers) >>
-  (K (SIMPLE_METHOD' o (fn ss => if debug then tac ss else SOLVEI (tac ss)) o simpset_of));
+  (K (SIMPLE_METHOD' o (if debug then tac else SOLVED' o tac) o simpset_of));
 
 val perm_simp_meth_debug        = local_simp_meth_setup dperm_simp_tac;
 val perm_extend_simp_meth       = local_simp_meth_setup perm_extend_simp_tac;

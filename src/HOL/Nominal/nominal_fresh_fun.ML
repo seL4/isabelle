@@ -7,10 +7,6 @@ a tactic to analyse instances of the fresh_fun.
 
 (* First some functions that should be in the library *)
 
-(* A tactic which only succeeds when the argument *)
-(* tactic solves completely the specified subgoal *)
-fun SOLVEI t = t THEN_ALL_NEW (fn i => no_tac);
-
 fun gen_res_inst_tac_term instf tyinst tinst elim th i st =
   let
     val thy = theory_of_thm st;
@@ -165,10 +161,10 @@ fun fresh_fun_tac no_asm i thm =
     val post_rewrite_tacs =
           [rtac pt_name_inst,
            rtac at_name_inst,
-           TRY o SOLVEI (NominalPermeq.finite_guess_tac ss''),
+           TRY o SOLVED' (NominalPermeq.finite_guess_tac ss''),
            inst_fresh vars params THEN'
-           (TRY o SOLVEI (NominalPermeq.fresh_guess_tac ss'')) THEN'
-           (TRY o SOLVEI (asm_full_simp_tac ss''))]
+           (TRY o SOLVED' (NominalPermeq.fresh_guess_tac ss'')) THEN'
+           (TRY o SOLVED' (asm_full_simp_tac ss''))]
   in
    ((if no_asm then no_tac else
     (subst_inner_asm_tac ctxt fresh_fun_app' i THEN (RANGE post_rewrite_tacs i)))
