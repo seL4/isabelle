@@ -1,6 +1,7 @@
 (*<*)
 theory Sugar
 imports LaTeXsugar OptionalSugar
+uses "~~/doc-src/antiquote_setup"
 begin
 (*>*)
 
@@ -101,7 +102,7 @@ which leads to unpleasant line breaks if the term is too long for one
 line. To avoid this, \texttt{OptionalSugar} contains syntax to group
 @{text"@"}-terms to the left before printing, which leads to better
 line breaking behaviour:
-@{term[display]"term\<^isub>0 @ term\<^isub>1 @ term\<^isub>2 @ term\<^isub>3 @ term\<^isub>4 @ term\<^isub>5 @ term\<^isub>6 @ term\<^isub>7 @ term\<^isub>8 @ term\<^isub>9 @ term\<^isub>1\<^isub>0"}
+@{term[display]"term\<^isub>0 @ term\<^isub>1 @ term\<^isub>2 @ term\<^isub>3 @ term\<^isub>4 @ term\<^isub>5 @ term\<^isub>6 @ term\<^isub>7 @ term\<^isub>8 @ term\<^isub>9 @ term\<^isub>10"}
 
 \end{itemize}
 *}
@@ -131,9 +132,9 @@ results in @{thm conjI[no_vars]}.
 
 This \verb!no_vars! business can become a bit tedious.
 If you would rather never see question marks, simply put
-\begin{verbatim}
-show_question_marks := false;
-\end{verbatim}
+\begin{quote}
+@{ML "Unsynchronized.reset show_question_marks"}\verb!;!
+\end{quote}
 at the beginning of your file \texttt{ROOT.ML}.
 The rest of this document is produced with this flag set to \texttt{false}.
 
@@ -144,7 +145,7 @@ e.g. @{text"x1.0"}, their internal index. This can be avoided by
 turning the last digit into a subscript: write \verb!x\<^isub>1! and
 obtain the much nicer @{text"x\<^isub>1"}. *}
 
-(*<*)ML"show_question_marks := false"(*>*)
+(*<*)ML "Unsynchronized.reset show_question_marks"(*>*)
 
 subsection {*Qualified names*}
 
@@ -154,9 +155,9 @@ theory it is defined in, to distinguish it from the predefined @{const[source]
 "List.length"}. In case there is no danger of confusion, you can insist on
 short names (no qualifiers) by setting \verb!short_names!, typically
 in \texttt{ROOT.ML}:
-\begin{verbatim}
-set short_names;
-\end{verbatim}
+\begin{quote}
+@{ML "Unsynchronized.set short_names"}\verb!;!
+\end{quote}
 *}
 
 subsection {*Variable names\label{sec:varnames}*}

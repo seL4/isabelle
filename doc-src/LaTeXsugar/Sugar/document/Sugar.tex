@@ -130,7 +130,7 @@ line. To avoid this, \texttt{OptionalSugar} contains syntax to group
 \isa{{\isacharat}}-terms to the left before printing, which leads to better
 line breaking behaviour:
 \begin{isabelle}%
-term\isactrlisub {\isadigit{0}}\ \isacharat\ term\isactrlisub {\isadigit{1}}\ \isacharat\ term\isactrlisub {\isadigit{2}}\ \isacharat\ term\isactrlisub {\isadigit{3}}\ \isacharat\ term\isactrlisub {\isadigit{4}}\ \isacharat\ term\isactrlisub {\isadigit{5}}\ \isacharat\ term\isactrlisub {\isadigit{6}}\ \isacharat\ term\isactrlisub {\isadigit{7}}\ \isacharat\ term\isactrlisub {\isadigit{8}}\ \isacharat\ term\isactrlisub {\isadigit{9}}\ \isacharat\ term\isactrlisub {\isadigit{1}}\isactrlisub {\isadigit{0}}%
+term\isactrlisub {\isadigit{0}}\ \isacharat\ term\isactrlisub {\isadigit{1}}\ \isacharat\ term\isactrlisub {\isadigit{2}}\ \isacharat\ term\isactrlisub {\isadigit{3}}\ \isacharat\ term\isactrlisub {\isadigit{4}}\ \isacharat\ term\isactrlisub {\isadigit{5}}\ \isacharat\ term\isactrlisub {\isadigit{6}}\ \isacharat\ term\isactrlisub {\isadigit{7}}\ \isacharat\ term\isactrlisub {\isadigit{8}}\ \isacharat\ term\isactrlisub {\isadigit{9}}\ \isacharat\ term\isactrlisub {\isadigit{1}}{\isadigit{0}}%
 \end{isabelle}
 
 \end{itemize}%
@@ -172,9 +172,9 @@ results in \isa{{\isasymlbrakk}P{\isacharsemicolon}\ Q{\isasymrbrakk}\ {\isasymL
 
 This \verb!no_vars! business can become a bit tedious.
 If you would rather never see question marks, simply put
-\begin{verbatim}
-show_question_marks := false;
-\end{verbatim}
+\begin{quote}
+\verb|Unsynchronized.reset show_question_marks|\verb!;!
+\end{quote}
 at the beginning of your file \texttt{ROOT.ML}.
 The rest of this document is produced with this flag set to \texttt{false}.
 
@@ -210,9 +210,9 @@ the qualified name, for example \isa{T{\isachardot}length}, where \isa{T} is the
 theory it is defined in, to distinguish it from the predefined \isa{{\isachardoublequote}List{\isachardot}length{\isachardoublequote}}. In case there is no danger of confusion, you can insist on
 short names (no qualifiers) by setting \verb!short_names!, typically
 in \texttt{ROOT.ML}:
-\begin{verbatim}
-set short_names;
-\end{verbatim}%
+\begin{quote}
+\verb|Unsynchronized.set short_names|\verb!;!
+\end{quote}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
