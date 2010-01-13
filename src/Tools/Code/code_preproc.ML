@@ -199,11 +199,7 @@ fun pretty thy eqngr =
   AList.make (snd o Graph.get_node eqngr) (Graph.keys eqngr)
   |> (map o apfst) (Code.string_of_const thy)
   |> sort (string_ord o pairself fst)
-  |> map (fn (s, cert) =>
-       (Pretty.block o Pretty.fbreaks) (
-         Pretty.str s
-         :: map (Display.pretty_thm_global thy o AxClass.overload thy o fst) (Code.eqns_of_cert thy cert)
-       ))
+  |> map (fn (s, cert) => (Pretty.block o Pretty.fbreaks) (Pretty.str s :: Code.pretty_cert thy cert))
   |> Pretty.chunks;
 
 
@@ -220,13 +216,13 @@ fun inst_params thy tyco =
   map (fn (c, _) => AxClass.param_of_inst thy (c, tyco))
     o maps (#params o AxClass.get_info thy);
 
-fun typscheme_rhss thy c cert =
+fun typargs_rhss thy c cert =
   let
-    val (tyscm, equations) = Code.dest_cert thy cert;
+    val ((vs, _), equations) = Code.equations_cert thy cert;
     val rhss = [] |> (fold o fold o fold_aterms)
       (fn Const (c, ty) => insert (op =) (c, Sign.const_typargs thy (c, ty)) | _ => I)
-        (map (op :: o swap o fst) equations);
-  in (tyscm, rhss) end;
+        (map (op :: o swap) equations);
+  in (vs, rhss) end;
 
 
 (* data structures *)
@@ -266,7 +262,7 @@ fun obtain_eqns thy eqngr c =
    of SOME (lhs, cert) => ((lhs, []), cert)
     | NONE => let
         val cert = Code.get_cert thy (preprocess thy) c;
-        val ((lhs, _), rhss) = typscheme_rhss thy c cert;
+        val (lhs, rhss) = typargs_rhss thy c cert;
       in ((lhs, rhss), cert) end;
 
 fun obtain_instance thy arities (inst as (class, tyco)) =
@@ -388,14 +384,6 @@ fun dicts_of thy (proj_sort, algebra) (T, sort) =
        handle Sorts.CLASS_ERROR _ => [] (*permissive!*))
   end;
 
-fun inst_cert thy lhs cert =
-  let
-    val ((vs, _), _) = Code.dest_cert thy cert;
-    val sorts = map (fn (v, sort) => case AList.lookup (op =) lhs v
-     of SOME sort' => Sorts.inter_sort (Sign.classes_of thy) (sort, sort')
-      | NONE => sort) vs;
-  in Code.constrain_cert thy sorts cert end;
-
 fun add_arity thy vardeps (class, tyco) =
   AList.default (op =) ((class, tyco),
     map_range (fn k => (snd o Vargraph.get_node vardeps) (Inst (class, tyco), k))
@@ -406,8 +394,8 @@ fun add_cert thy vardeps (c, (proto_lhs, proto_cert)) (rhss, eqngr) =
   else let
     val lhs = map_index (fn (k, (v, _)) =>
       (v, snd (Vargraph.get_node vardeps (Fun c, k)))) proto_lhs;
-    val cert = inst_cert thy lhs proto_cert;
-    val ((vs, _), rhss') = typscheme_rhss thy c cert;
+    val cert = Code.constrain_cert thy (map snd lhs) proto_cert;
+    val (vs, rhss') = typargs_rhss thy c cert;
     val eqngr' = Graph.new_node (c, (vs, cert)) eqngr;
   in (map (pair c) rhss' @ rhss, eqngr') end;
 
