@@ -3890,12 +3890,14 @@ use "Tools/list_code.ML"
 code_type list
   (SML "_ list")
   (OCaml "_ list")
-  (Haskell "![_]")
+  (Haskell "![(_)]")
+  (Scala "List[(_)]")
 
 code_const Nil
   (SML "[]")
   (OCaml "[]")
   (Haskell "[]")
+  (Scala "Nil")
 
 code_instance list :: eq
   (Haskell -)
@@ -3938,7 +3940,7 @@ let
         (Codegen.invoke_codegen thy defs dep thyname false) ts gr'
     in SOME (Pretty.list "[" "]" ps, gr'') end handle TERM _ => NONE;
 in
-  fold (List_Code.add_literal_list) ["SML", "OCaml", "Haskell"]
+  fold (List_Code.add_literal_list) ["SML", "OCaml", "Haskell", "Scala"]
   #> Codegen.add_codegen "list_codegen" list_codegen
 end
 *}
