@@ -1954,6 +1954,7 @@ code_const undefined
   (SML "!(raise/ Fail/ \"undefined\")")
   (OCaml "failwith/ \"undefined\"")
   (Haskell "error/ \"undefined\"")
+  (Scala "!error(\"undefined\")")
 
 subsubsection {* Evaluation and normalization by evaluation *}
 

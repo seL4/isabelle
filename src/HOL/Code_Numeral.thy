@@ -289,33 +289,38 @@ code_type code_numeral
   (SML "int")
   (OCaml "Big'_int.big'_int")
   (Haskell "Int")
+  (Scala "Int")
 
 code_instance code_numeral :: eq
   (Haskell -)
 
 setup {*
   fold (Numeral.add_code @{const_name number_code_numeral_inst.number_of_code_numeral}
-    false false) ["SML", "Haskell"]
+    false false) ["SML", "Haskell", "Scala"]
   #> Numeral.add_code @{const_name number_code_numeral_inst.number_of_code_numeral} false true "OCaml"
 *}
 
 code_reserved SML Int int
 code_reserved OCaml Big_int
+code_reserved Scala Int
 
 code_const "op + \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
   (SML "Int.+/ ((_),/ (_))")
   (OCaml "Big'_int.add'_big'_int")
   (Haskell infixl 6 "+")
+  (Scala infixl 7 "+")
 
 code_const "subtract_code_numeral \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
   (SML "Int.max/ (_/ -/ _,/ 0 : int)")
   (OCaml "Big'_int.max'_big'_int/ (Big'_int.sub'_big'_int/ _/ _)/ Big'_int.zero'_big'_int")
   (Haskell "max/ (_/ -/ _)/ (0 :: Int)")
+  (Scala "!(_/ -/ _).max(0)")
 
 code_const "op * \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
   (SML "Int.*/ ((_),/ (_))")
   (OCaml "Big'_int.mult'_big'_int")
   (Haskell infixl 7 "*")
+  (Scala infixl 8 "*")
 
 code_const div_mod_code_numeral
   (SML "(fn n => fn m =>/ if m = 0/ then (0, n) else/ (n div m, n mod m))")
@@ -326,15 +331,18 @@ code_const "eq_class.eq \<Colon> code_numeral \<Rightarrow> code_numeral \<Right
   (SML "!((_ : Int.int) = _)")
   (OCaml "Big'_int.eq'_big'_int")
   (Haskell infixl 4 "==")
+  (Scala infixl 5 "==")
 
 code_const "op \<le> \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
   (SML "Int.<=/ ((_),/ (_))")
   (OCaml "Big'_int.le'_big'_int")
   (Haskell infix 4 "<=")
+  (Scala infix 4 "<=")
 
 code_const "op < \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
   (SML "Int.</ ((_),/ (_))")
   (OCaml "Big'_int.lt'_big'_int")
   (Haskell infix 4 "<")
+  (Scala infix 4 "<")
 
 end
