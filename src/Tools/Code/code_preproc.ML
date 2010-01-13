@@ -14,6 +14,7 @@ sig
   val del_functrans: string -> theory -> theory
   val simple_functrans: (theory -> thm list -> thm list option)
     -> theory -> (thm * bool) list -> (thm * bool) list option
+  val preprocess_functrans: theory -> (thm * bool) list -> (thm * bool) list
   val print_codeproc: theory -> unit
 
   type code_algebra
@@ -120,15 +121,18 @@ fun term_of_conv thy f =
   #> Logic.dest_equals
   #> snd;
 
-fun preprocess thy eqns =
+fun preprocess_functrans thy = 
   let
-    val pre = (Simplifier.theory_context thy o #pre o the_thmproc) thy;
     val functrans = (map (fn (_, (_, f)) => f thy) o #functrans
       o the_thmproc) thy;
+  in perhaps (perhaps_loop (perhaps_apply functrans)) end;
+
+fun preprocess thy =
+  let
+    val pre = (Simplifier.theory_context thy o #pre o the_thmproc) thy;
   in
-    eqns
-    |> perhaps (perhaps_loop (perhaps_apply functrans))
-    |> (map o apfst) (rewrite_eqn pre)
+    preprocess_functrans thy
+    #> (map o apfst) (rewrite_eqn pre)
   end;
 
 fun preprocess_conv thy ct =

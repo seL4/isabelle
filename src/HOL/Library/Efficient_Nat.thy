@@ -161,7 +161,7 @@ fun remove_suc thy thms =
       end
   in get_first mk_thms eqs end;
 
-fun eqn_suc_preproc thy thms =
+fun eqn_suc_base_preproc thy thms =
   let
     val dest = fst o Logic.dest_equals o prop_of;
     val contains_suc = exists_Const (fn (c, _) => c = @{const_name Suc});
@@ -171,10 +171,7 @@ fun eqn_suc_preproc thy thms =
        else NONE
   end;
 
-val eqn_suc_preproc1 = Code_Preproc.simple_functrans eqn_suc_preproc;
-
-fun eqn_suc_preproc2 thy thms = eqn_suc_preproc thy thms
-  |> the_default thms;
+val eqn_suc_preproc = Code_Preproc.simple_functrans eqn_suc_base_preproc;
 
 fun remove_suc_clause thy thms =
   let
@@ -217,9 +214,8 @@ fun clause_suc_preproc thy ths =
   end;
 in
 
-  Codegen.add_preprocessor eqn_suc_preproc2
+  Code_Preproc.add_functrans ("eqn_Suc", eqn_suc_preproc)
   #> Codegen.add_preprocessor clause_suc_preproc
-  #> Code_Preproc.add_functrans ("eqn_Suc", eqn_suc_preproc1)
 
 end;
 *}

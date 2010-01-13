@@ -43,7 +43,7 @@ fun avoid_value thy [thm] =
 fun get_equations thy defs (raw_c, T) = if raw_c = @{const_name "op ="} then ([], "") else
   let
     val c = AxClass.unoverload_const thy (raw_c, T);
-    val raw_thms = Code.get_cert thy I c
+    val raw_thms = Code.get_cert thy (Code_Preproc.preprocess_functrans thy) c
       |> Code.eqns_of_cert thy
       |> map_filter (fn (thm, linear) => if linear then SOME thm else NONE)
       |> map (AxClass.overload thy)
