@@ -115,11 +115,13 @@ code_type option
   (SML "_ option")
   (OCaml "_ option")
   (Haskell "Maybe _")
+  (Scala "!Option[(_)]")
 
 code_const None and Some
   (SML "NONE" and "SOME")
   (OCaml "None" and "Some _")
   (Haskell "Nothing" and "Just")
+  (Scala "None" and "!Some((_))")
 
 code_instance option :: eq
   (Haskell -)
@@ -132,5 +134,8 @@ code_reserved SML
 
 code_reserved OCaml
   option None Some
+
+code_reserved Scala
+  Option None Some
 
 end

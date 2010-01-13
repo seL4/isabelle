@@ -170,14 +170,16 @@ use "Tools/string_code.ML"
 
 code_reserved SML string
 code_reserved OCaml string
+code_reserved Scala string
 
 code_type literal
   (SML "string")
   (OCaml "string")
   (Haskell "String")
+  (Scala "String")
 
 setup {*
-  fold String_Code.add_literal_string ["SML", "OCaml", "Haskell"]
+  fold String_Code.add_literal_string ["SML", "OCaml", "Haskell", "Scala"]
 *}
 
 code_instance literal :: eq
@@ -187,7 +189,7 @@ code_const "eq_class.eq \<Colon> literal \<Rightarrow> literal \<Rightarrow> boo
   (SML "!((_ : string) = _)")
   (OCaml "!((_ : string) = _)")
   (Haskell infixl 4 "==")
-
+  (Scala infixl 5 "==")
 
 types_code
   "char" ("string")

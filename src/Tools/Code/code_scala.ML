@@ -409,7 +409,7 @@ in Literals {
   literal_string = quote o translate_string char_scala,
   literal_numeral = fn unbounded => fn k => if k >= 0 then string_of_int k
     else Library.enclose "(" ")" (signed_string_of_int k),
-  literal_list = fn ps => Pretty.block [str "List", enum "," "(" ")" ps],
+  literal_list = fn [] => str "Nil" | ps => Pretty.block [str "List", enum "," "(" ")" ps],
   infix_cons = (6, "::")
 } end;
 
@@ -436,7 +436,7 @@ val setup =
       "true", "type", "val", "var", "while", "with"
     ]
   #> fold (Code_Target.add_reserved target) [
-      "error", "apply", "List"
+      "error", "apply", "List", "Nil"
     ];
 
 end; (*struct*)

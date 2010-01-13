@@ -99,6 +99,7 @@ code_type unit
   (SML "unit")
   (OCaml "unit")
   (Haskell "()")
+  (Scala "Unit")
 
 code_instance unit :: eq
   (Haskell -)
@@ -110,12 +111,16 @@ code_const Unity
   (SML "()")
   (OCaml "()")
   (Haskell "()")
+  (Scala "()")
 
 code_reserved SML
   unit
 
 code_reserved OCaml
   unit
+
+code_reserved Scala
+  Unit
 
 
 subsection {* Pairs *}
@@ -995,6 +1000,7 @@ code_type *
   (SML infix 2 "*")
   (OCaml infix 2 "*")
   (Haskell "!((_),/ (_))")
+  (Scala "!((_),/ (_))")
 
 code_instance * :: eq
   (Haskell -)
@@ -1006,6 +1012,7 @@ code_const Pair
   (SML "!((_),/ (_))")
   (OCaml "!((_),/ (_))")
   (Haskell "!((_),/ (_))")
+  (Scala "!((_),/ (_))")
 
 code_const fst and snd
   (Haskell "fst" and "snd")

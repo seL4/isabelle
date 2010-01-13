@@ -454,7 +454,7 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
       val _ = trace "\ndecode_tstp_file: finishing\n"
   in
     isar_header (map #1 fixes) ^ implode ilines ^ "qed\n"
-  end;
+  end handle STREE _ => error "Could not extract proof (ATP output malformed?)";
 
 
 (*=== EXTRACTING PROOF-TEXT === *)

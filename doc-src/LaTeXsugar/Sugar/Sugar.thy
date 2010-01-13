@@ -1,7 +1,6 @@
 (*<*)
 theory Sugar
 imports LaTeXsugar OptionalSugar
-uses "~~/doc-src/antiquote_setup"
 begin
 (*>*)
 
@@ -102,7 +101,7 @@ which leads to unpleasant line breaks if the term is too long for one
 line. To avoid this, \texttt{OptionalSugar} contains syntax to group
 @{text"@"}-terms to the left before printing, which leads to better
 line breaking behaviour:
-@{term[display]"term\<^isub>0 @ term\<^isub>1 @ term\<^isub>2 @ term\<^isub>3 @ term\<^isub>4 @ term\<^isub>5 @ term\<^isub>6 @ term\<^isub>7 @ term\<^isub>8 @ term\<^isub>9 @ term\<^isub>10"}
+@{term[display]"term\<^isub>0 @ term\<^isub>1 @ term\<^isub>2 @ term\<^isub>3 @ term\<^isub>4 @ term\<^isub>5 @ term\<^isub>6 @ term\<^isub>7 @ term\<^isub>8 @ term\<^isub>9 @ term\<^isub>1\<^isub>0"}
 
 \end{itemize}
 *}

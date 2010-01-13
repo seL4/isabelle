@@ -58,6 +58,7 @@ sig
   val CSUBGOAL: ((cterm * int) -> tactic) -> int -> tactic
   val SUBGOAL: ((term * int) -> tactic) -> int -> tactic
   val CHANGED_GOAL: (int -> tactic) -> int -> tactic
+  val SOLVED': (int -> tactic) -> int -> tactic
   val THEN_ALL_NEW: (int -> tactic) * (int -> tactic) -> int -> tactic
   val REPEAT_ALL_NEW: (int -> tactic) -> int -> tactic
   val PRIMSEQ: (thm -> thm Seq.seq) -> tactic
@@ -356,10 +357,18 @@ fun CHANGED_GOAL tac i st =
     in  Seq.filter diff (tac i st)  end
     handle Subscript => Seq.empty  (*no subgoal i*);
 
+(*Returns all states where some subgoals have been solved.  For
+  subgoal-based tactics this means subgoal i has been solved
+  altogether -- no new subgoals have emerged.*)
+fun SOLVED' tac i st =
+  tac i st |> Seq.filter (fn st' => nprems_of st' < nprems_of st);
+
+(*Apply second tactic to all subgoals emerging from the first --
+  following usual convention for subgoal-based tactics.*)
 fun (tac1 THEN_ALL_NEW tac2) i st =
   st |> (tac1 i THEN (fn st' => Seq.INTERVAL tac2 i (i + nprems_of st' - nprems_of st) st'));
 
-(*repeatedly dig into any emerging subgoals*)
+(*Repeatedly dig into any emerging subgoals.*)
 fun REPEAT_ALL_NEW tac =
   tac THEN_ALL_NEW (TRY o (fn i => REPEAT_ALL_NEW tac i));
 

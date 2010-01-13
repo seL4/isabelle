@@ -5,8 +5,8 @@
 #identification
 plugin.isabelle.jedit.Plugin.name=Isabelle
 plugin.isabelle.jedit.Plugin.author=Johannes Hölzl, Fabian Immler, Makarius Wenzel
-plugin.isabelle.jedit.Plugin.version=0.0.1
-plugin.isabelle.jedit.Plugin.description=Isabelle/Isar asynchronous proof processing
+plugin.isabelle.jedit.Plugin.version=0.1.0
+plugin.isabelle.jedit.Plugin.description=Isabelle/Isar asynchronous proof document editing
 
 #system parameters
 plugin.isabelle.jedit.Plugin.activate=startup
@@ -14,10 +14,11 @@ plugin.isabelle.jedit.Plugin.usePluginHome=false
 
 #dependencies
 plugin.isabelle.jedit.Plugin.depend.0=jdk 1.6
-plugin.isabelle.jedit.Plugin.depend.1=jedit 04.03.17.00
-plugin.isabelle.jedit.Plugin.depend.2=plugin errorlist.ErrorListPlugin 1.7
-plugin.isabelle.jedit.Plugin.depend.3=plugin sidekick.SideKickPlugin 0.7.6
-plugin.isabelle.jedit.Plugin.depend.4=plugin gatchan.jedit.hyperlinks.HyperlinksPlugin 1.0.1
+plugin.isabelle.jedit.Plugin.depend.1=jedit 04.03.99.00
+plugin.isabelle.jedit.Plugin.depend.2=plugin console.ConsolePlugin 4.4.1
+plugin.isabelle.jedit.Plugin.depend.3=plugin errorlist.ErrorListPlugin 1.8
+plugin.isabelle.jedit.Plugin.depend.4=plugin sidekick.SideKickPlugin 0.8
+plugin.isabelle.jedit.Plugin.depend.5=plugin gatchan.jedit.hyperlinks.HyperlinksPlugin 1.0.1
 
 #options
 plugin.isabelle.jedit.Plugin.option-pane=isabelle
