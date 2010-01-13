@@ -427,88 +427,73 @@ fun is_linear thm =
   in not (has_duplicates (op =) ((fold o fold_aterms)
     (fn Var (v, _) => cons v | _ => I) args [])) end;
 
-fun gen_assert_eqn thy is_constr_pat (thm, proper) =
+fun gen_assert_eqn thy check_patterns (thm, proper) =
   let
+    fun bad s = bad_thm (s ^ ":\n" ^ Display.string_of_thm_global thy thm);
     val (lhs, rhs) = (Logic.dest_equals o Thm.plain_prop_of) thm
-      handle TERM _ => bad_thm ("Not an equation: " ^ Display.string_of_thm_global thy thm)
-           | THM _ => bad_thm ("Not an equation: " ^ Display.string_of_thm_global thy thm);
+      handle TERM _ => bad "Not an equation"
+           | THM _ => bad "Not an equation";
     fun vars_of t = fold_aterms (fn Var (v, _) => insert (op =) v
-      | Free _ => bad_thm ("Illegal free variable in equation\n"
-          ^ Display.string_of_thm_global thy thm)
+      | Free _ => bad "Illegal free variable in equation"
       | _ => I) t [];
     fun tvars_of t = fold_term_types (fn _ =>
       fold_atyps (fn TVar (v, _) => insert (op =) v
-        | TFree _ => bad_thm 
-      ("Illegal free type variable in equation\n" ^ Display.string_of_thm_global thy thm))) t [];
+        | TFree _ => bad "Illegal free type variable in equation")) t [];
     val lhs_vs = vars_of lhs;
     val rhs_vs = vars_of rhs;
     val lhs_tvs = tvars_of lhs;
     val rhs_tvs = tvars_of rhs;
     val _ = if null (subtract (op =) lhs_vs rhs_vs)
       then ()
-      else bad_thm ("Free variables on right hand side of equation\n"
-        ^ Display.string_of_thm_global thy thm);
+      else bad "Free variables on right hand side of equation";
     val _ = if null (subtract (op =) lhs_tvs rhs_tvs)
       then ()
-      else bad_thm ("Free type variables on right hand side of equation\n"
-        ^ Display.string_of_thm_global thy thm)
-    val (head, args) = (strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of) thm;
+      else bad "Free type variables on right hand side of equation";
+    val (head, args) = strip_comb lhs;
     val (c, ty) = case head
      of Const (c_ty as (_, ty)) => (AxClass.unoverload_const thy c_ty, ty)
-      | _ => bad_thm ("Equation not headed by constant\n" ^ Display.string_of_thm_global thy thm);
-    fun check _ (Abs _) = bad_thm
-          ("Abstraction on left hand side of equation\n"
-            ^ Display.string_of_thm_global thy thm)
+      | _ => bad "Equation not headed by constant";
+    fun check _ (Abs _) = bad "Abstraction on left hand side of equation"
       | check 0 (Var _) = ()
-      | check _ (Var _) = bad_thm
-          ("Variable with application on left hand side of equation\n"
-            ^ Display.string_of_thm_global thy thm)
+      | check _ (Var _) = bad "Variable with application on left hand side of equation"
       | check n (t1 $ t2) = (check (n+1) t1; check 0 t2)
-      | check n (Const (c_ty as (_, ty))) =
+      | check n (Const (c_ty as (c, ty))) =
           let
             val c' = AxClass.unoverload_const thy c_ty
           in if n = (length o fst o strip_type o subst_signature thy c') ty
-            then if not proper orelse is_constr_pat c'
+            then if not proper orelse not check_patterns orelse is_constr thy c'
               then ()
-              else bad_thm (quote c ^ " is not a constructor, on left hand side of equation\n"
-                ^ Display.string_of_thm_global thy thm)
-            else bad_thm
-              ("Partially applied constant " ^ quote c ^ " on left hand side of equation\n"
-                 ^ Display.string_of_thm_global thy thm)
+              else bad (quote c ^ " is not a constructor, on left hand side of equation")
+            else bad ("Partially applied constant " ^ quote c ^ " on left hand side of equation")
           end;
     val _ = map (check 0) args;
     val _ = if not proper orelse is_linear thm then ()
-      else bad_thm ("Duplicate variables on left hand side of equation\n"
-        ^ Display.string_of_thm_global thy thm);
-    val _ = if (is_none o AxClass.class_of_param thy) c
-      then ()
-      else bad_thm ("Overloaded constant as head in equation\n"
-        ^ Display.string_of_thm_global thy thm)
-    val _ = if not (is_constr thy c)
-      then ()
-      else bad_thm ("Constructor as head in equation\n"
-        ^ Display.string_of_thm_global thy thm)
+      else bad "Duplicate variables on left hand side of equation";
+    val _ = if (is_none o AxClass.class_of_param thy) c then ()
+      else bad "Overloaded constant as head in equation";
+    val _ = if not (is_constr thy c) then ()
+      else bad "Constructor as head in equation";
     val ty_decl = Sign.the_const_type thy c;
     val _ = if Sign.typ_equiv thy (Type.strip_sorts ty_decl, Type.strip_sorts ty)
       then () else bad_thm ("Type\n" ^ string_of_typ thy ty
-           ^ "\nof equation\n"
-           ^ Display.string_of_thm_global thy thm
-           ^ "\nis incompatible with declared function type\n"
-           ^ string_of_typ thy ty_decl)
+        ^ "\nof equation\n"
+        ^ Display.string_of_thm_global thy thm
+        ^ "\nis incompatible with declared function type\n"
+        ^ string_of_typ thy ty_decl)
   in (thm, proper) end;
 
-fun assert_eqn thy = error_thm (gen_assert_eqn thy (is_constr thy));
+fun assert_eqn thy = error_thm (gen_assert_eqn thy true);
 
 fun meta_rewrite thy = LocalDefs.meta_rewrite_rule (ProofContext.init thy);
 
-fun mk_eqn thy = error_thm (gen_assert_eqn thy (K true)) o
+fun mk_eqn thy = error_thm (gen_assert_eqn thy false) o
   apfst (meta_rewrite thy);
 
 fun mk_eqn_warning thy = Option.map (fn (thm, _) => (thm, is_linear thm))
-  o warning_thm (gen_assert_eqn thy (K true)) o rpair false o meta_rewrite thy;
+  o warning_thm (gen_assert_eqn thy false) o rpair false o meta_rewrite thy;
 
 fun mk_eqn_liberal thy = Option.map (fn (thm, _) => (thm, is_linear thm))
-  o try_thm (gen_assert_eqn thy (K true)) o rpair false o meta_rewrite thy;
+  o try_thm (gen_assert_eqn thy false) o rpair false o meta_rewrite thy;
 
 val head_eqn = dest_Const o fst o strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of;
 
