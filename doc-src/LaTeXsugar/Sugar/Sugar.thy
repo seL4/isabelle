@@ -1,7 +1,6 @@
 (*<*)
 theory Sugar
 imports LaTeXsugar OptionalSugar
-uses "~~/doc-src/antiquote_setup"
 begin
 (*>*)
 
