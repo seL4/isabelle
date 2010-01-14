@@ -88,10 +88,12 @@ fun pretty_code_thm src ctxt raw_const =
   let
     val thy = ProofContext.theory_of ctxt;
     val const = Code.check_const thy raw_const;
-    val (_, funcgr) = Code_Preproc.obtain thy [const] [];
+    val (_, eqngr) = Code_Preproc.obtain thy [const] [];
     fun holize thm = @{thm meta_eq_to_obj_eq} OF [thm];
-    val thms = Code_Preproc.eqns funcgr const
-      |> map_filter (fn (thm, linear) => if linear then SOME thm else NONE)
+    val thms = Code_Preproc.cert eqngr const
+      |> Code.equations_thms_cert thy
+      |> snd
+      |> map_filter (fn (_, (thm, proper)) => if proper then SOME thm else NONE)
       |> map (holize o no_vars ctxt o AxClass.overload thy);
   in ThyOutput.output (ThyOutput.maybe_pretty_source (pretty_thm ctxt) src thms) end;
 
