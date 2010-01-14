@@ -34,7 +34,7 @@ struct
 val collect_mem_simproc =
   Simplifier.simproc (theory "Set") "Collect_mem" ["Collect t"] (fn thy => fn ss =>
     fn S as Const ("Collect", Type ("fun", [_, T])) $ t =>
-         let val (u, Ts, ps) = HOLogic.strip_psplits t
+         let val (u, _, ps) = HOLogic.strip_psplits t
          in case u of
            (c as Const ("op :", _)) $ q $ S' =>
              (case try (HOLogic.strip_ptuple ps) q of
