@@ -309,6 +309,7 @@ class Nat private(private val value: BigInt) {
   def equals(that: Nat): Boolean = this.value == that.value
 
   def as_BigInt: BigInt = this.value
+  def as_Int: Int = this.value
 
   def +(that: Nat): Nat = new Nat(this.value + that.value)
   def -(that: Nat): Nat = Nat(this.value + that.value)
@@ -407,7 +408,7 @@ code_const Code_Numeral.of_nat
   (SML "IntInf.toInt")
   (OCaml "_")
   (Haskell "fromEnum")
-  (Scala "!_.as'_BigInt")
+  (Scala "!_.as'_Int")
 
 code_const Code_Numeral.nat_of
   (SML "IntInf.fromInt")
