@@ -746,6 +746,10 @@ fun print_codesetup thy =
                           :: Pretty.str "of"
                           :: map (Pretty.quote o Syntax.pretty_typ_global thy) tys)) cos)
           );
+    fun pretty_case (const, (_, (_, []))) = Pretty.str (string_of_const thy const)
+      | pretty_case (const, (_, (_, cos))) = (Pretty.block o Pretty.breaks) [
+          Pretty.str (string_of_const thy const), Pretty.str "with",
+          (Pretty.block o Pretty.commas o map (Pretty.str o string_of_const thy)) cos];
     val eqns = the_eqns exec
       |> Symtab.dest
       |> (map o apfst) (string_of_const thy)
@@ -755,18 +759,26 @@ fun print_codesetup thy =
       |> Symtab.dest
       |> map (fn (dtco, (_, (vs, cos)) :: _) =>
           (string_of_typ thy (Type (dtco, map TFree vs)), cos))
-      |> sort (string_ord o pairself fst)
+      |> sort (string_ord o pairself fst);
+    val cases = Symtab.dest ((fst o the_cases o the_exec) thy);
+    val undefineds = Symtab.keys ((snd o the_cases o the_exec) thy);
   in
     (Pretty.writeln o Pretty.chunks) [
       Pretty.block (
-        Pretty.str "code equations:"
-        :: Pretty.fbrk
+        Pretty.str "code equations:" :: Pretty.fbrk
         :: (Pretty.fbreaks o map pretty_eqns) eqns
       ),
       Pretty.block (
-        Pretty.str "datatypes:"
-        :: Pretty.fbrk
+        Pretty.str "datatypes:" :: Pretty.fbrk
         :: (Pretty.fbreaks o map pretty_dtyp) dtyps
+      ),
+      Pretty.block (
+        Pretty.str "cases:" :: Pretty.fbrk
+        :: (Pretty.fbreaks o map pretty_case) cases
+      ),
+      Pretty.block (
+        Pretty.str "undefined:" :: Pretty.fbrk
+        :: (Pretty.commas o map (Pretty.str o string_of_const thy)) undefineds
       )
     ]
   end;

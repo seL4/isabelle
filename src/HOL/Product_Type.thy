@@ -1000,7 +1000,7 @@ code_type *
   (SML infix 2 "*")
   (OCaml infix 2 "*")
   (Haskell "!((_),/ (_))")
-  (Scala "!((_),/ (_))")
+  (Scala "((_),/ (_))")
 
 code_instance * :: eq
   (Haskell -)
