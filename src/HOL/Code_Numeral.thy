@@ -296,8 +296,11 @@ code_instance code_numeral :: eq
 
 setup {*
   fold (Numeral.add_code @{const_name number_code_numeral_inst.number_of_code_numeral}
-    false false) ["SML", "Haskell", "Scala"]
-  #> Numeral.add_code @{const_name number_code_numeral_inst.number_of_code_numeral} false true "OCaml"
+    false false Code_Printer.str) ["SML", "Haskell"]
+  #> Numeral.add_code @{const_name number_code_numeral_inst.number_of_code_numeral}
+    false true Code_Printer.str "OCaml"
+  #> Numeral.add_code @{const_name number_code_numeral_inst.number_of_code_numeral}
+    false false Code_Printer.str "Scala"
 *}
 
 code_reserved SML Int int
@@ -323,9 +326,10 @@ code_const "op * \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> 
   (Scala infixl 8 "*")
 
 code_const div_mod_code_numeral
-  (SML "(fn n => fn m =>/ if m = 0/ then (0, n) else/ (n div m, n mod m))")
-  (OCaml "(fun k -> fun l ->/ Big'_int.quomod'_big'_int/ (Big'_int.abs'_big'_int k)/ (Big'_int.abs'_big'_int l))")
+  (SML "!(fn n => fn m =>/ if m = 0/ then (0, n) else/ (n div m, n mod m))")
+  (OCaml "Big'_int.quomod'_big'_int/ (Big'_int.abs'_big'_int _)/ (Big'_int.abs'_big'_int _)")
   (Haskell "divMod")
+  (Scala "!((n: Int) => (m: Int) =>/ if (m == 0)/ (0, n) else/ (n '/ m, n % m))")
 
 code_const "eq_class.eq \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
   (SML "!((_ : Int.int) = _)")
@@ -337,12 +341,12 @@ code_const "op \<le> \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarr
   (SML "Int.<=/ ((_),/ (_))")
   (OCaml "Big'_int.le'_big'_int")
   (Haskell infix 4 "<=")
-  (Scala infix 4 "<=")
+  (Scala infixl 4 "<=")
 
 code_const "op < \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
   (SML "Int.</ ((_),/ (_))")
   (OCaml "Big'_int.lt'_big'_int")
   (Haskell infix 4 "<")
-  (Scala infix 4 "<")
+  (Scala infixl 4 "<")
 
 end
