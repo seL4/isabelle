@@ -69,8 +69,9 @@ local
       |> Seq.map (pair (map (rpair [] o case_name_of) (Thm.prems_of st)))) #>
     Seq.maps (fn (names, st) =>
       CASES
-        (Rule_Cases.make_common false
-          (ProofContext.theory_of ctxt, Thm.prop_of st) names)
+        (Rule_Cases.make_common
+          (ProofContext.theory_of ctxt,
+           Thm.prop_of (Rule_Cases.internalize_params st)) names)
         Tactical.all_tac st))
 in
 val setup_boogie_cases = Method.setup @{binding boogie_cases}

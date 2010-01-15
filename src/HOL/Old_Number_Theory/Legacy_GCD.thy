@@ -233,37 +233,39 @@ proof-
   with gcd_unique[of "gcd u v" x y]  show ?thesis by auto
 qed
 
-lemma ind_euclid: 
-  assumes c: " \<forall>a b. P (a::nat) b \<longleftrightarrow> P b a" and z: "\<forall>a. P a 0" 
-  and add: "\<forall>a b. P a b \<longrightarrow> P a (a + b)" 
+lemma ind_euclid:
+  assumes c: " \<forall>a b. P (a::nat) b \<longleftrightarrow> P b a" and z: "\<forall>a. P a 0"
+  and add: "\<forall>a b. P a b \<longrightarrow> P a (a + b)"
   shows "P a b"
-proof(induct n\<equiv>"a+b" arbitrary: a b rule: nat_less_induct)
-  fix n a b
-  assume H: "\<forall>m < n. \<forall>a b. m = a + b \<longrightarrow> P a b" "n = a + b"
+proof(induct "a + b" arbitrary: a b rule: less_induct)
+  case less
   have "a = b \<or> a < b \<or> b < a" by arith
   moreover {assume eq: "a= b"
-    from add[rule_format, OF z[rule_format, of a]] have "P a b" using eq by simp}
+    from add[rule_format, OF z[rule_format, of a]] have "P a b" using eq
+    by simp}
   moreover
   {assume lt: "a < b"
-    hence "a + b - a < n \<or> a = 0"  using H(2) by arith
+    hence "a + b - a < a + b \<or> a = 0" by arith
     moreover
     {assume "a =0" with z c have "P a b" by blast }
     moreover
-    {assume ab: "a + b - a < n"
-      have th0: "a + b - a = a + (b - a)" using lt by arith
-      from add[rule_format, OF H(1)[rule_format, OF ab th0]]
-      have "P a b" by (simp add: th0[symmetric])}
+    {assume "a + b - a < a + b"
+      also have th0: "a + b - a = a + (b - a)" using lt by arith
+      finally have "a + (b - a) < a + b" .
+      then have "P a (a + (b - a))" by (rule add[rule_format, OF less])
+      then have "P a b" by (simp add: th0[symmetric])}
     ultimately have "P a b" by blast}
   moreover
   {assume lt: "a > b"
-    hence "b + a - b < n \<or> b = 0"  using H(2) by arith
+    hence "b + a - b < a + b \<or> b = 0" by arith
     moreover
     {assume "b =0" with z c have "P a b" by blast }
     moreover
-    {assume ab: "b + a - b < n"
-      have th0: "b + a - b = b + (a - b)" using lt by arith
-      from add[rule_format, OF H(1)[rule_format, OF ab th0]]
-      have "P b a" by (simp add: th0[symmetric])
+    {assume "b + a - b < a + b"
+      also have th0: "b + a - b = b + (a - b)" using lt by arith
+      finally have "b + (a - b) < a + b" .
+      then have "P b (b + (a - b))" by (rule add[rule_format, OF less])
+      then have "P b a" by (simp add: th0[symmetric])
       hence "P a b" using c by blast }
     ultimately have "P a b" by blast}
 ultimately  show "P a b" by blast

@@ -17,11 +17,11 @@ proof
   assume "r\<^sup>*\<^sup>* x y"
   then show "\<exists>xs. rtrancl_path r x xs y"
   proof (induct rule: converse_rtranclp_induct)
-    case 1
+    case base
     have "rtrancl_path r y [] y" by (rule rtrancl_path.base)
     then show ?case ..
   next
-    case (2 x z)
+    case (step x z)
     from `\<exists>xs. rtrancl_path r z xs y`
     obtain xs where "rtrancl_path r z xs y" ..
     with `r x z` have "rtrancl_path r x (z # xs) y"

@@ -220,10 +220,10 @@ lemma type_substitutivity_aux:
   shows "(\<Delta>@\<Gamma>) \<turnstile> e[x::=e'] : T" 
 using a b 
 proof (nominal_induct \<Gamma>\<equiv>"\<Delta>@[(x,T')]@\<Gamma>" e T avoiding: e' \<Delta> rule: typing.strong_induct)
-  case (t_Var \<Gamma>' y T e' \<Delta>)
+  case (t_Var y T e' \<Delta>)
   then have a1: "valid (\<Delta>@[(x,T')]@\<Gamma>)" 
        and  a2: "(y,T) \<in> set (\<Delta>@[(x,T')]@\<Gamma>)" 
-       and  a3: "\<Gamma> \<turnstile> e' : T'" by simp_all
+       and  a3: "\<Gamma> \<turnstile> e' : T'" .
   from a1 have a4: "valid (\<Delta>@\<Gamma>)" by (rule valid_insert)
   { assume eq: "x=y"
     from a1 a2 have "T=T'" using eq by (auto intro: context_unique)

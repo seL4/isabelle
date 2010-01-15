@@ -5,7 +5,7 @@ The nominal induct proof method.
 
 structure NominalInduct:
 sig
-  val nominal_induct_tac: Proof.context -> (binding option * term) option list list ->
+  val nominal_induct_tac: Proof.context -> bool -> (binding option * (term * bool)) option list list ->
     (string * typ) list -> (string * typ) list list -> thm list ->
     thm list -> int -> Rule_Cases.cases_tactic
   val nominal_induct_method: (Proof.context -> Proof.method) context_parser
@@ -74,26 +74,29 @@ fun rename_params_rule internal xs rule =
           else map (tune o #1) (take (p - n) ps) @ xs;
       in Logic.list_rename_params (ys, prem) end;
     fun rename_prems prop =
-      let val (As, C) = Logic.strip_horn (Thm.prop_of rule)
+      let val (As, C) = Logic.strip_horn prop
       in Logic.list_implies (map rename As, C) end;
   in Thm.equal_elim (Thm.reflexive (Drule.cterm_fun rename_prems (Thm.cprop_of rule))) rule end;
 
 
 (* nominal_induct_tac *)
 
-fun nominal_induct_tac ctxt def_insts avoiding fixings rules facts =
+fun nominal_induct_tac ctxt simp def_insts avoiding fixings rules facts =
   let
     val thy = ProofContext.theory_of ctxt;
     val cert = Thm.cterm_of thy;
 
     val ((insts, defs), defs_ctxt) = fold_map Induct.add_defs def_insts ctxt |>> split_list;
-    val atomized_defs = map (map (Conv.fconv_rule ObjectLogic.atomize)) defs;
+    val atomized_defs = map (map (Conv.fconv_rule Induct.atomize_cterm)) defs;
 
     val finish_rule =
       split_all_tuples
       #> rename_params_rule true
         (map (Name.clean o ProofContext.revert_skolem defs_ctxt o fst) avoiding);
-    fun rule_cases r = Rule_Cases.make_nested true (Thm.prop_of r) (Induct.rulified_term r);
+
+    fun rule_cases ctxt r =
+      let val r' = if simp then Induct.simplified_rule ctxt r else r
+      in Rule_Cases.make_nested (Thm.prop_of r') (Induct.rulified_term r') end;
   in
     (fn i => fn st =>
       rules
@@ -102,19 +105,32 @@ fun nominal_induct_tac ctxt def_insts avoiding fixings rules facts =
       |> Seq.maps (fn (((cases, concls), (more_consumes, more_facts)), rule) =>
         (PRECISE_CONJUNCTS (length concls) (ALLGOALS (fn j =>
           (CONJUNCTS (ALLGOALS
-            (Method.insert_tac (more_facts @ nth_list atomized_defs (j - 1))
-              THEN' Induct.fix_tac defs_ctxt
-                (nth concls (j - 1) + more_consumes)
-                (nth_list fixings (j - 1))))
+            let
+              val adefs = nth_list atomized_defs (j - 1);
+              val frees = fold (Term.add_frees o prop_of) adefs [];
+              val xs = nth_list fixings (j - 1);
+              val k = nth concls (j - 1) + more_consumes
+            in
+              Method.insert_tac (more_facts @ adefs) THEN'
+                (if simp then
+                   Induct.rotate_tac k (length adefs) THEN'
+                   Induct.fix_tac defs_ctxt k
+                     (List.partition (member op = frees) xs |> op @)
+                 else
+                   Induct.fix_tac defs_ctxt k xs)
+            end)
           THEN' Induct.inner_atomize_tac) j))
         THEN' Induct.atomize_tac) i st |> Seq.maps (fn st' =>
             Induct.guess_instance ctxt
               (finish_rule (Induct.internalize more_consumes rule)) i st'
             |> Seq.maps (fn rule' =>
-              CASES (rule_cases rule' cases)
+              CASES (rule_cases ctxt rule' cases)
                 (Tactic.rtac (rename_params_rule false [] rule') i THEN
                   PRIMITIVE (singleton (ProofContext.export defs_ctxt ctxt))) st'))))
-    THEN_ALL_NEW_CASES Induct.rulify_tac
+    THEN_ALL_NEW_CASES
+      ((if simp then Induct.simplify_tac ctxt THEN' (TRY o Induct.trivial_tac)
+        else K all_tac)
+       THEN_ALL_NEW Induct.rulify_tac)
   end;
 
 
@@ -128,11 +144,14 @@ val avoidingN = "avoiding";
 val fixingN = "arbitrary";  (* to be consistent with induct; hopefully this changes again *)
 val ruleN = "rule";
 
-val inst = Scan.lift (Args.$$$ "_") >> K NONE || Args.term >> SOME;
+val inst = Scan.lift (Args.$$$ "_") >> K NONE ||
+  Args.term >> (SOME o rpair false) ||
+  Scan.lift (Args.$$$ "(") |-- (Args.term >> (SOME o rpair true)) --|
+    Scan.lift (Args.$$$ ")");
 
 val def_inst =
   ((Scan.lift (Args.binding --| (Args.$$$ "\<equiv>" || Args.$$$ "==")) >> SOME)
-      -- Args.term) >> SOME ||
+      -- (Args.term >> rpair false)) >> SOME ||
     inst >> Option.map (pair NONE);
 
 val free = Args.context -- Args.term >> (fn (_, Free v) => v | (ctxt, t) =>
@@ -153,11 +172,11 @@ val rule_spec = Scan.lift (Args.$$$ "rule" -- Args.colon) |-- Attrib.thms;
 in
 
 val nominal_induct_method =
-  P.and_list' (Scan.repeat (unless_more_args def_inst)) --
-  avoiding -- fixing -- rule_spec >>
-  (fn (((x, y), z), w) => fn ctxt =>
+  Args.mode Induct.no_simpN -- (P.and_list' (Scan.repeat (unless_more_args def_inst)) --
+  avoiding -- fixing -- rule_spec) >>
+  (fn (no_simp, (((x, y), z), w)) => fn ctxt =>
     RAW_METHOD_CASES (fn facts =>
-      HEADGOAL (nominal_induct_tac ctxt x y z w facts)));
+      HEADGOAL (nominal_induct_tac ctxt (not no_simp) x y z w facts)));
 
 end;
 

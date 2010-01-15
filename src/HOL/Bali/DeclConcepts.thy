@@ -1,5 +1,4 @@
 (*  Title:      HOL/Bali/DeclConcepts.thy
-    ID:         $Id$
     Author:     Norbert Schirmer
 *)
 header {* Advanced concepts on Java declarations like overriding, inheritance,
@@ -2282,74 +2281,47 @@ apply (simp)
 done
 
 lemma superclasses_mono:
-"\<lbrakk>G\<turnstile>C \<prec>\<^sub>C D;ws_prog G; class G C = Some c;
-  \<And> C c. \<lbrakk>class G C = Some c;C\<noteq>Object\<rbrakk> \<Longrightarrow> \<exists> sc. class G (super c) = Some sc;
-  x\<in>superclasses G D 
-\<rbrakk> \<Longrightarrow> x\<in>superclasses G C" 
-proof -
-  
-  assume     ws: "ws_prog G"          and 
-          cls_C: "class G C = Some c" and
-             wf: "\<And>C c. \<lbrakk>class G C = Some c; C \<noteq> Object\<rbrakk>
-                  \<Longrightarrow> \<exists>sc. class G (super c) = Some sc"
-  assume clsrel: "G\<turnstile>C\<prec>\<^sub>C D"           
-  thus "\<And> c. \<lbrakk>class G C = Some c; x\<in>superclasses G D\<rbrakk>\<Longrightarrow>
-        x\<in>superclasses G C" (is "PROP ?P C"  
-                             is "\<And> c. ?CLS C c \<Longrightarrow> ?SUP D \<Longrightarrow> ?SUP C")
-  proof (induct ?P C  rule: converse_trancl_induct)
-    fix C c
-    assume "G\<turnstile>C\<prec>\<^sub>C\<^sub>1D" "class G C = Some c" "x \<in> superclasses G D"
-    with wf ws show "?SUP C"
-      by (auto    intro: no_subcls1_Object 
-               simp add: superclasses_rec subcls1_def)
-  next
-    fix C S c
-    assume clsrel': "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 S" "G\<turnstile>S \<prec>\<^sub>C D"
-       and    hyp : "\<And> s. \<lbrakk>class G S = Some s; x \<in> superclasses G D\<rbrakk>
-                           \<Longrightarrow> x \<in> superclasses G S"
-       and  cls_C': "class G C = Some c"
-       and       x: "x \<in> superclasses G D"
-    moreover note wf ws
-    moreover from calculation 
-    have "?SUP S" 
-      by (force intro: no_subcls1_Object simp add: subcls1_def)
-    moreover from calculation 
-    have "super c = S" 
-      by (auto intro: no_subcls1_Object simp add: subcls1_def)
-    ultimately show "?SUP C" 
-      by (auto intro: no_subcls1_Object simp add: superclasses_rec)
-  qed
+  assumes clsrel: "G\<turnstile>C\<prec>\<^sub>C D"
+  and ws: "ws_prog G"
+  and cls_C: "class G C = Some c"
+  and wf: "\<And>C c. \<lbrakk>class G C = Some c; C \<noteq> Object\<rbrakk>
+    \<Longrightarrow> \<exists>sc. class G (super c) = Some sc"
+  and x: "x\<in>superclasses G D"
+  shows "x\<in>superclasses G C" using clsrel cls_C x
+proof (induct arbitrary: c rule: converse_trancl_induct)
+  case (base C)
+  with wf ws show ?case
+    by (auto    intro: no_subcls1_Object 
+             simp add: superclasses_rec subcls1_def)
+next
+  case (step C S)
+  moreover note wf ws
+  moreover from calculation 
+  have "x\<in>superclasses G S"
+    by (force intro: no_subcls1_Object simp add: subcls1_def)
+  moreover from calculation 
+  have "super c = S" 
+    by (auto intro: no_subcls1_Object simp add: subcls1_def)
+  ultimately show ?case 
+    by (auto intro: no_subcls1_Object simp add: superclasses_rec)
 qed
 
 lemma subclsEval:
-"\<lbrakk>G\<turnstile>C \<prec>\<^sub>C D;ws_prog G; class G C = Some c;
-  \<And> C c. \<lbrakk>class G C = Some c;C\<noteq>Object\<rbrakk> \<Longrightarrow> \<exists> sc. class G (super c) = Some sc 
- \<rbrakk> \<Longrightarrow> D\<in>superclasses G C" 
-proof -
-  note converse_trancl_induct 
-       = converse_trancl_induct [consumes 1,case_names Single Step]
-  assume 
-             ws: "ws_prog G"          and 
-          cls_C: "class G C = Some c" and
-             wf: "\<And>C c. \<lbrakk>class G C = Some c; C \<noteq> Object\<rbrakk>
-                  \<Longrightarrow> \<exists>sc. class G (super c) = Some sc"
-  assume clsrel: "G\<turnstile>C\<prec>\<^sub>C D"           
-  thus "\<And> c. class G C = Some c\<Longrightarrow> D\<in>superclasses G C" 
-    (is "PROP ?P C"  is "\<And> c. ?CLS C c  \<Longrightarrow> ?SUP C")
-  proof (induct ?P C  rule: converse_trancl_induct)
-    fix C c
-    assume "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 D" "class G C = Some c"
-    with ws wf show "?SUP C"
-      by (auto intro: no_subcls1_Object simp add: superclasses_rec subcls1_def)
-  next
-    fix C S c
-    assume "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 S" "G\<turnstile>S\<prec>\<^sub>C D" 
-           "\<And>s. class G S = Some s \<Longrightarrow> D \<in> superclasses G S"
-           "class G C = Some c" 
-    with ws wf show "?SUP C"
-      by - (rule superclasses_mono,
-            auto dest: no_subcls1_Object simp add: subcls1_def )
-  qed
+  assumes clsrel: "G\<turnstile>C\<prec>\<^sub>C D"
+  and ws: "ws_prog G"
+  and cls_C: "class G C = Some c"
+  and wf: "\<And>C c. \<lbrakk>class G C = Some c; C \<noteq> Object\<rbrakk>
+    \<Longrightarrow> \<exists>sc. class G (super c) = Some sc"
+  shows "D\<in>superclasses G C" using clsrel cls_C
+proof (induct arbitrary: c rule: converse_trancl_induct)
+  case (base C)
+  with ws wf show ?case
+    by (auto intro: no_subcls1_Object simp add: superclasses_rec subcls1_def)
+next
+  case (step C S)
+  with ws wf show ?case
+    by - (rule superclasses_mono,
+          auto dest: no_subcls1_Object simp add: subcls1_def )
 qed
 
 end

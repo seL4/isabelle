@@ -387,7 +387,7 @@ fun goals st = map goalN (1 upto Thm.nprems_of st);
 fun no_goal_cases st = map (rpair NONE) (goals st);
 
 fun goal_cases st =
-  Rule_Cases.make_common true (Thm.theory_of_thm st, Thm.prop_of st) (map (rpair []) (goals st));
+  Rule_Cases.make_common (Thm.theory_of_thm st, Thm.prop_of st) (map (rpair []) (goals st));
 
 fun apply_method current_context meth state =
   let

@@ -383,6 +383,8 @@ ML {*
     val atomize = @{thms induct_atomize}
     val rulify = @{thms induct_rulify}
     val rulify_fallback = @{thms induct_rulify_fallback}
+    fun dest_def _ = NONE
+    fun trivial_tac _ = no_tac
   );
 *}
 
