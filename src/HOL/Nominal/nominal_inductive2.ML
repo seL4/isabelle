@@ -196,7 +196,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
           | add_set (t, T) ((u, U) :: ps) =
               if T = U then
                 let val S = HOLogic.mk_setT T
-                in (Const (@{const_name union}, S --> S --> S) $ u $ t, T) :: ps
+                in (Const (@{const_name sup}, S --> S --> S) $ u $ t, T) :: ps
                 end
               else (u, U) :: add_set (t, T) ps
       in
