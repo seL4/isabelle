@@ -12,13 +12,10 @@ subsection {* Preliminaries *}
 
 subsubsection {* ``Axiom'' of Dependent Choice *}
 
-consts choice :: "('a => bool) => ('a * 'a) set => nat => 'a"
+primrec choice :: "('a => bool) => ('a * 'a) set => nat => 'a" where
   --{*An integer-indexed chain of choices*}
-primrec
-  choice_0:   "choice P r 0 = (SOME x. P x)"
-
-  choice_Suc: "choice P r (Suc n) = (SOME y. P y & (choice P r n, y) \<in> r)"
-
+    choice_0:   "choice P r 0 = (SOME x. P x)"
+  | choice_Suc: "choice P r (Suc n) = (SOME y. P y & (choice P r n, y) \<in> r)"
 
 lemma choice_n: 
   assumes P0: "P x0"

@@ -530,11 +530,9 @@ text {*
   The set's element type must be wellordered (e.g. the natural numbers).
 *}
 
-consts
-  enumerate   :: "'a::wellorder set => (nat => 'a::wellorder)"
-primrec
-  enumerate_0:   "enumerate S 0       = (LEAST n. n \<in> S)"
-  enumerate_Suc: "enumerate S (Suc n) = enumerate (S - {LEAST n. n \<in> S}) n"
+primrec (in wellorder) enumerate :: "'a set \<Rightarrow> nat \<Rightarrow> 'a" where
+    enumerate_0:   "enumerate S 0       = (LEAST n. n \<in> S)"
+  | enumerate_Suc: "enumerate S (Suc n) = enumerate (S - {LEAST n. n \<in> S}) n"
 
 lemma enumerate_Suc':
     "enumerate S (Suc n) = enumerate (S - {enumerate S 0}) n"

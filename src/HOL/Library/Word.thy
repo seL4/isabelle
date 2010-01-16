@@ -43,11 +43,21 @@ primrec bitval :: "bit => nat" where
     "bitval \<zero> = 0"
   | "bitval \<one> = 1"
 
-consts
-  bitnot :: "bit => bit"
-  bitand :: "bit => bit => bit" (infixr "bitand" 35)
-  bitor  :: "bit => bit => bit" (infixr "bitor"  30)
-  bitxor :: "bit => bit => bit" (infixr "bitxor" 30)
+primrec bitnot :: "bit => bit" where
+    bitnot_zero: "(bitnot \<zero>) = \<one>"
+  | bitnot_one : "(bitnot \<one>)  = \<zero>"
+
+primrec bitand :: "bit => bit => bit" (infixr "bitand" 35) where
+    bitand_zero: "(\<zero> bitand y) = \<zero>"
+  | bitand_one:  "(\<one> bitand y) = y"
+
+primrec bitor  :: "bit => bit => bit" (infixr "bitor"  30) where
+    bitor_zero: "(\<zero> bitor y) = y"
+  | bitor_one:  "(\<one> bitor y) = \<one>"
+
+primrec bitxor :: "bit => bit => bit" (infixr "bitxor" 30) where
+    bitxor_zero: "(\<zero> bitxor y) = y"
+  | bitxor_one:  "(\<one> bitxor y) = (bitnot y)"
 
 notation (xsymbols)
   bitnot ("\<not>\<^sub>b _" [40] 40) and
@@ -60,22 +70,6 @@ notation (HTML output)
   bitand (infixr "\<and>\<^sub>b" 35) and
   bitor  (infixr "\<or>\<^sub>b" 30) and
   bitxor (infixr "\<oplus>\<^sub>b" 30)
-
-primrec
-  bitnot_zero: "(bitnot \<zero>) = \<one>"
-  bitnot_one : "(bitnot \<one>)  = \<zero>"
-
-primrec
-  bitand_zero: "(\<zero> bitand y) = \<zero>"
-  bitand_one:  "(\<one> bitand y) = y"
-
-primrec
-  bitor_zero: "(\<zero> bitor y) = y"
-  bitor_one:  "(\<one> bitor y) = \<one>"
-
-primrec
-  bitxor_zero: "(\<zero> bitxor y) = y"
-  bitxor_one:  "(\<one> bitxor y) = (bitnot y)"
 
 lemma bitnot_bitnot [simp]: "(bitnot (bitnot b)) = b"
   by (cases b) simp_all
@@ -244,11 +238,9 @@ proof -
   finally show "bv_extend n b w = bv_extend n b (b#w)" .
 qed
 
-consts
-  rem_initial :: "bit => bit list => bit list"
-primrec
-  "rem_initial b [] = []"
-  "rem_initial b (x#xs) = (if b = x then rem_initial b xs else x#xs)"
+primrec rem_initial :: "bit => bit list => bit list" where
+    "rem_initial b [] = []"
+  | "rem_initial b (x#xs) = (if b = x then rem_initial b xs else x#xs)"
 
 lemma rem_initial_length: "length (rem_initial b w) \<le> length w"
   by (rule bit_list_induct [of _ w],simp_all (no_asm),safe,simp_all)
@@ -808,14 +800,12 @@ qed
 
 subsection {* Signed Vectors *}
 
-consts
-  norm_signed :: "bit list => bit list"
-primrec
-  norm_signed_Nil: "norm_signed [] = []"
-  norm_signed_Cons: "norm_signed (b#bs) =
-    (case b of
-      \<zero> => if norm_unsigned bs = [] then [] else b#norm_unsigned bs
-    | \<one> => b#rem_initial b bs)"
+primrec norm_signed :: "bit list => bit list" where
+    norm_signed_Nil: "norm_signed [] = []"
+  | norm_signed_Cons: "norm_signed (b#bs) =
+      (case b of
+        \<zero> => if norm_unsigned bs = [] then [] else b#norm_unsigned bs
+      | \<one> => b#rem_initial b bs)"
 
 lemma norm_signed0 [simp]: "norm_signed [\<zero>] = []"
   by simp
@@ -1005,7 +995,7 @@ lemma bv_extend_norm_signed: "bv_msb w = b ==> bv_extend (length w) b (norm_sign
 proof (rule bit_list_cases [of w],simp_all)
   fix xs
   show "bv_extend (Suc (length xs)) \<zero> (norm_signed (\<zero>#xs)) = \<zero>#xs"
-  proof (simp add: norm_signed_list_def,auto)
+  proof (simp add: norm_signed_def,auto)
     assume "norm_unsigned xs = []"
     hence xx: "rem_initial \<zero> xs = []"
       by (simp add: norm_unsigned_def)
@@ -2232,12 +2222,10 @@ lemmas [simp] = length_nat_non0
 lemma "nat_to_bv (number_of Int.Pls) = []"
   by simp
 
-consts
-  fast_bv_to_nat_helper :: "[bit list, int] => int"
-primrec
-  fast_bv_to_nat_Nil: "fast_bv_to_nat_helper [] k = k"
-  fast_bv_to_nat_Cons: "fast_bv_to_nat_helper (b#bs) k =
-    fast_bv_to_nat_helper bs ((bit_case Int.Bit0 Int.Bit1 b) k)"
+primrec fast_bv_to_nat_helper :: "[bit list, int] => int" where
+    fast_bv_to_nat_Nil: "fast_bv_to_nat_helper [] k = k"
+  | fast_bv_to_nat_Cons: "fast_bv_to_nat_helper (b#bs) k =
+      fast_bv_to_nat_helper bs ((bit_case Int.Bit0 Int.Bit1 b) k)"
 
 declare fast_bv_to_nat_helper.simps [code del]
 
