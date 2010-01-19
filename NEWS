@@ -38,6 +38,7 @@ sets to lattices:
   INTER_fold_inter              ~> INFI_fold_inf
   UNION_fold_union              ~> SUPR_fold_sup
 
+* Added transpose to List.thy.
 
 *** ML ***
 

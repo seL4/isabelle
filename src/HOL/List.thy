@@ -2383,7 +2383,6 @@ lemma (in complete_lattice) SUPR_set_fold:
   unfolding SUPR_def set_map [symmetric] Sup_set_fold foldl_map
     by (simp add: sup_commute)
 
-
 subsubsection {* List summation: @{const listsum} and @{text"\<Sum>"}*}
 
 lemma listsum_append [simp]: "listsum (xs @ ys) = listsum xs + listsum ys"
@@ -3195,6 +3194,117 @@ apply(case_tac ys)
  apply auto
 done
 
+subsubsection{*Transpose*}
+
+function transpose where
+"transpose []             = []" |
+"transpose ([]     # xss) = transpose xss" |
+"transpose ((x#xs) # xss) =
+  (x # [h. (h#t) \<leftarrow> xss]) # transpose (xs # [t. (h#t) \<leftarrow> xss])"
+by pat_completeness auto
+
+lemma transpose_aux_filter_head:
+  "concat (map (list_case [] (\<lambda>h t. [h])) xss) =
+  map (\<lambda>xs. hd xs) [ys\<leftarrow>xss . ys \<noteq> []]"
+  by (induct xss) (auto split: list.split)
+
+lemma transpose_aux_filter_tail:
+  "concat (map (list_case [] (\<lambda>h t. [t])) xss) =
+  map (\<lambda>xs. tl xs) [ys\<leftarrow>xss . ys \<noteq> []]"
+  by (induct xss) (auto split: list.split)
+
+lemma transpose_aux_max:
+  "max (Suc (length xs)) (foldr (\<lambda>xs. max (length xs)) xss 0) =
+  Suc (max (length xs) (foldr (\<lambda>x. max (length x - Suc 0)) [ys\<leftarrow>xss . ys\<noteq>[]] 0))"
+  (is "max _ ?foldB = Suc (max _ ?foldA)")
+proof (cases "[ys\<leftarrow>xss . ys\<noteq>[]] = []")
+  case True
+  hence "foldr (\<lambda>xs. max (length xs)) xss 0 = 0"
+  proof (induct xss)
+    case (Cons x xs)
+    moreover hence "x = []" by (cases x) auto
+    ultimately show ?case by auto
+  qed simp
+  thus ?thesis using True by simp
+next
+  case False
+
+  have foldA: "?foldA = foldr (\<lambda>x. max (length x)) [ys\<leftarrow>xss . ys \<noteq> []] 0 - 1"
+    by (induct xss) auto
+  have foldB: "?foldB = foldr (\<lambda>x. max (length x)) [ys\<leftarrow>xss . ys \<noteq> []] 0"
+    by (induct xss) auto
+
+  have "0 < ?foldB"
+  proof -
+    from False
+    obtain z zs where zs: "[ys\<leftarrow>xss . ys \<noteq> []] = z#zs" by (auto simp: neq_Nil_conv)
+    hence "z \<in> set ([ys\<leftarrow>xss . ys \<noteq> []])" by auto
+    hence "z \<noteq> []" by auto
+    thus ?thesis
+      unfolding foldB zs
+      by (auto simp: max_def intro: less_le_trans)
+  qed
+  thus ?thesis
+    unfolding foldA foldB max_Suc_Suc[symmetric]
+    by simp
+qed
+
+termination transpose
+  by (relation "measure (\<lambda>xs. foldr (\<lambda>xs. max (length xs)) xs 0 + length xs)")
+     (auto simp: transpose_aux_filter_tail foldr_map comp_def transpose_aux_max less_Suc_eq_le)
+
+lemma transpose_empty: "(transpose xs = []) \<longleftrightarrow> (\<forall>x \<in> set xs. x = [])"
+  by (induct rule: transpose.induct) simp_all
+
+lemma length_transpose:
+  fixes xs :: "'a list list"
+  shows "length (transpose xs) = foldr (\<lambda>xs. max (length xs)) xs 0"
+  by (induct rule: transpose.induct)
+    (auto simp: transpose_aux_filter_tail foldr_map comp_def transpose_aux_max
+                max_Suc_Suc[symmetric] simp del: max_Suc_Suc)
+
+lemma nth_transpose:
+  fixes xs :: "'a list list"
+  assumes "i < length (transpose xs)"
+  shows "transpose xs ! i = map (\<lambda>xs. xs ! i) [ys \<leftarrow> xs. i < length ys]"
+using assms proof (induct arbitrary: i rule: transpose.induct)
+  case (3 x xs xss)
+  def XS == "(x # xs) # xss"
+  hence [simp]: "XS \<noteq> []" by auto
+  thus ?case
+  proof (cases i)
+    case 0
+    thus ?thesis by (simp add: transpose_aux_filter_head hd_conv_nth)
+  next
+    case (Suc j)
+    have *: "\<And>xss. xs # map tl xss = map tl ((x#xs)#xss)" by simp
+    have **: "\<And>xss. (x#xs) # filter (\<lambda>ys. ys \<noteq> []) xss = filter (\<lambda>ys. ys \<noteq> []) ((x#xs)#xss)" by simp
+    { fix x have "Suc j < length x \<longleftrightarrow> x \<noteq> [] \<and> j < length x - Suc 0"
+      by (cases x) simp_all
+    } note *** = this
+
+    have j_less: "j < length (transpose (xs # concat (map (list_case [] (\<lambda>h t. [t])) xss)))"
+      using "3.prems" by (simp add: transpose_aux_filter_tail length_transpose Suc)
+
+    show ?thesis
+      unfolding transpose.simps `i = Suc j` nth_Cons_Suc "3.hyps"[OF j_less]
+      apply (auto simp: transpose_aux_filter_tail filter_map comp_def length_transpose * ** *** XS_def[symmetric])
+      apply (rule_tac y=x in list.exhaust)
+      by auto
+  qed
+qed simp_all
+
+lemma transpose_map_map:
+  "transpose (map (map f) xs) = map (map f) (transpose xs)"
+proof (rule nth_equalityI, safe)
+  have [simp]: "length (transpose (map (map f) xs)) = length (transpose xs)"
+    by (simp add: length_transpose foldr_map comp_def)
+  show "length (transpose (map (map f) xs)) = length (map (map f) (transpose xs))" by simp
+
+  fix i assume "i < length (transpose (map (map f) xs))"
+  thus "transpose (map (map f) xs) ! i = map (map f) (transpose xs) ! i"
+    by (simp add: nth_transpose filter_map comp_def)
+qed
 
 subsubsection {* (In)finiteness *}
 
@@ -3406,6 +3516,45 @@ lemma sorted_dropWhile: "sorted xs \<Longrightarrow> sorted (dropWhile P xs)"
 lemma sorted_takeWhile: "sorted xs \<Longrightarrow> sorted (takeWhile P xs)"
   apply (subst takeWhile_eq_take) by (rule sorted_take)
 
+lemma sorted_filter:
+  "sorted (map f xs) \<Longrightarrow> sorted (map f (filter P xs))"
+  by (induct xs) (simp_all add: sorted_Cons)
+
+lemma foldr_max_sorted:
+  assumes "sorted (rev xs)"
+  shows "foldr max xs y = (if xs = [] then y else max (xs ! 0) y)"
+using assms proof (induct xs)
+  case (Cons x xs)
+  moreover hence "sorted (rev xs)" using sorted_append by auto
+  ultimately show ?case
+    by (cases xs, auto simp add: sorted_append max_def)
+qed simp
+
+lemma filter_equals_takeWhile_sorted_rev:
+  assumes sorted: "sorted (rev (map f xs))"
+  shows "[x \<leftarrow> xs. t < f x] = takeWhile (\<lambda> x. t < f x) xs"
+    (is "filter ?P xs = ?tW")
+proof (rule takeWhile_eq_filter[symmetric])
+  let "?dW" = "dropWhile ?P xs"
+  fix x assume "x \<in> set ?dW"
+  then obtain i where i: "i < length ?dW" and nth_i: "x = ?dW ! i"
+    unfolding in_set_conv_nth by auto
+  hence "length ?tW + i < length (?tW @ ?dW)"
+    unfolding length_append by simp
+  hence i': "length (map f ?tW) + i < length (map f xs)" by simp
+  have "(map f ?tW @ map f ?dW) ! (length (map f ?tW) + i) \<le>
+        (map f ?tW @ map f ?dW) ! (length (map f ?tW) + 0)"
+    using sorted_rev_nth_mono[OF sorted _ i', of "length ?tW"]
+    unfolding map_append[symmetric] by simp
+  hence "f x \<le> f (?dW ! 0)"
+    unfolding nth_append_length_plus nth_i
+    using i preorder_class.le_less_trans[OF le0 i] by simp
+  also have "... \<le> t"
+    using hd_dropWhile[of "?P" xs] le0[THEN preorder_class.le_less_trans, OF i]
+    using hd_conv_nth[of "?dW"] by simp
+  finally show "\<not> t < f x" by simp
+qed
+
 end
 
 lemma sorted_upt[simp]: "sorted[i..<j]"
@@ -3417,6 +3566,135 @@ apply(subst upto.simps)
 apply(simp add:sorted_Cons)
 done
 
+subsubsection {*@{const transpose} on sorted lists*}
+
+lemma sorted_transpose[simp]:
+  shows "sorted (rev (map length (transpose xs)))"
+  by (auto simp: sorted_equals_nth_mono rev_nth nth_transpose
+    length_filter_conv_card intro: card_mono)
+
+lemma transpose_max_length:
+  "foldr (\<lambda>xs. max (length xs)) (transpose xs) 0 = length [x \<leftarrow> xs. x \<noteq> []]"
+  (is "?L = ?R")
+proof (cases "transpose xs = []")
+  case False
+  have "?L = foldr max (map length (transpose xs)) 0"
+    by (simp add: foldr_map comp_def)
+  also have "... = length (transpose xs ! 0)"
+    using False sorted_transpose by (simp add: foldr_max_sorted)
+  finally show ?thesis
+    using False by (simp add: nth_transpose)
+next
+  case True
+  hence "[x \<leftarrow> xs. x \<noteq> []] = []"
+    by (auto intro!: filter_False simp: transpose_empty)
+  thus ?thesis by (simp add: transpose_empty True)
+qed
+
+lemma length_transpose_sorted:
+  fixes xs :: "'a list list"
+  assumes sorted: "sorted (rev (map length xs))"
+  shows "length (transpose xs) = (if xs = [] then 0 else length (xs ! 0))"
+proof (cases "xs = []")
+  case False
+  thus ?thesis
+    using foldr_max_sorted[OF sorted] False
+    unfolding length_transpose foldr_map comp_def
+    by simp
+qed simp
+
+lemma nth_nth_transpose_sorted[simp]:
+  fixes xs :: "'a list list"
+  assumes sorted: "sorted (rev (map length xs))"
+  and i: "i < length (transpose xs)"
+  and j: "j < length [ys \<leftarrow> xs. i < length ys]"
+  shows "transpose xs ! i ! j = xs ! j  ! i"
+  using j filter_equals_takeWhile_sorted_rev[OF sorted, of i]
+    nth_transpose[OF i] nth_map[OF j]
+  by (simp add: takeWhile_nth)
+
+lemma transpose_column_length:
+  fixes xs :: "'a list list"
+  assumes sorted: "sorted (rev (map length xs))" and "i < length xs"
+  shows "length (filter (\<lambda>ys. i < length ys) (transpose xs)) = length (xs ! i)"
+proof -
+  have "xs \<noteq> []" using `i < length xs` by auto
+  note filter_equals_takeWhile_sorted_rev[OF sorted, simp]
+  { fix j assume "j \<le> i"
+    note sorted_rev_nth_mono[OF sorted, of j i, simplified, OF this `i < length xs`]
+  } note sortedE = this[consumes 1]
+
+  have "{j. j < length (transpose xs) \<and> i < length (transpose xs ! j)}
+    = {..< length (xs ! i)}"
+  proof safe
+    fix j
+    assume "j < length (transpose xs)" and "i < length (transpose xs ! j)"
+    with this(2) nth_transpose[OF this(1)]
+    have "i < length (takeWhile (\<lambda>ys. j < length ys) xs)" by simp
+    from nth_mem[OF this] takeWhile_nth[OF this]
+    show "j < length (xs ! i)" by (auto dest: set_takeWhileD)
+  next
+    fix j assume "j < length (xs ! i)"
+    thus "j < length (transpose xs)"
+      using foldr_max_sorted[OF sorted] `xs \<noteq> []` sortedE[OF le0]
+      by (auto simp: length_transpose comp_def foldr_map)
+
+    have "Suc i \<le> length (takeWhile (\<lambda>ys. j < length ys) xs)"
+      using `i < length xs` `j < length (xs ! i)` less_Suc_eq_le
+      by (auto intro!: length_takeWhile_less_P_nth dest!: sortedE)
+    with nth_transpose[OF `j < length (transpose xs)`]
+    show "i < length (transpose xs ! j)" by simp
+  qed
+  thus ?thesis by (simp add: length_filter_conv_card)
+qed
+
+lemma transpose_column:
+  fixes xs :: "'a list list"
+  assumes sorted: "sorted (rev (map length xs))" and "i < length xs"
+  shows "map (\<lambda>ys. ys ! i) (filter (\<lambda>ys. i < length ys) (transpose xs))
+    = xs ! i" (is "?R = _")
+proof (rule nth_equalityI, safe)
+  show length: "length ?R = length (xs ! i)"
+    using transpose_column_length[OF assms] by simp
+
+  fix j assume j: "j < length ?R"
+  note * = less_le_trans[OF this, unfolded length_map, OF length_filter_le]
+  from j have j_less: "j < length (xs ! i)" using length by simp
+  have i_less_tW: "Suc i \<le> length (takeWhile (\<lambda>ys. Suc j \<le> length ys) xs)"
+  proof (rule length_takeWhile_less_P_nth)
+    show "Suc i \<le> length xs" using `i < length xs` by simp
+    fix k assume "k < Suc i"
+    hence "k \<le> i" by auto
+    with sorted_rev_nth_mono[OF sorted this] `i < length xs`
+    have "length (xs ! i) \<le> length (xs ! k)" by simp
+    thus "Suc j \<le> length (xs ! k)" using j_less by simp
+  qed
+  have i_less_filter: "i < length [ys\<leftarrow>xs . j < length ys]"
+    unfolding filter_equals_takeWhile_sorted_rev[OF sorted, of j]
+    using i_less_tW by (simp_all add: Suc_le_eq)
+  from j show "?R ! j = xs ! i ! j"
+    unfolding filter_equals_takeWhile_sorted_rev[OF sorted_transpose, of i]
+    by (simp add: takeWhile_nth nth_nth_transpose_sorted[OF sorted * i_less_filter])
+qed
+
+lemma transpose_transpose:
+  fixes xs :: "'a list list"
+  assumes sorted: "sorted (rev (map length xs))"
+  shows "transpose (transpose xs) = takeWhile (\<lambda>x. x \<noteq> []) xs" (is "?L = ?R")
+proof -
+  have len: "length ?L = length ?R"
+    unfolding length_transpose transpose_max_length
+    using filter_equals_takeWhile_sorted_rev[OF sorted, of 0]
+    by simp
+
+  { fix i assume "i < length ?R"
+    with less_le_trans[OF _ length_takeWhile_le[of _ xs]]
+    have "i < length xs" by simp
+  } note * = this
+  show ?thesis
+    by (rule nth_equalityI)
+       (simp_all add: len nth_transpose transpose_column[OF sorted] * takeWhile_nth)
+qed
 
 subsubsection {* @{text sorted_list_of_set} *}
 
@@ -3448,7 +3726,6 @@ apply simp_all
 done
 
 end
-
 
 subsubsection {* @{text lists}: the list-forming operator over sets *}
 
@@ -3547,7 +3824,6 @@ consts  listset :: "'a set list \<Rightarrow> 'a list set"
 primrec
    "listset []    = {[]}"
    "listset(A#As) = set_Cons A (listset As)"
-
 
 subsection{*Relations on Lists*}
 
