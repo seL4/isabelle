@@ -3696,6 +3696,24 @@ proof -
        (simp_all add: len nth_transpose transpose_column[OF sorted] * takeWhile_nth)
 qed
 
+theorem transpose_rectangle:
+  assumes "xs = [] \<Longrightarrow> n = 0"
+  assumes rect: "\<And> i. i < length xs \<Longrightarrow> length (xs ! i) = n"
+  shows "transpose xs = map (\<lambda> i. map (\<lambda> j. xs ! j ! i) [0..<length xs]) [0..<n]"
+    (is "?trans = ?map")
+proof (rule nth_equalityI)
+  have "sorted (rev (map length xs))"
+    by (auto simp: rev_nth rect intro!: sorted_nth_monoI)
+  from foldr_max_sorted[OF this] assms
+  show len: "length ?trans = length ?map"
+    by (simp_all add: length_transpose foldr_map comp_def)
+  moreover
+  { fix i assume "i < n" hence "[ys\<leftarrow>xs . i < length ys] = xs"
+      using rect by (auto simp: in_set_conv_nth intro!: filter_True) }
+  ultimately show "\<forall>i < length ?trans. ?trans ! i = ?map ! i"
+    by (auto simp: nth_transpose intro: nth_equalityI)
+qed
+
 subsubsection {* @{text sorted_list_of_set} *}
 
 text{* This function maps (finite) linearly ordered sets to sorted
