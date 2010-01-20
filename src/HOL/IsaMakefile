@@ -246,10 +246,12 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Code_Evaluation.thy \
   Code_Numeral.thy \
   Divides.thy \
+  DSequence.thy \
   Equiv_Relations.thy \
   Groebner_Basis.thy \
   Hilbert_Choice.thy \
   Int.thy \
+  Lazy_Sequence.thy \
   List.thy \
   Main.thy \
   Map.thy \
@@ -260,6 +262,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Predicate_Compile.thy \
   Quickcheck.thy \
   Random.thy \
+  Random_Sequence.thy \
   Recdef.thy \
   SetInterval.thy \
   String.thy \

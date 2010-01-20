@@ -204,7 +204,7 @@ lemmas word_and_le2 =
 
 lemma bl_word_not: "to_bl (NOT w) = map Not (to_bl w)" 
   unfolding to_bl_def word_log_defs
-  by (simp add: bl_not_bin number_of_is_id word_no_wi [symmetric])
+  by (simp add: bl_not_bin number_of_is_id word_no_wi [symmetric] bin_to_bl_def[symmetric])
 
 lemma bl_word_xor: "to_bl (v XOR w) = map2 op ~= (to_bl v) (to_bl w)" 
   unfolding to_bl_def word_log_defs bl_xor_bin

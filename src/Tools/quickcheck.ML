@@ -7,6 +7,7 @@ Generic counterexample search engine.
 signature QUICKCHECK =
 sig
   val auto: bool Unsynchronized.ref
+  val timing : bool Unsynchronized.ref
   val test_term: Proof.context -> bool -> string option -> int -> int -> term ->
     (string * term) list option
   val add_generator: string * (Proof.context -> term -> int -> term list option) -> theory -> theory
@@ -20,6 +21,8 @@ struct
 (* preferences *)
 
 val auto = Unsynchronized.ref false;
+
+val timing = Unsynchronized.ref false;
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
@@ -97,9 +100,10 @@ fun prep_test_term t =
 fun test_term ctxt quiet generator_name size i t =
   let
     val (names, t') = prep_test_term t;
-    val testers = case generator_name
-     of NONE => if quiet then mk_testers ctxt t' else mk_testers_strict ctxt t'
-      | SOME name => [mk_tester_select name ctxt t'];
+    val testers = (*cond_timeit (!timing) "quickcheck compilation"
+      (fn () => *)(case generator_name
+       of NONE => if quiet then mk_testers ctxt t' else mk_testers_strict ctxt t'
+        | SOME name => [mk_tester_select name ctxt t']);
     fun iterate f 0 = NONE
       | iterate f j = case f () handle Match => (if quiet then ()
              else warning "Exception Match raised during quickcheck"; NONE)
@@ -113,9 +117,11 @@ fun test_term ctxt quiet generator_name size i t =
       else (if quiet then () else priority ("Test data size: " ^ string_of_int k);
         case with_testers k testers
          of NONE => with_size (k + 1) | SOME q => SOME q);
-  in case with_size 1
-   of NONE => NONE
-    | SOME ts => SOME (names ~~ ts)
+  in
+    cond_timeit (!timing) "quickcheck execution"
+    (fn () => case with_size 1
+      of NONE => NONE
+      | SOME ts => SOME (names ~~ ts))
   end;
 
 fun monomorphic_term thy insts default_T = 
