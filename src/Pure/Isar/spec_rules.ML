@@ -12,6 +12,8 @@ sig
   type spec = rough_classification * (term list * thm list)
   val get: Proof.context -> spec list
   val get_global: theory -> spec list
+  val retrieve: Proof.context -> term -> spec list
+  val retrieve_global: theory -> term -> spec list
   val add: rough_classification -> term list * thm list -> local_theory -> local_theory
   val add_global: rough_classification -> term list * thm list -> theory -> theory
 end;
@@ -40,6 +42,9 @@ structure Rules = Generic_Data
 
 val get = Item_Net.content o Rules.get o Context.Proof;
 val get_global = Item_Net.content o Rules.get o Context.Theory;
+
+val retrieve = Item_Net.retrieve o Rules.get o Context.Proof;
+val retrieve_global = Item_Net.retrieve o Rules.get o Context.Theory;
 
 fun add class (ts, ths) lthy =
   let

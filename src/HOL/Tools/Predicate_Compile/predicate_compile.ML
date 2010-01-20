@@ -69,14 +69,19 @@ fun process_specification options specs thy' =
     (intross3 @ new_intross, thy'''')
   end
 
-fun preprocess_strong_conn_constnames options gr constnames thy =
+fun preprocess_strong_conn_constnames options gr ts thy =
   let
-    val get_specs = map (fn k => (k, Graph.get_node gr k))
-    val _ = print_step options ("Preprocessing scc of " ^ commas constnames)
-    val (prednames, funnames) = List.partition (is_pred thy) constnames
+    fun get_specs ts = map_filter (fn t =>
+      TermGraph.get_node gr t |>
+      (fn ths => if null ths then NONE else SOME (fst (dest_Const t), ths)))
+      ts
+    val _ = print_step options ("Preprocessing scc of " ^
+      commas (map (Syntax.string_of_term_global thy) ts))
+    val (prednames, funnames) = List.partition (fn t => body_type (fastype_of t) = @{typ bool}) ts
     (* untangle recursion by defining predicates for all functions *)
     val _ = print_step options
-      ("Compiling functions (" ^ commas funnames ^ ") to predicates...")
+      ("Compiling functions (" ^ commas (map (Syntax.string_of_term_global thy) funnames) ^
+        ") to predicates...")
     val (fun_pred_specs, thy') =
       if not (null funnames) then Predicate_Compile_Fun.define_predicates
       (get_specs funnames) thy else ([], thy)
@@ -95,17 +100,19 @@ fun preprocess_strong_conn_constnames options gr constnames thy =
     thy''''
   end;
 
-fun preprocess options const thy =
+fun preprocess options t thy =
   let
     val _ = print_step options "Fetching definitions from theory..."
-    val table = Predicate_Compile_Data.make_const_spec_table options thy
-    val gr = Predicate_Compile_Data.obtain_specification_graph options thy table const
-    val gr = Graph.subgraph (member (op =) (Graph.all_succs gr [const])) gr
-  in fold_rev (preprocess_strong_conn_constnames options gr)
-    (Graph.strong_conn gr) thy
+    val gr = Output.cond_timeit (!Quickcheck.timing) "preprocess-obtain graph"
+          (fn () => Predicate_Compile_Data.obtain_specification_graph options thy t
+          |> (fn gr => TermGraph.subgraph (member (op =) (TermGraph.all_succs gr [t])) gr))
+  in
+    Output.cond_timeit (!Quickcheck.timing) "preprocess-process"
+      (fn () => (fold_rev (preprocess_strong_conn_constnames options gr)
+        (TermGraph.strong_conn gr) thy))
   end
 
-fun extract_options (((expected_modes, proposed_modes), raw_options), const) =
+fun extract_options (((expected_modes, proposed_modes), (compilation, raw_options)), const) =
   let
     fun chk s = member (op =) raw_options s
   in
@@ -123,9 +130,7 @@ fun extract_options (((expected_modes, proposed_modes), raw_options), const) =
       show_compilation = chk "show_compilation",
       skip_proof = chk "skip_proof",
       inductify = chk "inductify",
-      random = chk "random",
-      depth_limited = chk "depth_limited",
-      annotated = chk "annotated"
+      compilation = compilation
     }
   end
 
@@ -133,11 +138,13 @@ fun code_pred_cmd (((expected_modes, proposed_modes), raw_options), raw_const) l
   let
      val thy = ProofContext.theory_of lthy
      val const = Code.read_const thy raw_const
+     val T = Sign.the_const_type thy const
+     val t = Const (const, T)
      val options = extract_options (((expected_modes, proposed_modes), raw_options), const)
   in
     if (is_inductify options) then
       let
-        val lthy' = Local_Theory.theory (preprocess options const) lthy
+        val lthy' = Local_Theory.theory (preprocess options t) lthy
           |> Local_Theory.checkpoint
         val const =
           case Predicate_Compile_Fun.pred_of_function (ProofContext.theory_of lthy') const of
@@ -152,10 +159,6 @@ fun code_pred_cmd (((expected_modes, proposed_modes), raw_options), raw_const) l
   end
 
 val setup = Predicate_Compile_Core.setup
-
-val bool_options = ["show_steps", "show_intermediate_results", "show_proof_trace", "show_modes",
-  "show_mode_inference", "show_compilation", "skip_proof", "inductify", "random", "depth_limited",
-  "annotated"]
 
 local structure P = OuterParse
 in
@@ -187,8 +190,11 @@ val opt_expected_modes =
 val scan_options =
   let
     val scan_bool_option = foldl1 (op ||) (map Args.$$$ bool_options)
+    val scan_compilation = foldl1 (op ||) (map (fn (s, c) => Args.$$$ s >> K c) compilation_names)
   in
-    Scan.optional (P.$$$ "[" |-- P.enum1 "," scan_bool_option --| P.$$$ "]") []
+    Scan.optional (P.$$$ "[" |-- Scan.optional scan_compilation Pred
+      -- P.enum "," scan_bool_option --| P.$$$ "]")
+      (Pred, [])
   end
 
 val opt_print_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$$$ ")")) [];
@@ -200,12 +206,15 @@ val opt_param_modes = Scan.optional (P.$$$ "[" |-- Args.$$$ "mode" |-- P.$$$ ":"
 
 val value_options =
   let
-    val depth_limit = Scan.optional (Args.$$$ "depth_limit" |-- P.$$$ "=" |-- P.nat >> SOME) NONE
-    val random = Scan.optional (Args.$$$ "random" >> K true) false
-    val annotated = Scan.optional (Args.$$$ "annotated" >> K true) false
+    val expected_values = Scan.optional (Args.$$$ "expected" |-- P.term >> SOME) NONE
+    val scan_compilation =
+      Scan.optional
+        (foldl1 (op ||)
+          (map (fn (s, c) => Args.$$$ s -- P.enum "," P.int >> (fn (_, ps) => (c, ps)))
+            compilation_names))
+        (Pred, [])
   in
-    Scan.optional (P.$$$ "[" |-- depth_limit -- (random -- annotated) --| P.$$$ "]")
-      (NONE, (false, false))
+    Scan.optional (P.$$$ "[" |-- expected_values -- scan_compilation --| P.$$$ "]") (NONE, (Pred, []))
   end
 
 (* code_pred command and values command *)
@@ -217,7 +226,7 @@ val _ = OuterSyntax.local_theory_to_proof "code_pred"
 
 val _ = OuterSyntax.improper_command "values" "enumerate and print comprehensions" OuterKeyword.diag
   (opt_print_modes -- opt_param_modes -- value_options -- Scan.optional P.nat ~1 -- P.term
-    >> (fn ((((print_modes, param_modes), options), k), t) => Toplevel.no_timing o Toplevel.keep
+    >> (fn ((((print_modes, param_modes), options), k), t) => Toplevel.keep
         (Predicate_Compile_Core.values_cmd print_modes param_modes options k t)));
 
 end
