@@ -191,8 +191,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
     val nitpick_thy = ThyInfo.get_theory "Nitpick"
-    val _ = Theory.subthy (nitpick_thy, thy)
-            orelse error "You must import the theory \"Nitpick\" to use Nitpick"
+    val _ = Theory.subthy (nitpick_thy, thy) orelse
+            error "You must import the theory \"Nitpick\" to use Nitpick"
     val {cards_assigns, maxes_assigns, iters_assigns, bitss, bisim_depths,
          boxes, monos, wfs, sat_solver, blocking, falsify, debug, verbose,
          overlord, user_axioms, assms, merge_type_vars, binary_ints,
@@ -274,8 +274,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
        unrolled_preds = Unsynchronized.ref [], wf_cache = Unsynchronized.ref [],
        constr_cache = Unsynchronized.ref []}
     val frees = Term.add_frees assms_t []
-    val _ = null (Term.add_tvars assms_t [])
-            orelse raise NOT_SUPPORTED "schematic type variables"
+    val _ = null (Term.add_tvars assms_t []) orelse
+            raise NOT_SUPPORTED "schematic type variables"
     val (((def_ts, nondef_ts), (got_all_mono_user_axioms, no_poly_user_axioms)),
          core_t) = preprocess_term ext_ctxt assms_t
     val got_all_user_axioms =
@@ -319,77 +319,65 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
 
     val unique_scope = forall (curry (op =) 1 o length o snd) cards_assigns
     (* typ -> bool *)
-    fun is_free_type_monotonic T =
+    fun is_type_always_monotonic T =
+      ((not (is_pure_typedef thy T) orelse is_univ_typedef thy T) andalso
+       not (is_quot_type thy T)) orelse
+      is_number_type thy T orelse is_bit_type T
+    fun is_type_monotonic T =
       unique_scope orelse
       case triple_lookup (type_match thy) monos T of
         SOME (SOME b) => b
-      | _ => is_bit_type T
-             orelse formulas_monotonic ext_ctxt T def_ts nondef_ts core_t
-    fun is_datatype_monotonic T =
-      unique_scope orelse
-      case triple_lookup (type_match thy) monos T of
-        SOME (SOME b) => b
-      | _ => not (is_pure_typedef thy T) orelse is_univ_typedef thy T
-             orelse is_number_type thy T
-             orelse formulas_monotonic ext_ctxt T def_ts nondef_ts core_t
-    fun is_datatype_deep T =
-      is_word_type T
-      orelse exists (curry (op =) T o domain_type o type_of) sel_names
+      | _ => is_type_always_monotonic T orelse
+             formulas_monotonic ext_ctxt T def_ts nondef_ts core_t
+    fun is_deep_datatype T =
+      is_datatype thy T andalso
+      (is_word_type T orelse
+       exists (curry (op =) T o domain_type o type_of) sel_names)
     val Ts = ground_types_in_terms ext_ctxt (core_t :: def_ts @ nondef_ts)
              |> sort TermOrd.typ_ord
-    val _ = if verbose andalso binary_ints = SOME true
-               andalso exists (member (op =) [nat_T, int_T]) Ts then
+    val _ = if verbose andalso binary_ints = SOME true andalso
+               exists (member (op =) [nat_T, int_T]) Ts then
               print_v (K "The option \"binary_ints\" will be ignored because \
                          \of the presence of rationals, reals, \"Suc\", \
                          \\"gcd\", or \"lcm\" in the problem.")
             else
               ()
-    val (all_dataTs, all_free_Ts) =
-      List.partition (is_integer_type orf is_datatype thy) Ts
-    val (mono_dataTs, nonmono_dataTs) =
-      List.partition is_datatype_monotonic all_dataTs
-    val (mono_free_Ts, nonmono_free_Ts) =
-      List.partition is_free_type_monotonic all_free_Ts
-
-    val interesting_mono_free_Ts = filter_out is_bit_type mono_free_Ts
+    val (mono_Ts, nonmono_Ts) = List.partition is_type_monotonic Ts
     val _ =
-      if not unique_scope andalso not (null interesting_mono_free_Ts) then
-        print_v (fn () =>
-                    let
-                      val ss = map (quote o string_for_type ctxt)
-                                   interesting_mono_free_Ts
-                    in
-                      "The type" ^ plural_s_for_list ss ^ " " ^
-                      space_implode " " (serial_commas "and" ss) ^ " " ^
-                      (if none_true monos then
-                         "passed the monotonicity test"
-                       else
-                         (if length ss = 1 then "is" else "are") ^
-                         " considered monotonic") ^
-                      ". Nitpick might be able to skip some scopes."
-                    end)
+      if verbose andalso not unique_scope then
+        case filter_out is_type_always_monotonic mono_Ts of
+          [] => ()
+        | interesting_mono_Ts =>
+          print_v (fn () =>
+                      let
+                        val ss = map (quote o string_for_type ctxt)
+                                     interesting_mono_Ts
+                      in
+                        "The type" ^ plural_s_for_list ss ^ " " ^
+                        space_implode " " (serial_commas "and" ss) ^ " " ^
+                        (if none_true monos then
+                           "passed the monotonicity test"
+                         else
+                           (if length ss = 1 then "is" else "are") ^
+                           " considered monotonic") ^
+                        ". Nitpick might be able to skip some scopes."
+                      end)
       else
         ()
-    val mono_Ts = mono_dataTs @ mono_free_Ts
-    val nonmono_Ts = nonmono_dataTs @ nonmono_free_Ts
-    val shallow_dataTs = filter_out is_datatype_deep mono_dataTs
+    val shallow_dataTs = filter_out is_deep_datatype Ts
 (*
-    val _ = priority "Monotonic datatypes:"
-    val _ = List.app (priority o string_for_type ctxt) mono_dataTs
-    val _ = priority "Nonmonotonic datatypes:"
-    val _ = List.app (priority o string_for_type ctxt) nonmono_dataTs
-    val _ = priority "Monotonic free types:"
-    val _ = List.app (priority o string_for_type ctxt) mono_free_Ts
-    val _ = priority "Nonmonotonic free types:"
-    val _ = List.app (priority o string_for_type ctxt) nonmono_free_Ts
+    val _ = priority "Monotonic types:"
+    val _ = List.app (priority o string_for_type ctxt) mono_Ts
+    val _ = priority "Nonmonotonic types:"
+    val _ = List.app (priority o string_for_type ctxt) nonmono_Ts
 *)
 
     val need_incremental = Int.max (max_potential, max_genuine) >= 2
     val effective_sat_solver =
       if sat_solver <> "smart" then
-        if need_incremental
-           andalso not (member (op =) (Kodkod_SAT.configured_sat_solvers true)
-                               sat_solver) then
+        if need_incremental andalso
+           not (member (op =) (Kodkod_SAT.configured_sat_solvers true)
+                      sat_solver) then
           (print_m (K ("An incremental SAT solver is required: \"SAT4J\" will \
                        \be used instead of " ^ quote sat_solver ^ "."));
            "SAT4J")
@@ -415,9 +403,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
             (scope as {card_assigns, bits, bisim_depth, datatypes, ofs, ...}) =
       let
         val _ = not (exists (fn other => scope_less_eq other scope)
-                            (!too_big_scopes))
-                orelse raise TOO_LARGE ("Nitpick.pick_them_nits_in_term.\
-                                        \problem_for_scope", "too large scope")
+                            (!too_big_scopes)) orelse
+                raise TOO_LARGE ("Nitpick.pick_them_nits_in_term.\
+                                 \problem_for_scope", "too large scope")
 (*
         val _ = priority "Offsets:"
         val _ = List.app (fn (T, j0) =>
@@ -431,9 +419,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
         val main_j0 = offset_of_type ofs bool_T
         val (nat_card, nat_j0) = spec_of_type scope nat_T
         val (int_card, int_j0) = spec_of_type scope int_T
-        val _ = (nat_j0 = main_j0 andalso int_j0 = main_j0)
-                orelse raise BAD ("Nitpick.pick_them_nits_in_term.\
-                                  \problem_for_scope", "bad offsets")
+        val _ = (nat_j0 = main_j0 andalso int_j0 = main_j0) orelse
+                raise BAD ("Nitpick.pick_them_nits_in_term.problem_for_scope",
+                           "bad offsets")
         val kk = kodkod_constrs peephole_optim nat_card int_card main_j0
         val (free_names, rep_table) =
           choose_reps_for_free_vars scope free_names NameTable.empty
@@ -521,8 +509,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
                defs = nondef_fs @ def_fs @ declarative_axioms})
       end
       handle TOO_LARGE (loc, msg) =>
-             if loc = "Nitpick_KK.check_arity"
-                andalso not (Typtab.is_empty ofs) then
+             if loc = "Nitpick_Kodkod.check_arity" andalso
+                not (Typtab.is_empty ofs) then
                problem_for_scope liberal
                    {ext_ctxt = ext_ctxt, card_assigns = card_assigns,
                     bits = bits, bisim_depth = bisim_depth,

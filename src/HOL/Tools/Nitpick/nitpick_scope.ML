@@ -107,8 +107,8 @@ fun is_complete_type dtypes (Type ("fun", [T1, T2])) =
   | is_complete_type dtypes (Type ("*", Ts)) =
     forall (is_complete_type dtypes) Ts
   | is_complete_type dtypes T =
-    not (is_integer_type T) andalso not (is_bit_type T)
-    andalso #complete (the (datatype_spec dtypes T))
+    not (is_integer_type T) andalso not (is_bit_type T) andalso
+    #complete (the (datatype_spec dtypes T))
     handle Option.Option => true
 and is_concrete_type dtypes (Type ("fun", [T1, T2])) =
     is_complete_type dtypes T1 andalso is_concrete_type dtypes T2
@@ -427,8 +427,8 @@ fun add_constr_spec (card_assigns, max_assigns) co card sum_dom_cards
           {delta = delta, epsilon = delta, exclusive = true, total = false}
         end
       else if not co andalso num_self_recs > 0 then
-        if not self_rec andalso num_non_self_recs = 1
-           andalso domain_card 2 card_assigns T = 1 then
+        if not self_rec andalso num_non_self_recs = 1 andalso
+           domain_card 2 card_assigns T = 1 then
           {delta = 0, epsilon = 1, exclusive = (s = @{const_name Nil}),
            total = true}
         else if s = @{const_name Cons} then

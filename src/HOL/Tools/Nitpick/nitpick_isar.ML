@@ -106,12 +106,12 @@ val negated_params =
 
 (* string -> bool *)
 fun is_known_raw_param s =
-  AList.defined (op =) default_default_params s
-  orelse AList.defined (op =) negated_params s
-  orelse s = "max" orelse s = "eval" orelse s = "expect"
-  orelse exists (fn p => String.isPrefix (p ^ " ") s)
-                ["card", "max", "iter", "box", "dont_box", "mono", "non_mono",
-                 "wf", "non_wf", "format"]
+  AList.defined (op =) default_default_params s orelse
+  AList.defined (op =) negated_params s orelse
+  s = "max" orelse s = "eval" orelse s = "expect" orelse
+  exists (fn p => String.isPrefix (p ^ " ") s)
+         ["card", "max", "iter", "box", "dont_box", "mono", "non_mono", "wf",
+          "non_wf", "format"]
 
 (* string * 'a -> unit *)
 fun check_raw_param (s, _) =

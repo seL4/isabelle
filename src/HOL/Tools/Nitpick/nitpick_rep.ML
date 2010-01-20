@@ -274,8 +274,8 @@ fun best_one_rep_for_type (scope as {card_assigns, ...} : scope)
      | (R1, R2) => Struct [R1, R2])
   | best_one_rep_for_type (scope as {card_assigns, datatypes, ofs, ...}) T =
     (case card_of_type card_assigns T of
-       1 => if is_some (datatype_spec datatypes T)
-               orelse is_fp_iterator_type T then
+       1 => if is_some (datatype_spec datatypes T) orelse
+               is_fp_iterator_type T then
               Atom (1, offset_of_type ofs T)
             else
               Unit

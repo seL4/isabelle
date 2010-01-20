@@ -39,6 +39,7 @@ sig
     Converse |
     Closure |
     SingletonSet |
+    IsUnknown |
     Tha |
     First |
     Second |
@@ -158,6 +159,7 @@ datatype op1 =
   Converse |
   Closure |
   SingletonSet |
+  IsUnknown |
   Tha |
   First |
   Second |
@@ -231,6 +233,7 @@ fun string_for_op1 Not = "Not"
   | string_for_op1 Converse = "Converse"
   | string_for_op1 Closure = "Closure"
   | string_for_op1 SingletonSet = "SingletonSet"
+  | string_for_op1 IsUnknown = "IsUnknown"
   | string_for_op1 Tha = "Tha"
   | string_for_op1 First = "First"
   | string_for_op1 Second = "Second"
@@ -567,7 +570,6 @@ fun nut_from_term (ext_ctxt as {thy, fast_descrs, special_funs, ...}) eq =
                sub t1, sub_abs s T' t2)
         | (t0 as Const (@{const_name Let}, T), [t1, t2]) =>
           sub (t0 $ t1 $ eta_expand Ts t2 1)
-        | (Const (@{const_name unknown}, T), []) => Cst (Unknown, T, Any)
         | (@{const Unity}, []) => Cst (Unity, @{typ unit}, Any)
         | (Const (@{const_name Pair}, T), [t1, t2]) =>
           Tuple (nth_range_type 2 T, Any, map sub [t1, t2])
@@ -641,6 +643,9 @@ fun nut_from_term (ext_ctxt as {thy, fast_descrs, special_funs, ...}) eq =
           Op2 (Less, bool_T, Any, sub t1, sub t2)
         | (Const (@{const_name ord_int_inst.less_eq_int}, T), [t1, t2]) =>
           Op1 (Not, bool_T, Any, Op2 (Less, bool_T, Any, sub t2, sub t1))
+        | (Const (@{const_name unknown}, T), []) => Cst (Unknown, T, Any)
+        | (Const (@{const_name is_unknown}, T), [t1]) =>
+          Op1 (IsUnknown, bool_T, Any, sub t1)
         | (Const (@{const_name Tha}, Type ("fun", [_, T2])), [t1]) =>
           Op1 (Tha, T2, Any, sub t1)
         | (Const (@{const_name Frac}, T), []) => Cst (Fracs, T, Any)
@@ -715,12 +720,12 @@ fun choose_rep_for_const (scope as {ext_ctxt as {thy, ctxt, ...}, datatypes,
                rep_for_abs_fun
              else if is_rep_fun thy x then
                Func oo best_non_opt_symmetric_reps_for_fun_type
-             else if all_exact orelse is_skolem_name v
-                     orelse member (op =) [@{const_name undefined_fast_The},
-                                           @{const_name undefined_fast_Eps},
-                                           @{const_name bisim},
-                                           @{const_name bisim_iterator_max}]
-                                          (original_name s) then
+             else if all_exact orelse is_skolem_name v orelse
+                    member (op =) [@{const_name undefined_fast_The},
+                                   @{const_name undefined_fast_Eps},
+                                   @{const_name bisim},
+                                   @{const_name bisim_iterator_max}]
+                           (original_name s) then
                best_non_opt_set_rep_for_type
              else if member (op =) [@{const_name set}, @{const_name distinct},
                                     @{const_name ord_class.less},
@@ -746,9 +751,9 @@ fun choose_rep_for_nth_sel_for_constr (scope as {ext_ctxt, ...}) (x as (_, T)) n
                                       (vs, table) =
   let
     val (s', T') = boxed_nth_sel_for_constr ext_ctxt x n
-    val R' = if n = ~1 orelse is_word_type (body_type T)
-                orelse (is_fun_type (range_type T')
-                        andalso is_boolean_type (body_type T')) then
+    val R' = if n = ~1 orelse is_word_type (body_type T) orelse
+                (is_fun_type (range_type T') andalso
+                 is_boolean_type (body_type T')) then
                best_non_opt_set_rep_for_type scope T'
              else
                best_opt_set_rep_for_type scope T' |> unopt_rep
@@ -798,10 +803,8 @@ fun optimize_unit u =
   if rep_of u = Unit then Cst (Unity, type_of u, Unit) else u
 (* typ -> rep -> nut *)
 fun unknown_boolean T R =
-  Cst (case R of
-         Formula Pos => False
-       | Formula Neg => True
-       | _ => Unknown, T, R)
+  Cst (case R of Formula Pos => False | Formula Neg => True | _ => Unknown,
+       T, R)
 
 (* op1 -> typ -> rep -> nut -> nut *)
 fun s_op1 oper T R u1 =
@@ -954,19 +957,18 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
             let
               val T1 = domain_type T
               val R1 = Atom (spec_of_type scope T1)
-              val total = T1 = nat_T
-                          andalso (cst = Subtract orelse cst = Divide
-                                   orelse cst = Gcd)
+              val total = T1 = nat_T andalso
+                          (cst = Subtract orelse cst = Divide orelse cst = Gcd)
             in Cst (cst, T, Func (R1, Func (R1, (not total ? Opt) R1))) end
           else if cst = NatToInt orelse cst = IntToNat then
             let
               val (dom_card, dom_j0) = spec_of_type scope (domain_type T)
               val (ran_card, ran_j0) = spec_of_type scope (range_type T)
-              val total = not (is_word_type (domain_type T))
-                          andalso (if cst = NatToInt then
-                                    max_int_for_card ran_card >= dom_card + 1
-                                  else
-                                    max_int_for_card dom_card < ran_card)
+              val total = not (is_word_type (domain_type T)) andalso
+                          (if cst = NatToInt then
+                             max_int_for_card ran_card >= dom_card + 1
+                           else
+                             max_int_for_card dom_card < ran_card)
             in
               Cst (cst, T, Func (Atom (dom_card, dom_j0),
                                  Atom (ran_card, ran_j0) |> not total ? Opt))
@@ -979,6 +981,11 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
              triad (s_op1 Not T (Formula Pos) u12)
                    (s_op1 Not T (Formula Neg) u11)
            | u1' => s_op1 Not T (flip_rep_polarity (rep_of u1')) u1')
+        | Op1 (IsUnknown, T, _, u1) =>
+          let val u1 = sub u1 in
+            if is_opt_rep (rep_of u1) then Op1 (IsUnknown, T, Formula Neut, u1)
+            else Cst (False, T, Formula Neut)
+          end
         | Op1 (oper, T, _, u1) =>
           let
             val u1 = sub u1
@@ -1029,8 +1036,8 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
               if is_constructive u then s_op2 Eq T (Formula Neut) u1' u2'
               else opt_opt_case ()
           in
-            if liberal orelse polar = Neg
-               orelse is_concrete_type datatypes (type_of u1) then
+            if liberal orelse polar = Neg orelse
+               is_concrete_type datatypes (type_of u1) then
               case (is_opt_rep (rep_of u1'), is_opt_rep (rep_of u2')) of
                 (true, true) => opt_opt_case ()
               | (true, false) => hybrid_case u1'
@@ -1108,12 +1115,11 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
                val u1' = aux table' false Neut u1
                val u2' = aux table' false Neut u2
                val R =
-                 if is_opt_rep (rep_of u2')
-                    orelse (range_type T = bool_T andalso
-                            not (is_Cst False
-                                        (unrepify_nut_in_nut table false Neut
-                                                             u1 u2
-                                         |> optimize_nut))) then
+                 if is_opt_rep (rep_of u2') orelse
+                    (range_type T = bool_T andalso
+                     not (is_Cst False (unrepify_nut_in_nut table false Neut
+                                                            u1 u2
+                                        |> optimize_nut))) then
                    opt_rep ofs T R
                  else
                    unopt_rep R
@@ -1131,9 +1137,9 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
                 triad_fn (fn polar => gsub def polar u)
               else
                 let val quant_u = s_op2 oper T (Formula polar) u1' u2' in
-                  if def
-                     orelse (liberal andalso (polar = Pos) = (oper = All))
-                     orelse is_complete_type datatypes (type_of u1) then
+                  if def orelse
+                     (liberal andalso (polar = Pos) = (oper = All)) orelse
+                     is_complete_type datatypes (type_of u1) then
                     quant_u
                   else
                     let
@@ -1231,8 +1237,8 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
           in Construct (map sub us', T, R |> opt ? Opt, us) end
         | _ =>
           let val u = modify_name_rep u (the_name table u) in
-            if polar = Neut orelse not (is_boolean_type (type_of u))
-               orelse not (is_opt_rep (rep_of u)) then
+            if polar = Neut orelse not (is_boolean_type (type_of u)) orelse
+               not (is_opt_rep (rep_of u)) then
               u
             else
               s_op1 Cast (type_of u) (Formula polar) u

@@ -440,7 +440,9 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
                       | _ => raise TERM ("Nitpick_Model.reconstruct_term.term_\
                                          \for_atom (Abs_Frac)", ts)
                     end
-                  else if not for_auto andalso is_abs_fun thy constr_x then
+                  else if not for_auto andalso
+                          (is_abs_fun thy constr_x orelse
+                           constr_s = @{const_name Quot}) then
                     Const (abs_name, constr_T) $ the_single ts
                   else
                     list_comb (Const constr_x, ts)
@@ -560,8 +562,8 @@ fun bisimilar_values _ 0 _ = true
             pairself (strip_comb o unfold_outer_the_binders) (t1, t2)
           val max_depth = max_depth - (if member (op =) coTs T then 1 else 0)
         in
-          head1 = head2
-          andalso forall (bisimilar_values coTs max_depth) (args1 ~~ args2)
+          head1 = head2 andalso
+          forall (bisimilar_values coTs max_depth) (args1 ~~ args2)
         end
       else
         t1 = t2
@@ -704,8 +706,8 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
   in
     (Pretty.chunks (if null chunks then [Pretty.str "Empty assignment"]
                     else chunks),
-     bisim_depth >= 0
-     orelse forall (is_codatatype_wellformed codatatypes) codatatypes)
+     bisim_depth >= 0 orelse
+     forall (is_codatatype_wellformed codatatypes) codatatypes)
   end
 
 (* scope -> Time.time option -> nut list -> nut list -> nut NameTable.table

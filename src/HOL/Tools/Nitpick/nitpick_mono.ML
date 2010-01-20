@@ -121,8 +121,8 @@ fun initial_cdata ext_ctxt alpha_T =
 
 (* typ -> typ -> bool *)
 fun could_exist_alpha_subtype alpha_T (T as Type (_, Ts)) =
-    T = alpha_T orelse (not (is_fp_iterator_type T)
-                        andalso exists (could_exist_alpha_subtype alpha_T) Ts)
+    T = alpha_T orelse (not (is_fp_iterator_type T) andalso
+                        exists (could_exist_alpha_subtype alpha_T) Ts)
   | could_exist_alpha_subtype alpha_T T = (T = alpha_T)
 (* theory -> typ -> typ -> bool *)
 fun could_exist_alpha_sub_ctype _ (alpha_T as TFree _) T =
@@ -195,8 +195,8 @@ fun fresh_ctype_for_type ({ext_ctxt as {thy, ...}, alpha_T, max_fresh,
       let
         val C1 = do_type T1
         val C2 = do_type T2
-        val a = if is_boolean_type (body_type T2)
-                   andalso exists_alpha_sub_ctype_fresh C1 then
+        val a = if is_boolean_type (body_type T2) andalso
+                   exists_alpha_sub_ctype_fresh C1 then
                   V (Unsynchronized.inc max_fresh)
                 else
                   S Neg

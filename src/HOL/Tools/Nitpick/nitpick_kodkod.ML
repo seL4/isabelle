@@ -380,8 +380,8 @@ fun d_n_ary_function ({kk_all, kk_join, kk_lone, kk_one, ...} : kodkod_constrs)
         val one = is_one_rep body_R
         val opt_x = case r of KK.Rel x => SOME x | _ => NONE
       in
-        if opt_x <> NONE andalso length binder_schema = 1
-           andalso length body_schema = 1 then
+        if opt_x <> NONE andalso length binder_schema = 1 andalso
+           length body_schema = 1 then
           (if one then KK.Function else KK.Functional)
               (the opt_x, KK.AtomSeq (hd binder_schema),
                KK.AtomSeq (hd body_schema))
@@ -490,8 +490,8 @@ fun lone_rep_fallback kk new_R old_R r =
     r
   else
     let val card = card_of_rep old_R in
-      if is_lone_rep old_R andalso is_lone_rep new_R
-         andalso card = card_of_rep new_R then
+      if is_lone_rep old_R andalso is_lone_rep new_R andalso
+         card = card_of_rep new_R then
         if card >= lone_rep_fallback_max_card then
           raise TOO_LARGE ("Nitpick_Kodkod.lone_rep_fallback",
                            "too high cardinality (" ^ string_of_int card ^ ")")
@@ -1005,13 +1005,13 @@ fun kodkod_formula_from_nut bits ofs liberal
          | Op1 (Finite, _, _, u1) =>
            let val opt1 = is_opt_rep (rep_of u1) in
              case polar of
-               Neut => if opt1 then
-                         raise NUT ("Nitpick_Kodkod.to_f (Finite)", [u])
-                       else
-                         KK.True
+               Neut =>
+               if opt1 then raise NUT ("Nitpick_Kodkod.to_f (Finite)", [u])
+               else KK.True
              | Pos => formula_for_bool (not opt1)
              | Neg => KK.True
            end
+         | Op1 (IsUnknown, _, _, u1) => kk_no (to_r u1)
          | Op1 (Cast, _, _, u1) => to_f_with_polarity polar u1
          | Op2 (All, _, _, u1, u2) =>
            kk_all (untuple to_decl u1) (to_f_with_polarity polar u2)
@@ -1070,8 +1070,8 @@ fun kodkod_formula_from_nut bits ofs liberal
                   | args _ = []
                 val opt_arg_us = filter (is_opt_rep o rep_of) (args u1)
               in
-                if null opt_arg_us orelse not (is_Opt min_R)
-                   orelse is_eval_name u1 then
+                if null opt_arg_us orelse not (is_Opt min_R) orelse
+                   is_eval_name u1 then
                   fold (kk_or o (kk_no o to_r)) opt_arg_us
                        (kk_rel_eq (to_rep min_R u1) (to_rep min_R u2))
                 else
@@ -1100,8 +1100,8 @@ fun kodkod_formula_from_nut bits ofs liberal
                     (if polar = Pos then
                        if not both_opt then
                          kk_rel_eq r1 r2
-                       else if is_lone_rep min_R
-                               andalso arity_of_rep min_R = 1 then
+                       else if is_lone_rep min_R andalso
+                               arity_of_rep min_R = 1 then
                          kk_some (kk_intersect r1 r2)
                        else
                          raise SAME ()
@@ -1132,9 +1132,9 @@ fun kodkod_formula_from_nut bits ofs liberal
                       val rs1 = unpack_products r1
                       val rs2 = unpack_products r2
                     in
-                      if length rs1 = length rs2
-                         andalso map KK.arity_of_rel_expr rs1
-                                 = map KK.arity_of_rel_expr rs2 then
+                      if length rs1 = length rs2 andalso
+                         map KK.arity_of_rel_expr rs1
+                         = map KK.arity_of_rel_expr rs2 then
                         fold1 kk_and (map2 kk_subset rs1 rs2)
                       else
                         kk_subset r1 r2
@@ -1582,8 +1582,8 @@ fun kodkod_formula_from_nut bits ofs liberal
         else
           fold kk_join (map to_integer [u1, u2]) (KK.Rel nat_subtract_rel)
       | Op2 (Apply, _, R, u1, u2) =>
-        if is_Cst Unrep u2 andalso is_set_type (type_of u1)
-           andalso is_FreeName u1 then
+        if is_Cst Unrep u2 andalso is_set_type (type_of u1) andalso
+           is_FreeName u1 then
           false_atom
         else
           to_apply R u1 u2

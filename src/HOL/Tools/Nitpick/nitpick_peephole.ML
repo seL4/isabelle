@@ -421,8 +421,8 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
         if is_one_rel_expr r1 then
           s_or (s_subset r1 r21) (s_subset r1 r22)
         else
-          if s_subset r1 r21 = True orelse s_subset r1 r22 = True
-             orelse r1 = r2 then
+          if s_subset r1 r21 = True orelse s_subset r1 r22 = True orelse
+             r1 = r2 then
             True
           else
             Subset (r1, r2)

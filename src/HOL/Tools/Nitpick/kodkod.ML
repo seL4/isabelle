@@ -496,14 +496,14 @@ val is_relevant_setting = not o member (op =) ["solver", "delay"]
 
 (* problem -> problem -> bool *)
 fun problems_equivalent (p1 : problem) (p2 : problem) =
-  #univ_card p1 = #univ_card p2
-  andalso #formula p1 = #formula p2
-  andalso #bounds p1 = #bounds p2
-  andalso #expr_assigns p1 = #expr_assigns p2
-  andalso #tuple_assigns p1 = #tuple_assigns p2
-  andalso #int_bounds p1 = #int_bounds p2
-  andalso filter (is_relevant_setting o fst) (#settings p1)
-          = filter (is_relevant_setting o fst) (#settings p2)
+  #univ_card p1 = #univ_card p2 andalso
+  #formula p1 = #formula p2 andalso
+  #bounds p1 = #bounds p2 andalso
+  #expr_assigns p1 = #expr_assigns p2 andalso
+  #tuple_assigns p1 = #tuple_assigns p2 andalso
+  #int_bounds p1 = #int_bounds p2 andalso
+  filter (is_relevant_setting o fst) (#settings p1)
+  = filter (is_relevant_setting o fst) (#settings p2)
 
 (* int -> string *)
 fun base_name j =
@@ -883,8 +883,8 @@ fun write_problem_file out problems =
 
 (* string -> bool *)
 fun is_ident_char s =
-  Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s
-  orelse s = "_" orelse s = "'" orelse s = "$"
+  Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s orelse
+  s = "_" orelse s = "'" orelse s = "$"
 
 (* string list -> string list *)
 fun strip_blanks [] = []
@@ -950,9 +950,9 @@ fun read_next_instance s =
    -> substring * (int * raw_bound list) list * int list *)
 fun read_next_outcomes j (s, ps, js) =
   let val (s1, s2) = Substring.position outcome_marker s in
-    if Substring.isEmpty s2
-       orelse not (Substring.isEmpty (Substring.position problem_marker s1
-                                      |> snd)) then
+    if Substring.isEmpty s2 orelse
+       not (Substring.isEmpty (Substring.position problem_marker s1
+                               |> snd)) then
       (s, ps, js)
     else
       let
