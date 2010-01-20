@@ -71,7 +71,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved args_num is
               (applify "[" "]" NOBR ((str o deresolve) c) (map (print_typ tyvars NOBR) tys'))
                 (map (print_term tyvars is_pat thm vars NOBR) ts))
           | SOME (_, print) => (false, fn ts =>
-              print (print_term tyvars is_pat thm) thm vars fxy (ts ~~ take k tys_args));
+              print (print_term tyvars is_pat thm) thm vars fxy (ts ~~ take l tys_args));
       in if k = l then print' ts
       else if k < l then
         print_term tyvars is_pat thm vars fxy (Code_Thingol.eta_expand l app)
@@ -404,11 +404,17 @@ val literals = let
     let
       val s = ML_Syntax.print_char c;
     in if s = "'" then "\\'" else s end;
+  fun bigint_scala k = "(" ^ (if k <= 2147483647
+    then string_of_int k else quote (string_of_int k)) ^ ")"
 in Literals {
   literal_char = Library.enclose "'" "'" o char_scala,
   literal_string = quote o translate_string char_scala,
-  literal_numeral = fn unbounded => fn k => if k >= 0 then string_of_int k
-    else Library.enclose "(" ")" (signed_string_of_int k),
+  literal_numeral = fn unbounded => fn k => if k >= 0 then
+      if unbounded then bigint_scala k
+      else Library.enclose "(" ")" (string_of_int k)
+    else
+      if unbounded then "(- " ^ bigint_scala (~ k) ^ ")"
+      else Library.enclose "(" ")" (signed_string_of_int k),
   literal_list = fn [] => str "Nil" | ps => Pretty.block [str "List", enum "," "(" ")" ps],
   infix_cons = (6, "::")
 } end;
@@ -424,7 +430,7 @@ val setup =
   Code_Target.add_target (target, (isar_seri_scala, literals))
   #> Code_Target.add_syntax_tyco target "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy [
-        print_typ (INFX (1, X)) ty1,
+        print_typ BR ty1 (*product type vs. tupled arguments!*),
         str "=>",
         print_typ (INFX (1, R)) ty2
       ]))

@@ -436,7 +436,7 @@ proof -
       show "bitval x * 2 ^ (length xs + length l2) + bv_to_nat xs * 2 ^ length l2 = (bitval x * 2 ^ length xs + bv_to_nat xs) * 2 ^ length l2"
       proof -
         have "(2::nat) ^ (length xs + length l2) = 2 ^ length xs * 2 ^ length l2"
-          by (induct "length xs",simp_all)
+          by (induct ("length xs")) simp_all
         hence "bitval x * 2 ^ (length xs + length l2) + bv_to_nat xs * 2 ^ length l2 =
           bitval x * 2 ^ length xs * 2 ^ length l2 + bv_to_nat xs * 2 ^ length l2"
           by simp
@@ -2165,13 +2165,13 @@ lemma bv_to_nat_extend [simp]: "bv_to_nat (bv_extend n \<zero> w) = bv_to_nat w"
   apply (simp add: bv_extend_def)
   apply (subst bv_to_nat_dist_append)
   apply simp
-  apply (induct "n - length w")
+  apply (induct ("n - length w"))
    apply simp_all
   done
 
 lemma bv_msb_extend_same [simp]: "bv_msb w = b ==> bv_msb (bv_extend n b w) = b"
   apply (simp add: bv_extend_def)
-  apply (induct "n - length w")
+  apply (cases "n - length w")
    apply simp_all
   done
 
@@ -2188,7 +2188,7 @@ next
   show ?thesis
     apply (simp add: bv_to_int_def)
     apply (simp add: bv_extend_def)
-    apply (induct "n - length w",simp_all)
+    apply (induct ("n - length w"), simp_all)
     done
 qed
 

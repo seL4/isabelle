@@ -106,12 +106,8 @@ lemmas rtrancl_mono = rtranclp_mono [to_set]
 theorem rtranclp_induct [consumes 1, case_names base step, induct set: rtranclp]:
   assumes a: "r^** a b"
     and cases: "P a" "!!y z. [| r^** a y; r y z; P y |] ==> P z"
-  shows "P b"
-proof -
-  from a have "a = a --> P b"
-    by (induct "%x y. x = a --> P y" a b) (iprover intro: cases)+
-  then show ?thesis by iprover
-qed
+  shows "P b" using a
+  by (induct x\<equiv>a b) (rule cases)+
 
 lemmas rtrancl_induct [induct set: rtrancl] = rtranclp_induct [to_set]
 
@@ -257,7 +253,7 @@ lemma rtrancl_converse: "(r^-1)^* = (r^*)^-1"
 lemma sym_rtrancl: "sym r ==> sym (r^*)"
   by (simp only: sym_conv_converse_eq rtrancl_converse [symmetric])
 
-theorem converse_rtranclp_induct[consumes 1]:
+theorem converse_rtranclp_induct [consumes 1, case_names base step]:
   assumes major: "r^** a b"
     and cases: "P b" "!!y z. [| r y z; r^** z b; P z |] ==> P y"
   shows "P a"
@@ -274,7 +270,7 @@ lemmas converse_rtrancl_induct2 =
   converse_rtrancl_induct [of "(ax,ay)" "(bx,by)", split_format (complete),
                  consumes 1, case_names refl step]
 
-lemma converse_rtranclpE:
+lemma converse_rtranclpE [consumes 1, case_names base step]:
   assumes major: "r^** x z"
     and cases: "x=z ==> P"
       "!!y. [| r x y; r^** y z |] ==> P"
@@ -352,15 +348,11 @@ lemmas rtrancl_into_trancl2 = rtranclp_into_tranclp2 [to_set]
 
 text {* Nice induction rule for @{text trancl} *}
 lemma tranclp_induct [consumes 1, case_names base step, induct pred: tranclp]:
-  assumes "r^++ a b"
+  assumes a: "r^++ a b"
   and cases: "!!y. r a y ==> P y"
     "!!y z. r^++ a y ==> r y z ==> P y ==> P z"
-  shows "P b"
-proof -
-  from `r^++ a b` have "a = a --> P b"
-    by (induct "%x y. x = a --> P y" a b) (iprover intro: cases)+
-  then show ?thesis by iprover
-qed
+  shows "P b" using a
+  by (induct x\<equiv>a b) (iprover intro: cases)+
 
 lemmas trancl_induct [induct set: trancl] = tranclp_induct [to_set]
 
@@ -484,7 +476,7 @@ lemmas trancl_converse = tranclp_converse [to_set]
 lemma sym_trancl: "sym r ==> sym (r^+)"
   by (simp only: sym_conv_converse_eq trancl_converse [symmetric])
 
-lemma converse_tranclp_induct:
+lemma converse_tranclp_induct [consumes 1, case_names base step]:
   assumes major: "r^++ a b"
     and cases: "!!y. r y b ==> P(y)"
       "!!y z.[| r y z;  r^++ z b;  P(z) |] ==> P(y)"

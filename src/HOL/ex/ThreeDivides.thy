@@ -178,21 +178,17 @@ into a sequence of its individual digits is always possible. *}
 
 lemma exp_exists:
   "m = (\<Sum>x<nlen m. (m div (10::nat)^x mod 10) * 10^x)"
-proof (induct nd \<equiv> "nlen m" arbitrary: m)
+proof (induct "nlen m" arbitrary: m)
   case 0 thus ?case by (simp add: nlen_zero)
 next
   case (Suc nd)
-  hence IH:
-    "nd = nlen (m div 10) \<Longrightarrow>
-    m div 10 = (\<Sum>x<nd. m div 10 div 10^x mod 10 * 10^x)"
-    by blast
   obtain c where mexp: "m = 10*(m div 10) + c \<and> c < 10"
     and cdef: "c = m mod 10" by simp
   show "m = (\<Sum>x<nlen m. m div 10^x mod 10 * 10^x)"
   proof -
     from `Suc nd = nlen m`
     have "nd = nlen (m div 10)" by (rule nlen_suc)
-    with IH have
+    with Suc have
       "m div 10 = (\<Sum>x<nd. m div 10 div 10^x mod 10 * 10^x)" by simp
     with mexp have
       "m = 10*(\<Sum>x<nd. m div 10 div 10^x mod 10 * 10^x) + c" by simp

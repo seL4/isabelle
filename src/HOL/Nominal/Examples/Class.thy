@@ -15069,11 +15069,9 @@ lemma crename_aredu:
   assumes a: "(M[a\<turnstile>c>b]) \<longrightarrow>\<^isub>a M'" "a\<noteq>b"
   shows "\<exists>M0. M0[a\<turnstile>c>b]=M' \<and> M \<longrightarrow>\<^isub>a M0"
 using a
-apply(nominal_induct M\<equiv>"M[a\<turnstile>c>b]" M' avoiding: M a b rule: a_redu.strong_induct)
-apply(simp)
+apply(nominal_induct "M[a\<turnstile>c>b]" M' avoiding: M a b rule: a_redu.strong_induct)
 apply(drule  crename_lredu)
 apply(blast)
-apply(simp)
 apply(drule  crename_credu)
 apply(blast)
 (* Cut *)
@@ -16132,11 +16130,9 @@ lemma nrename_aredu:
   assumes a: "(M[x\<turnstile>n>y]) \<longrightarrow>\<^isub>a M'" "x\<noteq>y"
   shows "\<exists>M0. M0[x\<turnstile>n>y]=M' \<and> M \<longrightarrow>\<^isub>a M0"
 using a
-apply(nominal_induct M\<equiv>"M[x\<turnstile>n>y]" M' avoiding: M x y rule: a_redu.strong_induct)
-apply(simp)
+apply(nominal_induct "M[x\<turnstile>n>y]" M' avoiding: M x y rule: a_redu.strong_induct)
 apply(drule  nrename_lredu)
 apply(blast)
-apply(simp)
 apply(drule  nrename_credu)
 apply(blast)
 (* Cut *)

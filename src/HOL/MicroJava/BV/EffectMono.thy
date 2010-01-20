@@ -15,12 +15,13 @@ lemma PrimT_PrimT: "(G \<turnstile> xb \<preceq> PrimT p) = (xb = PrimT p)"
 
 lemma sup_loc_some [rule_format]:
 "\<forall>y n. (G \<turnstile> b <=l y) \<longrightarrow> n < length y \<longrightarrow> y!n = OK t \<longrightarrow> 
-  (\<exists>t. b!n = OK t \<and> (G \<turnstile> (b!n) <=o (y!n)))" (is "?P b")
-proof (induct ?P b)
-  show "?P []" by simp
+  (\<exists>t. b!n = OK t \<and> (G \<turnstile> (b!n) <=o (y!n)))"
+proof (induct b)
+  case Nil
+  show ?case by simp
 next
   case (Cons a list)
-  show "?P (a#list)" 
+  show ?case 
   proof (clarsimp simp add: list_all2_Cons1 sup_loc_def Listn.le_def lesub_def)
     fix z zs n
     assume *: 
@@ -60,13 +61,14 @@ qed
  
 
 lemma append_length_n [rule_format]: 
-"\<forall>n. n \<le> length x \<longrightarrow> (\<exists>a b. x = a@b \<and> length a = n)" (is "?P x")
-proof (induct ?P x)
-  show "?P []" by simp
+"\<forall>n. n \<le> length x \<longrightarrow> (\<exists>a b. x = a@b \<and> length a = n)"
+proof (induct x)
+  case Nil
+  show ?case by simp
 next
-  fix l ls assume Cons: "?P ls"
+  case (Cons l ls)
 
-  show "?P (l#ls)"
+  show ?case
   proof (intro allI impI)
     fix n
     assume l: "n \<le> length (l # ls)"

@@ -1,7 +1,5 @@
 (*  Title:      HOL/Bali/Basis.thy
-    ID:         $Id$
     Author:     David von Oheimb
-
 *)
 header {* Definitions extending HOL as logical basis of Bali *}
 
@@ -66,8 +64,6 @@ lemma triangle_lemma:
  "\<lbrakk> \<And> a b c. \<lbrakk>(a,b)\<in>r; (a,c)\<in>r\<rbrakk> \<Longrightarrow> b=c; (a,x)\<in>r\<^sup>*; (a,y)\<in>r\<^sup>*\<rbrakk> 
  \<Longrightarrow> (x,y)\<in>r\<^sup>* \<or> (y,x)\<in>r\<^sup>*"
 proof -
-  note converse_rtrancl_induct = converse_rtrancl_induct [consumes 1]
-  note converse_rtranclE = converse_rtranclE [consumes 1] 
   assume unique: "\<And> a b c. \<lbrakk>(a,b)\<in>r; (a,c)\<in>r\<rbrakk> \<Longrightarrow> b=c"
   assume "(a,x)\<in>r\<^sup>*" 
   then show "(a,y)\<in>r\<^sup>* \<Longrightarrow> (x,y)\<in>r\<^sup>* \<or> (y,x)\<in>r\<^sup>*"
@@ -109,13 +105,6 @@ lemma rtrancl_cases [consumes 1, case_names Refl Trancl]:
 apply (erule rtranclE)
 apply (auto dest: rtrancl_into_trancl1)
 done
-
-(* ### To Transitive_Closure *)
-theorems converse_rtrancl_induct 
- = converse_rtrancl_induct [consumes 1,case_names Id Step]
-
-theorems converse_trancl_induct 
-         = converse_trancl_induct [consumes 1,case_names Single Step]
 
 (* context (theory "Set") *)
 lemma Ball_weaken:"\<lbrakk>Ball s P;\<And> x. P x\<longrightarrow>Q x\<rbrakk>\<Longrightarrow>Ball s Q"

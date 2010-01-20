@@ -31,6 +31,9 @@ Requirements to build from sources
 * Isabelle/Pure Scala components
   Netbeans Library "Isabelle-Pure" = ~~/lib/classes/Pure.jar
 
+* Scala Compiler
+  Netbeans Library "Scala-compiler" = $SCALA_HOME/lib/scala-compiler.jar
+
 
 Running the application within Netbeans
 =======================================

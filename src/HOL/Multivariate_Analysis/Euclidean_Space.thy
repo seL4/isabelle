@@ -3542,17 +3542,9 @@ lemma exchange_lemma:
   and sp:"s \<subseteq> span t"
   shows "\<exists>t'. (card t' = card t) \<and> finite t' \<and> s \<subseteq> t' \<and> t' \<subseteq> s \<union> t \<and> s \<subseteq> span t'"
 using f i sp
-proof(induct c\<equiv>"card(t - s)" arbitrary: s t rule: nat_less_induct)
-  fix n:: nat and s t :: "('a ^'n) set"
-  assume H: " \<forall>m<n. \<forall>(x:: ('a ^'n) set) xa.
-                finite xa \<longrightarrow>
-                independent x \<longrightarrow>
-                x \<subseteq> span xa \<longrightarrow>
-                m = card (xa - x) \<longrightarrow>
-                (\<exists>t'. (card t' = card xa) \<and> finite t' \<and>
-                      x \<subseteq> t' \<and> t' \<subseteq> x \<union> xa \<and> x \<subseteq> span t')"
-    and ft: "finite t" and s: "independent s" and sp: "s \<subseteq> span t"
-    and n: "n = card (t - s)"
+proof(induct "card (t - s)" arbitrary: s t rule: less_induct)
+  case less
+  note ft = `finite t` and s = `independent s` and sp = `s \<subseteq> span t`
   let ?P = "\<lambda>t'. (card t' = card t) \<and> finite t' \<and> s \<subseteq> t' \<and> t' \<subseteq> s \<union> t \<and> s \<subseteq> span t'"
   let ?ths = "\<exists>t'. ?P t'"
   {assume st: "s \<subseteq> t"
@@ -3568,12 +3560,12 @@ proof(induct c\<equiv>"card(t - s)" arbitrary: s t rule: nat_less_induct)
   {assume st: "\<not> s \<subseteq> t" "\<not> t \<subseteq> s"
     from st(2) obtain b where b: "b \<in> t" "b \<notin> s" by blast
       from b have "t - {b} - s \<subset> t - s" by blast
-      then have cardlt: "card (t - {b} - s) < n" using n ft
+      then have cardlt: "card (t - {b} - s) < card (t - s)" using ft
         by (auto intro: psubset_card_mono)
       from b ft have ct0: "card t \<noteq> 0" by auto
     {assume stb: "s \<subseteq> span(t -{b})"
       from ft have ftb: "finite (t -{b})" by auto
-      from H[rule_format, OF cardlt ftb s stb]
+      from less(1)[OF cardlt ftb s stb]
       obtain u where u: "card u = card (t-{b})" "s \<subseteq> u" "u \<subseteq> s \<union> (t - {b})" "s \<subseteq> span u" and fu: "finite u" by blast
       let ?w = "insert b u"
       have th0: "s \<subseteq> insert b u" using u by blast
@@ -3594,8 +3586,8 @@ proof(induct c\<equiv>"card(t - s)" arbitrary: s t rule: nat_less_induct)
       from stb obtain a where a: "a \<in> s" "a \<notin> span (t - {b})" by blast
       have ab: "a \<noteq> b" using a b by blast
       have at: "a \<notin> t" using a ab span_superset[of a "t- {b}"] by auto
-      have mlt: "card ((insert a (t - {b})) - s) < n"
-        using cardlt ft n  a b by auto
+      have mlt: "card ((insert a (t - {b})) - s) < card (t - s)"
+        using cardlt ft a b by auto
       have ft': "finite (insert a (t - {b}))" using ft by auto
       {fix x assume xs: "x \<in> s"
         have t: "t \<subseteq> (insert b (insert a (t -{b})))" using b by auto
@@ -3608,7 +3600,7 @@ proof(induct c\<equiv>"card(t - s)" arbitrary: s t rule: nat_less_induct)
         from span_trans[OF bs x] have "x \<in> span (insert a (t - {b}))"  .}
       then have sp': "s \<subseteq> span (insert a (t - {b}))" by blast
 
-      from H[rule_format, OF mlt ft' s sp' refl] obtain u where
+      from less(1)[OF mlt ft' s sp'] obtain u where
         u: "card u = card (insert a (t -{b}))" "finite u" "s \<subseteq> u" "u \<subseteq> s \<union> insert a (t -{b})"
         "s \<subseteq> span u" by blast
       from u a b ft at ct0 have "?P u" by auto
@@ -3657,11 +3649,9 @@ lemma maximal_independent_subset_extend:
   assumes sv: "(S::(real^'n) set) \<subseteq> V" and iS: "independent S"
   shows "\<exists>B. S \<subseteq> B \<and> B \<subseteq> V \<and> independent B \<and> V \<subseteq> span B"
   using sv iS
-proof(induct d\<equiv> "CARD('n) - card S" arbitrary: S rule: nat_less_induct)
-  fix n and S:: "(real^'n) set"
-  assume H: "\<forall>m<n. \<forall>S \<subseteq> V. independent S \<longrightarrow> m = CARD('n) - card S \<longrightarrow>
-              (\<exists>B. S \<subseteq> B \<and> B \<subseteq> V \<and> independent B \<and> V \<subseteq> span B)"
-    and sv: "S \<subseteq> V" and i: "independent S" and n: "n = CARD('n) - card S"
+proof(induct "CARD('n) - card S" arbitrary: S rule: less_induct)
+  case less
+  note sv = `S \<subseteq> V` and i = `independent S`
   let ?P = "\<lambda>B. S \<subseteq> B \<and> B \<subseteq> V \<and> independent B \<and> V \<subseteq> span B"
   let ?ths = "\<exists>x. ?P x"
   let ?d = "CARD('n)"
@@ -3674,11 +3664,11 @@ proof(induct d\<equiv> "CARD('n) - card S" arbitrary: S rule: nat_less_induct)
     have th0: "insert a S \<subseteq> V" using a sv by blast
     from independent_insert[of a S]  i a
     have th1: "independent (insert a S)" by auto
-    have mlt: "?d - card (insert a S) < n"
-      using aS a n independent_bound[OF th1]
+    have mlt: "?d - card (insert a S) < ?d - card S"
+      using aS a independent_bound[OF th1]
       by auto
 
-    from H[rule_format, OF mlt th0 th1 refl]
+    from less(1)[OF mlt th0 th1]
     obtain B where B: "insert a S \<subseteq> B" "B \<subseteq> V" "independent B" " V \<subseteq> span B"
       by blast
     from B have "?P B" by auto

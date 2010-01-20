@@ -22,17 +22,16 @@ theorem
 proof (rule order_antisym)
   {
     fix n show "n \<le> f n"
-    proof (induct k \<equiv> "f n" arbitrary: n rule: less_induct)
-      case (less k n)
-      then have hyp: "\<And>m. f m < f n \<Longrightarrow> m \<le> f m" by (simp only:)
+    proof (induct "f n" arbitrary: n rule: less_induct)
+      case less
       show "n \<le> f n"
       proof (cases n)
         case (Suc m)
         from f_ax have "f (f m) < f n" by (simp only: Suc)
-        with hyp have "f m \<le> f (f m)" .
+        with less have "f m \<le> f (f m)" .
         also from f_ax have "\<dots> < f n" by (simp only: Suc)
         finally have "f m < f n" .
-        with hyp have "m \<le> f m" .
+        with less have "m \<le> f m" .
         also note `\<dots> < f n`
         finally have "m < f n" .
         then have "n \<le> f n" by (simp only: Suc)

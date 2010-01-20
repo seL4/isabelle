@@ -1384,7 +1384,7 @@ next
     with k have "degree p = Suc (degree k)"
       by (simp add: degree_mult_eq del: mult_pCons_left)
     with `Suc n = degree p` have "n = degree k" by simp
-    with `k \<noteq> 0` have "finite {x. poly k x = 0}" by (rule Suc.hyps)
+    then have "finite {x. poly k x = 0}" using `k \<noteq> 0` by (rule Suc.hyps)
     then have "finite (insert a {x. poly k x = 0})" by simp
     then show "finite {x. poly p x = 0}"
       by (simp add: k uminus_add_conv_diff Collect_disj_eq

@@ -25,8 +25,8 @@ sig
     binds: (indexname * term option) list,
     cases: (string * T) list}
   val strip_params: term -> (string * typ) list
-  val make_common: bool -> theory * term -> (string * string list) list -> cases
-  val make_nested: bool -> term -> theory * term -> (string * string list) list -> cases
+  val make_common: theory * term -> (string * string list) list -> cases
+  val make_nested: term -> theory * term -> (string * string list) list -> cases
   val apply: term list -> T -> T
   val consume: thm list -> thm list -> ('a * int) * thm ->
     (('a * (int * thm list)) * thm) Seq.seq
@@ -43,6 +43,7 @@ sig
   val get: thm -> (string * string list) list * int
   val rename_params: string list list -> thm -> thm
   val params: string list list -> attribute
+  val internalize_params: thm -> thm
   val mutual_rule: Proof.context -> thm list -> (int list * thm) option
   val strict_mutual_rule: Proof.context -> thm list -> int list * thm
 end;
@@ -90,18 +91,15 @@ fun extract_assumes _ NONE prop = ([("", Logic.strip_assums_hyp prop)], [])
         chop (length (Logic.strip_assums_hyp outline)) (Logic.strip_assums_hyp prop)
       in ([(qual case_hypsN, hyps)], [(qual case_premsN, prems)]) end;
 
-fun extract_case is_open thy (case_outline, raw_prop) name concls =
+fun extract_case thy (case_outline, raw_prop) name concls =
   let
-    val rename = if is_open then I else apfst (Name.internal o Name.clean);
-
     val props = Logic.dest_conjunctions (Drule.norm_hhf thy raw_prop);
     val len = length props;
     val nested = is_some case_outline andalso len > 1;
 
     fun extract prop =
       let
-        val (fixes1, fixes2) = extract_fixes case_outline prop
-          |> apfst (map rename);
+        val (fixes1, fixes2) = extract_fixes case_outline prop;
         val abs_fixes = abs (fixes1 @ fixes2);
         fun abs_fixes1 t =
           if not nested then abs_fixes t
@@ -135,7 +133,7 @@ fun extract_case is_open thy (case_outline, raw_prop) name concls =
     else SOME (nested_case (hd cases))
   end;
 
-fun make is_open rule_struct (thy, prop) cases =
+fun make rule_struct (thy, prop) cases =
   let
     val n = length cases;
     val nprems = Logic.count_prems prop;
@@ -143,13 +141,13 @@ fun make is_open rule_struct (thy, prop) cases =
       ((case try (fn () =>
           (Option.map (curry Logic.nth_prem i) rule_struct, Logic.nth_prem (i, prop))) () of
         NONE => (name, NONE)
-      | SOME p => (name, extract_case is_open thy p name concls)) :: cs, i - 1);
+      | SOME p => (name, extract_case thy p name concls)) :: cs, i - 1);
   in fold_rev add_case (drop (Int.max (n - nprems, 0)) cases) ([], n) |> #1 end;
 
 in
 
-fun make_common is_open = make is_open NONE;
-fun make_nested is_open rule_struct = make is_open (SOME rule_struct);
+val make_common = make NONE;
+fun make_nested rule_struct = make (SOME rule_struct);
 
 fun apply args =
   let
@@ -332,6 +330,20 @@ fun rename_params xss th =
   |> save th;
 
 fun params xss = Thm.rule_attribute (K (rename_params xss));
+
+
+(* internalize parameter names *)
+
+fun internalize_params rule =
+  let
+    fun rename prem =
+      let val xs =
+        map (Name.internal o Name.clean o fst) (Logic.strip_params prem)
+      in Logic.list_rename_params (xs, prem) end;
+    fun rename_prems prop =
+      let val (As, C) = Logic.strip_horn (Thm.prop_of rule)
+      in Logic.list_implies (map rename As, C) end;
+  in Thm.equal_elim (Thm.reflexive (Drule.cterm_fun rename_prems (Thm.cprop_of rule))) rule end;
 
 
 

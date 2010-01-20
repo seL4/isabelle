@@ -621,19 +621,18 @@ next
     done
 qed
 
-text{* Fundamental theorem of algebral *}
+text{* Fundamental theorem of algebra *}
 
 lemma fundamental_theorem_of_algebra:
   assumes nc: "~constant(poly p)"
   shows "\<exists>z::complex. poly p z = 0"
 using nc
-proof(induct n\<equiv> "psize p" arbitrary: p rule: nat_less_induct)
-  fix n fix p :: "complex poly"
+proof(induct "psize p" arbitrary: p rule: less_induct)
+  case less
   let ?p = "poly p"
-  assume H: "\<forall>m<n. \<forall>p. \<not> constant (poly p) \<longrightarrow> m = psize p \<longrightarrow> (\<exists>(z::complex). poly p z = 0)" and nc: "\<not> constant ?p" and n: "n = psize p"
   let ?ths = "\<exists>z. ?p z = 0"
 
-  from nonconstant_length[OF nc] have n2: "n\<ge> 2" by (simp add: n)
+  from nonconstant_length[OF less(2)] have n2: "psize p \<ge> 2" .
   from poly_minimum_modulus obtain c where
     c: "\<forall>w. cmod (?p c) \<le> cmod (?p w)" by blast
   {assume pc: "?p c = 0" hence ?ths by blast}
@@ -649,7 +648,7 @@ proof(induct n\<equiv> "psize p" arbitrary: p rule: nat_less_induct)
           using h unfolding constant_def by blast
         also have "\<dots> = ?p y" using th by auto
         finally have "?p x = ?p y" .}
-      with nc have False unfolding constant_def by blast }
+      with less(2) have False unfolding constant_def by blast }
     hence qnc: "\<not> constant (poly q)" by blast
     from q(2) have pqc0: "?p c = poly q 0" by simp
     from c pqc0 have cq0: "\<forall>w. cmod (poly q 0) \<le> cmod (?p w)" by simp
@@ -682,8 +681,8 @@ proof(induct n\<equiv> "psize p" arbitrary: p rule: nat_less_induct)
     from poly_decompose[OF rnc] obtain k a s where
       kas: "a\<noteq>0" "k\<noteq>0" "psize s + k + 1 = psize ?r"
       "\<forall>z. poly ?r z = poly ?r 0 + z^k* poly (pCons a s) z" by blast
-    {assume "k + 1 = n"
-      with kas(3) lgqr[symmetric] q(1) n[symmetric] have s0:"s=0" by auto
+    {assume "psize p = k + 1"
+      with kas(3) lgqr[symmetric] q(1) have s0:"s=0" by auto
       {fix w
         have "cmod (poly ?r w) = cmod (1 + a * w ^ k)"
           using kas(4)[rule_format, of w] s0 r01 by (simp add: algebra_simps)}
@@ -691,15 +690,15 @@ proof(induct n\<equiv> "psize p" arbitrary: p rule: nat_less_induct)
         from reduce_poly_simple[OF kas(1,2)]
       have "\<exists>w. cmod (poly ?r w) < 1" unfolding hth by blast}
     moreover
-    {assume kn: "k+1 \<noteq> n"
-      from kn kas(3) q(1) n[symmetric] lgqr have k1n: "k + 1 < n" by simp
+    {assume kn: "psize p \<noteq> k+1"
+      from kn kas(3) q(1) lgqr have k1n: "k + 1 < psize p" by simp
       have th01: "\<not> constant (poly (pCons 1 (monom a (k - 1))))"
         unfolding constant_def poly_pCons poly_monom
         using kas(1) apply simp
         by (rule exI[where x=0], rule exI[where x=1], simp)
       from kas(1) kas(2) have th02: "k+1 = psize (pCons 1 (monom a (k - 1)))"
         by (simp add: psize_def degree_monom_eq)
-      from H[rule_format, OF k1n th01 th02]
+      from less(1) [OF k1n [simplified th02] th01]
       obtain w where w: "1 + w^k * a = 0"
         unfolding poly_pCons poly_monom
         using kas(2) by (cases k, auto simp add: algebra_simps)

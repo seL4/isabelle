@@ -1581,14 +1581,10 @@ proof -
     {
       (*JE: we now apply the induction hypothesis with some additional facts required*)
       from f_in_P deg_g_le_deg_f show ?thesis
-      proof (induct n \<equiv> "deg R f" arbitrary: "f" rule: nat_less_induct)
-        fix n f
-        assume hypo: "\<forall>m<n. \<forall>x. x \<in> carrier P \<longrightarrow>
-          deg R g \<le> deg R x \<longrightarrow> 
-          m = deg R x \<longrightarrow>
-          (\<exists>q r (k::nat). q \<in> carrier P \<and> r \<in> carrier P \<and> lcoeff g (^) k \<odot>\<^bsub>P\<^esub> x = g \<otimes>\<^bsub>P\<^esub> q \<oplus>\<^bsub>P\<^esub> r & (r = \<zero>\<^bsub>P\<^esub> | deg R r < deg R g))"
-          and prem: "n = deg R f" and f_in_P [simp]: "f \<in> carrier P"
-          and deg_g_le_deg_f: "deg R g \<le> deg R f"
+      proof (induct "deg R f" arbitrary: "f" rule: less_induct)
+        case less
+        note f_in_P [simp] = `f \<in> carrier P`
+          and deg_g_le_deg_f = `deg R g \<le> deg R f`
         let ?k = "1::nat" and ?r = "(g \<otimes>\<^bsub>P\<^esub> (monom P (lcoeff f) (deg R f - deg R g))) \<oplus>\<^bsub>P\<^esub> \<ominus>\<^bsub>P\<^esub> (lcoeff g \<odot>\<^bsub>P\<^esub> f)"
           and ?q = "monom P (lcoeff f) (deg R f - deg R g)"
         show "\<exists> q r (k::nat). q \<in> carrier P \<and> r \<in> carrier P \<and> lcoeff g (^) k \<odot>\<^bsub>P\<^esub> f = g \<otimes>\<^bsub>P\<^esub> q \<oplus>\<^bsub>P\<^esub> r & (r = \<zero>\<^bsub>P\<^esub> | deg R r < deg R g)"
@@ -1631,13 +1627,13 @@ proof -
                 {
                   (*JE: now it only remains the case where the induction hypothesis can be used.*)
                   (*JE: we first prove that the degree of the remainder is smaller than the one of f*)
-                  have deg_remainder_l_f: "deg R (\<ominus>\<^bsub>P\<^esub> ?r) < n"
+                  have deg_remainder_l_f: "deg R (\<ominus>\<^bsub>P\<^esub> ?r) < deg R f"
                   proof -
                     have "deg R (\<ominus>\<^bsub>P\<^esub> ?r) = deg R ?r" using deg_uminus [of ?r] by simp
                     also have "\<dots> < deg R f"
                     proof (rule deg_lcoeff_cancel)
                       show "deg R (\<ominus>\<^bsub>P\<^esub> (lcoeff g \<odot>\<^bsub>P\<^esub> f)) \<le> deg R f"
-                        using deg_smult_ring [of "lcoeff g" f] using prem
+                        using deg_smult_ring [of "lcoeff g" f]
                         using lcoeff_nonzero2 [OF g_in_P g_not_zero] by simp
                       show "deg R (g \<otimes>\<^bsub>P\<^esub> ?q) \<le> deg R f"
                         using monom_deg_mult [OF _ g_in_P, of f "lcoeff f"] and deg_g_le_deg_f
@@ -1651,7 +1647,7 @@ proof -
                         using R.finsum_singleton [of "deg R g" "{.. deg R f}" "(\<lambda>i. coeff P g i \<otimes> lcoeff f)"]
                         unfolding Pi_def using deg_g_le_deg_f by force
                     qed (simp_all add: deg_f_nzero)
-                    finally show "deg R (\<ominus>\<^bsub>P\<^esub> ?r) < n" unfolding prem .
+                    finally show "deg R (\<ominus>\<^bsub>P\<^esub> ?r) < deg R f" .
                   qed
                   moreover have "\<ominus>\<^bsub>P\<^esub> ?r \<in> carrier P" by simp
                   moreover obtain m where deg_rem_eq_m: "deg R (\<ominus>\<^bsub>P\<^esub> ?r) = m" by auto
@@ -1660,7 +1656,7 @@ proof -
                   ultimately obtain q' r' k'
                     where rem_desc: "lcoeff g (^) (k'::nat) \<odot>\<^bsub>P\<^esub> (\<ominus>\<^bsub>P\<^esub> ?r) = g \<otimes>\<^bsub>P\<^esub> q' \<oplus>\<^bsub>P\<^esub> r'"and rem_deg: "(r' = \<zero>\<^bsub>P\<^esub> \<or> deg R r' < deg R g)"
                     and q'_in_carrier: "q' \<in> carrier P" and r'_in_carrier: "r' \<in> carrier P"
-                    using hypo by blast
+                    using less by blast
                       (*JE: we now prove that the new quotient, remainder and exponent can be used to get 
                       the quotient, remainder and exponent of the long division theorem*)
                   show ?thesis
