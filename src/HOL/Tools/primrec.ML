@@ -265,6 +265,15 @@ fun add_primrec_simple fixes ts lthy =
 
 local
 
+fun specs_of simps =
+  let
+    val eqns = maps snd simps
+    fun dest_eqn th = fst (strip_comb (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of th)))))
+    val t = distinct (op =) (map dest_eqn eqns)
+  in
+    (t, eqns)
+  end
+
 fun gen_primrec prep_spec raw_fixes raw_spec lthy =
   let
     val (fixes, spec) = fst (prep_spec raw_fixes raw_spec lthy);
@@ -277,7 +286,8 @@ fun gen_primrec prep_spec raw_fixes raw_spec lthy =
     lthy
     |> add_primrec_simple fixes (map snd spec)
     |-> (fn (prefix, simps) => fold_map Local_Theory.note (attr_bindings prefix ~~ simps)
-      #-> (fn simps' => Local_Theory.note (simp_attr_binding prefix, maps snd simps')))
+      #-> (fn simps' => Local_Theory.note (simp_attr_binding prefix, maps snd simps')
+      ##> (Spec_Rules.add Spec_Rules.Equational (specs_of simps'))))
     |>> snd
   end;
 
