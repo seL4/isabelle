@@ -43,7 +43,7 @@ where
         None => None
       | Some zq => Some (Lazy_Sequence.append yq zq))))"
 
-fun bind :: "'a dseq => ('a => 'b dseq) => 'b dseq"
+definition bind :: "'a dseq => ('a => 'b dseq) => 'b dseq"
 where
   "bind x f = (%i pol. 
      if i = 0 then
@@ -53,7 +53,7 @@ where
          None => None
        | Some xq => map_seq f xq i pol))"
 
-fun union :: "'a dseq => 'a dseq => 'a dseq"
+definition union :: "'a dseq => 'a dseq => 'a dseq"
 where
   "union x y = (%i pol. case (x i pol, y i pol) of
       (Some xq, Some yq) => Some (Lazy_Sequence.append xq yq)
@@ -63,7 +63,7 @@ definition if_seq :: "bool => unit dseq"
 where
   "if_seq b = (if b then single () else empty)"
 
-fun not_seq :: "unit dseq => unit dseq"
+definition not_seq :: "unit dseq => unit dseq"
 where
   "not_seq x = (%i pol. case x i (\<not>pol) of
     None => Some Lazy_Sequence.empty
@@ -71,7 +71,7 @@ where
       None => Some (Lazy_Sequence.single ())
     | Some _ => Some (Lazy_Sequence.empty)))"
 
-fun map :: "('a => 'b) => 'a dseq => 'b dseq"
+definition map :: "('a => 'b) => 'a dseq => 'b dseq"
 where
   "map f g = (%i pol. case g i pol of
      None => None
@@ -106,7 +106,7 @@ hide const Sequence.Seq Sequence.yield Sequence.yieldn Sequence.empty Sequence.s
   Sequence.append Sequence.flat Sequence.map Sequence.bind Sequence.ifpred Sequence.not_seq
 *)
 hide (open) const empty single eval map_seq bind union if_seq not_seq map
-hide (open) fact empty_def single_def eval.simps map_seq.simps bind.simps union.simps
-  if_seq_def not_seq.simps map.simps
+hide (open) fact empty_def single_def eval.simps map_seq.simps bind_def union_def
+  if_seq_def not_seq_def map_def
 
 end

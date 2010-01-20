@@ -56,6 +56,6 @@ hide const DSequence.empty DSequence.single DSequence.eval
 hide (open) const empty single bind union if_random_dseq not_random_dseq Random map
 
 hide type DSequence.dseq random_dseq
-hide (open) fact empty_def single_def bind_def union_def if_random_dseq_def not_random_dseq_def Random_def map_def
+hide (open) fact empty_def single_def bind_def union_def if_random_dseq_def not_random_dseq_def Random.simps map_def
 
 end
