@@ -29,10 +29,13 @@ begin
 typedecl bisim_iterator
 
 axiomatization unknown :: 'a
+           and is_unknown :: "'a \<Rightarrow> bool"
            and undefined_fast_The :: 'a
            and undefined_fast_Eps :: 'a
            and bisim :: "bisim_iterator \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
            and bisim_iterator_max :: bisim_iterator
+           and Quot :: "'a \<Rightarrow> 'b"
+           and quot_normal :: "'a \<Rightarrow> 'a"
            and Tha :: "('a \<Rightarrow> bool) \<Rightarrow> 'a"
 
 datatype ('a, 'b) pair_box = PairBox 'a 'b
@@ -246,11 +249,12 @@ use "Tools/Nitpick/minipick.ML"
 
 setup {* Nitpick_Isar.setup *}
 
-hide (open) const unknown undefined_fast_The undefined_fast_Eps bisim 
-    bisim_iterator_max Tha PairBox FunBox Word refl' wf' wf_wfrec wf_wfrec'
-    wfrec' card' setsum' fold_graph' nat_gcd nat_lcm int_gcd int_lcm Frac
-    Abs_Frac Rep_Frac zero_frac one_frac num denom norm_frac frac plus_frac
-    times_frac uminus_frac number_of_frac inverse_frac less_eq_frac of_frac
+hide (open) const unknown is_unknown undefined_fast_The undefined_fast_Eps bisim 
+    bisim_iterator_max Quot quot_normal Tha PairBox FunBox Word refl' wf'
+    wf_wfrec wf_wfrec' wfrec' card' setsum' fold_graph' nat_gcd nat_lcm int_gcd
+    int_lcm Frac Abs_Frac Rep_Frac zero_frac one_frac num denom norm_frac frac
+    plus_frac times_frac uminus_frac number_of_frac inverse_frac less_eq_frac
+    of_frac
 hide (open) type bisim_iterator pair_box fun_box unsigned_bit signed_bit word
 hide (open) fact If_def Ex1_def rtrancl_def rtranclp_def tranclp_def refl'_def
     wf'_def wf_wfrec'_def wfrec'_def card'_def setsum'_def fold_graph'_def

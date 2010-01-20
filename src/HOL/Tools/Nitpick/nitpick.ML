@@ -320,8 +320,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
     val unique_scope = forall (curry (op =) 1 o length o snd) cards_assigns
     (* typ -> bool *)
     fun is_type_always_monotonic T =
-      ((not (is_pure_typedef thy T) orelse is_univ_typedef thy T) andalso
-       not (is_quot_type thy T)) orelse
+      (is_datatype thy T andalso not (is_quot_type thy T) andalso
+       (not (is_pure_typedef thy T) orelse is_univ_typedef thy T)) orelse
       is_number_type thy T orelse is_bit_type T
     fun is_type_monotonic T =
       unique_scope orelse
