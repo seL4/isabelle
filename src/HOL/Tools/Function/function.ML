@@ -164,6 +164,7 @@ fun gen_termination_proof prep_term raw_term_opt lthy =
               simps=SOME simps, inducts=SOME inducts, termination=termination }
             in
               Local_Theory.declaration false (add_function_data o morph_function_data info')
+              #> Spec_Rules.add Spec_Rules.Equational (fs, simps)
             end)
         end
   in
