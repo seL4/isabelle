@@ -43,7 +43,7 @@ syntax
   "_prg_scheme" :: "['a, 'a, 'a, 'a] \<Rightarrow> prgs"  ("SCHEME [_ \<le> _ < _] _" [0,0,0,60] 57)
 
 translations
-  "_prg_scheme j i k c" \<rightleftharpoons> "(map (\<lambda>i. c) [j..<k])"
+  "_prg_scheme j i k c" \<rightleftharpoons> "(CONST map (\<lambda>i. c) [j..<k])"
 
 text {* Translations for variables before and after a transition: *}
 

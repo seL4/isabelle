@@ -17,12 +17,9 @@ datatype 'a u = Ibottom | Iup 'a
 syntax (xsymbols)
   "u" :: "type \<Rightarrow> type" ("(_\<^sub>\<bottom>)" [1000] 999)
 
-consts
-  Ifup :: "('a \<rightarrow> 'b::pcpo) \<Rightarrow> 'a u \<Rightarrow> 'b"
-
-primrec
-  "Ifup f Ibottom = \<bottom>"
-  "Ifup f (Iup x) = f\<cdot>x"
+primrec Ifup :: "('a \<rightarrow> 'b::pcpo) \<Rightarrow> 'a u \<Rightarrow> 'b" where
+    "Ifup f Ibottom = \<bottom>"
+ |  "Ifup f (Iup x) = f\<cdot>x"
 
 subsection {* Ordering on lifted cpo *}
 

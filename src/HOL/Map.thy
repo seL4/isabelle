@@ -51,10 +51,6 @@ definition
   map_le :: "('a ~=> 'b) => ('a ~=> 'b) => bool"  (infix "\<subseteq>\<^sub>m" 50) where
   "(m\<^isub>1 \<subseteq>\<^sub>m m\<^isub>2) = (\<forall>a \<in> dom m\<^isub>1. m\<^isub>1 a = m\<^isub>2 a)"
 
-consts
-  map_of :: "('a * 'b) list => 'a ~=> 'b"
-  map_upds :: "('a ~=> 'b) => 'a list => 'b list => ('a ~=> 'b)"
-
 nonterminals
   maplets maplet
 
@@ -73,24 +69,26 @@ syntax (xsymbols)
 translations
   "_MapUpd m (_Maplets xy ms)"  == "_MapUpd (_MapUpd m xy) ms"
   "_MapUpd m (_maplet  x y)"    == "m(x:=Some y)"
-  "_MapUpd m (_maplets x y)"    == "map_upds m x y"
   "_Map ms"                     == "_MapUpd (CONST empty) ms"
   "_Map (_Maplets ms1 ms2)"     <= "_MapUpd (_Map ms1) ms2"
   "_Maplets ms1 (_Maplets ms2 ms3)" <= "_Maplets (_Maplets ms1 ms2) ms3"
 
 primrec
-  "map_of [] = empty"
-  "map_of (p#ps) = (map_of ps)(fst p |-> snd p)"
+  map_of :: "('a \<times> 'b) list \<Rightarrow> 'a \<rightharpoonup> 'b" where
+    "map_of [] = empty"
+  | "map_of (p # ps) = (map_of ps)(fst p \<mapsto> snd p)"
 
-declare map_of.simps [code del]
+definition
+  map_upds :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'a \<rightharpoonup> 'b" where
+  "map_upds m xs ys = m ++ map_of (rev (zip xs ys))"
+
+translations
+  "_MapUpd m (_maplets x y)"    == "CONST map_upds m x y"
 
 lemma map_of_Cons_code [code]: 
   "map_of [] k = None"
   "map_of ((l, v) # ps) k = (if l = k then Some v else map_of ps k)"
   by simp_all
-
-defs
-  map_upds_def [code]: "m(xs [|->] ys) == m ++ map_of (rev(zip xs ys))"
 
 
 subsection {* @{term [source] empty} *}
