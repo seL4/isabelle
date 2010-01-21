@@ -340,7 +340,8 @@ fun define_predicates specs thy =
             val prednames = map (fst o dest_Const) (#preds ind_result)
             (* val rewr_thms = map mk_rewr_eq ((distinct (op =) funs) ~~ (#preds ind_result)) *)
             (* add constants to my table *)
-            val specs = map (fn predname => (predname, filter (Predicate_Compile_Aux.is_intro predname) (#intrs ind_result))) prednames
+            val specs = map (fn predname => (predname, filter (Predicate_Compile_Aux.is_intro predname)
+              (#intrs ind_result))) prednames
             val thy'' = Pred_Compile_Preproc.map (fold Symtab.update_new (consts ~~ prednames)) thy'
           in
             (specs, thy'')

@@ -201,16 +201,10 @@ fun get_specification thy t =
           NONE
   in
     case map_filter filtering (map (Thm.transfer thy) (Predicate_Compile_Alternative_Defs.get ctxt))
-     of [] => (case map_filter
-       (fn (roughly, (ts, ths)) =>
-         if roughly = Spec_Rules.Equational andalso member (op =) ts t then SOME ths else NONE)
-         (map ((apsnd o apsnd) (map (Thm.transfer thy))) (Spec_Rules.retrieve ctxt t))
-       of [] => Output.cond_timeit true "Nitpick get_spec"
-         (fn () => (case map_filter filtering (map (Thm.transfer thy) (Nitpick_Simps.get ctxt))
-         of [] => map_filter filtering (map (Thm.transfer thy) (Nitpick_Intros.get ctxt))
-         | ths => ths))
-       | thss => flat thss)
-     | ths => ths
+     of [] => (case Spec_Rules.retrieve ctxt t
+       of [] => rev (map_filter filtering (map (Thm.transfer thy) (Nitpick_Intros.get ctxt)))
+       | ((_, (_, ths)) :: _) => map (normalize_equation thy o Thm.transfer thy) ths)
+     | ths => rev ths
   end)
 
 val logic_operator_names =
@@ -265,7 +259,7 @@ fun obtain_specification_graph options thy t =
       |> filter is_defining_constname*)
     fun extend t =
       let
-        val specs = rev (get_specification thy t)
+        val specs = get_specification thy t
           |> map (inline_equations thy)
           (*|> Predicate_Compile_Set.unfold_set_notation*)
         (*val _ = print_specification options thy constname specs*)
