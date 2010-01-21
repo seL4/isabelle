@@ -550,8 +550,7 @@ by (subst sfilter_unfold, force)
 (* ----------------------------------------------------------------------- *)
 
 lemma i_rt_UU [simp]: "i_rt n UU = UU"
-apply (simp add: i_rt_def)
-by (rule iterate.induct,auto)
+  by (induct n) (simp_all add: i_rt_def)
 
 lemma i_rt_0 [simp]: "i_rt 0 s = s"
 by (simp add: i_rt_def)

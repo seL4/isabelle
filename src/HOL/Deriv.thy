@@ -19,14 +19,13 @@ definition
           ("(DERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60) where
   "DERIV f x :> D = ((%h. (f(x + h) - f x) / h) -- 0 --> D)"
 
-consts
-  Bolzano_bisect :: "[real*real=>bool, real, real, nat] => (real*real)"
 primrec
-  "Bolzano_bisect P a b 0 = (a,b)"
-  "Bolzano_bisect P a b (Suc n) =
-      (let (x,y) = Bolzano_bisect P a b n
-       in if P(x, (x+y)/2) then ((x+y)/2, y)
-                            else (x, (x+y)/2))"
+  Bolzano_bisect :: "(real \<times> real \<Rightarrow> bool) \<Rightarrow> real \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> real \<times> real" where
+  "Bolzano_bisect P a b 0 = (a, b)"
+  | "Bolzano_bisect P a b (Suc n) =
+      (let (x, y) = Bolzano_bisect P a b n
+       in if P (x, (x+y) / 2) then ((x+y)/2, y)
+                              else (x, (x+y)/2))"
 
 
 subsection {* Derivatives *}

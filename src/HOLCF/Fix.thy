@@ -12,12 +12,9 @@ defaultsort pcpo
 
 subsection {* Iteration *}
 
-consts
-  iterate :: "nat \<Rightarrow> ('a::cpo \<rightarrow> 'a) \<rightarrow> ('a \<rightarrow> 'a)"
-
-primrec
-  "iterate 0 = (\<Lambda> F x. x)"
-  "iterate (Suc n) = (\<Lambda> F x. F\<cdot>(iterate n\<cdot>F\<cdot>x))"
+primrec iterate :: "nat \<Rightarrow> ('a::cpo \<rightarrow> 'a) \<rightarrow> ('a \<rightarrow> 'a)" where
+    "iterate 0 = (\<Lambda> F x. x)"
+  | "iterate (Suc n) = (\<Lambda> F x. F\<cdot>(iterate n\<cdot>F\<cdot>x))"
 
 text {* Derive inductive properties of iterate from primitive recursion *}
 

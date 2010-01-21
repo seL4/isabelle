@@ -13,184 +13,182 @@ datatype 'a list =
     Nil    ("[]")
   | Cons 'a  "'a list"    (infixr "#" 65)
 
-subsection{*Basic list processing functions*}
-
-consts
-  filter:: "('a => bool) => 'a list => 'a list"
-  concat:: "'a list list => 'a list"
-  foldl :: "('b => 'a => 'b) => 'b => 'a list => 'b"
-  foldr :: "('a => 'b => 'b) => 'a list => 'b => 'b"
-  hd:: "'a list => 'a"
-  tl:: "'a list => 'a list"
-  last:: "'a list => 'a"
-  butlast :: "'a list => 'a list"
-  set :: "'a list => 'a set"
-  map :: "('a=>'b) => ('a list => 'b list)"
-  listsum ::  "'a list => 'a::monoid_add"
-  list_update :: "'a list => nat => 'a => 'a list"
-  take:: "nat => 'a list => 'a list"
-  drop:: "nat => 'a list => 'a list"
-  takeWhile :: "('a => bool) => 'a list => 'a list"
-  dropWhile :: "('a => bool) => 'a list => 'a list"
-  rev :: "'a list => 'a list"
-  zip :: "'a list => 'b list => ('a * 'b) list"
-  upt :: "nat => nat => nat list" ("(1[_..</_'])")
-  remdups :: "'a list => 'a list"
-  remove1 :: "'a => 'a list => 'a list"
-  removeAll :: "'a => 'a list => 'a list"
-  "distinct":: "'a list => bool"
-  replicate :: "nat => 'a => 'a list"
-  splice :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
-
-
-nonterminals lupdbinds lupdbind
-
 syntax
   -- {* list Enumeration *}
   "@list" :: "args => 'a list"    ("[(_)]")
 
-  -- {* Special syntax for filter *}
-  "@filter" :: "[pttrn, 'a list, bool] => 'a list"    ("(1[_<-_./ _])")
-
-  -- {* list update *}
-  "_lupdbind":: "['a, 'a] => lupdbind"    ("(2_ :=/ _)")
-  "" :: "lupdbind => lupdbinds"    ("_")
-  "_lupdbinds" :: "[lupdbind, lupdbinds] => lupdbinds"    ("_,/ _")
-  "_LUpdate" :: "['a, lupdbinds] => 'a"    ("_/[(_)]" [900,0] 900)
-
 translations
   "[x, xs]" == "x#[xs]"
   "[x]" == "x#[]"
-  "[x<-xs . P]"== "filter (%x. P) xs"
 
-  "_LUpdate xs (_lupdbinds b bs)"== "_LUpdate (_LUpdate xs b) bs"
-  "xs[i:=x]" == "list_update xs i x"
+subsection{*Basic list processing functions*}
 
+primrec
+  hd :: "'a list \<Rightarrow> 'a" where
+  "hd (x # xs) = x"
+
+primrec
+  tl :: "'a list \<Rightarrow> 'a list" where
+    "tl [] = []"
+  | "tl (x # xs) = xs"
+
+primrec
+  last :: "'a list \<Rightarrow> 'a" where
+  "last (x # xs) = (if xs = [] then x else last xs)"
+
+primrec
+  butlast :: "'a list \<Rightarrow> 'a list" where
+    "butlast []= []"
+  | "butlast (x # xs) = (if xs = [] then [] else x # butlast xs)"
+
+primrec
+  set :: "'a list \<Rightarrow> 'a set" where
+    "set [] = {}"
+  | "set (x # xs) = insert x (set xs)"
+
+primrec
+  map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list" where
+    "map f [] = []"
+  | "map f (x # xs) = f x # map f xs"
+
+primrec
+  append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixr "@" 65) where
+    append_Nil:"[] @ ys = ys"
+  | append_Cons: "(x#xs) @ ys = x # xs @ ys"
+
+primrec
+  rev :: "'a list \<Rightarrow> 'a list" where
+    "rev [] = []"
+  | "rev (x # xs) = rev xs @ [x]"
+
+primrec
+  filter:: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+    "filter P [] = []"
+  | "filter P (x # xs) = (if P x then x # filter P xs else filter P xs)"
+
+syntax
+  -- {* Special syntax for filter *}
+  "@filter" :: "[pttrn, 'a list, bool] => 'a list"    ("(1[_<-_./ _])")
+
+translations
+  "[x<-xs . P]"== "CONST filter (%x. P) xs"
 
 syntax (xsymbols)
   "@filter" :: "[pttrn, 'a list, bool] => 'a list"("(1[_\<leftarrow>_ ./ _])")
 syntax (HTML output)
   "@filter" :: "[pttrn, 'a list, bool] => 'a list"("(1[_\<leftarrow>_ ./ _])")
 
+primrec
+  foldl :: "('b \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a list \<Rightarrow> 'b" where
+    foldl_Nil: "foldl f a [] = a"
+  | foldl_Cons: "foldl f a (x # xs) = foldl f (f a x) xs"
+
+primrec
+  foldr :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b" where
+    "foldr f [] a = a"
+  | "foldr f (x # xs) a = f x (foldr f xs a)"
+
+primrec
+  concat:: "'a list list \<Rightarrow> 'a list" where
+    "concat [] = []"
+  | "concat (x # xs) = x @ concat xs"
+
+primrec (in monoid_add)
+  listsum :: "'a list \<Rightarrow> 'a" where
+    "listsum [] = 0"
+  | "listsum (x # xs) = x + listsum xs"
+
+primrec
+  drop:: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+    drop_Nil: "drop n [] = []"
+  | drop_Cons: "drop n (x # xs) = (case n of 0 \<Rightarrow> x # xs | Suc m \<Rightarrow> drop m xs)"
+  -- {*Warning: simpset does not contain this definition, but separate
+       theorems for @{text "n = 0"} and @{text "n = Suc k"} *}
+
+primrec
+  take:: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+    take_Nil:"take n [] = []"
+  | take_Cons: "take n (x # xs) = (case n of 0 \<Rightarrow> [] | Suc m \<Rightarrow> x # take m xs)"
+  -- {*Warning: simpset does not contain this definition, but separate
+       theorems for @{text "n = 0"} and @{text "n = Suc k"} *}
+
+primrec
+  nth :: "'a list => nat => 'a" (infixl "!" 100) where
+  nth_Cons: "(x # xs) ! n = (case n of 0 \<Rightarrow> x | Suc k \<Rightarrow> xs ! k)"
+  -- {*Warning: simpset does not contain this definition, but separate
+       theorems for @{text "n = 0"} and @{text "n = Suc k"} *}
+
+primrec
+  list_update :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a list" where
+    "list_update [] i v = []"
+  | "list_update (x # xs) i v = (case i of 0 \<Rightarrow> v # xs | Suc j \<Rightarrow> x # list_update xs j v)"
+
+nonterminals lupdbinds lupdbind
+
+syntax
+  "_lupdbind":: "['a, 'a] => lupdbind"    ("(2_ :=/ _)")
+  "" :: "lupdbind => lupdbinds"    ("_")
+  "_lupdbinds" :: "[lupdbind, lupdbinds] => lupdbinds"    ("_,/ _")
+  "_LUpdate" :: "['a, lupdbinds] => 'a"    ("_/[(_)]" [900,0] 900)
+
+translations
+  "_LUpdate xs (_lupdbinds b bs)"== "_LUpdate (_LUpdate xs b) bs"
+  "xs[i:=x]" == "CONST list_update xs i x"
+
+primrec
+  takeWhile :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+    "takeWhile P [] = []"
+  | "takeWhile P (x # xs) = (if P x then x # takeWhile P xs else [])"
+
+primrec
+  dropWhile :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+    "dropWhile P [] = []"
+  | "dropWhile P (x # xs) = (if P x then dropWhile P xs else x # xs)"
+
+primrec
+  zip :: "'a list \<Rightarrow> 'b list \<Rightarrow> ('a \<times> 'b) list" where
+    "zip xs [] = []"
+  | zip_Cons: "zip xs (y # ys) = (case xs of [] => [] | z # zs => (z, y) # zip zs ys)"
+  -- {*Warning: simpset does not contain this definition, but separate
+       theorems for @{text "xs = []"} and @{text "xs = z # zs"} *}
+
+primrec 
+  upt :: "nat \<Rightarrow> nat \<Rightarrow> nat list" ("(1[_..</_'])") where
+    upt_0: "[i..<0] = []"
+  | upt_Suc: "[i..<(Suc j)] = (if i <= j then [i..<j] @ [j] else [])"
+
+primrec
+  distinct :: "'a list \<Rightarrow> bool" where
+    "distinct [] \<longleftrightarrow> True"
+  | "distinct (x # xs) \<longleftrightarrow> x \<notin> set xs \<and> distinct xs"
+
+primrec
+  remdups :: "'a list \<Rightarrow> 'a list" where
+    "remdups [] = []"
+  | "remdups (x # xs) = (if x \<in> set xs then remdups xs else x # remdups xs)"
+
+primrec
+  remove1 :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+    "remove1 x [] = []"
+  | "remove1 x (y # xs) = (if x = y then xs else y # remove1 x xs)"
+
+primrec
+  removeAll :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+    "removeAll x [] = []"
+  | "removeAll x (y # xs) = (if x = y then removeAll x xs else y # removeAll x xs)"
+
+primrec
+  replicate :: "nat \<Rightarrow> 'a \<Rightarrow> 'a list" where
+    replicate_0: "replicate 0 x = []"
+  | replicate_Suc: "replicate (Suc n) x = x # replicate n x"
 
 text {*
   Function @{text size} is overloaded for all datatypes. Users may
   refer to the list version as @{text length}. *}
 
 abbreviation
-  length :: "'a list => nat" where
-  "length == size"
-
-primrec
-  "hd(x#xs) = x"
-
-primrec
-  "tl([]) = []"
-  "tl(x#xs) = xs"
-
-primrec
-  "last(x#xs) = (if xs=[] then x else last xs)"
-
-primrec
-  "butlast []= []"
-  "butlast(x#xs) = (if xs=[] then [] else x#butlast xs)"
-
-primrec
-  "set [] = {}"
-  "set (x#xs) = insert x (set xs)"
-
-primrec
-  "map f [] = []"
-  "map f (x#xs) = f(x)#map f xs"
-
-primrec
-  append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixr "@" 65)
-where
-  append_Nil:"[] @ ys = ys"
-  | append_Cons: "(x#xs) @ ys = x # xs @ ys"
-
-primrec
-  "rev([]) = []"
-  "rev(x#xs) = rev(xs) @ [x]"
-
-primrec
-  "filter P [] = []"
-  "filter P (x#xs) = (if P x then x#filter P xs else filter P xs)"
-
-primrec
-  foldl_Nil:"foldl f a [] = a"
-  foldl_Cons: "foldl f a (x#xs) = foldl f (f a x) xs"
-
-primrec
-  "foldr f [] a = a"
-  "foldr f (x#xs) a = f x (foldr f xs a)"
-
-primrec
-  "concat([]) = []"
-  "concat(x#xs) = x @ concat(xs)"
-
-primrec
-"listsum [] = 0"
-"listsum (x # xs) = x + listsum xs"
-
-primrec
-  drop_Nil:"drop n [] = []"
-  drop_Cons: "drop n (x#xs) = (case n of 0 => x#xs | Suc(m) => drop m xs)"
-  -- {*Warning: simpset does not contain this definition, but separate
-       theorems for @{text "n = 0"} and @{text "n = Suc k"} *}
-
-primrec
-  take_Nil:"take n [] = []"
-  take_Cons: "take n (x#xs) = (case n of 0 => [] | Suc(m) => x # take m xs)"
-  -- {*Warning: simpset does not contain this definition, but separate
-       theorems for @{text "n = 0"} and @{text "n = Suc k"} *}
-
-primrec nth :: "'a list => nat => 'a" (infixl "!" 100) where
-  nth_Cons: "(x#xs)!n = (case n of 0 => x | (Suc k) => xs!k)"
-  -- {*Warning: simpset does not contain this definition, but separate
-       theorems for @{text "n = 0"} and @{text "n = Suc k"} *}
-
-primrec
-  "[][i:=v] = []"
-  "(x#xs)[i:=v] = (case i of 0 => v # xs | Suc j => x # xs[j:=v])"
-
-primrec
-  "takeWhile P [] = []"
-  "takeWhile P (x#xs) = (if P x then x#takeWhile P xs else [])"
-
-primrec
-  "dropWhile P [] = []"
-  "dropWhile P (x#xs) = (if P x then dropWhile P xs else x#xs)"
-
-primrec
-  "zip xs [] = []"
-  zip_Cons: "zip xs (y#ys) = (case xs of [] => [] | z#zs => (z,y)#zip zs ys)"
-  -- {*Warning: simpset does not contain this definition, but separate
-       theorems for @{text "xs = []"} and @{text "xs = z # zs"} *}
-
-primrec
-  upt_0: "[i..<0] = []"
-  upt_Suc: "[i..<(Suc j)] = (if i <= j then [i..<j] @ [j] else [])"
-
-primrec
-  "distinct [] = True"
-  "distinct (x#xs) = (x ~: set xs \<and> distinct xs)"
-
-primrec
-  "remdups [] = []"
-  "remdups (x#xs) = (if x : set xs then remdups xs else x # remdups xs)"
-
-primrec
-  "remove1 x [] = []"
-  "remove1 x (y#xs) = (if x=y then xs else y # remove1 x xs)"
-
-primrec
-  "removeAll x [] = []"
-  "removeAll x (y#xs) = (if x=y then removeAll x xs else y # removeAll x xs)"
-
-primrec
-  replicate_0: "replicate 0 x = []"
-  replicate_Suc: "replicate (Suc n) x = x # replicate n x"
+  length :: "'a list \<Rightarrow> nat" where
+  "length \<equiv> size"
 
 definition
   rotate1 :: "'a list \<Rightarrow> 'a list" where
@@ -210,8 +208,9 @@ definition
   "sublist xs A = map fst (filter (\<lambda>p. snd p \<in> A) (zip xs [0..<size xs]))"
 
 primrec
-  "splice [] ys = ys"
-  "splice (x#xs) ys = (if ys=[] then x#xs else x # hd ys # splice xs (tl ys))"
+  splice :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+    "splice [] ys = ys"
+  | "splice (x # xs) ys = (if ys = [] then x # xs else x # hd ys # splice xs (tl ys))"
     -- {*Warning: simpset does not contain the second eqn but a derived one. *}
 
 text{*
@@ -2434,8 +2433,8 @@ syntax (HTML output)
   "_listsum" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Sum>_\<leftarrow>_. _)" [0, 51, 10] 10)
 
 translations -- {* Beware of argument permutation! *}
-  "SUM x<-xs. b" == "CONST listsum (map (%x. b) xs)"
-  "\<Sum>x\<leftarrow>xs. b" == "CONST listsum (map (%x. b) xs)"
+  "SUM x<-xs. b" == "CONST listsum (CONST map (%x. b) xs)"
+  "\<Sum>x\<leftarrow>xs. b" == "CONST listsum (CONST map (%x. b) xs)"
 
 lemma listsum_triv: "(\<Sum>x\<leftarrow>xs. r) = of_nat (length xs) * r"
   by (induct xs) (simp_all add: left_distrib)
@@ -3827,10 +3826,9 @@ subsubsection{*Lists as Cartesian products*}
 text{*@{text"set_Cons A Xs"}: the set of lists with head drawn from
 @{term A} and tail drawn from @{term Xs}.*}
 
-constdefs
-  set_Cons :: "'a set \<Rightarrow> 'a list set \<Rightarrow> 'a list set"
-  "set_Cons A XS == {z. \<exists>x xs. z = x#xs & x \<in> A & xs \<in> XS}"
-declare set_Cons_def [code del]
+definition
+  set_Cons :: "'a set \<Rightarrow> 'a list set \<Rightarrow> 'a list set" where
+  [code del]: "set_Cons A XS = {z. \<exists>x xs. z = x # xs \<and> x \<in> A \<and> xs \<in> XS}"
 
 lemma set_Cons_sing_Nil [simp]: "set_Cons A {[]} = (%x. [x])`A"
 by (auto simp add: set_Cons_def)
@@ -3838,10 +3836,11 @@ by (auto simp add: set_Cons_def)
 text{*Yields the set of lists, all of the same length as the argument and
 with elements drawn from the corresponding element of the argument.*}
 
-consts  listset :: "'a set list \<Rightarrow> 'a list set"
 primrec
-   "listset []    = {[]}"
-   "listset(A#As) = set_Cons A (listset As)"
+  listset :: "'a set list \<Rightarrow> 'a list set" where
+     "listset [] = {[]}"
+  |  "listset (A # As) = set_Cons A (listset As)"
+
 
 subsection{*Relations on Lists*}
 
@@ -3849,26 +3848,21 @@ subsubsection {* Length Lexicographic Ordering *}
 
 text{*These orderings preserve well-foundedness: shorter lists 
   precede longer lists. These ordering are not used in dictionaries.*}
+        
+primrec -- {*The lexicographic ordering for lists of the specified length*}
+  lexn :: "('a \<times> 'a) set \<Rightarrow> nat \<Rightarrow> ('a list \<times> 'a list) set" where
+    "lexn r 0 = {}"
+  | "lexn r (Suc n) = (prod_fun (%(x, xs). x#xs) (%(x, xs). x#xs) ` (r <*lex*> lexn r n)) Int
+      {(xs, ys). length xs = Suc n \<and> length ys = Suc n}"
 
-consts lexn :: "('a * 'a)set => nat => ('a list * 'a list)set"
-        --{*The lexicographic ordering for lists of the specified length*}
-primrec
-  "lexn r 0 = {}"
-  "lexn r (Suc n) =
-    (prod_fun (%(x,xs). x#xs) (%(x,xs). x#xs) ` (r <*lex*> lexn r n)) Int
-    {(xs,ys). length xs = Suc n \<and> length ys = Suc n}"
+definition
+  lex :: "('a \<times> 'a) set \<Rightarrow> ('a list \<times> 'a list) set" where
+  [code del]: "lex r = (\<Union>n. lexn r n)" -- {*Holds only between lists of the same length*}
 
-constdefs
-  lex :: "('a \<times> 'a) set => ('a list \<times> 'a list) set"
-    "lex r == \<Union>n. lexn r n"
-        --{*Holds only between lists of the same length*}
-
-  lenlex :: "('a \<times> 'a) set => ('a list \<times> 'a list) set"
-    "lenlex r == inv_image (less_than <*lex*> lex r) (%xs. (length xs, xs))"
-        --{*Compares lists by their length and then lexicographically*}
-
-declare lex_def [code del]
-
+definition
+  lenlex :: "('a \<times> 'a) set => ('a list \<times> 'a list) set" where
+  [code del]: "lenlex r = inv_image (less_than <*lex*> lex r) (\<lambda>xs. (length xs, xs))"
+        -- {*Compares lists by their length and then lexicographically*}
 
 lemma wf_lexn: "wf r ==> wf (lexn r n)"
 apply (induct n, simp, simp)
@@ -3939,11 +3933,10 @@ text {* Classical lexicographic ordering on lists, ie. "a" < "ab" < "b".
     This ordering does \emph{not} preserve well-foundedness.
      Author: N. Voelker, March 2005. *} 
 
-constdefs 
-  lexord :: "('a * 'a)set \<Rightarrow> ('a list * 'a list) set" 
-  "lexord  r == {(x,y). \<exists> a v. y = x @ a # v \<or> 
+definition
+  lexord :: "('a \<times> 'a) set \<Rightarrow> ('a list \<times> 'a list) set" where
+  [code del]: "lexord r = {(x,y ). \<exists> a v. y = x @ a # v \<or>
             (\<exists> u a b v w. (a,b) \<in> r \<and> x = u @ (a # v) \<and> y = u @ (b # w))}"
-declare lexord_def [code del]
 
 lemma lexord_Nil_left[simp]:  "([],y) \<in> lexord r = (\<exists> a x. y = a # x)"
 by (unfold lexord_def, induct_tac y, auto) 

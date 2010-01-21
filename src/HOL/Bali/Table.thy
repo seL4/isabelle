@@ -1,5 +1,4 @@
 (*  Title:      HOL/Bali/Table.thy
-    ID:         $Id$
     Author:     David von Oheimb
 *)
 header {* Abstract tables and their implementation as lists *}
@@ -41,9 +40,10 @@ section "map of / table of"
 syntax
   table_of      :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) table"   --{* concrete table *}
   
+abbreviation
+  "table_of \<equiv> map_of"
+
 translations
-  "table_of" == "map_of"
-  
   (type)"'a \<rightharpoonup> 'b"       <= (type)"'a \<Rightarrow> 'b Datatype.option"
   (type)"('a, 'b) table" <= (type)"'a \<rightharpoonup> 'b"
 

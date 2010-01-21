@@ -72,7 +72,7 @@ translations
   "_prgs c q ps" \<rightleftharpoons> "(Some c, q) # ps"
   "_PAR ps" \<rightleftharpoons> "Parallel ps"
 
-  "_prg_scheme j i k c q" \<rightleftharpoons> "map (\<lambda>i. (Some c, q)) [j..<k]"
+  "_prg_scheme j i k c q" \<rightleftharpoons> "CONST map (\<lambda>i. (Some c, q)) [j..<k]"
 
 print_translation {*
   let

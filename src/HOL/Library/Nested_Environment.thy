@@ -43,18 +43,16 @@ text {*
   @{term None}.
 *}
 
-consts
+primrec
   lookup :: "('a, 'b, 'c) env => 'c list => ('a, 'b, 'c) env option"
-  lookup_option :: "('a, 'b, 'c) env option => 'c list => ('a, 'b, 'c) env option"
-
-primrec (lookup)
-  "lookup (Val a) xs = (if xs = [] then Some (Val a) else None)"
-  "lookup (Env b es) xs =
-    (case xs of
-      [] => Some (Env b es)
-    | y # ys => lookup_option (es y) ys)"
-  "lookup_option None xs = None"
-  "lookup_option (Some e) xs = lookup e xs"
+  and lookup_option :: "('a, 'b, 'c) env option => 'c list => ('a, 'b, 'c) env option" where
+    "lookup (Val a) xs = (if xs = [] then Some (Val a) else None)"
+  | "lookup (Env b es) xs =
+      (case xs of
+        [] => Some (Env b es)
+      | y # ys => lookup_option (es y) ys)"
+  | "lookup_option None xs = None"
+  | "lookup_option (Some e) xs = lookup e xs"
 
 hide const lookup_option
 
@@ -76,7 +74,7 @@ theorem lookup_env_cons:
     | Some e => lookup e xs)"
   by (cases "es x") simp_all
 
-lemmas lookup.simps [simp del]
+lemmas lookup_lookup_option.simps [simp del]
   and lookup_simps [simp] = lookup_nil lookup_val_cons lookup_env_cons
 
 theorem lookup_eq:
@@ -247,24 +245,22 @@ text {*
   environment is left unchanged.
 *}
 
-consts
+primrec
   update :: "'c list => ('a, 'b, 'c) env option
     => ('a, 'b, 'c) env => ('a, 'b, 'c) env"
-  update_option :: "'c list => ('a, 'b, 'c) env option
-    => ('a, 'b, 'c) env option => ('a, 'b, 'c) env option"
-
-primrec (update)
-  "update xs opt (Val a) =
-    (if xs = [] then (case opt of None => Val a | Some e => e)
-    else Val a)"
-  "update xs opt (Env b es) =
-    (case xs of
-      [] => (case opt of None => Env b es | Some e => e)
-    | y # ys => Env b (es (y := update_option ys opt (es y))))"
-  "update_option xs opt None =
-    (if xs = [] then opt else None)"
-  "update_option xs opt (Some e) =
-    (if xs = [] then opt else Some (update xs opt e))"
+  and update_option :: "'c list => ('a, 'b, 'c) env option
+    => ('a, 'b, 'c) env option => ('a, 'b, 'c) env option" where
+    "update xs opt (Val a) =
+      (if xs = [] then (case opt of None => Val a | Some e => e)
+      else Val a)"
+  | "update xs opt (Env b es) =
+      (case xs of
+        [] => (case opt of None => Env b es | Some e => e)
+      | y # ys => Env b (es (y := update_option ys opt (es y))))"
+  | "update_option xs opt None =
+      (if xs = [] then opt else None)"
+  | "update_option xs opt (Some e) =
+      (if xs = [] then opt else Some (update xs opt e))"
 
 hide const update_option
 
@@ -294,7 +290,7 @@ theorem update_cons_cons_env:
       | Some e => Some (update (y # ys) opt e))))"
   by (cases "es x") simp_all
 
-lemmas update.simps [simp del]
+lemmas update_update_option.simps [simp del]
   and update_simps [simp] = update_nil_none update_nil_some
     update_cons_val update_cons_nil_env update_cons_cons_env
 
