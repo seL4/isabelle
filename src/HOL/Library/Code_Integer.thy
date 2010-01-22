@@ -25,9 +25,9 @@ code_instance int :: eq
 
 setup {*
   fold (Numeral.add_code @{const_name number_int_inst.number_of_int}
-    true true Code_Printer.str) ["SML", "OCaml", "Haskell", "Scala"]
+    true Code_Printer.literal_numeral) ["SML", "OCaml", "Haskell", "Scala"]
   #> Numeral.add_code @{const_name number_int_inst.number_of_int}
-    true true (fn s => (Pretty.block o map Code_Printer.str) ["BigInt", s]) "Scala"
+    true Code_Printer.literal_numeral "Scala"
 *}
 
 code_const "Int.Pls" and "Int.Min" and "Int.Bit0" and "Int.Bit1"
@@ -88,7 +88,7 @@ code_const "op * \<Colon> int \<Rightarrow> int \<Rightarrow> int"
 code_const pdivmod
   (SML "IntInf.divMod/ (IntInf.abs _,/ IntInf.abs _)")
   (OCaml "Big'_int.quomod'_big'_int/ (Big'_int.abs'_big'_int _)/ (Big'_int.abs'_big'_int _)")
-  (Haskell "divMod/ (abs _)/ (abs _))")
+  (Haskell "divMod/ (abs _)/ (abs _)")
   (Scala "!(_.abs '/% _.abs)")
 
 code_const "eq_class.eq \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
@@ -113,10 +113,7 @@ code_const Code_Numeral.int_of
   (SML "IntInf.fromInt")
   (OCaml "_")
   (Haskell "toEnum")
-  (Scala "!BigInt(_)")
-
-code_reserved SML IntInf
-code_reserved Scala BigInt
+  (Scala "!BigInt((_))")
 
 text {* Evaluation *}
 

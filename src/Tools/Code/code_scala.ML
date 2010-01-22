@@ -404,17 +404,18 @@ val literals = let
     let
       val s = ML_Syntax.print_char c;
     in if s = "'" then "\\'" else s end;
-  fun bigint_scala k = "(" ^ (if k <= 2147483647
-    then string_of_int k else quote (string_of_int k)) ^ ")"
+  fun numeral_scala k = if k < 0
+    then if k <= 2147483647 then "- " ^ string_of_int (~ k)
+      else quote ("- " ^ string_of_int (~ k))
+    else if k <= 2147483647 then string_of_int k
+      else quote (string_of_int k)
 in Literals {
   literal_char = Library.enclose "'" "'" o char_scala,
   literal_string = quote o translate_string char_scala,
-  literal_numeral = fn unbounded => fn k => if k >= 0 then
-      if unbounded then bigint_scala k
-      else Library.enclose "(" ")" (string_of_int k)
-    else
-      if unbounded then "(- " ^ bigint_scala (~ k) ^ ")"
-      else Library.enclose "(" ")" (signed_string_of_int k),
+  literal_numeral = fn k => "BigInt(" ^ numeral_scala k ^ ")",
+  literal_positive_numeral = fn k => "Nat.Nat(" ^ numeral_scala k ^ ")",
+  literal_naive_numeral = fn k => if k >= 0
+    then string_of_int k else "(- " ^ string_of_int (~ k) ^ ")",
   literal_list = fn [] => str "Nil" | ps => Pretty.block [str "List", enum "," "(" ")" ps],
   infix_cons = (6, "::")
 } end;
@@ -442,7 +443,7 @@ val setup =
       "true", "type", "val", "var", "while", "with"
     ]
   #> fold (Code_Target.add_reserved target) [
-      "error", "apply", "List", "Nil"
+      "error", "apply", "List", "Nil", "BigInt"
     ];
 
 end; (*struct*)

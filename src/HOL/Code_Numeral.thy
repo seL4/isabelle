@@ -296,15 +296,14 @@ code_instance code_numeral :: eq
 
 setup {*
   fold (Numeral.add_code @{const_name number_code_numeral_inst.number_of_code_numeral}
-    false false Code_Printer.str) ["SML", "Haskell"]
+    false Code_Printer.literal_naive_numeral) ["SML", "Haskell"]
   #> Numeral.add_code @{const_name number_code_numeral_inst.number_of_code_numeral}
-    false true Code_Printer.str "OCaml"
+    false Code_Printer.literal_numeral "OCaml"
   #> Numeral.add_code @{const_name number_code_numeral_inst.number_of_code_numeral}
-    false false Code_Printer.str "Scala"
+    false Code_Printer.literal_naive_numeral "Scala"
 *}
 
 code_reserved SML Int int
-code_reserved OCaml Big_int
 code_reserved Scala Int
 
 code_const "op + \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
