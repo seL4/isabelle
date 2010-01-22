@@ -153,6 +153,6 @@ code_const Lazy_Sequence (Eval "Lazy'_Sequence.Lazy'_Sequence")
 
 hide (open) type lazy_sequence
 hide (open) const Empty Insert Lazy_Sequence yield yieldn empty single append flat map bind if_seq not_seq
-hide (open) fact yield.simps yieldn.simps empty_def single_def append.simps flat.simps map.simps bind_def if_seq_def not_seq_def
+hide fact yield.simps yieldn.simps empty_def single_def append.simps flat.simps map.simps bind_def if_seq_def not_seq_def
 
 end
