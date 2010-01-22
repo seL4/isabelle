@@ -2562,9 +2562,9 @@ fun analyze_compr thy compfuns param_user_modes (depth_limit, (random, annotated
     val t_eval = if null outargs then t_pred else
       let
         val outargs_bounds = map (fn Bound i => i) outargs;
-        val outargsTs = map (nth Ts) outargs_bounds;
+        val outargsTs = map (fn i => nth Ts (length Ts - i - 1)) outargs_bounds;
         val T_pred = HOLogic.mk_tupleT outargsTs;
-        val T_compr = HOLogic.mk_ptupleT fp (rev Ts);
+        val T_compr = HOLogic.mk_ptupleT fp Ts;
         val k = length outargs - 1;
         val arrange_bounds = map_index (fn (i, j) => (k-i, k-j)) outargs_bounds
           |> sort (prod_ord (K EQUAL) int_ord)

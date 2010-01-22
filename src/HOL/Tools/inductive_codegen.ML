@@ -724,7 +724,7 @@ fun inductive_codegen thy defs dep module brack t gr  = (case strip_comb t of
                 let
                   val (ts1, ts2) = chop k ts;
                   val ts2' = map
-                    (fn Bound i => Term.dummy_pattern (nth Ts i) | t => t) ts2;
+                    (fn Bound i => Term.dummy_pattern (nth Ts (length Ts - i - 1)) | t => t) ts2;
                   val (ots, its) = List.partition is_Bound ts2;
                   val no_loose = forall (fn t => not (loose_bvar (t, 0)))
                 in

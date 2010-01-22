@@ -426,7 +426,7 @@ fun mk_psplits ps T T3 u =
 
 val strip_psplits =
   let
-    fun strip [] qs Ts t = (t, Ts, qs)
+    fun strip [] qs Ts t = (t, rev Ts, qs)
       | strip (p :: ps) qs Ts (Const ("split", _) $ t) =
           strip ((1 :: p) :: (2 :: p) :: ps) (p :: qs) Ts t
       | strip (p :: ps) qs Ts (Abs (s, T, t)) = strip ps qs (T :: Ts) t
