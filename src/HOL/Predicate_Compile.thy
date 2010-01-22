@@ -5,7 +5,7 @@
 header {* A compiler for predicates defined by introduction rules *}
 
 theory Predicate_Compile
-imports Quickcheck
+imports Random_Sequence Quickcheck
 uses
   "Tools/Predicate_Compile/predicate_compile_aux.ML"
   "Tools/Predicate_Compile/predicate_compile_core.ML"

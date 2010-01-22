@@ -7,10 +7,10 @@ Book-keeping datastructure for the predicate compiler.
 signature PREDICATE_COMPILE_DATA =
 sig
   type specification_table;
-  val make_const_spec_table : Predicate_Compile_Aux.options -> theory -> specification_table
-  val get_specification :  specification_table -> string -> thm list
-  val obtain_specification_graph : Predicate_Compile_Aux.options -> theory ->
-    specification_table -> string -> thm list Graph.T
+  (*val make_const_spec_table : Predicate_Compile_Aux.options -> theory -> specification_table*)
+  val get_specification : theory -> term -> thm list
+  val obtain_specification_graph :
+    Predicate_Compile_Aux.options -> theory -> term -> thm list TermGraph.T
   val normalize_equation : theory -> thm -> thm
 end;
 
@@ -37,16 +37,17 @@ fun map_data f {const_spec_table = c} = mk_data (f c)
 
 type specification_table = thm list Symtab.table
 
-fun defining_const_of_introrule_term t =
+fun defining_term_of_introrule_term t =
   let
     val _ $ u = Logic.strip_imp_concl t
-    val (pred, all_args) = strip_comb u
+  in fst (strip_comb u) end
+(*  
   in case pred of
     Const (c, T) => c
     | _ => raise TERM ("defining_const_of_introrule_term failed: Not a constant", [t])
   end
-
-val defining_const_of_introrule = defining_const_of_introrule_term o prop_of
+*)
+val defining_term_of_introrule = defining_term_of_introrule_term o prop_of
 
 (*TODO*)
 fun is_introlike_term t = true
@@ -66,14 +67,20 @@ fun check_equation_format_term (t as (Const ("==", _) $ u $ v)) =
 
 val check_equation_format = check_equation_format_term o prop_of
 
-fun defining_const_of_equation_term (t as (Const ("==", _) $ u $ v)) =
-  (case fst (strip_comb u) of
-    Const (c, _) => c
-  | _ => raise TERM ("defining_const_of_equation_term failed: Not a constant", [t]))
-  | defining_const_of_equation_term t =
+
+fun defining_term_of_equation_term (t as (Const ("==", _) $ u $ v)) = fst (strip_comb u)
+  | defining_term_of_equation_term t =
     raise TERM ("defining_const_of_equation_term failed: Not an equation", [t])
 
-val defining_const_of_equation = defining_const_of_equation_term o prop_of
+val defining_term_of_equation = defining_term_of_equation_term o prop_of
+
+fun defining_const_of_equation th =
+  case defining_term_of_equation th
+   of Const (c, _) => c
+    | _ => raise TERM ("defining_const_of_equation failed: Not a constant", [prop_of th])
+
+
+
 
 (* Normalizing equations *)
 
@@ -125,7 +132,7 @@ fun normalize_equation thy th =
   |> split_all_pairs thy
   |> tap check_equation_format
 
-fun inline_equations options thy th =
+fun inline_equations thy th =
   let
     val inline_defs = Predicate_Compile_Inline_Defs.get (ProofContext.init thy)
     val th' = (Simplifier.full_simplify (HOL_basic_ss addsimps inline_defs)) th
@@ -136,7 +143,7 @@ fun inline_equations options thy th =
   in
     th'
   end
-
+(*
 fun store_thm_in_table options ignore thy th=
   let
     val th = th
@@ -150,7 +157,7 @@ fun store_thm_in_table options ignore thy th=
         in
           (defining_const_of_equation eq, eq)
         end
-      else if (is_introlike th) then (defining_const_of_introrule th, th)
+      else if is_introlike th then (defining_const_of_introrule th, th)
       else error "store_thm: unexpected definition format"
   in
     if ignore const then I else Symtab.cons_list (const, th)
@@ -160,15 +167,15 @@ fun make_const_spec_table options thy =
   let
     fun store ignore f =
       fold (store_thm_in_table options ignore thy)
-        (map (Thm.transfer thy) (f (ProofContext.init thy)))
+        (map (Thm.transfer thy) (f ))
     val table = Symtab.empty
       |> store (K false) Predicate_Compile_Alternative_Defs.get
     val ignore = Symtab.defined table
   in
     table
     |> store ignore (fn ctxt => maps
-      (fn (roughly, (ts, ths)) => if roughly = Spec_Rules.Equational then ths else [])
-        (Spec_Rules.get ctxt))
+      else [])
+        
     |> store ignore Nitpick_Simps.get
     |> store ignore Nitpick_Intros.get
   end
@@ -177,28 +184,56 @@ fun get_specification table constname =
   case Symtab.lookup table constname of
     SOME thms => thms                  
   | NONE => error ("get_specification: lookup of constant " ^ quote constname ^ " failed")
+*)
+
+fun get_specification thy t =
+  Output.cond_timeit true "get_specification" (fn () =>
+  let
+    val ctxt = ProofContext.init thy
+    fun filtering th =
+      if is_equationlike th andalso
+        defining_const_of_equation (normalize_equation thy th) = (fst (dest_Const t)) then
+        SOME (normalize_equation thy th)
+      else
+        if is_introlike th andalso defining_term_of_introrule th = t then
+          SOME th
+        else
+          NONE
+  in
+    case map_filter filtering (map (Thm.transfer thy) (Predicate_Compile_Alternative_Defs.get ctxt))
+     of [] => (case Spec_Rules.retrieve ctxt t
+       of [] => rev (map_filter filtering (map (Thm.transfer thy) (Nitpick_Intros.get ctxt)))
+       | ((_, (_, ths)) :: _) => map (normalize_equation thy o Thm.transfer thy) ths)
+     | ths => rev ths
+  end)
 
 val logic_operator_names =
-  [@{const_name "=="}, @{const_name "op ="}, @{const_name "op -->"}, @{const_name "All"}, @{const_name "Ex"}, 
+  [@{const_name "=="}, 
+   @{const_name "==>"},
+   @{const_name "Trueprop"},
+   @{const_name "Not"},
+   @{const_name "op ="},
+   @{const_name "op -->"},
+   @{const_name "All"},
+   @{const_name "Ex"}, 
    @{const_name "op &"}]
 
-val special_cases = member (op =) [
-    @{const_name "False"},
-    @{const_name "Suc"}, @{const_name Nat.zero_nat_inst.zero_nat},
-    @{const_name Nat.one_nat_inst.one_nat},
-@{const_name "HOL.ord_class.less"}, @{const_name "HOL.ord_class.less_eq"},
-@{const_name "HOL.zero_class.zero"},
-@{const_name "HOL.one_class.one"},  @{const_name HOL.plus_class.plus},
-@{const_name Nat.ord_nat_inst.less_eq_nat},
-@{const_name Nat.ord_nat_inst.less_nat},
-@{const_name number_nat_inst.number_of_nat},
+fun special_cases (c, T) = member (op =) [
+  @{const_name "Product_Type.Unity"},
+  @{const_name "False"},
+  @{const_name "Suc"}, @{const_name Nat.zero_nat_inst.zero_nat},
+  @{const_name Nat.one_nat_inst.one_nat},
+  @{const_name "HOL.ord_class.less"}, @{const_name "HOL.ord_class.less_eq"},
+  @{const_name "HOL.zero_class.zero"},
+  @{const_name "HOL.one_class.one"},  @{const_name HOL.plus_class.plus},
+  @{const_name Nat.ord_nat_inst.less_eq_nat},
+  @{const_name Nat.ord_nat_inst.less_nat},
+  @{const_name number_nat_inst.number_of_nat},
   @{const_name Int.Bit0},
   @{const_name Int.Bit1},
   @{const_name Int.Pls},
-@{const_name "Int.zero_int_inst.zero_int"},
-@{const_name "List.filter"}]
-
-fun case_consts thy s = is_some (Datatype.info_of_case thy s)
+  @{const_name "Int.zero_int_inst.zero_int"},
+  @{const_name "List.filter"}] c
 
 fun print_specification options thy constname specs = 
   if show_intermediate_results options then
@@ -206,26 +241,32 @@ fun print_specification options thy constname specs =
       cat_lines (map (Display.string_of_thm_global thy) specs))
   else ()
 
-fun obtain_specification_graph options thy table constname =
+fun obtain_specification_graph options thy t =
   let
-    fun is_nondefining_constname c = member (op =) logic_operator_names c
-    val is_defining_constname = member (op =) (Symtab.keys table)
-    fun has_code_pred_intros c = is_some (try (Predicate_Compile_Core.intros_of thy) c)
+    fun is_nondefining_const (c, T) = member (op =) logic_operator_names c
+    fun has_code_pred_intros (c, T) = is_some (try (Predicate_Compile_Core.intros_of thy) c)
+    fun case_consts (c, T) = is_some (Datatype.info_of_case thy c)
+    fun is_datatype_constructor (c, T) = is_some (Datatype.info_of_constr thy (c, T))
     fun defiants_of specs =
-      fold (Term.add_const_names o prop_of) specs []
-      |> filter is_defining_constname
-      |> filter_out is_nondefining_constname
+      fold (Term.add_consts o prop_of) specs []
+      |> filter_out is_datatype_constructor
+      |> filter_out is_nondefining_const
       |> filter_out has_code_pred_intros
-      |> filter_out (case_consts thy)
+      |> filter_out case_consts
       |> filter_out special_cases
-    fun extend constname =
+      |> map Const
+      (*
+      |> filter is_defining_constname*)
+    fun extend t =
       let
-        val specs = get_specification table constname
-        val _ = print_specification options thy constname specs
+        val specs = get_specification thy t
+          |> map (inline_equations thy)
+          (*|> Predicate_Compile_Set.unfold_set_notation*)
+        (*val _ = print_specification options thy constname specs*)
       in (specs, defiants_of specs) end;
   in
-    Graph.extend extend constname Graph.empty
+    TermGraph.extend extend t TermGraph.empty
   end;
   
-  
+
 end;

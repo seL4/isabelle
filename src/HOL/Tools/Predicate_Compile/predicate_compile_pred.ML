@@ -112,8 +112,9 @@ val rewrite =
   #> Simplifier.simplify (HOL_basic_ss addsimps [@{thm ex_disj_distrib}])
 
 val rewrite_intros =
-  Simplifier.simplify (HOL_basic_ss addsimps @{thms HOL.simp_thms(9)})
-
+(*  Simplifier.simplify (HOL_basic_ss addsimps @{thms HOL.simp_thms(9)}) *)
+  Simplifier.full_simplify (HOL_basic_ss addsimps [@{thm not_not}])
+  
 fun preprocess (constname, specs) thy =
   let
     val ctxt = ProofContext.init thy

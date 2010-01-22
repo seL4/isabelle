@@ -14,31 +14,7 @@ end;
 structure Predicate_Compile_Fun : PREDICATE_COMPILE_FUN =
 struct
 
-fun is_funtype (Type ("fun", [_, _])) = true
-  | is_funtype _ = false;
-
-fun is_Type (Type _) = true
-  | is_Type _ = false
-
-(* returns true if t is an application of an datatype constructor *)
-(* which then consequently would be splitted *)
-(* else false *)
-(*
-fun is_constructor thy t =
-  if (is_Type (fastype_of t)) then
-    (case DatatypePackage.get_datatype thy ((fst o dest_Type o fastype_of) t) of
-      NONE => false
-    | SOME info => (let
-      val constr_consts = maps (fn (_, (_, _, constrs)) => map fst constrs) (#descr info)
-      val (c, _) = strip_comb t
-      in (case c of
-        Const (name, _) => name mem_string constr_consts
-        | _ => false) end))
-  else false
-*)
-
-(* must be exported in code.ML *)
-fun is_constr thy = is_some o Code.get_datatype_of_constr thy;
+open Predicate_Compile_Aux;
 
 (* Table from constant name (string) to term of inductive predicate *)
 structure Pred_Compile_Preproc = Theory_Data
@@ -364,7 +340,8 @@ fun define_predicates specs thy =
             val prednames = map (fst o dest_Const) (#preds ind_result)
             (* val rewr_thms = map mk_rewr_eq ((distinct (op =) funs) ~~ (#preds ind_result)) *)
             (* add constants to my table *)
-            val specs = map (fn predname => (predname, filter (Predicate_Compile_Aux.is_intro predname) (#intrs ind_result))) prednames
+            val specs = map (fn predname => (predname, filter (Predicate_Compile_Aux.is_intro predname)
+              (#intrs ind_result))) prednames
             val thy'' = Pred_Compile_Preproc.map (fold Symtab.update_new (consts ~~ prednames)) thy'
           in
             (specs, thy'')

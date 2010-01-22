@@ -8,7 +8,7 @@ signature NUMERAL =
 sig
   val mk_cnumeral: int -> cterm
   val mk_cnumber: ctyp -> int -> cterm
-  val add_code: string -> bool -> bool -> (string -> Pretty.T) -> string -> theory -> theory
+  val add_code: string -> bool -> (Code_Printer.literals -> int -> string) -> string -> theory -> theory
 end;
 
 structure Numeral: NUMERAL =
@@ -56,7 +56,7 @@ end;
 
 local open Basic_Code_Thingol in
 
-fun add_code number_of negative unbounded print target thy =
+fun add_code number_of negative print target thy =
   let
     fun dest_numeral pls' min' bit0' bit1' thm =
       let
@@ -74,8 +74,7 @@ fun add_code number_of negative unbounded print target thy =
           | dest_num _ = Code_Printer.eqn_error thm "Illegal numeral expression: illegal term";
       in dest_num end;
     fun pretty literals [pls', min', bit0', bit1'] _ thm _ _ [(t, _)] =
-      (print o Code_Printer.literal_numeral literals unbounded
-        o the_default 0 o dest_numeral pls' min' bit0' bit1' thm) t;
+      (Code_Printer.str o print literals o the_default 0 o dest_numeral pls' min' bit0' bit1' thm) t;
   in
     thy |> Code_Target.add_syntax_const target number_of
       (SOME (1, ([@{const_name Int.Pls}, @{const_name Int.Min},

@@ -39,12 +39,15 @@ sig
 
   type literals
   val Literals: { literal_char: string -> string, literal_string: string -> string,
-        literal_numeral: bool -> int -> string,
+        literal_numeral: int -> string, literal_positive_numeral: int -> string,
+        literal_naive_numeral: int -> string,
         literal_list: Pretty.T list -> Pretty.T, infix_cons: int * string }
     -> literals
   val literal_char: literals -> string -> string
   val literal_string: literals -> string -> string
-  val literal_numeral: literals -> bool -> int -> string
+  val literal_numeral: literals -> int -> string
+  val literal_positive_numeral: literals -> int -> string
+  val literal_naive_numeral: literals -> int -> string
   val literal_list: literals -> Pretty.T list -> Pretty.T
   val infix_cons: literals -> int * string
 
@@ -163,7 +166,9 @@ fun intro_base_names no_syntax deresolve names = names
 datatype literals = Literals of {
   literal_char: string -> string,
   literal_string: string -> string,
-  literal_numeral: bool -> int -> string,
+  literal_numeral: int -> string,
+  literal_positive_numeral: int -> string,
+  literal_naive_numeral: int -> string,
   literal_list: Pretty.T list -> Pretty.T,
   infix_cons: int * string
 };
@@ -173,6 +178,8 @@ fun dest_Literals (Literals lits) = lits;
 val literal_char = #literal_char o dest_Literals;
 val literal_string = #literal_string o dest_Literals;
 val literal_numeral = #literal_numeral o dest_Literals;
+val literal_positive_numeral = #literal_positive_numeral o dest_Literals;
+val literal_naive_numeral = #literal_naive_numeral o dest_Literals;
 val literal_list = #literal_list o dest_Literals;
 val infix_cons = #infix_cons o dest_Literals;
 

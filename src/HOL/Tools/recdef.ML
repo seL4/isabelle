@@ -204,13 +204,13 @@ fun gen_add_recdef tfl_fn prep_att prep_hints not_permissive raw_name R eq_srcs 
     val simp_att =
       if null tcs then [Simplifier.simp_add, Nitpick_Simps.add, Code.add_default_eqn_attribute]
       else [];
-
     val ((simps' :: rules', [induct']), thy) =
       thy
       |> Sign.add_path bname
       |> PureThy.add_thmss
         (((Binding.name "simps", flat rules), simp_att) :: ((eq_names ~~ rules) ~~ eq_atts))
-      ||>> PureThy.add_thms [((Binding.name "induct", induct), [])];
+      ||>> PureThy.add_thms [((Binding.name "induct", induct), [])]
+      ||> Spec_Rules.add_global Spec_Rules.Equational (tcs, flat rules);
     val result = {simps = simps', rules = rules', induct = induct', tcs = tcs};
     val thy =
       thy

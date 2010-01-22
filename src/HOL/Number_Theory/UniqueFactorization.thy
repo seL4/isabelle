@@ -1,5 +1,4 @@
 (*  Title:      UniqueFactorization.thy
-    ID:         
     Author:     Jeremy Avigad
 
     
@@ -388,7 +387,7 @@ lemma prime_factorization_unique_nat:
   apply (subgoal_tac "multiset_prime_factorization n = Abs_multiset
       f")
   apply (unfold prime_factors_nat_def multiplicity_nat_def)
-  apply (simp add: set_of_def count_def Abs_multiset_inverse multiset_def)
+  apply (simp add: set_of_def Abs_multiset_inverse multiset_def)
   apply (unfold multiset_prime_factorization_def)
   apply (subgoal_tac "n > 0")
   prefer 2
@@ -401,7 +400,7 @@ lemma prime_factorization_unique_nat:
   apply force
   apply force
   apply force
-  unfolding set_of_def count_def msetprod_def
+  unfolding set_of_def msetprod_def
   apply (subgoal_tac "f : multiset")
   apply (auto simp only: Abs_multiset_inverse)
   unfolding multiset_def apply force 

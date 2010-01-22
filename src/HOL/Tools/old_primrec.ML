@@ -281,11 +281,14 @@ fun gen_primrec_i note def alt_name eqns_atts thy =
       thy'
       |> fold_map note ((map fst eqns ~~ atts) ~~ map single simps);
     val simps'' = maps snd simps';
+    fun dest_eqn th = fst (strip_comb (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of th)))))
+    val specs = (distinct (op =) (map dest_eqn simps''), simps'')
   in
     thy''
     |> note (("simps",
         [Simplifier.simp_add, Nitpick_Simps.add, Code.add_default_eqn_attribute]), simps'')
     |> snd
+    |> Spec_Rules.add_global Spec_Rules.Equational specs
     |> note (("induct", []), [prepare_induct (#2 (hd dts)) rec_eqns])
     |> snd
     |> Sign.parent_path

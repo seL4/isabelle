@@ -287,6 +287,8 @@ instance Integral Nat where {
 code_reserved Haskell Nat
 
 code_include Scala "Nat" {*
+import scala.Math
+
 object Nat {
 
   def apply(numeral: BigInt): Nat = new Nat(numeral max 0)
@@ -309,7 +311,9 @@ class Nat private(private val value: BigInt) {
   def equals(that: Nat): Boolean = this.value == that.value
 
   def as_BigInt: BigInt = this.value
-  def as_Int: Int = this.value
+  def as_Int: Int = if (this.value >= Math.MAX_INT && this.value <= Math.MAX_INT)
+      this.value.intValue
+    else error("Int value too big:" + this.value.toString)
 
   def +(that: Nat): Nat = new Nat(this.value + that.value)
   def -(that: Nat): Nat = Nat(this.value + that.value)
@@ -348,9 +352,9 @@ lemma [code_unfold_post]:
 
 setup {*
   fold (Numeral.add_code @{const_name number_nat_inst.number_of_nat}
-    false true Code_Printer.str) ["SML", "OCaml", "Haskell"]
+    false Code_Printer.literal_positive_numeral) ["SML", "OCaml", "Haskell"]
   #> Numeral.add_code @{const_name number_nat_inst.number_of_nat}
-    false true (fn s => (Pretty.block o map Code_Printer.str) ["Nat.Nat", s]) "Scala"
+    false Code_Printer.literal_positive_numeral "Scala"
 *}
 
 text {*
