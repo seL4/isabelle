@@ -12,6 +12,9 @@ the user space functionality any longer.
 
 *** HOL ***
 
+* HOLogic.strip_psplit: types are returned in syntactic order, similar
+to other strip and tuple operations.  INCOMPATIBILITY.
+
 * Various old-style primrec specifications in the HOL theories have been
 replaced by new-style primrec, especially in theory List.  The corresponding
 constants now have authentic syntax.  INCOMPATIBILITY.

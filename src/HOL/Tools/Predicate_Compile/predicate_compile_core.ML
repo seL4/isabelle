@@ -2636,9 +2636,9 @@ fun analyze_compr thy compfuns param_user_modes (compilation, arguments) t_compr
     val (body, Ts, fp) = HOLogic.strip_psplits split;
     val output_names = Name.variant_list (Term.add_free_names body [])
       (map (fn i => "x" ^ string_of_int i) (1 upto length Ts))
-    val output_frees = map2 (curry Free) output_names Ts
+    val output_frees = map2 (curry Free) output_names (rev Ts)
     val body = subst_bounds (output_frees, body)
-    val T_compr = HOLogic.mk_ptupleT fp (rev Ts)
+    val T_compr = HOLogic.mk_ptupleT fp Ts
     val output_tuple = HOLogic.mk_ptuple fp T_compr (rev output_frees)
     val (pred as Const (name, T), all_args) = strip_comb body
   in
