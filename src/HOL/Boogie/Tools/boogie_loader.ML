@@ -30,8 +30,14 @@ val isabelle_name =
       | _   => ("_" ^ string_of_int (ord s) ^ "_"))
   in prefix "b_" o translate_string purge end
 
+fun drop_underscore s =
+  try (unsuffix "_") s
+  |> Option.map drop_underscore
+  |> the_default s
+
 val short_name =
-  translate_string (fn s => if Symbol.is_letdig s then s else "")
+  translate_string (fn s => if Symbol.is_letdig s then s else "") #>
+  drop_underscore
 
 (* these prefixes must be distinct: *)
 val var_prefix = "V_"
