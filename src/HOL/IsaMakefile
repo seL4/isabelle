@@ -109,6 +109,7 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/Code/code_ml.ML \
   $(SRC)/Tools/Code/code_preproc.ML \
   $(SRC)/Tools/Code/code_printer.ML \
+  $(SRC)/Tools/Code/code_scala.ML \
   $(SRC)/Tools/Code/code_target.ML \
   $(SRC)/Tools/Code/code_thingol.ML \
   $(SRC)/Tools/Code_Generator.thy \

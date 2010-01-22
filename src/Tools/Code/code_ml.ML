@@ -354,9 +354,9 @@ fun print_sml_module name some_decls body = if name = ""
 val literals_sml = Literals {
   literal_char = prefix "#" o quote o ML_Syntax.print_char,
   literal_string = quote o translate_string ML_Syntax.print_char,
-  literal_numeral = fn unbounded => fn k =>
-    if unbounded then "(" ^ string_of_int k ^ " : IntInf.int)"
-    else string_of_int k,
+  literal_numeral = fn k => "(" ^ string_of_int k ^ " : IntInf.int)",
+  literal_positive_numeral = fn k => "(" ^ string_of_int k ^ " : IntInf.int)",
+  literal_naive_numeral = string_of_int,
   literal_list = enum "," "[" "]",
   infix_cons = (7, "::")
 };
@@ -687,18 +687,17 @@ val literals_ocaml = let
       val s = if i < 32 orelse i = 34 orelse i = 39 orelse i = 92 orelse i > 126
         then chr i else c
     in s end;
-  fun bignum_ocaml k = if k <= 1073741823
-    then "(Big_int.big_int_of_int " ^ string_of_int k ^ ")"
-    else "(Big_int.big_int_of_string " ^ quote (string_of_int k) ^ ")"
+  fun numeral_ocaml k = if k < 0
+    then "(Big_int.minus_big_int " ^ numeral_ocaml (~ k) ^ ")"
+    else if k <= 1073741823
+      then "(Big_int.big_int_of_int " ^ string_of_int k ^ ")"
+      else "(Big_int.big_int_of_string " ^ quote (string_of_int k) ^ ")"
 in Literals {
   literal_char = Library.enclose "'" "'" o char_ocaml,
   literal_string = quote o translate_string char_ocaml,
-  literal_numeral = fn unbounded => fn k => if k >= 0 then
-      if unbounded then bignum_ocaml k
-      else string_of_int k
-    else
-      if unbounded then "(Big_int.minus_big_int " ^ bignum_ocaml (~ k) ^ ")"
-      else (Library.enclose "(" ")" o prefix "-" o string_of_int o op ~) k,
+  literal_numeral = numeral_ocaml,
+  literal_positive_numeral = numeral_ocaml,
+  literal_naive_numeral = numeral_ocaml,
   literal_list = enum ";" "[" "]",
   infix_cons = (6, "::")
 } end;
@@ -975,7 +974,7 @@ val setup =
       ]))
   #> fold (Code_Target.add_reserved target_SML) ML_Syntax.reserved_names
   #> fold (Code_Target.add_reserved target_SML)
-      ["o" (*dictionary projections use it already*), "Fail", "div", "mod" (*standard infixes*)]
+      ["o" (*dictionary projections use it already*), "Fail", "div", "mod" (*standard infixes*), "IntInf"]
   #> fold (Code_Target.add_reserved target_OCaml) [
       "and", "as", "assert", "begin", "class",
       "constraint", "do", "done", "downto", "else", "end", "exception",
@@ -985,6 +984,6 @@ val setup =
       "sig", "struct", "then", "to", "true", "try", "type", "val",
       "virtual", "when", "while", "with"
     ]
-  #> fold (Code_Target.add_reserved target_OCaml) ["failwith", "mod"];
+  #> fold (Code_Target.add_reserved target_OCaml) ["failwith", "mod", "Big_int"];
 
 end; (*struct*)

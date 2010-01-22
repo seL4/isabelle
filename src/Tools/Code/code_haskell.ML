@@ -401,11 +401,14 @@ val literals = let
     let
       val s = ML_Syntax.print_char c;
     in if s = "'" then "\\'" else s end;
+  fun numeral_haskell k = if k >= 0 then string_of_int k
+    else Library.enclose "(" ")" (signed_string_of_int k);
 in Literals {
   literal_char = Library.enclose "'" "'" o char_haskell,
   literal_string = quote o translate_string char_haskell,
-  literal_numeral = fn unbounded => fn k => if k >= 0 then string_of_int k
-    else Library.enclose "(" ")" (signed_string_of_int k),
+  literal_numeral = numeral_haskell,
+  literal_positive_numeral = numeral_haskell,
+  literal_naive_numeral = numeral_haskell,
   literal_list = enum "," "[" "]",
   infix_cons = (5, ":")
 } end;
