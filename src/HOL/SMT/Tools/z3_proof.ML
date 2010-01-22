@@ -136,6 +136,7 @@ fun mk_app app (cx as Context {ttab, ...}) =
       | (Sym ("rem", _), [t, u]) => T.mk_rem t u
       | (Sym ("select", _), [m, k]) => T.mk_access m k
       | (Sym ("store", _), [m, k, v]) => T.mk_update m k v
+      | (Sym ("array-ext", _), [m1, m2]) => T.mk_array_ext m1 m2
       | (Sym ("pattern", _), _) => T.mk_true
       | (Sym (n, _), ts) =>
           (case Symtab.lookup ttab n of

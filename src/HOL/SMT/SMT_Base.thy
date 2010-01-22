@@ -89,7 +89,17 @@ section {* Higher-Order Encoding *}
 
 definition "apply" where "apply f x = f x"
 
-lemmas array_rules = apply_def fun_upd_same fun_upd_other fun_upd_upd ext
+definition array_ext where "array_ext a b = (SOME x. a = b \<or> a x \<noteq> b x)"
+
+lemma fun_upd_eq: "(f = f (x := y)) = (f x = y)"
+proof
+  assume "f = f(x:=y)"
+  hence "f x = (f(x:=y)) x" by simp
+  thus "f x = y" by simp
+qed (auto simp add: ext)
+
+lemmas array_rules =
+  ext fun_upd_apply fun_upd_same fun_upd_other fun_upd_upd fun_upd_eq apply_def
 
 
 section {* First-order logic *}

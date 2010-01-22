@@ -36,6 +36,7 @@ sig
 
   val mk_access: preterm -> preterm -> preterm
   val mk_update: preterm -> preterm -> preterm -> preterm
+  val mk_array_ext: preterm -> preterm -> preterm
 
   val mk_int_num: int -> preterm
   val mk_real_frac_num: int * int option -> preterm
@@ -194,6 +195,11 @@ val update = mk_inst_pair (Thm.dest_ctyp o destT1) @{cpat fun_upd}
 fun mk_update array index value =
   let val cTs = Thm.dest_ctyp (ctyp_of_preterm array)
   in mk_fun (instTs cTs update) [array, index, value] end
+
+val array_ext = mk_inst_pair (Thm.dest_ctyp o destT1) @{cpat array_ext}
+fun mk_array_ext a1 a2 =
+  let val cTs = Thm.dest_ctyp (ctyp_of_preterm a1)
+  in mk_fun (instTs cTs array_ext) [a1, a2] end
 
 
 fun mk_int_num i = mk_fun (Numeral.mk_cnumber @{ctyp int} i) []

@@ -669,6 +669,7 @@ in
 fun def_axiom ctxt ct =
   Thm (try_apply ctxt "def_axiom" [
     ("conj/disj", prove_def_axiom),
+    ("simp", by_tac (Simplifier.simp_tac HOL_ss)),
     ("fast", by_tac (Classical.fast_tac claset)),
     ("simp+fast", by_tac (Simplifier.simp_tac HOL_ss THEN_ALL_NEW
       Classical.fast_tac claset))] ct)
@@ -1157,9 +1158,14 @@ end
 (** theory lemmas: linear arithmetic, arrays **)
 local
   val array_ss = HOL_ss addsimps @{thms array_rules}
+  val array_pre_ss = HOL_ss addsimps @{thms apply_def array_ext_def}
   fun array_tac thms =
     Tactic.cut_facts_tac thms
-    THEN' Simplifier.asm_full_simp_tac array_ss
+    THEN' (Simplifier.asm_full_simp_tac array_pre_ss)
+    THEN' (SOLVED' (Simplifier.asm_full_simp_tac array_ss) ORELSE'
+      Tactic.rtac @{thm someI2_ex}
+      THEN_ALL_NEW (SOLVED' (Simplifier.asm_full_simp_tac array_ss) ORELSE'
+        Classical.fast_tac HOL_cs))
 
   fun full_arith_tac ctxt thms =
     Tactic.cut_facts_tac thms
@@ -1263,6 +1269,8 @@ local
 
   fun simp_tac thms = CHANGED o Simplifier.simp_tac (z3_simpset addsimps thms)
     ORELSE' Classical.best_tac HOL_cs
+  fun simp_arith_tac ctxt thms = Simplifier.simp_tac (z3_simpset addsimps thms)
+    THEN_ALL_NEW Arith_Data.arith_tac ctxt
 in
 fun rewrite ctxt thms ct =
   let val rules_net = Z3_Rewrite_Rules.get ctxt
@@ -1274,6 +1282,7 @@ fun rewrite ctxt thms ct =
       ("arith", by_tac' (arith_eq_tac ctxt)),
       ("classical", by_tac' (Classical.best_tac HOL_cs)),
       ("simp", by_tac' (simp_tac thms)),
+      ("simp+arith", by_tac' (simp_arith_tac ctxt thms)),
       ("full arith", by_tac' (Arith_Data.arith_tac ctxt))] (T.mk_prop ct))
   end
 end
