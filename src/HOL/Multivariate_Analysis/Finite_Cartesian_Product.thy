@@ -77,13 +77,13 @@ lemma nth_sndtcart [simp]: "sndcart f $ i = f $ Inr i"
 lemma finite_sum_image: "(UNIV::('a + 'b) set) = range Inl \<union> range Inr"
 by (auto, case_tac x, auto)
 
-lemma fstcart_pastecart: "fstcart (pastecart x y) = x"
+lemma fstcart_pastecart[simp]: "fstcart (pastecart x y) = x"
   by (simp add: Cart_eq)
 
-lemma sndcart_pastecart: "sndcart (pastecart x y) = y"
+lemma sndcart_pastecart[simp]: "sndcart (pastecart x y) = y"
   by (simp add: Cart_eq)
 
-lemma pastecart_fst_snd: "pastecart (fstcart z) (sndcart z) = z"
+lemma pastecart_fst_snd[simp]: "pastecart (fstcart z) (sndcart z) = z"
   by (simp add: Cart_eq pastecart_def fstcart_def sndcart_def split: sum.split)
 
 lemma pastecart_eq: "(x = y) \<longleftrightarrow> (fstcart x = fstcart y) \<and> (sndcart x = sndcart y)"

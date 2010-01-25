@@ -14,8 +14,11 @@ begin
 
 text{* Some common special cases.*}
 
-lemma forall_1: "(\<forall>i::1. P i) \<longleftrightarrow> P 1"
+lemma forall_1[simp]: "(\<forall>i::1. P i) \<longleftrightarrow> P 1"
   by (metis num1_eq_iff)
+
+lemma ex_1[simp]: "(\<exists>x::1. P x) \<longleftrightarrow> P 1"
+  by auto (metis num1_eq_iff)
 
 lemma exhaust_2:
   fixes x :: 2 shows "x = 1 \<or> x = 2"
@@ -195,7 +198,6 @@ subsection {* Some frequently useful arithmetic lemmas over vectors. *}
 
 instance cart :: (semigroup_add,finite) semigroup_add
   apply (intro_classes) by (vector add_assoc)
-
 
 instance cart :: (monoid_add,finite) monoid_add
   apply (intro_classes) by vector+
@@ -2418,87 +2420,65 @@ lemma onorm_triangle_lt: "linear (f::real ^'n \<Rightarrow> real ^'m) \<Longrigh
 
 (* "lift" from 'a to 'a^1 and "drop" from 'a^1 to 'a -- FIXME: potential use of transfer *)
 
-definition vec1:: "'a \<Rightarrow> 'a ^ 1" where "vec1 x = (\<chi> i. x)"
+abbreviation vec1:: "'a \<Rightarrow> 'a ^ 1" where "vec1 x \<equiv> vec x"
 
-definition dest_vec1:: "'a ^1 \<Rightarrow> 'a"
-  where "dest_vec1 x = (x$1)"
+abbreviation dest_vec1:: "'a ^1 \<Rightarrow> 'a"
+  where "dest_vec1 x \<equiv> (x$1)"
 
 lemma vec1_component[simp]: "(vec1 x)$1 = x"
-  by (simp add: vec1_def)
+  by (simp add: )
 
 lemma vec1_dest_vec1[simp]: "vec1(dest_vec1 x) = x" "dest_vec1(vec1 y) = y"
-  by (simp_all add: vec1_def dest_vec1_def Cart_eq forall_1)
+  by (simp_all add:  Cart_eq forall_1)
 
 lemma forall_vec1: "(\<forall>x. P x) \<longleftrightarrow> (\<forall>x. P (vec1 x))" by (metis vec1_dest_vec1)
 
 lemma exists_vec1: "(\<exists>x. P x) \<longleftrightarrow> (\<exists>x. P(vec1 x))" by (metis vec1_dest_vec1)
 
-lemma forall_dest_vec1: "(\<forall>x. P x) \<longleftrightarrow> (\<forall>x. P(dest_vec1 x))"  by (metis vec1_dest_vec1)
-
-lemma exists_dest_vec1: "(\<exists>x. P x) \<longleftrightarrow> (\<exists>x. P(dest_vec1 x))"by (metis vec1_dest_vec1)
-
 lemma vec1_eq[simp]:  "vec1 x = vec1 y \<longleftrightarrow> x = y" by (metis vec1_dest_vec1)
 
 lemma dest_vec1_eq[simp]: "dest_vec1 x = dest_vec1 y \<longleftrightarrow> x = y" by (metis vec1_dest_vec1)
 
-lemma vec1_in_image_vec1: "vec1 x \<in> (vec1 ` S) \<longleftrightarrow> x \<in> S" by auto
+lemma vec_in_image_vec: "vec x \<in> (vec ` S) \<longleftrightarrow> x \<in> S" by auto
 
-lemma vec1_vec: "vec1 x = vec x" by (vector vec1_def)
-
-lemma vec1_add: "vec1(x + y) = vec1 x + vec1 y" by (vector vec1_def)
-lemma vec1_sub: "vec1(x - y) = vec1 x - vec1 y" by (vector vec1_def)
-lemma vec1_cmul: "vec1(c* x) = c *s vec1 x " by (vector vec1_def)
-lemma vec1_neg: "vec1(- x) = - vec1 x " by (vector vec1_def)
-
-lemma vec1_0[simp]:"vec1 0 = 0" unfolding vec1_def Cart_eq by auto
+lemma vec_add: "vec(x + y) = vec x + vec y"  by (vector vec_def)
+lemma vec_sub: "vec(x - y) = vec x - vec y" by (vector vec_def)
+lemma vec_cmul: "vec(c* x) = c *s vec x " by (vector vec_def)
+lemma vec_neg: "vec(- x) = - vec x " by (vector vec_def)
 
 lemma range_vec1[simp]:"range vec1 = UNIV" apply(rule set_ext,rule) unfolding image_iff defer
   apply(rule_tac x="dest_vec1 x" in bexI) by auto
 
-lemma vec1_setsum: assumes fS: "finite S"
-  shows "vec1(setsum f S) = setsum (vec1 o f) S"
+lemma vec_setsum: assumes fS: "finite S"
+  shows "vec(setsum f S) = setsum (vec o f) S"
   apply (induct rule: finite_induct[OF fS])
-  apply (simp add: vec1_vec)
-  apply (auto simp add: vec1_add)
+  apply (simp)
+  apply (auto simp add: vec_add)
   done
 
 lemma dest_vec1_lambda: "dest_vec1(\<chi> i. x i) = x 1"
-  by (simp add: dest_vec1_def)
+  by (simp)
 
 lemma dest_vec1_vec: "dest_vec1(vec x) = x"
-  by (simp add: vec1_vec[symmetric])
-
-lemma dest_vec1_add: "dest_vec1(x + y) = dest_vec1 x + dest_vec1 y"
- by (metis vec1_dest_vec1 vec1_add)
-
-lemma dest_vec1_sub: "dest_vec1(x - y) = dest_vec1 x - dest_vec1 y"
- by (metis vec1_dest_vec1 vec1_sub)
-
-lemma dest_vec1_cmul: "dest_vec1(c*sx) = c * dest_vec1 x"
- by (metis vec1_dest_vec1 vec1_cmul)
-
-lemma dest_vec1_neg: "dest_vec1(- x) = - dest_vec1 x"
- by (metis vec1_dest_vec1 vec1_neg)
-
-lemma dest_vec1_0[simp]: "dest_vec1 0 = 0" by (metis vec_0 dest_vec1_vec)
+  by (simp)
 
 lemma dest_vec1_sum: assumes fS: "finite S"
   shows "dest_vec1(setsum f S) = setsum (dest_vec1 o f) S"
   apply (induct rule: finite_induct[OF fS])
   apply (simp add: dest_vec1_vec)
-  apply (auto simp add: dest_vec1_add)
+  apply (auto simp add:vector_minus_component)
   done
 
 lemma norm_vec1: "norm(vec1 x) = abs(x)"
-  by (simp add: vec1_def norm_real)
+  by (simp add: vec_def norm_real)
 
 lemma dist_vec1: "dist(vec1 x) (vec1 y) = abs(x - y)"
   by (simp only: dist_real vec1_component)
 lemma abs_dest_vec1: "norm x = \<bar>dest_vec1 x\<bar>"
   by (metis vec1_dest_vec1 norm_vec1)
 
-lemmas vec1_dest_vec1_simps = forall_vec1 vec1_add[THEN sym] dist_vec1 vec1_sub[THEN sym] vec1_dest_vec1 norm_vec1 dest_vec1_cmul
-   vec1_eq vec1_cmul[THEN sym] smult_conv_scaleR[THEN sym] o_def dist_real_def norm_vec1 real_norm_def
+lemmas vec1_dest_vec1_simps = forall_vec1 vec_add[THEN sym] dist_vec1 vec_sub[THEN sym] vec1_dest_vec1 norm_vec1 vector_smult_component
+   vec1_eq vec_cmul[THEN sym] smult_conv_scaleR[THEN sym] o_def dist_real_def norm_vec1 real_norm_def
 
 lemma bounded_linear_vec1:"bounded_linear (vec1::real\<Rightarrow>real^1)"
   unfolding bounded_linear_def additive_def bounded_linear_axioms_def 
@@ -2508,7 +2488,6 @@ lemma bounded_linear_vec1:"bounded_linear (vec1::real\<Rightarrow>real^1)"
 lemma linear_vmul_dest_vec1:
   fixes f:: "'a::semiring_1^_ \<Rightarrow> 'a^1"
   shows "linear f \<Longrightarrow> linear (\<lambda>x. dest_vec1(f x) *s v)"
-  unfolding dest_vec1_def
   apply (rule linear_vmul_component)
   by auto
 
@@ -2517,14 +2496,14 @@ lemma linear_from_scalars:
   shows "f = (\<lambda>x. dest_vec1 x *s column 1 (matrix f))"
   apply (rule ext)
   apply (subst matrix_works[OF lf, symmetric])
-  apply (auto simp add: Cart_eq matrix_vector_mult_def dest_vec1_def column_def  mult_commute UNIV_1)
+  apply (auto simp add: Cart_eq matrix_vector_mult_def column_def  mult_commute UNIV_1)
   done
 
 lemma linear_to_scalars: assumes lf: "linear (f::'a::comm_ring_1 ^'n \<Rightarrow> 'a^1)"
   shows "f = (\<lambda>x. vec1(row 1 (matrix f) \<bullet> x))"
   apply (rule ext)
   apply (subst matrix_works[OF lf, symmetric])
-  apply (simp add: Cart_eq matrix_vector_mult_def vec1_def row_def dot_def mult_commute forall_1)
+  apply (simp add: Cart_eq matrix_vector_mult_def row_def dot_def mult_commute forall_1)
   done
 
 lemma dest_vec1_eq_0: "dest_vec1 x = 0 \<longleftrightarrow> x = 0"
@@ -2532,7 +2511,7 @@ lemma dest_vec1_eq_0: "dest_vec1 x = 0 \<longleftrightarrow> x = 0"
 
 lemma setsum_scalars: assumes fS: "finite S"
   shows "setsum f S = vec1 (setsum (dest_vec1 o f) S)"
-  unfolding vec1_setsum[OF fS] by simp
+  unfolding vec_setsum[OF fS] by simp
 
 lemma dest_vec1_wlog_le: "(\<And>(x::'a::linorder ^ 1) y. P x y \<longleftrightarrow> P y x)  \<Longrightarrow> (\<And>x y. dest_vec1 x <= dest_vec1 y ==> P x y) \<Longrightarrow> P x y"
   apply (cases "dest_vec1 x \<le> dest_vec1 y")
@@ -2543,10 +2522,10 @@ lemma dest_vec1_wlog_le: "(\<And>(x::'a::linorder ^ 1) y. P x y \<longleftrighta
 
 text{* Pasting vectors. *}
 
-lemma linear_fstcart: "linear fstcart"
+lemma linear_fstcart[intro]: "linear fstcart"
   by (auto simp add: linear_def Cart_eq)
 
-lemma linear_sndcart: "linear sndcart"
+lemma linear_sndcart[intro]: "linear sndcart"
   by (auto simp add: linear_def Cart_eq)
 
 lemma fstcart_vec[simp]: "fstcart(vec x) = vec x"
@@ -2690,7 +2669,7 @@ using hull_same[of s S] hull_in[of S s] by metis
 lemma hull_hull: "S hull (S hull s) = S hull s"
   unfolding hull_def by blast
 
-lemma hull_subset: "s \<subseteq> (S hull s)"
+lemma hull_subset[intro]: "s \<subseteq> (S hull s)"
   unfolding hull_def by blast
 
 lemma hull_mono: " s \<subseteq> t ==> (S hull s) \<subseteq> (S hull t)"

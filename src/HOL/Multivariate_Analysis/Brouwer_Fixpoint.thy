@@ -1460,8 +1460,7 @@ lemma fashoda_unit: fixes f g::"real^1 \<Rightarrow> real^2"
   let ?F = "(\<lambda>w::real^2. (f \<circ> vec1 \<circ> (\<lambda>x. x$1)) w - (g \<circ> vec1 \<circ> (\<lambda>x. x$2)) w)"
   have *:"\<And>i. vec1 ` (\<lambda>x::real^2. x $ i) ` {- 1..1} = {- 1..1::real^1}"
     apply(rule set_ext) unfolding image_iff Bex_def mem_interval apply rule defer 
-    apply(rule_tac x="dest_vec1 x" in exI) apply rule apply(rule_tac x="vec (dest_vec1 x)" in exI)
-    by(auto simp add: dest_vec1_def[THEN sym]) 
+    apply(rule_tac x="dest_vec1 x" in exI) apply rule apply(rule_tac x="vec (dest_vec1 x)" in exI) by auto
   { fix x assume "x \<in> (\<lambda>w. (f \<circ> vec1 \<circ> (\<lambda>x. x $ 1)) w - (g \<circ> vec1 \<circ> (\<lambda>x. x $ 2)) w) ` {- 1..1::real^2}"
     then guess w unfolding image_iff .. note w = this
     hence "x \<noteq> 0" using as[of "vec1 (w$1)" "vec1 (w$2)"] unfolding mem_interval by auto} note x0=this
@@ -1539,7 +1538,7 @@ lemma fashoda_unit_path: fixes f ::"real^1 \<Rightarrow> real^2" and g ::"real^1
   obtains z where "z \<in> path_image f" "z \<in> path_image g" proof-
   note assms=assms[unfolded path_def pathstart_def pathfinish_def path_image_def]
   def iscale \<equiv> "\<lambda>z::real^1. inverse 2 *\<^sub>R (z + 1)"
-  have isc:"iscale ` {- 1..1} \<subseteq> {0..1}" unfolding iscale_def by(auto simp add:dest_vec1_add dest_vec1_neg)
+  have isc:"iscale ` {- 1..1} \<subseteq> {0..1}" unfolding iscale_def by(auto)
   have "\<exists>s\<in>{- 1..1}. \<exists>t\<in>{- 1..1}. (f \<circ> iscale) s = (g \<circ> iscale) t" proof(rule fashoda_unit) 
     show "(f \<circ> iscale) ` {- 1..1} \<subseteq> {- 1..1}" "(g \<circ> iscale) ` {- 1..1} \<subseteq> {- 1..1}"
       using isc and assms(3-4) unfolding image_compose by auto

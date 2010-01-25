@@ -212,7 +212,7 @@ lemma has_derivative_vmul_component: fixes c::"real^'a \<Rightarrow> real^'b" an
       using assms[unfolded has_derivative_def Lim] by auto
     thus "eventually (\<lambda>x. dist (1 / norm (x - netlimit net) * (c x $ k - (c (netlimit net) $ k + c' (x - netlimit net) $ k))) 0 < e) net"
       proof (rule eventually_elim1)
-      case goal1 thus ?case apply - unfolding vector_dist_norm vec1_vec apply(rule le_less_trans) prefer 2 apply assumption unfolding * ** and norm_vec1[unfolded vec1_vec]
+      case goal1 thus ?case apply - unfolding vector_dist_norm  apply(rule le_less_trans) prefer 2 apply assumption unfolding * ** and norm_vec1
         using component_le_norm[of "(1 / norm (x - netlimit net)) *\<^sub>R (c x - (c (netlimit net) + c' (x - netlimit net))) - 0" k] by auto
       qed
       qed(insert assms[unfolded has_derivative_def], auto simp add:linear_conv_bounded_linear) qed 
@@ -619,7 +619,7 @@ lemma differential_zero_maxmin: fixes f::"real^'a \<Rightarrow> real"
   note deriv = assms(3)[unfolded has_derivative_at_vec1]
   obtain e where e:"e>0" "ball x e \<subseteq> s" using assms(2)[unfolded open_contains_ball] and assms(1) by auto
   hence **:"(jacobian (vec1 \<circ> f) (at x)) $ 1 = 0" using differential_zero_maxmin_component[of e x "\<lambda>x. vec1 (f x)" 1]
-    unfolding dest_vec1_def[THEN sym] vec1_dest_vec1 using assms(4) and assms(3)[unfolded has_derivative_at_vec1 o_def]
+    using assms(4) and assms(3)[unfolded has_derivative_at_vec1 o_def]
     unfolding differentiable_def o_def by auto 
   have *:"jacobian (vec1 \<circ> f) (at x) = matrix (vec1 \<circ> f')" unfolding jacobian_def and frechet_derivative_at[OF deriv] ..
   have "vec1 \<circ> f' = (\<lambda>x. 0)" apply(rule) unfolding matrix_works[OF derivative_is_linear[OF deriv],THEN sym]
@@ -651,7 +651,7 @@ lemma rolle: fixes f::"real\<Rightarrow>real"
   hence "f' x \<circ> dest_vec1 = (\<lambda>v. 0)" apply(rule_tac differential_zero_maxmin[of "vec1 x" "vec1 ` {a<..<b}" "f \<circ> dest_vec1" "(f' x) \<circ> dest_vec1"]) 
     unfolding vec1_interval defer apply(rule open_interval) 
     apply(rule assms(4)[unfolded has_derivative_at_dest_vec1[THEN sym],THEN bspec[where x=x]],assumption)
-    unfolding o_def apply(erule disjE,rule disjI2) by(auto simp add: vector_less_def dest_vec1_def) 
+    unfolding o_def apply(erule disjE,rule disjI2) by(auto simp add: vector_less_def) 
   thus ?thesis apply(rule_tac x=x in bexI) unfolding o_def apply rule 
     apply(drule_tac x="vec1 v" in fun_cong) unfolding vec1_dest_vec1 using x(1) by auto qed
 
@@ -738,12 +738,14 @@ lemma differentiable_bound: fixes f::"real^'a \<Rightarrow> real^'b"
   also have "\<dots> \<le> B * norm(y - x)" apply(rule **) using * and u by auto
   finally show ?thesis by(auto simp add:norm_minus_commute) qed 
 
+(** move this **)
+declare norm_vec1[simp]
+
 lemma onorm_vec1: fixes f::"real \<Rightarrow> real"
   shows "onorm (\<lambda>x. vec1 (f (dest_vec1 x))) = onorm f" proof-
-  have "\<forall>x::real^1. norm x = 1 \<longleftrightarrow> x\<in>{vec1 -1, vec1 (1::real)}" unfolding forall_vec1 unfolding norm_vec1 by auto
+  have "\<forall>x::real^1. norm x = 1 \<longleftrightarrow> x\<in>{vec1 -1, vec1 (1::real)}" unfolding forall_vec1 by(auto simp add:Cart_eq)
   hence 1:"{x. norm x = 1} = {vec1 -1, vec1 (1::real)}" by(auto simp add:norm_vec1)
   have 2:"{norm (vec1 (f (dest_vec1 x))) |x. norm x = 1} = (\<lambda>x. norm (vec1 (f (dest_vec1 x)))) ` {x. norm x=1}" by auto
-
   have "\<forall>x::real. norm x = 1 \<longleftrightarrow> x\<in>{-1, 1}" by auto hence 3:"{x. norm x = 1} = {-1, (1::real)}" by auto
   have 4:"{norm (f x) |x. norm x = 1} = (\<lambda>x. norm (f x)) ` {x. norm x=1}" by auto
   show ?thesis unfolding onorm_def 1 2 3 4 by(simp add:Sup_finite_Max norm_vec1) qed
