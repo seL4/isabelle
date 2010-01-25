@@ -1420,6 +1420,16 @@ $(LOG)/HOL-Boogie-Examples.gz: $(OUT)/HOL-Boogie			\
 	@cd Boogie; $(ISABELLE_TOOL) usedir $(OUT)/HOL-Boogie Examples
 
 
+## HOL-Mutabelle
+
+HOL-Mutabelle: HOL $(LOG)/HOL-Mutabelle.gz
+
+$(LOG)/HOL-Mutabelle.gz: $(OUT)/HOL Mutabelle/MutabelleExtra.thy	\
+  Mutabelle/ROOT.ML Mutabelle/mutabelle.ML			\
+  Mutabelle/mutabelle_extra.ML
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Mutabelle
+
+
 ## clean
 
 clean:
