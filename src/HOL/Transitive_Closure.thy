@@ -309,6 +309,25 @@ apply (induct rule:converse_rtrancl_induct)
 apply (blast intro:rtrancl_trans)
 done
 
+lemma Image_closed_trancl:
+  assumes "r `` X \<subseteq> X" shows "r\<^sup>* `` X = X"
+proof -
+  from assms have **: "{y. \<exists>x\<in>X. (x, y) \<in> r} \<subseteq> X" by auto
+  have "\<And>x y. (y, x) \<in> r\<^sup>* \<Longrightarrow> y \<in> X \<Longrightarrow> x \<in> X"
+  proof -
+    fix x y
+    assume *: "y \<in> X"
+    assume "(y, x) \<in> r\<^sup>*"
+    then show "x \<in> X"
+    proof induct
+      case base show ?case by (fact *)
+    next
+      case step with ** show ?case by auto
+    qed
+  qed
+  then show ?thesis by auto
+qed
+
 
 subsection {* Transitive closure *}
 

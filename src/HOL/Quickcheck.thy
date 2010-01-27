@@ -126,9 +126,24 @@ lemma random_aux_rec:
   shows "random_aux k = rhs k"
   using assms by (rule code_numeral.induct)
 
-setup {* Quickcheck.setup *}
+use "Tools/quickcheck_generators.ML"
+setup Quickcheck_Generators.setup
 
-subsection {* the Random-Predicate Monad *} 
+
+subsection {* Code setup *}
+
+code_const random_fun_aux (Quickcheck "Quickcheck'_Generators.random'_fun")
+  -- {* With enough criminal energy this can be abused to derive @{prop False};
+  for this reason we use a distinguished target @{text Quickcheck}
+  not spoiling the regular trusted code generation *}
+
+code_reserved Quickcheck Quickcheck_Generators
+
+no_notation fcomp (infixl "o>" 60)
+no_notation scomp (infixl "o\<rightarrow>" 60)
+
+
+subsection {* The Random-Predicate Monad *} 
 
 types 'a randompred = "Random.seed \<Rightarrow> ('a Predicate.pred \<times> Random.seed)"
 
@@ -167,24 +182,9 @@ definition Random :: "(Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow
 definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a randompred \<Rightarrow> 'b randompred)"
   where "map f P = bind P (single o f)"
 
-subsection {* Code setup *}
-
-use "Tools/quickcheck_generators.ML"
-setup {* Quickcheck_Generators.setup *}
-
-code_const random_fun_aux (Quickcheck "Quickcheck'_Generators.random'_fun")
-  -- {* With enough criminal energy this can be abused to derive @{prop False};
-  for this reason we use a distinguished target @{text Quickcheck}
-  not spoiling the regular trusted code generation *}
-
-code_reserved Quickcheck Quickcheck_Generators
-
 hide (open) fact empty_def single_def bind_def union_def if_randompred_def not_randompred_def Random_def map_def
 hide (open) type randompred
 hide (open) const random collapse beyond random_fun_aux random_fun_lift
   empty single bind union if_randompred not_randompred Random map
-
-no_notation fcomp (infixl "o>" 60)
-no_notation scomp (infixl "o\<rightarrow>" 60)
 
 end

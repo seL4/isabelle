@@ -65,14 +65,14 @@ fun random_fun T1 T2 eq term_of random random_split seed =
 
 fun mk_random_typecopy tyco vs constr T' thy =
   let
+    val mk_const = curry (Sign.mk_const thy);
     val Ts = map TFree vs;  
     val T = Type (tyco, Ts);
     val Tm = termifyT T;
     val Tm' = termifyT T';
-    fun mk_const c Ts = Const (c, Sign.const_instance thy (c, Ts));
     val v = "x";
     val t_v = Free (v, Tm');
-    val t_constr = mk_const constr Ts;
+    val t_constr = Const (constr, T' --> T);
     val lhs = HOLogic.mk_random T size;
     val rhs = HOLogic.mk_ST [((HOLogic.mk_random T' size, @{typ Random.seed}), SOME (v, Tm'))]
       (HOLogic.mk_return Tm @{typ Random.seed}
