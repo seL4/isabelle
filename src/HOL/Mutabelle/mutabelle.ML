@@ -1,6 +1,6 @@
 (*
     Title:      HOL/Mutabelle/mutabelle.ML
-    Author:     Stefan Berghofer, TU Muenchen
+    Author:     Veronika Ortner, TU Muenchen
 
     Mutation of theorems
 *)
@@ -53,19 +53,10 @@ sig
  val all_unconcealed_thms_of : theory -> (string * thm) list
 end;
 
-val bar = Unsynchronized.ref ([] : term list);
-val bla = Unsynchronized.ref (Bound 0);
-fun store x = (bla := x; x);
-
 structure Mutabelle : MUTABELLE = 
 struct
 
 val testgen_name = Unsynchronized.ref "SML";
-
-(*
-fun is_executable thy th = can (Quickcheck.test_term
- (ProofContext.init thy) false (SOME (!testgen_name)) 1 1) (prop_of th);
-*)
 
 fun all_unconcealed_thms_of thy =
   let
@@ -515,7 +506,7 @@ fun is_executable thy insts th =
 fun qc_recursive usedthy [] insts sz qciter acc = rev acc
  | qc_recursive usedthy (x::xs) insts sz qciter acc = qc_recursive usedthy xs insts sz qciter 
      (priority ("qc_recursive: " ^ string_of_int (length xs)); ((x, pretty (the_default [] (Quickcheck.test_term
-       (ProofContext.init usedthy) false (SOME (!testgen_name)) sz qciter (store (preprocess usedthy insts x))))) :: acc))
+       (ProofContext.init usedthy) false (SOME (!testgen_name)) sz qciter (preprocess usedthy insts x)))) :: acc))
           handle ERROR msg => (priority msg; qc_recursive usedthy xs insts sz qciter acc);
 
 
@@ -738,7 +729,6 @@ fun mutqc_thystat option p mutthy usedthy commutatives forbidden_funs iter insts
        val _ = priority ("mutthmrec: " ^ name);
        val mutated = mutate option (prop_of thm) usedthy
            commutatives forbidden_funs iter
-       val _ = (bar := mutated);
        val (passednum,_,cenum,_) = qc_test mutated insts usedthy sz qciter
        val thmname =  "\ntheorem " ^ name ^ ":"
        val pnumstring = string_of_int passednum
