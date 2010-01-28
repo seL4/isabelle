@@ -12,10 +12,10 @@ infix aconv;
 
 signature BASIC_TERM =
 sig
-  eqtype indexname
-  eqtype class
-  eqtype sort
-  eqtype arity
+  type indexname = string * int
+  type class = string
+  type sort = class list
+  type arity = string * sort list * sort
   datatype typ =
     Type  of string * typ list |
     TFree of string * sort |
