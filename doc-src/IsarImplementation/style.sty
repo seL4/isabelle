@@ -19,7 +19,6 @@
 \pagestyle{headings}
 \sloppy
 \binperiod
-\underscoreon
 
 \renewcommand{\isadigit}[1]{\isamath{#1}}
 
@@ -49,9 +48,7 @@
 \newcommand{\isasymDEFINITION}{\isakeyword{definition}}
 
 \isabellestyle{it}
-
-
-%%% Local Variables: 
-%%% mode: latex
-%%% TeX-master: "implementation"
-%%% End: 
+\underscoreon
+\renewcommand{\isacharunderscore}{\_}
+\renewcommand{\isacharunderscorekeyword}{\_}
+\newcommand{\isasymdash}{\mbox{-}}
