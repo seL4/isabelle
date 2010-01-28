@@ -279,29 +279,28 @@ lemma approx_convex_plus [simp]:
   "approx n\<cdot>(xs +\<natural> ys) = approx n\<cdot>xs +\<natural> approx n\<cdot>ys"
 by (induct xs ys rule: convex_pd.principal_induct2, simp, simp, simp)
 
-lemma convex_plus_assoc:
-  "(xs +\<natural> ys) +\<natural> zs = xs +\<natural> (ys +\<natural> zs)"
-apply (induct xs ys arbitrary: zs rule: convex_pd.principal_induct2, simp, simp)
-apply (rule_tac x=zs in convex_pd.principal_induct, simp)
-apply (simp add: PDPlus_assoc)
-done
+interpretation convex_add!: semilattice convex_add proof
+  fix xs ys zs :: "'a convex_pd"
+  show "(xs +\<natural> ys) +\<natural> zs = xs +\<natural> (ys +\<natural> zs)"
+    apply (induct xs ys arbitrary: zs rule: convex_pd.principal_induct2, simp, simp)
+    apply (rule_tac x=zs in convex_pd.principal_induct, simp)
+    apply (simp add: PDPlus_assoc)
+    done
+  show "xs +\<natural> ys = ys +\<natural> xs"
+    apply (induct xs ys rule: convex_pd.principal_induct2, simp, simp)
+    apply (simp add: PDPlus_commute)
+    done
+  show "xs +\<natural> xs = xs"
+    apply (induct xs rule: convex_pd.principal_induct, simp)
+    apply (simp add: PDPlus_absorb)
+    done
+qed
 
-lemma convex_plus_commute: "xs +\<natural> ys = ys +\<natural> xs"
-apply (induct xs ys rule: convex_pd.principal_induct2, simp, simp)
-apply (simp add: PDPlus_commute)
-done
-
-lemma convex_plus_absorb [simp]: "xs +\<natural> xs = xs"
-apply (induct xs rule: convex_pd.principal_induct, simp)
-apply (simp add: PDPlus_absorb)
-done
-
-lemma convex_plus_left_commute: "xs +\<natural> (ys +\<natural> zs) = ys +\<natural> (xs +\<natural> zs)"
-by (rule mk_left_commute
-    [of "op +\<natural>", OF convex_plus_assoc convex_plus_commute])
-
-lemma convex_plus_left_absorb [simp]: "xs +\<natural> (xs +\<natural> ys) = xs +\<natural> ys"
-by (simp only: convex_plus_assoc [symmetric] convex_plus_absorb)
+lemmas convex_plus_assoc = convex_add.assoc
+lemmas convex_plus_commute = convex_add.commute
+lemmas convex_plus_absorb = convex_add.idem
+lemmas convex_plus_left_commute = convex_add.left_commute
+lemmas convex_plus_left_absorb = convex_add.left_idem
 
 text {* Useful for @{text "simp add: convex_plus_ac"} *}
 lemmas convex_plus_ac =

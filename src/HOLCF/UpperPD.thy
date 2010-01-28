@@ -232,27 +232,28 @@ lemma approx_upper_plus [simp]:
   "approx n\<cdot>(xs +\<sharp> ys) = (approx n\<cdot>xs) +\<sharp> (approx n\<cdot>ys)"
 by (induct xs ys rule: upper_pd.principal_induct2, simp, simp, simp)
 
-lemma upper_plus_assoc: "(xs +\<sharp> ys) +\<sharp> zs = xs +\<sharp> (ys +\<sharp> zs)"
-apply (induct xs ys arbitrary: zs rule: upper_pd.principal_induct2, simp, simp)
-apply (rule_tac x=zs in upper_pd.principal_induct, simp)
-apply (simp add: PDPlus_assoc)
-done
+interpretation upper_add!: semilattice upper_add proof
+  fix xs ys zs :: "'a upper_pd"
+  show "(xs +\<sharp> ys) +\<sharp> zs = xs +\<sharp> (ys +\<sharp> zs)"
+    apply (induct xs ys arbitrary: zs rule: upper_pd.principal_induct2, simp, simp)
+    apply (rule_tac x=zs in upper_pd.principal_induct, simp)
+    apply (simp add: PDPlus_assoc)
+    done
+  show "xs +\<sharp> ys = ys +\<sharp> xs"
+    apply (induct xs ys rule: upper_pd.principal_induct2, simp, simp)
+    apply (simp add: PDPlus_commute)
+    done
+  show "xs +\<sharp> xs = xs"
+    apply (induct xs rule: upper_pd.principal_induct, simp)
+    apply (simp add: PDPlus_absorb)
+    done
+qed
 
-lemma upper_plus_commute: "xs +\<sharp> ys = ys +\<sharp> xs"
-apply (induct xs ys rule: upper_pd.principal_induct2, simp, simp)
-apply (simp add: PDPlus_commute)
-done
-
-lemma upper_plus_absorb [simp]: "xs +\<sharp> xs = xs"
-apply (induct xs rule: upper_pd.principal_induct, simp)
-apply (simp add: PDPlus_absorb)
-done
-
-lemma upper_plus_left_commute: "xs +\<sharp> (ys +\<sharp> zs) = ys +\<sharp> (xs +\<sharp> zs)"
-by (rule mk_left_commute [of "op +\<sharp>", OF upper_plus_assoc upper_plus_commute])
-
-lemma upper_plus_left_absorb [simp]: "xs +\<sharp> (xs +\<sharp> ys) = xs +\<sharp> ys"
-by (simp only: upper_plus_assoc [symmetric] upper_plus_absorb)
+lemmas upper_plus_assoc = upper_add.assoc
+lemmas upper_plus_commute = upper_add.commute
+lemmas upper_plus_absorb = upper_add.idem
+lemmas upper_plus_left_commute = upper_add.left_commute
+lemmas upper_plus_left_absorb = upper_add.left_idem
 
 text {* Useful for @{text "simp add: upper_plus_ac"} *}
 lemmas upper_plus_ac =

@@ -112,57 +112,79 @@ end
 
 subsubsection {* Equational laws *}
 
+sublocale lower_semilattice < inf!: semilattice inf
+proof
+  fix a b c
+  show "(a \<sqinter> b) \<sqinter> c = a \<sqinter> (b \<sqinter> c)"
+    by (rule antisym) (auto intro: le_infI1 le_infI2)
+  show "a \<sqinter> b = b \<sqinter> a"
+    by (rule antisym) auto
+  show "a \<sqinter> a = a"
+    by (rule antisym) auto
+qed
+
 context lower_semilattice
 begin
 
-lemma inf_commute: "(x \<sqinter> y) = (y \<sqinter> x)"
-  by (rule antisym) auto
-
 lemma inf_assoc: "(x \<sqinter> y) \<sqinter> z = x \<sqinter> (y \<sqinter> z)"
-  by (rule antisym) (auto intro: le_infI1 le_infI2)
+  by (fact inf.assoc)
 
-lemma inf_idem[simp]: "x \<sqinter> x = x"
-  by (rule antisym) auto
+lemma inf_commute: "(x \<sqinter> y) = (y \<sqinter> x)"
+  by (fact inf.commute)
 
-lemma inf_left_idem[simp]: "x \<sqinter> (x \<sqinter> y) = x \<sqinter> y"
-  by (rule antisym) (auto intro: le_infI2)
+lemma inf_left_commute: "x \<sqinter> (y \<sqinter> z) = y \<sqinter> (x \<sqinter> z)"
+  by (fact inf.left_commute)
+
+lemma inf_idem: "x \<sqinter> x = x"
+  by (fact inf.idem)
+
+lemma inf_left_idem: "x \<sqinter> (x \<sqinter> y) = x \<sqinter> y"
+  by (fact inf.left_idem)
 
 lemma inf_absorb1: "x \<sqsubseteq> y \<Longrightarrow> x \<sqinter> y = x"
   by (rule antisym) auto
 
 lemma inf_absorb2: "y \<sqsubseteq> x \<Longrightarrow> x \<sqinter> y = y"
   by (rule antisym) auto
-
-lemma inf_left_commute: "x \<sqinter> (y \<sqinter> z) = y \<sqinter> (x \<sqinter> z)"
-  by (rule mk_left_commute [of inf]) (fact inf_assoc inf_commute)+
-  
+ 
 lemmas inf_aci = inf_commute inf_assoc inf_left_commute inf_left_idem
 
 end
 
+sublocale upper_semilattice < sup!: semilattice sup
+proof
+  fix a b c
+  show "(a \<squnion> b) \<squnion> c = a \<squnion> (b \<squnion> c)"
+    by (rule antisym) (auto intro: le_supI1 le_supI2)
+  show "a \<squnion> b = b \<squnion> a"
+    by (rule antisym) auto
+  show "a \<squnion> a = a"
+    by (rule antisym) auto
+qed
+
 context upper_semilattice
 begin
 
-lemma sup_commute: "(x \<squnion> y) = (y \<squnion> x)"
-  by (rule antisym) auto
-
 lemma sup_assoc: "(x \<squnion> y) \<squnion> z = x \<squnion> (y \<squnion> z)"
-  by (rule antisym) (auto intro: le_supI1 le_supI2)
+  by (fact sup.assoc)
 
-lemma sup_idem[simp]: "x \<squnion> x = x"
-  by (rule antisym) auto
+lemma sup_commute: "(x \<squnion> y) = (y \<squnion> x)"
+  by (fact sup.commute)
 
-lemma sup_left_idem[simp]: "x \<squnion> (x \<squnion> y) = x \<squnion> y"
-  by (rule antisym) (auto intro: le_supI2)
+lemma sup_left_commute: "x \<squnion> (y \<squnion> z) = y \<squnion> (x \<squnion> z)"
+  by (fact sup.left_commute)
+
+lemma sup_idem: "x \<squnion> x = x"
+  by (fact sup.idem)
+
+lemma sup_left_idem: "x \<squnion> (x \<squnion> y) = x \<squnion> y"
+  by (fact sup.left_idem)
 
 lemma sup_absorb1: "y \<sqsubseteq> x \<Longrightarrow> x \<squnion> y = x"
   by (rule antisym) auto
 
 lemma sup_absorb2: "x \<sqsubseteq> y \<Longrightarrow> x \<squnion> y = y"
   by (rule antisym) auto
-
-lemma sup_left_commute: "x \<squnion> (y \<squnion> z) = y \<squnion> (x \<squnion> z)"
-  by (rule mk_left_commute [of sup]) (fact sup_assoc sup_commute)+
 
 lemmas sup_aci = sup_commute sup_assoc sup_left_commute sup_left_idem
 
@@ -514,11 +536,12 @@ lemma sup_max: "sup = (max \<Colon> 'a\<Colon>{upper_semilattice, linorder} \<Ri
 lemmas le_maxI1 = min_max.sup_ge1
 lemmas le_maxI2 = min_max.sup_ge2
  
-lemmas max_ac = min_max.sup_assoc min_max.sup_commute
-  mk_left_commute [of max, OF min_max.sup_assoc min_max.sup_commute]
-
 lemmas min_ac = min_max.inf_assoc min_max.inf_commute
-  mk_left_commute [of min, OF min_max.inf_assoc min_max.inf_commute]
+  min_max.inf.left_commute
+
+lemmas max_ac = min_max.sup_assoc min_max.sup_commute
+  min_max.sup.left_commute
+
 
 
 subsection {* Bool as lattice *}

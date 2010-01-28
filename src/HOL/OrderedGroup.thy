@@ -23,8 +23,7 @@ text {*
 *}
 
 ML {*
-structure Algebra_Simps = Named_Thms
-(
+structure Algebra_Simps = Named_Thms(
   val name = "algebra_simps"
   val description = "algebra simplification rules"
 )
@@ -44,14 +43,21 @@ inverses or division. This is catered for by @{text field_simps}. *}
 subsection {* Semigroups and Monoids *}
 
 class semigroup_add = plus +
-  assumes add_assoc[algebra_simps]: "(a + b) + c = a + (b + c)"
+  assumes add_assoc [algebra_simps]: "(a + b) + c = a + (b + c)"
+
+sublocale semigroup_add < plus!: semigroup plus proof
+qed (fact add_assoc)
 
 class ab_semigroup_add = semigroup_add +
-  assumes add_commute[algebra_simps]: "a + b = b + a"
+  assumes add_commute [algebra_simps]: "a + b = b + a"
+
+sublocale ab_semigroup_add < plus!: abel_semigroup plus proof
+qed (fact add_commute)
+
+context ab_semigroup_add
 begin
 
-lemma add_left_commute[algebra_simps]: "a + (b + c) = b + (a + c)"
-by (rule mk_left_commute [of "plus", OF add_assoc add_commute])
+lemmas add_left_commute [algebra_simps] = plus.left_commute
 
 theorems add_ac = add_assoc add_commute add_left_commute
 
@@ -60,14 +66,21 @@ end
 theorems add_ac = add_assoc add_commute add_left_commute
 
 class semigroup_mult = times +
-  assumes mult_assoc[algebra_simps]: "(a * b) * c = a * (b * c)"
+  assumes mult_assoc [algebra_simps]: "(a * b) * c = a * (b * c)"
+
+sublocale semigroup_mult < times!: semigroup times proof
+qed (fact mult_assoc)
 
 class ab_semigroup_mult = semigroup_mult +
-  assumes mult_commute[algebra_simps]: "a * b = b * a"
+  assumes mult_commute [algebra_simps]: "a * b = b * a"
+
+sublocale ab_semigroup_mult < times!: abel_semigroup times proof
+qed (fact mult_commute)
+
+context ab_semigroup_mult
 begin
 
-lemma mult_left_commute[algebra_simps]: "a * (b * c) = b * (a * c)"
-by (rule mk_left_commute [of "times", OF mult_assoc mult_commute])
+lemmas mult_left_commute [algebra_simps] = times.left_commute
 
 theorems mult_ac = mult_assoc mult_commute mult_left_commute
 
@@ -76,11 +89,15 @@ end
 theorems mult_ac = mult_assoc mult_commute mult_left_commute
 
 class ab_semigroup_idem_mult = ab_semigroup_mult +
-  assumes mult_idem[simp]: "x * x = x"
+  assumes mult_idem: "x * x = x"
+
+sublocale ab_semigroup_idem_mult < times!: semilattice times proof
+qed (fact mult_idem)
+
+context ab_semigroup_idem_mult
 begin
 
-lemma mult_left_idem[simp]: "x * (x * y) = x * y"
-  unfolding mult_assoc [symmetric, of x] mult_idem ..
+lemmas mult_left_idem = times.left_idem
 
 end
 
@@ -1370,8 +1387,8 @@ structure ab_group_add_cancel = Abel_Cancel
 (* term order for abelian groups *)
 
 fun agrp_ord (Const (a, _)) = find_index (fn a' => a = a')
-      [@{const_name HOL.zero}, @{const_name HOL.plus},
-        @{const_name HOL.uminus}, @{const_name HOL.minus}]
+      [@{const_name Algebras.zero}, @{const_name Algebras.plus},
+        @{const_name Algebras.uminus}, @{const_name Algebras.minus}]
   | agrp_ord _ = ~1;
 
 fun termless_agrp (a, b) = (TermOrd.term_lpo agrp_ord (a, b) = LESS);
@@ -1380,9 +1397,9 @@ local
   val ac1 = mk_meta_eq @{thm add_assoc};
   val ac2 = mk_meta_eq @{thm add_commute};
   val ac3 = mk_meta_eq @{thm add_left_commute};
-  fun solve_add_ac thy _ (_ $ (Const (@{const_name HOL.plus},_) $ _ $ _) $ _) =
+  fun solve_add_ac thy _ (_ $ (Const (@{const_name Algebras.plus},_) $ _ $ _) $ _) =
         SOME ac1
-    | solve_add_ac thy _ (_ $ x $ (Const (@{const_name HOL.plus},_) $ y $ z)) =
+    | solve_add_ac thy _ (_ $ x $ (Const (@{const_name Algebras.plus},_) $ y $ z)) =
         if termless_agrp (y, x) then SOME ac3 else NONE
     | solve_add_ac thy _ (_ $ x $ y) =
         if termless_agrp (y, x) then SOME ac2 else NONE

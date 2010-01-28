@@ -234,27 +234,28 @@ lemma approx_lower_plus [simp]:
   "approx n\<cdot>(xs +\<flat> ys) = (approx n\<cdot>xs) +\<flat> (approx n\<cdot>ys)"
 by (induct xs ys rule: lower_pd.principal_induct2, simp, simp, simp)
 
-lemma lower_plus_assoc: "(xs +\<flat> ys) +\<flat> zs = xs +\<flat> (ys +\<flat> zs)"
-apply (induct xs ys arbitrary: zs rule: lower_pd.principal_induct2, simp, simp)
-apply (rule_tac x=zs in lower_pd.principal_induct, simp)
-apply (simp add: PDPlus_assoc)
-done
+interpretation lower_add!: semilattice lower_add proof
+  fix xs ys zs :: "'a lower_pd"
+  show "(xs +\<flat> ys) +\<flat> zs = xs +\<flat> (ys +\<flat> zs)"
+    apply (induct xs ys arbitrary: zs rule: lower_pd.principal_induct2, simp, simp)
+    apply (rule_tac x=zs in lower_pd.principal_induct, simp)
+    apply (simp add: PDPlus_assoc)
+    done
+  show "xs +\<flat> ys = ys +\<flat> xs"
+    apply (induct xs ys rule: lower_pd.principal_induct2, simp, simp)
+    apply (simp add: PDPlus_commute)
+    done
+  show "xs +\<flat> xs = xs"
+    apply (induct xs rule: lower_pd.principal_induct, simp)
+    apply (simp add: PDPlus_absorb)
+    done
+qed
 
-lemma lower_plus_commute: "xs +\<flat> ys = ys +\<flat> xs"
-apply (induct xs ys rule: lower_pd.principal_induct2, simp, simp)
-apply (simp add: PDPlus_commute)
-done
-
-lemma lower_plus_absorb [simp]: "xs +\<flat> xs = xs"
-apply (induct xs rule: lower_pd.principal_induct, simp)
-apply (simp add: PDPlus_absorb)
-done
-
-lemma lower_plus_left_commute: "xs +\<flat> (ys +\<flat> zs) = ys +\<flat> (xs +\<flat> zs)"
-by (rule mk_left_commute [of "op +\<flat>", OF lower_plus_assoc lower_plus_commute])
-
-lemma lower_plus_left_absorb [simp]: "xs +\<flat> (xs +\<flat> ys) = xs +\<flat> ys"
-by (simp only: lower_plus_assoc [symmetric] lower_plus_absorb)
+lemmas lower_plus_assoc = lower_add.assoc
+lemmas lower_plus_commute = lower_add.commute
+lemmas lower_plus_absorb = lower_add.idem
+lemmas lower_plus_left_commute = lower_add.left_commute
+lemmas lower_plus_left_absorb = lower_add.left_idem
 
 text {* Useful for @{text "simp add: lower_plus_ac"} *}
 lemmas lower_plus_ac =
