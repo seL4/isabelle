@@ -116,9 +116,9 @@ text {*
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML_type class} \\
-  @{index_ML_type sort} \\
-  @{index_ML_type arity} \\
+  @{index_ML_type class: string} \\
+  @{index_ML_type sort: "class list"} \\
+  @{index_ML_type arity: "string * sort list * sort"} \\
   @{index_ML_type typ} \\
   @{index_ML map_atyps: "(typ -> typ) -> typ -> typ"} \\
   @{index_ML fold_atyps: "(typ -> 'a -> 'a) -> typ -> 'a -> 'a"} \\
@@ -136,15 +136,15 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type class} represents type classes; this is an alias for
-  @{ML_type string}.
+  \item @{ML_type class} represents type classes.
 
-  \item @{ML_type sort} represents sorts; this is an alias for
-  @{ML_type "class list"}.
+  \item @{ML_type sort} represents sorts, i.e.\ finite intersections
+  of classes.  The empty list @{ML "[]: sort"} refers to the empty
+  class intersection, i.e.\ the ``full sort''.
 
-  \item @{ML_type arity} represents type arities; this is an alias for
-  triples of the form @{text "(\<kappa>, \<^vec>s, s)"} for @{text "\<kappa> ::
-  (\<^vec>s)s"} described above.
+  \item @{ML_type arity} represents type arities.  A triple @{text
+  "(\<kappa>, \<^vec>s, s) : arity"} represents @{text "\<kappa> :: (\<^vec>s)s"} as
+  described above.
 
   \item @{ML_type typ} represents types; this is a datatype with
   constructors @{ML TFree}, @{ML TVar}, @{ML Type}.

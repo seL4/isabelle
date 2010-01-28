@@ -400,7 +400,7 @@ text %mlref {*
   descendants from the theory database.
 
   \item @{ML ThyInfo.begin_theory} is the basic operation behind a
-  @{text \<THEORY>} header declaration.  This is {\ML} functions is
+  @{text \<THEORY>} header declaration.  This {\ML} function is
   normally not invoked directly.
 
   \item @{ML ThyInfo.end_theory} concludes the loading of a theory
