@@ -73,15 +73,15 @@ fun whatis x ct =
 | Const ("op =",ty)$y$_ => if term_of x aconv y then Eq (Thm.dest_arg ct) else Nox
 | Const (@{const_name Not},_) $ (Const ("op =",_)$y$_) =>
   if term_of x aconv y then NEq (funpow 2 Thm.dest_arg ct) else Nox
-| Const (@{const_name HOL.less}, _) $ y$ z =>
+| Const (@{const_name Algebras.less}, _) $ y$ z =>
    if term_of x aconv y then Lt (Thm.dest_arg ct)
    else if term_of x aconv z then Gt (Thm.dest_arg1 ct) else Nox
-| Const (@{const_name HOL.less_eq}, _) $ y $ z =>
+| Const (@{const_name Algebras.less_eq}, _) $ y $ z =>
    if term_of x aconv y then Le (Thm.dest_arg ct)
    else if term_of x aconv z then Ge (Thm.dest_arg1 ct) else Nox
-| Const (@{const_name Ring_and_Field.dvd},_)$_$(Const(@{const_name HOL.plus},_)$y$_) =>
+| Const (@{const_name Ring_and_Field.dvd},_)$_$(Const(@{const_name Algebras.plus},_)$y$_) =>
    if term_of x aconv y then Dvd (Thm.dest_binop ct ||> Thm.dest_arg) else Nox
-| Const (@{const_name Not},_) $ (Const (@{const_name Ring_and_Field.dvd},_)$_$(Const(@{const_name HOL.plus},_)$y$_)) =>
+| Const (@{const_name Not},_) $ (Const (@{const_name Ring_and_Field.dvd},_)$_$(Const(@{const_name Algebras.plus},_)$y$_)) =>
    if term_of x aconv y then
    NDvd (Thm.dest_binop (Thm.dest_arg ct) ||> Thm.dest_arg) else Nox
 | _ => Nox)
@@ -175,18 +175,18 @@ fun provelin ctxt t = Goal.prove ctxt [] [] t
   (fn _ => EVERY [simp_tac lin_ss 1, TRY (Lin_Arith.tac ctxt 1)]);
 fun linear_cmul 0 tm = zero
   | linear_cmul n tm = case tm of
-      Const (@{const_name HOL.plus}, _) $ a $ b => addC $ linear_cmul n a $ linear_cmul n b
-    | Const (@{const_name HOL.times}, _) $ c $ x => mulC $ numeral1 (fn m => n * m) c $ x
-    | Const (@{const_name HOL.minus}, _) $ a $ b => subC $ linear_cmul n a $ linear_cmul n b
-    | (m as Const (@{const_name HOL.uminus}, _)) $ a => m $ linear_cmul n a
+      Const (@{const_name Algebras.plus}, _) $ a $ b => addC $ linear_cmul n a $ linear_cmul n b
+    | Const (@{const_name Algebras.times}, _) $ c $ x => mulC $ numeral1 (fn m => n * m) c $ x
+    | Const (@{const_name Algebras.minus}, _) $ a $ b => subC $ linear_cmul n a $ linear_cmul n b
+    | (m as Const (@{const_name Algebras.uminus}, _)) $ a => m $ linear_cmul n a
     | _ => numeral1 (fn m => n * m) tm;
 fun earlier [] x y = false
   | earlier (h::t) x y =
     if h aconv y then false else if h aconv x then true else earlier t x y;
 
 fun linear_add vars tm1 tm2 = case (tm1, tm2) of
-    (Const (@{const_name HOL.plus}, _) $ (Const (@{const_name HOL.times}, _) $ c1 $ x1) $ r1,
-    Const (@{const_name HOL.plus}, _) $ (Const (@{const_name HOL.times}, _) $ c2 $ x2) $ r2) =>
+    (Const (@{const_name Algebras.plus}, _) $ (Const (@{const_name Algebras.times}, _) $ c1 $ x1) $ r1,
+    Const (@{const_name Algebras.plus}, _) $ (Const (@{const_name Algebras.times}, _) $ c2 $ x2) $ r2) =>
    if x1 = x2 then
      let val c = numeral2 Integer.add c1 c2
       in if c = zero then linear_add vars r1 r2
@@ -194,9 +194,9 @@ fun linear_add vars tm1 tm2 = case (tm1, tm2) of
      end
      else if earlier vars x1 x2 then addC $ (mulC $ c1 $ x1) $ linear_add vars r1 tm2
    else addC $ (mulC $ c2 $ x2) $ linear_add vars tm1 r2
- | (Const (@{const_name HOL.plus}, _) $ (Const (@{const_name HOL.times}, _) $ c1 $ x1) $ r1, _) =>
+ | (Const (@{const_name Algebras.plus}, _) $ (Const (@{const_name Algebras.times}, _) $ c1 $ x1) $ r1, _) =>
       addC $ (mulC $ c1 $ x1) $ linear_add vars r1 tm2
- | (_, Const (@{const_name HOL.plus}, _) $ (Const (@{const_name HOL.times}, _) $ c2 $ x2) $ r2) =>
+ | (_, Const (@{const_name Algebras.plus}, _) $ (Const (@{const_name Algebras.times}, _) $ c2 $ x2) $ r2) =>
       addC $ (mulC $ c2 $ x2) $ linear_add vars tm1 r2
  | (_, _) => numeral2 Integer.add tm1 tm2;
 
@@ -205,10 +205,10 @@ fun linear_sub vars tm1 tm2 = linear_add vars tm1 (linear_neg tm2);
 
 
 fun lint vars tm =  if is_numeral tm then tm  else case tm of
-  Const (@{const_name HOL.uminus}, _) $ t => linear_neg (lint vars t)
-| Const (@{const_name HOL.plus}, _) $ s $ t => linear_add vars (lint vars s) (lint vars t)
-| Const (@{const_name HOL.minus}, _) $ s $ t => linear_sub vars (lint vars s) (lint vars t)
-| Const (@{const_name HOL.times}, _) $ s $ t =>
+  Const (@{const_name Algebras.uminus}, _) $ t => linear_neg (lint vars t)
+| Const (@{const_name Algebras.plus}, _) $ s $ t => linear_add vars (lint vars s) (lint vars t)
+| Const (@{const_name Algebras.minus}, _) $ s $ t => linear_sub vars (lint vars s) (lint vars t)
+| Const (@{const_name Algebras.times}, _) $ s $ t =>
   let val s' = lint vars s
       val t' = lint vars t
   in if is_numeral s' then (linear_cmul (dest_numeral s') t')
@@ -217,10 +217,10 @@ fun lint vars tm =  if is_numeral tm then tm  else case tm of
   end
  | _ => addC $ (mulC $ one $ tm) $ zero;
 
-fun lin (vs as x::_) (Const (@{const_name Not}, _) $ (Const (@{const_name HOL.less}, T) $ s $ t)) =
-    lin vs (Const (@{const_name HOL.less_eq}, T) $ t $ s)
-  | lin (vs as x::_) (Const (@{const_name Not},_) $ (Const(@{const_name HOL.less_eq}, T) $ s $ t)) =
-    lin vs (Const (@{const_name HOL.less}, T) $ t $ s)
+fun lin (vs as x::_) (Const (@{const_name Not}, _) $ (Const (@{const_name Algebras.less}, T) $ s $ t)) =
+    lin vs (Const (@{const_name Algebras.less_eq}, T) $ t $ s)
+  | lin (vs as x::_) (Const (@{const_name Not},_) $ (Const(@{const_name Algebras.less_eq}, T) $ s $ t)) =
+    lin vs (Const (@{const_name Algebras.less}, T) $ t $ s)
   | lin vs (Const (@{const_name Not},T)$t) = Const (@{const_name Not},T)$ (lin vs t)
   | lin (vs as x::_) (Const(@{const_name Ring_and_Field.dvd},_)$d$t) =
     HOLogic.mk_binrel @{const_name Ring_and_Field.dvd} (numeral1 abs d, lint vs t)
@@ -270,7 +270,7 @@ fun linearize_conv ctxt vs ct = case term_of ct of
       val d'' = Thm.rhs_of dth |> Thm.dest_arg1
      in
       case tt' of
-        Const(@{const_name HOL.plus},_)$(Const(@{const_name HOL.times},_)$c$_)$_ =>
+        Const(@{const_name Algebras.plus},_)$(Const(@{const_name Algebras.times},_)$c$_)$_ =>
         let val x = dest_numeral c
         in if x < 0 then Conv.fconv_rule (arg_conv (arg_conv (lint_conv ctxt vs)))
                                        (Thm.transitive dth (inst' [d'',t'] dvd_uminus'))
@@ -293,15 +293,15 @@ fun unify ctxt q =
   val ins = insert (op = : int * int -> bool)
   fun h (acc,dacc) t =
    case (term_of t) of
-    Const(s,_)$(Const(@{const_name HOL.times},_)$c$y)$ _ =>
+    Const(s,_)$(Const(@{const_name Algebras.times},_)$c$y)$ _ =>
     if x aconv y andalso member (op =)
-      ["op =", @{const_name HOL.less}, @{const_name HOL.less_eq}] s
+      ["op =", @{const_name Algebras.less}, @{const_name Algebras.less_eq}] s
     then (ins (dest_numeral c) acc,dacc) else (acc,dacc)
-  | Const(s,_)$_$(Const(@{const_name HOL.times},_)$c$y) =>
+  | Const(s,_)$_$(Const(@{const_name Algebras.times},_)$c$y) =>
     if x aconv y andalso member (op =)
-       [@{const_name HOL.less}, @{const_name HOL.less_eq}] s
+       [@{const_name Algebras.less}, @{const_name Algebras.less_eq}] s
     then (ins (dest_numeral c) acc, dacc) else (acc,dacc)
-  | Const(@{const_name Ring_and_Field.dvd},_)$_$(Const(@{const_name HOL.plus},_)$(Const(@{const_name HOL.times},_)$c$y)$_) =>
+  | Const(@{const_name Ring_and_Field.dvd},_)$_$(Const(@{const_name Algebras.plus},_)$(Const(@{const_name Algebras.times},_)$c$y)$_) =>
     if x aconv y then (acc,ins (dest_numeral c) dacc) else (acc,dacc)
   | Const("op &",_)$_$_ => h (h (acc,dacc) (Thm.dest_arg1 t)) (Thm.dest_arg t)
   | Const("op |",_)$_$_ => h (h (acc,dacc) (Thm.dest_arg1 t)) (Thm.dest_arg t)
@@ -335,15 +335,15 @@ fun unify ctxt q =
    Const("op &",_)$_$_ => binop_conv unit_conv t
   | Const("op |",_)$_$_ => binop_conv unit_conv t
   | Const (@{const_name Not},_)$_ => arg_conv unit_conv t
-  | Const(s,_)$(Const(@{const_name HOL.times},_)$c$y)$ _ =>
+  | Const(s,_)$(Const(@{const_name Algebras.times},_)$c$y)$ _ =>
     if x=y andalso member (op =)
-      ["op =", @{const_name HOL.less}, @{const_name HOL.less_eq}] s
+      ["op =", @{const_name Algebras.less}, @{const_name Algebras.less_eq}] s
     then cv (l div dest_numeral c) t else Thm.reflexive t
-  | Const(s,_)$_$(Const(@{const_name HOL.times},_)$c$y) =>
+  | Const(s,_)$_$(Const(@{const_name Algebras.times},_)$c$y) =>
     if x=y andalso member (op =)
-      [@{const_name HOL.less}, @{const_name HOL.less_eq}] s
+      [@{const_name Algebras.less}, @{const_name Algebras.less_eq}] s
     then cv (l div dest_numeral c) t else Thm.reflexive t
-  | Const(@{const_name Ring_and_Field.dvd},_)$d$(r as (Const(@{const_name HOL.plus},_)$(Const(@{const_name HOL.times},_)$c$y)$_)) =>
+  | Const(@{const_name Ring_and_Field.dvd},_)$d$(r as (Const(@{const_name Algebras.plus},_)$(Const(@{const_name Algebras.times},_)$c$y)$_)) =>
     if x=y then
       let
        val k = l div dest_numeral c
@@ -546,10 +546,10 @@ fun i_of_term vs t = case t
   | @{term "0::int"} => C 0
   | @{term "1::int"} => C 1
   | Term.Bound i => Bound i
-  | Const(@{const_name HOL.uminus},_)$t' => Neg (i_of_term vs t')
-  | Const(@{const_name HOL.plus},_)$t1$t2 => Add (i_of_term vs t1,i_of_term vs t2)
-  | Const(@{const_name HOL.minus},_)$t1$t2 => Sub (i_of_term vs t1,i_of_term vs t2)
-  | Const(@{const_name HOL.times},_)$t1$t2 =>
+  | Const(@{const_name Algebras.uminus},_)$t' => Neg (i_of_term vs t')
+  | Const(@{const_name Algebras.plus},_)$t1$t2 => Add (i_of_term vs t1,i_of_term vs t2)
+  | Const(@{const_name Algebras.minus},_)$t1$t2 => Sub (i_of_term vs t1,i_of_term vs t2)
+  | Const(@{const_name Algebras.times},_)$t1$t2 =>
      (Mul (HOLogic.dest_number t1 |> snd, i_of_term vs t2)
     handle TERM _ =>
        (Mul (HOLogic.dest_number t2 |> snd, i_of_term vs t1)
@@ -560,8 +560,8 @@ fun i_of_term vs t = case t
 fun qf_of_term ps vs t =  case t
  of Const("True",_) => T
   | Const("False",_) => F
-  | Const(@{const_name HOL.less},_)$t1$t2 => Lt (Sub (i_of_term vs t1,i_of_term vs t2))
-  | Const(@{const_name HOL.less_eq},_)$t1$t2 => Le (Sub(i_of_term vs t1,i_of_term vs t2))
+  | Const(@{const_name Algebras.less},_)$t1$t2 => Lt (Sub (i_of_term vs t1,i_of_term vs t2))
+  | Const(@{const_name Algebras.less_eq},_)$t1$t2 => Le (Sub(i_of_term vs t1,i_of_term vs t2))
   | Const(@{const_name Ring_and_Field.dvd},_)$t1$t2 =>
       (Dvd(HOLogic.dest_number t1 |> snd, i_of_term vs t2) handle _ => cooper "Reification: unsupported dvd")  (* FIXME avoid handle _ *)
   | @{term "op = :: int => _"}$t1$t2 => Eq (Sub (i_of_term vs t1,i_of_term vs t2))

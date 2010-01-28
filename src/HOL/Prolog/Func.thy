@@ -1,12 +1,11 @@
 (*  Title:    HOL/Prolog/Func.thy
-    ID:       $Id$
     Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
 *)
 
 header {* Untyped functional language, with call by value semantics *}
 
 theory Func
-imports HOHH
+imports HOHH Algebras
 begin
 
 typedecl tm

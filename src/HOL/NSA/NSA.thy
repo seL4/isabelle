@@ -671,12 +671,12 @@ val meta_number_of_approx_reorient = thm "number_of_approx_reorient" RS eq_refle
   0 = x, 1 = x, nnn = x provided x isn't 0, 1 or a numeral.*)
 fun reorient_proc sg _ (_ $ t $ u) =
   case u of
-      Const(@{const_name HOL.zero}, _) => NONE
-    | Const(@{const_name HOL.one}, _) => NONE
+      Const(@{const_name Algebras.zero}, _) => NONE
+    | Const(@{const_name Algebras.one}, _) => NONE
     | Const(@{const_name Int.number_of}, _) $ _ => NONE
     | _ => SOME (case t of
-                Const(@{const_name HOL.zero}, _) => meta_zero_approx_reorient
-              | Const(@{const_name HOL.one}, _) => meta_one_approx_reorient
+                Const(@{const_name Algebras.zero}, _) => meta_zero_approx_reorient
+              | Const(@{const_name Algebras.one}, _) => meta_one_approx_reorient
               | Const(@{const_name Int.number_of}, _) $ _ =>
                                  meta_number_of_approx_reorient);
 

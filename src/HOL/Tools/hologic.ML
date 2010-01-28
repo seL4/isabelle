@@ -440,9 +440,9 @@ val strip_psplits =
 
 val natT = Type ("nat", []);
 
-val zero = Const ("HOL.zero_class.zero", natT);
+val zero = Const ("Algebras.zero_class.zero", natT);
 
-fun is_zero (Const ("HOL.zero_class.zero", _)) = true
+fun is_zero (Const ("Algebras.zero_class.zero", _)) = true
   | is_zero _ = false;
 
 fun mk_Suc t = Const ("Suc", natT --> natT) $ t;
@@ -458,7 +458,7 @@ fun mk_nat n =
       | mk n = mk_Suc (mk (n - 1));
   in if n < 0 then raise TERM ("mk_nat: negative number", []) else mk n end;
 
-fun dest_nat (Const ("HOL.zero_class.zero", _)) = 0
+fun dest_nat (Const ("Algebras.zero_class.zero", _)) = 0
   | dest_nat (Const ("Suc", _) $ t) = dest_nat t + 1
   | dest_nat t = raise TERM ("dest_nat", [t]);
 
@@ -508,12 +508,12 @@ fun add_numerals (Const ("Int.number_class.number_of", Type (_, [_, T])) $ t) = 
   | add_numerals (Abs (_, _, t)) = add_numerals t
   | add_numerals _ = I;
 
-fun mk_number T 0 = Const ("HOL.zero_class.zero", T)
-  | mk_number T 1 = Const ("HOL.one_class.one", T)
+fun mk_number T 0 = Const ("Algebras.zero_class.zero", T)
+  | mk_number T 1 = Const ("Algebras.one_class.one", T)
   | mk_number T i = number_of_const T $ mk_numeral i;
 
-fun dest_number (Const ("HOL.zero_class.zero", T)) = (T, 0)
-  | dest_number (Const ("HOL.one_class.one", T)) = (T, 1)
+fun dest_number (Const ("Algebras.zero_class.zero", T)) = (T, 0)
+  | dest_number (Const ("Algebras.one_class.one", T)) = (T, 1)
   | dest_number (Const ("Int.number_class.number_of", Type ("fun", [_, T])) $ t) =
       (T, dest_numeral t)
   | dest_number t = raise TERM ("dest_number", [t]);

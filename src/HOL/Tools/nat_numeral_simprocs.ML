@@ -32,7 +32,7 @@ fun find_first_numeral past (t::terms) =
   | find_first_numeral past [] = raise TERM("find_first_numeral", []);
 
 val zero = mk_number 0;
-val mk_plus = HOLogic.mk_binop @{const_name HOL.plus};
+val mk_plus = HOLogic.mk_binop @{const_name Algebras.plus};
 
 (*Thus mk_sum[t] yields t+0; longer sums don't have a trailing zero*)
 fun mk_sum []        = zero
@@ -43,7 +43,7 @@ fun mk_sum []        = zero
 fun long_mk_sum []        = HOLogic.zero
   | long_mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
 
-val dest_plus = HOLogic.dest_bin @{const_name HOL.plus} HOLogic.natT;
+val dest_plus = HOLogic.dest_bin @{const_name Algebras.plus} HOLogic.natT;
 
 
 (** Other simproc items **)
@@ -61,14 +61,14 @@ val bin_simps =
 (*** CancelNumerals simprocs ***)
 
 val one = mk_number 1;
-val mk_times = HOLogic.mk_binop @{const_name HOL.times};
+val mk_times = HOLogic.mk_binop @{const_name Algebras.times};
 
 fun mk_prod [] = one
   | mk_prod [t] = t
   | mk_prod (t :: ts) = if t = one then mk_prod ts
                         else mk_times (t, mk_prod ts);
 
-val dest_times = HOLogic.dest_bin @{const_name HOL.times} HOLogic.natT;
+val dest_times = HOLogic.dest_bin @{const_name Algebras.times} HOLogic.natT;
 
 fun dest_prod t =
       let val (t,u) = dest_times t
@@ -176,8 +176,8 @@ structure EqCancelNumerals = CancelNumeralsFun
 structure LessCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = Arith_Data.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less}
-  val dest_bal = HOLogic.dest_bin @{const_name HOL.less} HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Algebras.less}
+  val dest_bal = HOLogic.dest_bin @{const_name Algebras.less} HOLogic.natT
   val bal_add1 = @{thm nat_less_add_iff1} RS trans
   val bal_add2 = @{thm nat_less_add_iff2} RS trans
 );
@@ -185,8 +185,8 @@ structure LessCancelNumerals = CancelNumeralsFun
 structure LeCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = Arith_Data.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less_eq}
-  val dest_bal = HOLogic.dest_bin @{const_name HOL.less_eq} HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Algebras.less_eq}
+  val dest_bal = HOLogic.dest_bin @{const_name Algebras.less_eq} HOLogic.natT
   val bal_add1 = @{thm nat_le_add_iff1} RS trans
   val bal_add2 = @{thm nat_le_add_iff2} RS trans
 );
@@ -194,8 +194,8 @@ structure LeCancelNumerals = CancelNumeralsFun
 structure DiffCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = Arith_Data.prove_conv
-  val mk_bal   = HOLogic.mk_binop @{const_name HOL.minus}
-  val dest_bal = HOLogic.dest_bin @{const_name HOL.minus} HOLogic.natT
+  val mk_bal   = HOLogic.mk_binop @{const_name Algebras.minus}
+  val dest_bal = HOLogic.dest_bin @{const_name Algebras.minus} HOLogic.natT
   val bal_add1 = @{thm nat_diff_add_eq1} RS trans
   val bal_add2 = @{thm nat_diff_add_eq2} RS trans
 );
@@ -308,8 +308,8 @@ structure EqCancelNumeralFactor = CancelNumeralFactorFun
 structure LessCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Arith_Data.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less}
-  val dest_bal = HOLogic.dest_bin @{const_name HOL.less} HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Algebras.less}
+  val dest_bal = HOLogic.dest_bin @{const_name Algebras.less} HOLogic.natT
   val cancel = @{thm nat_mult_less_cancel1} RS trans
   val neg_exchanges = true
 )
@@ -317,8 +317,8 @@ structure LessCancelNumeralFactor = CancelNumeralFactorFun
 structure LeCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Arith_Data.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less_eq}
-  val dest_bal = HOLogic.dest_bin @{const_name HOL.less_eq} HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Algebras.less_eq}
+  val dest_bal = HOLogic.dest_bin @{const_name Algebras.less_eq} HOLogic.natT
   val cancel = @{thm nat_mult_le_cancel1} RS trans
   val neg_exchanges = true
 )
@@ -387,16 +387,16 @@ structure EqCancelFactor = ExtractCommonTermFun
 structure LessCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Arith_Data.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less}
-  val dest_bal = HOLogic.dest_bin @{const_name HOL.less} HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Algebras.less}
+  val dest_bal = HOLogic.dest_bin @{const_name Algebras.less} HOLogic.natT
   fun simp_conv _ _ = SOME @{thm nat_mult_less_cancel_disj}
 );
 
 structure LeCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Arith_Data.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less_eq}
-  val dest_bal = HOLogic.dest_bin @{const_name HOL.less_eq} HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Algebras.less_eq}
+  val dest_bal = HOLogic.dest_bin @{const_name Algebras.less_eq} HOLogic.natT
   fun simp_conv _ _ = SOME @{thm nat_mult_le_cancel_disj}
 );
 

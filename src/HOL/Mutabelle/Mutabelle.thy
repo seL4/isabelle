@@ -7,16 +7,16 @@ ML {*
 val comms = [@{const_name "op ="}, @{const_name "op |"}, @{const_name "op &"}];
 
 val forbidden =
- [(@{const_name "power"}, "'a"),
-  ("HOL.induct_equal", "'a"),
-  ("HOL.induct_implies", "'a"),
-  ("HOL.induct_conj", "'a"),
-  (@{const_name "undefined"}, "'a"),
-  (@{const_name "default"}, "'a"),
-  (@{const_name "dummy_pattern"}, "'a::{}"),
-  (@{const_name "uminus"}, "'a"),
-  (@{const_name "Nat.size"}, "'a"),
-  (@{const_name "HOL.abs"}, "'a")];
+ [(@{const_name Power.power}, "'a"),
+  (@{const_name HOL.induct_equal}, "'a"),
+  (@{const_name HOL.induct_implies}, "'a"),
+  (@{const_name HOL.induct_conj}, "'a"),
+  (@{const_name HOL.undefined}, "'a"),
+  (@{const_name HOL.default}, "'a"),
+  (@{const_name dummy_pattern}, "'a::{}"),
+  (@{const_name Algebras.uminus}, "'a"),
+  (@{const_name Nat.size}, "'a"),
+  (@{const_name Algebras.abs}, "'a")];
 
 val forbidden_thms =
  ["finite_intvl_succ_class",

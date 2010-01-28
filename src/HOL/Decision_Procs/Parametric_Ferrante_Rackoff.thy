@@ -2963,11 +2963,11 @@ val bT = HOLogic.boolT;
 fun num rT x = HOLogic.mk_number rT x;
 fun rrelT rT = [rT,rT] ---> rT;
 fun rrT rT = [rT, rT] ---> bT;
-fun divt rT = Const(@{const_name "HOL.divide"},rrelT rT);
-fun timest rT = Const(@{const_name "HOL.times"},rrelT rT);
-fun plust rT = Const(@{const_name "HOL.plus"},rrelT rT);
-fun minust rT = Const(@{const_name "HOL.minus"},rrelT rT);
-fun uminust rT = Const(@{const_name "HOL.uminus"}, rT --> rT);
+fun divt rT = Const(@{const_name Algebras.divide},rrelT rT);
+fun timest rT = Const(@{const_name Algebras.times},rrelT rT);
+fun plust rT = Const(@{const_name Algebras.plus},rrelT rT);
+fun minust rT = Const(@{const_name Algebras.minus},rrelT rT);
+fun uminust rT = Const(@{const_name Algebras.uminus}, rT --> rT);
 fun powt rT = Const(@{const_name "power"}, [rT,@{typ "nat"}] ---> rT);
 val brT = [bT, bT] ---> bT;
 val nott = @{term "Not"};
@@ -2975,10 +2975,10 @@ val conjt = @{term "op &"};
 val disjt = @{term "op |"};
 val impt = @{term "op -->"};
 val ifft = @{term "op = :: bool => _"}
-fun llt rT = Const(@{const_name "HOL.less"},rrT rT);
-fun lle rT = Const(@{const_name "HOL.less"},rrT rT);
+fun llt rT = Const(@{const_name Algebras.less},rrT rT);
+fun lle rT = Const(@{const_name Algebras.less},rrT rT);
 fun eqt rT = Const("op =",rrT rT);
-fun rz rT = Const(@{const_name "HOL.zero"},rT);
+fun rz rT = Const(@{const_name Algebras.zero},rT);
 
 fun dest_nat t = case t of
   Const ("Suc",_)$t' => 1 + dest_nat t'
@@ -2986,21 +2986,21 @@ fun dest_nat t = case t of
 
 fun num_of_term m t = 
  case t of
-   Const(@{const_name "uminus"},_)$t => FRPar.Neg (num_of_term m t)
- | Const(@{const_name "HOL.plus"},_)$a$b => FRPar.Add (num_of_term m a, num_of_term m b)
- | Const(@{const_name "HOL.minus"},_)$a$b => FRPar.Sub (num_of_term m a, num_of_term m b)
- | Const(@{const_name "HOL.times"},_)$a$b => FRPar.Mul (num_of_term m a, num_of_term m b)
- | Const(@{const_name "power"},_)$a$n => FRPar.Pw (num_of_term m a, dest_nat n)
- | Const(@{const_name "HOL.divide"},_)$a$b => FRPar.C (HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
+   Const(@{const_name Algebras.uminus},_)$t => FRPar.Neg (num_of_term m t)
+ | Const(@{const_name Algebras.plus},_)$a$b => FRPar.Add (num_of_term m a, num_of_term m b)
+ | Const(@{const_name Algebras.minus},_)$a$b => FRPar.Sub (num_of_term m a, num_of_term m b)
+ | Const(@{const_name Algebras.times},_)$a$b => FRPar.Mul (num_of_term m a, num_of_term m b)
+ | Const(@{const_name Power.power},_)$a$n => FRPar.Pw (num_of_term m a, dest_nat n)
+ | Const(@{const_name Algebras.divide},_)$a$b => FRPar.C (HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
  | _ => (FRPar.C (HOLogic.dest_number t |> snd,1) 
          handle TERM _ => FRPar.Bound (AList.lookup (op aconv) m t |> the));
 
 fun tm_of_term m m' t = 
  case t of
-   Const(@{const_name "uminus"},_)$t => FRPar.tm_Neg (tm_of_term m m' t)
- | Const(@{const_name "HOL.plus"},_)$a$b => FRPar.tm_Add (tm_of_term m m' a, tm_of_term m m' b)
- | Const(@{const_name "HOL.minus"},_)$a$b => FRPar.tm_Sub (tm_of_term m m' a, tm_of_term m m' b)
- | Const(@{const_name "HOL.times"},_)$a$b => FRPar.tm_Mul (num_of_term m' a, tm_of_term m m' b)
+   Const(@{const_name Algebras.uminus},_)$t => FRPar.tm_Neg (tm_of_term m m' t)
+ | Const(@{const_name Algebras.plus},_)$a$b => FRPar.tm_Add (tm_of_term m m' a, tm_of_term m m' b)
+ | Const(@{const_name Algebras.minus},_)$a$b => FRPar.tm_Sub (tm_of_term m m' a, tm_of_term m m' b)
+ | Const(@{const_name Algebras.times},_)$a$b => FRPar.tm_Mul (num_of_term m' a, tm_of_term m m' b)
  | _ => (FRPar.CP (num_of_term m' t) 
          handle TERM _ => FRPar.tm_Bound (AList.lookup (op aconv) m t |> the)
               | Option => FRPar.tm_Bound (AList.lookup (op aconv) m t |> the));
@@ -3040,9 +3040,9 @@ fun fm_of_term m m' fm =
   | Const("op =",ty)$p$q => 
        if domain_type ty = bT then FRPar.Iff(fm_of_term m m' p, fm_of_term m m' q)
        else FRPar.Eq (FRPar.tm_Sub(tm_of_term m m' p, tm_of_term m m' q))
-  | Const(@{const_name "HOL.less"},_)$p$q => 
+  | Const(@{const_name Algebras.less},_)$p$q => 
         FRPar.Lt (FRPar.tm_Sub(tm_of_term m m' p, tm_of_term m m' q))
-  | Const(@{const_name "HOL.less_eq"},_)$p$q => 
+  | Const(@{const_name Algebras.less_eq},_)$p$q => 
         FRPar.Le (FRPar.tm_Sub(tm_of_term m m' p, tm_of_term m m' q))
   | Const("Ex",_)$Abs(xn,xT,p) => 
      let val (xn', p') =  variant_abs (xn,xT,p)

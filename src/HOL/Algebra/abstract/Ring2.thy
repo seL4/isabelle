@@ -205,8 +205,8 @@ lemma r_minus: "(a::'a::ring) * (-b) = - (a * b)"
 ML {*
 fun ring_ord (Const (a, _)) =
     find_index (fn a' => a = a')
-      [@{const_name HOL.zero}, @{const_name HOL.plus}, @{const_name HOL.uminus},
-        @{const_name HOL.minus}, @{const_name HOL.one}, @{const_name HOL.times}]
+      [@{const_name Algebras.zero}, @{const_name Algebras.plus}, @{const_name Algebras.uminus},
+        @{const_name Algebras.minus}, @{const_name Algebras.one}, @{const_name Algebras.times}]
   | ring_ord _ = ~1;
 
 fun termless_ring (a, b) = (TermOrd.term_lpo ring_ord (a, b) = LESS);

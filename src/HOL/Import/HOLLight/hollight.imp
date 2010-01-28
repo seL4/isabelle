@@ -238,10 +238,10 @@ const_maps
   "<=" > "HOLLight.hollight.<="
   "<" > "HOLLight.hollight.<"
   "/\\" > "op &"
-  "-" > "HOL.minus_class.minus" :: "nat => nat => nat"
+  "-" > "Algebras.minus_class.minus" :: "nat => nat => nat"
   "," > "Pair"
-  "+" > "HOL.plus_class.plus" :: "nat => nat => nat"
-  "*" > "HOL.times_class.times" :: "nat => nat => nat"
+  "+" > "Algebras.plus_class.plus" :: "nat => nat => nat"
+  "*" > "Algebras.times_class.times" :: "nat => nat => nat"
   "$" > "HOLLight.hollight.$"
   "!" > "All"
 

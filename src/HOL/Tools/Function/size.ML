@@ -25,7 +25,7 @@ structure SizeData = Theory_Data
 
 val lookup_size = SizeData.get #> Symtab.lookup;
 
-fun plus (t1, t2) = Const ("HOL.plus_class.plus",
+fun plus (t1, t2) = Const (@{const_name Algebras.plus},
   HOLogic.natT --> HOLogic.natT --> HOLogic.natT) $ t1 $ t2;
 
 fun size_of_type f g h (T as Type (s, Ts)) =

@@ -74,7 +74,7 @@ fun atom for_auto T j =
     Const (atom_name "" T j, T)
 
 (* term -> real *)
-fun extract_real_number (Const (@{const_name HOL.divide}, _) $ t1 $ t2) =
+fun extract_real_number (Const (@{const_name Algebras.divide}, _) $ t1 $ t2) =
     real (snd (HOLogic.dest_number t1)) / real (snd (HOLogic.dest_number t2))
   | extract_real_number t = real (snd (HOLogic.dest_number t))
 (* term * term -> order *)
@@ -434,7 +434,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
                            0 => mk_num 0
                          | n1 => case HOLogic.dest_number t2 |> snd of
                                    1 => mk_num n1
-                                 | n2 => Const (@{const_name HOL.divide},
+                                 | n2 => Const (@{const_name Algebras.divide},
                                                 num_T --> num_T --> num_T)
                                          $ mk_num n1 $ mk_num n2)
                       | _ => raise TERM ("Nitpick_Model.reconstruct_term.term_\

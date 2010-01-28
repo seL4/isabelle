@@ -23,10 +23,10 @@ const_maps
   "ALT_ZERO" > "HOL4Compat.ALT_ZERO"
   ">=" > "HOL4Compat.nat_ge"
   ">" > "HOL4Compat.nat_gt"
-  "<=" > "HOL.ord_class.less_eq" :: "nat => nat => bool"
-  "-" > "HOL.minus_class.minus" :: "nat => nat => nat"
-  "+" > "HOL.plus_class.plus" :: "nat => nat => nat"
-  "*" > "HOL.times_class.times" :: "nat => nat => nat"
+  "<=" > "Algebras.ord_class.less_eq" :: "nat => nat => bool"
+  "-" > "Algebras.minus_class.minus" :: "nat => nat => nat"
+  "+" > "Algebras.plus_class.plus" :: "nat => nat => nat"
+  "*" > "Algebras.times_class.times" :: "nat => nat => nat"
 
 thm_maps
   "num_case_def" > "HOL4Compat.num_case_def"

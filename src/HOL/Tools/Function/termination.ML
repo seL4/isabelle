@@ -203,10 +203,10 @@ fun mk_desc thy tac vs Gam l r m1 m2 =
              HOLogic.mk_Trueprop (Const (rel, @{typ "nat => nat => bool"})
                $ (m2 $ r) $ (m1 $ l)))))) tac
   in
-    case try @{const_name HOL.less} of
+    case try @{const_name Algebras.less} of
        Solved thm => Less thm
      | Stuck thm =>
-       (case try @{const_name HOL.less_eq} of
+       (case try @{const_name Algebras.less_eq} of
           Solved thm2 => LessEq (thm2, thm)
         | Stuck thm2 =>
           if prems_of thm2 = [HOLogic.Trueprop $ HOLogic.false_const]

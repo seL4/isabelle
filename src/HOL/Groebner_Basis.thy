@@ -527,13 +527,13 @@ local
     val (l,r) = Thm.dest_binop ct
     val T = ctyp_of_term l
   in (case (term_of l, term_of r) of
-      (Const(@{const_name "HOL.divide"},_)$_$_, _) =>
+      (Const(@{const_name Algebras.divide},_)$_$_, _) =>
         let val (x,y) = Thm.dest_binop l val z = r
             val _ = map (HOLogic.dest_number o term_of) [x,y,z]
             val ynz = prove_nz ss T y
         in SOME (implies_elim (instantiate' [SOME T] (map SOME [y,x,z]) add_frac_num) ynz)
         end
-     | (_, Const (@{const_name "HOL.divide"},_)$_$_) =>
+     | (_, Const (@{const_name Algebras.divide},_)$_$_) =>
         let val (x,y) = Thm.dest_binop r val z = l
             val _ = map (HOLogic.dest_number o term_of) [x,y,z]
             val ynz = prove_nz ss T y
@@ -543,49 +543,49 @@ local
   end
   handle CTERM _ => NONE | TERM _ => NONE | THM _ => NONE
 
- fun is_number (Const(@{const_name "HOL.divide"},_)$a$b) = is_number a andalso is_number b
+ fun is_number (Const(@{const_name Algebras.divide},_)$a$b) = is_number a andalso is_number b
    | is_number t = can HOLogic.dest_number t
 
  val is_number = is_number o term_of
 
  fun proc3 phi ss ct =
   (case term_of ct of
-    Const(@{const_name HOL.less},_)$(Const(@{const_name "HOL.divide"},_)$_$_)$_ =>
+    Const(@{const_name Algebras.less},_)$(Const(@{const_name Algebras.divide},_)$_$_)$_ =>
       let
         val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_less_eq"}
       in SOME (mk_meta_eq th) end
-  | Const(@{const_name HOL.less_eq},_)$(Const(@{const_name "HOL.divide"},_)$_$_)$_ =>
+  | Const(@{const_name Algebras.less_eq},_)$(Const(@{const_name Algebras.divide},_)$_$_)$_ =>
       let
         val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_le_eq"}
       in SOME (mk_meta_eq th) end
-  | Const("op =",_)$(Const(@{const_name "HOL.divide"},_)$_$_)$_ =>
+  | Const("op =",_)$(Const(@{const_name Algebras.divide},_)$_$_)$_ =>
       let
         val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_eq_eq"}
       in SOME (mk_meta_eq th) end
-  | Const(@{const_name HOL.less},_)$_$(Const(@{const_name "HOL.divide"},_)$_$_) =>
+  | Const(@{const_name Algebras.less},_)$_$(Const(@{const_name Algebras.divide},_)$_$_) =>
     let
       val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "less_divide_eq"}
       in SOME (mk_meta_eq th) end
-  | Const(@{const_name HOL.less_eq},_)$_$(Const(@{const_name "HOL.divide"},_)$_$_) =>
+  | Const(@{const_name Algebras.less_eq},_)$_$(Const(@{const_name Algebras.divide},_)$_$_) =>
     let
       val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "le_divide_eq"}
       in SOME (mk_meta_eq th) end
-  | Const("op =",_)$_$(Const(@{const_name "HOL.divide"},_)$_$_) =>
+  | Const("op =",_)$_$(Const(@{const_name Algebras.divide},_)$_$_) =>
     let
       val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
         val _ = map is_number [a,b,c]
@@ -645,15 +645,15 @@ end
 
 fun numeral_is_const ct =
   case term_of ct of
-   Const (@{const_name "HOL.divide"},_) $ a $ b =>
+   Const (@{const_name Algebras.divide},_) $ a $ b =>
      can HOLogic.dest_number a andalso can HOLogic.dest_number b
- | Const (@{const_name "HOL.inverse"},_)$t => can HOLogic.dest_number t
+ | Const (@{const_name Algebras.inverse},_)$t => can HOLogic.dest_number t
  | t => can HOLogic.dest_number t
 
 fun dest_const ct = ((case term_of ct of
-   Const (@{const_name "HOL.divide"},_) $ a $ b=>
+   Const (@{const_name Algebras.divide},_) $ a $ b=>
     Rat.rat_of_quotient (snd (HOLogic.dest_number a), snd (HOLogic.dest_number b))
- | Const (@{const_name "HOL.inverse"},_)$t => 
+ | Const (@{const_name Algebras.inverse},_)$t => 
                Rat.inv (Rat.rat_of_int (snd (HOLogic.dest_number t)))
  | t => Rat.rat_of_int (snd (HOLogic.dest_number t))) 
    handle TERM _ => error "ring_dest_const")

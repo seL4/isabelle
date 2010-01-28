@@ -36,7 +36,7 @@ apply (simp del: setsum_op_ivl_Suc)
 apply (subst setsum_op_ivl_Suc)
 apply (subst lemma_realpow_diff_sumr)
 apply (simp add: right_distrib del: setsum_op_ivl_Suc)
-apply (subst mult_left_commute [where a="x - y"])
+apply (subst mult_left_commute [of "x - y"])
 apply (erule subst)
 apply (simp add: algebra_simps)
 done

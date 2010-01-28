@@ -58,7 +58,7 @@ fun mk_CollectC trm =
   let val T as Type ("fun",[t,_]) = fastype_of trm
   in Collect_const t $ trm end;
 
-fun inclt ty = Const (@{const_name HOL.less_eq}, [ty,ty] ---> boolT);
+fun inclt ty = Const (@{const_name Algebras.less_eq}, [ty,ty] ---> boolT);
 
 
 fun Mset ctxt prop =

@@ -1561,7 +1561,7 @@ fun compile_pred compilation_modifiers thy all_vs param_vs s T mode moded_cls =
   end;
 
 (* special setup for simpset *)                  
-val HOL_basic_ss' = HOL_basic_ss addsimps (@{thms "HOL.simp_thms"} @ [@{thm Pair_eq}])
+val HOL_basic_ss' = HOL_basic_ss addsimps (@{thms HOL.simp_thms} @ [@{thm Pair_eq}])
   setSolver (mk_solver "all_tac_solver" (fn _ => fn _ => all_tac))
   setSolver (mk_solver "True_solver" (fn _ => rtac @{thm TrueI}))
 
@@ -1817,7 +1817,7 @@ fun prove_match options thy (out_ts : term list) =
      (* make this simpset better! *)
     asm_full_simp_tac (HOL_basic_ss' addsimps simprules) 1
     THEN print_tac' options "after prove_match:"
-    THEN (DETERM (TRY (EqSubst.eqsubst_tac (ProofContext.init thy) [0] [@{thm "HOL.if_P"}] 1
+    THEN (DETERM (TRY (EqSubst.eqsubst_tac (ProofContext.init thy) [0] [@{thm HOL.if_P}] 1
            THEN (REPEAT_DETERM (rtac @{thm conjI} 1 THEN (SOLVED (asm_simp_tac HOL_basic_ss' 1))))
            THEN print_tac' options "if condition to be solved:"
            THEN (SOLVED (asm_simp_tac HOL_basic_ss' 1 THEN print_tac' options "after if simp; in SOLVED:"))
@@ -1843,7 +1843,7 @@ fun prove_sidecond thy modes t =
   in 
     (* remove not_False_eq_True when simpset in prove_match is better *)
     simp_tac (HOL_basic_ss addsimps
-      (@{thms "HOL.simp_thms"} @ (@{thm not_False_eq_True} :: @{thm eval_pred} :: defs))) 1 
+      (@{thms HOL.simp_thms} @ (@{thm not_False_eq_True} :: @{thm eval_pred} :: defs))) 1 
     (* need better control here! *)
   end
 
@@ -2435,8 +2435,8 @@ val depth_limited_comp_modifiers = Comp_Mod.Comp_Modifiers
       val [polarity, depth] = additional_arguments
       val polarity' = (case prem of Prem _ => I | Negprem _ => HOLogic.mk_not | _ => I) polarity
       val depth' =
-        Const ("HOL.minus_class.minus", @{typ "code_numeral => code_numeral => code_numeral"})
-          $ depth $ Const ("HOL.one_class.one", @{typ "Code_Numeral.code_numeral"})
+        Const ("Algebras.minus", @{typ "code_numeral => code_numeral => code_numeral"})
+          $ depth $ Const ("Algebras.one", @{typ "Code_Numeral.code_numeral"})
     in [polarity', depth'] end
   }
 

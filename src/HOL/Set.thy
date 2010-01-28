@@ -928,7 +928,7 @@ lemmas split_ifs = if_bool_eq_conj split_if_eq1 split_if_eq2 split_if_mem1 split
   outer-level constant, which in this case is just "op :"; we instead need
   to use term-nets to associate patterns with rules.  Also, if a rule fails to
   apply, then the formula should be kept.
-  [("HOL.uminus", Compl_iff RS iffD1), ("HOL.minus", [Diff_iff RS iffD1]),
+  [("uminus", Compl_iff RS iffD1), ("minus", [Diff_iff RS iffD1]),
    ("Int", [IntD1,IntD2]),
    ("Collect", [CollectD]), ("Inter", [InterD]), ("INTER", [INT_D])]
  *)

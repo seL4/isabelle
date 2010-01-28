@@ -76,9 +76,9 @@ const_maps
   SUC > Suc
   PRE > HOLLightCompat.Pred
   NUMERAL > HOL4Compat.NUMERAL
-  "+" > HOL.plus :: "nat \<Rightarrow> nat \<Rightarrow> nat" 
-  "*" > HOL.times :: "nat \<Rightarrow> nat \<Rightarrow> nat"
-  "-" > HOL.minus :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+  "+" > Algebras.plus :: "nat \<Rightarrow> nat \<Rightarrow> nat" 
+  "*" > Algebras.times :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+  "-" > Algebras.minus :: "nat \<Rightarrow> nat \<Rightarrow> nat"
   BIT0 > HOLLightCompat.NUMERAL_BIT0
   BIT1 > HOL4Compat.NUMERAL_BIT1
   INL > Sum_Type.Inl

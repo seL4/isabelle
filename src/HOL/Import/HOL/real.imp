@@ -10,14 +10,14 @@ def_maps
 const_maps
   "sup" > "HOL4Real.real.sup"
   "sum" > "HOL4Real.real.sum"
-  "real_sub" > "HOL.minus_class.minus" :: "real => real => real"
+  "real_sub" > "Algebras.minus" :: "real => real => real"
   "real_of_num" > "RealDef.real" :: "nat => real"
-  "real_lte" > "HOL.ord_class.less_eq" :: "real => real => bool"
+  "real_lte" > "Algebras.less_eq" :: "real => real => bool"
   "real_gt" > "HOL4Compat.real_gt"
   "real_ge" > "HOL4Compat.real_ge"
   "pow" > "Power.power_class.power" :: "real => nat => real"
-  "abs" > "HOL.minus_class.abs" :: "real => real"
-  "/" > "HOL.divides_class.divide" :: "real => real => real"
+  "abs" > "Algebras.abs" :: "real => real"
+  "/" > "Algebras.divide" :: "real => real => real"
 
 thm_maps
   "sup_def" > "HOL4Real.real.sup_def"

@@ -63,21 +63,21 @@ fun svc_abstract t =
     (*abstraction of a numeric literal*)
     fun lit t = if can HOLogic.dest_number t then t else replace t;
     (*abstraction of a real/rational expression*)
-    fun rat ((c as Const(@{const_name HOL.plus}, _)) $ x $ y) = c $ (rat x) $ (rat y)
-      | rat ((c as Const(@{const_name HOL.minus}, _)) $ x $ y) = c $ (rat x) $ (rat y)
-      | rat ((c as Const(@{const_name HOL.divide}, _)) $ x $ y) = c $ (rat x) $ (rat y)
-      | rat ((c as Const(@{const_name HOL.times}, _)) $ x $ y) = c $ (rat x) $ (rat y)
-      | rat ((c as Const(@{const_name HOL.uminus}, _)) $ x) = c $ (rat x)
+    fun rat ((c as Const(@{const_name Algebras.plus}, _)) $ x $ y) = c $ (rat x) $ (rat y)
+      | rat ((c as Const(@{const_name Algebras.minus}, _)) $ x $ y) = c $ (rat x) $ (rat y)
+      | rat ((c as Const(@{const_name Algebras.divide}, _)) $ x $ y) = c $ (rat x) $ (rat y)
+      | rat ((c as Const(@{const_name Algebras.times}, _)) $ x $ y) = c $ (rat x) $ (rat y)
+      | rat ((c as Const(@{const_name Algebras.uminus}, _)) $ x) = c $ (rat x)
       | rat t = lit t
     (*abstraction of an integer expression: no div, mod*)
-    fun int ((c as Const(@{const_name HOL.plus}, _)) $ x $ y) = c $ (int x) $ (int y)
-      | int ((c as Const(@{const_name HOL.minus}, _)) $ x $ y) = c $ (int x) $ (int y)
-      | int ((c as Const(@{const_name HOL.times}, _)) $ x $ y) = c $ (int x) $ (int y)
-      | int ((c as Const(@{const_name HOL.uminus}, _)) $ x) = c $ (int x)
+    fun int ((c as Const(@{const_name Algebras.plus}, _)) $ x $ y) = c $ (int x) $ (int y)
+      | int ((c as Const(@{const_name Algebras.minus}, _)) $ x $ y) = c $ (int x) $ (int y)
+      | int ((c as Const(@{const_name Algebras.times}, _)) $ x $ y) = c $ (int x) $ (int y)
+      | int ((c as Const(@{const_name Algebras.uminus}, _)) $ x) = c $ (int x)
       | int t = lit t
     (*abstraction of a natural number expression: no minus*)
-    fun nat ((c as Const(@{const_name HOL.plus}, _)) $ x $ y) = c $ (nat x) $ (nat y)
-      | nat ((c as Const(@{const_name HOL.times}, _)) $ x $ y) = c $ (nat x) $ (nat y)
+    fun nat ((c as Const(@{const_name Algebras.plus}, _)) $ x $ y) = c $ (nat x) $ (nat y)
+      | nat ((c as Const(@{const_name Algebras.times}, _)) $ x $ y) = c $ (nat x) $ (nat y)
       | nat ((c as Const(@{const_name Suc}, _)) $ x) = c $ (nat x)
       | nat t = lit t
     (*abstraction of a relation: =, <, <=*)
@@ -95,8 +95,8 @@ fun svc_abstract t =
       | fm ((c as Const("True", _))) = c
       | fm ((c as Const("False", _))) = c
       | fm (t as Const("op =",  Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
-      | fm (t as Const(@{const_name HOL.less},  Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
-      | fm (t as Const(@{const_name HOL.less_eq}, Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
+      | fm (t as Const(@{const_name Algebras.less},  Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
+      | fm (t as Const(@{const_name Algebras.less_eq}, Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
       | fm t = replace t
     (*entry point, and abstraction of a meta-formula*)
     fun mt ((c as Const("Trueprop", _)) $ p) = c $ (fm p)

@@ -13,8 +13,8 @@ structure Commutative_Ring_Tac: COMMUTATIVE_RING_TAC =
 struct
 
 (* Zero and One of the commutative ring *)
-fun cring_zero T = Const (@{const_name HOL.zero}, T);
-fun cring_one T = Const (@{const_name HOL.one}, T);
+fun cring_zero T = Const (@{const_name Algebras.zero}, T);
+fun cring_one T = Const (@{const_name Algebras.one}, T);
 
 (* reification functions *)
 (* add two polynom expressions *)
@@ -49,13 +49,13 @@ fun reif_pol T vs (t as Free _) =
   | reif_pol T vs t = pol_Pc T $ t;
 
 (* reification of polynom expressions *)
-fun reif_polex T vs (Const (@{const_name HOL.plus}, _) $ a $ b) =
+fun reif_polex T vs (Const (@{const_name Algebras.plus}, _) $ a $ b) =
       polex_add T $ reif_polex T vs a $ reif_polex T vs b
-  | reif_polex T vs (Const (@{const_name HOL.minus}, _) $ a $ b) =
+  | reif_polex T vs (Const (@{const_name Algebras.minus}, _) $ a $ b) =
       polex_sub T $ reif_polex T vs a $ reif_polex T vs b
-  | reif_polex T vs (Const (@{const_name HOL.times}, _) $ a $ b) =
+  | reif_polex T vs (Const (@{const_name Algebras.times}, _) $ a $ b) =
       polex_mul T $ reif_polex T vs a $ reif_polex T vs b
-  | reif_polex T vs (Const (@{const_name HOL.uminus}, _) $ a) =
+  | reif_polex T vs (Const (@{const_name Algebras.uminus}, _) $ a) =
       polex_neg T $ reif_polex T vs a
   | reif_polex T vs (Const (@{const_name Power.power}, _) $ a $ n) =
       polex_pow T $ reif_polex T vs a $ n

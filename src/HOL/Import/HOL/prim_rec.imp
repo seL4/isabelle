@@ -18,7 +18,7 @@ const_maps
   "PRIM_REC_FUN" > "HOL4Base.prim_rec.PRIM_REC_FUN"
   "PRIM_REC" > "HOL4Base.prim_rec.PRIM_REC"
   "PRE" > "HOL4Base.prim_rec.PRE"
-  "<" > "HOL.ord_class.less" :: "nat => nat => bool"
+  "<" > "Algebras.less" :: "nat => nat => bool"
 
 thm_maps
   "wellfounded_primdef" > "HOL4Base.prim_rec.wellfounded_primdef"

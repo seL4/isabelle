@@ -33,7 +33,7 @@ ML {* set Lin_Arith.trace; *}
 *)
 
 subsection {* Splitting of Operators: @{term max}, @{term min}, @{term abs},
-           @{term HOL.minus}, @{term nat}, @{term Divides.mod},
+           @{term Algebras.minus}, @{term nat}, @{term Divides.mod},
            @{term Divides.div} *}
 
 lemma "(i::nat) <= max i j"

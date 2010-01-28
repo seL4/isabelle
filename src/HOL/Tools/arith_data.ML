@@ -75,11 +75,11 @@ val setup =
 
 fun mk_number T n = HOLogic.number_of_const T $ HOLogic.mk_numeral n;
 
-val mk_plus = HOLogic.mk_binop @{const_name HOL.plus};
+val mk_plus = HOLogic.mk_binop @{const_name Algebras.plus};
 
 fun mk_minus t = 
   let val T = Term.fastype_of t
-  in Const (@{const_name HOL.uminus}, T --> T) $ t end;
+  in Const (@{const_name Algebras.uminus}, T --> T) $ t end;
 
 (*Thus mk_sum[t] yields t+0; longer sums don't have a trailing zero*)
 fun mk_sum T []        = mk_number T 0
@@ -91,9 +91,9 @@ fun long_mk_sum T []        = mk_number T 0
   | long_mk_sum T (t :: ts) = mk_plus (t, mk_sum T ts);
 
 (*decompose additions AND subtractions as a sum*)
-fun dest_summing (pos, Const (@{const_name HOL.plus}, _) $ t $ u, ts) =
+fun dest_summing (pos, Const (@{const_name Algebras.plus}, _) $ t $ u, ts) =
         dest_summing (pos, t, dest_summing (pos, u, ts))
-  | dest_summing (pos, Const (@{const_name HOL.minus}, _) $ t $ u, ts) =
+  | dest_summing (pos, Const (@{const_name Algebras.minus}, _) $ t $ u, ts) =
         dest_summing (pos, t, dest_summing (not pos, u, ts))
   | dest_summing (pos, t, ts) =
         if pos then t::ts else mk_minus t :: ts;

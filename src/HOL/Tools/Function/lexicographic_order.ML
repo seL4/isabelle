@@ -80,10 +80,10 @@ fun mk_cell (thy : theory) solve_tac (vars, prems, lhs, rhs) mfun =
   let
     val goals = cterm_of thy o mk_goal (vars, prems, mfun $ lhs, mfun $ rhs)
   in
-    case try_proof (goals @{const_name HOL.less}) solve_tac of
+    case try_proof (goals @{const_name Algebras.less}) solve_tac of
       Solved thm => Less thm
     | Stuck thm =>
-      (case try_proof (goals @{const_name HOL.less_eq}) solve_tac of
+      (case try_proof (goals @{const_name Algebras.less_eq}) solve_tac of
          Solved thm2 => LessEq (thm2, thm)
        | Stuck thm2 =>
          if prems_of thm2 = [HOLogic.Trueprop $ HOLogic.false_const] then False thm2

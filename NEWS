@@ -12,6 +12,11 @@ the user space functionality any longer.
 
 *** HOL ***
 
+* new theory Algebras.thy contains generic algebraic structures and
+generic algebraic operations.  INCOMPATIBILTY: constants zero, one,
+plus, minus, uminus, times, inverse, divide, abs, sgn, less_eq and less
+have been moved from HOL.thy to Algebras.thy.
+
 * HOLogic.strip_psplit: types are returned in syntactic order, similar
 to other strip and tuple operations.  INCOMPATIBILITY.
 

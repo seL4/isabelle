@@ -99,7 +99,7 @@ fun union_all xss = List.foldl (uncurry (union (op =))) [] xss;
 (*Provide readable names for the more common symbolic functions*)
 val const_trans_table =
       Symtab.make [(@{const_name "op ="}, "equal"),
-                   (@{const_name HOL.less_eq}, "lessequals"),
+                   (@{const_name Algebras.less_eq}, "lessequals"),
                    (@{const_name "op &"}, "and"),
                    (@{const_name "op |"}, "or"),
                    (@{const_name "op -->"}, "implies"),
