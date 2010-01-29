@@ -29,6 +29,13 @@
 \renewcommand{\isatagmlref}{\subsection*{\makebox[0pt][r]{\fbox{\ML}~~}Reference}\begingroup\def\isastyletext{\rm}\small}
 \renewcommand{\endisatagmlref}{\endgroup}
 
+\isakeeptag{mlex}
+\renewcommand{\isatagmlex}{\subsection*{\makebox[0pt][r]{\fbox{\ML}~~}Examples}}
+\renewcommand{\endisatagmlex}{}
+
+\renewcommand{\isatagML}{\begingroup\isabellestyle{default}\isastyle\def\isadigit##1{##1}}
+\renewcommand{\endisatagML}{\endgroup}
+
 \newcommand{\minorcmd}[1]{{\sf #1}}
 \newcommand{\isasymtype}{\minorcmd{type}}
 \newcommand{\isasymval}{\minorcmd{val}}
