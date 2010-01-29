@@ -209,6 +209,85 @@ text %mlref {*
   \end{description}
 *}
 
+text %mlex {*
+  The following artificial example demonstrates theory
+  data: we maintain a set of terms that are supposed to be wellformed
+  wrt.\ the enclosing theory.  The public interface is as follows:
+*}
+
+ML {*
+signature WELLFORMED_TERMS =
+sig
+  val get: theory -> term list
+  val add: term -> theory -> theory
+end;
+*}
+
+text {* \noindent The implementation uses private theory data
+  internally, and only exposes an operation that involves explicit
+  argument checking wrt.\ the given theory. *}
+
+ML {*
+structure Wellformed_Terms: WELLFORMED_TERMS =
+struct
+
+structure Terms = Theory_Data
+(
+  type T = term OrdList.T;
+  val empty = [];
+  val extend = I;
+  fun merge (ts1, ts2) =
+    OrdList.union TermOrd.fast_term_ord ts1 ts2;
+)
+
+val get = Terms.get;
+
+fun add raw_t thy =
+  let val t = Sign.cert_term thy raw_t
+  in Terms.map (OrdList.insert TermOrd.fast_term_ord t) thy end;
+
+end;
+*}
+
+text {* We use @{ML_type "term OrdList.T"} for reasonably efficient
+  representation of a set of terms: all operations are linear in the
+  number of stored elements.  Here we assume that our users do not
+  care about the declaration order, since that data structure forces
+  its own arrangement of elements.
+
+  Observe how the @{verbatim merge} operation joins the data slots of
+  the two constituents: @{ML OrdList.union} prevents duplication of
+  common data from different branches, thus avoiding the danger of
+  exponential blowup.  (Plain list append etc.\ must never be used for
+  theory data merges.)
+
+  \medskip Our intended invariant is achieved as follows:
+  \begin{enumerate}
+
+  \item @{ML Wellformed_Terms.add} only admits terms that have passed
+  the @{ML Sign.cert_term} check of the given theory at that point.
+
+  \item Wellformedness in the sense of @{ML Sign.cert_term} is
+  monotonic wrt.\ the sub-theory relation.  So our data can move
+  upwards in the hierarchy (via extension or merges), and maintain
+  wellformedness without further checks.
+
+  \end{enumerate}
+
+  Note that all basic operations of the inference kernel (which
+  includes @{ML Sign.cert_term}) observe this monotonicity principle,
+  but other user-space tools don't.  For example, fully-featured
+  type-inference via @{ML Syntax.check_term} (cf.\
+  \secref{sec:term-check}) is not necessarily monotonic wrt.\ the
+  background theory, since constraints of term constants can be
+  strengthened by later declarations, for example.
+
+  In most cases, user-space context data does not have to take such
+  invariants too seriously.  The situation is different in the
+  implementation of the inference kernel itself, which uses the very
+  same data mechanisms for types, constants, axioms etc.
+*}
+
 
 subsection {* Proof context \label{sec:context-proof} *}
 
