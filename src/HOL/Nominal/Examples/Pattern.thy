@@ -575,13 +575,13 @@ lemma typing_case_Abs:
   and R: "\<And>U. S = T \<rightarrow> U \<Longrightarrow> (x, T) # \<Gamma> \<turnstile> t : U \<Longrightarrow> P"
   shows P using ty
 proof cases
-  case (Abs x' T' \<Gamma>' t' U)
+  case (Abs x' T' t' U)
   obtain y::name where y: "y \<sharp> (x, \<Gamma>, \<lambda>x':T'. t')"
     by (rule exists_fresh) (auto intro: fin_supp)
   from `(\<lambda>x:T. t) = (\<lambda>x':T'. t')` [symmetric]
   have x: "x \<sharp> (\<lambda>x':T'. t')" by (simp add: abs_fresh)
   have x': "x' \<sharp> (\<lambda>x':T'. t')" by (simp add: abs_fresh)
-  from `(x', T') # \<Gamma>' \<turnstile> t' : U` have x'': "x' \<sharp> \<Gamma>'"
+  from `(x', T') # \<Gamma> \<turnstile> t' : U` have x'': "x' \<sharp> \<Gamma>"
     by (auto dest: valid_typing)
   have "(\<lambda>x:T. t) = (\<lambda>x':T'. t')" by fact
   also from x x' y have "\<dots> = [(x, y)] \<bullet> [(x', y)] \<bullet> (\<lambda>x':T'. t')"
@@ -592,10 +592,10 @@ proof cases
   then have T: "T = T'" and t: "[(x, y)] \<bullet> [(x', y)] \<bullet> t' = t"
     by (simp_all add: trm.inject alpha)
   from Abs T have "S = T \<rightarrow> U" by simp
-  moreover from `(x', T') # \<Gamma>' \<turnstile> t' : U`
-  have "[(x, y)] \<bullet> [(x', y)] \<bullet> ((x', T') # \<Gamma>' \<turnstile> t' : U)"
+  moreover from `(x', T') # \<Gamma> \<turnstile> t' : U`
+  have "[(x, y)] \<bullet> [(x', y)] \<bullet> ((x', T') # \<Gamma> \<turnstile> t' : U)"
     by (simp add: perm_bool)
-  with T t y `\<Gamma> = \<Gamma>'` x'' fresh have "(x, T) # \<Gamma> \<turnstile> t : U"
+  with T t y x'' fresh have "(x, T) # \<Gamma> \<turnstile> t : U"
     by (simp add: eqvts swap_simps perm_fresh_fresh fresh_prod)
   ultimately show ?thesis by (rule R)
 qed simp_all
@@ -764,7 +764,7 @@ lemma typing_case_Let:
   and R: "\<And>T \<Delta>. \<Gamma> \<turnstile> t : T \<Longrightarrow> \<turnstile> p : T \<Rightarrow> \<Delta> \<Longrightarrow> \<Delta> @ \<Gamma> \<turnstile> u : U \<Longrightarrow> P"
   shows P using ty
 proof cases
-  case (Let p' t' \<Gamma>' T \<Delta> u' U')
+  case (Let p' t' T \<Delta> u')
   then have "(supp \<Delta>::name set) \<sharp>* \<Gamma>"
     by (auto intro: valid_typing valid_app_freshs)
   with Let have "(supp p'::name set) \<sharp>* \<Gamma>"
@@ -776,7 +776,7 @@ proof cases
   moreover from Let have "pat_type p = pat_type p'"
     by (simp add: trm.inject)
   moreover note distinct
-  moreover from `\<Delta> @ \<Gamma>' \<turnstile> u' : U'` have "valid (\<Delta> @ \<Gamma>')"
+  moreover from `\<Delta> @ \<Gamma> \<turnstile> u' : U` have "valid (\<Delta> @ \<Gamma>)"
     by (rule valid_typing)
   then have "valid \<Delta>" by (rule valid_appD)
   with `\<turnstile> p' : T \<Rightarrow> \<Delta>` have "distinct (pat_vars p')"

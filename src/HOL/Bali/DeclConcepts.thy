@@ -915,23 +915,15 @@ proof -
     assume "G \<turnstile> m member_of C"
     then show "n=m"
     proof (cases)
-      case (Immediate m' _)
-      with eqid 
-      have "m=m'"
-           "memberid n = memberid m" 
-           "G\<turnstile> mbr m declared_in C" 
-           "declclass m = C"
-        by auto
-      with member_n   
+      case Immediate
+      with eqid member_n
       show ?thesis
         by (cases n, cases m) 
            (auto simp add: declared_in_def 
                            cdeclaredmethd_def cdeclaredfield_def
                     split: memberdecl.splits)
     next
-      case (Inherited m' _ _)
-      then have "G\<turnstile> memberid m undeclared_in C"
-        by simp
+      case Inherited
       with eqid member_n
       show ?thesis
         by (cases n) (auto dest: declared_not_undeclared)
@@ -1656,10 +1648,7 @@ proof -
     from member_of
     show "?Methd C"
     proof (cases)
-      case (Immediate membr Ca)
-      then have "Ca=C" "membr = method sig m" and 
-                "G\<turnstile>Methd sig m declared_in C" "declclass m = C"
-        by (cases m,auto)
+      case Immediate
       with clsC 
       have "table_of (map (\<lambda>(s, m). (s, C, m)) (methods c)) sig = Some m"
         by (cases m)
@@ -1669,13 +1658,12 @@ proof -
       show ?thesis
         by (simp add: methd_rec)
     next
-      case (Inherited membr Ca S)
+      case (Inherited S)
       with clsC
-      have eq_Ca_C: "Ca=C" and
-            undecl: "G\<turnstile>mid sig undeclared_in C" and
+      have  undecl: "G\<turnstile>mid sig undeclared_in C" and
              super: "G \<turnstile>Methd sig m member_of (super c)"
         by (auto dest: subcls1D)
-      from eq_Ca_C clsC undecl 
+      from clsC undecl 
       have "table_of (map (\<lambda>(s, m). (s, C, m)) (methods c)) sig = None"
         by (auto simp add: undeclared_in_def cdeclaredmethd_def
                     intro: table_of_mapconst_NoneI)

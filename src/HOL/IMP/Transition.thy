@@ -205,20 +205,16 @@ next
     (is "\<exists>i j s'. ?Q i j s'")
   proof (cases set: evalc1)
     case Semi1
-    then obtain s' where
-        "co = Some c2" and "s''' = s'" and "\<langle>c1, s\<rangle> \<longrightarrow>\<^sub>1 \<langle>s'\<rangle>"
-      by auto
-    with 1 n have "?Q 1 n s'" by simp
+    from `co = Some c2` and `\<langle>c1, s\<rangle> \<longrightarrow>\<^sub>1 \<langle>s'''\<rangle>` and 1 n
+    have "?Q 1 n s'''" by simp
     thus ?thesis by blast
   next
-    case Semi2
-    then obtain c1' s' where
-        "co = Some (c1'; c2)" "s''' = s'" and
-        c1: "\<langle>c1, s\<rangle> \<longrightarrow>\<^sub>1 \<langle>c1', s'\<rangle>"
-      by auto
-    with n have "\<langle>c1'; c2, s'\<rangle> -n\<rightarrow>\<^sub>1 \<langle>s''\<rangle>" by simp
+    case (Semi2 c1')
+    note c1 = `\<langle>c1, s\<rangle> \<longrightarrow>\<^sub>1 \<langle>c1', s'''\<rangle>`
+    with `co = Some (c1'; c2)` and n
+    have "\<langle>c1'; c2, s'''\<rangle> -n\<rightarrow>\<^sub>1 \<langle>s''\<rangle>" by simp
     with Suc.hyps obtain i j s0 where
-        c1': "\<langle>c1',s'\<rangle> -i\<rightarrow>\<^sub>1 \<langle>s0\<rangle>" and
+        c1': "\<langle>c1',s'''\<rangle> -i\<rightarrow>\<^sub>1 \<langle>s0\<rangle>" and
         c2:  "\<langle>c2,s0\<rangle> -j\<rightarrow>\<^sub>1 \<langle>s''\<rangle>" and
         i:   "n = i+j"
       by fast
@@ -228,7 +224,7 @@ next
     with c2 i
     have "?Q (i+1) j s0" by simp
     thus ?thesis by blast
-  qed auto -- "the remaining cases cannot occur"
+  qed
 qed
 
 
