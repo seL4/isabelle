@@ -167,6 +167,12 @@ primrec
     "remdups [] = []"
   | "remdups (x # xs) = (if x \<in> set xs then remdups xs else x # remdups xs)"
 
+definition
+  insert :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+  "insert x xs = (if x \<in> set xs then xs else x # xs)"
+
+hide (open) const insert hide (open) fact insert_def
+
 primrec
   remove1 :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
     "remove1 x [] = []"
@@ -242,6 +248,8 @@ text{*
 @{lemma "dropWhile (%n::nat. n<3) [1,2,3,0] = [3,0]" by simp}\\
 @{lemma "distinct [2,0,1::nat]" by simp}\\
 @{lemma "remdups [2,0,2,1::nat,2] = [0,1,2]" by simp}\\
+@{lemma "List.insert 2 [0::nat,1,2] = [0,1,2]" by (simp add: List.insert_def)}\\
+@{lemma "List.insert 3 [0::nat,1,2] = [3, 0,1,2]" by (simp add: List.insert_def)}\\
 @{lemma "remove1 2 [2,0,2,1::nat,2] = [0,2,1,2]" by simp}\\
 @{lemma "removeAll 2 [2,0,2,1::nat,2] = [0,1]" by simp}\\
 @{lemma "nth [a,b,c,d] 2 = c" by simp}\\
@@ -1899,6 +1907,23 @@ lemma length_zip [simp]:
 "length (zip xs ys) = min (length xs) (length ys)"
 by (induct xs ys rule:list_induct2') auto
 
+lemma zip_obtain_same_length:
+  assumes "\<And>zs ws n. length zs = length ws \<Longrightarrow> n = min (length xs) (length ys)
+    \<Longrightarrow> zs = take n xs \<Longrightarrow> ws = take n ys \<Longrightarrow> P (zip zs ws)"
+  shows "P (zip xs ys)"
+proof -
+  let ?n = "min (length xs) (length ys)"
+  have "P (zip (take ?n xs) (take ?n ys))"
+    by (rule assms) simp_all
+  moreover have "zip xs ys = zip (take ?n xs) (take ?n ys)"
+  proof (induct xs arbitrary: ys)
+    case Nil then show ?case by simp
+  next
+    case (Cons x xs) then show ?case by (cases ys) simp_all
+  qed
+  ultimately show ?thesis by simp
+qed
+
 lemma zip_append1:
 "zip (xs @ ys) zs =
 zip xs (take (length xs) zs) @ zip ys (drop (length xs) zs)"
@@ -2213,10 +2238,10 @@ lemma foldl_map[code_unfold]:
   "foldl g a (map f xs) = foldl (%a x. g a (f x)) a xs"
 by(induct xs arbitrary:a) simp_all
 
-lemma foldl_apply_inv:
-  assumes "\<And>x. g (h x) = x"
-  shows "foldl f (g s) xs = g (foldl (\<lambda>s x. h (f (g s) x)) s xs)"
-  by (rule sym, induct xs arbitrary: s) (simp_all add: assms)
+lemma foldl_apply:
+  assumes "\<And>x. x \<in> set xs \<Longrightarrow> f x \<circ> h = h \<circ> g x"
+  shows "foldl (\<lambda>s x. f x s) (h s) xs = h (foldl (\<lambda>s x. g x s) s xs)"
+  by (rule sym, insert assms, induct xs arbitrary: s) (simp_all add: expand_fun_eq)
 
 lemma foldl_cong [fundef_cong, recdef_cong]:
   "[| a = b; l = k; !!a x. x : set l ==> f a x = g a x |] 
@@ -2281,6 +2306,12 @@ lemma foldr_invariant:
 lemma foldl_invariant: 
   "\<lbrakk>Q x ; \<forall> x\<in> set xs. P x; \<forall> x y. P x \<and> Q y \<longrightarrow> Q (f y x) \<rbrakk> \<Longrightarrow> Q (foldl f x xs)"
   by (induct xs arbitrary: x, simp_all)
+
+lemma foldl_weak_invariant:
+  assumes "P s"
+    and "\<And>s x. x \<in> set xs \<Longrightarrow> P s \<Longrightarrow> P (f s x)"
+  shows "P (foldl f s xs)"
+  using assms by (induct xs arbitrary: s) simp_all
 
 text {* @{const foldl} and @{const concat} *}
 
@@ -2804,6 +2835,25 @@ proof -
   from length_remdups_concat[of "[xs]"] show ?thesis unfolding xs by simp
 qed
 
+subsubsection {* @{const insert} *}
+
+lemma in_set_insert [simp]:
+  "x \<in> set xs \<Longrightarrow> List.insert x xs = xs"
+  by (simp add: List.insert_def)
+
+lemma not_in_set_insert [simp]:
+  "x \<notin> set xs \<Longrightarrow> List.insert x xs = x # xs"
+  by (simp add: List.insert_def)
+
+lemma insert_Nil [simp]:
+  "List.insert x [] = [x]"
+  by simp
+
+lemma set_insert:
+  "set (List.insert x xs) = insert x (set xs)"
+  by (auto simp add: List.insert_def)
+
+
 subsubsection {* @{text remove1} *}
 
 lemma remove1_append:
@@ -2852,6 +2902,14 @@ by (induct xs) simp_all
 
 subsubsection {* @{text removeAll} *}
 
+lemma removeAll_filter_not_eq:
+  "removeAll x = filter (\<lambda>y. x \<noteq> y)"
+proof
+  fix xs
+  show "removeAll x xs = filter (\<lambda>y. x \<noteq> y) xs"
+    by (induct xs) auto
+qed
+
 lemma removeAll_append[simp]:
   "removeAll x (xs @ ys) = removeAll x xs @ removeAll x ys"
 by (induct xs) auto
@@ -2871,6 +2929,9 @@ lemma removeAll_filter_not[simp]:
   "\<not> P x \<Longrightarrow> removeAll x (filter P xs) = filter P xs"
 by(induct xs) auto
 
+lemma distinct_removeAll:
+  "distinct xs \<Longrightarrow> distinct (removeAll x xs)"
+  by (simp add: removeAll_filter_not_eq)
 
 lemma distinct_remove1_removeAll:
   "distinct xs ==> remove1 x xs = removeAll x xs"
