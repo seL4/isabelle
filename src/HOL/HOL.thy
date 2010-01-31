@@ -1453,6 +1453,7 @@ structure Induct = Induct
   val atomize = @{thms induct_atomize}
   val rulify = @{thms induct_rulify'}
   val rulify_fallback = @{thms induct_rulify_fallback}
+  val equal_def = @{thm induct_equal_def}
   fun dest_def (Const (@{const_name induct_equal}, _) $ t $ u) = SOME (t, u)
     | dest_def _ = NONE
   val trivial_tac = match_tac @{thms induct_trueI}

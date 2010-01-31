@@ -273,13 +273,13 @@ next
       by (rule eta_case)
     with eta show ?thesis by simp
   next
-    case (abs r u)
-    hence "r \<rightarrow>\<^sub>\<eta> s'" by simp
-    then obtain t' where r: "r => t'" and t': "t' \<rightarrow>\<^sub>\<eta>\<^sup>* t" by (iprover dest: abs')
+    case (abs r)
+    from `r \<rightarrow>\<^sub>\<eta> s'`
+    obtain t' where r: "r => t'" and t': "t' \<rightarrow>\<^sub>\<eta>\<^sup>* t" by (iprover dest: abs')
     from r have "Abs r => Abs t'" ..
     moreover from t' have "Abs t' \<rightarrow>\<^sub>\<eta>\<^sup>* Abs t" by (rule rtrancl_eta_Abs)
     ultimately show ?thesis using abs by simp iprover
-  qed simp_all
+  qed
 next
   case (app u u' t t')
   from `s \<rightarrow>\<^sub>\<eta> u \<degree> t` show ?case
@@ -291,20 +291,20 @@ next
       by (rule eta_case)
     with eta show ?thesis by simp
   next
-    case (appL s' t'' u'')
-    hence "s' \<rightarrow>\<^sub>\<eta> u" by simp
-    then obtain r where s': "s' => r" and r: "r \<rightarrow>\<^sub>\<eta>\<^sup>* u'" by (iprover dest: app)
+    case (appL s')
+    from `s' \<rightarrow>\<^sub>\<eta> u`
+    obtain r where s': "s' => r" and r: "r \<rightarrow>\<^sub>\<eta>\<^sup>* u'" by (iprover dest: app)
     from s' and app have "s' \<degree> t => r \<degree> t'" by simp
     moreover from r have "r \<degree> t' \<rightarrow>\<^sub>\<eta>\<^sup>* u' \<degree> t'" by (simp add: rtrancl_eta_AppL)
     ultimately show ?thesis using appL by simp iprover
   next
-    case (appR s' t'' u'')
-    hence "s' \<rightarrow>\<^sub>\<eta> t" by simp
-    then obtain r where s': "s' => r" and r: "r \<rightarrow>\<^sub>\<eta>\<^sup>* t'" by (iprover dest: app)
+    case (appR s')
+    from `s' \<rightarrow>\<^sub>\<eta> t`
+    obtain r where s': "s' => r" and r: "r \<rightarrow>\<^sub>\<eta>\<^sup>* t'" by (iprover dest: app)
     from s' and app have "u \<degree> s' => u' \<degree> r" by simp
     moreover from r have "u' \<degree> r \<rightarrow>\<^sub>\<eta>\<^sup>* u' \<degree> t'" by (simp add: rtrancl_eta_AppR)
     ultimately show ?thesis using appR by simp iprover
-  qed simp
+  qed
 next
   case (beta u u' t t')
   from `s \<rightarrow>\<^sub>\<eta> Abs u \<degree> t` show ?case
@@ -316,9 +316,8 @@ next
       by (rule eta_case)
     with eta show ?thesis by simp
   next
-    case (appL s' t'' u'')
-    hence "s' \<rightarrow>\<^sub>\<eta> Abs u" by simp
-    thus ?thesis
+    case (appL s')
+    from `s' \<rightarrow>\<^sub>\<eta> Abs u` show ?thesis
     proof cases
       case (eta s'' dummy)
       have "Abs (lift u 1) = lift (Abs u) 0" by simp
@@ -332,23 +331,23 @@ next
       with s have "s => u'[t'/0]" by simp
       thus ?thesis by iprover
     next
-      case (abs r r')
-      hence "r \<rightarrow>\<^sub>\<eta> u" by simp
-      then obtain r'' where r: "r => r''" and r'': "r'' \<rightarrow>\<^sub>\<eta>\<^sup>* u'" by (iprover dest: beta)
+      case (abs r)
+      from `r \<rightarrow>\<^sub>\<eta> u`
+      obtain r'' where r: "r => r''" and r'': "r'' \<rightarrow>\<^sub>\<eta>\<^sup>* u'" by (iprover dest: beta)
       from r and beta have "Abs r \<degree> t => r''[t'/0]" by simp
       moreover from r'' have "r''[t'/0] \<rightarrow>\<^sub>\<eta>\<^sup>* u'[t'/0]"
         by (rule rtrancl_eta_subst')
       ultimately show ?thesis using abs and appL by simp iprover
-    qed simp_all
+    qed
   next
-    case (appR s' t'' u'')
-    hence "s' \<rightarrow>\<^sub>\<eta> t" by simp
-    then obtain r where s': "s' => r" and r: "r \<rightarrow>\<^sub>\<eta>\<^sup>* t'" by (iprover dest: beta)
+    case (appR s')
+    from `s' \<rightarrow>\<^sub>\<eta> t`
+    obtain r where s': "s' => r" and r: "r \<rightarrow>\<^sub>\<eta>\<^sup>* t'" by (iprover dest: beta)
     from s' and beta have "Abs u \<degree> s' => u'[r/0]" by simp
     moreover from r have "u'[r/0] \<rightarrow>\<^sub>\<eta>\<^sup>* u'[t'/0]"
       by (rule rtrancl_eta_subst'')
     ultimately show ?thesis using appR by simp iprover
-  qed simp
+  qed
 qed
 
 theorem eta_postponement':
