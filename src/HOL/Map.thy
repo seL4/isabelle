@@ -331,6 +331,19 @@ lemma inj_on_map_add_dom [iff]:
   "inj_on (m ++ m') (dom m') = inj_on m' (dom m')"
 by (fastsimp simp: map_add_def dom_def inj_on_def split: option.splits)
 
+lemma map_upds_fold_map_upd:
+  "f(ks[\<mapsto>]vs) = foldl (\<lambda>f (k, v). f(k\<mapsto>v)) f (zip ks vs)"
+unfolding map_upds_def proof (rule sym, rule zip_obtain_same_length)
+  fix ks :: "'a list" and vs :: "'b list"
+  assume "length ks = length vs"
+  then show "foldl (\<lambda>f (k, v). f(k\<mapsto>v)) f (zip ks vs) = f ++ map_of (rev (zip ks vs))"
+    by (induct arbitrary: f rule: list_induct2) simp_all
+qed
+
+lemma map_add_map_of_foldr:
+  "m ++ map_of ps = foldr (\<lambda>(k, v) m. m(k \<mapsto> v)) ps m"
+  by (induct ps) (auto simp add: expand_fun_eq map_add_def)
+
 
 subsection {* @{term [source] restrict_map} *}
 
@@ -480,12 +493,13 @@ lemma dom_fun_upd [simp]:
   "dom(f(x := y)) = (if y=None then dom f - {x} else insert x (dom f))"
 by(auto simp add:dom_def)
 
-lemma dom_map_of: "dom(map_of xys) = {x. \<exists>y. (x,y) : set xys}"
-by (induct xys) (auto simp del: fun_upd_apply)
+lemma dom_if:
+  "dom (\<lambda>x. if P x then f x else g x) = dom f \<inter> {x. P x} \<union> dom g \<inter> {x. \<not> P x}"
+  by (auto split: if_splits)
 
 lemma dom_map_of_conv_image_fst:
-  "dom(map_of xys) = fst ` (set xys)"
-by(force simp: dom_map_of)
+  "dom (map_of xys) = fst ` set xys"
+  by (induct xys) (auto simp add: dom_if)
 
 lemma dom_map_of_zip [simp]: "[| length xs = length ys; distinct xs |] ==>
   dom(map_of(zip xs ys)) = set xs"
@@ -523,11 +537,6 @@ lemma dom_const [simp]:
   "dom (\<lambda>x. Some y) = UNIV"
   by auto
 
-lemma dom_if:
-  "dom (\<lambda>x. if P x then f x else g x) = dom f \<inter> {x. P x} \<union> dom g \<inter> {x. \<not> P x}"
-  by (auto split: if_splits)
-
-
 (* Due to John Matthews - could be rephrased with dom *)
 lemma finite_map_freshness:
   "finite (dom (f :: 'a \<rightharpoonup> 'b)) \<Longrightarrow> \<not> finite (UNIV :: 'a set) \<Longrightarrow>
@@ -558,6 +567,19 @@ apply auto
 apply (subgoal_tac "aa ~= a")
  apply auto
 done
+
+lemma ran_distinct: 
+  assumes dist: "distinct (map fst al)" 
+  shows "ran (map_of al) = snd ` set al"
+using assms proof (induct al)
+  case Nil then show ?case by simp
+next
+  case (Cons kv al)
+  then have "ran (map_of al) = snd ` set al" by simp
+  moreover from Cons.prems have "map_of al (fst kv) = None"
+    by (simp add: map_of_eq_None_iff)
+  ultimately show ?case by (simp only: map_of.simps ran_map_upd) simp
+qed
 
 
 subsection {* @{text "map_le"} *}
@@ -610,7 +632,6 @@ by (fastsimp simp add: map_le_def map_add_def dom_def)
 lemma map_add_le_mapI: "\<lbrakk> f \<subseteq>\<^sub>m h; g \<subseteq>\<^sub>m h; f \<subseteq>\<^sub>m f++g \<rbrakk> \<Longrightarrow> f++g \<subseteq>\<^sub>m h"
 by (clarsimp simp add: map_le_def map_add_def dom_def split: option.splits)
 
-
 lemma dom_eq_singleton_conv: "dom f = {x} \<longleftrightarrow> (\<exists>v. f = [x \<mapsto> v])"
 proof(rule iffI)
   assume "\<exists>v. f = [x \<mapsto> v]"
@@ -626,3 +647,4 @@ next
 qed
 
 end
+
