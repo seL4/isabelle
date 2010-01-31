@@ -93,14 +93,14 @@ lemma empty_Set [code]:
   by simp
 
 lemma insert_Set [code]:
-  "insert x (Set xs) = Set (List_Set.insert x xs)"
-  "insert x (Coset xs) = Coset (remove_all x xs)"
-  by (simp_all add: insert_set insert_set_compl)
+  "insert x (Set xs) = Set (List.insert x xs)"
+  "insert x (Coset xs) = Coset (removeAll x xs)"
+  by (simp_all add: set_insert)
 
 lemma remove_Set [code]:
-  "remove x (Set xs) = Set (remove_all x xs)"
-  "remove x (Coset xs) = Coset (List_Set.insert x xs)"
-  by (simp_all add:remove_set remove_set_compl)
+  "remove x (Set xs) = Set (removeAll x xs)"
+  "remove x (Coset xs) = Coset (List.insert x xs)"
+  by (auto simp add: set_insert remove_def)
 
 lemma image_Set [code]:
   "image f (Set xs) = Set (remdups (map f xs))"
