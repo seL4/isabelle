@@ -1,11 +1,11 @@
 (*  Title:      HOL/Library/AssocList.thy
-    Author:     Norbert Schirmer, Tobias Nipkow, Martin Wildmoser
+    Author:     Norbert Schirmer, Tobias Nipkow, Martin Wildmoser, TU Muenchen
 *)
 
 header {* Map operations implemented on association lists*}
 
 theory AssocList 
-imports Map Main
+imports Main
 begin
 
 text {*
@@ -15,310 +15,34 @@ text {*
   to establish the invariant, e.g. for inductive proofs.
 *}
 
-primrec
-  delete :: "'key \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
-where
-    "delete k [] = []"
-  | "delete k (p#ps) = (if fst p = k then delete k ps else p # delete k ps)"
+subsection {* @{text update} and @{text updates} *}
 
-primrec
-  update :: "'key \<Rightarrow> 'val \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
-where
+primrec update :: "'key \<Rightarrow> 'val \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list" where
     "update k v [] = [(k, v)]"
   | "update k v (p#ps) = (if fst p = k then (k, v) # ps else p # update k v ps)"
 
-primrec
-  updates :: "'key list \<Rightarrow> 'val list \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
-where
-    "updates [] vs ps = ps"
-  | "updates (k#ks) vs ps = (case vs
-      of [] \<Rightarrow> ps
-       | (v#vs') \<Rightarrow> updates ks vs' (update k v ps))"
+lemma update_conv': "map_of (update k v al)  = (map_of al)(k\<mapsto>v)"
+  by (induct al) (auto simp add: expand_fun_eq)
 
-primrec
-  merge :: "('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
-where
-    "merge qs [] = qs"
-  | "merge qs (p#ps) = update (fst p) (snd p) (merge qs ps)"
-
-lemma length_delete_le: "length (delete k al) \<le> length al"
-proof (induct al)
-  case Nil thus ?case by simp
-next
-  case (Cons a al)
-  note length_filter_le [of "\<lambda>p. fst p \<noteq> fst a" al] 
-  also have "\<And>n. n \<le> Suc n"
-    by simp
-  finally have "length [p\<leftarrow>al . fst p \<noteq> fst a] \<le> Suc (length al)" .
-  with Cons show ?case
-    by auto
-qed
-
-lemma compose_hint [simp]:
-  "length (delete k al) < Suc (length al)"
-proof -
-  note length_delete_le
-  also have "\<And>n. n < Suc n"
-    by simp
-  finally show ?thesis .
-qed
-
-fun
-  compose :: "('key \<times> 'a) list \<Rightarrow> ('a \<times> 'b) list \<Rightarrow> ('key \<times> 'b) list"
-where
-    "compose [] ys = []"
-  | "compose (x#xs) ys = (case map_of ys (snd x)
-       of None \<Rightarrow> compose (delete (fst x) xs) ys
-        | Some v \<Rightarrow> (fst x, v) # compose xs ys)"
-
-primrec
-  restrict :: "'key set \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
-where
-    "restrict A [] = []"
-  | "restrict A (p#ps) = (if fst p \<in> A then p#restrict A ps else restrict A ps)"
-
-primrec
-  map_ran :: "('key \<Rightarrow> 'val \<Rightarrow> 'val) \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
-where
-    "map_ran f [] = []"
-  | "map_ran f (p#ps) = (fst p, f (fst p) (snd p)) # map_ran f ps"
-
-fun
-  clearjunk  :: "('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
-where
-    "clearjunk [] = []"  
-  | "clearjunk (p#ps) = p # clearjunk (delete (fst p) ps)"
-
-lemmas [simp del] = compose_hint
-
-
-subsection {* @{const delete} *}
-
-lemma delete_eq:
-  "delete k xs = filter (\<lambda>p. fst p \<noteq> k) xs"
-  by (induct xs) auto
-
-lemma delete_id [simp]: "k \<notin> fst ` set al \<Longrightarrow> delete k al = al"
-  by (induct al) auto
-
-lemma delete_conv: "map_of (delete k al) k' = ((map_of al)(k := None)) k'"
-  by (induct al) auto
-
-lemma delete_conv': "map_of (delete k al) = ((map_of al)(k := None))"
-  by (rule ext) (rule delete_conv)
-
-lemma delete_idem: "delete k (delete k al) = delete k al"
-  by (induct al) auto
-
-lemma map_of_delete [simp]:
-    "k' \<noteq> k \<Longrightarrow> map_of (delete k al) k' = map_of al k'"
-  by (induct al) auto
-
-lemma delete_notin_dom: "k \<notin> fst ` set (delete k al)"
-  by (induct al) auto
-
-lemma dom_delete_subset: "fst ` set (delete k al) \<subseteq> fst ` set al"
-  by (induct al) auto
-
-lemma distinct_delete:
-  assumes "distinct (map fst al)" 
-  shows "distinct (map fst (delete k al))"
-using assms
-proof (induct al)
-  case Nil thus ?case by simp
-next
-  case (Cons a al)
-  from Cons.prems obtain 
-    a_notin_al: "fst a \<notin> fst ` set al" and
-    dist_al: "distinct (map fst al)"
-    by auto
-  show ?case
-  proof (cases "fst a = k")
-    case True
-    with Cons dist_al show ?thesis by simp
-  next
-    case False
-    from dist_al
-    have "distinct (map fst (delete k al))"
-      by (rule Cons.hyps)
-    moreover from a_notin_al dom_delete_subset [of k al] 
-    have "fst a \<notin> fst ` set (delete k al)"
-      by blast
-    ultimately show ?thesis using False by simp
-  qed
-qed
-
-lemma delete_twist: "delete x (delete y al) = delete y (delete x al)"
-  by (induct al) auto
-
-lemma clearjunk_delete: "clearjunk (delete x al) = delete x (clearjunk al)"
-  by (induct al rule: clearjunk.induct) (auto simp add: delete_idem delete_twist)
-
-
-subsection {* @{const clearjunk} *}
-
-lemma insert_fst_filter: 
-  "insert a(fst ` {x \<in> set ps. fst x \<noteq> a}) = insert a (fst ` set ps)"
-  by (induct ps) auto
-
-lemma dom_clearjunk: "fst ` set (clearjunk al) = fst ` set al"
-  by (induct al rule: clearjunk.induct) (simp_all add: insert_fst_filter delete_eq)
-
-lemma notin_filter_fst: "a \<notin> fst ` {x \<in> set ps. fst x \<noteq> a}"
-  by (induct ps) auto
-
-lemma distinct_clearjunk [simp]: "distinct (map fst (clearjunk al))"
-  by (induct al rule: clearjunk.induct) 
-     (simp_all add: dom_clearjunk notin_filter_fst delete_eq)
-
-lemma map_of_filter: "k \<noteq> a \<Longrightarrow> map_of [q\<leftarrow>ps . fst q \<noteq> a] k = map_of ps k"
-  by (induct ps) auto
-
-lemma map_of_clearjunk: "map_of (clearjunk al) = map_of al"
-  apply (rule ext)
-  apply (induct al rule: clearjunk.induct)
-  apply  simp
-  apply (simp add: map_of_filter)
-  done
-
-lemma length_clearjunk: "length (clearjunk al) \<le> length al"
-proof (induct al rule: clearjunk.induct [case_names Nil Cons])
-  case Nil thus ?case by simp
-next
-  case (Cons p ps)
-  from Cons have "length (clearjunk [q\<leftarrow>ps . fst q \<noteq> fst p]) \<le> length [q\<leftarrow>ps . fst q \<noteq> fst p]" 
-    by (simp add: delete_eq)
-  also have "\<dots> \<le> length ps"
-    by simp
-  finally show ?case
-    by (simp add: delete_eq)
-qed
-
-lemma notin_fst_filter: "a \<notin> fst ` set ps \<Longrightarrow> [q\<leftarrow>ps . fst q \<noteq> a] = ps"
-  by (induct ps) auto
-            
-lemma distinct_clearjunk_id [simp]: "distinct (map fst al) \<Longrightarrow> clearjunk al = al"
-  by (induct al rule: clearjunk.induct) (auto simp add: notin_fst_filter)
-
-lemma clearjunk_idem: "clearjunk (clearjunk al) = clearjunk al"
-  by simp
-
-
-subsection {* @{const dom} and @{term "ran"} *}
-
-lemma dom_map_of': "fst ` set al = dom (map_of al)"
-  by (induct al) auto
-
-lemmas dom_map_of = dom_map_of' [symmetric]
-
-lemma ran_clearjunk: "ran (map_of (clearjunk al)) = ran (map_of al)"
-  by (simp add: map_of_clearjunk)
-
-lemma ran_distinct: 
-  assumes dist: "distinct (map fst al)" 
-  shows "ran (map_of al) = snd ` set al"
-using dist
-proof (induct al) 
-  case Nil
-  thus ?case by simp
-next
-  case (Cons a al)
-  hence hyp: "snd ` set al = ran (map_of al)"
-    by simp
-
-  have "ran (map_of (a # al)) = {snd a} \<union> ran (map_of al)"
-  proof 
-    show "ran (map_of (a # al)) \<subseteq> {snd a} \<union> ran (map_of al)"
-    proof   
-      fix v
-      assume "v \<in> ran (map_of (a#al))"
-      then obtain x where "map_of (a#al) x = Some v"
-        by (auto simp add: ran_def)
-      then show "v \<in> {snd a} \<union> ran (map_of al)"
-        by (auto split: split_if_asm simp add: ran_def)
-    qed
-  next
-    show "{snd a} \<union> ran (map_of al) \<subseteq> ran (map_of (a # al))"
-    proof 
-      fix v
-      assume v_in: "v \<in> {snd a} \<union> ran (map_of al)"
-      show "v \<in> ran (map_of (a#al))"
-      proof (cases "v=snd a")
-        case True
-        with v_in show ?thesis
-          by (auto simp add: ran_def)
-      next
-        case False
-        with v_in have "v \<in> ran (map_of al)" by auto
-        then obtain x where al_x: "map_of al x = Some v"
-          by (auto simp add: ran_def)
-        from map_of_SomeD [OF this]
-        have "x \<in> fst ` set al"
-          by (force simp add: image_def)
-        with Cons.prems have "x\<noteq>fst a"
-          by - (rule ccontr,simp)
-        with al_x
-        show ?thesis
-          by (auto simp add: ran_def)
-      qed
-    qed
-  qed
-  with hyp show ?case
-    by (simp only:) auto
-qed
-
-lemma ran_map_of: "ran (map_of al) = snd ` set (clearjunk al)"
-proof -
-  have "ran (map_of al) = ran (map_of (clearjunk al))"
-    by (simp add: ran_clearjunk)
-  also have "\<dots> = snd ` set (clearjunk al)"
-    by (simp add: ran_distinct)
-  finally show ?thesis .
-qed
-   
-
-subsection {* @{const update} *}
-
-lemma update_conv: "map_of (update k v al) k' = ((map_of al)(k\<mapsto>v)) k'"
-  by (induct al) auto
-
-lemma update_conv': "map_of (update k v al)  = ((map_of al)(k\<mapsto>v))"
-  by (rule ext) (rule update_conv)
+corollary update_conv: "map_of (update k v al) k' = ((map_of al)(k\<mapsto>v)) k'"
+  by (simp add: update_conv')
 
 lemma dom_update: "fst ` set (update k v al) = {k} \<union> fst ` set al"
   by (induct al) auto
 
+lemma update_keys:
+  "map fst (update k v al) =
+    (if k \<in> set (map fst al) then map fst al else map fst al @ [k])"
+  by (induct al) simp_all
+
 lemma distinct_update:
   assumes "distinct (map fst al)" 
   shows "distinct (map fst (update k v al))"
-using assms
-proof (induct al)
-  case Nil thus ?case by simp
-next
-  case (Cons a al)
-  from Cons.prems obtain 
-    a_notin_al: "fst a \<notin> fst ` set al" and
-    dist_al: "distinct (map fst al)"
-    by auto
-  show ?case
-  proof (cases "fst a = k")
-    case True
-    from True dist_al a_notin_al show ?thesis by simp
-  next
-    case False
-    from dist_al
-    have "distinct (map fst (update k v al))"
-      by (rule Cons.hyps)
-    with False a_notin_al show ?thesis by (simp add: dom_update)
-  qed
-qed
+  using assms by (simp add: update_keys)
 
 lemma update_filter: 
   "a\<noteq>k \<Longrightarrow> update k v [q\<leftarrow>ps . fst q \<noteq> a] = [q\<leftarrow>update k v ps . fst q \<noteq> a]"
   by (induct ps) auto
-
-lemma clearjunk_update: "clearjunk (update k v al) = update k v (clearjunk al)"
-  by (induct al rule: clearjunk.induct) (auto simp add: update_filter delete_eq)
 
 lemma update_triv: "map_of al k = Some v \<Longrightarrow> update k v al = al"
   by (induct al) auto
@@ -326,7 +50,7 @@ lemma update_triv: "map_of al k = Some v \<Longrightarrow> update k v al = al"
 lemma update_nonempty [simp]: "update k v al \<noteq> []"
   by (induct al) auto
 
-lemma update_eqD: "update k v al = update k v' al' \<Longrightarrow> v=v'"
+lemma update_eqD: "update k v al = update k v' al' \<Longrightarrow> v = v'"
 proof (induct al arbitrary: al') 
   case Nil thus ?case 
     by (cases al') (auto split: split_if_asm)
@@ -339,59 +63,61 @@ lemma update_last [simp]: "update k v (update k v' al) = update k v al"
   by (induct al) auto
 
 text {* Note that the lists are not necessarily the same:
-        @{term "update k v (update k' v' []) = [(k',v'),(k,v)]"} and 
-        @{term "update k' v' (update k v []) = [(k,v),(k',v')]"}.*}
+        @{term "update k v (update k' v' []) = [(k', v'), (k, v)]"} and 
+        @{term "update k' v' (update k v []) = [(k, v), (k', v')]"}.*}
 lemma update_swap: "k\<noteq>k' 
   \<Longrightarrow> map_of (update k v (update k' v' al)) = map_of (update k' v' (update k v al))"
-  by (auto simp add: update_conv' intro: ext)
+  by (simp add: update_conv' expand_fun_eq)
 
 lemma update_Some_unfold: 
-  "(map_of (update k v al) x = Some y) = 
-     (x = k \<and> v = y \<or> x \<noteq> k \<and> map_of al x = Some y)"
+  "map_of (update k v al) x = Some y \<longleftrightarrow>
+    x = k \<and> v = y \<or> x \<noteq> k \<and> map_of al x = Some y"
   by (simp add: update_conv' map_upd_Some_unfold)
 
-lemma image_update[simp]: "x \<notin> A \<Longrightarrow> map_of (update x y al) ` A = map_of al ` A"
+lemma image_update [simp]:
+  "x \<notin> A \<Longrightarrow> map_of (update x y al) ` A = map_of al ` A"
   by (simp add: update_conv' image_map_upd)
 
+definition updates :: "'key list \<Rightarrow> 'val list \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list" where
+  "updates ks vs al = foldl (\<lambda>al (k, v). update k v al) al (zip ks vs)"
 
-subsection {* @{const updates} *}
+lemma updates_simps [simp]:
+  "updates [] vs ps = ps"
+  "updates ks [] ps = ps"
+  "updates (k#ks) (v#vs) ps = updates ks vs (update k v ps)"
+  by (simp_all add: updates_def)
 
-lemma updates_conv: "map_of (updates ks vs al) k = ((map_of al)(ks[\<mapsto>]vs)) k"
-proof (induct ks arbitrary: vs al)
-  case Nil
-  thus ?case by simp
-next
-  case (Cons k ks)
-  show ?case
-  proof (cases vs)
-    case Nil
-    with Cons show ?thesis by simp
-  next
-    case (Cons k ks')
-    with Cons.hyps show ?thesis
-      by (simp add: update_conv fun_upd_def)
-  qed
+lemma updates_key_simp [simp]:
+  "updates (k # ks) vs ps =
+    (case vs of [] \<Rightarrow> ps | v # vs \<Rightarrow> updates ks vs (update k v ps))"
+  by (cases vs) simp_all
+
+lemma updates_conv': "map_of (updates ks vs al) = (map_of al)(ks[\<mapsto>]vs)"
+proof -
+  have "foldl (\<lambda>f (k, v). f(k \<mapsto> v)) (map_of al) (zip ks vs) =
+     map_of (foldl (\<lambda>al (k, v). update k v al) al (zip ks vs))"
+    by (rule foldl_apply) (auto simp add: expand_fun_eq update_conv')
+  then show ?thesis
+    by (simp add: updates_def map_upds_fold_map_upd)
 qed
 
-lemma updates_conv': "map_of (updates ks vs al) = ((map_of al)(ks[\<mapsto>]vs))"
-  by (rule ext) (rule updates_conv)
+lemma updates_conv: "map_of (updates ks vs al) k = ((map_of al)(ks[\<mapsto>]vs)) k"
+  by (simp add: updates_conv')
 
 lemma distinct_updates:
   assumes "distinct (map fst al)"
   shows "distinct (map fst (updates ks vs al))"
-  using assms
-  by (induct ks arbitrary: vs al)
-   (auto simp add: distinct_update split: list.splits)
-
-lemma clearjunk_updates:
- "clearjunk (updates ks vs al) = updates ks vs (clearjunk al)"
-  by (induct ks arbitrary: vs al) (auto simp add: clearjunk_update split: list.splits)
-
-lemma updates_empty[simp]: "updates vs [] al = al"
-  by (induct vs) auto 
-
-lemma updates_Cons: "updates (k#ks) (v#vs) al = updates ks vs (update k v al)"
-  by simp
+proof -
+  from assms have "distinct (foldl
+       (\<lambda>al (k, v). if k \<in> set al then al else al @ [k])
+       (map fst al) (zip ks vs))"
+    by (rule foldl_invariant) auto
+  moreover have "foldl (\<lambda>al (k, v). if k \<in> set al then al else al @ [k])
+       (map fst al) (zip ks vs)
+       = map fst (foldl (\<lambda>al (k, v). update k v al) al (zip ks vs))"
+    by (rule foldl_apply) (simp add: update_keys split_def comp_def)
+  ultimately show ?thesis by (simp add: updates_def)
+qed
 
 lemma updates_append1[simp]: "size ks < size vs \<Longrightarrow>
   updates (ks@[k]) vs al = update k (vs!size ks) (updates ks vs al)"
@@ -426,25 +152,285 @@ lemma updates_append2_drop[simp]:
   by (induct xs arbitrary: ys al) (auto split: list.splits)
 
 
-subsection {* @{const map_ran} *}
+subsection {* @{text delete} *}
 
-lemma map_ran_conv: "map_of (map_ran f al) k = Option.map (f k) (map_of al k)"
-  by (induct al) auto
+definition delete :: "'key \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list" where
+  delete_eq: "delete k = filter (\<lambda>(k', _). k \<noteq> k')"
 
-lemma dom_map_ran: "fst ` set (map_ran f al) = fst ` set al"
-  by (induct al) auto
+lemma delete_simps [simp]:
+  "delete k [] = []"
+  "delete k (p#ps) = (if fst p = k then delete k ps else p # delete k ps)"
+  by (auto simp add: delete_eq)
 
-lemma distinct_map_ran: "distinct (map fst al) \<Longrightarrow> distinct (map fst (map_ran f al))"
-  by (induct al) (auto simp add: dom_map_ran)
+lemma delete_conv': "map_of (delete k al) = (map_of al)(k := None)"
+  by (induct al) (auto simp add: expand_fun_eq)
 
-lemma map_ran_filter: "map_ran f [p\<leftarrow>ps. fst p \<noteq> a] = [p\<leftarrow>map_ran f ps. fst p \<noteq> a]"
+corollary delete_conv: "map_of (delete k al) k' = ((map_of al)(k := None)) k'"
+  by (simp add: delete_conv')
+
+lemma delete_keys:
+  "map fst (delete k al) = removeAll k (map fst al)"
+  by (simp add: delete_eq removeAll_filter_not_eq filter_map split_def comp_def)
+
+lemma distinct_delete:
+  assumes "distinct (map fst al)" 
+  shows "distinct (map fst (delete k al))"
+  using assms by (simp add: delete_keys distinct_removeAll)
+
+lemma delete_id [simp]: "k \<notin> fst ` set al \<Longrightarrow> delete k al = al"
+  by (auto simp add: image_iff delete_eq filter_id_conv)
+
+lemma delete_idem: "delete k (delete k al) = delete k al"
+  by (simp add: delete_eq)
+
+lemma map_of_delete [simp]:
+    "k' \<noteq> k \<Longrightarrow> map_of (delete k al) k' = map_of al k'"
+  by (simp add: delete_conv')
+
+lemma delete_notin_dom: "k \<notin> fst ` set (delete k al)"
+  by (auto simp add: delete_eq)
+
+lemma dom_delete_subset: "fst ` set (delete k al) \<subseteq> fst ` set al"
+  by (auto simp add: delete_eq)
+
+lemma delete_update_same:
+  "delete k (update k v al) = delete k al"
+  by (induct al) simp_all
+
+lemma delete_update:
+  "k \<noteq> l \<Longrightarrow> delete l (update k v al) = update k v (delete l al)"
+  by (induct al) simp_all
+
+lemma delete_twist: "delete x (delete y al) = delete y (delete x al)"
+  by (simp add: delete_eq conj_commute)
+
+lemma length_delete_le: "length (delete k al) \<le> length al"
+  by (simp add: delete_eq)
+
+
+subsection {* @{text restrict} *}
+
+definition restrict :: "'key set \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list" where
+  restrict_eq: "restrict A = filter (\<lambda>(k, v). k \<in> A)"
+
+lemma restr_simps [simp]:
+  "restrict A [] = []"
+  "restrict A (p#ps) = (if fst p \<in> A then p # restrict A ps else restrict A ps)"
+  by (auto simp add: restrict_eq)
+
+lemma restr_conv': "map_of (restrict A al) = ((map_of al)|` A)"
+proof
+  fix k
+  show "map_of (restrict A al) k = ((map_of al)|` A) k"
+    by (induct al) (simp, cases "k \<in> A", auto)
+qed
+
+corollary restr_conv: "map_of (restrict A al) k = ((map_of al)|` A) k"
+  by (simp add: restr_conv')
+
+lemma distinct_restr:
+  "distinct (map fst al) \<Longrightarrow> distinct (map fst (restrict A al))"
+  by (induct al) (auto simp add: restrict_eq)
+
+lemma restr_empty [simp]: 
+  "restrict {} al = []" 
+  "restrict A [] = []"
+  by (induct al) (auto simp add: restrict_eq)
+
+lemma restr_in [simp]: "x \<in> A \<Longrightarrow> map_of (restrict A al) x = map_of al x"
+  by (simp add: restr_conv')
+
+lemma restr_out [simp]: "x \<notin> A \<Longrightarrow> map_of (restrict A al) x = None"
+  by (simp add: restr_conv')
+
+lemma dom_restr [simp]: "fst ` set (restrict A al) = fst ` set al \<inter> A"
+  by (induct al) (auto simp add: restrict_eq)
+
+lemma restr_upd_same [simp]: "restrict (-{x}) (update x y al) = restrict (-{x}) al"
+  by (induct al) (auto simp add: restrict_eq)
+
+lemma restr_restr [simp]: "restrict A (restrict B al) = restrict (A\<inter>B) al"
+  by (induct al) (auto simp add: restrict_eq)
+
+lemma restr_update[simp]:
+ "map_of (restrict D (update x y al)) = 
+  map_of ((if x \<in> D then (update x y (restrict (D-{x}) al)) else restrict D al))"
+  by (simp add: restr_conv' update_conv')
+
+lemma restr_delete [simp]:
+  "(delete x (restrict D al)) = 
+    (if x \<in> D then restrict (D - {x}) al else restrict D al)"
+apply (simp add: delete_eq restrict_eq)
+apply (auto simp add: split_def)
+proof -
+  have "\<And>y. y \<noteq> x \<longleftrightarrow> x \<noteq> y" by auto
+  then show "[p \<leftarrow> al. fst p \<in> D \<and> x \<noteq> fst p] = [p \<leftarrow> al. fst p \<in> D \<and> fst p \<noteq> x]"
+    by simp
+  assume "x \<notin> D"
+  then have "\<And>y. y \<in> D \<longleftrightarrow> y \<in> D \<and> x \<noteq> y" by auto
+  then show "[p \<leftarrow> al . fst p \<in> D \<and> x \<noteq> fst p] = [p \<leftarrow> al . fst p \<in> D]"
+    by simp
+qed
+
+lemma update_restr:
+ "map_of (update x y (restrict D al)) = map_of (update x y (restrict (D-{x}) al))"
+  by (simp add: update_conv' restr_conv') (rule fun_upd_restrict)
+
+lemma upate_restr_conv [simp]:
+ "x \<in> D \<Longrightarrow> 
+ map_of (update x y (restrict D al)) = map_of (update x y (restrict (D-{x}) al))"
+  by (simp add: update_conv' restr_conv')
+
+lemma restr_updates [simp]: "
+ \<lbrakk> length xs = length ys; set xs \<subseteq> D \<rbrakk>
+ \<Longrightarrow> map_of (restrict D (updates xs ys al)) = 
+     map_of (updates xs ys (restrict (D - set xs) al))"
+  by (simp add: updates_conv' restr_conv')
+
+lemma restr_delete_twist: "(restrict A (delete a ps)) = delete a (restrict A ps)"
   by (induct ps) auto
 
-lemma clearjunk_map_ran: "clearjunk (map_ran f al) = map_ran f (clearjunk al)"
-  by (induct al rule: clearjunk.induct) (auto simp add: delete_eq map_ran_filter)
+
+subsection {* @{text clearjunk} *}
+
+function clearjunk  :: "('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list" where
+    "clearjunk [] = []"  
+  | "clearjunk (p#ps) = p # clearjunk (delete (fst p) ps)"
+  by pat_completeness auto
+termination by (relation "measure length")
+  (simp_all add: less_Suc_eq_le length_delete_le)
+
+lemma map_of_clearjunk:
+  "map_of (clearjunk al) = map_of al"
+  by (induct al rule: clearjunk.induct)
+    (simp_all add: expand_fun_eq)
+
+lemma clearjunk_keys_set:
+  "set (map fst (clearjunk al)) = set (map fst al)"
+  by (induct al rule: clearjunk.induct)
+    (simp_all add: delete_keys)
+
+lemma dom_clearjunk:
+  "fst ` set (clearjunk al) = fst ` set al"
+  using clearjunk_keys_set by simp
+
+lemma distinct_clearjunk [simp]:
+  "distinct (map fst (clearjunk al))"
+  by (induct al rule: clearjunk.induct)
+    (simp_all del: set_map add: clearjunk_keys_set delete_keys)
+
+lemma ran_clearjunk:
+  "ran (map_of (clearjunk al)) = ran (map_of al)"
+  by (simp add: map_of_clearjunk)
+
+lemma ran_map_of:
+  "ran (map_of al) = snd ` set (clearjunk al)"
+proof -
+  have "ran (map_of al) = ran (map_of (clearjunk al))"
+    by (simp add: ran_clearjunk)
+  also have "\<dots> = snd ` set (clearjunk al)"
+    by (simp add: ran_distinct)
+  finally show ?thesis .
+qed
+
+lemma clearjunk_update:
+  "clearjunk (update k v al) = update k v (clearjunk al)"
+  by (induct al rule: clearjunk.induct)
+    (simp_all add: delete_update)
+
+lemma clearjunk_updates:
+  "clearjunk (updates ks vs al) = updates ks vs (clearjunk al)"
+proof -
+  have "foldl (\<lambda>al (k, v). update k v al) (clearjunk al) (zip ks vs) =
+    clearjunk (foldl (\<lambda>al (k, v). update k v al) al (zip ks vs))"
+    by (rule foldl_apply) (simp add: clearjunk_update expand_fun_eq split_def)
+  then show ?thesis by (simp add: updates_def)
+qed
+
+lemma clearjunk_delete:
+  "clearjunk (delete x al) = delete x (clearjunk al)"
+  by (induct al rule: clearjunk.induct) (auto simp add: delete_idem delete_twist)
+
+lemma clearjunk_restrict:
+ "clearjunk (restrict A al) = restrict A (clearjunk al)"
+  by (induct al rule: clearjunk.induct) (auto simp add: restr_delete_twist)
+
+lemma distinct_clearjunk_id [simp]:
+  "distinct (map fst al) \<Longrightarrow> clearjunk al = al"
+  by (induct al rule: clearjunk.induct) auto
+
+lemma clearjunk_idem:
+  "clearjunk (clearjunk al) = clearjunk al"
+  by simp
+
+lemma length_clearjunk:
+  "length (clearjunk al) \<le> length al"
+proof (induct al rule: clearjunk.induct [case_names Nil Cons])
+  case Nil then show ?case by simp
+next
+  case (Cons kv al)
+  moreover have "length (delete (fst kv) al) \<le> length al" by (fact length_delete_le)
+  ultimately have "length (clearjunk (delete (fst kv) al)) \<le> length al" by (rule order_trans)
+  then show ?case by simp
+qed
+
+lemma delete_map:
+  assumes "\<And>kv. fst (f kv) = fst kv"
+  shows "delete k (map f ps) = map f (delete k ps)"
+  by (simp add: delete_eq filter_map comp_def split_def assms)
+
+lemma clearjunk_map:
+  assumes "\<And>kv. fst (f kv) = fst kv"
+  shows "clearjunk (map f ps) = map f (clearjunk ps)"
+  by (induct ps rule: clearjunk.induct [case_names Nil Cons])
+    (simp_all add: clearjunk_delete delete_map assms)
 
 
-subsection {* @{const merge} *}
+subsection {* @{text map_ran} *}
+
+definition map_ran :: "('key \<Rightarrow> 'val \<Rightarrow> 'val) \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list" where
+  "map_ran f = map (\<lambda>(k, v). (k, f k v))"
+
+lemma map_ran_simps [simp]:
+  "map_ran f [] = []"
+  "map_ran f ((k, v) # ps) = (k, f k v) # map_ran f ps"
+  by (simp_all add: map_ran_def)
+
+lemma dom_map_ran:
+  "fst ` set (map_ran f al) = fst ` set al"
+  by (simp add: map_ran_def image_image split_def)
+  
+lemma map_ran_conv:
+  "map_of (map_ran f al) k = Option.map (f k) (map_of al k)"
+  by (induct al) auto
+
+lemma distinct_map_ran:
+  "distinct (map fst al) \<Longrightarrow> distinct (map fst (map_ran f al))"
+  by (simp add: map_ran_def split_def comp_def)
+
+lemma map_ran_filter:
+  "map_ran f [p\<leftarrow>ps. fst p \<noteq> a] = [p\<leftarrow>map_ran f ps. fst p \<noteq> a]"
+  by (simp add: map_ran_def filter_map split_def comp_def)
+
+lemma clearjunk_map_ran:
+  "clearjunk (map_ran f al) = map_ran f (clearjunk al)"
+  by (simp add: map_ran_def split_def clearjunk_map)
+
+
+subsection {* @{text merge} *}
+
+definition merge :: "('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list" where
+  "merge qs ps = foldr (\<lambda>(k, v). update k v) ps qs"
+
+lemma merge_simps [simp]:
+  "merge qs [] = qs"
+  "merge qs (p#ps) = update (fst p) (snd p) (merge qs ps)"
+  by (simp_all add: merge_def split_def)
+
+lemma merge_updates:
+  "merge qs ps = updates (rev (map fst ps)) (rev (map snd ps)) qs"
+  by (simp add: merge_def updates_def split_def
+    foldr_foldl zip_rev zip_map_fst_snd)
 
 lemma dom_merge: "fst ` set (merge xs ys) = fst ` set xs \<union> fst ` set ys"
   by (induct ys arbitrary: xs) (auto simp add: dom_update)
@@ -452,34 +438,27 @@ lemma dom_merge: "fst ` set (merge xs ys) = fst ` set xs \<union> fst ` set ys"
 lemma distinct_merge:
   assumes "distinct (map fst xs)"
   shows "distinct (map fst (merge xs ys))"
-  using assms
-by (induct ys arbitrary: xs) (auto simp add: dom_merge distinct_update)
+using assms by (simp add: merge_updates distinct_updates)
 
 lemma clearjunk_merge:
- "clearjunk (merge xs ys) = merge (clearjunk xs) ys"
-  by (induct ys) (auto simp add: clearjunk_update)
+  "clearjunk (merge xs ys) = merge (clearjunk xs) ys"
+  by (simp add: merge_updates clearjunk_updates)
 
-lemma merge_conv: "map_of (merge xs ys) k = (map_of xs ++ map_of ys) k"
-proof (induct ys)
-  case Nil thus ?case by simp 
-next
-  case (Cons y ys)
-  show ?case
-  proof (cases "k = fst y")
-    case True
-    from True show ?thesis
-      by (simp add: update_conv)
-  next
-    case False
-    from False show ?thesis
-      by (auto simp add: update_conv Cons.hyps map_add_def)
-  qed
+lemma merge_conv':
+  "map_of (merge xs ys) = map_of xs ++ map_of ys"
+proof -
+  have "foldl (\<lambda>m (k, v). m(k \<mapsto> v)) (map_of xs) (rev ys) =
+    map_of (foldl (\<lambda>xs (k, v). update k v xs) xs (rev ys)) "
+    by (rule foldl_apply) (simp add: expand_fun_eq split_def update_conv')
+  then show ?thesis
+    by (simp add: merge_def map_add_map_of_foldr foldr_foldl split_def)
 qed
 
-lemma merge_conv': "map_of (merge xs ys) = (map_of xs ++ map_of ys)"
-  by (rule ext) (rule merge_conv)
+corollary merge_conv:
+  "map_of (merge xs ys) k = (map_of xs ++ map_of ys) k"
+  by (simp add: merge_conv')
 
-lemma merge_emty: "map_of (merge [] ys) = map_of ys"
+lemma merge_empty: "map_of (merge [] ys) = map_of ys"
   by (simp add: merge_conv')
 
 lemma merge_assoc[simp]: "map_of (merge m1 (merge m2 m3)) = 
@@ -491,8 +470,7 @@ lemma merge_Some_iff:
   (map_of n k = Some x \<or> map_of n k = None \<and> map_of m k = Some x)"
   by (simp add: merge_conv' map_add_Some_iff)
 
-lemmas merge_SomeD = merge_Some_iff [THEN iffD1, standard]
-declare merge_SomeD [dest!]
+lemmas merge_SomeD [dest!] = merge_Some_iff [THEN iffD1, standard]
 
 lemma merge_find_right[simp]: "map_of n k = Some v \<Longrightarrow> map_of (merge m n) k = Some v"
   by (simp add: merge_conv')
@@ -513,7 +491,16 @@ lemma merge_append: "map_of (xs@ys) = map_of (merge ys xs)"
   by (simp add: merge_conv')
 
 
-subsection {* @{const compose} *}
+subsection {* @{text compose} *}
+
+function compose :: "('key \<times> 'a) list \<Rightarrow> ('a \<times> 'b) list \<Rightarrow> ('key \<times> 'b) list" where
+    "compose [] ys = []"
+  | "compose (x#xs) ys = (case map_of ys (snd x)
+       of None \<Rightarrow> compose (delete (fst x) xs) ys
+        | Some v \<Rightarrow> (fst x, v) # compose xs ys)"
+  by pat_completeness auto
+termination by (relation "measure (length \<circ> fst)")
+  (simp_all add: less_Suc_eq_le length_delete_le)
 
 lemma compose_first_None [simp]: 
   assumes "map_of xs k = None" 
@@ -668,127 +655,5 @@ lemma map_comp_None_iff:
   "(map_of (compose xs ys) k = None) = 
     (map_of xs k = None \<or> (\<exists>k'. map_of xs k = Some k' \<and> map_of ys k' = None)) " 
   by (simp add: compose_conv map_comp_None_iff)
-
-
-subsection {* @{const restrict} *}
-
-lemma restrict_eq:
-  "restrict A = filter (\<lambda>p. fst p \<in> A)"
-proof
-  fix xs
-  show "restrict A xs = filter (\<lambda>p. fst p \<in> A) xs"
-  by (induct xs) auto
-qed
-
-lemma distinct_restr: "distinct (map fst al) \<Longrightarrow> distinct (map fst (restrict A al))"
-  by (induct al) (auto simp add: restrict_eq)
-
-lemma restr_conv: "map_of (restrict A al) k = ((map_of al)|` A) k"
-  apply (induct al)
-  apply  (simp add: restrict_eq)
-  apply (cases "k\<in>A")
-  apply (auto simp add: restrict_eq)
-  done
-
-lemma restr_conv': "map_of (restrict A al) = ((map_of al)|` A)"
-  by (rule ext) (rule restr_conv)
-
-lemma restr_empty [simp]: 
-  "restrict {} al = []" 
-  "restrict A [] = []"
-  by (induct al) (auto simp add: restrict_eq)
-
-lemma restr_in [simp]: "x \<in> A \<Longrightarrow> map_of (restrict A al) x = map_of al x"
-  by (simp add: restr_conv')
-
-lemma restr_out [simp]: "x \<notin> A \<Longrightarrow> map_of (restrict A al) x = None"
-  by (simp add: restr_conv')
-
-lemma dom_restr [simp]: "fst ` set (restrict A al) = fst ` set al \<inter> A"
-  by (induct al) (auto simp add: restrict_eq)
-
-lemma restr_upd_same [simp]: "restrict (-{x}) (update x y al) = restrict (-{x}) al"
-  by (induct al) (auto simp add: restrict_eq)
-
-lemma restr_restr [simp]: "restrict A (restrict B al) = restrict (A\<inter>B) al"
-  by (induct al) (auto simp add: restrict_eq)
-
-lemma restr_update[simp]:
- "map_of (restrict D (update x y al)) = 
-  map_of ((if x \<in> D then (update x y (restrict (D-{x}) al)) else restrict D al))"
-  by (simp add: restr_conv' update_conv')
-
-lemma restr_delete [simp]:
-  "(delete x (restrict D al)) = 
-    (if x\<in> D then restrict (D - {x}) al else restrict D al)"
-proof (induct al)
-  case Nil thus ?case by simp
-next
-  case (Cons a al)
-  show ?case
-  proof (cases "x \<in> D")
-    case True
-    note x_D = this
-    with Cons have hyp: "delete x (restrict D al) = restrict (D - {x}) al"
-      by simp
-    show ?thesis
-    proof (cases "fst a = x")
-      case True
-      from Cons.hyps
-      show ?thesis
-        using x_D True
-        by simp
-    next
-      case False
-      note not_fst_a_x = this
-      show ?thesis
-      proof (cases "fst a \<in> D")
-        case True 
-        with not_fst_a_x 
-        have "delete x (restrict D (a#al)) = a#(delete x (restrict D al))"
-          by (cases a) (simp add: restrict_eq)
-        also from not_fst_a_x True hyp have "\<dots> = restrict (D - {x}) (a # al)"
-          by (cases a) (simp add: restrict_eq)
-        finally show ?thesis
-          using x_D by simp
-      next
-        case False
-        hence "delete x (restrict D (a#al)) = delete x (restrict D al)"
-          by (cases a) (simp add: restrict_eq)
-        moreover from False not_fst_a_x
-        have "restrict (D - {x}) (a # al) = restrict (D - {x}) al"
-          by (cases a) (simp add: restrict_eq)
-        ultimately
-        show ?thesis using x_D hyp by simp
-      qed
-    qed
-  next
-    case False
-    from False Cons show ?thesis
-      by simp
-  qed
-qed
-
-lemma update_restr:
- "map_of (update x y (restrict D al)) = map_of (update x y (restrict (D-{x}) al))"
-  by (simp add: update_conv' restr_conv') (rule fun_upd_restrict)
-
-lemma upate_restr_conv [simp]:
- "x \<in> D \<Longrightarrow> 
- map_of (update x y (restrict D al)) = map_of (update x y (restrict (D-{x}) al))"
-  by (simp add: update_conv' restr_conv')
-
-lemma restr_updates [simp]: "
- \<lbrakk> length xs = length ys; set xs \<subseteq> D \<rbrakk>
- \<Longrightarrow> map_of (restrict D (updates xs ys al)) = 
-     map_of (updates xs ys (restrict (D - set xs) al))"
-  by (simp add: updates_conv' restr_conv')
-
-lemma restr_delete_twist: "(restrict A (delete a ps)) = delete a (restrict A ps)"
-  by (induct ps) auto
-
-lemma clearjunk_restrict:
- "clearjunk (restrict A al) = restrict A (clearjunk al)"
-  by (induct al rule: clearjunk.induct) (auto simp add: restr_delete_twist)
 
 end
