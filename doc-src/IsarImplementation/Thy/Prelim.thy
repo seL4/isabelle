@@ -630,8 +630,8 @@ text {*
   These special versions provide copies of the basic name space, apart
   from anything that normally appears in the user text.  For example,
   system generated variables in Isar proof contexts are usually marked
-  as internal, which prevents mysterious name references like @{text
-  "xaa"} to appear in the text.
+  as internal, which prevents mysterious names like @{text "xaa"} to
+  appear in human-readable text.
 
   \medskip Manipulating binding scopes often requires on-the-fly
   renamings.  A \emph{name context} contains a collection of already
@@ -662,6 +662,9 @@ text %mlref {*
   @{index_ML Name.invents: "Name.context -> string -> int -> string list"} \\
   @{index_ML Name.variants: "string list -> Name.context -> string list * Name.context"} \\
   \end{mldecls}
+  \begin{mldecls}
+  @{index_ML Variable.names_of: "Proof.context -> Name.context"} \\
+  \end{mldecls}
 
   \begin{description}
 
@@ -683,6 +686,15 @@ text %mlref {*
   \item @{ML Name.variants}~@{text "names context"} produces fresh
   variants of @{text "names"}; the result is entered into the context.
 
+  \item @{ML Variable.names_of}~@{text "ctxt"} retrieves the context
+  of declared type and term variable names.  Projecting a proof
+  context down to a primitive name context is occasionally useful when
+  invoking lower-level operations.  Regular management of ``fresh
+  variables'' is done by suitable operations of structure @{ML_struct
+  Variable}, which is also able to provide an official status of
+  ``locally fixed variable'' within the logical environment (cf.\
+  \secref{sec:variables}).
+
   \end{description}
 *}
 
@@ -701,7 +713,7 @@ text {*
 
   Occasionally, basic names and indexed names are injected into the
   same pair type: the (improper) indexname @{text "(x, -1)"} is used
-  to encode basic names.
+  to encode the basic name @{text "x"}.
 
   \medskip Isabelle syntax observes the following rules for
   representing an indexname @{text "(x, i)"} as a packed string:
@@ -733,7 +745,8 @@ text %mlref {*
   \item @{ML_type indexname} represents indexed names.  This is an
   abbreviation for @{ML_type "string * int"}.  The second component is
   usually non-negative, except for situations where @{text "(x, -1)"}
-  is used to embed basic names into this type.
+  is used to inject basic names into this type.  Other negative
+  indexes should not be used.
 
   \end{description}
 *}
