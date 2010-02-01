@@ -97,11 +97,11 @@ datatype locale = Loc of {
   intros: thm option * thm option,
   axioms: thm list,
   (** dynamic part **)
-  decls: (declaration * stamp) list * (declaration * stamp) list,
+  decls: (declaration * serial) list * (declaration * serial) list,
     (* type and term syntax declarations *)
-  notes: ((string * (Attrib.binding * (thm list * Attrib.src list) list) list) * stamp) list,
+  notes: ((string * (Attrib.binding * (thm list * Attrib.src list) list) list) * serial) list,
     (* theorem declarations *)
-  dependencies: ((string * morphism) * stamp) list
+  dependencies: ((string * morphism) * serial) list
     (* locale dependencies (sublocale relation) *)
 };
 
@@ -143,8 +143,8 @@ fun register_locale binding parameters spec intros axioms decls notes dependenci
   thy |> Locales.map (Name_Space.define true (Sign.naming_of thy)
     (binding,
       mk_locale ((parameters, spec, intros, axioms),
-        ((pairself (map (fn decl => (decl, stamp ()))) decls, map (fn n => (n, stamp ())) notes),
-          map (fn d => (d, stamp ())) dependencies))) #> snd);
+        ((pairself (map (fn decl => (decl, serial ()))) decls, map (fn n => (n, serial ())) notes),
+          map (fn d => (d, serial ())) dependencies))) #> snd);
 
 fun change_locale name =
   Locales.map o apsnd o Symtab.map_entry name o map_locale o apsnd;
@@ -331,9 +331,9 @@ fun print_locale thy show_facts raw_name =
 
 structure Registrations = Theory_Data
 (
-  type T = ((string * (morphism * morphism)) * stamp) list *
+  type T = ((string * (morphism * morphism)) * serial) list *
     (* registrations, in reverse order of declaration *)
-    (stamp * ((morphism * bool) * stamp) list) list;
+    (serial * ((morphism * bool) * serial) list) list;
     (* alist of mixin lists, per list mixins in reverse order of declaration *)
   val empty = ([], []);
   val extend = I;
@@ -349,8 +349,8 @@ structure Registrations = Theory_Data
 fun compose_mixins mixins =
   fold_rev Morphism.compose (map (fst o fst) mixins) Morphism.identity;
 
-fun reg_morph mixins ((name, (base, export)), stamp) =
-  let val mix = the_default [] (AList.lookup (op =) mixins stamp) |> compose_mixins;
+fun reg_morph mixins ((name, (base, export)), serial) =
+  let val mix = the_default [] (AList.lookup (op =) mixins serial) |> compose_mixins;
   in (name, base $> mix $> export) end;
 
 fun these_registrations thy name = Registrations.get thy
@@ -367,7 +367,7 @@ fun get_mixins thy (name, morph) =
     case find_first (fn ((name', (morph', export')), _) => ident_eq thy
       ((name', instance_of thy name' (morph' $> export')), (name, instance_of thy name morph))) (rev regs) of
       NONE => []
-    | SOME (_, stamp) => the_default [] (AList.lookup (op =) mixins stamp)
+    | SOME (_, serial) => the_default [] (AList.lookup (op =) mixins serial)
   end;
 
 fun collect_mixins thy (name, morph) =
@@ -442,8 +442,8 @@ fun amend_registration (name, morph) mixin export thy =
           quote (extern thy name) ^ " and\nparameter instantiation " ^
           space_implode " " (map (quote o Syntax.string_of_term_global thy) base) ^
           " available")
-      | SOME (_, stamp') => Registrations.map 
-          (apsnd (AList.map_default (op =) (stamp', []) (cons (mixin, stamp ())))) thy
+      | SOME (_, serial') => Registrations.map 
+          (apsnd (AList.map_default (op =) (serial', []) (cons (mixin, serial ())))) thy
     (* FIXME deal with inheritance: propagate to existing children *)
   end;
 
@@ -461,10 +461,11 @@ fun add_registration (name, base_morph) mixin export thy =
         fun add_reg (dep', morph') =
           let
             val mixins = collect_mixins thy (dep', morph' $> export);
-            val stamp = stamp ();
+            (* FIXME empty list *)
+            val serial = serial ();
           in
-            Registrations.map (apfst (cons ((dep', (morph', export)), stamp))
-              #> apsnd (cons (stamp, mixins)))
+            Registrations.map (apfst (cons ((dep', (morph', export)), serial))
+              #> apsnd (cons (serial, mixins)))
           end
       in
         (get_idents (Context.Theory thy), thy)
@@ -484,7 +485,7 @@ fun add_registration (name, base_morph) mixin export thy =
 
 fun add_dependency loc (dep, morph) export thy =
   thy
-  |> (change_locale loc o apsnd) (cons ((dep, morph $> export), stamp ()))
+  |> (change_locale loc o apsnd) (cons ((dep, morph $> export), serial ()))
   |> (fn thy => fold_rev (Context.theory_map o activate_facts' export)
       (all_registrations thy) thy);
   (* FIXME deal with inheritance: propagate mixins to new children *)
@@ -498,7 +499,7 @@ fun add_thmss loc kind args ctxt =
   let
     val (Notes args', ctxt') = Element.activate_i (Notes (kind, args)) ctxt;
     val ctxt'' = ctxt' |> ProofContext.theory (
-      (change_locale loc o apfst o apsnd) (cons (args', stamp ()))
+      (change_locale loc o apfst o apsnd) (cons (args', serial ()))
         #>
       (* Registrations *)
       (fn thy => fold_rev (fn (_, morph) =>
@@ -517,7 +518,7 @@ local
 fun decl_attrib decl phi = Thm.declaration_attribute (K (decl phi));
 
 fun add_decls add loc decl =
-  ProofContext.theory ((change_locale loc o apfst o apfst) (add (decl, stamp ()))) #>
+  ProofContext.theory ((change_locale loc o apfst o apfst) (add (decl, serial ()))) #>
   add_thmss loc ""
     [((Binding.conceal Binding.empty, [Attrib.internal (decl_attrib decl)]),
       [([Drule.dummy_thm], [])])];
