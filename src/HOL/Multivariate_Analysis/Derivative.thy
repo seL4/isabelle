@@ -1252,22 +1252,21 @@ lemma vector_derivative_within_closed_interval: fixes f::"real \<Rightarrow> rea
   using vector_derivative_works[unfolded differentiable_def]
   using assms by(auto simp add:has_vector_derivative_def)
 
-lemma has_vector_derivative_within_subset: fixes f::"real \<Rightarrow> real^'a" shows
+lemma has_vector_derivative_within_subset: 
  "(f has_vector_derivative f') (at x within s) \<Longrightarrow> t \<subseteq> s \<Longrightarrow> (f has_vector_derivative f') (at x within t)"
   unfolding has_vector_derivative_def apply(rule has_derivative_within_subset) by auto
 
-lemma has_vector_derivative_const: fixes c::"real^'n" shows
+lemma has_vector_derivative_const: 
  "((\<lambda>x. c) has_vector_derivative 0) net"
   unfolding has_vector_derivative_def using has_derivative_const by auto
 
 lemma has_vector_derivative_id: "((\<lambda>x::real. x) has_vector_derivative 1) net"
   unfolding has_vector_derivative_def using has_derivative_id by auto
 
-lemma has_vector_derivative_cmul: fixes f::"real \<Rightarrow> real^'a"
-  shows "(f has_vector_derivative f') net \<Longrightarrow> ((\<lambda>x. c *\<^sub>R f x) has_vector_derivative (c *\<^sub>R f')) net"
+lemma has_vector_derivative_cmul:  "(f has_vector_derivative f') net \<Longrightarrow> ((\<lambda>x. c *\<^sub>R f x) has_vector_derivative (c *\<^sub>R f')) net"
   unfolding has_vector_derivative_def apply(drule has_derivative_cmul) by(auto simp add:group_simps)
 
-lemma has_vector_derivative_cmul_eq: fixes f::"real \<Rightarrow> real^'a" assumes "c \<noteq> 0"
+lemma has_vector_derivative_cmul_eq: assumes "c \<noteq> 0"
   shows "(((\<lambda>x. c *\<^sub>R f x) has_vector_derivative (c *\<^sub>R f')) net \<longleftrightarrow> (f has_vector_derivative f') net)"
   apply rule apply(drule has_vector_derivative_cmul[where c="1/c"]) defer
   apply(rule has_vector_derivative_cmul) using assms by auto
