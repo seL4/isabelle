@@ -572,40 +572,50 @@ thm le.less_thm2  (* mixin applied *)
 lemma "gless(x, y) <-> gle(x, y) & x ~= y"
   by (rule le.less_thm2)
 
+text {* Mixin does not leak to a side branch. *}
+
+locale mixin3 = reflexive
+begin
+lemmas less_thm3 = less_def
+end
+
+interpretation le: mixin3 gle
+  by unfold_locales
+
+thm le.less_thm3  (* mixin not applied *)
+lemma "reflexive.less(gle, x, y) <-> gle(x, y) & x ~= y" by (rule le.less_thm3)
+
 text {* Mixin only available in original context *}
 
-(* This section is not finished. *)
+locale mixin4_base = reflexive
 
-locale mixin3 = mixin le' for le' :: "'a => 'a => o" (infix "\<sqsubseteq>''" 50)
+locale mixin4_mixin = mixin4_base
 
-lemma (in mixin2) before:
-  "reflexive.less(gle, x, y) <-> gle(x, y) & x ~= y"
+interpretation le: mixin4_mixin gle
+  where "reflexive.less(gle, x, y) <-> gless(x, y)"
 proof -
-  have "reflexive(gle)" by unfold_locales (rule grefl)
-  note th = reflexive.less_def[OF this]
-  then show ?thesis by (simp add: th)
+  show "mixin4_mixin(gle)" by unfold_locales (rule grefl)
+  note reflexive = this[unfolded mixin4_mixin_def mixin4_base_def mixin_def]
+  show "reflexive.less(gle, x, y) <-> gless(x, y)"
+    by (simp add: reflexive.less_def[OF reflexive] gless_def)
 qed
 
-interpretation le': mixin2 gle'
-  apply unfold_locales apply (rule grefl') done
+locale mixin4_copy = mixin4_base
+begin
+lemmas less_thm4 = less_def
+end
 
-lemma (in mixin2) after:
-  "reflexive.less(gle, x, y) <-> gle(x, y) & x ~= y"
-proof -
-  have "reflexive(gle)" by unfold_locales (rule grefl)
-  note th = reflexive.less_def[OF this]
-  then show ?thesis by (simp add: th)
-qed
+locale mixin4_combined = le1: mixin4_mixin le' + le2: mixin4_copy le for le' le
+begin
+lemmas less_thm4' = less_def
+end
 
-thm le'.less_def le'.less_thm le'.less_thm2 le'.before le'.after
+interpretation le4: mixin4_combined gle' gle
+  by unfold_locales (rule grefl')
 
-locale combined = le: reflexive le + le': mixin le'
-  for le :: "'a => 'a => o" (infixl "\<sqsubseteq>" 50) and le' :: "'a => 'a => o" (infixl "\<sqsubseteq>''" 50)
-
-interpretation combined gle gle'
-  apply unfold_locales done
-
-thm le.less_def le.less_thm le'.less_def le'.less_thm
+thm le4.less_thm4' (* mixin not applied *)
+lemma "reflexive.less(gle, x, y) <-> gle(x, y) & x ~= y"
+  by (rule le4.less_thm4')
 
 
 subsection {* Interpretation in proofs *}
