@@ -2,7 +2,7 @@ theory Local_Theory
 imports Base
 begin
 
-chapter {* Local theory specifications *}
+chapter {* Local theory specifications \label{ch:local-theory} *}
 
 text {*
   A \emph{local theory} combines aspects of both theory and proof

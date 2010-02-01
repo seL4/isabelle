@@ -492,10 +492,28 @@ section {* Names \label{sec:names} *}
 
 text {* In principle, a name is just a string, but there are various
   conventions for representing additional structure.  For example,
-  ``@{text "Foo.bar.baz"}'' is considered as a qualified name
-  consisting of three basic name components.  The individual
-  constituents of a name may have further substructure, e.g.\ the
-  string ``\verb,\,\verb,<alpha>,'' encodes as a single symbol.
+  ``@{text "Foo.bar.baz"}'' is considered as a long name consisting of
+  qualifier @{text "Foo.bar"} and base name @{text "baz"}.  The
+  individual constituents of a name may have further substructure,
+  e.g.\ the string ``\verb,\,\verb,<alpha>,'' encodes as a single
+  symbol.
+
+  \medskip Subsequently, we shall introduce specific categories of
+  names.  Roughly speaking these correspond to logical entities as
+  follows:
+  \begin{itemize}
+
+  \item Basic names (\secref{sec:basic-name}): free and bound
+  variables.
+
+  \item Indexed names (\secref{sec:indexname}): schematic variables.
+
+  \item Long names (\secref{sec:long-name}): constants of any kind
+  (type constructors, term constants, other concepts defined in user
+  space).  Such entities are typically managed via name spaces
+  (\secref{sec:name-space}).
+
+  \end{itemize}
 *}
 
 
@@ -606,15 +624,15 @@ text %mlref {*
   primitive ML type @{ML_type char} did not exists, and the basic @{ML
   "explode: string -> string list"} operation would produce a list of
   singleton strings as in Isabelle/ML today.  When SML97 came out,
-  Isabelle ignored its slightly anachronistic 8-bit characters, but
-  the idea of exploding a string into a list of small strings was
+  Isabelle did not adopt its slightly anachronistic 8-bit characters,
+  but the idea of exploding a string into a list of small strings was
   extended to ``symbols'' as explained above.  Thus Isabelle sources
   can refer to an infinite store of user-defined symbols, without
   having to worry about the multitude of Unicode encodings.
 *}
 
 
-subsection {* Basic names \label{sec:basic-names} *}
+subsection {* Basic names \label{sec:basic-name} *}
 
 text {*
   A \emph{basic name} essentially consists of a single Isabelle
@@ -699,7 +717,7 @@ text %mlref {*
 *}
 
 
-subsection {* Indexed names *}
+subsection {* Indexed names \label{sec:indexname} *}
 
 text {*
   An \emph{indexed name} (or @{text "indexname"}) is a pair of a basic
@@ -711,9 +729,9 @@ text {*
   @{text "maxidx + 1"}; the maximum index of an empty collection is
   @{text "-1"}.
 
-  Occasionally, basic names and indexed names are injected into the
-  same pair type: the (improper) indexname @{text "(x, -1)"} is used
-  to encode the basic name @{text "x"}.
+  Occasionally, basic names are injected into the same pair type of
+  indexed names: then @{text "(x, -1)"} is used to encode the basic
+  name @{text "x"}.
 
   \medskip Isabelle syntax observes the following rules for
   representing an indexname @{text "(x, i)"} as a packed string:
@@ -728,11 +746,12 @@ text {*
 
   \end{itemize}
 
-  Indexnames may acquire large index numbers over time.  Results are
-  normalized towards @{text "0"} at certain checkpoints, notably at
-  the end of a proof.  This works by producing variants of the
-  corresponding basic name components.  For example, the collection
-  @{text "?x1, ?x7, ?x42"} becomes @{text "?x, ?xa, ?xb"}.
+  Indexnames may acquire large index numbers after several maxidx
+  shifts have been applied.  Results are usually normalized towards
+  @{text "0"} at certain checkpoints, notably at the end of a proof.
+  This works by producing variants of the corresponding basic name
+  components.  For example, the collection @{text "?x1, ?x7, ?x42"}
+  becomes @{text "?x, ?xa, ?xb"}.
 *}
 
 text %mlref {*
@@ -752,59 +771,28 @@ text %mlref {*
 *}
 
 
-subsection {* Qualified names and name spaces *}
+subsection {* Long names \label{sec:long-name} *}
 
-text {*
-  A \emph{qualified name} consists of a non-empty sequence of basic
-  name components.  The packed representation uses a dot as separator,
-  as in ``@{text "A.b.c"}''.  The last component is called \emph{base}
-  name, the remaining prefix \emph{qualifier} (which may be empty).
-  The idea of qualified names is to encode nested structures by
-  recording the access paths as qualifiers.  For example, an item
-  named ``@{text "A.b.c"}'' may be understood as a local entity @{text
-  "c"}, within a local structure @{text "b"}, within a global
-  structure @{text "A"}.  Typically, name space hierarchies consist of
-  1--2 levels of qualification, but this need not be always so.
+text {* A \emph{long name} consists of a sequence of non-empty name
+  components.  The packed representation uses a dot as separator, as
+  in ``@{text "A.b.c"}''.  The last component is called \emph{base
+  name}, the remaining prefix is called \emph{qualifier} (which may be
+  empty).  The qualifier can be understood as the access path to the
+  named entity while passing through some nested block-structure,
+  although our free-form long names do not really enforce any strict
+  discipline.
+
+  For example, an item named ``@{text "A.b.c"}'' may be understood as
+  a local entity @{text "c"}, within a local structure @{text "b"},
+  within a global structure @{text "A"}.  In practice, long names
+  usually represent 1--3 levels of qualification.  User ML code should
+  not make any assumptions about the particular structure of long
+  names!
 
   The empty name is commonly used as an indication of unnamed
-  entities, whenever this makes any sense.  The basic operations on
-  qualified names are smart enough to pass through such improper names
-  unchanged.
-
-  \medskip A @{text "naming"} policy tells how to turn a name
-  specification into a fully qualified internal name (by the @{text
-  "full"} operation), and how fully qualified names may be accessed
-  externally.  For example, the default naming policy is to prefix an
-  implicit path: @{text "full x"} produces @{text "path.x"}, and the
-  standard accesses for @{text "path.x"} include both @{text "x"} and
-  @{text "path.x"}.  Normally, the naming is implicit in the theory or
-  proof context; there are separate versions of the corresponding.
-
-  \medskip A @{text "name space"} manages a collection of fully
-  internalized names, together with a mapping between external names
-  and internal names (in both directions).  The corresponding @{text
-  "intern"} and @{text "extern"} operations are mostly used for
-  parsing and printing only!  The @{text "declare"} operation augments
-  a name space according to the accesses determined by the naming
-  policy.
-
-  \medskip As a general principle, there is a separate name space for
-  each kind of formal entity, e.g.\ logical constant, type
-  constructor, type class, theorem.  It is usually clear from the
-  occurrence in concrete syntax (or from the scope) which kind of
-  entity a name refers to.  For example, the very same name @{text
-  "c"} may be used uniformly for a constant, type constructor, and
-  type class.
-
-  There are common schemes to name theorems systematically, according
-  to the name of the main logical entity involved, e.g.\ @{text
-  "c.intro"} for a canonical theorem related to constant @{text "c"}.
-  This technique of mapping names from one space into another requires
-  some care in order to avoid conflicts.  In particular, theorem names
-  derived from a type constructor or type class are better suffixed in
-  addition to the usual qualification, e.g.\ @{text "c_type.intro"}
-  and @{text "c_class.intro"} for theorems related to type @{text "c"}
-  and class @{text "c"}, respectively.
+  entities, or entities that are not entered into the corresponding
+  name space, whenever this makes any sense.  The basic operations on
+  long names map empty names again to empty names.
 *}
 
 text %mlref {*
@@ -814,6 +802,85 @@ text %mlref {*
   @{index_ML Long_Name.append: "string -> string -> string"} \\
   @{index_ML Long_Name.implode: "string list -> string"} \\
   @{index_ML Long_Name.explode: "string -> string list"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML Long_Name.base_name}~@{text "name"} returns the base name
+  of a long name.
+
+  \item @{ML Long_Name.qualifier}~@{text "name"} returns the qualifier
+  of a long name.
+
+  \item @{ML Long_Name.append}~@{text "name\<^isub>1 name\<^isub>2"} appends two long
+  names.
+
+  \item @{ML Long_Name.implode}~@{text "names"} and @{ML
+  Long_Name.explode}~@{text "name"} convert between the packed string
+  representation and the explicit list form of long names.
+
+  \end{description}
+*}
+
+
+subsection {* Name spaces \label{sec:name-space} *}
+
+text {* A @{text "name space"} manages a collection of long names,
+  together with a mapping between partially qualified external names
+  and fully qualified internal names (in both directions).  Note that
+  the corresponding @{text "intern"} and @{text "extern"} operations
+  are mostly used for parsing and printing only!  The @{text
+  "declare"} operation augments a name space according to the accesses
+  determined by a given binding, and a naming policy from the context.
+
+  \medskip A @{text "binding"} specifies details about the prospective
+  long name of a newly introduced formal entity.  It consists of a
+  base name, prefixes for qualification (separate ones for system
+  infrastructure and user-space mechanisms), a slot for the original
+  source position, and some additional flags.
+
+  \medskip A @{text "naming"} provides some additional details for
+  producing a long name from a binding.  Normally, the naming is
+  implicit in the theory or proof context.  The @{text "full"}
+  operation (and its variants for different context types) produces a
+  fully qualified internal name to be entered into a name space.  The
+  main equation of this ``chemical reaction'' when binding new
+  entities in a context is as follows:
+
+  \smallskip
+  \begin{tabular}{l}
+  @{text "binding + naming \<longrightarrow> long name + name space accesses"}
+  \end{tabular}
+  \smallskip
+
+  \medskip As a general principle, there is a separate name space for
+  each kind of formal entity, e.g.\ fact, logical constant, type
+  constructor, type class.  It is usually clear from the occurrence in
+  concrete syntax (or from the scope) which kind of entity a name
+  refers to.  For example, the very same name @{text "c"} may be used
+  uniformly for a constant, type constructor, and type class.
+
+  There are common schemes to name derived entities systematically
+  according to the name of the main logical entity involved, e.g.\
+  fact @{text "c.intro"} for a canonical introduction rule related to
+  constant @{text "c"}.  This technique of mapping names from one
+  space into another requires some care in order to avoid conflicts.
+  In particular, theorem names derived from a type constructor or type
+  class are better suffixed in addition to the usual qualification,
+  e.g.\ @{text "c_type.intro"} and @{text "c_class.intro"} for
+  theorems related to type @{text "c"} and class @{text "c"},
+  respectively.
+*}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type binding} \\
+  @{index_ML Binding.empty: binding} \\
+  @{index_ML Binding.name: "string -> binding"} \\
+  @{index_ML Binding.qualify: "bool -> string -> binding -> binding"} \\
+  @{index_ML Binding.prefix: "bool -> string -> binding -> binding"} \\
+  @{index_ML Binding.conceal: "binding -> binding"} \\
+  @{index_ML Binding.str_of: "binding -> string"} \\
   \end{mldecls}
   \begin{mldecls}
   @{index_ML_type Name_Space.naming} \\
@@ -829,22 +896,41 @@ text %mlref {*
   string * Name_Space.T"} \\
   @{index_ML Name_Space.intern: "Name_Space.T -> string -> string"} \\
   @{index_ML Name_Space.extern: "Name_Space.T -> string -> string"} \\
+  @{index_ML Name_Space.is_concealed: "Name_Space.T -> string -> bool"}
   \end{mldecls}
 
   \begin{description}
 
-  \item @{ML Long_Name.base_name}~@{text "name"} returns the base name of a
-  qualified name.
+  \item @{ML_type binding} represents the abstract concept of name
+  bindings.
 
-  \item @{ML Long_Name.qualifier}~@{text "name"} returns the qualifier
-  of a qualified name.
+  \item @{ML Binding.empty} is the empty binding.
 
-  \item @{ML Long_Name.append}~@{text "name\<^isub>1 name\<^isub>2"}
-  appends two qualified names.
+  \item @{ML Binding.name}~@{text "name"} produces a binding with base
+  name @{text "name"}.
 
-  \item @{ML Long_Name.implode}~@{text "names"} and @{ML
-  Long_Name.explode}~@{text "name"} convert between the packed string
-  representation and the explicit list form of qualified names.
+  \item @{ML Binding.qualify}~@{text "mandatory name binding"}
+  prefixes qualifier @{text "name"} to @{text "binding"}.  The @{text
+  "mandatory"} flag tells if this name component always needs to be
+  given in name space accesses --- this is mostly @{text "false"} in
+  practice.  Note that this part of qualification is typically used in
+  derived specification mechanisms.
+
+  \item @{ML Binding.prefix} is similar to @{ML Binding.qualify}, but
+  affects the system prefix.  This part of extra qualification is
+  typically used in the infrastructure for modular specifications,
+  notably ``local theory targets'' (see also \chref{ch:local-theory}).
+
+  \item @{ML Binding.conceal}~@{text "binding"} indicates that the
+  binding shall refer to an entity that serves foundational purposes
+  only.  This flag helps to mark implementation details of
+  specification mechanism etc.  Other tools should not depend on the
+  particulars of concealed entities (cf.\ @{ML
+  Name_Space.is_concealed}).
+
+  \item @{ML Binding.str_of}~@{text "binding"} produces a string
+  representation for human-readable output, together with some formal
+  markup that might get used in GUI front-ends, for example.
 
   \item @{ML_type Name_Space.naming} represents the abstract concept of
   a naming policy.
@@ -887,6 +973,10 @@ text %mlref {*
 
   This operation is mostly for printing!  User code should not rely on
   the precise result too much.
+
+  \item @{ML Name_Space.is_concealed}~@{text "space name"} indicates
+  whether @{text "name"} refers to a strictly private entity that
+  other tools are supposed to ignore!
 
   \end{description}
 *}
