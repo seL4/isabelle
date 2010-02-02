@@ -1,3 +1,4 @@
+2/jIbDaU00KSkSih1o9sXg 193550
 #2 := false
 decl up_6 :: (-> T4 T2 bool)
 decl ?x47!7 :: (-> T2 T2)
@@ -6540,3 +6541,4 @@ decl ?x27!0 :: T2
 #23081 := [unit-resolution #19916 #27207]: #17029
 [unit-resolution #23081 #23182 #18055 #27235]: false
 unsat
+
