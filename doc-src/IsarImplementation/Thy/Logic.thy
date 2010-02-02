@@ -24,7 +24,9 @@ text {*
   schematic polymorphism, which is strictly speaking outside the
   logic.\footnote{This is the deeper logical reason, why the theory
   context @{text "\<Theta>"} is separate from the proof context @{text "\<Gamma>"}
-  of the core calculus.}
+  of the core calculus: type constructors, term constants, and facts
+  (proof constants) may involve arbitrary type schemes, but the type
+  of a locally fixed term parameter is also fixed!}
 *}
 
 
@@ -41,18 +43,17 @@ text {*
   internally.  The resulting relation is an ordering: reflexive,
   transitive, and antisymmetric.
 
-  A \emph{sort} is a list of type classes written as @{text "s =
-  {c\<^isub>1, \<dots>, c\<^isub>m}"}, which represents symbolic
-  intersection.  Notationally, the curly braces are omitted for
-  singleton intersections, i.e.\ any class @{text "c"} may be read as
-  a sort @{text "{c}"}.  The ordering on type classes is extended to
-  sorts according to the meaning of intersections: @{text
-  "{c\<^isub>1, \<dots> c\<^isub>m} \<subseteq> {d\<^isub>1, \<dots>, d\<^isub>n}"} iff
-  @{text "\<forall>j. \<exists>i. c\<^isub>i \<subseteq> d\<^isub>j"}.  The empty intersection
-  @{text "{}"} refers to the universal sort, which is the largest
-  element wrt.\ the sort order.  The intersections of all (finitely
-  many) classes declared in the current theory are the minimal
-  elements wrt.\ the sort order.
+  A \emph{sort} is a list of type classes written as @{text "s = {c\<^isub>1,
+  \<dots>, c\<^isub>m}"}, it represents symbolic intersection.  Notationally, the
+  curly braces are omitted for singleton intersections, i.e.\ any
+  class @{text "c"} may be read as a sort @{text "{c}"}.  The ordering
+  on type classes is extended to sorts according to the meaning of
+  intersections: @{text "{c\<^isub>1, \<dots> c\<^isub>m} \<subseteq> {d\<^isub>1, \<dots>, d\<^isub>n}"} iff @{text
+  "\<forall>j. \<exists>i. c\<^isub>i \<subseteq> d\<^isub>j"}.  The empty intersection @{text "{}"} refers to
+  the universal sort, which is the largest element wrt.\ the sort
+  order.  Thus @{text "{}"} represents the ``full sort'', not the
+  empty one!  The intersection of all (finitely many) classes declared
+  in the current theory is the least element wrt.\ the sort ordering.
 
   \medskip A \emph{fixed type variable} is a pair of a basic name
   (starting with a @{text "'"} character) and a sort constraint, e.g.\
@@ -62,10 +63,10 @@ text {*
   printed as @{text "?\<alpha>\<^isub>s"}.
 
   Note that \emph{all} syntactic components contribute to the identity
-  of type variables, including the sort constraint.  The core logic
-  handles type variables with the same name but different sorts as
-  different, although some outer layers of the system make it hard to
-  produce anything like this.
+  of type variables: basic name, index, and sort constraint.  The core
+  logic handles type variables with the same name but different sorts
+  as different, although the type-inference layer (which is outside
+  the core) rejects anything like that.
 
   A \emph{type constructor} @{text "\<kappa>"} is a @{text "k"}-ary operator
   on types declared in the theory.  Type constructor application is
@@ -77,8 +78,8 @@ text {*
   right-associative infix @{text "\<alpha> \<Rightarrow> \<beta>"} instead of @{text "(\<alpha>,
   \<beta>)fun"}.
   
-  A \emph{type} is defined inductively over type variables and type
-  constructors as follows: @{text "\<tau> = \<alpha>\<^isub>s | ?\<alpha>\<^isub>s |
+  The logical category \emph{type} is defined inductively over type
+  variables and type constructors as follows: @{text "\<tau> = \<alpha>\<^isub>s | ?\<alpha>\<^isub>s |
   (\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>k)\<kappa>"}.
 
   A \emph{type abbreviation} is a syntactic definition @{text
@@ -193,15 +194,13 @@ text {*
   with de-Bruijn indices for bound variables (cf.\ \cite{debruijn72}
   or \cite{paulson-ml2}), with the types being determined by the
   corresponding binders.  In contrast, free variables and constants
-  are have an explicit name and type in each occurrence.
+  have an explicit name and type in each occurrence.
 
   \medskip A \emph{bound variable} is a natural number @{text "b"},
   which accounts for the number of intermediate binders between the
   variable occurrence in the body and its binding position.  For
-  example, the de-Bruijn term @{text
-  "\<lambda>\<^bsub>nat\<^esub>. \<lambda>\<^bsub>nat\<^esub>. 1 + 0"} would
-  correspond to @{text
-  "\<lambda>x\<^bsub>nat\<^esub>. \<lambda>y\<^bsub>nat\<^esub>. x + y"} in a named
+  example, the de-Bruijn term @{text "\<lambda>\<^bsub>bool\<^esub>. \<lambda>\<^bsub>bool\<^esub>. 1 \<and> 0"} would
+  correspond to @{text "\<lambda>x\<^bsub>bool\<^esub>. \<lambda>y\<^bsub>bool\<^esub>. x \<and> y"} in a named
   representation.  Note that a bound variable may be represented by
   different de-Bruijn indices at different occurrences, depending on
   the nesting of abstractions.
@@ -213,27 +212,27 @@ text {*
   without any loose variables.
 
   A \emph{fixed variable} is a pair of a basic name and a type, e.g.\
-  @{text "(x, \<tau>)"} which is usually printed @{text "x\<^isub>\<tau>"}.  A
+  @{text "(x, \<tau>)"} which is usually printed @{text "x\<^isub>\<tau>"} here.  A
   \emph{schematic variable} is a pair of an indexname and a type,
-  e.g.\ @{text "((x, 0), \<tau>)"} which is usually printed as @{text
+  e.g.\ @{text "((x, 0), \<tau>)"} which is likewise printed as @{text
   "?x\<^isub>\<tau>"}.
 
   \medskip A \emph{constant} is a pair of a basic name and a type,
-  e.g.\ @{text "(c, \<tau>)"} which is usually printed as @{text
-  "c\<^isub>\<tau>"}.  Constants are declared in the context as polymorphic
-  families @{text "c :: \<sigma>"}, meaning that all substitution instances
-  @{text "c\<^isub>\<tau>"} for @{text "\<tau> = \<sigma>\<vartheta>"} are valid.
+  e.g.\ @{text "(c, \<tau>)"} which is usually printed as @{text "c\<^isub>\<tau>"}
+  here.  Constants are declared in the context as polymorphic families
+  @{text "c :: \<sigma>"}, meaning that all substitution instances @{text
+  "c\<^isub>\<tau>"} for @{text "\<tau> = \<sigma>\<vartheta>"} are valid.
 
-  The vector of \emph{type arguments} of constant @{text "c\<^isub>\<tau>"}
-  wrt.\ the declaration @{text "c :: \<sigma>"} is defined as the codomain of
-  the matcher @{text "\<vartheta> = {?\<alpha>\<^isub>1 \<mapsto> \<tau>\<^isub>1, \<dots>,
-  ?\<alpha>\<^isub>n \<mapsto> \<tau>\<^isub>n}"} presented in canonical order @{text
-  "(\<tau>\<^isub>1, \<dots>, \<tau>\<^isub>n)"}.  Within a given theory context,
-  there is a one-to-one correspondence between any constant @{text
-  "c\<^isub>\<tau>"} and the application @{text "c(\<tau>\<^isub>1, \<dots>,
-  \<tau>\<^isub>n)"} of its type arguments.  For example, with @{text "plus
-  :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>"}, the instance @{text "plus\<^bsub>nat \<Rightarrow> nat \<Rightarrow>
-  nat\<^esub>"} corresponds to @{text "plus(nat)"}.
+  The vector of \emph{type arguments} of constant @{text "c\<^isub>\<tau>"} wrt.\
+  the declaration @{text "c :: \<sigma>"} is defined as the codomain of the
+  matcher @{text "\<vartheta> = {?\<alpha>\<^isub>1 \<mapsto> \<tau>\<^isub>1, \<dots>, ?\<alpha>\<^isub>n \<mapsto> \<tau>\<^isub>n}"} presented in
+  canonical order @{text "(\<tau>\<^isub>1, \<dots>, \<tau>\<^isub>n)"}, corresponding to the
+  left-to-right occurrences of the @{text "\<alpha>\<^isub>i"} in @{text "\<sigma>"}.
+  Within a given theory context, there is a one-to-one correspondence
+  between any constant @{text "c\<^isub>\<tau>"} and the application @{text "c(\<tau>\<^isub>1,
+  \<dots>, \<tau>\<^isub>n)"} of its type arguments.  For example, with @{text "plus :: \<alpha>
+  \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>"}, the instance @{text "plus\<^bsub>nat \<Rightarrow> nat \<Rightarrow> nat\<^esub>"} corresponds to
+  @{text "plus(nat)"}.
 
   Constant declarations @{text "c :: \<sigma>"} may contain sort constraints
   for type variables in @{text "\<sigma>"}.  These are observed by
@@ -242,14 +241,13 @@ text {*
   polymorphic constants that the user-level type-checker would reject
   due to violation of type class restrictions.
 
-  \medskip An \emph{atomic} term is either a variable or constant.  A
-  \emph{term} is defined inductively over atomic terms, with
-  abstraction and application as follows: @{text "t = b | x\<^isub>\<tau> |
-  ?x\<^isub>\<tau> | c\<^isub>\<tau> | \<lambda>\<^isub>\<tau>. t | t\<^isub>1 t\<^isub>2"}.
-  Parsing and printing takes care of converting between an external
-  representation with named bound variables.  Subsequently, we shall
-  use the latter notation instead of internal de-Bruijn
-  representation.
+  \medskip An \emph{atomic} term is either a variable or constant.
+  The logical category \emph{term} is defined inductively over atomic
+  terms, with abstraction and application as follows: @{text "t = b |
+  x\<^isub>\<tau> | ?x\<^isub>\<tau> | c\<^isub>\<tau> | \<lambda>\<^isub>\<tau>. t | t\<^isub>1 t\<^isub>2"}.  Parsing and printing takes care of
+  converting between an external representation with named bound
+  variables.  Subsequently, we shall use the latter notation instead
+  of internal de-Bruijn representation.
 
   The inductive relation @{text "t :: \<tau>"} assigns a (unique) type to a
   term according to the structure of atomic terms, abstractions, and
@@ -271,18 +269,17 @@ text {*
 
   The identity of atomic terms consists both of the name and the type
   component.  This means that different variables @{text
-  "x\<^bsub>\<tau>\<^isub>1\<^esub>"} and @{text
-  "x\<^bsub>\<tau>\<^isub>2\<^esub>"} may become the same after type
-  instantiation.  Some outer layers of the system make it hard to
-  produce variables of the same name, but different types.  In
-  contrast, mixed instances of polymorphic constants occur frequently.
+  "x\<^bsub>\<tau>\<^isub>1\<^esub>"} and @{text "x\<^bsub>\<tau>\<^isub>2\<^esub>"} may become the same after
+  type instantiation.  Type-inference rejects variables of the same
+  name, but different types.  In contrast, mixed instances of
+  polymorphic constants occur routinely.
 
   \medskip The \emph{hidden polymorphism} of a term @{text "t :: \<sigma>"}
   is the set of type variables occurring in @{text "t"}, but not in
-  @{text "\<sigma>"}.  This means that the term implicitly depends on type
-  arguments that are not accounted in the result type, i.e.\ there are
-  different type instances @{text "t\<vartheta> :: \<sigma>"} and @{text
-  "t\<vartheta>' :: \<sigma>"} with the same type.  This slightly
+  its type @{text "\<sigma>"}.  This means that the term implicitly depends
+  on type arguments that are not accounted in the result type, i.e.\
+  there are different type instances @{text "t\<vartheta> :: \<sigma>"} and
+  @{text "t\<vartheta>' :: \<sigma>"} with the same type.  This slightly
   pathological situation notoriously demands additional care.
 
   \medskip A \emph{term abbreviation} is a syntactic definition @{text
@@ -431,14 +428,14 @@ text {*
   \infer[@{text "(assume)"}]{@{text "A \<turnstile> A"}}{}
   \]
   \[
-  \infer[@{text "(\<And>_intro)"}]{@{text "\<Gamma> \<turnstile> \<And>x. b[x]"}}{@{text "\<Gamma> \<turnstile> b[x]"} & @{text "x \<notin> \<Gamma>"}}
+  \infer[@{text "(\<And>\<dash>intro)"}]{@{text "\<Gamma> \<turnstile> \<And>x. b[x]"}}{@{text "\<Gamma> \<turnstile> b[x]"} & @{text "x \<notin> \<Gamma>"}}
   \qquad
-  \infer[@{text "(\<And>_elim)"}]{@{text "\<Gamma> \<turnstile> b[a]"}}{@{text "\<Gamma> \<turnstile> \<And>x. b[x]"}}
+  \infer[@{text "(\<And>\<dash>elim)"}]{@{text "\<Gamma> \<turnstile> b[a]"}}{@{text "\<Gamma> \<turnstile> \<And>x. b[x]"}}
   \]
   \[
-  \infer[@{text "(\<Longrightarrow>_intro)"}]{@{text "\<Gamma> - A \<turnstile> A \<Longrightarrow> B"}}{@{text "\<Gamma> \<turnstile> B"}}
+  \infer[@{text "(\<Longrightarrow>\<dash>intro)"}]{@{text "\<Gamma> - A \<turnstile> A \<Longrightarrow> B"}}{@{text "\<Gamma> \<turnstile> B"}}
   \qquad
-  \infer[@{text "(\<Longrightarrow>_elim)"}]{@{text "\<Gamma>\<^sub>1 \<union> \<Gamma>\<^sub>2 \<turnstile> B"}}{@{text "\<Gamma>\<^sub>1 \<turnstile> A \<Longrightarrow> B"} & @{text "\<Gamma>\<^sub>2 \<turnstile> A"}}
+  \infer[@{text "(\<Longrightarrow>\<dash>elim)"}]{@{text "\<Gamma>\<^sub>1 \<union> \<Gamma>\<^sub>2 \<turnstile> B"}}{@{text "\<Gamma>\<^sub>1 \<turnstile> A \<Longrightarrow> B"} & @{text "\<Gamma>\<^sub>2 \<turnstile> A"}}
   \]
   \caption{Primitive inferences of Pure}\label{fig:prim-rules}
   \end{center}
@@ -467,21 +464,21 @@ text {*
   terms, and @{text "\<And>/\<Longrightarrow>"} for proofs (cf.\
   \cite{Berghofer-Nipkow:2000:TPHOL}).
 
-  Observe that locally fixed parameters (as in @{text "\<And>_intro"}) need
-  not be recorded in the hypotheses, because the simple syntactic
-  types of Pure are always inhabitable.  ``Assumptions'' @{text "x ::
-  \<tau>"} for type-membership are only present as long as some @{text
-  "x\<^isub>\<tau>"} occurs in the statement body.\footnote{This is the key
-  difference to ``@{text "\<lambda>HOL"}'' in the PTS framework
-  \cite{Barendregt-Geuvers:2001}, where hypotheses @{text "x : A"} are
-  treated uniformly for propositions and types.}
+  Observe that locally fixed parameters (as in @{text
+  "\<And>\<dash>intro"}) need not be recorded in the hypotheses, because
+  the simple syntactic types of Pure are always inhabitable.
+  ``Assumptions'' @{text "x :: \<tau>"} for type-membership are only
+  present as long as some @{text "x\<^isub>\<tau>"} occurs in the statement
+  body.\footnote{This is the key difference to ``@{text "\<lambda>HOL"}'' in
+  the PTS framework \cite{Barendregt-Geuvers:2001}, where hypotheses
+  @{text "x : A"} are treated uniformly for propositions and types.}
 
   \medskip The axiomatization of a theory is implicitly closed by
   forming all instances of type and term variables: @{text "\<turnstile>
   A\<vartheta>"} holds for any substitution instance of an axiom
   @{text "\<turnstile> A"}.  By pushing substitutions through derivations
   inductively, we also get admissible @{text "generalize"} and @{text
-  "instance"} rules as shown in \figref{fig:subst-rules}.
+  "instantiate"} rules as shown in \figref{fig:subst-rules}.
 
   \begin{figure}[htb]
   \begin{center}
@@ -588,11 +585,11 @@ text %mlref {*
   Every @{ML thm} value contains a sliding back-reference to the
   enclosing theory, cf.\ \secref{sec:context-theory}.
 
-  \item @{ML proofs} determines the detail of proof recording within
+  \item @{ML proofs} specifies the detail of proof recording within
   @{ML_type thm} values: @{ML 0} records only the names of oracles,
   @{ML 1} records oracle names and propositions, @{ML 2} additionally
   records full proof terms.  Officially named theorems that contribute
-  to a result are always recorded.
+  to a result are recorded in any case.
 
   \item @{ML Thm.assume}, @{ML Thm.forall_intr}, @{ML
   Thm.forall_elim}, @{ML Thm.implies_intr}, and @{ML Thm.implies_elim}
@@ -644,8 +641,8 @@ text {*
   \begin{figure}[htb]
   \begin{center}
   \begin{tabular}{ll}
-  @{text "conjunction :: prop \<Rightarrow> prop \<Rightarrow> prop"} & (infix @{text "&"}) \\
-  @{text "\<turnstile> A & B \<equiv> (\<And>C. (A \<Longrightarrow> B \<Longrightarrow> C) \<Longrightarrow> C)"} \\[1ex]
+  @{text "conjunction :: prop \<Rightarrow> prop \<Rightarrow> prop"} & (infix @{text "&&&"}) \\
+  @{text "\<turnstile> A &&& B \<equiv> (\<And>C. (A \<Longrightarrow> B \<Longrightarrow> C) \<Longrightarrow> C)"} \\[1ex]
   @{text "prop :: prop \<Rightarrow> prop"} & (prefix @{text "#"}, suppressed) \\
   @{text "#A \<equiv> A"} \\[1ex]
   @{text "term :: \<alpha> \<Rightarrow> prop"} & (prefix @{text "TERM"}) \\
@@ -657,13 +654,15 @@ text {*
   \end{center}
   \end{figure}
 
-  Derived conjunction rules include introduction @{text "A \<Longrightarrow> B \<Longrightarrow> A &
-  B"}, and destructions @{text "A & B \<Longrightarrow> A"} and @{text "A & B \<Longrightarrow> B"}.
-  Conjunction allows to treat simultaneous assumptions and conclusions
-  uniformly.  For example, multiple claims are intermediately
-  represented as explicit conjunction, but this is refined into
-  separate sub-goals before the user continues the proof; the final
-  result is projected into a list of theorems (cf.\
+  The introduction @{text "A \<Longrightarrow> B \<Longrightarrow> A &&& B"}, and eliminations
+  (projections) @{text "A &&& B \<Longrightarrow> A"} and @{text "A &&& B \<Longrightarrow> B"} are
+  available as derived rules.  Conjunction allows to treat
+  simultaneous assumptions and conclusions uniformly, e.g.\ consider
+  @{text "A \<Longrightarrow> B \<Longrightarrow> C &&& D"}.  In particular, the goal mechanism
+  represents multiple claims as explicit conjunction internally, but
+  this is refined (via backwards introduction) into separate sub-goals
+  before the user commences the proof; the final result is projected
+  into a list of theorems using eliminations (cf.\
   \secref{sec:tactical-goals}).
 
   The @{text "prop"} marker (@{text "#"}) makes arbitrarily complex
@@ -681,7 +680,7 @@ text {*
   language of types into that of terms.  There is specific notation
   @{text "TYPE(\<tau>)"} for @{text "TYPE\<^bsub>\<tau>
  itself\<^esub>"}.
-  Although being devoid of any particular meaning, the @{text
+  Although being devoid of any particular meaning, the term @{text
   "TYPE(\<tau>)"} accounts for the type @{text "\<tau>"} within the term
   language.  In particular, @{text "TYPE(\<alpha>)"} may be used as formal
   argument in primitive definitions, in order to circumvent hidden
@@ -703,11 +702,11 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML Conjunction.intr} derives @{text "A & B"} from @{text
+  \item @{ML Conjunction.intr} derives @{text "A &&& B"} from @{text
   "A"} and @{text "B"}.
 
   \item @{ML Conjunction.elim} derives @{text "A"} and @{text "B"}
-  from @{text "A & B"}.
+  from @{text "A &&& B"}.
 
   \item @{ML Drule.mk_term} derives @{text "TERM t"}.
 
@@ -784,7 +783,8 @@ text {*
   "(A \<Longrightarrow> B) \<Longrightarrow> A \<longrightarrow> B"} or mathematical induction @{text "P 0 \<Longrightarrow> (\<And>n. P n
   \<Longrightarrow> P (Suc n)) \<Longrightarrow> P n"}.  Even deeper nesting occurs in well-founded
   induction @{text "(\<And>x. (\<And>y. y \<prec> x \<Longrightarrow> P y) \<Longrightarrow> P x) \<Longrightarrow> P x"}, but this
-  already marks the limit of rule complexity seen in practice.
+  already marks the limit of rule complexity that is usually seen in
+  practice.
 
   \medskip Regular user-level inferences in Isabelle/Pure always
   maintain the following canonical form of results:
@@ -890,11 +890,10 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{text "rule\<^sub>1 RS rule\<^sub>2"} resolves @{text
-  "rule\<^sub>1"} with @{text "rule\<^sub>2"} according to the
-  @{inference resolution} principle explained above.  Note that the
-  corresponding attribute in the Isar language is called @{attribute
-  THEN}.
+  \item @{text "rule\<^sub>1 RS rule\<^sub>2"} resolves @{text "rule\<^sub>1"} with @{text
+  "rule\<^sub>2"} according to the @{inference resolution} principle
+  explained above.  Note that the corresponding rule attribute in the
+  Isar language is called @{attribute THEN}.
 
   \item @{text "rule OF rules"} resolves a list of rules with the
   first rule, addressing its premises @{text "1, \<dots>, length rules"}
