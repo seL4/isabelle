@@ -145,6 +145,72 @@ text %mlref {*
   \end{description}
 *}
 
+text %mlex {* The following example (in theory @{theory Pure}) shows
+  how to work with fixed term and type parameters work with
+  type-inference.
+*}
+
+typedecl foo  -- {* some basic type for testing purposes *}
+
+ML {*
+  (*static compile-time context -- for testing only*)
+  val ctxt0 = @{context};
+
+  (*locally fixed parameters -- no type assignment yet*)
+  val ([x, y], ctxt1) = ctxt0 |> Variable.add_fixes ["x", "y"];
+
+  (*t1: most general fixed type; t1': most general arbitrary type*)
+  val t1 = Syntax.read_term ctxt1 "x";
+  val t1' = singleton (Variable.polymorphic ctxt1) t1;
+
+  (*term u enforces specific type assignment*)
+  val u = Syntax.read_term ctxt1 "(x::foo) \<equiv> y";
+
+  (*official declaration of u -- propagates constraints etc.*)
+  val ctxt2 = ctxt1 |> Variable.declare_term u;
+  val t2 = Syntax.read_term ctxt2 "x";  (*x::foo is enforced*)
+*}
+
+text {* In the above example, the starting context had been derived
+  from the toplevel theory, which means that fixed variables are
+  internalized literally: @{verbatim "x"} is mapped again to
+  @{verbatim "x"}, and attempting to fix it again in the subsequent
+  context is an error.  Alternatively, fixed parameters can be renamed
+  explicitly as follows:
+*}
+
+ML {*
+  val ctxt0 = @{context};
+  val ([x1, x2, x3], ctxt1) =
+    ctxt0 |> Variable.variant_fixes ["x", "x", "x"];
+*}
+
+text {* \noindent Subsequent ML code can now work with the invented
+  names of @{verbatim x1}, @{verbatim x2}, @{verbatim x3}, without
+  depending on the details on the system policy for introducing these
+  variants.  Recall that within a proof body the system always invents
+  fresh ``skolem constants'', e.g.\ as follows:
+*}
+
+lemma "PROP XXX"
+proof -
+  ML_prf %"ML" {*
+    val ctxt0 = @{context};
+
+    val ([x1], ctxt1) = ctxt0 |> Variable.add_fixes ["x"];
+    val ([x2], ctxt2) = ctxt1 |> Variable.add_fixes ["x"];
+    val ([x3], ctxt3) = ctxt2 |> Variable.add_fixes ["x"];
+
+    val ([y1, y2], ctxt4) =
+      ctxt3 |> Variable.variant_fixes ["y", "y"];
+  *}
+  oops
+
+text {* \noindent In this situation @{ML Variable.add_fixes} and @{ML
+  Variable.variant_fixes} are very similar, but identical name
+  proposals given in a row are only accepted by the second version.
+*}
+
 
 section {* Assumptions \label{sec:assumptions} *}
 
@@ -244,6 +310,30 @@ text %mlref {*
   and @{ML "Assumption.export"} in the canonical way.
 
   \end{description}
+*}
+
+text %mlex {* The following example demonstrates how rules can be
+  derived by building up a context of assumptions first, and exporting
+  some local fact afterwards.  We refer to @{theory Pure} equality
+  here for testing purposes.
+*}
+
+ML {*
+  (*static compile-time context -- for testing only*)
+  val ctxt0 = @{context};
+
+  val ([eq], ctxt1) =
+    ctxt0 |> Assumption.add_assumes [@{cprop "x \<equiv> y"}];
+  val eq' = Thm.symmetric eq;
+
+  (*back to original context -- discharges assumption*)
+  val r = Assumption.export false ctxt1 ctxt0 eq';
+*}
+
+text {* \noindent Note that the variables of the resulting rule are
+  not generalized.  This would have required to fix them properly in
+  the context beforehand, and export wrt.\ variables afterwards (cf.\
+  @{ML Variable.export} or the combined @{ML "ProofContext.export"}).
 *}
 
 
