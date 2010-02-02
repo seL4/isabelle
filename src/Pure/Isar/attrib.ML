@@ -288,6 +288,8 @@ val _ = Context.>> (Context.map_theory
   setup (Binding.name "folded") folded "folded definitions" #>
   setup (Binding.name "consumes") (Scan.lift (Scan.optional P.nat 1) >> Rule_Cases.consumes)
     "number of consumed facts" #>
+  setup (Binding.name "constraints") (Scan.lift P.nat >> Rule_Cases.constraints)
+    "number of equality constraints" #>
   setup (Binding.name "case_names") (Scan.lift (Scan.repeat1 Args.name) >> Rule_Cases.case_names)
     "named rule cases" #>
   setup (Binding.name "case_conclusion")

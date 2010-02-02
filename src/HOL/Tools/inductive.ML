@@ -72,7 +72,7 @@ sig
     term list -> (binding * mixfix) list ->
     local_theory -> inductive_result * local_theory
   val declare_rules: binding -> bool -> bool -> string list ->
-    thm list -> binding list -> Attrib.src list list -> (thm * string list) list ->
+    thm list -> binding list -> Attrib.src list list -> (thm * string list * int) list ->
     thm -> local_theory -> thm list * thm list * thm * local_theory
   val add_ind_def: add_ind_def
   val gen_add_inductive_i: add_ind_def -> inductive_flags ->
@@ -411,7 +411,7 @@ fun prove_elims quiet_mode cs params intr_ts intr_names unfold rec_preds_defs ct
                DEPTH_SOLVE_1 (ares_tac [rewrite_rule rec_preds_defs prem, conjI] 1)) (tl prems))])
           |> rulify
           |> singleton (ProofContext.export ctxt'' ctxt),
-         map #2 c_intrs)
+         map #2 c_intrs, length Ts)
       end
 
    in map prove_elim cs end;
@@ -724,11 +724,12 @@ fun declare_rules rec_binding coind no_ind cnames
     val (((_, elims'), (_, [induct'])), lthy2) =
       lthy1 |>
       Local_Theory.note ((rec_qualified true (Binding.name "intros"), []), intrs') ||>>
-      fold_map (fn (name, (elim, cases)) =>
+      fold_map (fn (name, (elim, cases, k)) =>
         Local_Theory.note
           ((Binding.qualify true (Long_Name.base_name name) (Binding.name "cases"),
             [Attrib.internal (K (Rule_Cases.case_names cases)),
              Attrib.internal (K (Rule_Cases.consumes 1)),
+             Attrib.internal (K (Rule_Cases.constraints k)),
              Attrib.internal (K (Induct.cases_pred name)),
              Attrib.internal (K (Context_Rules.elim_query NONE))]), [elim]) #>
         apfst (hd o snd)) (if null elims then [] else cnames ~~ elims) ||>>
