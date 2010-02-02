@@ -76,7 +76,7 @@ A trace containing an event of the form
 @{term [display,indent=5] "Says A' B (Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>)"}
 may be extended by an event of the form
 @{term [display,indent=5] "Says B A (Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>)"}
-where @{text NB} is a fresh nonce: @{term "Nonce NB \<in> used evs2"}.
+where @{text NB} is a fresh nonce: @{term "Nonce NB \<notin> used evs2"}.
 Writing the sender as @{text A'} indicates that @{text B} does not 
 know who sent the message.  Calling the trace variable @{text evs2} rather
 than simply @{text evs} helps us know where we are in a proof after many
