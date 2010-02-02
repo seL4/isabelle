@@ -39,20 +39,39 @@ declare [[ smt_timeout = 20 ]]
 
 subsection {* Z3-specific options *}
 
+text {* Pass extra command-line arguments to Z3 to control its behaviour: *}
+
+declare [[ z3_options = "" ]]
+
 text {* Enable proof reconstruction for Z3: *}
 
 declare [[ z3_proofs = false ]]
 
-text {* Pass extra command-line arguments to Z3
-to control its behaviour: *}
+text {* Enable or disable tracing of the theorems used for proving a
+proposition: *}
 
-declare [[ z3_options = "" ]]
+declare [[ z3_trace_assms = false ]]
+
+
+subsection {* Certificates *}
+
+text {* To avoid invocation of an SMT solver for the same problem
+again and again, cache certificates in a file (the filename must
+be given by an absolute path, an empty string disables the usage
+of certificates): *}
+
+declare [[ smt_certificates = "" ]]
+
+text {* Enables or disables the addition of new certificates to
+the current certificates file (when disabled, only existing
+certificates are used and no SMT solver is invoked): *}
+
+declare [[ smt_record = true ]]
 
 
 subsection {* Special configuration options *}
 
-text {*
-Trace the problem file, the result of the SMT solver and
+text {* Trace the problem file, the result of the SMT solver and
 further information: *}
 
 declare [[ smt_trace = false ]]
@@ -60,12 +79,5 @@ declare [[ smt_trace = false ]]
 text {* Unfold (some) definitions passed to the SMT solver: *}
 
 declare [[ smt_unfold_defs = true ]]
-
-text {*
-Produce or use certificates (to avoid repeated invocation of an
-SMT solver again and again). The value is an absolute path
-pointing to the problem file. See also the examples. *}
-
-declare [[ smt_keep = "", smt_cert = "" ]]
 
 end
