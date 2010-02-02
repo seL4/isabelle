@@ -10,6 +10,7 @@ sig
   val atomize: thm list
   val rulify: thm list
   val rulify_fallback: thm list
+  val equal_def: thm
   val dest_def: term -> (term * term) option
   val trivial_tac: int -> tactic
 end;
@@ -69,7 +70,7 @@ sig
   val rotate_tac: int -> int -> int -> tactic
   val internalize: int -> thm -> thm
   val guess_instance: Proof.context -> thm -> int -> thm -> thm Seq.seq
-  val cases_tac: Proof.context -> term option list list -> thm option ->
+  val cases_tac: Proof.context -> bool -> term option list list -> thm option ->
     thm list -> int -> cases_tactic
   val get_inductT: Proof.context -> term option list list -> thm list list
   val induct_tac: Proof.context -> bool -> (binding option * (term * bool)) option list list ->
@@ -410,6 +411,38 @@ fun trace_rules _ kind [] = error ("Unable to figure out " ^ kind ^ " rule")
   | trace_rules ctxt _ rules = Method.trace ctxt rules;
 
 
+(* mark equality constraints in cases rule *)
+
+val equal_def' = Thm.symmetric Data.equal_def;
+
+fun mark_constraints n ctxt = Conv.fconv_rule
+  (Conv.prems_conv (~1) (Conv.params_conv ~1 (K (Conv.prems_conv n
+     (MetaSimplifier.rewrite false [equal_def']))) ctxt));
+
+val unmark_constraints = Conv.fconv_rule
+  (MetaSimplifier.rewrite true [Data.equal_def]);
+
+(* simplify *)
+
+fun simplify_conv' ctxt =
+  Simplifier.full_rewrite (Simplifier.context ctxt (#4 (get_local ctxt)));
+
+fun simplify_conv ctxt ct =
+  if exists_subterm (is_some o Data.dest_def) (term_of ct) then
+    (Conv.try_conv (rulify_defs_conv ctxt) then_conv simplify_conv' ctxt) ct
+  else Conv.all_conv ct;
+
+fun gen_simplified_rule cv ctxt =
+  Conv.fconv_rule (Conv.prems_conv ~1 (cv ctxt));
+
+val simplified_rule' = gen_simplified_rule simplify_conv';
+val simplified_rule = gen_simplified_rule simplify_conv;
+
+fun simplify_tac ctxt = CONVERSION (simplify_conv ctxt);
+
+val trivial_tac = Data.trivial_tac;
+
+
 
 (** cases method **)
 
@@ -431,15 +464,17 @@ fun get_casesP ctxt (fact :: _) = find_casesP ctxt (Thm.concl_of fact)
 
 in
 
-fun cases_tac ctxt insts opt_rule facts =
+fun cases_tac ctxt simp insts opt_rule facts =
   let
     val thy = ProofContext.theory_of ctxt;
 
     fun inst_rule r =
-      if null insts then `Rule_Cases.get r
-      else (align_left "Rule has fewer premises than arguments given" (Thm.prems_of r) insts
-        |> maps (prep_inst ctxt align_left I)
-        |> Drule.cterm_instantiate) r |> pair (Rule_Cases.get r);
+      (if null insts then r
+       else (align_left "Rule has fewer premises than arguments given" (Thm.prems_of r) insts
+         |> maps (prep_inst ctxt align_left I)
+         |> Drule.cterm_instantiate) r) |>
+      (if simp then mark_constraints (Rule_Cases.get_constraints r) ctxt else I) |>
+      pair (Rule_Cases.get r);
 
     val ruleq =
       (case opt_rule of
@@ -453,9 +488,14 @@ fun cases_tac ctxt insts opt_rule facts =
       ruleq
       |> Seq.maps (Rule_Cases.consume [] facts)
       |> Seq.maps (fn ((cases, (_, more_facts)), rule) =>
-        CASES (Rule_Cases.make_common (thy,
-            Thm.prop_of (Rule_Cases.internalize_params rule)) cases)
-          (Method.insert_tac more_facts i THEN Tactic.rtac rule i) st)
+        let val rule' =
+          (if simp then simplified_rule' ctxt #> unmark_constraints else I) rule
+        in
+          CASES (Rule_Cases.make_common (thy,
+              Thm.prop_of (Rule_Cases.internalize_params rule')) cases)
+            ((Method.insert_tac more_facts THEN' Tactic.rtac rule' THEN_ALL_NEW
+                (if simp then TRY o trivial_tac else K all_tac)) i) st
+        end)
   end;
 
 end;
@@ -499,22 +539,6 @@ val rulify_tac =
   Simplifier.rewrite_goal_tac Data.rulify_fallback THEN'
   Goal.conjunction_tac THEN_ALL_NEW
   (Simplifier.rewrite_goal_tac [@{thm Pure.conjunction_imp}] THEN' Goal.norm_hhf_tac);
-
-
-(* simplify *)
-
-fun simplify_conv ctxt ct =
-  if exists_subterm (is_some o Data.dest_def) (term_of ct) then
-    (Conv.try_conv (rulify_defs_conv ctxt) then_conv
-       Simplifier.full_rewrite (Simplifier.context ctxt (#4 (get_local ctxt)))) ct
-  else Conv.all_conv ct;
-
-fun simplified_rule ctxt thm =
-  Conv.fconv_rule (Conv.prems_conv ~1 (simplify_conv ctxt)) thm;
-
-fun simplify_tac ctxt = CONVERSION (simplify_conv ctxt);
-
-val trivial_tac = Data.trivial_tac;
 
 
 (* prepare rule *)
@@ -870,9 +894,11 @@ in
 
 val cases_setup =
   Method.setup @{binding cases}
-    (P.and_list' (Scan.repeat (unless_more_args inst)) -- Scan.option cases_rule >>
-      (fn (insts, opt_rule) => fn ctxt =>
-        METHOD_CASES (fn facts => Seq.DETERM (HEADGOAL (cases_tac ctxt insts opt_rule facts)))))
+    (Args.mode no_simpN --
+      (P.and_list' (Scan.repeat (unless_more_args inst)) -- Scan.option cases_rule) >>
+      (fn (no_simp, (insts, opt_rule)) => fn ctxt =>
+        METHOD_CASES (fn facts => Seq.DETERM (HEADGOAL
+          (cases_tac ctxt (not no_simp) insts opt_rule facts)))))
     "case analysis on types or predicates/sets";
 
 val induct_setup =
