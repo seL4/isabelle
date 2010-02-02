@@ -84,7 +84,7 @@ may be extended by an event of the form
 \begin{isabelle}%
 \ \ \ \ \ Says\ B\ A\ {\isacharparenleft}Crypt\ {\isacharparenleft}pubK\ A{\isacharparenright}\ {\isasymlbrace}Nonce\ NA{\isacharcomma}\ Nonce\ NB{\isacharcomma}\ Agent\ B{\isasymrbrace}{\isacharparenright}%
 \end{isabelle}
-where \isa{NB} is a fresh nonce: \isa{Nonce\ NB\ {\isasymin}\ used\ evs{\isadigit{2}}}.
+where \isa{NB} is a fresh nonce: \isa{Nonce\ NB\ {\isasymnotin}\ used\ evs{\isadigit{2}}}.
 Writing the sender as \isa{A{\isacharprime}} indicates that \isa{B} does not 
 know who sent the message.  Calling the trace variable \isa{evs{\isadigit{2}}} rather
 than simply \isa{evs} helps us know where we are in a proof after many
