@@ -81,9 +81,11 @@ implementation Dijkstra()
 
 boogie_open "~~/src/HOL/Boogie/Examples/Boogie_Dijkstra"
 
+declare [[smt_certificates="~~/src/HOL/Boogie/Examples/Boogie_Dijkstra.certs"]]
+declare [[smt_record=false]]
+
 boogie_vc Dijkstra
   using [[z3_proofs=true]]
-  using [[smt_cert="~~/src/HOL/Boogie/Examples/cert/Boogie_Dijkstra"]]
   by boogie
 
 boogie_end 
