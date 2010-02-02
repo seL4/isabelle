@@ -332,9 +332,12 @@ fun print_locale thy show_facts raw_name =
 structure Registrations = Theory_Data
 (
   type T = ((string * (morphism * morphism)) * serial) list *
-    (* registrations, in reverse order of declaration *)
+    (* registrations, in reverse order of declaration;
+       serial points to mixin list *)
     (serial * ((morphism * bool) * serial) list) list;
-    (* alist of mixin lists, per list mixins in reverse order of declaration *)
+    (* alist of mixin lists, per list mixins in reverse order of declaration;
+       lists indexed by registration serial,
+       entries for empty lists may be omitted *)
   val empty = ([], []);
   val extend = I;
   fun merge ((r1, m1), (r2, m2)) : T =
@@ -461,11 +464,10 @@ fun add_registration (name, base_morph) mixin export thy =
         fun add_reg (dep', morph') =
           let
             val mixins = collect_mixins thy (dep', morph' $> export);
-            (* FIXME empty list *)
             val serial = serial ();
           in
             Registrations.map (apfst (cons ((dep', (morph', export)), serial))
-              #> apsnd (cons (serial, mixins)))
+              #> not (null mixins) ? apsnd (cons (serial, mixins)))
           end
       in
         (get_idents (Context.Theory thy), thy)
