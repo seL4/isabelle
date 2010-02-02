@@ -79,8 +79,9 @@ text %mlref {*
   \item @{ML Toplevel.is_toplevel}~@{text "state"} checks for an empty
   toplevel state.
 
-  \item @{ML Toplevel.theory_of}~@{text "state"} selects the theory of
-  a theory or proof (!), otherwise raises @{ML Toplevel.UNDEF}.
+  \item @{ML Toplevel.theory_of}~@{text "state"} selects the
+  background theory of @{text "state"}, raises @{ML Toplevel.UNDEF}
+  for an empty toplevel state.
 
   \item @{ML Toplevel.proof_of}~@{text "state"} selects the Isar proof
   state if available, otherwise raises @{ML Toplevel.UNDEF}.
@@ -114,16 +115,16 @@ text {*
   The operational part is represented as the sequential union of a
   list of partial functions, which are tried in turn until the first
   one succeeds.  This acts like an outer case-expression for various
-  alternative state transitions.  For example, \isakeyword{qed} acts
+  alternative state transitions.  For example, \isakeyword{qed} works
   differently for a local proofs vs.\ the global ending of the main
   proof.
 
   Toplevel transitions are composed via transition transformers.
   Internally, Isar commands are put together from an empty transition
-  extended by name and source position (and optional source text).  It
-  is then left to the individual command parser to turn the given
-  concrete syntax into a suitable transition transformer that adjoins
-  actual operations on a theory or proof state etc.
+  extended by name and source position.  It is then left to the
+  individual command parser to turn the given concrete syntax into a
+  suitable transition transformer that adjoins actual operations on a
+  theory or proof state etc.
 *}
 
 text %mlref {*
@@ -188,7 +189,7 @@ text {*
   the toplevel itself, and only make sense in interactive mode.  Under
   normal circumstances, the user encounters these only implicitly as
   part of the protocol between the Isabelle/Isar system and a
-  user-interface such as ProofGeneral.
+  user-interface such as Proof~General.
 
   \begin{description}
 
@@ -323,9 +324,7 @@ text {*
   associated with each theory, by declaring these dependencies in the
   theory header as @{text \<USES>}, and loading them consecutively
   within the theory context.  The system keeps track of incoming {\ML}
-  sources and associates them with the current theory.  The file
-  @{text A}\verb,.ML, is loaded after a theory has been concluded, in
-  order to support legacy proof {\ML} proof scripts.
+  sources and associates them with the current theory.
 
   The basic internal actions of the theory database are @{text
   "update"}, @{text "outdate"}, and @{text "remove"}:
@@ -386,12 +385,15 @@ text %mlref {*
 
   \item @{ML use_thy}~@{text A} ensures that theory @{text A} is fully
   up-to-date wrt.\ the external file store, reloading outdated
-  ancestors as required.
+  ancestors as required.  In batch mode, the simultaneous @{ML
+  use_thys} should be used exclusively.
 
   \item @{ML use_thys} is similar to @{ML use_thy}, but handles
   several theories simultaneously.  Thus it acts like processing the
   import header of a theory, without performing the merge of the
-  result, though.
+  result.  By loading a whole sub-graph of theories like that, the
+  intrinsic parallelism can be exploited by the system, to speedup
+  loading.
 
   \item @{ML ThyInfo.touch_thy}~@{text A} performs and @{text outdate} action
   on theory @{text A} and all descendants.
