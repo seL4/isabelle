@@ -1,6 +1,6 @@
 (*  Title:      HOL/Tools/Nitpick/nitpick_rep.ML
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2008, 2009
+    Copyright   2008, 2009, 2010
 
 Kodkod representations of Nitpick terms.
 *)

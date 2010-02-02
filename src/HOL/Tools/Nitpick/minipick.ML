@@ -1,6 +1,6 @@
 (*  Title:      HOL/Tools/Nitpick/minipick.ML
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2009
+    Copyright   2009, 2010
 
 Finite model generation for HOL formulas using Kodkod, minimalistic version.
 *)

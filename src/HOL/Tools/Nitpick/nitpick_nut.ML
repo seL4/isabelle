@@ -1,6 +1,6 @@
 (*  Title:      HOL/Tools/Nitpick/nitpick_nut.ML
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2008, 2009
+    Copyright   2008, 2009, 2010
 
 Nitpick underlying terms (nuts).
 *)
@@ -766,7 +766,7 @@ fun choose_rep_for_sels_for_constr scope (x as (_, T)) =
            (~1 upto num_sels_for_constr_type T - 1)
 (* scope -> dtype_spec -> nut list * rep NameTable.table
    -> nut list * rep NameTable.table *)
-fun choose_rep_for_sels_of_datatype _ ({shallow = true, ...} : dtype_spec) = I
+fun choose_rep_for_sels_of_datatype _ ({deep = false, ...} : dtype_spec) = I
   | choose_rep_for_sels_of_datatype scope {constrs, ...} =
     fold_rev (choose_rep_for_sels_for_constr scope o #const) constrs
 (* scope -> rep NameTable.table -> nut list * rep NameTable.table *)

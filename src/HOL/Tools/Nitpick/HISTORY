@@ -1,7 +1,9 @@
 Version 2010
 
   * Added and implemented "binary_ints" and "bits" options
-  * Fixed soundness bug in "destroy_constrs" optimization
+  * Added "std" option and implemented support for nonstandard models
+  * Fixed soundness bugs related to "destroy_constrs" optimization and record
+    getters
 
 Version 2009-1
 

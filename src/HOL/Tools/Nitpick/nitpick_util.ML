@@ -1,6 +1,6 @@
 (*  Title:      HOL/Tools/Nitpick/nitpick_util.ML
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2008, 2009
+    Copyright   2008, 2009, 2010
 
 General-purpose functions used by the Nitpick modules.
 *)
@@ -58,7 +58,7 @@ sig
   val setmp_show_all_types : ('a -> 'b) -> 'a -> 'b
   val indent_size : int
   val pstrs : string -> Pretty.T list
-  val plain_string_from_yxml : string -> string
+  val unyxml : string -> string
   val maybe_quote : string -> string
 end
 
@@ -278,13 +278,13 @@ val pstrs = Pretty.breaks o map Pretty.str o space_explode " "
 fun plain_string_from_xml_tree t =
   Buffer.empty |> XML.add_content t |> Buffer.content
 (* string -> string *)
-val plain_string_from_yxml = plain_string_from_xml_tree o YXML.parse
+val unyxml = plain_string_from_xml_tree o YXML.parse
 
 (* string -> bool *)
 val is_long_identifier = forall Syntax.is_identifier o space_explode "."
 (* string -> string *)
 fun maybe_quote y =
-  let val s = plain_string_from_yxml y in
+  let val s = unyxml y in
     y |> (not (is_long_identifier (perhaps (try (unprefix "'")) s)) orelse
           OuterKeyword.is_keyword s) ? quote
   end

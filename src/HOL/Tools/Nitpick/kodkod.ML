@@ -1,6 +1,6 @@
 (*  Title:      HOL/Tools/Nitpick/kodkod.ML
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2008, 2009
+    Copyright   2008, 2009, 2010
 
 ML interface on top of Kodkod.
 *)

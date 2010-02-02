@@ -18,18 +18,19 @@ val defs = Nitpick_HOL.all_axioms_of @{theory} |> #1
 val def_table = Nitpick_HOL.const_def_table @{context} defs
 val ext_ctxt : Nitpick_HOL.extended_context =
   {thy = @{theory}, ctxt = @{context}, max_bisim_depth = ~1, boxes = [],
-   user_axioms = NONE, debug = false, wfs = [], binary_ints = SOME false,
-   destroy_constrs = false, specialize = false, skolemize = false,
-   star_linear_preds = false, uncurry = false, fast_descrs = false,
-   tac_timeout = NONE, evals = [], case_names = [], def_table = def_table,
-   nondef_table = Symtab.empty, user_nondefs = [],
+   stds = [(NONE, true)], wfs = [], user_axioms = NONE, debug = false,
+   binary_ints = SOME false, destroy_constrs = false, specialize = false,
+   skolemize = false, star_linear_preds = false, uncurry = false,
+   fast_descrs = false, tac_timeout = NONE, evals = [], case_names = [],
+   def_table = def_table, nondef_table = Symtab.empty, user_nondefs = [],
    simp_table = Unsynchronized.ref Symtab.empty, psimp_table = Symtab.empty,
    intro_table = Symtab.empty, ground_thm_table = Inttab.empty,
    ersatz_table = [], skolems = Unsynchronized.ref [],
    special_funs = Unsynchronized.ref [], unrolled_preds = Unsynchronized.ref [],
    wf_cache = Unsynchronized.ref [], constr_cache = Unsynchronized.ref []}
 (* term -> bool *)
-val is_mono = Nitpick_Mono.formulas_monotonic ext_ctxt @{typ 'a} [] []
+val is_mono = Nitpick_Mono.formulas_monotonic ext_ctxt @{typ 'a}
+                                              Nitpick_Mono.Plus [] []
 fun is_const t =
   let val T = fastype_of t in
     is_mono (Logic.mk_implies (Logic.mk_equals (Free ("dummyP", T), t),

@@ -220,6 +220,69 @@ nitpick [mono]
 nitpick
 oops
 
+subsection {* 3.12. Inductive Properties *}
+
+inductive_set reach where
+"(4\<Colon>nat) \<in> reach" |
+"n \<in> reach \<Longrightarrow> n < 4 \<Longrightarrow> 3 * n + 1 \<in> reach" |
+"n \<in> reach \<Longrightarrow> n + 2 \<in> reach"
+
+lemma "n \<in> reach \<Longrightarrow> 2 dvd n"
+nitpick
+apply (induct set: reach)
+  apply auto
+ nitpick
+ apply (thin_tac "n \<in> reach")
+ nitpick
+oops
+
+lemma "n \<in> reach \<Longrightarrow> 2 dvd n \<and> n \<noteq> 0"
+nitpick
+apply (induct set: reach)
+  apply auto
+ nitpick
+ apply (thin_tac "n \<in> reach")
+ nitpick
+oops
+
+lemma "n \<in> reach \<Longrightarrow> 2 dvd n \<and> n \<ge> 4"
+by (induct set: reach) arith+
+
+datatype 'a bin_tree = Leaf 'a | Branch "'a bin_tree" "'a bin_tree"
+
+primrec labels where
+"labels (Leaf a) = {a}" |
+"labels (Branch t u) = labels t \<union> labels u"
+
+primrec swap where
+"swap (Leaf c) a b =
+ (if c = a then Leaf b else if c = b then Leaf a else Leaf c)" |
+"swap (Branch t u) a b = Branch (swap t a b) (swap u a b)"
+
+lemma "\<lbrakk>a \<in> labels t; b \<in> labels t; a \<noteq> b\<rbrakk> \<Longrightarrow> labels (swap t a b) = labels t"
+nitpick
+proof (induct t)
+  case Leaf thus ?case by simp
+next
+  case (Branch t u) thus ?case
+  nitpick
+  nitpick [non_std "'a bin_tree", show_consts]
+oops
+
+lemma "labels (swap t a b) =
+       (if a \<in> labels t then
+          if b \<in> labels t then labels t else (labels t - {a}) \<union> {b}
+        else
+          if b \<in> labels t then (labels t - {b}) \<union> {a} else labels t)"
+nitpick
+proof (induct t)
+  case Leaf thus ?case by simp
+next
+  case (Branch t u) thus ?case
+  nitpick [non_std "'a bin_tree", show_consts]
+  by auto
+qed
+
 section {* 4. Case Studies *}
 
 nitpick_params [max_potential = 0, max_threads = 2]
@@ -300,7 +363,7 @@ sorry
 
 subsection {* 4.2. AA Trees *}
 
-datatype 'a tree = \<Lambda> | N "'a\<Colon>linorder" nat "'a tree" "'a tree"
+datatype 'a aa_tree = \<Lambda> | N "'a\<Colon>linorder" nat "'a aa_tree" "'a aa_tree"
 
 primrec data where
 "data \<Lambda> = undefined" |

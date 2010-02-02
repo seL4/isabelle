@@ -1,6 +1,6 @@
 (*  Title:      HOL/Tools/Nitpick/nitpick_hol.ML
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2008, 2009
+    Copyright   2008, 2009, 2010
 
 Auxiliary HOL-related functions used by Nitpick.
 *)
@@ -18,6 +18,7 @@ sig
     ctxt: Proof.context,
     max_bisim_depth: int,
     boxes: (typ option * bool option) list,
+    stds: (typ option * bool) list,
     wfs: (styp option * bool option) list,
     user_axioms: bool option,
     debug: bool,
@@ -165,6 +166,7 @@ type extended_context = {
   ctxt: Proof.context,
   max_bisim_depth: int,
   boxes: (typ option * bool option) list,
+  stds: (typ option * bool) list,
   wfs: (styp option * bool option) list,
   user_axioms: bool option,
   debug: bool,
@@ -548,7 +550,7 @@ fun typedef_info thy s =
 val is_typedef = is_some oo typedef_info
 val is_real_datatype = is_some oo Datatype.get_info
 (* theory -> typ -> bool *)
-fun is_quot_type _ (Type ("IntEx.my_int", _)) = true (* ### *)
+fun is_quot_type _ (Type ("IntEx.my_int", _)) = true (* FIXME *)
   | is_quot_type _ _ = false
 fun is_codatatype thy (T as Type (s, _)) =
     not (null (AList.lookup (op =) (#codatatypes (Data.get thy)) s
@@ -615,9 +617,9 @@ fun is_rep_fun thy (s, Type ("fun", [Type (s', _), _])) =
      | NONE => false)
   | is_rep_fun _ _ = false
 (* Proof.context -> styp -> bool *)
-fun is_quot_abs_fun _ ("IntEx.abs_my_int", _) = true (* ### *)
+fun is_quot_abs_fun _ ("IntEx.abs_my_int", _) = true (* FIXME *)
   | is_quot_abs_fun _ _ = false
-fun is_quot_rep_fun _ ("IntEx.rep_my_int", _) = true (* ### *)
+fun is_quot_rep_fun _ ("IntEx.rep_my_int", _) = true (* FIXME *)
   | is_quot_rep_fun _ _ = false
 
 (* theory -> styp -> styp *)
@@ -648,12 +650,12 @@ fun is_coconstr thy (s, T) =
   end
   handle TYPE ("dest_Type", _, _) => false
 fun is_constr_like thy (s, T) =
-  s = @{const_name FunBox} orelse s = @{const_name PairBox} orelse
+  member (op =) [@{const_name FunBox}, @{const_name PairBox},
+                 @{const_name Quot}, @{const_name Zero_Rep},
+                 @{const_name Suc_Rep}] s orelse
   let val (x as (s, T)) = (s, unbit_and_unbox_type T) in
     Refute.is_IDT_constructor thy x orelse is_record_constr x orelse
     (is_abs_fun thy x andalso is_pure_typedef thy (range_type T)) orelse
-    s = @{const_name Quot} orelse
-    s = @{const_name Zero_Rep} orelse s = @{const_name Suc_Rep} orelse
     x = (@{const_name zero_nat_inst.zero_nat}, nat_T) orelse
     is_coconstr thy x
   end
@@ -710,7 +712,8 @@ and box_type ext_ctxt boxy T =
       box_type ext_ctxt (in_fun_lhs_for boxy) T1
       --> box_type ext_ctxt (in_fun_rhs_for boxy) T2
   | Type (z as ("*", Ts)) =>
-    if should_box_type ext_ctxt boxy z then
+    if boxy <> InConstr andalso boxy <> InSel
+       andalso should_box_type ext_ctxt boxy z then
       Type (@{type_name pair_box}, map (box_type ext_ctxt InSel) Ts)
     else
       Type ("*", map (box_type ext_ctxt
@@ -778,11 +781,11 @@ fun distinctness_formula T =
 fun zero_const T = Const (@{const_name zero_nat_inst.zero_nat}, T)
 fun suc_const T = Const (@{const_name Suc}, T --> T)
 
-(* theory -> typ -> styp list *)
-fun uncached_datatype_constrs thy (T as Type (s, Ts)) =
+(* extended_context -> typ -> styp list *)
+fun uncached_datatype_constrs ({thy, stds, ...} : extended_context)
+                              (T as Type (s, Ts)) =
     (case AList.lookup (op =) (#codatatypes (Data.get thy)) s of
-       SOME (_, xs' as (_ :: _)) =>
-       map (apsnd (repair_constr_type thy T)) xs'
+       SOME (_, xs' as (_ :: _)) => map (apsnd (repair_constr_type thy T)) xs'
      | _ =>
        if is_datatype thy T then
          case Datatype.get_info thy s of
@@ -793,6 +796,8 @@ fun uncached_datatype_constrs thy (T as Type (s, Ts)) =
              map (fn (s', Us) =>
                      (s', map (Refute.typ_of_dtyp descr (dtyps ~~ Ts)) Us
                           ---> T)) constrs
+             |> (triple_lookup (type_match thy) stds T |> the |> not) ?
+                cons (@{const_name NonStd}, @{typ \<xi>} --> T)
            end
          | NONE =>
            if is_record_type T then
@@ -815,12 +820,11 @@ fun uncached_datatype_constrs thy (T as Type (s, Ts)) =
          [])
   | uncached_datatype_constrs _ _ = []
 (* extended_context -> typ -> styp list *)
-fun datatype_constrs (ext_ctxt as {thy, constr_cache, ...} : extended_context)
-                     T =
+fun datatype_constrs (ext_ctxt as {constr_cache, ...}) T =
   case AList.lookup (op =) (!constr_cache) T of
     SOME xs => xs
   | NONE =>
-    let val xs = uncached_datatype_constrs thy T in
+    let val xs = uncached_datatype_constrs ext_ctxt T in
       (Unsynchronized.change constr_cache (cons (T, xs)); xs)
     end
 fun boxed_datatype_constrs ext_ctxt =
@@ -838,6 +842,7 @@ fun boxed_constr_for_sel ext_ctxt (s', T') =
     AList.lookup (op =) (boxed_datatype_constrs ext_ctxt (domain_type T')) s
     |> the |> pair s
   end
+
 (* extended_context -> styp -> term *)
 fun discr_term_for_constr ext_ctxt (x as (s, T)) =
   let val dataT = body_type T in
@@ -849,7 +854,6 @@ fun discr_term_for_constr ext_ctxt (x as (s, T)) =
     else
       Abs (Name.uu, dataT, @{const True})
   end
-
 (* extended_context -> styp -> term -> term *)
 fun discriminate_value (ext_ctxt as {thy, ...}) (x as (_, T)) t =
   case strip_comb t of
@@ -919,7 +923,7 @@ fun constr_expand (ext_ctxt as {thy, ...}) T t =
                  (@{const_name Pair}, T1 --> T2 --> T)
                end
              else
-               datatype_constrs ext_ctxt T |> the_single
+               datatype_constrs ext_ctxt T |> hd
            val arg_Ts = binder_types T'
          in
            list_comb (Const x', map2 (select_nth_constr_arg thy x' t)
@@ -1361,10 +1365,9 @@ fun optimized_quot_type_axioms thy abs_z =
     val normal_y = normal_t $ y_var
     val is_unknown_t = Const (@{const_name is_unknown}, rep_T --> bool_T)
   in
-    [Logic.mk_equals (sel_a_t, normal_t $ sel_a_t),
+    [Logic.mk_equals (normal_t $ sel_a_t, sel_a_t),
      Logic.list_implies
-         ([@{const Not} $ (HOLogic.mk_eq (x_var, y_var)),
-           @{const Not} $ (is_unknown_t $ normal_x),
+         ([@{const Not} $ (is_unknown_t $ normal_x),
            @{const Not} $ (is_unknown_t $ normal_y),
            equiv_rel $ x_var $ y_var] |> map HOLogic.mk_Trueprop,
            Logic.mk_equals (normal_x, normal_y)),
@@ -1388,17 +1391,27 @@ fun add_constr_case (ext_ctxt as {thy, ...}) res_T (j, x) res_t =
 fun optimized_case_def (ext_ctxt as {thy, ...}) dataT res_T =
   let
     val xs = datatype_constrs ext_ctxt dataT
-    val func_Ts = map ((fn T => binder_types T ---> res_T) o snd) xs
-    val (xs', x) = split_last xs
+    val xs' = filter_out (fn (s, _) => s = @{const_name NonStd}) xs
+    val func_Ts = map ((fn T => binder_types T ---> res_T) o snd) xs'
   in
-    constr_case_body thy (1, x)
-    |> fold_rev (add_constr_case ext_ctxt res_T) (length xs downto 2 ~~ xs')
+    (if length xs = length xs' then
+       let
+         val (xs'', x) = split_last xs'
+       in
+         constr_case_body thy (1, x)
+         |> fold_rev (add_constr_case ext_ctxt res_T)
+                     (length xs' downto 2 ~~ xs'')
+       end
+     else
+       Const (@{const_name undefined}, dataT --> res_T) $ Bound 0
+       |> fold_rev (add_constr_case ext_ctxt res_T)
+                   (length xs' downto 1 ~~ xs'))
     |> fold_rev (curry absdummy) (func_Ts @ [dataT])
   end
 
 (* extended_context -> string -> typ -> typ -> term -> term *)
 fun optimized_record_get (ext_ctxt as {thy, ...}) s rec_T res_T t =
-  let val constr_x = the_single (datatype_constrs ext_ctxt rec_T) in
+  let val constr_x = hd (datatype_constrs ext_ctxt rec_T) in
     case no_of_record_field thy s rec_T of
       ~1 => (case rec_T of
                Type (_, Ts as _ :: _) =>
@@ -1416,7 +1429,7 @@ fun optimized_record_get (ext_ctxt as {thy, ...}) s rec_T res_T t =
 (* extended_context -> string -> typ -> term -> term -> term *)
 fun optimized_record_update (ext_ctxt as {thy, ...}) s rec_T fun_t rec_t =
   let
-    val constr_x as (_, constr_T) = the_single (datatype_constrs ext_ctxt rec_T)
+    val constr_x as (_, constr_T) = hd (datatype_constrs ext_ctxt rec_T)
     val Ts = binder_types constr_T
     val n = length Ts
     val special_j = no_of_record_field thy s rec_T
@@ -1606,7 +1619,7 @@ fun unfold_defs_in_term (ext_ctxt as {thy, destroy_constrs, fast_descrs,
                 case length ts of
                   0 => (do_term depth Ts (eta_expand Ts t 1), [])
                 | _ => (optimized_record_get ext_ctxt s (domain_type T)
-                                             (range_type T) (hd ts), tl ts)
+                            (range_type T) (do_term depth Ts (hd ts)), tl ts)
               else if is_record_update thy x then
                 case length ts of
                   2 => (optimized_record_update ext_ctxt
@@ -2077,7 +2090,7 @@ fun pull_out_universal_constrs thy def t =
         (t0 as Const (@{const_name "=="}, _)) $ t1 $ t2 =>
         do_eq_or_imp Ts true def t0 t1 t2 seen
       | (t0 as @{const "==>"}) $ t1 $ t2 =>
-        do_eq_or_imp Ts false def t0 t1 t2 seen
+        if def then (t, []) else do_eq_or_imp Ts false def t0 t1 t2 seen
       | (t0 as Const (@{const_name "op ="}, _)) $ t1 $ t2 =>
         do_eq_or_imp Ts true def t0 t1 t2 seen
       | (t0 as @{const "op -->"}) $ t1 $ t2 =>
@@ -2126,27 +2139,33 @@ fun destroy_pulled_out_constrs (ext_ctxt as {thy, ...}) axiom t =
       | aux _ t = t
     (* bool -> bool -> term -> term -> term -> term *)
     and aux_eq careful pass1 t0 t1 t2 =
-      (if careful then
-         raise SAME ()
-       else if axiom andalso is_Var t2 andalso
-               num_occs_of_var (dest_Var t2) = 1 then
-         @{const True}
-       else case strip_comb t2 of
-         (Const (x as (s, T)), args) =>
-         let val arg_Ts = binder_types T in
-           if length arg_Ts = length args andalso
-              (is_constr thy x orelse s = @{const_name Pair} orelse
-               x = (@{const_name Suc}, nat_T --> nat_T)) andalso
-              (not careful orelse not (is_Var t1) orelse
-               String.isPrefix val_var_prefix (fst (fst (dest_Var t1)))) then
-             discriminate_value ext_ctxt x t1 ::
-             map3 (sel_eq x t1) (index_seq 0 (length args)) arg_Ts args
-             |> foldr1 s_conj
-             |> body_type (type_of t0) = prop_T ? HOLogic.mk_Trueprop
-           else
-             raise SAME ()
-         end
-       | _ => raise SAME ())
+      ((if careful then
+          raise SAME ()
+        else if axiom andalso is_Var t2 andalso
+                num_occs_of_var (dest_Var t2) = 1 then
+          @{const True}
+        else case strip_comb t2 of
+          (* The first case is not as general as it could be. *)
+          (Const (@{const_name PairBox}, _),
+                  [Const (@{const_name fst}, _) $ Var z1,
+                   Const (@{const_name snd}, _) $ Var z2]) =>
+          if z1 = z2 andalso num_occs_of_var z1 = 2 then @{const True}
+          else raise SAME ()
+        | (Const (x as (s, T)), args) =>
+          let val arg_Ts = binder_types T in
+            if length arg_Ts = length args andalso
+               (is_constr thy x orelse s = @{const_name Pair} orelse
+                x = (@{const_name Suc}, nat_T --> nat_T)) andalso
+               (not careful orelse not (is_Var t1) orelse
+                String.isPrefix val_var_prefix (fst (fst (dest_Var t1)))) then
+              discriminate_value ext_ctxt x t1 ::
+              map3 (sel_eq x t1) (index_seq 0 (length args)) arg_Ts args
+              |> foldr1 s_conj
+            else
+              raise SAME ()
+          end
+        | _ => raise SAME ())
+       |> body_type (type_of t0) = prop_T ? HOLogic.mk_Trueprop)
       handle SAME () => if pass1 then aux_eq careful false t0 t2 t1
                         else t0 $ aux false t2 $ aux false t1
     (* styp -> term -> int -> typ -> term -> term *)
@@ -2947,7 +2966,7 @@ fun box_fun_and_pair_in_term (ext_ctxt as {thy, fast_descrs, ...}) def orig_t =
       | Const (s as @{const_name The}, T) => do_description_operator s T
       | Const (s as @{const_name Eps}, T) => do_description_operator s T
       | Const (@{const_name quot_normal}, Type ("fun", [_, T2])) =>
-        let val T' = box_type ext_ctxt InFunRHS1 T2 in
+        let val T' = box_type ext_ctxt InSel T2 in
           Const (@{const_name quot_normal}, T' --> T')
         end
       | Const (s as @{const_name Tha}, T) => do_description_operator s T
@@ -2960,7 +2979,8 @@ fun box_fun_and_pair_in_term (ext_ctxt as {thy, fast_descrs, ...}) def orig_t =
                     T
                   else if is_constr_like thy x then
                     box_type ext_ctxt InConstr T
-                  else if is_sel s orelse is_rep_fun thy x then
+                  else if is_sel s
+                       orelse is_rep_fun thy x then
                     box_type ext_ctxt InSel T
                   else
                     box_type ext_ctxt InExpr T)
@@ -3495,6 +3515,7 @@ fun preprocess_term (ext_ctxt as {thy, binary_ints, destroy_constrs, boxes,
       #> simplify_constrs_and_sels thy
       #> distribute_quantifiers
       #> push_quantifiers_inward thy
+      #> Envir.eta_contract 
       #> not core ? Refute.close_form
       #> shorten_abs_vars
   in

@@ -1,6 +1,6 @@
 (*  Title:      HOL/Tools/Nitpick/nitpick_isar.ML
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2008, 2009
+    Copyright   2008, 2009, 2010
 
 Adds the "nitpick" and "nitpick_params" commands to Isabelle/Isar's outer
 syntax.
@@ -28,9 +28,8 @@ val auto = Unsynchronized.ref false;
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
-    (Preferences.bool_pref auto
-      "auto-nitpick"
-      "Whether to run Nitpick automatically.")
+      (Preferences.bool_pref auto "auto-nitpick"
+           "Whether to run Nitpick automatically.")
 
 type raw_param = string * string list
 
@@ -41,6 +40,7 @@ val default_default_params =
    ("bisim_depth", ["7"]),
    ("box", ["smart"]),
    ("mono", ["smart"]),
+   ("std", ["true"]),
    ("wf", ["smart"]),
    ("sat_solver", ["smart"]),
    ("batch_size", ["smart"]),
@@ -79,6 +79,7 @@ val default_default_params =
 val negated_params =
   [("dont_box", "box"),
    ("non_mono", "mono"),
+   ("non_std", "std"),
    ("non_wf", "wf"),
    ("non_blocking", "blocking"),
    ("satisfy", "falsify"),
@@ -110,8 +111,8 @@ fun is_known_raw_param s =
   AList.defined (op =) negated_params s orelse
   s = "max" orelse s = "eval" orelse s = "expect" orelse
   exists (fn p => String.isPrefix (p ^ " ") s)
-         ["card", "max", "iter", "box", "dont_box", "mono", "non_mono", "wf",
-          "non_wf", "format"]
+         ["card", "max", "iter", "box", "dont_box", "mono", "non_mono", "std",
+          "non_std", "wf", "non_wf", "format"]
 
 (* string * 'a -> unit *)
 fun check_raw_param (s, _) =
@@ -244,6 +245,14 @@ fun extract_params ctxt auto default_params override_params =
                   value |> stringify_raw_param_value
                         |> int_seq_from_string name min_int))
              (filter (String.isPrefix (prefix ^ " ") o fst) raw_params)
+    (* (string -> 'a) -> string -> ('a option * bool) list *)
+    fun lookup_bool_assigns read prefix =
+      (NONE, lookup_bool prefix)
+      :: map (fn (name, value) =>
+                 (SOME (read (String.extract (name, size prefix + 1, NONE))),
+                  value |> stringify_raw_param_value
+                        |> bool_option_from_string false name |> the))
+             (filter (String.isPrefix (prefix ^ " ") o fst) raw_params)
     (* (string -> 'a) -> string -> ('a option * bool option) list *)
     fun lookup_bool_option_assigns read prefix =
       (NONE, lookup_bool_option prefix)
@@ -297,6 +306,7 @@ fun extract_params ctxt auto default_params override_params =
                        NONE
                    | (NONE, _) => NONE) cards_assigns
     val monos = lookup_bool_option_assigns read_type_polymorphic "mono"
+    val stds = lookup_bool_assigns read_type_polymorphic "std"
     val wfs = lookup_bool_option_assigns read_const_polymorphic "wf"
     val sat_solver = lookup_string "sat_solver"
     val blocking = not auto andalso lookup_bool "blocking"
@@ -339,9 +349,10 @@ fun extract_params ctxt auto default_params override_params =
   in
     {cards_assigns = cards_assigns, maxes_assigns = maxes_assigns,
      iters_assigns = iters_assigns, bitss = bitss, bisim_depths = bisim_depths,
-     boxes = boxes, monos = monos, wfs = wfs, sat_solver = sat_solver,
-     blocking = blocking, falsify = falsify, debug = debug, verbose = verbose,
-     overlord = overlord, user_axioms = user_axioms, assms = assms,
+     boxes = boxes, monos = monos, stds = stds, wfs = wfs,
+     sat_solver = sat_solver, blocking = blocking, falsify = falsify,
+     debug = debug, verbose = verbose, overlord = overlord,
+     user_axioms = user_axioms, assms = assms,
      merge_type_vars = merge_type_vars, binary_ints = binary_ints,
      destroy_constrs = destroy_constrs, specialize = specialize,
      skolemize = skolemize, star_linear_preds = star_linear_preds,
@@ -416,8 +427,9 @@ fun handle_exceptions ctxt f x =
        | Refute.REFUTE (loc, details) =>
          error ("Unhandled Refute error (" ^ quote loc ^ "): " ^ details ^ ".")
 
-(* raw_param list -> bool -> int -> Proof.state -> bool * Proof.state *)
-fun pick_nits override_params auto i state =
+
+(* raw_param list -> bool -> int -> int -> Proof.state -> bool * Proof.state *)
+fun pick_nits override_params auto i step state =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
@@ -431,7 +443,7 @@ fun pick_nits override_params auto i state =
       |> (if auto then perhaps o try
           else if debug then fn f => fn x => f x
           else handle_exceptions ctxt)
-         (fn (_, state) => pick_nits_in_subgoal state params auto i
+         (fn (_, state) => pick_nits_in_subgoal state params auto i step
                            |>> curry (op =) "genuine")
   in
     if auto orelse blocking then go ()
@@ -441,9 +453,9 @@ fun pick_nits override_params auto i state =
 (* raw_param list option * int option -> Toplevel.transition
    -> Toplevel.transition *)
 fun nitpick_trans (opt_params, opt_i) =
-  Toplevel.keep (K ()
-      o snd o pick_nits (these opt_params) false (the_default 1 opt_i)
-      o Toplevel.proof_of)
+  Toplevel.keep (fn st =>
+      (pick_nits (these opt_params) false (the_default 1 opt_i)
+                 (Toplevel.proof_position_of st) (Toplevel.proof_of st); ()))
 
 (* raw_param -> string *)
 fun string_for_raw_param (name, value) =
@@ -477,7 +489,7 @@ val _ = OuterSyntax.command "nitpick_params"
 
 (* Proof.state -> bool * Proof.state *)
 fun auto_nitpick state =
-  if not (!auto) then (false, state) else pick_nits [] true 1 state
+  if not (!auto) then (false, state) else pick_nits [] true 1 0 state
 
 val setup = Auto_Counterexample.register_tool ("nitpick", auto_nitpick)
 

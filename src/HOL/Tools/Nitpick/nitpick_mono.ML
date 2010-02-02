@@ -1,16 +1,17 @@
 (*  Title:      HOL/Tools/Nitpick/nitpick_mono.ML
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2009
+    Copyright   2009, 2010
 
 Monotonicity predicate for higher-order logic.
 *)
 
 signature NITPICK_MONO =
 sig
+  datatype sign = Plus | Minus
   type extended_context = Nitpick_HOL.extended_context
 
   val formulas_monotonic :
-    extended_context -> typ -> term list -> term list -> term -> bool
+    extended_context -> typ -> sign -> term list -> term list -> term -> bool
 end;
 
 structure Nitpick_Mono : NITPICK_MONO =
@@ -21,7 +22,7 @@ open Nitpick_HOL
 
 type var = int
 
-datatype sign = Pos | Neg
+datatype sign = Plus | Minus
 datatype sign_atom = S of sign | V of var
 
 type literal = var * sign
@@ -54,13 +55,13 @@ fun subscript_string_for_vars sep xs =
   if null xs then "" else "\<^bsub>" ^ string_for_vars sep xs ^ "\<^esub>"
 
 (* sign -> string *)
-fun string_for_sign Pos = "+"
-  | string_for_sign Neg = "-"
+fun string_for_sign Plus = "+"
+  | string_for_sign Minus = "-"
 
 (* sign -> sign -> sign *)
-fun xor sn1 sn2 = if sn1 = sn2 then Pos else Neg
+fun xor sn1 sn2 = if sn1 = sn2 then Plus else Minus
 (* sign -> sign *)
-val negate = xor Neg
+val negate = xor Minus
 
 (* sign_atom -> string *)
 fun string_for_sign_atom (S sn) = string_for_sign sn
@@ -152,7 +153,7 @@ fun exists_alpha_sub_ctype_fresh CAlpha = true
 
 (* string * typ list -> ctype list -> ctype *)
 fun constr_ctype_for_binders z Cs =
-  fold_rev (fn C => curry3 CFun C (S Neg)) Cs (CRec z)
+  fold_rev (fn C => curry3 CFun C (S Minus)) Cs (CRec z)
 
 (* ((string * typ list) * ctype) list -> ctype list -> ctype -> ctype *)
 fun repair_ctype _ _ CAlpha = CAlpha
@@ -199,7 +200,7 @@ fun fresh_ctype_for_type ({ext_ctxt as {thy, ...}, alpha_T, max_fresh,
                    exists_alpha_sub_ctype_fresh C1 then
                   V (Unsynchronized.inc max_fresh)
                 else
-                  S Neg
+                  S Minus
       in CFun (C1, a, C2) end
     (* typ -> ctype *)
     and do_type T =
@@ -252,13 +253,13 @@ fun fresh_ctype_for_type ({ext_ctxt as {thy, ...}, alpha_T, max_fresh,
 fun prodC_factors (CPair (C1, C2)) = maps prodC_factors [C1, C2]
   | prodC_factors C = [C]
 (* ctype -> ctype list * ctype *)
-fun curried_strip_ctype (CFun (C1, S Neg, C2)) =
+fun curried_strip_ctype (CFun (C1, S Minus, C2)) =
     curried_strip_ctype C2 |>> append (prodC_factors C1)
   | curried_strip_ctype C = ([], C)
 (* string -> ctype -> ctype *)
 fun sel_ctype_from_constr_ctype s C =
   let val (arg_Cs, dataC) = curried_strip_ctype C in
-    CFun (dataC, S Neg,
+    CFun (dataC, S Minus,
           case sel_no_from_name s of ~1 => bool_C | n => nth arg_Cs n)
   end
 
@@ -268,8 +269,13 @@ fun ctype_for_constr (cdata as {ext_ctxt as {thy, ...}, alpha_T, constr_cache,
   if could_exist_alpha_sub_ctype thy alpha_T T then
     case AList.lookup (op =) (!constr_cache) x of
       SOME C => C
-    | NONE => (fresh_ctype_for_type cdata (body_type T);
-               AList.lookup (op =) (!constr_cache) x |> the)
+    | NONE => if T = alpha_T then
+                let val C = fresh_ctype_for_type cdata T in
+                  (Unsynchronized.change constr_cache (cons (x, C)); C)
+                end
+              else
+                (fresh_ctype_for_type cdata (body_type T);
+                 AList.lookup (op =) (!constr_cache) x |> the)
   else
     fresh_ctype_for_type cdata T
 fun ctype_for_sel (cdata as {ext_ctxt, ...}) (x as (s, _)) =
@@ -332,9 +338,9 @@ fun do_sign_atom_comp Eq [] a1 a2 (accum as (lits, comps)) =
      | _ => do_sign_atom_comp Eq [] a2 a1 accum)
   | do_sign_atom_comp Leq [] a1 a2 (accum as (lits, comps)) =
     (case (a1, a2) of
-       (_, S Neg) => SOME accum
-     | (S Pos, _) => SOME accum
-     | (S Neg, S Pos) => NONE
+       (_, S Minus) => SOME accum
+     | (S Plus, _) => SOME accum
+     | (S Minus, S Plus) => NONE
      | (V _, V _) => SOME (lits, insert (op =) (a1, a2, Leq, []) comps)
      | _ => do_sign_atom_comp Eq [] a1 a2 accum)
   | do_sign_atom_comp cmp xs a1 a2 (accum as (lits, comps)) =
@@ -354,8 +360,8 @@ fun do_ctype_comp _ _ _ _ NONE = NONE
        accum |> do_sign_atom_comp Leq xs a1 a2
              |> do_ctype_comp Leq xs C21 C11
              |> (case a2 of
-                   S Neg => I
-                 | S Pos => do_ctype_comp Leq xs C11 C21
+                   S Minus => I
+                 | S Plus => do_ctype_comp Leq xs C11 C21
                  | V x => do_ctype_comp Leq (x :: xs) C11 C21)
      else
        SOME accum)
@@ -386,29 +392,33 @@ val add_is_sub_ctype = add_ctype_comp Leq
 (* sign -> sign_expr -> ctype -> (literal list * sign_expr list) option
    -> (literal list * sign_expr list) option *)
 fun do_notin_ctype_fv _ _ _ NONE = NONE
-  | do_notin_ctype_fv Neg _ CAlpha accum = accum
-  | do_notin_ctype_fv Pos [] CAlpha _ = NONE
-  | do_notin_ctype_fv Pos [(x, sn)] CAlpha (SOME (lits, sexps)) =
+  | do_notin_ctype_fv Minus _ CAlpha accum = accum
+  | do_notin_ctype_fv Plus [] CAlpha _ = NONE
+  | do_notin_ctype_fv Plus [(x, sn)] CAlpha (SOME (lits, sexps)) =
     SOME lits |> do_literal (x, sn) |> Option.map (rpair sexps)
-  | do_notin_ctype_fv Pos sexp CAlpha (SOME (lits, sexps)) =
+  | do_notin_ctype_fv Plus sexp CAlpha (SOME (lits, sexps)) =
     SOME (lits, insert (op =) sexp sexps)
   | do_notin_ctype_fv sn sexp (CFun (C1, S sn', C2)) accum =
-    accum |> (if sn' = Pos andalso sn = Pos then do_notin_ctype_fv Pos sexp C1
-              else I)
-          |> (if sn' = Neg orelse sn = Pos then do_notin_ctype_fv Neg sexp C1
-              else I)
+    accum |> (if sn' = Plus andalso sn = Plus then
+                do_notin_ctype_fv Plus sexp C1
+              else
+                I)
+          |> (if sn' = Minus orelse sn = Plus then
+                do_notin_ctype_fv Minus sexp C1
+              else
+                I)
           |> do_notin_ctype_fv sn sexp C2
-  | do_notin_ctype_fv Pos sexp (CFun (C1, V x, C2)) accum =
-    accum |> (case do_literal (x, Neg) (SOME sexp) of
+  | do_notin_ctype_fv Plus sexp (CFun (C1, V x, C2)) accum =
+    accum |> (case do_literal (x, Minus) (SOME sexp) of
                 NONE => I
-              | SOME sexp' => do_notin_ctype_fv Pos sexp' C1)
-          |> do_notin_ctype_fv Neg sexp C1
-          |> do_notin_ctype_fv Pos sexp C2
-  | do_notin_ctype_fv Neg sexp (CFun (C1, V x, C2)) accum =
-    accum |> (case do_literal (x, Pos) (SOME sexp) of
+              | SOME sexp' => do_notin_ctype_fv Plus sexp' C1)
+          |> do_notin_ctype_fv Minus sexp C1
+          |> do_notin_ctype_fv Plus sexp C2
+  | do_notin_ctype_fv Minus sexp (CFun (C1, V x, C2)) accum =
+    accum |> (case do_literal (x, Plus) (SOME sexp) of
                 NONE => I
-              | SOME sexp' => do_notin_ctype_fv Pos sexp' C1)
-          |> do_notin_ctype_fv Neg sexp C2
+              | SOME sexp' => do_notin_ctype_fv Plus sexp' C1)
+          |> do_notin_ctype_fv Minus sexp C2
   | do_notin_ctype_fv sn sexp (CPair (C1, C2)) accum =
     accum |> fold (do_notin_ctype_fv sn sexp) [C1, C2]
   | do_notin_ctype_fv sn sexp (CType (_, Cs)) accum =
@@ -420,14 +430,14 @@ fun do_notin_ctype_fv _ _ _ NONE = NONE
 fun add_notin_ctype_fv _ _ UnsolvableCSet = UnsolvableCSet
   | add_notin_ctype_fv sn C (CSet (lits, comps, sexps)) =
     (print_g ("*** Add " ^ string_for_ctype C ^ " is right-" ^
-              (case sn of Neg => "unique" | Pos => "total") ^ ".");
+              (case sn of Minus => "unique" | Plus => "total") ^ ".");
      case do_notin_ctype_fv sn [] C (SOME (lits, sexps)) of
        NONE => (print_g "**** Unsolvable"; UnsolvableCSet)
      | SOME (lits, sexps) => CSet (lits, comps, sexps))
 
 (* ctype -> constraint_set -> constraint_set *)
-val add_ctype_is_right_unique = add_notin_ctype_fv Neg
-val add_ctype_is_right_total = add_notin_ctype_fv Pos
+val add_ctype_is_right_unique = add_notin_ctype_fv Minus
+val add_ctype_is_right_total = add_notin_ctype_fv Plus
 
 (* constraint_set -> constraint_set -> constraint_set *)
 fun unite (CSet (lits1, comps1, sexps1)) (CSet (lits2, comps2, sexps2)) =
@@ -437,11 +447,11 @@ fun unite (CSet (lits1, comps1, sexps1)) (CSet (lits2, comps2, sexps2)) =
   | unite _ _ = UnsolvableCSet
 
 (* sign -> bool *)
-fun bool_from_sign Pos = false
-  | bool_from_sign Neg = true
+fun bool_from_sign Plus = false
+  | bool_from_sign Minus = true
 (* bool -> sign *)
-fun sign_from_bool false = Pos
-  | sign_from_bool true = Neg
+fun sign_from_bool false = Plus
+  | sign_from_bool true = Minus
 
 (* literal -> PropLogic.prop_formula *)
 fun prop_for_literal (x, sn) =
@@ -460,10 +470,10 @@ fun prop_for_comp (a1, a2, Eq, []) =
     PropLogic.SAnd (prop_for_comp (a1, a2, Leq, []),
                     prop_for_comp (a2, a1, Leq, []))
   | prop_for_comp (a1, a2, Leq, []) =
-    PropLogic.SOr (prop_for_sign_atom_eq (a1, Pos),
-                   prop_for_sign_atom_eq (a2, Neg))
+    PropLogic.SOr (prop_for_sign_atom_eq (a1, Plus),
+                   prop_for_sign_atom_eq (a2, Minus))
   | prop_for_comp (a1, a2, cmp, xs) =
-    PropLogic.SOr (prop_for_exists_eq xs Neg, prop_for_comp (a1, a2, cmp, []))
+    PropLogic.SOr (prop_for_exists_eq xs Minus, prop_for_comp (a1, a2, cmp, []))
 
 (* var -> (int -> bool option) -> literal list -> literal list *)
 fun literals_from_assignments max_var assigns lits =
@@ -491,7 +501,7 @@ fun print_problem lits comps sexps =
 
 (* literal list -> unit *)
 fun print_solution lits =
-  let val (pos, neg) = List.partition (curry (op =) Pos o snd) lits in
+  let val (pos, neg) = List.partition (curry (op =) Plus o snd) lits in
     print_g ("*** Solution:\n" ^
              "+: " ^ commas (map (string_for_var o fst) pos) ^ "\n" ^
              "-: " ^ commas (map (string_for_var o fst) neg))
@@ -523,7 +533,7 @@ type ctype_schema = ctype * constraint_set
 type ctype_context =
   {bounds: ctype list,
    frees: (styp * ctype) list,
-   consts: (styp * ctype_schema) list}
+   consts: (styp * ctype) list}
 
 type accumulator = ctype_context * constraint_set
 
@@ -546,20 +556,20 @@ fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
     val ctype_for = fresh_ctype_for_type cdata
     (* ctype -> ctype *)
     fun pos_set_ctype_for_dom C =
-      CFun (C, S (if exists_alpha_sub_ctype C then Pos else Neg), bool_C)
+      CFun (C, S (if exists_alpha_sub_ctype C then Plus else Minus), bool_C)
     (* typ -> accumulator -> ctype * accumulator *)
     fun do_quantifier T (gamma, cset) =
       let
         val abs_C = ctype_for (domain_type (domain_type T))
         val body_C = ctype_for (range_type T)
       in
-        (CFun (CFun (abs_C, S Neg, body_C), S Neg, body_C),
+        (CFun (CFun (abs_C, S Minus, body_C), S Minus, body_C),
          (gamma, cset |> add_ctype_is_right_total abs_C))
       end
     fun do_equals T (gamma, cset) =
       let val C = ctype_for (domain_type T) in
-        (CFun (C, S Neg, CFun (C, V (Unsynchronized.inc max_fresh),
-                               ctype_for (nth_range_type 2 T))),
+        (CFun (C, S Minus, CFun (C, V (Unsynchronized.inc max_fresh),
+                                 ctype_for (nth_range_type 2 T))),
          (gamma, cset |> add_ctype_is_right_unique C))
       end
     fun do_robust_set_operation T (gamma, cset) =
@@ -569,7 +579,7 @@ fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
         val C2 = ctype_for set_T
         val C3 = ctype_for set_T
       in
-        (CFun (C1, S Neg, CFun (C2, S Neg, C3)),
+        (CFun (C1, S Minus, CFun (C2, S Minus, C3)),
          (gamma, cset |> add_is_sub_ctype C1 C3 |> add_is_sub_ctype C2 C3))
       end
     fun do_fragile_set_operation T (gamma, cset) =
@@ -579,7 +589,7 @@ fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
         (* typ -> ctype *)
         fun custom_ctype_for (T as Type ("fun", [T1, T2])) =
             if T = set_T then set_C
-            else CFun (custom_ctype_for T1, S Neg, custom_ctype_for T2)
+            else CFun (custom_ctype_for T1, S Minus, custom_ctype_for T2)
           | custom_ctype_for T = ctype_for T
       in
         (custom_ctype_for T, (gamma, cset |> add_ctype_is_right_unique set_C))
@@ -588,13 +598,13 @@ fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
     fun do_pair_constr T accum =
       case ctype_for (nth_range_type 2 T) of
         C as CPair (a_C, b_C) =>
-        (CFun (a_C, S Neg, CFun (b_C, S Neg, C)), accum)
+        (CFun (a_C, S Minus, CFun (b_C, S Minus, C)), accum)
       | C => raise CTYPE ("Nitpick_Mono.consider_term.do_pair_constr", [C])
     (* int -> typ -> accumulator -> ctype * accumulator *)
     fun do_nth_pair_sel n T =
       case ctype_for (domain_type T) of
         C as CPair (a_C, b_C) =>
-        pair (CFun (C, S Neg, if n = 0 then a_C else b_C))
+        pair (CFun (C, S Minus, if n = 0 then a_C else b_C))
       | C => raise CTYPE ("Nitpick_Mono.consider_term.do_nth_pair_sel", [C])
     val unsolvable = (CType ("unsolvable", []), unsolvable_accum)
     (* typ -> term -> accumulator -> ctype * accumulator *)
@@ -613,7 +623,7 @@ fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
         (case t of
            Const (x as (s, T)) =>
            (case AList.lookup (op =) consts x of
-              SOME (C, cset') => (C, (gamma, cset |> unite cset'))
+              SOME C => (C, accum)
             | NONE =>
               if not (could_exist_alpha_subtype alpha_T T) then
                 (ctype_for T, accum)
@@ -627,12 +637,12 @@ fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
               | @{const_name Eps} => (print_g "*** Eps"; unsolvable)
               | @{const_name If} =>
                 do_robust_set_operation (range_type T) accum
-                |>> curry3 CFun bool_C (S Neg)
+                |>> curry3 CFun bool_C (S Minus)
               | @{const_name Pair} => do_pair_constr T accum
               | @{const_name fst} => do_nth_pair_sel 0 T accum
               | @{const_name snd} => do_nth_pair_sel 1 T accum 
               | @{const_name Id} =>
-                (CFun (ctype_for (domain_type T), S Neg, bool_C), accum)
+                (CFun (ctype_for (domain_type T), S Minus, bool_C), accum)
               | @{const_name insert} =>
                 let
                   val set_T = domain_type (range_type T)
@@ -641,7 +651,7 @@ fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
                   val C2 = ctype_for set_T
                   val C3 = ctype_for set_T
                 in
-                  (CFun (C1, S Neg, CFun (C2, S Neg, C3)),
+                  (CFun (C1, S Minus, CFun (C2, S Minus, C3)),
                    (gamma, cset |> add_ctype_is_right_unique C1
                                 |> add_is_sub_ctype C1' C3
                                 |> add_is_sub_ctype C2 C3))
@@ -654,7 +664,7 @@ fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
                     CFun (ctype_for (domain_type T), V x, bool_C)
                   val ab_set_C = domain_type T |> ctype_for_set
                   val ba_set_C = range_type T |> ctype_for_set
-                in (CFun (ab_set_C, S Neg, ba_set_C), accum) end
+                in (CFun (ab_set_C, S Minus, ba_set_C), accum) end
               | @{const_name trancl} => do_fragile_set_operation T accum
               | @{const_name rtrancl} => (print_g "*** rtrancl"; unsolvable)
               | @{const_name lower_semilattice_fun_inst.inf_fun} =>
@@ -663,7 +673,7 @@ fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
                 do_robust_set_operation T accum
               | @{const_name finite} =>
                 let val C1 = ctype_for (domain_type (domain_type T)) in
-                  (CFun (pos_set_ctype_for_dom C1, S Neg, bool_C), accum)
+                  (CFun (pos_set_ctype_for_dom C1, S Minus, bool_C), accum)
                 end
               | @{const_name rel_comp} =>
                 let
@@ -675,7 +685,7 @@ fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
                   val ab_set_C = domain_type (range_type T) |> ctype_for_set
                   val ac_set_C = nth_range_type 2 T |> ctype_for_set
                 in
-                  (CFun (bc_set_C, S Neg, CFun (ab_set_C, S Neg, ac_set_C)),
+                  (CFun (bc_set_C, S Minus, CFun (ab_set_C, S Minus, ac_set_C)),
                    accum)
                 end
               | @{const_name image} =>
@@ -683,8 +693,8 @@ fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
                   val a_C = ctype_for (domain_type (domain_type T))
                   val b_C = ctype_for (range_type (domain_type T))
                 in
-                  (CFun (CFun (a_C, S Neg, b_C), S Neg,
-                         CFun (pos_set_ctype_for_dom a_C, S Neg,
+                  (CFun (CFun (a_C, S Minus, b_C), S Minus,
+                         CFun (pos_set_ctype_for_dom a_C, S Minus,
                                pos_set_ctype_for_dom b_C)), accum)
                 end
               | @{const_name Sigma} =>
@@ -698,11 +708,11 @@ fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
                   val b_set_C = ctype_for_set (range_type (domain_type
                                                                (range_type T)))
                   val a_set_C = ctype_for_set a_set_T
-                  val a_to_b_set_C = CFun (a_C, S Neg, b_set_C)
+                  val a_to_b_set_C = CFun (a_C, S Minus, b_set_C)
                   val ab_set_C = ctype_for_set (nth_range_type 2 T)
                 in
-                  (CFun (a_set_C, S Neg, CFun (a_to_b_set_C, S Neg, ab_set_C)),
-                   accum)
+                  (CFun (a_set_C, S Minus,
+                         CFun (a_to_b_set_C, S Minus, ab_set_C)), accum)
                 end
               | @{const_name minus_fun_inst.minus_fun} =>
                 let
@@ -710,8 +720,8 @@ fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
                   val left_set_C = ctype_for set_T
                   val right_set_C = ctype_for set_T
                 in
-                  (CFun (left_set_C, S Neg,
-                         CFun (right_set_C, S Neg, left_set_C)),
+                  (CFun (left_set_C, S Minus,
+                         CFun (right_set_C, S Minus, left_set_C)),
                    (gamma, cset |> add_ctype_is_right_unique right_set_C
                                 |> add_is_sub_ctype right_set_C left_set_C))
                 end
@@ -721,15 +731,15 @@ fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
                 let
                   val a_C = ctype_for (domain_type (domain_type T))
                   val a_set_C = pos_set_ctype_for_dom a_C
-                in (CFun (a_set_C, S Neg, a_C), accum) end
+                in (CFun (a_set_C, S Minus, a_C), accum) end
               | @{const_name FunBox} =>
                 let val dom_C = ctype_for (domain_type T) in
-                  (CFun (dom_C, S Neg, dom_C), accum)
+                  (CFun (dom_C, S Minus, dom_C), accum)
                 end
               | _ => if is_sel s then
                        if constr_name_for_sel_like s = @{const_name FunBox} then
                          let val dom_C = ctype_for (domain_type T) in
-                           (CFun (dom_C, S Neg, dom_C), accum)
+                           (CFun (dom_C, S Minus, dom_C), accum)
                          end
                        else
                          (ctype_for_sel cdata x, accum)
@@ -740,7 +750,10 @@ fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
                          SOME t' => do_term t' accum
                        | NONE => (print_g ("*** built-in " ^ s); unsolvable)
                      else
-                       (ctype_for T, accum))
+                       let val C = ctype_for T in
+                         (C, ({bounds = bounds, frees = frees,
+                               consts = (x, C) :: consts}, cset))
+                       end)
          | Free (x as (_, T)) =>
            (case AList.lookup (op =) frees x of
               SOME C => (C, accum)
@@ -756,7 +769,7 @@ fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
            let
              val C = ctype_for T
              val (C', accum) = do_term t' (accum |>> push_bound C)
-           in (CFun (C, S Neg, C'), accum |>> pop_bound) end
+           in (CFun (C, S Minus, C'), accum |>> pop_bound) end
          | Const (@{const_name All}, _)
            $ Abs (_, T', @{const "op -->"} $ (t1 $ Bound 0) $ t2) =>
            do_bounded_quantifier T' t1 t2 accum
@@ -802,7 +815,7 @@ fun consider_general_formula (cdata as {ext_ctxt as {ctxt, ...}, ...}) =
           fun do_quantifier quant_s abs_T body_t =
             let
               val abs_C = ctype_for abs_T
-              val side_cond = ((sn = Neg) = (quant_s = @{const_name Ex}))
+              val side_cond = ((sn = Minus) = (quant_s = @{const_name Ex}))
               val cset = cset |> side_cond ? add_ctype_is_right_total abs_C
             in
               (gamma |> push_bound abs_C, cset) |> do_co_formula body_t
@@ -815,11 +828,11 @@ fun consider_general_formula (cdata as {ext_ctxt as {ctxt, ...}, ...}) =
           (* term -> term -> accumulator *)
           fun do_equals t1 t2 =
             case sn of
-              Pos => do_term t accum |> snd
-            | Neg => let
-                       val (C1, accum) = do_term t1 accum
-                       val (C2, accum) = do_term t2 accum
-                     in accum ||> add_ctypes_equal C1 C2 end
+              Plus => do_term t accum |> snd
+            | Minus => let
+                         val (C1, accum) = do_term t1 accum
+                         val (C2, accum) = do_term t2 accum
+                       in accum ||> add_ctypes_equal C1 C2 end
         in
           case t of
             Const (s0 as @{const_name all}, _) $ Abs (_, T1, t1) =>
@@ -876,7 +889,7 @@ fun consider_nondefinitional_axiom cdata sn t =
 (* cdata -> term -> accumulator -> accumulator *)
 fun consider_definitional_axiom (cdata as {ext_ctxt as {thy, ...}, ...}) t =
   if not (is_constr_pattern_formula thy t) then
-    consider_nondefinitional_axiom cdata Pos t
+    consider_nondefinitional_axiom cdata Plus t
   else if is_harmless_axiom t then
     I
   else
@@ -921,11 +934,11 @@ fun string_for_ctype_of_term ctxt lits t C =
 (* theory -> literal list -> ctype_context -> unit *)
 fun print_ctype_context ctxt lits ({frees, consts, ...} : ctype_context) =
   map (fn (x, C) => string_for_ctype_of_term ctxt lits (Free x) C) frees @
-  map (fn (x, (C, _)) => string_for_ctype_of_term ctxt lits (Const x) C) consts
+  map (fn (x, C) => string_for_ctype_of_term ctxt lits (Const x) C) consts
   |> cat_lines |> print_g
 
-(* extended_context -> typ -> term list -> term list -> term -> bool *)
-fun formulas_monotonic (ext_ctxt as {ctxt, ...}) alpha_T def_ts nondef_ts
+(* extended_context -> typ -> sign -> term list -> term list -> term -> bool *)
+fun formulas_monotonic (ext_ctxt as {ctxt, ...}) alpha_T sn def_ts nondef_ts
                        core_t =
   let
     val _ = print_g ("****** " ^ string_for_ctype CAlpha ^ " is " ^
@@ -934,8 +947,8 @@ fun formulas_monotonic (ext_ctxt as {ctxt, ...}) alpha_T def_ts nondef_ts
     val (gamma, cset) =
       (initial_gamma, slack)
       |> fold (consider_definitional_axiom cdata) def_ts
-      |> fold (consider_nondefinitional_axiom cdata Pos) nondef_ts
-      |> consider_general_formula cdata Pos core_t
+      |> fold (consider_nondefinitional_axiom cdata Plus) nondef_ts
+      |> consider_general_formula cdata sn core_t
   in
     case solve (!max_fresh) cset of
       SOME lits => (print_ctype_context ctxt lits gamma; true)

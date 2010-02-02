@@ -25,8 +25,8 @@
 \def\lparr{\mathopen{(\mkern-4mu\mid}}
 \def\rparr{\mathclose{\mid\mkern-4mu)}}
 
-\def\undef{\textit{undefined}}
 \def\unk{{?}}
+\def\undef{(\lambda x.\; \unk)}
 %\def\unr{\textit{others}}
 \def\unr{\ldots}
 \def\Abs#1{\hbox{\rm{\flqq}}{\,#1\,}\hbox{\rm{\frqq}}}
@@ -188,8 +188,8 @@ Nitpick can also be invoked on individual subgoals, as in the example below:
 \prew
 \textbf{apply}~\textit{auto} \\[2\smallskipamount]
 {\slshape goal (2 subgoals): \\
-\ 1. $P\,\Longrightarrow\, Q$ \\
-\ 2. $Q\,\Longrightarrow\, P$} \\[2\smallskipamount]
+\phantom{0}1. $P\,\Longrightarrow\, Q$ \\
+\phantom{0}2. $Q\,\Longrightarrow\, P$} \\[2\smallskipamount]
 \textbf{nitpick}~1 \\[2\smallskipamount]
 {\slshape Nitpick found a counterexample: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
@@ -317,11 +317,9 @@ we finally get \textit{The}:
 \postw
 
 Notice that $\textit{The}~(\lambda y.\;P~y) = \textit{The}~\{a_2, a_3\} = a_1$,
-just like before.\footnote{The \undef{} symbol's presence is explained as
-follows: In higher-order logic, any function can be built from the undefined
-function using repeated applications of the function update operator $f(x :=
-y)$, just like any list can be built from the empty list using $x \mathbin{\#}
-xs$.}
+just like before.\footnote{The Isabelle/HOL notation $f(x :=
+y)$ denotes the function that maps $x$ to $y$ and that otherwise behaves like
+$f$.}
 
 Our misadventures with THE suggest adding `$\exists!x{.}$' (``there exists a
 unique $x$ such that'') at the front of our putative lemma's assumption:
@@ -562,7 +560,7 @@ and \textit{show\_\allowbreak datatypes}:
 {\slshape Datatype:} \\
 \hbox{}\qquad $'a$~\textit{list}~= $\{[],\, [a_3, a_3],\, [a_3],\, \unr\}$ \\
 {\slshape Constants:} \\
-\hbox{}\qquad $\lambda x_1.\; x_1 \mathbin{@} [y, y] = \undef([] := [a_3, a_3],\> [a_3, a_3] := \unk,\> [a_3] := \unk)$ \\
+\hbox{}\qquad $\lambda x_1.\; x_1 \mathbin{@} [y, y] = \undef([] := [a_3, a_3])$ \\
 \hbox{}\qquad $\textit{hd} = \undef([] := a_2,\> [a_3, a_3] := a_3,\> [a_3] := a_3)$
 \postw
 
@@ -1243,6 +1241,208 @@ cardinality specification 1--8, a formula involving \textit{nat}, \textit{int},
 \textit{int~list}, \textit{rat}, and \textit{rat~list} will lead Nitpick to
 consider only 8~scopes instead of $32\,768$.
 
+\subsection{Inductive Properties}
+\label{inductive-properties}
+
+Inductive properties are a particular pain to prove, because the failure to
+establish an induction step can mean several things:
+%
+\begin{enumerate}
+\item The property is invalid.
+\item The property is valid but is too weak to support the induction step.
+\item The property is valid and strong enough; it's just that we haven't found
+the proof yet.
+\end{enumerate}
+%
+Depending on which scenario applies, we would take the appropriate course of
+action:
+%
+\begin{enumerate}
+\item Repair the statement of the property so that it becomes valid.
+\item Generalize the property and/or prove auxiliary properties.
+\item Work harder on a proof.
+\end{enumerate}
+%
+How can we distinguish between the three scenarios? Nitpick's normal mode of
+operation can often detect scenario 1, and Isabelle's automatic tactics help with
+scenario 3. Using appropriate techniques, it is also often possible to use
+Nitpick to identify scenario 2. Consider the following transition system,
+in which natural numbers represent states:
+
+\prew
+\textbf{inductive\_set}~\textit{reach}~\textbf{where} \\
+``$(4\Colon\textit{nat}) \in \textit{reach\/}$'' $\mid$ \\
+``$\lbrakk n < 4;\> n \in \textit{reach\/}\rbrakk \,\Longrightarrow\, 3 * n + 1 \in \textit{reach\/}$'' $\mid$ \\
+``$n \in \textit{reach} \,\Longrightarrow n + 2 \in \textit{reach\/}$''
+\postw
+
+We will try to prove that only even numbers are reachable:
+
+\prew
+\textbf{lemma}~``$n \in \textit{reach} \,\Longrightarrow\, 2~\textrm{dvd}~n$''
+\postw
+
+Does this property hold? Nitpick cannot find a counterexample within 30 seconds,
+so let's attempt a proof by induction:
+
+\prew
+\textbf{apply}~(\textit{induct~set}{:}~\textit{reach\/}) \\
+\textbf{apply}~\textit{auto}
+\postw
+
+This leaves us in the following proof state:
+
+\prew
+{\slshape goal (2 subgoals): \\
+\phantom{0}1. ${\bigwedge}n.\;\, \lbrakk n \in \textit{reach\/};\, n < 4;\, 2~\textsl{dvd}~n\rbrakk \,\Longrightarrow\, 2~\textsl{dvd}~\textit{Suc}~(3 * n)$ \\
+\phantom{0}2. ${\bigwedge}n.\;\, \lbrakk n \in \textit{reach\/};\, 2~\textsl{dvd}~n\rbrakk \,\Longrightarrow\, 2~\textsl{dvd}~\textit{Suc}~(\textit{Suc}~n)$
+}
+\postw
+
+If we run Nitpick on the first subgoal, it still won't find any
+counterexample; and yet, \textit{auto} fails to go further, and \textit{arith}
+is helpless. However, notice the $n \in \textit{reach}$ assumption, which
+strengthens the induction hypothesis but is not immediately usable in the proof.
+If we remove it and invoke Nitpick, this time we get a counterexample:
+
+\prew
+\textbf{apply}~(\textit{thin\_tac}~``$n \in \textit{reach\/}$'') \\
+\textbf{nitpick} \\[2\smallskipamount]
+\slshape Nitpick found a counterexample: \\[2\smallskipamount]
+\hbox{}\qquad Skolem constant: \nopagebreak \\
+\hbox{}\qquad\qquad $n = 0$
+\postw
+
+Indeed, 0 < 4, 2 divides 0, but 2 does not divide 1. We can use this information
+to strength the lemma:
+
+\prew
+\textbf{lemma}~``$n \in \textit{reach} \,\Longrightarrow\, 2~\textrm{dvd}~n \mathrel{\lor} n \not= 0$''
+\postw
+
+Unfortunately, the proof by induction still gets stuck, except that Nitpick now
+finds the counterexample $n = 2$. We generalize the lemma further to
+
+\prew
+\textbf{lemma}~``$n \in \textit{reach} \,\Longrightarrow\, 2~\textrm{dvd}~n \mathrel{\lor} n \ge 4$''
+\postw
+
+and this time \textit{arith} can finish off the subgoals.
+
+A similar technique can be employed for structural induction. The
+following mini-formalization of full binary trees will serve as illustration:
+
+\prew
+\textbf{datatype} $\kern1pt'a$~\textit{bin\_tree} = $\textit{Leaf}~{\kern1pt'a}$ $\mid$ $\textit{Branch}$ ``\kern1pt$'a$ \textit{bin\_tree}'' ``\kern1pt$'a$ \textit{bin\_tree}'' \\[2\smallskipamount]
+\textbf{primrec}~\textit{labels}~\textbf{where} \\
+``$\textit{labels}~(\textit{Leaf}~a) = \{a\}$'' $\mid$ \\
+``$\textit{labels}~(\textit{Branch}~t~u) = \textit{labels}~t \mathrel{\cup} \textit{labels}~u$'' \\[2\smallskipamount]
+\textbf{primrec}~\textit{swap}~\textbf{where} \\
+``$\textit{swap}~(\textit{Leaf}~c)~a~b =$ \\
+\phantom{``}$(\textrm{if}~c = a~\textrm{then}~\textit{Leaf}~b~\textrm{else~if}~c = b~\textrm{then}~\textit{Leaf}~a~\textrm{else}~\textit{Leaf}~c)$'' $\mid$ \\
+``$\textit{swap}~(\textit{Branch}~t~u)~a~b = \textit{Branch}~(\textit{swap}~t~a~b)~(\textit{swap}~u~a~b)$''
+\postw
+
+The \textit{labels} function returns the set of labels occurring on leaves of a
+tree, and \textit{swap} exchanges two labels. Intuitively, if two distinct
+labels $a$ and $b$ occur in a tree $t$, they should also occur in the tree
+obtained by swapping $a$ and $b$:
+
+\prew
+\textbf{lemma} $``\lbrakk a \in \textit{labels}~t;\, b \in \textit{labels}~t;\, a \not= b\rbrakk {}$ \\
+\phantom{\textbf{lemma} ``}$\,{\Longrightarrow}{\;\,} \textit{labels}~(\textit{swap}~t~a~b) = \textit{labels}~t$''
+\postw
+
+Nitpick can't find any counterexample, so we proceed with induction
+(this time favoring a more structured style):
+
+\prew
+\textbf{proof}~(\textit{induct}~$t$) \\
+\hbox{}\quad \textbf{case}~\textit{Leaf}~\textbf{thus}~\textit{?case}~\textbf{by}~\textit{simp} \\
+\textbf{next} \\
+\hbox{}\quad \textbf{case}~$(\textit{Branch}~t~u)$~\textbf{thus} \textit{?case}
+\postw
+
+Nitpick can't find any counterexample at this point either, but it makes the
+following suggestion:
+
+\prew
+\slshape
+Hint: To check that the induction hypothesis is general enough, try the following command:
+\textbf{nitpick}~[\textit{non\_std} ``${\kern1pt'a}~\textit{bin\_tree}$'', \textit{show\_consts}].
+\postw
+
+If we follow the hint, we get a ``nonstandard'' counterexample for the step:
+
+\prew
+\slshape Nitpick found a nonstandard counterexample for \textit{card} $'a$ = 4: \\[2\smallskipamount]
+\hbox{}\qquad Free variables: \nopagebreak \\
+\hbox{}\qquad\qquad $a = a_4$ \\
+\hbox{}\qquad\qquad $b = a_3$ \\
+\hbox{}\qquad\qquad $t = \xi_3$ \\
+\hbox{}\qquad\qquad $u = \xi_4$ \\
+\hbox{}\qquad {\slshape Constants:} \nopagebreak \\
+\hbox{}\qquad\qquad $\textit{labels} = \undef
+    (\!\begin{aligned}[t]%
+    & \xi_3 := \{a_4\},\> \xi_4 := \{a_1, a_3\}, \\[-2pt] %% TYPESETTING
+    & \textit{Branch}~\xi_3~\xi_3 := \{a_4\}, \\[-2pt]
+    & \textit{Branch}~\xi_3~\xi_4 := \{a_1, a_3, a_4\})\end{aligned}$ \\
+\hbox{}\qquad\qquad $\lambda x_1.\> \textit{swap}~x_1~a~b = \undef
+    (\!\begin{aligned}[t]%
+    & \xi_3 := \xi_3,\> \xi_4 := \xi_3, \\[-2pt]
+    & \textit{Branch}~\xi_3~\xi_3 := \textit{Branch}~\xi_3~\xi_3, \\[-2pt]
+    & \textit{Branch}~\xi_4~\xi_3 := \textit{Branch}~\xi_3~\xi_3)\end{aligned}$ \\[2\smallskipamount]
+The existence of a nonstandard model suggests that the induction hypothesis is not general enough or perhaps
+even wrong. See the ``Inductive Properties'' section of the Nitpick manual for details (``\textit{isabelle doc nitpick}'').
+\postw
+
+Reading the Nitpick manual is a most excellent idea.
+But what's going on? The \textit{non\_std} ``${\kern1pt'a}~\textit{bin\_tree}$''
+option told the tool to look for nonstandard models of binary trees, which
+means that new ``nonstandard'' trees $\xi_1, \xi_2, \ldots$, are now allowed in
+addition to the standard trees generated by the \textit{Leaf} and
+\textit{Branch} constructors.%
+\footnote{Notice the similarity between allowing nonstandard trees here and
+allowing unreachable states in the preceding example (by removing the ``$n \in
+\textit{reach\/}$'' assumption). In both cases, we effectively enlarge the
+set of objects over which the induction is performed while doing the step
+so as to test the induction hypothesis's strength.}
+The new trees are so nonstandard that we know nothing about them, except what
+the induction hypothesis states and what can be proved about all trees without
+relying on induction or case distinction. The key observation is,
+%
+\begin{quote}
+\textsl{If the induction
+hypothesis is strong enough, the induction step will hold even for nonstandard
+objects, and Nitpick won't find any nonstandard counterexample.}
+\end{quote}
+%
+But here, Nitpick did find some nonstandard trees $t = \xi_3$
+and $u = \xi_4$ such that $a \in \textit{labels}~t$, $b \notin
+\textit{labels}~t$, $a \notin \textit{labels}~u$, and $b \in \textit{labels}~u$.
+Because neither tree contains both $a$ and $b$, the induction hypothesis tells
+us nothing about the labels of $\textit{swap}~t~a~b$ and $\textit{swap}~u~a~b$,
+and as a result we know nothing about the labels of the tree
+$\textit{swap}~(\textit{Branch}~t~u)~a~b$, which by definition equals
+$\textit{Branch}$ $(\textit{swap}~t~a~b)$ $(\textit{swap}~u~a~b)$, whose
+labels are $\textit{labels}$ $(\textit{swap}~t~a~b) \mathrel{\cup}
+\textit{labels}$ $(\textit{swap}~u~a~b)$.
+
+The solution is to ensure that we always know what the labels of the subtrees
+are in the inductive step, by covering the cases where $a$ and/or~$b$ is not in
+$t$ in the statement of the lemma:
+
+\prew
+\textbf{lemma} ``$\textit{labels}~(\textit{swap}~t~a~b) = {}$ \\
+\phantom{\textbf{lemma} ``}$(\textrm{if}~a \in \textit{labels}~t~\textrm{then}$ \nopagebreak \\
+\phantom{\textbf{lemma} ``(\quad}$\textrm{if}~b \in \textit{labels}~t~\textrm{then}~\textit{labels}~t~\textrm{else}~(\textit{labels}~t - \{a\}) \mathrel{\cup} \{b\}$ \\
+\phantom{\textbf{lemma} ``(}$\textrm{else}$ \\
+\phantom{\textbf{lemma} ``(\quad}$\textrm{if}~b \in \textit{labels}~t~\textrm{then}~(\textit{labels}~t - \{b\}) \mathrel{\cup} \{a\}~\textrm{else}~\textit{labels}~t)$''
+\postw
+
+This time, Nitpick won't find any nonstandard counterexample, and we can perform
+the induction step using \textbf{auto}.
+
 \section{Case Studies}
 \label{case-studies}
 
@@ -1398,7 +1598,8 @@ a total order $<$. We start by defining the datatype and some basic extractor
 functions:
 
 \prew
-\textbf{datatype} $'a$~\textit{tree} = $\Lambda$ $\mid$ $N$ ``\kern1pt$'a\Colon \textit{linorder}$'' \textit{nat} ``\kern1pt$'a$ \textit{tree}'' ``\kern1pt$'a$ \textit{tree}''  \\[2\smallskipamount]
+\textbf{datatype} $'a$~\textit{aa\_tree} = \\
+\hbox{}\quad $\Lambda$ $\mid$ $N$ ``\kern1pt$'a\Colon \textit{linorder}$'' \textit{nat} ``\kern1pt$'a$ \textit{aa\_tree}'' ``\kern1pt$'a$ \textit{aa\_tree}''  \\[2\smallskipamount]
 \textbf{primrec} \textit{data} \textbf{where} \\
 ``$\textit{data}~\Lambda = \undef$'' $\,\mid$ \\
 ``$\textit{data}~(N~x~\_~\_~\_) = x$'' \\[2\smallskipamount]
@@ -1526,7 +1727,7 @@ Notice that we deliberately commented out the application of \textit{skew} and
 \slshape Nitpick found a counterexample for \textit{card} $'a$ = 4: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
 \hbox{}\qquad\qquad $t = N~a_3~1~\Lambda~\Lambda$ \\
-\hbox{}\qquad\qquad $x = a_4$ \\[2\smallskipamount]
+\hbox{}\qquad\qquad $x = a_4$
 \postw
 
 It's hard to see why this is a counterexample. To improve readability, we will
@@ -1583,10 +1784,11 @@ and definitions are discovered much earlier in the process.
 \def\optrue#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool}$\bigr]$\quad [\textit{true}]\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
 \def\opfalse#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool}$\bigr]$\quad [\textit{false}]\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
 \def\opsmart#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool\_or\_smart}$\bigr]$\quad [\textit{smart}]\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
-\def\ops#1#2{\flushitem{\textit{#1} = \qtybf{#2}} \nopagebreak\\[\parskip]}
-\def\opt#1#2#3{\flushitem{\textit{#1} = \qtybf{#2}\quad [\textit{#3}]} \nopagebreak\\[\parskip]}
-\def\opu#1#2#3{\flushitem{\textit{#1} \qtybf{#2} = \qtybf{#3}} \nopagebreak\\[\parskip]}
-\def\opusmart#1#2#3{\flushitem{\textit{#1} \qtybf{#2} $\bigl[$= \qtybf{bool\_or\_smart}$\bigr]$\hfill (neg.: \textit{#3})}\nopagebreak\\[\parskip]}
+\def\opnodefault#1#2{\flushitem{\textit{#1} = \qtybf{#2}} \nopagebreak\\[\parskip]}
+\def\opdefault#1#2#3{\flushitem{\textit{#1} = \qtybf{#2}\quad [\textit{#3}]} \nopagebreak\\[\parskip]}
+\def\oparg#1#2#3{\flushitem{\textit{#1} \qtybf{#2} = \qtybf{#3}} \nopagebreak\\[\parskip]}
+\def\opargbool#1#2#3{\flushitem{\textit{#1} \qtybf{#2} $\bigl[$= \qtybf{bool}$\bigr]$\hfill (neg.: \textit{#3})}\nopagebreak\\[\parskip]}
+\def\opargboolorsmart#1#2#3{\flushitem{\textit{#1} \qtybf{#2} $\bigl[$= \qtybf{bool\_or\_smart}$\bigr]$\hfill (neg.: \textit{#3})}\nopagebreak\\[\parskip]}
 
 Nitpick's behavior can be influenced by various options, which can be specified
 in brackets after the \textbf{nitpick} command. Default values can be set
@@ -1696,7 +1898,7 @@ simultaneously.
 \label{scope-of-search}
 
 \begin{enum}
-\opu{card}{type}{int\_seq}
+\oparg{card}{type}{int\_seq}
 Specifies the sequence of cardinalities to use for a given type.
 For free types, and often also for \textbf{typedecl}'d types, it usually makes
 sense to specify cardinalities as a range of the form \textit{$1$--$n$}.
@@ -1709,18 +1911,18 @@ and \textit{box} (\S\ref{scope-of-search}) options.
 \nopagebreak
 {\small See also \textit{mono} (\S\ref{scope-of-search}).}
 
-\opt{card}{int\_seq}{$\mathbf{1}$--$\mathbf{8}$}
+\opdefault{card}{int\_seq}{$\mathbf{1}$--$\mathbf{8}$}
 Specifies the default sequence of cardinalities to use. This can be overridden
 on a per-type basis using the \textit{card}~\qty{type} option described above.
 
-\opu{max}{const}{int\_seq}
+\oparg{max}{const}{int\_seq}
 Specifies the sequence of maximum multiplicities to use for a given
 (co)in\-duc\-tive datatype constructor. A constructor's multiplicity is the
 number of distinct values that it can construct. Nonsensical values (e.g.,
 \textit{max}~[]~$=$~2) are silently repaired. This option is only available for
 datatypes equipped with several constructors.
 
-\ops{max}{int\_seq}
+\opnodefault{max}{int\_seq}
 Specifies the default sequence of maximum multiplicities to use for
 (co)in\-duc\-tive datatype constructors. This can be overridden on a per-constructor
 basis using the \textit{max}~\qty{const} option described above.
@@ -1757,13 +1959,13 @@ problems that refer to the types \textit{rat} or \textit{real} or the constants
 {\small See also \textit{bits} (\S\ref{scope-of-search}) and
 \textit{show\_datatypes} (\S\ref{output-format}).}
 
-\opt{bits}{int\_seq}{$\mathbf{1},\mathbf{2},\mathbf{3},\mathbf{4},\mathbf{6},\mathbf{8},\mathbf{10},\mathbf{12}$}
+\opdefault{bits}{int\_seq}{$\mathbf{1},\mathbf{2},\mathbf{3},\mathbf{4},\mathbf{6},\mathbf{8},\mathbf{10},\mathbf{12}$}
 Specifies the number of bits to use to represent natural numbers and integers in
 binary, excluding the sign bit. The minimum is 1 and the maximum is 31.
 
 {\small See also \textit{binary\_ints} (\S\ref{scope-of-search}).}
 
-\opusmart{wf}{const}{non\_wf}
+\opargboolorsmart{wf}{const}{non\_wf}
 Specifies whether the specified (co)in\-duc\-tively defined predicate is
 well-founded. The option can take the following values:
 
@@ -1780,7 +1982,7 @@ options.
 
 \item[$\bullet$] \textbf{\textit{smart}}: Try to prove that the inductive
 predicate is well-founded using Isabelle's \textit{lexicographic\_order} and
-\textit{sizechange} tactics. If this succeeds (or the predicate occurs with an
+\textit{size\_change} tactics. If this succeeds (or the predicate occurs with an
 appropriate polarity in the formula to falsify), use an efficient fixed point
 equation as specification of the predicate; otherwise, unroll the predicates
 according to the \textit{iter}~\qty{const} and \textit{iter} options.
@@ -1795,7 +1997,7 @@ according to the \textit{iter}~\qty{const} and \textit{iter} options.
 Specifies the default wellfoundedness setting to use. This can be overridden on
 a per-predicate basis using the \textit{wf}~\qty{const} option above.
 
-\opu{iter}{const}{int\_seq}
+\oparg{iter}{const}{int\_seq}
 Specifies the sequence of iteration counts to use when unrolling a given
 (co)in\-duc\-tive predicate. By default, unrolling is applied for inductive
 predicates that occur negatively and coinductive predicates that occur
@@ -1807,12 +2009,12 @@ domain.
 {\small See also \textit{wf} (\S\ref{scope-of-search}) and
 \textit{star\_linear\_preds} (\S\ref{optimizations}).}
 
-\opt{iter}{int\_seq}{$\mathbf{1{,}2{,}4{,}8{,}12{,}16{,}24{,}32}$}
+\opdefault{iter}{int\_seq}{$\mathbf{1{,}2{,}4{,}8{,}12{,}16{,}24{,}32}$}
 Specifies the sequence of iteration counts to use when unrolling (co)in\-duc\-tive
 predicates. This can be overridden on a per-predicate basis using the
 \textit{iter} \qty{const} option above.
 
-\opt{bisim\_depth}{int\_seq}{$\mathbf{7}$}
+\opdefault{bisim\_depth}{int\_seq}{$\mathbf{7}$}
 Specifies the sequence of iteration counts to use when unrolling the
 bisimilarity predicate generated by Nitpick for coinductive datatypes. A value
 of $-1$ means that no predicate is generated, in which case Nitpick performs an
@@ -1822,7 +2024,7 @@ tagged as ``likely genuine.'' The iteration counts are automatically bounded by
 the sum of the cardinalities of the coinductive datatypes occurring in the
 formula to falsify.
 
-\opusmart{box}{type}{dont\_box}
+\opargboolorsmart{box}{type}{dont\_box}
 Specifies whether Nitpick should attempt to wrap (``box'') a given function or
 product type in an isomorphic datatype internally. Boxing is an effective mean
 to reduce the search space and speed up Nitpick, because the isomorphic datatype
@@ -1850,8 +2052,8 @@ and \textit{debug} (\S\ref{output-format}).}
 Specifies the default boxing setting to use. This can be overridden on a
 per-type basis using the \textit{box}~\qty{type} option described above.
 
-\opusmart{mono}{type}{non\_mono}
-Specifies whether the specified type should be considered monotonic when
+\opargboolorsmart{mono}{type}{non\_mono}
+Specifies whether the given type should be considered monotonic when
 enumerating scopes. If the option is set to \textit{smart}, Nitpick performs a
 monotonicity check on the type. Setting this option to \textit{true} can reduce
 the number of scopes tried, but it also diminishes the theoretical chance of
@@ -1873,6 +2075,15 @@ tried and the size of the generated Kodkod formulas, but it also diminishes the
 theoretical chance of finding a counterexample.
 
 {\small See also \textit{mono} (\S\ref{scope-of-search}).}
+
+\opargbool{std}{type}{non\_std}
+Specifies whether the given type should be given standard models.
+Nonstandard models are unsound but can help debug inductive arguments,
+as explained in \S\ref{inductive-properties}.
+
+\optrue{std}{non\_std}
+Specifies the default standardness to use. This can be overridden on a per-type
+basis using the \textit{std}~\qty{type} option described above.
 \end{enum}
 
 \subsection{Output Format}
@@ -1919,7 +2130,7 @@ genuine, but they can clutter the output.
 Enabling this option effectively enables \textit{show\_skolems},
 \textit{show\_datatypes}, and \textit{show\_consts}.
 
-\opt{max\_potential}{int}{$\mathbf{1}$}
+\opdefault{max\_potential}{int}{$\mathbf{1}$}
 Specifies the maximum number of potential counterexamples to display. Setting
 this option to 0 speeds up the search for a genuine counterexample. This option
 is implicitly set to 0 for automatic runs. If you set this option to a value
@@ -1933,7 +2144,7 @@ enabled.
 {\small See also \textit{check\_potential} (\S\ref{authentication}) and
 \textit{sat\_solver} (\S\ref{optimizations}).}
 
-\opt{max\_genuine}{int}{$\mathbf{1}$}
+\opdefault{max\_genuine}{int}{$\mathbf{1}$}
 Specifies the maximum number of genuine counterexamples to display. If you set
 this option to a value greater than 1, you will need an incremental SAT solver:
 For efficiency, it is recommended to install the JNI version of MiniSat and set
@@ -1945,12 +2156,12 @@ counterexamples may look identical, unless the \textit{show\_all}
 {\small See also \textit{check\_genuine} (\S\ref{authentication}) and
 \textit{sat\_solver} (\S\ref{optimizations}).}
 
-\ops{eval}{term\_list}
+\opnodefault{eval}{term\_list}
 Specifies the list of terms whose values should be displayed along with
 counterexamples. This option suffers from an ``observer effect'': Nitpick might
 find different counterexamples for different values of this option.
 
-\opu{format}{term}{int\_seq}
+\oparg{format}{term}{int\_seq}
 Specifies how to uncurry the value displayed for a variable or constant.
 Uncurrying sometimes increases the readability of the output for high-arity
 functions. For example, given the variable $y \mathbin{\Colon} {'a}\Rightarrow
@@ -1966,7 +2177,7 @@ been $1,\ldots,1,n_1,\ldots,n_k$.
 \nopagebreak
 {\small See also \textit{uncurry} (\S\ref{optimizations}).}
 
-\opt{format}{int\_seq}{$\mathbf{1}$}
+\opdefault{format}{int\_seq}{$\mathbf{1}$}
 Specifies the default format to use. Irrespective of the default format, the
 extra arguments to a Skolem constant corresponding to the outer bound variables
 are kept separated from the remaining arguments, the \textbf{for} arguments of
@@ -1999,7 +2210,7 @@ report to the author at
 \nopagebreak
 {\small See also \textit{max\_genuine} (\S\ref{output-format}).}
 
-\ops{expect}{string}
+\opnodefault{expect}{string}
 Specifies the expected outcome, which must be one of the following:
 
 \begin{enum}
@@ -2025,7 +2236,7 @@ This option is useful for regression testing.
 \sloppy
 
 \begin{enum}
-\opt{sat\_solver}{string}{smart}
+\opdefault{sat\_solver}{string}{smart}
 Specifies which SAT solver to use. SAT solvers implemented in C or \cpp{} tend
 to be faster than their Java counterparts, but they can be more difficult to
 install. Also, if you set the \textit{max\_potential} (\S\ref{output-format}) or
@@ -2118,7 +2329,7 @@ enabled, Nitpick displays which SAT solver was chosen.
 \end{enum}
 \fussy
 
-\opt{batch\_size}{int\_or\_smart}{smart}
+\opdefault{batch\_size}{int\_or\_smart}{smart}
 Specifies the maximum number of Kodkod problems that should be lumped together
 when invoking Kodkodi. Each problem corresponds to one scope. Lumping problems
 together ensures that Kodkodi is launched less often, but it makes the verbose
@@ -2188,7 +2399,7 @@ peephole optimizer. These optimizations can make a significant difference.
 Unless you are tracking down a bug in Nitpick or distrust the peephole
 optimizer, you should leave this option enabled.
 
-\opt{sym\_break}{int}{20}
+\opdefault{sym\_break}{int}{20}
 Specifies an upper bound on the number of relations for which Kodkod generates
 symmetry breaking predicates. According to the Kodkod documentation
 \cite{kodkod-2009-options}, ``in general, the higher this value, the more
@@ -2196,7 +2407,7 @@ symmetries will be broken, and the faster the formula will be solved. But,
 setting the value too high may have the opposite effect and slow down the
 solving.''
 
-\opt{sharing\_depth}{int}{3}
+\opdefault{sharing\_depth}{int}{3}
 Specifies the depth to which Kodkod should check circuits for equivalence during
 the translation to SAT. The default of 3 is the same as in Alloy. The minimum
 allowed depth is 1. Increasing the sharing may result in a smaller SAT problem,
@@ -2207,7 +2418,7 @@ Specifies whether Kodkod should try to eliminate intermediate Boolean variables.
 Although this might sound like a good idea, in practice it can drastically slow
 down Kodkod.
 
-\opt{max\_threads}{int}{0}
+\opdefault{max\_threads}{int}{0}
 Specifies the maximum number of threads to use in Kodkod. If this option is set
 to 0, Kodkod will compute an appropriate value based on the number of processor
 cores available.
@@ -2221,7 +2432,7 @@ cores available.
 \label{timeouts}
 
 \begin{enum}
-\opt{timeout}{time}{$\mathbf{30}$ s}
+\opdefault{timeout}{time}{$\mathbf{30}$ s}
 Specifies the maximum amount of time that the \textbf{nitpick} command should
 spend looking for a counterexample. Nitpick tries to honor this constraint as
 well as it can but offers no guarantees. For automatic runs,
@@ -2232,10 +2443,10 @@ Limit'' option in Proof General.
 \nopagebreak
 {\small See also \textit{max\_threads} (\S\ref{optimizations}).}
 
-\opt{tac\_timeout}{time}{$\mathbf{500}$\,ms}
+\opdefault{tac\_timeout}{time}{$\mathbf{500}$\,ms}
 Specifies the maximum amount of time that the \textit{auto} tactic should use
 when checking a counterexample, and similarly that \textit{lexicographic\_order}
-and \textit{sizechange} should use when checking whether a (co)in\-duc\-tive
+and \textit{size\_change} should use when checking whether a (co)in\-duc\-tive
 predicate is well-founded. Nitpick tries to honor this constraint as well as it
 can but offers no guarantees.
 
@@ -2477,7 +2688,7 @@ for which the function is not defined. For example:
 \nopagebreak
 \\[2\smallskipamount]
 \hbox{}\qquad Empty assignment} \nopagebreak\\[2\smallskipamount]
-\textbf{by}~(\textit{auto simp}: \textit{prec\_def})
+\textbf{by}~(\textit{auto simp}:~\textit{prec\_def})
 \postw
 
 Such theorems are considered bad style because they rely on the internal

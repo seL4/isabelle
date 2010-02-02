@@ -1,6 +1,6 @@
 (*  Title:      HOL/Tools/Nitpick/nitpick_model.ML
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2009
+    Copyright   2009, 2010
 
 Model reconstruction for Nitpick.
 *)
@@ -53,7 +53,8 @@ val maybe_mixfix = "_\<^sup>?"
 val base_mixfix = "_\<^bsub>base\<^esub>"
 val step_mixfix = "_\<^bsub>step\<^esub>"
 val abs_mixfix = "\<guillemotleft>_\<guillemotright>"
-val non_opt_name = nitpick_prefix ^ "non_opt"
+val opt_flag = nitpick_prefix ^ "opt"
+val non_opt_flag = nitpick_prefix ^ "non_opt"
 
 (* string -> int -> string *)
 fun atom_suffix s j =
@@ -62,7 +63,10 @@ fun atom_suffix s j =
      ? prefix "\<^isub>,"
 (* string -> typ -> int -> string *)
 fun atom_name prefix (T as Type (s, _)) j =
-    prefix ^ substring (shortest_name s, 0, 1) ^ atom_suffix s j
+    let val s' = shortest_name s in
+      prefix ^ (if String.isPrefix "\\" s' then s' else substring (s', 0, 1)) ^
+      atom_suffix s j
+    end
   | atom_name prefix (T as TFree (s, _)) j =
     prefix ^ perhaps (try (unprefix "'")) s ^ atom_suffix s j
   | atom_name _ T _ = raise TYPE ("Nitpick_Model.atom_name", [T], [])
@@ -139,23 +143,21 @@ fun make_plain_fun maybe_opt T1 T2 =
   let
     (* typ -> typ -> (term * term) list -> term *)
     fun aux T1 T2 [] =
-        Const (if maybe_opt orelse T2 <> bool_T then @{const_name undefined}
-               else non_opt_name, T1 --> T2)
+        Const (if maybe_opt then opt_flag else non_opt_flag, T1 --> T2)
       | aux T1 T2 ((t1, t2) :: ps) =
         Const (@{const_name fun_upd}, (T1 --> T2) --> T1 --> T2 --> T1 --> T2)
         $ aux T1 T2 ps $ t1 $ t2
   in aux T1 T2 o rev end
 (* term -> bool *)
-fun is_plain_fun (Const (s, _)) =
-    (s = @{const_name undefined} orelse s = non_opt_name)
+fun is_plain_fun (Const (s, _)) = (s = opt_flag orelse s = non_opt_flag)
   | is_plain_fun (Const (@{const_name fun_upd}, _) $ t0 $ _ $ _) =
     is_plain_fun t0
   | is_plain_fun _ = false
 (* term -> bool * (term list * term list) *)
 val dest_plain_fun =
   let
-    (* term -> term list * term list *)
-    fun aux (Const (s, _)) = (s <> non_opt_name, ([], []))
+    (* term -> bool * (term list * term list) *)
+    fun aux (Const (s, _)) = (s <> non_opt_flag, ([], []))
       | aux (Const (@{const_name fun_upd}, _) $ t0 $ t1 $ t2) =
         let val (s, (ts1, ts2)) = aux t0 in (s, (t1 :: ts1, t2 :: ts2)) end
       | aux t = raise TERM ("Nitpick_Model.dest_plain_fun", [t])
@@ -300,7 +302,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
             aux' ps
       in aux end
     (* typ list -> term -> term *)
-    fun setify_mapify_funs Ts t =
+    fun polish_funs Ts t =
       (case fastype_of1 (Ts, t) of
          Type ("fun", [T1, T2]) =>
          if is_plain_fun t then
@@ -308,7 +310,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
              @{typ bool} =>
              let
                val (maybe_opt, ts_pair) =
-                 dest_plain_fun t ||> pairself (map (setify_mapify_funs Ts))
+                 dest_plain_fun t ||> pairself (map (polish_funs Ts))
              in
                make_set maybe_opt T1 T2
                         (sort_wrt (truth_const_sort_key o snd) (op ~~ ts_pair))
@@ -316,7 +318,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
            | Type (@{type_name option}, [T2']) =>
              let
                val ts_pair = snd (dest_plain_fun t)
-                             |> pairself (map (setify_mapify_funs Ts))
+                             |> pairself (map (polish_funs Ts))
              in make_map T1 T2 T2' (rev (op ~~ ts_pair)) end
            | _ => raise SAME ()
          else
@@ -324,9 +326,18 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
        | _ => raise SAME ())
       handle SAME () =>
              case t of
-               t1 $ t2 => setify_mapify_funs Ts t1 $ setify_mapify_funs Ts t2
-             | Abs (s, T, t') => Abs (s, T, setify_mapify_funs (T :: Ts) t')
-             | _ => t
+               (t1 as Const (@{const_name fun_upd}, _) $ t11 $ _)
+               $ (t2 as Const (s, _)) =>
+               if s = unknown then polish_funs Ts t11
+               else polish_funs Ts t1 $ polish_funs Ts t2
+             | t1 $ t2 => polish_funs Ts t1 $ polish_funs Ts t2
+             | Abs (s, T, t') => Abs (s, T, polish_funs (T :: Ts) t')
+             | Const (s, Type ("fun", [T1, T2])) =>
+               if s = opt_flag orelse s = non_opt_flag then
+                 Abs ("x", T1, Const (unknown, T2))
+               else
+                 t
+             | t => t
     (* bool -> typ -> typ -> typ -> term list -> term list -> term *)
     fun make_fun maybe_opt T1 T2 T' ts1 ts2 =
       ts1 ~~ ts2 |> sort (nice_term_ord o pairself fst)
@@ -371,7 +382,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
           HOLogic.mk_number nat_T j
         else case datatype_spec datatypes T of
           NONE => atom for_auto T j
-        | SOME {shallow = true, ...} => atom for_auto T j
+        | SOME {deep = false, ...} => atom for_auto T j
         | SOME {co, constrs, ...} =>
           let
             (* styp -> int list *)
@@ -437,13 +448,16 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
                                  | n2 => Const (@{const_name Algebras.divide},
                                                 num_T --> num_T --> num_T)
                                          $ mk_num n1 $ mk_num n2)
-                      | _ => raise TERM ("Nitpick_Model.reconstruct_term.term_\
-                                         \for_atom (Abs_Frac)", ts)
+                      | _ => raise TERM ("Nitpick_Model.reconstruct_term.\
+                                         \term_for_atom (Abs_Frac)", ts)
                     end
                   else if not for_auto andalso
                           (is_abs_fun thy constr_x orelse
                            constr_s = @{const_name Quot}) then
                     Const (abs_name, constr_T) $ the_single ts
+                  else if not for_auto andalso
+                          constr_s = @{const_name NonStd} then
+                    Const (fst (dest_Const (the_single ts)), T)
                   else
                     list_comb (Const constr_x, ts)
               in
@@ -509,8 +523,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
                    Refute.string_of_typ T ^ " " ^ string_for_rep R ^ " " ^
                    string_of_int (length jss))
   in
-    (not for_auto ? setify_mapify_funs []) o unbit_and_unbox_term
-    oooo term_for_rep []
+    (not for_auto ? polish_funs []) o unbit_and_unbox_term oooo term_for_rep []
   end
 
 (* scope -> nut list -> nut NameTable.table -> KK.raw_bound list -> nut
@@ -522,8 +535,7 @@ fun term_for_name scope sel_names rel_table bounds name =
                         (rep_of name)
   end
 
-(* Proof.context
-   -> (string * string * string * string * string) * Proof.context *)
+(* Proof.context -> (string * string * string * string) * Proof.context *)
 fun add_wacky_syntax ctxt =
   let
     (* term -> string *)
@@ -573,13 +585,13 @@ fun bisimilar_values _ 0 _ = true
   -> nut list -> nut list -> nut NameTable.table -> KK.raw_bound list
   -> Pretty.T * bool *)
 fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
-        ({ext_ctxt as {thy, ctxt, max_bisim_depth, boxes, wfs, user_axioms,
-                       debug, binary_ints, destroy_constrs, specialize,
-                       skolemize, star_linear_preds, uncurry, fast_descrs,
-                       tac_timeout, evals, case_names, def_table, nondef_table,
-                       user_nondefs, simp_table, psimp_table, intro_table,
-                       ground_thm_table, ersatz_table, skolems, special_funs,
-                       unrolled_preds, wf_cache, constr_cache},
+        ({ext_ctxt as {thy, ctxt, max_bisim_depth, boxes, stds, wfs,
+                       user_axioms, debug, binary_ints, destroy_constrs,
+                       specialize, skolemize, star_linear_preds, uncurry,
+                       fast_descrs, tac_timeout, evals, case_names, def_table,
+                       nondef_table, user_nondefs, simp_table, psimp_table,
+                       intro_table, ground_thm_table, ersatz_table, skolems,
+                       special_funs, unrolled_preds, wf_cache, constr_cache},
          card_assigns, bits, bisim_depth, datatypes, ofs} : scope)
         formats all_frees free_names sel_names nonsel_names rel_table bounds =
   let
@@ -587,7 +599,7 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
       add_wacky_syntax ctxt
     val ext_ctxt =
       {thy = thy, ctxt = ctxt, max_bisim_depth = max_bisim_depth, boxes = boxes,
-       wfs = wfs, user_axioms = user_axioms, debug = debug,
+       stds = stds, wfs = wfs, user_axioms = user_axioms, debug = debug,
        binary_ints = binary_ints, destroy_constrs = destroy_constrs,
        specialize = specialize, skolemize = skolemize,
        star_linear_preds = star_linear_preds, uncurry = uncurry,
@@ -650,16 +662,15 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
       Pretty.block (Pretty.breaks
           [Syntax.pretty_typ ctxt (unbit_and_unbox_type typ), Pretty.str "=",
            Pretty.enum "," "{" "}"
-               (map (Syntax.pretty_term ctxt) (all_values_of_type card typ)
-                @ (if complete then [] else [Pretty.str unrep]))])
+               (map (Syntax.pretty_term ctxt) (all_values_of_type card typ) @
+                (if complete then [] else [Pretty.str unrep]))])
     (* typ -> dtype_spec list *)
     fun integer_datatype T =
       [{typ = T, card = card_of_type card_assigns T, co = false,
-        complete = false, concrete = true, shallow = false, constrs = []}]
+        complete = false, concrete = true, deep = true, constrs = []}]
       handle TYPE ("Nitpick_HOL.card_of_type", _, _) => []
     val (codatatypes, datatypes) =
-      datatypes |> filter_out #shallow
-                |> List.partition #co
+      datatypes |> filter #deep |> List.partition #co
                 ||> append (integer_datatype nat_T @ integer_datatype int_T)
     val block_of_datatypes =
       if show_datatypes andalso not (null datatypes) then

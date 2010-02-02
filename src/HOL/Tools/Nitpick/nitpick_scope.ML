@@ -1,6 +1,6 @@
 (*  Title:      HOL/Tools/Nitpick/nitpick_scope.ML
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2008, 2009
+    Copyright   2008, 2009, 2010
 
 Scope enumerator for Nitpick.
 *)
@@ -24,7 +24,7 @@ sig
     co: bool,
     complete: bool,
     concrete: bool,
-    shallow: bool,
+    deep: bool,
     constrs: constr_spec list}
 
   type scope = {
@@ -73,7 +73,7 @@ type dtype_spec = {
   co: bool,
   complete: bool,
   concrete: bool,
-  shallow: bool,
+  deep: bool,
   constrs: constr_spec list}
 
 type scope = {
@@ -134,7 +134,7 @@ fun spec_of_type ({card_assigns, ofs, ...} : scope) T =
 fun quintuple_for_scope quote ({ext_ctxt as {thy, ctxt, ...}, card_assigns,
                                 bits, bisim_depth, datatypes, ...} : scope) =
   let
-    val boring_Ts = [@{typ unsigned_bit}, @{typ signed_bit},
+    val boring_Ts = [@{typ unsigned_bit}, @{typ signed_bit}, @{typ \<xi>},
                      @{typ bisim_iterator}]
     val (iter_assigns, card_assigns) =
       card_assigns |> filter_out (member (op =) boring_Ts o fst)
@@ -429,9 +429,10 @@ fun add_constr_spec (card_assigns, max_assigns) co card sum_dom_cards
       else if not co andalso num_self_recs > 0 then
         if not self_rec andalso num_non_self_recs = 1 andalso
            domain_card 2 card_assigns T = 1 then
-          {delta = 0, epsilon = 1, exclusive = (s = @{const_name Nil}),
+          {delta = 0, epsilon = 1,
+           exclusive = (s = @{const_name Nil} andalso length constrs = 2),
            total = true}
-        else if s = @{const_name Cons} then
+        else if s = @{const_name Cons} andalso length constrs = 2 then
           {delta = 1, epsilon = card, exclusive = true, total = false}
         else
           {delta = 0, epsilon = card, exclusive = false, total = false}
@@ -455,10 +456,10 @@ fun has_exact_card ext_ctxt card_assigns T =
   end
 
 (* extended_context -> typ list -> scope_desc -> typ * int -> dtype_spec *)
-fun datatype_spec_from_scope_descriptor (ext_ctxt as {thy, ...}) shallow_dataTs
+fun datatype_spec_from_scope_descriptor (ext_ctxt as {thy, ...}) deep_dataTs
                                         (desc as (card_assigns, _)) (T, card) =
   let
-    val shallow = member (op =) shallow_dataTs T
+    val deep = member (op =) deep_dataTs T
     val co = is_codatatype thy T
     val xs = boxed_datatype_constrs ext_ctxt T
     val self_recs = map (is_self_recursive_constr_type o snd) xs
@@ -475,7 +476,7 @@ fun datatype_spec_from_scope_descriptor (ext_ctxt as {thy, ...}) shallow_dataTs
                                 num_non_self_recs) (self_recs ~~ xs) []
   in
     {typ = T, card = card, co = co, complete = complete, concrete = concrete,
-     shallow = shallow, constrs = constrs}
+     deep = deep, constrs = constrs}
   end
 
 (* int -> int *)
@@ -487,11 +488,11 @@ fun min_bits_for_max_assigns (_, []) = 0
         (map snd card_assigns @ map snd max_assigns) 0)
 
 (* extended_context -> int -> typ list -> scope_desc -> scope *)
-fun scope_from_descriptor (ext_ctxt as {thy, ...}) sym_break shallow_dataTs
+fun scope_from_descriptor (ext_ctxt as {thy, ...}) sym_break deep_dataTs
                           (desc as (card_assigns, _)) =
   let
     val datatypes =
-      map (datatype_spec_from_scope_descriptor ext_ctxt shallow_dataTs desc)
+      map (datatype_spec_from_scope_descriptor ext_ctxt deep_dataTs desc)
           (filter (is_datatype thy o fst) card_assigns)
     val bits = card_of_type card_assigns @{typ signed_bit} - 1
                handle TYPE ("Nitpick_HOL.card_of_type", _, _) =>
@@ -524,8 +525,7 @@ val distinct_threshold = 512
    -> (styp option * int list) list -> (styp option * int list) list -> int list
    -> typ list -> typ list -> typ list -> int * scope list *)
 fun all_scopes (ext_ctxt as {thy, ...}) sym_break cards_assigns maxes_assigns
-               iters_assigns bitss bisim_depths mono_Ts nonmono_Ts
-               shallow_dataTs =
+               iters_assigns bitss bisim_depths mono_Ts nonmono_Ts deep_dataTs =
   let
     val cards_assigns = repair_cards_assigns_wrt_boxing thy mono_Ts
                                                         cards_assigns
@@ -540,7 +540,7 @@ fun all_scopes (ext_ctxt as {thy, ...}) sym_break cards_assigns maxes_assigns
   in
     (length all - length head,
      descs |> length descs <= distinct_threshold ? distinct (op =)
-           |> map (scope_from_descriptor ext_ctxt sym_break shallow_dataTs))
+           |> map (scope_from_descriptor ext_ctxt sym_break deep_dataTs))
   end
 
 end;

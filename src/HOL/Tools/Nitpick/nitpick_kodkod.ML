@@ -1,6 +1,6 @@
 (*  Title:      HOL/Tools/Nitpick/nitpick_kodkod.ML
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2008, 2009
+    Copyright   2008, 2009, 2010
 
 Kodkod problem generator part of Kodkod.
 *)
@@ -285,8 +285,8 @@ fun bounds_for_built_in_rels_in_formula debug univ_card nat_card int_card j0 =
 (* Proof.context -> bool -> string -> typ -> rep -> string *)
 fun bound_comment ctxt debug nick T R =
   short_name nick ^
-  (if debug then " :: " ^ plain_string_from_yxml (Syntax.string_of_typ ctxt T)
-   else "") ^ " : " ^ string_for_rep R
+  (if debug then " :: " ^ unyxml (Syntax.string_of_typ ctxt T) else "") ^
+  " : " ^ string_for_rep R
 
 (* Proof.context -> bool -> nut -> KK.bound *)
 fun bound_for_plain_rel ctxt debug (u as FreeRel (x, T, R, nick)) =
@@ -754,7 +754,7 @@ fun nfa_transitions_for_constr ext_ctxt kk rel_table dtypes (x as (_, T)) =
 (* extended_context -> kodkod_constrs -> nut NameTable.table -> dtype_spec list
    -> dtype_spec -> nfa_entry option *)
 fun nfa_entry_for_datatype _ _ _ _ ({co = true, ...} : dtype_spec) = NONE
-  | nfa_entry_for_datatype _ _ _ _ {shallow = true, ...} = NONE
+  | nfa_entry_for_datatype _ _ _ _ {deep = false, ...} = NONE
   | nfa_entry_for_datatype ext_ctxt kk rel_table dtypes {typ, constrs, ...} =
     SOME (typ, maps (nfa_transitions_for_constr ext_ctxt kk rel_table dtypes
                      o #const) constrs)
@@ -926,7 +926,7 @@ fun partition_axioms_for_datatype j0 (kk as {kk_rel_eq, kk_union, ...})
 
 (* extended_context -> int -> int Typtab.table -> kodkod_constrs
    -> nut NameTable.table -> dtype_spec -> KK.formula list *)
-fun other_axioms_for_datatype _ _ _ _ _ {shallow = true, ...} = []
+fun other_axioms_for_datatype _ _ _ _ _ {deep = false, ...} = []
   | other_axioms_for_datatype ext_ctxt bits ofs kk rel_table
                               (dtype as {typ, ...}) =
     let val j0 = offset_of_type ofs typ in

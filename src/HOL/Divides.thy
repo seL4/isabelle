@@ -2451,7 +2451,8 @@ by (rule_tac P="%x. m mod n = x - (m div n) * n"
     in subst [OF mod_div_equality [of _ n]])
    arith
 
-lemmas [nitpick_def] = mod_div_equality' [THEN eq_reflection]
+lemmas [nitpick_def] = dvd_eq_mod_eq_0 [THEN eq_reflection]
+                       mod_div_equality' [THEN eq_reflection]
                        zmod_zdiv_equality' [THEN eq_reflection]
 
 subsubsection {* Code generation *}
