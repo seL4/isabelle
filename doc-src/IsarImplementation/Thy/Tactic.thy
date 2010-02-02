@@ -4,15 +4,13 @@ begin
 
 chapter {* Tactical reasoning *}
 
-text {*
-  Tactical reasoning works by refining the initial claim in a
+text {* Tactical reasoning works by refining an initial claim in a
   backwards fashion, until a solved form is reached.  A @{text "goal"}
   consists of several subgoals that need to be solved in order to
   achieve the main statement; zero subgoals means that the proof may
   be finished.  A @{text "tactic"} is a refinement operation that maps
   a goal to a lazy sequence of potential successors.  A @{text
-  "tactical"} is a combinator for composing tactics.
-*}
+  "tactical"} is a combinator for composing tactics.  *}
 
 
 section {* Goals \label{sec:tactical-goals} *}
@@ -40,8 +38,8 @@ text {*
 
   The main conclusion @{text C} is internally marked as a protected
   proposition, which is represented explicitly by the notation @{text
-  "#C"}.  This ensures that the decomposition into subgoals and main
-  conclusion is well-defined for arbitrarily structured claims.
+  "#C"} here.  This ensures that the decomposition into subgoals and
+  main conclusion is well-defined for arbitrarily structured claims.
 
   \medskip Basic goal management is performed via the following
   Isabelle/Pure rules:
@@ -98,26 +96,27 @@ text {* A @{text "tactic"} is a function @{text "goal \<rightarrow> goal\<^sup>*
   supporting memoing.\footnote{The lack of memoing and the strict
   nature of SML requires some care when working with low-level
   sequence operations, to avoid duplicate or premature evaluation of
-  results.}
+  results.  It also means that modified runtime behavior, such as
+  timeout, is very hard to achieve for general tactics.}
 
   An \emph{empty result sequence} means that the tactic has failed: in
-  a compound tactic expressions other tactics might be tried instead,
+  a compound tactic expression other tactics might be tried instead,
   or the whole refinement step might fail outright, producing a
-  toplevel error message.  When implementing tactics from scratch, one
-  should take care to observe the basic protocol of mapping regular
-  error conditions to an empty result; only serious faults should
-  emerge as exceptions.
+  toplevel error message in the end.  When implementing tactics from
+  scratch, one should take care to observe the basic protocol of
+  mapping regular error conditions to an empty result; only serious
+  faults should emerge as exceptions.
 
   By enumerating \emph{multiple results}, a tactic can easily express
   the potential outcome of an internal search process.  There are also
   combinators for building proof tools that involve search
   systematically, see also \secref{sec:tacticals}.
 
-  \medskip As explained in \secref{sec:tactical-goals}, a goal state
-  essentially consists of a list of subgoals that imply the main goal
-  (conclusion).  Tactics may operate on all subgoals or on a
-  particularly specified subgoal, but must not change the main
-  conclusion (apart from instantiating schematic goal variables).
+  \medskip As explained before, a goal state essentially consists of a
+  list of subgoals that imply the main goal (conclusion).  Tactics may
+  operate on all subgoals or on a particularly specified subgoal, but
+  must not change the main conclusion (apart from instantiating
+  schematic goal variables).
 
   Tactics with explicit \emph{subgoal addressing} are of the form
   @{text "int \<rightarrow> tactic"} and may be applied to a particular subgoal
@@ -139,7 +138,7 @@ text {* A @{text "tactic"} is a function @{text "goal \<rightarrow> goal\<^sup>*
 
   Tactics with internal subgoal addressing should expose the subgoal
   index as @{text "int"} argument in full generality; a hardwired
-  subgoal 1 inappropriate.
+  subgoal 1 is not acceptable.
   
   \medskip The main well-formedness conditions for proper tactics are
   summarized as follows.
@@ -161,11 +160,11 @@ text {* A @{text "tactic"} is a function @{text "goal \<rightarrow> goal\<^sup>*
   \end{itemize}
 
   Some of these conditions are checked by higher-level goal
-  infrastructure (\secref{sec:results}); others are not checked
+  infrastructure (\secref{sec:struct-goals}); others are not checked
   explicitly, and violating them merely results in ill-behaved tactics
   experienced by the user (e.g.\ tactics that insist in being
-  applicable only to singleton goals, or disallow composition with
-  basic tacticals).
+  applicable only to singleton goals, or prevent composition via
+  standard tacticals).
 *}
 
 text %mlref {*
@@ -356,7 +355,7 @@ text {* The main resolution tactics (\secref{sec:resolve-assume-tac})
   "(?'a, \<tau>)"}.  Type instantiations are distinguished from term
   instantiations by the syntactic form of the schematic variable.
   Types are instantiated before terms are.  Since term instantiation
-  already performs type-inference as expected, explicit type
+  already performs simple type-inference, so explicit type
   instantiations are seldom necessary.
 *}
 
@@ -389,6 +388,12 @@ text %mlref {*
   names} (which need to be distinct indentifiers).
 
   \end{description}
+
+  For historical reasons, the above instantiation tactics take
+  unparsed string arguments, which makes them hard to use in general
+  ML code.  The slightly more advanced @{ML Subgoal.FOCUS} combinator
+  of \secref{sec:struct-goals} allows to refer to internal goal
+  structure with explicit context management.
 *}
 
 

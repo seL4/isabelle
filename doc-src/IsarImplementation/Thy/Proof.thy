@@ -25,10 +25,10 @@ text {*
   categories for \emph{fixed variables} (e.g.\ @{text "x"}) vs.\
   \emph{schematic variables} (e.g.\ @{text "?x"}).  Incidently, a
   universal result @{text "\<turnstile> \<And>x. B(x)"} has the HHF normal form @{text
-  "\<turnstile> B(?x)"}, which represents its generality nicely without requiring
-  an explicit quantifier.  The same principle works for type
-  variables: @{text "\<turnstile> B(?\<alpha>)"} represents the idea of ``@{text "\<turnstile>
-  \<forall>\<alpha>. B(\<alpha>)"}'' without demanding a truly polymorphic framework.
+  "\<turnstile> B(?x)"}, which represents its generality without requiring an
+  explicit quantifier.  The same principle works for type variables:
+  @{text "\<turnstile> B(?\<alpha>)"} represents the idea of ``@{text "\<turnstile> \<forall>\<alpha>. B(\<alpha>)"}''
+  without demanding a truly polymorphic framework.
 
   \medskip Additional care is required to treat type variables in a
   way that facilitates type-inference.  In principle, term variables
@@ -95,7 +95,8 @@ text %mlref {*
   @{index_ML Variable.polymorphic: "Proof.context -> term list -> term list"} \\
   @{index_ML Variable.import: "bool -> thm list -> Proof.context ->
   (((ctyp * ctyp) list * (cterm * cterm) list) * thm list) * Proof.context"} \\
-  @{index_ML Variable.focus: "cterm -> Proof.context -> ((string * cterm) list * cterm) * Proof.context"} \\
+  @{index_ML Variable.focus: "cterm -> Proof.context ->
+  ((string * cterm) list * cterm) * Proof.context"} \\
   \end{mldecls}
 
   \begin{description}
@@ -171,21 +172,21 @@ text {*
   context into a (smaller) outer context, by discharging the
   difference of the assumptions as specified by the associated export
   rules.  Note that the discharged portion is determined by the
-  difference contexts, not the facts being exported!  There is a
+  difference of contexts, not the facts being exported!  There is a
   separate flag to indicate a goal context, where the result is meant
   to refine an enclosing sub-goal of a structured proof state.
 
   \medskip The most basic export rule discharges assumptions directly
   by means of the @{text "\<Longrightarrow>"} introduction rule:
   \[
-  \infer[(@{text "\<Longrightarrow>_intro"})]{@{text "\<Gamma> \\ A \<turnstile> A \<Longrightarrow> B"}}{@{text "\<Gamma> \<turnstile> B"}}
+  \infer[(@{text "\<Longrightarrow>\<dash>intro"})]{@{text "\<Gamma> - A \<turnstile> A \<Longrightarrow> B"}}{@{text "\<Gamma> \<turnstile> B"}}
   \]
 
   The variant for goal refinements marks the newly introduced
   premises, which causes the canonical Isar goal refinement scheme to
   enforce unification with local premises within the goal:
   \[
-  \infer[(@{text "#\<Longrightarrow>_intro"})]{@{text "\<Gamma> \\ A \<turnstile> #A \<Longrightarrow> B"}}{@{text "\<Gamma> \<turnstile> B"}}
+  \infer[(@{text "#\<Longrightarrow>\<dash>intro"})]{@{text "\<Gamma> - A \<turnstile> #A \<Longrightarrow> B"}}{@{text "\<Gamma> \<turnstile> B"}}
   \]
 
   \medskip Alternative versions of assumptions may perform arbitrary
@@ -194,7 +195,7 @@ text {*
   definition works by fixing @{text "x"} and assuming @{text "x \<equiv> t"},
   with the following export rule to reverse the effect:
   \[
-  \infer[(@{text "\<equiv>-expand"})]{@{text "\<Gamma> \\ x \<equiv> t \<turnstile> B t"}}{@{text "\<Gamma> \<turnstile> B x"}}
+  \infer[(@{text "\<equiv>\<dash>expand"})]{@{text "\<Gamma> - (x \<equiv> t) \<turnstile> B t"}}{@{text "\<Gamma> \<turnstile> B x"}}
   \]
   This works, because the assumption @{text "x \<equiv> t"} was introduced in
   a context with @{text "x"} being fresh, so @{text "x"} does not
@@ -222,8 +223,8 @@ text %mlref {*
   simultaneously.
 
   \item @{ML Assumption.assume}~@{text "A"} turns proposition @{text
-  "A"} into a raw assumption @{text "A \<turnstile> A'"}, where the conclusion
-  @{text "A'"} is in HHF normal form.
+  "A"} into a primitive assumption @{text "A \<turnstile> A'"}, where the
+  conclusion @{text "A'"} is in HHF normal form.
 
   \item @{ML Assumption.add_assms}~@{text "r As"} augments the context
   by assumptions @{text "As"} with export rule @{text "r"}.  The
@@ -232,7 +233,8 @@ text %mlref {*
 
   \item @{ML Assumption.add_assumes}~@{text "As"} is a special case of
   @{ML Assumption.add_assms} where the export rule performs @{text
-  "\<Longrightarrow>_intro"} or @{text "#\<Longrightarrow>_intro"}, depending on goal mode.
+  "\<Longrightarrow>\<dash>intro"} or @{text "#\<Longrightarrow>\<dash>intro"}, depending on goal
+  mode.
 
   \item @{ML Assumption.export}~@{text "is_goal inner outer thm"}
   exports result @{text "thm"} from the the @{text "inner"} context
@@ -245,7 +247,7 @@ text %mlref {*
 *}
 
 
-section {* Results \label{sec:results} *}
+section {* Structured goals and results \label{sec:struct-goals} *}
 
 text {*
   Local results are established by monotonic reasoning from facts
@@ -263,6 +265,10 @@ text {*
   the tactic needs to solve the conclusion, but may use the premise as
   a local fact, for locally fixed variables.
 
+  The family of @{text "FOCUS"} combinators is similar to @{text
+  "SUBPROOF"}, but allows to retain schematic variables and pending
+  subgoals in the resulting goal state.
+
   The @{text "prove"} operation provides an interface for structured
   backwards reasoning under program control, with some explicit sanity
   checks of the result.  The goal context can be augmented by
@@ -275,7 +281,8 @@ text {*
   The @{text "obtain"} operation produces results by eliminating
   existing facts by means of a given tactic.  This acts like a dual
   conclusion: the proof demonstrates that the context may be augmented
-  by certain fixed variables and assumptions.  See also
+  by parameters and assumptions, without affecting any conclusions
+  that do not mention these parameters.  See also
   \cite{isabelle-isar-ref} for the user-level @{text "\<OBTAIN>"} and
   @{text "\<GUESS>"} elements.  Final results, which may not refer to
   the parameters in the conclusion, need to exported explicitly into
@@ -285,7 +292,11 @@ text {*
 text %mlref {*
   \begin{mldecls}
   @{index_ML SUBPROOF: "(Subgoal.focus -> tactic) -> Proof.context -> int -> tactic"} \\
+  @{index_ML Subgoal.FOCUS: "(Subgoal.focus -> tactic) -> Proof.context -> int -> tactic"} \\
+  @{index_ML Subgoal.FOCUS_PREMS: "(Subgoal.focus -> tactic) -> Proof.context -> int -> tactic"} \\
+  @{index_ML Subgoal.FOCUS_PARAMS: "(Subgoal.focus -> tactic) -> Proof.context -> int -> tactic"} \\
   \end{mldecls}
+
   \begin{mldecls}
   @{index_ML Goal.prove: "Proof.context -> string list -> term list -> term ->
   ({prems: thm list, context: Proof.context} -> tactic) -> thm"} \\
@@ -304,6 +315,12 @@ text %mlref {*
   reduced goal, which needs to be solved by the given tactic.  All
   schematic parameters of the goal are imported into the context as
   fixed ones, which may not be instantiated in the sub-proof.
+
+  \item @{ML Subgoal.FOCUS}, @{ML Subgoal.FOCUS_PREMS}, and @{ML
+  Subgoal.FOCUS_PARAMS} are similar to @{ML SUBPROOF}, but are
+  slightly more flexible: only the specified parts of the subgoal are
+  imported into the context, and the body tactic may introduce new
+  subgoals and schematic variables.
 
   \item @{ML Goal.prove}~@{text "ctxt xs As C tac"} states goal @{text
   "C"} in the context augmented by fixed variables @{text "xs"} and
