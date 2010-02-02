@@ -1,9 +1,0 @@
-(benchmark Isabelle
-:extrasorts ( T1)
-:extrafuns (
-  (uf_1 Real)
- )
-:assumption (not (= uf_1 0.0))
-:assumption (not (not (= (+ uf_1 uf_1) (* (ite (or (< 1.0 (ite (< uf_1 0.0) (~ uf_1) uf_1)) (not (< 1.0 (ite (< uf_1 0.0) (~ uf_1) uf_1)))) 4.0 2.0) uf_1))))
-:formula true
-)

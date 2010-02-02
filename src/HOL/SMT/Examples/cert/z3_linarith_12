@@ -1,8 +1,0 @@
-(benchmark Isabelle
-:extrafuns (
-  (uf_2 Int)
-  (uf_1 Int)
- )
-:assumption (not (iff (or (<= 0 (+ uf_1 (* (~ 1) uf_2))) (or (not (<= 0 uf_2)) (<= 0 uf_2))) (not false)))
-:formula true
-)

@@ -1,4 +1,0 @@
-(benchmark Isabelle
-:assumption (not (= (sign_extend[2] bv10[4]) bv58[6]))
-:formula true
-)

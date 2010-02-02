@@ -1,8 +1,0 @@
-(benchmark Isabelle
-:extrafuns (
-  (uf_1 BitVec[4])
- )
-:assumption (= uf_1 bv5[4])
-:assumption (not (= (bvmul bv4[4] uf_1) bv4[4]))
-:formula true
-)

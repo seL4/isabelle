@@ -1,9 +1,0 @@
-(benchmark Isabelle
-:extrafuns (
-  (uf_1 BitVec[32])
-  (uf_2 BitVec[32])
-  (uf_3 BitVec[32])
- )
-:assumption (not (= (bvsub (bvadd (bvadd uf_1 (bvmul bv2[32] uf_2)) uf_3) uf_2) (bvadd (bvadd uf_2 uf_3) uf_1)))
-:formula true
-)
