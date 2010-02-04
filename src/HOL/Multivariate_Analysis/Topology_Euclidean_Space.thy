@@ -5906,7 +5906,7 @@ proof-
       using c and zero_le_dist[of x y] by auto
     hence "y = x" by auto
   }
-  ultimately show ?thesis unfolding Bex1_def using `x\<in>s` by blast+
+  ultimately show ?thesis using `x\<in>s` by blast+
 qed
 
 subsection{* Edelstein fixed point theorem.                                            *}
@@ -5923,7 +5923,7 @@ proof(cases "\<exists>x\<in>s. g x \<noteq> x")
     hence "x = y" using `x\<in>s` and dist[THEN bspec[where x=x], THEN bspec[where x=y]]
       unfolding g[THEN bspec[where x=x], OF `x\<in>s`]
       unfolding g[THEN bspec[where x=y], OF `y\<in>s`] by auto  }
-  thus ?thesis unfolding Bex1_def using `x\<in>s` and g by blast+
+  thus ?thesis using `x\<in>s` and g by blast+
 next
   case True
   then obtain x where [simp]:"x\<in>s" and "g x \<noteq> x" by auto
@@ -6028,7 +6028,7 @@ next
   { fix x assume "x\<in>s" "g x = x" "x\<noteq>a"
     hence "False" using dist[THEN bspec[where x=a], THEN bspec[where x=x]]
       using `g a = a` and `a\<in>s` by auto  }
-  ultimately show "\<exists>!x\<in>s. g x = x" unfolding Bex1_def using `a\<in>s` by blast
+  ultimately show "\<exists>!x\<in>s. g x = x" using `a\<in>s` by blast
 qed
 
 end

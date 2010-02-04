@@ -161,14 +161,12 @@ global
 consts
   Ball          :: "'a set => ('a => bool) => bool"      -- "bounded universal quantifiers"
   Bex           :: "'a set => ('a => bool) => bool"      -- "bounded existential quantifiers"
-  Bex1          :: "'a set => ('a => bool) => bool"      -- "bounded unique existential quantifiers"
 
 local
 
 defs
   Ball_def:     "Ball A P       == ALL x. x:A --> P(x)"
   Bex_def:      "Bex A P        == EX x. x:A & P(x)"
-  Bex1_def:     "Bex1 A P       == EX! x. x:A & P(x)"
 
 syntax
   "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3ALL _:_./ _)" [0, 0, 10] 10)
@@ -195,7 +193,7 @@ syntax (HTML output)
 translations
   "ALL x:A. P"  == "Ball A (%x. P)"
   "EX x:A. P"   == "Bex A (%x. P)"
-  "EX! x:A. P"  == "Bex1 A (%x. P)"
+  "EX! x:A. P"  => "EX! x. x:A & P"
   "LEAST x:A. P" => "LEAST x. x:A & P"
 
 syntax (output)
