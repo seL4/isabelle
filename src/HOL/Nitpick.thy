@@ -13,6 +13,7 @@ uses ("Tools/Nitpick/kodkod.ML")
      ("Tools/Nitpick/kodkod_sat.ML")
      ("Tools/Nitpick/nitpick_util.ML")
      ("Tools/Nitpick/nitpick_hol.ML")
+     ("Tools/Nitpick/nitpick_preproc.ML")
      ("Tools/Nitpick/nitpick_mono.ML")
      ("Tools/Nitpick/nitpick_scope.ML")
      ("Tools/Nitpick/nitpick_peephole.ML")
@@ -237,6 +238,7 @@ use "Tools/Nitpick/kodkod.ML"
 use "Tools/Nitpick/kodkod_sat.ML"
 use "Tools/Nitpick/nitpick_util.ML"
 use "Tools/Nitpick/nitpick_hol.ML"
+use "Tools/Nitpick/nitpick_preproc.ML"
 use "Tools/Nitpick/nitpick_mono.ML"
 use "Tools/Nitpick/nitpick_scope.ML"
 use "Tools/Nitpick/nitpick_peephole.ML"

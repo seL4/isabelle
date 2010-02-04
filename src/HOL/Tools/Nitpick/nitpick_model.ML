@@ -251,7 +251,7 @@ fun mk_tuple (Type ("*", [T1, T2])) ts =
    -> nut list -> nut NameTable.table -> KK.raw_bound list -> typ -> typ -> rep
    -> int list list -> term *)
 fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
-        ({ext_ctxt as {thy, ctxt, ...}, card_assigns, bits, datatypes, ofs, ...}
+        ({hol_ctxt as {thy, ctxt, ...}, card_assigns, bits, datatypes, ofs, ...}
          : scope) sel_names rel_table bounds =
   let
     val for_auto = (maybe_name = "")
@@ -400,7 +400,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
                             else NONE)
                         (discr_jsss ~~ constrs) |> the
             val arg_Ts = curried_binder_types constr_T
-            val sel_xs = map (boxed_nth_sel_for_constr ext_ctxt constr_x)
+            val sel_xs = map (boxed_nth_sel_for_constr hol_ctxt constr_x)
                              (index_seq 0 (length arg_Ts))
             val sel_Rs =
               map (fn x => get_first
@@ -586,7 +586,7 @@ fun bisimilar_values _ 0 _ = true
   -> nut list -> nut list -> nut NameTable.table -> KK.raw_bound list
   -> Pretty.T * bool *)
 fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
-        ({ext_ctxt as {thy, ctxt, max_bisim_depth, boxes, stds, wfs,
+        ({hol_ctxt as {thy, ctxt, max_bisim_depth, boxes, stds, wfs,
                        user_axioms, debug, binary_ints, destroy_constrs,
                        specialize, skolemize, star_linear_preds, uncurry,
                        fast_descrs, tac_timeout, evals, case_names, def_table,
@@ -598,7 +598,7 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
   let
     val (wacky_names as (_, base_name, step_name, _), ctxt) =
       add_wacky_syntax ctxt
-    val ext_ctxt =
+    val hol_ctxt =
       {thy = thy, ctxt = ctxt, max_bisim_depth = max_bisim_depth, boxes = boxes,
        stds = stds, wfs = wfs, user_axioms = user_axioms, debug = debug,
        binary_ints = binary_ints, destroy_constrs = destroy_constrs,
@@ -612,7 +612,7 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
        ersatz_table = ersatz_table, skolems = skolems,
        special_funs = special_funs, unrolled_preds = unrolled_preds,
        wf_cache = wf_cache, constr_cache = constr_cache}
-    val scope = {ext_ctxt = ext_ctxt, card_assigns = card_assigns,
+    val scope = {hol_ctxt = hol_ctxt, card_assigns = card_assigns,
                  bits = bits, bisim_depth = bisim_depth, datatypes = datatypes,
                  ofs = ofs}
     (* typ -> typ -> rep -> int list list -> term *)
@@ -644,7 +644,7 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
             end
           | ConstName (s, T, _) =>
             (assign_operator_for_const (s, T),
-             user_friendly_const ext_ctxt (base_name, step_name) formats (s, T),
+             user_friendly_const hol_ctxt (base_name, step_name) formats (s, T),
              T)
           | _ => raise NUT ("Nitpick_Model.reconstruct_hol_model.\
                             \pretty_for_assign", [name])
@@ -724,7 +724,7 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
 
 (* scope -> Time.time option -> nut list -> nut list -> nut NameTable.table
    -> KK.raw_bound list -> term -> bool option *)
-fun prove_hol_model (scope as {ext_ctxt as {thy, ctxt, debug, ...},
+fun prove_hol_model (scope as {hol_ctxt as {thy, ctxt, debug, ...},
                                card_assigns, ...})
                     auto_timeout free_names sel_names rel_table bounds prop =
   let
