@@ -431,7 +431,8 @@ fun add_constr_spec (card_assigns, max_assigns) co card sum_dom_cards
           {delta = 0, epsilon = 1,
            exclusive = (s = @{const_name Nil} andalso length constrs = 2),
            total = true}
-        else if s = @{const_name Cons} andalso length constrs = 2 then
+        else if s = @{const_name Cons} andalso
+                num_self_recs + num_non_self_recs = 2 then
           {delta = 1, epsilon = card, exclusive = true, total = false}
         else
           {delta = 0, epsilon = card, exclusive = false, total = false}
