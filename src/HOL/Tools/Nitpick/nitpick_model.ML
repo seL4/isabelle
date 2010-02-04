@@ -232,7 +232,8 @@ fun typecast_fun (Type ("fun", [T1', T2'])) T1 T2 t =
           if T = T' then t
           else raise TYPE ("Nitpick_Model.typecast_fun.do_term", [T, T'], [])
     in if T1' = T1 andalso T2' = T2 then t else do_fun T1' T2' T1 T2 t end
-  | typecast_fun T' _ _ _ = raise TYPE ("Nitpick_Model.typecast_fun", [T'], [])
+  | typecast_fun T' _ _ _ =
+    raise TYPE ("Nitpick_Model.typecast_fun", [T'], [])
 
 (* term -> string *)
 fun truth_const_sort_key @{const True} = "0"
@@ -341,7 +342,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
     (* bool -> typ -> typ -> typ -> term list -> term list -> term *)
     fun make_fun maybe_opt T1 T2 T' ts1 ts2 =
       ts1 ~~ ts2 |> sort (nice_term_ord o pairself fst)
-                 |> make_plain_fun (maybe_opt andalso not for_auto) T1 T2
+                 |> make_plain_fun maybe_opt T1 T2
                  |> unbit_and_unbox_term
                  |> typecast_fun (unbit_and_unbox_type T')
                                  (unbit_and_unbox_type T1)
@@ -523,7 +524,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
                    Refute.string_of_typ T ^ " " ^ string_for_rep R ^ " " ^
                    string_of_int (length jss))
   in
-    (not for_auto ? polish_funs []) o unbit_and_unbox_term oooo term_for_rep []
+    polish_funs [] o unbit_and_unbox_term oooo term_for_rep []
   end
 
 (* scope -> nut list -> nut NameTable.table -> KK.raw_bound list -> nut
@@ -723,7 +724,8 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
 
 (* scope -> Time.time option -> nut list -> nut list -> nut NameTable.table
    -> KK.raw_bound list -> term -> bool option *)
-fun prove_hol_model (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns, ...})
+fun prove_hol_model (scope as {ext_ctxt as {thy, ctxt, debug, ...},
+                               card_assigns, ...})
                     auto_timeout free_names sel_names rel_table bounds prop =
   let
     (* typ * int -> term *)
@@ -737,25 +739,29 @@ fun prove_hol_model (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns, ...})
           Const (@{const_name All}, (T --> bool_T) --> bool_T)
               $ Abs ("x", T, foldl1 HOLogic.mk_disj eqs)
         val distinct_assm = distinctness_formula T (map atom (index_seq 0 k))
-      in HOLogic.mk_conj (compreh_assm, distinct_assm) end
+      in s_conj (compreh_assm, distinct_assm) end
     (* nut -> term *)
     fun free_name_assm name =
       HOLogic.mk_eq (Free (nickname_of name, type_of name),
                      term_for_name scope sel_names rel_table bounds name)
     val freeT_assms = map free_type_assm (filter (is_TFree o fst) card_assigns)
     val model_assms = map free_name_assm free_names
-    val assm = List.foldr HOLogic.mk_conj @{const True}
-                          (freeT_assms @ model_assms)
+    val assm = foldr1 s_conj (freeT_assms @ model_assms)
     (* bool -> bool *)
     fun try_out negate =
       let
         val concl = (negate ? curry (op $) @{const Not})
                     (ObjectLogic.atomize_term thy prop)
-        val goal = HOLogic.mk_Trueprop (HOLogic.mk_imp (assm, concl))
+        val prop = HOLogic.mk_Trueprop (HOLogic.mk_imp (assm, concl))
                    |> map_types (map_type_tfree
-                          (fn (s, []) => TFree (s, HOLogic.typeS)
-                            | x => TFree x))
-                   |> cterm_of thy |> Goal.init
+                                     (fn (s, []) => TFree (s, HOLogic.typeS)
+                                       | x => TFree x))
+       val _ = if debug then
+                 priority ((if negate then "Genuineness" else "Spuriousness") ^
+                           " goal: " ^ Syntax.string_of_term ctxt prop ^ ".")
+               else
+                 ()
+        val goal = prop |> cterm_of thy |> Goal.init
       in
         (goal |> SINGLE (DETERM_TIMEOUT auto_timeout
                                         (auto_tac (clasimpset_of ctxt)))

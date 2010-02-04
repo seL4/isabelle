@@ -51,6 +51,7 @@ sig
   val skolem_prefix : string
   val eval_prefix : string
   val original_name : string -> string
+  val s_conj : term * term -> term
   val unbit_and_unbox_type : typ -> typ
   val string_for_type : Proof.context -> typ -> string
   val prefix_name : string -> string -> string
@@ -204,36 +205,6 @@ structure Data = Theory_Data(
     {frac_types = AList.merge (op =) (K true) (fs1, fs2),
      codatatypes = AList.merge (op =) (K true) (cs1, cs2)})
 
-(* term * term -> term *)
-fun s_conj (t1, @{const True}) = t1
-  | s_conj (@{const True}, t2) = t2
-  | s_conj (t1, t2) =
-    if t1 = @{const False} orelse t2 = @{const False} then @{const False}
-    else HOLogic.mk_conj (t1, t2)
-fun s_disj (t1, @{const False}) = t1
-  | s_disj (@{const False}, t2) = t2
-  | s_disj (t1, t2) =
-    if t1 = @{const True} orelse t2 = @{const True} then @{const True}
-    else HOLogic.mk_disj (t1, t2)
-(* term -> term -> term *)
-fun mk_exists v t =
-  HOLogic.exists_const (fastype_of v) $ lambda v (incr_boundvars 1 t)
-
-(* term -> term -> term list *)
-fun strip_connective conn_t (t as (t0 $ t1 $ t2)) =
-    if t0 = conn_t then strip_connective t0 t2 @ strip_connective t0 t1 else [t]
-  | strip_connective _ t = [t]
-(* term -> term list * term *)
-fun strip_any_connective (t as (t0 $ t1 $ t2)) =
-    if t0 = @{const "op &"} orelse t0 = @{const "op |"} then
-      (strip_connective t0 t, t0)
-    else
-      ([t], @{const Not})
-  | strip_any_connective t = ([t], @{const Not})
-(* term -> term list *)
-val conjuncts = strip_connective @{const "op &"}
-val disjuncts = strip_connective @{const "op |"}
-
 val name_sep = "$"
 val numeral_prefix = nitpick_prefix ^ "num" ^ name_sep
 val sel_prefix = nitpick_prefix ^ "sel"
@@ -277,6 +248,36 @@ fun original_name s =
   else
     s
 val after_name_sep = snd o strip_first_name_sep
+
+(* term * term -> term *)
+fun s_conj (t1, @{const True}) = t1
+  | s_conj (@{const True}, t2) = t2
+  | s_conj (t1, t2) =
+    if t1 = @{const False} orelse t2 = @{const False} then @{const False}
+    else HOLogic.mk_conj (t1, t2)
+fun s_disj (t1, @{const False}) = t1
+  | s_disj (@{const False}, t2) = t2
+  | s_disj (t1, t2) =
+    if t1 = @{const True} orelse t2 = @{const True} then @{const True}
+    else HOLogic.mk_disj (t1, t2)
+(* term -> term -> term *)
+fun mk_exists v t =
+  HOLogic.exists_const (fastype_of v) $ lambda v (incr_boundvars 1 t)
+
+(* term -> term -> term list *)
+fun strip_connective conn_t (t as (t0 $ t1 $ t2)) =
+    if t0 = conn_t then strip_connective t0 t2 @ strip_connective t0 t1 else [t]
+  | strip_connective _ t = [t]
+(* term -> term list * term *)
+fun strip_any_connective (t as (t0 $ t1 $ t2)) =
+    if t0 = @{const "op &"} orelse t0 = @{const "op |"} then
+      (strip_connective t0 t, t0)
+    else
+      ([t], @{const Not})
+  | strip_any_connective t = ([t], @{const Not})
+(* term -> term list *)
+val conjuncts = strip_connective @{const "op &"}
+val disjuncts = strip_connective @{const "op |"}
 
 (* When you add constants to these lists, make sure to handle them in
    "Nitpick_Nut.nut_from_term", and perhaps in "Nitpick_Mono.consider_term" as
@@ -551,6 +552,7 @@ val is_typedef = is_some oo typedef_info
 val is_real_datatype = is_some oo Datatype.get_info
 (* theory -> typ -> bool *)
 fun is_quot_type _ (Type ("IntEx.my_int", _)) = true (* FIXME *)
+  | is_quot_type _ (Type ("FSet.fset", _)) = true (* FIXME *)
   | is_quot_type _ _ = false
 fun is_codatatype thy (T as Type (s, _)) =
     not (null (AList.lookup (op =) (#codatatypes (Data.get thy)) s
@@ -618,8 +620,10 @@ fun is_rep_fun thy (s, Type ("fun", [Type (s', _), _])) =
   | is_rep_fun _ _ = false
 (* Proof.context -> styp -> bool *)
 fun is_quot_abs_fun _ ("IntEx.abs_my_int", _) = true (* FIXME *)
+  | is_quot_abs_fun _ ("FSet.abs_fset", _) = true (* FIXME *)
   | is_quot_abs_fun _ _ = false
 fun is_quot_rep_fun _ ("IntEx.rep_my_int", _) = true (* FIXME *)
+  | is_quot_rep_fun _ ("FSet.rep_fset", _) = true (* FIXME *)
   | is_quot_rep_fun _ _ = false
 
 (* theory -> styp -> styp *)
@@ -630,11 +634,17 @@ fun mate_of_rep_fun thy (x as (_, Type ("fun", [T1 as Type (s', _), T2]))) =
   | mate_of_rep_fun _ x = raise TERM ("Nitpick_HOL.mate_of_rep_fun", [Const x])
 (* theory -> typ -> typ *)
 fun rep_type_for_quot_type _ (Type ("IntEx.my_int", [])) = @{typ "nat * nat"}
+  | rep_type_for_quot_type _ (Type ("FSet.fset", [T])) =
+    Type (@{type_name list}, [T])
   | rep_type_for_quot_type _ T =
     raise TYPE ("Nitpick_HOL.rep_type_for_quot_type", [T], [])
 (* theory -> typ -> term *)
 fun equiv_relation_for_quot_type _ (Type ("IntEx.my_int", [])) =
     Const ("IntEx.intrel", @{typ "(nat * nat) => (nat * nat) => bool"})
+  | equiv_relation_for_quot_type _ (Type ("FSet.fset", [T])) =
+    Const ("FSet.list_eq",
+           Type (@{type_name list}, [T]) --> Type (@{type_name list}, [T])
+           --> bool_T)
   | equiv_relation_for_quot_type _ T =
     raise TYPE ("Nitpick_HOL.equiv_relation_for_quot_type", [T], [])
 
@@ -2396,7 +2406,7 @@ fun renumber_bounds j n f t =
     Bound (if j' >= j andalso j' < j + n then f (j' - j) + j else j')
   | _ => t
 
-val quantifier_cluster_max_size = 8
+val quantifier_cluster_threshold = 7
 
 (* theory -> term -> term *)
 fun push_quantifiers_inward thy =
@@ -2405,7 +2415,7 @@ fun push_quantifiers_inward thy =
     fun aux quant_s ss Ts t =
       (case t of
          (t0 as Const (s0, _)) $ Abs (s1, T1, t1 as _ $ _) =>
-         if s0 = quant_s andalso length Ts < quantifier_cluster_max_size then
+         if s0 = quant_s then
            aux s0 (s1 :: ss) (T1 :: Ts) t1
          else if quant_s = "" andalso
                  (s0 = @{const_name All} orelse s0 = @{const_name Ex}) then
@@ -2432,22 +2442,43 @@ fun push_quantifiers_inward thy =
                    (* int -> int *)
                    val flip = curry (op -) (num_Ts - 1)
                    val t_boundss = map (map flip o loose_bnos) ts
-                   (* (int list * int) list -> int list -> int *)
-                   fun cost boundss_cum_costs [] =
-                       map snd boundss_cum_costs |> Integer.sum
-                     | cost boundss_cum_costs (j :: js) =
+                   (* (int list * int) list -> int list
+                      -> (int list * int) list *)
+                   fun merge costly_boundss [] = costly_boundss
+                     | merge costly_boundss (j :: js) =
                        let
                          val (yeas, nays) =
                            List.partition (fn (bounds, _) =>
                                               member (op =) bounds j)
-                                          boundss_cum_costs
+                                          costly_boundss
                          val yeas_bounds = big_union fst yeas
                          val yeas_cost = Integer.sum (map snd yeas)
                                          * nth T_costs j
-                       in cost ((yeas_bounds, yeas_cost) :: nays) js end
-                   val js = all_permutations (index_seq 0 num_Ts)
-                            |> map (`(cost (t_boundss ~~ t_costs)))
-                            |> sort (int_ord o pairself fst) |> hd |> snd
+                       in merge ((yeas_bounds, yeas_cost) :: nays) js end
+                   (* (int list * int) list -> int list -> int *)
+                   val cost = Integer.sum o map snd oo merge
+                   (* Inspired by Claessen & Sörensson's polynomial binary
+                      splitting heuristic (p. 5 of their MODEL 2003 paper). *)
+                   (* (int list * int) list -> int list -> int list *)
+                   fun heuristically_best_permutation _ [] = []
+                     | heuristically_best_permutation costly_boundss js =
+                       let
+                         val (costly_boundss, (j, js)) =
+                           js |> map (`(merge costly_boundss o single))
+                              |> sort (int_ord
+                                       o pairself (Integer.sum o map snd o fst))
+                              |> split_list |>> hd ||> pairf hd tl
+                       in
+                         j :: heuristically_best_permutation costly_boundss js
+                       end
+                   val js =
+                     if length Ts <= quantifier_cluster_threshold then
+                       all_permutations (index_seq 0 num_Ts)
+                       |> map (`(cost (t_boundss ~~ t_costs)))
+                       |> sort (int_ord o pairself fst) |> hd |> snd
+                     else
+                       heuristically_best_permutation (t_boundss ~~ t_costs)
+                                                      (index_seq 0 num_Ts)
                    val back_js = map (fn j => find_index (curry (op =) j) js)
                                      (index_seq 0 num_Ts)
                    val ts = map (renumber_bounds 0 num_Ts (nth back_js o flip))
@@ -3515,7 +3546,6 @@ fun preprocess_term (ext_ctxt as {thy, binary_ints, destroy_constrs, boxes,
       #> simplify_constrs_and_sels thy
       #> distribute_quantifiers
       #> push_quantifiers_inward thy
-      #> Envir.eta_contract 
       #> not core ? Refute.close_form
       #> shorten_abs_vars
   in

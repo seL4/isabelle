@@ -766,10 +766,18 @@ fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
          | Bound j => (nth bounds j, accum)
          | Abs (_, T, @{const False}) => (ctype_for (T --> bool_T), accum)
          | Abs (s, T, t') =>
-           let
-             val C = ctype_for T
-             val (C', accum) = do_term t' (accum |>> push_bound C)
-           in (CFun (C, S Minus, C'), accum |>> pop_bound) end
+           ((case t' of
+               t1' $ Bound 0 =>
+               if not (loose_bvar1 (t1', 0)) then
+                 do_term (incr_boundvars ~1 t1') accum
+               else
+                 raise SAME ()
+             | _ => raise SAME ())
+            handle SAME () =>
+                   let
+                     val C = ctype_for T
+                     val (C', accum) = do_term t' (accum |>> push_bound C)
+                   in (CFun (C, S Minus, C'), accum |>> pop_bound) end)
          | Const (@{const_name All}, _)
            $ Abs (_, T', @{const "op -->"} $ (t1 $ Bound 0) $ t2) =>
            do_bounded_quantifier T' t1 t2 accum

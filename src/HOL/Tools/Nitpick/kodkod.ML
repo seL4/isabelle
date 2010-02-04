@@ -505,6 +505,19 @@ fun problems_equivalent (p1 : problem) (p2 : problem) =
   filter (is_relevant_setting o fst) (#settings p1)
   = filter (is_relevant_setting o fst) (#settings p2)
 
+val created_temp_dir = Unsynchronized.ref false
+
+(* bool -> string * string *)
+fun serial_string_and_temporary_dir_for_overlord overlord =
+  if overlord then
+    ("", getenv "ISABELLE_HOME_USER")
+  else
+    let
+      val dir = getenv "ISABELLE_TMP"
+      val _ = if !created_temp_dir then ()
+              else (created_temp_dir := true; File.mkdir (Path.explode dir))
+    in (serial_string (), dir) end
+
 (* int -> string *)
 fun base_name j =
   if j < 0 then string_of_int (~j - 1) ^ "'" else string_of_int j
@@ -1012,20 +1025,17 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
       Normal ([], triv_js)
     else
       let
-        val (serial_str, tmp_path) =
-          if overlord then
-            ("", Path.append (Path.variable "ISABELLE_HOME_USER") o Path.base)
-          else
-            (serial_string (), File.tmp_path)
-        (* string -> string -> Path.T *)
-        fun path_for base suf =
-          tmp_path (Path.explode (base ^ serial_str ^ "." ^ suf))
-        val in_path = path_for "isabelle" "kki"
+        val (serial_str, temp_dir) =
+          serial_string_and_temporary_dir_for_overlord overlord
+        (* string -> Path.T *)
+        fun path_for suf =
+          Path.explode (temp_dir ^ "/kodkodi" ^ serial_str ^ "." ^ suf)
+        val in_path = path_for "kki"
         val in_buf = Unsynchronized.ref Buffer.empty
         (* string -> unit *)
         fun out s = Unsynchronized.change in_buf (Buffer.add s)
-        val out_path = path_for "kodkodi" "out"
-        val err_path = path_for "kodkodi" "err"
+        val out_path = path_for "out"
+        val err_path = path_for "err"
         val _ = write_problem_file out (map snd indexed_problems)
         val _ = File.write_buffer in_path (!in_buf)
         (* unit -> unit *)
@@ -1043,7 +1053,8 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
           val outcome =
             let
               val code =
-                system ("env CLASSPATH=\"$KODKODI_CLASSPATH:$CLASSPATH\" \
+                system ("cd " ^ temp_dir ^ ";\n" ^
+                        "env CLASSPATH=\"$KODKODI_CLASSPATH:$CLASSPATH\" \
                         \JAVA_LIBRARY_PATH=\"$KODKODI_JAVA_LIBRARY_PATH:\
                         \$JAVA_LIBRARY_PATH\" \
                         \LD_LIBRARY_PATH=\"$KODKODI_JAVA_LIBRARY_PATH:\

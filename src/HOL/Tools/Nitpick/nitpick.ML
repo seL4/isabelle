@@ -502,8 +502,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         val formula = fold (fold s_and) [def_fs, nondef_fs] core_f
         val comment = (if liberal then "liberal" else "conservative") ^ "\n" ^
                       PrintMode.setmp [] multiline_string_for_scope scope
-        val kodkod_sat_solver = Kodkod_SAT.sat_solver_spec effective_sat_solver
-                                |> snd
+        val kodkod_sat_solver =
+          Kodkod_SAT.sat_solver_spec overlord effective_sat_solver |> snd
         val bit_width = if bits = 0 then 16 else bits + 1
         val delay = if liberal then
                       Option.map (fn time => Time.- (time, Time.now ()))

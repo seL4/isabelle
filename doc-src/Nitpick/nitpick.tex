@@ -1888,7 +1888,9 @@ considered. The option is implicitly enabled for automatic runs.
 Specifies whether Nitpick should put its temporary files in
 \texttt{\$ISABELLE\_\allowbreak HOME\_\allowbreak USER}, which is useful for
 debugging Nitpick but also unsafe if several instances of the tool are run
-simultaneously.
+simultaneously. The files are identified by the extensions
+\texttt{.kki}, \texttt{.cnf}, \texttt{.out}, and
+\texttt{.err}; you may safely remove them after Nitpick has run.
 
 \nopagebreak
 {\small See also \textit{debug} (\S\ref{output-format}).}
