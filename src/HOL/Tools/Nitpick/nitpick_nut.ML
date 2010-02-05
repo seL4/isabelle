@@ -8,7 +8,7 @@ Nitpick underlying terms (nuts).
 signature NITPICK_NUT =
 sig
   type special_fun = Nitpick_HOL.special_fun
-  type extended_context = Nitpick_HOL.extended_context
+  type hol_context = Nitpick_HOL.hol_context
   type scope = Nitpick_Scope.scope
   type name_pool = Nitpick_Peephole.name_pool
   type rep = Nitpick_Rep.rep
@@ -106,7 +106,7 @@ sig
   val name_ord : (nut * nut) -> order
   val the_name : 'a NameTable.table -> nut -> 'a
   val the_rel : nut NameTable.table -> nut -> Kodkod.n_ary_index
-  val nut_from_term : extended_context -> op2 -> term -> nut
+  val nut_from_term : hol_context -> op2 -> term -> nut
   val choose_reps_for_free_vars :
     scope -> nut list -> rep NameTable.table -> nut list * rep NameTable.table
   val choose_reps_for_consts :
@@ -466,8 +466,8 @@ fun mk_snd (_, Const (@{const_name Pair}, T) $ _ $ t2) =
 fun factorize (z as (Type ("*", _), _)) = maps factorize [mk_fst z, mk_snd z]
   | factorize z = [z]
 
-(* extended_context -> op2 -> term -> nut *)
-fun nut_from_term (ext_ctxt as {thy, fast_descrs, special_funs, ...}) eq =
+(* hol_context -> op2 -> term -> nut *)
+fun nut_from_term (hol_ctxt as {thy, fast_descrs, special_funs, ...}) eq =
   let
     (* string list -> typ list -> term -> nut *)
     fun aux eq ss Ts t =
@@ -597,7 +597,7 @@ fun nut_from_term (ext_ctxt as {thy, fast_descrs, special_funs, ...}) eq =
           Op2 (Image, nth_range_type 2 T, Any, sub t1, sub t2)
         | (Const (@{const_name Suc}, T), []) => Cst (Suc, T, Any)
         | (Const (@{const_name finite}, T), [t1]) =>
-          (if is_finite_type ext_ctxt (domain_type T) then
+          (if is_finite_type hol_ctxt (domain_type T) then
              Cst (True, bool_T, Any)
            else case t1 of
              Const (@{const_name top}, _) => Cst (False, bool_T, Any)
@@ -712,7 +712,7 @@ fun choose_rep_for_free_var scope v (vs, table) =
   in (v :: vs, NameTable.update (v, R) table) end
 (* scope -> bool -> nut -> nut list * rep NameTable.table
    -> nut list * rep NameTable.table *)
-fun choose_rep_for_const (scope as {ext_ctxt as {thy, ctxt, ...}, datatypes,
+fun choose_rep_for_const (scope as {hol_ctxt as {thy, ctxt, ...}, datatypes,
                                     ofs, ...}) all_exact v (vs, table) =
   let
     val x as (s, T) = (nickname_of v, type_of v)
@@ -747,10 +747,10 @@ fun choose_reps_for_consts scope all_exact vs table =
 
 (* scope -> styp -> int -> nut list * rep NameTable.table
    -> nut list * rep NameTable.table *)
-fun choose_rep_for_nth_sel_for_constr (scope as {ext_ctxt, ...}) (x as (_, T)) n
+fun choose_rep_for_nth_sel_for_constr (scope as {hol_ctxt, ...}) (x as (_, T)) n
                                       (vs, table) =
   let
-    val (s', T') = boxed_nth_sel_for_constr ext_ctxt x n
+    val (s', T') = boxed_nth_sel_for_constr hol_ctxt x n
     val R' = if n = ~1 orelse is_word_type (body_type T) orelse
                 (is_fun_type (range_type T') andalso
                  is_boolean_type (body_type T')) then
@@ -890,7 +890,7 @@ fun untuple f (Tuple (_, _, us)) = maps (untuple f) us
   | untuple f u = if rep_of u = Unit then [] else [f u]
 
 (* scope -> bool -> rep NameTable.table -> bool -> nut -> nut *)
-fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
+fun choose_reps_in_nut (scope as {hol_ctxt as {thy, ctxt, ...}, card_assigns,
                                   bits, datatypes, ofs, ...})
                        liberal table def =
   let

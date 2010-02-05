@@ -8,10 +8,10 @@ Monotonicity predicate for higher-order logic.
 signature NITPICK_MONO =
 sig
   datatype sign = Plus | Minus
-  type extended_context = Nitpick_HOL.extended_context
+  type hol_context = Nitpick_HOL.hol_context
 
   val formulas_monotonic :
-    extended_context -> typ -> sign -> term list -> term list -> term -> bool
+    hol_context -> typ -> sign -> term list -> term list -> term -> bool
 end;
 
 structure Nitpick_Mono : NITPICK_MONO =
@@ -35,7 +35,7 @@ datatype ctype =
   CRec of string * typ list
 
 type cdata =
-  {ext_ctxt: extended_context,
+  {hol_ctxt: hol_context,
    alpha_T: typ,
    max_fresh: int Unsynchronized.ref,
    datatype_cache: ((string * typ list) * ctype) list Unsynchronized.ref,
@@ -114,9 +114,9 @@ fun flatten_ctype (CPair (C1, C2)) = maps flatten_ctype [C1, C2]
   | flatten_ctype (CType (_, Cs)) = maps flatten_ctype Cs
   | flatten_ctype C = [C]
 
-(* extended_context -> typ -> cdata *)
-fun initial_cdata ext_ctxt alpha_T =
-  ({ext_ctxt = ext_ctxt, alpha_T = alpha_T, max_fresh = Unsynchronized.ref 0,
+(* hol_context -> typ -> cdata *)
+fun initial_cdata hol_ctxt alpha_T =
+  ({hol_ctxt = hol_ctxt, alpha_T = alpha_T, max_fresh = Unsynchronized.ref 0,
     datatype_cache = Unsynchronized.ref [],
     constr_cache = Unsynchronized.ref []} : cdata)
 
@@ -188,7 +188,7 @@ fun repair_constr_cache dtype_cache constr_cache =
   in List.app repair_one (!constr_cache) end
 
 (* cdata -> typ -> ctype *)
-fun fresh_ctype_for_type ({ext_ctxt as {thy, ...}, alpha_T, max_fresh,
+fun fresh_ctype_for_type ({hol_ctxt as {thy, ...}, alpha_T, max_fresh,
                            datatype_cache, constr_cache, ...} : cdata) =
   let
     (* typ -> typ -> ctype *)
@@ -217,7 +217,7 @@ fun fresh_ctype_for_type ({ext_ctxt as {thy, ...}, alpha_T, max_fresh,
           | NONE =>
             let
               val _ = Unsynchronized.change datatype_cache (cons (z, CRec z))
-              val xs = datatype_constrs ext_ctxt T
+              val xs = datatype_constrs hol_ctxt T
               val (all_Cs, constr_Cs) =
                 fold_rev (fn (_, T') => fn (all_Cs, constr_Cs) =>
                              let
@@ -264,7 +264,7 @@ fun sel_ctype_from_constr_ctype s C =
   end
 
 (* cdata -> styp -> ctype *)
-fun ctype_for_constr (cdata as {ext_ctxt as {thy, ...}, alpha_T, constr_cache,
+fun ctype_for_constr (cdata as {hol_ctxt as {thy, ...}, alpha_T, constr_cache,
                                 ...}) (x as (_, T)) =
   if could_exist_alpha_sub_ctype thy alpha_T T then
     case AList.lookup (op =) (!constr_cache) x of
@@ -278,8 +278,8 @@ fun ctype_for_constr (cdata as {ext_ctxt as {thy, ...}, alpha_T, constr_cache,
                  AList.lookup (op =) (!constr_cache) x |> the)
   else
     fresh_ctype_for_type cdata T
-fun ctype_for_sel (cdata as {ext_ctxt, ...}) (x as (s, _)) =
-  x |> boxed_constr_for_sel ext_ctxt |> ctype_for_constr cdata
+fun ctype_for_sel (cdata as {hol_ctxt, ...}) (x as (s, _)) =
+  x |> boxed_constr_for_sel hol_ctxt |> ctype_for_constr cdata
     |> sel_ctype_from_constr_ctype s
 
 (* literal list -> ctype -> ctype *)
@@ -549,7 +549,7 @@ fun pop_bound {bounds, frees, consts} =
   handle List.Empty => initial_gamma
 
 (* cdata -> term -> accumulator -> ctype * accumulator *)
-fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
+fun consider_term (cdata as {hol_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
                              max_fresh, ...}) =
   let
     (* typ -> ctype *)
@@ -806,7 +806,7 @@ fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
   in do_term end
 
 (* cdata -> sign -> term -> accumulator -> accumulator *)
-fun consider_general_formula (cdata as {ext_ctxt as {ctxt, ...}, ...}) =
+fun consider_general_formula (cdata as {hol_ctxt as {ctxt, ...}, ...}) =
   let
     (* typ -> ctype *)
     val ctype_for = fresh_ctype_for_type cdata
@@ -895,7 +895,7 @@ fun consider_nondefinitional_axiom cdata sn t =
   not (is_harmless_axiom t) ? consider_general_formula cdata sn t
 
 (* cdata -> term -> accumulator -> accumulator *)
-fun consider_definitional_axiom (cdata as {ext_ctxt as {thy, ...}, ...}) t =
+fun consider_definitional_axiom (cdata as {hol_ctxt as {thy, ...}, ...}) t =
   if not (is_constr_pattern_formula thy t) then
     consider_nondefinitional_axiom cdata Plus t
   else if is_harmless_axiom t then
@@ -945,13 +945,13 @@ fun print_ctype_context ctxt lits ({frees, consts, ...} : ctype_context) =
   map (fn (x, C) => string_for_ctype_of_term ctxt lits (Const x) C) consts
   |> cat_lines |> print_g
 
-(* extended_context -> typ -> sign -> term list -> term list -> term -> bool *)
-fun formulas_monotonic (ext_ctxt as {ctxt, ...}) alpha_T sn def_ts nondef_ts
+(* hol_context -> typ -> sign -> term list -> term list -> term -> bool *)
+fun formulas_monotonic (hol_ctxt as {ctxt, ...}) alpha_T sn def_ts nondef_ts
                        core_t =
   let
     val _ = print_g ("****** " ^ string_for_ctype CAlpha ^ " is " ^
                      Syntax.string_of_typ ctxt alpha_T)
-    val cdata as {max_fresh, ...} = initial_cdata ext_ctxt alpha_T
+    val cdata as {max_fresh, ...} = initial_cdata hol_ctxt alpha_T
     val (gamma, cset) =
       (initial_gamma, slack)
       |> fold (consider_definitional_axiom cdata) def_ts

@@ -206,6 +206,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/Nitpick/nitpick_mono.ML \
   Tools/Nitpick/nitpick_nut.ML \
   Tools/Nitpick/nitpick_peephole.ML \
+  Tools/Nitpick/nitpick_preproc.ML \
   Tools/Nitpick/nitpick_rep.ML \
   Tools/Nitpick/nitpick_scope.ML \
   Tools/Nitpick/nitpick_tests.ML \

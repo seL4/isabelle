@@ -16,7 +16,7 @@ exception FAIL
 
 val defs = Nitpick_HOL.all_axioms_of @{theory} |> #1
 val def_table = Nitpick_HOL.const_def_table @{context} defs
-val ext_ctxt : Nitpick_HOL.extended_context =
+val hol_ctxt : Nitpick_HOL.hol_context =
   {thy = @{theory}, ctxt = @{context}, max_bisim_depth = ~1, boxes = [],
    stds = [(NONE, true)], wfs = [], user_axioms = NONE, debug = false,
    binary_ints = SOME false, destroy_constrs = false, specialize = false,
@@ -29,7 +29,7 @@ val ext_ctxt : Nitpick_HOL.extended_context =
    special_funs = Unsynchronized.ref [], unrolled_preds = Unsynchronized.ref [],
    wf_cache = Unsynchronized.ref [], constr_cache = Unsynchronized.ref []}
 (* term -> bool *)
-val is_mono = Nitpick_Mono.formulas_monotonic ext_ctxt @{typ 'a}
+val is_mono = Nitpick_Mono.formulas_monotonic hol_ctxt @{typ 'a}
                                               Nitpick_Mono.Plus [] []
 fun is_const t =
   let val T = fastype_of t in

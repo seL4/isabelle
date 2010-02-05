@@ -1694,7 +1694,7 @@ of elements stored in the tree:
 ``$\textit{dataset}~(\textit{skew}~t) = \textit{dataset}~t$'' \\
 ``$\textit{dataset}~(\textit{split}~t) = \textit{dataset}~t$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
-{\slshape Nitpick ran out of time after checking 7 of 8 scopes.}
+{\slshape Nitpick found no counterexample.}
 \postw
 
 Furthermore, applying \textit{skew} or \textit{split} to a well-formed tree
@@ -1756,7 +1756,7 @@ Reintroducing the code seems to solve the problem:
 \prew
 \textbf{theorem}~\textit{wf\_insort}:\kern.4em ``$\textit{wf}~t\,\Longrightarrow\, \textit{wf}~(\textit{insort}~t~x)$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
-{\slshape Nitpick ran out of time after checking 6 of 8 scopes.}
+{\slshape Nitpick ran out of time after checking 7 of 8 scopes.}
 \postw
 
 Insertion should transform the set of elements represented by the tree in the
@@ -1766,14 +1766,14 @@ obvious way:
 \textbf{theorem} \textit{dataset\_insort}:\kern.4em
 ``$\textit{dataset}~(\textit{insort}~t~x) = \{x\} \cup \textit{dataset}~t$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
-{\slshape Nitpick ran out of time after checking 5 of 8 scopes.}
+{\slshape Nitpick ran out of time after checking 6 of 8 scopes.}
 \postw
 
-We could continue like this and sketch a complete theory of AA trees without
-performing a single proof. Once the definitions and main theorems are in place
-and have been thoroughly tested using Nitpick, we could start working on the
-proofs. Developing theories this way usually saves time, because faulty theorems
-and definitions are discovered much earlier in the process.
+We could continue like this and sketch a complete theory of AA trees. Once the
+definitions and main theorems are in place and have been thoroughly tested using
+Nitpick, we could start working on the proofs. Developing theories this way
+usually saves time, because faulty theorems and definitions are discovered much
+earlier in the process.
 
 \section{Option Reference}
 \label{option-reference}
