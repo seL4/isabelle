@@ -940,6 +940,10 @@ fun construct_value _ x [] = Const x
       | _ => list_comb (Const x, args)
     end
 
+(* The higher this number is, the more nonstandard models can be generated. It's
+   not important enough to be a user option, though. *)
+val xi_card = 8
+
 (* (typ * int) list -> typ -> int *)
 fun card_of_type assigns (Type ("fun", [T1, T2])) =
     reasonable_power (card_of_type assigns T2) (card_of_type assigns T1)
@@ -949,6 +953,7 @@ fun card_of_type assigns (Type ("fun", [T1, T2])) =
   | card_of_type _ @{typ prop} = 2
   | card_of_type _ @{typ bool} = 2
   | card_of_type _ @{typ unit} = 1
+  | card_of_type _ @{typ \<xi>} = xi_card
   | card_of_type assigns T =
     case AList.lookup (op =) assigns T of
       SOME k => k
@@ -1005,6 +1010,7 @@ fun bounded_exact_card_of_type hol_ctxt max default_card assigns T =
        | @{typ prop} => 2
        | @{typ bool} => 2
        | @{typ unit} => 1
+       | @{typ \<xi>} => xi_card
        | Type _ =>
          (case datatype_constrs hol_ctxt T of
             [] => if is_integer_type T orelse is_bit_type T then 0
@@ -2009,7 +2015,8 @@ fun add_ground_types hol_ctxt T accum =
   | Type ("*", Ts) => fold (add_ground_types hol_ctxt) Ts accum
   | Type (@{type_name itself}, [T1]) => add_ground_types hol_ctxt T1 accum
   | Type (_, Ts) =>
-    if member (op =) (@{typ prop} :: @{typ bool} :: @{typ unit} :: accum) T then
+    if member (op =) (@{typ prop} :: @{typ bool} :: @{typ unit} ::
+                      @{typ \<xi>} :: accum) T then
       accum
     else
       T :: accum

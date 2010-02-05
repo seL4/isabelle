@@ -134,7 +134,7 @@ fun spec_of_type ({card_assigns, ofs, ...} : scope) T =
 fun quintuple_for_scope quote ({hol_ctxt as {thy, ctxt, ...}, card_assigns,
                                 bits, bisim_depth, datatypes, ...} : scope) =
   let
-    val boring_Ts = [@{typ unsigned_bit}, @{typ signed_bit}, @{typ \<xi>},
+    val boring_Ts = [@{typ unsigned_bit}, @{typ signed_bit},
                      @{typ bisim_iterator}]
     val (iter_assigns, card_assigns) =
       card_assigns |> filter_out (member (op =) boring_Ts o fst)

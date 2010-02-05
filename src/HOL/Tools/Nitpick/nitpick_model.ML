@@ -56,26 +56,26 @@ val abs_mixfix = "\<guillemotleft>_\<guillemotright>"
 val opt_flag = nitpick_prefix ^ "opt"
 val non_opt_flag = nitpick_prefix ^ "non_opt"
 
-(* string -> int -> string *)
-fun atom_suffix s j =
-  nat_subscript (j + 1)
+(* string -> int -> int -> string *)
+fun nth_atom_suffix s j k =
+  nat_subscript (k - j)
   |> (s <> "" andalso Symbol.is_ascii_digit (List.last (explode s)))
      ? prefix "\<^isub>,"
-(* string -> typ -> int -> string *)
-fun atom_name prefix (T as Type (s, _)) j =
+(* string -> typ -> int -> int -> string *)
+fun nth_atom_name prefix (T as Type (s, _)) j k =
     let val s' = shortest_name s in
       prefix ^ (if String.isPrefix "\\" s' then s' else substring (s', 0, 1)) ^
-      atom_suffix s j
+      nth_atom_suffix s j k
     end
-  | atom_name prefix (T as TFree (s, _)) j =
-    prefix ^ perhaps (try (unprefix "'")) s ^ atom_suffix s j
-  | atom_name _ T _ = raise TYPE ("Nitpick_Model.atom_name", [T], [])
-(* bool -> typ -> int -> term *)
-fun atom for_auto T j =
+  | nth_atom_name prefix (T as TFree (s, _)) j k =
+    prefix ^ perhaps (try (unprefix "'")) s ^ nth_atom_suffix s j k
+  | nth_atom_name _ T _ _ = raise TYPE ("Nitpick_Model.nth_atom_name", [T], [])
+(* bool -> typ -> int -> int -> term *)
+fun nth_atom for_auto T j k =
   if for_auto then
-    Free (atom_name (hd (space_explode "." nitpick_prefix)) T j, T)
+    Free (nth_atom_name (hd (space_explode "." nitpick_prefix)) T j k, T)
   else
-    Const (atom_name "" T j, T)
+    Const (nth_atom_name "" T j k, T)
 
 (* term -> real *)
 fun extract_real_number (Const (@{const_name Algebras.divide}, _) $ t1 $ t2) =
@@ -348,7 +348,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
                                  (unbit_and_unbox_type T1)
                                  (unbit_and_unbox_type T2)
     (* (typ * int) list -> typ -> typ -> int -> term *)
-    fun term_for_atom seen (T as Type ("fun", [T1, T2])) T' j =
+    fun term_for_atom seen (T as Type ("fun", [T1, T2])) T' j k =
         let
           val k1 = card_of_type card_assigns T1
           val k2 = card_of_type card_assigns T2
@@ -360,37 +360,39 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
                             signed_string_of_int j ^ " for " ^
                             string_for_rep (Vect (k1, Atom (k2, 0))))
         end
-      | term_for_atom seen (Type ("*", [T1, T2])) _ j =
-        let val k1 = card_of_type card_assigns T1 in
+      | term_for_atom seen (Type ("*", [T1, T2])) _ j k =
+        let
+          val k1 = card_of_type card_assigns T1
+          val k2 = k div k1
+        in
           list_comb (HOLogic.pair_const T1 T2,
-                     map2 (fn T => term_for_atom seen T T) [T1, T2]
-                          [j div k1, j mod k1])
+                     map3 (fn T => term_for_atom seen T T) [T1, T2]
+                          [j div k2, j mod k2] [k1, k2]) (* ### k2 or k1? FIXME *)
         end
-      | term_for_atom seen @{typ prop} _ j =
-        HOLogic.mk_Trueprop (term_for_atom seen bool_T bool_T j)
-      | term_for_atom _ @{typ bool} _ j =
+      | term_for_atom seen @{typ prop} _ j k =
+        HOLogic.mk_Trueprop (term_for_atom seen bool_T bool_T j k)
+      | term_for_atom _ @{typ bool} _ j _ =
         if j = 0 then @{const False} else @{const True}
-      | term_for_atom _ @{typ unit} _ _ = @{const Unity}
-      | term_for_atom seen T _ j =
+      | term_for_atom _ @{typ unit} _ _ _ = @{const Unity}
+      | term_for_atom seen T _ j k =
         if T = nat_T then
           HOLogic.mk_number nat_T j
         else if T = int_T then
-          HOLogic.mk_number int_T
-              (int_for_atom (card_of_type card_assigns int_T, 0) j)
+          HOLogic.mk_number int_T (int_for_atom (k, 0) j)
         else if is_fp_iterator_type T then
-          HOLogic.mk_number nat_T (card_of_type card_assigns T - j - 1)
+          HOLogic.mk_number nat_T (k - j - 1)
         else if T = @{typ bisim_iterator} then
           HOLogic.mk_number nat_T j
         else case datatype_spec datatypes T of
-          NONE => atom for_auto T j
-        | SOME {deep = false, ...} => atom for_auto T j
+          NONE => nth_atom for_auto T j k
+        | SOME {deep = false, ...} => nth_atom for_auto T j k
         | SOME {co, constrs, ...} =>
           let
             (* styp -> int list *)
             fun tuples_for_const (s, T) =
               tuple_list_for_name rel_table bounds (ConstName (s, T, Any))
             (* unit -> indexname * typ *)
-            fun var () = ((atom_name "" T j, 0), T)
+            fun var () = ((nth_atom_name "" T j k, 0), T)
             val discr_jsss = map (tuples_for_const o discr_for_constr o #const)
                                  constrs
             val real_j = j + offset_of_type ofs T
@@ -479,13 +481,14 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
     (* (typ * int) list -> int -> rep -> typ -> typ -> typ -> int list
        -> term *)
     and term_for_vect seen k R T1 T2 T' js =
-      make_fun true T1 T2 T' (map (term_for_atom seen T1 T1) (index_seq 0 k))
+      make_fun true T1 T2 T'
+               (map (fn j => term_for_atom seen T1 T1 j k) (index_seq 0 k))
                (map (term_for_rep seen T2 T2 R o single)
                     (batch_list (arity_of_rep R) js))
     (* (typ * int) list -> typ -> typ -> rep -> int list list -> term *)
-    and term_for_rep seen T T' Unit [[]] = term_for_atom seen T T' 0
+    and term_for_rep seen T T' Unit [[]] = term_for_atom seen T T' 0 1
       | term_for_rep seen T T' (R as Atom (k, j0)) [[j]] =
-        if j >= j0 andalso j < j0 + k then term_for_atom seen T T' (j - j0)
+        if j >= j0 andalso j < j0 + k then term_for_atom seen T T' (j - j0) k
         else raise REP ("Nitpick_Model.reconstruct_term.term_for_rep", [R])
       | term_for_rep seen (Type ("*", [T1, T2])) _ (Struct [R1, R2]) [js] =
         let
@@ -732,7 +735,7 @@ fun prove_hol_model (scope as {hol_ctxt as {thy, ctxt, debug, ...},
     fun free_type_assm (T, k) =
       let
         (* int -> term *)
-        val atom = atom true T
+        fun atom j = nth_atom true T j k
         fun equation_for_atom j = HOLogic.eq_const T $ Bound 0 $ atom j
         val eqs = map equation_for_atom (index_seq 0 k)
         val compreh_assm =

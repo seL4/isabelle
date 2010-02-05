@@ -339,7 +339,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     fun is_type_always_monotonic T =
       (is_datatype thy T andalso not (is_quot_type thy T) andalso
        (not (is_pure_typedef thy T) orelse is_univ_typedef thy T)) orelse
-      is_number_type thy T orelse is_bit_type T orelse T = @{typ \<xi>}
+      is_number_type thy T orelse is_bit_type T
     fun is_type_monotonic T =
       unique_scope orelse
       case triple_lookup (type_match thy) monos T of
