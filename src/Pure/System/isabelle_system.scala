@@ -310,20 +310,29 @@ class Isabelle_System extends Standard_System
 
   val font_family = "IsabelleText"
 
-  private def check_font(): Boolean =
-    new Font(font_family, Font.PLAIN, 1).getFamily == font_family
-
-  private def create_font(name: String) =
-    Font.createFont(Font.TRUETYPE_FONT, platform_file(name))
+  def get_font(bold: Boolean): Font =
+    new Font(font_family, if (bold) Font.BOLD else Font.PLAIN, 1)
 
   def install_fonts()
   {
+    def create_font(bold: Boolean): Font =
+    {
+      val name =
+        if (bold) "$ISABELLE_HOME/lib/fonts/IsabelleTextBold.ttf"
+        else "$ISABELLE_HOME/lib/fonts/IsabelleText.ttf"
+      Font.createFont(Font.TRUETYPE_FONT, platform_file(name))
+    }
+    def check_font() = get_font(false).getFamily == font_family
+
     if (!check_font()) {
+      val font = create_font(false)
+      val bold_font = create_font(true)
+
       val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
-      ge.registerFont(create_font("$ISABELLE_HOME/lib/fonts/IsabelleText.ttf"))
-      ge.registerFont(create_font("$ISABELLE_HOME/lib/fonts/IsabelleTextBold.ttf"))
-      if (!check_font())
-        error("Failed to install IsabelleText fonts")
+      ge.registerFont(font)
+      // workaround strange problem with Apple's Java 1.6 font manager
+      if (bold_font.getFamily == font_family) ge.registerFont(bold_font)
+      if (!check_font()) error("Failed to install IsabelleText fonts")
     }
   }
 }
