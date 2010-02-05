@@ -106,8 +106,9 @@ The Isar toplevel may be considered the centeral hub of the
   \item \verb|Toplevel.is_toplevel|~\isa{state} checks for an empty
   toplevel state.
 
-  \item \verb|Toplevel.theory_of|~\isa{state} selects the theory of
-  a theory or proof (!), otherwise raises \verb|Toplevel.UNDEF|.
+  \item \verb|Toplevel.theory_of|~\isa{state} selects the
+  background theory of \isa{state}, raises \verb|Toplevel.UNDEF|
+  for an empty toplevel state.
 
   \item \verb|Toplevel.proof_of|~\isa{state} selects the Isar proof
   state if available, otherwise raises \verb|Toplevel.UNDEF|.
@@ -150,16 +151,16 @@ An Isar toplevel transition consists of a partial function on the
   The operational part is represented as the sequential union of a
   list of partial functions, which are tried in turn until the first
   one succeeds.  This acts like an outer case-expression for various
-  alternative state transitions.  For example, \isakeyword{qed} acts
+  alternative state transitions.  For example, \isakeyword{qed} works
   differently for a local proofs vs.\ the global ending of the main
   proof.
 
   Toplevel transitions are composed via transition transformers.
   Internally, Isar commands are put together from an empty transition
-  extended by name and source position (and optional source text).  It
-  is then left to the individual command parser to turn the given
-  concrete syntax into a suitable transition transformer that adjoins
-  actual operations on a theory or proof state etc.%
+  extended by name and source position.  It is then left to the
+  individual command parser to turn the given concrete syntax into a
+  suitable transition transformer that adjoins actual operations on a
+  theory or proof state etc.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -240,7 +241,7 @@ There are a few special control commands that modify the behavior
   the toplevel itself, and only make sense in interactive mode.  Under
   normal circumstances, the user encounters these only implicitly as
   part of the protocol between the Isabelle/Isar system and a
-  user-interface such as ProofGeneral.
+  user-interface such as Proof~General.
 
   \begin{description}
 
@@ -391,9 +392,7 @@ The theory database maintains a collection of theories, together
   associated with each theory, by declaring these dependencies in the
   theory header as \isa{{\isasymUSES}}, and loading them consecutively
   within the theory context.  The system keeps track of incoming {\ML}
-  sources and associates them with the current theory.  The file
-  \isa{A}\verb,.ML, is loaded after a theory has been concluded, in
-  order to support legacy proof {\ML} proof scripts.
+  sources and associates them with the current theory.
 
   The basic internal actions of the theory database are \isa{update}, \isa{outdate}, and \isa{remove}:
 
@@ -458,12 +457,14 @@ The theory database maintains a collection of theories, together
 
   \item \verb|use_thy|~\isa{A} ensures that theory \isa{A} is fully
   up-to-date wrt.\ the external file store, reloading outdated
-  ancestors as required.
+  ancestors as required.  In batch mode, the simultaneous \verb|use_thys| should be used exclusively.
 
   \item \verb|use_thys| is similar to \verb|use_thy|, but handles
   several theories simultaneously.  Thus it acts like processing the
   import header of a theory, without performing the merge of the
-  result, though.
+  result.  By loading a whole sub-graph of theories like that, the
+  intrinsic parallelism can be exploited by the system, to speedup
+  loading.
 
   \item \verb|ThyInfo.touch_thy|~\isa{A} performs and \isa{outdate} action
   on theory \isa{A} and all descendants.
@@ -472,7 +473,7 @@ The theory database maintains a collection of theories, together
   descendants from the theory database.
 
   \item \verb|ThyInfo.begin_theory| is the basic operation behind a
-  \isa{{\isasymTHEORY}} header declaration.  This is {\ML} functions is
+  \isa{{\isasymTHEORY}} header declaration.  This {\ML} function is
   normally not invoked directly.
 
   \item \verb|ThyInfo.end_theory| concludes the loading of a theory
