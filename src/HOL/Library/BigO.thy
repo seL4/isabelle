@@ -38,11 +38,11 @@ rather than as an @{text "intro!"} rule, for example, using
 subsection {* Definitions *}
 
 definition
-  bigo :: "('a => 'b::ordered_idom) => ('a => 'b) set"  ("(1O'(_'))") where
+  bigo :: "('a => 'b::linordered_idom) => ('a => 'b) set"  ("(1O'(_'))") where
   "O(f::('a => 'b)) =
       {h. EX c. ALL x. abs (h x) <= c * abs (f x)}"
 
-lemma bigo_pos_const: "(EX (c::'a::ordered_idom). 
+lemma bigo_pos_const: "(EX (c::'a::linordered_idom). 
     ALL x. (abs (h x)) <= (c * (abs (f x))))
       = (EX c. 0 < c & (ALL x. (abs(h x)) <= (c * (abs (f x)))))"
   apply auto
@@ -352,7 +352,7 @@ lemma bigo_mult4 [intro]:"f : k +o O(h) ==> g * f : (g * k) +o O(g * h)"
   done
 
 lemma bigo_mult5: "ALL x. f x ~= 0 ==>
-    O(f * g) <= (f::'a => ('b::ordered_field)) *o O(g)"
+    O(f * g) <= (f::'a => ('b::linordered_field)) *o O(g)"
 proof -
   assume "ALL x. f x ~= 0"
   show "O(f * g) <= f *o O(g)"
@@ -381,14 +381,14 @@ proof -
 qed
 
 lemma bigo_mult6: "ALL x. f x ~= 0 ==>
-    O(f * g) = (f::'a => ('b::ordered_field)) *o O(g)"
+    O(f * g) = (f::'a => ('b::linordered_field)) *o O(g)"
   apply (rule equalityI)
   apply (erule bigo_mult5)
   apply (rule bigo_mult2)
   done
 
 lemma bigo_mult7: "ALL x. f x ~= 0 ==>
-    O(f * g) <= O(f::'a => ('b::ordered_field)) \<otimes> O(g)"
+    O(f * g) <= O(f::'a => ('b::linordered_field)) \<otimes> O(g)"
   apply (subst bigo_mult6)
   apply assumption
   apply (rule set_times_mono3)
@@ -396,7 +396,7 @@ lemma bigo_mult7: "ALL x. f x ~= 0 ==>
   done
 
 lemma bigo_mult8: "ALL x. f x ~= 0 ==>
-    O(f * g) = O(f::'a => ('b::ordered_field)) \<otimes> O(g)"
+    O(f * g) = O(f::'a => ('b::linordered_field)) \<otimes> O(g)"
   apply (rule equalityI)
   apply (erule bigo_mult7)
   apply (rule bigo_mult)
@@ -481,16 +481,16 @@ lemma bigo_const2 [intro]: "O(%x. c) <= O(%x. 1)"
   apply (rule bigo_const1)
   done
 
-lemma bigo_const3: "(c::'a::ordered_field) ~= 0 ==> (%x. 1) : O(%x. c)"
+lemma bigo_const3: "(c::'a::linordered_field) ~= 0 ==> (%x. 1) : O(%x. c)"
   apply (simp add: bigo_def)
   apply (rule_tac x = "abs(inverse c)" in exI)
   apply (simp add: abs_mult [symmetric])
   done
 
-lemma bigo_const4: "(c::'a::ordered_field) ~= 0 ==> O(%x. 1) <= O(%x. c)"
+lemma bigo_const4: "(c::'a::linordered_field) ~= 0 ==> O(%x. 1) <= O(%x. c)"
   by (rule bigo_elt_subset, rule bigo_const3, assumption)
 
-lemma bigo_const [simp]: "(c::'a::ordered_field) ~= 0 ==> 
+lemma bigo_const [simp]: "(c::'a::linordered_field) ~= 0 ==> 
     O(%x. c) = O(%x. 1)"
   by (rule equalityI, rule bigo_const2, rule bigo_const4, assumption)
 
@@ -503,21 +503,21 @@ lemma bigo_const_mult1: "(%x. c * f x) : O(f)"
 lemma bigo_const_mult2: "O(%x. c * f x) <= O(f)"
   by (rule bigo_elt_subset, rule bigo_const_mult1)
 
-lemma bigo_const_mult3: "(c::'a::ordered_field) ~= 0 ==> f : O(%x. c * f x)"
+lemma bigo_const_mult3: "(c::'a::linordered_field) ~= 0 ==> f : O(%x. c * f x)"
   apply (simp add: bigo_def)
   apply (rule_tac x = "abs(inverse c)" in exI)
   apply (simp add: abs_mult [symmetric] mult_assoc [symmetric])
   done
 
-lemma bigo_const_mult4: "(c::'a::ordered_field) ~= 0 ==> 
+lemma bigo_const_mult4: "(c::'a::linordered_field) ~= 0 ==> 
     O(f) <= O(%x. c * f x)"
   by (rule bigo_elt_subset, rule bigo_const_mult3, assumption)
 
-lemma bigo_const_mult [simp]: "(c::'a::ordered_field) ~= 0 ==> 
+lemma bigo_const_mult [simp]: "(c::'a::linordered_field) ~= 0 ==> 
     O(%x. c * f x) = O(f)"
   by (rule equalityI, rule bigo_const_mult2, erule bigo_const_mult4)
 
-lemma bigo_const_mult5 [simp]: "(c::'a::ordered_field) ~= 0 ==> 
+lemma bigo_const_mult5 [simp]: "(c::'a::linordered_field) ~= 0 ==> 
     (%x. c) *o O(f) = O(f)"
   apply (auto del: subsetI)
   apply (rule order_trans)
@@ -688,7 +688,7 @@ lemma bigo_useful_add: "f =o O(h) ==> g =o O(h) ==> f + g =o O(h)"
   apply assumption+
   done
   
-lemma bigo_useful_const_mult: "(c::'a::ordered_field) ~= 0 ==> 
+lemma bigo_useful_const_mult: "(c::'a::linordered_field) ~= 0 ==> 
     (%x. c) * f =o O(h) ==> f =o O(h)"
   apply (rule subsetD)
   apply (subgoal_tac "(%x. 1 / c) *o O(h) <= O(h)")
@@ -733,7 +733,7 @@ lemma bigo_fix2:
 subsection {* Less than or equal to *}
 
 definition
-  lesso :: "('a => 'b::ordered_idom) => ('a => 'b) => ('a => 'b)"
+  lesso :: "('a => 'b::linordered_idom) => ('a => 'b) => ('a => 'b)"
     (infixl "<o" 70) where
   "f <o g = (%x. max (f x - g x) 0)"
 
@@ -833,7 +833,7 @@ lemma bigo_lesso3: "f =o g +o O(h) ==>
   apply (simp add: algebra_simps)
   done
 
-lemma bigo_lesso4: "f <o g =o O(k::'a=>'b::ordered_field) ==>
+lemma bigo_lesso4: "f <o g =o O(k::'a=>'b::linordered_field) ==>
     g =o h +o O(k) ==> f <o h =o O(k)"
   apply (unfold lesso_def)
   apply (drule set_plus_imp_minus)

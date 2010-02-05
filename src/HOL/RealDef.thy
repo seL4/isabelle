@@ -416,7 +416,7 @@ end
 
 subsection{*The Reals Form an Ordered Field*}
 
-instance real :: ordered_field
+instance real :: linordered_field
 proof
   fix x y z :: real
   show "x \<le> y ==> z + x \<le> z + y" by (rule real_add_left_mono)
@@ -426,7 +426,7 @@ proof
     by (simp only: real_sgn_def)
 qed
 
-instance real :: lordered_ab_group_add ..
+instance real :: lattice_ab_group_add ..
 
 text{*The function @{term real_of_preal} requires many proofs, but it seems
 to be essential for proving completeness of the reals from that of the
@@ -1046,7 +1046,7 @@ by simp
 lemma abs_sum_triangle_ineq: "abs ((x::real) + y + (-l + -m)) \<le> abs(x + -l) + abs(y + -m)"
 by simp
 
-instance real :: lordered_ring
+instance real :: lattice_ring
 proof
   fix a::real
   show "abs a = sup a (-a)"

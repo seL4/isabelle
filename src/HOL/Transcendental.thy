@@ -381,7 +381,7 @@ apply (simp add: mult_ac)
 done
 
 lemma real_setsum_nat_ivl_bounded2:
-  fixes K :: "'a::ordered_semidom"
+  fixes K :: "'a::linordered_semidom"
   assumes f: "\<And>p::nat. p < n \<Longrightarrow> f p \<le> K"
   assumes K: "0 \<le> K"
   shows "setsum f {0..<n-k} \<le> of_nat n * K"

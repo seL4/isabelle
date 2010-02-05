@@ -7,17 +7,17 @@ imports RComplete
 begin
 
 lemma minus_max_eq_min:
-  fixes x :: "'a::{lordered_ab_group_add, linorder}"
+  fixes x :: "'a::{lattice_ab_group_add, linorder}"
   shows "- (max x y) = min (-x) (-y)"
 by (metis le_imp_neg_le linorder_linear min_max.inf_absorb2 min_max.le_iff_inf min_max.le_iff_sup min_max.sup_absorb1)
 
 lemma minus_min_eq_max:
-  fixes x :: "'a::{lordered_ab_group_add, linorder}"
+  fixes x :: "'a::{lattice_ab_group_add, linorder}"
   shows "- (min x y) = max (-x) (-y)"
 by (metis minus_max_eq_min minus_minus)
 
 lemma minus_Max_eq_Min [simp]:
-  fixes S :: "'a::{lordered_ab_group_add, linorder} set"
+  fixes S :: "'a::{lattice_ab_group_add, linorder} set"
   shows "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> - (Max S) = Min (uminus ` S)"
 proof (induct S rule: finite_ne_induct)
   case (singleton x)
@@ -28,7 +28,7 @@ next
 qed
 
 lemma minus_Min_eq_Max [simp]:
-  fixes S :: "'a::{lordered_ab_group_add, linorder} set"
+  fixes S :: "'a::{lattice_ab_group_add, linorder} set"
   shows "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> - (Min S) = Max (uminus ` S)"
 proof (induct S rule: finite_ne_induct)
   case (singleton x)

@@ -144,7 +144,7 @@ code_datatype "number_of \<Colon> int \<Rightarrow> code_numeral"
 
 subsection {* Basic arithmetic *}
 
-instantiation code_numeral :: "{minus, ordered_semidom, semiring_div, linorder}"
+instantiation code_numeral :: "{minus, linordered_semidom, semiring_div, linorder}"
 begin
 
 definition [simp, code del]:

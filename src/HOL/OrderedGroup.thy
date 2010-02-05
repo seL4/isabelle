@@ -353,7 +353,7 @@ end
 
 subsection {* (Partially) Ordered Groups *} 
 
-class pordered_ab_semigroup_add = order + ab_semigroup_add +
+class ordered_ab_semigroup_add = order + ab_semigroup_add +
   assumes add_left_mono: "a \<le> b \<Longrightarrow> c + a \<le> c + b"
 begin
 
@@ -370,8 +370,8 @@ lemma add_mono:
 
 end
 
-class pordered_cancel_ab_semigroup_add =
-  pordered_ab_semigroup_add + cancel_ab_semigroup_add
+class ordered_cancel_ab_semigroup_add =
+  ordered_ab_semigroup_add + cancel_ab_semigroup_add
 begin
 
 lemma add_strict_left_mono:
@@ -403,8 +403,8 @@ done
 
 end
 
-class pordered_ab_semigroup_add_imp_le =
-  pordered_cancel_ab_semigroup_add +
+class ordered_ab_semigroup_add_imp_le =
+  ordered_cancel_ab_semigroup_add +
   assumes add_le_imp_le_left: "c + a \<le> c + b \<Longrightarrow> a \<le> b"
 begin
 
@@ -464,8 +464,8 @@ end
 
 subsection {* Support for reasoning about signs *}
 
-class pordered_comm_monoid_add =
-  pordered_cancel_ab_semigroup_add + comm_monoid_add
+class ordered_comm_monoid_add =
+  ordered_cancel_ab_semigroup_add + comm_monoid_add
 begin
 
 lemma add_pos_nonneg:
@@ -550,13 +550,13 @@ qed
 
 end
 
-class pordered_ab_group_add =
-  ab_group_add + pordered_ab_semigroup_add
+class ordered_ab_group_add =
+  ab_group_add + ordered_ab_semigroup_add
 begin
 
-subclass pordered_cancel_ab_semigroup_add ..
+subclass ordered_cancel_ab_semigroup_add ..
 
-subclass pordered_ab_semigroup_add_imp_le
+subclass ordered_ab_semigroup_add_imp_le
 proof
   fix a b c :: 'a
   assume "c + a \<le> c + b"
@@ -565,7 +565,7 @@ proof
   thus "a \<le> b" by simp
 qed
 
-subclass pordered_comm_monoid_add ..
+subclass ordered_comm_monoid_add ..
 
 lemma max_diff_distrib_left:
   shows "max x y - z = max (x - z) (y - z)"
@@ -675,16 +675,16 @@ end
 text{*Legacy - use @{text algebra_simps} *}
 lemmas group_simps[noatp] = algebra_simps
 
-class ordered_ab_semigroup_add =
-  linorder + pordered_ab_semigroup_add
+class linordered_ab_semigroup_add =
+  linorder + ordered_ab_semigroup_add
 
-class ordered_cancel_ab_semigroup_add =
-  linorder + pordered_cancel_ab_semigroup_add
+class linordered_cancel_ab_semigroup_add =
+  linorder + ordered_cancel_ab_semigroup_add
 begin
 
-subclass ordered_ab_semigroup_add ..
+subclass linordered_ab_semigroup_add ..
 
-subclass pordered_ab_semigroup_add_imp_le
+subclass ordered_ab_semigroup_add_imp_le
 proof
   fix a b c :: 'a
   assume le: "c + a <= c + b"  
@@ -705,11 +705,10 @@ qed
 
 end
 
-class ordered_ab_group_add =
-  linorder + pordered_ab_group_add
+class linordered_ab_group_add = linorder + ordered_ab_group_add
 begin
 
-subclass ordered_cancel_ab_semigroup_add ..
+subclass linordered_cancel_ab_semigroup_add ..
 
 lemma neg_less_eq_nonneg:
   "- a \<le> a \<longleftrightarrow> 0 \<le> a"
@@ -775,27 +774,27 @@ end
 -- {* FIXME localize the following *}
 
 lemma add_increasing:
-  fixes c :: "'a::{pordered_ab_semigroup_add_imp_le, comm_monoid_add}"
+  fixes c :: "'a::{ordered_ab_semigroup_add_imp_le, comm_monoid_add}"
   shows  "[|0\<le>a; b\<le>c|] ==> b \<le> a + c"
 by (insert add_mono [of 0 a b c], simp)
 
 lemma add_increasing2:
-  fixes c :: "'a::{pordered_ab_semigroup_add_imp_le, comm_monoid_add}"
+  fixes c :: "'a::{ordered_ab_semigroup_add_imp_le, comm_monoid_add}"
   shows  "[|0\<le>c; b\<le>a|] ==> b \<le> a + c"
 by (simp add:add_increasing add_commute[of a])
 
 lemma add_strict_increasing:
-  fixes c :: "'a::{pordered_ab_semigroup_add_imp_le, comm_monoid_add}"
+  fixes c :: "'a::{ordered_ab_semigroup_add_imp_le, comm_monoid_add}"
   shows "[|0<a; b\<le>c|] ==> b < a + c"
 by (insert add_less_le_mono [of 0 a b c], simp)
 
 lemma add_strict_increasing2:
-  fixes c :: "'a::{pordered_ab_semigroup_add_imp_le, comm_monoid_add}"
+  fixes c :: "'a::{ordered_ab_semigroup_add_imp_le, comm_monoid_add}"
   shows "[|0\<le>a; b<c|] ==> b < a + c"
 by (insert add_le_less_mono [of 0 a b c], simp)
 
 
-class pordered_ab_group_add_abs = pordered_ab_group_add + abs +
+class ordered_ab_group_add_abs = ordered_ab_group_add + abs +
   assumes abs_ge_zero [simp]: "\<bar>a\<bar> \<ge> 0"
     and abs_ge_self: "a \<le> \<bar>a\<bar>"
     and abs_leI: "a \<le> b \<Longrightarrow> - a \<le> b \<Longrightarrow> \<bar>a\<bar> \<le> b"
@@ -945,7 +944,7 @@ end
 
 subsection {* Lattice Ordered (Abelian) Groups *}
 
-class lordered_ab_group_add_meet = pordered_ab_group_add + lower_semilattice
+class semilattice_inf_ab_group_add = ordered_ab_group_add + semilattice_inf
 begin
 
 lemma add_inf_distrib_left:
@@ -967,7 +966,7 @@ qed
 
 end
 
-class lordered_ab_group_add_join = pordered_ab_group_add + upper_semilattice
+class semilattice_sup_ab_group_add = ordered_ab_group_add + semilattice_sup
 begin
 
 lemma add_sup_distrib_left:
@@ -990,11 +989,11 @@ qed
 
 end
 
-class lordered_ab_group_add = pordered_ab_group_add + lattice
+class lattice_ab_group_add = ordered_ab_group_add + lattice
 begin
 
-subclass lordered_ab_group_add_meet ..
-subclass lordered_ab_group_add_join ..
+subclass semilattice_inf_ab_group_add ..
+subclass semilattice_sup_ab_group_add ..
 
 lemmas add_sup_inf_distribs = add_inf_distrib_right add_inf_distrib_left add_sup_distrib_right add_sup_distrib_left
 
@@ -1244,7 +1243,7 @@ end
 lemmas add_sup_inf_distribs = add_inf_distrib_right add_inf_distrib_left add_sup_distrib_right add_sup_distrib_left
 
 
-class lordered_ab_group_add_abs = lordered_ab_group_add + abs +
+class lattice_ab_group_add_abs = lattice_ab_group_add + abs +
   assumes abs_lattice: "\<bar>a\<bar> = sup a (- a)"
 begin
 
@@ -1262,7 +1261,7 @@ proof -
       pprt_def nprt_def diff_minus abs_lattice)
 qed
 
-subclass pordered_ab_group_add_abs
+subclass ordered_ab_group_add_abs
 proof
   have abs_ge_zero [simp]: "\<And>a. 0 \<le> \<bar>a\<bar>"
   proof -
@@ -1297,7 +1296,7 @@ qed
 end
 
 lemma sup_eq_if:
-  fixes a :: "'a\<Colon>{lordered_ab_group_add, linorder}"
+  fixes a :: "'a\<Colon>{lattice_ab_group_add, linorder}"
   shows "sup a (- a) = (if a < 0 then - a else a)"
 proof -
   note add_le_cancel_right [of a a "- a", symmetric, simplified]
@@ -1306,7 +1305,7 @@ proof -
 qed
 
 lemma abs_if_lattice:
-  fixes a :: "'a\<Colon>{lordered_ab_group_add_abs, linorder}"
+  fixes a :: "'a\<Colon>{lattice_ab_group_add_abs, linorder}"
   shows "\<bar>a\<bar> = (if a < 0 then - a else a)"
 by auto
 
@@ -1324,10 +1323,10 @@ apply (subst add_cancel_21[of _ _ _ 0, simplified])
 apply (simp add: add_right_cancel[symmetric, of "x" "-z" "z", simplified])
 done
 
-lemma less_eqI: "(x::'a::pordered_ab_group_add) - y = x' - y' \<Longrightarrow> (x < y) = (x' < y')"
+lemma less_eqI: "(x::'a::ordered_ab_group_add) - y = x' - y' \<Longrightarrow> (x < y) = (x' < y')"
 by (simp add: less_iff_diff_less_0[of x y] less_iff_diff_less_0[of x' y'])
 
-lemma le_eqI: "(x::'a::pordered_ab_group_add) - y = x' - y' \<Longrightarrow> (y <= x) = (y' <= x')"
+lemma le_eqI: "(x::'a::ordered_ab_group_add) - y = x' - y' \<Longrightarrow> (y <= x) = (y' <= x')"
 apply (simp add: le_iff_diff_le_0[of y x] le_iff_diff_le_0[of  y' x'])
 apply (simp add: neg_le_iff_le[symmetric, of "y-x" 0] neg_le_iff_le[symmetric, of "y'-x'" 0])
 done
@@ -1340,7 +1339,7 @@ by (simp add: diff_minus)
 
 lemma le_add_right_mono: 
   assumes 
-  "a <= b + (c::'a::pordered_ab_group_add)"
+  "a <= b + (c::'a::ordered_ab_group_add)"
   "c <= d"    
   shows "a <= b + d"
   apply (rule_tac order_trans[where y = "b+c"])
@@ -1348,7 +1347,7 @@ lemma le_add_right_mono:
   done
 
 lemma estimate_by_abs:
-  "a + b <= (c::'a::lordered_ab_group_add_abs) \<Longrightarrow> a <= c + abs b" 
+  "a + b <= (c::'a::lattice_ab_group_add_abs) \<Longrightarrow> a <= c + abs b" 
 proof -
   assume "a+b <= c"
   hence 2: "a <= c+(-b)" by (simp add: algebra_simps)
@@ -1358,16 +1357,16 @@ qed
 
 subsection {* Tools setup *}
 
-lemma add_mono_thms_ordered_semiring [noatp]:
-  fixes i j k :: "'a\<Colon>pordered_ab_semigroup_add"
+lemma add_mono_thms_linordered_semiring [noatp]:
+  fixes i j k :: "'a\<Colon>ordered_ab_semigroup_add"
   shows "i \<le> j \<and> k \<le> l \<Longrightarrow> i + k \<le> j + l"
     and "i = j \<and> k \<le> l \<Longrightarrow> i + k \<le> j + l"
     and "i \<le> j \<and> k = l \<Longrightarrow> i + k \<le> j + l"
     and "i = j \<and> k = l \<Longrightarrow> i + k = j + l"
 by (rule add_mono, clarify+)+
 
-lemma add_mono_thms_ordered_field [noatp]:
-  fixes i j k :: "'a\<Colon>pordered_cancel_ab_semigroup_add"
+lemma add_mono_thms_linordered_field [noatp]:
+  fixes i j k :: "'a\<Colon>ordered_cancel_ab_semigroup_add"
   shows "i < j \<and> k = l \<Longrightarrow> i + k < j + l"
     and "i = j \<and> k < l \<Longrightarrow> i + k < j + l"
     and "i < j \<and> k \<le> l \<Longrightarrow> i + k < j + l"

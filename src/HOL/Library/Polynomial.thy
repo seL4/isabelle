@@ -706,7 +706,7 @@ lemma dvd_imp_degree_le:
 subsection {* Polynomials form an ordered integral domain *}
 
 definition
-  pos_poly :: "'a::ordered_idom poly \<Rightarrow> bool"
+  pos_poly :: "'a::linordered_idom poly \<Rightarrow> bool"
 where
   "pos_poly p \<longleftrightarrow> 0 < coeff p (degree p)"
 
@@ -732,7 +732,7 @@ lemma pos_poly_mult: "\<lbrakk>pos_poly p; pos_poly q\<rbrakk> \<Longrightarrow>
 lemma pos_poly_total: "p = 0 \<or> pos_poly p \<or> pos_poly (- p)"
 by (induct p) (auto simp add: pos_poly_pCons)
 
-instantiation poly :: (ordered_idom) ordered_idom
+instantiation poly :: (linordered_idom) linordered_idom
 begin
 
 definition

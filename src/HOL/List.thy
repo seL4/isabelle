@@ -2500,12 +2500,12 @@ lemma listsum_mult_const:
 by (induct xs, simp_all add: algebra_simps)
 
 lemma listsum_abs:
-  fixes xs :: "'a::pordered_ab_group_add_abs list"
+  fixes xs :: "'a::ordered_ab_group_add_abs list"
   shows "\<bar>listsum xs\<bar> \<le> listsum (map abs xs)"
 by (induct xs, simp, simp add: order_trans [OF abs_triangle_ineq])
 
 lemma listsum_mono:
-  fixes f g :: "'a \<Rightarrow> 'b::{comm_monoid_add, pordered_ab_semigroup_add}"
+  fixes f g :: "'a \<Rightarrow> 'b::{comm_monoid_add, ordered_ab_semigroup_add}"
   shows "(\<And>x. x \<in> set xs \<Longrightarrow> f x \<le> g x) \<Longrightarrow> (\<Sum>x\<leftarrow>xs. f x) \<le> (\<Sum>x\<leftarrow>xs. g x)"
 by (induct xs, simp, simp add: add_mono)
 

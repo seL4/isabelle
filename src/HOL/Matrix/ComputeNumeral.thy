@@ -109,22 +109,22 @@ where
 
 lemmas compute_natarith = bitarith natnorm natsuc natadd natsub natmul nateq natless natle natfac.simps
 
-lemma number_eq: "(((number_of x)::'a::{number_ring, ordered_idom}) = (number_of y)) = (x = y)"
+lemma number_eq: "(((number_of x)::'a::{number_ring, linordered_idom}) = (number_of y)) = (x = y)"
   unfolding number_of_eq
   apply simp
   done
 
-lemma number_le: "(((number_of x)::'a::{number_ring, ordered_idom}) \<le>  (number_of y)) = (x \<le> y)"
+lemma number_le: "(((number_of x)::'a::{number_ring, linordered_idom}) \<le>  (number_of y)) = (x \<le> y)"
   unfolding number_of_eq
   apply simp
   done
 
-lemma number_less: "(((number_of x)::'a::{number_ring, ordered_idom}) <  (number_of y)) = (x < y)"
+lemma number_less: "(((number_of x)::'a::{number_ring, linordered_idom}) <  (number_of y)) = (x < y)"
   unfolding number_of_eq 
   apply simp
   done
 
-lemma number_diff: "((number_of x)::'a::{number_ring, ordered_idom}) - number_of y = number_of (x + (- y))"
+lemma number_diff: "((number_of x)::'a::{number_ring, linordered_idom}) - number_of y = number_of (x + (- y))"
   apply (subst diff_number_of_eq)
   apply simp
   done

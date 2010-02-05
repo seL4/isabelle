@@ -224,13 +224,13 @@ definition of_frac :: "'a \<Rightarrow> 'b\<Colon>{inverse,ring_1}" where
    "Nitpick_Nut" so that they handle the unexpanded overloaded constants
    directly, but this is slightly more tricky to implement. *)
 lemmas [nitpick_def] = div_int_inst.div_int div_int_inst.mod_int
-    div_nat_inst.div_nat div_nat_inst.mod_nat lower_semilattice_fun_inst.inf_fun
+    div_nat_inst.div_nat div_nat_inst.mod_nat semilattice_inf_fun_inst.inf_fun
     minus_fun_inst.minus_fun minus_int_inst.minus_int minus_nat_inst.minus_nat
     one_int_inst.one_int one_nat_inst.one_nat ord_fun_inst.less_eq_fun
     ord_int_inst.less_eq_int ord_int_inst.less_int ord_nat_inst.less_eq_nat
     ord_nat_inst.less_nat plus_int_inst.plus_int plus_nat_inst.plus_nat
     times_int_inst.times_int times_nat_inst.times_nat uminus_int_inst.uminus_int
-    upper_semilattice_fun_inst.sup_fun zero_int_inst.zero_int
+    semilattice_sup_fun_inst.sup_fun zero_int_inst.zero_int
     zero_nat_inst.zero_nat
 
 use "Tools/Nitpick/kodkod.ML"

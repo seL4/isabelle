@@ -447,7 +447,7 @@ lemma fmsize_pos: "fmsize p > 0"
 by (induct p rule: fmsize.induct) simp_all
 
   (* Semantics of formulae (fm) *)
-consts Ifm ::"'a::{division_by_zero,ordered_field} list \<Rightarrow> 'a list \<Rightarrow> fm \<Rightarrow> bool"
+consts Ifm ::"'a::{division_by_zero,linordered_field} list \<Rightarrow> 'a list \<Rightarrow> fm \<Rightarrow> bool"
 primrec
   "Ifm vs bs T = True"
   "Ifm vs bs F = False"
@@ -1833,16 +1833,16 @@ next
   ultimately show ?case by blast
 qed (auto simp add: nth_pos2 tmbound0_I[where vs=vs and bs="bs" and b="y" and b'="x"] bound0_I[where vs=vs and bs="bs" and b="y" and b'="x"])
 
-lemma one_plus_one_pos[simp]: "(1::'a::{ordered_field}) + 1 > 0"
+lemma one_plus_one_pos[simp]: "(1::'a::{linordered_field}) + 1 > 0"
 proof-
   have op: "(1::'a) > 0" by simp
   from add_pos_pos[OF op op] show ?thesis . 
 qed
 
-lemma one_plus_one_nonzero[simp]: "(1::'a::{ordered_field}) + 1 \<noteq> 0" 
+lemma one_plus_one_nonzero[simp]: "(1::'a::{linordered_field}) + 1 \<noteq> 0" 
   using one_plus_one_pos[where ?'a = 'a] by (simp add: less_le) 
 
-lemma half_sum_eq: "(u + u) / (1+1) = (u::'a::{ordered_field})" 
+lemma half_sum_eq: "(u + u) / (1+1) = (u::'a::{linordered_field})" 
 proof-
   have "(u + u) = (1 + 1) * u" by (simp add: ring_simps)
   hence "(u + u) / (1+1) = (1 + 1)*u / (1 + 1)" by simp
@@ -3172,54 +3172,54 @@ end
 *} "Parametric QE for linear Arithmetic over fields, Version 2"
 
 
-lemma "\<exists>(x::'a::{division_by_zero,ordered_field,number_ring}). y \<noteq> -1 \<longrightarrow> (y + 1)*x < 0"
-  apply (frpar type: "'a::{division_by_zero,ordered_field,number_ring}" pars: "y::'a::{division_by_zero,ordered_field,number_ring}")
+lemma "\<exists>(x::'a::{division_by_zero,linordered_field,number_ring}). y \<noteq> -1 \<longrightarrow> (y + 1)*x < 0"
+  apply (frpar type: "'a::{division_by_zero,linordered_field,number_ring}" pars: "y::'a::{division_by_zero,linordered_field,number_ring}")
   apply (simp add: ring_simps)
   apply (rule spec[where x=y])
-  apply (frpar type: "'a::{division_by_zero,ordered_field,number_ring}" pars: "z::'a::{division_by_zero,ordered_field,number_ring}")
+  apply (frpar type: "'a::{division_by_zero,linordered_field,number_ring}" pars: "z::'a::{division_by_zero,linordered_field,number_ring}")
   by simp
 
 text{* Collins/Jones Problem *}
 (*
-lemma "\<exists>(r::'a::{division_by_zero,ordered_field,number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0"
+lemma "\<exists>(r::'a::{division_by_zero,linordered_field,number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0"
 proof-
-  have "(\<exists>(r::'a::{division_by_zero,ordered_field,number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0) \<longleftrightarrow> (\<exists>(r::'a::{division_by_zero,ordered_field,number_ring}). 0 < r \<and> r < 1 \<and> 0 < 2 *(a^2 + b^2) - (3*(a^2 + b^2)) * r + (2*a)*r \<and> 2*(a^2 + b^2) - (3*(a^2 + b^2) - 4*a + 1)*r - 2*a < 0)" (is "?lhs \<longleftrightarrow> ?rhs")
+  have "(\<exists>(r::'a::{division_by_zero,linordered_field,number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0) \<longleftrightarrow> (\<exists>(r::'a::{division_by_zero,linordered_field,number_ring}). 0 < r \<and> r < 1 \<and> 0 < 2 *(a^2 + b^2) - (3*(a^2 + b^2)) * r + (2*a)*r \<and> 2*(a^2 + b^2) - (3*(a^2 + b^2) - 4*a + 1)*r - 2*a < 0)" (is "?lhs \<longleftrightarrow> ?rhs")
 by (simp add: ring_simps)
 have "?rhs"
 
-  apply (frpar type: "'a::{division_by_zero,ordered_field,number_ring}" pars: "a::'a::{division_by_zero,ordered_field,number_ring}" "b::'a::{division_by_zero,ordered_field,number_ring}")
+  apply (frpar type: "'a::{division_by_zero,linordered_field,number_ring}" pars: "a::'a::{division_by_zero,linordered_field,number_ring}" "b::'a::{division_by_zero,linordered_field,number_ring}")
   apply (simp add: ring_simps)
 oops
 *)
 (*
-lemma "ALL (x::'a::{division_by_zero,ordered_field,number_ring}) y. (1 - t)*x \<le> (1+t)*y \<and> (1 - t)*y \<le> (1+t)*x --> 0 \<le> y"
-apply (frpar type: "'a::{division_by_zero,ordered_field,number_ring}" pars: "t::'a::{division_by_zero,ordered_field,number_ring}")
+lemma "ALL (x::'a::{division_by_zero,linordered_field,number_ring}) y. (1 - t)*x \<le> (1+t)*y \<and> (1 - t)*y \<le> (1+t)*x --> 0 \<le> y"
+apply (frpar type: "'a::{division_by_zero,linordered_field,number_ring}" pars: "t::'a::{division_by_zero,linordered_field,number_ring}")
 oops
 *)
 
-lemma "\<exists>(x::'a::{division_by_zero,ordered_field,number_ring}). y \<noteq> -1 \<longrightarrow> (y + 1)*x < 0"
-  apply (frpar2 type: "'a::{division_by_zero,ordered_field,number_ring}" pars: "y::'a::{division_by_zero,ordered_field,number_ring}")
+lemma "\<exists>(x::'a::{division_by_zero,linordered_field,number_ring}). y \<noteq> -1 \<longrightarrow> (y + 1)*x < 0"
+  apply (frpar2 type: "'a::{division_by_zero,linordered_field,number_ring}" pars: "y::'a::{division_by_zero,linordered_field,number_ring}")
   apply (simp add: ring_simps)
   apply (rule spec[where x=y])
-  apply (frpar2 type: "'a::{division_by_zero,ordered_field,number_ring}" pars: "z::'a::{division_by_zero,ordered_field,number_ring}")
+  apply (frpar2 type: "'a::{division_by_zero,linordered_field,number_ring}" pars: "z::'a::{division_by_zero,linordered_field,number_ring}")
   by simp
 
 text{* Collins/Jones Problem *}
 
 (*
-lemma "\<exists>(r::'a::{division_by_zero,ordered_field,number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0"
+lemma "\<exists>(r::'a::{division_by_zero,linordered_field,number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0"
 proof-
-  have "(\<exists>(r::'a::{division_by_zero,ordered_field,number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0) \<longleftrightarrow> (\<exists>(r::'a::{division_by_zero,ordered_field,number_ring}). 0 < r \<and> r < 1 \<and> 0 < 2 *(a^2 + b^2) - (3*(a^2 + b^2)) * r + (2*a)*r \<and> 2*(a^2 + b^2) - (3*(a^2 + b^2) - 4*a + 1)*r - 2*a < 0)" (is "?lhs \<longleftrightarrow> ?rhs")
+  have "(\<exists>(r::'a::{division_by_zero,linordered_field,number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0) \<longleftrightarrow> (\<exists>(r::'a::{division_by_zero,linordered_field,number_ring}). 0 < r \<and> r < 1 \<and> 0 < 2 *(a^2 + b^2) - (3*(a^2 + b^2)) * r + (2*a)*r \<and> 2*(a^2 + b^2) - (3*(a^2 + b^2) - 4*a + 1)*r - 2*a < 0)" (is "?lhs \<longleftrightarrow> ?rhs")
 by (simp add: ring_simps)
 have "?rhs"
-  apply (frpar2 type: "'a::{division_by_zero,ordered_field,number_ring}" pars: "a::'a::{division_by_zero,ordered_field,number_ring}" "b::'a::{division_by_zero,ordered_field,number_ring}")
+  apply (frpar2 type: "'a::{division_by_zero,linordered_field,number_ring}" pars: "a::'a::{division_by_zero,linordered_field,number_ring}" "b::'a::{division_by_zero,linordered_field,number_ring}")
   apply simp
 oops
 *)
 
 (*
-lemma "ALL (x::'a::{division_by_zero,ordered_field,number_ring}) y. (1 - t)*x \<le> (1+t)*y \<and> (1 - t)*y \<le> (1+t)*x --> 0 \<le> y"
-apply (frpar2 type: "'a::{division_by_zero,ordered_field,number_ring}" pars: "t::'a::{division_by_zero,ordered_field,number_ring}")
+lemma "ALL (x::'a::{division_by_zero,linordered_field,number_ring}) y. (1 - t)*x \<le> (1+t)*y \<and> (1 - t)*y \<le> (1+t)*x --> 0 \<le> y"
+apply (frpar2 type: "'a::{division_by_zero,linordered_field,number_ring}" pars: "t::'a::{division_by_zero,linordered_field,number_ring}")
 apply (simp add: field_simps linorder_neq_iff[symmetric])
 apply ferrack
 oops

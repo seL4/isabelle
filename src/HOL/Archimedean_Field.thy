@@ -12,7 +12,7 @@ subsection {* Class of Archimedean fields *}
 
 text {* Archimedean fields have no infinite elements. *}
 
-class archimedean_field = ordered_field + number_ring +
+class archimedean_field = linordered_field + number_ring +
   assumes ex_le_of_int: "\<exists>z. x \<le> of_int z"
 
 lemma ex_less_of_int:

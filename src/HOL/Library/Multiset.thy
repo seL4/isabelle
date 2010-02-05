@@ -415,11 +415,11 @@ proof qed (auto intro: order.intro mset_le_refl mset_le_antisym
   mset_le_trans simp: mset_less_def)
 
 interpretation mset_order_cancel_semigroup:
-  pordered_cancel_ab_semigroup_add "op +" "op \<le>#" "op <#"
+  ordered_cancel_ab_semigroup_add "op +" "op \<le>#" "op <#"
 proof qed (erule mset_le_mono_add [OF mset_le_refl])
 
 interpretation mset_order_semigroup_cancel:
-  pordered_ab_semigroup_add_imp_le "op +" "op \<le>#" "op <#"
+  ordered_ab_semigroup_add_imp_le "op +" "op \<le>#" "op <#"
 proof qed simp
 
 lemma mset_lessD: "A \<subset># B \<Longrightarrow> x \<in># A \<Longrightarrow> x \<in># B"
@@ -1348,7 +1348,7 @@ qed
 lemma union_upper2: "B <= A + (B::'a::order multiset)"
 by (subst add_commute) (rule union_upper1)
 
-instance multiset :: (order) pordered_ab_semigroup_add
+instance multiset :: (order) ordered_ab_semigroup_add
 apply intro_classes
 apply (erule union_le_mono[OF mult_le_refl])
 done

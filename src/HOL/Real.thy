@@ -3,7 +3,7 @@ imports RComplete RealVector
 begin
 
 lemma field_le_epsilon:
-  fixes x y :: "'a:: {number_ring,division_by_zero,ordered_field}"
+  fixes x y :: "'a:: {number_ring,division_by_zero,linordered_field}"
   assumes e: "(!!e. 0 < e ==> x \<le> y + e)"
   shows "x \<le> y"
 proof (rule ccontr)

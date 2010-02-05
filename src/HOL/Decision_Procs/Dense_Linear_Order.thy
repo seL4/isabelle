@@ -208,7 +208,7 @@ end
 
 section {* The classical QE after Langford for dense linear orders *}
 
-context dense_linear_order
+context dense_linorder
 begin
 
 lemma interval_empty_iff:
@@ -265,7 +265,7 @@ lemma exists_neq[noatp]: "\<exists>(x::'a). x \<noteq> t" "\<exists>(x::'a). t \
 lemmas dlo_simps[noatp] = order_refl less_irrefl not_less not_le exists_neq 
   le_less neq_iff linear less_not_permute
 
-lemma axiom[noatp]: "dense_linear_order (op \<le>) (op <)" by (rule dense_linear_order_axioms)
+lemma axiom[noatp]: "dense_linorder (op \<le>) (op <)" by (rule dense_linorder_axioms)
 lemma atoms[noatp]:
   shows "TERM (less :: 'a \<Rightarrow> _)"
     and "TERM (less_eq :: 'a \<Rightarrow> _)"
@@ -409,17 +409,17 @@ qed
 end
 
 
-locale constr_dense_linear_order = linorder_no_lb + linorder_no_ub +
+locale constr_dense_linorder = linorder_no_lb + linorder_no_ub +
   fixes between
   assumes between_less: "less x y \<Longrightarrow> less x (between x y) \<and> less (between x y) y"
      and  between_same: "between x x = x"
 
-sublocale  constr_dense_linear_order < dense_linear_order 
+sublocale  constr_dense_linorder < dense_linorder 
   apply unfold_locales
   using gt_ex lt_ex between_less
     by (auto, rule_tac x="between x y" in exI, simp)
 
-context  constr_dense_linear_order
+context  constr_dense_linorder
 begin
 
 lemma rinf_U[noatp]:
@@ -500,8 +500,8 @@ lemmas nmi_thms[noatp] = nmi_conj nmi_disj nmi_eq nmi_neq nmi_lt nmi_le nmi_gt n
 lemmas npi_thms[noatp] = npi_conj npi_disj npi_eq npi_neq npi_lt npi_le npi_gt npi_ge npi_P
 lemmas lin_dense_thms[noatp] = lin_dense_conj lin_dense_disj lin_dense_eq lin_dense_neq lin_dense_lt lin_dense_le lin_dense_gt lin_dense_ge lin_dense_P
 
-lemma ferrack_axiom[noatp]: "constr_dense_linear_order less_eq less between"
-  by (rule constr_dense_linear_order_axioms)
+lemma ferrack_axiom[noatp]: "constr_dense_linorder less_eq less between"
+  by (rule constr_dense_linorder_axioms)
 lemma atoms[noatp]:
   shows "TERM (less :: 'a \<Rightarrow> _)"
     and "TERM (less_eq :: 'a \<Rightarrow> _)"
@@ -551,7 +551,7 @@ method_setup ferrack = {*
 
 subsection {* Ferrante and Rackoff algorithm over ordered fields *}
 
-lemma neg_prod_lt:"(c\<Colon>'a\<Colon>ordered_field) < 0 \<Longrightarrow> ((c*x < 0) == (x > 0))"
+lemma neg_prod_lt:"(c\<Colon>'a\<Colon>linordered_field) < 0 \<Longrightarrow> ((c*x < 0) == (x > 0))"
 proof-
   assume H: "c < 0"
   have "c*x < 0 = (0/c < x)" by (simp only: neg_divide_less_eq[OF H] algebra_simps)
@@ -559,7 +559,7 @@ proof-
   finally show  "(c*x < 0) == (x > 0)" by simp
 qed
 
-lemma pos_prod_lt:"(c\<Colon>'a\<Colon>ordered_field) > 0 \<Longrightarrow> ((c*x < 0) == (x < 0))"
+lemma pos_prod_lt:"(c\<Colon>'a\<Colon>linordered_field) > 0 \<Longrightarrow> ((c*x < 0) == (x < 0))"
 proof-
   assume H: "c > 0"
   hence "c*x < 0 = (0/c > x)" by (simp only: pos_less_divide_eq[OF H] algebra_simps)
@@ -567,7 +567,7 @@ proof-
   finally show  "(c*x < 0) == (x < 0)" by simp
 qed
 
-lemma neg_prod_sum_lt: "(c\<Colon>'a\<Colon>ordered_field) < 0 \<Longrightarrow> ((c*x + t< 0) == (x > (- 1/c)*t))"
+lemma neg_prod_sum_lt: "(c\<Colon>'a\<Colon>linordered_field) < 0 \<Longrightarrow> ((c*x + t< 0) == (x > (- 1/c)*t))"
 proof-
   assume H: "c < 0"
   have "c*x + t< 0 = (c*x < -t)" by (subst less_iff_diff_less_0 [of "c*x" "-t"], simp)
@@ -576,7 +576,7 @@ proof-
   finally show  "(c*x + t < 0) == (x > (- 1/c)*t)" by simp
 qed
 
-lemma pos_prod_sum_lt:"(c\<Colon>'a\<Colon>ordered_field) > 0 \<Longrightarrow> ((c*x + t < 0) == (x < (- 1/c)*t))"
+lemma pos_prod_sum_lt:"(c\<Colon>'a\<Colon>linordered_field) > 0 \<Longrightarrow> ((c*x + t < 0) == (x < (- 1/c)*t))"
 proof-
   assume H: "c > 0"
   have "c*x + t< 0 = (c*x < -t)"  by (subst less_iff_diff_less_0 [of "c*x" "-t"], simp)
@@ -585,10 +585,10 @@ proof-
   finally show  "(c*x + t < 0) == (x < (- 1/c)*t)" by simp
 qed
 
-lemma sum_lt:"((x::'a::pordered_ab_group_add) + t < 0) == (x < - t)"
+lemma sum_lt:"((x::'a::ordered_ab_group_add) + t < 0) == (x < - t)"
   using less_diff_eq[where a= x and b=t and c=0] by simp
 
-lemma neg_prod_le:"(c\<Colon>'a\<Colon>ordered_field) < 0 \<Longrightarrow> ((c*x <= 0) == (x >= 0))"
+lemma neg_prod_le:"(c\<Colon>'a\<Colon>linordered_field) < 0 \<Longrightarrow> ((c*x <= 0) == (x >= 0))"
 proof-
   assume H: "c < 0"
   have "c*x <= 0 = (0/c <= x)" by (simp only: neg_divide_le_eq[OF H] algebra_simps)
@@ -596,7 +596,7 @@ proof-
   finally show  "(c*x <= 0) == (x >= 0)" by simp
 qed
 
-lemma pos_prod_le:"(c\<Colon>'a\<Colon>ordered_field) > 0 \<Longrightarrow> ((c*x <= 0) == (x <= 0))"
+lemma pos_prod_le:"(c\<Colon>'a\<Colon>linordered_field) > 0 \<Longrightarrow> ((c*x <= 0) == (x <= 0))"
 proof-
   assume H: "c > 0"
   hence "c*x <= 0 = (0/c >= x)" by (simp only: pos_le_divide_eq[OF H] algebra_simps)
@@ -604,7 +604,7 @@ proof-
   finally show  "(c*x <= 0) == (x <= 0)" by simp
 qed
 
-lemma neg_prod_sum_le: "(c\<Colon>'a\<Colon>ordered_field) < 0 \<Longrightarrow> ((c*x + t <= 0) == (x >= (- 1/c)*t))"
+lemma neg_prod_sum_le: "(c\<Colon>'a\<Colon>linordered_field) < 0 \<Longrightarrow> ((c*x + t <= 0) == (x >= (- 1/c)*t))"
 proof-
   assume H: "c < 0"
   have "c*x + t <= 0 = (c*x <= -t)"  by (subst le_iff_diff_le_0 [of "c*x" "-t"], simp)
@@ -613,7 +613,7 @@ proof-
   finally show  "(c*x + t <= 0) == (x >= (- 1/c)*t)" by simp
 qed
 
-lemma pos_prod_sum_le:"(c\<Colon>'a\<Colon>ordered_field) > 0 \<Longrightarrow> ((c*x + t <= 0) == (x <= (- 1/c)*t))"
+lemma pos_prod_sum_le:"(c\<Colon>'a\<Colon>linordered_field) > 0 \<Longrightarrow> ((c*x + t <= 0) == (x <= (- 1/c)*t))"
 proof-
   assume H: "c > 0"
   have "c*x + t <= 0 = (c*x <= -t)" by (subst le_iff_diff_le_0 [of "c*x" "-t"], simp)
@@ -622,24 +622,24 @@ proof-
   finally show  "(c*x + t <= 0) == (x <= (- 1/c)*t)" by simp
 qed
 
-lemma sum_le:"((x::'a::pordered_ab_group_add) + t <= 0) == (x <= - t)"
+lemma sum_le:"((x::'a::ordered_ab_group_add) + t <= 0) == (x <= - t)"
   using le_diff_eq[where a= x and b=t and c=0] by simp
 
-lemma nz_prod_eq:"(c\<Colon>'a\<Colon>ordered_field) \<noteq> 0 \<Longrightarrow> ((c*x = 0) == (x = 0))" by simp
-lemma nz_prod_sum_eq: "(c\<Colon>'a\<Colon>ordered_field) \<noteq> 0 \<Longrightarrow> ((c*x + t = 0) == (x = (- 1/c)*t))"
+lemma nz_prod_eq:"(c\<Colon>'a\<Colon>linordered_field) \<noteq> 0 \<Longrightarrow> ((c*x = 0) == (x = 0))" by simp
+lemma nz_prod_sum_eq: "(c\<Colon>'a\<Colon>linordered_field) \<noteq> 0 \<Longrightarrow> ((c*x + t = 0) == (x = (- 1/c)*t))"
 proof-
   assume H: "c \<noteq> 0"
   have "c*x + t = 0 = (c*x = -t)" by (subst eq_iff_diff_eq_0 [of "c*x" "-t"], simp)
   also have "\<dots> = (x = -t/c)" by (simp only: nonzero_eq_divide_eq[OF H] algebra_simps)
   finally show  "(c*x + t = 0) == (x = (- 1/c)*t)" by simp
 qed
-lemma sum_eq:"((x::'a::pordered_ab_group_add) + t = 0) == (x = - t)"
+lemma sum_eq:"((x::'a::ordered_ab_group_add) + t = 0) == (x = - t)"
   using eq_diff_eq[where a= x and b=t and c=0] by simp
 
 
-interpretation class_ordered_field_dense_linear_order: constr_dense_linear_order
+interpretation class_dense_linlinordered_field: constr_dense_linorder
  "op <=" "op <"
-   "\<lambda> x y. 1/2 * ((x::'a::{ordered_field,number_ring}) + y)"
+   "\<lambda> x y. 1/2 * ((x::'a::{linordered_field,number_ring}) + y)"
 proof (unfold_locales, dlo, dlo, auto)
   fix x y::'a assume lt: "x < y"
   from  less_half_sum[OF lt] show "x < (x + y) /2" by simp
@@ -871,7 +871,7 @@ fun class_field_ss phi =
    addsplits [@{thm "abs_split"},@{thm "split_max"}, @{thm "split_min"}]
 
 in
-Ferrante_Rackoff_Data.funs @{thm "class_ordered_field_dense_linear_order.ferrack_axiom"}
+Ferrante_Rackoff_Data.funs @{thm "class_dense_linlinordered_field.ferrack_axiom"}
   {isolate_conv = field_isolate_conv, whatis = classfield_whatis, simpset = class_field_ss}
 end
 *}

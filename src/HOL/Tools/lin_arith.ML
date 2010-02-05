@@ -236,7 +236,7 @@ in
 end handle Rat.DIVZERO => NONE;
 
 fun of_lin_arith_sort thy U =
-  Sign.of_sort thy (U, @{sort Ring_and_Field.ordered_idom});
+  Sign.of_sort thy (U, @{sort Ring_and_Field.linordered_idom});
 
 fun allows_lin_arith thy (discrete : string list) (U as Type (D, [])) : bool * bool =
       if of_lin_arith_sort thy U then (true, member (op =) discrete D)
@@ -804,12 +804,12 @@ val warning_count = Fast_Arith.warning_count;
 
 val init_arith_data =
   Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, number_of, ...} =>
-   {add_mono_thms = @{thms add_mono_thms_ordered_semiring} @ @{thms add_mono_thms_ordered_field} @ add_mono_thms,
+   {add_mono_thms = @{thms add_mono_thms_linordered_semiring} @ @{thms add_mono_thms_linordered_field} @ add_mono_thms,
     mult_mono_thms = @{thm mult_strict_left_mono} :: @{thm mult_left_mono} ::
       @{lemma "a = b ==> c*a = c*b" by (rule arg_cong)} :: mult_mono_thms,
     inj_thms = inj_thms,
     lessD = lessD @ [@{thm "Suc_leI"}],
-    neqE = [@{thm linorder_neqE_nat}, @{thm linorder_neqE_ordered_idom}],
+    neqE = [@{thm linorder_neqE_nat}, @{thm linorder_neqE_linordered_idom}],
     simpset = HOL_basic_ss
       addsimps @{thms ring_distribs}
       addsimps [@{thm if_True}, @{thm if_False}]

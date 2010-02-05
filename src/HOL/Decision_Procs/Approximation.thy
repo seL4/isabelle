@@ -1431,7 +1431,7 @@ proof -
       moreover have "0 \<le> exp t / real (fact (get_even n)) * (real x) ^ (get_even n)"
         by (auto intro!: mult_nonneg_nonneg divide_nonneg_pos simp add: get_even zero_le_even_power exp_gt_zero)
       ultimately show ?thesis
-        using get_odd exp_gt_zero by (auto intro!: pordered_cancel_semiring_class.mult_nonneg_nonneg)
+        using get_odd exp_gt_zero by (auto intro!: mult_nonneg_nonneg)
     qed
     finally have "real (lb_exp_horner prec (get_even n) 1 1 x) \<le> exp (real x)" .
   } moreover
@@ -1451,7 +1451,7 @@ proof -
     moreover have "exp t / real (fact (get_odd n)) * (real x) ^ (get_odd n) \<le> 0"
       by (auto intro!: mult_nonneg_nonpos divide_nonpos_pos simp add: x_less_zero exp_gt_zero)
     ultimately have "exp (real x) \<le> (\<Sum>j = 0..<get_odd n. 1 / real (fact j) * real x ^ j)"
-      using get_odd exp_gt_zero by (auto intro!: pordered_cancel_semiring_class.mult_nonneg_nonneg)
+      using get_odd exp_gt_zero by (auto intro!: mult_nonneg_nonneg)
     also have "\<dots> \<le> real (ub_exp_horner prec (get_odd n) 1 1 x)"
       using bounds(2) by auto
     finally have "exp (real x) \<le> real (ub_exp_horner prec (get_odd n) 1 1 x)" .
