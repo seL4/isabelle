@@ -73,41 +73,47 @@ text {*
 
 subsection {* Theory context \label{sec:context-theory} *}
 
-text {*
-  A \emph{theory} is a data container with explicit name and unique
-  identifier.  Theories are related by a (nominal) sub-theory
+text {* A \emph{theory} is a data container with explicit name and
+  unique identifier.  Theories are related by a (nominal) sub-theory
   relation, which corresponds to the dependency graph of the original
   construction; each theory is derived from a certain sub-graph of
-  ancestor theories.
+  ancestor theories.  To this end, the system maintains a set of
+  symbolic ``identification stamps'' within each theory.
 
-  The @{text "merge"} operation produces the least upper bound of two
-  theories, which actually degenerates into absorption of one theory
-  into the other (due to the nominal sub-theory relation).
+  In order to avoid the full-scale overhead of explicit sub-theory
+  identification of arbitrary intermediate stages, a theory is
+  switched into @{text "draft"} mode under certain circumstances.  A
+  draft theory acts like a linear type, where updates invalidate
+  earlier versions.  An invalidated draft is called \emph{stale}.
 
-  The @{text "begin"} operation starts a new theory by importing
-  several parent theories and entering a special @{text "draft"} mode,
-  which is sustained until the final @{text "end"} operation.  A draft
-  theory acts like a linear type, where updates invalidate earlier
-  versions.  An invalidated draft is called ``stale''.
-
-  The @{text "checkpoint"} operation produces an intermediate stepping
-  stone that will survive the next update: both the original and the
-  changed theory remain valid and are related by the sub-theory
-  relation.  Checkpointing essentially recovers purely functional
-  theory values, at the expense of some extra internal bookkeeping.
+  The @{text "checkpoint"} operation produces a safe stepping stone
+  that will survive the next update without becoming stale: both the
+  old and the new theory remain valid and are related by the
+  sub-theory relation.  Checkpointing essentially recovers purely
+  functional theory values, at the expense of some extra internal
+  bookkeeping.
 
   The @{text "copy"} operation produces an auxiliary version that has
   the same data content, but is unrelated to the original: updates of
   the copy do not affect the original, neither does the sub-theory
   relation hold.
 
+  The @{text "merge"} operation produces the least upper bound of two
+  theories, which actually degenerates into absorption of one theory
+  into the other (according to the nominal sub-theory relation).
+
+  The @{text "begin"} operation starts a new theory by importing
+  several parent theories and entering a special mode of nameless
+  incremental updates, until the final @{text "end"} operation is
+  performed.
+
   \medskip The example in \figref{fig:ex-theory} below shows a theory
   graph derived from @{text "Pure"}, with theory @{text "Length"}
   importing @{text "Nat"} and @{text "List"}.  The body of @{text
   "Length"} consists of a sequence of updates, working mostly on
-  drafts.  Intermediate checkpoints may occur as well, due to the
-  history mechanism provided by the Isar top-level, cf.\
-  \secref{sec:isar-toplevel}.
+  drafts internally, while transaction boundaries of Isar top-level
+  commands (\secref{sec:isar-toplevel}) are guaranteed to be safe
+  checkpoints.
 
   \begin{figure}[htb]
   \begin{center}
@@ -147,9 +153,10 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML_type theory} \\
   @{index_ML Theory.subthy: "theory * theory -> bool"} \\
-  @{index_ML Theory.merge: "theory * theory -> theory"} \\
   @{index_ML Theory.checkpoint: "theory -> theory"} \\
   @{index_ML Theory.copy: "theory -> theory"} \\
+  @{index_ML Theory.merge: "theory * theory -> theory"} \\
+  @{index_ML Theory.begin_theory: "string -> theory list -> theory"} \\
   \end{mldecls}
   \begin{mldecls}
   @{index_ML_type theory_ref} \\
@@ -160,25 +167,32 @@ text %mlref {*
   \begin{description}
 
   \item @{ML_type theory} represents theory contexts.  This is
-  essentially a linear type!  Most operations destroy the original
-  version, which then becomes ``stale''.
+  essentially a linear type, with explicit runtime checking!  Most
+  internal theory operations destroy the original version, which then
+  becomes ``stale''.
 
-  \item @{ML "Theory.subthy"}~@{text "(thy\<^sub>1, thy\<^sub>2)"}
-  compares theories according to the inherent graph structure of the
-  construction.  This sub-theory relation is a nominal approximation
-  of inclusion (@{text "\<subseteq>"}) of the corresponding content.
-
-  \item @{ML "Theory.merge"}~@{text "(thy\<^sub>1, thy\<^sub>2)"}
-  absorbs one theory into the other.  This fails for unrelated
-  theories!
+  \item @{ML "Theory.subthy"}~@{text "(thy\<^sub>1, thy\<^sub>2)"} compares theories
+  according to the intrinsic graph structure of the construction.
+  This sub-theory relation is a nominal approximation of inclusion
+  (@{text "\<subseteq>"}) of the corresponding content (according to the
+  semantics of the ML modules that implement the data).
 
   \item @{ML "Theory.checkpoint"}~@{text "thy"} produces a safe
-  stepping stone in the linear development of @{text "thy"}.  The next
-  update will result in two related, valid theories.
+  stepping stone in the linear development of @{text "thy"}.  This
+  changes the old theory, but the next update will result in two
+  related, valid theories.
 
   \item @{ML "Theory.copy"}~@{text "thy"} produces a variant of @{text
-  "thy"} with the same data.  The result is not related to the
-  original; the original is unchanged.
+  "thy"} with the same data.  The copy is not related to the original,
+  but the original is unchanged.
+
+  \item @{ML "Theory.merge"}~@{text "(thy\<^sub>1, thy\<^sub>2)"} absorbs one theory
+  into the other, without changing @{text "thy\<^sub>1"} or @{text "thy\<^sub>2"}.
+  This version of ad-hoc theory merge fails for unrelated theories!
+
+  \item @{ML "Theory.begin_theory"}~@{text "name parents"} constructs
+  a new theory based on the given parents.  This {\ML} function is
+  normally not invoked directly.
 
   \item @{ML_type theory_ref} represents a sliding reference to an
   always valid theory; updates on the original are propagated
@@ -198,31 +212,32 @@ text %mlref {*
 
 subsection {* Proof context \label{sec:context-proof} *}
 
-text {*
-  A proof context is a container for pure data with a back-reference
-  to the theory it belongs to.  The @{text "init"} operation creates a
-  proof context from a given theory.  Modifications to draft theories
-  are propagated to the proof context as usual, but there is also an
-  explicit @{text "transfer"} operation to force resynchronization
-  with more substantial updates to the underlying theory.  The actual
-  context data does not require any special bookkeeping, thanks to the
-  lack of destructive features.
+text {* A proof context is a container for pure data with a
+  back-reference to the theory it belongs to.  The @{text "init"}
+  operation creates a proof context from a given theory.
+  Modifications to draft theories are propagated to the proof context
+  as usual, but there is also an explicit @{text "transfer"} operation
+  to force resynchronization with more substantial updates to the
+  underlying theory.
 
-  Entities derived in a proof context need to record inherent logical
+  Entities derived in a proof context need to record logical
   requirements explicitly, since there is no separate context
-  identification as for theories.  For example, hypotheses used in
-  primitive derivations (cf.\ \secref{sec:thms}) are recorded
-  separately within the sequent @{text "\<Gamma> \<turnstile> \<phi>"}, just to make double
-  sure.  Results could still leak into an alien proof context due to
-  programming errors, but Isabelle/Isar includes some extra validity
-  checks in critical positions, notably at the end of a sub-proof.
+  identification or symbolic inclusion as for theories.  For example,
+  hypotheses used in primitive derivations (cf.\ \secref{sec:thms})
+  are recorded separately within the sequent @{text "\<Gamma> \<turnstile> \<phi>"}, just to
+  make double sure.  Results could still leak into an alien proof
+  context due to programming errors, but Isabelle/Isar includes some
+  extra validity checks in critical positions, notably at the end of a
+  sub-proof.
 
   Proof contexts may be manipulated arbitrarily, although the common
   discipline is to follow block structure as a mental model: a given
   context is extended consecutively, and results are exported back
-  into the original context.  Note that the Isar proof states model
+  into the original context.  Note that an Isar proof state models
   block-structured reasoning explicitly, using a stack of proof
-  contexts internally.
+  contexts internally.  For various technical reasons, the background
+  theory of an Isar proof state must not be changed while the proof is
+  still under construction!
 *}
 
 text %mlref {*
@@ -267,7 +282,8 @@ text {*
   Moreover, there are total operations @{text "theory_of"} and @{text
   "proof_of"} to convert a generic context into either kind: a theory
   can always be selected from the sum, while a proof context might
-  have to be constructed by an ad-hoc @{text "init"} operation.
+  have to be constructed by an ad-hoc @{text "init"} operation, which
+  incurs a small runtime overhead.
 *}
 
 text %mlref {*
@@ -319,6 +335,16 @@ text {* The main purpose of theory and proof contexts is to manage
   \emph{any} theory that does not declare actual data content; @{text
   "extend"} is acts like a unitary version of @{text "merge"}.
 
+  Implementing @{text "merge"} can be tricky.  The general idea is
+  that @{text "merge (data\<^sub>1, data\<^sub>2)"} inserts those parts of @{text
+  "data\<^sub>2"} into @{text "data\<^sub>1"} that are not yet present, while
+  keeping the general order of things.  The @{ML Library.merge}
+  function on plain lists may serve as canonical template.
+
+  Particularly note that shared parts of the data must not be
+  duplicated by naive concatenation, or a theory graph that is like a
+  chain of diamonds would cause an exponential blowup!
+
   \paragraph{Proof context data} declarations need to implement the
   following SML signature:
 
@@ -330,15 +356,18 @@ text {* The main purpose of theory and proof contexts is to manage
   \medskip
 
   \noindent The @{text "init"} operation is supposed to produce a pure
-  value from the given background theory.
+  value from the given background theory and should be somehow
+  ``immediate''.  Whenever a proof context is initialized, which
+  happens frequently, the the system invokes the @{text "init"}
+  operation of \emph{all} theory data slots ever declared.
 
   \paragraph{Generic data} provides a hybrid interface for both theory
   and proof data.  The @{text "init"} operation for proof contexts is
   predefined to select the current data value from the background
   theory.
 
-  \bigskip A data declaration of type @{text "T"} results in the
-  following interface:
+  \bigskip Any of these data declaration over type @{text "T"} result
+  in an ML structure with the following signature:
 
   \medskip
   \begin{tabular}{ll}
@@ -348,12 +377,12 @@ text {* The main purpose of theory and proof contexts is to manage
   \end{tabular}
   \medskip
 
-  \noindent These other operations provide access for the particular
-  kind of context (theory, proof, or generic context).  Note that this
-  is a safe interface: there is no other way to access the
-  corresponding data slot of a context.  By keeping these operations
-  private, a component may maintain abstract values authentically,
-  without other components interfering.
+  \noindent These other operations provide exclusive access for the
+  particular kind of context (theory, proof, or generic context).
+  This interface fully observes the ML discipline for types and
+  scopes: there is no other way to access the corresponding data slot
+  of a context.  By keeping these operations private, an Isabelle/ML
+  module may maintain abstract values authentically.
 *}
 
 text %mlref {*
@@ -379,32 +408,127 @@ text %mlref {*
   \end{description}
 *}
 
+text %mlex {*
+  The following artificial example demonstrates theory
+  data: we maintain a set of terms that are supposed to be wellformed
+  wrt.\ the enclosing theory.  The public interface is as follows:
+*}
+
+ML {*
+  signature WELLFORMED_TERMS =
+  sig
+    val get: theory -> term list
+    val add: term -> theory -> theory
+  end;
+*}
+
+text {* \noindent The implementation uses private theory data
+  internally, and only exposes an operation that involves explicit
+  argument checking wrt.\ the given theory. *}
+
+ML {*
+  structure Wellformed_Terms: WELLFORMED_TERMS =
+  struct
+
+  structure Terms = Theory_Data
+  (
+    type T = term OrdList.T;
+    val empty = [];
+    val extend = I;
+    fun merge (ts1, ts2) =
+      OrdList.union TermOrd.fast_term_ord ts1 ts2;
+  )
+
+  val get = Terms.get;
+
+  fun add raw_t thy =
+    let val t = Sign.cert_term thy raw_t
+    in Terms.map (OrdList.insert TermOrd.fast_term_ord t) thy end;
+
+  end;
+*}
+
+text {* We use @{ML_type "term OrdList.T"} for reasonably efficient
+  representation of a set of terms: all operations are linear in the
+  number of stored elements.  Here we assume that our users do not
+  care about the declaration order, since that data structure forces
+  its own arrangement of elements.
+
+  Observe how the @{verbatim merge} operation joins the data slots of
+  the two constituents: @{ML OrdList.union} prevents duplication of
+  common data from different branches, thus avoiding the danger of
+  exponential blowup.  (Plain list append etc.\ must never be used for
+  theory data merges.)
+
+  \medskip Our intended invariant is achieved as follows:
+  \begin{enumerate}
+
+  \item @{ML Wellformed_Terms.add} only admits terms that have passed
+  the @{ML Sign.cert_term} check of the given theory at that point.
+
+  \item Wellformedness in the sense of @{ML Sign.cert_term} is
+  monotonic wrt.\ the sub-theory relation.  So our data can move
+  upwards in the hierarchy (via extension or merges), and maintain
+  wellformedness without further checks.
+
+  \end{enumerate}
+
+  Note that all basic operations of the inference kernel (which
+  includes @{ML Sign.cert_term}) observe this monotonicity principle,
+  but other user-space tools don't.  For example, fully-featured
+  type-inference via @{ML Syntax.check_term} (cf.\
+  \secref{sec:term-check}) is not necessarily monotonic wrt.\ the
+  background theory, since constraints of term constants can be
+  strengthened by later declarations, for example.
+
+  In most cases, user-space context data does not have to take such
+  invariants too seriously.  The situation is different in the
+  implementation of the inference kernel itself, which uses the very
+  same data mechanisms for types, constants, axioms etc.
+*}
+
 
 section {* Names \label{sec:names} *}
 
-text {*
-  In principle, a name is just a string, but there are various
-  convention for encoding additional structure.  For example, ``@{text
-  "Foo.bar.baz"}'' is considered as a qualified name consisting of
-  three basic name components.  The individual constituents of a name
-  may have further substructure, e.g.\ the string
-  ``\verb,\,\verb,<alpha>,'' encodes as a single symbol.
+text {* In principle, a name is just a string, but there are various
+  conventions for representing additional structure.  For example,
+  ``@{text "Foo.bar.baz"}'' is considered as a long name consisting of
+  qualifier @{text "Foo.bar"} and base name @{text "baz"}.  The
+  individual constituents of a name may have further substructure,
+  e.g.\ the string ``\verb,\,\verb,<alpha>,'' encodes as a single
+  symbol.
+
+  \medskip Subsequently, we shall introduce specific categories of
+  names.  Roughly speaking these correspond to logical entities as
+  follows:
+  \begin{itemize}
+
+  \item Basic names (\secref{sec:basic-name}): free and bound
+  variables.
+
+  \item Indexed names (\secref{sec:indexname}): schematic variables.
+
+  \item Long names (\secref{sec:long-name}): constants of any kind
+  (type constructors, term constants, other concepts defined in user
+  space).  Such entities are typically managed via name spaces
+  (\secref{sec:name-space}).
+
+  \end{itemize}
 *}
 
 
 subsection {* Strings of symbols *}
 
-text {*
-  A \emph{symbol} constitutes the smallest textual unit in Isabelle
-  --- raw characters are normally not encountered at all.  Isabelle
-  strings consist of a sequence of symbols, represented as a packed
-  string or a list of strings.  Each symbol is in itself a small
-  string, which has either one of the following forms:
+text {* A \emph{symbol} constitutes the smallest textual unit in
+  Isabelle --- raw ML characters are normally not encountered at all!
+  Isabelle strings consist of a sequence of symbols, represented as a
+  packed string or an exploded list of strings.  Each symbol is in
+  itself a small string, which has either one of the following forms:
 
   \begin{enumerate}
 
-  \item a single ASCII character ``@{text "c"}'', for example
-  ``\verb,a,'',
+  \item a single ASCII character ``@{text "c"}'' or raw byte in the
+  range of 128\dots 255, for example ``\verb,a,'',
 
   \item a regular symbol ``\verb,\,\verb,<,@{text "ident"}\verb,>,'',
   for example ``\verb,\,\verb,<alpha>,'',
@@ -413,7 +537,7 @@ text {*
   for example ``\verb,\,\verb,<^bold>,'',
 
   \item a raw symbol ``\verb,\,\verb,<^raw:,@{text text}\verb,>,''
-  where @{text text} constists of printable characters excluding
+  where @{text text} consists of printable characters excluding
   ``\verb,.,'' and ``\verb,>,'', for example
   ``\verb,\,\verb,<^raw:$\sum_{i = 1}^n$>,'',
 
@@ -432,22 +556,31 @@ text {*
   may occur within regular Isabelle identifiers.
 
   Since the character set underlying Isabelle symbols is 7-bit ASCII
-  and 8-bit characters are passed through transparently, Isabelle may
-  also process Unicode/UCS data in UTF-8 encoding.  Unicode provides
-  its own collection of mathematical symbols, but there is no built-in
-  link to the standard collection of Isabelle.
+  and 8-bit characters are passed through transparently, Isabelle can
+  also process Unicode/UCS data in UTF-8 encoding.\footnote{When
+  counting precise source positions internally, bytes in the range of
+  128\dots 191 are ignored.  In UTF-8 encoding, this interval covers
+  the additional trailer bytes, so Isabelle happens to count Unicode
+  characters here, not bytes in memory.  In ISO-Latin encoding, the
+  ignored range merely includes some extra punctuation characters that
+  even have replacements within the standard collection of Isabelle
+  symbols; the accented letters range is counted properly.} Unicode
+  provides its own collection of mathematical symbols, but within the
+  core Isabelle/ML world there is no link to the standard collection
+  of Isabelle regular symbols.
 
   \medskip Output of Isabelle symbols depends on the print mode
   (\secref{print-mode}).  For example, the standard {\LaTeX} setup of
   the Isabelle document preparation system would present
   ``\verb,\,\verb,<alpha>,'' as @{text "\<alpha>"}, and
   ``\verb,\,\verb,<^bold>,\verb,\,\verb,<alpha>,'' as @{text
-  "\<^bold>\<alpha>"}.
+  "\<^bold>\<alpha>"}.  On-screen rendering usually works by mapping a finite
+  subset of Isabelle symbols to suitable Unicode characters.
 *}
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML_type "Symbol.symbol"} \\
+  @{index_ML_type "Symbol.symbol": string} \\
   @{index_ML Symbol.explode: "string -> Symbol.symbol list"} \\
   @{index_ML Symbol.is_letter: "Symbol.symbol -> bool"} \\
   @{index_ML Symbol.is_digit: "Symbol.symbol -> bool"} \\
@@ -462,12 +595,15 @@ text %mlref {*
   \begin{description}
 
   \item @{ML_type "Symbol.symbol"} represents individual Isabelle
-  symbols; this is an alias for @{ML_type "string"}.
+  symbols.
 
   \item @{ML "Symbol.explode"}~@{text "str"} produces a symbol list
   from the packed form.  This function supercedes @{ML
   "String.explode"} for virtually all purposes of manipulating text in
-  Isabelle!
+  Isabelle!\footnote{The runtime overhead for exploded strings is
+  mainly that of the list structure: individual symbols that happen to
+  be a singleton string --- which is the most common case --- do not
+  require extra memory in Poly/ML.}
 
   \item @{ML "Symbol.is_letter"}, @{ML "Symbol.is_digit"}, @{ML
   "Symbol.is_quasi"}, @{ML "Symbol.is_blank"} classify standard
@@ -483,10 +619,20 @@ text %mlref {*
   symbol into the datatype version.
 
   \end{description}
+
+  \paragraph{Historical note.} In the original SML90 standard the
+  primitive ML type @{ML_type char} did not exists, and the basic @{ML
+  "explode: string -> string list"} operation would produce a list of
+  singleton strings as in Isabelle/ML today.  When SML97 came out,
+  Isabelle did not adopt its slightly anachronistic 8-bit characters,
+  but the idea of exploding a string into a list of small strings was
+  extended to ``symbols'' as explained above.  Thus Isabelle sources
+  can refer to an infinite store of user-defined symbols, without
+  having to worry about the multitude of Unicode encodings.
 *}
 
 
-subsection {* Basic names \label{sec:basic-names} *}
+subsection {* Basic names \label{sec:basic-name} *}
 
 text {*
   A \emph{basic name} essentially consists of a single Isabelle
@@ -502,8 +648,8 @@ text {*
   These special versions provide copies of the basic name space, apart
   from anything that normally appears in the user text.  For example,
   system generated variables in Isar proof contexts are usually marked
-  as internal, which prevents mysterious name references like @{text
-  "xaa"} to appear in the text.
+  as internal, which prevents mysterious names like @{text "xaa"} to
+  appear in human-readable text.
 
   \medskip Manipulating binding scopes often requires on-the-fly
   renamings.  A \emph{name context} contains a collection of already
@@ -534,6 +680,9 @@ text %mlref {*
   @{index_ML Name.invents: "Name.context -> string -> int -> string list"} \\
   @{index_ML Name.variants: "string list -> Name.context -> string list * Name.context"} \\
   \end{mldecls}
+  \begin{mldecls}
+  @{index_ML Variable.names_of: "Proof.context -> Name.context"} \\
+  \end{mldecls}
 
   \begin{description}
 
@@ -555,11 +704,20 @@ text %mlref {*
   \item @{ML Name.variants}~@{text "names context"} produces fresh
   variants of @{text "names"}; the result is entered into the context.
 
+  \item @{ML Variable.names_of}~@{text "ctxt"} retrieves the context
+  of declared type and term variable names.  Projecting a proof
+  context down to a primitive name context is occasionally useful when
+  invoking lower-level operations.  Regular management of ``fresh
+  variables'' is done by suitable operations of structure @{ML_struct
+  Variable}, which is also able to provide an official status of
+  ``locally fixed variable'' within the logical environment (cf.\
+  \secref{sec:variables}).
+
   \end{description}
 *}
 
 
-subsection {* Indexed names *}
+subsection {* Indexed names \label{sec:indexname} *}
 
 text {*
   An \emph{indexed name} (or @{text "indexname"}) is a pair of a basic
@@ -571,9 +729,9 @@ text {*
   @{text "maxidx + 1"}; the maximum index of an empty collection is
   @{text "-1"}.
 
-  Occasionally, basic names and indexed names are injected into the
-  same pair type: the (improper) indexname @{text "(x, -1)"} is used
-  to encode basic names.
+  Occasionally, basic names are injected into the same pair type of
+  indexed names: then @{text "(x, -1)"} is used to encode the basic
+  name @{text "x"}.
 
   \medskip Isabelle syntax observes the following rules for
   representing an indexname @{text "(x, i)"} as a packed string:
@@ -588,11 +746,12 @@ text {*
 
   \end{itemize}
 
-  Indexnames may acquire large index numbers over time.  Results are
-  normalized towards @{text "0"} at certain checkpoints, notably at
-  the end of a proof.  This works by producing variants of the
-  corresponding basic name components.  For example, the collection
-  @{text "?x1, ?x7, ?x42"} becomes @{text "?x, ?xa, ?xb"}.
+  Indexnames may acquire large index numbers after several maxidx
+  shifts have been applied.  Results are usually normalized towards
+  @{text "0"} at certain checkpoints, notably at the end of a proof.
+  This works by producing variants of the corresponding basic name
+  components.  For example, the collection @{text "?x1, ?x7, ?x42"}
+  becomes @{text "?x, ?xa, ?xb"}.
 *}
 
 text %mlref {*
@@ -605,65 +764,35 @@ text %mlref {*
   \item @{ML_type indexname} represents indexed names.  This is an
   abbreviation for @{ML_type "string * int"}.  The second component is
   usually non-negative, except for situations where @{text "(x, -1)"}
-  is used to embed basic names into this type.
+  is used to inject basic names into this type.  Other negative
+  indexes should not be used.
 
   \end{description}
 *}
 
 
-subsection {* Qualified names and name spaces *}
+subsection {* Long names \label{sec:long-name} *}
 
-text {*
-  A \emph{qualified name} consists of a non-empty sequence of basic
-  name components.  The packed representation uses a dot as separator,
-  as in ``@{text "A.b.c"}''.  The last component is called \emph{base}
-  name, the remaining prefix \emph{qualifier} (which may be empty).
-  The idea of qualified names is to encode nested structures by
-  recording the access paths as qualifiers.  For example, an item
-  named ``@{text "A.b.c"}'' may be understood as a local entity @{text
-  "c"}, within a local structure @{text "b"}, within a global
-  structure @{text "A"}.  Typically, name space hierarchies consist of
-  1--2 levels of qualification, but this need not be always so.
+text {* A \emph{long name} consists of a sequence of non-empty name
+  components.  The packed representation uses a dot as separator, as
+  in ``@{text "A.b.c"}''.  The last component is called \emph{base
+  name}, the remaining prefix is called \emph{qualifier} (which may be
+  empty).  The qualifier can be understood as the access path to the
+  named entity while passing through some nested block-structure,
+  although our free-form long names do not really enforce any strict
+  discipline.
+
+  For example, an item named ``@{text "A.b.c"}'' may be understood as
+  a local entity @{text "c"}, within a local structure @{text "b"},
+  within a global structure @{text "A"}.  In practice, long names
+  usually represent 1--3 levels of qualification.  User ML code should
+  not make any assumptions about the particular structure of long
+  names!
 
   The empty name is commonly used as an indication of unnamed
-  entities, whenever this makes any sense.  The basic operations on
-  qualified names are smart enough to pass through such improper names
-  unchanged.
-
-  \medskip A @{text "naming"} policy tells how to turn a name
-  specification into a fully qualified internal name (by the @{text
-  "full"} operation), and how fully qualified names may be accessed
-  externally.  For example, the default naming policy is to prefix an
-  implicit path: @{text "full x"} produces @{text "path.x"}, and the
-  standard accesses for @{text "path.x"} include both @{text "x"} and
-  @{text "path.x"}.  Normally, the naming is implicit in the theory or
-  proof context; there are separate versions of the corresponding.
-
-  \medskip A @{text "name space"} manages a collection of fully
-  internalized names, together with a mapping between external names
-  and internal names (in both directions).  The corresponding @{text
-  "intern"} and @{text "extern"} operations are mostly used for
-  parsing and printing only!  The @{text "declare"} operation augments
-  a name space according to the accesses determined by the naming
-  policy.
-
-  \medskip As a general principle, there is a separate name space for
-  each kind of formal entity, e.g.\ logical constant, type
-  constructor, type class, theorem.  It is usually clear from the
-  occurrence in concrete syntax (or from the scope) which kind of
-  entity a name refers to.  For example, the very same name @{text
-  "c"} may be used uniformly for a constant, type constructor, and
-  type class.
-
-  There are common schemes to name theorems systematically, according
-  to the name of the main logical entity involved, e.g.\ @{text
-  "c.intro"} for a canonical theorem related to constant @{text "c"}.
-  This technique of mapping names from one space into another requires
-  some care in order to avoid conflicts.  In particular, theorem names
-  derived from a type constructor or type class are better suffixed in
-  addition to the usual qualification, e.g.\ @{text "c_type.intro"}
-  and @{text "c_class.intro"} for theorems related to type @{text "c"}
-  and class @{text "c"}, respectively.
+  entities, or entities that are not entered into the corresponding
+  name space, whenever this makes any sense.  The basic operations on
+  long names map empty names again to empty names.
 *}
 
 text %mlref {*
@@ -673,6 +802,85 @@ text %mlref {*
   @{index_ML Long_Name.append: "string -> string -> string"} \\
   @{index_ML Long_Name.implode: "string list -> string"} \\
   @{index_ML Long_Name.explode: "string -> string list"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML Long_Name.base_name}~@{text "name"} returns the base name
+  of a long name.
+
+  \item @{ML Long_Name.qualifier}~@{text "name"} returns the qualifier
+  of a long name.
+
+  \item @{ML Long_Name.append}~@{text "name\<^isub>1 name\<^isub>2"} appends two long
+  names.
+
+  \item @{ML Long_Name.implode}~@{text "names"} and @{ML
+  Long_Name.explode}~@{text "name"} convert between the packed string
+  representation and the explicit list form of long names.
+
+  \end{description}
+*}
+
+
+subsection {* Name spaces \label{sec:name-space} *}
+
+text {* A @{text "name space"} manages a collection of long names,
+  together with a mapping between partially qualified external names
+  and fully qualified internal names (in both directions).  Note that
+  the corresponding @{text "intern"} and @{text "extern"} operations
+  are mostly used for parsing and printing only!  The @{text
+  "declare"} operation augments a name space according to the accesses
+  determined by a given binding, and a naming policy from the context.
+
+  \medskip A @{text "binding"} specifies details about the prospective
+  long name of a newly introduced formal entity.  It consists of a
+  base name, prefixes for qualification (separate ones for system
+  infrastructure and user-space mechanisms), a slot for the original
+  source position, and some additional flags.
+
+  \medskip A @{text "naming"} provides some additional details for
+  producing a long name from a binding.  Normally, the naming is
+  implicit in the theory or proof context.  The @{text "full"}
+  operation (and its variants for different context types) produces a
+  fully qualified internal name to be entered into a name space.  The
+  main equation of this ``chemical reaction'' when binding new
+  entities in a context is as follows:
+
+  \smallskip
+  \begin{tabular}{l}
+  @{text "binding + naming \<longrightarrow> long name + name space accesses"}
+  \end{tabular}
+  \smallskip
+
+  \medskip As a general principle, there is a separate name space for
+  each kind of formal entity, e.g.\ fact, logical constant, type
+  constructor, type class.  It is usually clear from the occurrence in
+  concrete syntax (or from the scope) which kind of entity a name
+  refers to.  For example, the very same name @{text "c"} may be used
+  uniformly for a constant, type constructor, and type class.
+
+  There are common schemes to name derived entities systematically
+  according to the name of the main logical entity involved, e.g.\
+  fact @{text "c.intro"} for a canonical introduction rule related to
+  constant @{text "c"}.  This technique of mapping names from one
+  space into another requires some care in order to avoid conflicts.
+  In particular, theorem names derived from a type constructor or type
+  class are better suffixed in addition to the usual qualification,
+  e.g.\ @{text "c_type.intro"} and @{text "c_class.intro"} for
+  theorems related to type @{text "c"} and class @{text "c"},
+  respectively.
+*}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type binding} \\
+  @{index_ML Binding.empty: binding} \\
+  @{index_ML Binding.name: "string -> binding"} \\
+  @{index_ML Binding.qualify: "bool -> string -> binding -> binding"} \\
+  @{index_ML Binding.prefix: "bool -> string -> binding -> binding"} \\
+  @{index_ML Binding.conceal: "binding -> binding"} \\
+  @{index_ML Binding.str_of: "binding -> string"} \\
   \end{mldecls}
   \begin{mldecls}
   @{index_ML_type Name_Space.naming} \\
@@ -688,22 +896,41 @@ text %mlref {*
   string * Name_Space.T"} \\
   @{index_ML Name_Space.intern: "Name_Space.T -> string -> string"} \\
   @{index_ML Name_Space.extern: "Name_Space.T -> string -> string"} \\
+  @{index_ML Name_Space.is_concealed: "Name_Space.T -> string -> bool"}
   \end{mldecls}
 
   \begin{description}
 
-  \item @{ML Long_Name.base_name}~@{text "name"} returns the base name of a
-  qualified name.
+  \item @{ML_type binding} represents the abstract concept of name
+  bindings.
 
-  \item @{ML Long_Name.qualifier}~@{text "name"} returns the qualifier
-  of a qualified name.
+  \item @{ML Binding.empty} is the empty binding.
 
-  \item @{ML Long_Name.append}~@{text "name\<^isub>1 name\<^isub>2"}
-  appends two qualified names.
+  \item @{ML Binding.name}~@{text "name"} produces a binding with base
+  name @{text "name"}.
 
-  \item @{ML Long_Name.implode}~@{text "names"} and @{ML
-  Long_Name.explode}~@{text "name"} convert between the packed string
-  representation and the explicit list form of qualified names.
+  \item @{ML Binding.qualify}~@{text "mandatory name binding"}
+  prefixes qualifier @{text "name"} to @{text "binding"}.  The @{text
+  "mandatory"} flag tells if this name component always needs to be
+  given in name space accesses --- this is mostly @{text "false"} in
+  practice.  Note that this part of qualification is typically used in
+  derived specification mechanisms.
+
+  \item @{ML Binding.prefix} is similar to @{ML Binding.qualify}, but
+  affects the system prefix.  This part of extra qualification is
+  typically used in the infrastructure for modular specifications,
+  notably ``local theory targets'' (see also \chref{ch:local-theory}).
+
+  \item @{ML Binding.conceal}~@{text "binding"} indicates that the
+  binding shall refer to an entity that serves foundational purposes
+  only.  This flag helps to mark implementation details of
+  specification mechanism etc.  Other tools should not depend on the
+  particulars of concealed entities (cf.\ @{ML
+  Name_Space.is_concealed}).
+
+  \item @{ML Binding.str_of}~@{text "binding"} produces a string
+  representation for human-readable output, together with some formal
+  markup that might get used in GUI front-ends, for example.
 
   \item @{ML_type Name_Space.naming} represents the abstract concept of
   a naming policy.
@@ -746,6 +973,10 @@ text %mlref {*
 
   This operation is mostly for printing!  User code should not rely on
   the precise result too much.
+
+  \item @{ML Name_Space.is_concealed}~@{text "space name"} indicates
+  whether @{text "name"} refers to a strictly private entity that
+  other tools are supposed to ignore!
 
   \end{description}
 *}

@@ -2,8 +2,14 @@ theory Syntax
 imports Base
 begin
 
-chapter {* Syntax and type-checking *}
+chapter {* Concrete syntax and type-checking *}
 
 text FIXME
+
+section {* Parsing and printing *}
+
+text FIXME
+
+section {* Checking and unchecking \label{sec:term-check} *}
 
 end
