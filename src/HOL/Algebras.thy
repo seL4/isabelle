@@ -10,15 +10,30 @@ begin
 
 subsection {* Generic algebraic structures *}
 
+text {*
+  These locales provide basic structures for interpretation into
+  bigger structures;  extensions require careful thinking, otherwise
+  undesired effects may occur due to interpretation.
+*}
+
+ML {*
+structure Ac_Simps = Named_Thms(
+  val name = "ac_simps"
+  val description = "associativity and commutativity simplification rules"
+)
+*}
+
+setup Ac_Simps.setup
+
 locale semigroup =
   fixes f :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "*" 70)
-  assumes assoc: "a * b * c = a * (b * c)"
+  assumes assoc [ac_simps]: "a * b * c = a * (b * c)"
 
 locale abel_semigroup = semigroup +
-  assumes commute: "a * b = b * a"
+  assumes commute [ac_simps]: "a * b = b * a"
 begin
 
-lemma left_commute:
+lemma left_commute [ac_simps]:
   "b * (a * c) = a * (b * c)"
 proof -
   have "(b * a) * c = (a * b) * c"
@@ -38,25 +53,6 @@ lemma left_idem [simp]:
   by (simp add: assoc [symmetric])
 
 end
-
-locale lattice = inf!: abel_semigroup inf + sup!: abel_semigroup sup
-  for inf (infixl "\<sqinter>" 70) and sup (infixl "\<squnion>" 70) +
-  assumes sup_inf_absorb: "a \<squnion> (a \<sqinter> b) = a"
-  and inf_sup_absorb: "a \<sqinter> (a \<squnion> b) = a"
-
-sublocale lattice < inf!: semilattice inf
-proof
-  fix a
-  have "a \<sqinter> (a \<squnion> (a \<sqinter> a)) = a" by (fact inf_sup_absorb)
-  then show "a \<sqinter> a = a" by (simp add: sup_inf_absorb)
-qed
-
-sublocale lattice < sup!: semilattice sup
-proof
-  fix a
-  have "a \<squnion> (a \<sqinter> (a \<squnion> a)) = a" by (fact sup_inf_absorb)
-  then show "a \<squnion> a = a" by (simp add: inf_sup_absorb)
-qed
 
 
 subsection {* Generic algebraic operations *}
@@ -157,10 +153,5 @@ abbreviation (input)
   "x > y \<equiv> y < x"
 
 end
-
-syntax
-  "_index1"  :: index    ("\<^sub>1")
-translations
-  (index) "\<^sub>1" => (index) "\<^bsub>\<struct>\<^esub>"
 
 end
