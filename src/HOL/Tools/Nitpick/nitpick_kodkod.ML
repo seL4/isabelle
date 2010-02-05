@@ -316,7 +316,15 @@ fun bound_for_sel_rel ctxt debug dtypes
            if R2 = Formula Neut then
              [ts] |> not exclusive ? cons (KK.TupleSet [])
            else
-             [KK.TupleSet [], KK.TupleProduct (ts, upper_bound_for_rep R2)]
+             [KK.TupleSet [],
+              if exclusive andalso T1 = T2 andalso epsilon > delta then
+                index_seq delta (epsilon - delta)
+                |> map (fn j =>
+                           KK.TupleProduct (KK.TupleSet [Kodkod.Tuple [j + j0]],
+                                            KK.TupleAtomSeq (j, j0)))
+                |> foldl1 KK.TupleUnion
+              else
+                KK.TupleProduct (ts, upper_bound_for_rep R2)]
          end)
     end
   | bound_for_sel_rel _ _ _ u =
@@ -944,11 +952,11 @@ fun declarative_axioms_for_datatypes hol_ctxt bits ofs kk rel_table dtypes =
 (* int -> int Typtab.table -> bool -> kodkod_constrs -> nut -> KK.formula *)
 fun kodkod_formula_from_nut bits ofs liberal
         (kk as {kk_all, kk_exist, kk_formula_let, kk_formula_if, kk_or, kk_not,
-                kk_iff, kk_implies, kk_and, kk_subset, kk_rel_eq, kk_no, kk_one,
-                kk_some, kk_rel_let, kk_rel_if, kk_union, kk_difference,
-                kk_intersect, kk_product, kk_join, kk_closure, kk_comprehension,
-                kk_project, kk_project_seq, kk_not3, kk_nat_less, kk_int_less,
-                ...}) u =
+                kk_iff, kk_implies, kk_and, kk_subset, kk_rel_eq, kk_no,
+                kk_lone, kk_one, kk_some, kk_rel_let, kk_rel_if, kk_union,
+                kk_difference, kk_intersect, kk_product, kk_join, kk_closure,
+                kk_comprehension, kk_project, kk_project_seq, kk_not3,
+                kk_nat_less, kk_int_less, ...}) u =
   let
     val main_j0 = offset_of_type ofs bool_T
     val bool_j0 = main_j0
@@ -1108,7 +1116,7 @@ fun kodkod_formula_from_nut bits ofs liberal
                      else
                        if is_lone_rep min_R then
                          if arity_of_rep min_R = 1 then
-                           kk_subset (kk_product r1 r2) KK.Iden
+                           kk_lone (kk_union r1 r2)
                          else if not both_opt then
                            (r1, r2) |> is_opt_rep (rep_of u2) ? swap
                                     |-> kk_subset

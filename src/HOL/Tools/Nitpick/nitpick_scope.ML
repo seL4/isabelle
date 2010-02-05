@@ -426,16 +426,21 @@ fun add_constr_spec (card_assigns, max_assigns) co card sum_dom_cards
           {delta = delta, epsilon = delta, exclusive = true, total = false}
         end
       else if not co andalso num_self_recs > 0 then
-        if not self_rec andalso num_non_self_recs = 1 andalso
-           domain_card 2 card_assigns T = 1 then
-          {delta = 0, epsilon = 1,
-           exclusive = (s = @{const_name Nil} andalso length constrs = 2),
-           total = true}
-        else if s = @{const_name Cons} andalso
-                num_self_recs + num_non_self_recs = 2 then
-          {delta = 1, epsilon = card, exclusive = true, total = false}
-        else
-          {delta = 0, epsilon = card, exclusive = false, total = false}
+        (if num_self_recs = 1 andalso num_non_self_recs = 1 then
+           if self_rec then
+             case constrs of
+               [{delta = 0, epsilon = 1, exclusive = true, ...}] =>
+               {delta = 1, epsilon = card, exclusive = true, total = false}
+             | _ => raise SAME ()
+           else
+             if domain_card 2 card_assigns T = 1 then
+               {delta = 0, epsilon = 1, exclusive = true, total = true}
+             else
+               raise SAME ()
+         else
+           raise SAME ())
+        handle SAME () =>
+               {delta = 0, epsilon = card, exclusive = false, total = false}
       else if card = sum_dom_cards (card + 1) then
         let val delta = next_delta () in
           {delta = delta, epsilon = delta + domain_card card card_assigns T,
@@ -473,7 +478,8 @@ fun datatype_spec_from_scope_descriptor (hol_ctxt as {thy, ...}) deep_dataTs
       map (domain_card max card_assigns o snd) xs |> Integer.sum
     val constrs =
       fold_rev (add_constr_spec desc co card sum_dom_cards num_self_recs
-                                num_non_self_recs) (self_recs ~~ xs) []
+                                num_non_self_recs)
+               (sort (bool_ord o swap o pairself fst) (self_recs ~~ xs)) []
   in
     {typ = T, card = card, co = co, complete = complete, concrete = concrete,
      deep = deep, constrs = constrs}
