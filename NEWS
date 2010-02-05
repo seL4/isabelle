@@ -12,6 +12,54 @@ the user space functionality any longer.
 
 *** HOL ***
 
+* more consistent naming of type classes involving orderings (and lattices):
+
+    lower_semilattice                   ~> semilattice_inf
+    upper_semilattice                   ~> semilattice_sup
+
+    dense_linear_order                  ~> dense_linorder
+
+    pordered_ab_group_add               ~> ordered_ab_group_add
+    pordered_ab_group_add_abs           ~> ordered_ab_group_add_abs
+    pordered_ab_semigroup_add           ~> ordered_ab_semigroup_add
+    pordered_ab_semigroup_add_imp_le    ~> ordered_ab_semigroup_add_imp_le
+    pordered_cancel_ab_semigroup_add    ~> ordered_cancel_ab_semigroup_add
+    pordered_cancel_comm_semiring       ~> ordered_cancel_comm_semiring
+    pordered_cancel_semiring            ~> ordered_cancel_semiring
+    pordered_comm_monoid_add            ~> ordered_comm_monoid_add
+    pordered_comm_ring                  ~> ordered_comm_ring
+    pordered_comm_semiring              ~> ordered_comm_semiring
+    pordered_ring                       ~> ordered_ring
+    pordered_ring_abs                   ~> ordered_ring_abs
+    pordered_semiring                   ~> ordered_semiring
+
+    lordered_ab_group_add               ~> lattice_ab_group_add
+    lordered_ab_group_add_abs           ~> lattice_ab_group_add_abs
+    lordered_ab_group_add_meet          ~> semilattice_inf_ab_group_add
+    lordered_ab_group_add_join          ~> semilattice_sup_ab_group_add
+    lordered_ring                       ~> lattice_ring
+
+    ordered_ab_group_add                ~> linordered_ab_group_add
+    ordered_ab_semigroup_add            ~> linordered_ab_semigroup_add
+    ordered_cancel_ab_semigroup_add     ~> linordered_cancel_ab_semigroup_add
+    ordered_comm_semiring_strict        ~> linordered_comm_semiring_strict
+    ordered_field                       ~> linordered_field
+    ordered_field_no_lb                 ~> linordered_field_no_lb
+    ordered_field_no_ub                 ~> linordered_field_no_ub
+    ordered_field_dense_linear_order    ~> dense_linordered_field
+    ordered_idom                        ~> linordered_idom
+    ordered_ring                        ~> linordered_ring
+    ordered_ring_le_cancel_factor       ~> linordered_ring_le_cancel_factor
+    ordered_ring_less_cancel_factor     ~> linordered_ring_less_cancel_factor
+    ordered_ring_strict                 ~> linordered_ring_strict
+    ordered_semidom                     ~> linordered_semidom
+    ordered_semiring                    ~> linordered_semiring
+    ordered_semiring_1                  ~> linordered_semiring_1
+    ordered_semiring_1_strict           ~> linordered_semiring_1_strict
+    ordered_semiring_strict             ~> linordered_semiring_strict
+
+INCOMPATIBILITY.
+
 * new theory Algebras.thy contains generic algebraic structures and
 generic algebraic operations.  INCOMPATIBILTY: constants zero, one,
 plus, minus, uminus, times, inverse, divide, abs, sgn, less_eq and less
