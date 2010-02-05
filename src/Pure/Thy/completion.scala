@@ -88,12 +88,11 @@ class Completion
     abbrevs_lex.parse(abbrevs_lex.keyword, new Library.Reverse(line)) match {
       case abbrevs_lex.Success(rev_a, _) =>
         val (word, c) = abbrevs_map(rev_a)
-        if (word == c) None
-        else Some(word, List(c))
+        Some(word, List(c))
       case _ =>
         Completion.Parse.read(line) match {
           case Some(word) =>
-            words_lex.completions(word).map(words_map(_)).filter(_ != word) match {
+            words_lex.completions(word).map(words_map(_)) match {
               case Nil => None
               case cs => Some(word, cs.sort(_ < _))
             }
