@@ -2,10 +2,10 @@
 Requirements to build from sources
 ==================================
 
-* Proper Java JRE/JDK from Sun, e.g. 1.6.0_17
+* Proper Java JRE/JDK from Sun, e.g. 1.6.0_18
   http://java.sun.com/javase/downloads/index.jsp
 
-* Netbeans 6.7
+* Netbeans 6.7.1
   http://www.netbeans.org/downloads/index.html
 
 * Scala for Netbeans: version 6.7v1 for NB 6.7
@@ -13,7 +13,7 @@ Requirements to build from sources
   http://blogtrader.net/dcaoyuan/category/NetBeans
   http://wiki.netbeans.org/Scala
 
-* jEdit 4.3 (final)
+* jEdit 4.3.1 (final)
   http://www.jedit.org/
 
   Netbeans Project "jEdit": install official sources as ./contrib/jEdit/.
