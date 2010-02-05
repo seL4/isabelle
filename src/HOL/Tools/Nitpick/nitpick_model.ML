@@ -56,26 +56,36 @@ val abs_mixfix = "\<guillemotleft>_\<guillemotright>"
 val opt_flag = nitpick_prefix ^ "opt"
 val non_opt_flag = nitpick_prefix ^ "non_opt"
 
-(* string -> int -> int -> string *)
-fun nth_atom_suffix s j k =
-  nat_subscript (k - j)
+type atom_pool = ((string * int) * int list) list
+
+(* atom_pool Unsynchronized.ref -> string -> int -> int -> string *)
+fun nth_atom_suffix pool s j k =
+  (case AList.lookup (op =) (!pool) (s, k) of
+     SOME js =>
+     (case find_index (curry (op =) j) js of
+        ~1 => (Unsynchronized.change pool (cons ((s, k), j :: js));
+               length js + 1)
+      | n => length js - n)
+   | NONE => (Unsynchronized.change pool (cons ((s, k), [j])); 1))
+  |> nat_subscript
   |> (s <> "" andalso Symbol.is_ascii_digit (List.last (explode s)))
      ? prefix "\<^isub>,"
-(* string -> typ -> int -> int -> string *)
-fun nth_atom_name prefix (T as Type (s, _)) j k =
+(* atom_pool Unsynchronized.ref -> string -> typ -> int -> int -> string *)
+fun nth_atom_name pool prefix (T as Type (s, _)) j k =
     let val s' = shortest_name s in
       prefix ^ (if String.isPrefix "\\" s' then s' else substring (s', 0, 1)) ^
-      nth_atom_suffix s j k
+      nth_atom_suffix pool s j k
     end
-  | nth_atom_name prefix (T as TFree (s, _)) j k =
-    prefix ^ perhaps (try (unprefix "'")) s ^ nth_atom_suffix s j k
-  | nth_atom_name _ T _ _ = raise TYPE ("Nitpick_Model.nth_atom_name", [T], [])
-(* bool -> typ -> int -> int -> term *)
-fun nth_atom for_auto T j k =
+  | nth_atom_name pool prefix (T as TFree (s, _)) j k =
+    prefix ^ perhaps (try (unprefix "'")) s ^ nth_atom_suffix pool s j k
+  | nth_atom_name _ _ T _ _ =
+    raise TYPE ("Nitpick_Model.nth_atom_name", [T], [])
+(* atom_pool Unsynchronized.ref -> bool -> typ -> int -> int -> term *)
+fun nth_atom pool for_auto T j k =
   if for_auto then
-    Free (nth_atom_name (hd (space_explode "." nitpick_prefix)) T j k, T)
+    Free (nth_atom_name pool (hd (space_explode "." nitpick_prefix)) T j k, T)
   else
-    Const (nth_atom_name "" T j k, T)
+    Const (nth_atom_name pool "" T j k, T)
 
 (* term -> real *)
 fun extract_real_number (Const (@{const_name Algebras.divide}, _) $ t1 $ t2) =
@@ -254,6 +264,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
         ({hol_ctxt as {thy, ctxt, ...}, card_assigns, bits, datatypes, ofs, ...}
          : scope) sel_names rel_table bounds =
   let
+    val pool = Unsynchronized.ref []
     val for_auto = (maybe_name = "")
     (* int list list -> int *)
     fun value_of_bits jss =
@@ -384,15 +395,15 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
         else if T = @{typ bisim_iterator} then
           HOLogic.mk_number nat_T j
         else case datatype_spec datatypes T of
-          NONE => nth_atom for_auto T j k
-        | SOME {deep = false, ...} => nth_atom for_auto T j k
+          NONE => nth_atom pool for_auto T j k
+        | SOME {deep = false, ...} => nth_atom pool for_auto T j k
         | SOME {co, constrs, ...} =>
           let
             (* styp -> int list *)
             fun tuples_for_const (s, T) =
               tuple_list_for_name rel_table bounds (ConstName (s, T, Any))
             (* unit -> indexname * typ *)
-            fun var () = ((nth_atom_name "" T j k, 0), T)
+            fun var () = ((nth_atom_name pool "" T j k, 0), T)
             val discr_jsss = map (tuples_for_const o discr_for_constr o #const)
                                  constrs
             val real_j = j + offset_of_type ofs T
@@ -731,11 +742,12 @@ fun prove_hol_model (scope as {hol_ctxt as {thy, ctxt, debug, ...},
                                card_assigns, ...})
                     auto_timeout free_names sel_names rel_table bounds prop =
   let
+    val pool = Unsynchronized.ref []
     (* typ * int -> term *)
     fun free_type_assm (T, k) =
       let
         (* int -> term *)
-        fun atom j = nth_atom true T j k
+        fun atom j = nth_atom pool true T j k
         fun equation_for_atom j = HOLogic.eq_const T $ Bound 0 $ atom j
         val eqs = map equation_for_atom (index_seq 0 k)
         val compreh_assm =

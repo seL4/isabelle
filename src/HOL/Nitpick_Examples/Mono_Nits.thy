@@ -1,6 +1,6 @@
 (*  Title:      HOL/Nitpick_Examples/Mono_Nits.thy
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2009
+    Copyright   2009, 2010
 
 Examples featuring Nitpick's monotonicity check.
 *)

@@ -1,6 +1,6 @@
 (*  Title:      HOL/Nitpick_Examples/Integer_Nits.thy
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2009
+    Copyright   2009, 2010
 
 Examples featuring Nitpick applied to natural numbers and integers.
 *)
