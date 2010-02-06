@@ -122,14 +122,13 @@ class Session(system: Isabelle_System)
         // global status message
         result.body match {
 
-          // document state assigment
+          // document state assignment
           case List(XML.Elem(Markup.ASSIGN, _, edits)) if target_id.isDefined =>
             documents.get(target_id.get) match {
               case Some(doc) =>
                 val states =
                   for {
-                    XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _)
-                      <- edits
+                    XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _) <- edits
                     cmd <- lookup_command(cmd_id)
                   } yield {
                     val st = cmd.assign_state(state_id)
