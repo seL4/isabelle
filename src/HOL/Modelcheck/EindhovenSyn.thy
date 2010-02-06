@@ -40,7 +40,7 @@ let
       val pmu =
         if eindhoven_home = "" then error "Environment variable EINDHOVEN_HOME not set"
         else eindhoven_home ^ "/pmu";
-    in #1 (system_out ("echo \"" ^ s ^ "\" | " ^ pmu ^ " -w")) end;
+    in #1 (bash_output ("echo \"" ^ s ^ "\" | " ^ pmu ^ " -w")) end;
 in
   fn cgoal =>
     let

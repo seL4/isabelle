@@ -168,7 +168,7 @@ fun external_prover relevance_filter prepare write cmd args find_failure produce
     fun run_on probfile =
       if File.exists cmd then
         write probfile clauses
-        |> pair (apfst split_time' (system_out (cmd_line probfile)))
+        |> pair (apfst split_time' (bash_output (cmd_line probfile)))
       else error ("Bad executable: " ^ Path.implode cmd);
 
     (* if problemfile has not been exported, delete problemfile; otherwise export proof, too *)
@@ -306,7 +306,7 @@ val systems = Synchronized.var "atp_wrapper_systems" ([]: string list);
 
 fun get_systems () =
   let
-    val (answer, rc) = system_out ("\"$ISABELLE_ATP_MANAGER/SystemOnTPTP\" -w")
+    val (answer, rc) = bash_output ("\"$ISABELLE_ATP_MANAGER/SystemOnTPTP\" -w")
   in
     if rc <> 0 then error ("Failed to get available systems from SystemOnTPTP:\n" ^ answer)
     else split_lines answer

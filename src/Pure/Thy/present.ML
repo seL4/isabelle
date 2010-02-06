@@ -328,7 +328,7 @@ fun isabelle_document verbose format name tags path result_path =
       \-n '" ^ name ^ "' -t '" ^ tags ^ "' " ^ File.shell_path path ^ " 2>&1";
     val doc_path = Path.append result_path (Path.ext format (Path.basic name));
     val _ = if verbose then writeln s else ();
-    val (out, rc) = system_out s;
+    val (out, rc) = bash_output s;
     val _ =
       if not (File.exists doc_path) orelse rc <> 0 then
         cat_error out ("Failed to build document " ^ quote (show_path doc_path))

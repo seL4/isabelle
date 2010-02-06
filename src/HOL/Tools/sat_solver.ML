@@ -282,7 +282,7 @@ struct
   (* string -> (PropLogic.prop_formula -> unit) -> (unit -> result) -> solver *)
 
   fun make_external_solver cmd writefn readfn fm =
-    (writefn fm; system cmd; readfn ());
+    (writefn fm; bash cmd; readfn ());
 
 (* ------------------------------------------------------------------------- *)
 (* read_dimacs_cnf_file: returns a propositional formula that corresponds to *)

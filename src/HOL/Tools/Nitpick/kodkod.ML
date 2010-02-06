@@ -1004,7 +1004,7 @@ fun read_output_file path =
   read_next_problems (Substring.full (File.read path), [], []) |>> rev ||> rev
 
 (* The fudge term below is to account for Kodkodi's slow start-up time, which
-   is partly due to the JVM and partly due to the ML "system" function. *)
+   is partly due to the JVM and partly due to the ML "bash" function. *)
 val fudge_ms = 250
 
 (* bool -> Time.time option -> int -> int -> problem list -> outcome *)
@@ -1053,7 +1053,7 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
           val outcome =
             let
               val code =
-                system ("cd " ^ temp_dir ^ ";\n" ^
+                bash ("cd " ^ temp_dir ^ ";\n" ^
                         "env CLASSPATH=\"$KODKODI_CLASSPATH:$CLASSPATH\" \
                         \JAVA_LIBRARY_PATH=\"$KODKODI_JAVA_LIBRARY_PATH:\
                         \$JAVA_LIBRARY_PATH\" \

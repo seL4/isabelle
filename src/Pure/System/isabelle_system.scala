@@ -162,7 +162,7 @@ class Isabelle_System extends Standard_System
 
   /** system tools **/
 
-  def system_out(script: String): (String, Int) =
+  def bash_output(script: String): (String, Int) =
   {
     Standard_System.with_tmp_file("isabelle_script") { script_file =>
       Standard_System.with_tmp_file("isabelle_pid") { pid_file =>

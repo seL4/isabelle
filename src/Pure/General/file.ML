@@ -14,7 +14,6 @@ sig
   val full_path: Path.T -> Path.T
   val tmp_path: Path.T -> Path.T
   val isabelle_tool: string -> string -> int
-  val system_command: string -> unit
   eqtype ident
   val rep_ident: ident -> string
   val ident: Path.T -> ident option
@@ -75,11 +74,11 @@ fun isabelle_tool name args =
         then SOME path
         else NONE
       end handle OS.SysErr _ => NONE) of
-    SOME path => system (shell_quote path ^ " " ^ args)
+    SOME path => bash (shell_quote path ^ " " ^ args)
   | NONE => (writeln ("Unknown Isabelle tool: " ^ name); 2));
 
 fun system_command cmd =
-  if system cmd <> 0 then error ("System command failed: " ^ cmd)
+  if bash cmd <> 0 then error ("System command failed: " ^ cmd)
   else ();
 
 
@@ -116,7 +115,7 @@ fun ident path =
               SOME id => id
             | NONE =>
                 let val (id, rc) =  (*potentially slow*)
-                  system_out ("\"$ISABELLE_HOME/lib/scripts/fileident\" " ^ shell_quote physical_path)
+                  bash_output ("\"$ISABELLE_HOME/lib/scripts/fileident\" " ^ shell_quote physical_path)
                 in
                   if id <> "" andalso rc = 0 then (update_cache (physical_path, (mod_time, id)); id)
                   else error ("Failed to identify file " ^ quote (Path.implode path) ^ " by " ^ cmd)

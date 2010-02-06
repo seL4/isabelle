@@ -229,7 +229,7 @@ fun write_file name txt =
 
 in
 
-fun system_out script =
+fun bash_output script =
   let
     val script_name = OS.FileSys.tmpName ();
     val _ = write_file script_name script;

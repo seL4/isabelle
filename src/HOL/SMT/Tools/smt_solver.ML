@@ -156,7 +156,7 @@ fun run ctxt cmd args (problem_path, proof_path) =
       else (["certificate"], "Using certificate from " ^ quote certs' ^ " ...")
     val _ = tracing msg
   in
-    system_out (space_implode " " ("perl -w" ::
+    bash_output (space_implode " " ("perl -w" ::
       File.shell_path (Path.explode (getenv "RUN_SMT_SOLVER")) :: certs' ::
       map File.shell_quote (solver @ args) @
       map File.shell_path [problem_path, proof_path]) ^ " 2>&1")

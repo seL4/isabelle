@@ -15,8 +15,8 @@ sig
   val toplevel_pp: string list -> string -> unit
   val open_unsynchronized: unit -> unit
   val commit: unit -> unit
-  val system_out: string -> string * int
-  val system: string -> int
+  val bash_output: string -> string * int
+  val bash: string -> int
 end;
 
 structure Secure: SECURE =
@@ -61,12 +61,12 @@ fun open_unsynchronized () = use_global "open Unsynchronized";
 
 fun secure_shell () = deny_secure "Cannot execute shell commands in secure mode";
 
-val orig_system_out = system_out;
+val orig_bash_output = bash_output;
 
-fun system_out s = (secure_shell (); orig_system_out s);
+fun bash_output s = (secure_shell (); orig_bash_output s);
 
-fun system s =
-  (case system_out s of
+fun bash s =
+  (case bash_output s of
     ("", rc) => rc
   | (out, rc) => (writeln (perhaps (try (unsuffix "\n")) out); rc));
 
@@ -78,5 +78,5 @@ val use_file = Secure.use_file;
 fun use s = Secure.use_file ML_Parse.global_context true s
   handle ERROR msg => (writeln msg; error "ML error");
 val toplevel_pp = Secure.toplevel_pp;
-val system_out = Secure.system_out;
-val system = Secure.system;
+val bash_output = Secure.bash_output;
+val bash = Secure.bash;

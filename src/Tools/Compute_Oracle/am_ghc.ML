@@ -228,7 +228,7 @@ fun compile cache_patterns const_arity eqs =
         val module_file = tmp_file (module^".hs")
         val object_file = tmp_file (module^".o")
         val _ = writeTextFile module_file source
-        val _ = system ((!ghc)^" -c "^module_file)
+        val _ = bash ((!ghc)^" -c "^module_file)
         val _ = if not (fileExists object_file) then raise Compile ("Failure compiling haskell code (GHC_PATH = '"^(!ghc)^"')") else ()
     in
         (guid, module_file, arity)      
@@ -309,7 +309,7 @@ fun run (guid, module_file, arity) t =
         val term = print_term arity_of 0 t
         val call_source = "module "^call^" where\n\nimport "^module^"\n\ncall = "^module^".calc \""^result_file^"\" ("^term^")"
         val _ = writeTextFile call_file call_source
-        val _ = system ((!ghc)^" -e \""^call^".call\" "^module_file^" "^call_file)
+        val _ = bash ((!ghc)^" -e \""^call^".call\" "^module_file^" "^call_file)
         val result = readResultFile result_file handle IO.Io _ => raise Run ("Failure running haskell compiler (GHC_PATH = '"^(!ghc)^"')")
         val t' = parse_result arity_of result
         val _ = OS.FileSys.remove call_file

@@ -14,7 +14,7 @@ use "ML-Systems/universal.ML";
 use "ML-Systems/thread_dummy.ML";
 use "ML-Systems/multithreading.ML";
 use "ML-Systems/timing.ML";
-use "ML-Systems/system_shell.ML";
+use "ML-Systems/bash.ML";
 use "ML-Systems/ml_name_space.ML";
 use "ML-Systems/ml_pretty.ML";
 use "ML-Systems/use_context.ML";
@@ -179,7 +179,7 @@ val pwd = OS.FileSys.getDir;
 
 (* system command execution *)
 
-val system_out = (fn (output, rc) => (output, mk_int rc)) o system_out;
+val bash_output = (fn (output, rc) => (output, mk_int rc)) o bash_output;
 
 fun process_id pid =
   Word.fmt StringCvt.DEC (Word.fromLargeWord (Posix.Process.pidToWord (Posix.ProcEnv.getpid ())));
