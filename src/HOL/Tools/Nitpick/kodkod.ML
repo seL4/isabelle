@@ -1053,7 +1053,7 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
           val outcome =
             let
               val code =
-                bash ("cd " ^ temp_dir ^ ";\n" ^
+                bash ("cd " ^ File.shell_quote temp_dir ^ ";\n" ^
                         "env CLASSPATH=\"$KODKODI_CLASSPATH:$CLASSPATH\" \
                         \JAVA_LIBRARY_PATH=\"$KODKODI_JAVA_LIBRARY_PATH:\
                         \$JAVA_LIBRARY_PATH\" \
@@ -1068,9 +1068,9 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
                            " -max-threads " ^ string_of_int max_threads
                          else
                            "") ^
-                        " < " ^ Path.implode in_path ^
-                        " > " ^ Path.implode out_path ^
-                        " 2> " ^ Path.implode err_path)
+                        " < " ^ File.shell_path in_path ^
+                        " > " ^ File.shell_path out_path ^
+                        " 2> " ^ File.shell_path err_path)
               val (ps, nontriv_js) = read_output_file out_path
                                      |>> map (apfst reindex) ||> map reindex
               val js = triv_js @ nontriv_js
