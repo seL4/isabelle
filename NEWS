@@ -6,16 +6,16 @@ New in this Isabelle version
 
 *** Pure ***
 
-* Code generator: details of internal data cache have no impact on
-the user space functionality any longer.
+* Code generator: details of internal data cache have no impact on the
+user space functionality any longer.
 
 
 *** HOL ***
 
-* new theory Algebras.thy contains generic algebraic structures and
+* New theory Algebras contains generic algebraic structures and
 generic algebraic operations.  INCOMPATIBILTY: constants zero, one,
-plus, minus, uminus, times, inverse, divide, abs, sgn, less_eq and less
-have been moved from HOL.thy to Algebras.thy.
+plus, minus, uminus, times, inverse, divide, abs, sgn, less_eq and
+less have been moved from HOL.thy to Algebras.thy.
 
 * HOLogic.strip_psplit: types are returned in syntactic order, similar
 to other strip and tuple operations.  INCOMPATIBILITY.
@@ -24,24 +24,24 @@ to other strip and tuple operations.  INCOMPATIBILITY.
 replaced by new-style primrec, especially in theory List.  The corresponding
 constants now have authentic syntax.  INCOMPATIBILITY.
 
-* Reorganized theory Multiset.thy: less duplication, less historical
+* Reorganized theory Multiset: less duplication, less historical
 organization of sections, conversion from associations lists to
 multisets, rudimentary code generation.  Use insert_DiffM2 [symmetric]
 instead of elem_imp_eq_diff_union, if needed.  INCOMPATIBILITY.
 
-* Reorganized theory Sum_Type.thy; Inl and Inr now have
-authentic syntax.  INCOMPATIBILITY.
+* Reorganized theory Sum_Type; Inl and Inr now have authentic syntax.
+INCOMPATIBILITY.
 
 * Code generation: ML and OCaml code is decorated with signatures.
 
-* Complete_Lattice.thy: lemmas top_def and bot_def have been replaced
-by the more convenient lemmas Inf_empty and Sup_empty.  Dropped lemmas
-Inf_insert_simp and Sup_insert_simp, which are subsumed by Inf_insert
-and Sup_insert.  Lemmas Inf_UNIV and Sup_UNIV replace former Inf_Univ
-and Sup_Univ.  Lemmas inf_top_right and sup_bot_right subsume inf_top
-and sup_bot respectively.  INCOMPATIBILITY.
+* Theory Complete_Lattice: lemmas top_def and bot_def have been
+replaced by the more convenient lemmas Inf_empty and Sup_empty.
+Dropped lemmas Inf_insert_simp and Sup_insert_simp, which are subsumed
+by Inf_insert and Sup_insert.  Lemmas Inf_UNIV and Sup_UNIV replace
+former Inf_Univ and Sup_Univ.  Lemmas inf_top_right and sup_bot_right
+subsume inf_top and sup_bot respectively.  INCOMPATIBILITY.
 
-* Finite_Set.thy and List.thy: some lemmas have been generalized from
+* Theory Finite_Set and List: some lemmas have been generalized from
 sets to lattices:
 
   fun_left_comm_idem_inter      ~> fun_left_comm_idem_inf
@@ -55,7 +55,8 @@ sets to lattices:
   INTER_fold_inter              ~> INFI_fold_inf
   UNION_fold_union              ~> SUPR_fold_sup
 
-* Added transpose to List.thy.
+* Theory List: added transpose.
+
 
 *** ML ***
 
