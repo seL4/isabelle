@@ -88,22 +88,24 @@ fun new_group () = Task_Queue.new_group (worker_group ());
 
 (* datatype future *)
 
+type 'a result = 'a Exn.result Single_Assignment.var;
+
 datatype 'a future = Future of
  {promised: bool,
   task: task,
   group: group,
-  result: 'a Exn.result option Synchronized.var};
+  result: 'a result};
 
 fun task_of (Future {task, ...}) = task;
 fun group_of (Future {group, ...}) = group;
 fun result_of (Future {result, ...}) = result;
 
-fun peek x = Synchronized.value (result_of x);
+fun peek x = Single_Assignment.peek (result_of x);
 fun is_finished x = is_some (peek x);
 
 fun assign_result group result res =
   let
-    val _ = Synchronized.assign result (K (SOME res));
+    val _ = Single_Assignment.assign result res;
     val ok =
       (case res of
         Exn.Exn exn => (Task_Queue.cancel_group group exn; false)
@@ -167,7 +169,7 @@ fun count_workers state = (*requires SYNCHRONIZED*)
 
 fun future_job group (e: unit -> 'a) =
   let
-    val result = Synchronized.var "future" (NONE: 'a Exn.result option);
+    val result = Single_Assignment.var "future" : 'a result;
     fun job ok =
       let
         val res =
@@ -409,9 +411,6 @@ fun get_result x =
       Exn.Exn (Exn.EXCEPTIONS (Exn.flatten_list (Task_Queue.group_status (group_of x))))
   | SOME res => res);
 
-fun passive_wait x =
-  Synchronized.readonly_access (result_of x) (fn NONE => NONE | SOME _ => SOME ());
-
 fun join_next deps = (*requires SYNCHRONIZED*)
   if null deps then NONE
   else
@@ -438,7 +437,7 @@ fun join_results xs =
   else
     (case worker_task () of
       SOME task => join_depend task (map task_of xs)
-    | NONE => List.app passive_wait xs;
+    | NONE => List.app (ignore o Single_Assignment.await o result_of) xs;
     map get_result xs);
 
 end;
@@ -452,7 +451,7 @@ fun join x = Exn.release (join_result x);
 fun value (x: 'a) =
   let
     val group = Task_Queue.new_group NONE;
-    val result = Synchronized.var "value" NONE : 'a Exn.result option Synchronized.var;
+    val result = Single_Assignment.var "value" : 'a result;
     val _ = assign_result group result (Exn.Result x);
   in Future {promised = false, task = Task_Queue.dummy_task, group = group, result = result} end;
 
@@ -476,7 +475,7 @@ fun map_future f x =
 
 fun promise_group group : 'a future =
   let
-    val result = Synchronized.var "promise" (NONE: 'a Exn.result option);
+    val result = Single_Assignment.var "promise" : 'a result;
     val task = SYNCHRONIZED "enqueue" (fn () =>
       Unsynchronized.change_result queue (Task_Queue.enqueue_passive group));
   in Future {promised = true, task = task, group = group, result = result} end;
