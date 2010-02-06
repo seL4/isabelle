@@ -127,7 +127,7 @@ fun make_queue groups jobs = Queue {groups = groups, jobs = jobs};
 val empty = make_queue Inttab.empty Task_Graph.empty;
 
 fun all_passive (Queue {jobs, ...}) =
-  Task_Graph.get_first NONE
+  Task_Graph.get_first
     ((fn Job _ => SOME () | Running _ => SOME () | Passive => NONE) o #2 o #1 o #2) jobs |> is_none;
 
 
@@ -204,7 +204,7 @@ fun dequeue thread (queue as Queue {groups, jobs}) =
           if is_ready deps group then SOME (task, group, rev list) else NONE
       | ready _ = NONE;
   in
-    (case Task_Graph.get_first NONE ready jobs of
+    (case Task_Graph.get_first ready jobs of
       NONE => (NONE, queue)
     | SOME (result as (task, _, _)) =>
         let val jobs' = set_job task (Running thread) jobs

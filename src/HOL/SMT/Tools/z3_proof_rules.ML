@@ -83,7 +83,7 @@ val rule_names = Symtab.make [
 val rule_of_string = Symtab.lookup rule_names
 fun string_of_rule r =
   let fun fit (s, r') = if r = r' then SOME s else NONE 
-  in the (Symtab.get_first NONE fit rule_names) end
+  in the (Symtab.get_first fit rule_names) end
 
 
 (* proof representation *)
@@ -545,7 +545,7 @@ local
 
   fun derive conj t lits idx ptab =
     let
-      val (l, lit) = the (Termtab.get_first NONE (get_lit conj t) lits)
+      val (l, lit) = the (Termtab.get_first (get_lit conj t) lits)
       val ls = explode_thm conj false false [t] lit
       val lits' = fold (Termtab.update o ` prop_of) ls (Termtab.delete l lits)
       fun upd (Sequent {hyps, vars, thm}) =
@@ -1231,7 +1231,7 @@ local
       (case Termtab.lookup tab @{term False} of
         SOME rs => extract_lit thm rs
       | NONE =>
-          pairself (extract_lit thm) (the (Termtab.get_first NONE pnlits tab))
+          pairself (extract_lit thm) (the (Termtab.get_first pnlits tab))
           |> (fn (nlit, plit) => nlit COMP (plit COMP contra_rule)))
     end
   val falseE_v = Thm.dest_arg (Thm.dest_arg (Thm.cprop_of @{thm FalseE}))
