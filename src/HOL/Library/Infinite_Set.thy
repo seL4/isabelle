@@ -192,10 +192,11 @@ proof -
     by (auto simp add: infinite_nat_iff_unbounded)
 qed
 
-lemma nat_infinite [simp]: "infinite (UNIV :: nat set)"
+(* duplicates Finite_Set.infinite_UNIV_nat *)
+lemma nat_infinite: "infinite (UNIV :: nat set)"
   by (auto simp add: infinite_nat_iff_unbounded)
 
-lemma nat_not_finite [elim]: "finite (UNIV::nat set) \<Longrightarrow> R"
+lemma nat_not_finite: "finite (UNIV::nat set) \<Longrightarrow> R"
   by simp
 
 text {*
