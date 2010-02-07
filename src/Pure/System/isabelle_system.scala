@@ -170,8 +170,7 @@ class Isabelle_System extends Standard_System
 
           Standard_System.write_file(script_file, script)
 
-          val proc = execute(true, "perl", "-w",
-            expand_path("$ISABELLE_HOME/lib/scripts/system.pl"), "group",
+          val proc = execute(true, expand_path("$ISABELLE_HOME/lib/scripts/bash"), "group",
             script_file.getPath, pid_file.getPath, output_file.getPath)
 
           def kill(strict: Boolean) =

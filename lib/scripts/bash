@@ -1,12 +1,17 @@
+#!/usr/bin/env perl
 #
 # Author: Makarius
 #
-# system.pl - invoke shell command line (with robust signal handling)
+# bash - invoke shell command line (with robust signal handling)
 #
+
+use warnings;
+use strict;
+
 
 # args
 
-($group, $script_name, $pid_name, $output_name) = @ARGV;
+my ($group, $script_name, $pid_name, $output_name) = @ARGV;
 
 
 # process id
@@ -25,4 +30,3 @@ close PID_FILE;
 
 $SIG{'INT'} = "DEFAULT";   #paranoia setting, required for Cygwin
 exec qq/exec bash '$script_name' > '$output_name'/;
-

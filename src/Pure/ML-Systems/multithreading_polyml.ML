@@ -180,7 +180,7 @@ fun bash_output script = with_attributes no_interrupts (fn orig_atts =>
     val system_thread = Thread.fork (fn () =>
       let
         val status =
-          OS.Process.system ("perl -w \"$ISABELLE_HOME/lib/scripts/system.pl\" group " ^
+          OS.Process.system ("exec \"$ISABELLE_HOME/lib/scripts/bash\" group " ^
             script_name ^ " " ^ pid_name ^ " " ^ output_name);
         val res =
           (case Posix.Process.fromStatus status of
