@@ -100,13 +100,13 @@ fun collect_vars (Abs (_, _, t)) = collect_vars t
       | (t, ts) => fold collect_vars ts);
 
 
-val split_rule_var = (Drule.standard o remove_internal_split) oo split_rule_var';
+val split_rule_var = (Drule.export_without_context o remove_internal_split) oo split_rule_var';
 
 (*curries ALL function variables occurring in a rule's conclusion*)
 fun split_rule rl =
   fold_rev split_rule_var' (OldTerm.term_vars (concl_of rl)) rl
   |> remove_internal_split
-  |> Drule.standard;
+  |> Drule.export_without_context;
 
 (*curries ALL function variables*)
 fun complete_split_rule rl =
@@ -117,7 +117,7 @@ fun complete_split_rule rl =
   in
     fst (fold_rev complete_split_rule_var vars (rl, xs))
     |> remove_internal_split
-    |> Drule.standard
+    |> Drule.export_without_context
     |> Rule_Cases.save rl
   end;
 
@@ -137,7 +137,7 @@ fun split_rule_goal ctxt xss rl =
     rl
     |> fold_index one_goal xss
     |> Simplifier.full_simplify split_rule_ss
-    |> Drule.standard
+    |> Drule.export_without_context
     |> Rule_Cases.save rl
   end;
 

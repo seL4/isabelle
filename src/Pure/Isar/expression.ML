@@ -699,7 +699,7 @@ fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
             |> PureThy.note_thmss ""
                  [((Binding.conceal (Binding.name introN), []), [([intro], [Locale.intro_add])]),
                   ((Binding.conceal (Binding.name axiomsN), []),
-                    [(map (Drule.standard o Element.conclude_witness) axioms, [])])]
+                    [(map (Drule.export_without_context o Element.conclude_witness) axioms, [])])]
             ||> Sign.restore_naming thy''';
         in (SOME statement, SOME intro, axioms, thy'''') end;
   in ((a_pred, a_intro, a_axioms), (b_pred, b_intro, b_axioms), thy'''') end;

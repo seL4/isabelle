@@ -210,7 +210,7 @@ fun prove_future ctxt xs asms prop tac = hd (prove_common false ctxt xs asms [pr
 fun prove ctxt xs asms prop tac = hd (prove_common true ctxt xs asms [prop] tac);
 
 fun prove_global thy xs asms prop tac =
-  Drule.standard (prove (ProofContext.init thy) xs asms prop tac);
+  Drule.export_without_context (prove (ProofContext.init thy) xs asms prop tac);
 
 
 

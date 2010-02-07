@@ -89,7 +89,7 @@ fun prove_cpo
           (Tactic.rtac (@{thm typedef_cpo} OF cpo_thms) 1);
     (* transfer thms so that they will know about the new cpo instance *)
     val cpo_thms' = map (Thm.transfer thy2) cpo_thms;
-    fun make thm = Drule.standard (thm OF cpo_thms');
+    fun make thm = Drule.export_without_context (thm OF cpo_thms');
     val ([adm, cont_Rep, cont_Abs, lub, thelub, compact], thy3) =
       thy2
       |> Sign.add_path (Binding.name_of name)
@@ -127,7 +127,7 @@ fun prove_pcpo
       |> AxClass.prove_arity (full_tname, lhs_sorts, @{sort pcpo})
         (Tactic.rtac (@{thm typedef_pcpo} OF pcpo_thms) 1);
     val pcpo_thms' = map (Thm.transfer thy2) pcpo_thms;
-    fun make thm = Drule.standard (thm OF pcpo_thms');
+    fun make thm = Drule.export_without_context (thm OF pcpo_thms');
     val ([Rep_strict, Abs_strict, Rep_strict_iff, Abs_strict_iff,
           Rep_defined, Abs_defined], thy3) =
       thy2

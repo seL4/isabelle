@@ -75,7 +75,7 @@ end
 fun add_specification axiomatic cos arg =
     arg |> apsnd Thm.freezeT
         |> proc_exprop axiomatic cos
-        |> apsnd Drule.standard
+        |> apsnd Drule.export_without_context
 
 
 (* Collect all intances of constants in term *)
@@ -189,7 +189,7 @@ fun process_spec axiomatic cos alt_props thy =
                     in
                         args |> apsnd (remove_alls frees)
                              |> apsnd undo_imps
-                             |> apsnd Drule.standard
+                             |> apsnd Drule.export_without_context
                              |> Thm.theory_attributes (map (Attrib.attribute thy) atts)
                              |> add_final
                              |> Library.swap

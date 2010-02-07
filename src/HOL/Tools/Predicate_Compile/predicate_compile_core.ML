@@ -577,7 +577,7 @@ fun fetch_pred_data thy name =
         (*val elim = singleton (Inductive_Set.codegen_preproc thy) (preprocess_elim thy nparams 
           (expand_tuples_elim pre_elim))*)
         val elim =
-          (Drule.standard o Skip_Proof.make_thm thy)
+          (Drule.export_without_context o Skip_Proof.make_thm thy)
           (mk_casesrule (ProofContext.init thy) pred intros)
       in
         mk_pred_data ((intros, SOME elim), no_compilation)
@@ -641,7 +641,7 @@ fun register_intros (constname, pre_intros) thy =
       else ()
     val pred = Const (constname, T)
     val pre_elim = 
-      (Drule.standard o Skip_Proof.make_thm thy)
+      (Drule.export_without_context o Skip_Proof.make_thm thy)
       (mk_casesrule (ProofContext.init thy) pred pre_intros)
   in register_predicate (constname, pre_intros, pre_elim) thy end
 
@@ -2178,7 +2178,8 @@ fun prove options thy clauses preds modes moded_clauses compiled_terms =
     (join_preds_modes moded_clauses compiled_terms)
 
 fun prove_by_skip options thy _ _ _ _ compiled_terms =
-  map_preds_modes (fn pred => fn mode => fn t => Drule.standard (Skip_Proof.make_thm thy t))
+  map_preds_modes
+    (fn pred => fn mode => fn t => Drule.export_without_context (Skip_Proof.make_thm thy t))
     compiled_terms
 
 (* preparation of introduction rules into special datastructures *)
@@ -2269,7 +2270,7 @@ fun check_intros_elim_match thy prednames =
         val elim = the_elim_of thy predname
         val nparams = nparams_of thy predname
         val elim' =
-          (Drule.standard o (Skip_Proof.make_thm thy))
+          (Drule.export_without_context o Skip_Proof.make_thm thy)
           (mk_casesrule (ProofContext.init thy) nparams intros)
       in
         if not (Thm.equiv_thm (elim, elim')) then

@@ -251,7 +251,7 @@ fun add_fixdefs
 
     (* register unfold theorems *)
     val (unfold_thms, thy) =
-      (PureThy.add_thms o map (Thm.no_attributes o apsnd Drule.standard))
+      (PureThy.add_thms o map (Thm.no_attributes o apsnd Drule.export_without_context))
         (mk_unfold_thms unfold_binds tuple_unfold_thm) thy;
   in
     ((proj_thms, unfold_thms), thy)
@@ -446,7 +446,7 @@ fun gen_domain_isomorphism
     (* prove isomorphism and isodefl rules *)
     fun mk_iso_thms ((tbind, REP_eq), (rep_def, abs_def)) thy =
       let
-        fun make thm = Drule.standard (thm OF [REP_eq, abs_def, rep_def]);
+        fun make thm = Drule.export_without_context (thm OF [REP_eq, abs_def, rep_def]);
         val rep_iso_thm = make @{thm domain_rep_iso};
         val abs_iso_thm = make @{thm domain_abs_iso};
         val isodefl_thm = make @{thm isodefl_abs_rep};
@@ -545,7 +545,7 @@ fun gen_domain_isomorphism
           val thmR = thm RS @{thm conjunct2};
         in (n, thmL):: conjuncts ns thmR end;
     val (isodefl_thms, thy) = thy |>
-      (PureThy.add_thms o map (Thm.no_attributes o apsnd Drule.standard))
+      (PureThy.add_thms o map (Thm.no_attributes o apsnd Drule.export_without_context))
         (conjuncts isodefl_binds isodefl_thm);
     val thy = IsodeflData.map (fold Thm.add_thm isodefl_thms) thy;
 

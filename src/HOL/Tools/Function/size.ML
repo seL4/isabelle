@@ -197,7 +197,7 @@ fun prove_size_thms (info : info) new_type_names thy =
 
     fun prove_size_eqs p size_fns size_ofp simpset =
       maps (fn (((_, (_, _, constrs)), size_const), T) =>
-        map (fn constr => Drule.standard (Skip_Proof.prove ctxt [] []
+        map (fn constr => Drule.export_without_context (Skip_Proof.prove ctxt [] []
           (gen_mk_size_eq p (AList.lookup op = (new_type_names ~~ size_fns))
              size_ofp size_const T constr)
           (fn _ => simp_tac simpset 1))) constrs)

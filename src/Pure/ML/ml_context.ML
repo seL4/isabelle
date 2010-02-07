@@ -70,8 +70,8 @@ fun ml_store sel (name, ths) =
 val ml_store_thms = ml_store "";
 fun ml_store_thm (name, th) = ml_store "hd" (name, [th]);
 
-fun bind_thm (name, thm) = ml_store_thm (name, Drule.standard thm);
-fun bind_thms (name, thms) = ml_store_thms (name, map Drule.standard thms);
+fun bind_thm (name, thm) = ml_store_thm (name, Drule.export_without_context thm);
+fun bind_thms (name, thms) = ml_store_thms (name, map Drule.export_without_context thms);
 
 fun thm name = ProofContext.get_thm (the_local_context ()) name;
 fun thms name = ProofContext.get_thms (the_local_context ()) name;

@@ -139,7 +139,7 @@ fun gen_add_repdef
       |> Sign.add_path (Binding.name_of name)
       |> PureThy.add_thms
         [((Binding.prefix_name "REP_" name,
-          Drule.standard (@{thm typedef_REP} OF typedef_thms')), [])]
+          Drule.export_without_context (@{thm typedef_REP} OF typedef_thms')), [])]
       ||> Sign.parent_path;
 
     val rep_info =

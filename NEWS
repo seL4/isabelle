@@ -60,6 +60,10 @@ sets to lattices:
 
 *** ML ***
 
+* Renamed old-style Drule.standard to Drule.export_without_context, to
+emphasize that this is in no way a standard operation.
+INCOMPATIBILITY.
+
 * Curried take and drop in library.ML; negative length is interpreted
 as infinity (as in chop).  INCOMPATIBILITY.
 

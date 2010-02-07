@@ -110,8 +110,8 @@ fun prove_conv_nohyps tacs ctxt (t, u) =
 
 fun prove_conv tacs ctxt (_: thm list) = prove_conv_nohyps tacs ctxt;
 
-fun prove_conv2 expand_tac norm_tac ss tu = (*FIXME avoid standard*)
-  mk_meta_eq (Drule.standard (Goal.prove (Simplifier.the_context ss) [] []
+fun prove_conv2 expand_tac norm_tac ss tu = (* FIXME avoid Drule.export_without_context *)
+  mk_meta_eq (Drule.export_without_context (Goal.prove (Simplifier.the_context ss) [] []
       (HOLogic.mk_Trueprop (HOLogic.mk_eq tu))
     (K (EVERY [expand_tac, norm_tac ss]))));
 

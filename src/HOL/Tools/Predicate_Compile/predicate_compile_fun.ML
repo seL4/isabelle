@@ -391,7 +391,7 @@ fun rewrite_intro thy intro =
         |> map (fn (concl'::conclprems, _) =>
           Logic.list_implies ((flat prems') @ conclprems, concl')))
   in
-    map (Drule.standard o (Skip_Proof.make_thm thy)) intro_ts'
+    map (Drule.export_without_context o Skip_Proof.make_thm thy) intro_ts'
   end
 
 end;
