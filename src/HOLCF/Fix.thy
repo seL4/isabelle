@@ -73,6 +73,10 @@ apply (rule chain_iterate)
 apply simp
 done
 
+lemma iterate_below_fix: "iterate n\<cdot>f\<cdot>\<bottom> \<sqsubseteq> fix\<cdot>f"
+  unfolding fix_def2
+  using chain_iterate by (rule is_ub_thelub)
+
 text {*
   Kleene's fixed point theorems for continuous functions in pointed
   omega cpo's
