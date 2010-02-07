@@ -706,23 +706,28 @@ local
   val copy_take_defs =
     (if n_eqs = 1 then [] else [ax_copy2_def]) @ axs_take_def;
   val _ = trace " Proving take_stricts...";
-  val take_stricts =
+  fun one_take_strict ((dn, args), _) =
     let
-      fun one_eq ((dn, args), _) = strict (dc_take dn $ %:"n");
-      val goal = mk_trp (foldr1 mk_conj (map one_eq eqs));
-      fun tacs ctxt = [
-        InductTacs.induct_tac ctxt [[SOME "n"]] 1,
-        simp_tac iterate_Cprod_ss 1,
-        asm_simp_tac (iterate_Cprod_ss addsimps copy_rews) 1];
-    in pg copy_take_defs goal tacs end;
-
-  val take_stricts' = rewrite_rule copy_take_defs take_stricts;
+      val goal = mk_trp (strict (dc_take dn $ %:"n"));
+      val rules = [
+        @{thm monofun_fst [THEN monofunE]},
+        @{thm monofun_snd [THEN monofunE]}];
+      val tacs = [
+        rtac @{thm UU_I} 1,
+        rtac @{thm below_eq_trans} 1,
+        resolve_tac axs_reach 2,
+        rtac @{thm monofun_cfun_fun} 1,
+        REPEAT (resolve_tac rules 1),
+        rtac @{thm iterate_below_fix} 1];
+    in pg axs_take_def goal (K tacs) end;
+  val take_stricts = map one_take_strict eqs;
+  val take_stricts' = map (rewrite_rule copy_take_defs) take_stricts;
   fun take_0 n dn =
     let
       val goal = mk_trp ((dc_take dn $ %%: @{const_name Algebras.zero}) `% x_name n === UU);
     in pg axs_take_def goal (K [simp_tac iterate_Cprod_ss 1]) end;
   val take_0s = mapn take_0 1 dnames;
-  fun c_UU_tac ctxt = case_UU_tac ctxt (take_stricts'::copy_con_rews) 1;
+  fun c_UU_tac ctxt = case_UU_tac ctxt (take_stricts' @ copy_con_rews) 1;
   val _ = trace " Proving take_apps...";
   val take_apps =
     let
@@ -756,7 +761,7 @@ local
     in pg copy_take_defs goal tacs end;
 in
   val take_rews = map Drule.standard
-    (atomize global_ctxt take_stricts @ take_0s @ atomize global_ctxt take_apps);
+    (take_stricts @ take_0s @ atomize global_ctxt take_apps);
 end; (* local *)
 
 local
