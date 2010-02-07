@@ -181,9 +181,8 @@ val diff_simps = [@{thm diff_minus}, @{thm minus_add_distrib}, @{thm minus_minus
 (*To let us treat division as multiplication*)
 val divide_simps = [@{thm divide_inverse}, @{thm inverse_mult_distrib}, @{thm inverse_inverse_eq}];
 
-(*push the unary minus down: - x * y = x * - y *)
-val minus_mult_eq_1_to_2 =
-    [@{thm mult_minus_left}, @{thm minus_mult_right}] MRS trans |> Drule.standard;
+(*push the unary minus down*)
+val minus_mult_eq_1_to_2 = @{lemma "- (a::'a::ring) * b = a * - b" by simp};
 
 (*to extract again any uncancelled minuses*)
 val minus_from_mult_simps =
