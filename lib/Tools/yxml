@@ -31,4 +31,4 @@ function fail()
 
 ## main
 
-exec perl -w "$ISABELLE_HOME/lib/scripts/yxml.pl"
+exec "$ISABELLE_HOME/lib/scripts/yxml"
