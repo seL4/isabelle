@@ -394,7 +394,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Library/document/root.tex Library/Library/document/root.bib	\
   Library/Transitive_Closure_Table.thy Library/While_Combinator.thy	\
   Library/Product_ord.thy Library/Char_nat.thy				\
-  Library/Char_ord.thy Library/Option_ord.thy				\
+  Library/Structure_Syntax.thy						\
   Library/Sublist_Order.thy Library/List_lexord.thy			\
   Library/Coinductive_List.thy Library/AssocList.thy			\
   Library/Formal_Power_Series.thy Library/Binomial.thy			\

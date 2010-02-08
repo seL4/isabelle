@@ -60,6 +60,9 @@ the user space functionality any longer.
 
 INCOMPATIBILITY.
 
+* Index syntax for structures must be imported explicitly from library
+theory Structure_Syntax.  INCOMPATIBILITY.
+
 * new theory Algebras.thy contains generic algebraic structures and
 generic algebraic operations.  INCOMPATIBILTY: constants zero, one,
 plus, minus, uminus, times, inverse, divide, abs, sgn, less_eq and less
