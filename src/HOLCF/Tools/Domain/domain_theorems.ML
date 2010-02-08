@@ -610,6 +610,9 @@ local
                  (proj (%:"f") eqs) (dtyp_of arg) ` (%# arg)
           else (%# arg);
       val rhs = con_app2 con one_rhs args;
+      fun is_rec arg = Datatype_Aux.is_rec_type (dtyp_of arg);
+      fun is_nonlazy_rec arg = is_rec arg andalso not (is_lazy arg);
+      fun nonlazy_rec args = map vname (filter is_nonlazy_rec args);
       val goal = lift_defined %: (nonlazy_rec args, mk_trp (lhs === rhs));
       val args' = filter_out (fn a => is_rec a orelse is_lazy a) args;
       val stricts = abs_strict :: rep_strict :: @{thms domain_map_stricts};
@@ -736,7 +739,6 @@ local
       val goal = mk_trp ((dc_take dn $ @{term "0::nat"}) `% x_name n === UU);
     in pg axs_take_def goal (K [simp_tac iterate_Cprod_ss 1]) end;
   val take_0s = mapn take_0 1 dnames;
-  fun c_UU_tac ctxt = case_UU_tac ctxt (take_stricts @ con_rews) 1;
   val _ = trace " Proving take_apps...";
   fun one_take_app dn (con, args) =
     let
@@ -748,12 +750,12 @@ local
           else (%# arg);
       val lhs = (dc_take dn $ (%%:"Suc" $ %:"n"))`(con_app con args);
       val rhs = con_app2 con one_rhs args;
-      val goal = mk_trp (lhs === rhs);
-      fun tacs ctxt =
-        map (c_UU_tac ctxt) (nonlazy_rec args) @ [
-        rewrite_goals_tac copy_take_defs,
-        asm_simp_tac (HOLCF_ss addsimps copy_con_rews) 1];
-    in pg [] goal tacs end;
+      fun is_rec arg = Datatype_Aux.is_rec_type (dtyp_of arg);
+      fun is_nonlazy_rec arg = is_rec arg andalso not (is_lazy arg);
+      fun nonlazy_rec args = map vname (filter is_nonlazy_rec args);
+      val goal = lift_defined %: (nonlazy_rec args, mk_trp (lhs === rhs));
+      val tacs = [asm_simp_tac (HOLCF_ss addsimps copy_con_rews) 1];
+    in pg copy_take_defs goal (K tacs) end;
   fun one_take_apps ((dn, _), cons) = map (one_take_app dn) cons;
   val take_apps = maps one_take_apps eqs;
 in
