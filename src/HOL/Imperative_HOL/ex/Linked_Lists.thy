@@ -986,6 +986,8 @@ definition test_3 where "test_3 =
     return zs
   done)"
 
+code_reserved SML upto
+
 ML {* @{code test_1} () *}
 ML {* @{code test_2} () *}
 ML {* @{code test_3} () *}
