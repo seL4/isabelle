@@ -787,18 +787,21 @@ $(LOG)/HOL-Decision_Procs.gz: $(OUT)/HOL \
   Decision_Procs/Approximation.thy \
   Decision_Procs/Commutative_Ring.thy \
   Decision_Procs/Commutative_Ring_Complete.thy \
-  Decision_Procs/commutative_ring_tac.ML \
   Decision_Procs/Cooper.thy \
-  Decision_Procs/cooper_tac.ML \
+  Decision_Procs/Decision_Procs.thy \
   Decision_Procs/Dense_Linear_Order.thy \
   Decision_Procs/Ferrack.thy \
-  Decision_Procs/ferrack_tac.ML \
   Decision_Procs/MIR.thy \
-  Decision_Procs/mir_tac.ML \
-  Decision_Procs/Decision_Procs.thy \
-  Decision_Procs/ex/Dense_Linear_Order_Ex.thy \
+  Decision_Procs/Parametric_Ferrante_Rackoff.thy \
+  Decision_Procs/Polynomial_List.thy \
+  Decision_Procs/Reflected_Multivariate_Polynomial.thy \
+  Decision_Procs/commutative_ring_tac.ML \
+  Decision_Procs/cooper_tac.ML \
   Decision_Procs/ex/Approximation_Ex.thy \
   Decision_Procs/ex/Commutative_Ring_Ex.thy \
+  Decision_Procs/ex/Dense_Linear_Order_Ex.thy \
+  Decision_Procs/ferrack_tac.ML \
+  Decision_Procs/mir_tac.ML \
   Decision_Procs/ROOT.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Decision_Procs
 
