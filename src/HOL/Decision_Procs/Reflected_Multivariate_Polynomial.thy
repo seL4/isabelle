@@ -2,14 +2,13 @@
     Author:     Amine Chaieb
 *)
 
-header {* Implementation and verification of mutivariate polynomials Library *}
-
+header {* Implementation and verification of multivariate polynomials *}
 
 theory Reflected_Multivariate_Polynomial
-imports Parity Abstract_Rat Efficient_Nat List Polynomial_List
+imports Complex_Main Abstract_Rat Polynomial_List
 begin
 
-  (* Impelementation *)
+  (* Implementation *)
 
 subsection{* Datatype of polynomial expressions *} 
 
