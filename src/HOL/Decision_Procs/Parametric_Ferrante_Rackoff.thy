@@ -7,8 +7,8 @@ header{* A formalization of Ferrante and Rackoff's procedure with polynomial par
 theory Parametric_Ferrante_Rackoff
 imports Reflected_Multivariate_Polynomial 
   "~~/src/HOL/Decision_Procs/Dense_Linear_Order"
+  Efficient_Nat
 begin
-
 
 subsection {* Terms *}
 
@@ -2594,13 +2594,6 @@ lemma [simp,code]: "polyadd (CN c n p, CN c' n' p') =
   by (simp add: Let_def stupid)
 
 
-
-(*
-lemmas [code func] = polysub_def
-lemmas [code func del] = Zero_nat_def
-code_gen  "frpar" in SML to FRParTest
-*)
-
 section{* Second implemenation: Case splits not local *}
 
 lemma fr_eq2:  assumes lp: "islin p"
@@ -2945,14 +2938,7 @@ proof-
 show ?thesis  unfolding frpar2_def by (auto simp add: prep)
 qed
 
-code_module FRPar
-  contains 
-  frpar = "frpar"
-  frpar2 = "frpar2"
-  test = "%x . frpar (E(Lt (Mul 1\<^sub>p (Bound 0))))"
-
-ML{* 
-
+ML {* 
 structure ReflectedFRPar = 
 struct
 
@@ -2983,92 +2969,93 @@ fun dest_nat t = case t of
 
 fun num_of_term m t = 
  case t of
-   Const(@{const_name Algebras.uminus},_)$t => FRPar.Neg (num_of_term m t)
- | Const(@{const_name Algebras.plus},_)$a$b => FRPar.Add (num_of_term m a, num_of_term m b)
- | Const(@{const_name Algebras.minus},_)$a$b => FRPar.Sub (num_of_term m a, num_of_term m b)
- | Const(@{const_name Algebras.times},_)$a$b => FRPar.Mul (num_of_term m a, num_of_term m b)
- | Const(@{const_name Power.power},_)$a$n => FRPar.Pw (num_of_term m a, dest_nat n)
- | Const(@{const_name Algebras.divide},_)$a$b => FRPar.C (HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
- | _ => (FRPar.C (HOLogic.dest_number t |> snd,1) 
-         handle TERM _ => FRPar.Bound (AList.lookup (op aconv) m t |> the));
+   Const(@{const_name Algebras.uminus},_)$t => @{code poly.Neg} (num_of_term m t)
+ | Const(@{const_name Algebras.plus},_)$a$b => @{code poly.Add} (num_of_term m a, num_of_term m b)
+ | Const(@{const_name Algebras.minus},_)$a$b => @{code poly.Sub} (num_of_term m a, num_of_term m b)
+ | Const(@{const_name Algebras.times},_)$a$b => @{code poly.Mul} (num_of_term m a, num_of_term m b)
+ | Const(@{const_name Power.power},_)$a$n => @{code poly.Pw} (num_of_term m a, dest_nat n)
+ | Const(@{const_name Algebras.divide},_)$a$b => @{code poly.C} (HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
+ | _ => (@{code poly.C} (HOLogic.dest_number t |> snd,1) 
+         handle TERM _ => @{code poly.Bound} (AList.lookup (op aconv) m t |> the));
 
 fun tm_of_term m m' t = 
  case t of
-   Const(@{const_name Algebras.uminus},_)$t => FRPar.tm_Neg (tm_of_term m m' t)
- | Const(@{const_name Algebras.plus},_)$a$b => FRPar.tm_Add (tm_of_term m m' a, tm_of_term m m' b)
- | Const(@{const_name Algebras.minus},_)$a$b => FRPar.tm_Sub (tm_of_term m m' a, tm_of_term m m' b)
- | Const(@{const_name Algebras.times},_)$a$b => FRPar.tm_Mul (num_of_term m' a, tm_of_term m m' b)
- | _ => (FRPar.CP (num_of_term m' t) 
-         handle TERM _ => FRPar.tm_Bound (AList.lookup (op aconv) m t |> the)
-              | Option => FRPar.tm_Bound (AList.lookup (op aconv) m t |> the));
+   Const(@{const_name Algebras.uminus},_)$t => @{code Neg} (tm_of_term m m' t)
+ | Const(@{const_name Algebras.plus},_)$a$b => @{code Add} (tm_of_term m m' a, tm_of_term m m' b)
+ | Const(@{const_name Algebras.minus},_)$a$b => @{code Sub} (tm_of_term m m' a, tm_of_term m m' b)
+ | Const(@{const_name Algebras.times},_)$a$b => @{code Mul} (num_of_term m' a, tm_of_term m m' b)
+ | _ => (@{code CP} (num_of_term m' t) 
+         handle TERM _ => @{code Bound} (AList.lookup (op aconv) m t |> the)
+              | Option => @{code Bound} (AList.lookup (op aconv) m t |> the));
 
 fun term_of_num T m t = 
  case t of
-  FRPar.C (a,b) => (if b = 1 then num T a else if b=0 then (rz T) 
+  @{code poly.C} (a,b) => (if b = 1 then num T a else if b=0 then (rz T) 
                                         else (divt T) $ num T a $ num T b)
-| FRPar.Bound i => AList.lookup (op = : int*int -> bool) m i |> the
-| FRPar.Add(a,b) => (plust T)$(term_of_num T m a)$(term_of_num T m b)
-| FRPar.Mul(a,b) => (timest T)$(term_of_num T m a)$(term_of_num T m b)
-| FRPar.Sub(a,b) => (minust T)$(term_of_num T m a)$(term_of_num T m b)
-| FRPar.Neg a => (uminust T)$(term_of_num T m a)
-| FRPar.Pw(a,n) => (powt T)$(term_of_num T m t)$(HOLogic.mk_number HOLogic.natT n)
-| FRPar.CN(c,n,p) => term_of_num T m (FRPar.Add(c,FRPar.Mul(FRPar.Bound n, p)))
+| @{code poly.Bound} i => AList.lookup (op = : int*int -> bool) m i |> the
+| @{code poly.Add} (a,b) => (plust T)$(term_of_num T m a)$(term_of_num T m b)
+| @{code poly.Mul} (a,b) => (timest T)$(term_of_num T m a)$(term_of_num T m b)
+| @{code poly.Sub} (a,b) => (minust T)$(term_of_num T m a)$(term_of_num T m b)
+| @{code poly.Neg} a => (uminust T)$(term_of_num T m a)
+| @{code poly.Pw} (a,n) => (powt T)$(term_of_num T m t)$(HOLogic.mk_number HOLogic.natT n)
+| @{code poly.CN} (c,n,p) => term_of_num T m (@{code poly.Add} (c, @{code poly.Mul} (@{code poly.Bound} n, p)))
 | _ => error "term_of_num: Unknown term";
 
 fun term_of_tm T m m' t = 
  case t of
-  FRPar.CP p => term_of_num T m' p
-| FRPar.tm_Bound i => AList.lookup (op = : int*int -> bool) m i |> the
-| FRPar.tm_Add(a,b) => (plust T)$(term_of_tm T m m' a)$(term_of_tm T m m' b)
-| FRPar.tm_Mul(a,b) => (timest T)$(term_of_num T m' a)$(term_of_tm T m m' b)
-| FRPar.tm_Sub(a,b) => (minust T)$(term_of_tm T m m' a)$(term_of_tm T m m' b)
-| FRPar.tm_Neg a => (uminust T)$(term_of_tm T m m' a)
-| FRPar.CNP(n,c,p) => term_of_tm T m m' (FRPar.tm_Add(FRPar.tm_Mul(c, FRPar.tm_Bound n), p))
+  @{code CP} p => term_of_num T m' p
+| @{code Bound} i => AList.lookup (op = : int*int -> bool) m i |> the
+| @{code Add} (a,b) => (plust T)$(term_of_tm T m m' a)$(term_of_tm T m m' b)
+| @{code Mul} (a,b) => (timest T)$(term_of_num T m' a)$(term_of_tm T m m' b)
+| @{code Sub} (a,b) => (minust T)$(term_of_tm T m m' a)$(term_of_tm T m m' b)
+| @{code Neg} a => (uminust T)$(term_of_tm T m m' a)
+| @{code CNP} (n,c,p) => term_of_tm T m m' (@{code Add}
+     (@{code Mul} (c, @{code Bound} n), p))
 | _ => error "term_of_tm: Unknown term";
 
 fun fm_of_term m m' fm = 
  case fm of
-    Const("True",_) => FRPar.T
-  | Const("False",_) => FRPar.F
-  | Const("Not",_)$p => FRPar.NOT (fm_of_term m m' p)
-  | Const("op &",_)$p$q => FRPar.And(fm_of_term m m' p, fm_of_term m m' q)
-  | Const("op |",_)$p$q => FRPar.Or(fm_of_term m m' p, fm_of_term m m' q)
-  | Const("op -->",_)$p$q => FRPar.Imp(fm_of_term m m' p, fm_of_term m m' q)
+    Const("True",_) => @{code T}
+  | Const("False",_) => @{code F}
+  | Const("Not",_)$p => @{code NOT} (fm_of_term m m' p)
+  | Const("op &",_)$p$q => @{code And} (fm_of_term m m' p, fm_of_term m m' q)
+  | Const("op |",_)$p$q => @{code Or} (fm_of_term m m' p, fm_of_term m m' q)
+  | Const("op -->",_)$p$q => @{code Imp} (fm_of_term m m' p, fm_of_term m m' q)
   | Const("op =",ty)$p$q => 
-       if domain_type ty = bT then FRPar.Iff(fm_of_term m m' p, fm_of_term m m' q)
-       else FRPar.Eq (FRPar.tm_Sub(tm_of_term m m' p, tm_of_term m m' q))
+       if domain_type ty = bT then @{code Iff} (fm_of_term m m' p, fm_of_term m m' q)
+       else @{code Eq} (@{code Sub} (tm_of_term m m' p, tm_of_term m m' q))
   | Const(@{const_name Algebras.less},_)$p$q => 
-        FRPar.Lt (FRPar.tm_Sub(tm_of_term m m' p, tm_of_term m m' q))
+        @{code Lt} (@{code Sub} (tm_of_term m m' p, tm_of_term m m' q))
   | Const(@{const_name Algebras.less_eq},_)$p$q => 
-        FRPar.Le (FRPar.tm_Sub(tm_of_term m m' p, tm_of_term m m' q))
+        @{code Le} (@{code Sub} (tm_of_term m m' p, tm_of_term m m' q))
   | Const("Ex",_)$Abs(xn,xT,p) => 
      let val (xn', p') =  variant_abs (xn,xT,p)
          val x = Free(xn',xT)
          fun incr i = i + 1
          val m0 = (x,0):: (map (apsnd incr) m)
-      in FRPar.E (fm_of_term m0 m' p') end
+      in @{code E} (fm_of_term m0 m' p') end
   | Const("All",_)$Abs(xn,xT,p) => 
      let val (xn', p') =  variant_abs (xn,xT,p)
          val x = Free(xn',xT)
          fun incr i = i + 1
          val m0 = (x,0):: (map (apsnd incr) m)
-      in FRPar.A (fm_of_term m0 m' p') end
+      in @{code A} (fm_of_term m0 m' p') end
   | _ => error "fm_of_term";
 
 
 fun term_of_fm T m m' t = 
   case t of
-    FRPar.T => Const("True",bT)
-  | FRPar.F => Const("False",bT)
-  | FRPar.NOT p => nott $ (term_of_fm T m m' p)
-  | FRPar.And (p,q) => conjt $ (term_of_fm T m m' p) $ (term_of_fm T m m' q)
-  | FRPar.Or (p,q) => disjt $ (term_of_fm T m m' p) $ (term_of_fm T m m' q)
-  | FRPar.Imp (p,q) => impt $ (term_of_fm T m m' p) $ (term_of_fm T m m' q)
-  | FRPar.Iff (p,q) => ifft $ (term_of_fm T m m' p) $ (term_of_fm T m m' q)
-  | FRPar.Lt p => (llt T) $ (term_of_tm T m m' p) $ (rz T)
-  | FRPar.Le p => (lle T) $ (term_of_tm T m m' p) $ (rz T)
-  | FRPar.Eq p => (eqt T) $ (term_of_tm T m m' p) $ (rz T)
-  | FRPar.NEq p => nott $ ((eqt T) $ (term_of_tm T m m' p) $ (rz T))
+    @{code T} => Const("True",bT)
+  | @{code F} => Const("False",bT)
+  | @{code NOT} p => nott $ (term_of_fm T m m' p)
+  | @{code And} (p,q) => conjt $ (term_of_fm T m m' p) $ (term_of_fm T m m' q)
+  | @{code Or} (p,q) => disjt $ (term_of_fm T m m' p) $ (term_of_fm T m m' q)
+  | @{code Imp} (p,q) => impt $ (term_of_fm T m m' p) $ (term_of_fm T m m' q)
+  | @{code Iff} (p,q) => ifft $ (term_of_fm T m m' p) $ (term_of_fm T m m' q)
+  | @{code Lt} p => (llt T) $ (term_of_tm T m m' p) $ (rz T)
+  | @{code Le} p => (lle T) $ (term_of_tm T m m' p) $ (rz T)
+  | @{code Eq} p => (eqt T) $ (term_of_tm T m m' p) $ (rz T)
+  | @{code NEq} p => nott $ ((eqt T) $ (term_of_tm T m m' p) $ (rz T))
   | _ => error "term_of_fm: quantifiers!!!!???";
 
 fun frpar_oracle (T,m, m', fm) = 
@@ -3077,7 +3064,7 @@ fun frpar_oracle (T,m, m', fm) =
    val im = 0 upto (length m - 1)
    val im' = 0 upto (length m' - 1)   
  in HOLogic.mk_Trueprop (HOLogic.mk_eq(t, term_of_fm T (im ~~ m) (im' ~~ m')  
-                                                     (FRPar.frpar (fm_of_term (m ~~ im) (m' ~~ im') t))))
+                                                     (@{code frpar} (fm_of_term (m ~~ im) (m' ~~ im') t))))
  end;
 
 fun frpar_oracle2 (T,m, m', fm) = 
@@ -3086,7 +3073,7 @@ fun frpar_oracle2 (T,m, m', fm) =
    val im = 0 upto (length m - 1)
    val im' = 0 upto (length m' - 1)   
  in HOLogic.mk_Trueprop (HOLogic.mk_eq(t, term_of_fm T (im ~~ m) (im' ~~ m')  
-                                                     (FRPar.frpar2 (fm_of_term (m ~~ im) (m' ~~ im') t))))
+                                                     (@{code frpar2} (fm_of_term (m ~~ im) (m' ~~ im') t))))
  end;
 
 end;
