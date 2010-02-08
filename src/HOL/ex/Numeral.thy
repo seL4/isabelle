@@ -442,12 +442,12 @@ lemma one_eq_of_num_iff [numeral]: "1 = of_num n \<longleftrightarrow> One = n"
 end
 
 subsubsection {*
-  Comparisons: class @{text ordered_semidom}
+  Comparisons: class @{text linordered_semidom}
 *}
 
 text {*  Could be perhaps more general than here. *}
 
-context ordered_semidom
+context linordered_semidom
 begin
 
 lemma of_num_pos [numeral]: "0 < of_num n"
@@ -490,7 +490,7 @@ lemma of_num_le_zero_iff [numeral]: "\<not> of_num n \<le> 0"
 
 end
 
-context ordered_idom
+context linordered_idom
 begin
 
 lemma minus_of_num_less_of_num_iff: "- of_num m < of_num n"
@@ -896,19 +896,19 @@ declare (in semiring_char_0) of_num_eq_iff [simp]
 declare (in semiring_char_0) of_num_eq_one_iff [simp]
 declare (in semiring_char_0) one_eq_of_num_iff [simp]
 
-declare (in ordered_semidom) of_num_pos [simp]
-declare (in ordered_semidom) of_num_less_eq_iff [simp]
-declare (in ordered_semidom) of_num_less_eq_one_iff [simp]
-declare (in ordered_semidom) one_less_eq_of_num_iff [simp]
-declare (in ordered_semidom) of_num_less_iff [simp]
-declare (in ordered_semidom) of_num_less_one_iff [simp]
-declare (in ordered_semidom) one_less_of_num_iff [simp]
-declare (in ordered_semidom) of_num_nonneg [simp]
-declare (in ordered_semidom) of_num_less_zero_iff [simp]
-declare (in ordered_semidom) of_num_le_zero_iff [simp]
+declare (in linordered_semidom) of_num_pos [simp]
+declare (in linordered_semidom) of_num_less_eq_iff [simp]
+declare (in linordered_semidom) of_num_less_eq_one_iff [simp]
+declare (in linordered_semidom) one_less_eq_of_num_iff [simp]
+declare (in linordered_semidom) of_num_less_iff [simp]
+declare (in linordered_semidom) of_num_less_one_iff [simp]
+declare (in linordered_semidom) one_less_of_num_iff [simp]
+declare (in linordered_semidom) of_num_nonneg [simp]
+declare (in linordered_semidom) of_num_less_zero_iff [simp]
+declare (in linordered_semidom) of_num_le_zero_iff [simp]
 
-declare (in ordered_idom) le_signed_numeral_special [simp]
-declare (in ordered_idom) less_signed_numeral_special [simp]
+declare (in linordered_idom) le_signed_numeral_special [simp]
+declare (in linordered_idom) less_signed_numeral_special [simp]
 
 declare (in semiring_1_minus) Dig_of_num_minus_one [simp]
 declare (in semiring_1_minus) Dig_one_minus_of_num [simp]

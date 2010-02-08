@@ -741,7 +741,7 @@ apply (simp_all add: add_less_mono)
 done
 
 text{*The naturals form an ordered @{text comm_semiring_1_cancel}*}
-instance nat :: ordered_semidom
+instance nat :: linordered_semidom
 proof
   fix i j k :: nat
   show "0 < (1::nat)" by simp
@@ -1289,7 +1289,7 @@ lemma inj_of_nat: "inj of_nat"
 
 end
 
-context ordered_semidom
+context linordered_semidom
 begin
 
 lemma zero_le_imp_of_nat: "0 \<le> of_nat m"
@@ -1316,7 +1316,7 @@ lemma of_nat_less_iff [simp]: "of_nat m < of_nat n \<longleftrightarrow> m < n"
 lemma of_nat_le_iff [simp]: "of_nat m \<le> of_nat n \<longleftrightarrow> m \<le> n"
   by (simp add: not_less [symmetric] linorder_not_less [symmetric])
 
-text{*Every @{text ordered_semidom} has characteristic zero.*}
+text{*Every @{text linordered_semidom} has characteristic zero.*}
 
 subclass semiring_char_0
   proof qed (simp add: eq_iff order_eq_iff)
@@ -1345,7 +1345,7 @@ by (simp add: algebra_simps of_nat_add [symmetric])
 
 end
 
-context ordered_idom
+context linordered_idom
 begin
 
 lemma abs_of_nat [simp]: "\<bar>of_nat n\<bar> = of_nat n"

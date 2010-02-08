@@ -1545,7 +1545,7 @@ proof
     by (simp add: plus_matrix_def diff_matrix_def minus_matrix_def Rep_matrix_inject[symmetric] ext)
 qed
 
-instance matrix :: (pordered_ab_group_add) pordered_ab_group_add
+instance matrix :: (ordered_ab_group_add) ordered_ab_group_add
 proof
   fix A B C :: "'a matrix"
   assume "A <= B"
@@ -1556,8 +1556,8 @@ proof
     done
 qed
   
-instance matrix :: (lordered_ab_group_add) lordered_ab_group_add_meet ..
-instance matrix :: (lordered_ab_group_add) lordered_ab_group_add_join ..
+instance matrix :: (lattice_ab_group_add) semilattice_inf_ab_group_add ..
+instance matrix :: (lattice_ab_group_add) semilattice_sup_ab_group_add ..
 
 instance matrix :: (semiring_0) semiring_0
 proof
@@ -1583,7 +1583,7 @@ qed
 
 instance matrix :: (ring) ring ..
 
-instance matrix :: (pordered_ring) pordered_ring
+instance matrix :: (ordered_ring) ordered_ring
 proof
   fix A B C :: "'a matrix"
   assume a: "A \<le> B"
@@ -1600,9 +1600,9 @@ proof
     done
 qed
 
-instance matrix :: (lordered_ring) lordered_ring
+instance matrix :: (lattice_ring) lattice_ring
 proof
-  fix A B C :: "('a :: lordered_ring) matrix"
+  fix A B C :: "('a :: lattice_ring) matrix"
   show "abs A = sup A (-A)" 
     by (simp add: abs_matrix_def)
 qed
@@ -1738,7 +1738,7 @@ lemma zero_imp_mult_zero: "(a::'a::semiring_0) = 0 | b = 0 \<Longrightarrow> a *
 by auto
 
 lemma Rep_matrix_zero_imp_mult_zero:
-  "! j i k. (Rep_matrix A j k = 0) | (Rep_matrix B k i) = 0  \<Longrightarrow> A * B = (0::('a::lordered_ring) matrix)"
+  "! j i k. (Rep_matrix A j k = 0) | (Rep_matrix B k i) = 0  \<Longrightarrow> A * B = (0::('a::lattice_ring) matrix)"
 apply (subst Rep_matrix_inject[symmetric])
 apply (rule ext)+
 apply (auto simp add: Rep_matrix_mult foldseq_zero zero_imp_mult_zero)
@@ -1803,7 +1803,7 @@ done
 lemma Rep_minus[simp]: "Rep_matrix (-(A::_::group_add)) x y = - (Rep_matrix A x y)"
 by (simp add: minus_matrix_def)
 
-lemma Rep_abs[simp]: "Rep_matrix (abs (A::_::lordered_ab_group_add)) x y = abs (Rep_matrix A x y)"
+lemma Rep_abs[simp]: "Rep_matrix (abs (A::_::lattice_ab_group_add)) x y = abs (Rep_matrix A x y)"
 by (simp add: abs_lattice sup_matrix_def)
 
 end

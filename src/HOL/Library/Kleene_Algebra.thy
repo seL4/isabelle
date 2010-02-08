@@ -72,7 +72,7 @@ end
 class pre_kleene = semiring_1 + order_by_add
 begin
 
-subclass pordered_semiring proof
+subclass ordered_semiring proof
   fix x y z :: 'a
 
   assume "x \<le> y"

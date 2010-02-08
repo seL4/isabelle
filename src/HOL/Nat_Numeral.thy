@@ -113,7 +113,7 @@ lemma power_minus_even [simp]:
 
 end
 
-context ordered_ring_strict
+context linlinordered_ring_strict
 begin
 
 lemma sum_squares_ge_zero:
@@ -145,7 +145,7 @@ qed
 
 end
 
-context ordered_semidom
+context linordered_semidom
 begin
 
 lemma power2_le_imp_le:
@@ -162,7 +162,7 @@ lemma power2_eq_imp_eq:
 
 end
 
-context ordered_idom
+context linordered_idom
 begin
 
 lemma zero_eq_power2 [simp]:

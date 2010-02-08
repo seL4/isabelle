@@ -266,15 +266,15 @@ subsection {* @{term fact} and @{term of_nat} *}
 lemma of_nat_fact_not_zero [simp]: "of_nat (fact n) \<noteq> (0::'a::semiring_char_0)"
 by auto
 
-lemma of_nat_fact_gt_zero [simp]: "(0::'a::{ordered_semidom}) < of_nat(fact n)" by auto
+lemma of_nat_fact_gt_zero [simp]: "(0::'a::{linordered_semidom}) < of_nat(fact n)" by auto
 
-lemma of_nat_fact_ge_zero [simp]: "(0::'a::ordered_semidom) \<le> of_nat(fact n)"
+lemma of_nat_fact_ge_zero [simp]: "(0::'a::linordered_semidom) \<le> of_nat(fact n)"
 by simp
 
-lemma inv_of_nat_fact_gt_zero [simp]: "(0::'a::ordered_field) < inverse (of_nat (fact n))"
+lemma inv_of_nat_fact_gt_zero [simp]: "(0::'a::linordered_field) < inverse (of_nat (fact n))"
 by (auto simp add: positive_imp_inverse_positive)
 
-lemma inv_of_nat_fact_ge_zero [simp]: "(0::'a::ordered_field) \<le> inverse (of_nat (fact n))"
+lemma inv_of_nat_fact_ge_zero [simp]: "(0::'a::linordered_field) \<le> inverse (of_nat (fact n))"
 by (auto intro: order_less_imp_le)
 
 end

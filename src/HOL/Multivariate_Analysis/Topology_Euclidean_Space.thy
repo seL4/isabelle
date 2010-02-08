@@ -5696,27 +5696,27 @@ apply (auto simp add: expand_fun_eq vector_add_ldistrib vector_smult_assoc)
 by (simp add: vector_smult_lneg[symmetric] vector_smult_assoc vector_sneg_minus1[symmetric])
 
 lemma real_affinity_le:
- "0 < (m::'a::ordered_field) ==> (m * x + c \<le> y \<longleftrightarrow> x \<le> inverse(m) * y + -(c / m))"
+ "0 < (m::'a::linordered_field) ==> (m * x + c \<le> y \<longleftrightarrow> x \<le> inverse(m) * y + -(c / m))"
   by (simp add: field_simps inverse_eq_divide)
 
 lemma real_le_affinity:
- "0 < (m::'a::ordered_field) ==> (y \<le> m * x + c \<longleftrightarrow> inverse(m) * y + -(c / m) \<le> x)"
+ "0 < (m::'a::linordered_field) ==> (y \<le> m * x + c \<longleftrightarrow> inverse(m) * y + -(c / m) \<le> x)"
   by (simp add: field_simps inverse_eq_divide)
 
 lemma real_affinity_lt:
- "0 < (m::'a::ordered_field) ==> (m * x + c < y \<longleftrightarrow> x < inverse(m) * y + -(c / m))"
+ "0 < (m::'a::linordered_field) ==> (m * x + c < y \<longleftrightarrow> x < inverse(m) * y + -(c / m))"
   by (simp add: field_simps inverse_eq_divide)
 
 lemma real_lt_affinity:
- "0 < (m::'a::ordered_field) ==> (y < m * x + c \<longleftrightarrow> inverse(m) * y + -(c / m) < x)"
+ "0 < (m::'a::linordered_field) ==> (y < m * x + c \<longleftrightarrow> inverse(m) * y + -(c / m) < x)"
   by (simp add: field_simps inverse_eq_divide)
 
 lemma real_affinity_eq:
- "(m::'a::ordered_field) \<noteq> 0 ==> (m * x + c = y \<longleftrightarrow> x = inverse(m) * y + -(c / m))"
+ "(m::'a::linordered_field) \<noteq> 0 ==> (m * x + c = y \<longleftrightarrow> x = inverse(m) * y + -(c / m))"
   by (simp add: field_simps inverse_eq_divide)
 
 lemma real_eq_affinity:
- "(m::'a::ordered_field) \<noteq> 0 ==> (y = m * x + c  \<longleftrightarrow> inverse(m) * y + -(c / m) = x)"
+ "(m::'a::linordered_field) \<noteq> 0 ==> (y = m * x + c  \<longleftrightarrow> inverse(m) * y + -(c / m) = x)"
   by (simp add: field_simps inverse_eq_divide)
 
 lemma vector_affinity_eq:

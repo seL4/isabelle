@@ -990,7 +990,7 @@ unfolding poly_roots_finite .
 
 text{*bound for polynomial.*}
 
-lemma poly_mono: "abs(x) \<le> k ==> abs(poly p (x::'a::{ordered_idom})) \<le> poly (map abs p) k"
+lemma poly_mono: "abs(x) \<le> k ==> abs(poly p (x::'a::{linordered_idom})) \<le> poly (map abs p) k"
 apply (induct "p", auto)
 apply (rule_tac y = "abs a + abs (x * poly p x)" in order_trans)
 apply (rule abs_triangle_ineq)

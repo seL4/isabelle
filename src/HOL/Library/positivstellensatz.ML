@@ -275,7 +275,7 @@ val real_abs_thms1 = @{lemma
   "((a + b + min x y + c > r) = (a + b + x + c > r & a + b + y + c > r))"
   by auto};
 
-val abs_split' = @{lemma "P (abs (x::'a::ordered_idom)) == (x >= 0 & P x | x < 0 & P (-x))"
+val abs_split' = @{lemma "P (abs (x::'a::linordered_idom)) == (x >= 0 & P x | x < 0 & P (-x))"
   by (atomize (full)) (auto split add: abs_split)};
 
 val max_split = @{lemma "P (max x y) == ((x::'a::linorder) <= y & P y | x > y & P x)"

@@ -1445,12 +1445,12 @@ by (auto simp add: abs_mult_self trans [OF lcm_unique_int eq_commute, symmetric]
 subsubsection {* The complete divisibility lattice *}
 
 
-interpretation gcd_semilattice_nat: lower_semilattice "op dvd" "(%m n::nat. m dvd n & ~ n dvd m)" gcd
+interpretation gcd_semilattice_nat: semilattice_inf "op dvd" "(%m n::nat. m dvd n & ~ n dvd m)" gcd
 proof
   case goal3 thus ?case by(metis gcd_unique_nat)
 qed auto
 
-interpretation lcm_semilattice_nat: upper_semilattice "op dvd" "(%m n::nat. m dvd n & ~ n dvd m)" lcm
+interpretation lcm_semilattice_nat: semilattice_sup "op dvd" "(%m n::nat. m dvd n & ~ n dvd m)" lcm
 proof
   case goal3 thus ?case by(metis lcm_unique_nat)
 qed auto

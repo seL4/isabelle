@@ -71,8 +71,8 @@ fun sproc phi ss ct = if check (term_of ct) then SOME (conv ct) else NONE
 
 val lhss' =
   [@{cpat "(?x::?'a::ring_char_0) = (?y::?'a)"},
-   @{cpat "(?x::?'a::ordered_idom) < (?y::?'a)"},
-   @{cpat "(?x::?'a::ordered_idom) <= (?y::?'a)"}]
+   @{cpat "(?x::?'a::linordered_idom) < (?y::?'a)"},
+   @{cpat "(?x::?'a::linordered_idom) <= (?y::?'a)"}]
 
 val zero_one_idom_simproc =
   make_simproc {lhss = lhss' , name = "zero_one_idom_simproc",
@@ -80,9 +80,9 @@ val zero_one_idom_simproc =
 
 val fast_int_arith_simproc =
   Simplifier.simproc @{theory} "fast_int_arith"
-     ["(m::'a::{ordered_idom,number_ring}) < n",
-      "(m::'a::{ordered_idom,number_ring}) <= n",
-      "(m::'a::{ordered_idom,number_ring}) = n"] (K Lin_Arith.simproc);
+     ["(m::'a::{linordered_idom,number_ring}) < n",
+      "(m::'a::{linordered_idom,number_ring}) <= n",
+      "(m::'a::{linordered_idom,number_ring}) = n"] (K Lin_Arith.simproc);
 
 val global_setup = Simplifier.map_simpset
   (fn simpset => simpset addsimprocs [fast_int_arith_simproc]);

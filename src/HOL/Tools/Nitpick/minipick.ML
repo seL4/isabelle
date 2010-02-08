@@ -200,19 +200,19 @@ fun kodkod_formula_for_term ctxt card frees =
          else
            raise NOT_SUPPORTED "transitive closure for function or pair type"
        | Const (@{const_name trancl}, _) => to_R_rep Ts (eta_expand Ts t 1)
-       | Const (@{const_name lower_semilattice_class.inf},
+       | Const (@{const_name semilattice_inf_class.inf},
                 Type ("fun", [Type ("fun", [_, @{typ bool}]), _])) $ t1 $ t2 =>
          Intersect (to_R_rep Ts t1, to_R_rep Ts t2)
-       | Const (@{const_name lower_semilattice_class.inf}, _) $ _ =>
+       | Const (@{const_name semilattice_inf_class.inf}, _) $ _ =>
          to_R_rep Ts (eta_expand Ts t 1)
-       | Const (@{const_name lower_semilattice_class.inf}, _) =>
+       | Const (@{const_name semilattice_inf_class.inf}, _) =>
          to_R_rep Ts (eta_expand Ts t 2)
-       | Const (@{const_name upper_semilattice_class.sup},
+       | Const (@{const_name semilattice_sup_class.sup},
                 Type ("fun", [Type ("fun", [_, @{typ bool}]), _])) $ t1 $ t2 =>
          Union (to_R_rep Ts t1, to_R_rep Ts t2)
-       | Const (@{const_name upper_semilattice_class.sup}, _) $ _ =>
+       | Const (@{const_name semilattice_sup_class.sup}, _) $ _ =>
          to_R_rep Ts (eta_expand Ts t 1)
-       | Const (@{const_name upper_semilattice_class.sup}, _) =>
+       | Const (@{const_name semilattice_sup_class.sup}, _) =>
          to_R_rep Ts (eta_expand Ts t 2)
        | Const (@{const_name minus_class.minus},
                 Type ("fun", [Type ("fun", [_, @{typ bool}]), _])) $ t1 $ t2 =>

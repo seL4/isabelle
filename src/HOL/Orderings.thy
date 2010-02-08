@@ -1052,7 +1052,7 @@ class bot = preorder +
 
 subsection {* Dense orders *}
 
-class dense_linear_order = linorder + 
+class dense_linorder = linorder + 
   assumes gt_ex: "\<exists>y. x < y" 
   and lt_ex: "\<exists>y. y < x"
   and dense: "x < y \<Longrightarrow> (\<exists>z. x < z \<and> z < y)"
