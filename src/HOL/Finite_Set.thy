@@ -3324,6 +3324,19 @@ qed
 
 end
 
+context linordered_ab_group_add
+begin
+
+lemma minus_Max_eq_Min [simp]:
+  "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> - (Max S) = Min (uminus ` S)"
+  by (induct S rule: finite_ne_induct) (simp_all add: minus_max_eq_min)
+
+lemma minus_Min_eq_Max [simp]:
+  "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> - (Min S) = Max (uminus ` S)"
+  by (induct S rule: finite_ne_induct) (simp_all add: minus_min_eq_max)
+
+end
+
 
 subsection {* Expressing set operations via @{const fold} *}
 
