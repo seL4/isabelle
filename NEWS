@@ -12,6 +12,9 @@ the user space functionality any longer.
 
 *** HOL ***
 
+* New set of rules "ac_simps" provides combined assoc / commute rewrites
+for all interpretations of the appropriate generic locales.
+
 * More consistent naming of type classes involving orderings (and lattices):
 
     lower_semilattice                   ~> semilattice_inf
