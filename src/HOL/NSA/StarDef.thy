@@ -849,12 +849,7 @@ instance star :: (ordered_ab_group_add_abs) ordered_ab_group_add_abs
     simp add: abs_ge_self abs_leI abs_triangle_ineq)+
 
 instance star :: (linordered_cancel_ab_semigroup_add) linordered_cancel_ab_semigroup_add ..
-instance star :: (semilattice_inf_ab_group_add) semilattice_inf_ab_group_add ..
-instance star :: (semilattice_inf_ab_group_add) semilattice_inf_ab_group_add ..
-instance star :: (lattice_ab_group_add) lattice_ab_group_add ..
 
-instance star :: (lattice_ab_group_add_abs) lattice_ab_group_add_abs
-by (intro_classes, transfer, rule abs_lattice)
 
 subsection {* Ring and field classes *}
 
@@ -934,7 +929,6 @@ by (intro_classes, transfer, rule mult_strict_left_mono_comm)
 instance star :: (ordered_ring) ordered_ring ..
 instance star :: (ordered_ring_abs) ordered_ring_abs
   by intro_classes  (transfer, rule abs_eq_mult)
-instance star :: (lattice_ring) lattice_ring ..
 
 instance star :: (abs_if) abs_if
 by (intro_classes, transfer, rule abs_if)
