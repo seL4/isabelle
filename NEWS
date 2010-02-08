@@ -15,6 +15,11 @@ the user space functionality any longer.
 * New set of rules "ac_simps" provides combined assoc / commute rewrites
 for all interpretations of the appropriate generic locales.
 
+* Renamed theory "OrderedGroup" to "Groups" and split theory "Ring_and_Field"
+into theories "Rings" and "Fields";  for more appropriate and more
+consistent names suitable for name prefixes within the HOL theories.
+INCOMPATIBILITY.
+
 * More consistent naming of type classes involving orderings (and lattices):
 
     lower_semilattice                   ~> semilattice_inf

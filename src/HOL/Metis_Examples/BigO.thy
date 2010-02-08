@@ -368,7 +368,7 @@ lemma bigo_bounded_alt: "ALL x. 0 <= f x ==> ALL x. f x <= c * g x ==>
     f : O(g)" 
   apply (auto simp add: bigo_def)
 (*Version 1: one-shot proof*)
-  apply (metis OrderedGroup.abs_le_D1 linorder_class.not_less  order_less_le  Orderings.xt1(12)  Ring_and_Field.abs_mult)
+  apply (metis abs_le_D1 linorder_class.not_less  order_less_le  Orderings.xt1(12)  abs_mult)
   done
 
 lemma (*bigo_bounded_alt:*) "ALL x. 0 <= f x ==> ALL x. f x <= c * g x ==> 
@@ -595,8 +595,8 @@ lemma bigo_mult [intro]: "O(f)\<otimes>O(g) <= O(f * g)"
 using [[ atp_problem_prefix = "BigO__bigo_mult_simpler" ]]
 prefer 2 
 apply (metis mult_assoc mult_left_commute
-  OrderedGroup.abs_of_pos OrderedGroup.mult_left_commute
-  Ring_and_Field.abs_mult Ring_and_Field.mult_pos_pos)
+  abs_of_pos mult_left_commute
+  abs_mult mult_pos_pos)
   apply (erule ssubst) 
   apply (subst abs_mult)
 (*not qute BigO__bigo_mult_simpler_1 (a hard problem!) as abs_mult has
@@ -613,32 +613,32 @@ assume 3: "\<not> \<bar>(a\<Colon>'a \<Rightarrow> 'b\<Colon>linordered_idom) (x
   \<le> (c\<Colon>'b\<Colon>linordered_idom) * \<bar>(f\<Colon>'a \<Rightarrow> 'b\<Colon>linordered_idom) x\<bar> *
     ((ca\<Colon>'b\<Colon>linordered_idom) * \<bar>(g\<Colon>'a \<Rightarrow> 'b\<Colon>linordered_idom) x\<bar>)"
 have 4: "\<bar>c\<Colon>'b\<Colon>linordered_idom\<bar> = c"
-  by (metis OrderedGroup.abs_of_pos 0)
+  by (metis abs_of_pos 0)
 have 5: "\<And>X1\<Colon>'b\<Colon>linordered_idom. (c\<Colon>'b\<Colon>linordered_idom) * \<bar>X1\<bar> = \<bar>c * X1\<bar>"
-  by (metis Ring_and_Field.abs_mult 4)
+  by (metis abs_mult 4)
 have 6: "(0\<Colon>'b\<Colon>linordered_idom) = (1\<Colon>'b\<Colon>linordered_idom) \<or>
 (0\<Colon>'b\<Colon>linordered_idom) < (1\<Colon>'b\<Colon>linordered_idom)"
-  by (metis OrderedGroup.abs_not_less_zero Ring_and_Field.abs_one Ring_and_Field.linorder_neqE_linordered_idom)
+  by (metis abs_not_less_zero abs_one linorder_neqE_linordered_idom)
 have 7: "(0\<Colon>'b\<Colon>linordered_idom) < (1\<Colon>'b\<Colon>linordered_idom)"
-  by (metis 6 Ring_and_Field.one_neq_zero)
+  by (metis 6 one_neq_zero)
 have 8: "\<bar>1\<Colon>'b\<Colon>linordered_idom\<bar> = (1\<Colon>'b\<Colon>linordered_idom)"
-  by (metis OrderedGroup.abs_of_pos 7)
+  by (metis abs_of_pos 7)
 have 9: "\<And>X1\<Colon>'b\<Colon>linordered_idom. (0\<Colon>'b\<Colon>linordered_idom) \<le> (c\<Colon>'b\<Colon>linordered_idom) * \<bar>X1\<bar>"
-  by (metis OrderedGroup.abs_ge_zero 5)
+  by (metis abs_ge_zero 5)
 have 10: "\<And>X1\<Colon>'b\<Colon>linordered_idom. X1 * (1\<Colon>'b\<Colon>linordered_idom) = X1"
-  by (metis Ring_and_Field.mult_cancel_right2 mult_commute)
+  by (metis mult_cancel_right2 mult_commute)
 have 11: "\<And>X1\<Colon>'b\<Colon>linordered_idom. \<bar>\<bar>X1\<bar>\<bar> = \<bar>X1\<bar> * \<bar>1\<Colon>'b\<Colon>linordered_idom\<bar>"
-  by (metis Ring_and_Field.abs_mult OrderedGroup.abs_idempotent 10)
+  by (metis abs_mult abs_idempotent 10)
 have 12: "\<And>X1\<Colon>'b\<Colon>linordered_idom. \<bar>\<bar>X1\<bar>\<bar> = \<bar>X1\<bar>"
   by (metis 11 8 10)
 have 13: "\<And>X1\<Colon>'b\<Colon>linordered_idom. (0\<Colon>'b\<Colon>linordered_idom) \<le> \<bar>X1\<bar>"
-  by (metis OrderedGroup.abs_ge_zero 12)
+  by (metis abs_ge_zero 12)
 have 14: "\<not> (0\<Colon>'b\<Colon>linordered_idom)
   \<le> (c\<Colon>'b\<Colon>linordered_idom) * \<bar>(f\<Colon>'a \<Rightarrow> 'b\<Colon>linordered_idom) (x\<Colon>'a)\<bar> \<or>
 \<not> (0\<Colon>'b\<Colon>linordered_idom) \<le> \<bar>(b\<Colon>'a \<Rightarrow> 'b\<Colon>linordered_idom) x\<bar> \<or>
 \<not> \<bar>b x\<bar> \<le> (ca\<Colon>'b\<Colon>linordered_idom) * \<bar>(g\<Colon>'a \<Rightarrow> 'b\<Colon>linordered_idom) x\<bar> \<or>
 \<not> \<bar>(a\<Colon>'a \<Rightarrow> 'b\<Colon>linordered_idom) x\<bar> \<le> c * \<bar>f x\<bar>"
-  by (metis 3 Ring_and_Field.mult_mono)
+  by (metis 3 mult_mono)
 have 15: "\<not> (0\<Colon>'b\<Colon>linordered_idom) \<le> \<bar>(b\<Colon>'a \<Rightarrow> 'b\<Colon>linordered_idom) (x\<Colon>'a)\<bar> \<or>
 \<not> \<bar>b x\<bar> \<le> (ca\<Colon>'b\<Colon>linordered_idom) * \<bar>(g\<Colon>'a \<Rightarrow> 'b\<Colon>linordered_idom) x\<bar> \<or>
 \<not> \<bar>(a\<Colon>'a \<Rightarrow> 'b\<Colon>linordered_idom) x\<bar>
@@ -1078,7 +1078,7 @@ lemma bigo_fix: "(%x. f ((x::nat) + 1)) =o O(%x. h(x + 1)) ==> f 0 = 0 ==>
   apply (rule_tac x = c in exI)
   apply safe
   apply (case_tac "x = 0")
-apply (metis OrderedGroup.abs_ge_zero  OrderedGroup.abs_zero  order_less_le  Ring_and_Field.split_mult_pos_le) 
+apply (metis abs_ge_zero  abs_zero  order_less_le  split_mult_pos_le) 
   apply (subgoal_tac "x = Suc (x - 1)")
   apply metis
   apply simp

@@ -355,7 +355,7 @@ proof -
                     borel_measurable_add_borel_measurable f g) 
   have "(\<lambda>x. -((f x + -g x) ^ 2 * inverse 4)) = 
         (\<lambda>x. 0 + ((f x + -g x) ^ 2 * inverse -4))"
-    by (simp add: Ring_and_Field.minus_divide_right) 
+    by (simp add: minus_divide_right) 
   also have "... \<in> borel_measurable M" 
     by (fast intro: affine_borel_measurable borel_measurable_square 
                     borel_measurable_add_borel_measurable 

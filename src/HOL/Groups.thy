@@ -1,10 +1,10 @@
-(*  Title:   HOL/OrderedGroup.thy
+(*  Title:   HOL/Groups.thy
     Author:  Gertrud Bauer, Steven Obua, Lawrence C Paulson, Markus Wenzel, Jeremy Avigad
 *)
 
-header {* Ordered Groups *}
+header {* Groups, also combined with orderings *}
 
-theory OrderedGroup
+theory Groups
 imports Lattices
 uses "~~/src/Provers/Arith/abel_cancel.ML"
 begin
@@ -1148,12 +1148,12 @@ ML {*
 *}
 
 code_modulename SML
-  OrderedGroup Arith
+  Groups Arith
 
 code_modulename OCaml
-  OrderedGroup Arith
+  Groups Arith
 
 code_modulename Haskell
-  OrderedGroup Arith
+  Groups Arith
 
 end

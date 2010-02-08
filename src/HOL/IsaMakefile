@@ -145,15 +145,16 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Complete_Lattice.thy \
   Datatype.thy \
   Extraction.thy \
+  Fields.thy \
   Finite_Set.thy \
   Fun.thy \
   FunDef.thy \
+  Groups.thy \
   Inductive.thy \
   Lattices.thy \
   Nat.thy \
   Nitpick.thy \
   Option.thy \
-  OrderedGroup.thy \
   Orderings.thy \
   Plain.thy \
   Power.thy \
@@ -162,7 +163,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Record.thy \
   Refute.thy \
   Relation.thy \
-  Ring_and_Field.thy \
+  Rings.thy \
   SAT.thy \
   Set.thy \
   Sum_Type.thy \

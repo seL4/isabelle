@@ -373,7 +373,7 @@ structure CancelNumeralFactorCommon =
     [@{thm eq_number_of_eq}, @{thm less_number_of}, @{thm le_number_of}] @ simps
   fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
   val simplify_meta_eq = Arith_Data.simplify_meta_eq
-    [@{thm add_0}, @{thm add_0_right}, @{thm mult_zero_left},
+    [@{thm add_0}, @{thm Nat.add_0_right}, @{thm mult_zero_left},
       @{thm mult_zero_right}, @{thm mult_Bit1}, @{thm mult_1_right}];
   end
 
@@ -561,8 +561,8 @@ structure ModCancelFactor = ExtractCommonTermFun
 structure DvdCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Arith_Data.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name Ring_and_Field.dvd}
-  val dest_bal = HOLogic.dest_bin @{const_name Ring_and_Field.dvd} Term.dummyT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Rings.dvd}
+  val dest_bal = HOLogic.dest_bin @{const_name Rings.dvd} Term.dummyT
   fun simp_conv _ _ = SOME @{thm dvd_mult_cancel_left}
 );
 

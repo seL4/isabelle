@@ -394,7 +394,7 @@ lemma hrealpow_three_squares_add_zero_iff [simp]:
 by (simp only: hypreal_three_squares_add_zero_iff hrealpow_two)
 
 (*FIXME: This and RealPow.abs_realpow_two should be replaced by an abstract
-  result proved in Ring_and_Field*)
+  result proved in Rings or Fields*)
 lemma hrabs_hrealpow_two [simp]:
      "abs(x ^ Suc (Suc 0)) = (x::hypreal) ^ Suc (Suc 0)"
 by (simp add: abs_mult)
@@ -516,7 +516,7 @@ by (simp add: hyperpow_hrabs)
 text{*The precondition could be weakened to @{term "0\<le>x"}*}
 lemma hypreal_mult_less_mono:
      "[| u<v;  x<y;  (0::hypreal) < v;  0 < x |] ==> u*x < v* y"
- by (simp add: Ring_and_Field.mult_strict_mono order_less_imp_le)
+ by (simp add: mult_strict_mono order_less_imp_le)
 
 lemma hyperpow_two_gt_one:
   "\<And>r::'a::{linordered_semidom} star. 1 < r \<Longrightarrow> 1 < r pow (1 + 1)"

@@ -521,7 +521,7 @@ by auto
 
 lemma real_mult_less_iff1 [simp]: "(0::real) < z ==> (x*z < y*z) = (x < y)"
   by (force elim: order_less_asym
-            simp add: Ring_and_Field.mult_less_cancel_right)
+            simp add: mult_less_cancel_right)
 
 lemma real_mult_le_cancel_iff1 [simp]: "(0::real) < z ==> (x*z \<le> y*z) = (x\<le>y)"
 apply (simp add: mult_le_cancel_right)
@@ -1015,7 +1015,7 @@ apply (simp add: min_def)
 done
 
 
-text{*Similar results are proved in @{text Ring_and_Field}*}
+text{*Similar results are proved in @{text Fields}*}
 lemma real_less_half_sum: "x < y ==> x < (x+y) / (2::real)"
   by auto
 
@@ -1030,7 +1030,7 @@ by (simp add: abs_if)
 
 (* FIXME: redundant, but used by Integration/RealRandVar.thy in AFP *)
 lemma abs_le_interval_iff: "(abs x \<le> r) = (-r\<le>x & x\<le>(r::real))"
-by (force simp add: OrderedGroup.abs_le_iff)
+by (force simp add: abs_le_iff)
 
 lemma abs_add_one_gt_zero [simp]: "(0::real) < 1 + abs(x)"
 by (simp add: abs_if)

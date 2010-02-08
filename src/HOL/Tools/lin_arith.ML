@@ -236,7 +236,7 @@ in
 end handle Rat.DIVZERO => NONE;
 
 fun of_lin_arith_sort thy U =
-  Sign.of_sort thy (U, @{sort Ring_and_Field.linordered_idom});
+  Sign.of_sort thy (U, @{sort Rings.linordered_idom});
 
 fun allows_lin_arith thy (discrete : string list) (U as Type (D, [])) : bool * bool =
       if of_lin_arith_sort thy U then (true, member (op =) discrete D)
@@ -814,8 +814,8 @@ val init_arith_data =
       addsimps @{thms ring_distribs}
       addsimps [@{thm if_True}, @{thm if_False}]
       addsimps
-       [@{thm "monoid_add_class.add_0_left"},
-        @{thm "monoid_add_class.add_0_right"},
+       [@{thm add_0_left},
+        @{thm add_0_right},
         @{thm "Zero_not_Suc"}, @{thm "Suc_not_Zero"}, @{thm "le_0_eq"}, @{thm "One_nat_def"},
         @{thm "order_less_irrefl"}, @{thm "zero_neq_one"}, @{thm "zero_less_one"},
         @{thm "zero_le_one"}, @{thm "zero_neq_one"} RS not_sym, @{thm "not_one_le_zero"},

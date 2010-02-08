@@ -307,7 +307,7 @@ lemma of_int_minus [simp]: "of_int (-z) = - (of_int z)"
 by (cases z, simp add: algebra_simps of_int minus)
 
 lemma of_int_diff [simp]: "of_int (w - z) = of_int w - of_int z"
-by (simp add: OrderedGroup.diff_minus diff_minus)
+by (simp add: diff_minus Groups.diff_minus)
 
 lemma of_int_mult [simp]: "of_int (w*z) = of_int w * of_int z"
 apply (cases w, cases z)
@@ -519,7 +519,7 @@ by simp
 
 text{*This version is proved for all ordered rings, not just integers!
       It is proved here because attribute @{text arith_split} is not available
-      in theory @{text Ring_and_Field}.
+      in theory @{text Rings}.
       But is it really better than just rewriting with @{text abs_if}?*}
 lemma abs_split [arith_split,noatp]:
      "P(abs(a::'a::linordered_idom)) = ((0 \<le> a --> P a) & (a < 0 --> P(-a)))"
@@ -2317,9 +2317,9 @@ lemmas zadd_commute = add_commute [of "z::int" "w", standard]
 lemmas zadd_assoc = add_assoc [of "z1::int" "z2" "z3", standard]
 lemmas zadd_left_commute = add_left_commute [of "x::int" "y" "z", standard]
 lemmas zadd_ac = zadd_assoc zadd_commute zadd_left_commute
-lemmas zmult_ac = OrderedGroup.mult_ac
-lemmas zadd_0 = OrderedGroup.add_0_left [of "z::int", standard]
-lemmas zadd_0_right = OrderedGroup.add_0_left [of "z::int", standard]
+lemmas zmult_ac = mult_ac
+lemmas zadd_0 = add_0_left [of "z::int", standard]
+lemmas zadd_0_right = add_0_right [of "z::int", standard]
 lemmas zadd_zminus_inverse2 = left_minus [of "z::int", standard]
 lemmas zmult_zminus = mult_minus_left [of "z::int" "w", standard]
 lemmas zmult_commute = mult_commute [of "z::int" "w", standard]

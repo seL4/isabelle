@@ -139,7 +139,7 @@ done
 lemma dvd_add_cancel1:
   fixes a b c :: "'a::comm_ring_1"
   shows "a dvd b + c \<Longrightarrow> a dvd b \<Longrightarrow> a dvd c"
-  by (drule (1) Ring_and_Field.dvd_diff, simp)
+  by (drule (1) Rings.dvd_diff, simp)
 
 lemma lemma_order_pderiv [rule_format]:
      "\<forall>p q a. 0 < n &

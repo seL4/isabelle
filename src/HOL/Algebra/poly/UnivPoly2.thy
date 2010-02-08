@@ -139,7 +139,7 @@ instance ..
 
 end
 
-instance up :: ("{times, comm_monoid_add}") Ring_and_Field.dvd ..
+instance up :: ("{times, comm_monoid_add}") Rings.dvd ..
 
 instantiation up :: ("{times, one, comm_monoid_add, uminus, minus}") inverse
 begin

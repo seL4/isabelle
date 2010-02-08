@@ -530,7 +530,7 @@ instance ..
 
 end
 
-instance star :: (Ring_and_Field.dvd) Ring_and_Field.dvd ..
+instance star :: (Rings.dvd) Rings.dvd ..
 
 instantiation star :: (Divides.div) Divides.div
 begin

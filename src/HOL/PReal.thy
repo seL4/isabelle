@@ -12,7 +12,7 @@ theory PReal
 imports Rational 
 begin
 
-text{*Could be generalized and moved to @{text Ring_and_Field}*}
+text{*Could be generalized and moved to @{text Groups}*}
 lemma add_eq_exists: "\<exists>x. a+x = (b::rat)"
 by (rule_tac x="b-a" in exI, simp)
 
