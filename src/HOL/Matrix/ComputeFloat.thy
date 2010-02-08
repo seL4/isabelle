@@ -5,7 +5,7 @@
 header {* Floating Point Representation of the Reals *}
 
 theory ComputeFloat
-imports Complex_Main
+imports Complex_Main Lattice_Algebras
 uses "~~/src/Tools/float.ML" ("~~/src/HOL/Tools/float_arith.ML")
 begin
 

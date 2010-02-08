@@ -256,13 +256,6 @@ proof
     by (simp only: zsgn_def)
 qed
 
-instance int :: lattice_ring
-proof  
-  fix k :: int
-  show "abs k = sup k (- k)"
-    by (auto simp add: sup_int_def zabs_def less_minus_self_iff [symmetric])
-qed
-
 lemma zless_imp_add1_zle: "w < z \<Longrightarrow> w + (1\<Colon>int) \<le> z"
 apply (cases w, cases z) 
 apply (simp add: less le add One_int_def)

@@ -12,7 +12,7 @@ the user space functionality any longer.
 
 *** HOL ***
 
-* more consistent naming of type classes involving orderings (and lattices):
+* More consistent naming of type classes involving orderings (and lattices):
 
     lower_semilattice                   ~> semilattice_inf
     upper_semilattice                   ~> semilattice_sup
@@ -33,12 +33,6 @@ the user space functionality any longer.
     pordered_ring_abs                   ~> ordered_ring_abs
     pordered_semiring                   ~> ordered_semiring
 
-    lordered_ab_group_add               ~> lattice_ab_group_add
-    lordered_ab_group_add_abs           ~> lattice_ab_group_add_abs
-    lordered_ab_group_add_meet          ~> semilattice_inf_ab_group_add
-    lordered_ab_group_add_join          ~> semilattice_sup_ab_group_add
-    lordered_ring                       ~> lattice_ring
-
     ordered_ab_group_add                ~> linordered_ab_group_add
     ordered_ab_semigroup_add            ~> linordered_ab_semigroup_add
     ordered_cancel_ab_semigroup_add     ~> linordered_cancel_ab_semigroup_add
@@ -57,6 +51,15 @@ the user space functionality any longer.
     ordered_semiring_1                  ~> linordered_semiring_1
     ordered_semiring_1_strict           ~> linordered_semiring_1_strict
     ordered_semiring_strict             ~> linordered_semiring_strict
+
+  The following slightly odd type classes have been moved to
+  a separate theory Library/Lattice_Algebras.thy:
+
+    lordered_ab_group_add               ~> lattice_ab_group_add
+    lordered_ab_group_add_abs           ~> lattice_ab_group_add_abs
+    lordered_ab_group_add_meet          ~> semilattice_inf_ab_group_add
+    lordered_ab_group_add_join          ~> semilattice_sup_ab_group_add
+    lordered_ring                       ~> lattice_ring
 
 INCOMPATIBILITY.
 

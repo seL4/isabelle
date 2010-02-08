@@ -28,6 +28,7 @@ imports
   Fundamental_Theorem_Algebra
   Infinite_Set
   Inner_Product
+  Lattice_Algebras
   Lattice_Syntax
   ListVector
   Kleene_Algebra
