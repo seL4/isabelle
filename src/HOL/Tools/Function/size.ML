@@ -153,7 +153,7 @@ fun prove_size_thms (info : info) new_type_names thy =
 
     val ctxt = ProofContext.init thy';
 
-    val simpset1 = HOL_basic_ss addsimps @{thm add_0} :: @{thm add_0_right} ::
+    val simpset1 = HOL_basic_ss addsimps @{thm add_0} :: @{thm Nat.add_0_right} ::
       size_def_thms @ size_def_thms' @ rec_rewrites @ extra_rewrites;
     val xs = map (fn i => "x" ^ string_of_int i) (1 upto length recTs2);
 

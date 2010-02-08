@@ -8,7 +8,7 @@ and * (for div and mod, see theory Divides).
 header {* Natural numbers *}
 
 theory Nat
-imports Inductive Product_Type Ring_and_Field
+imports Inductive Product_Type Fields
 uses
   "~~/src/Tools/rat.ML"
   "~~/src/Provers/Arith/cancel_sums.ML"
@@ -175,6 +175,8 @@ instance proof
 qed
 
 end
+
+hide (open) fact add_0_right
 
 instantiation nat :: comm_semiring_1_cancel
 begin
@@ -730,7 +732,7 @@ lemma less_imp_Suc_add: "m < n ==> (\<exists>k. n = Suc (m + k))"
   apply (induct n)
   apply (simp_all add: order_le_less)
   apply (blast elim!: less_SucE
-               intro!: add_0_right [symmetric] add_Suc_right [symmetric])
+               intro!: Nat.add_0_right [symmetric] add_Suc_right [symmetric])
   done
 
 text {* strict, in 1st argument; proof is by induction on @{text "k > 0"} *}

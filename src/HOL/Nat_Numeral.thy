@@ -64,7 +64,7 @@ lemma power3_eq_cube: "a ^ 3 = a * a * a"
 
 lemma power_even_eq:
   "a ^ (2*n) = (a ^ n) ^ 2"
-  by (subst OrderedGroup.mult_commute) (simp add: power_mult)
+  by (subst mult_commute) (simp add: power_mult)
 
 lemma power_odd_eq:
   "a ^ Suc (2*n) = a * (a ^ n) ^ 2"
