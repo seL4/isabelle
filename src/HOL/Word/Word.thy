@@ -2,7 +2,7 @@
     Author:     Gerwin Klein, NICTA
 *)
 
-header {* Word Library interafce *}
+header {* Word Library interface *}
 
 theory Word
 imports WordGenLib
