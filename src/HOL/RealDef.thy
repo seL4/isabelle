@@ -426,8 +426,6 @@ proof
     by (simp only: real_sgn_def)
 qed
 
-instance real :: lattice_ab_group_add ..
-
 text{*The function @{term real_of_preal} requires many proofs, but it seems
 to be essential for proving completeness of the reals from that of the
 positive reals.*}
@@ -1045,13 +1043,6 @@ by simp
  
 lemma abs_sum_triangle_ineq: "abs ((x::real) + y + (-l + -m)) \<le> abs(x + -l) + abs(y + -m)"
 by simp
-
-instance real :: lattice_ring
-proof
-  fix a::real
-  show "abs a = sup a (-a)"
-    by (auto simp add: real_abs_def sup_real_def)
-qed
 
 
 subsection {* Implementation of rational real numbers *}

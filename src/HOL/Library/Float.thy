@@ -6,7 +6,7 @@
 header {* Floating-Point Numbers *}
 
 theory Float
-imports Complex_Main
+imports Complex_Main Lattice_Algebras
 begin
 
 definition

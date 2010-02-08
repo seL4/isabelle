@@ -3,7 +3,7 @@
 *)
 
 theory LP 
-imports Main
+imports Main Lattice_Algebras
 begin
 
 lemma linprog_dual_estimate:
