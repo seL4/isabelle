@@ -1,3 +1,4 @@
+#!/usr/bin/env perl
 #
 # Author: Sascha Boehme, TU Muenchen
 #
@@ -6,7 +7,6 @@
 use strict;
 use warnings;
 use Digest::MD5;
-use LWP;
 
 
 # arguments
@@ -63,30 +63,13 @@ if ($use_certs and -e $certs_file) {
 
 # invoke (remote or local) prover
 
-if ($location eq "remote") {
-  # arguments
-  my $solver = $ARGV[0];
-  my @options = @ARGV[1 .. ($#ARGV - 1)];
+my $result;
 
-  # call solver
-  my $agent = LWP::UserAgent->new;
-  $agent->agent("SMT-Request");
-  $agent->timeout(180);
-  my $response = $agent->post($ENV{"REMOTE_SMT_URL"}, [
-    "Solver" => $solver,
-    "Options" => join(" ", @options),
-    "Problem" => [$problem_file] ],
-    "Content_Type" => "form-data");
-  if (not $response->is_success) { die "HTTP-Error: " . $response->message; }
-  else {
-    open FILE, ">$result_file" or
-      die "ERROR: Failed to create '$result_file' ($!)";
-    print FILE $response->content;
-    close FILE;
-  }
+if ($location eq "remote") {
+  $result = system "$ENV{'REMOTE_SMT'} @ARGV >$result_file 2>&1";
 }
 elsif ($location eq "local") {
-  system "@ARGV >$result_file 2>&1";
+  $result = system "@ARGV >$result_file 2>&1";
 }
 else { die "ERROR: No SMT solver invoked"; }
 

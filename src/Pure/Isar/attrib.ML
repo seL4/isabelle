@@ -298,7 +298,7 @@ val _ = Context.>> (Context.map_theory
   setup (Binding.name "params")
     (Scan.lift (P.and_list1 (Scan.repeat Args.name)) >> Rule_Cases.params)
     "named rule parameters" #>
-  setup (Binding.name "standard") (Scan.succeed (Thm.rule_attribute (K Drule.standard)))
+  setup (Binding.name "standard") (Scan.succeed (Thm.rule_attribute (K Drule.export_without_context)))
     "result put into standard form (legacy)" #>
   setup (Binding.name "rule_format") rule_format "result put into canonical rule format" #>
   setup (Binding.name "elim_format") (Scan.succeed elim_format)

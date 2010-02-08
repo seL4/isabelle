@@ -1,8 +1,13 @@
+#!/usr/bin/env perl
 #
 # Author: Makarius
 #
 # keywords.pl - generate outer syntax keyword files from session logs
 #
+
+use warnings;
+use strict;
+
 
 ## arguments
 
@@ -117,4 +122,3 @@ sub emacs_output {
 
 &collect_keywords();
 &emacs_output();
-

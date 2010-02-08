@@ -15,7 +15,7 @@ lemma real_sum_of_halves: "x/2 + x/2 = (x::real)"
   by simp
 
 lemma abs_diff_less_iff:
-  "(\<bar>x - a\<bar> < (r::'a::ordered_idom)) = (a - r < x \<and> x < a + r)"
+  "(\<bar>x - a\<bar> < (r::'a::linordered_idom)) = (a - r < x \<and> x < a + r)"
   by auto
 
 subsection {* Completeness of Positive Reals *}

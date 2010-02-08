@@ -1,7 +1,7 @@
 (*  Title:      Pure/Isar/args.ML
     Author:     Markus Wenzel, TU Muenchen
 
-Parsing with implicit value assigment.  Concrete argument syntax of
+Parsing with implicit value assignment.  Concrete argument syntax of
 attributes, methods etc.
 *)
 

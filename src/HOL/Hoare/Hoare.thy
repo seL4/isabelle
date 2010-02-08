@@ -24,12 +24,7 @@ datatype
    | Cond "'a bexp" "'a com" "'a com"    ("(1IF _/ THEN _ / ELSE _/ FI)"  [0,0,0] 61)
    | While "'a bexp" "'a assn" "'a com"  ("(1WHILE _/ INV {_} //DO _ /OD)"  [0,0,0] 61)
   
-syntax
-  "@assign"  :: "id => 'b => 'a com"        ("(2_ :=/ _)" [70,65] 61)
-  "@annskip" :: "'a com"                    ("SKIP")
-
-translations
-            "SKIP" == "Basic id"
+abbreviation annskip ("SKIP") where "SKIP == Basic id"
 
 types 'a sem = "'a => 'a => bool"
 
@@ -50,16 +45,19 @@ constdefs Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Rightar
   "Valid p c q == !s s'. Sem c s s' --> s : p --> s' : q"
 
 
-syntax
- "@hoare_vars" :: "[idts, 'a assn,'a com,'a assn] => bool"
-                 ("VARS _// {_} // _ // {_}" [0,0,55,0] 50)
-syntax ("" output)
- "@hoare"      :: "['a assn,'a com,'a assn] => bool"
-                 ("{_} // _ // {_}" [0,55,0] 50)
 
 (** parse translations **)
 
-ML{*
+syntax
+  "_assign"  :: "id => 'b => 'a com"        ("(2_ :=/ _)" [70,65] 61)
+
+syntax
+ "_hoare_vars" :: "[idts, 'a assn,'a com,'a assn] => bool"
+                 ("VARS _// {_} // _ // {_}" [0,0,55,0] 50)
+syntax ("" output)
+ "_hoare"      :: "['a assn,'a com,'a assn] => bool"
+                 ("{_} // _ // {_}" [0,55,0] 50)
+ML {*
 
 local
 
@@ -91,7 +89,7 @@ fun assn_tr r xs = Syntax.const "Collect" $ mk_abstuple xs r;
 *}
 (* com_tr *)
 ML{*
-fun com_tr (Const("@assign",_) $ Free (a,_) $ e) xs =
+fun com_tr (Const("_assign",_) $ Free (a,_) $ e) xs =
       Syntax.const "Basic" $ mk_fexp a e xs
   | com_tr (Const ("Basic",_) $ f) xs = Syntax.const "Basic" $ f
   | com_tr (Const ("Seq",_) $ c1 $ c2) xs =
@@ -123,7 +121,7 @@ fun hoare_vars_tr [vars, pre, prg, post] =
 end
 *}
 
-parse_translation {* [("@hoare_vars", hoare_vars_tr)] *}
+parse_translation {* [("_hoare_vars", hoare_vars_tr)] *}
 
 
 (*****************************************************************************)
@@ -175,8 +173,8 @@ ML{*
 fun mk_assign f =
   let val (vs, ts) = mk_vts f;
       val (ch, which) = find_ch (vs~~ts) ((length vs)-1) (rev vs)
-  in if ch then Syntax.const "@assign" $ fst(which) $ snd(which)
-     else Syntax.const "@skip" end;
+  in if ch then Syntax.const "_assign" $ fst(which) $ snd(which)
+     else Syntax.const @{const_syntax annskip} end;
 
 fun com_tr' (Const ("Basic",_) $ f) = if is_f f then mk_assign f
                                            else Syntax.const "Basic" $ f
@@ -190,10 +188,10 @@ fun com_tr' (Const ("Basic",_) $ f) = if is_f f then mk_assign f
 
 
 fun spec_tr' [p, c, q] =
-  Syntax.const "@hoare" $ assn_tr' p $ com_tr' c $ assn_tr' q
+  Syntax.const "_hoare" $ assn_tr' p $ com_tr' c $ assn_tr' q
 *}
 
-print_translation {* [("Valid", spec_tr')] *}
+print_translation {* [(@{const_syntax Valid}, spec_tr')] *}
 
 lemma SkipRule: "p \<subseteq> q \<Longrightarrow> Valid p (Basic id) q"
 by (auto simp:Valid_def)

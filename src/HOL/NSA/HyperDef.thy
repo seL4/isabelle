@@ -394,7 +394,7 @@ lemma hrealpow_three_squares_add_zero_iff [simp]:
 by (simp only: hypreal_three_squares_add_zero_iff hrealpow_two)
 
 (*FIXME: This and RealPow.abs_realpow_two should be replaced by an abstract
-  result proved in Ring_and_Field*)
+  result proved in Rings or Fields*)
 lemma hrabs_hrealpow_two [simp]:
      "abs(x ^ Suc (Suc 0)) = (x::hypreal) ^ Suc (Suc 0)"
 by (simp add: abs_mult)
@@ -459,7 +459,7 @@ lemma hyperpow_inverse:
 by transfer (rule power_inverse)
   
 lemma hyperpow_hrabs:
-  "\<And>r n. abs (r::'a::{ordered_idom} star) pow n = abs (r pow n)"
+  "\<And>r n. abs (r::'a::{linordered_idom} star) pow n = abs (r pow n)"
 by transfer (rule power_abs [symmetric])
 
 lemma hyperpow_add:
@@ -475,15 +475,15 @@ lemma hyperpow_two:
 by transfer simp
 
 lemma hyperpow_gt_zero:
-  "\<And>r n. (0::'a::{ordered_semidom} star) < r \<Longrightarrow> 0 < r pow n"
+  "\<And>r n. (0::'a::{linordered_semidom} star) < r \<Longrightarrow> 0 < r pow n"
 by transfer (rule zero_less_power)
 
 lemma hyperpow_ge_zero:
-  "\<And>r n. (0::'a::{ordered_semidom} star) \<le> r \<Longrightarrow> 0 \<le> r pow n"
+  "\<And>r n. (0::'a::{linordered_semidom} star) \<le> r \<Longrightarrow> 0 \<le> r pow n"
 by transfer (rule zero_le_power)
 
 lemma hyperpow_le:
-  "\<And>x y n. \<lbrakk>(0::'a::{ordered_semidom} star) < x; x \<le> y\<rbrakk>
+  "\<And>x y n. \<lbrakk>(0::'a::{linordered_semidom} star) < x; x \<le> y\<rbrakk>
    \<Longrightarrow> x pow n \<le> y pow n"
 by transfer (rule power_mono [OF _ order_less_imp_le])
 
@@ -492,7 +492,7 @@ lemma hyperpow_eq_one [simp]:
 by transfer (rule power_one)
 
 lemma hrabs_hyperpow_minus_one [simp]:
-  "\<And>n. abs(-1 pow n) = (1::'a::{number_ring,ordered_idom} star)"
+  "\<And>n. abs(-1 pow n) = (1::'a::{number_ring,linordered_idom} star)"
 by transfer (rule abs_power_minus_one)
 
 lemma hyperpow_mult:
@@ -501,29 +501,29 @@ lemma hyperpow_mult:
 by transfer (rule power_mult_distrib)
 
 lemma hyperpow_two_le [simp]:
-  "(0::'a::{monoid_mult,ordered_ring_strict} star) \<le> r pow (1 + 1)"
+  "(0::'a::{monoid_mult,linordered_ring_strict} star) \<le> r pow (1 + 1)"
 by (auto simp add: hyperpow_two zero_le_mult_iff)
 
 lemma hrabs_hyperpow_two [simp]:
   "abs(x pow (1 + 1)) =
-   (x::'a::{monoid_mult,ordered_ring_strict} star) pow (1 + 1)"
+   (x::'a::{monoid_mult,linordered_ring_strict} star) pow (1 + 1)"
 by (simp only: abs_of_nonneg hyperpow_two_le)
 
 lemma hyperpow_two_hrabs [simp]:
-  "abs(x::'a::{ordered_idom} star) pow (1 + 1)  = x pow (1 + 1)"
+  "abs(x::'a::{linordered_idom} star) pow (1 + 1)  = x pow (1 + 1)"
 by (simp add: hyperpow_hrabs)
 
 text{*The precondition could be weakened to @{term "0\<le>x"}*}
 lemma hypreal_mult_less_mono:
      "[| u<v;  x<y;  (0::hypreal) < v;  0 < x |] ==> u*x < v* y"
- by (simp add: Ring_and_Field.mult_strict_mono order_less_imp_le)
+ by (simp add: mult_strict_mono order_less_imp_le)
 
 lemma hyperpow_two_gt_one:
-  "\<And>r::'a::{ordered_semidom} star. 1 < r \<Longrightarrow> 1 < r pow (1 + 1)"
+  "\<And>r::'a::{linordered_semidom} star. 1 < r \<Longrightarrow> 1 < r pow (1 + 1)"
 by transfer (simp add: power_gt1 del: power_Suc)
 
 lemma hyperpow_two_ge_one:
-  "\<And>r::'a::{ordered_semidom} star. 1 \<le> r \<Longrightarrow> 1 \<le> r pow (1 + 1)"
+  "\<And>r::'a::{linordered_semidom} star. 1 \<le> r \<Longrightarrow> 1 \<le> r pow (1 + 1)"
 by transfer (simp add: one_le_power del: power_Suc)
 
 lemma two_hyperpow_ge_one [simp]: "(1::hypreal) \<le> 2 pow n"

@@ -12,7 +12,7 @@ theory PReal
 imports Rational 
 begin
 
-text{*Could be generalized and moved to @{text Ring_and_Field}*}
+text{*Could be generalized and moved to @{text Groups}*}
 lemma add_eq_exists: "\<exists>x. a+x = (b::rat)"
 by (rule_tac x="b-a" in exI, simp)
 
@@ -23,7 +23,7 @@ definition
             (\<forall>y \<in> A. ((\<forall>z. 0<z & z < y --> z \<in> A) & (\<exists>u \<in> A. y < u))))"
 
 lemma interval_empty_iff:
-  "{y. (x::'a::dense_linear_order) < y \<and> y < z} = {} \<longleftrightarrow> \<not> x < z"
+  "{y. (x::'a::dense_linorder) < y \<and> y < z} = {} \<longleftrightarrow> \<not> x < z"
   by (auto dest: dense)
 
 
@@ -1155,7 +1155,7 @@ lemmas preal_cancels =
     preal_add_le_cancel_right preal_add_le_cancel_left
     preal_add_left_cancel_iff preal_add_right_cancel_iff
 
-instance preal :: ordered_cancel_ab_semigroup_add
+instance preal :: linordered_cancel_ab_semigroup_add
 proof
   fix a b c :: preal
   show "a + b = a + c \<Longrightarrow> b = c" by (rule preal_add_left_cancel)

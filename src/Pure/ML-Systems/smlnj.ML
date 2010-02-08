@@ -10,6 +10,7 @@ use "ML-Systems/proper_int.ML";
 use "ML-Systems/unsynchronized.ML";
 use "ML-Systems/overloading_smlnj.ML";
 use "General/exn.ML";
+use "ML-Systems/single_assignment.ML";
 use "ML-Systems/universal.ML";
 use "ML-Systems/thread_dummy.ML";
 use "ML-Systems/multithreading.ML";
@@ -64,10 +65,6 @@ end;
 (*prompts*)
 fun ml_prompts p1 p2 =
   (Control.primaryPrompt := p1; Control.secondaryPrompt := p2);
-
-(*dummy implementation*)
-fun magic_immutability_test _ = false;
-fun magic_immutability_mark _ = ();
 
 (*dummy implementation*)
 fun profile (n: int) f x = f x;

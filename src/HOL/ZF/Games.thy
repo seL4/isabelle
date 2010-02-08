@@ -922,7 +922,7 @@ lemma eq_Abs_Pg[rule_format, cases type: Pg]: "(\<forall> g. z = Abs_Pg (eq_game
   apply (auto simp add: Pg_def quotient_def)
   done
 
-instance Pg :: pordered_ab_group_add 
+instance Pg :: ordered_ab_group_add 
 proof
   fix a b c :: Pg
   show "a - b = a + (- b)" by (simp add: Pg_diff_def)

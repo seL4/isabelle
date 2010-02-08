@@ -34,12 +34,12 @@ fun thm_bind kind a i =
 (* fact references *)
 
 fun thm_antiq kind scan = ML_Context.add_antiq kind
-  (fn _ => scan >> (fn ths => fn {struct_name, background} =>
+  (fn _ => scan >> (fn ths => fn background =>
     let
       val i = serial ();
       val (a, background') = background
         |> ML_Antiquote.variant kind ||> put_thms (i, ths);
-      val ml = (thm_bind kind a i, struct_name ^ "." ^ a);
+      val ml = (thm_bind kind a i, "Isabelle." ^ a);
     in (K ml, background') end));
 
 val _ = thm_antiq "thm" (Attrib.thm >> single);
@@ -56,7 +56,7 @@ val _ = ML_Context.add_antiq "lemma"
   (fn _ => Args.context -- Args.mode "open" --
       Scan.lift (OuterParse.and_list1 (Scan.repeat1 goal) --
         (by |-- Method.parse -- Scan.option Method.parse)) >>
-    (fn ((ctxt, is_open), (raw_propss, methods)) => fn {struct_name, background} =>
+    (fn ((ctxt, is_open), (raw_propss, methods)) => fn background =>
       let
         val propss = burrow (map (rpair []) o Syntax.read_props ctxt) raw_propss;
         val i = serial ();
@@ -69,8 +69,7 @@ val _ = ML_Context.add_antiq "lemma"
         val (a, background') = background
           |> ML_Antiquote.variant "lemma" ||> put_thms (i, the_thms ctxt' i);
         val ml =
-         (thm_bind (if length (flat propss) = 1 then "thm" else "thms") a i,
-          struct_name ^ "." ^ a);
+          (thm_bind (if length (flat propss) = 1 then "thm" else "thms") a i, "Isabelle." ^ a);
       in (K ml, background') end));
 
 end;

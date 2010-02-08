@@ -130,7 +130,7 @@ qed
 
 end
 
-context ordered_semidom
+context linordered_semidom
 begin
 
 lemma zero_less_power [simp]:
@@ -323,7 +323,7 @@ lemma power_eq_imp_eq_base:
 
 end
 
-context ordered_idom
+context linordered_idom
 begin
 
 lemma power_abs:

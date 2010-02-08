@@ -78,11 +78,9 @@ constdefs
           {S. S \<subseteq> pset cl &
            (| pset = S, order = induced S (order cl) |): CompleteLattice }"
 
-syntax
-  "@SL"  :: "['a set, 'a potype] => bool" ("_ <<= _" [51,50]50)
-
-translations
-  "S <<= cl" == "S : sublattice `` {cl}"
+abbreviation
+  sublattice_syntax :: "['a set, 'a potype] => bool" ("_ <<= _" [51, 50] 50)
+  where "S <<= cl \<equiv> S : sublattice `` {cl}"
 
 constdefs
   dual :: "'a potype => 'a potype"

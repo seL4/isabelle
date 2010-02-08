@@ -38,17 +38,17 @@ fun variant a ctxt =
 
 fun macro name scan = ML_Context.add_antiq name
   (fn _ => scan :|-- (fn ctxt => Scan.depend (fn _ => Scan.succeed
-    (Context.Proof ctxt, fn {background, ...} => (K ("", ""), background)))));
+    (Context.Proof ctxt, fn background => (K ("", ""), background)))));
 
 fun inline name scan = ML_Context.add_antiq name
-  (fn _ => scan >> (fn s => fn {background, ...} => (K ("", s), background)));
+  (fn _ => scan >> (fn s => fn background => (K ("", s), background)));
 
 fun declaration kind name scan = ML_Context.add_antiq name
-  (fn _ => scan >> (fn s => fn {struct_name, background} =>
+  (fn _ => scan >> (fn s => fn background =>
     let
       val (a, background') = variant name background;
       val env = kind ^ " " ^ a ^ " = " ^ s ^ ";\n";
-      val body = struct_name ^ "." ^ a;
+      val body = "Isabelle." ^ a;
     in (K (env, body), background') end));
 
 val value = declaration "val";

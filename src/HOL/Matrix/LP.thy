@@ -3,12 +3,12 @@
 *)
 
 theory LP 
-imports Main
+imports Main Lattice_Algebras
 begin
 
 lemma linprog_dual_estimate:
   assumes
-  "A * x \<le> (b::'a::lordered_ring)"
+  "A * x \<le> (b::'a::lattice_ring)"
   "0 \<le> y"
   "abs (A - A') \<le> \<delta>A"
   "b \<le> b'"
@@ -57,7 +57,7 @@ qed
 
 lemma le_ge_imp_abs_diff_1:
   assumes
-  "A1 <= (A::'a::lordered_ring)"
+  "A1 <= (A::'a::lattice_ring)"
   "A <= A2" 
   shows "abs (A-A1) <= A2-A1"
 proof -
@@ -72,7 +72,7 @@ qed
 
 lemma mult_le_prts:
   assumes
-  "a1 <= (a::'a::lordered_ring)"
+  "a1 <= (a::'a::lattice_ring)"
   "a <= a2"
   "b1 <= b"
   "b <= b2"
@@ -120,7 +120,7 @@ qed
     
 lemma mult_le_dual_prts: 
   assumes
-  "A * x \<le> (b::'a::lordered_ring)"
+  "A * x \<le> (b::'a::lattice_ring)"
   "0 \<le> y"
   "A1 \<le> A"
   "A \<le> A2"

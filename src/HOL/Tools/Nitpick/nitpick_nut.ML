@@ -655,10 +655,10 @@ fun nut_from_term (ext_ctxt as {thy, fast_descrs, special_funs, ...}) eq =
         | (Const (@{const_name of_nat},
                   T as @{typ "unsigned_bit word => signed_bit word"}), []) =>
           Cst (NatToInt, T, Any)
-        | (Const (@{const_name lower_semilattice_fun_inst.inf_fun}, T),
+        | (Const (@{const_name semilattice_inf_fun_inst.inf_fun}, T),
                   [t1, t2]) =>
           Op2 (Intersect, nth_range_type 2 T, Any, sub t1, sub t2)
-        | (Const (@{const_name upper_semilattice_fun_inst.sup_fun}, T),
+        | (Const (@{const_name semilattice_sup_fun_inst.sup_fun}, T),
                   [t1, t2]) =>
           Op2 (Union, nth_range_type 2 T, Any, sub t1, sub t2)
         | (t0 as Const (@{const_name minus_fun_inst.minus_fun}, T), [t1, t2]) =>

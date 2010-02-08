@@ -233,7 +233,7 @@ fun register_operation class (c, (t, some_def)) thy =
 fun register_subclass (sub, sup) some_dep_morph some_wit export thy =
   let
     val intros = (snd o rules thy) sup :: map_filter I
-      [Option.map (Drule.standard' o Element.conclude_witness) some_wit,
+      [Option.map (Drule.export_without_context_open o Element.conclude_witness) some_wit,
         (fst o rules thy) sub];
     val tac = EVERY (map (TRYALL o Tactic.rtac) intros);
     val classrel = Skip_Proof.prove_global thy [] [] (Logic.mk_classrel (sub, sup))

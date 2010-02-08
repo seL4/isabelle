@@ -17,7 +17,7 @@ To avoid re-generation of certificates,
 the following option is set to "false":
 *}
 
-declare [[smt_record=false]] 
+declare [[smt_record=false]]
 
 
 

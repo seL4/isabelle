@@ -39,6 +39,6 @@ fun prove ctxt xs asms prop tac =
       else tac args st);
 
 fun prove_global thy xs asms prop tac =
-  Drule.standard (prove (ProofContext.init thy) xs asms prop tac);
+  Drule.export_without_context (prove (ProofContext.init thy) xs asms prop tac);
 
 end;

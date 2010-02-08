@@ -57,6 +57,10 @@ use "General/yxml.ML";
 
 use "Concurrent/simple_thread.ML";
 
+use "Concurrent/single_assignment.ML";
+if Multithreading.available then ()
+else use "Concurrent/single_assignment_sequential.ML";
+
 use "Concurrent/synchronized.ML";
 if Multithreading.available then ()
 else use "Concurrent/synchronized_sequential.ML";

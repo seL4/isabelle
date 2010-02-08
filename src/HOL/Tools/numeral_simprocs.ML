@@ -181,9 +181,8 @@ val diff_simps = [@{thm diff_minus}, @{thm minus_add_distrib}, @{thm minus_minus
 (*To let us treat division as multiplication*)
 val divide_simps = [@{thm divide_inverse}, @{thm inverse_mult_distrib}, @{thm inverse_inverse_eq}];
 
-(*push the unary minus down: - x * y = x * - y *)
-val minus_mult_eq_1_to_2 =
-    [@{thm mult_minus_left}, @{thm minus_mult_right}] MRS trans |> Drule.standard;
+(*push the unary minus down*)
+val minus_mult_eq_1_to_2 = @{lemma "- (a::'a::ring) * b = a * - b" by simp};
 
 (*to extract again any uncancelled minuses*)
 val minus_from_mult_simps =
@@ -256,20 +255,20 @@ val cancel_numerals =
       "(l::'a::number_ring) = m * n"],
      K EqCancelNumerals.proc),
     ("intless_cancel_numerals",
-     ["(l::'a::{ordered_idom,number_ring}) + m < n",
-      "(l::'a::{ordered_idom,number_ring}) < m + n",
-      "(l::'a::{ordered_idom,number_ring}) - m < n",
-      "(l::'a::{ordered_idom,number_ring}) < m - n",
-      "(l::'a::{ordered_idom,number_ring}) * m < n",
-      "(l::'a::{ordered_idom,number_ring}) < m * n"],
+     ["(l::'a::{linordered_idom,number_ring}) + m < n",
+      "(l::'a::{linordered_idom,number_ring}) < m + n",
+      "(l::'a::{linordered_idom,number_ring}) - m < n",
+      "(l::'a::{linordered_idom,number_ring}) < m - n",
+      "(l::'a::{linordered_idom,number_ring}) * m < n",
+      "(l::'a::{linordered_idom,number_ring}) < m * n"],
      K LessCancelNumerals.proc),
     ("intle_cancel_numerals",
-     ["(l::'a::{ordered_idom,number_ring}) + m <= n",
-      "(l::'a::{ordered_idom,number_ring}) <= m + n",
-      "(l::'a::{ordered_idom,number_ring}) - m <= n",
-      "(l::'a::{ordered_idom,number_ring}) <= m - n",
-      "(l::'a::{ordered_idom,number_ring}) * m <= n",
-      "(l::'a::{ordered_idom,number_ring}) <= m * n"],
+     ["(l::'a::{linordered_idom,number_ring}) + m <= n",
+      "(l::'a::{linordered_idom,number_ring}) <= m + n",
+      "(l::'a::{linordered_idom,number_ring}) - m <= n",
+      "(l::'a::{linordered_idom,number_ring}) <= m - n",
+      "(l::'a::{linordered_idom,number_ring}) * m <= n",
+      "(l::'a::{linordered_idom,number_ring}) <= m * n"],
      K LeCancelNumerals.proc)];
 
 structure CombineNumeralsData =
@@ -374,7 +373,7 @@ structure CancelNumeralFactorCommon =
     [@{thm eq_number_of_eq}, @{thm less_number_of}, @{thm le_number_of}] @ simps
   fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
   val simplify_meta_eq = Arith_Data.simplify_meta_eq
-    [@{thm add_0}, @{thm add_0_right}, @{thm mult_zero_left},
+    [@{thm add_0}, @{thm Nat.add_0_right}, @{thm mult_zero_left},
       @{thm mult_zero_right}, @{thm mult_Bit1}, @{thm mult_1_right}];
   end
 
@@ -432,12 +431,12 @@ val cancel_numeral_factors =
       "(l::'a::{idom,number_ring}) = m * n"],
      K EqCancelNumeralFactor.proc),
     ("ring_less_cancel_numeral_factor",
-     ["(l::'a::{ordered_idom,number_ring}) * m < n",
-      "(l::'a::{ordered_idom,number_ring}) < m * n"],
+     ["(l::'a::{linordered_idom,number_ring}) * m < n",
+      "(l::'a::{linordered_idom,number_ring}) < m * n"],
      K LessCancelNumeralFactor.proc),
     ("ring_le_cancel_numeral_factor",
-     ["(l::'a::{ordered_idom,number_ring}) * m <= n",
-      "(l::'a::{ordered_idom,number_ring}) <= m * n"],
+     ["(l::'a::{linordered_idom,number_ring}) * m <= n",
+      "(l::'a::{linordered_idom,number_ring}) <= m * n"],
      K LeCancelNumeralFactor.proc),
     ("int_div_cancel_numeral_factors",
      ["((l::'a::{semiring_div,number_ring}) * m) div n",
@@ -562,8 +561,8 @@ structure ModCancelFactor = ExtractCommonTermFun
 structure DvdCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Arith_Data.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name Ring_and_Field.dvd}
-  val dest_bal = HOLogic.dest_bin @{const_name Ring_and_Field.dvd} Term.dummyT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Rings.dvd}
+  val dest_bal = HOLogic.dest_bin @{const_name Rings.dvd} Term.dummyT
   fun simp_conv _ _ = SOME @{thm dvd_mult_cancel_left}
 );
 
@@ -582,13 +581,13 @@ val cancel_factors =
      ["(l::'a::idom) * m = n",
       "(l::'a::idom) = m * n"],
      K EqCancelFactor.proc),
-    ("ordered_ring_le_cancel_factor",
-     ["(l::'a::ordered_ring) * m <= n",
-      "(l::'a::ordered_ring) <= m * n"],
+    ("linordered_ring_le_cancel_factor",
+     ["(l::'a::linordered_ring) * m <= n",
+      "(l::'a::linordered_ring) <= m * n"],
      K LeCancelFactor.proc),
-    ("ordered_ring_less_cancel_factor",
-     ["(l::'a::ordered_ring) * m < n",
-      "(l::'a::ordered_ring) < m * n"],
+    ("linordered_ring_less_cancel_factor",
+     ["(l::'a::linordered_ring) * m < n",
+      "(l::'a::linordered_ring) < m * n"],
      K LessCancelFactor.proc),
     ("int_div_cancel_factor",
      ["((l::'a::semiring_div) * m) div n", "(l::'a::semiring_div) div (m * n)"],

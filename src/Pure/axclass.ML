@@ -484,10 +484,10 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
       def_thy
       |> Sign.mandatory_path (Binding.name_of bconst)
       |> PureThy.note_thmss ""
-        [((Binding.name introN, []), [([Drule.standard raw_intro], [])]),
-         ((Binding.name superN, []), [(map Drule.standard raw_classrel, [])]),
+        [((Binding.name introN, []), [([Drule.export_without_context raw_intro], [])]),
+         ((Binding.name superN, []), [(map Drule.export_without_context raw_classrel, [])]),
          ((Binding.name axiomsN, []),
-           [(map (fn th => Drule.standard (class_triv RS th)) raw_axioms, [])])]
+           [(map (fn th => Drule.export_without_context (class_triv RS th)) raw_axioms, [])])]
       ||> Sign.restore_naming def_thy;
 
 

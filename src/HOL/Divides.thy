@@ -657,7 +657,7 @@ structure CancelDivMod = CancelDivModFun(struct
   val trans = trans;
 
   val prove_eq_sums = Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac
-    (@{thm monoid_add_class.add_0_left} :: @{thm monoid_add_class.add_0_right} :: @{thms add_ac}))
+    (@{thm add_0_left} :: @{thm add_0_right} :: @{thms add_ac}))
 
 end)
 
@@ -1655,8 +1655,8 @@ lemmas divmod_int_rel_mod_eq = divmod_int_relI [THEN divmod_int_rel_mod, THEN eq
 lemmas arithmetic_simps =
   arith_simps
   add_special
-  OrderedGroup.add_0_left
-  OrderedGroup.add_0_right
+  add_0_left
+  add_0_right
   mult_zero_left
   mult_zero_right
   mult_1_left

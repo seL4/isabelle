@@ -1,5 +1,4 @@
 (*  Title:       NSComplex.thy
-    ID:      $Id$
     Author:      Jacques D. Fleuriot
     Copyright:   2001  University of Edinburgh
     Conversion to Isar and new proofs by Lawrence C Paulson, 2003/4
@@ -161,7 +160,7 @@ by transfer (rule complex_Im_minus)
 
 lemma hcomplex_add_minus_eq_minus:
       "x + y = (0::hcomplex) ==> x = -y"
-apply (drule OrderedGroup.minus_unique)
+apply (drule minus_unique)
 apply (simp add: minus_equation_iff [of x y])
 done
 
@@ -196,7 +195,7 @@ subsection{*Subraction and Division*}
 
 lemma hcomplex_diff_eq_eq [simp]: "((x::hcomplex) - y = z) = (x = z + y)"
 (* TODO: delete *)
-by (rule OrderedGroup.diff_eq_eq)
+by (rule diff_eq_eq)
 
 
 subsection{*Embedding Properties for @{term hcomplex_of_hypreal} Map*}

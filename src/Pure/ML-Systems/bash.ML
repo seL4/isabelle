@@ -25,7 +25,7 @@ fun bash_output script =
     val output_name = OS.FileSys.tmpName ();
 
     val status =
-      OS.Process.system ("perl -w \"$ISABELLE_HOME/lib/scripts/system.pl\" nogroup " ^
+      OS.Process.system ("exec \"$ISABELLE_HOME/lib/scripts/bash\" nogroup " ^
         script_name ^ " /dev/null " ^ output_name);
     val rc =
       (case Posix.Process.fromStatus status of

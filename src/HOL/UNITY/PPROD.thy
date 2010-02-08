@@ -11,17 +11,14 @@ Some dead wood here!
 theory PPROD imports Lift_prog begin
 
 constdefs
-
   PLam  :: "[nat set, nat => ('b * ((nat=>'b) * 'c)) program]
             => ((nat=>'b) * 'c) program"
     "PLam I F == \<Squnion>i \<in> I. lift i (F i)"
 
 syntax
-  "@PLam" :: "[pttrn, nat set, 'b set] => (nat => 'b) set"
-              ("(3plam _:_./ _)" 10)
-
+  "_PLam" :: "[pttrn, nat set, 'b set] => (nat => 'b) set"  ("(3plam _:_./ _)" 10)
 translations
-  "plam x : A. B"   == "PLam A (%x. B)"
+  "plam x : A. B" == "CONST PLam A (%x. B)"
 
 
 (*** Basic properties ***)

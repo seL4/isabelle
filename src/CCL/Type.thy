@@ -39,15 +39,15 @@ syntax
   "@Subtype"    :: "[idt, 'a set, o] => 'a set"      ("(1{_: _ ./ _})")
 
 translations
-  "PROD x:A. B" => "Pi(A, %x. B)"
-  "A -> B"      => "Pi(A, %_. B)"
-  "SUM x:A. B"  => "Sigma(A, %x. B)"
-  "A * B"       => "Sigma(A, %_. B)"
-  "{x: A. B}"   == "Subtype(A, %x. B)"
+  "PROD x:A. B" => "CONST Pi(A, %x. B)"
+  "A -> B"      => "CONST Pi(A, %_. B)"
+  "SUM x:A. B"  => "CONST Sigma(A, %x. B)"
+  "A * B"       => "CONST Sigma(A, %_. B)"
+  "{x: A. B}"   == "CONST Subtype(A, %x. B)"
 
 print_translation {*
-  [("Pi", dependent_tr' ("@Pi", "@->")),
-   ("Sigma", dependent_tr' ("@Sigma", "@*"))] *}
+  [(@{const_syntax Pi}, dependent_tr' ("@Pi", "@->")),
+   (@{const_syntax Sigma}, dependent_tr' ("@Sigma", "@*"))] *}
 
 axioms
   Subtype_def: "{x:A. P(x)} == {x. x:A & P(x)}"

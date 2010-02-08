@@ -1183,7 +1183,7 @@ lemma has_derivative_bilinear_within: fixes h::"real^'m \<Rightarrow> real^'n \<
       fix y assume as:"y \<in> s" "0 < dist y x" "dist y x < e / (B * C * D)"
       have "norm (h (f' (y - x)) (g' (y - x))) \<le> norm (f' (y - x)) * norm (g' (y - x)) * B" using B by auto
       also have "\<dots> \<le> (norm (y - x) * C) * (D * norm (y - x)) * B" apply(rule mult_right_mono)
-	apply(rule pordered_semiring_class.mult_mono) using B C D by (auto simp add: field_simps intro!:mult_nonneg_nonneg)
+	apply(rule mult_mono) using B C D by (auto simp add: field_simps intro!:mult_nonneg_nonneg)
       also have "\<dots> = (B * C * D * norm (y - x)) * norm (y - x)" by(auto simp add:field_simps)
       also have "\<dots> < e * norm (y - x)" apply(rule mult_strict_right_mono)
 	using as(3)[unfolded vector_dist_norm] and as(2) unfolding pos_less_divide_eq[OF bcd] by (auto simp add:field_simps)

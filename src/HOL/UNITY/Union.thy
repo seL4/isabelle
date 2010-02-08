@@ -36,19 +36,19 @@ constdefs
     "safety_prop X == SKIP: X & (\<forall>G. Acts G \<subseteq> UNION X Acts --> G \<in> X)"
 
 syntax
-  "@JOIN1"     :: "[pttrns, 'b set] => 'b set"         ("(3JN _./ _)" 10)
-  "@JOIN"      :: "[pttrn, 'a set, 'b set] => 'b set"  ("(3JN _:_./ _)" 10)
+  "_JOIN1"     :: "[pttrns, 'b set] => 'b set"         ("(3JN _./ _)" 10)
+  "_JOIN"      :: "[pttrn, 'a set, 'b set] => 'b set"  ("(3JN _:_./ _)" 10)
 
 translations
-  "JN x : A. B"   == "JOIN A (%x. B)"
-  "JN x y. B"   == "JN x. JN y. B"
-  "JN x. B"     == "JOIN CONST UNIV (%x. B)"
+  "JN x: A. B" == "CONST JOIN A (%x. B)"
+  "JN x y. B" == "JN x. JN y. B"
+  "JN x. B" == "JOIN CONST UNIV (%x. B)"
 
 syntax (xsymbols)
   SKIP     :: "'a program"                              ("\<bottom>")
   Join     :: "['a program, 'a program] => 'a program"  (infixl "\<squnion>" 65)
-  "@JOIN1" :: "[pttrns, 'b set] => 'b set"              ("(3\<Squnion> _./ _)" 10)
-  "@JOIN"  :: "[pttrn, 'a set, 'b set] => 'b set"       ("(3\<Squnion> _\<in>_./ _)" 10)
+  "_JOIN1" :: "[pttrns, 'b set] => 'b set"              ("(3\<Squnion> _./ _)" 10)
+  "_JOIN"  :: "[pttrn, 'a set, 'b set] => 'b set"       ("(3\<Squnion> _\<in>_./ _)" 10)
 
 
 subsection{*SKIP*}

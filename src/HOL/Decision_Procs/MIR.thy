@@ -54,7 +54,7 @@ using Nat.gr0_conv_Suc
 by clarsimp
 
 
-lemma myl: "\<forall> (a::'a::{pordered_ab_group_add}) (b::'a). (a \<le> b) = (0 \<le> b - a)" 
+lemma myl: "\<forall> (a::'a::{ordered_ab_group_add}) (b::'a). (a \<le> b) = (0 \<le> b - a)" 
 proof(clarify)
   fix x y ::"'a"
   have "(x \<le> y) = (x - y \<le> 0)" by (simp only: le_iff_diff_le_0[where a="x" and b="y"])
@@ -63,7 +63,7 @@ proof(clarify)
   finally show "(x \<le> y) = (0 \<le> y - x)" .
 qed
 
-lemma myless: "\<forall> (a::'a::{pordered_ab_group_add}) (b::'a). (a < b) = (0 < b - a)" 
+lemma myless: "\<forall> (a::'a::{ordered_ab_group_add}) (b::'a). (a < b) = (0 < b - a)" 
 proof(clarify)
   fix x y ::"'a"
   have "(x < y) = (x - y < 0)" by (simp only: less_iff_diff_less_0[where a="x" and b="y"])
@@ -72,7 +72,7 @@ proof(clarify)
   finally show "(x < y) = (0 < y - x)" .
 qed
 
-lemma myeq: "\<forall> (a::'a::{pordered_ab_group_add}) (b::'a). (a = b) = (0 = b - a)"
+lemma myeq: "\<forall> (a::'a::{ordered_ab_group_add}) (b::'a). (a = b) = (0 = b - a)"
   by auto
 
   (* Maybe should be added to the library \<dots> *)

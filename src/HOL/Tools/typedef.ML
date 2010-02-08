@@ -122,7 +122,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
           let
             val cert = Thm.cterm_of (Thm.theory_of_thm def_eq);
             val goal_eq = MetaSimplifier.rewrite true [def_eq] (cert goal');
-          in Drule.standard (Drule.equal_elim_rule2 OF [goal_eq, th]) end;
+          in Drule.export_without_context (Drule.equal_elim_rule2 OF [goal_eq, th]) end;
 
     fun typedef_result inhabited =
       ObjectLogic.typedecl (t, vs, mx)
@@ -139,7 +139,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
       ##> Theory.add_deps "" (dest_Const AbsC) typedef_deps
       #-> (fn ([type_definition], set_def) => fn thy1 =>
         let
-          fun make th = Drule.standard (th OF [type_definition]);
+          fun make th = Drule.export_without_context (th OF [type_definition]);
           val ([Rep, Rep_inverse, Abs_inverse, Rep_inject, Abs_inject,
               Rep_cases, Abs_cases, Rep_induct, Abs_induct], thy2) =
             thy1

@@ -164,7 +164,7 @@ definition union :: "'a randompred \<Rightarrow> 'a randompred \<Rightarrow> 'a 
 where
   "union R1 R2 = (\<lambda>s. let
      (P1, s') = R1 s; (P2, s'') = R2 s'
-   in (upper_semilattice_class.sup P1 P2, s''))"
+   in (semilattice_sup_class.sup P1 P2, s''))"
 
 definition if_randompred :: "bool \<Rightarrow> unit randompred"
 where

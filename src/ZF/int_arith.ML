@@ -110,9 +110,8 @@ val zminus_simps = @{thms NCons_simps} @
 (*To let us treat subtraction as addition*)
 val diff_simps = [@{thm zdiff_def}, @{thm zminus_zadd_distrib}, @{thm zminus_zminus}];
 
-(*push the unary minus down: - x * y = x * - y *)
-val int_minus_mult_eq_1_to_2 =
-    [@{thm zmult_zminus}, @{thm zmult_zminus_right} RS sym] MRS trans |> Drule.standard;
+(*push the unary minus down*)
+val int_minus_mult_eq_1_to_2 = @{lemma "$- w $* z = w $* $- z" by simp};
 
 (*to extract again any uncancelled minuses*)
 val int_minus_from_mult_simps =

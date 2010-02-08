@@ -34,4 +34,4 @@ SPECS="$@"; shift "$#"
 ## main
 
 find $SPECS \( -name \*.ML -o -name \*.thy \) -print | \
-  xargs perl -w "$ISABELLE_HOME/lib/scripts/unsymbolize.pl"
+  xargs "$ISABELLE_HOME/lib/scripts/unsymbolize"

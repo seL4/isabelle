@@ -284,7 +284,7 @@ fun unify pp tsig =
       | meets _ tye_idx = tye_idx;
 
 
-    (* occurs check and assigment *)
+    (* occurs check and assignment *)
 
     fun occurs_check tye i (Param (i', S)) =
           if i = i' then raise NO_UNIFIER ("Occurs check!", tye)

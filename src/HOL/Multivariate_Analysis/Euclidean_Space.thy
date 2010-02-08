@@ -459,7 +459,7 @@ lemma setL2_left_distrib:
   done
 
 lemma setsum_nonneg_eq_0_iff:
-  fixes f :: "'a \<Rightarrow> 'b::pordered_ab_group_add"
+  fixes f :: "'a \<Rightarrow> 'b::ordered_ab_group_add"
   shows "\<lbrakk>finite A; \<forall>x\<in>A. 0 \<le> f x\<rbrakk> \<Longrightarrow> setsum f A = 0 \<longleftrightarrow> (\<forall>x\<in>A. f x = 0)"
   apply (induct set: finite, simp)
   apply (simp add: add_nonneg_eq_0_iff setsum_nonneg)
@@ -836,10 +836,10 @@ lemma dot_lneg: "(-x) \<bullet> (y::'a::ring ^ 'n) = -(x \<bullet> y)" by vector
 lemma dot_rneg: "(x::'a::ring ^ 'n) \<bullet> (-y) = -(x \<bullet> y)" by vector
 lemma dot_lzero[simp]: "0 \<bullet> x = (0::'a::{comm_monoid_add, mult_zero})" by vector
 lemma dot_rzero[simp]: "x \<bullet> 0 = (0::'a::{comm_monoid_add, mult_zero})" by vector
-lemma dot_pos_le[simp]: "(0::'a\<Colon>ordered_ring_strict) <= x \<bullet> x"
+lemma dot_pos_le[simp]: "(0::'a\<Colon>linordered_ring_strict) <= x \<bullet> x"
   by (simp add: dot_def setsum_nonneg)
 
-lemma setsum_squares_eq_0_iff: assumes fS: "finite F" and fp: "\<forall>x \<in> F. f x \<ge> (0 ::'a::pordered_ab_group_add)" shows "setsum f F = 0 \<longleftrightarrow> (ALL x:F. f x = 0)"
+lemma setsum_squares_eq_0_iff: assumes fS: "finite F" and fp: "\<forall>x \<in> F. f x \<ge> (0 ::'a::ordered_ab_group_add)" shows "setsum f F = 0 \<longleftrightarrow> (ALL x:F. f x = 0)"
 using fS fp setsum_nonneg[OF fp]
 proof (induct set: finite)
   case empty thus ?case by simp
@@ -852,10 +852,10 @@ next
   show ?case by (simp add: h)
 qed
 
-lemma dot_eq_0: "x \<bullet> x = 0 \<longleftrightarrow> (x::'a::{ordered_ring_strict,ring_no_zero_divisors} ^ 'n) = 0"
+lemma dot_eq_0: "x \<bullet> x = 0 \<longleftrightarrow> (x::'a::{linordered_ring_strict,ring_no_zero_divisors} ^ 'n) = 0"
   by (simp add: dot_def setsum_squares_eq_0_iff Cart_eq)
 
-lemma dot_pos_lt[simp]: "(0 < x \<bullet> x) \<longleftrightarrow> (x::'a::{ordered_ring_strict,ring_no_zero_divisors} ^ 'n) \<noteq> 0" using dot_eq_0[of x] dot_pos_le[of x]
+lemma dot_pos_lt[simp]: "(0 < x \<bullet> x) \<longleftrightarrow> (x::'a::{linordered_ring_strict,ring_no_zero_divisors} ^ 'n) \<noteq> 0" using dot_eq_0[of x] dot_pos_le[of x]
   by (auto simp add: le_less)
 
 subsection{* The collapse of the general concepts to dimension one. *}
@@ -1146,7 +1146,7 @@ lemma norm_add_rule_thm:
   shows "norm x1 \<le> b1 \<Longrightarrow> norm x2 \<le> b2 \<Longrightarrow> norm (x1 + x2) \<le> b1 + b2"
   by (rule order_trans [OF norm_triangle_ineq add_mono])
 
-lemma ge_iff_diff_ge_0: "(a::'a::ordered_ring) \<ge> b == a - b \<ge> 0"
+lemma ge_iff_diff_ge_0: "(a::'a::linordered_ring) \<ge> b == a - b \<ge> 0"
   by (simp add: ring_simps)
 
 lemma pth_1:
@@ -3827,7 +3827,7 @@ qed
     (* FIXME : Move to some general theory ?*)
 definition "pairwise R S \<longleftrightarrow> (\<forall>x \<in> S. \<forall>y\<in> S. x\<noteq>y \<longrightarrow> R x y)"
 
-lemma vector_sub_project_orthogonal: "(b::'a::ordered_field^'n) \<bullet> (x - ((b \<bullet> x) / (b\<bullet>b)) *s b) = 0"
+lemma vector_sub_project_orthogonal: "(b::'a::linordered_field^'n) \<bullet> (x - ((b \<bullet> x) / (b\<bullet>b)) *s b) = 0"
   apply (cases "b = 0", simp)
   apply (simp add: dot_rsub dot_rmult)
   unfolding times_divide_eq_right[symmetric]

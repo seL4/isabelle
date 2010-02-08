@@ -28,6 +28,7 @@ imports
   Fundamental_Theorem_Algebra
   Infinite_Set
   Inner_Product
+  Lattice_Algebras
   Lattice_Syntax
   ListVector
   Kleene_Algebra
@@ -50,6 +51,7 @@ imports
   RBT
   SML_Quickcheck
   State_Monad
+  Structure_Syntax
   Sum_Of_Squares
   Transitive_Closure_Table
   Univ_Poly

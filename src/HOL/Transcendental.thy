@@ -381,7 +381,7 @@ apply (simp add: mult_ac)
 done
 
 lemma real_setsum_nat_ivl_bounded2:
-  fixes K :: "'a::ordered_semidom"
+  fixes K :: "'a::linordered_semidom"
   assumes f: "\<And>p::nat. p < n \<Longrightarrow> f p \<le> K"
   assumes K: "0 \<le> K"
   shows "setsum f {0..<n-k} \<le> of_nat n * K"
@@ -2904,10 +2904,12 @@ proof -
     next
       case False hence "0 < \<bar>x\<bar>" and "- \<bar>x\<bar> < \<bar>x\<bar>" by auto
       have "suminf (?c (-\<bar>x\<bar>)) - arctan (-\<bar>x\<bar>) = suminf (?c 0) - arctan 0"
-        by (rule suminf_eq_arctan_bounded[where x="0" and a="-\<bar>x\<bar>" and b="\<bar>x\<bar>", symmetric], auto simp add: `\<bar>x\<bar> < r` `-\<bar>x\<bar> < \<bar>x\<bar>`)
+        by (rule suminf_eq_arctan_bounded[where x="0" and a="-\<bar>x\<bar>" and b="\<bar>x\<bar>", symmetric])
+          (simp_all only: `\<bar>x\<bar> < r` `-\<bar>x\<bar> < \<bar>x\<bar>` neg_less_iff_less)
       moreover
       have "suminf (?c x) - arctan x = suminf (?c (-\<bar>x\<bar>)) - arctan (-\<bar>x\<bar>)"
-        by (rule suminf_eq_arctan_bounded[where x="x" and a="-\<bar>x\<bar>" and b="\<bar>x\<bar>"], auto simp add: `\<bar>x\<bar> < r` `-\<bar>x\<bar> < \<bar>x\<bar>`)
+        by (rule suminf_eq_arctan_bounded[where x="x" and a="-\<bar>x\<bar>" and b="\<bar>x\<bar>"])
+          (simp_all only: `\<bar>x\<bar> < r` `-\<bar>x\<bar> < \<bar>x\<bar>` neg_less_iff_less)
       ultimately 
       show ?thesis using suminf_arctan_zero by auto
     qed

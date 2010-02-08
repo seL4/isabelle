@@ -772,7 +772,7 @@ syntax
 
 translations
   "_Let(_binds(b, bs), e)"  == "_Let(b, _Let(bs, e))"
-  "let x = a in e"          == "Let(a, %x. e)"
+  "let x = a in e"          == "CONST Let(a, %x. e)"
 
 
 lemma LetI: 

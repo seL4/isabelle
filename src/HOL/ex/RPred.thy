@@ -25,7 +25,7 @@ definition supp :: "'a rpred \<Rightarrow> 'a rpred \<Rightarrow> 'a rpred"
 (* (infixl "\<squnion>" 80) *)
 where
   "supp RP1 RP2 = (\<lambda>s. let (P1, s') = RP1 s; (P2, s'') = RP2 s'
-  in (upper_semilattice_class.sup P1 P2, s''))"
+  in (semilattice_sup_class.sup P1 P2, s''))"
 
 definition if_rpred :: "bool \<Rightarrow> unit rpred"
 where

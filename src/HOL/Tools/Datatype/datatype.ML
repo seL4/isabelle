@@ -253,9 +253,11 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
         val rep_const = cterm_of thy
           (Const (Sign.intern_const thy ("Rep_" ^ tname), T --> Univ_elT));
         val cong' =
-          Drule.standard (cterm_instantiate [(cterm_of thy cong_f, rep_const)] arg_cong);
+          Drule.export_without_context
+            (cterm_instantiate [(cterm_of thy cong_f, rep_const)] arg_cong);
         val dist =
-          Drule.standard (cterm_instantiate [(cterm_of thy distinct_f, rep_const)] distinct_lemma);
+          Drule.export_without_context
+            (cterm_instantiate [(cterm_of thy distinct_f, rep_const)] distinct_lemma);
         val (thy', defs', eqns', _) = fold ((make_constr_def tname T) (length constrs))
           (constrs ~~ constr_syntax) (Sign.add_path tname thy, defs, [], 1);
       in
@@ -532,7 +534,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
               let
                 val dist_thm = Skip_Proof.prove_global thy5 [] [] t (fn _ =>
                   EVERY [simp_tac (HOL_ss addsimps dist_rewrites') 1])
-              in dist_thm :: Drule.standard (dist_thm RS not_sym) :: prove ts end;
+              in dist_thm :: Drule.export_without_context (dist_thm RS not_sym) :: prove ts end;
       in prove ts end;
 
     val distinct_thms = map2 (prove_distinct_thms)

@@ -124,7 +124,7 @@ fun dest_Sucs_sum relaxed t =
 
 
 (*Simplify 1*n and n*1 to n*)
-val add_0s  = map rename_numerals [@{thm add_0}, @{thm add_0_right}];
+val add_0s  = map rename_numerals [@{thm add_0}, @{thm Nat.add_0_right}];
 val mult_1s = map rename_numerals [@{thm nat_mult_1}, @{thm nat_mult_1_right}];
 
 (*Final simplification: cancel + and *; replace Numeral0 by 0 and Numeral1 by 1*)
@@ -136,7 +136,7 @@ val contra_rules = [@{thm add_Suc}, @{thm add_Suc_right}, @{thm Zero_not_Suc},
 
 val simplify_meta_eq =
     Arith_Data.simplify_meta_eq
-        ([@{thm nat_numeral_0_eq_0}, @{thm numeral_1_eq_Suc_0}, @{thm add_0}, @{thm add_0_right},
+        ([@{thm nat_numeral_0_eq_0}, @{thm numeral_1_eq_Suc_0}, @{thm add_0}, @{thm Nat.add_0_right},
           @{thm mult_0}, @{thm mult_0_right}, @{thm mult_1}, @{thm mult_1_right}] @ contra_rules);
 
 
@@ -290,8 +290,8 @@ structure DivCancelNumeralFactor = CancelNumeralFactorFun
 structure DvdCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Arith_Data.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name Ring_and_Field.dvd}
-  val dest_bal = HOLogic.dest_bin @{const_name Ring_and_Field.dvd} HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Rings.dvd}
+  val dest_bal = HOLogic.dest_bin @{const_name Rings.dvd} HOLogic.natT
   val cancel = @{thm nat_mult_dvd_cancel1} RS trans
   val neg_exchanges = false
 )
@@ -411,8 +411,8 @@ structure DivideCancelFactor = ExtractCommonTermFun
 structure DvdCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Arith_Data.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name Ring_and_Field.dvd}
-  val dest_bal = HOLogic.dest_bin @{const_name Ring_and_Field.dvd} HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Rings.dvd}
+  val dest_bal = HOLogic.dest_bin @{const_name Rings.dvd} HOLogic.natT
   fun simp_conv _ _ = SOME @{thm nat_mult_dvd_cancel_disj}
 );
 

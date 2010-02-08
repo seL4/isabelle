@@ -386,39 +386,39 @@ lemma of_hypnat_mult [simp]:
 by transfer (rule of_nat_mult)
 
 lemma of_hypnat_less_iff [simp]:
-  "\<And>m n. (of_hypnat m < (of_hypnat n::'a::ordered_semidom star)) = (m < n)"
+  "\<And>m n. (of_hypnat m < (of_hypnat n::'a::linordered_semidom star)) = (m < n)"
 by transfer (rule of_nat_less_iff)
 
 lemma of_hypnat_0_less_iff [simp]:
-  "\<And>n. (0 < (of_hypnat n::'a::ordered_semidom star)) = (0 < n)"
+  "\<And>n. (0 < (of_hypnat n::'a::linordered_semidom star)) = (0 < n)"
 by transfer (rule of_nat_0_less_iff)
 
 lemma of_hypnat_less_0_iff [simp]:
-  "\<And>m. \<not> (of_hypnat m::'a::ordered_semidom star) < 0"
+  "\<And>m. \<not> (of_hypnat m::'a::linordered_semidom star) < 0"
 by transfer (rule of_nat_less_0_iff)
 
 lemma of_hypnat_le_iff [simp]:
-  "\<And>m n. (of_hypnat m \<le> (of_hypnat n::'a::ordered_semidom star)) = (m \<le> n)"
+  "\<And>m n. (of_hypnat m \<le> (of_hypnat n::'a::linordered_semidom star)) = (m \<le> n)"
 by transfer (rule of_nat_le_iff)
 
 lemma of_hypnat_0_le_iff [simp]:
-  "\<And>n. 0 \<le> (of_hypnat n::'a::ordered_semidom star)"
+  "\<And>n. 0 \<le> (of_hypnat n::'a::linordered_semidom star)"
 by transfer (rule of_nat_0_le_iff)
 
 lemma of_hypnat_le_0_iff [simp]:
-  "\<And>m. ((of_hypnat m::'a::ordered_semidom star) \<le> 0) = (m = 0)"
+  "\<And>m. ((of_hypnat m::'a::linordered_semidom star) \<le> 0) = (m = 0)"
 by transfer (rule of_nat_le_0_iff)
 
 lemma of_hypnat_eq_iff [simp]:
-  "\<And>m n. (of_hypnat m = (of_hypnat n::'a::ordered_semidom star)) = (m = n)"
+  "\<And>m n. (of_hypnat m = (of_hypnat n::'a::linordered_semidom star)) = (m = n)"
 by transfer (rule of_nat_eq_iff)
 
 lemma of_hypnat_eq_0_iff [simp]:
-  "\<And>m. ((of_hypnat m::'a::ordered_semidom star) = 0) = (m = 0)"
+  "\<And>m. ((of_hypnat m::'a::linordered_semidom star) = 0) = (m = 0)"
 by transfer (rule of_nat_eq_0_iff)
 
 lemma HNatInfinite_of_hypnat_gt_zero:
-  "N \<in> HNatInfinite \<Longrightarrow> (0::'a::ordered_semidom star) < of_hypnat N"
+  "N \<in> HNatInfinite \<Longrightarrow> (0::'a::linordered_semidom star) < of_hypnat N"
 by (rule ccontr, simp add: linorder_not_less)
 
 end

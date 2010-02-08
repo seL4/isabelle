@@ -343,8 +343,8 @@ val built_in_typed_consts =
   [((@{const_name of_nat}, nat_T --> int_T), 0),
    ((@{const_name of_nat}, @{typ "unsigned_bit word => signed_bit word"}), 0)]
 val built_in_set_consts =
-  [(@{const_name lower_semilattice_fun_inst.inf_fun}, 2),
-   (@{const_name upper_semilattice_fun_inst.sup_fun}, 2),
+  [(@{const_name semilattice_inf_fun_inst.inf_fun}, 2),
+   (@{const_name semilattice_sup_fun_inst.sup_fun}, 2),
    (@{const_name minus_fun_inst.minus_fun}, 2),
    (@{const_name ord_fun_inst.less_eq_fun}, 2)]
 
@@ -2592,11 +2592,11 @@ fun skolemize_term_and_more (ext_ctxt as {thy, def_table, skolems, ...})
                 if gfp then
                   (lbfp_prefix,
                    @{const "op |"},
-                   @{const_name upper_semilattice_fun_inst.sup_fun})
+                   @{const_name semilattice_sup_fun_inst.sup_fun})
                 else
                   (ubfp_prefix,
                    @{const "op &"},
-                   @{const_name lower_semilattice_fun_inst.inf_fun})
+                   @{const_name semilattice_inf_fun_inst.inf_fun})
               (* unit -> term *)
               fun pos () = unrolled_inductive_pred_const ext_ctxt gfp x
                            |> aux ss Ts js depth polar

@@ -25,7 +25,7 @@ lemma spm_mult_le_dual_prts:
   "c \<le> sparse_row_matrix c2"
   "sparse_row_matrix r1 \<le> x"
   "x \<le> sparse_row_matrix r2"
-  "A * x \<le> sparse_row_matrix (b::('a::lordered_ring) spmat)"
+  "A * x \<le> sparse_row_matrix (b::('a::lattice_ring) spmat)"
   shows
   "c * x \<le> sparse_row_matrix (add_spmat (mult_spmat y b)
   (let s1 = diff_spmat c1 (mult_spmat y A2); s2 = diff_spmat c2 (mult_spmat y A1) in 
@@ -55,7 +55,7 @@ lemma spm_mult_le_dual_prts_no_let:
   "c \<le> sparse_row_matrix c2"
   "sparse_row_matrix r1 \<le> x"
   "x \<le> sparse_row_matrix r2"
-  "A * x \<le> sparse_row_matrix (b::('a::lordered_ring) spmat)"
+  "A * x \<le> sparse_row_matrix (b::('a::lattice_ring) spmat)"
   shows
   "c * x \<le> sparse_row_matrix (add_spmat (mult_spmat y b)
   (mult_est_spmat r1 r2 (diff_spmat c1 (mult_spmat y A2)) (diff_spmat c2 (mult_spmat y A1))))"

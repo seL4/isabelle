@@ -145,15 +145,16 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Complete_Lattice.thy \
   Datatype.thy \
   Extraction.thy \
+  Fields.thy \
   Finite_Set.thy \
   Fun.thy \
   FunDef.thy \
+  Groups.thy \
   Inductive.thy \
   Lattices.thy \
   Nat.thy \
   Nitpick.thy \
   Option.thy \
-  OrderedGroup.thy \
   Orderings.thy \
   Plain.thy \
   Power.thy \
@@ -162,7 +163,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Record.thy \
   Refute.thy \
   Relation.thy \
-  Ring_and_Field.thy \
+  Rings.thy \
   SAT.thy \
   Set.thy \
   Sum_Type.thy \
@@ -384,6 +385,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Permutations.thy Library/Bit.thy Library/FrechetDeriv.thy	\
   Library/Fraction_Field.thy Library/Fundamental_Theorem_Algebra.thy	\
   Library/Inner_Product.thy Library/Kleene_Algebra.thy			\
+  Library/Lattice_Algebras.thy						\
   Library/Lattice_Syntax.thy Library/Library.thy			\
   Library/List_Prefix.thy Library/List_Set.thy Library/State_Monad.thy	\
   Library/Nat_Int_Bij.thy Library/Multiset.thy Library/Permutation.thy	\
@@ -394,7 +396,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Library/document/root.tex Library/Library/document/root.bib	\
   Library/Transitive_Closure_Table.thy Library/While_Combinator.thy	\
   Library/Product_ord.thy Library/Char_nat.thy				\
-  Library/Char_ord.thy Library/Option_ord.thy				\
+  Library/Structure_Syntax.thy						\
   Library/Sublist_Order.thy Library/List_lexord.thy			\
   Library/Coinductive_List.thy Library/AssocList.thy			\
   Library/Formal_Power_Series.thy Library/Binomial.thy			\
@@ -785,18 +787,21 @@ $(LOG)/HOL-Decision_Procs.gz: $(OUT)/HOL \
   Decision_Procs/Approximation.thy \
   Decision_Procs/Commutative_Ring.thy \
   Decision_Procs/Commutative_Ring_Complete.thy \
-  Decision_Procs/commutative_ring_tac.ML \
   Decision_Procs/Cooper.thy \
-  Decision_Procs/cooper_tac.ML \
+  Decision_Procs/Decision_Procs.thy \
   Decision_Procs/Dense_Linear_Order.thy \
   Decision_Procs/Ferrack.thy \
-  Decision_Procs/ferrack_tac.ML \
   Decision_Procs/MIR.thy \
-  Decision_Procs/mir_tac.ML \
-  Decision_Procs/Decision_Procs.thy \
-  Decision_Procs/ex/Dense_Linear_Order_Ex.thy \
+  Decision_Procs/Parametric_Ferrante_Rackoff.thy \
+  Decision_Procs/Polynomial_List.thy \
+  Decision_Procs/Reflected_Multivariate_Polynomial.thy \
+  Decision_Procs/commutative_ring_tac.ML \
+  Decision_Procs/cooper_tac.ML \
   Decision_Procs/ex/Approximation_Ex.thy \
   Decision_Procs/ex/Commutative_Ring_Ex.thy \
+  Decision_Procs/ex/Dense_Linear_Order_Ex.thy \
+  Decision_Procs/ferrack_tac.ML \
+  Decision_Procs/mir_tac.ML \
   Decision_Procs/ROOT.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Decision_Procs
 

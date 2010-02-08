@@ -44,7 +44,7 @@ lemma setprod_numseg: "setprod f {m..0} = (if m=0 then f 0 else 1)"
                              else setprod f {m..n})"
   by (auto simp add: atLeastAtMostSuc_conv)
 
-lemma setprod_le: assumes fS: "finite S" and fg: "\<forall>x\<in>S. f x \<ge> 0 \<and> f x \<le> (g x :: 'a::ordered_idom)"
+lemma setprod_le: assumes fS: "finite S" and fg: "\<forall>x\<in>S. f x \<ge> 0 \<and> f x \<le> (g x :: 'a::linordered_idom)"
   shows "setprod f S \<le> setprod g S"
 using fS fg
 apply(induct S)
@@ -61,7 +61,7 @@ lemma setprod_inversef: "finite A ==> setprod (inverse \<circ> f) A = (inverse (
   apply simp
   done
 
-lemma setprod_le_1: assumes fS: "finite S" and f: "\<forall>x\<in>S. f x \<ge> 0 \<and> f x \<le> (1::'a::ordered_idom)"
+lemma setprod_le_1: assumes fS: "finite S" and f: "\<forall>x\<in>S. f x \<ge> 0 \<and> f x \<le> (1::'a::linordered_idom)"
   shows "setprod f S \<le> 1"
 using setprod_le[OF fS f] unfolding setprod_1 .
 
@@ -277,7 +277,7 @@ proof-
 qed
 
 lemma det_identical_rows:
-  fixes A :: "'a::ordered_idom^'n^'n"
+  fixes A :: "'a::linordered_idom^'n^'n"
   assumes ij: "i \<noteq> j"
   and r: "row i A = row j A"
   shows "det A = 0"
@@ -295,7 +295,7 @@ proof-
 qed
 
 lemma det_identical_columns:
-  fixes A :: "'a::ordered_idom^'n^'n"
+  fixes A :: "'a::linordered_idom^'n^'n"
   assumes ij: "i \<noteq> j"
   and r: "column i A = column j A"
   shows "det A = 0"
@@ -407,7 +407,7 @@ apply (simp)
   unfolding vector_smult_lzero .
 
 lemma det_row_operation:
-  fixes A :: "'a::ordered_idom^'n^'n"
+  fixes A :: "'a::linordered_idom^'n^'n"
   assumes ij: "i \<noteq> j"
   shows "det (\<chi> k. if k = i then row i A + c *s row j A else row k A) = det A"
 proof-
@@ -421,7 +421,7 @@ proof-
 qed
 
 lemma det_row_span:
-  fixes A :: "'a:: ordered_idom^'n^'n"
+  fixes A :: "'a:: linordered_idom^'n^'n"
   assumes x: "x \<in> span {row j A |j. j \<noteq> i}"
   shows "det (\<chi> k. if k = i then row i A + x else row k A) = det A"
 proof-
@@ -462,7 +462,7 @@ qed
 (* ------------------------------------------------------------------------- *)
 
 lemma det_dependent_rows:
-  fixes A:: "'a::ordered_idom^'n^'n"
+  fixes A:: "'a::linordered_idom^'n^'n"
   assumes d: "dependent (rows A)"
   shows "det A = 0"
 proof-
@@ -488,7 +488,7 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-lemma det_dependent_columns: assumes d: "dependent(columns (A::'a::ordered_idom^'n^'n))" shows "det A = 0"
+lemma det_dependent_columns: assumes d: "dependent(columns (A::'a::linordered_idom^'n^'n))" shows "det A = 0"
 by (metis d det_dependent_rows rows_transp det_transp)
 
 (* ------------------------------------------------------------------------- *)
@@ -608,7 +608,7 @@ proof (simp add: det_def setsum_right_distrib cong add: setprod_cong, rule setsu
 qed
 
 lemma det_mul:
-  fixes A B :: "'a::ordered_idom^'n^'n"
+  fixes A B :: "'a::linordered_idom^'n^'n"
   shows "det (A ** B) = det A * det B"
 proof-
   let ?U = "UNIV :: 'n set"
@@ -761,7 +761,7 @@ qed
 (* ------------------------------------------------------------------------- *)
 
 lemma cramer_lemma_transp:
-  fixes A:: "'a::ordered_idom^'n^'n" and x :: "'a ^'n"
+  fixes A:: "'a::linordered_idom^'n^'n" and x :: "'a ^'n"
   shows "det ((\<chi> i. if i = k then setsum (\<lambda>i. x$i *s row i A) (UNIV::'n set)
                            else row i A)::'a^'n^'n) = x$k * det A"
   (is "?lhs = ?rhs")
@@ -797,7 +797,7 @@ proof-
 qed
 
 lemma cramer_lemma:
-  fixes A :: "'a::ordered_idom ^'n^'n"
+  fixes A :: "'a::linordered_idom ^'n^'n"
   shows "det((\<chi> i j. if j = k then (A *v x)$i else A$i$j):: 'a^'n^'n) = x$k * det A"
 proof-
   let ?U = "UNIV :: 'n set"
@@ -893,7 +893,7 @@ proof-
 qed
 
 lemma det_orthogonal_matrix:
-  fixes Q:: "'a::ordered_idom^'n^'n"
+  fixes Q:: "'a::linordered_idom^'n^'n"
   assumes oQ: "orthogonal_matrix Q"
   shows "det Q = 1 \<or> det Q = - 1"
 proof-
@@ -1034,7 +1034,7 @@ definition "rotation_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> d
 definition "rotoinversion_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = - 1"
 
 lemma orthogonal_rotation_or_rotoinversion:
-  fixes Q :: "'a::ordered_idom^'n^'n"
+  fixes Q :: "'a::linordered_idom^'n^'n"
   shows " orthogonal_matrix Q \<longleftrightarrow> rotation_matrix Q \<or> rotoinversion_matrix Q"
   by (metis rotoinversion_matrix_def rotation_matrix_def det_orthogonal_matrix)
 (* ------------------------------------------------------------------------- *)

@@ -1,14 +1,18 @@
+#!/usr/bin/env perl
 #
 # Author: Markus Wenzel, TU Muenchen
 #
 # unsymbolize.pl - remove unreadable symbol names from sources
 #
 
+use warnings;
+use strict;
+
 sub unsymbolize {
     my ($file) = @_;
 
     open (FILE, $file) || die $!;
-    undef $/; $text = <FILE>; $/ = "\n";         # slurp whole file
+    undef $/; my $text = <FILE>; $/ = "\n";         # slurp whole file
     close FILE || die $!;
 
     $_ = $text;
@@ -39,7 +43,7 @@ sub unsymbolize {
     s/\\?\\<rightharpoonup>/=>/g;
     s/\\?\\<leftharpoondown>/<=/g;
 
-    $result = $_;
+    my $result = $_;
 
     if ($text ne $result) {
 	print STDERR "fixing $file\n";
@@ -55,7 +59,7 @@ sub unsymbolize {
 
 ## main
 
-foreach $file (@ARGV) {
+foreach my $file (@ARGV) {
   eval { &unsymbolize($file); };
   if ($@) { print STDERR "*** unsymbolize $file: ", $@, "\n"; }
 }

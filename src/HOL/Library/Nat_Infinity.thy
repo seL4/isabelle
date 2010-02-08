@@ -234,7 +234,7 @@ instance inat :: semiring_char_0
 
 subsection {* Ordering *}
 
-instantiation inat :: ordered_ab_semigroup_add
+instantiation inat :: linordered_ab_semigroup_add
 begin
 
 definition
@@ -268,7 +268,7 @@ instance by default
 
 end
 
-instance inat :: pordered_comm_semiring
+instance inat :: ordered_comm_semiring
 proof
   fix a b c :: inat
   assume "a \<le> b" and "0 \<le> c"

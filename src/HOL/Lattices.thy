@@ -16,13 +16,13 @@ notation
   top ("\<top>") and
   bot ("\<bottom>")
 
-class lower_semilattice = order +
+class semilattice_inf = order +
   fixes inf :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<sqinter>" 70)
   assumes inf_le1 [simp]: "x \<sqinter> y \<sqsubseteq> x"
   and inf_le2 [simp]: "x \<sqinter> y \<sqsubseteq> y"
   and inf_greatest: "x \<sqsubseteq> y \<Longrightarrow> x \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> y \<sqinter> z"
 
-class upper_semilattice = order +
+class semilattice_sup = order +
   fixes sup :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<squnion>" 65)
   assumes sup_ge1 [simp]: "x \<sqsubseteq> x \<squnion> y"
   and sup_ge2 [simp]: "y \<sqsubseteq> x \<squnion> y"
@@ -32,18 +32,18 @@ begin
 text {* Dual lattice *}
 
 lemma dual_semilattice:
-  "lower_semilattice (op \<ge>) (op >) sup"
-by (rule lower_semilattice.intro, rule dual_order)
+  "semilattice_inf (op \<ge>) (op >) sup"
+by (rule semilattice_inf.intro, rule dual_order)
   (unfold_locales, simp_all add: sup_least)
 
 end
 
-class lattice = lower_semilattice + upper_semilattice
+class lattice = semilattice_inf + semilattice_sup
 
 
 subsubsection {* Intro and elim rules*}
 
-context lower_semilattice
+context semilattice_inf
 begin
 
 lemma le_infI1:
@@ -69,13 +69,13 @@ lemma le_iff_inf:
   by (auto intro: le_infI1 antisym dest: eq_iff [THEN iffD1])
 
 lemma mono_inf:
-  fixes f :: "'a \<Rightarrow> 'b\<Colon>lower_semilattice"
+  fixes f :: "'a \<Rightarrow> 'b\<Colon>semilattice_inf"
   shows "mono f \<Longrightarrow> f (A \<sqinter> B) \<sqsubseteq> f A \<sqinter> f B"
   by (auto simp add: mono_def intro: Lattices.inf_greatest)
 
 end
 
-context upper_semilattice
+context semilattice_sup
 begin
 
 lemma le_supI1:
@@ -103,7 +103,7 @@ lemma le_iff_sup:
   by (auto intro: le_supI2 antisym dest: eq_iff [THEN iffD1])
 
 lemma mono_sup:
-  fixes f :: "'a \<Rightarrow> 'b\<Colon>upper_semilattice"
+  fixes f :: "'a \<Rightarrow> 'b\<Colon>semilattice_sup"
   shows "mono f \<Longrightarrow> f A \<squnion> f B \<sqsubseteq> f (A \<squnion> B)"
   by (auto simp add: mono_def intro: Lattices.sup_least)
 
@@ -112,7 +112,7 @@ end
 
 subsubsection {* Equational laws *}
 
-sublocale lower_semilattice < inf!: semilattice inf
+sublocale semilattice_inf < inf!: semilattice inf
 proof
   fix a b c
   show "(a \<sqinter> b) \<sqinter> c = a \<sqinter> (b \<sqinter> c)"
@@ -123,7 +123,7 @@ proof
     by (rule antisym) auto
 qed
 
-context lower_semilattice
+context semilattice_inf
 begin
 
 lemma inf_assoc: "(x \<sqinter> y) \<sqinter> z = x \<sqinter> (y \<sqinter> z)"
@@ -151,7 +151,7 @@ lemmas inf_aci = inf_commute inf_assoc inf_left_commute inf_left_idem
 
 end
 
-sublocale upper_semilattice < sup!: semilattice sup
+sublocale semilattice_sup < sup!: semilattice sup
 proof
   fix a b c
   show "(a \<squnion> b) \<squnion> c = a \<squnion> (b \<squnion> c)"
@@ -162,7 +162,7 @@ proof
     by (rule antisym) auto
 qed
 
-context upper_semilattice
+context semilattice_sup
 begin
 
 lemma sup_assoc: "(x \<squnion> y) \<squnion> z = x \<squnion> (y \<squnion> z)"
@@ -195,7 +195,7 @@ begin
 
 lemma dual_lattice:
   "lattice (op \<ge>) (op >) sup inf"
-  by (rule lattice.intro, rule dual_semilattice, rule upper_semilattice.intro, rule dual_order)
+  by (rule lattice.intro, rule dual_semilattice, rule semilattice_sup.intro, rule dual_order)
     (unfold_locales, auto)
 
 lemma inf_sup_absorb: "x \<sqinter> (x \<squnion> y) = x"
@@ -246,7 +246,7 @@ end
 
 subsubsection {* Strict order *}
 
-context lower_semilattice
+context semilattice_inf
 begin
 
 lemma less_infI1:
@@ -259,13 +259,13 @@ lemma less_infI2:
 
 end
 
-context upper_semilattice
+context semilattice_sup
 begin
 
 lemma less_supI1:
   "x \<sqsubset> a \<Longrightarrow> x \<sqsubset> a \<squnion> b"
 proof -
-  interpret dual: lower_semilattice "op \<ge>" "op >" sup
+  interpret dual: semilattice_inf "op \<ge>" "op >" sup
     by (fact dual_semilattice)
   assume "x \<sqsubset> a"
   then show "x \<sqsubset> a \<squnion> b"
@@ -275,7 +275,7 @@ qed
 lemma less_supI2:
   "x \<sqsubset> b \<Longrightarrow> x \<sqsubset> a \<squnion> b"
 proof -
-  interpret dual: lower_semilattice "op \<ge>" "op >" sup
+  interpret dual: semilattice_inf "op \<ge>" "op >" sup
     by (fact dual_semilattice)
   assume "x \<sqsubset> b"
   then show "x \<sqsubset> a \<squnion> b"
@@ -492,7 +492,7 @@ end
 
 subsection {* Uniqueness of inf and sup *}
 
-lemma (in lower_semilattice) inf_unique:
+lemma (in semilattice_inf) inf_unique:
   fixes f (infixl "\<triangle>" 70)
   assumes le1: "\<And>x y. x \<triangle> y \<sqsubseteq> x" and le2: "\<And>x y. x \<triangle> y \<sqsubseteq> y"
   and greatest: "\<And>x y z. x \<sqsubseteq> y \<Longrightarrow> x \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> y \<triangle> z"
@@ -504,7 +504,7 @@ next
   show "x \<sqinter> y \<sqsubseteq> x \<triangle> y" by (rule leI) simp_all
 qed
 
-lemma (in upper_semilattice) sup_unique:
+lemma (in semilattice_sup) sup_unique:
   fixes f (infixl "\<nabla>" 70)
   assumes ge1 [simp]: "\<And>x y. x \<sqsubseteq> x \<nabla> y" and ge2: "\<And>x y. y \<sqsubseteq> x \<nabla> y"
   and least: "\<And>x y z. y \<sqsubseteq> x \<Longrightarrow> z \<sqsubseteq> x \<Longrightarrow> y \<nabla> z \<sqsubseteq> x"
@@ -527,10 +527,10 @@ proof
     by (auto simp add: min_def max_def)
 qed (auto simp add: min_def max_def not_le less_imp_le)
 
-lemma inf_min: "inf = (min \<Colon> 'a\<Colon>{lower_semilattice, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
+lemma inf_min: "inf = (min \<Colon> 'a\<Colon>{semilattice_inf, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
   by (rule ext)+ (auto intro: antisym)
 
-lemma sup_max: "sup = (max \<Colon> 'a\<Colon>{upper_semilattice, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
+lemma sup_max: "sup = (max \<Colon> 'a\<Colon>{semilattice_sup, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
   by (rule ext)+ (auto intro: antisym)
 
 lemmas le_maxI1 = min_max.sup_ge1

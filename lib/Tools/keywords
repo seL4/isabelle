@@ -66,5 +66,4 @@ do
     gzip -dc "$LOG"
   fi
   echo
-done | \
-perl -w "$ISABELLE_HOME/lib/scripts/keywords.pl" "$KEYWORDS_NAME" "$SESSIONS"
+done | "$ISABELLE_HOME/lib/scripts/keywords" "$KEYWORDS_NAME" "$SESSIONS"

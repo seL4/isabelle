@@ -667,9 +667,9 @@ fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
                 in (CFun (ab_set_C, S Minus, ba_set_C), accum) end
               | @{const_name trancl} => do_fragile_set_operation T accum
               | @{const_name rtrancl} => (print_g "*** rtrancl"; unsolvable)
-              | @{const_name lower_semilattice_fun_inst.inf_fun} =>
+              | @{const_name semilattice_inf_fun_inst.inf_fun} =>
                 do_robust_set_operation T accum
-              | @{const_name upper_semilattice_fun_inst.sup_fun} =>
+              | @{const_name semilattice_sup_fun_inst.sup_fun} =>
                 do_robust_set_operation T accum
               | @{const_name finite} =>
                 let val C1 = ctype_for (domain_type (domain_type T)) in
