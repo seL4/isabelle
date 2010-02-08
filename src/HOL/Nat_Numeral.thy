@@ -113,7 +113,7 @@ lemma power_minus_even [simp]:
 
 end
 
-context linlinordered_ring_strict
+context linordered_ring_strict
 begin
 
 lemma sum_squares_ge_zero:

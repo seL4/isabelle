@@ -501,12 +501,12 @@ lemma hyperpow_mult:
 by transfer (rule power_mult_distrib)
 
 lemma hyperpow_two_le [simp]:
-  "(0::'a::{monoid_mult,linlinordered_ring_strict} star) \<le> r pow (1 + 1)"
+  "(0::'a::{monoid_mult,linordered_ring_strict} star) \<le> r pow (1 + 1)"
 by (auto simp add: hyperpow_two zero_le_mult_iff)
 
 lemma hrabs_hyperpow_two [simp]:
   "abs(x pow (1 + 1)) =
-   (x::'a::{monoid_mult,linlinordered_ring_strict} star) pow (1 + 1)"
+   (x::'a::{monoid_mult,linordered_ring_strict} star) pow (1 + 1)"
 by (simp only: abs_of_nonneg hyperpow_two_le)
 
 lemma hyperpow_two_hrabs [simp]:

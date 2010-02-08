@@ -767,9 +767,9 @@ by (force simp add: mult_right_mono not_le [symmetric])
 
 end
 
-class linlinordered_semiring_1 = linordered_semiring + semiring_1
+class linordered_semiring_1 = linordered_semiring + semiring_1
 
-class linlinordered_semiring_strict = semiring + comm_monoid_add + linordered_cancel_ab_semigroup_add +
+class linordered_semiring_strict = semiring + comm_monoid_add + linordered_cancel_ab_semigroup_add +
   assumes mult_strict_left_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c * a < c * b"
   assumes mult_strict_right_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> a * c < b * c"
 begin
@@ -886,7 +886,7 @@ qed
 
 end
 
-class linlinlinordered_semiring_1_strict = linlinordered_semiring_strict + semiring_1
+class linlinordered_semiring_1_strict = linordered_semiring_strict + semiring_1
 
 class mult_mono1 = times + zero + ord +
   assumes mult_mono1: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"
@@ -918,7 +918,7 @@ class linordered_comm_semiring_strict = comm_semiring_0 + linordered_cancel_ab_s
   assumes mult_strict_left_mono_comm: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c * a < c * b"
 begin
 
-subclass linlinordered_semiring_strict
+subclass linordered_semiring_strict
 proof
   fix a b c :: 'a
   assume "a < b" "0 < c"
@@ -1009,9 +1009,9 @@ qed (auto simp add: abs_if less_eq_neg_nonpos neg_equal_zero)
 end
 
 (* The "strict" suffix can be seen as describing the combination of linordered_ring and no_zero_divisors.
-   Basically, linordered_ring + no_zero_divisors = linlinordered_ring_strict.
+   Basically, linordered_ring + no_zero_divisors = linordered_ring_strict.
  *)
-class linlinordered_ring_strict = ring + linlinordered_semiring_strict
+class linordered_ring_strict = ring + linordered_semiring_strict
   + ordered_ab_group_add + abs_if
 begin
 
@@ -1207,7 +1207,7 @@ class linordered_idom = comm_ring_1 +
   (*previously linordered_ring*)
 begin
 
-subclass linlinordered_ring_strict ..
+subclass linordered_ring_strict ..
 subclass ordered_comm_ring ..
 subclass idom ..
 
@@ -1502,7 +1502,7 @@ lemma inverse_nonpositive_iff_nonpositive [simp]:
   "(inverse a \<le> 0) = (a \<le> (0::'a::{linordered_field,division_by_zero}))"
 by (simp add: linorder_not_less [symmetric])
 
-lemma linlinordered_field_no_lb: "\<forall> x. \<exists>y. y < (x::'a::linordered_field)"
+lemma linordered_field_no_lb: "\<forall> x. \<exists>y. y < (x::'a::linordered_field)"
 proof
   fix x::'a
   have m1: "- (1::'a) < 0" by simp
@@ -1511,7 +1511,7 @@ proof
   thus "\<exists>y. y < x" by blast
 qed
 
-lemma linlinordered_field_no_ub: "\<forall> x. \<exists>y. y > (x::'a::linordered_field)"
+lemma linordered_field_no_ub: "\<forall> x. \<exists>y. y > (x::'a::linordered_field)"
 proof
   fix x::'a
   have m1: " (1::'a) > 0" by simp

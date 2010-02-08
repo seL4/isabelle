@@ -836,7 +836,7 @@ lemma dot_lneg: "(-x) \<bullet> (y::'a::ring ^ 'n) = -(x \<bullet> y)" by vector
 lemma dot_rneg: "(x::'a::ring ^ 'n) \<bullet> (-y) = -(x \<bullet> y)" by vector
 lemma dot_lzero[simp]: "0 \<bullet> x = (0::'a::{comm_monoid_add, mult_zero})" by vector
 lemma dot_rzero[simp]: "x \<bullet> 0 = (0::'a::{comm_monoid_add, mult_zero})" by vector
-lemma dot_pos_le[simp]: "(0::'a\<Colon>linlinordered_ring_strict) <= x \<bullet> x"
+lemma dot_pos_le[simp]: "(0::'a\<Colon>linordered_ring_strict) <= x \<bullet> x"
   by (simp add: dot_def setsum_nonneg)
 
 lemma setsum_squares_eq_0_iff: assumes fS: "finite F" and fp: "\<forall>x \<in> F. f x \<ge> (0 ::'a::ordered_ab_group_add)" shows "setsum f F = 0 \<longleftrightarrow> (ALL x:F. f x = 0)"
@@ -852,10 +852,10 @@ next
   show ?case by (simp add: h)
 qed
 
-lemma dot_eq_0: "x \<bullet> x = 0 \<longleftrightarrow> (x::'a::{linlinordered_ring_strict,ring_no_zero_divisors} ^ 'n) = 0"
+lemma dot_eq_0: "x \<bullet> x = 0 \<longleftrightarrow> (x::'a::{linordered_ring_strict,ring_no_zero_divisors} ^ 'n) = 0"
   by (simp add: dot_def setsum_squares_eq_0_iff Cart_eq)
 
-lemma dot_pos_lt[simp]: "(0 < x \<bullet> x) \<longleftrightarrow> (x::'a::{linlinordered_ring_strict,ring_no_zero_divisors} ^ 'n) \<noteq> 0" using dot_eq_0[of x] dot_pos_le[of x]
+lemma dot_pos_lt[simp]: "(0 < x \<bullet> x) \<longleftrightarrow> (x::'a::{linordered_ring_strict,ring_no_zero_divisors} ^ 'n) \<noteq> 0" using dot_eq_0[of x] dot_pos_le[of x]
   by (auto simp add: le_less)
 
 subsection{* The collapse of the general concepts to dimension one. *}

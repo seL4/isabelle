@@ -912,7 +912,7 @@ done
 
 instance star :: (ordered_cancel_semiring) ordered_cancel_semiring ..
 
-instance star :: (linlinordered_semiring_strict) linlinordered_semiring_strict
+instance star :: (linordered_semiring_strict) linordered_semiring_strict
 apply (intro_classes)
 apply (transfer, erule (1) mult_strict_left_mono)
 apply (transfer, erule (1) mult_strict_right_mono)
@@ -936,7 +936,7 @@ by (intro_classes, transfer, rule abs_if)
 instance star :: (sgn_if) sgn_if
 by (intro_classes, transfer, rule sgn_if)
 
-instance star :: (linlinordered_ring_strict) linlinordered_ring_strict ..
+instance star :: (linordered_ring_strict) linordered_ring_strict ..
 instance star :: (ordered_comm_ring) ordered_comm_ring ..
 
 instance star :: (linordered_semidom) linordered_semidom

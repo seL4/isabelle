@@ -637,7 +637,7 @@ lemma sum_eq:"((x::'a::ordered_ab_group_add) + t = 0) == (x = - t)"
   using eq_diff_eq[where a= x and b=t and c=0] by simp
 
 
-interpretation class_dense_linlinordered_field: constr_dense_linorder
+interpretation class_dense_linordered_field: constr_dense_linorder
  "op <=" "op <"
    "\<lambda> x y. 1/2 * ((x::'a::{linordered_field,number_ring}) + y)"
 proof (unfold_locales, dlo, dlo, auto)
@@ -871,7 +871,7 @@ fun class_field_ss phi =
    addsplits [@{thm "abs_split"},@{thm "split_max"}, @{thm "split_min"}]
 
 in
-Ferrante_Rackoff_Data.funs @{thm "class_dense_linlinordered_field.ferrack_axiom"}
+Ferrante_Rackoff_Data.funs @{thm "class_dense_linordered_field.ferrack_axiom"}
   {isolate_conv = field_isolate_conv, whatis = classfield_whatis, simpset = class_field_ss}
 end
 *}
