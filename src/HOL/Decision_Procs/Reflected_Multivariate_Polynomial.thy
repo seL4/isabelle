@@ -15,11 +15,8 @@ subsection{* Datatype of polynomial expressions *}
 datatype poly = C Num| Bound nat| Add poly poly|Sub poly poly
   | Mul poly poly| Neg poly| Pw poly nat| CN poly nat poly
 
-ML{* @{term "Add"}*}
-syntax "_poly0" :: "poly" ("0\<^sub>p")
-translations "0\<^sub>p" \<rightleftharpoons> "C (0\<^sub>N)"
-syntax "_poly" :: "int \<Rightarrow> poly" ("_\<^sub>p")
-translations "i\<^sub>p" \<rightleftharpoons> "C (i\<^sub>N)"
+abbreviation poly_0 :: "poly" ("0\<^sub>p") where "0\<^sub>p \<equiv> C (0\<^sub>N)"
+abbreviation poly_p :: "int \<Rightarrow> poly" ("_\<^sub>p") where "i\<^sub>p \<equiv> C (i\<^sub>N)"
 
 subsection{* Boundedness, substitution and all that *}
 consts polysize:: "poly \<Rightarrow> nat"
@@ -117,14 +114,14 @@ consts
   polysub :: "poly\<times>poly \<Rightarrow> poly"
   polymul :: "poly\<times>poly \<Rightarrow> poly"
   polypow :: "nat \<Rightarrow> poly \<Rightarrow> poly"
-syntax "_polyadd" :: "poly \<Rightarrow> poly \<Rightarrow> poly" (infixl "+\<^sub>p" 60)
-translations "a +\<^sub>p b" \<rightleftharpoons> "polyadd (a,b)"  
-syntax "_polymul" :: "poly \<Rightarrow> poly \<Rightarrow> poly" (infixl "*\<^sub>p" 60)
-translations "a *\<^sub>p b" \<rightleftharpoons> "polymul (a,b)"  
-syntax "_polysub" :: "poly \<Rightarrow> poly \<Rightarrow> poly" (infixl "-\<^sub>p" 60)
-translations "a -\<^sub>p b" \<rightleftharpoons> "polysub (a,b)"  
-syntax "_polypow" :: "nat \<Rightarrow> poly \<Rightarrow> poly" (infixl "^\<^sub>p" 60)
-translations "a ^\<^sub>p k" \<rightleftharpoons> "polypow k a" 
+abbreviation poly_add :: "poly \<Rightarrow> poly \<Rightarrow> poly" (infixl "+\<^sub>p" 60)
+  where "a +\<^sub>p b \<equiv> polyadd (a,b)"
+abbreviation poly_mul :: "poly \<Rightarrow> poly \<Rightarrow> poly" (infixl "*\<^sub>p" 60)
+  where "a *\<^sub>p b \<equiv> polymul (a,b)"
+abbreviation poly_sub :: "poly \<Rightarrow> poly \<Rightarrow> poly" (infixl "-\<^sub>p" 60)
+  where "a -\<^sub>p b \<equiv> polysub (a,b)"
+abbreviation poly_pow :: "poly \<Rightarrow> nat \<Rightarrow> poly" (infixl "^\<^sub>p" 60)
+  where "a ^\<^sub>p k \<equiv> polypow k a"
 
 recdef polyadd "measure (\<lambda> (a,b). polysize a + polysize b)"
   "polyadd (C c, C c') = C (c+\<^sub>Nc')"
@@ -243,8 +240,9 @@ primrec
   "Ipoly bs (Mul a b) = Ipoly bs a * Ipoly bs b"
   "Ipoly bs (Pw t n) = (Ipoly bs t) ^ n"
   "Ipoly bs (CN c n p) = (Ipoly bs c) + (bs!n)*(Ipoly bs p)"
-syntax "_Ipoly" :: "poly \<Rightarrow> 'a list \<Rightarrow>'a::{ring_char_0,power,division_by_zero,field}" ("\<lparr>_\<rparr>\<^sub>p\<^bsup>_\<^esup>")
-translations "\<lparr>p\<rparr>\<^sub>p\<^bsup>bs\<^esup>" \<rightleftharpoons> "Ipoly bs p"  
+abbreviation
+  Ipoly_syntax :: "poly \<Rightarrow> 'a list \<Rightarrow>'a::{ring_char_0,power,division_by_zero,field}" ("\<lparr>_\<rparr>\<^sub>p\<^bsup>_\<^esup>")
+  where "\<lparr>p\<rparr>\<^sub>p\<^bsup>bs\<^esup> \<equiv> Ipoly bs p"
 
 lemma Ipoly_CInt: "Ipoly bs (C (i,1)) = of_int i" 
   by (simp add: INum_def)

@@ -76,7 +76,7 @@ syntax
       ("(3PROD _:#_. _)" [0, 51, 10] 10)
 
 translations
-  "PROD i :# A. b" == "msetprod (%i. b) A"
+  "PROD i :# A. b" == "CONST msetprod (%i. b) A"
 
 lemma msetprod_Un: "msetprod f (A+B) = msetprod f A * msetprod f B" 
   apply (simp add: msetprod_def power_add)

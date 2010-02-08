@@ -302,7 +302,7 @@ syntax (HTML output)
   "_finprod" :: "index => idt => 'a set => 'b => 'b"
       ("(3\<Otimes>__\<in>_. _)" [1000, 0, 51, 10] 10)
 translations
-  "\<Otimes>\<index>i:A. b" == "finprod \<struct>\<index> (%i. b) A"
+  "\<Otimes>\<index>i:A. b" == "CONST finprod \<struct>\<index> (%i. b) A"
   -- {* Beware of argument permutation! *}
 
 lemma (in comm_monoid) finprod_empty [simp]: 

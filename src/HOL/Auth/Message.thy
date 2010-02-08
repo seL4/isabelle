@@ -58,7 +58,7 @@ syntax (xsymbols)
 
 translations
   "{|x, y, z|}"   == "{|x, {|y, z|}|}"
-  "{|x, y|}"      == "MPair x y"
+  "{|x, y|}"      == "CONST MPair x y"
 
 
 constdefs

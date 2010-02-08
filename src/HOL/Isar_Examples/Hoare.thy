@@ -228,11 +228,11 @@ syntax (xsymbols)
   "_Assert"      :: "'a => 'a set"            ("(\<lbrace>_\<rbrace>)" [0] 1000)
 
 translations
-  ".{b}."                   => "Collect .(b)."
+  ".{b}."                   => "CONST Collect .(b)."
   "B [a/\<acute>x]"                => ".{\<acute>(_update_name x (\<lambda>_. a)) \<in> B}."
-  "\<acute>x := a"                 => "Basic .(\<acute>(_update_name x (\<lambda>_. a)))."
-  "IF b THEN c1 ELSE c2 FI" => "Cond .{b}. c1 c2"
-  "WHILE b INV i DO c OD"   => "While .{b}. i c"
+  "\<acute>x := a"                 => "CONST Basic .(\<acute>(_update_name x (\<lambda>_. a)))."
+  "IF b THEN c1 ELSE c2 FI" => "CONST Cond .{b}. c1 c2"
+  "WHILE b INV i DO c OD"   => "CONST While .{b}. i c"
   "WHILE b DO c OD"         == "WHILE b INV CONST undefined DO c OD"
 
 parse_translation {*
