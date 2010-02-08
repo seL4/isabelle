@@ -2187,10 +2187,7 @@ proof-
   {assume dc: "?c*?d < 0" 
 
     from dc one_plus_one_pos[where ?'a='a] have dc': "(1 + 1)*?c *?d < 0"
-      apply (simp add: mult_less_0_iff field_simps) 
-      apply (rule add_neg_neg)
-      apply (simp_all add: mult_less_0_iff)
-      done
+      by (simp add: mult_less_0_iff field_simps) 
     hence c:"?c \<noteq> 0" and d: "?d\<noteq> 0" by auto
     from add_frac_eq[OF c d, of "- ?t" "- ?s"]
     have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)" 
