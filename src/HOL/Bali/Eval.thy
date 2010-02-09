@@ -1,5 +1,4 @@
 (*  Title:      HOL/Bali/Eval.thy
-    ID:         $Id$
     Author:     David von Oheimb
 *)
 header {* Operational evaluation (big-step) semantics of Java expressions and 

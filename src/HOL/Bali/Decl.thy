@@ -1,5 +1,4 @@
 (*  Title:      HOL/Bali/Decl.thy
-    ID:         $Id$
     Author:     David von Oheimb and Norbert Schirmer
 *)
 header {* Field, method, interface, and class declarations, whole Java programs

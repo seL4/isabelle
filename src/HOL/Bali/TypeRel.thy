@@ -1,5 +1,4 @@
 (*  Title:      HOL/Bali/TypeRel.thy
-    ID:         $Id$
     Author:     David von Oheimb
 *)
 header {* The relations between Java types *}

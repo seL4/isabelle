@@ -1,5 +1,4 @@
 (*  Title:      HOL/Bali/Term.thy
-    ID:         $Id$
     Author:     David von Oheimb
 *)
 

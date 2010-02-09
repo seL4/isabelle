@@ -1,5 +1,4 @@
 (*  Title:      HOL/Bali/Trans.thy
-    ID:         $Id$
     Author:     David von Oheimb and Norbert Schirmer
 
 Operational transition (small-step) semantics of the 

@@ -1,5 +1,4 @@
 (*  Title:      HOL/Bali/AxSem.thy
-    ID:         $Id$
     Author:     David von Oheimb
 *)
 

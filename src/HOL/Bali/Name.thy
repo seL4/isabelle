@@ -1,5 +1,4 @@
 (*  Title:      HOL/Bali/Name.thy
-    ID:         $Id$
     Author:     David von Oheimb
 *)
 header {* Java names *}
