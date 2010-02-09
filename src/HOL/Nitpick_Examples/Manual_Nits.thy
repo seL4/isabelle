@@ -13,7 +13,7 @@ begin
 
 chapter {* 3. First Steps *}
 
-nitpick_params [sat_solver = MiniSatJNI, max_threads = 1]
+nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1]
 
 subsection {* 3.1. Propositional Logic *}
 

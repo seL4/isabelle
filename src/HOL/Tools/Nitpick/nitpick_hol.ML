@@ -122,6 +122,7 @@ sig
   val nth_sel_for_constr : styp -> int -> styp
   val boxed_nth_sel_for_constr : hol_context -> styp -> int -> styp
   val sel_no_from_name : string -> int
+  val close_form : term -> term
   val eta_expand : typ list -> term -> int -> term
   val extensionalize : term -> term
   val distinctness_formula : typ -> term list -> term
@@ -781,6 +782,22 @@ fun sel_no_from_name s =
     1
   else
     0
+
+(* term -> term *)
+val close_form =
+  let
+    (* (indexname * typ) list -> (indexname * typ) list -> term -> term *)
+    fun close_up zs zs' =
+      fold (fn (z as ((s, _), T)) => fn t' =>
+               Term.all T $ Abs (s, T, abstract_over (Var z, t')))
+           (take (length zs' - length zs) zs')
+    (* (indexname * typ) list -> term -> term *)
+    fun aux zs (@{const "==>"} $ t1 $ t2) =
+        let val zs' = Term.add_vars t1 zs in
+          close_up zs zs' (Logic.mk_implies (t1, aux zs' t2))
+        end
+      | aux zs t = close_up zs (Term.add_vars t zs) t
+  in aux [] end
 
 (* typ list -> term -> int -> term *)
 fun eta_expand _ t 0 = t

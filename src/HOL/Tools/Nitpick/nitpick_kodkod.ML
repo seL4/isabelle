@@ -317,7 +317,7 @@ fun bound_for_sel_rel ctxt debug dtypes
              [ts] |> not exclusive ? cons (KK.TupleSet [])
            else
              [KK.TupleSet [],
-              if exclusive andalso T1 = T2 andalso epsilon > delta then
+              if (* ### exclusive andalso*) T1 = T2 andalso epsilon > delta then
                 index_seq delta (epsilon - delta)
                 |> map (fn j =>
                            KK.TupleProduct (KK.TupleSet [Kodkod.Tuple [j + j0]],

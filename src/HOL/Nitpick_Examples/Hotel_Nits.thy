@@ -12,7 +12,7 @@ theory Hotel_Nits
 imports Main
 begin
 
-nitpick_params [sat_solver = MiniSatJNI, max_threads = 1, timeout = 120 s]
+nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1, timeout = 120 s]
 
 typedecl guest
 typedecl key

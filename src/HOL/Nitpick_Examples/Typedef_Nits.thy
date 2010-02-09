@@ -11,7 +11,8 @@ theory Typedef_Nits
 imports Main Rational
 begin
 
-nitpick_params [card = 1\<midarrow>4, timeout = 30 s]
+nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1, timeout = 60 s,
+                card = 1\<midarrow>4]
 
 typedef three = "{0\<Colon>nat, 1, 2}"
 by blast

@@ -943,7 +943,7 @@ fun special_congruence_axiom (s, T) (js1, ts1, x1) (js2, ts2, x2) =
                             |> map Logic.mk_equals,
                         Logic.mk_equals (list_comb (Const x1, bounds1 @ args1),
                                          list_comb (Const x2, bounds2 @ args2)))
-    |> Refute.close_form (* TODO: needed? *)
+    |> close_form (* TODO: needed? *)
   end
 
 (* hol_context -> styp list -> term list *)
@@ -1391,7 +1391,7 @@ fun preprocess_term (hol_ctxt as {thy, binary_ints, destroy_constrs, boxes,
     val skolem_depth = if skolemize then 4 else ~1
     val (((def_ts, nondef_ts), (got_all_mono_user_axioms, no_poly_user_axioms)),
          core_t) = t |> unfold_defs_in_term hol_ctxt
-                     |> Refute.close_form
+                     |> close_form
                      |> skolemize_term_and_more hol_ctxt skolem_depth
                      |> specialize_consts_in_term hol_ctxt 0
                      |> `(axioms_for_term hol_ctxt)
@@ -1420,7 +1420,7 @@ fun preprocess_term (hol_ctxt as {thy, binary_ints, destroy_constrs, boxes,
       #> simplify_constrs_and_sels thy
       #> distribute_quantifiers
       #> push_quantifiers_inward thy
-      #> not core ? Refute.close_form
+      #> close_form
       #> Term.map_abs_vars shortest_name
   in
     (((map (do_rest true false) def_ts, map (do_rest false false) nondef_ts),
