@@ -24,3 +24,4 @@ ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 
 ISABELLE_USEDIR_OPTIONS="-i true -d pdf -v true -g false"
 
+init_component /home/isabelle/contrib_devel/kodkodi
