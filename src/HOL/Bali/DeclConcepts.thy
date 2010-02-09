@@ -13,8 +13,8 @@ is_public :: "prog \<Rightarrow> qtname \<Rightarrow> bool"
 "is_public G qn \<equiv> (case class G qn of
                      None       \<Rightarrow> (case iface G qn of
                                       None       \<Rightarrow> False
-                                    | Some iface \<Rightarrow> access iface = Public)
-                   | Some class \<Rightarrow> access class = Public)"
+                                    | Some i \<Rightarrow> access i = Public)
+                   | Some c \<Rightarrow> access c = Public)"
 
 subsection "accessibility of types (cf. 6.6.1)"
 text {* 
@@ -445,21 +445,17 @@ inheritable_in::
      | Protected \<Rightarrow> True
      | Public    \<Rightarrow> True)"
 
-syntax
-Method_inheritable_in::
+abbreviation
+Method_inheritable_in_syntax::
  "prog \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> pname \<Rightarrow> bool"
                 ("_ \<turnstile>Method _ inheritable'_in _ " [61,61,61] 60)
+ where "G\<turnstile>Method m inheritable_in p == G\<turnstile>methdMembr m inheritable_in p"
 
-translations
-"G\<turnstile>Method m inheritable_in p" == "G\<turnstile>methdMembr m inheritable_in p"
-
-syntax
+abbreviation
 Methd_inheritable_in::
  "prog \<Rightarrow> sig \<Rightarrow> (qtname \<times> methd) \<Rightarrow> pname \<Rightarrow> bool"
                 ("_ \<turnstile>Methd _ _ inheritable'_in _ " [61,61,61,61] 60)
-
-translations
-"G\<turnstile>Methd s m inheritable_in p" == "G\<turnstile>(method s m) inheritable_in p"
+ where "G\<turnstile>Methd s m inheritable_in p == G\<turnstile>(method s m) inheritable_in p"
 
 subsubsection "declared-in/undeclared-in"
 
@@ -486,17 +482,15 @@ declared_in:: "prog  \<Rightarrow> memberdecl \<Rightarrow> qtname \<Rightarrow>
                         fdecl (fn,f ) \<Rightarrow> cdeclaredfield G C fn  = Some f
                       | mdecl (sig,m) \<Rightarrow> cdeclaredmethd G C sig = Some m)"
 
-syntax
+abbreviation
 method_declared_in:: "prog  \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> qtname \<Rightarrow> bool"
                                  ("_\<turnstile>Method _ declared'_in _" [61,61,61] 60)
-translations
-"G\<turnstile>Method m declared_in C" == "G\<turnstile>mdecl (mthd m) declared_in C"
+ where "G\<turnstile>Method m declared_in C == G\<turnstile>mdecl (mthd m) declared_in C"
 
-syntax
+abbreviation
 methd_declared_in:: "prog  \<Rightarrow> sig  \<Rightarrow>(qtname \<times> methd) \<Rightarrow> qtname \<Rightarrow> bool"
                                ("_\<turnstile>Methd _  _ declared'_in _" [61,61,61,61] 60)
-translations
-"G\<turnstile>Methd s m declared_in C" == "G\<turnstile>mdecl (s,mthd m) declared_in C"
+ where "G\<turnstile>Methd s m declared_in C == G\<turnstile>mdecl (s,mthd m) declared_in C"
 
 lemma declared_in_classD:
  "G\<turnstile>m declared_in C \<Longrightarrow> is_class G C"
@@ -538,26 +532,20 @@ subclass S if S isn't in the same package as A. Any further subclasses
 of S will not inherit the member, regardless if they are in the same
 package as A or not.*}
 
-syntax
+abbreviation
 method_member_of:: "prog \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> qtname \<Rightarrow> bool"
                            ("_ \<turnstile>Method _ member'_of _" [61,61,61] 60)
+ where "G\<turnstile>Method m member_of C == G\<turnstile>(methdMembr m) member_of C"
 
-translations
- "G\<turnstile>Method m member_of C" \<rightleftharpoons> "G\<turnstile>(methdMembr m) member_of C" 
-
-syntax
+abbreviation
 methd_member_of:: "prog \<Rightarrow> sig \<Rightarrow> (qtname \<times> methd) \<Rightarrow> qtname \<Rightarrow> bool"
                            ("_ \<turnstile>Methd _ _ member'_of _" [61,61,61,61] 60)
+ where "G\<turnstile>Methd s m member_of C == G\<turnstile>(method s m) member_of C" 
 
-translations
- "G\<turnstile>Methd s m member_of C" \<rightleftharpoons> "G\<turnstile>(method s m) member_of C" 
-
-syntax
+abbreviation
 fieldm_member_of:: "prog \<Rightarrow> vname \<Rightarrow> (qtname \<times> field) \<Rightarrow> qtname \<Rightarrow> bool"
                            ("_ \<turnstile>Field _  _ member'_of _" [61,61,61] 60)
-
-translations
- "G\<turnstile>Field n f member_of C" \<rightleftharpoons> "G\<turnstile>fieldm n f member_of C" 
+ where "G\<turnstile>Field n f member_of C == G\<turnstile>fieldm n f member_of C"
 
 constdefs
 inherits:: "prog \<Rightarrow> qtname \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> bool"
@@ -578,19 +566,15 @@ If a member is in a class we can select this member. This additional notion
 is necessary since not all members are inherited to subclasses. So such
 members are not member-of the subclass but member-in the subclass.*}
 
-syntax
+abbreviation
 method_member_in:: "prog \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> qtname \<Rightarrow> bool"
                            ("_ \<turnstile>Method _ member'_in _" [61,61,61] 60)
+ where "G\<turnstile>Method m member_in C == G\<turnstile>(methdMembr m) member_in C"
 
-translations
- "G\<turnstile>Method m member_in C" \<rightleftharpoons> "G\<turnstile>(methdMembr m) member_in C" 
-
-syntax
+abbreviation
 methd_member_in:: "prog \<Rightarrow> sig \<Rightarrow> (qtname \<times> methd) \<Rightarrow> qtname \<Rightarrow> bool"
                            ("_ \<turnstile>Methd _ _ member'_in _" [61,61,61,61] 60)
-
-translations
- "G\<turnstile>Methd s m member_in C" \<rightleftharpoons> "G\<turnstile>(method s m) member_in C" 
+ where "G\<turnstile>Methd s m member_in C == G\<turnstile>(method s m) member_in C"
 
 lemma member_inD: "G\<turnstile>m member_in C 
  \<Longrightarrow> \<exists> provC. G\<turnstile> C \<preceq>\<^sub>C provC \<and> G \<turnstile> m member_of provC"
@@ -649,18 +633,16 @@ where
 | Indirect: "\<lbrakk>G\<turnstile>new overrides intr; G\<turnstile>intr overrides old\<rbrakk>
             \<Longrightarrow> G\<turnstile>new overrides old"
 
-syntax
+abbreviation (input)
 sig_stat_overrides:: 
  "prog  \<Rightarrow> sig \<Rightarrow> (qtname \<times> methd) \<Rightarrow> (qtname \<times> methd) \<Rightarrow> bool" 
                                   ("_,_\<turnstile> _ overrides\<^sub>S _" [61,61,61,61] 60)
-translations
- "G,s\<turnstile>new overrides\<^sub>S old" \<rightharpoonup> "G\<turnstile>(qmdecl s new) overrides\<^sub>S (qmdecl s old)" 
+ where "G,s\<turnstile>new overrides\<^sub>S old == G\<turnstile>(qmdecl s new) overrides\<^sub>S (qmdecl s old)" 
 
-syntax
+abbreviation (input)
 sig_overrides:: "prog  \<Rightarrow> sig \<Rightarrow> (qtname \<times> methd) \<Rightarrow> (qtname \<times> methd) \<Rightarrow> bool" 
                                   ("_,_\<turnstile> _ overrides _" [61,61,61,61] 60)
-translations
- "G,s\<turnstile>new overrides old" \<rightharpoonup> "G\<turnstile>(qmdecl s new) overrides (qmdecl s old)" 
+ where "G,s\<turnstile>new overrides old == G\<turnstile>(qmdecl s new) overrides (qmdecl s old)"
 
 subsubsection "Hiding"
 
@@ -674,11 +656,10 @@ constdefs hides::
     G\<turnstile>Method old declared_in (declclass old) \<and> 
     G\<turnstile>Method old inheritable_in pid (declclass new)"
 
-syntax
-sig_hides:: "prog  \<Rightarrow> sig \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> bool" 
+abbreviation
+sig_hides:: "prog  \<Rightarrow> sig \<Rightarrow> (qtname \<times> methd) \<Rightarrow> (qtname \<times> methd) \<Rightarrow> bool" 
                                   ("_,_\<turnstile> _ hides _" [61,61,61,61] 60)
-translations
- "G,s\<turnstile>new hides old" \<rightharpoonup> "G\<turnstile>(qmdecl s new) hides (qmdecl s old)" 
+ where "G,s\<turnstile>new hides old == G\<turnstile>(qmdecl s new) hides (qmdecl s old)"
 
 lemma hidesI:
 "\<lbrakk>is_static new; msig new = msig old;
@@ -731,14 +712,14 @@ permits_acc::
  "prog \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool"
                    ("_ \<turnstile> _ in _ permits'_acc'_from _" [61,61,61,61] 60)
 
-"G\<turnstile>membr in class permits_acc_from accclass 
+"G\<turnstile>membr in cls permits_acc_from accclass 
   \<equiv> (case (accmodi membr) of
        Private   \<Rightarrow> (declclass membr = accclass)
      | Package   \<Rightarrow> (pid (declclass membr) = pid accclass)
      | Protected \<Rightarrow> (pid (declclass membr) = pid accclass)
                     \<or>
                     (G\<turnstile>accclass \<prec>\<^sub>C declclass membr 
-                     \<and> (G\<turnstile>class \<preceq>\<^sub>C accclass \<or> is_static membr)) 
+                     \<and> (G\<turnstile>cls \<preceq>\<^sub>C accclass \<or> is_static membr)) 
      | Public    \<Rightarrow> True)"
 text {*
 The subcondition of the @{term "Protected"} case: 
@@ -774,12 +755,14 @@ where
 
 | "G\<turnstile>Method m of cls accessible_from accclass \<equiv> accessible_fromR G accclass (methdMembr m) cls"
 
-| Immediate:  "\<lbrakk>G\<turnstile>membr member_of class;
+| Immediate:  "!!membr class.
+               \<lbrakk>G\<turnstile>membr member_of class;
                 G\<turnstile>(Class class) accessible_in (pid accclass);
                 G\<turnstile>membr in class permits_acc_from accclass 
                \<rbrakk> \<Longrightarrow> G\<turnstile>membr of class accessible_from accclass"
 
-| Overriding: "\<lbrakk>G\<turnstile>membr member_of class;
+| Overriding: "!!membr class C new old supr.
+               \<lbrakk>G\<turnstile>membr member_of class;
                 G\<turnstile>(Class class) accessible_in (pid accclass);
                 membr=(C,mdecl new);
                 G\<turnstile>(C,new) overrides\<^sub>S old; 
@@ -787,23 +770,21 @@ where
                 G\<turnstile>Method old of supr accessible_from accclass
                \<rbrakk>\<Longrightarrow> G\<turnstile>membr of class accessible_from accclass"
 
-syntax 
+abbreviation
 methd_accessible_from:: 
  "prog \<Rightarrow> sig \<Rightarrow> (qtname \<times> methd) \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool"
                  ("_ \<turnstile>Methd _ _ of _ accessible'_from _" [61,61,61,61,61] 60)
+ where
+ "G\<turnstile>Methd s m of cls accessible_from accclass ==
+   G\<turnstile>(method s m) of cls accessible_from accclass"
 
-translations
-"G\<turnstile>Methd s m of cls accessible_from accclass"  
- \<rightleftharpoons> "G\<turnstile>(method s m) of cls accessible_from accclass"  
-
-syntax 
+abbreviation
 field_accessible_from:: 
  "prog \<Rightarrow> vname \<Rightarrow> (qtname \<times> field) \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool"
                  ("_ \<turnstile>Field _  _ of _ accessible'_from _" [61,61,61,61,61] 60)
-
-translations
-"G\<turnstile>Field fn f of C accessible_from accclass"  
- \<rightleftharpoons> "G\<turnstile>(fieldm fn f) of C accessible_from accclass" 
+ where
+ "G\<turnstile>Field fn f of C accessible_from accclass ==
+  G\<turnstile>(fieldm fn f) of C accessible_from accclass"
 
 inductive
   dyn_accessible_fromR :: "prog \<Rightarrow> qtname \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> qtname \<Rightarrow> bool"
@@ -817,34 +798,32 @@ where
 
 | "G\<turnstile>Method m in C dyn_accessible_from accC \<equiv> dyn_accessible_fromR G accC (methdMembr m) C"
 
-| Immediate:  "\<lbrakk>G\<turnstile>membr member_in class;
+| Immediate:  "!!class. \<lbrakk>G\<turnstile>membr member_in class;
                 G\<turnstile>membr in class permits_acc_from accclass 
                \<rbrakk> \<Longrightarrow> G\<turnstile>membr in class dyn_accessible_from accclass"
 
-| Overriding: "\<lbrakk>G\<turnstile>membr member_in class;
+| Overriding: "!!class. \<lbrakk>G\<turnstile>membr member_in class;
                 membr=(C,mdecl new);
                 G\<turnstile>(C,new) overrides old; 
                 G\<turnstile>class \<prec>\<^sub>C supr;
                 G\<turnstile>Method old in supr dyn_accessible_from accclass
                \<rbrakk>\<Longrightarrow> G\<turnstile>membr in class dyn_accessible_from accclass"
 
-syntax 
+abbreviation
 methd_dyn_accessible_from:: 
  "prog \<Rightarrow> sig \<Rightarrow> (qtname \<times> methd) \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool"
              ("_ \<turnstile>Methd _ _ in _ dyn'_accessible'_from _" [61,61,61,61,61] 60)
+ where
+ "G\<turnstile>Methd s m in C dyn_accessible_from accC ==
+  G\<turnstile>(method s m) in C dyn_accessible_from accC"  
 
-translations
-"G\<turnstile>Methd s m in C dyn_accessible_from accC"  
- \<rightleftharpoons> "G\<turnstile>(method s m) in C dyn_accessible_from accC"  
-
-syntax 
+abbreviation
 field_dyn_accessible_from:: 
  "prog \<Rightarrow> vname \<Rightarrow> (qtname \<times> field) \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool"
          ("_ \<turnstile>Field _ _ in _ dyn'_accessible'_from _" [61,61,61,61,61] 60)
-
-translations
-"G\<turnstile>Field fn f in dynC dyn_accessible_from accC"  
- \<rightleftharpoons> "G\<turnstile>(fieldm fn f) in dynC dyn_accessible_from accC"
+ where
+ "G\<turnstile>Field fn f in dynC dyn_accessible_from accC ==
+  G\<turnstile>(fieldm fn f) in dynC dyn_accessible_from accC"
 
 
 lemma accessible_from_commonD: "G\<turnstile>m of C accessible_from S

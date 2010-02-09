@@ -1,5 +1,4 @@
 (*  Title:      HOL/Bali/Name.thy
-    ID:         $Id$
     Author:     David von Oheimb
 *)
 header {* Java names *}
@@ -20,13 +19,11 @@ datatype ename        --{* expression name *}
 datatype lname        --{* names for local variables and the This pointer *}
         = EName ename 
         | This
-syntax   
-  VName  :: "vname \<Rightarrow> lname"
-  Result :: lname
+abbreviation VName   :: "vname \<Rightarrow> lname"
+      where "VName n == EName (VNam n)"
 
-translations
-  "VName n" == "EName (VNam n)"
-  "Result"  == "EName Res"
+abbreviation Result :: lname
+      where "Result == EName Res"
 
 datatype xname          --{* names of standard exceptions *}
         = Throwable

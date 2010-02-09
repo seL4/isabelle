@@ -254,13 +254,11 @@ lemma heap_def2 [simp]:  "heap s a=globs s (Heap a)"
 by (simp add: heap_def)
 
 
-syntax
-  val_this     :: "st \<Rightarrow> val"
-  lookup_obj   :: "st \<Rightarrow> val \<Rightarrow> obj"
+abbreviation val_this :: "st \<Rightarrow> val"
+  where "val_this s == the (locals s This)"
 
-translations
- "val_this s"       == "CONST the (locals s This)" 
- "lookup_obj s a'"  == "CONST the (heap s (the_Addr a'))"
+abbreviation lookup_obj :: "st \<Rightarrow> val \<Rightarrow> obj"
+  where "lookup_obj s a' == the (heap s (the_Addr a'))"
 
 subsection "memory allocation"
 
@@ -286,12 +284,8 @@ done
 
 subsection "initialization"
 
-syntax
-
-  init_vals     :: "('a, ty) table \<Rightarrow> ('a, val) table"
-
-translations
- "init_vals vs"    == "CONST Option.map default_val \<circ> vs"
+abbreviation init_vals :: "('a, ty) table \<Rightarrow> ('a, val) table"
+  where "init_vals vs == Option.map default_val \<circ> vs"
 
 lemma init_arr_comps_base [simp]: "init_vals (arr_comps T 0) = empty"
 apply (unfold arr_comps_def in_bounds_def)
@@ -325,11 +319,9 @@ constdefs
   init_obj    :: "prog \<Rightarrow> obj_tag \<Rightarrow> oref \<Rightarrow> st \<Rightarrow> st"
  "init_obj G oi r \<equiv> gupd(r\<mapsto>\<lparr>tag=oi, values=init_vals (var_tys G oi r)\<rparr>)"
 
-syntax
+abbreviation
   init_class_obj :: "prog \<Rightarrow> qtname \<Rightarrow> st \<Rightarrow> st"
-
-translations
- "init_class_obj G C" == "init_obj G CONST undefined (CONST Inr C)"
+  where "init_class_obj G C == init_obj G undefined (Inr C)"
 
 lemma gupd_def2 [simp]: "gupd(r\<mapsto>obj) (st g l) = st (g(r\<mapsto>obj)) l"
 apply (unfold gupd_def)
@@ -513,19 +505,17 @@ apply (split split_if)
 apply auto
 done
 
-syntax
+abbreviation raise_if :: "bool \<Rightarrow> xname \<Rightarrow> abopt \<Rightarrow> abopt"
+  where "raise_if c xn == abrupt_if c (Some (Xcpt (Std xn)))"
 
-  raise_if :: "bool \<Rightarrow> xname \<Rightarrow> abopt \<Rightarrow> abopt"
-  np       :: "val  \<spacespace>        \<Rightarrow> abopt \<Rightarrow> abopt"
-  check_neg:: "val  \<spacespace>        \<Rightarrow> abopt \<Rightarrow> abopt"
-  error_if :: "bool \<Rightarrow> error \<Rightarrow> abopt \<Rightarrow> abopt"
-  
-translations
+abbreviation np :: "val \<Rightarrow> abopt \<Rightarrow> abopt"
+  where "np v == raise_if (v = Null) NullPointer"
 
- "raise_if c xn" == "abrupt_if c (Some (Xcpt (Std xn)))"
- "np v"          == "raise_if (v = Null)      NullPointer"
- "check_neg i'"  == "raise_if (the_Intg i'<0) NegArrSize"
- "error_if c e"  == "abrupt_if c (Some (Error e))"
+abbreviation check_neg :: "val \<Rightarrow> abopt \<Rightarrow> abopt"
+  where "check_neg i' == raise_if (the_Intg i'<0) NegArrSize"
+
+abbreviation error_if :: "bool \<Rightarrow> error \<Rightarrow> abopt \<Rightarrow> abopt"
+  where "error_if c e == abrupt_if c (Some (Error e))"
 
 lemma raise_if_None [simp]: "(raise_if c x y = None) = (\<not>c \<and> y = None)"
 apply (simp add: abrupt_if_def)
@@ -592,22 +582,23 @@ section "full program state"
 types
   state = "abopt \<times> st"          --{* state including abruption information *}
 
-syntax 
-  Norm   :: "st \<Rightarrow> state"
-  abrupt :: "state \<Rightarrow> abopt"
-  store  :: "state \<Rightarrow> st"
-
 translations
-   
-  "Norm s"     == "(None,s)" 
-  "abrupt"     => "fst"
-  "store"      => "snd"
   "abopt"       <= (type) "State.abrupt option"
   "abopt"       <= (type) "abrupt option"
   "state"      <= (type) "abopt \<times> State.st"
   "state"      <= (type) "abopt \<times> st"
 
+abbreviation
+  Norm :: "st \<Rightarrow> state"
+  where "Norm s == (None, s)"
 
+abbreviation (input)
+  abrupt :: "state \<Rightarrow> abopt"
+  where "abrupt == fst"
+
+abbreviation (input)
+  store :: "state \<Rightarrow> st"
+  where "store == snd"
 
 lemma single_stateE: "\<forall>Z. Z = (s::state) \<Longrightarrow> False"
 apply (erule_tac x = "(Some k,y)" in all_dupE)
@@ -683,15 +674,11 @@ lemma abupd_store_invariant [simp]: "store (abupd f s) = store s"
 lemma supd_abrupt_invariant [simp]: "abrupt (supd f s) = abrupt s"
   by (cases s) simp
 
-syntax
+abbreviation set_lvars :: "locals \<Rightarrow> state \<Rightarrow> state"
+  where "set_lvars l == supd (set_locals l)"
 
-  set_lvars     :: "locals \<Rightarrow> state \<Rightarrow> state"
-  restore_lvars :: "state  \<Rightarrow> state \<Rightarrow> state"
-  
-translations
-
- "set_lvars l" == "supd (set_locals l)"
- "restore_lvars s' s" == "set_lvars (locals (store s')) s"
+abbreviation restore_lvars :: "state  \<Rightarrow> state \<Rightarrow> state"
+  where "restore_lvars s' s == set_lvars (locals (store s')) s"
 
 lemma set_set_lvars [simp]: "\<And> s. set_lvars l (set_lvars l' s) = set_lvars l s"
 apply (simp (no_asm_simp) only: split_tupled_all)

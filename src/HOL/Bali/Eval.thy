@@ -1,5 +1,4 @@
 (*  Title:      HOL/Bali/Eval.thy
-    ID:         $Id$
     Author:     David von Oheimb
 *)
 header {* Operational evaluation (big-step) semantics of Java expressions and 
@@ -125,20 +124,21 @@ text {* To avoid redundancy and to reduce the number of rules, there is only
  assignment. 
 *}
 
-syntax (xsymbols)
+abbreviation (xsymbols)
   dummy_res :: "vals" ("\<diamondsuit>")
-translations
-  "\<diamondsuit>" == "In1 Unit"
+  where "\<diamondsuit> == In1 Unit"
 
-syntax 
-  val_inj_vals:: "expr \<Rightarrow> term" ("\<lfloor>_\<rfloor>\<^sub>e" 1000)
-  var_inj_vals::  "var \<Rightarrow> term"  ("\<lfloor>_\<rfloor>\<^sub>v" 1000)
-  lst_inj_vals:: "expr list \<Rightarrow> term" ("\<lfloor>_\<rfloor>\<^sub>l" 1000)
+abbreviation (input)
+  val_inj_vals ("\<lfloor>_\<rfloor>\<^sub>e" 1000)
+  where "\<lfloor>e\<rfloor>\<^sub>e == In1 e"
 
-translations 
-  "\<lfloor>e\<rfloor>\<^sub>e" \<rightharpoonup> "In1 e"
-  "\<lfloor>v\<rfloor>\<^sub>v" \<rightharpoonup> "In2 v"
-  "\<lfloor>es\<rfloor>\<^sub>l" \<rightharpoonup> "In3 es"
+abbreviation (input)
+  var_inj_vals  ("\<lfloor>_\<rfloor>\<^sub>v" 1000)
+  where "\<lfloor>v\<rfloor>\<^sub>v == In2 v"
+
+abbreviation (input)
+  lst_inj_vals  ("\<lfloor>_\<rfloor>\<^sub>l" 1000)
+  where "\<lfloor>es\<rfloor>\<^sub>l == In3 es"
 
 constdefs
   undefined3 :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> vals"
