@@ -1,6 +1,6 @@
 (*  Title:      HOL/Nitpick_Examples/Special_Nits.thy
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2009
+    Copyright   2009, 2010
 
 Examples featuring Nitpick's "specialize" optimization.
 *)
@@ -11,7 +11,7 @@ theory Special_Nits
 imports Main
 begin
 
-nitpick_params [sat_solver = MiniSatJNI, max_threads = 1, timeout = 60 s,
+nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1, timeout = 60 s,
                 card = 4]
 
 fun f1 :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat" where

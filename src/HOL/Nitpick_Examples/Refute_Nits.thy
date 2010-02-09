@@ -1,6 +1,6 @@
 (*  Title:      HOL/Nitpick_Examples/Refute_Nits.thy
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2009
+    Copyright   2009, 2010
 
 Refute examples adapted to Nitpick.
 *)
@@ -11,7 +11,7 @@ theory Refute_Nits
 imports Main
 begin
 
-nitpick_params [sat_solver = MiniSatJNI, max_threads = 1, timeout = 60 s]
+nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1, timeout = 60 s]
 
 lemma "P \<and> Q"
 apply (rule conjI)

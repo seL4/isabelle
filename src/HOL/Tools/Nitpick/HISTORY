@@ -4,6 +4,8 @@ Version 2010
   * Added "std" option and implemented support for nonstandard models
   * Fixed soundness bugs related to "destroy_constrs" optimization and record
     getters
+  * Renamed "MiniSatJNI", "zChaffJNI", "BerkMinAlloy", and "SAT4JLight" to
+ 	"MiniSat_JNI", "zChaff_JNI", "BerkMin_Alloy", and "SAT4J_Light"
 
 Version 2009-1
 

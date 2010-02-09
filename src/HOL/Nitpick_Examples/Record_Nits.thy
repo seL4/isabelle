@@ -1,6 +1,6 @@
 (*  Title:      HOL/Nitpick_Examples/Record_Nits.thy
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2009
+    Copyright   2009, 2010
 
 Examples featuring Nitpick applied to records.
 *)
@@ -11,7 +11,7 @@ theory Record_Nits
 imports Main
 begin
 
-nitpick_params [sat_solver = MiniSatJNI, max_threads = 1, timeout = 60 s]
+nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1, timeout = 60 s]
 
 record point2d =
   xc :: int

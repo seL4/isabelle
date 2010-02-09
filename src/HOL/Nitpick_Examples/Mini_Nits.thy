@@ -1,6 +1,6 @@
 (*  Title:      HOL/Nitpick_Examples/Mini_Nits.thy
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2009
+    Copyright   2009, 2010
 
 Examples featuring Minipick, the minimalistic version of Nitpick.
 *)
