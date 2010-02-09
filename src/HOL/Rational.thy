@@ -1083,14 +1083,6 @@ proof -
   finally show ?thesis using assms by simp
 qed
 
-lemma (in linordered_idom) sgn_greater [simp]:
-  "0 < sgn a \<longleftrightarrow> 0 < a"
-  unfolding sgn_if by auto
-
-lemma (in linordered_idom) sgn_less [simp]:
-  "sgn a < 0 \<longleftrightarrow> a < 0"
-  unfolding sgn_if by auto
-
 lemma rat_le_eq_code [code]:
   "Fract a b < Fract c d \<longleftrightarrow> (if b = 0
        then sgn c * sgn d > 0
