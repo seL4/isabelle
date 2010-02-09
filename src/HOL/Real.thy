@@ -9,21 +9,18 @@ lemma field_le_epsilon:
 proof (rule ccontr)
   assume xy: "\<not> x \<le> y"
   hence "(x-y)/2 > 0"
-    by (metis half_gt_zero le_iff_diff_le_0 linorder_not_le local.xy)
+    by simp
   hence "x \<le> y + (x - y) / 2"
     by (rule e [of "(x-y)/2"])
   also have "... = (x - y + 2*y)/2"
-    by auto
-       (metis add_less_cancel_left add_numeral_0_right class_semiring.add_c xy e
-           diff_add_cancel gt_half_sum less_half_sum linorder_not_le number_of_Pls)
+    by (simp add: diff_divide_distrib)
   also have "... = (x + y) / 2" 
-    by auto
+    by simp
   also have "... < x" using xy 
-    by auto
+    by simp
   finally have "x<x" .
   thus False
-    by auto 
+    by simp
 qed
-
 
 end
