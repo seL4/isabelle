@@ -2925,7 +2925,7 @@ proof -
     then show "?P m"
       by (auto simp add: permits_acc_def)
   next
-    case (Overriding new C declC newm old Sup)
+    case (Overriding new declC newm old Sup C)
     assume member_new: "G \<turnstile> new member_in C" and
                   new: "new = (declC, mdecl newm)" and
              override: "G \<turnstile> (declC, newm) overrides old" and

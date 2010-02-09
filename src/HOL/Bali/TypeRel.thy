@@ -35,37 +35,22 @@ consts
 (*subclseq, by translation*)                 (* subclass + identity       *)
   implmt1   :: "prog \<Rightarrow> (qtname \<times> qtname) set" --{* direct implementation *}
 
-syntax
+abbreviation
+  subint1_syntax :: "prog => [qtname, qtname] => bool" ("_|-_<:I1_" [71,71,71] 70)
+  where "G|-I <:I1 J == (I,J) \<in> subint1 G"
 
- "_subint1" :: "prog => [qtname, qtname] => bool" ("_|-_<:I1_" [71,71,71] 70)
- "_subint"  :: "prog => [qtname, qtname] => bool" ("_|-_<=:I _"[71,71,71] 70)
- (* Defined in Decl.thy:
- "_subcls1" :: "prog => [qtname, qtname] => bool" ("_|-_<:C1_" [71,71,71] 70)
- "_subclseq":: "prog => [qtname, qtname] => bool" ("_|-_<=:C _"[71,71,71] 70)
- "_subcls"  :: "prog => [qtname, qtname] => bool" ("_|-_<:C _"[71,71,71] 70)
- *)
- "@implmt1" :: "prog => [qtname, qtname] => bool" ("_|-_~>1_"  [71,71,71] 70)
+abbreviation
+  subint_syntax :: "prog => [qtname, qtname] => bool" ("_|-_<=:I _"[71,71,71] 70)
+  where "G|-I <=:I J == (I,J) \<in>(subint1 G)^*" --{* cf. 9.1.3 *}
 
-syntax (xsymbols)
+abbreviation
+  implmt1_syntax :: "prog => [qtname, qtname] => bool" ("_|-_~>1_"  [71,71,71] 70)
+  where "G|-C ~>1 I == (C,I) \<in> implmt1 G"
 
-  "_subint1" :: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<prec>I1_"  [71,71,71] 70)
-  "_subint"  :: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<preceq>I _"  [71,71,71] 70)
-  (* Defined in Decl.thy:
-\  "_subcls1" :: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<prec>\<^sub>C\<^sub>1_"  [71,71,71] 70)
-  "_subclseq":: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<preceq>\<^sub>C _"  [71,71,71] 70)
-  "_subcls"  :: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<prec>\<^sub>C _"  [71,71,71] 70)
-  *)
-  "_implmt1" :: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<leadsto>1_"  [71,71,71] 70)
-
-translations
-
-        "G\<turnstile>I \<prec>I1 J" == "(I,J) \<in> subint1 G"
-        "G\<turnstile>I \<preceq>I  J" == "(I,J) \<in>(subint1 G)^*" --{* cf. 9.1.3 *}
-        (* Defined in Decl.thy:
-        "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 D" == "(C,D) \<in> subcls1 G"
-        "G\<turnstile>C \<preceq>\<^sub>C  D" == "(C,D) \<in>(subcls1 G)^*" 
-        *)
-        "G\<turnstile>C \<leadsto>1 I" == "(C,I) \<in> implmt1 G"
+notation (xsymbols)
+  subint1_syntax  ("_\<turnstile>_\<prec>I1_"  [71,71,71] 70) and
+  subint_syntax  ("_\<turnstile>_\<preceq>I _"  [71,71,71] 70) and
+  implmt1_syntax   ("_\<turnstile>_\<leadsto>1_"  [71,71,71] 70)
 
 
 section "subclass and subinterface relations"

@@ -166,7 +166,7 @@ apply  (simp (no_asm) del: split_paired_All peek_and_def2 initd_def2 heap_free_d
 apply  (tactic "ax_tac 1" (* NewC *))
 apply  (tactic "ax_tac 1" (* ax_Alloc *))
      (* just for clarification: *)
-apply  (rule_tac Q' = "Normal ((\<lambda>Y s Z. arr_inv (store s) \<and> vf=lvar (VName e) (store s)) \<and>. heap_free tree \<and>. initd Ext)" in conseq2)
+apply  (rule_tac Q' = "Normal ((\<lambda>Y s Z. arr_inv (store s) \<and> vf=lvar (VName e) (store s)) \<and>. heap_free three \<and>. initd Ext)" in conseq2)
 prefer 2
 apply   (simp add: invocation_declclass_def dynmethd_def)
 apply   (unfold dynlookup_def)

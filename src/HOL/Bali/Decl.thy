@@ -402,17 +402,21 @@ translations
      "prog"<= (type) "\<lparr>ifaces::idecl list,classes::cdecl list\<rparr>"
      "prog"<= (type) "\<lparr>ifaces::idecl list,classes::cdecl list,\<dots>::'a\<rparr>"
 
-syntax
-  iface     :: "prog  \<Rightarrow> (qtname, iface) table"
-  "class"     :: "prog  \<Rightarrow> (qtname, class) table"
-  is_iface  :: "prog  \<Rightarrow> qtname  \<Rightarrow> bool"
-  is_class  :: "prog  \<Rightarrow> qtname  \<Rightarrow> bool"
+abbreviation
+  iface :: "prog  \<Rightarrow> (qtname, iface) table"
+  where "iface G I == table_of (ifaces G) I"
 
-translations
-           "iface G I" == "table_of (ifaces G) I"
-           "class G C" == "table_of (classes G) C"
-        "is_iface G I" == "iface G I \<noteq> None"
-        "is_class G C" == "class G C \<noteq> None"
+abbreviation
+  "class" :: "prog  \<Rightarrow> (qtname, class) table"
+  where "class G C == table_of (classes G) C"
+
+abbreviation
+  is_iface :: "prog  \<Rightarrow> qtname  \<Rightarrow> bool"
+  where "is_iface G I == iface G I \<noteq> None"
+
+abbreviation
+  is_class :: "prog  \<Rightarrow> qtname  \<Rightarrow> bool"
+  where "is_class G C == class G C \<noteq> None"
 
 
 section "is type"
@@ -445,21 +449,22 @@ defs
   subint1_def: "subint1 G \<equiv> {(I,J). \<exists>i\<in>iface G I: J\<in>set (isuperIfs i)}"
   subcls1_def: "subcls1 G \<equiv> {(C,D). C\<noteq>Object \<and> (\<exists>c\<in>class G C: super c = D)}"
 
-syntax
- "_subcls1" :: "prog => [qtname, qtname] => bool" ("_|-_<:C1_" [71,71,71] 70)
- "_subclseq":: "prog => [qtname, qtname] => bool" ("_|-_<=:C _"[71,71,71] 70)
- "_subcls"  :: "prog => [qtname, qtname] => bool" ("_|-_<:C _"[71,71,71] 70)
+abbreviation
+  subcls1_syntax :: "prog => [qtname, qtname] => bool" ("_|-_<:C1_" [71,71,71] 70)
+  where "G|-C <:C1 D == (C,D) \<in> subcls1 G"
 
-syntax (xsymbols)
-  "_subcls1" :: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<prec>\<^sub>C\<^sub>1_"  [71,71,71] 70)
-  "_subclseq":: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<preceq>\<^sub>C _"  [71,71,71] 70)
-  "_subcls"  :: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<prec>\<^sub>C _"  [71,71,71] 70)
+abbreviation
+  subclseq_syntax :: "prog => [qtname, qtname] => bool" ("_|-_<=:C _"[71,71,71] 70)
+  where "G|-C <=:C D == (C,D) \<in>(subcls1 G)^*" (* cf. 8.1.3 *)
 
-translations
-        "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 D" == "(C,D) \<in> subcls1 G"
-        "G\<turnstile>C \<preceq>\<^sub>C  D" == "(C,D) \<in>(subcls1 G)^*" (* cf. 8.1.3 *)
-        "G\<turnstile>C \<prec>\<^sub>C  D" == "(C,D) \<in>(subcls1 G)^+"
- 
+abbreviation
+  subcls_syntax :: "prog => [qtname, qtname] => bool" ("_|-_<:C _"[71,71,71] 70)
+  where "G|-C <:C D == (C,D) \<in>(subcls1 G)^+"
+
+notation (xsymbols)
+  subcls1_syntax  ("_\<turnstile>_\<prec>\<^sub>C\<^sub>1_"  [71,71,71] 70) and
+  subclseq_syntax  ("_\<turnstile>_\<preceq>\<^sub>C _"  [71,71,71] 70) and
+  subcls_syntax  ("_\<turnstile>_\<prec>\<^sub>C _"  [71,71,71] 70)
 
 lemma subint1I: "\<lbrakk>iface G I = Some i; J \<in> set (isuperIfs i)\<rbrakk> 
                  \<Longrightarrow> (I,J) \<in> subint1 G" 
