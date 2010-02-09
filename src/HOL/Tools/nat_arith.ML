@@ -51,7 +51,7 @@ struct
   val dest_sum = dest_sum;
   val prove_conv = Arith_Data.prove_conv2;
   val norm_tac1 = Arith_Data.simp_all_tac [@{thm add_Suc}, @{thm add_Suc_right},
-    @{thm add_0}, @{thm Nat.add_0_right}];
+    @{thm Nat.add_0}, @{thm Nat.add_0_right}];
   val norm_tac2 = Arith_Data.simp_all_tac @{thms add_ac};
   fun norm_tac ss = norm_tac1 ss THEN norm_tac2 ss;
   fun gen_uncancel_tac rule = let val rule' = rule RS @{thm subst_equals}

@@ -373,7 +373,7 @@ structure CancelNumeralFactorCommon =
     [@{thm eq_number_of_eq}, @{thm less_number_of}, @{thm le_number_of}] @ simps
   fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
   val simplify_meta_eq = Arith_Data.simplify_meta_eq
-    [@{thm add_0}, @{thm Nat.add_0_right}, @{thm mult_zero_left},
+    [@{thm Nat.add_0}, @{thm Nat.add_0_right}, @{thm mult_zero_left},
       @{thm mult_zero_right}, @{thm mult_Bit1}, @{thm mult_1_right}];
   end
 
