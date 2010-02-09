@@ -297,7 +297,7 @@ e.g.\ \mbox{@{prop"ALL (x,y):A. P"},} @{term"{(x,y). P}"}, etc.
 
 \section{Algebra}
 
-Theories @{theory OrderedGroup}, @{theory Ring_and_Field} and @{theory
+Theories @{theory Groups}, @{theory Rings}, @{theory Fields} and @{theory
 Divides} define a large collection of classes describing common algebraic
 structures from semigroups up to fields. Everything is done in terms of
 overloaded operators:
