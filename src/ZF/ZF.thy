@@ -127,23 +127,23 @@ syntax
   "@patterns" :: "[pttrn, patterns] => patterns"  ("_,/_")
 
 translations
-  "{x, xs}"     == "cons(x, {xs})"
-  "{x}"         == "cons(x, 0)"
-  "{x:A. P}"    == "Collect(A, %x. P)"
-  "{y. x:A, Q}" == "Replace(A, %x y. Q)"
-  "{b. x:A}"    == "RepFun(A, %x. b)"
-  "INT x:A. B"  == "Inter({B. x:A})"
-  "UN x:A. B"   == "Union({B. x:A})"
-  "PROD x:A. B" == "Pi(A, %x. B)"
-  "SUM x:A. B"  == "Sigma(A, %x. B)"
-  "lam x:A. f"  == "Lambda(A, %x. f)"
-  "ALL x:A. P"  == "Ball(A, %x. P)"
-  "EX x:A. P"   == "Bex(A, %x. P)"
+  "{x, xs}"     == "CONST cons(x, {xs})"
+  "{x}"         == "CONST cons(x, 0)"
+  "{x:A. P}"    == "CONST Collect(A, %x. P)"
+  "{y. x:A, Q}" == "CONST Replace(A, %x y. Q)"
+  "{b. x:A}"    == "CONST RepFun(A, %x. b)"
+  "INT x:A. B"  == "CONST Inter({B. x:A})"
+  "UN x:A. B"   == "CONST Union({B. x:A})"
+  "PROD x:A. B" == "CONST Pi(A, %x. B)"
+  "SUM x:A. B"  == "CONST Sigma(A, %x. B)"
+  "lam x:A. f"  == "CONST Lambda(A, %x. f)"
+  "ALL x:A. P"  == "CONST Ball(A, %x. P)"
+  "EX x:A. P"   == "CONST Bex(A, %x. P)"
 
   "<x, y, z>"   == "<x, <y, z>>"
-  "<x, y>"      == "Pair(x, y)"
-  "%<x,y,zs>.b" == "split(%x <y,zs>.b)"
-  "%<x,y>.b"    == "split(%x y. b)"
+  "<x, y>"      == "CONST Pair(x, y)"
+  "%<x,y,zs>.b" == "CONST split(%x <y,zs>.b)"
+  "%<x,y>.b"    == "CONST split(%x y. b)"
 
 
 notation (xsymbols)

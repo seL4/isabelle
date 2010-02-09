@@ -94,7 +94,7 @@ definition word_int_case :: "(int => 'b) => ('a :: len0 word) => 'b" where
 syntax
   of_int :: "int => 'a"
 translations
-  "case x of of_int y => b" == "CONST word_int_case (%y. b) x"
+  "case x of CONST of_int y => b" == "CONST word_int_case (%y. b) x"
 
 
 subsection  "Arithmetic operations"
