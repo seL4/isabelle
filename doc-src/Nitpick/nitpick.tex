@@ -154,7 +154,7 @@ with multithreading disabled to reduce nondeterminism. This was done by adding
 the line
 
 \prew
-\textbf{nitpick\_params} [\textit{sat\_solver}~= \textit{MiniSatJNI}, \,\textit{max\_threads}~= 1]
+\textbf{nitpick\_params} [\textit{sat\_solver}~= \textit{MiniSat\_JNI}, \,\textit{max\_threads}~= 1]
 \postw
 
 after the \textbf{begin} keyword. The JNI version of MiniSat is bundled with
@@ -311,9 +311,9 @@ we finally get \textit{The}:
 \slshape Constant: \nopagebreak \\
 \hbox{}\qquad $\mathit{The} = \undef{}
     (\!\begin{aligned}[t]%
-    & \{\} := a_3,\> \{a_3\} := a_3,\> \{a_2\} := a_2, \\[-2pt] %% TYPESETTING
-    & \{a_2, a_3\} := a_1,\> \{a_1\} := a_1,\> \{a_1, a_3\} := a_3, \\[-2pt]
-    & \{a_1, a_2\} := a_3,\> \{a_1, a_2, a_3\} := a_3)\end{aligned}$
+    & \{a_1, a_2, a_3\} := a_3,\> \{a_1, a_2\} := a_3,\> \{a_1, a_3\} := a_3, \\[-2pt] %% TYPESETTING
+    & \{a_1\} := a_1,\> \{a_2, a_3\} := a_1,\> \{a_2\} := a_2, \\[-2pt]
+    & \{a_3\} := a_3,\> \{\} := a_3)\end{aligned}$
 \postw
 
 Notice that $\textit{The}~(\lambda y.\;P~y) = \textit{The}~\{a_2, a_3\} = a_1$,
@@ -550,7 +550,7 @@ of a list) and $@$ (which concatenates two lists):
 \slshape Nitpick found a counterexample for \textit{card} $'a$~= 3: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
 \hbox{}\qquad\qquad $\textit{xs} = []$ \\
-\hbox{}\qquad\qquad $\textit{y} = a_3$
+\hbox{}\qquad\qquad $\textit{y} = a_1$
 \postw
 
 To see why the counterexample is genuine, we enable \textit{show\_consts}
@@ -558,21 +558,21 @@ and \textit{show\_\allowbreak datatypes}:
 
 \prew
 {\slshape Datatype:} \\
-\hbox{}\qquad $'a$~\textit{list}~= $\{[],\, [a_3, a_3],\, [a_3],\, \unr\}$ \\
+\hbox{}\qquad $'a$~\textit{list}~= $\{[],\, [a_1],\, [a_1, a_1],\, \unr\}$ \\
 {\slshape Constants:} \\
-\hbox{}\qquad $\lambda x_1.\; x_1 \mathbin{@} [y, y] = \undef([] := [a_3, a_3])$ \\
-\hbox{}\qquad $\textit{hd} = \undef([] := a_2,\> [a_3, a_3] := a_3,\> [a_3] := a_3)$
+\hbox{}\qquad $\lambda x_1.\; x_1 \mathbin{@} [y, y] = \undef([] := [a_1, a_1])$ \\
+\hbox{}\qquad $\textit{hd} = \undef([] := a_2,\> [a_1] := a_1,\> [a_1, a_1] := a_1)$
 \postw
 
 Since $\mathit{hd}~[]$ is undefined in the logic, it may be given any value,
 including $a_2$.
 
 The second constant, $\lambda x_1.\; x_1 \mathbin{@} [y, y]$, is simply the
-append operator whose second argument is fixed to be $[y, y]$. Appending $[a_3,
-a_3]$ to $[a_3]$ would normally give $[a_3, a_3, a_3]$, but this value is not
+append operator whose second argument is fixed to be $[y, y]$. Appending $[a_1,
+a_1]$ to $[a_1]$ would normally give $[a_1, a_1, a_1]$, but this value is not
 representable in the subset of $'a$~\textit{list} considered by Nitpick, which
 is shown under the ``Datatype'' heading; hence the result is $\unk$. Similarly,
-appending $[a_3, a_3]$ to itself gives $\unk$.
+appending $[a_1, a_1]$ to itself gives $\unk$.
 
 Given \textit{card}~$'a = 3$ and \textit{card}~$'a~\textit{list} = 3$, Nitpick
 considers the following subsets:
@@ -600,8 +600,8 @@ $\{[],\, [a_3],\, [a_3, a_3]\}$.
 
 All subterm-closed subsets of $'a~\textit{list}$ consisting of three values
 are listed and only those. As an example of a non-subterm-closed subset,
-consider $\mathcal{S} = \{[],\, [a_1],\,\allowbreak [a_1, a_3]\}$, and observe
-that $[a_1, a_3]$ (i.e., $a_1 \mathbin{\#} [a_3]$) has $[a_3] \notin
+consider $\mathcal{S} = \{[],\, [a_1],\,\allowbreak [a_1, a_2]\}$, and observe
+that $[a_1, a_2]$ (i.e., $a_1 \mathbin{\#} [a_2]$) has $[a_2] \notin
 \mathcal{S}$ as a subterm.
 
 Here's another m\"ochtegern-lemma that Nitpick can refute without a blink:
@@ -613,11 +613,11 @@ Here's another m\"ochtegern-lemma that Nitpick can refute without a blink:
 \textbf{nitpick} [\textit{show\_datatypes}] \\[2\smallskipamount]
 \slshape Nitpick found a counterexample for \textit{card} $'a$~= 3: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
-\hbox{}\qquad\qquad $\textit{xs} = [a_2]$ \\
-\hbox{}\qquad\qquad $\textit{ys} = [a_3]$ \\
+\hbox{}\qquad\qquad $\textit{xs} = [a_1]$ \\
+\hbox{}\qquad\qquad $\textit{ys} = [a_2]$ \\
 \hbox{}\qquad Datatypes: \\
 \hbox{}\qquad\qquad $\textit{nat} = \{0,\, 1,\, 2,\, \unr\}$ \\
-\hbox{}\qquad\qquad $'a$~\textit{list} = $\{[],\, [a_3],\, [a_2],\, \unr\}$
+\hbox{}\qquad\qquad $'a$~\textit{list} = $\{[],\, [a_1],\, [a_2],\, \unr\}$
 \postw
 
 Because datatypes are approximated using a three-valued logic, there is usually
@@ -642,11 +642,11 @@ For example:
 \textbf{nitpick} [\textit{show\_datatypes}] \\[2\smallskipamount]
 \slshape Nitpick found a counterexample: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
-\hbox{}\qquad\qquad $P = \{\Abs{1},\, \Abs{0}\}$ \\
+\hbox{}\qquad\qquad $P = \{\Abs{0},\, \Abs{1}\}$ \\
 \hbox{}\qquad\qquad $x = \Abs{2}$ \\
 \hbox{}\qquad Datatypes: \\
 \hbox{}\qquad\qquad $\textit{nat} = \{0,\, 1,\, 2,\, \unr\}$ \\
-\hbox{}\qquad\qquad $\textit{three} = \{\Abs{2},\, \Abs{1},\, \Abs{0},\, \unr\}$
+\hbox{}\qquad\qquad $\textit{three} = \{\Abs{0},\, \Abs{1},\, \Abs{2},\, \unr\}$
 \postw
 
 %% MARK
@@ -664,12 +664,13 @@ handled in much the same way:
 \textbf{nitpick} [\textit{show\_datatypes}] \\[2\smallskipamount]
 \slshape Nitpick found a counterexample: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
-\hbox{}\qquad\qquad $p = \lparr\textit{Xcoord} = 0,\> \textit{Ycoord} = 0\rparr$ \\
-\hbox{}\qquad\qquad $q = \lparr\textit{Xcoord} = 1,\> \textit{Ycoord} = 1\rparr$ \\
+\hbox{}\qquad\qquad $p = \lparr\textit{Xcoord} = 1,\> \textit{Ycoord} = 1\rparr$ \\
+\hbox{}\qquad\qquad $q = \lparr\textit{Xcoord} = 0,\> \textit{Ycoord} = 0\rparr$ \\
 \hbox{}\qquad Datatypes: \\
 \hbox{}\qquad\qquad $\textit{int} = \{0,\, 1,\, \unr\}$ \\
-\hbox{}\qquad\qquad $\textit{point} = \{\lparr\textit{Xcoord} = 1,\>
-\textit{Ycoord} = 1\rparr,\> \lparr\textit{Xcoord} = 0,\> \textit{Ycoord} = 0\rparr,\, \unr\}$\kern-1pt %% QUIET
+\hbox{}\qquad\qquad $\textit{point} = \{\!\begin{aligned}[t]
+& \lparr\textit{Xcoord} = 0,\> \textit{Ycoord} = 0\rparr, \\[-2pt] %% TYPESETTING
+& \lparr\textit{Xcoord} = 1,\> \textit{Ycoord} = 1\rparr,\, \unr\}\end{aligned}$
 \postw
 
 Finally, Nitpick provides rudimentary support for rationals and reals using a
@@ -956,16 +957,16 @@ Nitpick found a counterexample for {\itshape card}~$'a$ = 2,
 depth}~= 1:
 \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
-\hbox{}\qquad\qquad $\textit{a} = a_2$ \\
-\hbox{}\qquad\qquad $\textit{b} = a_1$ \\
-\hbox{}\qquad\qquad $\textit{xs} = \textsl{THE}~\omega.\; \omega = \textit{LCons}~a_2~\omega$ \\
-\hbox{}\qquad\qquad $\textit{ys} = \textit{LCons}~a_1~(\textsl{THE}~\omega.\; \omega = \textit{LCons}~a_2~\omega)$ \\[2\smallskipamount]
+\hbox{}\qquad\qquad $\textit{a} = a_1$ \\
+\hbox{}\qquad\qquad $\textit{b} = a_2$ \\
+\hbox{}\qquad\qquad $\textit{xs} = \textsl{THE}~\omega.\; \omega = \textit{LCons}~a_1~\omega$ \\
+\hbox{}\qquad\qquad $\textit{ys} = \textit{LCons}~a_2~(\textsl{THE}~\omega.\; \omega = \textit{LCons}~a_1~\omega)$ \\[2\smallskipamount]
 Total time: 726 ms.
 \postw
 
-The lazy list $\textit{xs}$ is simply $[a_2, a_2, a_2, \ldots]$, whereas
-$\textit{ys}$ is $[a_1, a_2, a_2, a_2, \ldots]$, i.e., a lasso-shaped list with
-$[a_1]$ as its stem and $[a_2]$ as its cycle. In general, the list segment
+The lazy list $\textit{xs}$ is simply $[a_1, a_1, a_1, \ldots]$, whereas
+$\textit{ys}$ is $[a_2, a_1, a_1, a_1, \ldots]$, i.e., a lasso-shaped list with
+$[a_2]$ as its stem and $[a_1]$ as its cycle. In general, the list segment
 within the scope of the {THE} binder corresponds to the lasso's cycle, whereas
 the segment leading to the binder is the stem.
 
@@ -1000,15 +1001,15 @@ predicate or as an after-the-fact check) to prevent spurious counterexamples:
 \textbf{nitpick} [\textit{bisim\_depth} = $-1$, \textit{show\_datatypes}] \\[2\smallskipamount]
 \slshape Nitpick found a likely genuine counterexample for $\textit{card}~'a$ = 2: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
-\hbox{}\qquad\qquad $a = a_2$ \\
+\hbox{}\qquad\qquad $a = a_1$ \\
 \hbox{}\qquad\qquad $\textit{xs} = \textsl{THE}~\omega.\; \omega =
-\textit{LCons}~a_2~\omega$ \\
-\hbox{}\qquad\qquad $\textit{ys} = \textsl{THE}~\omega.\; \omega = \textit{LCons}~a_2~\omega$ \\
+\textit{LCons}~a_1~\omega$ \\
+\hbox{}\qquad\qquad $\textit{ys} = \textsl{THE}~\omega.\; \omega = \textit{LCons}~a_1~\omega$ \\
 \hbox{}\qquad Codatatype:\strut \nopagebreak \\
 \hbox{}\qquad\qquad $'a~\textit{llist} =
 \{\!\begin{aligned}[t]
-  & \textsl{THE}~\omega.\; \omega = \textit{LCons}~a_2~\omega, \\[-2pt]
-  & \textsl{THE}~\omega.\; \omega = \textit{LCons}~a_2~\omega,\> \unr\}\end{aligned}$
+  & \textsl{THE}~\omega.\; \omega = \textit{LCons}~a_1~\omega, \\[-2pt]
+  & \textsl{THE}~\omega.\; \omega = \textit{LCons}~a_1~\omega,\> \unr\}\end{aligned}$
 \\[2\smallskipamount]
 Try again with ``\textit{bisim\_depth}'' set to a nonnegative value to confirm
 that the counterexample is genuine. \\[2\smallskipamount]
@@ -1198,8 +1199,8 @@ Nitpick found a counterexample for
 \textit{card} ``\kern1pt$'b$ \textit{list}''~= 5:
 \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
-\hbox{}\qquad\qquad $\textit{xs} = [a_4, a_5]$ \\
-\hbox{}\qquad\qquad $\textit{ys} = [b_3, b_3]$ \\[2\smallskipamount]
+\hbox{}\qquad\qquad $\textit{xs} = [a_1, a_2]$ \\
+\hbox{}\qquad\qquad $\textit{ys} = [b_1, b_1]$ \\[2\smallskipamount]
 Total time: 1636 ms.
 \postw
 
@@ -1377,21 +1378,21 @@ If we follow the hint, we get a ``nonstandard'' counterexample for the step:
 \prew
 \slshape Nitpick found a nonstandard counterexample for \textit{card} $'a$ = 4: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
-\hbox{}\qquad\qquad $a = a_4$ \\
-\hbox{}\qquad\qquad $b = a_3$ \\
-\hbox{}\qquad\qquad $t = \xi_3$ \\
-\hbox{}\qquad\qquad $u = \xi_4$ \\
+\hbox{}\qquad\qquad $a = a_1$ \\
+\hbox{}\qquad\qquad $b = a_2$ \\
+\hbox{}\qquad\qquad $t = \xi_1$ \\
+\hbox{}\qquad\qquad $u = \xi_2$ \\
 \hbox{}\qquad {\slshape Constants:} \nopagebreak \\
 \hbox{}\qquad\qquad $\textit{labels} = \undef
     (\!\begin{aligned}[t]%
-    & \xi_3 := \{a_4\},\> \xi_4 := \{a_1, a_3\}, \\[-2pt] %% TYPESETTING
-    & \textit{Branch}~\xi_3~\xi_3 := \{a_4\}, \\[-2pt]
-    & \textit{Branch}~\xi_3~\xi_4 := \{a_1, a_3, a_4\})\end{aligned}$ \\
+    & \xi_1 := \{a_1, a_4, a_3^\Q\},\> \xi_2 := \{a_2, a_3^\Q\}, \\[-2pt] %% TYPESETTING
+    & \textit{Branch}~\xi_1~\xi_2 := \{a_1, a_2, a_4, a_3^\Q\}, \\[-2pt]
+    & \textit{Branch}~\xi_2~\xi_2 := \{a_2, a_3^\Q\})\end{aligned}$ \\
 \hbox{}\qquad\qquad $\lambda x_1.\> \textit{swap}~x_1~a~b = \undef
     (\!\begin{aligned}[t]%
-    & \xi_3 := \xi_3,\> \xi_4 := \xi_3, \\[-2pt]
-    & \textit{Branch}~\xi_3~\xi_3 := \textit{Branch}~\xi_3~\xi_3, \\[-2pt]
-    & \textit{Branch}~\xi_4~\xi_3 := \textit{Branch}~\xi_3~\xi_3)\end{aligned}$ \\[2\smallskipamount]
+    & \xi_1 := \xi_2,\> \xi_2 := \xi_2, \\[-2pt]
+    & \textit{Branch}~\xi_1~\xi_2 := \textit{Branch}~\xi_2~\xi_2, \\[-2pt]
+    & \textit{Branch}~\xi_2~\xi_2 := \textit{Branch}~\xi_2~\xi_2)\end{aligned}$ \\[2\smallskipamount]
 The existence of a nonstandard model suggests that the induction hypothesis is not general enough or perhaps
 even wrong. See the ``Inductive Properties'' section of the Nitpick manual for details (``\textit{isabelle doc nitpick}'').
 \postw
@@ -1406,7 +1407,7 @@ addition to the standard trees generated by the \textit{Leaf} and
 allowing unreachable states in the preceding example (by removing the ``$n \in
 \textit{reach\/}$'' assumption). In both cases, we effectively enlarge the
 set of objects over which the induction is performed while doing the step
-so as to test the induction hypothesis's strength.}
+in order to test the induction hypothesis's strength.}
 The new trees are so nonstandard that we know nothing about them, except what
 the induction hypothesis states and what can be proved about all trees without
 relying on induction or case distinction. The key observation is,
@@ -1417,8 +1418,8 @@ hypothesis is strong enough, the induction step will hold even for nonstandard
 objects, and Nitpick won't find any nonstandard counterexample.}
 \end{quote}
 %
-But here, Nitpick did find some nonstandard trees $t = \xi_3$
-and $u = \xi_4$ such that $a \in \textit{labels}~t$, $b \notin
+But here, Nitpick did find some nonstandard trees $t = \xi_1$
+and $u = \xi_2$ such that $a \in \textit{labels}~t$, $b \notin
 \textit{labels}~t$, $a \notin \textit{labels}~u$, and $b \in \textit{labels}~u$.
 Because neither tree contains both $a$ and $b$, the induction hypothesis tells
 us nothing about the labels of $\textit{swap}~t~a~b$ and $\textit{swap}~u~a~b$,
@@ -1441,7 +1442,7 @@ $t$ in the statement of the lemma:
 \postw
 
 This time, Nitpick won't find any nonstandard counterexample, and we can perform
-the induction step using \textbf{auto}.
+the induction step using \textit{auto}.
 
 \section{Case Studies}
 \label{case-studies}
@@ -1694,7 +1695,7 @@ of elements stored in the tree:
 ``$\textit{dataset}~(\textit{skew}~t) = \textit{dataset}~t$'' \\
 ``$\textit{dataset}~(\textit{split}~t) = \textit{dataset}~t$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
-{\slshape Nitpick ran out of time after checking 7 of 8 scopes.}
+{\slshape Nitpick found no counterexample.}
 \postw
 
 Furthermore, applying \textit{skew} or \textit{split} to a well-formed tree
@@ -1726,8 +1727,8 @@ Notice that we deliberately commented out the application of \textit{skew} and
 \textbf{nitpick} \\[2\smallskipamount]
 \slshape Nitpick found a counterexample for \textit{card} $'a$ = 4: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
-\hbox{}\qquad\qquad $t = N~a_3~1~\Lambda~\Lambda$ \\
-\hbox{}\qquad\qquad $x = a_4$
+\hbox{}\qquad\qquad $t = N~a_1~1~\Lambda~\Lambda$ \\
+\hbox{}\qquad\qquad $x = a_2$
 \postw
 
 It's hard to see why this is a counterexample. To improve readability, we will
@@ -1756,7 +1757,7 @@ Reintroducing the code seems to solve the problem:
 \prew
 \textbf{theorem}~\textit{wf\_insort}:\kern.4em ``$\textit{wf}~t\,\Longrightarrow\, \textit{wf}~(\textit{insort}~t~x)$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
-{\slshape Nitpick ran out of time after checking 6 of 8 scopes.}
+{\slshape Nitpick ran out of time after checking 7 of 8 scopes.}
 \postw
 
 Insertion should transform the set of elements represented by the tree in the
@@ -1766,14 +1767,14 @@ obvious way:
 \textbf{theorem} \textit{dataset\_insort}:\kern.4em
 ``$\textit{dataset}~(\textit{insort}~t~x) = \{x\} \cup \textit{dataset}~t$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
-{\slshape Nitpick ran out of time after checking 5 of 8 scopes.}
+{\slshape Nitpick ran out of time after checking 6 of 8 scopes.}
 \postw
 
-We could continue like this and sketch a complete theory of AA trees without
-performing a single proof. Once the definitions and main theorems are in place
-and have been thoroughly tested using Nitpick, we could start working on the
-proofs. Developing theories this way usually saves time, because faulty theorems
-and definitions are discovered much earlier in the process.
+We could continue like this and sketch a complete theory of AA trees. Once the
+definitions and main theorems are in place and have been thoroughly tested using
+Nitpick, we could start working on the proofs. Developing theories this way
+usually saves time, because faulty theorems and definitions are discovered much
+earlier in the process.
 
 \section{Option Reference}
 \label{option-reference}
@@ -2138,7 +2139,7 @@ this option to 0 speeds up the search for a genuine counterexample. This option
 is implicitly set to 0 for automatic runs. If you set this option to a value
 greater than 1, you will need an incremental SAT solver: For efficiency, it is
 recommended to install the JNI version of MiniSat and set \textit{sat\_solver} =
-\textit{MiniSatJNI}. Also be aware that many of the counterexamples may look
+\textit{MiniSat\_JNI}. Also be aware that many of the counterexamples may look
 identical, unless the \textit{show\_all} (\S\ref{output-format}) option is
 enabled.
 
@@ -2150,7 +2151,7 @@ enabled.
 Specifies the maximum number of genuine counterexamples to display. If you set
 this option to a value greater than 1, you will need an incremental SAT solver:
 For efficiency, it is recommended to install the JNI version of MiniSat and set
-\textit{sat\_solver} = \textit{MiniSatJNI}. Also be aware that many of the
+\textit{sat\_solver} = \textit{MiniSat\_JNI}. Also be aware that many of the
 counterexamples may look identical, unless the \textit{show\_all}
 (\S\ref{output-format}) option is enabled.
 
@@ -2243,7 +2244,7 @@ Specifies which SAT solver to use. SAT solvers implemented in C or \cpp{} tend
 to be faster than their Java counterparts, but they can be more difficult to
 install. Also, if you set the \textit{max\_potential} (\S\ref{output-format}) or
 \textit{max\_genuine} (\S\ref{output-format}) option to a value greater than 1,
-you will need an incremental SAT solver, such as \textit{MiniSatJNI}
+you will need an incremental SAT solver, such as \textit{MiniSat\_JNI}
 (recommended) or \textit{SAT4J}.
 
 The supported solvers are listed below:
@@ -2257,7 +2258,7 @@ executable. The \cpp{} sources and executables for MiniSat are available at
 \url{http://minisat.se/MiniSat.html}. Nitpick has been tested with versions 1.14
 and 2.0 beta (2007-07-21).
 
-\item[$\bullet$] \textbf{\textit{MiniSatJNI}}: The JNI (Java Native Interface)
+\item[$\bullet$] \textbf{\textit{MiniSat\_JNI}}: The JNI (Java Native Interface)
 version of MiniSat is bundled in \texttt{nativesolver.\allowbreak tgz}, which
 you will find on Kodkod's web site \cite{kodkod-2009}. Unlike the standard
 version of MiniSat, the JNI version can be used incrementally.
@@ -2279,7 +2280,7 @@ and executables for zChaff are available at
 \url{http://www.princeton.edu/~chaff/zchaff.html}. Nitpick has been tested with
 versions 2004-05-13, 2004-11-15, and 2007-03-12.
 
-\item[$\bullet$] \textbf{\textit{zChaffJNI}}: The JNI version of zChaff is
+\item[$\bullet$] \textbf{\textit{zChaff\_JNI}}: The JNI version of zChaff is
 bundled in \texttt{native\-solver.\allowbreak tgz}, which you will find on
 Kodkod's web site \cite{kodkod-2009}.
 
@@ -2295,7 +2296,7 @@ written in C. To use BerkMin, set the environment variable
 executable. The BerkMin executables are available at
 \url{http://eigold.tripod.com/BerkMin.html}.
 
-\item[$\bullet$] \textbf{\textit{BerkMinAlloy}}: Variant of BerkMin that is
+\item[$\bullet$] \textbf{\textit{BerkMin\_Alloy}}: Variant of BerkMin that is
 included with Alloy 4 and calls itself ``sat56'' in its banner text. To use this
 version of BerkMin, set the environment variable
 \texttt{BERKMINALLOY\_HOME} to the directory that contains the \texttt{berkmin}
@@ -2313,7 +2314,7 @@ requires no further installation or configuration steps. Do not attempt to
 install the official SAT4J packages, because their API is incompatible with
 Kodkod.
 
-\item[$\bullet$] \textbf{\textit{SAT4JLight}}: Variant of SAT4J that is
+\item[$\bullet$] \textbf{\textit{SAT4J\_Light}}: Variant of SAT4J that is
 optimized for small problems. It can also be used incrementally.
 
 \item[$\bullet$] \textbf{\textit{HaifaSat}}: HaifaSat 1.0 beta is an
@@ -2324,7 +2325,7 @@ variable \texttt{HAIFASAT\_\allowbreak HOME} to the directory that contains the
 
 \item[$\bullet$] \textbf{\textit{smart}}: If \textit{sat\_solver} is set to
 \textit{smart}, Nitpick selects the first solver among MiniSat,
-PicoSAT, zChaff, RSat, BerkMin, BerkMinAlloy, Jerusat, MiniSatJNI, and zChaffJNI
+PicoSAT, zChaff, RSat, BerkMin, BerkMin\_Alloy, Jerusat, MiniSat\_JNI, and zChaff\_JNI
 that is recognized by Isabelle. If none is found, it falls back on SAT4J, which
 should always be available. If \textit{verbose} (\S\ref{output-format}) is
 enabled, Nitpick displays which SAT solver was chosen.

@@ -1,6 +1,6 @@
 (*  Title:      HOL/Nitpick_Examples/Integer_Nits.thy
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2009
+    Copyright   2009, 2010
 
 Examples featuring Nitpick applied to natural numbers and integers.
 *)
@@ -11,7 +11,7 @@ theory Integer_Nits
 imports Nitpick
 begin
 
-nitpick_params [sat_solver = MiniSatJNI, max_threads = 1, timeout = 60 s,
+nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1, timeout = 60 s,
                 card = 1\<midarrow>6, bits = 1,2,3,4,6,8]
 
 lemma "Suc x = x + 1"
