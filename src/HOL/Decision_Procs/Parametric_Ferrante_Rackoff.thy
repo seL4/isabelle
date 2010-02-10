@@ -2958,8 +2958,8 @@ val conjt = @{term "op &"};
 val disjt = @{term "op |"};
 val impt = @{term "op -->"};
 val ifft = @{term "op = :: bool => _"}
-fun llt rT = Const(@{const_name Algebras.less},rrT rT);
-fun lle rT = Const(@{const_name Algebras.less},rrT rT);
+fun llt rT = Const(@{const_name Orderings.less},rrT rT);
+fun lle rT = Const(@{const_name Orderings.less},rrT rT);
 fun eqt rT = Const("op =",rrT rT);
 fun rz rT = Const(@{const_name Algebras.zero},rT);
 
@@ -3024,9 +3024,9 @@ fun fm_of_term m m' fm =
   | Const("op =",ty)$p$q => 
        if domain_type ty = bT then @{code Iff} (fm_of_term m m' p, fm_of_term m m' q)
        else @{code Eq} (@{code Sub} (tm_of_term m m' p, tm_of_term m m' q))
-  | Const(@{const_name Algebras.less},_)$p$q => 
+  | Const(@{const_name Orderings.less},_)$p$q => 
         @{code Lt} (@{code Sub} (tm_of_term m m' p, tm_of_term m m' q))
-  | Const(@{const_name Algebras.less_eq},_)$p$q => 
+  | Const(@{const_name Orderings.less_eq},_)$p$q => 
         @{code Le} (@{code Sub} (tm_of_term m m' p, tm_of_term m m' q))
   | Const("Ex",_)$Abs(xn,xT,p) => 
      let val (xn', p') =  variant_abs (xn,xT,p)
