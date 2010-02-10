@@ -686,7 +686,7 @@ qed
 
 end
 
-class linlinordered_semiring_1_strict = linordered_semiring_strict + semiring_1
+class linordered_semiring_1_strict = linordered_semiring_strict + semiring_1
 
 class mult_mono1 = times + zero + ord +
   assumes mult_mono1: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"
