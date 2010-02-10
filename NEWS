@@ -22,6 +22,8 @@ INCOMPATIBILITY.
 
 * Some generic constants have been put to appropriate theories:
 
+    less_eq, less: Orderings
+    abs, sgn: Groups
     inverse, divide: Rings
 
 INCOMPATIBILITY.
@@ -80,13 +82,9 @@ of parameter divide has also been required previously.  INCOMPATIBILITY.
 
 INCOMPATIBILITY.
 
-* Index syntax for structures must be imported explicitly from library
-theory Structure_Syntax.  INCOMPATIBILITY.
-
 * New theory Algebras contains generic algebraic structures and
 generic algebraic operations.  INCOMPATIBILTY: constants zero, one,
-plus, minus, uminus, times, abs, sgn, less_eq and
-less have been moved from HOL.thy to Algebras.thy.
+plus, minus, uminus and times have been moved from HOL.thy to Algebras.thy.
 
 * HOLogic.strip_psplit: types are returned in syntactic order, similar
 to other strip and tuple operations.  INCOMPATIBILITY.
