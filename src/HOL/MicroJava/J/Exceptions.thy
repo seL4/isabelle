@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/J/Exceptions.thy
-    ID:         $Id$
     Author:     Gerwin Klein, Martin Strecker
     Copyright   2002 Technische Universitaet Muenchen
 *)
@@ -17,11 +16,9 @@ constdefs
                         (XcptRef OutOfMemory \<mapsto> blank G (Xcpt OutOfMemory))"
 
 
-consts
+abbreviation
   cname_of :: "aheap \<Rightarrow> val \<Rightarrow> cname"
-
-translations
-  "cname_of hp v" == "fst (CONST the (hp (the_Addr v)))"
+  where "cname_of hp v == fst (the (hp (the_Addr v)))"
 
 
 constdefs

@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/JVM/JVMDefensive.thy
-    ID:         $Id$
     Author:     Gerwin Klein
 *)
 
@@ -13,9 +12,9 @@ text {*
 datatype 'a type_error = TypeError | Normal 'a
 
 
-syntax "fifth" :: "'a \<times> 'b \<times> 'c \<times> 'd \<times> 'e \<times> 'f \<Rightarrow> 'e"
-translations
-  "fifth x" == "fst(snd(snd(snd(snd x))))"
+abbreviation
+  fifth :: "'a \<times> 'b \<times> 'c \<times> 'd \<times> 'e \<times> 'f \<Rightarrow> 'e"
+  where "fifth x == fst(snd(snd(snd(snd x))))"
 
 
 consts isAddr :: "val \<Rightarrow> bool"

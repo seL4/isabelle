@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/J/WellType.thy
-    ID:         $Id$
     Author:     David von Oheimb
     Copyright   1999 Technische Universitaet Muenchen
 *)
@@ -27,13 +26,13 @@ types
   lenv   = "vname \<rightharpoonup> ty"
   'c env = "'c prog \<times> lenv"
 
-syntax
-  prg    :: "'c env => 'c prog"
-  localT :: "'c env => (vname \<rightharpoonup> ty)"
+abbreviation (input)
+  prg :: "'c env => 'c prog"
+  where "prg == fst"
 
-translations  
-  "prg"    => "fst"
-  "localT" => "snd"
+abbreviation (input)
+  localT :: "'c env => (vname \<rightharpoonup> ty)"
+  where "localT == snd"
 
 consts
   more_spec :: "'c prog => (ty \<times> 'x) \<times> ty list =>
@@ -207,10 +206,7 @@ constdefs
   (let E = (G,map_of lvars(pns[\<mapsto>]pTs)(This\<mapsto>Class C)) in
    E\<turnstile>blk\<surd> \<and> (\<exists>T. E\<turnstile>res::T \<and> G\<turnstile>T\<preceq>rT))"
 
-syntax 
- wf_java_prog :: "'c prog => bool"
-translations
-  "wf_java_prog" == "wf_prog wf_java_mdecl"
+abbreviation "wf_java_prog == wf_prog wf_java_mdecl"
 
 lemma wf_java_prog_wf_java_mdecl: "\<lbrakk> 
   wf_java_prog G; (C, D, fds, mths) \<in> set G; jmdcl \<in> set mths \<rbrakk>

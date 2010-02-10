@@ -50,11 +50,14 @@ consts pred :: fname
 consts suc  :: mname
        add  :: mname
 consts any  :: vname
-syntax dummy:: expr ("<>")
-       one  :: expr
-translations 
-      "<>"  == "LAcc any"
-      "one" == "{Nat}new Nat..suc(<>)"
+
+abbreviation
+  dummy :: expr ("<>")
+  where "<> == LAcc any"
+
+abbreviation
+  one :: expr
+  where "one == {Nat}new Nat..suc(<>)"
 
 text {* The following properties could be derived from a more complete
         program model, which we leave out for laziness. *}
