@@ -1,5 +1,4 @@
 (*  Title:      HOL/Hoare/HeapSyntax.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   2002 TUM
 *)
@@ -9,16 +8,16 @@ theory HeapSyntax imports Hoare Heap begin
 subsection "Field access and update"
 
 syntax
-  "@refupdate" :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a ref \<Rightarrow> 'b \<Rightarrow> ('a \<Rightarrow> 'b)"
+  "_refupdate" :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a ref \<Rightarrow> 'b \<Rightarrow> ('a \<Rightarrow> 'b)"
    ("_/'((_ \<rightarrow> _)')" [1000,0] 900)
-  "@fassign"  :: "'a ref => id => 'v => 's com"
+  "_fassign"  :: "'a ref => id => 'v => 's com"
    ("(2_^._ :=/ _)" [70,1000,65] 61)
-  "@faccess"  :: "'a ref => ('a ref \<Rightarrow> 'v) => 'v"
+  "_faccess"  :: "'a ref => ('a ref \<Rightarrow> 'v) => 'v"
    ("_^._" [65,1000] 65)
 translations
-  "f(r \<rightarrow> v)"  ==  "f(addr r := v)"
+  "f(r \<rightarrow> v)"  ==  "f(CONST addr r := v)"
   "p^.f := e"  =>  "f := f(p \<rightarrow> e)"
-  "p^.f"       =>  "f(addr p)"
+  "p^.f"       =>  "f(CONST addr p)"
 
 
 declare fun_upd_apply[simp del] fun_upd_same[simp] fun_upd_other[simp]

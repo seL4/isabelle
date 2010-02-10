@@ -257,7 +257,7 @@ syntax
   guarded_com :: "bool \<Rightarrow> 'a com \<Rightarrow> 'a com"  ("(2_ \<rightarrow>/ _)" 71)
   array_update :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a com"  ("(2_[_] :=/ _)" [70, 65] 61)
 translations
-  "P \<rightarrow> c" == "IF P THEN c ELSE Abort FI"
+  "P \<rightarrow> c" == "IF P THEN c ELSE CONST Abort FI"
   "a[i] := v" => "(i < CONST length a) \<rightarrow> (a := CONST list_update a i v)"
   (* reverse translation not possible because of duplicate "a" *)
 
