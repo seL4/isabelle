@@ -51,7 +51,6 @@ imports
   RBT
   SML_Quickcheck
   State_Monad
-  Structure_Syntax
   Sum_Of_Squares
   Transitive_Closure_Table
   Univ_Poly
