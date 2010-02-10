@@ -96,7 +96,7 @@ fun mk_frac (p, q) = if q = 0 then raise Div else (p, q);
   Fractions are reduced later by the cancel_numeral_factor simproc.*)
 fun add_frac ((p1, q1), (p2, q2)) = (p1 * q2 + p2 * q1, q1 * q2);
 
-val mk_divide = HOLogic.mk_binop @{const_name Algebras.divide};
+val mk_divide = HOLogic.mk_binop @{const_name Rings.divide};
 
 (*Build term (p / q) * t*)
 fun mk_fcoeff ((p, q), t) =
@@ -105,7 +105,7 @@ fun mk_fcoeff ((p, q), t) =
 
 (*Express t as a product of a fraction with other sorted terms*)
 fun dest_fcoeff sign (Const (@{const_name Algebras.uminus}, _) $ t) = dest_fcoeff (~sign) t
-  | dest_fcoeff sign (Const (@{const_name Algebras.divide}, _) $ t $ u) =
+  | dest_fcoeff sign (Const (@{const_name Rings.divide}, _) $ t $ u) =
     let val (p, t') = dest_coeff sign t
         val (q, u') = dest_coeff 1 u
     in (mk_frac (p, q), mk_divide (t', u')) end
@@ -391,8 +391,8 @@ structure DivCancelNumeralFactor = CancelNumeralFactorFun
 structure DivideCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Arith_Data.prove_conv
-  val mk_bal   = HOLogic.mk_binop @{const_name Algebras.divide}
-  val dest_bal = HOLogic.dest_bin @{const_name Algebras.divide} Term.dummyT
+  val mk_bal   = HOLogic.mk_binop @{const_name Rings.divide}
+  val dest_bal = HOLogic.dest_bin @{const_name Rings.divide} Term.dummyT
   val cancel = @{thm mult_divide_mult_cancel_left} RS trans
   val neg_exchanges = false
 )
@@ -570,8 +570,8 @@ structure DvdCancelFactor = ExtractCommonTermFun
 structure DivideCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Arith_Data.prove_conv
-  val mk_bal   = HOLogic.mk_binop @{const_name Algebras.divide}
-  val dest_bal = HOLogic.dest_bin @{const_name Algebras.divide} Term.dummyT
+  val mk_bal   = HOLogic.mk_binop @{const_name Rings.divide}
+  val dest_bal = HOLogic.dest_bin @{const_name Rings.divide} Term.dummyT
   fun simp_conv _ _ = SOME @{thm mult_divide_mult_cancel_left_if}
 );
 

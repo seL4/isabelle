@@ -150,7 +150,7 @@ let
               (SOME t', m'') => (SOME (mC $ s' $ t'), m'')
             | (NONE,    m'') => (SOME s', m''))
         | (NONE,    m') => demult (t, m')))
-    | demult ((mC as Const (@{const_name Algebras.divide}, _)) $ s $ t, m) =
+    | demult ((mC as Const (@{const_name Rings.divide}, _)) $ s $ t, m) =
       (* FIXME: Shouldn't we simplify nested quotients, e.g. '(s/t)/u' could
          become 's/(t*u)', and '(s*t)/u' could become 's*(t/u)' ?   Note that
          if we choose to do so here, the simpset used by arith must be able to
@@ -212,7 +212,7 @@ let
         (case demult inj_consts (all, m) of
            (NONE,   m') => (p, Rat.add i m')
          | (SOME u, m') => add_atom u m' pi)
-    | poly (all as Const (@{const_name Algebras.divide}, _) $ _ $ _, m, pi as (p, i)) =
+    | poly (all as Const (@{const_name Rings.divide}, _) $ _ $ _, m, pi as (p, i)) =
         (case demult inj_consts (all, m) of
            (NONE,   m') => (p, Rat.add i m')
          | (SOME u, m') => add_atom u m' pi)

@@ -33,7 +33,7 @@ const_maps
   "real_add" > "Algebras.plus_class.plus" :: "real => real => real"
   "real_1" > "Algebras.one_class.one" :: "real"
   "real_0" > "Algebras.zero_class.zero" :: "real"
-  "inv" > "Algebras.divide_class.inverse" :: "real => real"
+  "inv" > "Ring.inverse" :: "real => real"
   "hreal_of_treal" > "HOL4Real.realax.hreal_of_treal"
 
 thm_maps

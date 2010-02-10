@@ -14,8 +14,8 @@ imports Rings
 begin
 
 class field = comm_ring_1 + inverse +
-  assumes field_inverse:  "a \<noteq> 0 \<Longrightarrow> inverse a * a = 1"
-  assumes divide_inverse: "a / b = a * inverse b"
+  assumes field_inverse: "a \<noteq> 0 \<Longrightarrow> inverse a * a = 1"
+  assumes field_divide_inverse: "a / b = a * inverse b"
 begin
 
 subclass division_ring
@@ -24,6 +24,9 @@ proof
   assume "a \<noteq> 0"
   thus "inverse a * a = 1" by (rule field_inverse)
   thus "a * inverse a = 1" by (simp only: mult_commute)
+next
+  fix a b :: 'a
+  show "a / b = a * inverse b" by (rule field_divide_inverse)
 qed
 
 subclass idom ..
