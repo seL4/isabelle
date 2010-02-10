@@ -410,9 +410,14 @@ qed
 
 end
 
+class inverse =
+  fixes inverse :: "'a \<Rightarrow> 'a"
+    and divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "'/" 70)
+
 class division_ring = ring_1 + inverse +
   assumes left_inverse [simp]:  "a \<noteq> 0 \<Longrightarrow> inverse a * a = 1"
   assumes right_inverse [simp]: "a \<noteq> 0 \<Longrightarrow> a * inverse a = 1"
+  assumes divide_inverse: "a / b = a * inverse b"
 begin
 
 subclass ring_1_no_zero_divisors
