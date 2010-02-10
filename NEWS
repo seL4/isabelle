@@ -126,6 +126,9 @@ sets to lattices:
 
 * Theory List: added transpose.
 
+* Renamed Library/Quotient.thy to Library/Quotient_Type.thy to avoid
+clash with new theory Quotient in Main HOL.
+
 
 *** ML ***
 

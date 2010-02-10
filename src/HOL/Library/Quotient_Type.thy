@@ -1,10 +1,10 @@
-(*  Title:      HOL/Library/Quotient.thy
+(*  Title:      HOL/Library/Quotient_Type.thy
     Author:     Markus Wenzel, TU Muenchen
 *)
 
 header {* Quotient types *}
 
-theory Quotient
+theory Quotient_Type
 imports Main
 begin
 

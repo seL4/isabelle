@@ -45,7 +45,7 @@ imports
   Preorder
   Product_Vector
   Quicksort
-  Quotient
+  Quotient_Type
   Ramsey
   Reflection
   RBT
