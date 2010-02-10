@@ -173,7 +173,7 @@ struct
       | tm (Const(@{const_name Algebras.times}, T) $ x $ y) =
           if is_numeric_op T then Interp("*", [tm x, tm y])
           else fail t
-      | tm (Const(@{const_name Algebras.inverse}, T) $ x) =
+      | tm (Const(@{const_name Rings.inverse}, T) $ x) =
           if domain_type T = HOLogic.realT then
               Rat(1, litExp x)
           else fail t

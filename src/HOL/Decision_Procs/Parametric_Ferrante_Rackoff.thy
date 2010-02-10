@@ -2946,7 +2946,7 @@ val bT = HOLogic.boolT;
 fun num rT x = HOLogic.mk_number rT x;
 fun rrelT rT = [rT,rT] ---> rT;
 fun rrT rT = [rT, rT] ---> bT;
-fun divt rT = Const(@{const_name Algebras.divide},rrelT rT);
+fun divt rT = Const(@{const_name Rings.divide},rrelT rT);
 fun timest rT = Const(@{const_name Algebras.times},rrelT rT);
 fun plust rT = Const(@{const_name Algebras.plus},rrelT rT);
 fun minust rT = Const(@{const_name Algebras.minus},rrelT rT);
@@ -2974,7 +2974,7 @@ fun num_of_term m t =
  | Const(@{const_name Algebras.minus},_)$a$b => @{code poly.Sub} (num_of_term m a, num_of_term m b)
  | Const(@{const_name Algebras.times},_)$a$b => @{code poly.Mul} (num_of_term m a, num_of_term m b)
  | Const(@{const_name Power.power},_)$a$n => @{code poly.Pw} (num_of_term m a, dest_nat n)
- | Const(@{const_name Algebras.divide},_)$a$b => @{code poly.C} (HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
+ | Const(@{const_name Rings.divide},_)$a$b => @{code poly.C} (HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
  | _ => (@{code poly.C} (HOLogic.dest_number t |> snd,1) 
          handle TERM _ => @{code poly.Bound} (AList.lookup (op aconv) m t |> the));
 

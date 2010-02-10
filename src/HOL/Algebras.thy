@@ -103,10 +103,6 @@ class uminus =
 class times =
   fixes times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "*" 70)
 
-class inverse =
-  fixes inverse :: "'a \<Rightarrow> 'a"
-    and divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "'/" 70)
-
 class abs =
   fixes abs :: "'a \<Rightarrow> 'a"
 begin

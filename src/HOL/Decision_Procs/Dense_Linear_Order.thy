@@ -655,7 +655,7 @@ fun earlier [] x y = false
     if h aconvc y then false else if h aconvc x then true else earlier t x y;
 
 fun dest_frac ct = case term_of ct of
-   Const (@{const_name Algebras.divide},_) $ a $ b=>
+   Const (@{const_name Rings.divide},_) $ a $ b=>
     Rat.rat_of_quotient (snd (HOLogic.dest_number a), snd (HOLogic.dest_number b))
  | Const(@{const_name inverse}, _)$a => Rat.rat_of_quotient(1, HOLogic.dest_number a |> snd)
  | t => Rat.rat_of_int (snd (HOLogic.dest_number t))

@@ -2950,7 +2950,8 @@ next
                (\<Sum> i = 0..<Suc n. inverse (real (\<Prod> j \<in> {k..<k+i}. j)) * ?f i (real c) * (xs!x - real c)^i) +
                inverse (real (\<Prod> j \<in> {k..<k+Suc n}. j)) * ?f (Suc n) t * (xs!x - real c)^Suc n" (is "_ = ?T")
         unfolding funpow_Suc C_def[symmetric] setsum_move0 setprod_head_Suc
-        by (auto simp add: algebra_simps setsum_right_distrib[symmetric])
+        by (auto simp add: algebra_simps)
+          (simp only: mult_left_commute [of _ "inverse (real k)"] setsum_right_distrib [symmetric])
       finally have "?T \<in> {real l .. real u}" . }
     thus ?thesis using DERIV by blast
   qed
