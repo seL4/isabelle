@@ -25,3 +25,4 @@ ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 
 ISABELLE_USEDIR_OPTIONS="-i false -d false -t true -M 4 -q 2"
 
+unset KODKODI
