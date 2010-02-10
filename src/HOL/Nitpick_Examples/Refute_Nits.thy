@@ -885,7 +885,7 @@ apply simp
 done
 
 lemma "BinTree_rec l n (Node x y) = n x y (BinTree_rec l n x) (BinTree_rec l n y)"
-nitpick [card = 1\<midarrow>6, expect = none]
+nitpick [card = 1\<midarrow>5, expect = none]
 apply simp
 done
 
