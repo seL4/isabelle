@@ -708,7 +708,7 @@ struct
       (* other optimizations *)
       | Const (@{const_name Finite_Set.card}, _) => t
       | Const (@{const_name Finite_Set.finite}, _) => t
-      | Const (@{const_name Algebras.less}, Type ("fun", [Type ("nat", []),
+      | Const (@{const_name Orderings.less}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("bool", [])])])) => t
       | Const (@{const_name Algebras.plus}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
@@ -883,7 +883,7 @@ struct
       | Const (@{const_name Finite_Set.card}, T) => collect_type_axioms T axs
       | Const (@{const_name Finite_Set.finite}, T) =>
         collect_type_axioms T axs
-      | Const (@{const_name Algebras.less}, T as Type ("fun", [Type ("nat", []),
+      | Const (@{const_name Orderings.less}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("bool", [])])])) =>
           collect_type_axioms T axs
       | Const (@{const_name Algebras.plus}, T as Type ("fun", [Type ("nat", []),
@@ -2771,7 +2771,7 @@ struct
 
   fun Nat_less_interpreter thy model args t =
     case t of
-      Const (@{const_name Algebras.less}, Type ("fun", [Type ("nat", []),
+      Const (@{const_name Orderings.less}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("bool", [])])])) =>
       let
         val size_of_nat = size_of_type thy model (Type ("nat", []))

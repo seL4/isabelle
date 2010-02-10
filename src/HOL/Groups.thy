@@ -5,7 +5,7 @@
 header {* Groups, also combined with orderings *}
 
 theory Groups
-imports Lattices
+imports Orderings
 uses "~~/src/Provers/Arith/abel_cancel.ML"
 begin
 
@@ -39,6 +39,7 @@ group and ring equalities but also helps with inequalities.
 
 Of course it also works for fields, but it knows nothing about multiplicative
 inverses or division. This is catered for by @{text field_simps}. *}
+
 
 subsection {* Semigroups and Monoids *}
 
@@ -884,6 +885,32 @@ lemma add_strict_increasing2:
   shows "[|0\<le>a; b<c|] ==> b < a + c"
 by (insert add_le_less_mono [of 0 a b c], simp)
 
+class abs =
+  fixes abs :: "'a \<Rightarrow> 'a"
+begin
+
+notation (xsymbols)
+  abs  ("\<bar>_\<bar>")
+
+notation (HTML output)
+  abs  ("\<bar>_\<bar>")
+
+end
+
+class sgn =
+  fixes sgn :: "'a \<Rightarrow> 'a"
+
+class abs_if = minus + uminus + ord + zero + abs +
+  assumes abs_if: "\<bar>a\<bar> = (if a < 0 then - a else a)"
+
+class sgn_if = minus + uminus + zero + one + ord + sgn +
+  assumes sgn_if: "sgn x = (if x = 0 then 0 else if 0 < x then 1 else - 1)"
+begin
+
+lemma sgn0 [simp]: "sgn 0 = 0"
+  by (simp add:sgn_if)
+
+end
 
 class ordered_ab_group_add_abs = ordered_ab_group_add + abs +
   assumes abs_ge_zero [simp]: "\<bar>a\<bar> \<ge> 0"

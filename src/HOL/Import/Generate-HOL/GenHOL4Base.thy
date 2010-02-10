@@ -166,7 +166,7 @@ end_import;
 import_theory prim_rec;
 
 const_maps
-    "<" > Algebras.less :: "[nat,nat]=>bool";
+    "<" > Orderings.less :: "[nat,nat]=>bool";
 
 end_import;
 
@@ -181,7 +181,7 @@ const_maps
   ">"          > HOL4Compat.nat_gt
   ">="         > HOL4Compat.nat_ge
   FUNPOW       > HOL4Compat.FUNPOW
-  "<="         > Algebras.less_eq :: "[nat,nat]=>bool"
+  "<="         > Orderings.less_eq :: "[nat,nat]=>bool"
   "+"          > Algebras.plus :: "[nat,nat]=>nat"
   "*"          > Algebras.times :: "[nat,nat]=>nat"
   "-"          > Algebras.minus :: "[nat,nat]=>nat"

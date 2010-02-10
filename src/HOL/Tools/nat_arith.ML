@@ -69,16 +69,16 @@ end);
 structure LessCancelSums = CancelSumsFun
 (struct
   open CommonCancelSums;
-  val mk_bal = HOLogic.mk_binrel @{const_name Algebras.less};
-  val dest_bal = HOLogic.dest_bin @{const_name Algebras.less} HOLogic.natT;
+  val mk_bal = HOLogic.mk_binrel @{const_name Orderings.less};
+  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less} HOLogic.natT;
   val uncancel_tac = gen_uncancel_tac @{thm "nat_add_left_cancel_less"};
 end);
 
 structure LeCancelSums = CancelSumsFun
 (struct
   open CommonCancelSums;
-  val mk_bal = HOLogic.mk_binrel @{const_name Algebras.less_eq};
-  val dest_bal = HOLogic.dest_bin @{const_name Algebras.less_eq} HOLogic.natT;
+  val mk_bal = HOLogic.mk_binrel @{const_name Orderings.less_eq};
+  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less_eq} HOLogic.natT;
   val uncancel_tac = gen_uncancel_tac @{thm "nat_add_left_cancel_le"};
 end);
 

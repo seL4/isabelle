@@ -11,6 +11,41 @@ uses
   "~~/src/Provers/quasi.ML"  (* FIXME unused? *)
 begin
 
+subsection {* Syntactic orders *}
+
+class ord =
+  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+    and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+begin
+
+notation
+  less_eq  ("op <=") and
+  less_eq  ("(_/ <= _)" [51, 51] 50) and
+  less  ("op <") and
+  less  ("(_/ < _)"  [51, 51] 50)
+  
+notation (xsymbols)
+  less_eq  ("op \<le>") and
+  less_eq  ("(_/ \<le> _)"  [51, 51] 50)
+
+notation (HTML output)
+  less_eq  ("op \<le>") and
+  less_eq  ("(_/ \<le> _)"  [51, 51] 50)
+
+abbreviation (input)
+  greater_eq  (infix ">=" 50) where
+  "x >= y \<equiv> y <= x"
+
+notation (input)
+  greater_eq  (infix "\<ge>" 50)
+
+abbreviation (input)
+  greater  (infix ">" 50) where
+  "x > y \<equiv> y < x"
+
+end
+
+
 subsection {* Quasi orders *}
 
 class preorder = ord +

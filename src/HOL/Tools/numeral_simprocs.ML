@@ -229,8 +229,8 @@ structure EqCancelNumerals = CancelNumeralsFun
 structure LessCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = Arith_Data.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name Algebras.less}
-  val dest_bal = HOLogic.dest_bin @{const_name Algebras.less} Term.dummyT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less}
+  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less} Term.dummyT
   val bal_add1 = @{thm less_add_iff1} RS trans
   val bal_add2 = @{thm less_add_iff2} RS trans
 );
@@ -238,8 +238,8 @@ structure LessCancelNumerals = CancelNumeralsFun
 structure LeCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = Arith_Data.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name Algebras.less_eq}
-  val dest_bal = HOLogic.dest_bin @{const_name Algebras.less_eq} Term.dummyT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less_eq}
+  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less_eq} Term.dummyT
   val bal_add1 = @{thm le_add_iff1} RS trans
   val bal_add2 = @{thm le_add_iff2} RS trans
 );
@@ -409,8 +409,8 @@ structure EqCancelNumeralFactor = CancelNumeralFactorFun
 structure LessCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Arith_Data.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name Algebras.less}
-  val dest_bal = HOLogic.dest_bin @{const_name Algebras.less} Term.dummyT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less}
+  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less} Term.dummyT
   val cancel = @{thm mult_less_cancel_left} RS trans
   val neg_exchanges = true
 )
@@ -418,8 +418,8 @@ structure LessCancelNumeralFactor = CancelNumeralFactorFun
 structure LeCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Arith_Data.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name Algebras.less_eq}
-  val dest_bal = HOLogic.dest_bin @{const_name Algebras.less_eq} Term.dummyT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less_eq}
+  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less_eq} Term.dummyT
   val cancel = @{thm mult_le_cancel_left} RS trans
   val neg_exchanges = true
 )
@@ -485,7 +485,7 @@ in
 fun sign_conv pos_th neg_th ss t =
   let val T = fastype_of t;
       val zero = Const(@{const_name Algebras.zero}, T);
-      val less = Const(@{const_name Algebras.less}, [T,T] ---> HOLogic.boolT);
+      val less = Const(@{const_name Orderings.less}, [T,T] ---> HOLogic.boolT);
       val pos = less $ zero $ t and neg = less $ t $ zero
       fun prove p =
         Option.map Eq_True_elim (Lin_Arith.simproc ss p)
@@ -524,8 +524,8 @@ structure EqCancelFactor = ExtractCommonTermFun
 structure LeCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Arith_Data.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name Algebras.less_eq}
-  val dest_bal = HOLogic.dest_bin @{const_name Algebras.less_eq} Term.dummyT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less_eq}
+  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less_eq} Term.dummyT
   val simp_conv = sign_conv
     @{thm mult_le_cancel_left_pos} @{thm mult_le_cancel_left_neg}
 );
@@ -534,8 +534,8 @@ structure LeCancelFactor = ExtractCommonTermFun
 structure LessCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Arith_Data.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name Algebras.less}
-  val dest_bal = HOLogic.dest_bin @{const_name Algebras.less} Term.dummyT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less}
+  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less} Term.dummyT
   val simp_conv = sign_conv
     @{thm mult_less_cancel_left_pos} @{thm mult_less_cancel_left_neg}
 );
