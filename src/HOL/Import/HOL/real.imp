@@ -17,7 +17,7 @@ const_maps
   "real_ge" > "HOL4Compat.real_ge"
   "pow" > "Power.power_class.power" :: "real => nat => real"
   "abs" > "Algebras.abs" :: "real => real"
-  "/" > "Algebras.divide" :: "real => real => real"
+  "/" > "Ring.divide" :: "real => real => real"
 
 thm_maps
   "sup_def" > "HOL4Real.real.sup_def"
@@ -31,7 +31,7 @@ thm_maps
   "real_lt" > "Orderings.linorder_not_le"
   "real_gt" > "HOL4Compat.real_gt"
   "real_ge" > "HOL4Compat.real_ge"
-  "real_div" > "Rings.field_class.divide_inverse"
+  "real_div" > "Ring.divide_inverse"
   "pow" > "HOL4Compat.pow"
   "abs" > "HOL4Compat.abs"
   "SUP_LEMMA3" > "HOL4Real.real.SUP_LEMMA3"
