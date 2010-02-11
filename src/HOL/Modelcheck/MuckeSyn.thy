@@ -38,7 +38,7 @@ syntax (Mucke output)
   "_idts"       :: "[idt, idts] => idts"                ("_,/ _" [1, 0] 0)
 
   "_tuple"      :: "'a => tuple_args => 'a * 'b"        ("(1_,/ _)")
-(* "@pttrn"     :: "[pttrn, pttrns] => pttrn"           ("_,/ _" [1, 0] 0)
+(* "_pttrn"     :: "[pttrn, pttrns] => pttrn"           ("_,/ _" [1, 0] 0)
   "_pattern"    :: "[pttrn, patterns] => pttrn"         ("_,/ _" [1, 0] 0) *)
 
   "_decl"       :: "[mutype,pttrn] => decl"             ("_ _")
