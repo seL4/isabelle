@@ -51,7 +51,7 @@ struct
   val dest_sum = dest_sum;
   val prove_conv = Arith_Data.prove_conv2;
   val norm_tac1 = Arith_Data.simp_all_tac [@{thm add_Suc}, @{thm add_Suc_right},
-    @{thm add_0}, @{thm Nat.add_0_right}];
+    @{thm Nat.add_0}, @{thm Nat.add_0_right}];
   val norm_tac2 = Arith_Data.simp_all_tac @{thms add_ac};
   fun norm_tac ss = norm_tac1 ss THEN norm_tac2 ss;
   fun gen_uncancel_tac rule = let val rule' = rule RS @{thm subst_equals}
@@ -69,16 +69,16 @@ end);
 structure LessCancelSums = CancelSumsFun
 (struct
   open CommonCancelSums;
-  val mk_bal = HOLogic.mk_binrel @{const_name Algebras.less};
-  val dest_bal = HOLogic.dest_bin @{const_name Algebras.less} HOLogic.natT;
+  val mk_bal = HOLogic.mk_binrel @{const_name Orderings.less};
+  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less} HOLogic.natT;
   val uncancel_tac = gen_uncancel_tac @{thm "nat_add_left_cancel_less"};
 end);
 
 structure LeCancelSums = CancelSumsFun
 (struct
   open CommonCancelSums;
-  val mk_bal = HOLogic.mk_binrel @{const_name Algebras.less_eq};
-  val dest_bal = HOLogic.dest_bin @{const_name Algebras.less_eq} HOLogic.natT;
+  val mk_bal = HOLogic.mk_binrel @{const_name Orderings.less_eq};
+  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less_eq} HOLogic.natT;
   val uncancel_tac = gen_uncancel_tac @{thm "nat_add_left_cancel_le"};
 end);
 

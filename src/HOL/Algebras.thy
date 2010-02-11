@@ -55,13 +55,20 @@ lemma left_idem [simp]:
 end
 
 
-subsection {* Generic algebraic operations *}
+subsection {* Generic syntactic operations *}
 
 class zero = 
   fixes zero :: 'a  ("0")
 
 class one =
   fixes one  :: 'a  ("1")
+
+hide (open) const zero one
+
+syntax
+  "_index1"  :: index    ("\<^sub>1")
+translations
+  (index) "\<^sub>1" => (index) "\<^bsub>\<struct>\<^esub>"
 
 lemma Let_0 [simp]: "Let 0 f = f 0"
   unfolding Let_def ..
@@ -89,8 +96,6 @@ let
 in map tr' [@{const_syntax Algebras.one}, @{const_syntax Algebras.zero}] end;
 *} -- {* show types that are presumably too general *}
 
-hide (open) const zero one
-
 class plus =
   fixes plus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "+" 65)
 
@@ -102,56 +107,5 @@ class uminus =
 
 class times =
   fixes times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "*" 70)
-
-class inverse =
-  fixes inverse :: "'a \<Rightarrow> 'a"
-    and divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "'/" 70)
-
-class abs =
-  fixes abs :: "'a \<Rightarrow> 'a"
-begin
-
-notation (xsymbols)
-  abs  ("\<bar>_\<bar>")
-
-notation (HTML output)
-  abs  ("\<bar>_\<bar>")
-
-end
-
-class sgn =
-  fixes sgn :: "'a \<Rightarrow> 'a"
-
-class ord =
-  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
-    and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
-begin
-
-notation
-  less_eq  ("op <=") and
-  less_eq  ("(_/ <= _)" [51, 51] 50) and
-  less  ("op <") and
-  less  ("(_/ < _)"  [51, 51] 50)
-  
-notation (xsymbols)
-  less_eq  ("op \<le>") and
-  less_eq  ("(_/ \<le> _)"  [51, 51] 50)
-
-notation (HTML output)
-  less_eq  ("op \<le>") and
-  less_eq  ("(_/ \<le> _)"  [51, 51] 50)
-
-abbreviation (input)
-  greater_eq  (infix ">=" 50) where
-  "x >= y \<equiv> y <= x"
-
-notation (input)
-  greater_eq  (infix "\<ge>" 50)
-
-abbreviation (input)
-  greater  (infix ">" 50) where
-  "x > y \<equiv> y < x"
-
-end
 
 end

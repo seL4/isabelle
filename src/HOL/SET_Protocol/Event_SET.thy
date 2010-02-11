@@ -11,8 +11,7 @@ imports Message_SET
 begin
 
 text{*The Root Certification Authority*}
-syntax        RCA :: agent
-translations "RCA" == "CA 0"
+abbreviation "RCA == CA 0"
 
 
 text{*Message events*}

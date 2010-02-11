@@ -55,7 +55,7 @@ fun check (Const (@{const_name Algebras.one}, @{typ int})) = false
       @{const_name Algebras.times}, @{const_name Algebras.uminus},
       @{const_name Algebras.minus}, @{const_name Algebras.plus},
       @{const_name Algebras.zero},
-      @{const_name Algebras.less}, @{const_name Algebras.less_eq}] s
+      @{const_name Orderings.less}, @{const_name Orderings.less_eq}] s
   | check (a $ b) = check a andalso check b
   | check _ = false;
 

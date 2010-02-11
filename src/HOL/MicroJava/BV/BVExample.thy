@@ -296,12 +296,10 @@ lemma wt_append [simp]:
   done
 
 text {* Some abbreviations for readability *} 
-syntax
-  Clist :: ty 
-  Ctest :: ty
-translations
-  "Clist" == "Class list_name"
-  "Ctest" == "Class test_name"
+abbreviation Clist :: ty 
+  where "Clist == Class list_name"
+abbreviation Ctest :: ty
+  where "Ctest == Class test_name"
 
 constdefs
   phi_makelist :: method_type ("\<phi>\<^sub>m")

@@ -1,5 +1,4 @@
 (*  Title:      HOL/Bali/TypeSafe.thy
-    ID:         $Id$
     Author:     David von Oheimb and Norbert Schirmer
 *)
 header {* The type soundness proof for Java *}

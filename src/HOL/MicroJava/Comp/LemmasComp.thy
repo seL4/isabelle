@@ -262,10 +262,8 @@ apply auto
 done
 
 
-syntax
-  mtd_mb :: "cname \<times> ty \<times> 'c \<Rightarrow> 'c"
-translations
-  "mtd_mb" => "Fun.comp snd snd"
+abbreviation (input)
+  "mtd_mb == snd o snd"
 
 lemma map_of_map_fst: "\<lbrakk> inj f;
   \<forall>x\<in>set xs. fst (f x) = fst x; \<forall>x\<in>set xs. fst (g x) = fst x \<rbrakk>

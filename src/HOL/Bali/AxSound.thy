@@ -1,5 +1,4 @@
 (*  Title:      HOL/Bali/AxSound.thy
-    ID:         $Id$
     Author:     David von Oheimb and Norbert Schirmer
 *)
 header {* Soundness proof for Axiomatic semantics of Java expressions and 

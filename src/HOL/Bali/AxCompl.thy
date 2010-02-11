@@ -1,5 +1,4 @@
 (*  Title:      HOL/Bali/AxCompl.thy
-    ID:         $Id$
     Author:     David von Oheimb and Norbert Schirmer
 *)
 

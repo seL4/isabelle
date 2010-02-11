@@ -30,12 +30,14 @@ text {*
 
 consts
   contract  :: i
-syntax
-  "_contract"       :: "[i,i] => o"    (infixl "-1->" 50)
-  "_contract_multi" :: "[i,i] => o"    (infixl "--->" 50)
-translations
-  "p -1-> q" == "<p,q> \<in> contract"
-  "p ---> q" == "<p,q> \<in> contract^*"
+
+abbreviation
+  contract_syntax :: "[i,i] => o"    (infixl "-1->" 50)
+  where "p -1-> q == <p,q> \<in> contract"
+
+abbreviation
+  contract_multi :: "[i,i] => o"    (infixl "--->" 50)
+  where "p ---> q == <p,q> \<in> contract^*"
 
 syntax (xsymbols)
   "comb.app"    :: "[i, i] => i"             (infixl "\<bullet>" 90)
@@ -56,12 +58,14 @@ text {*
 
 consts
   parcontract :: i
-syntax
-  "_parcontract" :: "[i,i] => o"    (infixl "=1=>" 50)
-  "_parcontract_multi" :: "[i,i] => o"    (infixl "===>" 50)
-translations
-  "p =1=> q" == "<p,q> \<in> parcontract"
-  "p ===> q" == "<p,q> \<in> parcontract^+"
+
+abbreviation
+  parcontract_syntax :: "[i,i] => o"    (infixl "=1=>" 50)
+  where "p =1=> q == <p,q> \<in> parcontract"
+
+abbreviation
+  parcontract_multi :: "[i,i] => o"    (infixl "===>" 50)
+  where "p ===> q == <p,q> \<in> parcontract^+"
 
 inductive
   domains "parcontract" \<subseteq> "comb \<times> comb"

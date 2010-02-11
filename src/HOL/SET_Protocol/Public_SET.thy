@@ -23,19 +23,12 @@ consts
   publicKey :: "[bool, agent] => key"
     --{*the boolean is TRUE if a signing key*}
 
-syntax
-  pubEK :: "agent => key"
-  pubSK :: "agent => key"
-  priEK :: "agent => key"
-  priSK :: "agent => key"
+abbreviation "pubEK == publicKey False"
+abbreviation "pubSK == publicKey True"
 
-translations
-  "pubEK"  == "publicKey False"
-  "pubSK"  == "publicKey True"
-
-  (*BEWARE!! priEK, priSK DON'T WORK with inj, range, image, etc.*)
-  "priEK A"  == "invKey (pubEK A)"
-  "priSK A"  == "invKey (pubSK A)"
+(*BEWARE!! priEK, priSK DON'T WORK with inj, range, image, etc.*)
+abbreviation "priEK A == invKey (pubEK A)"
+abbreviation "priSK A == invKey (pubSK A)"
 
 text{*By freeness of agents, no two agents have the same key. Since
  @{term "True\<noteq>False"}, no agent has the same signing and encryption keys.*}
@@ -159,18 +152,12 @@ constdefs
     "certC PAN Ka PS T signK ==
      signCert signK {|Hash {|Nonce PS, Pan PAN|}, Key Ka, T|}"
 
-  (*cert and certA have no repeated elements, so they could be translations,
-    but that's tricky and makes proofs slower*)
+(*cert and certA have no repeated elements, so they could be abbreviations,
+  but that's tricky and makes proofs slower*)
 
-syntax
-  "onlyEnc" :: msg      
-  "onlySig" :: msg
-  "authCode" :: msg
-
-translations
-  "onlyEnc"   == "Number 0"
-  "onlySig"  == "Number (Suc 0)"
-  "authCode" == "Number (Suc (Suc 0))"
+abbreviation "onlyEnc == Number 0"
+abbreviation "onlySig == Number (Suc 0)"
+abbreviation "authCode == Number (Suc (Suc 0))"
 
 subsection{*Encryption Primitives*}
 

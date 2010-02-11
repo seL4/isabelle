@@ -65,7 +65,7 @@ fun svc_abstract t =
     (*abstraction of a real/rational expression*)
     fun rat ((c as Const(@{const_name Algebras.plus}, _)) $ x $ y) = c $ (rat x) $ (rat y)
       | rat ((c as Const(@{const_name Algebras.minus}, _)) $ x $ y) = c $ (rat x) $ (rat y)
-      | rat ((c as Const(@{const_name Algebras.divide}, _)) $ x $ y) = c $ (rat x) $ (rat y)
+      | rat ((c as Const(@{const_name Rings.divide}, _)) $ x $ y) = c $ (rat x) $ (rat y)
       | rat ((c as Const(@{const_name Algebras.times}, _)) $ x $ y) = c $ (rat x) $ (rat y)
       | rat ((c as Const(@{const_name Algebras.uminus}, _)) $ x) = c $ (rat x)
       | rat t = lit t
@@ -95,8 +95,8 @@ fun svc_abstract t =
       | fm ((c as Const("True", _))) = c
       | fm ((c as Const("False", _))) = c
       | fm (t as Const("op =",  Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
-      | fm (t as Const(@{const_name Algebras.less},  Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
-      | fm (t as Const(@{const_name Algebras.less_eq}, Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
+      | fm (t as Const(@{const_name Orderings.less},  Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
+      | fm (t as Const(@{const_name Orderings.less_eq}, Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
       | fm t = replace t
     (*entry point, and abstraction of a meta-formula*)
     fun mt ((c as Const("Trueprop", _)) $ p) = c $ (fm p)

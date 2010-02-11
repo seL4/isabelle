@@ -893,6 +893,7 @@ instance star :: (division_ring) division_ring
 apply (intro_classes)
 apply (transfer, erule left_inverse)
 apply (transfer, erule right_inverse)
+apply (transfer, fact divide_inverse)
 done
 
 instance star :: (field) field

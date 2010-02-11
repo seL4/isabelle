@@ -42,12 +42,12 @@ val static_list =
                            if berkmin_exec = "" then "BerkMin561"
                            else berkmin_exec, [], "Satisfiable          !!",
                            "solution =", "UNSATISFIABLE          !!")),
-   ("BerkMinAlloy", External (ToStdout, "BERKMINALLOY_HOME", "berkmin", [])),
+   ("BerkMin_Alloy", External (ToStdout, "BERKMINALLOY_HOME", "berkmin", [])),
    ("Jerusat", External (ToStdout, "JERUSAT_HOME", "Jerusat1.3", [])),
-   ("MiniSatJNI", Internal (JNI, Incremental, ["MiniSat"])),
-   ("zChaffJNI", Internal (JNI, Batch, ["zChaff"])),
+   ("MiniSat_JNI", Internal (JNI, Incremental, ["MiniSat"])),
+   ("zChaff_JNI", Internal (JNI, Batch, ["zChaff"])),
    ("SAT4J", Internal (Java, Incremental, ["DefaultSAT4J"])),
-   ("SAT4JLight", Internal (Java, Incremental, ["LightSAT4J"])),
+   ("SAT4J_Light", Internal (Java, Incremental, ["LightSAT4J"])),
    ("HaifaSat", ExternalV2 (ToStdout, "HAIFASAT_HOME", "HaifaSat", ["-p", "1"],
                             "s SATISFIABLE", "v ", "s UNSATISFIABLE"))]
 

@@ -655,7 +655,7 @@ fun earlier [] x y = false
     if h aconvc y then false else if h aconvc x then true else earlier t x y;
 
 fun dest_frac ct = case term_of ct of
-   Const (@{const_name Algebras.divide},_) $ a $ b=>
+   Const (@{const_name Rings.divide},_) $ a $ b=>
     Rat.rat_of_quotient (snd (HOLogic.dest_number a), snd (HOLogic.dest_number b))
  | Const(@{const_name inverse}, _)$a => Rat.rat_of_quotient(1, HOLogic.dest_number a |> snd)
  | t => Rat.rat_of_int (snd (HOLogic.dest_number t))
@@ -684,7 +684,7 @@ fun whatis x ct = case term_of ct of
 fun xnormalize_conv ctxt [] ct = reflexive ct
 | xnormalize_conv ctxt (vs as (x::_)) ct =
    case term_of ct of
-   Const(@{const_name Algebras.less},_)$_$Const(@{const_name Algebras.zero},_) =>
+   Const(@{const_name Orderings.less},_)$_$Const(@{const_name Algebras.zero},_) =>
     (case whatis x (Thm.dest_arg1 ct) of
     ("c*x+t",[c,t]) =>
        let
@@ -727,7 +727,7 @@ fun xnormalize_conv ctxt [] ct = reflexive ct
     | _ => reflexive ct)
 
 
-|  Const(@{const_name Algebras.less_eq},_)$_$Const(@{const_name Algebras.zero},_) =>
+|  Const(@{const_name Orderings.less_eq},_)$_$Const(@{const_name Algebras.zero},_) =>
    (case whatis x (Thm.dest_arg1 ct) of
     ("c*x+t",[c,t]) =>
        let
@@ -816,7 +816,7 @@ local
   val eq_iff_diff_eq_0 = mk_meta_eq @{thm "eq_iff_diff_eq_0"}
 in
 fun field_isolate_conv phi ctxt vs ct = case term_of ct of
-  Const(@{const_name Algebras.less},_)$a$b =>
+  Const(@{const_name Orderings.less},_)$a$b =>
    let val (ca,cb) = Thm.dest_binop ct
        val T = ctyp_of_term ca
        val th = instantiate' [SOME T] [SOME ca, SOME cb] less_iff_diff_less_0
@@ -825,7 +825,7 @@ fun field_isolate_conv phi ctxt vs ct = case term_of ct of
               (Normalizer.semiring_normalize_ord_conv @{context} (earlier vs)))) th
        val rth = transitive nth (xnormalize_conv ctxt vs (Thm.rhs_of nth))
    in rth end
-| Const(@{const_name Algebras.less_eq},_)$a$b =>
+| Const(@{const_name Orderings.less_eq},_)$a$b =>
    let val (ca,cb) = Thm.dest_binop ct
        val T = ctyp_of_term ca
        val th = instantiate' [SOME T] [SOME ca, SOME cb] le_iff_diff_le_0
@@ -856,11 +856,11 @@ fun classfield_whatis phi =
                             else Ferrante_Rackoff_Data.Nox
    | @{term "Not"}$(Const("op =", _)$y$z) => if term_of x aconv y then Ferrante_Rackoff_Data.NEq
                             else Ferrante_Rackoff_Data.Nox
-   | Const(@{const_name Algebras.less},_)$y$z =>
+   | Const(@{const_name Orderings.less},_)$y$z =>
        if term_of x aconv y then Ferrante_Rackoff_Data.Lt
         else if term_of x aconv z then Ferrante_Rackoff_Data.Gt
         else Ferrante_Rackoff_Data.Nox
-   | Const (@{const_name Algebras.less_eq},_)$y$z =>
+   | Const (@{const_name Orderings.less_eq},_)$y$z =>
          if term_of x aconv y then Ferrante_Rackoff_Data.Le
          else if term_of x aconv z then Ferrante_Rackoff_Data.Ge
          else Ferrante_Rackoff_Data.Nox

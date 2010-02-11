@@ -27,12 +27,8 @@ apply (rule_tac x = "A-{x}" in exI)
 apply fast+
 done
 
-syntax
-  "3" :: nat   ("3") 
-  "4" :: nat   ("4")
-translations
- "3" == "Suc 2"
- "4" == "Suc 3"
+abbreviation nat3 :: nat  ("3") where "3 == Suc 2"
+abbreviation nat4 :: nat  ("4") where "4 == Suc 3"
 
 (*unused*)
 lemma range_bool_domain: "range f = {f True, f False}"
@@ -182,10 +178,7 @@ section "sums"
 
 hide const In0 In1
 
-syntax
-  fun_sum :: "('a => 'c) => ('b => 'c) => (('a+'b) => 'c)" (infixr "'(+')"80)
-translations
- "fun_sum" == "CONST sum_case"
+notation sum_case  (infixr "'(+')"80)
 
 consts    the_Inl  :: "'a + 'b \<Rightarrow> 'a"
           the_Inr  :: "'a + 'b \<Rightarrow> 'b"
@@ -201,18 +194,17 @@ primrec  "the_In1 (In1 a) = a"
 primrec  "the_In2 (In2 b) = b"
 primrec  "the_In3 (In3 c) = c"
 
-syntax
-         In1l   :: "'al \<Rightarrow> ('al + 'ar, 'b, 'c) sum3"
-         In1r   :: "'ar \<Rightarrow> ('al + 'ar, 'b, 'c) sum3"
-translations
-        "In1l e" == "In1 (CONST Inl e)"
-        "In1r c" == "In1 (CONST Inr c)"
+abbreviation In1l   :: "'al \<Rightarrow> ('al + 'ar, 'b, 'c) sum3"
+      where "In1l e == In1 (Inl e)"
 
-syntax the_In1l :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> 'al"
-       the_In1r :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> 'ar"
-translations
-   "the_In1l" == "the_Inl \<circ> the_In1"
-   "the_In1r" == "the_Inr \<circ> the_In1"
+abbreviation In1r   :: "'ar \<Rightarrow> ('al + 'ar, 'b, 'c) sum3"
+      where "In1r c == In1 (Inr c)"
+
+abbreviation the_In1l :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> 'al"
+      where "the_In1l == the_Inl \<circ> the_In1"
+
+abbreviation the_In1r :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> 'ar"
+      where "the_In1r == the_Inr \<circ> the_In1"
 
 ML {*
 fun sum3_instantiate ctxt thm = map (fn s =>
@@ -319,8 +311,8 @@ defs
 syntax
   "_lpttrn"    :: "[pttrn,pttrn] => pttrn"     ("_#/_" [901,900] 900)
 translations
-  "%y#x#xs. b"  == "lsplit (%y x#xs. b)"
-  "%x#xs  . b"  == "lsplit (%x xs  . b)"
+  "%y#x#xs. b"  == "CONST lsplit (%y x#xs. b)"
+  "%x#xs  . b"  == "CONST lsplit (%x xs  . b)"
 
 lemma lsplit [simp]: "lsplit c (x#xs) = c x xs"
 apply (unfold lsplit_def)

@@ -41,13 +41,13 @@ done
 
 (**********************************************************************)
 
-syntax
-  mt_of         :: "method_type \<times> state_type \<Rightarrow> method_type"
-  sttp_of       :: "method_type \<times> state_type \<Rightarrow> state_type"
+abbreviation (input)
+  mt_of :: "method_type \<times> state_type \<Rightarrow> method_type"
+  where "mt_of == fst"
 
-translations
-  "mt_of"     => "fst"
-  "sttp_of"   => "snd"
+abbreviation (input)
+  sttp_of :: "method_type \<times> state_type \<Rightarrow> state_type"
+  where "sttp_of == snd"
 
 consts
   compTpExpr  :: "java_mb \<Rightarrow> java_mb prog \<Rightarrow> expr
@@ -189,4 +189,3 @@ constdefs
 
 
 end
-

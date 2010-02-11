@@ -27,21 +27,27 @@ types aheap  = "loc \<rightharpoonup> obj"    -- {* "@{text heap}" used in a tra
       state  = "aheap \<times> locals"      -- "heap, local parameter including This"
       xstate = "val option \<times> state" -- "state including exception information"
 
-syntax
-  heap    :: "state => aheap"
-  locals  :: "state => locals"
-  Norm    :: "state => xstate"
-  abrupt  :: "xstate \<Rightarrow> val option"
-  store   :: "xstate \<Rightarrow> state"
-  lookup_obj   :: "state \<Rightarrow> val \<Rightarrow> obj"
+abbreviation (input)
+  heap :: "state => aheap"
+  where "heap == fst"
 
-translations
-  "heap"   => "fst"
-  "locals" => "snd"
-  "Norm s" == "(None,s)"
-  "abrupt"     => "fst"
-  "store"      => "snd"
- "lookup_obj s a'"  == "CONST the (heap s (the_Addr a'))"
+abbreviation (input)
+  locals :: "state => locals"
+  where "locals == snd"
+
+abbreviation "Norm s == (None, s)"
+
+abbreviation (input)
+  abrupt :: "xstate \<Rightarrow> val option"
+  where "abrupt == fst"
+
+abbreviation (input)
+  store :: "xstate \<Rightarrow> state"
+  where "store == snd"
+
+abbreviation
+  lookup_obj :: "state \<Rightarrow> val \<Rightarrow> obj"
+  where "lookup_obj s a' == the (heap s (the_Addr a'))"
 
 
 constdefs

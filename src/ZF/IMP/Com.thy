@@ -22,8 +22,10 @@ datatype \<subseteq> "univ(loc \<union> (nat -> nat) \<union> ((nat \<times> nat
 
 
 consts evala :: i
-syntax "_evala" :: "[i, i] => o"    (infixl "-a->" 50)
-translations "p -a-> n" == "<p,n> \<in> evala"
+
+abbreviation
+  evala_syntax :: "[i, i] => o"    (infixl "-a->" 50)
+  where "p -a-> n == <p,n> \<in> evala"
 
 inductive
   domains "evala" \<subseteq> "(aexp \<times> (loc -> nat)) \<times> nat"
@@ -50,8 +52,10 @@ datatype \<subseteq> "univ(aexp \<union> ((nat \<times> nat)->bool))"
 
 
 consts evalb :: i
-syntax "_evalb" :: "[i,i] => o"    (infixl "-b->" 50)
-translations "p -b-> b" == "<p,b> \<in> evalb"
+
+abbreviation
+  evalb_syntax :: "[i,i] => o"    (infixl "-b->" 50)
+  where "p -b-> b == <p,b> \<in> evalb"
 
 inductive
   domains "evalb" \<subseteq> "(bexp \<times> (loc -> nat)) \<times> bool"
@@ -82,8 +86,10 @@ datatype com =
 
 
 consts evalc :: i
-syntax "_evalc" :: "[i, i] => o"    (infixl "-c->" 50)
-translations "p -c-> s" == "<p,s> \<in> evalc"
+
+abbreviation
+  evalc_syntax :: "[i, i] => o"    (infixl "-c->" 50)
+  where "p -c-> s == <p,s> \<in> evalc"
 
 inductive
   domains "evalc" \<subseteq> "(com \<times> (loc -> nat)) \<times> (loc -> nat)"

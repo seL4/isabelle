@@ -252,7 +252,7 @@ by (blast dest: parts_mono);
 
 declare [[ atp_problem_prefix = "Message__parts_cut" ]]
 lemma parts_cut: "[|Y\<in> parts(insert X G);  X\<in> parts H|] ==> Y\<in> parts(G \<union> H)"
-by (metis Un_subset_iff insert_subset parts_increasing parts_trans) 
+by (metis Un_insert_left Un_insert_right insert_absorb mem_def parts_Un parts_idem sup1CI)
 
 
 
@@ -698,12 +698,11 @@ apply (rule equalityI)
 apply (rule subsetI)
 apply (erule analz.induct)
 apply (metis UnCI UnE Un_commute analz.Inj)
-apply (metis MPair_synth UnCI UnE Un_commute Un_upper1 analz.Fst analz_increasing analz_mono insert_absorb insert_subset)
-apply (metis MPair_synth UnCI UnE Un_commute Un_upper1 analz.Snd analz_increasing analz_mono insert_absorb insert_subset)
+apply (metis MPair_synth UnCI UnE Un_commute analz.Fst analz.Inj mem_def)
+apply (metis MPair_synth UnCI UnE Un_commute analz.Inj analz.Snd mem_def)
 apply (blast intro: analz.Decrypt)
 apply blast
 done
-
 
 declare [[ atp_problem_prefix = "Message__analz_synth" ]]
 lemma analz_synth [simp]: "analz (synth H) = analz H \<union> synth H"

@@ -60,7 +60,7 @@ val nat_add_conv =
   (Simplifier.rewrite 
     (HOL_basic_ss 
        addsimps @{thms arith_simps} @ natarith @ @{thms rel_simps}
-             @ [if_False, if_True, @{thm add_0}, @{thm add_Suc},
+             @ [if_False, if_True, @{thm Nat.add_0}, @{thm add_Suc},
                  @{thm add_number_of_left}, @{thm Suc_eq_plus1}]
              @ map (fn th => th RS sym) @{thms numerals}));
 
@@ -634,7 +634,7 @@ end;
 
 val nat_arith = @{thms "nat_arith"};
 val nat_exp_ss = HOL_basic_ss addsimps (@{thms nat_number} @ nat_arith @ @{thms arith_simps} @ @{thms rel_simps})
-                              addsimps [Let_def, if_False, if_True, @{thm add_0}, @{thm add_Suc}];
+                              addsimps [Let_def, if_False, if_True, @{thm Nat.add_0}, @{thm add_Suc}];
 
 fun simple_cterm_ord t u = TermOrd.term_ord (term_of t, term_of u) = LESS;
 

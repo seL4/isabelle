@@ -20,6 +20,17 @@ into theories "Rings" and "Fields";  for more appropriate and more
 consistent names suitable for name prefixes within the HOL theories.
 INCOMPATIBILITY.
 
+* Some generic constants have been put to appropriate theories:
+
+    less_eq, less: Orderings
+    abs, sgn: Groups
+    inverse, divide: Rings
+
+INCOMPATIBILITY.
+
+* Class division ring also requires proof of fact divide_inverse.  However instantiation
+of parameter divide has also been required previously.  INCOMPATIBILITY.
+
 * More consistent naming of type classes involving orderings (and lattices):
 
     lower_semilattice                   ~> semilattice_inf
@@ -71,13 +82,9 @@ INCOMPATIBILITY.
 
 INCOMPATIBILITY.
 
-* Index syntax for structures must be imported explicitly from library
-theory Structure_Syntax.  INCOMPATIBILITY.
-
 * New theory Algebras contains generic algebraic structures and
 generic algebraic operations.  INCOMPATIBILTY: constants zero, one,
-plus, minus, uminus, times, inverse, divide, abs, sgn, less_eq and
-less have been moved from HOL.thy to Algebras.thy.
+plus, minus, uminus and times have been moved from HOL.thy to Algebras.thy.
 
 * HOLogic.strip_psplit: types are returned in syntactic order, similar
 to other strip and tuple operations.  INCOMPATIBILITY.
@@ -118,6 +125,9 @@ sets to lattices:
   UNION_fold_union              ~> SUPR_fold_sup
 
 * Theory List: added transpose.
+
+* Renamed Library/Quotient.thy to Library/Quotient_Type.thy to avoid
+clash with new theory Quotient in Main HOL.
 
 
 *** ML ***

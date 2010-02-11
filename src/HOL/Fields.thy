@@ -14,8 +14,8 @@ imports Rings
 begin
 
 class field = comm_ring_1 + inverse +
-  assumes field_inverse:  "a \<noteq> 0 \<Longrightarrow> inverse a * a = 1"
-  assumes divide_inverse: "a / b = a * inverse b"
+  assumes field_inverse: "a \<noteq> 0 \<Longrightarrow> inverse a * a = 1"
+  assumes field_divide_inverse: "a / b = a * inverse b"
 begin
 
 subclass division_ring
@@ -24,6 +24,9 @@ proof
   assume "a \<noteq> 0"
   thus "inverse a * a = 1" by (rule field_inverse)
   thus "a * inverse a = 1" by (simp only: mult_commute)
+next
+  fix a b :: 'a
+  show "a / b = a * inverse b" by (rule field_divide_inverse)
 qed
 
 subclass idom ..
@@ -1031,6 +1034,31 @@ lemma abs_div_pos: "(0::'a::{division_by_zero,linordered_field}) < y ==>
   apply (subst abs_divide)
   apply (simp add: order_less_imp_le)
 done
+
+
+lemma field_le_epsilon:
+  fixes x y :: "'a :: {division_by_zero,linordered_field}"
+  assumes e: "\<And>e. 0 < e \<Longrightarrow> x \<le> y + e"
+  shows "x \<le> y"
+proof (rule ccontr)
+  obtain two :: 'a where two: "two = 1 + 1" by simp
+  assume "\<not> x \<le> y"
+  then have yx: "y < x" by simp
+  then have "y + - y < x + - y" by (rule add_strict_right_mono)
+  then have "x - y > 0" by (simp add: diff_minus)
+  then have "(x - y) / two > 0"
+    by (rule divide_pos_pos) (simp add: two)
+  then have "x \<le> y + (x - y) / two" by (rule e)
+  also have "... = (x - y + two * y) / two"
+    by (simp add: add_divide_distrib two)
+  also have "... = (x + y) / two" 
+    by (simp add: two algebra_simps)
+  also have "... < x" using yx
+    by (simp add: two pos_divide_less_eq algebra_simps)
+  finally have "x < x" .
+  then show False ..
+qed
+
 
 code_modulename SML
   Fields Arith

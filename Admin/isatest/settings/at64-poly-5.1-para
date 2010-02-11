@@ -24,3 +24,5 @@ ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 
 ISABELLE_USEDIR_OPTIONS="-i true -d pdf -v true -M 2"
 
+unset KODKODI
+

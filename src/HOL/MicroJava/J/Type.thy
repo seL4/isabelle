@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/J/Type.thy
-    ID:         $Id$
     Author:     David von Oheimb
     Copyright   1999 Technische Universitaet Muenchen
 *)
@@ -47,12 +46,10 @@ datatype ty
   = PrimT prim_ty -- "primitive type"
   | RefT  ref_ty  -- "reference type"
 
-syntax
-  NT    :: "ty"
-  Class :: "cname  => ty"
+abbreviation NT :: ty
+  where "NT == RefT NullT"
 
-translations
-  "NT"      == "RefT NullT"
-  "Class C" == "RefT (ClassT C)"
+abbreviation Class :: "cname  => ty"
+  where "Class C == RefT (ClassT C)"
 
 end

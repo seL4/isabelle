@@ -2946,7 +2946,7 @@ val bT = HOLogic.boolT;
 fun num rT x = HOLogic.mk_number rT x;
 fun rrelT rT = [rT,rT] ---> rT;
 fun rrT rT = [rT, rT] ---> bT;
-fun divt rT = Const(@{const_name Algebras.divide},rrelT rT);
+fun divt rT = Const(@{const_name Rings.divide},rrelT rT);
 fun timest rT = Const(@{const_name Algebras.times},rrelT rT);
 fun plust rT = Const(@{const_name Algebras.plus},rrelT rT);
 fun minust rT = Const(@{const_name Algebras.minus},rrelT rT);
@@ -2958,8 +2958,8 @@ val conjt = @{term "op &"};
 val disjt = @{term "op |"};
 val impt = @{term "op -->"};
 val ifft = @{term "op = :: bool => _"}
-fun llt rT = Const(@{const_name Algebras.less},rrT rT);
-fun lle rT = Const(@{const_name Algebras.less},rrT rT);
+fun llt rT = Const(@{const_name Orderings.less},rrT rT);
+fun lle rT = Const(@{const_name Orderings.less},rrT rT);
 fun eqt rT = Const("op =",rrT rT);
 fun rz rT = Const(@{const_name Algebras.zero},rT);
 
@@ -2974,7 +2974,7 @@ fun num_of_term m t =
  | Const(@{const_name Algebras.minus},_)$a$b => @{code poly.Sub} (num_of_term m a, num_of_term m b)
  | Const(@{const_name Algebras.times},_)$a$b => @{code poly.Mul} (num_of_term m a, num_of_term m b)
  | Const(@{const_name Power.power},_)$a$n => @{code poly.Pw} (num_of_term m a, dest_nat n)
- | Const(@{const_name Algebras.divide},_)$a$b => @{code poly.C} (HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
+ | Const(@{const_name Rings.divide},_)$a$b => @{code poly.C} (HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
  | _ => (@{code poly.C} (HOLogic.dest_number t |> snd,1) 
          handle TERM _ => @{code poly.Bound} (AList.lookup (op aconv) m t |> the));
 
@@ -3024,9 +3024,9 @@ fun fm_of_term m m' fm =
   | Const("op =",ty)$p$q => 
        if domain_type ty = bT then @{code Iff} (fm_of_term m m' p, fm_of_term m m' q)
        else @{code Eq} (@{code Sub} (tm_of_term m m' p, tm_of_term m m' q))
-  | Const(@{const_name Algebras.less},_)$p$q => 
+  | Const(@{const_name Orderings.less},_)$p$q => 
         @{code Lt} (@{code Sub} (tm_of_term m m' p, tm_of_term m m' q))
-  | Const(@{const_name Algebras.less_eq},_)$p$q => 
+  | Const(@{const_name Orderings.less_eq},_)$p$q => 
         @{code Le} (@{code Sub} (tm_of_term m m' p, tm_of_term m m' q))
   | Const("Ex",_)$Abs(xn,xT,p) => 
      let val (xn', p') =  variant_abs (xn,xT,p)

@@ -150,7 +150,7 @@ let
               (SOME t', m'') => (SOME (mC $ s' $ t'), m'')
             | (NONE,    m'') => (SOME s', m''))
         | (NONE,    m') => demult (t, m')))
-    | demult ((mC as Const (@{const_name Algebras.divide}, _)) $ s $ t, m) =
+    | demult ((mC as Const (@{const_name Rings.divide}, _)) $ s $ t, m) =
       (* FIXME: Shouldn't we simplify nested quotients, e.g. '(s/t)/u' could
          become 's/(t*u)', and '(s*t)/u' could become 's*(t/u)' ?   Note that
          if we choose to do so here, the simpset used by arith must be able to
@@ -212,7 +212,7 @@ let
         (case demult inj_consts (all, m) of
            (NONE,   m') => (p, Rat.add i m')
          | (SOME u, m') => add_atom u m' pi)
-    | poly (all as Const (@{const_name Algebras.divide}, _) $ _ $ _, m, pi as (p, i)) =
+    | poly (all as Const (@{const_name Rings.divide}, _) $ _ $ _, m, pi as (p, i)) =
         (case demult inj_consts (all, m) of
            (NONE,   m') => (p, Rat.add i m')
          | (SOME u, m') => add_atom u m' pi)
@@ -229,8 +229,8 @@ let
   val (q, j) = poly (rhs, Rat.one, ([], Rat.zero))
 in
   case rel of
-    @{const_name Algebras.less}    => SOME (p, i, "<", q, j)
-  | @{const_name Algebras.less_eq} => SOME (p, i, "<=", q, j)
+    @{const_name Orderings.less}    => SOME (p, i, "<", q, j)
+  | @{const_name Orderings.less_eq} => SOME (p, i, "<=", q, j)
   | "op ="              => SOME (p, i, "=", q, j)
   | _                   => NONE
 end handle Rat.DIVZERO => NONE;
@@ -292,7 +292,7 @@ fun is_split_thm thm =
     case head_of lhs of
       Const (a, _) => member (op =) [@{const_name Orderings.max},
                                     @{const_name Orderings.min},
-                                    @{const_name Algebras.abs},
+                                    @{const_name Groups.abs},
                                     @{const_name Algebras.minus},
                                     "Int.nat" (*DYNAMIC BINDING!*),
                                     "Divides.div_class.mod" (*DYNAMIC BINDING!*),
@@ -372,7 +372,7 @@ in
         val rev_terms     = rev terms
         val terms1        = map (subst_term [(split_term, t1)]) rev_terms
         val terms2        = map (subst_term [(split_term, t2)]) rev_terms
-        val t1_leq_t2     = Const (@{const_name Algebras.less_eq},
+        val t1_leq_t2     = Const (@{const_name Orderings.less_eq},
                                     split_type --> split_type --> HOLogic.boolT) $ t1 $ t2
         val not_t1_leq_t2 = HOLogic.Not $ t1_leq_t2
         val not_false     = HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.false_const)
@@ -387,7 +387,7 @@ in
         val rev_terms     = rev terms
         val terms1        = map (subst_term [(split_term, t1)]) rev_terms
         val terms2        = map (subst_term [(split_term, t2)]) rev_terms
-        val t1_leq_t2     = Const (@{const_name Algebras.less_eq},
+        val t1_leq_t2     = Const (@{const_name Orderings.less_eq},
                                     split_type --> split_type --> HOLogic.boolT) $ t1 $ t2
         val not_t1_leq_t2 = HOLogic.Not $ t1_leq_t2
         val not_false     = HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.false_const)
@@ -397,16 +397,16 @@ in
         SOME [(Ts, subgoal1), (Ts, subgoal2)]
       end
     (* ?P (abs ?a) = ((0 <= ?a --> ?P ?a) & (?a < 0 --> ?P (- ?a))) *)
-    | (Const (@{const_name Algebras.abs}, _), [t1]) =>
+    | (Const (@{const_name Groups.abs}, _), [t1]) =>
       let
         val rev_terms   = rev terms
         val terms1      = map (subst_term [(split_term, t1)]) rev_terms
         val terms2      = map (subst_term [(split_term, Const (@{const_name Algebras.uminus},
                             split_type --> split_type) $ t1)]) rev_terms
         val zero        = Const (@{const_name Algebras.zero}, split_type)
-        val zero_leq_t1 = Const (@{const_name Algebras.less_eq},
+        val zero_leq_t1 = Const (@{const_name Orderings.less_eq},
                             split_type --> split_type --> HOLogic.boolT) $ zero $ t1
-        val t1_lt_zero  = Const (@{const_name Algebras.less},
+        val t1_lt_zero  = Const (@{const_name Orderings.less},
                             split_type --> split_type --> HOLogic.boolT) $ t1 $ zero
         val not_false   = HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.false_const)
         val subgoal1    = (HOLogic.mk_Trueprop zero_leq_t1) :: terms1 @ [not_false]
@@ -427,7 +427,7 @@ in
                                 (map (incr_boundvars 1) rev_terms)
         val t1'             = incr_boundvars 1 t1
         val t2'             = incr_boundvars 1 t2
-        val t1_lt_t2        = Const (@{const_name Algebras.less},
+        val t1_lt_t2        = Const (@{const_name Orderings.less},
                                 split_type --> split_type --> HOLogic.boolT) $ t1 $ t2
         val t1_eq_t2_plus_d = Const ("op =", split_type --> split_type --> HOLogic.boolT) $ t1' $
                                 (Const (@{const_name Algebras.plus},
@@ -451,7 +451,7 @@ in
         val t1'         = incr_boundvars 1 t1
         val t1_eq_nat_n = Const ("op =", HOLogic.intT --> HOLogic.intT --> HOLogic.boolT) $ t1' $
                             (Const (@{const_name of_nat}, HOLogic.natT --> HOLogic.intT) $ n)
-        val t1_lt_zero  = Const (@{const_name Algebras.less},
+        val t1_lt_zero  = Const (@{const_name Orderings.less},
                             HOLogic.intT --> HOLogic.intT --> HOLogic.boolT) $ t1 $ zero_int
         val not_false   = HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.false_const)
         val subgoal1    = (HOLogic.mk_Trueprop t1_eq_nat_n) :: terms1 @ [not_false]
@@ -477,7 +477,7 @@ in
                                         split_type --> split_type --> HOLogic.boolT) $ t2 $ zero
         val t2_neq_zero             = HOLogic.mk_not (Const ("op =",
                                         split_type --> split_type --> HOLogic.boolT) $ t2' $ zero)
-        val j_lt_t2                 = Const (@{const_name Algebras.less},
+        val j_lt_t2                 = Const (@{const_name Orderings.less},
                                         split_type --> split_type--> HOLogic.boolT) $ j $ t2'
         val t1_eq_t2_times_i_plus_j = Const ("op =", split_type --> split_type --> HOLogic.boolT) $ t1' $
                                        (Const (@{const_name Algebras.plus}, split_type --> split_type --> split_type) $
@@ -509,7 +509,7 @@ in
                                         split_type --> split_type --> HOLogic.boolT) $ t2 $ zero
         val t2_neq_zero             = HOLogic.mk_not (Const ("op =",
                                         split_type --> split_type --> HOLogic.boolT) $ t2' $ zero)
-        val j_lt_t2                 = Const (@{const_name Algebras.less},
+        val j_lt_t2                 = Const (@{const_name Orderings.less},
                                         split_type --> split_type--> HOLogic.boolT) $ j $ t2'
         val t1_eq_t2_times_i_plus_j = Const ("op =", split_type --> split_type --> HOLogic.boolT) $ t1' $
                                        (Const (@{const_name Algebras.plus}, split_type --> split_type --> split_type) $
@@ -545,17 +545,17 @@ in
         val t2'                     = incr_boundvars 2 t2
         val t2_eq_zero              = Const ("op =",
                                         split_type --> split_type --> HOLogic.boolT) $ t2 $ zero
-        val zero_lt_t2              = Const (@{const_name Algebras.less},
+        val zero_lt_t2              = Const (@{const_name Orderings.less},
                                         split_type --> split_type --> HOLogic.boolT) $ zero $ t2'
-        val t2_lt_zero              = Const (@{const_name Algebras.less},
+        val t2_lt_zero              = Const (@{const_name Orderings.less},
                                         split_type --> split_type --> HOLogic.boolT) $ t2' $ zero
-        val zero_leq_j              = Const (@{const_name Algebras.less_eq},
+        val zero_leq_j              = Const (@{const_name Orderings.less_eq},
                                         split_type --> split_type --> HOLogic.boolT) $ zero $ j
-        val j_leq_zero              = Const (@{const_name Algebras.less_eq},
+        val j_leq_zero              = Const (@{const_name Orderings.less_eq},
                                         split_type --> split_type --> HOLogic.boolT) $ j $ zero
-        val j_lt_t2                 = Const (@{const_name Algebras.less},
+        val j_lt_t2                 = Const (@{const_name Orderings.less},
                                         split_type --> split_type--> HOLogic.boolT) $ j $ t2'
-        val t2_lt_j                 = Const (@{const_name Algebras.less},
+        val t2_lt_j                 = Const (@{const_name Orderings.less},
                                         split_type --> split_type--> HOLogic.boolT) $ t2' $ j
         val t1_eq_t2_times_i_plus_j = Const ("op =", split_type --> split_type --> HOLogic.boolT) $ t1' $
                                        (Const (@{const_name Algebras.plus}, split_type --> split_type --> split_type) $
@@ -599,17 +599,17 @@ in
         val t2'                     = incr_boundvars 2 t2
         val t2_eq_zero              = Const ("op =",
                                         split_type --> split_type --> HOLogic.boolT) $ t2 $ zero
-        val zero_lt_t2              = Const (@{const_name Algebras.less},
+        val zero_lt_t2              = Const (@{const_name Orderings.less},
                                         split_type --> split_type --> HOLogic.boolT) $ zero $ t2'
-        val t2_lt_zero              = Const (@{const_name Algebras.less},
+        val t2_lt_zero              = Const (@{const_name Orderings.less},
                                         split_type --> split_type --> HOLogic.boolT) $ t2' $ zero
-        val zero_leq_j              = Const (@{const_name Algebras.less_eq},
+        val zero_leq_j              = Const (@{const_name Orderings.less_eq},
                                         split_type --> split_type --> HOLogic.boolT) $ zero $ j
-        val j_leq_zero              = Const (@{const_name Algebras.less_eq},
+        val j_leq_zero              = Const (@{const_name Orderings.less_eq},
                                         split_type --> split_type --> HOLogic.boolT) $ j $ zero
-        val j_lt_t2                 = Const (@{const_name Algebras.less},
+        val j_lt_t2                 = Const (@{const_name Orderings.less},
                                         split_type --> split_type--> HOLogic.boolT) $ j $ t2'
-        val t2_lt_j                 = Const (@{const_name Algebras.less},
+        val t2_lt_j                 = Const (@{const_name Orderings.less},
                                         split_type --> split_type--> HOLogic.boolT) $ t2' $ j
         val t1_eq_t2_times_i_plus_j = Const ("op =", split_type --> split_type --> HOLogic.boolT) $ t1' $
                                        (Const (@{const_name Algebras.plus}, split_type --> split_type --> split_type) $

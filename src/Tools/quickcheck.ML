@@ -153,9 +153,9 @@ fun test_goal quiet generator_name size iterations default_T no_assms insts i as
       |> ObjectLogic.atomize_term thy;
   in test_term ctxt quiet generator_name size iterations gi' end;
 
-fun pretty_counterex ctxt NONE = Pretty.str "No counterexamples found."
+fun pretty_counterex ctxt NONE = Pretty.str "Quickcheck found no counterexample."
   | pretty_counterex ctxt (SOME cex) =
-      Pretty.chunks (Pretty.str "Counterexample found:\n" ::
+      Pretty.chunks (Pretty.str "Quickcheck found a counterexample:\n" ::
         map (fn (s, t) =>
           Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1, Syntax.pretty_term ctxt t]) cex);
 

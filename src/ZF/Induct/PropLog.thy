@@ -34,8 +34,10 @@ datatype propn =
 subsection {* The proof system *}
 
 consts thms     :: "i => i"
-syntax "_thms"  :: "[i,i] => o"    (infixl "|-" 50)
-translations "H |- p" == "p \<in> thms(H)"
+
+abbreviation
+  thms_syntax :: "[i,i] => o"    (infixl "|-" 50)
+  where "H |- p == p \<in> thms(H)"
 
 inductive
   domains "thms(H)" \<subseteq> "propn"

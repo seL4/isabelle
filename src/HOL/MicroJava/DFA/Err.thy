@@ -45,10 +45,9 @@ constdefs
  sl :: "'a esl \<Rightarrow> 'a err sl"
 "sl == %(A,r,f). (err A, le r, lift2 f)"
 
-syntax
- err_semilat :: "'a esl \<Rightarrow> bool"
-translations
-"err_semilat L" == "semilat(Err.sl L)"
+abbreviation
+  err_semilat :: "'a esl \<Rightarrow> bool"
+  where "err_semilat L == semilat(Err.sl L)"
 
 
 consts

@@ -1054,23 +1054,23 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
             let
               val code =
                 bash ("cd " ^ File.shell_quote temp_dir ^ ";\n" ^
-                        "env CLASSPATH=\"$KODKODI_CLASSPATH:$CLASSPATH\" \
-                        \JAVA_LIBRARY_PATH=\"$KODKODI_JAVA_LIBRARY_PATH:\
-                        \$JAVA_LIBRARY_PATH\" \
-                        \LD_LIBRARY_PATH=\"$KODKODI_JAVA_LIBRARY_PATH:\
-                        \$LD_LIBRARY_PATH\" \
-                        \\"$KODKODI\"/bin/kodkodi" ^
-                        (if ms >= 0 then " -max-msecs " ^ string_of_int ms
-                         else "") ^
-                        (if max_solutions > 1 then " -solve-all" else "") ^
-                        " -max-solutions " ^ string_of_int max_solutions ^
-                        (if max_threads > 0 then
-                           " -max-threads " ^ string_of_int max_threads
-                         else
-                           "") ^
-                        " < " ^ File.shell_path in_path ^
-                        " > " ^ File.shell_path out_path ^
-                        " 2> " ^ File.shell_path err_path)
+                      "env CLASSPATH=\"$KODKODI_CLASSPATH:$CLASSPATH\" \
+                      \JAVA_LIBRARY_PATH=\"$KODKODI_JAVA_LIBRARY_PATH:\
+                      \$JAVA_LIBRARY_PATH\" \
+                      \LD_LIBRARY_PATH=\"$KODKODI_JAVA_LIBRARY_PATH:\
+                      \$LD_LIBRARY_PATH\" \
+                      \\"$KODKODI\"/bin/kodkodi" ^
+                      (if ms >= 0 then " -max-msecs " ^ string_of_int ms
+                       else "") ^
+                      (if max_solutions > 1 then " -solve-all" else "") ^
+                      " -max-solutions " ^ string_of_int max_solutions ^
+                      (if max_threads > 0 then
+                         " -max-threads " ^ string_of_int max_threads
+                       else
+                         "") ^
+                      " < " ^ File.shell_path in_path ^
+                      " > " ^ File.shell_path out_path ^
+                      " 2> " ^ File.shell_path err_path)
               val (ps, nontriv_js) = read_output_file out_path
                                      |>> map (apfst reindex) ||> map reindex
               val js = triv_js @ nontriv_js

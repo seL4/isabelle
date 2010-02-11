@@ -223,7 +223,7 @@ fun special_cases (c, T) = member (op =) [
   @{const_name False},
   @{const_name Suc}, @{const_name Nat.zero_nat_inst.zero_nat},
   @{const_name Nat.one_nat_inst.one_nat},
-  @{const_name Algebras.ord_class.less}, @{const_name Algebras.ord_class.less_eq},
+  @{const_name Orderings.less}, @{const_name Orderings.less_eq},
   @{const_name Algebras.zero},
   @{const_name Algebras.one},  @{const_name Algebras.plus},
   @{const_name Nat.ord_nat_inst.less_eq_nat},

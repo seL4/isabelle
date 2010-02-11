@@ -1202,74 +1202,52 @@ consts
 
 abbreviation "one == Suc 0"
 abbreviation "two == Suc one"
-abbreviation "tree == Suc two"
-abbreviation "four == Suc tree"
+abbreviation "three == Suc two"
+abbreviation "four == Suc three"
 
-syntax
-  obj_a :: obj
-  obj_b :: obj
-  obj_c :: obj
-  arr_N :: "(vn, val) table"
-  arr_a :: "(vn, val) table"
-  globs1 :: globs
-  globs2 :: globs
-  globs3 :: globs
-  globs8 :: globs
-  locs3 :: locals
-  locs4 :: locals
-  locs8 :: locals
-  s0  :: state
-  s0' :: state
-  s9' :: state
-  s1  :: state
-  s1' :: state
-  s2  :: state
-  s2' :: state
-  s3  :: state
-  s3' :: state
-  s4  :: state
-  s4' :: state
-  s6' :: state
-  s7' :: state
-  s8  :: state
-  s8' :: state
+abbreviation
+  "obj_a == \<lparr>tag=Arr (PrimT Boolean) 2
+                ,values= empty(Inr 0\<mapsto>Bool False)(Inr 1\<mapsto>Bool False)\<rparr>"
 
-translations
-  "obj_a"   <= "\<lparr>tag=Arr (PrimT Boolean) (CONST two)
-                ,values=CONST empty(CONST Inr 0\<mapsto>Bool False)(CONST Inr (CONST one)\<mapsto>Bool False)\<rparr>"
-  "obj_b"   <= "\<lparr>tag=CInst (CONST Ext)
-                ,values=(CONST empty(CONST Inl (CONST vee, CONST Base)\<mapsto>Null   ) 
-                              (CONST Inl (CONST vee, CONST Ext )\<mapsto>Intg 0))\<rparr>"
-  "obj_c"   == "\<lparr>tag=CInst (SXcpt NullPointer),values=CONST empty\<rparr>"
-  "arr_N"   == "CONST empty(CONST Inl (CONST arr, CONST Base)\<mapsto>Null)"
-  "arr_a"   == "CONST empty(CONST Inl (CONST arr, CONST Base)\<mapsto>Addr a)"
-  "globs1"  == "CONST empty(CONST Inr (CONST Ext)   \<mapsto>\<lparr>tag=CONST undefined, values=CONST empty\<rparr>)
-                     (CONST Inr (CONST Base)  \<mapsto>\<lparr>tag=CONST undefined, values=arr_N\<rparr>)
-                     (CONST Inr Object\<mapsto>\<lparr>tag=CONST undefined, values=CONST empty\<rparr>)"
-  "globs2"  == "CONST empty(CONST Inr (CONST Ext)   \<mapsto>\<lparr>tag=CONST undefined, values=CONST empty\<rparr>)
-                     (CONST Inr Object\<mapsto>\<lparr>tag=CONST undefined, values=CONST empty\<rparr>)
-                     (CONST Inl a\<mapsto>obj_a)
-                     (CONST Inr (CONST Base)  \<mapsto>\<lparr>tag=CONST undefined, values=arr_a\<rparr>)"
-  "globs3"  == "globs2(CONST Inl b\<mapsto>obj_b)"
-  "globs8"  == "globs3(CONST Inl c\<mapsto>obj_c)"
-  "locs3"   == "CONST empty(VName (CONST e)\<mapsto>Addr b)"
-  "locs4"   == "CONST empty(VName (CONST z)\<mapsto>Null)(CONST Inr()\<mapsto>Addr b)"
-  "locs8"   == "locs3(VName (CONST z)\<mapsto>Addr c)"
-  "s0"  == "       st (CONST empty) (CONST empty)"
-  "s0'" == " Norm  s0"
-  "s1"  == "       st globs1 (CONST empty)"
-  "s1'" == " Norm  s1"
-  "s2"  == "       st globs2 (CONST empty)"
-  "s2'" == " Norm  s2"
-  "s3"  == "       st globs3 locs3 "
-  "s3'" == " Norm  s3"
-  "s4"  == "       st globs3 locs4"
-  "s4'" == " Norm  s4"
-  "s6'" == "(Some (Xcpt (Std NullPointer)), s4)"
-  "s7'" == "(Some (Xcpt (Std NullPointer)), s3)"
-  "s8"  == "       st globs8 locs8"
-  "s8'" == " Norm  s8"
-  "s9'" == "(Some (Xcpt (Std IndOutBound)), s8)"
+abbreviation
+  "obj_b == \<lparr>tag=CInst Ext
+                ,values=(empty(Inl (vee, Base)\<mapsto>Null   )
+                              (Inl (vee, Ext )\<mapsto>Intg 0))\<rparr>"
+
+abbreviation
+  "obj_c == \<lparr>tag=CInst (SXcpt NullPointer),values=CONST empty\<rparr>"
+
+abbreviation "arr_N == empty(Inl (arr, Base)\<mapsto>Null)"
+abbreviation "arr_a == empty(Inl (arr, Base)\<mapsto>Addr a)"
+
+abbreviation
+  "globs1 == empty(Inr Ext   \<mapsto>\<lparr>tag=undefined, values=empty\<rparr>)
+                     (Inr Base  \<mapsto>\<lparr>tag=undefined, values=arr_N\<rparr>)
+                     (Inr Object\<mapsto>\<lparr>tag=undefined, values=empty\<rparr>)"
+
+abbreviation
+  "globs2 == empty(Inr Ext   \<mapsto>\<lparr>tag=undefined, values=empty\<rparr>)
+                     (Inr Object\<mapsto>\<lparr>tag=undefined, values=empty\<rparr>)
+                     (Inl a\<mapsto>obj_a)
+                     (Inr Base  \<mapsto>\<lparr>tag=undefined, values=arr_a\<rparr>)"
+
+abbreviation "globs3 == globs2(Inl b\<mapsto>obj_b)"
+abbreviation "globs8 == globs3(Inl c\<mapsto>obj_c)"
+abbreviation "locs3 == empty(VName e\<mapsto>Addr b)"
+abbreviation "locs8 == locs3(VName z\<mapsto>Addr c)"
+
+abbreviation "s0 == st empty empty"
+abbreviation "s0' == Norm  s0"
+abbreviation "s1 == st globs1 empty"
+abbreviation "s1' == Norm s1"
+abbreviation "s2 == st globs2 empty"
+abbreviation "s2' == Norm s2"
+abbreviation "s3 == st globs3 locs3"
+abbreviation "s3' == Norm s3"
+abbreviation "s7' == (Some (Xcpt (Std NullPointer)), s3)"
+abbreviation "s8 == st globs8 locs8"
+abbreviation "s8' == Norm s8"
+abbreviation "s9' == (Some (Xcpt (Std IndOutBound)), s8)"
 
 
 declare Pair_eq [simp del]
@@ -1293,7 +1271,7 @@ apply   (rule eval_Is (* LVar *))
 apply  (rule eval_Is (* NewC *))
       (* begin init Ext *)
 apply   (erule_tac V = "the (new_Addr ?h) = b" in thin_rl)
-apply   (erule_tac V = "atleast_free ?h tree" in thin_rl)
+apply   (erule_tac V = "atleast_free ?h three" in thin_rl)
 apply   (erule_tac [2] V = "atleast_free ?h four" in thin_rl)
 apply   (erule_tac [2] V = "new_Addr ?h = Some a" in thin_rl)
 apply   (rule eval_Is (* Init Ext *))
@@ -1336,7 +1314,7 @@ apply (simp)
 apply (drule alloc_one)
 apply  (simp (no_asm_simp))
 apply clarsimp
-apply (erule_tac V = "atleast_free ?h tree" in thin_rl)
+apply (erule_tac V = "atleast_free ?h three" in thin_rl)
 apply (drule_tac x = "a" in new_AddrD2 [THEN spec])
 apply (simp (no_asm_use))
 apply (rule eval_Is (* Try *))
