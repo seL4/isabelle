@@ -27,14 +27,14 @@ syntax "_finite_cart" :: "type \<Rightarrow> type \<Rightarrow> type" ("(_ ^/ _)
 
 parse_translation {*
 let
-  fun cart t u = Syntax.const @{type_name cart} $ t $ u
+  fun cart t u = Syntax.const @{type_name cart} $ t $ u;   (* FIXME @{type_syntax} *)
   fun finite_cart_tr [t, u as Free (x, _)] =
-        if Syntax.is_tid x
-        then cart t (Syntax.const "_ofsort" $ u $ Syntax.const (hd @{sort finite}))
+        if Syntax.is_tid x then
+          cart t (Syntax.const @{syntax_const "_ofsort"} $ u $ Syntax.const (hd @{sort finite}))
         else cart t u
     | finite_cart_tr [t, u] = cart t u
 in
-  [("_finite_cart", finite_cart_tr)]
+  [(@{syntax_const "_finite_cart"}, finite_cart_tr)]
 end
 *}
 

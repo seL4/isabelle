@@ -1,11 +1,12 @@
 (*  Title:      HOL/ex/Antiquote.thy
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 *)
 
 header {* Antiquotations *}
 
-theory Antiquote imports Main begin
+theory Antiquote
+imports Main
+begin
 
 text {*
   A simple example on quote / antiquote in higher-order abstract
@@ -13,17 +14,23 @@ text {*
 *}
 
 syntax
-  "_Expr" :: "'a => 'a"                         ("EXPR _" [1000] 999)
+  "_Expr" :: "'a => 'a"    ("EXPR _" [1000] 999)
 
-constdefs
-  var :: "'a => ('a => nat) => nat"             ("VAR _" [1000] 999)
-  "var x env == env x"
+definition
+  var :: "'a => ('a => nat) => nat"    ("VAR _" [1000] 999)
+  where "var x env = env x"
 
+definition
   Expr :: "(('a => nat) => nat) => ('a => nat) => nat"
-  "Expr exp env == exp env"
+  where "Expr exp env = exp env"
 
-parse_translation {* [Syntax.quote_antiquote_tr "_Expr" "var" "Expr"] *}
-print_translation {* [Syntax.quote_antiquote_tr' "_Expr" "var" "Expr"] *}
+parse_translation {*
+  [Syntax.quote_antiquote_tr @{syntax_const "_Expr"} @{const_syntax var} @{const_syntax Expr}]
+*}
+
+print_translation {*
+  [Syntax.quote_antiquote_tr' @{syntax_const "_Expr"} @{const_syntax var} @{const_syntax Expr}]
+*}
 
 term "EXPR (a + b + c)"
 term "EXPR (a + b + c + VAR x + VAR y + 1)"

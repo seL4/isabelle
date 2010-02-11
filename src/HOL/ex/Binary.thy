@@ -1,5 +1,4 @@
 (*  Title:      HOL/ex/Binary.thy
-    ID:         $Id$
     Author:     Makarius
 *)
 
@@ -21,8 +20,6 @@ lemma bit_simps:
   unfolding bit_def by simp_all
 
 ML {*
-structure Binary =
-struct
   fun dest_bit (Const (@{const_name False}, _)) = 0
     | dest_bit (Const (@{const_name True}, _)) = 1
     | dest_bit t = raise TERM ("dest_bit", [t]);
@@ -43,7 +40,6 @@ struct
         else
           let val (q, r) = Integer.div_mod n 2
           in @{term bit} $ mk_binary q $ mk_bit r end;
-end
 *}
 
 
@@ -126,7 +122,7 @@ local
   fun binary_proc proc ss ct =
     (case Thm.term_of ct of
       _ $ t $ u =>
-      (case try (pairself (`Binary.dest_binary)) (t, u) of
+      (case try (pairself (`dest_binary)) (t, u) of
         SOME args => proc (Simplifier.the_context ss) args
       | NONE => NONE)
     | _ => NONE);
@@ -135,34 +131,34 @@ in
 val less_eq_proc = binary_proc (fn ctxt => fn ((m, t), (n, u)) =>
   let val k = n - m in
     if k >= 0 then
-      SOME (@{thm binary_less_eq(1)} OF [prove ctxt (u == plus t (Binary.mk_binary k))])
+      SOME (@{thm binary_less_eq(1)} OF [prove ctxt (u == plus t (mk_binary k))])
     else
       SOME (@{thm binary_less_eq(2)} OF
-        [prove ctxt (t == plus (plus u (Binary.mk_binary (~ k - 1))) (Binary.mk_binary 1))])
+        [prove ctxt (t == plus (plus u (mk_binary (~ k - 1))) (mk_binary 1))])
   end);
 
 val less_proc = binary_proc (fn ctxt => fn ((m, t), (n, u)) =>
   let val k = m - n in
     if k >= 0 then
-      SOME (@{thm binary_less(1)} OF [prove ctxt (t == plus u (Binary.mk_binary k))])
+      SOME (@{thm binary_less(1)} OF [prove ctxt (t == plus u (mk_binary k))])
     else
       SOME (@{thm binary_less(2)} OF
-        [prove ctxt (u == plus (plus t (Binary.mk_binary (~ k - 1))) (Binary.mk_binary 1))])
+        [prove ctxt (u == plus (plus t (mk_binary (~ k - 1))) (mk_binary 1))])
   end);
 
 val diff_proc = binary_proc (fn ctxt => fn ((m, t), (n, u)) =>
   let val k = m - n in
     if k >= 0 then
-      SOME (@{thm binary_diff(1)} OF [prove ctxt (t == plus u (Binary.mk_binary k))])
+      SOME (@{thm binary_diff(1)} OF [prove ctxt (t == plus u (mk_binary k))])
     else
-      SOME (@{thm binary_diff(2)} OF [prove ctxt (u == plus t (Binary.mk_binary (~ k)))])
+      SOME (@{thm binary_diff(2)} OF [prove ctxt (u == plus t (mk_binary (~ k)))])
   end);
 
 fun divmod_proc rule = binary_proc (fn ctxt => fn ((m, t), (n, u)) =>
   if n = 0 then NONE
   else
     let val (k, l) = Integer.div_mod m n
-    in SOME (rule OF [prove ctxt (t == plus (mult u (Binary.mk_binary k)) (Binary.mk_binary l))]) end);
+    in SOME (rule OF [prove ctxt (t == plus (mult u (mk_binary k)) (mk_binary l))]) end);
 
 end;
 *}
@@ -194,17 +190,17 @@ syntax
 
 parse_translation {*
 let
+  val syntax_consts =
+    map_aterms (fn Const (c, T) => Const (Syntax.constN ^ c, T) | a => a);
 
-val syntax_consts = map_aterms (fn Const (c, T) => Const (Syntax.constN ^ c, T) | a => a);
+  fun binary_tr [Const (num, _)] =
+        let
+          val {leading_zeros = z, value = n, ...} = Syntax.read_xnum num;
+          val _ = z = 0 andalso n >= 0 orelse error ("Bad binary number: " ^ num);
+        in syntax_consts (mk_binary n) end
+    | binary_tr ts = raise TERM ("binary_tr", ts);
 
-fun binary_tr [Const (num, _)] =
-      let
-        val {leading_zeros = z, value = n, ...} = Syntax.read_xnum num;
-        val _ = z = 0 andalso n >= 0 orelse error ("Bad binary number: " ^ num);
-      in syntax_consts (Binary.mk_binary n) end
-  | binary_tr ts = raise TERM ("binary_tr", ts);
-
-in [("_Binary", binary_tr)] end
+in [(@{syntax_const "_Binary"}, binary_tr)] end
 *}
 
 

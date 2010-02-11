@@ -22,7 +22,6 @@ typedecl o
 
 consts
       (*** Judgements ***)
- "@Proof"       ::   "[p,o]=>prop"      ("(_ /: _)" [51,10] 5)
  Proof          ::   "[o,p]=>prop"
  EqProof        ::   "[p,p,o]=>prop"    ("(3_ /= _ :/ _)" [10,10,10] 5)
 
@@ -66,6 +65,8 @@ consts
 
 local
 
+syntax "_Proof" :: "[p,o]=>prop"    ("(_ /: _)" [51, 10] 5)
+
 ML {*
 
 (*show_proofs:=true displays the proof terms -- they are ENORMOUS*)
@@ -74,12 +75,12 @@ val show_proofs = Unsynchronized.ref false;
 fun proof_tr [p,P] = Const (@{const_name Proof}, dummyT) $ P $ p;
 
 fun proof_tr' [P,p] =
-    if !show_proofs then Const("@Proof",dummyT) $ p $ P
-    else P  (*this case discards the proof term*);
+  if ! show_proofs then Const (@{syntax_const "_Proof"}, dummyT) $ p $ P
+  else P  (*this case discards the proof term*);
 *}
 
-parse_translation {* [("@Proof", proof_tr)] *}
-print_translation {* [("Proof", proof_tr')] *}
+parse_translation {* [(@{syntax_const "_Proof"}, proof_tr)] *}
+print_translation {* [(@{const_syntax Proof}, proof_tr')] *}
 
 axioms
 

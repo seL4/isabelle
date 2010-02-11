@@ -40,16 +40,16 @@ consts
   letrec3    :: "[[i,i,i,i=>i=>i=>i]=>i,(i=>i=>i=>i)=>i]=>i"
 
 syntax
-  "@let"     :: "[idt,i,i]=>i"             ("(3let _ be _/ in _)"
+  "_let"     :: "[idt,i,i]=>i"             ("(3let _ be _/ in _)"
                         [0,0,60] 60)
 
-  "@letrec"  :: "[idt,idt,i,i]=>i"         ("(3letrec _ _ be _/ in _)"
+  "_letrec"  :: "[idt,idt,i,i]=>i"         ("(3letrec _ _ be _/ in _)"
                         [0,0,0,60] 60)
 
-  "@letrec2" :: "[idt,idt,idt,i,i]=>i"     ("(3letrec _ _ _ be _/ in _)"
+  "_letrec2" :: "[idt,idt,idt,i,i]=>i"     ("(3letrec _ _ _ be _/ in _)"
                         [0,0,0,0,60] 60)
 
-  "@letrec3" :: "[idt,idt,idt,idt,i,i]=>i" ("(3letrec _ _ _ _ be _/ in _)"
+  "_letrec3" :: "[idt,idt,idt,idt,i,i]=>i" ("(3letrec _ _ _ _ be _/ in _)"
                         [0,0,0,0,0,60] 60)
 
 ML {*
@@ -58,29 +58,30 @@ ML {*
 (* FIXME does not handle "_idtdummy" *)
 (* FIXME should use Syntax.mark_bound(T), Syntax.variant_abs' *)
 
-fun let_tr [Free(id,T),a,b] = Const("let",dummyT) $ a $ absfree(id,T,b);
+fun let_tr [Free(id,T),a,b] = Const(@{const_syntax let},dummyT) $ a $ absfree(id,T,b);
 fun let_tr' [a,Abs(id,T,b)] =
      let val (id',b') = variant_abs(id,T,b)
-     in Const("@let",dummyT) $ Free(id',T) $ a $ b' end;
+     in Const(@{syntax_const "_let"},dummyT) $ Free(id',T) $ a $ b' end;
 
 fun letrec_tr [Free(f,S),Free(x,T),a,b] =
-      Const("letrec",dummyT) $ absfree(x,T,absfree(f,S,a)) $ absfree(f,S,b);
+      Const(@{const_syntax letrec},dummyT) $ absfree(x,T,absfree(f,S,a)) $ absfree(f,S,b);
 fun letrec2_tr [Free(f,S),Free(x,T),Free(y,U),a,b] =
-      Const("letrec2",dummyT) $ absfree(x,T,absfree(y,U,absfree(f,S,a))) $ absfree(f,S,b);
+      Const(@{const_syntax letrec2},dummyT) $ absfree(x,T,absfree(y,U,absfree(f,S,a))) $ absfree(f,S,b);
 fun letrec3_tr [Free(f,S),Free(x,T),Free(y,U),Free(z,V),a,b] =
-      Const("letrec3",dummyT) $ absfree(x,T,absfree(y,U,absfree(z,U,absfree(f,S,a)))) $ absfree(f,S,b);
+      Const(@{const_syntax letrec3},dummyT) $
+        absfree(x,T,absfree(y,U,absfree(z,U,absfree(f,S,a)))) $ absfree(f,S,b);
 
 fun letrec_tr' [Abs(x,T,Abs(f,S,a)),Abs(ff,SS,b)] =
      let val (f',b')  = variant_abs(ff,SS,b)
          val (_,a'') = variant_abs(f,S,a)
          val (x',a')  = variant_abs(x,T,a'')
-     in Const("@letrec",dummyT) $ Free(f',SS) $ Free(x',T) $ a' $ b' end;
+     in Const(@{syntax_const "_letrec"},dummyT) $ Free(f',SS) $ Free(x',T) $ a' $ b' end;
 fun letrec2_tr' [Abs(x,T,Abs(y,U,Abs(f,S,a))),Abs(ff,SS,b)] =
      let val (f',b') = variant_abs(ff,SS,b)
          val ( _,a1) = variant_abs(f,S,a)
          val (y',a2) = variant_abs(y,U,a1)
          val (x',a') = variant_abs(x,T,a2)
-     in Const("@letrec2",dummyT) $ Free(f',SS) $ Free(x',T) $ Free(y',U) $ a' $ b'
+     in Const(@{syntax_const "_letrec2"},dummyT) $ Free(f',SS) $ Free(x',T) $ Free(y',U) $ a' $ b'
       end;
 fun letrec3_tr' [Abs(x,T,Abs(y,U,Abs(z,V,Abs(f,S,a)))),Abs(ff,SS,b)] =
      let val (f',b') = variant_abs(ff,SS,b)
@@ -88,22 +89,24 @@ fun letrec3_tr' [Abs(x,T,Abs(y,U,Abs(z,V,Abs(f,S,a)))),Abs(ff,SS,b)] =
          val (z',a2) = variant_abs(z,V,a1)
          val (y',a3) = variant_abs(y,U,a2)
          val (x',a') = variant_abs(x,T,a3)
-     in Const("@letrec3",dummyT) $ Free(f',SS) $ Free(x',T) $ Free(y',U) $ Free(z',V) $ a' $ b'
+     in Const(@{syntax_const "_letrec3"},dummyT) $ Free(f',SS) $ Free(x',T) $ Free(y',U) $ Free(z',V) $ a' $ b'
       end;
 
 *}
 
 parse_translation {*
-  [("@let",       let_tr),
-   ("@letrec",    letrec_tr),
-   ("@letrec2",   letrec2_tr),
-   ("@letrec3",   letrec3_tr)] *}
+ [(@{syntax_const "_let"}, let_tr),
+  (@{syntax_const "_letrec"}, letrec_tr),
+  (@{syntax_const "_letrec2"}, letrec2_tr),
+  (@{syntax_const "_letrec3"}, letrec3_tr)]
+*}
 
 print_translation {*
-  [("let",       let_tr'),
-   ("letrec",    letrec_tr'),
-   ("letrec2",   letrec2_tr'),
-   ("letrec3",   letrec3_tr')] *}
+ [(@{const_syntax let}, let_tr'),
+  (@{const_syntax letrec}, letrec_tr'),
+  (@{const_syntax letrec2}, letrec2_tr'),
+  (@{const_syntax letrec3}, letrec3_tr')]
+*}
 
 consts
   napply     :: "[i=>i,i,i]=>i"            ("(_ ^ _ ` _)" [56,56,56] 56)

@@ -311,7 +311,7 @@ let
             orelse error ("Bad numeral: " ^ num);
         in Const (@{const_name of_num}, @{typ num} --> dummyT) $ num_of_int value end
     | numeral_tr ts = raise TERM ("numeral_tr", ts);
-in [("_Numerals", numeral_tr)] end
+in [(@{syntax_const "_Numerals"}, numeral_tr)] end
 *}
 
 typed_print_translation {*
@@ -325,9 +325,9 @@ let
   fun num_tr' show_sorts T [n] =
     let
       val k = int_of_num' n;
-      val t' = Syntax.const "_Numerals" $ Syntax.free ("#" ^ string_of_int k);
+      val t' = Syntax.const @{syntax_const "_Numerals"} $ Syntax.free ("#" ^ string_of_int k);
     in case T
-     of Type ("fun", [_, T']) =>
+     of Type ("fun", [_, T']) =>  (* FIXME @{type_syntax} *)
          if not (! show_types) andalso can Term.dest_Type T' then t'
          else Syntax.const Syntax.constrainC $ t' $ Syntax.term_of_typ show_sorts T'
       | T' => if T' = dummyT then t' else raise Match

@@ -20,11 +20,11 @@ syntax
 
 translations
   "\<acute>x := a" \<rightharpoonup> "CONST Basic \<guillemotleft>\<acute>(_update_name x (\<lambda>_. a))\<guillemotright>"
-  "IF b THEN c1 ELSE c2 FI" \<rightharpoonup> "Cond .{b}. c1 c2"
+  "IF b THEN c1 ELSE c2 FI" \<rightharpoonup> "CONST Cond .{b}. c1 c2"
   "IF b THEN c FI" \<rightleftharpoons> "IF b THEN c ELSE SKIP FI"
-  "WHILE b DO c OD" \<rightharpoonup> "While .{b}. c"
-  "AWAIT b THEN c END" \<rightleftharpoons> "Await .{b}. c"
-  "\<langle>c\<rangle>" \<rightleftharpoons> "AWAIT True THEN c END"
+  "WHILE b DO c OD" \<rightharpoonup> "CONST While .{b}. c"
+  "AWAIT b THEN c END" \<rightleftharpoons> "CONST Await .{b}. c"
+  "\<langle>c\<rangle>" \<rightleftharpoons> "AWAIT CONST True THEN c END"
   "WAIT b END" \<rightleftharpoons> "AWAIT b THEN SKIP END"
 
 nonterminals
@@ -59,10 +59,10 @@ translations
 print_translation {*
   let
     fun quote_tr' f (t :: ts) =
-          Term.list_comb (f $ Syntax.quote_tr' "_antiquote" t, ts)
+          Term.list_comb (f $ Syntax.quote_tr' @{syntax_const "_antiquote"} t, ts)
       | quote_tr' _ _ = raise Match;
 
-    val assert_tr' = quote_tr' (Syntax.const "_Assert");
+    val assert_tr' = quote_tr' (Syntax.const @{syntax_const "_Assert"});
 
     fun bexp_tr' name ((Const (@{const_syntax Collect}, _) $ t) :: ts) =
           quote_tr' (Syntax.const name) (t :: ts)
@@ -74,7 +74,7 @@ print_translation {*
       | NONE => raise Match);
 
     fun update_name_tr' (Free x) = Free (upd_tr' x)
-      | update_name_tr' ((c as Const ("_free", _)) $ Free x) =
+      | update_name_tr' ((c as Const (@{syntax_const "_free"}, _)) $ Free x) =
           c $ Free (upd_tr' x)
       | update_name_tr' (Const x) = Const (upd_tr' x)
       | update_name_tr' _ = raise Match;
@@ -86,14 +86,14 @@ print_translation {*
       | K_tr' _ = raise Match;
 
     fun assign_tr' (Abs (x, _, f $ k $ Bound 0) :: ts) =
-          quote_tr' (Syntax.const "_Assign" $ update_name_tr' f)
+          quote_tr' (Syntax.const @{syntax_const "_Assign"} $ update_name_tr' f)
             (Abs (x, dummyT, K_tr' k) :: ts)
       | assign_tr' _ = raise Match;
   in
    [(@{const_syntax Collect}, assert_tr'),
     (@{const_syntax Basic}, assign_tr'),
-    (@{const_syntax Cond}, bexp_tr' "_Cond"),
-    (@{const_syntax While}, bexp_tr' "_While_inv")]
+    (@{const_syntax Cond}, bexp_tr' @{syntax_const "_Cond"}),
+    (@{const_syntax While}, bexp_tr' @{syntax_const "_While"})]
   end
 *}
 

@@ -46,14 +46,14 @@ syntax
 translations
   "IF b THEN c1 ELSE c2 FI" \<rightharpoonup> "CONST Cond .{b}. c1 c2"
   "IF b THEN c FI" \<rightleftharpoons> "IF b THEN c ELSE SKIP FI"
-  "WHILE b INV i DO c OD" \<rightharpoonup> "While .{b}. i c"
+  "WHILE b INV i DO c OD" \<rightharpoonup> "CONST While .{b}. i c"
   "WHILE b DO c OD" \<rightleftharpoons> "WHILE b INV CONST undefined DO c OD"
 
   "r IF b THEN c1 ELSE c2 FI" \<rightharpoonup> "CONST AnnCond1 r .{b}. c1 c2"
   "r IF b THEN c FI" \<rightharpoonup> "CONST AnnCond2 r .{b}. c"
   "r WHILE b INV i DO c OD" \<rightharpoonup> "CONST AnnWhile r .{b}. i c"
   "r AWAIT b THEN c END" \<rightharpoonup> "CONST AnnAwait r .{b}. c"
-  "r \<langle>c\<rangle>" \<rightleftharpoons> "r AWAIT True THEN c END"
+  "r \<langle>c\<rangle>" \<rightleftharpoons> "r AWAIT CONST True THEN c END"
   "r WAIT b END" \<rightleftharpoons> "r AWAIT b THEN SKIP END"
  
 nonterminals
@@ -77,14 +77,14 @@ translations
 print_translation {*
   let
     fun quote_tr' f (t :: ts) =
-          Term.list_comb (f $ Syntax.quote_tr' "_antiquote" t, ts)
+          Term.list_comb (f $ Syntax.quote_tr' @{syntax_const "_antiquote"} t, ts)
       | quote_tr' _ _ = raise Match;
 
     fun annquote_tr' f (r :: t :: ts) =
-          Term.list_comb (f $ r $ Syntax.quote_tr' "_antiquote" t, ts)
+          Term.list_comb (f $ r $ Syntax.quote_tr' @{syntax_const "_antiquote"} t, ts)
       | annquote_tr' _ _ = raise Match;
 
-    val assert_tr' = quote_tr' (Syntax.const "_Assert");
+    val assert_tr' = quote_tr' (Syntax.const @{syntax_const "_Assert"});
 
     fun bexp_tr' name ((Const (@{const_syntax Collect}, _) $ t) :: ts) =
           quote_tr' (Syntax.const name) (t :: ts)
@@ -100,7 +100,7 @@ print_translation {*
       | NONE => raise Match);
 
     fun update_name_tr' (Free x) = Free (upd_tr' x)
-      | update_name_tr' ((c as Const ("_free", _)) $ Free x) =
+      | update_name_tr' ((c as Const (@{syntax_const "_free"}, _)) $ Free x) =
           c $ Free (upd_tr' x)
       | update_name_tr' (Const x) = Const (upd_tr' x)
       | update_name_tr' _ = raise Match;
@@ -112,24 +112,24 @@ print_translation {*
       | K_tr' _ = raise Match;
 
     fun assign_tr' (Abs (x, _, f $ k $ Bound 0) :: ts) =
-          quote_tr' (Syntax.const "_Assign" $ update_name_tr' f)
+          quote_tr' (Syntax.const @{syntax_const "_Assign"} $ update_name_tr' f)
             (Abs (x, dummyT, K_tr' k) :: ts)
       | assign_tr' _ = raise Match;
 
     fun annassign_tr' (r :: Abs (x, _, f $ k $ Bound 0) :: ts) =
-          quote_tr' (Syntax.const "_AnnAssign" $ r $ update_name_tr' f)
+          quote_tr' (Syntax.const @{syntax_const "_AnnAssign"} $ r $ update_name_tr' f)
             (Abs (x, dummyT, K_tr' k) :: ts)
       | annassign_tr' _ = raise Match;
 
     fun Parallel_PAR [(Const (@{const_syntax Cons}, _) $
             (Const (@{const_syntax Pair}, _) $ (Const (@{const_syntax Some},_) $ t1 ) $ t2) $
-            Const (@{const_syntax Nil}, _))] = Syntax.const "_prg" $ t1 $ t2
+            Const (@{const_syntax Nil}, _))] = Syntax.const @{syntax_const "_prg"} $ t1 $ t2
       | Parallel_PAR [(Const (@{const_syntax Cons}, _) $
             (Const (@{const_syntax Pair}, _) $ (Const (@{const_syntax Some}, _) $ t1) $ t2) $ ts)] =
-          Syntax.const "_prgs" $ t1 $ t2 $ Parallel_PAR [ts]
+          Syntax.const @{syntax_const "_prgs"} $ t1 $ t2 $ Parallel_PAR [ts]
       | Parallel_PAR _ = raise Match;
 
-    fun Parallel_tr' ts = Syntax.const "_PAR" $ Parallel_PAR ts;
+    fun Parallel_tr' ts = Syntax.const @{syntax_const "_PAR"} $ Parallel_PAR ts;
   in
    [(@{const_syntax Collect}, assert_tr'),
     (@{const_syntax Basic}, assign_tr'),
