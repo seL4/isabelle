@@ -147,16 +147,16 @@ let
           val v_used = fold_aterms
             (fn Free (w, _) => (fn s => s orelse member (op =) vs w) | _ => I) g' false;
         in if v_used then
-          Const ("_bindM", dummyT) $ v $ f $ unfold_monad g'
+          Const (@{syntax_const "_bindM"}, dummyT) $ v $ f $ unfold_monad g'
         else
-          Const ("_chainM", dummyT) $ f $ unfold_monad g'
+          Const (@{syntax_const "_chainM"}, dummyT) $ f $ unfold_monad g'
         end
     | unfold_monad (Const (@{const_syntax chainM}, _) $ f $ g) =
-        Const ("_chainM", dummyT) $ f $ unfold_monad g
+        Const (@{syntax_const "_chainM"}, dummyT) $ f $ unfold_monad g
     | unfold_monad (Const (@{const_syntax Let}, _) $ f $ g) =
         let
           val (v, g') = dest_abs_eta g;
-        in Const ("_let", dummyT) $ v $ f $ unfold_monad g' end
+        in Const (@{syntax_const "_let"}, dummyT) $ v $ f $ unfold_monad g' end
     | unfold_monad (Const (@{const_syntax Pair}, _) $ f) =
         Const (@{const_syntax return}, dummyT) $ f
     | unfold_monad f = f;
@@ -164,14 +164,17 @@ let
     | contains_bindM (Const (@{const_syntax Let}, _) $ _ $ Abs (_, _, t)) =
         contains_bindM t;
   fun bindM_monad_tr' (f::g::ts) = list_comb
-    (Const ("_do", dummyT) $ unfold_monad (Const (@{const_syntax bindM}, dummyT) $ f $ g), ts);
-  fun Let_monad_tr' (f :: (g as Abs (_, _, g')) :: ts) = if contains_bindM g' then list_comb
-      (Const ("_do", dummyT) $ unfold_monad (Const (@{const_syntax Let}, dummyT) $ f $ g), ts)
+    (Const (@{syntax_const "_do"}, dummyT) $
+      unfold_monad (Const (@{const_syntax bindM}, dummyT) $ f $ g), ts);
+  fun Let_monad_tr' (f :: (g as Abs (_, _, g')) :: ts) =
+    if contains_bindM g' then list_comb
+      (Const (@{syntax_const "_do"}, dummyT) $
+        unfold_monad (Const (@{const_syntax Let}, dummyT) $ f $ g), ts)
     else raise Match;
-in [
-  (@{const_syntax bindM}, bindM_monad_tr'),
-  (@{const_syntax Let}, Let_monad_tr')
-] end;
+in
+ [(@{const_syntax bindM}, bindM_monad_tr'),
+  (@{const_syntax Let}, Let_monad_tr')]
+end;
 *}
 
 

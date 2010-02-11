@@ -237,9 +237,9 @@ translations
 
 parse_translation {*
   let
-    fun quote_tr [t] = Syntax.quote_tr "_antiquote" t
+    fun quote_tr [t] = Syntax.quote_tr @{syntax_const "_antiquote"} t
       | quote_tr ts = raise TERM ("quote_tr", ts);
-  in [("_quote", quote_tr)] end
+  in [(@{syntax_const "_quote"}, quote_tr)] end
 *}
 
 text {*
@@ -251,12 +251,12 @@ text {*
 print_translation {*
   let
     fun quote_tr' f (t :: ts) =
-          Term.list_comb (f $ Syntax.quote_tr' "_antiquote" t, ts)
+          Term.list_comb (f $ Syntax.quote_tr' @{syntax_const "_antiquote"} t, ts)
       | quote_tr' _ _ = raise Match;
 
-    val assert_tr' = quote_tr' (Syntax.const "_Assert");
+    val assert_tr' = quote_tr' (Syntax.const @{syntax_const "_Assert"});
 
-    fun bexp_tr' name ((Const ("Collect", _) $ t) :: ts) =
+    fun bexp_tr' name ((Const (@{const_syntax Collect}, _) $ t) :: ts) =
           quote_tr' (Syntax.const name) (t :: ts)
       | bexp_tr' _ _ = raise Match;
 
@@ -266,7 +266,7 @@ print_translation {*
       | NONE => raise Match);
 
     fun update_name_tr' (Free x) = Free (upd_tr' x)
-      | update_name_tr' ((c as Const ("_free", _)) $ Free x) =
+      | update_name_tr' ((c as Const (@{syntax_const "_free"}, _)) $ Free x) =
           c $ Free (upd_tr' x)
       | update_name_tr' (Const x) = Const (upd_tr' x)
       | update_name_tr' _ = raise Match;
@@ -276,12 +276,14 @@ print_translation {*
       | K_tr' _ = raise Match;
 
     fun assign_tr' (Abs (x, _, f $ k $ Bound 0) :: ts) =
-          quote_tr' (Syntax.const "_Assign" $ update_name_tr' f)
+          quote_tr' (Syntax.const @{syntax_const "_Assign"} $ update_name_tr' f)
             (Abs (x, dummyT, K_tr' k) :: ts)
       | assign_tr' _ = raise Match;
   in
-    [("Collect", assert_tr'), ("Basic", assign_tr'),
-      ("Cond", bexp_tr' "_Cond"), ("While", bexp_tr' "_While_inv")]
+   [(@{const_syntax Collect}, assert_tr'),
+    (@{const_syntax Basic}, assign_tr'),
+    (@{const_syntax Cond}, bexp_tr' @{syntax_const "_Cond"}),
+    (@{const_syntax While}, bexp_tr' @{syntax_const "_While_inv"})]
   end
 *}
 

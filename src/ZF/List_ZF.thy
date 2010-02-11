@@ -16,7 +16,7 @@ datatype
 
 syntax
  "[]"        :: i                                       ("[]")
- "@List"     :: "is => i"                                 ("[(_)]")
+ "_List"     :: "is => i"                                 ("[(_)]")
 
 translations
   "[x, xs]"     == "CONST Cons(x, [xs])"

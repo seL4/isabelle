@@ -27,7 +27,7 @@ fun mk_bin num =
 in
 
 fun numeral_tr (*"_Numeral"*) [t as Const (num, _)] =
-      Syntax.const @{const_name Int.number_of} $ mk_bin num
+      Syntax.const @{const_syntax Int.number_of} $ mk_bin num
   | numeral_tr (*"_Numeral"*) ts = raise TERM ("numeral_tr", ts);
 
 end;
@@ -37,10 +37,10 @@ end;
 
 local
 
-fun dest_bin (Const (@{const_syntax "Int.Pls"}, _)) = []
-  | dest_bin (Const (@{const_syntax "Int.Min"}, _)) = [~1]
-  | dest_bin (Const (@{const_syntax "Int.Bit0"}, _) $ bs) = 0 :: dest_bin bs
-  | dest_bin (Const (@{const_syntax "Int.Bit1"}, _) $ bs) = 1 :: dest_bin bs
+fun dest_bin (Const (@{const_syntax Int.Pls}, _)) = []
+  | dest_bin (Const (@{const_syntax Int.Min}, _)) = [~1]
+  | dest_bin (Const (@{const_syntax Int.Bit0}, _) $ bs) = 0 :: dest_bin bs
+  | dest_bin (Const (@{const_syntax Int.Bit1}, _) $ bs) = 1 :: dest_bin bs
   | dest_bin _ = raise Match;
 
 fun leading _ [] = 0
@@ -64,11 +64,12 @@ fun dest_bin_str tm =
   end;
 
 fun syntax_numeral t =
-  Syntax.const "_Numeral" $ (Syntax.const "_numeral" $ Syntax.free (dest_bin_str t));
+  Syntax.const @{syntax_const "_Numeral"} $
+    (Syntax.const @{syntax_const "_numeral"} $ Syntax.free (dest_bin_str t));
 
 in
 
-fun numeral_tr' show_sorts (*"number_of"*) (Type ("fun", [_, T])) (t :: ts) =
+fun numeral_tr' show_sorts (*"number_of"*) (Type ("fun", [_, T])) (t :: ts) =  (* FIXME @{type_syntax} *)
       let val t' =
         if not (! show_types) andalso can Term.dest_Type T then syntax_numeral t
         else Syntax.const Syntax.constrainC $ syntax_numeral t $ Syntax.term_of_typ show_sorts T
@@ -84,7 +85,7 @@ end;
 (* theory setup *)
 
 val setup =
-  Sign.add_trfuns ([], [("_Numeral", numeral_tr)], [], []) #>
+  Sign.add_trfuns ([], [(@{syntax_const "_Numeral"}, numeral_tr)], [], []) #>
   Sign.add_trfunsT [(@{const_syntax Int.number_of}, numeral_tr')];
 
 end;

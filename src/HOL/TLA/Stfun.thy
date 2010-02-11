@@ -1,8 +1,6 @@
-(*
-    File:        TLA/Stfun.thy
-    ID:          $Id$
-    Author:      Stephan Merz
-    Copyright:   1998 University of Munich
+(*  Title:      HOL/TLA/Stfun.thy
+    Author:     Stephan Merz
+    Copyright:  1998 University of Munich
 *)
 
 header {* States and state functions for TLA as an "intensional" logic *}
@@ -42,7 +40,7 @@ syntax
 
 translations
   "PRED P"   =>  "(P::state => _)"
-  "_stvars"  ==  "stvars"
+  "_stvars"  ==  "CONST stvars"
 
 defs
   (* Base variables may be assigned arbitrary (type-correct) values.

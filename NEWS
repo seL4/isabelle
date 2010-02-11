@@ -132,6 +132,9 @@ clash with new theory Quotient in Main HOL.
 
 *** ML ***
 
+* Antiquotation @{syntax_const NAME} ensures that NAME refers to a raw
+syntax constant (cf. 'syntax' command).
+
 * Renamed old-style Drule.standard to Drule.export_without_context, to
 emphasize that this is in no way a standard operation.
 INCOMPATIBILITY.

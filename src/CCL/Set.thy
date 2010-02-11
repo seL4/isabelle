@@ -27,17 +27,17 @@ consts
   empty         :: "'a set"                             ("{}")
 
 syntax
-  "@Coll"       :: "[idt, o] => 'a set"                 ("(1{_./ _})") (*collection*)
+  "_Coll"       :: "[idt, o] => 'a set"                 ("(1{_./ _})") (*collection*)
 
   (* Big Intersection / Union *)
 
-  "@INTER"      :: "[idt, 'a set, 'b set] => 'b set"    ("(INT _:_./ _)" [0, 0, 0] 10)
-  "@UNION"      :: "[idt, 'a set, 'b set] => 'b set"    ("(UN _:_./ _)" [0, 0, 0] 10)
+  "_INTER"      :: "[idt, 'a set, 'b set] => 'b set"    ("(INT _:_./ _)" [0, 0, 0] 10)
+  "_UNION"      :: "[idt, 'a set, 'b set] => 'b set"    ("(UN _:_./ _)" [0, 0, 0] 10)
 
   (* Bounded Quantifiers *)
 
-  "@Ball"       :: "[idt, 'a set, o] => o"              ("(ALL _:_./ _)" [0, 0, 0] 10)
-  "@Bex"        :: "[idt, 'a set, o] => o"              ("(EX _:_./ _)" [0, 0, 0] 10)
+  "_Ball"       :: "[idt, 'a set, o] => o"              ("(ALL _:_./ _)" [0, 0, 0] 10)
+  "_Bex"        :: "[idt, 'a set, o] => o"              ("(EX _:_./ _)" [0, 0, 0] 10)
 
 translations
   "{x. P}"      == "CONST Collect(%x. P)"

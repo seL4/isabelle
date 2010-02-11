@@ -36,8 +36,8 @@ translations "CARD(t)" => "CONST card (CONST UNIV \<Colon> t set)"
 
 typed_print_translation {*
 let
-  fun card_univ_tr' show_sorts _ [Const (@{const_syntax UNIV}, Type(_,[T,_]))] =
-    Syntax.const "_type_card" $ Syntax.term_of_typ show_sorts T;
+  fun card_univ_tr' show_sorts _ [Const (@{const_syntax UNIV}, Type(_, [T, _]))] =
+    Syntax.const @{syntax_const "_type_card"} $ Syntax.term_of_typ show_sorts T;
 in [(@{const_syntax card}, card_univ_tr')]
 end
 *}
@@ -389,7 +389,7 @@ translations
 
 parse_translation {*
 let
-
+(* FIXME @{type_syntax} *)
 val num1_const = Syntax.const "Numeral_Type.num1";
 val num0_const = Syntax.const "Numeral_Type.num0";
 val B0_const = Syntax.const "Numeral_Type.bit0";
@@ -411,7 +411,7 @@ fun numeral_tr (*"_NumeralType"*) [Const (str, _)] =
       mk_bintype (the (Int.fromString str))
   | numeral_tr (*"_NumeralType"*) ts = raise TERM ("numeral_tr", ts);
 
-in [("_NumeralType", numeral_tr)] end;
+in [(@{syntax_const "_NumeralType"}, numeral_tr)] end;
 *}
 
 print_translation {*
@@ -419,6 +419,7 @@ let
 fun int_of [] = 0
   | int_of (b :: bs) = b + 2 * int_of bs;
 
+(* FIXME @{type_syntax} *)
 fun bin_of (Const ("num0", _)) = []
   | bin_of (Const ("num1", _)) = [1]
   | bin_of (Const ("bit0", _) $ bs) = 0 :: bin_of bs
@@ -435,6 +436,7 @@ fun bit_tr' b [t] =
   end
   | bit_tr' b _ = raise Match;
 
+(* FIXME @{type_syntax} *)
 in [("bit0", bit_tr' 0), ("bit1", bit_tr' 1)] end;
 *}
 

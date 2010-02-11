@@ -127,5 +127,10 @@ val _ = inline "const"
       let val (c, _) = Term.dest_Const (ProofContext.read_const_proper ctxt c)
       in ML_Syntax.atomic (ML_Syntax.print_term (ProofContext.mk_const ctxt (c, Ts))) end));
 
+val _ = inline "syntax_const"
+  (Args.context -- Scan.lift Args.name >> (fn (ctxt, c) =>
+    if Syntax.is_const (ProofContext.syn_of ctxt) c then ML_Syntax.print_string c
+    else error ("Unknown syntax const: " ^ quote c)));
+
 end;
 

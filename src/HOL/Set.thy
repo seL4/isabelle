@@ -48,20 +48,16 @@ notation (HTML output)
 text {* Set comprehensions *}
 
 syntax
-  "@Coll"       :: "pttrn => bool => 'a set"              ("(1{_./ _})")
-
+  "_Coll" :: "pttrn => bool => 'a set"    ("(1{_./ _})")
 translations
-  "{x. P}"      == "Collect (%x. P)"
+  "{x. P}" == "CONST Collect (%x. P)"
 
 syntax
-  "@SetCompr"   :: "'a => idts => bool => 'a set"         ("(1{_ |/_./ _})")
-  "@Collect"    :: "idt => 'a set => bool => 'a set"      ("(1{_ :/ _./ _})")
-
+  "_Collect" :: "idt => 'a set => bool => 'a set"    ("(1{_ :/ _./ _})")
 syntax (xsymbols)
-  "@Collect"    :: "idt => 'a set => bool => 'a set"      ("(1{_ \<in>/ _./ _})")
-
+  "_Collect" :: "idt => 'a set => bool => 'a set"    ("(1{_ \<in>/ _./ _})")
 translations
-  "{x:A. P}"    => "{x. x:A & P}"
+  "{x:A. P}" => "{x. x:A & P}"
 
 lemma mem_Collect_eq [iff]: "(a : {x. P(x)}) = P(a)"
   by (simp add: Collect_def mem_def)
@@ -107,11 +103,10 @@ definition insert :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set" where
   insert_compr: "insert a B = {x. x = a \<or> x \<in> B}"
 
 syntax
-  "@Finset"     :: "args => 'a set"                       ("{(_)}")
-
+  "_Finset" :: "args => 'a set"    ("{(_)}")
 translations
-  "{x, xs}"     == "CONST insert x {xs}"
-  "{x}"         == "CONST insert x {}"
+  "{x, xs}" == "CONST insert x {xs}"
+  "{x}" == "CONST insert x {}"
 
 
 subsection {* Subsets and bounded quantifiers *}
@@ -191,9 +186,9 @@ syntax (HTML output)
   "_Bex1"       :: "pttrn => 'a set => bool => bool"      ("(3\<exists>!_\<in>_./ _)" [0, 0, 10] 10)
 
 translations
-  "ALL x:A. P"  == "Ball A (%x. P)"
-  "EX x:A. P"   == "Bex A (%x. P)"
-  "EX! x:A. P"  => "EX! x. x:A & P"
+  "ALL x:A. P" == "CONST Ball A (%x. P)"
+  "EX x:A. P" == "CONST Bex A (%x. P)"
+  "EX! x:A. P" => "EX! x. x:A & P"
   "LEAST x:A. P" => "LEAST x. x:A & P"
 
 syntax (output)
@@ -233,31 +228,34 @@ translations
 
 print_translation {*
 let
-  val Type (set_type, _) = @{typ "'a set"};
-  val All_binder = Syntax.binder_name @{const_syntax "All"};
-  val Ex_binder = Syntax.binder_name @{const_syntax "Ex"};
+  val Type (set_type, _) = @{typ "'a set"};   (* FIXME 'a => bool (!?!) *)
+  val All_binder = Syntax.binder_name @{const_syntax All};
+  val Ex_binder = Syntax.binder_name @{const_syntax Ex};
   val impl = @{const_syntax "op -->"};
   val conj = @{const_syntax "op &"};
-  val sbset = @{const_syntax "subset"};
-  val sbset_eq = @{const_syntax "subset_eq"};
+  val sbset = @{const_syntax subset};
+  val sbset_eq = @{const_syntax subset_eq};
 
   val trans =
-   [((All_binder, impl, sbset), "_setlessAll"),
-    ((All_binder, impl, sbset_eq), "_setleAll"),
-    ((Ex_binder, conj, sbset), "_setlessEx"),
-    ((Ex_binder, conj, sbset_eq), "_setleEx")];
+   [((All_binder, impl, sbset), @{syntax_const "_setlessAll"}),
+    ((All_binder, impl, sbset_eq), @{syntax_const "_setleAll"}),
+    ((Ex_binder, conj, sbset), @{syntax_const "_setlessEx"}),
+    ((Ex_binder, conj, sbset_eq), @{syntax_const "_setleEx"})];
 
   fun mk v v' c n P =
     if v = v' andalso not (Term.exists_subterm (fn Free (x, _) => x = v | _ => false) n)
     then Syntax.const c $ Syntax.mark_bound v' $ n $ P else raise Match;
 
   fun tr' q = (q,
-    fn [Const ("_bound", _) $ Free (v, Type (T, _)), Const (c, _) $ (Const (d, _) $ (Const ("_bound", _) $ Free (v', _)) $ n) $ P] =>
-         if T = (set_type) then case AList.lookup (op =) trans (q, c, d)
-          of NONE => raise Match
-           | SOME l => mk v v' l n P
-         else raise Match
-     | _ => raise Match);
+        fn [Const (@{syntax_const "_bound"}, _) $ Free (v, Type (T, _)),
+            Const (c, _) $
+              (Const (d, _) $ (Const (@{syntax_const "_bound"}, _) $ Free (v', _)) $ n) $ P] =>
+            if T = set_type then
+              (case AList.lookup (op =) trans (q, c, d) of
+                NONE => raise Match
+              | SOME l => mk v v' l n P)
+            else raise Match
+         | _ => raise Match);
 in
   [tr' All_binder, tr' Ex_binder]
 end
@@ -270,55 +268,63 @@ text {*
   only translated if @{text "[0..n] subset bvs(e)"}.
 *}
 
+syntax
+  "_Setcompr" :: "'a => idts => bool => 'a set"    ("(1{_ |/_./ _})")
+
 parse_translation {*
   let
-    val ex_tr = snd (mk_binder_tr ("EX ", "Ex"));
+    val ex_tr = snd (mk_binder_tr ("EX ", @{const_syntax Ex}));
 
-    fun nvars (Const ("_idts", _) $ _ $ idts) = nvars idts + 1
+    fun nvars (Const (@{syntax_const "_idts"}, _) $ _ $ idts) = nvars idts + 1
       | nvars _ = 1;
 
     fun setcompr_tr [e, idts, b] =
       let
-        val eq = Syntax.const "op =" $ Bound (nvars idts) $ e;
-        val P = Syntax.const "op &" $ eq $ b;
+        val eq = Syntax.const @{const_syntax "op ="} $ Bound (nvars idts) $ e;
+        val P = Syntax.const @{const_syntax "op &"} $ eq $ b;
         val exP = ex_tr [idts, P];
-      in Syntax.const "Collect" $ Term.absdummy (dummyT, exP) end;
+      in Syntax.const @{const_syntax Collect} $ Term.absdummy (dummyT, exP) end;
 
-  in [("@SetCompr", setcompr_tr)] end;
+  in [(@{syntax_const "_Setcompr"}, setcompr_tr)] end;
 *}
 
-print_translation {* [
-Syntax.preserve_binder_abs2_tr' @{const_syntax Ball} "_Ball",
-Syntax.preserve_binder_abs2_tr' @{const_syntax Bex} "_Bex"
-] *} -- {* to avoid eta-contraction of body *}
+print_translation {*
+ [Syntax.preserve_binder_abs2_tr' @{const_syntax Ball} @{syntax_const "_Ball"},
+  Syntax.preserve_binder_abs2_tr' @{const_syntax Bex} @{syntax_const "_Bex"}]
+*} -- {* to avoid eta-contraction of body *}
 
 print_translation {*
 let
-  val ex_tr' = snd (mk_binder_tr' ("Ex", "DUMMY"));
+  val ex_tr' = snd (mk_binder_tr' (@{const_syntax Ex}, "DUMMY"));
 
   fun setcompr_tr' [Abs (abs as (_, _, P))] =
     let
-      fun check (Const ("Ex", _) $ Abs (_, _, P), n) = check (P, n + 1)
-        | check (Const ("op &", _) $ (Const ("op =", _) $ Bound m $ e) $ P, n) =
+      fun check (Const (@{const_syntax Ex}, _) $ Abs (_, _, P), n) = check (P, n + 1)
+        | check (Const (@{const_syntax "op &"}, _) $
+              (Const (@{const_syntax "op ="}, _) $ Bound m $ e) $ P, n) =
             n > 0 andalso m = n andalso not (loose_bvar1 (P, n)) andalso
             subset (op =) (0 upto (n - 1), add_loose_bnos (e, 0, []))
-        | check _ = false
+        | check _ = false;
 
         fun tr' (_ $ abs) =
           let val _ $ idts $ (_ $ (_ $ _ $ e) $ Q) = ex_tr' [abs]
-          in Syntax.const "@SetCompr" $ e $ idts $ Q end;
-    in if check (P, 0) then tr' P
-       else let val (x as _ $ Free(xN,_), t) = atomic_abs_tr' abs
-                val M = Syntax.const "@Coll" $ x $ t
-            in case t of
-                 Const("op &",_)
-                   $ (Const("op :",_) $ (Const("_bound",_) $ Free(yN,_)) $ A)
-                   $ P =>
-                   if xN=yN then Syntax.const "@Collect" $ x $ A $ P else M
-               | _ => M
-            end
+          in Syntax.const @{syntax_const "_Setcompr"} $ e $ idts $ Q end;
+    in
+      if check (P, 0) then tr' P
+      else
+        let
+          val (x as _ $ Free(xN, _), t) = atomic_abs_tr' abs;
+          val M = Syntax.const @{syntax_const "_Coll"} $ x $ t;
+        in
+          case t of
+            Const (@{const_syntax "op &"}, _) $
+              (Const (@{const_syntax "op :"}, _) $
+                (Const (@{syntax_const "_bound"}, _) $ Free (yN, _)) $ A) $ P =>
+            if xN = yN then Syntax.const @{syntax_const "_Collect"} $ x $ A $ P else M
+          | _ => M
+        end
     end;
-  in [("Collect", setcompr_tr')] end;
+  in [(@{const_syntax Collect}, setcompr_tr')] end;
 *}
 
 setup {*

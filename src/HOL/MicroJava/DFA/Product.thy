@@ -19,9 +19,10 @@ constdefs
  esl :: "'a esl \<Rightarrow> 'b esl \<Rightarrow> ('a * 'b ) esl"
 "esl == %(A,rA,fA) (B,rB,fB). (A <*> B, le rA rB, sup fA fB)"
 
-syntax "@lesubprod" :: "'a*'b \<Rightarrow> 'a ord \<Rightarrow> 'b ord \<Rightarrow> 'b \<Rightarrow> bool"
+abbreviation
+  lesubprod_sntax :: "'a * 'b \<Rightarrow> 'a ord \<Rightarrow> 'b ord \<Rightarrow> 'a * 'b \<Rightarrow> bool"
        ("(_ /<='(_,_') _)" [50, 0, 0, 51] 50)
-translations "p <=(rA,rB) q" == "p <=_(Product.le rA rB) q"
+  where "p <=(rA,rB) q == p <=_(le rA rB) q"
 
 lemma unfold_lesub_prod:
   "p <=(rA,rB) q == le rA rB p q"

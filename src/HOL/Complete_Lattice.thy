@@ -106,10 +106,10 @@ translations
   "INF x. B"     == "INF x:CONST UNIV. B"
   "INF x:A. B"   == "CONST INFI A (%x. B)"
 
-print_translation {* [
-Syntax.preserve_binder_abs2_tr' @{const_syntax SUPR} "_SUP",
-Syntax.preserve_binder_abs2_tr' @{const_syntax INFI} "_INF"
-] *} -- {* to avoid eta-contraction of body *}
+print_translation {*
+  [Syntax.preserve_binder_abs2_tr' @{const_syntax SUPR} @{syntax_const "_SUP"},
+    Syntax.preserve_binder_abs2_tr' @{const_syntax INFI} @{syntax_const "_INF"}]
+*} -- {* to avoid eta-contraction of body *}
 
 context complete_lattice
 begin
@@ -282,16 +282,16 @@ abbreviation UNION :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarr
   "UNION \<equiv> SUPR"
 
 syntax
-  "@UNION1"     :: "pttrns => 'b set => 'b set"           ("(3UN _./ _)" [0, 10] 10)
-  "@UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3UN _:_./ _)" [0, 10] 10)
+  "_UNION1"     :: "pttrns => 'b set => 'b set"           ("(3UN _./ _)" [0, 10] 10)
+  "_UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3UN _:_./ _)" [0, 10] 10)
 
 syntax (xsymbols)
-  "@UNION1"     :: "pttrns => 'b set => 'b set"           ("(3\<Union>_./ _)" [0, 10] 10)
-  "@UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Union>_\<in>_./ _)" [0, 10] 10)
+  "_UNION1"     :: "pttrns => 'b set => 'b set"           ("(3\<Union>_./ _)" [0, 10] 10)
+  "_UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Union>_\<in>_./ _)" [0, 10] 10)
 
 syntax (latex output)
-  "@UNION1"     :: "pttrns => 'b set => 'b set"           ("(3\<Union>(00\<^bsub>_\<^esub>)/ _)" [0, 10] 10)
-  "@UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Union>(00\<^bsub>_\<in>_\<^esub>)/ _)" [0, 10] 10)
+  "_UNION1"     :: "pttrns => 'b set => 'b set"           ("(3\<Union>(00\<^bsub>_\<^esub>)/ _)" [0, 10] 10)
+  "_UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Union>(00\<^bsub>_\<in>_\<^esub>)/ _)" [0, 10] 10)
 
 translations
   "UN x y. B"   == "UN x. UN y. B"
@@ -308,9 +308,9 @@ text {*
   subscripts in Proof General.
 *}
 
-print_translation {* [
-Syntax.preserve_binder_abs2_tr' @{const_syntax UNION} "@UNION"
-] *} -- {* to avoid eta-contraction of body *}
+print_translation {*
+  [Syntax.preserve_binder_abs2_tr' @{const_syntax UNION} @{syntax_const "_UNION"}]
+*} -- {* to avoid eta-contraction of body *}
 
 lemma UNION_eq_Union_image:
   "(\<Union>x\<in>A. B x) = \<Union>(B`A)"
@@ -518,16 +518,16 @@ abbreviation INTER :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarr
   "INTER \<equiv> INFI"
 
 syntax
-  "@INTER1"     :: "pttrns => 'b set => 'b set"           ("(3INT _./ _)" [0, 10] 10)
-  "@INTER"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3INT _:_./ _)" [0, 10] 10)
+  "_INTER1"     :: "pttrns => 'b set => 'b set"           ("(3INT _./ _)" [0, 10] 10)
+  "_INTER"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3INT _:_./ _)" [0, 10] 10)
 
 syntax (xsymbols)
-  "@INTER1"     :: "pttrns => 'b set => 'b set"           ("(3\<Inter>_./ _)" [0, 10] 10)
-  "@INTER"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Inter>_\<in>_./ _)" [0, 10] 10)
+  "_INTER1"     :: "pttrns => 'b set => 'b set"           ("(3\<Inter>_./ _)" [0, 10] 10)
+  "_INTER"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Inter>_\<in>_./ _)" [0, 10] 10)
 
 syntax (latex output)
-  "@INTER1"     :: "pttrns => 'b set => 'b set"           ("(3\<Inter>(00\<^bsub>_\<^esub>)/ _)" [0, 10] 10)
-  "@INTER"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Inter>(00\<^bsub>_\<in>_\<^esub>)/ _)" [0, 10] 10)
+  "_INTER1"     :: "pttrns => 'b set => 'b set"           ("(3\<Inter>(00\<^bsub>_\<^esub>)/ _)" [0, 10] 10)
+  "_INTER"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Inter>(00\<^bsub>_\<in>_\<^esub>)/ _)" [0, 10] 10)
 
 translations
   "INT x y. B"  == "INT x. INT y. B"
@@ -535,9 +535,9 @@ translations
   "INT x. B"    == "INT x:CONST UNIV. B"
   "INT x:A. B"  == "CONST INTER A (%x. B)"
 
-print_translation {* [
-Syntax.preserve_binder_abs2_tr' @{const_syntax INTER} "@INTER"
-] *} -- {* to avoid eta-contraction of body *}
+print_translation {*
+  [Syntax.preserve_binder_abs2_tr' @{const_syntax INTER} @{syntax_const "_INTER"}]
+*} -- {* to avoid eta-contraction of body *}
 
 lemma INTER_eq_Inter_image:
   "(\<Inter>x\<in>A. B x) = \<Inter>(B`A)"

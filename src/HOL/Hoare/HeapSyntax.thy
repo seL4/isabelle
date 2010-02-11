@@ -15,9 +15,9 @@ syntax
   "_faccess"  :: "'a ref => ('a ref \<Rightarrow> 'v) => 'v"
    ("_^._" [65,1000] 65)
 translations
-  "f(r \<rightarrow> v)"  ==  "f(CONST addr r := v)"
-  "p^.f := e"  =>  "f := f(p \<rightarrow> e)"
-  "p^.f"       =>  "f(CONST addr p)"
+  "f(r \<rightarrow> v)" == "f(CONST addr r := v)"
+  "p^.f := e" => "f := f(p \<rightarrow> e)"
+  "p^.f" => "f(CONST addr p)"
 
 
 declare fun_upd_apply[simp del] fun_upd_same[simp] fun_upd_other[simp]

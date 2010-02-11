@@ -1,5 +1,4 @@
 (*  Title:      Sequents/ILL.thy
-    ID:         $Id$
     Author:     Sara Kalvala and Valeria de Paiva
     Copyright   1995  University of Cambridge
 *)
@@ -32,19 +31,21 @@ consts
   PromAux :: "three_seqi"
 
 syntax
-  "@Trueprop" :: "single_seqe" ("((_)/ |- (_))" [6,6] 5)
-  "@Context"  :: "two_seqe"   ("((_)/ :=: (_))" [6,6] 5)
-  "@PromAux"  :: "three_seqe" ("promaux {_||_||_}")
+  "_Trueprop" :: "single_seqe" ("((_)/ |- (_))" [6,6] 5)
+  "_Context"  :: "two_seqe"   ("((_)/ :=: (_))" [6,6] 5)
+  "_PromAux"  :: "three_seqe" ("promaux {_||_||_}")
 
 parse_translation {*
-  [("@Trueprop", single_tr "Trueprop"),
-   ("@Context", two_seq_tr "Context"),
-   ("@PromAux", three_seq_tr "PromAux")] *}
+  [(@{syntax_const "_Trueprop"}, single_tr @{const_syntax Trueprop}),
+   (@{syntax_const "_Context"}, two_seq_tr @{const_syntax Context}),
+   (@{syntax_const "_PromAux"}, three_seq_tr @{const_syntax PromAux})]
+*}
 
 print_translation {*
-  [("Trueprop", single_tr' "@Trueprop"),
-   ("Context", two_seq_tr'"@Context"),
-   ("PromAux", three_seq_tr'"@PromAux")] *}
+  [(@{const_syntax Trueprop}, single_tr' @{syntax_const "_Trueprop"}),
+   (@{const_syntax Context}, two_seq_tr' @{syntax_const "_Context"}),
+   (@{const_syntax PromAux}, three_seq_tr' @{syntax_const "_PromAux"})]
+*}
 
 defs
 

@@ -23,9 +23,9 @@ definition
     "OUnion(i,B) == {z: \<Union>x\<in>i. B(x). Ord(i)}"
 
 syntax
-  "@oall"     :: "[idt, i, o] => o"        ("(3ALL _<_./ _)" 10)
-  "@oex"      :: "[idt, i, o] => o"        ("(3EX _<_./ _)" 10)
-  "@OUNION"   :: "[idt, i, i] => i"        ("(3UN _<_./ _)" 10)
+  "_oall"     :: "[idt, i, o] => o"        ("(3ALL _<_./ _)" 10)
+  "_oex"      :: "[idt, i, o] => o"        ("(3EX _<_./ _)" 10)
+  "_OUNION"   :: "[idt, i, i] => i"        ("(3UN _<_./ _)" 10)
 
 translations
   "ALL x<a. P"  == "CONST oall(a, %x. P)"
@@ -33,13 +33,13 @@ translations
   "UN x<a. B"   == "CONST OUnion(a, %x. B)"
 
 syntax (xsymbols)
-  "@oall"     :: "[idt, i, o] => o"        ("(3\<forall>_<_./ _)" 10)
-  "@oex"      :: "[idt, i, o] => o"        ("(3\<exists>_<_./ _)" 10)
-  "@OUNION"   :: "[idt, i, i] => i"        ("(3\<Union>_<_./ _)" 10)
+  "_oall"     :: "[idt, i, o] => o"        ("(3\<forall>_<_./ _)" 10)
+  "_oex"      :: "[idt, i, o] => o"        ("(3\<exists>_<_./ _)" 10)
+  "_OUNION"   :: "[idt, i, i] => i"        ("(3\<Union>_<_./ _)" 10)
 syntax (HTML output)
-  "@oall"     :: "[idt, i, o] => o"        ("(3\<forall>_<_./ _)" 10)
-  "@oex"      :: "[idt, i, o] => o"        ("(3\<exists>_<_./ _)" 10)
-  "@OUNION"   :: "[idt, i, i] => i"        ("(3\<Union>_<_./ _)" 10)
+  "_oall"     :: "[idt, i, o] => o"        ("(3\<forall>_<_./ _)" 10)
+  "_oex"      :: "[idt, i, o] => o"        ("(3\<exists>_<_./ _)" 10)
+  "_OUNION"   :: "[idt, i, i] => i"        ("(3\<Union>_<_./ _)" 10)
 
 
 subsubsection {*simplification of the new quantifiers*}
@@ -203,15 +203,15 @@ definition
     "rex(M, P) == EX x. M(x) & P(x)"
 
 syntax
-  "@rall"     :: "[pttrn, i=>o, o] => o"        ("(3ALL _[_]./ _)" 10)
-  "@rex"      :: "[pttrn, i=>o, o] => o"        ("(3EX _[_]./ _)" 10)
+  "_rall"     :: "[pttrn, i=>o, o] => o"        ("(3ALL _[_]./ _)" 10)
+  "_rex"      :: "[pttrn, i=>o, o] => o"        ("(3EX _[_]./ _)" 10)
 
 syntax (xsymbols)
-  "@rall"     :: "[pttrn, i=>o, o] => o"        ("(3\<forall>_[_]./ _)" 10)
-  "@rex"      :: "[pttrn, i=>o, o] => o"        ("(3\<exists>_[_]./ _)" 10)
+  "_rall"     :: "[pttrn, i=>o, o] => o"        ("(3\<forall>_[_]./ _)" 10)
+  "_rex"      :: "[pttrn, i=>o, o] => o"        ("(3\<exists>_[_]./ _)" 10)
 syntax (HTML output)
-  "@rall"     :: "[pttrn, i=>o, o] => o"        ("(3\<forall>_[_]./ _)" 10)
-  "@rex"      :: "[pttrn, i=>o, o] => o"        ("(3\<exists>_[_]./ _)" 10)
+  "_rall"     :: "[pttrn, i=>o, o] => o"        ("(3\<forall>_[_]./ _)" 10)
+  "_rex"      :: "[pttrn, i=>o, o] => o"        ("(3\<exists>_[_]./ _)" 10)
 
 translations
   "ALL x[M]. P"  == "CONST rall(M, %x. P)"

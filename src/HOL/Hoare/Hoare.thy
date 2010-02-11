@@ -1,5 +1,4 @@
 (*  Title:      HOL/Hoare/Hoare.thy
-    ID:         $Id$
     Author:     Leonor Prensa Nieto & Tobias Nipkow
     Copyright   1998 TUM
 
@@ -19,11 +18,11 @@ types
     'a assn = "'a set"
 
 datatype
- 'a com = Basic "'a \<Rightarrow> 'a"         
+ 'a com = Basic "'a \<Rightarrow> 'a"
    | Seq "'a com" "'a com"               ("(_;/ _)"      [61,60] 60)
    | Cond "'a bexp" "'a com" "'a com"    ("(1IF _/ THEN _ / ELSE _/ FI)"  [0,0,0] 61)
    | While "'a bexp" "'a assn" "'a com"  ("(1WHILE _/ INV {_} //DO _ /OD)"  [0,0,0] 61)
-  
+
 abbreviation annskip ("SKIP") where "SKIP == Basic id"
 
 types 'a sem = "'a => 'a => bool"
@@ -68,11 +67,11 @@ in
 
 fun mk_abstuple [x] body = abs (x, body)
   | mk_abstuple (x::xs) body =
-      Syntax.const "split" $ abs (x, mk_abstuple xs body);
+      Syntax.const @{const_syntax split} $ abs (x, mk_abstuple xs body);
 
 fun mk_fbody a e [x as (b,_)] = if a=b then e else Syntax.free b
   | mk_fbody a e ((b,_)::xs) =
-      Syntax.const "Pair" $ (if a=b then e else Syntax.free b) $ mk_fbody a e xs;
+      Syntax.const @{const_syntax Pair} $ (if a=b then e else Syntax.free b) $ mk_fbody a e xs;
 
 fun mk_fexp a e xs = mk_abstuple xs (mk_fbody a e xs)
 end
@@ -82,22 +81,22 @@ end
 (*all meta-variables for bexp except for TRUE are translated as if they
   were boolean expressions*)
 ML{*
-fun bexp_tr (Const ("TRUE", _)) xs = Syntax.const "TRUE"
-  | bexp_tr b xs = Syntax.const "Collect" $ mk_abstuple xs b;
-  
-fun assn_tr r xs = Syntax.const "Collect" $ mk_abstuple xs r;
+fun bexp_tr (Const ("TRUE", _)) xs = Syntax.const "TRUE"   (* FIXME !? *)
+  | bexp_tr b xs = Syntax.const @{const_syntax Collect} $ mk_abstuple xs b;
+
+fun assn_tr r xs = Syntax.const @{const_syntax Collect} $ mk_abstuple xs r;
 *}
 (* com_tr *)
 ML{*
-fun com_tr (Const("_assign",_) $ Free (a,_) $ e) xs =
-      Syntax.const "Basic" $ mk_fexp a e xs
-  | com_tr (Const ("Basic",_) $ f) xs = Syntax.const "Basic" $ f
-  | com_tr (Const ("Seq",_) $ c1 $ c2) xs =
-      Syntax.const "Seq" $ com_tr c1 xs $ com_tr c2 xs
-  | com_tr (Const ("Cond",_) $ b $ c1 $ c2) xs =
-      Syntax.const "Cond" $ bexp_tr b xs $ com_tr c1 xs $ com_tr c2 xs
-  | com_tr (Const ("While",_) $ b $ I $ c) xs =
-      Syntax.const "While" $ bexp_tr b xs $ assn_tr I xs $ com_tr c xs
+fun com_tr (Const(@{syntax_const "_assign"},_) $ Free (a,_) $ e) xs =
+      Syntax.const @{const_syntax Basic} $ mk_fexp a e xs
+  | com_tr (Const (@{const_syntax Basic},_) $ f) xs = Syntax.const @{const_syntax Basic} $ f
+  | com_tr (Const (@{const_syntax Seq},_) $ c1 $ c2) xs =
+      Syntax.const @{const_syntax Seq} $ com_tr c1 xs $ com_tr c2 xs
+  | com_tr (Const (@{const_syntax Cond},_) $ b $ c1 $ c2) xs =
+      Syntax.const @{const_syntax Cond} $ bexp_tr b xs $ com_tr c1 xs $ com_tr c2 xs
+  | com_tr (Const (@{const_syntax While},_) $ b $ I $ c) xs =
+      Syntax.const @{const_syntax While} $ bexp_tr b xs $ assn_tr I xs $ com_tr c xs
   | com_tr t _ = t (* if t is just a Free/Var *)
 *}
 
@@ -106,65 +105,66 @@ ML{*
 local
 
 fun var_tr(Free(a,_)) = (a,Bound 0) (* Bound 0 = dummy term *)
-  | var_tr(Const ("_constrain", _) $ (Free (a,_)) $ T) = (a,T);
+  | var_tr(Const (@{syntax_const "_constrain"}, _) $ (Free (a,_)) $ T) = (a,T);
 
-fun vars_tr (Const ("_idts", _) $ idt $ vars) = var_tr idt :: vars_tr vars
+fun vars_tr (Const (@{syntax_const "_idts"}, _) $ idt $ vars) = var_tr idt :: vars_tr vars
   | vars_tr t = [var_tr t]
 
 in
 fun hoare_vars_tr [vars, pre, prg, post] =
       let val xs = vars_tr vars
-      in Syntax.const "Valid" $
+      in Syntax.const @{const_syntax Valid} $
          assn_tr pre xs $ com_tr prg xs $ assn_tr post xs
       end
   | hoare_vars_tr ts = raise TERM ("hoare_vars_tr", ts);
 end
 *}
 
-parse_translation {* [("_hoare_vars", hoare_vars_tr)] *}
+parse_translation {* [(@{syntax_const "_hoare_vars"}, hoare_vars_tr)] *}
 
 
 (*****************************************************************************)
 
 (*** print translations ***)
 ML{*
-fun dest_abstuple (Const ("split",_) $ (Abs(v,_, body))) =
+fun dest_abstuple (Const (@{const_syntax split},_) $ (Abs(v,_, body))) =
                             subst_bound (Syntax.free v, dest_abstuple body)
   | dest_abstuple (Abs(v,_, body)) = subst_bound (Syntax.free v, body)
   | dest_abstuple trm = trm;
 
-fun abs2list (Const ("split",_) $ (Abs(x,T,t))) = Free (x, T)::abs2list t
+fun abs2list (Const (@{const_syntax split},_) $ (Abs(x,T,t))) = Free (x, T)::abs2list t
   | abs2list (Abs(x,T,t)) = [Free (x, T)]
   | abs2list _ = [];
 
-fun mk_ts (Const ("split",_) $ (Abs(x,_,t))) = mk_ts t
+fun mk_ts (Const (@{const_syntax split},_) $ (Abs(x,_,t))) = mk_ts t
   | mk_ts (Abs(x,_,t)) = mk_ts t
-  | mk_ts (Const ("Pair",_) $ a $ b) = a::(mk_ts b)
+  | mk_ts (Const (@{const_syntax Pair},_) $ a $ b) = a::(mk_ts b)
   | mk_ts t = [t];
 
-fun mk_vts (Const ("split",_) $ (Abs(x,_,t))) = 
+fun mk_vts (Const (@{const_syntax split},_) $ (Abs(x,_,t))) =
            ((Syntax.free x)::(abs2list t), mk_ts t)
   | mk_vts (Abs(x,_,t)) = ([Syntax.free x], [t])
   | mk_vts t = raise Match;
-  
-fun find_ch [] i xs = (false, (Syntax.free "not_ch",Syntax.free "not_ch" ))
-  | find_ch ((v,t)::vts) i xs = if t=(Bound i) then find_ch vts (i-1) xs
-              else (true, (v, subst_bounds (xs,t)));
-  
-fun is_f (Const ("split",_) $ (Abs(x,_,t))) = true
+
+fun find_ch [] i xs = (false, (Syntax.free "not_ch", Syntax.free "not_ch"))
+  | find_ch ((v,t)::vts) i xs =
+      if t = Bound i then find_ch vts (i-1) xs
+      else (true, (v, subst_bounds (xs, t)));
+
+fun is_f (Const (@{const_syntax split},_) $ (Abs(x,_,t))) = true
   | is_f (Abs(x,_,t)) = true
   | is_f t = false;
 *}
 
 (* assn_tr' & bexp_tr'*)
-ML{*  
-fun assn_tr' (Const ("Collect",_) $ T) = dest_abstuple T
-  | assn_tr' (Const (@{const_name inter}, _) $ (Const ("Collect",_) $ T1) $ 
-                                   (Const ("Collect",_) $ T2)) =  
-            Syntax.const "Set.Int" $ dest_abstuple T1 $ dest_abstuple T2
+ML{*
+fun assn_tr' (Const (@{const_syntax Collect},_) $ T) = dest_abstuple T
+  | assn_tr' (Const (@{const_syntax inter}, _) $
+        (Const (@{const_syntax Collect},_) $ T1) $ (Const (@{const_syntax Collect},_) $ T2)) =
+      Syntax.const @{const_syntax inter} $ dest_abstuple T1 $ dest_abstuple T2
   | assn_tr' t = t;
 
-fun bexp_tr' (Const ("Collect",_) $ T) = dest_abstuple T 
+fun bexp_tr' (Const (@{const_syntax Collect},_) $ T) = dest_abstuple T
   | bexp_tr' t = t;
 *}
 
@@ -173,22 +173,24 @@ ML{*
 fun mk_assign f =
   let val (vs, ts) = mk_vts f;
       val (ch, which) = find_ch (vs~~ts) ((length vs)-1) (rev vs)
-  in if ch then Syntax.const "_assign" $ fst(which) $ snd(which)
-     else Syntax.const @{const_syntax annskip} end;
+  in
+    if ch then Syntax.const @{syntax_const "_assign"} $ fst which $ snd which
+    else Syntax.const @{const_syntax annskip}
+  end;
 
-fun com_tr' (Const ("Basic",_) $ f) = if is_f f then mk_assign f
-                                           else Syntax.const "Basic" $ f
-  | com_tr' (Const ("Seq",_) $ c1 $ c2) = Syntax.const "Seq" $
-                                                 com_tr' c1 $ com_tr' c2
-  | com_tr' (Const ("Cond",_) $ b $ c1 $ c2) = Syntax.const "Cond" $
-                                           bexp_tr' b $ com_tr' c1 $ com_tr' c2
-  | com_tr' (Const ("While",_) $ b $ I $ c) = Syntax.const "While" $
-                                               bexp_tr' b $ assn_tr' I $ com_tr' c
+fun com_tr' (Const (@{const_syntax Basic},_) $ f) =
+      if is_f f then mk_assign f
+      else Syntax.const @{const_syntax Basic} $ f
+  | com_tr' (Const (@{const_syntax Seq},_) $ c1 $ c2) =
+      Syntax.const @{const_syntax Seq} $ com_tr' c1 $ com_tr' c2
+  | com_tr' (Const (@{const_syntax Cond},_) $ b $ c1 $ c2) =
+      Syntax.const @{const_syntax Cond} $ bexp_tr' b $ com_tr' c1 $ com_tr' c2
+  | com_tr' (Const (@{const_syntax While},_) $ b $ I $ c) =
+      Syntax.const @{const_syntax While} $ bexp_tr' b $ assn_tr' I $ com_tr' c
   | com_tr' t = t;
 
-
 fun spec_tr' [p, c, q] =
-  Syntax.const "_hoare" $ assn_tr' p $ com_tr' c $ assn_tr' q
+  Syntax.const @{syntax_const "_hoare"} $ assn_tr' p $ com_tr' c $ assn_tr' q
 *}
 
 print_translation {* [(@{const_syntax Valid}, spec_tr')] *}

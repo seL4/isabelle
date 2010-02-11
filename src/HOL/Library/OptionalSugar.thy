@@ -15,7 +15,7 @@ translations
 translations
   "n" <= "CONST of_nat n"
   "n" <= "CONST int n"
-  "n" <= "real n"
+  "n" <= "CONST real n"
   "n" <= "CONST real_of_nat n"
   "n" <= "CONST real_of_int n"
   "n" <= "CONST of_real n"
@@ -23,10 +23,10 @@ translations
 
 (* append *)
 syntax (latex output)
-  "appendL" :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixl "\<^raw:\isacharat>" 65)
+  "_appendL" :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixl "\<^raw:\isacharat>" 65)
 translations
-  "appendL xs ys" <= "xs @ ys" 
-  "appendL (appendL xs ys) zs" <= "appendL xs (appendL ys zs)"
+  "_appendL xs ys" <= "xs @ ys" 
+  "_appendL (_appendL xs ys) zs" <= "_appendL xs (_appendL ys zs)"
 
 
 (* deprecated, use thm with style instead, will be removed *)

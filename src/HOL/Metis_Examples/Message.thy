@@ -45,10 +45,10 @@ datatype
 
 text{*Concrete syntax: messages appear as {|A,B,NA|}, etc...*}
 syntax
-  "@MTuple"      :: "['a, args] => 'a * 'b"       ("(2{|_,/ _|})")
+  "_MTuple"      :: "['a, args] => 'a * 'b"       ("(2{|_,/ _|})")
 
 syntax (xsymbols)
-  "@MTuple"      :: "['a, args] => 'a * 'b"       ("(2\<lbrace>_,/ _\<rbrace>)")
+  "_MTuple"      :: "['a, args] => 'a * 'b"       ("(2\<lbrace>_,/ _\<rbrace>)")
 
 translations
   "{|x, y, z|}"   == "{|x, {|y, z|}|}"
