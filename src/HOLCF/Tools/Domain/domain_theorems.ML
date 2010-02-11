@@ -512,18 +512,19 @@ end;
 val sel_rews = sel_stricts @ sel_defins @ sel_apps;
 
 val _ = trace " Proving dist_les...";
-val distincts_le =
+val dist_les =
   let
     fun dist (con1, args1) (con2, args2) =
       let
-        val goal = lift_defined %: (nonlazy args1,
-                        mk_trp (con_app con1 args1 ~<< con_app con2 args2));
-        fun tacs ctxt = [
-          rtac @{thm rev_contrapos} 1,
-          eres_inst_tac ctxt [(("f", 0), dis_name con1)] monofun_cfun_arg 1]
-          @ map (case_UU_tac ctxt (con_stricts @ dis_rews) 1) (nonlazy args2)
-          @ [asm_simp_tac (HOLCF_ss addsimps dis_rews) 1];
-      in pg [] goal tacs end;
+        fun iff_disj (t, []) = HOLogic.mk_not t
+          | iff_disj (t, ts) = t === foldr1 HOLogic.mk_disj ts;
+        val lhs = con_app con1 args1 << con_app con2 args2;
+        val rhss = map (fn x => %:x === UU) (nonlazy args1);
+        val goal = mk_trp (iff_disj (lhs, rhss));
+        val rule1 = iso_locale RS @{thm iso.abs_below};
+        val rules = rule1 :: @{thms con_below_iff_rules};
+        val tacs = [simp_tac (HOL_ss addsimps rules) 1];
+      in pg con_appls goal (K tacs) end;
 
     fun distinct (con1, args1) (con2, args2) =
         let
@@ -533,28 +534,40 @@ val distincts_le =
               (args2, Name.variant_list (map vname args1) (map vname args2)));
         in [dist arg1 arg2, dist arg2 arg1] end;
     fun distincts []      = []
-      | distincts (c::cs) = (map (distinct c) cs) :: distincts cs;
+      | distincts (c::cs) = maps (distinct c) cs @ distincts cs;
   in distincts cons end;
-val dist_les = flat (flat distincts_le);
 
 val _ = trace " Proving dist_eqs...";
 val dist_eqs =
   let
-    fun distinct (_,args1) ((_,args2), leqs) =
+    fun dist (con1, args1) (con2, args2) =
       let
-        val (le1,le2) = (hd leqs, hd(tl leqs));
-        val (eq1,eq2) = (le1 RS dist_eqI, le2 RS dist_eqI)
-      in
-        if nonlazy args1 = [] then [eq1, eq1 RS not_sym] else
-        if nonlazy args2 = [] then [eq2, eq2 RS not_sym] else
-          [eq1, eq2]
-      end;
+        fun iff_disj (t, [], us) = HOLogic.mk_not t
+          | iff_disj (t, ts, []) = HOLogic.mk_not t
+          | iff_disj (t, ts, us) =
+            let
+              val disj1 = foldr1 HOLogic.mk_disj ts;
+              val disj2 = foldr1 HOLogic.mk_disj us;
+            in t === HOLogic.mk_conj (disj1, disj2) end;
+        val lhs = con_app con1 args1 === con_app con2 args2;
+        val rhss1 = map (fn x => %:x === UU) (nonlazy args1);
+        val rhss2 = map (fn x => %:x === UU) (nonlazy args2);
+        val goal = mk_trp (iff_disj (lhs, rhss1, rhss2));
+        val rule1 = iso_locale RS @{thm iso.abs_eq};
+        val rules = rule1 :: @{thms con_eq_iff_rules};
+        val tacs = [simp_tac (HOL_ss addsimps rules) 1];
+      in pg con_appls goal (K tacs) end;
+
+    fun distinct (con1, args1) (con2, args2) =
+        let
+          val arg1 = (con1, args1);
+          val arg2 =
+            (con2, ListPair.map (fn (arg,vn) => upd_vname (K vn) arg)
+              (args2, Name.variant_list (map vname args1) (map vname args2)));
+        in [dist arg1 arg2, dist arg2 arg1] end;
     fun distincts []      = []
-      | distincts ((c,leqs)::cs) =
-        flat
-          (ListPair.map (distinct c) ((map #1 cs),leqs)) @
-        distincts cs;
-  in map Drule.export_without_context (distincts (cons ~~ distincts_le)) end;
+      | distincts (c::cs) = maps (distinct c) cs @ distincts cs;
+  in distincts cons end;
 
 local 
   fun pgterm rel con args =
