@@ -1,8 +1,6 @@
-(*
-    File:        TLA/TLA.thy
-    ID:          $Id$
-    Author:      Stephan Merz
-    Copyright:   1998 University of Munich
+(*  Title:      HOL/TLA/TLA.thy
+    Author:     Stephan Merz
+    Copyright:  1998 University of Munich
 *)
 
 header {* The temporal level of TLA *}
@@ -1168,4 +1166,3 @@ lemma "|- EEX h. Init(h = #True) & [](h` = (~$h))"
   done
 
 end
-
