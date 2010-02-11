@@ -349,20 +349,6 @@ structure Registrations = Theory_Data
 
 (* Primitive operations *)
 
-fun compose_mixins mixins =
-  fold_rev Morphism.compose (map (fst o fst) mixins) Morphism.identity;
-
-fun reg_morph mixins ((name, (base, export)), serial) =
-  let val mix = the_default [] (AList.lookup (op =) mixins serial) |> compose_mixins;
-  in (name, base $> mix $> export) end;
-
-fun these_registrations thy name = Registrations.get thy
-  |>> filter (curry (op =) name o fst o fst)
-  |-> (fn regs => fn mixins => map (reg_morph mixins) regs);
-
-fun all_registrations thy = Registrations.get thy
-  |-> (fn regs => fn mixins => map (reg_morph mixins) regs);
-
 fun get_mixins thy (name, morph) =
   let
     val (regs, mixins) = Registrations.get thy;
@@ -377,6 +363,22 @@ fun collect_mixins thy (name, morph) =
   roundup thy (fn dep => fn mixins =>
     merge (eq_snd op =) (mixins, get_mixins thy dep)) Morphism.identity (name, morph) ([], [])
   |> snd |> filter (snd o fst);  (* only inheritable mixins *)
+
+fun compose_mixins mixins =
+  fold_rev Morphism.compose (map (fst o fst) mixins) Morphism.identity;
+
+fun reg_morph mixins ((name, (base, export)), serial) =
+  let val mix = the_default [] (AList.lookup (op =) mixins serial) |> compose_mixins;
+  in (name, base $> mix $> export) end;
+
+fun these_registrations thy name = Registrations.get thy
+  |>> filter (curry (op =) name o fst o fst)
+(*  |-> (fn regs => fn mixins => map (reg_morph mixins) regs); *)
+  |-> (fn regs => fn _ => map (fn ((name, (base, export)) ,_) =>
+    (name, base $> (collect_mixins thy (name, base $> export) |> compose_mixins) $> export)) regs);
+
+fun all_registrations thy = Registrations.get thy
+  |-> (fn regs => fn mixins => map (reg_morph mixins) regs);
 
 fun activate_notes' activ_elem transfer thy export (name, morph) input =
   let
@@ -463,7 +465,8 @@ fun add_registration (name, base_morph) mixin export thy =
       let
         fun add_reg (dep', morph') =
           let
-            val mixins = collect_mixins thy (dep', morph' $> export);
+(*            val mixins = collect_mixins thy (dep', morph' $> export); *)
+            val mixins = [];  (* FIXME *)
             val serial = serial ();
           in
             Registrations.map (apfst (cons ((dep', (morph', export)), serial))
@@ -510,6 +513,7 @@ fun add_thmss loc kind args ctxt =
                 Attrib.map_facts (Attrib.attribute_i thy)
             in PureThy.note_thmss kind args'' #> snd end)
         (these_registrations thy loc) thy))
+(* FIXME apply mixins *)
   in ctxt'' end;
 
 

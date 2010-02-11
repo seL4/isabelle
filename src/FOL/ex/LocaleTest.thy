@@ -617,6 +617,88 @@ thm le4.less_thm4' (* mixin not applied *)
 lemma "reflexive.less(gle, x, y) <-> gle(x, y) & x ~= y"
   by (rule le4.less_thm4')
 
+text {* Inherited mixin applied to new theorem *}
+
+locale mixin5_base = reflexive
+
+locale mixin5_inherited = mixin5_base
+
+interpretation le5: mixin5_base gle
+  where "reflexive.less(gle, x, y) <-> gless(x, y)"
+proof -
+  show "mixin5_base(gle)" by unfold_locales
+  note reflexive = this[unfolded mixin5_base_def mixin_def]
+  show "reflexive.less(gle, x, y) <-> gless(x, y)"
+    by (simp add: reflexive.less_def[OF reflexive] gless_def)
+qed
+
+interpretation le5: mixin5_inherited gle
+  by unfold_locales
+
+lemmas (in mixin5_inherited) less_thm5 = less_def
+
+thm le5.less_thm5  (* mixin applied *)
+lemma "gless(x, y) <-> gle(x, y) & x ~= y"
+  by (rule le5.less_thm5)
+
+text {* Mixin pushed down to existing inherited locale *}
+
+locale mixin6_base = reflexive
+
+locale mixin6_inherited = mixin5_base
+
+interpretation le6: mixin6_base gle
+  by unfold_locales
+interpretation le6: mixin6_inherited gle
+  by unfold_locales
+interpretation le6: mixin6_base gle
+  where "reflexive.less(gle, x, y) <-> gless(x, y)"
+proof -
+  show "mixin6_base(gle)" by unfold_locales
+  note reflexive = this[unfolded mixin6_base_def mixin_def]
+  show "reflexive.less(gle, x, y) <-> gless(x, y)"
+    by (simp add: reflexive.less_def[OF reflexive] gless_def)
+qed
+
+lemmas (in mixin6_inherited) less_thm6 = less_def
+
+thm le6.less_thm6  (* mixin applied *)
+lemma "gless(x, y) <-> gle(x, y) & x ~= y"
+  by (rule le6.less_thm6)
+
+text {* Existing mixin inherited through sublocale relation *}
+
+locale mixin7_base = reflexive
+
+locale mixin7_inherited = reflexive
+
+interpretation le7: mixin7_base gle
+  where "reflexive.less(gle, x, y) <-> gless(x, y)"
+proof -
+  show "mixin7_base(gle)" by unfold_locales
+  note reflexive = this[unfolded mixin7_base_def mixin_def]
+  show "reflexive.less(gle, x, y) <-> gless(x, y)"
+    by (simp add: reflexive.less_def[OF reflexive] gless_def)
+qed
+
+interpretation le7: mixin7_inherited gle
+  by unfold_locales
+
+lemmas (in mixin7_inherited) less_thm7 = less_def
+
+thm le7.less_thm7  (* before, mixin not applied *)
+lemma "reflexive.less(gle, x, y) <-> gle(x, y) & x ~= y"
+  by (rule le7.less_thm7)
+
+sublocale mixin7_inherited < mixin7_base
+  by unfold_locales
+
+lemmas (in mixin7_inherited) less_thm7b = less_def
+
+thm le7.less_thm7b  (* after, mixin applied *)
+lemma "gless(x, y) <-> gle(x, y) & x ~= y"
+  by (rule le7.less_thm7b)
+
 
 subsection {* Interpretation in proofs *}
 
