@@ -204,7 +204,7 @@ syntax  (* FIXME? *)
   LNil :: logic
   LCons :: logic
 translations
-  "case p of LNil \<Rightarrow> a | LCons x l \<Rightarrow> b" \<rightleftharpoons> "CONST llist_case a (\<lambda>x l. b) p"
+  "case p of XCONST LNil \<Rightarrow> a | XCONST LCons x l \<Rightarrow> b" \<rightleftharpoons> "CONST llist_case a (\<lambda>x l. b) p"
 
 lemma llist_case_LNil [simp, code]: "llist_case c d LNil = c"
   by (simp add: llist_case_def LNil_def

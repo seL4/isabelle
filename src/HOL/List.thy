@@ -15,13 +15,14 @@ datatype 'a list =
 
 syntax
   -- {* list Enumeration *}
-  "@list" :: "args => 'a list"    ("[(_)]")
+  "_list" :: "args => 'a list"    ("[(_)]")
 
 translations
   "[x, xs]" == "x#[xs]"
   "[x]" == "x#[]"
 
-subsection{*Basic list processing functions*}
+
+subsection {* Basic list processing functions *}
 
 primrec
   hd :: "'a list \<Rightarrow> 'a" where
@@ -68,15 +69,15 @@ primrec
 
 syntax
   -- {* Special syntax for filter *}
-  "@filter" :: "[pttrn, 'a list, bool] => 'a list"    ("(1[_<-_./ _])")
+  "_filter" :: "[pttrn, 'a list, bool] => 'a list"    ("(1[_<-_./ _])")
 
 translations
   "[x<-xs . P]"== "CONST filter (%x. P) xs"
 
 syntax (xsymbols)
-  "@filter" :: "[pttrn, 'a list, bool] => 'a list"("(1[_\<leftarrow>_ ./ _])")
+  "_filter" :: "[pttrn, 'a list, bool] => 'a list"("(1[_\<leftarrow>_ ./ _])")
 syntax (HTML output)
-  "@filter" :: "[pttrn, 'a list, bool] => 'a list"("(1[_\<leftarrow>_ ./ _])")
+  "_filter" :: "[pttrn, 'a list, bool] => 'a list"("(1[_\<leftarrow>_ ./ _])")
 
 primrec
   foldl :: "('b \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a list \<Rightarrow> 'b" where
@@ -132,7 +133,7 @@ syntax
   "_LUpdate" :: "['a, lupdbinds] => 'a"    ("_/[(_)]" [900,0] 900)
 
 translations
-  "_LUpdate xs (_lupdbinds b bs)"== "_LUpdate (_LUpdate xs b) bs"
+  "_LUpdate xs (_lupdbinds b bs)" == "_LUpdate (_LUpdate xs b) bs"
   "xs[i:=x]" == "CONST list_update xs i x"
 
 primrec
@@ -363,45 +364,52 @@ let
   val mapC = Syntax.const @{const_name map};
   val concatC = Syntax.const @{const_name concat};
   val IfC = Syntax.const @{const_name If};
+
   fun singl x = ConsC $ x $ NilC;
 
-   fun pat_tr ctxt p e opti = (* %x. case x of p => e | _ => [] *)
+  fun pat_tr ctxt p e opti = (* %x. case x of p => e | _ => [] *)
     let
       val x = Free (Name.variant (fold Term.add_free_names [p, e] []) "x", dummyT);
       val e = if opti then singl e else e;
-      val case1 = Syntax.const "_case1" $ p $ e;
-      val case2 = Syntax.const "_case1" $ Syntax.const Term.dummy_patternN
-                                        $ NilC;
-      val cs = Syntax.const "_case2" $ case1 $ case2
-      val ft = Datatype_Case.case_tr false Datatype.info_of_constr
-                 ctxt [x, cs]
+      val case1 = Syntax.const @{syntax_const "_case1"} $ p $ e;
+      val case2 = Syntax.const @{syntax_const "_case1"} $ Syntax.const Term.dummy_patternN $ NilC;
+      val cs = Syntax.const @{syntax_const "_case2"} $ case1 $ case2;
+      val ft = Datatype_Case.case_tr false Datatype.info_of_constr ctxt [x, cs];
     in lambda x ft end;
 
   fun abs_tr ctxt (p as Free(s,T)) e opti =
-        let val thy = ProofContext.theory_of ctxt;
-            val s' = Sign.intern_const thy s
-        in if Sign.declared_const thy s'
-           then (pat_tr ctxt p e opti, false)
-           else (lambda p e, true)
+        let
+          val thy = ProofContext.theory_of ctxt;
+          val s' = Sign.intern_const thy s;
+        in
+          if Sign.declared_const thy s'
+          then (pat_tr ctxt p e opti, false)
+          else (lambda p e, true)
         end
     | abs_tr ctxt p e opti = (pat_tr ctxt p e opti, false);
 
-  fun lc_tr ctxt [e, Const("_lc_test",_)$b, qs] =
-        let val res = case qs of Const("_lc_end",_) => singl e
-                      | Const("_lc_quals",_)$q$qs => lc_tr ctxt [e,q,qs];
+  fun lc_tr ctxt [e, Const (@{syntax_const "_lc_test"}, _) $ b, qs] =
+        let
+          val res =
+            (case qs of
+              Const (@{syntax_const "_lc_end"}, _) => singl e
+            | Const (@{syntax_const "_lc_quals"}, _) $ q $ qs => lc_tr ctxt [e, q, qs]);
         in IfC $ b $ res $ NilC end
-    | lc_tr ctxt [e, Const("_lc_gen",_) $ p $ es, Const("_lc_end",_)] =
+    | lc_tr ctxt
+          [e, Const (@{syntax_const "_lc_gen"}, _) $ p $ es,
+            Const(@{syntax_const "_lc_end"}, _)] =
         (case abs_tr ctxt p e true of
-           (f,true) => mapC $ f $ es
-         | (f, false) => concatC $ (mapC $ f $ es))
-    | lc_tr ctxt [e, Const("_lc_gen",_) $ p $ es, Const("_lc_quals",_)$q$qs] =
-        let val e' = lc_tr ctxt [e,q,qs];
-        in concatC $ (mapC $ (fst(abs_tr ctxt p e' false)) $ es) end
+          (f, true) => mapC $ f $ es
+        | (f, false) => concatC $ (mapC $ f $ es))
+    | lc_tr ctxt
+          [e, Const (@{syntax_const "_lc_gen"}, _) $ p $ es,
+            Const (@{syntax_const "_lc_quals"}, _) $ q $ qs] =
+        let val e' = lc_tr ctxt [e, q, qs];
+        in concatC $ (mapC $ (fst (abs_tr ctxt p e' false)) $ es) end;
 
-in [("_listcompr", lc_tr)] end
+in [(@{syntax_const "_listcompr"}, lc_tr)] end
 *}
 
-(*
 term "[(x,y,z). b]"
 term "[(x,y,z). x\<leftarrow>xs]"
 term "[e x y. x\<leftarrow>xs, y\<leftarrow>ys]"
@@ -418,8 +426,10 @@ term "[(x,y,z). x\<leftarrow>xs, x>b, y<a]"
 term "[(x,y,z). x\<leftarrow>xs, x>b, y\<leftarrow>ys]"
 term "[(x,y,z). x\<leftarrow>xs, y\<leftarrow>ys,y>x]"
 term "[(x,y,z). x\<leftarrow>xs, y\<leftarrow>ys,z\<leftarrow>zs]"
+(*
 term "[(x,y). x\<leftarrow>xs, let xx = x+x, y\<leftarrow>ys, y \<noteq> xx]"
 *)
+
 
 subsubsection {* @{const Nil} and @{const Cons} *}
 
@@ -1019,6 +1029,7 @@ lemma set_minus_filter_out:
   "set xs - {y} = set (filter (\<lambda>x. \<not> (x = y)) xs)"
   by (induct xs) auto
 
+
 subsubsection {* @{text filter} *}
 
 lemma filter_append [simp]: "filter P (xs @ ys) = filter P xs @ filter P ys"
@@ -1199,6 +1210,7 @@ unfolding partition_filter2[symmetric]
 unfolding partition_filter1[symmetric] by simp
 
 declare partition.simps[simp del]
+
 
 subsubsection {* @{text concat} *}
 
@@ -2074,6 +2086,7 @@ proof (induct xs arbitrary: ys)
   qed simp
 qed simp
 
+
 subsubsection {* @{text list_all2} *}
 
 lemma list_all2_lengthD [intro?]: 
@@ -2412,6 +2425,7 @@ lemma (in complete_lattice) SUPR_set_fold:
   "SUPR (set xs) f = foldl (\<lambda>y x. sup (f x) y) bot xs"
   unfolding SUPR_def set_map [symmetric] Sup_set_fold foldl_map
     by (simp add: sup_commute)
+
 
 subsubsection {* List summation: @{const listsum} and @{text"\<Sum>"}*}
 
@@ -2835,6 +2849,7 @@ proof -
   from length_remdups_concat[of "[xs]"] show ?thesis unfolding xs by simp
 qed
 
+
 subsubsection {* @{const insert} *}
 
 lemma in_set_insert [simp]:
@@ -3254,7 +3269,8 @@ apply(case_tac ys)
  apply auto
 done
 
-subsubsection{*Transpose*}
+
+subsubsection {* Transpose *}
 
 function transpose where
 "transpose []             = []" |
@@ -3366,6 +3382,7 @@ proof (rule nth_equalityI, safe)
     by (simp add: nth_transpose filter_map comp_def)
 qed
 
+
 subsubsection {* (In)finiteness *}
 
 lemma finite_maxlen:
@@ -3407,7 +3424,7 @@ apply (metis UNIV_I length_replicate less_not_refl)
 done
 
 
-subsection {*Sorting*}
+subsection {* Sorting *}
 
 text{* Currently it is not shown that @{const sort} returns a
 permutation of its input because the nicest proof is via multisets,
@@ -3626,7 +3643,8 @@ apply(subst upto.simps)
 apply(simp add:sorted_Cons)
 done
 
-subsubsection {*@{const transpose} on sorted lists*}
+
+subsubsection {* @{const transpose} on sorted lists *}
 
 lemma sorted_transpose[simp]:
   shows "sorted (rev (map length (transpose xs)))"
@@ -3774,6 +3792,7 @@ proof (rule nth_equalityI)
     by (auto simp: nth_transpose intro: nth_equalityI)
 qed
 
+
 subsubsection {* @{text sorted_list_of_set} *}
 
 text{* This function maps (finite) linearly ordered sets to sorted
@@ -3804,6 +3823,7 @@ apply simp_all
 done
 
 end
+
 
 subsubsection {* @{text lists}: the list-forming operator over sets *}
 
@@ -3864,8 +3884,7 @@ lemma lists_UNIV [simp]: "lists UNIV = UNIV"
 by auto
 
 
-
-subsubsection{* Inductive definition for membership *}
+subsubsection {* Inductive definition for membership *}
 
 inductive ListMem :: "'a \<Rightarrow> 'a list \<Rightarrow> bool"
 where
@@ -3881,8 +3900,7 @@ apply (induct xs)
 done
 
 
-
-subsubsection{*Lists as Cartesian products*}
+subsubsection {* Lists as Cartesian products *}
 
 text{*@{text"set_Cons A Xs"}: the set of lists with head drawn from
 @{term A} and tail drawn from @{term Xs}.*}
@@ -3903,7 +3921,7 @@ primrec
   |  "listset (A # As) = set_Cons A (listset As)"
 
 
-subsection{*Relations on Lists*}
+subsection {* Relations on Lists *}
 
 subsubsection {* Length Lexicographic Ordering *}
 
@@ -4108,7 +4126,7 @@ lemma measures_lesseq: "f x <= f y ==> (x, y) \<in> measures fs ==> (x, y) \<in>
 by auto
 
 
-subsubsection{*Lifting a Relation on List Elements to the Lists*}
+subsubsection {* Lifting a Relation on List Elements to the Lists *}
 
 inductive_set
   listrel :: "('a * 'a)set => ('a list * 'a list)set"

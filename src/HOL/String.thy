@@ -5,7 +5,7 @@ header {* Character and string types *}
 theory String
 imports List
 uses
-  "Tools/string_syntax.ML"
+  ("Tools/string_syntax.ML")
   ("Tools/string_code.ML")
 begin
 
@@ -78,6 +78,7 @@ types string = "char list"
 syntax
   "_String" :: "xstr => string"    ("_")
 
+use "Tools/string_syntax.ML"
 setup StringSyntax.setup
 
 definition chars :: string where

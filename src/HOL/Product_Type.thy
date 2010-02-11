@@ -180,65 +180,81 @@ syntax
   "_patterns"   :: "[pttrn, patterns] => patterns"      ("_,/ _")
 
 translations
-  "(x, y)"       == "Pair x y"
+  "(x, y)" == "CONST Pair x y"
   "_tuple x (_tuple_args y z)" == "_tuple x (_tuple_arg (_tuple y z))"
-  "%(x,y,zs).b"  == "split(%x (y,zs).b)"
-  "%(x,y).b"     == "split(%x y. b)"
-  "_abs (Pair x y) t" => "%(x,y).t"
+  "%(x, y, zs). b" == "CONST split (%x (y, zs). b)"
+  "%(x, y). b" == "CONST split (%x y. b)"
+  "_abs (CONST Pair x y) t" => "%(x, y). t"
   (* The last rule accommodates tuples in `case C ... (x,y) ... => ...'
      The (x,y) is parsed as `Pair x y' because it is logic, not pttrn *)
 
-(* reconstructs pattern from (nested) splits, avoiding eta-contraction of body*)
-(* works best with enclosing "let", if "let" does not avoid eta-contraction   *)
+(*reconstruct pattern from (nested) splits, avoiding eta-contraction of body;
+  works best with enclosing "let", if "let" does not avoid eta-contraction*)
 print_translation {*
-let fun split_tr' [Abs (x,T,t as (Abs abs))] =
-      (* split (%x y. t) => %(x,y) t *)
-      let val (y,t') = atomic_abs_tr' abs;
-          val (x',t'') = atomic_abs_tr' (x,T,t');
-    
-      in Syntax.const "_abs" $ (Syntax.const "_pattern" $x'$y) $ t'' end
-    | split_tr' [Abs (x,T,(s as Const ("split",_)$t))] =
-       (* split (%x. (split (%y z. t))) => %(x,y,z). t *)
-       let val (Const ("_abs",_)$(Const ("_pattern",_)$y$z)$t') = split_tr' [t];
-           val (x',t'') = atomic_abs_tr' (x,T,t');
-       in Syntax.const "_abs"$ 
-           (Syntax.const "_pattern"$x'$(Syntax.const "_patterns"$y$z))$t'' end
-    | split_tr' [Const ("split",_)$t] =
-       (* split (split (%x y z. t)) => %((x,y),z). t *)   
-       split_tr' [(split_tr' [t])] (* inner split_tr' creates next pattern *)
-    | split_tr' [Const ("_abs",_)$x_y$(Abs abs)] =
-       (* split (%pttrn z. t) => %(pttrn,z). t *)
-       let val (z,t) = atomic_abs_tr' abs;
-       in Syntax.const "_abs" $ (Syntax.const "_pattern" $x_y$z) $ t end
-    | split_tr' _ =  raise Match;
-in [("split", split_tr')]
-end
+let
+  fun split_tr' [Abs (x, T, t as (Abs abs))] =
+        (* split (%x y. t) => %(x,y) t *)
+        let
+          val (y, t') = atomic_abs_tr' abs;
+          val (x', t'') = atomic_abs_tr' (x, T, t');
+        in
+          Syntax.const @{syntax_const "_abs"} $
+            (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
+        end
+    | split_tr' [Abs (x, T, (s as Const (@{const_syntax split}, _) $ t))] =
+        (* split (%x. (split (%y z. t))) => %(x,y,z). t *)
+        let
+          val Const (@{syntax_const "_abs"}, _) $
+            (Const (@{syntax_const "_pattern"}, _) $ y $ z) $ t' = split_tr' [t];
+          val (x', t'') = atomic_abs_tr' (x, T, t');
+        in
+          Syntax.const @{syntax_const "_abs"} $
+            (Syntax.const @{syntax_const "_pattern"} $ x' $
+              (Syntax.const @{syntax_const "_patterns"} $ y $ z)) $ t''
+        end
+    | split_tr' [Const (@{const_syntax split}, _) $ t] =
+        (* split (split (%x y z. t)) => %((x, y), z). t *)
+        split_tr' [(split_tr' [t])] (* inner split_tr' creates next pattern *)
+    | split_tr' [Const (@{syntax_const "_abs"}, _) $ x_y $ Abs abs] =
+        (* split (%pttrn z. t) => %(pttrn,z). t *)
+        let val (z, t) = atomic_abs_tr' abs in
+          Syntax.const @{syntax_const "_abs"} $
+            (Syntax.const @{syntax_const "_pattern"} $ x_y $ z) $ t
+        end
+    | split_tr' _ = raise Match;
+in [(@{const_syntax split}, split_tr')] end
 *}
 
 (* print "split f" as "\<lambda>(x,y). f x y" and "split (\<lambda>x. f x)" as "\<lambda>(x,y). f x y" *) 
 typed_print_translation {*
 let
-  fun split_guess_names_tr' _ T [Abs (x,_,Abs _)] = raise Match
-    | split_guess_names_tr' _ T  [Abs (x,xT,t)] =
+  fun split_guess_names_tr' _ T [Abs (x, _, Abs _)] = raise Match
+    | split_guess_names_tr' _ T [Abs (x, xT, t)] =
         (case (head_of t) of
-           Const ("split",_) => raise Match
-         | _ => let 
-                  val (_::yT::_) = binder_types (domain_type T) handle Bind => raise Match;
-                  val (y,t') = atomic_abs_tr' ("y",yT,(incr_boundvars 1 t)$Bound 0); 
-                  val (x',t'') = atomic_abs_tr' (x,xT,t');
-                in Syntax.const "_abs" $ (Syntax.const "_pattern" $x'$y) $ t'' end)
+          Const (@{const_syntax split}, _) => raise Match
+        | _ =>
+          let 
+            val (_ :: yT :: _) = binder_types (domain_type T) handle Bind => raise Match;
+            val (y, t') = atomic_abs_tr' ("y", yT, incr_boundvars 1 t $ Bound 0);
+            val (x', t'') = atomic_abs_tr' (x, xT, t');
+          in
+            Syntax.const @{syntax_const "_abs"} $
+              (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
+          end)
     | split_guess_names_tr' _ T [t] =
-       (case (head_of t) of
-           Const ("split",_) => raise Match 
-         | _ => let 
-                  val (xT::yT::_) = binder_types (domain_type T) handle Bind => raise Match;
-                  val (y,t') = 
-                        atomic_abs_tr' ("y",yT,(incr_boundvars 2 t)$Bound 1$Bound 0); 
-                  val (x',t'') = atomic_abs_tr' ("x",xT,t');
-                in Syntax.const "_abs" $ (Syntax.const "_pattern" $x'$y) $ t'' end)
+        (case head_of t of
+          Const (@{const_syntax split}, _) => raise Match
+        | _ =>
+          let
+            val (xT :: yT :: _) = binder_types (domain_type T) handle Bind => raise Match;
+            val (y, t') = atomic_abs_tr' ("y", yT, incr_boundvars 2 t $ Bound 1 $ Bound 0);
+            val (x', t'') = atomic_abs_tr' ("x", xT, t');
+          in
+            Syntax.const @{syntax_const "_abs"} $
+              (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
+          end)
     | split_guess_names_tr' _ _ _ = raise Match;
-in [("split", split_guess_names_tr')]
-end 
+in [(@{const_syntax split}, split_guess_names_tr')] end
 *}
 
 
@@ -855,10 +871,9 @@ notation (HTML output)
   Times  (infixr "\<times>" 80)
 
 syntax
-  "@Sigma" ::"[pttrn, 'a set, 'b set] => ('a * 'b) set" ("(3SIGMA _:_./ _)" [0, 0, 10] 10)
-
+  "_Sigma" :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"  ("(3SIGMA _:_./ _)" [0, 0, 10] 10)
 translations
-  "SIGMA x:A. B" == "Product_Type.Sigma A (%x. B)"
+  "SIGMA x:A. B" == "CONST Sigma A (%x. B)"
 
 lemma SigmaI [intro!]: "[| a:A;  b:B(a) |] ==> (a,b) : Sigma A B"
   by (unfold Sigma_def) blast

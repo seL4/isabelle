@@ -387,18 +387,16 @@ syntax
   "_updbind" :: "['a, 'a] => updbind"             ("(2_ :=/ _)")
   ""         :: "updbind => updbinds"             ("_")
   "_updbinds":: "[updbind, updbinds] => updbinds" ("_,/ _")
-  "_Update"  :: "['a, updbinds] => 'a"            ("_/'((_)')" [1000,0] 900)
+  "_Update"  :: "['a, updbinds] => 'a"            ("_/'((_)')" [1000, 0] 900)
 
 translations
-  "_Update f (_updbinds b bs)"  == "_Update (_Update f b) bs"
-  "f(x:=y)"                     == "fun_upd f x y"
+  "_Update f (_updbinds b bs)" == "_Update (_Update f b) bs"
+  "f(x:=y)" == "CONST fun_upd f x y"
 
 (* Hint: to define the sum of two functions (or maps), use sum_case.
          A nice infix syntax could be defined (in Datatype.thy or below) by
-consts
-  fun_sum :: "('a => 'c) => ('b => 'c) => (('a+'b) => 'c)" (infixr "'(+')"80)
-translations
- "fun_sum" == sum_case
+notation
+  sum_case  (infixr "'(+')"80)
 *)
 
 lemma fun_upd_idem_iff: "(f(x:=y) = f) = (f x = y)"

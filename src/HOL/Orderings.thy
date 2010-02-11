@@ -646,25 +646,30 @@ let
   val less_eq = @{const_syntax less_eq};
 
   val trans =
-   [((All_binder, impl, less), ("_All_less", "_All_greater")),
-    ((All_binder, impl, less_eq), ("_All_less_eq", "_All_greater_eq")),
-    ((Ex_binder, conj, less), ("_Ex_less", "_Ex_greater")),
-    ((Ex_binder, conj, less_eq), ("_Ex_less_eq", "_Ex_greater_eq"))];
+   [((All_binder, impl, less),
+    (@{syntax_const "_All_less"}, @{syntax_const "_All_greater"})),
+    ((All_binder, impl, less_eq),
+    (@{syntax_const "_All_less_eq"}, @{syntax_const "_All_greater_eq"})),
+    ((Ex_binder, conj, less),
+    (@{syntax_const "_Ex_less"}, @{syntax_const "_Ex_greater"})),
+    ((Ex_binder, conj, less_eq),
+    (@{syntax_const "_Ex_less_eq"}, @{syntax_const "_Ex_greater_eq"}))];
 
-  fun matches_bound v t = 
-     case t of (Const ("_bound", _) $ Free (v', _)) => (v = v')
-              | _ => false
-  fun contains_var v = Term.exists_subterm (fn Free (x, _) => x = v | _ => false)
-  fun mk v c n P = Syntax.const c $ Syntax.mark_bound v $ n $ P
+  fun matches_bound v t =
+    (case t of
+      Const ("_bound", _) $ Free (v', _) => v = v'
+    | _ => false);
+  fun contains_var v = Term.exists_subterm (fn Free (x, _) => x = v | _ => false);
+  fun mk v c n P = Syntax.const c $ Syntax.mark_bound v $ n $ P;
 
   fun tr' q = (q,
     fn [Const ("_bound", _) $ Free (v, _), Const (c, _) $ (Const (d, _) $ t $ u) $ P] =>
-      (case AList.lookup (op =) trans (q, c, d) of
-        NONE => raise Match
-      | SOME (l, g) =>
-          if matches_bound v t andalso not (contains_var v u) then mk v l u P
-          else if matches_bound v u andalso not (contains_var v t) then mk v g t P
-          else raise Match)
+        (case AList.lookup (op =) trans (q, c, d) of
+          NONE => raise Match
+        | SOME (l, g) =>
+            if matches_bound v t andalso not (contains_var v u) then mk v l u P
+            else if matches_bound v u andalso not (contains_var v t) then mk v g t P
+            else raise Match)
      | _ => raise Match);
 in [tr' All_binder, tr' Ex_binder] end
 *}

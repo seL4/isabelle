@@ -1095,13 +1095,16 @@ translations
 
 print_translation {*
 let
-  fun setsum_tr' [Abs(x,Tx,t), Const ("Collect",_) $ Abs(y,Ty,P)] = 
-    if x<>y then raise Match
-    else let val x' = Syntax.mark_bound x
-             val t' = subst_bound(x',t)
-             val P' = subst_bound(x',P)
-         in Syntax.const "_qsetsum" $ Syntax.mark_bound x $ P' $ t' end
-in [("setsum", setsum_tr')] end
+  fun setsum_tr' [Abs (x, Tx, t), Const (@{const_syntax Collect}, _) $ Abs (y, Ty, P)] =
+        if x <> y then raise Match
+        else
+          let
+            val x' = Syntax.mark_bound x;
+            val t' = subst_bound (x', t);
+            val P' = subst_bound (x', P);
+          in Syntax.const @{syntax_const "_qsetsum"} $ Syntax.mark_bound x $ P' $ t' end
+    | setsum_tr' _ = raise Match;
+in [(@{const_syntax setsum}, setsum_tr')] end
 *}
 
 
