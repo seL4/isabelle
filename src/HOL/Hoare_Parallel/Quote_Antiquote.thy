@@ -12,7 +12,7 @@ syntax (xsymbols)
   "_Assert"    :: "'a \<Rightarrow> 'a set"            ("(\<lbrace>_\<rbrace>)" [0] 1000)
 
 translations
-  ".{b}." \<rightharpoonup> "Collect \<guillemotleft>b\<guillemotright>"
+  ".{b}." \<rightharpoonup> "CONST Collect \<guillemotleft>b\<guillemotright>"
 
 parse_translation {*
   let

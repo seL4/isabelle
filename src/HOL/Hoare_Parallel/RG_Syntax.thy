@@ -4,10 +4,13 @@ theory RG_Syntax
 imports RG_Hoare Quote_Antiquote
 begin
 
+abbreviation Skip :: "'a com"  ("SKIP")
+  where "SKIP \<equiv> Basic id"
+
+notation Seq  ("(_;;/ _)" [60,61] 60)
+
 syntax
   "_Assign"    :: "idt \<Rightarrow> 'b \<Rightarrow> 'a com"                     ("(\<acute>_ :=/ _)" [70, 65] 61)
-  "_skip"      :: "'a com"                                  ("SKIP")
-  "_Seq"       :: "'a com \<Rightarrow> 'a com \<Rightarrow> 'a com"              ("(_;;/ _)" [60,61] 60)
   "_Cond"      :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com \<Rightarrow> 'a com"   ("(0IF _/ THEN _/ ELSE _/FI)" [0, 0, 0] 61)
   "_Cond2"     :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com"             ("(0IF _ THEN _ FI)" [0,0] 56)
   "_While"     :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com"             ("(0WHILE _ /DO _ /OD)"  [0, 0] 61)
@@ -16,9 +19,7 @@ syntax
   "_Wait"      :: "'a bexp \<Rightarrow> 'a com"                       ("(0WAIT _ END)" 61)
 
 translations
-  "\<acute>\<spacespace>x := a" \<rightharpoonup> "Basic \<guillemotleft>\<acute>\<spacespace>(_update_name x (\<lambda>_. a))\<guillemotright>"
-  "SKIP" \<rightleftharpoons> "Basic id"
-  "c1;; c2" \<rightleftharpoons> "Seq c1 c2"
+  "\<acute>x := a" \<rightharpoonup> "CONST Basic \<guillemotleft>\<acute>(_update_name x (\<lambda>_. a))\<guillemotright>"
   "IF b THEN c1 ELSE c2 FI" \<rightharpoonup> "Cond .{b}. c1 c2"
   "IF b THEN c FI" \<rightleftharpoons> "IF b THEN c ELSE SKIP FI"
   "WHILE b DO c OD" \<rightharpoonup> "While .{b}. c"
@@ -52,8 +53,8 @@ syntax
   "_after"  :: "id \<Rightarrow> 'a" ("\<ordfeminine>_")
  
 translations
-  "\<ordmasculine>x" \<rightleftharpoons> "x \<acute>fst"
-  "\<ordfeminine>x" \<rightleftharpoons> "x \<acute>snd"
+  "\<ordmasculine>x" \<rightleftharpoons> "x \<acute>CONST fst"
+  "\<ordfeminine>x" \<rightleftharpoons> "x \<acute>CONST snd"
 
 print_translation {*
   let
@@ -63,7 +64,7 @@ print_translation {*
 
     val assert_tr' = quote_tr' (Syntax.const "_Assert");
 
-    fun bexp_tr' name ((Const ("Collect", _) $ t) :: ts) =
+    fun bexp_tr' name ((Const (@{const_syntax Collect}, _) $ t) :: ts) =
           quote_tr' (Syntax.const name) (t :: ts)
       | bexp_tr' _ _ = raise Match;
 
@@ -78,8 +79,10 @@ print_translation {*
       | update_name_tr' (Const x) = Const (upd_tr' x)
       | update_name_tr' _ = raise Match;
 
-    fun K_tr' (Abs (_,_,t)) = if null (loose_bnos t) then t else raise Match
-      | K_tr' (Abs (_,_,Abs (_,_,t)$Bound 0)) = if null (loose_bnos t) then t else raise Match
+    fun K_tr' (Abs (_, _, t)) =
+          if null (loose_bnos t) then t else raise Match
+      | K_tr' (Abs (_, _, Abs (_, _, t) $ Bound 0)) =
+          if null (loose_bnos t) then t else raise Match
       | K_tr' _ = raise Match;
 
     fun assign_tr' (Abs (x, _, f $ k $ Bound 0) :: ts) =
@@ -87,8 +90,10 @@ print_translation {*
             (Abs (x, dummyT, K_tr' k) :: ts)
       | assign_tr' _ = raise Match;
   in
-    [("Collect", assert_tr'), ("Basic", assign_tr'),
-      ("Cond", bexp_tr' "_Cond"), ("While", bexp_tr' "_While_inv")]
+   [(@{const_syntax Collect}, assert_tr'),
+    (@{const_syntax Basic}, assign_tr'),
+    (@{const_syntax Cond}, bexp_tr' "_Cond"),
+    (@{const_syntax While}, bexp_tr' "_While_inv")]
   end
 *}
 
