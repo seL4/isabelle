@@ -8,7 +8,7 @@ and * (for div and mod, see theory Divides).
 header {* Natural numbers *}
 
 theory Nat
-imports Inductive Product_Type Fields
+imports Inductive Typedef Fun Fields
 uses
   "~~/src/Tools/rat.ML"
   "~~/src/Provers/Arith/cancel_sums.ML"
