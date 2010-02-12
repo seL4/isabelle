@@ -37,7 +37,7 @@ axiomatization unknown :: 'a
            and bisim_iterator_max :: bisim_iterator
            and Quot :: "'a \<Rightarrow> 'b"
            and quot_normal :: "'a \<Rightarrow> 'a"
-           and NonStd :: "'a \<Rightarrow> 'b"
+           and Silly :: "'a \<Rightarrow> 'b"
            and Tha :: "('a \<Rightarrow> bool) \<Rightarrow> 'a"
 
 datatype ('a, 'b) pair_box = PairBox 'a 'b
@@ -254,7 +254,7 @@ use "Tools/Nitpick/minipick.ML"
 setup {* Nitpick_Isar.setup *}
 
 hide (open) const unknown is_unknown undefined_fast_The undefined_fast_Eps bisim 
-    bisim_iterator_max Quot quot_normal NonStd Tha PairBox FunBox Word refl' wf'
+    bisim_iterator_max Quot quot_normal Silly Tha PairBox FunBox Word refl' wf'
     wf_wfrec wf_wfrec' wfrec' card' setsum' fold_graph' nat_gcd nat_lcm int_gcd
     int_lcm Frac Abs_Frac Rep_Frac zero_frac one_frac num denom norm_frac frac
     plus_frac times_frac uminus_frac number_of_frac inverse_frac less_eq_frac

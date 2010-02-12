@@ -317,7 +317,7 @@ fun bound_for_sel_rel ctxt debug dtypes
              [ts] |> not exclusive ? cons (KK.TupleSet [])
            else
              [KK.TupleSet [],
-              if (* ### exclusive andalso*) T1 = T2 andalso epsilon > delta then
+              if T1 = T2 andalso epsilon > delta then
                 index_seq delta (epsilon - delta)
                 |> map (fn j =>
                            KK.TupleProduct (KK.TupleSet [Kodkod.Tuple [j + j0]],
@@ -770,45 +770,47 @@ fun nfa_entry_for_datatype _ _ _ _ ({co = true, ...} : dtype_spec) = NONE
 val empty_rel = KK.Product (KK.None, KK.None)
 
 (* nfa_table -> typ -> typ -> KK.rel_expr list *)
-fun direct_path_rel_exprs nfa start final =
-  case AList.lookup (op =) nfa final of
-    SOME trans => map fst (filter (curry (op =) start o snd) trans)
+fun direct_path_rel_exprs nfa start_T final_T =
+  case AList.lookup (op =) nfa final_T of
+    SOME trans => map fst (filter (curry (op =) start_T o snd) trans)
   | NONE => []
 (* kodkod_constrs -> nfa_table -> typ list -> typ -> typ -> KK.rel_expr *)
-and any_path_rel_expr ({kk_union, ...} : kodkod_constrs) nfa [] start final =
-    fold kk_union (direct_path_rel_exprs nfa start final)
-         (if start = final then KK.Iden else empty_rel)
-  | any_path_rel_expr (kk as {kk_union, ...}) nfa (q :: qs) start final =
-    kk_union (any_path_rel_expr kk nfa qs start final)
-             (knot_path_rel_expr kk nfa qs start q final)
+and any_path_rel_expr ({kk_union, ...} : kodkod_constrs) nfa [] start_T
+                      final_T =
+    fold kk_union (direct_path_rel_exprs nfa start_T final_T)
+         (if start_T = final_T then KK.Iden else empty_rel)
+  | any_path_rel_expr (kk as {kk_union, ...}) nfa (T :: Ts) start_T final_T =
+    kk_union (any_path_rel_expr kk nfa Ts start_T final_T)
+             (knot_path_rel_expr kk nfa Ts start_T T final_T)
 (* kodkod_constrs -> nfa_table -> typ list -> typ -> typ -> typ
    -> KK.rel_expr *)
-and knot_path_rel_expr (kk as {kk_join, kk_reflexive_closure, ...}) nfa qs start
-                       knot final =
-  kk_join (kk_join (any_path_rel_expr kk nfa qs knot final)
-                   (kk_reflexive_closure (loop_path_rel_expr kk nfa qs knot)))
-          (any_path_rel_expr kk nfa qs start knot)
+and knot_path_rel_expr (kk as {kk_join, kk_reflexive_closure, ...}) nfa Ts
+                       start_T knot_T final_T =
+  kk_join (kk_join (any_path_rel_expr kk nfa Ts knot_T final_T)
+                   (kk_reflexive_closure (loop_path_rel_expr kk nfa Ts knot_T)))
+          (any_path_rel_expr kk nfa Ts start_T knot_T)
 (* kodkod_constrs -> nfa_table -> typ list -> typ -> KK.rel_expr *)
-and loop_path_rel_expr ({kk_union, ...} : kodkod_constrs) nfa [] start =
-    fold kk_union (direct_path_rel_exprs nfa start start) empty_rel
-  | loop_path_rel_expr (kk as {kk_union, kk_closure, ...}) nfa (q :: qs) start =
-    if start = q then
-      kk_closure (loop_path_rel_expr kk nfa qs start)
+and loop_path_rel_expr ({kk_union, ...} : kodkod_constrs) nfa [] start_T =
+    fold kk_union (direct_path_rel_exprs nfa start_T start_T) empty_rel
+  | loop_path_rel_expr (kk as {kk_union, kk_closure, ...}) nfa (T :: Ts)
+                       start_T =
+    if start_T = T then
+      kk_closure (loop_path_rel_expr kk nfa Ts start_T)
     else
-      kk_union (loop_path_rel_expr kk nfa qs start)
-               (knot_path_rel_expr kk nfa qs start q start)
+      kk_union (loop_path_rel_expr kk nfa Ts start_T)
+               (knot_path_rel_expr kk nfa Ts start_T T start_T)
 
 (* nfa_table -> unit NfaGraph.T *)
 fun graph_for_nfa nfa =
   let
     (* typ -> unit NfaGraph.T -> unit NfaGraph.T *)
-    fun new_node q = perhaps (try (NfaGraph.new_node (q, ())))
+    fun new_node T = perhaps (try (NfaGraph.new_node (T, ())))
     (* nfa_table -> unit NfaGraph.T -> unit NfaGraph.T *)
     fun add_nfa [] = I
       | add_nfa ((_, []) :: nfa) = add_nfa nfa
-      | add_nfa ((q, ((_, q') :: transitions)) :: nfa) =
-        add_nfa ((q, transitions) :: nfa) o NfaGraph.add_edge (q, q') o
-        new_node q' o new_node q
+      | add_nfa ((T, ((_, T') :: transitions)) :: nfa) =
+        add_nfa ((T, transitions) :: nfa) o NfaGraph.add_edge (T, T') o
+        new_node T' o new_node T
   in add_nfa nfa NfaGraph.empty end
 
 (* nfa_table -> nfa_table list *)
@@ -816,17 +818,17 @@ fun strongly_connected_sub_nfas nfa =
   nfa |> graph_for_nfa |> NfaGraph.strong_conn
       |> map (fn keys => filter (member (op =) keys o fst) nfa)
 
-(* dtype_spec list -> kodkod_constrs -> nfa_table -> typ -> KK.formula *)
-fun acyclicity_axiom_for_datatype dtypes kk nfa start =
+(* kodkod_constrs -> dtype_spec list -> nfa_table -> typ -> KK.formula *)
+fun acyclicity_axiom_for_datatype kk dtypes nfa start_T =
   #kk_no kk (#kk_intersect kk
-                 (loop_path_rel_expr kk nfa (map fst nfa) start) KK.Iden)
+                 (loop_path_rel_expr kk nfa (map fst nfa) start_T) KK.Iden)
 (* hol_context -> kodkod_constrs -> nut NameTable.table -> dtype_spec list
    -> KK.formula list *)
 fun acyclicity_axioms_for_datatypes hol_ctxt kk rel_table dtypes =
   map_filter (nfa_entry_for_datatype hol_ctxt kk rel_table dtypes) dtypes
   |> strongly_connected_sub_nfas
-  |> maps (fn nfa => map (acyclicity_axiom_for_datatype dtypes kk nfa o fst)
-                         nfa)
+  |> maps (fn nfa =>
+              map (acyclicity_axiom_for_datatype kk dtypes nfa o fst) nfa)
 
 (* hol_context -> int -> kodkod_constrs -> nut NameTable.table -> KK.rel_expr
    -> constr_spec -> int -> KK.formula *)

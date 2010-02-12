@@ -844,7 +844,7 @@ fun uncached_datatype_constrs ({thy, stds, ...} : hol_context)
                      (s', map (Refute.typ_of_dtyp descr (dtyps ~~ Ts)) Us
                           ---> T)) constrs
              |> (triple_lookup (type_match thy) stds T |> the |> not) ?
-                cons (@{const_name NonStd}, @{typ \<xi>} --> T)
+                cons (@{const_name Silly}, @{typ \<xi>} --> T)
            end
          | NONE =>
            if is_record_type T then
@@ -1393,7 +1393,7 @@ fun add_constr_case (hol_ctxt as {thy, ...}) res_T (j, x) res_t =
 fun optimized_case_def (hol_ctxt as {thy, ...}) dataT res_T =
   let
     val xs = datatype_constrs hol_ctxt dataT
-    val xs' = filter_out (fn (s, _) => s = @{const_name NonStd}) xs
+    val xs' = filter_out (curry (op =) @{const_name Silly} o fst) xs
     val func_Ts = map ((fn T => binder_types T ---> res_T) o snd) xs'
   in
     (if length xs = length xs' then

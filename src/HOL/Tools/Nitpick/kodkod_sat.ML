@@ -9,7 +9,7 @@ signature KODKOD_SAT =
 sig
   val configured_sat_solvers : bool -> string list
   val smart_sat_solver_name : bool -> string
-  val sat_solver_spec : bool -> string -> string * string list
+  val sat_solver_spec : string -> string * string list
 end;
 
 structure Kodkod_SAT : KODKOD_SAT =
@@ -51,15 +51,15 @@ val static_list =
    ("HaifaSat", ExternalV2 (ToStdout, "HAIFASAT_HOME", "HaifaSat", ["-p", "1"],
                             "s SATISFIABLE", "v ", "s UNSATISFIABLE"))]
 
-(* bool -> string -> sink -> string -> string -> string list -> string list
+(* string -> sink -> string -> string -> string list -> string list
    -> (string * (unit -> string list)) option *)
-fun dynamic_entry_for_external overlord name dev home exec args markers =
+fun dynamic_entry_for_external name dev home exec args markers =
   case getenv home of
     "" => NONE
   | dir =>
     SOME (name, fn () =>
                    let
-                     val serial_str = if overlord then "" else serial_string ()
+                     val serial_str = serial_string ()
                      val base = name ^ serial_str
                      val out_file = base ^ ".out"
                      val dir_sep =
@@ -76,9 +76,9 @@ fun dynamic_entry_for_external overlord name dev home exec args markers =
                    end)
 (* bool -> bool -> string * sat_solver_info
    -> (string * (unit -> string list)) option *)
-fun dynamic_entry_for_info _ incremental (name, Internal (Java, mode, ss)) =
+fun dynamic_entry_for_info incremental (name, Internal (Java, mode, ss)) =
     if incremental andalso mode = Batch then NONE else SOME (name, K ss)
-  | dynamic_entry_for_info _ incremental (name, Internal (JNI, mode, ss)) =
+  | dynamic_entry_for_info incremental (name, Internal (JNI, mode, ss)) =
     if incremental andalso mode = Batch then
       NONE
     else
@@ -92,26 +92,25 @@ fun dynamic_entry_for_info _ incremental (name, Internal (Java, mode, ss)) =
         else
           NONE
       end
-  | dynamic_entry_for_info overlord false
-    (name, External (dev, home, exec, args)) =
-    dynamic_entry_for_external overlord name dev home exec args []
-  | dynamic_entry_for_info overlord false
+  | dynamic_entry_for_info false (name, External (dev, home, exec, args)) =
+    dynamic_entry_for_external name dev home exec args []
+  | dynamic_entry_for_info false
         (name, ExternalV2 (dev, home, exec, args, m1, m2, m3)) =
-    dynamic_entry_for_external overlord name dev home exec args [m1, m2, m3]
-  | dynamic_entry_for_info _ true _ = NONE
-(* bool -> bool -> (string * (unit -> string list)) list *)
-fun dynamic_list overlord incremental =
-  map_filter (dynamic_entry_for_info overlord incremental) static_list
+    dynamic_entry_for_external name dev home exec args [m1, m2, m3]
+  | dynamic_entry_for_info true _ = NONE
+(* bool -> (string * (unit -> string list)) list *)
+fun dynamic_list incremental =
+  map_filter (dynamic_entry_for_info incremental) static_list
 
 (* bool -> string list *)
-val configured_sat_solvers = map fst o dynamic_list false
+val configured_sat_solvers = map fst o dynamic_list
 (* bool -> string *)
-val smart_sat_solver_name = fst o hd o dynamic_list false
+val smart_sat_solver_name = fst o hd o dynamic_list
 
-(* bool -> string -> string * string list *)
-fun sat_solver_spec overlord name =
+(* string -> string * string list *)
+fun sat_solver_spec name =
   let
-    val dyn_list = dynamic_list overlord false
+    val dyn_list = dynamic_list false
     (* (string * 'a) list -> string *)
     fun enum_solvers solvers =
       commas (distinct (op =) (map (quote o fst) solvers))

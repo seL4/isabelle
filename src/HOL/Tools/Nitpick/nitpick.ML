@@ -398,7 +398,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val _ = if standard andalso not (null induct_dataTs) then
               pprint_m (fn () => Pretty.blk (0,
                   pstrs "Hint: To check that the induction hypothesis is \
-                        \general enough, try the following command: " @
+                        \general enough, try this command: " @
                   [Pretty.mark Markup.sendback (Pretty.blk (0,
                        pstrs ("nitpick [" ^
                               commas (map (prefix "non_std " o maybe_quote
@@ -504,7 +504,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         val comment = (if liberal then "liberal" else "conservative") ^ "\n" ^
                       PrintMode.setmp [] multiline_string_for_scope scope
         val kodkod_sat_solver =
-          Kodkod_SAT.sat_solver_spec overlord effective_sat_solver |> snd
+          Kodkod_SAT.sat_solver_spec effective_sat_solver |> snd
         val bit_width = if bits = 0 then 16 else bits + 1
         val delay = if liberal then
                       Option.map (fn time => Time.- (time, Time.now ()))
