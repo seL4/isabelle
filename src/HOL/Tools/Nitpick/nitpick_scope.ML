@@ -162,7 +162,7 @@ fun quintuple_for_scope quote ({hol_ctxt as {thy, ctxt, ...}, card_assigns,
     fun miscs () =
       (if bits = 0 then [] else ["bits = " ^ string_of_int bits]) @
       (if bisim_depth < 0 andalso forall (not o #co) datatypes then []
-       else ["bisim_depth = " ^ string_of_int bisim_depth])
+       else ["bisim_depth = " ^ signed_string_of_int bisim_depth])
   in
     setmp_show_all_types
         (fn () => (cards primary_card_assigns, cards secondary_card_assigns,

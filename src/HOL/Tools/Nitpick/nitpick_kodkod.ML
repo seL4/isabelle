@@ -317,7 +317,8 @@ fun bound_for_sel_rel ctxt debug dtypes
              [ts] |> not exclusive ? cons (KK.TupleSet [])
            else
              [KK.TupleSet [],
-              if T1 = T2 andalso epsilon > delta then
+              if T1 = T2 andalso epsilon > delta andalso
+                 not (datatype_spec dtypes T1 |> the |> #co) then
                 index_seq delta (epsilon - delta)
                 |> map (fn j =>
                            KK.TupleProduct (KK.TupleSet [Kodkod.Tuple [j + j0]],
@@ -833,7 +834,7 @@ fun acyclicity_axioms_for_datatypes hol_ctxt kk rel_table dtypes =
 (* hol_context -> int -> kodkod_constrs -> nut NameTable.table -> KK.rel_expr
    -> constr_spec -> int -> KK.formula *)
 fun sel_axiom_for_sel hol_ctxt j0
-        (kk as {kk_all, kk_implies, kk_formula_if, kk_subset, kk_rel_eq, kk_no,
+        (kk as {kk_all, kk_formula_if, kk_implies, kk_subset, kk_rel_eq, kk_no,
                 kk_join, ...}) rel_table dom_r
         ({const, delta, epsilon, exclusive, explicit_max, ...} : constr_spec)
         n =
@@ -864,19 +865,19 @@ fun sel_axioms_for_constr hol_ctxt bits j0 kk rel_table
       [formula_for_bool honors_explicit_max]
     else
       let
-        val ran_r = discr_rel_expr rel_table const
+        val dom_r = discr_rel_expr rel_table const
         val max_axiom =
           if honors_explicit_max then
             KK.True
           else if is_twos_complement_representable bits (epsilon - delta) then
-            KK.LE (KK.Cardinality ran_r, KK.Num explicit_max)
+            KK.LE (KK.Cardinality dom_r, KK.Num explicit_max)
           else
             raise TOO_SMALL ("Nitpick_Kodkod.sel_axioms_for_constr",
                              "\"bits\" value " ^ string_of_int bits ^
                              " too small for \"max\"")
       in
         max_axiom ::
-        map (sel_axiom_for_sel hol_ctxt j0 kk rel_table ran_r constr)
+        map (sel_axiom_for_sel hol_ctxt j0 kk rel_table dom_r constr)
             (index_seq 0 (num_sels_for_constr_type (snd const)))
       end
   end
