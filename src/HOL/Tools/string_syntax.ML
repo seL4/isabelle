@@ -9,7 +9,7 @@ sig
   val setup: theory -> theory
 end;
 
-structure StringSyntax: STRING_SYNTAX =
+structure String_Syntax: STRING_SYNTAX =
 struct
 
 
@@ -19,7 +19,7 @@ val nib_prefix = "String.nibble.";
 
 val mk_nib =
   Syntax.Constant o unprefix nib_prefix o
-  fst o Term.dest_Const o HOLogic.mk_nibble;
+    fst o Term.dest_Const o HOLogic.mk_nibble;
 
 fun dest_nib (Syntax.Constant c) =
   HOLogic.dest_nibble (Const (nib_prefix ^ c, dummyT))

@@ -8,7 +8,7 @@ sig
   val setup: theory -> theory
 end;
 
-structure FloatSyntax: FLOAT_SYNTAX =
+structure Float_Syntax: FLOAT_SYNTAX =
 struct
 
 (* parse translation *)

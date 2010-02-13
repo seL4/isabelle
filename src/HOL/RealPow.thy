@@ -186,7 +186,7 @@ subsection{* Float syntax *}
 syntax "_Float" :: "float_const \<Rightarrow> 'a"    ("_")
 
 use "Tools/float_syntax.ML"
-setup FloatSyntax.setup
+setup Float_Syntax.setup
 
 text{* Test: *}
 lemma "123.456 = -111.111 + 200 + 30 + 4 + 5/10 + 6/100 + (7/1000::real)"

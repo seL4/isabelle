@@ -105,7 +105,7 @@ syntax
   "_Int"    :: "xnum => i"        ("_")
 
 use "Tools/numeral_syntax.ML"
-setup NumeralSyntax.setup
+setup Numeral_Syntax.setup
 
 
 declare bin.intros [simp,TC]

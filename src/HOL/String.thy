@@ -79,7 +79,7 @@ syntax
   "_String" :: "xstr => string"    ("_")
 
 use "Tools/string_syntax.ML"
-setup StringSyntax.setup
+setup String_Syntax.setup
 
 definition chars :: string where
   "chars = [Char Nibble0 Nibble0, Char Nibble0 Nibble1, Char Nibble0 Nibble2,

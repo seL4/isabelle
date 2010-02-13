@@ -9,7 +9,7 @@ sig
   val setup: theory -> theory
 end;
 
-structure NumeralSyntax: NUMERAL_SYNTAX =
+structure Numeral_Syntax: NUMERAL_SYNTAX =
 struct
 
 (* parse translation *)

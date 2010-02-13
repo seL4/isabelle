@@ -22,7 +22,7 @@ fun mk_bin i =
     fun term_of [] = @{term Pls}
       | term_of [~1] = @{term Min}
       | term_of (b :: bs) = @{term Bit} $ term_of bs $ mk_bit b;
-  in term_of (NumeralSyntax.make_binary i) end;
+  in term_of (Numeral_Syntax.make_binary i) end;
 
 fun dest_bin tm =
   let
@@ -30,7 +30,7 @@ fun dest_bin tm =
       | bin_of @{term Min} = [~1]
       | bin_of (@{term Bit} $ bs $ b) = dest_bit b :: bin_of bs
       | bin_of _ = sys_error "dest_bin";
-  in NumeralSyntax.dest_binary (bin_of tm) end;
+  in Numeral_Syntax.dest_binary (bin_of tm) end;
 
 
 (*Utilities*)
