@@ -42,7 +42,7 @@ fun ty_info tab sT =
       let
         val (_, (tname, dts, constrs)) = nth descr index;
         val mk_ty = Datatype_Aux.typ_of_dtyp descr sorts;
-        val T = Type (tname, map mk_ty dts)
+        val T = Type (tname, map mk_ty dts);
       in
         SOME {case_name = case_name,
           constructors = map (fn (cname, dts') =>
@@ -70,12 +70,13 @@ fun add_row_used ((prfx, pats), (tm, tag)) =
 fun default_names names ts =
   map (fn ("", Free (name', _)) => name' | (name, _) => name) (names ~~ ts);
 
-fun strip_constraints (Const ("_constrain", _) $ t $ tT) =
+fun strip_constraints (Const (@{syntax_const "_constrain"}, _) $ t $ tT) =
       strip_constraints t ||> cons tT
   | strip_constraints t = (t, []);
 
-fun mk_fun_constrain tT t = Syntax.const "_constrain" $ t $
-  (Syntax.free "fun" $ tT $ Syntax.free "dummy");
+fun mk_fun_constrain tT t =
+  Syntax.const @{syntax_const "_constrain"} $ t $
+    (Syntax.free "fun" $ tT $ Syntax.free "dummy");    (* FIXME @{type_syntax} (!?) *)
 
 
 (*---------------------------------------------------------------------------
@@ -145,7 +146,7 @@ fun partition _ _ _ _ _ _ _ [] = raise CASE_ERROR ("partition: no rows", ~1)
                         (replicate (length rstp) "x")
                     in
                       [((prfx, gvars @ map Free (xs ~~ Ts)),
-                        (Const ("HOL.undefined", res_ty), (~1, false)))]
+                        (Const (@{const_name HOL.undefined}, res_ty), (~1, false)))]
                     end
                   else in_group
               in
@@ -265,12 +266,13 @@ fun no_repeat_vars ctxt pat = fold_aterms
 
 fun gen_make_case ty_match ty_inst type_of tab ctxt config used x clauses =
   let
-    fun string_of_clause (pat, rhs) = Syntax.string_of_term ctxt
-      (Syntax.const "_case1" $ pat $ rhs);
+    fun string_of_clause (pat, rhs) =
+      Syntax.string_of_term ctxt (Syntax.const @{syntax_const "_case1"} $ pat $ rhs);
     val _ = map (no_repeat_vars ctxt o fst) clauses;
     val rows = map_index (fn (i, (pat, rhs)) =>
       (([], [pat]), (rhs, (i, true)))) clauses;
-    val rangeT = (case distinct op = (map (type_of o snd) clauses) of
+    val rangeT =
+      (case distinct op = (map (type_of o snd) clauses) of
         [] => case_error "no clauses given"
       | [T] => T
       | _ => case_error "all cases must have the same result type");
@@ -283,14 +285,16 @@ fun gen_make_case ty_match ty_inst type_of tab ctxt config used x clauses =
     val patts1 = map
       (fn (_, tag, [pat]) => (pat, tag)
         | _ => case_error "error in pattern-match translation") patts;
-    val patts2 = Library.sort (Library.int_ord o Library.pairself row_of_pat) patts1
+    val patts2 = Library.sort (int_ord o pairself row_of_pat) patts1
     val finals = map row_of_pat patts2
     val originals = map (row_of_pat o #2) rows
-    val _ = case subtract (op =) finals originals of
-        [] => ()
-        | is => (case config of Error => case_error | Warning => warning | Quiet => fn _ => {})
-          ("The following clauses are redundant (covered by preceding clauses):\n" ^
-           cat_lines (map (string_of_clause o nth clauses) is));
+    val _ =
+        case subtract (op =) finals originals of
+          [] => ()
+        | is =>
+            (case config of Error => case_error | Warning => warning | Quiet => fn _ => {})
+              ("The following clauses are redundant (covered by preceding clauses):\n" ^
+               cat_lines (map (string_of_clause o nth clauses) is));
   in
     (case_tm, patts2)
   end;
@@ -308,10 +312,10 @@ fun case_tr err tab_of ctxt [t, u] =
       val thy = ProofContext.theory_of ctxt;
       (* replace occurrences of dummy_pattern by distinct variables *)
       (* internalize constant names                                 *)
-      fun prep_pat ((c as Const ("_constrain", _)) $ t $ tT) used =
+      fun prep_pat ((c as Const (@{syntax_const "_constrain"}, _)) $ t $ tT) used =
             let val (t', used') = prep_pat t used
             in (c $ t' $ tT, used') end
-        | prep_pat (Const ("dummy_pattern", T)) used =
+        | prep_pat (Const (@{const_name dummy_pattern}, T)) used =
             let val x = Name.variant used "x"
             in (Free (x, T), x :: used) end
         | prep_pat (Const (s, T)) used =
@@ -333,17 +337,17 @@ fun case_tr err tab_of ctxt [t, u] =
               (t' $ u', used'')
             end
         | prep_pat t used = case_error ("Bad pattern: " ^ Syntax.string_of_term ctxt t);
-      fun dest_case1 (t as Const ("_case1", _) $ l $ r) =
+      fun dest_case1 (t as Const (@{syntax_const "_case1"}, _) $ l $ r) =
             let val (l', cnstrts) = strip_constraints l
             in ((fst (prep_pat l' (Term.add_free_names t [])), r), cnstrts)
             end
         | dest_case1 t = case_error "dest_case1";
-      fun dest_case2 (Const ("_case2", _) $ t $ u) = t :: dest_case2 u
+      fun dest_case2 (Const (@{syntax_const "_case2"}, _) $ t $ u) = t :: dest_case2 u
         | dest_case2 t = [t];
       val (cases, cnstrts) = split_list (map dest_case1 (dest_case2 u));
       val (case_tm, _) = make_case_untyped (tab_of thy) ctxt
         (if err then Error else Warning) []
-        (fold (fn tT => fn t => Syntax.const "_constrain" $ t $ tT)
+        (fold (fn tT => fn t => Syntax.const @{syntax_const "_constrain"} $ t $ tT)
            (flat cnstrts) t) cases;
     in case_tm end
   | case_tr _ _ _ ts = case_error "case_tr";
@@ -377,7 +381,7 @@ fun gen_dest_case name_of type_of tab d used t =
         fun count_cases (_, _, true) = I
           | count_cases (c, (_, body), false) =
               AList.map_default op aconv (body, []) (cons c);
-        val is_undefined = name_of #> equal (SOME "HOL.undefined");
+        val is_undefined = name_of #> equal (SOME @{const_name HOL.undefined});
         fun mk_case (c, (xs, body), _) = (list_comb (c, xs), body)
       in case ty_info tab cname of
           SOME {constructors, case_name} =>
@@ -394,7 +398,8 @@ fun gen_dest_case name_of type_of tab d used t =
                 val cases' = sort (int_ord o swap o pairself (length o snd))
                   (fold_rev count_cases cases []);
                 val R = type_of t;
-                val dummy = if d then Const ("dummy_pattern", R)
+                val dummy =
+                  if d then Const (@{const_name dummy_pattern}, R)
                   else Free (Name.variant used "x", R)
               in
                 SOME (x, map mk_case (case find_first (is_undefined o fst) cases' of
@@ -435,7 +440,8 @@ fun strip_case'' dest (pat, rhs) =
       else [(pat, rhs)]
   | _ => [(pat, rhs)];
 
-fun gen_strip_case dest t = case dest [] t of
+fun gen_strip_case dest t =
+  case dest [] t of
     SOME (x, clauses) =>
       SOME (x, maps (strip_case'' dest) clauses)
   | NONE => NONE;
@@ -453,7 +459,7 @@ fun case_tr' tab_of cname ctxt ts =
     fun mk_clause (pat, rhs) =
       let val xs = Term.add_frees pat []
       in
-        Syntax.const "_case1" $
+        Syntax.const @{syntax_const "_case1"} $
           map_aterms
             (fn Free p => Syntax.mark_boundT p
               | Const (s, _) => Const (Consts.extern_early consts s, dummyT)
@@ -463,10 +469,12 @@ fun case_tr' tab_of cname ctxt ts =
                   if member (op =) xs (s, T) then Syntax.mark_bound s else x
               | t => t) rhs
       end
-  in case strip_case' (tab_of thy) true (list_comb (Syntax.const cname, ts)) of
-      SOME (x, clauses) => Syntax.const "_case_syntax" $ x $
-        foldr1 (fn (t, u) => Syntax.const "_case2" $ t $ u)
-          (map mk_clause clauses)
+  in
+    case strip_case' (tab_of thy) true (list_comb (Syntax.const cname, ts)) of
+      SOME (x, clauses) =>
+        Syntax.const @{syntax_const "_case_syntax"} $ x $
+          foldr1 (fn (t, u) => Syntax.const @{syntax_const "_case2"} $ t $ u)
+            (map mk_clause clauses)
     | NONE => raise Match
   end;
 
