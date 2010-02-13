@@ -1331,7 +1331,7 @@ finds the counterexample $n = 2$. We generalize the lemma further to
 and this time \textit{arith} can finish off the subgoals.
 
 A similar technique can be employed for structural induction. The
-following mini-formalization of full binary trees will serve as illustration:
+following mini formalization of full binary trees will serve as illustration:
 
 \prew
 \textbf{datatype} $\kern1pt'a$~\textit{bin\_tree} = $\textit{Leaf}~{\kern1pt'a}$ $\mid$ $\textit{Branch}$ ``\kern1pt$'a$ \textit{bin\_tree}'' ``\kern1pt$'a$ \textit{bin\_tree}'' \\[2\smallskipamount]
@@ -1350,8 +1350,7 @@ labels $a$ and $b$ occur in a tree $t$, they should also occur in the tree
 obtained by swapping $a$ and $b$:
 
 \prew
-\textbf{lemma} $``\lbrakk a \in \textit{labels}~t;\, b \in \textit{labels}~t;\, a \not= b\rbrakk {}$ \\
-\phantom{\textbf{lemma} ``}$\,{\Longrightarrow}{\;\,} \textit{labels}~(\textit{swap}~t~a~b) = \textit{labels}~t$''
+\textbf{lemma} $``\{a, b\} \subseteq \textit{labels}~t \,\Longrightarrow\, \textit{labels}~(\textit{swap}~t~a~b) = \textit{labels}~t$''
 \postw
 
 Nitpick can't find any counterexample, so we proceed with induction
@@ -1370,29 +1369,29 @@ following suggestion:
 \prew
 \slshape
 Hint: To check that the induction hypothesis is general enough, try this command:
-\textbf{nitpick}~[\textit{non\_std} ``${\kern1pt'a}~\textit{bin\_tree}$'', \textit{show\_consts}].
+\textbf{nitpick}~[\textit{non\_std} ``${\kern1pt'a}~\textit{bin\_tree}$'', \textit{show\_all}].
 \postw
 
 If we follow the hint, we get a ``nonstandard'' counterexample for the step:
 
 \prew
-\slshape Nitpick found a nonstandard counterexample for \textit{card} $'a$ = 4: \\[2\smallskipamount]
+\slshape Nitpick found a nonstandard counterexample for \textit{card} $'a$ = 3: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
 \hbox{}\qquad\qquad $a = a_1$ \\
 \hbox{}\qquad\qquad $b = a_2$ \\
 \hbox{}\qquad\qquad $t = \xi_1$ \\
 \hbox{}\qquad\qquad $u = \xi_2$ \\
+\hbox{}\qquad Datatype: \nopagebreak \\
+\hbox{}\qquad\qquad $\alpha~\textit{btree} = \{\xi_1 \mathbin{=} \textit{Branch}~\xi_1~\xi_1,\> \xi_2 \mathbin{=} \textit{Branch}~\xi_2~\xi_2,\> \textit{Branch}~\xi_1~\xi_2\}$ \\
 \hbox{}\qquad {\slshape Constants:} \nopagebreak \\
 \hbox{}\qquad\qquad $\textit{labels} = \undef
     (\!\begin{aligned}[t]%
-    & \xi_1 := \{a_1, a_4, a_3^\Q\},\> \xi_2 := \{a_2, a_3^\Q\}, \\[-2pt] %% TYPESETTING
-    & \textit{Branch}~\xi_1~\xi_2 := \{a_1, a_2, a_4, a_3^\Q\}, \\[-2pt]
-    & \textit{Branch}~\xi_2~\xi_2 := \{a_2, a_3^\Q\})\end{aligned}$ \\
+    & \xi_1 := \{a_2, a_3\},\> \xi_2 := \{a_1\},\> \\[-2pt]
+    & \textit{Branch}~\xi_1~\xi_2 := \{a_1, a_2, a_3\})\end{aligned}$ \\
 \hbox{}\qquad\qquad $\lambda x_1.\> \textit{swap}~x_1~a~b = \undef
     (\!\begin{aligned}[t]%
     & \xi_1 := \xi_2,\> \xi_2 := \xi_2, \\[-2pt]
-    & \textit{Branch}~\xi_1~\xi_2 := \textit{Branch}~\xi_2~\xi_2, \\[-2pt]
-    & \textit{Branch}~\xi_2~\xi_2 := \textit{Branch}~\xi_2~\xi_2)\end{aligned}$ \\[2\smallskipamount]
+    & \textit{Branch}~\xi_1~\xi_2 := \xi_2)\end{aligned}$ \\[2\smallskipamount]
 The existence of a nonstandard model suggests that the induction hypothesis is not general enough or perhaps
 even wrong. See the ``Inductive Properties'' section of the Nitpick manual for details (``\textit{isabelle doc nitpick}'').
 \postw
@@ -1408,9 +1407,9 @@ allowing unreachable states in the preceding example (by removing the ``$n \in
 \textit{reach\/}$'' assumption). In both cases, we effectively enlarge the
 set of objects over which the induction is performed while doing the step
 in order to test the induction hypothesis's strength.}
-The new trees are so nonstandard that we know nothing about them, except what
-the induction hypothesis states and what can be proved about all trees without
-relying on induction or case distinction. The key observation is,
+Unlike standard trees, these new trees contain cycles. We will see later that
+every property of acyclic trees that can be proved without using induction also
+holds for cyclic trees. Hence,
 %
 \begin{quote}
 \textsl{If the induction
@@ -1418,9 +1417,9 @@ hypothesis is strong enough, the induction step will hold even for nonstandard
 objects, and Nitpick won't find any nonstandard counterexample.}
 \end{quote}
 %
-But here, Nitpick did find some nonstandard trees $t = \xi_1$
-and $u = \xi_2$ such that $a \in \textit{labels}~t$, $b \notin
-\textit{labels}~t$, $a \notin \textit{labels}~u$, and $b \in \textit{labels}~u$.
+But here the tool find some nonstandard trees $t = \xi_1$
+and $u = \xi_2$ such that $a \notin \textit{labels}~t$, $b \in
+\textit{labels}~t$, $a \in \textit{labels}~u$, and $b \notin \textit{labels}~u$.
 Because neither tree contains both $a$ and $b$, the induction hypothesis tells
 us nothing about the labels of $\textit{swap}~t~a~b$ and $\textit{swap}~u~a~b$,
 and as a result we know nothing about the labels of the tree
