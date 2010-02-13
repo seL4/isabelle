@@ -318,7 +318,8 @@ fun bound_for_sel_rel ctxt debug dtypes
            else
              [KK.TupleSet [],
               if T1 = T2 andalso epsilon > delta andalso
-                 not (datatype_spec dtypes T1 |> the |> #co) then
+                 (datatype_spec dtypes T1 |> the |> pairf #co #standard)
+                 = (false, true) then
                 index_seq delta (epsilon - delta)
                 |> map (fn j =>
                            KK.TupleProduct (KK.TupleSet [Kodkod.Tuple [j + j0]],
@@ -763,6 +764,7 @@ fun nfa_transitions_for_constr hol_ctxt kk rel_table dtypes (x as (_, T)) =
 (* hol_context -> kodkod_constrs -> nut NameTable.table -> dtype_spec list
    -> dtype_spec -> nfa_entry option *)
 fun nfa_entry_for_datatype _ _ _ _ ({co = true, ...} : dtype_spec) = NONE
+  | nfa_entry_for_datatype _ _ _ _ {standard = false, ...} = NONE
   | nfa_entry_for_datatype _ _ _ _ {deep = false, ...} = NONE
   | nfa_entry_for_datatype hol_ctxt kk rel_table dtypes {typ, constrs, ...} =
     SOME (typ, maps (nfa_transitions_for_constr hol_ctxt kk rel_table dtypes

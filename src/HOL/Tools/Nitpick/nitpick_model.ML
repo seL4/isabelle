@@ -53,6 +53,8 @@ val maybe_mixfix = "_\<^sup>?"
 val base_mixfix = "_\<^bsub>base\<^esub>"
 val step_mixfix = "_\<^bsub>step\<^esub>"
 val abs_mixfix = "\<guillemotleft>_\<guillemotright>"
+val cyclic_co_val_name = "\<omega>"
+val cyclic_non_std_type_name = "\<xi>"
 val opt_flag = nitpick_prefix ^ "opt"
 val non_opt_flag = nitpick_prefix ^ "non_opt"
 
@@ -397,7 +399,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
         else case datatype_spec datatypes T of
           NONE => nth_atom pool for_auto T j k
         | SOME {deep = false, ...} => nth_atom pool for_auto T j k
-        | SOME {co, constrs, ...} =>
+        | SOME {co, standard, constrs, ...} =>
           let
             (* styp -> int list *)
             fun tuples_for_const (s, T) =
@@ -428,8 +430,9 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
               map (map_filter (fn js => if hd js = real_j then SOME (tl js)
                                         else NONE)) sel_jsss
             val uncur_arg_Ts = binder_types constr_T
+            val maybe_cyclic = co orelse not standard
           in
-            if co andalso member (op =) seen (T, j) then
+            if maybe_cyclic andalso member (op =) seen (T, j) then
               Var (var ())
             else if constr_s = @{const_name Word} then
               HOLogic.mk_number
@@ -437,7 +440,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
                   (value_of_bits (the_single arg_jsss))
             else
               let
-                val seen = seen |> co ? cons (T, j)
+                val seen = seen |> maybe_cyclic ? cons (T, j)
                 val ts =
                   if length arg_Ts = 0 then
                     []
@@ -469,19 +472,20 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
                           (is_abs_fun thy constr_x orelse
                            constr_s = @{const_name Quot}) then
                     Const (abs_name, constr_T) $ the_single ts
-                  else if not for_auto andalso
-                          constr_s = @{const_name Silly} then
-                    Const (fst (dest_Const (the_single ts)), T)
                   else
                     list_comb (Const constr_x, ts)
               in
-                if co then
+                if maybe_cyclic then
                   let val var = var () in
                     if exists_subterm (curry (op =) (Var var)) t then
-                      Const (@{const_name The}, (T --> bool_T) --> T)
-                      $ Abs ("\<omega>", T,
-                             Const (@{const_name "op ="}, T --> T --> bool_T)
-                             $ Bound 0 $ abstract_over (Var var, t))
+                      if co then
+                        Const (@{const_name The}, (T --> bool_T) --> T)
+                        $ Abs (cyclic_co_val_name, T,
+                               Const (@{const_name "op ="}, T --> T --> bool_T)
+                               $ Bound 0 $ abstract_over (Var var, t))
+                      else
+                        nth_atom pool for_auto
+                                 (Type (cyclic_non_std_type_name, [])) j k
                     else
                       t
                   end
@@ -682,7 +686,8 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
     (* typ -> dtype_spec list *)
     fun integer_datatype T =
       [{typ = T, card = card_of_type card_assigns T, co = false,
-        complete = false, concrete = true, deep = true, constrs = []}]
+        standard = true, complete = false, concrete = true, deep = true,
+        constrs = []}]
       handle TYPE ("Nitpick_HOL.card_of_type", _, _) => []
     val (codatatypes, datatypes) =
       datatypes |> filter #deep |> List.partition #co

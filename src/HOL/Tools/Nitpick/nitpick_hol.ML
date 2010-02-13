@@ -97,6 +97,7 @@ sig
   val dest_n_tuple : int -> term -> term list
   val instantiate_type : theory -> typ -> typ -> typ -> typ
   val is_real_datatype : theory -> string -> bool
+  val is_standard_datatype : hol_context -> typ -> bool
   val is_quot_type : theory -> typ -> bool
   val is_codatatype : theory -> typ -> bool
   val is_pure_typedef : theory -> typ -> bool
@@ -574,6 +575,10 @@ fun typedef_info thy s =
 (* theory -> string -> bool *)
 val is_typedef = is_some oo typedef_info
 val is_real_datatype = is_some oo Datatype.get_info
+(* hol_context -> typ -> bool *)
+fun is_standard_datatype ({thy, stds, ...} : hol_context) =
+  the o triple_lookup (type_match thy) stds
+
 (* theory -> typ -> bool *)
 fun is_quot_type _ (Type ("IntEx.my_int", _)) = true (* FIXME *)
   | is_quot_type _ (Type ("FSet.fset", _)) = true
@@ -828,9 +833,8 @@ fun distinctness_formula T =
 fun zero_const T = Const (@{const_name zero_nat_inst.zero_nat}, T)
 fun suc_const T = Const (@{const_name Suc}, T --> T)
 
-(* hol_context -> typ -> styp list *)
-fun uncached_datatype_constrs ({thy, stds, ...} : hol_context)
-                              (T as Type (s, Ts)) =
+(* theory -> typ -> styp list *)
+fun uncached_datatype_constrs thy (T as Type (s, Ts)) =
     (case AList.lookup (op =) (#codatatypes (Data.get thy)) s of
        SOME (_, xs' as (_ :: _)) => map (apsnd (repair_constr_type thy T)) xs'
      | _ =>
@@ -843,8 +847,6 @@ fun uncached_datatype_constrs ({thy, stds, ...} : hol_context)
              map (fn (s', Us) =>
                      (s', map (Refute.typ_of_dtyp descr (dtyps ~~ Ts)) Us
                           ---> T)) constrs
-             |> (triple_lookup (type_match thy) stds T |> the |> not) ?
-                cons (@{const_name Silly}, @{typ \<xi>} --> T)
            end
          | NONE =>
            if is_record_type T then
@@ -867,11 +869,11 @@ fun uncached_datatype_constrs ({thy, stds, ...} : hol_context)
          [])
   | uncached_datatype_constrs _ _ = []
 (* hol_context -> typ -> styp list *)
-fun datatype_constrs (hol_ctxt as {constr_cache, ...}) T =
+fun datatype_constrs ({thy, constr_cache, ...} : hol_context) T =
   case AList.lookup (op =) (!constr_cache) T of
     SOME xs => xs
   | NONE =>
-    let val xs = uncached_datatype_constrs hol_ctxt T in
+    let val xs = uncached_datatype_constrs thy T in
       (Unsynchronized.change constr_cache (cons (T, xs)); xs)
     end
 fun boxed_datatype_constrs hol_ctxt =
@@ -957,10 +959,6 @@ fun construct_value _ x [] = Const x
       | _ => list_comb (Const x, args)
     end
 
-(* The higher this number is, the more nonstandard models can be generated. It's
-   not important enough to be a user option, though. *)
-val xi_card = 8
-
 (* (typ * int) list -> typ -> int *)
 fun card_of_type assigns (Type ("fun", [T1, T2])) =
     reasonable_power (card_of_type assigns T2) (card_of_type assigns T1)
@@ -970,7 +968,6 @@ fun card_of_type assigns (Type ("fun", [T1, T2])) =
   | card_of_type _ @{typ prop} = 2
   | card_of_type _ @{typ bool} = 2
   | card_of_type _ @{typ unit} = 1
-  | card_of_type _ @{typ \<xi>} = xi_card
   | card_of_type assigns T =
     case AList.lookup (op =) assigns T of
       SOME k => k
@@ -1027,7 +1024,6 @@ fun bounded_exact_card_of_type hol_ctxt max default_card assigns T =
        | @{typ prop} => 2
        | @{typ bool} => 2
        | @{typ unit} => 1
-       | @{typ \<xi>} => xi_card
        | Type _ =>
          (case datatype_constrs hol_ctxt T of
             [] => if is_integer_type T orelse is_bit_type T then 0
@@ -1393,21 +1389,11 @@ fun add_constr_case (hol_ctxt as {thy, ...}) res_T (j, x) res_t =
 fun optimized_case_def (hol_ctxt as {thy, ...}) dataT res_T =
   let
     val xs = datatype_constrs hol_ctxt dataT
-    val xs' = filter_out (curry (op =) @{const_name Silly} o fst) xs
-    val func_Ts = map ((fn T => binder_types T ---> res_T) o snd) xs'
+    val func_Ts = map ((fn T => binder_types T ---> res_T) o snd) xs
+    val (xs', x) = split_last xs
   in
-    (if length xs = length xs' then
-       let
-         val (xs'', x) = split_last xs'
-       in
-         constr_case_body thy (1, x)
-         |> fold_rev (add_constr_case hol_ctxt res_T)
-                     (length xs' downto 2 ~~ xs'')
-       end
-     else
-       Const (@{const_name undefined}, dataT --> res_T) $ Bound 0
-       |> fold_rev (add_constr_case hol_ctxt res_T)
-                   (length xs' downto 1 ~~ xs'))
+    constr_case_body thy (1, x)
+    |> fold_rev (add_constr_case hol_ctxt res_T) (length xs downto 2 ~~ xs')
     |> fold_rev (curry absdummy) (func_Ts @ [dataT])
   end
 
@@ -2032,8 +2018,7 @@ fun add_ground_types hol_ctxt T accum =
   | Type ("*", Ts) => fold (add_ground_types hol_ctxt) Ts accum
   | Type (@{type_name itself}, [T1]) => add_ground_types hol_ctxt T1 accum
   | Type (_, Ts) =>
-    if member (op =) (@{typ prop} :: @{typ bool} :: @{typ unit} ::
-                      @{typ \<xi>} :: accum) T then
+    if member (op =) (@{typ prop} :: @{typ bool} :: @{typ unit} :: accum) T then
       accum
     else
       T :: accum
