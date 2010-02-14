@@ -14,7 +14,7 @@ struct
 
 (* commands *)
 
-fun boogie_open (quiet, base_name) thy =
+fun boogie_open ((quiet, base_name), offsets) thy =
   let
     val path = Path.explode (base_name ^ ".b2i")
     val _ = File.exists path orelse
@@ -22,7 +22,7 @@ fun boogie_open (quiet, base_name) thy =
     val _ = Boogie_VCs.is_closed thy orelse
       error ("Found the beginning of a new Boogie environment, " ^
         "but another Boogie environment is still open.")
-  in Boogie_Loader.load_b2i (not quiet) path thy end
+  in Boogie_Loader.load_b2i (not quiet) offsets path thy end
 
 
 datatype vc_opts =
@@ -225,11 +225,15 @@ fun scan_val n f = Args.$$$ n -- Args.colon |-- f
 fun scan_arg f = Args.parens f
 fun scan_opt n = Scan.optional (scan_arg (Args.$$$ n >> K true)) false
 
+val vc_offsets = Scan.optional (Args.bracks (OuterParse.list1
+  (OuterParse.string --| Args.colon -- OuterParse.nat))) []
+
 val _ =
   OuterSyntax.command "boogie_open"
     "Open a new Boogie environment and load a Boogie-generated .b2i file."
     OuterKeyword.thy_decl
-    (scan_opt "quiet" -- OuterParse.name >> (Toplevel.theory o boogie_open))
+    (scan_opt "quiet" -- OuterParse.name -- vc_offsets >> 
+      (Toplevel.theory o boogie_open))
 
 
 val vc_name = OuterParse.name
