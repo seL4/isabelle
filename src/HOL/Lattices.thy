@@ -301,8 +301,7 @@ begin
 
 lemma dual_bounded_lattice:
   "bounded_lattice (op \<ge>) (op >) (op \<squnion>) (op \<sqinter>) \<top> \<bottom>"
-  by (rule bounded_lattice.intro, rule dual_lattice)
-    (unfold_locales, auto simp add: less_le_not_le)
+  by unfold_locales (auto simp add: less_le_not_le)
 
 lemma inf_bot_left [simp]:
   "\<bottom> \<sqinter> x = \<bottom>"

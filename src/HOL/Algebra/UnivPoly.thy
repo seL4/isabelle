@@ -1342,14 +1342,8 @@ end
 text {* Interpretation of ring homomorphism lemmas. *}
 
 sublocale UP_univ_prop < ring_hom_cring P S Eval
-  apply (unfold Eval_def)
-  apply intro_locales
-  apply (rule ring_hom_cring.axioms)
-  apply (rule ring_hom_cring.intro)
-  apply unfold_locales
-  apply (rule eval_ring_hom)
-  apply rule
-  done
+  unfolding Eval_def
+  by unfold_locales (fast intro: eval_ring_hom)
 
 lemma (in UP_cring) monom_pow:
   assumes R: "a \<in> carrier R"
@@ -1436,10 +1430,7 @@ qed
 lemma ring_homD:
   assumes Phi: "Phi \<in> ring_hom P S"
   shows "ring_hom_cring P S Phi"
-proof (rule ring_hom_cring.intro)
-  show "ring_hom_cring_axioms P S Phi"
-  by (rule ring_hom_cring_axioms.intro) (rule Phi)
-qed unfold_locales
+  by unfold_locales (rule Phi)
 
 theorem UP_universal_property:
   assumes S: "s \<in> carrier S"
@@ -1759,9 +1750,9 @@ lemma eval_monom_expr:
   shows "eval R R id a (monom P \<one>\<^bsub>R\<^esub> 1 \<ominus>\<^bsub>P\<^esub> monom P a 0) = \<zero>"
   (is "eval R R id a ?g = _")
 proof -
-  interpret UP_pre_univ_prop R R id proof qed simp
+  interpret UP_pre_univ_prop R R id by unfold_locales simp
   have eval_ring_hom: "eval R R id a \<in> ring_hom P R" using eval_ring_hom [OF a] by simp
-  interpret ring_hom_cring P R "eval R R id a" proof qed (simp add: eval_ring_hom)
+  interpret ring_hom_cring P R "eval R R id a" by unfold_locales (rule eval_ring_hom)
   have mon1_closed: "monom P \<one>\<^bsub>R\<^esub> 1 \<in> carrier P" 
     and mon0_closed: "monom P a 0 \<in> carrier P" 
     and min_mon0_closed: "\<ominus>\<^bsub>P\<^esub> monom P a 0 \<in> carrier P"
