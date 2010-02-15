@@ -88,7 +88,7 @@ fun target_decl add (Target {target, ...}) pervasive decl lthy =
   in
     if target = "" then
       lthy
-      |> direct_decl target_decl
+      |> direct_decl global_decl
     else
       lthy
       |> pervasive ? direct_decl global_decl
