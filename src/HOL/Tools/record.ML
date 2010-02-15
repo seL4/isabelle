@@ -71,8 +71,7 @@ val tuple_iso_tuple = (@{const_name tuple_iso_tuple}, @{thm tuple_iso_tuple});
 
 fun named_cterm_instantiate values thm =
   let
-    fun match name ((name', _), _) = name = name'
-      | match name _ = false;
+    fun match name ((name', _), _) = name = name';
     fun getvar name =
       (case find_first (match name) (Term.add_vars (prop_of thm) []) of
         SOME var => cterm_of (theory_of_thm thm) (Var var)
@@ -93,8 +92,8 @@ fun do_typedef name repT alphas thy =
   let
     fun get_thms thy name =
       let
-        val SOME {Rep_inject = rep_inject, Abs_name = absN, abs_type = absT,
-          Abs_inverse = abs_inverse, ...} = Typedef.get_info thy name;
+        val {Rep_inject = rep_inject, Abs_name = absN, abs_type = absT,
+          Abs_inverse = abs_inverse, ...} = Typedef.the_info thy name;
         val rewrite_rule =
           MetaSimplifier.rewrite_rule [@{thm iso_tuple_UNIV_I}, @{thm iso_tuple_True_simp}];
       in
@@ -372,7 +371,7 @@ type record_data =
   equalities: thm Symtab.table,
   extinjects: thm list,
   extsplit: thm Symtab.table,  (*maps extension name to split rule*)
-  splits: (thm * thm * thm * thm) Symtab.table,  (*!!, !, EX - split-equalities, induct rule*)
+  splits: (thm * thm * thm * thm) Symtab.table,  (*!!, ALL, EX - split-equalities, induct rule*)
   extfields: (string * typ) list Symtab.table,  (*maps extension to its fields*)
   fieldext: (string * typ list) Symtab.table};  (*maps field to its extension*)
 
@@ -699,7 +698,7 @@ fun dest_ext_fields sep mark (trm as (Const (c, _) $ t $ u)) =
 fun gen_ext_fields_tr sep mark sfx more ctxt t =
   let
     val thy = ProofContext.theory_of ctxt;
-    val msg = "error in record input: ";
+    fun err msg = raise TERM ("error in record input: " ^ msg, [t]);
 
     val fieldargs = dest_ext_fields sep mark t;
     fun splitargs (field :: fields) ((name, arg) :: fargs) =
@@ -707,9 +706,9 @@ fun gen_ext_fields_tr sep mark sfx more ctxt t =
           then
             let val (args, rest) = splitargs fields fargs
             in (arg :: args, rest) end
-          else raise TERM (msg ^ "expecting field " ^ field ^ " but got " ^ name, [t])
+          else err ("expecting field " ^ field ^ " but got " ^ name)
       | splitargs [] (fargs as (_ :: _)) = ([], fargs)
-      | splitargs (_ :: _) [] = raise TERM (msg ^ "expecting more fields", [t])
+      | splitargs (_ :: _) [] = err "expecting more fields"
       | splitargs _ _ = ([], []);
 
     fun mk_ext (fargs as (name, _) :: _) =
@@ -721,24 +720,24 @@ fun gen_ext_fields_tr sep mark sfx more ctxt t =
                     val (args, rest) = splitargs (map fst (but_last flds)) fargs;
                     val more' = mk_ext rest;
                   in list_comb (Syntax.const (suffix sfx ext), args @ [more']) end
-              | NONE => raise TERM (msg ^ "no fields defined for " ^ ext, [t]))
-          | NONE => raise TERM (msg ^ name ^ " is no proper field", [t]))
+              | NONE => err ("no fields defined for " ^ ext))
+          | NONE => err (name ^ " is no proper field"))
       | mk_ext [] = more;
   in mk_ext fieldargs end;
 
 fun gen_ext_type_tr sep mark sfx more ctxt t =
   let
     val thy = ProofContext.theory_of ctxt;
-    val msg = "error in record-type input: ";
+    fun err msg = raise TERM ("error in record-type input: " ^ msg, [t]);
 
     val fieldargs = dest_ext_fields sep mark t;
     fun splitargs (field :: fields) ((name, arg) :: fargs) =
           if can (unsuffix name) field then
             let val (args, rest) = splitargs fields fargs
             in (arg :: args, rest) end
-          else raise TERM (msg ^ "expecting field " ^ field ^ " but got " ^ name, [t])
+          else err ("expecting field " ^ field ^ " but got " ^ name)
       | splitargs [] (fargs as (_ :: _)) = ([], fargs)
-      | splitargs (_ :: _) [] = raise TERM (msg ^ "expecting more fields", [t])
+      | splitargs (_ :: _) [] = err "expecting more fields"
       | splitargs _ _ = ([], []);
 
     fun mk_ext (fargs as (name, _) :: _) =
@@ -764,9 +763,9 @@ fun gen_ext_type_tr sep mark sfx more ctxt t =
                   in
                     list_comb (Syntax.const (suffix sfx ext), alphas' @ [more'])
                   end handle Type.TYPE_MATCH =>
-                    raise TERM (msg ^ "type is no proper record (extension)", [t]))
-              | NONE => raise TERM (msg ^ "no fields defined for " ^ ext, [t]))
-          | NONE => raise TERM (msg ^ name ^" is no proper field", [t]))
+                    raise err "type is no proper record (extension)")
+              | NONE => err ("no fields defined for " ^ ext))
+          | NONE => err (name ^ " is no proper field"))
       | mk_ext [] = more;
 
   in mk_ext fieldargs end;
@@ -1516,7 +1515,7 @@ fun record_split_simp_tac thms P = CSUBGOAL (fn (cgoal, i) =>
 
 (* record_split_tac *)
 
-(*Split all records in the goal, which are quantified by ! or !!.*)
+(*Split all records in the goal, which are quantified by ALL or !!.*)
 val record_split_tac = CSUBGOAL (fn (cgoal, i) =>
   let
     val goal = term_of cgoal;
@@ -2022,10 +2021,10 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     (*updates*)
     fun mk_upd_spec ((c, T), thm) =
       let
-        val (upd $ _ $ arg) =
-          (fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Envir.beta_eta_contract o concl_of) thm;
+        val upd $ _ $ arg =
+          fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (Envir.beta_eta_contract (concl_of thm))));
         val _ =
-          if (arg aconv r_rec0) then ()
+          if arg aconv r_rec0 then ()
           else raise TERM ("mk_sel_spec: different arg", [arg]);
       in Const (mk_updC updateN rec_schemeT0 (c, T)) :== upd end;
     val upd_specs = map mk_upd_spec (fields_more ~~ lastN updator_thms);
