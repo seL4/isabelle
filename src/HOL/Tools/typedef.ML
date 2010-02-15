@@ -19,6 +19,7 @@ sig
   val typedef_cmd: (bool * binding) * (binding * string list * mixfix) * string
     * (binding * binding) option -> theory -> Proof.state
   val get_info: theory -> string -> info option
+  val the_info: theory -> string -> info
   val interpretation: (string -> theory -> theory) -> theory -> theory
   val setup: theory -> theory
 end;
@@ -45,6 +46,12 @@ structure TypedefData = Theory_Data
 );
 
 val get_info = Symtab.lookup o TypedefData.get;
+
+fun the_info thy name =
+  (case get_info thy name of
+    SOME info => info
+  | NONE => error ("Unknown typedef " ^ quote name));
+
 fun put_info name info = TypedefData.map (Symtab.update (name, info));
 
 
