@@ -566,10 +566,6 @@ val unfold_add =
 
 
 (* Tactic *)
-fun intros_tac intros facts =
-  (TRYALL (Method.insert_tac facts THEN'
-      REPEAT_ALL_NEW (resolve_tac intros)) |> CHANGED)
-    THEN Tactic.distinct_subgoals_tac;
 
 fun gen_intro_locales_tac intros_tac eager ctxt =
   intros_tac
