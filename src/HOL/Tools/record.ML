@@ -42,10 +42,10 @@ sig
   val print_records: theory -> unit
   val read_typ: Proof.context -> string -> (string * sort) list -> typ * (string * sort) list
   val cert_typ: Proof.context -> typ -> (string * sort) list -> typ * (string * sort) list
-  val add_record: bool -> string list * string -> string option -> (string * string * mixfix) list
-    -> theory -> theory
-  val add_record_i: bool -> string list * string -> (typ list * string) option
-    -> (string * typ * mixfix) list -> theory -> theory
+  val add_record: bool -> string list * binding -> (typ list * string) option ->
+    (binding * typ * mixfix) list -> theory -> theory
+  val add_record_cmd: bool -> string list * binding -> string option ->
+    (binding * string * mixfix) list -> theory -> theory
   val setup: theory -> theory
 end;
 
@@ -189,7 +189,7 @@ val atomize_imp = @{thm HOL.atomize_imp};
 val meta_allE = @{thm Pure.meta_allE};
 val prop_subst = @{thm prop_subst};
 val K_record_comp = @{thm K_record_comp};
-val K_comp_convs = [@{thm o_apply}, K_record_comp]
+val K_comp_convs = [@{thm o_apply}, K_record_comp];
 val o_assoc = @{thm o_assoc};
 val id_apply = @{thm id_apply};
 val id_o_apps = [@{thm id_apply}, @{thm id_o}, @{thm o_id}];
@@ -830,7 +830,8 @@ fun gen_field_upds_tr' mark sfx (tm as Const (name_field, _) $ k $ u) =
       in
         (case try (unsuffix sfx) name_field of
           SOME name =>
-            apfst (cons (Syntax.const mark $ Syntax.free name $ t)) (gen_field_upds_tr' mark sfx u)
+            apfst (cons (Syntax.const mark $ Syntax.free name $ t))
+              (gen_field_upds_tr' mark sfx u)
         | NONE => ([], tm))
       end
   | gen_field_upds_tr' _ _ tm = ([], tm);
@@ -883,9 +884,12 @@ fun gen_record_tr' name =
     val name_sfx = suffix extN name;
     val unit = fn Const (@{const_syntax Product_Type.Unity}, _) => true | _ => false;
     fun tr' ctxt ts =
-      record_tr' @{syntax_const "_fields"} @{syntax_const "_field"}
-        @{syntax_const "_record"} @{syntax_const "_record_scheme"} unit ctxt
-        (list_comb (Syntax.const name_sfx, ts));
+      record_tr'
+        @{syntax_const "_fields"}
+        @{syntax_const "_field"}
+        @{syntax_const "_record"}
+        @{syntax_const "_record_scheme"}
+        unit ctxt (list_comb (Syntax.const name_sfx, ts));
   in (name_sfx, tr') end;
 
 fun print_translation names =
@@ -993,8 +997,11 @@ fun gen_record_type_tr' name =
   let
     val name_sfx = suffix ext_typeN name;
     fun tr' ctxt ts =
-      record_type_tr' @{syntax_const "_field_types"} @{syntax_const "_field_type"}
-        @{syntax_const "_record_type"} @{syntax_const "_record_type_scheme"}
+      record_type_tr'
+        @{syntax_const "_field_types"}
+        @{syntax_const "_field_type"}
+        @{syntax_const "_record_type"}
+        @{syntax_const "_record_type_scheme"}
         ctxt (list_comb (Syntax.const name_sfx, ts));
   in (name_sfx, tr') end;
 
@@ -1003,8 +1010,11 @@ fun gen_record_type_abbr_tr' abbr alphas zeta lastExt schemeT name =
   let
     val name_sfx = suffix ext_typeN name;
     val default_tr' =
-      record_type_tr' @{syntax_const "_field_types"} @{syntax_const "_field_type"}
-        @{syntax_const "_record_type"} @{syntax_const "_record_type_scheme"};
+      record_type_tr'
+        @{syntax_const "_field_types"}
+        @{syntax_const "_field_type"}
+        @{syntax_const "_record_type"}
+        @{syntax_const "_record_type_scheme"};
     fun tr' ctxt ts =
       record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT ctxt
         (list_comb (Syntax.const name_sfx, ts));
@@ -1828,17 +1838,19 @@ fun meta_to_obj_all thm =
 
 (* record_definition *)
 
-fun record_definition (args, bname) parent (parents: parent_info list) raw_fields thy =
+fun record_definition (args, b) parent (parents: parent_info list) raw_fields thy =
   let
     val external_names = Name_Space.external_names (Sign.naming_of thy);
 
     val alphas = map fst args;
-    val name = Sign.full_bname thy bname;
-    val full = Sign.full_bname_path thy bname;
+
+    val base_name = Binding.name_of b;   (* FIXME include qualifier etc. (!?) *)
+    val name = Sign.full_name thy b;
+    val full = Sign.full_name_path thy base_name;
     val base = Long_Name.base_name;
 
-    val (bfields, field_syntax) =
-      split_list (map (fn (x, T, mx) => ((x, T), mx)) raw_fields);
+    val bfields = map (fn (x, T, _) => (x, T)) raw_fields;
+    val field_syntax = map #3 raw_fields;
 
     val parent_fields = maps #fields parents;
     val parent_chunks = map (length o #fields) parents;
@@ -1851,14 +1863,14 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     val fields = map (apfst full) bfields;
     val names = map fst fields;
-    val extN = full bname;
+    val extN = full b;
     val types = map snd fields;
     val alphas_fields = fold Term.add_tfree_namesT types [];
     val alphas_ext = inter (op =) alphas_fields alphas;
     val len = length fields;
     val variants =
       Name.variant_list (moreN :: rN :: (rN ^ "'") :: wN :: parent_variants)
-        (map fst bfields);
+        (map (Binding.name_of o fst) bfields);
     val vars = ListPair.map Free (variants, types);
     val named_vars = names ~~ vars;
     val idxms = 0 upto len;
@@ -1873,8 +1885,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val zeta = Name.variant alphas "'z";
     val moreT = TFree (zeta, HOLogic.typeS);
     val more = Free (moreN, moreT);
-    val full_moreN = full moreN;
-    val bfields_more = bfields @ [(moreN, moreT)];
+    val full_moreN = full (Binding.name moreN);
+    val bfields_more = bfields @ [(Binding.name moreN, moreT)];
     val fields_more = fields @ [(full_moreN, moreT)];
     val named_vars_more = named_vars @ [(full_moreN, more)];
     val all_vars_more = all_vars @ [more];
@@ -1885,7 +1897,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     val (extension_thy, extT, ext_induct, ext_inject, ext_split, ext_def) =
       thy
-      |> Sign.add_path bname
+      |> Sign.add_path base_name
       |> extension_definition extN fields alphas_ext zeta moreT more vars;
 
     val _ = timing_msg "record preparing definitions";
@@ -1952,8 +1964,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     (* prepare declarations *)
 
-    val sel_decls = map (mk_selC rec_schemeT0) bfields_more;
-    val upd_decls = map (mk_updC updateN rec_schemeT0) bfields_more;
+    val sel_decls = map (mk_selC rec_schemeT0 o apfst Binding.name_of) bfields_more;
+    val upd_decls = map (mk_updC updateN rec_schemeT0 o apfst Binding.name_of) bfields_more;
     val make_decl = (makeN, all_types ---> recT0);
     val fields_decl = (fields_selN, types ---> Type extension);
     val extend_decl = (extendN, recT0 --> moreT --> rec_schemeT0);
@@ -1964,8 +1976,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     (*record (scheme) type abbreviation*)
     val recordT_specs =
-      [(Binding.name (suffix schemeN bname), alphas @ [zeta], rec_schemeT0, Syntax.NoSyn),
-        (Binding.name bname, alphas, recT0, Syntax.NoSyn)];
+      [(Binding.suffix_name schemeN b, alphas @ [zeta], rec_schemeT0, Syntax.NoSyn),
+        (b, alphas, recT0, Syntax.NoSyn)];
 
     val ext_defs = ext_def :: map #extdef parents;
 
@@ -2030,14 +2042,14 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val upd_specs = map mk_upd_spec (fields_more ~~ lastN updator_thms);
 
     (*derived operations*)
-    val make_spec = Const (full makeN, all_types ---> recT0) $$ all_vars :==
+    val make_spec = Const (full (Binding.name makeN), all_types ---> recT0) $$ all_vars :==
       mk_rec (all_vars @ [HOLogic.unit]) 0;
-    val fields_spec = Const (full fields_selN, types ---> Type extension) $$ vars :==
+    val fields_spec = Const (full (Binding.name fields_selN), types ---> Type extension) $$ vars :==
       mk_rec (all_vars @ [HOLogic.unit]) parent_len;
     val extend_spec =
-      Const (full extendN, recT0-->moreT-->rec_schemeT0) $ r_unit0 $ more :==
+      Const (full (Binding.name extendN), recT0 --> moreT --> rec_schemeT0) $ r_unit0 $ more :==
       mk_rec ((map (mk_sel r_unit0) all_fields) @ [more]) 0;
-    val truncate_spec = Const (full truncateN, rec_schemeT0 --> recT0) $ r0 :==
+    val truncate_spec = Const (full (Binding.name truncateN), rec_schemeT0 --> recT0) $ r0 :==
       mk_rec ((map (mk_sel r0) all_fields) @ [HOLogic.unit]) 0;
 
 
@@ -2050,7 +2062,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
           ([], [], adv_ext_tr's @ adv_record_type_tr's @ adv_record_type_abbr_tr's, [])
       |> Sign.parent_path
       |> Sign.add_tyabbrs_i recordT_specs
-      |> Sign.add_path bname
+      |> Sign.add_path base_name
       |> Sign.add_consts_i
           (map2 (fn (x, T) => fn mx => (Binding.name x, T, mx))
             sel_decls (field_syntax @ [Syntax.NoSyn]))
@@ -2347,10 +2359,13 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
 (*We do all preparations and error checks here, deferring the real
   work to record_definition.*)
-fun gen_add_record prep_typ prep_raw_parent quiet_mode (params, bname) raw_parent raw_fields thy =
+fun gen_add_record prep_typ prep_raw_parent quiet_mode
+    (params, b) raw_parent raw_fields thy =
   let
     val _ = Theory.requires thy "Record" "record definitions";
-    val _ = if quiet_mode then () else writeln ("Defining record " ^ quote bname ^ " ...");
+    val _ =
+      if quiet_mode then ()
+      else writeln ("Defining record " ^ quote (Binding.name_of b) ^ " ...");
 
     val ctxt = ProofContext.init thy;
 
@@ -2371,10 +2386,12 @@ fun gen_add_record prep_typ prep_raw_parent quiet_mode (params, bname) raw_paren
 
     (* fields *)
 
-    fun prep_field (c, raw_T, mx) env =
-      let val (T, env') = prep_typ ctxt raw_T env handle ERROR msg =>
-        cat_error msg ("The error(s) above occured in record field " ^ quote c)
-      in ((c, T, mx), env') end;
+    fun prep_field (x, raw_T, mx) env =
+      let
+        val (T, env') =
+          prep_typ ctxt raw_T env handle ERROR msg =>
+            cat_error msg ("The error(s) above occured in record field " ^ quote (Binding.str_of x));
+      in ((x, T, mx), env') end;
 
     val (bfields, envir) = fold_map prep_field raw_fields init_env;
     val envir_names = map fst envir;
@@ -2388,7 +2405,7 @@ fun gen_add_record prep_typ prep_raw_parent quiet_mode (params, bname) raw_paren
 
     (* errors *)
 
-    val name = Sign.full_bname thy bname;
+    val name = Sign.full_name thy b;
     val err_dup_record =
       if is_none (get_record thy name) then []
       else ["Duplicate definition of record " ^ quote name];
@@ -2406,12 +2423,12 @@ fun gen_add_record prep_typ prep_raw_parent quiet_mode (params, bname) raw_paren
     val err_no_fields = if null bfields then ["No fields present"] else [];
 
     val err_dup_fields =
-      (case duplicates (op =) (map #1 bfields) of
+      (case duplicates Binding.eq_name (map #1 bfields) of
         [] => []
-      | dups => ["Duplicate field(s) " ^ commas_quote dups]);
+      | dups => ["Duplicate field(s) " ^ commas_quote (map Binding.str_of dups)]);
 
     val err_bad_fields =
-      if forall (not_equal moreN o #1) bfields then []
+      if forall (not_equal moreN o Binding.name_of o #1) bfields then []
       else ["Illegal field name " ^ quote moreN];
 
     val err_dup_sorts =
@@ -2425,12 +2442,12 @@ fun gen_add_record prep_typ prep_raw_parent quiet_mode (params, bname) raw_paren
 
     val _ = if null errs then () else error (cat_lines errs);
   in
-    thy |> record_definition (args, bname) parent parents bfields
+    thy |> record_definition (args, b) parent parents bfields
   end
-  handle ERROR msg => cat_error msg ("Failed to define record " ^ quote bname);
+  handle ERROR msg => cat_error msg ("Failed to define record " ^ quote (Binding.str_of b));
 
-val add_record = gen_add_record read_typ read_raw_parent;
-val add_record_i = gen_add_record cert_typ (K I);
+val add_record = gen_add_record cert_typ (K I);
+val add_record_cmd = gen_add_record read_typ read_raw_parent;
 
 
 (* setup theory *)
@@ -2446,13 +2463,11 @@ val setup =
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val record_decl =
-  P.type_args -- P.name --
-    (P.$$$ "=" |-- Scan.option (P.typ --| P.$$$ "+") -- Scan.repeat1 P.const);
-
 val _ =
   OuterSyntax.command "record" "define extensible record" K.thy_decl
-    (record_decl >> (fn (x, (y, z)) => Toplevel.theory (add_record false x y z)));
+    (P.type_args -- P.binding --
+      (P.$$$ "=" |-- Scan.option (P.typ --| P.$$$ "+") -- Scan.repeat1 P.const_binding)
+    >> (fn (x, (y, z)) => Toplevel.theory (add_record_cmd false x y z)));
 
 end;
 
