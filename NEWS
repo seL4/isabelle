@@ -10,7 +10,9 @@ New in this Isabelle version
 the user space functionality any longer.
 
 * Discontinued unnamed infix syntax (legacy feature for many years) --
-need to specify constant name and syntax separately.
+need to specify constant name and syntax separately.  Internal ML
+datatype constructors have been renamed from InfixName to Infix etc.
+Minor INCOMPATIBILITY.
 
 
 *** HOL ***

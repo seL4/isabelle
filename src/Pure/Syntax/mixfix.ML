@@ -10,9 +10,9 @@ sig
     NoSyn |
     Mixfix of string * int list * int |
     Delimfix of string |
-    InfixName of string * int |
-    InfixlName of string * int |
-    InfixrName of string * int |
+    Infix of string * int |
+    Infixl of string * int |
+    Infixr of string * int |
     Binder of string * int * int |
     Structure
   val binder_name: string -> string
@@ -45,9 +45,9 @@ datatype mixfix =
   NoSyn |
   Mixfix of string * int list * int |
   Delimfix of string |
-  InfixName of string * int |
-  InfixlName of string * int |
-  InfixrName of string * int |
+  Infix of string * int |
+  Infixl of string * int |
+  Infixr of string * int |
   Binder of string * int * int |
   Structure;
 
@@ -72,9 +72,9 @@ fun pretty_mixfix NoSyn = Pretty.str ""
   | pretty_mixfix (Mixfix (s, ps, p)) =
       parens (Pretty.breaks [quoted s, brackets (Pretty.commas (map int ps)), int p])
   | pretty_mixfix (Delimfix s) = parens [quoted s]
-  | pretty_mixfix (InfixName (s, p)) = parens (Pretty.breaks [keyword "infix", quoted s, int p])
-  | pretty_mixfix (InfixlName (s, p)) = parens (Pretty.breaks [keyword "infixl", quoted s, int p])
-  | pretty_mixfix (InfixrName (s, p)) = parens (Pretty.breaks [keyword "infixl", quoted s, int p])
+  | pretty_mixfix (Infix (s, p)) = parens (Pretty.breaks [keyword "infix", quoted s, int p])
+  | pretty_mixfix (Infixl (s, p)) = parens (Pretty.breaks [keyword "infixl", quoted s, int p])
+  | pretty_mixfix (Infixr (s, p)) = parens (Pretty.breaks [keyword "infixl", quoted s, int p])
   | pretty_mixfix (Binder (s, p1, p2)) =
       parens (Pretty.breaks [keyword "binder", quoted s, brackets [int p1], int p2])
   | pretty_mixfix Structure = parens [keyword "structure"];
@@ -87,9 +87,9 @@ end;
 fun mixfix_args NoSyn = 0
   | mixfix_args (Mixfix (sy, _, _)) = SynExt.mfix_args sy
   | mixfix_args (Delimfix sy) = SynExt.mfix_args sy
-  | mixfix_args (InfixName (sy, _)) = 2 + SynExt.mfix_args sy
-  | mixfix_args (InfixlName (sy, _)) = 2 + SynExt.mfix_args sy
-  | mixfix_args (InfixrName (sy, _)) = 2 + SynExt.mfix_args sy
+  | mixfix_args (Infix (sy, _)) = 2 + SynExt.mfix_args sy
+  | mixfix_args (Infixl (sy, _)) = 2 + SynExt.mfix_args sy
+  | mixfix_args (Infixr (sy, _)) = 2 + SynExt.mfix_args sy
   | mixfix_args (Binder _) = 1
   | mixfix_args Structure = 0;
 
@@ -106,9 +106,9 @@ fun syn_ext_types type_decls =
         [SynExt.typeT, SynExt.typeT] ---> SynExt.typeT, t, [p1, p2], p3);
 
     fun mfix_of (_, _, NoSyn) = NONE
-      | mfix_of (t, 2, InfixName (sy, p)) = SOME (mk_infix sy t (p + 1) (p + 1) p)
-      | mfix_of (t, 2, InfixlName (sy, p)) = SOME (mk_infix sy t p (p + 1) p)
-      | mfix_of (t, 2, InfixrName (sy, p)) = SOME (mk_infix sy t (p + 1) p p)
+      | mfix_of (t, 2, Infix (sy, p)) = SOME (mk_infix sy t (p + 1) (p + 1) p)
+      | mfix_of (t, 2, Infixl (sy, p)) = SOME (mk_infix sy t p (p + 1) p)
+      | mfix_of (t, 2, Infixr (sy, p)) = SOME (mk_infix sy t (p + 1) p p)
       | mfix_of (t, _, _) =
           error ("Bad mixfix declaration for type: " ^ quote t);  (* FIXME printable!? *)
 
@@ -135,9 +135,9 @@ fun syn_ext_consts is_logtype const_decls =
     fun mfix_of (_, _, NoSyn) = []
       | mfix_of (c, ty, Mixfix (sy, ps, p)) = [SynExt.Mfix (sy, ty, c, ps, p)]
       | mfix_of (c, ty, Delimfix sy) = [SynExt.Mfix (sy, ty, c, [], SynExt.max_pri)]
-      | mfix_of (c, ty, InfixName (sy, p)) = mk_infix sy ty c (p + 1) (p + 1) p
-      | mfix_of (c, ty, InfixlName (sy, p)) = mk_infix sy ty c p (p + 1) p
-      | mfix_of (c, ty, InfixrName (sy, p)) = mk_infix sy ty c (p + 1) p p
+      | mfix_of (c, ty, Infix (sy, p)) = mk_infix sy ty c (p + 1) (p + 1) p
+      | mfix_of (c, ty, Infixl (sy, p)) = mk_infix sy ty c p (p + 1) p
+      | mfix_of (c, ty, Infixr (sy, p)) = mk_infix sy ty c (p + 1) p p
       | mfix_of (c, ty, Binder (sy, p, q)) =
           [SynExt.Mfix ("(3" ^ sy ^ "_./ _)", binder_typ c ty, (binder_name c), [0, p], q)]
       | mfix_of (c, _, _) = error ("Bad mixfix declaration for const: " ^ quote c);

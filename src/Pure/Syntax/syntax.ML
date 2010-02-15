@@ -450,9 +450,9 @@ end;
 fun guess_infix (Syntax ({gram, ...}, _)) c =
   (case Parser.guess_infix_lr gram c of
     SOME (s, l, r, j) => SOME
-     (if l then Mixfix.InfixlName (s, j)
-      else if r then Mixfix.InfixrName (s, j)
-      else Mixfix.InfixName (s, j))
+     (if l then Mixfix.Infixl (s, j)
+      else if r then Mixfix.Infixr (s, j)
+      else Mixfix.Infix (s, j))
   | NONE => NONE);
 
 
@@ -914,8 +914,8 @@ open Lexicon SynExt Ast Parser TypeExt SynTrans Mixfix Printer;
 
 end;
 
-structure BasicSyntax: BASIC_SYNTAX = Syntax;
-open BasicSyntax;
+structure Basic_Syntax: BASIC_SYNTAX = Syntax;
+open Basic_Syntax;
 
 forget_structure "Ast";
 forget_structure "SynExt";

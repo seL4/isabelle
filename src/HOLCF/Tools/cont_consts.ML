@@ -40,9 +40,9 @@ fun trans_rules name2 name1 n mx =
         fold (fn arg => fn t => Syntax.mk_appl (Constant "Rep_CFun") [t, Variable arg])
           vnames (Constant name1))] @
     (case mx of
-      InfixName _ => [extra_parse_rule]
-    | InfixlName _ => [extra_parse_rule]
-    | InfixrName _ => [extra_parse_rule]
+      Infix _ => [extra_parse_rule]
+    | Infixl _ => [extra_parse_rule]
+    | Infixr _ => [extra_parse_rule]
     | _ => [])
   end;
 
