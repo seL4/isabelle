@@ -9,6 +9,9 @@ New in this Isabelle version
 * Code generator: details of internal data cache have no impact on
 the user space functionality any longer.
 
+* Discontinued unnamed infix syntax (legacy feature for many years) --
+need to specify constant name and syntax separately.
+
 
 *** HOL ***
 

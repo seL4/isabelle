@@ -221,9 +221,6 @@ fun xml_of_mixfix NoSyn = wrap_empty "nosyn"
   | xml_of_mixfix (InfixName args) = wrap "infixname" (xml_of_pair xml_of_string xml_of_int) args
   | xml_of_mixfix (InfixlName args) = wrap "infixlname" (xml_of_pair xml_of_string xml_of_int) args
   | xml_of_mixfix (InfixrName args) = wrap "infixrname" (xml_of_pair xml_of_string xml_of_int) args
-  | xml_of_mixfix (Infix i) = wrap "infix" xml_of_int i
-  | xml_of_mixfix (Infixl i) = wrap "infixl" xml_of_int i
-  | xml_of_mixfix (Infixr i) = wrap "infixr" xml_of_int i
   | xml_of_mixfix (Binder args) = wrap "binder" (xml_of_triple xml_of_string xml_of_int xml_of_int) args
                                   
 fun mixfix_of_xml e = 
@@ -235,9 +232,6 @@ fun mixfix_of_xml e =
        | "infixname" => unwrap InfixName (pair_of_xml string_of_xml int_of_xml) 
        | "infixlname" => unwrap InfixlName (pair_of_xml string_of_xml int_of_xml)  
        | "infixrname" => unwrap InfixrName (pair_of_xml string_of_xml int_of_xml)
-       | "infix" => unwrap Infix int_of_xml
-       | "infixl" => unwrap Infixl int_of_xml 
-       | "infixr" => unwrap Infixr int_of_xml
        | "binder" => unwrap Binder (triple_of_xml string_of_xml int_of_xml int_of_xml)
        | _ => parse_err "mixfix"
     ) e

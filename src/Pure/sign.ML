@@ -434,7 +434,7 @@ val add_defsort_i = gen_add_defsort certify_sort;
 fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
   let
     val syn' = Syntax.update_type_gram (map (fn (a, n, mx) => (Name.of_binding a, n, mx)) types) syn;
-    val decls = map (fn (a, n, mx) => (Binding.map_name (Syntax.type_name mx) a, n)) types;
+    val decls = map (fn (a, n, _) => (a, n)) types;
     val tsig' = fold (Type.add_type naming) decls tsig;
   in (naming, syn', tsig', consts) end);
 
@@ -450,12 +450,11 @@ fun add_nonterminals ns thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
 
 (* add type abbreviations *)
 
-fun gen_add_tyabbr parse_typ (a, vs, rhs, mx) thy =
+fun gen_add_tyabbr parse_typ (b, vs, rhs, mx) thy =
   thy |> map_sign (fn (naming, syn, tsig, consts) =>
     let
       val ctxt = ProofContext.init thy;
-      val syn' = Syntax.update_type_gram [(Name.of_binding a, length vs, mx)] syn;
-      val b = Binding.map_name (Syntax.type_name mx) a;
+      val syn' = Syntax.update_type_gram [(Name.of_binding b, length vs, mx)] syn;
       val abbr = (b, vs, certify_typ_mode Type.mode_syntax thy (parse_typ ctxt rhs))
         handle ERROR msg => cat_error msg ("in type abbreviation " ^ quote (Binding.str_of b));
       val tsig' = Type.add_abbrev naming abbr tsig;
@@ -471,8 +470,7 @@ fun gen_syntax change_gram parse_typ mode args thy =
   let
     val ctxt = ProofContext.init thy;
     fun prep (c, T, mx) = (c, certify_typ_mode Type.mode_syntax thy (parse_typ ctxt T), mx)
-      handle ERROR msg =>
-        cat_error msg ("in syntax declaration " ^ quote (Syntax.const_name mx c));
+      handle ERROR msg => cat_error msg ("in syntax declaration " ^ quote c);
   in thy |> map_syn (change_gram (is_logtype thy) mode (map prep args)) end;
 
 fun gen_add_syntax x = gen_syntax Syntax.update_const_gram x;
@@ -500,10 +498,8 @@ fun gen_add_consts parse_typ authentic raw_args thy =
   let
     val ctxt = ProofContext.init thy;
     val prepT = Type.no_tvars o Term.no_dummyT o certify_typ thy o parse_typ ctxt;
-    fun prep (raw_b, raw_T, raw_mx) =
+    fun prep (b, raw_T, mx) =
       let
-        val (mx_name, mx) = Syntax.const_mixfix (Name.of_binding raw_b) raw_mx;
-        val b = Binding.map_name (K mx_name) raw_b;
         val c = full_name thy b;
         val c_syn = if authentic then Syntax.constN ^ c else Name.of_binding b;
         val T = (prepT raw_T handle TYPE (msg, _, _) => error msg) handle ERROR msg =>

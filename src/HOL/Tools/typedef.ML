@@ -55,7 +55,7 @@ fun declare_type_name a = Variable.declare_constraints (Logic.mk_type (TFree (a,
 structure Typedef_Interpretation = Interpretation(type T = string val eq = op =);
 val interpretation = Typedef_Interpretation.interpretation;
 
-fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
+fun prepare_typedef prep_term def name (tname, vs, mx) raw_set opt_morphs thy =
   let
     val _ = Theory.requires thy "Typedef" "typedefs";
     val ctxt = ProofContext.init thy;
@@ -79,7 +79,6 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
       |> filter (member (op =) rhs_tfrees andf (not o member (op =) rhs_tfreesT))
       |> map TFree;
 
-    val tname = Binding.map_name (Syntax.type_name mx) t;
     val full_tname = full tname;
     val newT = Type (full_tname, map TFree lhs_tfrees);
 
@@ -125,7 +124,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
           in Drule.export_without_context (Drule.equal_elim_rule2 OF [goal_eq, th]) end;
 
     fun typedef_result inhabited =
-      ObjectLogic.typedecl (t, vs, mx)
+      ObjectLogic.typedecl (tname, vs, mx)
       #> snd
       #> Sign.add_consts_i
         [(Rep_name, newT --> oldT, NoSyn),
@@ -252,8 +251,7 @@ val typedef_decl =
     Scan.option (P.$$$ "morphisms" |-- P.!!! (P.binding -- P.binding));
 
 fun mk_typedef ((((((def, opt_name), (vs, t)), mx), A), morphs)) =
-  typedef_cmd ((def, the_default (Binding.map_name (Syntax.type_name mx) t) opt_name),
-    (t, vs, mx), A, morphs);
+  typedef_cmd ((def, the_default t opt_name), (t, vs, mx), A, morphs);
 
 val _ =
   OuterSyntax.command "typedef" "HOL type definition (requires non-emptiness proof)"

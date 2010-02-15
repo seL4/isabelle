@@ -966,19 +966,18 @@ fun declare_var (x, opt_T, mx) ctxt =
 local
 
 fun prep_vars prep_typ internal =
-  fold_map (fn (raw_b, raw_T, raw_mx) => fn ctxt =>
+  fold_map (fn (b, raw_T, mx) => fn ctxt =>
     let
-      val raw_x = Name.of_binding raw_b;
-      val (x, mx) = Syntax.const_mixfix raw_x raw_mx;
+      val x = Name.of_binding b;
       val _ = Syntax.is_identifier (no_skolem internal x) orelse
-        error ("Illegal variable name: " ^ quote x);
+        error ("Illegal variable name: " ^ quote (Binding.str_of b));
 
       fun cond_tvars T =
         if internal then T
         else Type.no_tvars T handle TYPE (msg, _, _) => error msg;
       val opt_T = Option.map (cond_tvars o cert_typ ctxt o prep_typ ctxt) raw_T;
-      val var = (Binding.map_name (K x) raw_b, opt_T, mx);
-    in (var, ctxt |> declare_var (x, opt_T, mx) |> #2) end);
+      val (_, ctxt') = ctxt |> declare_var (x, opt_T, mx);
+    in ((b, opt_T, mx), ctxt') end);
 
 in
 

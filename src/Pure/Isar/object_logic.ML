@@ -84,10 +84,9 @@ fun add_base_sort S = map_data (fn (base_sort, judgment, atomize_rulify) =>
 
 (* typedecl *)
 
-fun typedecl (a, vs, mx) thy =
+fun typedecl (b, vs, mx) thy =
   let
     val base_sort = get_base_sort thy;
-    val b = Binding.map_name (Syntax.type_name mx) a;
     val _ = has_duplicates (op =) vs andalso
       error ("Duplicate parameters in type declaration " ^ quote (Binding.str_of b));
     val name = Sign.full_name thy b;
@@ -95,7 +94,7 @@ fun typedecl (a, vs, mx) thy =
     val T = Type (name, map (fn v => TFree (v, [])) vs);
   in
     thy
-    |> Sign.add_types [(a, n, mx)]
+    |> Sign.add_types [(b, n, mx)]
     |> (case base_sort of NONE => I | SOME S => AxClass.axiomatize_arity (name, replicate n S, S))
     |> pair T
   end;
@@ -106,7 +105,7 @@ fun typedecl (a, vs, mx) thy =
 local
 
 fun gen_add_judgment add_consts (b, T, mx) thy =
-  let val c = Sign.full_name thy (Binding.map_name (Syntax.const_name mx) b) in
+  let val c = Sign.full_name thy b in
     thy
     |> add_consts [(b, T, mx)]
     |> (fn thy' => Theory.add_deps c (c, Sign.the_const_type thy' c) [] thy')

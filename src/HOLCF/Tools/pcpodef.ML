@@ -153,7 +153,7 @@ fun prove_pcpo
 fun declare_type_name a =
   Variable.declare_constraints (Logic.mk_type (TFree (a, dummyS)));
 
-fun prepare prep_term name (t, vs, mx) raw_set opt_morphs thy =
+fun prepare prep_term name (tname, vs, mx) raw_set opt_morphs thy =
   let
     val _ = Theory.requires thy "Pcpodef" "pcpodefs";
     val ctxt = ProofContext.init thy;
@@ -168,7 +168,6 @@ fun prepare prep_term name (t, vs, mx) raw_set opt_morphs thy =
     (*lhs*)
     val defS = Sign.defaultS thy;
     val lhs_tfrees = map (fn v => (v, the_default defS (AList.lookup (op =) rhs_tfrees v))) vs;
-    val tname = Binding.map_name (Syntax.type_name mx) t;
     val full_tname = Sign.full_name thy tname;
     val newT = Type (full_tname, map TFree lhs_tfrees);
 
@@ -346,7 +345,7 @@ val typedef_proof_decl =
 
 fun mk_pcpodef_proof pcpo ((((((def, opt_name), (vs, t)), mx), A), morphs)) =
   (if pcpo then pcpodef_proof_cmd else cpodef_proof_cmd)
-    ((def, the_default (Binding.map_name (Syntax.type_name mx) t) opt_name), (t, vs, mx), A, morphs);
+    ((def, the_default t opt_name), (t, vs, mx), A, morphs);
 
 val _ =
   OuterSyntax.command "pcpodef" "HOLCF type definition (requires admissibility proof)" K.thy_goal
