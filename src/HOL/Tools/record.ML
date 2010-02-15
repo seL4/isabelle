@@ -156,7 +156,8 @@ fun add_iso_tuple_type (name, alphas) (leftT, rightT) thy =
     ((isom, cons $ isom), thm_thy)
   end;
 
-val iso_tuple_intros_tac = resolve_from_net_tac iso_tuple_intros THEN'
+val iso_tuple_intros_tac =
+  resolve_from_net_tac iso_tuple_intros THEN'
   CSUBGOAL (fn (cgoal, i) =>
     let
       val thy = Thm.theory_of_cterm cgoal;
@@ -197,21 +198,21 @@ val Not_eq_iff = @{thm Not_eq_iff};
 
 val refl_conj_eq = @{thm refl_conj_eq};
 
-val surject_assistI = @{thm "iso_tuple_surjective_proof_assistI"};
-val surject_assist_idE = @{thm "iso_tuple_surjective_proof_assist_idE"};
+val surject_assistI = @{thm iso_tuple_surjective_proof_assistI};
+val surject_assist_idE = @{thm iso_tuple_surjective_proof_assist_idE};
 
-val updacc_accessor_eqE = @{thm "update_accessor_accessor_eqE"};
-val updacc_updator_eqE = @{thm "update_accessor_updator_eqE"};
-val updacc_eq_idI = @{thm "iso_tuple_update_accessor_eq_assist_idI"};
-val updacc_eq_triv = @{thm "iso_tuple_update_accessor_eq_assist_triv"};
+val updacc_accessor_eqE = @{thm update_accessor_accessor_eqE};
+val updacc_updator_eqE = @{thm update_accessor_updator_eqE};
+val updacc_eq_idI = @{thm iso_tuple_update_accessor_eq_assist_idI};
+val updacc_eq_triv = @{thm iso_tuple_update_accessor_eq_assist_triv};
 
-val updacc_foldE = @{thm "update_accessor_congruence_foldE"};
-val updacc_unfoldE = @{thm "update_accessor_congruence_unfoldE"};
-val updacc_noopE = @{thm "update_accessor_noopE"};
-val updacc_noop_compE = @{thm "update_accessor_noop_compE"};
-val updacc_cong_idI = @{thm "update_accessor_cong_assist_idI"};
-val updacc_cong_triv = @{thm "update_accessor_cong_assist_triv"};
-val updacc_cong_from_eq = @{thm "iso_tuple_update_accessor_cong_from_eq"};
+val updacc_foldE = @{thm update_accessor_congruence_foldE};
+val updacc_unfoldE = @{thm update_accessor_congruence_unfoldE};
+val updacc_noopE = @{thm update_accessor_noopE};
+val updacc_noop_compE = @{thm update_accessor_noop_compE};
+val updacc_cong_idI = @{thm update_accessor_cong_assist_idI};
+val updacc_cong_triv = @{thm update_accessor_cong_assist_triv};
+val updacc_cong_from_eq = @{thm iso_tuple_update_accessor_cong_from_eq};
 
 val o_eq_dest = @{thm o_eq_dest};
 val o_eq_id_dest = @{thm o_eq_id_dest};
@@ -590,7 +591,7 @@ fun get_extT_fields thy T =
     val args = map varifyT (snd (#extension (the (Symtab.lookup records recname))));
 
     val subst = fold (Sign.typ_match thy) (but_last args ~~ but_last Ts) (Vartab.empty);
-    val flds' = map (apsnd ((Envir.norm_type subst) o varifyT)) flds;
+    val flds' = map (apsnd (Envir.norm_type subst o varifyT)) flds;
   in (flds', (more, moreT)) end;
 
 fun get_recT_fields thy T =
@@ -674,12 +675,14 @@ fun gen_fields_tr sep mark sfx (tm as Const (c, _) $ t $ u) =
 
 
 fun record_update_tr [t, u] =
-      fold (curry op $) (gen_fields_tr "_updates" "_update" updateN u) t
+      fold (curry op $)
+        (gen_fields_tr @{syntax_const "_updates"} @{syntax_const "_update"} updateN u) t
   | record_update_tr ts = raise TERM ("record_update_tr", ts);
 
 fun update_name_tr (Free (x, T) :: ts) = Free (suffix updateN x, T) $$ ts
   | update_name_tr (Const (x, T) :: ts) = Const (suffix updateN x, T) $$ ts
-  | update_name_tr (((c as Const ("_constrain", _)) $ t $ ty) :: ts) =
+  | update_name_tr (((c as Const (@{syntax_const "_constrain"}, _)) $ t $ ty) :: ts) =
+      (* FIXME @{type_syntax} *)
       (c $ update_name_tr [t] $ (Syntax.const "fun" $ ty $ Syntax.const "dummy")) $$ ts
   | update_name_tr ts = raise TERM ("update_name_tr", ts);
 
@@ -719,7 +722,7 @@ fun gen_ext_fields_tr sep mark sfx more ctxt t =
                     val more' = mk_ext rest;
                   in list_comb (Syntax.const (suffix sfx ext), args @ [more']) end
               | NONE => raise TERM (msg ^ "no fields defined for " ^ ext, [t]))
-          | NONE => raise TERM (msg ^ name ^" is no proper field", [t]))
+          | NONE => raise TERM (msg ^ name ^ " is no proper field", [t]))
       | mk_ext [] = more;
   in mk_ext fieldargs end;
 
@@ -784,27 +787,31 @@ fun gen_adv_record_type_scheme_tr sep mark sfx ctxt [t, more] =
       gen_ext_type_tr sep mark sfx more ctxt t
   | gen_adv_record_type_scheme_tr _ _ _ _ ts = raise TERM ("gen_record_scheme_tr", ts);
 
-val adv_record_tr = gen_adv_record_tr "_fields" "_field" extN HOLogic.unit;
+val adv_record_tr =
+  gen_adv_record_tr @{syntax_const "_fields"} @{syntax_const "_field"} extN HOLogic.unit;
 
-val adv_record_scheme_tr = gen_adv_record_scheme_tr "_fields" "_field" extN;
+val adv_record_scheme_tr =
+  gen_adv_record_scheme_tr @{syntax_const "_fields"} @{syntax_const "_field"} extN;
 
 val adv_record_type_tr =
-  gen_adv_record_type_tr "_field_types" "_field_type" ext_typeN
+  gen_adv_record_type_tr
+    @{syntax_const "_field_types"} @{syntax_const "_field_type"} ext_typeN
     (Syntax.term_of_typ false (HOLogic.unitT));
 
 val adv_record_type_scheme_tr =
-  gen_adv_record_type_scheme_tr "_field_types" "_field_type" ext_typeN;
+  gen_adv_record_type_scheme_tr
+    @{syntax_const "_field_types"} @{syntax_const "_field_type"} ext_typeN;
 
 
 val parse_translation =
- [("_record_update", record_update_tr),
-  ("_update_name", update_name_tr)];
+ [(@{syntax_const "_record_update"}, record_update_tr),
+  (@{syntax_const "_update_name"}, update_name_tr)];
 
 val adv_parse_translation =
- [("_record", adv_record_tr),
-  ("_record_scheme", adv_record_scheme_tr),
-  ("_record_type", adv_record_type_tr),
-  ("_record_type_scheme", adv_record_type_scheme_tr)];
+ [(@{syntax_const "_record"}, adv_record_tr),
+  (@{syntax_const "_record_scheme"}, adv_record_scheme_tr),
+  (@{syntax_const "_record_type"}, adv_record_type_tr),
+  (@{syntax_const "_record_type_scheme"}, adv_record_type_scheme_tr)];
 
 
 (* print translations *)
@@ -821,11 +828,6 @@ fun gen_field_upds_tr' mark sfx (tm as Const (name_field, _) $ k $ u) =
           | Abs (_, _, t) =>
               if null (loose_bnos t) then t else raise Match
           | _ => raise Match);
-
-          (* FIXME ? *)
-          (* (case k of (Const ("K_record", _) $ t) => t
-                   | Abs (x, _, Const ("K_record", _) $ t $ Bound 0) => t
-                   | _ => raise Match)*)
       in
         (case try (unsuffix sfx) name_field of
           SOME name =>
@@ -835,11 +837,11 @@ fun gen_field_upds_tr' mark sfx (tm as Const (name_field, _) $ k $ u) =
   | gen_field_upds_tr' _ _ tm = ([], tm);
 
 fun record_update_tr' tm =
-  let val (ts, u) = gen_field_upds_tr' "_update" updateN tm in
+  let val (ts, u) = gen_field_upds_tr' @{syntax_const "_update"} updateN tm in
     if null ts then raise Match
     else
-      Syntax.const "_record_update" $ u $
-        foldr1 (fn (v, w) => Syntax.const "_updates" $ v $ w) (rev ts)
+      Syntax.const @{syntax_const "_record_update"} $ u $
+        foldr1 (fn (v, w) => Syntax.const @{syntax_const "_updates"} $ v $ w) (rev ts)
   end;
 
 fun gen_field_tr' sfx tr' name =
@@ -880,9 +882,10 @@ fun record_tr' sep mark record record_scheme unit ctxt t =
 fun gen_record_tr' name =
   let
     val name_sfx = suffix extN name;
-    val unit = (fn Const (@{const_syntax "Product_Type.Unity"}, _) => true | _ => false);
+    val unit = fn Const (@{const_syntax Product_Type.Unity}, _) => true | _ => false;
     fun tr' ctxt ts =
-      record_tr' "_fields" "_field" "_record" "_record_scheme" unit ctxt
+      record_tr' @{syntax_const "_fields"} @{syntax_const "_field"}
+        @{syntax_const "_record"} @{syntax_const "_record_scheme"} unit ctxt
         (list_comb (Syntax.const name_sfx, ts));
   in (name_sfx, tr') end;
 
@@ -901,6 +904,7 @@ fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT ctxt tm =
     (*tm is term representation of a (nested) field type. We first reconstruct the
       type from tm so that we can continue on the type level rather then the term level*)
 
+    (* FIXME !??? *)
     (*WORKAROUND:
       If a record type occurs in an error message of type inference there
       may be some internal frees donoted by ??:
@@ -967,7 +971,8 @@ fun record_type_tr' sep mark record record_scheme ctxt t =
                         val subst = fold2 (curry (Sign.typ_match thy)) alphavars args' Vartab.empty;
                         val flds'' = (map o apsnd) (Envir.norm_type subst o varifyT) flds';
                       in flds'' @ field_lst more end
-                      handle Type.TYPE_MATCH => [("", T)] | Library.UnequalLengths => [("", T)])
+                      handle Type.TYPE_MATCH => [("", T)]
+                        | Library.UnequalLengths => [("", T)])
                   | NONE => [("", T)])
               | NONE => [("", T)])
           | NONE => [("", T)])
@@ -989,8 +994,9 @@ fun gen_record_type_tr' name =
   let
     val name_sfx = suffix ext_typeN name;
     fun tr' ctxt ts =
-      record_type_tr' "_field_types" "_field_type" "_record_type" "_record_type_scheme"
-        ctxt (list_comb (Syntax.const name_sfx, ts))
+      record_type_tr' @{syntax_const "_field_types"} @{syntax_const "_field_type"}
+        @{syntax_const "_record_type"} @{syntax_const "_record_type_scheme"}
+        ctxt (list_comb (Syntax.const name_sfx, ts));
   in (name_sfx, tr') end;
 
 
@@ -998,7 +1004,8 @@ fun gen_record_type_abbr_tr' abbr alphas zeta lastExt schemeT name =
   let
     val name_sfx = suffix ext_typeN name;
     val default_tr' =
-      record_type_tr' "_field_types" "_field_type" "_record_type" "_record_type_scheme";
+      record_type_tr' @{syntax_const "_field_types"} @{syntax_const "_field_type"}
+        @{syntax_const "_record_type"} @{syntax_const "_record_type_scheme"};
     fun tr' ctxt ts =
       record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT ctxt
         (list_comb (Syntax.const name_sfx, ts));
@@ -1040,11 +1047,11 @@ fun mk_comp f g =
     val B = range_type X;
     val C = range_type (fastype_of f);
     val T = (B --> C) --> (A --> B) --> A --> C;
-  in Const ("Fun.comp", T) $ f $ g end;
+  in Const (@{const_name Fun.comp}, T) $ f $ g end;
 
 fun mk_comp_id f =
   let val T = range_type (fastype_of f)
-  in mk_comp (Const ("Fun.id", T --> T)) f end;
+  in mk_comp (Const (@{const_name Fun.id}, T --> T)) f end;
 
 fun get_upd_funs (upd $ _ $ t) = upd :: get_upd_funs t
   | get_upd_funs _ = [];
@@ -1055,6 +1062,7 @@ fun get_accupd_simps thy term defset =
     val upd_funs = sort_distinct TermOrd.fast_term_ord (get_upd_funs body);
     fun get_simp upd =
       let
+        (* FIXME fresh "f" (!?) *)
         val T = domain_type (fastype_of upd);
         val lhs = mk_comp acc (upd $ Free ("f", T));
         val rhs =
@@ -1077,6 +1085,7 @@ fun get_accupd_simps thy term defset =
 
 fun get_updupd_simp thy defset u u' comp =
   let
+    (* FIXME fresh "f" (!?) *)
     val f = Free ("f", domain_type (fastype_of u));
     val f' = Free ("f'", domain_type (fastype_of u'));
     val lhs = mk_comp (u $ f) (u' $ f');
@@ -1306,7 +1315,8 @@ val record_upd_simproc =
                   K_skeleton (Long_Name.base_name s) (domain_type T) (Bound (length vars)) f;
                 val (isnoop, skelf') = is_upd_noop s f term;
                 val funT = domain_type T;
-                fun mk_comp_local (f, f') = Const ("Fun.comp", funT --> funT --> funT) $ f $ f';
+                fun mk_comp_local (f, f') =
+                  Const (@{const_name Fun.comp}, funT --> funT --> funT) $ f $ f';
               in
                 if isnoop then
                   (upd $ skelf' $ lhs, rhs, vars,
@@ -1359,7 +1369,7 @@ end;
 val record_eq_simproc =
   Simplifier.simproc @{theory HOL} "record_eq_simp" ["r = s"]
     (fn thy => fn _ => fn t =>
-      (case t of Const ("op =", Type (_, [T, _])) $ _ $ _ =>
+      (case t of Const (@{const_name "op ="}, Type (_, [T, _])) $ _ $ _ =>
         (case rec_id ~1 T of
           "" => NONE
         | name =>
@@ -1381,7 +1391,10 @@ fun record_split_simproc P =
     (fn thy => fn _ => fn t =>
       (case t of
         Const (quantifier, Type (_, [Type (_, [T, _]), _])) $ _ =>
-          if quantifier = "All" orelse quantifier = "all" orelse quantifier = "Ex" then
+          if quantifier = @{const_name All} orelse
+            quantifier = @{const_name all} orelse
+            quantifier = @{const_name Ex}
+          then
             (case rec_id ~1 T of
               "" => NONE
             | _ =>
@@ -1392,9 +1405,9 @@ fun record_split_simproc P =
                     | SOME (all_thm, All_thm, Ex_thm, _) =>
                         SOME
                           (case quantifier of
-                            "all" => all_thm
-                          | "All" => All_thm RS eq_reflection
-                          | "Ex" => Ex_thm RS eq_reflection
+                            @{const_name all} => all_thm
+                          | @{const_name All} => All_thm RS eq_reflection
+                          | @{const_name Ex} => Ex_thm RS eq_reflection
                           | _ => error "record_split_simproc"))
                   else NONE
                 end)
@@ -1419,22 +1432,23 @@ val record_ex_sel_eq_simproc =
                 else raise TERM ("", [x]);
               val sel' = Const (sel, Tsel) $ Bound 0;
               val (l, r) = if lr then (sel', x') else (x', sel');
-            in Const ("op =", Teq) $ l $ r end
+            in Const (@{const_name "op ="}, Teq) $ l $ r end
           else raise TERM ("", [Const (sel, Tsel)]);
 
-        fun dest_sel_eq (Const ("op =", Teq) $ (Const (sel, Tsel) $ Bound 0) $ X) =
+        fun dest_sel_eq (Const (@{const_name "op ="}, Teq) $ (Const (sel, Tsel) $ Bound 0) $ X) =
               (true, Teq, (sel, Tsel), X)
-          | dest_sel_eq (Const ("op =", Teq) $ X $ (Const (sel, Tsel) $ Bound 0)) =
+          | dest_sel_eq (Const (@{const_name "op ="}, Teq) $ X $ (Const (sel, Tsel) $ Bound 0)) =
               (false, Teq, (sel, Tsel), X)
           | dest_sel_eq _ = raise TERM ("", []);
       in
         (case t of
-          Const ("Ex", Tex) $ Abs (s, T, t) =>
+          Const (@{const_name Ex}, Tex) $ Abs (s, T, t) =>
            (let
-              val eq = mkeq (dest_sel_eq t) 0;
-              val prop =
-                list_all ([("r", T)],
-                  Logic.mk_equals (Const ("Ex", Tex) $ Abs (s, T, eq), HOLogic.true_const));
+             val eq = mkeq (dest_sel_eq t) 0;
+             val prop =
+               list_all ([("r", T)],
+                 Logic.mk_equals
+                  (Const (@{const_name Ex}, Tex) $ Abs (s, T, eq), HOLogic.true_const));
             in SOME (prove prop) end
             handle TERM _ => NONE)
         | _ => NONE)
@@ -1459,7 +1473,8 @@ fun record_split_simp_tac thms P = CSUBGOAL (fn (cgoal, i) =>
 
     val has_rec = exists_Const
       (fn (s, Type (_, [Type (_, [T, _]), _])) =>
-          (s = "all" orelse s = "All" orelse s = "Ex") andalso is_recT T
+          (s = @{const_name all} orelse s = @{const_name All} orelse s = @{const_name Ex}) andalso
+          is_recT T
         | _ => false);
 
     fun mk_split_free_tac free induct_thm i =
@@ -1508,13 +1523,13 @@ val record_split_tac = CSUBGOAL (fn (cgoal, i) =>
 
     val has_rec = exists_Const
       (fn (s, Type (_, [Type (_, [T, _]), _])) =>
-          (s = "all" orelse s = "All") andalso is_recT T
+          (s = @{const_name All} orelse s = @{const_name all}) andalso is_recT T
         | _ => false);
 
     fun is_all t =
       (case t of
         Const (quantifier, _) $ _ =>
-          if quantifier = "All" orelse quantifier = "all" then ~1 else 0
+          if quantifier = @{const_name All} orelse quantifier = @{const_name all} then ~1 else 0
       | _ => 0);
   in
     if has_rec goal then
@@ -1945,6 +1960,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val extend_decl = (extendN, recT0 --> moreT --> rec_schemeT0);
     val truncate_decl = (truncateN, rec_schemeT0 --> recT0);
 
+
     (* prepare definitions *)
 
     (*record (scheme) type abbreviation*)
@@ -1955,7 +1971,6 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val ext_defs = ext_def :: map #extdef parents;
 
     (*Theorems from the iso_tuple intros.
-      This is complex enough to deserve a full comment.
       By unfolding ext_defs from r_rec0 we create a tree of constructor
       calls (many of them Pair, but others as well). The introduction
       rules for update_accessor_eq_assist can unify two different ways
