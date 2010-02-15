@@ -674,7 +674,7 @@ fun gen_fields_tr sep mark sfx (tm as Const (c, _) $ t $ u) =
 
 
 fun record_update_tr [t, u] =
-      Library.foldr (op $) (rev (gen_fields_tr "_updates" "_update" updateN u), t)
+      fold (curry op $) (gen_fields_tr "_updates" "_update" updateN u) t
   | record_update_tr ts = raise TERM ("record_update_tr", ts);
 
 fun update_name_tr (Free (x, T) :: ts) = Free (suffix updateN x, T) $$ ts
