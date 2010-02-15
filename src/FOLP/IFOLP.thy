@@ -26,14 +26,14 @@ consts
  EqProof        ::   "[p,p,o]=>prop"    ("(3_ /= _ :/ _)" [10,10,10] 5)
 
       (*** Logical Connectives -- Type Formers ***)
- "="            ::      "['a,'a] => o"  (infixl 50)
+ "op ="         ::      "['a,'a] => o"  (infixl "=" 50)
  True           ::      "o"
  False          ::      "o"
  Not            ::      "o => o"        ("~ _" [40] 40)
- "&"            ::      "[o,o] => o"    (infixr 35)
- "|"            ::      "[o,o] => o"    (infixr 30)
- "-->"          ::      "[o,o] => o"    (infixr 25)
- "<->"          ::      "[o,o] => o"    (infixr 25)
+ "op &"         ::      "[o,o] => o"    (infixr "&" 35)
+ "op |"         ::      "[o,o] => o"    (infixr "|" 30)
+ "op -->"       ::      "[o,o] => o"    (infixr "-->" 25)
+ "op <->"       ::      "[o,o] => o"    (infixr "<->" 25)
       (*Quantifiers*)
  All            ::      "('a => o) => o"        (binder "ALL " 10)
  Ex             ::      "('a => o) => o"        (binder "EX " 10)
@@ -53,9 +53,9 @@ consts
  inr            :: "p=>p"
  when           :: "[p, p=>p, p=>p]=>p"
  lambda         :: "(p => p) => p"      (binder "lam " 55)
- "`"            :: "[p,p]=>p"           (infixl 60)
+ "op `"         :: "[p,p]=>p"           (infixl "`" 60)
  alll           :: "['a=>p]=>p"         (binder "all " 55)
- "^"            :: "[p,'a]=>p"          (infixl 55)
+ "op ^"         :: "[p,'a]=>p"          (infixl "^" 55)
  exists         :: "['a,p]=>p"          ("(1[_,/_])")
  xsplit         :: "[p,['a,p]=>p]=>p"
  ideq           :: "'a=>p"
