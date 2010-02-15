@@ -9,6 +9,8 @@ New in this Isabelle version
 * Code generator: details of internal data cache have no impact on
 the user space functionality any longer.
 
+* Methods unfold_locales and intro_locales ignore non-locale subgoals.  This
+is more appropriate for interpretations with 'where'.  INCOMPATIBILITY.
 
 *** HOL ***
 
