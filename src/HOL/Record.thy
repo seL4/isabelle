@@ -425,17 +425,17 @@ syntax
   "_constify"           :: "id => ident"                        ("_")
   "_constify"           :: "longid => ident"                    ("_")
 
-  "_field_type"         :: "[ident, type] => field_type"        ("(2_ ::/ _)")
+  "_field_type"         :: "ident => type => field_type"        ("(2_ ::/ _)")
   ""                    :: "field_type => field_types"          ("_")
-  "_field_types"        :: "[field_type, field_types] => field_types"    ("_,/ _")
+  "_field_types"        :: "field_type => field_types => field_types"    ("_,/ _")
   "_record_type"        :: "field_types => type"                ("(3'(| _ |'))")
-  "_record_type_scheme" :: "[field_types, type] => type"        ("(3'(| _,/ (2... ::/ _) |'))")
+  "_record_type_scheme" :: "field_types => type => type"        ("(3'(| _,/ (2... ::/ _) |'))")
 
-  "_field"              :: "[ident, 'a] => field"               ("(2_ =/ _)")
+  "_field"              :: "ident => 'a => field"               ("(2_ =/ _)")
   ""                    :: "field => fields"                    ("_")
-  "_fields"             :: "[field, fields] => fields"          ("_,/ _")
+  "_fields"             :: "field => fields => fields"          ("_,/ _")
   "_record"             :: "fields => 'a"                       ("(3'(| _ |'))")
-  "_record_scheme"      :: "[fields, 'a] => 'a"                 ("(3'(| _,/ (2... =/ _) |'))")
+  "_record_scheme"      :: "fields => 'a => 'a"                 ("(3'(| _,/ (2... =/ _) |'))")
 
   "_update_name"        :: idt
   "_update"             :: "ident => 'a => update"              ("(2_ :=/ _)")

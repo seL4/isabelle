@@ -270,11 +270,9 @@ fun timing_msg s = if ! timing then warning s else ();
 val Trueprop = HOLogic.mk_Trueprop;
 fun All xs t = Term.list_all_free (xs, t);
 
-infix 9 $$;
 infix 0 :== ===;
 infixr 0 ==>;
 
-val op $$ = Term.list_comb;
 val op :== = Primitive_Defs.mk_defpair;
 val op === = Trueprop o HOLogic.mk_eq;
 val op ==> = Logic.mk_implies;
@@ -586,9 +584,9 @@ fun add_extsplit name thm thy =
   let
     val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
       Records_Data.get thy;
-    val data = make_record_data records sel_upd
-      equalities extinjects (Symtab.update_new (name, thm) extsplit) splits
-      extfields fieldext;
+    val data =
+      make_record_data records sel_upd equalities extinjects
+        (Symtab.update_new (name, thm) extsplit) splits extfields fieldext;
   in Records_Data.put data thy end;
 
 
@@ -598,9 +596,9 @@ fun add_record_splits name thmP thy =
   let
     val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
       Records_Data.get thy;
-    val data = make_record_data records sel_upd
-      equalities extinjects extsplit (Symtab.update_new (name, thmP) splits)
-      extfields fieldext;
+    val data =
+      make_record_data records sel_upd equalities extinjects extsplit
+        (Symtab.update_new (name, thmP) splits) extfields fieldext;
   in Records_Data.put data thy end;
 
 val get_splits = Symtab.lookup o #splits o Records_Data.get;
@@ -619,8 +617,7 @@ fun add_extfields name fields thy =
     val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
       Records_Data.get thy;
     val data =
-      make_record_data records sel_upd
-        equalities extinjects extsplit splits
+      make_record_data records sel_upd equalities extinjects extsplit splits
         (Symtab.update_new (name, fields) extfields) fieldext;
   in Records_Data.put data thy end;
 
@@ -701,7 +698,8 @@ fun add_parents _ NONE parents = parents
 
 fun decode_type thy t =
   let
-    fun get_sort xs n = AList.lookup (op =) xs (n: indexname) |> the_default (Sign.defaultS thy);
+    fun get_sort env xi =
+      the_default (Sign.defaultS thy) (AList.lookup (op =) env (xi: indexname));
     val map_sort = Sign.intern_sort thy;
   in
     Syntax.typ_of_term (get_sort (Syntax.term_sorts map_sort t)) map_sort t
@@ -710,6 +708,8 @@ fun decode_type thy t =
 
 
 (* parse translations *)
+
+local
 
 fun gen_field_tr mark sfx (t as Const (c, _) $ Const (name, _) $ arg) =
       if c = mark then Syntax.const (suffix sfx name) $ Abs ("_", dummyT, arg)
@@ -721,17 +721,20 @@ fun gen_fields_tr sep mark sfx (tm as Const (c, _) $ t $ u) =
       else [gen_field_tr mark sfx tm]
   | gen_fields_tr _ mark sfx tm = [gen_field_tr mark sfx tm];
 
+in
 
 fun record_update_tr [t, u] =
       fold (curry op $)
         (gen_fields_tr @{syntax_const "_updates"} @{syntax_const "_update"} updateN u) t
   | record_update_tr ts = raise TERM ("record_update_tr", ts);
 
-fun update_name_tr (Free (x, T) :: ts) = Free (suffix updateN x, T) $$ ts
-  | update_name_tr (Const (x, T) :: ts) = Const (suffix updateN x, T) $$ ts
+end;
+
+fun update_name_tr (Free (x, T) :: ts) = list_comb (Free (suffix updateN x, T), ts)
+  | update_name_tr (Const (x, T) :: ts) = list_comb (Const (suffix updateN x, T), ts)
   | update_name_tr (((c as Const (@{syntax_const "_constrain"}, _)) $ t $ ty) :: ts) =
       (* FIXME @{type_syntax} *)
-      (c $ update_name_tr [t] $ (Syntax.const "fun" $ ty $ Syntax.const "dummy")) $$ ts
+      list_comb (c $ update_name_tr [t] $ (Syntax.const "fun" $ ty $ Syntax.const "dummy"), ts)
   | update_name_tr ts = raise TERM ("update_name_tr", ts);
 
 fun dest_ext_field mark (t as (Const (c, _) $ Const (name, _) $ arg)) =
@@ -2091,15 +2094,18 @@ fun record_definition (args, b) parent (parents: parent_info list) raw_fields th
     val upd_specs = map mk_upd_spec (fields_more ~~ lastN updator_thms);
 
     (*derived operations*)
-    val make_spec = Const (full (Binding.name makeN), all_types ---> recT0) $$ all_vars :==
-      mk_rec (all_vars @ [HOLogic.unit]) 0;
-    val fields_spec = Const (full (Binding.name fields_selN), types ---> Type extension) $$ vars :==
-      mk_rec (all_vars @ [HOLogic.unit]) parent_len;
+    val make_spec =
+      list_comb (Const (full (Binding.name makeN), all_types ---> recT0), all_vars) :==
+        mk_rec (all_vars @ [HOLogic.unit]) 0;
+    val fields_spec =
+      list_comb (Const (full (Binding.name fields_selN), types ---> Type extension), vars) :==
+        mk_rec (all_vars @ [HOLogic.unit]) parent_len;
     val extend_spec =
       Const (full (Binding.name extendN), recT0 --> moreT --> rec_schemeT0) $ r_unit0 $ more :==
-      mk_rec ((map (mk_sel r_unit0) all_fields) @ [more]) 0;
-    val truncate_spec = Const (full (Binding.name truncateN), rec_schemeT0 --> recT0) $ r0 :==
-      mk_rec ((map (mk_sel r0) all_fields) @ [HOLogic.unit]) 0;
+        mk_rec ((map (mk_sel r_unit0) all_fields) @ [more]) 0;
+    val truncate_spec =
+      Const (full (Binding.name truncateN), rec_schemeT0 --> recT0) $ r0 :==
+        mk_rec ((map (mk_sel r0) all_fields) @ [HOLogic.unit]) 0;
 
 
     (* 2st stage: defs_thy *)
