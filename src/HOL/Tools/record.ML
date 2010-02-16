@@ -153,7 +153,8 @@ fun add_iso_tuple_type (name, alphas) (leftT, rightT) thy =
     val ([isom_def], cdef_thy) =
       typ_thy
       |> Sign.add_consts_i [Syntax.no_syn (isom_bind, isomT)]
-      |> PureThy.add_defs false [Thm.no_attributes (apfst Binding.name isom_spec)];
+      |> PureThy.add_defs false
+        [Thm.no_attributes (apfst (Binding.conceal o Binding.name) isom_spec)];
 
     val iso_tuple = isom_def RS (abs_inverse RS (rep_inject RS iso_tuple_intro));
     val cons = Const (@{const_name iso_tuple_cons}, isomT --> leftT --> rightT --> absT);
@@ -2116,10 +2117,12 @@ fun record_definition (args, b) parent (parents: parent_info list) raw_fields th
             sel_decls (field_syntax @ [Syntax.NoSyn]))
       |> (Sign.add_consts_i o map (fn (x, T) => (Binding.name x, T, Syntax.NoSyn)))
           (upd_decls @ [make_decl, fields_decl, extend_decl, truncate_decl])
-      |> ((PureThy.add_defs false o map (Thm.no_attributes o apfst Binding.name)) sel_specs)
-      ||>> ((PureThy.add_defs false o map (Thm.no_attributes o apfst Binding.name)) upd_specs)
-      ||>> ((PureThy.add_defs false o map (Thm.no_attributes o apfst Binding.name))
-             [make_spec, fields_spec, extend_spec, truncate_spec])
+      |> (PureThy.add_defs false o map (Thm.no_attributes o apfst (Binding.conceal o Binding.name)))
+        sel_specs
+      ||>> (PureThy.add_defs false o map (Thm.no_attributes o apfst (Binding.conceal o Binding.name)))
+        upd_specs
+      ||>> (PureThy.add_defs false o map (Thm.no_attributes o apfst (Binding.conceal o Binding.name)))
+        [make_spec, fields_spec, extend_spec, truncate_spec]
       |->
         (fn defs as ((sel_defs, upd_defs), derived_defs) =>
           fold Code.add_default_eqn sel_defs
