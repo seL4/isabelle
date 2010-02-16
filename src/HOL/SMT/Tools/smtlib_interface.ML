@@ -8,9 +8,9 @@ signature SMTLIB_INTERFACE =
 sig
   val basic_builtins: SMT_Translate.builtins
   val default_attributes: string list
-  val gen_interface: SMT_Translate.builtins -> string list ->
+  val gen_interface: SMT_Translate.builtins -> string list -> string list ->
     SMT_Solver.interface
-  val interface: SMT_Solver.interface
+  val interface: string list -> SMT_Solver.interface
 end
 
 structure SMTLIB_Interface: SMTLIB_INTERFACE =
@@ -118,12 +118,13 @@ fun wr_expr loc env t =
           | wr_pat (T.SNoPat ts) = wrp "nopat" ts
       in par (wr_quant q #> fold wr_var vs #> wre b #> fold wr_pat ps) end)
 
-fun serialize attributes ({typs, funs, preds} : T.sign) ts stream =
+fun serialize attributes comments ({typs, funs, preds} : T.sign) ts stream =
   let
     fun wr_decl (n, Ts) = wr_line (sep (par (wr n #> fold wr1 Ts)))
   in
     stream
     |> wr_line (wr "(benchmark Isabelle")
+    |> wr_line (wr ":status unknown")
     |> fold (wr_line o wr) attributes
     |> length typs > 0 ?
          wr_line (wr ":extrasorts" #> par (fold wr1 typs))
@@ -138,6 +139,7 @@ fun serialize attributes ({typs, funs, preds} : T.sign) ts stream =
     |> fold (fn t => wr ":assumption" #> wr_line (wr_expr false [] t)) ts
     |> wr_line (wr ":formula true")
     |> wr_line (wr ")")
+    |> fold (fn comment => wr_line (wr ("; " ^ comment))) comments
     |> K ()
   end
 
@@ -149,9 +151,9 @@ val basic_builtins = {
   builtin_num = builtin_num,
   builtin_fun = (fn true => builtin_funcs | false => builtin_preds) }
 
-val default_attributes = [":logic AUFLIRA", ":status unknown"]
+val default_attributes = [":logic AUFLIRA"]
 
-fun gen_interface builtins attributes = {
+fun gen_interface builtins attributes comments = {
   normalize = [
     SMT_Normalize.RewriteTrivialLets,
     SMT_Normalize.RewriteNegativeNumerals,
@@ -170,8 +172,9 @@ fun gen_interface builtins attributes = {
       term_marker = term_marker,
       formula_marker = formula_marker },
     builtins = builtins,
-    serialize = serialize attributes }}
+    serialize = serialize attributes comments }}
 
-val interface = gen_interface basic_builtins default_attributes
+fun interface comments =
+  gen_interface basic_builtins default_attributes comments
 
 end
