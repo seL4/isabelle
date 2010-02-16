@@ -30,7 +30,6 @@ sig
   val consts_of: Proof.context -> Consts.T
   val const_syntax_name: Proof.context -> string -> string
   val the_const_constraint: Proof.context -> string -> typ
-  val mk_const: Proof.context -> string * typ list -> term
   val set_syntax_mode: Syntax.mode -> Proof.context -> Proof.context
   val restore_syntax_mode: Proof.context -> Proof.context -> Proof.context
   val facts_of: Proof.context -> Facts.T
@@ -239,8 +238,6 @@ val restore_syntax_mode = map_syntax o Local_Syntax.restore_mode o syntax_of;
 val consts_of = #1 o #consts o rep_context;
 val const_syntax_name = Consts.syntax_name o consts_of;
 val the_const_constraint = Consts.the_constraint o consts_of;
-
-fun mk_const ctxt (c, Ts) = Const (c, Consts.instance (consts_of ctxt) (c, Ts));
 
 val facts_of = #facts o rep_context;
 val cases_of = #cases o rep_context;
@@ -1320,7 +1317,8 @@ fun pretty_ctxt ctxt =
 
       (*structures*)
       val structs = Local_Syntax.structs_of (syntax_of ctxt);
-      val prt_structs = if null structs then []
+      val prt_structs =
+        if null structs then []
         else [Pretty.block (Pretty.str "structures:" :: Pretty.brk 1 ::
           Pretty.commas (map Pretty.str structs))];
 
@@ -1331,7 +1329,8 @@ fun pretty_ctxt ctxt =
       val fixes =
         rev (filter_out ((can Name.dest_internal orf member (op =) structs) o #1)
           (Variable.fixes_of ctxt));
-      val prt_fixes = if null fixes then []
+      val prt_fixes =
+        if null fixes then []
         else [Pretty.block (Pretty.str "fixed variables:" :: Pretty.brk 1 ::
           Pretty.commas (map prt_fix fixes))];
 
@@ -1339,7 +1338,8 @@ fun pretty_ctxt ctxt =
       val prems = Assumption.all_prems_of ctxt;
       val len = length prems;
       val suppressed = len - ! prems_limit;
-      val prt_prems = if null prems then []
+      val prt_prems =
+        if null prems then []
         else [Pretty.big_list "prems:" ((if suppressed <= 0 then [] else [Pretty.str "..."]) @
           map (Display.pretty_thm ctxt) (drop suppressed prems))];
     in prt_structs @ prt_fixes @ prt_prems end;
