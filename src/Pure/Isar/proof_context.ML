@@ -122,14 +122,13 @@ sig
   val add_const_constraint: string * typ option -> Proof.context -> Proof.context
   val add_abbrev: string -> binding * term -> Proof.context -> (term * term) * Proof.context
   val revert_abbrev: string -> string -> Proof.context -> Proof.context
-  val verbose: bool Unsynchronized.ref
-  val setmp_verbose_CRITICAL: ('a -> 'b) -> 'a -> 'b
   val print_syntax: Proof.context -> unit
   val print_abbrevs: Proof.context -> unit
   val print_binds: Proof.context -> unit
   val print_lthms: Proof.context -> unit
   val print_cases: Proof.context -> unit
   val debug: bool Unsynchronized.ref
+  val verbose: bool Unsynchronized.ref
   val prems_limit: int Unsynchronized.ref
   val pretty_ctxt: Proof.context -> Pretty.T list
   val pretty_context: Proof.context -> Pretty.T list
@@ -1195,14 +1194,6 @@ end;
 
 (** print context information **)
 
-val debug = Unsynchronized.ref false;
-
-val verbose = Unsynchronized.ref false;
-fun verb f x = if ! verbose then f (x ()) else [];
-
-fun setmp_verbose_CRITICAL f x = setmp_CRITICAL verbose true f x;
-
-
 (* local syntax *)
 
 val print_syntax = Syntax.print_syntax o syn_of;
@@ -1220,7 +1211,7 @@ fun pretty_abbrevs show_globals ctxt =
           else cons (c, Logic.mk_equals (Const (c, T), t));
     val abbrevs = Name_Space.extern_table (space, Symtab.make (Symtab.fold add_abbr consts []));
   in
-    if null abbrevs andalso not (! verbose) then []
+    if null abbrevs then []
     else [Pretty.big_list "abbreviations:" (map (pretty_term_abbrev ctxt o #2) abbrevs)]
   end;
 
@@ -1234,7 +1225,7 @@ fun pretty_binds ctxt =
     val binds = Variable.binds_of ctxt;
     fun prt_bind (xi, (T, t)) = pretty_term_abbrev ctxt (Logic.mk_equals (Var (xi, T), t));
   in
-    if Vartab.is_empty binds andalso not (! verbose) then []
+    if Vartab.is_empty binds then []
     else [Pretty.big_list "term bindings:" (map prt_bind (Vartab.dest binds))]
   end;
 
@@ -1248,10 +1239,10 @@ fun pretty_lthms ctxt =
     val local_facts = facts_of ctxt;
     val props = Facts.props local_facts;
     val facts =
-      (if null props then [] else [("unnamed", props)]) @
+      (if null props then [] else [("<unnamed>", props)]) @
       Facts.dest_static [] local_facts;
   in
-    if null facts andalso not (! verbose) then []
+    if null facts then []
     else [Pretty.big_list "facts:" (map #1 (sort_wrt (#1 o #2) (map (`(pretty_fact ctxt)) facts)))]
   end;
 
@@ -1274,8 +1265,9 @@ fun pretty_case (name, (fixes, ((asms, (lets, cs)), ctxt))) =
       ((if a = "" then [] else [Pretty.str (a ^ ":")]) @ map (Pretty.quote o prt_term) ts));
 
     fun prt_sect _ _ _ [] = []
-      | prt_sect s sep prt xs = [Pretty.block (Pretty.breaks (Pretty.str s ::
-            flat (Library.separate sep (map (Library.single o prt) xs))))];
+      | prt_sect s sep prt xs =
+          [Pretty.block (Pretty.breaks (Pretty.str s ::
+            flat (separate sep (map (single o prt) xs))))];
   in
     Pretty.block (Pretty.fbreaks
       (Pretty.str (name ^ ":") ::
@@ -1296,7 +1288,7 @@ fun pretty_cases ctxt =
           cons (name, (fixes, case_result c ctxt));
     val cases = fold add_case (cases_of ctxt) [];
   in
-    if null cases andalso not (! verbose) then []
+    if null cases then []
     else [Pretty.big_list "cases:" (map pretty_case cases)]
   end;
 
@@ -1307,6 +1299,8 @@ end;
 
 (* core context *)
 
+val debug = Unsynchronized.ref false;
+val verbose = Unsynchronized.ref false;
 val prems_limit = Unsynchronized.ref ~1;
 
 fun pretty_ctxt ctxt =
@@ -1349,6 +1343,9 @@ fun pretty_ctxt ctxt =
 
 fun pretty_context ctxt =
   let
+    val is_verbose = ! verbose;
+    fun verb f x = if is_verbose then f (x ()) else [];
+
     val prt_term = Syntax.pretty_term ctxt;
     val prt_typ = Syntax.pretty_typ ctxt;
     val prt_sort = Syntax.pretty_sort ctxt;
