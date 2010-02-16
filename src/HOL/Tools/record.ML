@@ -929,7 +929,7 @@ fun print_translation names =
 
 (*try to reconstruct the record name type abbreviation from
   the (nested) extension types*)
-fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT ctxt tm =
+fun record_type_abbr_tr' default_tr' abbr alphas zeta last_ext schemeT ctxt tm =
   let
     val thy = ProofContext.theory_of ctxt;
 
@@ -965,7 +965,7 @@ fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT ctxt tm =
     if ! print_record_type_abbr then
       (case last_extT T of
         SOME (name, _) =>
-          if name = lastExt then
+          if name = last_ext then
            (let val subst = match schemeT T in
               if HOLogic.is_unitT (Envir.norm_type subst (varifyT (TFree (zeta, Sign.defaultS thy))))
               then mk_type_abbr subst abbr alphas
@@ -1035,7 +1035,7 @@ fun gen_record_type_tr' name =
   in (name_sfx, tr') end;
 
 
-fun gen_record_type_abbr_tr' abbr alphas zeta lastExt schemeT name =
+fun gen_record_type_abbr_tr' abbr alphas zeta last_ext schemeT name =
   let
     val name_sfx = suffix ext_typeN name;
     val default_tr' =
@@ -1045,7 +1045,7 @@ fun gen_record_type_abbr_tr' abbr alphas zeta lastExt schemeT name =
         @{syntax_const "_record_type"}
         @{syntax_const "_record_type_scheme"};
     fun tr' ctxt ts =
-      record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT ctxt
+      record_type_abbr_tr' default_tr' abbr alphas zeta last_ext schemeT ctxt
         (list_comb (Syntax.const name_sfx, ts));
   in (name_sfx, tr') end;
 
@@ -1981,8 +1981,8 @@ fun record_definition (args, b) parent (parents: parent_info list) raw_fields th
     val adv_record_type_abbr_tr's =
       let
         val trnames = external_names (hd extension_names);
-        val lastExt = unsuffix ext_typeN (fst extension);
-      in map (gen_record_type_abbr_tr' name alphas zeta lastExt rec_schemeT0) trnames end;
+        val last_ext = unsuffix ext_typeN (fst extension);
+      in map (gen_record_type_abbr_tr' name alphas zeta last_ext rec_schemeT0) trnames end;
 
     val adv_record_type_tr's =
       let
