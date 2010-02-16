@@ -711,63 +711,6 @@ fun decode_type thy t =
 
 local
 
-fun field_update_tr (Const (@{syntax_const "_field_update"}, _) $ Const (name, _) $ arg) =
-      Syntax.const (suffix updateN name) $ Abs ("_", dummyT, arg)
-  | field_update_tr t = raise TERM ("field_update_tr", [t]);
-
-fun field_updates_tr (Const (@{syntax_const "_field_updates"}, _) $ t $ u) =
-      field_update_tr t :: field_updates_tr u
-  | field_updates_tr t = [field_update_tr t];
-
-fun record_update_tr [t, u] = fold (curry op $) (field_updates_tr u) t
-  | record_update_tr ts = raise TERM ("record_update_tr", ts);
-
-
-fun field_tr ((Const (@{syntax_const "_field"}, _) $ Const (name, _) $ arg)) = (name, arg)
-  | field_tr t = raise TERM ("field_tr", [t]);
-
-fun fields_tr (Const (@{syntax_const "_fields"}, _) $ t $ u) = field_tr t :: fields_tr u
-  | fields_tr t = [field_tr t];
-
-fun record_fields_tr more ctxt t =
-  let
-    val thy = ProofContext.theory_of ctxt;
-    fun err msg = raise TERM ("Error in record input: " ^ msg, [t]);
-
-    fun split_args (field :: fields) ((name, arg) :: fargs) =
-          if can (unsuffix name) field
-          then
-            let val (args, rest) = split_args fields fargs
-            in (arg :: args, rest) end
-          else err ("expecting field " ^ field ^ " but got " ^ name)
-      | split_args [] (fargs as (_ :: _)) = ([], fargs)
-      | split_args (_ :: _) [] = err "expecting more fields"
-      | split_args _ _ = ([], []);
-
-    fun mk_ext (fargs as (name, _) :: _) =
-          (case get_fieldext thy (Sign.intern_const thy name) of
-            SOME (ext, _) =>
-              (case get_extfields thy ext of
-                SOME fields =>
-                  let
-                    val (args, rest) = split_args (map fst (but_last fields)) fargs;
-                    val more' = mk_ext rest;
-                  in
-                    (* FIXME authentic syntax *)
-                    list_comb (Syntax.const (suffix extN ext), args @ [more'])
-                  end
-              | NONE => err ("no fields defined for " ^ ext))
-          | NONE => err (name ^ " is no proper field"))
-      | mk_ext [] = more;
-  in mk_ext (fields_tr t) end;
-
-fun record_tr ctxt [t] = record_fields_tr (Syntax.const @{const_syntax Unity}) ctxt t
-  | record_tr _ ts = raise TERM ("record_tr", ts);
-
-fun record_scheme_tr ctxt [t, more] = record_fields_tr more ctxt t
-  | record_scheme_tr _ ts = raise TERM ("record_scheme_tr", ts);
-
-
 fun field_type_tr ((Const (@{syntax_const "_field_type"}, _) $ Const (name, _) $ arg)) =
       (name, arg)
   | field_type_tr t = raise TERM ("field_type_tr", [t]);
@@ -828,6 +771,63 @@ fun record_type_tr ctxt [t] = record_field_types_tr (Syntax.const "Product_Type.
 
 fun record_type_scheme_tr ctxt [t, more] = record_field_types_tr more ctxt t
   | record_type_scheme_tr _ ts = raise TERM ("record_type_scheme_tr", ts);
+
+
+fun field_tr ((Const (@{syntax_const "_field"}, _) $ Const (name, _) $ arg)) = (name, arg)
+  | field_tr t = raise TERM ("field_tr", [t]);
+
+fun fields_tr (Const (@{syntax_const "_fields"}, _) $ t $ u) = field_tr t :: fields_tr u
+  | fields_tr t = [field_tr t];
+
+fun record_fields_tr more ctxt t =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    fun err msg = raise TERM ("Error in record input: " ^ msg, [t]);
+
+    fun split_args (field :: fields) ((name, arg) :: fargs) =
+          if can (unsuffix name) field
+          then
+            let val (args, rest) = split_args fields fargs
+            in (arg :: args, rest) end
+          else err ("expecting field " ^ field ^ " but got " ^ name)
+      | split_args [] (fargs as (_ :: _)) = ([], fargs)
+      | split_args (_ :: _) [] = err "expecting more fields"
+      | split_args _ _ = ([], []);
+
+    fun mk_ext (fargs as (name, _) :: _) =
+          (case get_fieldext thy (Sign.intern_const thy name) of
+            SOME (ext, _) =>
+              (case get_extfields thy ext of
+                SOME fields =>
+                  let
+                    val (args, rest) = split_args (map fst (but_last fields)) fargs;
+                    val more' = mk_ext rest;
+                  in
+                    (* FIXME authentic syntax *)
+                    list_comb (Syntax.const (suffix extN ext), args @ [more'])
+                  end
+              | NONE => err ("no fields defined for " ^ ext))
+          | NONE => err (name ^ " is no proper field"))
+      | mk_ext [] = more;
+  in mk_ext (fields_tr t) end;
+
+fun record_tr ctxt [t] = record_fields_tr (Syntax.const @{const_syntax Unity}) ctxt t
+  | record_tr _ ts = raise TERM ("record_tr", ts);
+
+fun record_scheme_tr ctxt [t, more] = record_fields_tr more ctxt t
+  | record_scheme_tr _ ts = raise TERM ("record_scheme_tr", ts);
+
+
+fun field_update_tr (Const (@{syntax_const "_field_update"}, _) $ Const (name, _) $ arg) =
+      Syntax.const (suffix updateN name) $ Abs ("_", dummyT, arg)
+  | field_update_tr t = raise TERM ("field_update_tr", [t]);
+
+fun field_updates_tr (Const (@{syntax_const "_field_updates"}, _) $ t $ u) =
+      field_update_tr t :: field_updates_tr u
+  | field_updates_tr t = [field_update_tr t];
+
+fun record_update_tr [t, u] = fold (curry op $) (field_updates_tr u) t
+  | record_update_tr ts = raise TERM ("record_update_tr", ts);
 
 in
 
@@ -1429,8 +1429,8 @@ fun record_split_simproc P =
     (fn thy => fn _ => fn t =>
       (case t of
         Const (quantifier, Type (_, [Type (_, [T, _]), _])) $ _ =>
-          if quantifier = @{const_name All} orelse
-            quantifier = @{const_name all} orelse
+          if quantifier = @{const_name all} orelse
+            quantifier = @{const_name All} orelse
             quantifier = @{const_name Ex}
           then
             (case rec_id ~1 T of
@@ -1554,20 +1554,20 @@ fun record_split_simp_tac thms P = CSUBGOAL (fn (cgoal, i) =>
 
 (* record_split_tac *)
 
-(*Split all records in the goal, which are quantified by ALL or !!.*)
+(*Split all records in the goal, which are quantified by !! or ALL.*)
 val record_split_tac = CSUBGOAL (fn (cgoal, i) =>
   let
     val goal = term_of cgoal;
 
     val has_rec = exists_Const
       (fn (s, Type (_, [Type (_, [T, _]), _])) =>
-          (s = @{const_name All} orelse s = @{const_name all}) andalso is_recT T
+          (s = @{const_name all} orelse s = @{const_name All}) andalso is_recT T
         | _ => false);
 
     fun is_all t =
       (case t of
         Const (quantifier, _) $ _ =>
-          if quantifier = @{const_name All} orelse quantifier = @{const_name all} then ~1 else 0
+          if quantifier = @{const_name all} orelse quantifier = @{const_name All} then ~1 else 0
       | _ => 0);
   in
     if has_rec goal then
