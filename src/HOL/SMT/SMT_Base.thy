@@ -8,6 +8,7 @@ theory SMT_Base
 imports Real "~~/src/HOL/Word/Word"
   "~~/src/HOL/Decision_Procs/Dense_Linear_Order"
 uses
+  "~~/src/Tools/Cache_IO/cache_io.ML"
   ("Tools/smt_normalize.ML")
   ("Tools/smt_monomorph.ML")
   ("Tools/smt_translate.ML")

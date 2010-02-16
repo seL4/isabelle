@@ -1,0 +1,4 @@
+ISABELLE_CACHE_IO="$COMPONENT"
+
+COMPUTE_HASH_KEY="$ISABELLE_CACHE_IO/lib/scripts/compute_hash_key"
+
