@@ -19,6 +19,7 @@ sig
   val antiquote_tr': string -> term -> term
   val quote_tr': string -> term -> term
   val quote_antiquote_tr': string -> string -> string -> string * (term list -> term)
+  val update_name_tr': term -> term
   val mark_bound: string -> term
   val mark_boundT: string * typ -> term
   val bound_vars: (string * typ) list -> term -> term
@@ -185,6 +186,15 @@ fun quote_antiquote_tr quoteN antiquoteN name =
     fun tr [t] = Lexicon.const name $ quote_tr antiquoteN t
       | tr ts = raise TERM ("quote_tr", ts);
   in (quoteN, tr) end;
+
+
+(* corresponding updates *)
+
+fun update_name_tr (Free (x, T) :: ts) = list_comb (Free (suffix "_update" x, T), ts)
+  | update_name_tr (Const (x, T) :: ts) = list_comb (Const (suffix "_update" x, T), ts)
+  | update_name_tr (((c as Const ("_constrain", _)) $ t $ ty) :: ts) =
+      list_comb (c $ update_name_tr [t] $ (Lexicon.const "fun" $ ty $ Lexicon.const "dummy"), ts)
+  | update_name_tr ts = raise TERM ("update_name_tr", ts);
 
 
 (* indexed syntax *)
@@ -444,6 +454,19 @@ fun quote_antiquote_tr' quoteN antiquoteN name =
   in (name, tr') end;
 
 
+(* corresponding updates *)
+
+fun upd_tr' (x_upd, T) =
+  (case try (unsuffix "_update") x_upd of
+    SOME x => (x, if T = dummyT then T else Term.domain_type T)
+  | NONE => raise Match);
+
+fun update_name_tr' (Free x) = Free (upd_tr' x)
+  | update_name_tr' ((c as Const ("_free", _)) $ Free x) = c $ Free (upd_tr' x)
+  | update_name_tr' (Const x) = Const (upd_tr' x)
+  | update_name_tr' _ = raise Match;
+
+
 (* indexed syntax *)
 
 fun index_ast_tr' (*"_index"*) [Ast.Appl [Ast.Constant "_struct", ast]] = ast
@@ -468,17 +491,31 @@ fun struct_ast_tr' structs (*"_struct"*) [Ast.Constant "_indexdefault"] =
 (** Pure translations **)
 
 val pure_trfuns =
- ([("_constify", constify_ast_tr), ("_appl", appl_ast_tr), ("_applC", applC_ast_tr),
-   ("_lambda", lambda_ast_tr), ("_idtyp", idtyp_ast_tr), ("_idtypdummy", idtypdummy_ast_tr),
-   ("_bigimpl", bigimpl_ast_tr), ("_indexdefault", indexdefault_ast_tr),
-   ("_indexnum", indexnum_ast_tr), ("_indexvar", indexvar_ast_tr), ("_struct", struct_ast_tr)],
-  [("_abs", abs_tr), ("_aprop", aprop_tr), ("_ofclass", ofclass_tr),
-   ("_sort_constraint", sort_constraint_tr), ("_TYPE", type_tr),
-   ("_DDDOT", dddot_tr), ("_index", index_tr)],
-  ([]: (string * (term list -> term)) list),
-  [("_abs", abs_ast_tr'), ("_idts", idtyp_ast_tr' "_idts"),
-   ("_pttrns", idtyp_ast_tr' "_pttrns"), ("==>", impl_ast_tr'),
-   ("_index", index_ast_tr')]);
+  ([("_constify", constify_ast_tr),
+    ("_appl", appl_ast_tr),
+    ("_applC", applC_ast_tr),
+    ("_lambda", lambda_ast_tr),
+    ("_idtyp", idtyp_ast_tr),
+    ("_idtypdummy", idtypdummy_ast_tr),
+    ("_bigimpl", bigimpl_ast_tr),
+    ("_indexdefault", indexdefault_ast_tr),
+    ("_indexnum", indexnum_ast_tr),
+    ("_indexvar", indexvar_ast_tr),
+    ("_struct", struct_ast_tr)],
+   [("_abs", abs_tr),
+    ("_aprop", aprop_tr),
+    ("_ofclass", ofclass_tr),
+    ("_sort_constraint", sort_constraint_tr),
+    ("_TYPE", type_tr),
+    ("_DDDOT", dddot_tr),
+    ("_update_name", update_name_tr),
+    ("_index", index_tr)],
+   [],
+   [("_abs", abs_ast_tr'),
+    ("_idts", idtyp_ast_tr' "_idts"),
+    ("_pttrns", idtyp_ast_tr' "_pttrns"),
+    ("==>", impl_ast_tr'),
+    ("_index", index_ast_tr')]);
 
 val pure_trfunsT =
   [("_type_prop", type_prop_tr'), ("TYPE", type_tr'), ("_type_constraint_", type_constraint_tr')];

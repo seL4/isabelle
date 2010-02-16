@@ -146,7 +146,7 @@ fun partition _ _ _ _ _ _ _ [] = raise CASE_ERROR ("partition: no rows", ~1)
                         (replicate (length rstp) "x")
                     in
                       [((prfx, gvars @ map Free (xs ~~ Ts)),
-                        (Const (@{const_name HOL.undefined}, res_ty), (~1, false)))]
+                        (Const (@{const_syntax undefined}, res_ty), (~1, false)))]
                     end
                   else in_group
               in
@@ -315,7 +315,7 @@ fun case_tr err tab_of ctxt [t, u] =
       fun prep_pat ((c as Const (@{syntax_const "_constrain"}, _)) $ t $ tT) used =
             let val (t', used') = prep_pat t used
             in (c $ t' $ tT, used') end
-        | prep_pat (Const (@{const_name dummy_pattern}, T)) used =
+        | prep_pat (Const (@{const_syntax dummy_pattern}, T)) used =
             let val x = Name.variant used "x"
             in (Free (x, T), x :: used) end
         | prep_pat (Const (s, T)) used =
@@ -381,7 +381,7 @@ fun gen_dest_case name_of type_of tab d used t =
         fun count_cases (_, _, true) = I
           | count_cases (c, (_, body), false) =
               AList.map_default op aconv (body, []) (cons c);
-        val is_undefined = name_of #> equal (SOME @{const_name HOL.undefined});
+        val is_undefined = name_of #> equal (SOME @{const_syntax undefined});
         fun mk_case (c, (xs, body), _) = (list_comb (c, xs), body)
       in case ty_info tab cname of
           SOME {constructors, case_name} =>
@@ -399,7 +399,7 @@ fun gen_dest_case name_of type_of tab d used t =
                   (fold_rev count_cases cases []);
                 val R = type_of t;
                 val dummy =
-                  if d then Const (@{const_name dummy_pattern}, R)
+                  if d then Const (@{const_syntax dummy_pattern}, R)
                   else Free (Name.variant used "x", R)
               in
                 SOME (x, map mk_case (case find_first (is_undefined o fst) cases' of

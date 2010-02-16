@@ -68,17 +68,6 @@ print_translation {*
           quote_tr' (Syntax.const name) (t :: ts)
       | bexp_tr' _ _ = raise Match;
 
-    fun upd_tr' (x_upd, T) =
-      (case try (unsuffix Record.updateN) x_upd of
-        SOME x => (x, if T = dummyT then T else Term.domain_type T)
-      | NONE => raise Match);
-
-    fun update_name_tr' (Free x) = Free (upd_tr' x)
-      | update_name_tr' ((c as Const (@{syntax_const "_free"}, _)) $ Free x) =
-          c $ Free (upd_tr' x)
-      | update_name_tr' (Const x) = Const (upd_tr' x)
-      | update_name_tr' _ = raise Match;
-
     fun K_tr' (Abs (_, _, t)) =
           if null (loose_bnos t) then t else raise Match
       | K_tr' (Abs (_, _, Abs (_, _, t) $ Bound 0)) =
@@ -86,7 +75,7 @@ print_translation {*
       | K_tr' _ = raise Match;
 
     fun assign_tr' (Abs (x, _, f $ k $ Bound 0) :: ts) =
-          quote_tr' (Syntax.const @{syntax_const "_Assign"} $ update_name_tr' f)
+          quote_tr' (Syntax.const @{syntax_const "_Assign"} $ Syntax.update_name_tr' f)
             (Abs (x, dummyT, K_tr' k) :: ts)
       | assign_tr' _ = raise Match;
   in

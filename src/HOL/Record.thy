@@ -420,35 +420,34 @@ lemma o_eq_id_dest: "a o b = id o c \<Longrightarrow> a (b v) = c v"
 subsection {* Concrete record syntax *}
 
 nonterminals
-  ident field_type field_types field fields update updates
+  ident field_type field_types field fields field_update field_updates
 syntax
   "_constify"           :: "id => ident"                        ("_")
   "_constify"           :: "longid => ident"                    ("_")
 
-  "_field_type"         :: "[ident, type] => field_type"        ("(2_ ::/ _)")
+  "_field_type"         :: "ident => type => field_type"        ("(2_ ::/ _)")
   ""                    :: "field_type => field_types"          ("_")
-  "_field_types"        :: "[field_type, field_types] => field_types"    ("_,/ _")
+  "_field_types"        :: "field_type => field_types => field_types"    ("_,/ _")
   "_record_type"        :: "field_types => type"                ("(3'(| _ |'))")
-  "_record_type_scheme" :: "[field_types, type] => type"        ("(3'(| _,/ (2... ::/ _) |'))")
+  "_record_type_scheme" :: "field_types => type => type"        ("(3'(| _,/ (2... ::/ _) |'))")
 
-  "_field"              :: "[ident, 'a] => field"               ("(2_ =/ _)")
+  "_field"              :: "ident => 'a => field"               ("(2_ =/ _)")
   ""                    :: "field => fields"                    ("_")
-  "_fields"             :: "[field, fields] => fields"          ("_,/ _")
+  "_fields"             :: "field => fields => fields"          ("_,/ _")
   "_record"             :: "fields => 'a"                       ("(3'(| _ |'))")
-  "_record_scheme"      :: "[fields, 'a] => 'a"                 ("(3'(| _,/ (2... =/ _) |'))")
+  "_record_scheme"      :: "fields => 'a => 'a"                 ("(3'(| _,/ (2... =/ _) |'))")
 
-  "_update_name"        :: idt
-  "_update"             :: "ident => 'a => update"              ("(2_ :=/ _)")
-  ""                    :: "update => updates"                  ("_")
-  "_updates"            :: "update => updates => updates"       ("_,/ _")
-  "_record_update"      :: "'a => updates => 'b"                ("_/(3'(| _ |'))" [900, 0] 900)
+  "_field_update"       :: "ident => 'a => field_update"        ("(2_ :=/ _)")
+  ""                    :: "field_update => field_updates"      ("_")
+  "_field_updates"      :: "field_update => field_updates => field_updates"  ("_,/ _")
+  "_record_update"      :: "'a => field_updates => 'b"          ("_/(3'(| _ |'))" [900, 0] 900)
 
 syntax (xsymbols)
   "_record_type"        :: "field_types => type"                ("(3\<lparr>_\<rparr>)")
   "_record_type_scheme" :: "field_types => type => type"        ("(3\<lparr>_,/ (2\<dots> ::/ _)\<rparr>)")
   "_record"             :: "fields => 'a"                       ("(3\<lparr>_\<rparr>)")
   "_record_scheme"      :: "fields => 'a => 'a"                 ("(3\<lparr>_,/ (2\<dots> =/ _)\<rparr>)")
-  "_record_update"      :: "'a => updates => 'b"                ("_/(3\<lparr>_\<rparr>)" [900, 0] 900)
+  "_record_update"      :: "'a => field_updates => 'b"          ("_/(3\<lparr>_\<rparr>)" [900, 0] 900)
 
 
 subsection {* Record package *}
