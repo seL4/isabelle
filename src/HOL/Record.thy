@@ -437,7 +437,6 @@ syntax
   "_record"             :: "fields => 'a"                       ("(3'(| _ |'))")
   "_record_scheme"      :: "fields => 'a => 'a"                 ("(3'(| _,/ (2... =/ _) |'))")
 
-  "_update_name"        :: idt
   "_update"             :: "ident => 'a => update"              ("(2_ :=/ _)")
   ""                    :: "update => updates"                  ("_")
   "_updates"            :: "update => updates => updates"       ("_,/ _")

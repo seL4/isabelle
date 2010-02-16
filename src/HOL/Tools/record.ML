@@ -730,13 +730,6 @@ fun record_update_tr [t, u] =
 
 end;
 
-fun update_name_tr (Free (x, T) :: ts) = list_comb (Free (suffix updateN x, T), ts)
-  | update_name_tr (Const (x, T) :: ts) = list_comb (Const (suffix updateN x, T), ts)
-  | update_name_tr (((c as Const (@{syntax_const "_constrain"}, _)) $ t $ ty) :: ts) =
-      (* FIXME @{type_syntax} *)
-      list_comb (c $ update_name_tr [t] $ (Syntax.const "fun" $ ty $ Syntax.const "dummy"), ts)
-  | update_name_tr ts = raise TERM ("update_name_tr", ts);
-
 fun dest_ext_field mark (t as (Const (c, _) $ Const (name, _) $ arg)) =
       if c = mark then (name, arg)
       else raise TERM ("dest_ext_field: " ^ mark, [t])
@@ -855,8 +848,7 @@ val adv_record_type_scheme_tr =
 
 
 val parse_translation =
- [(@{syntax_const "_record_update"}, record_update_tr),
-  (@{syntax_const "_update_name"}, update_name_tr)];
+ [(@{syntax_const "_record_update"}, record_update_tr)];
 
 val adv_parse_translation =
  [(@{syntax_const "_record"}, adv_record_tr),
