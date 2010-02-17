@@ -6,8 +6,17 @@ theory Execute_Choice
 imports Main AssocList
 begin
 
-definition valuesum :: "('a, 'b :: comm_monoid_add) mapping \<Rightarrow> 'b" where
+text {*
+  A trivial example:
+*}
+
+definition valuesum :: "('a, 'b :: ab_group_add) mapping \<Rightarrow> 'b" where
   "valuesum m = (\<Sum>k \<in> Mapping.keys m. the (Mapping.lookup m k))"
+
+text {*
+  Not that instead of defining @{term valuesum} with choice, we define it
+  directly and derive a description involving choice afterwards:
+*}
 
 lemma valuesum_rec:
   assumes fin: "finite (dom (Mapping.lookup m))"
@@ -35,30 +44,59 @@ next
   then show ?thesis by (simp add: keys_def valuesum_def is_empty_def)
 qed
 
+text {*
+  In the context of the else-branch we can show that the exact choice is
+  irrelvant; in practice, finding this point where choice becomes irrelevant is the
+  most difficult thing!
+*}
+
+lemma valuesum_choice:
+  "finite (Mapping.keys M) \<Longrightarrow> x \<in> Mapping.keys M \<Longrightarrow> y \<in> Mapping.keys M \<Longrightarrow>
+    the (Mapping.lookup M x) + valuesum (Mapping.delete x M) =
+    the (Mapping.lookup M y) + valuesum (Mapping.delete y M)"
+  by (simp add: valuesum_def keys_def setsum_diff)
+
+text {*
+  Given @{text valuesum_rec} as initial description, we stepwise refine it to something executable;
+  first, we formally insert the constructor @{term AList} and split the one equation into two,
+  where the second one provides the necessary context:
+*}
+
 lemma valuesum_rec_AList:
-  "valuesum (AList []) = 0"
-  "valuesum (AList (x # xs)) = (let l = (SOME l. l \<in> Mapping.keys (AList (x # xs))) in
+  shows [code]: "valuesum (AList []) = 0"
+  and "valuesum (AList (x # xs)) = (let l = (SOME l. l \<in> Mapping.keys (AList (x # xs))) in
     the (Mapping.lookup (AList (x # xs)) l) + valuesum (Mapping.delete l (AList (x # xs))))"
   by (simp_all add: valuesum_rec finite_dom_map_of is_empty_AList)
 
-axioms
-  FIXME: "x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> C x = C y"
+text {*
+  As a side effect the precondition disappears (but note this has nothing to do with choice!).
+  The first equation deals with the uncritical empty case and can already be used for code generation.
 
-lemma aux: "(SOME l. l \<in> Mapping.keys (AList (x # xs))) = fst (hd (x # xs))"
-proof (rule FIXME)
-  show "fst (hd (x # xs)) \<in> Mapping.keys (AList (x # xs))"
-    by (simp add: keys_AList)
-  show "(SOME l. l \<in> Mapping.keys (AList (x # xs))) \<in> Mapping.keys (AList (x # xs))"
-    apply (rule someI) apply (simp add: keys_AList) apply auto
-    done
-qed
+  Using @{text valuesum_choice}, we are able to prove an executable version of @{term valuesum}:
+*}
 
 lemma valuesum_rec_exec [code]:
-  "valuesum (AList []) = 0"
   "valuesum (AList (x # xs)) = (let l = fst (hd (x # xs)) in
     the (Mapping.lookup (AList (x # xs)) l) + valuesum (Mapping.delete l (AList (x # xs))))"
-  by (simp_all add: valuesum_rec_AList aux)
+proof -
+  let ?M = "AList (x # xs)"
+  let ?l1 = "(SOME l. l \<in> Mapping.keys ?M)"
+  let ?l2 = "fst (hd (x # xs))"
+  have "finite (Mapping.keys ?M)" by (simp add: keys_AList)
+  moreover have "?l1 \<in> Mapping.keys ?M"
+    by (rule someI) (auto simp add: keys_AList)
+  moreover have "?l2 \<in> Mapping.keys ?M"
+    by (simp add: keys_AList)
+  ultimately have "the (Mapping.lookup ?M ?l1) + valuesum (Mapping.delete ?l1 ?M) =
+    the (Mapping.lookup ?M ?l2) + valuesum (Mapping.delete ?l2 ?M)"
+    by (rule valuesum_choice)
+  then show ?thesis by (simp add: valuesum_rec_AList)
+qed
+  
+text {*
+  See how it works:
+*}
 
-value "valuesum (AList [(''abc'', (42::nat)), (''def'', 1705)])"
+value "valuesum (AList [(''abc'', (42::int)), (''def'', 1705)])"
 
 end
