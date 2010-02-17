@@ -293,7 +293,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val _ = null (Term.add_tvars assms_t []) orelse
             raise NOT_SUPPORTED "schematic type variables"
     val (((def_ts, nondef_ts), (got_all_mono_user_axioms, no_poly_user_axioms)),
-         core_t) = preprocess_term hol_ctxt assms_t
+         core_t, binarize) = preprocess_term hol_ctxt assms_t
     val got_all_user_axioms =
       got_all_mono_user_axioms andalso no_poly_user_axioms
 
@@ -345,12 +345,13 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       case triple_lookup (type_match thy) monos T of
         SOME (SOME b) => b
       | _ => is_type_always_monotonic T orelse
-             formulas_monotonic hol_ctxt T Plus def_ts nondef_ts core_t
+             formulas_monotonic hol_ctxt binarize T Plus def_ts nondef_ts core_t
     fun is_deep_datatype T =
       is_datatype thy T andalso
-      (is_word_type T orelse
+      (not standard orelse is_word_type T orelse
        exists (curry (op =) T o domain_type o type_of) sel_names)
-    val all_Ts = ground_types_in_terms hol_ctxt (core_t :: def_ts @ nondef_ts)
+    val all_Ts = ground_types_in_terms hol_ctxt binarize
+                                       (core_t :: def_ts @ nondef_ts)
                  |> sort TermOrd.typ_ord
     val _ = if verbose andalso binary_ints = SOME true andalso
                exists (member (op =) [nat_T, int_T]) all_Ts then
@@ -514,8 +515,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         val plain_bounds = map (bound_for_plain_rel ctxt debug) plain_rels
         val plain_axioms = map (declarative_axiom_for_plain_rel kk) plain_rels
         val sel_bounds = map (bound_for_sel_rel ctxt debug datatypes) sel_rels
-        val dtype_axioms = declarative_axioms_for_datatypes hol_ctxt bits ofs kk
-                                                            rel_table datatypes
+        val dtype_axioms =
+          declarative_axioms_for_datatypes hol_ctxt binarize bits ofs kk
+                                           rel_table datatypes
         val declarative_axioms = plain_axioms @ dtype_axioms
         val univ_card = univ_card nat_card int_card main_j0
                                   (plain_bounds @ sel_bounds) formula
@@ -545,9 +547,10 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
              if loc = "Nitpick_Kodkod.check_arity" andalso
                 not (Typtab.is_empty ofs) then
                problem_for_scope unsound
-                   {hol_ctxt = hol_ctxt, card_assigns = card_assigns,
-                    bits = bits, bisim_depth = bisim_depth,
-                    datatypes = datatypes, ofs = Typtab.empty}
+                   {hol_ctxt = hol_ctxt, binarize = binarize,
+                    card_assigns = card_assigns, bits = bits,
+                    bisim_depth = bisim_depth, datatypes = datatypes,
+                    ofs = Typtab.empty}
              else if loc = "Nitpick.pick_them_nits_in_term.\
                            \problem_for_scope" then
                NONE
@@ -905,8 +908,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         end
 
     val (skipped, the_scopes) =
-      all_scopes hol_ctxt sym_break cards_assigns maxes_assigns iters_assigns
-                 bitss bisim_depths mono_Ts nonmono_Ts deep_dataTs
+      all_scopes hol_ctxt binarize sym_break cards_assigns maxes_assigns
+                 iters_assigns bitss bisim_depths mono_Ts nonmono_Ts deep_dataTs
     val _ = if skipped > 0 then
               print_m (fn () => "Too many scopes. Skipping " ^
                                 string_of_int skipped ^ " scope" ^

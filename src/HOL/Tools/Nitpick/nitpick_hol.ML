@@ -64,7 +64,7 @@ sig
   val strip_any_connective : term -> term list * term
   val conjuncts_of : term -> term list
   val disjuncts_of : term -> term list
-  val unbit_and_unbox_type : typ -> typ
+  val unarize_and_unbox_type : typ -> typ
   val string_for_type : Proof.context -> typ -> string
   val prefix_name : string -> string -> string
   val shortest_name : string -> string
@@ -117,11 +117,14 @@ sig
   val is_sel : string -> bool
   val is_sel_like_and_no_discr : string -> bool
   val box_type : hol_context -> boxability -> typ -> typ
+  val binarize_nat_and_int_in_type : typ -> typ
+  val binarize_nat_and_int_in_term : term -> term
   val discr_for_constr : styp -> styp
   val num_sels_for_constr_type : typ -> int
   val nth_sel_name_for_constr_name : string -> int -> string
   val nth_sel_for_constr : styp -> int -> styp
-  val boxed_nth_sel_for_constr : hol_context -> styp -> int -> styp
+  val binarized_and_boxed_nth_sel_for_constr :
+    hol_context -> bool -> styp -> int -> styp
   val sel_no_from_name : string -> int
   val close_form : term -> term
   val eta_expand : typ list -> term -> int -> term
@@ -132,10 +135,11 @@ sig
   val register_codatatype : typ -> string -> styp list -> theory -> theory
   val unregister_codatatype : typ -> theory -> theory
   val datatype_constrs : hol_context -> typ -> styp list
-  val boxed_datatype_constrs : hol_context -> typ -> styp list
+  val binarized_and_boxed_datatype_constrs :
+    hol_context -> bool -> typ -> styp list
   val num_datatype_constrs : hol_context -> typ -> int
   val constr_name_for_sel_like : string -> string
-  val boxed_constr_for_sel : hol_context -> styp -> styp
+  val binarized_and_boxed_constr_for_sel : hol_context -> bool -> styp -> styp
   val discriminate_value : hol_context -> styp -> term -> term
   val select_nth_constr_arg : theory -> styp -> term -> int -> typ -> term
   val construct_value : theory -> styp -> term list -> term
@@ -176,8 +180,8 @@ sig
   val equational_fun_axioms : hol_context -> styp -> term list
   val is_equational_fun_surely_complete : hol_context -> styp -> bool
   val merge_type_vars_in_terms : term list -> term list
-  val ground_types_in_type : hol_context -> typ -> typ list
-  val ground_types_in_terms : hol_context -> term list -> typ list
+  val ground_types_in_type : hol_context -> bool -> typ -> typ list
+  val ground_types_in_terms : hol_context -> bool -> term list -> typ list
   val format_type : int list -> int list -> typ -> typ
   val format_term_type :
     theory -> const_table -> (term option * int list) list -> term -> typ
@@ -376,23 +380,23 @@ val built_in_set_consts =
    (@{const_name ord_fun_inst.less_eq_fun}, 2)]
 
 (* typ -> typ *)
-fun unbit_type @{typ "unsigned_bit word"} = nat_T
-  | unbit_type @{typ "signed_bit word"} = int_T
-  | unbit_type @{typ bisim_iterator} = nat_T
-  | unbit_type (Type (s, Ts as _ :: _)) = Type (s, map unbit_type Ts)
-  | unbit_type T = T
-fun unbit_and_unbox_type (Type (@{type_name fun_box}, Ts)) =
-    unbit_and_unbox_type (Type ("fun", Ts))
-  | unbit_and_unbox_type (Type (@{type_name pair_box}, Ts)) =
-    Type ("*", map unbit_and_unbox_type Ts)
-  | unbit_and_unbox_type @{typ "unsigned_bit word"} = nat_T
-  | unbit_and_unbox_type @{typ "signed_bit word"} = int_T
-  | unbit_and_unbox_type @{typ bisim_iterator} = nat_T
-  | unbit_and_unbox_type (Type (s, Ts as _ :: _)) =
-    Type (s, map unbit_and_unbox_type Ts)
-  | unbit_and_unbox_type T = T
+fun unarize_type @{typ "unsigned_bit word"} = nat_T
+  | unarize_type @{typ "signed_bit word"} = int_T
+  | unarize_type @{typ bisim_iterator} = nat_T
+  | unarize_type (Type (s, Ts as _ :: _)) = Type (s, map unarize_type Ts)
+  | unarize_type T = T
+fun unarize_and_unbox_type (Type (@{type_name fun_box}, Ts)) =
+    unarize_and_unbox_type (Type ("fun", Ts))
+  | unarize_and_unbox_type (Type (@{type_name pair_box}, Ts)) =
+    Type ("*", map unarize_and_unbox_type Ts)
+  | unarize_and_unbox_type @{typ "unsigned_bit word"} = nat_T
+  | unarize_and_unbox_type @{typ "signed_bit word"} = int_T
+  | unarize_and_unbox_type @{typ bisim_iterator} = nat_T
+  | unarize_and_unbox_type (Type (s, Ts as _ :: _)) =
+    Type (s, map unarize_and_unbox_type Ts)
+  | unarize_and_unbox_type T = T
 (* Proof.context -> typ -> string *)
-fun string_for_type ctxt = Syntax.string_of_typ ctxt o unbit_and_unbox_type
+fun string_for_type ctxt = Syntax.string_of_typ ctxt o unarize_and_unbox_type
 
 (* string -> string -> string *)
 val prefix_name = Long_Name.qualify o Long_Name.base_name
@@ -692,7 +696,7 @@ fun is_constr_like thy (s, T) =
   member (op =) [@{const_name FunBox}, @{const_name PairBox},
                  @{const_name Quot}, @{const_name Zero_Rep},
                  @{const_name Suc_Rep}] s orelse
-  let val (x as (s, T)) = (s, unbit_and_unbox_type T) in
+  let val (x as (s, T)) = (s, unarize_and_unbox_type T) in
     Refute.is_IDT_constructor thy x orelse is_record_constr x orelse
     (is_abs_fun thy x andalso is_pure_typedef thy (range_type T)) orelse
     x = (@{const_name zero_nat_inst.zero_nat}, nat_T) orelse
@@ -703,7 +707,7 @@ fun is_stale_constr thy (x as (_, T)) =
   not (is_coconstr thy x)
 fun is_constr thy (x as (_, T)) =
   is_constr_like thy x andalso
-  not (is_basic_datatype (fst (dest_Type (unbit_type (body_type T))))) andalso
+  not (is_basic_datatype (fst (dest_Type (unarize_type (body_type T))))) andalso
   not (is_stale_constr thy x)
 (* string -> bool *)
 val is_sel = String.isPrefix discr_prefix orf String.isPrefix sel_prefix
@@ -757,6 +761,15 @@ and box_type hol_ctxt boxy T =
                            else InPair)) Ts)
   | _ => T
 
+(* typ -> typ *)
+fun binarize_nat_and_int_in_type @{typ nat} = @{typ "unsigned_bit word"}
+  | binarize_nat_and_int_in_type @{typ int} = @{typ "signed_bit word"}
+  | binarize_nat_and_int_in_type (Type (s, Ts)) =
+    Type (s, map binarize_nat_and_int_in_type Ts)
+  | binarize_nat_and_int_in_type T = T
+(* term -> term *)
+val binarize_nat_and_int_in_term = map_types binarize_nat_and_int_in_type
+
 (* styp -> styp *)
 fun discr_for_constr (s, T) = (discr_prefix ^ s, body_type T --> bool_T)
 
@@ -773,9 +786,10 @@ fun nth_sel_for_constr x ~1 = discr_for_constr x
   | nth_sel_for_constr (s, T) n =
     (nth_sel_name_for_constr_name s n,
      body_type T --> nth (maybe_curried_binder_types T) n)
-(* hol_context -> styp -> int -> styp *)
-fun boxed_nth_sel_for_constr hol_ctxt =
-  apsnd (box_type hol_ctxt InSel) oo nth_sel_for_constr
+(* hol_context -> bool -> styp -> int -> styp *)
+fun binarized_and_boxed_nth_sel_for_constr hol_ctxt binarize =
+  apsnd ((binarize ? binarize_nat_and_int_in_type) o box_type hol_ctxt InSel)
+  oo nth_sel_for_constr
 
 (* string -> int *)
 fun sel_no_from_name s =
@@ -876,8 +890,10 @@ fun datatype_constrs ({thy, constr_cache, ...} : hol_context) T =
     let val xs = uncached_datatype_constrs thy T in
       (Unsynchronized.change constr_cache (cons (T, xs)); xs)
     end
-fun boxed_datatype_constrs hol_ctxt =
-  map (apsnd (box_type hol_ctxt InConstr)) o datatype_constrs hol_ctxt
+(* hol_context -> bool -> typ -> styp list *)
+fun binarized_and_boxed_datatype_constrs hol_ctxt binarize =
+  map (apsnd ((binarize ? binarize_nat_and_int_in_type)
+              o box_type hol_ctxt InConstr)) o datatype_constrs hol_ctxt
 (* hol_context -> typ -> int *)
 val num_datatype_constrs = length oo datatype_constrs
 
@@ -885,10 +901,12 @@ val num_datatype_constrs = length oo datatype_constrs
 fun constr_name_for_sel_like @{const_name fst} = @{const_name Pair}
   | constr_name_for_sel_like @{const_name snd} = @{const_name Pair}
   | constr_name_for_sel_like s' = original_name s'
-(* hol_context -> styp -> styp *)
-fun boxed_constr_for_sel hol_ctxt (s', T') =
+(* hol_context -> bool -> styp -> styp *)
+fun binarized_and_boxed_constr_for_sel hol_ctxt binarize (s', T') =
   let val s = constr_name_for_sel_like s' in
-    AList.lookup (op =) (boxed_datatype_constrs hol_ctxt (domain_type T')) s
+    AList.lookup (op =)
+        (binarized_and_boxed_datatype_constrs hol_ctxt binarize (domain_type T'))
+        s
     |> the |> pair s
   end
 
@@ -2013,28 +2031,33 @@ fun merge_type_vars_in_terms ts =
       | coalesce T = T
   in map (map_types (map_atyps coalesce)) ts end
 
-(* hol_context -> typ -> typ list -> typ list *)
-fun add_ground_types hol_ctxt T accum =
-  case T of
-    Type ("fun", Ts) => fold (add_ground_types hol_ctxt) Ts accum
-  | Type ("*", Ts) => fold (add_ground_types hol_ctxt) Ts accum
-  | Type (@{type_name itself}, [T1]) => add_ground_types hol_ctxt T1 accum
-  | Type (_, Ts) =>
-    if member (op =) (@{typ prop} :: @{typ bool} :: @{typ unit} :: accum) T then
-      accum
-    else
-      T :: accum
-      |> fold (add_ground_types hol_ctxt)
-              (case boxed_datatype_constrs hol_ctxt T of
-                 [] => Ts
-               | xs => map snd xs)
-  | _ => insert (op =) T accum
+(* hol_context -> bool -> typ -> typ list -> typ list *)
+fun add_ground_types hol_ctxt binarize =
+  let
+    fun aux T accum =
+      case T of
+        Type ("fun", Ts) => fold aux Ts accum
+      | Type ("*", Ts) => fold aux Ts accum
+      | Type (@{type_name itself}, [T1]) => aux T1 accum
+      | Type (_, Ts) =>
+        if member (op =) (@{typ prop} :: @{typ bool} :: @{typ unit} :: accum)
+                  T then
+          accum
+        else
+          T :: accum
+          |> fold aux (case binarized_and_boxed_datatype_constrs hol_ctxt
+                                                                 binarize T of
+                         [] => Ts
+                       | xs => map snd xs)
+      | _ => insert (op =) T accum
+  in aux end
 
-(* hol_context -> typ -> typ list *)
-fun ground_types_in_type hol_ctxt T = add_ground_types hol_ctxt T []
+(* hol_context -> bool -> typ -> typ list *)
+fun ground_types_in_type hol_ctxt binarize T =
+  add_ground_types hol_ctxt binarize T []
 (* hol_context -> term list -> typ list *)
-fun ground_types_in_terms hol_ctxt ts =
-  fold (fold_types (add_ground_types hol_ctxt)) ts []
+fun ground_types_in_terms hol_ctxt binarize ts =
+  fold (fold_types (add_ground_types hol_ctxt binarize)) ts []
 
 (* theory -> const_table -> styp -> int list *)
 fun const_format thy def_table (x as (s, T)) =
@@ -2082,7 +2105,7 @@ fun lookup_format thy def_table formats t =
 (* int list -> int list -> typ -> typ *)
 fun format_type default_format format T =
   let
-    val T = unbit_and_unbox_type T
+    val T = unarize_and_unbox_type T
     val format = format |> filter (curry (op <) 0)
   in
     if forall (curry (op =) 1) format then
@@ -2121,7 +2144,7 @@ fun user_friendly_const ({thy, evals, def_table, skolems, special_funs, ...}
            (* term -> term *)
            val do_term = map_aterms (fn Const x => fst (do_const x) | t' => t')
            val (x' as (_, T'), js, ts) =
-             AList.find (op =) (!special_funs) (s, unbit_and_unbox_type T)
+             AList.find (op =) (!special_funs) (s, unarize_and_unbox_type T)
              |> the_single
            val max_j = List.last js
            val Ts = List.take (binder_types T', max_j + 1)
@@ -2211,7 +2234,7 @@ fun user_friendly_const ({thy, evals, def_table, skolems, special_funs, ...}
          let val t = Const (original_name s, T) in
            (t, format_term_type thy def_table formats t)
          end)
-      |>> map_types unbit_and_unbox_type
+      |>> map_types unarize_and_unbox_type
       |>> shorten_names_in_term |>> Term.map_abs_vars shortest_name
   in do_const end
 

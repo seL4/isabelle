@@ -747,10 +747,10 @@ fun choose_reps_for_consts scope all_exact vs table =
 
 (* scope -> styp -> int -> nut list * rep NameTable.table
    -> nut list * rep NameTable.table *)
-fun choose_rep_for_nth_sel_for_constr (scope as {hol_ctxt, ...}) (x as (_, T)) n
-                                      (vs, table) =
+fun choose_rep_for_nth_sel_for_constr (scope as {hol_ctxt, binarize, ...})
+                                      (x as (_, T)) n (vs, table) =
   let
-    val (s', T') = boxed_nth_sel_for_constr hol_ctxt x n
+    val (s', T') = binarized_and_boxed_nth_sel_for_constr hol_ctxt binarize x n
     val R' = if n = ~1 orelse is_word_type (body_type T) orelse
                 (is_fun_type (range_type T') andalso
                  is_boolean_type (body_type T')) then

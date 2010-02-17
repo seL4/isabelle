@@ -11,7 +11,7 @@ sig
   type hol_context = Nitpick_HOL.hol_context
 
   val formulas_monotonic :
-    hol_context -> typ -> sign -> term list -> term list -> term -> bool
+    hol_context -> bool -> typ -> sign -> term list -> term list -> term -> bool
 end;
 
 structure Nitpick_Mono : NITPICK_MONO =
@@ -36,6 +36,7 @@ datatype ctype =
 
 type cdata =
   {hol_ctxt: hol_context,
+   binarize: bool,
    alpha_T: typ,
    max_fresh: int Unsynchronized.ref,
    datatype_cache: ((string * typ list) * ctype) list Unsynchronized.ref,
@@ -114,10 +115,10 @@ fun flatten_ctype (CPair (C1, C2)) = maps flatten_ctype [C1, C2]
   | flatten_ctype (CType (_, Cs)) = maps flatten_ctype Cs
   | flatten_ctype C = [C]
 
-(* hol_context -> typ -> cdata *)
-fun initial_cdata hol_ctxt alpha_T =
-  ({hol_ctxt = hol_ctxt, alpha_T = alpha_T, max_fresh = Unsynchronized.ref 0,
-    datatype_cache = Unsynchronized.ref [],
+(* hol_context -> bool -> typ -> cdata *)
+fun initial_cdata hol_ctxt binarize alpha_T =
+  ({hol_ctxt = hol_ctxt, binarize = binarize, alpha_T = alpha_T,
+    max_fresh = Unsynchronized.ref 0, datatype_cache = Unsynchronized.ref [],
     constr_cache = Unsynchronized.ref []} : cdata)
 
 (* typ -> typ -> bool *)
@@ -278,9 +279,9 @@ fun ctype_for_constr (cdata as {hol_ctxt as {thy, ...}, alpha_T, constr_cache,
                  AList.lookup (op =) (!constr_cache) x |> the)
   else
     fresh_ctype_for_type cdata T
-fun ctype_for_sel (cdata as {hol_ctxt, ...}) (x as (s, _)) =
-  x |> boxed_constr_for_sel hol_ctxt |> ctype_for_constr cdata
-    |> sel_ctype_from_constr_ctype s
+fun ctype_for_sel (cdata as {hol_ctxt, binarize, ...}) (x as (s, _)) =
+  x |> binarized_and_boxed_constr_for_sel hol_ctxt binarize
+    |> ctype_for_constr cdata |> sel_ctype_from_constr_ctype s
 
 (* literal list -> ctype -> ctype *)
 fun instantiate_ctype lits =
@@ -945,13 +946,14 @@ fun print_ctype_context ctxt lits ({frees, consts, ...} : ctype_context) =
   map (fn (x, C) => string_for_ctype_of_term ctxt lits (Const x) C) consts
   |> cat_lines |> print_g
 
-(* hol_context -> typ -> sign -> term list -> term list -> term -> bool *)
-fun formulas_monotonic (hol_ctxt as {ctxt, ...}) alpha_T sn def_ts nondef_ts
-                       core_t =
+(* hol_context -> bool -> typ -> sign -> term list -> term list -> term
+   -> bool *)
+fun formulas_monotonic (hol_ctxt as {ctxt, ...}) binarize alpha_T sn def_ts
+                       nondef_ts core_t =
   let
     val _ = print_g ("****** " ^ string_for_ctype CAlpha ^ " is " ^
                      Syntax.string_of_typ ctxt alpha_T)
-    val cdata as {max_fresh, ...} = initial_cdata hol_ctxt alpha_T
+    val cdata as {max_fresh, ...} = initial_cdata hol_ctxt binarize alpha_T
     val (gamma, cset) =
       (initial_gamma, slack)
       |> fold (consider_definitional_axiom cdata) def_ts
