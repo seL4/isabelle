@@ -19,8 +19,8 @@ defaultsort cpo
 
 typedecl tr
 typedecl void
-typedecl ('a,'b) "*"    (infixl 6)
-typedecl ('a,'b) "+"    (infixl 5)
+typedecl ('a,'b) "*"    (infixl "*" 6)
+typedecl ('a,'b) "+"    (infixl "+" 5)
 
 arities
   "fun" :: (cpo, cpo) cpo

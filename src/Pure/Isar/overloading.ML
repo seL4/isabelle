@@ -6,7 +6,7 @@ Overloaded definitions without any discipline.
 
 signature OVERLOADING =
 sig
-  val init: (string * (string * typ) * bool) list -> theory -> local_theory
+  val init: (string * (string * typ) * bool) list -> theory -> Proof.context
   val conclude: local_theory -> local_theory
   val declare: string * typ -> theory -> term * theory
   val confirm: binding -> local_theory -> local_theory

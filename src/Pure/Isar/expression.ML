@@ -606,7 +606,7 @@ fun atomize_spec thy ts =
 
 fun aprop_tr' n c = (Syntax.constN ^ c, fn ctxt => fn args =>
   if length args = n then
-    Syntax.const "_aprop" $
+    Syntax.const "_aprop" $   (* FIXME avoid old-style early externing (!??) *)
       Term.list_comb (Syntax.free (Consts.extern (ProofContext.consts_of ctxt) c), args)
   else raise Match);
 

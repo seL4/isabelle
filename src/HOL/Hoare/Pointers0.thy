@@ -1,5 +1,4 @@
 (*  Title:      HOL/Hoare/Pointers.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   2002 TUM
 
@@ -20,12 +19,12 @@ consts Null :: "'a::ref"
 subsection "Field access and update"
 
 syntax
-  "@fassign"  :: "'a::ref => id => 'v => 's com"
+  "_fassign"  :: "'a::ref => id => 'v => 's com"
    ("(2_^._ :=/ _)" [70,1000,65] 61)
-  "@faccess"  :: "'a::ref => ('a::ref \<Rightarrow> 'v) => 'v"
+  "_faccess"  :: "'a::ref => ('a::ref \<Rightarrow> 'v) => 'v"
    ("_^._" [65,1000] 65)
 translations
-  "p^.f := e"  =>  "f := fun_upd f p e"
+  "p^.f := e"  =>  "f := CONST fun_upd f p e"
   "p^.f"       =>  "f p"
 
 

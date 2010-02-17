@@ -51,7 +51,7 @@ definition
   "ssplit = (\<Lambda> f. strictify\<cdot>(\<Lambda> p. f\<cdot>(sfst\<cdot>p)\<cdot>(ssnd\<cdot>p)))"
 
 syntax
-  "@stuple" :: "['a, args] => 'a ** 'b"  ("(1'(:_,/ _:'))")
+  "_stuple" :: "['a, args] => 'a ** 'b"  ("(1'(:_,/ _:'))")
 translations
   "(:x, y, z:)" == "(:x, (:y, z:):)"
   "(:x, y:)"    == "CONST spair\<cdot>x\<cdot>y"

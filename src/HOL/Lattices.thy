@@ -5,7 +5,7 @@
 header {* Abstract lattices *}
 
 theory Lattices
-imports Orderings
+imports Orderings Groups
 begin
 
 subsection {* Lattices *}

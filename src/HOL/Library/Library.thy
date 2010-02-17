@@ -45,13 +45,12 @@ imports
   Preorder
   Product_Vector
   Quicksort
-  Quotient
+  Quotient_Type
   Ramsey
   Reflection
   RBT
   SML_Quickcheck
   State_Monad
-  Structure_Syntax
   Sum_Of_Squares
   Transitive_Closure_Table
   Univ_Poly

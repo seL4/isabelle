@@ -47,15 +47,15 @@ fun add_proof_syntax thy =
   |> Sign.root_path
   |> Sign.add_defsort_i []
   |> Sign.add_types [(Binding.name "proof", 0, NoSyn)]
-  |> Sign.add_consts_i
-      [(Binding.name "Appt", [proofT, aT] ---> proofT, Mixfix ("(1_ %/ _)", [4, 5], 4)),
-       (Binding.name "AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ %%/ _)", [4, 5], 4)),
-       (Binding.name "Abst", (aT --> proofT) --> proofT, NoSyn),
-       (Binding.name "AbsP", [propT, proofT --> proofT] ---> proofT, NoSyn),
-       (Binding.name "Hyp", propT --> proofT, NoSyn),
-       (Binding.name "Oracle", propT --> proofT, NoSyn),
-       (Binding.name "OfClass", (Term.a_itselfT --> propT) --> proofT, NoSyn),
-       (Binding.name "MinProof", proofT, Delimfix "?")]
+  |> fold (snd oo Sign.declare_const)
+      [((Binding.name "Appt", [proofT, aT] ---> proofT), Mixfix ("(1_ %/ _)", [4, 5], 4)),
+       ((Binding.name "AppP", [proofT, proofT] ---> proofT), Mixfix ("(1_ %%/ _)", [4, 5], 4)),
+       ((Binding.name "Abst", (aT --> proofT) --> proofT), NoSyn),
+       ((Binding.name "AbsP", [propT, proofT --> proofT] ---> proofT), NoSyn),
+       ((Binding.name "Hyp", propT --> proofT), NoSyn),
+       ((Binding.name "Oracle", propT --> proofT), NoSyn),
+       ((Binding.name "OfClass", (Term.a_itselfT --> propT) --> proofT), NoSyn),
+       ((Binding.name "MinProof", proofT), Delimfix "?")]
   |> Sign.add_nonterminals [Binding.name "param", Binding.name "params"]
   |> Sign.add_syntax_i
       [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1Lam _./ _)", [0, 3], 3)),
@@ -65,10 +65,10 @@ fun add_proof_syntax thy =
        ("", paramT --> paramT, Delimfix "'(_')"),
        ("", idtT --> paramsT, Delimfix "_"),
        ("", paramT --> paramsT, Delimfix "_")]
-  |> Sign.add_modesyntax_i ("xsymbols", true)
+  |> Sign.add_modesyntax_i (Symbol.xsymbolsN, true)
       [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1\\<Lambda>_./ _)", [0, 3], 3)),
-       ("Appt", [proofT, aT] ---> proofT, Mixfix ("(1_ \\<cdot>/ _)", [4, 5], 4)),
-       ("AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ \\<bullet>/ _)", [4, 5], 4))]
+       (Syntax.constN ^ "Appt", [proofT, aT] ---> proofT, Mixfix ("(1_ \\<cdot>/ _)", [4, 5], 4)),
+       (Syntax.constN ^ "AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ \\<bullet>/ _)", [4, 5], 4))]
   |> Sign.add_modesyntax_i ("latex", false)
       [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1\\<^bold>\\<lambda>_./ _)", [0, 3], 3))]
   |> Sign.add_trrules_i (map Syntax.ParsePrintRule
@@ -78,10 +78,10 @@ fun add_proof_syntax thy =
           [Variable "l", Syntax.mk_appl (Constant "_Lam") [Variable "m", Variable "A"]]),
        (Syntax.mk_appl (Constant "_Lam")
           [Syntax.mk_appl (Constant "_Lam1") [Variable "x", Variable "A"], Variable "B"],
-        Syntax.mk_appl (Constant "AbsP") [Variable "A",
+        Syntax.mk_appl (Constant (Syntax.constN ^ "AbsP")) [Variable "A",
           (Syntax.mk_appl (Constant "_abs") [Variable "x", Variable "B"])]),
        (Syntax.mk_appl (Constant "_Lam") [Variable "x", Variable "A"],
-        Syntax.mk_appl (Constant "Abst")
+        Syntax.mk_appl (Constant (Syntax.constN ^ "Abst"))
           [(Syntax.mk_appl (Constant "_abs") [Variable "x", Variable "A"])])]);
 
 

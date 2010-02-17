@@ -13,6 +13,7 @@ src/Sequents
 #misc components
 src/Tools/Code
 src/Tools/WWW_Find
+src/Tools/Cache_IO
 src/HOL/Tools/ATP_Manager
 src/HOL/Mirabelle
 src/HOL/Library/Sum_Of_Squares

@@ -121,7 +121,7 @@ lemma setproduct_permute_nat_interval: "p permutes {m::nat .. n} ==> setprod f {
 (* Basic determinant properties.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-lemma det_transp: "det (transp A) = det (A::'a::comm_ring_1 ^'n^'n)"
+lemma det_transpose: "det (transpose A) = det (A::'a::comm_ring_1 ^'n^'n)"
 proof-
   let ?di = "\<lambda>A i j. A$i$j"
   let ?U = "(UNIV :: 'n set)"
@@ -133,18 +133,18 @@ proof-
     from permutes_inj[OF pU]
     have pi: "inj_on p ?U" by (blast intro: subset_inj_on)
     from permutes_image[OF pU]
-    have "setprod (\<lambda>i. ?di (transp A) i (inv p i)) ?U = setprod (\<lambda>i. ?di (transp A) i (inv p i)) (p ` ?U)" by simp
-    also have "\<dots> = setprod ((\<lambda>i. ?di (transp A) i (inv p i)) o p) ?U"
+    have "setprod (\<lambda>i. ?di (transpose A) i (inv p i)) ?U = setprod (\<lambda>i. ?di (transpose A) i (inv p i)) (p ` ?U)" by simp
+    also have "\<dots> = setprod ((\<lambda>i. ?di (transpose A) i (inv p i)) o p) ?U"
       unfolding setprod_reindex[OF pi] ..
     also have "\<dots> = setprod (\<lambda>i. ?di A i (p i)) ?U"
     proof-
       {fix i assume i: "i \<in> ?U"
         from i permutes_inv_o[OF pU] permutes_in_image[OF pU]
-        have "((\<lambda>i. ?di (transp A) i (inv p i)) o p) i = ?di A i (p i)"
-          unfolding transp_def by (simp add: expand_fun_eq)}
-      then show "setprod ((\<lambda>i. ?di (transp A) i (inv p i)) o p) ?U = setprod (\<lambda>i. ?di A i (p i)) ?U" by (auto intro: setprod_cong)
+        have "((\<lambda>i. ?di (transpose A) i (inv p i)) o p) i = ?di A i (p i)"
+          unfolding transpose_def by (simp add: expand_fun_eq)}
+      then show "setprod ((\<lambda>i. ?di (transpose A) i (inv p i)) o p) ?U = setprod (\<lambda>i. ?di A i (p i)) ?U" by (auto intro: setprod_cong)
     qed
-    finally have "of_int (sign (inv p)) * (setprod (\<lambda>i. ?di (transp A) i (inv p i)) ?U) = of_int (sign p) * (setprod (\<lambda>i. ?di A i (p i)) ?U)" using sth
+    finally have "of_int (sign (inv p)) * (setprod (\<lambda>i. ?di (transpose A) i (inv p i)) ?U) = of_int (sign p) * (setprod (\<lambda>i. ?di A i (p i)) ?U)" using sth
       by simp}
   then show ?thesis unfolding det_def apply (subst setsum_permutations_inverse)
   apply (rule setsum_cong2) by blast
@@ -267,12 +267,12 @@ lemma det_permute_columns:
   shows "det(\<chi> i j. A$i$ p j :: 'a^'n^'n) = of_int (sign p) * det A"
 proof-
   let ?Ap = "\<chi> i j. A$i$ p j :: 'a^'n^'n"
-  let ?At = "transp A"
-  have "of_int (sign p) * det A = det (transp (\<chi> i. transp A $ p i))"
-    unfolding det_permute_rows[OF p, of ?At] det_transp ..
+  let ?At = "transpose A"
+  have "of_int (sign p) * det A = det (transpose (\<chi> i. transpose A $ p i))"
+    unfolding det_permute_rows[OF p, of ?At] det_transpose ..
   moreover
-  have "?Ap = transp (\<chi> i. transp A $ p i)"
-    by (simp add: transp_def Cart_eq)
+  have "?Ap = transpose (\<chi> i. transpose A $ p i)"
+    by (simp add: transpose_def Cart_eq)
   ultimately show ?thesis by simp
 qed
 
@@ -299,9 +299,9 @@ lemma det_identical_columns:
   assumes ij: "i \<noteq> j"
   and r: "column i A = column j A"
   shows "det A = 0"
-apply (subst det_transp[symmetric])
+apply (subst det_transpose[symmetric])
 apply (rule det_identical_rows[OF ij])
-by (metis row_transp r)
+by (metis row_transpose r)
 
 lemma det_zero_row:
   fixes A :: "'a::{idom, ring_char_0}^'n^'n"
@@ -317,9 +317,9 @@ lemma det_zero_column:
   fixes A :: "'a::{idom,ring_char_0}^'n^'n"
   assumes r: "column i A = 0"
   shows "det A = 0"
-  apply (subst det_transp[symmetric])
+  apply (subst det_transpose[symmetric])
   apply (rule det_zero_row [of i])
-  by (metis row_transp r)
+  by (metis row_transpose r)
 
 lemma det_row_add:
   fixes a b c :: "'n::finite \<Rightarrow> _ ^ 'n"
@@ -489,7 +489,7 @@ proof-
 qed
 
 lemma det_dependent_columns: assumes d: "dependent(columns (A::'a::linordered_idom^'n^'n))" shows "det A = 0"
-by (metis d det_dependent_rows rows_transp det_transp)
+by (metis d det_dependent_rows rows_transpose det_transpose)
 
 (* ------------------------------------------------------------------------- *)
 (* Multilinearity and the multiplication formula.                            *)
@@ -760,7 +760,7 @@ qed
 (* Cramer's rule.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-lemma cramer_lemma_transp:
+lemma cramer_lemma_transpose:
   fixes A:: "'a::linordered_idom^'n^'n" and x :: "'a ^'n"
   shows "det ((\<chi> i. if i = k then setsum (\<lambda>i. x$i *s row i A) (UNIV::'n set)
                            else row i A)::'a^'n^'n) = x$k * det A"
@@ -801,13 +801,13 @@ lemma cramer_lemma:
   shows "det((\<chi> i j. if j = k then (A *v x)$i else A$i$j):: 'a^'n^'n) = x$k * det A"
 proof-
   let ?U = "UNIV :: 'n set"
-  have stupid: "\<And>c. setsum (\<lambda>i. c i *s row i (transp A)) ?U = setsum (\<lambda>i. c i *s column i A) ?U"
-    by (auto simp add: row_transp intro: setsum_cong2)
+  have stupid: "\<And>c. setsum (\<lambda>i. c i *s row i (transpose A)) ?U = setsum (\<lambda>i. c i *s column i A) ?U"
+    by (auto simp add: row_transpose intro: setsum_cong2)
   show ?thesis  unfolding matrix_mult_vsum
-  unfolding cramer_lemma_transp[of k x "transp A", unfolded det_transp, symmetric]
+  unfolding cramer_lemma_transpose[of k x "transpose A", unfolded det_transpose, symmetric]
   unfolding stupid[of "\<lambda>i. x$i"]
-  apply (subst det_transp[symmetric])
-  apply (rule cong[OF refl[of det]]) by (vector transp_def column_def row_def)
+  apply (subst det_transpose[symmetric])
+  apply (rule cong[OF refl[of det]]) by (vector transpose_def column_def row_def)
 qed
 
 lemma cramer:
@@ -840,13 +840,13 @@ lemma orthogonal_transformation: "orthogonal_transformation f \<longleftrightarr
   apply (simp add: real_vector_norm_def)
   by (simp add: dot_norm  linear_add[symmetric])
 
-definition "orthogonal_matrix (Q::'a::semiring_1^'n^'n) \<longleftrightarrow> transp Q ** Q = mat 1 \<and> Q ** transp Q = mat 1"
+definition "orthogonal_matrix (Q::'a::semiring_1^'n^'n) \<longleftrightarrow> transpose Q ** Q = mat 1 \<and> Q ** transpose Q = mat 1"
 
-lemma orthogonal_matrix: "orthogonal_matrix (Q:: real ^'n^'n)  \<longleftrightarrow> transp Q ** Q = mat 1"
+lemma orthogonal_matrix: "orthogonal_matrix (Q:: real ^'n^'n)  \<longleftrightarrow> transpose Q ** Q = mat 1"
   by (metis matrix_left_right_inverse orthogonal_matrix_def)
 
 lemma orthogonal_matrix_id: "orthogonal_matrix (mat 1 :: _^'n^'n)"
-  by (simp add: orthogonal_matrix_def transp_mat matrix_mul_lid)
+  by (simp add: orthogonal_matrix_def transpose_mat matrix_mul_lid)
 
 lemma orthogonal_matrix_mul:
   fixes A :: "real ^'n^'n"
@@ -854,7 +854,7 @@ lemma orthogonal_matrix_mul:
   and oB: "orthogonal_matrix B"
   shows "orthogonal_matrix(A ** B)"
   using oA oB
-  unfolding orthogonal_matrix matrix_transp_mul
+  unfolding orthogonal_matrix matrix_transpose_mul
   apply (subst matrix_mul_assoc)
   apply (subst matrix_mul_assoc[symmetric])
   by (simp add: matrix_mul_rid)
@@ -873,7 +873,7 @@ proof-
     from ot have lf: "linear f" and fd: "\<forall>v w. f v \<bullet> f w = v \<bullet> w"
       unfolding  orthogonal_transformation_def orthogonal_matrix by blast+
     {fix i j
-      let ?A = "transp ?mf ** ?mf"
+      let ?A = "transpose ?mf ** ?mf"
       have th0: "\<And>b (x::'a::comm_ring_1). (if b then 1 else 0)*x = (if b then x else 0)"
         "\<And>b (x::'a::comm_ring_1). x*(if b then 1 else 0) = (if b then x else 0)"
         by simp_all
@@ -908,9 +908,9 @@ proof-
     also have "\<dots> \<longleftrightarrow> x = 1 \<or> x = - 1" unfolding th0 th1 by simp
     finally show "?ths x" ..
   qed
-  from oQ have "Q ** transp Q = mat 1" by (metis orthogonal_matrix_def)
-  hence "det (Q ** transp Q) = det (mat 1:: 'a^'n^'n)" by simp
-  hence "det Q * det Q = 1" by (simp add: det_mul det_I det_transp)
+  from oQ have "Q ** transpose Q = mat 1" by (metis orthogonal_matrix_def)
+  hence "det (Q ** transpose Q) = det (mat 1:: 'a^'n^'n)" by simp
+  hence "det Q * det Q = 1" by (simp add: det_mul det_I det_transpose)
   then show ?thesis unfolding th .
 qed
 

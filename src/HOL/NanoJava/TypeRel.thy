@@ -11,16 +11,16 @@ theory TypeRel imports Decl begin
 consts
   subcls1 :: "(cname \<times> cname) set"  --{* subclass *}
 
-syntax (xsymbols)
-  subcls1 :: "[cname, cname] => bool" ("_ \<prec>C1 _"  [71,71] 70)
-  subcls  :: "[cname, cname] => bool" ("_ \<preceq>C _"   [71,71] 70)
-syntax
-  subcls1 :: "[cname, cname] => bool" ("_ <=C1 _" [71,71] 70)
-  subcls  :: "[cname, cname] => bool" ("_ <=C _"  [71,71] 70)
+abbreviation
+  subcls1_syntax :: "[cname, cname] => bool"  ("_ <=C1 _" [71,71] 70)
+  where "C <=C1 D == (C,D) \<in> subcls1"
+abbreviation
+  subcls_syntax  :: "[cname, cname] => bool" ("_ <=C _"  [71,71] 70)
+  where "C <=C D == (C,D) \<in> subcls1^*"
 
-translations
-  "C \<prec>C1 D" == "(C,D) \<in> subcls1"
-  "C \<preceq>C  D" == "(C,D) \<in> subcls1^*"
+notation (xsymbols)
+  subcls1_syntax  ("_ \<prec>C1 _"  [71,71] 70) and
+  subcls_syntax  ("_ \<preceq>C _"   [71,71] 70)
 
 consts
   method :: "cname => (mname \<rightharpoonup> methd)"

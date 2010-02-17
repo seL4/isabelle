@@ -65,7 +65,8 @@ use_thys [
   "HarmonicSeries",
   "Refute_Examples",
   "Quickcheck_Examples",
-  "Landau"
+  "Landau",
+  "Execute_Choice"
 ];
 
 HTML.with_charset "utf-8" (no_document use_thys)

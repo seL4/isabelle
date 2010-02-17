@@ -1,5 +1,4 @@
 (*  Title:      Cube/Cube.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
 *)
 
@@ -54,7 +53,9 @@ syntax (xsymbols)
   Pi            :: "[idt, term, term] => term"          ("(3\<Pi> _:_./ _)" [0, 0] 10)
   arrow         :: "[term, term] => term"               (infixr "\<rightarrow>" 10)
 
-print_translation {* [(@{const_syntax Prod}, dependent_tr' ("Pi", "arrow"))] *}
+print_translation {*
+  [(@{const_syntax Prod}, dependent_tr' (@{syntax_const Pi}, @{syntax_const arrow}))]
+*}
 
 axioms
   s_b:          "*: []"

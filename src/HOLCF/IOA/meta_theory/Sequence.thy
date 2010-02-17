@@ -300,14 +300,11 @@ apply (simp add: Cons_not_UU)
 done
 
 lemma Cons_not_less_nil: "~a>>s << nil"
-apply (subst Consq_def2)
-apply (rule seq.rews)
-apply (rule Def_not_UU)
+apply (simp add: Consq_def2)
 done
 
 lemma Cons_not_nil: "a>>s ~= nil"
-apply (subst Consq_def2)
-apply (rule seq.rews)
+apply (simp add: Consq_def2)
 done
 
 lemma Cons_not_nil2: "nil ~= a>>s"

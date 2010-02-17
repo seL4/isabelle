@@ -74,9 +74,9 @@ abbreviation
   "a :# M == a \<in> mset_of(M)"
 
 syntax
-  "@MColl" :: "[pttrn, i, o] => i" ("(1{# _ : _./ _#})")
+  "_MColl" :: "[pttrn, i, o] => i" ("(1{# _ : _./ _#})")
 syntax (xsymbols)
-  "@MColl" :: "[pttrn, i, o] => i" ("(1{# _ \<in> _./ _#})")
+  "_MColl" :: "[pttrn, i, o] => i" ("(1{# _ \<in> _./ _#})")
 translations
   "{#x \<in> M. P#}" == "CONST MCollect(M, %x. P)"
 

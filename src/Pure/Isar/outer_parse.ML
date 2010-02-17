@@ -266,9 +266,9 @@ val mfix = string --
   !!! (Scan.optional ($$$ "[" |-- !!! (list nat --| $$$ "]")) [] --
     Scan.optional nat Syntax.max_pri) >> (Mixfix o triple2);
 
-val infx = $$$ "infix" |-- !!! (nat >> Infix || string -- nat >> InfixName);
-val infxl = $$$ "infixl" |-- !!! (nat >> Infixl || string -- nat >> InfixlName);
-val infxr = $$$ "infixr" |-- !!! (nat >> Infixr || string -- nat >> InfixrName);
+val infx = $$$ "infix" |-- !!! (string -- nat >> Infix);
+val infxl = $$$ "infixl" |-- !!! (string -- nat >> Infixl);
+val infxr = $$$ "infixr" |-- !!! (string -- nat >> Infixr);
 
 val binder = $$$ "binder" |--
   !!! (string -- ($$$ "[" |-- nat --| $$$ "]" -- nat || nat >> (fn n => (n, n))))

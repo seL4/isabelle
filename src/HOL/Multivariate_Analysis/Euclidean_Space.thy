@@ -2029,7 +2029,8 @@ definition vector_matrix_mult :: "'a ^ 'm \<Rightarrow> ('a::semiring_1) ^'n^'m 
   where "v v* m == (\<chi> j. setsum (\<lambda>i. ((m$i)$j) * (v$i)) (UNIV :: 'm set)) :: 'a^'n"
 
 definition "(mat::'a::zero => 'a ^'n^'n) k = (\<chi> i j. if i = j then k else 0)"
-definition "(transp::'a^'n^'m \<Rightarrow> 'a^'m^'n) A = (\<chi> i j. ((A$j)$i))"
+definition transpose where 
+  "(transpose::'a^'n^'m \<Rightarrow> 'a^'m^'n) A = (\<chi> i j. ((A$j)$i))"
 definition "(row::'m => 'a ^'n^'m \<Rightarrow> 'a ^'n) i A = (\<chi> j. ((A$i)$j))"
 definition "(column::'n =>'a^'n^'m =>'a^'m) j A = (\<chi> i. ((A$i)$j))"
 definition "rows(A::'a^'n^'m) = { row i A | i. i \<in> (UNIV :: 'm set)}"
@@ -2071,8 +2072,8 @@ lemma matrix_vector_mul_lid: "mat 1 *v x = (x::'a::semiring_1 ^ 'n)"
   by (simp add: cond_value_iff cond_application_beta
     setsum_delta' cong del: if_weak_cong)
 
-lemma matrix_transp_mul: "transp(A ** B) = transp B ** transp (A::'a::comm_semiring_1^_^_)"
-  by (simp add: matrix_matrix_mult_def transp_def Cart_eq mult_commute)
+lemma matrix_transpose_mul: "transpose(A ** B) = transpose B ** transpose (A::'a::comm_semiring_1^_^_)"
+  by (simp add: matrix_matrix_mult_def transpose_def Cart_eq mult_commute)
 
 lemma matrix_eq:
   fixes A B :: "'a::semiring_1 ^ 'n ^ 'm"
@@ -2094,26 +2095,26 @@ lemma dot_lmul_matrix: "((x::'a::comm_semiring_1 ^_) v* A) \<bullet> y = x \<bul
   apply (subst setsum_commute)
   by simp
 
-lemma transp_mat: "transp (mat n) = mat n"
-  by (vector transp_def mat_def)
+lemma transpose_mat: "transpose (mat n) = mat n"
+  by (vector transpose_def mat_def)
 
-lemma transp_transp: "transp(transp A) = A"
-  by (vector transp_def)
+lemma transpose_transpose: "transpose(transpose A) = A"
+  by (vector transpose_def)
 
-lemma row_transp:
+lemma row_transpose:
   fixes A:: "'a::semiring_1^_^_"
-  shows "row i (transp A) = column i A"
-  by (simp add: row_def column_def transp_def Cart_eq)
+  shows "row i (transpose A) = column i A"
+  by (simp add: row_def column_def transpose_def Cart_eq)
 
-lemma column_transp:
+lemma column_transpose:
   fixes A:: "'a::semiring_1^_^_"
-  shows "column i (transp A) = row i A"
-  by (simp add: row_def column_def transp_def Cart_eq)
+  shows "column i (transpose A) = row i A"
+  by (simp add: row_def column_def transpose_def Cart_eq)
 
-lemma rows_transp: "rows(transp (A::'a::semiring_1^_^_)) = columns A"
-by (auto simp add: rows_def columns_def row_transp intro: set_ext)
+lemma rows_transpose: "rows(transpose (A::'a::semiring_1^_^_)) = columns A"
+by (auto simp add: rows_def columns_def row_transpose intro: set_ext)
 
-lemma columns_transp: "columns(transp (A::'a::semiring_1^_^_)) = rows A" by (metis transp_transp rows_transp)
+lemma columns_transpose: "columns(transpose (A::'a::semiring_1^_^_)) = rows A" by (metis transpose_transpose rows_transpose)
 
 text{* Two sometimes fruitful ways of looking at matrix-vector multiplication. *}
 
@@ -2176,19 +2177,19 @@ lemma matrix_compose:
   using lf lg linear_compose[OF lf lg] matrix_works[OF linear_compose[OF lf lg]]
   by (simp  add: matrix_eq matrix_works matrix_vector_mul_assoc[symmetric] o_def)
 
-lemma matrix_vector_column:"(A::'a::comm_semiring_1^'n^_) *v x = setsum (\<lambda>i. (x$i) *s ((transp A)$i)) (UNIV:: 'n set)"
-  by (simp add: matrix_vector_mult_def transp_def Cart_eq mult_commute)
+lemma matrix_vector_column:"(A::'a::comm_semiring_1^'n^_) *v x = setsum (\<lambda>i. (x$i) *s ((transpose A)$i)) (UNIV:: 'n set)"
+  by (simp add: matrix_vector_mult_def transpose_def Cart_eq mult_commute)
 
-lemma adjoint_matrix: "adjoint(\<lambda>x. (A::'a::comm_ring_1^'n^'m) *v x) = (\<lambda>x. transp A *v x)"
+lemma adjoint_matrix: "adjoint(\<lambda>x. (A::'a::comm_ring_1^'n^'m) *v x) = (\<lambda>x. transpose A *v x)"
   apply (rule adjoint_unique[symmetric])
   apply (rule matrix_vector_mul_linear)
-  apply (simp add: transp_def dot_def matrix_vector_mult_def setsum_left_distrib setsum_right_distrib)
+  apply (simp add: transpose_def dot_def matrix_vector_mult_def setsum_left_distrib setsum_right_distrib)
   apply (subst setsum_commute)
   apply (auto simp add: mult_ac)
   done
 
 lemma matrix_adjoint: assumes lf: "linear (f :: 'a::comm_ring_1^'n \<Rightarrow> 'a ^'m)"
-  shows "matrix(adjoint f) = transp(matrix f)"
+  shows "matrix(adjoint f) = transpose(matrix f)"
   apply (subst matrix_vector_mul[OF lf])
   unfolding adjoint_matrix matrix_of_matrix_vector_mul ..
 
@@ -4317,13 +4318,13 @@ qed
 
 (* Detailed theorems about left and right invertibility in general case.     *)
 
-lemma left_invertible_transp:
-  "(\<exists>(B). B ** transp (A) = mat (1::'a::comm_semiring_1)) \<longleftrightarrow> (\<exists>(B). A ** B = mat 1)"
-  by (metis matrix_transp_mul transp_mat transp_transp)
+lemma left_invertible_transpose:
+  "(\<exists>(B). B ** transpose (A) = mat (1::'a::comm_semiring_1)) \<longleftrightarrow> (\<exists>(B). A ** B = mat 1)"
+  by (metis matrix_transpose_mul transpose_mat transpose_transpose)
 
-lemma right_invertible_transp:
-  "(\<exists>(B). transp (A) ** B = mat (1::'a::comm_semiring_1)) \<longleftrightarrow> (\<exists>(B). B ** A = mat 1)"
-  by (metis matrix_transp_mul transp_mat transp_transp)
+lemma right_invertible_transpose:
+  "(\<exists>(B). transpose (A) ** B = mat (1::'a::comm_semiring_1)) \<longleftrightarrow> (\<exists>(B). B ** A = mat 1)"
+  by (metis matrix_transpose_mul transpose_mat transpose_transpose)
 
 lemma linear_injective_left_inverse:
   assumes lf: "linear (f::real ^'n \<Rightarrow> real ^'m)" and fi: "inj f"
@@ -4438,9 +4439,9 @@ qed
 lemma matrix_right_invertible_independent_rows:
   fixes A :: "real^'n^'m"
   shows "(\<exists>(B::real^'m^'n). A ** B = mat 1) \<longleftrightarrow> (\<forall>c. setsum (\<lambda>i. c i *s row i A) (UNIV :: 'm set) = 0 \<longrightarrow> (\<forall>i. c i = 0))"
-  unfolding left_invertible_transp[symmetric]
+  unfolding left_invertible_transpose[symmetric]
     matrix_left_invertible_independent_columns
-  by (simp add: column_transp)
+  by (simp add: column_transpose)
 
 lemma matrix_right_invertible_span_columns:
   "(\<exists>(B::real ^'n^'m). (A::real ^'m^'n) ** B = mat 1) \<longleftrightarrow> span (columns A) = UNIV" (is "?lhs = ?rhs")
@@ -4506,8 +4507,8 @@ qed
 
 lemma matrix_left_invertible_span_rows:
   "(\<exists>(B::real^'m^'n). B ** (A::real^'n^'m) = mat 1) \<longleftrightarrow> span (rows A) = UNIV"
-  unfolding right_invertible_transp[symmetric]
-  unfolding columns_transp[symmetric]
+  unfolding right_invertible_transpose[symmetric]
+  unfolding columns_transpose[symmetric]
   unfolding matrix_right_invertible_span_columns
  ..
 
@@ -4728,12 +4729,12 @@ definition "rowvector v = (\<chi> i j. (v$j))"
 
 definition "columnvector v = (\<chi> i j. (v$i))"
 
-lemma transp_columnvector:
- "transp(columnvector v) = rowvector v"
-  by (simp add: transp_def rowvector_def columnvector_def Cart_eq)
+lemma transpose_columnvector:
+ "transpose(columnvector v) = rowvector v"
+  by (simp add: transpose_def rowvector_def columnvector_def Cart_eq)
 
-lemma transp_rowvector: "transp(rowvector v) = columnvector v"
-  by (simp add: transp_def columnvector_def rowvector_def Cart_eq)
+lemma transpose_rowvector: "transpose(rowvector v) = columnvector v"
+  by (simp add: transpose_def columnvector_def rowvector_def Cart_eq)
 
 lemma dot_rowvector_columnvector:
   "columnvector (A *v v) = A ** columnvector v"
@@ -4745,9 +4746,9 @@ lemma dot_matrix_product: "(x::'a::semiring_1^'n) \<bullet> y = (((rowvector x :
 lemma dot_matrix_vector_mul:
   fixes A B :: "real ^'n ^'n" and x y :: "real ^'n"
   shows "(A *v x) \<bullet> (B *v y) =
-      (((rowvector x :: real^'n^1) ** ((transp A ** B) ** (columnvector y :: real ^1^'n)))$1)$1"
-unfolding dot_matrix_product transp_columnvector[symmetric]
-  dot_rowvector_columnvector matrix_transp_mul matrix_mul_assoc ..
+      (((rowvector x :: real^'n^1) ** ((transpose A ** B) ** (columnvector y :: real ^1^'n)))$1)$1"
+unfolding dot_matrix_product transpose_columnvector[symmetric]
+  dot_rowvector_columnvector matrix_transpose_mul matrix_mul_assoc ..
 
 (* Infinity norm.                                                            *)
 

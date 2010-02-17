@@ -604,7 +604,7 @@ syntax
   "_Numeral" :: "num_const \<Rightarrow> 'a"    ("_")
 
 use "Tools/numeral_syntax.ML"
-setup NumeralSyntax.setup
+setup Numeral_Syntax.setup
 
 abbreviation
   "Numeral0 \<equiv> number_of Pls"

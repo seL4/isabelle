@@ -54,6 +54,7 @@ sig
     PrintRule of 'a * 'a |
     ParsePrintRule of 'a * 'a
   val map_trrule: ('a -> 'b) -> 'a trrule -> 'b trrule
+  val is_const: syntax -> string -> bool
   val standard_unparse_term: (string -> xstring) ->
     Proof.context -> syntax -> bool -> term -> Pretty.T
   val standard_unparse_typ: Proof.context -> syntax -> typ -> Pretty.T
@@ -449,9 +450,9 @@ end;
 fun guess_infix (Syntax ({gram, ...}, _)) c =
   (case Parser.guess_infix_lr gram c of
     SOME (s, l, r, j) => SOME
-     (if l then Mixfix.InfixlName (s, j)
-      else if r then Mixfix.InfixrName (s, j)
-      else Mixfix.InfixName (s, j))
+     (if l then Mixfix.Infixl (s, j)
+      else if r then Mixfix.Infixr (s, j)
+      else Mixfix.Infix (s, j))
   | NONE => NONE);
 
 
@@ -592,6 +593,8 @@ fun print_rule (ParseRule _) = NONE
   | print_rule (ParsePrintRule pats) = SOME (swap pats);
 
 
+fun is_const (Syntax ({consts, ...}, _)) c = member (op =) consts c;
+
 local
 
 fun check_rule (rule as (lhs, rhs)) =
@@ -603,11 +606,9 @@ fun check_rule (rule as (lhs, rhs)) =
 
 fun read_pattern ctxt is_logtype syn (root, str) =
   let
-    val Syntax ({consts, ...}, _) = syn;
-
     fun constify (ast as Ast.Constant _) = ast
       | constify (ast as Ast.Variable x) =
-          if member (op =) consts x orelse Long_Name.is_qualified x then Ast.Constant x
+          if is_const syn x orelse Long_Name.is_qualified x then Ast.Constant x
           else ast
       | constify (Ast.Appl asts) = Ast.Appl (map constify asts);
 
@@ -913,8 +914,8 @@ open Lexicon SynExt Ast Parser TypeExt SynTrans Mixfix Printer;
 
 end;
 
-structure BasicSyntax: BASIC_SYNTAX = Syntax;
-open BasicSyntax;
+structure Basic_Syntax: BASIC_SYNTAX = Syntax;
+open Basic_Syntax;
 
 forget_structure "Ast";
 forget_structure "SynExt";

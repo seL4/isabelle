@@ -1,5 +1,4 @@
 (*  Title:      HOL/Hoare/Separation.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   2003 TUM
 
@@ -50,10 +49,10 @@ program variable H, and assertions should not contain any locally
 bound Hs - otherwise they may bind the implicit H. *}
 
 syntax
- "@emp" :: "bool" ("emp")
- "@singl" :: "nat \<Rightarrow> nat \<Rightarrow> bool" ("[_ \<mapsto> _]")
- "@star" :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infixl "**" 60)
- "@wand" :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infixl "-*" 60)
+ "_emp" :: "bool" ("emp")
+ "_singl" :: "nat \<Rightarrow> nat \<Rightarrow> bool" ("[_ \<mapsto> _]")
+ "_star" :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infixl "**" 60)
+ "_wand" :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infixl "-*" 60)
 
 (* FIXME does not handle "_idtdummy" *)
 ML{*
@@ -65,22 +64,25 @@ fun free_tr(t as Free _) = t $ Syntax.free "H"
 *)
   | free_tr t = t
 
-fun emp_tr [] = Syntax.const "is_empty" $ Syntax.free "H"
+fun emp_tr [] = Syntax.const @{const_syntax is_empty} $ Syntax.free "H"
   | emp_tr ts = raise TERM ("emp_tr", ts);
-fun singl_tr [p,q] = Syntax.const "singl" $ Syntax.free "H" $ p $ q
+fun singl_tr [p, q] = Syntax.const @{const_syntax singl} $ Syntax.free "H" $ p $ q
   | singl_tr ts = raise TERM ("singl_tr", ts);
-fun star_tr [P,Q] = Syntax.const "star" $
-      absfree("H",dummyT,free_tr P) $ absfree("H",dummyT,free_tr Q) $
+fun star_tr [P,Q] = Syntax.const @{const_syntax star} $
+      absfree ("H", dummyT, free_tr P) $ absfree ("H", dummyT, free_tr Q) $
       Syntax.free "H"
   | star_tr ts = raise TERM ("star_tr", ts);
-fun wand_tr [P,Q] = Syntax.const "wand" $
-      absfree("H",dummyT,P) $ absfree("H",dummyT,Q) $ Syntax.free "H"
+fun wand_tr [P, Q] = Syntax.const @{const_syntax wand} $
+      absfree ("H", dummyT, P) $ absfree ("H", dummyT, Q) $ Syntax.free "H"
   | wand_tr ts = raise TERM ("wand_tr", ts);
 *}
 
-parse_translation
- {* [("@emp", emp_tr), ("@singl", singl_tr),
-     ("@star", star_tr), ("@wand", wand_tr)] *}
+parse_translation {*
+ [(@{syntax_const "_emp"}, emp_tr),
+  (@{syntax_const "_singl"}, singl_tr),
+  (@{syntax_const "_star"}, star_tr),
+  (@{syntax_const "_wand"}, wand_tr)]
+*}
 
 text{* Now it looks much better: *}
 
@@ -103,17 +105,9 @@ done
 text{* But the output is still unreadable. Thus we also strip the heap
 parameters upon output: *}
 
-(* debugging code:
-fun sot(Free(s,_)) = s
-  | sot(Var((s,i),_)) = "?" ^ s ^ string_of_int i
-  | sot(Const(s,_)) = s
-  | sot(Bound i) = "B." ^ string_of_int i
-  | sot(s $ t) = "(" ^ sot s ^ " " ^ sot t ^ ")"
-  | sot(Abs(_,_,t)) = "(% " ^ sot t ^ ")";
-*)
-
-ML{*
+ML {*
 local
+
 fun strip (Abs(_,_,(t as Const("_free",_) $ Free _) $ Bound 0)) = t
   | strip (Abs(_,_,(t as Free _) $ Bound 0)) = t
 (*
@@ -121,19 +115,25 @@ fun strip (Abs(_,_,(t as Const("_free",_) $ Free _) $ Bound 0)) = t
 *)
   | strip (Abs(_,_,(t as Const("_var",_) $ Var _) $ Bound 0)) = t
   | strip (Abs(_,_,P)) = P
-  | strip (Const("is_empty",_)) = Syntax.const "@emp"
+  | strip (Const(@{const_syntax is_empty},_)) = Syntax.const @{syntax_const "_emp"}
   | strip t = t;
+
 in
-fun is_empty_tr' [_] = Syntax.const "@emp"
-fun singl_tr' [_,p,q] = Syntax.const "@singl" $ p $ q
-fun star_tr' [P,Q,_] = Syntax.const "@star" $ strip P $ strip Q
-fun wand_tr' [P,Q,_] = Syntax.const "@wand" $ strip P $ strip Q
+
+fun is_empty_tr' [_] = Syntax.const @{syntax_const "_emp"}
+fun singl_tr' [_,p,q] = Syntax.const @{syntax_const "_singl"} $ p $ q
+fun star_tr' [P,Q,_] = Syntax.const @{syntax_const "_star"} $ strip P $ strip Q
+fun wand_tr' [P,Q,_] = Syntax.const @{syntax_const "_wand"} $ strip P $ strip Q
+
 end
 *}
 
-print_translation
- {* [("is_empty", is_empty_tr'),("singl", singl_tr'),
-     ("star", star_tr'),("wand", wand_tr')] *}
+print_translation {*
+ [(@{const_syntax is_empty}, is_empty_tr'),
+  (@{const_syntax singl}, singl_tr'),
+  (@{const_syntax star}, star_tr'),
+  (@{const_syntax wand}, wand_tr')]
+*}
 
 text{* Now the intermediate proof states are also readable: *}
 

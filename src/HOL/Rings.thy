@@ -686,7 +686,7 @@ qed
 
 end
 
-class linlinordered_semiring_1_strict = linordered_semiring_strict + semiring_1
+class linordered_semiring_1_strict = linordered_semiring_strict + semiring_1
 
 class mult_mono1 = times + zero + ord +
   assumes mult_mono1: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"
@@ -781,15 +781,6 @@ lemma split_mult_pos_le:
 by (auto simp add: mult_nonneg_nonneg mult_nonpos_nonpos)
 
 end
-
-class abs_if = minus + uminus + ord + zero + abs +
-  assumes abs_if: "\<bar>a\<bar> = (if a < 0 then - a else a)"
-
-class sgn_if = minus + uminus + zero + one + ord + sgn +
-  assumes sgn_if: "sgn x = (if x = 0 then 0 else if 0 < x then 1 else - 1)"
-
-lemma (in sgn_if) sgn0[simp]: "sgn 0 = 0"
-by(simp add:sgn_if)
 
 class linordered_ring = ring + linordered_semiring + linordered_ab_group_add + abs_if
 begin

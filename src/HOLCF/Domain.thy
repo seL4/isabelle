@@ -222,6 +222,12 @@ lemmas con_defin_rules =
 lemmas con_defined_iff_rules =
   sinl_defined_iff sinr_defined_iff spair_strict_iff up_defined ONE_defined
 
+lemmas con_below_iff_rules =
+  sinl_below sinr_below sinl_below_sinr sinr_below_sinl con_defined_iff_rules
+
+lemmas con_eq_iff_rules =
+  sinl_eq sinr_eq sinl_eq_sinr sinr_eq_sinl con_defined_iff_rules
+
 use "Tools/cont_consts.ML"
 use "Tools/cont_proc.ML"
 use "Tools/Domain/domain_library.ML"

@@ -29,7 +29,7 @@ sig
 
   (*instances*)
   val init_instantiation: string list * (string * sort) list * sort
-    -> theory -> local_theory
+    -> theory -> Proof.context
   val instance_arity_cmd: xstring list * xstring list * xstring -> theory -> Proof.state
   val instantiation_instance: (local_theory -> local_theory)
     -> local_theory -> Proof.state

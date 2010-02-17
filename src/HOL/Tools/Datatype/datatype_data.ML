@@ -229,7 +229,7 @@ fun add_case_tr' case_names thy =
 
 val trfun_setup =
   Sign.add_advanced_trfuns ([],
-    [("_case_syntax", Datatype_Case.case_tr true info_of_constr)],
+    [(@{syntax_const "_case_syntax"}, Datatype_Case.case_tr true info_of_constr)],
     [], []);
 
 

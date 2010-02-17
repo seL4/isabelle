@@ -9,6 +9,11 @@ New in this Isabelle version
 * Code generator: details of internal data cache have no impact on
 the user space functionality any longer.
 
+* Discontinued unnamed infix syntax (legacy feature for many years) --
+need to specify constant name and syntax separately.  Internal ML
+datatype constructors have been renamed from InfixName to Infix etc.
+Minor INCOMPATIBILITY.
+
 
 *** HOL ***
 
@@ -22,6 +27,8 @@ INCOMPATIBILITY.
 
 * Some generic constants have been put to appropriate theories:
 
+    less_eq, less: Orderings
+    abs, sgn: Groups
     inverse, divide: Rings
 
 INCOMPATIBILITY.
@@ -80,13 +87,9 @@ of parameter divide has also been required previously.  INCOMPATIBILITY.
 
 INCOMPATIBILITY.
 
-* Index syntax for structures must be imported explicitly from library
-theory Structure_Syntax.  INCOMPATIBILITY.
-
 * New theory Algebras contains generic algebraic structures and
 generic algebraic operations.  INCOMPATIBILTY: constants zero, one,
-plus, minus, uminus, times, abs, sgn, less_eq and
-less have been moved from HOL.thy to Algebras.thy.
+plus, minus, uminus and times have been moved from HOL.thy to Algebras.thy.
 
 * HOLogic.strip_psplit: types are returned in syntactic order, similar
 to other strip and tuple operations.  INCOMPATIBILITY.
@@ -128,8 +131,14 @@ sets to lattices:
 
 * Theory List: added transpose.
 
+* Renamed Library/Quotient.thy to Library/Quotient_Type.thy to avoid
+clash with new theory Quotient in Main HOL.
+
 
 *** ML ***
+
+* Antiquotation @{syntax_const NAME} ensures that NAME refers to a raw
+syntax constant (cf. 'syntax' command).
 
 * Renamed old-style Drule.standard to Drule.export_without_context, to
 emphasize that this is in no way a standard operation.

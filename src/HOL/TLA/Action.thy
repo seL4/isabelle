@@ -1,8 +1,6 @@
-(*
-    File:        TLA/Action.thy
-    ID:          $Id$
-    Author:      Stephan Merz
-    Copyright:   1998 University of Munich
+(*  Title:      HOL/TLA/Action.thy 
+    Author:     Stephan Merz
+    Copyright:  1998 University of Munich
 *)
 
 header {* The action level of TLA as an Isabelle theory *}
@@ -50,13 +48,13 @@ syntax
 
 translations
   "ACT A"            =>   "(A::state*state => _)"
-  "_before"          ==   "before"
-  "_after"           ==   "after"
+  "_before"          ==   "CONST before"
+  "_after"           ==   "CONST after"
   "_prime"           =>   "_after"
-  "_unchanged"       ==   "unch"
-  "_SqAct"           ==   "SqAct"
-  "_AnAct"           ==   "AnAct"
-  "_Enabled"         ==   "enabled"
+  "_unchanged"       ==   "CONST unch"
+  "_SqAct"           ==   "CONST SqAct"
+  "_AnAct"           ==   "CONST AnAct"
+  "_Enabled"         ==   "CONST enabled"
   "w |= [A]_v"       <=   "_SqAct A v w"
   "w |= <A>_v"       <=   "_AnAct A v w"
   "s |= Enabled A"   <=   "_Enabled A s"

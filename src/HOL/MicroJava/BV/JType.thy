@@ -37,9 +37,7 @@ constdefs
   "is_ty G T == case T of PrimT P \<Rightarrow> True | RefT R \<Rightarrow>
                (case R of NullT \<Rightarrow> True | ClassT C \<Rightarrow> (C, Object) \<in> (subcls1 G)^*)"
 
-
-translations
-  "types G" == "Collect (is_type G)"
+abbreviation "types G == Collect (is_type G)"
 
 constdefs
   esl :: "'c prog \<Rightarrow> ty esl"

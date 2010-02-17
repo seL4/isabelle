@@ -129,16 +129,15 @@ syntax
   "_case2"      :: "[case_syn, cases_syn] => cases_syn"  ("_/ | _")
 
 translations
-  "THE x. P"              == "The (%x. P)"
+  "THE x. P"              == "CONST The (%x. P)"
   "_Let (_binds b bs) e"  == "_Let b (_Let bs e)"
-  "let x = a in e"        == "Let a (%x. e)"
+  "let x = a in e"        == "CONST Let a (%x. e)"
 
 print_translation {*
-(* To avoid eta-contraction of body: *)
-[("The", fn [Abs abs] =>
-     let val (x,t) = atomic_abs_tr' abs
-     in Syntax.const "_The" $ x $ t end)]
-*}
+  [(@{const_syntax The}, fn [Abs abs] =>
+      let val (x, t) = atomic_abs_tr' abs
+      in Syntax.const @{syntax_const "_The"} $ x $ t end)]
+*}  -- {* To avoid eta-contraction of body *}
 
 syntax (xsymbols)
   "_case1"      :: "['a, 'b] => case_syn"                ("(2_ \<Rightarrow>/ _)" 10)

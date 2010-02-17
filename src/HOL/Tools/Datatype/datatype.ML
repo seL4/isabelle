@@ -651,7 +651,7 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
 
     val (tyvars, _, _, _)::_ = dts;
     val (new_dts, types_syntax) = ListPair.unzip (map (fn (tvs, tname, mx, _) =>
-      let val full_tname = Sign.full_name tmp_thy (Binding.map_name (Syntax.type_name mx) tname)
+      let val full_tname = Sign.full_name tmp_thy tname
       in
         (case duplicates (op =) tvs of
           [] =>
@@ -675,10 +675,10 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
             val _ =
               (case subtract (op =) tvs (fold (curry OldTerm.add_typ_tfree_names) cargs' []) of
                 [] => ()
-              | vs => error ("Extra type variables on rhs: " ^ commas vs))
-          in (constrs @ [(Sign.full_name_path tmp_thy tname'
-                  (Binding.map_name (Syntax.const_name mx') cname),
-                   map (dtyp_of_typ new_dts) cargs')],
+              | vs => error ("Extra type variables on rhs: " ^ commas vs));
+            val c = Sign.full_name_path tmp_thy tname' cname;
+          in
+            (constrs @ [(c, map (dtyp_of_typ new_dts) cargs')],
               constr_syntax' @ [(cname, mx')], sorts'')
           end handle ERROR msg => cat_error msg
            ("The error above occured in constructor " ^ quote (Binding.str_of cname) ^
@@ -686,14 +686,12 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
 
         val (constrs', constr_syntax', sorts') =
           fold prep_constr constrs ([], [], sorts)
-
       in
         case duplicates (op =) (map fst constrs') of
-           [] =>
-             (dts' @ [(i, (Sign.full_name tmp_thy (Binding.map_name (Syntax.type_name mx) tname),
-                map DtTFree tvs, constrs'))],
+          [] =>
+            (dts' @ [(i, (Sign.full_name tmp_thy tname, map DtTFree tvs, constrs'))],
               constr_syntax @ [constr_syntax'], sorts', i + 1)
-         | dups => error ("Duplicate constructors " ^ commas dups ^
+        | dups => error ("Duplicate constructors " ^ commas dups ^
              " in datatype " ^ quote (Binding.str_of tname))
       end;
 

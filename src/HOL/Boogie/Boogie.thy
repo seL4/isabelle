@@ -5,7 +5,7 @@
 header {* Integration of the Boogie program verifier *}
 
 theory Boogie
-imports SMT
+imports "~~/src/HOL/SMT/SMT"
 uses
   ("Tools/boogie_vcs.ML")
   ("Tools/boogie_loader.ML")

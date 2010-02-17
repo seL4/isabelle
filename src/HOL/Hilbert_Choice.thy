@@ -25,11 +25,10 @@ translations
   "SOME x. P" == "CONST Eps (%x. P)"
 
 print_translation {*
-(* to avoid eta-contraction of body *)
-[(@{const_syntax Eps}, fn [Abs abs] =>
-     let val (x,t) = atomic_abs_tr' abs
-     in Syntax.const "_Eps" $ x $ t end)]
-*}
+  [(@{const_syntax Eps}, fn [Abs abs] =>
+      let val (x, t) = atomic_abs_tr' abs
+      in Syntax.const @{syntax_const "_Eps"} $ x $ t end)]
+*} -- {* to avoid eta-contraction of body *}
 
 definition inv_into :: "'a set => ('a => 'b) => ('b => 'a)" where
 "inv_into A f == %x. SOME y. y : A & f y = x"
@@ -315,7 +314,7 @@ constdefs
 syntax
   "_LeastM" :: "[pttrn, 'a => 'b::ord, bool] => 'a"    ("LEAST _ WRT _. _" [0, 4, 10] 10)
 translations
-  "LEAST x WRT m. P" == "LeastM m (%x. P)"
+  "LEAST x WRT m. P" == "CONST LeastM m (%x. P)"
 
 lemma LeastMI2:
   "P x ==> (!!y. P y ==> m x <= m y)
@@ -369,11 +368,10 @@ constdefs
   "Greatest == GreatestM (%x. x)"
 
 syntax
-  "_GreatestM" :: "[pttrn, 'a=>'b::ord, bool] => 'a"
+  "_GreatestM" :: "[pttrn, 'a => 'b::ord, bool] => 'a"
       ("GREATEST _ WRT _. _" [0, 4, 10] 10)
-
 translations
-  "GREATEST x WRT m. P" == "GreatestM m (%x. P)"
+  "GREATEST x WRT m. P" == "CONST GreatestM m (%x. P)"
 
 lemma GreatestMI2:
   "P x ==> (!!y. P y ==> m y <= m x)

@@ -69,7 +69,7 @@ where
 
 monos "rtrancl_mono"
 
-text {* The corresponding syntax translations are: *}
+text {* The corresponding abbreviations are: *}
 
 abbreviation
   ann_transition_n :: "('a ann_com_op \<times> 'a) \<Rightarrow> nat \<Rightarrow> ('a ann_com_op \<times> 'a) 
@@ -101,8 +101,8 @@ constdefs
   SEM :: "'a com \<Rightarrow> 'a set \<Rightarrow> 'a set"
   "SEM c S \<equiv> \<Union>sem c ` S "
 
-syntax "_Omega" :: "'a com"    ("\<Omega>" 63)
-translations  "\<Omega>" \<rightleftharpoons> "While CONST UNIV CONST UNIV (Basic id)"
+abbreviation Omega :: "'a com"    ("\<Omega>" 63)
+  where "\<Omega> \<equiv> While UNIV UNIV (Basic id)"
 
 consts fwhile :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> nat \<Rightarrow> 'a com"
 primrec 

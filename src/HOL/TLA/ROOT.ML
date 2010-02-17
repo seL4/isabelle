@@ -1,7 +1,3 @@
-(*  Title:      HOL/TLA/ROOT.ML
-
-Adds the Temporal Logic of Actions to a database containing Isabelle/HOL.
-*)
+(* The Temporal Logic of Actions *)
 
 use_thys ["TLA"];
-

@@ -309,11 +309,12 @@ val _ = Context.>> (Context.map_theory
     ("_indexdefault", typ "index",                     Delimfix ""),
     ("_indexvar",   typ "index",                       Delimfix "'\\<index>"),
     ("_struct",     typ "index => logic",              Mixfix ("\\<struct>_", [1000], 1000)),
+    ("_update_name", typ "idt",                        NoSyn),
     ("==>",         typ "prop => prop => prop",        Delimfix "op ==>"),
     (Term.dummy_patternN, typ "aprop",                 Delimfix "'_"),
     ("_sort_constraint", typ "type => prop",           Delimfix "(1SORT'_CONSTRAINT/(1'(_')))"),
     ("Pure.term",   typ "logic => prop",               Delimfix "TERM _"),
-    ("Pure.conjunction", typ "prop => prop => prop",   InfixrName ("&&&", 2))]
+    ("Pure.conjunction", typ "prop => prop => prop",   Infixr ("&&&", 2))]
   #> Sign.add_syntax_i applC_syntax
   #> Sign.add_modesyntax_i (Symbol.xsymbolsN, true)
    [("fun",      typ "type => type => type",   Mixfix ("(_/ \\<Rightarrow> _)", [1, 0], 0)),
@@ -325,9 +326,9 @@ val _ = Context.>> (Context.map_theory
     ("_idtypdummy", typ "type => idt",         Mixfix ("'_()\\<Colon>_", [], 0)),
     ("_type_constraint_", typ "'a",            NoSyn),
     ("_lambda",  typ "pttrns => 'a => logic",  Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3)),
-    ("==",       typ "'a => 'a => prop",       InfixrName ("\\<equiv>", 2)),
+    ("==",       typ "'a => 'a => prop",       Infixr ("\\<equiv>", 2)),
     ("all_binder", typ "idts => prop => prop", Mixfix ("(3\\<And>_./ _)", [0, 0], 0)),
-    ("==>",      typ "prop => prop => prop",   InfixrName ("\\<Longrightarrow>", 1)),
+    ("==>",      typ "prop => prop => prop",   Infixr ("\\<Longrightarrow>", 1)),
     ("_DDDOT",   typ "aprop",                  Delimfix "\\<dots>"),
     ("_bigimpl", typ "asms => prop => prop",   Mixfix ("((1\\<lbrakk>_\\<rbrakk>)/ \\<Longrightarrow> _)", [0, 1], 1)),
     ("_DDDOT",   typ "logic",                  Delimfix "\\<dots>")]
@@ -336,7 +337,7 @@ val _ = Context.>> (Context.map_theory
   #> Sign.add_modesyntax_i ("HTML", false)
    [("_lambda", typ "pttrns => 'a => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3))]
   #> Sign.add_consts_i
-   [(Binding.name "==", typ "'a => 'a => prop", InfixrName ("==", 2)),
+   [(Binding.name "==", typ "'a => 'a => prop", Infixr ("==", 2)),
     (Binding.name "==>", typ "prop => prop => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
     (Binding.name "all", typ "('a => prop) => prop", Binder ("!!", 0, 0)),
     (Binding.name "prop", typ "prop => prop", NoSyn),

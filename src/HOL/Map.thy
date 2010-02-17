@@ -68,7 +68,7 @@ syntax (xsymbols)
 
 translations
   "_MapUpd m (_Maplets xy ms)"  == "_MapUpd (_MapUpd m xy) ms"
-  "_MapUpd m (_maplet  x y)"    == "m(x:=Some y)"
+  "_MapUpd m (_maplet  x y)"    == "m(x := CONST Some y)"
   "_Map ms"                     == "_MapUpd (CONST empty) ms"
   "_Map (_Maplets ms1 ms2)"     <= "_MapUpd (_Map ms1) ms2"
   "_Maplets ms1 (_Maplets ms2 ms3)" <= "_Maplets (_Maplets ms1 ms2) ms3"
@@ -389,6 +389,10 @@ lemma fun_upd_restrict_conv [simp]:
   "x \<in> D \<Longrightarrow> (m|`D)(x := y) = (m|`(D-{x}))(x := y)"
 by (simp add: restrict_map_def expand_fun_eq)
 
+lemma map_of_map_restrict:
+  "map_of (map (\<lambda>k. (k, f k)) ks) = (Some \<circ> f) |` set ks"
+  by (induct ks) (simp_all add: expand_fun_eq restrict_map_insert)
+
 
 subsection {* @{term [source] map_upds} *}
 
@@ -534,7 +538,7 @@ lemma map_add_dom_app_simps:
 by (auto simp add: map_add_def split: option.split_asm)
 
 lemma dom_const [simp]:
-  "dom (\<lambda>x. Some y) = UNIV"
+  "dom (\<lambda>x. Some (f x)) = UNIV"
   by auto
 
 (* Due to John Matthews - could be rephrased with dom *)

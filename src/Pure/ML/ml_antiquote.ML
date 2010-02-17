@@ -123,9 +123,16 @@ val _ = inline "const_syntax" (const true);
 val _ = inline "const"
   (Args.context -- Scan.lift Args.name_source -- Scan.optional
       (Scan.lift (Args.$$$ "(") |-- OuterParse.enum1' "," Args.typ --| Scan.lift (Args.$$$ ")")) []
-    >> (fn ((ctxt, c), Ts) =>
-      let val (c, _) = Term.dest_Const (ProofContext.read_const_proper ctxt c)
-      in ML_Syntax.atomic (ML_Syntax.print_term (ProofContext.mk_const ctxt (c, Ts))) end));
+    >> (fn ((ctxt, raw_c), Ts) =>
+      let
+        val Const (c, _) = ProofContext.read_const_proper ctxt raw_c;
+        val const = Const (c, Consts.instance (ProofContext.consts_of ctxt) (c, Ts));
+      in ML_Syntax.atomic (ML_Syntax.print_term const) end));
+
+val _ = inline "syntax_const"
+  (Args.context -- Scan.lift Args.name >> (fn (ctxt, c) =>
+    if Syntax.is_const (ProofContext.syn_of ctxt) c then ML_Syntax.print_string c
+    else error ("Unknown syntax const: " ^ quote c)));
 
 end;
 

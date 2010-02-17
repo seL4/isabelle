@@ -584,10 +584,9 @@ done
 
   (* Currently: empty exception_table *)
 
-syntax
+abbreviation (input)
   empty_et :: exception_table
-translations
-  "empty_et" => "[]"
+  where "empty_et == []"
 
 
 
@@ -860,12 +859,13 @@ by (induct lvars,  (simp add: compInitLvars_def length_compTpInit split_beta)+)
 section "Correspondence bytecode - method types"
   (* ********************************************************************** *)
 
-syntax
+abbreviation (input)
   ST_of :: "state_type \<Rightarrow> opstack_type"
+  where "ST_of == fst"
+
+abbreviation (input)
   LT_of :: "state_type \<Rightarrow> locvars_type"
-translations
-  "ST_of" => "fst"
-  "LT_of" => "snd"
+  where "LT_of == snd"
 
 lemma states_lower:
   "\<lbrakk> OK (Some (ST, LT)) \<in> states cG mxs mxr; length ST \<le> mxs\<rbrakk>

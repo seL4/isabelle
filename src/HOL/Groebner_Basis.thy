@@ -556,14 +556,14 @@ local
 
  fun proc3 phi ss ct =
   (case term_of ct of
-    Const(@{const_name Algebras.less},_)$(Const(@{const_name Rings.divide},_)$_$_)$_ =>
+    Const(@{const_name Orderings.less},_)$(Const(@{const_name Rings.divide},_)$_$_)$_ =>
       let
         val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_less_eq"}
       in SOME (mk_meta_eq th) end
-  | Const(@{const_name Algebras.less_eq},_)$(Const(@{const_name Rings.divide},_)$_$_)$_ =>
+  | Const(@{const_name Orderings.less_eq},_)$(Const(@{const_name Rings.divide},_)$_$_)$_ =>
       let
         val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
         val _ = map is_number [a,b,c]
@@ -577,14 +577,14 @@ local
         val T = ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_eq_eq"}
       in SOME (mk_meta_eq th) end
-  | Const(@{const_name Algebras.less},_)$_$(Const(@{const_name Rings.divide},_)$_$_) =>
+  | Const(@{const_name Orderings.less},_)$_$(Const(@{const_name Rings.divide},_)$_$_) =>
     let
       val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "less_divide_eq"}
       in SOME (mk_meta_eq th) end
-  | Const(@{const_name Algebras.less_eq},_)$_$(Const(@{const_name Rings.divide},_)$_$_) =>
+  | Const(@{const_name Orderings.less_eq},_)$_$(Const(@{const_name Rings.divide},_)$_$_) =>
     let
       val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
         val _ = map is_number [a,b,c]

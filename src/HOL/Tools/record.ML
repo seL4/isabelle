@@ -9,6 +9,18 @@ Extensible records with structural subtyping.
 
 signature BASIC_RECORD =
 sig
+  type record_info =
+   {args: (string * sort) list,
+    parent: (typ list * string) option,
+    fields: (string * typ) list,
+    extension: (string * typ list),
+    ext_induct: thm, ext_inject: thm, ext_surjective: thm, ext_split: thm, ext_def: thm,
+    select_convs: thm list, update_convs: thm list, select_defs: thm list, update_defs: thm list,
+    fold_congs: thm list, unfold_congs: thm list, splits: thm list, defs: thm list,
+    surjective: thm, equality: thm, induct_scheme: thm, induct: thm, cases_scheme: thm,
+    cases: thm, simps: thm list, iffs: thm list}
+  val get_record: theory -> string -> record_info option
+  val the_record: theory -> string -> record_info
   val record_simproc: simproc
   val record_eq_simproc: simproc
   val record_upd_simproc: simproc
@@ -42,10 +54,10 @@ sig
   val print_records: theory -> unit
   val read_typ: Proof.context -> string -> (string * sort) list -> typ * (string * sort) list
   val cert_typ: Proof.context -> typ -> (string * sort) list -> typ * (string * sort) list
-  val add_record: bool -> string list * string -> string option -> (string * string * mixfix) list
-    -> theory -> theory
-  val add_record_i: bool -> string list * string -> (typ list * string) option
-    -> (string * typ * mixfix) list -> theory -> theory
+  val add_record: bool -> string list * binding -> (typ list * string) option ->
+    (binding * typ * mixfix) list -> theory -> theory
+  val add_record_cmd: bool -> string list * binding -> string option ->
+    (binding * string * mixfix) list -> theory -> theory
   val setup: theory -> theory
 end;
 
@@ -71,8 +83,7 @@ val tuple_iso_tuple = (@{const_name tuple_iso_tuple}, @{thm tuple_iso_tuple});
 
 fun named_cterm_instantiate values thm =
   let
-    fun match name ((name', _), _) = name = name'
-      | match name _ = false;
+    fun match name ((name', _), _) = name = name';
     fun getvar name =
       (case find_first (match name) (Term.add_vars (prop_of thm) []) of
         SOME var => cterm_of (theory_of_thm thm) (Var var)
@@ -93,8 +104,8 @@ fun do_typedef name repT alphas thy =
   let
     fun get_thms thy name =
       let
-        val SOME {Rep_inject = rep_inject, Abs_name = absN, abs_type = absT,
-          Abs_inverse = abs_inverse, ...} = Typedef.get_info thy name;
+        val {Rep_inject = rep_inject, Abs_name = absN, abs_type = absT,
+          Abs_inverse = abs_inverse, ...} = Typedef.the_info thy name;
         val rewrite_rule =
           MetaSimplifier.rewrite_rule [@{thm iso_tuple_UNIV_I}, @{thm iso_tuple_True_simp}];
       in
@@ -142,7 +153,8 @@ fun add_iso_tuple_type (name, alphas) (leftT, rightT) thy =
     val ([isom_def], cdef_thy) =
       typ_thy
       |> Sign.add_consts_i [Syntax.no_syn (isom_bind, isomT)]
-      |> PureThy.add_defs false [Thm.no_attributes (apfst Binding.name isom_spec)];
+      |> PureThy.add_defs false
+        [Thm.no_attributes (apfst (Binding.conceal o Binding.name) isom_spec)];
 
     val iso_tuple = isom_def RS (abs_inverse RS (rep_inject RS iso_tuple_intro));
     val cons = Const (@{const_name iso_tuple_cons}, isomT --> leftT --> rightT --> absT);
@@ -156,7 +168,8 @@ fun add_iso_tuple_type (name, alphas) (leftT, rightT) thy =
     ((isom, cons $ isom), thm_thy)
   end;
 
-val iso_tuple_intros_tac = resolve_from_net_tac iso_tuple_intros THEN'
+val iso_tuple_intros_tac =
+  resolve_from_net_tac iso_tuple_intros THEN'
   CSUBGOAL (fn (cgoal, i) =>
     let
       val thy = Thm.theory_of_cterm cgoal;
@@ -189,7 +202,7 @@ val atomize_imp = @{thm HOL.atomize_imp};
 val meta_allE = @{thm Pure.meta_allE};
 val prop_subst = @{thm prop_subst};
 val K_record_comp = @{thm K_record_comp};
-val K_comp_convs = [@{thm o_apply}, K_record_comp]
+val K_comp_convs = [@{thm o_apply}, K_record_comp];
 val o_assoc = @{thm o_assoc};
 val id_apply = @{thm id_apply};
 val id_o_apps = [@{thm id_apply}, @{thm id_o}, @{thm o_id}];
@@ -197,21 +210,21 @@ val Not_eq_iff = @{thm Not_eq_iff};
 
 val refl_conj_eq = @{thm refl_conj_eq};
 
-val surject_assistI = @{thm "iso_tuple_surjective_proof_assistI"};
-val surject_assist_idE = @{thm "iso_tuple_surjective_proof_assist_idE"};
+val surject_assistI = @{thm iso_tuple_surjective_proof_assistI};
+val surject_assist_idE = @{thm iso_tuple_surjective_proof_assist_idE};
 
-val updacc_accessor_eqE = @{thm "update_accessor_accessor_eqE"};
-val updacc_updator_eqE = @{thm "update_accessor_updator_eqE"};
-val updacc_eq_idI = @{thm "iso_tuple_update_accessor_eq_assist_idI"};
-val updacc_eq_triv = @{thm "iso_tuple_update_accessor_eq_assist_triv"};
+val updacc_accessor_eqE = @{thm update_accessor_accessor_eqE};
+val updacc_updator_eqE = @{thm update_accessor_updator_eqE};
+val updacc_eq_idI = @{thm iso_tuple_update_accessor_eq_assist_idI};
+val updacc_eq_triv = @{thm iso_tuple_update_accessor_eq_assist_triv};
 
-val updacc_foldE = @{thm "update_accessor_congruence_foldE"};
-val updacc_unfoldE = @{thm "update_accessor_congruence_unfoldE"};
-val updacc_noopE = @{thm "update_accessor_noopE"};
-val updacc_noop_compE = @{thm "update_accessor_noop_compE"};
-val updacc_cong_idI = @{thm "update_accessor_cong_assist_idI"};
-val updacc_cong_triv = @{thm "update_accessor_cong_assist_triv"};
-val updacc_cong_from_eq = @{thm "iso_tuple_update_accessor_cong_from_eq"};
+val updacc_foldE = @{thm update_accessor_congruence_foldE};
+val updacc_unfoldE = @{thm update_accessor_congruence_unfoldE};
+val updacc_noopE = @{thm update_accessor_noopE};
+val updacc_noop_compE = @{thm update_accessor_noop_compE};
+val updacc_cong_idI = @{thm update_accessor_cong_assist_idI};
+val updacc_cong_triv = @{thm update_accessor_cong_assist_triv};
+val updacc_cong_from_eq = @{thm iso_tuple_update_accessor_cong_from_eq};
 
 val o_eq_dest = @{thm o_eq_dest};
 val o_eq_id_dest = @{thm o_eq_id_dest};
@@ -257,11 +270,9 @@ fun timing_msg s = if ! timing then warning s else ();
 val Trueprop = HOLogic.mk_Trueprop;
 fun All xs t = Term.list_all_free (xs, t);
 
-infix 9 $$;
 infix 0 :== ===;
 infixr 0 ==>;
 
-val op $$ = Term.list_comb;
 val op :== = Primitive_Defs.mk_defpair;
 val op === = Trueprop o HOLogic.mk_eq;
 val op ==> = Logic.mk_implies;
@@ -337,24 +348,55 @@ type record_info =
   parent: (typ list * string) option,
   fields: (string * typ) list,
   extension: (string * typ list),
+
+  ext_induct: thm,
+  ext_inject: thm,
+  ext_surjective: thm,
+  ext_split: thm,
+  ext_def: thm,
+
+  select_convs: thm list,
+  update_convs: thm list,
+  select_defs: thm list,
+  update_defs: thm list,
+  fold_congs: thm list,
+  unfold_congs: thm list,
+  splits: thm list,
+  defs: thm list,
+
+  surjective: thm,
+  equality: thm,
+  induct_scheme: thm,
   induct: thm,
-  extdef: thm};
+  cases_scheme: thm,
+  cases: thm,
 
-fun make_record_info args parent fields extension induct extdef =
+  simps: thm list,
+  iffs: thm list};
+
+fun make_record_info args parent fields extension
+    ext_induct ext_inject ext_surjective ext_split ext_def
+    select_convs update_convs select_defs update_defs fold_congs unfold_congs splits defs
+    surjective equality induct_scheme induct cases_scheme cases
+    simps iffs : record_info =
  {args = args, parent = parent, fields = fields, extension = extension,
-  induct = induct, extdef = extdef}: record_info;
-
+  ext_induct = ext_induct, ext_inject = ext_inject, ext_surjective = ext_surjective,
+  ext_split = ext_split, ext_def = ext_def, select_convs = select_convs,
+  update_convs = update_convs, select_defs = select_defs, update_defs = update_defs,
+  fold_congs = fold_congs, unfold_congs = unfold_congs, splits = splits, defs = defs,
+  surjective = surjective, equality = equality, induct_scheme = induct_scheme,
+  induct = induct, cases_scheme = cases_scheme, cases = cases, simps = simps, iffs = iffs};
 
 type parent_info =
  {name: string,
   fields: (string * typ) list,
   extension: (string * typ list),
-  induct: thm,
-  extdef: thm};
+  induct_scheme: thm,
+  ext_def: thm};
 
-fun make_parent_info name fields extension induct extdef =
+fun make_parent_info name fields extension ext_def induct_scheme : parent_info =
  {name = name, fields = fields, extension = extension,
-  induct = induct, extdef = extdef}: parent_info;
+  ext_def = ext_def, induct_scheme = induct_scheme};
 
 
 (* theory data *)
@@ -371,7 +413,7 @@ type record_data =
   equalities: thm Symtab.table,
   extinjects: thm list,
   extsplit: thm Symtab.table,  (*maps extension name to split rule*)
-  splits: (thm * thm * thm * thm) Symtab.table,  (*!!, !, EX - split-equalities, induct rule*)
+  splits: (thm * thm * thm * thm) Symtab.table,  (*!!, ALL, EX - split-equalities, induct rule*)
   extfields: (string * typ) list Symtab.table,  (*maps extension to its fields*)
   fieldext: (string * typ list) Symtab.table};  (*maps field to its extension*)
 
@@ -381,7 +423,7 @@ fun make_record_data
   equalities = equalities, extinjects=extinjects, extsplit = extsplit, splits = splits,
   extfields = extfields, fieldext = fieldext }: record_data;
 
-structure RecordsData = Theory_Data
+structure Records_Data = Theory_Data
 (
   type T = record_data;
   val empty =
@@ -434,7 +476,7 @@ structure RecordsData = Theory_Data
 
 fun print_records thy =
   let
-    val {records = recs, ...} = RecordsData.get thy;
+    val {records = recs, ...} = Records_Data.get thy;
     val prt_typ = Syntax.pretty_typ_global thy;
 
     fun pretty_parent NONE = []
@@ -454,20 +496,25 @@ fun print_records thy =
 
 (* access 'records' *)
 
-val get_record = Symtab.lookup o #records o RecordsData.get;
+val get_record = Symtab.lookup o #records o Records_Data.get;
+
+fun the_record thy name =
+  (case get_record thy name of
+    SOME info => info
+  | NONE => error ("Unknown record type " ^ quote name));
 
 fun put_record name info thy =
   let
     val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
-      RecordsData.get thy;
+      Records_Data.get thy;
     val data = make_record_data (Symtab.update (name, info) records)
       sel_upd equalities extinjects extsplit splits extfields fieldext;
-  in RecordsData.put data thy end;
+  in Records_Data.put data thy end;
 
 
 (* access 'sel_upd' *)
 
-val get_sel_upd = #sel_upd o RecordsData.get;
+val get_sel_upd = #sel_upd o Records_Data.get;
 
 val is_selector = Symtab.defined o #selectors o get_sel_upd;
 val get_updates = Symtab.lookup o #updates o get_sel_upd;
@@ -492,7 +539,7 @@ fun put_sel_upd names more depth simps defs (folds, unfolds) thy =
     val upds = map (suffix updateN) all ~~ all;
 
     val {records, sel_upd = {selectors, updates, simpset, defset, foldcong, unfoldcong},
-      equalities, extinjects, extsplit, splits, extfields, fieldext} = RecordsData.get thy;
+      equalities, extinjects, extsplit, splits, extfields, fieldext} = Records_Data.get thy;
     val data = make_record_data records
       {selectors = fold Symtab.update_new sels selectors,
         updates = fold Symtab.update_new upds updates,
@@ -501,7 +548,7 @@ fun put_sel_upd names more depth simps defs (folds, unfolds) thy =
         foldcong = foldcong addcongs folds,
         unfoldcong = unfoldcong addcongs unfolds}
        equalities extinjects extsplit splits extfields fieldext;
-  in RecordsData.put data thy end;
+  in Records_Data.put data thy end;
 
 
 (* access 'equalities' *)
@@ -509,12 +556,12 @@ fun put_sel_upd names more depth simps defs (folds, unfolds) thy =
 fun add_record_equalities name thm thy =
   let
     val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
-      RecordsData.get thy;
+      Records_Data.get thy;
     val data = make_record_data records sel_upd
       (Symtab.update_new (name, thm) equalities) extinjects extsplit splits extfields fieldext;
-  in RecordsData.put data thy end;
+  in Records_Data.put data thy end;
 
-val get_equalities = Symtab.lookup o #equalities o RecordsData.get;
+val get_equalities = Symtab.lookup o #equalities o Records_Data.get;
 
 
 (* access 'extinjects' *)
@@ -522,13 +569,13 @@ val get_equalities = Symtab.lookup o #equalities o RecordsData.get;
 fun add_extinjects thm thy =
   let
     val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
-      RecordsData.get thy;
+      Records_Data.get thy;
     val data =
       make_record_data records sel_upd equalities (insert Thm.eq_thm_prop thm extinjects)
         extsplit splits extfields fieldext;
-  in RecordsData.put data thy end;
+  in Records_Data.put data thy end;
 
-val get_extinjects = rev o #extinjects o RecordsData.get;
+val get_extinjects = rev o #extinjects o Records_Data.get;
 
 
 (* access 'extsplit' *)
@@ -536,11 +583,11 @@ val get_extinjects = rev o #extinjects o RecordsData.get;
 fun add_extsplit name thm thy =
   let
     val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
-      RecordsData.get thy;
-    val data = make_record_data records sel_upd
-      equalities extinjects (Symtab.update_new (name, thm) extsplit) splits
-      extfields fieldext;
-  in RecordsData.put data thy end;
+      Records_Data.get thy;
+    val data =
+      make_record_data records sel_upd equalities extinjects
+        (Symtab.update_new (name, thm) extsplit) splits extfields fieldext;
+  in Records_Data.put data thy end;
 
 
 (* access 'splits' *)
@@ -548,19 +595,19 @@ fun add_extsplit name thm thy =
 fun add_record_splits name thmP thy =
   let
     val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
-      RecordsData.get thy;
-    val data = make_record_data records sel_upd
-      equalities extinjects extsplit (Symtab.update_new (name, thmP) splits)
-      extfields fieldext;
-  in RecordsData.put data thy end;
+      Records_Data.get thy;
+    val data =
+      make_record_data records sel_upd equalities extinjects extsplit
+        (Symtab.update_new (name, thmP) splits) extfields fieldext;
+  in Records_Data.put data thy end;
 
-val get_splits = Symtab.lookup o #splits o RecordsData.get;
+val get_splits = Symtab.lookup o #splits o Records_Data.get;
 
 
 (* parent/extension of named record *)
 
-val get_parent = (Option.join o Option.map #parent) oo (Symtab.lookup o #records o RecordsData.get);
-val get_extension = Option.map #extension oo (Symtab.lookup o #records o RecordsData.get);
+val get_parent = (Option.join o Option.map #parent) oo (Symtab.lookup o #records o Records_Data.get);
+val get_extension = Option.map #extension oo (Symtab.lookup o #records o Records_Data.get);
 
 
 (* access 'extfields' *)
@@ -568,14 +615,13 @@ val get_extension = Option.map #extension oo (Symtab.lookup o #records o Records
 fun add_extfields name fields thy =
   let
     val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
-      RecordsData.get thy;
+      Records_Data.get thy;
     val data =
-      make_record_data records sel_upd
-        equalities extinjects extsplit splits
+      make_record_data records sel_upd equalities extinjects extsplit splits
         (Symtab.update_new (name, fields) extfields) fieldext;
-  in RecordsData.put data thy end;
+  in Records_Data.put data thy end;
 
-val get_extfields = Symtab.lookup o #extfields o RecordsData.get;
+val get_extfields = Symtab.lookup o #extfields o Records_Data.get;
 
 fun get_extT_fields thy T =
   let
@@ -585,21 +631,21 @@ fun get_extT_fields thy T =
       in Long_Name.implode (rev (nm :: rst)) end;
     val midx = maxidx_of_typs (moreT :: Ts);
     val varifyT = varifyT midx;
-    val {records, extfields, ...} = RecordsData.get thy;
-    val (flds, (more, _)) = split_last (Symtab.lookup_list extfields name);
+    val {records, extfields, ...} = Records_Data.get thy;
+    val (fields, (more, _)) = split_last (Symtab.lookup_list extfields name);
     val args = map varifyT (snd (#extension (the (Symtab.lookup records recname))));
 
-    val subst = fold (Sign.typ_match thy) (but_last args ~~ but_last Ts) (Vartab.empty);
-    val flds' = map (apsnd ((Envir.norm_type subst) o varifyT)) flds;
-  in (flds', (more, moreT)) end;
+    val subst = fold (Sign.typ_match thy) (but_last args ~~ but_last Ts) Vartab.empty;
+    val fields' = map (apsnd (Envir.norm_type subst o varifyT)) fields;
+  in (fields', (more, moreT)) end;
 
 fun get_recT_fields thy T =
   let
-    val (root_flds, (root_more, root_moreT)) = get_extT_fields thy T;
-    val (rest_flds, rest_more) =
+    val (root_fields, (root_more, root_moreT)) = get_extT_fields thy T;
+    val (rest_fields, rest_more) =
       if is_recT root_moreT then get_recT_fields thy root_moreT
       else ([], (root_more, root_moreT));
-  in (root_flds @ rest_flds, rest_more) end;
+  in (root_fields @ rest_fields, rest_more) end;
 
 
 (* access 'fieldext' *)
@@ -607,15 +653,15 @@ fun get_recT_fields thy T =
 fun add_fieldext extname_types fields thy =
   let
     val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
-      RecordsData.get thy;
+      Records_Data.get thy;
     val fieldext' =
       fold (fn field => Symtab.update_new (field, extname_types)) fields fieldext;
     val data =
       make_record_data records sel_upd equalities extinjects
         extsplit splits extfields fieldext';
-  in RecordsData.put data thy end;
+  in Records_Data.put data thy end;
 
-val get_fieldext = Symtab.lookup o #fieldext o RecordsData.get;
+val get_fieldext = Symtab.lookup o #fieldext o Records_Data.get;
 
 
 (* parent records *)
@@ -625,7 +671,7 @@ fun add_parents _ NONE parents = parents
       let
         fun err msg = error (msg ^ " parent record " ^ quote name);
 
-        val {args, parent, fields, extension, induct, extdef} =
+        val {args, parent, fields, extension, induct_scheme, ext_def, ...} =
           (case get_record thy name of SOME info => info | NONE => err "Unknown");
         val _ = if length types <> length args then err "Bad number of arguments for" else ();
 
@@ -641,7 +687,7 @@ fun add_parents _ NONE parents = parents
         val extension' = apsnd (map subst) extension;
       in
         add_parents thy parent'
-          (make_parent_info name fields' extension' induct extdef :: parents)
+          (make_parent_info name fields' extension' ext_def induct_scheme :: parents)
       end;
 
 
@@ -652,7 +698,8 @@ fun add_parents _ NONE parents = parents
 
 fun decode_type thy t =
   let
-    fun get_sort xs n = AList.lookup (op =) xs (n: indexname) |> the_default (Sign.defaultS thy);
+    fun get_sort env xi =
+      the_default (Sign.defaultS thy) (AList.lookup (op =) env (xi: indexname));
     val map_sort = Sign.intern_sort thy;
   in
     Syntax.typ_of_term (get_sort (Syntax.term_sorts map_sort t)) map_sort t
@@ -662,149 +709,138 @@ fun decode_type thy t =
 
 (* parse translations *)
 
-fun gen_field_tr mark sfx (t as Const (c, _) $ Const (name, _) $ arg) =
-      if c = mark then Syntax.const (suffix sfx name) $ Abs ("_", dummyT, arg)
-      else raise TERM ("gen_field_tr: " ^ mark, [t])
-  | gen_field_tr mark _ t = raise TERM ("gen_field_tr: " ^ mark, [t]);
+local
 
-fun gen_fields_tr sep mark sfx (tm as Const (c, _) $ t $ u) =
-      if c = sep then gen_field_tr mark sfx t :: gen_fields_tr sep mark sfx u
-      else [gen_field_tr mark sfx tm]
-  | gen_fields_tr _ mark sfx tm = [gen_field_tr mark sfx tm];
+fun field_type_tr ((Const (@{syntax_const "_field_type"}, _) $ Const (name, _) $ arg)) =
+      (name, arg)
+  | field_type_tr t = raise TERM ("field_type_tr", [t]);
 
+fun field_types_tr (Const (@{syntax_const "_field_types"}, _) $ t $ u) =
+      field_type_tr t :: field_types_tr u
+  | field_types_tr t = [field_type_tr t];
 
-fun record_update_tr [t, u] =
-      Library.foldr (op $) (rev (gen_fields_tr "_updates" "_update" updateN u), t)
-  | record_update_tr ts = raise TERM ("record_update_tr", ts);
-
-fun update_name_tr (Free (x, T) :: ts) = Free (suffix updateN x, T) $$ ts
-  | update_name_tr (Const (x, T) :: ts) = Const (suffix updateN x, T) $$ ts
-  | update_name_tr (((c as Const ("_constrain", _)) $ t $ ty) :: ts) =
-      (c $ update_name_tr [t] $ (Syntax.const "fun" $ ty $ Syntax.const "dummy")) $$ ts
-  | update_name_tr ts = raise TERM ("update_name_tr", ts);
-
-fun dest_ext_field mark (t as (Const (c, _) $ Const (name, _) $ arg)) =
-      if c = mark then (name, arg)
-      else raise TERM ("dest_ext_field: " ^ mark, [t])
-  | dest_ext_field _ t = raise TERM ("dest_ext_field", [t]);
-
-fun dest_ext_fields sep mark (trm as (Const (c, _) $ t $ u)) =
-      if c = sep then dest_ext_field mark t :: dest_ext_fields sep mark u
-      else [dest_ext_field mark trm]
-  | dest_ext_fields _ mark t = [dest_ext_field mark t];
-
-fun gen_ext_fields_tr sep mark sfx more ctxt t =
+fun record_field_types_tr more ctxt t =
   let
     val thy = ProofContext.theory_of ctxt;
-    val msg = "error in record input: ";
+    fun err msg = raise TERM ("Error in record-type input: " ^ msg, [t]);
 
-    val fieldargs = dest_ext_fields sep mark t;
-    fun splitargs (field :: fields) ((name, arg) :: fargs) =
-          if can (unsuffix name) field
-          then
-            let val (args, rest) = splitargs fields fargs
-            in (arg :: args, rest) end
-          else raise TERM (msg ^ "expecting field " ^ field ^ " but got " ^ name, [t])
-      | splitargs [] (fargs as (_ :: _)) = ([], fargs)
-      | splitargs (_ :: _) [] = raise TERM (msg ^ "expecting more fields", [t])
-      | splitargs _ _ = ([], []);
-
-    fun mk_ext (fargs as (name, _) :: _) =
-          (case get_fieldext thy (Sign.intern_const thy name) of
-            SOME (ext, _) =>
-              (case get_extfields thy ext of
-                SOME flds =>
-                  let
-                    val (args, rest) = splitargs (map fst (but_last flds)) fargs;
-                    val more' = mk_ext rest;
-                  in list_comb (Syntax.const (suffix sfx ext), args @ [more']) end
-              | NONE => raise TERM (msg ^ "no fields defined for " ^ ext, [t]))
-          | NONE => raise TERM (msg ^ name ^" is no proper field", [t]))
-      | mk_ext [] = more;
-  in mk_ext fieldargs end;
-
-fun gen_ext_type_tr sep mark sfx more ctxt t =
-  let
-    val thy = ProofContext.theory_of ctxt;
-    val msg = "error in record-type input: ";
-
-    val fieldargs = dest_ext_fields sep mark t;
-    fun splitargs (field :: fields) ((name, arg) :: fargs) =
+    fun split_args (field :: fields) ((name, arg) :: fargs) =
           if can (unsuffix name) field then
-            let val (args, rest) = splitargs fields fargs
+            let val (args, rest) = split_args fields fargs
             in (arg :: args, rest) end
-          else raise TERM (msg ^ "expecting field " ^ field ^ " but got " ^ name, [t])
-      | splitargs [] (fargs as (_ :: _)) = ([], fargs)
-      | splitargs (_ :: _) [] = raise TERM (msg ^ "expecting more fields", [t])
-      | splitargs _ _ = ([], []);
+          else err ("expecting field " ^ field ^ " but got " ^ name)
+      | split_args [] (fargs as (_ :: _)) = ([], fargs)
+      | split_args (_ :: _) [] = err "expecting more fields"
+      | split_args _ _ = ([], []);
 
     fun mk_ext (fargs as (name, _) :: _) =
           (case get_fieldext thy (Sign.intern_const thy name) of
             SOME (ext, alphas) =>
               (case get_extfields thy ext of
-                SOME flds =>
-                 (let
-                    val flds' = but_last flds;
-                    val types = map snd flds';
-                    val (args, rest) = splitargs (map fst flds') fargs;
+                SOME fields =>
+                  let
+                    val fields' = but_last fields;
+                    val types = map snd fields';
+                    val (args, rest) = split_args (map fst fields') fargs;
                     val argtypes = map (Sign.certify_typ thy o decode_type thy) args;
                     val midx = fold Term.maxidx_typ argtypes 0;
                     val varifyT = varifyT midx;
                     val vartypes = map varifyT types;
 
-                    val subst = fold (Sign.typ_match thy) (vartypes ~~ argtypes) Vartab.empty;
+                    val subst = fold (Sign.typ_match thy) (vartypes ~~ argtypes) Vartab.empty
+                      handle Type.TYPE_MATCH => err "type is no proper record (extension)";
                     val alphas' =
                       map (Syntax.term_of_typ (! Syntax.show_sorts) o Envir.norm_type subst o varifyT)
                         (but_last alphas);
 
                     val more' = mk_ext rest;
                   in
-                    list_comb (Syntax.const (suffix sfx ext), alphas' @ [more'])
-                  end handle Type.TYPE_MATCH =>
-                    raise TERM (msg ^ "type is no proper record (extension)", [t]))
-              | NONE => raise TERM (msg ^ "no fields defined for " ^ ext, [t]))
-          | NONE => raise TERM (msg ^ name ^" is no proper field", [t]))
+                    (* FIXME authentic syntax *)
+                    list_comb (Syntax.const (suffix ext_typeN ext), alphas' @ [more'])
+                  end
+              | NONE => err ("no fields defined for " ^ ext))
+          | NONE => err (name ^ " is no proper field"))
       | mk_ext [] = more;
+  in
+    mk_ext (field_types_tr t)
+  end;
 
-  in mk_ext fieldargs end;
+(* FIXME @{type_syntax} *)
+fun record_type_tr ctxt [t] = record_field_types_tr (Syntax.const "Product_Type.unit") ctxt t
+  | record_type_tr _ ts = raise TERM ("record_type_tr", ts);
 
-fun gen_adv_record_tr sep mark sfx unit ctxt [t] =
-      gen_ext_fields_tr sep mark sfx unit ctxt t
-  | gen_adv_record_tr _ _ _ _ _ ts = raise TERM ("gen_record_tr", ts);
+fun record_type_scheme_tr ctxt [t, more] = record_field_types_tr more ctxt t
+  | record_type_scheme_tr _ ts = raise TERM ("record_type_scheme_tr", ts);
 
-fun gen_adv_record_scheme_tr sep mark sfx ctxt [t, more] =
-      gen_ext_fields_tr sep mark sfx more ctxt t
-  | gen_adv_record_scheme_tr _ _ _ _ ts = raise TERM ("gen_record_scheme_tr", ts);
 
-fun gen_adv_record_type_tr sep mark sfx unit ctxt [t] =
-      gen_ext_type_tr sep mark sfx unit ctxt t
-  | gen_adv_record_type_tr _ _ _ _ _ ts = raise TERM ("gen_record_tr", ts);
+fun field_tr ((Const (@{syntax_const "_field"}, _) $ Const (name, _) $ arg)) = (name, arg)
+  | field_tr t = raise TERM ("field_tr", [t]);
 
-fun gen_adv_record_type_scheme_tr sep mark sfx ctxt [t, more] =
-      gen_ext_type_tr sep mark sfx more ctxt t
-  | gen_adv_record_type_scheme_tr _ _ _ _ ts = raise TERM ("gen_record_scheme_tr", ts);
+fun fields_tr (Const (@{syntax_const "_fields"}, _) $ t $ u) = field_tr t :: fields_tr u
+  | fields_tr t = [field_tr t];
 
-val adv_record_tr = gen_adv_record_tr "_fields" "_field" extN HOLogic.unit;
+fun record_fields_tr more ctxt t =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    fun err msg = raise TERM ("Error in record input: " ^ msg, [t]);
 
-val adv_record_scheme_tr = gen_adv_record_scheme_tr "_fields" "_field" extN;
+    fun split_args (field :: fields) ((name, arg) :: fargs) =
+          if can (unsuffix name) field
+          then
+            let val (args, rest) = split_args fields fargs
+            in (arg :: args, rest) end
+          else err ("expecting field " ^ field ^ " but got " ^ name)
+      | split_args [] (fargs as (_ :: _)) = ([], fargs)
+      | split_args (_ :: _) [] = err "expecting more fields"
+      | split_args _ _ = ([], []);
 
-val adv_record_type_tr =
-  gen_adv_record_type_tr "_field_types" "_field_type" ext_typeN
-    (Syntax.term_of_typ false (HOLogic.unitT));
+    fun mk_ext (fargs as (name, _) :: _) =
+          (case get_fieldext thy (Sign.intern_const thy name) of
+            SOME (ext, _) =>
+              (case get_extfields thy ext of
+                SOME fields =>
+                  let
+                    val (args, rest) = split_args (map fst (but_last fields)) fargs;
+                    val more' = mk_ext rest;
+                  in
+                    (* FIXME authentic syntax *)
+                    list_comb (Syntax.const (suffix extN ext), args @ [more'])
+                  end
+              | NONE => err ("no fields defined for " ^ ext))
+          | NONE => err (name ^ " is no proper field"))
+      | mk_ext [] = more;
+  in mk_ext (fields_tr t) end;
 
-val adv_record_type_scheme_tr =
-  gen_adv_record_type_scheme_tr "_field_types" "_field_type" ext_typeN;
+fun record_tr ctxt [t] = record_fields_tr (Syntax.const @{const_syntax Unity}) ctxt t
+  | record_tr _ ts = raise TERM ("record_tr", ts);
 
+fun record_scheme_tr ctxt [t, more] = record_fields_tr more ctxt t
+  | record_scheme_tr _ ts = raise TERM ("record_scheme_tr", ts);
+
+
+fun field_update_tr (Const (@{syntax_const "_field_update"}, _) $ Const (name, _) $ arg) =
+      Syntax.const (suffix updateN name) $ Abs ("_", dummyT, arg)
+  | field_update_tr t = raise TERM ("field_update_tr", [t]);
+
+fun field_updates_tr (Const (@{syntax_const "_field_updates"}, _) $ t $ u) =
+      field_update_tr t :: field_updates_tr u
+  | field_updates_tr t = [field_update_tr t];
+
+fun record_update_tr [t, u] = fold (curry op $) (field_updates_tr u) t
+  | record_update_tr ts = raise TERM ("record_update_tr", ts);
+
+in
 
 val parse_translation =
- [("_record_update", record_update_tr),
-  ("_update_name", update_name_tr)];
+ [(@{syntax_const "_record_update"}, record_update_tr)];
 
-val adv_parse_translation =
- [("_record", adv_record_tr),
-  ("_record_scheme", adv_record_scheme_tr),
-  ("_record_type", adv_record_type_tr),
-  ("_record_type_scheme", adv_record_type_scheme_tr)];
+val advanced_parse_translation =
+ [(@{syntax_const "_record"}, record_tr),
+  (@{syntax_const "_record_scheme"}, record_scheme_tr),
+  (@{syntax_const "_record_type"}, record_type_tr),
+  (@{syntax_const "_record_type_scheme"}, record_type_scheme_tr)];
+
+end;
 
 
 (* print translations *)
@@ -812,7 +848,9 @@ val adv_parse_translation =
 val print_record_type_abbr = Unsynchronized.ref true;
 val print_record_type_as_fields = Unsynchronized.ref true;
 
-fun gen_field_upds_tr' mark sfx (tm as Const (name_field, _) $ k $ u) =
+local
+
+fun field_updates_tr' (tm as Const (c, _) $ k $ u) =
       let
         val t =
           (case k of
@@ -821,86 +859,147 @@ fun gen_field_upds_tr' mark sfx (tm as Const (name_field, _) $ k $ u) =
           | Abs (_, _, t) =>
               if null (loose_bnos t) then t else raise Match
           | _ => raise Match);
-
-          (* FIXME ? *)
-          (* (case k of (Const ("K_record", _) $ t) => t
-                   | Abs (x, _, Const ("K_record", _) $ t $ Bound 0) => t
-                   | _ => raise Match)*)
       in
-        (case try (unsuffix sfx) name_field of
+        (case try (unsuffix updateN) c of
           SOME name =>
-            apfst (cons (Syntax.const mark $ Syntax.free name $ t)) (gen_field_upds_tr' mark sfx u)
+            (* FIXME check wrt. record data (??) *)
+            (* FIXME early extern (!??) *)
+            apfst (cons (Syntax.const @{syntax_const "_field_update"} $ Syntax.free name $ t))
+              (field_updates_tr' u)
         | NONE => ([], tm))
       end
-  | gen_field_upds_tr' _ _ tm = ([], tm);
+  | field_updates_tr' tm = ([], tm);
 
 fun record_update_tr' tm =
-  let val (ts, u) = gen_field_upds_tr' "_update" updateN tm in
-    if null ts then raise Match
-    else
-      Syntax.const "_record_update" $ u $
-        foldr1 (fn (v, w) => Syntax.const "_updates" $ v $ w) (rev ts)
-  end;
+  (case field_updates_tr' tm of
+    ([], _) => raise Match
+  | (ts, u) =>
+      Syntax.const @{syntax_const "_record_update"} $ u $
+        foldr1 (fn (v, w) => Syntax.const @{syntax_const "_field_updates"} $ v $ w) (rev ts));
 
-fun gen_field_tr' sfx tr' name =
-  let val name_sfx = suffix sfx name
-  in (name_sfx, fn [t, u] => tr' (Syntax.const name_sfx $ t $ u) | _ => raise Match) end;
+in
 
-fun record_tr' sep mark record record_scheme unit ctxt t =
+fun field_update_tr' name =
+  let
+    (* FIXME authentic syntax *)
+    val update_name = suffix updateN name;
+    fun tr' [t, u] = record_update_tr' (Syntax.const update_name $ t $ u)
+      | tr' _ = raise Match;
+  in (update_name, tr') end;
+
+end;
+
+
+local
+
+(* FIXME early extern (!??) *)
+(* FIXME Syntax.free (??) *)
+fun field_tr' (c, t) = Syntax.const @{syntax_const "_field"} $ Syntax.const c $ t;
+
+fun fields_tr' (t, u) = Syntax.const @{syntax_const "_fields"} $ t $ u;
+
+fun record_tr' ctxt t =
   let
     val thy = ProofContext.theory_of ctxt;
 
-    fun field_lst t =
+    fun strip_fields t =
       (case strip_comb t of
         (Const (ext, _), args as (_ :: _)) =>
-          (case try (unsuffix extN) (Sign.intern_const thy ext) of
+          (case try (unsuffix extN) (Sign.intern_const thy ext) of  (* FIXME authentic syntax *)
             SOME ext' =>
               (case get_extfields thy ext' of
-                SOME flds =>
+                SOME fields =>
                  (let
-                    val f :: fs = but_last (map fst flds);
-                    val flds' = Sign.extern_const thy f :: map Long_Name.base_name fs;
+                    val f :: fs = but_last (map fst fields);
+                    val fields' = Sign.extern_const thy f :: map Long_Name.base_name fs;
                     val (args', more) = split_last args;
-                  in (flds' ~~ args') @ field_lst more end
+                  in (fields' ~~ args') @ strip_fields more end
                   handle Library.UnequalLengths => [("", t)])
               | NONE => [("", t)])
           | NONE => [("", t)])
        | _ => [("", t)]);
 
-    val (flds, (_, more)) = split_last (field_lst t);
-    val _ = if null flds then raise Match else ();
-    val flds' = map (fn (n, t) => Syntax.const mark $ Syntax.const n $ t) flds;
-    val flds'' = foldr1 (fn (x, y) => Syntax.const sep $ x $ y) flds';
+    val (fields, (_, more)) = split_last (strip_fields t);
+    val _ = null fields andalso raise Match;
+    val u = foldr1 fields_tr' (map field_tr' fields);
   in
-    if unit more
-    then Syntax.const record $ flds''
-    else Syntax.const record_scheme $ flds'' $ more
+    case more of
+      Const (@{const_syntax Unity}, _) => Syntax.const @{syntax_const "_record"} $ u
+    | _ => Syntax.const @{syntax_const "_record_scheme"} $ u $ more
   end;
 
-fun gen_record_tr' name =
+in
+
+fun record_ext_tr' name =
   let
-    val name_sfx = suffix extN name;
-    val unit = (fn Const (@{const_syntax "Product_Type.Unity"}, _) => true | _ => false);
-    fun tr' ctxt ts =
-      record_tr' "_fields" "_field" "_record" "_record_scheme" unit ctxt
-        (list_comb (Syntax.const name_sfx, ts));
-  in (name_sfx, tr') end;
+    val ext_name = suffix extN name;
+    fun tr' ctxt ts = record_tr' ctxt (list_comb (Syntax.const ext_name, ts));
+  in (ext_name, tr') end;
 
-fun print_translation names =
-  map (gen_field_tr' updateN record_update_tr') names;
+end;
 
 
-(* record_type_abbr_tr' *)
+local
+
+(* FIXME early extern (!??) *)
+(* FIXME Syntax.free (??) *)
+fun field_type_tr' (c, t) = Syntax.const @{syntax_const "_field_type"} $ Syntax.const c $ t;
+
+fun field_types_tr' (t, u) = Syntax.const @{syntax_const "_field_types"} $ t $ u;
+
+fun record_type_tr' ctxt t =
+  let
+    val thy = ProofContext.theory_of ctxt;
+
+    val T = decode_type thy t;
+    val varifyT = varifyT (Term.maxidx_of_typ T);
+
+    val term_of_type = Syntax.term_of_typ (! Syntax.show_sorts) o Sign.extern_typ thy;
+
+    fun strip_fields T =
+      (case T of
+        Type (ext, args) =>
+          (case try (unsuffix ext_typeN) ext of
+            SOME ext' =>
+              (case get_extfields thy ext' of
+                SOME fields =>
+                  (case get_fieldext thy (fst (hd fields)) of
+                    SOME (_, alphas) =>
+                     (let
+                        val f :: fs = but_last fields;
+                        val fields' =
+                          apfst (Sign.extern_const thy) f :: map (apfst Long_Name.base_name) fs;
+                        val (args', more) = split_last args;
+                        val alphavars = map varifyT (but_last alphas);
+                        val subst = fold (Sign.typ_match thy) (alphavars ~~ args') Vartab.empty;
+                        val fields'' = (map o apsnd) (Envir.norm_type subst o varifyT) fields';
+                      in fields'' @ strip_fields more end
+                      handle Type.TYPE_MATCH => [("", T)]
+                        | Library.UnequalLengths => [("", T)])
+                  | NONE => [("", T)])
+              | NONE => [("", T)])
+          | NONE => [("", T)])
+      | _ => [("", T)]);
+
+    val (fields, (_, moreT)) = split_last (strip_fields T);
+    val _ = null fields andalso raise Match;
+    val u = foldr1 field_types_tr' (map (field_type_tr' o apsnd term_of_type) fields);
+  in
+    if not (! print_record_type_as_fields) orelse null fields then raise Match
+    else if moreT = HOLogic.unitT then Syntax.const @{syntax_const "_record_type"} $ u
+    else Syntax.const @{syntax_const "_record_type_scheme"} $ u $ term_of_type moreT
+  end;
 
 (*try to reconstruct the record name type abbreviation from
   the (nested) extension types*)
-fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT ctxt tm =
+fun record_type_abbr_tr' abbr alphas zeta last_ext schemeT ctxt tm =
   let
     val thy = ProofContext.theory_of ctxt;
 
     (*tm is term representation of a (nested) field type. We first reconstruct the
       type from tm so that we can continue on the type level rather then the term level*)
 
+    (* FIXME !??? *)
     (*WORKAROUND:
       If a record type occurs in an error message of type inference there
       may be some internal frees donoted by ??:
@@ -929,80 +1028,35 @@ fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT ctxt tm =
     if ! print_record_type_abbr then
       (case last_extT T of
         SOME (name, _) =>
-          if name = lastExt then
-           (let val subst = match schemeT T in
+          if name = last_ext then
+            let val subst = match schemeT T in
               if HOLogic.is_unitT (Envir.norm_type subst (varifyT (TFree (zeta, Sign.defaultS thy))))
               then mk_type_abbr subst abbr alphas
               else mk_type_abbr subst (suffix schemeN abbr) (alphas @ [zeta])
-            end handle Type.TYPE_MATCH => default_tr' ctxt tm)
+            end handle Type.TYPE_MATCH => record_type_tr' ctxt tm
           else raise Match (*give print translation of specialised record a chance*)
       | _ => raise Match)
-    else default_tr' ctxt tm
+    else record_type_tr' ctxt tm
   end;
 
-fun record_type_tr' sep mark record record_scheme ctxt t =
+in
+
+fun record_ext_type_tr' name =
   let
-    val thy = ProofContext.theory_of ctxt;
-
-    val T = decode_type thy t;
-    val varifyT = varifyT (Term.maxidx_of_typ T);
-
-    fun term_of_type T = Syntax.term_of_typ (! Syntax.show_sorts) (Sign.extern_typ thy T);
-
-    fun field_lst T =
-      (case T of
-        Type (ext, args) =>
-          (case try (unsuffix ext_typeN) ext of
-            SOME ext' =>
-              (case get_extfields thy ext' of
-                SOME flds =>
-                  (case get_fieldext thy (fst (hd flds)) of
-                    SOME (_, alphas) =>
-                     (let
-                        val f :: fs = but_last flds;
-                        val flds' = apfst (Sign.extern_const thy) f ::
-                          map (apfst Long_Name.base_name) fs;
-                        val (args', more) = split_last args;
-                        val alphavars = map varifyT (but_last alphas);
-                        val subst = fold2 (curry (Sign.typ_match thy)) alphavars args' Vartab.empty;
-                        val flds'' = (map o apsnd) (Envir.norm_type subst o varifyT) flds';
-                      in flds'' @ field_lst more end
-                      handle Type.TYPE_MATCH => [("", T)] | Library.UnequalLengths => [("", T)])
-                  | NONE => [("", T)])
-              | NONE => [("", T)])
-          | NONE => [("", T)])
-      | _ => [("", T)]);
-
-    val (flds, (_, moreT)) = split_last (field_lst T);
-    val flds' = map (fn (n, T) => Syntax.const mark $ Syntax.const n $ term_of_type T) flds;
-    val flds'' =
-      foldr1 (fn (x, y) => Syntax.const sep $ x $ y) flds'
-        handle Empty => raise Match;
-  in
-    if not (! print_record_type_as_fields) orelse null flds then raise Match
-    else if moreT = HOLogic.unitT then Syntax.const record $ flds''
-    else Syntax.const record_scheme $ flds'' $ term_of_type moreT
-  end;
-
-
-fun gen_record_type_tr' name =
-  let
-    val name_sfx = suffix ext_typeN name;
+    val ext_type_name = suffix ext_typeN name;
     fun tr' ctxt ts =
-      record_type_tr' "_field_types" "_field_type" "_record_type" "_record_type_scheme"
-        ctxt (list_comb (Syntax.const name_sfx, ts))
-  in (name_sfx, tr') end;
+      record_type_tr' ctxt (list_comb (Syntax.const ext_type_name, ts));
+  in (ext_type_name, tr') end;
 
-
-fun gen_record_type_abbr_tr' abbr alphas zeta lastExt schemeT name =
+fun record_ext_type_abbr_tr' abbr alphas zeta last_ext schemeT name =
   let
-    val name_sfx = suffix ext_typeN name;
-    val default_tr' =
-      record_type_tr' "_field_types" "_field_type" "_record_type" "_record_type_scheme";
+    val ext_type_name = suffix ext_typeN name;
     fun tr' ctxt ts =
-      record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT ctxt
-        (list_comb (Syntax.const name_sfx, ts));
-  in (name_sfx, tr') end;
+      record_type_abbr_tr' abbr alphas zeta last_ext schemeT ctxt
+        (list_comb (Syntax.const ext_type_name, ts));
+  in (ext_type_name, tr') end;
+
+end;
 
 
 
@@ -1040,11 +1094,11 @@ fun mk_comp f g =
     val B = range_type X;
     val C = range_type (fastype_of f);
     val T = (B --> C) --> (A --> B) --> A --> C;
-  in Const ("Fun.comp", T) $ f $ g end;
+  in Const (@{const_name Fun.comp}, T) $ f $ g end;
 
 fun mk_comp_id f =
   let val T = range_type (fastype_of f)
-  in mk_comp (Const ("Fun.id", T --> T)) f end;
+  in mk_comp (Const (@{const_name Fun.id}, T --> T)) f end;
 
 fun get_upd_funs (upd $ _ $ t) = upd :: get_upd_funs t
   | get_upd_funs _ = [];
@@ -1055,6 +1109,7 @@ fun get_accupd_simps thy term defset =
     val upd_funs = sort_distinct TermOrd.fast_term_ord (get_upd_funs body);
     fun get_simp upd =
       let
+        (* FIXME fresh "f" (!?) *)
         val T = domain_type (fastype_of upd);
         val lhs = mk_comp acc (upd $ Free ("f", T));
         val rhs =
@@ -1077,6 +1132,7 @@ fun get_accupd_simps thy term defset =
 
 fun get_updupd_simp thy defset u u' comp =
   let
+    (* FIXME fresh "f" (!?) *)
     val f = Free ("f", domain_type (fastype_of u));
     val f' = Free ("f'", domain_type (fastype_of u'));
     val lhs = mk_comp (u $ f) (u' $ f');
@@ -1171,7 +1227,7 @@ val record_simproc =
             ((upd as Const (u, Type (_, [_, Type (_, [rT, _])]))) $ k $ r) =>
           if is_selector thy s andalso is_some (get_updates thy u) then
             let
-              val {sel_upd = {updates, ...}, extfields, ...} = RecordsData.get thy;
+              val {sel_upd = {updates, ...}, extfields, ...} = Records_Data.get thy;
 
               fun mk_eq_terms ((upd as Const (u, Type(_, [kT, _]))) $ k $ r) =
                     (case Symtab.lookup updates u of
@@ -1306,7 +1362,8 @@ val record_upd_simproc =
                   K_skeleton (Long_Name.base_name s) (domain_type T) (Bound (length vars)) f;
                 val (isnoop, skelf') = is_upd_noop s f term;
                 val funT = domain_type T;
-                fun mk_comp_local (f, f') = Const ("Fun.comp", funT --> funT --> funT) $ f $ f';
+                fun mk_comp_local (f, f') =
+                  Const (@{const_name Fun.comp}, funT --> funT --> funT) $ f $ f';
               in
                 if isnoop then
                   (upd $ skelf' $ lhs, rhs, vars,
@@ -1359,7 +1416,7 @@ end;
 val record_eq_simproc =
   Simplifier.simproc @{theory HOL} "record_eq_simp" ["r = s"]
     (fn thy => fn _ => fn t =>
-      (case t of Const ("op =", Type (_, [T, _])) $ _ $ _ =>
+      (case t of Const (@{const_name "op ="}, Type (_, [T, _])) $ _ $ _ =>
         (case rec_id ~1 T of
           "" => NONE
         | name =>
@@ -1381,7 +1438,10 @@ fun record_split_simproc P =
     (fn thy => fn _ => fn t =>
       (case t of
         Const (quantifier, Type (_, [Type (_, [T, _]), _])) $ _ =>
-          if quantifier = "All" orelse quantifier = "all" orelse quantifier = "Ex" then
+          if quantifier = @{const_name all} orelse
+            quantifier = @{const_name All} orelse
+            quantifier = @{const_name Ex}
+          then
             (case rec_id ~1 T of
               "" => NONE
             | _ =>
@@ -1392,9 +1452,9 @@ fun record_split_simproc P =
                     | SOME (all_thm, All_thm, Ex_thm, _) =>
                         SOME
                           (case quantifier of
-                            "all" => all_thm
-                          | "All" => All_thm RS eq_reflection
-                          | "Ex" => Ex_thm RS eq_reflection
+                            @{const_name all} => all_thm
+                          | @{const_name All} => All_thm RS eq_reflection
+                          | @{const_name Ex} => Ex_thm RS eq_reflection
                           | _ => error "record_split_simproc"))
                   else NONE
                 end)
@@ -1419,22 +1479,23 @@ val record_ex_sel_eq_simproc =
                 else raise TERM ("", [x]);
               val sel' = Const (sel, Tsel) $ Bound 0;
               val (l, r) = if lr then (sel', x') else (x', sel');
-            in Const ("op =", Teq) $ l $ r end
+            in Const (@{const_name "op ="}, Teq) $ l $ r end
           else raise TERM ("", [Const (sel, Tsel)]);
 
-        fun dest_sel_eq (Const ("op =", Teq) $ (Const (sel, Tsel) $ Bound 0) $ X) =
+        fun dest_sel_eq (Const (@{const_name "op ="}, Teq) $ (Const (sel, Tsel) $ Bound 0) $ X) =
               (true, Teq, (sel, Tsel), X)
-          | dest_sel_eq (Const ("op =", Teq) $ X $ (Const (sel, Tsel) $ Bound 0)) =
+          | dest_sel_eq (Const (@{const_name "op ="}, Teq) $ X $ (Const (sel, Tsel) $ Bound 0)) =
               (false, Teq, (sel, Tsel), X)
           | dest_sel_eq _ = raise TERM ("", []);
       in
         (case t of
-          Const ("Ex", Tex) $ Abs (s, T, t) =>
+          Const (@{const_name Ex}, Tex) $ Abs (s, T, t) =>
            (let
-              val eq = mkeq (dest_sel_eq t) 0;
-              val prop =
-                list_all ([("r", T)],
-                  Logic.mk_equals (Const ("Ex", Tex) $ Abs (s, T, eq), HOLogic.true_const));
+             val eq = mkeq (dest_sel_eq t) 0;
+             val prop =
+               list_all ([("r", T)],
+                 Logic.mk_equals
+                  (Const (@{const_name Ex}, Tex) $ Abs (s, T, eq), HOLogic.true_const));
             in SOME (prove prop) end
             handle TERM _ => NONE)
         | _ => NONE)
@@ -1459,7 +1520,8 @@ fun record_split_simp_tac thms P = CSUBGOAL (fn (cgoal, i) =>
 
     val has_rec = exists_Const
       (fn (s, Type (_, [Type (_, [T, _]), _])) =>
-          (s = "all" orelse s = "All" orelse s = "Ex") andalso is_recT T
+          (s = @{const_name all} orelse s = @{const_name All} orelse s = @{const_name Ex}) andalso
+          is_recT T
         | _ => false);
 
     fun mk_split_free_tac free induct_thm i =
@@ -1501,20 +1563,20 @@ fun record_split_simp_tac thms P = CSUBGOAL (fn (cgoal, i) =>
 
 (* record_split_tac *)
 
-(*Split all records in the goal, which are quantified by ! or !!.*)
+(*Split all records in the goal, which are quantified by !! or ALL.*)
 val record_split_tac = CSUBGOAL (fn (cgoal, i) =>
   let
     val goal = term_of cgoal;
 
     val has_rec = exists_Const
       (fn (s, Type (_, [Type (_, [T, _]), _])) =>
-          (s = "all" orelse s = "All") andalso is_recT T
+          (s = @{const_name all} orelse s = @{const_name All}) andalso is_recT T
         | _ => false);
 
     fun is_all t =
       (case t of
         Const (quantifier, _) $ _ =>
-          if quantifier = "All" orelse quantifier = "all" then ~1 else 0
+          if quantifier = @{const_name all} orelse quantifier = @{const_name All} then ~1 else 0
       | _ => 0);
   in
     if has_rec goal then
@@ -1759,16 +1821,16 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
       end;
     val induct = timeit_msg "record extension induct proof:" induct_prf;
 
-    val ([inject', induct', surjective', split_meta'], thm_thy) =
+    val ([induct', inject', surjective', split_meta'], thm_thy) =
       defs_thy
       |> PureThy.add_thms (map (Thm.no_attributes o apfst Binding.name)
-           [("ext_inject", inject),
-            ("ext_induct", induct),
+           [("ext_induct", induct),
+            ("ext_inject", inject),
             ("ext_surjective", surject),
             ("ext_split", split_meta)])
       ||> Code.add_default_eqn ext_def;
 
-  in (thm_thy, extT, induct', inject', split_meta', ext_def) end;
+  in ((extT, induct', inject', surjective', split_meta', ext_def), thm_thy) end;
 
 fun chunks [] [] = []
   | chunks [] xs = [xs]
@@ -1814,17 +1876,19 @@ fun meta_to_obj_all thm =
 
 (* record_definition *)
 
-fun record_definition (args, bname) parent (parents: parent_info list) raw_fields thy =
+fun record_definition (args, b) parent (parents: parent_info list) raw_fields thy =
   let
     val external_names = Name_Space.external_names (Sign.naming_of thy);
 
     val alphas = map fst args;
-    val name = Sign.full_bname thy bname;
-    val full = Sign.full_bname_path thy bname;
+
+    val base_name = Binding.name_of b;   (* FIXME include qualifier etc. (!?) *)
+    val name = Sign.full_name thy b;
+    val full = Sign.full_name_path thy base_name;
     val base = Long_Name.base_name;
 
-    val (bfields, field_syntax) =
-      split_list (map (fn (x, T, mx) => ((x, T), mx)) raw_fields);
+    val bfields = map (fn (x, T, _) => (x, T)) raw_fields;
+    val field_syntax = map #3 raw_fields;
 
     val parent_fields = maps #fields parents;
     val parent_chunks = map (length o #fields) parents;
@@ -1837,14 +1901,14 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     val fields = map (apfst full) bfields;
     val names = map fst fields;
-    val extN = full bname;
+    val extN = full b;
     val types = map snd fields;
     val alphas_fields = fold Term.add_tfree_namesT types [];
     val alphas_ext = inter (op =) alphas_fields alphas;
     val len = length fields;
     val variants =
       Name.variant_list (moreN :: rN :: (rN ^ "'") :: wN :: parent_variants)
-        (map fst bfields);
+        (map (Binding.name_of o fst) bfields);
     val vars = ListPair.map Free (variants, types);
     val named_vars = names ~~ vars;
     val idxms = 0 upto len;
@@ -1859,8 +1923,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val zeta = Name.variant alphas "'z";
     val moreT = TFree (zeta, HOLogic.typeS);
     val more = Free (moreN, moreT);
-    val full_moreN = full moreN;
-    val bfields_more = bfields @ [(moreN, moreT)];
+    val full_moreN = full (Binding.name moreN);
+    val bfields_more = bfields @ [(Binding.name moreN, moreT)];
     val fields_more = fields @ [(full_moreN, moreT)];
     val named_vars_more = named_vars @ [(full_moreN, more)];
     val all_vars_more = all_vars @ [more];
@@ -1869,9 +1933,9 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     (* 1st stage: extension_thy *)
 
-    val (extension_thy, extT, ext_induct, ext_inject, ext_split, ext_def) =
+    val ((extT, ext_induct, ext_inject, ext_surjective, ext_split, ext_def), extension_thy) =
       thy
-      |> Sign.add_path bname
+      |> Sign.add_path base_name
       |> extension_definition extN fields alphas_ext zeta moreT more vars;
 
     val _ = timing_msg "record preparing definitions";
@@ -1915,47 +1979,46 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
 
     (* prepare print translation functions *)
+    (* FIXME authentic syntax *)
 
-    val field_tr's =
-      print_translation (distinct (op =) (maps external_names (full_moreN :: names)));
+    val field_update_tr's =
+      map field_update_tr' (distinct (op =) (maps external_names (full_moreN :: names)));
 
-    val adv_ext_tr's =
-      let val trnames = external_names extN
-      in map (gen_record_tr') trnames end;
+    val record_ext_tr's = map record_ext_tr' (external_names extN);
 
-    val adv_record_type_abbr_tr's =
+    val record_ext_type_abbr_tr's =
       let
         val trnames = external_names (hd extension_names);
-        val lastExt = unsuffix ext_typeN (fst extension);
-      in map (gen_record_type_abbr_tr' name alphas zeta lastExt rec_schemeT0) trnames end;
+        val last_ext = unsuffix ext_typeN (fst extension);
+      in map (record_ext_type_abbr_tr' name alphas zeta last_ext rec_schemeT0) trnames end;
 
-    val adv_record_type_tr's =
+    val record_ext_type_tr's =
       let
+        (*avoid conflict with record_type_abbr_tr's*)
         val trnames = if parent_len > 0 then external_names extN else [];
-        (*avoid conflict with adv_record_type_abbr_tr's*)
-      in map (gen_record_type_tr') trnames end;
+      in map record_ext_type_tr' trnames end;
 
 
     (* prepare declarations *)
 
-    val sel_decls = map (mk_selC rec_schemeT0) bfields_more;
-    val upd_decls = map (mk_updC updateN rec_schemeT0) bfields_more;
+    val sel_decls = map (mk_selC rec_schemeT0 o apfst Binding.name_of) bfields_more;
+    val upd_decls = map (mk_updC updateN rec_schemeT0 o apfst Binding.name_of) bfields_more;
     val make_decl = (makeN, all_types ---> recT0);
     val fields_decl = (fields_selN, types ---> Type extension);
     val extend_decl = (extendN, recT0 --> moreT --> rec_schemeT0);
     val truncate_decl = (truncateN, rec_schemeT0 --> recT0);
 
+
     (* prepare definitions *)
 
     (*record (scheme) type abbreviation*)
     val recordT_specs =
-      [(Binding.name (suffix schemeN bname), alphas @ [zeta], rec_schemeT0, Syntax.NoSyn),
-        (Binding.name bname, alphas, recT0, Syntax.NoSyn)];
+      [(Binding.suffix_name schemeN b, alphas @ [zeta], rec_schemeT0, NoSyn),
+        (b, alphas, recT0, NoSyn)];
 
-    val ext_defs = ext_def :: map #extdef parents;
+    val ext_defs = ext_def :: map #ext_def parents;
 
     (*Theorems from the iso_tuple intros.
-      This is complex enough to deserve a full comment.
       By unfolding ext_defs from r_rec0 we create a tree of constructor
       calls (many of them Pair, but others as well). The introduction
       rules for update_accessor_eq_assist can unify two different ways
@@ -2007,45 +2070,49 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     (*updates*)
     fun mk_upd_spec ((c, T), thm) =
       let
-        val (upd $ _ $ arg) =
-          (fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Envir.beta_eta_contract o concl_of) thm;
+        val upd $ _ $ arg =
+          fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (Envir.beta_eta_contract (concl_of thm))));
         val _ =
-          if (arg aconv r_rec0) then ()
+          if arg aconv r_rec0 then ()
           else raise TERM ("mk_sel_spec: different arg", [arg]);
       in Const (mk_updC updateN rec_schemeT0 (c, T)) :== upd end;
     val upd_specs = map mk_upd_spec (fields_more ~~ lastN updator_thms);
 
     (*derived operations*)
-    val make_spec = Const (full makeN, all_types ---> recT0) $$ all_vars :==
-      mk_rec (all_vars @ [HOLogic.unit]) 0;
-    val fields_spec = Const (full fields_selN, types ---> Type extension) $$ vars :==
-      mk_rec (all_vars @ [HOLogic.unit]) parent_len;
+    val make_spec =
+      list_comb (Const (full (Binding.name makeN), all_types ---> recT0), all_vars) :==
+        mk_rec (all_vars @ [HOLogic.unit]) 0;
+    val fields_spec =
+      list_comb (Const (full (Binding.name fields_selN), types ---> Type extension), vars) :==
+        mk_rec (all_vars @ [HOLogic.unit]) parent_len;
     val extend_spec =
-      Const (full extendN, recT0-->moreT-->rec_schemeT0) $ r_unit0 $ more :==
-      mk_rec ((map (mk_sel r_unit0) all_fields) @ [more]) 0;
-    val truncate_spec = Const (full truncateN, rec_schemeT0 --> recT0) $ r0 :==
-      mk_rec ((map (mk_sel r0) all_fields) @ [HOLogic.unit]) 0;
+      Const (full (Binding.name extendN), recT0 --> moreT --> rec_schemeT0) $ r_unit0 $ more :==
+        mk_rec ((map (mk_sel r_unit0) all_fields) @ [more]) 0;
+    val truncate_spec =
+      Const (full (Binding.name truncateN), rec_schemeT0 --> recT0) $ r0 :==
+        mk_rec ((map (mk_sel r0) all_fields) @ [HOLogic.unit]) 0;
 
 
     (* 2st stage: defs_thy *)
 
     fun mk_defs () =
       extension_thy
-      |> Sign.add_trfuns ([], [], field_tr's, [])
+      |> Sign.add_trfuns ([], [], field_update_tr's, [])
       |> Sign.add_advanced_trfuns
-          ([], [], adv_ext_tr's @ adv_record_type_tr's @ adv_record_type_abbr_tr's, [])
+        ([], [], record_ext_tr's @ record_ext_type_tr's @ record_ext_type_abbr_tr's, [])
       |> Sign.parent_path
       |> Sign.add_tyabbrs_i recordT_specs
-      |> Sign.add_path bname
+      |> Sign.add_path base_name
       |> Sign.add_consts_i
-          (map2 (fn (x, T) => fn mx => (Binding.name x, T, mx))
-            sel_decls (field_syntax @ [Syntax.NoSyn]))
-      |> (Sign.add_consts_i o map (fn (x, T) => (Binding.name x, T, Syntax.NoSyn)))
+          (map2 (fn (x, T) => fn mx => (Binding.name x, T, mx)) sel_decls (field_syntax @ [NoSyn]))
+      |> (Sign.add_consts_i o map (fn (x, T) => (Binding.name x, T, NoSyn)))
           (upd_decls @ [make_decl, fields_decl, extend_decl, truncate_decl])
-      |> ((PureThy.add_defs false o map (Thm.no_attributes o apfst Binding.name)) sel_specs)
-      ||>> ((PureThy.add_defs false o map (Thm.no_attributes o apfst Binding.name)) upd_specs)
-      ||>> ((PureThy.add_defs false o map (Thm.no_attributes o apfst Binding.name))
-             [make_spec, fields_spec, extend_spec, truncate_spec])
+      |> (PureThy.add_defs false o map (Thm.no_attributes o apfst (Binding.conceal o Binding.name)))
+        sel_specs
+      ||>> (PureThy.add_defs false o map (Thm.no_attributes o apfst (Binding.conceal o Binding.name)))
+        upd_specs
+      ||>> (PureThy.add_defs false o map (Thm.no_attributes o apfst (Binding.conceal o Binding.name)))
+        [make_spec, fields_spec, extend_spec, truncate_spec]
       |->
         (fn defs as ((sel_defs, upd_defs), derived_defs) =>
           fold Code.add_default_eqn sel_defs
@@ -2156,13 +2223,13 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val (fold_congs, unfold_congs) =
       timeit_msg "record upd fold/unfold congs:" get_upd_acc_congs;
 
-    val parent_induct = if null parents then [] else [#induct (hd (rev parents))];
+    val parent_induct = Option.map #induct_scheme (try List.last parents);
 
     fun induct_scheme_prf () =
       prove_standard [] induct_scheme_prop
         (fn _ =>
           EVERY
-           [if null parent_induct then all_tac else try_param_tac rN (hd parent_induct) 1,
+           [case parent_induct of NONE => all_tac | SOME ind => try_param_tac rN ind 1,
             try_param_tac rN ext_induct 1,
             asm_simp_tac HOL_basic_ss 1]);
     val induct_scheme = timeit_msg "record induct_scheme proof:" induct_scheme_prf;
@@ -2285,7 +2352,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     val ((([sel_convs', upd_convs', sel_defs', upd_defs',
             fold_congs', unfold_congs',
-          [split_meta', split_object', split_ex'], derived_defs'],
+          splits' as [split_meta', split_object', split_ex'], derived_defs'],
           [surjective', equality']),
           [induct_scheme', induct', cases_scheme', cases']), thms_thy) =
       defs_thy
@@ -2311,12 +2378,22 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val sel_upd_defs = sel_defs' @ upd_defs';
     val iffs = [ext_inject]
     val depth = parent_len + 1;
-    val final_thy =
+
+    val ([simps', iffs'], thms_thy') =
       thms_thy
-      |> (snd oo PureThy.add_thmss)
+      |> PureThy.add_thmss
           [((Binding.name "simps", sel_upd_simps), [Simplifier.simp_add]),
-           ((Binding.name "iffs", iffs), [iff_add])]
-      |> put_record name (make_record_info args parent fields extension induct_scheme' ext_def)
+           ((Binding.name "iffs", iffs), [iff_add])];
+
+    val info =
+      make_record_info args parent fields extension
+        ext_induct ext_inject ext_surjective ext_split ext_def
+        sel_convs' upd_convs' sel_defs' upd_defs' fold_congs' unfold_congs' splits' derived_defs'
+        surjective' equality' induct_scheme' induct' cases_scheme' cases' simps' iffs';
+
+    val final_thy =
+      thms_thy'
+      |> put_record name info
       |> put_sel_upd names full_moreN depth sel_upd_simps sel_upd_defs (fold_congs', unfold_congs')
       |> add_record_equalities extension_id equality'
       |> add_extinjects ext_inject
@@ -2333,10 +2410,13 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
 (*We do all preparations and error checks here, deferring the real
   work to record_definition.*)
-fun gen_add_record prep_typ prep_raw_parent quiet_mode (params, bname) raw_parent raw_fields thy =
+fun gen_add_record prep_typ prep_raw_parent quiet_mode
+    (params, b) raw_parent raw_fields thy =
   let
     val _ = Theory.requires thy "Record" "record definitions";
-    val _ = if quiet_mode then () else writeln ("Defining record " ^ quote bname ^ " ...");
+    val _ =
+      if quiet_mode then ()
+      else writeln ("Defining record " ^ quote (Binding.name_of b) ^ " ...");
 
     val ctxt = ProofContext.init thy;
 
@@ -2357,10 +2437,12 @@ fun gen_add_record prep_typ prep_raw_parent quiet_mode (params, bname) raw_paren
 
     (* fields *)
 
-    fun prep_field (c, raw_T, mx) env =
-      let val (T, env') = prep_typ ctxt raw_T env handle ERROR msg =>
-        cat_error msg ("The error(s) above occured in record field " ^ quote c)
-      in ((c, T, mx), env') end;
+    fun prep_field (x, raw_T, mx) env =
+      let
+        val (T, env') =
+          prep_typ ctxt raw_T env handle ERROR msg =>
+            cat_error msg ("The error(s) above occured in record field " ^ quote (Binding.str_of x));
+      in ((x, T, mx), env') end;
 
     val (bfields, envir) = fold_map prep_field raw_fields init_env;
     val envir_names = map fst envir;
@@ -2374,7 +2456,7 @@ fun gen_add_record prep_typ prep_raw_parent quiet_mode (params, bname) raw_paren
 
     (* errors *)
 
-    val name = Sign.full_bname thy bname;
+    val name = Sign.full_name thy b;
     val err_dup_record =
       if is_none (get_record thy name) then []
       else ["Duplicate definition of record " ^ quote name];
@@ -2392,12 +2474,12 @@ fun gen_add_record prep_typ prep_raw_parent quiet_mode (params, bname) raw_paren
     val err_no_fields = if null bfields then ["No fields present"] else [];
 
     val err_dup_fields =
-      (case duplicates (op =) (map #1 bfields) of
+      (case duplicates Binding.eq_name (map #1 bfields) of
         [] => []
-      | dups => ["Duplicate field(s) " ^ commas_quote dups]);
+      | dups => ["Duplicate field(s) " ^ commas_quote (map Binding.str_of dups)]);
 
     val err_bad_fields =
-      if forall (not_equal moreN o #1) bfields then []
+      if forall (not_equal moreN o Binding.name_of o #1) bfields then []
       else ["Illegal field name " ^ quote moreN];
 
     val err_dup_sorts =
@@ -2411,19 +2493,19 @@ fun gen_add_record prep_typ prep_raw_parent quiet_mode (params, bname) raw_paren
 
     val _ = if null errs then () else error (cat_lines errs);
   in
-    thy |> record_definition (args, bname) parent parents bfields
+    thy |> record_definition (args, b) parent parents bfields
   end
-  handle ERROR msg => cat_error msg ("Failed to define record " ^ quote bname);
+  handle ERROR msg => cat_error msg ("Failed to define record " ^ quote (Binding.str_of b));
 
-val add_record = gen_add_record read_typ read_raw_parent;
-val add_record_i = gen_add_record cert_typ (K I);
+val add_record = gen_add_record cert_typ (K I);
+val add_record_cmd = gen_add_record read_typ read_raw_parent;
 
 
 (* setup theory *)
 
 val setup =
   Sign.add_trfuns ([], parse_translation, [], []) #>
-  Sign.add_advanced_trfuns ([], adv_parse_translation, [], []) #>
+  Sign.add_advanced_trfuns ([], advanced_parse_translation, [], []) #>
   Simplifier.map_simpset (fn ss =>
     ss addsimprocs [record_simproc, record_upd_simproc, record_eq_simproc]);
 
@@ -2432,13 +2514,11 @@ val setup =
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val record_decl =
-  P.type_args -- P.name --
-    (P.$$$ "=" |-- Scan.option (P.typ --| P.$$$ "+") -- Scan.repeat1 P.const);
-
 val _ =
   OuterSyntax.command "record" "define extensible record" K.thy_decl
-    (record_decl >> (fn (x, (y, z)) => Toplevel.theory (add_record false x y z)));
+    (P.type_args -- P.binding --
+      (P.$$$ "=" |-- Scan.option (P.typ --| P.$$$ "+") -- Scan.repeat1 P.const_binding)
+    >> (fn (x, (y, z)) => Toplevel.theory (add_record_cmd false x y z)));
 
 end;
 

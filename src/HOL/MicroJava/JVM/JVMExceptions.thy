@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/JVM/JVMExceptions.thy
-    ID:         $Id$
     Author:     Gerwin Klein, Martin Strecker
     Copyright   2001 Technische Universitaet Muenchen
 *)
@@ -24,10 +23,9 @@ primrec
                                            then Some (fst (snd (snd e))) 
                                            else match_exception_table G cn pc es)"
 
-consts
+abbreviation
   ex_table_of :: "jvm_method \<Rightarrow> exception_table"
-translations
-  "ex_table_of m" == "snd (snd (snd m))"
+  where "ex_table_of m == snd (snd (snd m))"
 
 
 consts

@@ -1,11 +1,10 @@
-(*
-    File:        TLA/Init.thy
-    ID:          $Id$
-    Author:      Stephan Merz
-    Copyright:   1998 University of Munich
+(*  Title:      HOL/TLA/Init.thy
+    Author:     Stephan Merz
+    Copyright:  1998 University of Munich
 
-Introduces type of temporal formulas. Defines interface between
-temporal formulas and its "subformulas" (state predicates and actions).
+Introduces type of temporal formulas.  Defines interface between
+temporal formulas and its "subformulas" (state predicates and
+actions).
 *)
 
 theory Init
@@ -26,12 +25,12 @@ consts
   st2         :: "behavior => state"
 
 syntax
-  TEMP       :: "lift => 'a"                          ("(TEMP _)")
+  "_TEMP"    :: "lift => 'a"                          ("(TEMP _)")
   "_Init"    :: "lift => lift"                        ("(Init _)"[40] 50)
 
 translations
   "TEMP F"   => "(F::behavior => _)"
-  "_Init"    == "Initial"
+  "_Init"    == "CONST Initial"
   "sigma |= Init F"  <= "_Init F sigma"
 
 defs

@@ -40,8 +40,8 @@ subsection {* Syntax for continuous lambda abstraction *}
 syntax "_cabs" :: "'a"
 
 parse_translation {*
-(* rewrites (_cabs x t) => (Abs_CFun (%x. t)) *)
-  [mk_binder_tr ("_cabs", @{const_syntax Abs_CFun})];
+(* rewrite (_cabs x t) => (Abs_CFun (%x. t)) *)
+  [mk_binder_tr (@{syntax_const "_cabs"}, @{const_syntax Abs_CFun})];
 *}
 
 text {* To avoid eta-contraction of body: *}
@@ -49,13 +49,13 @@ typed_print_translation {*
   let
     fun cabs_tr' _ _ [Abs abs] = let
           val (x,t) = atomic_abs_tr' abs
-        in Syntax.const "_cabs" $ x $ t end
+        in Syntax.const @{syntax_const "_cabs"} $ x $ t end
 
       | cabs_tr' _ T [t] = let
           val xT = domain_type (domain_type T);
           val abs' = ("x",xT,(incr_boundvars 1 t)$Bound 0);
           val (x,t') = atomic_abs_tr' abs';
-        in Syntax.const "_cabs" $ x $ t' end;
+        in Syntax.const @{syntax_const "_cabs"} $ x $ t' end;
 
   in [(@{const_syntax Abs_CFun}, cabs_tr')] end;
 *}
@@ -69,26 +69,28 @@ syntax (xsymbols)
   "_Lambda" :: "[cargs, 'a] \<Rightarrow> logic" ("(3\<Lambda> _./ _)" [1000, 10] 10)
 
 parse_ast_translation {*
-(* rewrites (LAM x y z. t) => (_cabs x (_cabs y (_cabs z t))) *)
-(* cf. Syntax.lambda_ast_tr from Syntax/syn_trans.ML *)
+(* rewrite (LAM x y z. t) => (_cabs x (_cabs y (_cabs z t))) *)
+(* cf. Syntax.lambda_ast_tr from src/Pure/Syntax/syn_trans.ML *)
   let
     fun Lambda_ast_tr [pats, body] =
-          Syntax.fold_ast_p "_cabs" (Syntax.unfold_ast "_cargs" pats, body)
+          Syntax.fold_ast_p @{syntax_const "_cabs"}
+            (Syntax.unfold_ast @{syntax_const "_cargs"} pats, body)
       | Lambda_ast_tr asts = raise Syntax.AST ("Lambda_ast_tr", asts);
-  in [("_Lambda", Lambda_ast_tr)] end;
+  in [(@{syntax_const "_Lambda"}, Lambda_ast_tr)] end;
 *}
 
 print_ast_translation {*
-(* rewrites (_cabs x (_cabs y (_cabs z t))) => (LAM x y z. t) *)
-(* cf. Syntax.abs_ast_tr' from Syntax/syn_trans.ML *)
+(* rewrite (_cabs x (_cabs y (_cabs z t))) => (LAM x y z. t) *)
+(* cf. Syntax.abs_ast_tr' from src/Pure/Syntax/syn_trans.ML *)
   let
     fun cabs_ast_tr' asts =
-      (case Syntax.unfold_ast_p "_cabs"
-          (Syntax.Appl (Syntax.Constant "_cabs" :: asts)) of
+      (case Syntax.unfold_ast_p @{syntax_const "_cabs"}
+          (Syntax.Appl (Syntax.Constant @{syntax_const "_cabs"} :: asts)) of
         ([], _) => raise Syntax.AST ("cabs_ast_tr'", asts)
       | (xs, body) => Syntax.Appl
-          [Syntax.Constant "_Lambda", Syntax.fold_ast "_cargs" xs, body]);
-  in [("_cabs", cabs_ast_tr')] end;
+          [Syntax.Constant @{syntax_const "_Lambda"},
+           Syntax.fold_ast @{syntax_const "_cargs"} xs, body]);
+  in [(@{syntax_const "_cabs"}, cabs_ast_tr')] end
 *}
 
 text {* Dummy patterns for continuous abstraction *}

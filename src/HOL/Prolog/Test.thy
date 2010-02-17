@@ -18,7 +18,7 @@ consts
 
 syntax
   (* list Enumeration *)
-  "@list"     :: "args => 'a list"                          ("[(_)]")
+  "_list"     :: "args => 'a list"                          ("[(_)]")
 
 translations
   "[x, xs]"     == "x#[xs]"

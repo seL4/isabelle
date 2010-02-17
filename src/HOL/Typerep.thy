@@ -17,22 +17,27 @@ definition typerep_of :: "'a \<Rightarrow> typerep" where
 
 end
 
-setup {*
+syntax
+  "_TYPEREP" :: "type => logic"  ("(1TYPEREP/(1'(_')))")
+
+parse_translation {*
 let
   fun typerep_tr (*"_TYPEREP"*) [ty] =
-        Lexicon.const @{const_syntax typerep} $ (Lexicon.const "_constrain" $ Lexicon.const "TYPE" $
-          (Lexicon.const "itself" $ ty))
+        Syntax.const @{const_syntax typerep} $
+          (Syntax.const @{syntax_const "_constrain"} $ Syntax.const @{const_syntax "TYPE"} $
+            (Syntax.const "itself" $ ty))  (* FIXME @{type_syntax} *)
     | typerep_tr (*"_TYPEREP"*) ts = raise TERM ("typerep_tr", ts);
-  fun typerep_tr' show_sorts (*"typerep"*)
+in [(@{syntax_const "_TYPEREP"}, typerep_tr)] end
+*}
+
+typed_print_translation {*
+let
+  fun typerep_tr' show_sorts (*"typerep"*)  (* FIXME @{type_syntax} *)
           (Type ("fun", [Type ("itself", [T]), _])) (Const (@{const_syntax TYPE}, _) :: ts) =
-        Term.list_comb (Lexicon.const "_TYPEREP" $ Syntax.term_of_typ show_sorts T, ts)
+        Term.list_comb
+          (Syntax.const @{syntax_const "_TYPEREP"} $ Syntax.term_of_typ show_sorts T, ts)
     | typerep_tr' _ T ts = raise Match;
-in
-  Sign.add_syntax_i
-    [("_TYPEREP", Simple_Syntax.read_typ "type => logic", Delimfix "(1TYPEREP/(1'(_')))")]
-  #> Sign.add_trfuns ([], [("_TYPEREP", typerep_tr)], [], [])
-  #> Sign.add_trfunsT [(@{const_syntax typerep}, typerep_tr')]
-end
+in [(@{const_syntax typerep}, typerep_tr')] end
 *}
 
 setup {*

@@ -1,4 +1,4 @@
-(*  Title:      Pure/Isar/ML
+(*  Title:      Pure/Isar/class.ML
     Author:     Florian Haftmann, TU Muenchen
 
 Type classes derived from primitive axclasses and locales - interfaces.
@@ -132,7 +132,7 @@ fun prep_class_elems prep_decl thy sups proto_base_sort raw_elems =
       (Syntax.add_typ_check level name (fn xs => fn ctxt =>
         let val xs' = f xs in if eq_list (op =) (xs, xs') then NONE else SOME (xs', ctxt) end));
 
-    (* preprocessing elements, retrieving base sort from typechecked elements *)
+    (* preprocessing elements, retrieving base sort from type-checked elements *)
     val init_class_body = fold (ProofContext.add_const_constraint o apsnd SOME) base_constraints
       #> redeclare_operations thy sups
       #> add_typ_check 10 "reject_bcd_etc" reject_bcd_etc

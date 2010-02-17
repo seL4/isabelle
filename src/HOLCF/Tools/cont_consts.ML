@@ -40,9 +40,9 @@ fun trans_rules name2 name1 n mx =
         fold (fn arg => fn t => Syntax.mk_appl (Constant "Rep_CFun") [t, Variable arg])
           vnames (Constant name1))] @
     (case mx of
-      InfixName _ => [extra_parse_rule]
-    | InfixlName _ => [extra_parse_rule]
-    | InfixrName _ => [extra_parse_rule]
+      Infix _ => [extra_parse_rule]
+    | Infixl _ => [extra_parse_rule]
+    | Infixr _ => [extra_parse_rule]
     | _ => [])
   end;
 
@@ -53,19 +53,8 @@ fun trans_rules name2 name1 n mx =
    declaration with the original name, type ...=>..., and the original mixfix
    is generated and connected to the other declaration via some translation.
 *)
-fun const_binding mx = Binding.name o Syntax.const_name mx o Binding.name_of;
-
-fun fix_mixfix (syn                 , T, mx as Infix           p ) =
-               (const_binding mx syn, T,       InfixName (Binding.name_of syn, p))
-  | fix_mixfix (syn                 , T, mx as Infixl           p ) =
-               (const_binding mx syn, T,       InfixlName (Binding.name_of syn, p))
-  | fix_mixfix (syn                 , T, mx as Infixr           p ) =
-               (const_binding mx syn, T,       InfixrName (Binding.name_of syn, p))
-  | fix_mixfix decl = decl;
-
-fun transform decl =
+fun transform (c, T, mx) =
     let
-        val (c, T, mx) = fix_mixfix decl;
         val c1 = Binding.name_of c;
         val c2 = "_cont_" ^ c1;
         val n  = Syntax.mixfix_args mx
@@ -78,9 +67,9 @@ fun cfun_arity (Type(n,[_,T])) = if n = @{type_name "->"} then 1+cfun_arity T el
 
 fun is_contconst (_,_,NoSyn   ) = false
 |   is_contconst (_,_,Binder _) = false
-|   is_contconst (c,T,mx      ) = cfun_arity T >= Syntax.mixfix_args mx
-                         handle ERROR msg => cat_error msg ("in mixfix annotation for " ^
-                                               quote (Syntax.const_name mx (Binding.name_of c)));
+|   is_contconst (c,T,mx      ) =
+      cfun_arity T >= Syntax.mixfix_args mx
+        handle ERROR msg => cat_error msg ("in mixfix annotation for " ^ quote (Binding.str_of c));
 
 
 (* add_consts(_i) *)
@@ -94,6 +83,7 @@ fun gen_add_consts prep_typ raw_decls thy =
     thy
     |> Sign.add_consts_i
       (normal_decls @ map first transformed_decls @ map second transformed_decls)
+    (* FIXME authentic syntax *)
     |> Sign.add_trrules_i (maps third transformed_decls)
   end;
 

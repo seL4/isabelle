@@ -41,8 +41,8 @@ definition
       SKIP \<in> X & (\<forall>G \<in> program. Acts(G) \<subseteq> (\<Union>F \<in> X. Acts(F)) --> G \<in> X)"
   
 syntax
-  "@JOIN1"     :: "[pttrns, i] => i"         ("(3JN _./ _)" 10)
-  "@JOIN"      :: "[pttrn, i, i] => i"       ("(3JN _:_./ _)" 10)
+  "_JOIN1"     :: "[pttrns, i] => i"         ("(3JN _./ _)" 10)
+  "_JOIN"      :: "[pttrn, i, i] => i"       ("(3JN _:_./ _)" 10)
 
 translations
   "JN x:A. B"   == "CONST JOIN(A, (%x. B))"
@@ -54,8 +54,8 @@ notation (xsymbols)
   Join  (infixl "\<squnion>" 65)
 
 syntax (xsymbols)
-  "@JOIN1"  :: "[pttrns, i] => i"     ("(3\<Squnion> _./ _)" 10)
-  "@JOIN"   :: "[pttrn, i, i] => i"   ("(3\<Squnion> _ \<in> _./ _)" 10)
+  "_JOIN1"  :: "[pttrns, i] => i"     ("(3\<Squnion> _./ _)" 10)
+  "_JOIN"   :: "[pttrn, i, i] => i"   ("(3\<Squnion> _ \<in> _./ _)" 10)
 
 
 subsection{*SKIP*}

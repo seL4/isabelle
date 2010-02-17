@@ -15,7 +15,7 @@ constdefs
   "x <=|r| y \<equiv> \<forall>(p,s) \<in> set x. \<exists>s'. (p,s') \<in> set y \<and> s <=_r s'"
 
 consts
- "@plusplussub" :: "'a list \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" ("(_ /++'__ _)" [65, 1000, 66] 65)
+  plusplussub :: "'a list \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" ("(_ /++'__ _)" [65, 1000, 66] 65)
 primrec
   "[] ++_f y = y"
   "(x#xs) ++_f y = xs ++_f (x +_f y)"

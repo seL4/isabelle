@@ -226,10 +226,10 @@ translations
   "_variable _noargs r" => "CONST unit_when\<cdot>r"
 
 parse_translation {*
-(* rewrites (_pat x) => (return) *)
-(* rewrites (_variable x t) => (Abs_CFun (%x. t)) *)
-  [("_pat", K (Syntax.const "Fixrec.return")),
-   mk_binder_tr ("_variable", "Abs_CFun")];
+(* rewrite (_pat x) => (return) *)
+(* rewrite (_variable x t) => (Abs_CFun (%x. t)) *)
+ [(@{syntax_const "_pat"}, fn _ => Syntax.const @{const_syntax Fixrec.return}),
+  mk_binder_tr (@{syntax_const "_variable"}, @{const_syntax Abs_CFun})];
 *}
 
 text {* Printing Case expressions *}
@@ -240,23 +240,26 @@ syntax
 print_translation {*
   let
     fun dest_LAM (Const (@{const_syntax Rep_CFun},_) $ Const (@{const_syntax unit_when},_) $ t) =
-          (Syntax.const "_noargs", t)
+          (Syntax.const @{syntax_const "_noargs"}, t)
     |   dest_LAM (Const (@{const_syntax Rep_CFun},_) $ Const (@{const_syntax csplit},_) $ t) =
           let
             val (v1, t1) = dest_LAM t;
             val (v2, t2) = dest_LAM t1;
-          in (Syntax.const "_args" $ v1 $ v2, t2) end 
+          in (Syntax.const @{syntax_const "_args"} $ v1 $ v2, t2) end
     |   dest_LAM (Const (@{const_syntax Abs_CFun},_) $ t) =
           let
-            val abs = case t of Abs abs => abs
+            val abs =
+              case t of Abs abs => abs
                 | _ => ("x", dummyT, incr_boundvars 1 t $ Bound 0);
             val (x, t') = atomic_abs_tr' abs;
-          in (Syntax.const "_variable" $ x, t') end
+          in (Syntax.const @{syntax_const "_variable"} $ x, t') end
     |   dest_LAM _ = raise Match; (* too few vars: abort translation *)
 
     fun Case1_tr' [Const(@{const_syntax branch},_) $ p, r] =
-          let val (v, t) = dest_LAM r;
-          in Syntax.const "_Case1" $ (Syntax.const "_match" $ p $ v) $ t end;
+          let val (v, t) = dest_LAM r in
+            Syntax.const @{syntax_const "_Case1"} $
+              (Syntax.const @{syntax_const "_match"} $ p $ v) $ t
+          end;
 
   in [(@{const_syntax Rep_CFun}, Case1_tr')] end;
 *}

@@ -401,7 +401,7 @@ val pure_ext = syn_ext' false (K false)
    Mfix ("'(_')", spropT --> spropT, "", [0], max_pri),
    Mfix ("_::_",  [logicT, typeT] ---> logicT, "_constrain", [4, 0], 3),
    Mfix ("_::_",  [spropT, typeT] ---> spropT, "_constrain", [4, 0], 3)]
-  []
+  standard_token_markers
   ([], [], [], [])
   []
   ([], []);

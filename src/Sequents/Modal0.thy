@@ -1,5 +1,4 @@
 (*  Title:      Sequents/Modal0.thy
-    ID:         $Id$
     Author:     Martin Coen
     Copyright   1991  University of Cambridge
 *)
@@ -18,21 +17,23 @@ consts
   Rstar         :: "two_seqi"
 
 syntax
-  "@Lstar"      :: "two_seqe"   ("(_)|L>(_)" [6,6] 5)
-  "@Rstar"      :: "two_seqe"   ("(_)|R>(_)" [6,6] 5)
+  "_Lstar"      :: "two_seqe"   ("(_)|L>(_)" [6,6] 5)
+  "_Rstar"      :: "two_seqe"   ("(_)|R>(_)" [6,6] 5)
 
 ML {*
-  val Lstar = "Lstar";
-  val Rstar = "Rstar";
-  val SLstar = "@Lstar";
-  val SRstar = "@Rstar";
-
-  fun star_tr c [s1,s2] = Const(c,dummyT)$ seq_tr s1$ seq_tr s2;
-  fun star_tr' c [s1,s2] = Const(c,dummyT) $ seq_tr' s1 $ seq_tr' s2;
+  fun star_tr c [s1, s2] = Const(c, dummyT) $ seq_tr s1 $ seq_tr s2;
+  fun star_tr' c [s1, s2] = Const(c, dummyT) $ seq_tr' s1 $ seq_tr' s2;
 *}
 
-parse_translation {* [(SLstar,star_tr Lstar), (SRstar,star_tr Rstar)] *}
-print_translation {* [(Lstar,star_tr' SLstar), (Rstar,star_tr' SRstar)] *}
+parse_translation {*
+ [(@{syntax_const "_Lstar"}, star_tr @{const_syntax Lstar}),
+  (@{syntax_const "_Rstar"}, star_tr @{const_syntax Rstar})]
+*}
+
+print_translation {*
+ [(@{const_syntax Lstar}, star_tr' @{syntax_const "_Lstar"}),
+  (@{const_syntax Rstar}, star_tr' @{syntax_const "_Rstar"})]
+*}
 
 defs
   strimp_def:    "P --< Q == [](P --> Q)"

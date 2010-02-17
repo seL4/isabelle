@@ -16,7 +16,7 @@ val forbidden =
   (@{const_name dummy_pattern}, "'a::{}"),
   (@{const_name Algebras.uminus}, "'a"),
   (@{const_name Nat.size}, "'a"),
-  (@{const_name Algebras.abs}, "'a")];
+  (@{const_name Groups.abs}, "'a")];
 
 val forbidden_thms =
  ["finite_intvl_succ_class",

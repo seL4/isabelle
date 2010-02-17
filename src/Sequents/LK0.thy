@@ -1,10 +1,9 @@
 (*  Title:      LK/LK0.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 There may be printing problems if a seqent is in expanded normal form
-        (eta-expanded, beta-contracted)
+(eta-expanded, beta-contracted).
 *)
 
 header {* Classical First-Order Sequent Calculus *}
@@ -35,10 +34,10 @@ consts
   Ex           :: "('a => o) => o"   (binder "EX " 10)
 
 syntax
- "@Trueprop"    :: "two_seqe" ("((_)/ |- (_))" [6,6] 5)
+ "_Trueprop"    :: "two_seqe" ("((_)/ |- (_))" [6,6] 5)
 
-parse_translation {* [("@Trueprop", two_seq_tr "Trueprop")] *}
-print_translation {* [("Trueprop", two_seq_tr' "@Trueprop")] *}
+parse_translation {* [(@{syntax_const "_Trueprop"}, two_seq_tr @{const_syntax Trueprop})] *}
+print_translation {* [(@{const_syntax Trueprop}, two_seq_tr' @{syntax_const "_Trueprop"})] *}
 
 abbreviation
   not_equal  (infixl "~=" 50) where

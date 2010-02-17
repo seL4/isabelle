@@ -28,15 +28,15 @@ consts
   SPLIT         :: "[i, [i, i] => i set] => i set"
 
 syntax
-  "@Pi"         :: "[idt, i set, i set] => i set"    ("(3PROD _:_./ _)"
+  "_Pi"         :: "[idt, i set, i set] => i set"    ("(3PROD _:_./ _)"
                                 [0,0,60] 60)
 
-  "@Sigma"      :: "[idt, i set, i set] => i set"    ("(3SUM _:_./ _)"
+  "_Sigma"      :: "[idt, i set, i set] => i set"    ("(3SUM _:_./ _)"
                                 [0,0,60] 60)
 
-  "@->"         :: "[i set, i set] => i set"         ("(_ ->/ _)"  [54, 53] 53)
-  "@*"          :: "[i set, i set] => i set"         ("(_ */ _)" [56, 55] 55)
-  "@Subtype"    :: "[idt, 'a set, o] => 'a set"      ("(1{_: _ ./ _})")
+  "_arrow"      :: "[i set, i set] => i set"         ("(_ ->/ _)"  [54, 53] 53)
+  "_star"       :: "[i set, i set] => i set"         ("(_ */ _)" [56, 55] 55)
+  "_Subtype"    :: "[idt, 'a set, o] => 'a set"      ("(1{_: _ ./ _})")
 
 translations
   "PROD x:A. B" => "CONST Pi(A, %x. B)"
@@ -46,8 +46,9 @@ translations
   "{x: A. B}"   == "CONST Subtype(A, %x. B)"
 
 print_translation {*
-  [(@{const_syntax Pi}, dependent_tr' ("@Pi", "@->")),
-   (@{const_syntax Sigma}, dependent_tr' ("@Sigma", "@*"))] *}
+ [(@{const_syntax Pi}, dependent_tr' (@{syntax_const "_Pi"}, @{syntax_const "_arrow"})),
+  (@{const_syntax Sigma}, dependent_tr' (@{syntax_const "_Sigma"}, @{syntax_const "_star"}))]
+*}
 
 axioms
   Subtype_def: "{x:A. P(x)} == {x. x:A & P(x)}"

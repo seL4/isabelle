@@ -101,13 +101,13 @@ step{\isacharcolon}\ {\isachardoublequoteopen}evn\ n\ {\isasymLongrightarrow}\ e
 \begin{isamarkuptext}%
 \noindent Everything works as before, except that
 you write \commdx{inductive} instead of \isacommand{inductive\_set} and
-\isa{evn\ n} instead of \isa{n\ {\isasymin}\ even}. The notation is more
-lightweight but the usual set-theoretic operations, e.g. \isa{Even\ {\isasymunion}\ Odd},
-are not directly available on predicates.
-
-When defining an n-ary relation as a predicate it is recommended to curry
-the predicate: its type should be \isa{{\isasymtau}\isactrlisub {\isadigit{1}}\ {\isasymRightarrow}\ {\isasymdots}\ {\isasymRightarrow}\ {\isasymtau}\isactrlisub n\ {\isasymRightarrow}\ bool} rather than
+\isa{evn\ n} instead of \isa{n\ {\isasymin}\ even}.
+When defining an n-ary relation as a predicate, it is recommended to curry
+the predicate: its type should be \mbox{\isa{{\isasymtau}\isactrlisub {\isadigit{1}}\ {\isasymRightarrow}\ {\isasymdots}\ {\isasymRightarrow}\ {\isasymtau}\isactrlisub n\ {\isasymRightarrow}\ bool}}
+rather than
 \isa{{\isasymtau}\isactrlisub {\isadigit{1}}\ {\isasymtimes}\ {\isasymdots}\ {\isasymtimes}\ {\isasymtau}\isactrlisub n\ {\isasymRightarrow}\ bool}. The curried version facilitates inductions.
+
+When should you choose sets and when predicates? If you intend to combine your notion with set theoretic notation, define it as an inductive set. If not, define it as an inductive predicate, thus avoiding the \isa{{\isasymin}} notation. But note that predicates of more than one argument cannot be combined with the usual set theoretic operators: \isa{P\ {\isasymunion}\ Q} is not well-typed if \isa{P{\isacharcomma}\ Q\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}\isactrlisub {\isadigit{1}}\ {\isasymRightarrow}\ {\isasymtau}\isactrlisub {\isadigit{2}}\ {\isasymRightarrow}\ bool}, you have to write \isa{{\isasymlambda}x\ y{\isachardot}\ P\ x\ y\ {\isasymand}\ Q\ x\ y} instead.
 \index{inductive predicates|)}%
 \end{isamarkuptext}%
 \isamarkuptrue%
