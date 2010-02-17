@@ -91,10 +91,8 @@ rm -f $RUNNING/*
 
 ## spawn test runs
 
-$SSH sunbroy2 "$MAKEALL $HOME/settings/sun-poly"
-# give test some time to copy settings and start
-sleep 15
 $SSH macbroy22 "$MAKEALL $HOME/settings/at-poly"
+# give test some time to copy settings and start
 sleep 15
 $SSH macbroy20 "$MAKEALL $HOME/settings/at-poly-5.1-para-e"
 sleep 15
@@ -113,6 +111,8 @@ sleep 15
 $SSH macbroy6 "sleep 10800; $MAKEALL $HOME/settings/at-mac-poly-5.1-para"
 #sleep 15
 #$SSH atbroy51 "$HOME/admin/isatest/isatest-annomaly"
+#sleep 15
+#$SSH sunbroy2 "$MAKEALL $HOME/settings/sun-poly"
 
 echo ------------------- spawned tests successfully --- `date` --- $HOSTNAME >> $DISTLOG 2>&1
 
