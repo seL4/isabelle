@@ -247,7 +247,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                 (if i <> 1 orelse n <> 1 then
                    "subgoal " ^ string_of_int i ^ " of " ^ string_of_int n
                  else
-                   "goal")) [orig_t]))
+                   "goal")) [Logic.list_implies (orig_assm_ts, orig_t)]))
     val neg_t = if falsify then Logic.mk_implies (orig_t, @{prop False})
                 else orig_t
     val assms_t = if assms orelse auto then

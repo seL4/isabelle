@@ -1724,10 +1724,11 @@ fun terminates_by ctxt timeout goal tac =
                                  (tac ctxt (auto_tac (clasimpset_of ctxt))))
        #> the #> Goal.finish ctxt) goal
 
-val max_cached_wfs = 100
-val cached_timeout = Unsynchronized.ref (SOME Time.zeroTime)
-val cached_wf_props : (term * bool) list Unsynchronized.ref =
-  Unsynchronized.ref []
+val max_cached_wfs = 50
+val cached_timeout =
+  Synchronized.var "Nitpick_HOL.cached_timeout" (SOME Time.zeroTime)
+val cached_wf_props =
+  Synchronized.var "Nitpick_HOL.cached_wf_props" ([] : (term * bool) list)
 
 val termination_tacs = [Lexicographic_Order.lex_order_tac true,
                         ScnpReconstruct.sizechange_tac]
@@ -1758,19 +1759,20 @@ fun uncached_is_well_founded_inductive_pred
                  else
                    ()
        in
-         if tac_timeout = (!cached_timeout) andalso
-            length (!cached_wf_props) < max_cached_wfs then
+         if tac_timeout = Synchronized.value cached_timeout andalso
+            length (Synchronized.value cached_wf_props) < max_cached_wfs then
            ()
          else
-           (cached_wf_props := []; cached_timeout := tac_timeout);
-         case AList.lookup (op =) (!cached_wf_props) prop of
+           (Synchronized.change cached_wf_props (K []);
+            Synchronized.change cached_timeout (K tac_timeout));
+         case AList.lookup (op =) (Synchronized.value cached_wf_props) prop of
            SOME wf => wf
          | NONE =>
            let
              val goal = prop |> cterm_of thy |> Goal.init
              val wf = exists (terminates_by ctxt tac_timeout goal)
                              termination_tacs
-           in Unsynchronized.change cached_wf_props (cons (prop, wf)); wf end
+           in Synchronized.change cached_wf_props (cons (prop, wf)); wf end
        end)
     handle List.Empty => false
          | NO_TRIPLE () => false
@@ -1785,14 +1787,14 @@ fun is_well_founded_inductive_pred
     SOME (SOME b) => b
   | _ => s = @{const_name Nats} orelse s = @{const_name fold_graph'} orelse
          case AList.lookup (op =) (!wf_cache) x of
-                  SOME (_, wf) => wf
-                | NONE =>
-                  let
-                    val gfp = (fixpoint_kind_of_const thy def_table x = Gfp)
-                    val wf = uncached_is_well_founded_inductive_pred hol_ctxt x
-                  in
-                    Unsynchronized.change wf_cache (cons (x, (gfp, wf))); wf
-                  end
+           SOME (_, wf) => wf
+         | NONE =>
+           let
+             val gfp = (fixpoint_kind_of_const thy def_table x = Gfp)
+             val wf = uncached_is_well_founded_inductive_pred hol_ctxt x
+           in
+             Unsynchronized.change wf_cache (cons (x, (gfp, wf))); wf
+           end
 
 (* typ list -> typ -> typ -> term -> term *)
 fun ap_curry [_] _ _ t = t
