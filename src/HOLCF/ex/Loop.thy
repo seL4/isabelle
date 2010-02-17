@@ -115,7 +115,7 @@ apply (rule_tac s = "iterate (Suc n) $ (step$b$g) $x"
   and t = "g$ (iterate n$ (step$b$g) $x) " in ssubst)
 prefer 2 apply (assumption)
 apply (simp add: step_def2)
-apply (simp del: iterate_Suc add: loop_lemma2)
+apply (drule (1) loop_lemma2, simp)
 done
 
 lemma loop_lemma4 [rule_format]:
