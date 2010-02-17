@@ -316,16 +316,14 @@ end
 subsection {* Uniqueness of ep-pairs *}
 
 lemma ep_pair_unique_e_lemma:
-  assumes "ep_pair e1 p" and "ep_pair e2 p"
+  assumes 1: "ep_pair e1 p" and 2: "ep_pair e2 p"
   shows "e1 \<sqsubseteq> e2"
 proof (rule below_cfun_ext)
-  interpret e1: ep_pair e1 p by fact
-  interpret e2: ep_pair e2 p by fact
   fix x
   have "e1\<cdot>(p\<cdot>(e2\<cdot>x)) \<sqsubseteq> e2\<cdot>x"
-    by (rule e1.e_p_below)
+    by (rule ep_pair.e_p_below [OF 1])
   thus "e1\<cdot>x \<sqsubseteq> e2\<cdot>x"
-    by (simp only: e2.e_inverse)
+    by (simp only: ep_pair.e_inverse [OF 2])
 qed
 
 lemma ep_pair_unique_e:
@@ -333,18 +331,16 @@ lemma ep_pair_unique_e:
 by (fast intro: below_antisym elim: ep_pair_unique_e_lemma)
 
 lemma ep_pair_unique_p_lemma:
-  assumes "ep_pair e p1" and "ep_pair e p2"
+  assumes 1: "ep_pair e p1" and 2: "ep_pair e p2"
   shows "p1 \<sqsubseteq> p2"
 proof (rule below_cfun_ext)
-  interpret p1: ep_pair e p1 by fact
-  interpret p2: ep_pair e p2 by fact
   fix x
   have "e\<cdot>(p1\<cdot>x) \<sqsubseteq> x"
-    by (rule p1.e_p_below)
+    by (rule ep_pair.e_p_below [OF 1])
   hence "p2\<cdot>(e\<cdot>(p1\<cdot>x)) \<sqsubseteq> p2\<cdot>x"
     by (rule monofun_cfun_arg)
   thus "p1\<cdot>x \<sqsubseteq> p2\<cdot>x"
-    by (simp only: p2.e_inverse)
+    by (simp only: ep_pair.e_inverse [OF 2])
 qed
 
 lemma ep_pair_unique_p:

@@ -521,7 +521,7 @@ definition
 text {* results about strictify *}
 
 lemma cont_strictify1: "cont (\<lambda>f. if x = \<bottom> then \<bottom> else f\<cdot>x)"
-by (simp add: cont_if)
+by simp
 
 lemma monofun_strictify2: "monofun (\<lambda>x. if x = \<bottom> then \<bottom> else f\<cdot>x)"
 apply (rule monofunI)
