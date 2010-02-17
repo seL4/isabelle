@@ -84,7 +84,7 @@ fun formula_from_atom r = RelEq (r, true_atom)
 fun atom_from_formula f = RelIf (f, true_atom, false_atom)
 
 (* Proof.context -> (typ -> int) -> styp list -> term -> formula *)
-fun kodkod_formula_for_term ctxt card frees =
+fun kodkod_formula_from_term ctxt card frees =
   let
     (* typ -> rel_expr -> rel_expr *)
     fun R_rep_from_S_rep (T as Type ("fun", [T1, @{typ bool}])) r =
@@ -145,7 +145,7 @@ fun kodkod_formula_for_term ctxt card frees =
        | Term.Var _ => raise SAME ()
        | Bound _ => raise SAME ()
        | Const (s, _) => raise NOT_SUPPORTED ("constant " ^ quote s)
-       | _ => raise TERM ("Minipick.kodkod_formula_for_term.to_F", [t]))
+       | _ => raise TERM ("Minipick.kodkod_formula_from_term.to_F", [t]))
       handle SAME () => formula_from_atom (to_R_rep Ts t)
     (* typ list -> term -> rel_expr *)
     and to_S_rep Ts t =
@@ -306,7 +306,7 @@ fun pick_nits_in_term ctxt raw_card t =
     val bounds = map2 (bound_for_free card) (index_seq 0 (length frees)) frees
     val declarative_axioms =
       map2 (declarative_axiom_for_free card) (index_seq 0 (length frees)) frees
-    val formula = kodkod_formula_for_term ctxt card frees neg_t
+    val formula = kodkod_formula_from_term ctxt card frees neg_t
                   |> fold_rev (curry And) declarative_axioms
     val univ_card = univ_card 0 0 0 bounds formula
     val problem =

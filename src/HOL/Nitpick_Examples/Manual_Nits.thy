@@ -259,14 +259,14 @@ primrec swap where
  (if c = a then Leaf b else if c = b then Leaf a else Leaf c)" |
 "swap (Branch t u) a b = Branch (swap t a b) (swap u a b)"
 
-lemma "\<lbrakk>a \<in> labels t; b \<in> labels t; a \<noteq> b\<rbrakk> \<Longrightarrow> labels (swap t a b) = labels t"
+lemma "{a, b} \<subseteq> labels t \<Longrightarrow> labels (swap t a b) = labels t"
 nitpick
 proof (induct t)
   case Leaf thus ?case by simp
 next
   case (Branch t u) thus ?case
   nitpick
-  nitpick [non_std "'a bin_tree", show_consts]
+  nitpick [non_std, show_all]
 oops
 
 lemma "labels (swap t a b) =

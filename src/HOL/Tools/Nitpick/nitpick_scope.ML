@@ -22,6 +22,7 @@ sig
     typ: typ,
     card: int,
     co: bool,
+    standard: bool,
     complete: bool,
     concrete: bool,
     deep: bool,
@@ -71,6 +72,7 @@ type dtype_spec = {
   typ: typ,
   card: int,
   co: bool,
+  standard: bool,
   complete: bool,
   concrete: bool,
   deep: bool,
@@ -162,7 +164,7 @@ fun quintuple_for_scope quote ({hol_ctxt as {thy, ctxt, ...}, card_assigns,
     fun miscs () =
       (if bits = 0 then [] else ["bits = " ^ string_of_int bits]) @
       (if bisim_depth < 0 andalso forall (not o #co) datatypes then []
-       else ["bisim_depth = " ^ string_of_int bisim_depth])
+       else ["bisim_depth = " ^ signed_string_of_int bisim_depth])
   in
     setmp_show_all_types
         (fn () => (cards primary_card_assigns, cards secondary_card_assigns,
@@ -466,6 +468,7 @@ fun datatype_spec_from_scope_descriptor (hol_ctxt as {thy, ...}) deep_dataTs
   let
     val deep = member (op =) deep_dataTs T
     val co = is_codatatype thy T
+    val standard = is_standard_datatype hol_ctxt T
     val xs = boxed_datatype_constrs hol_ctxt T
     val self_recs = map (is_self_recursive_constr_type o snd) xs
     val (num_self_recs, num_non_self_recs) =
@@ -481,8 +484,8 @@ fun datatype_spec_from_scope_descriptor (hol_ctxt as {thy, ...}) deep_dataTs
                                 num_non_self_recs)
                (sort (bool_ord o swap o pairself fst) (self_recs ~~ xs)) []
   in
-    {typ = T, card = card, co = co, complete = complete, concrete = concrete,
-     deep = deep, constrs = constrs}
+    {typ = T, card = card, co = co, standard = standard, complete = complete,
+     concrete = concrete, deep = deep, constrs = constrs}
   end
 
 (* int -> int *)

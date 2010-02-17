@@ -308,7 +308,7 @@ fun problem_for_nut ctxt name u =
                        NameTable.empty
     val u = Op1 (Not, type_of u, rep_of u, u)
             |> rename_vars_in_nut pool table
-    val formula = kodkod_formula_from_nut bits Typtab.empty false constrs u
+    val formula = kodkod_formula_from_nut bits Typtab.empty constrs u
     val bounds = map (bound_for_plain_rel ctxt debug) free_rels
     val univ_card = univ_card nat_card int_card j0 bounds formula
     val declarative_axioms = map (declarative_axiom_for_plain_rel constrs)

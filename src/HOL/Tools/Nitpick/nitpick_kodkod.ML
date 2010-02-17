@@ -36,7 +36,7 @@ sig
     hol_context -> int -> int Typtab.table -> kodkod_constrs
     -> nut NameTable.table -> dtype_spec list -> Kodkod.formula list
   val kodkod_formula_from_nut :
-    int -> int Typtab.table -> bool -> kodkod_constrs -> nut -> Kodkod.formula
+    int -> int Typtab.table -> kodkod_constrs -> nut -> Kodkod.formula
 end;
 
 structure Nitpick_Kodkod : NITPICK_KODKOD =
@@ -317,7 +317,9 @@ fun bound_for_sel_rel ctxt debug dtypes
              [ts] |> not exclusive ? cons (KK.TupleSet [])
            else
              [KK.TupleSet [],
-              if (* ### exclusive andalso*) T1 = T2 andalso epsilon > delta then
+              if T1 = T2 andalso epsilon > delta andalso
+                 (datatype_spec dtypes T1 |> the |> pairf #co #standard)
+                 = (false, true) then
                 index_seq delta (epsilon - delta)
                 |> map (fn j =>
                            KK.TupleProduct (KK.TupleSet [Kodkod.Tuple [j + j0]],
@@ -762,6 +764,7 @@ fun nfa_transitions_for_constr hol_ctxt kk rel_table dtypes (x as (_, T)) =
 (* hol_context -> kodkod_constrs -> nut NameTable.table -> dtype_spec list
    -> dtype_spec -> nfa_entry option *)
 fun nfa_entry_for_datatype _ _ _ _ ({co = true, ...} : dtype_spec) = NONE
+  | nfa_entry_for_datatype _ _ _ _ {standard = false, ...} = NONE
   | nfa_entry_for_datatype _ _ _ _ {deep = false, ...} = NONE
   | nfa_entry_for_datatype hol_ctxt kk rel_table dtypes {typ, constrs, ...} =
     SOME (typ, maps (nfa_transitions_for_constr hol_ctxt kk rel_table dtypes
@@ -770,45 +773,47 @@ fun nfa_entry_for_datatype _ _ _ _ ({co = true, ...} : dtype_spec) = NONE
 val empty_rel = KK.Product (KK.None, KK.None)
 
 (* nfa_table -> typ -> typ -> KK.rel_expr list *)
-fun direct_path_rel_exprs nfa start final =
-  case AList.lookup (op =) nfa final of
-    SOME trans => map fst (filter (curry (op =) start o snd) trans)
+fun direct_path_rel_exprs nfa start_T final_T =
+  case AList.lookup (op =) nfa final_T of
+    SOME trans => map fst (filter (curry (op =) start_T o snd) trans)
   | NONE => []
 (* kodkod_constrs -> nfa_table -> typ list -> typ -> typ -> KK.rel_expr *)
-and any_path_rel_expr ({kk_union, ...} : kodkod_constrs) nfa [] start final =
-    fold kk_union (direct_path_rel_exprs nfa start final)
-         (if start = final then KK.Iden else empty_rel)
-  | any_path_rel_expr (kk as {kk_union, ...}) nfa (q :: qs) start final =
-    kk_union (any_path_rel_expr kk nfa qs start final)
-             (knot_path_rel_expr kk nfa qs start q final)
+and any_path_rel_expr ({kk_union, ...} : kodkod_constrs) nfa [] start_T
+                      final_T =
+    fold kk_union (direct_path_rel_exprs nfa start_T final_T)
+         (if start_T = final_T then KK.Iden else empty_rel)
+  | any_path_rel_expr (kk as {kk_union, ...}) nfa (T :: Ts) start_T final_T =
+    kk_union (any_path_rel_expr kk nfa Ts start_T final_T)
+             (knot_path_rel_expr kk nfa Ts start_T T final_T)
 (* kodkod_constrs -> nfa_table -> typ list -> typ -> typ -> typ
    -> KK.rel_expr *)
-and knot_path_rel_expr (kk as {kk_join, kk_reflexive_closure, ...}) nfa qs start
-                       knot final =
-  kk_join (kk_join (any_path_rel_expr kk nfa qs knot final)
-                   (kk_reflexive_closure (loop_path_rel_expr kk nfa qs knot)))
-          (any_path_rel_expr kk nfa qs start knot)
+and knot_path_rel_expr (kk as {kk_join, kk_reflexive_closure, ...}) nfa Ts
+                       start_T knot_T final_T =
+  kk_join (kk_join (any_path_rel_expr kk nfa Ts knot_T final_T)
+                   (kk_reflexive_closure (loop_path_rel_expr kk nfa Ts knot_T)))
+          (any_path_rel_expr kk nfa Ts start_T knot_T)
 (* kodkod_constrs -> nfa_table -> typ list -> typ -> KK.rel_expr *)
-and loop_path_rel_expr ({kk_union, ...} : kodkod_constrs) nfa [] start =
-    fold kk_union (direct_path_rel_exprs nfa start start) empty_rel
-  | loop_path_rel_expr (kk as {kk_union, kk_closure, ...}) nfa (q :: qs) start =
-    if start = q then
-      kk_closure (loop_path_rel_expr kk nfa qs start)
+and loop_path_rel_expr ({kk_union, ...} : kodkod_constrs) nfa [] start_T =
+    fold kk_union (direct_path_rel_exprs nfa start_T start_T) empty_rel
+  | loop_path_rel_expr (kk as {kk_union, kk_closure, ...}) nfa (T :: Ts)
+                       start_T =
+    if start_T = T then
+      kk_closure (loop_path_rel_expr kk nfa Ts start_T)
     else
-      kk_union (loop_path_rel_expr kk nfa qs start)
-               (knot_path_rel_expr kk nfa qs start q start)
+      kk_union (loop_path_rel_expr kk nfa Ts start_T)
+               (knot_path_rel_expr kk nfa Ts start_T T start_T)
 
 (* nfa_table -> unit NfaGraph.T *)
 fun graph_for_nfa nfa =
   let
     (* typ -> unit NfaGraph.T -> unit NfaGraph.T *)
-    fun new_node q = perhaps (try (NfaGraph.new_node (q, ())))
+    fun new_node T = perhaps (try (NfaGraph.new_node (T, ())))
     (* nfa_table -> unit NfaGraph.T -> unit NfaGraph.T *)
     fun add_nfa [] = I
       | add_nfa ((_, []) :: nfa) = add_nfa nfa
-      | add_nfa ((q, ((_, q') :: transitions)) :: nfa) =
-        add_nfa ((q, transitions) :: nfa) o NfaGraph.add_edge (q, q') o
-        new_node q' o new_node q
+      | add_nfa ((T, ((_, T') :: transitions)) :: nfa) =
+        add_nfa ((T, transitions) :: nfa) o NfaGraph.add_edge (T, T') o
+        new_node T' o new_node T
   in add_nfa nfa NfaGraph.empty end
 
 (* nfa_table -> nfa_table list *)
@@ -816,22 +821,22 @@ fun strongly_connected_sub_nfas nfa =
   nfa |> graph_for_nfa |> NfaGraph.strong_conn
       |> map (fn keys => filter (member (op =) keys o fst) nfa)
 
-(* dtype_spec list -> kodkod_constrs -> nfa_table -> typ -> KK.formula *)
-fun acyclicity_axiom_for_datatype dtypes kk nfa start =
+(* kodkod_constrs -> dtype_spec list -> nfa_table -> typ -> KK.formula *)
+fun acyclicity_axiom_for_datatype kk dtypes nfa start_T =
   #kk_no kk (#kk_intersect kk
-                 (loop_path_rel_expr kk nfa (map fst nfa) start) KK.Iden)
+                 (loop_path_rel_expr kk nfa (map fst nfa) start_T) KK.Iden)
 (* hol_context -> kodkod_constrs -> nut NameTable.table -> dtype_spec list
    -> KK.formula list *)
 fun acyclicity_axioms_for_datatypes hol_ctxt kk rel_table dtypes =
   map_filter (nfa_entry_for_datatype hol_ctxt kk rel_table dtypes) dtypes
   |> strongly_connected_sub_nfas
-  |> maps (fn nfa => map (acyclicity_axiom_for_datatype dtypes kk nfa o fst)
-                         nfa)
+  |> maps (fn nfa =>
+              map (acyclicity_axiom_for_datatype kk dtypes nfa o fst) nfa)
 
 (* hol_context -> int -> kodkod_constrs -> nut NameTable.table -> KK.rel_expr
    -> constr_spec -> int -> KK.formula *)
 fun sel_axiom_for_sel hol_ctxt j0
-        (kk as {kk_all, kk_implies, kk_formula_if, kk_subset, kk_rel_eq, kk_no,
+        (kk as {kk_all, kk_formula_if, kk_implies, kk_subset, kk_rel_eq, kk_no,
                 kk_join, ...}) rel_table dom_r
         ({const, delta, epsilon, exclusive, explicit_max, ...} : constr_spec)
         n =
@@ -862,19 +867,19 @@ fun sel_axioms_for_constr hol_ctxt bits j0 kk rel_table
       [formula_for_bool honors_explicit_max]
     else
       let
-        val ran_r = discr_rel_expr rel_table const
+        val dom_r = discr_rel_expr rel_table const
         val max_axiom =
           if honors_explicit_max then
             KK.True
           else if is_twos_complement_representable bits (epsilon - delta) then
-            KK.LE (KK.Cardinality ran_r, KK.Num explicit_max)
+            KK.LE (KK.Cardinality dom_r, KK.Num explicit_max)
           else
             raise TOO_SMALL ("Nitpick_Kodkod.sel_axioms_for_constr",
                              "\"bits\" value " ^ string_of_int bits ^
                              " too small for \"max\"")
       in
         max_axiom ::
-        map (sel_axiom_for_sel hol_ctxt j0 kk rel_table ran_r constr)
+        map (sel_axiom_for_sel hol_ctxt j0 kk rel_table dom_r constr)
             (index_seq 0 (num_sels_for_constr_type (snd const)))
       end
   end
@@ -949,8 +954,8 @@ fun declarative_axioms_for_datatypes hol_ctxt bits ofs kk rel_table dtypes =
   acyclicity_axioms_for_datatypes hol_ctxt kk rel_table dtypes @
   maps (other_axioms_for_datatype hol_ctxt bits ofs kk rel_table) dtypes
 
-(* int -> int Typtab.table -> bool -> kodkod_constrs -> nut -> KK.formula *)
-fun kodkod_formula_from_nut bits ofs liberal
+(* int -> int Typtab.table -> kodkod_constrs -> nut -> KK.formula *)
+fun kodkod_formula_from_nut bits ofs
         (kk as {kk_all, kk_exist, kk_formula_let, kk_formula_if, kk_or, kk_not,
                 kk_iff, kk_implies, kk_and, kk_subset, kk_rel_eq, kk_no,
                 kk_lone, kk_one, kk_some, kk_rel_let, kk_rel_if, kk_union,

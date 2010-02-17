@@ -167,6 +167,7 @@ sig
 
   val max_arity : int -> int
   val arity_of_rel_expr : rel_expr -> int
+  val is_problem_trivially_false : problem -> bool
   val problems_equivalent : problem -> problem -> bool
   val solve_any_problem :
     bool -> Time.time option -> int -> int -> problem list -> outcome
@@ -490,6 +491,10 @@ and arity_of_decl (DeclNo ((n, _), _)) = n
   | arity_of_decl (DeclOne ((n, _), _)) = n
   | arity_of_decl (DeclSome ((n, _), _)) = n
   | arity_of_decl (DeclSet ((n, _), _)) = n
+
+(* problem -> bool *)
+fun is_problem_trivially_false ({formula = False, ...} : problem) = true
+  | is_problem_trivially_false _ = false
 
 (* string -> bool *)
 val is_relevant_setting = not o member (op =) ["solver", "delay"]
@@ -1014,7 +1019,7 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
     val indexed_problems = if j >= 0 then
                              [(j, nth problems j)]
                            else
-                             filter (not_equal False o #formula o snd)
+                             filter (is_problem_trivially_false o snd)
                                     (0 upto length problems - 1 ~~ problems)
     val triv_js = filter_out (AList.defined (op =) indexed_problems)
                              (0 upto length problems - 1)
