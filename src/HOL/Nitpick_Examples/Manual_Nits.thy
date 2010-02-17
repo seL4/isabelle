@@ -266,7 +266,7 @@ proof (induct t)
 next
   case (Branch t u) thus ?case
   nitpick
-  nitpick [non_std "'a bin_tree", show_consts]
+  nitpick [non_std, show_all]
 oops
 
 lemma "labels (swap t a b) =

@@ -472,7 +472,9 @@ outsourced to \textit{auto} by passing \textit{check\_potential}. For example:
 \prew
 \textbf{lemma} ``$\forall n.\; \textit{Suc}~n \mathbin{\not=} n \,\Longrightarrow\, P$'' \\
 \textbf{nitpick} [\textit{card~nat}~= 100, \textit{check\_potential}] \\[2\smallskipamount]
-\slshape Nitpick found a potential counterexample: \\[2\smallskipamount]
+\slshape Warning: The conjecture either trivially holds or (more likely) lies outside Nitpick's supported
+fragment. Only potential counterexamples may be found. \\[2\smallskipamount]
+Nitpick found a potential counterexample: \\[2\smallskipamount]
 \hbox{}\qquad Free variable: \nopagebreak \\
 \hbox{}\qquad\qquad $P = \textit{False}$ \\[2\smallskipamount]
 Confirmation by ``\textit{auto}'': The above counterexample is genuine.

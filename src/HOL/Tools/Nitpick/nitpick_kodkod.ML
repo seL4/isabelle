@@ -36,7 +36,7 @@ sig
     hol_context -> int -> int Typtab.table -> kodkod_constrs
     -> nut NameTable.table -> dtype_spec list -> Kodkod.formula list
   val kodkod_formula_from_nut :
-    int -> int Typtab.table -> bool -> kodkod_constrs -> nut -> Kodkod.formula
+    int -> int Typtab.table -> kodkod_constrs -> nut -> Kodkod.formula
 end;
 
 structure Nitpick_Kodkod : NITPICK_KODKOD =
@@ -954,8 +954,8 @@ fun declarative_axioms_for_datatypes hol_ctxt bits ofs kk rel_table dtypes =
   acyclicity_axioms_for_datatypes hol_ctxt kk rel_table dtypes @
   maps (other_axioms_for_datatype hol_ctxt bits ofs kk rel_table) dtypes
 
-(* int -> int Typtab.table -> bool -> kodkod_constrs -> nut -> KK.formula *)
-fun kodkod_formula_from_nut bits ofs liberal
+(* int -> int Typtab.table -> kodkod_constrs -> nut -> KK.formula *)
+fun kodkod_formula_from_nut bits ofs
         (kk as {kk_all, kk_exist, kk_formula_let, kk_formula_if, kk_or, kk_not,
                 kk_iff, kk_implies, kk_and, kk_subset, kk_rel_eq, kk_no,
                 kk_lone, kk_one, kk_some, kk_rel_let, kk_rel_if, kk_union,

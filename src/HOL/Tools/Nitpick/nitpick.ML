@@ -130,7 +130,7 @@ type problem_extension = {
   sel_names: nut list,
   nonsel_names: nut list,
   rel_table: nut NameTable.table,
-  liberal: bool,
+  unsound: bool,
   scope: scope,
   core: KK.formula,
   defs: KK.formula list}
@@ -157,15 +157,15 @@ fun install_kodkodi_message () =
       (Path.variable "ISABELLE_HOME_USER" ::
        map Path.basic ["etc", "components"]))) ^ "\"."
 
-val max_liberal_delay_ms = 200
-val max_liberal_delay_percent = 2
+val max_unsound_delay_ms = 200
+val max_unsound_delay_percent = 2
 
 (* Time.time option -> int *)
-fun liberal_delay_for_timeout NONE = max_liberal_delay_ms
-  | liberal_delay_for_timeout (SOME timeout) =
-    Int.max (0, Int.min (max_liberal_delay_ms,
+fun unsound_delay_for_timeout NONE = max_unsound_delay_ms
+  | unsound_delay_for_timeout (SOME timeout) =
+    Int.max (0, Int.min (max_unsound_delay_ms,
                          Time.toMilliseconds timeout
-                         * max_liberal_delay_percent div 100))
+                         * max_unsound_delay_percent div 100))
 
 (* Time.time option -> bool *)
 fun passed_deadline NONE = false
@@ -434,7 +434,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val too_big_scopes = Unsynchronized.ref []
 
     (* bool -> scope -> rich_problem option *)
-    fun problem_for_scope liberal
+    fun problem_for_scope unsound
             (scope as {card_assigns, bits, bisim_depth, datatypes, ofs, ...}) =
       let
         val _ = not (exists (fn other => scope_less_eq other scope)
@@ -469,10 +469,10 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                          (univ_card nat_card int_card main_j0 [] KK.True)
         val _ = check_arity min_univ_card min_highest_arity
 
-        val core_u = choose_reps_in_nut scope liberal rep_table false core_u
-        val def_us = map (choose_reps_in_nut scope liberal rep_table true)
+        val core_u = choose_reps_in_nut scope unsound rep_table false core_u
+        val def_us = map (choose_reps_in_nut scope unsound rep_table true)
                          def_us
-        val nondef_us = map (choose_reps_in_nut scope liberal rep_table false)
+        val nondef_us = map (choose_reps_in_nut scope unsound rep_table false)
                             nondef_us
 (*
         val _ = List.app (priority o string_for_nut ctxt)
@@ -488,21 +488,19 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         val core_u = rename_vars_in_nut pool rel_table core_u
         val def_us = map (rename_vars_in_nut pool rel_table) def_us
         val nondef_us = map (rename_vars_in_nut pool rel_table) nondef_us
-        (* nut -> KK.formula *)
-        val to_f = kodkod_formula_from_nut bits ofs liberal kk
-        val core_f = to_f core_u
-        val def_fs = map to_f def_us
-        val nondef_fs = map to_f nondef_us
+        val core_f = kodkod_formula_from_nut bits ofs kk core_u
+        val def_fs = map (kodkod_formula_from_nut bits ofs kk) def_us
+        val nondef_fs = map (kodkod_formula_from_nut bits ofs kk) nondef_us
         val formula = fold (fold s_and) [def_fs, nondef_fs] core_f
-        val comment = (if liberal then "liberal" else "conservative") ^ "\n" ^
+        val comment = (if unsound then "unsound" else "sound") ^ "\n" ^
                       PrintMode.setmp [] multiline_string_for_scope scope
         val kodkod_sat_solver =
           Kodkod_SAT.sat_solver_spec effective_sat_solver |> snd
         val bit_width = if bits = 0 then 16 else bits + 1
-        val delay = if liberal then
+        val delay = if unsound then
                       Option.map (fn time => Time.- (time, Time.now ()))
                                  deadline
-                      |> liberal_delay_for_timeout
+                      |> unsound_delay_for_timeout
                     else
                       0
         val settings = [("solver", commas (map quote kodkod_sat_solver)),
@@ -540,13 +538,13 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                expr_assigns = [], formula = formula},
               {free_names = free_names, sel_names = sel_names,
                nonsel_names = nonsel_names, rel_table = rel_table,
-               liberal = liberal, scope = scope, core = core_f,
+               unsound = unsound, scope = scope, core = core_f,
                defs = nondef_fs @ def_fs @ declarative_axioms})
       end
       handle TOO_LARGE (loc, msg) =>
              if loc = "Nitpick_Kodkod.check_arity" andalso
                 not (Typtab.is_empty ofs) then
-               problem_for_scope liberal
+               problem_for_scope unsound
                    {hol_ctxt = hol_ctxt, card_assigns = card_assigns,
                     bits = bits, bisim_depth = bisim_depth,
                     datatypes = datatypes, ofs = Typtab.empty}
@@ -556,13 +554,13 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
              else
                (Unsynchronized.change too_big_scopes (cons scope);
                 print_v (fn () => ("Limit reached: " ^ msg ^
-                                   ". Skipping " ^ (if liberal then "potential"
+                                   ". Skipping " ^ (if unsound then "potential"
                                                     else "genuine") ^
                                    " component of scope."));
                 NONE)
            | TOO_SMALL (loc, msg) =>
              (print_v (fn () => ("Limit reached: " ^ msg ^
-                                 ". Skipping " ^ (if liberal then "potential"
+                                 ". Skipping " ^ (if unsound then "potential"
                                                   else "genuine") ^
                                  " component of scope."));
               NONE)
@@ -577,7 +575,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
 
     val scopes = Unsynchronized.ref []
     val generated_scopes = Unsynchronized.ref []
-    val generated_problems = Unsynchronized.ref []
+    val generated_problems = Unsynchronized.ref ([] : rich_problem list)
     val checked_problems = Unsynchronized.ref (SOME [])
     val met_potential = Unsynchronized.ref 0
 
@@ -711,7 +709,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
           | KK.Normal (sat_ps, unsat_js) =>
             let
               val (lib_ps, con_ps) =
-                List.partition (#liberal o snd o nth problems o fst) sat_ps
+                List.partition (#unsound o snd o nth problems o fst) sat_ps
             in
               update_checked_problems problems (unsat_js @ map fst lib_ps);
               if null con_ps then
@@ -728,9 +726,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                     (0, 0, donno)
                   else
                     let
-                      (* "co_js" is the list of conservative problems whose
-                         liberal pendants couldn't be satisfied and hence that
-                         most probably can't be satisfied themselves. *)
+                      (* "co_js" is the list of sound problems whose unsound
+                         pendants couldn't be satisfied and hence that most
+                         probably can't be satisfied themselves. *)
                       val co_js =
                         map (fn j => j - 1) unsat_js
                         |> filter (fn j =>
@@ -743,7 +741,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                       val problems =
                         problems |> filter_out_indices bye_js
                                  |> max_potential <= 0
-                                    ? filter_out (#liberal o snd)
+                                    ? filter_out (#unsound o snd)
                     in
                       solve_any_problem max_potential max_genuine donno false
                                         problems
@@ -763,7 +761,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                                                  (map fst sat_ps @ unsat_js)
                       val problems =
                         problems |> filter_out_indices bye_js
-                                 |> filter_out (#liberal o snd)
+                                 |> filter_out (#unsound o snd)
                     in solve_any_problem 0 max_genuine donno false problems end
                 end
             end
@@ -807,10 +805,10 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
             ()
         (* scope * bool -> rich_problem list * bool
            -> rich_problem list * bool *)
-        fun add_problem_for_scope (scope as {datatypes, ...}, liberal)
+        fun add_problem_for_scope (scope as {datatypes, ...}, unsound)
                                   (problems, donno) =
           (check_deadline ();
-           case problem_for_scope liberal scope of
+           case problem_for_scope unsound scope of
              SOME problem =>
              (problems
               |> (null problems orelse
@@ -826,6 +824,28 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                ([], donno)
         val _ = Unsynchronized.change generated_problems (append problems)
         val _ = Unsynchronized.change generated_scopes (append scopes)
+        val _ =
+          if j + 1 = n then
+            let
+              val (unsound_problems, sound_problems) =
+                List.partition (#unsound o snd) (!generated_problems)
+            in
+              if not (null sound_problems) andalso
+                 forall (KK.is_problem_trivially_false o fst)
+                        sound_problems then
+                print_m (fn () =>
+                    "Warning: The conjecture either trivially holds or (more \
+                    \likely) lies outside Nitpick's supported fragment." ^
+                    (if exists (not o KK.is_problem_trivially_false o fst)
+                               unsound_problems then
+                       " Only potential counterexamples may be found."
+                     else
+                       ""))
+              else
+                ()
+            end
+          else
+            ()
       in
         solve_any_problem max_potential max_genuine donno true (rev problems)
       end
@@ -838,7 +858,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       let
         (* rich_problem list -> rich_problem list *)
         val do_filter =
-          if !met_potential = max_potential then filter_out (#liberal o snd)
+          if !met_potential = max_potential then filter_out (#unsound o snd)
           else I
         val total = length (!scopes)
         val unsat =
