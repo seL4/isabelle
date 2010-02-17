@@ -56,10 +56,10 @@ lemma lemma5: "y && YYS = YYS"
 lemma wir_moel: "YS = YYS"
   apply (rule stream.take_lemmas)
   apply (induct_tac n)
-  apply (simp (no_asm) add: stream.rews)
+  apply (simp (no_asm))
   apply (subst YS_def2)
   apply (subst YYS_def2)
-  apply (simp add: stream.rews)
+  apply simp
   apply (rule lemma5 [symmetric, THEN subst])
   apply (rule refl)
   done

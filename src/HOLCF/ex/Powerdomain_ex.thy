@@ -14,8 +14,6 @@ subsection {* Monadic sorting example *}
 
 domain ordering = LT | EQ | GT
 
-declare ordering.rews [simp]
-
 definition
   compare :: "int lift \<rightarrow> int lift \<rightarrow> ordering" where
   "compare = (FLIFT x y. if x < y then LT else if x = y then EQ else GT)"

@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/Dnat.thy
-    ID:         $Id$
     Author:     Franz Regensburger
 
 Theory for the domain of natural numbers  dnat = one ++ dnat
@@ -34,18 +33,18 @@ text {* \medskip Recursive properties. *}
 
 lemma iterator1: "iterator $ UU $ f $ x = UU"
   apply (subst iterator_def2)
-  apply (simp add: dnat.rews)
+  apply simp
   done
 
 lemma iterator2: "iterator $ dzero $ f $ x = x"
   apply (subst iterator_def2)
-  apply (simp add: dnat.rews)
+  apply simp
   done
 
 lemma iterator3: "n ~= UU ==> iterator $ (dsucc $ n) $ f $ x = f $ (iterator $ n $ f $ x)"
   apply (rule trans)
    apply (subst iterator_def2)
-   apply (simp add: dnat.rews)
+   apply simp
   apply (rule refl)
   done
 
@@ -59,13 +58,13 @@ lemma dnat_flat: "ALL x y::dnat. x<<y --> x=UU | x=y"
    apply (rule_tac x = y in dnat.casedist)
      apply simp
     apply simp
-   apply (simp add: dnat.dist_les)
+   apply simp
   apply (rule allI)
   apply (rule_tac x = y in dnat.casedist)
     apply (fast intro!: UU_I)
    apply (thin_tac "ALL y. d << y --> d = UU | d = y")
-   apply (simp add: dnat.dist_les)
-  apply (simp (no_asm_simp) add: dnat.rews dnat.injects dnat.inverts)
+   apply simp
+  apply (simp (no_asm_simp))
   apply (drule_tac x="da" in spec)
   apply simp
   done
