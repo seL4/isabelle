@@ -54,7 +54,8 @@ val base_mixfix = "_\<^bsub>base\<^esub>"
 val step_mixfix = "_\<^bsub>step\<^esub>"
 val abs_mixfix = "\<guillemotleft>_\<guillemotright>"
 val cyclic_co_val_name = "\<omega>"
-val cyclic_type_name = "\<xi>"
+val cyclic_const_prefix = "\<xi>"
+val cyclic_type_name = nitpick_prefix ^ cyclic_const_prefix
 val opt_flag = nitpick_prefix ^ "opt"
 val non_opt_flag = nitpick_prefix ^ "non_opt"
 
@@ -262,7 +263,7 @@ fun mk_tuple (Type ("*", [T1, T2])) ts =
 (* bool -> atom_pool -> string * string * string * string -> scope -> nut list
    -> nut list -> nut list -> nut NameTable.table -> KK.raw_bound list -> typ
    -> typ -> rep -> int list list -> term *)
-fun reconstruct_term elaborate pool (maybe_name, base_name, step_name, abs_name)
+fun reconstruct_term unfold pool (maybe_name, base_name, step_name, abs_name)
         ({hol_ctxt as {thy, ctxt, ...}, card_assigns, bits, datatypes, ofs, ...}
          : scope) sel_names rel_table bounds =
   let
@@ -435,7 +436,7 @@ fun reconstruct_term elaborate pool (maybe_name, base_name, step_name, abs_name)
             val maybe_cyclic = co orelse not standard
           in
             if maybe_cyclic andalso not (null seen) andalso
-               member (op =) (seen |> elaborate ? (fst o split_last)) (T, j) then
+               member (op =) (seen |> unfold ? (fst o split_last)) (T, j) then
               cyclic_var ()
             else if constr_s = @{const_name Word} then
               HOLogic.mk_number
@@ -480,14 +481,12 @@ fun reconstruct_term elaborate pool (maybe_name, base_name, step_name, abs_name)
               in
                 if maybe_cyclic then
                   let val var = cyclic_var () in
-                    if elaborate andalso not standard andalso
+                    if unfold andalso not standard andalso
                        length seen = 1 andalso
                        exists_subterm (fn Const (s, _) =>
-                                          String.isPrefix cyclic_type_name s
+                                          String.isPrefix cyclic_const_prefix s
                                         | t' => t' = var) t then
-                      let val atom = cyclic_atom () in
-                        HOLogic.mk_eq (atom, subst_atomic [(var, atom)] t)
-                      end
+                      subst_atomic [(var, cyclic_atom ())] t
                     else if exists_subterm (curry (op =) var) t then
                       if co then
                         Const (@{const_name The}, (T --> bool_T) --> T)
@@ -643,12 +642,22 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
                  bits = bits, bisim_depth = bisim_depth, datatypes = datatypes,
                  ofs = ofs}
     (* bool -> typ -> typ -> rep -> int list list -> term *)
-    fun term_for_rep elaborate =
-      reconstruct_term elaborate pool wacky_names scope sel_names rel_table
-                       bounds
-    (* nat -> typ -> nat -> typ *)
+    fun term_for_rep unfold =
+      reconstruct_term unfold pool wacky_names scope sel_names rel_table bounds
+    (* nat -> typ -> nat -> term *)
     fun nth_value_of_type card T n =
-      term_for_rep true T T (Atom (card, 0)) [[n]]
+      let
+        (* bool -> term *)
+        fun aux unfold = term_for_rep unfold T T (Atom (card, 0)) [[n]]
+      in
+        case aux false of
+          t as Const (s, _) =>
+          if String.isPrefix cyclic_const_prefix s then
+            HOLogic.mk_eq (t, aux true)
+          else
+            t
+        | t => t
+      end
     (* nat -> typ -> typ list *)
     fun all_values_of_type card T =
       index_seq 0 card |> map (nth_value_of_type card T) |> sort nice_term_ord
