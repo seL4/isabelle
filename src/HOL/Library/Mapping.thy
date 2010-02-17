@@ -28,6 +28,9 @@ subsection {* Derived operations *}
 definition keys :: "('a, 'b) mapping \<Rightarrow> 'a set" where
   "keys m = dom (lookup m)"
 
+definition ordered_keys :: "('a\<Colon>linorder, 'b) mapping \<Rightarrow> 'a list" where
+  "ordered_keys m = sorted_list_of_set (keys m)"
+
 definition is_empty :: "('a, 'b) mapping \<Rightarrow> bool" where
   "is_empty m \<longleftrightarrow> dom (lookup m) = {}"
 
@@ -139,6 +142,6 @@ lemma [code]:
   by (cases m) simp
 
 
-hide (open) const empty is_empty lookup update delete keys size replace tabulate bulkload
+hide (open) const empty is_empty lookup update delete ordered_keys keys size replace tabulate bulkload
 
 end
