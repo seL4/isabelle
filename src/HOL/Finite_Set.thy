@@ -2034,6 +2034,31 @@ lemma dvd_setsum [rule_format]: "(ALL i : A. d dvd f i) \<longrightarrow>
   apply auto
 done
 
+lemma setprod_mono:
+  fixes f :: "'a \<Rightarrow> 'b\<Colon>linordered_semidom"
+  assumes "\<forall>i\<in>A. 0 \<le> f i \<and> f i \<le> g i"
+  shows "setprod f A \<le> setprod g A"
+proof (cases "finite A")
+  case True
+  hence ?thesis "setprod f A \<ge> 0" using subset_refl[of A]
+  proof (induct A rule: finite_subset_induct)
+    case (insert a F)
+    thus "setprod f (insert a F) \<le> setprod g (insert a F)" "0 \<le> setprod f (insert a F)"
+      unfolding setprod_insert[OF insert(1,3)]
+      using assms[rule_format,OF insert(2)] insert
+      by (auto intro: mult_mono mult_nonneg_nonneg)
+  qed auto
+  thus ?thesis by simp
+qed auto
+
+lemma abs_setprod:
+  fixes f :: "'a \<Rightarrow> 'b\<Colon>{linordered_field,abs}"
+  shows "abs (setprod f A) = setprod (\<lambda>x. abs (f x)) A"
+proof (cases "finite A")
+  case True thus ?thesis
+    by induct (auto simp add: field_simps setprod_insert abs_mult)
+qed auto
+
 
 subsection {* Finite cardinality *}
 
