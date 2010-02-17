@@ -1019,8 +1019,8 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
     val indexed_problems = if j >= 0 then
                              [(j, nth problems j)]
                            else
-                             filter (is_problem_trivially_false o snd)
-                                    (0 upto length problems - 1 ~~ problems)
+                             filter_out (is_problem_trivially_false o snd)
+                                        (0 upto length problems - 1 ~~ problems)
     val triv_js = filter_out (AList.defined (op =) indexed_problems)
                              (0 upto length problems - 1)
     (* int -> int *)

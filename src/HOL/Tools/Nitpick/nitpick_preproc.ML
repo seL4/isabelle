@@ -517,8 +517,7 @@ fun destroy_pulled_out_constrs (hol_ctxt as {thy, ...}) axiom t =
         | (Const (x as (s, T)), args) =>
           let val arg_Ts = binder_types T in
             if length arg_Ts = length args andalso
-               (is_constr thy x orelse s = @{const_name Pair} orelse
-                x = (@{const_name Suc}, nat_T --> nat_T)) andalso
+               (is_constr thy x orelse s = @{const_name Pair}) andalso
                (not careful orelse not (is_Var t1) orelse
                 String.isPrefix val_var_prefix (fst (fst (dest_Var t1)))) then
               discriminate_value hol_ctxt x t1 ::
