@@ -970,6 +970,27 @@ proof-
   finally show ?thesis .
 qed
 
+lemma setsum_le_included:
+  fixes f :: "'a \<Rightarrow> 'b::{comm_monoid_add,ordered_ab_semigroup_add_imp_le}"
+  assumes "finite s" "finite t"
+  and "\<forall>y\<in>t. 0 \<le> g y" "(\<forall>x\<in>s. \<exists>y\<in>t. i y = x \<and> f x \<le> g y)"
+  shows "setsum f s \<le> setsum g t"
+proof -
+  have "setsum f s \<le> setsum (\<lambda>y. setsum g {x. x\<in>t \<and> i x = y}) s"
+  proof (rule setsum_mono)
+    fix y assume "y \<in> s"
+    with assms obtain z where z: "z \<in> t" "y = i z" "f y \<le> g z" by auto
+    with assms show "f y \<le> setsum g {x \<in> t. i x = y}" (is "?A y \<le> ?B y")
+      using order_trans[of "?A (i z)" "setsum g {z}" "?B (i z)", intro]
+      by (auto intro!: setsum_mono2)
+  qed
+  also have "... \<le> setsum (\<lambda>y. setsum g {x. x\<in>t \<and> i x = y}) (i ` t)"
+    using assms(2-4) by (auto intro!: setsum_mono2 setsum_nonneg)
+  also have "... \<le> setsum g t"
+    using assms by (auto simp: setsum_image_gen[symmetric])
+  finally show ?thesis .
+qed
+
 lemma setsum_multicount_gen:
   assumes "finite s" "finite t" "\<forall>j\<in>t. (card {i\<in>s. R i j} = k j)"
   shows "setsum (\<lambda>i. (card {j\<in>t. R i j})) s = setsum k t" (is "?l = ?r")
