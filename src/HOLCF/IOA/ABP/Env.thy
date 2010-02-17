@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/IOA/ABP/Impl.thy
-    ID:         $Id$
     Author:     Olaf Müller
 *)
 

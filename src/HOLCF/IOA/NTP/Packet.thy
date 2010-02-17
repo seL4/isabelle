@@ -1,5 +1,4 @@
 (*  Title:      HOL/IOA/NTP/Packet.thy
-    ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
 *)
 

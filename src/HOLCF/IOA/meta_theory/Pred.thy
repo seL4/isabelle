@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/IOA/meta_theory/Pred.thy
-    ID:         $Id$
     Author:     Olaf Müller
 *)
 

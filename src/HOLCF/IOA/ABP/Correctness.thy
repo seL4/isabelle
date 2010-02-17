@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/IOA/ABP/Correctness.thy
-    ID:         $Id$
     Author:     Olaf Müller
 *)
 

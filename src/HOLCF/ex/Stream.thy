@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/ex/Stream.thy
-    ID:         $Id$
     Author:     Franz Regensburger, David von Oheimb, Borislav Gajanovic
 *)
 

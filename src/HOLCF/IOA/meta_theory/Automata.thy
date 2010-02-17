@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/IOA/meta_theory/Automata.thy
-    ID:         $Id$
     Author:     Olaf Müller, Konrad Slind, Tobias Nipkow
 *)
 

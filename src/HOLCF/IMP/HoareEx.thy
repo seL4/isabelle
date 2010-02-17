@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/IMP/HoareEx.thy
-    ID:         $Id$
     Author:     Tobias Nipkow, TUM
     Copyright   1997 TUM
 *)

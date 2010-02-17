@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/ex/Loop.thy
-    ID:         $Id$
     Author:     Franz Regensburger
 *)
 

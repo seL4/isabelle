@@ -1,5 +1,4 @@
 (*  Title:      HOL/IOA/example/Spec.thy
-    ID:         $Id$
     Author:     Olaf Müller
 *)
 

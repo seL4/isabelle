@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 (* Specification of the following loop back device
 
 

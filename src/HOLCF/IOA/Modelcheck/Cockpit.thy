@@ -1,6 +1,3 @@
-
-(* $Id$ *)
-
 theory Cockpit
 imports MuIOAOracle
 begin

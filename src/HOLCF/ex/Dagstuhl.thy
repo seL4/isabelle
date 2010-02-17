@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Dagstuhl
 imports Stream
 begin

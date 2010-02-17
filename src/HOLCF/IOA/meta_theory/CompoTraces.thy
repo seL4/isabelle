@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/IOA/meta_theory/CompoTraces.thy
-    ID:         $Id$
     Author:     Olaf Müller
 *) 
 
