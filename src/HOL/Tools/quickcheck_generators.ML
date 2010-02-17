@@ -139,7 +139,7 @@ fun random_aux_primrec eq lthy =
     val eqs0 = [subst_v @{term "0::code_numeral"} eq,
       subst_v (@{term "Suc_code_numeral"} $ t_k) eq];
     val eqs1 = map (Pattern.rewrite_term thy rew_ts []) eqs0;
-    val ((_, eqs2), lthy') = Primrec.add_primrec_simple
+    val ((_, (_, eqs2)), lthy') = Primrec.add_primrec_simple
       [((Binding.conceal (Binding.name random_aux), T), NoSyn)] eqs1 lthy;
     val cT_random_aux = inst pt_random_aux;
     val cT_rhs = inst pt_rhs;
@@ -148,7 +148,7 @@ fun random_aux_primrec eq lthy =
            [(cT_random_aux, cert t_random_aux), (cT_rhs, cert t_rhs)]);
     val tac = ALLGOALS (rtac rule)
       THEN ALLGOALS (simp_tac rew_ss)
-      THEN (ALLGOALS (ProofContext.fact_tac (flat eqs2)))
+      THEN (ALLGOALS (ProofContext.fact_tac eqs2))
     val simp = Skip_Proof.prove lthy' [v] [] eq (K tac);
   in (simp, lthy') end;
 

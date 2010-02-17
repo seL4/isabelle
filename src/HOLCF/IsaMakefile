@@ -95,6 +95,7 @@ $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF \
   ex/Dagstuhl.thy \
   ex/Dnat.thy \
   ex/Domain_ex.thy \
+  ex/Domain_Proofs.thy \
   ex/Fix2.thy \
   ex/Fixrec_ex.thy \
   ex/Focus_ex.thy \
@@ -103,6 +104,7 @@ $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF \
   ex/New_Domain.thy \
   ex/Powerdomain_ex.thy \
   ex/Stream.thy \
+  ex/Strict_Fun.thy \
   ex/ROOT.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF ex
 

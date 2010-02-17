@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/ex/hoare.thy
-    ID:         $Id$
     Author:     Franz Regensburger
 
 Theory for an example by C.A.R. Hoare

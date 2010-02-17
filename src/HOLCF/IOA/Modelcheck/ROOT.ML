@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/IOA/Modelcheck/ROOT.ML
-    ID:         $Id$
     Author:     Olaf Mueller and Tobias Hamberger, TU Muenchen
 
 Modelchecker setup for I/O automata.

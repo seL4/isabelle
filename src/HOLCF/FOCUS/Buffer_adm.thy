@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/FOCUS/Buffer_adm.thy
-    ID:         $Id$
     Author:     David von Oheimb, TU Muenchen
 *)
 

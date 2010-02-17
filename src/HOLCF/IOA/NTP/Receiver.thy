@@ -1,5 +1,4 @@
 (*  Title:      HOL/IOA/NTP/Receiver.thy
-    ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
 *)
 

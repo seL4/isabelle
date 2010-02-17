@@ -8,16 +8,16 @@ Package for defining functions on datatypes by primitive recursion.
 signature PRIMREC =
 sig
   val add_primrec: (binding * typ option * mixfix) list ->
-    (Attrib.binding * term) list -> local_theory -> thm list * local_theory
+    (Attrib.binding * term) list -> local_theory -> (term list * thm list) * local_theory
   val add_primrec_cmd: (binding * string option * mixfix) list ->
-    (Attrib.binding * string) list -> local_theory -> thm list * local_theory
+    (Attrib.binding * string) list -> local_theory -> (term list * thm list) * local_theory
   val add_primrec_global: (binding * typ option * mixfix) list ->
-    (Attrib.binding * term) list -> theory -> thm list * theory
+    (Attrib.binding * term) list -> theory -> (term list * thm list) * theory
   val add_primrec_overloaded: (string * (string * typ) * bool) list ->
     (binding * typ option * mixfix) list ->
-    (Attrib.binding * term) list -> theory -> thm list * theory
+    (Attrib.binding * term) list -> theory -> (term list * thm list) * theory
   val add_primrec_simple: ((binding * typ) * mixfix) list -> term list ->
-    local_theory -> (string * thm list list) * local_theory
+    local_theory -> (string * (term list * thm list)) * local_theory
 end;
 
 structure Primrec : PRIMREC =
@@ -244,7 +244,7 @@ fun distill lthy fixes eqs =
         val rewrites = rec_rewrites' @ map (snd o snd) defs;
         fun tac _ = EVERY [rewrite_goals_tac rewrites, rtac refl 1];
         val _ = message ("Proving equations for primrec function(s) " ^ commas_quote names);
-      in map (fn eq => [Goal.prove lthy frees [] eq tac]) eqs end;
+      in map (fn eq => Goal.prove lthy frees [] eq tac) eqs end;
   in ((prefix, (fs, defs)), prove) end
   handle PrimrecError (msg, some_eqn) =>
     error ("Primrec definition error:\n" ^ msg ^ (case some_eqn
@@ -260,7 +260,7 @@ fun add_primrec_simple fixes ts lthy =
   in
     lthy
     |> fold_map Local_Theory.define defs
-    |-> (fn defs => `(fn lthy => (prefix, prove lthy defs)))
+    |-> (fn defs => `(fn lthy => (prefix, (map fst defs, prove lthy defs))))
   end;
 
 local
@@ -285,10 +285,10 @@ fun gen_primrec prep_spec raw_fixes raw_spec lthy =
   in
     lthy
     |> add_primrec_simple fixes (map snd spec)
-    |-> (fn (prefix, simps) => fold_map Local_Theory.note (attr_bindings prefix ~~ simps)
+    |-> (fn (prefix, (ts, simps)) => fold_map Local_Theory.note (attr_bindings prefix ~~ map single simps)
       #-> (fn simps' => Local_Theory.note (simp_attr_binding prefix, maps snd simps')
+      #>> (fn (_, simps'') => (ts, simps''))
       ##> (Spec_Rules.add Spec_Rules.Equational (specs_of simps'))))
-    |>> snd
   end;
 
 in
@@ -301,16 +301,16 @@ end;
 fun add_primrec_global fixes specs thy =
   let
     val lthy = Theory_Target.init NONE thy;
-    val (simps, lthy') = add_primrec fixes specs lthy;
+    val ((ts, simps), lthy') = add_primrec fixes specs lthy;
     val simps' = ProofContext.export lthy' lthy simps;
-  in (simps', Local_Theory.exit_global lthy') end;
+  in ((ts, simps'), Local_Theory.exit_global lthy') end;
 
 fun add_primrec_overloaded ops fixes specs thy =
   let
     val lthy = Theory_Target.overloading ops thy;
-    val (simps, lthy') = add_primrec fixes specs lthy;
+    val ((ts, simps), lthy') = add_primrec fixes specs lthy;
     val simps' = ProofContext.export lthy' lthy simps;
-  in (simps', Local_Theory.exit_global lthy') end;
+  in ((ts, simps'), Local_Theory.exit_global lthy') end;
 
 
 (* outer syntax *)

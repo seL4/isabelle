@@ -3179,6 +3179,23 @@ definition
         (\<forall>e>0. \<exists>d>0. \<forall>x\<in>s. \<forall> x'\<in>s. dist x' x < d
                            --> dist (f x') (f x) < e)"
 
+
+text{* Lifting and dropping *}
+
+lemma continuous_on_o_dest_vec1: fixes f::"real \<Rightarrow> 'a::real_normed_vector"
+  assumes "continuous_on {a..b::real} f" shows "continuous_on {vec1 a..vec1 b} (f o dest_vec1)"
+  using assms unfolding continuous_on_def apply safe
+  apply(erule_tac x="x$1" in ballE,erule_tac x=e in allE) apply safe
+  apply(rule_tac x=d in exI) apply safe unfolding o_def dist_real_def dist_real 
+  apply(erule_tac x="dest_vec1 x'" in ballE) by(auto simp add:vector_le_def)
+
+lemma continuous_on_o_vec1: fixes f::"real^1 \<Rightarrow> 'a::real_normed_vector"
+  assumes "continuous_on {a..b} f" shows "continuous_on {dest_vec1 a..dest_vec1 b} (f o vec1)"
+  using assms unfolding continuous_on_def apply safe
+  apply(erule_tac x="vec x" in ballE,erule_tac x=e in allE) apply safe
+  apply(rule_tac x=d in exI) apply safe unfolding o_def dist_real_def dist_real 
+  apply(erule_tac x="vec1 x'" in ballE) by(auto simp add:vector_le_def)
+
 text{* Some simple consequential lemmas. *}
 
 lemma uniformly_continuous_imp_continuous:
@@ -3707,6 +3724,17 @@ lemma continuous_closed_vimage:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space" (* FIXME: generalize *)
   shows "\<forall>x. continuous (at x) f \<Longrightarrow> closed s \<Longrightarrow> closed (f -` s)"
   unfolding vimage_def by (rule continuous_closed_preimage_univ)
+
+lemma interior_image_subset: fixes f::"_::metric_space \<Rightarrow> _::metric_space"
+  assumes "\<forall>x. continuous (at x) f" "inj f"
+  shows "interior (f ` s) \<subseteq> f ` (interior s)"
+  apply rule unfolding interior_def mem_Collect_eq image_iff apply safe
+proof- fix x T assume as:"open T" "x \<in> T" "T \<subseteq> f ` s" 
+  hence "x \<in> f ` s" by auto then guess y unfolding image_iff .. note y=this
+  thus "\<exists>xa\<in>{x. \<exists>T. open T \<and> x \<in> T \<and> T \<subseteq> s}. x = f xa" apply(rule_tac x=y in bexI) using assms as
+    apply safe apply(rule_tac x="{x. f x \<in> T}" in exI) apply(safe,rule continuous_open_preimage_univ)
+  proof- fix x assume "f x \<in> T" hence "f x \<in> f ` s" using as by auto
+    thus "x \<in> s" unfolding inj_image_mem_iff[OF assms(2)] . qed auto qed
 
 text{* Equality of continuous functions on closure and related results.          *}
 

@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/IOA/meta_theory/RefMappings.thy
-    ID:         $Id$
     Author:     Olaf Müller
 *)
 

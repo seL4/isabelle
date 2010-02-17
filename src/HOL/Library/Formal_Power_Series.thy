@@ -2864,8 +2864,8 @@ proof-
     then have nz: "pochhammer (1 + b - of_nat n) n \<noteq> 0" 
       by (auto simp add: algebra_simps)
     
-    from nz kn have nz': "pochhammer (1 + b - of_nat n) k \<noteq> 0" 
-      by (simp add: pochhammer_neq_0_mono)
+    from nz kn [simplified] have nz': "pochhammer (1 + b - of_nat n) k \<noteq> 0" 
+      by (rule pochhammer_neq_0_mono)
     {assume k0: "k = 0 \<or> n =0" 
       then have "b gchoose (n - k) = (?m1 n * ?p b n * ?m1 k * ?p (of_nat n) k) / (?f n * pochhammer (b - of_nat n + 1) k)" 
         using kn

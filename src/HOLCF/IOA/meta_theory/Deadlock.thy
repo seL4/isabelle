@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/IOA/meta_theory/Deadlock.thy
-    ID:         $Id$
     Author:     Olaf Müller
 *)
 

@@ -1,5 +1,4 @@
 (*  Title:      HOL/IOA/NTP/Abschannel.thy
-    ID:         $Id$
     Author:     Olaf Müller
 *)
 

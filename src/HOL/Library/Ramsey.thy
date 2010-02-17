@@ -111,7 +111,7 @@ next
         have infYx': "infinite (Yx-{yx'})" using fields px by auto
         with fields px yx' Suc.prems
         have partfx': "part r s (Yx - {yx'}) (f \<circ> insert yx')"
-          by (simp add: o_def part_Suc_imp_part part_subset [where ?YY=YY]) 
+          by (simp add: o_def part_Suc_imp_part part_subset [where YY=YY and Y=Yx])
         from Suc.hyps [OF infYx' partfx']
         obtain Y' and t'
         where Y': "Y' \<subseteq> Yx - {yx'}"  "infinite Y'"  "t' < s"

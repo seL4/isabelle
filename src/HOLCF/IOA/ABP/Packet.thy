@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/IOA/ABP/Packet.thy
-    ID:         $Id$
     Author:     Olaf Müller
 *)
 

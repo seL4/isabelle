@@ -980,7 +980,8 @@ proof (rule bit_list_cases [of w], simp_all)
   fix xs
   assume "length (norm_signed (\<zero>#xs)) = Suc (length xs)"
   thus "norm_signed (\<zero>#xs) = \<zero>#xs"
-    by (simp add: norm_signed_Cons norm_unsigned_equal split: split_if_asm)
+    by (simp add: norm_signed_Cons norm_unsigned_equal [THEN eqTrueI]
+             split: split_if_asm)
 next
   fix xs
   assume "length (norm_signed (\<one>#xs)) = Suc (length xs)"
