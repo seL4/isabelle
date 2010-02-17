@@ -5,7 +5,7 @@
 header {* Map operations implemented on association lists*}
 
 theory AssocList 
-imports Main
+imports Main Mapping
 begin
 
 text {*
@@ -655,5 +655,49 @@ lemma map_comp_None_iff:
   "(map_of (compose xs ys) k = None) = 
     (map_of xs k = None \<or> (\<exists>k'. map_of xs k = Some k' \<and> map_of ys k' = None)) " 
   by (simp add: compose_conv map_comp_None_iff)
+
+
+subsection {* Implementation of mappings *}
+
+definition AList :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) mapping" where
+  "AList xs = Mapping (map_of xs)"
+
+code_datatype AList
+
+lemma lookup_AList [simp, code]:
+  "Mapping.lookup (AList xs) = map_of xs"
+  by (simp add: AList_def)
+
+lemma empty_AList [code]:
+  "Mapping.empty = AList []"
+  by (rule mapping_eqI) simp
+
+lemma is_empty_AList [code]:
+  "Mapping.is_empty (AList xs) \<longleftrightarrow> null xs"
+  by (cases xs) (simp_all add: is_empty_def)
+
+lemma update_AList [code]:
+  "Mapping.update k v (AList xs) = AList (update k v xs)"
+  by (rule mapping_eqI) (simp add: update_conv')
+
+lemma delete_AList [code]:
+  "Mapping.delete k (AList xs) = AList (delete k xs)"
+  by (rule mapping_eqI) (simp add: delete_conv')
+
+lemma keys_AList [code]:
+  "Mapping.keys (AList xs) = set (map fst xs)"
+  by (simp add: keys_def dom_map_of_conv_image_fst)
+
+lemma size_AList [code]:
+  "Mapping.size (AList xs) = length (remdups (map fst xs))"
+  by (simp add: size_def length_remdups_card_conv dom_map_of_conv_image_fst)
+
+lemma tabulate_AList [code]:
+  "Mapping.tabulate ks f = AList (map (\<lambda>k. (k, f k)) ks)"
+  by (rule mapping_eqI) (simp add: map_of_map_restrict)
+
+lemma bulkload_AList [code]:
+  "Mapping.bulkload vs = AList (map (\<lambda>n. (n, vs ! n)) [0..<length vs])"
+  by (rule mapping_eqI) (simp add: map_of_map_restrict expand_fun_eq)
 
 end
