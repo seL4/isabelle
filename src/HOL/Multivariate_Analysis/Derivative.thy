@@ -387,7 +387,7 @@ proof assume ?lhs thus ?rhs unfolding has_derivative_within apply-apply(erule co
       apply(rule_tac le_less_trans[of _ "e/2"]) by(auto intro!:mult_imp_div_pos_le simp add:group_simps) qed auto qed
 
 lemma has_derivative_at_alt:
-  "(f has_derivative f') (at (x::real^'n)) \<longleftrightarrow> bounded_linear f' \<and>
+  "(f has_derivative f') (at x) \<longleftrightarrow> bounded_linear f' \<and>
   (\<forall>e>0. \<exists>d>0. \<forall>y. norm(y - x) < d \<longrightarrow> norm(f y - f x - f'(y - x)) \<le> e * norm(y - x))"
   using has_derivative_within_alt[where s=UNIV] unfolding within_UNIV by auto
 

@@ -1,5 +1,5 @@
 theory Multivariate_Analysis
-imports Determinants Derivative
+imports Determinants Integration
 begin
 
 end

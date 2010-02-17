@@ -1042,11 +1042,6 @@ lemma norm_triangle_sub:
   shows "norm x \<le> norm y  + norm (x - y)"
   using norm_triangle_ineq[of "y" "x - y"] by (simp add: ring_simps)
 
-lemma norm_triangle_le: "norm(x::real ^ 'n) + norm y <= e ==> norm(x + y) <= e"
-  by (metis order_trans norm_triangle_ineq)
-lemma norm_triangle_lt: "norm(x::real ^ 'n) + norm(y) < e ==> norm(x + y) < e"
-  by (metis basic_trans_rules(21) norm_triangle_ineq)
-
 lemma component_le_norm: "\<bar>x$i\<bar> <= norm x"
   apply (simp add: norm_vector_def)
   apply (rule member_le_setL2, simp_all)
@@ -1274,6 +1269,22 @@ lemma dist_triangle_half_r:
   fixes x1 x2 y :: "'a::metric_space"
   shows "dist y x1 < e / 2 \<Longrightarrow> dist y x2 < e / 2 \<Longrightarrow> dist x1 x2 < e"
 by (rule dist_triangle_half_l, simp_all add: dist_commute)
+
+
+lemma norm_triangle_half_r:
+  shows "norm (y - x1) < e / 2 \<Longrightarrow> norm (y - x2) < e / 2 \<Longrightarrow> norm (x1 - x2) < e"
+  using dist_triangle_half_r unfolding vector_dist_norm[THEN sym] by auto
+
+lemma norm_triangle_half_l: assumes "norm (x - y) < e / 2" "norm (x' - (y)) < e / 2" 
+  shows "norm (x - x') < e"
+  using dist_triangle_half_l[OF assms[unfolded vector_dist_norm[THEN sym]]]
+  unfolding vector_dist_norm[THEN sym] .
+
+lemma norm_triangle_le: "norm(x) + norm y <= e ==> norm(x + y) <= e"
+  by (metis order_trans norm_triangle_ineq)
+
+lemma norm_triangle_lt: "norm(x) + norm(y) < e ==> norm(x + y) < e"
+  by (metis basic_trans_rules(21) norm_triangle_ineq)
 
 lemma dist_triangle_add:
   fixes x y x' y' :: "'a::real_normed_vector"
