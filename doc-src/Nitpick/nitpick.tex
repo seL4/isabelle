@@ -2080,9 +2080,10 @@ theoretical chance of finding a counterexample.
 {\small See also \textit{mono} (\S\ref{scope-of-search}).}
 
 \opargbool{std}{type}{non\_std}
-Specifies whether the given type should be given standard models.
-Nonstandard models are unsound but can help debug inductive arguments,
-as explained in \S\ref{inductive-properties}.
+Specifies whether the given (recursive) datatype should be given standard
+models. Nonstandard models are unsound but can help debug structural induction
+proofs, as explained in \S\ref{inductive-properties}.
+%This option is not supported for the type \textit{nat}.
 
 \optrue{std}{non\_std}
 Specifies the default standardness to use. This can be overridden on a per-type
