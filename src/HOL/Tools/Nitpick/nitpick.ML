@@ -382,29 +382,22 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       else
         ()
     val deep_dataTs = filter is_deep_datatype all_Ts
-    (* FIXME: Implement proper detection of induction datatypes. *)
+    (* This detection code is an ugly hack. Fortunately, it is used only to
+       provide a hint to the user. *)
     (* string * (Rule_Cases.T * bool) -> bool *)
-    fun is_inductive_case (_, (Rule_Cases.Case {fixes, assumes, ...}, _)) =
-      false
-(*
-      not (null fixes) andalso exists (String.isSuffix ".hyps" o fst) assumes
-*)
-    (* unit -> typ list *)
-    val induct_dataTs =
-      if exists is_inductive_case (ProofContext.cases_of ctxt) then
-        filter (is_datatype thy) all_Ts
-      else
-        []
-    val _ = if standard andalso not (null induct_dataTs) then
+    fun is_struct_induct_step (name, (Rule_Cases.Case {fixes, assumes, ...}, _)) =
+      not (null fixes) andalso
+      exists (String.isSuffix ".hyps" o fst) assumes andalso
+      exists (exists (curry (op =) name o shortest_name o fst)
+              o datatype_constrs hol_ctxt) deep_dataTs
+    val likely_in_struct_induct_step =
+      exists is_struct_induct_step (ProofContext.cases_of ctxt)
+    val _ = if standard andalso likely_in_struct_induct_step then
               pprint_m (fn () => Pretty.blk (0,
                   pstrs "Hint: To check that the induction hypothesis is \
                         \general enough, try this command: " @
                   [Pretty.mark Markup.sendback (Pretty.blk (0,
-                       pstrs ("nitpick [" ^
-                              commas (map (prefix "non_std " o maybe_quote
-                                           o unyxml o string_for_type ctxt)
-                                          induct_dataTs) ^
-                              ", show_consts]")))] @ pstrs "."))
+                       pstrs ("nitpick [non_std, show_all]")))] @ pstrs "."))
             else
               ()
 (*
@@ -635,7 +628,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
               | NONE => print "No confirmation by \"auto\".")
            else
              ();
-           if not standard andalso not (null induct_dataTs) then
+           if not standard andalso likely_in_struct_induct_step then
              print "The existence of a nonstandard model suggests that the \
                    \induction hypothesis is not general enough or perhaps even \
                    \wrong. See the \"Inductive Properties\" section of the \
@@ -874,7 +867,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
           if max_potential = original_max_potential then
             (print_m (fn () =>
                  "Nitpick found no " ^ das_wort_model ^ "." ^
-                 (if not standard andalso not (null induct_dataTs) then
+                 (if not standard andalso likely_in_struct_induct_step then
                     " This suggests that the induction hypothesis might be \
                     \general enough to prove this subgoal."
                   else
