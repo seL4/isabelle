@@ -29,6 +29,7 @@ sig
   val pattern: term -> bool
   val match_rew: theory -> term -> term * term -> (term * term) option
   val rewrite_term: theory -> (term * term) list -> (term -> term option) list -> term -> term
+  val rewrite_term_top: theory -> (term * term) list -> (term -> term option) list -> term -> term
   exception Unif
   exception MATCH
   exception Pattern
@@ -432,7 +433,7 @@ fun match_rew thy tm (tm1, tm2) =
       handle MATCH => NONE
   end;
 
-fun rewrite_term thy rules procs tm =
+fun gen_rewrite_term bot thy rules procs tm =
   let
     val skel0 = Bound 0;
 
@@ -448,42 +449,53 @@ fun rewrite_term thy rules procs tm =
             NONE => Option.map (rpair skel0) (get_first (fn p => p tm) procs)
           | x => x);
 
-    fun rew1 bounds (Var _) _ = NONE
-      | rew1 bounds skel tm = (case rew2 bounds skel tm of
-          SOME tm1 => (case rew tm1 of
-              SOME (tm2, skel') => SOME (the_default tm2 (rew1 bounds skel' tm2))
-            | NONE => SOME tm1)
-        | NONE => (case rew tm of
-              SOME (tm1, skel') => SOME (the_default tm1 (rew1 bounds skel' tm1))
-            | NONE => NONE))
-
-    and rew2 bounds skel (tm1 $ tm2) = (case tm1 of
+    fun rew_sub r bounds skel (tm1 $ tm2) = (case tm1 of
             Abs (_, _, body) =>
               let val tm' = subst_bound (tm2, body)
-              in SOME (the_default tm' (rew2 bounds skel0 tm')) end
+              in SOME (the_default tm' (rew_sub r bounds skel0 tm')) end
           | _ =>
             let val (skel1, skel2) = (case skel of
                 skel1 $ skel2 => (skel1, skel2)
               | _ => (skel0, skel0))
-            in case rew1 bounds skel1 tm1 of
-                SOME tm1' => (case rew1 bounds skel2 tm2 of
+            in case r bounds skel1 tm1 of
+                SOME tm1' => (case r bounds skel2 tm2 of
                     SOME tm2' => SOME (tm1' $ tm2')
                   | NONE => SOME (tm1' $ tm2))
-              | NONE => (case rew1 bounds skel2 tm2 of
+              | NONE => (case r bounds skel2 tm2 of
                     SOME tm2' => SOME (tm1 $ tm2')
                   | NONE => NONE)
             end)
-      | rew2 bounds skel (Abs body) =
+      | rew_sub r bounds skel (Abs body) =
           let
             val (abs, tm') = variant_absfree bounds body;
             val skel' = (case skel of Abs (_, _, skel') => skel' | _ => skel0)
-          in case rew1 (bounds + 1) skel' tm' of
+          in case r (bounds + 1) skel' tm' of
               SOME tm'' => SOME (abs tm'')
             | NONE => NONE
           end
-      | rew2 _ _ _ = NONE;
+      | rew_sub _ _ _ _ = NONE;
 
-  in the_default tm (rew1 0 skel0 tm) end;
+    fun rew_bot bounds (Var _) _ = NONE
+      | rew_bot bounds skel tm = (case rew_sub rew_bot bounds skel tm of
+          SOME tm1 => (case rew tm1 of
+              SOME (tm2, skel') => SOME (the_default tm2 (rew_bot bounds skel' tm2))
+            | NONE => SOME tm1)
+        | NONE => (case rew tm of
+              SOME (tm1, skel') => SOME (the_default tm1 (rew_bot bounds skel' tm1))
+            | NONE => NONE));
+
+    fun rew_top bounds _ tm = (case rew tm of
+          SOME (tm1, _) => (case rew_sub rew_top bounds skel0 tm1 of
+              SOME tm2 => SOME (the_default tm2 (rew_top bounds skel0 tm2))
+            | NONE => SOME tm1)
+        | NONE => (case rew_sub rew_top bounds skel0 tm of
+              SOME tm1 => SOME (the_default tm1 (rew_top bounds skel0 tm1))
+            | NONE => NONE));
+
+  in the_default tm ((if bot then rew_bot else rew_top) 0 skel0 tm) end;
+
+val rewrite_term = gen_rewrite_term true;
+val rewrite_term_top = gen_rewrite_term false;
 
 end;
 
