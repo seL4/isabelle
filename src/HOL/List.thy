@@ -284,9 +284,8 @@ primrec insort_key :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b \<Rightarrow> 'b l
 "insort_key f x [] = [x]" |
 "insort_key f x (y#ys) = (if f x \<le> f y then (x#y#ys) else y#(insort_key f x ys))"
 
-primrec sort_key :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b list \<Rightarrow> 'b list" where
-"sort_key f [] = []" |
-"sort_key f (x#xs) = insort_key f x (sort_key f xs)"
+definition sort_key :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b list \<Rightarrow> 'b list" where
+"sort_key f xs = foldr (insort_key f) xs []"
 
 abbreviation "sort \<equiv> sort_key (\<lambda>x. x)"
 abbreviation "insort \<equiv> insort_key (\<lambda>x. x)"
@@ -720,6 +719,11 @@ by (induct xs) auto
 
 lemma map_map [simp]: "map f (map g xs) = map (f \<circ> g) xs"
 by (induct xs) auto
+
+lemma map_comp_map[simp]: "((map f) o (map g)) = map(f o g)"
+apply(rule ext)
+apply(simp)
+done
 
 lemma rev_map: "rev (map f xs) = map f (rev xs)"
 by (induct xs) auto
@@ -2266,6 +2270,12 @@ lemma foldr_cong [fundef_cong, recdef_cong]:
   ==> foldr f l a = foldr g k b"
 by (induct k arbitrary: a b l) simp_all
 
+lemma foldl_fun_comm:
+  assumes "\<And>x y s. f (f s x) y = f (f s y) x"
+  shows "f (foldl f s xs) x = foldl f (f s x) xs"
+  by (induct xs arbitrary: s)
+    (simp_all add: assms)
+
 lemma (in semigroup_add) foldl_assoc:
 shows "foldl op+ (x+y) zs = x + (foldl op+ y zs)"
 by (induct zs arbitrary: y) (simp_all add:add_assoc)
@@ -2273,6 +2283,15 @@ by (induct zs arbitrary: y) (simp_all add:add_assoc)
 lemma (in monoid_add) foldl_absorb0:
 shows "x + (foldl op+ 0 zs) = foldl op+ x zs"
 by (induct zs) (simp_all add:foldl_assoc)
+
+lemma foldl_rev:
+  assumes "\<And>x y s. f (f s x) y = f (f s y) x"
+  shows "foldl f s (rev xs) = foldl f s xs"
+proof (induct xs arbitrary: s)
+  case Nil then show ?case by simp
+next
+  case (Cons x xs) with assms show ?case by (simp add: foldl_fun_comm)
+qed
 
 
 text{* The ``First Duality Theorem'' in Bird \& Wadler: *}
@@ -2341,6 +2360,10 @@ lemma concat_conv_foldl: "concat xss = foldl (op @) [] xss"
   by (simp add: foldl_conv_concat)
 
 text {* @{const Finite_Set.fold} and @{const foldl} *}
+
+lemma (in fun_left_comm) fold_set_remdups:
+  "fold f y (set xs) = foldl (\<lambda>y x. f x y) y (remdups xs)"
+  by (rule sym, induct xs arbitrary: y) (simp_all add: fold_fun_comm insert_absorb)
 
 lemma (in fun_left_comm_idem) fold_set:
   "fold f y (set xs) = foldl (\<lambda>y x. f x y) y xs"
@@ -3438,6 +3461,24 @@ begin
 lemma length_insert[simp] : "length (insort_key f x xs) = Suc (length xs)"
 by (induct xs, auto)
 
+lemma insort_left_comm:
+  "insort x (insort y xs) = insort y (insort x xs)"
+  by (induct xs) auto
+
+lemma fun_left_comm_insort:
+  "fun_left_comm insort"
+proof
+qed (fact insort_left_comm)
+
+lemma sort_key_simps [simp]:
+  "sort_key f [] = []"
+  "sort_key f (x#xs) = insort_key f x (sort_key f xs)"
+  by (simp_all add: sort_key_def)
+
+lemma sort_foldl_insort:
+  "sort xs = foldl (\<lambda>ys x. insort x ys) [] xs"
+  by (simp add: sort_key_def foldr_foldl foldl_rev insort_left_comm)
+
 lemma length_sort[simp]: "length (sort_key f xs) = length xs"
 by (induct xs, auto)
 
@@ -3800,27 +3841,35 @@ lists. Warning: in most cases it is not a good idea to convert from
 sets to lists but one should convert in the other direction (via
 @{const set}). *}
 
-
 context linorder
 begin
 
-definition
- sorted_list_of_set :: "'a set \<Rightarrow> 'a list" where
- [code del]: "sorted_list_of_set A == THE xs. set xs = A & sorted xs & distinct xs"
+definition sorted_list_of_set :: "'a set \<Rightarrow> 'a list" where
+  "sorted_list_of_set = Finite_Set.fold insort []"
 
-lemma sorted_list_of_set[simp]: "finite A \<Longrightarrow>
-  set(sorted_list_of_set A) = A &
-  sorted(sorted_list_of_set A) & distinct(sorted_list_of_set A)"
-apply(simp add:sorted_list_of_set_def)
-apply(rule the1I2)
- apply(simp_all add: finite_sorted_distinct_unique)
-done
+lemma sorted_list_of_set_empty [simp]:
+  "sorted_list_of_set {} = []"
+  by (simp add: sorted_list_of_set_def)
 
-lemma sorted_list_of_empty[simp]: "sorted_list_of_set {} = []"
-unfolding sorted_list_of_set_def
-apply(subst the_equality[of _ "[]"])
-apply simp_all
-done
+lemma sorted_list_of_set_insert [simp]:
+  assumes "finite A"
+  shows "sorted_list_of_set (insert x A) = insort x (sorted_list_of_set (A - {x}))"
+proof -
+  interpret fun_left_comm insort by (fact fun_left_comm_insort)
+  with assms show ?thesis by (simp add: sorted_list_of_set_def fold_insert_remove)
+qed
+
+lemma sorted_list_of_set [simp]:
+  "finite A \<Longrightarrow> set (sorted_list_of_set A) = A \<and> sorted (sorted_list_of_set A) 
+    \<and> distinct (sorted_list_of_set A)"
+  by (induct A rule: finite_induct) (simp_all add: set_insort sorted_insort distinct_insort)
+
+lemma sorted_list_of_set_sort_remdups:
+  "sorted_list_of_set (set xs) = sort (remdups xs)"
+proof -
+  interpret fun_left_comm insort by (fact fun_left_comm_insort)
+  show ?thesis by (simp add: sort_foldl_insort sorted_list_of_set_def fold_set_remdups)
+qed
 
 end
 
