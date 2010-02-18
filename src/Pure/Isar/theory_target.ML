@@ -7,12 +7,14 @@ Common theory/locale/class/instantiation/overloading targets.
 
 signature THEORY_TARGET =
 sig
-  val peek: local_theory -> {target: string, is_locale: bool,
-    is_class: bool, instantiation: string list * (string * sort) list * sort,
+  val peek: local_theory ->
+   {target: string,
+    is_locale: bool,
+    is_class: bool,
+    instantiation: string list * (string * sort) list * sort,
     overloading: (string * (string * typ) * bool) list}
   val init: string option -> theory -> local_theory
-  val begin: string -> Proof.context -> local_theory
-  val context: xstring -> theory -> local_theory
+  val context_cmd: xstring -> theory -> local_theory
   val instantiation: string list * (string * sort) list * sort -> theory -> local_theory
   val instantiation_cmd: xstring list * xstring list * xstring -> theory -> local_theory
   val overloading: (string * (string * typ) * bool) list -> theory -> local_theory
@@ -305,13 +307,13 @@ fun define ta ((b, mx), ((name, atts), rhs)) lthy =
   in ((lhs, (res_name, res)), lthy4) end;
 
 
-(* init *)
+(* init various targets *)
 
 local
 
 fun init_target _ NONE = global_target
   | init_target thy (SOME target) =
-      if Locale.defined thy (Locale.intern thy target)
+      if Locale.defined thy target
       then make_target target true (Class_Target.is_class thy target) ([], [], []) []
       else error ("No such locale: " ^ quote target);
 
@@ -349,17 +351,12 @@ fun gen_overloading prep_const raw_ops thy =
 in
 
 fun init target thy = init_lthy_ctxt (init_target thy target) thy;
-fun begin target ctxt = init_lthy (init_target (ProofContext.theory_of ctxt) (SOME target)) ctxt;
 
-fun context "-" thy = init NONE thy
-  | context target thy = init (SOME (Locale.intern thy target)) thy;
-
-
-(* other targets *)
+fun context_cmd "-" thy = init NONE thy
+  | context_cmd target thy = init (SOME (Locale.intern thy target)) thy;
 
 fun instantiation arities = init_lthy_ctxt (make_target "" false false arities []);
-fun instantiation_cmd raw_arities thy =
-  instantiation (Class_Target.read_multi_arity thy raw_arities) thy;
+fun instantiation_cmd arities thy = instantiation (Class_Target.read_multi_arity thy arities) thy;
 
 val overloading = gen_overloading (fn ctxt => Syntax.check_term ctxt o Const);
 val overloading_cmd = gen_overloading Syntax.read_term;

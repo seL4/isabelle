@@ -286,23 +286,25 @@ fun read_classrel thy raw_rel =
 
 (* declaration and definition of instances of overloaded constants *)
 
-fun inst_tyco_of thy (c, T) = case get_inst_tyco (Sign.consts_of thy) (c, T)
- of SOME tyco => tyco
-  | NONE => error ("Illegal type for instantiation of class parameter: "
-      ^ quote (c ^ " :: " ^ Syntax.string_of_typ_global thy T));
+fun inst_tyco_of thy (c, T) =
+  (case get_inst_tyco (Sign.consts_of thy) (c, T) of
+    SOME tyco => tyco
+  | NONE => error ("Illegal type for instantiation of class parameter: " ^
+      quote (c ^ " :: " ^ Syntax.string_of_typ_global thy T)));
 
 fun declare_overloaded (c, T) thy =
   let
-    val class = case class_of_param thy c
-     of SOME class => class
-      | NONE => error ("Not a class parameter: " ^ quote c);
+    val class =
+      (case class_of_param thy c of
+        SOME class => class
+      | NONE => error ("Not a class parameter: " ^ quote c));
     val tyco = inst_tyco_of thy (c, T);
     val name_inst = instance_name (tyco, class) ^ "_inst";
     val c' = Long_Name.base_name c ^ "_" ^ Long_Name.base_name tyco;
     val T' = Type.strip_sorts T;
   in
     thy
-    |> Sign.mandatory_path name_inst
+    |> Sign.qualified_path true (Binding.name name_inst)
     |> Sign.declare_const ((Binding.name c', T'), NoSyn)
     |-> (fn const' as Const (c'', _) =>
       Thm.add_def false true
@@ -311,8 +313,8 @@ fun declare_overloaded (c, T) thy =
       #-> (fn thm => add_inst_param (c, tyco) (c'', thm)
       #> PureThy.add_thm ((Binding.conceal (Binding.name c'), thm), [])
       #> snd
-      #> Sign.restore_naming thy
       #> pair (Const (c, T))))
+    ||> Sign.restore_naming thy
   end;
 
 fun define_overloaded b (c, t) thy =
@@ -482,7 +484,7 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
     val class_triv = Thm.class_triv def_thy class;
     val ([(_, [intro]), (_, classrel), (_, axioms)], facts_thy) =
       def_thy
-      |> Sign.mandatory_path (Binding.name_of bconst)
+      |> Sign.qualified_path true bconst
       |> PureThy.note_thmss ""
         [((Binding.name introN, []), [([Drule.export_without_context raw_intro], [])]),
          ((Binding.name superN, []), [(map Drule.export_without_context raw_classrel, [])]),
@@ -497,7 +499,7 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
     val result_thy =
       facts_thy
       |> fold put_classrel (map (pair class) super ~~ classrel)
-      |> Sign.add_path (Binding.name_of bconst)
+      |> Sign.qualified_path false bconst
       |> PureThy.note_thmss "" (name_atts ~~ map Thm.simple_fact (unflat axiomss axioms)) |> snd
       |> Sign.restore_naming facts_thy
       |> map_axclasses (fn (axclasses, parameters) =>
