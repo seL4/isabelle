@@ -104,7 +104,7 @@ exception UNDEF = Runtime.UNDEF;
 
 type generic_theory = Context.generic;    (*theory or local_theory*)
 
-val loc_init = Theory_Target.context;
+val loc_init = Theory_Target.context_cmd;
 val loc_exit = Local_Theory.exit_global;
 
 fun loc_begin loc (Context.Theory thy) = loc_init (the_default "-" loc) thy
