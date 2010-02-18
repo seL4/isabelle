@@ -492,7 +492,7 @@ fun contract_abbrevs ctxt t =
     fun match_abbrev u = Option.map #1 (get_first (Pattern.match_rew thy u) (retrieve u));
   in
     if abbrev orelse print_mode_active "no_abbrevs" orelse not (can Term.type_of t) then t
-    else Pattern.rewrite_term thy [] [match_abbrev] t
+    else Pattern.rewrite_term_top thy [] [match_abbrev] t
   end;
 
 
