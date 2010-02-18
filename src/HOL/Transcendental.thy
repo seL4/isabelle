@@ -247,7 +247,7 @@ proof -
         from f[OF this]
         show ?thesis unfolding n_eq atLeastLessThanSuc_atLeastAtMost .
       next
-        case False hence "even (n - 1)" using even_num_iff odd_pos by auto 
+        case False hence "even (n - 1)" by simp
         from even_nat_div_two_times_two[OF this]
         have n_eq: "2 * ((n - 1) div 2) = n - 1" unfolding numeral_2_eq_2[symmetric] by auto
         hence range_eq: "n - 1 + 1 = n" using odd_pos[OF False] by auto
