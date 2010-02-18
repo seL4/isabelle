@@ -1090,7 +1090,7 @@ by (simp add: nat_mult_2 [symmetric])
 lemma mod2_Suc_Suc [simp]: "Suc(Suc(m)) mod 2 = m mod 2"
 apply (subgoal_tac "m mod 2 < 2")
 apply (erule less_2_cases [THEN disjE])
-apply (simp_all (no_asm_simp) add: Let_def mod_Suc nat_1)
+apply (simp_all (no_asm_simp) add: Let_def mod_Suc)
 done
 
 lemma mod2_gr_0 [simp]: "0 < (m\<Colon>nat) mod 2 \<longleftrightarrow> m mod 2 = 1"
@@ -1929,7 +1929,7 @@ apply (subgoal_tac "b * (c - q mod c) < r * 1")
 apply (rule order_le_less_trans)
  apply (erule_tac [2] mult_strict_right_mono)
  apply (rule mult_left_mono_neg)
-  using add1_zle_eq[of "q mod c"]apply(simp add: algebra_simps pos_mod_bound)
+  using add1_zle_eq[of "q mod c"]apply(simp add: algebra_simps)
  apply (simp)
 apply (simp)
 done
@@ -1954,7 +1954,7 @@ apply (rule order_less_le_trans)
  apply (erule mult_strict_right_mono)
  apply (rule_tac [2] mult_left_mono)
   apply simp
- using add1_zle_eq[of "q mod c"] apply (simp add: algebra_simps pos_mod_bound)
+ using add1_zle_eq[of "q mod c"] apply (simp add: algebra_simps)
 apply simp
 done
 

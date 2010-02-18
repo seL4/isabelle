@@ -249,7 +249,7 @@ lemma Inf_greatest [intro]:
       and z: "\<And>x. x \<in> X \<Longrightarrow> z \<le> x"
   shows "z \<le> Inf X"
 proof -
-  have "Sup (uminus ` X) \<le> -z" using x z by (force intro: Sup_least)
+  have "Sup (uminus ` X) \<le> -z" using x z by force
   hence "z \<le> - Sup (uminus ` X)"
     by simp
   thus ?thesis 
@@ -306,7 +306,7 @@ proof (cases "a \<le> Inf X")
   case True
   thus ?thesis
     by (simp add: min_def)
-       (blast intro: Inf_eq_minimum Inf_lower real_le_refl real_le_trans z) 
+       (blast intro: Inf_eq_minimum real_le_refl real_le_trans z)
 next
   case False
   hence 1:"Inf X < a" by simp
@@ -441,7 +441,7 @@ lemma reals_complete_interval:
 proof (rule exI [where x = "Sup {d. \<forall>x. a \<le> x & x < d --> P x}"], auto)
   show "a \<le> Sup {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c}"
     by (rule SupInf.Sup_upper [where z=b], auto)
-       (metis prems real_le_linear real_less_def) 
+       (metis `a < b` `\<not> P b` real_le_linear real_less_def)
 next
   show "Sup {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c} \<le> b"
     apply (rule SupInf.Sup_least) 

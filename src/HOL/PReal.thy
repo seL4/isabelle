@@ -750,7 +750,7 @@ proof (induct u, induct y)
   have frle: "Fract a b \<le> Fract ?k 1 * (Fract c d)" 
   proof -
     have "?thesis = ((a * d * b * d) \<le> c * b * (a * d * b * d))"
-      by (simp add: mult_rat le_rat order_less_imp_not_eq2 mult_ac) 
+      by (simp add: order_less_imp_not_eq2 mult_ac) 
     moreover
     have "(1 * (a * d * b * d)) \<le> c * b * (a * d * b * d)"
       by (rule mult_mono, 
@@ -822,7 +822,7 @@ proof -
       also with ypos have "... = (r/y) * (y + ?d)"
         by (simp only: algebra_simps divide_inverse, simp)
       also have "... = r*x" using ypos
-        by (simp add: times_divide_eq_left) 
+        by simp
       finally show "r + ?d < r*x" .
     qed
     with r notin rdpos

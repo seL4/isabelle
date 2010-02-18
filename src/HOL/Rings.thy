@@ -315,7 +315,7 @@ next
 qed
 
 lemma dvd_diff[simp]: "x dvd y \<Longrightarrow> x dvd z \<Longrightarrow> x dvd (y - z)"
-by (simp add: diff_minus dvd_minus_iff)
+by (simp only: diff_minus dvd_add dvd_minus_iff)
 
 end
 
@@ -336,16 +336,16 @@ lemma mult_cancel_right [simp, noatp]:
   "a * c = b * c \<longleftrightarrow> c = 0 \<or> a = b"
 proof -
   have "(a * c = b * c) = ((a - b) * c = 0)"
-    by (simp add: algebra_simps right_minus_eq)
-  thus ?thesis by (simp add: disj_commute right_minus_eq)
+    by (simp add: algebra_simps)
+  thus ?thesis by (simp add: disj_commute)
 qed
 
 lemma mult_cancel_left [simp, noatp]:
   "c * a = c * b \<longleftrightarrow> c = 0 \<or> a = b"
 proof -
   have "(c * a = c * b) = (c * (a - b) = 0)"
-    by (simp add: algebra_simps right_minus_eq)
-  thus ?thesis by (simp add: right_minus_eq)
+    by (simp add: algebra_simps)
+  thus ?thesis by simp
 qed
 
 end
@@ -382,7 +382,7 @@ proof
   then have "(a - b) * (a + b) = 0"
     by (simp add: algebra_simps)
   then show "a = b \<or> a = - b"
-    by (simp add: right_minus_eq eq_neg_iff_add_eq_0)
+    by (simp add: eq_neg_iff_add_eq_0)
 next
   assume "a = b \<or> a = - b"
   then show "a * a = b * b" by auto
@@ -764,13 +764,13 @@ by (simp add: algebra_simps)
 lemma mult_left_mono_neg:
   "b \<le> a \<Longrightarrow> c \<le> 0 \<Longrightarrow> c * a \<le> c * b"
   apply (drule mult_left_mono [of _ _ "uminus c"])
-  apply (simp_all add: minus_mult_left [symmetric]) 
+  apply simp_all
   done
 
 lemma mult_right_mono_neg:
   "b \<le> a \<Longrightarrow> c \<le> 0 \<Longrightarrow> a * c \<le> b * c"
   apply (drule mult_right_mono [of _ _ "uminus c"])
-  apply (simp_all add: minus_mult_right [symmetric]) 
+  apply simp_all
   done
 
 lemma mult_nonpos_nonpos: "a \<le> 0 \<Longrightarrow> b \<le> 0 \<Longrightarrow> 0 \<le> a * b"
@@ -791,11 +791,10 @@ subclass ordered_ab_group_add_abs
 proof
   fix a b
   show "\<bar>a + b\<bar> \<le> \<bar>a\<bar> + \<bar>b\<bar>"
-    by (auto simp add: abs_if not_less neg_less_eq_nonneg less_eq_neg_nonpos)
-    (auto simp del: minus_add_distrib simp add: minus_add_distrib [symmetric]
-     neg_less_eq_nonneg less_eq_neg_nonpos, auto intro: add_nonneg_nonneg,
-      auto intro!: less_imp_le add_neg_neg)
-qed (auto simp add: abs_if less_eq_neg_nonpos neg_equal_zero)
+    by (auto simp add: abs_if not_less)
+    (auto simp del: minus_add_distrib simp add: minus_add_distrib [symmetric],
+     auto intro: add_nonneg_nonneg, auto intro!: less_imp_le add_neg_neg)
+qed (auto simp add: abs_if)
 
 end
 
@@ -864,14 +863,14 @@ by (auto simp add: eq_commute [of 0] le_less not_less zero_less_mult_iff)
 
 lemma mult_less_0_iff:
   "a * b < 0 \<longleftrightarrow> 0 < a \<and> b < 0 \<or> a < 0 \<and> 0 < b"
-  apply (insert zero_less_mult_iff [of "-a" b]) 
-  apply (force simp add: minus_mult_left[symmetric]) 
+  apply (insert zero_less_mult_iff [of "-a" b])
+  apply force
   done
 
 lemma mult_le_0_iff:
   "a * b \<le> 0 \<longleftrightarrow> 0 \<le> a \<and> b \<le> 0 \<or> a \<le> 0 \<and> 0 \<le> b"
   apply (insert zero_le_mult_iff [of "-a" b]) 
-  apply (force simp add: minus_mult_left[symmetric]) 
+  apply force
   done
 
 lemma zero_le_square [simp]: "0 \<le> a * a"
@@ -1056,11 +1055,11 @@ unfolding sgn_if by simp
 
 lemma sgn_1_pos:
   "sgn a = 1 \<longleftrightarrow> a > 0"
-unfolding sgn_if by (simp add: neg_equal_zero)
+unfolding sgn_if by simp
 
 lemma sgn_1_neg:
   "sgn a = - 1 \<longleftrightarrow> a < 0"
-unfolding sgn_if by (auto simp add: equal_neg_zero)
+unfolding sgn_if by auto
 
 lemma sgn_pos [simp]:
   "0 < a \<Longrightarrow> sgn a = 1"
@@ -1116,11 +1115,11 @@ subsection {* Reasoning about inequalities with division *}
 
 lemma mult_right_le_one_le: "0 <= (x::'a::linordered_idom) ==> 0 <= y ==> y <= 1
     ==> x * y <= x"
-by (auto simp add: mult_compare_simps)
+by (auto simp add: mult_le_cancel_left2)
 
 lemma mult_left_le_one_le: "0 <= (x::'a::linordered_idom) ==> 0 <= y ==> y <= 1
     ==> y * x <= x"
-by (auto simp add: mult_compare_simps)
+by (auto simp add: mult_le_cancel_right2)
 
 context linordered_semidom
 begin
@@ -1159,7 +1158,7 @@ context linordered_idom
 begin
 
 subclass ordered_ring_abs proof
-qed (auto simp add: abs_if not_less equal_neg_zero neg_equal_zero mult_less_0_iff)
+qed (auto simp add: abs_if not_less mult_less_0_iff)
 
 lemma abs_mult:
   "abs (a * b) = abs a * abs b" 
@@ -1187,7 +1186,7 @@ lemma less_minus_self_iff: "(a < -a) = (a < (0::'a::linordered_idom))"
 
 lemma abs_less_iff: "(abs a < b) = (a < b & -a < (b::'a::linordered_idom))" 
 apply (simp add: order_less_le abs_le_iff)  
-apply (auto simp add: abs_if neg_less_eq_nonneg less_eq_neg_nonpos)
+apply (auto simp add: abs_if)
 done
 
 lemma abs_mult_pos: "(0::'a::linordered_idom) <= x ==> 

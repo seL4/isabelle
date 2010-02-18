@@ -268,7 +268,7 @@ lemma of_real_power [simp]:
 by (induct n) simp_all
 
 lemma of_real_eq_iff [simp]: "(of_real x = of_real y) = (x = y)"
-by (simp add: of_real_def scaleR_cancel_right)
+by (simp add: of_real_def)
 
 lemmas of_real_eq_0_iff [simp] = of_real_eq_iff [of _ 0, simplified]
 

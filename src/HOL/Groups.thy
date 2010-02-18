@@ -347,6 +347,8 @@ by (simp add: diff_minus add_ac)
 lemma eq_iff_diff_eq_0: "a = b \<longleftrightarrow> a - b = 0"
 by (simp add: algebra_simps)
 
+(* FIXME: duplicates right_minus_eq from class group_add *)
+(* but only this one is declared as a simp rule. *)
 lemma diff_eq_0_iff_eq [simp, noatp]: "a - b = 0 \<longleftrightarrow> a = b"
 by (simp add: algebra_simps)
 
@@ -794,7 +796,7 @@ lemma double_zero [simp]:
 proof
   assume assm: "a + a = 0"
   then have a: "- a = a" by (rule minus_unique)
-  then show "a = 0" by (simp add: neg_equal_zero)
+  then show "a = 0" by (simp only: neg_equal_zero)
 qed simp
 
 lemma double_zero_sym [simp]:
@@ -807,7 +809,7 @@ proof
   assume "0 < a + a"
   then have "0 - a < a" by (simp only: diff_less_eq)
   then have "- a < a" by simp
-  then show "0 < a" by (simp add: neg_less_nonneg)
+  then show "0 < a" by (simp only: neg_less_nonneg)
 next
   assume "0 < a"
   with this have "0 + 0 < a + a"

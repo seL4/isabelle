@@ -1356,7 +1356,7 @@ lemma abs_of_nat [simp]: "\<bar>of_nat n\<bar> = of_nat n"
 end
 
 lemma of_nat_id [simp]: "of_nat n = n"
-  by (induct n) (auto simp add: One_nat_def)
+  by (induct n) simp_all
 
 lemma of_nat_eq_id [simp]: "of_nat = id"
   by (auto simp add: expand_fun_eq)
@@ -1619,7 +1619,7 @@ by (simp add: dvd_def)
 
 lemma dvd_antisym: "[| m dvd n; n dvd m |] ==> m = (n::nat)"
   unfolding dvd_def
-  by (force dest: mult_eq_self_implies_10 simp add: mult_assoc mult_eq_1_iff)
+  by (force dest: mult_eq_self_implies_10 simp add: mult_assoc)
 
 text {* @{term "op dvd"} is a partial order *}
 

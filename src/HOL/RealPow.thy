@@ -19,8 +19,8 @@ lemma two_realpow_gt [simp]: "real (n::nat) < 2 ^ n"
 apply (induct "n")
 apply (auto simp add: real_of_nat_Suc)
 apply (subst mult_2)
-apply (rule add_less_le_mono)
-apply (auto simp add: two_realpow_ge_one)
+apply (erule add_less_le_mono)
+apply (rule two_realpow_ge_one)
 done
 
 lemma realpow_Suc_le_self: "[| 0 \<le> r; r \<le> (1::real) |] ==> r ^ Suc n \<le> r"
@@ -57,7 +57,7 @@ done
 
 lemma realpow_real_of_nat_two_pos [simp] : "0 < real (Suc (Suc 0) ^ n)"
 apply (induct "n")
-apply (auto simp add: real_of_nat_mult zero_less_mult_iff)
+apply (auto simp add: zero_less_mult_iff)
 done
 
 (* used by AFP Integration theory *)

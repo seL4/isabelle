@@ -428,7 +428,7 @@ next
   fix q :: rat
   assume "q \<noteq> 0"
   then show "inverse q * q = 1" by (cases q rule: Rat_cases_nonzero)
-   (simp_all add: mult_rat  inverse_rat rat_number_expand eq_rat)
+   (simp_all add: rat_number_expand eq_rat)
 next
   fix q r :: rat
   show "q / r = q * inverse r" by (simp add: divide_rat_def)
@@ -592,7 +592,7 @@ definition
   abs_rat_def [code del]: "\<bar>q\<bar> = (if q < 0 then -q else (q::rat))"
 
 lemma abs_rat [simp, code]: "\<bar>Fract a b\<bar> = Fract \<bar>a\<bar> \<bar>b\<bar>"
-  by (auto simp add: abs_rat_def zabs_def Zero_rat_def less_rat not_less le_less minus_rat eq_rat zero_compare_simps)
+  by (auto simp add: abs_rat_def zabs_def Zero_rat_def not_less le_less eq_rat zero_less_mult_iff)
 
 definition
   sgn_rat_def [code del]: "sgn (q::rat) = (if q = 0 then 0 else if 0 < q then 1 else - 1)"

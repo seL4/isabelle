@@ -184,7 +184,7 @@ lemma  minus_one_even_odd_power:
   apply (rule conjI)
   apply simp
   apply (insert even_zero_nat, blast)
-  apply (simp add: power_Suc)
+  apply simp
   done
 
 lemma minus_one_even_power [simp]:
@@ -199,7 +199,7 @@ lemma neg_one_even_odd_power:
      "(even x --> (-1::'a::{number_ring})^x = 1) &
       (odd x --> (-1::'a)^x = -1)"
   apply (induct x)
-  apply (simp, simp add: power_Suc)
+  apply (simp, simp)
   done
 
 lemma neg_one_even_power [simp]:
@@ -214,7 +214,7 @@ lemma neg_power_if:
      "(-x::'a::{comm_ring_1}) ^ n =
       (if even n then (x ^ n) else -(x ^ n))"
   apply (induct n)
-  apply (simp_all split: split_if_asm add: power_Suc)
+  apply simp_all
   done
 
 lemma zero_le_even_power: "even n ==>
@@ -228,7 +228,7 @@ lemma zero_le_even_power: "even n ==>
 
 lemma zero_le_odd_power: "odd n ==>
     (0 <= (x::'a::{linordered_idom}) ^ n) = (0 <= x)"
-apply (auto simp: odd_nat_equiv_def2 power_Suc power_add zero_le_mult_iff)
+apply (auto simp: odd_nat_equiv_def2 power_add zero_le_mult_iff)
 apply (metis field_power_not_zero no_zero_divirors_neq0 order_antisym_conv zero_le_square)
 done
 
@@ -373,7 +373,7 @@ subsection {* An Equivalence for @{term [source] "0 \<le> a^n"} *}
 
 lemma even_power_le_0_imp_0:
     "a ^ (2*k) \<le> (0::'a::{linordered_idom}) ==> a=0"
-  by (induct k) (auto simp add: zero_le_mult_iff mult_le_0_iff power_Suc)
+  by (induct k) (auto simp add: zero_le_mult_iff mult_le_0_iff)
 
 lemma zero_le_power_iff[presburger]:
   "(0 \<le> a^n) = (0 \<le> (a::'a::{linordered_idom}) | even n)"
@@ -387,7 +387,7 @@ next
   then obtain k where "n = Suc(2*k)"
     by (auto simp add: odd_nat_equiv_def2 numeral_2_eq_2)
   thus ?thesis
-    by (auto simp add: power_Suc zero_le_mult_iff zero_le_even_power
+    by (auto simp add: zero_le_mult_iff zero_le_even_power
              dest!: even_power_le_0_imp_0)
 qed
 

@@ -566,7 +566,7 @@ apply (auto simp add: mult_ac)
 done
 
 lemma lemma_real_divide_sqrt_less: "0 < u ==> u / sqrt 2 < u"
-by (simp add: divide_less_eq mult_compare_simps)
+by (simp add: divide_less_eq)
 
 lemma four_x_squared: 
   fixes x::real

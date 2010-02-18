@@ -230,7 +230,7 @@ by (force dest: inverse_zero_imp_zero)
 lemma inverse_minus_eq [simp]:
    "inverse(-a) = -inverse(a::'a::{division_ring,division_by_zero})"
 proof cases
-  assume "a=0" thus ?thesis by (simp add: inverse_zero)
+  assume "a=0" thus ?thesis by simp
 next
   assume "a\<noteq>0" 
   thus ?thesis by (simp add: nonzero_inverse_minus_eq)
@@ -283,13 +283,13 @@ because the latter are covered by a simproc. *}
 lemma mult_divide_mult_cancel_left:
   "c\<noteq>0 ==> (c*a) / (c*b) = a / (b::'a::{field,division_by_zero})"
 apply (cases "b = 0")
-apply (simp_all add: nonzero_mult_divide_mult_cancel_left)
+apply simp_all
 done
 
 lemma mult_divide_mult_cancel_right:
   "c\<noteq>0 ==> (a*c) / (b*c) = a / (b::'a::{field,division_by_zero})"
 apply (cases "b = 0")
-apply (simp_all add: nonzero_mult_divide_mult_cancel_right)
+apply simp_all
 done
 
 lemma divide_divide_eq_right [simp,noatp]:
@@ -339,7 +339,7 @@ lemma positive_imp_inverse_positive:
 assumes a_gt_0: "0 < a"  shows "0 < inverse (a::'a::linordered_field)"
 proof -
   have "0 < a * inverse a" 
-    by (simp add: a_gt_0 [THEN order_less_imp_not_eq2] zero_less_one)
+    by (simp add: a_gt_0 [THEN order_less_imp_not_eq2])
   thus "0 < inverse a" 
     by (simp add: a_gt_0 [THEN order_less_not_sym] zero_less_mult_iff)
 qed
@@ -524,8 +524,7 @@ by (insert inverse_eq_iff_eq [of x 1], simp)
 
 lemma one_le_inverse_iff:
   "(1 \<le> inverse x) = (0 < x & x \<le> (1::'a::{linordered_field,division_by_zero}))"
-by (force simp add: order_le_less one_less_inverse_iff zero_less_one 
-                    eq_commute [of 1]) 
+by (force simp add: order_le_less one_less_inverse_iff)
 
 lemma inverse_less_1_iff:
   "(inverse x < 1) = (x \<le> 0 | 1 < (x::'a::{linordered_field,division_by_zero}))"

@@ -573,7 +573,7 @@ apply (rule allI, rule def_nat_rec_Suc, simp)
 apply (rule allI, rule impI, rule ext)
 apply (erule conjE)
 apply (induct_tac x)
-apply (simp add: nat_rec_0)
+apply simp
 apply (erule_tac x="n" in allE)
 apply (simp)
 done

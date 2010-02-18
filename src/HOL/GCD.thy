@@ -156,7 +156,7 @@ lemma gcd_cases_int:
       and "x <= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> P (gcd (-x) y)"
       and "x <= 0 \<Longrightarrow> y <= 0 \<Longrightarrow> P (gcd (-x) (-y))"
   shows "P (gcd x y)"
-by (insert prems, auto simp add: gcd_neg1_int gcd_neg2_int, arith)
+by (insert assms, auto, arith)
 
 lemma gcd_ge_0_int [simp]: "gcd (x::int) y >= 0"
   by (simp add: gcd_int_def)
@@ -457,7 +457,7 @@ lemma gcd_red_int: "gcd (x::int) y = gcd y (x mod y)"
   apply (case_tac "y > 0")
   apply (subst gcd_non_0_int, auto)
   apply (insert gcd_non_0_int [of "-y" "-x"])
-  apply (auto simp add: gcd_neg1_int gcd_neg2_int)
+  apply auto
 done
 
 lemma gcd_add1_int [simp]: "gcd ((m::int) + n) n = gcd m n"
@@ -557,7 +557,7 @@ proof -
   then have dvdgg':"?g * ?g' dvd a" "?g* ?g' dvd b"
     by (auto simp add: dvd_mult_div_cancel [OF dvdg(1)]
       dvd_mult_div_cancel [OF dvdg(2)] dvd_def)
-  have "?g \<noteq> 0" using nz by (simp add: gcd_zero_nat)
+  have "?g \<noteq> 0" using nz by simp
   then have gp: "?g > 0" by arith
   from gcd_greatest_nat [OF dvdgg'] have "?g * ?g' dvd ?g" .
   with dvd_mult_cancel1 [OF gp] show "?g' = 1" by simp
@@ -824,7 +824,7 @@ proof-
   {assume "?g = 0" with ab n have ?thesis by auto }
   moreover
   {assume z: "?g \<noteq> 0"
-    hence zn: "?g ^ n \<noteq> 0" using n by (simp add: neq0_conv)
+    hence zn: "?g ^ n \<noteq> 0" using n by simp
     from gcd_coprime_exists_nat[OF z]
     obtain a' b' where ab': "a = a' * ?g" "b = b' * ?g" "coprime a' b'"
       by blast
@@ -852,7 +852,7 @@ proof-
   {assume "?g = 0" with ab n have ?thesis by auto }
   moreover
   {assume z: "?g \<noteq> 0"
-    hence zn: "?g ^ n \<noteq> 0" using n by (simp add: neq0_conv)
+    hence zn: "?g ^ n \<noteq> 0" using n by simp
     from gcd_coprime_exists_int[OF z]
     obtain a' b' where ab': "a = a' * ?g" "b = b' * ?g" "coprime a' b'"
       by blast
@@ -1109,7 +1109,7 @@ lemma bezout_lemma_nat:
     (a * x = (a + b) * y + d \<or> (a + b) * x = a * y + d)"
   using ex
   apply clarsimp
-  apply (rule_tac x="d" in exI, simp add: dvd_add)
+  apply (rule_tac x="d" in exI, simp)
   apply (case_tac "a * x = b * y + d" , simp_all)
   apply (rule_tac x="x + y" in exI)
   apply (rule_tac x="y" in exI)
@@ -1124,10 +1124,10 @@ lemma bezout_add_nat: "\<exists>(d::nat) x y. d dvd a \<and> d dvd b \<and>
   apply(induct a b rule: ind_euclid)
   apply blast
   apply clarify
-  apply (rule_tac x="a" in exI, simp add: dvd_add)
+  apply (rule_tac x="a" in exI, simp)
   apply clarsimp
   apply (rule_tac x="d" in exI)
-  apply (case_tac "a * x = b * y + d", simp_all add: dvd_add)
+  apply (case_tac "a * x = b * y + d", simp_all)
   apply (rule_tac x="x+y" in exI)
   apply (rule_tac x="y" in exI)
   apply algebra
@@ -1693,8 +1693,7 @@ lemma mult_inj_if_coprime_nat:
   "inj_on f A \<Longrightarrow> inj_on g B \<Longrightarrow> ALL a:A. ALL b:B. coprime (f a) (g b)
    \<Longrightarrow> inj_on (%(a,b). f a * g b::nat) (A \<times> B)"
 apply(auto simp add:inj_on_def)
-apply (metis gcd_semilattice_nat.inf_commute coprime_dvd_mult_iff_nat
-             dvd.neq_le_trans dvd_triv_left)
+apply (metis coprime_dvd_mult_iff_nat dvd.neq_le_trans dvd_triv_left)
 apply (metis gcd_semilattice_nat.inf_commute coprime_dvd_mult_iff_nat
              dvd.neq_le_trans dvd_triv_right mult_commute)
 done

@@ -143,16 +143,16 @@ next show "add a (add c d) = add (add a c) d" using add_a by simp
 next show "mul (pwr x p) (pwr x q) = pwr x (p + q)" by (rule mul_pwr)
 next show "mul x (pwr x q) = pwr x (Suc q)" using pwr_Suc by simp
 next show "mul (pwr x q) x = pwr x (Suc q)" using pwr_Suc mul_c by simp
-next show "mul x x = pwr x 2" by (simp add: nat_number pwr_Suc pwr_0 mul_1 mul_c)
+next show "mul x x = pwr x 2" by (simp add: nat_number' pwr_Suc pwr_0 mul_1 mul_c)
 next show "pwr (mul x y) q = mul (pwr x q) (pwr y q)" by (rule pwr_mul)
 next show "pwr (pwr x p) q = pwr x (p * q)" by (rule pwr_pwr)
 next show "pwr x 0 = r1" using pwr_0 .
-next show "pwr x 1 = x" unfolding One_nat_def by (simp add: nat_number pwr_Suc pwr_0 mul_1 mul_c)
+next show "pwr x 1 = x" unfolding One_nat_def by (simp add: nat_number' pwr_Suc pwr_0 mul_1 mul_c)
 next show "mul x (add y z) = add (mul x y) (mul x z)" using mul_d by simp
 next show "pwr x (Suc q) = mul x (pwr x q)" using pwr_Suc by simp
-next show "pwr x (2 * n) = mul (pwr x n) (pwr x n)" by (simp add: nat_number mul_pwr)
+next show "pwr x (2 * n) = mul (pwr x n) (pwr x n)" by (simp add: nat_number' mul_pwr)
 next show "pwr x (Suc (2 * n)) = mul x (mul (pwr x n) (pwr x n))"
-    by (simp add: nat_number pwr_Suc mul_pwr)
+    by (simp add: nat_number' pwr_Suc mul_pwr)
 qed
 
 
@@ -165,7 +165,7 @@ end
 
 interpretation class_semiring: gb_semiring
     "op +" "op *" "op ^" "0::'a::{comm_semiring_1}" "1"
-  proof qed (auto simp add: algebra_simps power_Suc)
+  proof qed (auto simp add: algebra_simps)
 
 lemmas nat_arith =
   add_nat_number_of
@@ -175,7 +175,7 @@ lemmas nat_arith =
   less_nat_number_of
 
 lemma not_iszero_Numeral1: "\<not> iszero (Numeral1::'a::number_ring)"
-  by (simp add: numeral_1_eq_1)
+  by simp
 
 lemmas comp_arith =
   Let_def arith_simps nat_arith rel_simps neg_simps if_False
@@ -350,7 +350,7 @@ qed
 
 interpretation class_ringb: ringb
   "op +" "op *" "op ^" "0::'a::{idom,number_ring}" "1" "op -" "uminus"
-proof(unfold_locales, simp add: algebra_simps power_Suc, auto)
+proof(unfold_locales, simp add: algebra_simps, auto)
   fix w x y z ::"'a::{idom,number_ring}"
   assume p: "w * y + x * z = w * z + x * y" and ynz: "y \<noteq> z"
   hence ynz': "y - z \<noteq> 0" by simp
@@ -366,7 +366,7 @@ declaration {* normalizer_funs @{thm class_ringb.ringb_axioms'} *}
 
 interpretation natgb: semiringb
   "op +" "op *" "op ^" "0::nat" "1"
-proof (unfold_locales, simp add: algebra_simps power_Suc)
+proof (unfold_locales, simp add: algebra_simps)
   fix w x y z ::"nat"
   { assume p: "w * y + x * z = w * z + x * y" and ynz: "y \<noteq> z"
     hence "y < z \<or> y > z" by arith
@@ -375,13 +375,13 @@ proof (unfold_locales, simp add: algebra_simps power_Suc)
       then obtain k where kp: "k>0" and yz:"z = y + k" by blast
       from p have "(w * y + x *y) + x*k = (w * y + x*y) + w*k" by (simp add: yz algebra_simps)
       hence "x*k = w*k" by simp
-      hence "w = x" using kp by (simp add: mult_cancel2) }
+      hence "w = x" using kp by simp }
     moreover {
       assume lt: "y >z" hence "\<exists>k. y = z + k \<and> k>0" by (rule_tac x="y - z" in exI, auto)
       then obtain k where kp: "k>0" and yz:"y = z + k" by blast
       from p have "(w * z + x *z) + w*k = (w * z + x*z) + x*k" by (simp add: yz algebra_simps)
       hence "w*k = x*k" by simp
-      hence "w = x" using kp by (simp add: mult_cancel2)}
+      hence "w = x" using kp by simp }
     ultimately have "w=x" by blast }
   thus "(w * y + x * z = w * z + x * y) = (w = x \<or> y = z)" by auto
 qed

@@ -489,7 +489,7 @@ lemma wf_less_than [iff]: "wf less_than"
   by (simp add: less_than_def wf_pred_nat [THEN wf_trancl])
 
 lemma trans_less_than [iff]: "trans less_than"
-  by (simp add: less_than_def trans_trancl)
+  by (simp add: less_than_def)
 
 lemma less_than_iff [iff]: "((x,y): less_than) = (x<y)"
   by (simp add: less_than_def less_eq)
