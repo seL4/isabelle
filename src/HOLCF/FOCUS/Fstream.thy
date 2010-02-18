@@ -207,7 +207,7 @@ done
 lemma fsfilter_fscons:
         "A(C)x~> xs = (if x:A then x~> (A(C)xs) else A(C)xs)"
 apply (unfold fsfilter_def)
-apply (simp add: fscons_def2 sfilter_scons If_and_if)
+apply (simp add: fscons_def2 If_and_if)
 done
 
 lemma fsfilter_emptys: "{}(C)x = UU"

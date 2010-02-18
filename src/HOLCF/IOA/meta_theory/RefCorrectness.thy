@@ -165,7 +165,7 @@ section "Lemmata for <=="
 (* --------------------------------------------------- *)
 
 lemma mk_traceConc: "mk_trace C$(ex1 @@ ex2)= (mk_trace C$ex1) @@ (mk_trace C$ex2)"
-apply (simp add: mk_trace_def filter_act_def FilterConc MapConc)
+apply (simp add: mk_trace_def filter_act_def MapConc)
 done
 
 

@@ -62,7 +62,7 @@ definition
         asig_comp sigA sigB))"
 
 
-lemmas [simp del] = ex_simps all_simps split_paired_All
+lemmas [simp del] = split_paired_All
 
 
 section "recursive equations of operators"

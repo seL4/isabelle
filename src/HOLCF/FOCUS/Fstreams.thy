@@ -208,9 +208,6 @@ lemma fsmap_fsingleton[simp]: "fsmap f$(<x>) = <(f x)>"
 by (simp add: fsmap_def fsingleton_def2 flift2_def)
 
 
-declare range_composition[simp del]
-
-
 lemma fstreams_chain_lemma[rule_format]:
   "ALL s x y. stream_take n$(s::'a fstream) << x & x << y & y << s & x ~= y --> stream_take (Suc n)$s << y"
 apply (induct_tac n, auto)
@@ -225,7 +222,7 @@ apply (erule_tac x="ya" in allE)
 apply (drule stream_prefix, auto)
 apply (case_tac "y=UU",auto)
 apply (drule stream_exhaust_eq [THEN iffD1], clarsimp)
-apply (auto simp add: stream.inverts)
+apply auto
 apply (simp add: flat_less_iff)
 apply (erule_tac x="tt" in allE)
 apply (erule_tac x="yb" in allE, auto)

@@ -110,7 +110,6 @@ Infinite_def:
 
 
 declare Finite.intros [simp]
-declare seq.rews [simp]
 
 
 subsection {* recursive equations of operators *}
@@ -361,7 +360,7 @@ subsection "scons, nil"
 
 lemma scons_inject_eq:
  "[|x~=UU;y~=UU|]==> (x##xs=y##ys) = (x=y & xs=ys)"
-by (simp add: seq.injects)
+by simp
 
 lemma nil_less_is_nil: "nil<<x ==> nil=x"
 apply (rule_tac x="x" in seq.casedist)
@@ -447,7 +446,7 @@ lemma Finite_cons_a: "Finite x --> a~=UU --> x=a##xs --> Finite xs"
 apply (intro strip)
 apply (erule Finite.cases)
 apply fastsimp
-apply (simp add: seq.injects)
+apply simp
 done
 
 lemma Finite_cons: "a~=UU ==>(Finite (a##x)) = (Finite x)"
@@ -461,7 +460,7 @@ lemma Finite_upward: "\<lbrakk>Finite x; x \<sqsubseteq> y\<rbrakk> \<Longrighta
 apply (induct arbitrary: y set: Finite)
 apply (rule_tac x=y in seq.casedist, simp, simp, simp)
 apply (rule_tac x=y in seq.casedist, simp, simp)
-apply (simp add: seq.inverts)
+apply simp
 done
 
 lemma adm_Finite [simp]: "adm Finite"
