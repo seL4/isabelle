@@ -720,6 +720,11 @@ by (induct xs) auto
 lemma map_map [simp]: "map f (map g xs) = map (f \<circ> g) xs"
 by (induct xs) auto
 
+lemma map_comp_map[simp]: "((map f) o (map g)) = map(f o g)"
+apply(rule ext)
+apply(simp)
+done
+
 lemma rev_map: "rev (map f xs) = map f (rev xs)"
 by (induct xs) auto
 
