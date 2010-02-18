@@ -113,7 +113,9 @@ $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF \
 
 HOLCF-FOCUS: HOLCF $(LOG)/HOLCF-FOCUS.gz
 
-$(LOG)/HOLCF-FOCUS.gz: $(OUT)/HOLCF FOCUS/Fstreams.thy \
+$(LOG)/HOLCF-FOCUS.gz: $(OUT)/HOLCF \
+  ex/Stream.thy \
+  FOCUS/Fstreams.thy \
   FOCUS/Fstream.thy FOCUS/FOCUS.thy \
   FOCUS/Stream_adm.thy ../HOL/Library/Continuity.thy \
   FOCUS/Buffer.thy FOCUS/Buffer_adm.thy
