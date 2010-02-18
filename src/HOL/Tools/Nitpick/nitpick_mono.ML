@@ -189,7 +189,7 @@ fun repair_constr_cache dtype_cache constr_cache =
   in List.app repair_one (!constr_cache) end
 
 (* cdata -> typ -> ctype *)
-fun fresh_ctype_for_type ({hol_ctxt as {thy, ...}, alpha_T, max_fresh,
+fun fresh_ctype_for_type ({hol_ctxt as {thy, ...}, binarize, alpha_T, max_fresh,
                            datatype_cache, constr_cache, ...} : cdata) =
   let
     (* typ -> typ -> ctype *)
@@ -218,7 +218,7 @@ fun fresh_ctype_for_type ({hol_ctxt as {thy, ...}, alpha_T, max_fresh,
           | NONE =>
             let
               val _ = Unsynchronized.change datatype_cache (cons (z, CRec z))
-              val xs = datatype_constrs hol_ctxt T
+              val xs = binarized_and_boxed_datatype_constrs hol_ctxt binarize T
               val (all_Cs, constr_Cs) =
                 fold_rev (fn (_, T') => fn (all_Cs, constr_Cs) =>
                              let
@@ -270,13 +270,8 @@ fun ctype_for_constr (cdata as {hol_ctxt as {thy, ...}, alpha_T, constr_cache,
   if could_exist_alpha_sub_ctype thy alpha_T T then
     case AList.lookup (op =) (!constr_cache) x of
       SOME C => C
-    | NONE => if T = alpha_T then
-                let val C = fresh_ctype_for_type cdata T in
-                  (Unsynchronized.change constr_cache (cons (x, C)); C)
-                end
-              else
-                (fresh_ctype_for_type cdata (body_type T);
-                 AList.lookup (op =) (!constr_cache) x |> the)
+    | NONE => (fresh_ctype_for_type cdata (body_type T);
+               AList.lookup (op =) (!constr_cache) x |> the)
   else
     fresh_ctype_for_type cdata T
 fun ctype_for_sel (cdata as {hol_ctxt, binarize, ...}) (x as (s, _)) =
