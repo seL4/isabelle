@@ -467,7 +467,7 @@ fun factorize (z as (Type ("*", _), _)) = maps factorize [mk_fst z, mk_snd z]
   | factorize z = [z]
 
 (* hol_context -> op2 -> term -> nut *)
-fun nut_from_term (hol_ctxt as {thy, fast_descrs, special_funs, ...}) eq =
+fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, special_funs, ...}) eq =
   let
     (* string list -> typ list -> term -> nut *)
     fun aux eq ss Ts t =
@@ -603,46 +603,62 @@ fun nut_from_term (hol_ctxt as {thy, fast_descrs, special_funs, ...}) eq =
              Const (@{const_name top}, _) => Cst (False, bool_T, Any)
            | _ => Op1 (Finite, bool_T, Any, sub t1))
         | (Const (@{const_name nat}, T), []) => Cst (IntToNat, T, Any)
-        | (Const (@{const_name zero_nat_inst.zero_nat}, T), []) =>
-          Cst (Num 0, T, Any)
-        | (Const (@{const_name one_nat_inst.one_nat}, T), []) =>
-          Cst (Num 1, T, Any)
-        | (Const (@{const_name plus_nat_inst.plus_nat}, T), []) =>
-          Cst (Add, T, Any)
-        | (Const (@{const_name minus_nat_inst.minus_nat}, T), []) =>
-          Cst (Subtract, T, Any)
-        | (Const (@{const_name times_nat_inst.times_nat}, T), []) =>
-          Cst (Multiply, T, Any)
-        | (Const (@{const_name div_nat_inst.div_nat}, T), []) =>
-          Cst (Divide, T, Any)
-        | (Const (@{const_name ord_nat_inst.less_nat}, T), [t1, t2]) =>
-          Op2 (Less, bool_T, Any, sub t1, sub t2)
-        | (Const (@{const_name ord_nat_inst.less_eq_nat}, T), [t1, t2]) =>
-          Op1 (Not, bool_T, Any, Op2 (Less, bool_T, Any, sub t2, sub t1))
+        | (Const (x as (s as @{const_name zero_class.zero}, T)), []) =>
+          if is_built_in_const thy stds false x then
+            Cst (Num 0, T, Any)
+          else if is_constr thy stds x then
+            let val (s', T') = discr_for_constr x in
+              Construct ([ConstName (s', T', Any)], T, Any, [])
+            end
+          else
+            ConstName (s, T, Any)
+        | (Const (x as (s as @{const_name one_class.one}, T)), []) =>
+          if is_built_in_const thy stds false x then Cst (Num 1, T, Any)
+          else ConstName (s, T, Any)
+        | (Const (x as (s as @{const_name plus_class.plus}, T)), []) =>
+          if is_built_in_const thy stds false x then Cst (Add, T, Any)
+          else ConstName (s, T, Any)
+        | (Const (@{const_name minus_class.minus},
+                  Type ("fun", [T1 as Type ("fun", [_, @{typ bool}]), _])),
+           [t1, t2]) =>
+          Op2 (SetDifference, T1, Any, sub t1, sub t2)
+        | (Const (x as (s as @{const_name minus_class.minus}, T)), []) =>
+          if is_built_in_const thy stds false x then Cst (Subtract, T, Any)
+          else ConstName (s, T, Any)
+        | (Const (x as (s as @{const_name times_class.times}, T)), []) =>
+          if is_built_in_const thy stds false x then Cst (Multiply, T, Any)
+          else ConstName (s, T, Any)
+        | (Const (x as (s as @{const_name div_class.div}, T)), []) =>
+          if is_built_in_const thy stds false x then Cst (Divide, T, Any)
+          else ConstName (s, T, Any)
+        | (t0 as Const (x as (s as @{const_name ord_class.less}, T)),
+           ts as [t1, t2]) =>
+          if is_built_in_const thy stds false x then
+            Op2 (Less, bool_T, Any, sub t1, sub t2)
+          else
+            do_apply t0 ts
+        | (Const (@{const_name ord_class.less_eq},
+                  Type ("fun", [Type ("fun", [_, @{typ bool}]), _])),
+           [t1, t2]) =>
+          Op2 (Subset, bool_T, Any, sub t1, sub t2)
+        (* FIXME: find out if this case is necessary *)
+        | (t0 as Const (x as (s as @{const_name ord_class.less_eq}, T)),
+           ts as [t1, t2]) =>
+          if is_built_in_const thy stds false x then
+            Op1 (Not, bool_T, Any, Op2 (Less, bool_T, Any, sub t2, sub t1))
+          else
+            do_apply t0 ts
         | (Const (@{const_name nat_gcd}, T), []) => Cst (Gcd, T, Any)
         | (Const (@{const_name nat_lcm}, T), []) => Cst (Lcm, T, Any)
-        | (Const (@{const_name zero_int_inst.zero_int}, T), []) =>
-          Cst (Num 0, T, Any)
-        | (Const (@{const_name one_int_inst.one_int}, T), []) =>
-          Cst (Num 1, T, Any)
-        | (Const (@{const_name plus_int_inst.plus_int}, T), []) =>
-          Cst (Add, T, Any)
-        | (Const (@{const_name minus_int_inst.minus_int}, T), []) =>
-          Cst (Subtract, T, Any)
-        | (Const (@{const_name times_int_inst.times_int}, T), []) =>
-          Cst (Multiply, T, Any)
-        | (Const (@{const_name div_int_inst.div_int}, T), []) =>
-          Cst (Divide, T, Any)
-        | (Const (@{const_name uminus_int_inst.uminus_int}, T), []) =>
-          let val num_T = domain_type T in
-            Op2 (Apply, num_T --> num_T, Any,
-                 Cst (Subtract, num_T --> num_T --> num_T, Any),
-                 Cst (Num 0, num_T, Any))
-          end
-        | (Const (@{const_name ord_int_inst.less_int}, T), [t1, t2]) =>
-          Op2 (Less, bool_T, Any, sub t1, sub t2)
-        | (Const (@{const_name ord_int_inst.less_eq_int}, T), [t1, t2]) =>
-          Op1 (Not, bool_T, Any, Op2 (Less, bool_T, Any, sub t2, sub t1))
+        | (Const (x as (s as @{const_name uminus_class.uminus}, T)), []) =>
+          if is_built_in_const thy stds false x then
+            let val num_T = domain_type T in
+              Op2 (Apply, num_T --> num_T, Any,
+                   Cst (Subtract, num_T --> num_T --> num_T, Any),
+                   Cst (Num 0, num_T, Any))
+            end
+          else
+            ConstName (s, T, Any)
         | (Const (@{const_name unknown}, T), []) => Cst (Unknown, T, Any)
         | (Const (@{const_name is_unknown}, T), [t1]) =>
           Op1 (IsUnknown, bool_T, Any, sub t1)
@@ -655,18 +671,16 @@ fun nut_from_term (hol_ctxt as {thy, fast_descrs, special_funs, ...}) eq =
         | (Const (@{const_name of_nat},
                   T as @{typ "unsigned_bit word => signed_bit word"}), []) =>
           Cst (NatToInt, T, Any)
-        | (Const (@{const_name semilattice_inf_fun_inst.inf_fun}, T),
-                  [t1, t2]) =>
-          Op2 (Intersect, nth_range_type 2 T, Any, sub t1, sub t2)
-        | (Const (@{const_name semilattice_sup_fun_inst.sup_fun}, T),
-                  [t1, t2]) =>
-          Op2 (Union, nth_range_type 2 T, Any, sub t1, sub t2)
-        | (t0 as Const (@{const_name minus_fun_inst.minus_fun}, T), [t1, t2]) =>
-          Op2 (SetDifference, nth_range_type 2 T, Any, sub t1, sub t2)
-        | (t0 as Const (@{const_name ord_fun_inst.less_eq_fun}, T), [t1, t2]) =>
-          Op2 (Subset, bool_T, Any, sub t1, sub t2)
+        | (Const (@{const_name semilattice_inf_class.inf},
+                  Type ("fun", [T1 as Type ("fun", [_, @{typ bool}]), _])),
+           [t1, t2]) =>
+          Op2 (Intersect, T1, Any, sub t1, sub t2)
+        | (Const (@{const_name semilattice_sup_class.sup},
+                  Type ("fun", [T1 as Type ("fun", [_, @{typ bool}]), _])),
+           [t1, t2]) =>
+          Op2 (Union, T1, Any, sub t1, sub t2)
         | (t0 as Const (x as (s, T)), ts) =>
-          if is_constr thy x then
+          if is_constr thy stds x then
             case num_binder_types T - length ts of
               0 => Construct (map ((fn (s, T) => ConstName (s, T, Any))
                                     o nth_sel_for_constr x)
@@ -678,7 +692,7 @@ fun nut_from_term (hol_ctxt as {thy, fast_descrs, special_funs, ...}) eq =
           else if String.isPrefix numeral_prefix s then
             Cst (Num (the (Int.fromString (unprefix numeral_prefix s))), T, Any)
           else
-            (case arity_of_built_in_const fast_descrs x of
+            (case arity_of_built_in_const thy stds fast_descrs x of
                SOME n =>
                (case n - length ts of
                   0 => raise TERM ("Nitpick_Nut.nut_from_term.aux", [t])

@@ -215,10 +215,11 @@ fun double_lookup eq ps key =
     SOME z => SOME z
   | NONE => ps |> find_first (is_none o fst) |> Option.map snd
 (* (''a * ''a -> bool) -> (''a option * 'b) list -> ''a -> 'b option *)
-fun triple_lookup eq ps key =
-  case AList.lookup (op =) ps (SOME key) of
-    SOME z => SOME z
-  | NONE => double_lookup eq ps key
+fun triple_lookup _ [(NONE, z)] _ = SOME z
+  | triple_lookup eq ps key =
+    case AList.lookup (op =) ps (SOME key) of
+      SOME z => SOME z
+    | NONE => double_lookup eq ps key
 
 (* string -> string -> bool *)
 fun is_substring_of needle stack =

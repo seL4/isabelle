@@ -85,6 +85,7 @@ sig
   val is_integer_type : typ -> bool
   val is_bit_type : typ -> bool
   val is_word_type : typ -> bool
+  val is_integer_like_type : typ -> bool
   val is_record_type : typ -> bool
   val is_number_type : theory -> typ -> bool
   val const_for_iterator_type : typ -> styp
@@ -95,14 +96,13 @@ sig
   val curried_binder_types : typ -> typ list
   val mk_flat_tuple : typ -> term list -> term
   val dest_n_tuple : int -> term -> term list
-  val instantiate_type : theory -> typ -> typ -> typ -> typ
   val is_real_datatype : theory -> string -> bool
-  val is_standard_datatype : hol_context -> typ -> bool
+  val is_standard_datatype : theory -> (typ option * bool) list -> typ -> bool
   val is_quot_type : theory -> typ -> bool
   val is_codatatype : theory -> typ -> bool
   val is_pure_typedef : theory -> typ -> bool
   val is_univ_typedef : theory -> typ -> bool
-  val is_datatype : theory -> typ -> bool
+  val is_datatype : theory -> (typ option * bool) list -> typ -> bool
   val is_record_constr : styp -> bool
   val is_record_get : theory -> styp -> bool
   val is_record_update : theory -> styp -> bool
@@ -113,7 +113,7 @@ sig
   val mate_of_rep_fun : theory -> styp -> styp
   val is_constr_like : theory -> styp -> bool
   val is_stale_constr : theory -> styp -> bool
-  val is_constr : theory -> styp -> bool
+  val is_constr : theory -> (typ option * bool) list -> styp -> bool
   val is_sel : string -> bool
   val is_sel_like_and_no_discr : string -> bool
   val box_type : hol_context -> boxability -> typ -> typ
@@ -141,8 +141,10 @@ sig
   val constr_name_for_sel_like : string -> string
   val binarized_and_boxed_constr_for_sel : hol_context -> bool -> styp -> styp
   val discriminate_value : hol_context -> styp -> term -> term
-  val select_nth_constr_arg : theory -> styp -> term -> int -> typ -> term
-  val construct_value : theory -> styp -> term list -> term
+  val select_nth_constr_arg :
+    theory -> (typ option * bool) list -> styp -> term -> int -> typ -> term
+  val construct_value :
+    theory -> (typ option * bool) list -> styp -> term list -> term
   val card_of_type : (typ * int) list -> typ -> int
   val bounded_card_of_type : int -> int -> (typ * int) list -> typ -> int
   val bounded_exact_card_of_type :
@@ -151,10 +153,13 @@ sig
   val special_bounds : term list -> (indexname * typ) list
   val is_funky_typedef : theory -> typ -> bool
   val all_axioms_of : theory -> term list * term list * term list
-  val arity_of_built_in_const : bool -> styp -> int option
-  val is_built_in_const : bool -> styp -> bool
+  val arity_of_built_in_const :
+    theory -> (typ option * bool) list -> bool -> styp -> int option
+  val is_built_in_const :
+    theory -> (typ option * bool) list -> bool -> styp -> bool
   val term_under_def : term -> term
-  val case_const_names : theory -> (string * int) list
+  val case_const_names :
+    theory -> (typ option * bool) list -> (string * int) list
   val const_def_table : Proof.context -> term list -> const_table
   val const_nondef_table : term list -> const_table
   val const_simp_table : Proof.context -> const_table
@@ -165,7 +170,8 @@ sig
   val add_simps : const_table Unsynchronized.ref -> string -> term list -> unit
   val inverse_axioms_for_rep_fun : theory -> styp -> term list
   val optimized_typedef_axioms : theory -> string * typ list -> term list
-  val optimized_quot_type_axioms : theory -> string * typ list -> term list
+  val optimized_quot_type_axioms :
+    theory -> (typ option * bool) list -> string * typ list -> term list
   val def_of_const : theory -> const_table -> styp -> term option
   val fixpoint_kind_of_const :
     theory -> const_table -> string * typ -> fixpoint_kind
@@ -340,44 +346,45 @@ val built_in_consts =
    (@{const_name trancl}, 1),
    (@{const_name rel_comp}, 2),
    (@{const_name image}, 2),
-   (@{const_name Suc}, 0),
    (@{const_name finite}, 1),
-   (@{const_name nat}, 0),
-   (@{const_name zero_nat_inst.zero_nat}, 0),
-   (@{const_name one_nat_inst.one_nat}, 0),
-   (@{const_name plus_nat_inst.plus_nat}, 0),
-   (@{const_name minus_nat_inst.minus_nat}, 0),
-   (@{const_name times_nat_inst.times_nat}, 0),
-   (@{const_name div_nat_inst.div_nat}, 0),
-   (@{const_name ord_nat_inst.less_nat}, 2),
-   (@{const_name ord_nat_inst.less_eq_nat}, 2),
-   (@{const_name nat_gcd}, 0),
-   (@{const_name nat_lcm}, 0),
-   (@{const_name zero_int_inst.zero_int}, 0),
-   (@{const_name one_int_inst.one_int}, 0),
-   (@{const_name plus_int_inst.plus_int}, 0),
-   (@{const_name minus_int_inst.minus_int}, 0),
-   (@{const_name times_int_inst.times_int}, 0),
-   (@{const_name div_int_inst.div_int}, 0),
-   (@{const_name uminus_int_inst.uminus_int}, 0),
-   (@{const_name ord_int_inst.less_int}, 2),
-   (@{const_name ord_int_inst.less_eq_int}, 2),
    (@{const_name unknown}, 0),
    (@{const_name is_unknown}, 1),
    (@{const_name Tha}, 1),
    (@{const_name Frac}, 0),
    (@{const_name norm_frac}, 0)]
+val built_in_nat_consts =
+  [(@{const_name Suc}, 0),
+   (@{const_name nat}, 0),
+   (@{const_name nat_gcd}, 0),
+   (@{const_name nat_lcm}, 0)]
 val built_in_descr_consts =
   [(@{const_name The}, 1),
    (@{const_name Eps}, 1)]
 val built_in_typed_consts =
-  [((@{const_name of_nat}, nat_T --> int_T), 0),
-   ((@{const_name of_nat}, @{typ "unsigned_bit word => signed_bit word"}), 0)]
+  [((@{const_name zero_class.zero}, int_T), 0),
+   ((@{const_name one_class.one}, int_T), 0),
+   ((@{const_name plus_class.plus}, int_T --> int_T --> int_T), 0),
+   ((@{const_name minus_class.minus}, int_T --> int_T --> int_T), 0),
+   ((@{const_name times_class.times}, int_T --> int_T --> int_T), 0),
+   ((@{const_name div_class.div}, int_T --> int_T --> int_T), 0),
+   ((@{const_name uminus_class.uminus}, int_T --> int_T), 0),
+   ((@{const_name ord_class.less}, int_T --> int_T --> bool_T), 2),
+   ((@{const_name ord_class.less_eq}, int_T --> int_T --> bool_T), 2)]
+val built_in_typed_nat_consts =
+  [((@{const_name zero_class.zero}, nat_T), 0),
+   ((@{const_name one_class.one}, nat_T), 0),
+   ((@{const_name plus_class.plus}, nat_T --> nat_T --> nat_T), 0),
+   ((@{const_name minus_class.minus}, nat_T --> nat_T --> nat_T), 0),
+   ((@{const_name times_class.times}, nat_T --> nat_T --> nat_T), 0),
+   ((@{const_name div_class.div}, nat_T --> nat_T --> nat_T), 0),
+   ((@{const_name ord_class.less}, nat_T --> nat_T --> bool_T), 2),
+   ((@{const_name ord_class.less_eq}, nat_T --> nat_T --> bool_T), 2),
+   ((@{const_name of_nat}, nat_T --> int_T), 0)]
 val built_in_set_consts =
-  [(@{const_name semilattice_inf_fun_inst.inf_fun}, 2),
-   (@{const_name semilattice_sup_fun_inst.sup_fun}, 2),
-   (@{const_name minus_fun_inst.minus_fun}, 2),
-   (@{const_name ord_fun_inst.less_eq_fun}, 2)]
+  [(@{const_name semilattice_inf_class.inf}, 2),
+   (@{const_name semilattice_sup_class.sup}, 2),
+   (@{const_name minus_class.minus}, 2),
+   (@{const_name ord_class.less_eq}, 2)]
 
 (* typ -> typ *)
 fun unarize_type @{typ "unsigned_bit word"} = nat_T
@@ -449,17 +456,19 @@ fun is_gfp_iterator_type (Type (s, _)) = String.isPrefix gfp_iterator_prefix s
   | is_gfp_iterator_type _ = false
 val is_fp_iterator_type = is_lfp_iterator_type orf is_gfp_iterator_type
 fun is_boolean_type T = (T = prop_T orelse T = bool_T)
-val is_integer_type =
-  member (op =) [nat_T, int_T, @{typ bisim_iterator}] orf is_fp_iterator_type
+fun is_integer_type T = (T = nat_T orelse T = int_T)
 fun is_bit_type T = (T = @{typ unsigned_bit} orelse T = @{typ signed_bit})
 fun is_word_type (Type (@{type_name word}, _)) = true
   | is_word_type _ = false
+fun is_integer_like_type T =
+  is_fp_iterator_type T orelse is_integer_type T orelse is_word_type T orelse
+  T = @{typ bisim_iterator}
 val is_record_type = not o null o Record.dest_recTs
 (* theory -> typ -> bool *)
 fun is_frac_type thy (Type (s, [])) =
     not (null (these (AList.lookup (op =) (#frac_types (Data.get thy)) s)))
   | is_frac_type _ _ = false
-fun is_number_type thy = is_integer_type orf is_frac_type thy
+fun is_number_type thy = is_integer_like_type orf is_frac_type thy
 
 (* bool -> styp -> typ *)
 fun iterator_type_for_const gfp (s, T) =
@@ -507,13 +516,41 @@ fun dest_n_tuple_type 1 T = [T]
   | dest_n_tuple_type _ T =
     raise TYPE ("Nitpick_HOL.dest_n_tuple_type", [T], [])
 
+type typedef_info =
+  {rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string,
+   set_def: thm option, prop_of_Rep: thm, set_name: string,
+   Abs_inverse: thm option, Rep_inverse: thm option}
+
+(* theory -> string -> typedef_info *)
+fun typedef_info thy s =
+  if is_frac_type thy (Type (s, [])) then
+    SOME {abs_type = Type (s, []), rep_type = @{typ "int * int"},
+          Abs_name = @{const_name Abs_Frac}, Rep_name = @{const_name Rep_Frac},
+          set_def = NONE, prop_of_Rep = @{prop "Rep_Frac x \<in> Frac"}
+                          |> Logic.varify,
+          set_name = @{const_name Frac}, Abs_inverse = NONE, Rep_inverse = NONE}
+  else case Typedef.get_info thy s of
+    SOME {abs_type, rep_type, Abs_name, Rep_name, set_def, Rep, Abs_inverse,
+          Rep_inverse, ...} =>
+    SOME {abs_type = abs_type, rep_type = rep_type, Abs_name = Abs_name,
+          Rep_name = Rep_name, set_def = set_def, prop_of_Rep = prop_of Rep,
+          set_name = set_prefix ^ s, Abs_inverse = SOME Abs_inverse,
+          Rep_inverse = SOME Rep_inverse}
+  | NONE => NONE
+
+(* theory -> string -> bool *)
+val is_typedef = is_some oo typedef_info
+val is_real_datatype = is_some oo Datatype.get_info
+(* theory -> (typ option * bool) list -> typ -> bool *)
+fun is_standard_datatype thy = the oo triple_lookup (type_match thy)
+
 (* FIXME: Use antiquotation for "code_numeral" below or detect "rep_datatype",
    e.g., by adding a field to "Datatype_Aux.info". *)
-(* string -> bool *)
-val is_basic_datatype =
-    member (op =) [@{type_name "*"}, @{type_name bool}, @{type_name unit},
-                   @{type_name nat}, @{type_name int},
-                   "Code_Numeral.code_numeral"]
+(* theory -> (typ option * bool) list -> string -> bool *)
+fun is_basic_datatype thy stds s =
+  member (op =) [@{type_name "*"}, @{type_name bool}, @{type_name unit},
+                 @{type_name int}, "Code_Numeral.code_numeral"] s orelse
+  (s = @{type_name nat} andalso is_standard_datatype thy stds nat_T)
 
 (* theory -> typ -> typ -> typ -> typ *)
 fun instantiate_type thy T1 T1' T2 =
@@ -544,7 +581,8 @@ fun register_codatatype co_T case_name constr_xs thy =
     val (co_s, co_Ts) = dest_Type co_T
     val _ =
       if forall is_TFree co_Ts andalso not (has_duplicates (op =) co_Ts) andalso
-         co_s <> "fun" andalso not (is_basic_datatype co_s) then
+         co_s <> "fun" andalso
+         not (is_basic_datatype thy [(NONE, true)] co_s) then
         ()
       else
         raise TYPE ("Nitpick_HOL.register_codatatype", [co_T], [])
@@ -553,35 +591,6 @@ fun register_codatatype co_T case_name constr_xs thy =
   in Data.put {frac_types = frac_types, codatatypes = codatatypes} thy end
 (* typ -> theory -> theory *)
 fun unregister_codatatype co_T = register_codatatype co_T "" []
-
-type typedef_info =
-  {rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string,
-   set_def: thm option, prop_of_Rep: thm, set_name: string,
-   Abs_inverse: thm option, Rep_inverse: thm option}
-
-(* theory -> string -> typedef_info *)
-fun typedef_info thy s =
-  if is_frac_type thy (Type (s, [])) then
-    SOME {abs_type = Type (s, []), rep_type = @{typ "int * int"},
-          Abs_name = @{const_name Abs_Frac}, Rep_name = @{const_name Rep_Frac},
-          set_def = NONE, prop_of_Rep = @{prop "Rep_Frac x \<in> Frac"}
-                          |> Logic.varify,
-          set_name = @{const_name Frac}, Abs_inverse = NONE, Rep_inverse = NONE}
-  else case Typedef.get_info thy s of
-    SOME {abs_type, rep_type, Abs_name, Rep_name, set_def, Rep, Abs_inverse,
-          Rep_inverse, ...} =>
-    SOME {abs_type = abs_type, rep_type = rep_type, Abs_name = Abs_name,
-          Rep_name = Rep_name, set_def = set_def, prop_of_Rep = prop_of Rep,
-          set_name = set_prefix ^ s, Abs_inverse = SOME Abs_inverse,
-          Rep_inverse = SOME Rep_inverse}
-  | NONE => NONE
-
-(* theory -> string -> bool *)
-val is_typedef = is_some oo typedef_info
-val is_real_datatype = is_some oo Datatype.get_info
-(* hol_context -> typ -> bool *)
-fun is_standard_datatype ({thy, stds, ...} : hol_context) =
-  the o triple_lookup (type_match thy) stds
 
 (* theory -> typ -> bool *)
 fun is_quot_type _ (Type ("IntEx.my_int", _)) = true (* FIXME *)
@@ -594,7 +603,8 @@ fun is_codatatype thy (T as Type (s, _)) =
 fun is_pure_typedef thy (T as Type (s, _)) =
     is_typedef thy s andalso
     not (is_real_datatype thy s orelse is_quot_type thy T orelse
-         is_codatatype thy T orelse is_record_type T orelse is_integer_type T)
+         is_codatatype thy T orelse is_record_type T orelse
+         is_integer_like_type T)
   | is_pure_typedef _ _ = false
 fun is_univ_typedef thy (Type (s, _)) =
     (case typedef_info thy s of
@@ -607,11 +617,11 @@ fun is_univ_typedef thy (Type (s, _)) =
                o HOLogic.dest_Trueprop) prop_of_Rep) = SOME @{const_name top}
      | NONE => false)
   | is_univ_typedef _ _ = false
-fun is_datatype thy (T as Type (s, _)) =
+(* theory -> (typ option * bool) list -> typ -> bool *)
+fun is_datatype thy stds (T as Type (s, _)) =
     (is_typedef thy s orelse is_codatatype thy T orelse T = @{typ ind} orelse
-     is_quot_type thy T) andalso
-    not (is_basic_datatype s)
-  | is_datatype _ _ = false
+     is_quot_type thy T) andalso not (is_basic_datatype thy stds s)
+  | is_datatype _ _ _ = false
 
 (* theory -> typ -> (string * typ) list * (string * typ) *)
 fun all_record_fields thy T =
@@ -699,15 +709,16 @@ fun is_constr_like thy (s, T) =
   let val (x as (s, T)) = (s, unarize_and_unbox_type T) in
     Refute.is_IDT_constructor thy x orelse is_record_constr x orelse
     (is_abs_fun thy x andalso is_pure_typedef thy (range_type T)) orelse
-    x = (@{const_name zero_nat_inst.zero_nat}, nat_T) orelse
     is_coconstr thy x
   end
 fun is_stale_constr thy (x as (_, T)) =
   is_codatatype thy (body_type T) andalso is_constr_like thy x andalso
   not (is_coconstr thy x)
-fun is_constr thy (x as (_, T)) =
+(* theory -> (typ option * bool) list -> styp -> bool *)
+fun is_constr thy stds (x as (_, T)) =
   is_constr_like thy x andalso
-  not (is_basic_datatype (fst (dest_Type (unarize_type (body_type T))))) andalso
+  not (is_basic_datatype thy stds
+                         (fst (dest_Type (unarize_type (body_type T))))) andalso
   not (is_stale_constr thy x)
 (* string -> bool *)
 val is_sel = String.isPrefix discr_prefix orf String.isPrefix sel_prefix
@@ -844,15 +855,16 @@ fun distinctness_formula T =
   #> List.foldr (s_conj o swap) @{const True}
 
 (* typ -> term *)
-fun zero_const T = Const (@{const_name zero_nat_inst.zero_nat}, T)
+fun zero_const T = Const (@{const_name zero_class.zero}, T)
 fun suc_const T = Const (@{const_name Suc}, T --> T)
 
-(* theory -> typ -> styp list *)
-fun uncached_datatype_constrs thy (T as Type (s, Ts)) =
+(* hol_context -> typ -> styp list *)
+fun uncached_datatype_constrs ({thy, stds, ...} : hol_context)
+                              (T as Type (s, Ts)) =
     (case AList.lookup (op =) (#codatatypes (Data.get thy)) s of
        SOME (_, xs' as (_ :: _)) => map (apsnd (repair_constr_type thy T)) xs'
      | _ =>
-       if is_datatype thy T then
+       if is_datatype thy stds T then
          case Datatype.get_info thy s of
            SOME {index, descr, ...} =>
            let
@@ -883,11 +895,11 @@ fun uncached_datatype_constrs thy (T as Type (s, Ts)) =
          [])
   | uncached_datatype_constrs _ _ = []
 (* hol_context -> typ -> styp list *)
-fun datatype_constrs ({thy, constr_cache, ...} : hol_context) T =
+fun datatype_constrs (hol_ctxt as {constr_cache, ...}) T =
   case AList.lookup (op =) (!constr_cache) T of
     SOME xs => xs
   | NONE =>
-    let val xs = uncached_datatype_constrs thy T in
+    let val xs = uncached_datatype_constrs hol_ctxt T in
       (Unsynchronized.change constr_cache (cons (T, xs)); xs)
     end
 (* hol_context -> bool -> typ -> styp list *)
@@ -930,11 +942,11 @@ fun discriminate_value (hol_ctxt as {thy, ...}) (x as (_, T)) t =
     else betapply (discr_term_for_constr hol_ctxt x, t)
   | _ => betapply (discr_term_for_constr hol_ctxt x, t)
 
-(* styp -> term -> term *)
-fun nth_arg_sel_term_for_constr (x as (s, T)) n =
+(* theory -> (typ option * bool) list -> styp -> term -> term *)
+fun nth_arg_sel_term_for_constr thy stds (x as (s, T)) n =
   let val (arg_Ts, dataT) = strip_type T in
-    if dataT = nat_T then
-      @{term "%n::nat. minus_nat_inst.minus_nat n one_nat_inst.one_nat"}
+    if dataT = nat_T andalso is_standard_datatype thy stds nat_T then
+      @{term "%n::nat. n - 1"}
     else if is_pair_type dataT then
       Const (nth_sel_for_constr x n)
     else
@@ -952,24 +964,26 @@ fun nth_arg_sel_term_for_constr (x as (s, T)) n =
                      (List.take (arg_Ts, n)) 0
       in Abs ("x", dataT, aux m (nth arg_Ts n) |> snd) end
   end
-(* theory -> styp -> term -> int -> typ -> term *)
-fun select_nth_constr_arg thy x t n res_T =
-  case strip_comb t of
-    (Const x', args) =>
-    if x = x' then nth args n
-    else if is_constr_like thy x' then Const (@{const_name unknown}, res_T)
-    else betapply (nth_arg_sel_term_for_constr x n, t)
-  | _ => betapply (nth_arg_sel_term_for_constr x n, t)
+(* theory -> (typ option * bool) list -> styp -> term -> int -> typ -> term *)
+fun select_nth_constr_arg thy stds x t n res_T =
+  (case strip_comb t of
+     (Const x', args) =>
+     if x = x' then nth args n
+     else if is_constr_like thy x' then Const (@{const_name unknown}, res_T)
+     else raise SAME ()
+   | _ => raise SAME())
+  handle SAME () => betapply (nth_arg_sel_term_for_constr thy stds x n, t)
 
-(* theory -> styp -> term list -> term *)
-fun construct_value _ x [] = Const x
-  | construct_value thy (x as (s, _)) args =
+(* theory -> (typ option * bool) list -> styp -> term list -> term *)
+fun construct_value _ _ x [] = Const x
+  | construct_value thy stds (x as (s, _)) args =
     let val args = map Envir.eta_contract args in
       case hd args of
         Const (x' as (s', _)) $ t =>
         if is_sel_like_and_no_discr s' andalso
            constr_name_for_sel_like s' = s andalso
-           forall (fn (n, t') => select_nth_constr_arg thy x t n dummyT = t')
+           forall (fn (n, t') =>
+                      select_nth_constr_arg thy stds x t n dummyT = t')
                   (index_seq 0 (length args) ~~ args) then
           t
         else
@@ -1167,24 +1181,31 @@ fun all_axioms_of thy =
       user_defs @ built_in_defs
   in (defs, built_in_nondefs, user_nondefs) end
 
-(* bool -> styp -> int option *)
-fun arity_of_built_in_const fast_descrs (s, T) =
+(* theory -> (typ option * bool) list -> bool -> styp -> int option *)
+fun arity_of_built_in_const thy stds fast_descrs (s, T) =
   if s = @{const_name If} then
     if nth_range_type 3 T = @{typ bool} then NONE else SOME 3
-  else case AList.lookup (op =)
-                (built_in_consts
-                 |> fast_descrs ? append built_in_descr_consts) s of
-    SOME n => SOME n
-  | NONE =>
-    case AList.lookup (op =) built_in_typed_consts (s, T) of
-      SOME n => SOME n
-    | NONE =>
-      if is_fun_type T andalso is_set_type (domain_type T) then
-        AList.lookup (op =) built_in_set_consts s
-      else
-        NONE
-(* bool -> styp -> bool *)
-val is_built_in_const = is_some oo arity_of_built_in_const
+  else
+    let val std_nats = is_standard_datatype thy stds nat_T in
+      case AList.lookup (op =)
+                    (built_in_consts
+                     |> std_nats ? append built_in_nat_consts
+                     |> fast_descrs ? append built_in_descr_consts) s of
+        SOME n => SOME n
+      | NONE =>
+        case AList.lookup (op =)
+                 (built_in_typed_consts
+                  |> std_nats ? append built_in_typed_nat_consts)
+                 (s, unarize_type T) of
+          SOME n => SOME n
+        | NONE =>
+          if is_fun_type T andalso is_set_type (domain_type T) then
+            AList.lookup (op =) built_in_set_consts s
+          else
+            NONE
+    end
+(* theory -> (typ option * bool) list -> bool -> styp -> bool *)
+val is_built_in_const = is_some oooo arity_of_built_in_const
 
 (* This function is designed to work for both real definition axioms and
    simplification rules (equational specifications). *)
@@ -1202,9 +1223,10 @@ fun term_under_def t =
 (* Here we crucially rely on "Refute.specialize_type" performing a preorder
    traversal of the term, without which the wrong occurrence of a constant could
    be matched in the face of overloading. *)
-(* theory -> bool -> const_table -> styp -> term list *)
-fun def_props_for_const thy fast_descrs table (x as (s, _)) =
-  if is_built_in_const fast_descrs x then
+(* theory -> (typ option * bool) list -> bool -> const_table -> styp
+   -> term list *)
+fun def_props_for_const thy stds fast_descrs table (x as (s, _)) =
+  if is_built_in_const thy stds fast_descrs x then
     []
   else
     these (Symtab.lookup table s)
@@ -1229,10 +1251,11 @@ fun normalized_rhs_of thy t =
 
 (* theory -> const_table -> styp -> term option *)
 fun def_of_const thy table (x as (s, _)) =
-  if is_built_in_const false x orelse original_name s <> s then
+  if is_built_in_const thy [(NONE, false)] false x orelse
+     original_name s <> s then
     NONE
   else
-    x |> def_props_for_const thy false table |> List.last
+    x |> def_props_for_const thy [(NONE, false)] false table |> List.last
       |> normalized_rhs_of thy |> Option.map (prefix_abs_vars s)
     handle List.Empty => NONE
 
@@ -1282,10 +1305,10 @@ fun pair_for_prop t =
 fun table_for get ctxt =
   get ctxt |> map pair_for_prop |> AList.group (op =) |> Symtab.make
 
-(* theory -> (string * int) list *)
-fun case_const_names thy =
+(* theory -> (typ option * bool) list -> (string * int) list *)
+fun case_const_names thy stds =
   Symtab.fold (fn (dtype_s, {index, descr, case_name, ...}) =>
-                  if is_basic_datatype dtype_s then
+                  if is_basic_datatype thy stds dtype_s then
                     I
                   else
                     cons (case_name, AList.lookup (op =) descr index
@@ -1366,7 +1389,7 @@ fun optimized_typedef_axioms thy (abs_z as (abs_s, abs_Ts)) =
       end
     | NONE => []
   end
-fun optimized_quot_type_axioms thy abs_z =
+fun optimized_quot_type_axioms thy stds abs_z =
   let
     val abs_T = Type abs_z
     val rep_T = rep_type_for_quot_type thy abs_T
@@ -1375,7 +1398,7 @@ fun optimized_quot_type_axioms thy abs_z =
     val x_var = Var (("x", 0), rep_T)
     val y_var = Var (("y", 0), rep_T)
     val x = (@{const_name Quot}, rep_T --> abs_T)
-    val sel_a_t = select_nth_constr_arg thy x a_var 0 rep_T
+    val sel_a_t = select_nth_constr_arg thy stds x a_var 0 rep_T
     val normal_t = Const (@{const_name quot_normal}, rep_T --> rep_T)
     val normal_x = normal_t $ x_var
     val normal_y = normal_t $ y_var
@@ -1392,31 +1415,31 @@ fun optimized_quot_type_axioms thy abs_z =
          $ (HOLogic.mk_Trueprop (equiv_rel $ x_var $ normal_x))]
   end
 
-(* theory -> int * styp -> term *)
-fun constr_case_body thy (j, (x as (_, T))) =
+(* theory -> (typ option * bool) list -> int * styp -> term *)
+fun constr_case_body thy stds (j, (x as (_, T))) =
   let val arg_Ts = binder_types T in
-    list_comb (Bound j, map2 (select_nth_constr_arg thy x (Bound 0))
+    list_comb (Bound j, map2 (select_nth_constr_arg thy stds x (Bound 0))
                              (index_seq 0 (length arg_Ts)) arg_Ts)
   end
 (* hol_context -> typ -> int * styp -> term -> term *)
-fun add_constr_case (hol_ctxt as {thy, ...}) res_T (j, x) res_t =
+fun add_constr_case (hol_ctxt as {thy, stds, ...}) res_T (j, x) res_t =
   Const (@{const_name If}, bool_T --> res_T --> res_T --> res_T)
-  $ discriminate_value hol_ctxt x (Bound 0) $ constr_case_body thy (j, x)
+  $ discriminate_value hol_ctxt x (Bound 0) $ constr_case_body thy stds (j, x)
   $ res_t
 (* hol_context -> typ -> typ -> term *)
-fun optimized_case_def (hol_ctxt as {thy, ...}) dataT res_T =
+fun optimized_case_def (hol_ctxt as {thy, stds, ...}) dataT res_T =
   let
     val xs = datatype_constrs hol_ctxt dataT
     val func_Ts = map ((fn T => binder_types T ---> res_T) o snd) xs
     val (xs', x) = split_last xs
   in
-    constr_case_body thy (1, x)
+    constr_case_body thy stds (1, x)
     |> fold_rev (add_constr_case hol_ctxt res_T) (length xs downto 2 ~~ xs')
     |> fold_rev (curry absdummy) (func_Ts @ [dataT])
   end
 
 (* hol_context -> string -> typ -> typ -> term -> term *)
-fun optimized_record_get (hol_ctxt as {thy, ...}) s rec_T res_T t =
+fun optimized_record_get (hol_ctxt as {thy, stds, ...}) s rec_T res_T t =
   let val constr_x = hd (datatype_constrs hol_ctxt rec_T) in
     case no_of_record_field thy s rec_T of
       ~1 => (case rec_T of
@@ -1425,65 +1448,56 @@ fun optimized_record_get (hol_ctxt as {thy, ...}) s rec_T res_T t =
                  val rec_T' = List.last Ts
                  val j = num_record_fields thy rec_T - 1
                in
-                 select_nth_constr_arg thy constr_x t j res_T
+                 select_nth_constr_arg thy stds constr_x t j res_T
                  |> optimized_record_get hol_ctxt s rec_T' res_T
                end
              | _ => raise TYPE ("Nitpick_HOL.optimized_record_get", [rec_T],
                                 []))
-    | j => select_nth_constr_arg thy constr_x t j res_T
+    | j => select_nth_constr_arg thy stds constr_x t j res_T
   end
 (* hol_context -> string -> typ -> term -> term -> term *)
-fun optimized_record_update (hol_ctxt as {thy, ...}) s rec_T fun_t rec_t =
+fun optimized_record_update (hol_ctxt as {thy, stds, ...}) s rec_T fun_t rec_t =
   let
     val constr_x as (_, constr_T) = hd (datatype_constrs hol_ctxt rec_T)
     val Ts = binder_types constr_T
     val n = length Ts
     val special_j = no_of_record_field thy s rec_T
-    val ts = map2 (fn j => fn T =>
-                      let
-                        val t = select_nth_constr_arg thy constr_x rec_t j T
-                      in
-                        if j = special_j then
-                          betapply (fun_t, t)
-                        else if j = n - 1 andalso special_j = ~1 then
-                          optimized_record_update hol_ctxt s
-                              (rec_T |> dest_Type |> snd |> List.last) fun_t t
-                        else
-                          t
-                      end) (index_seq 0 n) Ts
+    val ts =
+      map2 (fn j => fn T =>
+               let val t = select_nth_constr_arg thy stds constr_x rec_t j T in
+                 if j = special_j then
+                   betapply (fun_t, t)
+                 else if j = n - 1 andalso special_j = ~1 then
+                   optimized_record_update hol_ctxt s
+                       (rec_T |> dest_Type |> snd |> List.last) fun_t t
+                 else
+                   t
+               end) (index_seq 0 n) Ts
   in list_comb (Const constr_x, ts) end
-
-(* Constants "c" whose definition is of the form "c == c'", where "c'" is also a
-   constant, are said to be trivial. For those, we ignore the simplification
-   rules and use the definition instead, to ensure that built-in symbols like
-   "ord_nat_inst.less_eq_nat" are picked up correctly. *)
-(* theory -> const_table -> styp -> bool *)
-fun has_trivial_definition thy table x =
-  case def_of_const thy table x of SOME (Const _) => true | _ => false
 
 (* theory -> const_table -> string * typ -> fixpoint_kind *)
 fun fixpoint_kind_of_const thy table x =
-  if is_built_in_const false x then
+  if is_built_in_const thy [(NONE, false)] false x then
     NoFp
   else
     fixpoint_kind_of_rhs (the (def_of_const thy table x))
     handle Option.Option => NoFp
 
 (* hol_context -> styp -> bool *)
-fun is_real_inductive_pred ({thy, fast_descrs, def_table, intro_table, ...}
-                            : hol_context) x =
-  not (null (def_props_for_const thy fast_descrs intro_table x)) andalso
-  fixpoint_kind_of_const thy def_table x <> NoFp
-fun is_real_equational_fun ({thy, fast_descrs, simp_table, psimp_table, ...}
-                            : hol_context) x =
-  exists (fn table => not (null (def_props_for_const thy fast_descrs table x)))
+fun is_real_inductive_pred ({thy, stds, fast_descrs, def_table, intro_table,
+                             ...} : hol_context) x =
+  fixpoint_kind_of_const thy def_table x <> NoFp andalso
+  not (null (def_props_for_const thy stds fast_descrs intro_table x))
+fun is_real_equational_fun ({thy, stds, fast_descrs, simp_table, psimp_table,
+                             ...} : hol_context) x =
+  exists (fn table => not (null (def_props_for_const thy stds fast_descrs table
+                                                     x)))
          [!simp_table, psimp_table]
 fun is_inductive_pred hol_ctxt =
   is_real_inductive_pred hol_ctxt andf (not o is_real_equational_fun hol_ctxt)
 fun is_equational_fun (hol_ctxt as {thy, def_table, ...}) =
   (is_real_equational_fun hol_ctxt orf is_real_inductive_pred hol_ctxt
    orf (String.isPrefix ubfp_prefix orf String.isPrefix lbfp_prefix) o fst)
-  andf (not o has_trivial_definition thy def_table)
 
 (* term * term -> term *)
 fun s_betapply (Const (@{const_name If}, _) $ @{const True} $ t, _) = t
@@ -1522,7 +1536,7 @@ fun is_constr_pattern_formula thy t =
 val unfold_max_depth = 255
 
 (* hol_context -> term -> term *)
-fun unfold_defs_in_term (hol_ctxt as {thy, destroy_constrs, fast_descrs,
+fun unfold_defs_in_term (hol_ctxt as {thy, stds, destroy_constrs, fast_descrs,
                                       case_names, def_table, ground_thm_table,
                                       ersatz_table, ...}) =
   let
@@ -1537,8 +1551,11 @@ fun unfold_defs_in_term (hol_ctxt as {thy, destroy_constrs, fast_descrs,
                          |> ran_T = nat_T ? Integer.max 0
               val s = numeral_prefix ^ signed_string_of_int j
             in
-              if is_integer_type ran_T then
-                Const (s, ran_T)
+              if is_integer_like_type ran_T then
+                if is_standard_datatype thy stds ran_T then
+                  Const (s, ran_T)
+                else
+                  funpow j (curry (op $) (suc_const ran_T)) (zero_const ran_T)
               else
                 do_term depth Ts (Const (@{const_name of_int}, int_T --> ran_T)
                                   $ Const (s, int_T))
@@ -1577,9 +1594,9 @@ fun unfold_defs_in_term (hol_ctxt as {thy, destroy_constrs, fast_descrs,
     (* int -> typ list -> styp -> term list -> int -> typ -> term * term list *)
     and select_nth_constr_arg_with_args _ _ (x as (_, T)) [] n res_T =
         (Abs (Name.uu, body_type T,
-              select_nth_constr_arg thy x (Bound 0) n res_T), [])
+              select_nth_constr_arg thy stds x (Bound 0) n res_T), [])
       | select_nth_constr_arg_with_args depth Ts x (t :: ts) n res_T =
-        (select_nth_constr_arg thy x (do_term depth Ts t) n res_T, ts)
+        (select_nth_constr_arg thy stds x (do_term depth Ts t) n res_T, ts)
     (* int -> typ list -> term -> styp -> term list -> term *)
     and do_const depth Ts t (x as (s, T)) ts =
       case AList.lookup (op =) ersatz_table s of
@@ -1588,7 +1605,7 @@ fun unfold_defs_in_term (hol_ctxt as {thy, destroy_constrs, fast_descrs,
       | NONE =>
         let
           val (const, ts) =
-            if is_built_in_const fast_descrs x then
+            if is_built_in_const thy stds fast_descrs x then
               (Const x, ts)
             else case AList.lookup (op =) case_names s of
               SOME n =>
@@ -1600,7 +1617,7 @@ fun unfold_defs_in_term (hol_ctxt as {thy, destroy_constrs, fast_descrs,
                  |> do_term (depth + 1) Ts, ts)
               end
             | _ =>
-              if is_constr thy x then
+              if is_constr thy stds x then
                 (Const x, ts)
               else if is_stale_constr thy x then
                 raise NOT_SUPPORTED ("(non-co)constructors of codatatypes \
@@ -1635,7 +1652,7 @@ fun unfold_defs_in_term (hol_ctxt as {thy, destroy_constrs, fast_descrs,
                 | n => (do_term depth Ts (eta_expand Ts t (2 - n)), [])
               else if is_rep_fun thy x then
                 let val x' = mate_of_rep_fun thy x in
-                  if is_constr thy x' then
+                  if is_constr thy stds x' then
                     select_nth_constr_arg_with_args depth Ts x' ts 0
                                                     (range_type T)
                   else
@@ -1659,7 +1676,7 @@ fun unfold_defs_in_term (hol_ctxt as {thy, destroy_constrs, fast_descrs,
   in do_term 0 [] end
 
 (* hol_context -> typ -> term list *)
-fun codatatype_bisim_axioms (hol_ctxt as {thy, ...}) T =
+fun codatatype_bisim_axioms (hol_ctxt as {thy, stds, ...}) T =
   let
     val xs = datatype_constrs hol_ctxt T
     val set_T = T --> bool_T
@@ -1677,8 +1694,8 @@ fun codatatype_bisim_axioms (hol_ctxt as {thy, ...}) T =
     fun nth_sub_bisim x n nth_T =
       (if is_codatatype thy nth_T then bisim_const $ n_var_minus_1
        else HOLogic.eq_const nth_T)
-      $ select_nth_constr_arg thy x x_var n nth_T
-      $ select_nth_constr_arg thy x y_var n nth_T
+      $ select_nth_constr_arg thy stds x x_var n nth_T
+      $ select_nth_constr_arg thy stds x y_var n nth_T
     (* styp -> term *)
     fun case_func (x as (_, T)) =
       let
@@ -1695,7 +1712,7 @@ fun codatatype_bisim_axioms (hol_ctxt as {thy, ...}) T =
                       map case_func xs @ [x_var]))),
      HOLogic.eq_const set_T $ (bisim_const $ bisim_max $ x_var)
      $ (Const (@{const_name insert}, T --> set_T --> set_T)
-        $ x_var $ Const (@{const_name bot_fun_inst.bot_fun}, set_T))]
+        $ x_var $ Const (@{const_name bot_class.bot}, set_T))]
     |> map HOLogic.mk_Trueprop
   end
 
@@ -1753,9 +1770,9 @@ val termination_tacs = [Lexicographic_Order.lex_order_tac true,
 
 (* hol_context -> const_table -> styp -> bool *)
 fun uncached_is_well_founded_inductive_pred
-        ({thy, ctxt, debug, fast_descrs, tac_timeout, intro_table, ...}
+        ({thy, ctxt, stds, debug, fast_descrs, tac_timeout, intro_table, ...}
          : hol_context) (x as (_, T)) =
-  case def_props_for_const thy fast_descrs intro_table x of
+  case def_props_for_const thy stds fast_descrs intro_table x of
     [] => raise TERM ("Nitpick_HOL.uncached_is_well_founded_inductive",
                       [Const x])
   | intro_ts =>
@@ -1999,10 +2016,10 @@ fun inductive_pred_axiom hol_ctxt (x as (s, T)) =
     raw_inductive_pred_axiom hol_ctxt x
 
 (* hol_context -> styp -> term list *)
-fun raw_equational_fun_axioms (hol_ctxt as {thy, fast_descrs, simp_table,
+fun raw_equational_fun_axioms (hol_ctxt as {thy, stds, fast_descrs, simp_table,
                                             psimp_table, ...}) (x as (s, _)) =
-  case def_props_for_const thy fast_descrs (!simp_table) x of
-    [] => (case def_props_for_const thy fast_descrs psimp_table x of
+  case def_props_for_const thy stds fast_descrs (!simp_table) x of
+    [] => (case def_props_for_const thy stds fast_descrs psimp_table x of
              [] => [inductive_pred_axiom hol_ctxt x]
            | psimps => psimps)
   | simps => simps

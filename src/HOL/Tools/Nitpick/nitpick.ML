@@ -265,7 +265,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                      orig_assm_ts
 *)
     val max_bisim_depth = fold Integer.max bisim_depths ~1
-    val case_names = case_const_names thy
+    val case_names = case_const_names thy stds
     val (defs, built_in_nondefs, user_nondefs) = all_axioms_of thy
     val def_table = const_def_table ctxt defs
     val nondef_table = const_nondef_table (built_in_nondefs @ user_nondefs)
@@ -337,7 +337,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val unique_scope = forall (curry (op =) 1 o length o snd) cards_assigns
     (* typ -> bool *)
     fun is_type_always_monotonic T =
-      (is_datatype thy T andalso not (is_quot_type thy T) andalso
+      (is_datatype thy stds T andalso not (is_quot_type thy T) andalso
        (not (is_pure_typedef thy T) orelse is_univ_typedef thy T)) orelse
       is_number_type thy T orelse is_bit_type T
     fun is_type_monotonic T =
@@ -347,8 +347,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       | _ => is_type_always_monotonic T orelse
              formulas_monotonic hol_ctxt binarize T Plus def_ts nondef_ts core_t
     fun is_deep_datatype T =
-      is_datatype thy T andalso
-      (not standard orelse is_word_type T orelse
+      is_datatype thy stds T andalso
+      (not standard orelse T = nat_T orelse is_word_type T orelse
        exists (curry (op =) T o domain_type o type_of) sel_names)
     val all_Ts = ground_types_in_terms hol_ctxt binarize
                                        (core_t :: def_ts @ nondef_ts)
@@ -519,8 +519,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
           declarative_axioms_for_datatypes hol_ctxt binarize bits ofs kk
                                            rel_table datatypes
         val declarative_axioms = plain_axioms @ dtype_axioms
-        val univ_card = univ_card nat_card int_card main_j0
-                                  (plain_bounds @ sel_bounds) formula
+        val univ_card = Int.max (univ_card nat_card int_card main_j0
+                                     (plain_bounds @ sel_bounds) formula,
+                                 main_j0 |> bits > 0 ? Integer.add (bits + 1))
         val built_in_bounds = bounds_for_built_in_rels_in_formula debug
                                   univ_card nat_card int_card main_j0 formula
         val bounds = built_in_bounds @ plain_bounds @ sel_bounds
@@ -837,8 +838,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                  forall (KK.is_problem_trivially_false o fst)
                         sound_problems then
                 print_m (fn () =>
-                    "Warning: The conjecture either trivially holds or (more \
-                    \likely) lies outside Nitpick's supported fragment." ^
+                    "Warning: The conjecture either trivially holds for the \
+                    \given scopes or (more likely) lies outside Nitpick's \
+                    \supported fragment." ^
                     (if exists (not o KK.is_problem_trivially_false o fst)
                                unsound_problems then
                        " Only potential counterexamples may be found."

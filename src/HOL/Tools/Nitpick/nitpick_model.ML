@@ -264,8 +264,8 @@ fun mk_tuple (Type ("*", [T1, T2])) ts =
    -> nut list -> nut list -> nut NameTable.table -> KK.raw_bound list -> typ
    -> typ -> rep -> int list list -> term *)
 fun reconstruct_term unfold pool (maybe_name, base_name, step_name, abs_name)
-        ({hol_ctxt as {thy, ctxt, ...}, binarize, card_assigns, bits, datatypes,
-          ofs, ...} : scope) sel_names rel_table bounds =
+        ({hol_ctxt as {thy, ctxt, stds, ...}, binarize, card_assigns, bits,
+          datatypes, ofs, ...} : scope) sel_names rel_table bounds =
   let
     val for_auto = (maybe_name = "")
     (* int list list -> int *)
@@ -388,7 +388,7 @@ fun reconstruct_term unfold pool (maybe_name, base_name, step_name, abs_name)
         if j = 0 then @{const False} else @{const True}
       | term_for_atom _ @{typ unit} _ _ _ = @{const Unity}
       | term_for_atom seen T _ j k =
-        if T = nat_T then
+        if T = nat_T andalso is_standard_datatype thy stds nat_T then
           HOLogic.mk_number nat_T j
         else if T = int_T then
           HOLogic.mk_number int_T (int_for_atom (k, 0) j)
@@ -713,7 +713,9 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
       handle TYPE ("Nitpick_HOL.card_of_type", _, _) => []
     val (codatatypes, datatypes) =
       datatypes |> filter #deep |> List.partition #co
-                ||> append (integer_datatype nat_T @ integer_datatype int_T)
+                ||> append (integer_datatype int_T
+                            |> is_standard_datatype thy stds nat_T
+                               ? append (integer_datatype nat_T))
     val block_of_datatypes =
       if show_datatypes andalso not (null datatypes) then
         [Pretty.big_list ("Datatype" ^ plural_s_for_list datatypes ^ ":")

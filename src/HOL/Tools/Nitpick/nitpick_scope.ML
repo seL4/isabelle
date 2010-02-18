@@ -111,7 +111,7 @@ fun is_complete_type dtypes (Type ("fun", [T1, T2])) =
   | is_complete_type dtypes (Type ("*", Ts)) =
     forall (is_complete_type dtypes) Ts
   | is_complete_type dtypes T =
-    not (is_integer_type T) andalso not (is_bit_type T) andalso
+    not (is_integer_like_type T) andalso not (is_bit_type T) andalso
     #complete (the (datatype_spec dtypes T))
     handle Option.Option => true
 and is_concrete_type dtypes (Type ("fun", [T1, T2])) =
@@ -135,8 +135,9 @@ fun spec_of_type ({card_assigns, ofs, ...} : scope) T =
 
 (* (string -> string) -> scope
    -> string list * string list * string list * string list * string list *)
-fun quintuple_for_scope quote ({hol_ctxt as {thy, ctxt, ...}, card_assigns,
-                                bits, bisim_depth, datatypes, ...} : scope) =
+fun quintuple_for_scope quote
+        ({hol_ctxt as {thy, ctxt, stds, ...}, card_assigns, bits, bisim_depth,
+         datatypes, ...} : scope) =
   let
     val boring_Ts = [@{typ unsigned_bit}, @{typ signed_bit},
                      @{typ bisim_iterator}]
@@ -144,7 +145,7 @@ fun quintuple_for_scope quote ({hol_ctxt as {thy, ctxt, ...}, card_assigns,
       card_assigns |> filter_out (member (op =) boring_Ts o fst)
                    |> List.partition (is_fp_iterator_type o fst)
     val (secondary_card_assigns, primary_card_assigns) =
-      card_assigns |> List.partition ((is_integer_type orf is_datatype thy)
+      card_assigns |> List.partition ((is_integer_type orf is_datatype thy stds)
                                       o fst)
     val cards =
       map (fn (T, k) => quote (string_for_type ctxt T) ^ " = " ^
@@ -400,7 +401,8 @@ fun offset_table_for_card_assigns thy assigns dtypes =
        -> int Typtab.table *)
     fun aux next _ [] = Typtab.update_new (dummyT, next)
       | aux next reusable ((T, k) :: assigns) =
-        if k = 1 orelse is_integer_type T orelse is_bit_type T then
+        if k = 1 orelse is_fp_iterator_type T orelse is_integer_type T
+           orelse T = @{typ bisim_iterator} orelse is_bit_type T then
           aux next reusable assigns
         else if length (these (Option.map #constrs (datatype_spec dtypes T)))
                 > 1 then
@@ -468,19 +470,20 @@ fun has_exact_card hol_ctxt card_assigns T =
   end
 
 (* hol_context -> bool -> typ list -> scope_desc -> typ * int -> dtype_spec *)
-fun datatype_spec_from_scope_descriptor (hol_ctxt as {thy, ...}) binarize
+fun datatype_spec_from_scope_descriptor (hol_ctxt as {thy, stds, ...}) binarize
         deep_dataTs (desc as (card_assigns, _)) (T, card) =
   let
     val deep = member (op =) deep_dataTs T
     val co = is_codatatype thy T
-    val standard = is_standard_datatype hol_ctxt T
+    val standard = is_standard_datatype thy stds T
     val xs = binarized_and_boxed_datatype_constrs hol_ctxt binarize T
     val self_recs = map (is_self_recursive_constr_type o snd) xs
     val (num_self_recs, num_non_self_recs) =
       List.partition I self_recs |> pairself length
     val complete = has_exact_card hol_ctxt card_assigns T
-    val concrete = xs |> maps (binder_types o snd) |> maps binder_types
-                      |> forall (has_exact_card hol_ctxt card_assigns)
+    val concrete = is_word_type T orelse
+                   (xs |> maps (binder_types o snd) |> maps binder_types
+                       |> forall (has_exact_card hol_ctxt card_assigns))
     (* int -> int *)
     fun sum_dom_cards max =
       map (domain_card max card_assigns o snd) xs |> Integer.sum
@@ -502,12 +505,12 @@ fun min_bits_for_max_assigns (_, []) = 0
         (map snd card_assigns @ map snd max_assigns) 0)
 
 (* hol_context -> bool -> int -> typ list -> scope_desc -> scope *)
-fun scope_from_descriptor (hol_ctxt as {thy, ...}) binarize sym_break
+fun scope_from_descriptor (hol_ctxt as {thy, stds, ...}) binarize sym_break
                           deep_dataTs (desc as (card_assigns, _)) =
   let
     val datatypes =
       map (datatype_spec_from_scope_descriptor hol_ctxt binarize deep_dataTs
-               desc) (filter (is_datatype thy o fst) card_assigns)
+               desc) (filter (is_datatype thy stds o fst) card_assigns)
     val bits = card_of_type card_assigns @{typ signed_bit} - 1
                handle TYPE ("Nitpick_HOL.card_of_type", _, _) =>
                       card_of_type card_assigns @{typ unsigned_bit}

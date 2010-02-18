@@ -472,7 +472,7 @@ outsourced to \textit{auto} by passing \textit{check\_potential}. For example:
 \prew
 \textbf{lemma} ``$\forall n.\; \textit{Suc}~n \mathbin{\not=} n \,\Longrightarrow\, P$'' \\
 \textbf{nitpick} [\textit{card~nat}~= 100, \textit{check\_potential}] \\[2\smallskipamount]
-\slshape Warning: The conjecture either trivially holds or (more likely) lies outside Nitpick's supported
+\slshape Warning: The conjecture either trivially holds for the given scopes or (more likely) lies outside Nitpick's supported
 fragment. Only potential counterexamples may be found. \\[2\smallskipamount]
 Nitpick found a potential counterexample: \\[2\smallskipamount]
 \hbox{}\qquad Free variable: \nopagebreak \\
@@ -2083,7 +2083,6 @@ theoretical chance of finding a counterexample.
 Specifies whether the given (recursive) datatype should be given standard
 models. Nonstandard models are unsound but can help debug structural induction
 proofs, as explained in \S\ref{inductive-properties}.
-%This option is not supported for the type \textit{nat}.
 
 \optrue{std}{non\_std}
 Specifies the default standardness to use. This can be overridden on a per-type

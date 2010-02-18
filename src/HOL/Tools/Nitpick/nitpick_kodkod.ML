@@ -131,8 +131,7 @@ fun pow_of_two_int_bounds bits j0 univ_card =
   let
     (* int -> int -> int -> KK.int_bound list *)
     fun aux 0  _ _ = []
-      | aux 1 pow_of_two j =
-        if j < univ_card then [(SOME (~ pow_of_two), [single_atom j])] else []
+      | aux 1 pow_of_two j = [(SOME (~ pow_of_two), [single_atom j])]
       | aux iter pow_of_two j =
         (SOME pow_of_two, [single_atom j]) ::
         aux (iter - 1) (2 * pow_of_two) (j + 1)
