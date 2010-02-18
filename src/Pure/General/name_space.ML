@@ -43,6 +43,7 @@ sig
   val root_path: naming -> naming
   val parent_path: naming -> naming
   val mandatory_path: string -> naming -> naming
+  val qualified_path: bool -> binding -> naming -> naming
   val transform_binding: naming -> binding -> binding
   val full_name: naming -> binding -> string
   val external_names: naming -> string -> string list
@@ -260,6 +261,9 @@ fun add_path elems = map_path (fn path => path @ [(elems, false)]);
 val root_path = map_path (fn _ => []);
 val parent_path = map_path (perhaps (try (#1 o split_last)));
 fun mandatory_path elems = map_path (fn path => path @ [(elems, true)]);
+
+fun qualified_path mandatory binding = map_path (fn path =>
+  path @ #2 (Binding.dest (Binding.qualified mandatory "" binding)));
 
 
 (* full name *)
