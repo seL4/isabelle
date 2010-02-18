@@ -125,7 +125,7 @@ val print_syntax = Syntax.print_syntax o Sign.syn_of;
 
 fun pretty_full_theory verbose thy =
   let
-    val ctxt = ProofContext.init thy;
+    val ctxt = Syntax.init_pretty_global thy;
 
     fun prt_cls c = Syntax.pretty_sort ctxt [c];
     fun prt_sort S = Syntax.pretty_sort ctxt S;
