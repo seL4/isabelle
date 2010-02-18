@@ -688,6 +688,10 @@ lemma keys_AList [code]:
   "Mapping.keys (AList xs) = set (map fst xs)"
   by (simp add: keys_def dom_map_of_conv_image_fst)
 
+lemma ordered_keys_AList [code]:
+  "Mapping.ordered_keys (AList xs) = sort (remdups (map fst xs))"
+  by (simp only: ordered_keys_def keys_AList sorted_list_of_set_sort_remdups)
+
 lemma size_AList [code]:
   "Mapping.size (AList xs) = length (remdups (map fst xs))"
   by (simp add: size_def length_remdups_card_conv dom_map_of_conv_image_fst)

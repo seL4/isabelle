@@ -124,6 +124,9 @@ lemma update_Tree [code]:
   "Mapping.update k v (Tree t) = Tree (update k v t)"
   by (simp add: Tree_def lookup_update)
 
+lemma [code, code del]:
+  "Mapping.ordered_keys = Mapping.ordered_keys " ..
+
 lemma keys_Tree [code]:
   "Mapping.keys (Tree t) = set (filter (\<lambda>k. lookup t k \<noteq> None) (remdups (keys t)))"
   by (simp add: Mapping.keys_def lookup_Tree dom_lookup)
