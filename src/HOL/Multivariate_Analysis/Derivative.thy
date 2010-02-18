@@ -26,6 +26,19 @@ definition has_derivative :: "('a::real_normed_vector \<Rightarrow> 'b::real_nor
 lemma derivative_linear[dest]:"(f has_derivative f') net \<Longrightarrow> bounded_linear f'"
   unfolding has_derivative_def by auto
 
+lemma DERIV_conv_has_derivative:"(DERIV f x :> f') = (f has_derivative op * f') (at (x::real))" (is "?l = ?r") proof 
+  assume ?l note as = this[unfolded deriv_def LIM_def,rule_format]
+  show ?r unfolding has_derivative_def Lim_at apply- apply(rule,rule mult.bounded_linear_right)
+    apply safe apply(drule as,safe) apply(rule_tac x=s in exI) apply safe
+    apply(erule_tac x="xa - x" in allE) unfolding vector_dist_norm netlimit_at[of x] unfolding diff_0_right norm_scaleR
+    by(auto simp add:field_simps) 
+next assume ?r note this[unfolded has_derivative_def Lim_at] note as=conjunct2[OF this,rule_format]
+  have *:"\<And>x xa f'. xa \<noteq> 0 \<Longrightarrow> \<bar>(f (xa + x) - f x) / xa - f'\<bar> = \<bar>(f (xa + x) - f x) - xa * f'\<bar> / \<bar>xa\<bar>" by(auto simp add:field_simps) 
+  show ?l unfolding deriv_def LIM_def apply safe apply(drule as,safe)
+    apply(rule_tac x=d in exI,safe) apply(erule_tac x="xa + x" in allE)
+    unfolding vector_dist_norm diff_0_right norm_scaleR
+    unfolding vector_dist_norm netlimit_at[of x] by(auto simp add:group_simps *) qed
+
 lemma FDERIV_conv_has_derivative:"FDERIV f (x::'a::{real_normed_vector,perfect_space}) :> f' = (f has_derivative f') (at x)" (is "?l = ?r") proof 
   assume ?l note as = this[unfolded fderiv_def]
   show ?r unfolding has_derivative_def Lim_at apply-apply(rule,rule as[THEN conjunct1]) proof(rule,rule)
