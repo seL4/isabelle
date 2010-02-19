@@ -1,7 +1,7 @@
 header {* Main HOL *}
 
 theory Main
-imports Plain Predicate_Compile Nitpick
+imports Plain Predicate_Compile Nitpick Quotient
 begin
 
 text {*

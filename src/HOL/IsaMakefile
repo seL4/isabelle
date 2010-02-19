@@ -52,6 +52,7 @@ test: \
   HOL-Nominal-Examples \
   HOL-Number_Theory \
   HOL-Old_Number_Theory \
+  HOL-Quotient_Examples \
   HOL-Probability \
   HOL-Prolog \
   HOL-Proofs-Extraction \
@@ -265,6 +266,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Presburger.thy \
   Predicate_Compile.thy \
   Quickcheck.thy \
+  Quotient.thy \
   Random.thy \
   Random_Sequence.thy \
   Recdef.thy \
@@ -307,6 +309,11 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Qelim/generated_cooper.ML \
   Tools/Qelim/presburger.ML \
   Tools/Qelim/qelim.ML \
+  Tools/Quotient/quotient_def.ML \
+  Tools/Quotient/quotient_info.ML \
+  Tools/Quotient/quotient_tacs.ML \
+  Tools/Quotient/quotient_term.ML \
+  Tools/Quotient/quotient_typ.ML \
   Tools/recdef.ML \
   Tools/res_atp.ML \
   Tools/res_axioms.ML \
@@ -407,7 +414,10 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Diagonalize.thy Library/RBT.thy Library/Univ_Poly.thy		\
   Library/Poly_Deriv.thy Library/Polynomial.thy Library/Preorder.thy	\
   Library/Product_plus.thy Library/Product_Vector.thy Library/Tree.thy	\
-  Library/Enum.thy Library/Float.thy $(SRC)/Tools/float.ML		\
+  Library/Enum.thy Library/Float.thy Library/Quotient_List.thy          \
+  Library/Quotient_Option.thy Library/Quotient_Product.thy              \
+  Library/Quotient_Sum.thy Library/Quotient_Syntax.thy                  \
+  $(SRC)/Tools/float.ML                                                 \
   $(SRC)/HOL/Tools/float_arith.ML Library/positivstellensatz.ML		\
   Library/reify_data.ML Library/reflection.ML Library/LaTeXsugar.thy	\
   Library/OptionalSugar.thy Library/SML_Quickcheck.thy
@@ -1271,6 +1281,15 @@ $(LOG)/HOL-Mutabelle.gz: $(OUT)/HOL Mutabelle/MutabelleExtra.thy	\
   Mutabelle/ROOT.ML Mutabelle/mutabelle.ML			\
   Mutabelle/mutabelle_extra.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Mutabelle
+
+
+## HOL-Quotient_Examples
+
+HOL-Quotient_Examples: HOL $(LOG)/HOL-Quotient_Examples.gz
+
+$(LOG)/HOL-Quotient_Examples.gz: $(OUT)/HOL	      			\
+  Quotient_Examples/LarryInt.thy Quotient_Examples/LarryDatatype.thy
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Quotient_Examples
 
 
 ## clean
