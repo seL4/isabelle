@@ -97,10 +97,11 @@ to other strip and tuple operations.  INCOMPATIBILITY.
 replaced by new-style primrec, especially in theory List.  The corresponding
 constants now have authentic syntax.  INCOMPATIBILITY.
 
-* Reorganized theory Multiset: less duplication, less historical
-organization of sections, conversion from associations lists to
-multisets, rudimentary code generation.  Use insert_DiffM2 [symmetric]
-instead of elem_imp_eq_diff_union, if needed.  INCOMPATIBILITY.
+* Reorganized theory Multiset: swapped notation of pointwise and multiset
+order;  less duplication, less historical organization of sections,
+conversion from associations lists to multisets, rudimentary code generation.
+Use insert_DiffM2 [symmetric] instead of elem_imp_eq_diff_union, if needed.
+INCOMPATIBILITY.
 
 * Reorganized theory Sum_Type; Inl and Inr now have authentic syntax.
 INCOMPATIBILITY.
