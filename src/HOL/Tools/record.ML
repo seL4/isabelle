@@ -842,96 +842,6 @@ end;
 val print_record_type_abbr = Unsynchronized.ref true;
 val print_record_type_as_fields = Unsynchronized.ref true;
 
-local
-
-fun field_updates_tr' ctxt (tm as Const (c, _) $ k $ u) =
-      let
-        val extern = Consts.extern (ProofContext.consts_of ctxt);
-        val t =
-          (case k of
-            Abs (_, _, Abs (_, _, t) $ Bound 0) =>
-              if null (loose_bnos t) then t else raise Match
-          | Abs (_, _, t) =>
-              if null (loose_bnos t) then t else raise Match
-          | _ => raise Match);
-      in
-        (case try (unprefix Syntax.constN) c |> Option.map extern of
-          SOME update_name =>
-            (case try (unsuffix updateN) update_name of
-              SOME name =>
-                apfst (cons (Syntax.const @{syntax_const "_field_update"} $ Syntax.free name $ t))
-                  (field_updates_tr' ctxt u)
-            | NONE => ([], tm))
-        | NONE => ([], tm))
-      end
-  | field_updates_tr' _ tm = ([], tm);
-
-fun record_update_tr' ctxt tm =
-  (case field_updates_tr' ctxt tm of
-    ([], _) => raise Match
-  | (ts, u) =>
-      Syntax.const @{syntax_const "_record_update"} $ u $
-        foldr1 (fn (v, w) => Syntax.const @{syntax_const "_field_updates"} $ v $ w) (rev ts));
-
-in
-
-fun field_update_tr' name =
-  let
-    val update_name = Syntax.constN ^ name ^ updateN;
-    fun tr' ctxt [t, u] = record_update_tr' ctxt (Syntax.const update_name $ t $ u)
-      | tr' _ _ = raise Match;
-  in (update_name, tr') end;
-
-end;
-
-
-local
-
-(* FIXME Syntax.free (??) *)
-fun field_tr' (c, t) = Syntax.const @{syntax_const "_field"} $ Syntax.const c $ t;
-fun fields_tr' (t, u) = Syntax.const @{syntax_const "_fields"} $ t $ u;
-
-fun record_tr' ctxt t =
-  let
-    val thy = ProofContext.theory_of ctxt;
-    val extern = Consts.extern (ProofContext.consts_of ctxt);
-
-    fun strip_fields t =
-      (case strip_comb t of
-        (Const (ext, _), args as (_ :: _)) =>
-          (case try (unprefix Syntax.constN o unsuffix extN) ext of
-            SOME ext' =>
-              (case get_extfields thy ext' of
-                SOME fields =>
-                 (let
-                    val f :: fs = but_last (map fst fields);
-                    val fields' = extern f :: map Long_Name.base_name fs;
-                    val (args', more) = split_last args;
-                  in (fields' ~~ args') @ strip_fields more end
-                  handle Library.UnequalLengths => [("", t)])
-              | NONE => [("", t)])
-          | NONE => [("", t)])
-       | _ => [("", t)]);
-
-    val (fields, (_, more)) = split_last (strip_fields t);
-    val _ = null fields andalso raise Match;
-    val u = foldr1 fields_tr' (map field_tr' fields);
-  in
-    case more of
-      Const (@{const_syntax Unity}, _) => Syntax.const @{syntax_const "_record"} $ u
-    | _ => Syntax.const @{syntax_const "_record_scheme"} $ u $ more
-  end;
-
-in
-
-fun record_ext_tr' name =
-  let
-    val ext_name = Syntax.constN ^ name ^ extN;
-    fun tr' ctxt ts = record_tr' ctxt (list_comb (Syntax.const ext_name, ts));
-  in (ext_name, tr') end;
-
-end;
-
 
 local
 
@@ -1049,6 +959,97 @@ fun record_ext_type_abbr_tr' abbr alphas zeta last_ext schemeT name =
       record_type_abbr_tr' abbr alphas zeta last_ext schemeT ctxt
         (list_comb (Syntax.const ext_type_name, ts));
   in (ext_type_name, tr') end;
+
+end;
+
+
+local
+
+(* FIXME Syntax.free (??) *)
+fun field_tr' (c, t) = Syntax.const @{syntax_const "_field"} $ Syntax.const c $ t;
+fun fields_tr' (t, u) = Syntax.const @{syntax_const "_fields"} $ t $ u;
+
+fun record_tr' ctxt t =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val extern = Consts.extern (ProofContext.consts_of ctxt);
+
+    fun strip_fields t =
+      (case strip_comb t of
+        (Const (ext, _), args as (_ :: _)) =>
+          (case try (unprefix Syntax.constN o unsuffix extN) ext of
+            SOME ext' =>
+              (case get_extfields thy ext' of
+                SOME fields =>
+                 (let
+                    val f :: fs = but_last (map fst fields);
+                    val fields' = extern f :: map Long_Name.base_name fs;
+                    val (args', more) = split_last args;
+                  in (fields' ~~ args') @ strip_fields more end
+                  handle Library.UnequalLengths => [("", t)])
+              | NONE => [("", t)])
+          | NONE => [("", t)])
+       | _ => [("", t)]);
+
+    val (fields, (_, more)) = split_last (strip_fields t);
+    val _ = null fields andalso raise Match;
+    val u = foldr1 fields_tr' (map field_tr' fields);
+  in
+    case more of
+      Const (@{const_syntax Unity}, _) => Syntax.const @{syntax_const "_record"} $ u
+    | _ => Syntax.const @{syntax_const "_record_scheme"} $ u $ more
+  end;
+
+in
+
+fun record_ext_tr' name =
+  let
+    val ext_name = Syntax.constN ^ name ^ extN;
+    fun tr' ctxt ts = record_tr' ctxt (list_comb (Syntax.const ext_name, ts));
+  in (ext_name, tr') end;
+
+end;
+
+
+local
+
+fun field_updates_tr' ctxt (tm as Const (c, _) $ k $ u) =
+      let
+        val extern = Consts.extern (ProofContext.consts_of ctxt);
+        val t =
+          (case k of
+            Abs (_, _, Abs (_, _, t) $ Bound 0) =>
+              if null (loose_bnos t) then t else raise Match
+          | Abs (_, _, t) =>
+              if null (loose_bnos t) then t else raise Match
+          | _ => raise Match);
+      in
+        (case try (unprefix Syntax.constN) c |> Option.map extern of
+          SOME update_name =>
+            (case try (unsuffix updateN) update_name of
+              SOME name =>
+                apfst (cons (Syntax.const @{syntax_const "_field_update"} $ Syntax.free name $ t))
+                  (field_updates_tr' ctxt u)
+            | NONE => ([], tm))
+        | NONE => ([], tm))
+      end
+  | field_updates_tr' _ tm = ([], tm);
+
+fun record_update_tr' ctxt tm =
+  (case field_updates_tr' ctxt tm of
+    ([], _) => raise Match
+  | (ts, u) =>
+      Syntax.const @{syntax_const "_record_update"} $ u $
+        foldr1 (fn (v, w) => Syntax.const @{syntax_const "_field_updates"} $ v $ w) (rev ts));
+
+in
+
+fun field_update_tr' name =
+  let
+    val update_name = Syntax.constN ^ name ^ updateN;
+    fun tr' ctxt [t, u] = record_update_tr' ctxt (Syntax.const update_name $ t $ u)
+      | tr' _ _ = raise Match;
+  in (update_name, tr') end;
 
 end;
 
@@ -1567,11 +1568,9 @@ val record_split_tac = CSUBGOAL (fn (cgoal, i) =>
           (s = @{const_name all} orelse s = @{const_name All}) andalso is_recT T
         | _ => false);
 
-    fun is_all t =  (* FIXME *)
-      (case t of
-        Const (quantifier, _) $ _ =>
-          if quantifier = @{const_name all} orelse quantifier = @{const_name All} then ~1 else 0
-      | _ => 0);
+    fun is_all (Const (@{const_name all}, _) $ _) = ~1
+      | is_all (Const (@{const_name All}, _) $ _) = ~1
+      | is_all _ = 0;
   in
     if has_rec goal then
       Simplifier.full_simp_tac (HOL_basic_ss addsimprocs [record_split_simproc is_all]) i
