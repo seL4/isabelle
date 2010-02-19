@@ -53,7 +53,7 @@ fun eval some_target reff postproc thy t args =
         val value_name = "Value.VALUE.value"
         val program' = program
           |> Graph.new_node (value_name,
-              Code_Thingol.Fun (Term.dummy_patternN, (([], ty), [(([], t), (Drule.dummy_thm, true))])))
+              Code_Thingol.Fun (Term.dummy_patternN, (([], ty), [(([], t), (NONE, true))])))
           |> fold (curry Graph.add_edge value_name) deps;
         val (value_code, [SOME value_name']) = Code_ML.evaluation_code_of thy
           (the_default target some_target) "" naming program' [value_name];
