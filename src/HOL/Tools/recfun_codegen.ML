@@ -44,9 +44,7 @@ fun get_equations thy defs (raw_c, T) = if raw_c = @{const_name "op ="} then ([]
   let
     val c = AxClass.unoverload_const thy (raw_c, T);
     val raw_thms = Code.get_cert thy (Code_Preproc.preprocess_functrans thy) c
-      |> Code.equations_thms_cert thy
-      |> snd
-      |> map_filter (fn (_, (thm, proper)) => if proper then SOME thm else NONE)
+      |> Code.bare_thms_of_cert thy
       |> map (AxClass.overload thy)
       |> filter (is_instance T o snd o const_of o prop_of);
     val module_name = case Symtab.lookup (ModuleData.get thy) c
