@@ -670,13 +670,13 @@ fun mk_frac phi cT x =
  end
 
 fun whatis x ct = case term_of ct of
-  Const(@{const_name Algebras.plus}, _)$(Const(@{const_name Algebras.times},_)$_$y)$_ =>
+  Const(@{const_name Groups.plus}, _)$(Const(@{const_name Groups.times},_)$_$y)$_ =>
      if y aconv term_of x then ("c*x+t",[(funpow 2 Thm.dest_arg1) ct, Thm.dest_arg ct])
      else ("Nox",[])
-| Const(@{const_name Algebras.plus}, _)$y$_ =>
+| Const(@{const_name Groups.plus}, _)$y$_ =>
      if y aconv term_of x then ("x+t",[Thm.dest_arg ct])
      else ("Nox",[])
-| Const(@{const_name Algebras.times}, _)$_$y =>
+| Const(@{const_name Groups.times}, _)$_$y =>
      if y aconv term_of x then ("c*x",[Thm.dest_arg1 ct])
      else ("Nox",[])
 | t => if t aconv term_of x then ("x",[]) else ("Nox",[]);
@@ -684,7 +684,7 @@ fun whatis x ct = case term_of ct of
 fun xnormalize_conv ctxt [] ct = reflexive ct
 | xnormalize_conv ctxt (vs as (x::_)) ct =
    case term_of ct of
-   Const(@{const_name Orderings.less},_)$_$Const(@{const_name Algebras.zero},_) =>
+   Const(@{const_name Orderings.less},_)$_$Const(@{const_name Groups.zero},_) =>
     (case whatis x (Thm.dest_arg1 ct) of
     ("c*x+t",[c,t]) =>
        let
@@ -727,7 +727,7 @@ fun xnormalize_conv ctxt [] ct = reflexive ct
     | _ => reflexive ct)
 
 
-|  Const(@{const_name Orderings.less_eq},_)$_$Const(@{const_name Algebras.zero},_) =>
+|  Const(@{const_name Orderings.less_eq},_)$_$Const(@{const_name Groups.zero},_) =>
    (case whatis x (Thm.dest_arg1 ct) of
     ("c*x+t",[c,t]) =>
        let
@@ -771,7 +771,7 @@ fun xnormalize_conv ctxt [] ct = reflexive ct
       in rth end
     | _ => reflexive ct)
 
-|  Const("op =",_)$_$Const(@{const_name Algebras.zero},_) =>
+|  Const("op =",_)$_$Const(@{const_name Groups.zero},_) =>
    (case whatis x (Thm.dest_arg1 ct) of
     ("c*x+t",[c,t]) =>
        let

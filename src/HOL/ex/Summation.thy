@@ -28,7 +28,7 @@ lemma \<Delta>_shift:
 
 lemma \<Delta>_same_shift:
   assumes "\<Delta> f = \<Delta> g"
-  shows "\<exists>l. (op +) l \<circ> f = g"
+  shows "\<exists>l. plus l \<circ> f = g"
 proof -
   fix k
   from assms have "\<And>k. \<Delta> f k = \<Delta> g k" by simp
@@ -44,9 +44,9 @@ proof -
     show "f k - g k = f 0 - g 0"
       by (induct k rule: int_induct) (simp_all add: k_incr k_decr)
   qed
-  then have "\<And>k. ((op +) (g 0 - f 0) \<circ> f) k = g k"
+  then have "\<And>k. (plus (g 0 - f 0) \<circ> f) k = g k"
     by (simp add: algebra_simps)
-  then have "(op +) (g 0 - f 0) \<circ> f = g" ..
+  then have "plus (g 0 - f 0) \<circ> f = g" ..
   then show ?thesis ..
 qed
 
@@ -99,7 +99,7 @@ lemma \<Sigma>_\<Delta>:
   "\<Sigma> (\<Delta> f) j l = f l - f j"
 proof -
   from \<Delta>_\<Sigma> have "\<Delta> (\<Sigma> (\<Delta> f) j) = \<Delta> f" .
-  then obtain k where "(op +) k \<circ> \<Sigma> (\<Delta> f) j = f" by (blast dest: \<Delta>_same_shift)
+  then obtain k where "plus k \<circ> \<Sigma> (\<Delta> f) j = f" by (blast dest: \<Delta>_same_shift)
   then have "\<And>q. f q = k + \<Sigma> (\<Delta> f) j q" by (simp add: expand_fun_eq)
   then show ?thesis by simp
 qed

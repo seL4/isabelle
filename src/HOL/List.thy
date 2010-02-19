@@ -2352,7 +2352,7 @@ lemma foldl_conv_concat:
 proof (induct xss arbitrary: xs)
   case Nil show ?case by simp
 next
-  interpret monoid_add "[]" "op @" proof qed simp_all
+  interpret monoid_add "op @" "[]" proof qed simp_all
   case Cons then show ?case by (simp add: foldl_absorb0)
 qed
 

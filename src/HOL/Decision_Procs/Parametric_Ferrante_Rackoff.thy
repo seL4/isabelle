@@ -2947,10 +2947,10 @@ fun num rT x = HOLogic.mk_number rT x;
 fun rrelT rT = [rT,rT] ---> rT;
 fun rrT rT = [rT, rT] ---> bT;
 fun divt rT = Const(@{const_name Rings.divide},rrelT rT);
-fun timest rT = Const(@{const_name Algebras.times},rrelT rT);
-fun plust rT = Const(@{const_name Algebras.plus},rrelT rT);
-fun minust rT = Const(@{const_name Algebras.minus},rrelT rT);
-fun uminust rT = Const(@{const_name Algebras.uminus}, rT --> rT);
+fun timest rT = Const(@{const_name Groups.times},rrelT rT);
+fun plust rT = Const(@{const_name Groups.plus},rrelT rT);
+fun minust rT = Const(@{const_name Groups.minus},rrelT rT);
+fun uminust rT = Const(@{const_name Groups.uminus}, rT --> rT);
 fun powt rT = Const(@{const_name "power"}, [rT,@{typ "nat"}] ---> rT);
 val brT = [bT, bT] ---> bT;
 val nott = @{term "Not"};
@@ -2961,7 +2961,7 @@ val ifft = @{term "op = :: bool => _"}
 fun llt rT = Const(@{const_name Orderings.less},rrT rT);
 fun lle rT = Const(@{const_name Orderings.less},rrT rT);
 fun eqt rT = Const("op =",rrT rT);
-fun rz rT = Const(@{const_name Algebras.zero},rT);
+fun rz rT = Const(@{const_name Groups.zero},rT);
 
 fun dest_nat t = case t of
   Const ("Suc",_)$t' => 1 + dest_nat t'
@@ -2969,10 +2969,10 @@ fun dest_nat t = case t of
 
 fun num_of_term m t = 
  case t of
-   Const(@{const_name Algebras.uminus},_)$t => @{code poly.Neg} (num_of_term m t)
- | Const(@{const_name Algebras.plus},_)$a$b => @{code poly.Add} (num_of_term m a, num_of_term m b)
- | Const(@{const_name Algebras.minus},_)$a$b => @{code poly.Sub} (num_of_term m a, num_of_term m b)
- | Const(@{const_name Algebras.times},_)$a$b => @{code poly.Mul} (num_of_term m a, num_of_term m b)
+   Const(@{const_name Groups.uminus},_)$t => @{code poly.Neg} (num_of_term m t)
+ | Const(@{const_name Groups.plus},_)$a$b => @{code poly.Add} (num_of_term m a, num_of_term m b)
+ | Const(@{const_name Groups.minus},_)$a$b => @{code poly.Sub} (num_of_term m a, num_of_term m b)
+ | Const(@{const_name Groups.times},_)$a$b => @{code poly.Mul} (num_of_term m a, num_of_term m b)
  | Const(@{const_name Power.power},_)$a$n => @{code poly.Pw} (num_of_term m a, dest_nat n)
  | Const(@{const_name Rings.divide},_)$a$b => @{code poly.C} (HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
  | _ => (@{code poly.C} (HOLogic.dest_number t |> snd,1) 
@@ -2980,10 +2980,10 @@ fun num_of_term m t =
 
 fun tm_of_term m m' t = 
  case t of
-   Const(@{const_name Algebras.uminus},_)$t => @{code Neg} (tm_of_term m m' t)
- | Const(@{const_name Algebras.plus},_)$a$b => @{code Add} (tm_of_term m m' a, tm_of_term m m' b)
- | Const(@{const_name Algebras.minus},_)$a$b => @{code Sub} (tm_of_term m m' a, tm_of_term m m' b)
- | Const(@{const_name Algebras.times},_)$a$b => @{code Mul} (num_of_term m' a, tm_of_term m m' b)
+   Const(@{const_name Groups.uminus},_)$t => @{code Neg} (tm_of_term m m' t)
+ | Const(@{const_name Groups.plus},_)$a$b => @{code Add} (tm_of_term m m' a, tm_of_term m m' b)
+ | Const(@{const_name Groups.minus},_)$a$b => @{code Sub} (tm_of_term m m' a, tm_of_term m m' b)
+ | Const(@{const_name Groups.times},_)$a$b => @{code Mul} (num_of_term m' a, tm_of_term m m' b)
  | _ => (@{code CP} (num_of_term m' t) 
          handle TERM _ => @{code Bound} (AList.lookup (op aconv) m t |> the)
               | Option => @{code Bound} (AList.lookup (op aconv) m t |> the));
