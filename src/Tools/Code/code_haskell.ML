@@ -50,71 +50,71 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
       Pretty.block (print_typcontext tyvars vs @| print_tyco_expr tyvars NOBR tycoexpr);
     fun print_typscheme tyvars (vs, ty) =
       Pretty.block (print_typforall tyvars vs @ print_typcontext tyvars vs @| print_typ tyvars NOBR ty);
-    fun print_term tyvars thm vars fxy (IConst c) =
-          print_app tyvars thm vars fxy (c, [])
-      | print_term tyvars thm vars fxy (t as (t1 `$ t2)) =
+    fun print_term tyvars some_thm vars fxy (IConst c) =
+          print_app tyvars some_thm vars fxy (c, [])
+      | print_term tyvars some_thm vars fxy (t as (t1 `$ t2)) =
           (case Code_Thingol.unfold_const_app t
-           of SOME app => print_app tyvars thm vars fxy app
+           of SOME app => print_app tyvars some_thm vars fxy app
             | _ =>
                 brackify fxy [
-                  print_term tyvars thm vars NOBR t1,
-                  print_term tyvars thm vars BR t2
+                  print_term tyvars some_thm vars NOBR t1,
+                  print_term tyvars some_thm vars BR t2
                 ])
-      | print_term tyvars thm vars fxy (IVar NONE) =
+      | print_term tyvars some_thm vars fxy (IVar NONE) =
           str "_"
-      | print_term tyvars thm vars fxy (IVar (SOME v)) =
+      | print_term tyvars some_thm vars fxy (IVar (SOME v)) =
           (str o lookup_var vars) v
-      | print_term tyvars thm vars fxy (t as _ `|=> _) =
+      | print_term tyvars some_thm vars fxy (t as _ `|=> _) =
           let
             val (binds, t') = Code_Thingol.unfold_pat_abs t;
-            val (ps, vars') = fold_map (print_bind tyvars thm BR o fst) binds vars;
-          in brackets (str "\\" :: ps @ str "->" @@ print_term tyvars thm vars' NOBR t') end
-      | print_term tyvars thm vars fxy (ICase (cases as (_, t0))) =
+            val (ps, vars') = fold_map (print_bind tyvars some_thm BR o fst) binds vars;
+          in brackets (str "\\" :: ps @ str "->" @@ print_term tyvars some_thm vars' NOBR t') end
+      | print_term tyvars some_thm vars fxy (ICase (cases as (_, t0))) =
           (case Code_Thingol.unfold_const_app t0
            of SOME (c_ts as ((c, _), _)) => if is_none (syntax_const c)
-                then print_case tyvars thm vars fxy cases
-                else print_app tyvars thm vars fxy c_ts
-            | NONE => print_case tyvars thm vars fxy cases)
-    and print_app_expr tyvars thm vars ((c, (_, tys)), ts) = case contr_classparam_typs c
-     of [] => (str o deresolve) c :: map (print_term tyvars thm vars BR) ts
+                then print_case tyvars some_thm vars fxy cases
+                else print_app tyvars some_thm vars fxy c_ts
+            | NONE => print_case tyvars some_thm vars fxy cases)
+    and print_app_expr tyvars some_thm vars ((c, (_, tys)), ts) = case contr_classparam_typs c
+     of [] => (str o deresolve) c :: map (print_term tyvars some_thm vars BR) ts
       | fingerprint => let
           val ts_fingerprint = ts ~~ take (length ts) fingerprint;
           val needs_annotation = forall (fn (_, NONE) => true | (t, SOME _) =>
             (not o Code_Thingol.locally_monomorphic) t) ts_fingerprint;
-          fun print_term_anno (t, NONE) _ = print_term tyvars thm vars BR t
+          fun print_term_anno (t, NONE) _ = print_term tyvars some_thm vars BR t
             | print_term_anno (t, SOME _) ty =
-                brackets [print_term tyvars thm vars NOBR t, str "::", print_typ tyvars NOBR ty];
+                brackets [print_term tyvars some_thm vars NOBR t, str "::", print_typ tyvars NOBR ty];
         in
           if needs_annotation then
             (str o deresolve) c :: map2 print_term_anno ts_fingerprint (take (length ts) tys)
-          else (str o deresolve) c :: map (print_term tyvars thm vars BR) ts
+          else (str o deresolve) c :: map (print_term tyvars some_thm vars BR) ts
         end
     and print_app tyvars = gen_print_app (print_app_expr tyvars) (print_term tyvars) syntax_const
-    and print_bind tyvars thm fxy p = gen_print_bind (print_term tyvars) thm fxy p
-    and print_case tyvars thm vars fxy (cases as ((_, [_]), _)) =
+    and print_bind tyvars some_thm fxy p = gen_print_bind (print_term tyvars) some_thm fxy p
+    and print_case tyvars some_thm vars fxy (cases as ((_, [_]), _)) =
           let
             val (binds, body) = Code_Thingol.unfold_let (ICase cases);
             fun print_match ((pat, ty), t) vars =
               vars
-              |> print_bind tyvars thm BR pat
-              |>> (fn p => semicolon [p, str "=", print_term tyvars thm vars NOBR t])
+              |> print_bind tyvars some_thm BR pat
+              |>> (fn p => semicolon [p, str "=", print_term tyvars some_thm vars NOBR t])
             val (ps, vars') = fold_map print_match binds vars;
           in brackify_block fxy (str "let {")
             ps
-            (concat [str "}", str "in", print_term tyvars thm vars' NOBR body])
+            (concat [str "}", str "in", print_term tyvars some_thm vars' NOBR body])
           end
-      | print_case tyvars thm vars fxy (((t, ty), clauses as _ :: _), _) =
+      | print_case tyvars some_thm vars fxy (((t, ty), clauses as _ :: _), _) =
           let
             fun print_select (pat, body) =
               let
-                val (p, vars') = print_bind tyvars thm NOBR pat vars;
-              in semicolon [p, str "->", print_term tyvars thm vars' NOBR body] end;
+                val (p, vars') = print_bind tyvars some_thm NOBR pat vars;
+              in semicolon [p, str "->", print_term tyvars some_thm vars' NOBR body] end;
           in brackify_block fxy
-            (concat [str "case", print_term tyvars thm vars NOBR t, str "of", str "{"])
+            (concat [str "case", print_term tyvars some_thm vars NOBR t, str "of", str "{"])
             (map print_select clauses)
             (str "}") 
           end
-      | print_case tyvars thm vars fxy ((_, []), _) =
+      | print_case tyvars some_thm vars fxy ((_, []), _) =
           (brackify fxy o Pretty.breaks o map str) ["error", "\"empty case\""];
     fun print_stmt (name, Code_Thingol.Fun (_, ((vs, ty), raw_eqs))) =
           let
@@ -128,7 +128,7 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
                 @@ (str o ML_Syntax.print_string
                     o Long_Name.base_name o Long_Name.qualifier) name
               );
-            fun print_eqn ((ts, t), (thm, _)) =
+            fun print_eqn ((ts, t), (some_thm, _)) =
               let
                 val consts = fold Code_Thingol.add_constnames (t :: ts) [];
                 val vars = reserved
@@ -139,9 +139,9 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
               in
                 semicolon (
                   (str o deresolve_base) name
-                  :: map (print_term tyvars thm vars BR) ts
+                  :: map (print_term tyvars some_thm vars BR) ts
                   @ str "="
-                  @@ print_term tyvars thm vars NOBR t
+                  @@ print_term tyvars some_thm vars NOBR t
                 )
               end;
           in
@@ -222,7 +222,7 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
              of NONE => semicolon [
                     (str o deresolve_base) classparam,
                     str "=",
-                    print_app tyvars thm reserved NOBR (c_inst, [])
+                    print_app tyvars (SOME thm) reserved NOBR (c_inst, [])
                   ]
               | SOME (k, pr) =>
                   let
@@ -238,9 +238,9 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
                       (*dictionaries are not relevant at this late stage*)
                   in
                     semicolon [
-                      print_term tyvars thm vars NOBR lhs,
+                      print_term tyvars (SOME thm) vars NOBR lhs,
                       str "=",
-                      print_term tyvars thm vars NOBR rhs
+                      print_term tyvars (SOME thm) vars NOBR rhs
                     ]
                   end;
           in

@@ -45,6 +45,7 @@ sig
   val dest_Const: term -> string * typ
   val dest_Free: term -> string * typ
   val dest_Var: term -> indexname * typ
+  val dest_comb: term -> term * term
   val domain_type: typ -> typ
   val range_type: typ -> typ
   val binder_types: typ -> typ list
@@ -277,6 +278,9 @@ fun dest_Free (Free x) =  x
 
 fun dest_Var (Var x) =  x
   | dest_Var t = raise TERM("dest_Var", [t]);
+
+fun dest_comb (t1 $ t2) = (t1, t2)
+  | dest_comb t = raise TERM("dest_comb", [t]);
 
 
 fun domain_type (Type("fun", [T,_])) = T

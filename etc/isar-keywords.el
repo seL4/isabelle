@@ -55,6 +55,7 @@
     "classes"
     "classrel"
     "code_abort"
+    "code_abstype"
     "code_class"
     "code_const"
     "code_datatype"
@@ -537,6 +538,7 @@
 (defconst isar-keywords-theory-goal
   '("ax_specification"
     "boogie_vc"
+    "code_abstype"
     "code_pred"
     "corollary"
     "cpodef"

@@ -11,7 +11,7 @@ sig
   type const = Code_Thingol.const
   type dict = Code_Thingol.dict
 
-  val eqn_error: thm -> string -> 'a
+  val eqn_error: thm option -> string -> 'a
 
   val @@ : 'a * 'a -> 'a list
   val @| : 'a list * 'a -> 'a list
@@ -78,12 +78,12 @@ sig
   val simple_const_syntax: simple_const_syntax -> proto_const_syntax
   val activate_const_syntax: theory -> literals
     -> proto_const_syntax -> Code_Thingol.naming -> const_syntax * Code_Thingol.naming
-  val gen_print_app: (thm -> var_ctxt -> const * iterm list -> Pretty.T list)
-    -> (thm -> var_ctxt -> fixity -> iterm -> Pretty.T)
+  val gen_print_app: (thm option -> var_ctxt -> const * iterm list -> Pretty.T list)
+    -> (thm option -> var_ctxt -> fixity -> iterm -> Pretty.T)
     -> (string -> const_syntax option)
-    -> thm -> var_ctxt -> fixity -> const * iterm list -> Pretty.T
-  val gen_print_bind: (thm -> var_ctxt -> fixity -> iterm -> Pretty.T)
-    -> thm -> fixity
+    -> thm option -> var_ctxt -> fixity -> const * iterm list -> Pretty.T
+  val gen_print_bind: (thm option -> var_ctxt -> fixity -> iterm -> Pretty.T)
+    -> thm option -> fixity
     -> iterm -> var_ctxt -> Pretty.T * var_ctxt
 
   val mk_name_module: Name.context -> string option -> (string -> string option)
@@ -96,7 +96,8 @@ struct
 
 open Code_Thingol;
 
-fun eqn_error thm s = error (s ^ ",\nin equation " ^ Display.string_of_thm_without_context thm);
+fun eqn_error (SOME thm) s = error (s ^ ",\nin equation " ^ Display.string_of_thm_without_context thm)
+  | eqn_error NONE s = error s;
 
 (** assembling and printing text pieces **)
 
@@ -243,9 +244,9 @@ type simple_const_syntax = int * ((fixity -> iterm -> Pretty.T)
   -> fixity -> (iterm * itype) list -> Pretty.T);
 type proto_const_syntax = int * (string list * (literals -> string list
   -> (var_ctxt -> fixity -> iterm -> Pretty.T)
-    -> thm -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T));
+    -> thm option -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T));
 type const_syntax = int * ((var_ctxt -> fixity -> iterm -> Pretty.T)
-  -> thm -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T);
+  -> thm option -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T);
 
 fun simple_const_syntax syn =
   apsnd (fn f => ([], (fn _ => fn _ => fn print => fn _ => fn vars => f (print vars)))) syn;

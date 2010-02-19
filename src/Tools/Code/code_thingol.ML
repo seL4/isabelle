@@ -66,7 +66,7 @@ sig
 
   datatype stmt =
       NoStmt
-    | Fun of string * (typscheme * ((iterm list * iterm) * (thm * bool)) list)
+    | Fun of string * (typscheme * ((iterm list * iterm) * (thm option * bool)) list)
     | Datatype of string * ((vname * sort) list * (string * itype list) list)
     | Datatypecons of string * string
     | Class of class * (vname * ((class * string) list * (string * itype) list))
@@ -256,8 +256,8 @@ local
     | thyname :: _ => thyname;
   fun thyname_of_const thy c = case AxClass.class_of_param thy c
    of SOME class => thyname_of_class thy class
-    | NONE => (case Code.get_datatype_of_constr thy c
-       of SOME dtco => Codegen.thyname_of_type thy dtco
+    | NONE => (case Code.get_datatype_of_constr_or_abstr thy c
+       of SOME (tyco, _) => Codegen.thyname_of_type thy tyco
         | NONE => Codegen.thyname_of_const thy c);
   fun purify_base "==>" = "follows"
     | purify_base "op &" = "and"
@@ -400,7 +400,7 @@ end; (* local *)
 type typscheme = (vname * sort) list * itype;
 datatype stmt =
     NoStmt
-  | Fun of string * (typscheme * ((iterm list * iterm) * (thm * bool)) list)
+  | Fun of string * (typscheme * ((iterm list * iterm) * (thm option * bool)) list)
   | Datatype of string * ((vname * sort) list * (string * itype list) list)
   | Datatypecons of string * string
   | Class of class * (vname * ((class * string) list * (string * itype) list))
@@ -523,14 +523,18 @@ fun ensure_stmt lookup declare generate thing (dep, (naming, program)) =
         |> pair name
   end;
 
-fun not_wellsorted thy thm ty sort e =
+fun translation_error thy some_thm msg sub_msg =
+  let
+    val err_thm = case some_thm
+     of SOME thm => "\n(in code equation " ^ Display.string_of_thm_global thy thm ^ ")" | NONE => "";
+  in error (msg ^ err_thm ^ ":\n" ^ sub_msg) end;
+
+fun not_wellsorted thy some_thm ty sort e =
   let
     val err_class = Sorts.class_error (Syntax.pp_global thy) e;
-    val err_thm = case thm
-     of SOME thm => "\n(in code equation " ^ Display.string_of_thm_global thy thm ^ ")" | NONE => "";
     val err_typ = "Type " ^ Syntax.string_of_typ_global thy ty ^ " not of sort "
       ^ Syntax.string_of_sort_global thy sort;
-  in error ("Wellsortedness error" ^ err_thm ^ ":\n" ^ err_typ ^ "\n" ^ err_class) end;
+  in translation_error thy some_thm "Wellsortedness error" (err_typ ^ "\n" ^ err_class) end;
 
 
 (* translation *)
@@ -558,16 +562,15 @@ and ensure_const thy algbr eqngr c =
       #>> (fn class => Classparam (c, class));
     fun stmt_fun cert =
       let
-        val ((vs, ty), raw_eqns) = Code.equations_thms_cert thy cert;
-        val eqns = map snd raw_eqns;
+        val ((vs, ty), eqns) = Code.equations_of_cert thy cert;
       in
         fold_map (translate_tyvar_sort thy algbr eqngr) vs
         ##>> translate_typ thy algbr eqngr ty
         ##>> fold_map (translate_eqn thy algbr eqngr) eqns
         #>> (fn info => Fun (c, info))
       end;
-    val stmt_const = case Code.get_datatype_of_constr thy c
-     of SOME tyco => stmt_datatypecons tyco
+    val stmt_const = case Code.get_datatype_of_constr_or_abstr thy c
+     of SOME (tyco, _) => stmt_datatypecons tyco
       | NONE => (case AxClass.class_of_param thy c
          of SOME class => stmt_classparam class
           | NONE => stmt_fun (Code_Preproc.cert eqngr c))
@@ -614,7 +617,7 @@ and ensure_inst thy (algbr as (_, algebra)) eqngr (class, tyco) =
           o Logic.dest_equals o Thm.prop_of) thm;
       in
         ensure_const thy algbr eqngr c
-        ##>> translate_const thy algbr eqngr (SOME thm) c_ty
+        ##>> translate_const thy algbr eqngr NONE (SOME thm) c_ty
         #>> (fn (c, IConst c_inst) => ((c, c_inst), (thm, true)))
       end;
     val stmt_inst =
@@ -632,54 +635,54 @@ and translate_typ thy algbr eqngr (TFree (v, _)) =
       ensure_tyco thy algbr eqngr tyco
       ##>> fold_map (translate_typ thy algbr eqngr) tys
       #>> (fn (tyco, tys) => tyco `%% tys)
-and translate_term thy algbr eqngr thm (Const (c, ty)) =
-      translate_app thy algbr eqngr thm ((c, ty), [])
-  | translate_term thy algbr eqngr thm (Free (v, _)) =
+and translate_term thy algbr eqngr some_abs some_thm (Const (c, ty)) =
+      translate_app thy algbr eqngr some_abs some_thm ((c, ty), [])
+  | translate_term thy algbr eqngr some_abs some_thm (Free (v, _)) =
       pair (IVar (SOME v))
-  | translate_term thy algbr eqngr thm (Abs (v, ty, t)) =
+  | translate_term thy algbr eqngr some_abs some_thm (Abs (v, ty, t)) =
       let
         val (v', t') = Syntax.variant_abs (Name.desymbolize false v, ty, t);
         val v'' = if member (op =) (Term.add_free_names t' []) v'
           then SOME v' else NONE
       in
         translate_typ thy algbr eqngr ty
-        ##>> translate_term thy algbr eqngr thm t'
+        ##>> translate_term thy algbr eqngr some_abs some_thm t'
         #>> (fn (ty, t) => (v'', ty) `|=> t)
       end
-  | translate_term thy algbr eqngr thm (t as _ $ _) =
+  | translate_term thy algbr eqngr some_abs some_thm (t as _ $ _) =
       case strip_comb t
        of (Const (c, ty), ts) =>
-            translate_app thy algbr eqngr thm ((c, ty), ts)
+            translate_app thy algbr eqngr some_abs some_thm ((c, ty), ts)
         | (t', ts) =>
-            translate_term thy algbr eqngr thm t'
-            ##>> fold_map (translate_term thy algbr eqngr thm) ts
+            translate_term thy algbr eqngr some_abs some_thm t'
+            ##>> fold_map (translate_term thy algbr eqngr some_abs some_thm) ts
             #>> (fn (t, ts) => t `$$ ts)
-and translate_eqn thy algbr eqngr (thm, proper) =
+and translate_eqn thy algbr eqngr ((some_abs, (args, rhs)), (some_thm, proper)) =
+  fold_map (translate_term thy algbr eqngr some_abs some_thm) args
+  ##>> translate_term thy algbr eqngr some_abs some_thm rhs
+  #>> rpair (some_thm, proper)
+and translate_const thy algbr eqngr some_abs some_thm (c, ty) =
   let
-    val (args, rhs) = (apfst (snd o strip_comb) o Logic.dest_equals
-      o Code.subst_signatures thy o Logic.unvarify o prop_of) thm;
-  in
-    fold_map (translate_term thy algbr eqngr (SOME thm)) args
-    ##>> translate_term thy algbr eqngr (SOME thm) rhs
-    #>> rpair (thm, proper)
-  end
-and translate_const thy algbr eqngr thm (c, ty) =
-  let
+    val _ = if (case some_abs of NONE => true | SOME abs => not (c = abs))
+        andalso Code.is_abstr thy c
+        then translation_error thy some_thm
+          "Abstraction violation" ("constant " ^ Code.string_of_const thy c)
+      else ()
     val tys = Sign.const_typargs thy (c, ty);
     val sorts = Code_Preproc.sortargs eqngr c;
     val tys_args = (fst o Term.strip_type) ty;
   in
     ensure_const thy algbr eqngr c
     ##>> fold_map (translate_typ thy algbr eqngr) tys
-    ##>> fold_map (translate_dicts thy algbr eqngr thm) (tys ~~ sorts)
+    ##>> fold_map (translate_dicts thy algbr eqngr some_thm) (tys ~~ sorts)
     ##>> fold_map (translate_typ thy algbr eqngr) tys_args
     #>> (fn (((c, tys), iss), tys_args) => IConst (c, ((tys, iss), tys_args)))
   end
-and translate_app_const thy algbr eqngr thm (c_ty, ts) =
-  translate_const thy algbr eqngr thm c_ty
-  ##>> fold_map (translate_term thy algbr eqngr thm) ts
+and translate_app_const thy algbr eqngr some_abs some_thm (c_ty, ts) =
+  translate_const thy algbr eqngr some_abs some_thm c_ty
+  ##>> fold_map (translate_term thy algbr eqngr some_abs some_thm) ts
   #>> (fn (t, ts) => t `$$ ts)
-and translate_case thy algbr eqngr thm (num_args, (t_pos, case_pats)) (c_ty, ts) =
+and translate_case thy algbr eqngr some_abs some_thm (num_args, (t_pos, case_pats)) (c_ty, ts) =
   let
     fun arg_types num_args ty = (fst o chop num_args o fst o strip_type) ty;
     val tys = arg_types num_args (snd c_ty);
@@ -723,14 +726,14 @@ and translate_case thy algbr eqngr thm (num_args, (t_pos, case_pats)) (c_ty, ts)
               (constrs ~~ ts_clause);
       in ((t, ty), clauses) end;
   in
-    translate_const thy algbr eqngr thm c_ty
-    ##>> fold_map (fn (constr, n) => translate_const thy algbr eqngr thm constr #>> rpair n) constrs
+    translate_const thy algbr eqngr some_abs some_thm c_ty
+    ##>> fold_map (fn (constr, n) => translate_const thy algbr eqngr some_abs some_thm constr #>> rpair n) constrs
     ##>> translate_typ thy algbr eqngr ty
-    ##>> fold_map (translate_term thy algbr eqngr thm) ts
+    ##>> fold_map (translate_term thy algbr eqngr some_abs some_thm) ts
     #-> (fn (((t, constrs), ty), ts) =>
       `(fn (_, (naming, _)) => ICase (casify naming constrs ty ts, t `$$ ts)))
   end
-and translate_app_case thy algbr eqngr thm (case_scheme as (num_args, _)) ((c, ty), ts) =
+and translate_app_case thy algbr eqngr some_abs some_thm (case_scheme as (num_args, _)) ((c, ty), ts) =
   if length ts < num_args then
     let
       val k = length ts;
@@ -739,23 +742,23 @@ and translate_app_case thy algbr eqngr thm (case_scheme as (num_args, _)) ((c, t
       val vs = Name.names ctxt "a" tys;
     in
       fold_map (translate_typ thy algbr eqngr) tys
-      ##>> translate_case thy algbr eqngr thm case_scheme ((c, ty), ts @ map Free vs)
+      ##>> translate_case thy algbr eqngr some_abs some_thm case_scheme ((c, ty), ts @ map Free vs)
       #>> (fn (tys, t) => map2 (fn (v, _) => pair (SOME v)) vs tys `|==> t)
     end
   else if length ts > num_args then
-    translate_case thy algbr eqngr thm case_scheme ((c, ty), take num_args ts)
-    ##>> fold_map (translate_term thy algbr eqngr thm) (drop num_args ts)
+    translate_case thy algbr eqngr some_abs some_thm case_scheme ((c, ty), take num_args ts)
+    ##>> fold_map (translate_term thy algbr eqngr some_abs some_thm) (drop num_args ts)
     #>> (fn (t, ts) => t `$$ ts)
   else
-    translate_case thy algbr eqngr thm case_scheme ((c, ty), ts)
-and translate_app thy algbr eqngr thm (c_ty_ts as ((c, _), _)) =
+    translate_case thy algbr eqngr some_abs some_thm case_scheme ((c, ty), ts)
+and translate_app thy algbr eqngr some_abs some_thm (c_ty_ts as ((c, _), _)) =
   case Code.get_case_scheme thy c
-   of SOME case_scheme => translate_app_case thy algbr eqngr thm case_scheme c_ty_ts
-    | NONE => translate_app_const thy algbr eqngr thm c_ty_ts
+   of SOME case_scheme => translate_app_case thy algbr eqngr some_abs some_thm case_scheme c_ty_ts
+    | NONE => translate_app_const thy algbr eqngr some_abs some_thm c_ty_ts
 and translate_tyvar_sort thy (algbr as (proj_sort, _)) eqngr (v, sort) =
   fold_map (ensure_class thy algbr eqngr) (proj_sort sort)
   #>> (fn sort => (unprefix "'" v, sort))
-and translate_dicts thy (algbr as (proj_sort, algebra)) eqngr thm (ty, sort) =
+and translate_dicts thy (algbr as (proj_sort, algebra)) eqngr some_thm (ty, sort) =
   let
     datatype typarg =
         Global of (class * string) * typarg list list
@@ -773,7 +776,7 @@ and translate_dicts thy (algbr as (proj_sort, algebra)) eqngr thm (ty, sort) =
     val typargs = Sorts.of_sort_derivation algebra
       {class_relation = class_relation, type_constructor = type_constructor,
        type_variable = type_variable} (ty, proj_sort sort)
-      handle Sorts.CLASS_ERROR e => not_wellsorted thy thm ty sort e;
+      handle Sorts.CLASS_ERROR e => not_wellsorted thy some_thm ty sort e;
     fun mk_dict (Global (inst, yss)) =
           ensure_inst thy algbr eqngr inst
           ##>> (fold_map o fold_map) mk_dict yss
@@ -824,9 +827,9 @@ fun ensure_value thy algbr eqngr t =
     val stmt_value =
       fold_map (translate_tyvar_sort thy algbr eqngr) vs
       ##>> translate_typ thy algbr eqngr ty
-      ##>> translate_term thy algbr eqngr NONE (Code.subst_signatures thy t)
+      ##>> translate_term thy algbr eqngr NONE NONE (Code.subst_signatures thy t)
       #>> (fn ((vs, ty), t) => Fun
-        (Term.dummy_patternN, ((vs, ty), [(([], t), (Drule.dummy_thm, true))])));
+        (Term.dummy_patternN, ((vs, ty), [(([], t), (NONE, true))])));
     fun term_value (dep, (naming, program1)) =
       let
         val Fun (_, (vs_ty, [(([], t), _)])) =

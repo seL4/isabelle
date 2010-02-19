@@ -314,9 +314,7 @@ fun is_constructor thy t =
   else false
 *)
 
-(* must be exported in code.ML *)
-(* TODO: is there copy in the core? *)
-fun is_constr thy = is_some o Code.get_datatype_of_constr thy;
+val is_constr = Code.is_constr;
 
 fun strip_ex (Const ("Ex", _) $ Abs (x, T, t)) =
   let
