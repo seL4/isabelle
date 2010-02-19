@@ -270,7 +270,7 @@ text{*
   In the following theorem R1 can be instantiated with anything,
   but we know some of the types of the Rep and Abs functions;
   so by solving Quotient assumptions we can get a unique R1 that
-  will be provable; which is why we need to use apply_rsp and
+  will be provable; which is why we need to use @{text apply_rsp} and
   not the primed version *}
 
 lemma apply_rsp:
@@ -465,7 +465,7 @@ lemma ex_prs:
   using a unfolding Quotient_def Bex_def in_respects fun_map_def id_apply
   by metis
 
-section {* Bex1_rel quantifier *}
+section {* @{text Bex1_rel} quantifier *}
 
 definition
   Bex1_rel :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
