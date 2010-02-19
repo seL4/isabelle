@@ -111,7 +111,7 @@ sig
   val inherit_context: simpset -> simpset -> simpset
   val the_context: simpset -> Proof.context
   val context: Proof.context -> simpset -> simpset
-  val theory_context: theory  -> simpset -> simpset
+  val global_context: theory  -> simpset -> simpset
   val debug_bounds: bool Unsynchronized.ref
   val set_reorient: (theory -> term list -> term -> term -> bool) -> simpset -> simpset
   val set_solvers: solver list -> simpset -> simpset
@@ -341,7 +341,7 @@ fun the_context (Simpset ({context = SOME ctxt, ...}, _)) = ctxt
 fun context ctxt =
   map_simpset1 (fn (rules, prems, bounds, depth, _) => (rules, prems, bounds, depth, SOME ctxt));
 
-val theory_context = context o ProofContext.init;
+val global_context = context o ProofContext.init;
 
 fun activate_context thy ss =
   let
@@ -1025,7 +1025,8 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
                  val b' = #1 (Term.dest_Free (Thm.term_of v));
                  val _ =
                    if b <> b' then
-                     warning ("Simplifier: renamed bound variable " ^ quote b ^ " to " ^ quote b')
+                     warning ("Simplifier: renamed bound variable " ^
+                       quote b ^ " to " ^ quote b' ^ Position.str_of (Position.thread_data ()))
                    else ();
                  val ss' = add_bound ((b', T), a) ss;
                  val skel' = case skel of Abs (_, _, sk) => sk | _ => skel0;
@@ -1240,7 +1241,7 @@ val simple_prover =
 
 fun rewrite _ [] ct = Thm.reflexive ct
   | rewrite full thms ct = rewrite_cterm (full, false, false) simple_prover
-      (theory_context (Thm.theory_of_cterm ct) empty_ss addsimps thms) ct;
+      (global_context (Thm.theory_of_cterm ct) empty_ss addsimps thms) ct;
 
 fun simplify full thms = Conv.fconv_rule (rewrite full thms);
 val rewrite_rule = simplify true;
@@ -1254,7 +1255,7 @@ fun rewrite_thm mode prover ss = Conv.fconv_rule (rewrite_cterm mode prover ss);
 (*Rewrite the subgoals of a proof state (represented by a theorem)*)
 fun rewrite_goals_rule thms th =
   Conv.fconv_rule (Conv.prems_conv ~1 (rewrite_cterm (true, true, true) simple_prover
-    (theory_context (Thm.theory_of_thm th) empty_ss addsimps thms))) th;
+    (global_context (Thm.theory_of_thm th) empty_ss addsimps thms))) th;
 
 (*Rewrite the subgoal of a proof state (represented by a theorem)*)
 fun rewrite_goal_rule mode prover ss i thm =
@@ -1278,7 +1279,7 @@ fun asm_rewrite_goal_tac mode prover_tac ss i thm =
 fun rewrite_goal_tac rews =
   let val ss = empty_ss addsimps rews in
     fn i => fn st => asm_rewrite_goal_tac (true, false, false) (K no_tac)
-      (theory_context (Thm.theory_of_thm st) ss) i st
+      (global_context (Thm.theory_of_thm st) ss) i st
   end;
 
 (*Prunes all redundant parameters from the proof state by rewriting.
@@ -1316,7 +1317,7 @@ local
 fun gen_norm_hhf ss th =
   (if Drule.is_norm_hhf (Thm.prop_of th) then th
    else Conv.fconv_rule
-    (rewrite_cterm (true, false, false) (K (K NONE)) (theory_context (Thm.theory_of_thm th) ss)) th)
+    (rewrite_cterm (true, false, false) (K (K NONE)) (global_context (Thm.theory_of_thm th) ss)) th)
   |> Thm.adjust_maxidx_thm ~1
   |> Drule.gen_all;
 

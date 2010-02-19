@@ -72,26 +72,25 @@ fun spec_step n th = if (n=0) then th else (spec_step (n-1) th) RS spec ;
 fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
 
 
-fun linr_tac ctxt q i = 
-    (ObjectLogic.atomize_prems_tac i) 
-        THEN (REPEAT_DETERM (split_tac [@{thm split_min}, @{thm split_max}, @{thm abs_split}] i))
-        THEN (fn st =>
+fun linr_tac ctxt q =
+    ObjectLogic.atomize_prems_tac
+        THEN' (REPEAT_DETERM o split_tac [@{thm split_min}, @{thm split_max}, @{thm abs_split}])
+        THEN' SUBGOAL (fn (g, i) =>
   let
-    val g = List.nth (prems_of st, i - 1)
     val thy = ProofContext.theory_of ctxt
     (* Transform the term*)
     val (t,np,nh) = prepare_for_linr thy q g
     (* Some simpsets for dealing with mod div abs and nat*)
-    val simpset0 = Simplifier.theory_context thy HOL_basic_ss addsimps comp_arith
+    val simpset0 = Simplifier.context ctxt HOL_basic_ss addsimps comp_arith
     val ct = cterm_of thy (HOLogic.mk_Trueprop t)
     (* Theorem for the nat --> int transformation *)
    val pre_thm = Seq.hd (EVERY
       [simp_tac simpset0 1,
-       TRY (simp_tac (Simplifier.theory_context thy ferrack_ss) 1)]
+       TRY (simp_tac (Simplifier.context ctxt ferrack_ss) 1)]
       (trivial ct))
     fun assm_tac i = REPEAT_DETERM_N nh (assume_tac i)
     (* The result of the quantifier elimination *)
-    val (th, tac) = case (prop_of pre_thm) of
+    val (th, tac) = case prop_of pre_thm of
         Const ("==>", _) $ (Const ("Trueprop", _) $ t1) $ _ =>
     let val pth = linr_oracle (cterm_of thy (Pattern.eta_long [] t1))
     in 
@@ -101,9 +100,7 @@ fun linr_tac ctxt q i =
             assm_tac (i + 1) THEN (if q then I else TRY) (rtac TrueI i)))
     end
       | _ => (pre_thm, assm_tac i)
-  in (rtac (((mp_step nh) o (spec_step np)) th) i 
-      THEN tac) st
-  end handle Subscript => no_tac st);
+  in rtac ((mp_step nh o spec_step np) th) i THEN tac end);
 
 val setup =
   Method.setup @{binding rferrack}

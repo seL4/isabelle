@@ -156,7 +156,7 @@ in
     let fun tac i st = SUBGOAL (fn (Bi, _) =>
       let
         val (k, _) = eq_var bnd true Bi
-        val hyp_subst_ss = Simplifier.theory_context (Thm.theory_of_thm st) empty_ss
+        val hyp_subst_ss = Simplifier.global_context (Thm.theory_of_thm st) empty_ss
           setmksimps (mk_eqs bnd)
       in EVERY [rotate_tac k i, asm_lr_simp_tac hyp_subst_ss i,
         etac thin_rl i, rotate_tac (~k) i]
