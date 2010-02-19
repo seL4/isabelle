@@ -143,7 +143,7 @@ val perm_simproc_fun = Simplifier.simproc @{theory} "perm_simproc_fun"
 fun perm_simp_gen stac dyn_thms eqvt_thms ss i = 
     ("general simplification of permutations", fn st =>
     let
-       val ss' = Simplifier.theory_context (theory_of_thm st) ss
+       val ss' = Simplifier.global_context (theory_of_thm st) ss
          addsimps (maps (dynamic_thms st) dyn_thms @ eqvt_thms)
          delcongs weak_congs
          addcongs strong_congs
@@ -221,7 +221,7 @@ fun perm_compose_tac ss i =
   ("analysing permutation compositions on the lhs",
    fn st => EVERY
      [rtac trans i,
-      asm_full_simp_tac (Simplifier.theory_context (theory_of_thm st) empty_ss
+      asm_full_simp_tac (Simplifier.global_context (theory_of_thm st) empty_ss
         addsimprocs [perm_compose_simproc]) i,
       asm_full_simp_tac (HOL_basic_ss addsimps [perm_aux_fold]) i] st);
 

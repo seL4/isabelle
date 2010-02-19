@@ -82,12 +82,12 @@ fun linr_tac ctxt q i =
     (* Transform the term*)
     val (t,np,nh) = prepare_for_linr thy q g
     (* Some simpsets for dealing with mod div abs and nat*)
-    val simpset0 = Simplifier.theory_context thy HOL_basic_ss addsimps comp_arith
+    val simpset0 = Simplifier.global_context thy HOL_basic_ss addsimps comp_arith
     val ct = cterm_of thy (HOLogic.mk_Trueprop t)
     (* Theorem for the nat --> int transformation *)
    val pre_thm = Seq.hd (EVERY
       [simp_tac simpset0 1,
-       TRY (simp_tac (Simplifier.theory_context thy ferrack_ss) 1)]
+       TRY (simp_tac (Simplifier.global_context thy ferrack_ss) 1)]
       (trivial ct))
     fun assm_tac i = REPEAT_DETERM_N nh (assume_tac i)
     (* The result of the quantifier elimination *)

@@ -59,7 +59,7 @@ fun atomizeD ctxt thm = let
 in map zero_var_indexes (at thm) end;
 
 val atomize_ss =
-  Simplifier.theory_context @{theory} empty_ss
+  Simplifier.global_context @{theory} empty_ss
   setmksimps (mksimps mksimps_pairs)
   addsimps [
         all_conj_distrib, (* "(! x. P x & Q x) = ((! x. P x) & (! x. Q x))" *)

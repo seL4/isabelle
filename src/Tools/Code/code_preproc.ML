@@ -129,7 +129,7 @@ fun preprocess_functrans thy =
 
 fun preprocess thy =
   let
-    val pre = (Simplifier.theory_context thy o #pre o the_thmproc) thy;
+    val pre = (Simplifier.global_context thy o #pre o the_thmproc) thy;
   in
     preprocess_functrans thy
     #> (map o apfst) (rewrite_eqn pre)
@@ -137,7 +137,7 @@ fun preprocess thy =
 
 fun preprocess_conv thy ct =
   let
-    val pre = (Simplifier.theory_context thy o #pre o the_thmproc) thy;
+    val pre = (Simplifier.global_context thy o #pre o the_thmproc) thy;
   in
     ct
     |> Simplifier.rewrite pre
@@ -146,7 +146,7 @@ fun preprocess_conv thy ct =
 
 fun postprocess_conv thy ct =
   let
-    val post = (Simplifier.theory_context thy o #post o the_thmproc) thy;
+    val post = (Simplifier.global_context thy o #post o the_thmproc) thy;
   in
     ct
     |> AxClass.overload_conv thy

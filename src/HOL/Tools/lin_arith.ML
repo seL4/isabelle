@@ -859,7 +859,7 @@ local
     addsimps [@{thm imp_conv_disj}, @{thm iff_conv_conj_imp}, @{thm de_Morgan_disj},
       @{thm de_Morgan_conj}, @{thm not_all}, @{thm not_ex}, @{thm not_not}];
   fun prem_nnf_tac i st =
-    full_simp_tac (Simplifier.theory_context (Thm.theory_of_thm st) nnf_simpset) i st;
+    full_simp_tac (Simplifier.global_context (Thm.theory_of_thm st) nnf_simpset) i st;
 in
 fun refute_tac test prep_tac ref_tac =
   let val refute_prems_tac =
