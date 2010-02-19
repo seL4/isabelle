@@ -45,6 +45,11 @@ imports
   Preorder
   Product_Vector
   Quicksort
+  Quotient_List
+  Quotient_Option
+  Quotient_Product
+  Quotient_Sum
+  Quotient_Syntax
   Quotient_Type
   Ramsey
   Reflection
