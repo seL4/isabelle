@@ -145,16 +145,15 @@ fun add_iso_tuple_type (name, alphas) (leftT, rightT) thy =
       rep_inject RS named_cterm_instantiate [("abst", cterm_of typ_thy absC)] iso_tuple_intro;
     val (_, body) = Logic.dest_equals (List.last (prems_of intro_inst));
     val isomT = fastype_of body;
-    val isom_bind = Binding.name (name ^ isoN);
-    val isom_name = Sign.full_name typ_thy isom_bind;
+    val isom_binding = Binding.name (name ^ isoN);
+    val isom_name = Sign.full_name typ_thy isom_binding;
     val isom = Const (isom_name, isomT);
-    val isom_spec = (Thm.def_name (name ^ isoN), Logic.mk_equals (isom, body));
 
     val ([isom_def], cdef_thy) =
       typ_thy
-      |> Sign.add_consts_i [Syntax.no_syn (isom_bind, isomT)]
+      |> Sign.declare_const ((isom_binding, isomT), NoSyn) |> snd
       |> PureThy.add_defs false
-        [Thm.no_attributes (apfst (Binding.conceal o Binding.name) isom_spec)];
+        [((Binding.conceal (Thm.def_binding isom_binding), Logic.mk_equals (isom, body)), [])];
 
     val iso_tuple = isom_def RS (abs_inverse RS (rep_inject RS iso_tuple_intro));
     val cons = Const (@{const_name iso_tuple_cons}, isomT --> leftT --> rightT --> absT);
@@ -162,7 +161,7 @@ fun add_iso_tuple_type (name, alphas) (leftT, rightT) thy =
     val thm_thy =
       cdef_thy
       |> Iso_Tuple_Thms.map (Symtab.insert Thm.eq_thm_prop (isom_name, iso_tuple))
-      |> Sign.parent_path
+      |> Sign.restore_naming thy
       |> Code.add_default_eqn isom_def;
   in
     ((isom, cons $ isom), thm_thy)
@@ -280,11 +279,9 @@ val op ==> = Logic.mk_implies;
 
 (* constructor *)
 
-fun mk_extC (name, T) Ts = (suffix extN name, Ts ---> T);
-
 fun mk_ext (name, T) ts =
   let val Ts = map fastype_of ts
-  in list_comb (Const (mk_extC (name, T) Ts), ts) end;
+  in list_comb (Const (suffix extN name, Ts ---> T), ts) end;
 
 
 (* selector *)
@@ -802,10 +799,7 @@ fun record_fields_tr more ctxt t =
                   let
                     val (args, rest) = split_args (map fst (but_last fields)) fargs;
                     val more' = mk_ext rest;
-                  in
-                    (* FIXME authentic syntax *)
-                    list_comb (Syntax.const (suffix extN ext), args @ [more'])
-                  end
+                  in list_comb (Syntax.const (Syntax.constN ^ ext ^ extN), args @ [more']) end
               | NONE => err ("no fields defined for " ^ ext))
           | NONE => err (name ^ " is no proper field"))
       | mk_ext [] = more;
@@ -850,8 +844,9 @@ val print_record_type_as_fields = Unsynchronized.ref true;
 
 local
 
-fun field_updates_tr' (tm as Const (c, _) $ k $ u) =
+fun field_updates_tr' ctxt (tm as Const (c, _) $ k $ u) =
       let
+        val extern = Consts.extern (ProofContext.consts_of ctxt);
         val t =
           (case k of
             Abs (_, _, Abs (_, _, t) $ Bound 0) =>
@@ -860,18 +855,19 @@ fun field_updates_tr' (tm as Const (c, _) $ k $ u) =
               if null (loose_bnos t) then t else raise Match
           | _ => raise Match);
       in
-        (case try (unsuffix updateN) c of
-          SOME name =>
-            (* FIXME check wrt. record data (??) *)
-            (* FIXME early extern (!??) *)
-            apfst (cons (Syntax.const @{syntax_const "_field_update"} $ Syntax.free name $ t))
-              (field_updates_tr' u)
+        (case try (unprefix Syntax.constN) c |> Option.map extern of
+          SOME update_name =>
+            (case try (unsuffix updateN) update_name of
+              SOME name =>
+                apfst (cons (Syntax.const @{syntax_const "_field_update"} $ Syntax.free name $ t))
+                  (field_updates_tr' ctxt u)
+            | NONE => ([], tm))
         | NONE => ([], tm))
       end
-  | field_updates_tr' tm = ([], tm);
+  | field_updates_tr' _ tm = ([], tm);
 
-fun record_update_tr' tm =
-  (case field_updates_tr' tm of
+fun record_update_tr' ctxt tm =
+  (case field_updates_tr' ctxt tm of
     ([], _) => raise Match
   | (ts, u) =>
       Syntax.const @{syntax_const "_record_update"} $ u $
@@ -881,10 +877,9 @@ in
 
 fun field_update_tr' name =
   let
-    (* FIXME authentic syntax *)
-    val update_name = suffix updateN name;
-    fun tr' [t, u] = record_update_tr' (Syntax.const update_name $ t $ u)
-      | tr' _ = raise Match;
+    val update_name = Syntax.constN ^ name ^ updateN;
+    fun tr' ctxt [t, u] = record_update_tr' ctxt (Syntax.const update_name $ t $ u)
+      | tr' _ _ = raise Match;
   in (update_name, tr') end;
 
 end;
@@ -892,26 +887,25 @@ end;
 
 local
 
-(* FIXME early extern (!??) *)
 (* FIXME Syntax.free (??) *)
 fun field_tr' (c, t) = Syntax.const @{syntax_const "_field"} $ Syntax.const c $ t;
-
 fun fields_tr' (t, u) = Syntax.const @{syntax_const "_fields"} $ t $ u;
 
 fun record_tr' ctxt t =
   let
     val thy = ProofContext.theory_of ctxt;
+    val extern = Consts.extern (ProofContext.consts_of ctxt);
 
     fun strip_fields t =
       (case strip_comb t of
         (Const (ext, _), args as (_ :: _)) =>
-          (case try (unsuffix extN) (Sign.intern_const thy ext) of  (* FIXME authentic syntax *)
+          (case try (unprefix Syntax.constN o unsuffix extN) ext of
             SOME ext' =>
               (case get_extfields thy ext' of
                 SOME fields =>
                  (let
                     val f :: fs = but_last (map fst fields);
-                    val fields' = Sign.extern_const thy f :: map Long_Name.base_name fs;
+                    val fields' = extern f :: map Long_Name.base_name fs;
                     val (args', more) = split_last args;
                   in (fields' ~~ args') @ strip_fields more end
                   handle Library.UnequalLengths => [("", t)])
@@ -932,7 +926,7 @@ in
 
 fun record_ext_tr' name =
   let
-    val ext_name = suffix extN name;
+    val ext_name = Syntax.constN ^ name ^ extN;
     fun tr' ctxt ts = record_tr' ctxt (list_comb (Syntax.const ext_name, ts));
   in (ext_name, tr') end;
 
@@ -1573,7 +1567,7 @@ val record_split_tac = CSUBGOAL (fn (cgoal, i) =>
           (s = @{const_name all} orelse s = @{const_name All}) andalso is_recT T
         | _ => false);
 
-    fun is_all t =
+    fun is_all t =  (* FIXME *)
       (case t of
         Const (quantifier, _) $ _ =>
           if quantifier = @{const_name all} orelse quantifier = @{const_name All} then ~1 else 0
@@ -1662,27 +1656,30 @@ fun try_param_tac s rule = CSUBGOAL (fn (cgoal, i) =>
 
 fun extension_definition name fields alphas zeta moreT more vars thy =
   let
-    val base = Long_Name.base_name;
+    val base_name = Long_Name.base_name name;
+
     val fieldTs = map snd fields;
-    val alphas_zeta = alphas @ [zeta];
-    val alphas_zetaTs = map (fn a => TFree (a, HOLogic.typeS)) alphas_zeta;
-    val extT_name = suffix ext_typeN name
-    val extT = Type (extT_name, alphas_zetaTs);
     val fields_moreTs = fieldTs @ [moreT];
 
+    val alphas_zeta = alphas @ [zeta];
+    val alphas_zetaTs = map (fn a => TFree (a, HOLogic.typeS)) alphas_zeta;
 
-    (*before doing anything else, create the tree of new types
-      that will back the record extension*)
+    val ext_binding = Binding.name (suffix extN base_name);
+    val ext_name = suffix extN name;
+    val extT = Type (suffix ext_typeN name, alphas_zetaTs);
+    val ext_type = fields_moreTs ---> extT;
+
+
+    (* the tree of new types that will back the record extension *)
 
     val mktreeV = Balanced_Tree.make Iso_Tuple_Support.mk_cons_tuple;
 
     fun mk_iso_tuple (left, right) (thy, i) =
       let
         val suff = if i = 0 then ext_typeN else inner_typeN ^ string_of_int i;
-        val nm = suffix suff (Long_Name.base_name name);
-        val ((_, cons), thy') =
-          Iso_Tuple_Support.add_iso_tuple_type
-            (nm, alphas_zeta) (fastype_of left, fastype_of right) thy;
+        val ((_, cons), thy') = thy
+          |> Iso_Tuple_Support.add_iso_tuple_type
+            (suffix suff base_name, alphas_zeta) (fastype_of left, fastype_of right);
       in
         (cons $ left $ right, (thy', i + 1))
       end;
@@ -1720,19 +1717,15 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
 
     (* prepare declarations and definitions *)
 
-    (*fields constructor*)
-    val ext_decl = mk_extC (name, extT) fields_moreTs;
-    val ext_spec = list_comb (Const ext_decl, vars @ [more]) :== ext_body;
-
-    fun mk_ext args = list_comb (Const ext_decl, args);
-
-
     (* 1st stage part 2: define the ext constant *)
+
+    fun mk_ext args = list_comb (Const (ext_name, ext_type), args);
+    val ext_spec = Logic.mk_equals (mk_ext (vars @ [more]), ext_body);
 
     fun mk_defs () =
       typ_thy
-      |> Sign.add_consts_i [Syntax.no_syn (apfst (Binding.name o base) ext_decl)]
-      |> PureThy.add_defs false [Thm.no_attributes (apfst Binding.name ext_spec)]
+      |> Sign.declare_const ((ext_binding, ext_type), NoSyn) |> snd
+      |> PureThy.add_defs false [((Thm.def_binding ext_binding, ext_spec), [])]
       ||> Theory.checkpoint
     val ([ext_def], defs_thy) =
       timeit_msg "record extension constructor def:" mk_defs;
@@ -1856,7 +1849,7 @@ fun mk_recordT extT =
 fun obj_to_meta_all thm =
   let
     fun E thm =  (* FIXME proper name *)
-      (case (SOME (spec OF [thm]) handle THM _ => NONE) of
+      (case SOME (spec OF [thm]) handle THM _ => NONE of
         SOME thm' => E thm'
       | NONE => thm);
     val th1 = E thm;
@@ -1876,16 +1869,12 @@ fun meta_to_obj_all thm =
 
 (* record_definition *)
 
-fun record_definition (args, b) parent (parents: parent_info list) raw_fields thy =
+fun record_definition (args, binding) parent (parents: parent_info list) raw_fields thy =
   let
-    val external_names = Name_Space.external_names (Sign.naming_of thy);
-
     val alphas = map fst args;
 
-    val base_name = Binding.name_of b;   (* FIXME include qualifier etc. (!?) *)
-    val name = Sign.full_name thy b;
-    val full = Sign.full_name_path thy base_name;
-    val base = Long_Name.base_name;
+    val name = Sign.full_name thy binding;
+    val full = Sign.full_name_path thy (Binding.name_of binding); (* FIXME Binding.qualified (!?) *)
 
     val bfields = map (fn (x, T, _) => (x, T)) raw_fields;
     val field_syntax = map #3 raw_fields;
@@ -1895,13 +1884,13 @@ fun record_definition (args, b) parent (parents: parent_info list) raw_fields th
     val parent_names = map fst parent_fields;
     val parent_types = map snd parent_fields;
     val parent_fields_len = length parent_fields;
-    val parent_variants = Name.variant_list [moreN, rN, rN ^ "'", wN] (map base parent_names);
+    val parent_variants =
+      Name.variant_list [moreN, rN, rN ^ "'", wN] (map Long_Name.base_name parent_names);
     val parent_vars = ListPair.map Free (parent_variants, parent_types);
     val parent_len = length parents;
 
     val fields = map (apfst full) bfields;
     val names = map fst fields;
-    val extN = full b;
     val types = map snd fields;
     val alphas_fields = fold Term.add_tfree_namesT types [];
     val alphas_ext = inter (op =) alphas_fields alphas;
@@ -1931,18 +1920,20 @@ fun record_definition (args, b) parent (parents: parent_info list) raw_fields th
     val all_named_vars_more = all_named_vars @ [(full_moreN, more)];
 
 
-    (* 1st stage: extension_thy *)
+    (* 1st stage: ext_thy *)
 
-    val ((extT, ext_induct, ext_inject, ext_surjective, ext_split, ext_def), extension_thy) =
+    val extension_name = full binding;
+
+    val ((extT, ext_induct, ext_inject, ext_surjective, ext_split, ext_def), ext_thy) =
       thy
-      |> Sign.add_path base_name
-      |> extension_definition extN fields alphas_ext zeta moreT more vars;
+      |> Sign.qualified_path false binding
+      |> extension_definition extension_name fields alphas_ext zeta moreT more vars;
 
     val _ = timing_msg "record preparing definitions";
     val Type extension_scheme = extT;
     val extension_name = unsuffix ext_typeN (fst extension_scheme);
     val extension = let val (n, Ts) = extension_scheme in (n, subst_last HOLogic.unitT Ts) end;
-    val extension_names = map (unsuffix ext_typeN o fst o #extension) parents @ [extN];
+    val extension_names = map (unsuffix ext_typeN o fst o #extension) parents @ [extension_name];
     val extension_id = implode extension_names;
 
     fun rec_schemeT n = mk_recordT (map #extension (drop n parents)) extT;
@@ -1978,13 +1969,9 @@ fun record_definition (args, b) parent (parents: parent_info list) raw_fields th
     val w = Free (wN, rec_schemeT 0)
 
 
-    (* prepare print translation functions *)
-    (* FIXME authentic syntax *)
+    (* print translations *)
 
-    val field_update_tr's =
-      map field_update_tr' (distinct (op =) (maps external_names (full_moreN :: names)));
-
-    val record_ext_tr's = map record_ext_tr' (external_names extN);
+    val external_names = Name_Space.external_names (Sign.naming_of ext_thy);
 
     val record_ext_type_abbr_tr's =
       let
@@ -1995,8 +1982,12 @@ fun record_definition (args, b) parent (parents: parent_info list) raw_fields th
     val record_ext_type_tr's =
       let
         (*avoid conflict with record_type_abbr_tr's*)
-        val trnames = if parent_len > 0 then external_names extN else [];
+        val trnames = if parent_len > 0 then external_names extension_name else [];
       in map record_ext_type_tr' trnames end;
+
+    val advanced_print_translation =
+      map field_update_tr' (full_moreN :: names) @ [record_ext_tr' extension_name] @
+      record_ext_type_tr's @ record_ext_type_abbr_tr's;
 
 
     (* prepare declarations *)
@@ -2013,8 +2004,8 @@ fun record_definition (args, b) parent (parents: parent_info list) raw_fields th
 
     (*record (scheme) type abbreviation*)
     val recordT_specs =
-      [(Binding.suffix_name schemeN b, alphas @ [zeta], rec_schemeT0, NoSyn),
-        (b, alphas, recT0, NoSyn)];
+      [(Binding.suffix_name schemeN binding, alphas @ [zeta], rec_schemeT0, NoSyn),
+        (binding, alphas, recT0, NoSyn)];
 
     val ext_defs = ext_def :: map #ext_def parents;
 
@@ -2035,8 +2026,8 @@ fun record_definition (args, b) parent (parents: parent_info list) raw_fields th
             fun to_Var (Free (c, T)) = Var ((c, 1), T);
           in mk_rec (map to_Var all_vars_more) 0 end;
 
-        val cterm_rec = cterm_of extension_thy r_rec0;
-        val cterm_vrs = cterm_of extension_thy r_rec0_Vars;
+        val cterm_rec = cterm_of ext_thy r_rec0;
+        val cterm_vrs = cterm_of ext_thy r_rec0_Vars;
         val insts = [("v", cterm_rec), ("v'", cterm_vrs)];
         val init_thm = named_cterm_instantiate insts updacc_eq_triv;
         val terminal = rtac updacc_eq_idI 1 THEN rtac refl 1;
@@ -2057,10 +2048,10 @@ fun record_definition (args, b) parent (parents: parent_info list) raw_fields th
     (*selectors*)
     fun mk_sel_spec ((c, T), thm) =
       let
-        val acc $ arg =
-          (fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Envir.beta_eta_contract o concl_of) thm;
+        val (acc $ arg, _) =
+          HOLogic.dest_eq (HOLogic.dest_Trueprop (Envir.beta_eta_contract (Thm.concl_of thm)));
         val _ =
-          if (arg aconv r_rec0) then ()
+          if arg aconv r_rec0 then ()
           else raise TERM ("mk_sel_spec: different arg", [arg]);
       in
         Const (mk_selC rec_schemeT0 (c, T)) :== acc
@@ -2070,8 +2061,8 @@ fun record_definition (args, b) parent (parents: parent_info list) raw_fields th
     (*updates*)
     fun mk_upd_spec ((c, T), thm) =
       let
-        val upd $ _ $ arg =
-          fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (Envir.beta_eta_contract (concl_of thm))));
+        val (upd $ _ $ arg, _) =
+          HOLogic.dest_eq (HOLogic.dest_Trueprop (Envir.beta_eta_contract (Thm.concl_of thm)));
         val _ =
           if arg aconv r_rec0 then ()
           else raise TERM ("mk_sel_spec: different arg", [arg]);
@@ -2096,17 +2087,15 @@ fun record_definition (args, b) parent (parents: parent_info list) raw_fields th
     (* 2st stage: defs_thy *)
 
     fun mk_defs () =
-      extension_thy
-      |> Sign.add_trfuns ([], [], field_update_tr's, [])
-      |> Sign.add_advanced_trfuns
-        ([], [], record_ext_tr's @ record_ext_type_tr's @ record_ext_type_abbr_tr's, [])
-      |> Sign.parent_path
+      ext_thy
+      |> Sign.add_advanced_trfuns ([], [], advanced_print_translation, [])
+      |> Sign.restore_naming thy
       |> Sign.add_tyabbrs_i recordT_specs
-      |> Sign.add_path base_name
-      |> Sign.add_consts_i
-          (map2 (fn (x, T) => fn mx => (Binding.name x, T, mx)) sel_decls (field_syntax @ [NoSyn]))
-      |> (Sign.add_consts_i o map (fn (x, T) => (Binding.name x, T, NoSyn)))
-          (upd_decls @ [make_decl, fields_decl, extend_decl, truncate_decl])
+      |> Sign.qualified_path false binding
+      |> fold (fn ((x, T), mx) => snd o Sign.declare_const ((Binding.name x, T), mx))
+        (sel_decls ~~ (field_syntax @ [NoSyn]))
+      |> fold (fn (x, T) => snd o Sign.declare_const ((Binding.name x, T), NoSyn))
+        (upd_decls @ [make_decl, fields_decl, extend_decl, truncate_decl])
       |> (PureThy.add_defs false o map (Thm.no_attributes o apfst (Binding.conceal o Binding.name)))
         sel_specs
       ||>> (PureThy.add_defs false o map (Thm.no_attributes o apfst (Binding.conceal o Binding.name)))
@@ -2137,9 +2126,9 @@ fun record_definition (args, b) parent (parents: parent_info list) raw_fields th
     (*updates*)
     fun mk_upd_prop (i, (c, T)) =
       let
-        val x' = Free (Name.variant all_variants (base c ^ "'"), T --> T);
+        val x' = Free (Name.variant all_variants (Long_Name.base_name c ^ "'"), T --> T);
         val n = parent_fields_len + i;
-        val args' = nth_map n (K (x' $ nth all_vars_more n)) all_vars_more
+        val args' = nth_map n (K (x' $ nth all_vars_more n)) all_vars_more;
       in mk_upd updateN c x' r_rec0 === mk_rec args' 0 end;
     val upd_conv_props = ListPair.map mk_upd_prop (idxms, fields_more);
 
@@ -2401,7 +2390,7 @@ fun record_definition (args, b) parent (parents: parent_info list) raw_fields th
       |> add_record_splits extension_id (split_meta', split_object', split_ex', induct_scheme')
       |> add_extfields extension_name (fields @ [(full_moreN, moreT)])
       |> add_fieldext (extension_name, snd extension) (names @ [full_moreN])
-      |> Sign.parent_path;
+      |> Sign.restore_naming thy;
 
   in final_thy end;
 
@@ -2411,12 +2400,12 @@ fun record_definition (args, b) parent (parents: parent_info list) raw_fields th
 (*We do all preparations and error checks here, deferring the real
   work to record_definition.*)
 fun gen_add_record prep_typ prep_raw_parent quiet_mode
-    (params, b) raw_parent raw_fields thy =
+    (params, binding) raw_parent raw_fields thy =
   let
     val _ = Theory.requires thy "Record" "record definitions";
     val _ =
       if quiet_mode then ()
-      else writeln ("Defining record " ^ quote (Binding.name_of b) ^ " ...");
+      else writeln ("Defining record " ^ quote (Binding.str_of binding) ^ " ...");
 
     val ctxt = ProofContext.init thy;
 
@@ -2456,7 +2445,7 @@ fun gen_add_record prep_typ prep_raw_parent quiet_mode
 
     (* errors *)
 
-    val name = Sign.full_name thy b;
+    val name = Sign.full_name thy binding;
     val err_dup_record =
       if is_none (get_record thy name) then []
       else ["Duplicate definition of record " ^ quote name];
@@ -2493,9 +2482,9 @@ fun gen_add_record prep_typ prep_raw_parent quiet_mode
 
     val _ = if null errs then () else error (cat_lines errs);
   in
-    thy |> record_definition (args, b) parent parents bfields
+    thy |> record_definition (args, binding) parent parents bfields
   end
-  handle ERROR msg => cat_error msg ("Failed to define record " ^ quote (Binding.str_of b));
+  handle ERROR msg => cat_error msg ("Failed to define record " ^ quote (Binding.str_of binding));
 
 val add_record = gen_add_record cert_typ (K I);
 val add_record_cmd = gen_add_record read_typ read_raw_parent;
