@@ -247,7 +247,7 @@ proof -
         from f[OF this]
         show ?thesis unfolding n_eq atLeastLessThanSuc_atLeastAtMost .
       next
-        case False hence "even (n - 1)" using even_num_iff odd_pos by auto 
+        case False hence "even (n - 1)" by simp
         from even_nat_div_two_times_two[OF this]
         have n_eq: "2 * ((n - 1) div 2) = n - 1" unfolding numeral_2_eq_2[symmetric] by auto
         hence range_eq: "n - 1 + 1 = n" using odd_pos[OF False] by auto
@@ -848,7 +848,7 @@ proof -
     hence "norm (x * S n) / real (Suc n) \<le> r * norm (S n)"
       by (simp add: pos_divide_le_eq mult_ac)
     thus "norm (S (Suc n)) \<le> r * norm (S n)"
-      by (simp add: S_Suc norm_scaleR inverse_eq_divide)
+      by (simp add: S_Suc inverse_eq_divide)
   qed
 qed
 
@@ -860,7 +860,7 @@ proof (rule summable_norm_comparison_test [OF exI, rule_format])
     by (rule summable_exp_generic)
 next
   fix n show "norm (x ^ n /\<^sub>R real (fact n)) \<le> norm x ^ n /\<^sub>R real (fact n)"
-    by (simp add: norm_scaleR norm_power_ineq)
+    by (simp add: norm_power_ineq)
 qed
 
 lemma summable_exp: "summable (%n. inverse (real (fact n)) * x ^ n)"
@@ -957,7 +957,7 @@ next
     by (simp only: scaleR_right.setsum)
   finally show
     "S (x + y) (Suc n) = (\<Sum>i=0..Suc n. S x i * S y (Suc n - i))"
-    by (simp add: scaleR_cancel_left del: setsum_cl_ivl_Suc)
+    by (simp del: setsum_cl_ivl_Suc)
 qed
 
 lemma exp_add: "exp (x + y) = exp x * exp y"
@@ -1237,7 +1237,7 @@ proof -
       { fix x :: real assume "x \<in> {- 1<..<1}" hence "norm (-x) < 1" by auto
         show "summable (\<lambda>n. -1 ^ n * (1 / real (n + 1)) * real (Suc n) * x ^ n)"
           unfolding One_nat_def
-          by (auto simp del: power_mult_distrib simp add: power_mult_distrib[symmetric] summable_geometric[OF `norm (-x) < 1`])
+          by (auto simp add: power_mult_distrib[symmetric] summable_geometric[OF `norm (-x) < 1`])
       }
     qed
     hence "DERIV (\<lambda>x. suminf (?f x)) (x - 1) :> suminf (?f' x)" unfolding One_nat_def by auto
@@ -3090,7 +3090,7 @@ subsection {* Existence of Polar Coordinates *}
 
 lemma cos_x_y_le_one: "\<bar>x / sqrt (x\<twosuperior> + y\<twosuperior>)\<bar> \<le> 1"
 apply (rule power2_le_imp_le [OF _ zero_le_one])
-apply (simp add: abs_divide power_divide divide_le_eq not_sum_power2_lt_zero)
+apply (simp add: power_divide divide_le_eq not_sum_power2_lt_zero)
 done
 
 lemma cos_arccos_abs: "\<bar>y\<bar> \<le> 1 \<Longrightarrow> cos (arccos y) = y"

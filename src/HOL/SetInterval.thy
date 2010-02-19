@@ -539,7 +539,7 @@ lemma UN_finite2_eq:
   apply (rule subset_antisym)
    apply (rule UN_finite2_subset, blast)
  apply (rule UN_finite2_subset [where k=k])
- apply (force simp add: atLeastLessThan_add_Un [of 0] UN_Un) 
+ apply (force simp add: atLeastLessThan_add_Un [of 0])
  done
 
 
@@ -613,7 +613,7 @@ lemma image_atLeastZeroLessThan_int: "0 \<le> u ==>
   apply (unfold image_def lessThan_def)
   apply auto
   apply (rule_tac x = "nat x" in exI)
-  apply (auto simp add: zless_nat_conj zless_nat_eq_int_zless [THEN sym])
+  apply (auto simp add: zless_nat_eq_int_zless [THEN sym])
   done
 
 lemma finite_atLeastZeroLessThan_int: "finite {(0::int)..<u}"
@@ -1006,7 +1006,7 @@ lemma setsum_multicount:
   shows "setsum (\<lambda>i. card {j\<in>T. R i j}) S = k * card T" (is "?l = ?r")
 proof-
   have "?l = setsum (\<lambda>i. k) T" by(rule setsum_multicount_gen)(auto simp:assms)
-  also have "\<dots> = ?r" by(simp add: setsum_constant mult_commute)
+  also have "\<dots> = ?r" by(simp add: mult_commute)
   finally show ?thesis by auto
 qed
 
@@ -1046,7 +1046,7 @@ subsection {* The formula for geometric sums *}
 lemma geometric_sum:
   "x ~= 1 ==> (\<Sum>i=0..<n. x ^ i) =
   (x ^ n - 1) / (x - 1::'a::{field})"
-by (induct "n") (simp_all add:field_simps power_Suc)
+by (induct "n") (simp_all add: field_simps)
 
 subsection {* The formula for arithmetic sums *}
 
@@ -1098,7 +1098,7 @@ proof -
     of_nat(n) * (a + (a + of_nat(n - 1)*d))"
     by (rule arith_series_general)
   thus ?thesis
-    unfolding One_nat_def by (auto simp add: of_nat_id)
+    unfolding One_nat_def by auto
 qed
 
 lemma arith_series_int:

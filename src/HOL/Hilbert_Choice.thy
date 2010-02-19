@@ -61,7 +61,7 @@ lemma some_equality [intro]:
 by (blast intro: someI2)
 
 lemma some1_equality: "[| EX!x. P x; P a |] ==> (SOME x. P x) = a"
-by (blast intro: some_equality)
+by blast
 
 lemma some_eq_ex: "P (SOME x. P x) =  (\<exists>x. P x)"
 by (blast intro: someI)
@@ -108,7 +108,7 @@ apply (blast intro: someI2)
 done
 
 lemma inv_f_f: "inj f ==> inv f (f x) = x"
-by (simp add: inv_into_f_f)
+by simp
 
 lemma f_inv_into_f: "y : f`A  ==> f (inv_into A f y) = y"
 apply (simp add: inv_into_def)

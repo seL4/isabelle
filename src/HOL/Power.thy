@@ -332,7 +332,7 @@ lemma power_abs:
 
 lemma abs_power_minus [simp]:
   "abs ((-a) ^ n) = abs (a ^ n)"
-  by (simp add: abs_minus_cancel power_abs) 
+  by (simp add: power_abs)
 
 lemma zero_less_power_abs_iff [simp, noatp]:
   "0 < abs a ^ n \<longleftrightarrow> a \<noteq> 0 \<or> n = 0"

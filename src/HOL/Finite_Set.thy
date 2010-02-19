@@ -355,7 +355,7 @@ lemma finite_vimageI: "[|finite F; inj h|] ==> finite (h -` F)"
   apply (induct set: finite)
    apply simp_all
   apply (subst vimage_insert)
-  apply (simp add: finite_Un finite_subset [OF inj_vimage_singleton])
+  apply (simp add: finite_subset [OF inj_vimage_singleton])
   done
 
 lemma finite_vimageD:
@@ -485,7 +485,7 @@ proof
 next
   assume "finite A"
   thus "finite (Pow A)"
-    by induct (simp_all add: finite_UnI finite_imageI Pow_insert)
+    by induct (simp_all add: Pow_insert)
 qed
 
 lemma finite_Collect_subsets[simp,intro]: "finite A \<Longrightarrow> finite{B. B \<subseteq> A}"
@@ -634,7 +634,7 @@ next
   from aA obtain k where hkeq: "h k = a" and klessn: "k<n" by (blast elim!: equalityE)
   let ?hm = "Fun.swap k m h"
   have inj_hm: "inj_on ?hm {i. i < n}" using klessn mlessn 
-    by (simp add: inj_on_swap_iff inj_on)
+    by (simp add: inj_on)
   show ?thesis
   proof (intro exI conjI)
     show "inj_on ?hm {i. i < m}" using inj_hm
@@ -764,7 +764,7 @@ qed
 
 lemma fold_insert2:
   "finite A \<Longrightarrow> x \<notin> A \<Longrightarrow> fold f z (insert x A) = fold f (f x z) A"
-by (simp add: fold_insert fold_fun_comm)
+by (simp add: fold_fun_comm)
 
 lemma fold_rec:
 assumes "finite A" and "x \<in> A"
@@ -824,8 +824,8 @@ begin
 
 lemma fun_left_comm_idem: "fun_left_comm_idem(op *)"
 apply unfold_locales
- apply (simp add: mult_ac)
-apply (simp add: mult_idem mult_assoc[symmetric])
+ apply (rule mult_left_commute)
+apply (rule mult_left_idem)
 done
 
 end
@@ -1366,7 +1366,7 @@ by (subst setsum_Un_Int [symmetric], auto simp add: algebra_simps)
 
 lemma (in comm_monoid_mult) fold_image_1: "finite S \<Longrightarrow> (\<forall>x\<in>S. f x = 1) \<Longrightarrow> fold_image op * f 1 S = 1"
   apply (induct set: finite)
-  apply simp by (auto simp add: fold_image_insert)
+  apply simp by auto
 
 lemma (in comm_monoid_mult) fold_image_Un_one:
   assumes fS: "finite S" and fT: "finite T"
@@ -1412,8 +1412,8 @@ proof(induct rule: finite_induct[OF fS])
 next
   case (2 T F)
   then have fTF: "finite T" "\<forall>T\<in>F. finite T" "finite F" and TF: "T \<notin> F" 
-    and H: "setsum f (\<Union> F) = setsum (setsum f) F" by (auto simp add: finite_insert)
-  from fTF have fUF: "finite (\<Union>F)" by (auto intro: finite_Union)
+    and H: "setsum f (\<Union> F) = setsum (setsum f) F" by auto
+  from fTF have fUF: "finite (\<Union>F)" by auto
   from "2.prems" TF fTF
   show ?case 
     by (auto simp add: H[symmetric] intro: setsum_Un_zero[OF fTF(1) fUF, of f])
@@ -2056,7 +2056,7 @@ lemma abs_setprod:
   shows "abs (setprod f A) = setprod (\<lambda>x. abs (f x)) A"
 proof (cases "finite A")
   case True thus ?thesis
-    by induct (auto simp add: field_simps setprod_insert abs_mult)
+    by induct (auto simp add: field_simps abs_mult)
 qed auto
 
 
@@ -2215,7 +2215,7 @@ lemma card_partition [rule_format]:
      (\<forall>c1 \<in> C. \<forall>c2 \<in> C. c1 \<noteq> c2 --> c1 \<inter> c2 = {}) -->
      k * card(C) = card (\<Union> C)"
 apply (erule finite_induct, simp)
-apply (simp add: card_insert_disjoint card_Un_disjoint insert_partition 
+apply (simp add: card_Un_disjoint insert_partition 
        finite_subset [of _ "\<Union> (insert x F)"])
 done
 
@@ -2285,7 +2285,7 @@ done
 
 lemma setprod_constant: "finite A ==> (\<Prod>x\<in> A. (y::'a::{comm_monoid_mult})) = y^(card A)"
 apply (erule finite_induct)
-apply (auto simp add: power_Suc)
+apply auto
 done
 
 lemma setprod_gen_delta:
@@ -2370,7 +2370,7 @@ qed
 lemma card_image_le: "finite A ==> card (f ` A) <= card A"
 apply (induct set: finite)
  apply simp
-apply (simp add: le_SucI finite_imageI card_insert_if)
+apply (simp add: le_SucI card_insert_if)
 done
 
 lemma card_image: "inj_on f A ==> card (f ` A) = card A"
@@ -2473,7 +2473,7 @@ apply(frule finite_UnionD)
 apply(rotate_tac -1)
 apply (induct set: finite, simp_all, clarify)
 apply (subst card_Un_disjoint)
-   apply (auto simp add: dvd_add disjoint_eq_subset_Compl)
+   apply (auto simp add: disjoint_eq_subset_Compl)
 done
 
 
@@ -2514,7 +2514,7 @@ proof
   ultimately have "finite (UNIV::nat set)"
     by (rule finite_imageD)
   then show "False"
-    by (simp add: infinite_UNIV_nat)
+    by simp
 qed
 
 subsection{* A fold functional for non-empty sets *}
@@ -2542,7 +2542,7 @@ inductive_cases insert_fold1SetE [elim!]: "fold1Set f (insert a X) x"
 
 
 lemma fold1Set_sing [iff]: "(fold1Set f {a} b) = (a = b)"
-by (blast intro: fold_graph.intros elim: fold_graph.cases)
+by (blast elim: fold_graph.cases)
 
 lemma fold1_singleton [simp]: "fold1 f {a} = a"
 by (unfold fold1_def) blast
@@ -2612,9 +2612,9 @@ apply (rule the_equality)
 apply (best intro: fold_graph_determ theI dest: finite_imp_fold_graph [of _ times])
 apply (rule sym, clarify)
 apply (case_tac "Aa=A")
- apply (best intro: the_equality fold_graph_determ)
+ apply (best intro: fold_graph_determ)
 apply (subgoal_tac "fold_graph times a A x")
- apply (best intro: the_equality fold_graph_determ)
+ apply (best intro: fold_graph_determ)
 apply (subgoal_tac "insert aa (Aa - {a}) = A")
  prefer 2 apply (blast elim: equalityE)
 apply (auto dest: fold_graph_permute_diff [where a=a])
@@ -2658,16 +2658,16 @@ proof -
     thus ?thesis
     proof cases
       assume "A' = {}"
-      with prems show ?thesis by (simp add: mult_idem)
+      with prems show ?thesis by simp
     next
       assume "A' \<noteq> {}"
       with prems show ?thesis
-        by (simp add: fold1_insert mult_assoc [symmetric] mult_idem)
+        by (simp add: fold1_insert mult_assoc [symmetric])
     qed
   next
     assume "a \<noteq> x"
     with prems show ?thesis
-      by (simp add: insert_commute fold1_eq_fold fold_insert_idem)
+      by (simp add: insert_commute fold1_eq_fold)
   qed
 qed
 
@@ -2710,7 +2710,7 @@ end
 text{* Now the recursion rules for definitions: *}
 
 lemma fold1_singleton_def: "g = fold1 f \<Longrightarrow> g {a} = a"
-by(simp add:fold1_singleton)
+by simp
 
 lemma (in ab_semigroup_mult) fold1_insert_def:
   "\<lbrakk> g = fold1 times; finite A; x \<notin> A; A \<noteq> {} \<rbrakk> \<Longrightarrow> g (insert x A) = x * g A"

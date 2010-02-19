@@ -57,10 +57,12 @@ lemmas impl_ioas = sender_ioa_def receiver_ioa_def
   and impl_asigs = sender_asig_def receiver_asig_def
 
 declare let_weak_cong [cong]
-declare Let_def [simp] ioa_triple_proj [simp] starts_of_par [simp]
+declare ioa_triple_proj [simp] starts_of_par [simp]
 
 lemmas env_ioas = env_ioa_def env_asig_def env_trans_def
-lemmas hom_ioas [simp] = env_ioas impl_ioas impl_trans impl_asigs asig_projections set_lemmas
+lemmas hom_ioas =
+  env_ioas [simp] impl_ioas [simp] impl_trans [simp] impl_asigs [simp]
+  asig_projections set_lemmas
 
 
 subsection {* lemmas about reduce *}
@@ -96,7 +98,7 @@ txt {* @{text "-->"} *}
 apply (induct_tac "l")
 apply (simp (no_asm))
 apply (case_tac "list=[]")
- apply (simp add: reverse.simps)
+ apply simp
  apply (rule impI)
 apply (simp (no_asm))
 apply (cut_tac l = "list" in cons_not_nil)

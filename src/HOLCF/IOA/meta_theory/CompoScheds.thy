@@ -64,9 +64,6 @@ definition
         asig_comp sigA sigB))"
 
 
-declare surjective_pairing [symmetric, simp]
-
-
 subsection "mkex rewrite rules"
 
 

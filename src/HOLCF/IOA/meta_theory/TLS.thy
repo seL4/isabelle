@@ -87,7 +87,6 @@ mkfin_cons:
 
 
 lemmas [simp del] = ex_simps all_simps split_paired_Ex
-declare Let_def [simp]
 
 declaration {* fn _ => Classical.map_cs (fn cs => cs delSWrapper "split_all_tac") *}
 

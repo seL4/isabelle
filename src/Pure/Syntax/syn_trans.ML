@@ -510,7 +510,7 @@ val pure_trfuns =
     ("_DDDOT", dddot_tr),
     ("_update_name", update_name_tr),
     ("_index", index_tr)],
-   [],
+   ([]: (string * (term list -> term)) list),
    [("_abs", abs_ast_tr'),
     ("_idts", idtyp_ast_tr' "_idts"),
     ("_pttrns", idtyp_ast_tr' "_pttrns"),

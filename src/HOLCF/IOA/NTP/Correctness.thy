@@ -50,7 +50,7 @@ lemma externals_lemma:
   apply (simp (no_asm) add: impl_ioas)
   apply (simp (no_asm) add: impl_asigs)
   apply (simp (no_asm) add: asig_of_par asig_comp_def asig_projections)
-  apply (simp (no_asm) add: "transitions" unfold_renaming)
+  apply (simp (no_asm) add: "transitions"(1) unfold_renaming)
   txt {* 1 *}
   apply (simp (no_asm) add: impl_ioas)
   apply (simp (no_asm) add: impl_asigs)

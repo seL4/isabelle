@@ -358,8 +358,7 @@ apply (simp add: slen_def, auto)
 by (drule stream_finite_lemma1,auto)
 
 lemma slen_less_1_eq: "(#x < Fin (Suc 0)) = (x = \<bottom>)"
-by (rule stream.casedist [of x], auto simp del: iSuc_Fin
-    simp add: Fin_0 iSuc_Fin[THEN sym] i0_iless_iSuc iSuc_mono)
+by (rule stream.casedist [of x], auto simp add: Fin_0 iSuc_Fin[THEN sym])
 
 lemma slen_empty_eq: "(#x = 0) = (x = \<bottom>)"
 by (rule stream.casedist [of x], auto)

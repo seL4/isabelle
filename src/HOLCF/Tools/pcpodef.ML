@@ -100,7 +100,7 @@ fun prove_cpo
           ((Binding.prefix_name "lub_" name, make @{thm typedef_lub}), []),
           ((Binding.prefix_name "thelub_" name, make @{thm typedef_thelub}), []),
           ((Binding.prefix_name "compact_" name, make @{thm typedef_compact}), [])])
-      ||> Sign.parent_path;
+      ||> Sign.restore_naming thy2;
     val cpo_info : cpo_info =
       { below_def = below_def, adm = admissible', cont_Rep = cont_Rep,
         cont_Abs = cont_Abs, lub = lub, thelub = thelub, compact = compact };
@@ -139,7 +139,7 @@ fun prove_pcpo
           ((Binding.suffix_name "_strict_iff" Abs_name, make @{thm typedef_Abs_strict_iff}), []),
           ((Binding.suffix_name "_defined" Rep_name, make @{thm typedef_Rep_defined}), []),
           ((Binding.suffix_name "_defined" Abs_name, make @{thm typedef_Abs_defined}), [])])
-      ||> Sign.parent_path;
+      ||> Sign.restore_naming thy2;
     val pcpo_info =
       { Rep_strict = Rep_strict, Abs_strict = Abs_strict,
         Rep_strict_iff = Rep_strict_iff, Abs_strict_iff = Abs_strict_iff,

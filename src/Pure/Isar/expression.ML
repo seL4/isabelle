@@ -681,7 +681,7 @@ fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
             |> def_pred abinding parms defs' exts exts';
           val (_, thy'') =
             thy'
-            |> Sign.mandatory_path (Binding.name_of abinding)
+            |> Sign.qualified_path true abinding
             |> PureThy.note_thmss ""
               [((Binding.conceal (Binding.name introN), []), [([intro], [Locale.unfold_add])])]
             ||> Sign.restore_naming thy';
@@ -695,7 +695,7 @@ fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
             |> def_pred binding parms defs' (ints @ the_list a_pred) (ints' @ the_list a_pred);
           val (_, thy'''') =
             thy'''
-            |> Sign.mandatory_path (Binding.name_of binding)
+            |> Sign.qualified_path true binding
             |> PureThy.note_thmss ""
                  [((Binding.conceal (Binding.name introN), []), [([intro], [Locale.intro_add])]),
                   ((Binding.conceal (Binding.name axiomsN), []),

@@ -767,7 +767,8 @@ by (simp add: add: real_of_nat_def)
 lemma not_real_of_nat_less_zero [simp]: "~ real (n::nat) < 0"
 by (simp add: add: real_of_nat_def)
 
-lemma real_of_nat_ge_zero_cancel_iff [simp]: "(0 \<le> real (n::nat))"
+(* FIXME: duplicates real_of_nat_ge_zero *)
+lemma real_of_nat_ge_zero_cancel_iff: "(0 \<le> real (n::nat))"
 by (simp add: add: real_of_nat_def)
 
 lemma nat_less_real_le: "((n::nat) < m) = (real n + 1 <= real m)"
@@ -951,13 +952,13 @@ lemma [code_unfold_post]:
 
 text{*Collapse applications of @{term real} to @{term number_of}*}
 lemma real_number_of [simp]: "real (number_of v :: int) = number_of v"
-by (simp add:  real_of_int_def of_int_number_of_eq)
+by (simp add: real_of_int_def)
 
 lemma real_of_nat_number_of [simp]:
      "real (number_of v :: nat) =  
         (if neg (number_of v :: int) then 0  
          else (number_of v :: real))"
-by (simp add: real_of_int_real_of_nat [symmetric] int_nat_number_of)
+by (simp add: real_of_int_real_of_nat [symmetric])
 
 declaration {*
   K (Lin_Arith.add_inj_thms [@{thm real_of_nat_le_iff} RS iffD2, @{thm real_of_nat_inject} RS iffD2]

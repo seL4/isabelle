@@ -22,6 +22,7 @@ sig
   val empty: binding
   val is_empty: binding -> bool
   val qualify: bool -> string -> binding -> binding
+  val qualified: bool -> string -> binding -> binding
   val qualified_name: string -> binding
   val qualified_name_of: binding -> string
   val prefix_of: binding -> (string * bool) list
@@ -86,6 +87,10 @@ fun qualify _ "" = I
   | qualify mandatory qual =
       map_binding (fn (conceal, prefix, qualifier, name, pos) =>
         (conceal, prefix, (qual, mandatory) :: qualifier, name, pos));
+
+fun qualified mandatory name' = map_binding (fn (conceal, prefix, qualifier, name, pos) =>
+  let val qualifier' = if name = "" then qualifier else qualifier @ [(name, mandatory)]
+  in (conceal, prefix, qualifier', name', pos) end);
 
 fun qualified_name "" = empty
   | qualified_name s =

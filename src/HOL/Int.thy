@@ -391,6 +391,7 @@ qed
 lemma nat_int [simp]: "nat (of_nat n) = n"
 by (simp add: nat int_def)
 
+(* FIXME: duplicates nat_0 *)
 lemma nat_zero [simp]: "nat 0 = 0"
 by (simp add: Zero_int_def nat)
 
@@ -626,10 +627,10 @@ definition
 
 lemmas
   max_number_of [simp] = max_def
-    [of "number_of u" "number_of v", standard, simp]
+    [of "number_of u" "number_of v", standard]
 and
   min_number_of [simp] = min_def 
-    [of "number_of u" "number_of v", standard, simp]
+    [of "number_of u" "number_of v", standard]
   -- {* unfolding @{text minx} and @{text max} on numerals *}
 
 lemmas numeral_simps = 
@@ -1060,7 +1061,7 @@ by (simp add: iszero_def)
 lemma not_iszero_1: "~ iszero 1"
 by (simp add: iszero_def eq_commute)
 
-lemma eq_number_of_eq:
+lemma eq_number_of_eq [simp]:
   "((number_of x::'a::number_ring) = number_of y) =
    iszero (number_of (x + uminus y) :: 'a)"
 unfolding iszero_def number_of_add number_of_minus
@@ -1130,7 +1131,7 @@ proof -
     by (auto simp add: iszero_def number_of_eq numeral_simps)
 qed
 
-lemmas iszero_simps =
+lemmas iszero_simps [simp] =
   iszero_0 not_iszero_1
   iszero_number_of_Pls nonzero_number_of_Min
   iszero_number_of_Bit0 iszero_number_of_Bit1
@@ -1218,7 +1219,7 @@ lemma eq_number_of [simp]:
   "(number_of x::'a::{ring_char_0,number_ring}) = number_of y \<longleftrightarrow> x = y"
   unfolding number_of_eq by (rule of_int_eq_iff)
 
-lemmas rel_simps [simp] = 
+lemmas rel_simps =
   less_number_of less_bin_simps
   le_number_of le_bin_simps
   eq_number_of_eq eq_bin_simps
@@ -1240,7 +1241,7 @@ lemma mult_number_of_left [simp]:
 lemma add_number_of_diff1:
   "number_of v + (number_of w - c) = 
   number_of(v + w) - (c::'a::number_ring)"
-  by (simp add: diff_minus add_number_of_left)
+  by (simp add: diff_minus)
 
 lemma add_number_of_diff2 [simp]:
   "number_of v + (c - number_of w) =
@@ -1437,7 +1438,7 @@ lemmas add_number_of_eq = number_of_add [symmetric]
 
 text{*Allow 1 on either or both sides*}
 lemma one_add_one_is_two: "1 + 1 = (2::'a::number_ring)"
-by (simp del: numeral_1_eq_1 add: numeral_1_eq_1 [symmetric] add_number_of_eq)
+by (simp del: numeral_1_eq_1 add: numeral_1_eq_1 [symmetric])
 
 lemmas add_special =
     one_add_one_is_two
@@ -1558,6 +1559,7 @@ declare One_int_def [symmetric, simp]
 
 lemmas diff_int_def_symmetric = diff_int_def [symmetric, simp]
 
+(* FIXME: duplicates nat_zero *)
 lemma nat_0: "nat 0 = 0"
 by (simp add: nat_eq_iff)
 
@@ -1980,7 +1982,7 @@ by simp
 
 lemma minus1_divide [simp]:
      "-1 / (x::'a::{field,division_by_zero,number_ring}) = - (1/x)"
-by (simp add: divide_inverse inverse_minus_eq)
+by (simp add: divide_inverse)
 
 lemma half_gt_zero_iff:
      "(0 < r/2) = (0 < (r::'a::{linordered_field,division_by_zero,number_ring}))"
@@ -2098,7 +2100,7 @@ lemma zdvd_mult_cancel1:
   assumes mp:"m \<noteq>(0::int)" shows "(m * n dvd m) = (\<bar>n\<bar> = 1)"
 proof
   assume n1: "\<bar>n\<bar> = 1" thus "m * n dvd m" 
-    by (cases "n >0", auto simp add: minus_dvd_iff minus_equation_iff)
+    by (cases "n >0", auto simp add: minus_equation_iff)
 next
   assume H: "m * n dvd m" hence H2: "m * n dvd m * 1" by simp
   from zdvd_mult_cancel[OF H2 mp] show "\<bar>n\<bar> = 1" by (simp only: zdvd1_eq)

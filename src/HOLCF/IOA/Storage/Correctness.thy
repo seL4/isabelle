@@ -18,7 +18,6 @@ definition
                         in
                         (! l:used. l < k) & b=c}"
 
-declare split_paired_All [simp]
 declare split_paired_Ex [simp del]
 
 

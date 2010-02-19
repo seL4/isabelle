@@ -260,7 +260,7 @@ proof (unfold DERIV_iff2)
           -- x --> d (f x) * D"
     by (rule LIM_mult [OF _ f [unfolded DERIV_iff2]])
   thus "(\<lambda>z. (g (f z) - g (f x)) / (z - x)) -- x --> E * D"
-    by (simp add: d dfx real_scaleR_def)
+    by (simp add: d dfx)
 qed
 
 text {*
@@ -279,7 +279,7 @@ lemma DERIV_cdivide: "DERIV f x :> D ==> DERIV (%x. f x / c) x :> D / c"
 
 text {* Standard version *}
 lemma DERIV_chain: "[| DERIV f (g x) :> Da; DERIV g x :> Db |] ==> DERIV (f o g) x :> Da * Db"
-by (drule (1) DERIV_chain', simp add: o_def real_scaleR_def mult_commute)
+by (drule (1) DERIV_chain', simp add: o_def mult_commute)
 
 lemma DERIV_chain2: "[| DERIV f (g x) :> Da; DERIV g x :> Db |] ==> DERIV (%x. f (g x)) x :> Da * Db"
 by (auto dest: DERIV_chain simp add: o_def)
@@ -290,7 +290,7 @@ by (cut_tac c = c and x = x in DERIV_ident [THEN DERIV_cmult], simp)
 
 lemma DERIV_pow: "DERIV (%x. x ^ n) x :> real n * (x ^ (n - Suc 0))"
 apply (cut_tac DERIV_power [OF DERIV_ident])
-apply (simp add: real_scaleR_def real_of_nat_def)
+apply (simp add: real_of_nat_def)
 done
 
 text {* Power of @{text "-1"} *}
@@ -1532,12 +1532,12 @@ proof -
   moreover
   have "\<forall>x. a < x \<and> x < b \<longrightarrow> ?h differentiable x"
   proof -
-    have "\<forall>x. a < x \<and> x < b \<longrightarrow> (\<lambda>x. f b - f a) differentiable x" by (simp add: differentiable_const)
-    with gd have "\<forall>x. a < x \<and> x < b \<longrightarrow> (\<lambda>x. (f b - f a) * g x) differentiable x" by (simp add: differentiable_mult)
+    have "\<forall>x. a < x \<and> x < b \<longrightarrow> (\<lambda>x. f b - f a) differentiable x" by simp
+    with gd have "\<forall>x. a < x \<and> x < b \<longrightarrow> (\<lambda>x. (f b - f a) * g x) differentiable x" by simp
     moreover
-    have "\<forall>x. a < x \<and> x < b \<longrightarrow> (\<lambda>x. g b - g a) differentiable x" by (simp add: differentiable_const)
-    with fd have "\<forall>x. a < x \<and> x < b \<longrightarrow> (\<lambda>x. (g b - g a) * f x) differentiable x" by (simp add: differentiable_mult)
-    ultimately show ?thesis by (simp add: differentiable_diff)
+    have "\<forall>x. a < x \<and> x < b \<longrightarrow> (\<lambda>x. g b - g a) differentiable x" by simp
+    with fd have "\<forall>x. a < x \<and> x < b \<longrightarrow> (\<lambda>x. (g b - g a) * f x) differentiable x" by simp
+    ultimately show ?thesis by simp
   qed
   ultimately have "\<exists>l z. a < z \<and> z < b \<and> DERIV ?h z :> l \<and> ?h b - ?h a = (b - a) * l" by (rule MVT)
   then obtain l where ldef: "\<exists>z. a < z \<and> z < b \<and> DERIV ?h z :> l \<and> ?h b - ?h a = (b - a) * l" ..

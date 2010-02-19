@@ -211,7 +211,7 @@ lemma zero_le_even_power'[simp]:
   "0 \<le> a ^ (2*n)"
 proof (induct n)
   case 0
-    show ?case by (simp add: zero_le_one)
+    show ?case by simp
 next
   case (Suc n)
     have "a ^ (2 * Suc n) = (a*a) * a ^ (2*n)" 
@@ -262,7 +262,7 @@ lemma not_neg_int [simp]: "~ neg (of_nat n)"
 by (simp add: neg_def)
 
 lemma neg_zminus_int [simp]: "neg (- (of_nat (Suc n)))"
-by (simp add: neg_def neg_less_0_iff_less del: of_nat_Suc)
+by (simp add: neg_def del: of_nat_Suc)
 
 lemmas neg_eq_less_0 = neg_def
 
@@ -275,7 +275,7 @@ lemma not_neg_0: "~ neg 0"
 by (simp add: One_int_def neg_def)
 
 lemma not_neg_1: "~ neg 1"
-by (simp add: neg_def linorder_not_less zero_le_one)
+by (simp add: neg_def linorder_not_less)
 
 lemma neg_nat: "neg z ==> nat z = 0"
 by (simp add: neg_def order_less_imp_le) 
@@ -310,7 +310,7 @@ lemmas neg_simps [simp] =
 
 subsection{*Function @{term nat}: Coercion from Type @{typ int} to @{typ nat}*}
 
-declare nat_0 [simp] nat_1 [simp]
+declare nat_1 [simp]
 
 lemma nat_number_of [simp]: "nat (number_of w) = number_of w"
 by (simp add: nat_number_of_def)
@@ -319,10 +319,10 @@ lemma nat_numeral_0_eq_0 [simp, code_post]: "Numeral0 = (0::nat)"
 by (simp add: nat_number_of_def)
 
 lemma nat_numeral_1_eq_1 [simp]: "Numeral1 = (1::nat)"
-by (simp add: nat_1 nat_number_of_def)
+by (simp add: nat_number_of_def)
 
 lemma numeral_1_eq_Suc_0 [code_post]: "Numeral1 = Suc 0"
-by (simp add: nat_numeral_1_eq_1)
+by (simp only: nat_numeral_1_eq_1 One_nat_def)
 
 
 subsection{*Function @{term int}: Coercion from Type @{typ nat} to @{typ int}*}
@@ -469,7 +469,7 @@ lemmas zero_compare_simps =
 subsubsection{*Nat *}
 
 lemma Suc_pred': "0 < n ==> n = Suc(n - 1)"
-by (simp add: numerals)
+by simp
 
 (*Expresses a natural number constant as the Suc of another one.
   NOT suitable for rewriting because n recurs in the condition.*)
@@ -478,10 +478,10 @@ lemmas expand_Suc = Suc_pred' [of "number_of v", standard]
 subsubsection{*Arith *}
 
 lemma Suc_eq_plus1: "Suc n = n + 1"
-by (simp add: numerals)
+  unfolding One_nat_def by simp
 
 lemma Suc_eq_plus1_left: "Suc n = 1 + n"
-by (simp add: numerals)
+  unfolding One_nat_def by simp
 
 (* These two can be useful when m = number_of... *)
 
@@ -563,13 +563,13 @@ lemma le_number_of_Suc [simp]:
      "(number_of v <= Suc n) =  
         (let pv = number_of (Int.pred v) in  
          if neg pv then True else nat pv <= n)"
-by (simp add: Let_def less_Suc_number_of linorder_not_less [symmetric])
+by (simp add: Let_def linorder_not_less [symmetric])
 
 lemma le_Suc_number_of [simp]:
      "(Suc n <= number_of v) =  
         (let pv = number_of (Int.pred v) in  
          if neg pv then False else n <= nat pv)"
-by (simp add: Let_def less_number_of_Suc linorder_not_less [symmetric])
+by (simp add: Let_def linorder_not_less [symmetric])
 
 
 lemma eq_number_of_Pls_Min: "(Numeral0 ::int) ~= number_of Int.Min"
@@ -660,7 +660,7 @@ lemmas power_number_of_odd_number_of [simp] =
     power_number_of_odd [of "number_of v", standard]
 
 lemma nat_number_of_Pls: "Numeral0 = (0::nat)"
-  by (simp add: number_of_Pls nat_number_of_def)
+  by (simp add: nat_number_of_def)
 
 lemma nat_number_of_Min: "number_of Int.Min = (0::nat)"
   apply (simp only: number_of_Min nat_number_of_def nat_zminus_int)
@@ -682,6 +682,9 @@ done
 
 lemmas nat_number =
   nat_number_of_Pls nat_number_of_Min
+  nat_number_of_Bit0 nat_number_of_Bit1
+
+lemmas nat_number' =
   nat_number_of_Bit0 nat_number_of_Bit1
 
 lemma Let_Suc [simp]: "Let (Suc n) f == f (Suc n)"
@@ -736,7 +739,7 @@ subsubsection{*For simplifying @{term "Suc m - K"} and  @{term "K - Suc m"}*}
 text{*Where K above is a literal*}
 
 lemma Suc_diff_eq_diff_pred: "Numeral0 < n ==> Suc m - n = m - (n - Numeral1)"
-by (simp add: numeral_0_eq_0 numeral_1_eq_1 split add: nat_diff_split)
+by (simp split: nat_diff_split)
 
 text {*Now just instantiating @{text n} to @{text "number_of v"} does
   the right simplification, but with some redundant inequality
@@ -761,7 +764,7 @@ apply (auto simp only: diff_nat_number_of less_0_number_of [symmetric]
 done
 
 lemma diff_Suc_eq_diff_pred: "m - Suc n = (m - 1) - n"
-by (simp add: numerals split add: nat_diff_split)
+by (simp split: nat_diff_split)
 
 
 subsubsection{*For @{term nat_case} and @{term nat_rec}*}
