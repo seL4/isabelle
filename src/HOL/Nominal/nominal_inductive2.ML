@@ -292,7 +292,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
     val perm_pi_simp = PureThy.get_thms thy "perm_pi_simp";
     val pt2_atoms = map (fn a => PureThy.get_thm thy
       ("pt_" ^ Long_Name.base_name a ^ "2")) atoms;
-    val eqvt_ss = Simplifier.theory_context thy HOL_basic_ss
+    val eqvt_ss = Simplifier.global_context thy HOL_basic_ss
       addsimps (eqvt_thms @ perm_pi_simp @ pt2_atoms)
       addsimprocs [mk_perm_bool_simproc ["Fun.id"],
         NominalPermeq.perm_simproc_app, NominalPermeq.perm_simproc_fun];

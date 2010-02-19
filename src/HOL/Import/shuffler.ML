@@ -488,7 +488,7 @@ be handy in its own right, for example for indexing terms. *)
 fun norm_term thy t =
     let
         val norms = ShuffleData.get thy
-        val ss = Simplifier.theory_context thy empty_ss
+        val ss = Simplifier.global_context thy empty_ss
           setmksimps single
           addsimps (map (Thm.transfer thy) norms)
           addsimprocs [quant_simproc thy, eta_expand_simproc thy,eta_contract_simproc thy]

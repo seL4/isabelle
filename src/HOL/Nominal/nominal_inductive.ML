@@ -274,7 +274,7 @@ fun prove_strong_ind s avoids ctxt =
     val perm_pi_simp = PureThy.get_thms thy "perm_pi_simp";
     val pt2_atoms = map (fn aT => PureThy.get_thm thy
       ("pt_" ^ Long_Name.base_name (fst (dest_Type aT)) ^ "2")) atomTs;
-    val eqvt_ss = Simplifier.theory_context thy HOL_basic_ss
+    val eqvt_ss = Simplifier.global_context thy HOL_basic_ss
       addsimps (eqvt_thms @ perm_pi_simp @ pt2_atoms)
       addsimprocs [mk_perm_bool_simproc ["Fun.id"],
         NominalPermeq.perm_simproc_app, NominalPermeq.perm_simproc_fun];
@@ -455,7 +455,7 @@ fun prove_strong_ind s avoids ctxt =
                    concl))
           in map mk_prem prems end) cases_prems;
 
-    val cases_eqvt_ss = Simplifier.theory_context thy HOL_ss
+    val cases_eqvt_ss = Simplifier.global_context thy HOL_ss
       addsimps eqvt_thms @ swap_simps @ perm_pi_simp
       addsimprocs [NominalPermeq.perm_simproc_app,
         NominalPermeq.perm_simproc_fun];
@@ -611,7 +611,7 @@ fun prove_eqvt s xatoms ctxt =
          atoms)
       end;
     val perm_pi_simp = PureThy.get_thms thy "perm_pi_simp";
-    val eqvt_ss = Simplifier.theory_context thy HOL_basic_ss addsimps
+    val eqvt_ss = Simplifier.global_context thy HOL_basic_ss addsimps
       (NominalThmDecls.get_eqvt_thms ctxt @ perm_pi_simp) addsimprocs
       [mk_perm_bool_simproc names,
        NominalPermeq.perm_simproc_app, NominalPermeq.perm_simproc_fun];

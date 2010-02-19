@@ -518,7 +518,7 @@ val get_sel_upd = #sel_upd o Records_Data.get;
 
 val is_selector = Symtab.defined o #selectors o get_sel_upd;
 val get_updates = Symtab.lookup o #updates o get_sel_upd;
-fun get_ss_with_context getss thy = Simplifier.theory_context thy (getss (get_sel_upd thy));
+fun get_ss_with_context getss thy = Simplifier.global_context thy (getss (get_sel_upd thy));
 
 val get_simpset = get_ss_with_context #simpset;
 val get_sel_upd_defs = get_ss_with_context #defset;

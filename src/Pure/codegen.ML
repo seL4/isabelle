@@ -299,7 +299,7 @@ val add_unfold = map_unfold o MetaSimplifier.add_simp;
 val del_unfold = map_unfold o MetaSimplifier.del_simp;
 
 fun unfold_preprocessor thy =
-  let val ss = Simplifier.theory_context thy (UnfoldData.get thy)
+  let val ss = Simplifier.global_context thy (UnfoldData.get thy)
   in map (Thm.transfer thy #> Simplifier.full_simplify ss) end;
 
 
