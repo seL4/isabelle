@@ -16,6 +16,7 @@ sig
   val simple_read_term: theory -> typ -> string -> term
   val read_term: theory -> string -> term
   val read_prop: theory -> string -> term
+  val get_def: theory -> xstring -> thm
   type proof
   val premises: unit -> thm list
   val reset_goals: unit -> unit
@@ -219,6 +220,8 @@ fun simple_read_term thy T s =
 fun read_term thy = simple_read_term thy dummyT;
 fun read_prop thy = simple_read_term thy propT;
 
+
+fun get_def thy = Thm.axiom thy o Name_Space.intern (Theory.axiom_space thy) o Thm.def_name;
 
 
 (*** Goal package ***)
