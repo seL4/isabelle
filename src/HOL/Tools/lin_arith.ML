@@ -6,7 +6,7 @@ HOL setup for linear arithmetic (see Provers/Arith/fast_lin_arith.ML).
 
 signature LIN_ARITH =
 sig
-  val pre_tac: Proof.context -> int -> tactic
+  val pre_tac: simpset -> int -> tactic
   val simple_tac: Proof.context -> int -> tactic
   val tac: Proof.context -> int -> tactic
   val simproc: simpset -> term -> thm option
@@ -705,13 +705,12 @@ local
     setmksimps (mksimps mksimps_pairs)
     addsimps [imp_conv_disj, iff_conv_conj_imp, de_Morgan_disj, de_Morgan_conj,
       not_all, not_ex, not_not]
-  fun prem_nnf_tac i st =
-    full_simp_tac (Simplifier.theory_context (Thm.theory_of_thm st) nnf_simpset)
-      i st
+  fun prem_nnf_tac ss = full_simp_tac (Simplifier.inherit_context ss nnf_simpset)
 in
 
-fun split_once_tac ctxt split_thms =
+fun split_once_tac ss split_thms =
   let
+    val ctxt = Simplifier.the_context ss
     val thy = ProofContext.theory_of ctxt
     val cond_split_tac = SUBGOAL (fn (subgoal, i) =>
       let
@@ -734,7 +733,7 @@ fun split_once_tac ctxt split_thms =
       REPEAT_DETERM o etac rev_mp,
       cond_split_tac,
       rtac ccontr,
-      prem_nnf_tac,
+      prem_nnf_tac ss,
       TRY o REPEAT_ALL_NEW (DETERM o (eresolve_tac [conjE, exE] ORELSE' etac disjE))
     ]
   end;
@@ -746,15 +745,16 @@ end;  (* local *)
 (* subgoals and finally attempt to solve them by finding an immediate        *)
 (* contradiction (i.e., a term and its negation) in their premises.          *)
 
-fun pre_tac ctxt i =
+fun pre_tac ss i =
 let
+  val ctxt = Simplifier.the_context ss;
   val split_thms = filter is_split_thm (#splits (get_arith_data ctxt))
   fun is_relevant t = is_some (decomp ctxt t)
 in
   DETERM (
     TRY (filter_prems_tac is_relevant i)
       THEN (
-        (TRY o REPEAT_ALL_NEW (split_once_tac ctxt split_thms))
+        (TRY o REPEAT_ALL_NEW (split_once_tac ss split_thms))
           THEN_ALL_NEW
             (CONVERSION Drule.beta_eta_conversion
               THEN'

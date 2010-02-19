@@ -56,7 +56,7 @@ sig
   val pre_decomp: Proof.context -> typ list * term list -> (typ list * term list) list
 
   (*preprocessing, performed on the goal -- must do the same as 'pre_decomp':*)
-  val pre_tac: Proof.context -> int -> tactic
+  val pre_tac: simpset -> int -> tactic
 
   (*the limit on the number of ~= allowed; because each ~= is split
     into two cases, this can lead to an explosion*)
@@ -792,7 +792,7 @@ fun refute_tac ss (i, split_neq, justs) =
       (* rewrite "[| A1; ...; An |] ==> B" to "[| A1; ...; An; ~B |] ==> False" *)
       DETERM (resolve_tac [LA_Logic.notI, LA_Logic.ccontr] i) THEN
       (* user-defined preprocessing of the subgoal *)
-      DETERM (LA_Data.pre_tac ctxt i) THEN
+      DETERM (LA_Data.pre_tac ss i) THEN
       PRIMITIVE (trace_thm ctxt "State after pre_tac:") THEN
       (* prove every resulting subgoal, using its justification *)
       EVERY (map just1 justs)
