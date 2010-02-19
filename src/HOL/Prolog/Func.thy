@@ -10,31 +10,28 @@ begin
 
 typedecl tm
 
-consts
-  abs     :: "(tm => tm) => tm"
-  app     :: "tm => tm => tm"
+axiomatization
+  abs     :: "(tm \<Rightarrow> tm) \<Rightarrow> tm" and
+  app     :: "tm \<Rightarrow> tm \<Rightarrow> tm" and
 
-  cond    :: "tm => tm => tm => tm"
-  "fix"   :: "(tm => tm) => tm"
+  cond    :: "tm \<Rightarrow> tm \<Rightarrow> tm \<Rightarrow> tm" and
+  "fix"   :: "(tm \<Rightarrow> tm) \<Rightarrow> tm" and
 
-  true    :: tm
-  false   :: tm
-  "and"   :: "tm => tm => tm"       (infixr "and" 999)
-  eq      :: "tm => tm => tm"       (infixr "eq" 999)
+  true    :: tm and
+  false   :: tm and
+  "and"   :: "tm \<Rightarrow> tm \<Rightarrow> tm"       (infixr "and" 999) and
+  eq      :: "tm \<Rightarrow> tm \<Rightarrow> tm"       (infixr "eq" 999) and
 
-  Z       :: tm                     ("Z")
-  S       :: "tm => tm"
-(*
-        "++", "--",
-        "**"    :: tm => tm => tm       (infixr 999)
-*)
-        eval    :: "[tm, tm] => bool"
+  Z       :: tm                     ("Z") and
+  S       :: "tm \<Rightarrow> tm" and
 
-instance tm :: plus ..
-instance tm :: minus ..
-instance tm :: times ..
+  plus    :: "tm \<Rightarrow> tm \<Rightarrow> tm"       (infixl "+" 65) and
+  minus   :: "tm \<Rightarrow> tm \<Rightarrow> tm"       (infixl "-" 65) and
+  times   :: "tm \<Rightarrow> tm \<Rightarrow> tm"       (infixl "*" 70) and
 
-axioms   eval: "
+  eval    :: "tm \<Rightarrow> tm \<Rightarrow> bool" where
+
+eval: "
 
 eval (abs RR) (abs RR)..
 eval (app F X) V :- eval F (abs R) & eval X U & eval (R U) V..
@@ -58,7 +55,6 @@ eval (N     - Z) K     :- eval  N      K..
 eval ((S N) - (S M)) K :- eval (N- M)  K..
 eval ( Z    * M) Z..
 eval ((S N) * M) K :- eval (N * M) L & eval (L + M) K"
-
 
 lemmas prog_Func = eval
 
