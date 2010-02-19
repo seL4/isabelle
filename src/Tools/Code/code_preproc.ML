@@ -216,14 +216,6 @@ fun inst_params thy tyco =
   map (fn (c, _) => AxClass.param_of_inst thy (c, tyco))
     o maps (#params o AxClass.get_info thy);
 
-fun typargs_rhss thy c cert =
-  let
-    val ((vs, _), equations) = Code.equations_cert thy cert;
-    val rhss = [] |> (fold o fold o fold_aterms)
-      (fn Const (c, ty) => insert (op =) (c, Sign.const_typargs thy (c, ty)) | _ => I)
-        (map (op :: o swap) equations);
-  in (vs, rhss) end;
-
 
 (* data structures *)
 
@@ -262,7 +254,7 @@ fun obtain_eqns thy eqngr c =
    of SOME (lhs, cert) => ((lhs, []), cert)
     | NONE => let
         val cert = Code.get_cert thy (preprocess thy) c;
-        val (lhs, rhss) = typargs_rhss thy c cert;
+        val (lhs, rhss) = Code.typargs_deps_of_cert thy cert;
       in ((lhs, rhss), cert) end;
 
 fun obtain_instance thy arities (inst as (class, tyco)) =
@@ -395,7 +387,7 @@ fun add_cert thy vardeps (c, (proto_lhs, proto_cert)) (rhss, eqngr) =
     val lhs = map_index (fn (k, (v, _)) =>
       (v, snd (Vargraph.get_node vardeps (Fun c, k)))) proto_lhs;
     val cert = Code.constrain_cert thy (map snd lhs) proto_cert;
-    val (vs, rhss') = typargs_rhss thy c cert;
+    val (vs, rhss') = Code.typargs_deps_of_cert thy cert;
     val eqngr' = Graph.new_node (c, (vs, cert)) eqngr;
   in (map (pair c) rhss' @ rhss, eqngr') end;
 
