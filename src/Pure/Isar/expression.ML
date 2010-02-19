@@ -641,8 +641,7 @@ fun def_pred binding parms defs ts norm_ts thy =
       |> bodyT = propT ? Sign.add_advanced_trfuns ([], [], [aprop_tr' (length args) name], [])
       |> Sign.declare_const ((Binding.conceal binding, predT), NoSyn) |> snd
       |> PureThy.add_defs false
-        [((Binding.conceal (Binding.map_name Thm.def_name binding),
-            Logic.mk_equals (head, body)), [])];
+        [((Binding.conceal (Thm.def_binding binding), Logic.mk_equals (head, body)), [])];
     val defs_ctxt = ProofContext.init defs_thy |> Variable.declare_term head;
 
     val cert = Thm.cterm_of defs_thy;

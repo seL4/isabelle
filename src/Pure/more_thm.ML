@@ -77,6 +77,7 @@ sig
   val untag: string -> attribute
   val def_name: string -> string
   val def_name_optional: string -> string -> string
+  val def_binding: Binding.binding -> Binding.binding
   val def_binding_optional: Binding.binding -> Binding.binding -> Binding.binding
   val has_name_hint: thm -> bool
   val get_name_hint: thm -> string
@@ -384,8 +385,10 @@ fun def_name c = c ^ "_def";
 fun def_name_optional c "" = def_name c
   | def_name_optional _ name = name;
 
+val def_binding = Binding.map_name def_name;
+
 fun def_binding_optional b name =
-  if Binding.is_empty name then Binding.map_name def_name b else name;
+  if Binding.is_empty name then def_binding b else name;
 
 
 (* unofficial theorem names *)
