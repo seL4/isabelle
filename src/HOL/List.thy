@@ -250,7 +250,7 @@ text{*
 @{lemma "distinct [2,0,1::nat]" by simp}\\
 @{lemma "remdups [2,0,2,1::nat,2] = [0,1,2]" by simp}\\
 @{lemma "List.insert 2 [0::nat,1,2] = [0,1,2]" by (simp add: List.insert_def)}\\
-@{lemma "List.insert 3 [0::nat,1,2] = [3, 0,1,2]" by (simp add: List.insert_def)}\\
+@{lemma "List.insert 3 [0::nat,1,2] = [3,0,1,2]" by (simp add: List.insert_def)}\\
 @{lemma "remove1 2 [2,0,2,1::nat,2] = [0,2,1,2]" by simp}\\
 @{lemma "removeAll 2 [2,0,2,1::nat,2] = [0,1]" by simp}\\
 @{lemma "nth [a,b,c,d] 2 = c" by simp}\\
@@ -2898,9 +2898,13 @@ lemma insert_Nil [simp]:
   "List.insert x [] = [x]"
   by simp
 
-lemma set_insert:
+lemma set_insert [simp]:
   "set (List.insert x xs) = insert x (set xs)"
   by (auto simp add: List.insert_def)
+
+lemma distinct_insert [simp]:
+  "distinct xs \<Longrightarrow> distinct (List.insert x xs)"
+  by (simp add: List.insert_def)
 
 
 subsubsection {* @{text remove1} *}
