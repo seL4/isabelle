@@ -1677,11 +1677,22 @@ by (simp add: butlast_conv_take drop_take add_ac)
 lemma hd_drop_conv_nth: "\<lbrakk> xs \<noteq> []; n < length xs \<rbrakk> \<Longrightarrow> hd(drop n xs) = xs!n"
 by(simp add: hd_conv_nth)
 
+lemma set_take_subset_set_take:
+  "m <= n \<Longrightarrow> set(take m xs) <= set(take n xs)"
+by(induct xs arbitrary: m n)(auto simp:take_Cons split:nat.split)
+
 lemma set_take_subset: "set(take n xs) \<subseteq> set xs"
 by(induct xs arbitrary: n)(auto simp:take_Cons split:nat.split)
 
 lemma set_drop_subset: "set(drop n xs) \<subseteq> set xs"
 by(induct xs arbitrary: n)(auto simp:drop_Cons split:nat.split)
+
+lemma set_drop_subset_set_drop:
+  "m >= n \<Longrightarrow> set(drop m xs) <= set(drop n xs)"
+apply(induct xs arbitrary: m n)
+apply(auto simp:drop_Cons split:nat.split)
+apply (metis set_drop_subset subset_iff)
+done
 
 lemma in_set_takeD: "x : set(take n xs) \<Longrightarrow> x : set xs"
 using set_take_subset by fast
