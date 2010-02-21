@@ -20,7 +20,12 @@ upgrading:
     provides the following special forms:
 
       CONST c   -- produces syntax version of constant c from context
-      XCONST c  -- literally c as AST constant (checked against the context)
+      XCONST c  -- literally c, checked as constant from context
+      c         -- literally c, if declared by 'syntax'
+
+    Plain identifiers are treated as AST variables -- occasionally the
+    system indicates accidental variables via the error "rhs contains
+    extra variables".
 
   - 'parse_translation' etc. in ML may use the following
     antiquotations:
