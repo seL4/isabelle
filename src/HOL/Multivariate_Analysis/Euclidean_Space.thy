@@ -1,4 +1,4 @@
-(*  Title:      Library/Euclidean_Space
+(*  Title:      Library/Multivariate_Analysis/Euclidean_Space.thy
     Author:     Amine Chaieb, University of Cambridge
 *)
 
@@ -66,8 +66,8 @@ subsection{* Basic componentwise operations on vectors. *}
 
 instantiation cart :: (plus,finite) plus
 begin
-definition  vector_add_def : "op + \<equiv> (\<lambda> x y.  (\<chi> i. (x$i) + (y$i)))"
-instance ..
+  definition  vector_add_def : "op + \<equiv> (\<lambda> x y.  (\<chi> i. (x$i) + (y$i)))"
+  instance ..
 end
 
 instantiation cart :: (times,finite) times
@@ -76,39 +76,42 @@ begin
   instance ..
 end
 
-instantiation cart :: (minus,finite) minus begin
+instantiation cart :: (minus,finite) minus
+begin
   definition vector_minus_def : "op - \<equiv> (\<lambda> x y.  (\<chi> i. (x$i) - (y$i)))"
-instance ..
+  instance ..
 end
 
-instantiation cart :: (uminus,finite) uminus begin
+instantiation cart :: (uminus,finite) uminus
+begin
   definition vector_uminus_def : "uminus \<equiv> (\<lambda> x.  (\<chi> i. - (x$i)))"
-instance ..
+  instance ..
 end
 
-instantiation cart :: (zero,finite) zero begin
+instantiation cart :: (zero,finite) zero
+begin
   definition vector_zero_def : "0 \<equiv> (\<chi> i. 0)"
-instance ..
+  instance ..
 end
 
-instantiation cart :: (one,finite) one begin
+instantiation cart :: (one,finite) one
+begin
   definition vector_one_def : "1 \<equiv> (\<chi> i. 1)"
-instance ..
+  instance ..
 end
 
 instantiation cart :: (ord,finite) ord
- begin
-definition vector_le_def:
-  "less_eq (x :: 'a ^'b) y = (ALL i. x$i <= y$i)"
-definition vector_less_def: "less (x :: 'a ^'b) y = (ALL i. x$i < y$i)"
-
-instance by (intro_classes)
+begin
+  definition vector_le_def:
+    "less_eq (x :: 'a ^'b) y = (ALL i. x$i <= y$i)"
+  definition vector_less_def: "less (x :: 'a ^'b) y = (ALL i. x$i < y$i)"
+  instance by (intro_classes)
 end
 
 instantiation cart :: (scaleR, finite) scaleR
 begin
-definition vector_scaleR_def: "scaleR = (\<lambda> r x.  (\<chi> i. scaleR r (x$i)))"
-instance ..
+  definition vector_scaleR_def: "scaleR = (\<lambda> r x.  (\<chi> i. scaleR r (x$i)))"
+  instance ..
 end
 
 text{* Also the scalar-vector multiplication. *}
