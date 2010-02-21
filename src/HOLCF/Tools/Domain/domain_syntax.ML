@@ -7,6 +7,7 @@ Syntax generator for domain command.
 signature DOMAIN_SYNTAX =
 sig
   val calc_syntax:
+      theory ->
       bool ->
       typ ->
       (string * typ list) *
@@ -28,7 +29,7 @@ struct
 open Domain_Library;
 infixr 5 -->; infixr 6 ->>;
 
-fun calc_syntax  (* FIXME authentic syntax *)
+fun calc_syntax thy
     (definitional : bool)
     (dtypeprod : typ)
     ((dname : string, typevars : typ list), 
@@ -60,7 +61,7 @@ fun calc_syntax  (* FIXME authentic syntax *)
       val escape = let
         fun esc (c::cs) = if c mem ["'","_","(",")","/"] then "'"::c::esc cs
                           else      c::esc cs
-          |   esc []      = []
+          | esc []      = []
       in implode o esc o Symbol.explode end;
 
       fun dis_name_ con =
@@ -113,41 +114,45 @@ fun calc_syntax  (* FIXME authentic syntax *)
 
 (* ----- case translation --------------------------------------------------- *)
 
+    fun syntax b = Syntax.constN ^ Sign.full_bname thy b;
+
     local open Syntax in
     local
-      fun c_ast con mx = Constant (Binding.name_of con);   (* FIXME proper const syntax *)
-      fun expvar n     = Variable ("e"^(string_of_int n));
-      fun argvar n m _ = Variable ("a"^(string_of_int n)^"_"^
-                                   (string_of_int m));
+      fun c_ast authentic con = Constant ((authentic ? syntax) (Binding.name_of con));
+      fun expvar n = Variable ("e" ^ string_of_int n);
+      fun argvar n m _ = Variable ("a" ^ string_of_int n ^ "_" ^ string_of_int m);
       fun argvars n args = mapn (argvar n) 1 args;
-      fun app s (l,r)  = mk_appl (Constant s) [l,r];
+      fun app s (l, r) = mk_appl (Constant s) [l, r];
       val cabs = app "_cabs";
-      val capp = app "Rep_CFun";
-      fun con1 n (con,args,mx) = Library.foldl capp (c_ast con mx, argvars n args);
-      fun case1 n (con,args,mx) = app "_case1" (con1 n (con,args,mx), expvar n);
+      val capp = app @{const_syntax Rep_CFun};
+      fun con1 authentic n (con,args,mx) =
+        Library.foldl capp (c_ast authentic con, argvars n args);
+      fun case1 authentic n (con,args,mx) =
+        app "_case1" (con1 authentic n (con,args,mx), expvar n);
       fun arg1 n (con,args,_) = List.foldr cabs (expvar n) (argvars n args);
-      fun when1 n m = if n = m then arg1 n else K (Constant "UU");
+      fun when1 n m = if n = m then arg1 n else K (Constant @{const_syntax UU});
           
       fun app_var x = mk_appl (Constant "_variable") [x, Variable "rhs"];
       fun app_pat x = mk_appl (Constant "_pat") [x];
       fun args_list [] = Constant "_noargs"
-        |   args_list xs = foldr1 (app "_args") xs;
+        | args_list xs = foldr1 (app "_args") xs;
     in
-    val case_trans =
+    fun case_trans authentic =
         ParsePrintRule
-          (app "_case_syntax" (Variable "x", foldr1 (app "_case2") (mapn case1 1 cons')),
-           capp (Library.foldl capp (Constant (dnam^"_when"), mapn arg1 1 cons'), Variable "x"));
+          (app "_case_syntax" (Variable "x", foldr1 (app "_case2") (mapn (case1 authentic) 1 cons')),
+           capp (Library.foldl capp
+            (Constant (syntax (dnam ^ "_when")), mapn arg1 1 cons'), Variable "x"));
         
-    fun one_abscon_trans n (con,mx,args) =
+    fun one_abscon_trans authentic n (con,mx,args) =
         ParsePrintRule
-          (cabs (con1 n (con,mx,args), expvar n),
-           Library.foldl capp (Constant (dnam^"_when"), mapn (when1 n) 1 cons'));
-    val abscon_trans = mapn one_abscon_trans 1 cons';
+          (cabs (con1 authentic n (con,mx,args), expvar n),
+           Library.foldl capp (Constant (syntax (dnam ^ "_when")), mapn (when1 n) 1 cons'));
+    fun abscon_trans authentic = mapn (one_abscon_trans authentic) 1 cons';
         
-    fun one_case_trans (con,args,mx) =
+    fun one_case_trans authentic (con,args,mx) =
       let
-        val cname = c_ast con mx;
-        val pname = Constant (strip_esc (Binding.name_of con) ^ "_pat");
+        val cname = c_ast authentic con;
+        val pname = Constant (syntax (strip_esc (Binding.name_of con) ^ "_pat"));
         val ns = 1 upto length args;
         val xs = map (fn n => Variable ("x"^(string_of_int n))) ns;
         val ps = map (fn n => Variable ("p"^(string_of_int n))) ns;
@@ -160,7 +165,7 @@ fun calc_syntax  (* FIXME authentic syntax *)
          PrintRule (Library.foldl capp (cname, ListPair.map (app "_match") (ps,vs)),
                     app "_match" (mk_appl pname ps, args_list vs))]
         end;
-    val Case_trans = maps one_case_trans cons';
+    val Case_trans = maps (one_case_trans false) cons' @ maps (one_case_trans true) cons';
     end;
     end;
     val optional_consts =
@@ -169,7 +174,7 @@ fun calc_syntax  (* FIXME authentic syntax *)
   in (optional_consts @ [const_when] @ 
       consts_con @ consts_dis @ consts_mat @ consts_pat @ consts_sel @
       [const_take, const_finite],
-      (case_trans::(abscon_trans @ Case_trans)))
+      (case_trans false :: case_trans true :: (abscon_trans false @ abscon_trans true @ Case_trans)))
   end; (* let *)
 
 (* ----- putting all the syntax stuff together ------------------------------ *)
@@ -192,9 +197,9 @@ fun add_syntax
     val const_bisim =
         (Binding.name (comp_dnam^"_bisim"), relprod --> boolT, NoSyn);
     val ctt : ((binding * typ * mixfix) list * ast Syntax.trrule list) list =
-        map (calc_syntax definitional funprod) eqs';
+        map (calc_syntax thy'' definitional funprod) eqs';
   in thy''
-       |> ContConsts.add_consts_i
+       |> Cont_Consts.add_consts
            (maps fst ctt @ 
             (if length eqs'>1 andalso not definitional
              then [const_copy] else []) @
