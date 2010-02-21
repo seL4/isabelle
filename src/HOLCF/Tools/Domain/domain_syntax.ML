@@ -114,7 +114,7 @@ fun calc_syntax thy
 
 (* ----- case translation --------------------------------------------------- *)
 
-    fun syntax b = Syntax.constN ^ Sign.full_bname thy b;
+    fun syntax b = Syntax.mark_const (Sign.full_bname thy b);
 
     local open Syntax in
     local

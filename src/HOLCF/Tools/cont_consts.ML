@@ -46,7 +46,7 @@ fun trans_rules name2 name1 n mx =
 *)
 fun transform thy (c, T, mx) =
   let
-    fun syntax b = Syntax.constN ^ Sign.full_bname thy b;
+    fun syntax b = Syntax.mark_const (Sign.full_bname thy b);
     val c1 = Binding.name_of c;
     val c2 = c1 ^ "_cont_syntax";
     val n = Syntax.mixfix_args mx;

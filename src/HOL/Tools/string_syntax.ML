@@ -16,11 +16,11 @@ struct
 (* nibble *)
 
 val mk_nib =
-  Syntax.Constant o prefix Syntax.constN o
+  Syntax.Constant o Syntax.mark_const o
     fst o Term.dest_Const o HOLogic.mk_nibble;
 
 fun dest_nib (Syntax.Constant s) =
-  (case try (unprefix Syntax.constN) s of
+  (case try Syntax.unmark_const s of
     NONE => raise Match
   | SOME c => (HOLogic.dest_nibble (Const (c, HOLogic.nibbleT)) handle TERM _ => raise Match));
 

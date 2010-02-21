@@ -127,7 +127,7 @@ val intern = Name_Space.intern o space_of;
 val extern = Name_Space.extern o space_of;
 
 fun intern_syntax consts name =
-  (case try (unprefix Syntax.constN) name of
+  (case try Syntax.unmark_const name of
     SOME c => c
   | NONE => intern consts name);
 

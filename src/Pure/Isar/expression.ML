@@ -604,7 +604,7 @@ fun atomize_spec thy ts =
 
 (* achieve plain syntax for locale predicates (without "PROP") *)
 
-fun aprop_tr' n c = (Syntax.constN ^ c, fn ctxt => fn args =>
+fun aprop_tr' n c = (Syntax.mark_const c, fn ctxt => fn args =>
   if length args = n then
     Syntax.const "_aprop" $   (* FIXME avoid old-style early externing (!??) *)
       Term.list_comb (Syntax.free (Consts.extern (ProofContext.consts_of ctxt) c), args)

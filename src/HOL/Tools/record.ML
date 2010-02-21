@@ -799,7 +799,7 @@ fun record_fields_tr more ctxt t =
                   let
                     val (args, rest) = split_args (map fst (but_last fields)) fargs;
                     val more' = mk_ext rest;
-                  in list_comb (Syntax.const (Syntax.constN ^ ext ^ extN), args @ [more']) end
+                  in list_comb (Syntax.const (Syntax.mark_const (ext ^ extN)), args @ [more']) end
               | NONE => err ("no fields defined for " ^ ext))
           | NONE => err (name ^ " is no proper field"))
       | mk_ext [] = more;
@@ -977,7 +977,7 @@ fun record_tr' ctxt t =
     fun strip_fields t =
       (case strip_comb t of
         (Const (ext, _), args as (_ :: _)) =>
-          (case try (unprefix Syntax.constN o unsuffix extN) ext of
+          (case try (Syntax.unmark_const o unsuffix extN) ext of
             SOME ext' =>
               (case get_extfields thy ext' of
                 SOME fields =>
@@ -1004,7 +1004,7 @@ in
 
 fun record_ext_tr' name =
   let
-    val ext_name = Syntax.constN ^ name ^ extN;
+    val ext_name = Syntax.mark_const (name ^ extN);
     fun tr' ctxt ts = record_tr' ctxt (list_comb (Syntax.const ext_name, ts));
   in (ext_name, tr') end;
 
@@ -1024,7 +1024,7 @@ fun field_updates_tr' ctxt (tm as Const (c, _) $ k $ u) =
               if null (loose_bnos t) then t else raise Match
           | _ => raise Match);
       in
-        (case try (unprefix Syntax.constN) c |> Option.map extern of
+        (case Option.map extern (try Syntax.unmark_const c) of
           SOME update_name =>
             (case try (unsuffix updateN) update_name of
               SOME name =>
@@ -1046,7 +1046,7 @@ in
 
 fun field_update_tr' name =
   let
-    val update_name = Syntax.constN ^ name ^ updateN;
+    val update_name = Syntax.mark_const (name ^ updateN);
     fun tr' ctxt [t, u] = record_update_tr' ctxt (Syntax.const update_name $ t $ u)
       | tr' _ _ = raise Match;
   in (update_name, tr') end;

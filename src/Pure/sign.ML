@@ -297,7 +297,7 @@ in
 val intern_typ = typ_mapping intern_class intern_type;
 val extern_typ = typ_mapping extern_class extern_type;
 val intern_term = term_mapping intern_class intern_type intern_const;
-val extern_term = term_mapping extern_class extern_type (fn _ => fn c => Syntax.constN ^ c);
+val extern_term = term_mapping extern_class extern_type (K Syntax.mark_const);
 val intern_tycons = typ_mapping (K I) intern_type;
 
 end;
@@ -486,7 +486,7 @@ fun notation add mode args thy =
     val change_gram = if add then Syntax.update_const_gram else Syntax.remove_const_gram;
     fun const_syntax (Const (c, _), mx) =
           (case try (Consts.type_scheme (consts_of thy)) c of
-            SOME T => SOME (Syntax.constN ^ c, T, mx)
+            SOME T => SOME (Syntax.mark_const c, T, mx)
           | NONE => NONE)
       | const_syntax _ = NONE;
   in gen_syntax change_gram (K I) mode (map_filter const_syntax args) thy end;
@@ -503,11 +503,10 @@ fun gen_add_consts parse_typ raw_args thy =
     fun prep (b, raw_T, mx) =
       let
         val c = full_name thy b;
-        val c_syn = Syntax.constN ^ c;
         val T = (prepT raw_T handle TYPE (msg, _, _) => error msg) handle ERROR msg =>
           cat_error msg ("in declaration of constant " ^ quote (Binding.str_of b));
         val T' = Logic.varifyT T;
-      in ((b, T'), (c_syn, T', mx), Const (c, T)) end;
+      in ((b, T'), (Syntax.mark_const c, T', mx), Const (c, T)) end;
     val args = map prep raw_args;
   in
     thy

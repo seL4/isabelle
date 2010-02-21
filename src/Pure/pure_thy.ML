@@ -225,7 +225,7 @@ end;
 
 val typ = Simple_Syntax.read_typ;
 val prop = Simple_Syntax.read_prop;
-val const = prefix Syntax.constN;
+val const = Syntax.mark_const;
 
 val typeT = Syntax.typeT;
 val spropT = Syntax.spropT;

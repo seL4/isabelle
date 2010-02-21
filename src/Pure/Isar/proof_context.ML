@@ -988,7 +988,7 @@ local
 fun const_ast_tr intern ctxt [Syntax.Variable c] =
       let
         val Const (c', _) = read_const_proper ctxt c;
-        val d = if intern then Syntax.constN ^ c' else c;
+        val d = if intern then Syntax.mark_const c' else c;
       in Syntax.Constant d end
   | const_ast_tr _ _ asts = raise Syntax.AST ("const_ast_tr", asts);
 
@@ -1017,7 +1017,7 @@ local
 fun const_syntax _ (Free (x, T), mx) = SOME (true, (x, T, mx))
   | const_syntax ctxt (Const (c, _), mx) =
       (case try (Consts.type_scheme (consts_of ctxt)) c of
-        SOME T => SOME (false, (Syntax.constN ^ c, T, mx))
+        SOME T => SOME (false, (Syntax.mark_const c, T, mx))
       | NONE => NONE)
   | const_syntax _ _ = NONE;
 

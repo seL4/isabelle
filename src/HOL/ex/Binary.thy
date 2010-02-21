@@ -191,7 +191,7 @@ syntax
 parse_translation {*
 let
   val syntax_consts =
-    map_aterms (fn Const (c, T) => Const (Syntax.constN ^ c, T) | a => a);
+    map_aterms (fn Const (c, T) => Const (Syntax.mark_const c, T) | a => a);
 
   fun binary_tr [Const (num, _)] =
         let
