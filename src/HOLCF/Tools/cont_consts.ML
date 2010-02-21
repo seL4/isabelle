@@ -7,37 +7,28 @@ syntax.
 
 signature CONT_CONSTS =
 sig
-  val add_consts: (binding * string * mixfix) list -> theory -> theory
-  val add_consts_i: (binding * typ * mixfix) list -> theory -> theory
+  val add_consts: (binding * typ * mixfix) list -> theory -> theory
+  val add_consts_cmd: (binding * string * mixfix) list -> theory -> theory
 end;
 
-structure ContConsts: CONT_CONSTS =
+structure Cont_Consts: CONT_CONSTS =
 struct
 
 
 (* misc utils *)
 
-fun first  (x,_,_) = x;
-fun second (_,x,_) = x;
-fun third  (_,_,x) = x;
-fun upd_first  f (x,y,z) = (f x,   y,   z);
-fun upd_second f (x,y,z) = (  x, f y,   z);
-fun upd_third  f (x,y,z) = (  x,   y, f z);
-
-fun change_arrow 0 T               = T
-|   change_arrow n (Type(_,[S,T])) = Type ("fun",[S,change_arrow (n-1) T])
-|   change_arrow _ _               = sys_error "cont_consts: change_arrow";
+fun change_arrow 0 T = T
+  | change_arrow n (Type (_, [S, T])) = Type ("fun", [S, change_arrow (n - 1) T])
+  | change_arrow _ T = raise TYPE ("cont_consts: change_arrow", [T], []);
 
 fun trans_rules name2 name1 n mx =
   let
-    fun argnames _ 0 = []
-    |   argnames c n = chr c::argnames (c+1) (n-1);
-    val vnames = argnames (ord "A") n;
+    val vnames = Name.invents Name.context "a" n;
     val extra_parse_rule = Syntax.ParseRule (Constant name2, Constant name1);
   in
     [Syntax.ParsePrintRule
       (Syntax.mk_appl (Constant name2) (map Variable vnames),
-        fold (fn arg => fn t => Syntax.mk_appl (Constant "Rep_CFun") [t, Variable arg])
+        fold (fn a => fn t => Syntax.mk_appl (Constant @{const_syntax Rep_CFun}) [t, Variable a])
           vnames (Constant name1))] @
     (case mx of
       Infix _ => [extra_parse_rule]
@@ -53,42 +44,51 @@ fun trans_rules name2 name1 n mx =
    declaration with the original name, type ...=>..., and the original mixfix
    is generated and connected to the other declaration via some translation.
 *)
-fun transform (c, T, mx) =
-    let
-        val c1 = Binding.name_of c;
-        val c2 = "_cont_" ^ c1;
-        val n  = Syntax.mixfix_args mx
-    in     ((c, T, NoSyn),
-            (Binding.name c2, change_arrow n T, mx),
-            trans_rules c2 c1 n mx) end;
+fun transform thy (c, T, mx) =
+  let
+    fun syntax b = Syntax.constN ^ Sign.full_bname thy b;
+    val c1 = Binding.name_of c;
+    val c2 = c1 ^ "_cont_syntax";
+    val n = Syntax.mixfix_args mx;
+  in
+    ((c, T, NoSyn),
+      (Binding.name c2, change_arrow n T, mx),
+      trans_rules (syntax c2) (syntax c1) n mx)
+  end;
 
-fun cfun_arity (Type(n,[_,T])) = if n = @{type_name "->"} then 1+cfun_arity T else 0
-|   cfun_arity _               = 0;
+fun cfun_arity (Type (n, [_, T])) = if n = @{type_name "->"} then 1 + cfun_arity T else 0
+  | cfun_arity _ = 0;
 
-fun is_contconst (_,_,NoSyn   ) = false
-|   is_contconst (_,_,Binder _) = false
-|   is_contconst (c,T,mx      ) =
-      cfun_arity T >= Syntax.mixfix_args mx
-        handle ERROR msg => cat_error msg ("in mixfix annotation for " ^ quote (Binding.str_of c));
+fun is_contconst (_, _, NoSyn) = false
+  | is_contconst (_, _, Binder _) = false    (* FIXME ? *)
+  | is_contconst (c, T, mx) =
+      let
+        val n = Syntax.mixfix_args mx handle ERROR msg =>
+          cat_error msg ("in mixfix annotation for " ^ quote (Binding.str_of c));
+      in cfun_arity T >= n end;
 
 
-(* add_consts(_i) *)
+(* add_consts *)
+
+local
 
 fun gen_add_consts prep_typ raw_decls thy =
   let
-    val decls = map (upd_second (prep_typ thy)) raw_decls;
+    val decls = map (fn (c, T, mx) => (c, prep_typ thy T, mx)) raw_decls;
     val (contconst_decls, normal_decls) = List.partition is_contconst decls;
-    val transformed_decls = map transform contconst_decls;
+    val transformed_decls = map (transform thy) contconst_decls;
   in
     thy
-    |> Sign.add_consts_i
-      (normal_decls @ map first transformed_decls @ map second transformed_decls)
-    (* FIXME authentic syntax *)
-    |> Sign.add_trrules_i (maps third transformed_decls)
+    |> Sign.add_consts_i (normal_decls @ map #1 transformed_decls @ map #2 transformed_decls)
+    |> Sign.add_trrules_i (maps #3 transformed_decls)
   end;
 
-val add_consts = gen_add_consts Syntax.read_typ_global;
-val add_consts_i = gen_add_consts Sign.certify_typ;
+in
+
+val add_consts = gen_add_consts Sign.certify_typ;
+val add_consts_cmd = gen_add_consts Syntax.read_typ_global;
+
+end;
 
 
 (* outer syntax *)
@@ -97,7 +97,7 @@ local structure P = OuterParse and K = OuterKeyword in
 
 val _ =
   OuterSyntax.command "consts" "declare constants (HOLCF)" K.thy_decl
-    (Scan.repeat1 P.const_binding >> (Toplevel.theory o add_consts));
+    (Scan.repeat1 P.const_binding >> (Toplevel.theory o add_consts_cmd));
 
 end;
 
