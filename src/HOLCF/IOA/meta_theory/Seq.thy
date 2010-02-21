@@ -10,28 +10,25 @@ begin
 
 domain 'a seq = nil | cons (HD :: 'a) (lazy TL :: "'a seq")  (infixr "##" 65)
 
-consts
+(*
    sfilter       :: "('a -> tr) -> 'a seq -> 'a seq"
    smap          :: "('a -> 'b) -> 'a seq -> 'b seq"
    sforall       :: "('a -> tr) => 'a seq => bool"
    sforall2      :: "('a -> tr) -> 'a seq -> tr"
    slast         :: "'a seq     -> 'a"
    sconc         :: "'a seq     -> 'a seq -> 'a seq"
-   sdropwhile    ::"('a -> tr)  -> 'a seq -> 'a seq"
-   stakewhile    ::"('a -> tr)  -> 'a seq -> 'a seq"
-   szip          ::"'a seq      -> 'b seq -> ('a*'b) seq"
+   sdropwhile    :: "('a -> tr)  -> 'a seq -> 'a seq"
+   stakewhile    :: "('a -> tr)  -> 'a seq -> 'a seq"
+   szip          :: "'a seq      -> 'b seq -> ('a*'b) seq"
    sflat        :: "('a seq) seq  -> 'a seq"
 
    sfinite       :: "'a seq set"
-   Partial       ::"'a seq => bool"
-   Infinite      ::"'a seq => bool"
+   Partial       :: "'a seq => bool"
+   Infinite      :: "'a seq => bool"
 
    nproj        :: "nat => 'a seq => 'a"
    sproj        :: "nat => 'a seq => 'a seq"
-
-abbreviation
-  sconc_syn :: "'a seq => 'a seq => 'a seq"  (infixr "@@" 65) where
-  "xs @@ ys == sconc $ xs $ ys"
+*)
 
 inductive
   Finite :: "'a seq => bool"
@@ -39,321 +36,152 @@ inductive
     sfinite_0:  "Finite nil"
   | sfinite_n:  "[| Finite tr; a~=UU |] ==> Finite (a##tr)"
 
-defs
+declare Finite.intros [simp]
 
-(* f not possible at lhs, as "pattern matching" only for % x arguments,
-   f cannot be written at rhs in front, as fix_eq3 does not apply later *)
-smap_def:
-  "smap == (fix$(LAM h f tr. case tr of
-      nil   => nil
-    | x##xs => f$x ## h$f$xs))"
-
-sfilter_def:
-  "sfilter == (fix$(LAM h P t. case t of
-           nil => nil
-         | x##xs => If P$x
-                    then x##(h$P$xs)
-                    else     h$P$xs
-                    fi))"
-sforall_def:
-  "sforall P t == (sforall2$P$t ~=FF)"
-
-
-sforall2_def:
-  "sforall2 == (fix$(LAM h P t. case t of
-           nil => TT
-         | x##xs => P$x andalso h$P$xs))"
-
-sconc_def:
-  "sconc == (fix$(LAM h t1 t2. case t1 of
-               nil       => t2
-             | x##xs => x##(h$xs$t2)))"
-
-slast_def:
-  "slast == (fix$(LAM h t. case t of
-           nil => UU
-         | x##xs => (If is_nil$xs
-                          then x
-                         else h$xs fi)))"
-
-stakewhile_def:
-  "stakewhile == (fix$(LAM h P t. case t of
-           nil => nil
-         | x##xs => If P$x
-                    then x##(h$P$xs)
-                    else nil
-                    fi))"
-sdropwhile_def:
-  "sdropwhile == (fix$(LAM h P t. case t of
-           nil => nil
-         | x##xs => If P$x
-                    then h$P$xs
-                    else t
-                    fi))"
-sflat_def:
-  "sflat == (fix$(LAM h t. case t of
-           nil => nil
-         | x##xs => x @@ (h$xs)))"
-
-szip_def:
-  "szip == (fix$(LAM h t1 t2. case t1 of
-               nil   => nil
-             | x##xs => (case t2 of
-                          nil => UU
-                        | y##ys => <x,y>##(h$xs$ys))))"
-
-Partial_def:
+definition
+  Partial :: "'a seq => bool"
+where
   "Partial x  == (seq_finite x) & ~(Finite x)"
 
-Infinite_def:
+definition
+  Infinite :: "'a seq => bool"
+where
   "Infinite x == ~(seq_finite x)"
-
-
-declare Finite.intros [simp]
 
 
 subsection {* recursive equations of operators *}
 
 subsubsection {* smap *}
 
-lemma smap_unfold:
-  "smap = (LAM f tr. case tr of nil  => nil | x##xs => f$x ## smap$f$xs)"
-by (subst fix_eq2 [OF smap_def], simp)
-
-lemma smap_nil [simp]: "smap$f$nil=nil"
-by (subst smap_unfold, simp)
+fixrec
+  smap :: "('a -> 'b) -> 'a seq -> 'b seq"
+where
+  smap_nil: "smap$f$nil=nil"
+| smap_cons: "[|x~=UU|] ==> smap$f$(x##xs)= (f$x)##smap$f$xs"
 
 lemma smap_UU [simp]: "smap$f$UU=UU"
-by (subst smap_unfold, simp)
-
-lemma smap_cons [simp]: "[|x~=UU|] ==> smap$f$(x##xs)= (f$x)##smap$f$xs"
-apply (rule trans)
-apply (subst smap_unfold)
-apply simp
-apply (rule refl)
-done
+by fixrec_simp
 
 subsubsection {* sfilter *}
 
-lemma sfilter_unfold:
-  "sfilter = (LAM P tr. case tr of
-           nil   => nil
-         | x##xs => If P$x then x##(sfilter$P$xs) else sfilter$P$xs fi)"
-by (subst fix_eq2 [OF sfilter_def], simp)
-
-lemma sfilter_nil [simp]: "sfilter$P$nil=nil"
-by (subst sfilter_unfold, simp)
+fixrec
+   sfilter :: "('a -> tr) -> 'a seq -> 'a seq"
+where
+  sfilter_nil: "sfilter$P$nil=nil"
+| sfilter_cons:
+    "x~=UU ==> sfilter$P$(x##xs)=
+              (If P$x then x##(sfilter$P$xs) else sfilter$P$xs fi)"
 
 lemma sfilter_UU [simp]: "sfilter$P$UU=UU"
-by (subst sfilter_unfold, simp)
-
-lemma sfilter_cons [simp]:
-"x~=UU ==> sfilter$P$(x##xs)=
-              (If P$x then x##(sfilter$P$xs) else sfilter$P$xs fi)"
-apply (rule trans)
-apply (subst sfilter_unfold)
-apply simp
-apply (rule refl)
-done
+by fixrec_simp
 
 subsubsection {* sforall2 *}
 
-lemma sforall2_unfold:
-   "sforall2 = (LAM P tr. case tr of
-                           nil   => TT
-                         | x##xs => (P$x andalso sforall2$P$xs))"
-by (subst fix_eq2 [OF sforall2_def], simp)
-
-lemma sforall2_nil [simp]: "sforall2$P$nil=TT"
-by (subst sforall2_unfold, simp)
+fixrec
+  sforall2 :: "('a -> tr) -> 'a seq -> tr"
+where
+  sforall2_nil: "sforall2$P$nil=TT"
+| sforall2_cons:
+    "x~=UU ==> sforall2$P$(x##xs)= ((P$x) andalso sforall2$P$xs)"
 
 lemma sforall2_UU [simp]: "sforall2$P$UU=UU"
-by (subst sforall2_unfold, simp)
+by fixrec_simp
 
-lemma sforall2_cons [simp]:
-"x~=UU ==> sforall2$P$(x##xs)= ((P$x) andalso sforall2$P$xs)"
-apply (rule trans)
-apply (subst sforall2_unfold)
-apply simp
-apply (rule refl)
-done
-
+definition
+  sforall_def: "sforall P t == (sforall2$P$t ~=FF)"
 
 subsubsection {* stakewhile *}
 
-lemma stakewhile_unfold:
-  "stakewhile = (LAM P tr. case tr of
-     nil   => nil
-   | x##xs => (If P$x then x##(stakewhile$P$xs) else nil fi))"
-by (subst fix_eq2 [OF stakewhile_def], simp)
-
-lemma stakewhile_nil [simp]: "stakewhile$P$nil=nil"
-apply (subst stakewhile_unfold)
-apply simp
-done
+fixrec
+  stakewhile :: "('a -> tr)  -> 'a seq -> 'a seq"
+where
+  stakewhile_nil: "stakewhile$P$nil=nil"
+| stakewhile_cons:
+    "x~=UU ==> stakewhile$P$(x##xs) =
+              (If P$x then x##(stakewhile$P$xs) else nil fi)"
 
 lemma stakewhile_UU [simp]: "stakewhile$P$UU=UU"
-apply (subst stakewhile_unfold)
-apply simp
-done
-
-lemma stakewhile_cons [simp]:
-"x~=UU ==> stakewhile$P$(x##xs) =
-              (If P$x then x##(stakewhile$P$xs) else nil fi)"
-apply (rule trans)
-apply (subst stakewhile_unfold)
-apply simp
-apply (rule refl)
-done
+by fixrec_simp
 
 subsubsection {* sdropwhile *}
 
-lemma sdropwhile_unfold:
-   "sdropwhile = (LAM P tr. case tr of
-                           nil   => nil
-                         | x##xs => (If P$x then sdropwhile$P$xs else tr fi))"
-by (subst fix_eq2 [OF sdropwhile_def], simp)
-
-lemma sdropwhile_nil [simp]: "sdropwhile$P$nil=nil"
-apply (subst sdropwhile_unfold)
-apply simp
-done
+fixrec
+  sdropwhile :: "('a -> tr) -> 'a seq -> 'a seq"
+where
+  sdropwhile_nil: "sdropwhile$P$nil=nil"
+| sdropwhile_cons:
+    "x~=UU ==> sdropwhile$P$(x##xs) =
+              (If P$x then sdropwhile$P$xs else x##xs fi)"
 
 lemma sdropwhile_UU [simp]: "sdropwhile$P$UU=UU"
-apply (subst sdropwhile_unfold)
-apply simp
-done
-
-lemma sdropwhile_cons [simp]:
-"x~=UU ==> sdropwhile$P$(x##xs) =
-              (If P$x then sdropwhile$P$xs else x##xs fi)"
-apply (rule trans)
-apply (subst sdropwhile_unfold)
-apply simp
-apply (rule refl)
-done
-
+by fixrec_simp
 
 subsubsection {* slast *}
 
-lemma slast_unfold:
-   "slast = (LAM tr. case tr of
-                           nil   => UU
-                         | x##xs => (If is_nil$xs then x else slast$xs fi))"
-by (subst fix_eq2 [OF slast_def], simp)
-
-lemma slast_nil [simp]: "slast$nil=UU"
-apply (subst slast_unfold)
-apply simp
-done
+fixrec
+  slast :: "'a seq -> 'a"
+where
+  slast_nil: "slast$nil=UU"
+| slast_cons:
+    "x~=UU ==> slast$(x##xs)= (If is_nil$xs then x else slast$xs fi)"
 
 lemma slast_UU [simp]: "slast$UU=UU"
-apply (subst slast_unfold)
-apply simp
-done
-
-lemma slast_cons [simp]:
-"x~=UU ==> slast$(x##xs)= (If is_nil$xs then x else slast$xs fi)"
-apply (rule trans)
-apply (subst slast_unfold)
-apply simp
-apply (rule refl)
-done
-
+by fixrec_simp
 
 subsubsection {* sconc *}
 
-lemma sconc_unfold:
-   "sconc = (LAM t1 t2. case t1 of
-                           nil   => t2
-                         | x##xs => x ## (xs @@ t2))"
-by (subst fix_eq2 [OF sconc_def], simp)
+fixrec
+  sconc :: "'a seq -> 'a seq -> 'a seq"
+where
+  sconc_nil: "sconc$nil$y = y"
+| sconc_cons':
+    "x~=UU ==> sconc$(x##xs)$y = x##(sconc$xs$y)"
 
-lemma sconc_nil [simp]: "nil @@ y = y"
-apply (subst sconc_unfold)
-apply simp
-done
+abbreviation
+  sconc_syn :: "'a seq => 'a seq => 'a seq"  (infixr "@@" 65) where
+  "xs @@ ys == sconc $ xs $ ys"
 
 lemma sconc_UU [simp]: "UU @@ y=UU"
-apply (subst sconc_unfold)
-apply simp
-done
+by fixrec_simp
 
 lemma sconc_cons [simp]: "(x##xs) @@ y=x##(xs @@ y)"
-apply (rule trans)
-apply (subst sconc_unfold)
-apply simp
-apply (case_tac "x=UU")
+apply (cases "x=UU")
 apply simp_all
 done
 
+declare sconc_cons' [simp del]
 
 subsubsection {* sflat *}
 
-lemma sflat_unfold:
-   "sflat = (LAM tr. case tr of
-                           nil   => nil
-                         | x##xs => x @@ sflat$xs)"
-by (subst fix_eq2 [OF sflat_def], simp)
-
-lemma sflat_nil [simp]: "sflat$nil=nil"
-apply (subst sflat_unfold)
-apply simp
-done
+fixrec
+  sflat :: "('a seq) seq -> 'a seq"
+where
+  sflat_nil: "sflat$nil=nil"
+| sflat_cons': "x~=UU ==> sflat$(x##xs)= x@@(sflat$xs)"
 
 lemma sflat_UU [simp]: "sflat$UU=UU"
-apply (subst sflat_unfold)
-apply simp
-done
+by fixrec_simp
 
 lemma sflat_cons [simp]: "sflat$(x##xs)= x@@(sflat$xs)"
-apply (rule trans)
-apply (subst sflat_unfold)
-apply simp
-apply (case_tac "x=UU")
-apply simp_all
-done
+by (cases "x=UU", simp_all)
 
+declare sflat_cons' [simp del]
 
 subsubsection {* szip *}
 
-lemma szip_unfold:
-   "szip = (LAM t1 t2. case t1 of
-                nil   => nil
-              | x##xs => (case t2 of
-                           nil => UU
-                         | y##ys => <x,y>##(szip$xs$ys)))"
-by (subst fix_eq2 [OF szip_def], simp)
-
-lemma szip_nil [simp]: "szip$nil$y=nil"
-apply (subst szip_unfold)
-apply simp
-done
+fixrec
+  szip :: "'a seq -> 'b seq -> ('a*'b) seq"
+where
+  szip_nil: "szip$nil$y=nil"
+| szip_cons_nil: "x~=UU ==> szip$(x##xs)$nil=UU"
+| szip_cons:
+    "[| x~=UU; y~=UU|] ==> szip$(x##xs)$(y##ys) = <x,y>##szip$xs$ys"
 
 lemma szip_UU1 [simp]: "szip$UU$y=UU"
-apply (subst szip_unfold)
-apply simp
-done
+by fixrec_simp
 
 lemma szip_UU2 [simp]: "x~=nil ==> szip$x$UU=UU"
-apply (subst szip_unfold)
-apply simp
-apply (rule_tac x="x" in seq.casedist)
-apply simp_all
-done
-
-lemma szip_cons_nil [simp]: "x~=UU ==> szip$(x##xs)$nil=UU"
-apply (rule trans)
-apply (subst szip_unfold)
-apply simp_all
-done
-
-lemma szip_cons [simp]:
-"[| x~=UU; y~=UU|] ==> szip$(x##xs)$(y##ys) = <x,y>##szip$xs$ys"
-apply (rule trans)
-apply (subst szip_unfold)
-apply simp_all
-done
+by (cases x, simp_all, fixrec_simp)
 
 
 subsection "scons, nil"
