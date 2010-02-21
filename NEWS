@@ -4,6 +4,36 @@ Isabelle NEWS -- history user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* Authentic syntax for *all* term constants: provides simple and
+robust correspondence between formal entities and concrete syntax.
+Substantial INCOMPATIBILITY concerning low-level syntax translations
+(translation rules and translation functions in ML).  Some hints on
+upgrading:
+
+  - Many existing uses of 'syntax' and 'translations' can be replaced
+    by more modern 'notation' and 'abbreviation', which are
+    independent of this issue.
+
+  - 'translations' require markup within the AST; the term syntax
+    provides the following special forms:
+
+      CONST c   -- produces syntax version of constant c from context
+      XCONST c  -- literally c as AST constant (checked against the context)
+
+  - 'parse_translation' etc. in ML may use the following
+    antiquotations:
+
+      @{const_syntax c}   -- ML version of "CONST c" above
+      @{syntax_const c}   -- literally c (checked wrt. 'syntax' declarations)
+
+Note that old non-authentic syntax was based on unqualified base
+names, so all of the above would coincide.  Recall that 'print_syntax'
+and ML_command "set Syntax.trace_ast" help to diagnose syntax
+problems.
+
+
 *** Pure ***
 
 * Code generator: details of internal data cache have no impact on
