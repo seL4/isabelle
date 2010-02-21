@@ -358,11 +358,11 @@ syntax (HTML output)
 
 parse_translation (advanced) {*
 let
-  val NilC = Syntax.const @{const_name Nil};
-  val ConsC = Syntax.const @{const_name Cons};
-  val mapC = Syntax.const @{const_name map};
-  val concatC = Syntax.const @{const_name concat};
-  val IfC = Syntax.const @{const_name If};
+  val NilC = Syntax.const @{const_syntax Nil};
+  val ConsC = Syntax.const @{const_syntax Cons};
+  val mapC = Syntax.const @{const_syntax map};
+  val concatC = Syntax.const @{const_syntax concat};
+  val IfC = Syntax.const @{const_syntax If};
 
   fun singl x = ConsC $ x $ NilC;
 
@@ -371,12 +371,14 @@ let
       val x = Free (Name.variant (fold Term.add_free_names [p, e] []) "x", dummyT);
       val e = if opti then singl e else e;
       val case1 = Syntax.const @{syntax_const "_case1"} $ p $ e;
-      val case2 = Syntax.const @{syntax_const "_case1"} $ Syntax.const Term.dummy_patternN $ NilC;
+      val case2 =
+        Syntax.const @{syntax_const "_case1"} $
+          Syntax.const @{const_syntax dummy_pattern} $ NilC;
       val cs = Syntax.const @{syntax_const "_case2"} $ case1 $ case2;
       val ft = Datatype_Case.case_tr false Datatype.info_of_constr ctxt [x, cs];
     in lambda x ft end;
 
-  fun abs_tr ctxt (p as Free(s,T)) e opti =
+  fun abs_tr ctxt (p as Free (s, T)) e opti =
         let
           val thy = ProofContext.theory_of ctxt;
           val s' = Sign.intern_const thy s;

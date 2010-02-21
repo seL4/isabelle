@@ -223,7 +223,7 @@ fun strip_case ctxt = Datatype_Case.strip_case
 fun add_case_tr' case_names thy =
   Sign.add_advanced_trfuns ([], [],
     map (fn case_name =>
-      let val case_name' = Sign.const_syntax_name thy case_name
+      let val case_name' = Syntax.constN ^ case_name
       in (case_name', Datatype_Case.case_tr' info_of_case case_name')
       end) case_names, []) thy;
 
