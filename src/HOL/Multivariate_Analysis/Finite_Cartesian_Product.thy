@@ -14,9 +14,9 @@ typedef (open Cart)
   ('a, 'b) cart = "UNIV :: (('b::finite) \<Rightarrow> 'a) set"
   morphisms Cart_nth Cart_lambda ..
 
-notation Cart_nth (infixl "$" 90)
-
-notation (xsymbols) Cart_lambda (binder "\<chi>" 10)
+notation
+  Cart_nth (infixl "$" 90) and
+  Cart_lambda (binder "\<chi>" 10)
 
 (*
   Translate "'b ^ 'n" into "'b ^ ('n :: finite)". When 'n has already more than
