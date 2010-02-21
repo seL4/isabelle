@@ -114,7 +114,7 @@ val _ = inline "type_syntax" (type_ true);
 
 fun const syn = Args.context -- Scan.lift Args.name_source >> (fn (ctxt, c) =>
   #1 (Term.dest_Const (ProofContext.read_const_proper ctxt c))
-  |> syn ? ProofContext.const_syntax_name ctxt
+  |> syn ? prefix Syntax.constN
   |> ML_Syntax.print_string);
 
 val _ = inline "const_name" (const false);

@@ -21,15 +21,13 @@ sig
   val space_of: T -> Name_Space.T
   val is_concealed: T -> string -> bool
   val intern: T -> xstring -> string
+  val intern_syntax: T -> xstring -> string
   val extern: T -> string -> xstring
-  val extern_early: T -> string -> xstring
-  val syntax: T -> string * mixfix -> string * typ * mixfix
-  val syntax_name: T -> string -> string
   val read_const: T -> string -> term
   val certify: Pretty.pp -> Type.tsig -> bool -> T -> term -> term  (*exception TYPE*)
   val typargs: T -> string * typ -> typ list
   val instance: T -> string * typ list -> typ
-  val declare: bool -> Name_Space.naming -> binding * typ -> T -> T
+  val declare: Name_Space.naming -> binding * typ -> T -> T
   val constrain: string * typ option -> T -> T
   val abbreviate: Pretty.pp -> Type.tsig -> Name_Space.naming -> string ->
     binding * term -> T -> (term * term) * T
@@ -46,7 +44,7 @@ struct
 
 (* datatype T *)
 
-type decl = {T: typ, typargs: int list list, authentic: bool};
+type decl = {T: typ, typargs: int list list};
 type abbrev = {rhs: term, normal_rhs: term, force_expand: bool};
 
 datatype T = Consts of
@@ -128,18 +126,10 @@ val is_concealed = Name_Space.is_concealed o space_of;
 val intern = Name_Space.intern o space_of;
 val extern = Name_Space.extern o space_of;
 
-fun extern_early consts c =
-  (case try (the_const consts) c of
-    SOME ({authentic = true, ...}, _) => Syntax.constN ^ c
-  | _ => extern consts c);
-
-fun syntax consts (c, mx) =
-  let
-    val ({T, authentic, ...}, _) = the_const consts c handle TYPE (msg, _, _) => error msg;
-    val c' = if authentic then Syntax.constN ^ c else Long_Name.base_name c;
-  in (c', T, mx) end;
-
-fun syntax_name consts c = #1 (syntax consts (c, NoSyn));
+fun intern_syntax consts name =
+  (case try (unprefix Syntax.constN) name of
+    SOME c => c
+  | NONE => intern consts name);
 
 
 (* read_const *)
@@ -231,10 +221,10 @@ fun hide fully c = map_consts (fn (decls, constraints, rev_abbrevs) =>
 
 (* declarations *)
 
-fun declare authentic naming (b, declT) =
+fun declare naming (b, declT) =
   map_consts (fn (decls, constraints, rev_abbrevs) =>
     let
-      val decl = {T = declT, typargs = typargs_of declT, authentic = authentic};
+      val decl = {T = declT, typargs = typargs_of declT};
       val (_, decls') = decls |> Name_Space.define true naming (b, (decl, NONE));
     in (decls', constraints, rev_abbrevs) end);
 
@@ -285,7 +275,7 @@ fun abbreviate pp tsig naming mode (b, raw_rhs) consts =
   in
     consts |> map_consts (fn (decls, constraints, rev_abbrevs) =>
       let
-        val decl = {T = T, typargs = typargs_of T, authentic = true};
+        val decl = {T = T, typargs = typargs_of T};
         val abbr = {rhs = rhs, normal_rhs = normal_rhs, force_expand = force_expand};
         val (_, decls') = decls
           |> Name_Space.define true naming (b, (decl, SOME abbr));
