@@ -3,11 +3,11 @@ header {* Kurzweil-Henstock gauge integration in many dimensions. *}
 (*  Author:                     John Harrison
     Translation from HOL light: Robert Himmelmann, TU Muenchen *)
 
-theory Integration_MV
+theory Integration
   imports Derivative SMT
 begin
 
-declare [[smt_certificates="~~/src/HOL/Multivariate_Analysis/Integration_MV.cert"]]
+declare [[smt_certificates="~~/src/HOL/Multivariate_Analysis/Integration.cert"]]
 declare [[smt_record=true]]
 declare [[z3_proofs=true]]
 

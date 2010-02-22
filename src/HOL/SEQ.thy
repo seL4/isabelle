@@ -435,7 +435,7 @@ by (drule (1) LIMSEQ_add, simp)
 
 lemma LIMSEQ_diff_approach_zero2:
   fixes L :: "'a::real_normed_vector"
-  shows "f ----> L ==> (%x. f x - g x) ----> 0 ==> g ----> L";
+  shows "f ----> L ==> (%x. f x - g x) ----> 0 ==> g ----> L"
 by (drule (1) LIMSEQ_diff, simp)
 
 text{*A sequence tends to zero iff its abs does*}
@@ -1046,6 +1046,17 @@ lemma Cauchy_iff:
   fixes X :: "nat \<Rightarrow> 'a::real_normed_vector"
   shows "Cauchy X \<longleftrightarrow> (\<forall>e>0. \<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. norm (X m - X n) < e)"
 unfolding Cauchy_def dist_norm ..
+
+lemma Cauchy_iff2:
+     "Cauchy X =
+      (\<forall>j. (\<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. \<bar>X m - X n\<bar> < inverse(real (Suc j))))"
+apply (simp add: Cauchy_iff, auto)
+apply (drule reals_Archimedean, safe)
+apply (drule_tac x = n in spec, auto)
+apply (rule_tac x = M in exI, auto)
+apply (drule_tac x = m in spec, simp)
+apply (drule_tac x = na in spec, auto)
+done
 
 lemma CauchyI:
   fixes X :: "nat \<Rightarrow> 'a::real_normed_vector"
