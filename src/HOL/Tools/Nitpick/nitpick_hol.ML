@@ -1143,6 +1143,8 @@ fun partition_axioms_by_definitionality thy axioms def_names =
 fun is_built_in_theory thy = Theory.subthy (thy, @{theory Refute})
 
 (* term -> bool *)
+val is_trivial_definition =
+  the_default false o try (op aconv o Logic.dest_equals)
 val is_plain_definition =
   let
     (* term -> bool *)
@@ -1180,7 +1182,9 @@ fun all_axioms_of thy =
     val defs =
       (thy |> PureThy.all_thms_of
            |> filter (curry (op =) Thm.definitionK o Thm.get_kind o snd)
-           |> map (prop_of o snd) |> filter is_plain_definition) @
+           |> map (prop_of o snd)
+           |> filter_out is_trivial_definition
+           |> filter is_plain_definition) @
       user_defs @ built_in_defs
   in (defs, built_in_nondefs, user_nondefs) end
 
