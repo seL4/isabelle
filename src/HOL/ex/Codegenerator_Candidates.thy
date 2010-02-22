@@ -8,6 +8,8 @@ imports
   Complex_Main
   AssocList
   Binomial
+  "~~/src/HOL/Decision_Procs/Commutative_Ring_Complete"
+  Dlist
   Fset
   Enum
   List_Prefix
@@ -17,12 +19,11 @@ imports
   Permutation
   "~~/src/HOL/Number_Theory/Primes"
   Product_ord
+  "~~/src/HOL/ex/Records"
   SetsAndFunctions
   Tree
   While_Combinator
   Word
-  "~~/src/HOL/Decision_Procs/Commutative_Ring_Complete"
-  "~~/src/HOL/ex/Records"
 begin
 
 inductive sublist :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
