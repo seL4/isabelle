@@ -24,8 +24,6 @@ val trace_domain = Unsynchronized.ref false;
 fun message s = if !quiet_mode then () else writeln s;
 fun trace s = if !trace_domain then tracing s else ();
 
-local
-
 val adm_impl_admw = @{thm adm_impl_admw};
 val adm_all = @{thm adm_all};
 val adm_conj = @{thm adm_conj};
@@ -133,8 +131,6 @@ val chain_tac =
 val all2E = @{lemma "!x y . P x y ==> (P x y ==> R) ==> R" by simp}
 
 val dist_eqI = @{lemma "!!x::'a::po. ~ x << y ==> x ~= y" by (blast dest!: below_antisym_inverse)}
-
-in
 
 fun theorems (((dname, _), cons) : eq, eqs : eq list) thy =
 let
@@ -1089,5 +1085,4 @@ in thy |> Sign.add_path comp_dnam
            else snd o PureThy.add_thmss (map ind_rule (dnames ~~ inducts)))
        |> Sign.parent_path |> pair take_rews
 end; (* let *)
-end; (* local *)
 end; (* struct *)
