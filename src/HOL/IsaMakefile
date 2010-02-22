@@ -385,7 +385,7 @@ HOL-Library: HOL $(LOG)/HOL-Library.gz
 $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Abstract_Rat.thy Library/BigO.thy Library/ContNotDenum.thy	\
   Library/Efficient_Nat.thy Library/Sum_Of_Squares.thy			\
-  Library/Dlist.thy Library/Sum_Of_Squares/sos_wrapper.ML		
+  Library/Dlist.thy Library/Sum_Of_Squares/sos_wrapper.ML		\
   Library/Sum_Of_Squares/sum_of_squares.ML Library/Fset.thy		\
   Library/Glbs.thy Library/normarith.ML Library/Executable_Set.thy	\
   Library/Infinite_Set.thy Library/FuncSet.thy				\
