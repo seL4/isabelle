@@ -88,23 +88,23 @@ fun calc_axioms
         | inj y i j = mk_sinr (inj y (i-1) (j-1));
     in List.foldr /\# (dc_abs`(inj (parms args) m n)) args end;
           
-    val con_defs = mapn (fn n => fn (con,args) =>
+    val con_defs = mapn (fn n => fn (con, _, args) =>
                                     (extern_name con ^"_def", %%:con == con_def (length cons) n (con,args))) 0 cons;
           
     val dis_defs = let
-      fun ddef (con,_) = (dis_name con ^"_def",%%:(dis_name con) == 
+      fun ddef (con,_,_) = (dis_name con ^"_def",%%:(dis_name con) == 
                                               list_ccomb(%%:(dname^"_when"),map 
-                                                                              (fn (con',args) => (List.foldr /\#
+                                                                              (fn (con',_,args) => (List.foldr /\#
       (if con'=con then TT else FF) args)) cons))
     in map ddef cons end;
 
     val mat_defs =
       let
-        fun mdef (con,_) =
+        fun mdef (con, _, _) =
           let
             val k = Bound 0
             val x = Bound 1
-            fun one_con (con', args') =
+            fun one_con (con', _, args') =
                 if con'=con then k else List.foldr /\# mk_fail args'
             val w = list_ccomb(%%:(dname^"_when"), map one_con cons)
             val rhs = /\ "x" (/\ "k" (w ` x))
@@ -113,14 +113,14 @@ fun calc_axioms
 
     val pat_defs =
       let
-        fun pdef (con,args) =
+        fun pdef (con, _, args) =
           let
             val ps = mapn (fn n => fn _ => %:("pat" ^ string_of_int n)) 1 args;
             val xs = map (bound_arg args) args;
             val r = Bound (length args);
             val rhs = case args of [] => mk_return HOLogic.unit
                                  | _ => mk_ctuple_pat ps ` mk_ctuple xs;
-            fun one_con (con',args') = List.foldr /\# (if con'=con then rhs else mk_fail) args';
+            fun one_con (con', _, args') = List.foldr /\# (if con'=con then rhs else mk_fail) args';
           in (pat_name con ^"_def", list_comb (%%:(pat_name con), ps) == 
                                               list_ccomb(%%:(dname^"_when"), map one_con cons))
           end
@@ -129,9 +129,9 @@ fun calc_axioms
     val sel_defs = let
       fun sdef con n arg = Option.map (fn sel => (sel^"_def",%%:sel == 
                                                             list_ccomb(%%:(dname^"_when"),map 
-                                                                                            (fn (con',args) => if con'<>con then UU else
+                                                                                            (fn (con', _, args) => if con'<>con then UU else
                                                                                                                List.foldr /\# (Bound (length args - n)) args) cons))) (sel_of arg);
-    in map_filter I (maps (fn (con,args) => mapn (sdef con) 1 args) cons) end;
+    in map_filter I (maps (fn (con, _, args) => mapn (sdef con) 1 args) cons) end;
 
 
 (* ----- axiom and definitions concerning induction ------------------------- *)
@@ -175,7 +175,7 @@ fun add_defs_infer defs thy = add_defs_i (infer_props thy defs) thy;
 
 fun add_matchers (((dname,_),cons) : eq) thy =
     let
-      val con_names = map fst cons;
+      val con_names = map first cons;
       val mat_names = map mat_name con_names;
       fun qualify n = Sign.full_name thy (Binding.name n);
       val ms = map qualify con_names ~~ map qualify mat_names;
@@ -190,7 +190,7 @@ fun add_axioms definitional comp_dnam (eqs : eq list) thy' =
     val copy_def = ("copy_def" , %%:(comp_dname^"_copy") ==
                                  /\ "f"(mk_ctuple (map copy_app dnames)));
 
-    fun one_con (con,args) =
+    fun one_con (con, _, args) =
       let
         val nonrec_args = filter_out is_rec args;
         val    rec_args = filter is_rec args;

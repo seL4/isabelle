@@ -161,6 +161,7 @@ fun gen_add_domain
       | typid (TVar ((id,_),_)) = hd (tl (Symbol.explode id));
     fun one_con (con,args,mx) =
         (Binding.name_of con,  (* FIXME preverse binding (!?) *)
+         mx,
          ListPair.map (fn ((lazy,sel,tp),vn) =>
            mk_arg ((lazy, Datatype_Aux.dtyp_of_typ new_dts tp),
                    Option.map Binding.name_of sel,vn))
@@ -236,6 +237,7 @@ fun gen_add_new_domain
       | typid (TVar ((id,_),_)) = hd (tl (Symbol.explode id));
     fun one_con (con,args,mx) =
         (Binding.name_of con,   (* FIXME preverse binding (!?) *)
+         mx,
          ListPair.map (fn ((lazy,sel,tp),vn) =>
            mk_arg ((lazy, Datatype_Aux.dtyp_of_typ new_dts tp),
                    Option.map Binding.name_of sel,vn))

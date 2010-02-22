@@ -148,7 +148,7 @@ in
   val ax_abs_iso  = ga "abs_iso"  dname;
   val ax_rep_iso  = ga "rep_iso"  dname;
   val ax_when_def = ga "when_def" dname;
-  fun get_def mk_name (con,_) = ga (mk_name con^"_def") dname;
+  fun get_def mk_name (con, _, _) = ga (mk_name con^"_def") dname;
   val axs_con_def = map (get_def extern_name) cons;
   val axs_dis_def = map (get_def dis_name) cons;
   val axs_mat_def = map (get_def mat_name) cons;
@@ -157,7 +157,7 @@ in
     let
       fun def_of_sel sel = ga (sel^"_def") dname;
       fun def_of_arg arg = Option.map def_of_sel (sel_of arg);
-      fun defs_of_con (_, args) = map_filter def_of_arg args;
+      fun defs_of_con (_, _, args) = map_filter def_of_arg args;
     in
       maps defs_of_con cons
     end;
@@ -222,10 +222,10 @@ local
     in (n2, mk_sprodT (t1, t2)) end;
 
   fun cons2typ n [] = (n,oneT)
-    | cons2typ n [con] = args2typ n (snd con)
+    | cons2typ n [con] = args2typ n (third con)
     | cons2typ n (con::cons) =
     let
-      val (n1, t1) = args2typ n (snd con);
+      val (n1, t1) = args2typ n (third con);
       val (n2, t2) = cons2typ n1 cons
     in (n2, mk_ssumT (t1, t2)) end;
 in
@@ -234,7 +234,7 @@ end;
 
 local 
   val iso_swap = iso_locale RS iso_iso_swap;
-  fun one_con (con, args) =
+  fun one_con (con, _, args) =
     let
       val vns = map vname args;
       val eqn = %:x_name === con_app2 con %: vns;
@@ -278,7 +278,7 @@ in
   val _ = trace " Proving when_apps...";
   val when_apps =
     let
-      fun one_when n (con,args) =
+      fun one_when n (con, _, args) =
         let
           val axs = when_appl :: con_appls;
           val goal = bind_fun (lift_defined %: (nonlazy args, 
@@ -293,12 +293,12 @@ val when_rews = when_strict :: when_apps;
 (* ----- theorems concerning the constructors, discriminators and selectors - *)
 
 local
-  fun dis_strict (con, _) =
+  fun dis_strict (con, _, _) =
     let
       val goal = mk_trp (strict (%%:(dis_name con)));
     in pg axs_dis_def goal (K [rtac when_strict 1]) end;
 
-  fun dis_app c (con, args) =
+  fun dis_app c (con, _, args) =
     let
       val lhs = %%:(dis_name c) ` con_app con args;
       val rhs = if con = c then TT else FF;
@@ -307,9 +307,9 @@ local
     in pg axs_dis_def goal (K tacs) end;
 
   val _ = trace " Proving dis_apps...";
-  val dis_apps = maps (fn (c,_) => map (dis_app c) cons) cons;
+  val dis_apps = maps (fn (c,_,_) => map (dis_app c) cons) cons;
 
-  fun dis_defin (con, args) =
+  fun dis_defin (con, _, args) =
     let
       val goal = defined (%:x_name) ==> defined (%%:(dis_name con) `% x_name);
       val tacs =
@@ -328,7 +328,7 @@ in
 end;
 
 local
-  fun mat_strict (con, _) =
+  fun mat_strict (con, _, _) =
     let
       val goal = mk_trp (%%:(mat_name con) ` UU ` %:"rhs" === UU);
       val tacs = [asm_simp_tac (HOLCF_ss addsimps [when_strict]) 1];
@@ -337,7 +337,7 @@ local
   val _ = trace " Proving mat_stricts...";
   val mat_stricts = map mat_strict cons;
 
-  fun one_mat c (con, args) =
+  fun one_mat c (con, _, args) =
     let
       val lhs = %%:(mat_name c) ` con_app con args ` %:"rhs";
       val rhs =
@@ -350,7 +350,7 @@ local
 
   val _ = trace " Proving mat_apps...";
   val mat_apps =
-    maps (fn (c,_) => map (one_mat c) cons) cons;
+    maps (fn (c,_,_) => map (one_mat c) cons) cons;
 in
   val mat_rews = mat_stricts @ mat_apps;
 end;
@@ -358,10 +358,10 @@ end;
 local
   fun ps args = mapn (fn n => fn _ => %:("pat" ^ string_of_int n)) 1 args;
 
-  fun pat_lhs (con,args) = mk_branch (list_comb (%%:(pat_name con), ps args));
+  fun pat_lhs (con,_,args) = mk_branch (list_comb (%%:(pat_name con), ps args));
 
-  fun pat_rhs (con,[]) = mk_return ((%:"rhs") ` HOLogic.unit)
-    | pat_rhs (con,args) =
+  fun pat_rhs (con,_,[]) = mk_return ((%:"rhs") ` HOLogic.unit)
+    | pat_rhs (con,_,args) =
         (mk_branch (mk_ctuple_pat (ps args)))
           `(%:"rhs")`(mk_ctuple (map %# args));
 
@@ -372,11 +372,11 @@ local
       val tacs = [simp_tac (HOLCF_ss addsimps [when_strict]) 1];
     in pg axs goal (K tacs) end;
 
-  fun pat_app c (con, args) =
+  fun pat_app c (con, _, args) =
     let
       val axs = @{thm branch_def} :: axs_pat_def;
       val lhs = (pat_lhs c)`(%:"rhs")`(con_app con args);
-      val rhs = if con = fst c then pat_rhs c else mk_fail;
+      val rhs = if con = first c then pat_rhs c else mk_fail;
       val goal = lift_defined %: (nonlazy args, mk_trp (lhs === rhs));
       val tacs = [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
     in pg axs goal (K tacs) end;
@@ -390,7 +390,7 @@ in
 end;
 
 local
-  fun con_strict (con, args) = 
+  fun con_strict (con, _, args) = 
     let
       val rules = abs_strict :: @{thms con_strict_rules};
       fun one_strict vn =
@@ -401,7 +401,7 @@ local
         in pg con_appls goal (K tacs) end;
     in map one_strict (nonlazy args) end;
 
-  fun con_defin (con, args) =
+  fun con_defin (con, _, args) =
     let
       fun iff_disj (t, []) = HOLogic.mk_not t
         | iff_disj (t, ts) = t === foldr1 HOLogic.mk_disj ts;
@@ -423,7 +423,7 @@ end;
 local
   val rules =
     [compact_sinl, compact_sinr, compact_spair, compact_up, compact_ONE];
-  fun con_compact (con, args) =
+  fun con_compact (con, _, args) =
     let
       val concl = mk_trp (mk_compact (con_app con args));
       val goal = lift (fn x => mk_compact (%#x)) (args, concl);
@@ -441,7 +441,7 @@ local
     pg axs_sel_def (mk_trp (strict (%%:sel)))
       (K [simp_tac (HOLCF_ss addsimps when_rews) 1]);
 
-  fun sel_strict (_, args) =
+  fun sel_strict (_, _, args) =
     map_filter (Option.map one_sel o sel_of) args;
 in
   val _ = trace " Proving sel_stricts...";
@@ -472,14 +472,14 @@ local
       val tacs2 = [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
     in pg axs_sel_def goal (fn ctxt => (tacs1 ctxt @ tacs2)) end;
 
-  fun sel_app c n sel (con, args) =
+  fun sel_app c n sel (con, _, args) =
     if con = c
     then sel_app_same c n sel (con, args)
     else sel_app_diff c n sel (con, args);
 
   fun one_sel c n sel = map (sel_app c n sel) cons;
   fun one_sel' c n arg = Option.map (one_sel c n) (sel_of arg);
-  fun one_con (c, args) =
+  fun one_con (c, _, args) =
     flat (map_filter I (mapn (one_sel' c) 0 args));
 in
   val _ = trace " Proving sel_apps...";
@@ -501,7 +501,7 @@ in
   val sel_defins =
     if length cons = 1
     then map_filter (fn arg => Option.map sel_defin (sel_of arg))
-                 (filter_out is_lazy (snd (hd cons)))
+                 (filter_out is_lazy (third (hd cons)))
     else [];
 end;
 
@@ -522,7 +522,7 @@ val dist_les =
         val tacs = [simp_tac (HOL_ss addsimps rules) 1];
       in pg con_appls goal (K tacs) end;
 
-    fun distinct (con1, args1) (con2, args2) =
+    fun distinct (con1, _, args1) (con2, _, args2) =
         let
           val arg1 = (con1, args1);
           val arg2 =
@@ -554,7 +554,7 @@ val dist_eqs =
         val tacs = [simp_tac (HOL_ss addsimps rules) 1];
       in pg con_appls goal (K tacs) end;
 
-    fun distinct (con1, args1) (con2, args2) =
+    fun distinct (con1, _, args1) (con2, _, args2) =
         let
           val arg1 = (con1, args1);
           val arg2 =
@@ -576,7 +576,7 @@ local
       val sargs = case largs of [_] => [] | _ => nonlazy args;
       val prop = lift_defined %: (sargs, mk_trp (prem === concl));
     in pg con_appls prop end;
-  val cons' = filter (fn (_,args) => args<>[]) cons;
+  val cons' = filter (fn (_, _, args) => args<>[]) cons;
 in
   val _ = trace " Proving inverts...";
   val inverts =
@@ -584,14 +584,14 @@ in
       val abs_less = ax_abs_iso RS (allI RS injection_less);
       val tacs =
         [asm_full_simp_tac (HOLCF_ss addsimps [abs_less, spair_less]) 1];
-    in map (fn (con, args) => pgterm (op <<) con args (K tacs)) cons' end;
+    in map (fn (con, _, args) => pgterm (op <<) con args (K tacs)) cons' end;
 
   val _ = trace " Proving injects...";
   val injects =
     let
       val abs_eq = ax_abs_iso RS (allI RS injection_eq);
       val tacs = [asm_full_simp_tac (HOLCF_ss addsimps [abs_eq, spair_eq]) 1];
-    in map (fn (con, args) => pgterm (op ===) con args (K tacs)) cons' end;
+    in map (fn (con, _, args) => pgterm (op ===) con args (K tacs)) cons' end;
 end;
 
 (* ----- theorems concerning one induction step ----------------------------- *)
@@ -610,7 +610,7 @@ val copy_strict =
   end;
 
 local
-  fun copy_app (con, args) =
+  fun copy_app (con, _, args) =
     let
       val lhs = dc_copy`%"f"`(con_app con args);
       fun one_rhs arg =
@@ -635,7 +635,7 @@ in
 end;
 
 local
-  fun one_strict (con, args) = 
+  fun one_strict (con, _, args) = 
     let
       val goal = mk_trp (dc_copy`UU`(con_app con args) === UU);
       val rews = the_list copy_strict @ copy_apps @ con_rews;
@@ -648,7 +648,7 @@ local
       | ERROR s => (trace s; NONE)
     end;
 
-  fun has_nonlazy_rec (_, args) = exists is_nonlazy_rec args;
+  fun has_nonlazy_rec (_, _, args) = exists is_nonlazy_rec args;
 in
   val _ = trace " Proving copy_stricts...";
   val copy_stricts = map_filter one_strict (filter has_nonlazy_rec cons);
@@ -749,7 +749,7 @@ local
     in pg axs_take_def goal (K [simp_tac iterate_Cprod_ss 1]) end;
   val take_0s = mapn take_0 1 dnames;
   val _ = trace " Proving take_apps...";
-  fun one_take_app dn (con, args) =
+  fun one_take_app dn (con, _, args) =
     let
       fun mk_take n = dc_take (List.nth (dnames, n)) $ %:"n";
       fun one_rhs arg =
@@ -773,7 +773,7 @@ in
 end; (* local *)
 
 local
-  fun one_con p (con,args) =
+  fun one_con p (con, _, args) =
     let
       fun ind_hyp arg = %:(P_name (1 + rec_of arg)) $ bound_arg args arg;
       val t1 = mk_trp (%:p $ con_app2 con (bound_arg args) args);
@@ -794,7 +794,7 @@ local
   fun ind_prems_tac prems = EVERY
     (maps (fn cons =>
       (resolve_tac prems 1 ::
-        maps (fn (_,args) => 
+        maps (fn (_,_,args) => 
           resolve_tac prems 1 ::
           map (K(atac 1)) (nonlazy args) @
           map (K(atac 1)) (filter is_rec args))
@@ -809,7 +809,7 @@ local
           ((rec_of arg =  n andalso nfn(lazy_rec orelse is_lazy arg)) orelse 
             rec_of arg <> n andalso rec_to quant nfn rfn (rec_of arg::ns) 
               (lazy_rec orelse is_lazy arg) (n, (List.nth(conss,rec_of arg))))
-          ) o snd) cons;
+          ) o third) cons;
     fun all_rec_to ns  = rec_to forall not all_rec_to  ns;
     fun warn (n,cons) =
       if all_rec_to [] false (n,cons)
@@ -840,7 +840,7 @@ in (* local *)
           fun arg_tac arg =
             case_UU_tac context (prems @ con_rews) 1
               (List.nth (dnames, rec_of arg) ^ "_take n$" ^ vname arg);
-          fun con_tacs (con, args) = 
+          fun con_tacs (con, _, args) = 
             asm_simp_tac take_ss 1 ::
             map arg_tac (filter is_nonlazy_rec args) @
             [resolve_tac prems 1] @
@@ -927,7 +927,7 @@ in (* local *)
               etac disjE 1,
               asm_simp_tac (HOL_ss addsimps con_rews) 1,
               asm_simp_tac take_ss 1];
-            fun con_tacs ctxt (con, args) =
+            fun con_tacs ctxt (con, _, args) =
               asm_simp_tac take_ss 1 ::
               maps (arg_tacs ctxt) (nonlazy_rec args);
             fun foo_tacs ctxt n (cons, cases) =
