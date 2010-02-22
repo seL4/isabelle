@@ -1101,11 +1101,11 @@ fun register_type (tyco, vs_spec) thy =
         | (_, (_, Abstractor (_, (co, _)))) :: _ => ([], SOME co)
         | [] => ([], NONE)
     val outdated_funs = case some_old_proj
-     of NONE => []
+     of NONE => old_constrs
       | SOME old_proj => Symtab.fold
           (fn (c, ((_, spec), _)) => if member (op =) (the_list (associated_abstype spec)) tyco
             then insert (op =) c else I)
-            ((the_functions o the_exec) thy) [old_proj];
+            ((the_functions o the_exec) thy) (old_proj :: old_constrs);
     fun drop_outdated_cases cases = fold Symtab.delete_safe
       (Symtab.fold (fn (c, (_, (_, cos))) =>
         if exists (member (op =) old_constrs) cos
@@ -1151,7 +1151,8 @@ fun add_abstype proto_abs proto_rep thy =
     val (abs, rep) = pairself (unoverload_const_typ thy) (proto_abs, proto_rep);
     val (tyco, (vs, (abs_ty as (abs, ty), (rep, cert_prop)))) = abstype_cert thy abs (fst rep);
     fun after_qed [[cert]] = ProofContext.theory
-      (register_type (tyco, (vs, Abstractor (abs_ty, (rep, cert))))
+      (del_eqns abs
+      #> register_type (tyco, (vs, Abstractor (abs_ty, (rep, cert))))
       #> change_fun_spec false rep ((K o Proj)
         (map_types Logic.varifyT (mk_proj tyco vs ty abs rep), tyco))
       #> Abstype_Interpretation.data (tyco, serial ()));
