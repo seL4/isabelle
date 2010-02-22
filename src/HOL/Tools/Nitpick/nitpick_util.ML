@@ -92,7 +92,7 @@ fun nat_minus i j = if i > j then i - j else 0
 val max_exponent = 16384
 
 (* int -> int -> int *)
-fun reasonable_power a 0 = 1
+fun reasonable_power _ 0 = 1
   | reasonable_power a 1 = a
   | reasonable_power 0 _ = 0
   | reasonable_power 1 _ = 1

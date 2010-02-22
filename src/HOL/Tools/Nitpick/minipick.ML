@@ -128,7 +128,7 @@ fun kodkod_formula_from_term ctxt card frees =
          All (decls_for SRep card Ts T, to_F (T :: Ts) t')
        | (t0 as Const (@{const_name All}, _)) $ t1 =>
          to_F Ts (t0 $ eta_expand Ts t1 1)
-       | Const (@{const_name Ex}, _) $ Abs (s, T, t') =>
+       | Const (@{const_name Ex}, _) $ Abs (_, T, t') =>
          Exist (decls_for SRep card Ts T, to_F (T :: Ts) t')
        | (t0 as Const (@{const_name Ex}, _)) $ t1 =>
          to_F Ts (t0 $ eta_expand Ts t1 1)
@@ -234,7 +234,7 @@ fun kodkod_formula_from_term ctxt card frees =
        | Free (x as (_, T)) =>
          Rel (arity_of RRep card T, find_index (curry (op =) x) frees)
        | Term.Var _ => raise NOT_SUPPORTED "schematic variables"
-       | Bound j => raise SAME ()
+       | Bound _ => raise SAME ()
        | Abs (_, T, t') =>
          (case fastype_of1 (T :: Ts, t') of
             @{typ bool} => Comprehension (decls_for SRep card Ts T,
@@ -251,11 +251,8 @@ fun kodkod_formula_from_term ctxt card frees =
             let val T2 = fastype_of1 (Ts, t2) in
               case arity_of SRep card T2 of
                 1 => Join (to_S_rep Ts t2, to_R_rep Ts t1)
-              | n =>
-                let
-                  val arity2 = arity_of SRep card T2
-                  val res_arity = arity_of RRep card T
-                in
+              | arity2 =>
+                let val res_arity = arity_of RRep card T in
                   Project (Intersect
                       (Product (to_S_rep Ts t2,
                                 atom_schema_of RRep card T

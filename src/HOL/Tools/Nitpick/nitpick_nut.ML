@@ -7,7 +7,6 @@ Nitpick underlying terms (nuts).
 
 signature NITPICK_NUT =
 sig
-  type special_fun = Nitpick_HOL.special_fun
   type hol_context = Nitpick_HOL.hol_context
   type scope = Nitpick_Scope.scope
   type name_pool = Nitpick_Peephole.name_pool
@@ -467,7 +466,7 @@ fun factorize (z as (Type ("*", _), _)) = maps factorize [mk_fst z, mk_snd z]
   | factorize z = [z]
 
 (* hol_context -> op2 -> term -> nut *)
-fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, special_funs, ...}) eq =
+fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, ...}) eq =
   let
     (* string list -> typ list -> term -> nut *)
     fun aux eq ss Ts t =
@@ -518,11 +517,21 @@ fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, special_funs, ...}) eq =
             val t1 = list_comb (t0, ts')
             val T1 = fastype_of1 (Ts, t1)
           in Op2 (Apply, range_type T1, Any, sub t1, sub t2) end
+        (* styp -> term list -> term *)
+        fun construct (x as (_, T)) ts =
+          case num_binder_types T - length ts of
+            0 => Construct (map ((fn (s', T') => ConstName (s', T', Any))
+                                  o nth_sel_for_constr x)
+                                (~1 upto num_sels_for_constr_type T - 1),
+                            body_type T, Any,
+                            ts |> map (`(curry fastype_of1 Ts))
+                               |> maps factorize |> map (sub o snd))
+          | k => sub (eta_expand Ts t k)
       in
         case strip_comb t of
           (Const (@{const_name all}, _), [Abs (s, T, t1)]) =>
           do_quantifier All s T t1
-        | (t0 as Const (@{const_name all}, T), [t1]) =>
+        | (t0 as Const (@{const_name all}, _), [t1]) =>
           sub' (t0 $ eta_expand Ts t1 1)
         | (Const (@{const_name "=="}, T), [t1, t2]) => sub_equals T t1 t2
         | (Const (@{const_name "==>"}, _), [t1, t2]) =>
@@ -538,11 +547,11 @@ fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, special_funs, ...}) eq =
         | (Const (@{const_name True}, T), []) => Cst (True, T, Any)
         | (Const (@{const_name All}, _), [Abs (s, T, t1)]) =>
           do_quantifier All s T t1
-        | (t0 as Const (@{const_name All}, T), [t1]) =>
+        | (t0 as Const (@{const_name All}, _), [t1]) =>
           sub' (t0 $ eta_expand Ts t1 1)
         | (Const (@{const_name Ex}, _), [Abs (s, T, t1)]) =>
           do_quantifier Exist s T t1
-        | (t0 as Const (@{const_name Ex}, T), [t1]) =>
+        | (t0 as Const (@{const_name Ex}, _), [t1]) =>
           sub' (t0 $ eta_expand Ts t1 1)
         | (t0 as Const (@{const_name The}, T), [t1]) =>
           if fast_descrs then
@@ -568,7 +577,7 @@ fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, special_funs, ...}) eq =
         | (Const (@{const_name Let}, T), [t1, Abs (s, T', t2)]) =>
           Op3 (Let, nth_range_type 2 T, Any, BoundName (length Ts, T', Any, s),
                sub t1, sub_abs s T' t2)
-        | (t0 as Const (@{const_name Let}, T), [t1, t2]) =>
+        | (t0 as Const (@{const_name Let}, _), [t1, t2]) =>
           sub (t0 $ t1 $ eta_expand Ts t2 1)
         | (@{const Unity}, []) => Cst (Unity, @{typ unit}, Any)
         | (Const (@{const_name Pair}, T), [t1, t2]) =>
@@ -595,7 +604,10 @@ fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, special_funs, ...}) eq =
           Op2 (Product, nth_range_type 2 T, Any, sub t1, sub_abs s T' t2')
         | (Const (@{const_name image}, T), [t1, t2]) =>
           Op2 (Image, nth_range_type 2 T, Any, sub t1, sub t2)
-        | (Const (@{const_name Suc}, T), []) => Cst (Suc, T, Any)
+        | (Const (x as (s as @{const_name Suc}, T)), []) =>
+          if is_built_in_const thy stds false x then Cst (Suc, T, Any)
+          else if is_constr thy stds x then construct x []
+          else ConstName (s, T, Any)
         | (Const (@{const_name finite}, T), [t1]) =>
           (if is_finite_type hol_ctxt (domain_type T) then
              Cst (True, bool_T, Any)
@@ -604,14 +616,9 @@ fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, special_funs, ...}) eq =
            | _ => Op1 (Finite, bool_T, Any, sub t1))
         | (Const (@{const_name nat}, T), []) => Cst (IntToNat, T, Any)
         | (Const (x as (s as @{const_name zero_class.zero}, T)), []) =>
-          if is_built_in_const thy stds false x then
-            Cst (Num 0, T, Any)
-          else if is_constr thy stds x then
-            let val (s', T') = discr_for_constr x in
-              Construct ([ConstName (s', T', Any)], T, Any, [])
-            end
-          else
-            ConstName (s, T, Any)
+          if is_built_in_const thy stds false x then Cst (Num 0, T, Any)
+          else if is_constr thy stds x then construct x []
+          else ConstName (s, T, Any)
         | (Const (x as (s as @{const_name one_class.one}, T)), []) =>
           if is_built_in_const thy stds false x then Cst (Num 1, T, Any)
           else ConstName (s, T, Any)
@@ -631,7 +638,7 @@ fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, special_funs, ...}) eq =
         | (Const (x as (s as @{const_name div_class.div}, T)), []) =>
           if is_built_in_const thy stds false x then Cst (Divide, T, Any)
           else ConstName (s, T, Any)
-        | (t0 as Const (x as (s as @{const_name ord_class.less}, T)),
+        | (t0 as Const (x as (@{const_name ord_class.less}, _)),
            ts as [t1, t2]) =>
           if is_built_in_const thy stds false x then
             Op2 (Less, bool_T, Any, sub t1, sub t2)
@@ -642,7 +649,7 @@ fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, special_funs, ...}) eq =
            [t1, t2]) =>
           Op2 (Subset, bool_T, Any, sub t1, sub t2)
         (* FIXME: find out if this case is necessary *)
-        | (t0 as Const (x as (s as @{const_name ord_class.less_eq}, T)),
+        | (t0 as Const (x as (@{const_name ord_class.less_eq}, _)),
            ts as [t1, t2]) =>
           if is_built_in_const thy stds false x then
             Op1 (Not, bool_T, Any, Op2 (Less, bool_T, Any, sub t2, sub t1))
@@ -660,7 +667,7 @@ fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, special_funs, ...}) eq =
           else
             ConstName (s, T, Any)
         | (Const (@{const_name unknown}, T), []) => Cst (Unknown, T, Any)
-        | (Const (@{const_name is_unknown}, T), [t1]) =>
+        | (Const (@{const_name is_unknown}, _), [t1]) =>
           Op1 (IsUnknown, bool_T, Any, sub t1)
         | (Const (@{const_name Tha}, Type ("fun", [_, T2])), [t1]) =>
           Op1 (Tha, T2, Any, sub t1)
@@ -681,14 +688,7 @@ fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, special_funs, ...}) eq =
           Op2 (Union, T1, Any, sub t1, sub t2)
         | (t0 as Const (x as (s, T)), ts) =>
           if is_constr thy stds x then
-            case num_binder_types T - length ts of
-              0 => Construct (map ((fn (s, T) => ConstName (s, T, Any))
-                                    o nth_sel_for_constr x)
-                                  (~1 upto num_sels_for_constr_type T - 1),
-                              body_type T, Any,
-                              ts |> map (`(curry fastype_of1 Ts))
-                                 |> maps factorize |> map (sub o snd))
-            | k => sub (eta_expand Ts t k)
+            construct x ts
           else if String.isPrefix numeral_prefix s then
             Cst (Num (the (Int.fromString (unprefix numeral_prefix s))), T, Any)
           else
@@ -726,8 +726,8 @@ fun choose_rep_for_free_var scope v (vs, table) =
   in (v :: vs, NameTable.update (v, R) table) end
 (* scope -> bool -> nut -> nut list * rep NameTable.table
    -> nut list * rep NameTable.table *)
-fun choose_rep_for_const (scope as {hol_ctxt as {thy, ctxt, ...}, datatypes,
-                                    ofs, ...}) all_exact v (vs, table) =
+fun choose_rep_for_const (scope as {hol_ctxt = {thy, ...}, ...}) all_exact v
+                         (vs, table) =
   let
     val x as (s, T) = (nickname_of v, type_of v)
     val R = (if is_abs_fun thy x then
@@ -904,8 +904,7 @@ fun untuple f (Tuple (_, _, us)) = maps (untuple f) us
   | untuple f u = if rep_of u = Unit then [] else [f u]
 
 (* scope -> bool -> rep NameTable.table -> bool -> nut -> nut *)
-fun choose_reps_in_nut (scope as {hol_ctxt as {thy, ctxt, ...}, card_assigns,
-                                  bits, datatypes, ofs, ...})
+fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
                        unsound table def =
   let
     val bool_atom_R = Atom (2, offset_of_type ofs bool_T)
@@ -991,7 +990,7 @@ fun choose_reps_in_nut (scope as {hol_ctxt as {thy, ctxt, ...}, card_assigns,
             Cst (cst, T, best_set_rep_for_type scope T)
         | Op1 (Not, T, _, u1) =>
           (case gsub def (flip_polarity polar) u1 of
-             Op2 (Triad, T, R, u11, u12) =>
+             Op2 (Triad, T, _, u11, u12) =>
              triad (s_op1 Not T (Formula Pos) u12)
                    (s_op1 Not T (Formula Neg) u11)
            | u1' => s_op1 Not T (flip_rep_polarity (rep_of u1')) u1')
@@ -1138,7 +1137,7 @@ fun choose_reps_in_nut (scope as {hol_ctxt as {thy, ctxt, ...}, card_assigns,
                  else
                    unopt_rep R
              in s_op2 Lambda T R u1' u2' end
-           | R => raise NUT ("Nitpick_Nut.aux.choose_reps_in_nut", [u]))
+           | _ => raise NUT ("Nitpick_Nut.aux.choose_reps_in_nut", [u]))
         | Op2 (oper, T, _, u1, u2) =>
           if oper = All orelse oper = Exist then
             let
@@ -1307,7 +1306,7 @@ fun shape_tuple (T as Type ("*", [T1, T2])) (R as Struct [R1, R2]) us =
     end
   | shape_tuple (T as Type ("fun", [_, T2])) (R as Vect (k, R')) us =
     Tuple (T, R, map (shape_tuple T2 R') (batch_list (length us div k) us))
-  | shape_tuple T R [u] =
+  | shape_tuple T _ [u] =
     if type_of u = T then u else raise NUT ("Nitpick_Nut.shape_tuple", [u])
   | shape_tuple T Unit [] = Cst (Unity, T, Unit)
   | shape_tuple _ _ us = raise NUT ("Nitpick_Nut.shape_tuple", us)
@@ -1390,7 +1389,6 @@ fun rename_vars_in_nut pool table u =
       let
         val bs = untuple I u1
         val (_, pool, table') = fold rename_plain_var bs ([], pool, table)
-        val u11 = rename_vars_in_nut pool table' u1
       in
         Op3 (Let, T, R, rename_vars_in_nut pool table' u1,
              rename_vars_in_nut pool table u2,

@@ -74,12 +74,12 @@ fun nth_atom_suffix pool s j k =
   |> (s <> "" andalso Symbol.is_ascii_digit (List.last (explode s)))
      ? prefix "\<^isub>,"
 (* atom_pool Unsynchronized.ref -> string -> typ -> int -> int -> string *)
-fun nth_atom_name pool prefix (T as Type (s, _)) j k =
+fun nth_atom_name pool prefix (Type (s, _)) j k =
     let val s' = shortest_name s in
       prefix ^ (if String.isPrefix "\\" s' then s' else substring (s', 0, 1)) ^
       nth_atom_suffix pool s j k
     end
-  | nth_atom_name pool prefix (T as TFree (s, _)) j k =
+  | nth_atom_name pool prefix (TFree (s, _)) j k =
     prefix ^ perhaps (try (unprefix "'")) s ^ nth_atom_suffix pool s j k
   | nth_atom_name _ _ T _ _ =
     raise TYPE ("Nitpick_Model.nth_atom_name", [T], [])
@@ -113,20 +113,23 @@ fun tuple_list_for_name rel_table bounds name =
 fun unarize_and_unbox_term (Const (@{const_name FunBox}, _) $ t1) =
     unarize_and_unbox_term t1
   | unarize_and_unbox_term (Const (@{const_name PairBox},
-                                   Type ("fun", [T1, Type ("fun", [T2, T3])]))
+                                   Type ("fun", [T1, Type ("fun", [T2, _])]))
                             $ t1 $ t2) =
-    let val Ts = map unarize_and_unbox_type [T1, T2] in
+    let val Ts = map unarize_unbox_and_uniterize_type [T1, T2] in
       Const (@{const_name Pair}, Ts ---> Type ("*", Ts))
       $ unarize_and_unbox_term t1 $ unarize_and_unbox_term t2
     end
-  | unarize_and_unbox_term (Const (s, T)) = Const (s, unarize_and_unbox_type T)
+  | unarize_and_unbox_term (Const (s, T)) =
+    Const (s, unarize_unbox_and_uniterize_type T)
   | unarize_and_unbox_term (t1 $ t2) =
     unarize_and_unbox_term t1 $ unarize_and_unbox_term t2
-  | unarize_and_unbox_term (Free (s, T)) = Free (s, unarize_and_unbox_type T)
-  | unarize_and_unbox_term (Var (x, T)) = Var (x, unarize_and_unbox_type T)
+  | unarize_and_unbox_term (Free (s, T)) =
+    Free (s, unarize_unbox_and_uniterize_type T)
+  | unarize_and_unbox_term (Var (x, T)) =
+    Var (x, unarize_unbox_and_uniterize_type T)
   | unarize_and_unbox_term (Bound j) = Bound j
   | unarize_and_unbox_term (Abs (s, T, t')) =
-    Abs (s, unarize_and_unbox_type T, unarize_and_unbox_term t')
+    Abs (s, unarize_unbox_and_uniterize_type T, unarize_and_unbox_term t')
 
 (* typ -> typ -> (typ * typ) * (typ * typ) *)
 fun factor_out_types (T1 as Type ("*", [T11, T12]))
@@ -260,12 +263,12 @@ fun mk_tuple (Type ("*", [T1, T2])) ts =
   | mk_tuple _ (t :: _) = t
   | mk_tuple T [] = raise TYPE ("Nitpick_Model.mk_tuple", [T], [])
 
-(* bool -> atom_pool -> string * string * string * string -> scope -> nut list
-   -> nut list -> nut list -> nut NameTable.table -> KK.raw_bound list -> typ
-   -> typ -> rep -> int list list -> term *)
-fun reconstruct_term unfold pool (maybe_name, base_name, step_name, abs_name)
-        ({hol_ctxt as {thy, ctxt, stds, ...}, binarize, card_assigns, bits,
-          datatypes, ofs, ...} : scope) sel_names rel_table bounds =
+(* bool -> atom_pool -> (string * string) * (string * string) -> scope
+   -> nut list -> nut list -> nut list -> nut NameTable.table
+   -> KK.raw_bound list -> typ -> typ -> rep -> int list list -> term *)
+fun reconstruct_term unfold pool ((maybe_name, abs_name), _)
+        ({hol_ctxt as {thy, stds, ...}, binarize, card_assigns, bits, datatypes,
+          ofs, ...} : scope) sel_names rel_table bounds =
   let
     val for_auto = (maybe_name = "")
     (* int list list -> int *)
@@ -357,11 +360,11 @@ fun reconstruct_term unfold pool (maybe_name, base_name, step_name, abs_name)
       ts1 ~~ ts2 |> sort (nice_term_ord o pairself fst)
                  |> make_plain_fun maybe_opt T1 T2
                  |> unarize_and_unbox_term
-                 |> typecast_fun (unarize_and_unbox_type T')
-                                 (unarize_and_unbox_type T1)
-                                 (unarize_and_unbox_type T2)
+                 |> typecast_fun (unarize_unbox_and_uniterize_type T')
+                                 (unarize_unbox_and_uniterize_type T1)
+                                 (unarize_unbox_and_uniterize_type T2)
     (* (typ * int) list -> typ -> typ -> int -> term *)
-    fun term_for_atom seen (T as Type ("fun", [T1, T2])) T' j k =
+    fun term_for_atom seen (T as Type ("fun", [T1, T2])) T' j _ =
         let
           val k1 = card_of_type card_assigns T1
           val k2 = card_of_type card_assigns T2
@@ -525,7 +528,7 @@ fun reconstruct_term unfold pool (maybe_name, base_name, step_name, abs_name)
                      map3 (fn T => term_for_rep seen T T) [T1, T2] [R1, R2]
                           [[js1], [js2]])
         end
-      | term_for_rep seen (Type ("fun", [T1, T2])) T' (R as Vect (k, R')) [js] =
+      | term_for_rep seen (Type ("fun", [T1, T2])) T' (Vect (k, R')) [js] =
         term_for_vect seen k R' T1 T2 T' js
       | term_for_rep seen (Type ("fun", [T1, T2])) T' (Func (R1, Formula Neut))
                      jss =
@@ -548,7 +551,7 @@ fun reconstruct_term unfold pool (maybe_name, base_name, step_name, abs_name)
         in make_fun true T1 T2 T' ts1 ts2 end
       | term_for_rep seen T T' (Opt R) jss =
         if null jss then Const (unknown, T) else term_for_rep seen T T' R jss
-      | term_for_rep seen T _ R jss =
+      | term_for_rep _ T _ R jss =
         raise ARG ("Nitpick_Model.reconstruct_term.term_for_rep",
                    Refute.string_of_typ T ^ " " ^ string_for_rep R ^ " " ^
                    string_of_int (length jss))
@@ -559,11 +562,11 @@ fun reconstruct_term unfold pool (maybe_name, base_name, step_name, abs_name)
 fun term_for_name pool scope sel_names rel_table bounds name =
   let val T = type_of name in
     tuple_list_for_name rel_table bounds name
-    |> reconstruct_term false pool ("", "", "", "") scope sel_names rel_table
-                        bounds T T (rep_of name)
+    |> reconstruct_term false pool (("", ""), ("", "")) scope sel_names
+                        rel_table bounds T T (rep_of name)
   end
 
-(* Proof.context -> (string * string * string * string) * Proof.context *)
+(* Proof.context -> ((string * string) * (string * string)) * Proof.context *)
 fun add_wacky_syntax ctxt =
   let
     (* term -> string *)
@@ -572,17 +575,17 @@ fun add_wacky_syntax ctxt =
     val (maybe_t, thy) =
       Sign.declare_const ((@{binding nitpick_maybe}, @{typ "'a => 'a"}),
                           Mixfix (maybe_mixfix, [1000], 1000)) thy
+    val (abs_t, thy) =
+      Sign.declare_const ((@{binding nitpick_abs}, @{typ "'a => 'b"}),
+                          Mixfix (abs_mixfix, [40], 40)) thy
     val (base_t, thy) =
       Sign.declare_const ((@{binding nitpick_base}, @{typ "'a => 'a"}),
                           Mixfix (base_mixfix, [1000], 1000)) thy
     val (step_t, thy) =
       Sign.declare_const ((@{binding nitpick_step}, @{typ "'a => 'a"}),
                           Mixfix (step_mixfix, [1000], 1000)) thy
-    val (abs_t, thy) =
-      Sign.declare_const ((@{binding nitpick_abs}, @{typ "'a => 'b"}),
-                          Mixfix (abs_mixfix, [40], 40)) thy
   in
-    ((name_of maybe_t, name_of base_t, name_of step_t, name_of abs_t),
+    (pairself (pairself name_of) ((maybe_t, abs_t), (base_t, step_t)),
      ProofContext.transfer_syntax thy ctxt)
   end
 
@@ -613,18 +616,18 @@ fun bisimilar_values _ 0 _ = true
   -> nut list -> nut list -> nut NameTable.table -> KK.raw_bound list
   -> Pretty.T * bool *)
 fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
-        ({hol_ctxt as {thy, ctxt, max_bisim_depth, boxes, stds, wfs,
-                       user_axioms, debug, binary_ints, destroy_constrs,
-                       specialize, skolemize, star_linear_preds, uncurry,
-                       fast_descrs, tac_timeout, evals, case_names, def_table,
-                       nondef_table, user_nondefs, simp_table, psimp_table,
-                       intro_table, ground_thm_table, ersatz_table, skolems,
-                       special_funs, unrolled_preds, wf_cache, constr_cache},
+        ({hol_ctxt = {thy, ctxt, max_bisim_depth, boxes, stds, wfs, user_axioms,
+                      debug, binary_ints, destroy_constrs, specialize,
+                      skolemize, star_linear_preds, uncurry, fast_descrs,
+                      tac_timeout, evals, case_names, def_table, nondef_table,
+                      user_nondefs, simp_table, psimp_table, intro_table,
+                      ground_thm_table, ersatz_table, skolems, special_funs,
+                      unrolled_preds, wf_cache, constr_cache},
          binarize, card_assigns, bits, bisim_depth, datatypes, ofs} : scope)
         formats all_frees free_names sel_names nonsel_names rel_table bounds =
   let
     val pool = Unsynchronized.ref []
-    val (wacky_names as (_, base_name, step_name, _), ctxt) =
+    val (wacky_names as (_, base_step_names), ctxt) =
       add_wacky_syntax ctxt
     val hol_ctxt =
       {thy = thy, ctxt = ctxt, max_bisim_depth = max_bisim_depth, boxes = boxes,
@@ -679,13 +682,12 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
         val (oper, (t1, T'), T) =
           case name of
             FreeName (s, T, _) =>
-            let val t = Free (s, unarize_and_unbox_type T) in
+            let val t = Free (s, unarize_unbox_and_uniterize_type T) in
               ("=", (t, format_term_type thy def_table formats t), T)
             end
           | ConstName (s, T, _) =>
             (assign_operator_for_const (s, T),
-             user_friendly_const hol_ctxt (base_name, step_name) formats (s, T),
-             T)
+             user_friendly_const hol_ctxt base_step_names formats (s, T), T)
           | _ => raise NUT ("Nitpick_Model.reconstruct_hol_model.\
                             \pretty_for_assign", [name])
         val t2 = if rep_of name = Any then
@@ -701,7 +703,8 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
     (* dtype_spec -> Pretty.T *)
     fun pretty_for_datatype ({typ, card, complete, ...} : dtype_spec) =
       Pretty.block (Pretty.breaks
-          [Syntax.pretty_typ ctxt (unarize_and_unbox_type typ), Pretty.str "=",
+          [Syntax.pretty_typ ctxt (unarize_unbox_and_uniterize_type typ),
+           Pretty.str "=",
            Pretty.enum "," "{" "}"
                (map (Syntax.pretty_term ctxt) (all_values_of_type card typ) @
                 (if complete then [] else [Pretty.str unrep]))])
@@ -746,7 +749,8 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
     val free_names =
       map (fn x as (s, T) =>
               case filter (curry (op =) x
-                       o pairf nickname_of (unarize_and_unbox_type o type_of))
+                       o pairf nickname_of
+                               (unarize_unbox_and_uniterize_type o type_of))
                        free_names of
                 [name] => name
               | [] => FreeName (s, T, Any)
@@ -767,7 +771,7 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
 
 (* scope -> Time.time option -> nut list -> nut list -> nut NameTable.table
    -> KK.raw_bound list -> term -> bool option *)
-fun prove_hol_model (scope as {hol_ctxt as {thy, ctxt, debug, ...},
+fun prove_hol_model (scope as {hol_ctxt = {thy, ctxt, debug, ...},
                                card_assigns, ...})
                     auto_timeout free_names sel_names rel_table bounds prop =
   let

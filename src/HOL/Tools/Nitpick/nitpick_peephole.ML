@@ -261,14 +261,10 @@ type kodkod_constrs = {
 (* bool -> int -> int -> int -> kodkod_constrs *)
 fun kodkod_constrs optim nat_card int_card main_j0 =
   let
-    val false_atom = Atom main_j0
-    val true_atom = Atom (main_j0 + 1)
-
     (* bool -> int *)
     val from_bool = atom_for_bool main_j0
     (* int -> rel_expr *)
     fun from_nat n = Atom (n + main_j0)
-    val from_int = Atom o atom_for_int (int_card, main_j0)
     (* int -> int *)
     fun to_nat j = j - main_j0
     val to_int = int_for_atom (int_card, main_j0)
@@ -415,7 +411,7 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
     fun s_subset (Atom j1) (Atom j2) = formula_for_bool (j1 = j2)
       | s_subset (Atom j) (AtomSeq (k, j0)) =
         formula_for_bool (j >= j0 andalso j < j0 + k)
-      | s_subset (r1 as Union (r11, r12)) r2 =
+      | s_subset (Union (r11, r12)) r2 =
         s_and (s_subset r11 r2) (s_subset r12 r2)
       | s_subset r1 (r2 as Union (r21, r22)) =
         if is_one_rel_expr r1 then
@@ -516,7 +512,7 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
       | s_join (r1 as RelIf (f, r11, r12)) r2 =
         if inline_rel_expr r2 then s_rel_if f (s_join r11 r2) (s_join r12 r2)
         else Join (r1, r2)
-      | s_join (r1 as Atom j1) (r2 as Rel (x as (2, j2))) =
+      | s_join (r1 as Atom j1) (r2 as Rel (x as (2, _))) =
         if x = suc_rel then
           let val n = to_nat j1 + 1 in
             if n < nat_card then from_nat n else None
@@ -528,7 +524,7 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
           s_project (s_join r21 r1) is
         else
           Join (r1, r2)
-      | s_join r1 (Join (r21, r22 as Rel (x as (3, j22)))) =
+      | s_join r1 (Join (r21, r22 as Rel (x as (3, _)))) =
         ((if x = nat_add_rel then
             case (r21, r1) of
               (Atom j1, Atom j2) =>
@@ -613,7 +609,6 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
       in aux (arity_of_rel_expr r) r end
 
     (* rel_expr -> rel_expr -> rel_expr *)
-    fun s_nat_subtract r1 r2 = fold s_join [r1, r2] (Rel nat_subtract_rel)
     fun s_nat_less (Atom j1) (Atom j2) = from_bool (j1 < j2)
       | s_nat_less r1 r2 = fold s_join [r1, r2] (Rel nat_less_rel)
     fun s_int_less (Atom j1) (Atom j2) = from_bool (to_int j1 < to_int j2)
@@ -624,7 +619,6 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
     (* rel_expr -> rel_expr *)
     fun d_not3 r = Join (r, Rel not3_rel)
     (* rel_expr -> rel_expr -> rel_expr *)
-    fun d_nat_subtract r1 r2 = List.foldl Join (Rel nat_subtract_rel) [r1, r2]
     fun d_nat_less r1 r2 = List.foldl Join (Rel nat_less_rel) [r1, r2]
     fun d_int_less r1 r2 = List.foldl Join (Rel int_less_rel) [r1, r2]
   in
