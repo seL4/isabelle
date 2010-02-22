@@ -49,10 +49,13 @@ sig
   val add_signature_cmd: string * string -> theory -> theory
   val add_datatype: (string * typ) list -> theory -> theory
   val add_datatype_cmd: string list -> theory -> theory
+  val datatype_interpretation:
+    (string * ((string * sort) list * (string * typ list) list)
+      -> theory -> theory) -> theory -> theory
   val add_abstype: string * typ -> string * typ -> theory -> Proof.state
   val add_abstype_cmd: string -> string -> theory -> Proof.state
-  val type_interpretation:
-    (string * ((string * sort) list * (string * typ list) list)
+  val abstype_interpretation:
+    (string * ((string * sort) list * ((string * typ) * (string * thm)))
       -> theory -> theory) -> theory -> theory
   val add_eqn: thm -> theory -> theory
   val add_nbe_eqn: thm -> theory -> theory
@@ -63,8 +66,8 @@ sig
   val del_eqns: string -> theory -> theory
   val add_case: thm -> theory -> theory
   val add_undefined: string -> theory -> theory
-  val get_datatype: theory -> string -> ((string * sort) list * (string * typ list) list)
-  val get_datatype_of_constr_or_abstr: theory -> string -> (string * bool) option
+  val get_type: theory -> string -> ((string * sort) list * (string * typ list) list)
+  val get_type_of_constr_or_abstr: theory -> string -> (string * bool) option
   val is_constr: theory -> string -> bool
   val is_abstr: theory -> string -> bool
   val get_cert: theory -> ((thm * bool) list -> (thm * bool) list) -> string -> cert
@@ -163,21 +166,21 @@ datatype spec = Spec of {
   signatures: int Symtab.table * typ Symtab.table,
   functions: ((bool * fun_spec) * (serial * fun_spec) list) Symtab.table
     (*with explicit history*),
-  datatypes: ((serial * ((string * sort) list * typ_spec)) list) Symtab.table
+  types: ((serial * ((string * sort) list * typ_spec)) list) Symtab.table
     (*with explicit history*),
   cases: (int * (int * string list)) Symtab.table * unit Symtab.table
 };
 
-fun make_spec (history_concluded, ((signatures, functions), (datatypes, cases))) =
+fun make_spec (history_concluded, ((signatures, functions), (types, cases))) =
   Spec { history_concluded = history_concluded,
-    signatures = signatures, functions = functions, datatypes = datatypes, cases = cases };
+    signatures = signatures, functions = functions, types = types, cases = cases };
 fun map_spec f (Spec { history_concluded = history_concluded, signatures = signatures,
-  functions = functions, datatypes = datatypes, cases = cases }) =
-  make_spec (f (history_concluded, ((signatures, functions), (datatypes, cases))));
+  functions = functions, types = types, cases = cases }) =
+  make_spec (f (history_concluded, ((signatures, functions), (types, cases))));
 fun merge_spec (Spec { history_concluded = _, signatures = (tycos1, sigs1), functions = functions1,
-    datatypes = datatypes1, cases = (cases1, undefs1) },
+    types = types1, cases = (cases1, undefs1) },
   Spec { history_concluded = _, signatures = (tycos2, sigs2), functions = functions2,
-    datatypes = datatypes2, cases = (cases2, undefs2) }) =
+    types = types2, cases = (cases2, undefs2) }) =
   let
     val signatures = (Symtab.merge (op =) (tycos1, tycos2),
       Symtab.merge typ_equiv (sigs1, sigs2));
@@ -190,15 +193,15 @@ fun merge_spec (Spec { history_concluded = _, signatures = (tycos1, sigs1), func
           then raw_history else filtered_history;
       in ((false, (snd o hd) history), history) end;
     val functions = Symtab.join (K merge_functions) (functions1, functions2);
-    val datatypes = Symtab.join (K (AList.merge (op =) (K true))) (datatypes1, datatypes2);
+    val types = Symtab.join (K (AList.merge (op =) (K true))) (types1, types2);
     val cases = (Symtab.merge (K true) (cases1, cases2),
       Symtab.merge (K true) (undefs1, undefs2));
-  in make_spec (false, ((signatures, functions), (datatypes, cases))) end;
+  in make_spec (false, ((signatures, functions), (types, cases))) end;
 
 fun history_concluded (Spec { history_concluded, ... }) = history_concluded;
 fun the_signatures (Spec { signatures, ... }) = signatures;
 fun the_functions (Spec { functions, ... }) = functions;
-fun the_datatypes (Spec { datatypes, ... }) = datatypes;
+fun the_types (Spec { types, ... }) = types;
 fun the_cases (Spec { cases, ... }) = cases;
 val map_history_concluded = map_spec o apfst;
 val map_signatures = map_spec o apsnd o apfst o apfst;
@@ -423,11 +426,11 @@ fun abstype_cert thy abs_ty rep =
       $ Free ("x", ty_abs)), Free ("x", ty_abs));
   in (tyco, (vs ~~ sorts, ((fst abs_ty, ty), (rep, cert)))) end;    
 
-fun get_datatype_entry thy tyco = case these (Symtab.lookup ((the_datatypes o the_exec) thy) tyco)
+fun get_type_entry thy tyco = case these (Symtab.lookup ((the_types o the_exec) thy) tyco)
  of (_, entry) :: _ => SOME entry
   | _ => NONE;
 
-fun get_datatype_spec thy tyco = case get_datatype_entry thy tyco
+fun get_type_spec thy tyco = case get_type_entry thy tyco
  of SOME (vs, spec) => apfst (pair vs) (constructors_of spec)
   | NONE => arity_number thy tyco
       |> Name.invents Name.context Name.aT
@@ -435,23 +438,23 @@ fun get_datatype_spec thy tyco = case get_datatype_entry thy tyco
       |> rpair []
       |> rpair false;
 
-fun get_abstype_spec thy tyco = case get_datatype_entry thy tyco
+fun get_abstype_spec thy tyco = case get_type_entry thy tyco
  of SOME (vs, Abstractor spec) => (vs, spec)
   | NONE => error ("Not an abstract type: " ^ tyco);
  
-fun get_datatype thy = fst o get_datatype_spec thy;
+fun get_type thy = fst o get_type_spec thy;
 
-fun get_datatype_of_constr_or_abstr thy c =
+fun get_type_of_constr_or_abstr thy c =
   case (snd o strip_type o const_typ thy) c
-   of Type (tyco, _) => let val ((vs, cos), abstract) = get_datatype_spec thy tyco
+   of Type (tyco, _) => let val ((vs, cos), abstract) = get_type_spec thy tyco
         in if member (op =) (map fst cos) c then SOME (tyco, abstract) else NONE end
     | _ => NONE;
 
-fun is_constr thy c = case get_datatype_of_constr_or_abstr thy c
+fun is_constr thy c = case get_type_of_constr_or_abstr thy c
  of SOME (_, false) => true
    | _ => false;
 
-fun is_abstr thy c = case get_datatype_of_constr_or_abstr thy c
+fun is_abstr thy c = case get_type_of_constr_or_abstr thy c
  of SOME (_, true) => true
    | _ => false;
 
@@ -952,7 +955,7 @@ fun print_codesetup thy =
       |> Symtab.dest
       |> (map o apsnd) (snd o fst)
       |> sort (string_ord o pairself fst);
-    val datatypes = the_datatypes exec
+    val datatypes = the_types exec
       |> Symtab.dest
       |> map (fn (tyco, (_, (vs, spec)) :: _) =>
           ((tyco, vs), constructors_of spec))
@@ -1088,15 +1091,12 @@ fun add_undefined c thy =
   (map_exec_purge o map_cases o apsnd) (Symtab.update (c, ())) thy;
 
 
-(* datatypes *)
+(* types *)
 
-structure Type_Interpretation =
-  Interpretation(type T = string * serial val eq = eq_snd (op =) : T * T -> bool);
-
-fun register_datatype (tyco, vs_spec) thy =
+fun register_type (tyco, vs_spec) thy =
   let
     val (old_constrs, some_old_proj) =
-      case these (Symtab.lookup ((the_datatypes o the_exec) thy) tyco)
+      case these (Symtab.lookup ((the_types o the_exec) thy) tyco)
        of (_, (_, Constructors cos)) :: _ => (map fst cos, NONE)
         | (_, (_, Abstractor (_, (co, _)))) :: _ => ([], SOME co)
         | [] => ([], NONE)
@@ -1116,13 +1116,15 @@ fun register_datatype (tyco, vs_spec) thy =
     |> map_exec_purge
         ((map_typs o Symtab.map_default (tyco, [])) (cons (serial (), vs_spec))
         #> (map_cases o apfst) drop_outdated_cases)
-    |> Type_Interpretation.data (tyco, serial ())
   end;
 
-fun type_interpretation f = Type_Interpretation.interpretation
-  (fn (tyco, _) => fn thy => f (tyco, get_datatype thy tyco) thy);
-
 fun unoverload_const_typ thy (c, ty) = (AxClass.unoverload_const thy (c, ty), ty);
+
+structure Datatype_Interpretation =
+  Interpretation(type T = string * serial val eq = eq_snd (op =) : T * T -> bool);
+
+fun datatype_interpretation f = Datatype_Interpretation.interpretation
+  (fn (tyco, _) => fn thy => f (tyco, get_type thy tyco) thy);
 
 fun add_datatype proto_constrs thy =
   let
@@ -1131,20 +1133,28 @@ fun add_datatype proto_constrs thy =
   in
     thy
     |> fold (del_eqns o fst) constrs
-    |> register_datatype (tyco, (vs, Constructors cos))
+    |> register_type (tyco, (vs, Constructors cos))
+    |> Datatype_Interpretation.data (tyco, serial ())
   end;
 
 fun add_datatype_cmd raw_constrs thy =
   add_datatype (map (read_bare_const thy) raw_constrs) thy;
+
+structure Abstype_Interpretation =
+  Interpretation(type T = string * serial val eq = eq_snd (op =) : T * T -> bool);
+
+fun abstype_interpretation f = Abstype_Interpretation.interpretation
+  (fn (tyco, _) => fn thy => f (tyco, get_abstype_spec thy tyco) thy);
 
 fun add_abstype proto_abs proto_rep thy =
   let
     val (abs, rep) = pairself (unoverload_const_typ thy) (proto_abs, proto_rep);
     val (tyco, (vs, (abs_ty as (abs, ty), (rep, cert_prop)))) = abstype_cert thy abs (fst rep);
     fun after_qed [[cert]] = ProofContext.theory
-      (register_datatype (tyco, (vs, Abstractor (abs_ty, (rep, cert))))
+      (register_type (tyco, (vs, Abstractor (abs_ty, (rep, cert))))
       #> change_fun_spec false rep ((K o Proj)
-        (map_types Logic.varifyT (mk_proj tyco vs ty abs rep), tyco)));
+        (map_types Logic.varifyT (mk_proj tyco vs ty abs rep), tyco))
+      #> Abstype_Interpretation.data (tyco, serial ()));
   in
     thy
     |> ProofContext.init
@@ -1188,7 +1198,7 @@ val _ = Context.>> (Context.map_theory
            (mk_attribute o code_target_attr))
       || Scan.succeed (mk_attribute add_warning_eqn);
   in
-    Type_Interpretation.init
+    Datatype_Interpretation.init
     #> Attrib.setup (Binding.name "code") (Scan.lift code_attribute_parser)
         "declare theorems for code generation"
   end));
