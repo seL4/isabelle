@@ -17,6 +17,12 @@ Minor INCOMPATIBILITY.
 
 *** HOL ***
 
+* Multisets: changed orderings:
+  * pointwise ordering is instance of class order with standard syntax <= and <;
+  * multiset ordering has syntax <=# and <#; partial order properties are provided
+      by means of interpretation with prefix multiset_order.
+INCOMPATIBILITY.
+
 * New set of rules "ac_simps" provides combined assoc / commute rewrites
 for all interpretations of the appropriate generic locales.
 
