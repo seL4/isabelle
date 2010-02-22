@@ -755,43 +755,6 @@ A class is a particular locale with \emph{exactly one} type variable
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Old-style axiomatic type classes \label{sec:axclass}%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-\begin{matharray}{rcl}
-    \indexdef{}{command}{axclass}\hypertarget{command.axclass}{\hyperlink{command.axclass}{\mbox{\isa{\isacommand{axclass}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}}
-  \end{matharray}
-
-  Axiomatic type classes are Isabelle/Pure's primitive
-  interface to type classes.  For practical
-  applications, you should consider using classes
-  (cf.~\secref{sec:classes}) which provide high level interface.
-
-  \begin{rail}
-    'axclass' classdecl (axmdecl prop +)
-    ;
-  \end{rail}
-
-  \begin{description}
-  
-  \item \hyperlink{command.axclass}{\mbox{\isa{\isacommand{axclass}}}}~\isa{{\isachardoublequote}c\ {\isasymsubseteq}\ c\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n\ axms{\isachardoublequote}} defines an
-  axiomatic type class as the intersection of existing classes, with
-  additional axioms holding.  Class axioms may not contain more than
-  one type variable.  The class axioms (with implicit sort constraints
-  added) are bound to the given names.  Furthermore a class
-  introduction rule is generated (being bound as \isa{c{\isacharunderscore}class{\isachardot}intro}); this rule is employed by method \hyperlink{method.intro-classes}{\mbox{\isa{intro{\isacharunderscore}classes}}} to support instantiation proofs of this class.
-  
-  The ``class axioms'' (which are derived from the internal class
-  definition) are stored as theorems according to the given name
-  specifications; the name space prefix \isa{{\isachardoublequote}c{\isacharunderscore}class{\isachardoublequote}} is added
-  here.  The full collection of these facts is also stored as \isa{c{\isacharunderscore}class{\isachardot}axioms}.
-  
-  \end{description}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
 \isamarkupsection{Unrestricted overloading%
 }
 \isamarkuptrue%
@@ -996,8 +959,9 @@ Isabelle/Pure's definitional schemes support certain forms of
 
   \item \hyperlink{command.classrel}{\mbox{\isa{\isacommand{classrel}}}}~\isa{{\isachardoublequote}c\isactrlsub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlsub {\isadigit{2}}{\isachardoublequote}} states subclass
   relations between existing classes \isa{{\isachardoublequote}c\isactrlsub {\isadigit{1}}{\isachardoublequote}} and \isa{{\isachardoublequote}c\isactrlsub {\isadigit{2}}{\isachardoublequote}}.
-  This is done axiomatically!  The \indexref{}{command}{instance}\hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}} command
-  (see \secref{sec:axclass}) provides a way to introduce proven class
+  This is done axiomatically!  The \indexref{}{command}{instance}\hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}}
+  and \indexref{}{command}{subclass}\hyperlink{command.subclass}{\mbox{\isa{\isacommand{subclass}}}} command
+  (see \secref{sec:class}) provide a way to introduce proven class
   relations.
 
   \item \hyperlink{command.defaultsort}{\mbox{\isa{\isacommand{defaultsort}}}}~\isa{s} makes sort \isa{s} the
@@ -1056,8 +1020,8 @@ Isabelle/Pure's definitional schemes support certain forms of
 
   \item \hyperlink{command.arities}{\mbox{\isa{\isacommand{arities}}}}~\isa{{\isachardoublequote}t\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}s\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ s\isactrlsub n{\isacharparenright}s{\isachardoublequote}} augments
   Isabelle's order-sorted signature of types by new type constructor
-  arities.  This is done axiomatically!  The \indexref{}{command}{instance}\hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}}
-  command (see \secref{sec:axclass}) provides a way to introduce
+  arities.  This is done axiomatically!  The \indexref{}{command}{instantiation}\hyperlink{command.instantiation}{\mbox{\isa{\isacommand{instantiation}}}}
+  target (see \secref{sec:class}) provides a way to introduce
   proven type arities.
 
   \end{description}%

@@ -738,44 +738,6 @@ text {*
 *}
 
 
-subsection {* Old-style axiomatic type classes \label{sec:axclass} *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{command_def "axclass"} & : & @{text "theory \<rightarrow> theory"}
-  \end{matharray}
-
-  Axiomatic type classes are Isabelle/Pure's primitive
-  interface to type classes.  For practical
-  applications, you should consider using classes
-  (cf.~\secref{sec:classes}) which provide high level interface.
-
-  \begin{rail}
-    'axclass' classdecl (axmdecl prop +)
-    ;
-  \end{rail}
-
-  \begin{description}
-  
-  \item @{command "axclass"}~@{text "c \<subseteq> c\<^sub>1, \<dots>, c\<^sub>n axms"} defines an
-  axiomatic type class as the intersection of existing classes, with
-  additional axioms holding.  Class axioms may not contain more than
-  one type variable.  The class axioms (with implicit sort constraints
-  added) are bound to the given names.  Furthermore a class
-  introduction rule is generated (being bound as @{text
-  c_class.intro}); this rule is employed by method @{method
-  intro_classes} to support instantiation proofs of this class.
-  
-  The ``class axioms'' (which are derived from the internal class
-  definition) are stored as theorems according to the given name
-  specifications; the name space prefix @{text "c_class"} is added
-  here.  The full collection of these facts is also stored as @{text
-  c_class.axioms}.
-  
-  \end{description}
-*}
-
-
 section {* Unrestricted overloading *}
 
 text {*
@@ -962,8 +924,9 @@ text {*
 
   \item @{command "classrel"}~@{text "c\<^sub>1 \<subseteq> c\<^sub>2"} states subclass
   relations between existing classes @{text "c\<^sub>1"} and @{text "c\<^sub>2"}.
-  This is done axiomatically!  The @{command_ref "instance"} command
-  (see \secref{sec:axclass}) provides a way to introduce proven class
+  This is done axiomatically!  The @{command_ref "instance"}
+  and @{command_ref "subclass"} command
+  (see \secref{sec:class}) provide a way to introduce proven class
   relations.
 
   \item @{command "defaultsort"}~@{text s} makes sort @{text s} the
@@ -1021,8 +984,8 @@ text {*
 
   \item @{command "arities"}~@{text "t :: (s\<^sub>1, \<dots>, s\<^sub>n)s"} augments
   Isabelle's order-sorted signature of types by new type constructor
-  arities.  This is done axiomatically!  The @{command_ref "instance"}
-  command (see \secref{sec:axclass}) provides a way to introduce
+  arities.  This is done axiomatically!  The @{command_ref "instantiation"}
+  target (see \secref{sec:class}) provides a way to introduce
   proven type arities.
 
   \end{description}

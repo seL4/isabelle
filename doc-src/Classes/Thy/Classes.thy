@@ -362,17 +362,18 @@ consts %quote f :: "\<alpha> \<Rightarrow> \<alpha>"
 
 text {*
   \noindent The connection to the type system is done by means
-  of a primitive axclass
+  of a primitive type class
 *} (*<*)setup %invisible {* Sign.add_path "foo" *}
 (*>*)
-axclass %quote idem < type
-  idem: "f (f x) = f x" (*<*)setup %invisible {* Sign.parent_path *}(*>*)
+classes %quote idem < type
+(*<*)axiomatization where idem: "f (f (x::\<alpha>\<Colon>idem)) = f x"
+setup %invisible {* Sign.parent_path *}(*>*)
 
 text {* \noindent together with a corresponding interpretation: *}
 
 interpretation %quote idem_class:
   idem "f \<Colon> (\<alpha>\<Colon>idem) \<Rightarrow> \<alpha>"
-proof qed (rule idem)
+(*<*)proof qed (rule idem)(*>*)
 
 text {*
   \noindent This gives you the full power of the Isabelle module system;
@@ -414,8 +415,7 @@ text {*
 subsection {* Derived definitions *}
 
 text {*
-  Isabelle locales support a concept of local definitions
-  in locales:
+  Isabelle locales are targets which support local definitions:
 *}
 
 primrec %quote (in monoid) pow_nat :: "nat \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>" where
