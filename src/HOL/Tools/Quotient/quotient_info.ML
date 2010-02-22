@@ -280,7 +280,7 @@ fun improper_command (pp_fn, cmd_name, descr_str) =
     OuterKeyword.diag (Scan.succeed (Toplevel.keep (pp_fn o Toplevel.context_of)))
 
 val _ = map improper_command
-  [(print_mapsinfo, "print_maps", "prints out all map functions"),
+  [(print_mapsinfo, "print_quotmaps", "prints out all map functions"),
    (print_quotinfo, "print_quotients", "prints out all quotients"),
    (print_qconstinfo, "print_quotconsts", "prints out all quotient constants")]
 
