@@ -3268,3 +3268,29 @@ decl uf_10 :: T4
 #269 := [quant-inst]: #268
 [unit-resolution #269 #247 #274]: false
 unsat
+vqiyJ/qjGXZ3iOg6xftiug 15 0
+uf_1 -> val!0
+uf_2 -> val!1
+uf_3 -> val!2
+uf_5 -> val!15
+uf_6 -> val!26
+uf_4 -> {
+  val!0 -> val!12
+  val!1 -> val!13
+  else -> val!13
+}
+uf_7 -> {
+  val!6 -> val!31
+  else -> val!31
+}
+sat
+mrZPJZyTokErrN6SYupisw 9 0
+uf_4 -> val!1
+uf_2 -> val!3
+uf_3 -> val!4
+uf_1 -> {
+  val!5 -> val!6
+  val!4 -> val!7
+  else -> val!7
+}
+sat

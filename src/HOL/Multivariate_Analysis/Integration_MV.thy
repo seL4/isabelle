@@ -853,6 +853,14 @@ lemma has_integral_integrable[intro]: "(f has_integral i) s \<Longrightarrow> f 
 lemma has_integral_integral:"f integrable_on s \<longleftrightarrow> (f has_integral (integral s f)) s"
   by auto
 
+lemma has_integral_vec1: assumes "(f has_integral k) {a..b}"
+  shows "((\<lambda>x. vec1 (f x)) has_integral (vec1 k)) {a..b}"
+proof- have *:"\<And>p. (\<Sum>(x, k)\<in>p. content k *\<^sub>R vec1 (f x)) - vec1 k = vec1 ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - k)"
+    unfolding vec_sub Cart_eq by(auto simp add:vec1_dest_vec1_simps split_beta)
+  show ?thesis using assms unfolding has_integral apply safe
+    apply(erule_tac x=e in allE,safe) apply(rule_tac x=d in exI,safe)
+    apply(erule_tac x=p in allE,safe) unfolding * norm_vector_1 by auto qed
+
 lemma setsum_content_null:
   assumes "content({a..b}) = 0" "p tagged_division_of {a..b}"
   shows "setsum (\<lambda>(x,k). content k *\<^sub>R f x) p = (0::'a::real_normed_vector)"
