@@ -13,19 +13,6 @@ theory Rings
 imports Groups
 begin
 
-text {*
-  The theory of partially ordered rings is taken from the books:
-  \begin{itemize}
-  \item \emph{Lattice Theory} by Garret Birkhoff, American Mathematical Society 1979 
-  \item \emph{Partially Ordered Algebraic Systems}, Pergamon Press 1963
-  \end{itemize}
-  Most of the used notions can also be looked up in 
-  \begin{itemize}
-  \item \url{http://www.mathworld.com} by Eric Weisstein et. al.
-  \item \emph{Algebra I} by van der Waerden, Springer.
-  \end{itemize}
-*}
-
 class semiring = ab_semigroup_add + semigroup_mult +
   assumes left_distrib[algebra_simps]: "(a + b) * c = a * c + b * c"
   assumes right_distrib[algebra_simps]: "a * (b + c) = a * b + a * c"
@@ -505,6 +492,19 @@ end
 class mult_mono = times + zero + ord +
   assumes mult_left_mono: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"
   assumes mult_right_mono: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> a * c \<le> b * c"
+
+text {*
+  The theory of partially ordered rings is taken from the books:
+  \begin{itemize}
+  \item \emph{Lattice Theory} by Garret Birkhoff, American Mathematical Society 1979 
+  \item \emph{Partially Ordered Algebraic Systems}, Pergamon Press 1963
+  \end{itemize}
+  Most of the used notions can also be looked up in 
+  \begin{itemize}
+  \item \url{http://www.mathworld.com} by Eric Weisstein et. al.
+  \item \emph{Algebra I} by van der Waerden, Springer.
+  \end{itemize}
+*}
 
 class ordered_semiring = mult_mono + semiring_0 + ordered_ab_semigroup_add 
 begin
