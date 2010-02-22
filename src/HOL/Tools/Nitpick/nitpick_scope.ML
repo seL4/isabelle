@@ -136,7 +136,7 @@ fun spec_of_type ({card_assigns, ofs, ...} : scope) T =
 (* (string -> string) -> scope
    -> string list * string list * string list * string list * string list *)
 fun quintuple_for_scope quote
-        ({hol_ctxt as {thy, ctxt, stds, ...}, card_assigns, bits, bisim_depth,
+        ({hol_ctxt = {thy, ctxt, stds, ...}, card_assigns, bits, bisim_depth,
          datatypes, ...} : scope) =
   let
     val boring_Ts = [@{typ unsigned_bit}, @{typ signed_bit},
@@ -346,7 +346,7 @@ fun repair_card_assigns hol_ctxt binarize (card_assigns, max_assigns) =
   let
     (* (typ * int) list -> (typ * int) list -> (typ * int) list option *)
     fun aux seen [] = SOME seen
-      | aux seen ((T, 0) :: _) = NONE
+      | aux _ ((_, 0) :: _) = NONE
       | aux seen ((T, k) :: rest) =
         (if is_surely_inconsistent_scope_description hol_ctxt binarize
                 ((T, k) :: seen) rest max_assigns then
@@ -359,7 +359,7 @@ fun repair_card_assigns hol_ctxt binarize (card_assigns, max_assigns) =
   in aux [] (rev card_assigns) end
 
 (* theory -> (typ * int) list -> typ * int -> typ * int *)
-fun repair_iterator_assign thy assigns (T as Type (s, Ts), k) =
+fun repair_iterator_assign thy assigns (T as Type (_, Ts), k) =
     (T, if T = @{typ bisim_iterator} then
           let
             val co_cards = map snd (filter (is_codatatype thy o fst) assigns)
@@ -394,15 +394,15 @@ fun scope_descriptor_from_combination (hol_ctxt as {thy, ...}) binarize blocks
   end
   handle Option.Option => NONE
 
-(* theory -> (typ * int) list -> dtype_spec list -> int Typtab.table *)
-fun offset_table_for_card_assigns thy assigns dtypes =
+(* (typ * int) list -> dtype_spec list -> int Typtab.table *)
+fun offset_table_for_card_assigns assigns dtypes =
   let
     (* int -> (int * int) list -> (typ * int) list -> int Typtab.table
        -> int Typtab.table *)
     fun aux next _ [] = Typtab.update_new (dummyT, next)
       | aux next reusable ((T, k) :: assigns) =
-        if k = 1 orelse is_fp_iterator_type T orelse is_integer_type T
-           orelse T = @{typ bisim_iterator} orelse is_bit_type T then
+        if k = 1 orelse is_iterator_type T orelse is_integer_type T
+           orelse is_bit_type T then
           aux next reusable assigns
         else if length (these (Option.map #constrs (datatype_spec dtypes T)))
                 > 1 then
@@ -421,12 +421,10 @@ fun domain_card max card_assigns =
 (* scope_desc -> bool -> int -> (int -> int) -> int -> int -> bool * styp
    -> constr_spec list -> constr_spec list *)
 fun add_constr_spec (card_assigns, max_assigns) co card sum_dom_cards
-                    num_self_recs num_non_self_recs (self_rec, x as (s, T))
+                    num_self_recs num_non_self_recs (self_rec, x as (_, T))
                     constrs =
   let
     val max = constr_max max_assigns x
-    (* int -> int *)
-    fun bound k = Int.min (card, (max >= 0 ? curry Int.min max) k)
     (* unit -> int *)
     fun next_delta () = if null constrs then 0 else #epsilon (hd constrs)
     val {delta, epsilon, exclusive, total} =
@@ -496,14 +494,6 @@ fun datatype_spec_from_scope_descriptor (hol_ctxt as {thy, stds, ...}) binarize
      concrete = concrete, deep = deep, constrs = constrs}
   end
 
-(* int -> int *)
-fun min_bits_for_nat_value n = if n <= 0 then 0 else IntInf.log2 n + 1
-(* scope_desc -> int *)
-fun min_bits_for_max_assigns (_, []) = 0
-  | min_bits_for_max_assigns (card_assigns, max_assigns) =
-    min_bits_for_nat_value (fold Integer.max
-        (map snd card_assigns @ map snd max_assigns) 0)
-
 (* hol_context -> bool -> int -> typ list -> scope_desc -> scope *)
 fun scope_from_descriptor (hol_ctxt as {thy, stds, ...}) binarize sym_break
                           deep_dataTs (desc as (card_assigns, _)) =
@@ -520,7 +510,7 @@ fun scope_from_descriptor (hol_ctxt as {thy, stds, ...}) binarize sym_break
     {hol_ctxt = hol_ctxt, binarize = binarize, card_assigns = card_assigns,
      datatypes = datatypes, bits = bits, bisim_depth = bisim_depth,
      ofs = if sym_break <= 0 then Typtab.empty
-           else offset_table_for_card_assigns thy card_assigns datatypes}
+           else offset_table_for_card_assigns card_assigns datatypes}
   end
 
 (* theory -> typ list -> (typ option * int list) list

@@ -358,11 +358,11 @@ syntax (HTML output)
 
 parse_translation (advanced) {*
 let
-  val NilC = Syntax.const @{const_name Nil};
-  val ConsC = Syntax.const @{const_name Cons};
-  val mapC = Syntax.const @{const_name map};
-  val concatC = Syntax.const @{const_name concat};
-  val IfC = Syntax.const @{const_name If};
+  val NilC = Syntax.const @{const_syntax Nil};
+  val ConsC = Syntax.const @{const_syntax Cons};
+  val mapC = Syntax.const @{const_syntax map};
+  val concatC = Syntax.const @{const_syntax concat};
+  val IfC = Syntax.const @{const_syntax If};
 
   fun singl x = ConsC $ x $ NilC;
 
@@ -371,12 +371,14 @@ let
       val x = Free (Name.variant (fold Term.add_free_names [p, e] []) "x", dummyT);
       val e = if opti then singl e else e;
       val case1 = Syntax.const @{syntax_const "_case1"} $ p $ e;
-      val case2 = Syntax.const @{syntax_const "_case1"} $ Syntax.const Term.dummy_patternN $ NilC;
+      val case2 =
+        Syntax.const @{syntax_const "_case1"} $
+          Syntax.const @{const_syntax dummy_pattern} $ NilC;
       val cs = Syntax.const @{syntax_const "_case2"} $ case1 $ case2;
       val ft = Datatype_Case.case_tr false Datatype.info_of_constr ctxt [x, cs];
     in lambda x ft end;
 
-  fun abs_tr ctxt (p as Free(s,T)) e opti =
+  fun abs_tr ctxt (p as Free (s, T)) e opti =
         let
           val thy = ProofContext.theory_of ctxt;
           val s' = Sign.intern_const thy s;
@@ -1677,11 +1679,22 @@ by (simp add: butlast_conv_take drop_take add_ac)
 lemma hd_drop_conv_nth: "\<lbrakk> xs \<noteq> []; n < length xs \<rbrakk> \<Longrightarrow> hd(drop n xs) = xs!n"
 by(simp add: hd_conv_nth)
 
+lemma set_take_subset_set_take:
+  "m <= n \<Longrightarrow> set(take m xs) <= set(take n xs)"
+by(induct xs arbitrary: m n)(auto simp:take_Cons split:nat.split)
+
 lemma set_take_subset: "set(take n xs) \<subseteq> set xs"
 by(induct xs arbitrary: n)(auto simp:take_Cons split:nat.split)
 
 lemma set_drop_subset: "set(drop n xs) \<subseteq> set xs"
 by(induct xs arbitrary: n)(auto simp:drop_Cons split:nat.split)
+
+lemma set_drop_subset_set_drop:
+  "m >= n \<Longrightarrow> set(drop m xs) <= set(drop n xs)"
+apply(induct xs arbitrary: m n)
+apply(auto simp:drop_Cons split:nat.split)
+apply (metis set_drop_subset subset_iff)
+done
 
 lemma in_set_takeD: "x : set(take n xs) \<Longrightarrow> x : set xs"
 using set_take_subset by fast
@@ -2352,7 +2365,7 @@ lemma foldl_conv_concat:
 proof (induct xss arbitrary: xs)
   case Nil show ?case by simp
 next
-  interpret monoid_add "[]" "op @" proof qed simp_all
+  interpret monoid_add "op @" "[]" proof qed simp_all
   case Cons then show ?case by (simp add: foldl_absorb0)
 qed
 

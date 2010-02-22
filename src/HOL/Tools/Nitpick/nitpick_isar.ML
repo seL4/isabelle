@@ -169,7 +169,7 @@ fun bool_option_from_string option name s =
    | "false" => SOME false
    | "true" => SOME true
    | "" => SOME true
-   | s => raise Option)
+   | _ => raise Option)
   handle Option.Option =>
          let val ss = map quote ((option ? cons "smart") ["true", "false"]) in
            error ("Parameter " ^ quote name ^ " must be assigned " ^
@@ -433,7 +433,6 @@ fun pick_nits override_params auto i step state =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
-    val thm = #goal (Proof.raw_goal state)
     val _ = List.app check_raw_param override_params
     val params as {blocking, debug, ...} =
       extract_params ctxt auto (default_raw_params thy) override_params

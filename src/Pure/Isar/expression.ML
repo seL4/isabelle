@@ -604,7 +604,7 @@ fun atomize_spec thy ts =
 
 (* achieve plain syntax for locale predicates (without "PROP") *)
 
-fun aprop_tr' n c = (Syntax.constN ^ c, fn ctxt => fn args =>
+fun aprop_tr' n c = (Syntax.mark_const c, fn ctxt => fn args =>
   if length args = n then
     Syntax.const "_aprop" $   (* FIXME avoid old-style early externing (!??) *)
       Term.list_comb (Syntax.free (Consts.extern (ProofContext.consts_of ctxt) c), args)
@@ -641,8 +641,7 @@ fun def_pred binding parms defs ts norm_ts thy =
       |> bodyT = propT ? Sign.add_advanced_trfuns ([], [], [aprop_tr' (length args) name], [])
       |> Sign.declare_const ((Binding.conceal binding, predT), NoSyn) |> snd
       |> PureThy.add_defs false
-        [((Binding.conceal (Binding.map_name Thm.def_name binding),
-            Logic.mk_equals (head, body)), [])];
+        [((Binding.conceal (Thm.def_binding binding), Logic.mk_equals (head, body)), [])];
     val defs_ctxt = ProofContext.init defs_thy |> Variable.declare_term head;
 
     val cert = Thm.cterm_of defs_thy;

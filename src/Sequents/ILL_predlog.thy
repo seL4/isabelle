@@ -11,7 +11,7 @@ consts
   disj :: "[plf,plf] => plf"   (infixr "|" 35)
   impl :: "[plf,plf] => plf"   (infixr ">" 35)
   eq :: "[plf,plf] => plf"   (infixr "=" 35)
-  ff    :: "plf"
+  ff :: "plf"    ("ff")
 
   PL    :: "plf => o"      ("[* / _ / *]" [] 100)
 
@@ -22,8 +22,8 @@ translations
 
   "[* A & B *]" == "[*A*] && [*B*]"
   "[* A | B *]" == "![*A*] ++ ![*B*]"
-  "[* - A *]"   == "[*A > CONST ff*]"
-  "[* XCONST ff *]" == "0"
+  "[* - A *]" == "[*A > ff*]"
+  "[* ff *]" == "0"
   "[* A = B *]" => "[* (A > B) & (B > A) *]"
 
   "[* A > B *]" == "![*A*] -o [*B*]"

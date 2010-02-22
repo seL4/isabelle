@@ -2436,8 +2436,8 @@ val depth_limited_comp_modifiers = Comp_Mod.Comp_Modifiers
       val [polarity, depth] = additional_arguments
       val polarity' = (case prem of Prem _ => I | Negprem _ => HOLogic.mk_not | _ => I) polarity
       val depth' =
-        Const ("Algebras.minus", @{typ "code_numeral => code_numeral => code_numeral"})
-          $ depth $ Const ("Algebras.one", @{typ "Code_Numeral.code_numeral"})
+        Const (@{const_name Groups.minus}, @{typ "code_numeral => code_numeral => code_numeral"})
+          $ depth $ Const (@{const_name Groups.one}, @{typ "Code_Numeral.code_numeral"})
     in [polarity', depth'] end
   }
 

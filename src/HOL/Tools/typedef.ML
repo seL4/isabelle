@@ -119,8 +119,7 @@ fun prepare_typedef prep_term def name (tname, vs, mx) raw_set opt_morphs thy =
       if def then
         theory
         |> Sign.add_consts_i [(name, setT', NoSyn)]   (* FIXME authentic syntax *)
-        |> PureThy.add_defs false
-          [((Binding.map_name Thm.def_name name, Logic.mk_equals (setC, set)), [])]
+        |> PureThy.add_defs false [((Thm.def_binding name, Logic.mk_equals (setC, set)), [])]
         |-> (fn [th] => pair (SOME th))
       else (NONE, theory);
     fun contract_def NONE th = th

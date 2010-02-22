@@ -18,43 +18,43 @@ nonterminals
   context' typing'
 
 consts
-  Abs           :: "[term, term => term] => term"
-  Prod          :: "[term, term => term] => term"
-  Trueprop      :: "[context, typing] => prop"
-  MT_context    :: "context"
-  Context       :: "[typing, context] => context"
-  star          :: "term"                               ("*")
-  box           :: "term"                               ("[]")
-  app           :: "[term, term] => term"               (infixl "^" 20)
-  Has_type      :: "[term, term] => typing"
+  Abs :: "[term, term => term] => term"
+  Prod :: "[term, term => term] => term"
+  Trueprop :: "[context, typing] => prop"
+  MT_context :: "context"
+  Context :: "[typing, context] => context"
+  star :: "term"    ("*")
+  box :: "term"    ("[]")
+  app :: "[term, term] => term"    (infixl "^" 20)
+  Has_type :: "[term, term] => typing"
 
 syntax
-  Trueprop      :: "[context', typing'] => prop"        ("(_/ |- _)")
-  Trueprop1     :: "typing' => prop"                    ("(_)")
-  ""            :: "id => context'"                     ("_")
-  ""            :: "var => context'"                    ("_")
-  MT_context    :: "context'"                           ("")
-  Context       :: "[typing', context'] => context'"    ("_ _")
-  Has_type      :: "[term, term] => typing'"            ("(_:/ _)" [0, 0] 5)
-  Lam           :: "[idt, term, term] => term"          ("(3Lam _:_./ _)" [0, 0, 0] 10)
-  Pi            :: "[idt, term, term] => term"          ("(3Pi _:_./ _)" [0, 0] 10)
-  arrow         :: "[term, term] => term"               (infixr "->" 10)
+  "\<^const>Cube.Trueprop" :: "[context', typing'] => prop"    ("(_/ |- _)")
+  "_Trueprop1" :: "typing' => prop"    ("(_)")
+  "" :: "id => context'"    ("_")
+  "" :: "var => context'"    ("_")
+  "\<^const>Cube.MT_context" :: "context'"    ("")
+  "\<^const>Cube.Context" :: "[typing', context'] => context'"    ("_ _")
+  "\<^const>Cube.Has_type" :: "[term, term] => typing'"    ("(_:/ _)" [0, 0] 5)
+  "_Lam" :: "[idt, term, term] => term"    ("(3Lam _:_./ _)" [0, 0, 0] 10)
+  "_Pi" :: "[idt, term, term] => term"    ("(3Pi _:_./ _)" [0, 0] 10)
+  "_arrow" :: "[term, term] => term"    (infixr "->" 10)
 
 translations
   ("prop") "x:X" == ("prop") "|- x:X"
-  "Lam x:A. B"   == "CONST Abs(A, %x. B)"
-  "Pi x:A. B"    => "CONST Prod(A, %x. B)"
-  "A -> B"       => "CONST Prod(A, %_. B)"
+  "Lam x:A. B" == "CONST Abs(A, %x. B)"
+  "Pi x:A. B" => "CONST Prod(A, %x. B)"
+  "A -> B" => "CONST Prod(A, %_. B)"
 
 syntax (xsymbols)
-  Trueprop      :: "[context', typing'] => prop"        ("(_/ \<turnstile> _)")
-  box           :: "term"                               ("\<box>")
-  Lam           :: "[idt, term, term] => term"          ("(3\<Lambda> _:_./ _)" [0, 0, 0] 10)
-  Pi            :: "[idt, term, term] => term"          ("(3\<Pi> _:_./ _)" [0, 0] 10)
-  arrow         :: "[term, term] => term"               (infixr "\<rightarrow>" 10)
+  "\<^const>Cube.Trueprop" :: "[context', typing'] => prop"    ("(_/ \<turnstile> _)")
+  "\<^const>Cube.box" :: "term"    ("\<box>")
+  "_Lam" :: "[idt, term, term] => term"    ("(3\<Lambda> _:_./ _)" [0, 0, 0] 10)
+  "_Pi" :: "[idt, term, term] => term"    ("(3\<Pi> _:_./ _)" [0, 0] 10)
+  "_arrow" :: "[term, term] => term"    (infixr "\<rightarrow>" 10)
 
 print_translation {*
-  [(@{const_syntax Prod}, dependent_tr' (@{syntax_const Pi}, @{syntax_const arrow}))]
+  [(@{const_syntax Prod}, dependent_tr' (@{syntax_const "_Pi"}, @{syntax_const "_arrow"}))]
 *}
 
 axioms

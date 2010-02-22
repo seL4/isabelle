@@ -40,7 +40,7 @@ syntax
   "_partlist"     :: "args => 'a Seq"              ("[(_)?]")
 translations
   "[x, xs!]"     == "x>>[xs!]"
-  "[x!]"         == "x>>CONST nil"
+  "[x!]"         == "x>>nil"
   "[x, xs?]"     == "x>>[xs?]"
   "[x?]"         == "x>>CONST UU"
 

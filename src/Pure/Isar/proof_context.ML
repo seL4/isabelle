@@ -28,7 +28,6 @@ sig
   val full_name: Proof.context -> binding -> string
   val syn_of: Proof.context -> Syntax.syntax
   val consts_of: Proof.context -> Consts.T
-  val const_syntax_name: Proof.context -> string -> string
   val the_const_constraint: Proof.context -> string -> typ
   val set_syntax_mode: Syntax.mode -> Proof.context -> Proof.context
   val restore_syntax_mode: Proof.context -> Proof.context -> Proof.context
@@ -235,7 +234,6 @@ val set_syntax_mode = map_syntax o Local_Syntax.set_mode;
 val restore_syntax_mode = map_syntax o Local_Syntax.restore_mode o syntax_of;
 
 val consts_of = #1 o #consts o rep_context;
-val const_syntax_name = Consts.syntax_name o consts_of;
 val the_const_constraint = Consts.the_constraint o consts_of;
 
 val facts_of = #facts o rep_context;
@@ -707,10 +705,10 @@ fun unparse_term ctxt t =
     val consts = consts_of ctxt;
   in
     t
-    |> Sign.extern_term (Consts.extern_early consts) thy
+    |> Sign.extern_term thy
     |> Local_Syntax.extern_term syntax
-    |> Syntax.standard_unparse_term (Consts.extern consts) ctxt (Local_Syntax.syn_of syntax)
-        (not (PureThy.old_appl_syntax thy))
+    |> Syntax.standard_unparse_term (Consts.extern consts) ctxt
+        (Local_Syntax.syn_of syntax) (not (PureThy.old_appl_syntax thy))
   end;
 
 in
@@ -990,7 +988,7 @@ local
 fun const_ast_tr intern ctxt [Syntax.Variable c] =
       let
         val Const (c', _) = read_const_proper ctxt c;
-        val d = if intern then const_syntax_name ctxt c' else c;
+        val d = if intern then Syntax.mark_const c' else c;
       in Syntax.Constant d end
   | const_ast_tr _ _ asts = raise Syntax.AST ("const_ast_tr", asts);
 
@@ -1018,7 +1016,9 @@ local
 
 fun const_syntax _ (Free (x, T), mx) = SOME (true, (x, T, mx))
   | const_syntax ctxt (Const (c, _), mx) =
-      Option.map (pair false) (try (Consts.syntax (consts_of ctxt)) (c, mx))
+      (case try (Consts.type_scheme (consts_of ctxt)) c of
+        SOME T => SOME (false, (Syntax.mark_const c, T, mx))
+      | NONE => NONE)
   | const_syntax _ _ = NONE;
 
 in

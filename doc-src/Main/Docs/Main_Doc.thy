@@ -48,8 +48,8 @@ preorder, partial order, linear order, dense linear order and wellorder.
 \smallskip
 
 \begin{supertabular}{@ {} l @ {~::~} l l @ {}}
-@{const Algebras.less_eq} & @{typeof Algebras.less_eq} & (\verb$<=$)\\
-@{const Algebras.less} & @{typeof Algebras.less}\\
+@{const Orderings.less_eq} & @{typeof Orderings.less_eq} & (\verb$<=$)\\
+@{const Orderings.less} & @{typeof Orderings.less}\\
 @{const Orderings.Least} & @{typeof Orderings.Least}\\
 @{const Orderings.min} & @{typeof Orderings.min}\\
 @{const Orderings.max} & @{typeof Orderings.max}\\

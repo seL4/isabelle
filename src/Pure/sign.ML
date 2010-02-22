@@ -41,7 +41,6 @@ sig
   val declared_tyname: theory -> string -> bool
   val declared_const: theory -> string -> bool
   val const_monomorphic: theory -> string -> bool
-  val const_syntax_name: theory -> string -> string
   val const_typargs: theory -> string * typ -> typ list
   val const_instance: theory -> string * typ list -> typ
   val mk_const: theory -> string * typ list -> term
@@ -59,7 +58,7 @@ sig
   val intern_typ: theory -> typ -> typ
   val extern_typ: theory -> typ -> typ
   val intern_term: theory -> term -> term
-  val extern_term: (string -> xstring) -> theory -> term -> term
+  val extern_term: theory -> term -> term
   val intern_tycons: theory -> typ -> typ
   val arity_number: theory -> string -> int
   val arity_sorts: theory -> string -> sort -> sort list
@@ -226,7 +225,6 @@ val the_const_constraint = Consts.the_constraint o consts_of;
 val the_const_type = Consts.the_type o consts_of;
 val const_type = try o the_const_type;
 val const_monomorphic = Consts.is_monomorphic o consts_of;
-val const_syntax_name = Consts.syntax_name o consts_of;
 val const_typargs = Consts.typargs o consts_of;
 val const_instance = Consts.instance o consts_of;
 
@@ -299,7 +297,7 @@ in
 val intern_typ = typ_mapping intern_class intern_type;
 val extern_typ = typ_mapping extern_class extern_type;
 val intern_term = term_mapping intern_class intern_type intern_const;
-fun extern_term h = term_mapping extern_class extern_type (K h);
+val extern_term = term_mapping extern_class extern_type (K Syntax.mark_const);
 val intern_tycons = typ_mapping (K I) intern_type;
 
 end;
@@ -486,7 +484,10 @@ val del_modesyntax_i = gen_syntax Syntax.remove_const_gram (K I);
 fun notation add mode args thy =
   let
     val change_gram = if add then Syntax.update_const_gram else Syntax.remove_const_gram;
-    fun const_syntax (Const (c, _), mx) = try (Consts.syntax (consts_of thy)) (c, mx)
+    fun const_syntax (Const (c, _), mx) =
+          (case try (Consts.type_scheme (consts_of thy)) c of
+            SOME T => SOME (Syntax.mark_const c, T, mx)
+          | NONE => NONE)
       | const_syntax _ = NONE;
   in gen_syntax change_gram (K I) mode (map_filter const_syntax args) thy end;
 
@@ -495,35 +496,34 @@ fun notation add mode args thy =
 
 local
 
-fun gen_add_consts parse_typ authentic raw_args thy =
+fun gen_add_consts parse_typ raw_args thy =
   let
     val ctxt = ProofContext.init thy;
     val prepT = Type.no_tvars o Term.no_dummyT o certify_typ thy o parse_typ ctxt;
     fun prep (b, raw_T, mx) =
       let
         val c = full_name thy b;
-        val c_syn = if authentic then Syntax.constN ^ c else Name.of_binding b;
         val T = (prepT raw_T handle TYPE (msg, _, _) => error msg) handle ERROR msg =>
           cat_error msg ("in declaration of constant " ^ quote (Binding.str_of b));
         val T' = Logic.varifyT T;
-      in ((b, T'), (c_syn, T', mx), Const (c, T)) end;
+      in ((b, T'), (Syntax.mark_const c, T', mx), Const (c, T)) end;
     val args = map prep raw_args;
   in
     thy
-    |> map_consts (fold (Consts.declare authentic (naming_of thy) o #1) args)
+    |> map_consts (fold (Consts.declare (naming_of thy) o #1) args)
     |> add_syntax_i (map #2 args)
     |> pair (map #3 args)
   end;
 
 in
 
-fun add_consts args = snd o gen_add_consts Syntax.parse_typ false args;
-fun add_consts_i args = snd o gen_add_consts (K I) false args;
+fun add_consts args = snd o gen_add_consts Syntax.parse_typ args;
+fun add_consts_i args = snd o gen_add_consts (K I) args;
 
 fun declare_const ((b, T), mx) thy =
   let
     val pos = Binding.pos_of b;
-    val ([const as Const (c, _)], thy') = gen_add_consts (K I) true [(b, T, mx)] thy;
+    val ([const as Const (c, _)], thy') = gen_add_consts (K I) [(b, T, mx)] thy;
     val _ = Position.report (Markup.const_decl c) pos;
   in (const, thy') end;
 

@@ -24,7 +24,7 @@ where
 declare [[map "+" = (sum_map, sum_rel)]]
 
 
-text {* should probably be in Sum_Type.thy *}
+text {* should probably be in @{theory Sum_Type} *}
 lemma split_sum_all:
   shows "(\<forall>x. P x) \<longleftrightarrow> (\<forall>x. P (Inl x)) \<and> (\<forall>x. P (Inr x))"
   apply(auto)

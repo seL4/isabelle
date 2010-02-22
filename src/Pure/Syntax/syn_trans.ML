@@ -129,13 +129,15 @@ fun mk_binder_tr (syn, name) =
 
 (* type propositions *)
 
-fun mk_type ty = Lexicon.const "_constrain" $ Lexicon.const "TYPE" $ (Lexicon.const "itself" $ ty);
+fun mk_type ty =
+  Lexicon.const "_constrain" $
+    Lexicon.const "\\<^const>TYPE" $ (Lexicon.const "itself" $ ty);
 
 fun ofclass_tr (*"_ofclass"*) [ty, cls] = cls $ mk_type ty
   | ofclass_tr (*"_ofclass"*) ts = raise TERM ("ofclass_tr", ts);
 
 fun sort_constraint_tr (*"_sort_constraint"*) [ty] =
-      Lexicon.const "Pure.sort_constraint" $ mk_type ty
+      Lexicon.const "\\<^const>Pure.sort_constraint" $ mk_type ty
   | sort_constraint_tr (*"_sort_constraint"*) ts = raise TERM ("sort_constraint_tr", ts);
 
 
@@ -152,7 +154,7 @@ fun bigimpl_ast_tr (*"_bigimpl"*) (asts as [asms, concl]) =
         (case Ast.unfold_ast_p "_asms" asms of
           (asms', Ast.Appl [Ast.Constant "_asm", asm']) => asms' @ [asm']
         | _ => raise Ast.AST ("bigimpl_ast_tr", asts))
-      in Ast.fold_ast_p "==>" (prems, concl) end
+      in Ast.fold_ast_p "\\<^const>==>" (prems, concl) end
   | bigimpl_ast_tr (*"_bigimpl"*) asts = raise Ast.AST ("bigimpl_ast_tr", asts);
 
 
@@ -350,7 +352,7 @@ fun idtyp_ast_tr' a [Ast.Appl [Ast.Constant c, x, ty], xs] =
 
 (* type propositions *)
 
-fun type_prop_tr' _ (*"_type_prop"*) T [Const ("Pure.sort_constraint", _)] =
+fun type_prop_tr' _ (*"_type_prop"*) T [Const ("\\<^const>Pure.sort_constraint", _)] =
       Lexicon.const "_sort_constraint" $ TypeExt.term_of_typ true T
   | type_prop_tr' show_sorts (*"_type_prop"*) T [t] =
       Lexicon.const "_ofclass" $ TypeExt.term_of_typ show_sorts T $ t
@@ -366,7 +368,7 @@ fun prop_tr' tm =
     fun is_prop Ts t =
       fastype_of1 (Ts, t) = propT handle TERM _ => false;
 
-    fun is_term (Const ("Pure.term", _) $ _) = true
+    fun is_term (Const ("\\<^const>Pure.term", _) $ _) = true
       | is_term _ = false;
 
     fun tr' _ (t as Const _) = t
@@ -379,7 +381,7 @@ fun prop_tr' tm =
       | tr' Ts (t as Bound _) =
           if is_prop Ts t then aprop t else t
       | tr' Ts (Abs (x, T, t)) = Abs (x, T, tr' (T :: Ts) t)
-      | tr' Ts (t as t1 $ (t2 as Const ("TYPE", Type ("itself", [T])))) =
+      | tr' Ts (t as t1 $ (t2 as Const ("\\<^const>TYPE", Type ("itself", [T])))) =
           if is_prop Ts t andalso not (is_term t) then Const ("_type_prop", T) $ tr' Ts t1
           else tr' Ts t1 $ tr' Ts t2
       | tr' Ts (t as t1 $ t2) =
@@ -393,7 +395,7 @@ fun prop_tr' tm =
 fun impl_ast_tr' (*"==>"*) asts =
   if TypeExt.no_brackets () then raise Match
   else
-    (case Ast.unfold_ast_p "==>" (Ast.Appl (Ast.Constant "==>" :: asts)) of
+    (case Ast.unfold_ast_p "\\<^const>==>" (Ast.Appl (Ast.Constant "\\<^const>==>" :: asts)) of
       (prems as _ :: _ :: _, concl) =>
         let
           val (asms, asm) = split_last prems;
@@ -514,11 +516,13 @@ val pure_trfuns =
    [("_abs", abs_ast_tr'),
     ("_idts", idtyp_ast_tr' "_idts"),
     ("_pttrns", idtyp_ast_tr' "_pttrns"),
-    ("==>", impl_ast_tr'),
+    ("\\<^const>==>", impl_ast_tr'),
     ("_index", index_ast_tr')]);
 
 val pure_trfunsT =
-  [("_type_prop", type_prop_tr'), ("TYPE", type_tr'), ("_type_constraint_", type_constraint_tr')];
+ [("_type_prop", type_prop_tr'),
+  ("\\<^const>TYPE", type_tr'),
+  ("_type_constraint_", type_constraint_tr')];
 
 fun struct_trfuns structs =
   ([], [("_struct", struct_tr structs)], [], [("_struct", struct_ast_tr' structs)]);

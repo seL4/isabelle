@@ -19,8 +19,8 @@ struct
 
 (** abstract syntax of structure nat: 0, Suc, + **)
 
-val mk_plus = HOLogic.mk_binop @{const_name Algebras.plus};
-val dest_plus = HOLogic.dest_bin @{const_name Algebras.plus} HOLogic.natT;
+val mk_plus = HOLogic.mk_binop @{const_name Groups.plus};
+val dest_plus = HOLogic.dest_bin @{const_name Groups.plus} HOLogic.natT;
 
 fun mk_sum [] = HOLogic.zero
   | mk_sum [t] = t
@@ -85,8 +85,8 @@ end);
 structure DiffCancelSums = CancelSumsFun
 (struct
   open CommonCancelSums;
-  val mk_bal = HOLogic.mk_binop @{const_name Algebras.minus};
-  val dest_bal = HOLogic.dest_bin @{const_name Algebras.minus} HOLogic.natT;
+  val mk_bal = HOLogic.mk_binop @{const_name Groups.minus};
+  val dest_bal = HOLogic.dest_bin @{const_name Groups.minus} HOLogic.natT;
   val uncancel_tac = gen_uncancel_tac @{thm "diff_cancel"};
 end);
 

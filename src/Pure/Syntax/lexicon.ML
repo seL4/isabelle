@@ -31,7 +31,11 @@ sig
   val read_xnum: string -> {radix: int, leading_zeros: int, value: int}
   val read_float: string -> {mant: int, exp: int}
   val fixedN: string
+  val mark_fixed: string -> string
+  val unmark_fixed: string -> string
   val constN: string
+  val mark_const: string -> string
+  val unmark_const: string -> string
 end;
 
 signature LEXICON =
@@ -331,8 +335,13 @@ fun read_variable str =
 
 (* specific identifiers *)
 
-val constN = "\\<^const>";
 val fixedN = "\\<^fixed>";
+val mark_fixed = prefix fixedN;
+val unmark_fixed = unprefix fixedN;
+
+val constN = "\\<^const>";
+val mark_const = prefix constN;
+val unmark_const = unprefix constN;
 
 
 (* read numbers *)

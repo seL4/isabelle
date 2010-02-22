@@ -1055,7 +1055,7 @@ end
 
 subsection {* Generalized summation over a set *}
 
-interpretation comm_monoid_add: comm_monoid_mult "0::'a::comm_monoid_add" "op +"
+interpretation comm_monoid_add: comm_monoid_mult "op +" "0::'a::comm_monoid_add"
   proof qed (auto intro: add_assoc add_commute)
 
 definition setsum :: "('a => 'b) => 'a set => 'b::comm_monoid_add"

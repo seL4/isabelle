@@ -11,7 +11,8 @@ theory Datatype_Nits
 imports Main
 begin
 
-nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1, timeout = 60 s]
+nitpick_params [max_potential = 0, sat_solver = MiniSat_JNI, max_threads = 1,
+                timeout = 60 s]
 
 primrec rot where
 "rot Nibble0 = Nibble1" | "rot Nibble1 = Nibble2" | "rot Nibble2 = Nibble3" |
@@ -27,9 +28,8 @@ sorry
 
 lemma "rot Nibble2 \<noteq> Nibble3"
 nitpick [card = 1, expect = none]
-nitpick [card = 2, expect = genuine]
+nitpick [card = 2, max Nibble4 = 0, expect = genuine]
 nitpick [card = 2, max Nibble2 = 0, expect = none]
-nitpick [card = 2, max Nibble3 = 0, expect = none]
 oops
 
 lemma "(rot ^^ 15) n \<noteq> n"
@@ -53,7 +53,7 @@ fun sn where
 "sn (Pd (_, b)) = b"
 
 lemma "fs (Pd p) = fst p"
-nitpick [card = 20, expect = none]
+nitpick [card = 12, expect = none]
 sorry
 
 lemma "fs (Pd p) = snd p"
@@ -61,7 +61,7 @@ nitpick [expect = genuine]
 oops
 
 lemma "sn (Pd p) = snd p"
-nitpick [card = 20, expect = none]
+nitpick [card = 12, expect = none]
 sorry
 
 lemma "sn (Pd p) = fst p"
@@ -69,7 +69,7 @@ nitpick [expect = genuine]
 oops
 
 lemma "fs (Pd ((a, b), (c, d))) = (a, b)"
-nitpick [card = 1\<midarrow>12, expect = none]
+nitpick [card = 1\<midarrow>10, expect = none]
 sorry
 
 lemma "fs (Pd ((a, b), (c, d))) = (c, d)"
@@ -82,7 +82,7 @@ fun app where
 "app (Fn f) x = f x"
 
 lemma "app (Fn g) y = g y"
-nitpick [card = 1\<midarrow>12, expect = none]
+nitpick [card = 1\<midarrow>10, expect = none]
 sorry
 
 lemma "app (Fn g) y = g' y"

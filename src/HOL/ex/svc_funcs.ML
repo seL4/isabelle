@@ -146,16 +146,16 @@ struct
     (*translation of a literal*)
     val lit = snd o HOLogic.dest_number;
     (*translation of a literal expression [no variables]*)
-    fun litExp (Const(@{const_name Algebras.plus}, T) $ x $ y) =
+    fun litExp (Const(@{const_name Groups.plus}, T) $ x $ y) =
           if is_numeric_op T then (litExp x) + (litExp y)
           else fail t
-      | litExp (Const(@{const_name Algebras.minus}, T) $ x $ y) =
+      | litExp (Const(@{const_name Groups.minus}, T) $ x $ y) =
           if is_numeric_op T then (litExp x) - (litExp y)
           else fail t
-      | litExp (Const(@{const_name Algebras.times}, T) $ x $ y) =
+      | litExp (Const(@{const_name Groups.times}, T) $ x $ y) =
           if is_numeric_op T then (litExp x) * (litExp y)
           else fail t
-      | litExp (Const(@{const_name Algebras.uminus}, T) $ x)   =
+      | litExp (Const(@{const_name Groups.uminus}, T) $ x)   =
           if is_numeric_op T then ~(litExp x)
           else fail t
       | litExp t = lit t
@@ -163,21 +163,21 @@ struct
     (*translation of a real/rational expression*)
     fun suc t = Interp("+", [Int 1, t])
     fun tm (Const(@{const_name Suc}, T) $ x) = suc (tm x)
-      | tm (Const(@{const_name Algebras.plus}, T) $ x $ y) =
+      | tm (Const(@{const_name Groups.plus}, T) $ x $ y) =
           if is_numeric_op T then Interp("+", [tm x, tm y])
           else fail t
-      | tm (Const(@{const_name Algebras.minus}, T) $ x $ y) =
+      | tm (Const(@{const_name Groups.minus}, T) $ x $ y) =
           if is_numeric_op T then
               Interp("+", [tm x, Interp("*", [Int ~1, tm y])])
           else fail t
-      | tm (Const(@{const_name Algebras.times}, T) $ x $ y) =
+      | tm (Const(@{const_name Groups.times}, T) $ x $ y) =
           if is_numeric_op T then Interp("*", [tm x, tm y])
           else fail t
       | tm (Const(@{const_name Rings.inverse}, T) $ x) =
           if domain_type T = HOLogic.realT then
               Rat(1, litExp x)
           else fail t
-      | tm (Const(@{const_name Algebras.uminus}, T) $ x) =
+      | tm (Const(@{const_name Groups.uminus}, T) $ x) =
           if is_numeric_op T then Interp("*", [Int ~1, tm x])
           else fail t
       | tm t = Int (lit t)

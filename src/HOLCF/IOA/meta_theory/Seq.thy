@@ -8,7 +8,7 @@ theory Seq
 imports HOLCF
 begin
 
-domain 'a seq = nil | cons (HD :: 'a) (lazy TL :: "'a seq")  (infixr "##" 65)
+domain 'a seq = nil  ("nil") | cons (HD :: 'a) (lazy TL :: "'a seq")  (infixr "##" 65)
 
 (*
    sfilter       :: "('a -> tr) -> 'a seq -> 'a seq"

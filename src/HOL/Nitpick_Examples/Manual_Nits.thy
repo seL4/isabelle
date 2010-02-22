@@ -8,7 +8,7 @@ Examples from the Nitpick manual.
 header {* Examples from the Nitpick Manual *}
 
 theory Manual_Nits
-imports Main Coinductive_List RealDef
+imports Main Coinductive_List Quotient_Product RealDef
 begin
 
 chapter {* 3. First Steps *}
@@ -99,6 +99,21 @@ definition B :: three where "B \<equiv> Abs_three 1"
 definition C :: three where "C \<equiv> Abs_three 2"
 
 lemma "\<lbrakk>P A; P B\<rbrakk> \<Longrightarrow> P x"
+nitpick [show_datatypes]
+oops
+
+fun my_int_rel where
+"my_int_rel (x, y) (u, v) = (x + v = u + y)"
+
+quotient_type my_int = "nat \<times> nat" / my_int_rel
+by (auto simp add: equivp_def expand_fun_eq)
+
+definition add_raw where
+"add_raw \<equiv> \<lambda>(x, y) (u, v). (x + (u\<Colon>nat), y + (v\<Colon>nat))"
+
+quotient_definition "add\<Colon>my_int \<Rightarrow> my_int \<Rightarrow> my_int" is add_raw
+
+lemma "add x y = add x x"
 nitpick [show_datatypes]
 oops
 

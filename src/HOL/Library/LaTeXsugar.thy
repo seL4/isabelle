@@ -64,10 +64,10 @@ notation (latex output)
 consts DUMMY :: 'a ("\<^raw:\_>")
 
 (* THEOREMS *)
-syntax (Rule output)
-  "==>" :: "prop \<Rightarrow> prop \<Rightarrow> prop"
-  ("\<^raw:\mbox{}\inferrule{\mbox{>_\<^raw:}}>\<^raw:{\mbox{>_\<^raw:}}>")
+notation (Rule output)
+  "==>"  ("\<^raw:\mbox{}\inferrule{\mbox{>_\<^raw:}}>\<^raw:{\mbox{>_\<^raw:}}>")
 
+syntax (Rule output)
   "_bigimpl" :: "asms \<Rightarrow> prop \<Rightarrow> prop"
   ("\<^raw:\mbox{}\inferrule{>_\<^raw:}>\<^raw:{\mbox{>_\<^raw:}}>")
 
@@ -76,21 +76,20 @@ syntax (Rule output)
 
   "_asm" :: "prop \<Rightarrow> asms" ("\<^raw:\mbox{>_\<^raw:}>")
 
-syntax (Axiom output)
-  "Trueprop" :: "bool \<Rightarrow> prop"
-  ("\<^raw:\mbox{}\inferrule{\mbox{}}{\mbox{>_\<^raw:}}>")
+notation (Axiom output)
+  "Trueprop"  ("\<^raw:\mbox{}\inferrule{\mbox{}}{\mbox{>_\<^raw:}}>")
 
+notation (IfThen output)
+  "==>"  ("\<^raw:{\normalsize{}>If\<^raw:\,}> _/ \<^raw:{\normalsize \,>then\<^raw:\,}>/ _.")
 syntax (IfThen output)
-  "==>" :: "prop \<Rightarrow> prop \<Rightarrow> prop"
-  ("\<^raw:{\normalsize{}>If\<^raw:\,}> _/ \<^raw:{\normalsize \,>then\<^raw:\,}>/ _.")
   "_bigimpl" :: "asms \<Rightarrow> prop \<Rightarrow> prop"
   ("\<^raw:{\normalsize{}>If\<^raw:\,}> _ /\<^raw:{\normalsize \,>then\<^raw:\,}>/ _.")
   "_asms" :: "prop \<Rightarrow> asms \<Rightarrow> asms" ("\<^raw:\mbox{>_\<^raw:}> /\<^raw:{\normalsize \,>and\<^raw:\,}>/ _")
   "_asm" :: "prop \<Rightarrow> asms" ("\<^raw:\mbox{>_\<^raw:}>")
 
+notation (IfThenNoBox output)
+  "==>"  ("\<^raw:{\normalsize{}>If\<^raw:\,}> _/ \<^raw:{\normalsize \,>then\<^raw:\,}>/ _.")
 syntax (IfThenNoBox output)
-  "==>" :: "prop \<Rightarrow> prop \<Rightarrow> prop"
-  ("\<^raw:{\normalsize{}>If\<^raw:\,}> _/ \<^raw:{\normalsize \,>then\<^raw:\,}>/ _.")
   "_bigimpl" :: "asms \<Rightarrow> prop \<Rightarrow> prop"
   ("\<^raw:{\normalsize{}>If\<^raw:\,}> _ /\<^raw:{\normalsize \,>then\<^raw:\,}>/ _.")
   "_asms" :: "prop \<Rightarrow> asms \<Rightarrow> asms" ("_ /\<^raw:{\normalsize \,>and\<^raw:\,}>/ _")

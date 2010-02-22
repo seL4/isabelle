@@ -123,7 +123,9 @@ fun decode_term get_sort map_const map_free map_type map_sort tm =
       | decode (t $ u) = decode t $ decode u
       | decode (Const (a, T)) =
           let val c =
-            (case try (unprefix Lexicon.constN) a of SOME c => c | NONE => snd (map_const a))
+            (case try Lexicon.unmark_const a of
+              SOME c => c
+            | NONE => snd (map_const a))
           in Const (c, map_type T) end
       | decode (Free (a, T)) =
           (case (map_free a, map_const a) of

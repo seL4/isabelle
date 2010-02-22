@@ -59,7 +59,7 @@ structure MapsData = Theory_Data
   (type T = maps_info Symtab.table
    val empty = Symtab.empty
    val extend = I
-   val merge = Symtab.merge (K true))
+   fun merge data = Symtab.merge (K true) data)
 
 fun maps_defined thy s =
   Symtab.defined (MapsData.get thy) s
@@ -123,7 +123,7 @@ structure QuotData = Theory_Data
   (type T = quotdata_info Symtab.table
    val empty = Symtab.empty
    val extend = I
-   val merge = Symtab.merge (K true))
+   fun merge data = Symtab.merge (K true) data)
 
 fun transform_quotdata phi {qtyp, rtyp, equiv_rel, equiv_thm} =
   {qtyp = Morphism.typ phi qtyp,
@@ -193,7 +193,7 @@ fun qconsts_dest lthy =
 fun qconsts_lookup thy t =
   let
     val (name, qty) = dest_Const t
-    fun matches x =
+    fun matches (x: qconsts_info) =
       let
         val (name', qty') = dest_Const (#qconst x);
       in
@@ -280,7 +280,7 @@ fun improper_command (pp_fn, cmd_name, descr_str) =
     OuterKeyword.diag (Scan.succeed (Toplevel.keep (pp_fn o Toplevel.context_of)))
 
 val _ = map improper_command
-  [(print_mapsinfo, "print_maps", "prints out all map functions"),
+  [(print_mapsinfo, "print_quotmaps", "prints out all map functions"),
    (print_quotinfo, "print_quotients", "prints out all quotients"),
    (print_qconstinfo, "print_quotconsts", "prints out all quotient constants")]
 

@@ -201,13 +201,13 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
             error "You must import the theory \"Nitpick\" to use Nitpick"
 *)
     val {cards_assigns, maxes_assigns, iters_assigns, bitss, bisim_depths,
-         boxes, monos, stds, wfs, sat_solver, blocking, falsify, debug, verbose,
-         overlord, user_axioms, assms, merge_type_vars, binary_ints,
-         destroy_constrs, specialize, skolemize, star_linear_preds, uncurry,
-         fast_descrs, peephole_optim, tac_timeout, sym_break, sharing_depth,
-         flatten_props, max_threads, show_skolems, show_datatypes, show_consts,
-         evals, formats, max_potential, max_genuine, check_potential,
-         check_genuine, batch_size, ...} =
+         boxes, monos, stds, wfs, sat_solver, falsify, debug, verbose, overlord,
+         user_axioms, assms, merge_type_vars, binary_ints, destroy_constrs,
+         specialize, skolemize, star_linear_preds, uncurry, fast_descrs,
+         peephole_optim, tac_timeout, sym_break, sharing_depth, flatten_props,
+         max_threads, show_skolems, show_datatypes, show_consts, evals, formats,
+         max_potential, max_genuine, check_potential, check_genuine, batch_size,
+         ...} =
       params
     val state_ref = Unsynchronized.ref state
     (* Pretty.T -> unit *)
@@ -227,7 +227,6 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     (* (unit -> string) -> unit *)
     val print_m = pprint_m o K o plazy
     val print_v = pprint_v o K o plazy
-    val print_d = pprint_d o K o plazy
 
     (* unit -> unit *)
     fun check_deadline () =
@@ -489,9 +488,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         val core_u = rename_vars_in_nut pool rel_table core_u
         val def_us = map (rename_vars_in_nut pool rel_table) def_us
         val nondef_us = map (rename_vars_in_nut pool rel_table) nondef_us
-        val core_f = kodkod_formula_from_nut bits ofs kk core_u
-        val def_fs = map (kodkod_formula_from_nut bits ofs kk) def_us
-        val nondef_fs = map (kodkod_formula_from_nut bits ofs kk) nondef_us
+        val core_f = kodkod_formula_from_nut ofs kk core_u
+        val def_fs = map (kodkod_formula_from_nut ofs kk) def_us
+        val nondef_fs = map (kodkod_formula_from_nut ofs kk) nondef_us
         val formula = fold (fold s_and) [def_fs, nondef_fs] core_f
         val comment = (if unsound then "unsound" else "sound") ^ "\n" ^
                       PrintMode.setmp [] multiline_string_for_scope scope
@@ -535,9 +534,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       in
         SOME ({comment = comment, settings = settings, univ_card = univ_card,
                tuple_assigns = [], bounds = bounds,
-               int_bounds =
-                   if bits = 0 then sequential_int_bounds univ_card
-                   else pow_of_two_int_bounds bits main_j0 univ_card,
+               int_bounds = if bits = 0 then sequential_int_bounds univ_card
+                            else pow_of_two_int_bounds bits main_j0,
                expr_assigns = [], formula = formula},
               {free_names = free_names, sel_names = sel_names,
                nonsel_names = nonsel_names, rel_table = rel_table,
@@ -562,16 +560,12 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                                                     else "genuine") ^
                                    " component of scope."));
                 NONE)
-           | TOO_SMALL (loc, msg) =>
+           | TOO_SMALL (_, msg) =>
              (print_v (fn () => ("Limit reached: " ^ msg ^
                                  ". Skipping " ^ (if unsound then "potential"
                                                   else "genuine") ^
                                  " component of scope."));
               NONE)
-
-    (* int -> (''a * int list list) list -> ''a -> KK.tuple_set *)
-    fun tuple_set_for_rel univ_card =
-      KK.TupleSet o map (kk_tuple debug univ_card) o the oo AList.lookup (op =)
 
     val das_wort_model =
       (if falsify then "counterexample" else "model")
@@ -809,8 +803,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
             ()
         (* scope * bool -> rich_problem list * bool
            -> rich_problem list * bool *)
-        fun add_problem_for_scope (scope as {datatypes, ...}, unsound)
-                                  (problems, donno) =
+        fun add_problem_for_scope (scope, unsound) (problems, donno) =
           (check_deadline ();
            case problem_for_scope unsound scope of
              SOME problem =>

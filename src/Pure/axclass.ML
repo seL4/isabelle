@@ -474,7 +474,7 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
     val ([def], def_thy) =
       thy
       |> Sign.primitive_class (bclass, super)
-      |> PureThy.add_defs false [((Binding.map_name Thm.def_name bconst, class_eq), [])];
+      |> PureThy.add_defs false [((Thm.def_binding bconst, class_eq), [])];
     val (raw_intro, (raw_classrel, raw_axioms)) =
       split_defined (length conjs) def ||> chop (length super);
 

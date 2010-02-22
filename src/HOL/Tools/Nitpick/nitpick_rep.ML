@@ -166,7 +166,7 @@ fun smart_range_rep _ _ _ Unit = Unit
 
 (* rep -> rep list *)
 fun binder_reps (Func (R1, R2)) = R1 :: binder_reps R2
-  | binder_reps R = []
+  | binder_reps _ = []
 (* rep -> rep *)
 fun body_rep (Func (_, R2)) = body_rep R2
   | body_rep R = R
@@ -272,10 +272,10 @@ fun best_one_rep_for_type (scope as {card_assigns, ...} : scope)
     (case (best_one_rep_for_type scope T1, best_one_rep_for_type scope T2) of
        (Unit, Unit) => Unit
      | (R1, R2) => Struct [R1, R2])
-  | best_one_rep_for_type (scope as {card_assigns, datatypes, ofs, ...}) T =
+  | best_one_rep_for_type {card_assigns, datatypes, ofs, ...} T =
     (case card_of_type card_assigns T of
        1 => if is_some (datatype_spec datatypes T) orelse
-               is_fp_iterator_type T then
+               is_iterator_type T then
               Atom (1, offset_of_type ofs T)
             else
               Unit
@@ -332,7 +332,7 @@ fun type_schema_of_rep _ (Formula _) = []
   | type_schema_of_rep (Type ("fun", [T1, T2])) (Func (R1, R2)) =
     type_schema_of_rep T1 R1 @ type_schema_of_rep T2 R2
   | type_schema_of_rep T (Opt R) = type_schema_of_rep T R
-  | type_schema_of_rep T R = raise REP ("Nitpick_Rep.type_schema_of_rep", [R])
+  | type_schema_of_rep _ R = raise REP ("Nitpick_Rep.type_schema_of_rep", [R])
 (* typ list -> rep list -> typ list *)
 and type_schema_of_reps Ts Rs = flat (map2 type_schema_of_rep Ts Rs)
 

@@ -16,12 +16,12 @@ type_maps
   real > RealDef.real;
 
 const_maps
-  real_0   > Algebras.zero      :: real
-  real_1   > Algebras.one       :: real
-  real_neg > Algebras.uminus    :: "real => real"
-  inv      > Algebras.inverse   :: "real => real"
-  real_add > Algebras.plus      :: "[real,real] => real"
-  real_mul > Algebras.times     :: "[real,real] => real"
+  real_0   > Groups.zero      :: real
+  real_1   > Groups.one       :: real
+  real_neg > Groups.uminus    :: "real => real"
+  inv      > Groups.inverse   :: "real => real"
+  real_add > Groups.plus      :: "[real,real] => real"
+  real_mul > Groups.times     :: "[real,real] => real"
   real_lt  > Orderings.less      :: "[real,real] => bool";
 
 ignore_thms
@@ -51,8 +51,8 @@ const_maps
   real_gt     > HOL4Compat.real_gt
   real_ge     > HOL4Compat.real_ge
   real_lte    > Orderings.less_eq :: "[real,real] => bool"
-  real_sub    > Algebras.minus :: "[real,real] => real"
-  "/"         > Algebras.divide :: "[real,real] => real"
+  real_sub    > Groups.minus :: "[real,real] => real"
+  "/"         > Rings.divide :: "[real,real] => real"
   pow         > Power.power :: "[real,nat] => real"
   abs         > Groups.abs :: "real => real"
   real_of_num > RealDef.real :: "nat => real";

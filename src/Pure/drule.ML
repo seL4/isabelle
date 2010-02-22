@@ -77,7 +77,6 @@ sig
   val flexflex_unique: thm -> thm
   val export_without_context: thm -> thm
   val export_without_context_open: thm -> thm
-  val get_def: theory -> xstring -> thm
   val store_thm: binding -> thm -> thm
   val store_standard_thm: binding -> thm -> thm
   val store_thm_open: binding -> thm -> thm
@@ -450,8 +449,6 @@ val size_of_thm = size_of_term o Thm.full_prop_of;
 (*** Meta-Rewriting Rules ***)
 
 val read_prop = certify o Simple_Syntax.read_prop;
-
-fun get_def thy = Thm.axiom thy o Name_Space.intern (Theory.axiom_space thy) o Thm.def_name;
 
 fun store_thm name th =
   Context.>>> (Context.map_theory_result (PureThy.store_thm (name, th)));

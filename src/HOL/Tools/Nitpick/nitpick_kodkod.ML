@@ -24,7 +24,7 @@ sig
   val kk_tuple : bool -> int -> int list -> Kodkod.tuple
   val tuple_set_from_atom_schema : (int * int) list -> Kodkod.tuple_set
   val sequential_int_bounds : int -> Kodkod.int_bound list
-  val pow_of_two_int_bounds : int -> int -> int -> Kodkod.int_bound list
+  val pow_of_two_int_bounds : int -> int -> Kodkod.int_bound list
   val bounds_for_built_in_rels_in_formula :
     bool -> int -> int -> int -> int -> Kodkod.formula -> Kodkod.bound list
   val bound_for_plain_rel : Proof.context -> bool -> nut -> Kodkod.bound
@@ -36,7 +36,7 @@ sig
     hol_context -> bool -> int -> int Typtab.table -> kodkod_constrs
     -> nut NameTable.table -> dtype_spec list -> Kodkod.formula list
   val kodkod_formula_from_nut :
-    int -> int Typtab.table -> kodkod_constrs -> nut -> Kodkod.formula
+    int Typtab.table -> kodkod_constrs -> nut -> Kodkod.formula
 end;
 
 structure Nitpick_Kodkod : NITPICK_KODKOD =
@@ -127,7 +127,7 @@ val single_atom = KK.TupleSet o single o KK.Tuple o single
 (* int -> KK.int_bound list *)
 fun sequential_int_bounds n = [(NONE, map single_atom (index_seq 0 n))]
 (* int -> int -> KK.int_bound list *)
-fun pow_of_two_int_bounds bits j0 univ_card =
+fun pow_of_two_int_bounds bits j0 =
   let
     (* int -> int -> int -> KK.int_bound list *)
     fun aux 0  _ _ = []
@@ -141,7 +141,7 @@ fun pow_of_two_int_bounds bits j0 univ_card =
 fun built_in_rels_in_formula formula =
   let
     (* KK.rel_expr -> KK.n_ary_index list -> KK.n_ary_index list *)
-    fun rel_expr_func (r as KK.Rel (x as (n, j))) =
+    fun rel_expr_func (KK.Rel (x as (n, j))) =
         if x = unsigned_bit_word_sel_rel orelse x = signed_bit_word_sel_rel then
           I
         else
@@ -304,7 +304,7 @@ fun bound_for_sel_rel ctxt debug dtypes
         (FreeRel (x, T as Type ("fun", [T1, T2]), R as Func (Atom (_, j0), R2),
                   nick)) =
     let
-      val constr as {delta, epsilon, exclusive, explicit_max, ...} =
+      val {delta, epsilon, exclusive, explicit_max, ...} =
         constr_spec dtypes (original_name nick, T1)
     in
       ([(x, bound_comment ctxt debug nick T R)],
@@ -511,7 +511,7 @@ fun lone_rep_fallback kk new_R old_R r =
         raise REP ("Nitpick_Kodkod.lone_rep_fallback", [old_R, new_R])
     end
 (* kodkod_constrs -> int * int -> rep -> KK.rel_expr -> KK.rel_expr *)
-and atom_from_rel_expr kk (x as (k, j0)) old_R r =
+and atom_from_rel_expr kk x old_R r =
   case old_R of
     Func (R1, R2) =>
     let
@@ -581,7 +581,7 @@ and func_from_no_opt_rel_expr kk R1 R2 (Atom x) r =
     end
   | func_from_no_opt_rel_expr kk Unit R2 old_R r =
     (case old_R of
-       Vect (k, R') => rel_expr_from_rel_expr kk R2 R' r
+       Vect (_, R') => rel_expr_from_rel_expr kk R2 R' r
      | Func (Unit, R2') => rel_expr_from_rel_expr kk R2 R2' r
      | Func (Atom (1, _), Formula Neut) =>
        (case unopt_rep R2 of
@@ -824,8 +824,8 @@ fun strongly_connected_sub_nfas nfa =
   nfa |> graph_for_nfa |> NfaGraph.strong_conn
       |> map (fn keys => filter (member (op =) keys o fst) nfa)
 
-(* kodkod_constrs -> dtype_spec list -> nfa_table -> typ -> KK.formula *)
-fun acyclicity_axiom_for_datatype kk dtypes nfa start_T =
+(* kodkod_constrs -> nfa_table -> typ -> KK.formula *)
+fun acyclicity_axiom_for_datatype kk nfa start_T =
   #kk_no kk (#kk_intersect kk
                  (loop_path_rel_expr kk nfa (map fst nfa) start_T) KK.Iden)
 (* hol_context -> bool -> kodkod_constrs -> nut NameTable.table
@@ -834,20 +834,17 @@ fun acyclicity_axioms_for_datatypes hol_ctxt binarize kk rel_table dtypes =
   map_filter (nfa_entry_for_datatype hol_ctxt binarize kk rel_table dtypes)
              dtypes
   |> strongly_connected_sub_nfas
-  |> maps (fn nfa =>
-              map (acyclicity_axiom_for_datatype kk dtypes nfa o fst) nfa)
+  |> maps (fn nfa => map (acyclicity_axiom_for_datatype kk nfa o fst) nfa)
 
 (* hol_context -> bool -> int -> kodkod_constrs -> nut NameTable.table
    -> KK.rel_expr -> constr_spec -> int -> KK.formula *)
 fun sel_axiom_for_sel hol_ctxt binarize j0
-        (kk as {kk_all, kk_formula_if, kk_implies, kk_subset, kk_rel_eq, kk_no,
-                kk_join, ...}) rel_table dom_r
-        ({const, delta, epsilon, exclusive, explicit_max, ...} : constr_spec)
+        (kk as {kk_all, kk_formula_if, kk_subset, kk_no, kk_join, ...})
+        rel_table dom_r ({const, delta, epsilon, exclusive, ...} : constr_spec)
         n =
   let
-    val x as (_, T) =
-      binarized_and_boxed_nth_sel_for_constr hol_ctxt binarize const n
-    val (r, R, arity) = const_triple rel_table x
+    val x = binarized_and_boxed_nth_sel_for_constr hol_ctxt binarize const n
+    val (r, R, _) = const_triple rel_table x
     val R2 = dest_Func R |> snd
     val z = (epsilon - delta, delta + j0)
   in
@@ -908,10 +905,6 @@ fun uniqueness_axiom_for_constr hol_ctxt binarize
       map (const_triple rel_table
            o binarized_and_boxed_nth_sel_for_constr hol_ctxt binarize const)
           (~1 upto num_sels - 1)
-    val j0 = case triples |> hd |> #2 of
-               Func (Atom (_, j0), _) => j0
-             | R => raise REP ("Nitpick_Kodkod.uniqueness_axiom_for_constr",
-                               [R])
     val set_r = triples |> hd |> #1
   in
     if num_sels = 0 then
@@ -962,8 +955,8 @@ fun declarative_axioms_for_datatypes hol_ctxt binarize bits ofs kk rel_table
   maps (other_axioms_for_datatype hol_ctxt binarize bits ofs kk rel_table)
        dtypes
 
-(* int -> int Typtab.table -> kodkod_constrs -> nut -> KK.formula *)
-fun kodkod_formula_from_nut bits ofs
+(* int Typtab.table -> kodkod_constrs -> nut -> KK.formula *)
+fun kodkod_formula_from_nut ofs
         (kk as {kk_all, kk_exist, kk_formula_let, kk_formula_if, kk_or, kk_not,
                 kk_iff, kk_implies, kk_and, kk_subset, kk_rel_eq, kk_no,
                 kk_lone, kk_one, kk_some, kk_rel_let, kk_rel_if, kk_union,
@@ -1098,7 +1091,7 @@ fun kodkod_formula_from_nut bits ofs
                 else
                   kk_subset (to_rep min_R u1) (to_rep min_R u2)
               end)
-         | Op2 (Eq, T, R, u1, u2) =>
+         | Op2 (Eq, _, _, u1, u2) =>
            (case min_rep (rep_of u1) (rep_of u2) of
               Unit => KK.True
             | Formula polar =>
@@ -1196,7 +1189,7 @@ fun kodkod_formula_from_nut bits ofs
       case u of
         Cst (False, _, Atom _) => false_atom
       | Cst (True, _, Atom _) => true_atom
-      | Cst (Iden, T, Func (Struct [R1, R2], Formula Neut)) =>
+      | Cst (Iden, _, Func (Struct [R1, R2], Formula Neut)) =>
         if R1 = R2 andalso arity_of_rep R1 = 1 then
           kk_intersect KK.Iden (kk_product (full_rel_for_rep R1) KK.Univ)
         else
@@ -1214,7 +1207,7 @@ fun kodkod_formula_from_nut bits ofs
                 (kk_rel_eq (rel_expr_from_rel_expr kk min_R R1 r1)
                            (rel_expr_from_rel_expr kk min_R R2 r2))
           end
-      | Cst (Iden, T, Func (Atom (1, j0), Formula Neut)) => KK.Atom j0
+      | Cst (Iden, _, Func (Atom (1, j0), Formula Neut)) => KK.Atom j0
       | Cst (Iden, T as Type ("fun", [T1, _]), R as Func (R1, _)) =>
         to_rep R (Cst (Iden, T, Func (one_rep ofs T1 R1, Formula Neut)))
       | Cst (Num j, T, R) =>
@@ -1235,7 +1228,7 @@ fun kodkod_formula_from_nut bits ofs
         to_bit_word_unary_op T R (curry KK.Add (KK.Num 1))
       | Cst (Suc, @{typ "nat => nat"}, Func (Atom x, _)) =>
         kk_intersect (KK.Rel suc_rel) (kk_product KK.Univ (KK.AtomSeq x))
-      | Cst (Suc, _, Func (Atom x, _)) => KK.Rel suc_rel
+      | Cst (Suc, _, Func (Atom _, _)) => KK.Rel suc_rel
       | Cst (Add, Type ("fun", [@{typ nat}, _]), _) => KK.Rel nat_add_rel
       | Cst (Add, Type ("fun", [@{typ int}, _]), _) => KK.Rel int_add_rel
       | Cst (Add, T as Type ("fun", [@{typ "unsigned_bit word"}, _]), R) =>
@@ -1303,7 +1296,7 @@ fun kodkod_formula_from_nut bits ofs
       | Cst (NatToInt, Type ("fun", [@{typ nat}, _]), Func (Atom _, Atom _)) =>
         KK.Iden
       | Cst (NatToInt, Type ("fun", [@{typ nat}, _]),
-             Func (Atom (nat_k, nat_j0), Opt (Atom (int_k, int_j0)))) =>
+             Func (Atom (_, nat_j0), Opt (Atom (int_k, int_j0)))) =>
         if nat_j0 = int_j0 then
           kk_intersect KK.Iden
               (kk_product (KK.AtomSeq (max_int_for_card int_k + 1, nat_j0))
@@ -1388,14 +1381,14 @@ fun kodkod_formula_from_nut bits ofs
         (case R of
            Func (R1, Formula Neut) => to_rep R1 u1
          | Func (Unit, Opt R) => to_guard [u1] R true_atom
-         | Func (R1, R2 as Opt _) =>
+         | Func (R1, Opt _) =>
            single_rel_rel_let kk
                (fn r => kk_rel_if (kk_no r) (empty_rel_for_rep R)
                             (rel_expr_to_func kk R1 bool_atom_R
                                               (Func (R1, Formula Neut)) r))
                (to_opt R1 u1)
          | _ => raise NUT ("Nitpick_Kodkod.to_r (SingletonSet)", [u]))
-      | Op1 (Tha, T, R, u1) =>
+      | Op1 (Tha, _, R, u1) =>
         if is_opt_rep R then
           kk_join (to_rep (Func (unopt_rep R, Opt bool_atom_R)) u1) true_atom
         else
@@ -1413,7 +1406,7 @@ fun kodkod_formula_from_nut bits ofs
       | Op2 (All, T, R as Opt _, u1, u2) =>
         to_r (Op1 (Not, T, R,
                    Op2 (Exist, T, R, u1, Op1 (Not, T, rep_of u2, u2))))
-      | Op2 (Exist, T, Opt _, u1, u2) =>
+      | Op2 (Exist, _, Opt _, u1, u2) =>
         let val rs1 = untuple to_decl u1 in
           if not (is_opt_rep (rep_of u2)) then
             kk_rel_if (kk_exist rs1 (to_f u2)) true_atom KK.None
@@ -1448,7 +1441,7 @@ fun kodkod_formula_from_nut bits ofs
                                 (int_expr_from_atom kk (type_of u1)) (r1, r2))))
                             KK.None)
                     (to_r u1) (to_r u2))
-      | Op2 (The, T, R, u1, u2) =>
+      | Op2 (The, _, R, u1, u2) =>
         if is_opt_rep R then
           let val r1 = to_opt (Func (unopt_rep R, bool_atom_R)) u1 in
             kk_rel_if (kk_one (kk_join r1 true_atom)) (kk_join r1 true_atom)
@@ -1461,7 +1454,7 @@ fun kodkod_formula_from_nut bits ofs
           let val r1 = to_rep (Func (R, Formula Neut)) u1 in
             kk_rel_if (kk_one r1) r1 (to_rep R u2)
           end
-      | Op2 (Eps, T, R, u1, u2) =>
+      | Op2 (Eps, _, R, u1, u2) =>
         if is_opt_rep (rep_of u1) then
           let
             val r1 = to_rep (Func (unopt_rep R, Opt bool_atom_R)) u1
@@ -1483,7 +1476,7 @@ fun kodkod_formula_from_nut bits ofs
                      (kk_rel_if (kk_or (kk_no r1) (kk_subset r2 r1))
                                 r2 (empty_rel_for_rep R))
           end
-      | Op2 (Triad, T, Opt (Atom (2, j0)), u1, u2) =>
+      | Op2 (Triad, _, Opt (Atom (2, j0)), u1, u2) =>
         let
           val f1 = to_f u1
           val f2 = to_f u2
@@ -1608,11 +1601,11 @@ fun kodkod_formula_from_nut bits ofs
           false_atom
         else
           to_apply R u1 u2
-      | Op2 (Lambda, T, R as Opt (Atom (1, j0)), u1, u2) =>
+      | Op2 (Lambda, _, R as Opt (Atom (1, j0)), u1, u2) =>
         to_guard [u1, u2] R (KK.Atom j0)
-      | Op2 (Lambda, T, Func (_, Formula Neut), u1, u2) =>
+      | Op2 (Lambda, _, Func (_, Formula Neut), u1, u2) =>
         kk_comprehension (untuple to_decl u1) (to_f u2)
-      | Op2 (Lambda, T, Func (_, R2), u1, u2) =>
+      | Op2 (Lambda, _, Func (_, R2), u1, u2) =>
         let
           val dom_decls = untuple to_decl u1
           val ran_schema = atom_schema_of_rep R2
@@ -1650,7 +1643,7 @@ fun kodkod_formula_from_nut bits ofs
                                (KK.Atom j0) KK.None)
          | _ => raise NUT ("Nitpick_Kodkod.to_r (Tuple)", [u]))
       | Construct ([u'], _, _, []) => to_r u'
-      | Construct (discr_u :: sel_us, T, R, arg_us) =>
+      | Construct (discr_u :: sel_us, _, _, arg_us) =>
         let
           val set_rs =
             map2 (fn sel_u => fn arg_u =>
@@ -1676,7 +1669,7 @@ fun kodkod_formula_from_nut bits ofs
         KK.DeclOne (x, KK.AtomSeq (the_single (atom_schema_of_rep R)))
       | to_decl u = raise NUT ("Nitpick_Kodkod.to_decl", [u])
     (* nut -> KK.expr_assign *)
-    and to_expr_assign (FormulaReg (j, _, R)) u =
+    and to_expr_assign (FormulaReg (j, _, _)) u =
         KK.AssignFormulaReg (j, to_f u)
       | to_expr_assign (RelReg (j, _, R)) u =
         KK.AssignRelReg ((arity_of_rep R, j), to_r u)
@@ -1775,7 +1768,7 @@ fun kodkod_formula_from_nut bits ofs
                case arity_of_rep nth_R of
                  0 => to_guard [u] res_R
                                (to_rep res_R (Cst (Unity, res_T, Unit)))
-               | arity => to_project res_R nth_R (to_rep (Opt (Struct Rs)) u) j0
+               | _ => to_project res_R nth_R (to_rep (Opt (Struct Rs)) u) j0
              end
     (* (KK.formula -> KK.formula -> KK.formula)
        -> (KK.rel_expr -> KK.rel_expr -> KK.formula) -> nut -> nut
@@ -1788,11 +1781,11 @@ fun kodkod_formula_from_nut bits ofs
       in
         case min_R of
           Vect (k, Atom _) => kk_vect_set_bool_op connective k r1 r2
-        | Func (R1, Formula Neut) => set_oper r1 r2
+        | Func (_, Formula Neut) => set_oper r1 r2
         | Func (Unit, Atom (2, j0)) =>
           connective (formula_from_atom j0 r1) (formula_from_atom j0 r2)
-        | Func (R1, Atom _) => set_oper (kk_join r1 true_atom)
-                                        (kk_join r2 true_atom)
+        | Func (_, Atom _) => set_oper (kk_join r1 true_atom)
+                                       (kk_join r2 true_atom)
         | _ => raise REP ("Nitpick_Kodkod.to_set_bool_op", [min_R])
       end
     (* (KK.formula -> KK.formula -> KK.formula)
@@ -1815,7 +1808,7 @@ fun kodkod_formula_from_nut bits ofs
              | Vect (k, Atom _) => kk_vect_set_op connective k r1 r2
              | Func (_, Formula Neut) => set_oper r1 r2
              | Func (Unit, _) => connective3 r1 r2
-             | Func (R1, _) =>
+             | Func _ =>
                double_rel_rel_let kk
                    (fn r1 => fn r2 =>
                        kk_union
@@ -1877,7 +1870,7 @@ fun kodkod_formula_from_nut bits ofs
       | Atom (1, j0) =>
         to_guard [arg_u] res_R
                  (rel_expr_from_rel_expr kk res_R (Atom (1, j0)) (to_r func_u))
-      | Atom (k, j0) =>
+      | Atom (k, _) =>
         let
           val dom_card = card_of_rep (rep_of arg_u)
           val ran_R = Atom (exact_root dom_card k,

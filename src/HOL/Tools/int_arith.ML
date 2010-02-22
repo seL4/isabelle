@@ -49,12 +49,12 @@ val one_to_of_int_one_simproc =
   make_simproc {lhss = lhss1, name = "one_to_of_int_one_simproc",
   proc = proc1, identifier = []};
 
-fun check (Const (@{const_name Algebras.one}, @{typ int})) = false
-  | check (Const (@{const_name Algebras.one}, _)) = true
+fun check (Const (@{const_name Groups.one}, @{typ int})) = false
+  | check (Const (@{const_name Groups.one}, _)) = true
   | check (Const (s, _)) = member (op =) [@{const_name "op ="},
-      @{const_name Algebras.times}, @{const_name Algebras.uminus},
-      @{const_name Algebras.minus}, @{const_name Algebras.plus},
-      @{const_name Algebras.zero},
+      @{const_name Groups.times}, @{const_name Groups.uminus},
+      @{const_name Groups.minus}, @{const_name Groups.plus},
+      @{const_name Groups.zero},
       @{const_name Orderings.less}, @{const_name Orderings.less_eq}] s
   | check (a $ b) = check a andalso check b
   | check _ = false;

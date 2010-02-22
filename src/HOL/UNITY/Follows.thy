@@ -176,7 +176,7 @@ apply (simp add: increasing_def stable_def constrains_def, auto)
 apply (drule_tac x = "f xa" in spec)
 apply (drule_tac x = "g xa" in spec)
 apply (drule bspec, assumption) 
-apply (blast intro: union_le_mono order_trans)
+apply (blast intro: add_mono order_trans)
 done
 
 lemma Increasing_union: 
@@ -187,14 +187,14 @@ apply (auto simp add: Increasing_def Stable_def Constrains_def
 apply (drule_tac x = "f xa" in spec)
 apply (drule_tac x = "g xa" in spec)
 apply (drule bspec, assumption) 
-apply (blast intro: union_le_mono order_trans)
+apply (blast intro: add_mono order_trans)
 done
 
 lemma Always_union:
      "[| F \<in> Always {s. f' s \<le> f s}; F \<in> Always {s. g' s \<le> g s} |]  
       ==> F \<in> Always {s. f' s + g' s \<le> f s + (g s :: ('a::order) multiset)}"
 apply (simp add: Always_eq_includes_reachable)
-apply (blast intro: union_le_mono)
+apply (blast intro: add_mono)
 done
 
 (*Except the last line, IDENTICAL to the proof script for Follows_Un_lemma*)
@@ -211,7 +211,7 @@ apply (rule LeadsTo_weaken)
 apply (rule PSP_Stable)
 apply (erule_tac x = "f s" in spec)
 apply (erule Stable_Int, assumption, blast)
-apply (blast intro: union_le_mono order_trans)
+apply (blast intro: add_mono order_trans)
 done
 
 (*The !! is there to influence to effect of permutative rewriting at the end*)

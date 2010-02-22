@@ -465,7 +465,7 @@ fun arity_of_rel_expr (RelLet (_, r)) = arity_of_rel_expr r
   | arity_of_rel_expr (Intersect (r1, _)) = arity_of_rel_expr r1
   | arity_of_rel_expr (Product (r1, r2)) = sum_arities_of_rel_exprs r1 r2
   | arity_of_rel_expr (IfNo (r1, _)) = arity_of_rel_expr r1
-  | arity_of_rel_expr (Project (r, is)) = length is
+  | arity_of_rel_expr (Project (_, is)) = length is
   | arity_of_rel_expr (Join (r1, r2)) = sum_arities_of_rel_exprs r1 r2 - 2
   | arity_of_rel_expr (Closure _) = 2
   | arity_of_rel_expr (ReflexiveClosure _) = 2
@@ -590,8 +590,8 @@ fun string_for_tuple_set tuple_set =
         (case tuple_set of
            TupleUnion (ts1, ts2) => sub ts1 prec ^ " + " ^ sub ts2 (prec + 1)
          | TupleDifference (ts1, ts2) =>
-           sub ts1 prec ^ " - " ^ sub ts1 (prec + 1)
-         | TupleIntersect (ts1, ts2) => sub ts1 prec ^ " & " ^ sub ts1 prec
+           sub ts1 prec ^ " - " ^ sub ts2 (prec + 1)
+         | TupleIntersect (ts1, ts2) => sub ts1 prec ^ " & " ^ sub ts2 prec
          | TupleProduct (ts1, ts2) => sub ts1 prec ^ "->" ^ sub ts2 prec
          | TupleProject (ts, c) => sub ts prec ^ "[" ^ string_of_int c ^ "]"
          | TupleSet ts => "{" ^ commas (map string_for_tuple ts) ^ "}"

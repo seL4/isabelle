@@ -14,7 +14,7 @@ val forbidden =
   (@{const_name HOL.undefined}, "'a"),
   (@{const_name HOL.default}, "'a"),
   (@{const_name dummy_pattern}, "'a::{}"),
-  (@{const_name Algebras.uminus}, "'a"),
+  (@{const_name Groups.uminus}, "'a"),
   (@{const_name Nat.size}, "'a"),
   (@{const_name Groups.abs}, "'a")];
 

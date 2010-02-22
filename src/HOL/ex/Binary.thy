@@ -24,8 +24,8 @@ ML {*
     | dest_bit (Const (@{const_name True}, _)) = 1
     | dest_bit t = raise TERM ("dest_bit", [t]);
 
-  fun dest_binary (Const (@{const_name Algebras.zero}, Type (@{type_name nat}, _))) = 0
-    | dest_binary (Const (@{const_name Algebras.one}, Type (@{type_name nat}, _))) = 1
+  fun dest_binary (Const (@{const_name Groups.zero}, Type (@{type_name nat}, _))) = 0
+    | dest_binary (Const (@{const_name Groups.one}, Type (@{type_name nat}, _))) = 1
     | dest_binary (Const (@{const_name bit}, _) $ bs $ b) = 2 * dest_binary bs + dest_bit b
     | dest_binary t = raise TERM ("dest_binary", [t]);
 
@@ -191,7 +191,7 @@ syntax
 parse_translation {*
 let
   val syntax_consts =
-    map_aterms (fn Const (c, T) => Const (Syntax.constN ^ c, T) | a => a);
+    map_aterms (fn Const (c, T) => Const (Syntax.mark_const c, T) | a => a);
 
   fun binary_tr [Const (num, _)] =
         let

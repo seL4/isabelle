@@ -321,10 +321,10 @@ fun pretty extern_const ctxt tabs trf tokentrf type_mode curried ast0 p0 =
             else pr, args))
 
     and atomT a =
-      (case try (unprefix Lexicon.constN) a of
+      (case try Lexicon.unmark_const a of
         SOME c => Pretty.mark (Markup.const c) (Pretty.str (extern_const c))
       | NONE =>
-          (case try (unprefix Lexicon.fixedN) a of
+          (case try Lexicon.unmark_fixed a of
             SOME x => the (token_trans "_free" x)
           | NONE => Pretty.str a))
 
@@ -340,8 +340,8 @@ fun pretty extern_const ctxt tabs trf tokentrf type_mode curried ast0 p0 =
       let
         val nargs = length args;
         val markup = Pretty.mark
-          (Markup.const (unprefix Lexicon.constN a) handle Fail _ =>
-            (Markup.fixed (unprefix Lexicon.fixedN a)))
+          (Markup.const (Lexicon.unmark_const a) handle Fail _ =>
+            (Markup.fixed (Lexicon.unmark_fixed a)))
           handle Fail _ => I;
 
         (*find matching table entry, or print as prefix / postfix*)

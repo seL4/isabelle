@@ -67,8 +67,8 @@ fun add_proof_syntax thy =
        ("", paramT --> paramsT, Delimfix "_")]
   |> Sign.add_modesyntax_i (Symbol.xsymbolsN, true)
       [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1\\<Lambda>_./ _)", [0, 3], 3)),
-       (Syntax.constN ^ "Appt", [proofT, aT] ---> proofT, Mixfix ("(1_ \\<cdot>/ _)", [4, 5], 4)),
-       (Syntax.constN ^ "AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ \\<bullet>/ _)", [4, 5], 4))]
+       (Syntax.mark_const "Appt", [proofT, aT] ---> proofT, Mixfix ("(1_ \\<cdot>/ _)", [4, 5], 4)),
+       (Syntax.mark_const "AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ \\<bullet>/ _)", [4, 5], 4))]
   |> Sign.add_modesyntax_i ("latex", false)
       [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1\\<^bold>\\<lambda>_./ _)", [0, 3], 3))]
   |> Sign.add_trrules_i (map Syntax.ParsePrintRule
@@ -78,10 +78,10 @@ fun add_proof_syntax thy =
           [Variable "l", Syntax.mk_appl (Constant "_Lam") [Variable "m", Variable "A"]]),
        (Syntax.mk_appl (Constant "_Lam")
           [Syntax.mk_appl (Constant "_Lam1") [Variable "x", Variable "A"], Variable "B"],
-        Syntax.mk_appl (Constant (Syntax.constN ^ "AbsP")) [Variable "A",
+        Syntax.mk_appl (Constant (Syntax.mark_const "AbsP")) [Variable "A",
           (Syntax.mk_appl (Constant "_abs") [Variable "x", Variable "B"])]),
        (Syntax.mk_appl (Constant "_Lam") [Variable "x", Variable "A"],
-        Syntax.mk_appl (Constant (Syntax.constN ^ "Abst"))
+        Syntax.mk_appl (Constant (Syntax.mark_const "Abst"))
           [(Syntax.mk_appl (Constant "_abs") [Variable "x", Variable "A"])])]);
 
 

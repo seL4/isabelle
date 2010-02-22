@@ -34,12 +34,12 @@ end;
 functor CancelDivModFun(Data: CANCEL_DIV_MOD_DATA): CANCEL_DIV_MOD =
 struct
 
-fun coll_div_mod (Const(@{const_name Algebras.plus},_) $ s $ t) dms =
+fun coll_div_mod (Const(@{const_name Groups.plus},_) $ s $ t) dms =
       coll_div_mod t (coll_div_mod s dms)
-  | coll_div_mod (Const(@{const_name Algebras.times},_) $ m $ (Const(d,_) $ s $ n))
+  | coll_div_mod (Const(@{const_name Groups.times},_) $ m $ (Const(d,_) $ s $ n))
                  (dms as (divs,mods)) =
       if d = Data.div_name andalso m=n then ((s,n)::divs,mods) else dms
-  | coll_div_mod (Const(@{const_name Algebras.times},_) $ (Const(d,_) $ s $ n) $ m)
+  | coll_div_mod (Const(@{const_name Groups.times},_) $ (Const(d,_) $ s $ n) $ m)
                  (dms as (divs,mods)) =
       if d = Data.div_name andalso m=n then ((s,n)::divs,mods) else dms
   | coll_div_mod (Const(m,_) $ s $ n) (dms as (divs,mods)) =
@@ -55,8 +55,8 @@ fun coll_div_mod (Const(@{const_name Algebras.plus},_) $ s $ t) dms =
    ==> thesis by transitivity
 *)
 
-val mk_plus = Data.mk_binop @{const_name Algebras.plus};
-val mk_times = Data.mk_binop @{const_name Algebras.times};
+val mk_plus = Data.mk_binop @{const_name Groups.plus};
+val mk_times = Data.mk_binop @{const_name Groups.times};
 
 fun rearrange t pq =
   let val ts = Data.dest_sum t;

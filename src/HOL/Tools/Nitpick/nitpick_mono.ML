@@ -45,7 +45,7 @@ type cdata =
 exception CTYPE of string * ctype list
 
 (* string -> unit *)
-fun print_g (s : string) = ()
+fun print_g (_ : string) = ()
 
 (* var -> string *)
 val string_for_var = signed_string_of_int
@@ -265,7 +265,7 @@ fun sel_ctype_from_constr_ctype s C =
   end
 
 (* cdata -> styp -> ctype *)
-fun ctype_for_constr (cdata as {hol_ctxt as {thy, ...}, alpha_T, constr_cache,
+fun ctype_for_constr (cdata as {hol_ctxt = {thy, ...}, alpha_T, constr_cache,
                                 ...}) (x as (_, T)) =
   if could_exist_alpha_sub_ctype thy alpha_T T then
     case AList.lookup (op =) (!constr_cache) x of
@@ -339,7 +339,7 @@ fun do_sign_atom_comp Eq [] a1 a2 (accum as (lits, comps)) =
      | (S Minus, S Plus) => NONE
      | (V _, V _) => SOME (lits, insert (op =) (a1, a2, Leq, []) comps)
      | _ => do_sign_atom_comp Eq [] a1 a2 accum)
-  | do_sign_atom_comp cmp xs a1 a2 (accum as (lits, comps)) =
+  | do_sign_atom_comp cmp xs a1 a2 (lits, comps) =
     SOME (lits, insert (op =) (a1, a2, cmp, xs) comps)
 
 (* comp -> var list -> ctype -> ctype -> (literal list * comp list) option
@@ -367,7 +367,7 @@ fun do_ctype_comp _ _ _ _ NONE = NONE
     (accum |> fold (uncurry (do_ctype_comp cmp xs)) [(C11, C21), (C12, C22)]
      handle Library.UnequalLengths =>
             raise CTYPE ("Nitpick_Mono.do_ctype_comp", [C1, C2]))
-  | do_ctype_comp cmp xs (CType _) (CType _) accum =
+  | do_ctype_comp _ _ (CType _) (CType _) accum =
     accum (* no need to compare them thanks to the cache *)
   | do_ctype_comp _ _ C1 C2 _ =
     raise CTYPE ("Nitpick_Mono.do_ctype_comp", [C1, C2])
@@ -435,13 +435,6 @@ fun add_notin_ctype_fv _ _ UnsolvableCSet = UnsolvableCSet
 val add_ctype_is_right_unique = add_notin_ctype_fv Minus
 val add_ctype_is_right_total = add_notin_ctype_fv Plus
 
-(* constraint_set -> constraint_set -> constraint_set *)
-fun unite (CSet (lits1, comps1, sexps1)) (CSet (lits2, comps2, sexps2)) =
-    (case SOME lits1 |> fold do_literal lits2 of
-       NONE => (print_g "**** Unsolvable"; UnsolvableCSet)
-     | SOME lits => CSet (lits, comps1 @ comps2, sexps1 @ sexps2))
-  | unite _ _ = UnsolvableCSet
-
 (* sign -> bool *)
 fun bool_from_sign Plus = false
   | bool_from_sign Minus = true
@@ -479,10 +472,6 @@ fun literals_from_assignments max_var assigns lits =
            else case assigns x of
              SOME b => (x, sign_from_bool b) :: accum
            | NONE => accum) (max_var downto 1) lits
-
-(* literal list -> sign_atom -> sign option *)
-fun lookup_sign_atom _ (S sn) = SOME sn
-  | lookup_sign_atom lit (V x) = AList.lookup (op =) lit x
 
 (* comp -> string *)
 fun string_for_comp (a1, a2, cmp, xs) =
@@ -522,9 +511,6 @@ fun solve _ UnsolvableCSet = (print_g "*** Problem: Unsolvable"; NONE)
       | _ => NONE
     end
 
-(* var -> constraint_set -> bool *)
-val is_solvable = is_some oo solve
-
 type ctype_schema = ctype * constraint_set
 type ctype_context =
   {bounds: ctype list,
@@ -545,8 +531,8 @@ fun pop_bound {bounds, frees, consts} =
   handle List.Empty => initial_gamma
 
 (* cdata -> term -> accumulator -> ctype * accumulator *)
-fun consider_term (cdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
-                                          def_table, ...},
+fun consider_term (cdata as {hol_ctxt = {thy, ctxt, stds, fast_descrs,
+                                         def_table, ...},
                              alpha_T, max_fresh, ...}) =
   let
     (* typ -> ctype *)
@@ -765,7 +751,7 @@ fun consider_term (cdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
          | Var _ => (print_g "*** Var"; unsolvable)
          | Bound j => (nth bounds j, accum)
          | Abs (_, T, @{const False}) => (ctype_for (T --> bool_T), accum)
-         | Abs (s, T, t') =>
+         | Abs (_, T, t') =>
            ((case t' of
                t1' $ Bound 0 =>
                if not (loose_bvar1 (t1', 0)) then
@@ -806,7 +792,7 @@ fun consider_term (cdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
   in do_term end
 
 (* cdata -> sign -> term -> accumulator -> accumulator *)
-fun consider_general_formula (cdata as {hol_ctxt as {ctxt, ...}, ...}) =
+fun consider_general_formula (cdata as {hol_ctxt = {ctxt, ...}, ...}) =
   let
     (* typ -> ctype *)
     val ctype_for = fresh_ctype_for_type cdata
@@ -814,7 +800,7 @@ fun consider_general_formula (cdata as {hol_ctxt as {ctxt, ...}, ...}) =
     val do_term = consider_term cdata
     (* sign -> term -> accumulator -> accumulator *)
     fun do_formula _ _ (_, UnsolvableCSet) = unsolvable_accum
-      | do_formula sn t (accum as (gamma as {bounds, frees, consts}, cset)) =
+      | do_formula sn t (accum as (gamma, cset)) =
         let
           (* term -> accumulator -> accumulator *)
           val do_co_formula = do_formula sn

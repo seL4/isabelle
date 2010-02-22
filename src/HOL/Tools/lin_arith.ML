@@ -138,8 +138,8 @@ fun add_atom (t : term) (m : Rat.rat) (p : (term * Rat.rat) list, i : Rat.rat) :
 *)
 fun demult (inj_consts : (string * typ) list) : term * Rat.rat -> term option * Rat.rat =
 let
-  fun demult ((mC as Const (@{const_name Algebras.times}, _)) $ s $ t, m) =
-      (case s of Const (@{const_name Algebras.times}, _) $ s1 $ s2 =>
+  fun demult ((mC as Const (@{const_name Groups.times}, _)) $ s $ t, m) =
+      (case s of Const (@{const_name Groups.times}, _) $ s1 $ s2 =>
         (* bracketing to the right: '(s1 * s2) * t' becomes 's1 * (s2 * t)' *)
         demult (mC $ s1 $ (mC $ s2 $ t), m)
       | _ =>
@@ -170,9 +170,9 @@ let
         (SOME _, _) => (SOME (mC $ s $ t), m)
       | (NONE,  m') => apsnd (Rat.mult (Rat.inv m')) (demult (s, m)))
     (* terms that evaluate to numeric constants *)
-    | demult (Const (@{const_name Algebras.uminus}, _) $ t, m) = demult (t, Rat.neg m)
-    | demult (Const (@{const_name Algebras.zero}, _), m) = (NONE, Rat.zero)
-    | demult (Const (@{const_name Algebras.one}, _), m) = (NONE, m)
+    | demult (Const (@{const_name Groups.uminus}, _) $ t, m) = demult (t, Rat.neg m)
+    | demult (Const (@{const_name Groups.zero}, _), m) = (NONE, Rat.zero)
+    | demult (Const (@{const_name Groups.one}, _), m) = (NONE, m)
     (*Warning: in rare cases number_of encloses a non-numeral,
       in which case dest_numeral raises TERM; hence all the handles below.
       Same for Suc-terms that turn out not to be numerals -
@@ -196,19 +196,19 @@ let
   (* Turns a term 'all' and associated multiplicity 'm' into a list 'p' of
      summands and associated multiplicities, plus a constant 'i' (with implicit
      multiplicity 1) *)
-  fun poly (Const (@{const_name Algebras.plus}, _) $ s $ t,
+  fun poly (Const (@{const_name Groups.plus}, _) $ s $ t,
         m : Rat.rat, pi : (term * Rat.rat) list * Rat.rat) = poly (s, m, poly (t, m, pi))
-    | poly (all as Const (@{const_name Algebras.minus}, T) $ s $ t, m, pi) =
+    | poly (all as Const (@{const_name Groups.minus}, T) $ s $ t, m, pi) =
         if nT T then add_atom all m pi else poly (s, m, poly (t, Rat.neg m, pi))
-    | poly (all as Const (@{const_name Algebras.uminus}, T) $ t, m, pi) =
+    | poly (all as Const (@{const_name Groups.uminus}, T) $ t, m, pi) =
         if nT T then add_atom all m pi else poly (t, Rat.neg m, pi)
-    | poly (Const (@{const_name Algebras.zero}, _), _, pi) =
+    | poly (Const (@{const_name Groups.zero}, _), _, pi) =
         pi
-    | poly (Const (@{const_name Algebras.one}, _), m, (p, i)) =
+    | poly (Const (@{const_name Groups.one}, _), m, (p, i)) =
         (p, Rat.add i m)
     | poly (Const (@{const_name Suc}, _) $ t, m, (p, i)) =
         poly (t, m, (p, Rat.add i m))
-    | poly (all as Const (@{const_name Algebras.times}, _) $ _ $ _, m, pi as (p, i)) =
+    | poly (all as Const (@{const_name Groups.times}, _) $ _ $ _, m, pi as (p, i)) =
         (case demult inj_consts (all, m) of
            (NONE,   m') => (p, Rat.add i m')
          | (SOME u, m') => add_atom u m' pi)
@@ -293,7 +293,7 @@ fun is_split_thm thm =
       Const (a, _) => member (op =) [@{const_name Orderings.max},
                                     @{const_name Orderings.min},
                                     @{const_name Groups.abs},
-                                    @{const_name Algebras.minus},
+                                    @{const_name Groups.minus},
                                     "Int.nat" (*DYNAMIC BINDING!*),
                                     "Divides.div_class.mod" (*DYNAMIC BINDING!*),
                                     "Divides.div_class.div" (*DYNAMIC BINDING!*)] a
@@ -401,9 +401,9 @@ in
       let
         val rev_terms   = rev terms
         val terms1      = map (subst_term [(split_term, t1)]) rev_terms
-        val terms2      = map (subst_term [(split_term, Const (@{const_name Algebras.uminus},
+        val terms2      = map (subst_term [(split_term, Const (@{const_name Groups.uminus},
                             split_type --> split_type) $ t1)]) rev_terms
-        val zero        = Const (@{const_name Algebras.zero}, split_type)
+        val zero        = Const (@{const_name Groups.zero}, split_type)
         val zero_leq_t1 = Const (@{const_name Orderings.less_eq},
                             split_type --> split_type --> HOLogic.boolT) $ zero $ t1
         val t1_lt_zero  = Const (@{const_name Orderings.less},
@@ -415,12 +415,12 @@ in
         SOME [(Ts, subgoal1), (Ts, subgoal2)]
       end
     (* ?P (?a - ?b) = ((?a < ?b --> ?P 0) & (ALL d. ?a = ?b + d --> ?P d)) *)
-    | (Const (@{const_name Algebras.minus}, _), [t1, t2]) =>
+    | (Const (@{const_name Groups.minus}, _), [t1, t2]) =>
       let
         (* "d" in the above theorem becomes a new bound variable after NNF   *)
         (* transformation, therefore some adjustment of indices is necessary *)
         val rev_terms       = rev terms
-        val zero            = Const (@{const_name Algebras.zero}, split_type)
+        val zero            = Const (@{const_name Groups.zero}, split_type)
         val d               = Bound 0
         val terms1          = map (subst_term [(split_term, zero)]) rev_terms
         val terms2          = map (subst_term [(incr_boundvars 1 split_term, d)])
@@ -430,7 +430,7 @@ in
         val t1_lt_t2        = Const (@{const_name Orderings.less},
                                 split_type --> split_type --> HOLogic.boolT) $ t1 $ t2
         val t1_eq_t2_plus_d = Const ("op =", split_type --> split_type --> HOLogic.boolT) $ t1' $
-                                (Const (@{const_name Algebras.plus},
+                                (Const (@{const_name Groups.plus},
                                   split_type --> split_type --> split_type) $ t2' $ d)
         val not_false       = HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.false_const)
         val subgoal1        = (HOLogic.mk_Trueprop t1_lt_t2) :: terms1 @ [not_false]
@@ -442,8 +442,8 @@ in
     | (Const ("Int.nat", _), [t1]) =>
       let
         val rev_terms   = rev terms
-        val zero_int    = Const (@{const_name Algebras.zero}, HOLogic.intT)
-        val zero_nat    = Const (@{const_name Algebras.zero}, HOLogic.natT)
+        val zero_int    = Const (@{const_name Groups.zero}, HOLogic.intT)
+        val zero_nat    = Const (@{const_name Groups.zero}, HOLogic.natT)
         val n           = Bound 0
         val terms1      = map (subst_term [(incr_boundvars 1 split_term, n)])
                             (map (incr_boundvars 1) rev_terms)
@@ -465,7 +465,7 @@ in
     | (Const ("Divides.div_class.mod", Type ("fun", [Type ("nat", []), _])), [t1, t2]) =>
       let
         val rev_terms               = rev terms
-        val zero                    = Const (@{const_name Algebras.zero}, split_type)
+        val zero                    = Const (@{const_name Groups.zero}, split_type)
         val i                       = Bound 1
         val j                       = Bound 0
         val terms1                  = map (subst_term [(split_term, t1)]) rev_terms
@@ -480,8 +480,8 @@ in
         val j_lt_t2                 = Const (@{const_name Orderings.less},
                                         split_type --> split_type--> HOLogic.boolT) $ j $ t2'
         val t1_eq_t2_times_i_plus_j = Const ("op =", split_type --> split_type --> HOLogic.boolT) $ t1' $
-                                       (Const (@{const_name Algebras.plus}, split_type --> split_type --> split_type) $
-                                         (Const (@{const_name Algebras.times},
+                                       (Const (@{const_name Groups.plus}, split_type --> split_type --> split_type) $
+                                         (Const (@{const_name Groups.times},
                                            split_type --> split_type --> split_type) $ t2' $ i) $ j)
         val not_false               = HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.false_const)
         val subgoal1                = (HOLogic.mk_Trueprop t2_eq_zero) :: terms1 @ [not_false]
@@ -497,7 +497,7 @@ in
     | (Const ("Divides.div_class.div", Type ("fun", [Type ("nat", []), _])), [t1, t2]) =>
       let
         val rev_terms               = rev terms
-        val zero                    = Const (@{const_name Algebras.zero}, split_type)
+        val zero                    = Const (@{const_name Groups.zero}, split_type)
         val i                       = Bound 1
         val j                       = Bound 0
         val terms1                  = map (subst_term [(split_term, zero)]) rev_terms
@@ -512,8 +512,8 @@ in
         val j_lt_t2                 = Const (@{const_name Orderings.less},
                                         split_type --> split_type--> HOLogic.boolT) $ j $ t2'
         val t1_eq_t2_times_i_plus_j = Const ("op =", split_type --> split_type --> HOLogic.boolT) $ t1' $
-                                       (Const (@{const_name Algebras.plus}, split_type --> split_type --> split_type) $
-                                         (Const (@{const_name Algebras.times},
+                                       (Const (@{const_name Groups.plus}, split_type --> split_type --> split_type) $
+                                         (Const (@{const_name Groups.times},
                                            split_type --> split_type --> split_type) $ t2' $ i) $ j)
         val not_false               = HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.false_const)
         val subgoal1                = (HOLogic.mk_Trueprop t2_eq_zero) :: terms1 @ [not_false]
@@ -535,7 +535,7 @@ in
         Type ("fun", [Type ("Int.int", []), _])), [t1, t2]) =>
       let
         val rev_terms               = rev terms
-        val zero                    = Const (@{const_name Algebras.zero}, split_type)
+        val zero                    = Const (@{const_name Groups.zero}, split_type)
         val i                       = Bound 1
         val j                       = Bound 0
         val terms1                  = map (subst_term [(split_term, t1)]) rev_terms
@@ -558,8 +558,8 @@ in
         val t2_lt_j                 = Const (@{const_name Orderings.less},
                                         split_type --> split_type--> HOLogic.boolT) $ t2' $ j
         val t1_eq_t2_times_i_plus_j = Const ("op =", split_type --> split_type --> HOLogic.boolT) $ t1' $
-                                       (Const (@{const_name Algebras.plus}, split_type --> split_type --> split_type) $
-                                         (Const (@{const_name Algebras.times},
+                                       (Const (@{const_name Groups.plus}, split_type --> split_type --> split_type) $
+                                         (Const (@{const_name Groups.times},
                                            split_type --> split_type --> split_type) $ t2' $ i) $ j)
         val not_false               = HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.false_const)
         val subgoal1                = (HOLogic.mk_Trueprop t2_eq_zero) :: terms1 @ [not_false]
@@ -589,7 +589,7 @@ in
         Type ("fun", [Type ("Int.int", []), _])), [t1, t2]) =>
       let
         val rev_terms               = rev terms
-        val zero                    = Const (@{const_name Algebras.zero}, split_type)
+        val zero                    = Const (@{const_name Groups.zero}, split_type)
         val i                       = Bound 1
         val j                       = Bound 0
         val terms1                  = map (subst_term [(split_term, zero)]) rev_terms
@@ -612,8 +612,8 @@ in
         val t2_lt_j                 = Const (@{const_name Orderings.less},
                                         split_type --> split_type--> HOLogic.boolT) $ t2' $ j
         val t1_eq_t2_times_i_plus_j = Const ("op =", split_type --> split_type --> HOLogic.boolT) $ t1' $
-                                       (Const (@{const_name Algebras.plus}, split_type --> split_type --> split_type) $
-                                         (Const (@{const_name Algebras.times},
+                                       (Const (@{const_name Groups.plus}, split_type --> split_type --> split_type) $
+                                         (Const (@{const_name Groups.times},
                                            split_type --> split_type --> split_type) $ t2' $ i) $ j)
         val not_false               = HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.false_const)
         val subgoal1                = (HOLogic.mk_Trueprop t2_eq_zero) :: terms1 @ [not_false]
