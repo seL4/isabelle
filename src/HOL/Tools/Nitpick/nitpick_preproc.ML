@@ -293,8 +293,8 @@ fun box_fun_and_pair_in_term (hol_ctxt as {thy, stds, fast_descrs, ...}) def
         $ do_term new_Ts old_Ts polar t2
       | Const (s as @{const_name The}, T) => do_description_operator s T
       | Const (s as @{const_name Eps}, T) => do_description_operator s T
-      | Const (@{const_name quot_normal}, Type ("fun", [_, T2])) =>
-        let val T' = box_type hol_ctxt InSel T2 in
+      | Const (@{const_name quot_normal}, Type ("fun", [T, _])) =>
+        let val T' = box_type hol_ctxt InFunLHS T in
           Const (@{const_name quot_normal}, T' --> T')
         end
       | Const (s as @{const_name Tha}, T) => do_description_operator s T

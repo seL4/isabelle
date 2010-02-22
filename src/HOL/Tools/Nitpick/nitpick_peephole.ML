@@ -340,24 +340,23 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
                else Project (r, is)
              end
 
+    (* (rel_expr -> formula) -> rel_expr -> formula *)
+    fun s_xone xone r =
+      if is_one_rel_expr r then
+        True
+      else case arity_of_rel_expr r of
+        1 => xone r
+      | arity => foldl1 And (map (xone o s_project r o single o Num)
+                                 (index_seq 0 arity))
     (* rel_expr -> formula *)
     fun s_no None = True
       | s_no (Product (r1, r2)) = s_or (s_no r1) (s_no r2)
       | s_no (Intersect (Closure (Rel x), Iden)) = Acyclic x
       | s_no r = if is_one_rel_expr r then False else No r
     fun s_lone None = True
-      | s_lone r = if is_one_rel_expr r then True else Lone r
+      | s_lone r = s_xone Lone r
     fun s_one None = False
-      | s_one r =
-        if is_one_rel_expr r then
-          True
-        else if inline_rel_expr r then
-          case arity_of_rel_expr r of
-            1 => One r
-          | arity => foldl1 And (map (One o s_project r o single o Num)
-                                     (index_seq 0 arity))
-        else
-          One r
+      | s_one r = s_xone One r
     fun s_some None = False
       | s_some (Atom _) = True
       | s_some (Product (r1, r2)) = s_and (s_some r1) (s_some r2)

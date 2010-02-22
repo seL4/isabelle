@@ -15,11 +15,9 @@ ML {*
 exception FAIL
 
 (* int -> term -> string *)
-fun minipick 0 _ = "none"
-  | minipick n t =
-    case minipick (n - 1) t of
-      "none" => Minipick.pick_nits_in_term @{context} (K n) t
-    | outcome_code => outcome_code
+fun minipick n t =
+  map (fn k => Minipick.kodkod_problem_from_term @{context} (K k) t) (1 upto n)
+  |> Minipick.solve_any_kodkod_problem @{theory}
 (* int -> term -> bool *)
 fun none n t = (minipick n t = "none" orelse raise FAIL)
 fun genuine n t = (minipick n t = "genuine" orelse raise FAIL)
@@ -87,11 +85,11 @@ ML {* none 5 @{prop "\<exists>a b\<Colon>'a \<times> 'a \<times> 'a. (a, b) = (b
 ML {* genuine 2 @{prop "(a\<Colon>'a \<times> 'a \<times> 'a, b) \<noteq> (b, a)"} *}
 ML {* none 5 @{prop "\<exists>a b\<Colon>'a \<Rightarrow> 'a. (a, b) = (b, a)"} *}
 ML {* genuine 1 @{prop "(a\<Colon>'a \<Rightarrow> 'a, b) \<noteq> (b, a)"} *}
-ML {* none 8 @{prop "fst (a, b) = a"} *}
+ML {* none 5 @{prop "fst (a, b) = a"} *}
 ML {* none 1 @{prop "fst (a, b) = b"} *}
 ML {* genuine 2 @{prop "fst (a, b) = b"} *}
 ML {* genuine 2 @{prop "fst (a, b) \<noteq> b"} *}
-ML {* none 8 @{prop "snd (a, b) = b"} *}
+ML {* none 5 @{prop "snd (a, b) = b"} *}
 ML {* none 1 @{prop "snd (a, b) = a"} *}
 ML {* genuine 2 @{prop "snd (a, b) = a"} *}
 ML {* genuine 2 @{prop "snd (a, b) \<noteq> a"} *}

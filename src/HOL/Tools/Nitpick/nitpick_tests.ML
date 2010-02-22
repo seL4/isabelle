@@ -294,7 +294,8 @@ val tests =
 *)
   ]
 
-fun problem_for_nut ctxt name u =
+(* Proof.context -> string * nut -> Kodkod.problem *)
+fun problem_for_nut ctxt (name, u) =
   let
     val debug = false
     val peephole_optim = true
@@ -320,15 +321,11 @@ fun problem_for_nut ctxt name u =
      formula = formula}
   end
 
-(* string -> unit *)
-fun run_test name =
-  case Kodkod.solve_any_problem false NONE 0 1
-           [problem_for_nut @{context} name
-                            (the (AList.lookup (op =) tests name))] of
-    Kodkod.Normal ([], _) => ()
-  | _ => warning ("Test " ^ quote name ^ " failed")
-
 (* unit -> unit *)
-fun run_all_tests () = List.app run_test (map fst tests)
+fun run_all_tests () =
+  case Kodkod.solve_any_problem false NONE 0 1
+                                (map (problem_for_nut @{context}) tests) of
+    Kodkod.Normal ([], _) => ()
+  | _ => error "Tests failed"
 
 end;

@@ -19,7 +19,9 @@ sig
   val true_atom : Kodkod.rel_expr
   val formula_from_atom : Kodkod.rel_expr -> Kodkod.formula
   val atom_from_formula : Kodkod.formula -> Kodkod.rel_expr
-  val pick_nits_in_term : Proof.context -> (typ -> int) -> term -> string
+  val kodkod_problem_from_term :
+    Proof.context -> (typ -> int) -> term -> Kodkod.problem
+  val solve_any_kodkod_problem : theory -> Kodkod.problem list -> string
 end;
 
 structure Minipick : MINIPICK =
@@ -287,11 +289,10 @@ fun declarative_axiom_for_rel_expr card Ts (Type ("fun", [T1, T2])) r =
 fun declarative_axiom_for_free card i (_, T) =
   declarative_axiom_for_rel_expr card [] T (Rel (arity_of RRep card T, i))
 
-(* Proof.context -> (typ -> int) -> term -> string *)
-fun pick_nits_in_term ctxt raw_card t =
+(* Proof.context -> (typ -> int) -> term -> problem *)
+fun kodkod_problem_from_term ctxt raw_card t =
   let
     val thy = ProofContext.theory_of ctxt
-    val {overlord, ...} = Nitpick_Isar.default_params thy []
     (* typ -> int *)
     fun card (Type ("fun", [T1, T2])) = reasonable_power (card T2) (card T1)
       | card (Type ("*", [T1, T2])) = card T1 * card T2
@@ -306,11 +307,19 @@ fun pick_nits_in_term ctxt raw_card t =
     val formula = kodkod_formula_from_term ctxt card frees neg_t
                   |> fold_rev (curry And) declarative_axioms
     val univ_card = univ_card 0 0 0 bounds formula
-    val problem =
-      {comment = "", settings = [], univ_card = univ_card, tuple_assigns = [],
-       bounds = bounds, int_bounds = [], expr_assigns = [], formula = formula}
   in
-    case solve_any_problem overlord NONE 0 1 [problem] of
+    {comment = "", settings = [], univ_card = univ_card, tuple_assigns = [],
+     bounds = bounds, int_bounds = [], expr_assigns = [], formula = formula}
+  end
+
+(* theory -> problem list -> string *)
+fun solve_any_kodkod_problem thy problems =
+  let
+    val {overlord, ...} = Nitpick_Isar.default_params thy []
+    val max_threads = 1
+    val max_solutions = 1
+  in
+    case solve_any_problem overlord NONE max_threads max_solutions problems of
       NotInstalled => "unknown"
     | Normal ([], _) => "none"
     | Normal _ => "genuine"
@@ -318,7 +327,5 @@ fun pick_nits_in_term ctxt raw_card t =
     | Interrupted _ => "unknown"
     | Error (s, _) => error ("Kodkod error: " ^ s)
   end
-  handle NOT_SUPPORTED details =>
-         (warning ("Unsupported case: " ^ details ^ "."); "unknown")
 
 end;

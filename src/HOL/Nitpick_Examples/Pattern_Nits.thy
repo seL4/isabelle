@@ -11,8 +11,8 @@ theory Pattern_Nits
 imports Main
 begin
 
-nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1, timeout = 60 s,
-                card = 14]
+nitpick_params [card = 10, max_potential = 0, sat_solver = MiniSat_JNI,
+                max_threads = 1, timeout = 60 s]
 
 lemma "x = (case u of () \<Rightarrow> y)"
 nitpick [expect = genuine]
@@ -132,7 +132,7 @@ lemma "\<exists>y ys. xs = y # ys"
 nitpick [expect = genuine]
 oops
 
-lemma "\<exists>y a b zs. x = (y # Some (a, b) # zs)"
+lemma "\<exists>y a b zs. x = y # Some (a, b) # zs"
 nitpick [expect = genuine]
 oops
 

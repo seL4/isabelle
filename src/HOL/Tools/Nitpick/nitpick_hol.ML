@@ -597,8 +597,8 @@ fun register_codatatype co_T case_name constr_xs thy =
 fun unregister_codatatype co_T = register_codatatype co_T "" []
 
 (* theory -> typ -> bool *)
-fun is_quot_type _ (Type ("IntEx.my_int", _)) = true (* FIXME *)
-  | is_quot_type _ (Type ("FSet.fset", _)) = true
+fun is_quot_type thy (Type (s, _)) =
+    is_some (Quotient_Info.quotdata_lookup_raw thy s)
   | is_quot_type _ _ = false
 fun is_codatatype thy (Type (s, _)) =
     not (null (AList.lookup (op =) (#codatatypes (Data.get thy)) s
@@ -666,11 +666,13 @@ fun is_rep_fun thy (s, Type ("fun", [Type (s', _), _])) =
      | NONE => false)
   | is_rep_fun _ _ = false
 (* Proof.context -> styp -> bool *)
-fun is_quot_abs_fun _ ("IntEx.abs_my_int", _) = true
-  | is_quot_abs_fun _ ("FSet.abs_fset", _) = true
+fun is_quot_abs_fun ctxt (x as (_, Type ("fun", [_, Type (s', _)]))) =
+    (try (Quotient_Term.absrep_const_chk Quotient_Term.AbsF ctxt) s'
+     = SOME (Const x))
   | is_quot_abs_fun _ _ = false
-fun is_quot_rep_fun _ ("IntEx.rep_my_int", _) = true
-  | is_quot_rep_fun _ ("FSet.rep_fset", _) = true
+fun is_quot_rep_fun ctxt (x as (_, Type ("fun", [Type (s', _), _]))) =
+    (try (Quotient_Term.absrep_const_chk Quotient_Term.RepF ctxt) s'
+     = SOME (Const x))
   | is_quot_rep_fun _ _ = false
 
 (* theory -> styp -> styp *)
@@ -680,18 +682,16 @@ fun mate_of_rep_fun thy (x as (_, Type ("fun", [T1 as Type (s', _), T2]))) =
      | NONE => raise TERM ("Nitpick_HOL.mate_of_rep_fun", [Const x]))
   | mate_of_rep_fun _ x = raise TERM ("Nitpick_HOL.mate_of_rep_fun", [Const x])
 (* theory -> typ -> typ *)
-fun rep_type_for_quot_type _ (Type ("IntEx.my_int", [])) = @{typ "nat * nat"}
-  | rep_type_for_quot_type _ (Type ("FSet.fset", [T])) =
-    Type (@{type_name list}, [T])
-  | rep_type_for_quot_type _ T =
-    raise TYPE ("Nitpick_HOL.rep_type_for_quot_type", [T], [])
+fun rep_type_for_quot_type thy (T as Type (s, _)) =
+  let val {qtyp, rtyp, ...} = Quotient_Info.quotdata_lookup thy s in
+    instantiate_type thy qtyp T rtyp
+  end
 (* theory -> typ -> term *)
-fun equiv_relation_for_quot_type _ (Type ("IntEx.my_int", [])) =
-    Const ("IntEx.intrel", @{typ "(nat * nat) => (nat * nat) => bool"})
-  | equiv_relation_for_quot_type _ (Type ("FSet.fset", [T])) =
-    Const ("FSet.list_eq",
-           Type (@{type_name list}, [T]) --> Type (@{type_name list}, [T])
-           --> bool_T)
+fun equiv_relation_for_quot_type thy (Type (s, Ts)) =
+    let
+      val {qtyp, equiv_rel, ...} = Quotient_Info.quotdata_lookup thy s
+      val Ts' = qtyp |> dest_Type |> snd
+    in subst_atomic_types (Ts' ~~ Ts) equiv_rel end
   | equiv_relation_for_quot_type _ T =
     raise TYPE ("Nitpick_HOL.equiv_relation_for_quot_type", [T], [])
 
@@ -1547,7 +1547,7 @@ fun is_constr_pattern_formula thy t =
 val unfold_max_depth = 255
 
 (* hol_context -> term -> term *)
-fun unfold_defs_in_term (hol_ctxt as {thy, stds, fast_descrs, case_names,
+fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
                                       def_table, ground_thm_table, ersatz_table,
                                       ...}) =
   let
@@ -1632,7 +1632,7 @@ fun unfold_defs_in_term (hol_ctxt as {thy, stds, fast_descrs, case_names,
               else if is_stale_constr thy x then
                 raise NOT_SUPPORTED ("(non-co)constructors of codatatypes \
                                      \(\"" ^ s ^ "\")")
-              else if is_quot_abs_fun thy x then
+              else if is_quot_abs_fun ctxt x then
                 let
                   val rep_T = domain_type T
                   val abs_T = range_type T
@@ -1642,7 +1642,7 @@ fun unfold_defs_in_term (hol_ctxt as {thy, stds, fast_descrs, case_names,
                                $ (Const (@{const_name quot_normal},
                                          rep_T --> rep_T) $ Bound 0)), ts)
                 end
-              else if is_quot_rep_fun thy x then
+              else if is_quot_rep_fun ctxt x then
                 let
                   val abs_T = domain_type T
                   val rep_T = range_type T
