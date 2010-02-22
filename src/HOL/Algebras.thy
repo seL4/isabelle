@@ -8,8 +8,6 @@ theory Algebras
 imports HOL
 begin
 
-subsection {* Generic algebraic structures *}
-
 text {*
   These locales provide basic structures for interpretation into
   bigger structures;  extensions require careful thinking, otherwise
@@ -53,59 +51,5 @@ lemma left_idem [simp]:
   by (simp add: assoc [symmetric])
 
 end
-
-
-subsection {* Generic syntactic operations *}
-
-class zero = 
-  fixes zero :: 'a  ("0")
-
-class one =
-  fixes one  :: 'a  ("1")
-
-hide (open) const zero one
-
-syntax
-  "_index1"  :: index    ("\<^sub>1")
-translations
-  (index) "\<^sub>1" => (index) "\<^bsub>\<struct>\<^esub>"
-
-lemma Let_0 [simp]: "Let 0 f = f 0"
-  unfolding Let_def ..
-
-lemma Let_1 [simp]: "Let 1 f = f 1"
-  unfolding Let_def ..
-
-setup {*
-  Reorient_Proc.add
-    (fn Const(@{const_name Algebras.zero}, _) => true
-      | Const(@{const_name Algebras.one}, _) => true
-      | _ => false)
-*}
-
-simproc_setup reorient_zero ("0 = x") = Reorient_Proc.proc
-simproc_setup reorient_one ("1 = x") = Reorient_Proc.proc
-
-typed_print_translation {*
-let
-  fun tr' c = (c, fn show_sorts => fn T => fn ts =>
-    if (not o null) ts orelse T = dummyT
-      orelse not (! show_types) andalso can Term.dest_Type T
-    then raise Match
-    else Syntax.const Syntax.constrainC $ Syntax.const c $ Syntax.term_of_typ show_sorts T);
-in map tr' [@{const_syntax Algebras.one}, @{const_syntax Algebras.zero}] end;
-*} -- {* show types that are presumably too general *}
-
-class plus =
-  fixes plus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "+" 65)
-
-class minus =
-  fixes minus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "-" 65)
-
-class uminus =
-  fixes uminus :: "'a \<Rightarrow> 'a"  ("- _" [81] 80)
-
-class times =
-  fixes times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "*" 70)
 
 end

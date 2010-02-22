@@ -710,11 +710,11 @@ struct
       | Const (@{const_name Finite_Set.finite}, _) => t
       | Const (@{const_name Orderings.less}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("bool", [])])])) => t
-      | Const (@{const_name Algebras.plus}, Type ("fun", [Type ("nat", []),
+      | Const (@{const_name Groups.plus}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
-      | Const (@{const_name Algebras.minus}, Type ("fun", [Type ("nat", []),
+      | Const (@{const_name Groups.minus}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
-      | Const (@{const_name Algebras.times}, Type ("fun", [Type ("nat", []),
+      | Const (@{const_name Groups.times}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
       | Const (@{const_name List.append}, _) => t
       | Const (@{const_name lfp}, _) => t
@@ -886,13 +886,13 @@ struct
       | Const (@{const_name Orderings.less}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("bool", [])])])) =>
           collect_type_axioms T axs
-      | Const (@{const_name Algebras.plus}, T as Type ("fun", [Type ("nat", []),
+      | Const (@{const_name Groups.plus}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
           collect_type_axioms T axs
-      | Const (@{const_name Algebras.minus}, T as Type ("fun", [Type ("nat", []),
+      | Const (@{const_name Groups.minus}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
           collect_type_axioms T axs
-      | Const (@{const_name Algebras.times}, T as Type ("fun", [Type ("nat", []),
+      | Const (@{const_name Groups.times}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
           collect_type_axioms T axs
       | Const (@{const_name List.append}, T) => collect_type_axioms T axs
@@ -2794,7 +2794,7 @@ struct
 
   fun Nat_plus_interpreter thy model args t =
     case t of
-      Const (@{const_name Algebras.plus}, Type ("fun", [Type ("nat", []),
+      Const (@{const_name Groups.plus}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
       let
         val size_of_nat = size_of_type thy model (Type ("nat", []))
@@ -2825,7 +2825,7 @@ struct
 
   fun Nat_minus_interpreter thy model args t =
     case t of
-      Const (@{const_name Algebras.minus}, Type ("fun", [Type ("nat", []),
+      Const (@{const_name Groups.minus}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
       let
         val size_of_nat = size_of_type thy model (Type ("nat", []))
@@ -2853,7 +2853,7 @@ struct
 
   fun Nat_times_interpreter thy model args t =
     case t of
-      Const (@{const_name Algebras.times}, Type ("fun", [Type ("nat", []),
+      Const (@{const_name Groups.times}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
       let
         val size_of_nat = size_of_type thy model (Type ("nat", []))

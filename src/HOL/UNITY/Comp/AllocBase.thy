@@ -58,9 +58,8 @@ lemma mono_bag_of: "mono (bag_of :: 'a list => ('a::order) multiset)"
 apply (rule monoI)
 apply (unfold prefix_def)
 apply (erule genPrefix.induct, auto)
-apply (simp add: union_le_mono)
 apply (erule order_trans)
-apply (rule union_upper1)
+apply simp
 done
 
 (** setsum **)

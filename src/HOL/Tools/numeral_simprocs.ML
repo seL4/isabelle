@@ -34,12 +34,12 @@ val mk_sum = Arith_Data.mk_sum;
 val long_mk_sum = Arith_Data.long_mk_sum;
 val dest_sum = Arith_Data.dest_sum;
 
-val mk_diff = HOLogic.mk_binop @{const_name Algebras.minus};
-val dest_diff = HOLogic.dest_bin @{const_name Algebras.minus} Term.dummyT;
+val mk_diff = HOLogic.mk_binop @{const_name Groups.minus};
+val dest_diff = HOLogic.dest_bin @{const_name Groups.minus} Term.dummyT;
 
-val mk_times = HOLogic.mk_binop @{const_name Algebras.times};
+val mk_times = HOLogic.mk_binop @{const_name Groups.times};
 
-fun one_of T = Const(@{const_name Algebras.one}, T);
+fun one_of T = Const(@{const_name Groups.one}, T);
 
 (* build product with trailing 1 rather than Numeral 1 in order to avoid the
    unnecessary restriction to type class number_ring
@@ -56,7 +56,7 @@ fun mk_prod T =
 fun long_mk_prod T []        = one_of T
   | long_mk_prod T (t :: ts) = mk_times (t, mk_prod T ts);
 
-val dest_times = HOLogic.dest_bin @{const_name Algebras.times} Term.dummyT;
+val dest_times = HOLogic.dest_bin @{const_name Groups.times} Term.dummyT;
 
 fun dest_prod t =
       let val (t,u) = dest_times t
@@ -72,7 +72,7 @@ fun find_first_numeral past (t::terms) =
 fun mk_coeff (k, t) = mk_times (mk_number (Term.fastype_of t) k, t);
 
 (*Express t as a product of (possibly) a numeral with other sorted terms*)
-fun dest_coeff sign (Const (@{const_name Algebras.uminus}, _) $ t) = dest_coeff (~sign) t
+fun dest_coeff sign (Const (@{const_name Groups.uminus}, _) $ t) = dest_coeff (~sign) t
   | dest_coeff sign t =
     let val ts = sort TermOrd.term_ord (dest_prod t)
         val (n, ts') = find_first_numeral [] ts
@@ -104,7 +104,7 @@ fun mk_fcoeff ((p, q), t) =
   in mk_times (mk_divide (mk_number T p, mk_number T q), t) end;
 
 (*Express t as a product of a fraction with other sorted terms*)
-fun dest_fcoeff sign (Const (@{const_name Algebras.uminus}, _) $ t) = dest_fcoeff (~sign) t
+fun dest_fcoeff sign (Const (@{const_name Groups.uminus}, _) $ t) = dest_fcoeff (~sign) t
   | dest_fcoeff sign (Const (@{const_name Rings.divide}, _) $ t $ u) =
     let val (p, t') = dest_coeff sign t
         val (q, u') = dest_coeff 1 u
@@ -484,7 +484,7 @@ local
 in
 fun sign_conv pos_th neg_th ss t =
   let val T = fastype_of t;
-      val zero = Const(@{const_name Algebras.zero}, T);
+      val zero = Const(@{const_name Groups.zero}, T);
       val less = Const(@{const_name Orderings.less}, [T,T] ---> HOLogic.boolT);
       val pos = less $ zero $ t and neg = less $ t $ zero
       fun prove p =

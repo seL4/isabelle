@@ -154,7 +154,7 @@ lemma multiset_of_eq_perm: "(multiset_of xs = multiset_of ys) = (xs <~~> ys) "
   done
 
 lemma multiset_of_le_perm_append:
-    "(multiset_of xs \<le># multiset_of ys) = (\<exists>zs. xs @ zs <~~> ys)"
+    "multiset_of xs \<le> multiset_of ys \<longleftrightarrow> (\<exists>zs. xs @ zs <~~> ys)"
   apply (auto simp: multiset_of_eq_perm[THEN sym] mset_le_exists_conv)
   apply (insert surj_multiset_of, drule surjD)
   apply (blast intro: sym)+

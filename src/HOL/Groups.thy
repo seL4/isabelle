@@ -6,8 +6,63 @@ header {* Groups, also combined with orderings *}
 
 theory Groups
 imports Orderings
-uses "~~/src/Provers/Arith/abel_cancel.ML"
+uses ("~~/src/Provers/Arith/abel_cancel.ML")
 begin
+
+subsection {* Generic operations *}
+
+class zero = 
+  fixes zero :: 'a  ("0")
+
+class one =
+  fixes one  :: 'a  ("1")
+
+hide (open) const zero one
+
+syntax
+  "_index1"  :: index    ("\<^sub>1")
+translations
+  (index) "\<^sub>1" => (index) "\<^bsub>\<struct>\<^esub>"
+
+lemma Let_0 [simp]: "Let 0 f = f 0"
+  unfolding Let_def ..
+
+lemma Let_1 [simp]: "Let 1 f = f 1"
+  unfolding Let_def ..
+
+setup {*
+  Reorient_Proc.add
+    (fn Const(@{const_name Groups.zero}, _) => true
+      | Const(@{const_name Groups.one}, _) => true
+      | _ => false)
+*}
+
+simproc_setup reorient_zero ("0 = x") = Reorient_Proc.proc
+simproc_setup reorient_one ("1 = x") = Reorient_Proc.proc
+
+typed_print_translation {*
+let
+  fun tr' c = (c, fn show_sorts => fn T => fn ts =>
+    if (not o null) ts orelse T = dummyT
+      orelse not (! show_types) andalso can Term.dest_Type T
+    then raise Match
+    else Syntax.const Syntax.constrainC $ Syntax.const c $ Syntax.term_of_typ show_sorts T);
+in map tr' [@{const_syntax Groups.one}, @{const_syntax Groups.zero}] end;
+*} -- {* show types that are presumably too general *}
+
+class plus =
+  fixes plus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "+" 65)
+
+class minus =
+  fixes minus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "-" 65)
+
+class uminus =
+  fixes uminus :: "'a \<Rightarrow> 'a"  ("- _" [81] 80)
+
+class times =
+  fixes times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "*" 70)
+
+use "~~/src/Provers/Arith/abel_cancel.ML"
 
 text {*
   The theory of partially ordered groups is taken from the books:
@@ -1129,8 +1184,8 @@ structure ab_group_add_cancel = Abel_Cancel
 (* term order for abelian groups *)
 
 fun agrp_ord (Const (a, _)) = find_index (fn a' => a = a')
-      [@{const_name Algebras.zero}, @{const_name Algebras.plus},
-        @{const_name Algebras.uminus}, @{const_name Algebras.minus}]
+      [@{const_name Groups.zero}, @{const_name Groups.plus},
+        @{const_name Groups.uminus}, @{const_name Groups.minus}]
   | agrp_ord _ = ~1;
 
 fun termless_agrp (a, b) = (TermOrd.term_lpo agrp_ord (a, b) = LESS);
@@ -1139,9 +1194,9 @@ local
   val ac1 = mk_meta_eq @{thm add_assoc};
   val ac2 = mk_meta_eq @{thm add_commute};
   val ac3 = mk_meta_eq @{thm add_left_commute};
-  fun solve_add_ac thy _ (_ $ (Const (@{const_name Algebras.plus},_) $ _ $ _) $ _) =
+  fun solve_add_ac thy _ (_ $ (Const (@{const_name Groups.plus},_) $ _ $ _) $ _) =
         SOME ac1
-    | solve_add_ac thy _ (_ $ x $ (Const (@{const_name Algebras.plus},_) $ y $ z)) =
+    | solve_add_ac thy _ (_ $ x $ (Const (@{const_name Groups.plus},_) $ y $ z)) =
         if termless_agrp (y, x) then SOME ac3 else NONE
     | solve_add_ac thy _ (_ $ x $ y) =
         if termless_agrp (y, x) then SOME ac2 else NONE

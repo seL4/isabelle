@@ -52,15 +52,15 @@ end;
 
 local
  fun isnum t = case t of 
-   Const(@{const_name Algebras.zero},_) => true
- | Const(@{const_name Algebras.one},_) => true
+   Const(@{const_name Groups.zero},_) => true
+ | Const(@{const_name Groups.one},_) => true
  | @{term "Suc"}$s => isnum s
  | @{term "nat"}$s => isnum s
  | @{term "int"}$s => isnum s
- | Const(@{const_name Algebras.uminus},_)$s => isnum s
- | Const(@{const_name Algebras.plus},_)$l$r => isnum l andalso isnum r
- | Const(@{const_name Algebras.times},_)$l$r => isnum l andalso isnum r
- | Const(@{const_name Algebras.minus},_)$l$r => isnum l andalso isnum r
+ | Const(@{const_name Groups.uminus},_)$s => isnum s
+ | Const(@{const_name Groups.plus},_)$l$r => isnum l andalso isnum r
+ | Const(@{const_name Groups.times},_)$l$r => isnum l andalso isnum r
+ | Const(@{const_name Groups.minus},_)$l$r => isnum l andalso isnum r
  | Const(@{const_name Power.power},_)$l$r => isnum l andalso isnum r
  | Const(@{const_name Divides.mod},_)$l$r => isnum l andalso isnum r
  | Const(@{const_name Divides.div},_)$l$r => isnum l andalso isnum r
