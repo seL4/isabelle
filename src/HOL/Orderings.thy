@@ -5,7 +5,7 @@
 header {* Abstract orderings *}
 
 theory Orderings
-imports Algebras
+imports HOL
 uses
   "~~/src/Provers/order.ML"
   "~~/src/Provers/quasi.ML"  (* FIXME unused? *)

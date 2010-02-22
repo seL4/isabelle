@@ -8,7 +8,42 @@ theory Lattices
 imports Orderings Groups
 begin
 
-subsection {* Lattices *}
+subsection {* Abstract semilattice *}
+
+text {*
+  This locales provide a basic structure for interpretation into
+  bigger structures;  extensions require careful thinking, otherwise
+  undesired effects may occur due to interpretation.
+*}
+
+locale semilattice = abel_semigroup +
+  assumes idem [simp]: "f a a = a"
+begin
+
+lemma left_idem [simp]:
+  "f a (f a b) = f a b"
+  by (simp add: assoc [symmetric])
+
+end
+
+
+subsection {* Idempotent semigroup *}
+
+class ab_semigroup_idem_mult = ab_semigroup_mult +
+  assumes mult_idem: "x * x = x"
+
+sublocale ab_semigroup_idem_mult < times!: semilattice times proof
+qed (fact mult_idem)
+
+context ab_semigroup_idem_mult
+begin
+
+lemmas mult_left_idem = times.left_idem
+
+end
+
+
+subsection {* Conrete lattices *}
 
 notation
   less_eq  (infix "\<sqsubseteq>" 50) and
