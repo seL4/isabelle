@@ -52,12 +52,6 @@ Minor INCOMPATIBILITY.
 
 *** HOL ***
 
-* Multisets: changed orderings:
-  * pointwise ordering is instance of class order with standard syntax <= and <;
-  * multiset ordering has syntax <=# and <#; partial order properties are provided
-      by means of interpretation with prefix multiset_order.
-INCOMPATIBILITY.
-
 * New set of rules "ac_simps" provides combined assoc / commute rewrites
 for all interpretations of the appropriate generic locales.
 
@@ -138,8 +132,11 @@ to other strip and tuple operations.  INCOMPATIBILITY.
 replaced by new-style primrec, especially in theory List.  The corresponding
 constants now have authentic syntax.  INCOMPATIBILITY.
 
-* Reorganized theory Multiset: swapped notation of pointwise and multiset
-order;  less duplication, less historical organization of sections,
+* Reorganized theory Multiset: swapped notation of pointwise and multiset order:
+  * pointwise ordering is instance of class order with standard syntax <= and <;
+  * multiset ordering has syntax <=# and <#; partial order properties are provided
+      by means of interpretation with prefix multiset_order.
+Less duplication, less historical organization of sections,
 conversion from associations lists to multisets, rudimentary code generation.
 Use insert_DiffM2 [symmetric] instead of elem_imp_eq_diff_union, if needed.
 INCOMPATIBILITY.
