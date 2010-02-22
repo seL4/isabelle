@@ -1206,11 +1206,14 @@ using one_step_implies_mult_aux by blast
 
 subsubsection {* Partial-order properties *}
 
-definition less_multiset :: "'a\<Colon>order multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "\<subset>#" 50) where
-  "M' \<subset># M \<longleftrightarrow> (M', M) \<in> mult {(x', x). x' < x}"
+definition less_multiset :: "'a\<Colon>order multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "<#" 50) where
+  "M' <# M \<longleftrightarrow> (M', M) \<in> mult {(x', x). x' < x}"
 
-definition le_multiset :: "'a\<Colon>order multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "\<subseteq>#" 50) where
-  "M' \<subseteq># M \<longleftrightarrow> M' \<subset># M \<or> M' = M"
+definition le_multiset :: "'a\<Colon>order multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "<=#" 50) where
+  "M' <=# M \<longleftrightarrow> M' <# M \<or> M' = M"
+
+notation (xsymbol) less_multiset (infix "\<subset>#" 50)
+notation (xsymbol) le_multiset (infix "\<subseteq>#" 50)
 
 interpretation multiset_order: order le_multiset less_multiset
 proof -
