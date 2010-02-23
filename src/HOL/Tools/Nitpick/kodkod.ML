@@ -158,7 +158,7 @@ sig
 
   datatype outcome =
     NotInstalled |
-    Normal of (int * raw_bound list) list * int list |
+    Normal of (int * raw_bound list) list * int list * string |
     TimedOut of int list |
     Interrupted of int list option |
     Error of string * int list
@@ -304,7 +304,7 @@ type raw_bound = n_ary_index * int list list
 
 datatype outcome =
   NotInstalled |
-  Normal of (int * raw_bound list) list * int list |
+  Normal of (int * raw_bound list) list * int list * string |
   TimedOut of int list |
   Interrupted of int list option |
   Error of string * int list
@@ -1029,7 +1029,7 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
     val reindex = fst o nth indexed_problems
   in
     if null indexed_problems then
-      Normal ([], triv_js)
+      Normal ([], triv_js, "")
     else
       let
         val (serial_str, temp_dir) =
@@ -1089,6 +1089,8 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
               if null ps then
                 if code = 2 then
                   TimedOut js
+                else if code = 0 then
+                  Normal ([], js, first_error)
                 else if first_error |> Substring.full
                         |> Substring.position "NoClassDefFoundError" |> snd
                         |> Substring.isEmpty |> not then
@@ -1098,12 +1100,10 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
                                      |> perhaps (try (unprefix "Error: ")), js)
                 else if io_error then
                   Error ("I/O error", js)
-                else if code <> 0 then
-                  Error ("Unknown error", js)
                 else
-                  Normal ([], js)
+                  Error ("Unknown error", js)
               else
-                Normal (ps, js)
+                Normal (ps, js, first_error)
             end
         in remove_temporary_files (); outcome end
         handle Exn.Interrupt =>

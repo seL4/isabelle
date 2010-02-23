@@ -412,7 +412,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       if sat_solver <> "smart" then
         if need_incremental andalso
            not (member (op =) (Kodkod_SAT.configured_sat_solvers true)
-                      sat_solver) then
+                       sat_solver) then
           (print_m (K ("An incremental SAT solver is required: \"SAT4J\" will \
                        \be used instead of " ^ quote sat_solver ^ "."));
            "SAT4J")
@@ -581,6 +581,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     fun update_checked_problems problems =
       List.app (Unsynchronized.change checked_problems o Option.map o cons
                 o nth problems)
+    (* string -> unit *)
+    fun show_kodkod_warning "" = ()
+      | show_kodkod_warning s = print_v (fn () => "Kodkod warning: " ^ s ^ ".")
 
     (* bool -> KK.raw_bound list -> problem_extension -> bool option *)
     fun print_and_check_model genuine bounds
@@ -701,15 +704,16 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
             KK.NotInstalled =>
             (print_m install_kodkodi_message;
              (max_potential, max_genuine, donno + 1))
-          | KK.Normal ([], unsat_js) =>
-            (update_checked_problems problems unsat_js;
+          | KK.Normal ([], unsat_js, s) =>
+            (update_checked_problems problems unsat_js; show_kodkod_warning s;
              (max_potential, max_genuine, donno))
-          | KK.Normal (sat_ps, unsat_js) =>
+          | KK.Normal (sat_ps, unsat_js, s) =>
             let
               val (lib_ps, con_ps) =
                 List.partition (#unsound o snd o nth problems o fst) sat_ps
             in
               update_checked_problems problems (unsat_js @ map fst lib_ps);
+              show_kodkod_warning s;
               if null con_ps then
                 let
                   val num_genuine = take max_potential lib_ps
