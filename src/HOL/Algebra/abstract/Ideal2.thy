@@ -1,6 +1,5 @@
 (*
     Ideals for commutative rings
-    $Id$
     Author: Clemens Ballarin, started 24 September 1999
 *)
 
@@ -23,9 +22,8 @@ definition
 
 text {* Principle ideal domains *}
 
-axclass pid < "domain"
-  pid_ax: "is_ideal I ==> is_pideal I"
-
+class pid =
+  assumes pid_ax: "is_ideal (I :: 'a::domain \<Rightarrow> _) \<Longrightarrow> is_pideal I"
 
 (* is_ideal *)
 

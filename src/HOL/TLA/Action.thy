@@ -16,8 +16,8 @@ types
   'a trfun = "(state * state) => 'a"
   action   = "bool trfun"
 
-instance
-  "*" :: (world, world) world ..
+arities
+  "*" :: (world, world) world
 
 consts
   (** abstract syntax **)

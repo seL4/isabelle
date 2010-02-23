@@ -295,8 +295,8 @@ text {* It seems to be more elegant to have an overloaded injection like the
 following.
 *}
 
-axclass inj_term < "type"
-consts inj_term:: "'a::inj_term \<Rightarrow> term" ("\<langle>_\<rangle>" 1000)
+class inj_term =
+  fixes inj_term:: "'a \<Rightarrow> term" ("\<langle>_\<rangle>" 1000)
 
 text {* How this overloaded injections work can be seen in the theory 
 @{text DefiniteAssignment}. Other big inductive relations on
@@ -308,10 +308,15 @@ mixture of dealing with these injections. The abbreviations above are used
 as bridge between the different conventions.  
 *}
 
-instance stmt::inj_term ..
+instantiation stmt :: inj_term
+begin
 
-defs (overloaded)
-stmt_inj_term_def: "\<langle>c::stmt\<rangle> \<equiv> In1r c"
+definition
+  stmt_inj_term_def: "\<langle>c::stmt\<rangle> \<equiv> In1r c"
+
+instance ..
+
+end
 
 lemma stmt_inj_term_simp: "\<langle>c::stmt\<rangle> = In1r c"
 by (simp add: stmt_inj_term_def)
@@ -319,10 +324,15 @@ by (simp add: stmt_inj_term_def)
 lemma  stmt_inj_term [iff]: "\<langle>x::stmt\<rangle> = \<langle>y\<rangle> \<equiv> x = y"
   by (simp add: stmt_inj_term_simp)
 
-instance expr::inj_term ..
+instantiation expr :: inj_term
+begin
 
-defs (overloaded)
-expr_inj_term_def: "\<langle>e::expr\<rangle> \<equiv> In1l e"
+definition
+  expr_inj_term_def: "\<langle>e::expr\<rangle> \<equiv> In1l e"
+
+instance ..
+
+end
 
 lemma expr_inj_term_simp: "\<langle>e::expr\<rangle> = In1l e"
 by (simp add: expr_inj_term_def)
@@ -330,10 +340,15 @@ by (simp add: expr_inj_term_def)
 lemma expr_inj_term [iff]: "\<langle>x::expr\<rangle> = \<langle>y\<rangle> \<equiv> x = y"
   by (simp add: expr_inj_term_simp)
 
-instance var::inj_term ..
+instantiation var :: inj_term
+begin
 
-defs (overloaded)
-var_inj_term_def: "\<langle>v::var\<rangle> \<equiv> In2 v"
+definition
+  var_inj_term_def: "\<langle>v::var\<rangle> \<equiv> In2 v"
+
+instance ..
+
+end
 
 lemma var_inj_term_simp: "\<langle>v::var\<rangle> = In2 v"
 by (simp add: var_inj_term_def)
@@ -341,10 +356,32 @@ by (simp add: var_inj_term_def)
 lemma var_inj_term [iff]: "\<langle>x::var\<rangle> = \<langle>y\<rangle> \<equiv> x = y"
   by (simp add: var_inj_term_simp)
 
-instance "list":: (type) inj_term ..
+class expr_of =
+  fixes expr_of :: "'a \<Rightarrow> expr"
 
-defs (overloaded)
-expr_list_inj_term_def: "\<langle>es::expr list\<rangle> \<equiv> In3 es"
+instantiation expr :: expr_of
+begin
+
+definition
+  "expr_of = (\<lambda>(e::expr). e)"
+
+instance ..
+
+end 
+
+instantiation list :: (expr_of) inj_term
+begin
+
+definition
+  "\<langle>es::'a list\<rangle> \<equiv> In3 (map expr_of es)"
+
+instance ..
+
+end
+
+lemma expr_list_inj_term_def:
+  "\<langle>es::expr list\<rangle> \<equiv> In3 es"
+  by (simp add: inj_term_list_def expr_of_expr_def)
 
 lemma expr_list_inj_term_simp: "\<langle>es::expr list\<rangle> = In3 es"
 by (simp add: expr_list_inj_term_def)

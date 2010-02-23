@@ -1,5 +1,4 @@
 (*  Title:      HOL/Hoare/Pointers.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   2002 TUM
 

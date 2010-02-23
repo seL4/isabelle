@@ -1,12 +1,11 @@
 (*  Title:      HOL/Hoare/ExamplesAbort.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1998 TUM
 
 Some small examples for programs that may abort.
 *)
 
-theory ExamplesAbort imports HoareAbort begin
+theory ExamplesAbort imports Hoare_Logic_Abort begin
 
 lemma "VARS x y z::nat
  {y = z & z \<noteq> 0} z \<noteq> 0 \<rightarrow> x := y div z {x = 1}"

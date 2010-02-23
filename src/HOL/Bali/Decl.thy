@@ -230,17 +230,21 @@ datatype memberdecl = fdecl fdecl | mdecl mdecl
 
 datatype memberid = fid vname | mid sig
 
-axclass has_memberid < "type"
-consts
- memberid :: "'a::has_memberid \<Rightarrow> memberid"
+class has_memberid =
+  fixes memberid :: "'a \<Rightarrow> memberid"
 
-instance memberdecl::has_memberid ..
+instantiation memberdecl :: has_memberid
+begin
 
-defs (overloaded)
+definition
 memberdecl_memberid_def:
   "memberid m \<equiv> (case m of
                     fdecl (vn,f)  \<Rightarrow> fid vn
                   | mdecl (sig,m) \<Rightarrow> mid sig)"
+
+instance ..
+
+end
 
 lemma memberid_fdecl_simp[simp]: "memberid (fdecl (vn,f)) = fid vn"
 by (simp add: memberdecl_memberid_def)
@@ -254,11 +258,16 @@ by (simp add: memberdecl_memberid_def)
 lemma memberid_mdecl_simp1: "memberid (mdecl m) = mid (fst m)"
 by (cases m) (simp add: memberdecl_memberid_def)
 
-instance * :: (type, has_memberid) has_memberid ..
+instantiation * :: (type, has_memberid) has_memberid
+begin
 
-defs (overloaded)
+definition
 pair_memberid_def:
   "memberid p \<equiv> memberid (snd p)"
+
+instance ..
+
+end
 
 lemma memberid_pair_simp[simp]: "memberid (c,m) = memberid m"
 by (simp add: pair_memberid_def)
