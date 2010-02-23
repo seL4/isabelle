@@ -22,6 +22,8 @@ sig
     (string * sort) list -> theory -> term list list
   val make_splits : string list -> descr list ->
     (string * sort) list -> theory -> (term * term) list
+  val make_case_combs : string list -> descr list ->
+    (string * sort) list -> theory -> string -> term list
   val make_weak_case_congs : string list -> descr list ->
     (string * sort) list -> theory -> term list
   val make_case_congs : string list -> descr list ->

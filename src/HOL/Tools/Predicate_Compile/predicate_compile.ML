@@ -8,13 +8,13 @@ signature PREDICATE_COMPILE =
 sig
   val setup : theory -> theory
   val preprocess : Predicate_Compile_Aux.options -> string -> theory -> theory
+  val present_graph : bool Unsynchronized.ref
 end;
 
 structure Predicate_Compile (*: PREDICATE_COMPILE*) =
 struct
 
-(* options *)
-val fail_safe_mode = true
+val present_graph = Unsynchronized.ref false
 
 open Predicate_Compile_Aux;
 
@@ -33,10 +33,12 @@ fun print_intross options thy msg intross =
            commas (map (Display.string_of_thm_global thy) intros)) intross)))
   else ()
       
-fun print_specs thy specs =
-  map (fn (c, thms) => "Constant " ^ c ^ " has specification:\n"
-    ^ (space_implode "\n" (map (Display.string_of_thm_global thy) thms)) ^ "\n") specs
-
+fun print_specs options thy specs =
+  if show_intermediate_results options then
+    map (fn (c, thms) => "Constant " ^ c ^ " has specification:\n"
+      ^ (space_implode "\n" (map (Display.string_of_thm_global thy) thms)) ^ "\n") specs
+    |> space_implode "\n" |> tracing
+  else ()
 fun overload_const thy s = the_default s (Option.map fst (AxClass.inst_of_param thy s))
 
 fun map_specs f specs =
@@ -47,15 +49,21 @@ fun process_specification options specs thy' =
     val _ = print_step options "Compiling predicates to flat introrules..."
     val specs = map (apsnd (map
       (fn th => if is_equationlike th then Predicate_Compile_Data.normalize_equation thy' th else th))) specs
-    val (intross1, thy'') = apfst flat (fold_map Predicate_Compile_Pred.preprocess specs thy')
+    val (intross1, thy'') =
+      apfst flat (fold_map (Predicate_Compile_Pred.preprocess options) specs thy')
     val _ = print_intross options thy'' "Flattened introduction rules: " intross1
     val _ = print_step options "Replacing functions in introrules..."
     val intross2 =
-      if fail_safe_mode then
-        case try (map_specs (maps (Predicate_Compile_Fun.rewrite_intro thy''))) intross1 of
-          SOME intross => intross
-        | NONE => let val _ = warning "Function replacement failed!" in intross1 end
-      else map_specs (maps (Predicate_Compile_Fun.rewrite_intro thy'')) intross1
+      if function_flattening options then
+        if fail_safe_function_flattening options then
+          case try (map_specs (maps (Predicate_Compile_Fun.rewrite_intro thy''))) intross1 of
+            SOME intross => intross
+          | NONE =>
+            (if show_caught_failures options then tracing "Function replacement failed!" else ();
+            intross1)
+        else map_specs (maps (Predicate_Compile_Fun.rewrite_intro thy'')) intross1
+      else
+        intross1
     val _ = print_intross options thy'' "Introduction rules with replaced functions: " intross2
     val _ = print_step options "Introducing new constants for abstractions at higher-order argument positions..."
     val (intross3, (new_defs, thy''')) = Predicate_Compile_Pred.flat_higher_order_arguments (intross2, thy'')
@@ -70,35 +78,45 @@ fun process_specification options specs thy' =
   end
 
 fun preprocess_strong_conn_constnames options gr ts thy =
-  let
-    fun get_specs ts = map_filter (fn t =>
-      TermGraph.get_node gr t |>
-      (fn ths => if null ths then NONE else SOME (fst (dest_Const t), ths)))
-      ts
-    val _ = print_step options ("Preprocessing scc of " ^
-      commas (map (Syntax.string_of_term_global thy) ts))
-    val (prednames, funnames) = List.partition (fn t => body_type (fastype_of t) = @{typ bool}) ts
-    (* untangle recursion by defining predicates for all functions *)
-    val _ = print_step options
-      ("Compiling functions (" ^ commas (map (Syntax.string_of_term_global thy) funnames) ^
-        ") to predicates...")
-    val (fun_pred_specs, thy') =
-      if not (null funnames) then Predicate_Compile_Fun.define_predicates
-      (get_specs funnames) thy else ([], thy)
-    val _ = print_specs thy' fun_pred_specs
-    val specs = (get_specs prednames) @ fun_pred_specs
-    val (intross3, thy''') = process_specification options specs thy'
-    val _ = print_intross options thy''' "Introduction rules with new constants: " intross3
-    val intross4 = map_specs (maps remove_pointless_clauses) intross3
-    val _ = print_intross options thy''' "After removing pointless clauses: " intross4
-    val intross5 = map (fn (s, ths) => (overload_const thy''' s, map (AxClass.overload thy''') ths)) intross4
-    val intross6 = map_specs (map (expand_tuples thy''')) intross5
-    val _ = print_intross options thy''' "introduction rules before registering: " intross6
-    val _ = print_step options "Registering introduction rules..."
-    val thy'''' = fold Predicate_Compile_Core.register_intros intross6 thy'''
-  in
-    thy''''
-  end;
+  if forall (fn (Const (c, _)) => Predicate_Compile_Core.is_registered thy c) ts then
+    thy
+  else
+    let
+      fun get_specs ts = map_filter (fn t =>
+        TermGraph.get_node gr t |>
+        (fn ths => if null ths then NONE else SOME (fst (dest_Const t), ths)))
+        ts
+      val _ = print_step options ("Preprocessing scc of " ^
+        commas (map (Syntax.string_of_term_global thy) ts))
+      val (prednames, funnames) = List.partition (fn t => body_type (fastype_of t) = @{typ bool}) ts
+      (* untangle recursion by defining predicates for all functions *)
+      val _ = print_step options
+        ("Compiling functions (" ^ commas (map (Syntax.string_of_term_global thy) funnames) ^
+          ") to predicates...")
+      val (fun_pred_specs, thy') =
+        (if function_flattening options andalso (not (null funnames)) then
+          if fail_safe_function_flattening options then
+            case try (Predicate_Compile_Fun.define_predicates (get_specs funnames)) thy of
+              SOME (intross, thy) => (intross, thy)
+            | NONE => ([], thy)
+          else Predicate_Compile_Fun.define_predicates (get_specs funnames) thy
+        else ([], thy))
+        (*||> Theory.checkpoint*)
+      val _ = print_specs options thy' fun_pred_specs
+      val specs = (get_specs prednames) @ fun_pred_specs
+      val (intross3, thy''') = process_specification options specs thy'
+      val _ = print_intross options thy''' "Introduction rules with new constants: " intross3
+      val intross4 = map_specs (maps remove_pointless_clauses) intross3
+      val _ = print_intross options thy''' "After removing pointless clauses: " intross4
+      val intross5 =
+        map (fn (s, ths) => (overload_const thy''' s, map (AxClass.overload thy''') ths)) intross4
+      val intross6 = map_specs (map (expand_tuples thy''')) intross5
+      val _ = print_intross options thy''' "introduction rules before registering: " intross6
+      val _ = print_step options "Registering introduction rules..."
+      val thy'''' = fold Predicate_Compile_Core.register_intros intross6 thy'''
+    in
+      thy''''
+    end;
 
 fun preprocess options t thy =
   let
@@ -106,6 +124,7 @@ fun preprocess options t thy =
     val gr = Output.cond_timeit (!Quickcheck.timing) "preprocess-obtain graph"
           (fn () => Predicate_Compile_Data.obtain_specification_graph options thy t
           |> (fn gr => TermGraph.subgraph (member (op =) (TermGraph.all_succs gr [t])) gr))
+    val _ = if !present_graph then Predicate_Compile_Data.present_graph gr else ()
   in
     Output.cond_timeit (!Quickcheck.timing) "preprocess-process"
       (fn () => (fold_rev (preprocess_strong_conn_constnames options gr)
@@ -128,7 +147,12 @@ fun extract_options (((expected_modes, proposed_modes), (compilation, raw_option
       show_modes = chk "show_modes",
       show_mode_inference = chk "show_mode_inference",
       show_compilation = chk "show_compilation",
+      show_caught_failures = false,
       skip_proof = chk "skip_proof",
+      function_flattening = not (chk "no_function_flattening"),
+      fail_safe_function_flattening = false,
+      no_topmost_reordering = false,
+      no_higher_order_predicate = [],
       inductify = chk "inductify",
       compilation = compilation
     }

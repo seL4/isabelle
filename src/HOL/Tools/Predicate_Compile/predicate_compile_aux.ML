@@ -29,6 +29,7 @@ fun map2_optional f (x :: xs) (y :: ys) = (f x (SOME y)) :: (map2_optional f xs 
 fun find_indices f xs =
   map_filter (fn (i, true) => SOME i | (i, false) => NONE) (map_index (apsnd f) xs)
 
+fun assert check = if check then () else error "Assertion failed!"
 (* mode *)
 
 datatype mode = Bool | Input | Output | Pair of mode * mode | Fun of mode * mode
@@ -57,21 +58,47 @@ fun dest_fun_mode (Fun (mode, mode')) = mode :: dest_fun_mode mode'
 fun dest_tuple_mode (Pair (mode, mode')) = mode :: dest_tuple_mode mode'
   | dest_tuple_mode _ = []
 
-fun all_modes_of_typ (T as Type ("fun", _)) = 
+
+fun all_modes_of_typ' (T as Type ("fun", _)) = 
   let
     val (S, U) = strip_type T
   in
     if U = HOLogic.boolT then
       fold_rev (fn m1 => fn m2 => map_product (curry Fun) m1 m2)
-        (map all_modes_of_typ S) [Bool]
+        (map all_modes_of_typ' S) [Bool]
     else
       [Input, Output]
   end
-  | all_modes_of_typ (Type ("*", [T1, T2])) = 
-    map_product (curry Pair) (all_modes_of_typ T1) (all_modes_of_typ T2)
-  | all_modes_of_typ (Type ("bool", [])) = [Bool]
-  | all_modes_of_typ _ = [Input, Output]
+  | all_modes_of_typ' (Type ("*", [T1, T2])) = 
+    map_product (curry Pair) (all_modes_of_typ' T1) (all_modes_of_typ' T2)
+  | all_modes_of_typ' _ = [Input, Output]
 
+fun all_modes_of_typ (T as Type ("fun", _)) =
+  let
+    val (S, U) = strip_type T
+  in
+    if U = HOLogic.boolT then
+      fold_rev (fn m1 => fn m2 => map_product (curry Fun) m1 m2)
+        (map all_modes_of_typ' S) [Bool]
+    else
+      [Input, Output]
+  end
+  | all_modes_of_typ (Type ("bool", [])) = [Bool]
+  | all_modes_of_typ T = all_modes_of_typ' T
+
+fun all_smodes_of_typ (T as Type ("fun", _)) =
+  let
+    val (S, U) = strip_type T
+    fun all_smodes (Type ("*", [T1, T2])) = 
+      map_product (curry Pair) (all_smodes T1) (all_smodes T2)
+      | all_smodes _ = [Input, Output]
+  in
+    if U = HOLogic.boolT then
+      fold_rev (fn m1 => fn m2 => map_product (curry Fun) m1 m2) (map all_smodes S) [Bool]
+    else
+      error "all_smodes_of_typ: invalid type for predicate"
+  end
+(*
 fun extract_params arg =
   case fastype_of arg of
     (T as Type ("fun", _)) =>
@@ -86,7 +113,7 @@ fun extract_params arg =
         extract_params t1 @ extract_params t2
       end
   | _ => []
-
+*)
 fun ho_arg_modes_of mode =
   let
     fun ho_arg_mode (m as Fun _) =  [m]
@@ -144,9 +171,10 @@ fun split_map_mode f mode ts =
         in
           (comb_option HOLogic.mk_prod (i1, i2), comb_option HOLogic.mk_prod (o1, o2))
         end
-      | split_arg_mode' Input t = (SOME t, NONE)
-      | split_arg_mode' Output t = (NONE,  SOME t)
-      | split_arg_mode' _ _ = error "split_map_mode: mode and term do not match"
+      | split_arg_mode' m t =
+        if eq_mode (m, Input) then (SOME t, NONE)
+        else if eq_mode (m, Output) then (NONE,  SOME t)
+        else error "split_map_mode: mode and term do not match"
   in
     (pairself (map_filter I) o split_list) (map2 split_arg_mode' (strip_fun_mode mode) ts)
   end
@@ -269,7 +297,6 @@ fun is_pred thy constname =
   let
     val T = (Sign.the_const_type thy constname)
   in body_type T = @{typ "bool"} end;
-  
 
 fun is_predT (T as Type("fun", [_, _])) = (snd (strip_type T) = HOLogic.boolT)
   | is_predT _ = false
@@ -373,7 +400,60 @@ fun maps_premises f intro =
   in
     Logic.list_implies (maps f premises, head)
   end
+
+
+(* split theorems of case expressions *)
+
+(*
+fun has_split_rule_cname @{const_name "nat_case"} = true
+  | has_split_rule_cname @{const_name "list_case"} = true
+  | has_split_rule_cname _ = false
   
+fun has_split_rule_term thy (Const (@{const_name "nat_case"}, _)) = true 
+  | has_split_rule_term thy (Const (@{const_name "list_case"}, _)) = true 
+  | has_split_rule_term thy _ = false
+
+fun has_split_rule_term' thy (Const (@{const_name "If"}, _)) = true
+  | has_split_rule_term' thy (Const (@{const_name "Let"}, _)) = true
+  | has_split_rule_term' thy c = has_split_rule_term thy c
+
+*)
+fun prepare_split_thm ctxt split_thm =
+    (split_thm RS @{thm iffD2})
+    |> LocalDefs.unfold ctxt [@{thm atomize_conjL[symmetric]},
+      @{thm atomize_all[symmetric]}, @{thm atomize_imp[symmetric]}]
+
+fun find_split_thm thy (Const (name, typ)) =
+  let
+    fun split_name str =
+      case first_field "." str
+        of (SOME (field, rest)) => field :: split_name rest
+         | NONE => [str]
+    val splitted_name = split_name name
+  in
+    if length splitted_name > 0 andalso
+       String.isSuffix "_case" (List.last splitted_name)
+    then
+      (List.take (splitted_name, length splitted_name - 1)) @ ["split"]
+      |> space_implode "."
+      |> PureThy.get_thm thy
+      |> SOME
+      handle ERROR msg => NONE
+    else NONE
+  end
+  | find_split_thm _ _ = NONE
+
+
+(* TODO: split rules for let and if are different *)
+fun find_split_thm' thy (Const (@{const_name "If"}, _)) = SOME @{thm split_if}
+  | find_split_thm' thy (Const (@{const_name "Let"}, _)) = SOME @{thm refl} (* TODO *)
+  | find_split_thm' thy c = find_split_thm thy c
+
+fun has_split_thm thy t = is_some (find_split_thm thy t)
+
+fun strip_all t = (Term.strip_all_vars t, Term.strip_all_body t)
+
+
 (* lifting term operations to theorems *)
 
 fun map_term thy f th =
@@ -388,7 +468,16 @@ fun equals_conv lhs_cv rhs_cv ct =
 
 (* Different options for compiler *)
 
-datatype compilation = Pred | Random | Depth_Limited | DSeq | Annotated | Random_DSeq
+datatype compilation = Pred | Random | Depth_Limited | DSeq | Annotated
+  | Pos_Random_DSeq | Neg_Random_DSeq
+
+
+fun negative_compilation_of Pos_Random_DSeq = Neg_Random_DSeq
+  | negative_compilation_of Neg_Random_DSeq = Pos_Random_DSeq
+  | negative_compilation_of c = c
+  
+fun compilation_for_polarity false Pos_Random_DSeq = Neg_Random_DSeq
+  | compilation_for_polarity _ c = c
 
 fun string_of_compilation c = case c of
     Pred => ""
@@ -396,8 +485,9 @@ fun string_of_compilation c = case c of
   | Depth_Limited => "depth limited"
   | DSeq => "dseq"
   | Annotated => "annotated"
-  | Random_DSeq => "random dseq"
-
+  | Pos_Random_DSeq => "pos_random dseq"
+  | Neg_Random_DSeq => "neg_random_dseq"
+  
 (*datatype compilation_options =
   Pred | Random of int | Depth_Limited of int | DSeq of int | Annotated*)
 
@@ -411,8 +501,12 @@ datatype options = Options of {
   show_mode_inference : bool,
   show_modes : bool,
   show_compilation : bool,
+  show_caught_failures : bool,
   skip_proof : bool,
-
+  no_topmost_reordering : bool,
+  function_flattening : bool,
+  fail_safe_function_flattening : bool,
+  no_higher_order_predicate : string list,
   inductify : bool,
   compilation : compilation
 };
@@ -428,7 +522,14 @@ fun show_proof_trace (Options opt) = #show_proof_trace opt
 fun show_modes (Options opt) = #show_modes opt
 fun show_mode_inference (Options opt) = #show_mode_inference opt
 fun show_compilation (Options opt) = #show_compilation opt
+fun show_caught_failures (Options opt) = #show_caught_failures opt
+
 fun skip_proof (Options opt) = #skip_proof opt
+
+fun function_flattening (Options opt) = #function_flattening opt
+fun fail_safe_function_flattening (Options opt) = #fail_safe_function_flattening opt
+fun no_topmost_reordering (Options opt) = #no_topmost_reordering opt
+fun no_higher_order_predicate (Options opt) = #no_higher_order_predicate opt
 
 fun is_inductify (Options opt) = #inductify opt
 
@@ -444,18 +545,22 @@ val default_options = Options {
   show_modes = false,
   show_mode_inference = false,
   show_compilation = false,
+  show_caught_failures = false,
   skip_proof = true,
-  
+  no_topmost_reordering = false,
+  function_flattening = false,
+  fail_safe_function_flattening = false,
+  no_higher_order_predicate = [],
   inductify = false,
   compilation = Pred
 }
 
 val bool_options = ["show_steps", "show_intermediate_results", "show_proof_trace", "show_modes",
-  "show_mode_inference", "show_compilation", "skip_proof", "inductify"]
+  "show_mode_inference", "show_compilation", "skip_proof", "inductify", "no_function_flattening"]
 
 val compilation_names = [("pred", Pred),
   (*("random", Random), ("depth_limited", Depth_Limited), ("annotated", Annotated),*)
-  ("dseq", DSeq), ("random_dseq", Random_DSeq)]
+  ("dseq", DSeq), ("random_dseq", Pos_Random_DSeq)]
 
 fun print_step options s =
   if show_steps options then tracing s else ()
