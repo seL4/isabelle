@@ -583,7 +583,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                 o nth problems)
     (* string -> unit *)
     fun show_kodkod_warning "" = ()
-      | show_kodkod_warning s = print_v (fn () => "Kodkod warning: " ^ s ^ ".")
+      | show_kodkod_warning s = print_m (fn () => "Kodkod warning: " ^ s ^ ".")
 
     (* bool -> KK.raw_bound list -> problem_extension -> bool option *)
     fun print_and_check_model genuine bounds
