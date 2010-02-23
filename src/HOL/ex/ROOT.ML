@@ -67,7 +67,8 @@ use_thys [
   "Quickcheck_Examples",
   "Landau",
   "Execute_Choice",
-  "Summation"
+  "Summation",
+  "Gauge_Integration"
 ];
 
 HTML.with_charset "utf-8" (no_document use_thys)
