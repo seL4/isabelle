@@ -192,9 +192,9 @@ val comms = [@{const_name "op ="}, @{const_name "op |"}, @{const_name "op &"}]
 
 val forbidden =
  [(* (@{const_name "power"}, "'a"), *)
-  (@{const_name HOL.induct_equal}, "'a"),
-  (@{const_name HOL.induct_implies}, "'a"),
-  (@{const_name HOL.induct_conj}, "'a"),
+  (*(@{const_name induct_equal}, "'a"),
+  (@{const_name induct_implies}, "'a"),
+  (@{const_name induct_conj}, "'a"),*)
   (@{const_name "undefined"}, "'a"),
   (@{const_name "default"}, "'a"),
   (@{const_name "dummy_pattern"}, "'a::{}") (*,
