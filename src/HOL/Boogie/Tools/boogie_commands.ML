@@ -156,26 +156,27 @@ local
     |> Seq.hd
     |> Proof.global_done_proof
 in
-fun boogie_narrow_vc timeout vc_name meth thy =
+fun boogie_narrow_vc (quick, timeout) vc_name meth thy =
   let
-    val tp = TimeLimit.timeLimit (Time.fromSeconds timeout) (prove thy meth)
+    fun tp t = TimeLimit.timeLimit (Time.fromSeconds t) (prove thy meth)
 
-    fun try_vc (tag, split_tag) split vc = (trying tag;
-      (case try tp vc of
+    fun try_vc t (tag, split_tag) split vc = (trying tag;
+      (case try (tp t) vc of
         SOME _ => (success_on tag; [])
       | NONE => (failure_on tag split_tag; split vc)))
 
     fun some_asserts vc =
-      try_vc (string_of_asserts vc,
-        if Boogie_VCs.size_of vc = 1 then "." else ", further splitting ...")
-        (divide some_asserts) vc
+      let
+        val (t, sep) = if Boogie_VCs.size_of vc = 1 then (timeout, ".")
+          else (quick, ", further splitting ...")
+      in try_vc t (string_of_asserts vc, sep) (divide some_asserts) vc end
 
     fun single_path p =
-      try_vc (string_of_path p, ", splitting into assertions ...")
+      try_vc quick (string_of_path p, ", splitting into assertions ...")
         (divide some_asserts)
 
     val complete_vc =
-      try_vc ("full goal", ", splitting into paths ...")
+      try_vc quick ("full goal", ", splitting into paths ...")
         (par_map (uncurry single_path) o itemize_paths o Boogie_VCs.paths_of)
 
     val unsolved = complete_vc (get_vc thy vc_name)
@@ -262,15 +263,18 @@ val _ =
       (Toplevel.print o Toplevel.local_theory_to_proof NONE (boogie_vc args))))
 
 
-val default_timeout = 5
+val quick_timeout = 5
+val default_timeout = 20
+
+fun timeout name = Scan.optional (scan_val name OuterParse.nat)
 
 val status_test =
   scan_arg (
-    (Args.$$$ "scan" >> K boogie_scan_vc ||
-     Args.$$$ "narrow" >> K boogie_narrow_vc) --
-    Scan.optional (scan_val "timeout" OuterParse.nat) default_timeout) --
+    Args.$$$ "scan" |-- timeout "timeout" quick_timeout >> boogie_scan_vc ||
+    Args.$$$ "narrow" |-- timeout "step_timeout" quick_timeout --
+      timeout "final_timeout" default_timeout >> boogie_narrow_vc) --
   vc_name -- Method.parse >>
-  (fn (((f, timeout), vc_name), meth) => f timeout vc_name meth)
+  (fn ((f, vc_name), meth) => f vc_name meth)
 
 val status_vc =
   (scan_arg
