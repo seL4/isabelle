@@ -99,13 +99,6 @@ val _ =
   OuterSyntax.command "defaultsort" "declare default sort" K.thy_decl
     (P.sort >> (Toplevel.theory o Sign.add_defsort));
 
-val _ =
-  OuterSyntax.command "axclass" "define axiomatic type class" K.thy_decl
-    (P.binding -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
-        P.!!! (P.list1 P.xname)) []
-        -- Scan.repeat (SpecParse.thm_name ":" -- (P.prop >> single))
-      >> (fn (x, y) => Toplevel.theory (snd o Class.axclass_cmd x y)));
-
 
 (* types *)
 

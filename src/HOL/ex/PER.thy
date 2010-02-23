@@ -1,5 +1,4 @@
 (*  Title:      HOL/ex/PER.thy
-    ID:         $Id$
     Author:     Oscar Slotosch and Markus Wenzel, TU Muenchen
 *)
 
@@ -30,12 +29,10 @@ text {*
   but not necessarily reflexive.
 *}
 
-consts
-  eqv :: "'a => 'a => bool"    (infixl "\<sim>" 50)
-
-axclass partial_equiv < type
-  partial_equiv_sym [elim?]: "x \<sim> y ==> y \<sim> x"
-  partial_equiv_trans [trans]: "x \<sim> y ==> y \<sim> z ==> x \<sim> z"
+class partial_equiv =
+  fixes eqv :: "'a => 'a => bool"    (infixl "\<sim>" 50)
+  assumes partial_equiv_sym [elim?]: "x \<sim> y ==> y \<sim> x"
+  assumes partial_equiv_trans [trans]: "x \<sim> y ==> y \<sim> z ==> x \<sim> z"
 
 text {*
   \medskip The domain of a partial equivalence relation is the set of
@@ -70,7 +67,10 @@ text {*
   structural one corresponding to the congruence property.
 *}
 
-defs (overloaded)
+instantiation "fun" :: (partial_equiv, partial_equiv) partial_equiv
+begin
+
+definition
   eqv_fun_def: "f \<sim> g == \<forall>x \<in> domain. \<forall>y \<in> domain. x \<sim> y --> f x \<sim> g y"
 
 lemma partial_equiv_funI [intro?]:
@@ -86,8 +86,7 @@ text {*
   spaces (in \emph{both} argument positions).
 *}
 
-instance "fun" :: (partial_equiv, partial_equiv) partial_equiv
-proof
+instance proof
   fix f g h :: "'a::partial_equiv => 'b::partial_equiv"
   assume fg: "f \<sim> g"
   show "g \<sim> f"
@@ -110,6 +109,8 @@ proof
   qed
 qed
 
+end
+
 
 subsection {* Total equivalence *}
 
@@ -120,8 +121,8 @@ text {*
   symmetric.
 *}
 
-axclass equiv < partial_equiv
-  eqv_refl [intro]: "x \<sim> x"
+class equiv =
+  assumes eqv_refl [intro]: "x \<sim> x"
 
 text {*
   On total equivalences all elements are reflexive, and congruence
@@ -150,7 +151,7 @@ text {*
   \emph{equivalence classes} over elements of the base type @{typ 'a}.
 *}
 
-typedef 'a quot = "{{x. a \<sim> x}| a::'a. True}"
+typedef 'a quot = "{{x. a \<sim> x}| a::'a::partial_equiv. True}"
   by blast
 
 lemma quotI [intro]: "{x. a \<sim> x} \<in> quot"

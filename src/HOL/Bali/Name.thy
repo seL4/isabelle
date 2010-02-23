@@ -48,29 +48,34 @@ record   qtname = --{* qualified tname cf. 6.5.3, 6.5.4*}
           pid :: pname  
           tid :: tname
 
-axclass has_pname < "type"
-consts pname::"'a::has_pname \<Rightarrow> pname"
+class has_pname =
+  fixes pname :: "'a \<Rightarrow> pname"
 
-instance pname::has_pname ..
+instantiation pname :: has_pname
+begin
 
-defs (overloaded)
-pname_pname_def: "pname (p::pname) \<equiv> p"
+definition
+  pname_pname_def: "pname (p::pname) \<equiv> p"
 
-axclass has_tname < "type"
-consts tname::"'a::has_tname \<Rightarrow> tname"
+instance ..
 
-instance tname::has_tname ..
+end
 
-defs (overloaded)
-tname_tname_def: "tname (t::tname) \<equiv> t"
+class has_tname =
+  fixes tname :: "'a \<Rightarrow> tname"
 
-axclass has_qtname < type
-consts qtname:: "'a::has_qtname \<Rightarrow> qtname"
+instantiation tname :: has_tname
+begin
 
-instance qtname_ext_type :: (type) has_qtname ..
+definition
+  tname_tname_def: "tname (t::tname) \<equiv> t"
 
-defs (overloaded)
-qtname_qtname_def: "qtname (q::qtname) \<equiv> q"
+instance ..
+
+end
+
+definition
+  qtname_qtname_def: "qtname (q::'a qtname_ext_type) \<equiv> q"
 
 translations
   "mname"  <= "Name.mname"
