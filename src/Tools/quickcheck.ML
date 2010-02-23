@@ -10,6 +10,8 @@ sig
   val timing : bool Unsynchronized.ref
   val test_term: Proof.context -> bool -> string option -> int -> int -> term ->
     (string * term) list option
+  val timed_test_term: Proof.context -> bool -> string option -> int -> int -> term ->
+    ((string * term) list option * (string * int) list)
   val add_generator: string * (Proof.context -> term -> int -> term list option) -> theory -> theory
   val setup: theory -> theory
   val quickcheck: (string * string) list -> int -> Proof.state -> (string * term) list option
@@ -97,13 +99,20 @@ fun prep_test_term t =
     val frees = Term.add_frees t [];
   in (map fst frees, list_abs_free (frees, t)) end
 
-fun test_term ctxt quiet generator_name size i t =
+fun cpu_time description f =
+  let
+    val start = start_timing ()
+    val result = Exn.capture f ()
+    val time = Time.toMilliseconds (#cpu (end_timing start))
+  in (Exn.release result, (description, time)) end
+
+fun timed_test_term ctxt quiet generator_name size i t =
   let
     val (names, t') = prep_test_term t;
-    val testers = (*cond_timeit (!timing) "quickcheck compilation"
-      (fn () => *)(case generator_name
+    val (testers, comp_time) = cpu_time "quickcheck compilation"
+      (fn () => (case generator_name
        of NONE => if quiet then mk_testers ctxt t' else mk_testers_strict ctxt t'
-        | SOME name => [mk_tester_select name ctxt t']);
+        | SOME name => [mk_tester_select name ctxt t']));
     fun iterate f 0 = NONE
       | iterate f j = case f () handle Match => (if quiet then ()
              else warning "Exception Match raised during quickcheck"; NONE)
@@ -117,12 +126,16 @@ fun test_term ctxt quiet generator_name size i t =
       else (if quiet then () else priority ("Test data size: " ^ string_of_int k);
         case with_testers k testers
          of NONE => with_size (k + 1) | SOME q => SOME q);
+    val (result, exec_time) = cpu_time "quickcheck execution"
+      (fn () => case with_size 1
+        of NONE => NONE
+        | SOME ts => SOME (names ~~ ts))
   in
-    cond_timeit (!timing) "quickcheck execution"
-    (fn () => case with_size 1
-      of NONE => NONE
-      | SOME ts => SOME (names ~~ ts))
+    (result, [exec_time, comp_time])
   end;
+
+fun test_term ctxt quiet generator_name size i t =
+  fst (timed_test_term ctxt quiet generator_name size i t)
 
 fun monomorphic_term thy insts default_T = 
   let

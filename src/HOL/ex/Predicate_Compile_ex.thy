@@ -252,10 +252,12 @@ definition
   "one_or_two = {Suc 0, (Suc (Suc 0))}"
 
 code_pred [inductify] one_or_two .
+
 code_pred [dseq] one_or_two .
-(*code_pred [random_dseq] one_or_two .*)
+code_pred [random_dseq] one_or_two .
+thm one_or_two.dseq_equation
 values [expected "{Suc 0::nat, 2::nat}"] "{x. one_or_two x}"
-(*values [random_dseq 1,1,2] "{x. one_or_two x}"*)
+values [random_dseq 0,0,10] 3 "{x. one_or_two x}"
 
 inductive one_or_two' :: "nat => bool"
 where
@@ -269,12 +271,12 @@ values "{x. one_or_two' x}"
 
 definition one_or_two'':
   "one_or_two'' == {1, (2::nat)}"
-ML {* prop_of @{thm one_or_two''} *}
-(*code_pred [inductify] one_or_two'' .
+
+code_pred [inductify] one_or_two'' .
 thm one_or_two''.equation
 
 values "{x. one_or_two'' x}"
-*)
+
 subsection {* even predicate *}
 
 inductive even :: "nat \<Rightarrow> bool" and odd :: "nat \<Rightarrow> bool" where
@@ -779,6 +781,25 @@ code_pred divmod_rel ..
 thm divmod_rel.equation
 value [code] "Predicate.the (divmod_rel_i_i_o_o 1705 42)"
 
+subsection {* Transforming predicate logic into logic programs *}
+
+subsection {* Transforming functions into logic programs *}
+definition
+  "case_f xs ys = (case (xs @ ys) of [] => [] | (x # xs) => xs)"
+
+code_pred [inductify] case_f .
+thm case_fP.equation
+thm case_fP.intros
+
+fun fold_map_idx where
+  "fold_map_idx f i y [] = (y, [])"
+| "fold_map_idx f i y (x # xs) =
+ (let (y', x') = f i y x; (y'', xs') = fold_map_idx f (Suc i) y' xs
+ in (y'', x' # xs'))"
+
+text {* mode analysis explores thousand modes - this is infeasible at the moment... *}
+(*code_pred [inductify, show_steps] fold_map_idx .*)
+
 subsection {* Minimum *}
 
 definition Min
@@ -883,9 +904,16 @@ qed
 
 
 values [random_dseq 1, 2, 5] 10 "{(n, xs, ys::int list). lexn (%(x, y). x <= y) n (xs, ys)}"
-
-
-code_pred [inductify] lenlex .
+thm lenlex_conv
+thm lex_conv
+declare list.size(3,4)[code_pred_def]
+(*code_pred [inductify, show_steps, show_intermediate_results] length .*)
+setup {* Predicate_Compile_Data.ignore_consts [@{const_name Orderings.top_class.top}] *}
+code_pred [inductify] lex .
+thm lex.equation
+thm lex_def
+declare lenlex_conv[code_pred_def]
+code_pred [inductify, show_steps, show_intermediate_results] lenlex .
 thm lenlex.equation
 
 code_pred [random_dseq inductify] lenlex .
@@ -893,10 +921,10 @@ thm lenlex.random_dseq_equation
 
 values [random_dseq 4, 2, 4] 100 "{(xs, ys::int list). lenlex (%(x, y). x <= y) (xs, ys)}"
 thm lists.intros
-(*
+
 code_pred [inductify] lists .
-*)
-(*thm lists.equation*)
+
+thm lists.equation
 
 subsection {* AVL Tree *}
 
@@ -974,13 +1002,17 @@ code_pred (modes:
   (o * o => bool) => i => bool,
   (i * o => bool) => i => bool) [inductify] Domain .
 thm Domain.equation
+thm Range_def
+
 code_pred (modes:
   (o * o => bool) => o => bool,
   (o * o => bool) => i => bool,
   (o * i => bool) => i => bool) [inductify] Range .
 thm Range.equation
+
 code_pred [inductify] Field .
 thm Field.equation
+
 (*thm refl_on_def
 code_pred [inductify] refl_on .
 thm refl_on.equation*)
@@ -992,9 +1024,10 @@ code_pred [inductify] trans .
 thm trans.equation
 code_pred [inductify] single_valued .
 thm single_valued.equation
-code_pred [inductify] inv_image .
+thm inv_image_def
+(*code_pred [inductify] inv_image .
 thm inv_image.equation
-
+*)
 subsection {* Inverting list functions *}
 
 (*code_pred [inductify] length .
