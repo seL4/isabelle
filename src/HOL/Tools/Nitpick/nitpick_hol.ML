@@ -54,6 +54,7 @@ sig
   val numeral_prefix : string
   val ubfp_prefix : string
   val lbfp_prefix : string
+  val quot_normal_prefix : string
   val skolem_prefix : string
   val special_prefix : string
   val uncurry_prefix : string
@@ -173,7 +174,7 @@ sig
   val inverse_axioms_for_rep_fun : theory -> styp -> term list
   val optimized_typedef_axioms : theory -> string * typ list -> term list
   val optimized_quot_type_axioms :
-    theory -> (typ option * bool) list -> string * typ list -> term list
+    Proof.context -> (typ option * bool) list -> string * typ list -> term list
   val def_of_const : theory -> const_table -> styp -> term option
   val fixpoint_kind_of_const :
     theory -> const_table -> string * typ -> fixpoint_kind
@@ -268,6 +269,7 @@ val base_prefix = nitpick_prefix ^ "base" ^ name_sep
 val step_prefix = nitpick_prefix ^ "step" ^ name_sep
 val ubfp_prefix = nitpick_prefix ^ "ubfp" ^ name_sep
 val lbfp_prefix = nitpick_prefix ^ "lbfp" ^ name_sep
+val quot_normal_prefix = nitpick_prefix ^ "qn" ^ name_sep
 val skolem_prefix = nitpick_prefix ^ "sk"
 val special_prefix = nitpick_prefix ^ "sp"
 val uncurry_prefix = nitpick_prefix ^ "unc"
@@ -277,6 +279,9 @@ val arg_var_prefix = "x"
 
 (* int -> string *)
 fun sel_prefix_for j = sel_prefix ^ string_of_int j ^ name_sep
+(* Proof.context -> typ -> string *)
+fun quot_normal_name_for_type ctxt T =
+  quot_normal_prefix ^ unyxml (Syntax.string_of_typ ctxt T)
 
 (* string -> string * string *)
 val strip_first_name_sep =
@@ -559,14 +564,15 @@ fun is_basic_datatype thy stds s =
 (* theory -> typ -> typ -> typ -> typ *)
 fun instantiate_type thy T1 T1' T2 =
   Same.commit (Envir.subst_type_same
-                   (Sign.typ_match thy (Logic.varifyT T1, T1') Vartab.empty))
-              (Logic.varifyT T2)
+                   (Sign.typ_match thy (T1, T1') Vartab.empty)) T2
   handle Type.TYPE_MATCH =>
          raise TYPE ("Nitpick_HOL.instantiate_type", [T1, T1'], [])
+fun varify_and_instantiate_type thy T1 T1' T2 =
+  instantiate_type thy (Logic.varifyT T1) T1' (Logic.varifyT T2)
 
 (* theory -> typ -> typ -> styp *)
 fun repair_constr_type thy body_T' T =
-  instantiate_type thy (body_type T) body_T' T
+  varify_and_instantiate_type thy (body_type T) body_T' T
 
 (* string -> (string * string) list -> theory -> theory *)
 fun register_frac_type frac_s ersaetze thy =
@@ -889,7 +895,8 @@ fun uncached_datatype_constrs ({thy, stds, ...} : hol_context)
              [(@{const_name Quot}, rep_type_for_quot_type thy T --> T)]
            else case typedef_info thy s of
              SOME {abs_type, rep_type, Abs_name, ...} =>
-             [(Abs_name, instantiate_type thy abs_type T rep_type --> T)]
+             [(Abs_name,
+               varify_and_instantiate_type thy abs_type T rep_type --> T)]
            | NONE =>
              if T = @{typ ind} then
                [dest_Const @{const Zero_Rep}, dest_Const @{const Suc_Rep}]
@@ -1385,7 +1392,7 @@ fun optimized_typedef_axioms thy (abs_z as (abs_s, _)) =
     else case typedef_info thy abs_s of
       SOME {abs_type, rep_type, Rep_name, prop_of_Rep, set_name, ...} =>
       let
-        val rep_T = instantiate_type thy abs_type abs_T rep_type
+        val rep_T = varify_and_instantiate_type thy abs_type abs_T rep_type
         val rep_t = Const (Rep_name, abs_T --> rep_T)
         val set_t = Const (set_name, rep_T --> bool_T)
         val set_t' =
@@ -1400,8 +1407,10 @@ fun optimized_typedef_axioms thy (abs_z as (abs_s, _)) =
       end
     | NONE => []
   end
-fun optimized_quot_type_axioms thy stds abs_z =
+(* Proof.context -> string * typ list -> term list *)
+fun optimized_quot_type_axioms ctxt stds abs_z =
   let
+    val thy = ProofContext.theory_of ctxt
     val abs_T = Type abs_z
     val rep_T = rep_type_for_quot_type thy abs_T
     val equiv_rel = equiv_relation_for_quot_type thy abs_T
@@ -1410,7 +1419,7 @@ fun optimized_quot_type_axioms thy stds abs_z =
     val y_var = Var (("y", 0), rep_T)
     val x = (@{const_name Quot}, rep_T --> abs_T)
     val sel_a_t = select_nth_constr_arg thy stds x a_var 0 rep_T
-    val normal_t = Const (@{const_name quot_normal}, rep_T --> rep_T)
+    val normal_t = Const (quot_normal_name_for_type ctxt abs_T, rep_T --> rep_T)
     val normal_x = normal_t $ x_var
     val normal_y = normal_t $ y_var
     val is_unknown_t = Const (@{const_name is_unknown}, rep_T --> bool_T)
@@ -1639,7 +1648,7 @@ fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
                 in
                   (Abs (Name.uu, rep_T,
                         Const (@{const_name Quot}, rep_T --> abs_T)
-                               $ (Const (@{const_name quot_normal},
+                               $ (Const (quot_normal_name_for_type ctxt abs_T,
                                          rep_T --> rep_T) $ Bound 0)), ts)
                 end
               else if is_quot_rep_fun ctxt x then
@@ -2230,6 +2239,10 @@ fun user_friendly_const ({thy, evals, def_table, skolems, special_funs, ...}
        else if String.isPrefix step_prefix s then
          (Const (step_name, T --> T) $ Const (unprefix step_prefix s, T),
           format_type default_format default_format T)
+       else if String.isPrefix quot_normal_prefix s then
+         let val t = Const (nitpick_prefix ^ "normalize quotient type", T) in
+           (t, format_term_type thy def_table formats t)
+         end
        else if String.isPrefix skolem_prefix s then
          let
            val ss = the (AList.lookup (op =) (!skolems) s)
