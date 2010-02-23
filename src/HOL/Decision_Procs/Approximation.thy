@@ -1541,7 +1541,7 @@ proof -
     hence "real ?num \<noteq> 0" by auto
     have e_nat: "int (nat e) = e" using `0 \<le> e` by auto
     have num_eq: "real ?num = real (- floor_fl x)" using `0 < nat (- m)`
-      unfolding Float_floor real_of_float_minus real_of_float_simp real_of_nat_mult pow2_int[of "nat e", unfolded e_nat] realpow_real_of_nat[symmetric] by auto
+      unfolding Float_floor real_of_float_minus real_of_float_simp real_of_nat_mult pow2_int[of "nat e", unfolded e_nat] real_of_nat_power by auto
     have "0 < - floor_fl x" using `0 < ?num`[unfolded real_of_nat_less_iff[symmetric]] unfolding less_float_def num_eq[symmetric] real_of_float_0 real_of_nat_zero .
     hence "real (floor_fl x) < 0" unfolding less_float_def by auto
 
