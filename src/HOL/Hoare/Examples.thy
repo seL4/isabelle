@@ -1,12 +1,11 @@
 (*  Title:      HOL/Hoare/Examples.thy
-    ID:         $Id$
     Author:     Norbert Galm
     Copyright   1998 TUM
 
 Various examples.
 *)
 
-theory Examples imports Hoare Arith2 begin
+theory Examples imports Hoare_Logic Arith2 begin
 
 (*** ARITHMETIC ***)
 

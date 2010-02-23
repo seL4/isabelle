@@ -70,7 +70,8 @@ in
 
 add_typerep @{type_name fun}
 #> Typedef.interpretation ensure_typerep
-#> Code.type_interpretation (ensure_typerep o fst)
+#> Code.datatype_interpretation (ensure_typerep o fst)
+#> Code.abstype_interpretation (ensure_typerep o fst)
 
 end
 *}

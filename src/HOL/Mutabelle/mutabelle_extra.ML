@@ -10,9 +10,11 @@ sig
 val take_random : int -> 'a list -> 'a list
 
 datatype outcome = GenuineCex | PotentialCex | NoCex | Donno | Timeout | Error
-type mtd = string * (theory -> term -> outcome)
+type timing = (string * int) list
 
-type mutant_subentry = term * (string * outcome) list
+type mtd = string * (theory -> term -> outcome * timing)
+
+type mutant_subentry = term * (string * (outcome * timing)) list
 type detailed_entry = string * bool * term * mutant_subentry list
 
 type subentry = string * int * int * int * int * int * int
@@ -52,7 +54,7 @@ val num_mutations = 0
 
 (* quickcheck options *)
 (*val quickcheck_generator = "SML"*)
-val iterations = 100
+val iterations = 1
 val size = 5
 
 exception RANDOM;
@@ -75,11 +77,12 @@ fun random_range l h =
   else l + Real.floor (rmod (random ()) (real (h - l + 1)));
 
 datatype outcome = GenuineCex | PotentialCex | NoCex | Donno | Timeout | Error
-type mtd = string * (theory -> term -> outcome)
+type timing = (string * int) list
 
-type mutant_subentry = term * (string * outcome) list
+type mtd = string * (theory -> term -> outcome * timing)
+
+type mutant_subentry = term * (string * (outcome * timing)) list
 type detailed_entry = string * bool * term * mutant_subentry list
-
 
 type subentry = string * int * int * int * int * int * int
 type entry = string * bool * subentry list
@@ -94,11 +97,11 @@ fun preprocess thy insts t = ObjectLogic.atomize_term thy
 fun invoke_quickcheck quickcheck_generator thy t =
   TimeLimit.timeLimit (Time.fromSeconds (! Auto_Counterexample.time_limit))
       (fn _ =>
-          case Quickcheck.test_term (ProofContext.init thy) false (SOME quickcheck_generator)
+          case Quickcheck.timed_test_term (ProofContext.init thy) false (SOME quickcheck_generator)
                                     size iterations (preprocess thy [] t) of
-            NONE => NoCex
-          | SOME _ => GenuineCex) ()
-  handle TimeLimit.TimeOut => Timeout
+            (NONE, time_report) => (NoCex, time_report)
+          | (SOME _, time_report) => (GenuineCex, time_report)) ()
+  handle TimeLimit.TimeOut => (Timeout, [("timelimit", !Auto_Counterexample.time_limit)])
 
 fun quickcheck_mtd quickcheck_generator =
   ("quickcheck_" ^ quickcheck_generator, invoke_quickcheck quickcheck_generator)
@@ -189,9 +192,9 @@ val comms = [@{const_name "op ="}, @{const_name "op |"}, @{const_name "op &"}]
 
 val forbidden =
  [(* (@{const_name "power"}, "'a"), *)
-  (@{const_name HOL.induct_equal}, "'a"),
-  (@{const_name HOL.induct_implies}, "'a"),
-  (@{const_name HOL.induct_conj}, "'a"),
+  (*(@{const_name induct_equal}, "'a"),
+  (@{const_name induct_implies}, "'a"),
+  (@{const_name induct_conj}, "'a"),*)
   (@{const_name "undefined"}, "'a"),
   (@{const_name "default"}, "'a"),
   (@{const_name "dummy_pattern"}, "'a::{}") (*,
@@ -245,17 +248,26 @@ fun take_random 0 _ = []
       Library.nth xs j :: take_random (n - 1) (nth_drop j xs)
     end
 
+fun cpu_time description f =
+  let
+    val start = start_timing ()
+    val result = Exn.capture f ()
+    val time = Time.toMilliseconds (#cpu (end_timing start))
+  in (Exn.release result, (description, time)) end
+
 fun safe_invoke_mtd thy (mtd_name, invoke_mtd) t =
   let
     val _ = priority ("Invoking " ^ mtd_name)
-    val res = case try (invoke_mtd thy) t of
-                SOME res => res
-              | NONE => (priority ("**** PROBLEMS WITH " ^
-                                 Syntax.string_of_term_global thy t); Error)
+    val ((res, timing), time) = cpu_time "total time"
+      (fn () => case try (invoke_mtd thy) t of
+          SOME (res, timing) => (res, timing)
+        | NONE => (priority ("**** PROBLEMS WITH " ^ Syntax.string_of_term_global thy t);
+           (Error , [])))
     val _ = priority (" Done")
-  in res end
+  in (res, time :: timing) end
 
 (* theory -> term list -> mtd -> subentry *)
+(*
 fun test_mutants_using_one_method thy mutants (mtd_name, invoke_mtd) =
   let
      val res = map (safe_invoke_mtd thy (mtd_name, invoke_mtd)) mutants
@@ -266,7 +278,7 @@ fun test_mutants_using_one_method thy mutants (mtd_name, invoke_mtd) =
 
 fun create_entry thy thm exec mutants mtds =
   (Thm.get_name thm, exec, map (test_mutants_using_one_method thy mutants) mtds)
-
+*)
 fun create_detailed_entry thy thm exec mutants mtds =
   let
     fun create_mutant_subentry mutant = (mutant,
@@ -322,15 +334,22 @@ fun string_of_outcome GenuineCex = "GenuineCex"
   | string_of_outcome Timeout = "Timeout"
   | string_of_outcome Error = "Error"
 
-fun string_of_mutant_subentry thy (t, results) =
+fun string_of_mutant_subentry thy thm_name (t, results) =
   "mutant: " ^ Syntax.string_of_term_global thy t ^ "\n" ^
-  space_implode "; " (map (fn (mtd_name, outcome) => mtd_name ^ ": " ^ string_of_outcome outcome) results) ^
+  space_implode "; "
+    (map (fn (mtd_name, (outcome, timing)) => mtd_name ^ ": " ^ string_of_outcome outcome) results) ^
   "\n"
+
+fun string_of_mutant_subentry' thy thm_name (t, results) =
+  "mutant of " ^ thm_name ^ ":" ^
+    cat_lines (map (fn (mtd_name, (outcome, timing)) =>
+      mtd_name ^ ": " ^ string_of_outcome outcome ^ "; " ^
+      space_implode "; " (map (fn (s, t) => (s ^ ": " ^ string_of_int t)) timing)) results)
 
 fun string_of_detailed_entry thy (thm_name, exec, t, mutant_subentries) = 
    thm_name ^ " " ^ (if exec then "[exe]" else "[noexe]") ^ ": " ^
    Syntax.string_of_term_global thy t ^ "\n" ^
-   cat_lines (map (string_of_mutant_subentry thy) mutant_subentries) ^ "\n"
+   cat_lines (map (string_of_mutant_subentry' thy thm_name) mutant_subentries) ^ "\n"
 
 (* subentry -> string *)
 fun string_for_subentry (mtd_name, genuine_cex, potential_cex, no_cex, donno,

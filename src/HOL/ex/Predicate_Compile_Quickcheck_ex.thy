@@ -1,45 +1,39 @@
 theory Predicate_Compile_Quickcheck_ex
 imports Predicate_Compile_Quickcheck
-  Predicate_Compile_Alternative_Defs
 begin
 
-ML {* Predicate_Compile_Alternative_Defs.get *}
-
 section {* Sets *}
-(*
+
 lemma "x \<in> {(1::nat)} ==> False"
-quickcheck[generator=predicate_compile, iterations=10]
+quickcheck[generator=predicate_compile_wo_ff, iterations=10]
 oops
-*)
-(* TODO: some error with doubled negation *)
-(*
+
 lemma "x \<in> {Suc 0, Suc (Suc 0)} ==> x \<noteq> Suc 0"
-quickcheck[generator=predicate_compile]
+quickcheck[generator=predicate_compile_wo_ff]
 oops
-*)
-(*
+
 lemma "x \<in> {Suc 0, Suc (Suc 0)} ==> x = Suc 0"
-quickcheck[generator=predicate_compile]
+quickcheck[generator=predicate_compile_wo_ff]
 oops
-*) 
+ 
 lemma "x \<in> {Suc 0, Suc (Suc 0)} ==> x <= Suc 0"
-(*quickcheck[generator=predicate_compile]*)
+quickcheck[generator=predicate_compile_wo_ff]
 oops
 
 section {* Numerals *}
-(*
+
 lemma
   "x \<in> {1, 2, (3::nat)} ==> x = 1 \<or> x = 2"
-quickcheck[generator=predicate_compile]
+quickcheck[generator=predicate_compile_wo_ff]
 oops
-*)
+
 lemma "x \<in> {1, 2, (3::nat)} ==> x < 3"
-(*quickcheck[generator=predicate_compile]*)
+quickcheck[generator=predicate_compile_wo_ff]
 oops
 
 lemma
   "x \<in> {1, 2} \<union> {3, 4} ==> x = (1::nat) \<or> x = (2::nat)"
-(*quickcheck[generator=predicate_compile]*)
+quickcheck[generator=predicate_compile_wo_ff]
 oops
 
 section {* Context Free Grammar *}
@@ -53,33 +47,15 @@ inductive_set S\<^isub>1 and A\<^isub>1 and B\<^isub>1 where
 | "w \<in> S\<^isub>1 \<Longrightarrow> a # w \<in> A\<^isub>1"
 | "w \<in> S\<^isub>1 \<Longrightarrow> b # w \<in> S\<^isub>1"
 | "\<lbrakk>v \<in> B\<^isub>1; v \<in> B\<^isub>1\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>1"
-(*
-code_pred [random_dseq inductify] "S\<^isub>1p" .
-*)
-(*thm B\<^isub>1p.random_dseq_equation*)
-(*
-values [random_dseq 2, 2, 4] 10 "{x. S\<^isub>1p x}"
-values [random_dseq 1, 1, 5] 20 "{x. S\<^isub>1p x}"
 
-ML {* set ML_Context.trace *}
-*)
-ML {* set Toplevel.debug *}
-(*
-quickcheck[generator = predicate_compile, size = 10, iterations = 1]
-oops
-*)
-ML {* Spec_Rules.get *}
-ML {* Item_Net.retrieve *}
-local_setup {* Local_Theory.checkpoint *}
-ML {* Predicate_Compile_Data.get_specification @{theory} @{term "append"} *}
 lemma
-  "w \<in> S\<^isub>1p \<Longrightarrow> w = []"
-quickcheck[generator = predicate_compile, iterations=1]
+  "w \<in> S\<^isub>1 \<Longrightarrow> w = []"
+quickcheck[generator = predicate_compile_ff_nofs, iterations=1]
 oops
 
 theorem S\<^isub>1_sound:
-"w \<in> S\<^isub>1p \<Longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-quickcheck[generator=predicate_compile, size=15]
+"w \<in> S\<^isub>1 \<Longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+quickcheck[generator=predicate_compile_ff_nofs, size=15]
 oops
 
 
@@ -90,7 +66,7 @@ inductive_set S\<^isub>2 and A\<^isub>2 and B\<^isub>2 where
 | "w \<in> S\<^isub>2 \<Longrightarrow> a # w \<in> A\<^isub>2"
 | "w \<in> S\<^isub>2 \<Longrightarrow> b # w \<in> B\<^isub>2"
 | "\<lbrakk>v \<in> B\<^isub>2; v \<in> B\<^isub>2\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>2"
-
+(*
 code_pred [random_dseq inductify] S\<^isub>2 .
 thm S\<^isub>2.random_dseq_equation
 thm A\<^isub>2.random_dseq_equation
@@ -118,10 +94,10 @@ lemma
 "w \<in> S\<^isub>2 ==> length [x \<leftarrow> w. x = a] <= Suc (Suc 0)"
 quickcheck[generator=predicate_compile, size = 10, iterations = 1]
 oops
-
+*)
 theorem S\<^isub>2_sound:
 "w \<in> S\<^isub>2 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-quickcheck[generator=predicate_compile, size=15, iterations=1]
+quickcheck[generator=predicate_compile_ff_nofs, size=5, iterations=10]
 oops
 
 inductive_set S\<^isub>3 and A\<^isub>3 and B\<^isub>3 where
@@ -141,17 +117,17 @@ values 10 "{x. S\<^isub>3 x}"
 
 lemma S\<^isub>3_sound:
 "w \<in> S\<^isub>3 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-quickcheck[generator=predicate_compile, size=10, iterations=10]
+quickcheck[generator=predicate_compile_ff_fs, size=10, iterations=10]
 oops
 
 lemma "\<not> (length w > 2) \<or> \<not> (length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b])"
-quickcheck[size=10, generator = predicate_compile]
+quickcheck[size=10, generator = predicate_compile_ff_fs]
 oops
 
 theorem S\<^isub>3_complete:
 "length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. b = x] \<longrightarrow> w \<in> S\<^isub>3"
 (*quickcheck[generator=SML]*)
-quickcheck[generator=predicate_compile, size=10, iterations=100]
+quickcheck[generator=predicate_compile_ff_fs, size=10, iterations=100]
 oops
 
 
@@ -166,20 +142,23 @@ inductive_set S\<^isub>4 and A\<^isub>4 and B\<^isub>4 where
 
 theorem S\<^isub>4_sound:
 "w \<in> S\<^isub>4 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-quickcheck[generator = predicate_compile, size=5, iterations=1]
+quickcheck[generator = predicate_compile_ff_nofs, size=5, iterations=1]
 oops
 
 theorem S\<^isub>4_complete:
 "length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^isub>4"
-quickcheck[generator = predicate_compile, size=5, iterations=1]
+quickcheck[generator = predicate_compile_ff_nofs, size=5, iterations=1]
 oops
 
-hide const b
+hide const a b
 
 subsection {* Lexicographic order *}
+(* TODO *)
+(*
 lemma
   "(u, v) : lexord r ==> (x @ u, y @ v) : lexord r"
-
+oops
+*)
 subsection {* IMP *}
 
 types
@@ -208,7 +187,7 @@ values [random_dseq 1, 2, 3] 10 "{(c, s, s'). exec c s s'}"
 
 lemma
   "exec c s s' ==> exec (Seq c c) s s'"
-quickcheck[generator = predicate_compile, size=3, iterations=1]
+(*quickcheck[generator = predicate_compile_wo_ff, size=2, iterations=10]*)
 oops
 
 subsection {* Lambda *}
@@ -263,27 +242,8 @@ inductive beta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
 
 lemma
   "\<Gamma> \<turnstile> t : U \<Longrightarrow> t \<rightarrow>\<^sub>\<beta> t' \<Longrightarrow> \<Gamma> \<turnstile> t' : U"
-quickcheck[generator = predicate_compile, size = 7, iterations = 10]
+quickcheck[generator = predicate_compile_ff_fs, size = 7, iterations = 10]
 oops
-
-(*
-code_pred (expected_modes: i => i => o => bool, i => i => i => bool) typing .
-thm typing.equation
-
-code_pred (modes: i => i => bool,  i => o => bool as reduce') beta .
-thm beta.equation
-
-values "{x. App (Abs (Atom 0) (Var 0)) (Var 1) \<rightarrow>\<^sub>\<beta> x}"
-
-definition "reduce t = Predicate.the (reduce' t)"
-
-value "reduce (App (Abs (Atom 0) (Var 0)) (Var 1))"
-
-code_pred [random] typing .
-code_pred [random_dseq] typing .
-
-(*values [random] 1 "{(\<Gamma>, t, T). \<Gamma> \<turnstile> t : T}"
-*)*)
 
 subsection {* JAD *}
 
@@ -300,9 +260,17 @@ values [random_dseq 3, 2] 10 "{(M, rs, cs). matrix (M:: int list list) rs cs}"
 lemma [code_pred_intro]:
   "matrix [] 0 m"
   "matrix xss n m ==> length xs = m ==> matrix (xs # xss) (Suc n) m"
-sorry
+proof -
+  show "matrix [] 0 m" unfolding matrix_def by auto
+next
+  show "matrix xss n m ==> length xs = m ==> matrix (xs # xss) (Suc n) m"
+    unfolding matrix_def by auto
+qed
 
-code_pred [random_dseq inductify] matrix sorry
+code_pred [random_dseq inductify] matrix
+  apply (cases x)
+  unfolding matrix_def apply fastsimp
+  apply fastsimp done
 
 
 values [random_dseq 2, 2, 15] 6 "{(M::int list list, n, m). matrix M n m}"
@@ -344,10 +312,10 @@ primrec sort :: "('a \<Rightarrow> 'b \<Colon> linorder) \<Rightarrow> 'a list =
 
 definition
   "length_permutate M = (unzip o sort (length o snd)) (zip [0 ..< length M] M)"
-
+(*
 definition
   "transpose M = [map (\<lambda> xs. xs ! i) (takeWhile (\<lambda> xs. i < length xs) M). i \<leftarrow> [0 ..< length (M ! 0)]]"
-
+*)
 definition
   "inflate upds = foldr (\<lambda> (i, x) upds. upds[i := x]) upds (replicate (length upds) 0)"
 
@@ -356,15 +324,14 @@ definition
 
 definition
   "jad_mv v = inflate o split zip o apsnd (map listsum o transpose o map (map (\<lambda> (i, x). v ! i * x)))"
-ML {* ML_Context.trace := false *}
 
 lemma "matrix (M::int list list) rs cs \<Longrightarrow> False"
-quickcheck[generator = predicate_compile, size = 6]
+quickcheck[generator = predicate_compile_ff_nofs, size = 6]
 oops
 
 lemma
   "\<lbrakk> matrix M rs cs ; length v = cs \<rbrakk> \<Longrightarrow> jad_mv v (jad M) = mv M v"
-(*quickcheck[generator = predicate_compile]*)
+quickcheck[generator = predicate_compile_wo_ff]
 oops
 
 end

@@ -95,7 +95,6 @@ sig
   val nickname_of : nut -> string
   val is_skolem_name : nut -> bool
   val is_eval_name : nut -> bool
-  val is_FreeName : nut -> bool
   val is_Cst : cst -> nut -> bool
   val fold_nut : (nut -> 'a -> 'a) -> nut -> 'a -> 'a
   val map_nut : (nut -> nut) -> nut -> nut
@@ -369,8 +368,6 @@ fun is_skolem_name u =
 fun is_eval_name u =
   String.isPrefix eval_prefix (nickname_of u)
   handle NUT ("Nitpick_Nut.nickname_of", _) => false
-fun is_FreeName (FreeName _) = true
-  | is_FreeName _ = false
 (* cst -> nut -> bool *)
 fun is_Cst cst (Cst (cst', _, _)) = (cst = cst')
   | is_Cst _ _ = false
@@ -794,9 +791,9 @@ fun choose_rep_for_bound_var scope v table =
   end
 
 (* A nut is said to be constructive if whenever it evaluates to unknown in our
-   three-valued logic, it would evaluate to a unrepresentable value ("unrep")
+   three-valued logic, it would evaluate to a unrepresentable value ("Unrep")
    according to the HOL semantics. For example, "Suc n" is constructive if "n"
-   is representable or "Unrep", because unknown implies unrep. *)
+   is representable or "Unrep", because unknown implies "Unrep". *)
 (* nut -> bool *)
 fun is_constructive u =
   is_Cst Unrep u orelse
@@ -819,6 +816,16 @@ fun optimize_unit u =
 fun unknown_boolean T R =
   Cst (case R of Formula Pos => False | Formula Neg => True | _ => Unknown,
        T, R)
+(* nut -> bool *)
+fun is_fully_representable_set u =
+  not (is_opt_rep (rep_of u)) andalso
+  case u of
+    FreeName _ => true
+  | Op1 (SingletonSet, _, _, _) => true
+  | Op2 (oper, _, _, u1, u2) =>
+    member (op =) [Union, SetDifference, Intersect] oper andalso
+    forall is_fully_representable_set [u1, u2]
+  | _ => false
 
 (* op1 -> typ -> rep -> nut -> nut *)
 fun s_op1 oper T R u1 =
@@ -860,7 +867,7 @@ fun s_op2 oper T R u1 u2 =
         if is_constructive u1 then
           Cst (Unrep, T, R)
         else if is_boolean_type T then
-          if is_FreeName u1 then Cst (False, T, Formula Neut)
+          if is_fully_representable_set u1 then Cst (False, T, Formula Neut)
           else unknown_boolean T R
         else case u1 of
           Op2 (Apply, _, _, ConstName (@{const_name List.append}, _, _), _) =>

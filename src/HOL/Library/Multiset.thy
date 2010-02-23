@@ -1212,8 +1212,8 @@ definition less_multiset :: "'a\<Colon>order multiset \<Rightarrow> 'a multiset 
 definition le_multiset :: "'a\<Colon>order multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "<=#" 50) where
   "M' <=# M \<longleftrightarrow> M' <# M \<or> M' = M"
 
-notation (xsymbol) less_multiset (infix "\<subset>#" 50)
-notation (xsymbol) le_multiset (infix "\<subseteq>#" 50)
+notation (xsymbols) less_multiset (infix "\<subset>#" 50)
+notation (xsymbols) le_multiset (infix "\<subseteq>#" 50)
 
 interpretation multiset_order: order le_multiset less_multiset
 proof -

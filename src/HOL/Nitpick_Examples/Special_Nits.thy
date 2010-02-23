@@ -110,12 +110,12 @@ sorry
 
 lemma "\<exists>one \<in> {1}. \<exists>two \<in> {2}.
        f5 (\<lambda>a. if a = one then 2 else if a = two then 1 else a) (Suc x) = x"
-nitpick [expect = potential] (* unfortunate *)
+nitpick [expect = genuine]
 oops
 
 lemma "\<exists>two \<in> {2}. \<exists>one \<in> {1}.
        f5 (\<lambda>a. if a = one then 2 else if a = two then 1 else a) (Suc x) = x"
-nitpick [expect = potential] (* unfortunate *)
+nitpick [expect = genuine]
 oops
 
 lemma "\<forall>a. g a = a

@@ -56,10 +56,12 @@ boogie_status (full paths) max -- {* shows the state of all assertions
 
 text {* Let's find out which assertions of @{text max} are hard to prove: *}
 
-boogie_status (narrow timeout: 4) max
+boogie_status (narrow step_timeout: 4 final_timeout: 15) max
   (simp add: labels, (fast | metis)?)
-  -- {* The argument @{text timeout} is optional, restricting the runtime of
-        each narrowing step by the given number of seconds. *}
+  -- {* The argument @{text step_timeout} is optional, restricting the runtime
+        of each intermediate narrowing step by the given number of seconds. *}
+  -- {* The argument @{text final_timeout} is optional, restricting the
+        runtime of the final narrowing steps by the given number of seconds. *}
   -- {* The last argument should be a method to be applied at each narrowing
         step. Note that different methods may be composed to one method by
         a language similar to regular expressions. *}

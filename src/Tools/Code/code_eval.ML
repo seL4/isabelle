@@ -130,7 +130,7 @@ fun ml_code_datatype_antiq (raw_tyco, raw_constrs) background =
     val thy = ProofContext.theory_of background;
     val tyco = Sign.intern_type thy raw_tyco;
     val constrs = map (Code.check_const thy) raw_constrs;
-    val constrs' = (map fst o snd o Code.get_datatype thy) tyco;
+    val constrs' = (map fst o snd o Code.get_type thy) tyco;
     val _ = if eq_set (op =) (constrs, constrs') then ()
       else error ("Type " ^ quote tyco ^ ": given constructors diverge from real constructors")
     val is_first = is_first_occ background;

@@ -1417,29 +1417,20 @@ oops
 
 (*****************************************************************************)
 
-subsubsection {* Axiomatic type classes and overloading *}
+subsubsection {* Type classes and overloading *}
 
 text {* A type class without axioms: *}
 
-axclass classA
+class classA
 
 lemma "P (x::'a::classA)"
   refute
 oops
 
-text {* The axiom of this type class does not contain any type variables: *}
-
-axclass classB
-  classB_ax: "P | ~ P"
-
-lemma "P (x::'a::classB)"
-  refute
-oops
-
 text {* An axiom with a type variable (denoting types which have at least two elements): *}
 
-axclass classC < type
-  classC_ax: "\<exists>x y. x \<noteq> y"
+class classC =
+  assumes classC_ax: "\<exists>x y. x \<noteq> y"
 
 lemma "P (x::'a::classC)"
   refute
@@ -1451,11 +1442,9 @@ oops
 
 text {* A type class for which a constant is defined: *}
 
-consts
-  classD_const :: "'a \<Rightarrow> 'a"
-
-axclass classD < type
-  classD_ax: "classD_const (classD_const x) = classD_const x"
+class classD =
+  fixes classD_const :: "'a \<Rightarrow> 'a"
+  assumes classD_ax: "classD_const (classD_const x) = classD_const x"
 
 lemma "P (x::'a::classD)"
   refute
@@ -1463,13 +1452,9 @@ oops
 
 text {* A type class with multiple superclasses: *}
 
-axclass classE < classC, classD
+class classE = classC + classD
 
 lemma "P (x::'a::classE)"
-  refute
-oops
-
-lemma "P (x::'a::{classB, classE})"
   refute
 oops
 
@@ -1483,12 +1468,6 @@ done
 lemma "OFCLASS('a::classC, type_class)"
   refute  -- {* no countermodel exists *}
   apply intro_classes
-done
-
-lemma "OFCLASS('a, classB_class)"
-  refute  -- {* no countermodel exists *}
-  apply intro_classes
-  apply simp
 done
 
 lemma "OFCLASS('a::type, classC_class)"

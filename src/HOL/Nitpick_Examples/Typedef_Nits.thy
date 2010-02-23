@@ -143,11 +143,11 @@ nitpick [card = 2, expect = none]
 by (rule Rep_Sum_inverse)
 
 lemma "0::nat \<equiv> Abs_Nat Zero_Rep"
-(* nitpick [expect = none] FIXME *)
+nitpick [expect = none]
 by (rule Zero_nat_def_raw)
 
 lemma "Suc \<equiv> \<lambda>n. Abs_Nat (Suc_Rep (Rep_Nat n))"
-(* nitpick [expect = none] FIXME *)
+nitpick [expect = none]
 by (rule Suc_def)
 
 lemma "Suc \<equiv> \<lambda>n. Abs_Nat (Suc_Rep (Suc_Rep (Rep_Nat n)))"

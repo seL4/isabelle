@@ -293,15 +293,15 @@ fun box_fun_and_pair_in_term (hol_ctxt as {thy, stds, fast_descrs, ...}) def
         $ do_term new_Ts old_Ts polar t2
       | Const (s as @{const_name The}, T) => do_description_operator s T
       | Const (s as @{const_name Eps}, T) => do_description_operator s T
-      | Const (@{const_name quot_normal}, Type ("fun", [T, _])) =>
-        let val T' = box_type hol_ctxt InFunLHS T in
-          Const (@{const_name quot_normal}, T' --> T')
-        end
       | Const (s as @{const_name Tha}, T) => do_description_operator s T
       | Const (x as (s, T)) =>
         Const (s, if s = @{const_name converse} orelse
                      s = @{const_name trancl} then
                     box_relational_operator_type T
+                  else if String.isPrefix quot_normal_prefix s then
+                    let val T' = box_type hol_ctxt InFunLHS (domain_type T) in
+                      T' --> T'
+                    end
                   else if is_built_in_const thy stds fast_descrs x orelse
                           s = @{const_name Sigma} then
                     T
@@ -1022,8 +1022,9 @@ val axioms_max_depth = 255
 
 (* hol_context -> term -> (term list * term list) * (bool * bool) *)
 fun axioms_for_term
-        (hol_ctxt as {thy, max_bisim_depth, stds, user_axioms, fast_descrs,
-                      evals, def_table, nondef_table, user_nondefs, ...}) t =
+        (hol_ctxt as {thy, ctxt, max_bisim_depth, stds, user_axioms,
+                      fast_descrs, evals, def_table, nondef_table, user_nondefs,
+                      ...}) t =
   let
     type accumulator = styp list * (term list * term list)
     (* (term list * term list -> term list)
@@ -1090,7 +1091,8 @@ fun axioms_for_term
                else
                  accum |> fold (add_nondef_axiom depth)
                                (nondef_props_for_const thy false nondef_table x)
-                       |> is_funky_typedef thy (range_type T)
+                       |> (is_funky_typedef thy (range_type T) orelse
+                           range_type T = nat_T)
                           ? fold (add_maybe_def_axiom depth)
                                  (nondef_props_for_const thy true
                                                     (extra_table def_table s) x)
@@ -1100,7 +1102,8 @@ fun axioms_for_term
                else
                  accum |> fold (add_nondef_axiom depth)
                                (nondef_props_for_const thy false nondef_table x)
-                       |> is_funky_typedef thy (range_type T)
+                       |> (is_funky_typedef thy (range_type T) orelse
+                           range_type T = nat_T)
                           ? fold (add_maybe_def_axiom depth)
                                  (nondef_props_for_const thy true
                                                     (extra_table def_table s) x)
@@ -1134,7 +1137,8 @@ fun axioms_for_term
         #> (if is_pure_typedef thy T then
               fold (add_maybe_def_axiom depth) (optimized_typedef_axioms thy z)
             else if is_quot_type thy T then
-              fold (add_def_axiom depth) (optimized_quot_type_axioms thy stds z)
+              fold (add_def_axiom depth)
+                   (optimized_quot_type_axioms ctxt stds z)
             else if max_bisim_depth >= 0 andalso is_codatatype thy T then
               fold (add_maybe_def_axiom depth)
                    (codatatype_bisim_axioms hol_ctxt T)

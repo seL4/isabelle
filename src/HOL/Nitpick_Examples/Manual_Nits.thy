@@ -13,7 +13,7 @@ begin
 
 chapter {* 3. First Steps *}
 
-nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1]
+nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1, timeout = 15 s]
 
 subsection {* 3.1. Propositional Logic *}
 
@@ -70,7 +70,7 @@ nitpick [card nat = 100, check_potential]
 oops
 
 lemma "P Suc"
-nitpick [card = 1-6]
+nitpick
 oops
 
 lemma "P (op +\<Colon>nat\<Rightarrow>nat\<Rightarrow>nat)"
@@ -149,7 +149,7 @@ inductive even' where
 "\<lbrakk>even' m; even' n\<rbrakk> \<Longrightarrow> even' (m + n)"
 
 lemma "\<exists>n \<in> {0, 2, 4, 6, 8}. \<not> even' n"
-nitpick [card nat = 10, unary_ints, verbose, show_consts] (* FIXME: should be genuine *)
+nitpick [card nat = 10, unary_ints, verbose, show_consts]
 oops
 
 lemma "even' (n - 2) \<Longrightarrow> even' n"
@@ -210,7 +210,7 @@ primrec subst\<^isub>1 where
 lemma "\<not> loose t 0 \<Longrightarrow> subst\<^isub>1 \<sigma> t = t"
 nitpick [verbose]
 nitpick [eval = "subst\<^isub>1 \<sigma> t"]
-nitpick [dont_box]
+(* nitpick [dont_box] *)
 oops
 
 primrec subst\<^isub>2 where
@@ -220,7 +220,7 @@ primrec subst\<^isub>2 where
 "subst\<^isub>2 \<sigma> (App t u) = App (subst\<^isub>2 \<sigma> t) (subst\<^isub>2 \<sigma> u)"
 
 lemma "\<not> loose t 0 \<Longrightarrow> subst\<^isub>2 \<sigma> t = t"
-nitpick
+nitpick [card = 1\<midarrow>6]
 sorry
 
 subsection {* 3.11. Scope Monotonicity *}
@@ -243,7 +243,7 @@ inductive_set reach where
 "n \<in> reach \<Longrightarrow> n + 2 \<in> reach"
 
 lemma "n \<in> reach \<Longrightarrow> 2 dvd n"
-nitpick
+nitpick [unary_ints]
 apply (induct set: reach)
   apply auto
  nitpick
@@ -252,7 +252,7 @@ apply (induct set: reach)
 oops
 
 lemma "n \<in> reach \<Longrightarrow> 2 dvd n \<and> n \<noteq> 0"
-nitpick
+nitpick [unary_ints]
 apply (induct set: reach)
   apply auto
  nitpick
@@ -289,12 +289,12 @@ lemma "labels (swap t a b) =
           if b \<in> labels t then labels t else (labels t - {a}) \<union> {b}
         else
           if b \<in> labels t then (labels t - {b}) \<union> {a} else labels t)"
-nitpick
+(* nitpick *)
 proof (induct t)
   case Leaf thus ?case by simp
 next
   case (Branch t u) thus ?case
-  nitpick [non_std "'a bin_tree", show_consts]
+  nitpick [non_std, show_all]
   by auto
 qed
 

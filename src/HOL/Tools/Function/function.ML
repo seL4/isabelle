@@ -97,6 +97,7 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config lth
           |> addsmps (conceal_partial o Binding.qualify false "partial")
                "psimps" conceal_partial psimp_attribs psimps
           ||> fold_option (snd oo addsmps I "simps" I simp_attribs) trsimps
+          ||> fold_option (Spec_Rules.add Spec_Rules.Equational o (pair fs)) trsimps
           ||>> Local_Theory.note ((conceal_partial (qualify "pinduct"),
                  [Attrib.internal (K (Rule_Cases.case_names cnames)),
                   Attrib.internal (K (Rule_Cases.consumes 1)),
@@ -126,7 +127,7 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config lth
 val add_function =
   gen_add_function false Specification.check_spec (TypeInfer.anyT HOLogic.typeS)
 val add_function_cmd = gen_add_function true Specification.read_spec "_::type"
-
+                                                
 fun gen_termination_proof prep_term raw_term_opt lthy =
   let
     val term_opt = Option.map (prep_term lthy) raw_term_opt

@@ -76,7 +76,8 @@ let
         andalso can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort typerep};
     in if need_inst then add_term_of tyco raw_vs thy else thy end;
 in
-  Code.type_interpretation ensure_term_of
+  Code.datatype_interpretation ensure_term_of
+  #> Code.abstype_interpretation ensure_term_of
 end
 *}
 
@@ -114,7 +115,7 @@ let
       val has_inst = can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort term_of};
     in if has_inst then add_term_of_code tyco raw_vs cs thy else thy end;
 in
-  Code.type_interpretation ensure_term_of_code
+  Code.datatype_interpretation ensure_term_of_code
 end
 *}
 
