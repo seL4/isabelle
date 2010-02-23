@@ -122,9 +122,6 @@ of parameter divide has also been required previously.  INCOMPATIBILITY.
 
 INCOMPATIBILITY.
 
-* New theory Algebras contains generic algebraic structures and
-generic algebraic operations.
-
 * HOLogic.strip_psplit: types are returned in syntactic order, similar
 to other strip and tuple operations.  INCOMPATIBILITY.
 

@@ -9,6 +9,65 @@ imports Orderings
 uses ("~~/src/Provers/Arith/abel_cancel.ML")
 begin
 
+subsection {* Fact collections *}
+
+ML {*
+structure Algebra_Simps = Named_Thms(
+  val name = "algebra_simps"
+  val description = "algebra simplification rules"
+)
+*}
+
+setup Algebra_Simps.setup
+
+text{* The rewrites accumulated in @{text algebra_simps} deal with the
+classical algebraic structures of groups, rings and family. They simplify
+terms by multiplying everything out (in case of a ring) and bringing sums and
+products into a canonical form (by ordered rewriting). As a result it decides
+group and ring equalities but also helps with inequalities.
+
+Of course it also works for fields, but it knows nothing about multiplicative
+inverses or division. This is catered for by @{text field_simps}. *}
+
+
+ML {*
+structure Ac_Simps = Named_Thms(
+  val name = "ac_simps"
+  val description = "associativity and commutativity simplification rules"
+)
+*}
+
+setup Ac_Simps.setup
+
+
+subsection {* Abstract structures *}
+
+text {*
+  These locales provide basic structures for interpretation into
+  bigger structures;  extensions require careful thinking, otherwise
+  undesired effects may occur due to interpretation.
+*}
+
+locale semigroup =
+  fixes f :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "*" 70)
+  assumes assoc [ac_simps]: "a * b * c = a * (b * c)"
+
+locale abel_semigroup = semigroup +
+  assumes commute [ac_simps]: "a * b = b * a"
+begin
+
+lemma left_commute [ac_simps]:
+  "b * (a * c) = a * (b * c)"
+proof -
+  have "(b * a) * c = (a * b) * c"
+    by (simp only: commute)
+  then show ?thesis
+    by (simp only: assoc)
+qed
+
+end
+
+
 subsection {* Generic operations *}
 
 class zero = 
@@ -64,37 +123,6 @@ class times =
 
 use "~~/src/Provers/Arith/abel_cancel.ML"
 
-text {*
-  The theory of partially ordered groups is taken from the books:
-  \begin{itemize}
-  \item \emph{Lattice Theory} by Garret Birkhoff, American Mathematical Society 1979 
-  \item \emph{Partially Ordered Algebraic Systems}, Pergamon Press 1963
-  \end{itemize}
-  Most of the used notions can also be looked up in 
-  \begin{itemize}
-  \item \url{http://www.mathworld.com} by Eric Weisstein et. al.
-  \item \emph{Algebra I} by van der Waerden, Springer.
-  \end{itemize}
-*}
-
-ML {*
-structure Algebra_Simps = Named_Thms(
-  val name = "algebra_simps"
-  val description = "algebra simplification rules"
-)
-*}
-
-setup Algebra_Simps.setup
-
-text{* The rewrites accumulated in @{text algebra_simps} deal with the
-classical algebraic structures of groups, rings and family. They simplify
-terms by multiplying everything out (in case of a ring) and bringing sums and
-products into a canonical form (by ordered rewriting). As a result it decides
-group and ring equalities but also helps with inequalities.
-
-Of course it also works for fields, but it knows nothing about multiplicative
-inverses or division. This is catered for by @{text field_simps}. *}
-
 
 subsection {* Semigroups and Monoids *}
 
@@ -143,19 +171,6 @@ theorems mult_ac = mult_assoc mult_commute mult_left_commute
 end
 
 theorems mult_ac = mult_assoc mult_commute mult_left_commute
-
-class ab_semigroup_idem_mult = ab_semigroup_mult +
-  assumes mult_idem: "x * x = x"
-
-sublocale ab_semigroup_idem_mult < times!: semilattice times proof
-qed (fact mult_idem)
-
-context ab_semigroup_idem_mult
-begin
-
-lemmas mult_left_idem = times.left_idem
-
-end
 
 class monoid_add = zero + semigroup_add +
   assumes add_0_left [simp]: "0 + a = a"
@@ -410,6 +425,19 @@ by (simp add: algebra_simps)
 end
 
 subsection {* (Partially) Ordered Groups *} 
+
+text {*
+  The theory of partially ordered groups is taken from the books:
+  \begin{itemize}
+  \item \emph{Lattice Theory} by Garret Birkhoff, American Mathematical Society 1979 
+  \item \emph{Partially Ordered Algebraic Systems}, Pergamon Press 1963
+  \end{itemize}
+  Most of the used notions can also be looked up in 
+  \begin{itemize}
+  \item \url{http://www.mathworld.com} by Eric Weisstein et. al.
+  \item \emph{Algebra I} by van der Waerden, Springer.
+  \end{itemize}
+*}
 
 class ordered_ab_semigroup_add = order + ab_semigroup_add +
   assumes add_left_mono: "a \<le> b \<Longrightarrow> c + a \<le> c + b"

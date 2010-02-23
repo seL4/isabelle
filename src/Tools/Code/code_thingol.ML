@@ -256,7 +256,7 @@ local
     | thyname :: _ => thyname;
   fun thyname_of_const thy c = case AxClass.class_of_param thy c
    of SOME class => thyname_of_class thy class
-    | NONE => (case Code.get_datatype_of_constr_or_abstr thy c
+    | NONE => (case Code.get_type_of_constr_or_abstr thy c
        of SOME (tyco, _) => Codegen.thyname_of_type thy tyco
         | NONE => Codegen.thyname_of_const thy c);
   fun purify_base "==>" = "follows"
@@ -543,7 +543,7 @@ fun ensure_tyco thy algbr eqngr tyco =
   let
     val stmt_datatype =
       let
-        val (vs, cos) = Code.get_datatype thy tyco;
+        val (vs, cos) = Code.get_type thy tyco;
       in
         fold_map (translate_tyvar_sort thy algbr eqngr) vs
         ##>> fold_map (fn (c, tys) =>
@@ -569,7 +569,7 @@ and ensure_const thy algbr eqngr c =
         ##>> fold_map (translate_eqn thy algbr eqngr) eqns
         #>> (fn info => Fun (c, info))
       end;
-    val stmt_const = case Code.get_datatype_of_constr_or_abstr thy c
+    val stmt_const = case Code.get_type_of_constr_or_abstr thy c
      of SOME (tyco, _) => stmt_datatypecons tyco
       | NONE => (case AxClass.class_of_param thy c
          of SOME class => stmt_classparam class

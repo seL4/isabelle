@@ -5,7 +5,7 @@
 header {* Untyped functional language, with call by value semantics *}
 
 theory Func
-imports HOHH Algebras
+imports HOHH
 begin
 
 typedecl tm

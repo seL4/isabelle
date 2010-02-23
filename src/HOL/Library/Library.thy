@@ -15,6 +15,7 @@ imports
   ContNotDenum
   Countable
   Diagonalize
+  Dlist
   Efficient_Nat
   Enum
   Eval_Witness
