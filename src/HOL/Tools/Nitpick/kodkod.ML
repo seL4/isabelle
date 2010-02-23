@@ -1004,9 +1004,11 @@ fun read_next_problems (s, ps, js) =
   handle Option.Option => raise SYNTAX ("Kodkod.read_next_problems",
                                         "expected number after \"PROBLEM\"")
 
-(* Path.T -> (int * raw_bound list) list * int list *)
+(* Path.T -> bool * ((int * raw_bound list) list * int list) *)
 fun read_output_file path =
-  read_next_problems (Substring.full (File.read path), [], []) |>> rev ||> rev
+  (false, read_next_problems (Substring.full (File.read path), [], [])
+          |>> rev ||> rev)
+  handle IO.Io _ => (true, ([], [])) | OS.SysErr _ => (true, ([], []))
 
 (* The fudge term below is to account for Kodkodi's slow start-up time, which
    is partly due to the JVM and partly due to the ML "bash" function. *)
@@ -1046,7 +1048,7 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
         (* unit -> unit *)
         fun remove_temporary_files () =
           if overlord then ()
-          else List.app File.rm [in_path, out_path, err_path]
+          else List.app (K () o try File.rm) [in_path, out_path, err_path]
       in
         let
           val ms =
@@ -1076,11 +1078,13 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
                       " < " ^ File.shell_path in_path ^
                       " > " ^ File.shell_path out_path ^
                       " 2> " ^ File.shell_path err_path)
-              val (ps, nontriv_js) = read_output_file out_path
-                                     |>> map (apfst reindex) ||> map reindex
+              val (io_error, (ps, nontriv_js)) =
+                read_output_file out_path
+                ||> apfst (map (apfst reindex)) ||> apsnd (map reindex)
               val js = triv_js @ nontriv_js
               val first_error =
                 File.fold_lines (fn line => fn "" => line | s => s) err_path ""
+                handle IO.Io _ => "" | OS.SysErr _ => ""
             in
               if null ps then
                 if code = 2 then
@@ -1092,6 +1096,8 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
                 else if first_error <> "" then
                   Error (first_error |> perhaps (try (unsuffix "."))
                                      |> perhaps (try (unprefix "Error: ")), js)
+                else if io_error then
+                  Error ("I/O error", js)
                 else if code <> 0 then
                   Error ("Unknown error", js)
                 else
@@ -1102,7 +1108,8 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
         in remove_temporary_files (); outcome end
         handle Exn.Interrupt =>
                let
-                 val nontriv_js = map reindex (snd (read_output_file out_path))
+                 val nontriv_js =
+                   read_output_file out_path |> snd |> snd |> map reindex
                in
                  (remove_temporary_files ();
                   Interrupted (SOME (triv_js @ nontriv_js)))

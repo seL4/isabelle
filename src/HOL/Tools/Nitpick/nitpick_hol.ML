@@ -1819,8 +1819,7 @@ fun uncached_is_well_founded_inductive_pred
                              termination_tacs
            in Synchronized.change cached_wf_props (cons (prop, wf)); wf end
        end)
-    handle List.Empty => false
-         | NO_TRIPLE () => false
+    handle List.Empty => false | NO_TRIPLE () => false
 
 (* The type constraint below is a workaround for a Poly/ML crash. *)
 

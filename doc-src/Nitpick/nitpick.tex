@@ -150,11 +150,11 @@ as follows:
 \postw
 
 The results presented here were obtained using the JNI version of MiniSat and
-with multithreading disabled to reduce nondeterminism. This was done by adding
-the line
+with multithreading disabled to reduce nondeterminism and a time limit of
+15~seconds (instead of 30~seconds). This was done by adding the line
 
 \prew
-\textbf{nitpick\_params} [\textit{sat\_solver}~= \textit{MiniSat\_JNI}, \,\textit{max\_threads}~= 1]
+\textbf{nitpick\_params} [\textit{sat\_solver}~= \textit{MiniSat\_JNI}, \,\textit{max\_threads}~= 1, \,\,\textit{timeout} = 15$\,s$]
 \postw
 
 after the \textbf{begin} keyword. The JNI version of MiniSat is bundled with
@@ -499,7 +499,7 @@ giant with feet of clay:
 
 \prew
 \textbf{lemma} ``$P~\textit{Suc}$'' \\
-\textbf{nitpick} [\textit{card} = 1--6] \\[2\smallskipamount]
+\textbf{nitpick} \\[2\smallskipamount]
 \slshape
 Nitpick found no counterexample.
 \postw
@@ -1617,7 +1617,7 @@ $B$ as well:
 ``$w \in A \longleftrightarrow \textit{length}~[x \mathbin{\leftarrow} w.\; x = a] = \textit{length}~[x \mathbin{\leftarrow} w.\; x = b] + 1$'' \\
 ``$w \in B \longleftrightarrow \textit{length}~[x \mathbin{\leftarrow} w.\; x = b] = \textit{length}~[x \mathbin{\leftarrow} w.\; x = a] + 1$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
-\slshape Nitpick found no counterexample.
+\slshape Nitpick ran out of time after checking 7 of 8 scopes.
 \postw
 
 \subsection{AA Trees}
@@ -1726,7 +1726,7 @@ of elements stored in the tree:
 ``$\textit{dataset}~(\textit{skew}~t) = \textit{dataset}~t$'' \\
 ``$\textit{dataset}~(\textit{split}~t) = \textit{dataset}~t$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
-{\slshape Nitpick found no counterexample.}
+{\slshape Nitpick ran out of time after checking 7 of 8 scopes.}
 \postw
 
 Furthermore, applying \textit{skew} or \textit{split} to a well-formed tree
