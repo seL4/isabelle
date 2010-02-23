@@ -707,13 +707,14 @@ lemma Fract_le_one_iff:
 subsubsection {* Rationals are an Archimedean field *}
 
 lemma rat_floor_lemma:
-  assumes "0 < b"
   shows "of_int (a div b) \<le> Fract a b \<and> Fract a b < of_int (a div b + 1)"
 proof -
   have "Fract a b = of_int (a div b) + Fract (a mod b) b"
-    using `0 < b` by (simp add: of_int_rat)
+    by (cases "b = 0", simp, simp add: of_int_rat)
   moreover have "0 \<le> Fract (a mod b) b \<and> Fract (a mod b) b < 1"
-    using `0 < b` by (simp add: zero_le_Fract_iff Fract_less_one_iff)
+    unfolding Fract_of_int_quotient
+    by (rule linorder_cases [of b 0])
+       (simp add: divide_nonpos_neg, simp, simp add: divide_nonneg_pos)
   ultimately show ?thesis by simp
 qed
 
@@ -723,15 +724,14 @@ proof
   show "\<exists>z. r \<le> of_int z"
   proof (induct r)
     case (Fract a b)
-    then have "Fract a b \<le> of_int (a div b + 1)"
-      using rat_floor_lemma [of b a] by simp
+    have "Fract a b \<le> of_int (a div b + 1)"
+      using rat_floor_lemma [of a b] by simp
     then show "\<exists>z. Fract a b \<le> of_int z" ..
   qed
 qed
 
-lemma floor_Fract:
-  assumes "0 < b" shows "floor (Fract a b) = a div b"
-  using rat_floor_lemma [OF `0 < b`, of a]
+lemma floor_Fract: "floor (Fract a b) = a div b"
+  using rat_floor_lemma [of a b]
   by (simp add: floor_unique)
 
 
