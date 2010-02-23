@@ -1,5 +1,4 @@
 (*  Title:      HOL/Lattice/Lattice.thy
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 *)
 
@@ -15,9 +14,9 @@ text {*
   as well).
 *}
 
-axclass lattice \<subseteq> partial_order
-  ex_inf: "\<exists>inf. is_inf x y inf"
-  ex_sup: "\<exists>sup. is_sup x y sup"
+class lattice =
+  assumes ex_inf: "\<exists>inf. is_inf x y inf"
+  assumes ex_sup: "\<exists>sup. is_sup x y sup"
 
 text {*
   The @{text \<sqinter>} (meet) and @{text \<squnion>} (join) operations select such

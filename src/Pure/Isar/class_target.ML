@@ -56,11 +56,6 @@ sig
   (*tactics*)
   val intro_classes_tac: thm list -> tactic
   val default_intro_tac: Proof.context -> thm list -> tactic
-
-  (*old axclass layer*)
-  val axclass_cmd: binding * xstring list
-    -> (Attrib.binding * string list) list
-    -> theory -> class * theory
 end;
 
 structure Class_Target : CLASS_TARGET =
@@ -628,25 +623,6 @@ val _ = Context.>> (Context.map_theory
     "back-chain introduction rules of classes" #>
   Method.setup (Binding.name "default") (Attrib.thms >> (METHOD oo default_tac))
     "apply some intro/elim rule"));
-
-
-(** old axclass command **)
-
-fun axclass_cmd (class, raw_superclasses) raw_specs thy =
-  let
-    val _ = Output.legacy_feature "command \"axclass\" deprecated; use \"class\" instead.";
-    val ctxt = ProofContext.init thy;
-    val superclasses = map (Sign.read_class thy) raw_superclasses;
-    val name_atts = map ((apsnd o map) (Attrib.attribute thy) o fst)
-      raw_specs;
-    val axiomss = ProofContext.read_propp (ctxt, map (map (rpair []) o snd)
-          raw_specs)
-      |> snd
-      |> (map o map) fst;
-  in
-    AxClass.define_class (class, superclasses) []
-      (name_atts ~~ axiomss) thy
-  end;
 
 end;
 

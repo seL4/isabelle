@@ -66,7 +66,6 @@ test: \
       TLA-Memory \
   HOL-UNITY \
   HOL-Unix \
-  HOL-W0 \
   HOL-Word-Examples \
   HOL-ZF
     # ^ this is the sort position
@@ -590,9 +589,10 @@ HOL-Hoare: HOL $(LOG)/HOL-Hoare.gz
 
 $(LOG)/HOL-Hoare.gz: $(OUT)/HOL Hoare/Arith2.thy Hoare/Examples.thy	\
   Hoare/Hoare.thy Hoare/hoare_tac.ML Hoare/Heap.thy			\
+  Hoare/Hoare_Logic.thy	Hoare/Hoare_Logic_Abort.thy			\
   Hoare/HeapSyntax.thy Hoare/Pointer_Examples.thy Hoare/ROOT.ML		\
   Hoare/ExamplesAbort.thy Hoare/HeapSyntaxAbort.thy			\
-  Hoare/HoareAbort.thy Hoare/SchorrWaite.thy Hoare/Separation.thy	\
+  Hoare/SchorrWaite.thy Hoare/Separation.thy				\
   Hoare/SepLogHeap.thy Hoare/document/root.tex Hoare/document/root.bib
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Hoare
 
@@ -844,14 +844,6 @@ HOL-Prolog: HOL $(LOG)/HOL-Prolog.gz
 $(LOG)/HOL-Prolog.gz: $(OUT)/HOL Prolog/ROOT.ML Prolog/prolog.ML	\
   Prolog/HOHH.thy Prolog/Test.thy Prolog/Func.thy Prolog/Type.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Prolog
-
-
-## HOL-W0
-
-HOL-W0: HOL $(LOG)/HOL-W0.gz
-
-$(LOG)/HOL-W0.gz: $(OUT)/HOL W0/ROOT.ML W0/W0.thy W0/document/root.tex
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOL W0
 
 
 ## HOL-MicroJava
@@ -1319,7 +1311,7 @@ clean:
 		$(LOG)/HOL-SMT-Examples.gz $(LOG)/HOL-SMT.gz		\
 		$(LOG)/HOL-Statespace.gz $(LOG)/HOL-Subst.gz		\
 		$(LOG)/HOL-UNITY.gz $(LOG)/HOL-Unix.gz			\
-		$(LOG)/HOL-W0.gz $(LOG)/HOL-Word-Examples.gz		\
+		$(LOG)/HOL-Word-Examples.gz		\
 		$(LOG)/HOL-Word.gz $(LOG)/HOL-ZF.gz $(LOG)/HOL-ex.gz	\
 		$(LOG)/HOL.gz $(LOG)/HOL4.gz $(LOG)/TLA-Buffer.gz	\
 		$(LOG)/TLA-Inc.gz $(LOG)/TLA-Memory.gz $(LOG)/TLA.gz	\

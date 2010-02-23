@@ -79,40 +79,59 @@ subsubsection {* Various technical conversion and selection functions *}
 text {* overloaded selector @{text accmodi} to select the access modifier 
 out of various HOL types *}
 
-axclass has_accmodi < "type"
-consts accmodi:: "'a::has_accmodi \<Rightarrow> acc_modi"
+class has_accmodi =
+  fixes accmodi:: "'a \<Rightarrow> acc_modi"
 
-instance acc_modi::has_accmodi ..
+instantiation acc_modi :: has_accmodi
+begin
 
-defs (overloaded)
-acc_modi_accmodi_def: "accmodi (a::acc_modi) \<equiv> a"
+definition
+  acc_modi_accmodi_def: "accmodi (a::acc_modi) \<equiv> a"
+
+instance ..
+
+end
 
 lemma acc_modi_accmodi_simp[simp]: "accmodi (a::acc_modi) = a"
 by (simp add: acc_modi_accmodi_def)
 
-instance decl_ext_type:: ("type") has_accmodi ..
+instantiation decl_ext_type:: (type) has_accmodi
+begin
 
-defs (overloaded)
-decl_acc_modi_def: "accmodi (d::('a:: type) decl_scheme) \<equiv> access d"
+definition
+  decl_acc_modi_def: "accmodi (d::('a:: type) decl_scheme) \<equiv> access d"
 
+instance ..
+
+end
 
 lemma decl_acc_modi_simp[simp]: "accmodi (d::('a::type) decl_scheme) = access d"
 by (simp add: decl_acc_modi_def)
 
-instance * :: ("type",has_accmodi) has_accmodi ..
+instantiation * :: (type, has_accmodi) has_accmodi
+begin
 
-defs (overloaded)
-pair_acc_modi_def: "accmodi p \<equiv> (accmodi (snd p))"
+definition
+  pair_acc_modi_def: "accmodi p \<equiv> (accmodi (snd p))"
+
+instance ..
+
+end
 
 lemma pair_acc_modi_simp[simp]: "accmodi (x,a) = (accmodi a)"
 by (simp add: pair_acc_modi_def)
 
-instance memberdecl :: has_accmodi ..
+instantiation memberdecl :: has_accmodi
+begin
 
-defs (overloaded)
-memberdecl_acc_modi_def: "accmodi m \<equiv> (case m of
+definition
+  memberdecl_acc_modi_def: "accmodi m \<equiv> (case m of
                                           fdecl f \<Rightarrow> accmodi f
                                         | mdecl m \<Rightarrow> accmodi m)"
+
+instance ..
+
+end
 
 lemma memberdecl_fdecl_acc_modi_simp[simp]:
  "accmodi (fdecl m) = accmodi m"
@@ -125,21 +144,35 @@ by (simp add: memberdecl_acc_modi_def)
 text {* overloaded selector @{text declclass} to select the declaring class 
 out of various HOL types *}
 
-axclass has_declclass < "type"
-consts declclass:: "'a::has_declclass \<Rightarrow> qtname"
+class has_declclass =
+  fixes declclass:: "'a \<Rightarrow> qtname"
 
-instance qtname_ext_type::("type") has_declclass ..
+instantiation qtname_ext_type :: (type) has_declclass
+begin
 
-defs (overloaded)
-qtname_declclass_def: "declclass (q::qtname) \<equiv> q"
+definition
+  "declclass q \<equiv> \<lparr> pid = pid q, tid = tid q \<rparr>"
+
+instance ..
+
+end
+
+lemma qtname_declclass_def:
+  "declclass q \<equiv> (q::qtname)"
+  by (induct q) (simp add: declclass_qtname_ext_type_def)
 
 lemma qtname_declclass_simp[simp]: "declclass (q::qtname) = q"
 by (simp add: qtname_declclass_def)
 
-instance * :: ("has_declclass","type") has_declclass ..
+instantiation * :: (has_declclass, type) has_declclass
+begin
 
-defs (overloaded)
-pair_declclass_def: "declclass p \<equiv> declclass (fst p)"
+definition
+  pair_declclass_def: "declclass p \<equiv> declclass (fst p)"
+
+instance ..
+
+end
 
 lemma pair_declclass_simp[simp]: "declclass (c,x) = declclass c" 
 by (simp add: pair_declclass_def)
@@ -147,25 +180,38 @@ by (simp add: pair_declclass_def)
 text {* overloaded selector @{text is_static} to select the static modifier 
 out of various HOL types *}
 
+class has_static =
+  fixes is_static :: "'a \<Rightarrow> bool"
 
-axclass has_static < "type"
-consts is_static :: "'a::has_static \<Rightarrow> bool"
+instantiation decl_ext_type :: (has_static) has_static
+begin
 
-instance decl_ext_type :: ("has_static") has_static ..
+instance ..
 
-instance member_ext_type :: ("type") has_static ..
+end
 
-defs (overloaded)
-static_field_type_is_static_def: 
- "is_static (m::('b member_scheme)) \<equiv> static m"
+instantiation member_ext_type :: (type) has_static
+begin
+
+instance ..
+
+end
+
+axiomatization where
+  static_field_type_is_static_def: "is_static (m::('a member_scheme)) \<equiv> static m"
 
 lemma member_is_static_simp: "is_static (m::'a member_scheme) = static m"
 by (simp add: static_field_type_is_static_def)
 
-instance * :: ("type","has_static") has_static ..
+instantiation * :: (type, has_static) has_static
+begin
 
-defs (overloaded)
-pair_is_static_def: "is_static p \<equiv> is_static (snd p)"
+definition
+  pair_is_static_def: "is_static p \<equiv> is_static (snd p)"
+
+instance ..
+
+end
 
 lemma pair_is_static_simp [simp]: "is_static (x,s) = is_static s"
 by (simp add: pair_is_static_def)
@@ -173,13 +219,18 @@ by (simp add: pair_is_static_def)
 lemma pair_is_static_simp1: "is_static p = is_static (snd p)"
 by (simp add: pair_is_static_def)
 
-instance memberdecl:: has_static ..
+instantiation memberdecl :: has_static
+begin
 
-defs (overloaded)
+definition
 memberdecl_is_static_def: 
  "is_static m \<equiv> (case m of
                     fdecl f \<Rightarrow> is_static f
                   | mdecl m \<Rightarrow> is_static m)"
+
+instance ..
+
+end
 
 lemma memberdecl_is_static_fdecl_simp[simp]:
  "is_static (fdecl f) = is_static f"
@@ -389,18 +440,32 @@ by (simp add: methdMembr_def qmdecl_def method_def)
 text {* overloaded selector @{text resTy} to select the result type 
 out of various HOL types *}
 
-axclass has_resTy < "type"
-consts resTy:: "'a::has_resTy \<Rightarrow> ty"
+class has_resTy =
+  fixes resTy:: "'a \<Rightarrow> ty"
 
-instance decl_ext_type :: ("has_resTy") has_resTy ..
+instantiation decl_ext_type :: (has_resTy) has_resTy
+begin
 
-instance member_ext_type :: ("has_resTy") has_resTy ..
+instance ..
 
-instance mhead_ext_type :: ("type") has_resTy ..
+end
 
-defs (overloaded)
-mhead_ext_type_resTy_def: 
- "resTy (m::('b mhead_scheme)) \<equiv> resT m"
+instantiation member_ext_type :: (has_resTy) has_resTy
+begin
+
+instance ..
+
+end
+
+instantiation mhead_ext_type :: (type) has_resTy
+begin
+
+instance ..
+
+end
+
+axiomatization where
+  mhead_ext_type_resTy_def: "resTy (m::('b mhead_scheme)) \<equiv> resT m"
 
 lemma mhead_resTy_simp: "resTy (m::'a mhead_scheme) = resT m"
 by (simp add: mhead_ext_type_resTy_def)
@@ -408,10 +473,15 @@ by (simp add: mhead_ext_type_resTy_def)
 lemma resTy_mhead [simp]:"resTy (mhead m) = resTy m"
 by (simp add: mhead_def mhead_resTy_simp)
 
-instance * :: ("type","has_resTy") has_resTy ..
+instantiation * :: ("type","has_resTy") has_resTy
+begin
 
-defs (overloaded)
-pair_resTy_def: "resTy p \<equiv> resTy (snd p)"
+definition
+  pair_resTy_def: "resTy p \<equiv> resTy (snd p)"
+
+instance ..
+
+end
 
 lemma pair_resTy_simp[simp]: "resTy (x,m) = resTy m"
 by (simp add: pair_resTy_def)
