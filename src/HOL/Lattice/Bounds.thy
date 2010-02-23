@@ -1,5 +1,4 @@
 (*  Title:      HOL/Lattice/Bounds.thy
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 *)
 

@@ -1,5 +1,4 @@
 (*  Title:      HOL/Lattice/Orders.thy
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 *)
 
@@ -18,21 +17,21 @@ text {*
   required to be related (in either direction).
 *}
 
-axclass leq < type
-consts
-  leq :: "'a::leq \<Rightarrow> 'a \<Rightarrow> bool"  (infixl "[=" 50)
+class leq =
+  fixes leq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infixl "[=" 50)
+
 notation (xsymbols)
   leq  (infixl "\<sqsubseteq>" 50)
 
-axclass quasi_order < leq
-  leq_refl [intro?]: "x \<sqsubseteq> x"
-  leq_trans [trans]: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> z"
+class quasi_order = leq +
+  assumes leq_refl [intro?]: "x \<sqsubseteq> x"
+  assumes leq_trans [trans]: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> z"
 
-axclass partial_order < quasi_order
-  leq_antisym [trans]: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> x \<Longrightarrow> x = y"
+class partial_order = quasi_order +
+  assumes leq_antisym [trans]: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> x \<Longrightarrow> x = y"
 
-axclass linear_order < partial_order
-  leq_linear: "x \<sqsubseteq> y \<or> y \<sqsubseteq> x"
+class linear_order = partial_order +
+  assumes leq_linear: "x \<sqsubseteq> y \<or> y \<sqsubseteq> x"
 
 lemma linear_order_cases:
     "((x::'a::linear_order) \<sqsubseteq> y \<Longrightarrow> C) \<Longrightarrow> (y \<sqsubseteq> x \<Longrightarrow> C) \<Longrightarrow> C"
@@ -54,10 +53,15 @@ consts
 primrec
   undual_dual: "undual (dual x) = x"
 
-instance dual :: (leq) leq ..
+instantiation dual :: (leq) leq
+begin
 
-defs (overloaded)
+definition
   leq_dual_def: "x' \<sqsubseteq> y' \<equiv> undual y' \<sqsubseteq> undual x'"
+
+instance ..
+
+end
 
 lemma undual_leq [iff?]: "(undual x' \<sqsubseteq> undual y') = (y' \<sqsubseteq> x')"
   by (simp add: leq_dual_def)
@@ -192,10 +196,15 @@ text {*
   \emph{not} be linear in general.
 *}
 
-instance * :: (leq, leq) leq ..
+instantiation * :: (leq, leq) leq
+begin
 
-defs (overloaded)
+definition
   leq_prod_def: "p \<sqsubseteq> q \<equiv> fst p \<sqsubseteq> fst q \<and> snd p \<sqsubseteq> snd q"
+
+instance ..
+
+end
 
 lemma leq_prodI [intro?]:
     "fst p \<sqsubseteq> fst q \<Longrightarrow> snd p \<sqsubseteq> snd q \<Longrightarrow> p \<sqsubseteq> q"
@@ -249,10 +258,15 @@ text {*
   orders need \emph{not} be linear in general.
 *}
 
-instance "fun" :: (type, leq) leq ..
+instantiation "fun" :: (type, leq) leq
+begin
 
-defs (overloaded)
+definition
   leq_fun_def: "f \<sqsubseteq> g \<equiv> \<forall>x. f x \<sqsubseteq> g x"
+
+instance ..
+
+end
 
 lemma leq_funI [intro?]: "(\<And>x. f x \<sqsubseteq> g x) \<Longrightarrow> f \<sqsubseteq> g"
   by (unfold leq_fun_def) blast

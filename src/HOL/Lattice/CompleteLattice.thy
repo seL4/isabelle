@@ -1,5 +1,4 @@
 (*  Title:      HOL/Lattice/CompleteLattice.thy
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 *)
 
@@ -16,8 +15,8 @@ text {*
   bounds (see \S\ref{sec:connect-bounds}).
 *}
 
-axclass complete_lattice \<subseteq> partial_order
-  ex_Inf: "\<exists>inf. is_Inf A inf"
+class complete_lattice =
+  assumes ex_Inf: "\<exists>inf. is_Inf A inf"
 
 theorem ex_Sup: "\<exists>sup::'a::complete_lattice. is_Sup A sup"
 proof -
