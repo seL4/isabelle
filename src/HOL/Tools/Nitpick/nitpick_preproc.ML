@@ -1091,7 +1091,8 @@ fun axioms_for_term
                else
                  accum |> fold (add_nondef_axiom depth)
                                (nondef_props_for_const thy false nondef_table x)
-                       |> is_funky_typedef thy (range_type T)
+                       |> (is_funky_typedef thy (range_type T) orelse
+                           range_type T = nat_T)
                           ? fold (add_maybe_def_axiom depth)
                                  (nondef_props_for_const thy true
                                                     (extra_table def_table s) x)
@@ -1101,7 +1102,8 @@ fun axioms_for_term
                else
                  accum |> fold (add_nondef_axiom depth)
                                (nondef_props_for_const thy false nondef_table x)
-                       |> is_funky_typedef thy (range_type T)
+                       |> (is_funky_typedef thy (range_type T) orelse
+                           range_type T = nat_T)
                           ? fold (add_maybe_def_axiom depth)
                                  (nondef_props_for_const thy true
                                                     (extra_table def_table s) x)

@@ -1595,12 +1595,7 @@ fun kodkod_formula_from_nut ofs
           KK.Atom (offset_of_type ofs nat_T)
         else
           fold kk_join (map to_integer [u1, u2]) (KK.Rel nat_subtract_rel)
-      | Op2 (Apply, _, R, u1, u2) =>
-        if is_Cst Unrep u2 andalso is_set_type (type_of u1) andalso
-           is_FreeName u1 then
-          false_atom
-        else
-          to_apply R u1 u2
+      | Op2 (Apply, _, R, u1, u2) => to_apply R u1 u2
       | Op2 (Lambda, _, R as Opt (Atom (1, j0)), u1, u2) =>
         to_guard [u1, u2] R (KK.Atom j0)
       | Op2 (Lambda, _, Func (_, Formula Neut), u1, u2) =>

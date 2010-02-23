@@ -149,7 +149,7 @@ inductive even' where
 "\<lbrakk>even' m; even' n\<rbrakk> \<Longrightarrow> even' (m + n)"
 
 lemma "\<exists>n \<in> {0, 2, 4, 6, 8}. \<not> even' n"
-nitpick [card nat = 10, unary_ints, verbose, show_consts] (* FIXME: should be genuine *)
+nitpick [card nat = 10, unary_ints, verbose, show_consts]
 oops
 
 lemma "even' (n - 2) \<Longrightarrow> even' n"
