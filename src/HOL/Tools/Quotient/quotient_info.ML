@@ -37,7 +37,9 @@ sig
   val equiv_rules_get: Proof.context -> thm list
   val equiv_rules_add: attribute
   val rsp_rules_get: Proof.context -> thm list
+  val rsp_rules_add: attribute
   val prs_rules_get: Proof.context -> thm list
+  val prs_rules_add: attribute
   val id_simps_get: Proof.context -> thm list
   val quotient_rules_get: Proof.context -> thm list
   val quotient_rules_add: attribute
@@ -241,6 +243,7 @@ structure RspRules = Named_Thms
    val description = "Respectfulness theorems.")
 
 val rsp_rules_get = RspRules.get
+val rsp_rules_add = RspRules.add
 
 (* preservation theorems *)
 structure PrsRules = Named_Thms
@@ -248,6 +251,7 @@ structure PrsRules = Named_Thms
    val description = "Preservation theorems.")
 
 val prs_rules_get = PrsRules.get
+val prs_rules_add = PrsRules.add
 
 (* id simplification theorems *)
 structure IdSimps = Named_Thms

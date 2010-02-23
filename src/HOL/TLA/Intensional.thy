@@ -10,8 +10,8 @@ theory Intensional
 imports Main
 begin
 
-axclass
-  world < type
+classes world
+classrel world < type
 
 (** abstract syntax **)
 
@@ -171,7 +171,7 @@ syntax (HTML output)
   "_liftMem"    :: "[lift, lift] => lift"                ("(_/ \<in> _)" [50, 51] 50)
   "_liftNotMem" :: "[lift, lift] => lift"                ("(_/ \<notin> _)" [50, 51] 50)
 
-axioms
+defs
   Valid_def:   "|- A    ==  ALL w. w |= A"
 
   unl_con:     "LIFT #c w  ==  c"

@@ -17,15 +17,12 @@ text {*
  $\idt{times}$ is provided by the basic HOL theory.
 *}
 
-consts
-  one :: "'a"
-  inverse :: "'a => 'a"
+notation Groups.one ("one")
 
-axclass
-  group < times
-  group_assoc:         "(x * y) * z = x * (y * z)"
-  group_left_one:      "one * x = x"
-  group_left_inverse:  "inverse x * x = one"
+class group = times + one + inverse +
+  assumes group_assoc:         "(x * y) * z = x * (y * z)"
+  assumes group_left_one:      "one * x = x"
+  assumes group_left_inverse:  "inverse x * x = one"
 
 text {*
  The group axioms only state the properties of left one and inverse,
@@ -144,10 +141,10 @@ text {*
  \idt{one} :: \alpha)$ are defined like this.
 *}
 
-axclass monoid < times
-  monoid_assoc:       "(x * y) * z = x * (y * z)"
-  monoid_left_one:   "one * x = x"
-  monoid_right_one:  "x * one = x"
+class monoid = times + one +
+  assumes monoid_assoc:       "(x * y) * z = x * (y * z)"
+  assumes monoid_left_one:   "one * x = x"
+  assumes monoid_right_one:  "x * one = x"
 
 text {*
  Groups are \emph{not} yet monoids directly from the definition.  For

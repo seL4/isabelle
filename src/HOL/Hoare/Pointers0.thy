@@ -9,12 +9,12 @@ specifications (a bit). However, the proofs don't seem to get simpler
 - in fact in some case they appear to get (a bit) more complicated.
 *)
 
-theory Pointers0 imports Hoare begin
+theory Pointers0 imports Hoare_Logic begin
 
 subsection "References"
 
-axclass ref < type
-consts Null :: "'a::ref"
+class ref =
+  fixes Null :: 'a
 
 subsection "Field access and update"
 
