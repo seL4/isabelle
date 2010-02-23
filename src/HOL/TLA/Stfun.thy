@@ -11,7 +11,7 @@ begin
 
 typedecl state
 
-instance state :: world ..
+arities state :: world
 
 types
   'a stfun = "state => 'a"
