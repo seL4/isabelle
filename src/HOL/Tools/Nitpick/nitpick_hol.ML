@@ -155,7 +155,8 @@ sig
   val is_finite_type : hol_context -> typ -> bool
   val special_bounds : term list -> (indexname * typ) list
   val is_funky_typedef : theory -> typ -> bool
-  val all_axioms_of : theory -> term list * term list * term list
+  val all_axioms_of :
+    theory -> (term * term) list -> term list * term list * term list
   val arity_of_built_in_const :
     theory -> (typ option * bool) list -> bool -> styp -> int option
   val is_built_in_const :
@@ -163,11 +164,13 @@ sig
   val term_under_def : term -> term
   val case_const_names :
     theory -> (typ option * bool) list -> (string * int) list
-  val const_def_table : Proof.context -> term list -> const_table
+  val const_def_table :
+    Proof.context -> (term * term) list -> term list -> const_table
   val const_nondef_table : term list -> const_table
-  val const_simp_table : Proof.context -> const_table
-  val const_psimp_table : Proof.context -> const_table
-  val inductive_intro_table : Proof.context -> const_table -> const_table
+  val const_simp_table : Proof.context -> (term * term) list -> const_table
+  val const_psimp_table : Proof.context -> (term * term) list -> const_table
+  val inductive_intro_table :
+    Proof.context -> (term * term) list -> const_table -> const_table
   val ground_theorem_table : theory -> term list Inttab.table
   val ersatz_table : theory -> (string * string) list
   val add_simps : const_table Unsynchronized.ref -> string -> term list -> unit
@@ -1173,11 +1176,12 @@ val is_plain_definition =
       | do_eq _ = false
   in do_eq end
 
-(* theory -> term list * term list * term list *)
-fun all_axioms_of thy =
+(* theory -> (term * term) list -> term list * term list * term list *)
+fun all_axioms_of thy subst =
   let
     (* theory list -> term list *)
-    val axioms_of_thys = maps Thm.axioms_of #> map (apsnd prop_of)
+    val axioms_of_thys =
+      maps Thm.axioms_of #> map (apsnd (subst_atomic subst o prop_of))
     val specs = Defs.all_specifications_of (Theory.defs_of thy)
     val def_names = specs |> maps snd |> map_filter #def
                     |> OrdList.make fast_string_ord
@@ -1324,12 +1328,13 @@ fun unfold_mutually_inductive_preds thy table =
 fun pair_for_prop t =
   case term_under_def t of
     Const (s, _) => (s, t)
-  | Free _ => raise NOT_SUPPORTED "local definitions"
   | t' => raise TERM ("Nitpick_HOL.pair_for_prop", [t, t'])
 
-(* (Proof.context -> term list) -> Proof.context -> const_table *)
-fun table_for get ctxt =
-  get ctxt |> map pair_for_prop |> AList.group (op =) |> Symtab.make
+(* (Proof.context -> term list) -> Proof.context -> (term * term) list
+   -> const_table *)
+fun table_for get ctxt subst =
+  ctxt |> get |> map (pair_for_prop o subst_atomic subst)
+       |> AList.group (op =) |> Symtab.make
 
 (* theory -> (typ option * bool) list -> (string * int) list *)
 fun case_const_names thy stds =
@@ -1342,23 +1347,23 @@ fun case_const_names thy stds =
               (Datatype.get_all thy) [] @
   map (apsnd length o snd) (#codatatypes (Data.get thy))
 
-(* Proof.context -> term list -> const_table *)
-fun const_def_table ctxt ts =
-  table_for (map prop_of o Nitpick_Defs.get) ctxt
+(* Proof.context -> (term * term) list -> term list -> const_table *)
+fun const_def_table ctxt subst ts =
+  table_for (map prop_of o Nitpick_Defs.get) ctxt subst
   |> fold (fn (s, t) => Symtab.map_default (s, []) (cons t))
           (map pair_for_prop ts)
 (* term list -> const_table *)
 fun const_nondef_table ts =
   fold (fn t => append (map (fn s => (s, t)) (Term.add_const_names t []))) ts []
   |> AList.group (op =) |> Symtab.make
-(* Proof.context -> const_table *)
+(* Proof.context -> (term * term) list -> const_table *)
 val const_simp_table = table_for (map prop_of o Nitpick_Simps.get)
 val const_psimp_table = table_for (map prop_of o Nitpick_Psimps.get)
-(* Proof.context -> const_table -> const_table *)
-fun inductive_intro_table ctxt def_table =
+(* Proof.context -> (term * term) list -> const_table -> const_table *)
+fun inductive_intro_table ctxt subst def_table =
   table_for (map (unfold_mutually_inductive_preds (ProofContext.theory_of ctxt)
                                                   def_table o prop_of)
-             o Nitpick_Intros.get) ctxt
+             o Nitpick_Intros.get) ctxt subst
 (* theory -> term list Inttab.table *)
 fun ground_theorem_table thy =
   fold ((fn @{const Trueprop} $ t1 =>
