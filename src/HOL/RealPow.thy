@@ -9,9 +9,11 @@ theory RealPow
 imports RealDef
 begin
 
+(* FIXME: declare this in Rings.thy or not at all *)
 declare abs_mult_self [simp]
 
-lemma two_realpow_ge_one [simp]: "(1::real) \<le> 2 ^ n"
+(* used by Import/HOL/real.imp *)
+lemma two_realpow_ge_one: "(1::real) \<le> 2 ^ n"
 by simp
 
 lemma two_realpow_gt [simp]: "real (n::nat) < 2 ^ n"
@@ -30,28 +32,14 @@ lemma realpow_minus_mult [rule_format]:
 apply (simp split add: nat_diff_split)
 done
 
-lemma realpow_two_mult_inverse [simp]:
-     "r \<noteq> 0 ==> r * inverse r ^Suc (Suc 0) = inverse (r::real)"
-by (simp add:  real_mult_assoc [symmetric])
-
-lemma realpow_two_minus [simp]: "(-x)^Suc (Suc 0) = (x::real)^Suc (Suc 0)"
-by simp
-
 lemma realpow_two_diff:
      "(x::real)^Suc (Suc 0) - y^Suc (Suc 0) = (x - y) * (x + y)"
-apply (unfold real_diff_def)
-apply (simp add: algebra_simps)
-done
+by (simp add: algebra_simps)
 
 lemma realpow_two_disj:
      "((x::real)^Suc (Suc 0) = y^Suc (Suc 0)) = (x = y | x = -y)"
 apply (cut_tac x = x and y = y in realpow_two_diff)
 apply auto
-done
-
-lemma realpow_real_of_nat_two_pos [simp] : "0 < real (Suc (Suc 0) ^ n)"
-apply (induct "n")
-apply (auto simp add: zero_less_mult_iff)
 done
 
 (* used by AFP Integration theory *)
@@ -71,9 +59,6 @@ by simp
 
 lemma real_sum_squares_cancel2: "x * x + y * y = 0 ==> y = (0::real)"
 by simp
-
-lemma real_mult_self_sum_ge_zero: "(0::real) \<le> x*x + y*y"
-by (rule sum_squares_ge_zero)
 
 lemma real_sum_squares_cancel_a: "x * x = -(y * y) ==> x = (0::real) & y=0"
 by (simp add: real_add_eq_0_iff [symmetric])
@@ -150,12 +135,6 @@ lemma real_mult_inverse_cancel2:
      "[|(0::real) < x;0 < x1; x1 * y < x * u |] ==> y * inverse x < u * inverse x1"
 apply (auto dest: real_mult_inverse_cancel simp add: mult_ac)
 done
-
-lemma inverse_real_of_nat_gt_zero [simp]: "0 < inverse (real (Suc n))"
-by simp
-
-lemma inverse_real_of_nat_ge_zero [simp]: "0 \<le> inverse (real (Suc n))"
-by simp
 
 lemma realpow_num_eq_if: "(m::real) ^ n = (if n=0 then 1 else m * m ^ (n - 1))"
 by (case_tac "n", auto)

@@ -82,7 +82,7 @@ lemma Collect_less_le:
     fix w n
     assume le: "f w \<le> g w - inverse(real(Suc n))"
     hence "0 < inverse(real(Suc n))"
-      by (metis inverse_real_of_nat_gt_zero)
+      by simp
     thus "f w < g w" using le
       by arith 
   qed
