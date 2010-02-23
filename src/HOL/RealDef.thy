@@ -584,6 +584,11 @@ by (simp add: real_of_int_def)
 lemma real_of_int_mult [simp]: "real(x * y) = real (x::int) * real y"
 by (simp add: real_of_int_def) 
 
+lemma real_of_int_power [simp]: "real (x ^ n) = real (x::int) ^ n"
+by (simp add: real_of_int_def of_int_power)
+
+lemmas power_real_of_int = real_of_int_power [symmetric]
+
 lemma real_of_int_setsum [simp]: "real ((SUM x:A. f x)::int) = (SUM x:A. real(f x))"
   apply (subst real_eq_of_int)+
   apply (rule of_int_setsum)
@@ -730,6 +735,11 @@ by (simp add: real_of_nat_def del: of_nat_Suc)
 
 lemma real_of_nat_mult [simp]: "real (m * n) = real (m::nat) * real n"
 by (simp add: real_of_nat_def of_nat_mult)
+
+lemma real_of_nat_power [simp]: "real (m ^ n) = real (m::nat) ^ n"
+by (simp add: real_of_nat_def of_nat_power)
+
+lemmas power_real_of_nat = real_of_nat_power [symmetric]
 
 lemma real_of_nat_setsum [simp]: "real ((SUM x:A. f x)::nat) = 
     (SUM x:A. real(f x))"

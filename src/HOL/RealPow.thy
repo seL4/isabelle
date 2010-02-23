@@ -49,11 +49,6 @@ apply (cut_tac x = x and y = y in realpow_two_diff)
 apply auto
 done
 
-lemma realpow_real_of_nat: "real (m::nat) ^ n = real (m ^ n)"
-apply (induct "n")
-apply (auto simp add: real_of_nat_one real_of_nat_mult)
-done
-
 lemma realpow_real_of_nat_two_pos [simp] : "0 < real (Suc (Suc 0) ^ n)"
 apply (induct "n")
 apply (auto simp add: zero_less_mult_iff)
@@ -63,21 +58,6 @@ done
 lemma realpow_increasing:
      "[|(0::real) \<le> x; 0 \<le> y; x ^ Suc n \<le> y ^ Suc n|] ==> x \<le> y"
   by (rule power_le_imp_le_base)
-
-
-subsection{*Literal Arithmetic Involving Powers, Type @{typ real}*}
-
-lemma real_of_int_power: "real (x::int) ^ n = real (x ^ n)"
-apply (induct "n")
-apply (simp_all add: nat_mult_distrib)
-done
-declare real_of_int_power [symmetric, simp]
-
-lemma power_real_number_of:
-     "(number_of v :: real) ^ n = real ((number_of v :: int) ^ n)"
-by (simp only: real_number_of [symmetric] real_of_int_power)
-
-declare power_real_number_of [of _ "number_of w", standard, simp]
 
 
 subsection{* Squares of Reals *}

@@ -105,7 +105,7 @@ thm_maps
   "REAL_POASQ" > "HOL4Real.real.REAL_POASQ"
   "REAL_OVER1" > "Rings.divide_1"
   "REAL_OF_NUM_SUC" > "RealDef.real_of_nat_Suc"
-  "REAL_OF_NUM_POW" > "RealPow.realpow_real_of_nat"
+  "REAL_OF_NUM_POW" > "RealDef.power_real_of_nat"
   "REAL_OF_NUM_MUL" > "RealDef.real_of_nat_mult"
   "REAL_OF_NUM_LE" > "RealDef.real_of_nat_le_iff"
   "REAL_OF_NUM_EQ" > "RealDef.real_of_nat_inject"

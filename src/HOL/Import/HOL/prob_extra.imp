@@ -22,7 +22,7 @@ thm_maps
   "REAL_SUP_MAX" > "HOL4Prob.prob_extra.REAL_SUP_MAX"
   "REAL_SUP_LE_X" > "HOL4Prob.prob_extra.REAL_SUP_LE_X"
   "REAL_SUP_EXISTS_UNIQUE" > "HOL4Prob.prob_extra.REAL_SUP_EXISTS_UNIQUE"
-  "REAL_POW" > "RealPow.realpow_real_of_nat"
+  "REAL_POW" > "RealDef.power_real_of_nat"
   "REAL_LE_INV_LE" > "Rings.le_imp_inverse_le"
   "REAL_LE_EQ" > "Set.basic_trans_rules_26"
   "REAL_INVINV_ALL" > "Rings.inverse_inverse_eq"
