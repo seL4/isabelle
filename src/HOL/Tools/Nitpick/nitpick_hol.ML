@@ -619,12 +619,19 @@ fun is_pure_typedef thy (T as Type (s, _)) =
 fun is_univ_typedef thy (Type (s, _)) =
     (case typedef_info thy s of
        SOME {set_def, prop_of_Rep, ...} =>
-       (case set_def of
-          SOME thm =>
-          try (fst o dest_Const o snd o Logic.dest_equals o prop_of) thm
-        | NONE =>
-          try (fst o dest_Const o snd o HOLogic.dest_mem
-               o HOLogic.dest_Trueprop) prop_of_Rep) = SOME @{const_name top}
+       let
+         val t_opt =
+           case set_def of
+             SOME thm => try (snd o Logic.dest_equals o prop_of) thm
+           | NONE => try (snd o HOLogic.dest_mem o HOLogic.dest_Trueprop)
+                         prop_of_Rep
+       in
+         case t_opt of
+           SOME (Const (@{const_name top}, _)) => true
+         | SOME (Const (@{const_name Collect}, _)
+                 $ Abs (_, _, Const (@{const_name finite}, _) $ _)) => true
+         | _ => false
+       end
      | NONE => false)
   | is_univ_typedef _ _ = false
 (* theory -> (typ option * bool) list -> typ -> bool *)
