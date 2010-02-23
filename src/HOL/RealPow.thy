@@ -42,11 +42,6 @@ apply (cut_tac x = x and y = y in realpow_two_diff)
 apply auto
 done
 
-(* used by AFP Integration theory *)
-lemma realpow_increasing:
-     "[|(0::real) \<le> x; 0 \<le> y; x ^ Suc n \<le> y ^ Suc n|] ==> x \<le> y"
-  by (rule power_le_imp_le_base)
-
 
 subsection{* Squares of Reals *}
 
