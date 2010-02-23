@@ -6,6 +6,7 @@ header {* Rational numbers *}
 
 theory Rational
 imports GCD Archimedean_Field
+uses ("Tools/float_syntax.ML")
 begin
 
 subsection {* Rational numbers as quotient *}
@@ -1211,5 +1212,16 @@ lemmas [nitpick_def] = inverse_rat_inst.inverse_rat
   number_rat_inst.number_of_rat one_rat_inst.one_rat ord_rat_inst.less_eq_rat
   plus_rat_inst.plus_rat times_rat_inst.times_rat uminus_rat_inst.uminus_rat
   zero_rat_inst.zero_rat
+
+subsection{* Float syntax *}
+
+syntax "_Float" :: "float_const \<Rightarrow> 'a"    ("_")
+
+use "Tools/float_syntax.ML"
+setup Float_Syntax.setup
+
+text{* Test: *}
+lemma "123.456 = -111.111 + 200 + 30 + 4 + 5/10 + 6/100 + (7/1000::rat)"
+by simp
 
 end
