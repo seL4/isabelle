@@ -73,7 +73,8 @@ proof
       qed
       moreover from xs have "x \<le> 2^m" by auto
       ultimately have
-        "inverse (real x) \<ge> inverse (real ((2::nat)^m))" by simp
+        "inverse (real x) \<ge> inverse (real ((2::nat)^m))"
+        by (simp del: real_of_nat_power)
       moreover
       from xgt0 have "real x \<noteq> 0" by simp
       then have
@@ -107,7 +108,7 @@ proof
         by (auto simp: tmdef dest: two_pow_sub)
       also have
         "\<dots> = (real (2::nat))^(m - 1) / (real (2::nat))^m"
-        by (simp add: tmdef realpow_real_of_nat [symmetric])
+        by (simp add: tmdef)
       also from mgt0 have
         "\<dots> = (real (2::nat))^(m - 1) / (real (2::nat))^((m - 1) + 1)"
         by auto
