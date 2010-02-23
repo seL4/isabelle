@@ -1,12 +1,26 @@
 (*  Author:     Jacques D. Fleuriot, University of Edinburgh
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
+
+    Replaced by ~~/src/HOL/Multivariate_Analysis/Real_Integral.thy .
 *)
 
-header{*Theory of Integration*}
+header{*Theory of Integration on real intervals*}
 
-theory Integration
-imports Deriv ATP_Linkup
+theory Gauge_Integration
+imports Complex_Main
 begin
+
+text {*
+
+\textbf{Attention}: This theory defines the Integration on real
+intervals.  This is just a example theory for historical / expository interests.
+A better replacement is found in the Multivariate Analysis library. This defines
+the gauge integral on real vector spaces and in the Real Integral theory
+is a specialization to the integral on arbitrary real intervals.  The
+Multivariate Analysis package also provides a better support for analysis on
+integrals.
+
+*}
 
 text{*We follow John Harrison in formalizing the Gauge integral.*}
 
@@ -187,6 +201,25 @@ using assms proof induct
   ultimately show ?case by simp
 qed auto
 
+lemma fine_listsum_eq_diff:
+  fixes f :: "real \<Rightarrow> real"
+  shows "fine \<delta> (a, b) D \<Longrightarrow> (\<Sum>(u, x, v)\<leftarrow>D. f v - f u) = f b - f a"
+by (induct set: fine) simp_all
+
+text{*Lemmas about combining gauges*}
+
+lemma gauge_min:
+     "[| gauge(E) g1; gauge(E) g2 |]
+      ==> gauge(E) (%x. min (g1(x)) (g2(x)))"
+by (simp add: gauge_def)
+
+lemma fine_min:
+      "fine (%x. min (g1(x)) (g2(x))) (a,b) D
+       ==> fine(g1) (a,b) D & fine(g2) (a,b) D"
+apply (erule fine.induct)
+apply (simp add: fine_Nil)
+apply (simp add: fine_Cons)
+done
 
 subsection {* Riemann sum *}
 
@@ -234,21 +267,6 @@ apply (safe intro!: ext)
 apply (fast intro: less_imp_le)
 apply (drule_tac x="e/2" in spec)
 apply force
-done
-
-text{*Lemmas about combining gauges*}
-
-lemma gauge_min:
-     "[| gauge(E) g1; gauge(E) g2 |]
-      ==> gauge(E) (%x. min (g1(x)) (g2(x)))"
-by (simp add: gauge_def)
-
-lemma fine_min:
-      "fine (%x. min (g1(x)) (g2(x))) (a,b) D
-       ==> fine(g1) (a,b) D & fine(g2) (a,b) D"
-apply (erule fine.induct)
-apply (simp add: fine_Nil)
-apply (simp add: fine_Cons)
 done
 
 text{*The integral is unique if it exists*}
@@ -301,7 +319,7 @@ done
 
 lemma Integral_mult:
      "[| a \<le> b; Integral(a,b) f k |] ==> Integral(a,b) (%x. c * f x) (c * k)"
-apply (auto simp add: order_le_less 
+apply (auto simp add: order_le_less
             dest: Integral_unique [OF order_refl Integral_zero])
 apply (auto simp add: Integral_def setsum_right_distrib[symmetric] mult_assoc)
 apply (case_tac "c = 0", force)
@@ -524,13 +542,9 @@ proof -
     by (simp add: gauge_def) (drule bchoice, auto)
 qed
 
-lemma fine_listsum_eq_diff:
-  fixes f :: "real \<Rightarrow> real"
-  shows "fine \<delta> (a, b) D \<Longrightarrow> (\<Sum>(u, x, v)\<leftarrow>D. f v - f u) = f b - f a"
-by (induct set: fine) simp_all
-
-lemma FTC1: "[|a \<le> b; \<forall>x. a \<le> x & x \<le> b --> DERIV f x :> f'(x) |]
-             ==> Integral(a,b) f' (f(b) - f(a))"
+lemma fundamental_theorem_of_calculus:
+  "\<lbrakk> a \<le> b; \<forall>x. a \<le> x & x \<le> b --> DERIV f x :> f'(x) \<rbrakk>
+             \<Longrightarrow> Integral(a,b) f' (f(b) - f(a))"
  apply (drule order_le_imp_less_or_eq, auto)
  apply (auto simp add: Integral_def2)
  apply (drule_tac e = "e / (b - a)" in lemma_straddle)
@@ -554,105 +568,6 @@ lemma FTC1: "[|a \<le> b; \<forall>x. a \<le> x & x \<le> b --> DERIV f x :> f'(
  apply (simp only: split_def)
  apply (subst listsum_const_mult)
  apply simp
-done
-
-lemma Integral_subst: "[| Integral(a,b) f k1; k2=k1 |] ==> Integral(a,b) f k2"
-by simp
-
-subsection {* Additivity Theorem of Gauge Integral *}
-
-text{* Bartle/Sherbert: Theorem 10.1.5 p. 278 *}
-lemma Integral_add_fun:
-    "[| a \<le> b; Integral(a,b) f k1; Integral(a,b) g k2 |]
-     ==> Integral(a,b) (%x. f x + g x) (k1 + k2)"
-unfolding Integral_def
-apply clarify
-apply (drule_tac x = "e/2" in spec)+
-apply clarsimp
-apply (rule_tac x = "\<lambda>x. min (\<delta> x) (\<delta>' x)" in exI)
-apply (rule conjI, erule (1) gauge_min)
-apply clarify
-apply (drule fine_min)
-apply (drule_tac x=D in spec, simp)+
-apply (drule_tac a = "\<bar>rsum D f - k1\<bar> * 2" and c = "\<bar>rsum D g - k2\<bar> * 2" in add_strict_mono, assumption)
-apply (auto simp only: rsum_add left_distrib [symmetric]
-                mult_2_right [symmetric] real_mult_less_iff1)
-done
-
-lemma lemma_Integral_rsum_le:
-     "[| \<forall>x. a \<le> x & x \<le> b --> f x \<le> g x;
-         fine \<delta> (a,b) D
-      |] ==> rsum D f \<le> rsum D g"
-unfolding rsum_def
-apply (rule listsum_mono)
-apply clarify
-apply (rule mult_right_mono)
-apply (drule spec, erule mp)
-apply (frule (1) mem_fine)
-apply (frule (1) mem_fine2)
-apply simp
-apply (frule (1) mem_fine)
-apply simp
-done
-
-lemma Integral_le:
-    "[| a \<le> b;
-        \<forall>x. a \<le> x & x \<le> b --> f(x) \<le> g(x);
-        Integral(a,b) f k1; Integral(a,b) g k2
-     |] ==> k1 \<le> k2"
-apply (simp add: Integral_def)
-apply (rotate_tac 2)
-apply (drule_tac x = "\<bar>k1 - k2\<bar> /2" in spec)
-apply (drule_tac x = "\<bar>k1 - k2\<bar> /2" in spec, auto)
-apply (drule gauge_min, assumption)
-apply (drule_tac \<delta> = "\<lambda>x. min (\<delta> x) (\<delta>' x)" in fine_exists, assumption, clarify)
-apply (drule fine_min)
-apply (drule_tac x = D in spec, drule_tac x = D in spec, clarsimp)
-apply (frule lemma_Integral_rsum_le, assumption)
-apply (subgoal_tac "\<bar>(rsum D f - k1) - (rsum D g - k2)\<bar> < \<bar>k1 - k2\<bar>")
-apply arith
-apply (drule add_strict_mono, assumption)
-apply (auto simp only: left_distrib [symmetric] mult_2_right [symmetric]
-                       real_mult_less_iff1)
-done
-
-lemma Integral_imp_Cauchy:
-     "(\<exists>k. Integral(a,b) f k) ==>
-      (\<forall>e > 0. \<exists>\<delta>. gauge {a..b} \<delta> &
-                       (\<forall>D1 D2.
-                            fine \<delta> (a,b) D1 &
-                            fine \<delta> (a,b) D2 -->
-                            \<bar>rsum D1 f - rsum D2 f\<bar> < e))"
-apply (simp add: Integral_def, auto)
-apply (drule_tac x = "e/2" in spec, auto)
-apply (rule exI, auto)
-apply (frule_tac x = D1 in spec)
-apply (drule_tac x = D2 in spec)
-apply simp
-apply (thin_tac "0 < e")
-apply (drule add_strict_mono, assumption)
-apply (auto simp only: left_distrib [symmetric] mult_2_right [symmetric]
-                       real_mult_less_iff1)
-done
-
-lemma Cauchy_iff2:
-     "Cauchy X =
-      (\<forall>j. (\<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. \<bar>X m - X n\<bar> < inverse(real (Suc j))))"
-apply (simp add: Cauchy_iff, auto)
-apply (drule reals_Archimedean, safe)
-apply (drule_tac x = n in spec, auto)
-apply (rule_tac x = M in exI, auto)
-apply (drule_tac x = m in spec, simp)
-apply (drule_tac x = na in spec, auto)
-done
-
-lemma monotonic_anti_derivative:
-  fixes f g :: "real => real" shows
-     "[| a \<le> b; \<forall>c. a \<le> c & c \<le> b --> f' c \<le> g' c;
-         \<forall>x. DERIV f x :> f' x; \<forall>x. DERIV g x :> g' x |]
-      ==> f b - f a \<le> g b - g a"
-apply (rule Integral_le, assumption)
-apply (auto intro: FTC1) 
 done
 
 end

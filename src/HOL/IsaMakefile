@@ -965,11 +965,12 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   ex/Codegenerator_Pretty.thy ex/Codegenerator_Pretty_Test.thy		\
   ex/Codegenerator_Test.thy ex/Coherent.thy				\
   ex/Efficient_Nat_examples.thy ex/Eval_Examples.thy ex/Fundefs.thy	\
-  ex/Groebner_Examples.thy ex/Guess.thy ex/HarmonicSeries.thy		\
-  ex/Hebrew.thy ex/Hex_Bin_Examples.thy ex/Higher_Order_Logic.thy	\
-  ex/Hilbert_Classical.thy ex/Induction_Schema.thy			\
-  ex/InductiveInvariant.thy ex/InductiveInvariant_examples.thy		\
-  ex/Intuitionistic.thy ex/Lagrange.thy ex/LocaleTest2.thy ex/MT.thy	\
+  ex/Gauge_Integration.thy ex/Groebner_Examples.thy ex/Guess.thy        \
+  ex/HarmonicSeries.thy	ex/Hebrew.thy ex/Hex_Bin_Examples.thy           \
+  ex/Higher_Order_Logic.thy ex/Hilbert_Classical.thy                    \
+  ex/Induction_Schema.thy ex/InductiveInvariant.thy                     \
+  ex/InductiveInvariant_examples.thy ex/Intuitionistic.thy              \
+  ex/Lagrange.thy ex/LocaleTest2.thy ex/MT.thy                          \
   ex/MergeSort.thy ex/Meson_Test.thy ex/MonoidGroup.thy			\
   ex/Multiquote.thy ex/NatSum.thy ex/Numeral.thy ex/PER.thy		\
   ex/Predicate_Compile_ex.thy ex/Predicate_Compile_Quickcheck.thy	\
