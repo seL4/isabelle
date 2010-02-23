@@ -2,6 +2,8 @@
     Author:     Cezary Kaliszyk and Christian Urban
 *)
 
+header {* Definition of Quotient Types *}
+
 theory Quotient
 imports Plain ATP_Linkup
 uses
@@ -80,7 +82,7 @@ lemma eq_comp_r:
   shows "((op =) OOO R) = R"
   by (auto simp add: expand_fun_eq)
 
-section {* Respects predicate *}
+subsection {* Respects predicate *}
 
 definition
   Respects
@@ -92,7 +94,7 @@ lemma in_respects:
   unfolding mem_def Respects_def
   by simp
 
-section {* Function map and function relation *}
+subsection {* Function map and function relation *}
 
 definition
   fun_map (infixr "--->" 55)
@@ -124,7 +126,7 @@ lemma fun_rel_id_asm:
   using a by auto
 
 
-section {* Quotient Predicate *}
+subsection {* Quotient Predicate *}
 
 definition
   "Quotient E Abs Rep \<equiv>
@@ -285,7 +287,7 @@ lemma apply_rsp':
   shows "R2 (f x) (g y)"
   using a by simp
 
-section {* lemmas for regularisation of ball and bex *}
+subsection {* lemmas for regularisation of ball and bex *}
 
 lemma ball_reg_eqv:
   fixes P :: "'a \<Rightarrow> bool"
@@ -387,7 +389,7 @@ lemma bex_ex_comm:
   shows "(\<exists>x. \<exists>y. A x y) \<longrightarrow> (\<exists>x\<in>P. \<exists>y. B x y)"
   using assms by auto
 
-section {* Bounded abstraction *}
+subsection {* Bounded abstraction *}
 
 definition
   Babs :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
@@ -465,7 +467,7 @@ lemma ex_prs:
   using a unfolding Quotient_def Bex_def in_respects fun_map_def id_apply
   by metis
 
-section {* @{text Bex1_rel} quantifier *}
+subsection {* @{text Bex1_rel} quantifier *}
 
 definition
   Bex1_rel :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
@@ -569,7 +571,7 @@ lemma bex1_bexeq_reg: "(\<exists>!x\<in>Respects R. P x) \<longrightarrow> (Bex1
   apply auto
   done
 
-section {* Various respects and preserve lemmas *}
+subsection {* Various respects and preserve lemmas *}
 
 lemma quot_rel_rsp:
   assumes a: "Quotient R Abs Rep"
@@ -706,7 +708,7 @@ lemma Quotient:
 
 end
 
-section {* ML setup *}
+subsection {* ML setup *}
 
 text {* Auxiliary data for the quotient package *}
 
@@ -762,7 +764,7 @@ lemma QT_imp: "Quot_True a \<equiv> Quot_True b"
 text {* Tactics for proving the lifted theorems *}
 use "~~/src/HOL/Tools/Quotient/quotient_tacs.ML"
 
-section {* Methods / Interface *}
+subsection {* Methods / Interface *}
 
 method_setup lifting =
   {* Attrib.thms >> (fn thms => fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.lift_tac ctxt thms))) *}
