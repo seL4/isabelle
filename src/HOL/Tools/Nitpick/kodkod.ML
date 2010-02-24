@@ -938,13 +938,13 @@ val scan_instance = Scan.this_string "relations:" |--
                     $$ "{" |-- scan_list scan_assignment --| $$ "}"
 
 (* string -> raw_bound list *)
-fun parse_instance inst =
-  Scan.finite Symbol.stopper
-      (Scan.error (!! (fn _ => raise SYNTAX ("Kodkod.parse_instance",
-                                             "ill-formed Kodkodi output"))
-                      scan_instance))
-      (strip_blanks (explode inst))
-  |> fst
+val parse_instance =
+  fst o Scan.finite Symbol.stopper
+            (Scan.error (!! (fn _ =>
+                                raise SYNTAX ("Kodkod.parse_instance",
+                                              "ill-formed Kodkodi output"))
+                            scan_instance))
+  o strip_blanks o explode
 
 val problem_marker = "*** PROBLEM "
 val outcome_marker = "---OUTCOME---\n"
