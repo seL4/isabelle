@@ -256,8 +256,8 @@ method_setup vcg_simp = {*
 (* Special syntax for guarded statements and guarded array updates: *)
 
 syntax
-  guarded_com :: "bool \<Rightarrow> 'a com \<Rightarrow> 'a com"  ("(2_ \<rightarrow>/ _)" 71)
-  array_update :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a com"  ("(2_[_] :=/ _)" [70, 65] 61)
+  "_guarded_com" :: "bool \<Rightarrow> 'a com \<Rightarrow> 'a com"  ("(2_ \<rightarrow>/ _)" 71)
+  "_array_update" :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a com"  ("(2_[_] :=/ _)" [70, 65] 61)
 translations
   "P \<rightarrow> c" == "IF P THEN c ELSE CONST Abort FI"
   "a[i] := v" => "(i < CONST length a) \<rightarrow> (a := CONST list_update a i v)"
