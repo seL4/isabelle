@@ -296,7 +296,7 @@ end
 val quotspec_parser =
     OuterParse.and_list1
      ((OuterParse.type_args -- OuterParse.binding) --
-        OuterParse.opt_infix -- (OuterParse.$$$ "=" |-- OuterParse.typ) --
+        OuterParse.opt_mixfix -- (OuterParse.$$$ "=" |-- OuterParse.typ) --
          (OuterParse.$$$ "/" |-- OuterParse.term))
 
 val _ = OuterKeyword.keyword "/"

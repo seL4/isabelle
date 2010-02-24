@@ -167,7 +167,7 @@ val repdef_decl =
   Scan.optional (P.$$$ "(" |--
       ((P.$$$ "open" >> K false) -- Scan.option P.binding || P.binding >> (fn s => (true, SOME s)))
         --| P.$$$ ")") (true, NONE) --
-    (P.type_args -- P.binding) -- P.opt_infix -- (P.$$$ "=" |-- P.term) --
+    (P.type_args -- P.binding) -- P.opt_mixfix -- (P.$$$ "=" |-- P.term) --
     Scan.option (P.$$$ "morphisms" |-- P.!!! (P.binding -- P.binding));
 
 fun mk_repdef ((((((def, opt_name), (vs, t)), mx), A), morphs)) =

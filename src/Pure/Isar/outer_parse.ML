@@ -72,8 +72,6 @@ sig
   val typ: string parser
   val mixfix: mixfix parser
   val mixfix': mixfix parser
-  val opt_infix: mixfix parser
-  val opt_infix': mixfix parser
   val opt_mixfix: mixfix parser
   val opt_mixfix': mixfix parser
   val where_: string parser
@@ -279,8 +277,6 @@ fun opt_annotation guard fix = Scan.optional (annotation guard fix) NoSyn;
 
 val mixfix = annotation !!! (mfix || binder || infxl || infxr || infx);
 val mixfix' = annotation I (mfix || binder || infxl || infxr || infx);
-val opt_infix = opt_annotation !!! (infxl || infxr || infx);
-val opt_infix' = opt_annotation I (infxl || infxr || infx);
 val opt_mixfix = opt_annotation !!! (mfix || binder || infxl || infxr || infx);
 val opt_mixfix' = opt_annotation I (mfix || binder || infxl || infxr || infx);
 

@@ -959,9 +959,9 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    'types' (typespec '=' type infix? +)
+    'types' (typespec '=' type mixfix? +)
     ;
-    'typedecl' typespec infix?
+    'typedecl' typespec mixfix?
     ;
     'arities' (nameref '::' arity +)
     ;

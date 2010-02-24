@@ -996,9 +996,9 @@ Isabelle/Pure's definitional schemes support certain forms of
   \end{matharray}
 
   \begin{rail}
-    'types' (typespec '=' type infix? +)
+    'types' (typespec '=' type mixfix? +)
     ;
-    'typedecl' typespec infix?
+    'typedecl' typespec mixfix?
     ;
     'arities' (nameref '::' arity +)
     ;
