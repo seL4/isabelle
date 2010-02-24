@@ -8,7 +8,7 @@ Examples featuring Nitpick applied to typedefs.
 header {* Examples Featuring Nitpick Applied to Typedefs *}
 
 theory Typedef_Nits
-imports Main Rational
+imports Complex_Main
 begin
 
 nitpick_params [card = 1\<midarrow>4, sat_solver = MiniSat_JNI, max_threads = 1,

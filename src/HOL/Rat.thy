@@ -1,10 +1,10 @@
-(*  Title:  HOL/Rational.thy
+(*  Title:  HOL/Rat.thy
     Author: Markus Wenzel, TU Muenchen
 *)
 
 header {* Rational numbers *}
 
-theory Rational
+theory Rat
 imports GCD Archimedean_Field
 begin
 
@@ -1141,7 +1141,7 @@ types_code
 attach (term_of) {*
 fun term_of_rat (p, q) =
   let
-    val rT = Type ("Rational.rat", [])
+    val rT = Type ("Rat.rat", [])
   in
     if q = 1 orelse p = 0 then HOLogic.mk_number rT p
     else @{term "op / \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat"} $
