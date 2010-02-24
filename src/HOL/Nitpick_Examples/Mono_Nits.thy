@@ -14,8 +14,9 @@ begin
 ML {*
 exception FAIL
 
-val defs = Nitpick_HOL.all_axioms_of @{theory} |> #1
-val def_table = Nitpick_HOL.const_def_table @{context} defs
+val subst = []
+val defs = Nitpick_HOL.all_axioms_of @{theory} subst |> #1
+val def_table = Nitpick_HOL.const_def_table @{context} subst defs
 val hol_ctxt : Nitpick_HOL.hol_context =
   {thy = @{theory}, ctxt = @{context}, max_bisim_depth = ~1, boxes = [],
    stds = [(NONE, true)], wfs = [], user_axioms = NONE, debug = false,
