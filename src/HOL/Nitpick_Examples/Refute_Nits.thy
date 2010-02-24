@@ -1381,25 +1381,16 @@ subsubsection {* Axiomatic Type Classes and Overloading *}
 
 text {* A type class without axioms: *}
 
-axclass classA
+class classA
 
 lemma "P (x\<Colon>'a\<Colon>classA)"
 nitpick [expect = genuine]
 oops
 
-text {* The axiom of this type class does not contain any type variables: *}
-
-axclass classB
-classB_ax: "P \<or> \<not> P"
-
-lemma "P (x\<Colon>'a\<Colon>classB)"
-nitpick [expect = genuine]
-oops
-
 text {* An axiom with a type variable (denoting types which have at least two elements): *}
 
-axclass classC < type
-classC_ax: "\<exists>x y. x \<noteq> y"
+class classC =
+  assumes classC_ax: "\<exists>x y. x \<noteq> y"
 
 lemma "P (x\<Colon>'a\<Colon>classC)"
 nitpick [expect = genuine]
@@ -1411,11 +1402,9 @@ sorry
 
 text {* A type class for which a constant is defined: *}
 
-consts
-classD_const :: "'a \<Rightarrow> 'a"
-
-axclass classD < type
-classD_ax: "classD_const (classD_const x) = classD_const x"
+class classD =
+  fixes classD_const :: "'a \<Rightarrow> 'a"
+  assumes classD_ax: "classD_const (classD_const x) = classD_const x"
 
 lemma "P (x\<Colon>'a\<Colon>classD)"
 nitpick [expect = genuine]
@@ -1423,7 +1412,7 @@ oops
 
 text {* A type class with multiple superclasses: *}
 
-axclass classE < classC, classD
+class classE = classC + classD
 
 lemma "P (x\<Colon>'a\<Colon>classE)"
 nitpick [expect = genuine]
