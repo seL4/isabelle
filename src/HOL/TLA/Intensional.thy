@@ -51,7 +51,7 @@ syntax
   "_holdsAt"    :: "['a, lift] => bool"                  ("(_ |= _)" [100,10] 10)
 
   (* Syntax for lifted expressions outside the scope of |- or |= *)
-  "LIFT"        :: "lift => 'a"                          ("LIFT _")
+  "_LIFT"       :: "lift => 'a"                          ("LIFT _")
 
   (* generic syntax for lifted constants and functions *)
   "_const"      :: "'a => lift"                          ("(#_)" [1000] 999)
