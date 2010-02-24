@@ -32,16 +32,19 @@ notation (xsymbols)
   "lesssub"  ("(_ /\<sqsubset>\<^bsub>_\<^esub> _)" [50, 0, 51] 50) and
   "plussub"  ("(_ /\<squnion>\<^bsub>_\<^esub> _)" [65, 0, 66] 65)
 (*<*)
-syntax
- (* allow \<sub> instead of \<bsub>..\<esub> *)  
-  "_lesub" :: "'a \<Rightarrow> 'a ord \<Rightarrow> 'a \<Rightarrow> bool" ("(_ /\<sqsubseteq>\<^sub>_ _)" [50, 1000, 51] 50)
-  "_lesssub" :: "'a \<Rightarrow> 'a ord \<Rightarrow> 'a \<Rightarrow> bool" ("(_ /\<sqsubset>\<^sub>_ _)" [50, 1000, 51] 50)
-  "_plussub" :: "'a \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'c" ("(_ /\<squnion>\<^sub>_ _)" [65, 1000, 66] 65)
+(* allow \<sub> instead of \<bsub>..\<esub> *)
 
-translations
-  "x \<sqsubseteq>\<^sub>r y" => "x \<sqsubseteq>\<^bsub>r\<^esub> y"
-  "x \<sqsubset>\<^sub>r y" => "x \<sqsubset>\<^bsub>r\<^esub> y" 
-  "x \<squnion>\<^sub>f y" => "x \<squnion>\<^bsub>f\<^esub> y" 
+abbreviation (input)
+  lesub1 :: "'a \<Rightarrow> 'a ord \<Rightarrow> 'a \<Rightarrow> bool" ("(_ /\<sqsubseteq>\<^sub>_ _)" [50, 1000, 51] 50)
+  where "x \<sqsubseteq>\<^sub>r y == x \<sqsubseteq>\<^bsub>r\<^esub> y"
+
+abbreviation (input)
+  lesssub1 :: "'a \<Rightarrow> 'a ord \<Rightarrow> 'a \<Rightarrow> bool" ("(_ /\<sqsubset>\<^sub>_ _)" [50, 1000, 51] 50)
+  where "x \<sqsubset>\<^sub>r y == x \<sqsubset>\<^bsub>r\<^esub> y"
+
+abbreviation (input)
+  plussub1 :: "'a \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'c" ("(_ /\<squnion>\<^sub>_ _)" [65, 1000, 66] 65)
+  where "x \<squnion>\<^sub>f y == x \<squnion>\<^bsub>f\<^esub> y"
 (*>*)
 
 defs

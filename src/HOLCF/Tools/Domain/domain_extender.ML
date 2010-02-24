@@ -291,7 +291,7 @@ val type_args' : (string * string option) list parser =
   || Scan.succeed [];
 
 val domain_decl =
-  (type_args' -- P.binding -- P.opt_infix) --
+  (type_args' -- P.binding -- P.opt_mixfix) --
     (P.$$$ "=" |-- P.enum1 "|" cons_decl);
 
 val domains_decl =

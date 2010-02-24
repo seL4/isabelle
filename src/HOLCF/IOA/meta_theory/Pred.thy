@@ -24,25 +24,25 @@ OR           ::"'a predicate => 'a predicate => 'a predicate"    (infixr ".|" 30
 IMPLIES      ::"'a predicate => 'a predicate => 'a predicate"    (infixr ".-->" 25)
 
 
-syntax ("" output)
-  "NOT"     ::"'a predicate => 'a predicate" ("~ _" [40] 40)
-  "AND"     ::"'a predicate => 'a predicate => 'a predicate"    (infixr "&" 35)
-  "OR"      ::"'a predicate => 'a predicate => 'a predicate"    (infixr "|" 30)
-  "IMPLIES" ::"'a predicate => 'a predicate => 'a predicate"    (infixr "-->" 25)
+notation (output)
+  NOT  ("~ _" [40] 40) and
+  AND  (infixr "&" 35) and
+  OR  (infixr "|" 30) and
+  IMPLIES  (infixr "-->" 25)
 
-syntax (xsymbols output)
-  "NOT"    ::"'a predicate => 'a predicate" ("\<not> _" [40] 40)
-  "AND"    ::"'a predicate => 'a predicate => 'a predicate"    (infixr "\<and>" 35)
-  "OR"     ::"'a predicate => 'a predicate => 'a predicate"    (infixr "\<or>" 30)
-  "IMPLIES" ::"'a predicate => 'a predicate => 'a predicate"    (infixr "\<longrightarrow>" 25)
+notation (xsymbols output)
+  NOT  ("\<not> _" [40] 40) and
+  AND  (infixr "\<and>" 35) and
+  OR  (infixr "\<or>" 30) and
+  IMPLIES  (infixr "\<longrightarrow>" 25)
 
-syntax (xsymbols)
-  "satisfies"  ::"'a => 'a predicate => bool"    ("_ \<Turnstile> _" [100,9] 8)
+notation (xsymbols)
+  satisfies  ("_ \<Turnstile> _" [100,9] 8)
 
-syntax (HTML output)
-  "NOT"    ::"'a predicate => 'a predicate" ("\<not> _" [40] 40)
-  "AND"    ::"'a predicate => 'a predicate => 'a predicate"    (infixr "\<and>" 35)
-  "OR"     ::"'a predicate => 'a predicate => 'a predicate"    (infixr "\<or>" 30)
+notation (HTML output)
+  NOT  ("\<not> _" [40] 40) and
+  AND  (infixr "\<and>" 35) and
+  OR  (infixr "\<or>" 30)
 
 
 defs

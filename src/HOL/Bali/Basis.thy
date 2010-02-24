@@ -222,12 +222,12 @@ translations
 section "quantifiers for option type"
 
 syntax
-  Oall :: "[pttrn, 'a option, bool] => bool"   ("(3! _:_:/ _)" [0,0,10] 10)
-  Oex  :: "[pttrn, 'a option, bool] => bool"   ("(3? _:_:/ _)" [0,0,10] 10)
+  "_Oall" :: "[pttrn, 'a option, bool] => bool"   ("(3! _:_:/ _)" [0,0,10] 10)
+  "_Oex"  :: "[pttrn, 'a option, bool] => bool"   ("(3? _:_:/ _)" [0,0,10] 10)
 
 syntax (symbols)
-  Oall :: "[pttrn, 'a option, bool] => bool"   ("(3\<forall>_\<in>_:/ _)"  [0,0,10] 10)
-  Oex  :: "[pttrn, 'a option, bool] => bool"   ("(3\<exists>_\<in>_:/ _)"  [0,0,10] 10)
+  "_Oall" :: "[pttrn, 'a option, bool] => bool"   ("(3\<forall>_\<in>_:/ _)"  [0,0,10] 10)
+  "_Oex"  :: "[pttrn, 'a option, bool] => bool"   ("(3\<exists>_\<in>_:/ _)"  [0,0,10] 10)
 
 translations
   "! x:A: P"    == "! x:CONST Option.set A. P"

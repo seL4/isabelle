@@ -1502,13 +1502,13 @@ lemma image_mset_is_empty_iff [simp]: "image_mset f M = {#} \<longleftrightarrow
 by (cases M) auto
 
 syntax
-  comprehension1_mset :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> 'a multiset"
+  "_comprehension1_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> 'a multiset"
       ("({#_/. _ :# _#})")
 translations
   "{#e. x:#M#}" == "CONST image_mset (%x. e) M"
 
 syntax
-  comprehension2_mset :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"
+  "_comprehension2_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"
       ("({#_/ | _ :# _./ _#})")
 translations
   "{#e | x:#M. P#}" => "{#e. x :# {# x:#M. P#}#}"

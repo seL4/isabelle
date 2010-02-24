@@ -2079,7 +2079,7 @@ val add_nominal_datatype = gen_add_nominal_datatype Datatype.read_typ;
 local structure P = OuterParse and K = OuterKeyword in
 
 val datatype_decl =
-  Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.type_args -- P.name -- P.opt_infix --
+  Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.type_args -- P.name -- P.opt_mixfix --
     (P.$$$ "=" |-- P.enum1 "|" (P.name -- Scan.repeat P.typ -- P.opt_mixfix));
 
 fun mk_datatype args =

@@ -700,7 +700,7 @@ structure P = OuterParse and K = OuterKeyword
 val parse_domain_iso :
     (string list * binding * mixfix * string * (binding * binding) option)
       parser =
-  (P.type_args -- P.binding -- P.opt_infix -- (P.$$$ "=" |-- P.typ) --
+  (P.type_args -- P.binding -- P.opt_mixfix -- (P.$$$ "=" |-- P.typ) --
     Scan.option (P.$$$ "morphisms" |-- P.!!! (P.binding -- P.binding)))
     >> (fn ((((vs, t), mx), rhs), morphs) => (vs, t, mx, rhs, morphs));
 

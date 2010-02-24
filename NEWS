@@ -38,6 +38,8 @@ names, so all of the above would coincide.  Recall that 'print_syntax'
 and ML_command "set Syntax.trace_ast" help to diagnose syntax
 problems.
 
+* Type constructors admit general mixfix syntax, not just infix.
+
 
 *** Pure ***
 

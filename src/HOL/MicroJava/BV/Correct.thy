@@ -66,9 +66,8 @@ constdefs
    | Some x \<Rightarrow> frs = []" 
 
 
-syntax (xsymbols)
- correct_state :: "[jvm_prog,prog_type,jvm_state] \<Rightarrow> bool"
-                  ("_,_ \<turnstile>JVM _ \<surd>"  [51,51] 50)
+notation (xsymbols)
+ correct_state  ("_,_ \<turnstile>JVM _ \<surd>"  [51,51] 50)
 
 
 lemma sup_ty_opt_OK:

@@ -59,15 +59,11 @@ constdefs
   "sup_state_opt G == Opt.le (sup_state G)"
 
 
-syntax (xsymbols)
-  sup_ty_opt    :: "['code prog,ty err,ty err] \<Rightarrow> bool" 
-                   ("_ \<turnstile> _ <=o _" [71,71] 70)
-  sup_loc       :: "['code prog,locvars_type,locvars_type] \<Rightarrow> bool" 
-                   ("_ \<turnstile> _ <=l _" [71,71] 70)
-  sup_state     :: "['code prog,state_type,state_type] \<Rightarrow> bool" 
-                   ("_ \<turnstile> _ <=s _" [71,71] 70)
-  sup_state_opt :: "['code prog,state_type option,state_type option] \<Rightarrow> bool"
-                   ("_ \<turnstile> _ <=' _" [71,71] 70)
+notation (xsymbols)
+  sup_ty_opt  ("_ \<turnstile> _ <=o _" [71,71] 70) and
+  sup_loc  ("_ \<turnstile> _ <=l _" [71,71] 70) and
+  sup_state  ("_ \<turnstile> _ <=s _" [71,71] 70) and
+  sup_state_opt  ("_ \<turnstile> _ <=' _" [71,71] 70)
                    
 
 lemma JVM_states_unfold: 

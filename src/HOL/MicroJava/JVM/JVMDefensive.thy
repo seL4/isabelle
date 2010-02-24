@@ -123,19 +123,15 @@ constdefs
     | Normal s' \<Rightarrow> if check G s' then Normal (exec (G, s')) else TypeError"
 
 
-consts
-  "exec_all_d" :: "jvm_prog \<Rightarrow> jvm_state type_error \<Rightarrow> jvm_state type_error \<Rightarrow> bool" 
+constdefs
+  exec_all_d :: "jvm_prog \<Rightarrow> jvm_state type_error \<Rightarrow> jvm_state type_error \<Rightarrow> bool" 
                    ("_ |- _ -jvmd-> _" [61,61,61]60)
-
-syntax (xsymbols)
-  "exec_all_d" :: "jvm_prog \<Rightarrow> jvm_state type_error \<Rightarrow> jvm_state type_error \<Rightarrow> bool" 
-                   ("_ \<turnstile> _ -jvmd\<rightarrow> _" [61,61,61]60)  
- 
-defs
-  exec_all_d_def:
-  "G \<turnstile> s -jvmd\<rightarrow> t \<equiv>
-         (s,t) \<in> ({(s,t). exec_d G s = TypeError \<and> t = TypeError} \<union> 
+  "G |- s -jvmd-> t \<equiv>
+         (s,t) \<in> ({(s,t). exec_d G s = TypeError \<and> t = TypeError} \<union>
                   {(s,t). \<exists>t'. exec_d G s = Normal (Some t') \<and> t = Normal t'})\<^sup>*"
+
+notation (xsymbols)
+  exec_all_d  ("_ \<turnstile> _ -jvmd\<rightarrow> _" [61,61,61]60)
 
 
 declare split_paired_All [simp del]

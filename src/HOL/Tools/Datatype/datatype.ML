@@ -731,7 +731,7 @@ fun prep_datatype_decls args =
   in (names, specs) end;
 
 val parse_datatype_decl =
-  (Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.type_args -- P.binding -- P.opt_infix --
+  (Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.type_args -- P.binding -- P.opt_mixfix --
     (P.$$$ "=" |-- P.enum1 "|" (P.binding -- Scan.repeat P.typ -- P.opt_mixfix)));
 
 val parse_datatype_decls = P.and_list1 parse_datatype_decl >> prep_datatype_decls;

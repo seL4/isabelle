@@ -17,8 +17,8 @@ constdefs
    LeadsTo :: "['a set, 'a set] => 'a program set"    (infixl "LeadsTo" 60)
     "A LeadsTo B == {F. F \<in> (reachable F \<inter> A) leadsTo B}"
 
-syntax (xsymbols)
-  "op LeadsTo" :: "['a set, 'a set] => 'a program set" (infixl " \<longmapsto>w " 60)
+notation (xsymbols)
+  LeadsTo  (infixl " \<longmapsto>w " 60)
 
 
 text{*Resembles the previous definition of LeadsTo*}
