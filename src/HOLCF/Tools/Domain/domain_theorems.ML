@@ -118,6 +118,9 @@ fun pg' thy defs t tacsf =
       else cut_facts_tac prems 1 :: tacsf context;
   in pg'' thy defs t tacs end;
 
+(* FIXME!!!!!!!!! *)
+(* We should NEVER re-parse variable names as strings! *)
+(* The names can conflict with existing constants or other syntax! *)
 fun case_UU_tac ctxt rews i v =
   InductTacs.case_tac ctxt (v^"=UU") i THEN
   asm_simp_tac (HOLCF_ss addsimps rews) i;
@@ -232,13 +235,14 @@ in
   fun cons2ctyp cons = ctyp_of thy (snd (cons2typ 1 cons));
 end;
 
-local 
+local
   val iso_swap = iso_locale RS iso_iso_swap;
   fun one_con (con, _, args) =
     let
-      val vns = map vname args;
+      val vns = Name.variant_list ["x"] (map vname args);
+      val nonlazy_vns = map snd (filter_out (is_lazy o fst) (args ~~ vns));
       val eqn = %:x_name === con_app2 con %: vns;
-      val conj = foldr1 mk_conj (eqn :: map (defined o %:) (nonlazy args));
+      val conj = foldr1 mk_conj (eqn :: map (defined o %:) nonlazy_vns);
     in Library.foldr mk_ex (vns, conj) end;
 
   val conj_assoc = @{thm conj_assoc};
@@ -459,6 +463,7 @@ local
       val goal = lift_defined %: (nlas', mk_trp (lhs === %:vnn));
       fun tacs1 ctxt =
         if vnn mem nlas
+                        (* FIXME! case_UU_tac *)
         then [case_UU_tac ctxt (when_rews @ con_stricts) 1 vnn]
         else [];
       val tacs2 = [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
@@ -468,6 +473,7 @@ local
     let
       val nlas = nonlazy args;
       val goal = mk_trp (%%:sel ` con_app con args === UU);
+                        (* FIXME! case_UU_tac *)
       fun tacs1 ctxt = map (case_UU_tac ctxt (when_rews @ con_stricts) 1) nlas;
       val tacs2 = [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
     in pg axs_sel_def goal (fn ctxt => (tacs1 ctxt @ tacs2)) end;
@@ -625,6 +631,7 @@ local
       val goal = lift_defined %: (nonlazy_rec args, mk_trp (lhs === rhs));
       val args' = filter_out (fn a => is_rec a orelse is_lazy a) args;
       val stricts = abs_strict :: rep_strict :: @{thms domain_map_stricts};
+                        (* FIXME! case_UU_tac *)
       fun tacs1 ctxt = map (case_UU_tac ctxt stricts 1 o vname) args';
       val rules = [ax_abs_iso] @ @{thms domain_map_simps};
       val tacs2 = [asm_simp_tac (HOLCF_ss addsimps rules) 1];
@@ -639,6 +646,7 @@ local
     let
       val goal = mk_trp (dc_copy`UU`(con_app con args) === UU);
       val rews = the_list copy_strict @ copy_apps @ con_rews;
+                        (* FIXME! case_UU_tac *)
       fun tacs ctxt = map (case_UU_tac ctxt rews 1) (nonlazy args) @
         [asm_simp_tac (HOLCF_ss addsimps rews) 1];
     in
@@ -775,11 +783,14 @@ end; (* local *)
 local
   fun one_con p (con, _, args) =
     let
+      val P_names = map P_name (1 upto (length dnames));
+      val vns = Name.variant_list P_names (map vname args);
+      val nonlazy_vns = map snd (filter_out (is_lazy o fst) (args ~~ vns));
       fun ind_hyp arg = %:(P_name (1 + rec_of arg)) $ bound_arg args arg;
       val t1 = mk_trp (%:p $ con_app2 con (bound_arg args) args);
       val t2 = lift ind_hyp (filter is_rec args, t1);
-      val t3 = lift_defined (bound_arg (map vname args)) (nonlazy args, t2);
-    in Library.foldr mk_All (map vname args, t3) end;
+      val t3 = lift_defined (bound_arg vns) (nonlazy_vns, t2);
+    in Library.foldr mk_All (vns, t3) end;
 
   fun one_eq ((p, cons), concl) =
     mk_trp (%:p $ UU) ===> Logic.list_implies (map (one_con p) cons, concl);
@@ -838,6 +849,7 @@ in (* local *)
             simp_tac (take_ss addsimps prems) 1,
             TRY (safe_tac HOL_cs)];
           fun arg_tac arg =
+                        (* FIXME! case_UU_tac *)
             case_UU_tac context (prems @ con_rews) 1
               (List.nth (dnames, rec_of arg) ^ "_take n$" ^ vname arg);
           fun con_tacs (con, _, args) = 
@@ -948,6 +960,7 @@ in (* local *)
           let
             val goal = mk_trp (%%:(dn^"_finite") $ %:"x");
             fun tacs ctxt = [
+                        (* FIXME! case_UU_tac *)
               case_UU_tac ctxt take_rews 1 "x",
               eresolve_tac finite_lemmas1a 1,
               step_tac HOL_cs 1,

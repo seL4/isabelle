@@ -162,7 +162,6 @@ sig
   val dis_name : string -> string;
   val mat_name : string -> string;
   val pat_name : string -> string;
-  val mk_var_names : string list -> string list;
 end;
 
 structure Domain_Library :> DOMAIN_LIBRARY =
@@ -190,22 +189,6 @@ fun mat_name  con = "match_"^ (extern_name con);
 fun mat_name_ con = "match_"^ (strip_esc   con);
 fun pat_name  con = (extern_name con) ^ "_pat";
 fun pat_name_ con = (strip_esc   con) ^ "_pat";
-
-(* make distinct names out of the type list, 
-                                       forbidding "o","n..","x..","f..","P.." as names *)
-(* a number string is added if necessary *)
-fun mk_var_names ids : string list =
-    let
-      fun nonreserved s = if s mem ["n","x","f","P"] then s^"'" else s;
-      fun index_vnames(vn::vns,occupied) =
-          (case AList.lookup (op =) occupied vn of
-             NONE => if vn mem vns
-                     then (vn^"1") :: index_vnames(vns,(vn,1)  ::occupied)
-                     else  vn      :: index_vnames(vns,          occupied)
-           | SOME(i) => (vn^(string_of_int (i+1)))
-                        :: index_vnames(vns,(vn,i+1)::occupied))
-        | index_vnames([],occupied) = [];
-    in index_vnames(map nonreserved ids, [("O",0),("o",0)]) end;
 
 fun cpo_type sg t = Sign.of_sort sg (Sign.certify_typ sg t, @{sort cpo});
 fun pcpo_type sg t = Sign.of_sort sg (Sign.certify_typ sg t, @{sort pcpo});

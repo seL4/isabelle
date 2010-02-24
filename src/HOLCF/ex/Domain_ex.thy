@@ -99,7 +99,7 @@ by (rule flattree.ind) -- "no admissibility requirement"
 
 text {* Trivial datatypes will produce a warning message. *}
 
-domain triv = triv1 triv triv
+domain triv = Triv triv triv
   -- "domain Domain_ex.triv is empty!"
 
 lemma "(x::triv) = \<bottom>" by (induct x, simp_all)

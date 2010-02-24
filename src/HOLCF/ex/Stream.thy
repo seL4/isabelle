@@ -379,8 +379,8 @@ by (simp add: slen_def)
 lemma slen_scons_eq_rev: "(#x < Fin (Suc (Suc n))) = (!a y. x ~= a && y |  a = \<bottom> |  #y < Fin (Suc n))"
  apply (rule stream.casedist [of x], auto)
    apply (simp add: zero_inat_def)
-  apply (case_tac "#s") apply (simp_all add: iSuc_Fin)
- apply (case_tac "#s") apply (simp_all add: iSuc_Fin)
+  apply (case_tac "#stream") apply (simp_all add: iSuc_Fin)
+ apply (case_tac "#stream") apply (simp_all add: iSuc_Fin)
 done
 
 lemma slen_take_lemma4 [rule_format]:

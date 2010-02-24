@@ -154,18 +154,13 @@ fun gen_add_domain
     val dts  = map (Type o fst) eqs';
     val new_dts = map (fn ((s,Ts),_) => (s, map (fst o dest_TFree) Ts)) eqs';
     fun strip ss = drop (find_index (fn s => s = "'") ss + 1) ss;
-    fun typid (Type  (id,_)) =
-        let val c = hd (Symbol.explode (Long_Name.base_name id))
-        in if Symbol.is_letter c then c else "t" end
-      | typid (TFree (id,_)   ) = hd (strip (tl (Symbol.explode id)))
-      | typid (TVar ((id,_),_)) = hd (tl (Symbol.explode id));
     fun one_con (con,args,mx) =
         (Binding.name_of con,  (* FIXME preverse binding (!?) *)
          mx,
          ListPair.map (fn ((lazy,sel,tp),vn) =>
            mk_arg ((lazy, Datatype_Aux.dtyp_of_typ new_dts tp),
                    Option.map Binding.name_of sel,vn))
-                      (args,(mk_var_names(map (typid o third) args)))
+                      (args, Datatype_Prop.make_tnames (map third args))
         ) : cons;
     val eqs : eq list =
         map (fn (dtnvs,cons') => (dtnvs, map one_con cons')) eqs';
@@ -230,18 +225,13 @@ fun gen_add_new_domain
     val dts  = map (Type o fst) eqs';
     val new_dts = map (fn ((s,Ts),_) => (s, map (fst o dest_TFree) Ts)) eqs';
     fun strip ss = drop (find_index (fn s => s = "'") ss + 1) ss;
-    fun typid (Type  (id,_)) =
-        let val c = hd (Symbol.explode (Long_Name.base_name id))
-        in if Symbol.is_letter c then c else "t" end
-      | typid (TFree (id,_)   ) = hd (strip (tl (Symbol.explode id)))
-      | typid (TVar ((id,_),_)) = hd (tl (Symbol.explode id));
     fun one_con (con,args,mx) =
         (Binding.name_of con,   (* FIXME preverse binding (!?) *)
          mx,
          ListPair.map (fn ((lazy,sel,tp),vn) =>
            mk_arg ((lazy, Datatype_Aux.dtyp_of_typ new_dts tp),
                    Option.map Binding.name_of sel,vn))
-                      (args,(mk_var_names(map (typid o third) args)))
+                      (args, Datatype_Prop.make_tnames (map third args))
         ) : cons;
     val eqs : eq list =
         map (fn (dtnvs,cons') => (dtnvs, map one_con cons')) eqs';
