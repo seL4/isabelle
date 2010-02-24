@@ -893,6 +893,9 @@ text {*
       \item[iterations] sets how many sets of assignments are
         generated for each particular size.
 
+      \item[no\_assms] specifies whether assumptions in
+        structured proofs should be ignored.
+
     \end{description}
 
     These option can be given within square brackets.
