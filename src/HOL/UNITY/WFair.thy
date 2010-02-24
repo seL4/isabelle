@@ -69,8 +69,8 @@ constdefs
      --{*predicate transformer: the largest set that leads to @{term B}*}
     "wlt F B == Union {A. F \<in> A leadsTo B}"
 
-syntax (xsymbols)
-  "op leadsTo" :: "['a set, 'a set] => 'a program set" (infixl "\<longmapsto>" 60)
+notation (xsymbols)
+  leadsTo  (infixl "\<longmapsto>" 60)
 
 
 subsection{*transient*}

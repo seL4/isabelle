@@ -32,9 +32,8 @@ constdefs
   "G |- s -jvm-> t == (s,t) \<in> {(s,t). exec(G,s) = Some t}^*"
 
 
-syntax (xsymbols)
-  exec_all :: "[jvm_prog,jvm_state,jvm_state] => bool"
-              ("_ \<turnstile> _ -jvm\<rightarrow> _" [61,61,61]60)
+notation (xsymbols)
+  exec_all  ("_ \<turnstile> _ -jvm\<rightarrow> _" [61,61,61]60)
 
 text {*
   The start configuration of the JVM: in the start heap, we call a 

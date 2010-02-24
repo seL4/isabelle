@@ -33,14 +33,14 @@ envalid   :: "[nat,etriple    ] => bool" ("|=_:e _" [61,61] 60)
 cenvalid  :: "[triple set,etriple   ] => bool" ("_ ||=e/ _" [61,61] 60)
  "A ||=e t \<equiv> \<forall>n. ||=n: A --> |=n:e t"
 
-syntax (xsymbols)
-   valid  :: "[assn,stmt, assn] => bool" ( "\<Turnstile> {(1_)}/ (_)/ {(1_)}" [3,90,3] 60)
-  evalid  :: "[assn,expr,vassn] => bool" ("\<Turnstile>\<^sub>e {(1_)}/ (_)/ {(1_)}" [3,90,3] 60)
-  nvalid  :: "[nat, triple          ] => bool" ("\<Turnstile>_: _"  [61,61] 60)
- envalid  :: "[nat,etriple          ] => bool" ("\<Turnstile>_:\<^sub>e _" [61,61] 60)
-  nvalids :: "[nat,       triple set] => bool" ("|\<Turnstile>_: _"  [61,61] 60)
- cnvalids :: "[triple set,triple set] => bool" ("_ |\<Turnstile>/ _" [61,61] 60)
-cenvalid  :: "[triple set,etriple   ] => bool" ("_ |\<Turnstile>\<^sub>e/ _"[61,61] 60)
+notation (xsymbols)
+  valid  ("\<Turnstile> {(1_)}/ (_)/ {(1_)}" [3,90,3] 60) and
+  evalid  ("\<Turnstile>\<^sub>e {(1_)}/ (_)/ {(1_)}" [3,90,3] 60) and
+  nvalid  ("\<Turnstile>_: _" [61,61] 60) and
+  envalid  ("\<Turnstile>_:\<^sub>e _" [61,61] 60) and
+  nvalids  ("|\<Turnstile>_: _" [61,61] 60) and
+  cnvalids  ("_ |\<Turnstile>/ _" [61,61] 60) and
+  cenvalid  ("_ |\<Turnstile>\<^sub>e/ _"[61,61] 60)
 
 
 lemma nvalid_def2: "\<Turnstile>n: (P,c,Q) \<equiv> \<forall>s t. s -c-n\<rightarrow> t \<longrightarrow> P s \<longrightarrow> Q t"
@@ -164,10 +164,10 @@ constdefs MGT    :: "stmt => state =>  triple"
          "MGT  c Z \<equiv> (\<lambda>s. Z = s, c, \<lambda>  t. \<exists>n. Z -c-  n\<rightarrow> t)"
           MGTe   :: "expr => state => etriple"
          "MGTe e Z \<equiv> (\<lambda>s. Z = s, e, \<lambda>v t. \<exists>n. Z -e\<succ>v-n\<rightarrow> t)"
-syntax (xsymbols)
-         MGTe    :: "expr => state => etriple" ("MGT\<^sub>e")
-syntax (HTML output)
-         MGTe    :: "expr => state => etriple" ("MGT\<^sub>e")
+notation (xsymbols)
+  MGTe  ("MGT\<^sub>e")
+notation (HTML output)
+  MGTe  ("MGT\<^sub>e")
 
 lemma MGF_implies_complete:
  "\<forall>Z. {} |\<turnstile> { MGT c Z} \<Longrightarrow> \<Turnstile>  {P} c {Q} \<Longrightarrow> {} \<turnstile>  {P} c {Q}"

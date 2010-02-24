@@ -43,23 +43,23 @@ abbreviation
   not_equal  (infixl "~=" 50) where
   "x ~= y == ~ (x = y)"
 
-syntax (xsymbols)
-  Not           :: "o => o"               ("\<not> _" [40] 40)
-  conj          :: "[o, o] => o"          (infixr "\<and>" 35)
-  disj          :: "[o, o] => o"          (infixr "\<or>" 30)
-  imp           :: "[o, o] => o"          (infixr "\<longrightarrow>" 25)
-  iff           :: "[o, o] => o"          (infixr "\<longleftrightarrow>" 25)
-  All_binder    :: "[idts, o] => o"       ("(3\<forall>_./ _)" [0, 10] 10)
-  Ex_binder     :: "[idts, o] => o"       ("(3\<exists>_./ _)" [0, 10] 10)
-  not_equal     :: "['a, 'a] => o"        (infixl "\<noteq>" 50)
+notation (xsymbols)
+  Not  ("\<not> _" [40] 40) and
+  conj  (infixr "\<and>" 35) and
+  disj  (infixr "\<or>" 30) and
+  imp  (infixr "\<longrightarrow>" 25) and
+  iff  (infixr "\<longleftrightarrow>" 25) and
+  All  (binder "\<forall>" 10) and
+  Ex  (binder "\<exists>" 10) and
+  not_equal  (infixl "\<noteq>" 50)
 
-syntax (HTML output)
-  Not           :: "o => o"               ("\<not> _" [40] 40)
-  conj          :: "[o, o] => o"          (infixr "\<and>" 35)
-  disj          :: "[o, o] => o"          (infixr "\<or>" 30)
-  All_binder    :: "[idts, o] => o"       ("(3\<forall>_./ _)" [0, 10] 10)
-  Ex_binder     :: "[idts, o] => o"       ("(3\<exists>_./ _)" [0, 10] 10)
-  not_equal     :: "['a, 'a] => o"        (infixl "\<noteq>" 50)
+notation (HTML output)
+  Not  ("\<not> _" [40] 40) and
+  conj  (infixr "\<and>" 35) and
+  disj  (infixr "\<or>" 30) and
+  All  (binder "\<forall>" 10) and
+  Ex  (binder "\<exists>" 10) and
+  not_equal  (infixl "\<noteq>" 50)
 
 local
 
