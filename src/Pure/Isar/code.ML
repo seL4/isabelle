@@ -420,7 +420,7 @@ fun abstype_cert thy abs_ty rep =
      of Type ("fun", [ty, ty_abs]) => (ty, ty_abs)
       | _ => error ("Not a datatype abstractor:\n" ^ string_of_const thy abs
           ^ " :: " ^ string_of_typ thy ty');
-    val _ = Thm.cterm_of thy (Const (rep, ty_abs --> ty)) handle CTERM _ =>
+    val _ = Thm.cterm_of thy (Const (rep, ty_abs --> ty)) handle TYPE _ =>
       error ("Not a projection:\n" ^ string_of_const thy rep);
     val cert = Logic.mk_equals (Const (abs, ty --> ty_abs) $ (Const (rep, ty_abs --> ty)
       $ Free ("x", ty_abs)), Free ("x", ty_abs));
