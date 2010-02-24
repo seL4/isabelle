@@ -28,7 +28,7 @@ subsection {* Gauges *}
 
 definition
   gauge :: "[real set, real => real] => bool" where
-  [code del]:"gauge E g = (\<forall>x\<in>E. 0 < g(x))"
+  [code del]: "gauge E g = (\<forall>x\<in>E. 0 < g(x))"
 
 
 subsection {* Gauge-fine divisions *}
@@ -63,14 +63,20 @@ apply (induct set: fine, simp)
 apply (drule fine_imp_le, simp)
 done
 
-lemma empty_fine_imp_eq: "\<lbrakk>fine \<delta> (a, b) D; D = []\<rbrakk> \<Longrightarrow> a = b"
-by (induct set: fine, simp_all)
+lemma fine_Nil_iff: "fine \<delta> (a, b) [] \<longleftrightarrow> a = b"
+by (auto elim: fine.cases intro: fine.intros)
 
-lemma fine_eq: "fine \<delta> (a, b) D \<Longrightarrow> a = b \<longleftrightarrow> D = []"
-apply (cases "D = []")
-apply (drule (1) empty_fine_imp_eq, simp)
-apply (drule (1) nonempty_fine_imp_less, simp)
-done
+lemma fine_same_iff: "fine \<delta> (a, a) D \<longleftrightarrow> D = []"
+proof
+  assume "fine \<delta> (a, a) D" thus "D = []"
+    by (metis nonempty_fine_imp_less less_irrefl)
+next
+  assume "D = []" thus "fine \<delta> (a, a) D"
+    by (simp add: fine_Nil)
+qed
+
+lemma empty_fine_imp_eq: "\<lbrakk>fine \<delta> (a, b) D; D = []\<rbrakk> \<Longrightarrow> a = b"
+by (simp add: fine_Nil_iff)
 
 lemma mem_fine:
   "\<lbrakk>fine \<delta> (a, b) D; (u, x, v) \<in> set D\<rbrakk> \<Longrightarrow> u < v \<and> u \<le> x \<and> x \<le> v"
@@ -174,7 +180,7 @@ qed
 
 lemma fine_\<delta>_expand:
   assumes "fine \<delta> (a,b) D"
-  and "\<And> x. \<lbrakk> a \<le> x ; x \<le> b \<rbrakk> \<Longrightarrow> \<delta> x \<le> \<delta>' x"
+  and "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> \<delta> x \<le> \<delta>' x"
   shows "fine \<delta>' (a,b) D"
 using assms proof induct
   case 1 show ?case by (rule fine_Nil)
@@ -258,6 +264,22 @@ definition
                                (\<forall>D. fine \<delta> (a,b) D -->
                                          \<bar>rsum D f - k\<bar> < e)))"
 
+lemma Integral_eq:
+  "Integral (a, b) f k \<longleftrightarrow>
+    (\<forall>e>0. \<exists>\<delta>. gauge {a..b} \<delta> \<and> (\<forall>D. fine \<delta> (a,b) D \<longrightarrow> \<bar>rsum D f - k\<bar> < e))"
+unfolding Integral_def by simp
+
+lemma IntegralI:
+  assumes "\<And>e. 0 < e \<Longrightarrow>
+    \<exists>\<delta>. gauge {a..b} \<delta> \<and> (\<forall>D. fine \<delta> (a, b) D \<longrightarrow> \<bar>rsum D f - k\<bar> < e)"
+  shows "Integral (a, b) f k"
+using assms unfolding Integral_def by auto
+
+lemma IntegralE:
+  assumes "Integral (a, b) f k" and "0 < e"
+  obtains \<delta> where "gauge {a..b} \<delta>" and "\<forall>D. fine \<delta> (a, b) D \<longrightarrow> \<bar>rsum D f - k\<bar> < e"
+using assms unfolding Integral_def by auto
+
 lemma Integral_def2:
   "Integral = (%(a,b) f k. \<forall>e>0. (\<exists>\<delta>. gauge {a..b} \<delta> &
                                (\<forall>D. fine \<delta> (a,b) D -->
@@ -272,60 +294,69 @@ done
 text{*The integral is unique if it exists*}
 
 lemma Integral_unique:
-    "[| a \<le> b; Integral(a,b) f k1; Integral(a,b) f k2 |] ==> k1 = k2"
-apply (simp add: Integral_def)
-apply (drule_tac x = "\<bar>k1 - k2\<bar> /2" in spec)+
-apply auto
-apply (drule gauge_min, assumption)
-apply (drule_tac \<delta> = "%x. min (\<delta> x) (\<delta>' x)"
-       in fine_exists, assumption, auto)
-apply (drule fine_min)
-apply (drule spec)+
-apply auto
-apply (subgoal_tac "\<bar>(rsum D f - k2) - (rsum D f - k1)\<bar> < \<bar>k1 - k2\<bar>")
-apply arith
-apply (drule add_strict_mono, assumption)
-apply (auto simp only: left_distrib [symmetric] mult_2_right [symmetric] 
-                mult_less_cancel_right)
+  assumes le: "a \<le> b"
+  assumes 1: "Integral (a, b) f k1"
+  assumes 2: "Integral (a, b) f k2"
+  shows "k1 = k2"
+proof (rule ccontr)
+  assume "k1 \<noteq> k2"
+  hence e: "0 < \<bar>k1 - k2\<bar> / 2" by simp
+  obtain d1 where "gauge {a..b} d1" and
+    d1: "\<forall>D. fine d1 (a, b) D \<longrightarrow> \<bar>rsum D f - k1\<bar> < \<bar>k1 - k2\<bar> / 2"
+    using 1 e by (rule IntegralE)
+  obtain d2 where "gauge {a..b} d2" and
+    d2: "\<forall>D. fine d2 (a, b) D \<longrightarrow> \<bar>rsum D f - k2\<bar> < \<bar>k1 - k2\<bar> / 2"
+    using 2 e by (rule IntegralE)
+  have "gauge {a..b} (\<lambda>x. min (d1 x) (d2 x))"
+    using `gauge {a..b} d1` and `gauge {a..b} d2`
+    by (rule gauge_min)
+  then obtain D where "fine (\<lambda>x. min (d1 x) (d2 x)) (a, b) D"
+    using fine_exists [OF le] by fast
+  hence "fine d1 (a, b) D" and "fine d2 (a, b) D"
+    by (auto dest: fine_min)
+  hence "\<bar>rsum D f - k1\<bar> < \<bar>k1 - k2\<bar> / 2" and "\<bar>rsum D f - k2\<bar> < \<bar>k1 - k2\<bar> / 2"
+    using d1 d2 by simp_all
+  hence "\<bar>rsum D f - k1\<bar> + \<bar>rsum D f - k2\<bar> < \<bar>k1 - k2\<bar> / 2 + \<bar>k1 - k2\<bar> / 2"
+    by (rule add_strict_mono)
+  thus False by auto
+qed
+
+lemma Integral_zero: "Integral(a,a) f 0"
+apply (rule IntegralI)
+apply (rule_tac x = "\<lambda>x. 1" in exI)
+apply (simp add: fine_same_iff gauge_def)
 done
 
-lemma Integral_zero [simp]: "Integral(a,a) f 0"
-apply (auto simp add: Integral_def)
-apply (rule_tac x = "%x. 1" in exI)
-apply (auto dest: fine_eq simp add: gauge_def rsum_def)
+lemma Integral_same_iff [simp]: "Integral (a, a) f k \<longleftrightarrow> k = 0"
+  by (auto intro: Integral_zero Integral_unique)
+
+lemma Integral_zero_fun: "Integral (a,b) (\<lambda>x. 0) 0"
+apply (rule IntegralI)
+apply (rule_tac x="\<lambda>x. 1" in exI, simp add: gauge_def)
 done
 
 lemma fine_rsum_const: "fine \<delta> (a,b) D \<Longrightarrow> rsum D (\<lambda>x. c) = (c * (b - a))"
 unfolding rsum_def
 by (induct set: fine, auto simp add: algebra_simps)
 
-lemma Integral_eq_diff_bounds: "a \<le> b ==> Integral(a,b) (%x. 1) (b - a)"
+lemma Integral_mult_const: "a \<le> b \<Longrightarrow> Integral(a,b) (\<lambda>x. c) (c * (b - a))"
 apply (cases "a = b", simp)
-apply (simp add: Integral_def, clarify)
-apply (rule_tac x = "%x. b - a" in exI)
+apply (rule IntegralI)
+apply (rule_tac x = "\<lambda>x. b - a" in exI)
 apply (rule conjI, simp add: gauge_def)
 apply (clarify)
 apply (subst fine_rsum_const, assumption, simp)
 done
 
-lemma Integral_mult_const: "a \<le> b ==> Integral(a,b) (%x. c)  (c*(b - a))"
-apply (cases "a = b", simp)
-apply (simp add: Integral_def, clarify)
-apply (rule_tac x = "%x. b - a" in exI)
-apply (rule conjI, simp add: gauge_def)
-apply (clarify)
-apply (subst fine_rsum_const, assumption, simp)
-done
+lemma Integral_eq_diff_bounds: "a \<le> b \<Longrightarrow> Integral(a,b) (\<lambda>x. 1) (b - a)"
+  using Integral_mult_const [of a b 1] by simp
 
 lemma Integral_mult:
      "[| a \<le> b; Integral(a,b) f k |] ==> Integral(a,b) (%x. c * f x) (c * k)"
-apply (auto simp add: order_le_less
-            dest: Integral_unique [OF order_refl Integral_zero])
-apply (auto simp add: Integral_def setsum_right_distrib[symmetric] mult_assoc)
-apply (case_tac "c = 0", force)
-apply (drule_tac x = "e/abs c" in spec)
-apply (simp add: divide_pos_pos)
-apply clarify
+apply (auto simp add: order_le_less)
+apply (cases "c = 0", simp add: Integral_zero_fun)
+apply (rule IntegralI)
+apply (erule_tac e="e / \<bar>c\<bar>" in IntegralE, simp add: divide_pos_pos)
 apply (rule_tac x="\<delta>" in exI, clarify)
 apply (drule_tac x="D" in spec, clarify)
 apply (simp add: pos_less_divide_eq abs_mult [symmetric]
@@ -337,22 +368,20 @@ lemma Integral_add:
   assumes "Integral (b, c) f x2"
   assumes "a \<le> b" and "b \<le> c"
   shows "Integral (a, c) f (x1 + x2)"
-proof (cases "a < b \<and> b < c", simp only: Integral_def split_conv, rule allI, rule impI)
+proof (cases "a < b \<and> b < c", rule IntegralI)
   fix \<epsilon> :: real assume "0 < \<epsilon>"
   hence "0 < \<epsilon> / 2" by auto
 
   assume "a < b \<and> b < c"
   hence "a < b" and "b < c" by auto
 
-  from `Integral (a, b) f x1`[simplified Integral_def split_conv,
-                              rule_format, OF `0 < \<epsilon>/2`]
   obtain \<delta>1 where \<delta>1_gauge: "gauge {a..b} \<delta>1"
-    and I1: "\<And> D. fine \<delta>1 (a,b) D \<Longrightarrow> \<bar> rsum D f - x1 \<bar> < (\<epsilon> / 2)" by auto
+    and I1: "\<And> D. fine \<delta>1 (a,b) D \<Longrightarrow> \<bar> rsum D f - x1 \<bar> < (\<epsilon> / 2)"
+    using IntegralE [OF `Integral (a, b) f x1` `0 < \<epsilon>/2`] by auto
 
-  from `Integral (b, c) f x2`[simplified Integral_def split_conv,
-                              rule_format, OF `0 < \<epsilon>/2`]
   obtain \<delta>2 where \<delta>2_gauge: "gauge {b..c} \<delta>2"
-    and I2: "\<And> D. fine \<delta>2 (b,c) D \<Longrightarrow> \<bar> rsum D f - x2 \<bar> < (\<epsilon> / 2)" by auto
+    and I2: "\<And> D. fine \<delta>2 (b,c) D \<Longrightarrow> \<bar> rsum D f - x2 \<bar> < (\<epsilon> / 2)"
+    using IntegralE [OF `Integral (b, c) f x2` `0 < \<epsilon>/2`] by auto
 
   def \<delta> \<equiv> "\<lambda> x. if x < b then min (\<delta>1 x) (b - x)
            else if x = b then min (\<delta>1 b) (\<delta>2 b)
@@ -360,6 +389,7 @@ proof (cases "a < b \<and> b < c", simp only: Integral_def split_conv, rule allI
 
   have "gauge {a..c} \<delta>"
     using \<delta>1_gauge \<delta>2_gauge unfolding \<delta>_def gauge_def by auto
+
   moreover {
     fix D :: "(real \<times> real \<times> real) list"
     assume fine: "fine \<delta> (a,c) D"
@@ -462,12 +492,12 @@ next
   thus ?thesis
   proof (rule disjE)
     assume "a = b" hence "x1 = 0"
-      using `Integral (a, b) f x1` Integral_zero Integral_unique[of a b] by auto
-    thus ?thesis using `a = b` `Integral (b, c) f x2` by auto
+      using `Integral (a, b) f x1` by simp
+    thus ?thesis using `a = b` `Integral (b, c) f x2` by simp
   next
     assume "b = c" hence "x2 = 0"
-      using `Integral (b, c) f x2` Integral_zero Integral_unique[of b c] by auto
-    thus ?thesis using `b = c` `Integral (a, b) f x1` by auto
+      using `Integral (b, c) f x2` by simp
+    thus ?thesis using `b = c` `Integral (a, b) f x1` by simp
   qed
 qed
 
@@ -486,7 +516,7 @@ apply (drule_tac x = z in spec)
 apply (rule_tac z1 = "\<bar>inverse (z - x)\<bar>" 
        in real_mult_le_cancel_iff2 [THEN iffD1])
  apply simp
-apply (simp del: abs_inverse abs_mult add: abs_mult [symmetric]
+apply (simp del: abs_inverse add: abs_mult [symmetric]
           mult_assoc [symmetric])
 apply (subgoal_tac "inverse (z - x) * (f z - f x - f' x * (z - x)) 
                     = (f z - f x) / (z - x) - f' x")
@@ -543,31 +573,51 @@ proof -
 qed
 
 lemma fundamental_theorem_of_calculus:
-  "\<lbrakk> a \<le> b; \<forall>x. a \<le> x & x \<le> b --> DERIV f x :> f'(x) \<rbrakk>
-             \<Longrightarrow> Integral(a,b) f' (f(b) - f(a))"
- apply (drule order_le_imp_less_or_eq, auto)
- apply (auto simp add: Integral_def2)
- apply (drule_tac e = "e / (b - a)" in lemma_straddle)
-  apply (simp add: divide_pos_pos)
- apply clarify
- apply (rule_tac x="g" in exI, clarify)
- apply (clarsimp simp add: rsum_def)
- apply (frule fine_listsum_eq_diff [where f=f])
- apply (erule subst)
- apply (subst listsum_subtractf [symmetric])
- apply (rule listsum_abs [THEN order_trans])
- apply (subst map_map [unfolded o_def])
- apply (subgoal_tac "e = (\<Sum>(u, x, v)\<leftarrow>D. (e / (b - a)) * (v - u))")
-  apply (erule ssubst)
-  apply (simp add: abs_minus_commute)
-  apply (rule listsum_mono)
-  apply (clarify, rename_tac u x v)
-  apply ((drule spec)+, erule mp)
-  apply (simp add: mem_fine mem_fine2 mem_fine3)
- apply (frule fine_listsum_eq_diff [where f="\<lambda>x. x"])
- apply (simp only: split_def)
- apply (subst listsum_const_mult)
- apply simp
-done
+  assumes "a \<le> b"
+  assumes f': "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> DERIV f x :> f'(x)"
+  shows "Integral (a, b) f' (f(b) - f(a))"
+proof (cases "a = b")
+  assume "a = b" thus ?thesis by simp
+next
+  assume "a \<noteq> b" with `a \<le> b` have "a < b" by simp
+  show ?thesis
+  proof (simp add: Integral_def2, clarify)
+    fix e :: real assume "0 < e"
+    with `a < b` have "0 < e / (b - a)" by (simp add: divide_pos_pos)
+
+    from lemma_straddle [OF f' this]
+    obtain \<delta> where "gauge {a..b} \<delta>"
+      and \<delta>: "\<And>x u v. \<lbrakk>a \<le> u; u \<le> x; x \<le> v; v \<le> b; v - u < \<delta> x\<rbrakk> \<Longrightarrow>
+           \<bar>f v - f u - f' x * (v - u)\<bar> \<le> e * (v - u) / (b - a)" by auto
+
+    have "\<forall>D. fine \<delta> (a, b) D \<longrightarrow> \<bar>rsum D f' - (f b - f a)\<bar> \<le> e"
+    proof (clarify)
+      fix D assume D: "fine \<delta> (a, b) D"
+      hence "(\<Sum>(u, x, v)\<leftarrow>D. f v - f u) = f b - f a"
+        by (rule fine_listsum_eq_diff)
+      hence "\<bar>rsum D f' - (f b - f a)\<bar> = \<bar>rsum D f' - (\<Sum>(u, x, v)\<leftarrow>D. f v - f u)\<bar>"
+        by simp
+      also have "\<dots> = \<bar>(\<Sum>(u, x, v)\<leftarrow>D. f v - f u) - rsum D f'\<bar>"
+        by (rule abs_minus_commute)
+      also have "\<dots> = \<bar>\<Sum>(u, x, v)\<leftarrow>D. (f v - f u) - f' x * (v - u)\<bar>"
+        by (simp only: rsum_def listsum_subtractf split_def)
+      also have "\<dots> \<le> (\<Sum>(u, x, v)\<leftarrow>D. \<bar>(f v - f u) - f' x * (v - u)\<bar>)"
+        by (rule ord_le_eq_trans [OF listsum_abs], simp add: o_def split_def)
+      also have "\<dots> \<le> (\<Sum>(u, x, v)\<leftarrow>D. (e / (b - a)) * (v - u))"
+        apply (rule listsum_mono, clarify, rename_tac u x v)
+        using D apply (simp add: \<delta> mem_fine mem_fine2 mem_fine3)
+        done
+      also have "\<dots> = e"
+        using fine_listsum_eq_diff [OF D, where f="\<lambda>x. x"]
+        unfolding split_def listsum_const_mult
+        using `a < b` by simp
+      finally show "\<bar>rsum D f' - (f b - f a)\<bar> \<le> e" .
+    qed
+
+    with `gauge {a..b} \<delta>`
+    show "\<exists>\<delta>. gauge {a..b} \<delta> \<and> (\<forall>D. fine \<delta> (a, b) D \<longrightarrow> \<bar>rsum D f' - (f b - f a)\<bar> \<le> e)"
+      by auto
+  qed
+qed
 
 end
