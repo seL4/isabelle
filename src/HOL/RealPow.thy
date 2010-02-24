@@ -113,9 +113,6 @@ subsection {*Various Other Theorems*}
 lemma real_le_add_half_cancel: "(x + y/2 \<le> (y::real)) = (x \<le> y /2)"
 by auto
 
-lemma real_minus_half_eq [simp]: "(x::real) - x/2 = x/2"
-by auto
-
 lemma real_mult_inverse_cancel:
      "[|(0::real) < x; 0 < x1; x1 * y < x * u |] 
       ==> inverse x * y < inverse x1 * u"
