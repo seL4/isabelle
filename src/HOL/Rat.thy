@@ -1020,7 +1020,8 @@ definition Frct :: "int \<times> int \<Rightarrow> rat" where
 
 code_abstype Frct quotient_of
 proof (rule eq_reflection)
-  show "Frct (quotient_of x) = x" by (cases x) (auto intro: quotient_of_eq)
+  fix r :: rat
+  show "Frct (quotient_of r) = r" by (cases r) (auto intro: quotient_of_eq)
 qed
 
 lemma Frct_code_post [code_post]:

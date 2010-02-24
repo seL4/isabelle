@@ -422,8 +422,9 @@ fun abstype_cert thy abs_ty rep =
           ^ " :: " ^ string_of_typ thy ty');
     val _ = Thm.cterm_of thy (Const (rep, ty_abs --> ty)) handle TYPE _ =>
       error ("Not a projection:\n" ^ string_of_const thy rep);
-    val cert = Logic.mk_equals (Const (abs, ty --> ty_abs) $ (Const (rep, ty_abs --> ty)
-      $ Free ("x", ty_abs)), Free ("x", ty_abs));
+    val param = Free ("x", ty_abs);
+    val cert = Logic.all param (Logic.mk_equals
+      (Const (abs, ty --> ty_abs) $ (Const (rep, ty_abs --> ty) $ param), param));
   in (tyco, (vs ~~ sorts, ((fst abs_ty, ty), (rep, cert)))) end;    
 
 fun get_type_entry thy tyco = case these (Symtab.lookup ((the_types o the_exec) thy) tyco)
