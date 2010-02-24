@@ -164,6 +164,7 @@ fun same (Const (k, xs)) (Const (l, ys)) = k = l andalso sames xs ys
   | same _ _ = false
 and sames xs ys = length xs = length ys andalso forall (uncurry same) (xs ~~ ys);
 
+
 (* constructor functions *)
 
 fun abss n f = Abs ((n, f), []);
@@ -213,6 +214,7 @@ fun ml_fundefs ([(name, [([], e)])]) =
         |> suffix "\n"
       end;
 
+
 (* nbe specific syntax and sandbox communication *)
 
 val univs_ref = Unsynchronized.ref (NONE : (unit -> Univ list -> Univ list) option);
@@ -254,6 +256,7 @@ fun nbe_same v1 v2 = "(" ^ name_same ^ " " ^ nbe_bound v1 ^ " " ^ nbe_bound v2 ^
 end;
 
 open Basic_Code_Thingol;
+
 
 (* code generation *)
 
@@ -330,7 +333,7 @@ fun assemble_eqnss idx_of deps eqnss =
         val match_cont = if is_eval then NONE else SOME default_rhs;
         val assemble_arg = assemble_iterm
           (fn c => fn _ => fn ts => nbe_apps_constr idx_of c ts) NONE;
-        val assemble_rhs = assemble_iterm assemble_constapp match_cont ;
+        val assemble_rhs = assemble_iterm assemble_constapp match_cont;
         val (samepairs, args') = subst_nonlin_vars args;
         val s_args = map assemble_arg args';
         val s_rhs = if null samepairs then assemble_rhs rhs
@@ -356,6 +359,7 @@ fun assemble_eqnss idx_of deps eqnss =
     val (fun_vars, fun_vals) = map_split assemble_eqns eqnss';
     val deps_vars = ml_list (map (nbe_fun 0) deps);
   in ml_abs deps_vars (ml_Let (ml_fundefs (flat fun_vars)) (ml_list fun_vals)) end;
+
 
 (* code compilation *)
 
@@ -457,6 +461,7 @@ fun eval_term ctxt gr deps (vs : (string * sort) list, t) =
     |> (fn t => apps t (rev dict_frees))
   end;
 
+
 (* reification *)
 
 fun typ_of_itype program vs (ityco `%% itys) =
@@ -480,9 +485,9 @@ fun term_of_univ thy program idx_tab t =
       | is_dict (DFree _) = true
       | is_dict _ = false;
     fun const_of_idx idx = (case (Graph.get_node program o the o Inttab.lookup idx_tab) idx
-         of Code_Thingol.Fun (c, _) => c
-          | Code_Thingol.Datatypecons (c, _) => c
-          | Code_Thingol.Classparam (c, _) => c);
+     of Code_Thingol.Fun (c, _) => c
+      | Code_Thingol.Datatypecons (c, _) => c
+      | Code_Thingol.Classparam (c, _) => c);
     fun of_apps bounds (t, ts) =
       fold_map (of_univ bounds) ts
       #>> (fn ts' => list_comb (t, rev ts'))
@@ -503,6 +508,7 @@ fun term_of_univ thy program idx_tab t =
           |-> (fn t' => pair (Term.Abs ("u", dummyT, t')))
   in of_univ 0 t 0 |> fst end;
 
+
 (* function store *)
 
 structure Nbe_Functions = Code_Data
@@ -510,6 +516,7 @@ structure Nbe_Functions = Code_Data
   type T = Code_Thingol.naming * ((Univ option * int) Graph.T * (int * string Inttab.table));
   val empty = (Code_Thingol.empty_naming, (Graph.empty, (0, Inttab.empty)));
 );
+
 
 (* compilation, evaluation and reification *)
 
@@ -523,6 +530,7 @@ fun compile_eval thy naming program vs_t deps =
     |> eval_term ctxt gr deps
     |> term_of_univ thy program idx_tab
   end;
+
 
 (* evaluation with type reconstruction *)
 
@@ -592,6 +600,7 @@ val norm_conv = no_frees_conv (fn ct =>
   in lift_triv_classes_conv thy (Code_Thingol.eval_conv thy (norm_oracle thy)) ct end);
 
 fun norm thy = lift_triv_classes_rew thy (no_frees_rew (Code_Thingol.eval thy I (normalize thy)));
+
 
 (* evaluation command *)
 
