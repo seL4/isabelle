@@ -1430,12 +1430,6 @@ nitpick [expect = none]
 apply intro_classes
 done
 
-lemma "OFCLASS('a, classB_class)"
-nitpick [expect = none]
-apply intro_classes
-apply simp
-done
-
 lemma "OFCLASS('a\<Colon>type, classC_class)"
 nitpick [expect = genuine]
 oops
