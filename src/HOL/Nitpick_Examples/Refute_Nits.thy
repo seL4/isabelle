@@ -1418,10 +1418,6 @@ lemma "P (x\<Colon>'a\<Colon>classE)"
 nitpick [expect = genuine]
 oops
 
-lemma "P (x\<Colon>'a\<Colon>{classB, classE})"
-nitpick [expect = genuine]
-oops
-
 text {* OFCLASS: *}
 
 lemma "OFCLASS('a\<Colon>type, type_class)"
