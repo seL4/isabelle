@@ -64,10 +64,8 @@ class factorial = "domain" +
 subsection {* Euclidean domains *}
 
 (*
-axclass
-  euclidean < "domain"
-
-  euclidean_ax:  "b ~= 0 ==> Ex (% (q, r, e_size::('a::ringS)=>nat).
+class euclidean = "domain" +
+  assumes euclidean_ax: "b ~= 0 ==> Ex (% (q, r, e_size::('a::ringS)=>nat).
                    a = b * q + r & e_size r < e_size b)"
 
   Nothing has been proved about Euclidean domains, yet.
