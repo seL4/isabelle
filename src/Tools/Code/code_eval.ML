@@ -144,7 +144,7 @@ end; (*local*)
 
 val _ = ML_Context.add_antiq "code" (fn _ => Args.term >> ml_code_antiq);
 val _ = ML_Context.add_antiq "code_datatype" (fn _ =>
-  (Args.tyname --| Scan.lift (Args.$$$ "=")
+  (Args.type_name true --| Scan.lift (Args.$$$ "=")
     -- (Args.term ::: Scan.repeat (Scan.lift (Args.$$$ "|") |-- Args.term)))
       >> ml_code_datatype_antiq);
 

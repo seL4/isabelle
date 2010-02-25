@@ -52,7 +52,7 @@ sig
   val infer_type: Proof.context -> string -> typ
   val inferred_param: string -> Proof.context -> typ * Proof.context
   val inferred_fixes: Proof.context -> (string * typ) list * Proof.context
-  val read_tyname: Proof.context -> string -> typ
+  val read_type_name: Proof.context -> bool -> string -> typ
   val read_const_proper: Proof.context -> string -> term
   val read_const: Proof.context -> string -> term
   val allow_dummies: Proof.context -> Proof.context
@@ -414,7 +414,7 @@ fun prep_const_proper ctxt (c, pos) =
 
 in
 
-fun read_tyname ctxt str =
+fun read_type_name ctxt strict str =
   let
     val thy = theory_of ctxt;
     val (c, pos) = token_content str;
@@ -425,8 +425,15 @@ fun read_tyname ctxt str =
     else
       let
         val d = Sign.intern_type thy c;
+        val decl = Sign.the_type_decl thy d;
         val _ = Position.report (Markup.tycon d) pos;
-      in Type (d, replicate (Sign.arity_number thy d) dummyT) end
+        fun err () = error ("Bad type name: " ^ quote d);
+        val args =
+          (case decl of
+            Type.LogicalType n => n
+          | Type.Abbreviation (vs, _, _) => if strict then err () else length vs
+          | Type.Nonterminal => if strict then err () else 0);
+      in Type (d, replicate args dummyT) end
   end;
 
 fun read_const_proper ctxt = prep_const_proper ctxt o token_content;
