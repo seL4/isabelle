@@ -63,29 +63,29 @@ fun collect_single_report single_report
 (* quickcheck configuration -- default parameters, test generators *)
 
 datatype test_params = Test_Params of
-  { size: int, iterations: int, default_type: typ option, no_assms: bool, report: bool};
+  { size: int, iterations: int, default_type: typ option, no_assms: bool, report: bool, quiet : bool};
 
-fun dest_test_params (Test_Params { size, iterations, default_type, no_assms, report }) =
-  ((size, iterations), ((default_type, no_assms), report));
-fun make_test_params ((size, iterations), ((default_type, no_assms), report)) =
+fun dest_test_params (Test_Params { size, iterations, default_type, no_assms, report, quiet }) =
+  ((size, iterations), ((default_type, no_assms), (report, quiet)));
+fun make_test_params ((size, iterations), ((default_type, no_assms), (report, quiet))) =
   Test_Params { size = size, iterations = iterations, default_type = default_type,
-                no_assms = no_assms, report = report };
-fun map_test_params f (Test_Params { size, iterations, default_type, no_assms, report }) =
-  make_test_params (f ((size, iterations), ((default_type, no_assms), report)));
+                no_assms = no_assms, report = report, quiet = quiet };
+fun map_test_params f (Test_Params { size, iterations, default_type, no_assms, report, quiet }) =
+  make_test_params (f ((size, iterations), ((default_type, no_assms), (report, quiet))));
 fun merge_test_params (Test_Params { size = size1, iterations = iterations1, default_type = default_type1,
-                                     no_assms = no_assms1, report = report1 },
+                                     no_assms = no_assms1, report = report1, quiet = quiet1 },
   Test_Params { size = size2, iterations = iterations2, default_type = default_type2,
-                no_assms = no_assms2, report = report2 }) =
+                no_assms = no_assms2, report = report2, quiet = quiet2 }) =
   make_test_params ((Int.max (size1, size2), Int.max (iterations1, iterations2)),
     ((case default_type1 of NONE => default_type2 | _ => default_type1, no_assms1 orelse no_assms2),
-    report1 orelse report2));
+    (report1 orelse report2, quiet1 orelse quiet2)));
 
 structure Data = Theory_Data
 (
   type T = (string * (Proof.context -> bool -> term -> int -> term list option * (bool list * bool))) list
     * test_params;
   val empty = ([], Test_Params
-    { size = 10, iterations = 100, default_type = NONE, no_assms = false, report = false});
+    { size = 10, iterations = 100, default_type = NONE, no_assms = false, report = false, quiet = false});
   val extend = I;
   fun merge ((generators1, params1), (generators2, params2)) : T =
     (AList.merge (op =) (K true) (generators1, generators2),
@@ -244,7 +244,7 @@ fun auto_quickcheck state =
     let
       val ctxt = Proof.context_of state;
       val assms = map term_of (Assumption.all_assms_of ctxt);
-      val Test_Params { size, iterations, default_type, no_assms, report } =
+      val Test_Params { size, iterations, default_type, no_assms, report, quiet } =
         (snd o Data.get o Proof.theory_of) state;
       val res =
         try (test_goal true false NONE size iterations default_type no_assms [] 1 assms) state;
@@ -278,7 +278,9 @@ fun parse_test_param ctxt ("size", arg) =
   | parse_test_param ctxt ("no_assms", arg) =
       (apsnd o apfst o apsnd o K) (read_bool arg)
   | parse_test_param ctxt ("report", arg) =
-      (apsnd o apsnd o K) (read_bool arg)
+      (apsnd o apsnd o apfst o K) (read_bool arg)
+  | parse_test_param ctxt ("quiet", arg) =
+      (apsnd o apsnd o apsnd o K) (read_bool arg)
   | parse_test_param ctxt (name, _) =
       error ("Unknown test parameter: " ^ name);
 
@@ -306,10 +308,10 @@ fun gen_quickcheck args i state =
     val assms = map term_of (Assumption.all_assms_of ctxt);
     val default_params = (dest_test_params o snd o Data.get) thy;
     val f = fold (parse_test_param_inst ctxt) args;
-    val (((size, iterations), ((default_type, no_assms), report)), (generator_name, insts)) =
+    val (((size, iterations), ((default_type, no_assms), (report, quiet))), (generator_name, insts)) =
       f (default_params, (NONE, []));
   in
-    test_goal false report generator_name size iterations default_type no_assms insts i assms state
+    test_goal quiet report generator_name size iterations default_type no_assms insts i assms state
   end;
 
 fun quickcheck args i state = fst (gen_quickcheck args i state)
