@@ -78,7 +78,7 @@ fun calc_axioms
           (dc_abs oo (copy_of_dtyp map_tab r (dtyp_of_eq eqn)) oo dc_rep))
       end;
 
-(* -- definitions concerning the discriminators and selectors - *)
+(* -- definitions concerning the discriminators - *)
 
     val dis_defs = let
       fun ddef (con,_,_) = (dis_name con ^"_def",%%:(dis_name con) == 
@@ -115,13 +115,6 @@ fun calc_axioms
           end
       in map pdef cons end;
 
-    val sel_defs = let
-      fun sdef con n arg = Option.map (fn sel => (sel^"_def",%%:sel == 
-                                                            list_ccomb(%%:(dname^"_when"),map 
-                                                                                            (fn (con', _, args) => if con'<>con then UU else
-                                                                                                               List.foldr /\# (Bound (length args - n)) args) cons))) (sel_of arg);
-    in map_filter I (maps (fn (con, _, args) => mapn (sdef con) 1 args) cons) end;
-
 
 (* ----- axiom and definitions concerning induction ------------------------- *)
 
@@ -141,7 +134,7 @@ fun calc_axioms
   in (dnam,
       (if definitional then [] else [abs_iso_ax, rep_iso_ax, reach_ax]),
       (if definitional then [when_def] else [when_def, copy_def]) @
-      dis_defs @ mat_defs @ pat_defs @ sel_defs @
+      dis_defs @ mat_defs @ pat_defs @
       [take_def, finite_def])
   end; (* let (calc_axioms) *)
 

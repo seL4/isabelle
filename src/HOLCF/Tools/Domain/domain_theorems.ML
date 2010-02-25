@@ -161,6 +161,7 @@ in
   val axs_dis_def = map (get_def dis_name) cons;
   val axs_mat_def = map (get_def mat_name) cons;
   val axs_pat_def = map (get_def pat_name) cons;
+(*
   val axs_sel_def =
     let
       fun def_of_sel sel = ga (sel^"_def") dname;
@@ -169,6 +170,7 @@ in
     in
       maps defs_of_con cons
     end;
+*)
   val ax_copy_def = ga "copy_def" dname;
 end; (* local *)
 
@@ -196,6 +198,7 @@ val (result, thy) =
     (rep_const, abs_const) (ax_rep_iso, ax_abs_iso) thy;
 
 val axs_con_def = #con_defs result;
+val sel_rews = #sel_rews result;
 
 (* ----- theorems concerning the isomorphism -------------------------------- *)
 
@@ -471,79 +474,6 @@ in
   val _ = trace " Proving con_compacts...";
   val con_compacts = map con_compact cons;
 end;
-
-local
-  fun one_sel sel =
-    pg axs_sel_def (mk_trp (strict (%%:sel)))
-      (K [simp_tac (HOLCF_ss addsimps when_rews) 1]);
-
-  fun sel_strict (_, _, args) =
-    map_filter (Option.map one_sel o sel_of) args;
-in
-  val _ = trace " Proving sel_stricts...";
-  val sel_stricts = maps sel_strict cons;
-end;
-
-local
-  fun sel_app_same c n sel (con, args) =
-    let
-      val nlas = nonlazy args;
-      val vns = map vname args;
-      val vnn = List.nth (vns, n);
-      val nlas' = filter (fn v => v <> vnn) nlas;
-      val lhs = (%%:sel)`(con_app con args);
-      val goal = lift_defined %: (nlas', mk_trp (lhs === %:vnn));
-      fun tacs1 ctxt =
-        if vnn mem nlas
-                        (* FIXME! case_UU_tac *)
-        then [case_UU_tac ctxt (when_rews @ con_stricts) 1 vnn]
-        else [];
-      val tacs2 = [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
-    in pg axs_sel_def goal (fn ctxt => (tacs1 ctxt @ tacs2)) end;
-
-  fun sel_app_diff c n sel (con, args) =
-    let
-      val nlas = nonlazy args;
-      val goal = mk_trp (%%:sel ` con_app con args === UU);
-                        (* FIXME! case_UU_tac *)
-      fun tacs1 ctxt = map (case_UU_tac ctxt (when_rews @ con_stricts) 1) nlas;
-      val tacs2 = [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
-    in pg axs_sel_def goal (fn ctxt => (tacs1 ctxt @ tacs2)) end;
-
-  fun sel_app c n sel (con, _, args) =
-    if con = c
-    then sel_app_same c n sel (con, args)
-    else sel_app_diff c n sel (con, args);
-
-  fun one_sel c n sel = map (sel_app c n sel) cons;
-  fun one_sel' c n arg = Option.map (one_sel c n) (sel_of arg);
-  fun one_con (c, _, args) =
-    flat (map_filter I (mapn (one_sel' c) 0 args));
-in
-  val _ = trace " Proving sel_apps...";
-  val sel_apps = maps one_con cons;
-end;
-
-local
-  fun sel_defin sel =
-    let
-      val goal = defined (%:x_name) ==> defined (%%:sel`%x_name);
-      val tacs = [
-        rtac casedist 1,
-        contr_tac 1,
-        DETERM_UNTIL_SOLVED (CHANGED
-          (asm_simp_tac (HOLCF_ss addsimps sel_apps) 1))];
-    in pg [] goal (K tacs) end;
-in
-  val _ = trace " Proving sel_defins...";
-  val sel_defins =
-    if length cons = 1
-    then map_filter (fn arg => Option.map sel_defin (sel_of arg))
-                 (filter_out is_lazy (third (hd cons)))
-    else [];
-end;
-
-val sel_rews = sel_stricts @ sel_defins @ sel_apps;
 
 val _ = trace " Proving dist_les...";
 val dist_les =

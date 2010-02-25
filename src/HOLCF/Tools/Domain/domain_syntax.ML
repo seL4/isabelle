@@ -86,9 +86,6 @@ fun calc_syntax thy
           (mat_name_ con,
            mk_matT(dtype, map third args, freetvar "t" 1),
            Mixfix(escape ("match_" ^ Binding.name_of con), [], Syntax.max_pri));
-      fun sel1 (_,sel,typ) =
-          Option.map (fn s => (s,dtype ->> typ,NoSyn)) sel;
-      fun sel (con,args,mx) = map_filter sel1 args;
       fun mk_patT (a,b)     = a ->> mk_maybeT b;
       fun pat_arg_typ n arg = mk_patT (third arg, freetvar "t" n);
       fun pat (con,args,mx) =
@@ -101,7 +98,6 @@ fun calc_syntax thy
     val consts_dis = map dis cons';
     val consts_mat = map mat cons';
     val consts_pat = map pat cons';
-    val consts_sel = maps sel cons';
     end;
 
 (* ----- constants concerning induction ------------------------------------- *)
@@ -169,7 +165,7 @@ fun calc_syntax thy
         if definitional then [] else [const_rep, const_abs, const_copy];
 
   in (optional_consts @ [const_when] @ 
-      consts_dis @ consts_mat @ consts_pat @ consts_sel @
+      consts_dis @ consts_mat @ consts_pat @
       [const_take, const_finite],
       (case_trans false :: case_trans true :: (abscon_trans false @ abscon_trans true @ Case_trans)))
   end; (* let *)

@@ -229,6 +229,24 @@ lemmas con_below_iff_rules =
 lemmas con_eq_iff_rules =
   sinl_eq sinr_eq sinl_eq_sinr sinr_eq_sinl con_defined_iff_rules
 
+lemmas sel_strict_rules =
+  cfcomp2 sscase1 sfst_strict ssnd_strict fup1
+
+lemma sel_app_extra_rules:
+  "sscase\<cdot>ID\<cdot>\<bottom>\<cdot>(sinr\<cdot>x) = \<bottom>"
+  "sscase\<cdot>ID\<cdot>\<bottom>\<cdot>(sinl\<cdot>x) = x"
+  "sscase\<cdot>\<bottom>\<cdot>ID\<cdot>(sinl\<cdot>x) = \<bottom>"
+  "sscase\<cdot>\<bottom>\<cdot>ID\<cdot>(sinr\<cdot>x) = x"
+  "fup\<cdot>ID\<cdot>(up\<cdot>x) = x"
+by (cases "x = \<bottom>", simp, simp)+
+
+lemmas sel_app_rules =
+  sel_strict_rules sel_app_extra_rules
+  ssnd_spair sfst_spair up_defined spair_defined
+
+lemmas sel_defined_iff_rules =
+  cfcomp2 sfst_defined_iff ssnd_defined_iff
+
 use "Tools/cont_consts.ML"
 use "Tools/cont_proc.ML"
 use "Tools/Domain/domain_constructors.ML"
