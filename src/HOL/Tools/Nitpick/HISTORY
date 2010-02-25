@@ -5,6 +5,8 @@ Version 2010
   * Added support for quotient types
   * Added support for local definitions
   * Optimized "Multiset.multiset"
+  * Improved precision of infinite datatypes whose constructors don't appear
+    in the formula to falsify based on a monotonicity analysis
   * Fixed soundness bugs related to "destroy_constrs" optimization and record
     getters
   * Renamed "MiniSatJNI", "zChaffJNI", "BerkMinAlloy", and "SAT4JLight" to

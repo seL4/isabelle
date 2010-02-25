@@ -30,8 +30,7 @@ val hol_ctxt : Nitpick_HOL.hol_context =
    special_funs = Unsynchronized.ref [], unrolled_preds = Unsynchronized.ref [],
    wf_cache = Unsynchronized.ref [], constr_cache = Unsynchronized.ref []}
 (* term -> bool *)
-val is_mono = Nitpick_Mono.formulas_monotonic hol_ctxt false @{typ 'a}
-                                              Nitpick_Mono.Plus [] []
+val is_mono = Nitpick_Mono.formulas_monotonic hol_ctxt false @{typ 'a} [] []
 fun is_const t =
   let val T = fastype_of t in
     is_mono (Logic.mk_implies (Logic.mk_equals (Free ("dummyP", T), t),

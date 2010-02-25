@@ -332,21 +332,36 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
 *)
 
     val unique_scope = forall (curry (op =) 1 o length o snd) cards_assigns
+    (* typ list -> string -> string *)
+    fun monotonicity_message Ts extra =
+      let val ss = map (quote o string_for_type ctxt) Ts in
+        "The type" ^ plural_s_for_list ss ^ " " ^
+        space_implode " " (serial_commas "and" ss) ^ " " ^
+        (if none_true monos then
+           "passed the monotonicity test"
+         else
+           (if length ss = 1 then "is" else "are") ^ " considered monotonic") ^
+        ". " ^ extra
+      end
     (* typ -> bool *)
     fun is_type_always_monotonic T =
       (is_datatype thy stds T andalso not (is_quot_type thy T) andalso
        (not (is_pure_typedef thy T) orelse is_univ_typedef thy T)) orelse
       is_number_type thy T orelse is_bit_type T
+    fun is_type_actually_monotonic T =
+      formulas_monotonic hol_ctxt binarize T (def_ts, nondef_ts, core_t)
     fun is_type_monotonic T =
       unique_scope orelse
       case triple_lookup (type_match thy) monos T of
         SOME (SOME b) => b
-      | _ => is_type_always_monotonic T orelse
-             formulas_monotonic hol_ctxt binarize T (def_ts, nondef_ts, core_t)
-    fun is_deep_datatype T =
-      is_datatype thy stds T andalso
-      (not standard orelse T = nat_T orelse is_word_type T orelse
-       exists (curry (op =) T o domain_type o type_of) sel_names)
+      | _ => is_type_always_monotonic T orelse is_type_actually_monotonic T
+    fun is_type_finitizable T =
+      case triple_lookup (type_match thy) monos T of
+        SOME (SOME false) => false
+      | _ => is_type_actually_monotonic T
+    fun is_datatype_deep T =
+      not standard orelse T = nat_T orelse is_word_type T orelse
+      exists (curry (op =) T o domain_type o type_of) sel_names
     val all_Ts = ground_types_in_terms hol_ctxt binarize
                                        (core_t :: def_ts @ nondef_ts)
                  |> sort TermOrd.typ_ord
@@ -363,23 +378,21 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         case filter_out is_type_always_monotonic mono_Ts of
           [] => ()
         | interesting_mono_Ts =>
-          print_v (fn () =>
-                      let
-                        val ss = map (quote o string_for_type ctxt)
-                                     interesting_mono_Ts
-                      in
-                        "The type" ^ plural_s_for_list ss ^ " " ^
-                        space_implode " " (serial_commas "and" ss) ^ " " ^
-                        (if none_true monos then
-                           "passed the monotonicity test"
-                         else
-                           (if length ss = 1 then "is" else "are") ^
-                           " considered monotonic") ^
-                        ". Nitpick might be able to skip some scopes."
-                      end)
+          print_v (K (monotonicity_message interesting_mono_Ts
+                         "Nitpick might be able to skip some scopes."))
       else
         ()
-    val deep_dataTs = filter is_deep_datatype all_Ts
+    val (deep_dataTs, shallow_dataTs) =
+      all_Ts |> filter (is_datatype thy stds) |> List.partition is_datatype_deep
+    val finitizable_dataTs =
+      shallow_dataTs |> filter_out (is_finite_type hol_ctxt)
+                     |> filter is_type_finitizable
+    val _ =
+      if verbose andalso not (null finitizable_dataTs) then
+        print_v (K (monotonicity_message finitizable_dataTs
+                        "Nitpick can use a more precise finite encoding."))
+      else
+        ()
     (* This detection code is an ugly hack. Fortunately, it is used only to
        provide a hint to the user. *)
     (* string * (Rule_Cases.T * bool) -> bool *)
@@ -446,7 +459,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                                        string_of_int j0))
                          (Typtab.dest ofs)
 *)
-        val all_exact = forall (is_exact_type datatypes) all_Ts
+        val all_exact = forall (is_exact_type datatypes true) all_Ts
         (* nut list -> rep NameTable.table -> nut list * rep NameTable.table *)
         val repify_consts = choose_reps_for_consts scope all_exact
         val main_j0 = offset_of_type ofs bool_T
@@ -907,6 +920,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val (skipped, the_scopes) =
       all_scopes hol_ctxt binarize sym_break cards_assigns maxes_assigns
                  iters_assigns bitss bisim_depths mono_Ts nonmono_Ts deep_dataTs
+                 finitizable_dataTs
     val _ = if skipped > 0 then
               print_m (fn () => "Too many scopes. Skipping " ^
                                 string_of_int skipped ^ " scope" ^

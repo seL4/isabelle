@@ -255,10 +255,10 @@ fun tabulate_built_in_rel debug univ_card nat_card int_card j0 (x as (n, _)) =
      ("int_divide", tabulate_int_op2 debug univ_card (int_card, j0) isa_div)
    else if x = nat_less_rel then
      ("nat_less", tabulate_nat_op2 debug univ_card (nat_card, j0)
-                                   (int_for_bool o op <))
+                                   (int_from_bool o op <))
    else if x = int_less_rel then
      ("int_less", tabulate_int_op2 debug univ_card (int_card, j0)
-                                   (int_for_bool o op <))
+                                   (int_from_bool o op <))
    else if x = gcd_rel then
      ("gcd", tabulate_nat_op2 debug univ_card (nat_card, j0) isa_gcd)
    else if x = lcm_rel then

@@ -126,7 +126,7 @@ val lcm_rel = (3, 11)
 val norm_frac_rel = (4, 0)
 
 (* int -> bool -> rel_expr *)
-fun atom_for_bool j0 = Atom o Integer.add j0 o int_for_bool
+fun atom_for_bool j0 = Atom o Integer.add j0 o int_from_bool
 (* bool -> formula *)
 fun formula_for_bool b = if b then True else False
 

@@ -151,7 +151,7 @@ sig
   val card_of_type : (typ * int) list -> typ -> int
   val bounded_card_of_type : int -> int -> (typ * int) list -> typ -> int
   val bounded_exact_card_of_type :
-    hol_context -> int -> int -> (typ * int) list -> typ -> int
+    hol_context -> typ list -> int -> int -> (typ * int) list -> typ -> int
   val is_finite_type : hol_context -> typ -> bool
   val special_bounds : term list -> (indexname * typ) list
   val is_funky_typedef : theory -> typ -> bool
@@ -1047,13 +1047,16 @@ fun bounded_card_of_type max default_card assigns (Type ("fun", [T1, T2])) =
                     card_of_type assigns T
                     handle TYPE ("Nitpick_HOL.card_of_type", _, _) =>
                            default_card)
-(* hol_context -> int -> (typ * int) list -> typ -> int *)
-fun bounded_exact_card_of_type hol_ctxt max default_card assigns T =
+(* hol_context -> typ list -> int -> (typ * int) list -> typ -> int *)
+fun bounded_exact_card_of_type hol_ctxt finitizable_dataTs max default_card
+                               assigns T =
   let
     (* typ list -> typ -> int *)
     fun aux avoid T =
       (if member (op =) avoid T then
          0
+       else if member (op =) finitizable_dataTs T then
+         raise SAME ()
        else case T of
          Type ("fun", [T1, T2]) =>
          let
@@ -1097,7 +1100,7 @@ fun bounded_exact_card_of_type hol_ctxt max default_card assigns T =
 
 (* hol_context -> typ -> bool *)
 fun is_finite_type hol_ctxt T =
-  bounded_exact_card_of_type hol_ctxt 1 2 [] T <> 0
+  bounded_exact_card_of_type hol_ctxt [] 1 2 [] T <> 0
 
 (* term -> bool *)
 fun is_ground_term (t1 $ t2) = is_ground_term t1 andalso is_ground_term t2

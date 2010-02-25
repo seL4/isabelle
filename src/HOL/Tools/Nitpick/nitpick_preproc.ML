@@ -168,7 +168,6 @@ and coerce_term (hol_ctxt as {thy, stds, fast_descrs, ...}) Ts new_T old_T t =
     | (Type (new_s, new_Ts as [new_T1, new_T2]),
        Type (old_s, old_Ts as [old_T1, old_T2])) =>
       if old_s = @{type_name fun_box} orelse
-         old_s = @{type_name fin_fun} orelse
          old_s = @{type_name pair_box} orelse old_s = "*" then
         case constr_expand hol_ctxt old_T t of
           Const (old_s, _) $ t1 =>

@@ -20,7 +20,9 @@ sig
   val nitpick_prefix : string
   val curry3 : ('a * 'b * 'c -> 'd) -> 'a -> 'b -> 'c -> 'd
   val pairf : ('a -> 'b) -> ('a -> 'c) -> 'a -> 'b * 'c
-  val int_for_bool : bool -> int
+  val pair_from_fun : (bool -> 'a) -> 'a * 'a
+  val fun_from_pair : 'a * 'a -> bool -> 'a
+  val int_from_bool : bool -> int
   val nat_minus : int -> int -> int
   val reasonable_power : int -> int -> int
   val exact_log : int -> int -> int
@@ -84,8 +86,13 @@ fun curry3 f = fn x => fn y => fn z => f (x, y, z)
 (* ('a -> 'b) -> ('a -> 'c) -> 'a -> 'b * 'c *)
 fun pairf f g x = (f x, g x)
 
+(* (bool -> 'a) -> 'a * 'a *)
+fun pair_from_fun f = (f false, f true)
+(* 'a * 'a -> bool -> 'a *)
+fun fun_from_pair (f, t) b = if b then t else f
+
 (* bool -> int *)
-fun int_for_bool b = if b then 1 else 0
+fun int_from_bool b = if b then 1 else 0
 (* int -> int -> int *)
 fun nat_minus i j = if i > j then i - j else 0
 
