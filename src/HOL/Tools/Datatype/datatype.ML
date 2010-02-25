@@ -75,7 +75,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     val leafTs' = get_nonrec_types descr' sorts;
     val branchTs = get_branching_types descr' sorts;
     val branchT = if null branchTs then HOLogic.unitT
-      else Balanced_Tree.make (fn (T, U) => Type ("+", [T, U])) branchTs;
+      else Balanced_Tree.make (fn (T, U) => Type (@{type_name "+"}, [T, U])) branchTs;
     val arities = remove (op =) 0 (get_arities descr');
     val unneeded_vars =
       subtract (op =) (List.foldr OldTerm.add_typ_tfree_names [] (leafTs' @ branchTs)) (hd tyvars);
@@ -83,7 +83,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     val recTs = get_rec_types descr' sorts;
     val (newTs, oldTs) = chop (length (hd descr)) recTs;
     val sumT = if null leafTs then HOLogic.unitT
-      else Balanced_Tree.make (fn (T, U) => Type ("+", [T, U])) leafTs;
+      else Balanced_Tree.make (fn (T, U) => Type (@{type_name "+"}, [T, U])) leafTs;
     val Univ_elT = HOLogic.mk_setT (Type (node_name, [sumT, branchT]));
     val UnivT = HOLogic.mk_setT Univ_elT;
     val UnivT' = Univ_elT --> HOLogic.boolT;
@@ -104,9 +104,9 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
               val Type (_, [T1, T2]) = T
           in
             if i <= n2 then
-              Const (@{const_name "Sum_Type.Inl"}, T1 --> T) $ (mk_inj' T1 n2 i)
+              Const (@{const_name Inl}, T1 --> T) $ (mk_inj' T1 n2 i)
             else
-              Const (@{const_name "Sum_Type.Inr"}, T2 --> T) $ (mk_inj' T2 (n - n2) (i - n2))
+              Const (@{const_name Inr}, T2 --> T) $ (mk_inj' T2 (n - n2) (i - n2))
           end
       in mk_inj' sumT (length leafTs) (1 + find_index (fn T'' => T'' = T') leafTs)
       end;

@@ -53,7 +53,7 @@ fun prove_casedist_thms (config : config) new_type_names descr sorts induct case
     fun prove_casedist_thm (i, (T, t)) =
       let
         val dummyPs = map (fn (Var (_, Type (_, [T', T'']))) =>
-          Abs ("z", T', Const ("True", T''))) induct_Ps;
+          Abs ("z", T', Const (@{const_name True}, T''))) induct_Ps;
         val P = Abs ("z", T, HOLogic.imp $ HOLogic.mk_eq (Var (("a", maxidx+1), T), Bound 0) $
           Var (("P", 0), HOLogic.boolT))
         val insts = take i dummyPs @ (P::(drop (i + 1) dummyPs));
@@ -200,7 +200,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
     val rec_unique_thms =
       let
         val rec_unique_ts = map (fn (((set_t, T1), T2), i) =>
-          Const ("Ex1", (T2 --> HOLogic.boolT) --> HOLogic.boolT) $
+          Const (@{const_name Ex1}, (T2 --> HOLogic.boolT) --> HOLogic.boolT) $
             absfree ("y", T2, set_t $ mk_Free "x" T1 i $ Free ("y", T2)))
               (rec_sets ~~ recTs ~~ rec_result_Ts ~~ (1 upto length recTs));
         val cert = cterm_of thy1
@@ -236,7 +236,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
           (reccomb_names ~~ recTs ~~ rec_result_Ts))
       |> (PureThy.add_defs false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
           (Binding.name (Long_Name.base_name name ^ "_def"), Logic.mk_equals (comb, absfree ("x", T,
-           Const ("The", (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
+           Const (@{const_name The}, (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
              set $ Free ("x", T) $ Free ("y", T'))))))
                (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts))
       ||> Sign.parent_path
@@ -416,7 +416,7 @@ fun prove_case_congs new_type_names descr sorts nchotomys case_thms thy =
     fun prove_case_cong ((t, nchotomy), case_rewrites) =
       let
         val (Const ("==>", _) $ tm $ _) = t;
-        val (Const ("Trueprop", _) $ (Const ("op =", _) $ _ $ Ma)) = tm;
+        val (Const (@{const_name Trueprop}, _) $ (Const (@{const_name "op ="}, _) $ _ $ Ma)) = tm;
         val cert = cterm_of thy;
         val nchotomy' = nchotomy RS spec;
         val [v] = Term.add_vars (concl_of nchotomy') [];

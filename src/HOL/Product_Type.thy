@@ -448,44 +448,44 @@ text {*
 *}
 
 ML {*
-
 local
-  val cond_split_eta_ss = HOL_basic_ss addsimps [thm "cond_split_eta"]
-  fun  Pair_pat k 0 (Bound m) = (m = k)
-  |    Pair_pat k i (Const ("Pair",  _) $ Bound m $ t) = i > 0 andalso
-                        m = k+i andalso Pair_pat k (i-1) t
-  |    Pair_pat _ _ _ = false;
-  fun no_args k i (Abs (_, _, t)) = no_args (k+1) i t
-  |   no_args k i (t $ u) = no_args k i t andalso no_args k i u
-  |   no_args k i (Bound m) = m < k orelse m > k+i
-  |   no_args _ _ _ = true;
-  fun split_pat tp i (Abs  (_,_,t)) = if tp 0 i t then SOME (i,t) else NONE
-  |   split_pat tp i (Const ("split", _) $ Abs (_, _, t)) = split_pat tp (i+1) t
-  |   split_pat tp i _ = NONE;
+  val cond_split_eta_ss = HOL_basic_ss addsimps @{thms cond_split_eta};
+  fun Pair_pat k 0 (Bound m) = (m = k)
+    | Pair_pat k i (Const (@{const_name Pair},  _) $ Bound m $ t) =
+        i > 0 andalso m = k + i andalso Pair_pat k (i - 1) t
+    | Pair_pat _ _ _ = false;
+  fun no_args k i (Abs (_, _, t)) = no_args (k + 1) i t
+    | no_args k i (t $ u) = no_args k i t andalso no_args k i u
+    | no_args k i (Bound m) = m < k orelse m > k + i
+    | no_args _ _ _ = true;
+  fun split_pat tp i (Abs  (_, _, t)) = if tp 0 i t then SOME (i, t) else NONE
+    | split_pat tp i (Const (@{const_name split}, _) $ Abs (_, _, t)) = split_pat tp (i + 1) t
+    | split_pat tp i _ = NONE;
   fun metaeq ss lhs rhs = mk_meta_eq (Goal.prove (Simplifier.the_context ss) [] []
-        (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs,rhs)))
+        (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs)))
         (K (simp_tac (Simplifier.inherit_context ss cond_split_eta_ss) 1)));
 
-  fun beta_term_pat k i (Abs (_, _, t)) = beta_term_pat (k+1) i t
-  |   beta_term_pat k i (t $ u) = Pair_pat k i (t $ u) orelse
-                        (beta_term_pat k i t andalso beta_term_pat k i u)
-  |   beta_term_pat k i t = no_args k i t;
-  fun  eta_term_pat k i (f $ arg) = no_args k i f andalso Pair_pat k i arg
-  |    eta_term_pat _ _ _ = false;
+  fun beta_term_pat k i (Abs (_, _, t)) = beta_term_pat (k + 1) i t
+    | beta_term_pat k i (t $ u) =
+        Pair_pat k i (t $ u) orelse (beta_term_pat k i t andalso beta_term_pat k i u)
+    | beta_term_pat k i t = no_args k i t;
+  fun eta_term_pat k i (f $ arg) = no_args k i f andalso Pair_pat k i arg
+    | eta_term_pat _ _ _ = false;
   fun subst arg k i (Abs (x, T, t)) = Abs (x, T, subst arg (k+1) i t)
-  |   subst arg k i (t $ u) = if Pair_pat k i (t $ u) then incr_boundvars k arg
-                              else (subst arg k i t $ subst arg k i u)
-  |   subst arg k i t = t;
-  fun beta_proc ss (s as Const ("split", _) $ Abs (_, _, t) $ arg) =
+    | subst arg k i (t $ u) =
+        if Pair_pat k i (t $ u) then incr_boundvars k arg
+        else (subst arg k i t $ subst arg k i u)
+    | subst arg k i t = t;
+  fun beta_proc ss (s as Const (@{const_name split}, _) $ Abs (_, _, t) $ arg) =
         (case split_pat beta_term_pat 1 t of
-        SOME (i,f) => SOME (metaeq ss s (subst arg 0 i f))
+          SOME (i, f) => SOME (metaeq ss s (subst arg 0 i f))
         | NONE => NONE)
-  |   beta_proc _ _ = NONE;
-  fun eta_proc ss (s as Const ("split", _) $ Abs (_, _, t)) =
+    | beta_proc _ _ = NONE;
+  fun eta_proc ss (s as Const (@{const_name split}, _) $ Abs (_, _, t)) =
         (case split_pat eta_term_pat 1 t of
-          SOME (_,ft) => SOME (metaeq ss s (let val (f $ arg) = ft in f end))
+          SOME (_, ft) => SOME (metaeq ss s (let val (f $ arg) = ft in f end))
         | NONE => NONE)
-  |   eta_proc _ _ = NONE;
+    | eta_proc _ _ = NONE;
 in
   val split_beta_proc = Simplifier.simproc @{theory} "split_beta" ["split f z"] (K beta_proc);
   val split_eta_proc = Simplifier.simproc @{theory} "split_eta" ["split f"] (K eta_proc);
@@ -565,11 +565,11 @@ declare mem_splitE [elim!] splitE' [elim!] splitE [elim!]
 
 ML {*
 local (* filtering with exists_p_split is an essential optimization *)
-  fun exists_p_split (Const ("split",_) $ _ $ (Const ("Pair",_)$_$_)) = true
+  fun exists_p_split (Const (@{const_name split},_) $ _ $ (Const (@{const_name Pair},_)$_$_)) = true
     | exists_p_split (t $ u) = exists_p_split t orelse exists_p_split u
     | exists_p_split (Abs (_, _, t)) = exists_p_split t
     | exists_p_split _ = false;
-  val ss = HOL_basic_ss addsimps [thm "split_conv"];
+  val ss = HOL_basic_ss addsimps @{thms split_conv};
 in
 val split_conv_tac = SUBGOAL (fn (t, i) =>
     if exists_p_split t then safe_full_simp_tac ss i else no_tac);
@@ -634,10 +634,11 @@ where
 lemma internal_split_conv: "internal_split c (a, b) = c a b"
   by (simp only: internal_split_def split_conv)
 
-hide const internal_split
-
 use "Tools/split_rule.ML"
 setup SplitRule.setup
+
+hide const internal_split
+
 
 lemmas prod_caseI = prod.cases [THEN iffD2, standard]
 
@@ -1049,7 +1050,6 @@ consts_code
   "Pair"    ("(_,/ _)")
 
 setup {*
-
 let
 
 fun strip_abs_split 0 t = ([], t)
@@ -1058,16 +1058,18 @@ fun strip_abs_split 0 t = ([], t)
         val s' = Codegen.new_name t s;
         val v = Free (s', T)
       in apfst (cons v) (strip_abs_split (i-1) (subst_bound (v, t))) end
-  | strip_abs_split i (u as Const ("split", _) $ t) = (case strip_abs_split (i+1) t of
+  | strip_abs_split i (u as Const (@{const_name split}, _) $ t) =
+      (case strip_abs_split (i+1) t of
         (v :: v' :: vs, u) => (HOLogic.mk_prod (v, v') :: vs, u)
       | _ => ([], u))
   | strip_abs_split i t =
       strip_abs_split i (Abs ("x", hd (binder_types (fastype_of t)), t $ Bound 0));
 
-fun let_codegen thy defs dep thyname brack t gr = (case strip_comb t of
-    (t1 as Const ("Let", _), t2 :: t3 :: ts) =>
+fun let_codegen thy defs dep thyname brack t gr =
+  (case strip_comb t of
+    (t1 as Const (@{const_name Let}, _), t2 :: t3 :: ts) =>
     let
-      fun dest_let (l as Const ("Let", _) $ t $ u) =
+      fun dest_let (l as Const (@{const_name Let}, _) $ t $ u) =
           (case strip_abs_split 1 u of
              ([p], u') => apfst (cons (p, t)) (dest_let u')
            | _ => ([], l))
@@ -1098,7 +1100,7 @@ fun let_codegen thy defs dep thyname brack t gr = (case strip_comb t of
   | _ => NONE);
 
 fun split_codegen thy defs dep thyname brack t gr = (case strip_comb t of
-    (t1 as Const ("split", _), t2 :: ts) =>
+    (t1 as Const (@{const_name split}, _), t2 :: ts) =>
       let
         val ([p], u) = strip_abs_split 1 (t1 $ t2);
         val (q, gr1) = Codegen.invoke_codegen thy defs dep thyname false p gr;

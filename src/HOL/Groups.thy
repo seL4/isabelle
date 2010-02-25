@@ -1250,7 +1250,7 @@ val sum_pats = [@{cterm "x + y::'a::ab_group_add"}, @{cterm "x - y::'a::ab_group
 val eqI_rules = [@{thm less_eqI}, @{thm le_eqI}, @{thm eq_eqI}];
 
 val dest_eqI = 
-  fst o HOLogic.dest_bin "op =" HOLogic.boolT o HOLogic.dest_Trueprop o concl_of;
+  fst o HOLogic.dest_bin @{const_name "op ="} HOLogic.boolT o HOLogic.dest_Trueprop o concl_of;
 
 );
 *}

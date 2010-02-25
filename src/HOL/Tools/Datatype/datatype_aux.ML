@@ -120,8 +120,8 @@ fun store_thms label tnames = store_thms_atts label tnames (replicate (length tn
 fun split_conj_thm th =
   ((th RS conjunct1)::(split_conj_thm (th RS conjunct2))) handle THM _ => [th];
 
-val mk_conj = foldr1 (HOLogic.mk_binop "op &");
-val mk_disj = foldr1 (HOLogic.mk_binop "op |");
+val mk_conj = foldr1 (HOLogic.mk_binop @{const_name "op &"});
+val mk_disj = foldr1 (HOLogic.mk_binop @{const_name "op |"});
 
 fun app_bnds t i = list_comb (t, map Bound (i - 1 downto 0));
 

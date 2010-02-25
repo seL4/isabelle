@@ -183,7 +183,7 @@ fun mk_mono thm =
   in
     case concl_of thm of
       Const ("==", _) $ _ $ _ => eq2mono (thm RS meta_eq_to_obj_eq)
-    | _ $ (Const ("op =", _) $ _ $ _) => eq2mono thm
+    | _ $ (Const (@{const_name "op ="}, _) $ _ $ _) => eq2mono thm
     | _ $ (Const (@{const_name Orderings.less_eq}, _) $ _ $ _) =>
       dest_less_concl (Seq.hd (REPEAT (FIRSTGOAL
         (resolve_tac [@{thm le_funI}, @{thm le_boolI'}])) thm))
@@ -300,7 +300,7 @@ fun check_rule ctxt cs params ((binding, att), rule) =
       else err_in_prem ctxt err_name rule prem "Non-atomic premise";
   in
     (case concl of
-       Const ("Trueprop", _) $ t =>
+       Const (@{const_name Trueprop}, _) $ t =>
          if head_of t mem cs then
            (check_ind (err_in_rule ctxt err_name rule') t;
             List.app check_prem (prems ~~ aprems))

@@ -21,7 +21,7 @@ fun name_of_thm thm =
     [name] => name
   | _ => error ("name_of_thm: bad proof of theorem\n" ^ Display.string_of_thm_without_context thm));
 
-val all_simps = map (symmetric o mk_meta_eq) (thms "HOL.all_simps");
+val all_simps = map (symmetric o mk_meta_eq) @{thms HOL.all_simps};
 
 fun prf_of thm =
   let
@@ -57,7 +57,7 @@ fun strip_one name (Const ("all", _) $ Abs (s, T, Const ("==>", _) $ P $ Q)) =
 
 fun relevant_vars prop = List.foldr (fn
       (Var ((a, i), T), vs) => (case strip_type T of
-        (_, Type (s, _)) => if s mem ["bool"] then (a, T) :: vs else vs
+        (_, Type (s, _)) => if s mem [@{type_name bool}] then (a, T) :: vs else vs
       | _ => vs)
     | (_, vs) => vs) [] (OldTerm.term_vars prop);
 
@@ -150,9 +150,10 @@ fun fun_of_prem thy rsets vs params rule ivs intr =
 
     fun is_meta (Const ("all", _) $ Abs (s, _, P)) = is_meta P
       | is_meta (Const ("==>", _) $ _ $ Q) = is_meta Q
-      | is_meta (Const ("Trueprop", _) $ t) = (case head_of t of
-          Const (s, _) => can (Inductive.the_inductive ctxt) s
-        | _ => true)
+      | is_meta (Const (@{const_name Trueprop}, _) $ t) =
+          (case head_of t of
+            Const (s, _) => can (Inductive.the_inductive ctxt) s
+          | _ => true)
       | is_meta _ = false;
 
     fun fun_of ts rts args used (prem :: prems) =
@@ -174,7 +175,7 @@ fun fun_of_prem thy rsets vs params rule ivs intr =
                     (Free (r, U) :: Free (x, T) :: args) (x :: r :: used) prems'
                 end
               else (case strip_type T of
-                  (Ts, Type ("*", [T1, T2])) =>
+                  (Ts, Type (@{type_name "*"}, [T1, T2])) =>
                     let
                       val fx = Free (x, Ts ---> T1);
                       val fr = Free (r, Ts ---> T2);
@@ -211,8 +212,9 @@ fun indrule_realizer thy induct raw_induct rsets params vs rec_names rss intrs d
       let
         val fs = map (fn (rule, (ivs, intr)) =>
           fun_of_prem thy rsets vs params rule ivs intr) (prems ~~ intrs)
-      in if dummy then Const ("HOL.default_class.default",
-          HOLogic.unitT --> body_type (fastype_of (hd fs))) :: fs
+      in
+        if dummy then Const (@{const_name default},
+            HOLogic.unitT --> body_type (fastype_of (hd fs))) :: fs
         else fs
       end) (premss ~~ dummies);
     val frees = fold Term.add_frees fs [];
@@ -439,7 +441,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
         val r = if null Ps then Extraction.nullt
           else list_abs (map (pair "x") Ts, list_comb (Const (case_name, T),
             (if dummy then
-               [Abs ("x", HOLogic.unitT, Const ("HOL.default_class.default", body_type T))]
+               [Abs ("x", HOLogic.unitT, Const (@{const_name default}, body_type T))]
              else []) @
             map reorder2 (intrs ~~ (length prems - 1 downto 0)) @
             [Bound (length prems)]));

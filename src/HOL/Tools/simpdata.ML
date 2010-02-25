@@ -10,11 +10,11 @@ Instantiation of the generic simplifier for HOL.
 structure Quantifier1 = Quantifier1Fun
 (struct
   (*abstract syntax*)
-  fun dest_eq ((c as Const("op =",_)) $ s $ t) = SOME (c, s, t)
+  fun dest_eq ((c as Const(@{const_name "op ="},_)) $ s $ t) = SOME (c, s, t)
     | dest_eq _ = NONE;
-  fun dest_conj ((c as Const("op &",_)) $ s $ t) = SOME (c, s, t)
+  fun dest_conj ((c as Const(@{const_name "op &"},_)) $ s $ t) = SOME (c, s, t)
     | dest_conj _ = NONE;
-  fun dest_imp ((c as Const("op -->",_)) $ s $ t) = SOME (c, s, t)
+  fun dest_imp ((c as Const(@{const_name "op -->"},_)) $ s $ t) = SOME (c, s, t)
     | dest_imp _ = NONE;
   val conj = HOLogic.conj
   val imp  = HOLogic.imp
@@ -43,9 +43,9 @@ fun safe_mk_meta_eq r = mk_meta_eq r handle Thm.THM _ => r;
 
 fun mk_eq th = case concl_of th
   (*expects Trueprop if not == *)
-  of Const ("==",_) $ _ $ _ => th
-   | _ $ (Const ("op =", _) $ _ $ _) => mk_meta_eq th
-   | _ $ (Const ("Not", _) $ _) => th RS @{thm Eq_FalseI}
+  of Const (@{const_name "=="},_) $ _ $ _ => th
+   | _ $ (Const (@{const_name "op ="}, _) $ _ $ _) => mk_meta_eq th
+   | _ $ (Const (@{const_name "Not"}, _) $ _) => th RS @{thm Eq_FalseI}
    | _ => th RS @{thm Eq_TrueI}
 
 fun mk_eq_True r =
@@ -57,7 +57,7 @@ fun mk_eq_True r =
 
 fun lift_meta_eq_to_obj_eq i st =
   let
-    fun count_imp (Const ("HOL.simp_implies", _) $ P $ Q) = 1 + count_imp Q
+    fun count_imp (Const (@{const_name HOL.simp_implies}, _) $ P $ Q) = 1 + count_imp Q
       | count_imp _ = 0;
     val j = count_imp (Logic.strip_assums_concl (List.nth (prems_of st, i - 1)))
   in if j = 0 then @{thm meta_eq_to_obj_eq}
@@ -65,7 +65,7 @@ fun lift_meta_eq_to_obj_eq i st =
       let
         val Ps = map (fn k => Free ("P" ^ string_of_int k, propT)) (1 upto j);
         fun mk_simp_implies Q = fold_rev (fn R => fn S =>
-          Const ("HOL.simp_implies", propT --> propT --> propT) $ R $ S) Ps Q
+          Const (@{const_name HOL.simp_implies}, propT --> propT --> propT) $ R $ S) Ps Q
         val aT = TFree ("'a", HOLogic.typeS);
         val x = Free ("x", aT);
         val y = Free ("y", aT)
@@ -98,7 +98,7 @@ fun mk_atomize pairs =
           else Variable.trade (K (fn [thm'] => res thm' rls)) (Variable.thm_context thm) [thm];
       in
         case concl_of thm
-          of Const ("Trueprop", _) $ p => (case head_of p
+          of Const (@{const_name Trueprop}, _) $ p => (case head_of p
             of Const (a, _) => (case AList.lookup (op =) pairs a
               of SOME rls => (maps atoms (res_fixed rls) handle THM _ => [thm])
               | NONE => [thm])
@@ -159,9 +159,12 @@ val _ = ML_Antiquote.value "clasimpset"
   (Scan.succeed "Clasimp.clasimpset_of (ML_Context.the_local_context ())");
 
 val mksimps_pairs =
-  [("op -->", [@{thm mp}]), ("op &", [@{thm conjunct1}, @{thm conjunct2}]),
-   ("All", [@{thm spec}]), ("True", []), ("False", []),
-   ("HOL.If", [@{thm if_bool_eq_conj} RS @{thm iffD1}])];
+ [(@{const_name "op -->"}, [@{thm mp}]),
+  (@{const_name "op &"}, [@{thm conjunct1}, @{thm conjunct2}]),
+  (@{const_name All}, [@{thm spec}]),
+  (@{const_name True}, []),
+  (@{const_name False}, []),
+  (@{const_name If}, [@{thm if_bool_eq_conj} RS @{thm iffD1}])];
 
 val HOL_basic_ss =
   Simplifier.global_context @{theory} empty_ss

@@ -16,10 +16,11 @@ struct
 
 open Datatype_Aux;
 
-fun subsets i j = if i <= j then
-       let val is = subsets (i+1) j
-       in map (fn ks => i::ks) is @ is end
-     else [[]];
+fun subsets i j =
+  if i <= j then
+    let val is = subsets (i+1) j
+    in map (fn ks => i::ks) is @ is end
+  else [[]];
 
 fun forall_intr_prf (t, prf) =
   let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
@@ -102,7 +103,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
         if i mem is then SOME
           (list_comb (Const (s, fTs ---> T --> U), rec_fns) $ Free (tname, T))
         else NONE) (descr ~~ recTs ~~ rec_result_Ts ~~ rec_names ~~ tnames));
-    val concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop "op &")
+    val concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop @{const_name "op &"})
       (map (fn ((((i, _), T), U), tname) =>
         make_pred i U T (mk_proj i is r) (Free (tname, T)))
           (descr ~~ recTs ~~ rec_result_Ts ~~ tnames)));
@@ -129,8 +130,8 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
 
     val ivs = rev (Term.add_vars (Logic.varify (Datatype_Prop.make_ind [descr] sorts)) []);
     val rvs = rev (Thm.fold_terms Term.add_vars thm' []);
-    val ivs1 = map Var (filter_out (fn (_, T) =>
-      tname_of (body_type T) mem ["set", "bool"]) ivs);
+    val ivs1 = map Var (filter_out (fn (_, T) =>  (* FIXME set (!??) *)
+      tname_of (body_type T) mem [@{type_abbrev set}, @{type_name bool}]) ivs);
     val ivs2 = map (fn (ixn, _) => Var (ixn, the (AList.lookup (op =) rvs ixn))) ivs;
 
     val prf =
