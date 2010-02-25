@@ -635,7 +635,7 @@ lemma internal_split_conv: "internal_split c (a, b) = c a b"
   by (simp only: internal_split_def split_conv)
 
 use "Tools/split_rule.ML"
-setup SplitRule.setup
+setup Split_Rule.setup
 
 hide const internal_split
 
