@@ -9,7 +9,11 @@ val HOLCF_ss = @{simpset};
 
 signature DOMAIN_THEOREMS =
 sig
-  val theorems: Domain_Library.eq * Domain_Library.eq list -> theory -> thm list * theory;
+  val theorems:
+    Domain_Library.eq * Domain_Library.eq list
+    -> typ * (binding * (bool * binding option * typ) list * mixfix) list
+    -> theory -> thm list * theory;
+
   val comp_theorems: bstring * Domain_Library.eq list -> theory -> thm list * theory;
   val quiet_mode: bool Unsynchronized.ref;
   val trace_domain: bool Unsynchronized.ref;
@@ -135,11 +139,13 @@ val all2E = @{lemma "!x y . P x y ==> (P x y ==> R) ==> R" by simp}
 
 val dist_eqI = @{lemma "!!x::'a::po. ~ x << y ==> x ~= y" by (blast dest!: below_antisym_inverse)}
 
-fun theorems (((dname, _), cons) : eq, eqs : eq list) thy =
+fun theorems
+    (((dname, _), cons) : eq, eqs : eq list)
+    (dom_eqn : typ * (binding * (bool * binding option * typ) list * mixfix) list)
+    (thy : theory) =
 let
 
 val _ = message ("Proving isomorphism properties of domain "^dname^" ...");
-val pg = pg' thy;
 val map_tab = Domain_Isomorphism.get_map_tab thy;
 
 
@@ -152,7 +158,6 @@ in
   val ax_rep_iso  = ga "rep_iso"  dname;
   val ax_when_def = ga "when_def" dname;
   fun get_def mk_name (con, _, _) = ga (mk_name con^"_def") dname;
-  val axs_con_def = map (get_def extern_name) cons;
   val axs_dis_def = map (get_def dis_name) cons;
   val axs_mat_def = map (get_def mat_name) cons;
   val axs_pat_def = map (get_def pat_name) cons;
@@ -167,7 +172,34 @@ in
   val ax_copy_def = ga "copy_def" dname;
 end; (* local *)
 
+(* ----- define constructors ------------------------------------------------ *)
+
+val lhsT = fst dom_eqn;
+
+val rhsT =
+  let
+    fun mk_arg_typ (lazy, sel, T) = if lazy then mk_uT T else T;
+    fun mk_con_typ (bind, args, mx) =
+        if null args then oneT else foldr1 mk_sprodT (map mk_arg_typ args);
+    fun mk_eq_typ (_, cons) = foldr1 mk_ssumT (map mk_con_typ cons);
+  in
+    mk_eq_typ dom_eqn
+  end;
+
+val rep_const = Const(dname^"_rep", lhsT ->> rhsT);
+
+val abs_const = Const(dname^"_abs", rhsT ->> lhsT);
+
+val (result, thy) =
+  Domain_Constructors.add_domain_constructors
+    (Long_Name.base_name dname) dom_eqn
+    (rep_const, abs_const) (ax_rep_iso, ax_abs_iso) thy;
+
+val axs_con_def = #con_defs result;
+
 (* ----- theorems concerning the isomorphism -------------------------------- *)
+
+val pg = pg' thy;
 
 val dc_abs  = %%:(dname^"_abs");
 val dc_rep  = %%:(dname^"_rep");
@@ -711,7 +743,9 @@ in
   val axs_take_def   = map (ga "take_def"  ) dnames;
   val axs_finite_def = map (ga "finite_def") dnames;
   val ax_copy2_def   =      ga "copy_def"  comp_dnam;
+(* TEMPORARILY DISABLED
   val ax_bisim_def   =      ga "bisim_def" comp_dnam;
+TEMPORARILY DISABLED *)
 end;
 
 local
@@ -1031,6 +1065,7 @@ end; (* local *)
 
 (* ----- theorem concerning coinduction ------------------------------------- *)
 
+(* COINDUCTION TEMPORARILY DISABLED
 local
   val xs = mapn (fn n => K (x_name n)) 1 dnames;
   fun bnd_arg n i = Bound(2*(n_eqs - n)-i-1);
@@ -1081,6 +1116,7 @@ in
         take_lemmas;
     in pg [] goal (K tacs) end;
 end; (* local *)
+COINDUCTION TEMPORARILY DISABLED *)
 
 val inducts = Project_Rule.projections (ProofContext.init thy) ind;
 fun ind_rule (dname, rule) = ((Binding.empty, [rule]), [Induct.induct_type dname]);
@@ -1092,8 +1128,8 @@ in thy |> Sign.add_path comp_dnam
            ((Binding.name "take_lemmas", take_lemmas ), []),
            ((Binding.name "finites"    , finites     ), []),
            ((Binding.name "finite_ind" , [finite_ind]), []),
-           ((Binding.name "ind"        , [ind]       ), []),
-           ((Binding.name "coind"      , [coind]     ), [])]
+           ((Binding.name "ind"        , [ind]       ), [])(*,
+           ((Binding.name "coind"      , [coind]     ), [])*)]
        |> (if induct_failed then I
            else snd o PureThy.add_thmss (map ind_rule (dnames ~~ inducts)))
        |> Sign.parent_path |> pair take_rews

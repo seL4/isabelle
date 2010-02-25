@@ -78,19 +78,8 @@ fun calc_axioms
           (dc_abs oo (copy_of_dtyp map_tab r (dtyp_of_eq eqn)) oo dc_rep))
       end;
 
-(* -- definitions concerning the constructors, discriminators and selectors - *)
+(* -- definitions concerning the discriminators and selectors - *)
 
-    fun con_def m n (_,args) = let
-      fun idxs z x arg = (if is_lazy arg then mk_up else I) (Bound(z-x));
-      fun parms vs = mk_stuple (mapn (idxs(length vs)) 1 vs);
-      fun inj y 1 _ = y
-        | inj y _ 0 = mk_sinl y
-        | inj y i j = mk_sinr (inj y (i-1) (j-1));
-    in List.foldr /\# (dc_abs`(inj (parms args) m n)) args end;
-          
-    val con_defs = mapn (fn n => fn (con, _, args) =>
-                                    (extern_name con ^"_def", %%:con == con_def (length cons) n (con,args))) 0 cons;
-          
     val dis_defs = let
       fun ddef (con,_,_) = (dis_name con ^"_def",%%:(dis_name con) == 
                                               list_ccomb(%%:(dname^"_when"),map 
@@ -152,7 +141,7 @@ fun calc_axioms
   in (dnam,
       (if definitional then [] else [abs_iso_ax, rep_iso_ax, reach_ax]),
       (if definitional then [when_def] else [when_def, copy_def]) @
-      con_defs @ dis_defs @ mat_defs @ pat_defs @ sel_defs @
+      dis_defs @ mat_defs @ pat_defs @ sel_defs @
       [take_def, finite_def])
   end; (* let (calc_axioms) *)
 
@@ -226,9 +215,11 @@ fun add_axioms definitional comp_dnam (eqs : eq list) thy' =
         mk_imp (proj (Bound 2) eqs n $ Bound 1 $ Bound 0,
         foldr1 mk_disj (mk_conj(Bound 1 === UU,Bound 0 === UU)
                         ::map one_con cons))));
+(* TEMPORARILY DISABLED
     val bisim_def =
         ("bisim_def", %%:(comp_dname^"_bisim") ==
                          mk_lam("R", foldr1 mk_conj (mapn one_comp 0 eqs)));
+TEMPORARILY DISABLED *)
 
     fun add_one (dnam, axs, dfs) =
         Sign.add_path dnam
@@ -245,7 +236,7 @@ fun add_axioms definitional comp_dnam (eqs : eq list) thy' =
   in
     thy
     |> Sign.add_path comp_dnam  
-    |> add_defs_infer (bisim_def::(if use_copy_def then [copy_def] else []))
+    |> add_defs_infer ((*bisim_def::*)(if use_copy_def then [copy_def] else []))
     |> Sign.parent_path
     |> fold add_matchers eqs
   end; (* let (add_axioms) *)

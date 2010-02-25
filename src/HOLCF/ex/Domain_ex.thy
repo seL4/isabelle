@@ -122,7 +122,7 @@ thm tree.iso_rews
 text {* Rules about constructors *}
 term Leaf
 term Node
-thm tree.Leaf_def tree.Node_def
+thm Leaf_def Node_def
 thm tree.exhaust
 thm tree.casedist
 thm tree.compacts
@@ -175,9 +175,11 @@ thm tree.finite_def
 thm tree.finites
 
 text {* Rules about bisimulation predicate *}
+(* COINDUCTION TEMPORARILY DISABLED
 term tree_bisim
 thm tree.bisim_def
 thm tree.coind
+COINDUCTION TEMPORARILY DISABLED *)
 
 text {* Induction rule *}
 thm tree.ind

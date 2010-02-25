@@ -167,7 +167,9 @@ fun gen_add_domain
     val thy = thy' |> Domain_Axioms.add_axioms false comp_dnam eqs;
     val ((rewss, take_rews), theorems_thy) =
         thy
-          |> fold_map (fn eq => Domain_Theorems.theorems (eq, eqs)) eqs
+          |> fold_map (fn (eq, (x,cs)) =>
+                Domain_Theorems.theorems (eq, eqs) (Type x, cs))
+             (eqs ~~ eqs')
           ||>> Domain_Theorems.comp_theorems (comp_dnam, eqs);
   in
     theorems_thy
@@ -238,7 +240,9 @@ fun gen_add_new_domain
     val thy = thy' |> Domain_Axioms.add_axioms true comp_dnam eqs;
     val ((rewss, take_rews), theorems_thy) =
         thy
-          |> fold_map (fn eq => Domain_Theorems.theorems (eq, eqs)) eqs
+          |> fold_map (fn (eq, (x,cs)) =>
+               Domain_Theorems.theorems (eq, eqs) (Type x, cs))
+             (eqs ~~ eqs')
           ||>> Domain_Theorems.comp_theorems (comp_dnam, eqs);
   in
     theorems_thy

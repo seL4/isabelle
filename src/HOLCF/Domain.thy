@@ -9,6 +9,7 @@ imports Ssum Sprod Up One Tr Fixrec Representable
 uses
   ("Tools/cont_consts.ML")
   ("Tools/cont_proc.ML")
+  ("Tools/Domain/domain_constructors.ML")
   ("Tools/Domain/domain_library.ML")
   ("Tools/Domain/domain_syntax.ML")
   ("Tools/Domain/domain_axioms.ML")
@@ -230,6 +231,7 @@ lemmas con_eq_iff_rules =
 
 use "Tools/cont_consts.ML"
 use "Tools/cont_proc.ML"
+use "Tools/Domain/domain_constructors.ML"
 use "Tools/Domain/domain_library.ML"
 use "Tools/Domain/domain_syntax.ML"
 use "Tools/Domain/domain_axioms.ML"

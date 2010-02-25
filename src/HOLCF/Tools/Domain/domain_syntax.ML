@@ -70,8 +70,6 @@ fun calc_syntax thy
           Binding.name ("match_" ^ strip_esc (Binding.name_of con));
       fun pat_name_ con =
           Binding.name (strip_esc (Binding.name_of con) ^ "_pat");
-      fun con (name,args,mx) =
-          (name, List.foldr (op ->>) dtype (map third args), mx);
       fun dis (con,args,mx) =
           (dis_name_ con, dtype->>trT,
            Mixfix(escape ("is_" ^ Binding.name_of con), [], Syntax.max_pri));
@@ -100,7 +98,6 @@ fun calc_syntax thy
              mk_patT (dtype, mk_ctupleT (map (freetvar "t") (1 upto length args))),
            Mixfix(escape (Binding.name_of con ^ "_pat"), [], Syntax.max_pri));
     in
-    val consts_con = map con cons';
     val consts_dis = map dis cons';
     val consts_mat = map mat cons';
     val consts_pat = map pat cons';
@@ -172,7 +169,7 @@ fun calc_syntax thy
         if definitional then [] else [const_rep, const_abs, const_copy];
 
   in (optional_consts @ [const_when] @ 
-      consts_con @ consts_dis @ consts_mat @ consts_pat @ consts_sel @
+      consts_dis @ consts_mat @ consts_pat @ consts_sel @
       [const_take, const_finite],
       (case_trans false :: case_trans true :: (abscon_trans false @ abscon_trans true @ Case_trans)))
   end; (* let *)
