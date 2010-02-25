@@ -217,7 +217,7 @@ fun try_upto quiet f i =
     fun try' j =
       if j <= i then
         let
-          val _ = priority ("Executing depth " ^ string_of_int j)
+          val _ = if quiet then () else priority ("Executing depth " ^ string_of_int j)
         in
           case f j handle Match => (if quiet then ()
              else warning "Exception Match raised during quickcheck"; NONE)

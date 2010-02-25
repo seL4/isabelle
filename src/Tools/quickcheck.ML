@@ -12,7 +12,7 @@ sig
     { iterations : int, raised_match_errors : int,
       satisfied_assms : int list, positive_concl_tests : int }
   val gen_test_term: Proof.context -> bool -> bool -> string option -> int -> int -> term ->
-    ((string * term) list option * ((string * int) list * (int * report list) list))
+    (string * term) list option * ((string * int) list * ((int * report list) list) option)
   val test_term: Proof.context -> bool -> string option -> int -> int -> term ->
     (string * term) list option
   val add_generator:
@@ -167,7 +167,7 @@ fun gen_test_term ctxt quiet report generator_name size i t =
          (fn result => case result of NONE => NONE
         | SOME ts => SOME (names ~~ ts)) (with_size 1 []))
   in
-    (result, ([exec_time, comp_time], reports))
+    (result, ([exec_time, comp_time], if report then SOME reports else NONE))
   end;
 
 fun test_term ctxt quiet generator_name size i t =
@@ -226,11 +226,12 @@ fun pretty_reports' [report] = [Pretty.chunks (pretty_report report)]
     Pretty.chunks (Pretty.str (string_of_int (i + 1) ^ ". generator:\n") :: pretty_report report))
     reports
 
-fun pretty_reports ctxt reports =
+fun pretty_reports ctxt (SOME reports) =
   Pretty.chunks (Pretty.str "Quickcheck report:" ::
     maps (fn (size, reports) =>
       Pretty.str ("size " ^ string_of_int size ^ ":") :: pretty_reports' reports @ [Pretty.brk 1])
       (rev reports))
+  | pretty_reports ctxt NONE = Pretty.str ""
 
 fun pretty_counterex_and_reports ctxt (cex, (timing, reports)) =
   Pretty.chunks [pretty_counterex ctxt cex, pretty_reports ctxt reports]
