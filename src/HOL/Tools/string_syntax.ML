@@ -71,7 +71,7 @@ fun string_ast_tr [Syntax.Variable xstr] =
       [] =>
         Syntax.Appl
           [Syntax.Constant Syntax.constrainC,
-            Syntax.Constant @{const_syntax Nil}, Syntax.Constant "string"]  (* FIXME @{type_syntax} *)
+            Syntax.Constant @{const_syntax Nil}, Syntax.Constant @{type_syntax string}]
     | cs => mk_string cs)
   | string_ast_tr asts = raise AST ("string_tr", asts);
 

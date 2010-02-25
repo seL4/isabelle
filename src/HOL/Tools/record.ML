@@ -762,8 +762,7 @@ fun record_field_types_tr more ctxt t =
     mk_ext (field_types_tr t)
   end;
 
-(* FIXME @{type_syntax} *)
-fun record_type_tr ctxt [t] = record_field_types_tr (Syntax.const "Product_Type.unit") ctxt t
+fun record_type_tr ctxt [t] = record_field_types_tr (Syntax.const @{type_syntax unit}) ctxt t
   | record_type_tr _ ts = raise TERM ("record_type_tr", ts);
 
 fun record_type_scheme_tr ctxt [t, more] = record_field_types_tr more ctxt t
