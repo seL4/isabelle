@@ -1096,8 +1096,8 @@ fun bounded_exact_card_of_type hol_ctxt max default_card assigns T =
   in Int.min (max, aux [] T) end
 
 (* hol_context -> typ -> bool *)
-fun is_finite_type hol_ctxt =
-  not_equal 0 o bounded_exact_card_of_type hol_ctxt 1 2 []
+fun is_finite_type hol_ctxt T =
+  bounded_exact_card_of_type hol_ctxt 1 2 [] T <> 0
 
 (* term -> bool *)
 fun is_ground_term (t1 $ t2) = is_ground_term t1 andalso is_ground_term t2

@@ -342,7 +342,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       case triple_lookup (type_match thy) monos T of
         SOME (SOME b) => b
       | _ => is_type_always_monotonic T orelse
-             formulas_monotonic hol_ctxt binarize T Plus def_ts nondef_ts core_t
+             formulas_monotonic hol_ctxt binarize T (def_ts, nondef_ts, core_t)
     fun is_deep_datatype T =
       is_datatype thy stds T andalso
       (not standard orelse T = nat_T orelse is_word_type T orelse
@@ -834,8 +834,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                         sound_problems then
                 print_m (fn () =>
                     "Warning: The conjecture either trivially holds for the \
-                    \given scopes or (more likely) lies outside Nitpick's \
-                    \supported fragment." ^
+                    \given scopes or lies outside Nitpick's supported \
+                    \fragment." ^
                     (if exists (not o KK.is_problem_trivially_false o fst)
                                unsound_problems then
                        " Only potential counterexamples may be found."

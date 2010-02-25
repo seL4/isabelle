@@ -136,6 +136,60 @@ fun constr_expand (hol_ctxt as {thy, stds, ...}) T t =
                                      (index_seq 0 (length arg_Ts)) arg_Ts)
          end
 
+(* (term -> term) -> int -> term -> term *)
+fun coerce_bound_no f j t =
+  case t of
+    t1 $ t2 => coerce_bound_no f j t1 $ coerce_bound_no f j t2
+  | Abs (s, T, t') => Abs (s, T, coerce_bound_no f (j + 1) t')
+  | Bound j' => if j' = j then f t else t
+  | _ => t
+(* hol_context -> typ -> typ -> term -> term *)
+fun coerce_bound_0_in_term hol_ctxt new_T old_T =
+  old_T <> new_T ? coerce_bound_no (coerce_term hol_ctxt [new_T] old_T new_T) 0
+(* hol_context -> typ list -> typ -> typ -> term -> term *)
+and coerce_term (hol_ctxt as {thy, stds, fast_descrs, ...}) Ts new_T old_T t =
+  if old_T = new_T then
+    t
+  else
+    case (new_T, old_T) of
+      (Type (new_s, new_Ts as [new_T1, new_T2]),
+       Type ("fun", [old_T1, old_T2])) =>
+      (case eta_expand Ts t 1 of
+         Abs (s, _, t') =>
+         Abs (s, new_T1,
+              t' |> coerce_bound_0_in_term hol_ctxt new_T1 old_T1
+                 |> coerce_term hol_ctxt (new_T1 :: Ts) new_T2 old_T2)
+         |> Envir.eta_contract
+         |> new_s <> "fun"
+            ? construct_value thy stds
+                  (@{const_name FunBox}, Type ("fun", new_Ts) --> new_T)
+                  o single
+       | t' => raise TERM ("Nitpick_Preproc.coerce_term", [t']))
+    | (Type (new_s, new_Ts as [new_T1, new_T2]),
+       Type (old_s, old_Ts as [old_T1, old_T2])) =>
+      if old_s = @{type_name fun_box} orelse
+         old_s = @{type_name fin_fun} orelse
+         old_s = @{type_name pair_box} orelse old_s = "*" then
+        case constr_expand hol_ctxt old_T t of
+          Const (old_s, _) $ t1 =>
+          if new_s = "fun" then
+            coerce_term hol_ctxt Ts new_T (Type ("fun", old_Ts)) t1
+          else
+            construct_value thy stds
+                (old_s, Type ("fun", new_Ts) --> new_T)
+                [coerce_term hol_ctxt Ts (Type ("fun", new_Ts))
+                             (Type ("fun", old_Ts)) t1]
+        | Const _ $ t1 $ t2 =>
+          construct_value thy stds
+              (if new_s = "*" then @{const_name Pair}
+               else @{const_name PairBox}, new_Ts ---> new_T)
+              [coerce_term hol_ctxt Ts new_T1 old_T1 t1,
+               coerce_term hol_ctxt Ts new_T2 old_T2 t2]
+        | t' => raise TERM ("Nitpick_Preproc.coerce_term", [t'])
+      else
+        raise TYPE ("Nitpick_Preproc.coerce_term", [new_T, old_T], [t])
+    | _ => raise TYPE ("Nitpick_Preproc.coerce_term", [new_T, old_T], [t])
+
 (* hol_context -> bool -> term -> term *)
 fun box_fun_and_pair_in_term (hol_ctxt as {thy, stds, fast_descrs, ...}) def
                              orig_t =
@@ -146,60 +200,6 @@ fun box_fun_and_pair_in_term (hol_ctxt as {thy, stds, fast_descrs, ...}) def
       | box_relational_operator_type (Type ("*", Ts)) =
         Type ("*", map (box_type hol_ctxt InPair) Ts)
       | box_relational_operator_type T = T
-    (* (term -> term) -> int -> term -> term *)
-    fun coerce_bound_no f j t =
-      case t of
-        t1 $ t2 => coerce_bound_no f j t1 $ coerce_bound_no f j t2
-      | Abs (s, T, t') => Abs (s, T, coerce_bound_no f (j + 1) t')
-      | Bound j' => if j' = j then f t else t
-      | _ => t
-    (* typ -> typ -> term -> term *)
-    fun coerce_bound_0_in_term new_T old_T =
-      old_T <> new_T ? coerce_bound_no (coerce_term [new_T] old_T new_T) 0
-    (* typ list -> typ -> term -> term *)
-    and coerce_term Ts new_T old_T t =
-      if old_T = new_T then
-        t
-      else
-        case (new_T, old_T) of
-          (Type (new_s, new_Ts as [new_T1, new_T2]),
-           Type ("fun", [old_T1, old_T2])) =>
-          (case eta_expand Ts t 1 of
-             Abs (s, _, t') =>
-             Abs (s, new_T1,
-                  t' |> coerce_bound_0_in_term new_T1 old_T1
-                     |> coerce_term (new_T1 :: Ts) new_T2 old_T2)
-             |> Envir.eta_contract
-             |> new_s <> "fun"
-                ? construct_value thy stds
-                      (@{const_name FunBox}, Type ("fun", new_Ts) --> new_T)
-                      o single
-           | t' => raise TERM ("Nitpick_Preproc.box_fun_and_pair_in_term.\
-                               \coerce_term", [t']))
-        | (Type (new_s, new_Ts as [new_T1, new_T2]),
-           Type (old_s, old_Ts as [old_T1, old_T2])) =>
-          if old_s = @{type_name fun_box} orelse
-             old_s = @{type_name pair_box} orelse old_s = "*" then
-            case constr_expand hol_ctxt old_T t of
-              Const (@{const_name FunBox}, _) $ t1 =>
-              if new_s = "fun" then
-                coerce_term Ts new_T (Type ("fun", old_Ts)) t1
-              else
-                construct_value thy stds
-                    (@{const_name FunBox}, Type ("fun", new_Ts) --> new_T)
-                    [coerce_term Ts (Type ("fun", new_Ts))
-                                 (Type ("fun", old_Ts)) t1]
-            | Const _ $ t1 $ t2 =>
-              construct_value thy stds
-                  (if new_s = "*" then @{const_name Pair}
-                   else @{const_name PairBox}, new_Ts ---> new_T)
-                  [coerce_term Ts new_T1 old_T1 t1,
-                   coerce_term Ts new_T2 old_T2 t2]
-            | t' => raise TERM ("Nitpick_Preproc.box_fun_and_pair_in_term.\
-                                \coerce_term", [t'])
-          else
-            raise TYPE ("coerce_term", [new_T, old_T], [t])
-        | _ => raise TYPE ("coerce_term", [new_T, old_T], [t])
     (* indexname * typ -> typ * term -> typ option list -> typ option list *)
     fun add_boxed_types_for_var (z as (_, T)) (T', t') =
       case t' of
@@ -252,7 +252,7 @@ fun box_fun_and_pair_in_term (hol_ctxt as {thy, stds, fast_descrs, ...}) def
         val T = [T1, T2] |> sort TermOrd.typ_ord |> List.last
       in
         list_comb (Const (s0, T --> T --> body_type T0),
-                   map2 (coerce_term new_Ts T) [T1, T2] [t1, t2])
+                   map2 (coerce_term hol_ctxt new_Ts T) [T1, T2] [t1, t2])
       end
     (* string -> typ -> term *)
     and do_description_operator s T =
@@ -320,7 +320,7 @@ fun box_fun_and_pair_in_term (hol_ctxt as {thy, stds, fast_descrs, ...}) def
           val T' = hd (snd (dest_Type (hd Ts1)))
           val t2 = Abs (s, T', do_term (T' :: new_Ts) (T :: old_Ts) Neut t2')
           val T2 = fastype_of1 (new_Ts, t2)
-          val t2 = coerce_term new_Ts (hd Ts1) T2 t2
+          val t2 = coerce_term hol_ctxt new_Ts (hd Ts1) T2 t2
         in
           betapply (if s1 = "fun" then
                       t1
@@ -336,7 +336,7 @@ fun box_fun_and_pair_in_term (hol_ctxt as {thy, stds, fast_descrs, ...}) def
           val (s1, Ts1) = dest_Type T1
           val t2 = do_term new_Ts old_Ts Neut t2
           val T2 = fastype_of1 (new_Ts, t2)
-          val t2 = coerce_term new_Ts (hd Ts1) T2 t2
+          val t2 = coerce_term hol_ctxt new_Ts (hd Ts1) T2 t2
         in
           betapply (if s1 = "fun" then
                       t1
@@ -1425,10 +1425,12 @@ fun preprocess_term (hol_ctxt as {thy, stds, binary_ints, destroy_constrs,
       #> push_quantifiers_inward
       #> close_form
       #> Term.map_abs_vars shortest_name
+    val def_ts = map (do_rest true) def_ts
+    val nondef_ts = map (do_rest false) nondef_ts
+    val core_t = do_rest false core_t
   in
-    (((map (do_rest true) def_ts, map (do_rest false) nondef_ts),
-      (got_all_mono_user_axioms, no_poly_user_axioms)),
-     do_rest false core_t, binarize)
+    (((def_ts, nondef_ts), (got_all_mono_user_axioms, no_poly_user_axioms)),
+     core_t, binarize)
   end
 
 end;

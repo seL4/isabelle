@@ -2,16 +2,15 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2009, 2010
 
-Monotonicity predicate for higher-order logic.
+Monotonicity inference for higher-order logic.
 *)
 
 signature NITPICK_MONO =
 sig
-  datatype sign = Plus | Minus
   type hol_context = Nitpick_HOL.hol_context
 
   val formulas_monotonic :
-    hol_context -> bool -> typ -> sign -> term list -> term list -> term -> bool
+    hol_context -> bool -> typ -> term list * term list * term -> bool
 end;
 
 structure Nitpick_Mono : NITPICK_MONO =
@@ -270,8 +269,13 @@ fun ctype_for_constr (cdata as {hol_ctxt = {thy, ...}, alpha_T, constr_cache,
   if could_exist_alpha_sub_ctype thy alpha_T T then
     case AList.lookup (op =) (!constr_cache) x of
       SOME C => C
-    | NONE => (fresh_ctype_for_type cdata (body_type T);
-               AList.lookup (op =) (!constr_cache) x |> the)
+    | NONE => if T = alpha_T then
+                let val C = fresh_ctype_for_type cdata T in
+                  (Unsynchronized.change constr_cache (cons (x, C)); C)
+                end
+              else
+                (fresh_ctype_for_type cdata (body_type T);
+                 AList.lookup (op =) (!constr_cache) x |> the)
   else
     fresh_ctype_for_type cdata T
 fun ctype_for_sel (cdata as {hol_ctxt, binarize, ...}) (x as (s, _)) =
@@ -435,12 +439,13 @@ fun add_notin_ctype_fv _ _ UnsolvableCSet = UnsolvableCSet
 val add_ctype_is_right_unique = add_notin_ctype_fv Minus
 val add_ctype_is_right_total = add_notin_ctype_fv Plus
 
+val bool_from_minus = true
+
 (* sign -> bool *)
-fun bool_from_sign Plus = false
-  | bool_from_sign Minus = true
+fun bool_from_sign Plus = not bool_from_minus
+  | bool_from_sign Minus = bool_from_minus
 (* bool -> sign *)
-fun sign_from_bool false = Plus
-  | sign_from_bool true = Minus
+fun sign_from_bool b = if b = bool_from_minus then Minus else Plus
 
 (* literal -> PropLogic.prop_formula *)
 fun prop_for_literal (x, sn) =
@@ -492,7 +497,7 @@ fun print_solution lits =
              "-: " ^ commas (map (string_for_var o fst) neg))
   end
 
-(* var -> constraint_set -> literal list list option *)
+(* var -> constraint_set -> literal list option *)
 fun solve _ UnsolvableCSet = (print_g "*** Problem: Unsolvable"; NONE)
   | solve max_var (CSet (lits, comps, sexps)) =
     let
@@ -812,8 +817,8 @@ fun consider_general_formula (cdata as {hol_ctxt = {ctxt, ...}, ...}) =
               val side_cond = ((sn = Minus) = (quant_s = @{const_name Ex}))
               val cset = cset |> side_cond ? add_ctype_is_right_total abs_C
             in
-              (gamma |> push_bound abs_C, cset) |> do_co_formula body_t
-                                                |>> pop_bound
+              (gamma |> push_bound abs_C, cset)
+              |> do_co_formula body_t |>> pop_bound
             end
           (* typ -> term -> accumulator *)
           fun do_bounded_quantifier abs_T body_t =
@@ -932,19 +937,20 @@ fun print_ctype_context ctxt lits ({frees, consts, ...} : ctype_context) =
   map (fn (x, C) => string_for_ctype_of_term ctxt lits (Const x) C) consts
   |> cat_lines |> print_g
 
-(* hol_context -> bool -> typ -> sign -> term list -> term list -> term
-   -> bool *)
-fun formulas_monotonic (hol_ctxt as {ctxt, ...}) binarize alpha_T sn def_ts
-                       nondef_ts core_t =
+(* hol_context -> bool -> typ -> term list * term list * term -> bool *)
+fun formulas_monotonic (hol_ctxt as {ctxt, ...}) binarize alpha_T
+                       (def_ts, nondef_ts, core_t) =
   let
-    val _ = print_g ("****** " ^ string_for_ctype CAlpha ^ " is " ^
+    val _ = print_g ("****** Monotonicity analysis: " ^
+                     string_for_ctype CAlpha ^ " is " ^
                      Syntax.string_of_typ ctxt alpha_T)
-    val cdata as {max_fresh, ...} = initial_cdata hol_ctxt binarize alpha_T
-    val (gamma, cset) =
+    val cdata as {max_fresh, constr_cache, ...} =
+      initial_cdata hol_ctxt binarize alpha_T
+    val (gamma as {frees, consts, ...}, cset) =
       (initial_gamma, slack)
       |> fold (consider_definitional_axiom cdata) def_ts
       |> fold (consider_nondefinitional_axiom cdata Plus) nondef_ts
-      |> consider_general_formula cdata sn core_t
+      |> consider_general_formula cdata Plus core_t
   in
     case solve (!max_fresh) cset of
       SOME lits => (print_ctype_context ctxt lits gamma; true)
