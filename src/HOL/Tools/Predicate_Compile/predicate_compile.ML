@@ -151,7 +151,7 @@ fun extract_options (((expected_modes, proposed_modes), (compilation, raw_option
       skip_proof = chk "skip_proof",
       function_flattening = not (chk "no_function_flattening"),
       fail_safe_function_flattening = false,
-      no_topmost_reordering = false,
+      no_topmost_reordering = (chk "no_topmost_reordering"),
       no_higher_order_predicate = [],
       inductify = chk "inductify",
       compilation = compilation
