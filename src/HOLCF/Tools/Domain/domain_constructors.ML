@@ -228,11 +228,32 @@ fun define_consts
     ((consts, def_thms), thy)
   end;
 
-(*** argument preprocessing ***)
 
-type arg = (bool * binding option * typ) * string;
+(************** generating beta reduction rules from definitions **************)
 
-
+local
+  fun arglist (Const _ $ Abs (s, T, t)) =
+      let
+        val arg = Free (s, T);
+        val (args, body) = arglist (subst_bound (arg, t));
+      in (arg :: args, body) end
+    | arglist t = ([], t);
+in
+  fun beta_of_def thy def_thm =
+      let
+        val (con, lam) = Logic.dest_equals (concl_of def_thm);
+        val (args, rhs) = arglist lam;
+        val lhs = Library.foldl mk_capply (con, args);
+        val goal = mk_equals (lhs, rhs);
+        val cs = ContProc.cont_thms lam;
+        val betas = map (fn c => mk_meta_eq (c RS @{thm beta_cfun})) cs;
+        val tac =
+            rewrite_goals_tac (def_thm::betas)
+            THEN rtac reflexive_thm 1;
+      in
+        Goal.prove_global thy [] [] goal (K tac)
+      end;
+end;
 
 (******************************* main function ********************************)
 
@@ -264,6 +285,8 @@ fun add_domain_constructors
       in
         define_consts (map2 mk_def cons' rhss) thy
       end;
+
+    val con_beta_thms = map (beta_of_def thy) con_def_thms;
 
     (* TODO: re-enable this *)
     (* val thy = Sign.parent_path thy; *)
