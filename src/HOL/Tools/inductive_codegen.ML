@@ -8,7 +8,8 @@ signature INDUCTIVE_CODEGEN =
 sig
   val add : string option -> int option -> attribute
   val test_fn : (int * int * int -> term list option) Unsynchronized.ref
-  val test_term: Proof.context -> term -> int -> term list option
+  val test_term:
+    Proof.context -> bool -> term -> int -> term list option * (bool list * bool)
   val setup : theory -> theory
   val quickcheck_setup : theory -> theory
 end;
@@ -805,7 +806,7 @@ val size_offset_value =
   Config.declare false "ind_quickcheck_size_offset" (Config.Int 0);
 val size_offset = Config.int size_offset_value;
 
-fun test_term ctxt t =
+fun test_term ctxt report t =
   let
     val thy = ProofContext.theory_of ctxt;
     val (xs, p) = strip_abs t;
@@ -848,9 +849,10 @@ fun test_term ctxt t =
     val start = Config.get ctxt depth_start;
     val offset = Config.get ctxt size_offset;
     val test_fn' = !test_fn;
-    fun test k = deepen bound (fn i =>
+    val dummy_report = ([], false)
+    fun test k = (deepen bound (fn i =>
       (priority ("Search depth: " ^ string_of_int i);
-       test_fn' (i, values, k+offset))) start;
+       test_fn' (i, values, k+offset))) start, dummy_report);
   in test end;
 
 val quickcheck_setup =
