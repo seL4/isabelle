@@ -15,6 +15,7 @@ sig
       -> theory
       -> { con_consts : term list,
            con_defs : thm list,
+           con_compacts : thm list,
            sel_rews : thm list }
          * theory;
 end;
@@ -26,6 +27,18 @@ struct
 (******************************************************************************)
 (************************** building types and terms **************************)
 (******************************************************************************)
+
+
+(*** Operations from Isabelle/HOL ***)
+
+val boolT = HOLogic.boolT;
+
+val mk_equals = Logic.mk_equals;
+val mk_eq = HOLogic.mk_eq;
+val mk_trp = HOLogic.mk_Trueprop;
+val mk_fst = HOLogic.mk_fst;
+val mk_snd = HOLogic.mk_snd;
+val mk_not = HOLogic.mk_not;
 
 
 (*** Continuous function space ***)
@@ -202,22 +215,17 @@ fun mapT T =
     map auto (argTs T) -->> auto T
   end;
 
-val mk_equals = Logic.mk_equals;
-val mk_eq = HOLogic.mk_eq;
-val mk_trp = HOLogic.mk_Trueprop;
-val mk_fst = HOLogic.mk_fst;
-val mk_snd = HOLogic.mk_snd;
-val mk_not = HOLogic.mk_not;
-
 fun mk_strict t =
   let val (T, U) = dest_cfunT (Term.fastype_of t);
   in mk_eq (t ` mk_bottom T, mk_bottom U) end;
 
 fun mk_defined t = mk_not (mk_eq (t, mk_bottom (Term.fastype_of t)));
 
+fun mk_compact t =
+  Const (@{const_name compact}, Term.fastype_of t --> boolT) $ t;
+
 fun mk_cont t =
-  let val T = Term.fastype_of t
-  in Const(@{const_name cont}, T --> HOLogic.boolT) $ t end;
+  Const (@{const_name cont}, Term.fastype_of t --> boolT) $ t;
 
 fun mk_fix t =
   let val (T, _) = dest_cfunT (Term.fastype_of t)
@@ -229,7 +237,7 @@ fun mk_Rep_of T =
 fun coerce_const T = Const (@{const_name coerce}, T);
 
 fun isodefl_const T =
-  Const (@{const_name isodefl}, (T ->> T) --> deflT --> HOLogic.boolT);
+  Const (@{const_name isodefl}, (T ->> T) --> deflT --> boolT);
 
 (* splits a cterm into the right and lefthand sides of equality *)
 fun dest_eqs t = HOLogic.dest_eq (HOLogic.dest_Trueprop t);
@@ -486,6 +494,31 @@ fun add_domain_constructors
           fun one_con con (b, args, mx) = (con, map one_arg args);
       in map2 one_con con_consts spec end;
 
+    (* prove compactness rules for constructors *)
+    val con_compacts =
+      let
+        val rules = @{thms compact_sinl compact_sinr compact_spair
+                           compact_up compact_ONE};
+        val tac = EVERY
+          [rewrite_goals_tac con_beta_thms,
+           rtac (iso_locale RS @{thm iso.compact_abs}) 1,
+           REPEAT (resolve_tac rules 1 ORELSE atac 1)];
+        fun con_compact (con, args) =
+          let
+            val Ts = map snd args;
+            val ns = Datatype_Prop.make_tnames Ts;
+            val vs = map Free (ns ~~ Ts);
+            val con_app = list_ccomb (con, vs);
+            val concl = mk_trp (mk_compact con_app);
+            val assms = map (mk_trp o mk_compact) vs;
+            val goal = Logic.list_implies (assms, concl);
+          in
+            prove_thm thy goal (K tac)
+          end;
+      in
+        map con_compact con_spec
+      end;
+
     (* replace bindings with terms in constructor spec *)
     val sel_spec : (term * (bool * binding option * typ) list) list =
       map2 (fn con => fn (b, args, mx) => (con, args)) con_consts spec;
@@ -501,6 +534,7 @@ fun add_domain_constructors
     val result =
       { con_consts = con_consts,
         con_defs = con_def_thms,
+        con_compacts = con_compacts,
         sel_rews = sel_thms };
   in
     (result, thy)

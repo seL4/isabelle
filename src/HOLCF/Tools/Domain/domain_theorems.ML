@@ -198,6 +198,7 @@ val (result, thy) =
     (rep_const, abs_const) (ax_rep_iso, ax_abs_iso) thy;
 
 val axs_con_def = #con_defs result;
+val con_compacts = #con_compacts result;
 val sel_rews = #sel_rews result;
 
 (* ----- theorems concerning the isomorphism -------------------------------- *)
@@ -457,22 +458,6 @@ in
   val _ = trace " Proving con_defins...";
   val con_defins = map con_defin cons;
   val con_rews = con_stricts @ con_defins;
-end;
-
-local
-  val rules =
-    [compact_sinl, compact_sinr, compact_spair, compact_up, compact_ONE];
-  fun con_compact (con, _, args) =
-    let
-      val concl = mk_trp (mk_compact (con_app con args));
-      val goal = lift (fn x => mk_compact (%#x)) (args, concl);
-      val tacs = [
-        rtac (iso_locale RS iso_compact_abs) 1,
-        REPEAT (resolve_tac rules 1 ORELSE atac 1)];
-    in pg con_appls goal (K tacs) end;
-in
-  val _ = trace " Proving con_compacts...";
-  val con_compacts = map con_compact cons;
 end;
 
 val _ = trace " Proving dist_les...";
