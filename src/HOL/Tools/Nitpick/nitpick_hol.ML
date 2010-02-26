@@ -151,9 +151,10 @@ sig
   val card_of_type : (typ * int) list -> typ -> int
   val bounded_card_of_type : int -> int -> (typ * int) list -> typ -> int
   val bounded_exact_card_of_type :
-    hol_context -> int -> int -> (typ * int) list -> typ -> int
+    hol_context -> typ list -> int -> int -> (typ * int) list -> typ -> int
   val is_finite_type : hol_context -> typ -> bool
   val special_bounds : term list -> (indexname * typ) list
+  val abs_var : indexname * typ -> term -> term
   val is_funky_typedef : theory -> typ -> bool
   val all_axioms_of :
     theory -> (term * term) list -> term list * term list * term list
@@ -631,8 +632,13 @@ fun is_univ_typedef thy (Type (s, _)) =
        in
          case t_opt of
            SOME (Const (@{const_name top}, _)) => true
+           (* "Multiset.multiset" *)
          | SOME (Const (@{const_name Collect}, _)
                  $ Abs (_, _, Const (@{const_name finite}, _) $ _)) => true
+           (* "FinFun.finfun" *)
+         | SOME (Const (@{const_name Collect}, _) $ Abs (_, _,
+                     Const (@{const_name Ex}, _) $ Abs (_, _,
+                         Const (@{const_name finite}, _) $ _))) => true
          | _ => false
        end
      | NONE => false)
@@ -1047,13 +1053,16 @@ fun bounded_card_of_type max default_card assigns (Type ("fun", [T1, T2])) =
                     card_of_type assigns T
                     handle TYPE ("Nitpick_HOL.card_of_type", _, _) =>
                            default_card)
-(* hol_context -> int -> (typ * int) list -> typ -> int *)
-fun bounded_exact_card_of_type hol_ctxt max default_card assigns T =
+(* hol_context -> typ list -> int -> (typ * int) list -> typ -> int *)
+fun bounded_exact_card_of_type hol_ctxt finitizable_dataTs max default_card
+                               assigns T =
   let
     (* typ list -> typ -> int *)
     fun aux avoid T =
       (if member (op =) avoid T then
          0
+       else if member (op =) finitizable_dataTs T then
+         raise SAME ()
        else case T of
          Type ("fun", [T1, T2]) =>
          let
@@ -1096,8 +1105,8 @@ fun bounded_exact_card_of_type hol_ctxt max default_card assigns T =
   in Int.min (max, aux [] T) end
 
 (* hol_context -> typ -> bool *)
-fun is_finite_type hol_ctxt =
-  not_equal 0 o bounded_exact_card_of_type hol_ctxt 1 2 []
+fun is_finite_type hol_ctxt T =
+  bounded_exact_card_of_type hol_ctxt [] 1 2 [] T <> 0
 
 (* term -> bool *)
 fun is_ground_term (t1 $ t2) = is_ground_term t1 andalso is_ground_term t2

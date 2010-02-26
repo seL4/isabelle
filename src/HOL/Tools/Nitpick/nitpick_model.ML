@@ -288,7 +288,7 @@ fun reconstruct_term unfold pool ((maybe_name, abs_name), _)
                                   T1 --> (T1 --> T2) --> T1 --> T2)
         (* (term * term) list -> term *)
         fun aux [] =
-            if maybe_opt andalso not (is_complete_type datatypes T1) then
+            if maybe_opt andalso not (is_complete_type datatypes false T1) then
               insert_const $ Const (unrep, T1) $ empty_const
             else
               empty_const
@@ -312,7 +312,7 @@ fun reconstruct_term unfold pool ((maybe_name, abs_name), _)
                Const (@{const_name None}, _) => aux' ps
              | _ => update_const $ aux' ps $ t1 $ t2)
         fun aux ps =
-          if not (is_complete_type datatypes T1) then
+          if not (is_complete_type datatypes false T1) then
             update_const $ aux' ps $ Const (unrep, T1)
             $ (Const (@{const_name Some}, T2' --> T2) $ Const (unknown, T2'))
           else
@@ -537,7 +537,7 @@ fun reconstruct_term unfold pool ((maybe_name, abs_name), _)
           val ts1 = map (term_for_rep seen T1 T1 R1 o single) jss1
           val ts2 =
             map (fn js => term_for_rep seen T2 T2 (Atom (2, 0))
-                                       [[int_for_bool (member (op =) jss js)]])
+                                       [[int_from_bool (member (op =) jss js)]])
                 jss1
         in make_fun false T1 T2 T' ts1 ts2 end
       | term_for_rep seen (Type ("fun", [T1, T2])) T' (Func (R1, R2)) jss =
@@ -707,12 +707,13 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
            Pretty.str "=",
            Pretty.enum "," "{" "}"
                (map (Syntax.pretty_term ctxt) (all_values_of_type card typ) @
-                (if complete then [] else [Pretty.str unrep]))])
+                (if fun_from_pair complete false then []
+                 else [Pretty.str unrep]))])
     (* typ -> dtype_spec list *)
     fun integer_datatype T =
       [{typ = T, card = card_of_type card_assigns T, co = false,
-        standard = true, complete = false, concrete = true, deep = true,
-        constrs = []}]
+        standard = true, complete = (false, false), concrete = (true, true),
+        deep = true, constrs = []}]
       handle TYPE ("Nitpick_HOL.card_of_type", _, _) => []
     val (codatatypes, datatypes) =
       datatypes |> filter #deep |> List.partition #co

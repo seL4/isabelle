@@ -255,10 +255,10 @@ fun tabulate_built_in_rel debug univ_card nat_card int_card j0 (x as (n, _)) =
      ("int_divide", tabulate_int_op2 debug univ_card (int_card, j0) isa_div)
    else if x = nat_less_rel then
      ("nat_less", tabulate_nat_op2 debug univ_card (nat_card, j0)
-                                   (int_for_bool o op <))
+                                   (int_from_bool o op <))
    else if x = int_less_rel then
      ("int_less", tabulate_int_op2 debug univ_card (int_card, j0)
-                                   (int_for_bool o op <))
+                                   (int_from_bool o op <))
    else if x = gcd_rel then
      ("gcd", tabulate_nat_op2 debug univ_card (nat_card, j0) isa_gcd)
    else if x = lcm_rel then
@@ -444,7 +444,7 @@ fun double_rel_rel_let kk f r1 r2 =
   single_rel_rel_let kk (fn r1 => basic_rel_rel_let 1 kk (f r1) r2) r1
 (* kodkod_constrs -> (KK.rel_expr -> KK.rel_expr -> KK.rel_expr -> KK.rel_expr)
    -> KK.rel_expr -> KK.rel_expr -> KK.rel_expr -> KK.rel_expr *)
-fun tripl_rel_rel_let kk f r1 r2 r3 =
+fun triple_rel_rel_let kk f r1 r2 r3 =
   double_rel_rel_let kk
       (fn r1 => fn r2 => basic_rel_rel_let 2 kk (f r1 r2) r3) r1 r2
 
@@ -1615,7 +1615,7 @@ fun kodkod_formula_from_nut ofs
         kk_rel_let [to_expr_assign u1 u2] (to_rep R u3)
       | Op3 (If, _, R, u1, u2, u3) =>
         if is_opt_rep (rep_of u1) then
-          tripl_rel_rel_let kk
+          triple_rel_rel_let kk
               (fn r1 => fn r2 => fn r3 =>
                   let val empty_r = empty_rel_for_rep R in
                     fold1 kk_union
