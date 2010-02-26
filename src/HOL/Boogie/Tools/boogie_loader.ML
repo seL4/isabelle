@@ -52,7 +52,7 @@ fun label_name line col =
 fun mk_syntax name i =
   let
     val syn = Syntax.escape name
-    val args = concat (separate ",/ " (replicate i "_"))
+    val args = space_implode ",/ " (replicate i "_")
   in
     if i = 0 then Mixfix (syn, [], 1000)
     else Mixfix (syn ^ "()'(/" ^ args ^ "')", replicate i 0, 1000)
