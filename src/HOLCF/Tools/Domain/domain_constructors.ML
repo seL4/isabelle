@@ -311,7 +311,7 @@ end;
 (******************************************************************************)
 
 fun add_constructors
-    (spec : (binding * (bool * 'b * typ) list * mixfix) list)
+    (spec : (binding * (bool * typ) list * mixfix) list)
     (abs_const : term)
     (iso_locale : thm)
     (thy : theory)
@@ -326,12 +326,12 @@ fun add_constructors
       let
         fun vars_of args =
           let
-            val Ts = map (fn (lazy,sel,T) => T) args;
+            val Ts = map snd args;
             val ns = Datatype_Prop.make_tnames Ts;
           in
             map Free (ns ~~ Ts)
           end;
-        fun one_arg (lazy,_,_) var = if lazy then mk_up var else var;
+        fun one_arg (lazy, T) var = if lazy then mk_up var else var;
         fun one_con (_,args,_) = mk_stuple (map2 one_arg args (vars_of args));
         fun mk_abs t = abs_const ` t;
         val rhss = map mk_abs (mk_sinjects (map one_con spec));
@@ -346,8 +346,7 @@ fun add_constructors
 
     (* replace bindings with terms in constructor spec *)
     val spec' : (term * (bool * typ) list) list =
-      let fun one_arg (lazy, sel, T) = (lazy, T);
-          fun one_con con (b, args, mx) = (con, map one_arg args);
+      let fun one_con con (b, args, mx) = (con, args);
       in map2 one_con con_consts spec end;
 
     (* prove compactness rules for constructors *)
@@ -589,7 +588,13 @@ fun add_domain_constructors
 
     (* define constructor functions *)
     val ({con_consts, con_betas, con_compacts, con_rews}, thy) =
-        add_constructors spec abs_const iso_locale thy;
+      let
+        fun prep_arg (lazy, sel, T) = (lazy, T);
+        fun prep_con (b, args, mx) = (b, map prep_arg args, mx);
+        val con_spec = map prep_con spec;
+      in
+        add_constructors con_spec abs_const iso_locale thy
+      end;
 
     (* TODO: enable this earlier *)
     val thy = Sign.add_path dname thy;
