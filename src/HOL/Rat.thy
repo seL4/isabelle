@@ -1168,6 +1168,9 @@ consts_code
   Fract ("(_,/ _)")
 
 consts_code
+  quotient_of ("{*normalize*}")
+
+consts_code
   "of_int :: int \<Rightarrow> rat" ("\<module>rat'_of'_int")
 attach {*
 fun rat_of_int i = (i, 1);
