@@ -321,16 +321,17 @@ fun add_constructors
     (* get theorems about rep and abs *)
     val abs_strict = iso_locale RS @{thm iso.abs_strict};
 
+    fun vars_of args =
+      let
+        val Ts = map snd args;
+        val ns = Datatype_Prop.make_tnames Ts;
+      in
+        map Free (ns ~~ Ts)
+      end;
+
     (* define constructor functions *)
     val ((con_consts, con_defs), thy) =
       let
-        fun vars_of args =
-          let
-            val Ts = map snd args;
-            val ns = Datatype_Prop.make_tnames Ts;
-          in
-            map Free (ns ~~ Ts)
-          end;
         fun one_arg (lazy, T) var = if lazy then mk_up var else var;
         fun one_con (_,args,_) = mk_stuple (map2 one_arg args (vars_of args));
         fun mk_abs t = abs_const ` t;
@@ -359,9 +360,7 @@ fun add_constructors
            REPEAT (resolve_tac rules 1 ORELSE atac 1)];
         fun con_compact (con, args) =
           let
-            val Ts = map snd args;
-            val ns = Datatype_Prop.make_tnames Ts;
-            val vs = map Free (ns ~~ Ts);
+            val vs = vars_of args;
             val con_app = list_ccomb (con, vs);
             val concl = mk_trp (mk_compact con_app);
             val assms = map (mk_trp o mk_compact) vs;
@@ -378,9 +377,7 @@ fun add_constructors
       fun con_strict (con, args) = 
         let
           val rules = abs_strict :: @{thms con_strict_rules};
-          val Ts = map snd args;
-          val ns = Datatype_Prop.make_tnames Ts;
-          val vs = map Free (ns ~~ Ts);
+          val vs = vars_of args;
           val nonlazy = map snd (filter_out fst (map fst args ~~ vs));
           fun one_strict v' =
             let
@@ -395,9 +392,7 @@ fun add_constructors
         let
           fun iff_disj (t, []) = HOLogic.mk_not t
             | iff_disj (t, ts) = mk_eq (t, foldr1 HOLogic.mk_disj ts);
-          val Ts = map snd args;
-          val ns = Datatype_Prop.make_tnames Ts;
-          val vs = map Free (ns ~~ Ts);
+          val vs = vars_of args;
           val nonlazy = map snd (filter_out fst (map fst args ~~ vs));
           val lhs = mk_undef (list_ccomb (con, vs));
           val rhss = map mk_undef nonlazy;
