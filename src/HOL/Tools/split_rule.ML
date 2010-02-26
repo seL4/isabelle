@@ -4,49 +4,34 @@
 Some tools for managing tupled arguments and abstractions in rules.
 *)
 
-signature BASIC_SPLIT_RULE =
-sig
-  val split_rule: thm -> thm
-  val complete_split_rule: thm -> thm
-end;
-
 signature SPLIT_RULE =
 sig
-  include BASIC_SPLIT_RULE
   val split_rule_var: term -> thm -> thm
   val split_rule_goal: Proof.context -> string list list -> thm -> thm
+  val split_rule: thm -> thm
+  val complete_split_rule: thm -> thm
   val setup: theory -> theory
 end;
 
-structure SplitRule: SPLIT_RULE =
+structure Split_Rule: SPLIT_RULE =
 struct
-
-
-
-(** theory context references **)
-
-val split_conv = thm "split_conv";
-val fst_conv = thm "fst_conv";
-val snd_conv = thm "snd_conv";
-
-fun internal_split_const (Ta, Tb, Tc) =
-  Const ("Product_Type.internal_split", [[Ta, Tb] ---> Tc, HOLogic.mk_prodT (Ta, Tb)] ---> Tc);
-
-val internal_split_def = thm "internal_split_def";
-val internal_split_conv = thm "internal_split_conv";
-
-
 
 (** split rules **)
 
-val eval_internal_split = hol_simplify [internal_split_def] o hol_simplify [internal_split_conv];
+fun internal_split_const (Ta, Tb, Tc) =
+  Const (@{const_name Product_Type.internal_split},
+    [[Ta, Tb] ---> Tc, HOLogic.mk_prodT (Ta, Tb)] ---> Tc);
+
+val eval_internal_split =
+  hol_simplify [@{thm internal_split_def}] o hol_simplify [@{thm internal_split_conv}];
+
 val remove_internal_split = eval_internal_split o split_all;
 
 
 (*In ap_split S T u, term u expects separate arguments for the factors of S,
   with result type T.  The call creates a new term expecting one argument
   of type S.*)
-fun ap_split (Type ("*", [T1, T2])) T3 u =
+fun ap_split (Type (@{type_name "*"}, [T1, T2])) T3 u =
       internal_split_const (T1, T2, T3) $
       Abs ("v", T1,
           ap_split T2 T3
@@ -127,7 +112,7 @@ fun pair_tac ctxt s =
   THEN' hyp_subst_tac
   THEN' K prune_params_tac;
 
-val split_rule_ss = HOL_basic_ss addsimps [split_conv, fst_conv, snd_conv];
+val split_rule_ss = HOL_basic_ss addsimps [@{thm split_conv}, @{thm fst_conv}, @{thm snd_conv}];
 
 fun split_rule_goal ctxt xss rl =
   let
@@ -159,5 +144,3 @@ val setup =
 
 end;
 
-structure BasicSplitRule: BASIC_SPLIT_RULE = SplitRule;
-open BasicSplitRule;

@@ -30,7 +30,8 @@ datatype vc_opts =
   VC_Take of int list * (bool * string list) option |
   VC_Only of string list |
   VC_Without of string list |
-  VC_Examine of string list 
+  VC_Examine of string list |
+  VC_Single of string
 
 fun get_vc thy vc_name =
   (case Boogie_VCs.lookup thy vc_name of
@@ -42,10 +43,36 @@ fun get_vc thy vc_name =
       | _ => error ("There is no verification condition " ^
           quote vc_name ^ ".")))
 
+local
+  fun split_goal t =
+    (case Boogie_Tactics.split t of
+      [tp] => tp
+    | _ => error "Multiple goals.")
+
+  fun single_prep t =
+    let
+      val (us, u) = split_goal t
+      val assms = [((@{binding vc_trace}, []), map (rpair []) us)]
+    in
+      pair [u] o snd o ProofContext.add_assms_i Assumption.assume_export assms
+    end
+
+  fun single_prove goal ctxt thm =
+    Goal.prove ctxt [] [] goal (fn {context, ...} => HEADGOAL (
+      Boogie_Tactics.split_tac
+      THEN' Boogie_Tactics.drop_assert_at_tac
+      THEN' SUBPROOF (fn _ => Tactic.rtac thm 1) context))
+in
 fun boogie_vc (vc_name, vc_opts) lthy =
   let
     val thy = ProofContext.theory_of lthy
     val vc = get_vc thy vc_name
+
+    fun extract vc l =
+      (case Boogie_VCs.extract vc l of
+        SOME vc' => vc'
+      | NONE => error ("There is no assertion to be proved with label " ^
+          quote l ^ "."))
 
     val vcs =
       (case vc_opts of
@@ -55,8 +82,14 @@ fun boogie_vc (vc_name, vc_opts) lthy =
       | VC_Take (ps, SOME (false, ls)) => [Boogie_VCs.paths_without ps ls vc]
       | VC_Only ls => [Boogie_VCs.only ls vc]
       | VC_Without ls => [Boogie_VCs.without ls vc]
-      | VC_Examine ls => map_filter (Boogie_VCs.extract vc) ls)
+      | VC_Examine ls => map (extract vc) ls
+      | VC_Single l => [extract vc l])
     val ts = map Boogie_VCs.prop_of_vc vcs
+
+    val (prepare, finish) =
+      (case vc_opts of
+         VC_Single _ => (single_prep (hd ts), single_prove (hd ts))
+      | _ => (pair ts, K I))
 
     val discharge = fold (Boogie_VCs.discharge o pair vc_name)
     fun after_qed [thms] = Local_Theory.theory (discharge (vcs ~~ thms))
@@ -64,9 +97,14 @@ fun boogie_vc (vc_name, vc_opts) lthy =
   in
     lthy
     |> fold Variable.auto_fixes ts
-    |> Proof.theorem_i NONE after_qed [map (rpair []) ts]
+    |> (fn lthy1 => lthy1
+    |> prepare
+    |-> (fn us => fn lthy2 => lthy2
+    |> Proof.theorem_i NONE (fn thmss => fn ctxt =>
+         let val export = map (finish lthy1) o ProofContext.export ctxt lthy2
+         in after_qed (map export thmss) ctxt end) [map (rpair []) us]))
   end
-
+end
 
 fun write_list head =
   map Pretty.str o sort (dict_ord string_ord o pairself explode) #>
@@ -239,7 +277,8 @@ val _ =
 
 val vc_name = OuterParse.name
 
-val vc_labels = Scan.repeat1 OuterParse.name
+val vc_label = OuterParse.name
+val vc_labels = Scan.repeat1 vc_label
 
 val vc_paths =
   OuterParse.nat -- (Args.$$$ "-" |-- OuterParse.nat) >> (op upto) ||
@@ -247,13 +286,14 @@ val vc_paths =
 
 val vc_opts =
   scan_arg
-   (scan_val "examine" vc_labels >> VC_Examine ||
+   (scan_val "assertion" vc_label >> VC_Single ||
+    scan_val "examine" vc_labels >> VC_Examine ||
     scan_val "take" ((OuterParse.list vc_paths >> flat) -- Scan.option (
       scan_val "without" vc_labels >> pair false ||
       scan_val "and_also" vc_labels >> pair true) >> VC_Take) ||
     scan_val "only" vc_labels >> VC_Only ||
     scan_val "without" vc_labels >> VC_Without) ||
-  Scan.succeed VC_Complete  
+  Scan.succeed VC_Complete
 
 val _ =
   OuterSyntax.command "boogie_vc"

@@ -103,14 +103,25 @@ val _ = value "cpat"
     "Thm.cterm_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_term t)));
 
 
-fun type_ syn = (Args.context -- Scan.lift Args.name_source >> (fn (ctxt, c) =>
-    #1 (Term.dest_Type (ProofContext.read_tyname ctxt c))
-    |> syn ? Long_Name.base_name
-    |> ML_Syntax.print_string));
+(* type constructors *)
 
-val _ = inline "type_name" (type_ false);
-val _ = inline "type_syntax" (type_ true);
+fun type_const kind check = Args.context -- Scan.lift Args.name_source >> (fn (ctxt, c) =>
+  let
+    val d = #1 (Term.dest_Type (ProofContext.read_type_name ctxt false c));
+    val decl = Sign.the_type_decl (ProofContext.theory_of ctxt) d;
+    val s =
+      (case try check (d, decl) of
+        SOME s => s
+      | NONE => error ("Not a " ^ kind ^ ": " ^ quote d));
+  in ML_Syntax.print_string s end);
 
+val _ = inline "type_name" (type_const "logical type" (fn (d, Type.LogicalType _) => d));
+val _ = inline "type_abbrev" (type_const "type abbreviation" (fn (d, Type.Abbreviation _) => d));
+val _ = inline "nonterminal" (type_const "nonterminal" (fn (d, Type.Nonterminal) => d));
+val _ = inline "type_syntax" (type_const "type" (fn (d, _) => Long_Name.base_name d));  (* FIXME authentic syntax *)
+
+
+(* constants *)
 
 fun const syn = Args.context -- Scan.lift Args.name_source >> (fn (ctxt, c) =>
   #1 (Term.dest_Const (ProofContext.read_const_proper ctxt c))

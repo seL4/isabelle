@@ -28,6 +28,8 @@ sig
   val cargs: string
   val any: string
   val sprop: string
+  datatype mfix = Mfix of string * typ * string * int list * int
+  val err_in_mfix: string -> mfix -> 'a
   val typ_to_nonterm: typ -> string
   datatype xsymb =
     Delim of string |
@@ -37,7 +39,6 @@ sig
   datatype xprod = XProd of string * xsymb list * string * int
   val chain_pri: int
   val delims_of: xprod list -> string list list
-  datatype mfix = Mfix of string * typ * string * int list * int
   datatype syn_ext =
     SynExt of {
       xprods: xprod list,

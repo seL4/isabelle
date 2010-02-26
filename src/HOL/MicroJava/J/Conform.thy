@@ -38,24 +38,13 @@ constdefs
             xconf (heap (store s)) (abrupt s)"
 
 
-syntax (xsymbols)
-  hext     :: "aheap => aheap => bool"
-              ("_ \<le>| _" [51,51] 50)
-
-  conf     :: "'c prog => aheap => val => ty => bool"
-              ("_,_ \<turnstile> _ ::\<preceq> _" [51,51,51,51] 50)
-
-  lconf    :: "'c prog => aheap => ('a \<rightharpoonup> val) => ('a \<rightharpoonup> ty) => bool"
-              ("_,_ \<turnstile> _ [::\<preceq>] _" [51,51,51,51] 50)
-
-  oconf    :: "'c prog => aheap => obj => bool"
-              ("_,_ \<turnstile> _ \<surd>" [51,51,51] 50)
-
-  hconf    :: "'c prog => aheap => bool"
-              ("_ \<turnstile>h _ \<surd>" [51,51] 50)
-
-  conforms :: "state => java_mb env' => bool"
-              ("_ ::\<preceq> _" [51,51] 50)
+notation (xsymbols)
+  hext  ("_ \<le>| _" [51,51] 50) and
+  conf  ("_,_ \<turnstile> _ ::\<preceq> _" [51,51,51,51] 50) and
+  lconf  ("_,_ \<turnstile> _ [::\<preceq>] _" [51,51,51,51] 50) and
+  oconf  ("_,_ \<turnstile> _ \<surd>" [51,51,51] 50) and
+  hconf  ("_ \<turnstile>h _ \<surd>" [51,51] 50) and
+  conforms  ("_ ::\<preceq> _" [51,51] 50)
 
 
 section "hext"

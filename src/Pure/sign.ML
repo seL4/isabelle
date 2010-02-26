@@ -60,6 +60,7 @@ sig
   val intern_term: theory -> term -> term
   val extern_term: theory -> term -> term
   val intern_tycons: theory -> typ -> typ
+  val the_type_decl: theory -> string -> Type.decl
   val arity_number: theory -> string -> int
   val arity_sorts: theory -> string -> sort -> sort list
   val certify_class: theory -> class -> class
@@ -308,6 +309,7 @@ end;
 
 (* certify wrt. type signature *)
 
+val the_type_decl = Type.the_decl o tsig_of;
 val arity_number = Type.arity_number o tsig_of;
 fun arity_sorts thy = Type.arity_sorts (Syntax.pp_global thy) (tsig_of thy);
 

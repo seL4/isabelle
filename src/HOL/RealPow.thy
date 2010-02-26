@@ -7,12 +7,13 @@ header {* Natural powers theory *}
 
 theory RealPow
 imports RealDef
-uses ("Tools/float_syntax.ML")
 begin
 
+(* FIXME: declare this in Rings.thy or not at all *)
 declare abs_mult_self [simp]
 
-lemma two_realpow_ge_one [simp]: "(1::real) \<le> 2 ^ n"
+(* used by Import/HOL/real.imp *)
+lemma two_realpow_ge_one: "(1::real) \<le> 2 ^ n"
 by simp
 
 lemma two_realpow_gt [simp]: "real (n::nat) < 2 ^ n"
@@ -31,54 +32,15 @@ lemma realpow_minus_mult [rule_format]:
 apply (simp split add: nat_diff_split)
 done
 
-lemma realpow_two_mult_inverse [simp]:
-     "r \<noteq> 0 ==> r * inverse r ^Suc (Suc 0) = inverse (r::real)"
-by (simp add:  real_mult_assoc [symmetric])
-
-lemma realpow_two_minus [simp]: "(-x)^Suc (Suc 0) = (x::real)^Suc (Suc 0)"
-by simp
-
 lemma realpow_two_diff:
      "(x::real)^Suc (Suc 0) - y^Suc (Suc 0) = (x - y) * (x + y)"
-apply (unfold real_diff_def)
-apply (simp add: algebra_simps)
-done
+by (simp add: algebra_simps)
 
 lemma realpow_two_disj:
      "((x::real)^Suc (Suc 0) = y^Suc (Suc 0)) = (x = y | x = -y)"
 apply (cut_tac x = x and y = y in realpow_two_diff)
 apply auto
 done
-
-lemma realpow_real_of_nat: "real (m::nat) ^ n = real (m ^ n)"
-apply (induct "n")
-apply (auto simp add: real_of_nat_one real_of_nat_mult)
-done
-
-lemma realpow_real_of_nat_two_pos [simp] : "0 < real (Suc (Suc 0) ^ n)"
-apply (induct "n")
-apply (auto simp add: zero_less_mult_iff)
-done
-
-(* used by AFP Integration theory *)
-lemma realpow_increasing:
-     "[|(0::real) \<le> x; 0 \<le> y; x ^ Suc n \<le> y ^ Suc n|] ==> x \<le> y"
-  by (rule power_le_imp_le_base)
-
-
-subsection{*Literal Arithmetic Involving Powers, Type @{typ real}*}
-
-lemma real_of_int_power: "real (x::int) ^ n = real (x ^ n)"
-apply (induct "n")
-apply (simp_all add: nat_mult_distrib)
-done
-declare real_of_int_power [symmetric, simp]
-
-lemma power_real_number_of:
-     "(number_of v :: real) ^ n = real ((number_of v :: int) ^ n)"
-by (simp only: real_number_of [symmetric] real_of_int_power)
-
-declare power_real_number_of [of _ "number_of w", standard, simp]
 
 
 subsection{* Squares of Reals *}
@@ -92,9 +54,6 @@ by simp
 
 lemma real_sum_squares_cancel2: "x * x + y * y = 0 ==> y = (0::real)"
 by simp
-
-lemma real_mult_self_sum_ge_zero: "(0::real) \<le> x*x + y*y"
-by (rule sum_squares_ge_zero)
 
 lemma real_sum_squares_cancel_a: "x * x = -(y * y) ==> x = (0::real) & y=0"
 by (simp add: real_add_eq_0_iff [symmetric])
@@ -172,24 +131,7 @@ lemma real_mult_inverse_cancel2:
 apply (auto dest: real_mult_inverse_cancel simp add: mult_ac)
 done
 
-lemma inverse_real_of_nat_gt_zero [simp]: "0 < inverse (real (Suc n))"
-by simp
-
-lemma inverse_real_of_nat_ge_zero [simp]: "0 \<le> inverse (real (Suc n))"
-by simp
-
 lemma realpow_num_eq_if: "(m::real) ^ n = (if n=0 then 1 else m * m ^ (n - 1))"
 by (case_tac "n", auto)
-
-subsection{* Float syntax *}
-
-syntax "_Float" :: "float_const \<Rightarrow> 'a"    ("_")
-
-use "Tools/float_syntax.ML"
-setup Float_Syntax.setup
-
-text{* Test: *}
-lemma "123.456 = -111.111 + 200 + 30 + 4 + 5/10 + 6/100 + (7/1000::real)"
-by simp
 
 end

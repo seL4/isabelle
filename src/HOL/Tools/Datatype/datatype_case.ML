@@ -76,7 +76,7 @@ fun strip_constraints (Const (@{syntax_const "_constrain"}, _) $ t $ tT) =
 
 fun mk_fun_constrain tT t =
   Syntax.const @{syntax_const "_constrain"} $ t $
-    (Syntax.free "fun" $ tT $ Syntax.free "dummy");    (* FIXME @{type_syntax} (!?) *)
+    (Syntax.const @{type_syntax fun} $ tT $ Syntax.const @{type_syntax dummy});
 
 
 (*---------------------------------------------------------------------------

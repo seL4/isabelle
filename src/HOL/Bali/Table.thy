@@ -37,11 +37,9 @@ types ('a, 'b) table    --{* table with key type 'a and contents type 'b *}
 
 section "map of / table of"
 
-syntax
-  table_of      :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) table"   --{* concrete table *}
-  
 abbreviation
-  "table_of \<equiv> map_of"
+  table_of :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) table"   --{* concrete table *}
+  where "table_of \<equiv> map_of"
 
 translations
   (type)"'a \<rightharpoonup> 'b"       <= (type)"'a \<Rightarrow> 'b Datatype.option"

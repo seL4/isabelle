@@ -35,7 +35,7 @@ consts
   stvars    :: "'a stfun => bool"
 
 syntax
-  "PRED"    :: "lift => 'a"                          ("PRED _")
+  "_PRED"   :: "lift => 'a"                          ("PRED _")
   "_stvars" :: "lift => bool"                        ("basevars _")
 
 translations

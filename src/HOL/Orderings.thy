@@ -657,13 +657,14 @@ let
 
   fun matches_bound v t =
     (case t of
-      Const ("_bound", _) $ Free (v', _) => v = v'
+      Const (@{syntax_const "_bound"}, _) $ Free (v', _) => v = v'
     | _ => false);
   fun contains_var v = Term.exists_subterm (fn Free (x, _) => x = v | _ => false);
   fun mk v c n P = Syntax.const c $ Syntax.mark_bound v $ n $ P;
 
   fun tr' q = (q,
-    fn [Const ("_bound", _) $ Free (v, _), Const (c, _) $ (Const (d, _) $ t $ u) $ P] =>
+    fn [Const (@{syntax_const "_bound"}, _) $ Free (v, _),
+        Const (c, _) $ (Const (d, _) $ t $ u) $ P] =>
         (case AList.lookup (op =) trans (q, c, d) of
           NONE => raise Match
         | SOME (l, g) =>

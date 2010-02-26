@@ -345,7 +345,7 @@ fun spec k arg =
   Scan.lift (Args.$$$ k) >> K "";
 
 fun attrib add_type add_pred del =
-  spec typeN Args.tyname >> add_type ||
+  spec typeN (Args.type_name true) >> add_type ||
   spec predN Args.const >> add_pred ||
   spec setN Args.const >> add_pred ||
   Scan.lift Args.del >> K del;
@@ -856,7 +856,7 @@ fun named_rule k arg get =
       | NONE => error ("No rule for " ^ k ^ " " ^ quote name))))));
 
 fun rule get_type get_pred =
-  named_rule typeN Args.tyname get_type ||
+  named_rule typeN (Args.type_name true) get_type ||
   named_rule predN Args.const get_pred ||
   named_rule setN Args.const get_pred ||
   Scan.lift (Args.$$$ ruleN -- Args.colon) |-- Attrib.thms;

@@ -789,12 +789,12 @@ proof -
     hence "real x / real y < 1" using `0 < y` and `0 \<le> x` by auto
 
     from real_of_int_div4[of "?X" y]
-    have "real (?X div y) \<le> (real x / real y) * 2^?l" unfolding real_of_int_mult times_divide_eq_left real_of_int_power[symmetric] real_number_of .
+    have "real (?X div y) \<le> (real x / real y) * 2^?l" unfolding real_of_int_mult times_divide_eq_left real_of_int_power real_number_of .
     also have "\<dots> < 1 * 2^?l" using `real x / real y < 1` by (rule mult_strict_right_mono, auto)
     finally have "?X div y < 2^?l" unfolding real_of_int_less_iff[of _ "2^?l", symmetric] by auto
     hence "?X div y + 1 \<le> 2^?l" by auto
     hence "real (?X div y + 1) * inverse (2^?l) \<le> 2^?l * inverse (2^?l)"
-      unfolding real_of_int_le_iff[of _ "2^?l", symmetric] real_of_int_power[symmetric] real_number_of
+      unfolding real_of_int_le_iff[of _ "2^?l", symmetric] real_of_int_power real_number_of
       by (rule mult_right_mono, auto)
     hence "real (?X div y + 1) * inverse (2^?l) \<le> 1" by auto
     thus ?thesis unfolding rapprox_posrat_def Let_def normfloat real_of_float_simp if_not_P[OF False]
@@ -863,12 +863,12 @@ next
     qed
 
     from real_of_int_div4[of "?X" y]
-    have "real (?X div y) \<le> (real x / real y) * 2^?l" unfolding real_of_int_mult times_divide_eq_left real_of_int_power[symmetric] real_number_of .
+    have "real (?X div y) \<le> (real x / real y) * 2^?l" unfolding real_of_int_mult times_divide_eq_left real_of_int_power real_number_of .
     also have "\<dots> < 1/2 * 2^?l" using `real x / real y < 1/2` by (rule mult_strict_right_mono, auto)
     finally have "?X div y * 2 < 2^?l" unfolding real_of_int_less_iff[of _ "2^?l", symmetric] by auto
     hence "?X div y + 1 < 2^?l" using `0 < ?X div y` by auto
     hence "real (?X div y + 1) * inverse (2^?l) < 2^?l * inverse (2^?l)"
-      unfolding real_of_int_less_iff[of _ "2^?l", symmetric] real_of_int_power[symmetric] real_number_of
+      unfolding real_of_int_less_iff[of _ "2^?l", symmetric] real_of_int_power real_number_of
       by (rule mult_strict_right_mono, auto)
     hence "real (?X div y + 1) * inverse (2^?l) < 1" by auto
     thus ?thesis unfolding rapprox_posrat_def Let_def normfloat real_of_float_simp if_not_P[OF False]
@@ -1188,7 +1188,7 @@ proof (cases x)
   show "?thesis"
   proof (cases "0 < ?d")
     case True
-    hence pow_d: "pow2 ?d = real ?p" unfolding pow2_int[symmetric] power_real_number_of[symmetric] by auto
+    hence pow_d: "pow2 ?d = real ?p" using pow2_int[symmetric] by simp
     show ?thesis
     proof (cases "m mod ?p = 0")
       case True
@@ -1224,7 +1224,7 @@ proof (cases x)
   show "?thesis"
   proof (cases "0 < ?d")
     case True
-    hence pow_d: "pow2 ?d = real ?p" unfolding pow2_int[symmetric] power_real_number_of[symmetric] by auto
+    hence pow_d: "pow2 ?d = real ?p" using pow2_int[symmetric] by simp
     have "m div ?p * ?p \<le> m div ?p * ?p + m mod ?p" by (auto simp add: pos_mod_bound[OF `0 < ?p`, THEN less_imp_le])
     also have "\<dots> \<le> m" unfolding zdiv_zmod_equality2[where k=0, unfolded monoid_add_class.add_0_right] ..
     finally have "real (Float (m div ?p) (e + ?d)) \<le> real (Float m e)" unfolding real_of_float_simp add_commute[of e]
@@ -1263,7 +1263,7 @@ proof (cases "normfloat (x * y)")
     case True
     have "real (m div 2^(nat ?l)) * pow2 ?l \<le> real m"
     proof -
-      have "real (m div 2^(nat ?l)) * pow2 ?l = real (2^(nat ?l) * (m div 2^(nat ?l)))" unfolding real_of_int_mult real_of_int_power[symmetric] real_number_of unfolding pow2_int[symmetric] 
+      have "real (m div 2^(nat ?l)) * pow2 ?l = real (2^(nat ?l) * (m div 2^(nat ?l)))" unfolding real_of_int_mult real_of_int_power real_number_of unfolding pow2_int[symmetric] 
         using `?l > 0` by auto
       also have "\<dots> \<le> real (2^(nat ?l) * (m div 2^(nat ?l)) + m mod 2^(nat ?l))" unfolding real_of_int_add by auto
       also have "\<dots> = real m" unfolding zmod_zdiv_equality[symmetric] ..
@@ -1329,7 +1329,7 @@ proof (cases x)
     hence me_eq: "pow2 (-e) = pow2 (int (nat (-e)))" by auto
     have "real (Float (m div (2 ^ (nat (-e)))) 0) = real (m div 2 ^ (nat (-e)))" unfolding real_of_float_simp by auto
     also have "\<dots> \<le> real m / real ((2::int) ^ (nat (-e)))" using real_of_int_div4 .
-    also have "\<dots> = real m * inverse (2 ^ (nat (-e)))" unfolding power_real_number_of[symmetric] real_divide_def ..
+    also have "\<dots> = real m * inverse (2 ^ (nat (-e)))" unfolding real_of_int_power real_number_of real_divide_def ..
     also have "\<dots> = real (Float m e)" unfolding real_of_float_simp me_eq pow2_int pow2_neg[of e] ..
     finally show ?thesis unfolding Float floor_fl.simps if_not_P[OF `\<not> 0 \<le> e`] .
   next
@@ -1357,7 +1357,7 @@ proof (cases x)
     case False
     hence me_eq: "pow2 (-e) = pow2 (int (nat (-e)))" by auto
     have "real (Float m e) = real m * inverse (2 ^ (nat (-e)))" unfolding real_of_float_simp me_eq pow2_int pow2_neg[of e] ..
-    also have "\<dots> = real m / real ((2::int) ^ (nat (-e)))" unfolding power_real_number_of[symmetric] real_divide_def ..
+    also have "\<dots> = real m / real ((2::int) ^ (nat (-e)))" unfolding real_of_int_power real_number_of real_divide_def ..
     also have "\<dots> \<le> 1 + real (m div 2 ^ (nat (-e)))" using real_of_int_div3[unfolded diff_le_eq] .
     also have "\<dots> = real (Float (m div (2 ^ (nat (-e))) + 1) 0)" unfolding real_of_float_simp by auto
     finally show ?thesis unfolding Float ceiling_fl.simps if_not_P[OF `\<not> 0 \<le> e`] .
