@@ -266,12 +266,19 @@ fun define_consts
     ((consts, def_thms), thy)
   end;
 
-fun prove_thm
+fun prove
     (thy : theory)
+    (defs : thm list)
     (goal : term)
-    (tacf : {prems: thm list, context: Proof.context} -> tactic)
+    (tacs : {prems: thm list, context: Proof.context} -> tactic list)
     : thm =
-    Goal.prove_global thy [] [] goal tacf;
+  let
+    fun tac {prems, context} =
+      rewrite_goals_tac defs THEN
+      EVERY (tacs {prems = map (rewrite_rule defs) prems, context = context})
+  in
+    Goal.prove_global thy [] [] goal tac
+  end;
 
 (************** generating beta reduction rules from definitions **************)
 
@@ -291,11 +298,8 @@ in
         val goal = mk_equals (lhs, rhs);
         val cs = ContProc.cont_thms lam;
         val betas = map (fn c => mk_meta_eq (c RS @{thm beta_cfun})) cs;
-        val tac =
-            rewrite_goals_tac (def_thm::betas)
-            THEN rtac reflexive_thm 1;
       in
-        prove_thm thy goal (K tac)
+        prove thy (def_thm::betas) goal (K [rtac reflexive_thm 1])
       end;
 end;
 
@@ -356,13 +360,13 @@ fun add_selectors
     (* prove selector strictness rules *)
     val sel_stricts : thm list =
       let
-        val rules = rep_strict :: sel_defs @ @{thms sel_strict_rules};
-        val tac = simp_tac (HOL_basic_ss addsimps rules) 1;
+        val rules = rep_strict :: @{thms sel_strict_rules};
+        val tacs = [simp_tac (HOL_basic_ss addsimps rules) 1];
         fun sel_strict sel =
           let
             val goal = mk_trp (mk_strict sel);
           in
-            prove_thm thy goal (K tac)
+            prove thy sel_defs goal (K tacs)
           end
       in
         map sel_strict sel_consts
@@ -371,9 +375,10 @@ fun add_selectors
     (* prove selector application rules *)
     val sel_apps : thm list =
       let
+        val defs = con_betas @ sel_defs;
         val rules = @{thms sel_app_rules};
-        val simps = simp_thms @ [abs_inv] @ con_betas @ sel_defs @ rules;
-        val tac = asm_simp_tac (HOL_basic_ss addsimps simps) 1;
+        val simps = simp_thms @ [abs_inv] @ rules;
+        val tacs = [asm_simp_tac (HOL_basic_ss addsimps simps) 1];
         fun sel_apps_of (i, (con, args)) =
           let
             val Ts : typ list = map #3 args;
@@ -388,13 +393,13 @@ fun add_selectors
                 val concl = mk_trp (mk_eq (sel ` con_app, nth vs n));
                 val goal = Logic.list_implies (assms, concl);
               in
-                prove_thm thy goal (K tac)
+                prove thy defs goal (K tacs)
               end;
             fun one_diff (n, sel, T) =
               let
                 val goal = mk_trp (mk_eq (sel ` con_app, mk_bottom T));
               in
-                prove_thm thy goal (K tac)
+                prove thy defs goal (K tacs)
               end;
             fun one_con (j, (_, args')) : thm list =
               let
@@ -417,9 +422,8 @@ fun add_selectors
   (* prove selector definedness rules *)
     val sel_defins : thm list =
       let
-        val rules = @{thms sel_defined_iff_rules};
-        val simps = rep_strict_iff :: sel_defs @ rules;
-        val tac = simp_tac (HOL_basic_ss addsimps simps) 1;
+        val rules = rep_strict_iff :: @{thms sel_defined_iff_rules};
+        val tacs = [simp_tac (HOL_basic_ss addsimps rules) 1];
         fun sel_defin sel =
           let
             val (T, U) = dest_cfunT (Term.fastype_of sel);
@@ -428,7 +432,7 @@ fun add_selectors
             val rhs = mk_eq (x, mk_bottom T);
             val goal = mk_trp (mk_eq (lhs, rhs));
           in
-            prove_thm thy goal (K tac)
+            prove thy sel_defs goal (K tacs)
           end
         fun one_arg (false, SOME sel, T) = SOME (sel_defin sel)
           | one_arg _                    = NONE;
@@ -499,9 +503,8 @@ fun add_domain_constructors
       let
         val rules = @{thms compact_sinl compact_sinr compact_spair
                            compact_up compact_ONE};
-        val tac = EVERY
-          [rewrite_goals_tac con_beta_thms,
-           rtac (iso_locale RS @{thm iso.compact_abs}) 1,
+        val tacs =
+          [rtac (iso_locale RS @{thm iso.compact_abs}) 1,
            REPEAT (resolve_tac rules 1 ORELSE atac 1)];
         fun con_compact (con, args) =
           let
@@ -513,7 +516,7 @@ fun add_domain_constructors
             val assms = map (mk_trp o mk_compact) vs;
             val goal = Logic.list_implies (assms, concl);
           in
-            prove_thm thy goal (K tac)
+            prove thy con_beta_thms goal (K tacs)
           end;
       in
         map con_compact con_spec
