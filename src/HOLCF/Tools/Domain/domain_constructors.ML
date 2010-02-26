@@ -450,24 +450,16 @@ fun add_selectors
 (************* definitions and theorems for constructor functions *************)
 (******************************************************************************)
 
-fun add_domain_constructors
-    (dname : string)
-    (lhsT : typ,
-     spec : (binding * (bool * binding option * typ) list * mixfix) list)
-    (rep_const : term, abs_const : term)
-    (rep_iso_thm : thm, abs_iso_thm : thm)
-    (thy : theory) =
+fun add_constructors
+    (spec : (binding * (bool * 'b * typ) list * mixfix) list)
+    (abs_const : term)
+    (iso_locale : thm)
+    (thy : theory)
+    =
   let
 
-    (* prove rep/abs strictness rules *)
-    val iso_locale = @{thm iso.intro} OF [abs_iso_thm, rep_iso_thm];
-    val rep_strict = iso_locale RS @{thm iso.rep_strict};
-    val abs_strict = iso_locale RS @{thm iso.abs_strict};
-    val rep_defined_iff = iso_locale RS @{thm iso.rep_defined_iff};
-    val abs_defined_iff = iso_locale RS @{thm iso.abs_defined_iff};
-
     (* define constructor functions *)
-    val ((con_consts, con_def_thms), thy) =
+    val ((con_consts, con_defs), thy) =
       let
         fun vars_of args =
           let
@@ -487,13 +479,10 @@ fun add_domain_constructors
       end;
 
     (* prove beta reduction rules for constructors *)
-    val con_beta_thms = map (beta_of_def thy) con_def_thms;
-
-    (* TODO: enable this earlier *)
-    val thy = Sign.add_path dname thy;
+    val con_betas = map (beta_of_def thy) con_defs;
 
     (* replace bindings with terms in constructor spec *)
-    val con_spec : (term * (bool * typ) list) list =
+    val spec' : (term * (bool * typ) list) list =
       let fun one_arg (lazy, sel, T) = (lazy, T);
           fun one_con con (b, args, mx) = (con, map one_arg args);
       in map2 one_con con_consts spec end;
@@ -516,11 +505,49 @@ fun add_domain_constructors
             val assms = map (mk_trp o mk_compact) vs;
             val goal = Logic.list_implies (assms, concl);
           in
-            prove thy con_beta_thms goal (K tacs)
+            prove thy con_betas goal (K tacs)
           end;
       in
-        map con_compact con_spec
+        map con_compact spec'
       end;
+
+    val result =
+      {
+        con_consts = con_consts,
+        con_defs = con_defs,
+        con_betas = con_betas,
+        con_compacts = con_compacts
+      };
+  in
+    (result, thy)
+  end;
+
+(******************************************************************************)
+(******************************* main function ********************************)
+(******************************************************************************)
+
+fun add_domain_constructors
+    (dname : string)
+    (lhsT : typ,
+     spec : (binding * (bool * binding option * typ) list * mixfix) list)
+    (rep_const : term, abs_const : term)
+    (rep_iso_thm : thm, abs_iso_thm : thm)
+    (thy : theory) =
+  let
+
+    (* prove rep/abs strictness rules *)
+    val iso_locale = @{thm iso.intro} OF [abs_iso_thm, rep_iso_thm];
+    val rep_strict = iso_locale RS @{thm iso.rep_strict};
+    val abs_strict = iso_locale RS @{thm iso.abs_strict};
+    val rep_defined_iff = iso_locale RS @{thm iso.rep_defined_iff};
+    val abs_defined_iff = iso_locale RS @{thm iso.abs_defined_iff};
+
+    (* define constructor functions *)
+    val ({con_consts, con_defs, con_betas, con_compacts}, thy) =
+        add_constructors spec abs_const iso_locale thy;
+
+    (* TODO: enable this earlier *)
+    val thy = Sign.add_path dname thy;
 
     (* replace bindings with terms in constructor spec *)
     val sel_spec : (term * (bool * binding option * typ) list) list =
@@ -529,14 +556,14 @@ fun add_domain_constructors
     (* define and prove theorems for selector functions *)
     val (sel_thms : thm list, thy : theory) =
       add_selectors sel_spec rep_const
-        abs_iso_thm rep_strict rep_defined_iff con_beta_thms thy;
+        abs_iso_thm rep_strict rep_defined_iff con_betas thy;
 
     (* restore original signature path *)
     val thy = Sign.parent_path thy;
 
     val result =
       { con_consts = con_consts,
-        con_defs = con_def_thms,
+        con_defs = con_defs,
         con_compacts = con_compacts,
         sel_rews = sel_thms };
   in
