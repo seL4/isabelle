@@ -201,6 +201,8 @@ val con_appls = #con_betas result;
 val con_compacts = #con_compacts result;
 val con_rews = #con_rews result;
 val sel_rews = #sel_rews result;
+val inverts = #inverts result;
+val injects = #injects result;
 
 (* ----- theorems concerning the isomorphism -------------------------------- *)
 
@@ -485,35 +487,6 @@ val dist_eqs =
     fun distincts []      = []
       | distincts (c::cs) = maps (distinct c) cs @ distincts cs;
   in distincts cons end;
-
-local 
-  fun pgterm rel con args =
-    let
-      fun append s = upd_vname (fn v => v^s);
-      val (largs, rargs) = (args, map (append "'") args);
-      val concl =
-        foldr1 mk_conj (ListPair.map rel (map %# largs, map %# rargs));
-      val prem = rel (con_app con largs, con_app con rargs);
-      val sargs = case largs of [_] => [] | _ => nonlazy args;
-      val prop = lift_defined %: (sargs, mk_trp (prem === concl));
-    in pg con_appls prop end;
-  val cons' = filter (fn (_, _, args) => args<>[]) cons;
-in
-  val _ = trace " Proving inverts...";
-  val inverts =
-    let
-      val abs_less = ax_abs_iso RS (allI RS injection_less);
-      val tacs =
-        [asm_full_simp_tac (HOLCF_ss addsimps [abs_less, spair_less]) 1];
-    in map (fn (con, _, args) => pgterm (op <<) con args (K tacs)) cons' end;
-
-  val _ = trace " Proving injects...";
-  val injects =
-    let
-      val abs_eq = ax_abs_iso RS (allI RS injection_eq);
-      val tacs = [asm_full_simp_tac (HOLCF_ss addsimps [abs_eq, spair_eq]) 1];
-    in map (fn (con, _, args) => pgterm (op ===) con args (K tacs)) cons' end;
-end;
 
 (* ----- theorems concerning one induction step ----------------------------- *)
 

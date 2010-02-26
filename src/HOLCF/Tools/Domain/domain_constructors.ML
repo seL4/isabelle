@@ -17,6 +17,8 @@ sig
            con_betas : thm list,
            con_compacts : thm list,
            con_rews : thm list,
+           inverts : thm list,
+           injects : thm list,
            sel_rews : thm list
          } * theory;
 end;
@@ -40,6 +42,25 @@ val mk_trp = HOLogic.mk_Trueprop;
 val mk_fst = HOLogic.mk_fst;
 val mk_snd = HOLogic.mk_snd;
 val mk_not = HOLogic.mk_not;
+val mk_conj = HOLogic.mk_conj;
+
+
+(*** Basic HOLCF concepts ***)
+
+fun mk_bottom T = Const (@{const_name UU}, T);
+
+fun below_const T = Const (@{const_name below}, [T, T] ---> boolT);
+fun mk_below (t, u) = below_const (fastype_of t) $ t $ u;
+
+fun mk_undef t = mk_eq (t, mk_bottom (fastype_of t));
+
+fun mk_defined t = mk_not (mk_undef t);
+
+fun mk_compact t =
+  Const (@{const_name compact}, fastype_of t --> boolT) $ t;
+
+fun mk_cont t =
+  Const (@{const_name cont}, fastype_of t --> boolT) $ t;
 
 
 (*** Continuous function space ***)
@@ -60,12 +81,12 @@ fun cabs_const (S, T) =
   Const(@{const_name Abs_CFun}, (S --> T) --> (S ->> T));
 
 fun mk_cabs t =
-  let val T = Term.fastype_of t
+  let val T = fastype_of t
   in cabs_const (Term.domain_type T, Term.range_type T) $ t end
 
 (* builds the expression (LAM v. rhs) *)
 fun big_lambda v rhs =
-  cabs_const (Term.fastype_of v, Term.fastype_of rhs) $ Term.lambda v rhs;
+  cabs_const (fastype_of v, fastype_of rhs) $ Term.lambda v rhs;
 
 (* builds the expression (LAM v1 v2 .. vn. rhs) *)
 fun big_lambdas [] rhs = rhs
@@ -73,7 +94,7 @@ fun big_lambdas [] rhs = rhs
 
 fun mk_capply (t, u) =
   let val (S, T) =
-    case Term.fastype_of t of
+    case fastype_of t of
         Type(@{type_name "->"}, [S, T]) => (S, T)
       | _ => raise TERM ("mk_capply " ^ ML_Syntax.print_list ML_Syntax.print_term [t, u], [t, u]);
   in capply_const (S, T) $ t $ u end;
@@ -89,15 +110,13 @@ fun cfcomp_const (T, U, V) =
 
 fun mk_cfcomp (f, g) =
   let
-    val (U, V) = dest_cfunT (Term.fastype_of f);
-    val (T, U') = dest_cfunT (Term.fastype_of g);
+    val (U, V) = dest_cfunT (fastype_of f);
+    val (T, U') = dest_cfunT (fastype_of g);
   in
     if U = U'
     then mk_capply (mk_capply (cfcomp_const (T, U, V), f), g)
     else raise TYPE ("mk_cfcomp", [U, U'], [f, g])
   end;
-
-fun mk_bottom T = Const (@{const_name UU}, T);
 
 
 (*** Product type ***)
@@ -127,7 +146,7 @@ fun dest_upT (Type(@{type_name "u"}, [T])) = T
 
 fun up_const T = Const(@{const_name up}, T ->> mk_upT T);
 
-fun mk_up t = up_const (Term.fastype_of t) ` t;
+fun mk_up t = up_const (fastype_of t) ` t;
 
 fun fup_const (T, U) =
   Const(@{const_name fup}, (T ->> U) ->> mk_upT T ->> U);
@@ -149,7 +168,7 @@ fun spair_const (T, U) =
 
 (* builds the expression (:t, u:) *)
 fun mk_spair (t, u) =
-  spair_const (Term.fastype_of t, Term.fastype_of u) ` t ` u;
+  spair_const (fastype_of t, fastype_of u) ` t ` u;
 
 (* builds the expression (:t1,t2,..,tn:) *)
 fun mk_stuple [] = @{term "ONE"}
@@ -176,7 +195,7 @@ fun sinr_const (T, U) = Const(@{const_name sinr}, U ->> mk_ssumT (T, U));
 (* builds the list [sinl(t1), sinl(sinr(t2)), ... sinr(...sinr(tn))] *)
 fun mk_sinjects ts =
   let
-    val Ts = map Term.fastype_of ts;
+    val Ts = map fastype_of ts;
     fun combine (t, T) (us, U) =
       let
         val v = sinl_const (T, U) ` t;
@@ -217,21 +236,11 @@ fun mapT T =
   end;
 
 fun mk_strict t =
-  let val (T, U) = dest_cfunT (Term.fastype_of t);
+  let val (T, U) = dest_cfunT (fastype_of t);
   in mk_eq (t ` mk_bottom T, mk_bottom U) end;
 
-fun mk_undef t = mk_eq (t, mk_bottom (Term.fastype_of t));
-
-fun mk_defined t = mk_not (mk_undef t);
-
-fun mk_compact t =
-  Const (@{const_name compact}, Term.fastype_of t --> boolT) $ t;
-
-fun mk_cont t =
-  Const (@{const_name cont}, Term.fastype_of t --> boolT) $ t;
-
 fun mk_fix t =
-  let val (T, _) = dest_cfunT (Term.fastype_of t)
+  let val (T, _) = dest_cfunT (fastype_of t)
   in mk_capply (Const(@{const_name fix}, (T ->> T) ->> T), t) end;
 
 fun mk_Rep_of T =
@@ -250,12 +259,14 @@ fun mk_eqs (t, u) = HOLogic.mk_Trueprop (HOLogic.mk_eq (t, u));
 
 (************************** miscellaneous functions ***************************)
 
+val simple_ss : simpset = HOL_basic_ss addsimps simp_thms;
+
 fun define_consts
     (specs : (binding * term * mixfix) list)
     (thy : theory)
     : (term list * thm list) * theory =
   let
-    fun mk_decl (b, t, mx) = (b, Term.fastype_of t, mx);
+    fun mk_decl (b, t, mx) = (b, fastype_of t, mx);
     val decls = map mk_decl specs;
     val thy = Cont_Consts.add_consts decls thy;
     fun mk_const (b, T, mx) = Const (Sign.full_name thy b, T);
@@ -381,7 +392,7 @@ fun add_constructors
           val nonlazy = map snd (filter_out fst (map fst args ~~ vs));
           fun one_strict v' =
             let
-              val UU = mk_bottom (Term.fastype_of v');
+              val UU = mk_bottom (fastype_of v');
               val vs' = map (fn v => if v = v' then UU else v) vs;
               val goal = mk_trp (mk_undef (list_ccomb (con, vs')));
               val tacs = [simp_tac (HOL_basic_ss addsimps rules) 1];
@@ -407,12 +418,51 @@ fun add_constructors
       val con_rews = con_stricts @ con_defins;
     end;
 
+    (* prove injectiveness of constructors *)
+    local
+      fun pgterm rel (con, args) =
+        let
+          fun prime (Free (n, T)) = Free (n^"'", T)
+            | prime t             = t;
+          val xs = vars_of args;
+          val ys = map prime xs;
+          val nonlazy = map snd (filter_out (fst o fst) (args ~~ xs));
+          val lhs = rel (list_ccomb (con, xs), list_ccomb (con, ys));
+          val rhs = foldr1 mk_conj (ListPair.map rel (xs, ys));
+          val concl = mk_trp (mk_eq (lhs, rhs));
+          val zs = case args of [_] => [] | _ => nonlazy;
+          val assms = map (mk_trp o mk_defined) zs;
+          val goal = Logic.list_implies (assms, concl);
+        in prove thy con_betas goal end;
+      val cons' = filter (fn (_, args) => not (null args)) spec';
+    in
+      val inverts =
+        let
+          val abs_below = iso_locale RS @{thm iso.abs_below};
+          val rules1 = abs_below :: @{thms sinl_below sinr_below spair_below up_below};
+          val rules2 = @{thms up_defined spair_defined ONE_defined}
+          val rules = rules1 @ rules2;
+          val tacs = [asm_simp_tac (simple_ss addsimps rules) 1];
+        in map (fn c => pgterm mk_below c (K tacs)) cons' end;
+      val injects =
+        let
+          val abs_eq = iso_locale RS @{thm iso.abs_eq};
+          val rules1 = abs_eq :: @{thms sinl_eq sinr_eq spair_eq up_eq};
+          val rules2 = @{thms up_defined spair_defined ONE_defined}
+          val rules = rules1 @ rules2;
+          val tacs = [asm_simp_tac (simple_ss addsimps rules) 1];
+        in map (fn c => pgterm mk_eq c (K tacs)) cons' end;
+    end;
+
+
     val result =
       {
         con_consts = con_consts,
         con_betas = con_betas,
         con_compacts = con_compacts,
-        con_rews = con_rews
+        con_rews = con_rews,
+        inverts = inverts,
+        injects = injects
       };
   in
     (result, thy)
@@ -436,7 +486,7 @@ fun add_selectors
     (* define selector functions *)
     val ((sel_consts, sel_defs), thy) =
       let
-        fun rangeT s = snd (dest_cfunT (Term.fastype_of s));
+        fun rangeT s = snd (dest_cfunT (fastype_of s));
         fun mk_outl s = mk_cfcomp (from_sinl (dest_ssumT (rangeT s)), s);
         fun mk_outr s = mk_cfcomp (from_sinr (dest_ssumT (rangeT s)), s);
         fun mk_sfst s = mk_cfcomp (sfst_const (dest_sprodT (rangeT s)), s);
@@ -491,9 +541,8 @@ fun add_selectors
     val sel_apps : thm list =
       let
         val defs = con_betas @ sel_defs;
-        val rules = @{thms sel_app_rules};
-        val simps = simp_thms @ [abs_inv] @ rules;
-        val tacs = [asm_simp_tac (HOL_basic_ss addsimps simps) 1];
+        val rules = abs_inv :: @{thms sel_app_rules};
+        val tacs = [asm_simp_tac (simple_ss addsimps rules) 1];
         fun sel_apps_of (i, (con, args)) =
           let
             val Ts : typ list = map #3 args;
@@ -541,7 +590,7 @@ fun add_selectors
         val tacs = [simp_tac (HOL_basic_ss addsimps rules) 1];
         fun sel_defin sel =
           let
-            val (T, U) = dest_cfunT (Term.fastype_of sel);
+            val (T, U) = dest_cfunT (fastype_of sel);
             val x = Free ("x", T);
             val lhs = mk_eq (sel ` x, mk_bottom U);
             val rhs = mk_eq (x, mk_bottom T);
@@ -582,7 +631,8 @@ fun add_domain_constructors
     val abs_defined_iff = iso_locale RS @{thm iso.abs_defined_iff};
 
     (* define constructor functions *)
-    val ({con_consts, con_betas, con_compacts, con_rews}, thy) =
+    val ({con_consts, con_betas, con_compacts, con_rews, inverts, injects},
+         thy) =
       let
         fun prep_arg (lazy, sel, T) = (lazy, T);
         fun prep_con (b, args, mx) = (b, map prep_arg args, mx);
@@ -611,6 +661,8 @@ fun add_domain_constructors
         con_betas = con_betas,
         con_compacts = con_compacts,
         con_rews = con_rews,
+        inverts = inverts,
+        injects = injects,
         sel_rews = sel_thms };
   in
     (result, thy)
