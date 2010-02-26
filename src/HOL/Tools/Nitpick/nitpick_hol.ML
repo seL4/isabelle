@@ -1451,9 +1451,10 @@ fun optimized_quot_type_axioms ctxt stds abs_z =
            @{const Not} $ (is_unknown_t $ normal_y),
            equiv_rel $ x_var $ y_var] |> map HOLogic.mk_Trueprop,
            Logic.mk_equals (normal_x, normal_y)),
-     @{const "==>"}
-         $ (HOLogic.mk_Trueprop (@{const Not} $ (is_unknown_t $ normal_x)))
-         $ (HOLogic.mk_Trueprop (equiv_rel $ x_var $ normal_x))]
+     Logic.list_implies
+         ([HOLogic.mk_Trueprop (@{const Not} $ (is_unknown_t $ normal_x)),
+           HOLogic.mk_Trueprop (@{const Not} $ HOLogic.mk_eq (normal_x, x_var))],
+          HOLogic.mk_Trueprop (equiv_rel $ x_var $ normal_x))]
   end
 
 (* theory -> (typ option * bool) list -> int * styp -> term *)

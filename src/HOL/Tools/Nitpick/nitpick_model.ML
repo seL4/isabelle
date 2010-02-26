@@ -281,7 +281,7 @@ fun reconstruct_term unfold pool ((maybe_name, abs_name), _)
              js 0
       end
     (* bool -> typ -> typ -> (term * term) list -> term *)
-    fun make_set maybe_opt T1 T2 =
+    fun make_set maybe_opt T1 T2 tps =
       let
         val empty_const = Const (@{const_name Set.empty}, T1 --> T2)
         val insert_const = Const (@{const_name insert},
@@ -293,13 +293,20 @@ fun reconstruct_term unfold pool ((maybe_name, abs_name), _)
             else
               empty_const
           | aux ((t1, t2) :: zs) =
-            aux zs |> t2 <> @{const False}
-                      ? curry (op $) (insert_const
-                                      $ (t1 |> t2 <> @{const True}
-                                               ? curry (op $)
-                                                       (Const (maybe_name,
-                                                               T1 --> T1))))
-      in aux end
+            aux zs
+            |> t2 <> @{const False}
+               ? curry (op $)
+                       (insert_const
+                        $ (t1 |> t2 <> @{const True}
+                                 ? curry (op $)
+                                         (Const (maybe_name, T1 --> T1))))
+      in
+        if forall (fn (_, t) => t <> @{const True} andalso t <> @{const False})
+                  tps then
+          Const (unknown, T1 --> T2)
+        else
+          aux tps
+      end
     (* typ -> typ -> typ -> (term * term) list -> term *)
     fun make_map T1 T2 T2' =
       let

@@ -19,9 +19,7 @@ open Nitpick_Rep
 open Nitpick_Nut
 open Nitpick_Kodkod
 
-val settings =
-  [("solver", "\"zChaff\""),
-   ("skolem_depth", "-1")]
+val settings = [("solver", "\"DefaultSAT4J\"")]
 
 fun cast_to_rep R u = Op1 (Cast, type_of u, R, u)
 
