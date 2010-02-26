@@ -309,6 +309,15 @@ lemma div_mult_div_if_dvd:
   apply (simp add: no_zero_divisors)
   done
 
+lemma div_mult_swap:
+  assumes "c dvd b"
+  shows "a * (b div c) = (a * b) div c"
+proof -
+  from assms have "b div c * (a div 1) = b * a div (c * 1)"
+    by (simp only: div_mult_div_if_dvd one_dvd)
+  then show ?thesis by (simp add: mult_commute)
+qed
+   
 lemma div_mult_mult2 [simp]:
   "c \<noteq> 0 \<Longrightarrow> (a * c) div (b * c) = a div b"
   by (drule div_mult_mult1) (simp add: mult_commute)
@@ -346,6 +355,24 @@ apply (induct n)
  apply simp
 apply(simp add: div_mult_div_if_dvd dvd_power_same)
 done
+
+lemma dvd_div_eq_mult:
+  assumes "a \<noteq> 0" and "a dvd b"  
+  shows "b div a = c \<longleftrightarrow> b = c * a"
+proof
+  assume "b = c * a"
+  then show "b div a = c" by (simp add: assms)
+next
+  assume "b div a = c"
+  then have "b div a * a = c * a" by simp
+  moreover from `a dvd b` have "b div a * a = b" by (simp add: dvd_div_mult_self)
+  ultimately show "b = c * a" by simp
+qed
+   
+lemma dvd_div_div_eq_mult:
+  assumes "a \<noteq> 0" "c \<noteq> 0" and "a dvd b" "c dvd d"
+  shows "b div a = d div c \<longleftrightarrow> b * c = a * d"
+  using assms by (auto simp add: mult_commute [of _ a] dvd_div_mult_self dvd_div_eq_mult div_mult_swap intro: sym)
 
 end
 
