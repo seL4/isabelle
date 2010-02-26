@@ -845,15 +845,16 @@ setup Classical.setup
 
 setup {*
 let
-  (*prevent substitution on bool*)
-  fun hyp_subst_tac' i thm =
-    if i <= Thm.nprems_of thm andalso
-        Term.exists_Const
-          (fn (@{const_name "op ="}, Type (_, [T, _])) => T <> @{typ bool} | _ => false)
-          (nth (Thm.prems_of thm) (i - 1))
-    then Hypsubst.hyp_subst_tac i thm else no_tac thm;
+  fun non_bool_eq (@{const_name "op ="}, Type (_, [T, _])) = T <> @{typ bool}
+    | non_bool_eq _ = false;
+  val hyp_subst_tac' =
+    SUBGOAL (fn (goal, i) =>
+      if Term.exists_Const non_bool_eq goal
+      then Hypsubst.hyp_subst_tac i
+      else no_tac);
 in
   Hypsubst.hypsubst_setup
+  (*prevent substitution on bool*)
   #> Context_Rules.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac)
 end
 *}
