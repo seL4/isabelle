@@ -239,19 +239,6 @@ fun mk_eqs (t, u) = HOLogic.mk_Trueprop (HOLogic.mk_eq (t, u));
 
 (************************** miscellaneous functions ***************************)
 
-(*
-fun declare_consts
-    (decls : (binding * typ * mixfix) list)
-    (thy : theory)
-    : term list * theory =
-  let
-    fun con (b, T, mx) = Const (Sign.full_name thy b, T);
-    val thy = Cont_Consts.add_consts decls thy;
-  in
-    (map con decls, thy)
-  end;
-*)
-
 fun define_consts
     (specs : (binding * term * mixfix) list)
     (thy : theory)
@@ -271,16 +258,12 @@ fun define_consts
     ((consts, def_thms), thy)
   end;
 
-fun define_const
-    (spec : binding * term * mixfix)
+fun prove_thm
     (thy : theory)
-    : (term * thm) * theory =
-  let
-    val ((consts, def_thms), thy) = define_consts [spec] thy;
-  in
-    ((hd consts, hd def_thms), thy)
-  end;
-
+    (goal : term)
+    (tacf : {prems: thm list, context: Proof.context} -> tactic)
+    : thm =
+    Goal.prove_global thy [] [] goal tacf;
 
 (************** generating beta reduction rules from definitions **************)
 
@@ -304,7 +287,7 @@ in
             rewrite_goals_tac (def_thm::betas)
             THEN rtac reflexive_thm 1;
       in
-        Goal.prove_global thy [] [] goal (K tac)
+        prove_thm thy goal (K tac)
       end;
 end;
 
@@ -371,7 +354,7 @@ fun add_selectors
           let
             val goal = mk_trp (mk_strict sel);
           in
-            Goal.prove_global thy [] [] goal (K tac)
+            prove_thm thy goal (K tac)
           end
       in
         map sel_strict sel_consts
@@ -397,13 +380,13 @@ fun add_selectors
                 val concl = mk_trp (mk_eq (sel ` con_app, nth vs n));
                 val goal = Logic.list_implies (assms, concl);
               in
-                Goal.prove_global thy [] [] goal (K tac)
+                prove_thm thy goal (K tac)
               end;
             fun one_diff (n, sel, T) =
               let
                 val goal = mk_trp (mk_eq (sel ` con_app, mk_bottom T));
               in
-                Goal.prove_global thy [] [] goal (K tac)
+                prove_thm thy goal (K tac)
               end;
             fun one_con (j, (_, args')) : thm list =
               let
@@ -437,7 +420,7 @@ fun add_selectors
             val rhs = mk_eq (x, mk_bottom T);
             val goal = mk_trp (mk_eq (lhs, rhs));
           in
-            Goal.prove_global thy [] [] goal (K tac)
+            prove_thm thy goal (K tac)
           end
         fun one_arg (false, SOME sel, T) = SOME (sel_defin sel)
           | one_arg _                    = NONE;
@@ -498,12 +481,18 @@ fun add_domain_constructors
     val thy = Sign.add_path dname thy;
 
     (* replace bindings with terms in constructor spec *)
-    val spec2 : (term * (bool * binding option * typ) list) list =
+    val con_spec : (term * (bool * typ) list) list =
+      let fun one_arg (lazy, sel, T) = (lazy, T);
+          fun one_con con (b, args, mx) = (con, map one_arg args);
+      in map2 one_con con_consts spec end;
+
+    (* replace bindings with terms in constructor spec *)
+    val sel_spec : (term * (bool * binding option * typ) list) list =
       map2 (fn con => fn (b, args, mx) => (con, args)) con_consts spec;
 
     (* define and prove theorems for selector functions *)
     val (sel_thms : thm list, thy : theory) =
-      add_selectors spec2 rep_const
+      add_selectors sel_spec rep_const
         abs_iso_thm rep_strict rep_defined_iff con_beta_thms thy;
 
     (* restore original signature path *)
