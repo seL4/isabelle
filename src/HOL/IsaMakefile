@@ -352,7 +352,7 @@ HOL_DEPENDENCIES = $(MAIN_DEPENDENCIES) \
   PReal.thy \
   Parity.thy \
   RComplete.thy \
-  Rational.thy \
+  Rat.thy \
   Real.thy \
   RealDef.thy \
   RealPow.thy \

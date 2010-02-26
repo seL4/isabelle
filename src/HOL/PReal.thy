@@ -9,7 +9,7 @@ provides some of the definitions.
 header {* Positive real numbers *}
 
 theory PReal
-imports Rational 
+imports Rat
 begin
 
 text{*Could be generalized and moved to @{text Groups}*}

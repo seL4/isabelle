@@ -1,4 +1,4 @@
-(*  Title:      HOL/Binomial.thy
+(*  Title:      HOL/Library/Binomial.thy
     Author:     Lawrence C Paulson, Amine Chaieb
     Copyright   1997  University of Cambridge
 *)
@@ -6,7 +6,7 @@
 header {* Binomial Coefficients *}
 
 theory Binomial
-imports Fact SetInterval Presburger Main Rational
+imports Complex_Main
 begin
 
 text {* This development is based on the work of Andy Gordon and

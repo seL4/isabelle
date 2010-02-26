@@ -5,12 +5,7 @@
 header {* Encoding (almost) everything into natural numbers *}
 
 theory Countable
-imports
-  "~~/src/HOL/List"
-  "~~/src/HOL/Hilbert_Choice"
-  "~~/src/HOL/Nat_Int_Bij"
-  "~~/src/HOL/Rational"
-  Main
+imports Main Rat Nat_Int_Bij
 begin
 
 subsection {* The class of countable types *}
@@ -213,8 +208,8 @@ unfolding surj_def
 proof
   fix r::rat
   show "\<exists>n. r = nat_to_rat_surj n"
-  proof(cases r)
-    fix i j assume [simp]: "r = Fract i j" and "j \<noteq> 0"
+  proof (cases r)
+    fix i j assume [simp]: "r = Fract i j" and "j > 0"
     have "r = (let m = inv nat_to_int_bij i; n = inv nat_to_int_bij j
                in nat_to_rat_surj(nat2_to_nat (m,n)))"
       using nat2_to_nat_inj surj_f_inv_f[OF surj_nat_to_int_bij]
