@@ -49,25 +49,14 @@ fun label_name line col =
   if line = 0 orelse col = 0 then no_label_name
   else label_prefix ^ string_of_int line ^ "_" ^ string_of_int col
 
-local
-  val quote_mixfix =
-    Symbol.explode #> map
-      (fn "_" => "'_"
-        | "(" => "'("
-        | ")" => "')"
-        | "/" => "'/"
-        | s => s) #>
-    implode
-in
 fun mk_syntax name i =
   let
-    val syn = quote_mixfix name
+    val syn = Syntax.escape name
     val args = concat (separate ",/ " (replicate i "_"))
   in
     if i = 0 then Mixfix (syn, [], 1000)
     else Mixfix (syn ^ "()'(/" ^ args ^ "')", replicate i 0, 1000)
   end
-end
 
 
 datatype attribute_value = StringValue of string | TermValue of term
