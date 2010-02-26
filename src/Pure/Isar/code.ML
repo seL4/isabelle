@@ -840,7 +840,9 @@ fun pretty_cert thy (cert as Equations _) =
 fun bare_thms_of_cert thy (cert as Equations _) =
       (map_filter (fn (_, (some_thm, proper)) => if proper then some_thm else NONE)
         o snd o equations_of_cert thy) cert
-  | bare_thms_of_cert thy _ = [];
+  | bare_thms_of_cert thy (Projection _) = []
+  | bare_thms_of_cert thy (Abstract (abs_thm, tyco)) =
+      [Thm.varifyT (snd (concretify_abs thy tyco abs_thm))];
 
 end;
 
