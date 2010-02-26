@@ -4,7 +4,9 @@ Version 2010
   * Added "std" option and implemented support for nonstandard models
   * Added support for quotient types
   * Added support for local definitions
-  * Optimized "Multiset.multiset"
+  * Disabled "fast_descrs" option by default
+  * Optimized "Multiset.multiset" and "FinFun.finfun"
+  * Improved efficiency of "destroy_constrs" optimization
   * Improved precision of infinite datatypes whose constructors don't appear
     in the formula to falsify based on a monotonicity analysis
   * Fixed soundness bugs related to "destroy_constrs" optimization and record

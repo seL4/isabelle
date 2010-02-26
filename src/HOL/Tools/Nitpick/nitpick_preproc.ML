@@ -9,8 +9,7 @@ signature NITPICK_PREPROC =
 sig
   type hol_context = Nitpick_HOL.hol_context
   val preprocess_term :
-    hol_context -> term
-    -> ((term list * term list) * (bool * bool)) * term * bool
+    hol_context -> term -> term list * term list * bool * bool * bool
 end
 
 structure Nitpick_Preproc : NITPICK_PREPROC =
@@ -473,6 +472,19 @@ fun pull_out_existential_constrs hol_ctxt t =
           (list_comb (t, args), seen)
   in aux [] 0 t [] [] |> fst end
 
+val let_var_prefix = nitpick_prefix ^ "l"
+val let_inline_threshold = 32
+
+(* int -> typ -> term -> (term -> term) -> term *)
+fun hol_let n abs_T body_T f t =
+  if n * size_of_term t <= let_inline_threshold then
+    f t
+  else
+    let val z = ((let_var_prefix, 0), abs_T) in
+      Const (@{const_name Let}, abs_T --> (abs_T --> body_T) --> body_T)
+      $ t $ abs_var z (incr_boundvars 1 (f (Var z)))
+    end
+
 (* hol_context -> bool -> term -> term *)
 fun destroy_pulled_out_constrs (hol_ctxt as {thy, stds, ...}) axiom t =
   let
@@ -507,14 +519,19 @@ fun destroy_pulled_out_constrs (hol_ctxt as {thy, stds, ...}) axiom t =
           if z1 = z2 andalso num_occs_of_var z1 = 2 then @{const True}
           else raise SAME ()
         | (Const (x as (s, T)), args) =>
-          let val arg_Ts = binder_types T in
-            if length arg_Ts = length args andalso
-               (is_constr thy stds x orelse s = @{const_name Pair}) andalso
+          let
+            val (arg_Ts, dataT) = strip_type T
+            val n = length arg_Ts
+          in
+            if length args = n andalso
+               (is_constr thy stds x orelse s = @{const_name Pair} orelse
+                x = (@{const_name Suc}, nat_T --> nat_T)) andalso
                (not careful orelse not (is_Var t1) orelse
                 String.isPrefix val_var_prefix (fst (fst (dest_Var t1)))) then
-              discriminate_value hol_ctxt x t1 ::
-              map3 (sel_eq x t1) (index_seq 0 (length args)) arg_Ts args
-              |> foldr1 s_conj
+                hol_let (n + 1) dataT bool_T
+                    (fn t1 => discriminate_value hol_ctxt x t1 ::
+                              map3 (sel_eq x t1) (index_seq 0 n) arg_Ts args
+                              |> foldr1 s_conj) t1
             else
               raise SAME ()
           end
@@ -1019,7 +1036,7 @@ val is_trivial_equation = the_default false o try (op aconv o Logic.dest_equals)
 (* Prevents divergence in case of cyclic or infinite axiom dependencies. *)
 val axioms_max_depth = 255
 
-(* hol_context -> term -> (term list * term list) * (bool * bool) *)
+(* hol_context -> term -> term list * term list * bool * bool *)
 fun axioms_for_term
         (hol_ctxt as {thy, ctxt, max_bisim_depth, stds, user_axioms,
                       fast_descrs, evals, def_table, nondef_table, user_nondefs,
@@ -1169,10 +1186,9 @@ fun axioms_for_term
                      |> user_axioms = SOME true
                         ? fold (add_nondef_axiom 1) mono_user_nondefs
     val defs = defs @ special_congruence_axioms hol_ctxt xs
-  in
-    ((defs, nondefs), (user_axioms = SOME true orelse null mono_user_nondefs,
-                       null poly_user_nondefs))
-  end
+    val got_all_mono_user_axioms =
+      (user_axioms = SOME true orelse null mono_user_nondefs)
+  in (t :: nondefs, defs, got_all_mono_user_axioms, null poly_user_nondefs) end
 
 (** Simplification of constructor/selector terms **)
 
@@ -1274,7 +1290,7 @@ fun renumber_bounds j n f t =
 
 (* Maximum number of quantifiers in a cluster for which the exponential
    algorithm is used. Larger clusters use a heuristic inspired by Claessen &
-   Sörensson's polynomial binary splitting procedure (p. 5 of their MODEL 2003
+   Soerensson's polynomial binary splitting procedure (p. 5 of their MODEL 2003
    paper). *)
 val quantifier_cluster_threshold = 7
 
@@ -1385,29 +1401,29 @@ val push_quantifiers_inward =
 
 (** Preprocessor entry point **)
 
-(* hol_context -> term
-   -> ((term list * term list) * (bool * bool)) * term * bool *)
+(* hol_context -> term -> term list * term list * bool * bool * bool *)
 fun preprocess_term (hol_ctxt as {thy, stds, binary_ints, destroy_constrs,
                                   boxes, skolemize, uncurry, ...}) t =
   let
     val skolem_depth = if skolemize then 4 else ~1
-    val (((def_ts, nondef_ts), (got_all_mono_user_axioms, no_poly_user_axioms)),
-         core_t) = t |> unfold_defs_in_term hol_ctxt
-                     |> close_form
-                     |> skolemize_term_and_more hol_ctxt skolem_depth
-                     |> specialize_consts_in_term hol_ctxt 0
-                     |> `(axioms_for_term hol_ctxt)
+    val (nondef_ts, def_ts, got_all_mono_user_axioms, no_poly_user_axioms) =
+      t |> unfold_defs_in_term hol_ctxt
+        |> close_form
+        |> skolemize_term_and_more hol_ctxt skolem_depth
+        |> specialize_consts_in_term hol_ctxt 0
+        |> axioms_for_term hol_ctxt
     val binarize =
       is_standard_datatype thy stds nat_T andalso
       case binary_ints of
         SOME false => false
-      | _ => forall may_use_binary_ints (core_t :: def_ts @ nondef_ts) andalso
+      | _ => forall may_use_binary_ints (nondef_ts @ def_ts) andalso
              (binary_ints = SOME true orelse
-              exists should_use_binary_ints (core_t :: def_ts @ nondef_ts))
+              exists should_use_binary_ints (nondef_ts @ def_ts))
     val box = exists (not_equal (SOME false) o snd) boxes
+    val uncurry = uncurry andalso box
     val table =
-      Termtab.empty |> uncurry
-        ? fold (add_to_uncurry_table thy) (core_t :: def_ts @ nondef_ts)
+      Termtab.empty
+      |> uncurry ? fold (add_to_uncurry_table thy) (nondef_ts @ def_ts)
     (* bool -> term -> term *)
     fun do_rest def =
       binarize ? binarize_nat_and_int_in_term
@@ -1424,12 +1440,10 @@ fun preprocess_term (hol_ctxt as {thy, stds, binary_ints, destroy_constrs,
       #> push_quantifiers_inward
       #> close_form
       #> Term.map_abs_vars shortest_name
-    val def_ts = map (do_rest true) def_ts
     val nondef_ts = map (do_rest false) nondef_ts
-    val core_t = do_rest false core_t
+    val def_ts = map (do_rest true) def_ts
   in
-    (((def_ts, nondef_ts), (got_all_mono_user_axioms, no_poly_user_axioms)),
-     core_t, binarize)
+    (nondef_ts, def_ts, got_all_mono_user_axioms, no_poly_user_axioms, binarize)
   end
 
 end;

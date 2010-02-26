@@ -1000,7 +1000,7 @@ nitpick [expect = genuine]
 oops
 
 lemma "(Q\<Colon>nat set) (Eps Q)"
-nitpick [expect = none]
+nitpick [expect = none] (* unfortunate *)
 oops
 
 lemma "\<not> Q (Eps Q)"
@@ -1053,11 +1053,11 @@ oops
 
 lemma "Q = {x\<Colon>'a} \<Longrightarrow> (Q\<Colon>'a set) (The Q)"
 nitpick [expect = none]
-oops
+sorry
 
 lemma "Q = {x\<Colon>nat} \<Longrightarrow> (Q\<Colon>nat set) (The Q)"
 nitpick [expect = none]
-oops
+sorry
 
 subsection {* Destructors and Recursors *}
 

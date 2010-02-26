@@ -64,7 +64,7 @@ nitpick [expect = genuine]
 oops
 
 lemma "x \<noteq> (y\<Colon>bool bounded) \<Longrightarrow> z = x \<or> z = y"
-nitpick [expect = none]
+nitpick [fast_descrs (* ### FIXME *), expect = none]
 sorry
 
 lemma "x \<noteq> (y\<Colon>(bool \<times> bool) bounded) \<Longrightarrow> z = x \<or> z = y"

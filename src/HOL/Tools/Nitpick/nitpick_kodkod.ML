@@ -444,7 +444,7 @@ fun double_rel_rel_let kk f r1 r2 =
   single_rel_rel_let kk (fn r1 => basic_rel_rel_let 1 kk (f r1) r2) r1
 (* kodkod_constrs -> (KK.rel_expr -> KK.rel_expr -> KK.rel_expr -> KK.rel_expr)
    -> KK.rel_expr -> KK.rel_expr -> KK.rel_expr -> KK.rel_expr *)
-fun tripl_rel_rel_let kk f r1 r2 r3 =
+fun triple_rel_rel_let kk f r1 r2 r3 =
   double_rel_rel_let kk
       (fn r1 => fn r2 => basic_rel_rel_let 2 kk (f r1 r2) r3) r1 r2
 
@@ -1615,7 +1615,7 @@ fun kodkod_formula_from_nut ofs
         kk_rel_let [to_expr_assign u1 u2] (to_rep R u3)
       | Op3 (If, _, R, u1, u2, u3) =>
         if is_opt_rep (rep_of u1) then
-          tripl_rel_rel_let kk
+          triple_rel_rel_let kk
               (fn r1 => fn r2 => fn r3 =>
                   let val empty_r = empty_rel_for_rep R in
                     fold1 kk_union

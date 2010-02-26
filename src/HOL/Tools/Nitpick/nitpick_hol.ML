@@ -154,6 +154,7 @@ sig
     hol_context -> typ list -> int -> int -> (typ * int) list -> typ -> int
   val is_finite_type : hol_context -> typ -> bool
   val special_bounds : term list -> (indexname * typ) list
+  val abs_var : indexname * typ -> term -> term
   val is_funky_typedef : theory -> typ -> bool
   val all_axioms_of :
     theory -> (term * term) list -> term list * term list * term list
@@ -631,8 +632,13 @@ fun is_univ_typedef thy (Type (s, _)) =
        in
          case t_opt of
            SOME (Const (@{const_name top}, _)) => true
+           (* "Multiset.multiset" *)
          | SOME (Const (@{const_name Collect}, _)
                  $ Abs (_, _, Const (@{const_name finite}, _) $ _)) => true
+           (* "FinFun.finfun" *)
+         | SOME (Const (@{const_name Collect}, _) $ Abs (_, _,
+                     Const (@{const_name Ex}, _) $ Abs (_, _,
+                         Const (@{const_name finite}, _) $ _))) => true
          | _ => false
        end
      | NONE => false)
