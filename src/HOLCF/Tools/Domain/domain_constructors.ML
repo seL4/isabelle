@@ -16,6 +16,7 @@ sig
       -> { con_consts : term list,
            con_betas : thm list,
            con_compacts : thm list,
+           con_rews : thm list,
            sel_rews : thm list }
          * theory;
 end;
@@ -219,7 +220,9 @@ fun mk_strict t =
   let val (T, U) = dest_cfunT (Term.fastype_of t);
   in mk_eq (t ` mk_bottom T, mk_bottom U) end;
 
-fun mk_defined t = mk_not (mk_eq (t, mk_bottom (Term.fastype_of t)));
+fun mk_undef t = mk_eq (t, mk_bottom (Term.fastype_of t));
+
+fun mk_defined t = mk_not (mk_undef t);
 
 fun mk_compact t =
   Const (@{const_name compact}, Term.fastype_of t --> boolT) $ t;
@@ -458,6 +461,9 @@ fun add_constructors
     =
   let
 
+    (* get theorems about rep and abs *)
+    val abs_strict = iso_locale RS @{thm iso.abs_strict};
+
     (* define constructor functions *)
     val ((con_consts, con_defs), thy) =
       let
@@ -511,11 +517,51 @@ fun add_constructors
         map con_compact spec'
       end;
 
+    (* prove strictness rules for constructors *)
+    local
+      fun con_strict (con, args) = 
+        let
+          val rules = abs_strict :: @{thms con_strict_rules};
+          val Ts = map snd args;
+          val ns = Datatype_Prop.make_tnames Ts;
+          val vs = map Free (ns ~~ Ts);
+          val nonlazy = map snd (filter_out fst (map fst args ~~ vs));
+          fun one_strict v' =
+            let
+              val UU = mk_bottom (Term.fastype_of v');
+              val vs' = map (fn v => if v = v' then UU else v) vs;
+              val goal = mk_trp (mk_undef (list_ccomb (con, vs')));
+              val tacs = [simp_tac (HOL_basic_ss addsimps rules) 1];
+            in prove thy con_betas goal (K tacs) end;
+        in map one_strict nonlazy end;
+
+      fun con_defin (con, args) =
+        let
+          fun iff_disj (t, []) = HOLogic.mk_not t
+            | iff_disj (t, ts) = mk_eq (t, foldr1 HOLogic.mk_disj ts);
+          val Ts = map snd args;
+          val ns = Datatype_Prop.make_tnames Ts;
+          val vs = map Free (ns ~~ Ts);
+          val nonlazy = map snd (filter_out fst (map fst args ~~ vs));
+          val lhs = mk_undef (list_ccomb (con, vs));
+          val rhss = map mk_undef nonlazy;
+          val goal = mk_trp (iff_disj (lhs, rhss));
+          val rule1 = iso_locale RS @{thm iso.abs_defined_iff};
+          val rules = rule1 :: @{thms con_defined_iff_rules};
+          val tacs = [simp_tac (HOL_ss addsimps rules) 1];
+        in prove thy con_betas goal (K tacs) end;
+    in
+      val con_stricts = maps con_strict spec';
+      val con_defins = map con_defin spec';
+      val con_rews = con_stricts @ con_defins;
+    end;
+
     val result =
       {
         con_consts = con_consts,
         con_betas = con_betas,
-        con_compacts = con_compacts
+        con_compacts = con_compacts,
+        con_rews = con_rews
       };
   in
     (result, thy)
@@ -542,7 +588,7 @@ fun add_domain_constructors
     val abs_defined_iff = iso_locale RS @{thm iso.abs_defined_iff};
 
     (* define constructor functions *)
-    val ({con_consts, con_betas, con_compacts}, thy) =
+    val ({con_consts, con_betas, con_compacts, con_rews}, thy) =
         add_constructors spec abs_const iso_locale thy;
 
     (* TODO: enable this earlier *)
@@ -564,6 +610,7 @@ fun add_domain_constructors
       { con_consts = con_consts,
         con_betas = con_betas,
         con_compacts = con_compacts,
+        con_rews = con_rews,
         sel_rews = sel_thms };
   in
     (result, thy)

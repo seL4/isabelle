@@ -199,6 +199,7 @@ val (result, thy) =
 
 val con_appls = #con_betas result;
 val con_compacts = #con_compacts result;
+val con_rews = #con_rews result;
 val sel_rews = #sel_rews result;
 
 (* ----- theorems concerning the isomorphism -------------------------------- *)
@@ -425,37 +426,6 @@ local
   val pat_apps = maps (fn c => map (pat_app c) cons) cons;
 in
   val pat_rews = pat_stricts @ pat_apps;
-end;
-
-local
-  fun con_strict (con, _, args) = 
-    let
-      val rules = abs_strict :: @{thms con_strict_rules};
-      fun one_strict vn =
-        let
-          fun f arg = if vname arg = vn then UU else %# arg;
-          val goal = mk_trp (con_app2 con f args === UU);
-          val tacs = [simp_tac (HOL_basic_ss addsimps rules) 1];
-        in pg con_appls goal (K tacs) end;
-    in map one_strict (nonlazy args) end;
-
-  fun con_defin (con, _, args) =
-    let
-      fun iff_disj (t, []) = HOLogic.mk_not t
-        | iff_disj (t, ts) = t === foldr1 HOLogic.mk_disj ts;
-      val lhs = con_app con args === UU;
-      val rhss = map (fn x => %:x === UU) (nonlazy args);
-      val goal = mk_trp (iff_disj (lhs, rhss));
-      val rule1 = iso_locale RS @{thm iso.abs_defined_iff};
-      val rules = rule1 :: @{thms con_defined_iff_rules};
-      val tacs = [simp_tac (HOL_ss addsimps rules) 1];
-    in pg con_appls goal (K tacs) end;
-in
-  val _ = trace " Proving con_stricts...";
-  val con_stricts = maps con_strict cons;
-  val _ = trace " Proving con_defins...";
-  val con_defins = map con_defin cons;
-  val con_rews = con_stricts @ con_defins;
 end;
 
 val _ = trace " Proving dist_les...";
