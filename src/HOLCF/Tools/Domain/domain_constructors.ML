@@ -14,7 +14,7 @@ sig
       -> thm * thm
       -> theory
       -> { con_consts : term list,
-           con_defs : thm list,
+           con_betas : thm list,
            con_compacts : thm list,
            sel_rews : thm list }
          * theory;
@@ -514,7 +514,6 @@ fun add_constructors
     val result =
       {
         con_consts = con_consts,
-        con_defs = con_defs,
         con_betas = con_betas,
         con_compacts = con_compacts
       };
@@ -543,7 +542,7 @@ fun add_domain_constructors
     val abs_defined_iff = iso_locale RS @{thm iso.abs_defined_iff};
 
     (* define constructor functions *)
-    val ({con_consts, con_defs, con_betas, con_compacts}, thy) =
+    val ({con_consts, con_betas, con_compacts}, thy) =
         add_constructors spec abs_const iso_locale thy;
 
     (* TODO: enable this earlier *)
@@ -563,7 +562,7 @@ fun add_domain_constructors
 
     val result =
       { con_consts = con_consts,
-        con_defs = con_defs,
+        con_betas = con_betas,
         con_compacts = con_compacts,
         sel_rews = sel_thms };
   in

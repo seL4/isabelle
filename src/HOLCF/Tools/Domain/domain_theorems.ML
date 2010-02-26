@@ -197,7 +197,7 @@ val (result, thy) =
     (Long_Name.base_name dname) dom_eqn
     (rep_const, abs_const) (ax_rep_iso, ax_abs_iso) thy;
 
-val axs_con_def = #con_defs result;
+val con_appls = #con_betas result;
 val con_compacts = #con_compacts result;
 val sel_rews = #sel_rews result;
 
@@ -244,8 +244,6 @@ end;
 
 val _ = trace "Proving when_appl...";
 val when_appl = appl_of_def ax_when_def;
-val _ = trace "Proving con_appls...";
-val con_appls = map appl_of_def axs_con_def;
 
 local
   fun arg2typ n arg =
