@@ -198,11 +198,10 @@ val (result, thy) =
     (rep_const, abs_const) (ax_rep_iso, ax_abs_iso) thy;
 
 val con_appls = #con_betas result;
-val con_compacts = #con_compacts result;
-val con_rews = #con_rews result;
-val sel_rews = #sel_rews result;
-val inverts = #inverts result;
-val injects = #injects result;
+val {exhaust, casedist, ...} = result;
+val {con_compacts, con_rews, inverts, injects, ...} = result;
+val {sel_rews, ...} = result;
+
 
 (* ----- theorems concerning the isomorphism -------------------------------- *)
 
@@ -247,61 +246,6 @@ end;
 
 val _ = trace "Proving when_appl...";
 val when_appl = appl_of_def ax_when_def;
-
-local
-  fun arg2typ n arg =
-    let val t = TVar (("'a", n), pcpoS)
-    in (n + 1, if is_lazy arg then mk_uT t else t) end;
-
-  fun args2typ n [] = (n, oneT)
-    | args2typ n [arg] = arg2typ n arg
-    | args2typ n (arg::args) =
-    let
-      val (n1, t1) = arg2typ n arg;
-      val (n2, t2) = args2typ n1 args
-    in (n2, mk_sprodT (t1, t2)) end;
-
-  fun cons2typ n [] = (n,oneT)
-    | cons2typ n [con] = args2typ n (third con)
-    | cons2typ n (con::cons) =
-    let
-      val (n1, t1) = args2typ n (third con);
-      val (n2, t2) = cons2typ n1 cons
-    in (n2, mk_ssumT (t1, t2)) end;
-in
-  fun cons2ctyp cons = ctyp_of thy (snd (cons2typ 1 cons));
-end;
-
-local
-  val iso_swap = iso_locale RS iso_iso_swap;
-  fun one_con (con, _, args) =
-    let
-      val vns = Name.variant_list ["x"] (map vname args);
-      val nonlazy_vns = map snd (filter_out (is_lazy o fst) (args ~~ vns));
-      val eqn = %:x_name === con_app2 con %: vns;
-      val conj = foldr1 mk_conj (eqn :: map (defined o %:) nonlazy_vns);
-    in Library.foldr mk_ex (vns, conj) end;
-
-  val conj_assoc = @{thm conj_assoc};
-  val exh = foldr1 mk_disj ((%:x_name === UU) :: map one_con cons);
-  val thm1 = instantiate' [SOME (cons2ctyp cons)] [] exh_start;
-  val thm2 = rewrite_rule (map mk_meta_eq ex_defined_iffs) thm1;
-  val thm3 = rewrite_rule [mk_meta_eq @{thm conj_assoc}] thm2;
-
-  (* first 3 rules replace "x = UU \/ P" with "rep$x = UU \/ P" *)
-  val tacs = [
-    rtac disjE 1,
-    etac (rep_defin' RS disjI1) 2,
-    etac disjI2 2,
-    rewrite_goals_tac [mk_meta_eq iso_swap],
-    rtac thm3 1];
-in
-  val _ = trace " Proving exhaust...";
-  val exhaust = pg con_appls (mk_trp exh) (K tacs);
-  val _ = trace " Proving casedist...";
-  val casedist =
-    Drule.export_without_context (rewrite_rule exh_casedists (exhaust RS exh_casedist0));
-end;
 
 local 
   fun bind_fun t = Library.foldr mk_All (when_funs cons, t);

@@ -15,6 +15,8 @@ sig
       -> theory
       -> { con_consts : term list,
            con_betas : thm list,
+           exhaust : thm,
+           casedist : thm,
            con_compacts : thm list,
            con_rews : thm list,
            inverts : thm list,
@@ -43,7 +45,9 @@ val mk_fst = HOLogic.mk_fst;
 val mk_snd = HOLogic.mk_snd;
 val mk_not = HOLogic.mk_not;
 val mk_conj = HOLogic.mk_conj;
+val mk_disj = HOLogic.mk_disj;
 
+fun mk_ex (x, t) = HOLogic.exists_const (fastype_of x) $ Term.lambda x t;
 
 (*** Basic HOLCF concepts ***)
 
@@ -332,6 +336,9 @@ fun add_constructors
     (* get theorems about rep and abs *)
     val abs_strict = iso_locale RS @{thm iso.abs_strict};
 
+    (* get types of type isomorphism *)
+    val (rhsT, lhsT) = dest_cfunT (fastype_of abs_const);
+
     fun vars_of args =
       let
         val Ts = map snd args;
@@ -360,6 +367,53 @@ fun add_constructors
     val spec' : (term * (bool * typ) list) list =
       let fun one_con con (b, args, mx) = (con, args);
       in map2 one_con con_consts spec end;
+
+    (* prove exhaustiveness of constructors *)
+    local
+      fun arg2typ n (true,  T) = (n+1, mk_upT (TVar (("'a", n), @{sort cpo})))
+        | arg2typ n (false, T) = (n+1, TVar (("'a", n), @{sort pcpo}));
+      fun args2typ n [] = (n, oneT)
+        | args2typ n [arg] = arg2typ n arg
+        | args2typ n (arg::args) =
+          let
+            val (n1, t1) = arg2typ n arg;
+            val (n2, t2) = args2typ n1 args
+          in (n2, mk_sprodT (t1, t2)) end;
+      fun cons2typ n [] = (n, oneT)
+        | cons2typ n [con] = args2typ n (snd con)
+        | cons2typ n (con::cons) =
+          let
+            val (n1, t1) = args2typ n (snd con);
+            val (n2, t2) = cons2typ n1 cons
+          in (n2, mk_ssumT (t1, t2)) end;
+      val ct = ctyp_of thy (snd (cons2typ 1 spec'));
+      val thm1 = instantiate' [SOME ct] [] @{thm exh_start};
+      val thm2 = rewrite_rule (map mk_meta_eq @{thms ex_defined_iffs}) thm1;
+      val thm3 = rewrite_rule [mk_meta_eq @{thm conj_assoc}] thm2;
+
+      val x = Free ("x", lhsT);
+      fun one_con (con, args) =
+        let
+          val Ts = map snd args;
+          val ns = Name.variant_list ["x"] (Datatype_Prop.make_tnames Ts);
+          val vs = map Free (ns ~~ Ts);
+          val nonlazy = map snd (filter_out (fst o fst) (args ~~ vs));
+          val eqn = mk_eq (x, list_ccomb (con, vs));
+          val conj = foldr1 mk_conj (eqn :: map mk_defined nonlazy);
+        in Library.foldr mk_ex (vs, conj) end;
+      val goal = mk_trp (foldr1 mk_disj (mk_undef x :: map one_con spec'));
+      (* first 3 rules replace "x = UU \/ P" with "rep$x = UU \/ P" *)
+      val tacs = [
+          rtac (iso_locale RS @{thm iso.casedist_rule}) 1,
+          rewrite_goals_tac [mk_meta_eq (iso_locale RS @{thm iso.iso_swap})],
+          rtac thm3 1];
+    in
+      val exhaust = prove thy con_betas goal (K tacs);
+      val casedist =
+          (exhaust RS @{thm exh_casedist0})
+          |> rewrite_rule @{thms exh_casedists}
+          |> Drule.export_without_context;
+    end;
 
     (* prove compactness rules for constructors *)
     val con_compacts =
@@ -459,6 +513,8 @@ fun add_constructors
       {
         con_consts = con_consts,
         con_betas = con_betas,
+        exhaust = exhaust,
+        casedist = casedist,
         con_compacts = con_compacts,
         con_rews = con_rews,
         inverts = inverts,
@@ -631,8 +687,7 @@ fun add_domain_constructors
     val abs_defined_iff = iso_locale RS @{thm iso.abs_defined_iff};
 
     (* define constructor functions *)
-    val ({con_consts, con_betas, con_compacts, con_rews, inverts, injects},
-         thy) =
+    val (con_result, thy) =
       let
         fun prep_arg (lazy, sel, T) = (lazy, T);
         fun prep_con (b, args, mx) = (b, map prep_arg args, mx);
@@ -640,6 +695,7 @@ fun add_domain_constructors
       in
         add_constructors con_spec abs_const iso_locale thy
       end;
+    val {con_consts, con_betas, ...} = con_result;
 
     (* TODO: enable this earlier *)
     val thy = Sign.add_path dname thy;
@@ -659,10 +715,12 @@ fun add_domain_constructors
     val result =
       { con_consts = con_consts,
         con_betas = con_betas,
-        con_compacts = con_compacts,
-        con_rews = con_rews,
-        inverts = inverts,
-        injects = injects,
+        exhaust = #exhaust con_result,
+        casedist = #casedist con_result,
+        con_compacts = #con_compacts con_result,
+        con_rews = #con_rews con_result,
+        inverts = #inverts con_result,
+        injects = #injects con_result,
         sel_rews = sel_thms };
   in
     (result, thy)

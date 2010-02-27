@@ -87,7 +87,10 @@ lemma abs_defined_iff: "(abs\<cdot>x = \<bottom>) = (x = \<bottom>)"
 lemma rep_defined_iff: "(rep\<cdot>x = \<bottom>) = (x = \<bottom>)"
   by (rule iso.abs_defined_iff [OF iso.swap]) (rule iso_axioms)
 
-lemma (in iso) compact_abs_rev: "compact (abs\<cdot>x) \<Longrightarrow> compact x"
+lemma casedist_rule: "rep\<cdot>x = \<bottom> \<or> P \<Longrightarrow> x = \<bottom> \<or> P"
+  by (simp add: rep_defined_iff)
+
+lemma compact_abs_rev: "compact (abs\<cdot>x) \<Longrightarrow> compact x"
 proof (unfold compact_def)
   assume "adm (\<lambda>y. \<not> abs\<cdot>x \<sqsubseteq> y)"
   with cont_Rep_CFun2
@@ -249,10 +252,10 @@ lemmas sel_defined_iff_rules =
 
 use "Tools/cont_consts.ML"
 use "Tools/cont_proc.ML"
-use "Tools/Domain/domain_constructors.ML"
 use "Tools/Domain/domain_library.ML"
 use "Tools/Domain/domain_syntax.ML"
 use "Tools/Domain/domain_axioms.ML"
+use "Tools/Domain/domain_constructors.ML"
 use "Tools/Domain/domain_theorems.ML"
 use "Tools/Domain/domain_extender.ML"
 
