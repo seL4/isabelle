@@ -314,9 +314,6 @@ fun REPEAT ttac cont err_cont =
 
 (*** DEPENDENCY GRAPHS ***)
 
-structure TermGraph = Graph(type key = term val ord = TermOrd.fast_term_ord);
-
-
 fun prove_chain thy chain_tac c1 c2 =
   let
     val goal =
@@ -342,11 +339,11 @@ fun derive_chains ctxt chain_tac cont D = CALLS (fn (cs, i) =>
 
 
 fun mk_dgraph D cs =
-  TermGraph.empty
-  |> fold (fn c => TermGraph.new_node (c,())) cs
+  Term_Graph.empty
+  |> fold (fn c => Term_Graph.new_node (c, ())) cs
   |> fold_product (fn c1 => fn c2 =>
      if is_none (get_chain D c1 c2 |> the_default NONE)
-     then TermGraph.add_edge (c1, c2) else I)
+     then Term_Graph.add_edge (c1, c2) else I)
      cs cs
 
 fun ucomp_empty_tac T =
@@ -373,7 +370,7 @@ fun solve_trivial_tac D = CALLS (fn ([c], i) =>
 fun decompose_tac' cont err_cont D = CALLS (fn (cs, i) =>
   let
     val G = mk_dgraph D cs
-    val sccs = TermGraph.strong_conn G
+    val sccs = Term_Graph.strong_conn G
 
     fun split [SCC] i = (solve_trivial_tac D i ORELSE cont D i)
       | split (SCC::rest) i =

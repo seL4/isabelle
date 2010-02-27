@@ -4,9 +4,7 @@
 Auxilary functions for predicate compiler.
 *)
 
-(* FIXME proper signature *)
-
-structure TermGraph = Graph(type key = term val ord = TermOrd.fast_term_ord);
+(* FIXME proper signature! *)
 
 structure Predicate_Compile_Aux =
 struct

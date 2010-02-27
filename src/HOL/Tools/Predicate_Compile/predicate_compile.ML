@@ -83,7 +83,7 @@ fun preprocess_strong_conn_constnames options gr ts thy =
   else
     let
       fun get_specs ts = map_filter (fn t =>
-        TermGraph.get_node gr t |>
+        Term_Graph.get_node gr t |>
         (fn ths => if null ths then NONE else SOME (fst (dest_Const t), ths)))
         ts
       val _ = print_step options ("Preprocessing scc of " ^
@@ -123,12 +123,12 @@ fun preprocess options t thy =
     val _ = print_step options "Fetching definitions from theory..."
     val gr = Output.cond_timeit (!Quickcheck.timing) "preprocess-obtain graph"
           (fn () => Predicate_Compile_Data.obtain_specification_graph options thy t
-          |> (fn gr => TermGraph.subgraph (member (op =) (TermGraph.all_succs gr [t])) gr))
+          |> (fn gr => Term_Graph.subgraph (member (op =) (Term_Graph.all_succs gr [t])) gr))
     val _ = if !present_graph then Predicate_Compile_Data.present_graph gr else ()
   in
     Output.cond_timeit (!Quickcheck.timing) "preprocess-process"
       (fn () => (fold_rev (preprocess_strong_conn_constnames options gr)
-        (TermGraph.strong_conn gr) thy))
+        (Term_Graph.strong_conn gr) thy))
   end
 
 fun extract_options (((expected_modes, proposed_modes), (compilation, raw_options)), const) =
