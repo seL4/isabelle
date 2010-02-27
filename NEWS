@@ -177,6 +177,11 @@ clash with new theory Quotient in Main HOL.
 
 *** ML ***
 
+* Antiquotations for type classes:
+
+    @{class NAME}         -- type class
+    @{class_syntax NAME}  -- syntax representation of any of the above
+
 * Antiquotations for type constructors:
 
     @{type_name NAME}     -- logical type (as before)

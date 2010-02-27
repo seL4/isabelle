@@ -73,9 +73,6 @@ val _ = value "theory_ref"
 
 val _ = value "context" (Scan.succeed "ML_Context.the_local_context ()");
 
-val _ = inline "sort" (Args.context -- Scan.lift Args.name_source >> (fn (ctxt, s) =>
-  ML_Syntax.atomic (ML_Syntax.print_sort (Syntax.read_sort ctxt s))));
-
 val _ = inline "typ" (Args.typ >> (ML_Syntax.atomic o ML_Syntax.print_typ));
 val _ = inline "term" (Args.term >> (ML_Syntax.atomic o ML_Syntax.print_term));
 val _ = inline "prop" (Args.prop >> (ML_Syntax.atomic o ML_Syntax.print_term));
@@ -101,6 +98,20 @@ val _ = value "cprop" (Args.prop >> (fn t =>
 val _ = value "cpat"
   (Args.context -- Scan.lift Args.name_source >> uncurry ProofContext.read_term_pattern >> (fn t =>
     "Thm.cterm_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_term t)));
+
+
+(* type classes *)
+
+fun class syn = Args.theory -- Scan.lift Args.name_source >> (fn (thy, s) =>
+  Sign.read_class thy s
+  |> syn ? Long_Name.base_name   (* FIXME authentic syntax *)
+  |> ML_Syntax.print_string);
+
+val _ = inline "class" (class false);
+val _ = inline "class_syntax" (class true);
+
+val _ = inline "sort" (Args.context -- Scan.lift Args.name_source >> (fn (ctxt, s) =>
+  ML_Syntax.atomic (ML_Syntax.print_sort (Syntax.read_sort ctxt s))));
 
 
 (* type constructors *)
