@@ -55,7 +55,7 @@ type nfa_transition = KK.rel_expr * typ
 type nfa_entry = typ * nfa_transition list
 type nfa_table = nfa_entry list
 
-structure NfaGraph = Graph(type key = typ val ord = TermOrd.typ_ord)
+structure NfaGraph = Typ_Graph
 
 (* int -> KK.int_expr list *)
 fun flip_nums n = index_seq 1 n @ [0] |> map KK.Num
