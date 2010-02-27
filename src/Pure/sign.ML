@@ -404,8 +404,13 @@ fun cert_def ctxt tm =
 
 (* classes *)
 
-fun read_class thy c = certify_class thy (intern_class thy c)
-  handle TYPE (msg, _, _) => error msg;
+fun read_class thy text =
+  let
+    val (syms, pos) = Syntax.read_token text;
+    val c = certify_class thy (intern_class thy (Symbol_Pos.content syms))
+      handle TYPE (msg, _, _) => error (msg ^ Position.str_of pos);
+    val _ = Position.report (Markup.tclass c) pos;
+  in c end;
 
 
 (* type arities *)
