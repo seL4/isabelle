@@ -64,15 +64,10 @@ fun calc_syntax thy
           | esc []      = []
       in implode o esc o Symbol.explode end;
 
-      fun dis_name_ con =
-          Binding.name ("is_" ^ strip_esc (Binding.name_of con));
       fun mat_name_ con =
           Binding.name ("match_" ^ strip_esc (Binding.name_of con));
       fun pat_name_ con =
           Binding.name (strip_esc (Binding.name_of con) ^ "_pat");
-      fun dis (con,args,mx) =
-          (dis_name_ con, dtype->>trT,
-           Mixfix(escape ("is_" ^ Binding.name_of con), [], Syntax.max_pri));
       (* strictly speaking, these constants have one argument,
        but the mixfix (without arguments) is introduced only
            to generate parse rules for non-alphanumeric names*)
@@ -95,7 +90,6 @@ fun calc_syntax thy
              mk_patT (dtype, mk_ctupleT (map (freetvar "t") (1 upto length args))),
            Mixfix(escape (Binding.name_of con ^ "_pat"), [], Syntax.max_pri));
     in
-    val consts_dis = map dis cons';
     val consts_mat = map mat cons';
     val consts_pat = map pat cons';
     end;
@@ -165,7 +159,7 @@ fun calc_syntax thy
         if definitional then [] else [const_rep, const_abs, const_copy];
 
   in (optional_consts @ [const_when] @ 
-      consts_dis @ consts_mat @ consts_pat @
+      consts_mat @ consts_pat @
       [const_take, const_finite],
       (case_trans false :: case_trans true :: (abscon_trans false @ abscon_trans true @ Case_trans)))
   end; (* let *)

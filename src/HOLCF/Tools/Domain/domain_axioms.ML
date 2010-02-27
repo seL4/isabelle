@@ -78,15 +78,6 @@ fun calc_axioms
           (dc_abs oo (copy_of_dtyp map_tab r (dtyp_of_eq eqn)) oo dc_rep))
       end;
 
-(* -- definitions concerning the discriminators - *)
-
-    val dis_defs = let
-      fun ddef (con,_,_) = (dis_name con ^"_def",%%:(dis_name con) == 
-                                              list_ccomb(%%:(dname^"_when"),map 
-                                                                              (fn (con',_,args) => (List.foldr /\#
-      (if con'=con then TT else FF) args)) cons))
-    in map ddef cons end;
-
     val mat_defs =
       let
         fun mdef (con, _, _) =
@@ -134,7 +125,7 @@ fun calc_axioms
   in (dnam,
       (if definitional then [] else [abs_iso_ax, rep_iso_ax, reach_ax]),
       (if definitional then [when_def] else [when_def, copy_def]) @
-      dis_defs @ mat_defs @ pat_defs @
+      mat_defs @ pat_defs @
       [take_def, finite_def])
   end; (* let (calc_axioms) *)
 
