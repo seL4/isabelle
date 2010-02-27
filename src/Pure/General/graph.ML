@@ -48,7 +48,6 @@ sig
   val topological_order: 'a T -> key list
   val add_edge_trans_acyclic: key * key -> 'a T -> 'a T               (*exception CYCLES*)
   val merge_trans_acyclic: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T   (*exception CYCLES*)
-  val extend: (key -> 'a * key list) -> key -> 'a T -> 'a T
 end;
 
 functor Graph(Key: KEY): GRAPH =
@@ -277,22 +276,6 @@ fun merge_trans_acyclic eq (G1, G2) =
   merge_acyclic eq (G1, G2)
   |> fold add_edge_trans_acyclic (diff_edges G1 G2)
   |> fold add_edge_trans_acyclic (diff_edges G2 G1);
-
-
-(* constructing graphs *)
-
-fun extend explore =
-  let
-    fun ext x G =
-      if can (get_entry G) x then G
-      else
-        let val (info, ys) = explore x in
-          G
-          |> new_node (x, info)
-          |> fold ext ys
-          |> fold (fn y => add_edge (x, y)) ys
-        end
-  in ext end;
 
 
 (*final declarations of this structure!*)

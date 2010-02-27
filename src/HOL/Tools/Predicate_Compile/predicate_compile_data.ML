@@ -257,7 +257,7 @@ fun print_specification options thy constname specs =
 fun obtain_specification_graph options thy t =
   let
     fun is_nondefining_const (c, T) = member (op =) logic_operator_names c
-    fun has_code_pred_intros (c, T) = is_some (try (Predicate_Compile_Core.intros_of thy) c)
+    fun has_code_pred_intros (c, T) = can (Predicate_Compile_Core.intros_of thy) c
     fun case_consts (c, T) = is_some (Datatype.info_of_case thy c)
     fun is_datatype_constructor (c, T) = is_some (Datatype.info_of_constr thy (c, T))
     fun defiants_of specs =
@@ -272,14 +272,22 @@ fun obtain_specification_graph options thy t =
       |> map Const
       (*
       |> filter is_defining_constname*)
-    fun extend t =
-      let
-        val specs = get_specification options thy t
-          (*|> Predicate_Compile_Set.unfold_set_notation*)
-        (*val _ = print_specification options thy constname specs*)
-      in (specs, defiants_of specs) end;
+    fun extend t gr =
+      if can (Term_Graph.get_node gr) t then gr
+      else
+        let
+          val specs = get_specification options thy t
+            (*|> Predicate_Compile_Set.unfold_set_notation*)
+          (*val _ = print_specification options thy constname specs*)
+          val us = defiants_of specs
+        in
+          gr
+          |> Term_Graph.new_node (t, specs)
+          |> fold extend us
+          |> fold (fn u => Term_Graph.add_edge (t, u)) us
+        end
   in
-    Term_Graph.extend extend t Term_Graph.empty
+    extend t Term_Graph.empty
   end;
 
 
