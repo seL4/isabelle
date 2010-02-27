@@ -533,7 +533,7 @@ fun disambig _ _ [t] = t
             \Retry with smaller Syntax.ambiguity_level for more information."
           else "";
 
-        val errs = map check ts;
+        val errs = Par_List.map check ts;
         val results = map_filter (fn (t, NONE) => SOME t | _ => NONE) (ts ~~ errs);
         val len = length results;
       in
