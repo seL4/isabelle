@@ -259,7 +259,7 @@ fun gen_notation prep_const add mode args lthy =
   lthy |> Local_Theory.notation add mode (map (apfst (prep_const lthy)) args);
 
 val notation = gen_notation (K I);
-val notation_cmd = gen_notation ProofContext.read_const;
+val notation_cmd = gen_notation (fn ctxt => ProofContext.read_const ctxt false);
 
 
 (* fact statements *)

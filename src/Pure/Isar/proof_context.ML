@@ -53,8 +53,8 @@ sig
   val inferred_param: string -> Proof.context -> typ * Proof.context
   val inferred_fixes: Proof.context -> (string * typ) list * Proof.context
   val read_type_name: Proof.context -> bool -> string -> typ
-  val read_const_proper: Proof.context -> string -> term
-  val read_const: Proof.context -> string -> term
+  val read_const_proper: Proof.context -> bool -> string -> term
+  val read_const: Proof.context -> bool -> string -> term
   val allow_dummies: Proof.context -> Proof.context
   val decode_term: Proof.context -> term -> term
   val standard_infer_types: Proof.context -> term list -> term list
@@ -360,7 +360,7 @@ fun var_or_skolem _ s =
           (Pretty.str (setmp_CRITICAL show_question_marks true Term.string_of_vname (x', i))))
   | NONE => Pretty.mark Markup.var (Pretty.str s));
 
-fun class_markup _ c =    (* FIXME authentic name *)
+fun class_markup _ c =    (* FIXME authentic syntax *)
   Pretty.mark (Markup.tclassN, []) (Pretty.str c);
 
 fun plain_markup m _ s = Pretty.mark m (Pretty.str s);
@@ -405,19 +405,27 @@ local
 
 val token_content = Syntax.read_token #>> Symbol_Pos.content;
 
-fun prep_const_proper ctxt (c, pos) =
-  let val t as (Const (d, _)) =
-    (case Variable.lookup_const ctxt c of
-      SOME d => Const (d, Consts.type_scheme (consts_of ctxt) d handle TYPE (msg, _, _) => error msg)
-    | NONE => Consts.read_const (consts_of ctxt) c)
-  in Position.report (Markup.const d) pos; t end;
+fun prep_const_proper ctxt strict (c, pos) =
+  let
+    fun err msg = error (msg ^ Position.str_of pos);
+    val consts = consts_of ctxt;
+    val t as Const (d, _) =
+      (case Variable.lookup_const ctxt c of
+        SOME d =>
+          Const (d, Consts.type_scheme (consts_of ctxt) d handle TYPE (msg, _, _) => err msg)
+      | NONE => Consts.read_const consts c);
+    val _ =
+      if strict then ignore (Consts.the_type consts d) handle TYPE (msg, _, _) => err msg
+      else ();
+    val _ = Position.report (Markup.const d) pos;
+  in t end;
 
 in
 
-fun read_type_name ctxt strict str =
+fun read_type_name ctxt strict text =
   let
     val thy = theory_of ctxt;
-    val (c, pos) = token_content str;
+    val (c, pos) = token_content text;
   in
     if Syntax.is_tid c then
      (Position.report Markup.tfree pos;
@@ -436,16 +444,16 @@ fun read_type_name ctxt strict str =
       in Type (d, replicate args dummyT) end
   end;
 
-fun read_const_proper ctxt = prep_const_proper ctxt o token_content;
+fun read_const_proper ctxt strict = prep_const_proper ctxt strict o token_content;
 
-fun read_const ctxt str =
-  let val (c, pos) = token_content str in
+fun read_const ctxt strict text =
+  let val (c, pos) = token_content text in
     (case (lookup_skolem ctxt c, Variable.is_const ctxt c) of
       (SOME x, false) =>
         (Position.report (Markup.name x
             (if can Name.dest_skolem x then Markup.skolem else Markup.free)) pos;
           Free (x, infer_type ctxt x))
-    | _ => prep_const_proper ctxt (c, pos))
+    | _ => prep_const_proper ctxt strict (c, pos))
   end;
 
 end;
@@ -574,7 +582,7 @@ fun intern_skolem ctxt def_type x =
   let
     val _ = no_skolem false x;
     val sko = lookup_skolem ctxt x;
-    val is_const = can (read_const_proper ctxt) x orelse Long_Name.is_qualified x;
+    val is_const = can (read_const_proper ctxt false) x orelse Long_Name.is_qualified x;
     val is_declared = is_some (def_type (x, ~1));
   in
     if Variable.is_const ctxt x then NONE
@@ -588,7 +596,7 @@ in
 fun term_context ctxt =
   let val thy = theory_of ctxt in
    {get_sort = get_sort thy (Variable.def_sort ctxt),
-    map_const = fn a => ((true, #1 (Term.dest_Const (read_const_proper ctxt a)))
+    map_const = fn a => ((true, #1 (Term.dest_Const (read_const_proper ctxt false a)))
       handle ERROR _ => (false, Consts.intern (consts_of ctxt) a)),
     map_free = intern_skolem ctxt (Variable.def_type ctxt false),
     map_type = Sign.intern_tycons thy,
@@ -994,7 +1002,7 @@ local
 
 fun const_ast_tr intern ctxt [Syntax.Variable c] =
       let
-        val Const (c', _) = read_const_proper ctxt c;
+        val Const (c', _) = read_const_proper ctxt false c;
         val d = if intern then Syntax.mark_const c' else c;
       in Syntax.Constant d end
   | const_ast_tr _ _ asts = raise Syntax.AST ("const_ast_tr", asts);
