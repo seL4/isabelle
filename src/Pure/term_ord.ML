@@ -226,6 +226,8 @@ end;
 structure Basic_Term_Ord: BASIC_TERM_ORD = TermOrd;
 open Basic_Term_Ord;
 
-
+structure Var_Graph = Graph(type key = indexname val ord = TermOrd.fast_indexname_ord);
+structure Sort_Graph = Graph(type key = sort val ord = TermOrd.sort_ord);
+structure Typ_Graph = Graph(type key = typ val ord = TermOrd.typ_ord);
 structure Term_Graph = Graph(type key = term val ord = TermOrd.fast_term_ord);
 
