@@ -64,7 +64,7 @@ val cong_add = Thm.declaration_attribute (map_function_congs o Thm.add_thm o saf
 val cong_del = Thm.declaration_attribute (map_function_congs o Thm.del_thm o safe_mk_meta_eq);
 
 
-type depgraph = int IntGraph.T
+type depgraph = int Int_Graph.T
 
 datatype ctx_tree =
   Leaf of term
@@ -90,11 +90,11 @@ fun cong_deps crule =
   let
     val num_branches = map_index (apsnd branch_vars) (prems_of crule)
   in
-    IntGraph.empty
-    |> fold (fn (i,_)=> IntGraph.new_node (i,i)) num_branches
+    Int_Graph.empty
+    |> fold (fn (i,_)=> Int_Graph.new_node (i,i)) num_branches
     |> fold_product (fn (i, (c1, _)) => fn (j, (_, t2)) =>
          if i = j orelse null (inter (op =) c1 t2)
-         then I else IntGraph.add_edge_acyclic (i,j))
+         then I else Int_Graph.add_edge_acyclic (i,j))
        num_branches num_branches
     end
 
@@ -204,13 +204,13 @@ fun fold_deps G f x =
         SOME _ => (T, x)
       | NONE =>
         let
-          val (T', x') = fold fill_table (IntGraph.imm_succs G i) (T, x)
+          val (T', x') = fold fill_table (Int_Graph.imm_succs G i) (T, x)
           val (v, x'') = f (the o Inttab.lookup T') i x'
         in
           (Inttab.update (i, v) T', x'')
         end
 
-    val (T, x) = fold fill_table (IntGraph.keys G) (Inttab.empty, x)
+    val (T, x) = fold fill_table (Int_Graph.keys G) (Inttab.empty, x)
   in
     (Inttab.fold (cons o snd) T [], x)
   end
@@ -225,7 +225,7 @@ fun traverse_tree rcOp tr =
         fun sub_step lu i x =
           let
             val (ctx', subtree) = nth branches i
-            val used = fold_rev (append o lu) (IntGraph.imm_succs deps i) u
+            val used = fold_rev (append o lu) (Int_Graph.imm_succs deps i) u
             val (subs, x') = traverse_help (compose ctx ctx') subtree used x
             val exported_subs = map (apfst (compose ctx')) subs (* FIXME: Right order of composition? *)
           in
@@ -263,7 +263,7 @@ fun rewrite_by_tree thy h ih x tr =
           fun sub_step lu i x =
             let
               val ((fixes, assumes), st) = nth branches i
-              val used = map lu (IntGraph.imm_succs deps i)
+              val used = map lu (Int_Graph.imm_succs deps i)
                 |> map (fn u_eq => (u_eq RS sym) RS eq_reflection)
                 |> filter_out Thm.is_reflexive
 
