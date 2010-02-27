@@ -27,7 +27,7 @@ structure Par_List: PAR_LIST =
 struct
 
 fun raw_map f xs =
-  if Multithreading.enabled () then
+  if Multithreading.enabled () andalso not (Multithreading.self_critical ()) then
     let val group = Task_Queue.new_group (Future.worker_group ())
     in Future.join_results (map (fn x => Future.fork_group group (fn () => f x)) xs) end
   else map (Exn.capture f) xs;
