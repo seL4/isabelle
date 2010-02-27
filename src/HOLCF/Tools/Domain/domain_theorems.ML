@@ -73,8 +73,6 @@ val iso_abs_iso     = @{thm iso.abs_iso};
 val iso_rep_iso     = @{thm iso.rep_iso};
 val iso_abs_strict  = @{thm iso.abs_strict};
 val iso_rep_strict  = @{thm iso.rep_strict};
-val iso_abs_defin'  = @{thm iso.abs_defin'};
-val iso_rep_defin'  = @{thm iso.rep_defin'};
 val iso_abs_defined = @{thm iso.abs_defined};
 val iso_rep_defined = @{thm iso.rep_defined};
 val iso_compact_abs = @{thm iso.compact_abs};
@@ -161,16 +159,6 @@ in
   val axs_dis_def = map (get_def dis_name) cons;
   val axs_mat_def = map (get_def mat_name) cons;
   val axs_pat_def = map (get_def pat_name) cons;
-(*
-  val axs_sel_def =
-    let
-      fun def_of_sel sel = ga (sel^"_def") dname;
-      fun def_of_arg arg = Option.map def_of_sel (sel_of arg);
-      fun defs_of_con (_, _, args) = map_filter def_of_arg args;
-    in
-      maps defs_of_con cons
-    end;
-*)
   val ax_copy_def = ga "copy_def" dname;
 end; (* local *)
 
@@ -195,13 +183,14 @@ val abs_const = Const(dname^"_abs", rhsT ->> lhsT);
 val (result, thy) =
   Domain_Constructors.add_domain_constructors
     (Long_Name.base_name dname) dom_eqn
-    (rep_const, abs_const) (ax_rep_iso, ax_abs_iso) thy;
+    (rep_const, abs_const) (ax_rep_iso, ax_abs_iso) ax_when_def thy;
 
 val con_appls = #con_betas result;
 val {exhaust, casedist, ...} = result;
 val {con_compacts, con_rews, inverts, injects, dist_les, dist_eqs, ...} = result;
 val {sel_rews, ...} = result;
-
+val when_rews = #cases result;
+val when_strict = hd when_rews;
 
 (* ----- theorems concerning the isomorphism -------------------------------- *)
 
@@ -215,65 +204,7 @@ val x_name = "x";
 val iso_locale = iso_intro OF [ax_abs_iso, ax_rep_iso];
 val abs_strict = ax_rep_iso RS (allI RS retraction_strict);
 val rep_strict = ax_abs_iso RS (allI RS retraction_strict);
-val abs_defin' = iso_locale RS iso_abs_defin';
-val rep_defin' = iso_locale RS iso_rep_defin';
 val iso_rews = map Drule.export_without_context [ax_abs_iso, ax_rep_iso, abs_strict, rep_strict];
-
-(* ----- generating beta reduction rules from definitions-------------------- *)
-
-val _ = trace " Proving beta reduction rules...";
-
-local
-  fun arglist (Const _ $ Abs (s, _, t)) =
-    let
-      val (vars,body) = arglist t;
-    in (s :: vars, body) end
-    | arglist t = ([], t);
-  fun bind_fun vars t = Library.foldr mk_All (vars, t);
-  fun bound_vars 0 = []
-    | bound_vars i = Bound (i-1) :: bound_vars (i - 1);
-in
-  fun appl_of_def def =
-    let
-      val (_ $ con $ lam) = concl_of def;
-      val (vars, rhs) = arglist lam;
-      val lhs = list_ccomb (con, bound_vars (length vars));
-      val appl = bind_fun vars (lhs == rhs);
-      val cs = ContProc.cont_thms lam;
-      val betas = map (fn c => mk_meta_eq (c RS beta_cfun)) cs;
-    in pg (def::betas) appl (K [rtac reflexive_thm 1]) end;
-end;
-
-val _ = trace "Proving when_appl...";
-val when_appl = appl_of_def ax_when_def;
-
-local 
-  fun bind_fun t = Library.foldr mk_All (when_funs cons, t);
-  fun bound_fun i _ = Bound (length cons - i);
-  val when_app = list_ccomb (%%:(dname^"_when"), mapn bound_fun 1 cons);
-in
-  val _ = trace " Proving when_strict...";
-  val when_strict =
-    let
-      val axs = [when_appl, mk_meta_eq rep_strict];
-      val goal = bind_fun (mk_trp (strict when_app));
-      val tacs = [resolve_tac [sscase1, ssplit1, strictify1] 1];
-    in pg axs goal (K tacs) end;
-
-  val _ = trace " Proving when_apps...";
-  val when_apps =
-    let
-      fun one_when n (con, _, args) =
-        let
-          val axs = when_appl :: con_appls;
-          val goal = bind_fun (lift_defined %: (nonlazy args, 
-                mk_trp (when_app`(con_app con args) ===
-                       list_ccomb (bound_fun n 0, map %# args))));
-          val tacs = [asm_simp_tac (HOLCF_ss addsimps [ax_abs_iso]) 1];
-        in pg axs goal (K tacs) end;
-    in mapn one_when 1 cons end;
-end;
-val when_rews = when_strict :: when_apps;
 
 (* ----- theorems concerning the constructors, discriminators and selectors - *)
 
