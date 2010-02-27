@@ -177,17 +177,19 @@ clash with new theory Quotient in Main HOL.
 
 *** ML ***
 
-* Antiquotations for type classes:
+* Antiquotations for basic formal entities:
 
     @{class NAME}         -- type class
-    @{class_syntax NAME}  -- syntax representation of any of the above
+    @{class_syntax NAME}  -- syntax representation of the above
 
-* Antiquotations for type constructors:
-
-    @{type_name NAME}     -- logical type (as before)
+    @{type_name NAME}     -- logical type
     @{type_abbrev NAME}   -- type abbreviation
     @{nonterminal NAME}   -- type of concrete syntactic category
     @{type_syntax NAME}   -- syntax representation of any of the above
+
+    @{const_name NAME}    -- logical constant (INCOMPATIBILITY)
+    @{const_abbrev NAME}  -- abbreviated constant
+    @{const_syntax NAME}  -- syntax representation of any of the above
 
 * Antiquotation @{syntax_const NAME} ensures that NAME refers to a raw
 syntax constant (cf. 'syntax' command).
