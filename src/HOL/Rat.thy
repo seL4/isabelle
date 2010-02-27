@@ -1188,7 +1188,7 @@ setup {*
     (@{const_name inverse_rat_inst.inverse_rat}, @{const_name Nitpick.inverse_frac}),
     (@{const_name ord_rat_inst.less_eq_rat}, @{const_name Nitpick.less_eq_frac}),
     (@{const_name field_char_0_class.of_rat}, @{const_name Nitpick.of_frac}),
-    (@{const_name field_char_0_class.Rats}, @{const_name UNIV})]
+    (@{const_name field_char_0_class.Rats}, @{const_abbrev UNIV})]
 *}
 
 lemmas [nitpick_def] = inverse_rat_inst.inverse_rat

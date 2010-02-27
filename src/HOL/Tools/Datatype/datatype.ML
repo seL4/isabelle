@@ -465,7 +465,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
           (if i < length newTs then HOLogic.true_const
            else HOLogic.mk_mem (mk_Free "x" Univ_elT i,
              Const (@{const_name image}, isoT --> HOLogic.mk_setT T --> UnivT) $
-               Const (iso_name, isoT) $ Const (@{const_name UNIV}, HOLogic.mk_setT T)))
+               Const (iso_name, isoT) $ Const (@{const_abbrev UNIV}, HOLogic.mk_setT T)))
       end;
 
     val iso_t = HOLogic.mk_Trueprop (mk_conj (map mk_iso_t

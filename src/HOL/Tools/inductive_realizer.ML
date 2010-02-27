@@ -510,7 +510,7 @@ fun rlz_attrib arg = Thm.declaration_attribute (fn thm => Context.mapping
 val setup =
   Attrib.setup @{binding ind_realizer}
     ((Scan.option (Scan.lift (Args.$$$ "irrelevant") |--
-      Scan.option (Scan.lift (Args.colon) |-- Scan.repeat1 Args.const))) >> rlz_attrib)
+      Scan.option (Scan.lift (Args.colon) |-- Scan.repeat1 (Args.const true)))) >> rlz_attrib)
     "add realizers for inductive set";
 
 end;

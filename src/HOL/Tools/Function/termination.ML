@@ -286,7 +286,7 @@ fun wf_union_tac ctxt st =
 
     val relation =
       if null ineqs
-      then Const (@{const_name Set.empty}, fastype_of rel)
+      then Const (@{const_abbrev Set.empty}, fastype_of rel)
       else map mk_compr ineqs
         |> foldr1 (HOLogic.mk_binop @{const_name Lattices.sup})
 
@@ -321,7 +321,7 @@ fun prove_chain thy chain_tac c1 c2 =
   let
     val goal =
       HOLogic.mk_eq (HOLogic.mk_binop @{const_name Relation.rel_comp} (c1, c2),
-        Const (@{const_name Set.empty}, fastype_of c1))
+        Const (@{const_abbrev Set.empty}, fastype_of c1))
       |> HOLogic.mk_Trueprop (* "C1 O C2 = {}" *)
   in
     case Function_Lib.try_proof (cterm_of thy goal) chain_tac of

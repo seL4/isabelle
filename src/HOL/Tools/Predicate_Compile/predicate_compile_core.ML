@@ -2933,7 +2933,7 @@ fun values ctxt param_user_modes (raw_expected, comp_options) k t_compr =
             "computed values: " ^ Syntax.string_of_term ctxt elems ^ "\n")
   in
     if k = ~1 orelse length ts < k then elems
-      else Const (@{const_name Set.union}, setT --> setT --> setT) $ elems $ cont
+      else Const (@{const_abbrev Set.union}, setT --> setT --> setT) $ elems $ cont
   end;
 
 fun values_cmd print_modes param_user_modes options k raw_t state =

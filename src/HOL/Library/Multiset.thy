@@ -1631,9 +1631,9 @@ by auto
 
 setup {*
 let
-  fun msetT T = Type ("Multiset.multiset", [T]);
+  fun msetT T = Type (@{type_name multiset}, [T]);
 
-  fun mk_mset T [] = Const (@{const_name Mempty}, msetT T)
+  fun mk_mset T [] = Const (@{const_abbrev Mempty}, msetT T)
     | mk_mset T [x] = Const (@{const_name single}, T --> msetT T) $ x
     | mk_mset T (x :: xs) =
           Const (@{const_name plus}, msetT T --> msetT T --> msetT T) $
@@ -1649,7 +1649,7 @@ let
       rtac @{thm nonempty_plus} ORELSE' rtac @{thm nonempty_single}
 
   val regroup_munion_conv =
-      Function_Lib.regroup_conv @{const_name Multiset.Mempty} @{const_name plus}
+      Function_Lib.regroup_conv @{const_abbrev Mempty} @{const_name plus}
         (map (fn t => t RS eq_reflection) (@{thms add_ac} @ @{thms empty_idemp}))
 
   fun unfold_pwleq_tac i =

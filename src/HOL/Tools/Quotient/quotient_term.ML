@@ -265,7 +265,7 @@ fun is_eq (Const (@{const_name "op ="}, _)) = true
   | is_eq _ = false
 
 fun mk_rel_compose (trm1, trm2) =
-  Const (@{const_name "rel_conj"}, dummyT) $ trm1 $ trm2
+  Const (@{const_abbrev "rel_conj"}, dummyT) $ trm1 $ trm2
 
 fun get_relmap ctxt s =
 let
