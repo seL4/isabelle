@@ -207,7 +207,7 @@ fun ring_ord (Const (a, _)) =
         @{const_name Groups.minus}, @{const_name Groups.one}, @{const_name Groups.times}]
   | ring_ord _ = ~1;
 
-fun termless_ring (a, b) = (TermOrd.term_lpo ring_ord (a, b) = LESS);
+fun termless_ring (a, b) = (Term_Ord.term_lpo ring_ord (a, b) = LESS);
 
 val ring_ss = HOL_basic_ss settermless termless_ring addsimps
   [thm "a_assoc", thm "l_zero", thm "l_neg", thm "a_comm", thm "m_assoc",

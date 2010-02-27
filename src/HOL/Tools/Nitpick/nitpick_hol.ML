@@ -1122,7 +1122,7 @@ val hash_term = Word.toInt o hashw_term
 
 (* term list -> (indexname * typ) list *)
 fun special_bounds ts =
-  fold Term.add_vars ts [] |> sort (TermOrd.fast_indexname_ord o pairself fst)
+  fold Term.add_vars ts [] |> sort (Term_Ord.fast_indexname_ord o pairself fst)
 
 (* indexname * typ -> term -> term *)
 fun abs_var ((s, j), T) body = Abs (s, T, abstract_over (Var ((s, j), T), body))

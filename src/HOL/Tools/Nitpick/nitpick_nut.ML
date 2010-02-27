@@ -400,13 +400,13 @@ fun name_ord (BoundName (j1, _, _, _), BoundName (j2, _, _, _)) =
   | name_ord (_, BoundName _) = GREATER
   | name_ord (FreeName (s1, T1, _), FreeName (s2, T2, _)) =
     (case fast_string_ord (s1, s2) of
-       EQUAL => TermOrd.typ_ord (T1, T2)
+       EQUAL => Term_Ord.typ_ord (T1, T2)
      | ord => ord)
   | name_ord (FreeName _, _) = LESS
   | name_ord (_, FreeName _) = GREATER
   | name_ord (ConstName (s1, T1, _), ConstName (s2, T2, _)) =
     (case fast_string_ord (s1, s2) of
-       EQUAL => TermOrd.typ_ord (T1, T2)
+       EQUAL => Term_Ord.typ_ord (T1, T2)
      | ord => ord)
   | name_ord (u1, u2) = raise NUT ("Nitpick_Nut.name_ord", [u1, u2])
 

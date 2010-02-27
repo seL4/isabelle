@@ -1216,7 +1216,7 @@ fun agrp_ord (Const (a, _)) = find_index (fn a' => a = a')
         @{const_name Groups.uminus}, @{const_name Groups.minus}]
   | agrp_ord _ = ~1;
 
-fun termless_agrp (a, b) = (TermOrd.term_lpo agrp_ord (a, b) = LESS);
+fun termless_agrp (a, b) = (Term_Ord.term_lpo agrp_ord (a, b) = LESS);
 
 local
   val ac1 = mk_meta_eq @{thm add_assoc};

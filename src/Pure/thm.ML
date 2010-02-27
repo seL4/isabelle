@@ -384,9 +384,9 @@ fun attach_tpairs tpairs prop =
 
 fun full_prop_of (Thm (_, {tpairs, prop, ...})) = attach_tpairs tpairs prop;
 
-val union_hyps = OrdList.union TermOrd.fast_term_ord;
-val insert_hyps = OrdList.insert TermOrd.fast_term_ord;
-val remove_hyps = OrdList.remove TermOrd.fast_term_ord;
+val union_hyps = OrdList.union Term_Ord.fast_term_ord;
+val insert_hyps = OrdList.insert Term_Ord.fast_term_ord;
+val remove_hyps = OrdList.remove Term_Ord.fast_term_ord;
 
 
 (* merge theories of cterms/thms -- trivial absorption only *)

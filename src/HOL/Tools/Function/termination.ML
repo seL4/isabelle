@@ -51,9 +51,10 @@ struct
 
 open Function_Lib
 
-val term2_ord = prod_ord TermOrd.fast_term_ord TermOrd.fast_term_ord
+val term2_ord = prod_ord Term_Ord.fast_term_ord Term_Ord.fast_term_ord
 structure Term2tab = Table(type key = term * term val ord = term2_ord);
-structure Term3tab = Table(type key = term * (term * term) val ord = prod_ord TermOrd.fast_term_ord term2_ord);
+structure Term3tab =
+  Table(type key = term * (term * term) val ord = prod_ord Term_Ord.fast_term_ord term2_ord);
 
 (** Analyzing binary trees **)
 

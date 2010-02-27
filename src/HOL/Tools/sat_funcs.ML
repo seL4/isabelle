@@ -320,7 +320,7 @@ let
 	(* Conjunction.intr_balanced and fold Thm.weaken below, is quadratic for *)
 	(* terms sorted in descending order, while only linear for terms      *)
 	(* sorted in ascending order                                          *)
-	val sorted_clauses = sort (TermOrd.fast_term_ord o pairself Thm.term_of) nontrivial_clauses
+	val sorted_clauses = sort (Term_Ord.fast_term_ord o pairself Thm.term_of) nontrivial_clauses
 	val _ = if !trace_sat then
 			tracing ("Sorted non-trivial clauses:\n" ^
 			  cat_lines (map (Syntax.string_of_term ctxt o Thm.term_of) sorted_clauses))

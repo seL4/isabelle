@@ -103,7 +103,7 @@ fun nice_term_ord (Abs (_, _, t1), Abs (_, _, t2)) = nice_term_ord (t1, t2)
              (case nice_term_ord (t11, t21) of
                 EQUAL => nice_term_ord (t12, t22)
               | ord => ord)
-           | _ => TermOrd.fast_term_ord tp
+           | _ => Term_Ord.fast_term_ord tp
 
 (* nut NameTable.table -> KK.raw_bound list -> nut -> int list list *)
 fun tuple_list_for_name rel_table bounds name =

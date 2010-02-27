@@ -247,7 +247,7 @@ fun box_fun_and_pair_in_term (hol_ctxt as {thy, stds, fast_descrs, ...}) def
       let
         val (t1, t2) = pairself (do_term new_Ts old_Ts Neut) (t1, t2)
         val (T1, T2) = pairself (curry fastype_of1 new_Ts) (t1, t2)
-        val T = [T1, T2] |> sort TermOrd.typ_ord |> List.last
+        val T = [T1, T2] |> sort Term_Ord.typ_ord |> List.last
       in
         list_comb (Const (s0, T --> T --> body_type T0),
                    map2 (coerce_term hol_ctxt new_Ts T) [T1, T2] [t1, t2])
@@ -815,7 +815,7 @@ fun static_args_in_term ({ersatz_table, ...} : hol_context) x t =
       | call_sets [] uss vs = vs :: call_sets uss [] []
       | call_sets ([] :: _) _ _ = []
       | call_sets ((t :: ts) :: tss) uss vs =
-        OrdList.insert TermOrd.term_ord t vs |> call_sets tss (ts :: uss)
+        OrdList.insert Term_Ord.term_ord t vs |> call_sets tss (ts :: uss)
     val sets = call_sets (fun_calls t [] []) [] []
     val indexed_sets = sets ~~ (index_seq 0 (length sets))
   in
@@ -830,7 +830,7 @@ fun static_args_in_term ({ersatz_table, ...} : hol_context) x t =
 (* hol_context -> styp -> term list -> (int * term option) list *)
 fun static_args_in_terms hol_ctxt x =
   map (static_args_in_term hol_ctxt x)
-  #> fold1 (OrdList.inter (prod_ord int_ord (option_ord TermOrd.term_ord)))
+  #> fold1 (OrdList.inter (prod_ord int_ord (option_ord Term_Ord.term_ord)))
 
 (* (int * term option) list -> (int * term) list -> int list *)
 fun overlapping_indices [] _ = []
@@ -882,7 +882,7 @@ fun specialize_consts_in_term (hol_ctxt as {specialize, simp_table,
                 val _ = not (null fixed_js) orelse raise SAME ()
                 val fixed_args = filter_indices fixed_js args
                 val vars = fold Term.add_vars fixed_args []
-                           |> sort (TermOrd.fast_indexname_ord o pairself fst)
+                           |> sort (Term_Ord.fast_indexname_ord o pairself fst)
                 val bound_js = fold (fn t => fn js => add_loose_bnos (t, 0, js))
                                     fixed_args []
                                |> sort int_ord
@@ -972,7 +972,7 @@ fun special_congruence_axioms (hol_ctxt as {special_funs, ...}) xs =
     fun generality (js, _, _) = ~(length js)
     (* special_triple -> special_triple -> bool *)
     fun is_more_specific (j1, t1, x1) (j2, t2, x2) =
-      x1 <> x2 andalso OrdList.subset (prod_ord int_ord TermOrd.term_ord)
+      x1 <> x2 andalso OrdList.subset (prod_ord int_ord Term_Ord.term_ord)
                                       (j2 ~~ t2, j1 ~~ t1)
     (* typ -> special_triple list -> special_triple list -> special_triple list
        -> term list -> term list *)

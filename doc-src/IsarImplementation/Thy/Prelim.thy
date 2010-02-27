@@ -436,14 +436,14 @@ ML {*
     val empty = [];
     val extend = I;
     fun merge (ts1, ts2) =
-      OrdList.union TermOrd.fast_term_ord ts1 ts2;
+      OrdList.union Term_Ord.fast_term_ord ts1 ts2;
   )
 
   val get = Terms.get;
 
   fun add raw_t thy =
     let val t = Sign.cert_term thy raw_t
-    in Terms.map (OrdList.insert TermOrd.fast_term_ord t) thy end;
+    in Terms.map (OrdList.insert Term_Ord.fast_term_ord t) thy end;
 
   end;
 *}

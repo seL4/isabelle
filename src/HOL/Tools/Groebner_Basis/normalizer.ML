@@ -636,7 +636,7 @@ val nat_arith = @{thms "nat_arith"};
 val nat_exp_ss = HOL_basic_ss addsimps (@{thms nat_number} @ nat_arith @ @{thms arith_simps} @ @{thms rel_simps})
                               addsimps [Let_def, if_False, if_True, @{thm Nat.add_0}, @{thm add_Suc}];
 
-fun simple_cterm_ord t u = TermOrd.term_ord (term_of t, term_of u) = LESS;
+fun simple_cterm_ord t u = Term_Ord.term_ord (term_of t, term_of u) = LESS;
 
 fun semiring_normalizers_ord_wrapper ctxt ({vars, semiring, ring, field, idom, ideal}, 
                                      {conv, dest_const, mk_const, is_const}) ord =

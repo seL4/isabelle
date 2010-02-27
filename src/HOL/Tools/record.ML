@@ -1100,7 +1100,7 @@ fun get_upd_funs (upd $ _ $ t) = upd :: get_upd_funs t
 fun get_accupd_simps thy term defset =
   let
     val (acc, [body]) = strip_comb term;
-    val upd_funs = sort_distinct TermOrd.fast_term_ord (get_upd_funs body);
+    val upd_funs = sort_distinct Term_Ord.fast_term_ord (get_upd_funs body);
     fun get_simp upd =
       let
         (* FIXME fresh "f" (!?) *)

@@ -197,7 +197,7 @@ fun DEEPEN (inc,lim) tacf m i =
 structure Thm_Heap = Heap
 (
   type elem = int * thm;
-  val ord = prod_ord int_ord (TermOrd.term_ord o pairself Thm.prop_of);
+  val ord = prod_ord int_ord (Term_Ord.term_ord o pairself Thm.prop_of);
 );
 
 val trace_BEST_FIRST = Unsynchronized.ref false;

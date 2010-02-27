@@ -359,7 +359,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       not standard orelse T = nat_T orelse is_word_type T orelse
       exists (curry (op =) T o domain_type o type_of) sel_names
     val all_Ts = ground_types_in_terms hol_ctxt binarize (nondef_ts @ def_ts)
-                 |> sort TermOrd.typ_ord
+                 |> sort Term_Ord.typ_ord
     val _ = if verbose andalso binary_ints = SOME true andalso
                exists (member (op =) [nat_T, int_T]) all_Ts then
               print_v (K "The option \"binary_ints\" will be ignored because \

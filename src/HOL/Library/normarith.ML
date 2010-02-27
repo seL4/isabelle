@@ -216,7 +216,7 @@ fun vector_add_conv ct = apply_pth7 ct
       let 
        val l = headvector lt 
        val r = headvector rt
-      in (case TermOrd.fast_term_ord (l,r) of
+      in (case Term_Ord.fast_term_ord (l,r) of
          LESS => (apply_pthb then_conv arg_conv vector_add_conv 
                   then_conv apply_pthd) ct
         | GREATER => (apply_pthc then_conv arg_conv vector_add_conv 
@@ -378,7 +378,7 @@ end;
 local
  val rawrule = fconv_rule (arg_conv (rewr_conv @{thm real_eq_0_iff_le_ge_0}))
  fun conj_pair th = (th RS @{thm conjunct1}, th RS @{thm conjunct2})
- fun simple_cterm_ord t u = TermOrd.term_ord (term_of t, term_of u) = LESS;
+ fun simple_cterm_ord t u = Term_Ord.term_ord (term_of t, term_of u) = LESS;
   (* FIXME: Lookup in the context every time!!! Fix this !!!*)
  fun splitequation ctxt th acc =
   let 

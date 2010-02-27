@@ -755,7 +755,7 @@ val basic_mk_rews: mk_rews =
   mk_eq_True = K NONE,
   reorient = default_reorient};
 
-val empty_ss = init_ss basic_mk_rews TermOrd.termless (K (K no_tac)) ([], []);
+val empty_ss = init_ss basic_mk_rews Term_Ord.termless (K (K no_tac)) ([], []);
 
 
 (* merge *)  (*NOTE: ignores some fields of 2nd simpset*)
