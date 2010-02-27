@@ -21,6 +21,8 @@ sig
            con_rews : thm list,
            inverts : thm list,
            injects : thm list,
+           dist_les : thm list,
+           dist_eqs : thm list,
            sel_rews : thm list
          } * theory;
 end;
@@ -508,6 +510,48 @@ fun add_constructors
         in map (fn c => pgterm mk_eq c (K tacs)) cons' end;
     end;
 
+    (* prove distinctness of constructors *)
+    local
+      fun map_dist (f : 'a -> 'a -> 'b) (xs : 'a list) : 'b list =
+        flat (map_index (fn (i, x) => map (f x) (nth_drop i xs)) xs);
+      fun prime (Free (n, T)) = Free (n^"'", T)
+        | prime t             = t;
+      fun iff_disj (t, []) = mk_not t
+        | iff_disj (t, ts) = mk_eq (t, foldr1 mk_disj ts);
+      fun iff_disj2 (t, [], us) = mk_not t
+        | iff_disj2 (t, ts, []) = mk_not t
+        | iff_disj2 (t, ts, us) =
+          mk_eq (t, mk_conj (foldr1 mk_disj ts, foldr1 mk_disj us));
+      fun dist_le (con1, args1) (con2, args2) =
+        let
+          val vs1 = vars_of args1;
+          val vs2 = map prime (vars_of args2);
+          val zs1 = map snd (filter_out (fst o fst) (args1 ~~ vs1));
+          val lhs = mk_below (list_ccomb (con1, vs1), list_ccomb (con2, vs2));
+          val rhss = map mk_undef zs1;
+          val goal = mk_trp (iff_disj (lhs, rhss));
+          val rule1 = iso_locale RS @{thm iso.abs_below};
+          val rules = rule1 :: @{thms con_below_iff_rules};
+          val tacs = [simp_tac (HOL_ss addsimps rules) 1];
+        in prove thy con_betas goal (K tacs) end;
+      fun dist_eq (con1, args1) (con2, args2) =
+        let
+          val vs1 = vars_of args1;
+          val vs2 = map prime (vars_of args2);
+          val zs1 = map snd (filter_out (fst o fst) (args1 ~~ vs1));
+          val zs2 = map snd (filter_out (fst o fst) (args2 ~~ vs2));
+          val lhs = mk_eq (list_ccomb (con1, vs1), list_ccomb (con2, vs2));
+          val rhss1 = map mk_undef zs1;
+          val rhss2 = map mk_undef zs2;
+          val goal = mk_trp (iff_disj2 (lhs, rhss1, rhss2));
+          val rule1 = iso_locale RS @{thm iso.abs_eq};
+          val rules = rule1 :: @{thms con_eq_iff_rules};
+          val tacs = [simp_tac (HOL_ss addsimps rules) 1];
+        in prove thy con_betas goal (K tacs) end;
+    in
+      val dist_les = map_dist dist_le spec';
+      val dist_eqs = map_dist dist_eq spec';
+    end;
 
     val result =
       {
@@ -518,7 +562,9 @@ fun add_constructors
         con_compacts = con_compacts,
         con_rews = con_rews,
         inverts = inverts,
-        injects = injects
+        injects = injects,
+        dist_les = dist_les,
+        dist_eqs = dist_eqs
       };
   in
     (result, thy)
@@ -721,6 +767,8 @@ fun add_domain_constructors
         con_rews = #con_rews con_result,
         inverts = #inverts con_result,
         injects = #injects con_result,
+        dist_les = #dist_les con_result,
+        dist_eqs = #dist_eqs con_result,
         sel_rews = sel_thms };
   in
     (result, thy)
