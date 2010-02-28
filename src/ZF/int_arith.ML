@@ -128,7 +128,7 @@ val bin_simps = [@{thm add_integ_of_left}] @ @{thms bin_arith_simps} @ @{thms bi
 
 (*To evaluate binary negations of coefficients*)
 val zminus_simps = @{thms NCons_simps} @
-                   [@{thm integ_of_minus} RS sym,
+                   [@{thm integ_of_minus} RS @{thm sym},
                     @{thm bin_minus_1}, @{thm bin_minus_0}, @{thm bin_minus_Pls}, @{thm bin_minus_Min},
                     @{thm bin_pred_1}, @{thm bin_pred_0}, @{thm bin_pred_Pls}, @{thm bin_pred_Min}];
 
@@ -144,7 +144,7 @@ val int_minus_from_mult_simps =
 
 (*combine unary minus with numeric literals, however nested within a product*)
 val int_mult_minus_simps =
-    [@{thm zmult_assoc}, @{thm zmult_zminus} RS sym, int_minus_mult_eq_1_to_2];
+    [@{thm zmult_assoc}, @{thm zmult_zminus} RS @{thm sym}, int_minus_mult_eq_1_to_2];
 
 fun prep_simproc thy (name, pats, proc) =
   Simplifier.simproc thy name pats proc;
@@ -156,7 +156,7 @@ structure CancelNumeralsCommon =
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff 1
   val find_first_coeff  = find_first_coeff []
-  fun trans_tac _       = ArithData.gen_trans_tac iff_trans
+  fun trans_tac _       = ArithData.gen_trans_tac @{thm iff_trans}
 
   val norm_ss1 = ZF_ss addsimps add_0s @ mult_1s @ diff_simps @ zminus_simps @ @{thms zadd_ac}
   val norm_ss2 = ZF_ss addsimps bin_simps @ int_mult_minus_simps @ intifys
@@ -179,8 +179,8 @@ structure EqCancelNumerals = CancelNumeralsFun
   val prove_conv = ArithData.prove_conv "inteq_cancel_numerals"
   val mk_bal   = FOLogic.mk_eq
   val dest_bal = FOLogic.dest_eq
-  val bal_add1 = @{thm eq_add_iff1} RS iff_trans
-  val bal_add2 = @{thm eq_add_iff2} RS iff_trans
+  val bal_add1 = @{thm eq_add_iff1} RS @{thm iff_trans}
+  val bal_add2 = @{thm eq_add_iff2} RS @{thm iff_trans}
 );
 
 structure LessCancelNumerals = CancelNumeralsFun
@@ -188,8 +188,8 @@ structure LessCancelNumerals = CancelNumeralsFun
   val prove_conv = ArithData.prove_conv "intless_cancel_numerals"
   val mk_bal   = FOLogic.mk_binrel @{const_name "zless"}
   val dest_bal = FOLogic.dest_bin @{const_name "zless"} @{typ i}
-  val bal_add1 = @{thm less_add_iff1} RS iff_trans
-  val bal_add2 = @{thm less_add_iff2} RS iff_trans
+  val bal_add1 = @{thm less_add_iff1} RS @{thm iff_trans}
+  val bal_add2 = @{thm less_add_iff2} RS @{thm iff_trans}
 );
 
 structure LeCancelNumerals = CancelNumeralsFun
@@ -197,8 +197,8 @@ structure LeCancelNumerals = CancelNumeralsFun
   val prove_conv = ArithData.prove_conv "intle_cancel_numerals"
   val mk_bal   = FOLogic.mk_binrel @{const_name "zle"}
   val dest_bal = FOLogic.dest_bin @{const_name "zle"} @{typ i}
-  val bal_add1 = @{thm le_add_iff1} RS iff_trans
-  val bal_add2 = @{thm le_add_iff2} RS iff_trans
+  val bal_add1 = @{thm le_add_iff1} RS @{thm iff_trans}
+  val bal_add2 = @{thm le_add_iff2} RS @{thm iff_trans}
 );
 
 val cancel_numerals =
@@ -232,9 +232,9 @@ structure CombineNumeralsData =
   val dest_sum          = dest_sum
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff 1
-  val left_distrib      = @{thm left_zadd_zmult_distrib} RS trans
+  val left_distrib      = @{thm left_zadd_zmult_distrib} RS @{thm trans}
   val prove_conv        = prove_conv_nohyps "int_combine_numerals"
-  fun trans_tac _       = ArithData.gen_trans_tac trans
+  fun trans_tac _       = ArithData.gen_trans_tac @{thm trans}
 
   val norm_ss1 = ZF_ss addsimps add_0s @ mult_1s @ diff_simps @ zminus_simps @ @{thms zadd_ac} @ intifys
   val norm_ss2 = ZF_ss addsimps bin_simps @ int_mult_minus_simps @ intifys
@@ -274,14 +274,14 @@ structure CombineNumeralsProdData =
   fun mk_coeff(k,t) = if t=one then mk_numeral k
                       else raise TERM("mk_coeff", [])
   fun dest_coeff t = (dest_numeral t, one)  (*We ONLY want pure numerals.*)
-  val left_distrib      = @{thm zmult_assoc} RS sym RS trans
+  val left_distrib      = @{thm zmult_assoc} RS @{thm sym} RS @{thm trans}
   val prove_conv        = prove_conv_nohyps "int_combine_numerals_prod"
-  fun trans_tac _       = ArithData.gen_trans_tac trans
+  fun trans_tac _       = ArithData.gen_trans_tac @{thm trans}
 
 
 
 val norm_ss1 = ZF_ss addsimps mult_1s @ diff_simps @ zminus_simps
-  val norm_ss2 = ZF_ss addsimps [@{thm zmult_zminus_right} RS sym] @
+  val norm_ss2 = ZF_ss addsimps [@{thm zmult_zminus_right} RS @{thm sym}] @
     bin_simps @ @{thms zmult_ac} @ tc_rules @ intifys
   fun norm_tac ss =
     ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss1))

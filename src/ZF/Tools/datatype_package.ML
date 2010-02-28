@@ -281,7 +281,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
         list_comb (case_free, args)));
 
   val case_trans = hd con_defs RS @{thm def_trans}
-  and split_trans = Pr.split_eq RS meta_eq_to_obj_eq RS @{thm trans};
+  and split_trans = Pr.split_eq RS @{thm meta_eq_to_obj_eq} RS @{thm trans};
 
   fun prove_case_eqn (arg, con_def) =
     Goal.prove_global thy1 [] []
@@ -290,7 +290,9 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
       (fn _ => EVERY
         [rewrite_goals_tac [con_def],
          rtac case_trans 1,
-         REPEAT (resolve_tac [refl, split_trans, Su.case_inl RS trans, Su.case_inr RS trans] 1)]);
+         REPEAT
+           (resolve_tac [@{thm refl}, split_trans,
+             Su.case_inl RS @{thm trans}, Su.case_inr RS @{thm trans}] 1)]);
 
   val free_iffs = map Drule.export_without_context (con_defs RL [@{thm def_swap_iff}]);
 
@@ -321,7 +323,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
                          args)),
              subst_rec (Term.betapplys (recursor_case, args))));
 
-        val recursor_trans = recursor_def RS @{thm def_Vrecursor} RS trans;
+        val recursor_trans = recursor_def RS @{thm def_Vrecursor} RS @{thm trans};
 
         fun prove_recursor_eqn arg =
           Goal.prove_global thy1 [] []

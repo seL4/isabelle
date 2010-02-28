@@ -890,45 +890,4 @@ lemma ex_disj_distrib:
 lemma all_conj_distrib:
   "(ALL x. P(x) & Q(x)) <-> ((ALL x. P(x)) & (ALL x. Q(x)))" by iprover
 
-
-subsection {* Legacy ML bindings *}
-
-ML {*
-val refl = @{thm refl}
-val trans = @{thm trans}
-val sym = @{thm sym}
-val subst = @{thm subst}
-val ssubst = @{thm ssubst}
-val conjI = @{thm conjI}
-val conjE = @{thm conjE}
-val conjunct1 = @{thm conjunct1}
-val conjunct2 = @{thm conjunct2}
-val disjI1 = @{thm disjI1}
-val disjI2 = @{thm disjI2}
-val disjE = @{thm disjE}
-val impI = @{thm impI}
-val impE = @{thm impE}
-val mp = @{thm mp}
-val rev_mp = @{thm rev_mp}
-val TrueI = @{thm TrueI}
-val FalseE = @{thm FalseE}
-val iff_refl = @{thm iff_refl}
-val iff_trans = @{thm iff_trans}
-val iffI = @{thm iffI}
-val iffE = @{thm iffE}
-val iffD1 = @{thm iffD1}
-val iffD2 = @{thm iffD2}
-val notI = @{thm notI}
-val notE = @{thm notE}
-val allI = @{thm allI}
-val allE = @{thm allE}
-val spec = @{thm spec}
-val exI = @{thm exI}
-val exE = @{thm exE}
-val eq_reflection = @{thm eq_reflection}
-val iff_reflection = @{thm iff_reflection}
-val meta_eq_to_obj_eq = @{thm meta_eq_to_obj_eq}
-val meta_eq_to_iff = @{thm meta_eq_to_iff}
-*}
-
 end

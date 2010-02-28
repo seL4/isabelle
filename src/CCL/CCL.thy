@@ -193,7 +193,7 @@ ML {*
       fun mk_inj_lemmas r = [@{thm arg_cong}] RL [r RS (r RS @{thm eq_lemma})]
       val inj_lemmas = maps mk_inj_lemmas rews
     in
-      CHANGED (REPEAT (ares_tac [iffI, allI, conjI] i ORELSE
+      CHANGED (REPEAT (ares_tac [@{thm iffI}, @{thm allI}, @{thm conjI}] i ORELSE
         eresolve_tac inj_lemmas i ORELSE
         asm_simp_tac (simpset_of ctxt addsimps rews) i))
     end;
@@ -242,7 +242,7 @@ local
   val eq_lemma = thm "eq_lemma";
   val distinctness = thm "distinctness";
   fun mk_lemma (ra,rb) = [lemma] RL [ra RS (rb RS eq_lemma)] RL
-                           [distinctness RS notE,sym RS (distinctness RS notE)]
+                           [distinctness RS notE, @{thm sym} RS (distinctness RS notE)]
 in
   fun mk_lemmas rls = maps mk_lemma (mk_combs pair rls)
   fun mk_dstnct_rls thy xs = mk_combs (mk_thm_str thy) xs
@@ -258,7 +258,7 @@ val ccl_dstncts =
   let
     fun mk_raw_dstnct_thm rls s =
       Goal.prove_global @{theory} [] [] (Syntax.read_prop_global @{theory} s)
-        (fn _=> rtac notI 1 THEN eresolve_tac rls 1)
+        (fn _=> rtac @{thm notI} 1 THEN eresolve_tac rls 1)
   in map (mk_raw_dstnct_thm caseB_lemmas)
     (mk_dstnct_rls @{theory} ["bot","true","false","pair","lambda"]) end
 
@@ -406,9 +406,9 @@ lemma npo_rls1:
   "~ false [= lam x. f(x)"
   "~ lam x. f(x) [= false"
   by (tactic {*
-    REPEAT (rtac notI 1 THEN
+    REPEAT (rtac @{thm notI} 1 THEN
       dtac @{thm case_pocong} 1 THEN
-      etac rev_mp 5 THEN
+      etac @{thm rev_mp} 5 THEN
       ALLGOALS (simp_tac @{simpset}) THEN
       REPEAT (resolve_tac [@{thm po_refl}, @{thm npo_lam_bot}] 1)) *})
 
