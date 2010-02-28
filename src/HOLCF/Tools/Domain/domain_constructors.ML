@@ -947,6 +947,14 @@ fun add_match_combinators
           define_consts (map_index mat_eqn (bindings ~~ spec)) thy
     end;
 
+    (* register match combinators with fixrec package *)
+    local
+      val con_names = map (fst o dest_Const o fst) spec;
+      val mat_names = map (fst o dest_Const) match_consts;
+    in
+      val thy = Fixrec.add_matchers (con_names ~~ mat_names) thy;
+    end;
+
   in
     (match_defs, thy)
 (*
@@ -997,6 +1005,7 @@ fun add_domain_constructors
           case_def con_betas casedist iso_locale thy
       end;
 
+    (* qualify constants and theorems with domain name *)
     (* TODO: enable this earlier *)
     val thy = Sign.add_path dname thy;
 

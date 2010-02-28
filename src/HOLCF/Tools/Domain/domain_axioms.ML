@@ -133,14 +133,6 @@ fun add_axioms_infer axms thy = add_axioms_i (infer_props thy axms) thy;
 fun add_defs_i x = snd o (PureThy.add_defs false) (map (Thm.no_attributes o apfst Binding.name) x);
 fun add_defs_infer defs thy = add_defs_i (infer_props thy defs) thy;
 
-fun add_matchers (((dname,_),cons) : eq) thy =
-    let
-      val con_names = map first cons;
-      val mat_names = map mat_name con_names;
-      fun qualify n = Sign.full_name thy (Binding.name n);
-      val ms = map qualify con_names ~~ map qualify mat_names;
-    in Fixrec.add_matchers ms thy end;
-
 fun add_axioms definitional comp_dnam (eqs : eq list) thy' =
   let
     val comp_dname = Sign.full_bname thy' comp_dnam;
@@ -209,7 +201,6 @@ TEMPORARILY DISABLED *)
     |> Sign.add_path comp_dnam  
     |> add_defs_infer ((*bisim_def::*)(if use_copy_def then [copy_def] else []))
     |> Sign.parent_path
-    |> fold add_matchers eqs
   end; (* let (add_axioms) *)
 
 end; (* struct *)
