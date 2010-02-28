@@ -5,36 +5,6 @@ Library for domain command.
 *)
 
 
-(* ----- general support ---------------------------------------------------- *)
-
-fun mapn f n []      = []
-  | mapn f n (x::xs) = (f n x) :: mapn f (n+1) xs;
-
-fun foldr'' f (l,f2) =
-    let fun itr []  = raise Fail "foldr''" 
-          | itr [a] = f2 a
-          | itr (a::l) = f(a, itr l)
-    in  itr l  end;
-
-fun map_cumulr f start xs =
-    List.foldr (fn (x,(ys,res))=>case f(x,res) of (y,res2) =>
-                                                  (y::ys,res2)) ([],start) xs;
-
-fun first  (x,_,_) = x; fun second (_,x,_) = x; fun third  (_,_,x) = x;
-fun upd_first  f (x,y,z) = (f x,   y,   z);
-fun upd_second f (x,y,z) = (  x, f y,   z);
-fun upd_third  f (x,y,z) = (  x,   y, f z);
-
-fun atomize ctxt thm =
-    let
-      val r_inst = read_instantiate ctxt;
-      fun at thm =
-          case concl_of thm of
-            _$(Const("op &",_)$_$_)       => at(thm RS conjunct1)@at(thm RS conjunct2)
-          | _$(Const("All" ,_)$Abs(s,_,_))=> at(thm RS (r_inst [(("x", 0), "?" ^ s)] spec))
-          | _                             => [thm];
-    in map zero_var_indexes (at thm) end;
-
 (* infix syntax *)
 
 infixr 5 -->;
@@ -44,8 +14,6 @@ infixr 0 ==>;
 infix 0 ==;
 infix 1 ===;
 infix 1 ~=;
-infix 1 <<;
-infix 1 ~<<;
 
 infix 9 `  ;
 infix 9 `% ;
@@ -56,19 +24,25 @@ infix 9 `%%;
 
 signature DOMAIN_LIBRARY =
 sig
+  val first  : 'a * 'b * 'c -> 'a
+  val second : 'a * 'b * 'c -> 'b
+  val third  : 'a * 'b * 'c -> 'c
+  val upd_second : ('b -> 'd) -> 'a * 'b * 'c -> 'a * 'd * 'c
+  val upd_third  : ('c -> 'd) -> 'a * 'b * 'c -> 'a * 'b * 'd
+  val mapn : (int -> 'a -> 'b) -> int -> 'a list -> 'b list
+  val atomize : Proof.context -> thm -> thm list
+
   val Imposs : string -> 'a;
   val cpo_type : theory -> typ -> bool;
   val pcpo_type : theory -> typ -> bool;
   val string_of_typ : theory -> typ -> string;
 
   (* Creating HOLCF types *)
-  val mk_cfunT : typ * typ -> typ;
   val ->> : typ * typ -> typ;
   val mk_ssumT : typ * typ -> typ;
   val mk_sprodT : typ * typ -> typ;
   val mk_uT : typ -> typ;
   val oneT : typ;
-  val trT : typ;
   val mk_maybeT : typ -> typ;
   val mk_ctupleT : typ list -> typ;
   val mk_TFree : string -> typ;
@@ -81,26 +55,16 @@ sig
   val `% : term * string -> term;
   val /\ : string -> term -> term;
   val UU : term;
-  val TT : term;
-  val FF : term;
   val ID : term;
   val oo : term * term -> term;
-  val mk_up : term -> term;
-  val mk_sinl : term -> term;
-  val mk_sinr : term -> term;
-  val mk_stuple : term list -> term;
   val mk_ctuple : term list -> term;
   val mk_fix : term -> term;
   val mk_iterate : term * term * term -> term;
   val mk_fail : term;
   val mk_return : term -> term;
   val list_ccomb : term * term list -> term;
-  (*
-   val con_app : string -> ('a * 'b * string) list -> term;
-   *)
   val con_app2 : string -> ('a -> term) -> 'a list -> term;
   val proj : term -> 'a list -> int -> term;
-  val prj : ('a -> 'b -> 'a) -> ('a -> 'b -> 'a) -> 'a -> 'b list -> int -> 'a;
   val mk_ctuple_pat : term list -> term;
   val mk_branch : term -> term;
 
@@ -111,15 +75,11 @@ sig
   val mk_lam : string * term -> term;
   val mk_all : string * term -> term;
   val mk_ex : string * term -> term;
-  val mk_constrain : typ * term -> term;
   val mk_constrainall : string * typ * term -> term;
   val === : term * term -> term;
-  val << : term * term -> term;
-  val ~<< : term * term -> term;
   val strict : term -> term;
   val defined : term -> term;
   val mk_adm : term -> term;
-  val mk_compact : term -> term;
   val lift : ('a -> term) -> 'a list * term -> term;
   val lift_defined : ('a -> term) -> 'a list * term -> term;
 
@@ -166,6 +126,33 @@ end;
 
 structure Domain_Library :> DOMAIN_LIBRARY =
 struct
+
+fun first  (x,_,_) = x;
+fun second (_,x,_) = x;
+fun third  (_,_,x) = x;
+
+fun upd_first  f (x,y,z) = (f x,   y,   z);
+fun upd_second f (x,y,z) = (  x, f y,   z);
+fun upd_third  f (x,y,z) = (  x,   y, f z);
+
+fun mapn f n []      = []
+  | mapn f n (x::xs) = (f n x) :: mapn f (n+1) xs;
+
+fun foldr'' f (l,f2) =
+    let fun itr []  = raise Fail "foldr''" 
+          | itr [a] = f2 a
+          | itr (a::l) = f(a, itr l)
+    in  itr l  end;
+
+fun atomize ctxt thm =
+    let
+      val r_inst = read_instantiate ctxt;
+      fun at thm =
+          case concl_of thm of
+            _$(Const("op &",_)$_$_)       => at(thm RS conjunct1)@at(thm RS conjunct2)
+          | _$(Const("All" ,_)$Abs(s,_,_))=> at(thm RS (r_inst [(("x", 0), "?" ^ s)] spec))
+          | _                             => [thm];
+    in map zero_var_indexes (at thm) end;
 
 exception Impossible of string;
 fun Imposs msg = raise Impossible ("Domain:"^msg);
@@ -253,7 +240,6 @@ fun mk_cfunT (T, U) = Type(@{type_name "->"}, [T, U]);
 fun mk_sprodT (T, U) = Type(@{type_name "**"}, [T, U]);
 fun mk_ssumT (T, U) = Type(@{type_name "++"}, [T, U]);
 val oneT = @{typ one};
-val trT = @{typ tr};
 
 val op ->> = mk_cfunT;
 
@@ -273,7 +259,6 @@ fun mk_imp  (S,T) = imp  $ S $ T;
 fun mk_lam  (x,T) = Abs(x,dummyT,T);
 fun mk_all  (x,P) = HOLogic.mk_all (x,dummyT,P);
 fun mk_ex   (x,P) = mk_exists (x,dummyT,P);
-val mk_constrain = uncurry TypeInfer.constrain;
 fun mk_constrainall (x,typ,P) = %%:"All" $ (TypeInfer.constrain (typ --> boolT) (mk_lam(x,P)));
 end
 
@@ -284,29 +269,18 @@ infixr 0 ==>;   fun S ==> T = mk_trp S ===> mk_trp T;
 infix 0 ==;     fun S ==  T = %%:"==" $ S $ T;
 infix 1 ===;    fun S === T = %%:"op =" $ S $ T;
 infix 1 ~=;     fun S ~=  T = HOLogic.mk_not (S === T);
-infix 1 <<;     fun S <<  T = %%: @{const_name Porder.below} $ S $ T;
-infix 1 ~<<;    fun S ~<< T = HOLogic.mk_not (S << T);
 
 infix 9 `  ; fun f ` x = %%: @{const_name Rep_CFun} $ f $ x;
 infix 9 `% ; fun f`% s = f` %: s;
 infix 9 `%%; fun f`%%s = f` %%:s;
 
 fun mk_adm t = %%: @{const_name adm} $ t;
-fun mk_compact t = %%: @{const_name compact} $ t;
 val ID = %%: @{const_name ID};
 fun mk_strictify t = %%: @{const_name strictify}`t;
-(*val csplitN    = "Cprod.csplit";*)
-(*val sfstN      = "Sprod.sfst";*)
-(*val ssndN      = "Sprod.ssnd";*)
 fun mk_ssplit t = %%: @{const_name ssplit}`t;
-fun mk_sinl t = %%: @{const_name sinl}`t;
-fun mk_sinr t = %%: @{const_name sinr}`t;
 fun mk_sscase (x, y) = %%: @{const_name sscase}`x`y;
-fun mk_up t = %%: @{const_name up}`t;
 fun mk_fup (t,u) = %%: @{const_name fup} ` t ` u;
 val ONE = @{term ONE};
-val TT = @{term TT};
-val FF = @{term FF};
 fun mk_iterate (n,f,z) = %%: @{const_name iterate} $ n ` f ` z;
 fun mk_fix t = %%: @{const_name fix}`t;
 fun mk_return t = %%: @{const_name Fixrec.return}`t;
@@ -337,8 +311,6 @@ fun cpair (t,u) = %%: @{const_name Pair} $ t $ u;
 fun spair (t,u) = %%: @{const_name spair}`t`u;
 fun mk_ctuple [] = HOLogic.unit (* used in match_defs *)
   | mk_ctuple ts = foldr1 cpair ts;
-fun mk_stuple [] = ONE
-  | mk_stuple ts = foldr1 spair ts;
 fun mk_ctupleT [] = HOLogic.unitT   (* used in match_defs *)
   | mk_ctupleT Ts = foldr1 HOLogic.mk_prodT Ts;
 fun mk_maybeT T = Type ("Fixrec.maybe",[T]);
