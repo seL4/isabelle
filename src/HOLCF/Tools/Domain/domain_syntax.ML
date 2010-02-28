@@ -97,23 +97,6 @@ fun calc_syntax thy
            Library.foldl capp (Constant (syntax (dnam ^ "_when")), mapn (when1 n) 1 cons'));
     fun abscon_trans authentic = mapn (one_abscon_trans authentic) 1 cons';
         
-    fun one_case_trans authentic (con,args,mx) =
-      let
-        val cname = c_ast authentic con;
-        val pname = Constant (syntax (strip_esc (Binding.name_of con) ^ "_pat"));
-        val ns = 1 upto length args;
-        val xs = map (fn n => Variable ("x"^(string_of_int n))) ns;
-        val ps = map (fn n => Variable ("p"^(string_of_int n))) ns;
-        val vs = map (fn n => Variable ("v"^(string_of_int n))) ns;
-      in
-        [ParseRule (app_pat (Library.foldl capp (cname, xs)),
-                    mk_appl pname (map app_pat xs)),
-         ParseRule (app_var (Library.foldl capp (cname, xs)),
-                    app_var (args_list xs)),
-         PrintRule (Library.foldl capp (cname, ListPair.map (app "_match") (ps,vs)),
-                    app "_match" (mk_appl pname ps, args_list vs))]
-        end;
-    val Case_trans = maps (one_case_trans false) cons' @ maps (one_case_trans true) cons';
     end;
     end;
     val optional_consts =
@@ -121,7 +104,7 @@ fun calc_syntax thy
 
   in (optional_consts @ [const_when] @ 
       [const_take, const_finite],
-      (case_trans false :: case_trans true :: (abscon_trans false @ abscon_trans true @ Case_trans)))
+      (case_trans false :: case_trans true :: (abscon_trans false @ abscon_trans true)))
   end; (* let *)
 
 (* ----- putting all the syntax stuff together ------------------------------ *)
