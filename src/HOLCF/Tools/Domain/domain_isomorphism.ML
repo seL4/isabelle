@@ -94,98 +94,19 @@ val get_map_tab = MapData.get;
 
 
 (******************************************************************************)
-(******************************* building types *******************************)
+(************************** building types and terms **************************)
 (******************************************************************************)
 
-(* ->> is taken from holcf_logic.ML *)
-fun cfunT (T, U) = Type(@{type_name "->"}, [T, U]);
+open HOLCF_Library;
 
-infixr 6 ->>; val (op ->>) = cfunT;
-
-fun dest_cfunT (Type(@{type_name "->"}, [T, U])) = (T, U)
-  | dest_cfunT T = raise TYPE ("dest_cfunT", [T], []);
-
-fun tupleT [] = HOLogic.unitT
-  | tupleT [T] = T
-  | tupleT (T :: Ts) = HOLogic.mk_prodT (T, tupleT Ts);
+infixr 6 ->>;
+infix -->>;
 
 val deflT = @{typ "udom alg_defl"};
 
 fun mapT (T as Type (_, Ts)) =
-    Library.foldr cfunT (map (fn T => T ->> T) Ts, T ->> T)
+    (map (fn T => T ->> T) Ts) -->> (T ->> T)
   | mapT T = T ->> T;
-
-(******************************************************************************)
-(******************************* building terms *******************************)
-(******************************************************************************)
-
-(* builds the expression (v1,v2,..,vn) *)
-fun mk_tuple [] = HOLogic.unit
-|   mk_tuple (t::[]) = t
-|   mk_tuple (t::ts) = HOLogic.mk_prod (t, mk_tuple ts);
-
-(* builds the expression (%(v1,v2,..,vn). rhs) *)
-fun lambda_tuple [] rhs = Term.lambda (Free("unit", HOLogic.unitT)) rhs
-  | lambda_tuple (v::[]) rhs = Term.lambda v rhs
-  | lambda_tuple (v::vs) rhs =
-      HOLogic.mk_split (Term.lambda v (lambda_tuple vs rhs));
-
-(* continuous application and abstraction *)
-
-fun capply_const (S, T) =
-  Const(@{const_name Rep_CFun}, (S ->> T) --> (S --> T));
-
-fun cabs_const (S, T) =
-  Const(@{const_name Abs_CFun}, (S --> T) --> (S ->> T));
-
-fun mk_cabs t =
-  let val T = Term.fastype_of t
-  in cabs_const (Term.domain_type T, Term.range_type T) $ t end
-
-(* builds the expression (LAM v. rhs) *)
-fun big_lambda v rhs =
-  cabs_const (Term.fastype_of v, Term.fastype_of rhs) $ Term.lambda v rhs;
-
-(* builds the expression (LAM v1 v2 .. vn. rhs) *)
-fun big_lambdas [] rhs = rhs
-  | big_lambdas (v::vs) rhs = big_lambda v (big_lambdas vs rhs);
-
-fun mk_capply (t, u) =
-  let val (S, T) =
-    case Term.fastype_of t of
-        Type(@{type_name "->"}, [S, T]) => (S, T)
-      | _ => raise TERM ("mk_capply " ^ ML_Syntax.print_list ML_Syntax.print_term [t, u], [t, u]);
-  in capply_const (S, T) $ t $ u end;
-
-(* miscellaneous term constructions *)
-
-val mk_trp = HOLogic.mk_Trueprop;
-
-val mk_fst = HOLogic.mk_fst;
-val mk_snd = HOLogic.mk_snd;
-
-fun mk_cont t =
-  let val T = Term.fastype_of t
-  in Const(@{const_name cont}, T --> HOLogic.boolT) $ t end;
-
-fun mk_fix t =
-  let val (T, _) = dest_cfunT (Term.fastype_of t)
-  in mk_capply (Const(@{const_name fix}, (T ->> T) ->> T), t) end;
-
-fun ID_const T = Const (@{const_name ID}, cfunT (T, T));
-
-fun cfcomp_const (T, U, V) =
-  Const (@{const_name cfcomp}, (U ->> V) ->> (T ->> U) ->> (T ->> V));
-
-fun mk_cfcomp (f, g) =
-  let
-    val (U, V) = dest_cfunT (Term.fastype_of f);
-    val (T, U') = dest_cfunT (Term.fastype_of g);
-  in
-    if U = U'
-    then mk_capply (mk_capply (cfcomp_const (T, U, V), f), g)
-    else raise TYPE ("mk_cfcomp", [U, U'], [f, g])
-  end;
 
 fun mk_Rep_of T =
   Const (@{const_name Rep_of}, Term.itselfT T --> deflT) $ Logic.mk_type T;
@@ -301,7 +222,7 @@ fun map_of_typ
         case Symtab.lookup tab c of
           SOME t => Library.foldl mk_capply (Const (t, mapT T), map map_of Ts)
         | NONE => if is_closed_typ T
-                  then ID_const T
+                  then mk_ID T
                   else error ("map_of_typ: type variable under unsupported type constructor " ^ c);
   in map_of T end;
 
@@ -383,7 +304,7 @@ fun gen_domain_isomorphism
     (* declare deflation combinator constants *)
     fun declare_defl_const (vs, tbind, mx, rhs, morphs) thy =
       let
-        val defl_type = Library.foldr cfunT (map (K deflT) vs, deflT);
+        val defl_type = map (K deflT) vs -->> deflT;
         val defl_bind = Binding.suffix_name "_defl" tbind;
       in
         Sign.declare_const ((defl_bind, defl_type), NoSyn) thy
@@ -442,8 +363,8 @@ fun gen_domain_isomorphism
     (* define rep/abs functions *)
     fun mk_rep_abs ((tbind, morphs), (lhsT, rhsT)) thy =
       let
-        val rep_type = cfunT (lhsT, rhsT);
-        val abs_type = cfunT (rhsT, lhsT);
+        val rep_type = lhsT ->> rhsT;
+        val abs_type = rhsT ->> lhsT;
         val rep_bind = Binding.suffix_name "_rep" tbind;
         val abs_bind = Binding.suffix_name "_abs" tbind;
         val (rep_bind, abs_bind) = the_default (rep_bind, abs_bind) morphs;
@@ -594,8 +515,8 @@ fun gen_domain_isomorphism
         (((map_const, (lhsT, _)), REP_thm), isodefl_thm) =
       let
         val Ts = snd (dest_Type lhsT);
-        val lhs = Library.foldl mk_capply (map_const, map ID_const Ts);
-        val goal = mk_eqs (lhs, ID_const lhsT);
+        val lhs = Library.foldl mk_capply (map_const, map mk_ID Ts);
+        val goal = mk_eqs (lhs, mk_ID lhsT);
         val tac = EVERY
           [rtac @{thm isodefl_REP_imp_ID} 1,
            stac REP_thm 1,
@@ -616,7 +537,7 @@ fun gen_domain_isomorphism
     (* define copy combinators *)
     val new_dts =
       map (apsnd (map (fst o dest_TFree)) o dest_Type o fst) dom_eqns;
-    val copy_arg_type = tupleT (map (fn (T, _) => T ->> T) dom_eqns);
+    val copy_arg_type = mk_tupleT (map (fn (T, _) => T ->> T) dom_eqns);
     val copy_arg = Free ("f", copy_arg_type);
     val copy_args =
       let fun mk_copy_args [] t = []
@@ -627,16 +548,16 @@ fun gen_domain_isomorphism
     fun copy_of_dtyp (T, dt) =
         if Datatype_Aux.is_rec_type dt
         then copy_of_dtyp' (T, dt)
-        else ID_const T
+        else mk_ID T
     and copy_of_dtyp' (T, Datatype_Aux.DtRec i) = nth copy_args i
-      | copy_of_dtyp' (T, Datatype_Aux.DtTFree a) = ID_const T
+      | copy_of_dtyp' (T, Datatype_Aux.DtTFree a) = mk_ID T
       | copy_of_dtyp' (T, Datatype_Aux.DtType (c, ds)) =
         case Symtab.lookup map_tab' c of
           SOME f =>
           Library.foldl mk_capply
             (Const (f, mapT T), map copy_of_dtyp (snd (dest_Type T) ~~ ds))
         | NONE =>
-          (warning ("copy_of_dtyp: unknown type constructor " ^ c); ID_const T);
+          (warning ("copy_of_dtyp: unknown type constructor " ^ c); mk_ID T);
     fun define_copy ((tbind, (rep_const, abs_const)), (lhsT, rhsT)) thy =
       let
         val copy_type = copy_arg_type ->> (lhsT ->> lhsT);
@@ -686,7 +607,7 @@ fun gen_domain_isomorphism
     val fix_copy_lemma =
       let
         fun mk_map_ID (map_const, (T, rhsT)) =
-          Library.foldl mk_capply (map_const, map ID_const (snd (dest_Type T)));
+          Library.foldl mk_capply (map_const, map mk_ID (snd (dest_Type T)));
         val rhs = mk_tuple (map mk_map_ID (map_consts ~~ dom_eqns));
         val goal = mk_eqs (mk_fix c_const, rhs);
         val rules =

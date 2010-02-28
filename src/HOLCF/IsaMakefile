@@ -64,6 +64,7 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Tools/adm_tac.ML \
   Tools/cont_consts.ML \
   Tools/cont_proc.ML \
+  Tools/holcf_library.ML \
   Tools/Domain/domain_extender.ML \
   Tools/Domain/domain_axioms.ML \
   Tools/Domain/domain_constructors.ML \
