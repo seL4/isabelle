@@ -210,13 +210,13 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
           (map cert insts)) induct;
         val (tac, _) = fold mk_unique_tac (descr' ~~ rec_elims ~~ recTs ~~ rec_result_Ts)
            (((rtac induct' THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1
-              THEN rewrite_goals_tac [mk_meta_eq choice_eq], rec_intrs));
+              THEN rewrite_goals_tac [mk_meta_eq @{thm choice_eq}], rec_intrs));
 
       in split_conj_thm (Skip_Proof.prove_global thy1 [] []
         (HOLogic.mk_Trueprop (mk_conj rec_unique_ts)) (K tac))
       end;
 
-    val rec_total_thms = map (fn r => r RS theI') rec_unique_thms;
+    val rec_total_thms = map (fn r => r RS @{thm theI'}) rec_unique_thms;
 
     (* define primrec combinators *)
 
@@ -250,7 +250,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
     val rec_thms = map (fn t => Skip_Proof.prove_global thy2 [] [] t
       (fn _ => EVERY
         [rewrite_goals_tac reccomb_defs,
-         rtac the1_equality 1,
+         rtac @{thm the1_equality} 1,
          resolve_tac rec_unique_thms 1,
          resolve_tac rec_intrs 1,
          REPEAT (rtac allI 1 ORELSE resolve_tac rec_total_thms 1)]))

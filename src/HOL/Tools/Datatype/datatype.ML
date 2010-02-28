@@ -481,7 +481,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
         (Skip_Proof.prove_global thy5 [] [] iso_t (fn _ => EVERY
            [(indtac rep_induct [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
             REPEAT (rtac TrueI 1),
-            rewrite_goals_tac (mk_meta_eq choice_eq ::
+            rewrite_goals_tac (mk_meta_eq @{thm choice_eq} ::
               symmetric (mk_meta_eq @{thm expand_fun_eq}) :: range_eqs),
             rewrite_goals_tac (map symmetric range_eqs),
             REPEAT (EVERY

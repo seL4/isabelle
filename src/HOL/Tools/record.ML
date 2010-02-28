@@ -1416,7 +1416,7 @@ val record_eq_simproc =
         | name =>
             (case get_equalities thy name of
               NONE => NONE
-            | SOME thm => SOME (thm RS Eq_TrueI)))
+            | SOME thm => SOME (thm RS @{thm Eq_TrueI})))
       | _ => NONE));
 
 
@@ -1462,7 +1462,7 @@ val record_ex_sel_eq_simproc =
         fun prove prop =
           prove_global true thy [] prop
             (fn _ => simp_tac (Simplifier.inherit_context ss (get_simpset thy)
-                addsimps simp_thms addsimprocs [record_split_simproc (K ~1)]) 1);
+                addsimps @{thms simp_thms} addsimprocs [record_split_simproc (K ~1)]) 1);
 
         fun mkeq (lr, Teq, (sel, Tsel), x) i =
           if is_selector thy sel then

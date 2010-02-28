@@ -447,7 +447,8 @@ val weak_dnf_conv = Simplifier.rewrite (HOL_basic_ss addsimps @{thms "weak_dnf_s
 val initial_conv =
     Simplifier.rewrite
      (HOL_basic_ss addsimps nnf_simps
-     addsimps [not_all, not_ex] addsimps map (fn th => th RS sym) (ex_simps @ all_simps));
+       addsimps [not_all, not_ex]
+       addsimps map (fn th => th RS sym) (@{thms ex_simps} @ @{thms all_simps}));
 
 val specl = fold_rev (fn x => fn th => instantiate' [] [SOME x] (th RS spec));
 
@@ -820,7 +821,7 @@ fun poly_eq_conv t =
    in make_simproc {lhss = [Thm.lhs_of idl_sub], 
                 name = "poly_eq_simproc", proc = proc, identifier = []}
    end;
-  val poly_eq_ss = HOL_basic_ss addsimps simp_thms 
+  val poly_eq_ss = HOL_basic_ss addsimps @{thms simp_thms}
                         addsimprocs [poly_eq_simproc]
 
  local
