@@ -6,9 +6,18 @@ Defines new types satisfying the given domain equations.
 
 signature DOMAIN_ISOMORPHISM =
 sig
+  type iso_info =
+    {
+      repT : typ,
+      absT : typ,
+      rep_const : term,
+      abs_const : term,
+      rep_inverse : thm,
+      abs_inverse : thm
+    }
   val domain_isomorphism:
     (string list * binding * mixfix * typ * (binding * binding) option) list
-      -> theory -> theory
+      -> theory -> iso_info list * theory
   val domain_isomorphism_cmd:
     (string list * binding * mixfix * string * (binding * binding) option) list
       -> theory -> theory
@@ -298,6 +307,16 @@ fun map_of_typ
 (******************************************************************************)
 (* prepare datatype specifications *)
 
+type iso_info =
+  {
+    repT : typ,
+    absT : typ,
+    rep_const : term,
+    abs_const : term,
+    rep_inverse : thm,
+    abs_inverse : thm
+  }
+
 fun read_typ thy str sorts =
   let
     val ctxt = ProofContext.init thy
@@ -320,7 +339,7 @@ fun gen_domain_isomorphism
     (prep_typ: theory -> 'a -> (string * sort) list -> typ * (string * sort) list)
     (doms_raw: (string list * binding * mixfix * 'a * (binding * binding) option) list)
     (thy: theory)
-    : theory =
+    : iso_info list * theory =
   let
     val _ = Theory.requires thy "Representable" "domain isomorphisms";
 
@@ -466,6 +485,22 @@ fun gen_domain_isomorphism
     val ((iso_thms, isodefl_abs_rep_thms), thy) = thy
       |> fold_map mk_iso_thms (dom_binds ~~ REP_eq_thms ~~ rep_abs_defs)
       |>> ListPair.unzip;
+
+    (* collect info about rep/abs *)
+    val iso_info : iso_info list =
+      let
+        fun mk_info (((lhsT, rhsT), (repC, absC)), (rep_iso, abs_iso)) =
+          {
+            repT = rhsT,
+            absT = lhsT,
+            rep_const = repC,
+            abs_const = absC,
+            rep_inverse = rep_iso,
+            abs_inverse = abs_iso
+          };
+      in
+        map mk_info (dom_eqns ~~ rep_abs_consts ~~ iso_thms)
+      end
 
     (* declare map functions *)
     fun declare_map_const (tbind, (lhsT, rhsT)) thy =
@@ -683,11 +718,11 @@ fun gen_domain_isomorphism
       fold_map prove_reach_thm (reach_thm_projs ~~ map_ID_thms ~~ dom_eqns);
 
   in
-    thy
+    (iso_info, thy)
   end;
 
 val domain_isomorphism = gen_domain_isomorphism cert_typ;
-val domain_isomorphism_cmd = gen_domain_isomorphism read_typ;
+val domain_isomorphism_cmd = snd oo gen_domain_isomorphism read_typ;
 
 (******************************************************************************)
 (******************************** outer syntax ********************************)

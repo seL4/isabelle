@@ -217,7 +217,7 @@ fun gen_add_new_domain
         if null args then oneT else foldr1 mk_sprodT (map mk_arg_typ args);
     fun mk_eq_typ (_, cons) = foldr1 mk_ssumT (map mk_con_typ cons);
     
-    val thy'' = thy''' |>
+    val (iso_infos, thy'') = thy''' |>
       Domain_Isomorphism.domain_isomorphism
         (map (fn ((vs, dname, mx, _), eq) =>
                  (map fst vs, dname, mx, mk_eq_typ eq, NONE))
