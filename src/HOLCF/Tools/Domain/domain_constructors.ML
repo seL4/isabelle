@@ -26,7 +26,8 @@ sig
            dist_eqs : thm list,
            cases : thm list,
            sel_rews : thm list,
-           dis_rews : thm list
+           dis_rews : thm list,
+           match_rews : thm list
          } * theory;
 end;
 
@@ -228,6 +229,13 @@ fun from_sinl (T, U) =
 
 fun from_sinr (T, U) =
   sscase_const (T, U, U) ` mk_bottom (T ->> U) ` mk_ID U;
+
+
+(*** pattern match monad type ***)
+
+fun mk_matchT T = Type (@{type_name "maybe"}, [T]);
+
+fun mk_fail T = Const (@{const_name "Fixrec.fail"}, mk_matchT T);
 
 
 (*** miscellaneous constructions ***)
@@ -892,6 +900,61 @@ fun add_discriminators
   end;
 
 (******************************************************************************)
+(*************** definitions and theorems for match combinators ***************)
+(******************************************************************************)
+
+fun add_match_combinators
+    (bindings : binding list)
+    (spec : (term * (bool * typ) list) list)
+    (lhsT : typ)
+    (casedist : thm)
+    (case_const : typ -> term)
+    (case_rews : thm list)
+    (thy : theory) =
+  let
+
+    (* get a fresh type variable for the result type *)
+    val resultT : typ =
+      let
+        val ts : string list = map (fst o dest_TFree) (snd (dest_Type lhsT));
+        val t : string = Name.variant ts "'t";
+      in TFree (t, @{sort pcpo}) end;
+
+    (* define match combinators *)
+    local
+      val x = Free ("x", lhsT);
+      fun k args = Free ("k", map snd args -->> mk_matchT resultT);
+      val fail = mk_fail resultT;
+      fun mat_fun i (j, (con, args)) =
+        let
+          val Ts = map snd args;
+          val ns = Name.variant_list ["x","k"] (Datatype_Prop.make_tnames Ts);
+          val vs = map Free (ns ~~ Ts);
+        in
+          if i = j then k args else big_lambdas vs fail
+        end;
+      fun mat_eqn (i, (bind, (con, args))) : binding * term * mixfix =
+        let
+          val mat_bind = Binding.prefix_name "match_" bind;
+          val funs = map_index (mat_fun i) spec
+          val body = list_ccomb (case_const (mk_matchT resultT), funs);
+          val rhs = big_lambda x (big_lambda (k args) (body ` x));
+        in
+          (mat_bind, rhs, NoSyn)
+        end;
+    in
+      val ((match_consts, match_defs), thy) =
+          define_consts (map_index mat_eqn (bindings ~~ spec)) thy
+    end;
+
+  in
+    (match_defs, thy)
+(*
+    (match_stricts @ match_apps, thy)
+*)
+  end;
+
+(******************************************************************************)
 (******************************* main function ********************************)
 (******************************************************************************)
 
@@ -959,6 +1022,18 @@ fun add_domain_constructors
           casedist case_const cases thy
       end
 
+    (* define and prove theorems for match combinators *)
+    val (match_thms : thm list, thy : theory) =
+      let
+        val bindings = map #1 spec;
+        fun prep_arg (lazy, sel, T) = (lazy, T);
+        fun prep_con c (b, args, mx) = (c, map prep_arg args);
+        val mat_spec = map2 prep_con con_consts spec;
+      in
+        add_match_combinators bindings mat_spec lhsT
+          casedist case_const cases thy
+      end
+
     (* restore original signature path *)
     val thy = Sign.parent_path thy;
 
@@ -975,7 +1050,8 @@ fun add_domain_constructors
         dist_eqs = #dist_eqs con_result,
         cases = cases,
         sel_rews = sel_thms,
-        dis_rews = dis_thms };
+        dis_rews = dis_thms,
+        match_rews = match_thms };
   in
     (result, thy)
   end;

@@ -78,19 +78,6 @@ fun calc_axioms
           (dc_abs oo (copy_of_dtyp map_tab r (dtyp_of_eq eqn)) oo dc_rep))
       end;
 
-    val mat_defs =
-      let
-        fun mdef (con, _, _) =
-          let
-            val k = Bound 0
-            val x = Bound 1
-            fun one_con (con', _, args') =
-                if con'=con then k else List.foldr /\# mk_fail args'
-            val w = list_ccomb(%%:(dname^"_when"), map one_con cons)
-            val rhs = /\ "x" (/\ "k" (w ` x))
-          in (mat_name con ^"_def", %%:(mat_name con) == rhs) end
-      in map mdef cons end;
-
     val pat_defs =
       let
         fun pdef (con, _, args) =
@@ -125,7 +112,7 @@ fun calc_axioms
   in (dnam,
       (if definitional then [] else [abs_iso_ax, rep_iso_ax, reach_ax]),
       (if definitional then [when_def] else [when_def, copy_def]) @
-      mat_defs @ pat_defs @
+      pat_defs @
       [take_def, finite_def])
   end; (* let (calc_axioms) *)
 

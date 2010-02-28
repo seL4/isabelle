@@ -64,8 +64,6 @@ fun calc_syntax thy
           | esc []      = []
       in implode o esc o Symbol.explode end;
 
-      fun mat_name_ con =
-          Binding.name ("match_" ^ strip_esc (Binding.name_of con));
       fun pat_name_ con =
           Binding.name (strip_esc (Binding.name_of con) ^ "_pat");
       (* strictly speaking, these constants have one argument,
@@ -75,12 +73,6 @@ fun calc_syntax thy
           let val tvar = mk_TFree (s ^ string_of_int n)
           in if tvar mem typevars then freetvar ("t"^s) n else tvar end;
 
-      fun mk_matT (a,bs,c) =
-          a ->> List.foldr (op ->>) (mk_maybeT c) bs ->> mk_maybeT c;
-      fun mat (con,args,mx) =
-          (mat_name_ con,
-           mk_matT(dtype, map third args, freetvar "t" 1),
-           Mixfix(escape ("match_" ^ Binding.name_of con), [], Syntax.max_pri));
       fun mk_patT (a,b)     = a ->> mk_maybeT b;
       fun pat_arg_typ n arg = mk_patT (third arg, freetvar "t" n);
       fun pat (con,args,mx) =
@@ -90,7 +82,6 @@ fun calc_syntax thy
              mk_patT (dtype, mk_ctupleT (map (freetvar "t") (1 upto length args))),
            Mixfix(escape (Binding.name_of con ^ "_pat"), [], Syntax.max_pri));
     in
-    val consts_mat = map mat cons';
     val consts_pat = map pat cons';
     end;
 
@@ -159,7 +150,7 @@ fun calc_syntax thy
         if definitional then [] else [const_rep, const_abs, const_copy];
 
   in (optional_consts @ [const_when] @ 
-      consts_mat @ consts_pat @
+      consts_pat @
       [const_take, const_finite],
       (case_trans false :: case_trans true :: (abscon_trans false @ abscon_trans true @ Case_trans)))
   end; (* let *)
