@@ -265,7 +265,7 @@ print_translation {*
 *}
 
 translations
-  "x" <= "_match Fixrec.return (_variable x)"
+  "x" <= "_match (CONST Fixrec.return) (_variable x)"
 
 
 subsection {* Pattern combinators for data constructors *}
