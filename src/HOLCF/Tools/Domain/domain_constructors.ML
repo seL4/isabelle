@@ -1089,7 +1089,7 @@ fun add_pattern_combinators
       fun one_case_trans (pat, (con, args)) =
         let
           val cname = Constant (syntax con);
-          val pname = Constant (syntax con ^ "_pat");
+          val pname = Constant (syntax pat);
           val ns = 1 upto length args;
           val xs = map (fn n => Variable ("x"^(string_of_int n))) ns;
           val ps = map (fn n => Variable ("p"^(string_of_int n))) ns;
