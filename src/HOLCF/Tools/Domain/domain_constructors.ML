@@ -37,6 +37,8 @@ structure Domain_Constructors :> DOMAIN_CONSTRUCTORS =
 struct
 
 open HOLCF_Library;
+infixr 6 ->>;
+infix -->>;
 
 (************************** miscellaneous functions ***************************)
 

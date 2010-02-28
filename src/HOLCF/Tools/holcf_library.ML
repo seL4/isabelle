@@ -7,6 +7,9 @@ Functions for constructing HOLCF types and terms.
 structure HOLCF_Library =
 struct
 
+infixr 6 ->>;
+infix -->>;
+
 (*** Operations from Isabelle/HOL ***)
 
 val boolT = HOLogic.boolT;
@@ -46,8 +49,8 @@ fun mk_cont t =
 (* ->> is taken from holcf_logic.ML *)
 fun mk_cfunT (T, U) = Type(@{type_name "->"}, [T, U]);
 
-infixr 6 ->>; val (op ->>) = mk_cfunT;
-infix -->>; val (op -->>) = Library.foldr mk_cfunT;
+val (op ->>) = mk_cfunT;
+val (op -->>) = Library.foldr mk_cfunT;
 
 fun dest_cfunT (Type(@{type_name "->"}, [T, U])) = (T, U)
   | dest_cfunT T = raise TYPE ("dest_cfunT", [T], []);
