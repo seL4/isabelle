@@ -32,20 +32,11 @@ val adm_impl_admw = @{thm adm_impl_admw};
 val adm_all = @{thm adm_all};
 val adm_conj = @{thm adm_conj};
 val adm_subst = @{thm adm_subst};
-val antisym_less_inverse = @{thm below_antisym_inverse};
-val beta_cfun = @{thm beta_cfun};
-val cfun_arg_cong = @{thm cfun_arg_cong};
 val ch2ch_fst = @{thm ch2ch_fst};
 val ch2ch_snd = @{thm ch2ch_snd};
 val ch2ch_Rep_CFunL = @{thm ch2ch_Rep_CFunL};
 val ch2ch_Rep_CFunR = @{thm ch2ch_Rep_CFunR};
 val chain_iterate = @{thm chain_iterate};
-val compact_ONE = @{thm compact_ONE};
-val compact_sinl = @{thm compact_sinl};
-val compact_sinr = @{thm compact_sinr};
-val compact_spair = @{thm compact_spair};
-val compact_up = @{thm compact_up};
-val contlub_cfun_arg = @{thm contlub_cfun_arg};
 val contlub_cfun_fun = @{thm contlub_cfun_fun};
 val contlub_fst = @{thm contlub_fst};
 val contlub_snd = @{thm contlub_snd};
@@ -56,33 +47,10 @@ val cont2cont_fst = @{thm cont2cont_fst};
 val cont2cont_snd = @{thm cont2cont_snd};
 val cont2cont_Rep_CFun = @{thm cont2cont_Rep_CFun};
 val fix_def2 = @{thm fix_def2};
-val injection_eq = @{thm injection_eq};
-val injection_less = @{thm injection_below};
 val lub_equal = @{thm lub_equal};
-val monofun_cfun_arg = @{thm monofun_cfun_arg};
 val retraction_strict = @{thm retraction_strict};
-val spair_eq = @{thm spair_eq};
-val spair_less = @{thm spair_below};
-val sscase1 = @{thm sscase1};
-val ssplit1 = @{thm ssplit1};
-val strictify1 = @{thm strictify1};
 val wfix_ind = @{thm wfix_ind};
-
-val iso_intro       = @{thm iso.intro};
-val iso_abs_iso     = @{thm iso.abs_iso};
-val iso_rep_iso     = @{thm iso.rep_iso};
-val iso_abs_strict  = @{thm iso.abs_strict};
-val iso_rep_strict  = @{thm iso.rep_strict};
-val iso_abs_defined = @{thm iso.abs_defined};
-val iso_rep_defined = @{thm iso.rep_defined};
-val iso_compact_abs = @{thm iso.compact_abs};
-val iso_compact_rep = @{thm iso.compact_rep};
-val iso_iso_swap    = @{thm iso.iso_swap};
-
-val exh_start = @{thm exh_start};
-val ex_defined_iffs = @{thms ex_defined_iffs};
-val exh_casedist0 = @{thm exh_casedist0};
-val exh_casedists = @{thms exh_casedists};
+val iso_intro = @{thm iso.intro};
 
 open Domain_Library;
 infixr 0 ===>;
@@ -134,8 +102,6 @@ val chain_tac =
 (* ----- general proofs ----------------------------------------------------- *)
 
 val all2E = @{lemma "!x y . P x y ==> (P x y ==> R) ==> R" by simp}
-
-val dist_eqI = @{lemma "!!x::'a::po. ~ x << y ==> x ~= y" by (blast dest!: below_antisym_inverse)}
 
 fun theorems
     (((dname, _), cons) : eq, eqs : eq list)
@@ -196,12 +162,8 @@ val axs_mat_def = #match_rews result;
 
 val pg = pg' thy;
 
-val dc_abs  = %%:(dname^"_abs");
-val dc_rep  = %%:(dname^"_rep");
 val dc_copy = %%:(dname^"_copy");
-val x_name = "x";
 
-val iso_locale = iso_intro OF [ax_abs_iso, ax_rep_iso];
 val abs_strict = ax_rep_iso RS (allI RS retraction_strict);
 val rep_strict = ax_abs_iso RS (allI RS retraction_strict);
 val iso_rews = map Drule.export_without_context [ax_abs_iso, ax_rep_iso, abs_strict, rep_strict];
