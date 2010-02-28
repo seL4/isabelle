@@ -112,7 +112,8 @@ fun tupleT [] = HOLogic.unitT
 val deflT = @{typ "udom alg_defl"};
 
 fun mapT (T as Type (_, Ts)) =
-  Library.foldr cfunT (map (fn T => T ->> T) Ts, T ->> T);     
+    Library.foldr cfunT (map (fn T => T ->> T) Ts, T ->> T)
+  | mapT T = T ->> T;
 
 (******************************************************************************)
 (******************************* building terms *******************************)
@@ -213,7 +214,8 @@ fun add_fixdefs
     val fixpoint = mk_fix (mk_cabs functional);
 
     (* project components of fixpoint *)
-    fun mk_projs (x::[]) t = [(x, t)]
+    fun mk_projs []      t = []
+      | mk_projs (x::[]) t = [(x, t)]
       | mk_projs (x::xs) t = (x, mk_fst t) :: mk_projs xs (mk_snd t);
     val projs = mk_projs lhss fixpoint;
 
@@ -364,7 +366,7 @@ fun gen_domain_isomorphism
     val dom_eqns = map mk_dom_eqn doms;
 
     (* check for valid type parameters *)
-    val (tyvars, _, _, _, _)::_ = doms;
+    val (tyvars, _, _, _, _) = hd doms;
     val new_doms = map (fn (tvs, tname, mx, _, _) =>
       let val full_tname = Sign.full_name tmp_thy tname
       in
@@ -451,10 +453,12 @@ fun gen_domain_isomorphism
           Sign.declare_const ((abs_bind, abs_type), NoSyn);
         val rep_eqn = Logic.mk_equals (rep_const, coerce_const rep_type);
         val abs_eqn = Logic.mk_equals (abs_const, coerce_const abs_type);
-        val ([rep_def, abs_def], thy) = thy |>
+        val (rep_def, thy) = thy |> yield_singleton
           (PureThy.add_defs false o map Thm.no_attributes)
-            [(Binding.suffix_name "_rep_def" tbind, rep_eqn),
-             (Binding.suffix_name "_abs_def" tbind, abs_eqn)];
+            (Binding.suffix_name "_rep_def" tbind, rep_eqn);
+        val (abs_def, thy) = thy |> yield_singleton
+          (PureThy.add_defs false o map Thm.no_attributes)
+            (Binding.suffix_name "_abs_def" tbind, abs_eqn);
       in
         (((rep_const, abs_const), (rep_def, abs_def)), thy)
       end;
@@ -537,11 +541,12 @@ fun gen_domain_isomorphism
     val isodefl_thm =
       let
         fun unprime a = Library.unprefix "'" a;
-        fun mk_d (TFree (a, _)) = Free ("d" ^ unprime a, deflT);
-        fun mk_f (T as TFree (a, _)) = Free ("f" ^ unprime a, T ->> T);
+        fun mk_d T = Free ("d" ^ unprime (fst (dest_TFree T)), deflT);
+        fun mk_f T = Free ("f" ^ unprime (fst (dest_TFree T)), T ->> T);
         fun mk_assm T = mk_trp (isodefl_const T $ mk_f T $ mk_d T);
-        fun mk_goal ((map_const, defl_const), (T as Type (c, Ts), rhsT)) =
+        fun mk_goal ((map_const, defl_const), (T, rhsT)) =
           let
+            val (_, Ts) = dest_Type T;
             val map_term = Library.foldl mk_capply (map_const, map mk_f Ts);
             val defl_term = Library.foldl mk_capply (defl_const, map mk_d Ts);
           in isodefl_const T $ map_term $ defl_term end;
@@ -625,11 +630,11 @@ fun gen_domain_isomorphism
         else ID_const T
     and copy_of_dtyp' (T, Datatype_Aux.DtRec i) = nth copy_args i
       | copy_of_dtyp' (T, Datatype_Aux.DtTFree a) = ID_const T
-      | copy_of_dtyp' (T as Type (_, Ts), Datatype_Aux.DtType (c, ds)) =
+      | copy_of_dtyp' (T, Datatype_Aux.DtType (c, ds)) =
         case Symtab.lookup map_tab' c of
           SOME f =>
           Library.foldl mk_capply
-            (Const (f, mapT T), map copy_of_dtyp (Ts ~~ ds))
+            (Const (f, mapT T), map copy_of_dtyp (snd (dest_Type T) ~~ ds))
         | NONE =>
           (warning ("copy_of_dtyp: unknown type constructor " ^ c); ID_const T);
     fun define_copy ((tbind, (rep_const, abs_const)), (lhsT, rhsT)) thy =
@@ -643,11 +648,11 @@ fun gen_domain_isomorphism
         val comp = mk_cfcomp (abs_const, mk_cfcomp (body, rep_const));
         val rhs = big_lambda copy_arg comp;
         val eqn = Logic.mk_equals (copy_const, rhs);
-        val ([copy_def], thy) =
+        val (copy_def, thy) =
           thy
           |> Sign.add_path (Binding.name_of tbind)
-          |> (PureThy.add_defs false o map Thm.no_attributes)
-              [(Binding.name "copy_def", eqn)]
+          |> yield_singleton (PureThy.add_defs false o map Thm.no_attributes)
+              (Binding.name "copy_def", eqn)
           ||> Sign.parent_path;
       in ((copy_const, copy_def), thy) end;
     val ((copy_consts, copy_defs), thy) = thy
@@ -680,8 +685,8 @@ fun gen_domain_isomorphism
     (* fixed-point lemma for combined copy combinator *)
     val fix_copy_lemma =
       let
-        fun mk_map_ID (map_const, (Type (c, Ts), rhsT)) =
-          Library.foldl mk_capply (map_const, map ID_const Ts);
+        fun mk_map_ID (map_const, (T, rhsT)) =
+          Library.foldl mk_capply (map_const, map ID_const (snd (dest_Type T)));
         val rhs = mk_tuple (map mk_map_ID (map_consts ~~ dom_eqns));
         val goal = mk_eqs (mk_fix c_const, rhs);
         val rules =
@@ -696,7 +701,8 @@ fun gen_domain_isomorphism
 
     (* prove reach lemmas *)
     val reach_thm_projs =
-      let fun mk_projs (x::[]) t = [(x, t)]
+      let fun mk_projs []      t = []
+            | mk_projs (x::[]) t = [(x, t)]
             | mk_projs (x::xs) t = (x, mk_fst t) :: mk_projs xs (mk_snd t);
       in mk_projs dom_binds (mk_fix c_const) end;
     fun prove_reach_thm (((bind, t), map_ID_thm), (lhsT, rhsT)) thy =
