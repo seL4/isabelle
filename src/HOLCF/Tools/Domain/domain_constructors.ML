@@ -27,7 +27,8 @@ sig
            cases : thm list,
            sel_rews : thm list,
            dis_rews : thm list,
-           match_rews : thm list
+           match_rews : thm list,
+           pat_rews : thm list
          } * theory;
 end;
 
@@ -94,6 +95,10 @@ fun mk_cabs t =
   let val T = fastype_of t
   in cabs_const (Term.domain_type T, Term.range_type T) $ t end
 
+(* builds the expression (% v1 v2 .. vn. rhs) *)
+fun lambdas [] rhs = rhs
+  | lambdas (v::vs) rhs = Term.lambda v (lambdas vs rhs);
+
 (* builds the expression (LAM v. rhs) *)
 fun big_lambda v rhs =
   cabs_const (fastype_of v, fastype_of rhs) $ Term.lambda v rhs;
@@ -131,9 +136,11 @@ fun mk_cfcomp (f, g) =
 
 (*** Product type ***)
 
+val mk_prodT = HOLogic.mk_prodT
+
 fun mk_tupleT [] = HOLogic.unitT
   | mk_tupleT [T] = T
-  | mk_tupleT (T :: Ts) = HOLogic.mk_prodT (T, mk_tupleT Ts);
+  | mk_tupleT (T :: Ts) = mk_prodT (T, mk_tupleT Ts);
 
 (* builds the expression (v1,v2,..,vn) *)
 fun mk_tuple [] = HOLogic.unit
@@ -235,7 +242,13 @@ fun from_sinr (T, U) =
 
 fun mk_matchT T = Type (@{type_name "maybe"}, [T]);
 
+fun dest_matchT (Type(@{type_name "maybe"}, [T])) = T
+  | dest_matchT T = raise TYPE ("dest_matchT", [T], []);
+
 fun mk_fail T = Const (@{const_name "Fixrec.fail"}, mk_matchT T);
+
+fun return_const T = Const (@{const_name "Fixrec.return"}, T ->> mk_matchT T);
+fun mk_return t = return_const (fastype_of t) ` t;
 
 
 (*** miscellaneous constructions ***)
@@ -997,6 +1010,109 @@ fun add_match_combinators
   end;
 
 (******************************************************************************)
+(************** definitions and theorems for pattern combinators **************)
+(******************************************************************************)
+
+fun add_pattern_combinators
+    (bindings : binding list)
+    (spec : (term * (bool * typ) list) list)
+    (lhsT : typ)
+    (casedist : thm)
+    (case_const : typ -> term)
+    (case_rews : thm list)
+    (thy : theory) =
+  let
+
+    (* define pattern combinators *)
+    local
+      fun mk_pair_pat (p1, p2) =
+        let
+          val T1 = fastype_of p1;
+          val T2 = fastype_of p2;
+          val (U1, V1) = apsnd dest_matchT (dest_cfunT T1);
+          val (U2, V2) = apsnd dest_matchT (dest_cfunT T2);
+          val pat_typ = [T1, T2] --->
+              (mk_prodT (U1, U2) ->> mk_matchT (mk_prodT (V1, V2)));
+          val pat_const = Const (@{const_name cpair_pat}, pat_typ);
+        in
+          pat_const $ p1 $ p2
+        end;
+      fun mk_tuple_pat [] = return_const HOLogic.unitT
+        | mk_tuple_pat ps = foldr1 mk_pair_pat ps;
+
+      val tns = map (fst o dest_TFree) (snd (dest_Type lhsT));
+
+      fun pat_eqn (i, (bind, (con, args))) : binding * term * mixfix =
+        let
+          val pat_bind = Binding.suffix_name "_pat" bind;
+          val Ts = map snd args;
+          val Vs =
+              (map (K "t") args)
+              |> Datatype_Prop.indexify_names
+              |> Name.variant_list tns
+              |> map (fn t => TFree (t, @{sort pcpo}));
+          val patNs = Datatype_Prop.indexify_names (map (K "pat") args);
+          val patTs = map2 (fn T => fn V => T ->> mk_matchT V) Ts Vs;
+          val pats = map Free (patNs ~~ patTs);
+          val fail = mk_fail (mk_tupleT Vs);
+          val ns = Name.variant_list patNs (Datatype_Prop.make_tnames Ts);
+          val vs = map Free (ns ~~ Ts);
+          val rhs = big_lambdas vs (mk_tuple_pat pats ` mk_tuple vs);
+          fun one_fun (j, (_, args')) =
+            let
+              val Ts = map snd args';
+              val ns = Name.variant_list patNs (Datatype_Prop.make_tnames Ts);
+              val vs' = map Free (ns ~~ Ts);
+            in if i = j then rhs else big_lambdas vs' fail end;
+          val funs = map_index one_fun spec;
+          val body = list_ccomb (case_const (mk_matchT (mk_tupleT Vs)), funs);
+        in
+          (pat_bind, lambdas pats body, NoSyn)
+        end;
+    in
+      val ((pat_consts, pat_defs), thy) =
+          define_consts (map_index pat_eqn (bindings ~~ spec)) thy
+    end;
+
+    (* syntax translations for pattern combinators *)
+    local
+      open Syntax
+      fun syntax c = Syntax.mark_const (fst (dest_Const c));
+      fun app s (l, r) = Syntax.mk_appl (Constant s) [l, r];
+      val capp = app @{const_syntax Rep_CFun};
+      val capps = Library.foldl capp
+
+      fun app_var x = Syntax.mk_appl (Constant "_variable") [x, Variable "rhs"];
+      fun app_pat x = Syntax.mk_appl (Constant "_pat") [x];
+      fun args_list [] = Constant "_noargs"
+        | args_list xs = foldr1 (app "_args") xs;
+      fun one_case_trans (pat, (con, args)) =
+        let
+          val cname = Constant (syntax con);
+          val pname = Constant (syntax con ^ "_pat");
+          val ns = 1 upto length args;
+          val xs = map (fn n => Variable ("x"^(string_of_int n))) ns;
+          val ps = map (fn n => Variable ("p"^(string_of_int n))) ns;
+          val vs = map (fn n => Variable ("v"^(string_of_int n))) ns;
+        in
+          [ParseRule (app_pat (capps (cname, xs)),
+                      mk_appl pname (map app_pat xs)),
+           ParseRule (app_var (capps (cname, xs)),
+                      app_var (args_list xs)),
+           PrintRule (capps (cname, ListPair.map (app "_match") (ps,vs)),
+                      app "_match" (mk_appl pname ps, args_list vs))]
+        end;
+      val trans_rules : Syntax.ast Syntax.trrule list =
+          maps one_case_trans (pat_consts ~~ spec);
+    in
+      val thy = Sign.add_trrules_i trans_rules thy;
+    end;
+
+  in
+    (pat_defs, thy)
+  end
+
+(******************************************************************************)
 (******************************* main function ********************************)
 (******************************************************************************)
 
@@ -1077,6 +1193,18 @@ fun add_domain_constructors
           casedist case_const cases thy
       end
 
+    (* define and prove theorems for pattern combinators *)
+    val (pat_thms : thm list, thy : theory) =
+      let
+        val bindings = map #1 spec;
+        fun prep_arg (lazy, sel, T) = (lazy, T);
+        fun prep_con c (b, args, mx) = (c, map prep_arg args);
+        val pat_spec = map2 prep_con con_consts spec;
+      in
+        add_pattern_combinators bindings pat_spec lhsT
+          casedist case_const cases thy
+      end
+
     (* restore original signature path *)
     val thy = Sign.parent_path thy;
 
@@ -1094,7 +1222,8 @@ fun add_domain_constructors
         cases = cases,
         sel_rews = sel_thms,
         dis_rews = dis_thms,
-        match_rews = match_thms };
+        match_rews = match_thms,
+        pat_rews = pat_thms };
   in
     (result, thy)
   end;

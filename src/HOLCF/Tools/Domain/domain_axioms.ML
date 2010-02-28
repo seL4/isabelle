@@ -78,22 +78,6 @@ fun calc_axioms
           (dc_abs oo (copy_of_dtyp map_tab r (dtyp_of_eq eqn)) oo dc_rep))
       end;
 
-    val pat_defs =
-      let
-        fun pdef (con, _, args) =
-          let
-            val ps = mapn (fn n => fn _ => %:("pat" ^ string_of_int n)) 1 args;
-            val xs = map (bound_arg args) args;
-            val r = Bound (length args);
-            val rhs = case args of [] => mk_return HOLogic.unit
-                                 | _ => mk_ctuple_pat ps ` mk_ctuple xs;
-            fun one_con (con', _, args') = List.foldr /\# (if con'=con then rhs else mk_fail) args';
-          in (pat_name con ^"_def", list_comb (%%:(pat_name con), ps) == 
-                                              list_ccomb(%%:(dname^"_when"), map one_con cons))
-          end
-      in map pdef cons end;
-
-
 (* ----- axiom and definitions concerning induction ------------------------- *)
 
     val reach_ax = ("reach", mk_trp(proj (mk_fix (%%:(comp_dname^"_copy"))) eqs n
@@ -112,7 +96,6 @@ fun calc_axioms
   in (dnam,
       (if definitional then [] else [abs_iso_ax, rep_iso_ax, reach_ax]),
       (if definitional then [when_def] else [when_def, copy_def]) @
-      pat_defs @
       [take_def, finite_def])
   end; (* let (calc_axioms) *)
 

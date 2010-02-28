@@ -55,36 +55,6 @@ fun calc_syntax thy
     val const_copy = (dbind "_copy", dtypeprod ->> dtype  ->> dtype , NoSyn);
     end;
 
-(* ----- constants concerning constructors, discriminators, and selectors --- *)
-
-    local
-      val escape = let
-        fun esc (c::cs) = if c mem ["'","_","(",")","/"] then "'"::c::esc cs
-                          else      c::esc cs
-          | esc []      = []
-      in implode o esc o Symbol.explode end;
-
-      fun pat_name_ con =
-          Binding.name (strip_esc (Binding.name_of con) ^ "_pat");
-      (* strictly speaking, these constants have one argument,
-       but the mixfix (without arguments) is introduced only
-           to generate parse rules for non-alphanumeric names*)
-      fun freetvar s n =
-          let val tvar = mk_TFree (s ^ string_of_int n)
-          in if tvar mem typevars then freetvar ("t"^s) n else tvar end;
-
-      fun mk_patT (a,b)     = a ->> mk_maybeT b;
-      fun pat_arg_typ n arg = mk_patT (third arg, freetvar "t" n);
-      fun pat (con,args,mx) =
-          (pat_name_ con,
-           (mapn pat_arg_typ 1 args)
-             --->
-             mk_patT (dtype, mk_ctupleT (map (freetvar "t") (1 upto length args))),
-           Mixfix(escape (Binding.name_of con ^ "_pat"), [], Syntax.max_pri));
-    in
-    val consts_pat = map pat cons';
-    end;
-
 (* ----- constants concerning induction ------------------------------------- *)
 
     val const_take   = (dbind "_take"  , HOLogic.natT-->dtype->>dtype, NoSyn);
@@ -150,7 +120,6 @@ fun calc_syntax thy
         if definitional then [] else [const_rep, const_abs, const_copy];
 
   in (optional_consts @ [const_when] @ 
-      consts_pat @
       [const_take, const_finite],
       (case_trans false :: case_trans true :: (abscon_trans false @ abscon_trans true @ Case_trans)))
   end; (* let *)

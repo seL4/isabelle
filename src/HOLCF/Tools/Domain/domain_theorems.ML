@@ -121,8 +121,6 @@ in
   val ax_abs_iso  = ga "abs_iso"  dname;
   val ax_rep_iso  = ga "rep_iso"  dname;
   val ax_when_def = ga "when_def" dname;
-  fun get_def mk_name (con, _, _) = ga (mk_name con^"_def") dname;
-  val axs_pat_def = map (get_def pat_name) cons;
   val ax_copy_def = ga "copy_def" dname;
 end; (* local *)
 
@@ -157,6 +155,7 @@ val when_rews = #cases result;
 val when_strict = hd when_rews;
 val dis_rews = #dis_rews result;
 val mat_rews = #match_rews result;
+val axs_pat_def = #pat_rews result;
 
 (* ----- theorems concerning the isomorphism -------------------------------- *)
 
