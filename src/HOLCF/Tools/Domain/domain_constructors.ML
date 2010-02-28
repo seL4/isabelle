@@ -955,11 +955,45 @@ fun add_match_combinators
       val thy = Fixrec.add_matchers (con_names ~~ mat_names) thy;
     end;
 
+    (* prove strictness of match combinators *)
+    local
+      fun match_strict mat =
+        let
+          val (T, (U, V)) = apsnd dest_cfunT (dest_cfunT (fastype_of mat));
+          val k = Free ("k", U);
+          val goal = mk_trp (mk_eq (mat ` mk_bottom T ` k, mk_bottom V));
+          val tacs = [asm_simp_tac (beta_ss addsimps case_rews) 1];
+        in prove thy match_defs goal (K tacs) end;
+    in
+      val match_stricts = map match_strict match_consts;
+    end;
+
+    (* prove match/constructor rules *)
+    local
+      val fail = mk_fail resultT;
+      fun match_app (i, mat) (j, (con, args)) =
+        let
+          val Ts = map snd args;
+          val ns = Name.variant_list ["k"] (Datatype_Prop.make_tnames Ts);
+          val vs = map Free (ns ~~ Ts);
+          val nonlazy = map snd (filter_out (fst o fst) (args ~~ vs));
+          val (_, (kT, _)) = apsnd dest_cfunT (dest_cfunT (fastype_of mat));
+          val k = Free ("k", kT);
+          val lhs = mat ` list_ccomb (con, vs) ` k;
+          val rhs = if i = j then list_ccomb (k, vs) else fail;
+          val assms = map (mk_trp o mk_defined) nonlazy;
+          val concl = mk_trp (mk_eq (lhs, rhs));
+          val goal = Logic.list_implies (assms, concl);
+          val tacs = [asm_simp_tac (beta_ss addsimps case_rews) 1];
+        in prove thy match_defs goal (K tacs) end;
+      fun one_match (i, mat) =
+          map_index (match_app (i, mat)) spec;
+    in
+      val match_apps = flat (map_index one_match match_consts);
+    end;
+
   in
-    (match_defs, thy)
-(*
     (match_stricts @ match_apps, thy)
-*)
   end;
 
 (******************************************************************************)

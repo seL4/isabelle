@@ -156,7 +156,7 @@ val {sel_rews, ...} = result;
 val when_rews = #cases result;
 val when_strict = hd when_rews;
 val dis_rews = #dis_rews result;
-val axs_mat_def = #match_rews result;
+val mat_rews = #match_rews result;
 
 (* ----- theorems concerning the isomorphism -------------------------------- *)
 
@@ -169,34 +169,6 @@ val rep_strict = ax_abs_iso RS (allI RS retraction_strict);
 val iso_rews = map Drule.export_without_context [ax_abs_iso, ax_rep_iso, abs_strict, rep_strict];
 
 (* ----- theorems concerning the constructors, discriminators and selectors - *)
-
-local
-  fun mat_strict (con, _, _) =
-    let
-      val goal = mk_trp (%%:(mat_name con) ` UU ` %:"rhs" === UU);
-      val tacs = [asm_simp_tac (HOLCF_ss addsimps [when_strict]) 1];
-    in pg axs_mat_def goal (K tacs) end;
-
-  val _ = trace " Proving mat_stricts...";
-  val mat_stricts = map mat_strict cons;
-
-  fun one_mat c (con, _, args) =
-    let
-      val lhs = %%:(mat_name c) ` con_app con args ` %:"rhs";
-      val rhs =
-        if con = c
-        then list_ccomb (%:"rhs", map %# args)
-        else mk_fail;
-      val goal = lift_defined %: (nonlazy args, mk_trp (lhs === rhs));
-      val tacs = [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
-    in pg axs_mat_def goal (K tacs) end;
-
-  val _ = trace " Proving mat_apps...";
-  val mat_apps =
-    maps (fn (c,_,_) => map (one_mat c) cons) cons;
-in
-  val mat_rews = mat_stricts @ mat_apps;
-end;
 
 local
   fun ps args = mapn (fn n => fn _ => %:("pat" ^ string_of_int n)) 1 args;
