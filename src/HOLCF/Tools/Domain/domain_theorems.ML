@@ -190,7 +190,7 @@ val {con_compacts, con_rews, inverts, injects, dist_les, dist_eqs, ...} = result
 val {sel_rews, ...} = result;
 val when_rews = #cases result;
 val when_strict = hd when_rews;
-val axs_dis_def = #dis_rews result;
+val dis_rews = #dis_rews result;
 
 (* ----- theorems concerning the isomorphism -------------------------------- *)
 
@@ -207,41 +207,6 @@ val rep_strict = ax_abs_iso RS (allI RS retraction_strict);
 val iso_rews = map Drule.export_without_context [ax_abs_iso, ax_rep_iso, abs_strict, rep_strict];
 
 (* ----- theorems concerning the constructors, discriminators and selectors - *)
-
-local
-  fun dis_strict (con, _, _) =
-    let
-      val goal = mk_trp (strict (%%:(dis_name con)));
-    in pg axs_dis_def goal (K [rtac when_strict 1]) end;
-
-  fun dis_app c (con, _, args) =
-    let
-      val lhs = %%:(dis_name c) ` con_app con args;
-      val rhs = if con = c then TT else FF;
-      val goal = lift_defined %: (nonlazy args, mk_trp (lhs === rhs));
-      val tacs = [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
-    in pg axs_dis_def goal (K tacs) end;
-
-  val _ = trace " Proving dis_apps...";
-  val dis_apps = maps (fn (c,_,_) => map (dis_app c) cons) cons;
-
-  fun dis_defin (con, _, args) =
-    let
-      val goal = defined (%:x_name) ==> defined (%%:(dis_name con) `% x_name);
-      val tacs =
-        [rtac casedist 1,
-         contr_tac 1,
-         DETERM_UNTIL_SOLVED (CHANGED
-          (asm_simp_tac (HOLCF_ss addsimps dis_apps) 1))];
-    in pg [] goal (K tacs) end;
-
-  val _ = trace " Proving dis_stricts...";
-  val dis_stricts = map dis_strict cons;
-  val _ = trace " Proving dis_defins...";
-  val dis_defins = map dis_defin cons;
-in
-  val dis_rews = dis_stricts @ dis_defins @ dis_apps;
-end;
 
 local
   fun mat_strict (con, _, _) =

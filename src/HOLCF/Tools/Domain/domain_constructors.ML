@@ -268,7 +268,8 @@ fun mk_eqs (t, u) = HOLogic.mk_Trueprop (HOLogic.mk_eq (t, u));
 
 (************************** miscellaneous functions ***************************)
 
-val simple_ss : simpset = HOL_basic_ss addsimps simp_thms;
+val simple_ss =
+  HOL_basic_ss addsimps simp_thms;
 
 val beta_ss =
   HOL_basic_ss
@@ -800,7 +801,10 @@ fun add_selectors
 fun add_discriminators
     (bindings : binding list)
     (spec : (term * (bool * typ) list) list)
+    (lhsT : typ)
+    (casedist : thm)
     (case_const : typ -> term)
+    (case_rews : thm list)
     (thy : theory) =
   let
 
@@ -835,8 +839,56 @@ fun add_discriminators
           define_consts (map_index dis_eqn bindings) thy
     end;
 
+    (* prove discriminator strictness rules *)
+    local
+      fun dis_strict dis =
+        let val goal = mk_trp (mk_strict dis);
+        in prove thy dis_defs goal (K [rtac (hd case_rews) 1]) end;
+    in
+      val dis_stricts = map dis_strict dis_consts;
+    end;
+
+    (* prove discriminator/constructor rules *)
+    local
+      fun dis_app (i, dis) (j, (con, args)) =
+        let
+          val Ts = map snd args;
+          val ns = Datatype_Prop.make_tnames Ts;
+          val vs = map Free (ns ~~ Ts);
+          val nonlazy = map snd (filter_out (fst o fst) (args ~~ vs));
+          val lhs = dis ` list_ccomb (con, vs);
+          val rhs = if i = j then @{term TT} else @{term FF};
+          val assms = map (mk_trp o mk_defined) nonlazy;
+          val concl = mk_trp (mk_eq (lhs, rhs));
+          val goal = Logic.list_implies (assms, concl);
+          val tacs = [asm_simp_tac (beta_ss addsimps case_rews) 1];
+        in prove thy dis_defs goal (K tacs) end;
+      fun one_dis (i, dis) =
+          map_index (dis_app (i, dis)) spec;
+    in
+      val dis_apps = flat (map_index one_dis dis_consts);
+    end;
+
+    (* prove discriminator definedness rules *)
+    local
+      fun dis_defin dis =
+        let
+          val x = Free ("x", lhsT);
+          val simps = dis_apps @ @{thms dist_eq_tr};
+          val tacs =
+            [rtac @{thm iffI} 1,
+             asm_simp_tac (HOL_basic_ss addsimps dis_stricts) 2,
+             rtac casedist 1, atac 1,
+             DETERM_UNTIL_SOLVED (CHANGED
+               (asm_full_simp_tac (simple_ss addsimps simps) 1))];
+          val goal = mk_trp (mk_eq (mk_undef (dis ` x), mk_undef x));
+        in prove thy [] goal (K tacs) end;
+    in
+      val dis_defins = map dis_defin dis_consts;
+    end;
+
   in
-    (dis_defs, thy)
+    (dis_stricts @ dis_defins @ dis_apps, thy)
   end;
 
 (******************************************************************************)
@@ -903,7 +955,8 @@ fun add_domain_constructors
         fun prep_con c (b, args, mx) = (c, map prep_arg args);
         val dis_spec = map2 prep_con con_consts spec;
       in
-        add_discriminators bindings dis_spec case_const thy
+        add_discriminators bindings dis_spec lhsT
+          casedist case_const cases thy
       end
 
     (* restore original signature path *)
