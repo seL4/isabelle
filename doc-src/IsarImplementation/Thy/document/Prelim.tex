@@ -544,14 +544,14 @@ The following artificial example demonstrates theory
 \ \ \ \ val\ empty\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\isanewline
 \ \ \ \ val\ extend\ {\isacharequal}\ I{\isacharsemicolon}\isanewline
 \ \ \ \ fun\ merge\ {\isacharparenleft}ts{\isadigit{1}}{\isacharcomma}\ ts{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ \ \ OrdList{\isachardot}union\ TermOrd{\isachardot}fast{\isacharunderscore}term{\isacharunderscore}ord\ ts{\isadigit{1}}\ ts{\isadigit{2}}{\isacharsemicolon}\isanewline
+\ \ \ \ \ \ OrdList{\isachardot}union\ Term{\isacharunderscore}Ord{\isachardot}fast{\isacharunderscore}term{\isacharunderscore}ord\ ts{\isadigit{1}}\ ts{\isadigit{2}}{\isacharsemicolon}\isanewline
 \ \ {\isacharparenright}\isanewline
 \isanewline
 \ \ val\ get\ {\isacharequal}\ Terms{\isachardot}get{\isacharsemicolon}\isanewline
 \isanewline
 \ \ fun\ add\ raw{\isacharunderscore}t\ thy\ {\isacharequal}\isanewline
 \ \ \ \ let\ val\ t\ {\isacharequal}\ Sign{\isachardot}cert{\isacharunderscore}term\ thy\ raw{\isacharunderscore}t\isanewline
-\ \ \ \ in\ Terms{\isachardot}map\ {\isacharparenleft}OrdList{\isachardot}insert\ TermOrd{\isachardot}fast{\isacharunderscore}term{\isacharunderscore}ord\ t{\isacharparenright}\ thy\ end{\isacharsemicolon}\isanewline
+\ \ \ \ in\ Terms{\isachardot}map\ {\isacharparenleft}OrdList{\isachardot}insert\ Term{\isacharunderscore}Ord{\isachardot}fast{\isacharunderscore}term{\isacharunderscore}ord\ t{\isacharparenright}\ thy\ end{\isacharsemicolon}\isanewline
 \isanewline
 \ \ end{\isacharsemicolon}\isanewline
 {\isacharverbatimclose}%

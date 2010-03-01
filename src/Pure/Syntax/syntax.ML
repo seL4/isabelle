@@ -59,7 +59,6 @@ sig
     Proof.context -> syntax -> bool -> term -> Pretty.T
   val standard_unparse_typ: Proof.context -> syntax -> typ -> Pretty.T
   val standard_unparse_sort: Proof.context -> syntax -> sort -> Pretty.T
-  val update_type_gram: (string * int * mixfix) list -> syntax -> syntax
   val update_consts: string list -> syntax -> syntax
   val update_trfuns:
     (string * ((ast list -> ast) * stamp)) list *
@@ -73,9 +72,8 @@ sig
     (string * ((Proof.context -> ast list -> ast) * stamp)) list -> syntax -> syntax
   val extend_tokentrfuns: (string * string * (Proof.context -> string -> Pretty.T)) list ->
     syntax -> syntax
-  val update_const_gram: (string -> bool) ->
-    mode -> (string * typ * mixfix) list -> syntax -> syntax
-  val remove_const_gram: (string -> bool) ->
+  val update_type_gram: bool -> mode -> (string * typ * mixfix) list -> syntax -> syntax
+  val update_const_gram: bool -> (string -> bool) ->
     mode -> (string * typ * mixfix) list -> syntax -> syntax
   val update_trrules: Proof.context -> (string -> bool) -> syntax ->
     (string * string) trrule list -> syntax -> syntax
@@ -669,17 +667,16 @@ end;
 
 fun ext_syntax f decls = update_syntax mode_default (f decls);
 
-val update_type_gram       = ext_syntax Mixfix.syn_ext_types;
-val update_consts          = ext_syntax SynExt.syn_ext_const_names;
-val update_trfuns          = ext_syntax SynExt.syn_ext_trfuns;
+val update_consts = ext_syntax SynExt.syn_ext_const_names;
+val update_trfuns = ext_syntax SynExt.syn_ext_trfuns;
 val update_advanced_trfuns = ext_syntax SynExt.syn_ext_advanced_trfuns;
-val extend_tokentrfuns     = ext_syntax SynExt.syn_ext_tokentrfuns;
+val extend_tokentrfuns = ext_syntax SynExt.syn_ext_tokentrfuns;
 
-fun update_const_gram is_logtype prmode decls =
-  update_syntax prmode (Mixfix.syn_ext_consts is_logtype decls);
+fun update_type_gram add prmode decls =
+  (if add then update_syntax else remove_syntax) prmode (Mixfix.syn_ext_types decls);
 
-fun remove_const_gram is_logtype prmode decls =
-  remove_syntax prmode (Mixfix.syn_ext_consts is_logtype decls);
+fun update_const_gram add is_logtype prmode decls =
+  (if add then update_syntax else remove_syntax) prmode (Mixfix.syn_ext_consts is_logtype decls);
 
 fun update_trrules ctxt is_logtype syn =
   ext_syntax SynExt.syn_ext_rules o read_rules ctxt is_logtype syn;

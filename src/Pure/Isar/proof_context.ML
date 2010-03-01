@@ -115,7 +115,10 @@ sig
   val add_cases: bool -> (string * Rule_Cases.T option) list -> Proof.context -> Proof.context
   val apply_case: Rule_Cases.T -> Proof.context -> (string * term list) list * Proof.context
   val get_case: Proof.context -> string -> string option list -> Rule_Cases.T
+  val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> Proof.context -> Proof.context
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> Proof.context -> Proof.context
+  val target_type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> morphism ->
+    Context.generic -> Context.generic
   val target_notation: bool -> Syntax.mode -> (term * mixfix) list -> morphism ->
     Context.generic -> Context.generic
   val add_const_constraint: string * typ option -> Proof.context -> Proof.context
@@ -1029,18 +1032,34 @@ end;
 
 local
 
-fun const_syntax _ (Free (x, T), mx) = SOME (true, (x, T, mx))
+fun type_syntax (Type (c, args), mx) =  (* FIXME authentic syntax *)
+      SOME (Local_Syntax.Type, (Long_Name.base_name c, Syntax.make_type (length args), mx))
+  | type_syntax _ = NONE;
+
+fun const_syntax _ (Free (x, T), mx) = SOME (Local_Syntax.Fixed, (x, T, mx))
   | const_syntax ctxt (Const (c, _), mx) =
       (case try (Consts.type_scheme (consts_of ctxt)) c of
-        SOME T => SOME (false, (Syntax.mark_const c, T, mx))
+        SOME T => SOME (Local_Syntax.Const, (Syntax.mark_const c, T, mx))
       | NONE => NONE)
   | const_syntax _ _ = NONE;
 
+fun gen_notation syntax add mode args ctxt =
+  ctxt |> map_syntax
+    (Local_Syntax.update_modesyntax (theory_of ctxt) add mode (map_filter (syntax ctxt) args));
+
 in
 
-fun notation add mode args ctxt =
-  ctxt |> map_syntax
-    (Local_Syntax.update_modesyntax (theory_of ctxt) add mode (map_filter (const_syntax ctxt) args));
+val type_notation = gen_notation (K type_syntax);
+val notation = gen_notation const_syntax;
+
+fun target_type_notation add  mode args phi =
+  let
+    val args' = args |> map_filter (fn (T, mx) =>
+      let
+        val T' = Morphism.typ phi T;
+        val similar = (case (T, T') of (Type (c, _), Type (c', _)) => c = c' | _ => false);
+      in if similar then SOME (T', mx) else NONE end);
+  in Context.mapping (Sign.type_notation add mode args') (type_notation add mode args') end;
 
 fun target_notation add mode args phi =
   let
@@ -1048,6 +1067,7 @@ fun target_notation add mode args phi =
       let val t' = Morphism.term phi t
       in if Term.aconv_untyped (t, t') then SOME (t', mx) else NONE end);
   in Context.mapping (Sign.notation add mode args') (notation add mode args') end;
+
 
 end;
 
@@ -1086,7 +1106,7 @@ fun prep_mixfix (x, T, mx) =
   if mx <> NoSyn andalso mx <> Structure andalso
       (can Name.dest_internal x orelse can Name.dest_skolem x) then
     error ("Illegal mixfix syntax for internal/skolem constant " ^ quote x)
-  else (true, (x, T, mx));
+  else (Local_Syntax.Fixed, (x, T, mx));
 
 in
 

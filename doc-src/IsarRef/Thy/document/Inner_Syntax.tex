@@ -378,34 +378,47 @@ Mixfix annotations specify concrete \emph{inner syntax} of
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{Explicit term notation%
+\isamarkupsection{Explicit notation%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcll}
+    \indexdef{}{command}{type\_notation}\hypertarget{command.type-notation}{\hyperlink{command.type-notation}{\mbox{\isa{\isacommand{type{\isacharunderscore}notation}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
+    \indexdef{}{command}{no\_type\_notation}\hypertarget{command.no-type-notation}{\hyperlink{command.no-type-notation}{\mbox{\isa{\isacommand{no{\isacharunderscore}type{\isacharunderscore}notation}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
     \indexdef{}{command}{notation}\hypertarget{command.notation}{\hyperlink{command.notation}{\mbox{\isa{\isacommand{notation}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
     \indexdef{}{command}{no\_notation}\hypertarget{command.no-notation}{\hyperlink{command.no-notation}{\mbox{\isa{\isacommand{no{\isacharunderscore}notation}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
   \end{matharray}
 
   \begin{rail}
+    ('type\_notation' | 'no\_type\_notation') target? mode? \\ (nameref mixfix + 'and')
+    ;
     ('notation' | 'no\_notation') target? mode? \\ (nameref structmixfix + 'and')
     ;
   \end{rail}
 
   \begin{description}
 
+  \item \hyperlink{command.type-notation}{\mbox{\isa{\isacommand{type{\isacharunderscore}notation}}}}~\isa{{\isachardoublequote}c\ {\isacharparenleft}mx{\isacharparenright}{\isachardoublequote}} associates mixfix
+  syntax with an existing type constructor.  The arity of the
+  constructor is retrieved from the context.
+  
+  \item \hyperlink{command.no-type-notation}{\mbox{\isa{\isacommand{no{\isacharunderscore}type{\isacharunderscore}notation}}}} is similar to \hyperlink{command.type-notation}{\mbox{\isa{\isacommand{type{\isacharunderscore}notation}}}}, but removes the specified syntax annotation from
+  the present context.
+
   \item \hyperlink{command.notation}{\mbox{\isa{\isacommand{notation}}}}~\isa{{\isachardoublequote}c\ {\isacharparenleft}mx{\isacharparenright}{\isachardoublequote}} associates mixfix
-  syntax with an existing constant or fixed variable.  This is a
-  robust interface to the underlying \hyperlink{command.syntax}{\mbox{\isa{\isacommand{syntax}}}} primitive
-  (\secref{sec:syn-trans}).  Type declaration and internal syntactic
-  representation of the given entity is retrieved from the context.
+  syntax with an existing constant or fixed variable.  The type
+  declaration of the given entity is retrieved from the context.
   
   \item \hyperlink{command.no-notation}{\mbox{\isa{\isacommand{no{\isacharunderscore}notation}}}} is similar to \hyperlink{command.notation}{\mbox{\isa{\isacommand{notation}}}},
   but removes the specified syntax annotation from the present
   context.
 
-  \end{description}%
+  \end{description}
+
+  Compared to the underlying \hyperlink{command.syntax}{\mbox{\isa{\isacommand{syntax}}}} and \hyperlink{command.no-syntax}{\mbox{\isa{\isacommand{no{\isacharunderscore}syntax}}}} primitives (\secref{sec:syn-trans}), the above commands
+  provide explicit checking wrt.\ the logical context, and work within
+  general local theory targets, not just the global theory.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
