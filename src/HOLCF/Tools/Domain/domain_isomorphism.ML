@@ -228,7 +228,26 @@ fun map_of_typ
 
 
 (******************************************************************************)
-(* prepare datatype specifications *)
+(********************* declaring definitions and theorems *********************)
+(******************************************************************************)
+
+fun define_const
+    (bind : binding, rhs : term)
+    (thy : theory)
+    : (term * thm) * theory =
+  let
+    val typ = Term.fastype_of rhs;
+    val (const, thy) = Sign.declare_const ((bind, typ), NoSyn) thy;
+    val eqn = Logic.mk_equals (const, rhs);
+    val def = Thm.no_attributes (Binding.suffix_name "_def" bind, eqn);
+    val (def_thm, thy) = yield_singleton (PureThy.add_defs false) def thy;
+  in
+    ((const, def_thm), thy)
+  end;
+
+(******************************************************************************)
+(******************************* main function ********************************)
+(******************************************************************************)
 
 type iso_info =
   {
@@ -363,23 +382,12 @@ fun gen_domain_isomorphism
     (* define rep/abs functions *)
     fun mk_rep_abs ((tbind, morphs), (lhsT, rhsT)) thy =
       let
-        val rep_type = lhsT ->> rhsT;
-        val abs_type = rhsT ->> lhsT;
         val rep_bind = Binding.suffix_name "_rep" tbind;
         val abs_bind = Binding.suffix_name "_abs" tbind;
-        val (rep_bind, abs_bind) = the_default (rep_bind, abs_bind) morphs;
-        val (rep_const, thy) = thy |>
-          Sign.declare_const ((rep_bind, rep_type), NoSyn);
-        val (abs_const, thy) = thy |>
-          Sign.declare_const ((abs_bind, abs_type), NoSyn);
-        val rep_eqn = Logic.mk_equals (rep_const, coerce_const rep_type);
-        val abs_eqn = Logic.mk_equals (abs_const, coerce_const abs_type);
-        val (rep_def, thy) = thy |> yield_singleton
-          (PureThy.add_defs false o map Thm.no_attributes)
-            (Binding.suffix_name "_rep_def" tbind, rep_eqn);
-        val (abs_def, thy) = thy |> yield_singleton
-          (PureThy.add_defs false o map Thm.no_attributes)
-            (Binding.suffix_name "_abs_def" tbind, abs_eqn);
+        val ((rep_const, rep_def), thy) =
+            define_const (rep_bind, coerce_const (lhsT ->> rhsT)) thy;
+        val ((abs_const, abs_def), thy) =
+            define_const (abs_bind, coerce_const (rhsT ->> lhsT)) thy;
       in
         (((rep_const, abs_const), (rep_def, abs_def)), thy)
       end;
