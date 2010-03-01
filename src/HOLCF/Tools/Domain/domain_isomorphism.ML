@@ -204,7 +204,7 @@ fun defl_of_typ
       | defl_of (TVar _) = error ("defl_of_typ: TVar")
       | defl_of (T as Type (c, Ts)) =
         case Symtab.lookup tab c of
-          SOME t => Library.foldl mk_capply (t, map defl_of Ts)
+          SOME t => list_ccomb (t, map defl_of Ts)
         | NONE => if is_closed_typ T
                   then mk_Rep_of T
                   else error ("defl_of_typ: type variable under unsupported type constructor " ^ c);
@@ -220,7 +220,7 @@ fun map_of_typ
       | map_of (T as TVar _) = error ("map_of_typ: TVar")
       | map_of (T as Type (c, Ts)) =
         case Symtab.lookup tab c of
-          SOME t => Library.foldl mk_capply (Const (t, mapT T), map map_of Ts)
+          SOME t => list_ccomb (Const (t, mapT T), map map_of Ts)
         | NONE => if is_closed_typ T
                   then mk_ID T
                   else error ("map_of_typ: type variable under unsupported type constructor " ^ c);
@@ -351,7 +351,7 @@ fun gen_domain_isomorphism
       let
         fun tfree a = TFree (a, the (AList.lookup (op =) sorts a))
         val reps = map (mk_Rep_of o tfree) vs;
-        val defl = Library.foldl mk_capply (defl_const, reps);
+        val defl = list_ccomb (defl_const, reps);
         val ((_, _, _, {REP, ...}), thy) =
           Repdef.add_repdef false NONE (tbind, vs, mx) defl NONE thy;
       in
@@ -476,8 +476,8 @@ fun gen_domain_isomorphism
         fun mk_goal ((map_const, defl_const), (T, rhsT)) =
           let
             val (_, Ts) = dest_Type T;
-            val map_term = Library.foldl mk_capply (map_const, map mk_f Ts);
-            val defl_term = Library.foldl mk_capply (defl_const, map mk_d Ts);
+            val map_term = list_ccomb (map_const, map mk_f Ts);
+            val defl_term = list_ccomb (defl_const, map mk_d Ts);
           in isodefl_const T $ map_term $ defl_term end;
         val assms = (map mk_assm o snd o dest_Type o fst o hd) dom_eqns;
         val goals = map mk_goal (map_consts ~~ defl_consts ~~ dom_eqns);
@@ -523,7 +523,7 @@ fun gen_domain_isomorphism
         (((map_const, (lhsT, _)), REP_thm), isodefl_thm) =
       let
         val Ts = snd (dest_Type lhsT);
-        val lhs = Library.foldl mk_capply (map_const, map mk_ID Ts);
+        val lhs = list_ccomb (map_const, map mk_ID Ts);
         val goal = mk_eqs (lhs, mk_ID lhsT);
         val tac = EVERY
           [rtac @{thm isodefl_REP_imp_ID} 1,
@@ -562,7 +562,7 @@ fun gen_domain_isomorphism
       | copy_of_dtyp' (T, Datatype_Aux.DtType (c, ds)) =
         case Symtab.lookup map_tab' c of
           SOME f =>
-          Library.foldl mk_capply
+          list_ccomb
             (Const (f, mapT T), map copy_of_dtyp (snd (dest_Type T) ~~ ds))
         | NONE =>
           (warning ("copy_of_dtyp: unknown type constructor " ^ c); mk_ID T);
@@ -615,7 +615,7 @@ fun gen_domain_isomorphism
     val fix_copy_lemma =
       let
         fun mk_map_ID (map_const, (T, rhsT)) =
-          Library.foldl mk_capply (map_const, map mk_ID (snd (dest_Type T)));
+          list_ccomb (map_const, map mk_ID (snd (dest_Type T)));
         val rhs = mk_tuple (map mk_map_ID (map_consts ~~ dom_eqns));
         val goal = mk_eqs (mk_fix c_const, rhs);
         val rules =
