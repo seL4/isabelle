@@ -89,6 +89,7 @@ sig
   val add_modesyntax_i: Syntax.mode -> (string * typ * mixfix) list -> theory -> theory
   val del_modesyntax: Syntax.mode -> (string * string * mixfix) list -> theory -> theory
   val del_modesyntax_i: Syntax.mode -> (string * typ * mixfix) list -> theory -> theory
+  val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> theory -> theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> theory -> theory
   val declare_const: (binding * typ) * mixfix -> theory -> term * theory
   val add_consts: (binding * string * mixfix) list -> theory -> theory
@@ -439,7 +440,9 @@ val add_defsort_i = gen_add_defsort certify_sort;
 
 fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
   let
-    val syn' = Syntax.update_type_gram (map (fn (a, n, mx) => (Name.of_binding a, n, mx)) types) syn;
+    val syn' =
+      Syntax.update_type_gram true Syntax.mode_default
+        (map (fn (a, n, mx) => (Name.of_binding a, Syntax.make_type n, mx)) types) syn;
     val decls = map (fn (a, n, _) => (a, n)) types;
     val tsig' = fold (Type.add_type naming) decls tsig;
   in (naming, syn', tsig', consts) end);
@@ -460,7 +463,9 @@ fun gen_add_tyabbr parse_typ (b, vs, rhs, mx) thy =
   thy |> map_sign (fn (naming, syn, tsig, consts) =>
     let
       val ctxt = ProofContext.init thy;
-      val syn' = Syntax.update_type_gram [(Name.of_binding b, length vs, mx)] syn;
+      val syn' =
+        Syntax.update_type_gram true Syntax.mode_default
+          [(Name.of_binding b, Syntax.make_type (length vs), mx)] syn;
       val abbr = (b, vs, certify_typ_mode Type.mode_syntax thy (parse_typ ctxt rhs))
         handle ERROR msg => cat_error msg ("in type abbreviation " ^ quote (Binding.str_of b));
       val tsig' = Type.add_abbrev naming abbr tsig;
@@ -479,24 +484,30 @@ fun gen_syntax change_gram parse_typ mode args thy =
       handle ERROR msg => cat_error msg ("in syntax declaration " ^ quote c);
   in thy |> map_syn (change_gram (is_logtype thy) mode (map prep args)) end;
 
-fun gen_add_syntax x = gen_syntax Syntax.update_const_gram x;
+fun gen_add_syntax x = gen_syntax (Syntax.update_const_gram true) x;
 
 val add_modesyntax = gen_add_syntax Syntax.parse_typ;
 val add_modesyntax_i = gen_add_syntax (K I);
 val add_syntax = add_modesyntax Syntax.mode_default;
 val add_syntax_i = add_modesyntax_i Syntax.mode_default;
-val del_modesyntax = gen_syntax Syntax.remove_const_gram Syntax.parse_typ;
-val del_modesyntax_i = gen_syntax Syntax.remove_const_gram (K I);
+val del_modesyntax = gen_syntax (Syntax.update_const_gram false) Syntax.parse_typ;
+val del_modesyntax_i = gen_syntax (Syntax.update_const_gram false) (K I);
+
+fun type_notation add mode args =
+  let
+    fun type_syntax (Type (c, args), mx) =  (* FIXME authentic syntax *)
+          SOME (Long_Name.base_name c, Syntax.make_type (length args), mx)
+      | type_syntax _ = NONE;
+  in map_syn (Syntax.update_type_gram add mode (map_filter type_syntax args)) end;
 
 fun notation add mode args thy =
   let
-    val change_gram = if add then Syntax.update_const_gram else Syntax.remove_const_gram;
     fun const_syntax (Const (c, _), mx) =
           (case try (Consts.type_scheme (consts_of thy)) c of
             SOME T => SOME (Syntax.mark_const c, T, mx)
           | NONE => NONE)
       | const_syntax _ = NONE;
-  in gen_syntax change_gram (K I) mode (map_filter const_syntax args) thy end;
+  in gen_syntax (Syntax.update_const_gram add) (K I) mode (map_filter const_syntax args) thy end;
 
 
 (* add constants *)
