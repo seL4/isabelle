@@ -68,7 +68,7 @@ the standard infix operators.*}
 
 subsection{*A WF Ordering for The Brouwer ordinals (Michael Compton)*}
 
-text{*To define recdef style functions we need an ordering on the Brouwer
+text{*To use the function package we need an ordering on the Brouwer
   ordinals.  Start with a predecessor relation and form its transitive 
   closure. *} 
 
