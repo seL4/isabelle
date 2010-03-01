@@ -16,20 +16,19 @@ consts
   val_nam :: vnam
   next_nam :: vnam
 
-constdefs
-  list_name :: cname
+definition list_name :: cname where
   "list_name == Cname list_nam"
   
-  test_name :: cname
+definition test_name :: cname where
   "test_name == Cname test_nam"
 
-  val_name :: vname
+definition val_name :: vname where
   "val_name == VName val_nam"
 
-  next_name :: vname
+definition next_name :: vname where
   "next_name == VName next_nam"
 
-  append_ins :: bytecode
+definition append_ins :: bytecode where
   "append_ins == 
        [Load 0,
         Getfield next_name list_name,
@@ -46,14 +45,14 @@ constdefs
         LitPush Unit,
         Return]"
 
-  list_class :: "jvm_method class"
+definition list_class :: "jvm_method class" where
   "list_class ==
     (Object,
      [(val_name, PrimT Integer), (next_name, Class list_name)],
      [((append_name, [Class list_name]), PrimT Void,
         (3, 0, append_ins,[(1,2,8,Xcpt NullPointer)]))])"
 
-  make_list_ins :: bytecode
+definition make_list_ins :: bytecode where
   "make_list_ins ==
        [New list_name,
         Dup,
@@ -79,12 +78,12 @@ constdefs
         Invoke list_name append_name [Class list_name],
         Return]"
 
-  test_class :: "jvm_method class"
+definition test_class :: "jvm_method class" where
   "test_class ==
     (Object, [],
      [((makelist_name, []), PrimT Void, (3, 2, make_list_ins,[]))])"
 
-  E :: jvm_prog
+definition E :: jvm_prog where
   "E == SystemClasses @ [(list_name, list_class), (test_name, test_class)]"
 
 

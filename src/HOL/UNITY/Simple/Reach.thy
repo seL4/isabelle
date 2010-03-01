@@ -17,21 +17,19 @@ consts
 
   edges :: "(vertex*vertex) set"
 
-constdefs
-
-  asgt  :: "[vertex,vertex] => (state*state) set"
+definition asgt :: "[vertex,vertex] => (state*state) set" where
     "asgt u v == {(s,s'). s' = s(v:= s u | s v)}"
 
-  Rprg :: "state program"
+definition Rprg :: "state program" where
     "Rprg == mk_total_program ({%v. v=init}, \<Union>(u,v)\<in>edges. {asgt u v}, UNIV)"
 
-  reach_invariant :: "state set"
+definition reach_invariant :: "state set" where
     "reach_invariant == {s. (\<forall>v. s v --> (init, v) \<in> edges^*) & s init}"
 
-  fixedpoint :: "state set"
+definition fixedpoint :: "state set" where
     "fixedpoint == {s. \<forall>(u,v)\<in>edges. s u --> s v}"
 
-  metric :: "state => nat"
+definition metric :: "state => nat" where
     "metric s == card {v. ~ s v}"
 
 

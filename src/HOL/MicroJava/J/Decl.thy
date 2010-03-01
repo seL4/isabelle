@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/J/Decl.thy
-    ID:         $Id$
     Author:     David von Oheimb
     Copyright   1999 Technische Universitaet Muenchen
 *)
@@ -32,11 +31,10 @@ translations
   "prog  c" <= (type) "(c cdecl) list"
 
 
-constdefs
-  "class" :: "'c prog => (cname \<rightharpoonup> 'c class)"
+definition "class" :: "'c prog => (cname \<rightharpoonup> 'c class)" where
   "class \<equiv> map_of"
 
-  is_class :: "'c prog => cname => bool"
+definition is_class :: "'c prog => cname => bool" where
   "is_class G C \<equiv> class G C \<noteq> None"
 
 
@@ -46,10 +44,8 @@ apply (fold dom_def)
 apply (rule finite_dom_map_of)
 done
 
-consts
-  is_type :: "'c prog => ty    => bool"
-primrec
+primrec is_type :: "'c prog => ty => bool" where
   "is_type G (PrimT pt) = True"
-  "is_type G (RefT t) = (case t of NullT => True | ClassT C => is_class G C)"
+| "is_type G (RefT t) = (case t of NullT => True | ClassT C => is_class G C)"
 
 end

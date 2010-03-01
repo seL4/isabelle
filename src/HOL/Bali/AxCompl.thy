@@ -20,9 +20,7 @@ design issues:
            
 section "set of not yet initialzed classes"
 
-constdefs
-
-  nyinitcls :: "prog \<Rightarrow> state \<Rightarrow> qtname set"
+definition nyinitcls :: "prog \<Rightarrow> state \<Rightarrow> qtname set" where
  "nyinitcls G s \<equiv> {C. is_class G C \<and> \<not> initd C s}"
 
 lemma nyinitcls_subset_class: "nyinitcls G s \<subseteq> {C. is_class G C}"
@@ -115,8 +113,7 @@ done
 
 section "init-le"
 
-constdefs
-  init_le :: "prog \<Rightarrow> nat \<Rightarrow> state \<Rightarrow> bool"            ("_\<turnstile>init\<le>_"  [51,51] 50)
+definition init_le :: "prog \<Rightarrow> nat \<Rightarrow> state \<Rightarrow> bool" ("_\<turnstile>init\<le>_"  [51,51] 50) where
  "G\<turnstile>init\<le>n \<equiv> \<lambda>s. card (nyinitcls G s) \<le> n"
   
 lemma init_le_def2 [simp]: "(G\<turnstile>init\<le>n) s = (card (nyinitcls G s)\<le>n)"
@@ -135,9 +132,7 @@ done
 
 section "Most General Triples and Formulas"
 
-constdefs
-
-  remember_init_state :: "state assn"                ("\<doteq>")
+definition remember_init_state :: "state assn" ("\<doteq>") where
   "\<doteq> \<equiv> \<lambda>Y s Z. s = Z"
 
 lemma remember_init_state_def2 [simp]: "\<doteq> Y = op ="
@@ -579,8 +574,7 @@ currently inside the evaluation of the loop. To define such an invariant, we
 unroll the loop in iterated evaluations of the expression and evaluations of
 the loop body. *}
 
-constdefs
- unroll:: "prog \<Rightarrow> label \<Rightarrow> expr \<Rightarrow> stmt \<Rightarrow> (state \<times>  state) set"
+definition unroll :: "prog \<Rightarrow> label \<Rightarrow> expr \<Rightarrow> stmt \<Rightarrow> (state \<times>  state) set" where
 
  "unroll G l e c \<equiv> {(s,t). \<exists> v s1 s2.
                              G\<turnstile>s \<midarrow>e-\<succ>v\<rightarrow> s1 \<and> the_Bool v \<and> normal s1 \<and>

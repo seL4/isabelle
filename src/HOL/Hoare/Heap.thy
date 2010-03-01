@@ -1,5 +1,4 @@
 (*  Title:      HOL/Hoare/Heap.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   2002 TUM
 
@@ -19,19 +18,17 @@ lemma not_Null_eq [iff]: "(x ~= Null) = (EX y. x = Ref y)"
 lemma not_Ref_eq [iff]: "(ALL y. x ~= Ref y) = (x = Null)"
   by (induct x) auto
 
-consts addr :: "'a ref \<Rightarrow> 'a"
-primrec "addr(Ref a) = a"
+primrec addr :: "'a ref \<Rightarrow> 'a" where
+  "addr (Ref a) = a"
 
 
 section "The heap"
 
 subsection "Paths in the heap"
 
-consts
- Path :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a list \<Rightarrow> 'a ref \<Rightarrow> bool"
-primrec
-"Path h x [] y = (x = y)"
-"Path h x (a#as) y = (x = Ref a \<and> Path h (h a) as y)"
+primrec Path :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a list \<Rightarrow> 'a ref \<Rightarrow> bool" where
+  "Path h x [] y \<longleftrightarrow> x = y"
+| "Path h x (a#as) y \<longleftrightarrow> x = Ref a \<and> Path h (h a) as y"
 
 lemma [iff]: "Path h Null xs y = (xs = [] \<and> y = Null)"
 apply(case_tac xs)
@@ -60,8 +57,7 @@ by simp
 
 subsection "Non-repeating paths"
 
-constdefs
-  distPath :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a list \<Rightarrow> 'a ref \<Rightarrow> bool"
+definition distPath :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a list \<Rightarrow> 'a ref \<Rightarrow> bool" where
   "distPath h x as y   \<equiv>   Path h x as y  \<and>  distinct as"
 
 text{* The term @{term"distPath h x as y"} expresses the fact that a
@@ -86,8 +82,7 @@ subsection "Lists on the heap"
 
 subsubsection "Relational abstraction"
 
-constdefs
- List :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a list \<Rightarrow> bool"
+definition List :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a list \<Rightarrow> bool" where
 "List h x as == Path h x as Null"
 
 lemma [simp]: "List h x [] = (x = Null)"
@@ -138,10 +133,10 @@ done
 
 subsection "Functional abstraction"
 
-constdefs
- islist :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> bool"
+definition islist :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> bool" where
 "islist h p == \<exists>as. List h p as"
- list :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a list"
+
+definition list :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a list" where
 "list h p == SOME as. List h p as"
 
 lemma List_conv_islist_list: "List h p as = (islist h p \<and> as = list h p)"

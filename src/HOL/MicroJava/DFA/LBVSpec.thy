@@ -12,45 +12,37 @@ begin
 types
   's certificate = "'s list"   
 
-consts
-merge :: "'s certificate \<Rightarrow> 's binop \<Rightarrow> 's ord \<Rightarrow> 's \<Rightarrow> nat \<Rightarrow> (nat \<times> 's) list \<Rightarrow> 's \<Rightarrow> 's"
-primrec
-"merge cert f r T pc []     x = x"
-"merge cert f r T pc (s#ss) x = merge cert f r T pc ss (let (pc',s') = s in 
+primrec merge :: "'s certificate \<Rightarrow> 's binop \<Rightarrow> 's ord \<Rightarrow> 's \<Rightarrow> nat \<Rightarrow> (nat \<times> 's) list \<Rightarrow> 's \<Rightarrow> 's" where
+  "merge cert f r T pc []     x = x"
+| "merge cert f r T pc (s#ss) x = merge cert f r T pc ss (let (pc',s') = s in 
                                   if pc'=pc+1 then s' +_f x
                                   else if s' <=_r (cert!pc') then x
                                   else T)"
 
-constdefs
-wtl_inst :: "'s certificate \<Rightarrow> 's binop \<Rightarrow> 's ord \<Rightarrow> 's \<Rightarrow>
-             's step_type \<Rightarrow> nat \<Rightarrow> 's \<Rightarrow> 's"
+definition wtl_inst :: "'s certificate \<Rightarrow> 's binop \<Rightarrow> 's ord \<Rightarrow> 's \<Rightarrow>
+             's step_type \<Rightarrow> nat \<Rightarrow> 's \<Rightarrow> 's" where
 "wtl_inst cert f r T step pc s \<equiv> merge cert f r T pc (step pc s) (cert!(pc+1))"
 
-wtl_cert :: "'s certificate \<Rightarrow> 's binop \<Rightarrow> 's ord \<Rightarrow> 's \<Rightarrow> 's \<Rightarrow>
-             's step_type \<Rightarrow> nat \<Rightarrow> 's \<Rightarrow> 's"
+definition wtl_cert :: "'s certificate \<Rightarrow> 's binop \<Rightarrow> 's ord \<Rightarrow> 's \<Rightarrow> 's \<Rightarrow>
+             's step_type \<Rightarrow> nat \<Rightarrow> 's \<Rightarrow> 's" where
 "wtl_cert cert f r T B step pc s \<equiv>
   if cert!pc = B then 
     wtl_inst cert f r T step pc s
   else
     if s <=_r (cert!pc) then wtl_inst cert f r T step pc (cert!pc) else T"
 
-consts 
-wtl_inst_list :: "'a list \<Rightarrow> 's certificate \<Rightarrow> 's binop \<Rightarrow> 's ord \<Rightarrow> 's \<Rightarrow> 's \<Rightarrow>
-                  's step_type \<Rightarrow> nat \<Rightarrow> 's \<Rightarrow> 's"
-primrec
-"wtl_inst_list []     cert f r T B step pc s = s"
-"wtl_inst_list (i#is) cert f r T B step pc s = 
+primrec wtl_inst_list :: "'a list \<Rightarrow> 's certificate \<Rightarrow> 's binop \<Rightarrow> 's ord \<Rightarrow> 's \<Rightarrow> 's \<Rightarrow>
+                  's step_type \<Rightarrow> nat \<Rightarrow> 's \<Rightarrow> 's" where
+  "wtl_inst_list []     cert f r T B step pc s = s"
+| "wtl_inst_list (i#is) cert f r T B step pc s = 
     (let s' = wtl_cert cert f r T B step pc s in
       if s' = T \<or> s = T then T else wtl_inst_list is cert f r T B step (pc+1) s')"
 
-constdefs
-  cert_ok :: "'s certificate \<Rightarrow> nat \<Rightarrow> 's \<Rightarrow> 's \<Rightarrow> 's set \<Rightarrow> bool"
+definition cert_ok :: "'s certificate \<Rightarrow> nat \<Rightarrow> 's \<Rightarrow> 's \<Rightarrow> 's set \<Rightarrow> bool" where
   "cert_ok cert n T B A \<equiv> (\<forall>i < n. cert!i \<in> A \<and> cert!i \<noteq> T) \<and> (cert!n = B)"
 
-constdefs
-  bottom :: "'a ord \<Rightarrow> 'a \<Rightarrow> bool"
+definition bottom :: "'a ord \<Rightarrow> 'a \<Rightarrow> bool" where
   "bottom r B \<equiv> \<forall>x. B <=_r x"
-
 
 locale lbv = Semilat +
   fixes T :: "'a" ("\<top>") 

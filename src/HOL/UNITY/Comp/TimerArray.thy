@@ -1,5 +1,4 @@
 (*  Title:      HOL/UNITY/TimerArray.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
@@ -10,14 +9,13 @@ theory TimerArray imports "../UNITY_Main" begin
 
 types 'a state = "nat * 'a"   (*second component allows new variables*)
 
-constdefs
-  count  :: "'a state => nat"
+definition count :: "'a state => nat" where
     "count s == fst s"
   
-  decr  :: "('a state * 'a state) set"
+definition decr  :: "('a state * 'a state) set" where
     "decr == UN n uu. {((Suc n, uu), (n,uu))}"
   
-  Timer :: "'a state program"
+definition Timer :: "'a state program" where
     "Timer == mk_total_program (UNIV, {decr}, UNIV)"
 
 

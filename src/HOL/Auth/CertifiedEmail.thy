@@ -25,8 +25,7 @@ consts
   BothAuth :: nat
 
 text{*We formalize a fixed way of computing responses.  Could be better.*}
-constdefs
-  "response"    :: "agent => agent => nat => msg"
+definition "response" :: "agent => agent => nat => msg" where
    "response S R q == Hash {|Agent S, Key (shrK R), Nonce q|}"
 
 

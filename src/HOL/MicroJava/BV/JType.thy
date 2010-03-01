@@ -9,19 +9,17 @@ theory JType
 imports "../DFA/Semilattices" "../J/WellForm"
 begin
 
-constdefs
-  super :: "'a prog \<Rightarrow> cname \<Rightarrow> cname"
+definition super :: "'a prog \<Rightarrow> cname \<Rightarrow> cname" where
   "super G C == fst (the (class G C))"
 
 lemma superI:
   "G \<turnstile> C \<prec>C1 D \<Longrightarrow> super G C = D"
   by (unfold super_def) (auto dest: subcls1D)
 
-constdefs
-  is_ref :: "ty \<Rightarrow> bool"
+definition is_ref :: "ty \<Rightarrow> bool" where
   "is_ref T == case T of PrimT t \<Rightarrow> False | RefT r \<Rightarrow> True"
 
-  sup :: "'c prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> ty err"
+definition sup :: "'c prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> ty err" where
   "sup G T1 T2 ==
   case T1 of PrimT P1 \<Rightarrow> (case T2 of PrimT P2 \<Rightarrow> 
                          (if P1 = P2 then OK (PrimT P1) else Err) | RefT R \<Rightarrow> Err)
@@ -30,17 +28,16 @@ constdefs
             | ClassT C \<Rightarrow> (case R2 of NullT \<Rightarrow> OK (Class C) 
                            | ClassT D \<Rightarrow> OK (Class (exec_lub (subcls1 G) (super G) C D)))))"
 
-  subtype :: "'c prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool"
+definition subtype :: "'c prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool" where
   "subtype G T1 T2 == G \<turnstile> T1 \<preceq> T2"
 
-  is_ty :: "'c prog \<Rightarrow> ty \<Rightarrow> bool"
+definition is_ty :: "'c prog \<Rightarrow> ty \<Rightarrow> bool" where
   "is_ty G T == case T of PrimT P \<Rightarrow> True | RefT R \<Rightarrow>
                (case R of NullT \<Rightarrow> True | ClassT C \<Rightarrow> (C, Object) \<in> (subcls1 G)^*)"
 
 abbreviation "types G == Collect (is_type G)"
 
-constdefs
-  esl :: "'c prog \<Rightarrow> ty esl"
+definition esl :: "'c prog \<Rightarrow> ty esl" where
   "esl G == (types G, subtype G, sup G)"
 
 lemma PrimT_PrimT: "(G \<turnstile> xb \<preceq> PrimT p) = (xb = PrimT p)"

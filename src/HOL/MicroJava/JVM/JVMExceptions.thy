@@ -7,8 +7,7 @@ header {* \isaheader{Exception handling in the JVM} *}
 
 theory JVMExceptions imports JVMInstructions begin
 
-constdefs
-  match_exception_entry :: "jvm_prog \<Rightarrow> cname \<Rightarrow> p_count \<Rightarrow> exception_entry \<Rightarrow> bool"
+definition match_exception_entry :: "jvm_prog \<Rightarrow> cname \<Rightarrow> p_count \<Rightarrow> exception_entry \<Rightarrow> bool" where
   "match_exception_entry G cn pc ee == 
                  let (start_pc, end_pc, handler_pc, catch_type) = ee in
                  start_pc <= pc \<and> pc < end_pc \<and> G\<turnstile> cn \<preceq>C catch_type"

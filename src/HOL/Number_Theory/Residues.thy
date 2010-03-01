@@ -22,8 +22,7 @@ begin
 
 *)
 
-constdefs 
-  residue_ring :: "int => int ring"
+definition residue_ring :: "int => int ring" where
   "residue_ring m == (| 
     carrier =       {0..m - 1}, 
     mult =          (%x y. (x * y) mod m),
@@ -287,8 +286,7 @@ subsection{* Euler's theorem *}
 
 (* the definition of the phi function *)
 
-constdefs
-  phi :: "int => nat"
+definition phi :: "int => nat" where
   "phi m == card({ x. 0 < x & x < m & gcd x m = 1})" 
 
 lemma phi_zero [simp]: "phi 0 = 0"

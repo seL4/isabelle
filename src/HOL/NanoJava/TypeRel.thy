@@ -66,9 +66,7 @@ apply(rule_tac B = "{super (the (class C))}" in finite_subset)
 apply  auto
 done
 
-constdefs
-
-  ws_prog  :: "bool"
+definition ws_prog :: "bool" where
  "ws_prog \<equiv> \<forall>(C,c)\<in>set Prog. C\<noteq>Object \<longrightarrow> 
                               is_class (super c) \<and> (super c,C)\<notin>subcls1^+"
 

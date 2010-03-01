@@ -60,8 +60,7 @@ qed
 
 subsection {* Basic properties of ``below'' *}
 
-constdefs
-  below :: "nat => nat set"
+definition below :: "nat => nat set" where
   "below n == {i. i < n}"
 
 lemma below_less_iff [iff]: "(i: below k) = (i < k)"
@@ -84,8 +83,7 @@ lemmas Sigma_Suc = Sigma_Suc1 Sigma_Suc2
 
 subsection {* Basic properties of ``evnodd'' *}
 
-constdefs
-  evnodd :: "(nat * nat) set => nat => (nat * nat) set"
+definition evnodd :: "(nat * nat) set => nat => (nat * nat) set" where
   "evnodd A b == A Int {(i, j). (i + j) mod 2 = b}"
 
 lemma evnodd_iff:
@@ -247,8 +245,7 @@ qed
 
 subsection {* Main theorem *}
 
-constdefs
-  mutilated_board :: "nat => nat => (nat * nat) set"
+definition mutilated_board :: "nat => nat => (nat * nat) set" where
   "mutilated_board m n ==
     below (2 * (m + 1)) <*> below (2 * (n + 1))
       - {(0, 0)} - {(2 * m + 1, 2 * n + 1)}"

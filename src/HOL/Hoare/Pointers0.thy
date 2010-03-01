@@ -73,8 +73,7 @@ subsection "Lists on the heap"
 
 subsubsection "Relational abstraction"
 
-constdefs
- List :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> bool"
+definition List :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> bool" where
 "List h x as == Path h x as Null"
 
 lemma [simp]: "List h x [] = (x = Null)"
@@ -122,10 +121,10 @@ done
 
 subsection "Functional abstraction"
 
-constdefs
- islist :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> bool"
+definition islist :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> bool" where
 "islist h p == \<exists>as. List h p as"
- list :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list"
+
+definition list :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list" where
 "list h p == SOME as. List h p as"
 
 lemma List_conv_islist_list: "List h p as = (islist h p \<and> as = list h p)"
@@ -407,7 +406,7 @@ done
 
 subsection "Storage allocation"
 
-constdefs new :: "'a set \<Rightarrow> 'a::ref"
+definition new :: "'a set \<Rightarrow> 'a::ref" where
 "new A == SOME a. a \<notin> A & a \<noteq> Null"
 
 

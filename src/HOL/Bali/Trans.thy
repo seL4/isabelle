@@ -9,7 +9,7 @@ PRELIMINARY!!!!!!!!
 
 theory Trans imports Evaln begin
 
-constdefs groundVar:: "var \<Rightarrow> bool"
+definition groundVar :: "var \<Rightarrow> bool" where
 "groundVar v \<equiv> (case v of
                    LVar ln \<Rightarrow> True
                  | {accC,statDeclC,stat}e..fn \<Rightarrow> \<exists> a. e=Lit a
@@ -34,7 +34,7 @@ proof -
     done
 qed
 
-constdefs groundExprs:: "expr list \<Rightarrow> bool"
+definition groundExprs :: "expr list \<Rightarrow> bool" where
 "groundExprs es \<equiv> list_all (\<lambda> e. \<exists> v. e=Lit v) es"
   
 consts the_val:: "expr \<Rightarrow> val"

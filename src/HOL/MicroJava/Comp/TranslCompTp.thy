@@ -6,17 +6,14 @@ theory TranslCompTp
 imports Index "../BV/JVMType"
 begin
 
-
-
 (**********************************************************************)
 
-
-constdefs
-  comb :: "['a \<Rightarrow> 'b list \<times> 'c, 'c \<Rightarrow> 'b list \<times> 'd, 'a] \<Rightarrow> 'b list \<times> 'd" 
+definition comb :: "['a \<Rightarrow> 'b list \<times> 'c, 'c \<Rightarrow> 'b list \<times> 'd, 'a] \<Rightarrow> 'b list \<times> 'd" where 
   "comb == (\<lambda> f1 f2 x0. let (xs1, x1) = f1 x0; 
                             (xs2, x2) = f2 x1 
                         in  (xs1 @ xs2, x2))"
-  comb_nil :: "'a \<Rightarrow> 'b list \<times> 'a"
+
+definition comb_nil :: "'a \<Rightarrow> 'b list \<times> 'a" where
   "comb_nil a == ([], a)"
 
 syntax (xsymbols)
@@ -59,23 +56,26 @@ consts
   compTpStmt  :: "java_mb \<Rightarrow> java_mb prog \<Rightarrow> stmt
                    \<Rightarrow> state_type \<Rightarrow> method_type \<times> state_type"
 
-
-constdefs
-  nochangeST :: "state_type \<Rightarrow> method_type \<times> state_type"
+definition nochangeST :: "state_type \<Rightarrow> method_type \<times> state_type" where
   "nochangeST sttp == ([Some sttp], sttp)"
-  pushST :: "[ty list, state_type] \<Rightarrow> method_type \<times> state_type"
+
+definition pushST :: "[ty list, state_type] \<Rightarrow> method_type \<times> state_type" where
   "pushST tps == (\<lambda> (ST, LT). ([Some (ST, LT)], (tps @ ST, LT)))"
-  dupST :: "state_type \<Rightarrow> method_type \<times> state_type"
+
+definition dupST :: "state_type \<Rightarrow> method_type \<times> state_type" where
   "dupST == (\<lambda> (ST, LT). ([Some (ST, LT)], (hd ST # ST, LT)))"
-  dup_x1ST :: "state_type \<Rightarrow> method_type \<times> state_type"
+
+definition dup_x1ST :: "state_type \<Rightarrow> method_type \<times> state_type" where
   "dup_x1ST == (\<lambda> (ST, LT). ([Some (ST, LT)], 
                              (hd ST # hd (tl ST) # hd ST # (tl (tl ST)), LT)))"
-  popST :: "[nat, state_type] \<Rightarrow> method_type \<times> state_type"
+
+definition popST :: "[nat, state_type] \<Rightarrow> method_type \<times> state_type" where
   "popST n == (\<lambda> (ST, LT). ([Some (ST, LT)], (drop n ST, LT)))"
-  replST :: "[nat, ty, state_type] \<Rightarrow> method_type \<times> state_type"
+
+definition replST :: "[nat, ty, state_type] \<Rightarrow> method_type \<times> state_type" where
   "replST n tp == (\<lambda> (ST, LT). ([Some (ST, LT)], (tp # (drop n ST), LT)))"
 
-  storeST :: "[nat, ty, state_type] \<Rightarrow> method_type \<times> state_type"
+definition storeST :: "[nat, ty, state_type] \<Rightarrow> method_type \<times> state_type" where
   "storeST i tp == (\<lambda> (ST, LT). ([Some (ST, LT)], (tl ST, LT [i:= OK tp])))"
 
 
@@ -138,9 +138,8 @@ primrec
       (pushST [PrimT Boolean]) \<box> (compTpExpr jmb G e) \<box> popST 2 \<box>
       (compTpStmt jmb G c) \<box> nochangeST"
 
-constdefs
-  compTpInit  :: "java_mb \<Rightarrow> (vname * ty)
-                   \<Rightarrow> state_type \<Rightarrow> method_type \<times> state_type"
+definition compTpInit :: "java_mb \<Rightarrow> (vname * ty)
+                   \<Rightarrow> state_type \<Rightarrow> method_type \<times> state_type" where
   "compTpInit jmb == (\<lambda> (vn,ty). (pushST [ty]) \<box>  (storeST (index jmb vn) ty))"
 
 consts
@@ -151,14 +150,13 @@ primrec
   "compTpInitLvars jmb [] = comb_nil"
   "compTpInitLvars jmb (lv#lvars) = (compTpInit jmb lv) \<box> (compTpInitLvars jmb lvars)"
 
-constdefs
-   start_ST :: "opstack_type"
+definition start_ST :: "opstack_type" where
   "start_ST == []"
 
-   start_LT :: "cname \<Rightarrow> ty list \<Rightarrow> nat \<Rightarrow> locvars_type"
+definition start_LT :: "cname \<Rightarrow> ty list \<Rightarrow> nat \<Rightarrow> locvars_type" where
   "start_LT C pTs n ==  (OK (Class C))#((map OK pTs))@(replicate n Err)"
 
-  compTpMethod  :: "[java_mb prog, cname, java_mb mdecl] \<Rightarrow> method_type"
+definition compTpMethod  :: "[java_mb prog, cname, java_mb mdecl] \<Rightarrow> method_type" where
   "compTpMethod G C == \<lambda> ((mn,pTs),rT, jmb). 
                          let (pns,lvars,blk,res) = jmb
                          in (mt_of
@@ -168,7 +166,7 @@ constdefs
                               nochangeST)
                                 (start_ST, start_LT C pTs (length lvars))))"
 
-  compTp :: "java_mb prog => prog_type"
+definition compTp :: "java_mb prog => prog_type" where
   "compTp G C sig == let (D, rT, jmb) = (the (method (G, C) sig))
                       in compTpMethod G C (sig, rT, jmb)"
 
@@ -177,15 +175,13 @@ constdefs
 (**********************************************************************)
   (* Computing the maximum stack size from the method_type *)
 
-constdefs
-  ssize_sto :: "(state_type option) \<Rightarrow> nat"
+definition ssize_sto :: "(state_type option) \<Rightarrow> nat" where
   "ssize_sto sto ==  case sto of None \<Rightarrow> 0 | (Some (ST, LT)) \<Rightarrow> length ST"
 
-  max_of_list :: "nat list \<Rightarrow> nat"
+definition max_of_list :: "nat list \<Rightarrow> nat" where
   "max_of_list xs == foldr max xs 0"
 
-  max_ssize :: "method_type \<Rightarrow> nat"
+definition max_ssize :: "method_type \<Rightarrow> nat" where
   "max_ssize mt == max_of_list (map ssize_sto mt)"
-
 
 end

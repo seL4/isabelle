@@ -20,59 +20,56 @@ record 'a potype =
   pset  :: "'a set"
   order :: "('a * 'a) set"
 
-constdefs
-  monotone :: "['a => 'a, 'a set, ('a *'a)set] => bool"
+definition monotone :: "['a => 'a, 'a set, ('a *'a)set] => bool" where
   "monotone f A r == \<forall>x\<in>A. \<forall>y\<in>A. (x, y): r --> ((f x), (f y)) : r"
 
-  least :: "['a => bool, 'a potype] => 'a"
+definition least :: "['a => bool, 'a potype] => 'a" where
   "least P po == @ x. x: pset po & P x &
                        (\<forall>y \<in> pset po. P y --> (x,y): order po)"
 
-  greatest :: "['a => bool, 'a potype] => 'a"
+definition greatest :: "['a => bool, 'a potype] => 'a" where
   "greatest P po == @ x. x: pset po & P x &
                           (\<forall>y \<in> pset po. P y --> (y,x): order po)"
 
-  lub  :: "['a set, 'a potype] => 'a"
+definition lub  :: "['a set, 'a potype] => 'a" where
   "lub S po == least (%x. \<forall>y\<in>S. (y,x): order po) po"
 
-  glb  :: "['a set, 'a potype] => 'a"
+definition glb  :: "['a set, 'a potype] => 'a" where
   "glb S po == greatest (%x. \<forall>y\<in>S. (x,y): order po) po"
 
-  isLub :: "['a set, 'a potype, 'a] => bool"
+definition isLub :: "['a set, 'a potype, 'a] => bool" where
   "isLub S po == %L. (L: pset po & (\<forall>y\<in>S. (y,L): order po) &
                    (\<forall>z\<in>pset po. (\<forall>y\<in>S. (y,z): order po) --> (L,z): order po))"
 
-  isGlb :: "['a set, 'a potype, 'a] => bool"
+definition isGlb :: "['a set, 'a potype, 'a] => bool" where
   "isGlb S po == %G. (G: pset po & (\<forall>y\<in>S. (G,y): order po) &
                  (\<forall>z \<in> pset po. (\<forall>y\<in>S. (z,y): order po) --> (z,G): order po))"
 
-  "fix"    :: "[('a => 'a), 'a set] => 'a set"
+definition "fix"    :: "[('a => 'a), 'a set] => 'a set" where
   "fix f A  == {x. x: A & f x = x}"
 
-  interval :: "[('a*'a) set,'a, 'a ] => 'a set"
+definition interval :: "[('a*'a) set,'a, 'a ] => 'a set" where
   "interval r a b == {x. (a,x): r & (x,b): r}"
 
-constdefs
-  Bot :: "'a potype => 'a"
+definition Bot :: "'a potype => 'a" where
   "Bot po == least (%x. True) po"
 
-  Top :: "'a potype => 'a"
+definition Top :: "'a potype => 'a" where
   "Top po == greatest (%x. True) po"
 
-  PartialOrder :: "('a potype) set"
+definition PartialOrder :: "('a potype) set" where
   "PartialOrder == {P. refl_on (pset P) (order P) & antisym (order P) &
                        trans (order P)}"
 
-  CompleteLattice :: "('a potype) set"
+definition CompleteLattice :: "('a potype) set" where
   "CompleteLattice == {cl. cl: PartialOrder &
                         (\<forall>S. S \<subseteq> pset cl --> (\<exists>L. isLub S cl L)) &
                         (\<forall>S. S \<subseteq> pset cl --> (\<exists>G. isGlb S cl G))}"
 
-  induced :: "['a set, ('a * 'a) set] => ('a *'a)set"
+definition induced :: "['a set, ('a * 'a) set] => ('a *'a)set" where
   "induced A r == {(a,b). a : A & b: A & (a,b): r}"
 
-constdefs
-  sublattice :: "('a potype * 'a set)set"
+definition sublattice :: "('a potype * 'a set)set" where
   "sublattice ==
       SIGMA cl: CompleteLattice.
           {S. S \<subseteq> pset cl &
@@ -82,8 +79,7 @@ abbreviation
   sublattice_syntax :: "['a set, 'a potype] => bool" ("_ <<= _" [51, 50] 50)
   where "S <<= cl \<equiv> S : sublattice `` {cl}"
 
-constdefs
-  dual :: "'a potype => 'a potype"
+definition dual :: "'a potype => 'a potype" where
   "dual po == (| pset = pset po, order = converse (order po) |)"
 
 locale PO =

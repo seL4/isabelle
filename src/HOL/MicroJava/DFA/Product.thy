@@ -9,14 +9,13 @@ theory Product
 imports Err
 begin
 
-constdefs
- le :: "'a ord \<Rightarrow> 'b ord \<Rightarrow> ('a * 'b) ord"
+definition le :: "'a ord \<Rightarrow> 'b ord \<Rightarrow> ('a * 'b) ord" where
 "le rA rB == %(a,b) (a',b'). a <=_rA a' & b <=_rB b'"
 
- sup :: "'a ebinop \<Rightarrow> 'b ebinop \<Rightarrow> ('a * 'b)ebinop"
+definition sup :: "'a ebinop \<Rightarrow> 'b ebinop \<Rightarrow> ('a * 'b)ebinop" where
 "sup f g == %(a1,b1)(a2,b2). Err.sup Pair (a1 +_f a2) (b1 +_g b2)"
 
- esl :: "'a esl \<Rightarrow> 'b esl \<Rightarrow> ('a * 'b ) esl"
+definition esl :: "'a esl \<Rightarrow> 'b esl \<Rightarrow> ('a * 'b ) esl" where
 "esl == %(A,rA,fA) (B,rB,fB). (A <*> B, le rA rB, sup fA fB)"
 
 abbreviation

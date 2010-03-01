@@ -8,8 +8,7 @@ theory DeclConcepts imports TypeRel begin
 
 section "access control (cf. 6.6), overriding and hiding (cf. 8.4.6.1)"
 
-constdefs
-is_public :: "prog \<Rightarrow> qtname \<Rightarrow> bool"
+definition is_public :: "prog \<Rightarrow> qtname \<Rightarrow> bool" where
 "is_public G qn \<equiv> (case class G qn of
                      None       \<Rightarrow> (case iface G qn of
                                       None       \<Rightarrow> False
@@ -38,14 +37,16 @@ accessible_in_RefT_simp:
 
 declare accessible_in_RefT_simp [simp del]
 
-constdefs
-  is_acc_class :: "prog \<Rightarrow> pname \<Rightarrow> qtname \<Rightarrow> bool"
+definition is_acc_class :: "prog \<Rightarrow> pname \<Rightarrow> qtname \<Rightarrow> bool" where
     "is_acc_class G P C \<equiv> is_class G C \<and> G\<turnstile>(Class C) accessible_in P"
-  is_acc_iface :: "prog \<Rightarrow> pname \<Rightarrow> qtname \<Rightarrow> bool"
+
+definition is_acc_iface :: "prog \<Rightarrow> pname \<Rightarrow> qtname \<Rightarrow> bool" where
     "is_acc_iface G P I \<equiv> is_iface G I \<and> G\<turnstile>(Iface I) accessible_in P"
-  is_acc_type  :: "prog \<Rightarrow> pname \<Rightarrow> ty     \<Rightarrow> bool"
+
+definition is_acc_type  :: "prog \<Rightarrow> pname \<Rightarrow> ty     \<Rightarrow> bool" where
     "is_acc_type  G P T \<equiv> is_type G T  \<and> G\<turnstile>T accessible_in P"
-  is_acc_reftype  :: "prog \<Rightarrow> pname \<Rightarrow> ref_ty \<Rightarrow> bool"
+
+definition is_acc_reftype  :: "prog \<Rightarrow> pname \<Rightarrow> ref_ty \<Rightarrow> bool" where
   "is_acc_reftype  G P T \<equiv> isrtype G T  \<and> G\<turnstile>T accessible_in' P"
 
 lemma is_acc_classD:
@@ -336,8 +337,7 @@ by (simp add: fldname_def fldclass_def)
 text {* Convert a qualified method declaration (qualified with its declaring 
 class) to a qualified member declaration:  @{text methdMembr}  *}
 
-constdefs
-methdMembr :: "(qtname \<times> mdecl) \<Rightarrow> (qtname \<times> memberdecl)"
+definition methdMembr :: "(qtname \<times> mdecl) \<Rightarrow> (qtname \<times> memberdecl)" where
  "methdMembr m \<equiv> (fst m,mdecl (snd m))"
 
 lemma methdMembr_simp[simp]: "methdMembr (c,m) = (c,mdecl m)"
@@ -355,8 +355,7 @@ by (cases m) (simp add: methdMembr_def)
 text {* Convert a qualified method (qualified with its declaring 
 class) to a qualified member declaration:  @{text method}  *}
 
-constdefs
-method :: "sig \<Rightarrow> (qtname \<times> methd) \<Rightarrow> (qtname \<times> memberdecl)" 
+definition method :: "sig \<Rightarrow> (qtname \<times> methd) \<Rightarrow> (qtname \<times> memberdecl)" where 
 "method sig m \<equiv> (declclass m, mdecl (sig, mthd m))"
 
 lemma method_simp[simp]: "method sig (C,m) = (C,mdecl (sig,m))"
@@ -377,8 +376,7 @@ by (simp add: mbr_def method_def)
 lemma memberid_method_simp[simp]:  "memberid (method sig m) = mid sig"
   by (simp add: method_def) 
 
-constdefs
-fieldm :: "vname \<Rightarrow> (qtname \<times> field) \<Rightarrow> (qtname \<times> memberdecl)" 
+definition fieldm :: "vname \<Rightarrow> (qtname \<times> field) \<Rightarrow> (qtname \<times> memberdecl)" where 
 "fieldm n f \<equiv> (declclass f, fdecl (n, fld f))"
 
 lemma fieldm_simp[simp]: "fieldm n (C,f) = (C,fdecl (n,f))"
@@ -402,7 +400,7 @@ by (simp add: fieldm_def)
 text {* Select the signature out of a qualified method declaration:
  @{text msig} *}
 
-constdefs msig:: "(qtname \<times> mdecl) \<Rightarrow> sig"
+definition msig :: "(qtname \<times> mdecl) \<Rightarrow> sig" where
 "msig m \<equiv> fst (snd m)"
 
 lemma msig_simp[simp]: "msig (c,(s,m)) = s"
@@ -411,7 +409,7 @@ by (simp add: msig_def)
 text {* Convert a qualified method (qualified with its declaring 
 class) to a qualified method declaration:  @{text qmdecl}  *}
 
-constdefs qmdecl :: "sig \<Rightarrow> (qtname \<times> methd) \<Rightarrow> (qtname \<times> mdecl)"
+definition qmdecl :: "sig \<Rightarrow> (qtname \<times> methd) \<Rightarrow> (qtname \<times> mdecl)" where
 "qmdecl sig m \<equiv> (declclass m, (sig,mthd m))"
 
 lemma qmdecl_simp[simp]: "qmdecl sig (C,m) = (C,(sig,m))"
@@ -504,10 +502,8 @@ classes in package P if:
       it is not accessible for inheritance at all.
 \end{itemize}
 *}
-constdefs
-inheritable_in:: 
- "prog \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> pname \<Rightarrow> bool"
-                  ("_ \<turnstile> _ inheritable'_in _" [61,61,61] 60)
+definition inheritable_in :: "prog \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> pname \<Rightarrow> bool" ("_ \<turnstile> _ inheritable'_in _" [61,61,61] 60) where
+                  
 "G\<turnstile>membr inheritable_in pack 
   \<equiv> (case (accmodi membr) of
        Private   \<Rightarrow> False
@@ -529,25 +525,21 @@ Methd_inheritable_in::
 
 subsubsection "declared-in/undeclared-in"
 
-constdefs cdeclaredmethd:: "prog \<Rightarrow> qtname \<Rightarrow> (sig,methd) table"
+definition cdeclaredmethd :: "prog \<Rightarrow> qtname \<Rightarrow> (sig,methd) table" where
 "cdeclaredmethd G C 
   \<equiv> (case class G C of
        None \<Rightarrow> \<lambda> sig. None
      | Some c \<Rightarrow> table_of (methods c)
     )"
 
-constdefs
-cdeclaredfield:: "prog \<Rightarrow> qtname \<Rightarrow> (vname,field) table"
+definition cdeclaredfield :: "prog \<Rightarrow> qtname \<Rightarrow> (vname,field) table" where
 "cdeclaredfield G C 
   \<equiv> (case class G C of
        None \<Rightarrow> \<lambda> sig. None
      | Some c \<Rightarrow> table_of (cfields c)
     )"
 
-
-constdefs
-declared_in:: "prog  \<Rightarrow> memberdecl \<Rightarrow> qtname \<Rightarrow> bool"
-                                 ("_\<turnstile> _ declared'_in _" [61,61,61] 60)
+definition declared_in :: "prog  \<Rightarrow> memberdecl \<Rightarrow> qtname \<Rightarrow> bool" ("_\<turnstile> _ declared'_in _" [61,61,61] 60) where
 "G\<turnstile>m declared_in C \<equiv> (case m of
                         fdecl (fn,f ) \<Rightarrow> cdeclaredfield G C fn  = Some f
                       | mdecl (sig,m) \<Rightarrow> cdeclaredmethd G C sig = Some m)"
@@ -567,10 +559,7 @@ lemma declared_in_classD:
 by (cases m) 
    (auto simp add: declared_in_def cdeclaredmethd_def cdeclaredfield_def)
 
-constdefs
-undeclared_in:: "prog  \<Rightarrow> memberid \<Rightarrow> qtname \<Rightarrow> bool"
-                                 ("_\<turnstile> _ undeclared'_in _" [61,61,61] 60)
-
+definition undeclared_in :: "prog  \<Rightarrow> memberid \<Rightarrow> qtname \<Rightarrow> bool" ("_\<turnstile> _ undeclared'_in _" [61,61,61] 60) where
 "G\<turnstile>m undeclared_in C \<equiv> (case m of
                             fid fn  \<Rightarrow> cdeclaredfield G C fn  = None
                           | mid sig \<Rightarrow> cdeclaredmethd G C sig = None)"
@@ -591,7 +580,7 @@ where
 
   Immediate: "\<lbrakk>G\<turnstile>mbr m declared_in C;declclass m = C\<rbrakk> \<Longrightarrow> G\<turnstile>m member_of C"
 | Inherited: "\<lbrakk>G\<turnstile>m inheritable_in (pid C); G\<turnstile>memberid m undeclared_in C; 
-               G\<turnstile>C \<prec>\<^sub>C\<^sub>1 S; G\<turnstile>(Class S) accessible_in (pid C);G\<turnstile>m member_of S 
+               G\<turnstile>C \<prec>\<^sub>C1 S; G\<turnstile>(Class S) accessible_in (pid C);G\<turnstile>m member_of S 
               \<rbrakk> \<Longrightarrow> G\<turnstile>m member_of C"
 text {* Note that in the case of an inherited member only the members of the
 direct superclass are concerned. If a member of a superclass of the direct
@@ -617,19 +606,16 @@ fieldm_member_of:: "prog \<Rightarrow> vname \<Rightarrow> (qtname \<times> fiel
                            ("_ \<turnstile>Field _  _ member'_of _" [61,61,61] 60)
  where "G\<turnstile>Field n f member_of C == G\<turnstile>fieldm n f member_of C"
 
-constdefs
-inherits:: "prog \<Rightarrow> qtname \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> bool"
-                           ("_ \<turnstile> _ inherits _" [61,61,61] 60)
+definition inherits :: "prog \<Rightarrow> qtname \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> bool" ("_ \<turnstile> _ inherits _" [61,61,61] 60) where
 "G\<turnstile>C inherits m 
   \<equiv> G\<turnstile>m inheritable_in (pid C) \<and> G\<turnstile>memberid m undeclared_in C \<and> 
-    (\<exists> S. G\<turnstile>C \<prec>\<^sub>C\<^sub>1 S \<and> G\<turnstile>(Class S) accessible_in (pid C) \<and> G\<turnstile>m member_of S)"
+    (\<exists> S. G\<turnstile>C \<prec>\<^sub>C1 S \<and> G\<turnstile>(Class S) accessible_in (pid C) \<and> G\<turnstile>m member_of S)"
 
 lemma inherits_member: "G\<turnstile>C inherits m \<Longrightarrow> G\<turnstile>m member_of C"
 by (auto simp add: inherits_def intro: members.Inherited)
 
 
-constdefs member_in::"prog \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> qtname \<Rightarrow> bool"
-                           ("_ \<turnstile> _ member'_in _" [61,61,61] 60)
+definition member_in :: "prog \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> qtname \<Rightarrow> bool" ("_ \<turnstile> _ member'_in _" [61,61,61] 60) where
 "G\<turnstile>m member_in C \<equiv> \<exists> provC. G\<turnstile> C \<preceq>\<^sub>C provC \<and> G \<turnstile> m member_of provC"
 text {* A member is in a class if it is member of the class or a superclass.
 If a member is in a class we can select this member. This additional notion
@@ -676,7 +662,7 @@ where
            G\<turnstile>Method new declared_in (declclass new);  
            G\<turnstile>Method old declared_in (declclass old); 
            G\<turnstile>Method old inheritable_in pid (declclass new);
-           G\<turnstile>(declclass new) \<prec>\<^sub>C\<^sub>1 superNew;
+           G\<turnstile>(declclass new) \<prec>\<^sub>C1 superNew;
            G \<turnstile>Method old member_of superNew
            \<rbrakk> \<Longrightarrow> G\<turnstile>new overrides\<^sub>S old"
 
@@ -716,9 +702,7 @@ sig_overrides:: "prog  \<Rightarrow> sig \<Rightarrow> (qtname \<times> methd) \
 
 subsubsection "Hiding"
 
-constdefs hides::
-"prog \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> bool" 
-                                ("_\<turnstile> _ hides _" [61,61,61] 60)
+definition hides :: "prog \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> bool" ("_\<turnstile> _ hides _" [61,61,61] 60) where 
 "G\<turnstile>new hides old
   \<equiv> is_static new \<and> msig new = msig old \<and>
     G\<turnstile>(declclass new) \<prec>\<^sub>C (declclass old) \<and>
@@ -777,11 +761,7 @@ lemma hides_eq_sigD:
 by (auto simp add: hides_def)
 
 subsubsection "permits access" 
-constdefs 
-permits_acc:: 
- "prog \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool"
-                   ("_ \<turnstile> _ in _ permits'_acc'_from _" [61,61,61,61] 60)
-
+definition permits_acc :: "prog \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool" ("_ \<turnstile> _ in _ permits'_acc'_from _" [61,61,61,61] 60) where
 "G\<turnstile>membr in cls permits_acc_from accclass 
   \<equiv> (case (accmodi membr) of
        Private   \<Rightarrow> (declclass membr = accclass)
@@ -980,7 +960,7 @@ proof -
   next
     case (Inherited n C S)
     assume undecl: "G\<turnstile> memberid n undeclared_in C"
-    assume  super: "G\<turnstile>C\<prec>\<^sub>C\<^sub>1S"
+    assume  super: "G\<turnstile>C\<prec>\<^sub>C1S"
     assume    hyp: "\<lbrakk>G \<turnstile> m member_of S; memberid n = memberid m\<rbrakk> \<Longrightarrow> n = m"
     assume   eqid: "memberid n = memberid m"
     assume "G \<turnstile> m member_of C"
@@ -1011,7 +991,7 @@ proof (induct set: members)
        (auto simp add: declared_in_def cdeclaredmethd_def cdeclaredfield_def)
 next
   case (Inherited m C S)  
-  assume "G\<turnstile>C\<prec>\<^sub>C\<^sub>1S" and "is_class G S"
+  assume "G\<turnstile>C\<prec>\<^sub>C1S" and "is_class G S"
   then show "is_class G C"
     by - (rule subcls_is_class2,auto)
 qed
@@ -1043,7 +1023,7 @@ by (auto dest: member_inD member_of_class_relation
         intro: rtrancl_trans)
 
 lemma stat_override_declclasses_relation: 
-"\<lbrakk>G\<turnstile>(declclass new) \<prec>\<^sub>C\<^sub>1 superNew; G \<turnstile>Method old member_of superNew \<rbrakk>
+"\<lbrakk>G\<turnstile>(declclass new) \<prec>\<^sub>C1 superNew; G \<turnstile>Method old member_of superNew \<rbrakk>
 \<Longrightarrow> G\<turnstile>(declclass new) \<prec>\<^sub>C (declclass old)"
 apply (rule trancl_rtrancl_trancl)
 apply (erule r_into_trancl)
@@ -1257,7 +1237,7 @@ proof -
             "G\<turnstile> memberid m undeclared_in D"  
             "G \<turnstile> Class S accessible_in pid D" 
             "G \<turnstile> m member_of S"
-    assume super: "G\<turnstile>D\<prec>\<^sub>C\<^sub>1S"
+    assume super: "G\<turnstile>D\<prec>\<^sub>C1S"
     assume hyp: "\<lbrakk>G\<turnstile>S\<preceq>\<^sub>C C; G\<turnstile>C\<preceq>\<^sub>C declclass m\<rbrakk> \<Longrightarrow> G \<turnstile> m member_of C"
     assume subclseq_C_m: "G\<turnstile>C\<preceq>\<^sub>C declclass m"
     assume "G\<turnstile>D\<preceq>\<^sub>C C"
@@ -1399,24 +1379,21 @@ types
 translations 
   "fspec" <= (type) "vname \<times> qtname" 
 
-constdefs
-imethds:: "prog \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> mhead) tables"
+definition imethds :: "prog \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> mhead) tables" where
 "imethds G I 
   \<equiv> iface_rec (G,I)  
               (\<lambda>I i ts. (Un_tables ts) \<oplus>\<oplus> 
                         (Option.set \<circ> table_of (map (\<lambda>(s,m). (s,I,m)) (imethods i))))"
 text {* methods of an interface, with overriding and inheritance, cf. 9.2 *}
 
-constdefs
-accimethds:: "prog \<Rightarrow> pname \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> mhead) tables"
+definition accimethds :: "prog \<Rightarrow> pname \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> mhead) tables" where
 "accimethds G pack I
   \<equiv> if G\<turnstile>Iface I accessible_in pack 
        then imethds G I
        else \<lambda> k. {}"
 text {* only returns imethds if the interface is accessible *}
 
-constdefs
-methd:: "prog \<Rightarrow> qtname  \<Rightarrow> (sig,qtname \<times> methd) table"
+definition methd :: "prog \<Rightarrow> qtname  \<Rightarrow> (sig,qtname \<times> methd) table" where
 
 "methd G C 
  \<equiv> class_rec (G,C) empty
@@ -1431,8 +1408,7 @@ text {* @{term "methd G C"}: methods of a class C (statically visible from C),
      Every new method with the same signature coalesces the
      method of a superclass. *}
 
-constdefs                      
-accmethd:: "prog \<Rightarrow> qtname \<Rightarrow> qtname  \<Rightarrow> (sig,qtname \<times> methd) table"
+definition accmethd :: "prog \<Rightarrow> qtname \<Rightarrow> qtname  \<Rightarrow> (sig,qtname \<times> methd) table" where
 "accmethd G S C 
  \<equiv> filter_tab (\<lambda>sig m. G\<turnstile>method sig m of C accessible_from S) 
               (methd G C)"
@@ -1446,8 +1422,7 @@ text {* Note the class component in the accessibility filter. The class where
     So we must test accessibility of method @{term m} of class @{term C} 
     (not @{term "declclass m"}) *}
 
-constdefs 
-dynmethd:: "prog  \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> methd) table"
+definition dynmethd :: "prog  \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> methd) table" where
 "dynmethd G statC dynC  
   \<equiv> \<lambda> sig. 
      (if G\<turnstile>dynC \<preceq>\<^sub>C statC
@@ -1473,8 +1448,7 @@ text {* Note some kind of duality between @{term methd} and @{term dynmethd}
         filters the new methods (to get only those methods which actually
         override the methods of the static class) *}
 
-constdefs 
-dynimethd:: "prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> methd) table"
+definition dynimethd :: "prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> methd) table" where
 "dynimethd G I dynC 
   \<equiv> \<lambda> sig. if imethds G I sig \<noteq> {}
                then methd G dynC sig
@@ -1493,8 +1467,7 @@ text {*
    down to the actual dynamic class.
  *}
 
-constdefs
-dynlookup::"prog  \<Rightarrow> ref_ty \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> methd) table"
+definition dynlookup :: "prog  \<Rightarrow> ref_ty \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> methd) table" where
 "dynlookup G statT dynC
   \<equiv> (case statT of
        NullT        \<Rightarrow> empty
@@ -1506,8 +1479,7 @@ text {* @{term "dynlookup G statT dynC"}: dynamic lookup of a method within the
     In a wellformd context statT will not be NullT and in case
     statT is an array type, dynC=Object *}
 
-constdefs
-fields:: "prog \<Rightarrow> qtname \<Rightarrow> ((vname \<times> qtname) \<times> field) list"
+definition fields :: "prog \<Rightarrow> qtname \<Rightarrow> ((vname \<times> qtname) \<times> field) list" where
 "fields G C 
   \<equiv> class_rec (G,C) [] (\<lambda>C c ts. map (\<lambda>(n,t). ((n,C),t)) (cfields c) @ ts)"
 text {* @{term "fields G C"} 
@@ -1515,8 +1487,7 @@ text {* @{term "fields G C"}
      (private, inherited and hidden ones) not only the accessible ones
      (an instance of a object allocates all these fields *}
 
-constdefs
-accfield:: "prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> (vname, qtname  \<times>  field) table"
+definition accfield :: "prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> (vname, qtname  \<times>  field) table" where
 "accfield G S C
   \<equiv> let field_tab = table_of((map (\<lambda>((n,d),f).(n,(d,f)))) (fields G C))
     in filter_tab (\<lambda>n (declC,f). G\<turnstile> (declC,fdecl (n,f)) of C accessible_from S)
@@ -1531,12 +1502,10 @@ text {* note the class component in the accessibility filter (see also
    inheritance, too. So we must test accessibility of field @{term f} of class 
    @{term C} (not @{term "declclass f"}) *} 
 
-constdefs
-
-  is_methd :: "prog \<Rightarrow> qtname  \<Rightarrow> sig \<Rightarrow> bool"
+definition is_methd :: "prog \<Rightarrow> qtname  \<Rightarrow> sig \<Rightarrow> bool" where
  "is_methd G \<equiv> \<lambda>C sig. is_class G C \<and> methd G C sig \<noteq> None"
 
-constdefs efname:: "((vname \<times> qtname) \<times> field) \<Rightarrow> (vname \<times> qtname)"
+definition efname :: "((vname \<times> qtname) \<times> field) \<Rightarrow> (vname \<times> qtname)" where
 "efname \<equiv> fst"
 
 lemma efname_simp[simp]:"efname (n,f) = n"
@@ -2300,8 +2269,7 @@ done
 
 section "calculation of the superclasses of a class"
 
-constdefs 
- superclasses:: "prog \<Rightarrow> qtname \<Rightarrow> qtname set"
+definition superclasses :: "prog \<Rightarrow> qtname \<Rightarrow> qtname set" where
  "superclasses G C \<equiv> class_rec (G,C) {} 
                        (\<lambda> C c superclss. (if C=Object 
                                             then {} 

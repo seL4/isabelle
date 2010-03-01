@@ -1,5 +1,4 @@
 (*  Title:      HOL/UNITY/WFair
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
@@ -33,16 +32,17 @@ under the assumption that all transitions are total.  The best-known of these
 is the impossibility law for leads-to.
 *}
 
-constdefs
+definition
 
   --{*This definition specifies conditional fairness.  The rest of the theory
       is generic to all forms of fairness.  To get weak fairness, conjoin
       the inclusion below with @{term "A \<subseteq> Domain act"}, which specifies 
       that the action is enabled over all of @{term A}.*}
-  transient :: "'a set => 'a program set"
+  transient :: "'a set => 'a program set" where
     "transient A == {F. \<exists>act\<in>Acts F. act``A \<subseteq> -A}"
 
-  ensures :: "['a set, 'a set] => 'a program set"       (infixl "ensures" 60)
+definition
+  ensures :: "['a set, 'a set] => 'a program set"       (infixl "ensures" 60) where
     "A ensures B == (A-B co A \<union> B) \<inter> transient (A-B)"
 
 
@@ -59,13 +59,11 @@ inductive_set
   | Union:  "\<forall>A \<in> S. (A,B) \<in> leads F ==> (Union S, B) \<in> leads F"
 
 
-constdefs
-
-  leadsTo :: "['a set, 'a set] => 'a program set"    (infixl "leadsTo" 60)
+definition leadsTo :: "['a set, 'a set] => 'a program set" (infixl "leadsTo" 60) where
      --{*visible version of the LEADS-TO relation*}
     "A leadsTo B == {F. (A,B) \<in> leads F}"
   
-  wlt :: "['a program, 'a set] => 'a set"
+definition wlt :: "['a program, 'a set] => 'a set" where
      --{*predicate transformer: the largest set that leads to @{term B}*}
     "wlt F B == Union {A. F \<in> A leadsTo B}"
 
@@ -641,4 +639,4 @@ apply (simp_all (no_asm_simp))
 apply blast+
 done
 
-end
+end

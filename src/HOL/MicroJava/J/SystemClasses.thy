@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/J/SystemClasses.thy
-    ID:         $Id$
     Author:     Gerwin Klein
     Copyright   2002 Technische Universitaet Muenchen
 *)
@@ -13,20 +12,19 @@ text {*
   and the system exceptions.
 *}
 
-constdefs
-  ObjectC :: "'c cdecl"
+definition ObjectC :: "'c cdecl" where
   "ObjectC \<equiv> (Object, (undefined,[],[]))"
 
-  NullPointerC :: "'c cdecl"
+definition NullPointerC :: "'c cdecl" where
   "NullPointerC \<equiv> (Xcpt NullPointer, (Object,[],[]))"
 
-  ClassCastC :: "'c cdecl"
+definition ClassCastC :: "'c cdecl" where
   "ClassCastC \<equiv> (Xcpt ClassCast, (Object,[],[]))"
 
-  OutOfMemoryC :: "'c cdecl"
+definition OutOfMemoryC :: "'c cdecl" where
   "OutOfMemoryC \<equiv> (Xcpt OutOfMemory, (Object,[],[]))"
 
-  SystemClasses :: "'c cdecl list"
+definition SystemClasses :: "'c cdecl list" where
   "SystemClasses \<equiv> [ObjectC, NullPointerC, ClassCastC, OutOfMemoryC]"
 
 end

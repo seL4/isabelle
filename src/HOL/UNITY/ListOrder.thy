@@ -42,11 +42,10 @@ instance ..
 
 end
 
-constdefs
-  Le :: "(nat*nat) set"
+definition Le :: "(nat*nat) set" where
     "Le == {(x,y). x <= y}"
 
-  Ge :: "(nat*nat) set"
+definition  Ge :: "(nat*nat) set" where
     "Ge == {(x,y). y <= x}"
 
 abbreviation

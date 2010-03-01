@@ -1,5 +1,4 @@
 (*  Title:      HOL/UNITY/SubstAx
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
@@ -10,11 +9,10 @@ header{*Weak Progress*}
 
 theory SubstAx imports WFair Constrains begin
 
-constdefs
-   Ensures :: "['a set, 'a set] => 'a program set"    (infixl "Ensures" 60)
+definition Ensures :: "['a set, 'a set] => 'a program set" (infixl "Ensures" 60) where
     "A Ensures B == {F. F \<in> (reachable F \<inter> A) ensures B}"
 
-   LeadsTo :: "['a set, 'a set] => 'a program set"    (infixl "LeadsTo" 60)
+definition LeadsTo :: "['a set, 'a set] => 'a program set" (infixl "LeadsTo" 60) where
     "A LeadsTo B == {F. F \<in> (reachable F \<inter> A) leadsTo B}"
 
 syntax (xsymbols)

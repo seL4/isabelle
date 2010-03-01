@@ -53,8 +53,7 @@ constdefs
                & Says B' A3 (Crypt (pubK A3) {|Nonce NA, Nonce NB|}) \<in> set s3}"
 
 
-constdefs
-  Nprg :: "state program"
+definition Nprg :: "state program" where
     (*Initial trace is empty*)
     "Nprg == mk_total_program({[]}, {Fake, NS1, NS2, NS3}, UNIV)"
 

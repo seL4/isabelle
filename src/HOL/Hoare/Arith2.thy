@@ -1,5 +1,4 @@
 (*  Title:      HOL/Hoare/Arith2.thy
-    ID:         $Id$
     Author:     Norbert Galm
     Copyright   1995 TUM
 
@@ -10,11 +9,10 @@ theory Arith2
 imports Main
 begin
 
-constdefs
-  "cd"    :: "[nat, nat, nat] => bool"
+definition "cd" :: "[nat, nat, nat] => bool" where
   "cd x m n  == x dvd m & x dvd n"
 
-  gcd     :: "[nat, nat] => nat"
+definition gcd     :: "[nat, nat] => nat" where
   "gcd m n     == @x.(cd x m n) & (!y.(cd y m n) --> y<=x)"
 
 consts fac     :: "nat => nat"

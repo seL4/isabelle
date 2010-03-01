@@ -751,8 +751,7 @@ qed
 
 subsection {*Order of a Group and Lagrange's Theorem*}
 
-constdefs
-  order :: "('a, 'b) monoid_scheme \<Rightarrow> nat"
+definition order :: "('a, 'b) monoid_scheme \<Rightarrow> nat" where
   "order S \<equiv> card (carrier S)"
 
 lemma (in group) rcosets_part_G:
@@ -822,9 +821,7 @@ done
 
 subsection {*Quotient Groups: Factorization of a Group*}
 
-constdefs
-  FactGroup :: "[('a,'b) monoid_scheme, 'a set] \<Rightarrow> ('a set) monoid"
-     (infixl "Mod" 65)
+definition FactGroup :: "[('a,'b) monoid_scheme, 'a set] \<Rightarrow> ('a set) monoid" (infixl "Mod" 65) where
     --{*Actually defined for groups rather than monoids*}
   "FactGroup G H \<equiv>
     \<lparr>carrier = rcosets\<^bsub>G\<^esub> H, mult = set_mult G, one = H\<rparr>"
@@ -890,9 +887,8 @@ subsection{*The First Isomorphism Theorem*}
 text{*The quotient by the kernel of a homomorphism is isomorphic to the 
   range of that homomorphism.*}
 
-constdefs
-  kernel :: "('a, 'm) monoid_scheme \<Rightarrow> ('b, 'n) monoid_scheme \<Rightarrow> 
-             ('a \<Rightarrow> 'b) \<Rightarrow> 'a set" 
+definition kernel :: "('a, 'm) monoid_scheme \<Rightarrow> ('b, 'n) monoid_scheme \<Rightarrow> 
+             ('a \<Rightarrow> 'b) \<Rightarrow> 'a set" where 
     --{*the kernel of a homomorphism*}
   "kernel G H h \<equiv> {x. x \<in> carrier G & h x = \<one>\<^bsub>H\<^esub>}"
 

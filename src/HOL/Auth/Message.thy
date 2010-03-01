@@ -32,8 +32,7 @@ specification (invKey)
 text{*The inverse of a symmetric key is itself; that of a public key
       is the private key and vice versa*}
 
-constdefs
-  symKeys :: "key set"
+definition symKeys :: "key set" where
   "symKeys == {K. invKey K = K}"
 
 datatype  --{*We allow any number of friendly agents*}
@@ -61,12 +60,11 @@ translations
   "{|x, y|}"      == "CONST MPair x y"
 
 
-constdefs
-  HPair :: "[msg,msg] => msg"                       ("(4Hash[_] /_)" [0, 1000])
+definition HPair :: "[msg,msg] => msg" ("(4Hash[_] /_)" [0, 1000]) where
     --{*Message Y paired with a MAC computed with the help of X*}
     "Hash[X] Y == {| Hash{|X,Y|}, Y|}"
 
-  keysFor :: "msg set => key set"
+definition keysFor :: "msg set => key set" where
     --{*Keys useful to decrypt elements of a message set*}
   "keysFor H == invKey ` {K. \<exists>X. Crypt K X \<in> H}"
 

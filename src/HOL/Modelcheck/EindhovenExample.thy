@@ -1,5 +1,4 @@
 (*  Title:      HOL/Modelcheck/EindhovenExample.thy
-    ID:         $Id$
     Author:     Olaf Mueller, Jan Philipps, Robert Sandner
     Copyright   1997  TU Muenchen
 *)
@@ -11,17 +10,16 @@ begin
 types
   state = "bool * bool * bool"
 
-constdefs
-  INIT :: "state pred"
+definition INIT :: "state pred" where
   "INIT x == ~(fst x)&~(fst (snd x))&~(snd (snd x))"
 
-  N :: "[state,state] => bool"
+definition N :: "[state,state] => bool" where
   "N == % (x1,x2,x3) (y1,y2,y3).
       (~x1 & ~x2 & ~x3 &   y1 & ~y2 & ~y3) |
       ( x1 & ~x2 & ~x3 &  ~y1 & ~y2 & ~y3) |
       ( x1 & ~x2 & ~x3 &   y1 &  y2 &  y3)"
 
-  reach:: "state pred"
+definition reach:: "state pred" where
   "reach  == mu (%Q x. INIT x | (? y. Q y & N y x))"
 
 lemma init_state: "INIT (a, b, c) = (~a & ~b &~c)"

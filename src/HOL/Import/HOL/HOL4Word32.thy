@@ -68,8 +68,7 @@ lemma BITS_def: "ALL (h::nat) (l::nat) n::nat.
    BITS h l n = MOD_2EXP (Suc h - l) (DIV_2EXP l n)"
   by (import bits BITS_def)
 
-constdefs
-  bit :: "nat => nat => bool" 
+definition bit :: "nat => nat => bool" where 
   "bit == %(b::nat) n::nat. BITS b b n = 1"
 
 lemma BIT_def: "ALL (b::nat) n::nat. bit b n = (BITS b b n = 1)"
@@ -840,15 +839,13 @@ defs
 lemma w_T_def: "w_T = mk_word32 (EQUIV COMP0)"
   by (import word32 w_T_def)
 
-constdefs
-  word_suc :: "word32 => word32" 
+definition word_suc :: "word32 => word32" where 
   "word_suc == %T1::word32. mk_word32 (EQUIV (Suc (Eps (dest_word32 T1))))"
 
 lemma word_suc: "ALL T1::word32. word_suc T1 = mk_word32 (EQUIV (Suc (Eps (dest_word32 T1))))"
   by (import word32 word_suc)
 
-constdefs
-  word_add :: "word32 => word32 => word32" 
+definition word_add :: "word32 => word32 => word32" where 
   "word_add ==
 %(T1::word32) T2::word32.
    mk_word32 (EQUIV (Eps (dest_word32 T1) + Eps (dest_word32 T2)))"
@@ -858,8 +855,7 @@ lemma word_add: "ALL (T1::word32) T2::word32.
    mk_word32 (EQUIV (Eps (dest_word32 T1) + Eps (dest_word32 T2)))"
   by (import word32 word_add)
 
-constdefs
-  word_mul :: "word32 => word32 => word32" 
+definition word_mul :: "word32 => word32 => word32" where 
   "word_mul ==
 %(T1::word32) T2::word32.
    mk_word32 (EQUIV (Eps (dest_word32 T1) * Eps (dest_word32 T2)))"
@@ -869,8 +865,7 @@ lemma word_mul: "ALL (T1::word32) T2::word32.
    mk_word32 (EQUIV (Eps (dest_word32 T1) * Eps (dest_word32 T2)))"
   by (import word32 word_mul)
 
-constdefs
-  word_1comp :: "word32 => word32" 
+definition word_1comp :: "word32 => word32" where 
   "word_1comp ==
 %T1::word32. mk_word32 (EQUIV (ONE_COMP (Eps (dest_word32 T1))))"
 
@@ -878,8 +873,7 @@ lemma word_1comp: "ALL T1::word32.
    word_1comp T1 = mk_word32 (EQUIV (ONE_COMP (Eps (dest_word32 T1))))"
   by (import word32 word_1comp)
 
-constdefs
-  word_2comp :: "word32 => word32" 
+definition word_2comp :: "word32 => word32" where 
   "word_2comp ==
 %T1::word32. mk_word32 (EQUIV (TWO_COMP (Eps (dest_word32 T1))))"
 
@@ -887,24 +881,21 @@ lemma word_2comp: "ALL T1::word32.
    word_2comp T1 = mk_word32 (EQUIV (TWO_COMP (Eps (dest_word32 T1))))"
   by (import word32 word_2comp)
 
-constdefs
-  word_lsr1 :: "word32 => word32" 
+definition word_lsr1 :: "word32 => word32" where 
   "word_lsr1 == %T1::word32. mk_word32 (EQUIV (LSR_ONE (Eps (dest_word32 T1))))"
 
 lemma word_lsr1: "ALL T1::word32.
    word_lsr1 T1 = mk_word32 (EQUIV (LSR_ONE (Eps (dest_word32 T1))))"
   by (import word32 word_lsr1)
 
-constdefs
-  word_asr1 :: "word32 => word32" 
+definition word_asr1 :: "word32 => word32" where 
   "word_asr1 == %T1::word32. mk_word32 (EQUIV (ASR_ONE (Eps (dest_word32 T1))))"
 
 lemma word_asr1: "ALL T1::word32.
    word_asr1 T1 = mk_word32 (EQUIV (ASR_ONE (Eps (dest_word32 T1))))"
   by (import word32 word_asr1)
 
-constdefs
-  word_ror1 :: "word32 => word32" 
+definition word_ror1 :: "word32 => word32" where 
   "word_ror1 == %T1::word32. mk_word32 (EQUIV (ROR_ONE (Eps (dest_word32 T1))))"
 
 lemma word_ror1: "ALL T1::word32.
@@ -940,8 +931,7 @@ defs
 lemma MSB_def: "ALL T1::word32. MSB T1 = MSBn (Eps (dest_word32 T1))"
   by (import word32 MSB_def)
 
-constdefs
-  bitwise_or :: "word32 => word32 => word32" 
+definition bitwise_or :: "word32 => word32 => word32" where 
   "bitwise_or ==
 %(T1::word32) T2::word32.
    mk_word32 (EQUIV (OR (Eps (dest_word32 T1)) (Eps (dest_word32 T2))))"
@@ -951,8 +941,7 @@ lemma bitwise_or: "ALL (T1::word32) T2::word32.
    mk_word32 (EQUIV (OR (Eps (dest_word32 T1)) (Eps (dest_word32 T2))))"
   by (import word32 bitwise_or)
 
-constdefs
-  bitwise_eor :: "word32 => word32 => word32" 
+definition bitwise_eor :: "word32 => word32 => word32" where 
   "bitwise_eor ==
 %(T1::word32) T2::word32.
    mk_word32 (EQUIV (EOR (Eps (dest_word32 T1)) (Eps (dest_word32 T2))))"
@@ -962,8 +951,7 @@ lemma bitwise_eor: "ALL (T1::word32) T2::word32.
    mk_word32 (EQUIV (EOR (Eps (dest_word32 T1)) (Eps (dest_word32 T2))))"
   by (import word32 bitwise_eor)
 
-constdefs
-  bitwise_and :: "word32 => word32 => word32" 
+definition bitwise_and :: "word32 => word32 => word32" where 
   "bitwise_and ==
 %(T1::word32) T2::word32.
    mk_word32 (EQUIV (AND (Eps (dest_word32 T1)) (Eps (dest_word32 T2))))"
@@ -1154,36 +1142,31 @@ lemma ADD_TWO_COMP: "ALL x::word32. word_add x (word_2comp x) = w_0"
 lemma ADD_TWO_COMP2: "ALL x::word32. word_add (word_2comp x) x = w_0"
   by (import word32 ADD_TWO_COMP2)
 
-constdefs
-  word_sub :: "word32 => word32 => word32" 
+definition word_sub :: "word32 => word32 => word32" where 
   "word_sub == %(a::word32) b::word32. word_add a (word_2comp b)"
 
 lemma word_sub: "ALL (a::word32) b::word32. word_sub a b = word_add a (word_2comp b)"
   by (import word32 word_sub)
 
-constdefs
-  word_lsl :: "word32 => nat => word32" 
+definition word_lsl :: "word32 => nat => word32" where 
   "word_lsl == %(a::word32) n::nat. word_mul a (n2w (2 ^ n))"
 
 lemma word_lsl: "ALL (a::word32) n::nat. word_lsl a n = word_mul a (n2w (2 ^ n))"
   by (import word32 word_lsl)
 
-constdefs
-  word_lsr :: "word32 => nat => word32" 
+definition word_lsr :: "word32 => nat => word32" where 
   "word_lsr == %(a::word32) n::nat. (word_lsr1 ^^ n) a"
 
 lemma word_lsr: "ALL (a::word32) n::nat. word_lsr a n = (word_lsr1 ^^ n) a"
   by (import word32 word_lsr)
 
-constdefs
-  word_asr :: "word32 => nat => word32" 
+definition word_asr :: "word32 => nat => word32" where 
   "word_asr == %(a::word32) n::nat. (word_asr1 ^^ n) a"
 
 lemma word_asr: "ALL (a::word32) n::nat. word_asr a n = (word_asr1 ^^ n) a"
   by (import word32 word_asr)
 
-constdefs
-  word_ror :: "word32 => nat => word32" 
+definition word_ror :: "word32 => nat => word32" where 
   "word_ror == %(a::word32) n::nat. (word_ror1 ^^ n) a"
 
 lemma word_ror: "ALL (a::word32) n::nat. word_ror a n = (word_ror1 ^^ n) a"

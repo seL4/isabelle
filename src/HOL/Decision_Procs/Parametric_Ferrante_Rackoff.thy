@@ -273,10 +273,10 @@ lemma tmmul_allpolys_npoly[simp]:
   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero, field})"
   shows "allpolys isnpoly t \<Longrightarrow> isnpoly c \<Longrightarrow> allpolys isnpoly (tmmul t c)" by (induct t rule: tmmul.induct, simp_all add: Let_def polymul_norm)
 
-constdefs tmneg :: "tm \<Rightarrow> tm"
+definition tmneg :: "tm \<Rightarrow> tm" where
   "tmneg t \<equiv> tmmul t (C (- 1,1))"
 
-constdefs tmsub :: "tm \<Rightarrow> tm \<Rightarrow> tm"
+definition tmsub :: "tm \<Rightarrow> tm \<Rightarrow> tm" where
   "tmsub s t \<equiv> (if s = t then CP 0\<^sub>p else tmadd (s,tmneg t))"
 
 lemma tmneg[simp]: "Itm vs bs (tmneg t) = Itm vs bs (Neg t)"
@@ -477,26 +477,26 @@ recdef not "measure size"
 lemma not[simp]: "Ifm vs bs (not p) = Ifm vs bs (NOT p)"
 by (induct p rule: not.induct) auto
 
-constdefs conj :: "fm \<Rightarrow> fm \<Rightarrow> fm"
+definition conj :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
   "conj p q \<equiv> (if (p = F \<or> q=F) then F else if p=T then q else if q=T then p else 
    if p = q then p else And p q)"
 lemma conj[simp]: "Ifm vs bs (conj p q) = Ifm vs bs (And p q)"
 by (cases "p=F \<or> q=F",simp_all add: conj_def) (cases p,simp_all)
 
-constdefs disj :: "fm \<Rightarrow> fm \<Rightarrow> fm"
+definition disj :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
   "disj p q \<equiv> (if (p = T \<or> q=T) then T else if p=F then q else if q=F then p 
        else if p=q then p else Or p q)"
 
 lemma disj[simp]: "Ifm vs bs (disj p q) = Ifm vs bs (Or p q)"
 by (cases "p=T \<or> q=T",simp_all add: disj_def) (cases p,simp_all)
 
-constdefs  imp :: "fm \<Rightarrow> fm \<Rightarrow> fm"
+definition imp :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
   "imp p q \<equiv> (if (p = F \<or> q=T \<or> p=q) then T else if p=T then q else if q=F then not p 
     else Imp p q)"
 lemma imp[simp]: "Ifm vs bs (imp p q) = Ifm vs bs (Imp p q)"
 by (cases "p=F \<or> q=T",simp_all add: imp_def) 
 
-constdefs   iff :: "fm \<Rightarrow> fm \<Rightarrow> fm"
+definition iff :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
   "iff p q \<equiv> (if (p = q) then T else if (p = NOT q \<or> NOT p = q) then F else 
        if p=F then not q else if q=F then not p else if p=T then q else if q=T then p else 
   Iff p q)"
@@ -776,10 +776,10 @@ recdef isatom "measure size"
 lemma bound0_qf: "bound0 p \<Longrightarrow> qfree p"
 by (induct p, simp_all)
 
-constdefs djf:: "('a \<Rightarrow> fm) \<Rightarrow> 'a \<Rightarrow> fm \<Rightarrow> fm"
+definition djf :: "('a \<Rightarrow> fm) \<Rightarrow> 'a \<Rightarrow> fm \<Rightarrow> fm" where
   "djf f p q \<equiv> (if q=T then T else if q=F then f p else 
   (let fp = f p in case fp of T \<Rightarrow> T | F \<Rightarrow> q | _ \<Rightarrow> Or (f p) q))"
-constdefs evaldjf:: "('a \<Rightarrow> fm) \<Rightarrow> 'a list \<Rightarrow> fm"
+definition evaldjf :: "('a \<Rightarrow> fm) \<Rightarrow> 'a list \<Rightarrow> fm" where
   "evaldjf f ps \<equiv> foldr (djf f) ps F"
 
 lemma djf_Or: "Ifm vs bs (djf f p q) = Ifm vs bs (Or (f p) q)"
@@ -823,7 +823,7 @@ proof-
   thus ?thesis by (simp only: list_all_iff)
 qed
 
-constdefs DJ :: "(fm \<Rightarrow> fm) \<Rightarrow> fm \<Rightarrow> fm"
+definition DJ :: "(fm \<Rightarrow> fm) \<Rightarrow> fm \<Rightarrow> fm" where
   "DJ f p \<equiv> evaldjf f (disjuncts p)"
 
 lemma DJ: assumes fdj: "\<forall> p q. Ifm vs bs (f (Or p q)) = Ifm vs bs (Or (f p) (f q))"
@@ -869,10 +869,10 @@ recdef conjuncts "measure size"
   "conjuncts T = []"
   "conjuncts p = [p]"
 
-constdefs list_conj :: "fm list \<Rightarrow> fm"
+definition list_conj :: "fm list \<Rightarrow> fm" where
   "list_conj ps \<equiv> foldr conj ps T"
 
-constdefs CJNB:: "(fm \<Rightarrow> fm) \<Rightarrow> fm \<Rightarrow> fm"
+definition CJNB :: "(fm \<Rightarrow> fm) \<Rightarrow> fm \<Rightarrow> fm" where
   "CJNB f p \<equiv> (let cjs = conjuncts p ; (yes,no) = partition bound0 cjs
                    in conj (decr0 (list_conj yes)) (f (list_conj no)))"
 
@@ -1158,7 +1158,7 @@ recdef conjs "measure size"
   "conjs p = [p]"
 lemma conjs_ci: "(\<forall> q \<in> set (conjs p). Ifm vs bs q) = Ifm vs bs p"
 by (induct p rule: conjs.induct, auto)
-constdefs list_disj :: "fm list \<Rightarrow> fm"
+definition list_disj :: "fm list \<Rightarrow> fm" where
   "list_disj ps \<equiv> foldr disj ps F"
 
 lemma list_conj: "Ifm vs bs (list_conj ps) = (\<forall>p\<in> set ps. Ifm vs bs p)"

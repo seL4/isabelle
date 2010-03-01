@@ -11,21 +11,20 @@ text{*And the "Part" primitive for simultaneous recursive type definitions*}
 
 global
 
-constdefs
-  sum     :: "[i,i]=>i"                     (infixr "+" 65)
+definition sum :: "[i,i]=>i" (infixr "+" 65) where
      "A+B == {0}*A Un {1}*B"
 
-  Inl     :: "i=>i"
+definition Inl :: "i=>i" where
      "Inl(a) == <0,a>"
 
-  Inr     :: "i=>i"
+definition Inr :: "i=>i" where
      "Inr(b) == <1,b>"
 
-  "case"  :: "[i=>i, i=>i, i]=>i"
+definition "case" :: "[i=>i, i=>i, i]=>i" where
      "case(c,d) == (%<y,z>. cond(y, d(z), c(z)))"
 
   (*operator for selecting out the various summands*)
-  Part    :: "[i,i=>i] => i"
+definition Part :: "[i,i=>i] => i" where
      "Part(A,h) == {x: A. EX z. x = h(z)}"
 
 local

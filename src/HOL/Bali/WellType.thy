@@ -53,11 +53,10 @@ types
   emhead = "ref_ty \<times> mhead"
 
 --{* Some mnemotic selectors for emhead *}
-constdefs 
-  "declrefT" :: "emhead \<Rightarrow> ref_ty"
+definition "declrefT" :: "emhead \<Rightarrow> ref_ty" where
   "declrefT \<equiv> fst"
 
-  "mhd"     :: "emhead \<Rightarrow> mhead"
+definition "mhd"     :: "emhead \<Rightarrow> mhead" where
   "mhd \<equiv> snd"
 
 lemma declrefT_simp[simp]:"declrefT (r,m) = r"
@@ -138,11 +137,10 @@ apply (auto dest: equalityD2 subsetD max_spec2appl_meths appl_methsD)
 done
 
 
-constdefs
-  empty_dt :: "dyn_ty"
+definition empty_dt :: "dyn_ty" where
  "empty_dt \<equiv> \<lambda>a. None"
 
-  invmode :: "('a::type)member_scheme \<Rightarrow> expr \<Rightarrow> inv_mode"
+definition invmode :: "('a::type)member_scheme \<Rightarrow> expr \<Rightarrow> inv_mode" where
 "invmode m e \<equiv> if is_static m 
                   then Static 
                   else if e=Super then SuperM else IntVir"

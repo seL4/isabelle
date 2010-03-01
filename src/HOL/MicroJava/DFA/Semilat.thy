@@ -49,36 +49,34 @@ defs
   lesssub_def: "x \<sqsubset>\<^sub>r y \<equiv> x \<sqsubseteq>\<^sub>r y \<and> x \<noteq> y"
   plussub_def: "x \<squnion>\<^sub>f y \<equiv> f x y"
 
-constdefs
-  ord :: "('a \<times> 'a) set \<Rightarrow> 'a ord"
+definition ord :: "('a \<times> 'a) set \<Rightarrow> 'a ord" where
   "ord r \<equiv> \<lambda>x y. (x,y) \<in> r"
 
-  order :: "'a ord \<Rightarrow> bool"
+definition order :: "'a ord \<Rightarrow> bool" where
   "order r \<equiv> (\<forall>x. x \<sqsubseteq>\<^sub>r x) \<and> (\<forall>x y. x \<sqsubseteq>\<^sub>r y \<and> y \<sqsubseteq>\<^sub>r x \<longrightarrow> x=y) \<and> (\<forall>x y z. x \<sqsubseteq>\<^sub>r y \<and> y \<sqsubseteq>\<^sub>r z \<longrightarrow> x \<sqsubseteq>\<^sub>r z)"
 
-  top :: "'a ord \<Rightarrow> 'a \<Rightarrow> bool"
+definition top :: "'a ord \<Rightarrow> 'a \<Rightarrow> bool" where
   "top r T \<equiv> \<forall>x. x \<sqsubseteq>\<^sub>r T"
   
-  acc :: "'a ord \<Rightarrow> bool"
+definition acc :: "'a ord \<Rightarrow> bool" where
   "acc r \<equiv> wf {(y,x). x \<sqsubset>\<^sub>r y}"
 
-  closed :: "'a set \<Rightarrow> 'a binop \<Rightarrow> bool"
+definition closed :: "'a set \<Rightarrow> 'a binop \<Rightarrow> bool" where
   "closed A f \<equiv> \<forall>x\<in>A. \<forall>y\<in>A. x \<squnion>\<^sub>f y \<in> A"
 
-  semilat :: "'a sl \<Rightarrow> bool"
+definition semilat :: "'a sl \<Rightarrow> bool" where
   "semilat \<equiv> \<lambda>(A,r,f). order r \<and> closed A f \<and> 
                        (\<forall>x\<in>A. \<forall>y\<in>A. x \<sqsubseteq>\<^sub>r x \<squnion>\<^sub>f y) \<and>
                        (\<forall>x\<in>A. \<forall>y\<in>A. y \<sqsubseteq>\<^sub>r x \<squnion>\<^sub>f y) \<and>
                        (\<forall>x\<in>A. \<forall>y\<in>A. \<forall>z\<in>A. x \<sqsubseteq>\<^sub>r z \<and> y \<sqsubseteq>\<^sub>r z \<longrightarrow> x \<squnion>\<^sub>f y \<sqsubseteq>\<^sub>r z)"
 
-
-  is_ub :: "('a \<times> 'a) set \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
+definition is_ub :: "('a \<times> 'a) set \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" where
   "is_ub r x y u \<equiv> (x,u)\<in>r \<and> (y,u)\<in>r"
 
-  is_lub :: "('a \<times> 'a) set \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
+definition is_lub :: "('a \<times> 'a) set \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" where
   "is_lub r x y u \<equiv> is_ub r x y u \<and> (\<forall>z. is_ub r x y z \<longrightarrow> (u,z)\<in>r)"
 
-  some_lub :: "('a \<times> 'a) set \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a"
+definition some_lub :: "('a \<times> 'a) set \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
   "some_lub r x y \<equiv> SOME z. is_lub r x y z"
 
 locale Semilat =
@@ -304,8 +302,7 @@ lemma is_lub_some_lub:
 
 subsection{*An executable lub-finder*}
 
-constdefs
- exec_lub :: "('a * 'a) set \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a binop"
+definition exec_lub :: "('a * 'a) set \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a binop" where
 "exec_lub r f x y \<equiv> while (\<lambda>z. (x,z) \<notin> r\<^sup>*) f y"
 
 lemma exec_lub_refl: "exec_lub r f T T = T"

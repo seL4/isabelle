@@ -61,7 +61,7 @@ recdef agt_nb "measure size"
 
 subsubsection{*messages that are pairs*}
 
-constdefs is_MPair :: "msg => bool"
+definition is_MPair :: "msg => bool" where
 "is_MPair X == EX Y Z. X = {|Y,Z|}"
 
 declare is_MPair_def [simp]
@@ -96,7 +96,7 @@ by auto
 
 declare is_MPair_def [simp del]
 
-constdefs has_no_pair :: "msg set => bool"
+definition has_no_pair :: "msg set => bool" where
 "has_no_pair H == ALL X Y. {|X,Y|} ~:H"
 
 declare has_no_pair_def [simp]
@@ -117,7 +117,7 @@ by (auto dest: parts_size)
 
 subsubsection{*lemmas on keysFor*}
 
-constdefs usekeys :: "msg set => key set"
+definition usekeys :: "msg set => key set" where
 "usekeys G == {K. EX Y. Crypt K Y:G}"
 
 lemma finite_keysFor [intro]: "finite G ==> finite (keysFor G)"
@@ -237,7 +237,7 @@ by (induct X, auto)
 
 subsubsection{*sets of keys*}
 
-constdefs keyset :: "msg set => bool"
+definition keyset :: "msg set => bool" where
 "keyset G == ALL X. X:G --> (EX K. X = Key K)"
 
 lemma keyset_in [dest]: "[| keyset G; X:G |] ==> EX K. X = Key K"
@@ -257,7 +257,7 @@ by (auto, erule parts.induct, auto)
 
 subsubsection{*keys a priori necessary for decrypting the messages of G*}
 
-constdefs keysfor :: "msg set => msg set"
+definition keysfor :: "msg set => msg set" where
 "keysfor G == Key ` keysFor (parts G)"
 
 lemma keyset_keysfor [iff]: "keyset (keysfor G)"
@@ -295,7 +295,7 @@ subsection{*Extensions to Theory @{text Event}*}
 
 subsubsection{*general protocol properties*}
 
-constdefs is_Says :: "event => bool"
+definition is_Says :: "event => bool" where
 "is_Says ev == (EX A B X. ev = Says A B X)"
 
 lemma is_Says_Says [iff]: "is_Says (Says A B X)"
@@ -303,7 +303,7 @@ by (simp add: is_Says_def)
 
 (* one could also require that Gets occurs after Says
 but this is sufficient for our purpose *)
-constdefs Gets_correct :: "event list set => bool"
+definition Gets_correct :: "event list set => bool" where
 "Gets_correct p == ALL evs B X. evs:p --> Gets B X:set evs
 --> (EX A. Says A B X:set evs)"
 
@@ -312,7 +312,7 @@ lemma Gets_correct_Says: "[| Gets_correct p; Gets B X # evs:p |]
 apply (simp add: Gets_correct_def)
 by (drule_tac x="Gets B X # evs" in spec, auto)
 
-constdefs one_step :: "event list set => bool"
+definition one_step :: "event list set => bool" where
 "one_step p == ALL evs ev. ev#evs:p --> evs:p"
 
 lemma one_step_Cons [dest]: "[| one_step p; ev#evs:p |] ==> evs:p"
@@ -324,7 +324,7 @@ by (induct evs, auto)
 lemma trunc: "[| evs @ evs':p; one_step p |] ==> evs':p"
 by (induct evs, auto)
 
-constdefs has_only_Says :: "event list set => bool"
+definition has_only_Says :: "event list set => bool" where
 "has_only_Says p == ALL evs ev. evs:p --> ev:set evs
 --> (EX A B X. ev = Says A B X)"
 
@@ -450,7 +450,7 @@ knows_max'_def_Cons: "knows_max' A (ev # evs) = (
       if A=A' then insert X (knows_max' A evs) else knows_max' A evs
   ))"
 
-constdefs knows_max :: "agent => event list => msg set"
+definition knows_max :: "agent => event list => msg set" where
 "knows_max A evs == knows_max' A evs Un initState A"
 
 abbreviation
@@ -512,7 +512,7 @@ primrec
     | Notes A X => parts {X} Un used' evs
   )"
 
-constdefs init :: "msg set"
+definition init :: "msg set" where
 "init == used []"
 
 lemma used_decomp: "used evs = init Un used' evs"

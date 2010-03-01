@@ -14,11 +14,10 @@ types
 
   obj = "cname \<times> fields'"    -- "class instance with class name and fields"
 
-constdefs
-  obj_ty  :: "obj => ty"
+definition obj_ty :: "obj => ty" where
  "obj_ty obj  == Class (fst obj)"
 
-  init_vars :: "('a \<times> ty) list => ('a \<rightharpoonup> val)"
+definition init_vars :: "('a \<times> ty) list => ('a \<rightharpoonup> val)" where
  "init_vars == map_of o map (\<lambda>(n,T). (n,default_val T))"
 
 types aheap  = "loc \<rightharpoonup> obj"    -- {* "@{text heap}" used in a translation below *}
@@ -49,21 +48,19 @@ abbreviation
   lookup_obj :: "state \<Rightarrow> val \<Rightarrow> obj"
   where "lookup_obj s a' == the (heap s (the_Addr a'))"
 
-
-constdefs
-  raise_if :: "bool \<Rightarrow> xcpt \<Rightarrow> val option \<Rightarrow> val option"
+definition raise_if :: "bool \<Rightarrow> xcpt \<Rightarrow> val option \<Rightarrow> val option" where
   "raise_if b x xo \<equiv> if b \<and>  (xo = None) then Some (Addr (XcptRef x)) else xo"
 
-  new_Addr  :: "aheap => loc \<times> val option"
+definition new_Addr  :: "aheap => loc \<times> val option" where
   "new_Addr h \<equiv> SOME (a,x). (h a = None \<and>  x = None) |  x = Some (Addr (XcptRef OutOfMemory))"
 
-  np    :: "val => val option => val option"
+definition np    :: "val => val option => val option" where
  "np v == raise_if (v = Null) NullPointer"
 
-  c_hupd  :: "aheap => xstate => xstate"
+definition c_hupd  :: "aheap => xstate => xstate" where
  "c_hupd h'== \<lambda>(xo,(h,l)). if xo = None then (None,(h',l)) else (xo,(h,l))"
 
-  cast_ok :: "'c prog => cname => aheap => val => bool"
+definition cast_ok :: "'c prog => cname => aheap => val => bool" where
  "cast_ok G C h v == v = Null \<or> G\<turnstile>obj_ty (the (h (the_Addr v)))\<preceq> Class C"
 
 lemma obj_ty_def2 [simp]: "obj_ty (C,fs) = Class C"

@@ -42,7 +42,7 @@ primrec
 "Sem(While b x c) s s' =
  (if s = None then s' = None else \<exists>n. iter n b (Sem c) s s')"
 
-constdefs Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Rightarrow> bool"
+definition Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Rightarrow> bool" where
   "Valid p c q == \<forall>s s'. Sem c s s' \<longrightarrow> s : Some ` p \<longrightarrow> s' : Some ` q"
 
 

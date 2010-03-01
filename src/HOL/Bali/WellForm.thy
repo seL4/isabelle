@@ -31,8 +31,7 @@ section "well-formed field declarations"
 text  {* well-formed field declaration (common part for classes and interfaces),
         cf. 8.3 and (9.3) *}
 
-constdefs
-  wf_fdecl :: "prog \<Rightarrow> pname \<Rightarrow> fdecl \<Rightarrow> bool"
+definition wf_fdecl :: "prog \<Rightarrow> pname \<Rightarrow> fdecl \<Rightarrow> bool" where
  "wf_fdecl G P \<equiv> \<lambda>(fn,f). is_acc_type G P (type f)"
 
 lemma wf_fdecl_def2: "\<And>fd. wf_fdecl G P fd = is_acc_type G P (type (snd fd))"
@@ -55,8 +54,7 @@ A method head is wellformed if:
 \item the parameter names are unique
 \end{itemize} 
 *}
-constdefs
-  wf_mhead :: "prog \<Rightarrow> pname \<Rightarrow> sig \<Rightarrow> mhead \<Rightarrow> bool"
+definition wf_mhead :: "prog \<Rightarrow> pname \<Rightarrow> sig \<Rightarrow> mhead \<Rightarrow> bool" where
  "wf_mhead G P \<equiv> \<lambda> sig mh. length (parTs sig) = length (pars mh) \<and>
                             \<spacespace> ( \<forall>T\<in>set (parTs sig). is_acc_type G P T) \<and> 
                             is_acc_type G P (resTy mh) \<and>
@@ -78,7 +76,7 @@ A method declaration is wellformed if:
 \end{itemize}
 *}
 
-constdefs callee_lcl:: "qtname \<Rightarrow> sig \<Rightarrow> methd \<Rightarrow> lenv"
+definition callee_lcl :: "qtname \<Rightarrow> sig \<Rightarrow> methd \<Rightarrow> lenv" where
 "callee_lcl C sig m 
  \<equiv> \<lambda> k. (case k of
             EName e 
@@ -88,12 +86,11 @@ constdefs callee_lcl:: "qtname \<Rightarrow> sig \<Rightarrow> methd \<Rightarro
                 | Res \<Rightarrow> Some (resTy m))
           | This \<Rightarrow> if is_static m then None else Some (Class C))"
 
-constdefs parameters :: "methd \<Rightarrow> lname set"
+definition parameters :: "methd \<Rightarrow> lname set" where
 "parameters m \<equiv>  set (map (EName \<circ> VNam) (pars m)) 
                   \<union> (if (static m) then {} else {This})"
 
-constdefs
-  wf_mdecl :: "prog \<Rightarrow> qtname \<Rightarrow> mdecl \<Rightarrow> bool"
+definition wf_mdecl :: "prog \<Rightarrow> qtname \<Rightarrow> mdecl \<Rightarrow> bool" where
  "wf_mdecl G C \<equiv> 
       \<lambda>(sig,m).
           wf_mhead G (pid C) sig (mhead m) \<and> 
@@ -219,8 +216,7 @@ A interface declaration is wellformed if:
       superinterfaces widens to each of the corresponding result types
 \end{itemize}
 *}
-constdefs
-  wf_idecl :: "prog  \<Rightarrow> idecl \<Rightarrow> bool"
+definition wf_idecl :: "prog  \<Rightarrow> idecl \<Rightarrow> bool" where
  "wf_idecl G \<equiv> 
     \<lambda>(I,i). 
         ws_idecl G I (isuperIfs i) \<and> 
@@ -321,8 +317,7 @@ A class declaration is wellformed if:
 \end{itemize}
 *}
 (* to Table *)
-constdefs entails:: "('a,'b) table \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> bool"
-                                 ("_ entails _" 20)
+definition entails :: "('a,'b) table \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> bool" ("_ entails _" 20) where
 "t entails P \<equiv> \<forall>k. \<forall> x \<in> t k: P x"
 
 lemma entailsD:
@@ -332,8 +327,7 @@ by (simp add: entails_def)
 lemma empty_entails[simp]: "empty entails P"
 by (simp add: entails_def)
 
-constdefs
- wf_cdecl :: "prog \<Rightarrow> cdecl \<Rightarrow> bool"
+definition wf_cdecl :: "prog \<Rightarrow> cdecl \<Rightarrow> bool" where
 "wf_cdecl G \<equiv> 
    \<lambda>(C,c).
       \<not>is_iface G C \<and>
@@ -361,8 +355,7 @@ constdefs
             ))"
 
 (*
-constdefs
- wf_cdecl :: "prog \<Rightarrow> cdecl \<Rightarrow> bool"
+definition wf_cdecl :: "prog \<Rightarrow> cdecl \<Rightarrow> bool" where
 "wf_cdecl G \<equiv> 
    \<lambda>(C,c).
       \<not>is_iface G C \<and>
@@ -518,8 +511,7 @@ A program declaration is wellformed if:
 \item all defined classes are wellformed
 \end{itemize}
 *}
-constdefs
-  wf_prog  :: "prog \<Rightarrow> bool"
+definition wf_prog :: "prog \<Rightarrow> bool" where
  "wf_prog G \<equiv> let is = ifaces G; cs = classes G in
                  ObjectC \<in> set cs \<and> 
                 (\<forall> m\<in>set Object_mdecls. accmodi m \<noteq> Package) \<and>
@@ -919,7 +911,7 @@ proof -
      inheritable: "G \<turnstile>Method old inheritable_in pid C" and
          subclsC: "G\<turnstile>C\<prec>\<^sub>C declclass old"
     from cls_C neq_C_Obj  
-    have super: "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 super c" 
+    have super: "G\<turnstile>C \<prec>\<^sub>C1 super c" 
       by (rule subcls1I)
     from wf cls_C neq_C_Obj
     have accessible_super: "G\<turnstile>(Class (super c)) accessible_in (pid C)" 
@@ -1385,7 +1377,7 @@ proof (rule class_rec.induct,intro allI impI)
       moreover note wf False cls_C  
       ultimately have "G\<turnstile>super c \<preceq>\<^sub>C declclass m"  
         by (auto intro: Hyp [rule_format])
-      moreover from cls_C False have  "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 super c" by (rule subcls1I)
+      moreover from cls_C False have  "G\<turnstile>C \<prec>\<^sub>C1 super c" by (rule subcls1I)
       ultimately show ?thesis by - (rule rtrancl_into_rtrancl2)
     next
       case Some
@@ -1539,7 +1531,7 @@ proof -
     by (auto intro: method_declared_inI)
   note trancl_rtrancl_tranc = trancl_rtrancl_trancl [trans] (* ### in Basis *)
   from clsC neq_C_Obj
-  have subcls1_C_super: "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 super c"
+  have subcls1_C_super: "G\<turnstile>C \<prec>\<^sub>C1 super c"
     by (rule subcls1I)
   then have "G\<turnstile>C \<prec>\<^sub>C super c" ..
   also from old wf is_cls_super
@@ -1609,7 +1601,7 @@ proof -
       by (auto dest: ws_prog_cdeclD)
     from clsC wf neq_C_Obj 
     have superAccessible: "G\<turnstile>(Class (super c)) accessible_in (pid C)" and
-         subcls1_C_super: "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 super c"
+         subcls1_C_super: "G\<turnstile>C \<prec>\<^sub>C1 super c"
       by (auto dest: wf_prog_cdecl wf_cdecl_supD is_acc_classD
               intro: subcls1I)
     show "\<exists>new. ?Constraint C new old"

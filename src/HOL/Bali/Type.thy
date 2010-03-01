@@ -41,8 +41,7 @@ abbreviation "Class C == RefT (ClassT C)"
 abbreviation Array :: "ty \<Rightarrow> ty"  ("_.[]" [90] 90)
   where "T.[] == RefT (ArrayT T)"
 
-constdefs
-  the_Class :: "ty \<Rightarrow> qtname"
+definition the_Class :: "ty \<Rightarrow> qtname" where
  "the_Class T \<equiv> SOME C. T = Class C" (** primrec not possible here **)
  
 lemma the_Class_eq [simp]: "the_Class (Class C)= C"

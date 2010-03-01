@@ -8,8 +8,7 @@ First-Order Logic: the 'if' example.
 
 theory If imports FOL begin
 
-constdefs
-  "if" :: "[o,o,o]=>o"
+definition "if" :: "[o,o,o]=>o" where
   "if(P,Q,R) == P&Q | ~P&R"
 
 lemma ifI:

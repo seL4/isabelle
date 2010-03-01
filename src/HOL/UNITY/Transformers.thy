@@ -20,16 +20,15 @@ theory Transformers imports Comp begin
 subsection{*Defining the Predicate Transformers @{term wp},
    @{term awp} and  @{term wens}*}
 
-constdefs
-  wp :: "[('a*'a) set, 'a set] => 'a set"  
+definition wp :: "[('a*'a) set, 'a set] => 'a set" where  
     --{*Dijkstra's weakest-precondition operator (for an individual command)*}
     "wp act B == - (act^-1 `` (-B))"
 
-  awp :: "['a program, 'a set] => 'a set"  
+definition awp :: "['a program, 'a set] => 'a set" where
     --{*Dijkstra's weakest-precondition operator (for a program)*}
     "awp F B == (\<Inter>act \<in> Acts F. wp act B)"
 
-  wens :: "['a program, ('a*'a) set, 'a set] => 'a set"  
+definition wens :: "['a program, ('a*'a) set, 'a set] => 'a set" where
     --{*The weakest-ensures transformer*}
     "wens F act B == gfp(\<lambda>X. (wp act B \<inter> awp F (B \<union> X)) \<union> B)"
 
@@ -335,11 +334,10 @@ by (simp add: wens_def gfp_def wp_def, blast)
 
 text{*Next, we express the @{term "wens_set"} for single-assignment programs*}
 
-constdefs
-  wens_single_finite :: "[('a*'a) set, 'a set, nat] => 'a set"  
+definition wens_single_finite :: "[('a*'a) set, 'a set, nat] => 'a set" where  
     "wens_single_finite act B k == \<Union>i \<in> atMost k. (wp act ^^ i) B"
 
-  wens_single :: "[('a*'a) set, 'a set] => 'a set"  
+definition wens_single :: "[('a*'a) set, 'a set] => 'a set" where
     "wens_single act B == \<Union>i. (wp act ^^ i) B"
 
 lemma wens_single_Un_eq:

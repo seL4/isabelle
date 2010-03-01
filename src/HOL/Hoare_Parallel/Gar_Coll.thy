@@ -31,8 +31,7 @@ nodes @{text "m"} and a list of edges @{text "e"}, the conditions
 under which the selected edge @{text "R"} and node @{text "T"} are
 valid: *}
 
-constdefs
-  Mut_init :: "gar_coll_state \<Rightarrow> bool"
+definition Mut_init :: "gar_coll_state \<Rightarrow> bool" where
   "Mut_init \<equiv> \<guillemotleft> T \<in> Reach \<acute>E \<and> R < length \<acute>E \<and> T < length \<acute>M \<guillemotright>"
 
 text {* \noindent For the mutator we
@@ -40,14 +39,13 @@ consider two modules, one for each action.  An auxiliary variable
 @{text "\<acute>z"} is set to false if the mutator has already redirected an
 edge but has not yet colored the new target.   *}
 
-constdefs
-  Redirect_Edge :: "gar_coll_state ann_com"
+definition Redirect_Edge :: "gar_coll_state ann_com" where
   "Redirect_Edge \<equiv> .{\<acute>Mut_init \<and> \<acute>z}. \<langle>\<acute>E:=\<acute>E[R:=(fst(\<acute>E!R), T)],, \<acute>z:= (\<not>\<acute>z)\<rangle>"
 
-  Color_Target :: "gar_coll_state ann_com"
+definition Color_Target :: "gar_coll_state ann_com" where
   "Color_Target \<equiv> .{\<acute>Mut_init \<and> \<not>\<acute>z}. \<langle>\<acute>M:=\<acute>M[T:=Black],, \<acute>z:= (\<not>\<acute>z)\<rangle>"
 
-  Mutator :: "gar_coll_state ann_com"
+definition Mutator :: "gar_coll_state ann_com" where
   "Mutator \<equiv>
   .{\<acute>Mut_init \<and> \<acute>z}. 
   WHILE True INV .{\<acute>Mut_init \<and> \<acute>z}. 
@@ -88,22 +86,20 @@ suitable first value, defined as a list of nodes where only the @{text
 
 consts  M_init :: nodes
 
-constdefs
-  Proper_M_init :: "gar_coll_state \<Rightarrow> bool"
+definition Proper_M_init :: "gar_coll_state \<Rightarrow> bool" where
   "Proper_M_init \<equiv>  \<guillemotleft> Blacks M_init=Roots \<and> length M_init=length \<acute>M \<guillemotright>"
  
-  Proper :: "gar_coll_state \<Rightarrow> bool"
+definition Proper :: "gar_coll_state \<Rightarrow> bool" where
   "Proper \<equiv> \<guillemotleft> Proper_Roots \<acute>M \<and> Proper_Edges(\<acute>M, \<acute>E) \<and> \<acute>Proper_M_init \<guillemotright>"
 
-  Safe :: "gar_coll_state \<Rightarrow> bool"
+definition Safe :: "gar_coll_state \<Rightarrow> bool" where
   "Safe \<equiv> \<guillemotleft> Reach \<acute>E \<subseteq> Blacks \<acute>M \<guillemotright>"
 
 lemmas collector_defs = Proper_M_init_def Proper_def Safe_def
 
 subsubsection {* Blackening the roots *}
 
-constdefs
-  Blacken_Roots :: " gar_coll_state ann_com"
+definition Blacken_Roots :: " gar_coll_state ann_com" where
   "Blacken_Roots \<equiv> 
   .{\<acute>Proper}.
   \<acute>ind:=0;;
@@ -133,13 +129,11 @@ done
 
 subsubsection {* Propagating black *}
 
-constdefs
-  PBInv :: "gar_coll_state \<Rightarrow> nat \<Rightarrow> bool"
+definition PBInv :: "gar_coll_state \<Rightarrow> nat \<Rightarrow> bool" where
   "PBInv \<equiv> \<guillemotleft> \<lambda>ind. \<acute>obc < Blacks \<acute>M \<or> (\<forall>i <ind. \<not>BtoW (\<acute>E!i, \<acute>M) \<or>
    (\<not>\<acute>z \<and> i=R \<and> (snd(\<acute>E!R)) = T \<and> (\<exists>r. ind \<le> r \<and> r < length \<acute>E \<and> BtoW(\<acute>E!r,\<acute>M))))\<guillemotright>"
 
-constdefs  
-  Propagate_Black_aux :: "gar_coll_state ann_com"
+definition Propagate_Black_aux :: "gar_coll_state ann_com" where
   "Propagate_Black_aux \<equiv>
   .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M}.
   \<acute>ind:=0;;
@@ -214,14 +208,12 @@ done
 
 subsubsection {* Refining propagating black *}
 
-constdefs
-  Auxk :: "gar_coll_state \<Rightarrow> bool"
+definition Auxk :: "gar_coll_state \<Rightarrow> bool" where
   "Auxk \<equiv> \<guillemotleft>\<acute>k<length \<acute>M \<and> (\<acute>M!\<acute>k\<noteq>Black \<or> \<not>BtoW(\<acute>E!\<acute>ind, \<acute>M) \<or> 
           \<acute>obc<Blacks \<acute>M \<or> (\<not>\<acute>z \<and> \<acute>ind=R \<and> snd(\<acute>E!R)=T  
           \<and> (\<exists>r. \<acute>ind<r \<and> r<length \<acute>E \<and> BtoW(\<acute>E!r, \<acute>M))))\<guillemotright>"
 
-constdefs  
-  Propagate_Black :: " gar_coll_state ann_com"
+definition Propagate_Black :: " gar_coll_state ann_com" where
   "Propagate_Black \<equiv>
   .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M}.
   \<acute>ind:=0;;
@@ -328,12 +320,10 @@ done
 
 subsubsection {* Counting black nodes *}
 
-constdefs
-  CountInv :: "gar_coll_state \<Rightarrow> nat \<Rightarrow> bool"
+definition CountInv :: "gar_coll_state \<Rightarrow> nat \<Rightarrow> bool" where
   "CountInv \<equiv> \<guillemotleft> \<lambda>ind. {i. i<ind \<and> \<acute>Ma!i=Black}\<subseteq>\<acute>bc \<guillemotright>"
 
-constdefs
-  Count :: " gar_coll_state ann_com"
+definition Count :: " gar_coll_state ann_com" where
   "Count \<equiv>
   .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M 
     \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma \<and> Blacks \<acute>Ma\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
@@ -398,12 +388,10 @@ axioms
   Append_to_free2: "i \<notin> Reach e 
      \<Longrightarrow> n \<in> Reach (Append_to_free(i, e)) = ( n = i \<or> n \<in> Reach e)"
 
-constdefs
-  AppendInv :: "gar_coll_state \<Rightarrow> nat \<Rightarrow> bool"
+definition AppendInv :: "gar_coll_state \<Rightarrow> nat \<Rightarrow> bool" where
   "AppendInv \<equiv> \<guillemotleft>\<lambda>ind. \<forall>i<length \<acute>M. ind\<le>i \<longrightarrow> i\<in>Reach \<acute>E \<longrightarrow> \<acute>M!i=Black\<guillemotright>"
 
-constdefs
-  Append :: " gar_coll_state ann_com"
+definition Append :: " gar_coll_state ann_com" where
    "Append \<equiv>
   .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>Safe}.
   \<acute>ind:=0;;
@@ -444,8 +432,7 @@ done
 
 subsubsection {* Correctness of the Collector *}
 
-constdefs 
-  Collector :: " gar_coll_state ann_com"
+definition Collector :: " gar_coll_state ann_com" where
   "Collector \<equiv>
 .{\<acute>Proper}.  
  WHILE True INV .{\<acute>Proper}. 

@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/J/Conform.thy
-    ID:         $Id$
     Author:     David von Oheimb
     Copyright   1999 Technische Universitaet Muenchen
 *)
@@ -10,29 +9,27 @@ theory Conform imports State WellType Exceptions begin
 
 types 'c env' = "'c prog \<times> (vname \<rightharpoonup> ty)"  -- "same as @{text env} of @{text WellType.thy}"
 
-constdefs
-
-  hext :: "aheap => aheap => bool" ("_ <=| _" [51,51] 50)
+definition hext :: "aheap => aheap => bool" ("_ <=| _" [51,51] 50) where
  "h<=|h' == \<forall>a C fs. h a = Some(C,fs) --> (\<exists>fs'. h' a = Some(C,fs'))"
 
-  conf :: "'c prog => aheap => val => ty => bool" 
-                                   ("_,_ |- _ ::<= _"  [51,51,51,51] 50)
+definition conf :: "'c prog => aheap => val => ty => bool" 
+                                   ("_,_ |- _ ::<= _"  [51,51,51,51] 50) where
  "G,h|-v::<=T == \<exists>T'. typeof (Option.map obj_ty o h) v = Some T' \<and> G\<turnstile>T'\<preceq>T"
 
-  lconf :: "'c prog => aheap => ('a \<rightharpoonup> val) => ('a \<rightharpoonup> ty) => bool"
-                                   ("_,_ |- _ [::<=] _" [51,51,51,51] 50)
+definition lconf :: "'c prog => aheap => ('a \<rightharpoonup> val) => ('a \<rightharpoonup> ty) => bool"
+                                   ("_,_ |- _ [::<=] _" [51,51,51,51] 50) where
  "G,h|-vs[::<=]Ts == \<forall>n T. Ts n = Some T --> (\<exists>v. vs n = Some v \<and> G,h|-v::<=T)"
 
-  oconf :: "'c prog => aheap => obj => bool" ("_,_ |- _ [ok]" [51,51,51] 50)
+definition oconf :: "'c prog => aheap => obj => bool" ("_,_ |- _ [ok]" [51,51,51] 50) where
  "G,h|-obj [ok] == G,h|-snd obj[::<=]map_of (fields (G,fst obj))"
 
-  hconf :: "'c prog => aheap => bool" ("_ |-h _ [ok]" [51,51] 50)
+definition hconf :: "'c prog => aheap => bool" ("_ |-h _ [ok]" [51,51] 50) where
  "G|-h h [ok]    == \<forall>a obj. h a = Some obj --> G,h|-obj [ok]"
  
-  xconf :: "aheap \<Rightarrow> val option \<Rightarrow> bool"
+definition xconf :: "aheap \<Rightarrow> val option \<Rightarrow> bool" where
   "xconf hp vo  == preallocated hp \<and> (\<forall> v. (vo = Some v) \<longrightarrow> (\<exists> xc. v = (Addr (XcptRef xc))))"
 
-  conforms :: "xstate => java_mb env' => bool" ("_ ::<= _" [51,51] 50)
+definition conforms :: "xstate => java_mb env' => bool" ("_ ::<= _" [51,51] 50) where
  "s::<=E == prg E|-h heap (store s) [ok] \<and> 
             prg E,heap (store s)|-locals (store s)[::<=]localT E \<and> 
             xconf (heap (store s)) (abrupt s)"

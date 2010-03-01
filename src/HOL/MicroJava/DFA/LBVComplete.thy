@@ -9,12 +9,11 @@ theory LBVComplete
 imports LBVSpec Typing_Framework
 begin
 
-constdefs
-  is_target :: "['s step_type, 's list, nat] \<Rightarrow> bool" 
+definition is_target :: "['s step_type, 's list, nat] \<Rightarrow> bool" where 
   "is_target step phi pc' \<equiv>
      \<exists>pc s'. pc' \<noteq> pc+1 \<and> pc < length phi \<and> (pc',s') \<in> set (step pc (phi!pc))"
 
-  make_cert :: "['s step_type, 's list, 's] \<Rightarrow> 's certificate"
+definition make_cert :: "['s step_type, 's list, 's] \<Rightarrow> 's certificate" where
   "make_cert step phi B \<equiv> 
      map (\<lambda>pc. if is_target step phi pc then phi!pc else B) [0..<length phi] @ [B]"
 

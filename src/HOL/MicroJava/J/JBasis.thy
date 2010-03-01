@@ -15,8 +15,7 @@ lemmas [simp] = Let_def
 
 section "unique"
  
-constdefs
-  unique  :: "('a \<times> 'b) list => bool"
+definition unique :: "('a \<times> 'b) list => bool" where
   "unique  == distinct \<circ> map fst"
 
 

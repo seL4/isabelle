@@ -11,19 +11,18 @@ header{*Projections of State Sets*}
 
 theory Project imports Extend begin
 
-constdefs
-  projecting :: "['c program => 'c set, 'a*'b => 'c, 
-                  'a program, 'c program set, 'a program set] => bool"
+definition projecting :: "['c program => 'c set, 'a*'b => 'c, 
+                  'a program, 'c program set, 'a program set] => bool" where
     "projecting C h F X' X ==
        \<forall>G. extend h F\<squnion>G \<in> X' --> F\<squnion>project h (C G) G \<in> X"
 
-  extending :: "['c program => 'c set, 'a*'b => 'c, 'a program, 
-                 'c program set, 'a program set] => bool"
+definition extending :: "['c program => 'c set, 'a*'b => 'c, 'a program, 
+                 'c program set, 'a program set] => bool" where
     "extending C h F Y' Y ==
        \<forall>G. extend h F  ok G --> F\<squnion>project h (C G) G \<in> Y
               --> extend h F\<squnion>G \<in> Y'"
 
-  subset_closed :: "'a set set => bool"
+definition subset_closed :: "'a set set => bool" where
     "subset_closed U == \<forall>A \<in> U. Pow A \<subseteq> U"  
 
 

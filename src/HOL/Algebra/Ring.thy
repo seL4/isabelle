@@ -198,8 +198,7 @@ text {*
   This definition makes it easy to lift lemmas from @{term finprod}.
 *}
 
-constdefs
-  finsum :: "[('b, 'm) ring_scheme, 'a => 'b, 'a set] => 'b"
+definition finsum :: "[('b, 'm) ring_scheme, 'a => 'b, 'a set] => 'b" where
   "finsum G f A == finprod (| carrier = carrier G,
      mult = add G, one = zero G |) f A"
 

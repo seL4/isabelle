@@ -95,8 +95,7 @@ lemma SELECT_UNIQUE: "ALL (P::'A::type => bool) x::'A::type.
 lemma EXCLUDED_MIDDLE: "ALL t::bool. t | ~ t"
   by (import hollight EXCLUDED_MIDDLE)
 
-constdefs
-  COND :: "bool => 'A => 'A => 'A" 
+definition COND :: "bool => 'A => 'A => 'A" where 
   "COND ==
 %(t::bool) (t1::'A::type) t2::'A::type.
    SOME x::'A::type. (t = True --> x = t1) & (t = False --> x = t2)"
@@ -173,15 +172,13 @@ lemma th_cond: "(P::'A::type => bool => bool) (COND (b::bool) (x::'A::type) (y::
 (b & P x True | ~ b & P y False)"
   by (import hollight th_cond)
 
-constdefs
-  LET_END :: "'A => 'A" 
+definition LET_END :: "'A => 'A" where 
   "LET_END == %t::'A::type. t"
 
 lemma DEF_LET_END: "LET_END = (%t::'A::type. t)"
   by (import hollight DEF_LET_END)
 
-constdefs
-  GABS :: "('A => bool) => 'A" 
+definition GABS :: "('A => bool) => 'A" where 
   "(op ==::(('A::type => bool) => 'A::type)
         => (('A::type => bool) => 'A::type) => prop)
  (GABS::('A::type => bool) => 'A::type)
@@ -193,8 +190,7 @@ lemma DEF_GABS: "(op =::(('A::type => bool) => 'A::type)
  (Eps::('A::type => bool) => 'A::type)"
   by (import hollight DEF_GABS)
 
-constdefs
-  GEQ :: "'A => 'A => bool" 
+definition GEQ :: "'A => 'A => bool" where 
   "(op ==::('A::type => 'A::type => bool)
         => ('A::type => 'A::type => bool) => prop)
  (GEQ::'A::type => 'A::type => bool) (op =::'A::type => 'A::type => bool)"
@@ -208,8 +204,7 @@ lemma PAIR_EXISTS_THM: "EX (x::'A::type => 'B::type => bool) (a::'A::type) b::'B
    x = Pair_Rep a b"
   by (import hollight PAIR_EXISTS_THM)
 
-constdefs
-  CURRY :: "('A * 'B => 'C) => 'A => 'B => 'C" 
+definition CURRY :: "('A * 'B => 'C) => 'A => 'B => 'C" where 
   "CURRY ==
 %(u::'A::type * 'B::type => 'C::type) (ua::'A::type) ub::'B::type.
    u (ua, ub)"
@@ -219,8 +214,7 @@ lemma DEF_CURRY: "CURRY =
     u (ua, ub))"
   by (import hollight DEF_CURRY)
 
-constdefs
-  UNCURRY :: "('A => 'B => 'C) => 'A * 'B => 'C" 
+definition UNCURRY :: "('A => 'B => 'C) => 'A * 'B => 'C" where 
   "UNCURRY ==
 %(u::'A::type => 'B::type => 'C::type) ua::'A::type * 'B::type.
    u (fst ua) (snd ua)"
@@ -230,8 +224,7 @@ lemma DEF_UNCURRY: "UNCURRY =
     u (fst ua) (snd ua))"
   by (import hollight DEF_UNCURRY)
 
-constdefs
-  PASSOC :: "(('A * 'B) * 'C => 'D) => 'A * 'B * 'C => 'D" 
+definition PASSOC :: "(('A * 'B) * 'C => 'D) => 'A * 'B * 'C => 'D" where 
   "PASSOC ==
 %(u::('A::type * 'B::type) * 'C::type => 'D::type)
    ua::'A::type * 'B::type * 'C::type.
@@ -291,8 +284,7 @@ lemma MULT_EQ_1: "ALL (m::nat) n::nat.
    (m * n = NUMERAL_BIT1 0) = (m = NUMERAL_BIT1 0 & n = NUMERAL_BIT1 0)"
   by (import hollight MULT_EQ_1)
 
-constdefs
-  EXP :: "nat => nat => nat" 
+definition EXP :: "nat => nat => nat" where 
   "EXP ==
 SOME EXP::nat => nat => nat.
    (ALL m::nat. EXP m 0 = NUMERAL_BIT1 0) &
@@ -549,8 +541,7 @@ lemma num_MAX: "ALL P::nat => bool.
    (EX m::nat. P m & (ALL x::nat. P x --> <= x m))"
   by (import hollight num_MAX)
 
-constdefs
-  EVEN :: "nat => bool" 
+definition EVEN :: "nat => bool" where 
   "EVEN ==
 SOME EVEN::nat => bool.
    EVEN 0 = True & (ALL n::nat. EVEN (Suc n) = (~ EVEN n))"
@@ -560,8 +551,7 @@ lemma DEF_EVEN: "EVEN =
     EVEN 0 = True & (ALL n::nat. EVEN (Suc n) = (~ EVEN n)))"
   by (import hollight DEF_EVEN)
 
-constdefs
-  ODD :: "nat => bool" 
+definition ODD :: "nat => bool" where 
   "ODD ==
 SOME ODD::nat => bool. ODD 0 = False & (ALL n::nat. ODD (Suc n) = (~ ODD n))"
 
@@ -641,8 +631,7 @@ lemma SUB_ADD: "ALL (x::nat) xa::nat. <= xa x --> x - xa + xa = x"
 lemma SUC_SUB1: "ALL x::nat. Suc x - NUMERAL_BIT1 0 = x"
   by (import hollight SUC_SUB1)
 
-constdefs
-  FACT :: "nat => nat" 
+definition FACT :: "nat => nat" where 
   "FACT ==
 SOME FACT::nat => nat.
    FACT 0 = NUMERAL_BIT1 0 & (ALL n::nat. FACT (Suc n) = Suc n * FACT n)"
@@ -669,8 +658,7 @@ lemma DIVMOD_EXIST_0: "ALL (m::nat) n::nat.
       COND (n = 0) (x = 0 & xa = 0) (m = x * n + xa & < xa n)"
   by (import hollight DIVMOD_EXIST_0)
 
-constdefs
-  DIV :: "nat => nat => nat" 
+definition DIV :: "nat => nat => nat" where 
   "DIV ==
 SOME q::nat => nat => nat.
    EX r::nat => nat => nat.
@@ -686,8 +674,7 @@ lemma DEF_DIV: "DIV =
            (m = q m n * n + r m n & < (r m n) n))"
   by (import hollight DEF_DIV)
 
-constdefs
-  MOD :: "nat => nat => nat" 
+definition MOD :: "nat => nat => nat" where 
   "MOD ==
 SOME r::nat => nat => nat.
    ALL (m::nat) n::nat.
@@ -877,8 +864,7 @@ lemma DIVMOD_ELIM_THM: "(P::nat => nat => bool) (DIV (m::nat) (n::nat)) (MOD m n
  n ~= 0 & (ALL (q::nat) r::nat. m = q * n + r & < r n --> P q r))"
   by (import hollight DIVMOD_ELIM_THM)
 
-constdefs
-  eqeq :: "'q_9910 => 'q_9909 => ('q_9910 => 'q_9909 => bool) => bool" 
+definition eqeq :: "'q_9910 => 'q_9909 => ('q_9910 => 'q_9909 => bool) => bool" where 
   "eqeq ==
 %(u::'q_9910::type) (ua::'q_9909::type)
    ub::'q_9910::type => 'q_9909::type => bool. ub u ua"
@@ -888,8 +874,7 @@ lemma DEF__equal__equal_: "eqeq =
     ub::'q_9910::type => 'q_9909::type => bool. ub u ua)"
   by (import hollight DEF__equal__equal_)
 
-constdefs
-  mod_nat :: "nat => nat => nat => bool" 
+definition mod_nat :: "nat => nat => nat => bool" where 
   "mod_nat ==
 %(u::nat) (ua::nat) ub::nat. EX (q1::nat) q2::nat. ua + u * q1 = ub + u * q2"
 
@@ -898,8 +883,7 @@ lemma DEF_mod_nat: "mod_nat =
     EX (q1::nat) q2::nat. ua + u * q1 = ub + u * q2)"
   by (import hollight DEF_mod_nat)
 
-constdefs
-  minimal :: "(nat => bool) => nat" 
+definition minimal :: "(nat => bool) => nat" where 
   "minimal == %u::nat => bool. SOME n::nat. u n & (ALL m::nat. < m n --> ~ u m)"
 
 lemma DEF_minimal: "minimal =
@@ -910,8 +894,7 @@ lemma MINIMAL: "ALL P::nat => bool.
    Ex P = (P (minimal P) & (ALL x::nat. < x (minimal P) --> ~ P x))"
   by (import hollight MINIMAL)
 
-constdefs
-  WF :: "('A => 'A => bool) => bool" 
+definition WF :: "('A => 'A => bool) => bool" where 
   "WF ==
 %u::'A::type => 'A::type => bool.
    ALL P::'A::type => bool.
@@ -1605,8 +1588,7 @@ lemma INJ_INVERSE2: "ALL P::'A::type => 'B::type => 'C::type.
        ALL (xa::'A::type) y::'B::type. x (P xa y) = xa & Y (P xa y) = y)"
   by (import hollight INJ_INVERSE2)
 
-constdefs
-  NUMPAIR :: "nat => nat => nat" 
+definition NUMPAIR :: "nat => nat => nat" where 
   "NUMPAIR ==
 %(u::nat) ua::nat.
    EXP (NUMERAL_BIT0 (NUMERAL_BIT1 0)) u *
@@ -1626,8 +1608,7 @@ lemma NUMPAIR_INJ: "ALL (x1::nat) (y1::nat) (x2::nat) y2::nat.
    (NUMPAIR x1 y1 = NUMPAIR x2 y2) = (x1 = x2 & y1 = y2)"
   by (import hollight NUMPAIR_INJ)
 
-constdefs
-  NUMFST :: "nat => nat" 
+definition NUMFST :: "nat => nat" where 
   "NUMFST ==
 SOME X::nat => nat.
    EX Y::nat => nat.
@@ -1639,8 +1620,7 @@ lemma DEF_NUMFST: "NUMFST =
        ALL (x::nat) y::nat. X (NUMPAIR x y) = x & Y (NUMPAIR x y) = y)"
   by (import hollight DEF_NUMFST)
 
-constdefs
-  NUMSND :: "nat => nat" 
+definition NUMSND :: "nat => nat" where 
   "NUMSND ==
 SOME Y::nat => nat.
    ALL (x::nat) y::nat. NUMFST (NUMPAIR x y) = x & Y (NUMPAIR x y) = y"
@@ -1650,8 +1630,7 @@ lemma DEF_NUMSND: "NUMSND =
     ALL (x::nat) y::nat. NUMFST (NUMPAIR x y) = x & Y (NUMPAIR x y) = y)"
   by (import hollight DEF_NUMSND)
 
-constdefs
-  NUMSUM :: "bool => nat => nat" 
+definition NUMSUM :: "bool => nat => nat" where 
   "NUMSUM ==
 %(u::bool) ua::nat.
    COND u (Suc (NUMERAL_BIT0 (NUMERAL_BIT1 0) * ua))
@@ -1667,8 +1646,7 @@ lemma NUMSUM_INJ: "ALL (b1::bool) (x1::nat) (b2::bool) x2::nat.
    (NUMSUM b1 x1 = NUMSUM b2 x2) = (b1 = b2 & x1 = x2)"
   by (import hollight NUMSUM_INJ)
 
-constdefs
-  NUMLEFT :: "nat => bool" 
+definition NUMLEFT :: "nat => bool" where 
   "NUMLEFT ==
 SOME X::nat => bool.
    EX Y::nat => nat.
@@ -1680,8 +1658,7 @@ lemma DEF_NUMLEFT: "NUMLEFT =
        ALL (x::bool) y::nat. X (NUMSUM x y) = x & Y (NUMSUM x y) = y)"
   by (import hollight DEF_NUMLEFT)
 
-constdefs
-  NUMRIGHT :: "nat => nat" 
+definition NUMRIGHT :: "nat => nat" where 
   "NUMRIGHT ==
 SOME Y::nat => nat.
    ALL (x::bool) y::nat. NUMLEFT (NUMSUM x y) = x & Y (NUMSUM x y) = y"
@@ -1691,8 +1668,7 @@ lemma DEF_NUMRIGHT: "NUMRIGHT =
     ALL (x::bool) y::nat. NUMLEFT (NUMSUM x y) = x & Y (NUMSUM x y) = y)"
   by (import hollight DEF_NUMRIGHT)
 
-constdefs
-  INJN :: "nat => nat => 'A => bool" 
+definition INJN :: "nat => nat => 'A => bool" where 
   "INJN == %(u::nat) (n::nat) a::'A::type. n = u"
 
 lemma DEF_INJN: "INJN = (%(u::nat) (n::nat) a::'A::type. n = u)"
@@ -1710,8 +1686,7 @@ lemma INJN_INJ: "(All::(nat => bool) => bool)
            ((op =::nat => nat => bool) n1 n2)))"
   by (import hollight INJN_INJ)
 
-constdefs
-  INJA :: "'A => nat => 'A => bool" 
+definition INJA :: "'A => nat => 'A => bool" where 
   "INJA == %(u::'A::type) (n::nat) b::'A::type. b = u"
 
 lemma DEF_INJA: "INJA = (%(u::'A::type) (n::nat) b::'A::type. b = u)"
@@ -1720,8 +1695,7 @@ lemma DEF_INJA: "INJA = (%(u::'A::type) (n::nat) b::'A::type. b = u)"
 lemma INJA_INJ: "ALL (a1::'A::type) a2::'A::type. (INJA a1 = INJA a2) = (a1 = a2)"
   by (import hollight INJA_INJ)
 
-constdefs
-  INJF :: "(nat => nat => 'A => bool) => nat => 'A => bool" 
+definition INJF :: "(nat => nat => 'A => bool) => nat => 'A => bool" where 
   "INJF == %(u::nat => nat => 'A::type => bool) n::nat. u (NUMFST n) (NUMSND n)"
 
 lemma DEF_INJF: "INJF =
@@ -1732,8 +1706,7 @@ lemma INJF_INJ: "ALL (f1::nat => nat => 'A::type => bool) f2::nat => nat => 'A::
    (INJF f1 = INJF f2) = (f1 = f2)"
   by (import hollight INJF_INJ)
 
-constdefs
-  INJP :: "(nat => 'A => bool) => (nat => 'A => bool) => nat => 'A => bool" 
+definition INJP :: "(nat => 'A => bool) => (nat => 'A => bool) => nat => 'A => bool" where 
   "INJP ==
 %(u::nat => 'A::type => bool) (ua::nat => 'A::type => bool) (n::nat)
    a::'A::type. COND (NUMLEFT n) (u (NUMRIGHT n) a) (ua (NUMRIGHT n) a)"
@@ -1748,8 +1721,7 @@ lemma INJP_INJ: "ALL (f1::nat => 'A::type => bool) (f1'::nat => 'A::type => bool
    (INJP f1 f2 = INJP f1' f2') = (f1 = f1' & f2 = f2')"
   by (import hollight INJP_INJ)
 
-constdefs
-  ZCONSTR :: "nat => 'A => (nat => nat => 'A => bool) => nat => 'A => bool" 
+definition ZCONSTR :: "nat => 'A => (nat => nat => 'A => bool) => nat => 'A => bool" where 
   "ZCONSTR ==
 %(u::nat) (ua::'A::type) ub::nat => nat => 'A::type => bool.
    INJP (INJN (Suc u)) (INJP (INJA ua) (INJF ub))"
@@ -1759,8 +1731,7 @@ lemma DEF_ZCONSTR: "ZCONSTR =
     INJP (INJN (Suc u)) (INJP (INJA ua) (INJF ub)))"
   by (import hollight DEF_ZCONSTR)
 
-constdefs
-  ZBOT :: "nat => 'A => bool" 
+definition ZBOT :: "nat => 'A => bool" where 
   "ZBOT == INJP (INJN 0) (SOME z::nat => 'A::type => bool. True)"
 
 lemma DEF_ZBOT: "ZBOT = INJP (INJN 0) (SOME z::nat => 'A::type => bool. True)"
@@ -1770,8 +1741,7 @@ lemma ZCONSTR_ZBOT: "ALL (x::nat) (xa::'A::type) xb::nat => nat => 'A::type => b
    ZCONSTR x xa xb ~= ZBOT"
   by (import hollight ZCONSTR_ZBOT)
 
-constdefs
-  ZRECSPACE :: "(nat => 'A => bool) => bool" 
+definition ZRECSPACE :: "(nat => 'A => bool) => bool" where 
   "ZRECSPACE ==
 %a::nat => 'A::type => bool.
    ALL ZRECSPACE'::(nat => 'A::type => bool) => bool.
@@ -1809,8 +1779,7 @@ lemmas "TYDEF_recspace_@intern" = typedef_hol2hollight
   [where a="a :: 'A recspace" and r=r ,
    OF type_definition_recspace]
 
-constdefs
-  BOTTOM :: "'A recspace" 
+definition BOTTOM :: "'A recspace" where 
   "(op ==::'A::type recspace => 'A::type recspace => prop)
  (BOTTOM::'A::type recspace)
  ((_mk_rec::(nat => 'A::type => bool) => 'A::type recspace)
@@ -1822,8 +1791,7 @@ lemma DEF_BOTTOM: "(op =::'A::type recspace => 'A::type recspace => bool)
    (ZBOT::nat => 'A::type => bool))"
   by (import hollight DEF_BOTTOM)
 
-constdefs
-  CONSTR :: "nat => 'A => (nat => 'A recspace) => 'A recspace" 
+definition CONSTR :: "nat => 'A => (nat => 'A recspace) => 'A recspace" where 
   "(op ==::(nat => 'A::type => (nat => 'A::type recspace) => 'A::type recspace)
         => (nat
             => 'A::type => (nat => 'A::type recspace) => 'A::type recspace)
@@ -1900,8 +1868,7 @@ lemma CONSTR_REC: "ALL Fn::nat
          f (CONSTR c i r) = Fn c i r (%n::nat. f (r n))"
   by (import hollight CONSTR_REC)
 
-constdefs
-  FCONS :: "'A => (nat => 'A) => nat => 'A" 
+definition FCONS :: "'A => (nat => 'A) => nat => 'A" where 
   "FCONS ==
 SOME FCONS::'A::type => (nat => 'A::type) => nat => 'A::type.
    (ALL (a::'A::type) f::nat => 'A::type. FCONS a f 0 = a) &
@@ -1917,8 +1884,7 @@ lemma DEF_FCONS: "FCONS =
 lemma FCONS_UNDO: "ALL f::nat => 'A::type. f = FCONS (f 0) (f o Suc)"
   by (import hollight FCONS_UNDO)
 
-constdefs
-  FNIL :: "nat => 'A" 
+definition FNIL :: "nat => 'A" where 
   "FNIL == %u::nat. SOME x::'A::type. True"
 
 lemma DEF_FNIL: "FNIL = (%u::nat. SOME x::'A::type. True)"
@@ -1995,8 +1961,7 @@ lemmas "TYDEF_option_@intern" = typedef_hol2hollight
   [where a="a :: 'A hollight.option" and r=r ,
    OF type_definition_option]
 
-constdefs
-  NONE :: "'A hollight.option" 
+definition NONE :: "'A hollight.option" where 
   "(op ==::'A::type hollight.option => 'A::type hollight.option => prop)
  (NONE::'A::type hollight.option)
  ((_mk_option::'A::type recspace => 'A::type hollight.option)
@@ -2093,8 +2058,7 @@ lemmas "TYDEF_list_@intern" = typedef_hol2hollight
   [where a="a :: 'A hollight.list" and r=r ,
    OF type_definition_list]
 
-constdefs
-  NIL :: "'A hollight.list" 
+definition NIL :: "'A hollight.list" where 
   "(op ==::'A::type hollight.list => 'A::type hollight.list => prop)
  (NIL::'A::type hollight.list)
  ((_mk_list::'A::type recspace => 'A::type hollight.list)
@@ -2114,8 +2078,7 @@ lemma DEF_NIL: "(op =::'A::type hollight.list => 'A::type hollight.list => bool)
      (%n::nat. BOTTOM::'A::type recspace)))"
   by (import hollight DEF_NIL)
 
-constdefs
-  CONS :: "'A => 'A hollight.list => 'A hollight.list" 
+definition CONS :: "'A => 'A hollight.list => 'A hollight.list" where 
   "(op ==::('A::type => 'A::type hollight.list => 'A::type hollight.list)
         => ('A::type => 'A::type hollight.list => 'A::type hollight.list)
            => prop)
@@ -2160,8 +2123,7 @@ lemma bool_RECURSION: "ALL (a::'A::type) b::'A::type.
    EX x::bool => 'A::type. x False = a & x True = b"
   by (import hollight bool_RECURSION)
 
-constdefs
-  ISO :: "('A => 'B) => ('B => 'A) => bool" 
+definition ISO :: "('A => 'B) => ('B => 'A) => bool" where 
   "ISO ==
 %(u::'A::type => 'B::type) ua::'B::type => 'A::type.
    (ALL x::'B::type. u (ua x) = x) & (ALL y::'A::type. ua (u y) = y)"
@@ -2244,15 +2206,13 @@ lemma DEF__10303: "(op =::N_2 => N_2 => bool) (_10303::N_2)
      (%n::nat. BOTTOM::bool recspace)))"
   by (import hollight DEF__10303)
 
-constdefs
-  two_1 :: "N_2" 
+definition two_1 :: "N_2" where 
   "two_1 == _10302"
 
 lemma DEF_two_1: "two_1 = _10302"
   by (import hollight DEF_two_1)
 
-constdefs
-  two_2 :: "N_2" 
+definition two_2 :: "N_2" where 
   "two_2 == _10303"
 
 lemma DEF_two_2: "two_2 = _10303"
@@ -2337,22 +2297,19 @@ lemma DEF__10328: "(op =::N_3 => N_3 => bool) (_10328::N_3)
      (%n::nat. BOTTOM::bool recspace)))"
   by (import hollight DEF__10328)
 
-constdefs
-  three_1 :: "N_3" 
+definition three_1 :: "N_3" where 
   "three_1 == _10326"
 
 lemma DEF_three_1: "three_1 = _10326"
   by (import hollight DEF_three_1)
 
-constdefs
-  three_2 :: "N_3" 
+definition three_2 :: "N_3" where 
   "three_2 == _10327"
 
 lemma DEF_three_2: "three_2 = _10327"
   by (import hollight DEF_three_2)
 
-constdefs
-  three_3 :: "N_3" 
+definition three_3 :: "N_3" where 
   "three_3 == _10328"
 
 lemma DEF_three_3: "three_3 = _10328"
@@ -2365,8 +2322,7 @@ lemma list_INDUCT: "ALL P::'A::type hollight.list => bool.
    All P"
   by (import hollight list_INDUCT)
 
-constdefs
-  HD :: "'A hollight.list => 'A" 
+definition HD :: "'A hollight.list => 'A" where 
   "HD ==
 SOME HD::'A::type hollight.list => 'A::type.
    ALL (t::'A::type hollight.list) h::'A::type. HD (CONS h t) = h"
@@ -2376,8 +2332,7 @@ lemma DEF_HD: "HD =
     ALL (t::'A::type hollight.list) h::'A::type. HD (CONS h t) = h)"
   by (import hollight DEF_HD)
 
-constdefs
-  TL :: "'A hollight.list => 'A hollight.list" 
+definition TL :: "'A hollight.list => 'A hollight.list" where 
   "TL ==
 SOME TL::'A::type hollight.list => 'A::type hollight.list.
    ALL (h::'A::type) t::'A::type hollight.list. TL (CONS h t) = t"
@@ -2387,8 +2342,7 @@ lemma DEF_TL: "TL =
     ALL (h::'A::type) t::'A::type hollight.list. TL (CONS h t) = t)"
   by (import hollight DEF_TL)
 
-constdefs
-  APPEND :: "'A hollight.list => 'A hollight.list => 'A hollight.list" 
+definition APPEND :: "'A hollight.list => 'A hollight.list => 'A hollight.list" where 
   "APPEND ==
 SOME APPEND::'A::type hollight.list
              => 'A::type hollight.list => 'A::type hollight.list.
@@ -2405,8 +2359,7 @@ lemma DEF_APPEND: "APPEND =
         APPEND (CONS h t) l = CONS h (APPEND t l)))"
   by (import hollight DEF_APPEND)
 
-constdefs
-  REVERSE :: "'A hollight.list => 'A hollight.list" 
+definition REVERSE :: "'A hollight.list => 'A hollight.list" where 
   "REVERSE ==
 SOME REVERSE::'A::type hollight.list => 'A::type hollight.list.
    REVERSE NIL = NIL &
@@ -2420,8 +2373,7 @@ lemma DEF_REVERSE: "REVERSE =
         REVERSE (CONS x l) = APPEND (REVERSE l) (CONS x NIL)))"
   by (import hollight DEF_REVERSE)
 
-constdefs
-  LENGTH :: "'A hollight.list => nat" 
+definition LENGTH :: "'A hollight.list => nat" where 
   "LENGTH ==
 SOME LENGTH::'A::type hollight.list => nat.
    LENGTH NIL = 0 &
@@ -2435,8 +2387,7 @@ lemma DEF_LENGTH: "LENGTH =
         LENGTH (CONS h t) = Suc (LENGTH t)))"
   by (import hollight DEF_LENGTH)
 
-constdefs
-  MAP :: "('A => 'B) => 'A hollight.list => 'B hollight.list" 
+definition MAP :: "('A => 'B) => 'A hollight.list => 'B hollight.list" where 
   "MAP ==
 SOME MAP::('A::type => 'B::type)
           => 'A::type hollight.list => 'B::type hollight.list.
@@ -2452,8 +2403,7 @@ lemma DEF_MAP: "MAP =
         MAP f (CONS h t) = CONS (f h) (MAP f t)))"
   by (import hollight DEF_MAP)
 
-constdefs
-  LAST :: "'A hollight.list => 'A" 
+definition LAST :: "'A hollight.list => 'A" where 
   "LAST ==
 SOME LAST::'A::type hollight.list => 'A::type.
    ALL (h::'A::type) t::'A::type hollight.list.
@@ -2465,8 +2415,7 @@ lemma DEF_LAST: "LAST =
        LAST (CONS h t) = COND (t = NIL) h (LAST t))"
   by (import hollight DEF_LAST)
 
-constdefs
-  REPLICATE :: "nat => 'q_16860 => 'q_16860 hollight.list" 
+definition REPLICATE :: "nat => 'q_16860 => 'q_16860 hollight.list" where 
   "REPLICATE ==
 SOME REPLICATE::nat => 'q_16860::type => 'q_16860::type hollight.list.
    (ALL x::'q_16860::type. REPLICATE 0 x = NIL) &
@@ -2480,8 +2429,7 @@ lemma DEF_REPLICATE: "REPLICATE =
         REPLICATE (Suc n) x = CONS x (REPLICATE n x)))"
   by (import hollight DEF_REPLICATE)
 
-constdefs
-  NULL :: "'q_16875 hollight.list => bool" 
+definition NULL :: "'q_16875 hollight.list => bool" where 
   "NULL ==
 SOME NULL::'q_16875::type hollight.list => bool.
    NULL NIL = True &
@@ -2495,8 +2443,7 @@ lemma DEF_NULL: "NULL =
         NULL (CONS h t) = False))"
   by (import hollight DEF_NULL)
 
-constdefs
-  ALL_list :: "('q_16895 => bool) => 'q_16895 hollight.list => bool" 
+definition ALL_list :: "('q_16895 => bool) => 'q_16895 hollight.list => bool" where 
   "ALL_list ==
 SOME u::('q_16895::type => bool) => 'q_16895::type hollight.list => bool.
    (ALL P::'q_16895::type => bool. u P NIL = True) &
@@ -2527,9 +2474,8 @@ lemma DEF_EX: "EX =
         t::'q_16916::type hollight.list. u P (CONS h t) = (P h | u P t)))"
   by (import hollight DEF_EX)
 
-constdefs
-  ITLIST :: "('q_16939 => 'q_16938 => 'q_16938)
-=> 'q_16939 hollight.list => 'q_16938 => 'q_16938" 
+definition ITLIST :: "('q_16939 => 'q_16938 => 'q_16938)
+=> 'q_16939 hollight.list => 'q_16938 => 'q_16938" where 
   "ITLIST ==
 SOME ITLIST::('q_16939::type => 'q_16938::type => 'q_16938::type)
              => 'q_16939::type hollight.list
@@ -2553,8 +2499,7 @@ lemma DEF_ITLIST: "ITLIST =
         ITLIST f (CONS h t) b = f h (ITLIST f t b)))"
   by (import hollight DEF_ITLIST)
 
-constdefs
-  MEM :: "'q_16964 => 'q_16964 hollight.list => bool" 
+definition MEM :: "'q_16964 => 'q_16964 hollight.list => bool" where 
   "MEM ==
 SOME MEM::'q_16964::type => 'q_16964::type hollight.list => bool.
    (ALL x::'q_16964::type. MEM x NIL = False) &
@@ -2570,9 +2515,8 @@ lemma DEF_MEM: "MEM =
         MEM x (CONS h t) = (x = h | MEM x t)))"
   by (import hollight DEF_MEM)
 
-constdefs
-  ALL2 :: "('q_16997 => 'q_17004 => bool)
-=> 'q_16997 hollight.list => 'q_17004 hollight.list => bool" 
+definition ALL2 :: "('q_16997 => 'q_17004 => bool)
+=> 'q_16997 hollight.list => 'q_17004 hollight.list => bool" where 
   "ALL2 ==
 SOME ALL2::('q_16997::type => 'q_17004::type => bool)
            => 'q_16997::type hollight.list
@@ -2604,10 +2548,9 @@ False &
 ALL2 P (CONS h1 t1) (CONS h2 t2) = (P h1 h2 & ALL2 P t1 t2)"
   by (import hollight ALL2)
 
-constdefs
-  MAP2 :: "('q_17089 => 'q_17096 => 'q_17086)
+definition MAP2 :: "('q_17089 => 'q_17096 => 'q_17086)
 => 'q_17089 hollight.list
-   => 'q_17096 hollight.list => 'q_17086 hollight.list" 
+   => 'q_17096 hollight.list => 'q_17086 hollight.list" where 
   "MAP2 ==
 SOME MAP2::('q_17089::type => 'q_17096::type => 'q_17086::type)
            => 'q_17089::type hollight.list
@@ -2639,8 +2582,7 @@ MAP2 f (CONS (h1::'q_17131::type) (t1::'q_17131::type hollight.list))
 CONS (f h1 h2) (MAP2 f t1 t2)"
   by (import hollight MAP2)
 
-constdefs
-  EL :: "nat => 'q_17157 hollight.list => 'q_17157" 
+definition EL :: "nat => 'q_17157 hollight.list => 'q_17157" where 
   "EL ==
 SOME EL::nat => 'q_17157::type hollight.list => 'q_17157::type.
    (ALL l::'q_17157::type hollight.list. EL 0 l = HD l) &
@@ -2654,8 +2596,7 @@ lemma DEF_EL: "EL =
         EL (Suc n) l = EL n (TL l)))"
   by (import hollight DEF_EL)
 
-constdefs
-  FILTER :: "('q_17182 => bool) => 'q_17182 hollight.list => 'q_17182 hollight.list" 
+definition FILTER :: "('q_17182 => bool) => 'q_17182 hollight.list => 'q_17182 hollight.list" where 
   "FILTER ==
 SOME FILTER::('q_17182::type => bool)
              => 'q_17182::type hollight.list
@@ -2676,8 +2617,7 @@ lemma DEF_FILTER: "FILTER =
         COND (P h) (CONS h (FILTER P t)) (FILTER P t)))"
   by (import hollight DEF_FILTER)
 
-constdefs
-  ASSOC :: "'q_17211 => ('q_17211 * 'q_17205) hollight.list => 'q_17205" 
+definition ASSOC :: "'q_17211 => ('q_17211 * 'q_17205) hollight.list => 'q_17205" where 
   "ASSOC ==
 SOME ASSOC::'q_17211::type
             => ('q_17211::type * 'q_17205::type) hollight.list
@@ -2695,9 +2635,8 @@ lemma DEF_ASSOC: "ASSOC =
        ASSOC a (CONS h t) = COND (fst h = a) (snd h) (ASSOC a t))"
   by (import hollight DEF_ASSOC)
 
-constdefs
-  ITLIST2 :: "('q_17235 => 'q_17243 => 'q_17233 => 'q_17233)
-=> 'q_17235 hollight.list => 'q_17243 hollight.list => 'q_17233 => 'q_17233" 
+definition ITLIST2 :: "('q_17235 => 'q_17243 => 'q_17233 => 'q_17233)
+=> 'q_17235 hollight.list => 'q_17243 hollight.list => 'q_17233 => 'q_17233" where 
   "ITLIST2 ==
 SOME ITLIST2::('q_17235::type
                => 'q_17243::type => 'q_17233::type => 'q_17233::type)
@@ -3041,8 +2980,7 @@ ALL2 P (l::'A::type hollight.list) (l'::'B::type hollight.list) -->
 ALL2 Q l l'"
   by (import hollight MONO_ALL2)
 
-constdefs
-  dist :: "nat * nat => nat" 
+definition dist :: "nat * nat => nat" where 
   "dist == %u::nat * nat. fst u - snd u + (snd u - fst u)"
 
 lemma DEF_dist: "dist = (%u::nat * nat. fst u - snd u + (snd u - fst u))"
@@ -3133,8 +3071,7 @@ lemma BOUNDS_IGNORE: "ALL (P::nat => nat) Q::nat => nat.
    (EX (x::nat) N::nat. ALL i::nat. <= N i --> <= (P i) (Q i + x))"
   by (import hollight BOUNDS_IGNORE)
 
-constdefs
-  is_nadd :: "(nat => nat) => bool" 
+definition is_nadd :: "(nat => nat) => bool" where 
   "is_nadd ==
 %u::nat => nat.
    EX B::nat.
@@ -3211,8 +3148,7 @@ lemma NADD_ALTMUL: "ALL (x::nadd) y::nadd.
           (A * n + B)"
   by (import hollight NADD_ALTMUL)
 
-constdefs
-  nadd_eq :: "nadd => nadd => bool" 
+definition nadd_eq :: "nadd => nadd => bool" where 
   "nadd_eq ==
 %(u::nadd) ua::nadd.
    EX B::nat. ALL n::nat. <= (dist (dest_nadd u n, dest_nadd ua n)) B"
@@ -3231,8 +3167,7 @@ lemma NADD_EQ_SYM: "ALL (x::nadd) y::nadd. nadd_eq x y = nadd_eq y x"
 lemma NADD_EQ_TRANS: "ALL (x::nadd) (y::nadd) z::nadd. nadd_eq x y & nadd_eq y z --> nadd_eq x z"
   by (import hollight NADD_EQ_TRANS)
 
-constdefs
-  nadd_of_num :: "nat => nadd" 
+definition nadd_of_num :: "nat => nadd" where 
   "nadd_of_num == %u::nat. mk_nadd (op * u)"
 
 lemma DEF_nadd_of_num: "nadd_of_num = (%u::nat. mk_nadd (op * u))"
@@ -3247,8 +3182,7 @@ lemma NADD_OF_NUM_WELLDEF: "ALL (m::nat) n::nat. m = n --> nadd_eq (nadd_of_num 
 lemma NADD_OF_NUM_EQ: "ALL (m::nat) n::nat. nadd_eq (nadd_of_num m) (nadd_of_num n) = (m = n)"
   by (import hollight NADD_OF_NUM_EQ)
 
-constdefs
-  nadd_le :: "nadd => nadd => bool" 
+definition nadd_le :: "nadd => nadd => bool" where 
   "nadd_le ==
 %(u::nadd) ua::nadd.
    EX B::nat. ALL n::nat. <= (dest_nadd u n) (dest_nadd ua n + B)"
@@ -3289,8 +3223,7 @@ lemma NADD_ARCH: "ALL x::nadd. EX xa::nat. nadd_le x (nadd_of_num xa)"
 lemma NADD_OF_NUM_LE: "ALL (m::nat) n::nat. nadd_le (nadd_of_num m) (nadd_of_num n) = <= m n"
   by (import hollight NADD_OF_NUM_LE)
 
-constdefs
-  nadd_add :: "nadd => nadd => nadd" 
+definition nadd_add :: "nadd => nadd => nadd" where 
   "nadd_add ==
 %(u::nadd) ua::nadd. mk_nadd (%n::nat. dest_nadd u n + dest_nadd ua n)"
 
@@ -3332,8 +3265,7 @@ lemma NADD_OF_NUM_ADD: "ALL (x::nat) xa::nat.
     (nadd_of_num (x + xa))"
   by (import hollight NADD_OF_NUM_ADD)
 
-constdefs
-  nadd_mul :: "nadd => nadd => nadd" 
+definition nadd_mul :: "nadd => nadd => nadd" where 
   "nadd_mul ==
 %(u::nadd) ua::nadd. mk_nadd (%n::nat. dest_nadd u (dest_nadd ua n))"
 
@@ -3438,8 +3370,7 @@ lemma NADD_LBOUND: "ALL x::nadd.
    (EX (A::nat) N::nat. ALL n::nat. <= N n --> <= n (A * dest_nadd x n))"
   by (import hollight NADD_LBOUND)
 
-constdefs
-  nadd_rinv :: "nadd => nat => nat" 
+definition nadd_rinv :: "nadd => nat => nat" where 
   "nadd_rinv == %(u::nadd) n::nat. DIV (n * n) (dest_nadd u n)"
 
 lemma DEF_nadd_rinv: "nadd_rinv = (%(u::nadd) n::nat. DIV (n * n) (dest_nadd u n))"
@@ -3528,8 +3459,7 @@ lemma NADD_MUL_LINV_LEMMA8: "ALL x::nadd.
           <= (dist (m * nadd_rinv x n, n * nadd_rinv x m)) (B * (m + n)))"
   by (import hollight NADD_MUL_LINV_LEMMA8)
 
-constdefs
-  nadd_inv :: "nadd => nadd" 
+definition nadd_inv :: "nadd => nadd" where 
   "nadd_inv ==
 %u::nadd.
    COND (nadd_eq u (nadd_of_num 0)) (nadd_of_num 0) (mk_nadd (nadd_rinv u))"
@@ -3570,15 +3500,13 @@ lemmas "TYDEF_hreal_@intern" = typedef_hol2hollight
   [where a="a :: hreal" and r=r ,
    OF type_definition_hreal]
 
-constdefs
-  hreal_of_num :: "nat => hreal" 
+definition hreal_of_num :: "nat => hreal" where 
   "hreal_of_num == %m::nat. mk_hreal (nadd_eq (nadd_of_num m))"
 
 lemma DEF_hreal_of_num: "hreal_of_num = (%m::nat. mk_hreal (nadd_eq (nadd_of_num m)))"
   by (import hollight DEF_hreal_of_num)
 
-constdefs
-  hreal_add :: "hreal => hreal => hreal" 
+definition hreal_add :: "hreal => hreal => hreal" where 
   "hreal_add ==
 %(x::hreal) y::hreal.
    mk_hreal
@@ -3594,8 +3522,7 @@ lemma DEF_hreal_add: "hreal_add =
             nadd_eq (nadd_add xa ya) u & dest_hreal x xa & dest_hreal y ya))"
   by (import hollight DEF_hreal_add)
 
-constdefs
-  hreal_mul :: "hreal => hreal => hreal" 
+definition hreal_mul :: "hreal => hreal => hreal" where 
   "hreal_mul ==
 %(x::hreal) y::hreal.
    mk_hreal
@@ -3611,8 +3538,7 @@ lemma DEF_hreal_mul: "hreal_mul =
             nadd_eq (nadd_mul xa ya) u & dest_hreal x xa & dest_hreal y ya))"
   by (import hollight DEF_hreal_mul)
 
-constdefs
-  hreal_le :: "hreal => hreal => bool" 
+definition hreal_le :: "hreal => hreal => bool" where 
   "hreal_le ==
 %(x::hreal) y::hreal.
    SOME u::bool.
@@ -3626,8 +3552,7 @@ lemma DEF_hreal_le: "hreal_le =
           nadd_le xa ya = u & dest_hreal x xa & dest_hreal y ya)"
   by (import hollight DEF_hreal_le)
 
-constdefs
-  hreal_inv :: "hreal => hreal" 
+definition hreal_inv :: "hreal => hreal" where 
   "hreal_inv ==
 %x::hreal.
    mk_hreal
@@ -3685,22 +3610,19 @@ lemma HREAL_LE_MUL_RCANCEL_IMP: "ALL (a::hreal) (b::hreal) c::hreal.
    hreal_le a b --> hreal_le (hreal_mul a c) (hreal_mul b c)"
   by (import hollight HREAL_LE_MUL_RCANCEL_IMP)
 
-constdefs
-  treal_of_num :: "nat => hreal * hreal" 
+definition treal_of_num :: "nat => hreal * hreal" where 
   "treal_of_num == %u::nat. (hreal_of_num u, hreal_of_num 0)"
 
 lemma DEF_treal_of_num: "treal_of_num = (%u::nat. (hreal_of_num u, hreal_of_num 0))"
   by (import hollight DEF_treal_of_num)
 
-constdefs
-  treal_neg :: "hreal * hreal => hreal * hreal" 
+definition treal_neg :: "hreal * hreal => hreal * hreal" where 
   "treal_neg == %u::hreal * hreal. (snd u, fst u)"
 
 lemma DEF_treal_neg: "treal_neg = (%u::hreal * hreal. (snd u, fst u))"
   by (import hollight DEF_treal_neg)
 
-constdefs
-  treal_add :: "hreal * hreal => hreal * hreal => hreal * hreal" 
+definition treal_add :: "hreal * hreal => hreal * hreal => hreal * hreal" where 
   "treal_add ==
 %(u::hreal * hreal) ua::hreal * hreal.
    (hreal_add (fst u) (fst ua), hreal_add (snd u) (snd ua))"
@@ -3710,8 +3632,7 @@ lemma DEF_treal_add: "treal_add =
     (hreal_add (fst u) (fst ua), hreal_add (snd u) (snd ua)))"
   by (import hollight DEF_treal_add)
 
-constdefs
-  treal_mul :: "hreal * hreal => hreal * hreal => hreal * hreal" 
+definition treal_mul :: "hreal * hreal => hreal * hreal => hreal * hreal" where 
   "treal_mul ==
 %(u::hreal * hreal) ua::hreal * hreal.
    (hreal_add (hreal_mul (fst u) (fst ua)) (hreal_mul (snd u) (snd ua)),
@@ -3723,8 +3644,7 @@ lemma DEF_treal_mul: "treal_mul =
      hreal_add (hreal_mul (fst u) (snd ua)) (hreal_mul (snd u) (fst ua))))"
   by (import hollight DEF_treal_mul)
 
-constdefs
-  treal_le :: "hreal * hreal => hreal * hreal => bool" 
+definition treal_le :: "hreal * hreal => hreal * hreal => bool" where 
   "treal_le ==
 %(u::hreal * hreal) ua::hreal * hreal.
    hreal_le (hreal_add (fst u) (snd ua)) (hreal_add (fst ua) (snd u))"
@@ -3734,8 +3654,7 @@ lemma DEF_treal_le: "treal_le =
     hreal_le (hreal_add (fst u) (snd ua)) (hreal_add (fst ua) (snd u)))"
   by (import hollight DEF_treal_le)
 
-constdefs
-  treal_inv :: "hreal * hreal => hreal * hreal" 
+definition treal_inv :: "hreal * hreal => hreal * hreal" where 
   "treal_inv ==
 %u::hreal * hreal.
    COND (fst u = snd u) (hreal_of_num 0, hreal_of_num 0)
@@ -3755,8 +3674,7 @@ lemma DEF_treal_inv: "treal_inv =
         hreal_inv (SOME d::hreal. snd u = hreal_add (fst u) d))))"
   by (import hollight DEF_treal_inv)
 
-constdefs
-  treal_eq :: "hreal * hreal => hreal * hreal => bool" 
+definition treal_eq :: "hreal * hreal => hreal * hreal => bool" where 
   "treal_eq ==
 %(u::hreal * hreal) ua::hreal * hreal.
    hreal_add (fst u) (snd ua) = hreal_add (fst ua) (snd u)"
@@ -3916,15 +3834,13 @@ lemmas "TYDEF_real_@intern" = typedef_hol2hollight
   [where a="a :: hollight.real" and r=r ,
    OF type_definition_real]
 
-constdefs
-  real_of_num :: "nat => hollight.real" 
+definition real_of_num :: "nat => hollight.real" where 
   "real_of_num == %m::nat. mk_real (treal_eq (treal_of_num m))"
 
 lemma DEF_real_of_num: "real_of_num = (%m::nat. mk_real (treal_eq (treal_of_num m)))"
   by (import hollight DEF_real_of_num)
 
-constdefs
-  real_neg :: "hollight.real => hollight.real" 
+definition real_neg :: "hollight.real => hollight.real" where 
   "real_neg ==
 %x1::hollight.real.
    mk_real
@@ -3940,8 +3856,7 @@ lemma DEF_real_neg: "real_neg =
             treal_eq (treal_neg x1a) u & dest_real x1 x1a))"
   by (import hollight DEF_real_neg)
 
-constdefs
-  real_add :: "hollight.real => hollight.real => hollight.real" 
+definition real_add :: "hollight.real => hollight.real => hollight.real" where 
   "real_add ==
 %(x1::hollight.real) y1::hollight.real.
    mk_real
@@ -3959,8 +3874,7 @@ lemma DEF_real_add: "real_add =
             dest_real x1 x1a & dest_real y1 y1a))"
   by (import hollight DEF_real_add)
 
-constdefs
-  real_mul :: "hollight.real => hollight.real => hollight.real" 
+definition real_mul :: "hollight.real => hollight.real => hollight.real" where 
   "real_mul ==
 %(x1::hollight.real) y1::hollight.real.
    mk_real
@@ -3978,8 +3892,7 @@ lemma DEF_real_mul: "real_mul =
             dest_real x1 x1a & dest_real y1 y1a))"
   by (import hollight DEF_real_mul)
 
-constdefs
-  real_le :: "hollight.real => hollight.real => bool" 
+definition real_le :: "hollight.real => hollight.real => bool" where 
   "real_le ==
 %(x1::hollight.real) y1::hollight.real.
    SOME u::bool.
@@ -3993,8 +3906,7 @@ lemma DEF_real_le: "real_le =
           treal_le x1a y1a = u & dest_real x1 x1a & dest_real y1 y1a)"
   by (import hollight DEF_real_le)
 
-constdefs
-  real_inv :: "hollight.real => hollight.real" 
+definition real_inv :: "hollight.real => hollight.real" where 
   "real_inv ==
 %x::hollight.real.
    mk_real
@@ -4008,15 +3920,13 @@ lemma DEF_real_inv: "real_inv =
          EX xa::hreal * hreal. treal_eq (treal_inv xa) u & dest_real x xa))"
   by (import hollight DEF_real_inv)
 
-constdefs
-  real_sub :: "hollight.real => hollight.real => hollight.real" 
+definition real_sub :: "hollight.real => hollight.real => hollight.real" where 
   "real_sub == %(u::hollight.real) ua::hollight.real. real_add u (real_neg ua)"
 
 lemma DEF_real_sub: "real_sub = (%(u::hollight.real) ua::hollight.real. real_add u (real_neg ua))"
   by (import hollight DEF_real_sub)
 
-constdefs
-  real_lt :: "hollight.real => hollight.real => bool" 
+definition real_lt :: "hollight.real => hollight.real => bool" where 
   "real_lt == %(u::hollight.real) ua::hollight.real. ~ real_le ua u"
 
 lemma DEF_real_lt: "real_lt = (%(u::hollight.real) ua::hollight.real. ~ real_le ua u)"
@@ -4040,8 +3950,7 @@ defs
 lemma DEF_real_gt: "hollight.real_gt = (%(u::hollight.real) ua::hollight.real. real_lt ua u)"
   by (import hollight DEF_real_gt)
 
-constdefs
-  real_abs :: "hollight.real => hollight.real" 
+definition real_abs :: "hollight.real => hollight.real" where 
   "real_abs ==
 %u::hollight.real. COND (real_le (real_of_num 0) u) u (real_neg u)"
 
@@ -4049,8 +3958,7 @@ lemma DEF_real_abs: "real_abs =
 (%u::hollight.real. COND (real_le (real_of_num 0) u) u (real_neg u))"
   by (import hollight DEF_real_abs)
 
-constdefs
-  real_pow :: "hollight.real => nat => hollight.real" 
+definition real_pow :: "hollight.real => nat => hollight.real" where 
   "real_pow ==
 SOME real_pow::hollight.real => nat => hollight.real.
    (ALL x::hollight.real. real_pow x 0 = real_of_num (NUMERAL_BIT1 0)) &
@@ -4064,22 +3972,19 @@ lemma DEF_real_pow: "real_pow =
         real_pow x (Suc n) = real_mul x (real_pow x n)))"
   by (import hollight DEF_real_pow)
 
-constdefs
-  real_div :: "hollight.real => hollight.real => hollight.real" 
+definition real_div :: "hollight.real => hollight.real => hollight.real" where 
   "real_div == %(u::hollight.real) ua::hollight.real. real_mul u (real_inv ua)"
 
 lemma DEF_real_div: "real_div = (%(u::hollight.real) ua::hollight.real. real_mul u (real_inv ua))"
   by (import hollight DEF_real_div)
 
-constdefs
-  real_max :: "hollight.real => hollight.real => hollight.real" 
+definition real_max :: "hollight.real => hollight.real => hollight.real" where 
   "real_max == %(u::hollight.real) ua::hollight.real. COND (real_le u ua) ua u"
 
 lemma DEF_real_max: "real_max = (%(u::hollight.real) ua::hollight.real. COND (real_le u ua) ua u)"
   by (import hollight DEF_real_max)
 
-constdefs
-  real_min :: "hollight.real => hollight.real => hollight.real" 
+definition real_min :: "hollight.real => hollight.real => hollight.real" where 
   "real_min == %(u::hollight.real) ua::hollight.real. COND (real_le u ua) u ua"
 
 lemma DEF_real_min: "real_min = (%(u::hollight.real) ua::hollight.real. COND (real_le u ua) u ua)"
@@ -5212,8 +5117,7 @@ lemma REAL_WLOG_LT: "(ALL x::hollight.real. (P::hollight.real => hollight.real =
 (ALL x::hollight.real. All (P x))"
   by (import hollight REAL_WLOG_LT)
 
-constdefs
-  mod_real :: "hollight.real => hollight.real => hollight.real => bool" 
+definition mod_real :: "hollight.real => hollight.real => hollight.real => bool" where 
   "mod_real ==
 %(u::hollight.real) (ua::hollight.real) ub::hollight.real.
    EX q::hollight.real. real_sub ua ub = real_mul q u"
@@ -5223,8 +5127,7 @@ lemma DEF_mod_real: "mod_real =
     EX q::hollight.real. real_sub ua ub = real_mul q u)"
   by (import hollight DEF_mod_real)
 
-constdefs
-  DECIMAL :: "nat => nat => hollight.real" 
+definition DECIMAL :: "nat => nat => hollight.real" where 
   "DECIMAL == %(u::nat) ua::nat. real_div (real_of_num u) (real_of_num ua)"
 
 lemma DEF_DECIMAL: "DECIMAL = (%(u::nat) ua::nat. real_div (real_of_num u) (real_of_num ua))"
@@ -5267,8 +5170,7 @@ real_lt (real_of_num 0) (y2::hollight.real) -->
 (real_mul x1 y2 = real_mul x2 y1)"
   by (import hollight RAT_LEMMA5)
 
-constdefs
-  is_int :: "hollight.real => bool" 
+definition is_int :: "hollight.real => bool" where 
   "is_int ==
 %u::hollight.real.
    EX n::nat. u = real_of_num n | u = real_neg (real_of_num n)"
@@ -5297,8 +5199,7 @@ lemma dest_int_rep: "ALL x::hollight.int.
       dest_int x = real_of_num n | dest_int x = real_neg (real_of_num n)"
   by (import hollight dest_int_rep)
 
-constdefs
-  int_le :: "hollight.int => hollight.int => bool" 
+definition int_le :: "hollight.int => hollight.int => bool" where 
   "int_le ==
 %(u::hollight.int) ua::hollight.int. real_le (dest_int u) (dest_int ua)"
 
@@ -5306,8 +5207,7 @@ lemma DEF_int_le: "int_le =
 (%(u::hollight.int) ua::hollight.int. real_le (dest_int u) (dest_int ua))"
   by (import hollight DEF_int_le)
 
-constdefs
-  int_lt :: "hollight.int => hollight.int => bool" 
+definition int_lt :: "hollight.int => hollight.int => bool" where 
   "int_lt ==
 %(u::hollight.int) ua::hollight.int. real_lt (dest_int u) (dest_int ua)"
 
@@ -5315,8 +5215,7 @@ lemma DEF_int_lt: "int_lt =
 (%(u::hollight.int) ua::hollight.int. real_lt (dest_int u) (dest_int ua))"
   by (import hollight DEF_int_lt)
 
-constdefs
-  int_ge :: "hollight.int => hollight.int => bool" 
+definition int_ge :: "hollight.int => hollight.int => bool" where 
   "int_ge ==
 %(u::hollight.int) ua::hollight.int.
    hollight.real_ge (dest_int u) (dest_int ua)"
@@ -5326,8 +5225,7 @@ lemma DEF_int_ge: "int_ge =
     hollight.real_ge (dest_int u) (dest_int ua))"
   by (import hollight DEF_int_ge)
 
-constdefs
-  int_gt :: "hollight.int => hollight.int => bool" 
+definition int_gt :: "hollight.int => hollight.int => bool" where 
   "int_gt ==
 %(u::hollight.int) ua::hollight.int.
    hollight.real_gt (dest_int u) (dest_int ua)"
@@ -5337,8 +5235,7 @@ lemma DEF_int_gt: "int_gt =
     hollight.real_gt (dest_int u) (dest_int ua))"
   by (import hollight DEF_int_gt)
 
-constdefs
-  int_of_num :: "nat => hollight.int" 
+definition int_of_num :: "nat => hollight.int" where 
   "int_of_num == %u::nat. mk_int (real_of_num u)"
 
 lemma DEF_int_of_num: "int_of_num = (%u::nat. mk_int (real_of_num u))"
@@ -5347,8 +5244,7 @@ lemma DEF_int_of_num: "int_of_num = (%u::nat. mk_int (real_of_num u))"
 lemma int_of_num_th: "ALL x::nat. dest_int (int_of_num x) = real_of_num x"
   by (import hollight int_of_num_th)
 
-constdefs
-  int_neg :: "hollight.int => hollight.int" 
+definition int_neg :: "hollight.int => hollight.int" where 
   "int_neg == %u::hollight.int. mk_int (real_neg (dest_int u))"
 
 lemma DEF_int_neg: "int_neg = (%u::hollight.int. mk_int (real_neg (dest_int u)))"
@@ -5357,8 +5253,7 @@ lemma DEF_int_neg: "int_neg = (%u::hollight.int. mk_int (real_neg (dest_int u)))
 lemma int_neg_th: "ALL x::hollight.int. dest_int (int_neg x) = real_neg (dest_int x)"
   by (import hollight int_neg_th)
 
-constdefs
-  int_add :: "hollight.int => hollight.int => hollight.int" 
+definition int_add :: "hollight.int => hollight.int => hollight.int" where 
   "int_add ==
 %(u::hollight.int) ua::hollight.int.
    mk_int (real_add (dest_int u) (dest_int ua))"
@@ -5372,8 +5267,7 @@ lemma int_add_th: "ALL (x::hollight.int) xa::hollight.int.
    dest_int (int_add x xa) = real_add (dest_int x) (dest_int xa)"
   by (import hollight int_add_th)
 
-constdefs
-  int_sub :: "hollight.int => hollight.int => hollight.int" 
+definition int_sub :: "hollight.int => hollight.int => hollight.int" where 
   "int_sub ==
 %(u::hollight.int) ua::hollight.int.
    mk_int (real_sub (dest_int u) (dest_int ua))"
@@ -5387,8 +5281,7 @@ lemma int_sub_th: "ALL (x::hollight.int) xa::hollight.int.
    dest_int (int_sub x xa) = real_sub (dest_int x) (dest_int xa)"
   by (import hollight int_sub_th)
 
-constdefs
-  int_mul :: "hollight.int => hollight.int => hollight.int" 
+definition int_mul :: "hollight.int => hollight.int => hollight.int" where 
   "int_mul ==
 %(u::hollight.int) ua::hollight.int.
    mk_int (real_mul (dest_int u) (dest_int ua))"
@@ -5402,8 +5295,7 @@ lemma int_mul_th: "ALL (x::hollight.int) y::hollight.int.
    dest_int (int_mul x y) = real_mul (dest_int x) (dest_int y)"
   by (import hollight int_mul_th)
 
-constdefs
-  int_abs :: "hollight.int => hollight.int" 
+definition int_abs :: "hollight.int => hollight.int" where 
   "int_abs == %u::hollight.int. mk_int (real_abs (dest_int u))"
 
 lemma DEF_int_abs: "int_abs = (%u::hollight.int. mk_int (real_abs (dest_int u)))"
@@ -5412,8 +5304,7 @@ lemma DEF_int_abs: "int_abs = (%u::hollight.int. mk_int (real_abs (dest_int u)))
 lemma int_abs_th: "ALL x::hollight.int. dest_int (int_abs x) = real_abs (dest_int x)"
   by (import hollight int_abs_th)
 
-constdefs
-  int_max :: "hollight.int => hollight.int => hollight.int" 
+definition int_max :: "hollight.int => hollight.int => hollight.int" where 
   "int_max ==
 %(u::hollight.int) ua::hollight.int.
    mk_int (real_max (dest_int u) (dest_int ua))"
@@ -5427,8 +5318,7 @@ lemma int_max_th: "ALL (x::hollight.int) y::hollight.int.
    dest_int (int_max x y) = real_max (dest_int x) (dest_int y)"
   by (import hollight int_max_th)
 
-constdefs
-  int_min :: "hollight.int => hollight.int => hollight.int" 
+definition int_min :: "hollight.int => hollight.int => hollight.int" where 
   "int_min ==
 %(u::hollight.int) ua::hollight.int.
    mk_int (real_min (dest_int u) (dest_int ua))"
@@ -5442,8 +5332,7 @@ lemma int_min_th: "ALL (x::hollight.int) y::hollight.int.
    dest_int (int_min x y) = real_min (dest_int x) (dest_int y)"
   by (import hollight int_min_th)
 
-constdefs
-  int_pow :: "hollight.int => nat => hollight.int" 
+definition int_pow :: "hollight.int => nat => hollight.int" where 
   "int_pow == %(u::hollight.int) ua::nat. mk_int (real_pow (dest_int u) ua)"
 
 lemma DEF_int_pow: "int_pow = (%(u::hollight.int) ua::nat. mk_int (real_pow (dest_int u) ua))"
@@ -5496,8 +5385,7 @@ lemma INT_ARCH: "ALL (x::hollight.int) d::hollight.int.
    d ~= int_of_num 0 --> (EX c::hollight.int. int_lt x (int_mul c d))"
   by (import hollight INT_ARCH)
 
-constdefs
-  mod_int :: "hollight.int => hollight.int => hollight.int => bool" 
+definition mod_int :: "hollight.int => hollight.int => hollight.int => bool" where 
   "mod_int ==
 %(u::hollight.int) (ua::hollight.int) ub::hollight.int.
    EX q::hollight.int. int_sub ua ub = int_mul q u"
@@ -5507,8 +5395,7 @@ lemma DEF_mod_int: "mod_int =
     EX q::hollight.int. int_sub ua ub = int_mul q u)"
   by (import hollight DEF_mod_int)
 
-constdefs
-  IN :: "'A => ('A => bool) => bool" 
+definition IN :: "'A => ('A => bool) => bool" where 
   "IN == %(u::'A::type) ua::'A::type => bool. ua u"
 
 lemma DEF_IN: "IN = (%(u::'A::type) ua::'A::type => bool. ua u)"
@@ -5518,15 +5405,13 @@ lemma EXTENSION: "ALL (x::'A::type => bool) xa::'A::type => bool.
    (x = xa) = (ALL xb::'A::type. IN xb x = IN xb xa)"
   by (import hollight EXTENSION)
 
-constdefs
-  GSPEC :: "('A => bool) => 'A => bool" 
+definition GSPEC :: "('A => bool) => 'A => bool" where 
   "GSPEC == %u::'A::type => bool. u"
 
 lemma DEF_GSPEC: "GSPEC = (%u::'A::type => bool. u)"
   by (import hollight DEF_GSPEC)
 
-constdefs
-  SETSPEC :: "'q_37056 => bool => 'q_37056 => bool" 
+definition SETSPEC :: "'q_37056 => bool => 'q_37056 => bool" where 
   "SETSPEC == %(u::'q_37056::type) (ua::bool) ub::'q_37056::type. ua & u = ub"
 
 lemma DEF_SETSPEC: "SETSPEC = (%(u::'q_37056::type) (ua::bool) ub::'q_37056::type. ua & u = ub)"
@@ -5548,15 +5433,13 @@ lemma IN_ELIM_THM: "(ALL (P::(bool => 'q_37089::type => bool) => bool) x::'q_370
 (ALL (p::'q_37194::type => bool) x::'q_37194::type. IN x p = p x)"
   by (import hollight IN_ELIM_THM)
 
-constdefs
-  EMPTY :: "'A => bool" 
+definition EMPTY :: "'A => bool" where 
   "EMPTY == %x::'A::type. False"
 
 lemma DEF_EMPTY: "EMPTY = (%x::'A::type. False)"
   by (import hollight DEF_EMPTY)
 
-constdefs
-  INSERT :: "'A => ('A => bool) => 'A => bool" 
+definition INSERT :: "'A => ('A => bool) => 'A => bool" where 
   "INSERT == %(u::'A::type) (ua::'A::type => bool) y::'A::type. IN y ua | y = u"
 
 lemma DEF_INSERT: "INSERT =
@@ -5585,8 +5468,7 @@ lemma DEF_UNION: "hollight.UNION =
     GSPEC (%ub::'A::type. EX x::'A::type. SETSPEC ub (IN x u | IN x ua) x))"
   by (import hollight DEF_UNION)
 
-constdefs
-  UNIONS :: "(('A => bool) => bool) => 'A => bool" 
+definition UNIONS :: "(('A => bool) => bool) => 'A => bool" where 
   "UNIONS ==
 %u::('A::type => bool) => bool.
    GSPEC
@@ -5615,8 +5497,7 @@ lemma DEF_INTER: "hollight.INTER =
     GSPEC (%ub::'A::type. EX x::'A::type. SETSPEC ub (IN x u & IN x ua) x))"
   by (import hollight DEF_INTER)
 
-constdefs
-  INTERS :: "(('A => bool) => bool) => 'A => bool" 
+definition INTERS :: "(('A => bool) => bool) => 'A => bool" where 
   "INTERS ==
 %u::('A::type => bool) => bool.
    GSPEC
@@ -5632,8 +5513,7 @@ lemma DEF_INTERS: "INTERS =
             SETSPEC ua (ALL ua::'A::type => bool. IN ua u --> IN x ua) x))"
   by (import hollight DEF_INTERS)
 
-constdefs
-  DIFF :: "('A => bool) => ('A => bool) => 'A => bool" 
+definition DIFF :: "('A => bool) => ('A => bool) => 'A => bool" where 
   "DIFF ==
 %(u::'A::type => bool) ua::'A::type => bool.
    GSPEC (%ub::'A::type. EX x::'A::type. SETSPEC ub (IN x u & ~ IN x ua) x)"
@@ -5648,8 +5528,7 @@ lemma INSERT: "INSERT (x::'A::type) (s::'A::type => bool) =
 GSPEC (%u::'A::type. EX y::'A::type. SETSPEC u (IN y s | y = x) y)"
   by (import hollight INSERT)
 
-constdefs
-  DELETE :: "('A => bool) => 'A => 'A => bool" 
+definition DELETE :: "('A => bool) => 'A => 'A => bool" where 
   "DELETE ==
 %(u::'A::type => bool) ua::'A::type.
    GSPEC (%ub::'A::type. EX y::'A::type. SETSPEC ub (IN y u & y ~= ua) y)"
@@ -5659,8 +5538,7 @@ lemma DEF_DELETE: "DELETE =
     GSPEC (%ub::'A::type. EX y::'A::type. SETSPEC ub (IN y u & y ~= ua) y))"
   by (import hollight DEF_DELETE)
 
-constdefs
-  SUBSET :: "('A => bool) => ('A => bool) => bool" 
+definition SUBSET :: "('A => bool) => ('A => bool) => bool" where 
   "SUBSET ==
 %(u::'A::type => bool) ua::'A::type => bool.
    ALL x::'A::type. IN x u --> IN x ua"
@@ -5670,8 +5548,7 @@ lemma DEF_SUBSET: "SUBSET =
     ALL x::'A::type. IN x u --> IN x ua)"
   by (import hollight DEF_SUBSET)
 
-constdefs
-  PSUBSET :: "('A => bool) => ('A => bool) => bool" 
+definition PSUBSET :: "('A => bool) => ('A => bool) => bool" where 
   "PSUBSET ==
 %(u::'A::type => bool) ua::'A::type => bool. SUBSET u ua & u ~= ua"
 
@@ -5679,8 +5556,7 @@ lemma DEF_PSUBSET: "PSUBSET =
 (%(u::'A::type => bool) ua::'A::type => bool. SUBSET u ua & u ~= ua)"
   by (import hollight DEF_PSUBSET)
 
-constdefs
-  DISJOINT :: "('A => bool) => ('A => bool) => bool" 
+definition DISJOINT :: "('A => bool) => ('A => bool) => bool" where 
   "DISJOINT ==
 %(u::'A::type => bool) ua::'A::type => bool. hollight.INTER u ua = EMPTY"
 
@@ -5688,15 +5564,13 @@ lemma DEF_DISJOINT: "DISJOINT =
 (%(u::'A::type => bool) ua::'A::type => bool. hollight.INTER u ua = EMPTY)"
   by (import hollight DEF_DISJOINT)
 
-constdefs
-  SING :: "('A => bool) => bool" 
+definition SING :: "('A => bool) => bool" where 
   "SING == %u::'A::type => bool. EX x::'A::type. u = INSERT x EMPTY"
 
 lemma DEF_SING: "SING = (%u::'A::type => bool. EX x::'A::type. u = INSERT x EMPTY)"
   by (import hollight DEF_SING)
 
-constdefs
-  FINITE :: "('A => bool) => bool" 
+definition FINITE :: "('A => bool) => bool" where 
   "FINITE ==
 %a::'A::type => bool.
    ALL FINITE'::('A::type => bool) => bool.
@@ -5718,15 +5592,13 @@ lemma DEF_FINITE: "FINITE =
        FINITE' a)"
   by (import hollight DEF_FINITE)
 
-constdefs
-  INFINITE :: "('A => bool) => bool" 
+definition INFINITE :: "('A => bool) => bool" where 
   "INFINITE == %u::'A::type => bool. ~ FINITE u"
 
 lemma DEF_INFINITE: "INFINITE = (%u::'A::type => bool. ~ FINITE u)"
   by (import hollight DEF_INFINITE)
 
-constdefs
-  IMAGE :: "('A => 'B) => ('A => bool) => 'B => bool" 
+definition IMAGE :: "('A => 'B) => ('A => bool) => 'B => bool" where 
   "IMAGE ==
 %(u::'A::type => 'B::type) ua::'A::type => bool.
    GSPEC
@@ -5740,8 +5612,7 @@ lemma DEF_IMAGE: "IMAGE =
          EX y::'B::type. SETSPEC ub (EX x::'A::type. IN x ua & y = u x) y))"
   by (import hollight DEF_IMAGE)
 
-constdefs
-  INJ :: "('A => 'B) => ('A => bool) => ('B => bool) => bool" 
+definition INJ :: "('A => 'B) => ('A => bool) => ('B => bool) => bool" where 
   "INJ ==
 %(u::'A::type => 'B::type) (ua::'A::type => bool) ub::'B::type => bool.
    (ALL x::'A::type. IN x ua --> IN (u x) ub) &
@@ -5754,8 +5625,7 @@ lemma DEF_INJ: "INJ =
         IN x ua & IN y ua & u x = u y --> x = y))"
   by (import hollight DEF_INJ)
 
-constdefs
-  SURJ :: "('A => 'B) => ('A => bool) => ('B => bool) => bool" 
+definition SURJ :: "('A => 'B) => ('A => bool) => ('B => bool) => bool" where 
   "SURJ ==
 %(u::'A::type => 'B::type) (ua::'A::type => bool) ub::'B::type => bool.
    (ALL x::'A::type. IN x ua --> IN (u x) ub) &
@@ -5767,8 +5637,7 @@ lemma DEF_SURJ: "SURJ =
     (ALL x::'B::type. IN x ub --> (EX y::'A::type. IN y ua & u y = x)))"
   by (import hollight DEF_SURJ)
 
-constdefs
-  BIJ :: "('A => 'B) => ('A => bool) => ('B => bool) => bool" 
+definition BIJ :: "('A => 'B) => ('A => bool) => ('B => bool) => bool" where 
   "BIJ ==
 %(u::'A::type => 'B::type) (ua::'A::type => bool) ub::'B::type => bool.
    INJ u ua ub & SURJ u ua ub"
@@ -5778,22 +5647,19 @@ lemma DEF_BIJ: "BIJ =
     INJ u ua ub & SURJ u ua ub)"
   by (import hollight DEF_BIJ)
 
-constdefs
-  CHOICE :: "('A => bool) => 'A" 
+definition CHOICE :: "('A => bool) => 'A" where 
   "CHOICE == %u::'A::type => bool. SOME x::'A::type. IN x u"
 
 lemma DEF_CHOICE: "CHOICE = (%u::'A::type => bool. SOME x::'A::type. IN x u)"
   by (import hollight DEF_CHOICE)
 
-constdefs
-  REST :: "('A => bool) => 'A => bool" 
+definition REST :: "('A => bool) => 'A => bool" where 
   "REST == %u::'A::type => bool. DELETE u (CHOICE u)"
 
 lemma DEF_REST: "REST = (%u::'A::type => bool. DELETE u (CHOICE u))"
   by (import hollight DEF_REST)
 
-constdefs
-  CARD_GE :: "('q_37693 => bool) => ('q_37690 => bool) => bool" 
+definition CARD_GE :: "('q_37693 => bool) => ('q_37690 => bool) => bool" where 
   "CARD_GE ==
 %(u::'q_37693::type => bool) ua::'q_37690::type => bool.
    EX f::'q_37693::type => 'q_37690::type.
@@ -5807,8 +5673,7 @@ lemma DEF_CARD_GE: "CARD_GE =
           IN y ua --> (EX x::'q_37693::type. IN x u & y = f x))"
   by (import hollight DEF_CARD_GE)
 
-constdefs
-  CARD_LE :: "('q_37702 => bool) => ('q_37701 => bool) => bool" 
+definition CARD_LE :: "('q_37702 => bool) => ('q_37701 => bool) => bool" where 
   "CARD_LE ==
 %(u::'q_37702::type => bool) ua::'q_37701::type => bool. CARD_GE ua u"
 
@@ -5816,8 +5681,7 @@ lemma DEF_CARD_LE: "CARD_LE =
 (%(u::'q_37702::type => bool) ua::'q_37701::type => bool. CARD_GE ua u)"
   by (import hollight DEF_CARD_LE)
 
-constdefs
-  CARD_EQ :: "('q_37712 => bool) => ('q_37713 => bool) => bool" 
+definition CARD_EQ :: "('q_37712 => bool) => ('q_37713 => bool) => bool" where 
   "CARD_EQ ==
 %(u::'q_37712::type => bool) ua::'q_37713::type => bool.
    CARD_LE u ua & CARD_LE ua u"
@@ -5827,8 +5691,7 @@ lemma DEF_CARD_EQ: "CARD_EQ =
     CARD_LE u ua & CARD_LE ua u)"
   by (import hollight DEF_CARD_EQ)
 
-constdefs
-  CARD_GT :: "('q_37727 => bool) => ('q_37728 => bool) => bool" 
+definition CARD_GT :: "('q_37727 => bool) => ('q_37728 => bool) => bool" where 
   "CARD_GT ==
 %(u::'q_37727::type => bool) ua::'q_37728::type => bool.
    CARD_GE u ua & ~ CARD_GE ua u"
@@ -5838,8 +5701,7 @@ lemma DEF_CARD_GT: "CARD_GT =
     CARD_GE u ua & ~ CARD_GE ua u)"
   by (import hollight DEF_CARD_GT)
 
-constdefs
-  CARD_LT :: "('q_37743 => bool) => ('q_37744 => bool) => bool" 
+definition CARD_LT :: "('q_37743 => bool) => ('q_37744 => bool) => bool" where 
   "CARD_LT ==
 %(u::'q_37743::type => bool) ua::'q_37744::type => bool.
    CARD_LE u ua & ~ CARD_LE ua u"
@@ -5849,8 +5711,7 @@ lemma DEF_CARD_LT: "CARD_LT =
     CARD_LE u ua & ~ CARD_LE ua u)"
   by (import hollight DEF_CARD_LT)
 
-constdefs
-  COUNTABLE :: "('q_37757 => bool) => bool" 
+definition COUNTABLE :: "('q_37757 => bool) => bool" where 
   "(op ==::(('q_37757::type => bool) => bool)
         => (('q_37757::type => bool) => bool) => prop)
  (COUNTABLE::('q_37757::type => bool) => bool)
@@ -6470,9 +6331,8 @@ lemma FINITE_DIFF: "ALL (s::'q_41764::type => bool) t::'q_41764::type => bool.
    FINITE s --> FINITE (DIFF s t)"
   by (import hollight FINITE_DIFF)
 
-constdefs
-  FINREC :: "('q_41824 => 'q_41823 => 'q_41823)
-=> 'q_41823 => ('q_41824 => bool) => 'q_41823 => nat => bool" 
+definition FINREC :: "('q_41824 => 'q_41823 => 'q_41823)
+=> 'q_41823 => ('q_41824 => bool) => 'q_41823 => nat => bool" where 
   "FINREC ==
 SOME FINREC::('q_41824::type => 'q_41823::type => 'q_41823::type)
              => 'q_41823::type
@@ -6558,9 +6418,8 @@ lemma SET_RECURSION_LEMMA: "ALL (f::'A::type => 'B::type => 'B::type) b::'B::typ
            FINITE s --> g (INSERT x s) = COND (IN x s) (g s) (f x (g s))))"
   by (import hollight SET_RECURSION_LEMMA)
 
-constdefs
-  ITSET :: "('q_42525 => 'q_42524 => 'q_42524)
-=> ('q_42525 => bool) => 'q_42524 => 'q_42524" 
+definition ITSET :: "('q_42525 => 'q_42524 => 'q_42524)
+=> ('q_42525 => bool) => 'q_42524 => 'q_42524" where 
   "ITSET ==
 %(u::'q_42525::type => 'q_42524::type => 'q_42524::type)
    (ua::'q_42525::type => bool) ub::'q_42524::type.
@@ -6630,8 +6489,7 @@ lemma FINITE_RESTRICT: "ALL (s::'A::type => bool) p::'q_42882::type.
           EX x::'A::type. SETSPEC u (IN x s & (P::'A::type => bool) x) x))"
   by (import hollight FINITE_RESTRICT)
 
-constdefs
-  CARD :: "('q_42918 => bool) => nat" 
+definition CARD :: "('q_42918 => bool) => nat" where 
   "CARD == %u::'q_42918::type => bool. ITSET (%x::'q_42918::type. Suc) u 0"
 
 lemma DEF_CARD: "CARD = (%u::'q_42918::type => bool. ITSET (%x::'q_42918::type. Suc) u 0)"
@@ -6674,8 +6532,7 @@ lemma CARD_UNION_EQ: "ALL (s::'q_43163::type => bool) (t::'q_43163::type => bool
    CARD s + CARD t = CARD u"
   by (import hollight CARD_UNION_EQ)
 
-constdefs
-  HAS_SIZE :: "('q_43199 => bool) => nat => bool" 
+definition HAS_SIZE :: "('q_43199 => bool) => nat => bool" where 
   "HAS_SIZE == %(u::'q_43199::type => bool) ua::nat. FINITE u & CARD u = ua"
 
 lemma DEF_HAS_SIZE: "HAS_SIZE = (%(u::'q_43199::type => bool) ua::nat. FINITE u & CARD u = ua)"
@@ -6944,8 +6801,7 @@ lemma HAS_SIZE_INDEX: "ALL (x::'A::type => bool) n::nat.
        (ALL xa::'A::type. IN xa x --> (EX! m::nat. < m n & f m = xa)))"
   by (import hollight HAS_SIZE_INDEX)
 
-constdefs
-  set_of_list :: "'q_45968 hollight.list => 'q_45968 => bool" 
+definition set_of_list :: "'q_45968 hollight.list => 'q_45968 => bool" where 
   "set_of_list ==
 SOME set_of_list::'q_45968::type hollight.list => 'q_45968::type => bool.
    set_of_list NIL = EMPTY &
@@ -6959,8 +6815,7 @@ lemma DEF_set_of_list: "set_of_list =
         set_of_list (CONS h t) = INSERT h (set_of_list t)))"
   by (import hollight DEF_set_of_list)
 
-constdefs
-  list_of_set :: "('q_45986 => bool) => 'q_45986 hollight.list" 
+definition list_of_set :: "('q_45986 => bool) => 'q_45986 hollight.list" where 
   "list_of_set ==
 %u::'q_45986::type => bool.
    SOME l::'q_45986::type hollight.list.
@@ -6999,8 +6854,7 @@ lemma SET_OF_LIST_APPEND: "ALL (x::'q_46139::type hollight.list) xa::'q_46139::t
    hollight.UNION (set_of_list x) (set_of_list xa)"
   by (import hollight SET_OF_LIST_APPEND)
 
-constdefs
-  pairwise :: "('q_46198 => 'q_46198 => bool) => ('q_46198 => bool) => bool" 
+definition pairwise :: "('q_46198 => 'q_46198 => bool) => ('q_46198 => bool) => bool" where 
   "pairwise ==
 %(u::'q_46198::type => 'q_46198::type => bool) ua::'q_46198::type => bool.
    ALL (x::'q_46198::type) y::'q_46198::type.
@@ -7012,8 +6866,7 @@ lemma DEF_pairwise: "pairwise =
        IN x ua & IN y ua & x ~= y --> u x y)"
   by (import hollight DEF_pairwise)
 
-constdefs
-  PAIRWISE :: "('q_46220 => 'q_46220 => bool) => 'q_46220 hollight.list => bool" 
+definition PAIRWISE :: "('q_46220 => 'q_46220 => bool) => 'q_46220 hollight.list => bool" where 
   "PAIRWISE ==
 SOME PAIRWISE::('q_46220::type => 'q_46220::type => bool)
                => 'q_46220::type hollight.list => bool.
@@ -7075,8 +6928,7 @@ lemma FINITE_IMAGE_IMAGE: "(op =::('A::type finite_image => bool)
        (EMPTY::'A::type => bool))))"
   by (import hollight FINITE_IMAGE_IMAGE)
 
-constdefs
-  dimindex :: "('A => bool) => nat" 
+definition dimindex :: "('A => bool) => nat" where 
   "(op ==::(('A::type => bool) => nat) => (('A::type => bool) => nat) => prop)
  (dimindex::('A::type => bool) => nat)
  (%u::'A::type => bool.
@@ -7125,8 +6977,7 @@ lemma DIMINDEX_FINITE_IMAGE: "ALL (s::'A::type finite_image => bool) t::'A::type
    dimindex s = dimindex t"
   by (import hollight DIMINDEX_FINITE_IMAGE)
 
-constdefs
-  finite_index :: "nat => 'A" 
+definition finite_index :: "nat => 'A" where 
   "(op ==::(nat => 'A::type) => (nat => 'A::type) => prop)
  (finite_index::nat => 'A::type)
  ((Eps::((nat => 'A::type) => bool) => nat => 'A::type)
@@ -7287,8 +7138,7 @@ lemma CART_EQ: "(All::(('A::type, 'B::type) cart => bool) => bool)
                       xa))))))"
   by (import hollight CART_EQ)
 
-constdefs
-  lambda :: "(nat => 'A) => ('A, 'B) cart" 
+definition lambda :: "(nat => 'A) => ('A, 'B) cart" where 
   "(op ==::((nat => 'A::type) => ('A::type, 'B::type) cart)
         => ((nat => 'A::type) => ('A::type, 'B::type) cart) => prop)
  (lambda::(nat => 'A::type) => ('A::type, 'B::type) cart)
@@ -7388,8 +7238,7 @@ lemmas "TYDEF_finite_sum_@intern" = typedef_hol2hollight
   [where a="a :: ('A, 'B) finite_sum" and r=r ,
    OF type_definition_finite_sum]
 
-constdefs
-  pastecart :: "('A, 'M) cart => ('A, 'N) cart => ('A, ('M, 'N) finite_sum) cart" 
+definition pastecart :: "('A, 'M) cart => ('A, 'N) cart => ('A, ('M, 'N) finite_sum) cart" where 
   "(op ==::(('A::type, 'M::type) cart
          => ('A::type, 'N::type) cart
             => ('A::type, ('M::type, 'N::type) finite_sum) cart)
@@ -7439,8 +7288,7 @@ lemma DEF_pastecart: "(op =::(('A::type, 'M::type) cart
                  (hollight.UNIV::'M::type => bool))))))"
   by (import hollight DEF_pastecart)
 
-constdefs
-  fstcart :: "('A, ('M, 'N) finite_sum) cart => ('A, 'M) cart" 
+definition fstcart :: "('A, ('M, 'N) finite_sum) cart => ('A, 'M) cart" where 
   "fstcart ==
 %u::('A::type, ('M::type, 'N::type) finite_sum) cart. lambda ($ u)"
 
@@ -7448,8 +7296,7 @@ lemma DEF_fstcart: "fstcart =
 (%u::('A::type, ('M::type, 'N::type) finite_sum) cart. lambda ($ u))"
   by (import hollight DEF_fstcart)
 
-constdefs
-  sndcart :: "('A, ('M, 'N) finite_sum) cart => ('A, 'N) cart" 
+definition sndcart :: "('A, ('M, 'N) finite_sum) cart => ('A, 'N) cart" where 
   "(op ==::(('A::type, ('M::type, 'N::type) finite_sum) cart
          => ('A::type, 'N::type) cart)
         => (('A::type, ('M::type, 'N::type) finite_sum) cart
@@ -7616,8 +7463,7 @@ lemma FUNCTION_FACTORS_LEFT: "ALL (x::'q_48090::type => 'q_48091::type)
    (EX xb::'q_48070::type => 'q_48091::type. x = xb o xa)"
   by (import hollight FUNCTION_FACTORS_LEFT)
 
-constdefs
-  dotdot :: "nat => nat => nat => bool" 
+definition dotdot :: "nat => nat => nat => bool" where 
   "dotdot ==
 %(u::nat) ua::nat.
    GSPEC (%ub::nat. EX x::nat. SETSPEC ub (<= u x & <= x ua) x)"
@@ -7718,8 +7564,7 @@ lemma SUBSET_NUMSEG: "ALL (m::nat) (n::nat) (p::nat) q::nat.
    SUBSET (dotdot m n) (dotdot p q) = (< n m | <= p m & <= n q)"
   by (import hollight SUBSET_NUMSEG)
 
-constdefs
-  neutral :: "('q_48985 => 'q_48985 => 'q_48985) => 'q_48985" 
+definition neutral :: "('q_48985 => 'q_48985 => 'q_48985) => 'q_48985" where 
   "neutral ==
 %u::'q_48985::type => 'q_48985::type => 'q_48985::type.
    SOME x::'q_48985::type. ALL y::'q_48985::type. u x y = y & u y x = y"
@@ -7729,8 +7574,7 @@ lemma DEF_neutral: "neutral =
     SOME x::'q_48985::type. ALL y::'q_48985::type. u x y = y & u y x = y)"
   by (import hollight DEF_neutral)
 
-constdefs
-  monoidal :: "('A => 'A => 'A) => bool" 
+definition monoidal :: "('A => 'A => 'A) => bool" where 
   "monoidal ==
 %u::'A::type => 'A::type => 'A::type.
    (ALL (x::'A::type) y::'A::type. u x y = u y x) &
@@ -7746,8 +7590,7 @@ lemma DEF_monoidal: "monoidal =
     (ALL x::'A::type. u (neutral u) x = x))"
   by (import hollight DEF_monoidal)
 
-constdefs
-  support :: "('B => 'B => 'B) => ('A => 'B) => ('A => bool) => 'A => bool" 
+definition support :: "('B => 'B => 'B) => ('A => 'B) => ('A => bool) => 'A => bool" where 
   "support ==
 %(u::'B::type => 'B::type => 'B::type) (ua::'A::type => 'B::type)
    ub::'A::type => bool.
@@ -7763,9 +7606,8 @@ lemma DEF_support: "support =
          EX x::'A::type. SETSPEC uc (IN x ub & ua x ~= neutral u) x))"
   by (import hollight DEF_support)
 
-constdefs
-  iterate :: "('q_49090 => 'q_49090 => 'q_49090)
-=> ('A => bool) => ('A => 'q_49090) => 'q_49090" 
+definition iterate :: "('q_49090 => 'q_49090 => 'q_49090)
+=> ('A => bool) => ('A => 'q_49090) => 'q_49090" where 
   "iterate ==
 %(u::'q_49090::type => 'q_49090::type => 'q_49090::type)
    (ua::'A::type => bool) ub::'A::type => 'q_49090::type.
@@ -8017,8 +7859,7 @@ lemma ITERATE_EQ_GENERAL: "ALL u_4247::'C::type => 'C::type => 'C::type.
        iterate u_4247 s f = iterate u_4247 t g)"
   by (import hollight ITERATE_EQ_GENERAL)
 
-constdefs
-  nsum :: "('q_51017 => bool) => ('q_51017 => nat) => nat" 
+definition nsum :: "('q_51017 => bool) => ('q_51017 => nat) => nat" where 
   "(op ==::(('q_51017::type => bool) => ('q_51017::type => nat) => nat)
         => (('q_51017::type => bool) => ('q_51017::type => nat) => nat)
            => prop)
@@ -8965,9 +8806,8 @@ lemma SUM_EQ_GENERAL: "ALL (x::'A::type => bool) (xa::'B::type => bool)
    hollight.sum x xb = hollight.sum xa xc"
   by (import hollight SUM_EQ_GENERAL)
 
-constdefs
-  CASEWISE :: "(('q_57926 => 'q_57930) * ('q_57931 => 'q_57926 => 'q_57890)) hollight.list
-=> 'q_57931 => 'q_57930 => 'q_57890" 
+definition CASEWISE :: "(('q_57926 => 'q_57930) * ('q_57931 => 'q_57926 => 'q_57890)) hollight.list
+=> 'q_57931 => 'q_57930 => 'q_57890" where 
   "CASEWISE ==
 SOME CASEWISE::(('q_57926::type => 'q_57930::type) *
                 ('q_57931::type
@@ -9084,11 +8924,10 @@ lemma CASEWISE_WORKS: "ALL (x::(('P::type => 'A::type) *
     x"
   by (import hollight CASEWISE_WORKS)
 
-constdefs
-  admissible :: "('q_58228 => 'q_58221 => bool)
+definition admissible :: "('q_58228 => 'q_58221 => bool)
 => (('q_58228 => 'q_58224) => 'q_58234 => bool)
    => ('q_58234 => 'q_58221)
-      => (('q_58228 => 'q_58224) => 'q_58234 => 'q_58229) => bool" 
+      => (('q_58228 => 'q_58224) => 'q_58234 => 'q_58229) => bool" where 
   "admissible ==
 %(u::'q_58228::type => 'q_58221::type => bool)
    (ua::('q_58228::type => 'q_58224::type) => 'q_58234::type => bool)
@@ -9114,10 +8953,9 @@ lemma DEF_admissible: "admissible =
        uc f a = uc g a)"
   by (import hollight DEF_admissible)
 
-constdefs
-  tailadmissible :: "('A => 'A => bool)
+definition tailadmissible :: "('A => 'A => bool)
 => (('A => 'B) => 'P => bool)
-   => ('P => 'A) => (('A => 'B) => 'P => 'B) => bool" 
+   => ('P => 'A) => (('A => 'B) => 'P => 'B) => bool" where 
   "tailadmissible ==
 %(u::'A::type => 'A::type => bool)
    (ua::('A::type => 'B::type) => 'P::type => bool)
@@ -9151,11 +8989,10 @@ lemma DEF_tailadmissible: "tailadmissible =
            ua f a --> uc f a = COND (P f a) (f (G f a)) (H f a)))"
   by (import hollight DEF_tailadmissible)
 
-constdefs
-  superadmissible :: "('q_58378 => 'q_58378 => bool)
+definition superadmissible :: "('q_58378 => 'q_58378 => bool)
 => (('q_58378 => 'q_58380) => 'q_58386 => bool)
    => ('q_58386 => 'q_58378)
-      => (('q_58378 => 'q_58380) => 'q_58386 => 'q_58380) => bool" 
+      => (('q_58378 => 'q_58380) => 'q_58386 => 'q_58380) => bool" where 
   "superadmissible ==
 %(u::'q_58378::type => 'q_58378::type => bool)
    (ua::('q_58378::type => 'q_58380::type) => 'q_58386::type => bool)

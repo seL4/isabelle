@@ -34,7 +34,7 @@ Even ordinary definitions allow underdefinedness, this time by means of
 preconditions:
 *}
 
-constdefs subtract :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+definition subtract :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
 "n \<le> m \<Longrightarrow> subtract m n \<equiv> m - n"
 
 text{*
@@ -85,7 +85,7 @@ The snag is that it may not terminate if @{term f} has non-trivial cycles.
 Phrased differently, the relation
 *}
 
-constdefs step1 :: "('a \<Rightarrow> 'a) \<Rightarrow> ('a \<times> 'a)set"
+definition step1 :: "('a \<Rightarrow> 'a) \<Rightarrow> ('a \<times> 'a)set" where
   "step1 f \<equiv> {(y,x). y = f x \<and> y \<noteq> x}"
 
 text{*\noindent
@@ -160,7 +160,7 @@ In general, @{term s} will be a tuple or record.  As an example
 consider the following definition of function @{const find}:
 *}
 
-constdefs find2 :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
+definition find2 :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
   "find2 f x \<equiv>
    fst(while (\<lambda>(x,x'). x' \<noteq> x) (\<lambda>(x,x'). (x',f x')) (x,f x))"
 

@@ -8,9 +8,7 @@ header{*Renaming of State Sets*}
 
 theory Rename imports Extend begin
 
-constdefs
-  
-  rename :: "['a => 'b, 'a program] => 'b program"
+definition rename :: "['a => 'b, 'a program] => 'b program" where
     "rename h == extend (%(x,u::unit). h x)"
 
 declare image_inv_f_f [simp] image_surj_f_inv_f [simp]

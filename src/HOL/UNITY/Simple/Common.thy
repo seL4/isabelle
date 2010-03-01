@@ -24,11 +24,10 @@ axioms
   fasc:  "m \<le> ftime n"
   gasc:  "m \<le> gtime n"
 
-constdefs
-  common :: "nat set"
+definition common :: "nat set" where
     "common == {n. ftime n = n & gtime n = n}"
 
-  maxfg :: "nat => nat set"
+definition maxfg :: "nat => nat set" where
     "maxfg m == {t. t \<le> max (ftime m) (gtime m)}"
 
 

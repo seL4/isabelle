@@ -45,8 +45,7 @@ typedef (open Nat)
   nat = Nat
   by (rule exI, unfold mem_def, rule Nat.Zero_RepI)
 
-constdefs
-  Suc ::   "nat => nat"
+definition Suc :: "nat => nat" where
   Suc_def: "Suc == (%n. Abs_Nat (Suc_Rep (Rep_Nat n)))"
 
 local

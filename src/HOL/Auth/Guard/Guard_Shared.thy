@@ -25,7 +25,7 @@ abbreviation
 
 subsubsection{*agent associated to a key*}
 
-constdefs agt :: "key => agent"
+definition agt :: "key => agent" where
 "agt K == @A. K = shrK A"
 
 lemma agt_shrK [simp]: "agt (shrK A) = A"
@@ -52,7 +52,7 @@ by (cases A, auto simp: keyset_def initState.simps)
 
 subsubsection{*sets of symmetric keys*}
 
-constdefs shrK_set :: "key set => bool"
+definition shrK_set :: "key set => bool" where
 "shrK_set Ks == ALL K. K:Ks --> (EX A. K = shrK A)"
 
 lemma in_shrK_set: "[| shrK_set Ks; K:Ks |] ==> EX A. K = shrK A"
@@ -66,7 +66,7 @@ by (simp add: shrK_set_def)
 
 subsubsection{*sets of good keys*}
 
-constdefs good :: "key set => bool"
+definition good :: "key set => bool" where
 "good Ks == ALL K. K:Ks --> agt K ~:bad"
 
 lemma in_good: "[| good Ks; K:Ks |] ==> agt K ~:bad"
@@ -154,7 +154,7 @@ by (auto simp: knows_max_def)
 
 subsubsection{*regular protocols*}
 
-constdefs regular :: "event list set => bool"
+definition regular :: "event list set => bool" where
 "regular p == ALL evs A. evs:p --> (Key (shrK A):parts (spies evs)) = (A:bad)"
 
 lemma shrK_parts_iff_bad [simp]: "[| evs:p; regular p |] ==>

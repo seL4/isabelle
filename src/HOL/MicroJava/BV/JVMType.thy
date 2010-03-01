@@ -19,43 +19,39 @@ types
   prog_type    = "cname \<Rightarrow> class_type"
 
 
-constdefs
-  stk_esl :: "'c prog \<Rightarrow> nat \<Rightarrow> ty list esl"
+definition stk_esl :: "'c prog \<Rightarrow> nat \<Rightarrow> ty list esl" where
   "stk_esl S maxs == upto_esl maxs (JType.esl S)"
 
-  reg_sl :: "'c prog \<Rightarrow> nat \<Rightarrow> ty err list sl"
+definition reg_sl :: "'c prog \<Rightarrow> nat \<Rightarrow> ty err list sl" where
   "reg_sl S maxr == Listn.sl maxr (Err.sl (JType.esl S))"
 
-  sl :: "'c prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> state sl"
+definition sl :: "'c prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> state sl" where
   "sl S maxs maxr ==
   Err.sl(Opt.esl(Product.esl (stk_esl S maxs) (Err.esl(reg_sl S maxr))))"
 
-constdefs
-  states :: "'c prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> state set"
+definition states :: "'c prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> state set" where
   "states S maxs maxr == fst(sl S maxs maxr)"
 
-  le :: "'c prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> state ord"
+definition le :: "'c prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> state ord" where
   "le S maxs maxr == fst(snd(sl S maxs maxr))"
 
-  sup :: "'c prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> state binop"
+definition  sup :: "'c prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> state binop" where
   "sup S maxs maxr == snd(snd(sl S maxs maxr))"
 
-
-constdefs
-  sup_ty_opt :: "['code prog,ty err,ty err] \<Rightarrow> bool" 
-                 ("_ |- _ <=o _" [71,71] 70)
+definition sup_ty_opt :: "['code prog,ty err,ty err] \<Rightarrow> bool"
+                 ("_ |- _ <=o _" [71,71] 70) where 
   "sup_ty_opt G == Err.le (subtype G)"
 
-  sup_loc :: "['code prog,locvars_type,locvars_type] \<Rightarrow> bool" 
-              ("_ |- _ <=l _"  [71,71] 70)
+definition sup_loc :: "['code prog,locvars_type,locvars_type] \<Rightarrow> bool" 
+              ("_ |- _ <=l _"  [71,71] 70) where
   "sup_loc G == Listn.le (sup_ty_opt G)"
 
-  sup_state :: "['code prog,state_type,state_type] \<Rightarrow> bool"   
-               ("_ |- _ <=s _"  [71,71] 70)
+definition sup_state :: "['code prog,state_type,state_type] \<Rightarrow> bool"   
+               ("_ |- _ <=s _"  [71,71] 70) where
   "sup_state G == Product.le (Listn.le (subtype G)) (sup_loc G)"
 
-  sup_state_opt :: "['code prog,state_type option,state_type option] \<Rightarrow> bool" 
-                   ("_ |- _ <=' _"  [71,71] 70)
+definition sup_state_opt :: "['code prog,state_type option,state_type option] \<Rightarrow> bool" 
+                   ("_ |- _ <=' _"  [71,71] 70) where
   "sup_state_opt G == Opt.le (sup_state G)"
 
 

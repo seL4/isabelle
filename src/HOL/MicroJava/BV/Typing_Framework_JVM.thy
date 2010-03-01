@@ -9,13 +9,11 @@ theory Typing_Framework_JVM
 imports "../DFA/Abstract_BV" JVMType EffectMono BVSpec
 begin
 
-constdefs
-  exec :: "jvm_prog \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> exception_table \<Rightarrow> instr list \<Rightarrow> JVMType.state step_type"
+definition exec :: "jvm_prog \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> exception_table \<Rightarrow> instr list \<Rightarrow> JVMType.state step_type" where
   "exec G maxs rT et bs == 
   err_step (size bs) (\<lambda>pc. app (bs!pc) G maxs rT pc et) (\<lambda>pc. eff (bs!pc) G pc et)"
 
-constdefs
-  opt_states :: "'c prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> (ty list \<times> ty err list) option set"
+definition opt_states :: "'c prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> (ty list \<times> ty err list) option set" where
   "opt_states G maxs maxr \<equiv> opt (\<Union>{list n (types G) |n. n \<le> maxs} \<times> list maxr (err (types G)))"
 
 
@@ -26,8 +24,7 @@ primrec
   "list_all'_rec P n []     = True"
   "list_all'_rec P n (x#xs) = (P x n \<and> list_all'_rec P (Suc n) xs)"
 
-constdefs
-  list_all' :: "('a \<Rightarrow> nat \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
+definition list_all' :: "('a \<Rightarrow> nat \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
   "list_all' P xs \<equiv> list_all'_rec P 0 xs"
 
 lemma list_all'_rec:

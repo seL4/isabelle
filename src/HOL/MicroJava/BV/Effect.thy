@@ -13,27 +13,25 @@ types
   succ_type = "(p_count \<times> state_type option) list"
 
 text {* Program counter of successor instructions: *}
-consts
-  succs :: "instr \<Rightarrow> p_count \<Rightarrow> p_count list"
-primrec 
+primrec succs :: "instr \<Rightarrow> p_count \<Rightarrow> p_count list" where
   "succs (Load idx) pc         = [pc+1]"
-  "succs (Store idx) pc        = [pc+1]"
-  "succs (LitPush v) pc        = [pc+1]"
-  "succs (Getfield F C) pc     = [pc+1]"
-  "succs (Putfield F C) pc     = [pc+1]"
-  "succs (New C) pc            = [pc+1]"
-  "succs (Checkcast C) pc      = [pc+1]"
-  "succs Pop pc                = [pc+1]"
-  "succs Dup pc                = [pc+1]"
-  "succs Dup_x1 pc             = [pc+1]"
-  "succs Dup_x2 pc             = [pc+1]"
-  "succs Swap pc               = [pc+1]"
-  "succs IAdd pc               = [pc+1]"
-  "succs (Ifcmpeq b) pc        = [pc+1, nat (int pc + b)]"
-  "succs (Goto b) pc           = [nat (int pc + b)]"
-  "succs Return pc             = [pc]"  
-  "succs (Invoke C mn fpTs) pc = [pc+1]"
-  "succs Throw pc              = [pc]"
+| "succs (Store idx) pc        = [pc+1]"
+| "succs (LitPush v) pc        = [pc+1]"
+| "succs (Getfield F C) pc     = [pc+1]"
+| "succs (Putfield F C) pc     = [pc+1]"
+| "succs (New C) pc            = [pc+1]"
+| "succs (Checkcast C) pc      = [pc+1]"
+| "succs Pop pc                = [pc+1]"
+| "succs Dup pc                = [pc+1]"
+| "succs Dup_x1 pc             = [pc+1]"
+| "succs Dup_x2 pc             = [pc+1]"
+| "succs Swap pc               = [pc+1]"
+| "succs IAdd pc               = [pc+1]"
+| "succs (Ifcmpeq b) pc        = [pc+1, nat (int pc + b)]"
+| "succs (Goto b) pc           = [nat (int pc + b)]"
+| "succs Return pc             = [pc]"  
+| "succs (Invoke C mn fpTs) pc = [pc+1]"
+| "succs Throw pc              = [pc]"
 
 text "Effect of instruction on the state type:"
 consts 
@@ -63,21 +61,16 @@ recdef eff' "{}"
 "eff' (Invoke C mn fpTs, G, (ST,LT))    = (let ST' = drop (length fpTs) ST 
   in  (fst (snd (the (method (G,C) (mn,fpTs))))#(tl ST'),LT))" 
 
-
-consts
-  match_any :: "jvm_prog \<Rightarrow> p_count \<Rightarrow> exception_table \<Rightarrow> cname list"
-primrec
+primrec match_any :: "jvm_prog \<Rightarrow> p_count \<Rightarrow> exception_table \<Rightarrow> cname list" where
   "match_any G pc [] = []"
-  "match_any G pc (e#es) = (let (start_pc, end_pc, handler_pc, catch_type) = e;
+| "match_any G pc (e#es) = (let (start_pc, end_pc, handler_pc, catch_type) = e;
                                 es' = match_any G pc es 
                             in 
                             if start_pc <= pc \<and> pc < end_pc then catch_type#es' else es')"
 
-consts
-  match :: "jvm_prog \<Rightarrow> xcpt \<Rightarrow> p_count \<Rightarrow> exception_table \<Rightarrow> cname list"
-primrec
+primrec match :: "jvm_prog \<Rightarrow> xcpt \<Rightarrow> p_count \<Rightarrow> exception_table \<Rightarrow> cname list" where
   "match G X pc [] = []"
-  "match G X pc (e#es) = 
+| "match G X pc (e#es) = 
   (if match_exception_entry G (Xcpt X) pc e then [Xcpt X] else match G X pc es)"
 
 lemma match_some_entry:
@@ -96,23 +89,21 @@ recdef xcpt_names "{}"
   "xcpt_names (i, G, pc, et)            = []" 
 
 
-constdefs
-  xcpt_eff :: "instr \<Rightarrow> jvm_prog \<Rightarrow> p_count \<Rightarrow> state_type option \<Rightarrow> exception_table \<Rightarrow> succ_type"
+definition xcpt_eff :: "instr \<Rightarrow> jvm_prog \<Rightarrow> p_count \<Rightarrow> state_type option \<Rightarrow> exception_table \<Rightarrow> succ_type" where
   "xcpt_eff i G pc s et == 
    map (\<lambda>C. (the (match_exception_table G C pc et), case s of None \<Rightarrow> None | Some s' \<Rightarrow> Some ([Class C], snd s'))) 
        (xcpt_names (i,G,pc,et))"
 
-  norm_eff :: "instr \<Rightarrow> jvm_prog \<Rightarrow> state_type option \<Rightarrow> state_type option"
+definition norm_eff :: "instr \<Rightarrow> jvm_prog \<Rightarrow> state_type option \<Rightarrow> state_type option" where
   "norm_eff i G == Option.map (\<lambda>s. eff' (i,G,s))"
 
-  eff :: "instr \<Rightarrow> jvm_prog \<Rightarrow> p_count \<Rightarrow> exception_table \<Rightarrow> state_type option \<Rightarrow> succ_type"
+definition eff :: "instr \<Rightarrow> jvm_prog \<Rightarrow> p_count \<Rightarrow> exception_table \<Rightarrow> state_type option \<Rightarrow> succ_type" where
   "eff i G pc et s == (map (\<lambda>pc'. (pc',norm_eff i G s)) (succs i pc)) @ (xcpt_eff i G pc s et)"
 
-constdefs
-  isPrimT :: "ty \<Rightarrow> bool"
+definition isPrimT :: "ty \<Rightarrow> bool" where
   "isPrimT T == case T of PrimT T' \<Rightarrow> True | RefT T' \<Rightarrow> False"
 
-  isRefT :: "ty \<Rightarrow> bool"
+definition isRefT :: "ty \<Rightarrow> bool" where
   "isRefT T == case T of PrimT T' \<Rightarrow> False | RefT T' \<Rightarrow> True"
 
 lemma isPrimT [simp]:
@@ -177,11 +168,10 @@ recdef app' "{}"
   
 "app' (i,G, pc,maxs,rT,s) = False"
 
-constdefs
-  xcpt_app :: "instr \<Rightarrow> jvm_prog \<Rightarrow> nat \<Rightarrow> exception_table \<Rightarrow> bool"
+definition xcpt_app :: "instr \<Rightarrow> jvm_prog \<Rightarrow> nat \<Rightarrow> exception_table \<Rightarrow> bool" where
   "xcpt_app i G pc et \<equiv> \<forall>C\<in>set(xcpt_names (i,G,pc,et)). is_class G C"
 
-  app :: "instr \<Rightarrow> jvm_prog \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> nat \<Rightarrow> exception_table \<Rightarrow> state_type option \<Rightarrow> bool"
+definition app :: "instr \<Rightarrow> jvm_prog \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> nat \<Rightarrow> exception_table \<Rightarrow> state_type option \<Rightarrow> bool" where
   "app i G maxs rT pc et s == case s of None \<Rightarrow> True | Some t \<Rightarrow> app' (i,G,pc,maxs,rT,t) \<and> xcpt_app i G pc et"
 
 

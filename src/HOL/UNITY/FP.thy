@@ -1,5 +1,4 @@
 (*  Title:      HOL/UNITY/FP
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
@@ -10,12 +9,10 @@ header{*Fixed Point of a Program*}
 
 theory FP imports UNITY begin
 
-constdefs
-
-  FP_Orig :: "'a program => 'a set"
+definition FP_Orig :: "'a program => 'a set" where
     "FP_Orig F == Union{A. ALL B. F : stable (A Int B)}"
 
-  FP :: "'a program => 'a set"
+definition FP :: "'a program => 'a set" where
     "FP F == {s. F : stable {s}}"
 
 lemma stable_FP_Orig_Int: "F : stable (FP_Orig F Int B)"

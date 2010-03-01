@@ -237,8 +237,7 @@ section "Special map update"
 
 text{* Deemed too special for theory Map. *}
 
-constdefs
-  chg_map :: "('b => 'b) => 'a => ('a ~=> 'b) => ('a ~=> 'b)"
+definition chg_map :: "('b => 'b) => 'a => ('a ~=> 'b) => ('a ~=> 'b)" where
  "chg_map f a m == case m a of None => m | Some b => m(a|->f b)"
 
 lemma chg_map_new[simp]: "m a = None   ==> chg_map f a m = m"
@@ -253,8 +252,7 @@ by (auto simp: chg_map_def split add: option.split)
 
 section "unique association lists"
 
-constdefs
-  unique   :: "('a \<times> 'b) list \<Rightarrow> bool"
+definition unique :: "('a \<times> 'b) list \<Rightarrow> bool" where
  "unique \<equiv> distinct \<circ> map fst"
 
 lemma uniqueD [rule_format (no_asm)]: 

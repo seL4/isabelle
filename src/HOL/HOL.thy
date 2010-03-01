@@ -1118,8 +1118,7 @@ text {*
   its premise.
 *}
 
-constdefs
-  simp_implies :: "[prop, prop] => prop"  (infixr "=simp=>" 1)
+definition simp_implies :: "[prop, prop] => prop"  (infixr "=simp=>" 1) where
   [code del]: "simp_implies \<equiv> op ==>"
 
 lemma simp_impliesI:
@@ -1392,13 +1391,23 @@ structure Project_Rule = Project_Rule
 )
 *}
 
-constdefs
-  induct_forall where "induct_forall P == \<forall>x. P x"
-  induct_implies where "induct_implies A B == A \<longrightarrow> B"
-  induct_equal where "induct_equal x y == x = y"
-  induct_conj where "induct_conj A B == A \<and> B"
-  induct_true where "induct_true == True"
-  induct_false where "induct_false == False"
+definition induct_forall where
+  "induct_forall P == \<forall>x. P x"
+
+definition induct_implies where
+  "induct_implies A B == A \<longrightarrow> B"
+
+definition induct_equal where
+  "induct_equal x y == x = y"
+
+definition induct_conj where
+  "induct_conj A B == A \<and> B"
+
+definition induct_true where
+  "induct_true == True"
+
+definition induct_false where
+  "induct_false == False"
 
 lemma induct_forall_eq: "(!!x. P x) == Trueprop (induct_forall (\<lambda>x. P x))"
   by (unfold atomize_all induct_forall_def)

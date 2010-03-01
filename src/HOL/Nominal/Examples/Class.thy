@@ -10289,17 +10289,16 @@ done
 
 text {* set operators *}
 
-constdefs
-  AXIOMSn::"ty \<Rightarrow> ntrm set"
+definition AXIOMSn :: "ty \<Rightarrow> ntrm set" where
   "AXIOMSn B \<equiv> { (x):(Ax y b) | x y b. True }"
 
-  AXIOMSc::"ty \<Rightarrow> ctrm set"
+definition AXIOMSc::"ty \<Rightarrow> ctrm set" where
   "AXIOMSc B \<equiv> { <a>:(Ax y b) | a y b. True }"
 
-  BINDINGn::"ty \<Rightarrow> ctrm set \<Rightarrow> ntrm set"
+definition BINDINGn::"ty \<Rightarrow> ctrm set \<Rightarrow> ntrm set" where
   "BINDINGn B X \<equiv> { (x):M | x M. \<forall>a P. <a>:P\<in>X \<longrightarrow> SNa (M{x:=<a>.P})}"
 
-  BINDINGc::"ty \<Rightarrow> ntrm set \<Rightarrow> ctrm set"
+definition BINDINGc::"ty \<Rightarrow> ntrm set \<Rightarrow> ctrm set" where
   "BINDINGc B X \<equiv> { <a>:M | a M. \<forall>x P. (x):P\<in>X \<longrightarrow> SNa (M{a:=(x).P})}"
 
 lemma BINDINGn_decreasing:
@@ -16540,8 +16539,7 @@ apply(erule mp)
 apply(fast)
 done
 
-constdefs
-  SNa_Redu :: "(trm \<times> trm) set"
+definition SNa_Redu :: "(trm \<times> trm) set" where
   "SNa_Redu \<equiv> A_Redu_set \<inter> (UNIV <*> SNa_set)"
 
 lemma wf_SNa_Redu:

@@ -43,15 +43,11 @@ axioms
   shrK_disj_pin [iff]:  "shrK P \<noteq> pin Q"
   crdK_disj_pin [iff]:   "crdK C \<noteq> pin P"
 
-constdefs
-  legalUse :: "card => bool" ("legalUse (_)")
+definition legalUse :: "card => bool" ("legalUse (_)") where
   "legalUse C == C \<notin> stolen"
 
-consts  
-  illegalUse :: "card  => bool"
-primrec
-  illegalUse_def: 
-  "illegalUse (Card A) = ( (Card A \<in> stolen \<and> A \<in> bad)  \<or>  Card A \<in> cloned )"
+primrec illegalUse :: "card  => bool" where
+  illegalUse_def: "illegalUse (Card A) = ( (Card A \<in> stolen \<and> A \<in> bad)  \<or>  Card A \<in> cloned )"
 
 
 text{*initState must be defined with care*}

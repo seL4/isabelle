@@ -16,20 +16,19 @@ theory Separation imports Hoare_Logic_Abort SepLogHeap begin
 
 text{* The semantic definition of a few connectives: *}
 
-constdefs
- ortho:: "heap \<Rightarrow> heap \<Rightarrow> bool" (infix "\<bottom>" 55)
+definition ortho :: "heap \<Rightarrow> heap \<Rightarrow> bool" (infix "\<bottom>" 55) where
 "h1 \<bottom> h2 == dom h1 \<inter> dom h2 = {}"
 
- is_empty :: "heap \<Rightarrow> bool"
+definition is_empty :: "heap \<Rightarrow> bool" where
 "is_empty h == h = empty"
 
- singl:: "heap \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool"
+definition singl:: "heap \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where
 "singl h x y == dom h = {x} & h x = Some y"
 
- star:: "(heap \<Rightarrow> bool) \<Rightarrow> (heap \<Rightarrow> bool) \<Rightarrow> (heap \<Rightarrow> bool)"
+definition star:: "(heap \<Rightarrow> bool) \<Rightarrow> (heap \<Rightarrow> bool) \<Rightarrow> (heap \<Rightarrow> bool)" where
 "star P Q == \<lambda>h. \<exists>h1 h2. h = h1++h2 \<and> h1 \<bottom> h2 \<and> P h1 \<and> Q h2"
 
- wand:: "(heap \<Rightarrow> bool) \<Rightarrow> (heap \<Rightarrow> bool) \<Rightarrow> (heap \<Rightarrow> bool)"
+definition wand:: "(heap \<Rightarrow> bool) \<Rightarrow> (heap \<Rightarrow> bool) \<Rightarrow> (heap \<Rightarrow> bool)" where
 "wand P Q == \<lambda>h. \<forall>h'. h' \<bottom> h \<and> P h' \<longrightarrow> Q(h++h')"
 
 text{*This is what assertions look like without any syntactic sugar: *}

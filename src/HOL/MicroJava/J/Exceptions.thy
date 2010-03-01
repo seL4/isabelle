@@ -6,11 +6,10 @@
 theory Exceptions imports State begin
 
 text {* a new, blank object with default values in all fields: *}
-constdefs
-  blank :: "'c prog \<Rightarrow> cname \<Rightarrow> obj"
+definition blank :: "'c prog \<Rightarrow> cname \<Rightarrow> obj" where
   "blank G C \<equiv> (C,init_vars (fields(G,C)))" 
 
-  start_heap :: "'c prog \<Rightarrow> aheap"
+definition start_heap :: "'c prog \<Rightarrow> aheap" where
   "start_heap G \<equiv> empty (XcptRef NullPointer \<mapsto> blank G (Xcpt NullPointer))
                         (XcptRef ClassCast \<mapsto> blank G (Xcpt ClassCast))
                         (XcptRef OutOfMemory \<mapsto> blank G (Xcpt OutOfMemory))"
@@ -21,8 +20,7 @@ abbreviation
   where "cname_of hp v == fst (the (hp (the_Addr v)))"
 
 
-constdefs
-  preallocated :: "aheap \<Rightarrow> bool"
+definition preallocated :: "aheap \<Rightarrow> bool" where
   "preallocated hp \<equiv> \<forall>x. \<exists>fs. hp (XcptRef x) = Some (Xcpt x, fs)"
 
 lemma preallocatedD:

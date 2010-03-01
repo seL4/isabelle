@@ -344,8 +344,7 @@ lemma word_induct2 [induct type]:
   apply (case_tac "1+n = 0", auto)
   done
 
-constdefs
-  word_rec :: "'a \<Rightarrow> ('b::len word \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'b word \<Rightarrow> 'a"
+definition word_rec :: "'a \<Rightarrow> ('b::len word \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'b word \<Rightarrow> 'a" where
   "word_rec forZero forSuc n \<equiv> nat_rec forZero (forSuc \<circ> of_nat) (unat n)"
 
 lemma word_rec_0: "word_rec z s 0 = z"

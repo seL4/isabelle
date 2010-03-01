@@ -7,9 +7,7 @@ header "Program State"
 
 theory State imports TypeRel begin
 
-constdefs
-
-  body :: "cname \<times> mname => stmt"
+definition body :: "cname \<times> mname => stmt" where
  "body \<equiv> \<lambda>(C,m). bdy (the (method C m))"
 
 text {* Locations, i.e.\ abstract references to objects *}
@@ -29,9 +27,7 @@ translations
   "fields" \<leftharpoondown> (type)"fname => val option"
   "obj"    \<leftharpoondown> (type)"cname \<times> fields"
 
-constdefs
-
-  init_vars:: "('a \<rightharpoonup> 'b) => ('a \<rightharpoonup> val)"
+definition init_vars :: "('a \<rightharpoonup> 'b) => ('a \<rightharpoonup> val)" where
  "init_vars m == Option.map (\<lambda>T. Null) o m"
   
 text {* private: *}
@@ -49,54 +45,49 @@ translations
   "locals" \<leftharpoondown> (type)"vname => val option"
   "state" \<leftharpoondown> (type)"(|heap :: heap, locals :: locals|)"
 
-constdefs
-
-  del_locs     :: "state => state"
+definition del_locs :: "state => state" where
  "del_locs s \<equiv> s (| locals := empty |)"
 
-  init_locs     :: "cname => mname => state => state"
+definition init_locs     :: "cname => mname => state => state" where
  "init_locs C m s \<equiv> s (| locals := locals s ++ 
                          init_vars (map_of (lcl (the (method C m)))) |)"
 
 text {* The first parameter of @{term set_locs} is of type @{typ state} 
         rather than @{typ locals} in order to keep @{typ locals} private.*}
-constdefs
-  set_locs  :: "state => state => state"
+definition set_locs :: "state => state => state" where
  "set_locs s s' \<equiv> s' (| locals := locals s |)"
 
-  get_local     :: "state => vname => val" ("_<_>" [99,0] 99)
+definition get_local     :: "state => vname => val" ("_<_>" [99,0] 99) where
  "get_local s x  \<equiv> the (locals s x)"
 
 --{* local function: *}
-  get_obj       :: "state => loc => obj"
+definition get_obj       :: "state => loc => obj" where
  "get_obj s a \<equiv> the (heap s a)"
 
-  obj_class     :: "state => loc => cname"
+definition obj_class     :: "state => loc => cname" where
  "obj_class s a \<equiv> fst (get_obj s a)"
 
-  get_field     :: "state => loc => fname => val"
+definition get_field     :: "state => loc => fname => val" where
  "get_field s a f \<equiv> the (snd (get_obj s a) f)"
 
 --{* local function: *}
-  hupd       :: "loc => obj => state => state"   ("hupd'(_|->_')" [10,10] 1000)
+definition hupd       :: "loc => obj => state => state"   ("hupd'(_|->_')" [10,10] 1000) where
  "hupd a obj s \<equiv> s (| heap   := ((heap   s)(a\<mapsto>obj))|)"
 
-  lupd       :: "vname => val => state => state" ("lupd'(_|->_')" [10,10] 1000)
+definition lupd       :: "vname => val => state => state" ("lupd'(_|->_')" [10,10] 1000) where
  "lupd x v s   \<equiv> s (| locals := ((locals s)(x\<mapsto>v  ))|)"
 
 syntax (xsymbols)
   hupd       :: "loc => obj => state => state"   ("hupd'(_\<mapsto>_')" [10,10] 1000)
   lupd       :: "vname => val => state => state" ("lupd'(_\<mapsto>_')" [10,10] 1000)
 
-constdefs
-
-  new_obj    :: "loc => cname => state => state"
+definition new_obj :: "loc => cname => state => state" where
  "new_obj a C   \<equiv> hupd(a\<mapsto>(C,init_vars (field C)))"
 
-  upd_obj    :: "loc => fname => val => state => state"
+definition upd_obj    :: "loc => fname => val => state => state" where
  "upd_obj a f v s \<equiv> let (C,fs) = the (heap s a) in hupd(a\<mapsto>(C,fs(f\<mapsto>v))) s"
 
-  new_Addr      :: "state => val"
+definition new_Addr      :: "state => val" where
  "new_Addr s == SOME v. (\<exists>a. v = Addr a \<and> (heap s) a = None) | v = Null"
 
 

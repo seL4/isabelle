@@ -14,35 +14,32 @@ datatype 'a err = Err | OK 'a
 types 'a ebinop = "'a \<Rightarrow> 'a \<Rightarrow> 'a err"
       'a esl =    "'a set * 'a ord * 'a ebinop"
 
-consts
-  ok_val :: "'a err \<Rightarrow> 'a"
-primrec
+primrec ok_val :: "'a err \<Rightarrow> 'a" where
   "ok_val (OK x) = x"
 
-constdefs
- lift :: "('a \<Rightarrow> 'b err) \<Rightarrow> ('a err \<Rightarrow> 'b err)"
+definition lift :: "('a \<Rightarrow> 'b err) \<Rightarrow> ('a err \<Rightarrow> 'b err)" where
 "lift f e == case e of Err \<Rightarrow> Err | OK x \<Rightarrow> f x"
 
- lift2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c err) \<Rightarrow> 'a err \<Rightarrow> 'b err \<Rightarrow> 'c err"
+definition lift2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c err) \<Rightarrow> 'a err \<Rightarrow> 'b err \<Rightarrow> 'c err" where
 "lift2 f e1 e2 ==
  case e1 of Err  \<Rightarrow> Err
           | OK x \<Rightarrow> (case e2 of Err \<Rightarrow> Err | OK y \<Rightarrow> f x y)"
 
- le :: "'a ord \<Rightarrow> 'a err ord"
+definition le :: "'a ord \<Rightarrow> 'a err ord" where
 "le r e1 e2 ==
         case e2 of Err \<Rightarrow> True |
                    OK y \<Rightarrow> (case e1 of Err \<Rightarrow> False | OK x \<Rightarrow> x <=_r y)"
 
- sup :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a err \<Rightarrow> 'b err \<Rightarrow> 'c err)"
+definition sup :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a err \<Rightarrow> 'b err \<Rightarrow> 'c err)" where
 "sup f == lift2(%x y. OK(x +_f y))"
 
- err :: "'a set \<Rightarrow> 'a err set"
+definition err :: "'a set \<Rightarrow> 'a err set" where
 "err A == insert Err {x . ? y:A. x = OK y}"
 
- esl :: "'a sl \<Rightarrow> 'a esl"
+definition esl :: "'a sl \<Rightarrow> 'a esl" where
 "esl == %(A,r,f). (A,r, %x y. OK(f x y))"
 
- sl :: "'a esl \<Rightarrow> 'a err sl"
+definition sl :: "'a esl \<Rightarrow> 'a err sl" where
 "sl == %(A,r,f). (err A, le r, lift2 f)"
 
 abbreviation

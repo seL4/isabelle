@@ -9,47 +9,40 @@ theory Correct
 imports BVSpec "../JVM/JVMExec"
 begin
 
-constdefs
-  approx_val :: "[jvm_prog,aheap,val,ty err] \<Rightarrow> bool"
+definition approx_val :: "[jvm_prog,aheap,val,ty err] \<Rightarrow> bool" where
   "approx_val G h v any == case any of Err \<Rightarrow> True | OK T \<Rightarrow> G,h\<turnstile>v::\<preceq>T"
 
-  approx_loc :: "[jvm_prog,aheap,val list,locvars_type] \<Rightarrow> bool"
+definition approx_loc :: "[jvm_prog,aheap,val list,locvars_type] \<Rightarrow> bool" where
   "approx_loc G hp loc LT == list_all2 (approx_val G hp) loc LT"
 
-  approx_stk :: "[jvm_prog,aheap,opstack,opstack_type] \<Rightarrow> bool"
+definition approx_stk :: "[jvm_prog,aheap,opstack,opstack_type] \<Rightarrow> bool" where
   "approx_stk G hp stk ST == approx_loc G hp stk (map OK ST)"
 
-  correct_frame  :: "[jvm_prog,aheap,state_type,nat,bytecode] \<Rightarrow> frame \<Rightarrow> bool"
+definition correct_frame  :: "[jvm_prog,aheap,state_type,nat,bytecode] \<Rightarrow> frame \<Rightarrow> bool" where
   "correct_frame G hp == \<lambda>(ST,LT) maxl ins (stk,loc,C,sig,pc).
                          approx_stk G hp stk ST  \<and> approx_loc G hp loc LT \<and> 
                          pc < length ins \<and> length loc=length(snd sig)+maxl+1"
 
+primrec correct_frames  :: "[jvm_prog,aheap,prog_type,ty,sig,frame list] \<Rightarrow> bool" where
+  "correct_frames G hp phi rT0 sig0 [] = True"
+| "correct_frames G hp phi rT0 sig0 (f#frs) =
+    (let (stk,loc,C,sig,pc) = f in
+    (\<exists>ST LT rT maxs maxl ins et.
+      phi C sig ! pc = Some (ST,LT) \<and> is_class G C \<and> 
+      method (G,C) sig = Some(C,rT,(maxs,maxl,ins,et)) \<and>
+    (\<exists>C' mn pTs. ins!pc = (Invoke C' mn pTs) \<and> 
+           (mn,pTs) = sig0 \<and> 
+           (\<exists>apTs D ST' LT'.
+           (phi C sig)!pc = Some ((rev apTs) @ (Class D) # ST', LT') \<and>
+           length apTs = length pTs \<and>
+           (\<exists>D' rT' maxs' maxl' ins' et'.
+             method (G,D) sig0 = Some(D',rT',(maxs',maxl',ins',et')) \<and>
+             G \<turnstile> rT0 \<preceq> rT') \<and>
+     correct_frame G hp (ST, LT) maxl ins f \<and> 
+     correct_frames G hp phi rT sig frs))))"
 
-consts
- correct_frames  :: "[jvm_prog,aheap,prog_type,ty,sig,frame list] \<Rightarrow> bool"
-primrec
-"correct_frames G hp phi rT0 sig0 [] = True"
-
-"correct_frames G hp phi rT0 sig0 (f#frs) =
-  (let (stk,loc,C,sig,pc) = f in
-  (\<exists>ST LT rT maxs maxl ins et.
-    phi C sig ! pc = Some (ST,LT) \<and> is_class G C \<and> 
-    method (G,C) sig = Some(C,rT,(maxs,maxl,ins,et)) \<and>
-  (\<exists>C' mn pTs. ins!pc = (Invoke C' mn pTs) \<and> 
-         (mn,pTs) = sig0 \<and> 
-         (\<exists>apTs D ST' LT'.
-         (phi C sig)!pc = Some ((rev apTs) @ (Class D) # ST', LT') \<and>
-         length apTs = length pTs \<and>
-         (\<exists>D' rT' maxs' maxl' ins' et'.
-           method (G,D) sig0 = Some(D',rT',(maxs',maxl',ins',et')) \<and>
-           G \<turnstile> rT0 \<preceq> rT') \<and>
-   correct_frame G hp (ST, LT) maxl ins f \<and> 
-   correct_frames G hp phi rT sig frs))))"
-
-
-constdefs
- correct_state :: "[jvm_prog,prog_type,jvm_state] \<Rightarrow> bool"
-                  ("_,_ |-JVM _ [ok]"  [51,51] 50)
+definition correct_state :: "[jvm_prog,prog_type,jvm_state] \<Rightarrow> bool"
+                  ("_,_ |-JVM _ [ok]"  [51,51] 50) where
 "correct_state G phi == \<lambda>(xp,hp,frs).
    case xp of
      None \<Rightarrow> (case frs of

@@ -165,14 +165,13 @@ definition
 where
   "word_pred a = word_of_int (Int.pred (uint a))"
 
-constdefs
-  udvd :: "'a::len word => 'a::len word => bool" (infixl "udvd" 50)
+definition udvd :: "'a::len word => 'a::len word => bool" (infixl "udvd" 50) where
   "a udvd b == EX n>=0. uint b = n * uint a"
 
-  word_sle :: "'a :: len word => 'a word => bool" ("(_/ <=s _)" [50, 51] 50)
+definition word_sle :: "'a :: len word => 'a word => bool" ("(_/ <=s _)" [50, 51] 50) where
   "a <=s b == sint a <= sint b"
 
-  word_sless :: "'a :: len word => 'a word => bool" ("(_/ <s _)" [50, 51] 50)
+definition word_sless :: "'a :: len word => 'a word => bool" ("(_/ <s _)" [50, 51] 50) where
   "(x <s y) == (x <=s y & x ~= y)"
 
 
@@ -223,89 +222,81 @@ instance ..
 
 end
 
-constdefs
-  setBit :: "'a :: len0 word => nat => 'a word" 
+definition setBit :: "'a :: len0 word => nat => 'a word" where 
   "setBit w n == set_bit w n True"
 
-  clearBit :: "'a :: len0 word => nat => 'a word" 
+definition clearBit :: "'a :: len0 word => nat => 'a word" where
   "clearBit w n == set_bit w n False"
 
 
 subsection "Shift operations"
 
-constdefs
-  sshiftr1 :: "'a :: len word => 'a word" 
+definition sshiftr1 :: "'a :: len word => 'a word" where 
   "sshiftr1 w == word_of_int (bin_rest (sint w))"
 
-  bshiftr1 :: "bool => 'a :: len word => 'a word"
+definition bshiftr1 :: "bool => 'a :: len word => 'a word" where
   "bshiftr1 b w == of_bl (b # butlast (to_bl w))"
 
-  sshiftr :: "'a :: len word => nat => 'a word" (infixl ">>>" 55)
+definition sshiftr :: "'a :: len word => nat => 'a word" (infixl ">>>" 55) where
   "w >>> n == (sshiftr1 ^^ n) w"
 
-  mask :: "nat => 'a::len word"
+definition mask :: "nat => 'a::len word" where
   "mask n == (1 << n) - 1"
 
-  revcast :: "'a :: len0 word => 'b :: len0 word"
+definition revcast :: "'a :: len0 word => 'b :: len0 word" where
   "revcast w ==  of_bl (takefill False (len_of TYPE('b)) (to_bl w))"
 
-  slice1 :: "nat => 'a :: len0 word => 'b :: len0 word"
+definition slice1 :: "nat => 'a :: len0 word => 'b :: len0 word" where
   "slice1 n w == of_bl (takefill False n (to_bl w))"
 
-  slice :: "nat => 'a :: len0 word => 'b :: len0 word"
+definition slice :: "nat => 'a :: len0 word => 'b :: len0 word" where
   "slice n w == slice1 (size w - n) w"
 
 
 subsection "Rotation"
 
-constdefs
-  rotater1 :: "'a list => 'a list"
+definition rotater1 :: "'a list => 'a list" where
   "rotater1 ys == 
     case ys of [] => [] | x # xs => last ys # butlast ys"
 
-  rotater :: "nat => 'a list => 'a list"
+definition rotater :: "nat => 'a list => 'a list" where
   "rotater n == rotater1 ^^ n"
 
-  word_rotr :: "nat => 'a :: len0 word => 'a :: len0 word"
+definition word_rotr :: "nat => 'a :: len0 word => 'a :: len0 word" where
   "word_rotr n w == of_bl (rotater n (to_bl w))"
 
-  word_rotl :: "nat => 'a :: len0 word => 'a :: len0 word"
+definition word_rotl :: "nat => 'a :: len0 word => 'a :: len0 word" where
   "word_rotl n w == of_bl (rotate n (to_bl w))"
 
-  word_roti :: "int => 'a :: len0 word => 'a :: len0 word"
+definition word_roti :: "int => 'a :: len0 word => 'a :: len0 word" where
   "word_roti i w == if i >= 0 then word_rotr (nat i) w
                     else word_rotl (nat (- i)) w"
 
 
 subsection "Split and cat operations"
 
-constdefs
-  word_cat :: "'a :: len0 word => 'b :: len0 word => 'c :: len0 word"
+definition word_cat :: "'a :: len0 word => 'b :: len0 word => 'c :: len0 word" where
   "word_cat a b == word_of_int (bin_cat (uint a) (len_of TYPE ('b)) (uint b))"
 
-  word_split :: "'a :: len0 word => ('b :: len0 word) * ('c :: len0 word)"
+definition word_split :: "'a :: len0 word => ('b :: len0 word) * ('c :: len0 word)" where
   "word_split a == 
    case bin_split (len_of TYPE ('c)) (uint a) of 
      (u, v) => (word_of_int u, word_of_int v)"
 
-  word_rcat :: "'a :: len0 word list => 'b :: len0 word"
+definition word_rcat :: "'a :: len0 word list => 'b :: len0 word" where
   "word_rcat ws == 
   word_of_int (bin_rcat (len_of TYPE ('a)) (map uint ws))"
 
-  word_rsplit :: "'a :: len0 word => 'b :: len word list"
+definition word_rsplit :: "'a :: len0 word => 'b :: len word list" where
   "word_rsplit w == 
   map word_of_int (bin_rsplit (len_of TYPE ('b)) (len_of TYPE ('a), uint w))"
 
-constdefs
-  -- "Largest representable machine integer."
-  max_word :: "'a::len word"
+definition max_word :: "'a::len word" -- "Largest representable machine integer." where
   "max_word \<equiv> word_of_int (2 ^ len_of TYPE('a) - 1)"
 
-consts 
-  of_bool :: "bool \<Rightarrow> 'a::len word"
-primrec
+primrec of_bool :: "bool \<Rightarrow> 'a::len word" where
   "of_bool False = 0"
-  "of_bool True = 1"
+| "of_bool True = 1"
 
 
 lemmas of_nth_def = word_set_bits_def
