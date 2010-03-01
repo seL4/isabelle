@@ -27,8 +27,8 @@ where
   [simp del]: "make_llist []     = return Empty"
             | "make_llist (x#xs) = do tl   \<leftarrow> make_llist xs;
                                       next \<leftarrow> Ref.new tl;
-	                              return (Node x next)
-		                   done"
+                                      return (Node x next)
+                                   done"
 
 
 text {* define traverse using the MREC combinator *}
