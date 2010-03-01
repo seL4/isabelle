@@ -507,7 +507,7 @@ fun add_case_combinator
           val concl = mk_trp (mk_eq (lhs, rhs));
           val goal = Logic.list_implies (assms, concl);
           val defs = case_beta :: con_betas;
-          val rules1 = @{thms sscase2 sscase3 ssplit2 fup2 ID1};
+          val rules1 = @{thms strictify2 sscase2 sscase3 ssplit2 fup2 ID1};
           val rules2 = @{thms con_defined_iff_rules};
           val rules3 = @{thms cfcomp2 one_when2};
           val rules = abs_inverse :: rules1 @ rules2 @ rules3;
