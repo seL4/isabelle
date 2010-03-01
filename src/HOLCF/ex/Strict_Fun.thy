@@ -232,8 +232,8 @@ done
 
 setup {*
   Domain_Isomorphism.add_type_constructor
-    (@{type_name "sfun"}, @{term sfun_defl}, @{const_name sfun_map},
-        @{thm REP_sfun}, @{thm isodefl_sfun}, @{thm sfun_map_ID})
+    (@{type_name "sfun"}, @{term sfun_defl}, @{const_name sfun_map}, @{thm REP_sfun},
+       @{thm isodefl_sfun}, @{thm sfun_map_ID}, @{thm deflation_sfun_map})
 *}
 
 end

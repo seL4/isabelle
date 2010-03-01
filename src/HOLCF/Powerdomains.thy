@@ -298,13 +298,16 @@ subsection {* Domain package setup for powerdomains *}
 setup {*
   fold Domain_Isomorphism.add_type_constructor
     [(@{type_name "upper_pd"}, @{term upper_defl}, @{const_name upper_map},
-        @{thm REP_upper}, @{thm isodefl_upper}, @{thm upper_map_ID}),
+        @{thm REP_upper}, @{thm isodefl_upper}, @{thm upper_map_ID},
+          @{thm deflation_upper_map}),
 
      (@{type_name "lower_pd"}, @{term lower_defl}, @{const_name lower_map},
-        @{thm REP_lower}, @{thm isodefl_lower}, @{thm lower_map_ID}),
+        @{thm REP_lower}, @{thm isodefl_lower}, @{thm lower_map_ID},
+          @{thm deflation_lower_map}),
 
      (@{type_name "convex_pd"}, @{term convex_defl}, @{const_name convex_map},
-        @{thm REP_convex}, @{thm isodefl_convex}, @{thm convex_map_ID})]
+        @{thm REP_convex}, @{thm isodefl_convex}, @{thm convex_map_ID},
+          @{thm deflation_convex_map})]
 *}
 
 end

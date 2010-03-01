@@ -22,7 +22,7 @@ sig
     (string list * binding * mixfix * string * (binding * binding) option) list
       -> theory -> theory
   val add_type_constructor:
-    (string * term * string * thm  * thm * thm) -> theory -> theory
+    (string * term * string * thm  * thm * thm * thm) -> theory -> theory
   val get_map_tab:
     theory -> string Symtab.table
 end;
@@ -58,37 +58,31 @@ structure MapData = Theory_Data
   fun merge data = Symtab.merge (K true) data;
 );
 
-structure RepData = Theory_Data
-(
+structure Thm_List : THEORY_DATA_ARGS =
+struct
   type T = thm list;
   val empty = [];
   val extend = I;
   val merge = Thm.merge_thms;
-);
+end;
 
-structure IsodeflData = Theory_Data
-(
-  type T = thm list;
-  val empty = [];
-  val extend = I;
-  val merge = Thm.merge_thms;
-);
+structure RepData = Theory_Data (Thm_List);
 
-structure MapIdData = Theory_Data
-(
-  type T = thm list;
-  val empty = [];
-  val extend = I;
-  val merge = Thm.merge_thms;
-);
+structure IsodeflData = Theory_Data (Thm_List);
+
+structure MapIdData = Theory_Data (Thm_List);
+
+structure DeflMapData = Theory_Data (Thm_List);
 
 fun add_type_constructor
-  (tname, defl_const, map_name, REP_thm, isodefl_thm, map_ID_thm) =
+  (tname, defl_const, map_name, REP_thm,
+   isodefl_thm, map_ID_thm, defl_map_thm) =
     DeflData.map (Symtab.insert (K true) (tname, defl_const))
     #> MapData.map (Symtab.insert (K true) (tname, map_name))
     #> RepData.map (Thm.add_thm REP_thm)
     #> IsodeflData.map (Thm.add_thm isodefl_thm)
-    #> MapIdData.map (Thm.add_thm map_ID_thm);
+    #> MapIdData.map (Thm.add_thm map_ID_thm)
+    #> DeflMapData.map (Thm.add_thm defl_map_thm);
 
 val get_map_tab = MapData.get;
 
