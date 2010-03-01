@@ -54,9 +54,7 @@ declare Un_Diff [simp]
 
 subsubsection{*extract the agent number of an Agent message*}
 
-consts agt_nb :: "msg => agent"
-
-recdef agt_nb "measure size"
+primrec agt_nb :: "msg => agent" where
 "agt_nb (Agent A) = A"
 
 subsubsection{*messages that are pairs*}
@@ -224,13 +222,12 @@ by auto
 
 subsubsection{*greatest nonce used in a message*}
 
-consts greatest_msg :: "msg => nat"
-
-recdef greatest_msg "measure size"
-"greatest_msg (Nonce n) = n"
-"greatest_msg {|X,Y|} = max (greatest_msg X) (greatest_msg Y)"
-"greatest_msg (Crypt K X) = greatest_msg X"
-"greatest_msg other = 0"
+fun greatest_msg :: "msg => nat"
+where
+  "greatest_msg (Nonce n) = n"
+| "greatest_msg {|X,Y|} = max (greatest_msg X) (greatest_msg Y)"
+| "greatest_msg (Crypt K X) = greatest_msg X"
+| "greatest_msg other = 0"
 
 lemma greatest_msg_is_greatest: "Nonce n:parts {X} ==> n <= greatest_msg X"
 by (induct X, auto)
@@ -629,12 +626,11 @@ by (drule not_used_not_spied, auto dest: Says_imp_knows_Spy parts_sub)
 
 subsubsection{*message of an event*}
 
-consts msg :: "event => msg"
-
-recdef msg "measure size"
-"msg (Says A B X) = X"
-"msg (Gets A X) = X"
-"msg (Notes A X) = X"
+primrec msg :: "event => msg"
+where
+  "msg (Says A B X) = X"
+| "msg (Gets A X) = X"
+| "msg (Notes A X) = X"
 
 lemma used_sub_parts_used: "X:used (ev # evs) ==> X:parts {msg ev} Un used evs"
 by (induct ev, auto)

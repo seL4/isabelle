@@ -85,11 +85,10 @@ by (simp add: good_def)
 
 subsubsection{*greatest nonce used in a trace, 0 if there is no nonce*}
 
-consts greatest :: "event list => nat"
-
-recdef greatest "measure size"
-"greatest [] = 0"
-"greatest (ev # evs) = max (greatest_msg (msg ev)) (greatest evs)"
+primrec greatest :: "event list => nat"
+where
+  "greatest [] = 0"
+| "greatest (ev # evs) = max (greatest_msg (msg ev)) (greatest evs)"
 
 lemma greatest_is_greatest: "Nonce n:used evs ==> n <= greatest evs"
 apply (induct evs, auto simp: initState.simps)

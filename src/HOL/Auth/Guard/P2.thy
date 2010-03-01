@@ -43,9 +43,7 @@ by (auto simp: chain_def sign_def)
 
 subsubsection{*agent whose key is used to sign an offer*}
 
-consts shop :: "msg => msg"
-
-recdef shop "measure size"
+fun shop :: "msg => msg" where
 "shop {|Crypt K {|B,ofr,Crypt K' H|},m2|} = Agent (agt K')"
 
 lemma shop_chain [simp]: "shop (chain B ofr A L C) = Agent B"
@@ -53,9 +51,7 @@ by (simp add: chain_def sign_def)
 
 subsubsection{*nonce used in an offer*}
 
-consts nonce :: "msg => msg"
-
-recdef nonce "measure size"
+fun nonce :: "msg => msg" where
 "nonce {|Crypt K {|B,ofr,CryptH|},m2|} = ofr"
 
 lemma nonce_chain [simp]: "nonce (chain B ofr A L C) = Nonce ofr"
@@ -63,9 +59,7 @@ by (simp add: chain_def sign_def)
 
 subsubsection{*next shop*}
 
-consts next_shop :: "msg => agent"
-
-recdef next_shop "measure size"
+fun next_shop :: "msg => agent" where
 "next_shop {|m1,Hash {|headL,Agent C|}|} = C"
 
 lemma "next_shop (chain B ofr A L C) = C"
@@ -164,11 +158,10 @@ by (erule valid.induct, auto)
 
 subsubsection{*list of offers*}
 
-consts offers :: "msg => msg"
-
-recdef offers "measure size"
-"offers (cons M L) = cons {|shop M, nonce M|} (offers L)"
-"offers other = nil"
+fun offers :: "msg => msg"
+where
+  "offers (cons M L) = cons {|shop M, nonce M|} (offers L)"
+| "offers other = nil"
 
 
 subsection{*Properties of Protocol P2*}
