@@ -67,10 +67,6 @@ fun calc_axioms
     val abs_iso_ax = ("abs_iso", mk_trp(dc_rep`(dc_abs`%x_name') === %:x_name'));
     val rep_iso_ax = ("rep_iso", mk_trp(dc_abs`(dc_rep`%x_name') === %:x_name'));
 
-    val when_def = ("when_def",%%:(dname^"_when") == 
-        List.foldr (uncurry /\ ) (/\x_name'((when_body cons (fn (x,y) =>
-          Bound(1+length cons+x-y)))`(dc_rep`Bound 0))) (when_funs cons));
-
     val copy_def =
       let fun r i = proj (Bound 0) eqs i;
       in
@@ -95,7 +91,7 @@ fun calc_axioms
 
   in (dnam,
       (if definitional then [] else [abs_iso_ax, rep_iso_ax, reach_ax]),
-      (if definitional then [when_def] else [when_def, copy_def]) @
+      (if definitional then [] else [copy_def]) @
       [take_def, finite_def])
   end; (* let (calc_axioms) *)
 

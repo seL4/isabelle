@@ -43,7 +43,6 @@ fun calc_syntax thy
                                            | _ => foldr1 mk_sprodT (map opt_lazy args);
       fun freetvar s = let val tvar = mk_TFree s in
                          if tvar mem typevars then freetvar ("t"^s) else tvar end;
-      fun when_type (_,args,_) = List.foldr (op ->>) (freetvar "t") (map third args);
     in
     val dtype  = Type(dname,typevars);
     val dtype2 = foldr1 mk_ssumT (map prod cons');
@@ -51,7 +50,6 @@ fun calc_syntax thy
     fun dbind s = Binding.name (dnam ^ s);
     val const_rep  = (dbind "_rep" ,              dtype  ->> dtype2, NoSyn);
     val const_abs  = (dbind "_abs" ,              dtype2 ->> dtype , NoSyn);
-    val const_when = (dbind "_when", List.foldr (op ->>) (dtype ->> freetvar "t") (map when_type cons'), NoSyn);
     val const_copy = (dbind "_copy", dtypeprod ->> dtype  ->> dtype , NoSyn);
     end;
 
@@ -63,8 +61,7 @@ fun calc_syntax thy
     val optional_consts =
         if definitional then [] else [const_rep, const_abs, const_copy];
 
-  in (optional_consts @ [const_when] @ 
-      [const_take, const_finite])
+  in (optional_consts @ [const_take, const_finite])
   end; (* let *)
 
 (* ----- putting all the syntax stuff together ------------------------------ *)

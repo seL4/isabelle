@@ -120,7 +120,6 @@ local
 in
   val ax_abs_iso  = ga "abs_iso"  dname;
   val ax_rep_iso  = ga "rep_iso"  dname;
-  val ax_when_def = ga "when_def" dname;
   val ax_copy_def = ga "copy_def" dname;
 end; (* local *)
 
@@ -154,7 +153,7 @@ val iso_info : Domain_Isomorphism.iso_info =
 
 val (result, thy) =
   Domain_Constructors.add_domain_constructors
-    (Long_Name.base_name dname) (snd dom_eqn) iso_info ax_when_def thy;
+    (Long_Name.base_name dname) (snd dom_eqn) iso_info thy;
 
 val con_appls = #con_betas result;
 val {exhaust, casedist, ...} = result;
