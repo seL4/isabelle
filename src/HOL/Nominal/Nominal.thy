@@ -31,7 +31,7 @@ datatype ('a,'b) nprod = nPair 'a 'b
 
 (* an auxiliary constant for the decision procedure involving *) 
 (* permutations (to avoid loops when using perm-compositions)  *)
-constdefs
+definition
   "perm_aux pi x \<equiv> pi\<bullet>x"
 
 (* overloaded permutation operations *)
@@ -187,20 +187,18 @@ lemma perm_string:
 section {* permutation equality *}
 (*==============================*)
 
-constdefs
-  prm_eq :: "'x prm \<Rightarrow> 'x prm \<Rightarrow> bool"  (" _ \<triangleq> _ " [80,80] 80)
+definition prm_eq :: "'x prm \<Rightarrow> 'x prm \<Rightarrow> bool" (" _ \<triangleq> _ " [80,80] 80) where
   "pi1 \<triangleq> pi2 \<equiv> \<forall>a::'x. pi1\<bullet>a = pi2\<bullet>a"
 
 section {* Support, Freshness and Supports*}
 (*========================================*)
-constdefs
-   supp :: "'a \<Rightarrow> ('x set)"  
+definition supp :: "'a \<Rightarrow> ('x set)" where  
    "supp x \<equiv> {a . (infinite {b . [(a,b)]\<bullet>x \<noteq> x})}"
 
-   fresh :: "'x \<Rightarrow> 'a \<Rightarrow> bool" ("_ \<sharp> _" [80,80] 80)
+definition fresh :: "'x \<Rightarrow> 'a \<Rightarrow> bool" ("_ \<sharp> _" [80,80] 80) where
    "a \<sharp> x \<equiv> a \<notin> supp x"
 
-   supports :: "'x set \<Rightarrow> 'a \<Rightarrow> bool" (infixl "supports" 80)
+definition supports :: "'x set \<Rightarrow> 'a \<Rightarrow> bool" (infixl "supports" 80) where
    "S supports x \<equiv> \<forall>a b. (a\<notin>S \<and> b\<notin>S \<longrightarrow> [(a,b)]\<bullet>x=x)"
 
 (* lemmas about supp *)
@@ -400,14 +398,14 @@ section {* Abstract Properties for Permutations and  Atoms *}
 (*=========================================================*)
 
 (* properties for being a permutation type *)
-constdefs 
+definition
   "pt TYPE('a) TYPE('x) \<equiv> 
      (\<forall>(x::'a). ([]::'x prm)\<bullet>x = x) \<and> 
      (\<forall>(pi1::'x prm) (pi2::'x prm) (x::'a). (pi1@pi2)\<bullet>x = pi1\<bullet>(pi2\<bullet>x)) \<and> 
      (\<forall>(pi1::'x prm) (pi2::'x prm) (x::'a). pi1 \<triangleq> pi2 \<longrightarrow> pi1\<bullet>x = pi2\<bullet>x)"
 
 (* properties for being an atom type *)
-constdefs 
+definition
   "at TYPE('x) \<equiv> 
      (\<forall>(x::'x). ([]::'x prm)\<bullet>x = x) \<and>
      (\<forall>(a::'x) (b::'x) (pi::'x prm) (x::'x). ((a,b)#(pi::'x prm))\<bullet>x = swap (a,b) (pi\<bullet>x)) \<and> 
@@ -415,18 +413,18 @@ constdefs
      (infinite (UNIV::'x set))"
 
 (* property of two atom-types being disjoint *)
-constdefs
+definition
   "disjoint TYPE('x) TYPE('y) \<equiv> 
        (\<forall>(pi::'x prm)(x::'y). pi\<bullet>x = x) \<and> 
        (\<forall>(pi::'y prm)(x::'x). pi\<bullet>x = x)"
 
 (* composition property of two permutation on a type 'a *)
-constdefs
+definition
   "cp TYPE ('a) TYPE('x) TYPE('y) \<equiv> 
       (\<forall>(pi2::'y prm) (pi1::'x prm) (x::'a) . pi1\<bullet>(pi2\<bullet>x) = (pi1\<bullet>pi2)\<bullet>(pi1\<bullet>x))" 
 
 (* property of having finite support *)
-constdefs 
+definition
   "fs TYPE('a) TYPE('x) \<equiv> \<forall>(x::'a). finite ((supp x)::'x set)"
 
 section {* Lemmas about the atom-type properties*}
@@ -2216,8 +2214,7 @@ qed
 section {* Facts about the support of finite sets of finitely supported things *}
 (*=============================================================================*)
 
-constdefs
-  X_to_Un_supp :: "('a set) \<Rightarrow> 'x set"
+definition X_to_Un_supp :: "('a set) \<Rightarrow> 'x set" where
   "X_to_Un_supp X \<equiv> \<Union>x\<in>X. ((supp x)::'x set)"
 
 lemma UNION_f_eqvt:
@@ -2838,8 +2835,7 @@ next
 qed
 
 -- "packaging the freshness lemma into a function"
-constdefs
-  fresh_fun :: "('x\<Rightarrow>'a)\<Rightarrow>'a"
+definition fresh_fun :: "('x\<Rightarrow>'a)\<Rightarrow>'a" where
   "fresh_fun (h) \<equiv> THE fr. (\<forall>(a::'x). a\<sharp>h \<longrightarrow> (h a) = fr)"
 
 lemma fresh_fun_app:
@@ -2970,8 +2966,7 @@ lemma pt_abs_fun_inst:
   shows "pt TYPE('x\<Rightarrow>('a noption)) TYPE('x)"
   by (rule pt_fun_inst[OF at_pt_inst[OF at],OF pt_noption_inst[OF pt],OF at])
 
-constdefs
-  abs_fun :: "'x\<Rightarrow>'a\<Rightarrow>('x\<Rightarrow>('a noption))" ("[_]._" [100,100] 100)
+definition abs_fun :: "'x\<Rightarrow>'a\<Rightarrow>('x\<Rightarrow>('a noption))" ("[_]._" [100,100] 100) where 
   "[a].x \<equiv> (\<lambda>b. (if b=a then nSome(x) else (if b\<sharp>x then nSome([(a,b)]\<bullet>x) else nNone)))"
 
 (* FIXME: should be called perm_if and placed close to the definition of permutations on bools *)

@@ -40,7 +40,7 @@ primrec
                                       (s ~: b --> Sem c2 s s'))"
 "Sem(While b x c) s s' = (? n. iter n b (Sem c) s s')"
 
-constdefs Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Rightarrow> bool"
+definition Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Rightarrow> bool" where
   "Valid p c q == !s s'. Sem c s s' --> s : p --> s' : q"
 
 

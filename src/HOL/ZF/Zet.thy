@@ -1,5 +1,4 @@
 (*  Title:      HOL/ZF/Zet.thy
-    ID:         $Id$
     Author:     Steven Obua
 
     Introduces a type 'a zet of ZF representable sets.
@@ -13,15 +12,13 @@ begin
 typedef 'a zet = "{A :: 'a set | A f z. inj_on f A \<and> f ` A \<subseteq> explode z}"
   by blast
 
-constdefs
-  zin :: "'a \<Rightarrow> 'a zet \<Rightarrow> bool"
+definition zin :: "'a \<Rightarrow> 'a zet \<Rightarrow> bool" where
   "zin x A == x \<in> (Rep_zet A)"
 
 lemma zet_ext_eq: "(A = B) = (! x. zin x A = zin x B)"
   by (auto simp add: Rep_zet_inject[symmetric] zin_def)
 
-constdefs
-  zimage :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a zet \<Rightarrow> 'b zet"
+definition zimage :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a zet \<Rightarrow> 'b zet" where
   "zimage f A == Abs_zet (image f (Rep_zet A))"
 
 lemma zet_def': "zet = {A :: 'a set | A f z. inj_on f A \<and> f ` A = explode z}"
@@ -74,10 +71,10 @@ lemma Rep_zimage_eq: "Rep_zet (zimage f A) = image f (Rep_zet A)"
 lemma zimage_iff: "zin y (zimage f A) = (? x. zin x A & y = f x)"
   by (auto simp add: zin_def Rep_zimage_eq)
 
-constdefs
-  zimplode :: "ZF zet \<Rightarrow> ZF"
+definition zimplode :: "ZF zet \<Rightarrow> ZF" where
   "zimplode A == implode (Rep_zet A)"
-  zexplode :: "ZF \<Rightarrow> ZF zet"
+
+definition zexplode :: "ZF \<Rightarrow> ZF zet" where
   "zexplode z == Abs_zet (explode z)"
 
 lemma Rep_zet_eq_explode: "? z. Rep_zet A = explode z"
@@ -114,10 +111,10 @@ lemma comp_zimage_eq: "zimage g (zimage f A) = zimage (g o f) A"
   apply (simp_all add: comp_image_eq zet_image_mem Rep_zet)
   done
     
-constdefs
-  zunion :: "'a zet \<Rightarrow> 'a zet \<Rightarrow> 'a zet"
+definition zunion :: "'a zet \<Rightarrow> 'a zet \<Rightarrow> 'a zet" where
   "zunion a b \<equiv> Abs_zet ((Rep_zet a) \<union> (Rep_zet b))"
-  zsubset :: "'a zet \<Rightarrow> 'a zet \<Rightarrow> bool"
+
+definition zsubset :: "'a zet \<Rightarrow> 'a zet \<Rightarrow> bool" where
   "zsubset a b \<equiv> ! x. zin x a \<longrightarrow> zin x b"
 
 lemma explode_union: "explode (union a b) = (explode a) \<union> (explode b)"
@@ -181,8 +178,7 @@ lemma Elem_zimplode: "(Elem x (zimplode z)) = (zin x z)"
   apply (simp_all add: zin_def Rep_zet range_explode_eq_zet)
   done
 
-constdefs
-  zempty :: "'a zet"
+definition zempty :: "'a zet" where
   "zempty \<equiv> Abs_zet {}"
 
 lemma zempty[simp]: "\<not> (zin x zempty)"

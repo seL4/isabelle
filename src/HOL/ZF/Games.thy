@@ -9,12 +9,13 @@ theory Games
 imports MainZF
 begin
 
-constdefs
-  fixgames :: "ZF set \<Rightarrow> ZF set"
+definition fixgames :: "ZF set \<Rightarrow> ZF set" where
   "fixgames A \<equiv> { Opair l r | l r. explode l \<subseteq> A & explode r \<subseteq> A}"
-  games_lfp :: "ZF set"
+
+definition games_lfp :: "ZF set" where
   "games_lfp \<equiv> lfp fixgames"
-  games_gfp :: "ZF set"
+
+definition games_gfp :: "ZF set" where
   "games_gfp \<equiv> gfp fixgames"
 
 lemma mono_fixgames: "mono (fixgames)"
@@ -42,12 +43,13 @@ proof -
     by auto
 qed
 
-constdefs
-  left_option :: "ZF \<Rightarrow> ZF \<Rightarrow> bool"
+definition left_option :: "ZF \<Rightarrow> ZF \<Rightarrow> bool" where
   "left_option g opt \<equiv> (Elem opt (Fst g))"
-  right_option :: "ZF \<Rightarrow> ZF \<Rightarrow> bool"
+
+definition right_option :: "ZF \<Rightarrow> ZF \<Rightarrow> bool" where
   "right_option g opt \<equiv> (Elem opt (Snd g))"
-  is_option_of :: "(ZF * ZF) set"
+
+definition is_option_of :: "(ZF * ZF) set" where
   "is_option_of \<equiv> { (opt, g) | opt g. g \<in> games_gfp \<and> (left_option g opt \<or> right_option g opt) }"
 
 lemma games_lfp_subset_gfp: "games_lfp \<subseteq> games_gfp"
@@ -190,14 +192,16 @@ lemma games_lfp_represent: "x \<in> games_lfp \<Longrightarrow> \<exists> l r. x
 typedef game = games_lfp
   by (blast intro: games_lfp_nonempty)
 
-constdefs
-  left_options :: "game \<Rightarrow> game zet"
+definition left_options :: "game \<Rightarrow> game zet" where
   "left_options g \<equiv> zimage Abs_game (zexplode (Fst (Rep_game g)))"
-  right_options :: "game \<Rightarrow> game zet"
+
+definition right_options :: "game \<Rightarrow> game zet" where
   "right_options g \<equiv> zimage Abs_game (zexplode (Snd (Rep_game g)))"
-  options :: "game \<Rightarrow> game zet"
+
+definition options :: "game \<Rightarrow> game zet" where
   "options g \<equiv> zunion (left_options g) (right_options g)"
-  Game :: "game zet \<Rightarrow> game zet \<Rightarrow> game"
+
+definition Game :: "game zet \<Rightarrow> game zet \<Rightarrow> game" where
   "Game L R \<equiv> Abs_game (Opair (zimplode (zimage Rep_game L)) (zimplode (zimage Rep_game R)))"
   
 lemma Repl_Rep_game_Abs_game: "\<forall> e. Elem e z \<longrightarrow> e \<in> games_lfp \<Longrightarrow> Repl z (Rep_game o Abs_game) = z"
@@ -295,8 +299,7 @@ lemma Game_ext: "(Game l1 r1 = Game l2 r2) = ((l1 = l2) \<and> (r1 = r2))"
   apply simp
   done
 
-constdefs
-  option_of :: "(game * game) set"
+definition option_of :: "(game * game) set" where
   "option_of \<equiv> image (\<lambda> (option, g). (Abs_game option, Abs_game g)) is_option_of"
 
 lemma option_to_is_option_of: "((option, g) \<in> option_of) = ((Rep_game option, Rep_game g) \<in> is_option_of)"
@@ -437,8 +440,7 @@ proof (induct x rule: wf_induct[OF wf_option_of])
   qed
 qed
         
-constdefs
-  eq_game :: "game \<Rightarrow> game \<Rightarrow> bool"
+definition eq_game :: "game \<Rightarrow> game \<Rightarrow> bool" where
   "eq_game G H \<equiv> ge_game (G, H) \<and> ge_game (H, G)" 
 
 lemma eq_game_sym: "(eq_game G H) = (eq_game H G)"
@@ -501,9 +503,8 @@ qed
 lemma eq_game_trans: "eq_game a b \<Longrightarrow> eq_game b c \<Longrightarrow> eq_game a c"
   by (auto simp add: eq_game_def intro: ge_game_trans)
 
-constdefs
-  zero_game :: game
-  "zero_game \<equiv> Game zempty zempty"
+definition zero_game :: game
+ where  "zero_game \<equiv> Game zempty zempty"
 
 consts 
   plus_game :: "game * game \<Rightarrow> game"
@@ -838,8 +839,7 @@ proof -
   then show ?thesis by blast
 qed
 
-constdefs 
-  eq_game_rel :: "(game * game) set"
+definition eq_game_rel :: "(game * game) set" where
   "eq_game_rel \<equiv> { (p, q) . eq_game p q }"
 
 typedef Pg = "UNIV//eq_game_rel"

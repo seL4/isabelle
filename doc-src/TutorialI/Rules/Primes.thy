@@ -99,8 +99,7 @@ by (blast intro!: gcd_greatest intro: dvd_trans)
 
 (**** The material below was omitted from the book ****)
 
-constdefs
-  is_gcd  :: "[nat,nat,nat] \<Rightarrow> bool"        (*gcd as a relation*)
+definition is_gcd :: "[nat,nat,nat] \<Rightarrow> bool" where        (*gcd as a relation*)
     "is_gcd p m n == p dvd m  \<and>  p dvd n  \<and>
                      (ALL d. d dvd m \<and> d dvd n \<longrightarrow> d dvd p)"
 

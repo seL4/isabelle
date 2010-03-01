@@ -169,26 +169,26 @@ recdef not "measure size"
 lemma not[simp]: "Ifm bs (not p) = Ifm bs (NOT p)"
 by (cases p) auto
 
-constdefs conj :: "fm \<Rightarrow> fm \<Rightarrow> fm"
+definition conj :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
   "conj p q \<equiv> (if (p = F \<or> q=F) then F else if p=T then q else if q=T then p else 
    if p = q then p else And p q)"
 lemma conj[simp]: "Ifm bs (conj p q) = Ifm bs (And p q)"
 by (cases "p=F \<or> q=F",simp_all add: conj_def) (cases p,simp_all)
 
-constdefs disj :: "fm \<Rightarrow> fm \<Rightarrow> fm"
+definition disj :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
   "disj p q \<equiv> (if (p = T \<or> q=T) then T else if p=F then q else if q=F then p 
        else if p=q then p else Or p q)"
 
 lemma disj[simp]: "Ifm bs (disj p q) = Ifm bs (Or p q)"
 by (cases "p=T \<or> q=T",simp_all add: disj_def) (cases p,simp_all)
 
-constdefs  imp :: "fm \<Rightarrow> fm \<Rightarrow> fm"
+definition imp :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
   "imp p q \<equiv> (if (p = F \<or> q=T \<or> p=q) then T else if p=T then q else if q=F then not p 
     else Imp p q)"
 lemma imp[simp]: "Ifm bs (imp p q) = Ifm bs (Imp p q)"
 by (cases "p=F \<or> q=T",simp_all add: imp_def) 
 
-constdefs   iff :: "fm \<Rightarrow> fm \<Rightarrow> fm"
+definition iff :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
   "iff p q \<equiv> (if (p = q) then T else if (p = NOT q \<or> NOT p = q) then F else 
        if p=F then not q else if q=F then not p else if p=T then q else if q=T then p else 
   Iff p q)"
@@ -369,10 +369,10 @@ recdef isatom "measure size"
 lemma bound0_qf: "bound0 p \<Longrightarrow> qfree p"
 by (induct p, simp_all)
 
-constdefs djf:: "('a \<Rightarrow> fm) \<Rightarrow> 'a \<Rightarrow> fm \<Rightarrow> fm"
+definition djf :: "('a \<Rightarrow> fm) \<Rightarrow> 'a \<Rightarrow> fm \<Rightarrow> fm" where
   "djf f p q \<equiv> (if q=T then T else if q=F then f p else 
   (let fp = f p in case fp of T \<Rightarrow> T | F \<Rightarrow> q | _ \<Rightarrow> Or (f p) q))"
-constdefs evaldjf:: "('a \<Rightarrow> fm) \<Rightarrow> 'a list \<Rightarrow> fm"
+definition evaldjf :: "('a \<Rightarrow> fm) \<Rightarrow> 'a list \<Rightarrow> fm" where
   "evaldjf f ps \<equiv> foldr (djf f) ps F"
 
 lemma djf_Or: "Ifm bs (djf f p q) = Ifm bs (Or (f p) q)"
@@ -423,7 +423,7 @@ proof-
   thus ?thesis by (simp only: list_all_iff)
 qed
 
-constdefs DJ :: "(fm \<Rightarrow> fm) \<Rightarrow> fm \<Rightarrow> fm"
+definition DJ :: "(fm \<Rightarrow> fm) \<Rightarrow> fm \<Rightarrow> fm" where
   "DJ f p \<equiv> evaldjf f (disjuncts p)"
 
 lemma DJ: assumes fdj: "\<forall> p q. Ifm bs (f (Or p q)) = Ifm bs (Or (f p) (f q))"
@@ -653,10 +653,10 @@ by (induct t rule: nummul.induct, auto simp add: algebra_simps)
 lemma nummul_nb[simp]: "\<And> i. numbound0 t \<Longrightarrow> numbound0 (nummul t i)"
 by (induct t rule: nummul.induct, auto )
 
-constdefs numneg :: "num \<Rightarrow> num"
+definition numneg :: "num \<Rightarrow> num" where
   "numneg t \<equiv> nummul t (- 1)"
 
-constdefs numsub :: "num \<Rightarrow> num \<Rightarrow> num"
+definition numsub :: "num \<Rightarrow> num \<Rightarrow> num" where
   "numsub s t \<equiv> (if s = t then C 0 else numadd (s,numneg t))"
 
 lemma numneg[simp]: "Inum bs (numneg t) = Inum bs (Neg t)"
@@ -724,7 +724,7 @@ proof-
   from maxcoeff_nz[OF nz th] show ?thesis .
 qed
 
-constdefs simp_num_pair:: "(num \<times> int) \<Rightarrow> num \<times> int"
+definition simp_num_pair :: "(num \<times> int) \<Rightarrow> num \<times> int" where
   "simp_num_pair \<equiv> (\<lambda> (t,n). (if n = 0 then (C 0, 0) else
    (let t' = simpnum t ; g = numgcd t' in 
       if g > 1 then (let g' = gcd n g in 
@@ -1779,7 +1779,7 @@ qed
 
 
     (* Implement the right hand side of Ferrante and Rackoff's Theorem. *)
-constdefs ferrack:: "fm \<Rightarrow> fm"
+definition ferrack :: "fm \<Rightarrow> fm" where
   "ferrack p \<equiv> (let p' = rlfm (simpfm p); mp = minusinf p'; pp = plusinf p'
                 in if (mp = T \<or> pp = T) then T else 
                    (let U = remdps(map simp_num_pair 

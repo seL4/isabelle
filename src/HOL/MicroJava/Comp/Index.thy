@@ -9,8 +9,7 @@ imports AuxLemmas DefsComp
 begin
 
 (*indexing a variable name among all variable declarations in a method body*)
-constdefs
- index :: "java_mb => vname => nat"
+definition index :: "java_mb => vname => nat" where
  "index ==  \<lambda> (pn,lv,blk,res) v.
   if v = This
   then 0 
@@ -99,8 +98,7 @@ done
 
 (* The following def should replace the conditions in WellType.thy / wf_java_mdecl
 *)
-constdefs 
-  disjoint_varnames :: "[vname list, (vname \<times> ty) list] \<Rightarrow> bool"
+definition disjoint_varnames :: "[vname list, (vname \<times> ty) list] \<Rightarrow> bool" where
 (* This corresponds to the original def in wf_java_mdecl:
   "disjoint_varnames pns lvars \<equiv> 
   nodups pns \<and> unique lvars \<and> This \<notin> set pns \<and> This \<notin> set (map fst lvars) \<and> 

@@ -64,7 +64,7 @@ lemma n_nodes_aux_eq [rule_format]:
      "t \<in> bt(A) ==> \<forall>k \<in> nat. n_nodes_aux(t)`k = n_nodes(t) #+ k"
   by (induct_tac t, simp_all) 
 
-constdefs  n_nodes_tail :: "i => i"
+definition n_nodes_tail :: "i => i" where
    "n_nodes_tail(t) == n_nodes_aux(t) ` 0"
 
 lemma "t \<in> bt(A) ==> n_nodes_tail(t) = n_nodes(t)"

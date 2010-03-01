@@ -85,7 +85,7 @@ by (erule guardK.induct, auto)
 
 subsection{*guarded sets*}
 
-constdefs GuardK :: "nat => key set => msg set => bool"
+definition GuardK :: "nat => key set => msg set => bool" where
 "GuardK n Ks H == ALL X. X:H --> X:guardK n Ks"
 
 subsection{*basic facts about @{term GuardK}*}
@@ -239,7 +239,7 @@ by (rule kparts_msg_set)
 
 subsection{*list corresponding to "decrypt"*}
 
-constdefs decrypt' :: "msg list => key => msg => msg list"
+definition decrypt' :: "msg list => key => msg => msg list" where
 "decrypt' l K Y == Y # remove l (Crypt K Y)"
 
 declare decrypt'_def [simp]

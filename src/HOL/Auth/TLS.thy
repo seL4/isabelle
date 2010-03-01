@@ -43,8 +43,7 @@ header{*The TLS Protocol: Transport Layer Security*}
 
 theory TLS imports Public Nat_Int_Bij begin
 
-constdefs
-  certificate      :: "[agent,key] => msg"
+definition certificate :: "[agent,key] => msg" where
     "certificate A KA == Crypt (priSK Server) {|Agent A, Key KA|}"
 
 text{*TLS apparently does not require separate keypairs for encryption and

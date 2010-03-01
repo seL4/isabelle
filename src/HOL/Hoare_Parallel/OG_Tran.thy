@@ -7,14 +7,13 @@ types
   'a ann_com_op = "('a ann_com) option"
   'a ann_triple_op = "('a ann_com_op \<times> 'a assn)"
   
-consts com :: "'a ann_triple_op \<Rightarrow> 'a ann_com_op"
-primrec "com (c, q) = c"
+primrec com :: "'a ann_triple_op \<Rightarrow> 'a ann_com_op" where
+  "com (c, q) = c"
 
-consts post :: "'a ann_triple_op \<Rightarrow> 'a assn"
-primrec "post (c, q) = q"
+primrec post :: "'a ann_triple_op \<Rightarrow> 'a assn" where
+  "post (c, q) = q"
 
-constdefs
-  All_None :: "'a ann_triple_op list \<Rightarrow> bool"
+definition All_None :: "'a ann_triple_op list \<Rightarrow> bool" where
   "All_None Ts \<equiv> \<forall>(c, q) \<in> set Ts. c = None"
 
 subsection {* The Transition Relation *}
@@ -88,26 +87,24 @@ abbreviation
 
 subsection {* Definition of Semantics *}
 
-constdefs
-  ann_sem :: "'a ann_com \<Rightarrow> 'a \<Rightarrow> 'a set"
+definition ann_sem :: "'a ann_com \<Rightarrow> 'a \<Rightarrow> 'a set" where
   "ann_sem c \<equiv> \<lambda>s. {t. (Some c, s) -*\<rightarrow> (None, t)}"
 
-  ann_SEM :: "'a ann_com \<Rightarrow> 'a set \<Rightarrow> 'a set"
+definition ann_SEM :: "'a ann_com \<Rightarrow> 'a set \<Rightarrow> 'a set" where
   "ann_SEM c S \<equiv> \<Union>ann_sem c ` S"  
 
-  sem :: "'a com \<Rightarrow> 'a \<Rightarrow> 'a set"
+definition sem :: "'a com \<Rightarrow> 'a \<Rightarrow> 'a set" where
   "sem c \<equiv> \<lambda>s. {t. \<exists>Ts. (c, s) -P*\<rightarrow> (Parallel Ts, t) \<and> All_None Ts}"
 
-  SEM :: "'a com \<Rightarrow> 'a set \<Rightarrow> 'a set"
+definition SEM :: "'a com \<Rightarrow> 'a set \<Rightarrow> 'a set" where
   "SEM c S \<equiv> \<Union>sem c ` S "
 
 abbreviation Omega :: "'a com"    ("\<Omega>" 63)
   where "\<Omega> \<equiv> While UNIV UNIV (Basic id)"
 
-consts fwhile :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> nat \<Rightarrow> 'a com"
-primrec 
-   "fwhile b c 0 = \<Omega>"
-   "fwhile b c (Suc n) = Cond b (Seq c (fwhile b c n)) (Basic id)"
+primrec fwhile :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> nat \<Rightarrow> 'a com" where
+    "fwhile b c 0 = \<Omega>"
+  | "fwhile b c (Suc n) = Cond b (Seq c (fwhile b c n)) (Basic id)"
 
 subsubsection {* Proofs *}
 
@@ -299,11 +296,10 @@ done
 
 section {* Validity of Correctness Formulas *}
 
-constdefs 
-  com_validity :: "'a assn \<Rightarrow> 'a com \<Rightarrow> 'a assn \<Rightarrow> bool"  ("(3\<parallel>= _// _//_)" [90,55,90] 50)
+definition com_validity :: "'a assn \<Rightarrow> 'a com \<Rightarrow> 'a assn \<Rightarrow> bool" ("(3\<parallel>= _// _//_)" [90,55,90] 50) where
   "\<parallel>= p c q \<equiv> SEM c p \<subseteq> q"
 
-  ann_com_validity :: "'a ann_com \<Rightarrow> 'a assn \<Rightarrow> bool"   ("\<Turnstile> _ _" [60,90] 45)
+definition ann_com_validity :: "'a ann_com \<Rightarrow> 'a assn \<Rightarrow> bool" ("\<Turnstile> _ _" [60,90] 45) where
   "\<Turnstile> c q \<equiv> ann_SEM c (pre c) \<subseteq> q"
 
 end

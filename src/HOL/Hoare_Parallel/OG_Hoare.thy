@@ -27,12 +27,12 @@ primrec "com (c, q) = c"
 consts post :: "'a ann_triple_op \<Rightarrow> 'a assn"
 primrec "post (c, q) = q"
 
-constdefs  interfree_aux :: "('a ann_com_op \<times> 'a assn \<times> 'a ann_com_op) \<Rightarrow> bool"
+definition interfree_aux :: "('a ann_com_op \<times> 'a assn \<times> 'a ann_com_op) \<Rightarrow> bool" where
   "interfree_aux \<equiv> \<lambda>(co, q, co'). co'= None \<or>  
                     (\<forall>(r,a) \<in> atomics (the co'). \<parallel>= (q \<inter> r) a q \<and>
                     (co = None \<or> (\<forall>p \<in> assertions (the co). \<parallel>= (p \<inter> r) a p)))"
 
-constdefs interfree :: "(('a ann_triple_op) list) \<Rightarrow> bool" 
+definition interfree :: "(('a ann_triple_op) list) \<Rightarrow> bool" where 
   "interfree Ts \<equiv> \<forall>i j. i < length Ts \<and> j < length Ts \<and> i \<noteq> j \<longrightarrow> 
                          interfree_aux (com (Ts!i), post (Ts!i), com (Ts!j)) "
 

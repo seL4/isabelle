@@ -27,45 +27,44 @@ that widens to the result type of the other method (instead of identical type)
 *}
 types 'c wf_mb = "'c prog => cname => 'c mdecl => bool"
 
-constdefs
- wf_syscls :: "'c prog => bool"
+definition wf_syscls :: "'c prog => bool" where
 "wf_syscls G == let cs = set G in Object \<in> fst ` cs \<and> (\<forall>x. Xcpt x \<in> fst ` cs)"
 
- wf_fdecl :: "'c prog => fdecl => bool"
+definition wf_fdecl :: "'c prog => fdecl => bool" where
 "wf_fdecl G == \<lambda>(fn,ft). is_type G ft"
 
- wf_mhead :: "'c prog => sig => ty => bool"
+definition wf_mhead :: "'c prog => sig => ty => bool" where
 "wf_mhead G == \<lambda>(mn,pTs) rT. (\<forall>T\<in>set pTs. is_type G T) \<and> is_type G rT"
 
- ws_cdecl :: "'c prog => 'c cdecl => bool"
+definition ws_cdecl :: "'c prog => 'c cdecl => bool" where
 "ws_cdecl G ==
    \<lambda>(C,(D,fs,ms)).
   (\<forall>f\<in>set fs. wf_fdecl G         f) \<and>  unique fs \<and>
   (\<forall>(sig,rT,mb)\<in>set ms. wf_mhead G sig rT) \<and> unique ms \<and>
   (C \<noteq> Object \<longrightarrow> is_class G D \<and>  \<not>G\<turnstile>D\<preceq>C C)"
 
- ws_prog :: "'c prog => bool"
+definition ws_prog :: "'c prog => bool" where
 "ws_prog G == 
   wf_syscls G \<and> (\<forall>c\<in>set G. ws_cdecl G c) \<and> unique G"
 
- wf_mrT   :: "'c prog => 'c cdecl => bool"
+definition wf_mrT   :: "'c prog => 'c cdecl => bool" where
 "wf_mrT G ==
    \<lambda>(C,(D,fs,ms)).
   (C \<noteq> Object \<longrightarrow> (\<forall>(sig,rT,b)\<in>set ms. \<forall>D' rT' b'.
                       method(G,D) sig = Some(D',rT',b') --> G\<turnstile>rT\<preceq>rT'))"
 
- wf_cdecl_mdecl :: "'c wf_mb => 'c prog => 'c cdecl => bool"
+definition wf_cdecl_mdecl :: "'c wf_mb => 'c prog => 'c cdecl => bool" where
 "wf_cdecl_mdecl wf_mb G ==
    \<lambda>(C,(D,fs,ms)). (\<forall>m\<in>set ms. wf_mb G C m)"
 
- wf_prog :: "'c wf_mb => 'c prog => bool"
+definition wf_prog :: "'c wf_mb => 'c prog => bool" where
 "wf_prog wf_mb G == 
      ws_prog G \<and> (\<forall>c\<in> set G. wf_mrT G c \<and> wf_cdecl_mdecl wf_mb G c)"
 
- wf_mdecl :: "'c wf_mb => 'c wf_mb"
+definition wf_mdecl :: "'c wf_mb => 'c wf_mb" where
 "wf_mdecl wf_mb G C == \<lambda>(sig,rT,mb). wf_mhead G sig rT \<and> wf_mb G C (sig,rT,mb)"
 
- wf_cdecl :: "'c wf_mb => 'c prog => 'c cdecl => bool"
+definition wf_cdecl :: "'c wf_mb => 'c prog => 'c cdecl => bool" where
 "wf_cdecl wf_mb G ==
    \<lambda>(C,(D,fs,ms)).
   (\<forall>f\<in>set fs. wf_fdecl G         f) \<and>  unique fs \<and>

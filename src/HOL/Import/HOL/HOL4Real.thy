@@ -39,29 +39,25 @@ lemma HREAL_LT_LADD: "ALL (x::hreal) (y::hreal) z::hreal.
    hreal_lt (hreal_add x y) (hreal_add x z) = hreal_lt y z"
   by (import realax HREAL_LT_LADD)
 
-constdefs
-  treal_0 :: "hreal * hreal" 
+definition treal_0 :: "hreal * hreal" where 
   "treal_0 == (hreal_1, hreal_1)"
 
 lemma treal_0: "treal_0 = (hreal_1, hreal_1)"
   by (import realax treal_0)
 
-constdefs
-  treal_1 :: "hreal * hreal" 
+definition treal_1 :: "hreal * hreal" where 
   "treal_1 == (hreal_add hreal_1 hreal_1, hreal_1)"
 
 lemma treal_1: "treal_1 = (hreal_add hreal_1 hreal_1, hreal_1)"
   by (import realax treal_1)
 
-constdefs
-  treal_neg :: "hreal * hreal => hreal * hreal" 
+definition treal_neg :: "hreal * hreal => hreal * hreal" where 
   "treal_neg == %(x::hreal, y::hreal). (y, x)"
 
 lemma treal_neg: "ALL (x::hreal) y::hreal. treal_neg (x, y) = (y, x)"
   by (import realax treal_neg)
 
-constdefs
-  treal_add :: "hreal * hreal => hreal * hreal => hreal * hreal" 
+definition treal_add :: "hreal * hreal => hreal * hreal => hreal * hreal" where 
   "treal_add ==
 %(x1::hreal, y1::hreal) (x2::hreal, y2::hreal).
    (hreal_add x1 x2, hreal_add y1 y2)"
@@ -70,8 +66,7 @@ lemma treal_add: "ALL (x1::hreal) (y1::hreal) (x2::hreal) y2::hreal.
    treal_add (x1, y1) (x2, y2) = (hreal_add x1 x2, hreal_add y1 y2)"
   by (import realax treal_add)
 
-constdefs
-  treal_mul :: "hreal * hreal => hreal * hreal => hreal * hreal" 
+definition treal_mul :: "hreal * hreal => hreal * hreal => hreal * hreal" where 
   "treal_mul ==
 %(x1::hreal, y1::hreal) (x2::hreal, y2::hreal).
    (hreal_add (hreal_mul x1 x2) (hreal_mul y1 y2),
@@ -83,8 +78,7 @@ lemma treal_mul: "ALL (x1::hreal) (y1::hreal) (x2::hreal) y2::hreal.
     hreal_add (hreal_mul x1 y2) (hreal_mul y1 x2))"
   by (import realax treal_mul)
 
-constdefs
-  treal_lt :: "hreal * hreal => hreal * hreal => bool" 
+definition treal_lt :: "hreal * hreal => hreal * hreal => bool" where 
   "treal_lt ==
 %(x1::hreal, y1::hreal) (x2::hreal, y2::hreal).
    hreal_lt (hreal_add x1 y2) (hreal_add x2 y1)"
@@ -93,8 +87,7 @@ lemma treal_lt: "ALL (x1::hreal) (y1::hreal) (x2::hreal) y2::hreal.
    treal_lt (x1, y1) (x2, y2) = hreal_lt (hreal_add x1 y2) (hreal_add x2 y1)"
   by (import realax treal_lt)
 
-constdefs
-  treal_inv :: "hreal * hreal => hreal * hreal" 
+definition treal_inv :: "hreal * hreal => hreal * hreal" where 
   "treal_inv ==
 %(x::hreal, y::hreal).
    if x = y then treal_0
@@ -110,8 +103,7 @@ lemma treal_inv: "ALL (x::hreal) y::hreal.
          else (hreal_1, hreal_add (hreal_inv (hreal_sub y x)) hreal_1))"
   by (import realax treal_inv)
 
-constdefs
-  treal_eq :: "hreal * hreal => hreal * hreal => bool" 
+definition treal_eq :: "hreal * hreal => hreal * hreal => bool" where 
   "treal_eq ==
 %(x1::hreal, y1::hreal) (x2::hreal, y2::hreal).
    hreal_add x1 y2 = hreal_add x2 y1"
@@ -194,15 +186,13 @@ lemma TREAL_LT_MUL: "ALL (x::hreal * hreal) y::hreal * hreal.
    treal_lt treal_0 (treal_mul x y)"
   by (import realax TREAL_LT_MUL)
 
-constdefs
-  treal_of_hreal :: "hreal => hreal * hreal" 
+definition treal_of_hreal :: "hreal => hreal * hreal" where 
   "treal_of_hreal == %x::hreal. (hreal_add x hreal_1, hreal_1)"
 
 lemma treal_of_hreal: "ALL x::hreal. treal_of_hreal x = (hreal_add x hreal_1, hreal_1)"
   by (import realax treal_of_hreal)
 
-constdefs
-  hreal_of_treal :: "hreal * hreal => hreal" 
+definition hreal_of_treal :: "hreal * hreal => hreal" where 
   "hreal_of_treal == %(x::hreal, y::hreal). SOME d::hreal. x = hreal_add y d"
 
 lemma hreal_of_treal: "ALL (x::hreal) y::hreal.
@@ -579,8 +569,7 @@ lemma REAL_SUP_EXISTS: "ALL P::real => bool.
    (EX x::real. ALL y::real. (EX x::real. P x & y < x) = (y < x))"
   by (import real REAL_SUP_EXISTS)
 
-constdefs
-  sup :: "(real => bool) => real" 
+definition sup :: "(real => bool) => real" where 
   "sup ==
 %P::real => bool.
    SOME s::real. ALL y::real. (EX x::real. P x & y < x) = (y < s)"
@@ -781,8 +770,7 @@ lemma REAL_EQ_LDIV_EQ: "ALL (x::real) (xa::real) xb::real. 0 < xb --> (x / xb = 
 
 ;setup_theory topology
 
-constdefs
-  re_Union :: "(('a => bool) => bool) => 'a => bool" 
+definition re_Union :: "(('a => bool) => bool) => 'a => bool" where 
   "re_Union ==
 %(P::('a::type => bool) => bool) x::'a::type.
    EX s::'a::type => bool. P s & s x"
@@ -791,8 +779,7 @@ lemma re_Union: "ALL P::('a::type => bool) => bool.
    re_Union P = (%x::'a::type. EX s::'a::type => bool. P s & s x)"
   by (import topology re_Union)
 
-constdefs
-  re_union :: "('a => bool) => ('a => bool) => 'a => bool" 
+definition re_union :: "('a => bool) => ('a => bool) => 'a => bool" where 
   "re_union ==
 %(P::'a::type => bool) (Q::'a::type => bool) x::'a::type. P x | Q x"
 
@@ -800,8 +787,7 @@ lemma re_union: "ALL (P::'a::type => bool) Q::'a::type => bool.
    re_union P Q = (%x::'a::type. P x | Q x)"
   by (import topology re_union)
 
-constdefs
-  re_intersect :: "('a => bool) => ('a => bool) => 'a => bool" 
+definition re_intersect :: "('a => bool) => ('a => bool) => 'a => bool" where 
   "re_intersect ==
 %(P::'a::type => bool) (Q::'a::type => bool) x::'a::type. P x & Q x"
 
@@ -809,22 +795,19 @@ lemma re_intersect: "ALL (P::'a::type => bool) Q::'a::type => bool.
    re_intersect P Q = (%x::'a::type. P x & Q x)"
   by (import topology re_intersect)
 
-constdefs
-  re_null :: "'a => bool" 
+definition re_null :: "'a => bool" where 
   "re_null == %x::'a::type. False"
 
 lemma re_null: "re_null = (%x::'a::type. False)"
   by (import topology re_null)
 
-constdefs
-  re_universe :: "'a => bool" 
+definition re_universe :: "'a => bool" where 
   "re_universe == %x::'a::type. True"
 
 lemma re_universe: "re_universe = (%x::'a::type. True)"
   by (import topology re_universe)
 
-constdefs
-  re_subset :: "('a => bool) => ('a => bool) => bool" 
+definition re_subset :: "('a => bool) => ('a => bool) => bool" where 
   "re_subset ==
 %(P::'a::type => bool) Q::'a::type => bool. ALL x::'a::type. P x --> Q x"
 
@@ -832,8 +815,7 @@ lemma re_subset: "ALL (P::'a::type => bool) Q::'a::type => bool.
    re_subset P Q = (ALL x::'a::type. P x --> Q x)"
   by (import topology re_subset)
 
-constdefs
-  re_compl :: "('a => bool) => 'a => bool" 
+definition re_compl :: "('a => bool) => 'a => bool" where 
   "re_compl == %(P::'a::type => bool) x::'a::type. ~ P x"
 
 lemma re_compl: "ALL P::'a::type => bool. re_compl P = (%x::'a::type. ~ P x)"
@@ -853,8 +835,7 @@ lemma SUBSET_TRANS: "ALL (P::'a::type => bool) (Q::'a::type => bool) R::'a::type
    re_subset P Q & re_subset Q R --> re_subset P R"
   by (import topology SUBSET_TRANS)
 
-constdefs
-  istopology :: "(('a => bool) => bool) => bool" 
+definition istopology :: "(('a => bool) => bool) => bool" where 
   "istopology ==
 %L::('a::type => bool) => bool.
    L re_null &
@@ -900,8 +881,7 @@ lemma TOPOLOGY_UNION: "ALL (x::'a::type topology) xa::('a::type => bool) => bool
    re_subset xa (open x) --> open x (re_Union xa)"
   by (import topology TOPOLOGY_UNION)
 
-constdefs
-  neigh :: "'a topology => ('a => bool) * 'a => bool" 
+definition neigh :: "'a topology => ('a => bool) * 'a => bool" where 
   "neigh ==
 %(top::'a::type topology) (N::'a::type => bool, x::'a::type).
    EX P::'a::type => bool. open top P & re_subset P N & P x"
@@ -932,16 +912,14 @@ lemma OPEN_NEIGH: "ALL (S'::'a::type => bool) top::'a::type topology.
        S' x --> (EX N::'a::type => bool. neigh top (N, x) & re_subset N S'))"
   by (import topology OPEN_NEIGH)
 
-constdefs
-  closed :: "'a topology => ('a => bool) => bool" 
+definition closed :: "'a topology => ('a => bool) => bool" where 
   "closed == %(L::'a::type topology) S'::'a::type => bool. open L (re_compl S')"
 
 lemma closed: "ALL (L::'a::type topology) S'::'a::type => bool.
    closed L S' = open L (re_compl S')"
   by (import topology closed)
 
-constdefs
-  limpt :: "'a topology => 'a => ('a => bool) => bool" 
+definition limpt :: "'a topology => 'a => ('a => bool) => bool" where 
   "limpt ==
 %(top::'a::type topology) (x::'a::type) S'::'a::type => bool.
    ALL N::'a::type => bool.
@@ -957,8 +935,7 @@ lemma CLOSED_LIMPT: "ALL (top::'a::type topology) S'::'a::type => bool.
    closed top S' = (ALL x::'a::type. limpt top x S' --> S' x)"
   by (import topology CLOSED_LIMPT)
 
-constdefs
-  ismet :: "('a * 'a => real) => bool" 
+definition ismet :: "('a * 'a => real) => bool" where 
   "ismet ==
 %m::'a::type * 'a::type => real.
    (ALL (x::'a::type) y::'a::type. (m (x, y) = 0) = (x = y)) &
@@ -1012,8 +989,7 @@ lemma METRIC_NZ: "ALL (m::'a::type metric) (x::'a::type) y::'a::type.
    x ~= y --> 0 < dist m (x, y)"
   by (import topology METRIC_NZ)
 
-constdefs
-  mtop :: "'a metric => 'a topology" 
+definition mtop :: "'a metric => 'a topology" where 
   "mtop ==
 %m::'a::type metric.
    topology
@@ -1042,8 +1018,7 @@ lemma MTOP_OPEN: "ALL (S'::'a::type => bool) x::'a::type metric.
        S' xa --> (EX e>0. ALL y::'a::type. dist x (xa, y) < e --> S' y))"
   by (import topology MTOP_OPEN)
 
-constdefs
-  B :: "'a metric => 'a * real => 'a => bool" 
+definition B :: "'a metric => 'a * real => 'a => bool" where 
   "B ==
 %(m::'a::type metric) (x::'a::type, e::real) y::'a::type. dist m (x, y) < e"
 
@@ -1067,8 +1042,7 @@ lemma MTOP_LIMPT: "ALL (m::'a::type metric) (x::'a::type) S'::'a::type => bool.
 lemma ISMET_R1: "ismet (%(x::real, y::real). abs (y - x))"
   by (import topology ISMET_R1)
 
-constdefs
-  mr1 :: "real metric" 
+definition mr1 :: "real metric" where 
   "mr1 == metric (%(x::real, y::real). abs (y - x))"
 
 lemma mr1: "mr1 = metric (%(x::real, y::real). abs (y - x))"
@@ -1105,8 +1079,7 @@ lemma MR1_LIMPT: "ALL x::real. limpt (mtop mr1) x re_universe"
 
 ;setup_theory nets
 
-constdefs
-  dorder :: "('a => 'a => bool) => bool" 
+definition dorder :: "('a => 'a => bool) => bool" where 
   "dorder ==
 %g::'a::type => 'a::type => bool.
    ALL (x::'a::type) y::'a::type.
@@ -1120,8 +1093,7 @@ lemma dorder: "ALL g::'a::type => 'a::type => bool.
        (EX z::'a::type. g z z & (ALL w::'a::type. g w z --> g w x & g w y)))"
   by (import nets dorder)
 
-constdefs
-  tends :: "('b => 'a) => 'a => 'a topology * ('b => 'b => bool) => bool" 
+definition tends :: "('b => 'a) => 'a => 'a topology * ('b => 'b => bool) => bool" where 
   "tends ==
 %(s::'b::type => 'a::type) (l::'a::type) (top::'a::type topology,
    g::'b::type => 'b::type => bool).
@@ -1137,8 +1109,7 @@ lemma tends: "ALL (s::'b::type => 'a::type) (l::'a::type) (top::'a::type topolog
        (EX n::'b::type. g n n & (ALL m::'b::type. g m n --> N (s m))))"
   by (import nets tends)
 
-constdefs
-  bounded :: "'a metric * ('b => 'b => bool) => ('b => 'a) => bool" 
+definition bounded :: "'a metric * ('b => 'b => bool) => ('b => 'a) => bool" where 
   "bounded ==
 %(m::'a::type metric, g::'b::type => 'b::type => bool)
    f::'b::type => 'a::type.
@@ -1152,8 +1123,7 @@ lemma bounded: "ALL (m::'a::type metric) (g::'b::type => 'b::type => bool)
        g N N & (ALL n::'b::type. g n N --> dist m (f n, x) < k))"
   by (import nets bounded)
 
-constdefs
-  tendsto :: "'a metric * 'a => 'a => 'a => bool" 
+definition tendsto :: "'a metric * 'a => 'a => 'a => bool" where 
   "tendsto ==
 %(m::'a::type metric, x::'a::type) (y::'a::type) z::'a::type.
    0 < dist m (x, y) & dist m (x, y) <= dist m (x, z)"
@@ -1366,15 +1336,13 @@ lemma SEQ_UNIQ: "ALL (x::nat => real) (x1::real) x2::real.
    hol4--> x x1 & hol4--> x x2 --> x1 = x2"
   by (import seq SEQ_UNIQ)
 
-constdefs
-  convergent :: "(nat => real) => bool" 
+definition convergent :: "(nat => real) => bool" where 
   "convergent == %f::nat => real. Ex (hol4--> f)"
 
 lemma convergent: "ALL f::nat => real. convergent f = Ex (hol4--> f)"
   by (import seq convergent)
 
-constdefs
-  cauchy :: "(nat => real) => bool" 
+definition cauchy :: "(nat => real) => bool" where 
   "cauchy ==
 %f::nat => real.
    ALL e>0.
@@ -1388,8 +1356,7 @@ lemma cauchy: "ALL f::nat => real.
           ALL (m::nat) n::nat. N <= m & N <= n --> abs (f m - f n) < e)"
   by (import seq cauchy)
 
-constdefs
-  lim :: "(nat => real) => real" 
+definition lim :: "(nat => real) => real" where 
   "lim == %f::nat => real. Eps (hol4--> f)"
 
 lemma lim: "ALL f::nat => real. lim f = Eps (hol4--> f)"
@@ -1398,8 +1365,7 @@ lemma lim: "ALL f::nat => real. lim f = Eps (hol4--> f)"
 lemma SEQ_LIM: "ALL f::nat => real. convergent f = hol4--> f (lim f)"
   by (import seq SEQ_LIM)
 
-constdefs
-  subseq :: "(nat => nat) => bool" 
+definition subseq :: "(nat => nat) => bool" where 
   "subseq == %f::nat => nat. ALL (m::nat) n::nat. m < n --> f m < f n"
 
 lemma subseq: "ALL f::nat => nat. subseq f = (ALL (m::nat) n::nat. m < n --> f m < f n)"
@@ -1541,23 +1507,20 @@ lemma BOLZANO_LEMMA: "ALL P::real * real => bool.
    (ALL (a::real) b::real. a <= b --> P (a, b))"
   by (import seq BOLZANO_LEMMA)
 
-constdefs
-  sums :: "(nat => real) => real => bool" 
+definition sums :: "(nat => real) => real => bool" where 
   "sums == %f::nat => real. hol4--> (%n::nat. real.sum (0, n) f)"
 
 lemma sums: "ALL (f::nat => real) s::real.
    sums f s = hol4--> (%n::nat. real.sum (0, n) f) s"
   by (import seq sums)
 
-constdefs
-  summable :: "(nat => real) => bool" 
+definition summable :: "(nat => real) => bool" where 
   "summable == %f::nat => real. Ex (sums f)"
 
 lemma summable: "ALL f::nat => real. summable f = Ex (sums f)"
   by (import seq summable)
 
-constdefs
-  suminf :: "(nat => real) => real" 
+definition suminf :: "(nat => real) => real" where 
   "suminf == %f::nat => real. Eps (sums f)"
 
 lemma suminf: "ALL f::nat => real. suminf f = Eps (sums f)"
@@ -1692,8 +1655,7 @@ lemma SER_RATIO: "ALL (f::nat => real) (c::real) N::nat.
 
 ;setup_theory lim
 
-constdefs
-  tends_real_real :: "(real => real) => real => real => bool" 
+definition tends_real_real :: "(real => real) => real => real => bool" where 
   "tends_real_real ==
 %(f::real => real) (l::real) x0::real.
    tends f l (mtop mr1, tendsto (mr1, x0))"
@@ -1763,8 +1725,7 @@ lemma LIM_TRANSFORM: "ALL (f::real => real) (g::real => real) (x0::real) l::real
    tends_real_real f l x0"
   by (import lim LIM_TRANSFORM)
 
-constdefs
-  diffl :: "(real => real) => real => real => bool" 
+definition diffl :: "(real => real) => real => real => bool" where 
   "diffl ==
 %(f::real => real) (l::real) x::real.
    tends_real_real (%h::real. (f (x + h) - f x) / h) l 0"
@@ -1773,8 +1734,7 @@ lemma diffl: "ALL (f::real => real) (l::real) x::real.
    diffl f l x = tends_real_real (%h::real. (f (x + h) - f x) / h) l 0"
   by (import lim diffl)
 
-constdefs
-  contl :: "(real => real) => real => bool" 
+definition contl :: "(real => real) => real => bool" where 
   "contl ==
 %(f::real => real) x::real. tends_real_real (%h::real. f (x + h)) (f x) 0"
 
@@ -1782,8 +1742,7 @@ lemma contl: "ALL (f::real => real) x::real.
    contl f x = tends_real_real (%h::real. f (x + h)) (f x) 0"
   by (import lim contl)
 
-constdefs
-  differentiable :: "(real => real) => real => bool" 
+definition differentiable :: "(real => real) => real => bool" where 
   "differentiable == %(f::real => real) x::real. EX l::real. diffl f l x"
 
 lemma differentiable: "ALL (f::real => real) x::real.
@@ -2127,8 +2086,7 @@ lemma POWSER_INSIDE: "ALL (f::nat => real) (x::real) z::real.
    summable (%n::nat. f n * z ^ n)"
   by (import powser POWSER_INSIDE)
 
-constdefs
-  diffs :: "(nat => real) => nat => real" 
+definition diffs :: "(nat => real) => nat => real" where 
   "diffs == %(c::nat => real) n::nat. real (Suc n) * c (Suc n)"
 
 lemma diffs: "ALL c::nat => real. diffs c = (%n::nat. real (Suc n) * c (Suc n))"
@@ -2204,15 +2162,13 @@ lemma TERMDIFF: "ALL (c::nat => real) (k'::real) x::real.
 
 ;setup_theory transc
 
-constdefs
-  exp :: "real => real" 
+definition exp :: "real => real" where 
   "exp == %x::real. suminf (%n::nat. inverse (real (FACT n)) * x ^ n)"
 
 lemma exp: "ALL x::real. exp x = suminf (%n::nat. inverse (real (FACT n)) * x ^ n)"
   by (import transc exp)
 
-constdefs
-  cos :: "real => real" 
+definition cos :: "real => real" where 
   "cos ==
 %x::real.
    suminf
@@ -2226,8 +2182,7 @@ lemma cos: "ALL x::real.
         (if EVEN n then (- 1) ^ (n div 2) / real (FACT n) else 0) * x ^ n)"
   by (import transc cos)
 
-constdefs
-  sin :: "real => real" 
+definition sin :: "real => real" where 
   "sin ==
 %x::real.
    suminf
@@ -2364,8 +2319,7 @@ lemma EXP_TOTAL_LEMMA: "ALL y>=1. EX x>=0. x <= y - 1 & exp x = y"
 lemma EXP_TOTAL: "ALL y>0. EX x::real. exp x = y"
   by (import transc EXP_TOTAL)
 
-constdefs
-  ln :: "real => real" 
+definition ln :: "real => real" where 
   "ln == %x::real. SOME u::real. exp u = x"
 
 lemma ln: "ALL x::real. ln x = (SOME u::real. exp u = x)"
@@ -2410,16 +2364,14 @@ lemma LN_LT_X: "ALL x>0. ln x < x"
 lemma LN_POS: "ALL x>=1. 0 <= ln x"
   by (import transc LN_POS)
 
-constdefs
-  root :: "nat => real => real" 
+definition root :: "nat => real => real" where 
   "root == %(n::nat) x::real. SOME u::real. (0 < x --> 0 < u) & u ^ n = x"
 
 lemma root: "ALL (n::nat) x::real.
    root n x = (SOME u::real. (0 < x --> 0 < u) & u ^ n = x)"
   by (import transc root)
 
-constdefs
-  sqrt :: "real => real" 
+definition sqrt :: "real => real" where 
   "sqrt == root 2"
 
 lemma sqrt: "ALL x::real. sqrt x = root 2 x"
@@ -2584,8 +2536,7 @@ lemma COS_2: "cos 2 < 0"
 lemma COS_ISZERO: "EX! x::real. 0 <= x & x <= 2 & cos x = 0"
   by (import transc COS_ISZERO)
 
-constdefs
-  pi :: "real" 
+definition pi :: "real" where 
   "pi == 2 * (SOME x::real. 0 <= x & x <= 2 & cos x = 0)"
 
 lemma pi: "pi = 2 * (SOME x::real. 0 <= x & x <= 2 & cos x = 0)"
@@ -2689,8 +2640,7 @@ lemma SIN_ZERO: "ALL x::real.
     (EX n::nat. EVEN n & x = - (real n * (pi / 2))))"
   by (import transc SIN_ZERO)
 
-constdefs
-  tan :: "real => real" 
+definition tan :: "real => real" where 
   "tan == %x::real. sin x / cos x"
 
 lemma tan: "ALL x::real. tan x = sin x / cos x"
@@ -2736,23 +2686,20 @@ lemma TAN_TOTAL_POS: "ALL y>=0. EX x>=0. x < pi / 2 & tan x = y"
 lemma TAN_TOTAL: "ALL y::real. EX! x::real. - (pi / 2) < x & x < pi / 2 & tan x = y"
   by (import transc TAN_TOTAL)
 
-constdefs
-  asn :: "real => real" 
+definition asn :: "real => real" where 
   "asn == %y::real. SOME x::real. - (pi / 2) <= x & x <= pi / 2 & sin x = y"
 
 lemma asn: "ALL y::real.
    asn y = (SOME x::real. - (pi / 2) <= x & x <= pi / 2 & sin x = y)"
   by (import transc asn)
 
-constdefs
-  acs :: "real => real" 
+definition acs :: "real => real" where 
   "acs == %y::real. SOME x::real. 0 <= x & x <= pi & cos x = y"
 
 lemma acs: "ALL y::real. acs y = (SOME x::real. 0 <= x & x <= pi & cos x = y)"
   by (import transc acs)
 
-constdefs
-  atn :: "real => real" 
+definition atn :: "real => real" where 
   "atn == %y::real. SOME x::real. - (pi / 2) < x & x < pi / 2 & tan x = y"
 
 lemma atn: "ALL y::real. atn y = (SOME x::real. - (pi / 2) < x & x < pi / 2 & tan x = y)"
@@ -2845,8 +2792,7 @@ lemma DIFF_ACS: "ALL x::real. - 1 < x & x < 1 --> diffl acs (- inverse (sqrt (1 
 lemma DIFF_ATN: "ALL x::real. diffl atn (inverse (1 + x ^ 2)) x"
   by (import transc DIFF_ATN)
 
-constdefs
-  division :: "real * real => (nat => real) => bool" 
+definition division :: "real * real => (nat => real) => bool" where 
   "(op ==::(real * real => (nat => real) => bool)
         => (real * real => (nat => real) => bool) => prop)
  (division::real * real => (nat => real) => bool)
@@ -2898,8 +2844,7 @@ lemma division: "(All::(real => bool) => bool)
                                   b)))))))))"
   by (import transc division)
 
-constdefs
-  dsize :: "(nat => real) => nat" 
+definition dsize :: "(nat => real) => nat" where 
   "(op ==::((nat => real) => nat) => ((nat => real) => nat) => prop)
  (dsize::(nat => real) => nat)
  (%D::nat => real.
@@ -2937,8 +2882,7 @@ lemma dsize: "(All::((nat => real) => bool) => bool)
                     ((op =::real => real => bool) (D n) (D N)))))))"
   by (import transc dsize)
 
-constdefs
-  tdiv :: "real * real => (nat => real) * (nat => real) => bool" 
+definition tdiv :: "real * real => (nat => real) * (nat => real) => bool" where 
   "tdiv ==
 %(a::real, b::real) (D::nat => real, p::nat => real).
    division (a, b) D & (ALL n::nat. D n <= p n & p n <= D (Suc n))"
@@ -2948,16 +2892,14 @@ lemma tdiv: "ALL (a::real) (b::real) (D::nat => real) p::nat => real.
    (division (a, b) D & (ALL n::nat. D n <= p n & p n <= D (Suc n)))"
   by (import transc tdiv)
 
-constdefs
-  gauge :: "(real => bool) => (real => real) => bool" 
+definition gauge :: "(real => bool) => (real => real) => bool" where 
   "gauge == %(E::real => bool) g::real => real. ALL x::real. E x --> 0 < g x"
 
 lemma gauge: "ALL (E::real => bool) g::real => real.
    gauge E g = (ALL x::real. E x --> 0 < g x)"
   by (import transc gauge)
 
-constdefs
-  fine :: "(real => real) => (nat => real) * (nat => real) => bool" 
+definition fine :: "(real => real) => (nat => real) * (nat => real) => bool" where 
   "(op ==::((real => real) => (nat => real) * (nat => real) => bool)
         => ((real => real) => (nat => real) * (nat => real) => bool)
            => prop)
@@ -3000,8 +2942,7 @@ lemma fine: "(All::((real => real) => bool) => bool)
                          (g (p n))))))))"
   by (import transc fine)
 
-constdefs
-  rsum :: "(nat => real) * (nat => real) => (real => real) => real" 
+definition rsum :: "(nat => real) * (nat => real) => (real => real) => real" where 
   "rsum ==
 %(D::nat => real, p::nat => real) f::real => real.
    real.sum (0, dsize D) (%n::nat. f (p n) * (D (Suc n) - D n))"
@@ -3011,8 +2952,7 @@ lemma rsum: "ALL (D::nat => real) (p::nat => real) f::real => real.
    real.sum (0, dsize D) (%n::nat. f (p n) * (D (Suc n) - D n))"
   by (import transc rsum)
 
-constdefs
-  Dint :: "real * real => (real => real) => real => bool" 
+definition Dint :: "real * real => (real => real) => real => bool" where 
   "Dint ==
 %(a::real, b::real) (f::real => real) k::real.
    ALL e>0.
@@ -3313,8 +3253,7 @@ specification (poly_diff_aux_primdef: poly_diff_aux) poly_diff_aux_def: "(ALL n:
     poly_diff_aux n (h # t) = real n * h # poly_diff_aux (Suc n) t)"
   by (import poly poly_diff_aux_def)
 
-constdefs
-  diff :: "real list => real list" 
+definition diff :: "real list => real list" where 
   "diff == %l::real list. if l = [] then [] else poly_diff_aux 1 (tl l)"
 
 lemma poly_diff_def: "ALL l::real list. diff l = (if l = [] then [] else poly_diff_aux 1 (tl l))"
@@ -3622,8 +3561,7 @@ lemma POLY_DIFF_WELLDEF: "ALL (p::real list) q::real list.
    poly p = poly q --> poly (diff p) = poly (diff q)"
   by (import poly POLY_DIFF_WELLDEF)
 
-constdefs
-  poly_divides :: "real list => real list => bool" 
+definition poly_divides :: "real list => real list => bool" where 
   "poly_divides ==
 %(p1::real list) p2::real list.
    EX q::real list. poly p2 = poly (poly_mul p1 q)"
@@ -3681,8 +3619,7 @@ lemma POLY_ORDER: "ALL (p::real list) a::real.
        ~ poly_divides (poly_exp [- a, 1] (Suc n)) p)"
   by (import poly POLY_ORDER)
 
-constdefs
-  poly_order :: "real => real list => nat" 
+definition poly_order :: "real => real list => nat" where 
   "poly_order ==
 %(a::real) p::real list.
    SOME n::nat.
@@ -3754,8 +3691,7 @@ lemma POLY_SQUAREFREE_DECOMP_ORDER: "ALL (p::real list) (q::real list) (d::real 
    (ALL a::real. poly_order a q = (if poly_order a p = 0 then 0 else 1))"
   by (import poly POLY_SQUAREFREE_DECOMP_ORDER)
 
-constdefs
-  rsquarefree :: "real list => bool" 
+definition rsquarefree :: "real list => bool" where 
   "rsquarefree ==
 %p::real list.
    poly p ~= poly [] &
@@ -3798,8 +3734,7 @@ specification (normalize) normalize: "normalize [] = [] &
 lemma POLY_NORMALIZE: "ALL t::real list. poly (normalize t) = poly t"
   by (import poly POLY_NORMALIZE)
 
-constdefs
-  degree :: "real list => nat" 
+definition degree :: "real list => nat" where 
   "degree == %p::real list. PRE (length (normalize p))"
 
 lemma degree: "ALL p::real list. degree p = PRE (length (normalize p))"

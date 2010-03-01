@@ -373,8 +373,7 @@ lemma alg_twin_def: "ALL (x::bool list) y::bool list.
    alg_twin x y = (EX l::bool list. x = SNOC True l & y = SNOC False l)"
   by (import prob_canon alg_twin_def)
 
-constdefs
-  alg_order_tupled :: "bool list * bool list => bool" 
+definition alg_order_tupled :: "bool list * bool list => bool" where 
   "(op ==::(bool list * bool list => bool)
         => (bool list * bool list => bool) => prop)
  (alg_order_tupled::bool list * bool list => bool)
@@ -1917,8 +1916,7 @@ lemma unif_bound_ind: "ALL P::nat => bool.
    P 0 & (ALL v::nat. P (Suc v div 2) --> P (Suc v)) --> All P"
   by (import prob_uniform unif_bound_ind)
 
-constdefs
-  unif_tupled :: "nat * (nat => bool) => nat * (nat => bool)" 
+definition unif_tupled :: "nat * (nat => bool) => nat * (nat => bool)" where 
   "unif_tupled ==
 WFREC
  (SOME R::nat * (nat => bool) => nat * (nat => bool) => bool.
@@ -1963,8 +1961,7 @@ lemma unif_ind: "ALL P::nat => (nat => bool) => bool.
    (ALL v::nat. All (P v))"
   by (import prob_uniform unif_ind)
 
-constdefs
-  uniform_tupled :: "nat * nat * (nat => bool) => nat * (nat => bool)" 
+definition uniform_tupled :: "nat * nat * (nat => bool) => nat * (nat => bool)" where 
   "uniform_tupled ==
 WFREC
  (SOME R::nat * nat * (nat => bool) => nat * nat * (nat => bool) => bool.

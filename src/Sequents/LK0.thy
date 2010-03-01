@@ -122,8 +122,7 @@ axioms
   The: "[| $H |- $E, P(a), $F;  !!x.$H, P(x) |- $E, x=a, $F |] ==>
           $H |- $E, P(THE x. P(x)), $F"
 
-constdefs
-  If :: "[o, 'a, 'a] => 'a"   ("(if (_)/ then (_)/ else (_))" 10)
+definition If :: "[o, 'a, 'a] => 'a" ("(if (_)/ then (_)/ else (_))" 10) where 
    "If(P,x,y) == THE z::'a. (P --> z=x) & (~P --> z=y)"
 
 

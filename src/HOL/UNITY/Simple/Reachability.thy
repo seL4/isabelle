@@ -25,23 +25,22 @@ inductive_set REACHABLE :: "edge set"
     base: "v \<in> V ==> ((v,v) \<in> REACHABLE)"
   | step: "((u,v) \<in> REACHABLE) & (v,w) \<in> E ==> ((u,w) \<in> REACHABLE)"
 
-constdefs
-  reachable :: "vertex => state set"
+definition reachable :: "vertex => state set" where
   "reachable p == {s. reach s p}"
 
-  nmsg_eq :: "nat => edge  => state set"
+definition nmsg_eq :: "nat => edge  => state set" where
   "nmsg_eq k == %e. {s. nmsg s e = k}"
 
-  nmsg_gt :: "nat => edge  => state set"
+definition nmsg_gt :: "nat => edge  => state set" where
   "nmsg_gt k  == %e. {s. k < nmsg s e}"
 
-  nmsg_gte :: "nat => edge => state set"
+definition nmsg_gte :: "nat => edge => state set" where
   "nmsg_gte k == %e. {s. k \<le> nmsg s e}"
 
-  nmsg_lte  :: "nat => edge => state set"
+definition nmsg_lte  :: "nat => edge => state set" where
   "nmsg_lte k  == %e. {s. nmsg s e \<le> k}"
 
-  final :: "state set"
+definition final :: "state set" where
   "final == (\<Inter>v\<in>V. reachable v <==> {s. (root, v) \<in> REACHABLE}) \<inter> 
             (INTER E (nmsg_eq 0))"
 

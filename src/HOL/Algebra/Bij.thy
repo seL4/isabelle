@@ -1,5 +1,4 @@
 (*  Title:      HOL/Algebra/Bij.thy
-    ID:         $Id$
     Author:     Florian Kammueller, with new proofs by L C Paulson
 *)
 
@@ -8,12 +7,11 @@ theory Bij imports Group begin
 
 section {* Bijections of a Set, Permutation and Automorphism Groups *}
 
-constdefs
-  Bij :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) set"
+definition Bij :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) set" where
     --{*Only extensional functions, since otherwise we get too many.*}
   "Bij S \<equiv> extensional S \<inter> {f. bij_betw f S S}"
 
-  BijGroup :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) monoid"
+definition BijGroup :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) monoid" where
   "BijGroup S \<equiv>
     \<lparr>carrier = Bij S,
      mult = \<lambda>g \<in> Bij S. \<lambda>f \<in> Bij S. compose S g f,
@@ -71,11 +69,10 @@ apply (subgoal_tac "\<exists>x'\<in>S. \<exists>y'\<in>S. x = h x' & y = h y'", 
 done
 
 
-constdefs
-  auto :: "('a, 'b) monoid_scheme \<Rightarrow> ('a \<Rightarrow> 'a) set"
+definition auto :: "('a, 'b) monoid_scheme \<Rightarrow> ('a \<Rightarrow> 'a) set" where
   "auto G \<equiv> hom G G \<inter> Bij (carrier G)"
 
-  AutoGroup :: "('a, 'c) monoid_scheme \<Rightarrow> ('a \<Rightarrow> 'a) monoid"
+definition AutoGroup :: "('a, 'c) monoid_scheme \<Rightarrow> ('a \<Rightarrow> 'a) monoid" where
   "AutoGroup G \<equiv> BijGroup (carrier G) \<lparr>carrier := auto G\<rparr>"
 
 lemma (in group) id_in_auto: "(\<lambda>x \<in> carrier G. x) \<in> auto G"

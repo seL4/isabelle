@@ -760,8 +760,7 @@ subsection {* ``Let'' declarations *}
 
 nonterminals letbinds letbind
 
-constdefs
-  Let :: "['a::{}, 'a => 'b] => ('b::{})"
+definition Let :: "['a::{}, 'a => 'b] => ('b::{})" where
     "Let(s, f) == f(s)"
 
 syntax

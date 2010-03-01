@@ -65,7 +65,7 @@ apply (auto dest: subcls_direct)
 done
 
 lemma subcls1I1:
- "\<lbrakk>class G C = Some c; C \<noteq> Object;D=super c\<rbrakk> \<Longrightarrow> G\<turnstile>C\<prec>\<^sub>C\<^sub>1 D"
+ "\<lbrakk>class G C = Some c; C \<noteq> Object;D=super c\<rbrakk> \<Longrightarrow> G\<turnstile>C\<prec>\<^sub>C1 D"
 apply (auto dest: subcls1I)
 done
 
@@ -126,7 +126,7 @@ apply  auto
 done
 
 lemma single_inheritance: 
-"\<lbrakk>G\<turnstile>A \<prec>\<^sub>C\<^sub>1 B; G\<turnstile>A \<prec>\<^sub>C\<^sub>1 C\<rbrakk> \<Longrightarrow> B = C"
+"\<lbrakk>G\<turnstile>A \<prec>\<^sub>C1 B; G\<turnstile>A \<prec>\<^sub>C1 C\<rbrakk> \<Longrightarrow> B = C"
 by (auto simp add: subcls1_def)
   
 lemma subcls_compareable:
@@ -134,11 +134,11 @@ lemma subcls_compareable:
  \<rbrakk> \<Longrightarrow> G\<turnstile>X \<preceq>\<^sub>C Y \<or> G\<turnstile>Y \<preceq>\<^sub>C X"
 by (rule triangle_lemma)  (auto intro: single_inheritance) 
 
-lemma subcls1_irrefl: "\<lbrakk>G\<turnstile>C \<prec>\<^sub>C\<^sub>1 D; ws_prog G \<rbrakk>
+lemma subcls1_irrefl: "\<lbrakk>G\<turnstile>C \<prec>\<^sub>C1 D; ws_prog G \<rbrakk>
  \<Longrightarrow> C \<noteq> D"
 proof 
   assume ws: "ws_prog G" and
-    subcls1: "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 D" and
+    subcls1: "G\<turnstile>C \<prec>\<^sub>C1 D" and
      eq_C_D: "C=D"
   from subcls1 obtain c 
     where
@@ -167,7 +167,7 @@ proof -
   then show ?thesis
   proof (induct rule: converse_trancl_induct)
     fix C
-    assume subcls1_C_D: "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 D"
+    assume subcls1_C_D: "G\<turnstile>C \<prec>\<^sub>C1 D"
     then obtain c  where
         "C\<noteq>Object" and
         "class G C = Some c" and
@@ -178,7 +178,7 @@ proof -
       by (auto dest: ws_prog_cdeclD)
   next
     fix C Z
-    assume subcls1_C_Z: "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 Z" and
+    assume subcls1_C_Z: "G\<turnstile>C \<prec>\<^sub>C1 Z" and
             subcls_Z_D: "G\<turnstile>Z \<prec>\<^sub>C D" and
            nsubcls_D_Z: "\<not> G\<turnstile>D \<prec>\<^sub>C Z"
     show "\<not> G\<turnstile>D \<prec>\<^sub>C C"
@@ -213,13 +213,13 @@ proof -
   then show ?thesis
   proof (induct rule: converse_trancl_induct)
     fix C
-    assume "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 D"
+    assume "G\<turnstile>C \<prec>\<^sub>C1 D"
     with ws 
     show "C\<noteq>D" 
       by (blast dest: subcls1_irrefl)
   next
     fix C Z
-    assume subcls1_C_Z: "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 Z" and
+    assume subcls1_C_Z: "G\<turnstile>C \<prec>\<^sub>C1 Z" and
             subcls_Z_D: "G\<turnstile>Z \<prec>\<^sub>C D" and
                neq_Z_D: "Z \<noteq> D"
     show "C\<noteq>D"
@@ -298,7 +298,7 @@ proof -
   assume       clsC: "class G C = Some c"
   assume subcls_C_C: "G\<turnstile>C \<prec>\<^sub>C D"
   then obtain S where 
-                  "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 S" and
+                  "G\<turnstile>C \<prec>\<^sub>C1 S" and
     subclseq_S_D: "G\<turnstile>S \<preceq>\<^sub>C D"
     by (blast dest: tranclD)
   with clsC 
@@ -341,9 +341,9 @@ inductive --{* implementation, cf. 8.1.4 *}
 where
   direct:         "G\<turnstile>C\<leadsto>1J     \<spacespace>\<spacespace>     \<Longrightarrow> G\<turnstile>C\<leadsto>J"
 | subint:        "\<lbrakk>G\<turnstile>C\<leadsto>1I; G\<turnstile>I\<preceq>I J\<rbrakk>  \<Longrightarrow> G\<turnstile>C\<leadsto>J"
-| subcls1:       "\<lbrakk>G\<turnstile>C\<prec>\<^sub>C\<^sub>1D; G\<turnstile>D\<leadsto>J \<rbrakk>  \<Longrightarrow> G\<turnstile>C\<leadsto>J"
+| subcls1:       "\<lbrakk>G\<turnstile>C\<prec>\<^sub>C1D; G\<turnstile>D\<leadsto>J \<rbrakk>  \<Longrightarrow> G\<turnstile>C\<leadsto>J"
 
-lemma implmtD: "G\<turnstile>C\<leadsto>J \<Longrightarrow> (\<exists>I. G\<turnstile>C\<leadsto>1I \<and> G\<turnstile>I\<preceq>I J) \<or> (\<exists>D. G\<turnstile>C\<prec>\<^sub>C\<^sub>1D \<and> G\<turnstile>D\<leadsto>J)" 
+lemma implmtD: "G\<turnstile>C\<leadsto>J \<Longrightarrow> (\<exists>I. G\<turnstile>C\<leadsto>1I \<and> G\<turnstile>I\<preceq>I J) \<or> (\<exists>D. G\<turnstile>C\<prec>\<^sub>C1D \<and> G\<turnstile>D\<leadsto>J)" 
 apply (erule implmt.induct)
 apply fast+
 done
@@ -568,8 +568,7 @@ apply (frule widen_Class)
 apply (fast dest: widen_Class_Class widen_Class_Iface)
 done
 
-constdefs
-  widens :: "prog \<Rightarrow> [ty list, ty list] \<Rightarrow> bool" ("_\<turnstile>_[\<preceq>]_" [71,71,71] 70)
+definition widens :: "prog \<Rightarrow> [ty list, ty list] \<Rightarrow> bool" ("_\<turnstile>_[\<preceq>]_" [71,71,71] 70) where
  "G\<turnstile>Ts[\<preceq>]Ts' \<equiv> list_all2 (\<lambda>T T'. G\<turnstile>T\<preceq>T') Ts Ts'"
 
 lemma widens_Nil [simp]: "G\<turnstile>[][\<preceq>][]"

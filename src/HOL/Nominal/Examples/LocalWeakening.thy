@@ -58,8 +58,7 @@ lemma vsub_eqvt[eqvt]:
 by (induct t arbitrary: n rule: llam.induct)
    (simp_all add: perm_nat_def)
 
-constdefs
-  freshen :: "llam \<Rightarrow> name \<Rightarrow> llam"
+definition freshen :: "llam \<Rightarrow> name \<Rightarrow> llam" where
   "freshen t p \<equiv> vsub t 0 (lPar p)"
 
 lemma freshen_eqvt[eqvt]:

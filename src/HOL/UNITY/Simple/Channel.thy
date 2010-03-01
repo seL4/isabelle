@@ -15,8 +15,7 @@ types state = "nat set"
 consts
   F :: "state program"
 
-constdefs
-  minSet :: "nat set => nat option"
+definition minSet :: "nat set => nat option" where
     "minSet A == if A={} then None else Some (LEAST x. x \<in> A)"
 
 axioms

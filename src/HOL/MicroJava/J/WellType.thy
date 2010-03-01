@@ -193,9 +193,7 @@ where
         E\<turnstile>While(e) s\<surd>"
 
 
-constdefs
-
- wf_java_mdecl :: "'c prog => cname => java_mb mdecl => bool"
+definition wf_java_mdecl :: "'c prog => cname => java_mb mdecl => bool" where
 "wf_java_mdecl G C == \<lambda>((mn,pTs),rT,(pns,lvars,blk,res)).
   length pTs = length pns \<and>
   distinct pns \<and>

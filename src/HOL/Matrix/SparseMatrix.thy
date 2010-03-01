@@ -552,8 +552,7 @@ fun le_spmat :: "('a::lattice_ab_group_add) spmat \<Rightarrow> 'a spmat \<Right
   else if j < i then (le_spvec [] b & le_spmat ((i,a)#as) bs)
   else (le_spvec a b & le_spmat as bs))"
 
-constdefs
-  disj_matrices :: "('a::zero) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool"
+definition disj_matrices :: "('a::zero) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool" where
   "disj_matrices A B == (! j i. (Rep_matrix A j i \<noteq> 0) \<longrightarrow> (Rep_matrix B j i = 0)) & (! j i. (Rep_matrix B j i \<noteq> 0) \<longrightarrow> (Rep_matrix A j i = 0))"  
 
 declare [[simp_depth_limit = 6]]
@@ -802,8 +801,7 @@ lemma sorted_spmat_abs_spmat: "sorted_spmat A \<Longrightarrow> sorted_spmat (ab
   apply (simp_all add: sorted_spvec_abs_spvec)
   done
 
-constdefs
-  diff_spmat :: "('a::lattice_ring) spmat \<Rightarrow> 'a spmat \<Rightarrow> 'a spmat"
+definition diff_spmat :: "('a::lattice_ring) spmat \<Rightarrow> 'a spmat \<Rightarrow> 'a spmat" where
   "diff_spmat A B == add_spmat A (minus_spmat B)"
 
 lemma sorted_spmat_diff_spmat: "sorted_spmat A \<Longrightarrow> sorted_spmat B \<Longrightarrow> sorted_spmat (diff_spmat A B)"
@@ -815,8 +813,7 @@ lemma sorted_spvec_diff_spmat: "sorted_spvec A \<Longrightarrow> sorted_spvec B 
 lemma sparse_row_diff_spmat: "sparse_row_matrix (diff_spmat A B ) = (sparse_row_matrix A) - (sparse_row_matrix B)"
   by (simp add: diff_spmat_def sparse_row_add_spmat sparse_row_matrix_minus)
 
-constdefs
-  sorted_sparse_matrix :: "'a spmat \<Rightarrow> bool"
+definition sorted_sparse_matrix :: "'a spmat \<Rightarrow> bool" where
   "sorted_sparse_matrix A == (sorted_spvec A) & (sorted_spmat A)"
 
 lemma sorted_sparse_matrix_imp_spvec: "sorted_sparse_matrix A \<Longrightarrow> sorted_spvec A"
@@ -1014,8 +1011,7 @@ lemma sorted_spmat_nprt_spmat: "sorted_spmat m \<Longrightarrow> sorted_spmat (n
   apply (simp_all add: sorted_nprt_spvec)
   done
 
-constdefs
-  mult_est_spmat :: "('a::lattice_ring) spmat \<Rightarrow> 'a spmat \<Rightarrow> 'a spmat \<Rightarrow> 'a spmat \<Rightarrow> 'a spmat"
+definition mult_est_spmat :: "('a::lattice_ring) spmat \<Rightarrow> 'a spmat \<Rightarrow> 'a spmat \<Rightarrow> 'a spmat \<Rightarrow> 'a spmat" where
   "mult_est_spmat r1 r2 s1 s2 == 
   add_spmat (mult_spmat (pprt_spmat s2) (pprt_spmat r2)) (add_spmat (mult_spmat (pprt_spmat s1) (nprt_spmat r2)) 
   (add_spmat (mult_spmat (nprt_spmat s2) (pprt_spmat r1)) (mult_spmat (nprt_spmat s1) (nprt_spmat r1))))"  

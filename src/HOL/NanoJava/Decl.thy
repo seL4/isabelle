@@ -50,11 +50,10 @@ consts
   Object  :: cname      --{* name of root class *}
 
 
-constdefs
- "class"     :: "cname \<rightharpoonup> class"
+definition "class" :: "cname \<rightharpoonup> class" where
  "class      \<equiv> map_of Prog"
 
-  is_class   :: "cname => bool"
+definition is_class   :: "cname => bool" where
  "is_class C \<equiv> class C \<noteq> None"
 
 lemma finite_is_class: "finite {C. is_class C}"

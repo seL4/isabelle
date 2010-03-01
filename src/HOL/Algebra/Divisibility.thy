@@ -3630,8 +3630,7 @@ subsubsection {* Application to factorial monoids *}
 
 text {* Number of factors for wellfoundedness *}
 
-constdefs
-  factorcount :: "_ \<Rightarrow> 'a \<Rightarrow> nat"
+definition factorcount :: "_ \<Rightarrow> 'a \<Rightarrow> nat" where
   "factorcount G a == THE c. (ALL as. set as \<subseteq> carrier G \<and> 
                                       wfactors G as a \<longrightarrow> c = length as)"
 

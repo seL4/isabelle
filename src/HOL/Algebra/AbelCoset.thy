@@ -38,15 +38,12 @@ constdefs (structure G)
                   ("racong\<index> _")
    "a_r_congruent G \<equiv> r_congruent \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
 
-constdefs
-  A_FactGroup :: "[('a,'b) ring_scheme, 'a set] \<Rightarrow> ('a set) monoid"
-     (infixl "A'_Mod" 65)
+definition A_FactGroup :: "[('a,'b) ring_scheme, 'a set] \<Rightarrow> ('a set) monoid" (infixl "A'_Mod" 65) where
     --{*Actually defined for groups rather than monoids*}
   "A_FactGroup G H \<equiv> FactGroup \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> H"
 
-constdefs
-  a_kernel :: "('a, 'm) ring_scheme \<Rightarrow> ('b, 'n) ring_scheme \<Rightarrow> 
-             ('a \<Rightarrow> 'b) \<Rightarrow> 'a set" 
+definition a_kernel :: "('a, 'm) ring_scheme \<Rightarrow> ('b, 'n) ring_scheme \<Rightarrow> 
+             ('a \<Rightarrow> 'b) \<Rightarrow> 'a set" where 
     --{*the kernel of a homomorphism (additive)*}
   "a_kernel G H h \<equiv> kernel \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>
                               \<lparr>carrier = carrier H, mult = add H, one = zero H\<rparr> h"

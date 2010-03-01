@@ -9,28 +9,23 @@ theory SemilatAlg
 imports Typing_Framework Product
 begin
 
-constdefs 
-  lesubstep_type :: "(nat \<times> 's) list \<Rightarrow> 's ord \<Rightarrow> (nat \<times> 's) list \<Rightarrow> bool"
-                    ("(_ /<=|_| _)" [50, 0, 51] 50)
+definition lesubstep_type :: "(nat \<times> 's) list \<Rightarrow> 's ord \<Rightarrow> (nat \<times> 's) list \<Rightarrow> bool"
+                    ("(_ /<=|_| _)" [50, 0, 51] 50) where
   "x <=|r| y \<equiv> \<forall>(p,s) \<in> set x. \<exists>s'. (p,s') \<in> set y \<and> s <=_r s'"
 
-consts
-  plusplussub :: "'a list \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" ("(_ /++'__ _)" [65, 1000, 66] 65)
-primrec
+primrec plusplussub :: "'a list \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" ("(_ /++'__ _)" [65, 1000, 66] 65) where
   "[] ++_f y = y"
-  "(x#xs) ++_f y = xs ++_f (x +_f y)"
+| "(x#xs) ++_f y = xs ++_f (x +_f y)"
 
-constdefs
- bounded :: "'s step_type \<Rightarrow> nat \<Rightarrow> bool"
+definition bounded :: "'s step_type \<Rightarrow> nat \<Rightarrow> bool" where
 "bounded step n == !p<n. !s. !(q,t):set(step p s). q<n"  
 
- pres_type :: "'s step_type \<Rightarrow> nat \<Rightarrow> 's set \<Rightarrow> bool"
+definition pres_type :: "'s step_type \<Rightarrow> nat \<Rightarrow> 's set \<Rightarrow> bool" where
 "pres_type step n A == \<forall>s\<in>A. \<forall>p<n. \<forall>(q,s')\<in>set (step p s). s' \<in> A"
 
- mono :: "'s ord \<Rightarrow> 's step_type \<Rightarrow> nat \<Rightarrow> 's set \<Rightarrow> bool"
+definition mono :: "'s ord \<Rightarrow> 's step_type \<Rightarrow> nat \<Rightarrow> 's set \<Rightarrow> bool" where
 "mono r step n A ==
  \<forall>s p t. s \<in> A \<and> p < n \<and> s <=_r t \<longrightarrow> step p s <=|r| step p t"
-
 
 lemma pres_typeD:
   "\<lbrakk> pres_type step n A; s\<in>A; p<n; (q,s')\<in>set (step p s) \<rbrakk> \<Longrightarrow> s' \<in> A"

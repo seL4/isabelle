@@ -261,9 +261,7 @@ abbreviation
   StatRef :: "ref_ty \<Rightarrow> expr"
   where "StatRef rt == Cast (RefT rt) (Lit Null)"
   
-constdefs
-
-  is_stmt :: "term \<Rightarrow> bool"
+definition is_stmt :: "term \<Rightarrow> bool" where
  "is_stmt t \<equiv> \<exists>c. t=In1r c"
 
 ML {* bind_thms ("is_stmt_rews", sum3_instantiate @{context} @{thm is_stmt_def}) *}
@@ -467,7 +465,7 @@ primrec
 "eval_binop CondAnd v1 v2 = Bool ((the_Bool v1) \<and> (the_Bool v2))"
 "eval_binop CondOr  v1 v2 = Bool ((the_Bool v1) \<or> (the_Bool v2))"
 
-constdefs need_second_arg :: "binop \<Rightarrow> val \<Rightarrow> bool"
+definition need_second_arg :: "binop \<Rightarrow> val \<Rightarrow> bool" where
 "need_second_arg binop v1 \<equiv> \<not> ((binop=CondAnd \<and>  \<not> the_Bool v1) \<or>
                                (binop=CondOr  \<and> the_Bool v1))"
 text {* @{term CondAnd} and @{term CondOr} only evalulate the second argument

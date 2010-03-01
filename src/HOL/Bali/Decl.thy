@@ -206,8 +206,7 @@ translations
   "mdecl" <= (type) "sig \<times> methd"
 
 
-constdefs 
-  mhead::"methd \<Rightarrow> mhead"
+definition mhead :: "methd \<Rightarrow> mhead" where
   "mhead m \<equiv> \<lparr>access=access m, static=static m, pars=pars m, resT=resT m\<rparr>"
 
 lemma access_mhead [simp]:"access (mhead m) = access m"
@@ -275,7 +274,7 @@ by (simp add: pair_memberid_def)
 lemma memberid_pair_simp1: "memberid p  = memberid (snd p)"
 by (simp add: pair_memberid_def)
 
-constdefs is_field :: "qtname \<times> memberdecl \<Rightarrow> bool"
+definition is_field :: "qtname \<times> memberdecl \<Rightarrow> bool" where
 "is_field m \<equiv> \<exists> declC f. m=(declC,fdecl f)"
   
 lemma is_fieldD: "is_field m \<Longrightarrow> \<exists> declC f. m=(declC,fdecl f)"
@@ -284,7 +283,7 @@ by (simp add: is_field_def)
 lemma is_fieldI: "is_field (C,fdecl f)"
 by (simp add: is_field_def)
 
-constdefs is_method :: "qtname \<times> memberdecl \<Rightarrow> bool"
+definition is_method :: "qtname \<times> memberdecl \<Rightarrow> bool" where
 "is_method membr \<equiv> \<exists> declC m. membr=(declC,mdecl m)"
   
 lemma is_methodD: "is_method membr \<Longrightarrow> \<exists> declC m. membr=(declC,mdecl m)"
@@ -315,8 +314,7 @@ translations
                       isuperIfs::qtname list,\<dots>::'a\<rparr>"
   "idecl" <= (type) "qtname \<times> iface"
 
-constdefs
-  ibody :: "iface \<Rightarrow> ibody"
+definition ibody :: "iface \<Rightarrow> ibody" where
   "ibody i \<equiv> \<lparr>access=access i,imethods=imethods i\<rparr>"
 
 lemma access_ibody [simp]: "(access (ibody i)) = access i"
@@ -351,8 +349,7 @@ translations
                       super::qtname,superIfs::qtname list,\<dots>::'a\<rparr>"
   "cdecl" <= (type) "qtname \<times> class"
 
-constdefs
-  cbody :: "class \<Rightarrow> cbody"
+definition cbody :: "class \<Rightarrow> cbody" where
   "cbody c \<equiv> \<lparr>access=access c, cfields=cfields c,methods=methods c,init=init c\<rparr>"
 
 lemma access_cbody [simp]:"access (cbody c) = access c"
@@ -394,7 +391,7 @@ by (simp add: ObjectC_def SXcptC_def Object_def SXcpt_def)
 lemma SXcptC_inject [simp]: "(SXcptC xn = SXcptC xm) = (xn = xm)"
 by (simp add: SXcptC_def)
 
-constdefs standard_classes :: "cdecl list"
+definition standard_classes :: "cdecl list" where
          "standard_classes \<equiv> [ObjectC, SXcptC Throwable,
                 SXcptC NullPointer, SXcptC OutOfMemory, SXcptC ClassCast,
                 SXcptC NegArrSize , SXcptC IndOutBound, SXcptC ArrStore]"
@@ -470,7 +467,7 @@ abbreviation
   where "G|-C <:C D == (C,D) \<in>(subcls1 G)^+"
 
 notation (xsymbols)
-  subcls1_syntax  ("_\<turnstile>_\<prec>\<^sub>C\<^sub>1_"  [71,71,71] 70) and
+  subcls1_syntax  ("_\<turnstile>_\<prec>\<^sub>C1_"  [71,71,71] 70) and
   subclseq_syntax  ("_\<turnstile>_\<preceq>\<^sub>C _"  [71,71,71] 70) and
   subcls_syntax  ("_\<turnstile>_\<prec>\<^sub>C _"  [71,71,71] 70)
 
@@ -510,7 +507,7 @@ lemma subcls_is_class:
 "\<lbrakk>G\<turnstile>C \<prec>\<^sub>C D\<rbrakk> \<Longrightarrow> \<exists> c. class G C = Some c"
 by (auto simp add: subcls1_def dest: tranclD)
 
-lemma no_subcls1_Object:"G\<turnstile>Object\<prec>\<^sub>C\<^sub>1 D \<Longrightarrow> P"
+lemma no_subcls1_Object:"G\<turnstile>Object\<prec>\<^sub>C1 D \<Longrightarrow> P"
 by (auto simp add: subcls1_def)
 
 lemma no_subcls_Object: "G\<turnstile>Object\<prec>\<^sub>C D \<Longrightarrow> P"
@@ -520,14 +517,13 @@ done
 
 section "well-structured programs"
 
-constdefs
-  ws_idecl :: "prog \<Rightarrow> qtname \<Rightarrow> qtname list \<Rightarrow> bool"
+definition ws_idecl :: "prog \<Rightarrow> qtname \<Rightarrow> qtname list \<Rightarrow> bool" where
  "ws_idecl G I si \<equiv> \<forall>J\<in>set si.  is_iface G J   \<and> (J,I)\<notin>(subint1 G)^+"
   
-  ws_cdecl :: "prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool"
+definition ws_cdecl :: "prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool" where
  "ws_cdecl G C sc \<equiv> C\<noteq>Object \<longrightarrow> is_class G sc \<and> (sc,C)\<notin>(subcls1 G)^+"
   
-  ws_prog  :: "prog \<Rightarrow> bool"
+definition ws_prog  :: "prog \<Rightarrow> bool" where
  "ws_prog G \<equiv> (\<forall>(I,i)\<in>set (ifaces  G). ws_idecl G I (isuperIfs i)) \<and> 
               (\<forall>(C,c)\<in>set (classes G). ws_cdecl G C (super c))"
 
@@ -680,7 +676,7 @@ proof -
   then have "is_class G C \<Longrightarrow> P C"  
   proof (induct rule: subcls1_induct)
     fix C
-    assume   hyp:"\<forall> S. G\<turnstile>C \<prec>\<^sub>C\<^sub>1 S \<longrightarrow> is_class G S \<longrightarrow> P S"
+    assume   hyp:"\<forall> S. G\<turnstile>C \<prec>\<^sub>C1 S \<longrightarrow> is_class G S \<longrightarrow> P S"
        and iscls:"is_class G C"
     show "P C"
     proof (cases "C=Object")
@@ -715,7 +711,7 @@ proof -
   then have "\<And> c. class G C = Some c\<Longrightarrow> P C c"  
   proof (induct rule: subcls1_induct)
     fix C c
-    assume   hyp:"\<forall> S. G\<turnstile>C \<prec>\<^sub>C\<^sub>1 S \<longrightarrow> (\<forall> s. class G S = Some s \<longrightarrow> P S s)"
+    assume   hyp:"\<forall> S. G\<turnstile>C \<prec>\<^sub>C1 S \<longrightarrow> (\<forall> s. class G S = Some s \<longrightarrow> P S s)"
        and iscls:"class G C = Some c"
     show "P C c"
     proof (cases "C=Object")
@@ -725,7 +721,7 @@ proof -
       with ws iscls obtain sc where
         sc: "class G (super c) = Some sc"
         by (auto dest: ws_prog_cdeclD)
-      from iscls False have "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 (super c)" by (rule subcls1I)
+      from iscls False have "G\<turnstile>C \<prec>\<^sub>C1 (super c)" by (rule subcls1I)
       with False ws step hyp iscls sc
       show "P C c" 
         by (auto)  
@@ -808,8 +804,7 @@ apply (rule class_rec.simps [THEN trans [THEN fun_cong [THEN fun_cong]]])
 apply simp
 done
 
-constdefs
-imethds:: "prog \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> mhead) tables"
+definition imethds :: "prog \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> mhead) tables" where
   --{* methods of an interface, with overriding and inheritance, cf. 9.2 *}
 "imethds G I 
   \<equiv> iface_rec (G,I)  

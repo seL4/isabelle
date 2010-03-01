@@ -22,7 +22,7 @@ The update is actually generalized to a map function. The map supplies
 better compositionality, especially if you think of nested state
 spaces.  *} 
 
-constdefs K_statefun:: "'a \<Rightarrow> 'b \<Rightarrow> 'a" "K_statefun c x \<equiv> c"
+definition K_statefun :: "'a \<Rightarrow> 'b \<Rightarrow> 'a" where "K_statefun c x \<equiv> c"
 
 lemma K_statefun_apply [simp]: "K_statefun c x = c"
   by (simp add: K_statefun_def)

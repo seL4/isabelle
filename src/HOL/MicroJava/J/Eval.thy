@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/J/Eval.thy
-    ID:         $Id$
     Author:     David von Oheimb
     Copyright   1999 Technische Universitaet Muenchen
 *)
@@ -11,22 +10,16 @@ theory Eval imports State WellType begin
 
   -- "Auxiliary notions"
 
-constdefs
-  fits    :: "java_mb prog \<Rightarrow> state \<Rightarrow> val \<Rightarrow> ty \<Rightarrow> bool" ("_,_\<turnstile>_ fits _"[61,61,61,61]60)
+definition fits :: "java_mb prog \<Rightarrow> state \<Rightarrow> val \<Rightarrow> ty \<Rightarrow> bool" ("_,_\<turnstile>_ fits _"[61,61,61,61]60) where
  "G,s\<turnstile>a' fits T  \<equiv> case T of PrimT T' \<Rightarrow> False | RefT T' \<Rightarrow> a'=Null \<or> G\<turnstile>obj_ty(lookup_obj s a')\<preceq>T"
 
-constdefs
-  catch ::"java_mb prog \<Rightarrow> xstate \<Rightarrow> cname \<Rightarrow> bool" ("_,_\<turnstile>catch _"[61,61,61]60)
+definition catch :: "java_mb prog \<Rightarrow> xstate \<Rightarrow> cname \<Rightarrow> bool" ("_,_\<turnstile>catch _"[61,61,61]60) where
  "G,s\<turnstile>catch C\<equiv>  case abrupt s of None \<Rightarrow> False | Some a \<Rightarrow> G,store s\<turnstile> a fits Class C"
 
-
-
-constdefs
-  lupd       :: "vname \<Rightarrow> val \<Rightarrow> state \<Rightarrow> state"        ("lupd'(_\<mapsto>_')"[10,10]1000)
+definition lupd :: "vname \<Rightarrow> val \<Rightarrow> state \<Rightarrow> state" ("lupd'(_\<mapsto>_')"[10,10]1000) where
  "lupd vn v   \<equiv> \<lambda> (hp,loc). (hp, (loc(vn\<mapsto>v)))"
 
-constdefs
-  new_xcpt_var :: "vname \<Rightarrow> xstate \<Rightarrow> xstate"
+definition new_xcpt_var :: "vname \<Rightarrow> xstate \<Rightarrow> xstate" where
  "new_xcpt_var vn \<equiv>  \<lambda>(x,s). Norm (lupd(vn\<mapsto>the x) s)"
 
 

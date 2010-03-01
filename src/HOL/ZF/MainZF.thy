@@ -1,5 +1,4 @@
 (*  Title:      HOL/ZF/MainZF.thy
-    ID:         $Id$
     Author:     Steven Obua
 
     Starting point for using HOLZF.
@@ -9,4 +8,5 @@
 theory MainZF
 imports Zet LProd
 begin
+
 end

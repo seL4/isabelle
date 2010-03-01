@@ -216,10 +216,10 @@ subsection "Merging two lists"
 
 text"This is still a bit rough, especially the proof."
 
-constdefs
- cor :: "bool \<Rightarrow> bool \<Rightarrow> bool"
+definition cor :: "bool \<Rightarrow> bool \<Rightarrow> bool" where
 "cor P Q == if P then True else Q"
- cand :: "bool \<Rightarrow> bool \<Rightarrow> bool"
+
+definition cand :: "bool \<Rightarrow> bool \<Rightarrow> bool" where
 "cand P Q == if P then Q else False"
 
 consts merge :: "'a list * 'a list * ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list"
@@ -481,7 +481,7 @@ done
 
 subsection "Storage allocation"
 
-constdefs new :: "'a set \<Rightarrow> 'a"
+definition new :: "'a set \<Rightarrow> 'a" where
 "new A == SOME a. a \<notin> A"
 
 

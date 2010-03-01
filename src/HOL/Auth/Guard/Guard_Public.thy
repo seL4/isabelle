@@ -19,7 +19,7 @@ declare initState.simps [simp del]
 
 subsubsection{*signature*}
 
-constdefs sign :: "agent => msg => msg"
+definition sign :: "agent => msg => msg" where
 "sign A X == {|Agent A, X, Crypt (priK A) (Hash X)|}"
 
 lemma sign_inj [iff]: "(sign A X = sign A' X') = (A=A' & X=X')"
@@ -27,7 +27,7 @@ by (auto simp: sign_def)
 
 subsubsection{*agent associated to a key*}
 
-constdefs agt :: "key => agent"
+definition agt :: "key => agent" where
 "agt K == @A. K = priK A | K = pubK A"
 
 lemma agt_priK [simp]: "agt (priK A) = A"
@@ -57,7 +57,7 @@ by (cases A, auto simp: keyset_def initState.simps)
 
 subsubsection{*sets of private keys*}
 
-constdefs priK_set :: "key set => bool"
+definition priK_set :: "key set => bool" where
 "priK_set Ks == ALL K. K:Ks --> (EX A. K = priK A)"
 
 lemma in_priK_set: "[| priK_set Ks; K:Ks |] ==> EX A. K = priK A"
@@ -71,7 +71,7 @@ by (simp add: priK_set_def)
 
 subsubsection{*sets of good keys*}
 
-constdefs good :: "key set => bool"
+definition good :: "key set => bool" where
 "good Ks == ALL K. K:Ks --> agt K ~:bad"
 
 lemma in_good: "[| good Ks; K:Ks |] ==> agt K ~:bad"
@@ -99,7 +99,7 @@ by simp
 
 subsubsection{*function giving a new nonce*}
 
-constdefs new :: "event list => nat"
+definition new :: "event list => nat" where
 "new evs == Suc (greatest evs)"
 
 lemma new_isnt_used [iff]: "Nonce (new evs) ~:used evs"
@@ -151,7 +151,7 @@ by (auto simp: knows_max_def)
 
 subsubsection{*regular protocols*}
 
-constdefs regular :: "event list set => bool"
+definition regular :: "event list set => bool" where
 "regular p == ALL evs A. evs:p --> (Key (priK A):parts (spies evs)) = (A:bad)"
 
 lemma priK_parts_iff_bad [simp]: "[| evs:p; regular p |] ==>

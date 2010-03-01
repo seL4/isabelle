@@ -7,8 +7,7 @@ subsection {* Proof System for Component Programs *}
 declare Un_subset_iff [simp del] le_sup_iff [simp del]
 declare Cons_eq_map_conv [iff]
 
-constdefs
-  stable :: "'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> bool"  
+definition stable :: "'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> bool" where  
   "stable \<equiv> \<lambda>f g. (\<forall>x y. x \<in> f \<longrightarrow> (x, y) \<in> g \<longrightarrow> y \<in> f)" 
 
 inductive
@@ -39,16 +38,19 @@ where
              \<turnstile> P sat [pre', rely', guar', post'] \<rbrakk>
             \<Longrightarrow> \<turnstile> P sat [pre, rely, guar, post]"
 
-constdefs 
-  Pre :: "'a rgformula \<Rightarrow> 'a set"
+definition Pre :: "'a rgformula \<Rightarrow> 'a set" where
   "Pre x \<equiv> fst(snd x)"
-  Post :: "'a rgformula \<Rightarrow> 'a set"
+
+definition Post :: "'a rgformula \<Rightarrow> 'a set" where
   "Post x \<equiv> snd(snd(snd(snd x)))"
-  Rely :: "'a rgformula \<Rightarrow> ('a \<times> 'a) set"
+
+definition Rely :: "'a rgformula \<Rightarrow> ('a \<times> 'a) set" where
   "Rely x \<equiv> fst(snd(snd x))"
-  Guar :: "'a rgformula \<Rightarrow> ('a \<times> 'a) set"
+
+definition Guar :: "'a rgformula \<Rightarrow> ('a \<times> 'a) set" where
   "Guar x \<equiv> fst(snd(snd(snd x)))"
-  Com :: "'a rgformula \<Rightarrow> 'a com"
+
+definition Com :: "'a rgformula \<Rightarrow> 'a com" where
   "Com x \<equiv> fst x"
 
 subsection {* Proof System for Parallel Programs *}
@@ -1093,8 +1095,7 @@ done
 
 subsection {* Soundness of the System for Parallel Programs *}
 
-constdefs
-  ParallelCom :: "('a rgformula) list \<Rightarrow> 'a par_com"
+definition ParallelCom :: "('a rgformula) list \<Rightarrow> 'a par_com" where
   "ParallelCom Ps \<equiv> map (Some \<circ> fst) Ps" 
 
 lemma two: 

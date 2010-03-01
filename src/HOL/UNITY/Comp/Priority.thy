@@ -1,5 +1,4 @@
 (*  Title:      HOL/UNITY/Priority
-    ID:         $Id$
     Author:     Sidi O Ehmety, Cambridge University Computer Laboratory
     Copyright   2001  University of Cambridge
 *)
@@ -22,52 +21,50 @@ consts
 
 text{*Following the definitions given in section 4.4 *}
 
-constdefs
-  highest :: "[vertex, (vertex*vertex)set]=>bool"
+definition highest :: "[vertex, (vertex*vertex)set]=>bool" where
   "highest i r == A i r = {}"
     --{* i has highest priority in r *}
   
-  lowest :: "[vertex, (vertex*vertex)set]=>bool"
+definition lowest :: "[vertex, (vertex*vertex)set]=>bool" where
   "lowest i r == R i r = {}"
     --{* i has lowest priority in r *}
 
-  act :: command
+definition act :: command where
   "act i == {(s, s'). s'=reverse i s & highest i s}"
 
-  Component :: "vertex=>state program"
+definition Component :: "vertex=>state program" where
   "Component i == mk_total_program({init}, {act i}, UNIV)"
     --{* All components start with the same initial state *}
 
 
 text{*Some Abbreviations *}
-constdefs
-  Highest :: "vertex=>state set"
+definition Highest :: "vertex=>state set" where
   "Highest i == {s. highest i s}"
 
-  Lowest :: "vertex=>state set"
+definition Lowest :: "vertex=>state set" where
   "Lowest i == {s. lowest i s}"
 
-  Acyclic :: "state set"
+definition Acyclic :: "state set" where
   "Acyclic == {s. acyclic s}"
 
 
-  Maximal :: "state set"
+definition Maximal :: "state set" where
     --{* Every ``above'' set has a maximal vertex*}
   "Maximal == \<Inter>i. {s. ~highest i s-->(\<exists>j \<in> above i  s. highest j s)}"
 
-  Maximal' :: "state set"
+definition Maximal' :: "state set" where
     --{* Maximal vertex: equivalent definition*}
   "Maximal' == \<Inter>i. Highest i Un (\<Union>j. {s. j \<in> above i s} Int Highest j)"
 
   
-  Safety :: "state set"
+definition Safety :: "state set" where
   "Safety == \<Inter>i. {s. highest i s --> (\<forall>j \<in> neighbors i s. ~highest j s)}"
 
 
   (* Composition of a finite set of component;
      the vertex 'UNIV' is finite by assumption *)
   
-  system :: "state program"
+definition system :: "state program" where
   "system == JN i. Component i"
 
 

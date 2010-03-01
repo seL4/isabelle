@@ -21,29 +21,28 @@ consts
   l3_nam :: vnam
   l4_nam :: vnam
 
-constdefs
-  val_name :: vname
+definition val_name :: vname where
   "val_name == VName val_nam"
 
-  next_name :: vname
+definition next_name :: vname where
   "next_name == VName next_nam"
 
-  l_name :: vname
+definition l_name :: vname where
   "l_name == VName l_nam"
 
-  l1_name :: vname
+definition l1_name :: vname where
   "l1_name == VName l1_nam"
 
-  l2_name :: vname
+definition l2_name :: vname where
   "l2_name == VName l2_nam"
 
-  l3_name :: vname
+definition l3_name :: vname where
   "l3_name == VName l3_nam"
 
-  l4_name :: vname
+definition l4_name :: vname where
   "l4_name == VName l4_nam"
 
-  list_class :: "java_mb class"
+definition list_class :: "java_mb class" where
   "list_class ==
     (Object,
      [(val_name, PrimT Integer), (next_name, RefT (ClassT list_name))],
@@ -56,7 +55,7 @@ constdefs
            append_name({[RefT (ClassT list_name)]}[LAcc l_name])), 
        Lit Unit))])"
 
-  example_prg :: "java_mb prog"
+definition example_prg :: "java_mb prog" where
   "example_prg == [ObjectC, (list_name, list_class)]"
 
 types_code

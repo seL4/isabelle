@@ -48,8 +48,7 @@ specification (invKey)
 text{*The inverse of a symmetric key is itself; that of a public key
       is the private key and vice versa*}
 
-constdefs
-  symKeys :: "key set"
+definition symKeys :: "key set" where
   "symKeys == {K. invKey K = K}"
 
 text{*Agents. We allow any number of certification authorities, cardholders
@@ -81,8 +80,7 @@ translations
   "{|x, y|}"      == "CONST MPair x y"
 
 
-constdefs
-  nat_of_agent :: "agent => nat"
+definition nat_of_agent :: "agent => nat" where
    "nat_of_agent == agent_case (curry nat2_to_nat 0)
                                (curry nat2_to_nat 1)
                                (curry nat2_to_nat 2)

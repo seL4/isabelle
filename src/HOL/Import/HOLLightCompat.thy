@@ -30,8 +30,7 @@ next
     by simp
 qed
 
-constdefs
-   Pred :: "nat \<Rightarrow> nat"
+definition Pred :: "nat \<Rightarrow> nat" where
    "Pred n \<equiv> n - (Suc 0)"
 
 lemma Pred_altdef: "Pred = (SOME PRE. PRE 0 = 0 & (ALL n. PRE (Suc n) = n))"
@@ -84,8 +83,7 @@ lemma sub_altdef: "op - = (SOME sub. (ALL m. sub m 0 = m) & (ALL m n. sub m (Suc
   apply auto
   done
 
-constdefs
-  NUMERAL_BIT0 :: "nat \<Rightarrow> nat"
+definition NUMERAL_BIT0 :: "nat \<Rightarrow> nat" where
   "NUMERAL_BIT0 n \<equiv> n + n"
 
 lemma NUMERAL_BIT1_altdef: "NUMERAL_BIT1 n = Suc (n + n)"

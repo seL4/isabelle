@@ -188,12 +188,12 @@ fun poly_cmul :: "Num \<Rightarrow> poly \<Rightarrow> poly" where
 | "poly_cmul y (CN c n p) = CN (poly_cmul y c) n (poly_cmul y p)"
 | "poly_cmul y p = C y *\<^sub>p p"
 
-constdefs monic:: "poly \<Rightarrow> (poly \<times> bool)"
+definition monic :: "poly \<Rightarrow> (poly \<times> bool)" where
   "monic p \<equiv> (let h = headconst p in if h = 0\<^sub>N then (p,False) else ((C (Ninv h)) *\<^sub>p p, 0>\<^sub>N h))"
 
 subsection{* Pseudo-division *}
 
-constdefs shift1:: "poly \<Rightarrow> poly"
+definition shift1 :: "poly \<Rightarrow> poly" where
   "shift1 p \<equiv> CN 0\<^sub>p 0 p"
 consts funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
 
@@ -212,7 +212,7 @@ function (tailrec) polydivide_aux :: "(poly \<times> nat \<times> poly \<times> 
   by pat_completeness auto
 
 
-constdefs polydivide:: "poly \<Rightarrow> poly \<Rightarrow> (nat \<times> poly)"
+definition polydivide :: "poly \<Rightarrow> poly \<Rightarrow> (nat \<times> poly)" where
   "polydivide s p \<equiv> polydivide_aux (head p,degree p,p,0, s)"
 
 fun poly_deriv_aux :: "nat \<Rightarrow> poly \<Rightarrow> poly" where
@@ -262,7 +262,7 @@ recdef isnpolyh "measure size"
 lemma isnpolyh_mono: "\<lbrakk>n' \<le> n ; isnpolyh p n\<rbrakk> \<Longrightarrow> isnpolyh p n'"
 by (induct p rule: isnpolyh.induct, auto)
 
-constdefs isnpoly:: "poly \<Rightarrow> bool"
+definition isnpoly :: "poly \<Rightarrow> bool" where
   "isnpoly p \<equiv> isnpolyh p 0"
 
 text{* polyadd preserves normal forms *}

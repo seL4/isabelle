@@ -24,8 +24,7 @@ but it is often simpler to use @{text option}. For an application see
 *}
 (*<*)
 (*
-constdefs
- infplus :: "nat option \<Rightarrow> nat option \<Rightarrow> nat option"
+definition infplus :: "nat option \<Rightarrow> nat option \<Rightarrow> nat option" where
 "infplus x y \<equiv> case x of None \<Rightarrow> None
                | Some m \<Rightarrow> (case y of None \<Rightarrow> None | Some n \<Rightarrow> Some(m+n))"
 

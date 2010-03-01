@@ -12,13 +12,13 @@ declare split_paired_Ex [simp del]
 
 (**********************************************************************)
 
-constdefs     
-   inited_LT :: "[cname, ty list, (vname \<times> ty) list] \<Rightarrow> locvars_type"
+definition inited_LT :: "[cname, ty list, (vname \<times> ty) list] \<Rightarrow> locvars_type" where
   "inited_LT C pTs lvars == (OK (Class C))#((map OK pTs))@(map (Fun.comp OK snd) lvars)"
-   is_inited_LT :: "[cname, ty list, (vname \<times> ty) list, locvars_type] \<Rightarrow> bool"
+
+definition is_inited_LT :: "[cname, ty list, (vname \<times> ty) list, locvars_type] \<Rightarrow> bool" where
   "is_inited_LT C pTs lvars LT == (LT = (inited_LT C pTs lvars))"
 
-  local_env :: "[java_mb prog, cname, sig, vname list,(vname \<times> ty) list] \<Rightarrow> java_mb env"
+definition local_env :: "[java_mb prog, cname, sig, vname list,(vname \<times> ty) list] \<Rightarrow> java_mb env" where
   "local_env G C S pns lvars == 
      let (mn, pTs) = S in (G,map_of lvars(pns[\<mapsto>]pTs)(This\<mapsto>Class C))"
 
@@ -536,13 +536,12 @@ done
 
 (**********************************************************************)
 
-constdefs
-  offset_xcentry :: "[nat, exception_entry] \<Rightarrow> exception_entry"
+definition offset_xcentry :: "[nat, exception_entry] \<Rightarrow> exception_entry" where
   "offset_xcentry == 
       \<lambda> n (start_pc, end_pc, handler_pc, catch_type).
           (start_pc + n, end_pc + n, handler_pc + n, catch_type)"
 
-  offset_xctable :: "[nat, exception_table] \<Rightarrow> exception_table"
+definition offset_xctable :: "[nat, exception_table] \<Rightarrow> exception_table" where
   "offset_xctable n == (map (offset_xcentry n))"
 
 lemma match_xcentry_offset [simp]: "
@@ -682,12 +681,11 @@ done
 (**********************************************************************)
 
 
-constdefs
-  start_sttp_resp_cons :: "[state_type \<Rightarrow> method_type \<times> state_type] \<Rightarrow> bool"
+definition start_sttp_resp_cons :: "[state_type \<Rightarrow> method_type \<times> state_type] \<Rightarrow> bool" where
   "start_sttp_resp_cons f == 
      (\<forall> sttp. let (mt', sttp') = (f sttp) in (\<exists>mt'_rest. mt' = Some sttp # mt'_rest))"
 
-  start_sttp_resp :: "[state_type \<Rightarrow> method_type \<times> state_type] \<Rightarrow> bool"
+definition start_sttp_resp :: "[state_type \<Rightarrow> method_type \<times> state_type] \<Rightarrow> bool" where
   "start_sttp_resp f == (f = comb_nil) \<or> (start_sttp_resp_cons f)"
 
 lemma start_sttp_resp_comb_nil [simp]: "start_sttp_resp comb_nil"
@@ -887,10 +885,9 @@ by (simp add: check_type_def states_lower)
 
   (* ******************************************************************* *)
 
-constdefs
-   bc_mt_corresp :: "
+definition bc_mt_corresp :: "
   [bytecode, state_type \<Rightarrow> method_type \<times> state_type, state_type, jvm_prog, ty, nat, p_count]
-  \<Rightarrow> bool"
+  \<Rightarrow> bool" where
 
   "bc_mt_corresp bc f sttp0 cG rT mxr idx ==
   let (mt, sttp) = f sttp0 in
@@ -993,8 +990,7 @@ done
   (* ********************************************************************** *)
 
 
-constdefs
-  mt_sttp_flatten :: "method_type \<times> state_type \<Rightarrow> method_type"
+definition mt_sttp_flatten :: "method_type \<times> state_type \<Rightarrow> method_type" where
   "mt_sttp_flatten mt_sttp == (mt_of mt_sttp) @ [Some (sttp_of mt_sttp)]"
 
 
@@ -1473,8 +1469,7 @@ done
 
 
   (* ******************** *)
-constdefs 
-  contracting :: "(state_type \<Rightarrow> method_type \<times> state_type) \<Rightarrow> bool"
+definition contracting :: "(state_type \<Rightarrow> method_type \<times> state_type) \<Rightarrow> bool" where
   "contracting f == (\<forall> ST LT. 
                     let (ST', LT') = sttp_of (f (ST, LT)) 
                     in (length ST' \<le> length ST \<and> set ST' \<subseteq> set ST  \<and>

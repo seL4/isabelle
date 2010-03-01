@@ -244,8 +244,7 @@ oops
 
 text {* ``The transitive closure of an arbitrary relation is non-empty.'' *}
 
-constdefs
-"trans" :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
+definition "trans" :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
 "trans P \<equiv> (ALL x y z. P x y \<longrightarrow> P y z \<longrightarrow> P x z)"
 "subset" :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
 "subset P Q \<equiv> (ALL x y. P x y \<longrightarrow> Q x y)"

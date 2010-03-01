@@ -26,8 +26,7 @@ inductive_set
 
 inductive_cases empty_foldSetDE [elim!]: "({}, x) \<in> foldSetD D f e"
 
-constdefs
-  foldD :: "['a set, 'b => 'a => 'a, 'a, 'b set] => 'a"
+definition foldD :: "['a set, 'b => 'a => 'a, 'a, 'b set] => 'a" where
   "foldD D f e A == THE x. (A, x) \<in> foldSetD D f e"
 
 lemma foldSetD_closed:

@@ -19,16 +19,19 @@ axiomatization
   Repl :: "ZF \<Rightarrow> (ZF \<Rightarrow> ZF) \<Rightarrow> ZF" and
   Inf :: ZF
 
-constdefs
-  Upair:: "ZF \<Rightarrow> ZF \<Rightarrow> ZF"
+definition Upair :: "ZF \<Rightarrow> ZF \<Rightarrow> ZF" where
   "Upair a b == Repl (Power (Power Empty)) (% x. if x = Empty then a else b)"
-  Singleton:: "ZF \<Rightarrow> ZF"
+
+definition Singleton:: "ZF \<Rightarrow> ZF" where
   "Singleton x == Upair x x"
-  union :: "ZF \<Rightarrow> ZF \<Rightarrow> ZF"
+
+definition union :: "ZF \<Rightarrow> ZF \<Rightarrow> ZF" where
   "union A B == Sum (Upair A B)"
-  SucNat:: "ZF \<Rightarrow> ZF"
+
+definition SucNat:: "ZF \<Rightarrow> ZF" where
   "SucNat x == union x (Singleton x)"
-  subset :: "ZF \<Rightarrow> ZF \<Rightarrow> bool"
+
+definition subset :: "ZF \<Rightarrow> ZF \<Rightarrow> bool" where
   "subset A B == ! x. Elem x A \<longrightarrow> Elem x B"
 
 axioms
@@ -40,8 +43,7 @@ axioms
   Regularity: "A \<noteq> Empty \<longrightarrow> (? x. Elem x A & (! y. Elem y x \<longrightarrow> Not (Elem y A)))"
   Infinity: "Elem Empty Inf & (! x. Elem x Inf \<longrightarrow> Elem (SucNat x) Inf)"
 
-constdefs
-  Sep:: "ZF \<Rightarrow> (ZF \<Rightarrow> bool) \<Rightarrow> ZF"
+definition Sep :: "ZF \<Rightarrow> (ZF \<Rightarrow> bool) \<Rightarrow> ZF" where
   "Sep A p == (if (!x. Elem x A \<longrightarrow> Not (p x)) then Empty else 
   (let z = (\<some> x. Elem x A & p x) in
    let f = % x. (if p x then x else z) in Repl A f))" 
@@ -70,8 +72,7 @@ theorem Upair: "Elem x (Upair a b) = (x = a | x = b)"
 lemma Singleton: "Elem x (Singleton y) = (x = y)"
   by (simp add: Singleton_def Upair)
 
-constdefs 
-  Opair:: "ZF \<Rightarrow> ZF \<Rightarrow> ZF"
+definition Opair :: "ZF \<Rightarrow> ZF \<Rightarrow> ZF" where
   "Opair a b == Upair (Upair a a) (Upair a b)"
 
 lemma Upair_singleton: "(Upair a a = Upair c d) = (a = c & a = d)"
@@ -99,17 +100,16 @@ theorem Opair: "(Opair a b = Opair c d) = (a = c & b = d)"
       done
   qed
 
-constdefs 
-  Replacement :: "ZF \<Rightarrow> (ZF \<Rightarrow> ZF option) \<Rightarrow> ZF"
+definition Replacement :: "ZF \<Rightarrow> (ZF \<Rightarrow> ZF option) \<Rightarrow> ZF" where
   "Replacement A f == Repl (Sep A (% a. f a \<noteq> None)) (the o f)"
 
 theorem Replacement: "Elem y (Replacement A f) = (? x. Elem x A & f x = Some y)"
   by (auto simp add: Replacement_def Repl Sep) 
 
-constdefs
-  Fst :: "ZF \<Rightarrow> ZF"
+definition Fst :: "ZF \<Rightarrow> ZF" where
   "Fst q == SOME x. ? y. q = Opair x y"
-  Snd :: "ZF \<Rightarrow> ZF"
+
+definition Snd :: "ZF \<Rightarrow> ZF" where
   "Snd q == SOME y. ? x. q = Opair x y"
 
 theorem Fst: "Fst (Opair x y) = x"
@@ -124,8 +124,7 @@ theorem Snd: "Snd (Opair x y) = y"
   apply (simp_all add: Opair)
   done
 
-constdefs 
-  isOpair :: "ZF \<Rightarrow> bool"
+definition isOpair :: "ZF \<Rightarrow> bool" where
   "isOpair q == ? x y. q = Opair x y"
 
 lemma isOpair: "isOpair (Opair x y) = True"
@@ -134,8 +133,7 @@ lemma isOpair: "isOpair (Opair x y) = True"
 lemma FstSnd: "isOpair x \<Longrightarrow> Opair (Fst x) (Snd x) = x"
   by (auto simp add: isOpair_def Fst Snd)
   
-constdefs
-  CartProd :: "ZF \<Rightarrow> ZF \<Rightarrow> ZF"
+definition CartProd :: "ZF \<Rightarrow> ZF \<Rightarrow> ZF" where
   "CartProd A B == Sum(Repl A (% a. Repl B (% b. Opair a b)))"
 
 lemma CartProd: "Elem x (CartProd A B) = (? a b. Elem a A & Elem b B & x = (Opair a b))"
@@ -144,8 +142,7 @@ lemma CartProd: "Elem x (CartProd A B) = (? a b. Elem a A & Elem b B & x = (Opai
   apply (auto simp add: Repl)
   done
 
-constdefs
-  explode :: "ZF \<Rightarrow> ZF set"
+definition explode :: "ZF \<Rightarrow> ZF set" where
   "explode z == { x. Elem x z }"
 
 lemma explode_Empty: "(explode x = {}) = (x = Empty)"
@@ -163,10 +160,10 @@ lemma explode_CartProd_eq: "explode (CartProd a b) = (% (x,y). Opair x y) ` ((ex
 lemma explode_Repl_eq: "explode (Repl A f) = image f (explode A)"
   by (simp add: explode_def Repl image_def)
 
-constdefs
-  Domain :: "ZF \<Rightarrow> ZF"
+definition Domain :: "ZF \<Rightarrow> ZF" where
   "Domain f == Replacement f (% p. if isOpair p then Some (Fst p) else None)"
-  Range :: "ZF \<Rightarrow> ZF"
+
+definition Range :: "ZF \<Rightarrow> ZF" where
   "Range f == Replacement f (% p. if isOpair p then Some (Snd p) else None)"
 
 theorem Domain: "Elem x (Domain f) = (? y. Elem (Opair x y) f)"
@@ -188,20 +185,16 @@ theorem Range: "Elem y (Range f) = (? x. Elem (Opair x y) f)"
 theorem union: "Elem x (union A B) = (Elem x A | Elem x B)"
   by (auto simp add: union_def Sum Upair)
 
-constdefs
-  Field :: "ZF \<Rightarrow> ZF"
+definition Field :: "ZF \<Rightarrow> ZF" where
   "Field A == union (Domain A) (Range A)"
 
-constdefs
-  app :: "ZF \<Rightarrow> ZF => ZF"    (infixl "\<acute>" 90) --{*function application*} 
+definition app :: "ZF \<Rightarrow> ZF => ZF" (infixl "\<acute>" 90) --{*function application*} where
   "f \<acute> x == (THE y. Elem (Opair x y) f)"
 
-constdefs
-  isFun :: "ZF \<Rightarrow> bool"
+definition isFun :: "ZF \<Rightarrow> bool" where
   "isFun f == (! x y1 y2. Elem (Opair x y1) f & Elem (Opair x y2) f \<longrightarrow> y1 = y2)"
 
-constdefs
-  Lambda :: "ZF \<Rightarrow> (ZF \<Rightarrow> ZF) \<Rightarrow> ZF"
+definition Lambda :: "ZF \<Rightarrow> (ZF \<Rightarrow> ZF) \<Rightarrow> ZF" where
   "Lambda A f == Repl A (% x. Opair x (f x))"
 
 lemma Lambda_app: "Elem x A \<Longrightarrow> (Lambda A f)\<acute>x = f x"
@@ -238,10 +231,10 @@ proof -
     done
 qed
 
-constdefs 
-  PFun :: "ZF \<Rightarrow> ZF \<Rightarrow> ZF"
+definition PFun :: "ZF \<Rightarrow> ZF \<Rightarrow> ZF" where
   "PFun A B == Sep (Power (CartProd A B)) isFun"
-  Fun :: "ZF \<Rightarrow> ZF \<Rightarrow> ZF"
+
+definition Fun :: "ZF \<Rightarrow> ZF \<Rightarrow> ZF" where
   "Fun A B == Sep (PFun A B) (\<lambda> f. Domain f = A)"
 
 lemma Fun_Range: "Elem f (Fun U V) \<Longrightarrow> subset (Range f) V"
@@ -343,8 +336,7 @@ proof -
 qed    
 
 
-constdefs
-  is_Elem_of :: "(ZF * ZF) set"
+definition is_Elem_of :: "(ZF * ZF) set" where
   "is_Elem_of == { (a,b) | a b. Elem a b }"
 
 lemma cond_wf_Elem:
@@ -417,8 +409,7 @@ primrec
 nat2Nat_0[intro]:  "nat2Nat 0 = Empty"
 nat2Nat_Suc[intro]:  "nat2Nat (Suc n) = SucNat (nat2Nat n)"
 
-constdefs
-  Nat2nat :: "ZF \<Rightarrow> nat"
+definition Nat2nat :: "ZF \<Rightarrow> nat" where
   "Nat2nat == inv nat2Nat"
 
 lemma Elem_nat2Nat_inf[intro]: "Elem (nat2Nat n) Inf"
@@ -426,9 +417,8 @@ lemma Elem_nat2Nat_inf[intro]: "Elem (nat2Nat n) Inf"
   apply (simp_all add: Infinity)
   done
 
-constdefs
-  Nat :: ZF
-  "Nat == Sep Inf (\<lambda> N. ? n. nat2Nat n = N)"
+definition Nat :: ZF
+ where  "Nat == Sep Inf (\<lambda> N. ? n. nat2Nat n = N)"
 
 lemma Elem_nat2Nat_Nat[intro]: "Elem (nat2Nat n) Nat"
   by (auto simp add: Nat_def Sep)
@@ -664,8 +654,7 @@ proof
   qed
 qed
 
-constdefs 
-  SpecialR :: "(ZF * ZF) set"
+definition SpecialR :: "(ZF * ZF) set" where
   "SpecialR \<equiv> { (x, y) . x \<noteq> Empty \<and> y = Empty}"
 
 lemma "wf SpecialR"
@@ -673,8 +662,7 @@ lemma "wf SpecialR"
   apply (auto simp add: SpecialR_def)
   done
 
-constdefs
-  Ext :: "('a * 'b) set \<Rightarrow> 'b \<Rightarrow> 'a set"
+definition Ext :: "('a * 'b) set \<Rightarrow> 'b \<Rightarrow> 'a set" where
   "Ext R y \<equiv> { x . (x, y) \<in> R }" 
 
 lemma Ext_Elem: "Ext is_Elem_of = explode"
@@ -690,8 +678,7 @@ proof
   then show "False" by (simp add: UNIV_is_not_in_ZF)
 qed
 
-constdefs 
-  implode :: "ZF set \<Rightarrow> ZF"
+definition implode :: "ZF set \<Rightarrow> ZF" where
   "implode == inv explode"
 
 lemma inj_explode: "inj explode"
@@ -700,12 +687,13 @@ lemma inj_explode: "inj explode"
 lemma implode_explode[simp]: "implode (explode x) = x"
   by (simp add: implode_def inj_explode)
 
-constdefs
-  regular :: "(ZF * ZF) set \<Rightarrow> bool"
+definition regular :: "(ZF * ZF) set \<Rightarrow> bool" where
   "regular R == ! A. A \<noteq> Empty \<longrightarrow> (? x. Elem x A & (! y. (y, x) \<in> R \<longrightarrow> Not (Elem y A)))"
-  set_like :: "(ZF * ZF) set \<Rightarrow> bool"
+
+definition set_like :: "(ZF * ZF) set \<Rightarrow> bool" where
   "set_like R == ! y. Ext R y \<in> range explode"
-  wfzf :: "(ZF * ZF) set \<Rightarrow> bool"
+
+definition wfzf :: "(ZF * ZF) set \<Rightarrow> bool" where
   "wfzf R == regular R & set_like R"
 
 lemma regular_Elem: "regular is_Elem_of"
@@ -717,8 +705,7 @@ lemma set_like_Elem: "set_like is_Elem_of"
 lemma wfzf_is_Elem_of: "wfzf is_Elem_of"
   by (auto simp add: wfzf_def regular_Elem set_like_Elem)
 
-constdefs
-  SeqSum :: "(nat \<Rightarrow> ZF) \<Rightarrow> ZF"
+definition SeqSum :: "(nat \<Rightarrow> ZF) \<Rightarrow> ZF" where
   "SeqSum f == Sum (Repl Nat (f o Nat2nat))"
 
 lemma SeqSum: "Elem x (SeqSum f) = (? n. Elem x (f n))"
@@ -727,8 +714,7 @@ lemma SeqSum: "Elem x (SeqSum f) = (? n. Elem x (f n))"
   apply auto
   done
 
-constdefs
-  Ext_ZF :: "(ZF * ZF) set \<Rightarrow> ZF \<Rightarrow> ZF"
+definition Ext_ZF :: "(ZF * ZF) set \<Rightarrow> ZF \<Rightarrow> ZF" where
   "Ext_ZF R s == implode (Ext R s)"
 
 lemma Elem_implode: "A \<in> range explode \<Longrightarrow> Elem x (implode A) = (x \<in> A)"
@@ -750,8 +736,7 @@ primrec
   "Ext_ZF_n R s 0 = Ext_ZF R s"
   "Ext_ZF_n R s (Suc n) = Sum (Repl (Ext_ZF_n R s n) (Ext_ZF R))"
 
-constdefs
-  Ext_ZF_hull :: "(ZF * ZF) set \<Rightarrow> ZF \<Rightarrow> ZF"
+definition Ext_ZF_hull :: "(ZF * ZF) set \<Rightarrow> ZF \<Rightarrow> ZF" where
   "Ext_ZF_hull R s == SeqSum (Ext_ZF_n R s)"
 
 lemma Elem_Ext_ZF_hull:
