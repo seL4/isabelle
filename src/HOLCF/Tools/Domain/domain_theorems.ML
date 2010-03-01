@@ -142,10 +142,19 @@ val rep_const = Const(dname^"_rep", lhsT ->> rhsT);
 
 val abs_const = Const(dname^"_abs", rhsT ->> lhsT);
 
+val iso_info : Domain_Isomorphism.iso_info =
+  {
+    absT = lhsT,
+    repT = rhsT,
+    abs_const = abs_const,
+    rep_const = rep_const,
+    abs_inverse = ax_abs_iso,
+    rep_inverse = ax_rep_iso
+  };
+
 val (result, thy) =
   Domain_Constructors.add_domain_constructors
-    (Long_Name.base_name dname) dom_eqn
-    (rep_const, abs_const) (ax_rep_iso, ax_abs_iso) ax_when_def thy;
+    (Long_Name.base_name dname) (snd dom_eqn) iso_info ax_when_def thy;
 
 val con_appls = #con_betas result;
 val {exhaust, casedist, ...} = result;

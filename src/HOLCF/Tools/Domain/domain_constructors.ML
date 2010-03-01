@@ -9,9 +9,8 @@ signature DOMAIN_CONSTRUCTORS =
 sig
   val add_domain_constructors :
       string
-      -> typ * (binding * (bool * binding option * typ) list * mixfix) list
-      -> term * term
-      -> thm * thm
+      -> (binding * (bool * binding option * typ) list * mixfix) list
+      -> Domain_Isomorphism.iso_info
       -> thm
       -> theory
       -> { con_consts : term list,
@@ -913,15 +912,17 @@ fun add_pattern_combinators
 
 fun add_domain_constructors
     (dname : string)
-    (lhsT : typ,
-     spec : (binding * (bool * binding option * typ) list * mixfix) list)
-    (rep_const : term, abs_const : term)
-    (rep_iso_thm : thm, abs_iso_thm : thm)
+    (spec : (binding * (bool * binding option * typ) list * mixfix) list)
+    (iso_info : Domain_Isomorphism.iso_info)
     (case_def : thm)
     (thy : theory) =
   let
 
-    (* prove rep/abs strictness rules *)
+    (* retrieve facts about rep/abs *)
+    val lhsT = #absT iso_info;
+    val {rep_const, abs_const, ...} = iso_info;
+    val abs_iso_thm = #abs_inverse iso_info;
+    val rep_iso_thm = #rep_inverse iso_info;
     val iso_locale = @{thm iso.intro} OF [abs_iso_thm, rep_iso_thm];
     val rep_strict = iso_locale RS @{thm iso.rep_strict};
     val abs_strict = iso_locale RS @{thm iso.abs_strict};
