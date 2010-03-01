@@ -396,37 +396,38 @@ fun add_case_combinator
     (* TODO: re-implement case syntax using a parse translation *)
     local
       open Syntax
-      open Domain_Library
       fun syntax c = Syntax.mark_const (fst (dest_Const c));
       fun xconst c = Long_Name.base_name (fst (dest_Const c));
       fun c_ast authentic con =
           Constant (if authentic then syntax con else xconst con);
-      fun expvar n = Variable ("e" ^ string_of_int n);
-      fun argvar n m _ = Variable ("a" ^ string_of_int n ^ "_" ^ string_of_int m);
-      fun argvars n args = mapn (argvar n) 1 args;
+      fun showint n = string_of_int (n+1);
+      fun expvar n = Variable ("e" ^ showint n);
+      fun argvar n (m, _) = Variable ("a" ^ showint n ^ "_" ^ showint m);
+      fun argvars n args = map_index (argvar n) args;
       fun app s (l, r) = mk_appl (Constant s) [l, r];
       val cabs = app "_cabs";
       val capp = app @{const_syntax Rep_CFun};
       val capps = Library.foldl capp
       fun con1 authentic n (con,args) =
           Library.foldl capp (c_ast authentic con, argvars n args);
-      fun case1 authentic n c =
+      fun case1 authentic (n, c) =
           app "_case1" (con1 authentic n c, expvar n);
-      fun arg1 n (con,args) = List.foldr cabs (expvar n) (argvars n args);
-      fun when1 n m = if n = m then arg1 n else K (Constant @{const_syntax UU});
+      fun arg1 (n, (con,args)) = List.foldr cabs (expvar n) (argvars n args);
+      fun when1 n (m, c) =
+          if n = m then arg1 (n, c) else (Constant @{const_syntax UU});
       val case_constant = Constant (syntax (case_const dummyT));
       fun case_trans authentic =
           ParsePrintRule
             (app "_case_syntax"
               (Variable "x",
-               foldr1 (app "_case2") (mapn (case1 authentic) 1 spec)),
-             capp (capps (case_constant, mapn arg1 1 spec), Variable "x"));
-      fun one_abscon_trans authentic n c =
+               foldr1 (app "_case2") (map_index (case1 authentic) spec)),
+             capp (capps (case_constant, map_index arg1 spec), Variable "x"));
+      fun one_abscon_trans authentic (n, c) =
           ParsePrintRule
             (cabs (con1 authentic n c, expvar n),
-             capps (case_constant, mapn (when1 n) 1 spec));
+             capps (case_constant, map_index (when1 n) spec));
       fun abscon_trans authentic =
-          mapn (one_abscon_trans authentic) 1 spec;
+          map_index (one_abscon_trans authentic) spec;
       val trans_rules : ast Syntax.trrule list =
           case_trans false :: case_trans true ::
           abscon_trans false @ abscon_trans true;
