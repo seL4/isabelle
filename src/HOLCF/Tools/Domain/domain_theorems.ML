@@ -164,7 +164,7 @@ val when_rews = #cases result;
 val when_strict = hd when_rews;
 val dis_rews = #dis_rews result;
 val mat_rews = #match_rews result;
-val axs_pat_def = #pat_rews result;
+val pat_rews = #pat_rews result;
 
 (* ----- theorems concerning the isomorphism -------------------------------- *)
 
@@ -175,42 +175,6 @@ val dc_copy = %%:(dname^"_copy");
 val abs_strict = ax_rep_iso RS (allI RS retraction_strict);
 val rep_strict = ax_abs_iso RS (allI RS retraction_strict);
 val iso_rews = map Drule.export_without_context [ax_abs_iso, ax_rep_iso, abs_strict, rep_strict];
-
-(* ----- theorems concerning the constructors, discriminators and selectors - *)
-
-local
-  fun ps args = mapn (fn n => fn _ => %:("pat" ^ string_of_int n)) 1 args;
-
-  fun pat_lhs (con,_,args) = mk_branch (list_comb (%%:(pat_name con), ps args));
-
-  fun pat_rhs (con,_,[]) = mk_return ((%:"rhs") ` HOLogic.unit)
-    | pat_rhs (con,_,args) =
-        (mk_branch (mk_ctuple_pat (ps args)))
-          `(%:"rhs")`(mk_ctuple (map %# args));
-
-  fun pat_strict c =
-    let
-      val axs = @{thm branch_def} :: axs_pat_def;
-      val goal = mk_trp (strict (pat_lhs c ` (%:"rhs")));
-      val tacs = [simp_tac (HOLCF_ss addsimps [when_strict]) 1];
-    in pg axs goal (K tacs) end;
-
-  fun pat_app c (con, _, args) =
-    let
-      val axs = @{thm branch_def} :: axs_pat_def;
-      val lhs = (pat_lhs c)`(%:"rhs")`(con_app con args);
-      val rhs = if con = first c then pat_rhs c else mk_fail;
-      val goal = lift_defined %: (nonlazy args, mk_trp (lhs === rhs));
-      val tacs = [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
-    in pg axs goal (K tacs) end;
-
-  val _ = trace " Proving pat_stricts...";
-  val pat_stricts = map pat_strict cons;
-  val _ = trace " Proving pat_apps...";
-  val pat_apps = maps (fn c => map (pat_app c) cons) cons;
-in
-  val pat_rews = pat_stricts @ pat_apps;
-end;
 
 (* ----- theorems concerning one induction step ----------------------------- *)
 
