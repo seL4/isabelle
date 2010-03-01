@@ -357,32 +357,47 @@ text {* Mixfix annotations specify concrete \emph{inner syntax} of
 *}
 
 
-section {* Explicit term notation *}
+section {* Explicit notation *}
 
 text {*
   \begin{matharray}{rcll}
+    @{command_def "type_notation"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "no_type_notation"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "notation"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "no_notation"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
   \end{matharray}
 
   \begin{rail}
+    ('type\_notation' | 'no\_type\_notation') target? mode? \\ (nameref mixfix + 'and')
+    ;
     ('notation' | 'no\_notation') target? mode? \\ (nameref structmixfix + 'and')
     ;
   \end{rail}
 
   \begin{description}
 
+  \item @{command "type_notation"}~@{text "c (mx)"} associates mixfix
+  syntax with an existing type constructor.  The arity of the
+  constructor is retrieved from the context.
+  
+  \item @{command "no_type_notation"} is similar to @{command
+  "type_notation"}, but removes the specified syntax annotation from
+  the present context.
+
   \item @{command "notation"}~@{text "c (mx)"} associates mixfix
-  syntax with an existing constant or fixed variable.  This is a
-  robust interface to the underlying @{command "syntax"} primitive
-  (\secref{sec:syn-trans}).  Type declaration and internal syntactic
-  representation of the given entity is retrieved from the context.
+  syntax with an existing constant or fixed variable.  The type
+  declaration of the given entity is retrieved from the context.
   
   \item @{command "no_notation"} is similar to @{command "notation"},
   but removes the specified syntax annotation from the present
   context.
 
   \end{description}
+
+  Compared to the underlying @{command "syntax"} and @{command
+  "no_syntax"} primitives (\secref{sec:syn-trans}), the above commands
+  provide explicit checking wrt.\ the logical context, and work within
+  general local theory targets, not just the global theory.
 *}
 
 

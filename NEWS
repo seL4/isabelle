@@ -51,6 +51,10 @@ need to specify constant name and syntax separately.  Internal ML
 datatype constructors have been renamed from InfixName to Infix etc.
 Minor INCOMPATIBILITY.
 
+* Commands 'type_notation' and 'no_type_notation' declare type syntax
+within a local theory context, with explicit checking of the
+constructors involved (in contrast to the raw 'syntax' versions).
+
 
 *** HOL ***
 

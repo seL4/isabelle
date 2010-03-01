@@ -226,6 +226,16 @@ val _ =
     >> (fn (mode, args) => Specification.abbreviation_cmd mode args));
 
 val _ =
+  OuterSyntax.local_theory "type_notation" "add notation for type constructors" K.thy_decl
+    (opt_mode -- P.and_list1 (P.xname -- P.mixfix)
+    >> (fn (mode, args) => Specification.type_notation_cmd true mode args));
+
+val _ =
+  OuterSyntax.local_theory "no_type_notation" "delete notation for type constructors" K.thy_decl
+    (opt_mode -- P.and_list1 (P.xname -- P.mixfix)
+    >> (fn (mode, args) => Specification.type_notation_cmd false mode args));
+
+val _ =
   OuterSyntax.local_theory "notation" "add notation for constants / fixed variables" K.thy_decl
     (opt_mode -- P.and_list1 (P.xname -- SpecParse.locale_mixfix)
     >> (fn (mode, args) => Specification.notation_cmd true mode args));
