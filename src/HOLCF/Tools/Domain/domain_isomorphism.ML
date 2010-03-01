@@ -110,6 +110,9 @@ fun coerce_const T = Const (@{const_name coerce}, T);
 fun isodefl_const T =
   Const (@{const_name isodefl}, (T ->> T) --> deflT --> HOLogic.boolT);
 
+fun mk_deflation t =
+  Const (@{const_name deflation}, Term.fastype_of t --> boolT) $ t;
+
 (* splits a cterm into the right and lefthand sides of equality *)
 fun dest_eqs t = HOLogic.dest_eq (HOLogic.dest_Trueprop t);
 
@@ -396,6 +399,7 @@ fun gen_domain_isomorphism
         val rep_iso_thm = make @{thm domain_rep_iso};
         val abs_iso_thm = make @{thm domain_abs_iso};
         val isodefl_thm = make @{thm isodefl_abs_rep};
+        val deflation_thm = make @{thm deflation_abs_rep};
         val rep_iso_bind = Binding.name "rep_iso";
         val abs_iso_bind = Binding.name "abs_iso";
         val isodefl_bind = Binding.name "isodefl_abs_rep";
@@ -407,11 +411,13 @@ fun gen_domain_isomorphism
                (isodefl_bind, isodefl_thm)]
           ||> Sign.parent_path;
       in
-        (((rep_iso_thm, abs_iso_thm), isodefl_thm), thy)
+        (((rep_iso_thm, abs_iso_thm), (isodefl_thm, deflation_thm)), thy)
       end;
-    val ((iso_thms, isodefl_abs_rep_thms), thy) = thy
+    val ((iso_thms, (isodefl_abs_rep_thms, deflation_abs_rep_thms)), thy) =
+      thy
       |> fold_map mk_iso_thms (dom_binds ~~ REP_eq_thms ~~ rep_abs_defs)
-      |>> ListPair.unzip;
+      |>> ListPair.unzip
+      |>> apsnd ListPair.unzip;
 
     (* collect info about rep/abs *)
     val iso_info : iso_info list =
@@ -535,6 +541,49 @@ fun gen_domain_isomorphism
       (PureThy.add_thms o map Thm.no_attributes)
         (map_ID_binds ~~ map_ID_thms);
     val thy = MapIdData.map (fold Thm.add_thm map_ID_thms) thy;
+
+    (* prove deflation theorems for map functions *)
+    val deflation_map_thm =
+      let
+        fun unprime a = Library.unprefix "'" a;
+        fun mk_f T = Free (unprime (fst (dest_TFree T)), T ->> T);
+        fun mk_assm T = mk_trp (mk_deflation (mk_f T));
+        fun mk_goal (map_const, (lhsT, rhsT)) =
+          let
+            val (_, Ts) = dest_Type lhsT;
+            val map_term = list_ccomb (map_const, map mk_f Ts);
+          in mk_deflation map_term end;
+        val assms = (map mk_assm o snd o dest_Type o fst o hd) dom_eqns;
+        val goals = map mk_goal (map_consts ~~ dom_eqns);
+        val goal = mk_trp (foldr1 HOLogic.mk_conj goals);
+        val start_thms =
+          @{thm split_def} :: map_apply_thms;
+        val adm_rules =
+          @{thms adm_conj adm_deflation cont2cont_fst cont2cont_snd cont_id};
+        val bottom_rules =
+          @{thms fst_strict snd_strict deflation_UU simp_thms};
+        val deflation_rules =
+          @{thms conjI deflation_ID}
+          @ deflation_abs_rep_thms
+          @ DeflMapData.get thy;
+      in
+        Goal.prove_global thy [] assms goal (fn {prems, ...} =>
+         EVERY
+          [simp_tac (HOL_basic_ss addsimps start_thms) 1,
+           rtac @{thm fix_ind} 1,
+           REPEAT (resolve_tac adm_rules 1),
+           simp_tac (HOL_basic_ss addsimps bottom_rules) 1,
+           simp_tac beta_ss 1,
+           simp_tac (HOL_basic_ss addsimps @{thms fst_conv snd_conv}) 1,
+           REPEAT (etac @{thm conjE} 1),
+           REPEAT (resolve_tac (deflation_rules @ prems) 1 ORELSE atac 1)])
+      end;
+    val deflation_map_binds = dom_binds |>
+        map (Binding.prefix_name "deflation_" o Binding.suffix_name "_map");
+    val (deflation_map_thms, thy) = thy |>
+      (PureThy.add_thms o map (Thm.no_attributes o apsnd Drule.export_without_context))
+        (conjuncts deflation_map_binds deflation_map_thm);
+    val thy = DeflMapData.map (fold Thm.add_thm deflation_map_thms) thy;
 
     (* define copy combinators *)
     val new_dts =
