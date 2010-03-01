@@ -1025,6 +1025,9 @@ fun add_domain_constructors
     val rep_defined_iff = iso_locale RS @{thm iso.rep_defined_iff};
     val abs_defined_iff = iso_locale RS @{thm iso.abs_defined_iff};
 
+    (* qualify constants and theorems with domain name *)
+    val thy = Sign.add_path dname thy;
+
     (* define constructor functions *)
     val (con_result, thy) =
       let
@@ -1046,10 +1049,6 @@ fun add_domain_constructors
         add_case_combinator case_spec lhsT dname
           con_betas casedist iso_locale rep_const thy
       end;
-
-    (* qualify constants and theorems with domain name *)
-    (* TODO: enable this earlier *)
-    val thy = Sign.add_path dname thy;
 
     (* define and prove theorems for selector functions *)
     val (sel_thms : thm list, thy : theory) =
