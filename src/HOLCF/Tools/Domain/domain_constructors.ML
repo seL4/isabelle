@@ -239,8 +239,7 @@ fun add_constructors
       fun con_strict (con, args) = 
         let
           val rules = abs_strict :: @{thms con_strict_rules};
-          val vs = vars_of args;
-          val nonlazy = map snd (filter_out fst (map fst args ~~ vs));
+          val (vs, nonlazy) = get_vars args;
           fun one_strict v' =
             let
               val UU = mk_bottom (fastype_of v');
@@ -254,8 +253,7 @@ fun add_constructors
         let
           fun iff_disj (t, []) = HOLogic.mk_not t
             | iff_disj (t, ts) = mk_eq (t, foldr1 HOLogic.mk_disj ts);
-          val vs = vars_of args;
-          val nonlazy = map snd (filter_out fst (map fst args ~~ vs));
+          val (vs, nonlazy) = get_vars args;
           val lhs = mk_undef (list_ccomb (con, vs));
           val rhss = map mk_undef nonlazy;
           val goal = mk_trp (iff_disj (lhs, rhss));
@@ -275,9 +273,8 @@ fun add_constructors
         let
           fun prime (Free (n, T)) = Free (n^"'", T)
             | prime t             = t;
-          val xs = vars_of args;
+          val (xs, nonlazy) = get_vars args;
           val ys = map prime xs;
-          val nonlazy = map snd (filter_out (fst o fst) (args ~~ xs));
           val lhs = rel (list_ccomb (con, xs), list_ccomb (con, ys));
           val rhs = foldr1 mk_conj (ListPair.map rel (xs, ys));
           val concl = mk_trp (mk_eq (lhs, rhs));
@@ -319,9 +316,8 @@ fun add_constructors
           mk_eq (t, mk_conj (foldr1 mk_disj ts, foldr1 mk_disj us));
       fun dist_le (con1, args1) (con2, args2) =
         let
-          val vs1 = vars_of args1;
-          val vs2 = map prime (vars_of args2);
-          val zs1 = map snd (filter_out (fst o fst) (args1 ~~ vs1));
+          val (vs1, zs1) = get_vars args1;
+          val (vs2, zs2) = get_vars args2 |> pairself (map prime);
           val lhs = mk_below (list_ccomb (con1, vs1), list_ccomb (con2, vs2));
           val rhss = map mk_undef zs1;
           val goal = mk_trp (iff_disj (lhs, rhss));
@@ -331,10 +327,8 @@ fun add_constructors
         in prove thy con_betas goal (K tacs) end;
       fun dist_eq (con1, args1) (con2, args2) =
         let
-          val vs1 = vars_of args1;
-          val vs2 = map prime (vars_of args2);
-          val zs1 = map snd (filter_out (fst o fst) (args1 ~~ vs1));
-          val zs2 = map snd (filter_out (fst o fst) (args2 ~~ vs2));
+          val (vs1, zs1) = get_vars args1;
+          val (vs2, zs2) = get_vars args2 |> pairself (map prime);
           val lhs = mk_eq (list_ccomb (con1, vs1), list_ccomb (con2, vs2));
           val rhss1 = map mk_undef zs1;
           val rhss2 = map mk_undef zs2;
