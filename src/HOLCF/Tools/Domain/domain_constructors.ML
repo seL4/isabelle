@@ -83,6 +83,21 @@ fun prove
     Goal.prove_global thy [] [] goal tac
   end;
 
+fun get_vars_avoiding
+    (taken : string list)
+    (args : (bool * typ) list)
+    : (term list * term list) =
+  let
+    val Ts = map snd args;
+    val ns = Name.variant_list taken (Datatype_Prop.make_tnames Ts);
+    val vs = map Free (ns ~~ Ts);
+    val nonlazy = map snd (filter_out (fst o fst) (args ~~ vs));
+  in
+    (vs, nonlazy)
+  end;
+
+fun get_vars args = get_vars_avoiding [] args;
+
 (************** generating beta reduction rules from definitions **************)
 
 local
@@ -179,10 +194,7 @@ fun add_constructors
       val x = Free ("x", lhsT);
       fun one_con (con, args) =
         let
-          val Ts = map snd args;
-          val ns = Name.variant_list ["x"] (Datatype_Prop.make_tnames Ts);
-          val vs = map Free (ns ~~ Ts);
-          val nonlazy = map snd (filter_out (fst o fst) (args ~~ vs));
+          val (vs, nonlazy) = get_vars_avoiding ["x"] args;
           val eqn = mk_eq (x, list_ccomb (con, vs));
           val conj = foldr1 mk_conj (eqn :: map mk_defined nonlazy);
         in Library.foldr mk_ex (vs, conj) end;
@@ -444,10 +456,7 @@ fun add_case_combinator
     local
       fun one_case (con, args) f =
         let
-          val Ts = map snd args;
-          val ns = Name.variant_list fns (Datatype_Prop.make_tnames Ts);
-          val vs = map Free (ns ~~ Ts);
-          val nonlazy = map snd (filter_out (fst o fst) (args ~~ vs));
+          val (vs, nonlazy) = get_vars args;
           val assms = map (mk_trp o mk_defined) nonlazy;
           val lhs = case_app ` list_ccomb (con, vs);
           val rhs = list_ccomb (f, vs);
@@ -635,9 +644,7 @@ fun add_discriminators
     local
       fun dis_fun i (j, (con, args)) =
         let
-          val Ts = map snd args;
-          val ns = Datatype_Prop.make_tnames Ts;
-          val vs = map Free (ns ~~ Ts);
+          val (vs, nonlazy) = get_vars args;
           val tr = if i = j then @{term TT} else @{term FF};
         in
           big_lambdas vs tr
@@ -667,10 +674,7 @@ fun add_discriminators
     local
       fun dis_app (i, dis) (j, (con, args)) =
         let
-          val Ts = map snd args;
-          val ns = Datatype_Prop.make_tnames Ts;
-          val vs = map Free (ns ~~ Ts);
-          val nonlazy = map snd (filter_out (fst o fst) (args ~~ vs));
+          val (vs, nonlazy) = get_vars args;
           val lhs = dis ` list_ccomb (con, vs);
           val rhs = if i = j then @{term TT} else @{term FF};
           val assms = map (mk_trp o mk_defined) nonlazy;
@@ -734,9 +738,7 @@ fun add_match_combinators
       val fail = mk_fail resultT;
       fun mat_fun i (j, (con, args)) =
         let
-          val Ts = map snd args;
-          val ns = Name.variant_list ["x","k"] (Datatype_Prop.make_tnames Ts);
-          val vs = map Free (ns ~~ Ts);
+          val (vs, nonlazy) = get_vars_avoiding ["x","k"] args;
         in
           if i = j then k args else big_lambdas vs fail
         end;
@@ -780,10 +782,7 @@ fun add_match_combinators
       val fail = mk_fail resultT;
       fun match_app (i, mat) (j, (con, args)) =
         let
-          val Ts = map snd args;
-          val ns = Name.variant_list ["k"] (Datatype_Prop.make_tnames Ts);
-          val vs = map Free (ns ~~ Ts);
-          val nonlazy = map snd (filter_out (fst o fst) (args ~~ vs));
+          val (vs, nonlazy) = get_vars_avoiding ["k"] args;
           val (_, (kT, _)) = apsnd dest_cfunT (dest_cfunT (fastype_of mat));
           val k = Free ("k", kT);
           val lhs = mat ` list_ccomb (con, vs) ` k;
@@ -853,14 +852,11 @@ fun add_pattern_combinators
           val patTs = map2 (fn T => fn V => T ->> mk_matchT V) Ts Vs;
           val pats = map Free (patNs ~~ patTs);
           val fail = mk_fail (mk_tupleT Vs);
-          val ns = Name.variant_list patNs (Datatype_Prop.make_tnames Ts);
-          val vs = map Free (ns ~~ Ts);
+          val (vs, nonlazy) = get_vars_avoiding patNs args;
           val rhs = big_lambdas vs (mk_tuple_pat pats ` mk_tuple vs);
           fun one_fun (j, (_, args')) =
             let
-              val Ts = map snd args';
-              val ns = Name.variant_list patNs (Datatype_Prop.make_tnames Ts);
-              val vs' = map Free (ns ~~ Ts);
+              val (vs', nonlazy) = get_vars_avoiding patNs args';
             in if i = j then rhs else big_lambdas vs' fail end;
           val funs = map_index one_fun spec;
           val body = list_ccomb (case_const (mk_matchT (mk_tupleT Vs)), funs);
@@ -942,11 +938,8 @@ fun add_pattern_combinators
           val (fun1, fun2, taken) = pat_lhs (pat, args);
           fun pat_app (j, (con', args')) =
             let
-              val Ts = map snd args';
-              val ns = Name.variant_list taken (Datatype_Prop.make_tnames Ts);
-              val vs = map Free (ns ~~ Ts);
+              val (vs, nonlazy) = get_vars_avoiding taken args';
               val con_app = list_ccomb (con', vs);
-              val nonlazy = map snd (filter_out (fst o fst) (args' ~~ vs));
               val assms = map (mk_trp o mk_defined) nonlazy;
               val rhs = if i = j then fun2 ` mk_tuple vs else mk_fail R;
               val concl = mk_trp (mk_eq (fun1 ` con_app, rhs));
