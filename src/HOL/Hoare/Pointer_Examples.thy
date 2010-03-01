@@ -222,13 +222,11 @@ definition cor :: "bool \<Rightarrow> bool \<Rightarrow> bool" where
 definition cand :: "bool \<Rightarrow> bool \<Rightarrow> bool" where
 "cand P Q == if P then Q else False"
 
-consts merge :: "'a list * 'a list * ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list"
-
-recdef merge "measure(%(xs,ys,f). size xs + size ys)"
+fun merge :: "'a list * 'a list * ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list" where
 "merge(x#xs,y#ys,f) = (if f x y then x # merge(xs,y#ys,f)
-                                else y # merge(x#xs,ys,f))"
-"merge(x#xs,[],f) = x # merge(xs,[],f)"
-"merge([],y#ys,f) = y # merge([],ys,f)"
+                                else y # merge(x#xs,ys,f))" |
+"merge(x#xs,[],f) = x # merge(xs,[],f)" |
+"merge([],y#ys,f) = y # merge([],ys,f)" |
 "merge([],[],f) = []"
 
 text{* Simplifies the proof a little: *}
