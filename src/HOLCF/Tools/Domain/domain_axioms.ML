@@ -12,7 +12,7 @@ sig
   val calc_axioms :
       bool ->
       Domain_Library.eq list -> int -> Domain_Library.eq ->
-      string * (string * term) list * (string * term) list
+      string * (string * term) list
 
   val add_axioms :
       bool ->
@@ -53,7 +53,7 @@ fun calc_axioms
     (eqs : eq list)
     (n : int)
     (eqn as ((dname,_),cons) : eq)
-    : string * (string * term) list * (string * term) list =
+    : string * (string * term) list =
   let
 
 (* ----- axioms and definitions concerning the isomorphism ------------------ *)
@@ -67,17 +67,8 @@ fun calc_axioms
     val abs_iso_ax = ("abs_iso", mk_trp(dc_rep`(dc_abs`%x_name') === %:x_name'));
     val rep_iso_ax = ("rep_iso", mk_trp(dc_abs`(dc_rep`%x_name') === %:x_name'));
 
-(* ----- axiom and definitions concerning induction ------------------------- *)
-
-    val finite_def =
-        ("finite_def",
-         %%:(dname^"_finite") ==
-            mk_lam(x_name,
-                   mk_ex("n",(%%:(dname^"_take") $ Bound 0)`Bound 1 === Bound 1)));
-
-  in (dnam,
-      (if definitional then [] else [abs_iso_ax, rep_iso_ax]),
-      [finite_def])
+  in
+    (dnam, if definitional then [] else [abs_iso_ax, rep_iso_ax])
   end; (* let (calc_axioms) *)
 
 
@@ -94,15 +85,12 @@ fun infer_props thy = map (apsnd (legacy_infer_prop thy));
 fun add_axioms_i x = snd o PureThy.add_axioms (map (Thm.no_attributes o apfst Binding.name) x);
 fun add_axioms_infer axms thy = add_axioms_i (infer_props thy axms) thy;
 
-fun add_defs_i x = snd o (PureThy.add_defs false) (map (Thm.no_attributes o apfst Binding.name) x);
-fun add_defs_infer defs thy = add_defs_i (infer_props thy defs) thy;
-
 fun add_axioms definitional eqs' (eqs : eq list) thy' =
   let
     val dnames = map (fst o fst) eqs;
     val x_name = idx_name dnames "x"; 
 
-    fun add_one (dnam, axs, dfs) =
+    fun add_one (dnam, axs) =
         Sign.add_path dnam
           #> add_axioms_infer axs
           #> Sign.parent_path;
@@ -138,12 +126,6 @@ fun add_axioms definitional eqs' (eqs : eq list) thy' =
         else snd (Domain_Take_Proofs.define_take_functions
                     (dom_binds ~~ map get_iso_info eqs') thy);
 
-    fun add_one' (dnam, axs, dfs) =
-        Sign.add_path dnam
-          #> add_defs_infer dfs
-          #> Sign.parent_path;
-    val thy = fold add_one' axs thy;
-
     (* declare lub_take axioms *)
     local
       fun ax_lub_take dname =
@@ -156,7 +138,7 @@ fun add_axioms definitional eqs' (eqs : eq list) thy' =
           val lhs = lub $ (image $ take_const $ UNIV);
           val ax = mk_trp (lhs === ID);
         in
-          add_one (dnam, [("lub_take", ax)], [])
+          add_one (dnam, [("lub_take", ax)])
         end
     in
       val thy =

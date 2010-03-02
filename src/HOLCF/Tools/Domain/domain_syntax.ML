@@ -47,12 +47,10 @@ fun calc_syntax thy
     val const_abs  = (dbind "_abs" ,              dtype2 ->> dtype , NoSyn);
     end;
 
-    val const_finite = (dbind "_finite", dtype-->HOLogic.boolT       , NoSyn);
-
     val optional_consts =
         if definitional then [] else [const_rep, const_abs];
 
-  in (optional_consts @ [const_finite])
+  in optional_consts
   end; (* let *)
 
 (* ----- putting all the syntax stuff together ------------------------------ *)

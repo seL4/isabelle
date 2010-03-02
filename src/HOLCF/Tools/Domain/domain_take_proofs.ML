@@ -24,7 +24,9 @@ sig
       chain_take_thms : thm list,
       take_0_thms : thm list,
       take_Suc_thms : thm list,
-      deflation_take_thms : thm list
+      deflation_take_thms : thm list,
+      finite_consts : term list,
+      finite_defs : thm list
     } * theory
 
   val map_of_typ :
@@ -95,6 +97,7 @@ open HOLCF_Library;
 
 infixr 6 ->>;
 infix -->>;
+infix 9 `;
 
 val deflT = @{typ "udom alg_defl"};
 
@@ -374,6 +377,31 @@ fun define_take_functions
       fold_map prove_take_take
         (chain_take_thms ~~ deflation_take_thms ~~ dnames) thy;
 
+    (* define finiteness predicates *)
+    fun define_finite_const ((tbind, take_const), (lhsT, rhsT)) thy =
+      let
+        val finite_type = lhsT --> boolT;
+        val finite_bind = Binding.suffix_name "_finite" tbind;
+        val (finite_const, thy) =
+          Sign.declare_const ((finite_bind, finite_type), NoSyn) thy;
+        val x = Free ("x", lhsT);
+        val i = Free ("i", natT);
+        val finite_rhs =
+          lambda x (HOLogic.exists_const natT $
+            (lambda i (mk_eq (mk_capply (take_const $ i, x), x))));
+        val finite_eqn = Logic.mk_equals (finite_const, finite_rhs);
+        val (finite_def_thm, thy) =
+          thy
+          |> Sign.add_path (Binding.name_of tbind)
+          |> yield_singleton
+              (PureThy.add_defs false o map Thm.no_attributes)
+              (Binding.name "finite_def", finite_eqn)
+          ||> Sign.parent_path;
+      in ((finite_const, finite_def_thm), thy) end;
+    val ((finite_consts, finite_defs), thy) = thy
+      |> fold_map define_finite_const (dom_binds ~~ take_consts ~~ dom_eqns)
+      |>> ListPair.unzip;
+
     val result =
       {
         take_consts = take_consts,
@@ -381,7 +409,9 @@ fun define_take_functions
         chain_take_thms = chain_take_thms,
         take_0_thms = take_0_thms,
         take_Suc_thms = take_Suc_thms,
-        deflation_take_thms = deflation_take_thms
+        deflation_take_thms = deflation_take_thms,
+        finite_consts = finite_consts,
+        finite_defs = finite_defs
       };
 
   in
