@@ -187,6 +187,26 @@ lemma deflation_abs_rep:
   shows "deflation d \<Longrightarrow> deflation (abs oo d oo rep)"
 by (rule ep_pair.deflation_e_d_p) (simp add: ep_pair.intro assms)
 
+lemma deflation_chain_min:
+  assumes chain: "chain d"
+  assumes defl: "\<And>i. deflation (d i)"
+  shows "d i\<cdot>(d j\<cdot>x) = d (min i j)\<cdot>x"
+proof (rule linorder_le_cases)
+  assume "i \<le> j"
+  with chain have "d i \<sqsubseteq> d j" by (rule chain_mono)
+  then have "d i\<cdot>(d j\<cdot>x) = d i\<cdot>x"
+    by (rule deflation_below_comp1 [OF defl defl])
+  moreover from `i \<le> j` have "min i j = i" by simp
+  ultimately show ?thesis by simp
+next
+  assume "j \<le> i"
+  with chain have "d j \<sqsubseteq> d i" by (rule chain_mono)
+  then have "d i\<cdot>(d j\<cdot>x) = d j\<cdot>x"
+    by (rule deflation_below_comp2 [OF defl defl])
+  moreover from `j \<le> i` have "min i j = j" by simp
+  ultimately show ?thesis by simp
+qed
+
 
 subsection {* Proving a subtype is representable *}
 

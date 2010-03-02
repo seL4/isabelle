@@ -463,6 +463,18 @@ fun define_take_functions
     val (take_strict_thms, thy) =
       fold_map prove_take_strict (take_consts ~~ dnames) thy;
 
+    (* prove take/take rules *)
+    fun prove_take_take ((chain_take, deflation_take), dname) thy =
+      let
+        val take_take_thm =
+            @{thm deflation_chain_min} OF [chain_take, deflation_take];
+      in
+        add_qualified_thm "take_take" (dname, take_take_thm) thy
+      end;
+    val (take_take_thms, thy) =
+      fold_map prove_take_take
+        (chain_take_thms ~~ deflation_take_thms ~~ dnames) thy;
+
     val result =
       {
         take_consts = take_consts,
