@@ -99,8 +99,8 @@ simplifications:
 types vvar  =         "val \<times> (val \<Rightarrow> state \<Rightarrow> state)"
       vals  =        "(val, vvar, val list) sum3"
 translations
-     "vvar" <= (type) "val \<times> (val \<Rightarrow> state \<Rightarrow> state)"
-     "vals" <= (type)"(val, vvar, val list) sum3" 
+  (type) "vvar" <= (type) "val \<times> (val \<Rightarrow> state \<Rightarrow> state)"
+  (type) "vals" <= (type) "(val, vvar, val list) sum3" 
 
 text {* To avoid redundancy and to reduce the number of rules, there is only 
  one evaluation rule for each syntactic term. This is also true for variables

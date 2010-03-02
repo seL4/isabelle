@@ -49,7 +49,7 @@ subsection {* Representations of types *}
 text "A TypeRep is an algebraic deflation over the universe of values."
 
 types TypeRep = "udom alg_defl"
-translations "TypeRep" \<leftharpoondown> (type) "udom alg_defl"
+translations (type) "TypeRep" \<leftharpoondown> (type) "udom alg_defl"
 
 definition
   Rep_of :: "'a::rep itself \<Rightarrow> TypeRep"
@@ -59,7 +59,7 @@ where
       (emb oo (approx i :: 'a \<rightarrow> 'a) oo prj)))"
 
 syntax "_REP" :: "type \<Rightarrow> TypeRep"  ("(1REP/(1'(_')))")
-translations "REP(t)" \<rightleftharpoons> "CONST Rep_of TYPE(t)"
+translations "REP('t)" \<rightleftharpoons> "CONST Rep_of TYPE('t)"
 
 lemma cast_REP:
   "cast\<cdot>REP('a::rep) = (emb::'a \<rightarrow> udom) oo (prj::udom \<rightarrow> 'a)"

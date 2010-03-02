@@ -10,7 +10,7 @@ begin
 
 types one = "unit lift"
 translations
-  "one" <= (type) "unit lift" 
+  (type) "one" <= (type) "unit lift" 
 
 definition
   ONE :: "one"

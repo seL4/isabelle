@@ -37,10 +37,10 @@ record env =
          lcl:: "lenv"    --{* local environment *}     
   
 translations
-  "lenv" <= (type) "(lname, ty) table"
-  "lenv" <= (type) "lname \<Rightarrow> ty option"
-  "env" <= (type) "\<lparr>prg::prog,cls::qtname,lcl::lenv\<rparr>"
-  "env" <= (type) "\<lparr>prg::prog,cls::qtname,lcl::lenv,\<dots>::'a\<rparr>"
+  (type) "lenv" <= (type) "(lname, ty) table"
+  (type) "lenv" <= (type) "lname \<Rightarrow> ty option"
+  (type) "env" <= (type) "\<lparr>prg::prog,cls::qtname,lcl::lenv\<rparr>"
+  (type) "env" <= (type) "\<lparr>prg::prog,cls::qtname,lcl::lenv,\<dots>::'a\<rparr>"
 
 
 abbreviation
@@ -238,9 +238,9 @@ primrec
 
 section "Typing for terms"
 
-types tys  =        "ty + ty list"
+types tys  = "ty + ty list"
 translations
-  "tys"   <= (type) "ty + ty list"
+  (type) "tys" <= (type) "ty + ty list"
 
 
 inductive

@@ -18,7 +18,7 @@ text {*
 
 types 'a assn = "'a => state => bool"
 translations
-  "a assn"   <= (type)"a => state => bool"
+  (type) "'a assn" <= (type) "'a => state => bool"
 
 definition
   state_not_singleton :: bool where

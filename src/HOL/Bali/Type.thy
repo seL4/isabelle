@@ -30,11 +30,6 @@ and ty                  --{* any type, cf. 4.1 *}
         = PrimT prim_ty --{* primitive type *}
         | RefT  ref_ty  --{* reference type *}
 
-translations
-  "prim_ty" <= (type) "Type.prim_ty"
-  "ref_ty"  <= (type) "Type.ref_ty"
-  "ty"      <= (type) "Type.ty"
-
 abbreviation "NT == RefT NullT"
 abbreviation "Iface I == RefT (IfaceT I)"
 abbreviation "Class C == RefT (ClassT C)"

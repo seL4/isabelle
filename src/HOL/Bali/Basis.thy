@@ -213,11 +213,6 @@ fun sum3_instantiate ctxt thm = map (fn s =>
 *}
 (* e.g. lemmas is_stmt_rews = is_stmt_def [of "In1l x", simplified] *)
 
-translations
-  "option"<= (type) "Option.option"
-  "list"  <= (type) "List.list"
-  "sum3"  <= (type) "Basis.sum3"
-
 
 section "quantifiers for option type"
 

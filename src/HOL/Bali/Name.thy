@@ -78,11 +78,7 @@ definition
   qtname_qtname_def: "qtname (q::'a qtname_ext_type) \<equiv> q"
 
 translations
-  "mname"  <= "Name.mname"
-  "xname"  <= "Name.xname"
-  "tname"  <= "Name.tname"
-  "ename"  <= "Name.ename"
-  "qtname" <= (type) "\<lparr>pid::pname,tid::tname\<rparr>"
+  (type) "qtname" <= (type) "\<lparr>pid::pname,tid::tname\<rparr>"
   (type) "'a qtname_scheme" <= (type) "\<lparr>pid::pname,tid::tname,\<dots>::'a\<rparr>"
 
 
