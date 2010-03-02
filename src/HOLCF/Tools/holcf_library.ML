@@ -13,6 +13,7 @@ infix -->>;
 (*** Operations from Isabelle/HOL ***)
 
 val boolT = HOLogic.boolT;
+val natT = HOLogic.natT;
 
 val mk_equals = Logic.mk_equals;
 val mk_eq = HOLogic.mk_eq;
@@ -42,6 +43,9 @@ fun mk_compact t =
 
 fun mk_cont t =
   Const (@{const_name cont}, fastype_of t --> boolT) $ t;
+
+fun mk_chain t =
+  Const (@{const_name chain}, Term.fastype_of t --> boolT) $ t;
 
 
 (*** Continuous function space ***)
@@ -236,5 +240,11 @@ fun mk_fix t =
   let val (T, _) = dest_cfunT (fastype_of t)
   in mk_capply (Const(@{const_name fix}, (T ->> T) ->> T), t) end;
 
+fun iterate_const T =
+  Const (@{const_name iterate}, natT --> (T ->> T) ->> (T ->> T));
+
+fun mk_iterate (n, f) =
+  let val (T, _) = dest_cfunT (Term.fastype_of f);
+  in (iterate_const T $ n) ` f ` mk_bottom T end;
 
 end;

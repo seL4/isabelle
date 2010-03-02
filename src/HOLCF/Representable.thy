@@ -182,15 +182,10 @@ unfolding abs_def rep_def by (simp add: REP [symmetric])
 
 lemma deflation_abs_rep:
   fixes abs and rep and d
-  assumes REP: "REP('b) = REP('a)"
-  assumes abs_def: "abs \<equiv> (coerce :: 'a \<rightarrow> 'b)"
-  assumes rep_def: "rep \<equiv> (coerce :: 'b \<rightarrow> 'a)"
+  assumes abs_iso: "\<And>x. rep\<cdot>(abs\<cdot>x) = x"
+  assumes rep_iso: "\<And>y. abs\<cdot>(rep\<cdot>y) = y"
   shows "deflation d \<Longrightarrow> deflation (abs oo d oo rep)"
-unfolding abs_def rep_def 
-apply (rule ep_pair.deflation_e_d_p)
-apply (rule ep_pair_coerce, simp add: REP)
-apply assumption
-done
+by (rule ep_pair.deflation_e_d_p) (simp add: ep_pair.intro assms)
 
 
 subsection {* Proving a subtype is representable *}

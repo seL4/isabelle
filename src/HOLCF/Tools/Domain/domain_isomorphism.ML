@@ -15,16 +15,25 @@ sig
       rep_inverse : thm,
       abs_inverse : thm
     }
-  val domain_isomorphism:
+  val domain_isomorphism :
     (string list * binding * mixfix * typ * (binding * binding) option) list
       -> theory -> iso_info list * theory
-  val domain_isomorphism_cmd:
+  val domain_isomorphism_cmd :
     (string list * binding * mixfix * string * (binding * binding) option) list
       -> theory -> theory
-  val add_type_constructor:
+  val add_type_constructor :
     (string * term * string * thm  * thm * thm * thm) -> theory -> theory
-  val get_map_tab:
+  val get_map_tab :
     theory -> string Symtab.table
+  val define_take_functions :
+    (binding * iso_info) list -> theory ->
+    { take_consts : term list,
+      take_defs : thm list,
+      chain_take_thms : thm list,
+      take_0_thms : thm list,
+      take_Suc_thms : thm list,
+      deflation_take_thms : thm list
+    } * theory;
 end;
 
 structure Domain_Isomorphism :> DOMAIN_ISOMORPHISM =
@@ -117,6 +126,29 @@ fun mk_deflation t =
 fun dest_eqs t = HOLogic.dest_eq (HOLogic.dest_Trueprop t);
 
 fun mk_eqs (t, u) = HOLogic.mk_Trueprop (HOLogic.mk_eq (t, u));
+
+(******************************************************************************)
+(****************************** isomorphism info ******************************)
+(******************************************************************************)
+
+type iso_info =
+  {
+    absT : typ,
+    repT : typ,
+    abs_const : term,
+    rep_const : term,
+    abs_inverse : thm,
+    rep_inverse : thm
+  }
+
+fun deflation_abs_rep (info : iso_info) : thm =
+  let
+    val abs_iso = #abs_inverse info;
+    val rep_iso = #rep_inverse info;
+    val thm = @{thm deflation_abs_rep} OF [abs_iso, rep_iso];
+  in
+    Drule.export_without_context thm
+  end
 
 (******************************************************************************)
 (*************** fixed-point definitions and unfolding theorems ***************)
@@ -242,19 +274,212 @@ fun define_const
     ((const, def_thm), thy)
   end;
 
+fun add_qualified_thm name (path, thm) thy =
+    thy
+    |> Sign.add_path path
+    |> yield_singleton PureThy.add_thms
+        (Thm.no_attributes (Binding.name name, thm))
+    ||> Sign.parent_path;
+
+(******************************************************************************)
+(************************** defining take functions ***************************)
+(******************************************************************************)
+
+fun define_take_functions
+    (spec : (binding * iso_info) list)
+    (thy : theory) =
+  let
+
+    (* retrieve components of spec *)
+    val dom_binds = map fst spec;
+    val iso_infos = map snd spec;
+    val dom_eqns = map (fn x => (#absT x, #repT x)) iso_infos;
+    val rep_abs_consts = map (fn x => (#rep_const x, #abs_const x)) iso_infos;
+    val dnames = map Binding.name_of dom_binds;
+
+    (* get table of map functions *)
+    val map_tab = MapData.get thy;
+
+    fun mk_projs []      t = []
+      | mk_projs (x::[]) t = [(x, t)]
+      | mk_projs (x::xs) t = (x, mk_fst t) :: mk_projs xs (mk_snd t);
+
+    fun mk_cfcomp2 ((rep_const, abs_const), f) =
+        mk_cfcomp (abs_const, mk_cfcomp (f, rep_const));
+
+    (* defining map functions over dtyps *)
+    fun copy_of_dtyp recs (T, dt) =
+        if Datatype_Aux.is_rec_type dt
+        then copy_of_dtyp' recs (T, dt)
+        else mk_ID T
+    and copy_of_dtyp' recs (T, Datatype_Aux.DtRec i) = nth recs i
+      | copy_of_dtyp' recs (T, Datatype_Aux.DtTFree a) = mk_ID T
+      | copy_of_dtyp' recs (T, Datatype_Aux.DtType (c, ds)) =
+        case Symtab.lookup map_tab c of
+          SOME f =>
+          list_ccomb
+            (Const (f, mapT T),
+             map (copy_of_dtyp recs) (snd (dest_Type T) ~~ ds))
+        | NONE =>
+          (warning ("copy_of_dtyp: unknown type constructor " ^ c); mk_ID T);
+
+    (* define take functional *)
+    val new_dts : (string * string list) list =
+      map (apsnd (map (fst o dest_TFree)) o dest_Type o fst) dom_eqns;
+    val copy_arg_type = mk_tupleT (map (fn (T, _) => T ->> T) dom_eqns);
+    val copy_arg = Free ("f", copy_arg_type);
+    val copy_args = map snd (mk_projs dom_binds copy_arg);
+    fun one_copy_rhs (rep_abs, (lhsT, rhsT)) =
+      let
+        val dtyp = Datatype_Aux.dtyp_of_typ new_dts rhsT;
+        val body = copy_of_dtyp copy_args (rhsT, dtyp);
+      in
+        mk_cfcomp2 (rep_abs, body)
+      end;
+    val take_functional =
+        big_lambda copy_arg
+          (mk_tuple (map one_copy_rhs (rep_abs_consts ~~ dom_eqns)));
+    val take_rhss =
+      let
+        val i = Free ("i", HOLogic.natT);
+        val rhs = mk_iterate (i, take_functional)
+      in
+        map (Term.lambda i o snd) (mk_projs dom_binds rhs)
+      end;
+
+    (* define take constants *)
+    fun define_take_const ((tbind, take_rhs), (lhsT, rhsT)) thy =
+      let
+        val take_type = HOLogic.natT --> lhsT ->> lhsT;
+        val take_bind = Binding.suffix_name "_take" tbind;
+        val (take_const, thy) =
+          Sign.declare_const ((take_bind, take_type), NoSyn) thy;
+        val take_eqn = Logic.mk_equals (take_const, take_rhs);
+        val (take_def_thm, thy) =
+          thy
+          |> Sign.add_path (Binding.name_of tbind)
+          |> yield_singleton
+              (PureThy.add_defs false o map Thm.no_attributes)
+              (Binding.name "take_def", take_eqn)
+          ||> Sign.parent_path;
+      in ((take_const, take_def_thm), thy) end;
+    val ((take_consts, take_defs), thy) = thy
+      |> fold_map define_take_const (dom_binds ~~ take_rhss ~~ dom_eqns)
+      |>> ListPair.unzip;
+
+    (* prove chain_take lemmas *)
+    fun prove_chain_take (take_const, dname) thy =
+      let
+        val goal = mk_trp (mk_chain take_const);
+        val rules = take_defs @ @{thms chain_iterate ch2ch_fst ch2ch_snd};
+        val tac = simp_tac (HOL_basic_ss addsimps rules) 1;
+        val chain_take_thm = Goal.prove_global thy [] [] goal (K tac);
+      in
+        add_qualified_thm "chain_take" (dname, chain_take_thm) thy
+      end;
+    val (chain_take_thms, thy) =
+      fold_map prove_chain_take (take_consts ~~ dnames) thy;
+
+    (* prove take_0 lemmas *)
+    fun prove_take_0 ((take_const, dname), (lhsT, rhsT)) thy =
+      let
+        val lhs = take_const $ @{term "0::nat"};
+        val goal = mk_eqs (lhs, mk_bottom (lhsT ->> lhsT));
+        val rules = take_defs @ @{thms iterate_0 fst_strict snd_strict};
+        val tac = simp_tac (HOL_basic_ss addsimps rules) 1;
+        val take_0_thm = Goal.prove_global thy [] [] goal (K tac);
+      in
+        add_qualified_thm "take_0" (dname, take_0_thm) thy
+      end;
+    val (take_0_thms, thy) =
+      fold_map prove_take_0 (take_consts ~~ dnames ~~ dom_eqns) thy;
+
+    (* prove take_Suc lemmas *)
+    val i = Free ("i", natT);
+    val take_is = map (fn t => t $ i) take_consts;
+    fun prove_take_Suc
+          (((take_const, rep_abs), dname), (lhsT, rhsT)) thy =
+      let
+        val lhs = take_const $ (@{term Suc} $ i);
+        val dtyp = Datatype_Aux.dtyp_of_typ new_dts rhsT;
+        val body = copy_of_dtyp take_is (rhsT, dtyp);
+        val rhs = mk_cfcomp2 (rep_abs, body);
+        val goal = mk_eqs (lhs, rhs);
+        val simps = @{thms iterate_Suc fst_conv snd_conv}
+        val rules = take_defs @ simps;
+        val tac = simp_tac (beta_ss addsimps rules) 1;
+        val take_Suc_thm = Goal.prove_global thy [] [] goal (K tac);
+      in
+        add_qualified_thm "take_Suc" (dname, take_Suc_thm) thy
+      end;
+    val (take_Suc_thms, thy) =
+      fold_map prove_take_Suc
+        (take_consts ~~ rep_abs_consts ~~ dnames ~~ dom_eqns) thy;
+
+    (* prove deflation theorems for take functions *)
+    val deflation_abs_rep_thms = map deflation_abs_rep iso_infos;
+    val deflation_take_thm =
+      let
+        val i = Free ("i", natT);
+        fun mk_goal take_const = mk_deflation (take_const $ i);
+        val goal = mk_trp (foldr1 mk_conj (map mk_goal take_consts));
+        val adm_rules =
+          @{thms adm_conj adm_deflation cont2cont_fst cont2cont_snd cont_id};
+        val bottom_rules =
+          take_0_thms @ @{thms deflation_UU simp_thms};
+        val deflation_rules =
+          @{thms conjI deflation_ID}
+          @ deflation_abs_rep_thms
+          @ DeflMapData.get thy;
+      in
+        Goal.prove_global thy [] [] goal (fn _ =>
+         EVERY
+          [rtac @{thm nat.induct} 1,
+           simp_tac (HOL_basic_ss addsimps bottom_rules) 1,
+           simp_tac (HOL_basic_ss addsimps take_Suc_thms) 1,
+           REPEAT (resolve_tac deflation_rules 1 ORELSE atac 1)])
+      end;
+    fun conjuncts [] thm = []
+      | conjuncts (n::[]) thm = [(n, thm)]
+      | conjuncts (n::ns) thm = let
+          val thmL = thm RS @{thm conjunct1};
+          val thmR = thm RS @{thm conjunct2};
+        in (n, thmL):: conjuncts ns thmR end;
+    val (deflation_take_thms, thy) =
+      fold_map (add_qualified_thm "deflation_take")
+        (map (apsnd Drule.export_without_context)
+          (conjuncts dnames deflation_take_thm)) thy;
+
+    (* prove strictness of take functions *)
+    fun prove_take_strict (take_const, dname) thy =
+      let
+        val goal = mk_trp (mk_strict (take_const $ Free ("i", natT)));
+        val tac = rtac @{thm deflation_strict} 1
+                  THEN resolve_tac deflation_take_thms 1;
+        val take_strict_thm = Goal.prove_global thy [] [] goal (K tac);
+      in
+        add_qualified_thm "take_strict" (dname, take_strict_thm) thy
+      end;
+    val (take_strict_thms, thy) =
+      fold_map prove_take_strict (take_consts ~~ dnames) thy;
+
+    val result =
+      {
+        take_consts = take_consts,
+        take_defs = take_defs,
+        chain_take_thms = chain_take_thms,
+        take_0_thms = take_0_thms,
+        take_Suc_thms = take_Suc_thms,
+        deflation_take_thms = deflation_take_thms
+      };
+
+  in
+    (result, thy)
+  end;
+
 (******************************************************************************)
 (******************************* main function ********************************)
 (******************************************************************************)
-
-type iso_info =
-  {
-    repT : typ,
-    absT : typ,
-    rep_const : term,
-    abs_const : term,
-    rep_inverse : thm,
-    abs_inverse : thm
-  }
 
 fun read_typ thy str sorts =
   let
@@ -399,7 +624,6 @@ fun gen_domain_isomorphism
         val rep_iso_thm = make @{thm domain_rep_iso};
         val abs_iso_thm = make @{thm domain_abs_iso};
         val isodefl_thm = make @{thm isodefl_abs_rep};
-        val deflation_thm = make @{thm deflation_abs_rep};
         val rep_iso_bind = Binding.name "rep_iso";
         val abs_iso_bind = Binding.name "abs_iso";
         val isodefl_bind = Binding.name "isodefl_abs_rep";
@@ -411,16 +635,15 @@ fun gen_domain_isomorphism
                (isodefl_bind, isodefl_thm)]
           ||> Sign.parent_path;
       in
-        (((rep_iso_thm, abs_iso_thm), (isodefl_thm, deflation_thm)), thy)
+        (((rep_iso_thm, abs_iso_thm), isodefl_thm), thy)
       end;
-    val ((iso_thms, (isodefl_abs_rep_thms, deflation_abs_rep_thms)), thy) =
+    val ((iso_thms, isodefl_abs_rep_thms), thy) =
       thy
       |> fold_map mk_iso_thms (dom_binds ~~ REP_eq_thms ~~ rep_abs_defs)
-      |>> ListPair.unzip
-      |>> apsnd ListPair.unzip;
+      |>> ListPair.unzip;
 
     (* collect info about rep/abs *)
-    val iso_info : iso_info list =
+    val iso_infos : iso_info list =
       let
         fun mk_info (((lhsT, rhsT), (repC, absC)), (rep_iso, abs_iso)) =
           {
@@ -543,6 +766,7 @@ fun gen_domain_isomorphism
     val thy = MapIdData.map (fold Thm.add_thm map_ID_thms) thy;
 
     (* prove deflation theorems for map functions *)
+    val deflation_abs_rep_thms = map deflation_abs_rep iso_infos;
     val deflation_map_thm =
       let
         fun unprime a = Library.unprefix "'" a;
@@ -696,7 +920,7 @@ fun gen_domain_isomorphism
       fold_map prove_reach_thm (reach_thm_projs ~~ map_ID_thms ~~ dom_eqns);
 
   in
-    (iso_info, thy)
+    (iso_infos, thy)
   end;
 
 val domain_isomorphism = gen_domain_isomorphism cert_typ;
