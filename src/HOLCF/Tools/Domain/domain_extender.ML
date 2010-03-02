@@ -164,7 +164,7 @@ fun gen_add_domain
         ) : cons;
     val eqs : eq list =
         map (fn (dtnvs,cons') => (dtnvs, map one_con cons')) eqs';
-    val thy = thy |> Domain_Axioms.add_axioms false eqs' eqs;
+    val thy = Domain_Axioms.add_axioms eqs' eqs thy;
     val ((rewss, take_rews), theorems_thy) =
         thy
           |> fold_map (fn (eq, (x,cs)) =>
@@ -237,7 +237,6 @@ fun gen_add_new_domain
         ) : cons;
     val eqs : eq list =
         map (fn (dtnvs,cons') => (dtnvs, map one_con cons')) eqs';
-    val thy = thy |> Domain_Axioms.add_axioms true eqs' eqs;
     val ((rewss, take_rews), theorems_thy) =
         thy
           |> fold_map (fn (eq, (x,cs)) =>

@@ -10,12 +10,10 @@ sig
       string Symtab.table -> (int -> term) -> Datatype.dtyp -> term
 
   val calc_axioms :
-      bool ->
       Domain_Library.eq list -> int -> Domain_Library.eq ->
       string * (string * term) list
 
   val add_axioms :
-      bool ->
       ((string * typ list) *
        (binding * (bool * binding option * typ) list * mixfix) list) list ->
       Domain_Library.eq list -> theory -> theory
@@ -49,15 +47,11 @@ and copy tab r (Datatype_Aux.DtRec i) = r i
     | NONE => (warning ("copy_of_dtyp: unknown type constructor " ^ c); ID);
 
 fun calc_axioms
-    (definitional : bool)
     (eqs : eq list)
     (n : int)
     (eqn as ((dname,_),cons) : eq)
     : string * (string * term) list =
   let
-
-(* ----- axioms and definitions concerning the isomorphism ------------------ *)
-
     val dc_abs = %%:(dname^"_abs");
     val dc_rep = %%:(dname^"_rep");
     val x_name'= "x";
@@ -66,10 +60,9 @@ fun calc_axioms
 
     val abs_iso_ax = ("abs_iso", mk_trp(dc_rep`(dc_abs`%x_name') === %:x_name'));
     val rep_iso_ax = ("rep_iso", mk_trp(dc_abs`(dc_rep`%x_name') === %:x_name'));
-
   in
-    (dnam, if definitional then [] else [abs_iso_ax, rep_iso_ax])
-  end; (* let (calc_axioms) *)
+    (dnam, [abs_iso_ax, rep_iso_ax])
+  end;
 
 
 (* legacy type inference *)
@@ -85,7 +78,7 @@ fun infer_props thy = map (apsnd (legacy_infer_prop thy));
 fun add_axioms_i x = snd o PureThy.add_axioms (map (Thm.no_attributes o apfst Binding.name) x);
 fun add_axioms_infer axms thy = add_axioms_i (infer_props thy axms) thy;
 
-fun add_axioms definitional eqs' (eqs : eq list) thy' =
+fun add_axioms eqs' (eqs : eq list) thy' =
   let
     val dnames = map (fst o fst) eqs;
     val x_name = idx_name dnames "x"; 
@@ -95,7 +88,7 @@ fun add_axioms definitional eqs' (eqs : eq list) thy' =
           #> add_axioms_infer axs
           #> Sign.parent_path;
 
-    val axs = mapn (calc_axioms definitional eqs) 0 eqs;
+    val axs = mapn (calc_axioms eqs) 0 eqs;
     val thy = thy' |> fold add_one axs;
 
     fun get_iso_info ((dname, tyvars), cons') =
@@ -121,10 +114,9 @@ fun add_axioms definitional eqs' (eqs : eq list) thy' =
         }
       end;
     val dom_binds = map (Binding.name o Long_Name.base_name) dnames;
-    val thy =
-        if definitional then thy
-        else snd (Domain_Take_Proofs.define_take_functions
-                    (dom_binds ~~ map get_iso_info eqs') thy);
+    val (take_info, thy) =
+        Domain_Take_Proofs.define_take_functions
+          (dom_binds ~~ map get_iso_info eqs') thy;
 
     (* declare lub_take axioms *)
     local
@@ -141,9 +133,7 @@ fun add_axioms definitional eqs' (eqs : eq list) thy' =
           add_one (dnam, [("lub_take", ax)])
         end
     in
-      val thy =
-          if definitional then thy
-          else fold ax_lub_take dnames thy
+      val thy = fold ax_lub_take dnames thy
     end;
   in
     thy
