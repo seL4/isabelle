@@ -23,6 +23,9 @@ datatype comb =
   | S
   | app ("p \<in> comb", "q \<in> comb")    (infixl "@@" 90)
 
+notation (xsymbols)
+  app  (infixl "\<bullet>" 90)
+
 text {*
   Inductive definition of contractions, @{text "-1->"} and
   (multi-step) reductions, @{text "--->"}.
@@ -38,9 +41,6 @@ abbreviation
 abbreviation
   contract_multi :: "[i,i] => o"    (infixl "--->" 50)
   where "p ---> q == <p,q> \<in> contract^*"
-
-syntax (xsymbols)
-  "comb.app"    :: "[i, i] => i"             (infixl "\<bullet>" 90)
 
 inductive
   domains "contract" \<subseteq> "comb \<times> comb"

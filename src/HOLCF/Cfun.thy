@@ -23,8 +23,8 @@ by (rule admI, rule cont_lub_fun)
 cpodef (CFun)  ('a, 'b) "->" (infixr "->" 0) = "{f::'a => 'b. cont f}"
 by (simp_all add: Ex_cont adm_cont)
 
-syntax (xsymbols)
-  "->"     :: "[type, type] => type"      ("(_ \<rightarrow>/ _)" [1,0]0)
+type_notation (xsymbols)
+  "->"  ("(_ \<rightarrow>/ _)" [1, 0] 0)
 
 notation
   Rep_CFun  ("(_$/_)" [999,1000] 999)

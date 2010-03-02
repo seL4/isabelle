@@ -24,10 +24,10 @@ by (rule typedef_finite_po [OF type_definition_Ssum])
 instance "++" :: ("{chfin,pcpo}", "{chfin,pcpo}") chfin
 by (rule typedef_chfin [OF type_definition_Ssum below_Ssum_def])
 
-syntax (xsymbols)
-  "++"          :: "[type, type] => type"       ("(_ \<oplus>/ _)" [21, 20] 20)
-syntax (HTML output)
-  "++"          :: "[type, type] => type"       ("(_ \<oplus>/ _)" [21, 20] 20)
+type_notation (xsymbols)
+  "++"  ("(_ \<oplus>/ _)" [21, 20] 20)
+type_notation (HTML output)
+  "++"  ("(_ \<oplus>/ _)" [21, 20] 20)
 
 subsection {* Definitions of constructors *}
 

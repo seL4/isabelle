@@ -142,10 +142,10 @@ proof
     by rule+
 qed
 
-syntax (xsymbols)
-  "*"      :: "[type, type] => type"         ("(_ \<times>/ _)" [21, 20] 20)
-syntax (HTML output)
-  "*"      :: "[type, type] => type"         ("(_ \<times>/ _)" [21, 20] 20)
+type_notation (xsymbols)
+  "*"  ("(_ \<times>/ _)" [21, 20] 20)
+type_notation (HTML output)
+  "*"  ("(_ \<times>/ _)" [21, 20] 20)
 
 consts
   Pair     :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<times> 'b"
