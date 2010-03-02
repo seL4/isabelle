@@ -30,12 +30,17 @@ sig
   val read_int: string -> int option
   val read_xnum: string -> {radix: int, leading_zeros: int, value: int}
   val read_float: string -> {mant: int, exp: int}
-  val fixedN: string
-  val mark_fixed: string -> string
-  val unmark_fixed: string -> string
-  val constN: string
-  val mark_const: string -> string
-  val unmark_const: string -> string
+  val mark_class: string -> string val unmark_class: string -> string
+  val mark_type: string -> string val unmark_type: string -> string
+  val mark_const: string -> string val unmark_const: string -> string
+  val mark_fixed: string -> string val unmark_fixed: string -> string
+  val unmark:
+   {case_class: string -> 'a,
+    case_type: string -> 'a,
+    case_const: string -> 'a,
+    case_fixed: string -> 'a,
+    case_default: string -> 'a} -> string -> 'a
+  val is_marked: string -> bool
 end;
 
 signature LEXICON =
@@ -333,15 +338,32 @@ fun read_variable str =
   in Scan.read Symbol_Pos.stopper scan (Symbol_Pos.explode (str, Position.none)) end;
 
 
-(* specific identifiers *)
+(* logical entities *)
 
-val fixedN = "\\<^fixed>";
-val mark_fixed = prefix fixedN;
-val unmark_fixed = unprefix fixedN;
+fun marker s = (prefix s, unprefix s);
 
-val constN = "\\<^const>";
-val mark_const = prefix constN;
-val unmark_const = unprefix constN;
+val (mark_class, unmark_class) = marker "\\<^class>";
+val (mark_type, unmark_type) = marker "\\<^type>";
+val (mark_const, unmark_const) = marker "\\<^const>";
+val (mark_fixed, unmark_fixed) = marker "\\<^fixed>";
+
+fun unmark {case_class, case_type, case_const, case_fixed, case_default} s =
+  (case try unmark_class s of
+    SOME c => case_class c
+  | NONE =>
+      (case try unmark_type s of
+        SOME c => case_type c
+      | NONE =>
+          (case try unmark_const s of
+            SOME c => case_const c
+          | NONE =>
+              (case try unmark_fixed s of
+                SOME c => case_fixed c
+              | NONE => case_default s))));
+
+val is_marked =
+  unmark {case_class = K true, case_type = K true, case_const = K true,
+    case_fixed = K true, case_default = K false};
 
 
 (* read numbers *)
@@ -371,7 +393,7 @@ local
 val ten = ord "0" + 10;
 val a = ord "a";
 val A = ord "A";
-val _ = a > A orelse sys_error "Bad ASCII";
+val _ = a > A orelse raise Fail "Bad ASCII";
 
 fun remap_hex c =
   let val x = ord c in
