@@ -39,7 +39,7 @@ val debug = Unsynchronized.ref false;
 
 val function_flattening = Unsynchronized.ref true;
 
-val no_higher_order_predicate = Unsynchronized.ref [];
+val no_higher_order_predicate = Unsynchronized.ref ([] : string list);
 
 val options = Options {
   expected_modes = NONE,
