@@ -16,6 +16,8 @@ sig
 
   val add_axioms :
       bool ->
+      ((string * typ list) *
+       (binding * (bool * binding option * typ) list * mixfix) list) list ->
       bstring -> Domain_Library.eq list -> theory -> theory
 end;
 
@@ -67,22 +69,8 @@ fun calc_axioms
     val abs_iso_ax = ("abs_iso", mk_trp(dc_rep`(dc_abs`%x_name') === %:x_name'));
     val rep_iso_ax = ("rep_iso", mk_trp(dc_abs`(dc_rep`%x_name') === %:x_name'));
 
-    val copy_def =
-      let fun r i = proj (Bound 0) eqs i;
-      in
-        ("copy_def", %%:(dname^"_copy") == /\ "f"
-          (dc_abs oo (copy_of_dtyp map_tab r (dtyp_of_eq eqn)) oo dc_rep))
-      end;
-
 (* ----- axiom and definitions concerning induction ------------------------- *)
 
-    val reach_ax = ("reach", mk_trp(proj (mk_fix (%%:(comp_dname^"_copy"))) eqs n
-                                         `%x_name === %:x_name));
-    val take_def =
-        ("take_def",
-         %%:(dname^"_take") ==
-            mk_lam("n",proj
-                         (mk_iterate (Bound 0, %%:(comp_dname^"_copy"), UU)) eqs n));
     val finite_def =
         ("finite_def",
          %%:(dname^"_finite") ==
@@ -90,9 +78,8 @@ fun calc_axioms
                    mk_ex("n",(%%:(dname^"_take") $ Bound 0)`Bound 1 === Bound 1)));
 
   in (dnam,
-      (if definitional then [] else [abs_iso_ax, rep_iso_ax, reach_ax]),
-      (if definitional then [] else [copy_def]) @
-      [take_def, finite_def])
+      (if definitional then [] else [abs_iso_ax, rep_iso_ax]),
+      [finite_def])
   end; (* let (calc_axioms) *)
 
 
@@ -112,14 +99,11 @@ fun add_axioms_infer axms thy = add_axioms_i (infer_props thy axms) thy;
 fun add_defs_i x = snd o (PureThy.add_defs false) (map (Thm.no_attributes o apfst Binding.name) x);
 fun add_defs_infer defs thy = add_defs_i (infer_props thy defs) thy;
 
-fun add_axioms definitional comp_dnam (eqs : eq list) thy' =
+fun add_axioms definitional eqs' comp_dnam (eqs : eq list) thy' =
   let
     val comp_dname = Sign.full_bname thy' comp_dnam;
     val dnames = map (fst o fst) eqs;
     val x_name = idx_name dnames "x"; 
-    fun copy_app dname = %%:(dname^"_copy")`Bound 0;
-    val copy_def = ("copy_def" , %%:(comp_dname^"_copy") ==
-                                 /\ "f"(mk_ctuple (map copy_app dnames)));
 
     fun one_con (con, _, args) =
       let
@@ -165,20 +149,74 @@ TEMPORARILY DISABLED *)
 
     fun add_one (dnam, axs, dfs) =
         Sign.add_path dnam
-          #> add_defs_infer dfs
           #> add_axioms_infer axs
           #> Sign.parent_path;
 
     val map_tab = Domain_Isomorphism.get_map_tab thy';
+    val axs = mapn (calc_axioms definitional map_tab comp_dname eqs) 0 eqs;
+    val thy = thy' |> fold add_one axs;
 
-    val thy = thy'
-      |> fold add_one (mapn (calc_axioms definitional map_tab comp_dname eqs) 0 eqs);
+    fun get_iso_info ((dname, tyvars), cons') =
+      let
+        fun opt_lazy (lazy,_,t) = if lazy then mk_uT t else t
+        fun prod     (_,args,_) =
+            case args of [] => oneT
+                       | _ => foldr1 mk_sprodT (map opt_lazy args);
+        val ax_abs_iso = PureThy.get_thm thy (dname ^ ".abs_iso");
+        val ax_rep_iso = PureThy.get_thm thy (dname ^ ".rep_iso");
+        val lhsT = Type(dname,tyvars);
+        val rhsT = foldr1 mk_ssumT (map prod cons');
+        val rep_const = Const(dname^"_rep", lhsT ->> rhsT);
+        val abs_const = Const(dname^"_abs", rhsT ->> lhsT);
+      in
+        {
+          absT = lhsT,
+          repT = rhsT,
+          abs_const = abs_const,
+          rep_const = rep_const,
+          abs_inverse = ax_abs_iso,
+          rep_inverse = ax_rep_iso
+        }
+      end;
+    val dom_binds = map (Binding.name o Long_Name.base_name) dnames;
+    val thy =
+        if definitional then thy
+        else snd (Domain_Isomorphism.define_take_functions
+                    (dom_binds ~~ map get_iso_info eqs') thy);
+
+    fun add_one' (dnam, axs, dfs) =
+        Sign.add_path dnam
+          #> add_defs_infer dfs
+          #> Sign.parent_path;
+    val thy = fold add_one' axs thy;
+
+    (* declare lub_take axioms *)
+    local
+      fun ax_lub_take dname =
+        let
+          val dnam : string = Long_Name.base_name dname;
+          val take_const = %%:(dname^"_take");
+          val lub = %%: @{const_name lub};
+          val image = %%: @{const_name image};
+          val UNIV = %%: @{const_name UNIV};
+          val lhs = lub $ (image $ take_const $ UNIV);
+          val ax = mk_trp (lhs === ID);
+        in
+          add_one (dnam, [("lub_take", ax)], [])
+        end
+    in
+      val thy =
+          if definitional then thy
+          else fold ax_lub_take dnames thy
+    end;
 
     val use_copy_def = length eqs>1 andalso not definitional;
   in
     thy
-    |> Sign.add_path comp_dnam  
-    |> add_defs_infer ((*bisim_def::*)(if use_copy_def then [copy_def] else []))
+    |> Sign.add_path comp_dnam
+(*
+    |> add_defs_infer [bisim_def]
+*)
     |> Sign.parent_path
   end; (* let (add_axioms) *)
 

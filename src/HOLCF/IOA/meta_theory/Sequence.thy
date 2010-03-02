@@ -902,15 +902,10 @@ lemma take_lemma_less1:
   shows "s1<<s2"
 apply (rule_tac t="s1" in seq.reach [THEN subst])
 apply (rule_tac t="s2" in seq.reach [THEN subst])
-apply (rule fix_def2 [THEN ssubst])
-apply (subst contlub_cfun_fun)
-apply (rule chain_iterate)
-apply (subst contlub_cfun_fun)
-apply (rule chain_iterate)
 apply (rule lub_mono)
-apply (rule chain_iterate [THEN ch2ch_Rep_CFunL])
-apply (rule chain_iterate [THEN ch2ch_Rep_CFunL])
-apply (rule prems [unfolded seq.take_def])
+apply (rule seq.chain_take [THEN ch2ch_Rep_CFunL])
+apply (rule seq.chain_take [THEN ch2ch_Rep_CFunL])
+apply (rule assms)
 done
 
 

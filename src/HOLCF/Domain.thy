@@ -250,6 +250,27 @@ lemmas sel_app_rules =
 lemmas sel_defined_iff_rules =
   cfcomp2 sfst_defined_iff ssnd_defined_iff
 
+lemmas take_con_rules =
+  ID1 ssum_map_sinl' ssum_map_sinr' ssum_map_strict
+  sprod_map_spair' sprod_map_strict u_map_up u_map_strict
+
+lemma lub_ID_take_lemma:
+  assumes "chain t" and "(\<Squnion>n. t n) = ID"
+  assumes "\<And>n. t n\<cdot>x = t n\<cdot>y" shows "x = y"
+proof -
+  have "(\<Squnion>n. t n\<cdot>x) = (\<Squnion>n. t n\<cdot>y)"
+    using assms(3) by simp
+  then have "(\<Squnion>n. t n)\<cdot>x = (\<Squnion>n. t n)\<cdot>y"
+    using assms(1) by (simp add: lub_distribs)
+  then show "x = y"
+    using assms(2) by simp
+qed
+
+lemma lub_ID_reach:
+  assumes "chain t" and "(\<Squnion>n. t n) = ID"
+  shows "(\<Squnion>n. t n\<cdot>x) = x"
+using assms by (simp add: lub_distribs)
+
 use "Tools/cont_consts.ML"
 use "Tools/cont_proc.ML"
 use "Tools/Domain/domain_library.ML"

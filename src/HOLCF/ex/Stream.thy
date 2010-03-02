@@ -143,16 +143,10 @@ section "stream_take"
 
 
 lemma stream_reach2: "(LUB i. stream_take i$s) = s"
-apply (insert stream.reach [of s], erule subst) back
-apply (simp add: fix_def2 stream.take_def)
-apply (insert contlub_cfun_fun [of "%i. iterate i$stream_copy$UU" s,THEN sym])
-by simp
+by (rule stream.reach)
 
 lemma chain_stream_take: "chain (%i. stream_take i$s)"
-apply (rule chainI)
-apply (rule monofun_cfun_fun)
-apply (simp add: stream.take_def del: iterate_Suc)
-by (rule chainE, simp)
+by (simp add: stream.chain_take)
 
 lemma stream_take_prefix [simp]: "stream_take n$s << s"
 apply (insert stream_reach2 [of s])
@@ -259,10 +253,9 @@ by (drule stream_exhaust_eq [THEN iffD1],clarsimp)
 lemma stream_ind2:
 "[| adm P; P UU; !!a. a ~= UU ==> P (a && UU); !!a b s. [| a ~= UU; b ~= UU; P s |] ==> P (a && b && s) |] ==> P x"
 apply (insert stream.reach [of x],erule subst)
-apply (frule adm_impl_admw, rule wfix_ind, auto)
-apply (rule adm_subst [THEN adm_impl_admw],auto)
+apply (erule admD, rule chain_stream_take)
 apply (insert stream_finite_ind2 [of P])
-by (simp add: stream.take_def)
+by simp
 
 
 
