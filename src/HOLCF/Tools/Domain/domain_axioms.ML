@@ -135,7 +135,7 @@ fun add_axioms definitional eqs' (eqs : eq list) thy' =
     val dom_binds = map (Binding.name o Long_Name.base_name) dnames;
     val thy =
         if definitional then thy
-        else snd (Domain_Isomorphism.define_take_functions
+        else snd (Domain_Take_Proofs.define_take_functions
                     (dom_binds ~~ map get_iso_info eqs') thy);
 
     fun add_one' (dnam, axs, dfs) =

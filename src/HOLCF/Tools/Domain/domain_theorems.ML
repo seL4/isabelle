@@ -106,7 +106,7 @@ fun theorems
 let
 
 val _ = message ("Proving isomorphism properties of domain "^dname^" ...");
-val map_tab = Domain_Isomorphism.get_map_tab thy;
+val map_tab = Domain_Take_Proofs.get_map_tab thy;
 
 
 (* ----- getting the axioms and definitions --------------------------------- *)
@@ -139,7 +139,7 @@ val rep_const = Const(dname^"_rep", lhsT ->> rhsT);
 
 val abs_const = Const(dname^"_abs", rhsT ->> lhsT);
 
-val iso_info : Domain_Isomorphism.iso_info =
+val iso_info : Domain_Take_Proofs.iso_info =
   {
     absT = lhsT,
     repT = rhsT,
@@ -229,7 +229,7 @@ end; (* let *)
 
 fun comp_theorems (comp_dnam, eqs: eq list) thy =
 let
-val map_tab = Domain_Isomorphism.get_map_tab thy;
+val map_tab = Domain_Take_Proofs.get_map_tab thy;
 
 val dnames = map (fst o fst) eqs;
 val conss  = map  snd        eqs;

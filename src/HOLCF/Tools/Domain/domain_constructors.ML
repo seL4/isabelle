@@ -10,7 +10,7 @@ sig
   val add_domain_constructors :
       string
       -> (binding * (bool * binding option * typ) list * mixfix) list
-      -> Domain_Isomorphism.iso_info
+      -> Domain_Take_Proofs.iso_info
       -> theory
       -> { con_consts : term list,
            con_betas : thm list,
@@ -1011,7 +1011,7 @@ fun add_pattern_combinators
 fun add_domain_constructors
     (dname : string)
     (spec : (binding * (bool * binding option * typ) list * mixfix) list)
-    (iso_info : Domain_Isomorphism.iso_info)
+    (iso_info : Domain_Take_Proofs.iso_info)
     (thy : theory) =
   let
 
