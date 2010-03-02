@@ -327,7 +327,7 @@ let
       val k = int_of_num' n;
       val t' = Syntax.const @{syntax_const "_Numerals"} $ Syntax.free ("#" ^ string_of_int k);
     in case T
-     of Type (@{type_syntax fun}, [_, T']) =>
+     of Type (@{type_name fun}, [_, T']) =>
          if not (! show_types) andalso can Term.dest_Type T' then t'
          else Syntax.const Syntax.constrainC $ t' $ Syntax.term_of_typ show_sorts T'
       | T' => if T' = dummyT then t' else raise Match

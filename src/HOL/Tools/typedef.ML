@@ -118,7 +118,7 @@ fun prepare_typedef prep_term def name (tname, vs, mx) raw_set opt_morphs thy =
     fun add_def theory =
       if def then
         theory
-        |> Sign.add_consts_i [(name, setT', NoSyn)]   (* FIXME authentic syntax *)
+        |> Sign.add_consts_i [(name, setT', NoSyn)]
         |> PureThy.add_defs false [((Thm.def_binding name, Logic.mk_equals (setC, set)), [])]
         |-> (fn [th] => pair (SOME th))
       else (NONE, theory);
