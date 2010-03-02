@@ -15,7 +15,6 @@ sig
 
   val add_syntax:
       bool ->
-      string ->
       ((string * typ list) *
        (binding * (bool * binding option * typ) list * mixfix) list) list ->
       theory -> theory
@@ -48,8 +47,6 @@ fun calc_syntax thy
     val const_abs  = (dbind "_abs" ,              dtype2 ->> dtype , NoSyn);
     end;
 
-(* ----- constants concerning induction ------------------------------------- *)
-
     val const_finite = (dbind "_finite", dtype-->HOLogic.boolT       , NoSyn);
 
     val optional_consts =
@@ -62,22 +59,14 @@ fun calc_syntax thy
 
 fun add_syntax
     (definitional : bool)
-    (comp_dnam : string)
     (eqs' : ((string * typ list) *
              (binding * (bool * binding option * typ) list * mixfix) list) list)
     (thy'' : theory) =
   let
-    val dtypes  = map (Type o fst) eqs';
-    val boolT   = HOLogic.boolT;
-    val relprod =
-        foldr1 HOLogic.mk_prodT (map (fn tp => tp --> tp --> boolT) dtypes);
-    val const_bisim =
-        (Binding.name (comp_dnam^"_bisim"), relprod --> boolT, NoSyn);
     val ctt : (binding * typ * mixfix) list list =
         map (calc_syntax thy'' definitional) eqs';
   in thy''
-       |> Cont_Consts.add_consts
-           (flat ctt @ [const_bisim])
+       |> Cont_Consts.add_consts (flat ctt)
   end; (* let *)
 
 end; (* struct *)

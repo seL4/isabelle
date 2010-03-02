@@ -239,7 +239,6 @@ end; (* let *)
 
 fun comp_theorems (comp_dnam, eqs: eq list) thy =
 let
-val global_ctxt = ProofContext.init thy;
 val map_tab = Domain_Isomorphism.get_map_tab thy;
 
 val dnames = map (fst o fst) eqs;
@@ -247,6 +246,81 @@ val conss  = map  snd        eqs;
 val comp_dname = Sign.full_bname thy comp_dnam;
 
 val _ = message ("Proving induction properties of domain "^comp_dname^" ...");
+
+(* ----- define bisimulation predicate -------------------------------------- *)
+
+local
+  open HOLCF_Library
+  val dtypes  = map (Type o fst) eqs;
+  val relprod = mk_tupleT (map (fn tp => tp --> tp --> boolT) dtypes);
+  val bisim_bind = Binding.name (comp_dnam ^ "_bisim");
+  val bisim_type = relprod --> boolT;
+in
+  val (bisim_const, thy) =
+      Sign.declare_const ((bisim_bind, bisim_type), NoSyn) thy;
+end;
+
+local
+
+  fun legacy_infer_term thy t =
+      singleton (Syntax.check_terms (ProofContext.init thy)) (Sign.intern_term thy t);
+  fun legacy_infer_prop thy t = legacy_infer_term thy (TypeInfer.constrain propT t);
+  fun infer_props thy = map (apsnd (legacy_infer_prop thy));
+  fun add_defs_i x = PureThy.add_defs false (map Thm.no_attributes x);
+  fun add_defs_infer defs thy = add_defs_i (infer_props thy defs) thy;
+
+  val comp_dname = Sign.full_bname thy comp_dnam;
+  val dnames = map (fst o fst) eqs;
+  val x_name = idx_name dnames "x"; 
+
+  fun one_con (con, _, args) =
+    let
+      val nonrec_args = filter_out is_rec args;
+      val    rec_args = filter is_rec args;
+      val    recs_cnt = length rec_args;
+      val allargs     = nonrec_args @ rec_args
+                        @ map (upd_vname (fn s=> s^"'")) rec_args;
+      val allvns      = map vname allargs;
+      fun vname_arg s arg = if is_rec arg then vname arg^s else vname arg;
+      val vns1        = map (vname_arg "" ) args;
+      val vns2        = map (vname_arg "'") args;
+      val allargs_cnt = length nonrec_args + 2*recs_cnt;
+      val rec_idxs    = (recs_cnt-1) downto 0;
+      val nonlazy_idxs = map snd (filter_out (fn (arg,_) => is_lazy arg)
+                                             (allargs~~((allargs_cnt-1) downto 0)));
+      fun rel_app i ra = proj (Bound(allargs_cnt+2)) eqs (rec_of ra) $ 
+                              Bound (2*recs_cnt-i) $ Bound (recs_cnt-i);
+      val capps =
+          List.foldr
+            mk_conj
+            (mk_conj(
+             Bound(allargs_cnt+1)===list_ccomb(%%:con,map (bound_arg allvns) vns1),
+             Bound(allargs_cnt+0)===list_ccomb(%%:con,map (bound_arg allvns) vns2)))
+            (mapn rel_app 1 rec_args);
+    in
+      List.foldr
+        mk_ex
+        (Library.foldr mk_conj
+                       (map (defined o Bound) nonlazy_idxs,capps)) allvns
+    end;
+  fun one_comp n (_,cons) =
+      mk_all (x_name(n+1),
+      mk_all (x_name(n+1)^"'",
+      mk_imp (proj (Bound 2) eqs n $ Bound 1 $ Bound 0,
+      foldr1 mk_disj (mk_conj(Bound 1 === UU,Bound 0 === UU)
+                      ::map one_con cons))));
+  val bisim_eqn =
+      %%:(comp_dname^"_bisim") ==
+         mk_lam("R", foldr1 mk_conj (mapn one_comp 0 eqs));
+
+in
+  val ([ax_bisim_def], thy) =
+      thy
+        |> Sign.add_path comp_dnam
+        |> add_defs_infer [(Binding.name "bisim_def", bisim_eqn)]
+        ||> Sign.parent_path;
+end; (* local *)
+
 val pg = pg' thy;
 
 (* ----- getting the composite axiom and definitions ------------------------ *)
@@ -258,9 +332,6 @@ in
   val axs_chain_take = map (ga "chain_take") dnames;
   val axs_lub_take   = map (ga "lub_take"  ) dnames;
   val axs_finite_def = map (ga "finite_def") dnames;
-(* TEMPORARILY DISABLED
-  val ax_bisim_def   =      ga "bisim_def" comp_dnam;
-TEMPORARILY DISABLED *)
 end;
 
 local
@@ -384,6 +455,8 @@ in (* local *)
     in map reach (axs_chain_take ~~ axs_lub_take) end;
 
 (* ----- theorems concerning finiteness and induction ----------------------- *)
+
+  val global_ctxt = ProofContext.init thy;
 
   val _ = trace " Proving finites, ind...";
   val (finites, ind) =
@@ -524,11 +597,10 @@ end; (* local *)
 
 (* ----- theorem concerning coinduction ------------------------------------- *)
 
-(* COINDUCTION TEMPORARILY DISABLED
 local
   val xs = mapn (fn n => K (x_name n)) 1 dnames;
   fun bnd_arg n i = Bound(2*(n_eqs - n)-i-1);
-  val take_ss = HOL_ss addsimps take_rews;
+  val take_ss = HOL_ss addsimps (@{thm Rep_CFun_strict1} :: take_rews);
   val sproj = prj (fn s => K("fst("^s^")")) (fn s => K("snd("^s^")"));
   val _ = trace " Proving coind_lemma...";
   val coind_lemma =
@@ -575,7 +647,6 @@ in
         take_lemmas;
     in pg [] goal (K tacs) end;
 end; (* local *)
-COINDUCTION TEMPORARILY DISABLED *)
 
 val inducts = Project_Rule.projections (ProofContext.init thy) ind;
 fun ind_rule (dname, rule) = ((Binding.empty, [rule]), [Induct.induct_type dname]);
@@ -587,8 +658,8 @@ in thy |> Sign.add_path comp_dnam
            ((Binding.name "reach"      , axs_reach   ), []),
            ((Binding.name "finites"    , finites     ), []),
            ((Binding.name "finite_ind" , [finite_ind]), []),
-           ((Binding.name "ind"        , [ind]       ), [])(*,
-           ((Binding.name "coind"      , [coind]     ), [])*)]
+           ((Binding.name "ind"        , [ind]       ), []),
+           ((Binding.name "coind"      , [coind]     ), [])]
        |> (if induct_failed then I
            else snd o PureThy.add_thmss (map ind_rule (dnames ~~ inducts)))
        |> Sign.parent_path |> pair take_rews

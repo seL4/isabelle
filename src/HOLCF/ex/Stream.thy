@@ -266,21 +266,12 @@ by simp
 
 section "coinduction"
 
-(* COINDUCTION TEMPORARILY DISABLED
 lemma stream_coind_lemma2: "!s1 s2. R s1 s2 --> ft$s1 = ft$s2 &  R (rt$s1) (rt$s2) ==> stream_bisim R"
  apply (simp add: stream.bisim_def,clarsimp)
- apply (case_tac "x=UU",clarsimp)
-  apply (erule_tac x="UU" in allE,simp)
-  apply (case_tac "x'=UU",simp)
-  apply (drule stream_exhaust_eq [THEN iffD1],auto)+
- apply (case_tac "x'=UU",auto)
-  apply (erule_tac x="a && y" in allE)
-  apply (erule_tac x="UU" in allE)+
-  apply (auto,drule stream_exhaust_eq [THEN iffD1],clarsimp)
- apply (erule_tac x="a && y" in allE)
- apply (erule_tac x="aa && ya" in allE) back
+ apply (drule spec, drule spec, drule (1) mp)
+ apply (case_tac "x", simp)
+ apply (case_tac "x'", simp)
 by auto
-COINDUCTION TEMPORARILY DISABLED *)
 
 
 

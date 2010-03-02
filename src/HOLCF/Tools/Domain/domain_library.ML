@@ -64,6 +64,7 @@ sig
   val mk_return : term -> term;
   val list_ccomb : term * term list -> term;
   val con_app2 : string -> ('a -> term) -> 'a list -> term;
+  val prj : ('a -> 'b -> 'a) -> ('a -> 'b -> 'a) -> 'a -> 'b list -> int -> 'a
   val proj : term -> 'a list -> int -> term;
   val mk_ctuple_pat : term list -> term;
   val mk_branch : term -> term;

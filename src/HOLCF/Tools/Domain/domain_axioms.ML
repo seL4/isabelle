@@ -11,14 +11,14 @@ sig
 
   val calc_axioms :
       bool -> string Symtab.table ->
-      string -> Domain_Library.eq list -> int -> Domain_Library.eq ->
+      Domain_Library.eq list -> int -> Domain_Library.eq ->
       string * (string * term) list * (string * term) list
 
   val add_axioms :
       bool ->
       ((string * typ list) *
        (binding * (bool * binding option * typ) list * mixfix) list) list ->
-      bstring -> Domain_Library.eq list -> theory -> theory
+      Domain_Library.eq list -> theory -> theory
 end;
 
 
@@ -51,7 +51,6 @@ and copy tab r (Datatype_Aux.DtRec i) = r i
 fun calc_axioms
     (definitional : bool)
     (map_tab : string Symtab.table)
-    (comp_dname : string)
     (eqs : eq list)
     (n : int)
     (eqn as ((dname,_),cons) : eq)
@@ -99,53 +98,10 @@ fun add_axioms_infer axms thy = add_axioms_i (infer_props thy axms) thy;
 fun add_defs_i x = snd o (PureThy.add_defs false) (map (Thm.no_attributes o apfst Binding.name) x);
 fun add_defs_infer defs thy = add_defs_i (infer_props thy defs) thy;
 
-fun add_axioms definitional eqs' comp_dnam (eqs : eq list) thy' =
+fun add_axioms definitional eqs' (eqs : eq list) thy' =
   let
-    val comp_dname = Sign.full_bname thy' comp_dnam;
     val dnames = map (fst o fst) eqs;
     val x_name = idx_name dnames "x"; 
-
-    fun one_con (con, _, args) =
-      let
-        val nonrec_args = filter_out is_rec args;
-        val    rec_args = filter is_rec args;
-        val    recs_cnt = length rec_args;
-        val allargs     = nonrec_args @ rec_args
-                          @ map (upd_vname (fn s=> s^"'")) rec_args;
-        val allvns      = map vname allargs;
-        fun vname_arg s arg = if is_rec arg then vname arg^s else vname arg;
-        val vns1        = map (vname_arg "" ) args;
-        val vns2        = map (vname_arg "'") args;
-        val allargs_cnt = length nonrec_args + 2*recs_cnt;
-        val rec_idxs    = (recs_cnt-1) downto 0;
-        val nonlazy_idxs = map snd (filter_out (fn (arg,_) => is_lazy arg)
-                                               (allargs~~((allargs_cnt-1) downto 0)));
-        fun rel_app i ra = proj (Bound(allargs_cnt+2)) eqs (rec_of ra) $ 
-                                Bound (2*recs_cnt-i) $ Bound (recs_cnt-i);
-        val capps =
-          List.foldr
-            mk_conj
-            (mk_conj(
-             Bound(allargs_cnt+1)===list_ccomb(%%:con,map (bound_arg allvns) vns1),
-             Bound(allargs_cnt+0)===list_ccomb(%%:con,map (bound_arg allvns) vns2)))
-            (mapn rel_app 1 rec_args);
-      in
-        List.foldr
-          mk_ex
-          (Library.foldr mk_conj
-                         (map (defined o Bound) nonlazy_idxs,capps)) allvns
-      end;
-    fun one_comp n (_,cons) =
-        mk_all (x_name(n+1),
-        mk_all (x_name(n+1)^"'",
-        mk_imp (proj (Bound 2) eqs n $ Bound 1 $ Bound 0,
-        foldr1 mk_disj (mk_conj(Bound 1 === UU,Bound 0 === UU)
-                        ::map one_con cons))));
-(* TEMPORARILY DISABLED
-    val bisim_def =
-        ("bisim_def", %%:(comp_dname^"_bisim") ==
-                         mk_lam("R", foldr1 mk_conj (mapn one_comp 0 eqs)));
-TEMPORARILY DISABLED *)
 
     fun add_one (dnam, axs, dfs) =
         Sign.add_path dnam
@@ -153,7 +109,7 @@ TEMPORARILY DISABLED *)
           #> Sign.parent_path;
 
     val map_tab = Domain_Isomorphism.get_map_tab thy';
-    val axs = mapn (calc_axioms definitional map_tab comp_dname eqs) 0 eqs;
+    val axs = mapn (calc_axioms definitional map_tab eqs) 0 eqs;
     val thy = thy' |> fold add_one axs;
 
     fun get_iso_info ((dname, tyvars), cons') =
@@ -211,11 +167,6 @@ TEMPORARILY DISABLED *)
     end;
   in
     thy
-    |> Sign.add_path comp_dnam
-(*
-    |> add_defs_infer [bisim_def]
-*)
-    |> Sign.parent_path
   end; (* let (add_axioms) *)
 
 end; (* struct *)

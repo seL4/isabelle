@@ -176,11 +176,9 @@ thm tree.finite_def
 thm tree.finites
 
 text {* Rules about bisimulation predicate *}
-(* COINDUCTION TEMPORARILY DISABLED
 term tree_bisim
 thm tree.bisim_def
 thm tree.coind
-COINDUCTION TEMPORARILY DISABLED *)
 
 text {* Induction rule *}
 thm tree.ind

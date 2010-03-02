@@ -150,7 +150,7 @@ fun gen_add_domain
     val eqs' : ((string * typ list) *
         (binding * (bool * binding option * typ) list * mixfix) list) list =
       check_and_sort_domain false dtnvs' cons'' thy'';
-    val thy' = thy'' |> Domain_Syntax.add_syntax false comp_dnam eqs';
+    val thy' = thy'' |> Domain_Syntax.add_syntax false eqs';
     val dts  = map (Type o fst) eqs';
     val new_dts = map (fn ((s,Ts),_) => (s, map (fst o dest_TFree) Ts)) eqs';
     fun strip ss = drop (find_index (fn s => s = "'") ss + 1) ss;
@@ -164,7 +164,7 @@ fun gen_add_domain
         ) : cons;
     val eqs : eq list =
         map (fn (dtnvs,cons') => (dtnvs, map one_con cons')) eqs';
-    val thy = thy' |> Domain_Axioms.add_axioms false eqs' comp_dnam eqs;
+    val thy = thy' |> Domain_Axioms.add_axioms false eqs' eqs;
     val ((rewss, take_rews), theorems_thy) =
         thy
           |> fold_map (fn (eq, (x,cs)) =>
@@ -223,7 +223,7 @@ fun gen_add_new_domain
                  (map fst vs, dname, mx, mk_eq_typ eq, NONE))
              (eqs''' ~~ eqs'))
 
-    val thy' = thy'' |> Domain_Syntax.add_syntax true comp_dnam eqs';
+    val thy' = thy'' |> Domain_Syntax.add_syntax true eqs';
     val dts  = map (Type o fst) eqs';
     val new_dts = map (fn ((s,Ts),_) => (s, map (fst o dest_TFree) Ts)) eqs';
     fun strip ss = drop (find_index (fn s => s = "'") ss + 1) ss;
@@ -237,7 +237,7 @@ fun gen_add_new_domain
         ) : cons;
     val eqs : eq list =
         map (fn (dtnvs,cons') => (dtnvs, map one_con cons')) eqs';
-    val thy = thy' |> Domain_Axioms.add_axioms true eqs' comp_dnam eqs;
+    val thy = thy' |> Domain_Axioms.add_axioms true eqs' eqs;
     val ((rewss, take_rews), theorems_thy) =
         thy
           |> fold_map (fn (eq, (x,cs)) =>
