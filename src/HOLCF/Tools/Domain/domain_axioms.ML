@@ -10,7 +10,7 @@ sig
       string Symtab.table -> (int -> term) -> Datatype.dtyp -> term
 
   val calc_axioms :
-      bool -> string Symtab.table ->
+      bool ->
       Domain_Library.eq list -> int -> Domain_Library.eq ->
       string * (string * term) list * (string * term) list
 
@@ -50,7 +50,6 @@ and copy tab r (Datatype_Aux.DtRec i) = r i
 
 fun calc_axioms
     (definitional : bool)
-    (map_tab : string Symtab.table)
     (eqs : eq list)
     (n : int)
     (eqn as ((dname,_),cons) : eq)
@@ -108,8 +107,7 @@ fun add_axioms definitional eqs' (eqs : eq list) thy' =
           #> add_axioms_infer axs
           #> Sign.parent_path;
 
-    val map_tab = Domain_Isomorphism.get_map_tab thy';
-    val axs = mapn (calc_axioms definitional map_tab eqs) 0 eqs;
+    val axs = mapn (calc_axioms definitional eqs) 0 eqs;
     val thy = thy' |> fold add_one axs;
 
     fun get_iso_info ((dname, tyvars), cons') =
