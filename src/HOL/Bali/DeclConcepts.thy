@@ -1381,7 +1381,7 @@ translations
 
 definition imethds :: "prog \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> mhead) tables" where
 "imethds G I 
-  \<equiv> iface_rec (G,I)  
+  \<equiv> iface_rec G I  
               (\<lambda>I i ts. (Un_tables ts) \<oplus>\<oplus> 
                         (Option.set \<circ> table_of (map (\<lambda>(s,m). (s,I,m)) (imethods i))))"
 text {* methods of an interface, with overriding and inheritance, cf. 9.2 *}
@@ -1396,7 +1396,7 @@ text {* only returns imethds if the interface is accessible *}
 definition methd :: "prog \<Rightarrow> qtname  \<Rightarrow> (sig,qtname \<times> methd) table" where
 
 "methd G C 
- \<equiv> class_rec (G,C) empty
+ \<equiv> class_rec G C empty
              (\<lambda>C c subcls_mthds. 
                filter_tab (\<lambda>sig m. G\<turnstile>C inherits method sig m)
                           subcls_mthds 
@@ -1429,7 +1429,7 @@ definition dynmethd :: "prog  \<Rightarrow> qtname \<Rightarrow> qtname \<Righta
         then (case methd G statC sig of
                 None \<Rightarrow> None
               | Some statM 
-                  \<Rightarrow> (class_rec (G,dynC) empty
+                  \<Rightarrow> (class_rec G dynC empty
                        (\<lambda>C c subcls_mthds. 
                           subcls_mthds
                           ++
@@ -1481,7 +1481,7 @@ text {* @{term "dynlookup G statT dynC"}: dynamic lookup of a method within the
 
 definition fields :: "prog \<Rightarrow> qtname \<Rightarrow> ((vname \<times> qtname) \<times> field) list" where
 "fields G C 
-  \<equiv> class_rec (G,C) [] (\<lambda>C c ts. map (\<lambda>(n,t). ((n,C),t)) (cfields c) @ ts)"
+  \<equiv> class_rec G C [] (\<lambda>C c ts. map (\<lambda>(n,t). ((n,C),t)) (cfields c) @ ts)"
 text {* @{term "fields G C"} 
      list of fields of a class, including all the fields of the superclasses
      (private, inherited and hidden ones) not only the accessible ones
@@ -1805,7 +1805,7 @@ proof -
                 (\<lambda>_ dynM. G,sig \<turnstile> dynM overrides statM \<or> dynM = statM)
                 (methd G C)"
         let "?class_rec C" =
-              "(class_rec (G, C) empty
+              "(class_rec G C empty
                            (\<lambda>C c subcls_mthds. subcls_mthds ++ (?filter C)))"
         from statM Subcls ws subclseq_dynC_statC
         have dynmethd_dynC_def:
@@ -2270,7 +2270,7 @@ done
 section "calculation of the superclasses of a class"
 
 definition superclasses :: "prog \<Rightarrow> qtname \<Rightarrow> qtname set" where
- "superclasses G C \<equiv> class_rec (G,C) {} 
+ "superclasses G C \<equiv> class_rec G C {} 
                        (\<lambda> C c superclss. (if C=Object 
                                             then {} 
                                             else insert (super c) superclss))"

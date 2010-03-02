@@ -34,32 +34,33 @@ primrec succs :: "instr \<Rightarrow> p_count \<Rightarrow> p_count list" where
 | "succs Throw pc              = [pc]"
 
 text "Effect of instruction on the state type:"
-consts 
-eff' :: "instr \<times> jvm_prog \<times> state_type \<Rightarrow> state_type"
 
-recdef eff' "{}"
-"eff' (Load idx,  G, (ST, LT))          = (ok_val (LT ! idx) # ST, LT)"
-"eff' (Store idx, G, (ts#ST, LT))       = (ST, LT[idx:= OK ts])"
-"eff' (LitPush v, G, (ST, LT))           = (the (typeof (\<lambda>v. None) v) # ST, LT)"
-"eff' (Getfield F C, G, (oT#ST, LT))    = (snd (the (field (G,C) F)) # ST, LT)"
-"eff' (Putfield F C, G, (vT#oT#ST, LT)) = (ST,LT)"
-"eff' (New C, G, (ST,LT))               = (Class C # ST, LT)"
-"eff' (Checkcast C, G, (RefT rt#ST,LT)) = (Class C # ST,LT)"
-"eff' (Pop, G, (ts#ST,LT))              = (ST,LT)"
-"eff' (Dup, G, (ts#ST,LT))              = (ts#ts#ST,LT)"
-"eff' (Dup_x1, G, (ts1#ts2#ST,LT))      = (ts1#ts2#ts1#ST,LT)"
-"eff' (Dup_x2, G, (ts1#ts2#ts3#ST,LT))  = (ts1#ts2#ts3#ts1#ST,LT)"
-"eff' (Swap, G, (ts1#ts2#ST,LT))        = (ts2#ts1#ST,LT)"
+fun eff' :: "instr \<times> jvm_prog \<times> state_type \<Rightarrow> state_type"
+where
+"eff' (Load idx,  G, (ST, LT))          = (ok_val (LT ! idx) # ST, LT)" |
+"eff' (Store idx, G, (ts#ST, LT))       = (ST, LT[idx:= OK ts])" |
+"eff' (LitPush v, G, (ST, LT))           = (the (typeof (\<lambda>v. None) v) # ST, LT)" |
+"eff' (Getfield F C, G, (oT#ST, LT))    = (snd (the (field (G,C) F)) # ST, LT)" |
+"eff' (Putfield F C, G, (vT#oT#ST, LT)) = (ST,LT)" |
+"eff' (New C, G, (ST,LT))               = (Class C # ST, LT)" |
+"eff' (Checkcast C, G, (RefT rt#ST,LT)) = (Class C # ST,LT)" |
+"eff' (Pop, G, (ts#ST,LT))              = (ST,LT)" |
+"eff' (Dup, G, (ts#ST,LT))              = (ts#ts#ST,LT)" |
+"eff' (Dup_x1, G, (ts1#ts2#ST,LT))      = (ts1#ts2#ts1#ST,LT)" |
+"eff' (Dup_x2, G, (ts1#ts2#ts3#ST,LT))  = (ts1#ts2#ts3#ts1#ST,LT)" |
+"eff' (Swap, G, (ts1#ts2#ST,LT))        = (ts2#ts1#ST,LT)" |
 "eff' (IAdd, G, (PrimT Integer#PrimT Integer#ST,LT)) 
-                                         = (PrimT Integer#ST,LT)"
-"eff' (Ifcmpeq b, G, (ts1#ts2#ST,LT))   = (ST,LT)"
-"eff' (Goto b, G, s)                    = s"
+                                         = (PrimT Integer#ST,LT)" |
+"eff' (Ifcmpeq b, G, (ts1#ts2#ST,LT))   = (ST,LT)" |
+"eff' (Goto b, G, s)                    = s" |
   -- "Return has no successor instruction in the same method"
-"eff' (Return, G, s)                    = s" 
+"eff' (Return, G, s)                    = s" |
   -- "Throw always terminates abruptly"
-"eff' (Throw, G, s)                     = s"
+"eff' (Throw, G, s)                     = s" |
 "eff' (Invoke C mn fpTs, G, (ST,LT))    = (let ST' = drop (length fpTs) ST 
   in  (fst (snd (the (method (G,C) (mn,fpTs))))#(tl ST'),LT))" 
+
+
 
 primrec match_any :: "jvm_prog \<Rightarrow> p_count \<Rightarrow> exception_table \<Rightarrow> cname list" where
   "match_any G pc [] = []"
@@ -77,16 +78,16 @@ lemma match_some_entry:
   "match G X pc et = (if \<exists>e \<in> set et. match_exception_entry G (Xcpt X) pc e then [Xcpt X] else [])"
   by (induct et) auto
 
-consts
+fun
   xcpt_names :: "instr \<times> jvm_prog \<times> p_count \<times> exception_table \<Rightarrow> cname list" 
-recdef xcpt_names "{}"
+where
   "xcpt_names (Getfield F C, G, pc, et) = match G NullPointer pc et" 
-  "xcpt_names (Putfield F C, G, pc, et) = match G NullPointer pc et" 
-  "xcpt_names (New C, G, pc, et)        = match G OutOfMemory pc et"
-  "xcpt_names (Checkcast C, G, pc, et)  = match G ClassCast pc et"
-  "xcpt_names (Throw, G, pc, et)        = match_any G pc et"
-  "xcpt_names (Invoke C m p, G, pc, et) = match_any G pc et" 
-  "xcpt_names (i, G, pc, et)            = []" 
+| "xcpt_names (Putfield F C, G, pc, et) = match G NullPointer pc et" 
+| "xcpt_names (New C, G, pc, et)        = match G OutOfMemory pc et"
+| "xcpt_names (Checkcast C, G, pc, et)  = match G ClassCast pc et"
+| "xcpt_names (Throw, G, pc, et)        = match_any G pc et"
+| "xcpt_names (Invoke C m p, G, pc, et) = match_any G pc et" 
+| "xcpt_names (i, G, pc, et)            = []" 
 
 
 definition xcpt_eff :: "instr \<Rightarrow> jvm_prog \<Rightarrow> p_count \<Rightarrow> state_type option \<Rightarrow> exception_table \<Rightarrow> succ_type" where
@@ -118,53 +119,53 @@ lemma "list_all2 P a b \<Longrightarrow> \<forall>(x,y) \<in> set (zip a b). P x
 
 
 text "Conditions under which eff is applicable:"
-consts
-app' :: "instr \<times> jvm_prog \<times> p_count \<times> nat \<times> ty \<times> state_type \<Rightarrow> bool"
 
-recdef app' "{}"
+fun
+app' :: "instr \<times> jvm_prog \<times> p_count \<times> nat \<times> ty \<times> state_type \<Rightarrow> bool"
+where
 "app' (Load idx, G, pc, maxs, rT, s) = 
-  (idx < length (snd s) \<and> (snd s) ! idx \<noteq> Err \<and> length (fst s) < maxs)"
+  (idx < length (snd s) \<and> (snd s) ! idx \<noteq> Err \<and> length (fst s) < maxs)" |
 "app' (Store idx, G, pc, maxs, rT, (ts#ST, LT)) = 
-  (idx < length LT)"
+  (idx < length LT)" |
 "app' (LitPush v, G, pc, maxs, rT, s) = 
-  (length (fst s) < maxs \<and> typeof (\<lambda>t. None) v \<noteq> None)"
+  (length (fst s) < maxs \<and> typeof (\<lambda>t. None) v \<noteq> None)" |
 "app' (Getfield F C, G, pc, maxs, rT, (oT#ST, LT)) = 
   (is_class G C \<and> field (G,C) F \<noteq> None \<and> fst (the (field (G,C) F)) = C \<and> 
-  G \<turnstile> oT \<preceq> (Class C))"
+  G \<turnstile> oT \<preceq> (Class C))" |
 "app' (Putfield F C, G, pc, maxs, rT, (vT#oT#ST, LT)) = 
   (is_class G C \<and> field (G,C) F \<noteq> None \<and> fst (the (field (G,C) F)) = C \<and>
-  G \<turnstile> oT \<preceq> (Class C) \<and> G \<turnstile> vT \<preceq> (snd (the (field (G,C) F))))" 
+  G \<turnstile> oT \<preceq> (Class C) \<and> G \<turnstile> vT \<preceq> (snd (the (field (G,C) F))))" |
 "app' (New C, G, pc, maxs, rT, s) = 
-  (is_class G C \<and> length (fst s) < maxs)"
+  (is_class G C \<and> length (fst s) < maxs)" |
 "app' (Checkcast C, G, pc, maxs, rT, (RefT rt#ST,LT)) = 
-  (is_class G C)"
+  (is_class G C)" |
 "app' (Pop, G, pc, maxs, rT, (ts#ST,LT)) = 
-  True"
+  True" |
 "app' (Dup, G, pc, maxs, rT, (ts#ST,LT)) = 
-  (1+length ST < maxs)"
+  (1+length ST < maxs)" |
 "app' (Dup_x1, G, pc, maxs, rT, (ts1#ts2#ST,LT)) = 
-  (2+length ST < maxs)"
+  (2+length ST < maxs)" |
 "app' (Dup_x2, G, pc, maxs, rT, (ts1#ts2#ts3#ST,LT)) = 
-  (3+length ST < maxs)"
+  (3+length ST < maxs)" |
 "app' (Swap, G, pc, maxs, rT, (ts1#ts2#ST,LT)) = 
-  True"
+  True" |
 "app' (IAdd, G, pc, maxs, rT, (PrimT Integer#PrimT Integer#ST,LT)) =
-  True"
+  True" |
 "app' (Ifcmpeq b, G, pc, maxs, rT, (ts#ts'#ST,LT)) = 
-  (0 \<le> int pc + b \<and> (isPrimT ts \<and> ts' = ts \<or> isRefT ts \<and> isRefT ts'))"
+  (0 \<le> int pc + b \<and> (isPrimT ts \<and> ts' = ts \<or> isRefT ts \<and> isRefT ts'))" |
 "app' (Goto b, G, pc, maxs, rT, s) = 
-  (0 \<le> int pc + b)"
+  (0 \<le> int pc + b)" |
 "app' (Return, G, pc, maxs, rT, (T#ST,LT)) = 
-  (G \<turnstile> T \<preceq> rT)"
+  (G \<turnstile> T \<preceq> rT)" |
 "app' (Throw, G, pc, maxs, rT, (T#ST,LT)) = 
-  isRefT T"
+  isRefT T" |
 "app' (Invoke C mn fpTs, G, pc, maxs, rT, s) = 
   (length fpTs < length (fst s) \<and> 
   (let apTs = rev (take (length fpTs) (fst s));
        X    = hd (drop (length fpTs) (fst s)) 
    in  
        G \<turnstile> X \<preceq> Class C \<and> is_class G C \<and> method (G,C) (mn,fpTs) \<noteq> None \<and>
-       list_all2 (\<lambda>x y. G \<turnstile> x \<preceq> y) apTs fpTs))"
+       list_all2 (\<lambda>x y. G \<turnstile> x \<preceq> y) apTs fpTs))" |
   
 "app' (i,G, pc,maxs,rT,s) = False"
 
@@ -208,7 +209,7 @@ proof (cases a)
 qed auto
 
 lemma 2: "\<not>(2 < length a) \<Longrightarrow> a = [] \<or> (\<exists> l. a = [l]) \<or> (\<exists> l l'. a = [l,l'])"
-proof -;
+proof -
   assume "\<not>(2 < length a)"
   hence "length a < (Suc (Suc (Suc 0)))" by simp
   hence * : "length a = 0 \<or> length a = Suc 0 \<or> length a = Suc (Suc 0)" 
@@ -268,7 +269,7 @@ lemma appCheckcast[simp]:
   "(app (Checkcast C) G maxs rT pc et (Some s)) =  
   (\<exists>rT ST LT. s = (RefT rT#ST,LT) \<and> is_class G C \<and>
   (\<forall>x \<in> set (match G ClassCast pc et). is_class G x))"
-  by (cases s, cases "fst s", simp add: app_def) (cases "hd (fst s)", auto)
+  by (cases s, cases "fst s", simp) (cases "hd (fst s)", auto)
 
 lemma appPop[simp]: 
 "(app Pop G maxs rT pc et (Some s)) = (\<exists>ts ST LT. s = (ts#ST,LT))"
@@ -359,7 +360,7 @@ proof (cases s)
     assume app: "?app (a,b)"
     hence "a = (rev (rev (take (length fpTs) a))) @ (drop (length fpTs) a) \<and> 
            length fpTs < length a" (is "?a \<and> ?l") 
-      by (auto simp add: app_def)
+      by auto
     hence "?a \<and> 0 < length (drop (length fpTs) a)" (is "?a \<and> ?l") 
       by auto
     hence "?a \<and> ?l \<and> length (rev (take (length fpTs) a)) = length fpTs" 
@@ -374,7 +375,7 @@ proof (cases s)
     hence "\<exists>apTs X ST. a = rev apTs @ X # ST \<and> length apTs = length fpTs" 
       by blast
     with app
-    show ?thesis by (unfold app_def, clarsimp) blast
+    show ?thesis by clarsimp blast
   qed
   with Pair 
   have "?app s \<Longrightarrow> ?P s" by (simp only:)

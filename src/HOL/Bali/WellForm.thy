@@ -730,13 +730,15 @@ lemma wf_imethdsD:
  \<Longrightarrow> \<not>is_static im \<and> accmodi im = Public"
 proof -
   assume asm: "wf_prog G" "is_iface G I" "im \<in> imethds G I sig"
+
+  note iface_rec_induct' = iface_rec.induct[of "(%x y z. P x y)", standard]
   have "wf_prog G \<longrightarrow> 
          (\<forall> i im. iface G I = Some i \<longrightarrow> im \<in> imethds G I sig
                   \<longrightarrow> \<not>is_static im \<and> accmodi im = Public)" (is "?P G I")
-  proof (rule iface_rec.induct,intro allI impI)
+  proof (induct G I rule: iface_rec_induct', intro allI impI)
     fix G I i im
-    assume hyp: "\<forall> J i. J \<in> set (isuperIfs i) \<and> ws_prog G \<and> iface G I = Some i
-                 \<longrightarrow> ?P G J"
+    assume hyp: "\<And> i J. iface G I = Some i \<Longrightarrow> ws_prog G \<Longrightarrow> J \<in> set (isuperIfs i)
+                 \<Longrightarrow> ?P G J"
     assume wf: "wf_prog G" and if_I: "iface G I = Some i" and 
            im: "im \<in> imethds G I sig" 
     show "\<not>is_static im \<and> accmodi im = Public" 
@@ -1345,14 +1347,16 @@ proof -
   qed
 qed
 
+lemmas class_rec_induct' = class_rec.induct[of "%x y z w. P x y", standard]
+
 lemma declclass_widen[rule_format]: 
  "wf_prog G 
  \<longrightarrow> (\<forall>c m. class G C = Some c \<longrightarrow> methd G C sig = Some m 
  \<longrightarrow> G\<turnstile>C \<preceq>\<^sub>C declclass m)" (is "?P G C")
-proof (rule class_rec.induct,intro allI impI)
+proof (induct G C rule: class_rec_induct', intro allI impI)
   fix G C c m
-  assume Hyp: "\<forall>c. C \<noteq> Object \<and> ws_prog G \<and> class G C = Some c 
-               \<longrightarrow> ?P G (super c)"
+  assume Hyp: "\<And>c. class G C = Some c \<Longrightarrow> ws_prog G \<Longrightarrow> C \<noteq> Object
+               \<Longrightarrow> ?P G (super c)"
   assume wf: "wf_prog G" and cls_C: "class G C = Some c" and
          m:  "methd G C sig = Some m"
   show "G\<turnstile>C\<preceq>\<^sub>C declclass m" 
@@ -1976,27 +1980,6 @@ proof -
   qed
 qed
 
-(* Tactical version *)
-(*
-lemma declclassD[rule_format]:
- "wf_prog G \<longrightarrow>  
- (\<forall> c d m. class G C = Some c \<longrightarrow> methd G C sig = Some m \<longrightarrow> 
-  class G (declclass m) = Some d
- \<longrightarrow> table_of (methods d) sig  = Some (mthd m))"
-apply (rule class_rec.induct)
-apply (rule impI)
-apply (rule allI)+
-apply (rule impI)
-apply (case_tac "C=Object")
-apply   (force simp add: methd_rec)
-
-apply   (subst methd_rec)
-apply     (blast dest: wf_ws_prog)+
-apply   (case_tac "table_of (map (\<lambda>(s, m). (s, C, m)) (methods c)) sig")
-apply     (auto dest: wf_prog_cdecl wf_cdecl_supD is_acc_class_is_class)
-done
-*)
-
 lemma dynmethd_Object:
   assumes statM: "methd G Object sig = Some statM" and
         private: "accmodi statM = Private" and 
@@ -2355,9 +2338,9 @@ proof -
   have "wf_prog G  \<longrightarrow> 
            (\<forall> c m. class G C = Some c \<longrightarrow>  methd G C sig = Some m 
                    \<longrightarrow>  methd G (declclass m) sig = Some m)"      (is "?P G C") 
-  proof (rule class_rec.induct,intro allI impI)
+  proof (induct G C rule: class_rec_induct', intro allI impI)
     fix G C c m
-    assume hyp: "\<forall>c. C \<noteq> Object \<and> ws_prog G \<and> class G C = Some c \<longrightarrow>
+    assume hyp: "\<And>c. class G C = Some c \<Longrightarrow> ws_prog G \<Longrightarrow> C \<noteq> Object \<Longrightarrow>
                      ?P G (super c)"
     assume wf: "wf_prog G" and cls_C: "class G C = Some c" and
             m: "methd G C sig = Some m"

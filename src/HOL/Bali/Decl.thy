@@ -763,51 +763,57 @@ qed
 
 section "general recursion operators for the interface and class hiearchies"
 
-consts
-  iface_rec  :: "prog \<times> qtname \<Rightarrow>   \<spacespace>  (qtname \<Rightarrow> iface \<Rightarrow> 'a set \<Rightarrow> 'a) \<Rightarrow> 'a"
-  class_rec  :: "prog \<times> qtname \<Rightarrow> 'a \<Rightarrow> (qtname \<Rightarrow> class \<Rightarrow> 'a     \<Rightarrow> 'a) \<Rightarrow> 'a"
-
-recdef iface_rec "same_fst ws_prog (\<lambda>G. (subint1 G)^-1)" 
-"iface_rec (G,I) = 
-  (\<lambda>f. case iface G I of 
+function
+  iface_rec  :: "prog \<Rightarrow> qtname \<Rightarrow>   \<spacespace>(qtname \<Rightarrow> iface \<Rightarrow> 'a set \<Rightarrow> 'a) \<Rightarrow> 'a"
+where
+[simp del]: "iface_rec G I f = 
+  (case iface G I of 
          None \<Rightarrow> undefined 
        | Some i \<Rightarrow> if ws_prog G 
                       then f I i 
-                               ((\<lambda>J. iface_rec (G,J) f)`set (isuperIfs i))
+                               ((\<lambda>J. iface_rec G J f)`set (isuperIfs i))
                       else undefined)"
-(hints recdef_wf: wf_subint1 intro: subint1I)
-declare iface_rec.simps [simp del]
+by auto
+termination
+by (relation "inv_image (same_fst ws_prog (\<lambda>G. (subint1 G)^-1)) (%(x,y,z). (x,y))")
+ (auto simp: wf_subint1 subint1I wf_same_fst)
 
 lemma iface_rec: 
 "\<lbrakk>iface G I = Some i; ws_prog G\<rbrakk> \<Longrightarrow> 
- iface_rec (G,I) f = f I i ((\<lambda>J. iface_rec (G,J) f)`set (isuperIfs i))"
+ iface_rec G I f = f I i ((\<lambda>J. iface_rec G J f)`set (isuperIfs i))"
 apply (subst iface_rec.simps)
 apply simp
 done
 
-recdef class_rec "same_fst ws_prog (\<lambda>G. (subcls1 G)^-1)"
-"class_rec(G,C) = 
-  (\<lambda>t f. case class G C of 
+
+function
+  class_rec  :: "prog \<Rightarrow> qtname \<Rightarrow> 'a \<Rightarrow> (qtname \<Rightarrow> class \<Rightarrow> 'a     \<Rightarrow> 'a) \<Rightarrow> 'a"
+where
+[simp del]: "class_rec G C t f = 
+  (case class G C of 
            None \<Rightarrow> undefined 
          | Some c \<Rightarrow> if ws_prog G 
                         then f C c 
                                  (if C = Object then t 
-                                                else class_rec (G,super c) t f)
+                                                else class_rec G (super c) t f)
                         else undefined)"
-(hints recdef_wf: wf_subcls1 intro: subcls1I)
-declare class_rec.simps [simp del]
+
+by auto
+termination
+by (relation "inv_image (same_fst ws_prog (\<lambda>G. (subcls1 G)^-1)) (%(x,y,z,w). (x,y))")
+ (auto simp: wf_subcls1 subcls1I wf_same_fst)
 
 lemma class_rec: "\<lbrakk>class G C = Some c; ws_prog G\<rbrakk> \<Longrightarrow>  
- class_rec (G,C) t f = 
-   f C c (if C = Object then t else class_rec (G,super c) t f)"
-apply (rule class_rec.simps [THEN trans [THEN fun_cong [THEN fun_cong]]])
+ class_rec G C t f = 
+   f C c (if C = Object then t else class_rec G (super c) t f)"
+apply (subst class_rec.simps)
 apply simp
 done
 
 definition imethds :: "prog \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> mhead) tables" where
   --{* methods of an interface, with overriding and inheritance, cf. 9.2 *}
 "imethds G I 
-  \<equiv> iface_rec (G,I)  
+  \<equiv> iface_rec G I  
               (\<lambda>I i ts. (Un_tables ts) \<oplus>\<oplus> 
                         (Option.set \<circ> table_of (map (\<lambda>(s,m). (s,I,m)) (imethods i))))"
         

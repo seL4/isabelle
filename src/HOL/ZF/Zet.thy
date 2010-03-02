@@ -196,7 +196,7 @@ lemma zunion_zempty_right[simp]: "zunion a zempty = a"
 lemma zimage_id[simp]: "zimage id A = A"
   by (simp add: zet_ext_eq zimage_iff)
 
-lemma zimage_cong[recdef_cong]: "\<lbrakk> M = N; !! x. zin x N \<Longrightarrow> f x = g x \<rbrakk> \<Longrightarrow> zimage f M = zimage g N"
+lemma zimage_cong[recdef_cong, fundef_cong]: "\<lbrakk> M = N; !! x. zin x N \<Longrightarrow> f x = g x \<rbrakk> \<Longrightarrow> zimage f M = zimage g N"
   by (auto simp add: zet_ext_eq zimage_iff)
 
 end

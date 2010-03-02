@@ -17,14 +17,12 @@ definition
   inv :: "int => int => int" where
   "inv p a = (a^(nat (p - 2))) mod p"
 
-consts
-  wset :: "int * int => int set"
-
-recdef wset
-  "measure ((\<lambda>(a, p). nat a) :: int * int => nat)"
-  "wset (a, p) =
+fun
+  wset :: "int \<Rightarrow> int => int set"
+where
+  "wset a p =
     (if 1 < a then
-      let ws = wset (a - 1, p)
+      let ws = wset (a - 1) p
       in (if a \<in> ws then ws else insert a (insert (inv p a) ws)) else {})"
 
 
@@ -163,35 +161,33 @@ declare wset.simps [simp del]
 lemma wset_induct:
   assumes "!!a p. P {} a p"
     and "!!a p. 1 < (a::int) \<Longrightarrow>
-      P (wset (a - 1, p)) (a - 1) p ==> P (wset (a, p)) a p"
-  shows "P (wset (u, v)) u v"
-  apply (rule wset.induct, safe)
-   prefer 2
-   apply (case_tac "1 < a")
-    apply (rule prems)
-     apply simp_all
-   apply (simp_all add: wset.simps prems)
+      P (wset (a - 1) p) (a - 1) p ==> P (wset a p) a p"
+  shows "P (wset u v) u v"
+  apply (rule wset.induct)
+  apply (case_tac "1 < a")
+   apply (rule assms)
+    apply (simp_all add: wset.simps assms)
   done
 
 lemma wset_mem_imp_or [rule_format]:
-  "1 < a \<Longrightarrow> b \<notin> wset (a - 1, p)
-    ==> b \<in> wset (a, p) --> b = a \<or> b = inv p a"
+  "1 < a \<Longrightarrow> b \<notin> wset (a - 1) p
+    ==> b \<in> wset a p --> b = a \<or> b = inv p a"
   apply (subst wset.simps)
   apply (unfold Let_def, simp)
   done
 
-lemma wset_mem_mem [simp]: "1 < a ==> a \<in> wset (a, p)"
+lemma wset_mem_mem [simp]: "1 < a ==> a \<in> wset a p"
   apply (subst wset.simps)
   apply (unfold Let_def, simp)
   done
 
-lemma wset_subset: "1 < a \<Longrightarrow> b \<in> wset (a - 1, p) ==> b \<in> wset (a, p)"
+lemma wset_subset: "1 < a \<Longrightarrow> b \<in> wset (a - 1) p ==> b \<in> wset a p"
   apply (subst wset.simps)
   apply (unfold Let_def, auto)
   done
 
 lemma wset_g_1 [rule_format]:
-    "zprime p --> a < p - 1 --> b \<in> wset (a, p) --> 1 < b"
+    "zprime p --> a < p - 1 --> b \<in> wset a p --> 1 < b"
   apply (induct a p rule: wset_induct, auto)
   apply (case_tac "b = a")
    apply (case_tac [2] "b = inv p a")
@@ -203,7 +199,7 @@ lemma wset_g_1 [rule_format]:
   done
 
 lemma wset_less [rule_format]:
-    "zprime p --> a < p - 1 --> b \<in> wset (a, p) --> b < p - 1"
+    "zprime p --> a < p - 1 --> b \<in> wset a p --> b < p - 1"
   apply (induct a p rule: wset_induct, auto)
   apply (case_tac "b = a")
    apply (case_tac [2] "b = inv p a")
@@ -216,7 +212,7 @@ lemma wset_less [rule_format]:
 
 lemma wset_mem [rule_format]:
   "zprime p -->
-    a < p - 1 --> 1 < b --> b \<le> a --> b \<in> wset (a, p)"
+    a < p - 1 --> 1 < b --> b \<le> a --> b \<in> wset a p"
   apply (induct a p rule: wset.induct, auto)
   apply (rule_tac wset_subset)
   apply (simp (no_asm_simp))
@@ -224,8 +220,8 @@ lemma wset_mem [rule_format]:
   done
 
 lemma wset_mem_inv_mem [rule_format]:
-  "zprime p --> 5 \<le> p --> a < p - 1 --> b \<in> wset (a, p)
-    --> inv p b \<in> wset (a, p)"
+  "zprime p --> 5 \<le> p --> a < p - 1 --> b \<in> wset a p
+    --> inv p b \<in> wset a p"
   apply (induct a p rule: wset_induct, auto)
    apply (case_tac "b = a")
     apply (subst wset.simps)
@@ -240,13 +236,13 @@ lemma wset_mem_inv_mem [rule_format]:
 
 lemma wset_inv_mem_mem:
   "zprime p \<Longrightarrow> 5 \<le> p \<Longrightarrow> a < p - 1 \<Longrightarrow> 1 < b \<Longrightarrow> b < p - 1
-    \<Longrightarrow> inv p b \<in> wset (a, p) \<Longrightarrow> b \<in> wset (a, p)"
+    \<Longrightarrow> inv p b \<in> wset a p \<Longrightarrow> b \<in> wset a p"
   apply (rule_tac s = "inv p (inv p b)" and t = b in subst)
    apply (rule_tac [2] wset_mem_inv_mem)
       apply (rule inv_inv, simp_all)
   done
 
-lemma wset_fin: "finite (wset (a, p))"
+lemma wset_fin: "finite (wset a p)"
   apply (induct a p rule: wset_induct)
    prefer 2
    apply (subst wset.simps)
@@ -255,27 +251,27 @@ lemma wset_fin: "finite (wset (a, p))"
 
 lemma wset_zcong_prod_1 [rule_format]:
   "zprime p -->
-    5 \<le> p --> a < p - 1 --> [(\<Prod>x\<in>wset(a, p). x) = 1] (mod p)"
+    5 \<le> p --> a < p - 1 --> [(\<Prod>x\<in>wset a p. x) = 1] (mod p)"
   apply (induct a p rule: wset_induct)
    prefer 2
    apply (subst wset.simps)
-   apply (unfold Let_def, auto)
+   apply (auto, unfold Let_def, auto)
   apply (subst setprod_insert)
     apply (tactic {* stac (thm "setprod_insert") 3 *})
       apply (subgoal_tac [5]
-        "zcong (a * inv p a * (\<Prod>x\<in> wset(a - 1, p). x)) (1 * 1) p")
+        "zcong (a * inv p a * (\<Prod>x\<in>wset (a - 1) p. x)) (1 * 1) p")
        prefer 5
        apply (simp add: zmult_assoc)
       apply (rule_tac [5] zcong_zmult)
        apply (rule_tac [5] inv_is_inv)
          apply (tactic "clarify_tac @{claset} 4")
-         apply (subgoal_tac [4] "a \<in> wset (a - 1, p)")
+         apply (subgoal_tac [4] "a \<in> wset (a - 1) p")
           apply (rule_tac [5] wset_inv_mem_mem)
                apply (simp_all add: wset_fin)
   apply (rule inv_distinct, auto)
   done
 
-lemma d22set_eq_wset: "zprime p ==> d22set (p - 2) = wset (p - 2, p)"
+lemma d22set_eq_wset: "zprime p ==> d22set (p - 2) = wset (p - 2) p"
   apply safe
    apply (erule wset_mem)
      apply (rule_tac [2] d22set_g_1)

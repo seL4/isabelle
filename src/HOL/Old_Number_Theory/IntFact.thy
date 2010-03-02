@@ -14,14 +14,14 @@ text {*
   \bigskip
 *}
 
-consts
+fun
   zfact :: "int => int"
-  d22set :: "int => int set"
-
-recdef zfact  "measure ((\<lambda>n. nat n) :: int => nat)"
+where
   "zfact n = (if n \<le> 0 then 1 else n * zfact (n - 1))"
 
-recdef d22set  "measure ((\<lambda>a. nat a) :: int => nat)"
+fun
+  d22set :: "int => int set"
+where
   "d22set a = (if 1 < a then insert a (d22set (a - 1)) else {})"
 
 
@@ -38,12 +38,10 @@ lemma d22set_induct:
     and "!!a. 1 < (a::int) ==> P (d22set (a - 1)) (a - 1) ==> P (d22set a) a"
   shows "P (d22set u) u"
   apply (rule d22set.induct)
-  apply safe
-   prefer 2
-   apply (case_tac "1 < a")
-    apply (rule_tac prems)
-     apply (simp_all (no_asm_simp))
-   apply (simp_all (no_asm_simp) add: d22set.simps prems)
+  apply (case_tac "1 < a")
+   apply (rule_tac assms)
+    apply (simp_all (no_asm_simp))
+  apply (simp_all (no_asm_simp) add: d22set.simps assms)
   done
 
 lemma d22set_g_1 [rule_format]: "b \<in> d22set a --> 1 < b"
@@ -66,7 +64,8 @@ lemma d22set_le_swap: "a < b ==> b \<notin> d22set a"
 lemma d22set_mem: "1 < b \<Longrightarrow> b \<le> a \<Longrightarrow> b \<in> d22set a"
   apply (induct a rule: d22set.induct)
   apply auto
-   apply (simp_all add: d22set.simps)
+  apply (subst d22set.simps)
+  apply (case_tac "b < a", auto)
   done
 
 lemma d22set_fin: "finite (d22set a)"
@@ -81,8 +80,6 @@ declare zfact.simps [simp del]
 
 lemma d22set_prod_zfact: "\<Prod>(d22set a) = zfact a"
   apply (induct a rule: d22set.induct)
-  apply safe
-   apply (simp add: d22set.simps zfact.simps)
   apply (subst d22set.simps)
   apply (subst zfact.simps)
   apply (case_tac "1 < a")
