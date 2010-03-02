@@ -168,7 +168,6 @@ fun gen_add_domain
         map (fn ((s,Ts),_) => (s, map (fst o dest_TFree) Ts)) eqs';
     fun one_con (con,args,mx) : cons =
         (Binding.name_of con,  (* FIXME preverse binding (!?) *)
-         mx,
          ListPair.map (fn ((lazy,sel,tp),vn) =>
            mk_arg ((lazy, Datatype_Aux.dtyp_of_typ new_dts tp), vn))
                       (args, Datatype_Prop.make_tnames (map third args)));
@@ -245,7 +244,6 @@ fun gen_add_new_domain
         map (fn ((s,Ts),_) => (s, map (fst o dest_TFree) Ts)) eqs';
     fun one_con (con,args,mx) : cons =
         (Binding.name_of con,   (* FIXME preverse binding (!?) *)
-         mx,
          ListPair.map (fn ((lazy,sel,tp),vn) =>
            mk_arg ((lazy, Datatype_Aux.dtyp_of_typ new_dts tp), vn))
                       (args, Datatype_Prop.make_tnames (map third args))

@@ -179,7 +179,7 @@ local
   fun get_take_strict dn = PureThy.get_thm thy (dn ^ ".take_strict");
   val axs_take_strict = map get_take_strict dnames;
 
-  fun one_take_app (con, _, args) =
+  fun one_take_app (con, args) =
     let
       fun mk_take n = dc_take (List.nth (dnames, n)) $ %:"n";
       fun one_rhs arg =
@@ -263,7 +263,7 @@ local
   val dnames = map (fst o fst) eqs;
   val x_name = idx_name dnames "x"; 
 
-  fun one_con (con, _, args) =
+  fun one_con (con, args) =
     let
       val nonrec_args = filter_out is_rec args;
       val    rec_args = filter is_rec args;
@@ -343,7 +343,7 @@ val take_rews =
     maps (fn dn => PureThy.get_thms thy (dn ^ ".take_rews")) dnames;
 
 local
-  fun one_con p (con, _, args) =
+  fun one_con p (con, args) =
     let
       val P_names = map P_name (1 upto (length dnames));
       val vns = Name.variant_list P_names (map vname args);
@@ -367,7 +367,7 @@ local
   fun ind_prems_tac prems = EVERY
     (maps (fn cons =>
       (resolve_tac prems 1 ::
-        maps (fn (_,_,args) => 
+        maps (fn (_,args) => 
           resolve_tac prems 1 ::
           map (K(atac 1)) (nonlazy args) @
           map (K(atac 1)) (filter is_rec args))
@@ -382,7 +382,7 @@ local
           ((rec_of arg =  n andalso nfn(lazy_rec orelse is_lazy arg)) orelse 
             rec_of arg <> n andalso rec_to quant nfn rfn (rec_of arg::ns) 
               (lazy_rec orelse is_lazy arg) (n, (List.nth(conss,rec_of arg))))
-          ) o third) cons;
+          ) o snd) cons;
     fun all_rec_to ns  = rec_to forall not all_rec_to  ns;
     fun warn (n,cons) =
       if all_rec_to [] false (n,cons)
@@ -414,7 +414,7 @@ in (* local *)
                         (* FIXME! case_UU_tac *)
             case_UU_tac context (prems @ con_rews) 1
               (List.nth (dnames, rec_of arg) ^ "_take n$" ^ vname arg);
-          fun con_tacs (con, _, args) = 
+          fun con_tacs (con, args) = 
             asm_simp_tac take_ss 1 ::
             map arg_tac (filter is_nonlazy_rec args) @
             [resolve_tac prems 1] @
@@ -490,7 +490,7 @@ in (* local *)
               etac disjE 1,
               asm_simp_tac (HOL_ss addsimps con_rews) 1,
               asm_simp_tac take_ss 1];
-            fun con_tacs ctxt (con, _, args) =
+            fun con_tacs ctxt (con, args) =
               asm_simp_tac take_ss 1 ::
               maps (arg_tacs ctxt) (nonlazy_rec args);
             fun foo_tacs ctxt n (cons, cases) =

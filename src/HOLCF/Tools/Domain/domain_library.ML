@@ -93,7 +93,7 @@ sig
 
       (* Domain specifications *)
       eqtype arg;
-  type cons = string * mixfix * arg list;
+  type cons = string * arg list;
   type eq = (string * typ list) * cons list;
   val mk_arg : (bool * Datatype.dtyp) * string -> arg;
   val is_lazy : arg -> bool;
@@ -189,7 +189,6 @@ type arg =
 
 type cons =
      string *         (* operator name of constr *)
-     mixfix *         (* mixfix syntax of constructor *)
      arg list;        (* argument list      *)
 
 type eq =
@@ -227,7 +226,7 @@ fun big_sprodD ds = case ds of [] => oneD | _ => foldr1 mk_sprodD ds;
 fun big_ssumD ds = case ds of [] => unitD | _ => foldr1 mk_ssumD ds;
 
 fun dtyp_of_arg ((lazy, D), _) = if lazy then mk_uD D else D;
-fun dtyp_of_cons (_, _, args) = big_sprodD (map dtyp_of_arg args);
+fun dtyp_of_cons (_, args) = big_sprodD (map dtyp_of_arg args);
 fun dtyp_of_eq (_, cons) = big_ssumD (map dtyp_of_cons cons);
 
 
@@ -331,8 +330,8 @@ fun when_funs cons = if length cons = 1 then ["f"]
                      else mapn (fn n => K("f"^(string_of_int n))) 1 cons;
 fun when_body cons funarg =
     let
-      fun one_fun n (_,_,[]  ) = /\ "dummy" (funarg(1,n))
-        | one_fun n (_,_,args) = let
+      fun one_fun n (_,[]  ) = /\ "dummy" (funarg(1,n))
+        | one_fun n (_,args) = let
             val l2 = length args;
             fun idxs m arg = (if is_lazy arg then (fn t => mk_fup (ID, t))
                               else I) (Bound(l2-m));
@@ -342,7 +341,7 @@ fun when_body cons funarg =
                   (args,
                 fn a=> /\#(a,(list_ccomb(funarg(l2,n),mapn idxs 1 args))))
                ) end;
-    in (if length cons = 1 andalso length(third(hd cons)) <= 1
+    in (if length cons = 1 andalso length(snd (hd cons)) <= 1
         then mk_strictify else I)
          (foldr1 mk_sscase (mapn one_fun 1 cons)) end;
 
