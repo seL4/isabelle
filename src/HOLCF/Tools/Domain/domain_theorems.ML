@@ -95,10 +95,6 @@ fun case_UU_tac ctxt rews i v =
   InductTacs.case_tac ctxt (v^"=UU") i THEN
   asm_simp_tac (HOLCF_ss addsimps rews) i;
 
-val chain_tac =
-  REPEAT_DETERM o resolve_tac 
-    [chain_iterate, ch2ch_Rep_CFunR, ch2ch_Rep_CFunL, ch2ch_fst, ch2ch_snd];
-
 (* ----- general proofs ----------------------------------------------------- *)
 
 val all2E = @{lemma "!x y . P x y ==> (P x y ==> R) ==> R" by simp}
@@ -171,8 +167,6 @@ val pat_rews = #pat_rews result;
 
 val pg = pg' thy;
 
-val dc_copy = %%:(dname^"_copy");
-
 val abs_strict = ax_rep_iso RS (allI RS retraction_strict);
 val rep_strict = ax_abs_iso RS (allI RS retraction_strict);
 val iso_rews = map Drule.export_without_context [ax_abs_iso, ax_rep_iso, abs_strict, rep_strict];
@@ -195,10 +189,6 @@ local
           else (%# arg);
       val lhs = (dc_take dname $ (%%:"Suc" $ %:"n"))`(con_app con args);
       val rhs = con_app2 con one_rhs args;
-      fun is_rec arg = Datatype_Aux.is_rec_type (dtyp_of arg);
-      fun is_nonlazy_rec arg = is_rec arg andalso not (is_lazy arg);
-      fun nonlazy_rec args = map vname (filter is_nonlazy_rec args);
-      val goal = lift_defined %: (nonlazy_rec args, mk_trp (lhs === rhs));
       val goal = mk_trp (lhs === rhs);
       val rules = [ax_take_Suc, ax_abs_iso, @{thm cfcomp2}];
       val rules2 = @{thms take_con_rules ID1} @ axs_take_strict;
