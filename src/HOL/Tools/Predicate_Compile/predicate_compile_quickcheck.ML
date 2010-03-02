@@ -10,12 +10,10 @@ sig
   val test_ref :
     ((unit -> int -> int -> int * int -> term list DSequence.dseq * (int * int)) option) Unsynchronized.ref
   val tracing : bool Unsynchronized.ref;
-  val quickcheck_compile_term : bool -> bool -> 
+  val quickcheck_compile_term : bool -> bool -> int ->
     Proof.context -> bool -> term -> int -> term list option * (bool list * bool);
 (*  val test_term : Proof.context -> bool -> int -> int -> int -> int -> term -> *)
-  val quiet : bool Unsynchronized.ref;
   val nrandom : int Unsynchronized.ref;
-  val depth : int Unsynchronized.ref;
   val debug : bool Unsynchronized.ref;
   val function_flattening : bool Unsynchronized.ref;
   val no_higher_order_predicate : string list Unsynchronized.ref;
@@ -31,17 +29,15 @@ val test_ref =
 
 val tracing = Unsynchronized.ref false;
 
-val target = "Quickcheck"
+val quiet = Unsynchronized.ref true;
 
-val quiet = Unsynchronized.ref false;
+val target = "Quickcheck"
 
 val nrandom = Unsynchronized.ref 2;
 
-val depth = Unsynchronized.ref 8;
-
 val debug = Unsynchronized.ref false;
-val function_flattening = Unsynchronized.ref true;
 
+val function_flattening = Unsynchronized.ref true;
 
 val no_higher_order_predicate = Unsynchronized.ref [];
 
@@ -231,21 +227,21 @@ fun try_upto quiet f i =
 
 (* quickcheck interface functions *)
 
-fun compile_term' options ctxt report t =
+fun compile_term' options depth ctxt report t =
   let
     val c = compile_term options ctxt t
     val dummy_report = ([], false)
   in
-    fn size => (try_upto (!quiet) (c size (!nrandom)) (!depth), dummy_report)
+    fn size => (try_upto (!quiet) (c size (!nrandom)) depth, dummy_report)
   end
 
-fun quickcheck_compile_term function_flattening fail_safe_function_flattening ctxt t =
+fun quickcheck_compile_term function_flattening fail_safe_function_flattening depth =
   let
      val options =
        set_fail_safe_function_flattening fail_safe_function_flattening
          (set_function_flattening function_flattening (get_options ()))
   in
-    compile_term' options ctxt t
+    compile_term' options depth
   end
 
 end;
