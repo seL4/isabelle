@@ -148,25 +148,11 @@ text{* Constant Vectors *}
 
 definition "vec x = (\<chi> i. x)"
 
-text{* Dot products. *}
-
-definition dot :: "'a::{comm_monoid_add, times} ^ 'n \<Rightarrow> 'a ^ 'n \<Rightarrow> 'a" (infix "\<bullet>" 70) where
-  "x \<bullet> y = setsum (\<lambda>i. x$i * y$i) UNIV"
-
-lemma dot_1[simp]: "(x::'a::{comm_monoid_add, times}^1) \<bullet> y = (x$1) * (y$1)"
-  by (simp add: dot_def setsum_1)
-
-lemma dot_2[simp]: "(x::'a::{comm_monoid_add, times}^2) \<bullet> y = (x$1) * (y$1) + (x$2) * (y$2)"
-  by (simp add: dot_def setsum_2)
-
-lemma dot_3[simp]: "(x::'a::{comm_monoid_add, times}^3) \<bullet> y = (x$1) * (y$1) + (x$2) * (y$2) + (x$3) * (y$3)"
-  by (simp add: dot_def setsum_3)
-
 subsection {* A naive proof procedure to lift really trivial arithmetic stuff from the basis of the vector space. *}
 
 method_setup vector = {*
 let
-  val ss1 = HOL_basic_ss addsimps [@{thm dot_def}, @{thm setsum_addf} RS sym,
+  val ss1 = HOL_basic_ss addsimps [@{thm setsum_addf} RS sym,
   @{thm setsum_subtractf} RS sym, @{thm setsum_right_distrib},
   @{thm setsum_left_distrib}, @{thm setsum_negf} RS sym]
   val ss2 = @{simpset} addsimps
@@ -189,8 +175,6 @@ let
 
 lemma vec_0[simp]: "vec 0 = 0" by (vector vector_zero_def)
 lemma vec_1[simp]: "vec 1 = 1" by (vector vector_one_def)
-
-
 
 text{* Obvious "component-pushing". *}
 
@@ -816,6 +800,8 @@ instance cart :: (banach, finite) banach ..
 
 subsection {* Inner products *}
 
+abbreviation inner_bullet (infix "\<bullet>" 70)  where "x \<bullet> y \<equiv> inner x y"
+
 instantiation cart :: (real_inner, finite) real_inner
 begin
 
@@ -846,27 +832,6 @@ qed
 
 end
 
-subsection{* Properties of the dot product.  *}
-
-lemma dot_sym: "(x::'a:: {comm_monoid_add, ab_semigroup_mult} ^ 'n) \<bullet> y = y \<bullet> x"
-  by (vector mult_commute)
-lemma dot_ladd: "((x::'a::ring ^ 'n) + y) \<bullet> z = (x \<bullet> z) + (y \<bullet> z)"
-  by (vector ring_simps)
-lemma dot_radd: "x \<bullet> (y + (z::'a::ring ^ 'n)) = (x \<bullet> y) + (x \<bullet> z)"
-  by (vector ring_simps)
-lemma dot_lsub: "((x::'a::ring ^ 'n) - y) \<bullet> z = (x \<bullet> z) - (y \<bullet> z)"
-  by (vector ring_simps)
-lemma dot_rsub: "(x::'a::ring ^ 'n) \<bullet> (y - z) = (x \<bullet> y) - (x \<bullet> z)"
-  by (vector ring_simps)
-lemma dot_lmult: "(c *s x) \<bullet> y = (c::'a::ring) * (x \<bullet> y)" by (vector ring_simps)
-lemma dot_rmult: "x \<bullet> (c *s y) = (c::'a::comm_ring) * (x \<bullet> y)" by (vector ring_simps)
-lemma dot_lneg: "(-x) \<bullet> (y::'a::ring ^ 'n) = -(x \<bullet> y)" by vector
-lemma dot_rneg: "(x::'a::ring ^ 'n) \<bullet> (-y) = -(x \<bullet> y)" by vector
-lemma dot_lzero[simp]: "0 \<bullet> x = (0::'a::{comm_monoid_add, mult_zero})" by vector
-lemma dot_rzero[simp]: "x \<bullet> 0 = (0::'a::{comm_monoid_add, mult_zero})" by vector
-lemma dot_pos_le[simp]: "(0::'a\<Colon>linordered_ring_strict) <= x \<bullet> x"
-  by (simp add: dot_def setsum_nonneg)
-
 lemma setsum_squares_eq_0_iff: assumes fS: "finite F" and fp: "\<forall>x \<in> F. f x \<ge> (0 ::'a::ordered_ab_group_add)" shows "setsum f F = 0 \<longleftrightarrow> (ALL x:F. f x = 0)"
 using fS fp setsum_nonneg[OF fp]
 proof (induct set: finite)
@@ -879,12 +844,6 @@ next
   from add_nonneg_eq_0_iff[OF Fx  setsum_nonneg[OF Fp]] insert.hyps(1,2)
   show ?case by (simp add: h)
 qed
-
-lemma dot_eq_0: "x \<bullet> x = 0 \<longleftrightarrow> (x::'a::{linordered_ring_strict,ring_no_zero_divisors} ^ 'n) = 0"
-  by (simp add: dot_def setsum_squares_eq_0_iff Cart_eq)
-
-lemma dot_pos_lt[simp]: "(0 < x \<bullet> x) \<longleftrightarrow> (x::'a::{linordered_ring_strict,ring_no_zero_divisors} ^ 'n) \<noteq> 0" using dot_eq_0[of x] dot_pos_le[of x]
-  by (auto simp add: le_less)
 
 subsection{* The collapse of the general concepts to dimension one. *}
 
@@ -1019,12 +978,8 @@ lemma norm_0: "norm (0::real ^ _) = 0"
 lemma norm_mul[simp]: "norm(a *s x) = abs(a) * norm x"
   by (simp add: norm_vector_def vector_component setL2_right_distrib
            abs_mult cong: strong_setL2_cong)
-lemma norm_eq_0_dot: "(norm x = 0) \<longleftrightarrow> (x \<bullet> x = (0::real))"
-  by (simp add: norm_vector_def dot_def setL2_def power2_eq_square)
-lemma real_vector_norm_def: "norm x = sqrt (x \<bullet> x)"
-  by (simp add: norm_vector_def setL2_def dot_def power2_eq_square)
-lemma norm_pow_2: "norm x ^ 2 = x \<bullet> x"
-  by (simp add: real_vector_norm_def)
+lemma norm_eq_0_dot: "(norm x = 0) \<longleftrightarrow> (inner x x = (0::real))"
+  by (simp add: norm_vector_def setL2_def power2_eq_square)
 lemma norm_eq_0_imp: "norm x = 0 ==> x = (0::real ^'n)" by (metis norm_eq_zero)
 lemma vector_mul_eq_0[simp]: "(a *s x = 0) \<longleftrightarrow> a = (0::'a::idom) \<or> x = 0"
   by vector
@@ -1036,34 +991,17 @@ lemma vector_mul_lcancel_imp: "a \<noteq> (0::real) ==>  a *s x = a *s y ==> (x 
   by (metis vector_mul_lcancel)
 lemma vector_mul_rcancel_imp: "x \<noteq> 0 \<Longrightarrow> (a::real) *s x = b *s x ==> a = b"
   by (metis vector_mul_rcancel)
+
 lemma norm_cauchy_schwarz:
   fixes x y :: "real ^ 'n"
-  shows "x \<bullet> y <= norm x * norm y"
-proof-
-  {assume "norm x = 0"
-    hence ?thesis by (simp add: dot_lzero dot_rzero)}
-  moreover
-  {assume "norm y = 0"
-    hence ?thesis by (simp add: dot_lzero dot_rzero)}
-  moreover
-  {assume h: "norm x \<noteq> 0" "norm y \<noteq> 0"
-    let ?z = "norm y *s x - norm x *s y"
-    from h have p: "norm x * norm y > 0" by (metis norm_ge_zero le_less zero_compare_simps)
-    from dot_pos_le[of ?z]
-    have "(norm x * norm y) * (x \<bullet> y) \<le> norm x ^2 * norm y ^2"
-      apply (simp add: dot_rsub dot_lsub dot_lmult dot_rmult ring_simps)
-      by (simp add: norm_pow_2[symmetric] power2_eq_square dot_sym)
-    hence "x\<bullet>y \<le> (norm x ^2 * norm y ^2) / (norm x * norm y)" using p
-      by (simp add: field_simps)
-    hence ?thesis using h by (simp add: power2_eq_square)}
-  ultimately show ?thesis by metis
-qed
+  shows "inner x y <= norm x * norm y"
+  using Cauchy_Schwarz_ineq2[of x y] by auto
 
 lemma norm_cauchy_schwarz_abs:
   fixes x y :: "real ^ 'n"
-  shows "\<bar>x \<bullet> y\<bar> \<le> norm x * norm y"
+  shows "\<bar>inner x y\<bar> \<le> norm x * norm y"
   using norm_cauchy_schwarz[of x y] norm_cauchy_schwarz[of x "-y"]
-  by (simp add: real_abs_def dot_rneg)
+  by (simp add: real_abs_def)
 
 lemma norm_triangle_sub:
   fixes x y :: "'a::real_normed_vector"
@@ -1089,21 +1027,21 @@ lemma real_abs_norm: "\<bar>norm x\<bar> = norm x"
 lemma real_abs_sub_norm: "\<bar>norm (x::real ^ 'n) - norm y\<bar> <= norm(x - y)"
   by (rule norm_triangle_ineq3)
 lemma norm_le: "norm(x::real ^ 'n) <= norm(y) \<longleftrightarrow> x \<bullet> x <= y \<bullet> y"
-  by (simp add: real_vector_norm_def)
+  by (simp add: norm_eq_sqrt_inner) 
 lemma norm_lt: "norm(x::real ^ 'n) < norm(y) \<longleftrightarrow> x \<bullet> x < y \<bullet> y"
-  by (simp add: real_vector_norm_def)
-lemma norm_eq: "norm(x::real ^ 'n) = norm y \<longleftrightarrow> x \<bullet> x = y \<bullet> y"
-  by (simp add: order_eq_iff norm_le)
+  by (simp add: norm_eq_sqrt_inner)
+lemma norm_eq: "norm(x::real ^ 'n) = norm (y::real ^ 'n) \<longleftrightarrow> x \<bullet> x = y \<bullet> y"
+  apply(subst order_eq_iff) unfolding norm_le by auto
 lemma norm_eq_1: "norm(x::real ^ 'n) = 1 \<longleftrightarrow> x \<bullet> x = 1"
-  by (simp add: real_vector_norm_def)
+  unfolding norm_eq_sqrt_inner by auto
 
 text{* Squaring equations and inequalities involving norms.  *}
 
 lemma dot_square_norm: "x \<bullet> x = norm(x)^2"
-  by (simp add: real_vector_norm_def)
+  by (simp add: norm_eq_sqrt_inner)
 
 lemma norm_eq_square: "norm(x) = a \<longleftrightarrow> 0 <= a \<and> x \<bullet> x = a^2"
-  by (auto simp add: real_vector_norm_def)
+  by (auto simp add: norm_eq_sqrt_inner)
 
 lemma real_abs_le_square_iff: "\<bar>x\<bar> \<le> \<bar>y\<bar> \<longleftrightarrow> (x::real)^2 \<le> y^2"
 proof-
@@ -1131,12 +1069,14 @@ lemma norm_gt_square: "norm(x) > a \<longleftrightarrow> a < 0 \<or> x \<bullet>
 
 text{* Dot product in terms of the norm rather than conversely. *}
 
+lemmas inner_simps = inner.add_left inner.add_right inner.diff_right inner.diff_left 
+inner.scaleR_left inner.scaleR_right
+
 lemma dot_norm: "x \<bullet> y = (norm(x + y) ^2 - norm x ^ 2 - norm y ^ 2) / 2"
-  by (simp add: norm_pow_2 dot_ladd dot_radd dot_sym)
+  unfolding power2_norm_eq_inner inner_simps inner_commute by auto 
 
 lemma dot_norm_neg: "x \<bullet> y = ((norm x ^ 2 + norm y ^ 2) - norm(x - y) ^ 2) / 2"
-  by (simp add: norm_pow_2 dot_ladd dot_radd dot_lsub dot_rsub dot_sym)
-
+  unfolding power2_norm_eq_inner inner_simps inner_commute by(auto simp add:group_simps)
 
 text{* Equality of vectors in terms of @{term "op \<bullet>"} products.    *}
 
@@ -1145,13 +1085,11 @@ proof
   assume "?lhs" then show ?rhs by simp
 next
   assume ?rhs
-  then have "x \<bullet> x - x \<bullet> y = 0 \<and> x \<bullet> y - y\<bullet> y = 0" by simp
-  hence "x \<bullet> (x - y) = 0 \<and> y \<bullet> (x - y) = 0"
-    by (simp add: dot_rsub dot_lsub dot_sym)
-  then have "(x - y) \<bullet> (x - y) = 0" by (simp add: ring_simps dot_lsub dot_rsub)
-  then show "x = y" by (simp add: dot_eq_0)
+  then have "x \<bullet> x - x \<bullet> y = 0 \<and> x \<bullet> y - y \<bullet> y = 0" by simp
+  hence "x \<bullet> (x - y) = 0 \<and> y \<bullet> (x - y) = 0" by (simp add: inner_simps inner_commute)
+  then have "(x - y) \<bullet> (x - y) = 0" by (simp add: ring_simps inner_simps inner_commute)
+  then show "x = y" by (simp)
 qed
-
 
 subsection{* General linear decision procedure for normed spaces. *}
 
@@ -1481,14 +1419,13 @@ proof-
   finally show ?thesis .
 qed
 
-lemma dot_lsum: "finite S \<Longrightarrow> setsum f S \<bullet> (y::'a::{comm_ring}^'n) = setsum (\<lambda>x. f x \<bullet> y) S "
-  by (induct rule: finite_induct, auto simp add: dot_lzero dot_ladd dot_radd)
+lemma dot_lsum: "finite S \<Longrightarrow> setsum f S \<bullet> (y::'a::{real_inner}^'n) = setsum (\<lambda>x. f x \<bullet> y) S "
+  apply(induct rule: finite_induct) by(auto simp add: inner_simps)
 
-lemma dot_rsum: "finite S \<Longrightarrow> (y::'a::{comm_ring}^'n) \<bullet> setsum f S = setsum (\<lambda>x. y \<bullet> f x) S "
-  by (induct rule: finite_induct, auto simp add: dot_rzero dot_radd)
+lemma dot_rsum: "finite S \<Longrightarrow> (y::'a::{real_inner}^'n) \<bullet> setsum f S = setsum (\<lambda>x. y \<bullet> f x) S "
+  apply(induct rule: finite_induct) by(auto simp add: inner_simps)
 
 subsection{* Basis vectors in coordinate directions. *}
-
 
 definition "basis k = (\<chi> i. if i = k then 1 else 0)"
 
@@ -1500,11 +1437,9 @@ lemma delta_mult_idempotent:
 
 lemma norm_basis:
   shows "norm (basis k :: real ^'n) = 1"
-  apply (simp add: basis_def real_vector_norm_def dot_def)
+  apply (simp add: basis_def norm_eq_sqrt_inner) unfolding inner_vector_def
   apply (vector delta_mult_idempotent)
-  using setsum_delta[of "UNIV :: 'n set" "k" "\<lambda>k. 1::real"]
-  apply auto
-  done
+  using setsum_delta[of "UNIV :: 'n set" "k" "\<lambda>k. 1::real"] by auto
 
 lemma norm_basis_1: "norm(basis 1 :: real ^'n::{finite,one}) = 1"
   by (rule norm_basis)
@@ -1540,8 +1475,8 @@ lemma cond_application_beta: "(if b then f else g) x = (if b then f x else g x)"
   by auto
 
 lemma dot_basis:
-  shows "basis i \<bullet> x = x$i" "x \<bullet> (basis i :: 'a^'n) = (x$i :: 'a::semiring_1)"
-  by (auto simp add: dot_def basis_def cond_application_beta  cond_value_iff setsum_delta cong del: if_weak_cong)
+  shows "basis i \<bullet> x = x$i" "x \<bullet> (basis i) = (x$i)"
+  unfolding inner_vector_def by (auto simp add: basis_def cond_application_beta  cond_value_iff setsum_delta cong del: if_weak_cong)
 
 lemma inner_basis:
   fixes x :: "'a::{real_inner, real_algebra_1} ^ 'n"
@@ -1557,7 +1492,7 @@ lemma basis_nonzero:
   shows "basis k \<noteq> (0:: 'a::semiring_1 ^'n)"
   by (simp add: basis_eq_0)
 
-lemma vector_eq_ldot: "(\<forall>x. x \<bullet> y = x \<bullet> z) \<longleftrightarrow> y = (z::'a::semiring_1^'n)"
+lemma vector_eq_ldot: "(\<forall>x. x \<bullet> y = x \<bullet> z) \<longleftrightarrow> y = (z::real^'n)"
   apply (auto simp add: Cart_eq dot_basis)
   apply (erule_tac x="basis i" in allE)
   apply (simp add: dot_basis)
@@ -1566,7 +1501,7 @@ lemma vector_eq_ldot: "(\<forall>x. x \<bullet> y = x \<bullet> z) \<longleftrig
   apply (simp add: Cart_eq)
   done
 
-lemma vector_eq_rdot: "(\<forall>z. x \<bullet> z = y \<bullet> z) \<longleftrightarrow> x = (y::'a::semiring_1^'n)"
+lemma vector_eq_rdot: "(\<forall>z. x \<bullet> z = y \<bullet> z) \<longleftrightarrow> x = (y::real^'n)"
   apply (auto simp add: Cart_eq dot_basis)
   apply (erule_tac x="basis i" in allE)
   apply (simp add: dot_basis)
@@ -1580,31 +1515,29 @@ subsection{* Orthogonality. *}
 definition "orthogonal x y \<longleftrightarrow> (x \<bullet> y = 0)"
 
 lemma orthogonal_basis:
-  shows "orthogonal (basis i :: 'a^'n) x \<longleftrightarrow> x$i = (0::'a::ring_1)"
-  by (auto simp add: orthogonal_def dot_def basis_def cond_value_iff cond_application_beta setsum_delta cong del: if_weak_cong)
+  shows "orthogonal (basis i) x \<longleftrightarrow> x$i = (0::real)"
+  by (auto simp add: orthogonal_def inner_vector_def basis_def cond_value_iff cond_application_beta setsum_delta cong del: if_weak_cong)
 
 lemma orthogonal_basis_basis:
-  shows "orthogonal (basis i :: 'a::ring_1^'n) (basis j) \<longleftrightarrow> i \<noteq> j"
+  shows "orthogonal (basis i :: real^'n) (basis j) \<longleftrightarrow> i \<noteq> j"
   unfolding orthogonal_basis[of i] basis_component[of j] by simp
 
   (* FIXME : Maybe some of these require less than comm_ring, but not all*)
 lemma orthogonal_clauses:
-  "orthogonal a (0::'a::comm_ring ^'n)"
-  "orthogonal a x ==> orthogonal a (c *s x)"
+  "orthogonal a (0::real ^'n)"
+  "orthogonal a x ==> orthogonal a (c *\<^sub>R x)"
   "orthogonal a x ==> orthogonal a (-x)"
   "orthogonal a x \<Longrightarrow> orthogonal a y ==> orthogonal a (x + y)"
   "orthogonal a x \<Longrightarrow> orthogonal a y ==> orthogonal a (x - y)"
   "orthogonal 0 a"
-  "orthogonal x a ==> orthogonal (c *s x) a"
+  "orthogonal x a ==> orthogonal (c *\<^sub>R x) a"
   "orthogonal x a ==> orthogonal (-x) a"
   "orthogonal x a \<Longrightarrow> orthogonal y a ==> orthogonal (x + y) a"
   "orthogonal x a \<Longrightarrow> orthogonal y a ==> orthogonal (x - y) a"
-  unfolding orthogonal_def dot_rneg dot_rmult dot_radd dot_rsub
-  dot_lzero dot_rzero dot_lneg dot_lmult dot_ladd dot_lsub
-  by simp_all
+  unfolding orthogonal_def inner_simps by auto
 
-lemma orthogonal_commute: "orthogonal (x::'a::{ab_semigroup_mult,comm_monoid_add} ^'n)y \<longleftrightarrow> orthogonal y x"
-  by (simp add: orthogonal_def dot_sym)
+lemma orthogonal_commute: "orthogonal (x::real ^'n)y \<longleftrightarrow> orthogonal y x"
+  by (simp add: orthogonal_def inner_commute)
 
 subsection{* Explicit vector construction from lists. *}
 
@@ -1994,7 +1927,7 @@ definition "adjoint f = (SOME f'. \<forall>x y. f x \<bullet> y = x \<bullet> f'
 lemma choice_iff: "(\<forall>x. \<exists>y. P x y) \<longleftrightarrow> (\<exists>f. \<forall>x. P x (f x))" by metis
 
 lemma adjoint_works_lemma:
-  fixes f:: "'a::ring_1 ^'n \<Rightarrow> 'a ^'m"
+  fixes f:: "real ^'n \<Rightarrow> real ^'m"
   assumes lf: "linear f"
   shows "\<forall>x y. f x \<bullet> y = x \<bullet> adjoint f y"
 proof-
@@ -2002,8 +1935,8 @@ proof-
   let ?M = "UNIV :: 'm set"
   have fN: "finite ?N" by simp
   have fM: "finite ?M" by simp
-  {fix y:: "'a ^ 'm"
-    let ?w = "(\<chi> i. (f (basis i) \<bullet> y)) :: 'a ^ 'n"
+  {fix y:: "real ^ 'm"
+    let ?w = "(\<chi> i. (f (basis i) \<bullet> y)) :: real ^ 'n"
     {fix x
       have "f x \<bullet> y = f (setsum (\<lambda>i. (x$i) *s basis i) ?N) \<bullet> y"
         by (simp only: basis_expansion)
@@ -2012,7 +1945,7 @@ proof-
         by (simp add: linear_cmul[OF lf])
       finally have "f x \<bullet> y = x \<bullet> ?w"
         apply (simp only: )
-        apply (simp add: dot_def setsum_left_distrib setsum_right_distrib setsum_commute[of _ ?M ?N] ring_simps)
+        apply (simp add: inner_vector_def setsum_left_distrib setsum_right_distrib setsum_commute[of _ ?M ?N] ring_simps)
         done}
   }
   then show ?thesis unfolding adjoint_def
@@ -2022,34 +1955,34 @@ proof-
 qed
 
 lemma adjoint_works:
-  fixes f:: "'a::ring_1 ^'n \<Rightarrow> 'a ^'m"
+  fixes f:: "real ^'n \<Rightarrow> real ^'m"
   assumes lf: "linear f"
   shows "x \<bullet> adjoint f y = f x \<bullet> y"
   using adjoint_works_lemma[OF lf] by metis
 
-
 lemma adjoint_linear:
-  fixes f :: "'a::comm_ring_1 ^'n \<Rightarrow> 'a ^'m"
+  fixes f:: "real ^'n \<Rightarrow> real ^'m"
   assumes lf: "linear f"
   shows "linear (adjoint f)"
-  by (simp add: linear_def vector_eq_ldot[symmetric] dot_radd dot_rmult adjoint_works[OF lf])
+  unfolding linear_def vector_eq_ldot[symmetric] apply safe
+  unfolding inner_simps smult_conv_scaleR adjoint_works[OF lf] by auto
 
 lemma adjoint_clauses:
-  fixes f:: "'a::comm_ring_1 ^'n \<Rightarrow> 'a ^'m"
+  fixes f:: "real ^'n \<Rightarrow> real ^'m"
   assumes lf: "linear f"
   shows "x \<bullet> adjoint f y = f x \<bullet> y"
   and "adjoint f y \<bullet> x = y \<bullet> f x"
-  by (simp_all add: adjoint_works[OF lf] dot_sym )
+  by (simp_all add: adjoint_works[OF lf] inner_commute)
 
 lemma adjoint_adjoint:
-  fixes f:: "'a::comm_ring_1 ^ 'n \<Rightarrow> 'a ^'m"
+  fixes f:: "real ^'n \<Rightarrow> real ^'m"
   assumes lf: "linear f"
   shows "adjoint (adjoint f) = f"
   apply (rule ext)
   by (simp add: vector_eq_ldot[symmetric] adjoint_clauses[OF adjoint_linear[OF lf]] adjoint_clauses[OF lf])
 
 lemma adjoint_unique:
-  fixes f:: "'a::comm_ring_1 ^ 'n \<Rightarrow> 'a ^'m"
+  fixes f:: "real ^'n \<Rightarrow> real ^'m"
   assumes lf: "linear f" and u: "\<forall>x y. f' x \<bullet> y = x \<bullet> f y"
   shows "f' = adjoint f"
   apply (rule ext)
@@ -2126,11 +2059,11 @@ lemma matrix_eq:
   by (auto simp add: basis_def cond_value_iff cond_application_beta setsum_delta[OF finite] cong del: if_weak_cong)
 
 lemma matrix_vector_mul_component:
-  shows "((A::'a::semiring_1^_^_) *v x)$k = (A$k) \<bullet> x"
-  by (simp add: matrix_vector_mult_def dot_def)
+  shows "((A::real^_^_) *v x)$k = (A$k) \<bullet> x"
+  by (simp add: matrix_vector_mult_def inner_vector_def)
 
-lemma dot_lmul_matrix: "((x::'a::comm_semiring_1 ^_) v* A) \<bullet> y = x \<bullet> (A *v y)"
-  apply (simp add: dot_def matrix_vector_mult_def vector_matrix_mult_def setsum_left_distrib setsum_right_distrib mult_ac)
+lemma dot_lmul_matrix: "((x::real ^_) v* A) \<bullet> y = x \<bullet> (A *v y)"
+  apply (simp add: inner_vector_def matrix_vector_mult_def vector_matrix_mult_def setsum_left_distrib setsum_right_distrib mult_ac)
   apply (subst setsum_commute)
   by simp
 
@@ -2158,7 +2091,7 @@ lemma columns_transpose: "columns(transpose (A::'a::semiring_1^_^_)) = rows A" b
 text{* Two sometimes fruitful ways of looking at matrix-vector multiplication. *}
 
 lemma matrix_mult_dot: "A *v x = (\<chi> i. A$i \<bullet> x)"
-  by (simp add: matrix_vector_mult_def dot_def)
+  by (simp add: matrix_vector_mult_def inner_vector_def)
 
 lemma matrix_mult_vsum: "(A::'a::comm_semiring_1^'n^'m) *v x = setsum (\<lambda>i. (x$i) *s column i A) (UNIV:: 'n set)"
   by (simp add: matrix_vector_mult_def Cart_eq column_def mult_commute)
@@ -2219,15 +2152,15 @@ lemma matrix_compose:
 lemma matrix_vector_column:"(A::'a::comm_semiring_1^'n^_) *v x = setsum (\<lambda>i. (x$i) *s ((transpose A)$i)) (UNIV:: 'n set)"
   by (simp add: matrix_vector_mult_def transpose_def Cart_eq mult_commute)
 
-lemma adjoint_matrix: "adjoint(\<lambda>x. (A::'a::comm_ring_1^'n^'m) *v x) = (\<lambda>x. transpose A *v x)"
+lemma adjoint_matrix: "adjoint(\<lambda>x. (A::real^'n^'m) *v x) = (\<lambda>x. transpose A *v x)"
   apply (rule adjoint_unique[symmetric])
   apply (rule matrix_vector_mul_linear)
-  apply (simp add: transpose_def dot_def matrix_vector_mult_def setsum_left_distrib setsum_right_distrib)
+  apply (simp add: transpose_def inner_vector_def matrix_vector_mult_def setsum_left_distrib setsum_right_distrib)
   apply (subst setsum_commute)
   apply (auto simp add: mult_ac)
   done
 
-lemma matrix_adjoint: assumes lf: "linear (f :: 'a::comm_ring_1^'n \<Rightarrow> 'a ^'m)"
+lemma matrix_adjoint: assumes lf: "linear (f :: real^'n \<Rightarrow> real ^'m)"
   shows "matrix(adjoint f) = transpose(matrix f)"
   apply (subst matrix_vector_mul[OF lf])
   unfolding adjoint_matrix matrix_of_matrix_vector_mul ..
@@ -2539,11 +2472,11 @@ lemma linear_from_scalars:
   apply (auto simp add: Cart_eq matrix_vector_mult_def column_def  mult_commute UNIV_1)
   done
 
-lemma linear_to_scalars: assumes lf: "linear (f::'a::comm_ring_1 ^'n \<Rightarrow> 'a^1)"
+lemma linear_to_scalars: assumes lf: "linear (f::real ^'n \<Rightarrow> real^1)"
   shows "f = (\<lambda>x. vec1(row 1 (matrix f) \<bullet> x))"
   apply (rule ext)
   apply (subst matrix_works[OF lf, symmetric])
-  apply (simp add: Cart_eq matrix_vector_mult_def row_def dot_def mult_commute forall_1)
+  apply (simp add: Cart_eq matrix_vector_mult_def row_def inner_vector_def mult_commute forall_1)
   done
 
 lemma dest_vec1_eq_0: "dest_vec1 x = 0 \<longleftrightarrow> x = 0"
@@ -2649,11 +2582,11 @@ proof-
   have th0: "norm x = norm (pastecart (fstcart x) (sndcart x))"
     by (simp add: pastecart_fst_snd)
   have th1: "fstcart x \<bullet> fstcart x \<le> pastecart (fstcart x) (sndcart x) \<bullet> pastecart (fstcart x) (sndcart x)"
-    by (simp add: dot_def setsum_UNIV_sum pastecart_def setsum_nonneg)
+    by (simp add: inner_vector_def setsum_UNIV_sum pastecart_def setsum_nonneg)
   then show ?thesis
     unfolding th0
-    unfolding real_vector_norm_def real_sqrt_le_iff id_def
-    by (simp add: dot_def)
+    unfolding norm_eq_sqrt_inner real_sqrt_le_iff id_def
+    by (simp add: inner_vector_def)
 qed
 
 lemma dist_fstcart: "dist(fstcart (x::real^_)) (fstcart y) <= dist x y"
@@ -2664,18 +2597,18 @@ proof-
   have th0: "norm x = norm (pastecart (fstcart x) (sndcart x))"
     by (simp add: pastecart_fst_snd)
   have th1: "sndcart x \<bullet> sndcart x \<le> pastecart (fstcart x) (sndcart x) \<bullet> pastecart (fstcart x) (sndcart x)"
-    by (simp add: dot_def setsum_UNIV_sum pastecart_def setsum_nonneg)
+    by (simp add: inner_vector_def setsum_UNIV_sum pastecart_def setsum_nonneg)
   then show ?thesis
     unfolding th0
-    unfolding real_vector_norm_def real_sqrt_le_iff id_def
-    by (simp add: dot_def)
+    unfolding norm_eq_sqrt_inner real_sqrt_le_iff id_def
+    by (simp add: inner_vector_def)
 qed
 
 lemma dist_sndcart: "dist(sndcart (x::real^_)) (sndcart y) <= dist x y"
   unfolding dist_norm by (metis sndcart_sub[symmetric] norm_sndcart)
 
-lemma dot_pastecart: "(pastecart (x1::'a::{times,comm_monoid_add}^'n) (x2::'a::{times,comm_monoid_add}^'m)) \<bullet> (pastecart y1 y2) =  x1 \<bullet> y1 + x2 \<bullet> y2"
-  by (simp add: dot_def setsum_UNIV_sum pastecart_def)
+lemma dot_pastecart: "(pastecart (x1::real^'n) (x2::real^'m)) \<bullet> (pastecart y1 y2) =  x1 \<bullet> y1 + x2 \<bullet> y2"
+  by (simp add: inner_vector_def setsum_UNIV_sum pastecart_def)
 
 text {* TODO: move to NthRoot *}
 lemma sqrt_add_le_add_sqrt:
@@ -3867,11 +3800,8 @@ qed
     (* FIXME : Move to some general theory ?*)
 definition "pairwise R S \<longleftrightarrow> (\<forall>x \<in> S. \<forall>y\<in> S. x\<noteq>y \<longrightarrow> R x y)"
 
-lemma vector_sub_project_orthogonal: "(b::'a::linordered_field^'n) \<bullet> (x - ((b \<bullet> x) / (b\<bullet>b)) *s b) = 0"
-  apply (cases "b = 0", simp)
-  apply (simp add: dot_rsub dot_rmult)
-  unfolding times_divide_eq_right[symmetric]
-  by (simp add: field_simps dot_eq_0)
+lemma vector_sub_project_orthogonal: "(b::real^'n) \<bullet> (x - ((b \<bullet> x) / (b \<bullet> b)) *s b) = 0"
+  unfolding inner_simps smult_conv_scaleR by auto
 
 lemma basis_orthogonal:
   fixes B :: "(real ^'n) set"
@@ -3886,7 +3816,7 @@ next
   from `\<exists>C. finite C \<and> card C \<le> card B \<and> span C = span B \<and> pairwise orthogonal C`
   obtain C where C: "finite C" "card C \<le> card B"
     "span C = span B" "pairwise orthogonal C" by blast
-  let ?a = "a - setsum (\<lambda>x. (x\<bullet>a / (x\<bullet>x)) *s x) C"
+  let ?a = "a - setsum (\<lambda>x. (x \<bullet> a / (x \<bullet> x)) *s x) C"
   let ?C = "insert ?a C"
   from C(1) have fC: "finite ?C" by simp
   from fB aB C(1,2) have cC: "card ?C \<le> card (insert a B)" by (simp add: card_insert_if)
@@ -3912,13 +3842,12 @@ next
       have fth: "finite (C - {y})" using C by simp
       have "orthogonal x y"
         using xa ya
-        unfolding orthogonal_def xa dot_lsub dot_rsub diff_eq_0_iff_eq
+        unfolding orthogonal_def xa inner_simps diff_eq_0_iff_eq
         apply simp
         apply (subst Cy)
         using C(1) fth
-        apply (simp only: setsum_clauses)
-        thm dot_ladd
-        apply (auto simp add: dot_ladd dot_radd dot_lmult dot_rmult dot_eq_0 dot_sym[of y a] dot_lsum[OF fth])
+        apply (simp only: setsum_clauses) unfolding smult_conv_scaleR
+        apply (auto simp add: inner_simps inner_eq_zero_iff inner_commute[of y a] dot_lsum[OF fth])
         apply (rule setsum_0')
         apply clarsimp
         apply (rule C(4)[unfolded pairwise_def orthogonal_def, rule_format])
@@ -3929,13 +3858,13 @@ next
       have fth: "finite (C - {x})" using C by simp
       have "orthogonal x y"
         using xa ya
-        unfolding orthogonal_def ya dot_rsub dot_lsub diff_eq_0_iff_eq
+        unfolding orthogonal_def ya inner_simps diff_eq_0_iff_eq
         apply simp
         apply (subst Cx)
         using C(1) fth
-        apply (simp only: setsum_clauses)
-        apply (subst dot_sym[of x])
-        apply (auto simp add: dot_radd dot_rmult dot_eq_0 dot_sym[of x a] dot_rsum[OF fth])
+        apply (simp only: setsum_clauses) unfolding smult_conv_scaleR
+        apply (subst inner_commute[of x])
+        apply (auto simp add: inner_simps inner_eq_zero_iff inner_commute[of x a] dot_rsum[OF fth])
         apply (rule setsum_0')
         apply clarsimp
         apply (rule C(4)[unfolded pairwise_def orthogonal_def, rule_format])
@@ -3988,8 +3917,8 @@ proof-
   from B have fB: "finite B" "card B = dim S" using independent_bound by auto
   from span_mono[OF B(2)] span_mono[OF B(3)]
   have sSB: "span S = span B" by (simp add: span_span)
-  let ?a = "a - setsum (\<lambda>b. (a\<bullet>b / (b\<bullet>b)) *s b) B"
-  have "setsum (\<lambda>b. (a\<bullet>b / (b\<bullet>b)) *s b) B \<in> span S"
+  let ?a = "a - setsum (\<lambda>b. (a \<bullet> b / (b \<bullet> b)) *s b) B"
+  have "setsum (\<lambda>b. (a \<bullet> b / (b \<bullet> b)) *s b) B \<in> span S"
     unfolding sSB
     apply (rule span_setsum[OF fB(1)])
     apply clarsimp
@@ -3998,20 +3927,20 @@ proof-
   with a have a0:"?a  \<noteq> 0" by auto
   have "\<forall>x\<in>span B. ?a \<bullet> x = 0"
   proof(rule span_induct')
-    show "subspace (\<lambda>x. ?a \<bullet> x = 0)"
-      by (auto simp add: subspace_def mem_def dot_radd dot_rmult)
-  next
+    show "subspace (\<lambda>x. ?a \<bullet> x = 0)" by (auto simp add: subspace_def mem_def inner_simps smult_conv_scaleR)
+  
+next
     {fix x assume x: "x \<in> B"
       from x have B': "B = insert x (B - {x})" by blast
       have fth: "finite (B - {x})" using fB by simp
       have "?a \<bullet> x = 0"
         apply (subst B') using fB fth
         unfolding setsum_clauses(2)[OF fth]
-        apply simp
-        apply (clarsimp simp add: dot_lsub dot_ladd dot_lmult dot_lsum dot_eq_0)
+        apply simp unfolding inner_simps smult_conv_scaleR
+        apply (clarsimp simp add: inner_simps inner_eq_zero_iff smult_conv_scaleR dot_lsum)
         apply (rule setsum_0', rule ballI)
-        unfolding dot_sym
-        by (auto simp add: x field_simps dot_eq_0 intro: B(5)[unfolded pairwise_def orthogonal_def, rule_format])}
+        unfolding inner_commute
+        by (auto simp add: x field_simps inner_eq_zero_iff intro: B(5)[unfolded pairwise_def orthogonal_def, rule_format])}
     then show "\<forall>x \<in> B. ?a \<bullet> x = 0" by blast
   qed
   with a0 show ?thesis unfolding sSB by (auto intro: exI[where x="?a"])
@@ -4780,8 +4709,8 @@ lemma dot_rowvector_columnvector:
   "columnvector (A *v v) = A ** columnvector v"
   by (vector columnvector_def matrix_matrix_mult_def matrix_vector_mult_def)
 
-lemma dot_matrix_product: "(x::'a::semiring_1^'n) \<bullet> y = (((rowvector x ::'a^'n^1) ** (columnvector y :: 'a^1^'n))$1)$1"
-  by (vector matrix_matrix_mult_def rowvector_def columnvector_def dot_def)
+lemma dot_matrix_product: "(x::real^'n) \<bullet> y = (((rowvector x ::real^'n^1) ** (columnvector y :: real^1^'n))$1)$1"
+  by (vector matrix_matrix_mult_def rowvector_def columnvector_def inner_vector_def)
 
 lemma dot_matrix_vector_mul:
   fixes A B :: "real ^'n ^'n" and x y :: "real ^'n"
@@ -4937,20 +4866,18 @@ proof-
     by (auto intro: real_sqrt_pow2)
   have th: "sqrt (real ?d) * infnorm x \<ge> 0"
     by (simp add: zero_le_mult_iff real_sqrt_ge_0_iff infnorm_pos_le)
-  have th1: "x\<bullet>x \<le> (sqrt (real ?d) * infnorm x)^2"
+  have th1: "x \<bullet> x \<le> (sqrt (real ?d) * infnorm x)^2"
     unfolding power_mult_distrib d2
-    apply (subst power2_abs[symmetric])
-    unfolding real_of_nat_def dot_def power2_eq_square[symmetric]
-    apply (subst power2_abs[symmetric])
+    unfolding real_of_nat_def inner_vector_def
+    apply (subst power2_abs[symmetric]) 
     apply (rule setsum_bounded)
+    apply(auto simp add: power2_eq_square[symmetric])
+    apply (subst power2_abs[symmetric])
     apply (rule power_mono)
-    unfolding abs_of_nonneg[OF infnorm_pos_le]
     unfolding infnorm_def  Sup_finite_ge_iff[OF infnorm_set_lemma]
-    unfolding infnorm_set_image bex_simps
-    apply blast
-    by (rule abs_ge_zero)
-  from real_le_lsqrt[OF dot_pos_le th th1]
-  show ?thesis unfolding real_vector_norm_def id_def .
+    unfolding infnorm_set_image bex_simps apply(rule_tac x=i in exI) by auto
+  from real_le_lsqrt[OF inner_ge_zero th th1]
+  show ?thesis unfolding norm_eq_sqrt_inner id_def .
 qed
 
 (* Equality in Cauchy-Schwarz and triangle inequalities.                     *)
@@ -4964,16 +4891,14 @@ proof-
     hence ?thesis by simp}
   moreover
   {assume x: "x \<noteq> 0" and y: "y \<noteq> 0"
-    from dot_eq_0[of "norm y *s x - norm x *s y"]
+    from inner_eq_zero_iff[of "norm y *s x - norm x *s y"]
     have "?rhs \<longleftrightarrow> (norm y * (norm y * norm x * norm x - norm x * (x \<bullet> y)) - norm x * (norm y * (y \<bullet> x) - norm x * norm y * norm y) =  0)"
       using x y
-      unfolding dot_rsub dot_lsub dot_lmult dot_rmult
-      unfolding norm_pow_2[symmetric] power2_eq_square diff_eq_0_iff_eq apply (simp add: dot_sym)
-      apply (simp add: ring_simps)
-      apply metis
-      done
+      unfolding inner_simps smult_conv_scaleR
+      unfolding power2_norm_eq_inner[symmetric] power2_eq_square diff_eq_0_iff_eq apply (simp add: inner_commute)
+      apply (simp add: ring_simps) by metis
     also have "\<dots> \<longleftrightarrow> (2 * norm x * norm y * (norm x * norm y - x \<bullet> y) = 0)" using x y
-      by (simp add: ring_simps dot_sym)
+      by (simp add: ring_simps inner_commute)
     also have "\<dots> \<longleftrightarrow> ?lhs" using x y
       apply simp
       by metis
@@ -4995,8 +4920,7 @@ proof-
     unfolding norm_minus_cancel
       norm_mul by blast
   also have "\<dots> \<longleftrightarrow> ?lhs"
-    unfolding th[OF mult_nonneg_nonneg, OF norm_ge_zero[of x] norm_ge_zero[of y]] dot_lneg
-    by arith
+    unfolding th[OF mult_nonneg_nonneg, OF norm_ge_zero[of x] norm_ge_zero[of y]] inner_simps by auto
   finally show ?thesis ..
 qed
 
@@ -5019,8 +4943,8 @@ proof-
       by arith
     also have "\<dots> \<longleftrightarrow> norm x *s y = norm y *s x"
       unfolding norm_cauchy_schwarz_eq[symmetric]
-      unfolding norm_pow_2 dot_ladd dot_radd
-      by (simp add: norm_pow_2[symmetric] power2_eq_square dot_sym ring_simps)
+      unfolding power2_norm_eq_inner inner_simps
+      by (simp add: power2_norm_eq_inner[symmetric] power2_eq_square inner_commute ring_simps)
     finally have ?thesis .}
   ultimately show ?thesis by blast
 qed
@@ -5115,3 +5039,4 @@ apply simp
 done
 
 end
+ 

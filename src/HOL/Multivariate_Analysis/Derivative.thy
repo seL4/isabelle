@@ -12,6 +12,9 @@ begin
 (* Because I do not want to type this all the time *)
 lemmas linear_linear = linear_conv_bounded_linear[THEN sym]
 
+(** move this **)
+declare norm_vec1[simp]
+
 subsection {* Derivatives *}
 
 text {* The definition is slightly tricky since we make it work over
@@ -612,7 +615,7 @@ lemma differential_zero_maxmin_component: fixes f::"real^'a \<Rightarrow> real^'
     finally have "\<bar>(f (x + c *\<^sub>R basis j) - f x - D *v (c *\<^sub>R basis j)) $ k\<bar> \<le> \<bar>D $ k $ j\<bar> / 2 * \<bar>c\<bar>" by simp
     hence "\<bar>f (x + c *\<^sub>R basis j) $ k - f x $ k - c * D $ k $ j\<bar> \<le> \<bar>D $ k $ j\<bar> / 2 * \<bar>c\<bar>"
       unfolding vector_component_simps matrix_vector_mul_component unfolding smult_conv_scaleR[symmetric] 
-      unfolding dot_rmult dot_basis unfolding smult_conv_scaleR by simp  } note * = this
+      unfolding inner_simps dot_basis smult_conv_scaleR by simp  } note * = this
   have "x + d *\<^sub>R basis j \<in> ball x e" "x - d *\<^sub>R basis j \<in> ball x e"
     unfolding mem_ball vector_dist_norm using norm_basis[of j] d by auto
   hence **:"((f (x - d *\<^sub>R basis j))$k \<le> (f x)$k \<and> (f (x + d *\<^sub>R basis j))$k \<le> (f x)$k) \<or>
@@ -702,20 +705,17 @@ lemma mvt_very_simple: fixes f::"real \<Rightarrow> real"
 
 subsection {* A nice generalization (see Havin's proof of 5.19 from Rudin's book). *}
 
-lemma inner_eq_dot: fixes a::"real^'n"
-  shows "a \<bullet> b = inner a b" unfolding inner_vector_def dot_def by auto
-
 lemma mvt_general: fixes f::"real\<Rightarrow>real^'n"
   assumes "a<b" "continuous_on {a..b} f" "\<forall>x\<in>{a<..<b}. (f has_derivative f'(x)) (at x)"
   shows "\<exists>x\<in>{a<..<b}. norm(f b - f a) \<le> norm(f'(x) (b - a))" proof-
   have "\<exists>x\<in>{a<..<b}. (op \<bullet> (f b - f a) \<circ> f) b - (op \<bullet> (f b - f a) \<circ> f) a = (f b - f a) \<bullet> f' x (b - a)"
-    apply(rule mvt) apply(rule assms(1))unfolding inner_eq_dot apply(rule continuous_on_inner continuous_on_intros assms(2))+ 
+    apply(rule mvt) apply(rule assms(1)) apply(rule continuous_on_inner continuous_on_intros assms(2))+ 
     unfolding o_def apply(rule,rule has_derivative_lift_dot) using assms(3) by auto
   then guess x .. note x=this
   show ?thesis proof(cases "f a = f b")
     case False have "norm (f b - f a) * norm (f b - f a) = norm (f b - f a)^2" by(simp add:class_semiring.semiring_rules)
-    also have "\<dots> = (f b - f a) \<bullet> (f b - f a)" unfolding norm_pow_2 ..
-    also have "\<dots> = (f b - f a) \<bullet> f' x (b - a)" using x by auto
+    also have "\<dots> = (f b - f a) \<bullet> (f b - f a)" unfolding power2_norm_eq_inner ..
+    also have "\<dots> = (f b - f a) \<bullet> f' x (b - a)" using x unfolding inner_simps by auto
     also have "\<dots> \<le> norm (f b - f a) * norm (f' x (b - a))" by(rule norm_cauchy_schwarz)
     finally show ?thesis using False x(1) by(auto simp add: real_mult_left_cancel) next
     case True thus ?thesis using assms(1) apply(rule_tac x="(a + b) /2" in bexI) by auto qed qed
@@ -750,9 +750,6 @@ lemma differentiable_bound: fixes f::"real^'a \<Rightarrow> real^'b"
   also have "\<dots> \<le> norm (f' (x + u *\<^sub>R (y - x)) (y - x))" using u by auto
   also have "\<dots> \<le> B * norm(y - x)" apply(rule **) using * and u by auto
   finally show ?thesis by(auto simp add:norm_minus_commute) qed 
-
-(** move this **)
-declare norm_vec1[simp]
 
 lemma onorm_vec1: fixes f::"real \<Rightarrow> real"
   shows "onorm (\<lambda>x. vec1 (f (dest_vec1 x))) = onorm f" proof-
