@@ -91,6 +91,10 @@ lemma lub_equal:
     \<Longrightarrow> (\<Squnion>i. X i) = (\<Squnion>i. Y i)"
   by (simp only: expand_fun_eq [symmetric])
 
+lemma lub_eq:
+  "(\<And>i. X i = Y i) \<Longrightarrow> (\<Squnion>i. X i) = (\<Squnion>i. Y i)"
+  by simp
+
 text {* more results about mono and = of lubs of chains *}
 
 lemma lub_mono2:
