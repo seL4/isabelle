@@ -11,7 +11,8 @@ primrec
 
 definition OpLim :: "(nat \<Rightarrow> (ordinal \<Rightarrow> ordinal)) \<Rightarrow> (ordinal \<Rightarrow> ordinal)" where
   "OpLim F a \<equiv> Limit (\<lambda>n. F n a)"
-  OpItw :: "(ordinal \<Rightarrow> ordinal) \<Rightarrow> (ordinal \<Rightarrow> ordinal)"    ("\<Squnion>")
+
+definition OpItw :: "(ordinal \<Rightarrow> ordinal) \<Rightarrow> (ordinal \<Rightarrow> ordinal)"    ("\<Squnion>") where
   "\<Squnion>f \<equiv> OpLim (power f)"
 
 consts
@@ -40,9 +41,11 @@ primrec
 
 definition veb :: "ordinal \<Rightarrow> ordinal" where
   "veb a \<equiv> veblen a Zero"
-  epsilon0 :: ordinal    ("\<epsilon>\<^sub>0")
+
+definition epsilon0 :: ordinal    ("\<epsilon>\<^sub>0") where
   "\<epsilon>\<^sub>0 \<equiv> veb Zero"
-  Gamma0 :: ordinal    ("\<Gamma>\<^sub>0")
+
+definition Gamma0 :: ordinal    ("\<Gamma>\<^sub>0") where
   "\<Gamma>\<^sub>0 \<equiv> Limit (\<lambda>n. (veb^n) Zero)"
 thm Gamma0_def
 
