@@ -493,7 +493,8 @@ fun add_case_combinator
       let
         val defs = case_beta :: map mk_meta_eq [rep_strict, @{thm cfcomp2}];
         val goal = mk_trp (mk_strict case_app);
-        val tacs = [resolve_tac @{thms sscase1 ssplit1 strictify1} 1];
+        val rules = @{thms sscase1 ssplit1 strictify1 one_when1};
+        val tacs = [resolve_tac rules 1];
       in prove thy defs goal (K tacs) end;
         
     (* prove rewrites for case combinator *)
