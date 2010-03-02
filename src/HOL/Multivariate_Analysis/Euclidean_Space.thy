@@ -3611,8 +3611,8 @@ proof(induct "card (t - s)" arbitrary: s t rule: less_induct)
       {fix x assume xs: "x \<in> s"
         have t: "t \<subseteq> (insert b (insert a (t -{b})))" using b by auto
         from b(1) have "b \<in> span t" by (simp add: span_superset)
-        have bs: "b \<in> span (insert a (t - {b}))"
-          by (metis in_span_delete a sp mem_def subset_eq)
+        have bs: "b \<in> span (insert a (t - {b}))" apply(rule in_span_delete)
+          using  a sp unfolding subset_eq by auto
         from xs sp have "x \<in> span t" by blast
         with span_mono[OF t]
         have x: "x \<in> span (insert b (insert a (t - {b})))" ..
@@ -3970,7 +3970,8 @@ proof-
 qed
 
 lemma span_eq: "span S = span T \<longleftrightarrow> S \<subseteq> span T \<and> T \<subseteq> span S"
-  by (metis set_eq_subset span_mono span_span span_inc) (* FIXME: slow *)
+  using span_inc[unfolded subset_eq] using span_mono[of T "span S"] span_mono[of S "span T"]
+  by(auto simp add: span_span)
 
 (* ------------------------------------------------------------------------- *)
 (* Low-dimensional subset is in a hyperplane (weak orthogonal complement).   *)
