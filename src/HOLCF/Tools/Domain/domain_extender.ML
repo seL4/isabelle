@@ -129,38 +129,49 @@ fun gen_add_domain
                (binding * (bool * binding option * 'a) list * mixfix) list) list)
     (thy : theory) =
   let
-    fun readS (SOME s) = Syntax.read_sort_global thy s
-      | readS NONE = Sign.defaultS thy;
-    fun readTFree (a, s) = TFree (a, readS s);
+    val dtnvs : (binding * typ list * mixfix) list =
+      let
+        fun readS (SOME s) = Syntax.read_sort_global thy s
+          | readS NONE = Sign.defaultS thy;
+        fun readTFree (a, s) = TFree (a, readS s);
+      in
+        map (fn (vs,dname:binding,mx,_) =>
+                (dname, map readTFree vs, mx)) eqs'''
+      end;
 
-    val dtnvs = map (fn (vs,dname:binding,mx,_) => 
-                        (dname, map readTFree vs, mx)) eqs''';
-    val cons''' = map (fn (_,_,_,cons) => cons) eqs''';
-    fun thy_type  (dname,tvars,mx) = (dname, length tvars, mx);
-    fun thy_arity (dname,tvars,mx) =
-        (Sign.full_name thy dname, map (snd o dest_TFree) tvars, pcpoS);
+    (* declare new types *)
     val thy =
-      thy
-      |> Sign.add_types (map thy_type dtnvs)
-      |> fold (AxClass.axiomatize_arity o thy_arity) dtnvs;
-    val cons'' =
-      map (map (upd_second (map (upd_third (prep_typ thy))))) cons''';
-    val dtnvs' =
+      let
+        fun thy_type  (dname,tvars,mx) = (dname, length tvars, mx);
+        fun thy_arity (dname,tvars,mx) =
+            (Sign.full_name thy dname, map (snd o dest_TFree) tvars, pcpoS);
+      in
+        thy
+          |> Sign.add_types (map thy_type dtnvs)
+          |> fold (AxClass.axiomatize_arity o thy_arity) dtnvs
+      end;
+
+    val cons''' :
+        (binding * (bool * binding option * 'a) list * mixfix) list list =
+        map (fn (_,_,_,cons) => cons) eqs''';
+    val cons'' :
+        (binding * (bool * binding option * typ) list * mixfix) list list =
+        map (map (upd_second (map (upd_third (prep_typ thy))))) cons''';
+    val dtnvs' : (string * typ list) list =
       map (fn (dname,vs,mx) => (Sign.full_name thy dname,vs)) dtnvs;
     val eqs' : ((string * typ list) *
         (binding * (bool * binding option * typ) list * mixfix) list) list =
-      check_and_sort_domain false dtnvs' cons'' thy;
+        check_and_sort_domain false dtnvs' cons'' thy;
     val thy = Domain_Syntax.add_syntax eqs' thy;
-    val dts  = map (Type o fst) eqs';
-    val new_dts = map (fn ((s,Ts),_) => (s, map (fst o dest_TFree) Ts)) eqs';
-    fun strip ss = drop (find_index (fn s => s = "'") ss + 1) ss;
-    fun one_con (con,args,mx) =
+    val dts : typ list = map (Type o fst) eqs';
+    val new_dts : (string * string list) list =
+        map (fn ((s,Ts),_) => (s, map (fst o dest_TFree) Ts)) eqs';
+    fun one_con (con,args,mx) : cons =
         (Binding.name_of con,  (* FIXME preverse binding (!?) *)
          mx,
          ListPair.map (fn ((lazy,sel,tp),vn) =>
            mk_arg ((lazy, Datatype_Aux.dtyp_of_typ new_dts tp), vn))
-                      (args, Datatype_Prop.make_tnames (map third args))
-        ) : cons;
+                      (args, Datatype_Prop.make_tnames (map third args)));
     val eqs : eq list =
         map (fn (dtnvs,cons') => (dtnvs, map one_con cons')) eqs';
     val thy = Domain_Axioms.add_axioms eqs' eqs thy;
@@ -186,13 +197,16 @@ fun gen_add_new_domain
                (binding * (bool * binding option * 'a) list * mixfix) list) list)
     (thy : theory) =
   let
-    fun readS (SOME s) = Syntax.read_sort_global thy s
-      | readS NONE = Sign.defaultS thy;
-    fun readTFree (a, s) = TFree (a, readS s);
+    val dtnvs : (binding * typ list * mixfix) list =
+      let
+        fun readS (SOME s) = Syntax.read_sort_global thy s
+          | readS NONE = Sign.defaultS thy;
+        fun readTFree (a, s) = TFree (a, readS s);
+      in
+        map (fn (vs,dname:binding,mx,_) =>
+                (dname, map readTFree vs, mx)) eqs'''
+      end;
 
-    val dtnvs = map (fn (vs,dname:binding,mx,_) => 
-                        (dname, map readTFree vs, mx)) eqs''';
-    val cons''' = map (fn (_,_,_,cons) => cons) eqs''';
     fun thy_type  (dname,tvars,mx) = (dname, length tvars, mx);
     fun thy_arity (dname,tvars,mx) =
       (Sign.full_name thy dname, map (snd o dest_TFree) tvars, @{sort rep});
@@ -203,13 +217,17 @@ fun gen_add_new_domain
       |> Sign.add_types (map thy_type dtnvs)
       |> fold (AxClass.axiomatize_arity o thy_arity) dtnvs;
 
-    val cons'' : (binding * (bool * binding option * typ) list * mixfix) list list =
-      map (map (upd_second (map (upd_third (prep_typ tmp_thy))))) cons''';
+    val cons''' :
+        (binding * (bool * binding option * 'a) list * mixfix) list list =
+        map (fn (_,_,_,cons) => cons) eqs''';
+    val cons'' :
+        (binding * (bool * binding option * typ) list * mixfix) list list =
+        map (map (upd_second (map (upd_third (prep_typ tmp_thy))))) cons''';
     val dtnvs' : (string * typ list) list =
-      map (fn (dname,vs,mx) => (Sign.full_name thy dname,vs)) dtnvs;
+        map (fn (dname,vs,mx) => (Sign.full_name thy dname,vs)) dtnvs;
     val eqs' : ((string * typ list) *
         (binding * (bool * binding option * typ) list * mixfix) list) list =
-      check_and_sort_domain true dtnvs' cons'' tmp_thy;
+        check_and_sort_domain true dtnvs' cons'' tmp_thy;
 
     fun mk_arg_typ (lazy, dest_opt, T) = if lazy then mk_uT T else T;
     fun mk_con_typ (bind, args, mx) =
@@ -222,16 +240,16 @@ fun gen_add_new_domain
                  (map fst vs, dname, mx, mk_eq_typ eq, NONE))
              (eqs''' ~~ eqs'))
 
-    val dts  = map (Type o fst) eqs';
-    val new_dts = map (fn ((s,Ts),_) => (s, map (fst o dest_TFree) Ts)) eqs';
-    fun strip ss = drop (find_index (fn s => s = "'") ss + 1) ss;
-    fun one_con (con,args,mx) =
+    val dts : typ list = map (Type o fst) eqs';
+    val new_dts : (string * string list) list =
+        map (fn ((s,Ts),_) => (s, map (fst o dest_TFree) Ts)) eqs';
+    fun one_con (con,args,mx) : cons =
         (Binding.name_of con,   (* FIXME preverse binding (!?) *)
          mx,
          ListPair.map (fn ((lazy,sel,tp),vn) =>
            mk_arg ((lazy, Datatype_Aux.dtyp_of_typ new_dts tp), vn))
                       (args, Datatype_Prop.make_tnames (map third args))
-        ) : cons;
+        );
     val eqs : eq list =
         map (fn (dtnvs,cons') => (dtnvs, map one_con cons')) eqs';
     val ((rewss, take_rews), theorems_thy) =
