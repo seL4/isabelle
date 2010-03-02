@@ -266,7 +266,7 @@ fun type_ext {read_class, read_type} = syn_ext' false (K false)
    Mfix ("([_]/ => _)", [typesT, typeT] ---> typeT,    "_bracket", [0, 0], 0),
    Mfix ("'(_')",       typeT --> typeT,               "", [0], max_pri),
    Mfix ("'_",          typeT,                         "\\<^type>dummy", [], max_pri)]
-  []
+  ["_type_prop"]
   (map SynExt.mk_trfun
    [("_class_name", class_name_tr o read_class o ProofContext.theory_of),
     ("_classes", classes_tr o read_class o ProofContext.theory_of),
