@@ -761,13 +761,13 @@ lemma ex_map_conv:
 by(induct ys, auto simp add: Cons_eq_map_conv)
 
 lemma map_eq_imp_length_eq:
-  assumes "map f xs = map f ys"
+  assumes "map f xs = map g ys"
   shows "length xs = length ys"
 using assms proof (induct ys arbitrary: xs)
   case Nil then show ?case by simp
 next
   case (Cons y ys) then obtain z zs where xs: "xs = z # zs" by auto
-  from Cons xs have "map f zs = map f ys" by simp
+  from Cons xs have "map f zs = map g ys" by simp
   moreover with Cons have "length zs = length ys" by blast
   with xs show ?case by simp
 qed
