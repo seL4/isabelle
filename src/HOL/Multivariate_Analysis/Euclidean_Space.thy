@@ -100,6 +100,12 @@ begin
   instance ..
 end
 
+instantiation cart :: (scaleR, finite) scaleR
+begin
+  definition vector_scaleR_def: "scaleR = (\<lambda> r x.  (\<chi> i. scaleR r (x$i)))"
+  instance ..
+end
+
 instantiation cart :: (ord,finite) ord
 begin
   definition vector_le_def:
@@ -108,11 +114,30 @@ begin
   instance by (intro_classes)
 end
 
-instantiation cart :: (scaleR, finite) scaleR
+text{* The ordering on real^1 is linear. *}
+
+class cart_one = assumes UNIV_one: "card (UNIV \<Colon> 'a set) = Suc 0"
 begin
-  definition vector_scaleR_def: "scaleR = (\<lambda> r x.  (\<chi> i. scaleR r (x$i)))"
-  instance ..
+  subclass finite
+  proof from UNIV_one show "finite (UNIV :: 'a set)"
+      by (auto intro!: card_ge_0_finite) qed
 end
+
+instantiation num1 :: cart_one begin
+instance proof
+  show "CARD(1) = Suc 0" by auto
+qed end
+
+instantiation cart :: (linorder,cart_one) linorder begin
+instance proof
+  guess a B using UNIV_one[where 'a='b] unfolding card_Suc_eq apply- by(erule exE)+
+  hence *:"UNIV = {a}" by auto
+  have "\<And>P. (\<forall>i\<in>UNIV. P i) \<longleftrightarrow> P a" unfolding * by auto hence all:"\<And>P. (\<forall>i. P i) \<longleftrightarrow> P a" by auto
+  fix x y z::"'a^'b::cart_one" note * = vector_le_def vector_less_def all Cart_eq
+  show "x\<le>x" "(x < y) = (x \<le> y \<and> \<not> y \<le> x)" "x\<le>y \<or> y\<le>x" unfolding * by(auto simp only:field_simps)
+  { assume "x\<le>y" "y\<le>z" thus "x\<le>z" unfolding * by(auto simp only:field_simps) }
+  { assume "x\<le>y" "y\<le>x" thus "x=y" unfolding * by(auto simp only:field_simps) }
+qed end
 
 text{* Also the scalar-vector multiplication. *}
 
