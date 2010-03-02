@@ -209,8 +209,6 @@ TEMPORARILY DISABLED *)
           if definitional then thy
           else fold ax_lub_take dnames thy
     end;
-
-    val use_copy_def = length eqs>1 andalso not definitional;
   in
     thy
     |> Sign.add_path comp_dnam

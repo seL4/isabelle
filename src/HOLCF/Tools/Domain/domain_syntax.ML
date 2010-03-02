@@ -39,8 +39,6 @@ fun calc_syntax thy
       fun opt_lazy (lazy,_,t) = if lazy then mk_uT t else t
       fun prod     (_,args,_) = case args of [] => oneT
                                            | _ => foldr1 mk_sprodT (map opt_lazy args);
-      fun freetvar s = let val tvar = mk_TFree s in
-                         if tvar mem typevars then freetvar ("t"^s) else tvar end;
     in
     val dtype  = Type(dname,typevars);
     val dtype2 = foldr1 mk_ssumT (map prod cons');
