@@ -104,13 +104,13 @@ val _ =
 
 val _ =
   OuterSyntax.command "typedecl" "type declaration" K.thy_decl
-    (P.type_args -- P.binding -- P.opt_infix >> (fn ((args, a), mx) =>
+    (P.type_args -- P.binding -- P.opt_mixfix >> (fn ((args, a), mx) =>
       Toplevel.theory (ObjectLogic.typedecl (a, args, mx) #> snd)));
 
 val _ =
   OuterSyntax.command "types" "declare type abbreviations" K.thy_decl
     (Scan.repeat1
-      (P.type_args -- P.binding -- (P.$$$ "=" |-- P.!!! (P.typ -- P.opt_infix')))
+      (P.type_args -- P.binding -- (P.$$$ "=" |-- P.!!! (P.typ -- P.opt_mixfix')))
       >> (Toplevel.theory o Sign.add_tyabbrs o
         map (fn ((args, a), (T, mx)) => (a, args, T, mx))));
 
@@ -224,6 +224,16 @@ val _ =
   OuterSyntax.local_theory "abbreviation" "constant abbreviation" K.thy_decl
     (opt_mode -- (Scan.option SpecParse.constdecl -- P.prop)
     >> (fn (mode, args) => Specification.abbreviation_cmd mode args));
+
+val _ =
+  OuterSyntax.local_theory "type_notation" "add notation for type constructors" K.thy_decl
+    (opt_mode -- P.and_list1 (P.xname -- P.mixfix)
+    >> (fn (mode, args) => Specification.type_notation_cmd true mode args));
+
+val _ =
+  OuterSyntax.local_theory "no_type_notation" "delete notation for type constructors" K.thy_decl
+    (opt_mode -- P.and_list1 (P.xname -- P.mixfix)
+    >> (fn (mode, args) => Specification.type_notation_cmd false mode args));
 
 val _ =
   OuterSyntax.local_theory "notation" "add notation for constants / fixed variables" K.thy_decl

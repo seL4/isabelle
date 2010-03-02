@@ -19,13 +19,12 @@ theory ProgressSets imports Transformers begin
 
 subsection {*Complete Lattices and the Operator @{term cl}*}
 
-constdefs
-  lattice :: "'a set set => bool"
+definition lattice :: "'a set set => bool" where
    --{*Meier calls them closure sets, but they are just complete lattices*}
    "lattice L ==
          (\<forall>M. M \<subseteq> L --> \<Inter>M \<in> L) & (\<forall>M. M \<subseteq> L --> \<Union>M \<in> L)"
 
-  cl :: "['a set set, 'a set] => 'a set"
+definition cl :: "['a set set, 'a set] => 'a set" where
    --{*short for ``closure''*}
    "cl L r == \<Inter>{x. x\<in>L & r \<subseteq> x}"
 
@@ -143,12 +142,11 @@ subsection {*Progress Sets and the Main Lemma*}
 text{*A progress set satisfies certain closure conditions and is a 
 simple way of including the set @{term "wens_set F B"}.*}
 
-constdefs 
-  closed :: "['a program, 'a set, 'a set,  'a set set] => bool"
+definition closed :: "['a program, 'a set, 'a set,  'a set set] => bool" where
    "closed F T B L == \<forall>M. \<forall>act \<in> Acts F. B\<subseteq>M & T\<inter>M \<in> L -->
                               T \<inter> (B \<union> wp act M) \<in> L"
 
-  progress_set :: "['a program, 'a set, 'a set] => 'a set set set"
+definition progress_set :: "['a program, 'a set, 'a set] => 'a set set set" where
    "progress_set F T B ==
       {L. lattice L & B \<in> L & T \<in> L & closed F T B L}"
 
@@ -324,12 +322,11 @@ by (simp add: progress_set_def lattice_def closed_def)
 subsubsection {*Lattices and Relations*}
 text{*From Meier's thesis, section 4.5.3*}
 
-constdefs
-  relcl :: "'a set set => ('a * 'a) set"
+definition relcl :: "'a set set => ('a * 'a) set" where
     -- {*Derived relation from a lattice*}
     "relcl L == {(x,y). y \<in> cl L {x}}"
   
-  latticeof :: "('a * 'a) set => 'a set set"
+definition latticeof :: "('a * 'a) set => 'a set set" where
     -- {*Derived lattice from a relation: the set of upwards-closed sets*}
     "latticeof r == {X. \<forall>s t. s \<in> X & (s,t) \<in> r --> t \<in> X}"
 
@@ -405,8 +402,7 @@ by (simp add: relcl_def cl_latticeof)
 
 subsubsection {*Decoupling Theorems*}
 
-constdefs
-  decoupled :: "['a program, 'a program] => bool"
+definition decoupled :: "['a program, 'a program] => bool" where
    "decoupled F G ==
         \<forall>act \<in> Acts F. \<forall>B. G \<in> stable B --> G \<in> stable (wp act B)"
 
@@ -469,8 +465,7 @@ qed
 subsection{*Composition Theorems Based on Monotonicity and Commutativity*}
 
 subsubsection{*Commutativity of @{term "cl L"} and assignment.*}
-constdefs 
-  commutes :: "['a program, 'a set, 'a set,  'a set set] => bool"
+definition commutes :: "['a program, 'a set, 'a set,  'a set set] => bool" where
    "commutes F T B L ==
        \<forall>M. \<forall>act \<in> Acts F. B \<subseteq> M --> 
            cl L (T \<inter> wp act M) \<subseteq> T \<inter> (B \<union> wp act (cl L (T\<inter>M)))"
@@ -511,8 +506,7 @@ by (rule progress_set_Union [OF leadsTo _ Fstable subset_refl BL Gco],
 
 
 text{*Possibly move to Relation.thy, after @{term single_valued}*}
-constdefs
-  funof :: "[('a*'b)set, 'a] => 'b"
+definition funof :: "[('a*'b)set, 'a] => 'b" where
    "funof r == (\<lambda>x. THE y. (x,y) \<in> r)"
 
 lemma funof_eq: "[|single_valued r; (x,y) \<in> r|] ==> funof r x = y"

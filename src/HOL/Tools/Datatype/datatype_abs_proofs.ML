@@ -53,7 +53,7 @@ fun prove_casedist_thms (config : config) new_type_names descr sorts induct case
     fun prove_casedist_thm (i, (T, t)) =
       let
         val dummyPs = map (fn (Var (_, Type (_, [T', T'']))) =>
-          Abs ("z", T', Const ("True", T''))) induct_Ps;
+          Abs ("z", T', Const (@{const_name True}, T''))) induct_Ps;
         val P = Abs ("z", T, HOLogic.imp $ HOLogic.mk_eq (Var (("a", maxidx+1), T), Bound 0) $
           Var (("P", 0), HOLogic.boolT))
         val insts = take i dummyPs @ (P::(drop (i + 1) dummyPs));
@@ -200,7 +200,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
     val rec_unique_thms =
       let
         val rec_unique_ts = map (fn (((set_t, T1), T2), i) =>
-          Const ("Ex1", (T2 --> HOLogic.boolT) --> HOLogic.boolT) $
+          Const (@{const_name Ex1}, (T2 --> HOLogic.boolT) --> HOLogic.boolT) $
             absfree ("y", T2, set_t $ mk_Free "x" T1 i $ Free ("y", T2)))
               (rec_sets ~~ recTs ~~ rec_result_Ts ~~ (1 upto length recTs));
         val cert = cterm_of thy1
@@ -210,13 +210,13 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
           (map cert insts)) induct;
         val (tac, _) = fold mk_unique_tac (descr' ~~ rec_elims ~~ recTs ~~ rec_result_Ts)
            (((rtac induct' THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1
-              THEN rewrite_goals_tac [mk_meta_eq choice_eq], rec_intrs));
+              THEN rewrite_goals_tac [mk_meta_eq @{thm choice_eq}], rec_intrs));
 
       in split_conj_thm (Skip_Proof.prove_global thy1 [] []
         (HOLogic.mk_Trueprop (mk_conj rec_unique_ts)) (K tac))
       end;
 
-    val rec_total_thms = map (fn r => r RS theI') rec_unique_thms;
+    val rec_total_thms = map (fn r => r RS @{thm theI'}) rec_unique_thms;
 
     (* define primrec combinators *)
 
@@ -236,7 +236,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
           (reccomb_names ~~ recTs ~~ rec_result_Ts))
       |> (PureThy.add_defs false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
           (Binding.name (Long_Name.base_name name ^ "_def"), Logic.mk_equals (comb, absfree ("x", T,
-           Const ("The", (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
+           Const (@{const_name The}, (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
              set $ Free ("x", T) $ Free ("y", T'))))))
                (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts))
       ||> Sign.parent_path
@@ -250,7 +250,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
     val rec_thms = map (fn t => Skip_Proof.prove_global thy2 [] [] t
       (fn _ => EVERY
         [rewrite_goals_tac reccomb_defs,
-         rtac the1_equality 1,
+         rtac @{thm the1_equality} 1,
          resolve_tac rec_unique_thms 1,
          resolve_tac rec_intrs 1,
          REPEAT (rtac allI 1 ORELSE resolve_tac rec_total_thms 1)]))
@@ -416,7 +416,7 @@ fun prove_case_congs new_type_names descr sorts nchotomys case_thms thy =
     fun prove_case_cong ((t, nchotomy), case_rewrites) =
       let
         val (Const ("==>", _) $ tm $ _) = t;
-        val (Const ("Trueprop", _) $ (Const ("op =", _) $ _ $ Ma)) = tm;
+        val (Const (@{const_name Trueprop}, _) $ (Const (@{const_name "op ="}, _) $ _ $ Ma)) = tm;
         val cert = cterm_of thy;
         val nchotomy' = nchotomy RS spec;
         val [v] = Term.add_vars (concl_of nchotomy') [];

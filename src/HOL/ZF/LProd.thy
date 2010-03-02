@@ -1,5 +1,4 @@
 (*  Title:      HOL/ZF/LProd.thy
-    ID:         $Id$
     Author:     Steven Obua
 
     Introduces the lprod relation.
@@ -95,10 +94,10 @@ proof -
   show ?thesis by (auto intro: lprod)
 qed
 
-constdefs
-  gprod_2_2 :: "('a * 'a) set \<Rightarrow> (('a * 'a) * ('a * 'a)) set"
+definition gprod_2_2 :: "('a * 'a) set \<Rightarrow> (('a * 'a) * ('a * 'a)) set" where
   "gprod_2_2 R \<equiv> { ((a,b), (c,d)) . (a = c \<and> (b,d) \<in> R) \<or> (b = d \<and> (a,c) \<in> R) }"
-  gprod_2_1 :: "('a * 'a) set \<Rightarrow> (('a * 'a) * ('a * 'a)) set"
+
+definition gprod_2_1 :: "('a * 'a) set \<Rightarrow> (('a * 'a) * ('a * 'a)) set" where
   "gprod_2_1 R \<equiv>  { ((a,b), (c,d)) . (a = d \<and> (b,c) \<in> R) \<or> (b = c \<and> (a,d) \<in> R) }"
 
 lemma lprod_2_3: "(a, b) \<in> R \<Longrightarrow> ([a, c], [b, c]) \<in> lprod R"
@@ -170,8 +169,7 @@ lemma lprod_3_7: assumes z': "(z',z) \<in> R" shows "([x, z', y], [x, y, z]) \<i
   apply (simp add: z' lprod_2_4)
   done
 
-constdefs
-   perm :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a set \<Rightarrow> bool"
+definition perm :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a set \<Rightarrow> bool" where
    "perm f A \<equiv> inj_on f A \<and> f ` A = A"
 
 lemma "((as,bs) \<in> lprod R) = 
@@ -182,7 +180,5 @@ oops
 
 lemma "trans R \<Longrightarrow> (ah@a#at, bh@b#bt) \<in> lprod R \<Longrightarrow> (b, a) \<in> R \<or> a = b \<Longrightarrow> (ah@at, bh@bt) \<in> lprod R" 
 oops
-
-
 
 end

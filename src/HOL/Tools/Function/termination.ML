@@ -51,9 +51,10 @@ struct
 
 open Function_Lib
 
-val term2_ord = prod_ord TermOrd.fast_term_ord TermOrd.fast_term_ord
+val term2_ord = prod_ord Term_Ord.fast_term_ord Term_Ord.fast_term_ord
 structure Term2tab = Table(type key = term * term val ord = term2_ord);
-structure Term3tab = Table(type key = term * (term * term) val ord = prod_ord TermOrd.fast_term_ord term2_ord);
+structure Term3tab =
+  Table(type key = term * (term * term) val ord = prod_ord Term_Ord.fast_term_ord term2_ord);
 
 (** Analyzing binary trees **)
 
@@ -286,7 +287,7 @@ fun wf_union_tac ctxt st =
 
     val relation =
       if null ineqs
-      then Const (@{const_name Set.empty}, fastype_of rel)
+      then Const (@{const_abbrev Set.empty}, fastype_of rel)
       else map mk_compr ineqs
         |> foldr1 (HOLogic.mk_binop @{const_name Lattices.sup})
 
@@ -314,14 +315,11 @@ fun REPEAT ttac cont err_cont =
 
 (*** DEPENDENCY GRAPHS ***)
 
-structure TermGraph = Graph(type key = term val ord = TermOrd.fast_term_ord);
-
-
 fun prove_chain thy chain_tac c1 c2 =
   let
     val goal =
       HOLogic.mk_eq (HOLogic.mk_binop @{const_name Relation.rel_comp} (c1, c2),
-        Const (@{const_name Set.empty}, fastype_of c1))
+        Const (@{const_abbrev Set.empty}, fastype_of c1))
       |> HOLogic.mk_Trueprop (* "C1 O C2 = {}" *)
   in
     case Function_Lib.try_proof (cterm_of thy goal) chain_tac of
@@ -342,11 +340,11 @@ fun derive_chains ctxt chain_tac cont D = CALLS (fn (cs, i) =>
 
 
 fun mk_dgraph D cs =
-  TermGraph.empty
-  |> fold (fn c => TermGraph.new_node (c,())) cs
+  Term_Graph.empty
+  |> fold (fn c => Term_Graph.new_node (c, ())) cs
   |> fold_product (fn c1 => fn c2 =>
      if is_none (get_chain D c1 c2 |> the_default NONE)
-     then TermGraph.add_edge (c1, c2) else I)
+     then Term_Graph.add_edge (c1, c2) else I)
      cs cs
 
 fun ucomp_empty_tac T =
@@ -373,7 +371,7 @@ fun solve_trivial_tac D = CALLS (fn ([c], i) =>
 fun decompose_tac' cont err_cont D = CALLS (fn (cs, i) =>
   let
     val G = mk_dgraph D cs
-    val sccs = TermGraph.strong_conn G
+    val sccs = Term_Graph.strong_conn G
 
     fun split [SCC] i = (solve_trivial_tac D i ORELSE cont D i)
       | split (SCC::rest) i =

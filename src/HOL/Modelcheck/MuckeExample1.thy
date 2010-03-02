@@ -11,8 +11,7 @@ begin
 types
   state = "bool * bool * bool"
 
-constdefs
-  INIT :: "state pred"
+definition INIT :: "state pred" where
   "INIT x ==  ~(fst x)&~(fst (snd x))&~(snd (snd x))"
   N    :: "[state,state] => bool"
   "N x y == let x1 = fst(x); x2 = fst(snd(x)); x3 = snd(snd(x));

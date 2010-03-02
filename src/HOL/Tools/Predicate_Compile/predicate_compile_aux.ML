@@ -4,9 +4,7 @@
 Auxilary functions for predicate compiler.
 *)
 
-(* FIXME proper signature *)
-
-structure TermGraph = Graph(type key = term val ord = TermOrd.fast_term_ord);
+(* FIXME proper signature! *)
 
 structure Predicate_Compile_Aux =
 struct
@@ -556,7 +554,8 @@ val default_options = Options {
 }
 
 val bool_options = ["show_steps", "show_intermediate_results", "show_proof_trace", "show_modes",
-  "show_mode_inference", "show_compilation", "skip_proof", "inductify", "no_function_flattening"]
+  "show_mode_inference", "show_compilation", "skip_proof", "inductify", "no_function_flattening",
+  "no_topmost_reordering"]
 
 val compilation_names = [("pred", Pred),
   (*("random", Random), ("depth_limited", Depth_Limited), ("annotated", Annotated),*)

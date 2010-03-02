@@ -14,9 +14,9 @@ sig
   
   val get_specification : Predicate_Compile_Aux.options -> theory -> term -> thm list
   val obtain_specification_graph :
-    Predicate_Compile_Aux.options -> theory -> term -> thm list TermGraph.T
+    Predicate_Compile_Aux.options -> theory -> term -> thm list Term_Graph.T
     
-  val present_graph : thm list TermGraph.T -> unit
+  val present_graph : thm list Term_Graph.T -> unit
   val normalize_equation : theory -> thm -> thm
 end;
 
@@ -257,7 +257,7 @@ fun print_specification options thy constname specs =
 fun obtain_specification_graph options thy t =
   let
     fun is_nondefining_const (c, T) = member (op =) logic_operator_names c
-    fun has_code_pred_intros (c, T) = is_some (try (Predicate_Compile_Core.intros_of thy) c)
+    fun has_code_pred_intros (c, T) = can (Predicate_Compile_Core.intros_of thy) c
     fun case_consts (c, T) = is_some (Datatype.info_of_case thy c)
     fun is_datatype_constructor (c, T) = is_some (Datatype.info_of_constr thy (c, T))
     fun defiants_of specs =
@@ -272,14 +272,22 @@ fun obtain_specification_graph options thy t =
       |> map Const
       (*
       |> filter is_defining_constname*)
-    fun extend t =
-      let
-        val specs = get_specification options thy t
-          (*|> Predicate_Compile_Set.unfold_set_notation*)
-        (*val _ = print_specification options thy constname specs*)
-      in (specs, defiants_of specs) end;
+    fun extend t gr =
+      if can (Term_Graph.get_node gr) t then gr
+      else
+        let
+          val specs = get_specification options thy t
+            (*|> Predicate_Compile_Set.unfold_set_notation*)
+          (*val _ = print_specification options thy constname specs*)
+          val us = defiants_of specs
+        in
+          gr
+          |> Term_Graph.new_node (t, specs)
+          |> fold extend us
+          |> fold (fn u => Term_Graph.add_edge (t, u)) us
+        end
   in
-    TermGraph.extend extend t TermGraph.empty
+    extend t Term_Graph.empty
   end;
 
 
@@ -288,11 +296,11 @@ fun present_graph gr =
     fun eq_cname (Const (c1, _), Const (c2, _)) = (c1 = c2)
     fun string_of_const (Const (c, _)) = c
       | string_of_const _ = error "string_of_const: unexpected term"
-    val constss = TermGraph.strong_conn gr;
+    val constss = Term_Graph.strong_conn gr;
     val mapping = Termtab.empty |> fold (fn consts => fold (fn const =>
       Termtab.update (const, consts)) consts) constss;
     fun succs consts = consts
-      |> maps (TermGraph.imm_succs gr)
+      |> maps (Term_Graph.imm_succs gr)
       |> subtract eq_cname consts
       |> map (the o Termtab.lookup mapping)
       |> distinct (eq_list eq_cname);

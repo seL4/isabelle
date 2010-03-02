@@ -136,7 +136,7 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
            rec_rewrites = recursor_eqns,
            case_rewrites = case_eqns,
            induct = induct,
-           mutual_induct = TrueI,  (*No need for mutual induction*)
+           mutual_induct = @{thm TrueI},  (*No need for mutual induction*)
            exhaustion = elim};
 
     val con_info =

@@ -33,7 +33,7 @@ consts
 
 syntax
   (* Syntax for writing action expressions in arbitrary contexts *)
-  "ACT"         :: "lift => 'a"                      ("(ACT _)")
+  "_ACT"        :: "lift => 'a"                      ("(ACT _)")
 
   "_before"     :: "lift => lift"                    ("($_)"  [100] 99)
   "_after"      :: "lift => lift"                    ("(_$)"  [100] 99)

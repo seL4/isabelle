@@ -35,7 +35,7 @@ fun ins_term (t, []) = [(t, 1)]
       if t aconv u then (u, k + 1) :: uks
       else (t, 1) :: (u, k) :: uks;
 
-fun count_terms ts = foldr ins_term (sort TermOrd.term_ord ts, []);
+fun count_terms ts = foldr ins_term (sort Term_Ord.term_ord ts, []);
 
 
 (* divide sum *)

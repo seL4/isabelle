@@ -9,6 +9,9 @@ sig
   val unfold_labels_tac: Proof.context -> int -> tactic
   val boogie_tac: Proof.context -> thm list -> int -> tactic
   val boogie_all_tac: Proof.context -> thm list -> tactic
+  val split: term -> (term list * term) list
+  val split_tac: int -> tactic
+  val drop_assert_at_tac: int -> tactic
   val setup: theory -> theory
 end
 
@@ -47,25 +50,38 @@ val setup_boogie_all = Method.setup @{binding boogie_all} (boogie_method true)
 
 
 local
-  fun prep_tac facts =
-    Method.insert_tac facts
-    THEN' REPEAT_ALL_NEW
-      (Tactic.resolve_tac [@{thm impI}, @{thm conjI}, @{thm TrueI}]
-       ORELSE' Tactic.etac @{thm conjE})
+  fun explode_conj (@{term "op &"} $ t $ u) = explode_conj t @ explode_conj u
+    | explode_conj t = [t] 
 
-  val drop_assert_at = Conv.concl_conv ~1 (Conv.try_conv (Conv.arg_conv
-    (Conv.rewr_conv assert_at_def)))
+  fun splt (ts, @{term "op -->"} $ t $ u) = splt (ts @ explode_conj t, u)
+    | splt (ts, @{term "op &"} $ t $ u) = splt (ts, t) @ splt (ts, u)
+    | splt (ts, @{term assert_at} $ _ $ t) = [(ts, t)]
+    | splt (_, @{term True}) = []
+    | splt tp = [tp]
+in
+fun split t =
+  splt ([], HOLogic.dest_Trueprop t)
+  |> map (fn (us, u) => (map HOLogic.mk_Trueprop us, HOLogic.mk_Trueprop u))
+end
 
+val split_tac = REPEAT_ALL_NEW (
+  Tactic.resolve_tac [@{thm impI}, @{thm conjI}, @{thm TrueI}]
+  ORELSE' Tactic.etac @{thm conjE})
+
+val drop_assert_at_tac = CONVERSION (Conv.concl_conv ~1 (Conv.try_conv (
+  Conv.arg_conv (Conv.rewr_conv assert_at_def))))
+
+local
   fun case_name_of t =
     (case HOLogic.dest_Trueprop (Logic.strip_imp_concl t) of
       @{term assert_at} $ Free (n, _) $ _ => n
     | _ => raise TERM ("case_name_of", [t]))
 
   fun boogie_cases ctxt = METHOD_CASES (fn facts =>
-    ALLGOALS (prep_tac facts) #>
+    ALLGOALS (Method.insert_tac facts THEN' split_tac) #>
     Seq.maps (fn st =>
       st
-      |> ALLGOALS (CONVERSION drop_assert_at)
+      |> ALLGOALS drop_assert_at_tac
       |> Seq.map (pair (map (rpair [] o case_name_of) (Thm.prems_of st)))) #>
     Seq.maps (fn (names, st) =>
       CASES

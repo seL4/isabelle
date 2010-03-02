@@ -1216,7 +1216,7 @@ fun agrp_ord (Const (a, _)) = find_index (fn a' => a = a')
         @{const_name Groups.uminus}, @{const_name Groups.minus}]
   | agrp_ord _ = ~1;
 
-fun termless_agrp (a, b) = (TermOrd.term_lpo agrp_ord (a, b) = LESS);
+fun termless_agrp (a, b) = (Term_Ord.term_lpo agrp_ord (a, b) = LESS);
 
 local
   val ac1 = mk_meta_eq @{thm add_assoc};
@@ -1250,7 +1250,7 @@ val sum_pats = [@{cterm "x + y::'a::ab_group_add"}, @{cterm "x - y::'a::ab_group
 val eqI_rules = [@{thm less_eqI}, @{thm le_eqI}, @{thm eq_eqI}];
 
 val dest_eqI = 
-  fst o HOLogic.dest_bin "op =" HOLogic.boolT o HOLogic.dest_Trueprop o concl_of;
+  fst o HOLogic.dest_bin @{const_name "op ="} HOLogic.boolT o HOLogic.dest_Trueprop o concl_of;
 
 );
 *}

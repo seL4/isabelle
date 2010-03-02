@@ -76,7 +76,7 @@ fun strip_constraints (Const (@{syntax_const "_constrain"}, _) $ t $ tT) =
 
 fun mk_fun_constrain tT t =
   Syntax.const @{syntax_const "_constrain"} $ t $
-    (Syntax.free "fun" $ tT $ Syntax.free "dummy");    (* FIXME @{type_syntax} (!?) *)
+    (Syntax.const @{type_syntax fun} $ tT $ Syntax.const @{type_syntax dummy});
 
 
 (*---------------------------------------------------------------------------
@@ -381,7 +381,7 @@ fun gen_dest_case name_of type_of tab d used t =
         fun count_cases (_, _, true) = I
           | count_cases (c, (_, body), false) =
               AList.map_default op aconv (body, []) (cons c);
-        val is_undefined = name_of #> equal (SOME @{const_syntax undefined});
+        val is_undefined = name_of #> equal (SOME @{const_name undefined});
         fun mk_case (c, (xs, body), _) = (list_comb (c, xs), body)
       in case ty_info tab cname of
           SOME {constructors, case_name} =>
@@ -399,7 +399,7 @@ fun gen_dest_case name_of type_of tab d used t =
                   (fold_rev count_cases cases []);
                 val R = type_of t;
                 val dummy =
-                  if d then Const (@{const_syntax dummy_pattern}, R)
+                  if d then Const (@{const_name dummy_pattern}, R)
                   else Free (Name.variant used "x", R)
               in
                 SOME (x, map mk_case (case find_first (is_undefined o fst) cases' of

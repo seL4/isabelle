@@ -85,14 +85,14 @@ lemma diamond_par_beta: "diamond par_beta"
 
 subsection {* Complete developments *}
 
-consts
+fun
   "cd" :: "dB => dB"
-recdef "cd" "measure size"
+where
   "cd (Var n) = Var n"
-  "cd (Var n \<degree> t) = Var n \<degree> cd t"
-  "cd ((s1 \<degree> s2) \<degree> t) = cd (s1 \<degree> s2) \<degree> cd t"
-  "cd (Abs u \<degree> t) = (cd u)[cd t/0]"
-  "cd (Abs s) = Abs (cd s)"
+| "cd (Var n \<degree> t) = Var n \<degree> cd t"
+| "cd ((s1 \<degree> s2) \<degree> t) = cd (s1 \<degree> s2) \<degree> cd t"
+| "cd (Abs u \<degree> t) = (cd u)[cd t/0]"
+| "cd (Abs s) = Abs (cd s)"
 
 lemma par_beta_cd: "s => t \<Longrightarrow> t => cd s"
   apply (induct s arbitrary: t rule: cd.induct)

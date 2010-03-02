@@ -897,7 +897,7 @@ fun funT_of compfuns mode T =
 
 (** mode analysis **)
 
-(* options for mode analysis  are: #use_random, #reorder_premises *)
+type mode_analysis_options = {use_random : bool, reorder_premises : bool, infer_pos_and_neg_modes : bool}
 
 fun is_constrt thy =
   let
@@ -1178,7 +1178,7 @@ fun print_mode_list modes =
   tracing ("modes: " ^ (commas (map (fn (s, ms) => s ^ ": " ^
     commas (map (fn (m, r) => string_of_mode m ^ (if r then " random " else " not ")) ms)) modes)))
 
-fun select_mode_prem mode_analysis_options thy pol (modes, (pos_modes, neg_modes)) vs ps =
+fun select_mode_prem (mode_analysis_options : mode_analysis_options) thy pol (modes, (pos_modes, neg_modes)) vs ps =
   let
     fun choose_mode_of_prem (Prem t) = partial_hd
         (sort (deriv_ord2 thy modes t) (all_derivations_of thy pos_modes vs t))
@@ -1194,7 +1194,7 @@ fun select_mode_prem mode_analysis_options thy pol (modes, (pos_modes, neg_modes
       SOME (hd ps, choose_mode_of_prem (hd ps))
   end
 
-fun check_mode_clause' mode_analysis_options thy param_vs (modes :
+fun check_mode_clause' (mode_analysis_options : mode_analysis_options) thy param_vs (modes :
   (string * ((bool * mode) * bool) list) list) ((pol, mode) : bool * mode) (ts, ps) =
   let
     val vTs = distinct (op =) (fold Term.add_frees (map term_of_prem ps) (fold Term.add_frees ts []))
@@ -2933,7 +2933,7 @@ fun values ctxt param_user_modes (raw_expected, comp_options) k t_compr =
             "computed values: " ^ Syntax.string_of_term ctxt elems ^ "\n")
   in
     if k = ~1 orelse length ts < k then elems
-      else Const (@{const_name Set.union}, setT --> setT --> setT) $ elems $ cont
+      else Const (@{const_abbrev Set.union}, setT --> setT --> setT) $ elems $ cont
   end;
 
 fun values_cmd print_modes param_user_modes options k raw_t state =

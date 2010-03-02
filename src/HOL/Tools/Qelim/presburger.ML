@@ -103,13 +103,13 @@ fun generalize_tac f = CSUBGOAL (fn (p, i) => PRIMITIVE (fn st =>
  let 
    fun all T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "all"}
    fun gen x t = Thm.capply (all (ctyp_of_term x)) (Thm.cabs x t)
-   val ts = sort (fn (a,b) => TermOrd.fast_term_ord (term_of a, term_of b)) (f p)
+   val ts = sort (fn (a,b) => Term_Ord.fast_term_ord (term_of a, term_of b)) (f p)
    val p' = fold_rev gen ts p
  in implies_intr p' (implies_elim st (fold forall_elim ts (assume p'))) end));
 
 local
 val ss1 = comp_ss
-  addsimps simp_thms @ [@{thm "nat_number_of_def"}, @{thm "zdvd_int"}] 
+  addsimps @{thms simp_thms} @ [@{thm "nat_number_of_def"}, @{thm "zdvd_int"}] 
       @ map (fn r => r RS sym) 
         [@{thm "int_int_eq"}, @{thm "zle_int"}, @{thm "zless_int"}, @{thm "zadd_int"}, 
          @{thm "zmult_int"}]
@@ -120,7 +120,7 @@ val ss2 = HOL_basic_ss
             @{thm "all_nat"}, @{thm "ex_nat"}, @{thm "number_of1"}, 
             @{thm "number_of2"}, @{thm "int_0"}, @{thm "int_1"}, @{thm "Suc_eq_plus1"}]
   addcongs [@{thm "conj_le_cong"}, @{thm "imp_le_cong"}]
-val div_mod_ss = HOL_basic_ss addsimps simp_thms 
+val div_mod_ss = HOL_basic_ss addsimps @{thms simp_thms}
   @ map (symmetric o mk_meta_eq) 
     [@{thm "dvd_eq_mod_eq_0"},
      @{thm "mod_add_left_eq"}, @{thm "mod_add_right_eq"}, 

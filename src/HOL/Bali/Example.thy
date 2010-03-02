@@ -153,23 +153,18 @@ consts
   
   foo    :: mname
 
-constdefs
+definition foo_sig :: sig
+ where "foo_sig   \<equiv> \<lparr>name=foo,parTs=[Class Base]\<rparr>"
   
-  foo_sig   :: sig
- "foo_sig   \<equiv> \<lparr>name=foo,parTs=[Class Base]\<rparr>"
-  
-  foo_mhead :: mhead
- "foo_mhead \<equiv> \<lparr>access=Public,static=False,pars=[z],resT=Class Base\<rparr>"
+definition foo_mhead :: mhead
+ where "foo_mhead \<equiv> \<lparr>access=Public,static=False,pars=[z],resT=Class Base\<rparr>"
 
-constdefs
-  
-  Base_foo :: mdecl
- "Base_foo \<equiv> (foo_sig, \<lparr>access=Public,static=False,pars=[z],resT=Class Base,
+definition Base_foo :: mdecl
+ where "Base_foo \<equiv> (foo_sig, \<lparr>access=Public,static=False,pars=[z],resT=Class Base,
                         mbody=\<lparr>lcls=[],stmt=Return (!!z)\<rparr>\<rparr>)"
 
-constdefs
-  Ext_foo  :: mdecl
- "Ext_foo  \<equiv> (foo_sig, 
+definition Ext_foo :: mdecl
+ where "Ext_foo  \<equiv> (foo_sig, 
               \<lparr>access=Public,static=False,pars=[z],resT=Class Ext,
                mbody=\<lparr>lcls=[]
                      ,stmt=Expr({Ext,Ext,False}Cast (Class Ext) (!!z)..vee := 
@@ -177,12 +172,10 @@ constdefs
                                 Return (Lit Null)\<rparr>
               \<rparr>)"
 
-constdefs
-  
-arr_viewed_from :: "qtname \<Rightarrow> qtname \<Rightarrow> var"
+definition arr_viewed_from :: "qtname \<Rightarrow> qtname \<Rightarrow> var" where
 "arr_viewed_from accC C \<equiv> {accC,Base,True}StatRef (ClassT C)..arr"
 
-BaseCl :: "class"
+definition BaseCl :: "class" where
 "BaseCl \<equiv> \<lparr>access=Public,
            cfields=[(arr, \<lparr>access=Public,static=True ,type=PrimT Boolean.[]\<rparr>),
                     (vee, \<lparr>access=Public,static=False,type=Iface HasFoo    \<rparr>)],
@@ -192,7 +185,7 @@ BaseCl :: "class"
            super=Object,
            superIfs=[HasFoo]\<rparr>"
   
-ExtCl  :: "class"
+definition ExtCl  :: "class" where
 "ExtCl  \<equiv> \<lparr>access=Public,
            cfields=[(vee, \<lparr>access=Public,static=False,type= PrimT Integer\<rparr>)], 
            methods=[Ext_foo],
@@ -200,7 +193,7 @@ ExtCl  :: "class"
            super=Base,
            superIfs=[]\<rparr>"
 
-MainCl :: "class"
+definition MainCl :: "class" where
 "MainCl \<equiv> \<lparr>access=Public,
            cfields=[], 
            methods=[], 
@@ -209,16 +202,14 @@ MainCl :: "class"
            superIfs=[]\<rparr>"
 (* The "main" method is modeled seperately (see tprg) *)
 
-constdefs
-  
-  HasFooInt :: iface
- "HasFooInt \<equiv> \<lparr>access=Public,imethods=[(foo_sig, foo_mhead)],isuperIfs=[]\<rparr>"
+definition HasFooInt :: iface
+ where "HasFooInt \<equiv> \<lparr>access=Public,imethods=[(foo_sig, foo_mhead)],isuperIfs=[]\<rparr>"
 
-  Ifaces ::"idecl list"
- "Ifaces \<equiv> [(HasFoo,HasFooInt)]"
+definition Ifaces ::"idecl list"
+ where "Ifaces \<equiv> [(HasFoo,HasFooInt)]"
 
- "Classes" ::"cdecl list"
- "Classes \<equiv> [(Base,BaseCl),(Ext,ExtCl),(Main,MainCl)]@standard_classes"
+definition "Classes" ::"cdecl list"
+ where "Classes \<equiv> [(Base,BaseCl),(Ext,ExtCl),(Main,MainCl)]@standard_classes"
 
 lemmas table_classes_defs = 
      Classes_def standard_classes_def ObjectC_def SXcptC_def
@@ -273,8 +264,7 @@ abbreviation
   tprg :: prog where
   "tprg == \<lparr>ifaces=Ifaces,classes=Classes\<rparr>"
 
-constdefs
-  test    :: "(ty)list \<Rightarrow> stmt"
+definition test :: "(ty)list \<Rightarrow> stmt" where
  "test pTs \<equiv> e:==NewC Ext;; 
            \<spacespace> Try Expr({Main,ClassT Base,IntVir}!!e\<cdot>foo({pTs}[Lit Null]))
            \<spacespace> Catch((SXcpt NullPointer) z)

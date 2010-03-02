@@ -62,7 +62,7 @@ subsection{*Definitions*}
 consts xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"
 defs xor_def: "xor x y \<equiv> x \<and> \<not>y \<or> \<not>x \<and> y"
 
-constdefs nand :: "bool \<Rightarrow> bool \<Rightarrow> bool"
+definition nand :: "bool \<Rightarrow> bool \<Rightarrow> bool" where
          "nand x y \<equiv> \<not>(x \<and> y)"
 
 lemma "\<not> xor x x"

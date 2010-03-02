@@ -420,10 +420,11 @@ fun abstype_cert thy abs_ty rep =
      of Type ("fun", [ty, ty_abs]) => (ty, ty_abs)
       | _ => error ("Not a datatype abstractor:\n" ^ string_of_const thy abs
           ^ " :: " ^ string_of_typ thy ty');
-    val _ = Thm.cterm_of thy (Const (rep, ty_abs --> ty)) handle CTERM _ =>
+    val _ = Thm.cterm_of thy (Const (rep, ty_abs --> ty)) handle TYPE _ =>
       error ("Not a projection:\n" ^ string_of_const thy rep);
-    val cert = Logic.mk_equals (Const (abs, ty --> ty_abs) $ (Const (rep, ty_abs --> ty)
-      $ Free ("x", ty_abs)), Free ("x", ty_abs));
+    val param = Free ("x", ty_abs);
+    val cert = Logic.all param (Logic.mk_equals
+      (Const (abs, ty --> ty_abs) $ (Const (rep, ty_abs --> ty) $ param), param));
   in (tyco, (vs ~~ sorts, ((fst abs_ty, ty), (rep, cert)))) end;    
 
 fun get_type_entry thy tyco = case these (Symtab.lookup ((the_types o the_exec) thy) tyco)
@@ -839,7 +840,9 @@ fun pretty_cert thy (cert as Equations _) =
 fun bare_thms_of_cert thy (cert as Equations _) =
       (map_filter (fn (_, (some_thm, proper)) => if proper then some_thm else NONE)
         o snd o equations_of_cert thy) cert
-  | bare_thms_of_cert thy _ = [];
+  | bare_thms_of_cert thy (Projection _) = []
+  | bare_thms_of_cert thy (Abstract (abs_thm, tyco)) =
+      [Thm.varifyT (snd (concretify_abs thy tyco abs_thm))];
 
 end;
 

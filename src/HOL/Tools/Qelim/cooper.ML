@@ -16,7 +16,7 @@ open Normalizer;
 
 exception COOPER of string * exn;
 fun simp_thms_conv ctxt =
-  Simplifier.rewrite (Simplifier.context ctxt HOL_basic_ss addsimps simp_thms);
+  Simplifier.rewrite (Simplifier.context ctxt HOL_basic_ss addsimps @{thms simp_thms});
 val FWD = Drule.implies_elim_list;
 
 val true_tm = @{cterm "True"};
@@ -514,8 +514,8 @@ fun integer_nnf_conv ctxt env =
 
 local
  val pcv = Simplifier.rewrite
-     (HOL_basic_ss addsimps (simp_thms @ (List.take(ex_simps,4))
-                      @ [not_all,all_not_ex, ex_disj_distrib]))
+     (HOL_basic_ss addsimps (@{thms simp_thms} @ List.take(@{thms ex_simps}, 4)
+                      @ [not_all, all_not_ex, @{thm ex_disj_distrib}]))
  val postcv = Simplifier.rewrite presburger_ss
  fun conv ctxt p =
   let val _ = ()

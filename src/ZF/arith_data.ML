@@ -104,7 +104,7 @@ fun mk_coeff (0, t) = zero
 
 (*Dummy version: the "coefficient" is always 1.
   In the result, the factors are sorted terms*)
-fun dest_coeff t = (1, mk_prod (sort TermOrd.term_ord (dest_prod t)));
+fun dest_coeff t = (1, mk_prod (sort Term_Ord.term_ord (dest_prod t)));
 
 (*Find first coefficient-term THAT MATCHES u*)
 fun find_first_coeff past u [] = raise TERM("find_first_coeff", [])
@@ -163,9 +163,9 @@ structure EqCancelNumeralsData =
   val prove_conv = prove_conv "nateq_cancel_numerals"
   val mk_bal   = FOLogic.mk_eq
   val dest_bal = FOLogic.dest_eq
-  val bal_add1 = @{thm eq_add_iff} RS iff_trans
-  val bal_add2 = @{thm eq_add_iff} RS iff_trans
-  fun trans_tac _ = gen_trans_tac iff_trans
+  val bal_add1 = @{thm eq_add_iff} RS @{thm iff_trans}
+  val bal_add2 = @{thm eq_add_iff} RS @{thm iff_trans}
+  fun trans_tac _ = gen_trans_tac @{thm iff_trans}
   end;
 
 structure EqCancelNumerals = CancelNumeralsFun(EqCancelNumeralsData);
@@ -176,9 +176,9 @@ structure LessCancelNumeralsData =
   val prove_conv = prove_conv "natless_cancel_numerals"
   val mk_bal   = FOLogic.mk_binrel "Ordinal.lt"
   val dest_bal = FOLogic.dest_bin "Ordinal.lt" iT
-  val bal_add1 = @{thm less_add_iff} RS iff_trans
-  val bal_add2 = @{thm less_add_iff} RS iff_trans
-  fun trans_tac _ = gen_trans_tac iff_trans
+  val bal_add1 = @{thm less_add_iff} RS @{thm iff_trans}
+  val bal_add2 = @{thm less_add_iff} RS @{thm iff_trans}
+  fun trans_tac _ = gen_trans_tac @{thm iff_trans}
   end;
 
 structure LessCancelNumerals = CancelNumeralsFun(LessCancelNumeralsData);
@@ -189,9 +189,9 @@ structure DiffCancelNumeralsData =
   val prove_conv = prove_conv "natdiff_cancel_numerals"
   val mk_bal   = FOLogic.mk_binop "Arith.diff"
   val dest_bal = FOLogic.dest_bin "Arith.diff" iT
-  val bal_add1 = @{thm diff_add_eq} RS trans
-  val bal_add2 = @{thm diff_add_eq} RS trans
-  fun trans_tac _ = gen_trans_tac trans
+  val bal_add1 = @{thm diff_add_eq} RS @{thm trans}
+  val bal_add2 = @{thm diff_add_eq} RS @{thm trans}
+  fun trans_tac _ = gen_trans_tac @{thm trans}
   end;
 
 structure DiffCancelNumerals = CancelNumeralsFun(DiffCancelNumeralsData);

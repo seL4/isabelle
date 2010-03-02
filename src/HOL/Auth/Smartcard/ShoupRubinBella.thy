@@ -1,5 +1,4 @@
-(*  ID:         $Id$
-    Author:     Giampaolo Bella, Catania University
+(*  Author:     Giampaolo Bella, Catania University
 *)
 
 header{*Bella's modification of the Shoup-Rubin protocol*}
@@ -35,9 +34,7 @@ axioms
     between each agent and his smartcard*)
    shouprubin_assumes_securemeans [iff]: "evs \<in> srb \<Longrightarrow> secureM"
 
-constdefs
-
-  Unique :: "[event, event list] => bool" ("Unique _ on _")
+definition Unique :: "[event, event list] => bool" ("Unique _ on _") where
    "Unique ev on evs == 
       ev \<notin> set (tl (dropWhile (% z. z \<noteq> ev) evs))"
 

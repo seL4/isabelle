@@ -29,7 +29,7 @@ sig
   val term_cache: (term -> 'a) -> term -> 'a
 end;
 
-structure TermOrd: TERM_ORD =
+structure Term_Ord: TERM_ORD =
 struct
 
 (* fast syntactic ordering -- tuned for inequalities *)
@@ -223,6 +223,11 @@ fun term_cache f = Cache.create Termtab.empty Termtab.lookup Termtab.update f;
 
 end;
 
-structure Basic_Term_Ord: BASIC_TERM_ORD = TermOrd;
+structure Basic_Term_Ord: BASIC_TERM_ORD = Term_Ord;
 open Basic_Term_Ord;
+
+structure Var_Graph = Graph(type key = indexname val ord = Term_Ord.fast_indexname_ord);
+structure Sort_Graph = Graph(type key = sort val ord = Term_Ord.sort_ord);
+structure Typ_Graph = Graph(type key = typ val ord = Term_Ord.typ_ord);
+structure Term_Graph = Graph(type key = term val ord = Term_Ord.fast_term_ord);
 

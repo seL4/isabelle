@@ -23,8 +23,7 @@ text {*
 
 datatype digit = A ("1") | B ("2") | C ("3") | D ("4") | E ("5") | F ("6") | G ("7") | H ("8") | I ("9")
 
-constdefs
-  valid :: "digit => digit => digit => digit => digit => digit => digit => digit => digit => bool"
+definition valid :: "digit => digit => digit => digit => digit => digit => digit => digit => digit => bool" where
 
   "valid x1 x2 x3 x4 x5 x6 x7 x8 x9 ==
     (x1 \<noteq> x2) \<and> (x1 \<noteq> x3) \<and> (x1 \<noteq> x4) \<and> (x1 \<noteq> x5) \<and> (x1 \<noteq> x6) \<and> (x1 \<noteq> x7) \<and> (x1 \<noteq> x8) \<and> (x1 \<noteq> x9)
@@ -36,8 +35,7 @@ constdefs
     \<and> (x7 \<noteq> x8) \<and> (x7 \<noteq> x9)
     \<and> (x8 \<noteq> x9)"
 
-constdefs
-  sudoku :: "digit => digit => digit => digit => digit => digit => digit => digit => digit =>
+definition sudoku :: "digit => digit => digit => digit => digit => digit => digit => digit => digit =>
     digit => digit => digit => digit => digit => digit => digit => digit => digit =>
     digit => digit => digit => digit => digit => digit => digit => digit => digit =>
     digit => digit => digit => digit => digit => digit => digit => digit => digit =>
@@ -45,7 +43,7 @@ constdefs
     digit => digit => digit => digit => digit => digit => digit => digit => digit =>
     digit => digit => digit => digit => digit => digit => digit => digit => digit =>
     digit => digit => digit => digit => digit => digit => digit => digit => digit =>
-    digit => digit => digit => digit => digit => digit => digit => digit => digit => bool"
+    digit => digit => digit => digit => digit => digit => digit => digit => digit => bool" where
 
   "sudoku x11 x12 x13 x14 x15 x16 x17 x18 x19
           x21 x22 x23 x24 x25 x26 x27 x28 x29

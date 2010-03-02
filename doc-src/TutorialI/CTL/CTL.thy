@@ -365,8 +365,7 @@ For more CTL exercises see, for example, Huth and Ryan \cite{Huth-Ryan-book}.
 *}
 
 (*<*)
-constdefs
- eufix :: "state set \<Rightarrow> state set \<Rightarrow> state set \<Rightarrow> state set"
+definition eufix :: "state set \<Rightarrow> state set \<Rightarrow> state set \<Rightarrow> state set" where
 "eufix A B T \<equiv> B \<union> A \<inter> (M\<inverse> `` T)"
 
 lemma "lfp(eufix A B) \<subseteq> eusem A B"
@@ -397,8 +396,7 @@ apply blast;
 done
 
 (*
-constdefs
- eusem :: "state set \<Rightarrow> state set \<Rightarrow> state set"
+definition eusem :: "state set \<Rightarrow> state set \<Rightarrow> state set" where
 "eusem A B \<equiv> {s. \<exists>p\<in>Paths s. \<exists>j. p j \<in> B \<and> (\<forall>i < j. p i \<in> A)}"
 
 axioms
@@ -414,8 +412,7 @@ apply(simp add: Paths_def);
 apply(blast intro: M_total[THEN someI_ex])
 done
 
-constdefs
- pcons :: "state \<Rightarrow> (nat \<Rightarrow> state) \<Rightarrow> (nat \<Rightarrow> state)"
+definition pcons :: "state \<Rightarrow> (nat \<Rightarrow> state) \<Rightarrow> (nat \<Rightarrow> state)" where
 "pcons s p == \<lambda>i. case i of 0 \<Rightarrow> s | Suc j \<Rightarrow> p j"
 
 lemma pcons_PathI: "[| (s,t) : M; p \<in> Paths t |] ==> pcons s p \<in> Paths s";

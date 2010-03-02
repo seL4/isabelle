@@ -80,7 +80,7 @@ fun mk_coeff (k,t) = mk_times (mk_number k, t);
 
 (*Express t as a product of (possibly) a numeral with other factors, sorted*)
 fun dest_coeff t =
-    let val ts = sort TermOrd.term_ord (dest_prod t)
+    let val ts = sort Term_Ord.term_ord (dest_prod t)
         val (n, _, ts') = find_first_numeral [] ts
                           handle TERM _ => (1, one, ts)
     in (n, mk_prod ts') end;

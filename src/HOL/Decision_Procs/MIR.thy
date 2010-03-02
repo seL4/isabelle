@@ -566,7 +566,7 @@ proof-
   thus ?thesis by (simp only: list_all_iff)
 qed
 
-constdefs DJ :: "(fm \<Rightarrow> fm) \<Rightarrow> fm \<Rightarrow> fm"
+definition DJ :: "(fm \<Rightarrow> fm) \<Rightarrow> fm \<Rightarrow> fm" where
   "DJ f p \<equiv> evaldjf f (disjuncts p)"
 
 lemma DJ: assumes fdj: "\<forall> p q. f (Or p q) = Or (f p) (f q)"
@@ -623,7 +623,7 @@ recdef lex_ns "measure (\<lambda> (xs,ys). length xs + length ys)"
   "lex_ns ([], ms) = True"
   "lex_ns (ns, []) = False"
   "lex_ns (n#ns, m#ms) = (n<m \<or> ((n = m) \<and> lex_ns (ns,ms))) "
-constdefs lex_bnd :: "num \<Rightarrow> num \<Rightarrow> bool"
+definition lex_bnd :: "num \<Rightarrow> num \<Rightarrow> bool" where
   "lex_bnd t s \<equiv> lex_ns (bnds t, bnds s)"
 
 consts 
@@ -873,10 +873,10 @@ by (induct t rule: nummul.induct, auto simp add: algebra_simps)
 lemma nummul_nb[simp]: "\<And> i. numbound0 t \<Longrightarrow> numbound0 (nummul t i)"
 by (induct t rule: nummul.induct, auto)
 
-constdefs numneg :: "num \<Rightarrow> num"
+definition numneg :: "num \<Rightarrow> num" where
   "numneg t \<equiv> nummul t (- 1)"
 
-constdefs numsub :: "num \<Rightarrow> num \<Rightarrow> num"
+definition numsub :: "num \<Rightarrow> num \<Rightarrow> num" where
   "numsub s t \<equiv> (if s = t then C 0 else numadd (s,numneg t))"
 
 lemma numneg[simp]: "Inum bs (numneg t) = Inum bs (Neg t)"
@@ -1038,7 +1038,7 @@ proof-
   from maxcoeff_nz[OF nz th] show ?thesis .
 qed
 
-constdefs simp_num_pair:: "(num \<times> int) \<Rightarrow> num \<times> int"
+definition simp_num_pair :: "(num \<times> int) \<Rightarrow> num \<times> int" where
   "simp_num_pair \<equiv> (\<lambda> (t,n). (if n = 0 then (C 0, 0) else
    (let t' = simpnum t ; g = numgcd t' in 
       if g > 1 then (let g' = gcd n g in 
@@ -1137,7 +1137,7 @@ by (induct p, auto)
 lemma not_nb[simp]: "bound0 p \<Longrightarrow> bound0 (not p)"
 by (induct p, auto)
 
-constdefs conj :: "fm \<Rightarrow> fm \<Rightarrow> fm"
+definition conj :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
   "conj p q \<equiv> (if (p = F \<or> q=F) then F else if p=T then q else if q=T then p else 
    if p = q then p else And p q)"
 lemma conj[simp]: "Ifm bs (conj p q) = Ifm bs (And p q)"
@@ -1148,7 +1148,7 @@ using conj_def by auto
 lemma conj_nb[simp]: "\<lbrakk>bound0 p ; bound0 q\<rbrakk> \<Longrightarrow> bound0 (conj p q)"
 using conj_def by auto 
 
-constdefs disj :: "fm \<Rightarrow> fm \<Rightarrow> fm"
+definition disj :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
   "disj p q \<equiv> (if (p = T \<or> q=T) then T else if p=F then q else if q=F then p 
        else if p=q then p else Or p q)"
 
@@ -1159,7 +1159,7 @@ using disj_def by auto
 lemma disj_nb[simp]: "\<lbrakk>bound0 p ; bound0 q\<rbrakk> \<Longrightarrow> bound0 (disj p q)"
 using disj_def by auto 
 
-constdefs   imp :: "fm \<Rightarrow> fm \<Rightarrow> fm"
+definition imp :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
   "imp p q \<equiv> (if (p = F \<or> q=T \<or> p=q) then T else if p=T then q else if q=F then not p 
     else Imp p q)"
 lemma imp[simp]: "Ifm bs (imp p q) = Ifm bs (Imp p q)"
@@ -1169,7 +1169,7 @@ using imp_def by (cases "p=F \<or> q=T",simp_all add: imp_def)
 lemma imp_nb[simp]: "\<lbrakk>bound0 p ; bound0 q\<rbrakk> \<Longrightarrow> bound0 (imp p q)"
 using imp_def by (cases "p=F \<or> q=T \<or> p=q",simp_all add: imp_def) 
 
-constdefs   iff :: "fm \<Rightarrow> fm \<Rightarrow> fm"
+definition iff :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
   "iff p q \<equiv> (if (p = q) then T else if (p = not q \<or> not p = q) then F else 
        if p=F then not q else if q=F then not p else if p=T then q else if q=T then p else 
   Iff p q)"
@@ -1216,7 +1216,7 @@ next
   thus "real d rdvd real c * t" using d rdvd_mult[OF gnz, where n="d div g" and x="real (c div g) * t"] real_of_int_div[OF gnz gd] real_of_int_div[OF gnz gc] by simp
 qed
 
-constdefs simpdvd:: "int \<Rightarrow> num \<Rightarrow> (int \<times> num)"
+definition simpdvd :: "int \<Rightarrow> num \<Rightarrow> (int \<times> num)" where
   "simpdvd d t \<equiv> 
    (let g = numgcd t in 
       if g > 1 then (let g' = gcd d g in 
@@ -1479,7 +1479,7 @@ by (induct p rule: simpfm.induct, auto simp add: Let_def)
 
   (* Generic quantifier elimination *)
 
-constdefs list_conj :: "fm list \<Rightarrow> fm"
+definition list_conj :: "fm list \<Rightarrow> fm" where
   "list_conj ps \<equiv> foldr conj ps T"
 lemma list_conj: "Ifm bs (list_conj ps) = (\<forall>p\<in> set ps. Ifm bs p)"
   by (induct ps, auto simp add: list_conj_def)
@@ -1487,7 +1487,7 @@ lemma list_conj_qf: " \<forall>p\<in> set ps. qfree p \<Longrightarrow> qfree (l
   by (induct ps, auto simp add: list_conj_def)
 lemma list_conj_nb: " \<forall>p\<in> set ps. bound0 p \<Longrightarrow> bound0 (list_conj ps)"
   by (induct ps, auto simp add: list_conj_def)
-constdefs CJNB:: "(fm \<Rightarrow> fm) \<Rightarrow> fm \<Rightarrow> fm"
+definition CJNB :: "(fm \<Rightarrow> fm) \<Rightarrow> fm \<Rightarrow> fm" where
   "CJNB f p \<equiv> (let cjs = conjuncts p ; (yes,no) = List.partition bound0 cjs
                    in conj (decr (list_conj yes)) (f (list_conj no)))"
 
@@ -2954,7 +2954,7 @@ recdef a\<rho> "measure size"
                                             else (NDvd (i*k) (CN 0 c (Mul k e))))"
   "a\<rho> p = (\<lambda> k. p)"
 
-constdefs \<sigma> :: "fm \<Rightarrow> int \<Rightarrow> num \<Rightarrow> fm"
+definition \<sigma> :: "fm \<Rightarrow> int \<Rightarrow> num \<Rightarrow> fm" where
   "\<sigma> p k t \<equiv> And (Dvd k t) (\<sigma>\<rho> p (t,k))"
 
 lemma \<sigma>\<rho>:
@@ -3517,7 +3517,7 @@ recdef isrlfm "measure size"
   "isrlfm (Ge  (CN 0 c e)) = (c>0 \<and> numbound0 e)"
   "isrlfm p = (isatom p \<and> (bound0 p))"
 
-constdefs fp :: "fm \<Rightarrow> int \<Rightarrow> num \<Rightarrow> int \<Rightarrow> fm"
+definition fp :: "fm \<Rightarrow> int \<Rightarrow> num \<Rightarrow> int \<Rightarrow> fm" where
   "fp p n s j \<equiv> (if n > 0 then 
             (And p (And (Ge (CN 0 n (Sub s (Add (Floor s) (C j)))))
                         (Lt (CN 0 n (Sub s (Add (Floor s) (C (j+1))))))))
@@ -3836,7 +3836,7 @@ qed (auto simp add: Let_def split_def)
 
     (* Linearize a formula where Bound 0 ranges over [0,1) *)
 
-constdefs rsplit :: "(int \<Rightarrow> num \<Rightarrow> fm) \<Rightarrow> num \<Rightarrow> fm"
+definition rsplit :: "(int \<Rightarrow> num \<Rightarrow> fm) \<Rightarrow> num \<Rightarrow> fm" where
   "rsplit f a \<equiv> foldr disj (map (\<lambda> (\<phi>, n, s). conj \<phi> (f n s)) (rsplit0 a)) F"
 
 lemma foldr_disj_map: "Ifm bs (foldr disj (map f xs) F) = (\<exists> x \<in> set xs. Ifm bs (f x))"
@@ -5103,7 +5103,7 @@ qed
 
     (* Implement the right hand sides of Cooper's theorem and Ferrante and Rackoff. *)
 
-constdefs ferrack01:: "fm \<Rightarrow> fm"
+definition ferrack01 :: "fm \<Rightarrow> fm" where
   "ferrack01 p \<equiv> (let p' = rlfm(And (And (Ge(CN 0 1 (C 0))) (Lt (CN 0 1 (C (- 1))))) p);
                     U = remdups(map simp_num_pair 
                      (map (\<lambda> ((t,n),(s,m)). (Add (Mul m t) (Mul n s) , 2*n*m))
@@ -5350,7 +5350,7 @@ lemma cp_thm':
   shows "(\<exists> (x::int). Ifm (real x#bs) p) = ((\<exists> j\<in> {1 .. d}. Ifm (real j#bs) (minusinf p)) \<or> (\<exists> j\<in> {1.. d}. \<exists> b\<in> (Inum (real i#bs)) ` set (\<beta> p). Ifm ((b+real j)#bs) p))"
   using cp_thm[OF lp up dd dp] by auto
 
-constdefs unit:: "fm \<Rightarrow> fm \<times> num list \<times> int"
+definition unit :: "fm \<Rightarrow> fm \<times> num list \<times> int" where
   "unit p \<equiv> (let p' = zlfm p ; l = \<zeta> p' ; q = And (Dvd l (CN 0 1 (C 0))) (a\<beta> p' l); d = \<delta> q;
              B = remdups (map simpnum (\<beta> q)) ; a = remdups (map simpnum (\<alpha> q))
              in if length B \<le> length a then (q,B,d) else (mirror q, a,d))"
@@ -5417,7 +5417,7 @@ proof-
 qed
     (* Cooper's Algorithm *)
 
-constdefs cooper :: "fm \<Rightarrow> fm"
+definition cooper :: "fm \<Rightarrow> fm" where
   "cooper p \<equiv> 
   (let (q,B,d) = unit p; js = iupt (1,d);
        mq = simpfm (minusinf q);
@@ -5561,7 +5561,7 @@ lemma rl_thm':
   shows "(\<exists> (x::int). Ifm (real x#bs) p) = ((\<exists> j\<in> {1 .. \<delta> p}. Ifm (real j#bs) (minusinf p)) \<or> (\<exists> (e,c) \<in> R. \<exists> j\<in> {1.. c*(\<delta> p)}. Ifm (a#bs) (\<sigma> p c (Add e (C j)))))"
   using rl_thm[OF lp] \<rho>_cong[OF iszlfm_gen[OF lp, rule_format, where y="a"] R] by simp 
 
-constdefs chooset:: "fm \<Rightarrow> fm \<times> ((num\<times>int) list) \<times> int"
+definition chooset :: "fm \<Rightarrow> fm \<times> ((num\<times>int) list) \<times> int" where
   "chooset p \<equiv> (let q = zlfm p ; d = \<delta> q;
              B = remdups (map (\<lambda> (t,k). (simpnum t,k)) (\<rho> q)) ; 
              a = remdups (map (\<lambda> (t,k). (simpnum t,k)) (\<alpha>\<rho> q))
@@ -5621,7 +5621,7 @@ proof-
   ultimately show ?thes by blast
 qed
 
-constdefs stage:: "fm \<Rightarrow> int \<Rightarrow> (num \<times> int) \<Rightarrow> fm"
+definition stage :: "fm \<Rightarrow> int \<Rightarrow> (num \<times> int) \<Rightarrow> fm" where
   "stage p d \<equiv> (\<lambda> (e,c). evaldjf (\<lambda> j. simpfm (\<sigma> p c (Add e (C j)))) (iupt (1,c*d)))"
 lemma stage:
   shows "Ifm bs (stage p d (e,c)) = (\<exists> j\<in>{1 .. c*d}. Ifm bs (\<sigma> p c (Add e (C j))))"
@@ -5641,7 +5641,7 @@ proof-
   from evaldjf_bound0[OF th] show ?thesis by (unfold stage_def split_def) simp
 qed
 
-constdefs redlove:: "fm \<Rightarrow> fm"
+definition redlove :: "fm \<Rightarrow> fm" where
   "redlove p \<equiv> 
   (let (q,B,d) = chooset p;
        mq = simpfm (minusinf q);

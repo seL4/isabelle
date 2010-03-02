@@ -42,6 +42,7 @@ sig
   val type_syntax: bool -> declaration -> local_theory -> local_theory
   val term_syntax: bool -> declaration -> local_theory -> local_theory
   val declaration: bool -> declaration -> local_theory -> local_theory
+  val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> local_theory -> local_theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val init: serial option -> string -> operations -> Proof.context -> local_theory
   val restore: local_theory -> local_theory
@@ -197,6 +198,10 @@ val declaration = checkpoint ooo operation2 #declaration;
 
 val notes = notes_kind "";
 fun note (a, ths) = notes [(a, [(ths, [])])] #>> the_single;
+
+fun type_notation add mode raw_args lthy =
+  let val args = map (apfst (Morphism.typ (target_morphism lthy))) raw_args
+  in type_syntax false (ProofContext.target_type_notation add mode args) lthy end;
 
 fun notation add mode raw_args lthy =
   let val args = map (apfst (Morphism.term (target_morphism lthy))) raw_args

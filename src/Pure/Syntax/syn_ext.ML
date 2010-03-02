@@ -14,6 +14,7 @@ sig
   val stamp_trfun: stamp -> string * 'a -> string * ('a * stamp)
   val mk_trfun: string * 'a -> string * ('a * stamp)
   val eq_trfun: ('a * stamp) * ('a * stamp) -> bool
+  val escape: string -> string
   val tokentrans_mode:
     string -> (string * (Proof.context -> string -> Pretty.T)) list ->
     (string * string * (Proof.context -> string -> Pretty.T)) list
@@ -28,6 +29,8 @@ sig
   val cargs: string
   val any: string
   val sprop: string
+  datatype mfix = Mfix of string * typ * string * int list * int
+  val err_in_mfix: string -> mfix -> 'a
   val typ_to_nonterm: typ -> string
   datatype xsymb =
     Delim of string |
@@ -37,7 +40,6 @@ sig
   datatype xprod = XProd of string * xsymb list * string * int
   val chain_pri: int
   val delims_of: xprod list -> string list list
-  datatype mfix = Mfix of string * typ * string * int list * int
   datatype syn_ext =
     SynExt of {
       xprods: xprod list,
@@ -53,7 +55,6 @@ sig
       token_translation: (string * string * (Proof.context -> string -> Pretty.T)) list}
   val mfix_delims: string -> string list
   val mfix_args: string -> int
-  val escape_mfix: string -> string
   val syn_ext': bool -> (string -> bool) -> mfix list ->
     string list -> (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((Proof.context -> term list -> term) * stamp)) list *
@@ -228,7 +229,7 @@ val read_mfix = unique_index o read_symbs o Symbol.explode;
 fun mfix_delims sy = fold_rev (fn Delim s => cons s | _ => I) (read_mfix sy) [];
 val mfix_args = length o filter is_argument o read_mfix;
 
-val escape_mfix = implode o map (fn s => if is_meta s then "'" ^ s else s) o Symbol.explode;
+val escape = implode o map (fn s => if is_meta s then "'" ^ s else s) o Symbol.explode;
 
 end;
 

@@ -161,21 +161,19 @@ abbreviation "authCode == Number (Suc (Suc 0))"
 
 subsection{*Encryption Primitives*}
 
-constdefs
-
-  EXcrypt :: "[key,key,msg,msg] => msg"
+definition EXcrypt :: "[key,key,msg,msg] => msg" where
   --{*Extra Encryption*}
     (*K: the symmetric key   EK: the public encryption key*)
     "EXcrypt K EK M m ==
        {|Crypt K {|M, Hash m|}, Crypt EK {|Key K, m|}|}"
 
-  EXHcrypt :: "[key,key,msg,msg] => msg"
+definition EXHcrypt :: "[key,key,msg,msg] => msg" where
   --{*Extra Encryption with Hashing*}
     (*K: the symmetric key   EK: the public encryption key*)
     "EXHcrypt K EK M m ==
        {|Crypt K {|M, Hash m|}, Crypt EK {|Key K, m, Hash M|}|}"
 
-  Enc :: "[key,key,key,msg] => msg"
+definition Enc :: "[key,key,key,msg] => msg" where
   --{*Simple Encapsulation with SIGNATURE*}
     (*SK: the sender's signing key
       K: the symmetric key
@@ -183,7 +181,7 @@ constdefs
     "Enc SK K EK M ==
        {|Crypt K (sign SK M), Crypt EK (Key K)|}"
 
-  EncB :: "[key,key,key,msg,msg] => msg"
+definition EncB :: "[key,key,key,msg,msg] => msg" where
   --{*Encapsulation with Baggage.  Keys as above, and baggage b.*}
     "EncB SK K EK M b == 
        {|Enc SK K EK {|M, Hash b|}, b|}"

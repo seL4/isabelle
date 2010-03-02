@@ -42,7 +42,7 @@ val trueI = TrueI;
 val not_lessD = @{thm linorder_not_less} RS iffD1;
 val not_leD = @{thm linorder_not_le} RS iffD1;
 
-fun mk_Eq thm = thm RS Eq_FalseI handle THM _ => thm RS Eq_TrueI;
+fun mk_Eq thm = thm RS @{thm Eq_FalseI} handle THM _ => thm RS @{thm Eq_TrueI};
 
 val mk_Trueprop = HOLogic.mk_Trueprop;
 
@@ -703,8 +703,8 @@ local
   val nnf_simpset =
     empty_ss setmkeqTrue mk_eq_True
     setmksimps (mksimps mksimps_pairs)
-    addsimps [imp_conv_disj, iff_conv_conj_imp, de_Morgan_disj, de_Morgan_conj,
-      not_all, not_ex, not_not]
+    addsimps [@{thm imp_conv_disj}, @{thm iff_conv_conj_imp}, @{thm de_Morgan_disj},
+      @{thm de_Morgan_conj}, not_all, not_ex, not_not]
   fun prem_nnf_tac ss = full_simp_tac (Simplifier.inherit_context ss nnf_simpset)
 in
 
@@ -823,7 +823,7 @@ val init_arith_data =
       addsimprocs [ab_group_add_cancel.sum_conv, ab_group_add_cancel.rel_conv]
        (*abel_cancel helps it work in abstract algebraic domains*)
       addsimprocs Nat_Arith.nat_cancel_sums_add
-      addcongs [if_weak_cong],
+      addcongs [@{thm if_weak_cong}],
     number_of = number_of}) #>
   add_discrete_type @{type_name nat};
 

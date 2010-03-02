@@ -73,9 +73,6 @@ val _ = value "theory_ref"
 
 val _ = value "context" (Scan.succeed "ML_Context.the_local_context ()");
 
-val _ = inline "sort" (Args.context -- Scan.lift Args.name_source >> (fn (ctxt, s) =>
-  ML_Syntax.atomic (ML_Syntax.print_sort (Syntax.read_sort ctxt s))));
-
 val _ = inline "typ" (Args.typ >> (ML_Syntax.atomic o ML_Syntax.print_typ));
 val _ = inline "term" (Args.term >> (ML_Syntax.atomic o ML_Syntax.print_term));
 val _ = inline "prop" (Args.prop >> (ML_Syntax.atomic o ML_Syntax.print_term));
@@ -103,36 +100,67 @@ val _ = value "cpat"
     "Thm.cterm_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_term t)));
 
 
-fun type_ syn = (Args.context -- Scan.lift Args.name_source >> (fn (ctxt, c) =>
-    #1 (Term.dest_Type (ProofContext.read_tyname ctxt c))
-    |> syn ? Long_Name.base_name
-    |> ML_Syntax.print_string));
+(* type classes *)
 
-val _ = inline "type_name" (type_ false);
-val _ = inline "type_syntax" (type_ true);
-
-
-fun const syn = Args.context -- Scan.lift Args.name_source >> (fn (ctxt, c) =>
-  #1 (Term.dest_Const (ProofContext.read_const_proper ctxt c))
-  |> syn ? Syntax.mark_const
+fun class syn = Args.theory -- Scan.lift Args.name_source >> (fn (thy, s) =>
+  Sign.read_class thy s
+  |> syn ? Long_Name.base_name   (* FIXME authentic syntax *)
   |> ML_Syntax.print_string);
 
-val _ = inline "const_name" (const false);
-val _ = inline "const_syntax" (const true);
+val _ = inline "class" (class false);
+val _ = inline "class_syntax" (class true);
+
+val _ = inline "sort" (Args.context -- Scan.lift Args.name_source >> (fn (ctxt, s) =>
+  ML_Syntax.atomic (ML_Syntax.print_sort (Syntax.read_sort ctxt s))));
+
+
+(* type constructors *)
+
+fun type_name kind check = Args.context -- Scan.lift (OuterParse.position Args.name_source)
+  >> (fn (ctxt, (s, pos)) =>
+    let
+      val Type (c, _) = ProofContext.read_type_name ctxt false s;
+      val decl = Sign.the_type_decl (ProofContext.theory_of ctxt) c;
+      val res =
+        (case try check (c, decl) of
+          SOME res => res
+        | NONE => error ("Not a " ^ kind ^ ": " ^ quote c ^ Position.str_of pos));
+    in ML_Syntax.print_string res end);
+
+val _ = inline "type_name" (type_name "logical type" (fn (c, Type.LogicalType _) => c));
+val _ = inline "type_abbrev" (type_name "type abbreviation" (fn (c, Type.Abbreviation _) => c));
+val _ = inline "nonterminal" (type_name "nonterminal" (fn (c, Type.Nonterminal) => c));
+val _ = inline "type_syntax" (type_name "type" (fn (c, _) => Long_Name.base_name c));  (* FIXME authentic syntax *)
+
+
+(* constants *)
+
+fun const_name check = Args.context -- Scan.lift (OuterParse.position Args.name_source)
+  >> (fn (ctxt, (s, pos)) =>
+    let
+      val Const (c, _) = ProofContext.read_const_proper ctxt false s;
+      val res = check (ProofContext.consts_of ctxt, c)
+        handle TYPE (msg, _, _) => error (msg ^ Position.str_of pos);
+    in ML_Syntax.print_string res end);
+
+val _ = inline "const_name" (const_name (fn (consts, c) => (Consts.the_type consts c; c)));
+val _ = inline "const_abbrev" (const_name (fn (consts, c) => (Consts.the_abbreviation consts c; c)));
+val _ = inline "const_syntax" (const_name (fn (_, c) => Syntax.mark_const c));
+
+
+val _ = inline "syntax_const"
+  (Args.context -- Scan.lift (OuterParse.position Args.name) >> (fn (ctxt, (c, pos)) =>
+    if Syntax.is_const (ProofContext.syn_of ctxt) c then ML_Syntax.print_string c
+    else error ("Unknown syntax const: " ^ quote c ^ Position.str_of pos)));
 
 val _ = inline "const"
   (Args.context -- Scan.lift Args.name_source -- Scan.optional
       (Scan.lift (Args.$$$ "(") |-- OuterParse.enum1' "," Args.typ --| Scan.lift (Args.$$$ ")")) []
     >> (fn ((ctxt, raw_c), Ts) =>
       let
-        val Const (c, _) = ProofContext.read_const_proper ctxt raw_c;
+        val Const (c, _) = ProofContext.read_const_proper ctxt true raw_c;
         val const = Const (c, Consts.instance (ProofContext.consts_of ctxt) (c, Ts));
       in ML_Syntax.atomic (ML_Syntax.print_term const) end));
-
-val _ = inline "syntax_const"
-  (Args.context -- Scan.lift Args.name >> (fn (ctxt, c) =>
-    if Syntax.is_const (ProofContext.syn_of ctxt) c then ML_Syntax.print_string c
-    else error ("Unknown syntax const: " ^ quote c)));
 
 end;
 

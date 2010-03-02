@@ -38,6 +38,8 @@ names, so all of the above would coincide.  Recall that 'print_syntax'
 and ML_command "set Syntax.trace_ast" help to diagnose syntax
 problems.
 
+* Type constructors admit general mixfix syntax, not just infix.
+
 
 *** Pure ***
 
@@ -49,8 +51,15 @@ need to specify constant name and syntax separately.  Internal ML
 datatype constructors have been renamed from InfixName to Infix etc.
 Minor INCOMPATIBILITY.
 
+* Commands 'type_notation' and 'no_type_notation' declare type syntax
+within a local theory context, with explicit checking of the
+constructors involved (in contrast to the raw 'syntax' versions).
+
 
 *** HOL ***
+
+* Theory "Rational" renamed to "Rat", for consistency with "Nat", "Int" etc.
+INCOMPATIBILITY.
 
 * New set of rules "ac_simps" provides combined assoc / commute rewrites
 for all interpretations of the appropriate generic locales.
@@ -171,6 +180,20 @@ clash with new theory Quotient in Main HOL.
 
 
 *** ML ***
+
+* Antiquotations for basic formal entities:
+
+    @{class NAME}         -- type class
+    @{class_syntax NAME}  -- syntax representation of the above
+
+    @{type_name NAME}     -- logical type
+    @{type_abbrev NAME}   -- type abbreviation
+    @{nonterminal NAME}   -- type of concrete syntactic category
+    @{type_syntax NAME}   -- syntax representation of any of the above
+
+    @{const_name NAME}    -- logical constant (INCOMPATIBILITY)
+    @{const_abbrev NAME}  -- abbreviated constant
+    @{const_syntax NAME}  -- syntax representation of any of the above
 
 * Antiquotation @{syntax_const NAME} ensures that NAME refers to a raw
 syntax constant (cf. 'syntax' command).

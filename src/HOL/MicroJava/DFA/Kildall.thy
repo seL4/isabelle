@@ -9,37 +9,28 @@ theory Kildall
 imports SemilatAlg While_Combinator
 begin
 
+primrec propa :: "'s binop \<Rightarrow> (nat \<times> 's) list \<Rightarrow> 's list \<Rightarrow> nat set \<Rightarrow> 's list * nat set" where
+  "propa f []      ss w = (ss,w)"
+| "propa f (q'#qs) ss w = (let (q,t) = q';
+                               u = t +_f ss!q;
+                               w' = (if u = ss!q then w else insert q w)
+                           in propa f qs (ss[q := u]) w')"
 
-consts
- iter :: "'s binop \<Rightarrow> 's step_type \<Rightarrow>
-          's list \<Rightarrow> nat set \<Rightarrow> 's list \<times> nat set"
- propa :: "'s binop \<Rightarrow> (nat \<times> 's) list \<Rightarrow> 's list \<Rightarrow> nat set \<Rightarrow> 's list * nat set"
-
-primrec
-"propa f []      ss w = (ss,w)"
-"propa f (q'#qs) ss w = (let (q,t) = q';
-                             u = t +_f ss!q;
-                             w' = (if u = ss!q then w else insert q w)
-                         in propa f qs (ss[q := u]) w')"
-
-defs iter_def:
-"iter f step ss w ==
- while (%(ss,w). w \<noteq> {})
+definition iter :: "'s binop \<Rightarrow> 's step_type \<Rightarrow> 's list \<Rightarrow> nat set \<Rightarrow> 's list \<times> nat set" where
+  "iter f step ss w == while (%(ss,w). w \<noteq> {})
        (%(ss,w). let p = SOME p. p \<in> w
                  in propa f (step p (ss!p)) ss (w-{p}))
        (ss,w)"
 
-constdefs
- unstables :: "'s ord \<Rightarrow> 's step_type \<Rightarrow> 's list \<Rightarrow> nat set"
+definition unstables :: "'s ord \<Rightarrow> 's step_type \<Rightarrow> 's list \<Rightarrow> nat set" where
 "unstables r step ss == {p. p < size ss \<and> \<not>stable r step ss p}"
 
- kildall :: "'s ord \<Rightarrow> 's binop \<Rightarrow> 's step_type \<Rightarrow> 's list \<Rightarrow> 's list"
+definition kildall :: "'s ord \<Rightarrow> 's binop \<Rightarrow> 's step_type \<Rightarrow> 's list \<Rightarrow> 's list" where
 "kildall r f step ss == fst(iter f step ss (unstables r step ss))"
 
-consts merges :: "'s binop \<Rightarrow> (nat \<times> 's) list \<Rightarrow> 's list \<Rightarrow> 's list"
-primrec
-"merges f []      ss = ss"
-"merges f (p'#ps) ss = (let (p,s) = p' in merges f ps (ss[p := s +_f ss!p]))"
+primrec merges :: "'s binop \<Rightarrow> (nat \<times> 's) list \<Rightarrow> 's list \<Rightarrow> 's list" where
+  "merges f []      ss = ss"
+| "merges f (p'#ps) ss = (let (p,s) = p' in merges f ps (ss[p := s +_f ss!p]))"
 
 
 lemmas [simp] = Let_def Semilat.le_iff_plus_unchanged [OF Semilat.intro, symmetric]

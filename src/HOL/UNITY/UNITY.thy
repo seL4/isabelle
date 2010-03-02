@@ -17,40 +17,39 @@ typedef (Program)
                    allowed :: ('a * 'a)set set). Id \<in> acts & Id: allowed}" 
   by blast
 
-constdefs
-  Acts :: "'a program => ('a * 'a)set set"
+definition Acts :: "'a program => ('a * 'a)set set" where
     "Acts F == (%(init, acts, allowed). acts) (Rep_Program F)"
 
-  "constrains" :: "['a set, 'a set] => 'a program set"  (infixl "co"     60)
+definition "constrains" :: "['a set, 'a set] => 'a program set"  (infixl "co"     60) where
     "A co B == {F. \<forall>act \<in> Acts F. act``A \<subseteq> B}"
 
-  unless  :: "['a set, 'a set] => 'a program set"  (infixl "unless" 60)
+definition unless  :: "['a set, 'a set] => 'a program set"  (infixl "unless" 60)  where
     "A unless B == (A-B) co (A \<union> B)"
 
-  mk_program :: "('a set * ('a * 'a)set set * ('a * 'a)set set)
-                   => 'a program"
+definition mk_program :: "('a set * ('a * 'a)set set * ('a * 'a)set set)
+                   => 'a program" where
     "mk_program == %(init, acts, allowed).
                       Abs_Program (init, insert Id acts, insert Id allowed)"
 
-  Init :: "'a program => 'a set"
+definition Init :: "'a program => 'a set" where
     "Init F == (%(init, acts, allowed). init) (Rep_Program F)"
 
-  AllowedActs :: "'a program => ('a * 'a)set set"
+definition AllowedActs :: "'a program => ('a * 'a)set set" where
     "AllowedActs F == (%(init, acts, allowed). allowed) (Rep_Program F)"
 
-  Allowed :: "'a program => 'a program set"
+definition Allowed :: "'a program => 'a program set" where
     "Allowed F == {G. Acts G \<subseteq> AllowedActs F}"
 
-  stable     :: "'a set => 'a program set"
+definition stable     :: "'a set => 'a program set" where
     "stable A == A co A"
 
-  strongest_rhs :: "['a program, 'a set] => 'a set"
+definition strongest_rhs :: "['a program, 'a set] => 'a set" where
     "strongest_rhs F A == Inter {B. F \<in> A co B}"
 
-  invariant :: "'a set => 'a program set"
+definition invariant :: "'a set => 'a program set" where
     "invariant A == {F. Init F \<subseteq> A} \<inter> stable A"
 
-  increasing :: "['a => 'b::{order}] => 'a program set"
+definition increasing :: "['a => 'b::{order}] => 'a program set" where
     --{*Polymorphic in both states and the meaning of @{text "\<le>"}*}
     "increasing f == \<Inter>z. stable {s. z \<le> f s}"
 
@@ -357,20 +356,19 @@ by blast
 
 subsection{*Partial versus Total Transitions*}
 
-constdefs
-  totalize_act :: "('a * 'a)set => ('a * 'a)set"
+definition totalize_act :: "('a * 'a)set => ('a * 'a)set" where
     "totalize_act act == act \<union> Id_on (-(Domain act))"
 
-  totalize :: "'a program => 'a program"
+definition totalize :: "'a program => 'a program" where
     "totalize F == mk_program (Init F,
                                totalize_act ` Acts F,
                                AllowedActs F)"
 
-  mk_total_program :: "('a set * ('a * 'a)set set * ('a * 'a)set set)
-                   => 'a program"
+definition mk_total_program :: "('a set * ('a * 'a)set set * ('a * 'a)set set)
+                   => 'a program" where
     "mk_total_program args == totalize (mk_program args)"
 
-  all_total :: "'a program => bool"
+definition all_total :: "'a program => bool" where
     "all_total F == \<forall>act \<in> Acts F. Domain act = UNIV"
   
 lemma insert_Id_image_Acts: "f Id = Id ==> insert Id (f`Acts F) = f ` Acts F"

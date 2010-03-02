@@ -13,20 +13,19 @@ types
 
 consts Roots :: "nat set"
 
-constdefs
-  Proper_Roots :: "nodes \<Rightarrow> bool"
+definition Proper_Roots :: "nodes \<Rightarrow> bool" where
   "Proper_Roots M \<equiv> Roots\<noteq>{} \<and> Roots \<subseteq> {i. i<length M}"
 
-  Proper_Edges :: "(nodes \<times> edges) \<Rightarrow> bool"
+definition Proper_Edges :: "(nodes \<times> edges) \<Rightarrow> bool" where
   "Proper_Edges \<equiv> (\<lambda>(M,E). \<forall>i<length E. fst(E!i)<length M \<and> snd(E!i)<length M)"
 
-  BtoW :: "(edge \<times> nodes) \<Rightarrow> bool"
+definition BtoW :: "(edge \<times> nodes) \<Rightarrow> bool" where
   "BtoW \<equiv> (\<lambda>(e,M). (M!fst e)=Black \<and> (M!snd e)\<noteq>Black)"
 
-  Blacks :: "nodes \<Rightarrow> nat set"
+definition Blacks :: "nodes \<Rightarrow> nat set" where
   "Blacks M \<equiv> {i. i<length M \<and> M!i=Black}"
 
-  Reach :: "edges \<Rightarrow> nat set"
+definition Reach :: "edges \<Rightarrow> nat set" where
   "Reach E \<equiv> {x. (\<exists>path. 1<length path \<and> path!(length path - 1)\<in>Roots \<and> x=path!0
               \<and> (\<forall>i<length path - 1. (\<exists>j<length E. E!j=(path!(i+1), path!i))))
               \<or> x\<in>Roots}"

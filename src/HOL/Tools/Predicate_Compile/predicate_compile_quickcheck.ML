@@ -10,7 +10,8 @@ sig
   val test_ref :
     ((unit -> int -> int -> int * int -> term list DSequence.dseq * (int * int)) option) Unsynchronized.ref
   val tracing : bool Unsynchronized.ref;
-  val quickcheck_compile_term : bool -> bool -> Proof.context -> term -> int -> term list option
+  val quickcheck_compile_term : bool -> bool -> 
+    Proof.context -> bool -> term -> int -> term list option * (bool list * bool);
 (*  val test_term : Proof.context -> bool -> int -> int -> int -> int -> term -> *)
   val quiet : bool Unsynchronized.ref;
   val nrandom : int Unsynchronized.ref;
@@ -216,7 +217,7 @@ fun try_upto quiet f i =
     fun try' j =
       if j <= i then
         let
-          val _ = priority ("Executing depth " ^ string_of_int j)
+          val _ = if quiet then () else priority ("Executing depth " ^ string_of_int j)
         in
           case f j handle Match => (if quiet then ()
              else warning "Exception Match raised during quickcheck"; NONE)
@@ -230,11 +231,12 @@ fun try_upto quiet f i =
 
 (* quickcheck interface functions *)
 
-fun compile_term' options ctxt t =
+fun compile_term' options ctxt report t =
   let
     val c = compile_term options ctxt t
+    val dummy_report = ([], false)
   in
-    (fn size => try_upto (!quiet) (c size (!nrandom)) (!depth))
+    fn size => (try_upto (!quiet) (c size (!nrandom)) (!depth), dummy_report)
   end
 
 fun quickcheck_compile_term function_flattening fail_safe_function_flattening ctxt t =

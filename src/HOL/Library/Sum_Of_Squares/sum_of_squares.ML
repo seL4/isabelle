@@ -1189,7 +1189,7 @@ fun cterm_of_sos (pr,sqs) = if null sqs then pr
 local
   open Conv
   val concl = Thm.dest_arg o cprop_of
-  fun simple_cterm_ord t u = TermOrd.fast_term_ord (term_of t, term_of u) = LESS
+  fun simple_cterm_ord t u = Term_Ord.fast_term_ord (term_of t, term_of u) = LESS
 in
   (* FIXME: Replace tryfind by get_first !! *)
 fun real_nonlinear_prover proof_method ctxt =
@@ -1279,7 +1279,7 @@ fun subst_conv eqs t =
 
 local
  open Conv
-  fun simple_cterm_ord t u = TermOrd.fast_term_ord (term_of t, term_of u) = LESS
+  fun simple_cterm_ord t u = Term_Ord.fast_term_ord (term_of t, term_of u) = LESS
  val concl = Thm.dest_arg o cprop_of
  val shuffle1 =
    fconv_rule (rewr_conv @{lemma "(a + x == y) == (x == y - (a::real))" by (atomize (full)) (simp add: ring_simps) })

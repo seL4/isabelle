@@ -98,17 +98,16 @@ primrec
 (*compiling methods, classes and programs*) 
 
 (*initialising a single variable*)
-constdefs
- load_default_val :: "ty => instr"
+definition load_default_val :: "ty => instr" where
 "load_default_val ty == LitPush (default_val ty)"
 
- compInit :: "java_mb => (vname * ty) => instr list"
+definition compInit :: "java_mb => (vname * ty) => instr list" where
 "compInit jmb == \<lambda> (vn,ty). [load_default_val ty, Store (index jmb vn)]"
 
- compInitLvars :: "[java_mb, (vname \<times> ty) list] \<Rightarrow> bytecode"
+definition compInitLvars :: "[java_mb, (vname \<times> ty) list] \<Rightarrow> bytecode" where
  "compInitLvars jmb lvars == concat (map (compInit jmb) lvars)"
 
-  compMethod :: "java_mb prog \<Rightarrow> cname \<Rightarrow> java_mb mdecl \<Rightarrow> jvm_method mdecl"
+definition compMethod :: "java_mb prog \<Rightarrow> cname \<Rightarrow> java_mb mdecl \<Rightarrow> jvm_method mdecl" where
   "compMethod G C jmdl == let (sig, rT, jmb) = jmdl;
                         (pns,lvars,blk,res) = jmb;
                         mt = (compTpMethod G C jmdl);
@@ -117,10 +116,10 @@ constdefs
                              [Return]
                   in (sig, rT, max_ssize mt, length lvars, bc, [])"
 
-  compClass :: "java_mb prog => java_mb cdecl=> jvm_method cdecl"
+definition compClass :: "java_mb prog => java_mb cdecl=> jvm_method cdecl" where
   "compClass G == \<lambda> (C,cno,fdls,jmdls). (C,cno,fdls, map (compMethod G C) jmdls)"
 
-  comp :: "java_mb prog => jvm_prog"
+definition comp :: "java_mb prog => jvm_prog" where
   "comp G == map (compClass G) G"
 
 end

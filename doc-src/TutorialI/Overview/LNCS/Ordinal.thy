@@ -9,10 +9,10 @@ primrec
   "pred (Succ a) n = Some a"
   "pred (Limit f) n = Some (f n)"
 
-constdefs
-  OpLim :: "(nat \<Rightarrow> (ordinal \<Rightarrow> ordinal)) \<Rightarrow> (ordinal \<Rightarrow> ordinal)"
+definition OpLim :: "(nat \<Rightarrow> (ordinal \<Rightarrow> ordinal)) \<Rightarrow> (ordinal \<Rightarrow> ordinal)" where
   "OpLim F a \<equiv> Limit (\<lambda>n. F n a)"
-  OpItw :: "(ordinal \<Rightarrow> ordinal) \<Rightarrow> (ordinal \<Rightarrow> ordinal)"    ("\<Squnion>")
+
+definition OpItw :: "(ordinal \<Rightarrow> ordinal) \<Rightarrow> (ordinal \<Rightarrow> ordinal)"    ("\<Squnion>") where
   "\<Squnion>f \<equiv> OpLim (power f)"
 
 consts
@@ -29,8 +29,7 @@ primrec
   "\<nabla>f (Succ a) = f (Succ (\<nabla>f a))"
   "\<nabla>f (Limit h) = Limit (\<lambda>n. \<nabla>f (h n))"
 
-constdefs
-  deriv :: "(ordinal \<Rightarrow> ordinal) \<Rightarrow> (ordinal \<Rightarrow> ordinal)"
+definition deriv :: "(ordinal \<Rightarrow> ordinal) \<Rightarrow> (ordinal \<Rightarrow> ordinal)" where
   "deriv f \<equiv> \<nabla>(\<Squnion>f)"
 
 consts
@@ -40,12 +39,13 @@ primrec
   "veblen (Succ a) = \<nabla>(OpLim (power (veblen a)))"
   "veblen (Limit f) = \<nabla>(OpLim (\<lambda>n. veblen (f n)))"
 
-constdefs
-  veb :: "ordinal \<Rightarrow> ordinal"
+definition veb :: "ordinal \<Rightarrow> ordinal" where
   "veb a \<equiv> veblen a Zero"
-  epsilon0 :: ordinal    ("\<epsilon>\<^sub>0")
+
+definition epsilon0 :: ordinal    ("\<epsilon>\<^sub>0") where
   "\<epsilon>\<^sub>0 \<equiv> veb Zero"
-  Gamma0 :: ordinal    ("\<Gamma>\<^sub>0")
+
+definition Gamma0 :: ordinal    ("\<Gamma>\<^sub>0") where
   "\<Gamma>\<^sub>0 \<equiv> Limit (\<lambda>n. (veb^n) Zero)"
 thm Gamma0_def
 

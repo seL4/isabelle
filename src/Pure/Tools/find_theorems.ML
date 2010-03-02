@@ -364,7 +364,7 @@ fun nicer_shortest ctxt =
 
 fun rem_thm_dups nicer xs =
   xs ~~ (1 upto length xs)
-  |> sort (TermOrd.fast_term_ord o pairself (Thm.prop_of o #2 o #1))
+  |> sort (Term_Ord.fast_term_ord o pairself (Thm.prop_of o #2 o #1))
   |> rem_cdups nicer
   |> sort (int_ord o pairself #2)
   |> map #1;

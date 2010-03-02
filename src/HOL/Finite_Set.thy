@@ -2528,8 +2528,7 @@ where
   fold1Set_insertI [intro]:
    "\<lbrakk> fold_graph f a A x; a \<notin> A \<rbrakk> \<Longrightarrow> fold1Set f (insert a A) x"
 
-constdefs
-  fold1 :: "('a => 'a => 'a) => 'a set => 'a"
+definition fold1 :: "('a => 'a => 'a) => 'a set => 'a" where
   "fold1 f A == THE x. fold1Set f A x"
 
 lemma fold1Set_nonempty:

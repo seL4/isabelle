@@ -92,7 +92,7 @@ struct
          else ();
        val goal = Logic.mk_equals (old, new)
        val thm = Goal.prove (Simplifier.the_context ss) [] [] goal
-         (fn _ => rtac iff_reflection 1 THEN
+         (fn _ => rtac @{thm iff_reflection} 1 THEN
            simp_tac (Simplifier.inherit_context ss datatype_ss addsimps #free_iffs lcon_info) 1)
          handle ERROR msg =>
          (warning (msg ^ "\ndata_free simproc:\nfailed to prove " ^ Syntax.string_of_term_global sg goal);

@@ -8,7 +8,8 @@ signature INDUCTIVE_CODEGEN =
 sig
   val add : string option -> int option -> attribute
   val test_fn : (int * int * int -> term list option) Unsynchronized.ref
-  val test_term: Proof.context -> term -> int -> term list option
+  val test_term:
+    Proof.context -> bool -> term -> int -> term list option * (bool list * bool)
   val setup : theory -> theory
   val quickcheck_setup : theory -> theory
 end;
@@ -51,12 +52,13 @@ fun add optmod optnparms = Thm.declaration_attribute (fn thm => Context.mapping 
     fun thyname_of s = (case optmod of
       NONE => Codegen.thyname_of_const thy s | SOME s => s);
   in (case Option.map strip_comb (try HOLogic.dest_Trueprop (concl_of thm)) of
-      SOME (Const ("op =", _), [t, _]) => (case head_of t of
-        Const (s, _) =>
-          CodegenData.put {intros = intros, graph = graph,
-             eqns = eqns |> Symtab.map_default (s, [])
-               (AList.update Thm.eq_thm_prop (thm, thyname_of s))} thy
-      | _ => (warn thm; thy))
+      SOME (Const (@{const_name "op ="}, _), [t, _]) =>
+        (case head_of t of
+          Const (s, _) =>
+            CodegenData.put {intros = intros, graph = graph,
+               eqns = eqns |> Symtab.map_default (s, [])
+                 (AList.update Thm.eq_thm_prop (thm, thyname_of s))} thy
+        | _ => (warn thm; thy))
     | SOME (Const (s, _), _) =>
         let
           val cs = fold Term.add_const_names (Thm.prems_of thm) [];
@@ -186,7 +188,7 @@ fun modes_of modes t =
         end)) (AList.lookup op = modes name)
 
   in (case strip_comb t of
-      (Const ("op =", Type (_, [T, _])), _) =>
+      (Const (@{const_name "op ="}, Type (_, [T, _])), _) =>
         [Mode ((([], [1]), false), [1], []), Mode ((([], [2]), false), [2], [])] @
         (if is_eqT T then [Mode ((([], [1, 2]), false), [1, 2], [])] else [])
     | (Const (name, _), args) => the_default default (mk_modes name args)
@@ -577,17 +579,20 @@ and mk_ind_def thy defs gr dep names module modecs intrs nparms =
       fun get_nparms s = if s mem names then SOME nparms else
         Option.map #3 (get_clauses thy s);
 
-      fun dest_prem (_ $ (Const ("op :", _) $ t $ u)) = Prem ([t], Envir.beta_eta_contract u, true)
-        | dest_prem (_ $ ((eq as Const ("op =", _)) $ t $ u)) = Prem ([t, u], eq, false)
+      fun dest_prem (_ $ (Const (@{const_name "op :"}, _) $ t $ u)) =
+            Prem ([t], Envir.beta_eta_contract u, true)
+        | dest_prem (_ $ ((eq as Const (@{const_name "op ="}, _)) $ t $ u)) =
+            Prem ([t, u], eq, false)
         | dest_prem (_ $ t) =
             (case strip_comb t of
-               (v as Var _, ts) => if v mem args then Prem (ts, v, false) else Sidecond t
-             | (c as Const (s, _), ts) => (case get_nparms s of
-                 NONE => Sidecond t
-               | SOME k =>
-                   let val (ts1, ts2) = chop k ts
-                   in Prem (ts2, list_comb (c, ts1), false) end)
-             | _ => Sidecond t);
+              (v as Var _, ts) => if v mem args then Prem (ts, v, false) else Sidecond t
+            | (c as Const (s, _), ts) =>
+                (case get_nparms s of
+                  NONE => Sidecond t
+                | SOME k =>
+                    let val (ts1, ts2) = chop k ts
+                    in Prem (ts2, list_comb (c, ts1), false) end)
+            | _ => Sidecond t);
 
       fun add_clause intr (clauses, arities) =
         let
@@ -600,7 +605,7 @@ and mk_ind_def thy defs gr dep names module modecs intrs nparms =
           (AList.update op = (name, these (AList.lookup op = clauses name) @
              [(ts2, prems)]) clauses,
            AList.update op = (name, (map (fn U => (case strip_type U of
-                 (Rs as _ :: _, Type ("bool", [])) => SOME (length Rs)
+                 (Rs as _ :: _, @{typ bool}) => SOME (length Rs)
                | _ => NONE)) Ts,
              length Us)) arities)
         end;
@@ -632,7 +637,7 @@ fun mk_ind_call thy defs dep module is_query s T ts names thyname k intrs gr =
     val (ts1, ts2) = chop k ts;
     val u = list_comb (Const (s, T), ts1);
 
-    fun mk_mode (Const ("dummy_pattern", _)) ((ts, mode), i) = ((ts, mode), i + 1)
+    fun mk_mode (Const (@{const_name dummy_pattern}, _)) ((ts, mode), i) = ((ts, mode), i + 1)
       | mk_mode t ((ts, mode), i) = ((ts @ [t], mode @ [i]), i + 1);
 
     val module' = if_library thyname module;
@@ -715,7 +720,7 @@ fun conv_ntuple fs ts p =
   end;
 
 fun inductive_codegen thy defs dep module brack t gr  = (case strip_comb t of
-    (Const ("Collect", _), [u]) =>
+    (Const (@{const_name Collect}, _), [u]) =>
       let val (r, Ts, fs) = HOLogic.strip_psplits u
       in case strip_comb r of
           (Const (s, T), ts) =>
@@ -805,7 +810,7 @@ val size_offset_value =
   Config.declare false "ind_quickcheck_size_offset" (Config.Int 0);
 val size_offset = Config.int size_offset_value;
 
-fun test_term ctxt t =
+fun test_term ctxt report t =
   let
     val thy = ProofContext.theory_of ctxt;
     val (xs, p) = strip_abs t;
@@ -848,9 +853,10 @@ fun test_term ctxt t =
     val start = Config.get ctxt depth_start;
     val offset = Config.get ctxt size_offset;
     val test_fn' = !test_fn;
-    fun test k = deepen bound (fn i =>
+    val dummy_report = ([], false)
+    fun test k = (deepen bound (fn i =>
       (priority ("Search depth: " ^ string_of_int i);
-       test_fn' (i, values, k+offset))) start;
+       test_fn' (i, values, k+offset))) start, dummy_report);
   in test end;
 
 val quickcheck_setup =

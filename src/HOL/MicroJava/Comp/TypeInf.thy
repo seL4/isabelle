@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/Comp/TypeInf.thy
-    ID:         $Id$
     Author:     Martin Strecker
 *)
 
@@ -169,10 +168,10 @@ by (rule uniqueness_of_types [THEN conjunct2])
 
   
 
-constdefs 
-  inferred_tp  :: "[java_mb env, expr] \<Rightarrow> ty"
+definition inferred_tp :: "[java_mb env, expr] \<Rightarrow> ty" where
   "inferred_tp E e == (SOME T. E\<turnstile>e :: T)"
-  inferred_tps :: "[java_mb env, expr list] \<Rightarrow> ty list"
+
+definition inferred_tps :: "[java_mb env, expr list] \<Rightarrow> ty list" where
   "inferred_tps E es == (SOME Ts. E\<turnstile>es [::] Ts)"
 
 (* get inferred type(s) for well-typed term *)

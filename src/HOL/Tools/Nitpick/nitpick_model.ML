@@ -103,7 +103,7 @@ fun nice_term_ord (Abs (_, _, t1), Abs (_, _, t2)) = nice_term_ord (t1, t2)
              (case nice_term_ord (t11, t21) of
                 EQUAL => nice_term_ord (t12, t22)
               | ord => ord)
-           | _ => TermOrd.fast_term_ord tp
+           | _ => Term_Ord.fast_term_ord tp
 
 (* nut NameTable.table -> KK.raw_bound list -> nut -> int list list *)
 fun tuple_list_for_name rel_table bounds name =
@@ -281,38 +281,45 @@ fun reconstruct_term unfold pool ((maybe_name, abs_name), _)
              js 0
       end
     (* bool -> typ -> typ -> (term * term) list -> term *)
-    fun make_set maybe_opt T1 T2 =
+    fun make_set maybe_opt T1 T2 tps =
       let
-        val empty_const = Const (@{const_name Set.empty}, T1 --> T2)
+        val empty_const = Const (@{const_abbrev Set.empty}, T1 --> T2)
         val insert_const = Const (@{const_name insert},
                                   T1 --> (T1 --> T2) --> T1 --> T2)
         (* (term * term) list -> term *)
         fun aux [] =
-            if maybe_opt andalso not (is_complete_type datatypes T1) then
+            if maybe_opt andalso not (is_complete_type datatypes false T1) then
               insert_const $ Const (unrep, T1) $ empty_const
             else
               empty_const
           | aux ((t1, t2) :: zs) =
-            aux zs |> t2 <> @{const False}
-                      ? curry (op $) (insert_const
-                                      $ (t1 |> t2 <> @{const True}
-                                               ? curry (op $)
-                                                       (Const (maybe_name,
-                                                               T1 --> T1))))
-      in aux end
+            aux zs
+            |> t2 <> @{const False}
+               ? curry (op $)
+                       (insert_const
+                        $ (t1 |> t2 <> @{const True}
+                                 ? curry (op $)
+                                         (Const (maybe_name, T1 --> T1))))
+      in
+        if forall (fn (_, t) => t <> @{const True} andalso t <> @{const False})
+                  tps then
+          Const (unknown, T1 --> T2)
+        else
+          aux tps
+      end
     (* typ -> typ -> typ -> (term * term) list -> term *)
     fun make_map T1 T2 T2' =
       let
         val update_const = Const (@{const_name fun_upd},
                                   (T1 --> T2) --> T1 --> T2 --> T1 --> T2)
         (* (term * term) list -> term *)
-        fun aux' [] = Const (@{const_name Map.empty}, T1 --> T2)
+        fun aux' [] = Const (@{const_abbrev Map.empty}, T1 --> T2)
           | aux' ((t1, t2) :: ps) =
             (case t2 of
                Const (@{const_name None}, _) => aux' ps
              | _ => update_const $ aux' ps $ t1 $ t2)
         fun aux ps =
-          if not (is_complete_type datatypes T1) then
+          if not (is_complete_type datatypes false T1) then
             update_const $ aux' ps $ Const (unrep, T1)
             $ (Const (@{const_name Some}, T2' --> T2) $ Const (unknown, T2'))
           else
@@ -537,7 +544,7 @@ fun reconstruct_term unfold pool ((maybe_name, abs_name), _)
           val ts1 = map (term_for_rep seen T1 T1 R1 o single) jss1
           val ts2 =
             map (fn js => term_for_rep seen T2 T2 (Atom (2, 0))
-                                       [[int_for_bool (member (op =) jss js)]])
+                                       [[int_from_bool (member (op =) jss js)]])
                 jss1
         in make_fun false T1 T2 T' ts1 ts2 end
       | term_for_rep seen (Type ("fun", [T1, T2])) T' (Func (R1, R2)) jss =
@@ -707,12 +714,13 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
            Pretty.str "=",
            Pretty.enum "," "{" "}"
                (map (Syntax.pretty_term ctxt) (all_values_of_type card typ) @
-                (if complete then [] else [Pretty.str unrep]))])
+                (if fun_from_pair complete false then []
+                 else [Pretty.str unrep]))])
     (* typ -> dtype_spec list *)
     fun integer_datatype T =
       [{typ = T, card = card_of_type card_assigns T, co = false,
-        standard = true, complete = false, concrete = true, deep = true,
-        constrs = []}]
+        standard = true, complete = (false, false), concrete = (true, true),
+        deep = true, constrs = []}]
       handle TYPE ("Nitpick_HOL.card_of_type", _, _) => []
     val (codatatypes, datatypes) =
       datatypes |> filter #deep |> List.partition #co

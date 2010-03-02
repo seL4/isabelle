@@ -484,9 +484,9 @@ fun constrains_tac ctxt =
               REPEAT (force_tac css 2),
               full_simp_tac (ss addsimps (Program_Defs.get ctxt)) 1,
               ALLGOALS (clarify_tac cs),
-              REPEAT (FIRSTGOAL (etac disjE)),
+              REPEAT (FIRSTGOAL (etac @{thm disjE})),
               ALLGOALS (clarify_tac cs),
-              REPEAT (FIRSTGOAL (etac disjE)),
+              REPEAT (FIRSTGOAL (etac @{thm disjE})),
               ALLGOALS (clarify_tac cs),
               ALLGOALS (asm_full_simp_tac ss),
               ALLGOALS (clarify_tac cs)])

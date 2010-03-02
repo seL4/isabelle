@@ -447,7 +447,8 @@ val weak_dnf_conv = Simplifier.rewrite (HOL_basic_ss addsimps @{thms "weak_dnf_s
 val initial_conv =
     Simplifier.rewrite
      (HOL_basic_ss addsimps nnf_simps
-     addsimps [not_all, not_ex] addsimps map (fn th => th RS sym) (ex_simps @ all_simps));
+       addsimps [not_all, not_ex]
+       addsimps map (fn th => th RS sym) (@{thms ex_simps} @ @{thms all_simps}));
 
 val specl = fold_rev (fn x => fn th => instantiate' [] [SOME x] (th RS spec));
 
@@ -689,7 +690,7 @@ fun grobify_equations tm =
   val cjs = conjs tm
   val  rawvars = fold_rev (fn eq => fn a =>
                                        grobvars (dest_arg1 eq) (grobvars (dest_arg eq) a)) cjs []
-  val vars = sort (fn (x, y) => TermOrd.term_ord(term_of x,term_of y))
+  val vars = sort (fn (x, y) => Term_Ord.term_ord(term_of x,term_of y))
                   (distinct (op aconvc) rawvars)
  in (vars,map (grobify_equation vars) cjs)
  end;
@@ -820,7 +821,7 @@ fun poly_eq_conv t =
    in make_simproc {lhss = [Thm.lhs_of idl_sub], 
                 name = "poly_eq_simproc", proc = proc, identifier = []}
    end;
-  val poly_eq_ss = HOL_basic_ss addsimps simp_thms 
+  val poly_eq_ss = HOL_basic_ss addsimps @{thms simp_thms}
                         addsimprocs [poly_eq_simproc]
 
  local
@@ -898,7 +899,7 @@ fun isolate_variables evs ps eq =
   val vars = filter (fn v => free_in v eq) evs
   val (qs,p) = isolate_monomials vars eq
   val rs = ideal (qs @ ps) p 
-              (fn (s,t) => TermOrd.term_ord (term_of s, term_of t))
+              (fn (s,t) => Term_Ord.term_ord (term_of s, term_of t))
  in (eq, take (length qs) rs ~~ vars)
  end;
  fun subst_in_poly i p = Thm.rhs_of (ring_normalize_conv (vsubst i p));

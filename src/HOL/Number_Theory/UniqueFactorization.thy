@@ -67,8 +67,7 @@ lemma multiset_eqI: "[| !!x. count M x = count N x |] ==> M = N"
    "ALL i :# M. P i"? 
 *)
 
-constdefs
-  msetprod :: "('a => ('b::{power,comm_monoid_mult})) => 'a multiset => 'b"
+definition msetprod :: "('a => ('b::{power,comm_monoid_mult})) => 'a multiset => 'b" where
   "msetprod f M == setprod (%x. (f x)^(count M x)) (set_of M)"
 
 syntax
@@ -214,8 +213,7 @@ proof -
   thus ?thesis by (simp add:multiset_eq_conv_count_eq)
 qed
 
-constdefs
-  multiset_prime_factorization :: "nat => nat multiset"
+definition multiset_prime_factorization :: "nat => nat multiset" where
   "multiset_prime_factorization n ==
      if n > 0 then (THE M. ((ALL p : set_of M. prime p) & 
        n = (PROD i :# M. i)))

@@ -41,8 +41,7 @@ by (induct as) simp_all
 
 subsection "Lists on the heap"
 
-constdefs
- List :: "heap \<Rightarrow> nat \<Rightarrow> nat list \<Rightarrow> bool"
+definition List :: "heap \<Rightarrow> nat \<Rightarrow> nat list \<Rightarrow> bool" where
 "List h x as == Path h x as 0"
 
 lemma [simp]: "List h x [] = (x = 0)"

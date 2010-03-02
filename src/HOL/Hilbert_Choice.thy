@@ -307,8 +307,8 @@ lemma tfl_some: "\<forall>P x. P x --> P (Eps P)"
 
 subsection {* Least value operator *}
 
-constdefs
-  LeastM :: "['a => 'b::ord, 'a => bool] => 'a"
+definition
+  LeastM :: "['a => 'b::ord, 'a => bool] => 'a" where
   "LeastM m P == SOME x. P x & (\<forall>y. P y --> m x <= m y)"
 
 syntax
@@ -360,11 +360,12 @@ by (rule LeastM_nat_lemma [THEN conjunct2, THEN spec, THEN mp], assumption, assu
 
 subsection {* Greatest value operator *}
 
-constdefs
-  GreatestM :: "['a => 'b::ord, 'a => bool] => 'a"
+definition
+  GreatestM :: "['a => 'b::ord, 'a => bool] => 'a" where
   "GreatestM m P == SOME x. P x & (\<forall>y. P y --> m y <= m x)"
 
-  Greatest :: "('a::ord => bool) => 'a"    (binder "GREATEST " 10)
+definition
+  Greatest :: "('a::ord => bool) => 'a" (binder "GREATEST " 10) where
   "Greatest == GreatestM (%x. x)"
 
 syntax

@@ -9,21 +9,20 @@ theory Opt
 imports Err
 begin
 
-constdefs
- le :: "'a ord \<Rightarrow> 'a option ord"
+definition le :: "'a ord \<Rightarrow> 'a option ord" where
 "le r o1 o2 == case o2 of None \<Rightarrow> o1=None |
                               Some y \<Rightarrow> (case o1 of None \<Rightarrow> True
                                                   | Some x \<Rightarrow> x <=_r y)"
 
- opt :: "'a set \<Rightarrow> 'a option set"
+definition opt :: "'a set \<Rightarrow> 'a option set" where
 "opt A == insert None {x . ? y:A. x = Some y}"
 
- sup :: "'a ebinop \<Rightarrow> 'a option ebinop"
+definition sup :: "'a ebinop \<Rightarrow> 'a option ebinop" where
 "sup f o1 o2 ==  
  case o1 of None \<Rightarrow> OK o2 | Some x \<Rightarrow> (case o2 of None \<Rightarrow> OK o1
      | Some y \<Rightarrow> (case f x y of Err \<Rightarrow> Err | OK z \<Rightarrow> OK (Some z)))"
 
- esl :: "'a esl \<Rightarrow> 'a option esl"
+definition esl :: "'a esl \<Rightarrow> 'a option esl" where
 "esl == %(A,r,f). (opt A, le r, sup f)"
 
 lemma unfold_le_opt:

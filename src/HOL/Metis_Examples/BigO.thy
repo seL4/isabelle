@@ -1099,9 +1099,7 @@ done
 
 subsection {* Less than or equal to *}
 
-constdefs 
-  lesso :: "('a => 'b::linordered_idom) => ('a => 'b) => ('a => 'b)"
-      (infixl "<o" 70)
+definition lesso :: "('a => 'b::linordered_idom) => ('a => 'b) => ('a => 'b)" (infixl "<o" 70) where
   "f <o g == (%x. max (f x - g x) 0)"
 
 lemma bigo_lesseq1: "f =o O(h) ==> ALL x. abs (g x) <= abs (f x) ==>

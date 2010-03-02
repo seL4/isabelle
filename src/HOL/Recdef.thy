@@ -27,15 +27,17 @@ where
   wfrecI: "ALL z. (z, x) : R --> wfrec_rel R F z (g z) ==>
             wfrec_rel R F x (F g x)"
 
-constdefs
-  cut        :: "('a => 'b) => ('a * 'a)set => 'a => 'a => 'b"
+definition
+  cut        :: "('a => 'b) => ('a * 'a)set => 'a => 'a => 'b" where
   "cut f r x == (%y. if (y,x):r then f y else undefined)"
 
-  adm_wf :: "('a * 'a) set => (('a => 'b) => 'a => 'b) => bool"
+definition
+  adm_wf :: "('a * 'a) set => (('a => 'b) => 'a => 'b) => bool" where
   "adm_wf R F == ALL f g x.
      (ALL z. (z, x) : R --> f z = g z) --> F f x = F g x"
 
-  wfrec :: "('a * 'a) set => (('a => 'b) => 'a => 'b) => 'a => 'b"
+definition
+  wfrec :: "('a * 'a) set => (('a => 'b) => 'a => 'b) => 'a => 'b" where
   [code del]: "wfrec R F == %x. THE y. wfrec_rel R (%f x. F (cut f R x) x) x y"
 
 subsection{*Well-Founded Recursion*}

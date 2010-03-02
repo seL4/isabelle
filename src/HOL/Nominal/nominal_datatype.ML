@@ -1016,7 +1016,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
               (HOLogic.mk_Trueprop (HOLogic.mk_eq
                 (supp c,
                  if null dts then HOLogic.mk_set atomT []
-                 else foldr1 (HOLogic.mk_binop @{const_name union}) (map supp args2)))))
+                 else foldr1 (HOLogic.mk_binop @{const_abbrev union}) (map supp args2)))))
             (fn _ =>
               simp_tac (HOL_basic_ss addsimps (supp_def ::
                  Un_assoc :: de_Morgan_conj :: Collect_disj_eq :: finite_Un ::
@@ -2079,7 +2079,7 @@ val add_nominal_datatype = gen_add_nominal_datatype Datatype.read_typ;
 local structure P = OuterParse and K = OuterKeyword in
 
 val datatype_decl =
-  Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.type_args -- P.name -- P.opt_infix --
+  Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.type_args -- P.name -- P.opt_mixfix --
     (P.$$$ "=" |-- P.enum1 "|" (P.name -- Scan.repeat P.typ -- P.opt_mixfix));
 
 fun mk_datatype args =

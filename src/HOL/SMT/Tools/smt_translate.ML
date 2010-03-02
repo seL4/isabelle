@@ -253,9 +253,9 @@ local
       | atoms_ord (SNum (i, _), SNum (j, _)) = int_ord (i, j)
       | atoms_ord _ = sys_error "atoms_ord"
 
-    fun types_ord (SConst (_, T), SConst (_, U)) = TermOrd.typ_ord (T, U)
-      | types_ord (SFree (_, T), SFree (_, U)) = TermOrd.typ_ord (T, U)
-      | types_ord (SNum (_, T), SNum (_, U)) = TermOrd.typ_ord (T, U)
+    fun types_ord (SConst (_, T), SConst (_, U)) = Term_Ord.typ_ord (T, U)
+      | types_ord (SFree (_, T), SFree (_, U)) = Term_Ord.typ_ord (T, U)
+      | types_ord (SNum (_, T), SNum (_, U)) = Term_Ord.typ_ord (T, U)
       | types_ord _ = sys_error "types_ord"
 
     fun fast_sym_ord tu =

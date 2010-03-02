@@ -31,8 +31,7 @@ done
 *)
 
 
-constdefs 
-  units_of :: "('a, 'b) monoid_scheme => 'a monoid"
+definition units_of :: "('a, 'b) monoid_scheme => 'a monoid" where
   "units_of G == (| carrier = Units G,
      Group.monoid.mult = Group.monoid.mult G,
      one  = one G |)";

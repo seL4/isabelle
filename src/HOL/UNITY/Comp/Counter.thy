@@ -16,25 +16,21 @@ theory Counter imports "../UNITY_Main" begin
 datatype name = C | c nat
 types state = "name=>int"
 
-consts  
-  sum  :: "[nat,state]=>int"
-  sumj :: "[nat, nat, state]=>int"
-
-primrec (* sum I s = sigma_{i<I}. s (c i) *)
+primrec sum  :: "[nat,state]=>int" where
+  (* sum I s = sigma_{i<I}. s (c i) *)
   "sum 0 s = 0"
-  "sum (Suc i) s = s (c i) + sum i s"
+| "sum (Suc i) s = s (c i) + sum i s"
 
-primrec
+primrec sumj :: "[nat, nat, state]=>int" where
   "sumj 0 i s = 0"
-  "sumj (Suc n) i s = (if n=i then sum n s else s (c n) + sumj n i s)"
+| "sumj (Suc n) i s = (if n=i then sum n s else s (c n) + sumj n i s)"
   
 types command = "(state*state)set"
 
-constdefs
-  a :: "nat=>command"
+definition a :: "nat=>command" where
  "a i == {(s, s'). s'=s(c i:= s (c i) + 1, C:= s C + 1)}"
 
-  Component :: "nat => state program"
+definition Component :: "nat => state program" where
   "Component i ==
     mk_total_program({s. s C = 0 & s (c i) = 0}, {a i},
                      \<Union>G \<in> preserves (%s. s (c i)). Acts G)"

@@ -10,9 +10,8 @@ Some dead wood here!
 
 theory PPROD imports Lift_prog begin
 
-constdefs
-  PLam  :: "[nat set, nat => ('b * ((nat=>'b) * 'c)) program]
-            => ((nat=>'b) * 'c) program"
+definition PLam :: "[nat set, nat => ('b * ((nat=>'b) * 'c)) program]
+            => ((nat=>'b) * 'c) program" where
     "PLam I F == \<Squnion>i \<in> I. lift i (F i)"
 
 syntax

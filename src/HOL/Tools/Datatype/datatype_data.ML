@@ -236,7 +236,7 @@ val trfun_setup =
 
 (** document antiquotation **)
 
-val _ = ThyOutput.antiquotation "datatype" Args.tyname
+val _ = ThyOutput.antiquotation "datatype" (Args.type_name true)
   (fn {source = src, context = ctxt, ...} => fn dtco =>
     let
       val thy = ProofContext.theory_of ctxt;

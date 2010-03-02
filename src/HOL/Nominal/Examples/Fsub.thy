@@ -223,8 +223,7 @@ text {* Not all lists of type @{typ "env"} are well-formed. One condition
   in @{term "\<Gamma>"}. The set of free variables of @{term "S"} is the 
   @{text "support"} of @{term "S"}. *}
 
-constdefs
-  "closed_in" :: "ty \<Rightarrow> env \<Rightarrow> bool" ("_ closed'_in _" [100,100] 100)
+definition "closed_in" :: "ty \<Rightarrow> env \<Rightarrow> bool" ("_ closed'_in _" [100,100] 100) where
   "S closed_in \<Gamma> \<equiv> (supp S)\<subseteq>(ty_dom \<Gamma>)"
 
 lemma closed_in_eqvt[eqvt]:
@@ -718,8 +717,7 @@ text {* In order to prove weakening we introduce the notion of a type-context ex
   another. This generalization seems to make the proof for weakening to be
   smoother than if we had strictly adhered to the version in the POPLmark-paper. *}
 
-constdefs 
-  extends :: "env \<Rightarrow> env \<Rightarrow> bool" ("_ extends _" [100,100] 100)
+definition extends :: "env \<Rightarrow> env \<Rightarrow> bool" ("_ extends _" [100,100] 100) where
   "\<Delta> extends \<Gamma> \<equiv> \<forall>X Q. (TVarB X Q)\<in>set \<Gamma> \<longrightarrow> (TVarB X Q)\<in>set \<Delta>"
 
 lemma extends_ty_dom:

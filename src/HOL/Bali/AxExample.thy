@@ -8,8 +8,7 @@ theory AxExample
 imports AxSem Example
 begin
 
-constdefs
-  arr_inv :: "st \<Rightarrow> bool"
+definition arr_inv :: "st \<Rightarrow> bool" where
  "arr_inv \<equiv> \<lambda>s. \<exists>obj a T el. globs s (Stat Base) = Some obj \<and>
                               values obj (Inl (arr, Base)) = Some (Addr a) \<and>
                               heap s a = Some \<lparr>tag=Arr T 2,values=el\<rparr>"

@@ -76,7 +76,7 @@ val lazy_conj_simproc =
 
 val string_eq_simp_tac = simp_tac (HOL_basic_ss 
   addsimps (@{thms list.inject} @ @{thms char.inject}
-    @ @{thms list.distinct} @ @{thms char.distinct} @ simp_thms)
+    @ @{thms list.distinct} @ @{thms char.distinct} @ @{thms simp_thms})
   addsimprocs [lazy_conj_simproc]
   addcongs [@{thm block_conj_cong}])
 
@@ -84,7 +84,7 @@ end;
 
 val lookup_ss = (HOL_basic_ss 
   addsimps (@{thms list.inject} @ @{thms char.inject}
-    @ @{thms list.distinct} @ @{thms char.distinct} @ simp_thms
+    @ @{thms list.distinct} @ @{thms char.distinct} @ @{thms simp_thms}
     @ [@{thm StateFun.lookup_update_id_same}, @{thm StateFun.id_id_cancel},
       @{thm StateFun.lookup_update_same}, @{thm StateFun.lookup_update_other}])
   addsimprocs [lazy_conj_simproc]

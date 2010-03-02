@@ -198,7 +198,7 @@ by (blast dest: Says_imp_spies ya3'_parts_imp_ya3)
 
 subsection{*guardedness of NB*}
 
-constdefs ya_keys :: "agent => agent => nat => nat => event list => key set"
+definition ya_keys :: "agent => agent => nat => nat => event list => key set" where
 "ya_keys A B NA NB evs == {shrK A,shrK B} Un {K. ya3 A B NA NB K:set evs}"
 
 lemma Guard_NB [rule_format]: "[| evs:ya; A ~:bad; B ~:bad |] ==>

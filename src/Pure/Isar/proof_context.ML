@@ -52,9 +52,9 @@ sig
   val infer_type: Proof.context -> string -> typ
   val inferred_param: string -> Proof.context -> typ * Proof.context
   val inferred_fixes: Proof.context -> (string * typ) list * Proof.context
-  val read_tyname: Proof.context -> string -> typ
-  val read_const_proper: Proof.context -> string -> term
-  val read_const: Proof.context -> string -> term
+  val read_type_name: Proof.context -> bool -> string -> typ
+  val read_const_proper: Proof.context -> bool -> string -> term
+  val read_const: Proof.context -> bool -> string -> term
   val allow_dummies: Proof.context -> Proof.context
   val decode_term: Proof.context -> term -> term
   val standard_infer_types: Proof.context -> term list -> term list
@@ -115,7 +115,10 @@ sig
   val add_cases: bool -> (string * Rule_Cases.T option) list -> Proof.context -> Proof.context
   val apply_case: Rule_Cases.T -> Proof.context -> (string * term list) list * Proof.context
   val get_case: Proof.context -> string -> string option list -> Rule_Cases.T
+  val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> Proof.context -> Proof.context
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> Proof.context -> Proof.context
+  val target_type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> morphism ->
+    Context.generic -> Context.generic
   val target_notation: bool -> Syntax.mode -> (term * mixfix) list -> morphism ->
     Context.generic -> Context.generic
   val add_const_constraint: string * typ option -> Proof.context -> Proof.context
@@ -360,7 +363,7 @@ fun var_or_skolem _ s =
           (Pretty.str (setmp_CRITICAL show_question_marks true Term.string_of_vname (x', i))))
   | NONE => Pretty.mark Markup.var (Pretty.str s));
 
-fun class_markup _ c =    (* FIXME authentic name *)
+fun class_markup _ c =    (* FIXME authentic syntax *)
   Pretty.mark (Markup.tclassN, []) (Pretty.str c);
 
 fun plain_markup m _ s = Pretty.mark m (Pretty.str s);
@@ -405,19 +408,27 @@ local
 
 val token_content = Syntax.read_token #>> Symbol_Pos.content;
 
-fun prep_const_proper ctxt (c, pos) =
-  let val t as (Const (d, _)) =
-    (case Variable.lookup_const ctxt c of
-      SOME d => Const (d, Consts.type_scheme (consts_of ctxt) d handle TYPE (msg, _, _) => error msg)
-    | NONE => Consts.read_const (consts_of ctxt) c)
-  in Position.report (Markup.const d) pos; t end;
+fun prep_const_proper ctxt strict (c, pos) =
+  let
+    fun err msg = error (msg ^ Position.str_of pos);
+    val consts = consts_of ctxt;
+    val t as Const (d, _) =
+      (case Variable.lookup_const ctxt c of
+        SOME d =>
+          Const (d, Consts.type_scheme (consts_of ctxt) d handle TYPE (msg, _, _) => err msg)
+      | NONE => Consts.read_const consts c);
+    val _ =
+      if strict then ignore (Consts.the_type consts d) handle TYPE (msg, _, _) => err msg
+      else ();
+    val _ = Position.report (Markup.const d) pos;
+  in t end;
 
 in
 
-fun read_tyname ctxt str =
+fun read_type_name ctxt strict text =
   let
     val thy = theory_of ctxt;
-    val (c, pos) = token_content str;
+    val (c, pos) = token_content text;
   in
     if Syntax.is_tid c then
      (Position.report Markup.tfree pos;
@@ -425,20 +436,27 @@ fun read_tyname ctxt str =
     else
       let
         val d = Sign.intern_type thy c;
+        val decl = Sign.the_type_decl thy d;
         val _ = Position.report (Markup.tycon d) pos;
-      in Type (d, replicate (Sign.arity_number thy d) dummyT) end
+        fun err () = error ("Bad type name: " ^ quote d);
+        val args =
+          (case decl of
+            Type.LogicalType n => n
+          | Type.Abbreviation (vs, _, _) => if strict then err () else length vs
+          | Type.Nonterminal => if strict then err () else 0);
+      in Type (d, replicate args dummyT) end
   end;
 
-fun read_const_proper ctxt = prep_const_proper ctxt o token_content;
+fun read_const_proper ctxt strict = prep_const_proper ctxt strict o token_content;
 
-fun read_const ctxt str =
-  let val (c, pos) = token_content str in
+fun read_const ctxt strict text =
+  let val (c, pos) = token_content text in
     (case (lookup_skolem ctxt c, Variable.is_const ctxt c) of
       (SOME x, false) =>
         (Position.report (Markup.name x
             (if can Name.dest_skolem x then Markup.skolem else Markup.free)) pos;
           Free (x, infer_type ctxt x))
-    | _ => prep_const_proper ctxt (c, pos))
+    | _ => prep_const_proper ctxt strict (c, pos))
   end;
 
 end;
@@ -567,7 +585,7 @@ fun intern_skolem ctxt def_type x =
   let
     val _ = no_skolem false x;
     val sko = lookup_skolem ctxt x;
-    val is_const = can (read_const_proper ctxt) x orelse Long_Name.is_qualified x;
+    val is_const = can (read_const_proper ctxt false) x orelse Long_Name.is_qualified x;
     val is_declared = is_some (def_type (x, ~1));
   in
     if Variable.is_const ctxt x then NONE
@@ -581,7 +599,7 @@ in
 fun term_context ctxt =
   let val thy = theory_of ctxt in
    {get_sort = get_sort thy (Variable.def_sort ctxt),
-    map_const = fn a => ((true, #1 (Term.dest_Const (read_const_proper ctxt a)))
+    map_const = fn a => ((true, #1 (Term.dest_Const (read_const_proper ctxt false a)))
       handle ERROR _ => (false, Consts.intern (consts_of ctxt) a)),
     map_free = intern_skolem ctxt (Variable.def_type ctxt false),
     map_type = Sign.intern_tycons thy,
@@ -987,7 +1005,7 @@ local
 
 fun const_ast_tr intern ctxt [Syntax.Variable c] =
       let
-        val Const (c', _) = read_const_proper ctxt c;
+        val Const (c', _) = read_const_proper ctxt false c;
         val d = if intern then Syntax.mark_const c' else c;
       in Syntax.Constant d end
   | const_ast_tr _ _ asts = raise Syntax.AST ("const_ast_tr", asts);
@@ -1014,18 +1032,34 @@ end;
 
 local
 
-fun const_syntax _ (Free (x, T), mx) = SOME (true, (x, T, mx))
+fun type_syntax (Type (c, args), mx) =  (* FIXME authentic syntax *)
+      SOME (Local_Syntax.Type, (Long_Name.base_name c, Syntax.make_type (length args), mx))
+  | type_syntax _ = NONE;
+
+fun const_syntax _ (Free (x, T), mx) = SOME (Local_Syntax.Fixed, (x, T, mx))
   | const_syntax ctxt (Const (c, _), mx) =
       (case try (Consts.type_scheme (consts_of ctxt)) c of
-        SOME T => SOME (false, (Syntax.mark_const c, T, mx))
+        SOME T => SOME (Local_Syntax.Const, (Syntax.mark_const c, T, mx))
       | NONE => NONE)
   | const_syntax _ _ = NONE;
 
+fun gen_notation syntax add mode args ctxt =
+  ctxt |> map_syntax
+    (Local_Syntax.update_modesyntax (theory_of ctxt) add mode (map_filter (syntax ctxt) args));
+
 in
 
-fun notation add mode args ctxt =
-  ctxt |> map_syntax
-    (Local_Syntax.update_modesyntax (theory_of ctxt) add mode (map_filter (const_syntax ctxt) args));
+val type_notation = gen_notation (K type_syntax);
+val notation = gen_notation const_syntax;
+
+fun target_type_notation add  mode args phi =
+  let
+    val args' = args |> map_filter (fn (T, mx) =>
+      let
+        val T' = Morphism.typ phi T;
+        val similar = (case (T, T') of (Type (c, _), Type (c', _)) => c = c' | _ => false);
+      in if similar then SOME (T', mx) else NONE end);
+  in Context.mapping (Sign.type_notation add mode args') (type_notation add mode args') end;
 
 fun target_notation add mode args phi =
   let
@@ -1033,6 +1067,7 @@ fun target_notation add mode args phi =
       let val t' = Morphism.term phi t
       in if Term.aconv_untyped (t, t') then SOME (t', mx) else NONE end);
   in Context.mapping (Sign.notation add mode args') (notation add mode args') end;
+
 
 end;
 
@@ -1071,7 +1106,7 @@ fun prep_mixfix (x, T, mx) =
   if mx <> NoSyn andalso mx <> Structure andalso
       (can Name.dest_internal x orelse can Name.dest_skolem x) then
     error ("Illegal mixfix syntax for internal/skolem constant " ^ quote x)
-  else (true, (x, T, mx));
+  else (Local_Syntax.Fixed, (x, T, mx));
 
 in
 

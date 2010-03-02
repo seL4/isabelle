@@ -42,7 +42,7 @@ primrec
 "Sem(While b x c) s s' =
  (if s = None then s' = None else \<exists>n. iter n b (Sem c) s s')"
 
-constdefs Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Rightarrow> bool"
+definition Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Rightarrow> bool" where
   "Valid p c q == \<forall>s s'. Sem c s s' \<longrightarrow> s : Some ` p \<longrightarrow> s' : Some ` q"
 
 
@@ -256,8 +256,8 @@ method_setup vcg_simp = {*
 (* Special syntax for guarded statements and guarded array updates: *)
 
 syntax
-  guarded_com :: "bool \<Rightarrow> 'a com \<Rightarrow> 'a com"  ("(2_ \<rightarrow>/ _)" 71)
-  array_update :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a com"  ("(2_[_] :=/ _)" [70, 65] 61)
+  "_guarded_com" :: "bool \<Rightarrow> 'a com \<Rightarrow> 'a com"  ("(2_ \<rightarrow>/ _)" 71)
+  "_array_update" :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a com"  ("(2_[_] :=/ _)" [70, 65] 61)
 translations
   "P \<rightarrow> c" == "IF P THEN c ELSE CONST Abort FI"
   "a[i] := v" => "(i < CONST length a) \<rightarrow> (a := CONST list_update a i v)"

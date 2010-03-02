@@ -49,6 +49,15 @@ fun label_name line col =
   if line = 0 orelse col = 0 then no_label_name
   else label_prefix ^ string_of_int line ^ "_" ^ string_of_int col
 
+fun mk_syntax name i =
+  let
+    val syn = Syntax.escape name
+    val args = space_implode ",/ " (replicate i "_")
+  in
+    if i = 0 then Mixfix (syn, [], 1000)
+    else Mixfix (syn ^ "()'(/" ^ args ^ "')", replicate i 0, 1000)
+  end
+
 
 datatype attribute_value = StringValue of string | TermValue of term
 
@@ -78,8 +87,8 @@ local
       | NONE =>
           let
             val args = Name.variant_list [] (replicate arity "'")
-            val (T, thy') =
-              ObjectLogic.typedecl (Binding.name isa_name, args, NoSyn) thy
+            val (T, thy') = ObjectLogic.typedecl (Binding.name isa_name, args,
+              mk_syntax name arity) thy
             val type_name = fst (Term.dest_Type T)
           in (((name, type_name), log_new name type_name), thy') end)
     end
@@ -93,24 +102,6 @@ end
 
 
 local
-  val quote_mixfix =
-    Symbol.explode #> map
-      (fn "_" => "'_"
-        | "(" => "'("
-        | ")" => "')"
-        | "/" => "'/"
-        | s => s) #>
-    implode
-
-  fun mk_syntax name i =
-    let
-      val syn = quote_mixfix name
-      val args = concat (separate ",/ " (replicate i "_"))
-    in
-      if i = 0 then Mixfix (syn, [], 1000)
-      else Mixfix (syn ^ "()'(/" ^ args ^ "')", replicate i 0, 1000)
-    end
-
   fun maybe_builtin T =
     let
       fun const name = SOME (Const (name, T))

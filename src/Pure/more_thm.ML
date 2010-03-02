@@ -151,12 +151,12 @@ fun thm_ord (th1, th2) =
     val {shyps = shyps1, hyps = hyps1, tpairs = tpairs1, prop = prop1, ...} = Thm.rep_thm th1;
     val {shyps = shyps2, hyps = hyps2, tpairs = tpairs2, prop = prop2, ...} = Thm.rep_thm th2;
   in
-    (case TermOrd.fast_term_ord (prop1, prop2) of
+    (case Term_Ord.fast_term_ord (prop1, prop2) of
       EQUAL =>
-        (case list_ord (prod_ord TermOrd.fast_term_ord TermOrd.fast_term_ord) (tpairs1, tpairs2) of
+        (case list_ord (prod_ord Term_Ord.fast_term_ord Term_Ord.fast_term_ord) (tpairs1, tpairs2) of
           EQUAL =>
-            (case list_ord TermOrd.fast_term_ord (hyps1, hyps2) of
-              EQUAL => list_ord TermOrd.sort_ord (shyps1, shyps2)
+            (case list_ord Term_Ord.fast_term_ord (hyps1, hyps2) of
+              EQUAL => list_ord Term_Ord.sort_ord (shyps1, shyps2)
             | ord => ord)
         | ord => ord)
     | ord => ord)
@@ -165,7 +165,7 @@ fun thm_ord (th1, th2) =
 
 (* tables and caches *)
 
-structure Ctermtab = Table(type key = cterm val ord = TermOrd.fast_term_ord o pairself Thm.term_of);
+structure Ctermtab = Table(type key = cterm val ord = Term_Ord.fast_term_ord o pairself Thm.term_of);
 structure Thmtab = Table(type key = thm val ord = thm_ord);
 
 fun cterm_cache f = Cache.create Ctermtab.empty Ctermtab.lookup Ctermtab.update f;

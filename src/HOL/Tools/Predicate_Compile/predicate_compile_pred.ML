@@ -23,7 +23,7 @@ open Predicate_Compile_Aux
 fun datatype_names_of_case_name thy case_name =
   map (#1 o #2) (#descr (the (Datatype_Data.info_of_case thy case_name)))
 
-fun make_case_rewrites new_type_names descr sorts thy =
+fun make_case_distribs new_type_names descr sorts thy =
   let
     val case_combs = Datatype_Prop.make_case_combs new_type_names descr sorts thy "f";
     fun make comb =
@@ -58,7 +58,7 @@ fun case_rewrites thy Tcon =
     val typ_names = the_default [Tcon] (#alt_names info)
   in
     map (Drule.export_without_context o Skip_Proof.make_thm thy o HOLogic.mk_Trueprop)
-      (make_case_rewrites typ_names [descr] sorts thy)
+      (make_case_distribs typ_names [descr] sorts thy)
   end
 
 fun instantiated_case_rewrites thy Tcon =

@@ -74,8 +74,7 @@ inductive_set yahalom :: "event list set"
           ==> Notes Spy {|Nonce NA, Nonce NB, Key K|} # evso \<in> yahalom"
 
 
-constdefs 
-  KeyWithNonce :: "[key, nat, event list] => bool"
+definition KeyWithNonce :: "[key, nat, event list] => bool" where
   "KeyWithNonce K NB evs ==
      \<exists>A B na X. 
        Says Server A {|Crypt (shrK A) {|Agent B, Key K, na, Nonce NB|}, X|} 

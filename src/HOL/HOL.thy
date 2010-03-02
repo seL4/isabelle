@@ -845,12 +845,16 @@ setup Classical.setup
 
 setup {*
 let
-  (*prevent substitution on bool*)
-  fun hyp_subst_tac' i thm = if i <= Thm.nprems_of thm andalso
-    Term.exists_Const (fn ("op =", Type (_, [T, _])) => T <> Type ("bool", []) | _ => false)
-      (nth (Thm.prems_of thm) (i - 1)) then Hypsubst.hyp_subst_tac i thm else no_tac thm;
+  fun non_bool_eq (@{const_name "op ="}, Type (_, [T, _])) = T <> @{typ bool}
+    | non_bool_eq _ = false;
+  val hyp_subst_tac' =
+    SUBGOAL (fn (goal, i) =>
+      if Term.exists_Const non_bool_eq goal
+      then Hypsubst.hyp_subst_tac i
+      else no_tac);
 in
   Hypsubst.hypsubst_setup
+  (*prevent substitution on bool*)
   #> Context_Rules.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac)
 end
 *}
@@ -1118,8 +1122,7 @@ text {*
   its premise.
 *}
 
-constdefs
-  simp_implies :: "[prop, prop] => prop"  (infixr "=simp=>" 1)
+definition simp_implies :: "[prop, prop] => prop"  (infixr "=simp=>" 1) where
   [code del]: "simp_implies \<equiv> op ==>"
 
 lemma simp_impliesI:
@@ -1392,13 +1395,23 @@ structure Project_Rule = Project_Rule
 )
 *}
 
-constdefs
-  induct_forall where "induct_forall P == \<forall>x. P x"
-  induct_implies where "induct_implies A B == A \<longrightarrow> B"
-  induct_equal where "induct_equal x y == x = y"
-  induct_conj where "induct_conj A B == A \<and> B"
-  induct_true where "induct_true == True"
-  induct_false where "induct_false == False"
+definition induct_forall where
+  "induct_forall P == \<forall>x. P x"
+
+definition induct_implies where
+  "induct_implies A B == A \<longrightarrow> B"
+
+definition induct_equal where
+  "induct_equal x y == x = y"
+
+definition induct_conj where
+  "induct_conj A B == A \<and> B"
+
+definition induct_true where
+  "induct_true == True"
+
+definition induct_false where
+  "induct_false == False"
 
 lemma induct_forall_eq: "(!!x. P x) == Trueprop (induct_forall (\<lambda>x. P x))"
   by (unfold atomize_all induct_forall_def)
@@ -1721,8 +1734,8 @@ let
 
 fun eq_codegen thy defs dep thyname b t gr =
     (case strip_comb t of
-       (Const ("op =", Type (_, [Type ("fun", _), _])), _) => NONE
-     | (Const ("op =", _), [t, u]) =>
+       (Const (@{const_name "op ="}, Type (_, [Type ("fun", _), _])), _) => NONE
+     | (Const (@{const_name "op ="}, _), [t, u]) =>
           let
             val (pt, gr') = Codegen.invoke_codegen thy defs dep thyname false t gr;
             val (pu, gr'') = Codegen.invoke_codegen thy defs dep thyname false u gr';
@@ -1731,7 +1744,7 @@ fun eq_codegen thy defs dep thyname b t gr =
             SOME (Codegen.parens
               (Pretty.block [pt, Codegen.str " =", Pretty.brk 1, pu]), gr''')
           end
-     | (t as Const ("op =", _), ts) => SOME (Codegen.invoke_codegen
+     | (t as Const (@{const_name "op ="}, _), ts) => SOME (Codegen.invoke_codegen
          thy defs dep thyname b (Codegen.eta_expand t ts 2) gr)
      | _ => NONE);
 
@@ -2050,7 +2063,7 @@ fun strip_tac i = REPEAT (resolve_tac [impI, allI] i);
 
 (* combination of (spec RS spec RS ...(j times) ... spec RS mp) *)
 local
-  fun wrong_prem (Const ("All", _) $ (Abs (_, _, t))) = wrong_prem t
+  fun wrong_prem (Const (@{const_name All}, _) $ Abs (_, _, t)) = wrong_prem t
     | wrong_prem (Bound _) = true
     | wrong_prem _ = false;
   val filter_right = filter (not o wrong_prem o HOLogic.dest_Trueprop o hd o Thm.prems_of);

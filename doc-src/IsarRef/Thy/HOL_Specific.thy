@@ -13,14 +13,14 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    'typedecl' typespec infix?
+    'typedecl' typespec mixfix?
     ;
     'typedef' altname? abstype '=' repset
     ;
 
     altname: '(' (name | 'open' | 'open' name) ')'
     ;
-    abstype: typespec infix?
+    abstype: typespec mixfix?
     ;
     repset: term ('morphisms' name name)?
     ;
@@ -367,7 +367,7 @@ text {*
     'rep\_datatype' ('(' (name +) ')')? (term +)
     ;
 
-    dtspec: parname? typespec infix? '=' (cons + '|')
+    dtspec: parname? typespec mixfix? '=' (cons + '|')
     ;
     cons: name ( type * ) mixfix?
   \end{rail}

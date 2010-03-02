@@ -214,7 +214,7 @@ fun status_of bodies =
 
 (* proof body *)
 
-val oracle_ord = prod_ord fast_string_ord TermOrd.fast_term_ord;
+val oracle_ord = prod_ord fast_string_ord Term_Ord.fast_term_ord;
 fun thm_ord ((i, _): pthm, (j, _)) = int_ord (j, i);
 
 val merge_oracles = OrdList.union oracle_ord;

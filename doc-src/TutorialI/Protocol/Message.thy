@@ -46,8 +46,7 @@ specification (invKey)
 text{*The inverse of a symmetric key is itself; that of a public key
       is the private key and vice versa*}
 
-constdefs
-  symKeys :: "key set"
+definition symKeys :: "key set" where
   "symKeys == {K. invKey K = K}"
 (*>*)
 
@@ -92,8 +91,7 @@ translations
   "{|x, y|}"      == "CONST MPair x y"
 
 
-constdefs
-  keysFor :: "msg set => key set"
+definition keysFor :: "msg set => key set" where
     --{*Keys useful to decrypt elements of a message set*}
   "keysFor H == invKey ` {K. \<exists>X. Crypt K X \<in> H}"
 

@@ -400,13 +400,13 @@ fun name_ord (BoundName (j1, _, _, _), BoundName (j2, _, _, _)) =
   | name_ord (_, BoundName _) = GREATER
   | name_ord (FreeName (s1, T1, _), FreeName (s2, T2, _)) =
     (case fast_string_ord (s1, s2) of
-       EQUAL => TermOrd.typ_ord (T1, T2)
+       EQUAL => Term_Ord.typ_ord (T1, T2)
      | ord => ord)
   | name_ord (FreeName _, _) = LESS
   | name_ord (_, FreeName _) = GREATER
   | name_ord (ConstName (s1, T1, _), ConstName (s2, T2, _)) =
     (case fast_string_ord (s1, s2) of
-       EQUAL => TermOrd.typ_ord (T1, T2)
+       EQUAL => Term_Ord.typ_ord (T1, T2)
      | ord => ord)
   | name_ord (u1, u2) = raise NUT ("Nitpick_Nut.name_ord", [u1, u2])
 
@@ -1031,7 +1031,7 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
             if is_opt_rep R then
               triad_fn (fn polar => s_op2 Subset T (Formula polar) u1 u2)
             else if opt andalso polar = Pos andalso
-                    not (is_concrete_type datatypes (type_of u1)) then
+                    not (is_concrete_type datatypes true (type_of u1)) then
               Cst (False, T, Formula Pos)
             else
               s_op2 Subset T R u1 u2
@@ -1057,7 +1057,7 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
               else opt_opt_case ()
           in
             if unsound orelse polar = Neg orelse
-               is_concrete_type datatypes (type_of u1) then
+               is_concrete_type datatypes true (type_of u1) then
               case (is_opt_rep (rep_of u1'), is_opt_rep (rep_of u2')) of
                 (true, true) => opt_opt_case ()
               | (true, false) => hybrid_case u1'
@@ -1159,7 +1159,7 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
                 let val quant_u = s_op2 oper T (Formula polar) u1' u2' in
                   if def orelse
                      (unsound andalso (polar = Pos) = (oper = All)) orelse
-                     is_complete_type datatypes (type_of u1) then
+                     is_complete_type datatypes true (type_of u1) then
                     quant_u
                   else
                     let
@@ -1202,7 +1202,7 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
                       else unopt_R |> opt ? opt_rep ofs T
               val u = Op2 (oper, T, R, u1', sub u2)
             in
-              if is_complete_type datatypes T orelse not opt1 then
+              if is_complete_type datatypes true T orelse not opt1 then
                 u
               else
                 let

@@ -21,17 +21,17 @@ end;
 signature MIXFIX1 =
 sig
   include MIXFIX0
-  val literal: string -> mixfix
   val no_syn: 'a * 'b -> 'a * 'b * mixfix
   val pretty_mixfix: mixfix -> Pretty.T
   val mixfix_args: mixfix -> int
   val mixfixT: mixfix -> typ
+  val make_type: int -> typ
 end;
 
 signature MIXFIX =
 sig
   include MIXFIX1
-  val syn_ext_types: (string * int * mixfix) list -> SynExt.syn_ext
+  val syn_ext_types: (string * typ * mixfix) list -> SynExt.syn_ext
   val syn_ext_consts: (string -> bool) -> (string * typ * mixfix) list -> SynExt.syn_ext
 end;
 
@@ -50,8 +50,6 @@ datatype mixfix =
   Infixr of string * int |
   Binder of string * int * int |
   Structure;
-
-val literal = Delimfix o SynExt.escape_mfix;
 
 fun no_syn (x, y) = (x, y, NoSyn);
 
@@ -99,22 +97,29 @@ fun mixfixT (Binder _) = (dummyT --> dummyT) --> dummyT
 
 (* syn_ext_types *)
 
+fun make_type n = replicate n SynExt.typeT ---> SynExt.typeT;
+
 fun syn_ext_types type_decls =
   let
-    fun mk_infix sy t p1 p2 p3 =
-      SynExt.Mfix ("(_ " ^ sy ^ "/ _)",
-        [SynExt.typeT, SynExt.typeT] ---> SynExt.typeT, t, [p1, p2], p3);
+    fun mk_infix sy ty t p1 p2 p3 = SynExt.Mfix ("(_ " ^ sy ^ "/ _)", ty, t, [p1, p2], p3);
 
     fun mfix_of (_, _, NoSyn) = NONE
-      | mfix_of (t, 2, Infix (sy, p)) = SOME (mk_infix sy t (p + 1) (p + 1) p)
-      | mfix_of (t, 2, Infixl (sy, p)) = SOME (mk_infix sy t p (p + 1) p)
-      | mfix_of (t, 2, Infixr (sy, p)) = SOME (mk_infix sy t (p + 1) p p)
-      | mfix_of (t, _, _) =
-          error ("Bad mixfix declaration for type: " ^ quote t);  (* FIXME printable!? *)
+      | mfix_of (t, ty, Mixfix (sy, ps, p)) = SOME (SynExt.Mfix (sy, ty, t, ps, p))
+      | mfix_of (t, ty, Delimfix sy) = SOME (SynExt.Mfix (sy, ty, t, [], SynExt.max_pri))
+      | mfix_of (t, ty, Infix (sy, p)) = SOME (mk_infix sy ty t (p + 1) (p + 1) p)
+      | mfix_of (t, ty, Infixl (sy, p)) = SOME (mk_infix sy ty t p (p + 1) p)
+      | mfix_of (t, ty, Infixr (sy, p)) = SOME (mk_infix sy ty t (p + 1) p p)
+      | mfix_of (t, _, _) = error ("Bad mixfix declaration for " ^ quote t);  (* FIXME printable t (!?) *)
 
-    val mfix = map_filter mfix_of type_decls;
+    fun check_args (_, ty, _) (SOME (mfix as SynExt.Mfix (sy, _, _, _, _))) =
+          if length (Term.binder_types ty) = SynExt.mfix_args sy then ()
+          else SynExt.err_in_mfix "Bad number of type constructor arguments" mfix
+      | check_args _ NONE = ();
+
+    val mfix = map mfix_of type_decls;
+    val _ = map2 check_args type_decls mfix;
     val xconsts = map #1 type_decls;
-  in SynExt.syn_ext mfix xconsts ([], [], [], []) [] ([], []) end;
+  in SynExt.syn_ext (map_filter I mfix) xconsts ([], [], [], []) [] ([], []) end;
 
 
 (* syn_ext_consts *)
@@ -140,7 +145,7 @@ fun syn_ext_consts is_logtype const_decls =
       | mfix_of (c, ty, Infixr (sy, p)) = mk_infix sy ty c (p + 1) p p
       | mfix_of (c, ty, Binder (sy, p, q)) =
           [SynExt.Mfix ("(3" ^ sy ^ "_./ _)", binder_typ c ty, (binder_name c), [0, p], q)]
-      | mfix_of (c, _, _) = error ("Bad mixfix declaration for const: " ^ quote c);
+      | mfix_of (c, _, _) = error ("Bad mixfix declaration for " ^ quote c);   (* FIXME printable c (!?) *)
 
     fun binder (c, _, Binder _) = SOME (binder_name c, c)
       | binder _ = NONE;

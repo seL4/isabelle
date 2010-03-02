@@ -1,5 +1,4 @@
 (*  Title:      HOL/UNITY/Progress
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2003  University of Cambridge
 
@@ -13,11 +12,10 @@ theory Progress imports "../UNITY_Main" begin
 subsection {*The Composition of Two Single-Assignment Programs*}
 text{*Thesis Section 4.4.2*}
 
-constdefs
-  FF :: "int program"
+definition FF :: "int program" where
     "FF == mk_total_program (UNIV, {range (\<lambda>x. (x, x+1))}, UNIV)"
 
-  GG :: "int program"
+definition GG :: "int program" where
     "GG == mk_total_program (UNIV, {range (\<lambda>x. (x, 2*x))}, UNIV)"
 
 subsubsection {*Calculating @{term "wens_set FF (atLeast k)"}*}

@@ -1,5 +1,5 @@
 theory SN
-  imports Lam_Funs
+imports Lam_Funs
 begin
 
 text {* Strong Normalisation proof from the Proofs and Types book *}
@@ -158,8 +158,7 @@ nominal_inductive typing
 
 subsection {* a fact about beta *}
 
-constdefs
-  "NORMAL" :: "lam \<Rightarrow> bool"
+definition "NORMAL" :: "lam \<Rightarrow> bool" where
   "NORMAL t \<equiv> \<not>(\<exists>t'. t\<longrightarrow>\<^isub>\<beta> t')"
 
 lemma NORMAL_Var:
@@ -234,8 +233,7 @@ where
 by (rule TrueI)+
 
 text {* neutral terms *}
-constdefs
-  NEUT :: "lam \<Rightarrow> bool"
+definition NEUT :: "lam \<Rightarrow> bool" where
   "NEUT t \<equiv> (\<exists>a. t = Var a) \<or> (\<exists>t1 t2. t = App t1 t2)" 
 
 (* a slight hack to get the first element of applications *)
@@ -274,20 +272,19 @@ qed
 
 section {* Candidates *}
 
-constdefs
-  "CR1" :: "ty \<Rightarrow> bool"
+definition "CR1" :: "ty \<Rightarrow> bool" where
   "CR1 \<tau> \<equiv> \<forall>t. (t\<in>RED \<tau> \<longrightarrow> SN t)"
 
-  "CR2" :: "ty \<Rightarrow> bool"
+definition "CR2" :: "ty \<Rightarrow> bool" where
   "CR2 \<tau> \<equiv> \<forall>t t'. (t\<in>RED \<tau> \<and> t \<longrightarrow>\<^isub>\<beta> t') \<longrightarrow> t'\<in>RED \<tau>"
 
-  "CR3_RED" :: "lam \<Rightarrow> ty \<Rightarrow> bool"
+definition "CR3_RED" :: "lam \<Rightarrow> ty \<Rightarrow> bool" where
   "CR3_RED t \<tau> \<equiv> \<forall>t'. t\<longrightarrow>\<^isub>\<beta> t' \<longrightarrow>  t'\<in>RED \<tau>" 
 
-  "CR3" :: "ty \<Rightarrow> bool"
+definition "CR3" :: "ty \<Rightarrow> bool" where
   "CR3 \<tau> \<equiv> \<forall>t. (NEUT t \<and> CR3_RED t \<tau>) \<longrightarrow> t\<in>RED \<tau>"
    
-  "CR4" :: "ty \<Rightarrow> bool"
+definition "CR4" :: "ty \<Rightarrow> bool" where
   "CR4 \<tau> \<equiv> \<forall>t. (NEUT t \<and> NORMAL t) \<longrightarrow>t\<in>RED \<tau>"
 
 lemma CR3_implies_CR4: 

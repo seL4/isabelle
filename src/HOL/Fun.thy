@@ -119,8 +119,9 @@ no_notation fcomp (infixl "o>" 60)
 
 subsection {* Injectivity and Surjectivity *}
 
-constdefs
-  inj_on :: "['a => 'b, 'a set] => bool"  -- "injective"
+definition
+  inj_on :: "['a => 'b, 'a set] => bool" where
+  -- "injective"
   "inj_on f A == ! x:A. ! y:A. f(x)=f(y) --> x=y"
 
 text{*A common special case: functions injective over the entire domain type.*}
@@ -132,11 +133,14 @@ definition
   bij_betw :: "('a => 'b) => 'a set => 'b set => bool" where -- "bijective"
   [code del]: "bij_betw f A B \<longleftrightarrow> inj_on f A & f ` A = B"
 
-constdefs
-  surj :: "('a => 'b) => bool"                   (*surjective*)
+definition
+  surj :: "('a => 'b) => bool" where
+  -- "surjective"
   "surj f == ! y. ? x. y=f(x)"
 
-  bij :: "('a => 'b) => bool"                    (*bijective*)
+definition
+  bij :: "('a => 'b) => bool" where
+  -- "bijective"
   "bij f == inj f & surj f"
 
 lemma injI:
@@ -377,8 +381,8 @@ done
 
 subsection{*Function Updating*}
 
-constdefs
-  fun_upd :: "('a => 'b) => 'a => 'b => ('a => 'b)"
+definition
+  fun_upd :: "('a => 'b) => 'a => 'b => ('a => 'b)" where
   "fun_upd f a b == % x. if x=a then b else f x"
 
 nonterminals

@@ -35,15 +35,17 @@ constdefs (structure S)
   eq_is_closed :: "_ \<Rightarrow> 'a set \<Rightarrow> bool" ("is'_closed\<index> _")
   "is_closed A == (A \<subseteq> carrier S \<and> closure_of A = A)"
 
-syntax
+abbreviation
   not_eq :: "_ \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl ".\<noteq>\<index>" 50)
-  not_elem :: "_ \<Rightarrow> 'a \<Rightarrow> 'a set \<Rightarrow> bool" (infixl ".\<notin>\<index>" 50)
-  set_not_eq :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a set \<Rightarrow> bool" (infixl "{.\<noteq>}\<index>" 50)
+  where "x .\<noteq>\<^bsub>S\<^esub> y == ~(x .=\<^bsub>S\<^esub> y)"
 
-translations
-  "x .\<noteq>\<index> y" == "~(x .=\<index> y)"
-  "x .\<notin>\<index> A" == "~(x .\<in>\<index> A)"
-  "A {.\<noteq>}\<index> B" == "~(A {.=}\<index> B)"
+abbreviation
+  not_elem :: "_ \<Rightarrow> 'a \<Rightarrow> 'a set \<Rightarrow> bool" (infixl ".\<notin>\<index>" 50)
+  where "x .\<notin>\<^bsub>S\<^esub> A == ~(x .\<in>\<^bsub>S\<^esub> A)"
+
+abbreviation
+  set_not_eq :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a set \<Rightarrow> bool" (infixl "{.\<noteq>}\<index>" 50)
+  where "A {.\<noteq>}\<^bsub>S\<^esub> B == ~(A {.=}\<^bsub>S\<^esub> B)"
 
 locale equivalence =
   fixes S (structure)

@@ -1586,8 +1586,7 @@ lemma eq_to_mono: "a = b ==> c = d ==> b --> d ==> a --> c"
 
 subsubsection {* Inverse image of a function *}
 
-constdefs
-  vimage :: "('a => 'b) => 'b set => 'a set"    (infixr "-`" 90)
+definition vimage :: "('a => 'b) => 'b set => 'a set" (infixr "-`" 90) where
   [code del]: "f -` B == {x. f x : B}"
 
 lemma vimage_eq [simp]: "(a : f -` B) = (f a : B)"

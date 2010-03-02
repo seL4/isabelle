@@ -222,7 +222,7 @@ let
      rtac disjIn 2,
      (*Not ares_tac, since refl must be tried before equality assumptions;
        backtracking may occur if the premises have extra variables!*)
-     DEPTH_SOLVE_1 (resolve_tac [refl,exI,conjI] 2 APPEND assume_tac 2),
+     DEPTH_SOLVE_1 (resolve_tac [@{thm refl}, @{thm exI}, @{thm conjI}] 2 APPEND assume_tac 2),
      (*Now solve the equations like Tcons(a,f) = Inl(?b4)*)
      rewrite_goals_tac con_defs,
      REPEAT (rtac @{thm refl} 2),
@@ -310,7 +310,7 @@ let
        Intro rules with extra Vars in premises still cause some backtracking *)
      fun ind_tac [] 0 = all_tac
        | ind_tac(prem::prems) i =
-             DEPTH_SOLVE_1 (ares_tac [prem, refl] i) THEN ind_tac prems (i-1);
+             DEPTH_SOLVE_1 (ares_tac [prem, @{thm refl}] i) THEN ind_tac prems (i-1);
 
      val pred = Free(pred_name, Ind_Syntax.iT --> FOLogic.oT);
 
@@ -332,7 +332,7 @@ let
            setSolver (mk_solver "minimal"
                       (fn prems => resolve_tac (triv_rls@prems)
                                    ORELSE' assume_tac
-                                   ORELSE' etac FalseE));
+                                   ORELSE' etac @{thm FalseE}));
 
      val quant_induct =
        Goal.prove_global thy1 [] ind_prems
@@ -470,11 +470,11 @@ let
                       (mut_ss addsimps @{thms conj_simps} @ @{thms imp_simps} @ @{thms quant_simps}) 1
                    THEN
                    (*unpackage and use "prem" in the corresponding place*)
-                   REPEAT (rtac impI 1)  THEN
+                   REPEAT (rtac @{thm impI} 1)  THEN
                    rtac (rewrite_rule all_defs prem) 1  THEN
                    (*prem must not be REPEATed below: could loop!*)
-                   DEPTH_SOLVE (FIRSTGOAL (ares_tac [impI] ORELSE'
-                                           eresolve_tac (conjE::mp::cmonos))))
+                   DEPTH_SOLVE (FIRSTGOAL (ares_tac [@{thm impI}] ORELSE'
+                                           eresolve_tac (@{thm conjE} :: @{thm mp} :: cmonos))))
                ) i)
             THEN mutual_ind_tac prems (i-1);
 
@@ -485,7 +485,7 @@ let
            (fn {prems, ...} => EVERY
              [rtac (quant_induct RS lemma) 1,
               mutual_ind_tac (rev prems) (length prems)])
-       else TrueI;
+       else @{thm TrueI};
 
      (** Uncurrying the predicate in the ordinary induction rule **)
 
@@ -498,7 +498,7 @@ let
                                       cterm_of thy1 elem_tuple)]);
 
      (*strip quantifier and the implication*)
-     val induct0 = inst (quant_induct RS spec RSN (2, @{thm rev_mp}));
+     val induct0 = inst (quant_induct RS @{thm spec} RSN (2, @{thm rev_mp}));
 
      val Const (@{const_name Trueprop}, _) $ (pred_var $ _) = concl_of induct0
 
@@ -521,7 +521,7 @@ let
     else
       (thy1
       |> PureThy.add_thms [((Binding.name (co_prefix ^ "induct"), raw_induct), [])]
-      |> apfst hd |> Library.swap, TrueI)
+      |> apfst hd |> Library.swap, @{thm TrueI})
   and defs = big_rec_def :: part_rec_defs
 
 

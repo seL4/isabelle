@@ -1,5 +1,4 @@
 (*  Title:      HOL/NanoJava/Equivalence.thy
-    ID:         $Id$
     Author:     David von Oheimb
     Copyright   2001 Technische Universitaet Muenchen
 *)
@@ -10,37 +9,35 @@ theory Equivalence imports OpSem AxSem begin
 
 subsection "Validity"
 
-constdefs
-  valid   :: "[assn,stmt, assn] => bool"  ("|= {(1_)}/ (_)/ {(1_)}" [3,90,3] 60)
+definition valid :: "[assn,stmt, assn] => bool" ("|= {(1_)}/ (_)/ {(1_)}" [3,90,3] 60) where
  "|=  {P} c {Q} \<equiv> \<forall>s   t. P s --> (\<exists>n. s -c  -n\<rightarrow> t) --> Q   t"
 
- evalid   :: "[assn,expr,vassn] => bool" ("|=e {(1_)}/ (_)/ {(1_)}" [3,90,3] 60)
+definition evalid   :: "[assn,expr,vassn] => bool" ("|=e {(1_)}/ (_)/ {(1_)}" [3,90,3] 60) where
  "|=e {P} e {Q} \<equiv> \<forall>s v t. P s --> (\<exists>n. s -e\<succ>v-n\<rightarrow> t) --> Q v t"
 
-
- nvalid   :: "[nat, triple    ] => bool" ("|=_: _"  [61,61] 60)
+definition nvalid   :: "[nat, triple    ] => bool" ("|=_: _"  [61,61] 60) where
  "|=n:  t \<equiv> let (P,c,Q) = t in \<forall>s   t. s -c  -n\<rightarrow> t --> P s --> Q   t"
 
-envalid   :: "[nat,etriple    ] => bool" ("|=_:e _" [61,61] 60)
+definition envalid   :: "[nat,etriple    ] => bool" ("|=_:e _" [61,61] 60) where
  "|=n:e t \<equiv> let (P,e,Q) = t in \<forall>s v t. s -e\<succ>v-n\<rightarrow> t --> P s --> Q v t"
 
-  nvalids :: "[nat,       triple set] => bool" ("||=_: _" [61,61] 60)
+definition nvalids :: "[nat,       triple set] => bool" ("||=_: _" [61,61] 60) where
  "||=n: T \<equiv> \<forall>t\<in>T. |=n: t"
 
- cnvalids :: "[triple set,triple set] => bool" ("_ ||=/ _"  [61,61] 60)
+definition cnvalids :: "[triple set,triple set] => bool" ("_ ||=/ _"  [61,61] 60) where
  "A ||=  C \<equiv> \<forall>n. ||=n: A --> ||=n: C"
 
-cenvalid  :: "[triple set,etriple   ] => bool" ("_ ||=e/ _" [61,61] 60)
+definition cenvalid  :: "[triple set,etriple   ] => bool" ("_ ||=e/ _" [61,61] 60) where
  "A ||=e t \<equiv> \<forall>n. ||=n: A --> |=n:e t"
 
-syntax (xsymbols)
-   valid  :: "[assn,stmt, assn] => bool" ( "\<Turnstile> {(1_)}/ (_)/ {(1_)}" [3,90,3] 60)
-  evalid  :: "[assn,expr,vassn] => bool" ("\<Turnstile>\<^sub>e {(1_)}/ (_)/ {(1_)}" [3,90,3] 60)
-  nvalid  :: "[nat, triple          ] => bool" ("\<Turnstile>_: _"  [61,61] 60)
- envalid  :: "[nat,etriple          ] => bool" ("\<Turnstile>_:\<^sub>e _" [61,61] 60)
-  nvalids :: "[nat,       triple set] => bool" ("|\<Turnstile>_: _"  [61,61] 60)
- cnvalids :: "[triple set,triple set] => bool" ("_ |\<Turnstile>/ _" [61,61] 60)
-cenvalid  :: "[triple set,etriple   ] => bool" ("_ |\<Turnstile>\<^sub>e/ _"[61,61] 60)
+notation (xsymbols)
+  valid  ("\<Turnstile> {(1_)}/ (_)/ {(1_)}" [3,90,3] 60) and
+  evalid  ("\<Turnstile>\<^sub>e {(1_)}/ (_)/ {(1_)}" [3,90,3] 60) and
+  nvalid  ("\<Turnstile>_: _" [61,61] 60) and
+  envalid  ("\<Turnstile>_:\<^sub>e _" [61,61] 60) and
+  nvalids  ("|\<Turnstile>_: _" [61,61] 60) and
+  cnvalids  ("_ |\<Turnstile>/ _" [61,61] 60) and
+  cenvalid  ("_ |\<Turnstile>\<^sub>e/ _"[61,61] 60)
 
 
 lemma nvalid_def2: "\<Turnstile>n: (P,c,Q) \<equiv> \<forall>s t. s -c-n\<rightarrow> t \<longrightarrow> P s \<longrightarrow> Q t"
@@ -160,14 +157,16 @@ done
 
 subsection "(Relative) Completeness"
 
-constdefs MGT    :: "stmt => state =>  triple"
+definition MGT :: "stmt => state => triple" where
          "MGT  c Z \<equiv> (\<lambda>s. Z = s, c, \<lambda>  t. \<exists>n. Z -c-  n\<rightarrow> t)"
-          MGTe   :: "expr => state => etriple"
+
+definition MGTe   :: "expr => state => etriple" where
          "MGTe e Z \<equiv> (\<lambda>s. Z = s, e, \<lambda>v t. \<exists>n. Z -e\<succ>v-n\<rightarrow> t)"
-syntax (xsymbols)
-         MGTe    :: "expr => state => etriple" ("MGT\<^sub>e")
-syntax (HTML output)
-         MGTe    :: "expr => state => etriple" ("MGT\<^sub>e")
+
+notation (xsymbols)
+  MGTe  ("MGT\<^sub>e")
+notation (HTML output)
+  MGTe  ("MGT\<^sub>e")
 
 lemma MGF_implies_complete:
  "\<forall>Z. {} |\<turnstile> { MGT c Z} \<Longrightarrow> \<Turnstile>  {P} c {Q} \<Longrightarrow> {} \<turnstile>  {P} c {Q}"

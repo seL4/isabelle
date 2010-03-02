@@ -22,51 +22,47 @@ proof qed (auto simp add: program_less_le dest: component_antisym intro: compone
 text{*Existential and Universal properties.  I formalize the two-program
       case, proving equivalence with Chandy and Sanders's n-ary definitions*}
 
-constdefs
-
-  ex_prop  :: "'a program set => bool"
+definition ex_prop :: "'a program set => bool" where
    "ex_prop X == \<forall>F G. F ok G -->F \<in> X | G \<in> X --> (F\<squnion>G) \<in> X"
 
-  strict_ex_prop  :: "'a program set => bool"
+definition strict_ex_prop  :: "'a program set => bool" where
    "strict_ex_prop X == \<forall>F G.  F ok G --> (F \<in> X | G \<in> X) = (F\<squnion>G \<in> X)"
 
-  uv_prop  :: "'a program set => bool"
+definition uv_prop  :: "'a program set => bool" where
    "uv_prop X == SKIP \<in> X & (\<forall>F G. F ok G --> F \<in> X & G \<in> X --> (F\<squnion>G) \<in> X)"
 
-  strict_uv_prop  :: "'a program set => bool"
+definition strict_uv_prop  :: "'a program set => bool" where
    "strict_uv_prop X == 
       SKIP \<in> X & (\<forall>F G. F ok G --> (F \<in> X & G \<in> X) = (F\<squnion>G \<in> X))"
 
 
 text{*Guarantees properties*}
 
-constdefs
-
-  guar :: "['a program set, 'a program set] => 'a program set"
-          (infixl "guarantees" 55)  (*higher than membership, lower than Co*)
+definition guar :: "['a program set, 'a program set] => 'a program set" (infixl "guarantees" 55) where
+          (*higher than membership, lower than Co*)
    "X guarantees Y == {F. \<forall>G. F ok G --> F\<squnion>G \<in> X --> F\<squnion>G \<in> Y}"
   
 
   (* Weakest guarantees *)
-   wg :: "['a program, 'a program set] =>  'a program set"
+definition wg :: "['a program, 'a program set] => 'a program set" where
   "wg F Y == Union({X. F \<in> X guarantees Y})"
 
    (* Weakest existential property stronger than X *)
-   wx :: "('a program) set => ('a program)set"
+definition wx :: "('a program) set => ('a program)set" where
    "wx X == Union({Y. Y \<subseteq> X & ex_prop Y})"
   
   (*Ill-defined programs can arise through "Join"*)
-  welldef :: "'a program set"
+definition welldef :: "'a program set" where
   "welldef == {F. Init F \<noteq> {}}"
   
-  refines :: "['a program, 'a program, 'a program set] => bool"
-                        ("(3_ refines _ wrt _)" [10,10,10] 10)
+definition refines :: "['a program, 'a program, 'a program set] => bool"
+                        ("(3_ refines _ wrt _)" [10,10,10] 10) where
   "G refines F wrt X ==
      \<forall>H. (F ok H & G ok H & F\<squnion>H \<in> welldef \<inter> X) --> 
          (G\<squnion>H \<in> welldef \<inter> X)"
 
-  iso_refines :: "['a program, 'a program, 'a program set] => bool"
-                              ("(3_ iso'_refines _ wrt _)" [10,10,10] 10)
+definition iso_refines :: "['a program, 'a program, 'a program set] => bool"
+                              ("(3_ iso'_refines _ wrt _)" [10,10,10] 10) where
   "G iso_refines F wrt X ==
    F \<in> welldef \<inter> X --> G \<in> welldef \<inter> X"
 

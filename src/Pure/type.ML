@@ -35,6 +35,7 @@ sig
   val get_mode: Proof.context -> mode
   val set_mode: mode -> Proof.context -> Proof.context
   val restore_mode: Proof.context -> Proof.context -> Proof.context
+  val the_decl: tsig -> string -> decl
   val cert_typ_mode: mode -> tsig -> typ -> typ
   val cert_typ: tsig -> typ -> typ
   val arity_number: tsig -> string -> int
@@ -163,6 +164,11 @@ fun undecl_type c = "Undeclared type constructor: " ^ quote c;
 
 fun lookup_type (TSig {types = (_, types), ...}) = Symtab.lookup types;
 
+fun the_decl tsig c =
+  (case lookup_type tsig c of
+    NONE => error (undecl_type c)
+  | SOME decl => decl);
+
 
 (* certified types *)
 
@@ -189,15 +195,14 @@ fun cert_typ_mode (Mode {normalize, logical}) tsig ty =
             val Ts' = map cert Ts;
             fun nargs n = if length Ts <> n then err (bad_nargs c) else ();
           in
-            (case lookup_type tsig c of
-              SOME (LogicalType n) => (nargs n; Type (c, Ts'))
-            | SOME (Abbreviation (vs, U, syn)) =>
+            (case the_decl tsig c of
+              LogicalType n => (nargs n; Type (c, Ts'))
+            | Abbreviation (vs, U, syn) =>
                (nargs (length vs);
                 if syn then check_logical c else ();
                 if normalize then inst_typ (vs ~~ Ts') U
                 else Type (c, Ts'))
-            | SOME Nonterminal => (nargs 0; check_logical c; T)
-            | NONE => err (undecl_type c))
+            | Nonterminal => (nargs 0; check_logical c; T))
           end
       | cert (TFree (x, S)) = TFree (x, cert_sort tsig S)
       | cert (TVar (xi as (_, i), S)) =

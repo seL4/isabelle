@@ -412,6 +412,33 @@ apply (subst abs_mult)
 apply (rule gcd_mult_cancel_nat [transferred], auto)
 done
 
+lemma coprime_crossproduct_nat:
+  fixes a b c d :: nat
+  assumes "coprime a d" and "coprime b c"
+  shows "a * c = b * d \<longleftrightarrow> a = b \<and> c = d" (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  assume ?rhs then show ?lhs by simp
+next
+  assume ?lhs
+  from `?lhs` have "a dvd b * d" by (auto intro: dvdI dest: sym)
+  with `coprime a d` have "a dvd b" by (simp add: coprime_dvd_mult_iff_nat)
+  from `?lhs` have "b dvd a * c" by (auto intro: dvdI dest: sym)
+  with `coprime b c` have "b dvd a" by (simp add: coprime_dvd_mult_iff_nat)
+  from `?lhs` have "c dvd d * b" by (auto intro: dvdI dest: sym simp add: mult_commute)
+  with `coprime b c` have "c dvd d" by (simp add: coprime_dvd_mult_iff_nat gcd_commute_nat)
+  from `?lhs` have "d dvd c * a" by (auto intro: dvdI dest: sym simp add: mult_commute)
+  with `coprime a d` have "d dvd c" by (simp add: coprime_dvd_mult_iff_nat gcd_commute_nat)
+  from `a dvd b` `b dvd a` have "a = b" by (rule Nat.dvd.antisym)
+  moreover from `c dvd d` `d dvd c` have "c = d" by (rule Nat.dvd.antisym)
+  ultimately show ?rhs ..
+qed
+
+lemma coprime_crossproduct_int:
+  fixes a b c d :: int
+  assumes "coprime a d" and "coprime b c"
+  shows "\<bar>a\<bar> * \<bar>c\<bar> = \<bar>b\<bar> * \<bar>d\<bar> \<longleftrightarrow> \<bar>a\<bar> = \<bar>b\<bar> \<and> \<bar>c\<bar> = \<bar>d\<bar>"
+  using assms by (intro coprime_crossproduct_nat [transferred]) auto
+
 text {* \medskip Addition laws *}
 
 lemma gcd_add1_nat [simp]: "gcd ((m::nat) + n) n = gcd m n"

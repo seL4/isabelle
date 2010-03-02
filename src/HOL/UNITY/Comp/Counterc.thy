@@ -21,25 +21,21 @@ consts
   C :: "state=>int"
   c :: "state=>nat=>int"
 
-consts  
-  sum  :: "[nat,state]=>int"
-  sumj :: "[nat, nat, state]=>int"
-
-primrec (* sum I s = sigma_{i<I}. c s i *)
+primrec sum  :: "[nat,state]=>int" where
+  (* sum I s = sigma_{i<I}. c s i *)
   "sum 0 s = 0"
-  "sum (Suc i) s = (c s) i + sum i s"
+| "sum (Suc i) s = (c s) i + sum i s"
 
-primrec
+primrec sumj :: "[nat, nat, state]=>int" where
   "sumj 0 i s = 0"
-  "sumj (Suc n) i s = (if n=i then sum n s else (c s) n + sumj n i s)"
+| "sumj (Suc n) i s = (if n=i then sum n s else (c s) n + sumj n i s)"
   
 types command = "(state*state)set"
 
-constdefs
-  a :: "nat=>command"
+definition a :: "nat=>command" where
  "a i == {(s, s'). (c s') i = (c s) i + 1 & (C s') = (C s) + 1}"
  
-  Component :: "nat => state program"
+definition Component :: "nat => state program" where
   "Component i == mk_total_program({s. C s = 0 & (c s) i = 0},
                                    {a i},
                                    \<Union>G \<in> preserves (%s. (c s) i). Acts G)"
@@ -127,4 +123,4 @@ apply (simp (no_asm) add: invariant_def JN_stable sum_sumj_eq2)
 apply (auto intro!: sum0 p2_p3)
 done
 
-end  
+end

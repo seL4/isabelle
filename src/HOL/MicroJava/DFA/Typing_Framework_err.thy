@@ -9,28 +9,26 @@ theory Typing_Framework_err
 imports Typing_Framework SemilatAlg
 begin
 
-constdefs
-
-wt_err_step :: "'s ord \<Rightarrow> 's err step_type \<Rightarrow> 's err list \<Rightarrow> bool"
+definition wt_err_step :: "'s ord \<Rightarrow> 's err step_type \<Rightarrow> 's err list \<Rightarrow> bool" where
 "wt_err_step r step ts \<equiv> wt_step (Err.le r) Err step ts"
 
-wt_app_eff :: "'s ord \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> 's step_type \<Rightarrow> 's list \<Rightarrow> bool"
+definition wt_app_eff :: "'s ord \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> 's step_type \<Rightarrow> 's list \<Rightarrow> bool" where
 "wt_app_eff r app step ts \<equiv>
   \<forall>p < size ts. app p (ts!p) \<and> (\<forall>(q,t) \<in> set (step p (ts!p)). t <=_r ts!q)"
 
-map_snd :: "('b \<Rightarrow> 'c) \<Rightarrow> ('a \<times> 'b) list \<Rightarrow> ('a \<times> 'c) list"
+definition map_snd :: "('b \<Rightarrow> 'c) \<Rightarrow> ('a \<times> 'b) list \<Rightarrow> ('a \<times> 'c) list" where
 "map_snd f \<equiv> map (\<lambda>(x,y). (x, f y))"
 
-error :: "nat \<Rightarrow> (nat \<times> 'a err) list"
+definition error :: "nat \<Rightarrow> (nat \<times> 'a err) list" where
 "error n \<equiv> map (\<lambda>x. (x,Err)) [0..<n]"
 
-err_step :: "nat \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> 's step_type \<Rightarrow> 's err step_type"
+definition err_step :: "nat \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> 's step_type \<Rightarrow> 's err step_type" where
 "err_step n app step p t \<equiv> 
   case t of 
     Err   \<Rightarrow> error n
   | OK t' \<Rightarrow> if app p t' then map_snd OK (step p t') else error n"
 
-app_mono :: "'s ord \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> nat \<Rightarrow> 's set \<Rightarrow> bool"
+definition app_mono :: "'s ord \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> nat \<Rightarrow> 's set \<Rightarrow> bool" where
 "app_mono r app n A \<equiv>
  \<forall>s p t. s \<in> A \<and> p < n \<and> s <=_r t \<longrightarrow> app p t \<longrightarrow> app p s"
 

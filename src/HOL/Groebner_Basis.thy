@@ -510,7 +510,7 @@ local
     let
       val z = instantiate_cterm ([(zT,T)],[]) zr
       val eq = instantiate_cterm ([(eqT,T)],[]) geq
-      val th = Simplifier.rewrite (ss addsimps simp_thms)
+      val th = Simplifier.rewrite (ss addsimps @{thms simp_thms})
            (Thm.capply @{cterm "Trueprop"} (Thm.capply @{cterm "Not"}
                   (Thm.capply (Thm.capply eq t) z)))
     in equal_elim (symmetric th) TrueI
@@ -640,7 +640,7 @@ val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
 
 val comp_conv = (Simplifier.rewrite
 (HOL_basic_ss addsimps @{thms "Groebner_Basis.comp_arith"}
-              addsimps ths addsimps simp_thms
+              addsimps ths addsimps @{thms simp_thms}
               addsimprocs Numeral_Simprocs.field_cancel_numeral_factors
                addsimprocs [add_frac_frac_simproc, add_frac_num_simproc,
                             ord_frac_simproc]

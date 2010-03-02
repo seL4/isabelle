@@ -168,7 +168,7 @@ fun regroup_conv neu cn ac is ct =
 
 (* instance for unions *)
 val regroup_union_conv =
-  regroup_conv @{const_name Set.empty} @{const_name Lattices.sup}
+  regroup_conv @{const_abbrev Set.empty} @{const_name Lattices.sup}
     (map (fn t => t RS eq_reflection)
       (@{thms Un_ac} @ @{thms Un_empty_right} @ @{thms Un_empty_left}))
 

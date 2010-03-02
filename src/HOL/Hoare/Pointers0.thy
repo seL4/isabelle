@@ -73,8 +73,7 @@ subsection "Lists on the heap"
 
 subsubsection "Relational abstraction"
 
-constdefs
- List :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> bool"
+definition List :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> bool" where
 "List h x as == Path h x as Null"
 
 lemma [simp]: "List h x [] = (x = Null)"
@@ -122,10 +121,10 @@ done
 
 subsection "Functional abstraction"
 
-constdefs
- islist :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> bool"
+definition islist :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> bool" where
 "islist h p == \<exists>as. List h p as"
- list :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list"
+
+definition list :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list" where
 "list h p == SOME as. List h p as"
 
 lemma List_conv_islist_list: "List h p as = (islist h p \<and> as = list h p)"
@@ -321,13 +320,11 @@ subsection "Merging two lists"
 
 text"This is still a bit rough, especially the proof."
 
-consts merge :: "'a list * 'a list * ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list"
-
-recdef merge "measure(%(xs,ys,f). size xs + size ys)"
+fun merge :: "'a list * 'a list * ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list" where
 "merge(x#xs,y#ys,f) = (if f x y then x # merge(xs,y#ys,f)
-                                else y # merge(x#xs,ys,f))"
-"merge(x#xs,[],f) = x # merge(xs,[],f)"
-"merge([],y#ys,f) = y # merge([],ys,f)"
+                                else y # merge(x#xs,ys,f))" |
+"merge(x#xs,[],f) = x # merge(xs,[],f)" |
+"merge([],y#ys,f) = y # merge([],ys,f)" |
 "merge([],[],f) = []"
 
 lemma imp_disjCL: "(P|Q \<longrightarrow> R) = ((P \<longrightarrow> R) \<and> (~P \<longrightarrow> Q \<longrightarrow> R))"
@@ -407,7 +404,7 @@ done
 
 subsection "Storage allocation"
 
-constdefs new :: "'a set \<Rightarrow> 'a::ref"
+definition new :: "'a set \<Rightarrow> 'a::ref" where
 "new A == SOME a. a \<notin> A & a \<noteq> Null"
 
 

@@ -1,5 +1,4 @@
 (*  Title:      HOL/Modelcheck/CTL.thy
-    ID:         $Id$
     Author:     Olaf Mueller, Jan Philipps, Robert Sandner
     Copyright   1997  TU Muenchen
 *)
@@ -11,10 +10,10 @@ begin
 types
   'a trans  = "('a * 'a) set"
 
-constdefs
-  CEX ::"['a trans,'a pred, 'a]=>bool"
+definition CEX :: "['a trans,'a pred, 'a]=>bool" where
   "CEX N f u == (? v. (f v & (u,v):N))"
-  EG ::"['a trans,'a pred]=> 'a pred"
+
+definition EG ::"['a trans,'a pred]=> 'a pred" where
   "EG N f == nu (% Q. % u.(f u & CEX N Q u))"
 
 end

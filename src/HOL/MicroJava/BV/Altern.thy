@@ -8,19 +8,18 @@ theory Altern
 imports BVSpec
 begin
 
-constdefs
-  check_type :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> JVMType.state \<Rightarrow> bool"
+definition check_type :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> JVMType.state \<Rightarrow> bool" where
   "check_type G mxs mxr s \<equiv> s \<in> states G mxs mxr"
 
-  wt_instr_altern :: "[instr,jvm_prog,ty,method_type,nat,nat,p_count,
-                exception_table,p_count] \<Rightarrow> bool"
+definition wt_instr_altern :: "[instr,jvm_prog,ty,method_type,nat,nat,p_count,
+                exception_table,p_count] \<Rightarrow> bool" where
   "wt_instr_altern i G rT phi mxs mxr max_pc et pc \<equiv>
   app i G mxs rT pc et (phi!pc) \<and>
   check_type G mxs mxr (OK (phi!pc)) \<and>
   (\<forall>(pc',s') \<in> set (eff i G pc et (phi!pc)). pc' < max_pc \<and> G \<turnstile> s' <=' phi!pc')"
 
-  wt_method_altern :: "[jvm_prog,cname,ty list,ty,nat,nat,instr list,
-                 exception_table,method_type] \<Rightarrow> bool"
+definition wt_method_altern :: "[jvm_prog,cname,ty list,ty,nat,nat,instr list,
+                 exception_table,method_type] \<Rightarrow> bool" where
   "wt_method_altern G C pTs rT mxs mxl ins et phi \<equiv>
   let max_pc = length ins in
   0 < max_pc \<and> 

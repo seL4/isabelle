@@ -379,7 +379,7 @@ fun internalize_params rule =
 local
 
 fun equal_cterms ts us =
-  is_equal (list_ord (TermOrd.fast_term_ord o pairself Thm.term_of) (ts, us));
+  is_equal (list_ord (Term_Ord.fast_term_ord o pairself Thm.term_of) (ts, us));
 
 fun prep_rule n th =
   let

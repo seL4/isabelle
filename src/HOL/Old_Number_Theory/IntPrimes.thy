@@ -19,17 +19,14 @@ text {*
 
 subsection {* Definitions *}
 
-consts
-  xzgcda :: "int * int * int * int * int * int * int * int => int * int * int"
-
-recdef xzgcda
-  "measure ((\<lambda>(m, n, r', r, s', s, t', t). nat r)
-    :: int * int * int * int *int * int * int * int => nat)"
-  "xzgcda (m, n, r', r, s', s, t', t) =
+fun
+  xzgcda :: "int \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int => (int * int * int)"
+where
+  "xzgcda m n r' r s' s t' t =
         (if r \<le> 0 then (r', s', t')
-         else xzgcda (m, n, r, r' mod r, 
-                      s, s' - (r' div r) * s, 
-                      t, t' - (r' div r) * t))"
+         else xzgcda m n r (r' mod r) 
+                      s (s' - (r' div r) * s) 
+                      t (t' - (r' div r) * t))"
 
 definition
   zprime :: "int \<Rightarrow> bool" where
@@ -37,7 +34,7 @@ definition
 
 definition
   xzgcd :: "int => int => int * int * int" where
-  "xzgcd m n = xzgcda (m, n, m, n, 1, 0, 0, 1)"
+  "xzgcd m n = xzgcda m n m n 1 0 0 1"
 
 definition
   zcong :: "int => int => int => bool"  ("(1[_ = _] '(mod _'))") where
@@ -307,9 +304,8 @@ declare xzgcda.simps [simp del]
 
 lemma xzgcd_correct_aux1:
   "zgcd r' r = k --> 0 < r -->
-    (\<exists>sn tn. xzgcda (m, n, r', r, s', s, t', t) = (k, sn, tn))"
-  apply (rule_tac u = m and v = n and w = r' and x = r and y = s' and
-    z = s and aa = t' and ab = t in xzgcda.induct)
+    (\<exists>sn tn. xzgcda m n r' r s' s t' t = (k, sn, tn))"
+  apply (induct m n r' r s' s t' t rule: xzgcda.induct)
   apply (subst zgcd_eq)
   apply (subst xzgcda.simps, auto)
   apply (case_tac "r' mod r = 0")
@@ -321,17 +317,16 @@ lemma xzgcd_correct_aux1:
   done
 
 lemma xzgcd_correct_aux2:
-  "(\<exists>sn tn. xzgcda (m, n, r', r, s', s, t', t) = (k, sn, tn)) --> 0 < r -->
+  "(\<exists>sn tn. xzgcda m n r' r s' s t' t = (k, sn, tn)) --> 0 < r -->
     zgcd r' r = k"
-  apply (rule_tac u = m and v = n and w = r' and x = r and y = s' and
-    z = s and aa = t' and ab = t in xzgcda.induct)
+  apply (induct m n r' r s' s t' t rule: xzgcda.induct)
   apply (subst zgcd_eq)
   apply (subst xzgcda.simps)
   apply (auto simp add: linorder_not_le)
   apply (case_tac "r' mod r = 0")
    prefer 2
    apply (frule_tac a = "r'" in pos_mod_sign, auto)
-  apply (metis Pair_eq simps zle_refl)
+  apply (metis Pair_eq xzgcda.simps zle_refl)
   done
 
 lemma xzgcd_correct:
@@ -362,10 +357,9 @@ lemma order_le_neq_implies_less: "(x::'a::order) \<le> y ==> x \<noteq> y ==> x 
   by (rule iffD2 [OF order_less_le conjI])
 
 lemma xzgcda_linear [rule_format]:
-  "0 < r --> xzgcda (m, n, r', r, s', s, t', t) = (rn, sn, tn) -->
+  "0 < r --> xzgcda m n r' r s' s t' t = (rn, sn, tn) -->
     r' = s' * m + t' * n -->  r = s * m + t * n --> rn = sn * m + tn * n"
-  apply (rule_tac u = m and v = n and w = r' and x = r and y = s' and
-    z = s and aa = t' and ab = t in xzgcda.induct)
+  apply (induct m n r' r s' s t' t rule: xzgcda.induct)
   apply (subst xzgcda.simps)
   apply (simp (no_asm))
   apply (rule impI)+

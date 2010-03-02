@@ -762,8 +762,7 @@ fun record_field_types_tr more ctxt t =
     mk_ext (field_types_tr t)
   end;
 
-(* FIXME @{type_syntax} *)
-fun record_type_tr ctxt [t] = record_field_types_tr (Syntax.const "Product_Type.unit") ctxt t
+fun record_type_tr ctxt [t] = record_field_types_tr (Syntax.const @{type_syntax unit}) ctxt t
   | record_type_tr _ ts = raise TERM ("record_type_tr", ts);
 
 fun record_type_scheme_tr ctxt [t, more] = record_field_types_tr more ctxt t
@@ -1101,7 +1100,7 @@ fun get_upd_funs (upd $ _ $ t) = upd :: get_upd_funs t
 fun get_accupd_simps thy term defset =
   let
     val (acc, [body]) = strip_comb term;
-    val upd_funs = sort_distinct TermOrd.fast_term_ord (get_upd_funs body);
+    val upd_funs = sort_distinct Term_Ord.fast_term_ord (get_upd_funs body);
     fun get_simp upd =
       let
         (* FIXME fresh "f" (!?) *)
@@ -1417,7 +1416,7 @@ val record_eq_simproc =
         | name =>
             (case get_equalities thy name of
               NONE => NONE
-            | SOME thm => SOME (thm RS Eq_TrueI)))
+            | SOME thm => SOME (thm RS @{thm Eq_TrueI})))
       | _ => NONE));
 
 
@@ -1463,7 +1462,7 @@ val record_ex_sel_eq_simproc =
         fun prove prop =
           prove_global true thy [] prop
             (fn _ => simp_tac (Simplifier.inherit_context ss (get_simpset thy)
-                addsimps simp_thms addsimprocs [record_split_simproc (K ~1)]) 1);
+                addsimps @{thms simp_thms} addsimprocs [record_split_simproc (K ~1)]) 1);
 
         fun mkeq (lr, Teq, (sel, Tsel), x) i =
           if is_selector thy sel then

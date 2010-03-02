@@ -131,9 +131,7 @@ type problem_extension = {
   nonsel_names: nut list,
   rel_table: nut NameTable.table,
   unsound: bool,
-  scope: scope,
-  core: KK.formula,
-  defs: KK.formula list}
+  scope: scope}
 
 type rich_problem = KK.problem * problem_extension
 
@@ -195,7 +193,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val timer = Timer.startRealTimer ()
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
-(* FIXME: reintroduce code before new release
+(* FIXME: reintroduce code before new release:
+
     val nitpick_thy = ThyInfo.get_theory "Nitpick"
     val _ = Theory.subthy (nitpick_thy, thy) orelse
             error "You must import the theory \"Nitpick\" to use Nitpick"
@@ -289,8 +288,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val frees = Term.add_frees assms_t []
     val _ = null (Term.add_tvars assms_t []) orelse
             raise NOT_SUPPORTED "schematic type variables"
-    val (((def_ts, nondef_ts), (got_all_mono_user_axioms, no_poly_user_axioms)),
-         core_t, binarize) = preprocess_term hol_ctxt assms_t
+    val (nondef_ts, def_ts, got_all_mono_user_axioms, no_poly_user_axioms,
+         binarize) = preprocess_term hol_ctxt assms_t
     val got_all_user_axioms =
       got_all_mono_user_axioms andalso no_poly_user_axioms
 
@@ -307,54 +306,66 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                    \unroll it.")))
     val _ = if verbose then List.app print_wf (!wf_cache) else ()
     val _ =
-      pprint_d (fn () =>
-          Pretty.chunks
-              (pretties_for_formulas ctxt "Preprocessed formula" [core_t] @
-               pretties_for_formulas ctxt "Relevant definitional axiom" def_ts @
-               pretties_for_formulas ctxt "Relevant nondefinitional axiom"
-                                     nondef_ts))
-    val _ = List.app (ignore o Term.type_of) (core_t :: def_ts @ nondef_ts)
+      pprint_d (fn () => Pretty.chunks
+          (pretties_for_formulas ctxt "Preprocessed formula" [hd nondef_ts] @
+           pretties_for_formulas ctxt "Relevant definitional axiom" def_ts @
+           pretties_for_formulas ctxt "Relevant nondefinitional axiom"
+                                 (tl nondef_ts)))
+    val _ = List.app (ignore o Term.type_of) (nondef_ts @ def_ts)
             handle TYPE (_, Ts, ts) =>
                    raise TYPE ("Nitpick.pick_them_nits_in_term", Ts, ts)
 
-    val core_u = nut_from_term hol_ctxt Eq core_t
-    val def_us = map (nut_from_term hol_ctxt DefEq) def_ts
     val nondef_us = map (nut_from_term hol_ctxt Eq) nondef_ts
+    val def_us = map (nut_from_term hol_ctxt DefEq) def_ts
     val (free_names, const_names) =
-      fold add_free_and_const_names (core_u :: def_us @ nondef_us) ([], [])
+      fold add_free_and_const_names (nondef_us @ def_us) ([], [])
     val (sel_names, nonsel_names) =
       List.partition (is_sel o nickname_of) const_names
     val genuine_means_genuine = got_all_user_axioms andalso none_true wfs
     val standard = forall snd stds
 (*
-    val _ = List.app (priority o string_for_nut ctxt)
-                     (core_u :: def_us @ nondef_us)
+    val _ = List.app (priority o string_for_nut ctxt) (nondef_us @ def_us)
 *)
 
     val unique_scope = forall (curry (op =) 1 o length o snd) cards_assigns
+    (* typ list -> string -> string *)
+    fun monotonicity_message Ts extra =
+      let val ss = map (quote o string_for_type ctxt) Ts in
+        "The type" ^ plural_s_for_list ss ^ " " ^
+        space_implode " " (serial_commas "and" ss) ^ " " ^
+        (if none_true monos then
+           "passed the monotonicity test"
+         else
+           (if length ss = 1 then "is" else "are") ^ " considered monotonic") ^
+        ". " ^ extra
+      end
     (* typ -> bool *)
     fun is_type_always_monotonic T =
       (is_datatype thy stds T andalso not (is_quot_type thy T) andalso
        (not (is_pure_typedef thy T) orelse is_univ_typedef thy T)) orelse
       is_number_type thy T orelse is_bit_type T
+    fun is_type_actually_monotonic T =
+      formulas_monotonic hol_ctxt binarize T (nondef_ts, def_ts)
     fun is_type_monotonic T =
       unique_scope orelse
       case triple_lookup (type_match thy) monos T of
         SOME (SOME b) => b
-      | _ => is_type_always_monotonic T orelse
-             formulas_monotonic hol_ctxt binarize T Plus def_ts nondef_ts core_t
-    fun is_deep_datatype T =
-      is_datatype thy stds T andalso
-      (not standard orelse T = nat_T orelse is_word_type T orelse
-       exists (curry (op =) T o domain_type o type_of) sel_names)
-    val all_Ts = ground_types_in_terms hol_ctxt binarize
-                                       (core_t :: def_ts @ nondef_ts)
-                 |> sort TermOrd.typ_ord
+      | _ => is_type_always_monotonic T orelse is_type_actually_monotonic T
+    fun is_type_finitizable T =
+      case triple_lookup (type_match thy) monos T of
+        SOME (SOME false) => false
+      | _ => is_type_actually_monotonic T
+    fun is_datatype_deep T =
+      not standard orelse T = nat_T orelse is_word_type T orelse
+      exists (curry (op =) T o domain_type o type_of) sel_names
+    val all_Ts = ground_types_in_terms hol_ctxt binarize (nondef_ts @ def_ts)
+                 |> sort Term_Ord.typ_ord
     val _ = if verbose andalso binary_ints = SOME true andalso
                exists (member (op =) [nat_T, int_T]) all_Ts then
               print_v (K "The option \"binary_ints\" will be ignored because \
                          \of the presence of rationals, reals, \"Suc\", \
-                         \\"gcd\", or \"lcm\" in the problem.")
+                         \\"gcd\", or \"lcm\" in the problem or because of the \
+                         \\"non_std\" option.")
             else
               ()
     val (mono_Ts, nonmono_Ts) = List.partition is_type_monotonic all_Ts
@@ -363,23 +374,21 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         case filter_out is_type_always_monotonic mono_Ts of
           [] => ()
         | interesting_mono_Ts =>
-          print_v (fn () =>
-                      let
-                        val ss = map (quote o string_for_type ctxt)
-                                     interesting_mono_Ts
-                      in
-                        "The type" ^ plural_s_for_list ss ^ " " ^
-                        space_implode " " (serial_commas "and" ss) ^ " " ^
-                        (if none_true monos then
-                           "passed the monotonicity test"
-                         else
-                           (if length ss = 1 then "is" else "are") ^
-                           " considered monotonic") ^
-                        ". Nitpick might be able to skip some scopes."
-                      end)
+          print_v (K (monotonicity_message interesting_mono_Ts
+                         "Nitpick might be able to skip some scopes."))
       else
         ()
-    val deep_dataTs = filter is_deep_datatype all_Ts
+    val (deep_dataTs, shallow_dataTs) =
+      all_Ts |> filter (is_datatype thy stds) |> List.partition is_datatype_deep
+    val finitizable_dataTs =
+      shallow_dataTs |> filter_out (is_finite_type hol_ctxt)
+                     |> filter is_type_finitizable
+    val _ =
+      if verbose andalso not (null finitizable_dataTs) then
+        print_v (K (monotonicity_message finitizable_dataTs
+                        "Nitpick can use a more precise finite encoding."))
+      else
+        ()
     (* This detection code is an ugly hack. Fortunately, it is used only to
        provide a hint to the user. *)
     (* string * (Rule_Cases.T * bool) -> bool *)
@@ -446,7 +455,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                                        string_of_int j0))
                          (Typtab.dest ofs)
 *)
-        val all_exact = forall (is_exact_type datatypes) all_Ts
+        val all_exact = forall (is_exact_type datatypes true) all_Ts
         (* nut list -> rep NameTable.table -> nut list * rep NameTable.table *)
         val repify_consts = choose_reps_for_consts scope all_exact
         val main_j0 = offset_of_type ofs bool_T
@@ -467,7 +476,6 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                          (univ_card nat_card int_card main_j0 [] KK.True)
         val _ = check_arity min_univ_card min_highest_arity
 
-        val core_u = choose_reps_in_nut scope unsound rep_table false core_u
         val def_us = map (choose_reps_in_nut scope unsound rep_table true)
                          def_us
         val nondef_us = map (choose_reps_in_nut scope unsound rep_table false)
@@ -475,7 +483,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
 (*
         val _ = List.app (priority o string_for_nut ctxt)
                          (free_names @ sel_names @ nonsel_names @
-                          core_u :: def_us @ nondef_us)
+                          nondef_us @ def_us)
 *)
         val (free_rels, pool, rel_table) =
           rename_free_vars free_names initial_pool NameTable.empty
@@ -483,13 +491,11 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
           rename_free_vars sel_names pool rel_table
         val (other_rels, pool, rel_table) =
           rename_free_vars nonsel_names pool rel_table
-        val core_u = rename_vars_in_nut pool rel_table core_u
-        val def_us = map (rename_vars_in_nut pool rel_table) def_us
         val nondef_us = map (rename_vars_in_nut pool rel_table) nondef_us
-        val core_f = kodkod_formula_from_nut ofs kk core_u
-        val def_fs = map (kodkod_formula_from_nut ofs kk) def_us
+        val def_us = map (rename_vars_in_nut pool rel_table) def_us
         val nondef_fs = map (kodkod_formula_from_nut ofs kk) nondef_us
-        val formula = fold (fold s_and) [def_fs, nondef_fs] core_f
+        val def_fs = map (kodkod_formula_from_nut ofs kk) def_us
+        val formula = fold (fold s_and) [def_fs, nondef_fs] KK.True
         val comment = (if unsound then "unsound" else "sound") ^ "\n" ^
                       PrintMode.setmp [] multiline_string_for_scope scope
         val kodkod_sat_solver =
@@ -537,8 +543,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                expr_assigns = [], formula = formula},
               {free_names = free_names, sel_names = sel_names,
                nonsel_names = nonsel_names, rel_table = rel_table,
-               unsound = unsound, scope = scope, core = core_f,
-               defs = nondef_fs @ def_fs @ declarative_axioms})
+               unsound = unsound, scope = scope})
       end
       handle TOO_LARGE (loc, msg) =>
              if loc = "Nitpick_Kodkod.check_arity" andalso
@@ -834,8 +839,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                         sound_problems then
                 print_m (fn () =>
                     "Warning: The conjecture either trivially holds for the \
-                    \given scopes or (more likely) lies outside Nitpick's \
-                    \supported fragment." ^
+                    \given scopes or lies outside Nitpick's supported \
+                    \fragment." ^
                     (if exists (not o KK.is_problem_trivially_false o fst)
                                unsound_problems then
                        " Only potential counterexamples may be found."
@@ -907,6 +912,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val (skipped, the_scopes) =
       all_scopes hol_ctxt binarize sym_break cards_assigns maxes_assigns
                  iters_assigns bitss bisim_depths mono_Ts nonmono_Ts deep_dataTs
+                 finitizable_dataTs
     val _ = if skipped > 0 then
               print_m (fn () => "Too many scopes. Skipping " ^
                                 string_of_int skipped ^ " scope" ^

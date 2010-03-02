@@ -71,13 +71,13 @@ struct
 
 (** ordered lists of sorts **)
 
-val make = OrdList.make TermOrd.sort_ord;
-val subset = OrdList.subset TermOrd.sort_ord;
-val union = OrdList.union TermOrd.sort_ord;
-val subtract = OrdList.subtract TermOrd.sort_ord;
+val make = OrdList.make Term_Ord.sort_ord;
+val subset = OrdList.subset Term_Ord.sort_ord;
+val union = OrdList.union Term_Ord.sort_ord;
+val subtract = OrdList.subtract Term_Ord.sort_ord;
 
-val remove_sort = OrdList.remove TermOrd.sort_ord;
-val insert_sort = OrdList.insert TermOrd.sort_ord;
+val remove_sort = OrdList.remove Term_Ord.sort_ord;
+val insert_sort = OrdList.insert Term_Ord.sort_ord;
 
 fun insert_typ (TFree (_, S)) Ss = insert_sort S Ss
   | insert_typ (TVar (_, S)) Ss = insert_sort S Ss

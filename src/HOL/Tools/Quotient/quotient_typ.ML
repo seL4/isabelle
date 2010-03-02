@@ -7,6 +7,9 @@
 
 signature QUOTIENT_TYPE =
 sig
+  val add_quotient_type: ((string list * binding * mixfix) * (typ * term)) * thm
+    -> Proof.context -> (thm * thm) * local_theory
+
   val quotient_type: ((string list * binding * mixfix) * (typ * term)) list
     -> Proof.context -> Proof.state
 
@@ -128,7 +131,7 @@ end
 
 
 (* main function for constructing a quotient type *)
-fun mk_quotient_type (((vs, qty_name, mx), (rty, rel)), equiv_thm) lthy =
+fun add_quotient_type (((vs, qty_name, mx), (rty, rel)), equiv_thm) lthy =
 let
   (* generates the typedef *)
   val ((qty_full_name, typedef_info), lthy1) = typedef_make (vs, qty_name, mx, rel, rty) lthy
@@ -264,7 +267,7 @@ let
   val goals = map (mk_goal o snd) quot_list
 
   fun after_qed thms lthy =
-    fold_map mk_quotient_type (quot_list ~~ thms) lthy |> snd
+    fold_map add_quotient_type (quot_list ~~ thms) lthy |> snd
 in
   theorem after_qed goals lthy
 end
@@ -296,7 +299,7 @@ end
 val quotspec_parser =
     OuterParse.and_list1
      ((OuterParse.type_args -- OuterParse.binding) --
-        OuterParse.opt_infix -- (OuterParse.$$$ "=" |-- OuterParse.typ) --
+        OuterParse.opt_mixfix -- (OuterParse.$$$ "=" |-- OuterParse.typ) --
          (OuterParse.$$$ "/" |-- OuterParse.term))
 
 val _ = OuterKeyword.keyword "/"

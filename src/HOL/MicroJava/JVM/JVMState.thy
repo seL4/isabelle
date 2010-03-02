@@ -33,8 +33,7 @@ types
 
 
 section {* Exceptions *}
-constdefs
-  raise_system_xcpt :: "bool \<Rightarrow> xcpt \<Rightarrow> val option"
+definition raise_system_xcpt :: "bool \<Rightarrow> xcpt \<Rightarrow> val option" where
   "raise_system_xcpt b x \<equiv> raise_if b x None"
 
 section {* Runtime State *}

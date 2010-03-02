@@ -478,8 +478,7 @@ lemma (in monoid) Units_subgroup:
 
 subsection {* Direct Products *}
 
-constdefs
-  DirProd :: "_ \<Rightarrow> _ \<Rightarrow> ('a \<times> 'b) monoid"  (infixr "\<times>\<times>" 80)
+definition DirProd :: "_ \<Rightarrow> _ \<Rightarrow> ('a \<times> 'b) monoid" (infixr "\<times>\<times>" 80) where
   "G \<times>\<times> H \<equiv> \<lparr>carrier = carrier G \<times> carrier H,
                 mult = (\<lambda>(g, h) (g', h'). (g \<otimes>\<^bsub>G\<^esub> g', h \<otimes>\<^bsub>H\<^esub> h')),
                 one = (\<one>\<^bsub>G\<^esub>, \<one>\<^bsub>H\<^esub>)\<rparr>"
@@ -545,8 +544,7 @@ lemma (in group) hom_compose:
   "[|h \<in> hom G H; i \<in> hom H I|] ==> compose (carrier G) i h \<in> hom G I"
 by (fastsimp simp add: hom_def compose_def)
 
-constdefs
-  iso :: "_ => _ => ('a => 'b) set"  (infixr "\<cong>" 60)
+definition iso :: "_ => _ => ('a => 'b) set" (infixr "\<cong>" 60) where
   "G \<cong> H == {h. h \<in> hom G H & bij_betw h (carrier G) (carrier H)}"
 
 lemma iso_refl: "(%x. x) \<in> G \<cong> G"
