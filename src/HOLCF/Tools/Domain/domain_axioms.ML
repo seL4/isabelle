@@ -154,7 +154,7 @@ fun add_axioms definitional eqs' (eqs : eq list) thy' =
           val take_const = %%:(dname^"_take");
           val lub = %%: @{const_name lub};
           val image = %%: @{const_name image};
-          val UNIV = %%: @{const_name UNIV};
+          val UNIV = @{term "UNIV :: nat set"};
           val lhs = lub $ (image $ take_const $ UNIV);
           val ax = mk_trp (lhs === ID);
         in
