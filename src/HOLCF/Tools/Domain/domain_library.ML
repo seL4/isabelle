@@ -95,11 +95,10 @@ sig
       eqtype arg;
   type cons = string * mixfix * arg list;
   type eq = (string * typ list) * cons list;
-  val mk_arg : (bool * Datatype.dtyp) * string option * string -> arg;
+  val mk_arg : (bool * Datatype.dtyp) * string -> arg;
   val is_lazy : arg -> bool;
   val rec_of : arg -> int;
   val dtyp_of : arg -> Datatype.dtyp;
-  val sel_of : arg -> string option;
   val vname : arg -> string;
   val upd_vname : (string -> string) -> arg -> arg;
   val is_rec : arg -> bool;
@@ -186,7 +185,6 @@ fun string_of_typ sg = Syntax.string_of_typ_global sg o Sign.certify_typ sg;
 
 type arg =
      (bool * Datatype.dtyp) *   (*  (lazy, recursive element) *)
-     string option *               (*   selector name    *)
      string;                       (*   argument name    *)
 
 type cons =
@@ -201,15 +199,14 @@ type eq =
 
 val mk_arg = I;
 
-fun rec_of ((_,dtyp),_,_) =
+fun rec_of ((_,dtyp),_) =
     case dtyp of Datatype_Aux.DtRec i => i | _ => ~1;
 (* FIXME: what about indirect recursion? *)
 
-fun is_lazy arg = fst (first arg);
-fun dtyp_of arg = snd (first arg);
-val sel_of    =       second;
-val     vname =       third;
-val upd_vname =   upd_third;
+fun is_lazy arg = fst (fst arg);
+fun dtyp_of arg = snd (fst arg);
+val     vname =       snd;
+val upd_vname =   apsnd;
 fun is_rec         arg = rec_of arg >=0;
 fun is_nonlazy_rec arg = is_rec arg andalso not (is_lazy arg);
 fun nonlazy     args   = map vname (filter_out is_lazy args);
@@ -229,7 +226,7 @@ val trD = mk_liftD boolD;
 fun big_sprodD ds = case ds of [] => oneD | _ => foldr1 mk_sprodD ds;
 fun big_ssumD ds = case ds of [] => unitD | _ => foldr1 mk_ssumD ds;
 
-fun dtyp_of_arg ((lazy, D), _, _) = if lazy then mk_uD D else D;
+fun dtyp_of_arg ((lazy, D), _) = if lazy then mk_uD D else D;
 fun dtyp_of_cons (_, _, args) = big_sprodD (map dtyp_of_arg args);
 fun dtyp_of_eq (_, cons) = big_ssumD (map dtyp_of_cons cons);
 

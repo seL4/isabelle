@@ -158,8 +158,7 @@ fun gen_add_domain
         (Binding.name_of con,  (* FIXME preverse binding (!?) *)
          mx,
          ListPair.map (fn ((lazy,sel,tp),vn) =>
-           mk_arg ((lazy, Datatype_Aux.dtyp_of_typ new_dts tp),
-                   Option.map Binding.name_of sel,vn))
+           mk_arg ((lazy, Datatype_Aux.dtyp_of_typ new_dts tp), vn))
                       (args, Datatype_Prop.make_tnames (map third args))
         ) : cons;
     val eqs : eq list =
@@ -230,8 +229,7 @@ fun gen_add_new_domain
         (Binding.name_of con,   (* FIXME preverse binding (!?) *)
          mx,
          ListPair.map (fn ((lazy,sel,tp),vn) =>
-           mk_arg ((lazy, Datatype_Aux.dtyp_of_typ new_dts tp),
-                   Option.map Binding.name_of sel,vn))
+           mk_arg ((lazy, Datatype_Aux.dtyp_of_typ new_dts tp), vn))
                       (args, Datatype_Prop.make_tnames (map third args))
         ) : cons;
     val eqs : eq list =
