@@ -11,29 +11,32 @@ sig
   val show_types: bool Unsynchronized.ref
   val show_no_free_types: bool Unsynchronized.ref
   val show_all_types: bool Unsynchronized.ref
+  val show_structs: bool Unsynchronized.ref
   val pp_show_brackets: Pretty.pp -> Pretty.pp
 end;
 
 signature PRINTER =
 sig
   include PRINTER0
-  val term_to_ast: Proof.context ->
-    (string -> (Proof.context -> bool -> typ -> term list -> term) list) -> term -> Ast.ast
-  val typ_to_ast: Proof.context ->
-    (string -> (Proof.context -> bool -> typ -> term list -> term) list) -> typ -> Ast.ast
   val sort_to_ast: Proof.context ->
     (string -> (Proof.context -> bool -> typ -> term list -> term) list) -> sort -> Ast.ast
+  val typ_to_ast: Proof.context ->
+    (string -> (Proof.context -> bool -> typ -> term list -> term) list) -> typ -> Ast.ast
+  val term_to_ast: {structs: string list, fixes: string list} -> string list -> Proof.context ->
+    (string -> (Proof.context -> bool -> typ -> term list -> term) list) -> term -> Ast.ast
   type prtabs
   val empty_prtabs: prtabs
   val update_prtabs: string -> SynExt.xprod list -> prtabs -> prtabs
   val remove_prtabs: string -> SynExt.xprod list -> prtabs -> prtabs
   val merge_prtabs: prtabs -> prtabs -> prtabs
-  val pretty_term_ast: (string -> xstring) -> Proof.context -> bool -> prtabs
-    -> (string -> (Proof.context -> Ast.ast list -> Ast.ast) list)
-    -> (string -> (Proof.context -> string -> Pretty.T) option) -> Ast.ast -> Pretty.T list
-  val pretty_typ_ast: Proof.context -> bool -> prtabs
-    -> (string -> (Proof.context -> Ast.ast list -> Ast.ast) list)
-    -> (string -> (Proof.context -> string -> Pretty.T) option) -> Ast.ast -> Pretty.T list
+  val pretty_term_ast: {extern_class: string -> xstring, extern_type: string -> xstring,
+      extern_const: string -> xstring} -> Proof.context -> bool -> prtabs ->
+    (string -> (Proof.context -> Ast.ast list -> Ast.ast) list) ->
+    (string -> (Proof.context -> string -> Pretty.T) option) -> Ast.ast -> Pretty.T list
+  val pretty_typ_ast: {extern_class: string -> xstring, extern_type: string -> xstring} ->
+    Proof.context -> bool -> prtabs ->
+    (string -> (Proof.context -> Ast.ast list -> Ast.ast) list) ->
+    (string -> (Proof.context -> string -> Pretty.T) option) -> Ast.ast -> Pretty.T list
 end;
 
 structure Printer: PRINTER =
@@ -47,6 +50,7 @@ val show_sorts = Unsynchronized.ref false;
 val show_brackets = Unsynchronized.ref false;
 val show_no_free_types = Unsynchronized.ref false;
 val show_all_types = Unsynchronized.ref false;
+val show_structs = Unsynchronized.ref false;
 
 fun pp_show_brackets pp = Pretty.pp (setmp_CRITICAL show_brackets true (Pretty.term pp),
   Pretty.typ pp, Pretty.sort pp, Pretty.classrel pp, Pretty.arity pp);
@@ -84,8 +88,7 @@ fun simple_ast_of (Const (c, _)) = Ast.Constant c
 
 fun ast_of_termT ctxt trf tm =
   let
-    fun ast_of (t as Const ("_class", _) $ Free _) = simple_ast_of t
-      | ast_of (t as Const ("_tfree", _) $ Free _) = simple_ast_of t
+    fun ast_of (t as Const ("_tfree", _) $ Free _) = simple_ast_of t
       | ast_of (t as Const ("_tvar", _) $ Var _) = simple_ast_of t
       | ast_of (Const (a, _)) = trans a []
       | ast_of (t as _ $ _) =
@@ -105,19 +108,30 @@ fun typ_to_ast ctxt trf T = ast_of_termT ctxt trf (TypeExt.term_of_typ (! show_s
 
 (** term_to_ast **)
 
-fun mark_freevars ((t as Const (c, _)) $ u) =
-      if member (op =) SynExt.standard_token_markers c then (t $ u)
-      else t $ mark_freevars u
-  | mark_freevars (t $ u) = mark_freevars t $ mark_freevars u
-  | mark_freevars (Abs (x, T, t)) = Abs (x, T, mark_freevars t)
-  | mark_freevars (t as Free _) = Lexicon.const "_free" $ t
-  | mark_freevars (t as Var (xi, T)) =
-      if xi = SynExt.dddot_indexname then Const ("_DDDOT", T)
-      else Lexicon.const "_var" $ t
-  | mark_freevars a = a;
-
-fun ast_of_term ctxt trf show_all_types no_freeTs show_types show_sorts tm =
+fun ast_of_term idents consts ctxt trf
+    show_all_types no_freeTs show_types show_sorts show_structs tm =
   let
+    val {structs, fixes} = idents;
+
+    fun mark_atoms ((t as Const (c, T)) $ u) =
+          if member (op =) consts c then (t $ u)
+          else Const (Lexicon.mark_const c, T) $ mark_atoms u
+      | mark_atoms (t $ u) = mark_atoms t $ mark_atoms u
+      | mark_atoms (Abs (x, T, t)) = Abs (x, T, mark_atoms t)
+      | mark_atoms (Const (c, T)) = Const (Lexicon.mark_const c, T)
+      | mark_atoms (t as Free (x, T)) =
+          let val i = find_index (fn s => s = x) structs + 1 in
+            if i = 0 andalso member (op =) fixes x then
+              Term.Const (Lexicon.mark_fixed x, T)
+            else if i = 1 andalso not show_structs then
+              Lexicon.const "_struct" $ Lexicon.const "_indexdefault"
+            else Lexicon.const "_free" $ t
+          end
+      | mark_atoms (t as Var (xi, T)) =
+          if xi = SynExt.dddot_indexname then Const ("_DDDOT", T)
+          else Lexicon.const "_var" $ t
+      | mark_atoms a = a;
+
     fun prune_typs (t_seen as (Const _, _)) = t_seen
       | prune_typs (t as Free (x, ty), seen) =
           if ty = dummyT then (t, seen)
@@ -148,9 +162,9 @@ fun ast_of_term ctxt trf show_all_types no_freeTs show_types show_sorts tm =
           Ast.mk_appl (constrain (c $ Lexicon.free x) T) (map ast_of ts)
       | (Const ("_idtdummy", T), ts) =>
           Ast.mk_appl (constrain (Lexicon.const "_idtdummy") T) (map ast_of ts)
-      | (c' as Const (c, T), ts) =>
+      | (const as Const (c, T), ts) =>
           if show_all_types
-          then Ast.mk_appl (constrain c' T) (map ast_of ts)
+          then Ast.mk_appl (constrain const T) (map ast_of ts)
           else trans c T ts
       | (t, ts) => Ast.mk_appl (simple_ast_of t) (map ast_of ts))
 
@@ -162,18 +176,18 @@ fun ast_of_term ctxt trf show_all_types no_freeTs show_types show_sorts tm =
       if show_types andalso T <> dummyT then
         Ast.Appl [Ast.Constant SynExt.constrainC, simple_ast_of t,
           ast_of_termT ctxt trf (TypeExt.term_of_typ show_sorts T)]
-      else simple_ast_of t
+      else simple_ast_of t;
   in
     tm
     |> SynTrans.prop_tr'
-    |> (if show_types then #1 o prune_typs o rpair [] else I)
-    |> mark_freevars
+    |> show_types ? (#1 o prune_typs o rpair [])
+    |> mark_atoms
     |> ast_of
   end;
 
-fun term_to_ast ctxt trf tm =
-  ast_of_term ctxt trf (! show_all_types) (! show_no_free_types)
-    (! show_types orelse ! show_sorts orelse ! show_all_types) (! show_sorts) tm;
+fun term_to_ast idents consts ctxt trf tm =
+  ast_of_term idents consts ctxt trf (! show_all_types) (! show_no_free_types)
+    (! show_types orelse ! show_sorts orelse ! show_all_types) (! show_sorts) (! show_structs) tm;
 
 
 
@@ -267,8 +281,10 @@ fun is_chain [Block (_, pr)] = is_chain pr
   | is_chain [Arg _] = true
   | is_chain _  = false;
 
-fun pretty extern_const ctxt tabs trf tokentrf type_mode curried ast0 p0 =
+fun pretty extern ctxt tabs trf tokentrf type_mode curried ast0 p0 =
   let
+    val {extern_class, extern_type, extern_const} = extern;
+
     fun token_trans a x =
       (case tokentrf a of
         NONE =>
@@ -291,7 +307,7 @@ fun pretty extern_const ctxt tabs trf tokentrf type_mode curried ast0 p0 =
             val (Ts, args') = synT markup (symbs, args);
           in
             if type_mode then (astT (t, p) @ Ts, args')
-            else (pretty I ctxt tabs trf tokentrf true curried t p @ Ts, args')
+            else (pretty extern ctxt tabs trf tokentrf true curried t p @ Ts, args')
           end
       | synT markup (String s :: symbs, args) =
           let val (Ts, args') = synT markup (symbs, args);
@@ -312,7 +328,6 @@ fun pretty extern_const ctxt tabs trf tokentrf type_mode curried ast0 p0 =
             val (Ts, args') = synT markup (symbs, args);
             val T = if i < 0 then Pretty.fbrk else Pretty.brk i;
           in (T :: Ts, args') end
-      | synT _ (_ :: _, []) = sys_error "synT"
 
     and parT markup (pr, args, p, p': int) = #1 (synT markup
           (if p > p' orelse
@@ -320,13 +335,12 @@ fun pretty extern_const ctxt tabs trf tokentrf type_mode curried ast0 p0 =
             then [Block (1, Space "(" :: pr @ [Space ")"])]
             else pr, args))
 
-    and atomT a =
-      (case try Lexicon.unmark_const a of
-        SOME c => Pretty.mark (Markup.const c) (Pretty.str (extern_const c))
-      | NONE =>
-          (case try Lexicon.unmark_fixed a of
-            SOME x => the (token_trans "_free" x)
-          | NONE => Pretty.str a))
+    and atomT a = a |> Lexicon.unmark
+     {case_class = fn c => Pretty.mark (Markup.tclass c) (Pretty.str (extern_class c)),
+      case_type = fn c => Pretty.mark (Markup.tycon c) (Pretty.str (extern_type c)),
+      case_const = fn c => Pretty.mark (Markup.const c) (Pretty.str (extern_const c)),
+      case_fixed = fn x => the (token_trans "_free" x),
+      case_default = Pretty.str}
 
     and prefixT (_, a, [], _) = [atomT a]
       | prefixT (c, _, args, p) = astT (appT (c, args), p)
@@ -334,15 +348,16 @@ fun pretty extern_const ctxt tabs trf tokentrf type_mode curried ast0 p0 =
     and splitT 0 ([x], ys) = (x, ys)
       | splitT 0 (rev_xs, ys) = (Ast.Appl (rev rev_xs), ys)
       | splitT n (rev_xs, y :: ys) = splitT (n - 1) (y :: rev_xs, ys)
-      | splitT _ _ = sys_error "splitT"
 
     and combT (tup as (c, a, args, p)) =
       let
         val nargs = length args;
-        val markup = Pretty.mark
-          (Markup.const (Lexicon.unmark_const a) handle Fail _ =>
-            (Markup.fixed (Lexicon.unmark_fixed a)))
-          handle Fail _ => I;
+        val markup = a |> Lexicon.unmark
+         {case_class = Pretty.mark o Markup.tclass,
+          case_type = Pretty.mark o Markup.tycon,
+          case_const = Pretty.mark o Markup.const,
+          case_fixed = Pretty.mark o Markup.fixed,
+          case_default = K I};
 
         (*find matching table entry, or print as prefix / postfix*)
         fun prnt ([], []) = prefixT tup
@@ -371,15 +386,16 @@ fun pretty extern_const ctxt tabs trf tokentrf type_mode curried ast0 p0 =
 
 (* pretty_term_ast *)
 
-fun pretty_term_ast extern_const ctxt curried prtabs trf tokentrf ast =
-  pretty extern_const ctxt (mode_tabs prtabs (print_mode_value ()))
+fun pretty_term_ast extern ctxt curried prtabs trf tokentrf ast =
+  pretty extern ctxt (mode_tabs prtabs (print_mode_value ()))
     trf tokentrf false curried ast 0;
 
 
 (* pretty_typ_ast *)
 
-fun pretty_typ_ast ctxt _ prtabs trf tokentrf ast =
-  pretty I ctxt (mode_tabs prtabs (print_mode_value ()))
+fun pretty_typ_ast {extern_class, extern_type} ctxt _ prtabs trf tokentrf ast =
+  pretty {extern_class = extern_class, extern_type = extern_type, extern_const = I}
+    ctxt (mode_tabs prtabs (print_mode_value ()))
     trf tokentrf true false ast 0;
 
 end;

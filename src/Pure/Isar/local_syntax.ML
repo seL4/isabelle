@@ -4,13 +4,11 @@
 Local syntax depending on theory syntax.
 *)
 
-val show_structs = Unsynchronized.ref false;
-
 signature LOCAL_SYNTAX =
 sig
   type T
   val syn_of: T -> Syntax.syntax
-  val structs_of: T -> string list
+  val idents_of: T -> {structs: string list, fixes: string list}
   val init: theory -> T
   val rebuild: theory -> T -> T
   datatype kind = Type | Const | Fixed
@@ -19,7 +17,6 @@ sig
   val restore_mode: T -> T -> T
   val update_modesyntax: theory -> bool -> Syntax.mode ->
     (kind * (string * typ * mixfix)) list -> T -> T
-  val extern_term: T -> term -> term
 end;
 
 structure Local_Syntax: LOCAL_SYNTAX =
@@ -49,8 +46,7 @@ fun is_consistent thy (Syntax {thy_syntax, ...}) =
   Syntax.eq_syntax (Sign.syn_of thy, thy_syntax);
 
 fun syn_of (Syntax {local_syntax, ...}) = local_syntax;
-fun idents_of (Syntax {idents, ...}) = idents;
-val structs_of = #1 o idents_of;
+fun idents_of (Syntax {idents = (structs, fixes), ...}) = {structs = structs, fixes = fixes};
 
 
 (* build syntax *)
@@ -124,22 +120,5 @@ fun restore_mode (Syntax {mode, ...}) = set_mode mode;
 
 fun update_modesyntax thy add mode args syntax =
   syntax |> set_mode mode |> update_syntax add thy args |> restore_mode syntax;
-
-
-(* extern_term *)
-
-fun extern_term syntax =
-  let
-    val (structs, fixes) = idents_of syntax;
-    fun map_free (t as Free (x, T)) =
-          let val i = find_index (fn s => s = x) structs + 1 in
-            if i = 0 andalso member (op =) fixes x then
-              Term.Const (Syntax.mark_fixed x, T)
-            else if i = 1 andalso not (! show_structs) then
-              Syntax.const "_struct" $ Syntax.const "_indexdefault"
-            else t
-          end
-      | map_free t = t;
-  in Term.map_aterms map_free end;
 
 end;

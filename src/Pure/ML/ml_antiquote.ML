@@ -104,7 +104,7 @@ val _ = value "cpat"
 
 fun class syn = Args.theory -- Scan.lift Args.name_source >> (fn (thy, s) =>
   Sign.read_class thy s
-  |> syn ? Long_Name.base_name   (* FIXME authentic syntax *)
+  |> syn ? Syntax.mark_class
   |> ML_Syntax.print_string);
 
 val _ = inline "class" (class false);
@@ -130,7 +130,7 @@ fun type_name kind check = Args.context -- Scan.lift (OuterParse.position Args.n
 val _ = inline "type_name" (type_name "logical type" (fn (c, Type.LogicalType _) => c));
 val _ = inline "type_abbrev" (type_name "type abbreviation" (fn (c, Type.Abbreviation _) => c));
 val _ = inline "nonterminal" (type_name "nonterminal" (fn (c, Type.Nonterminal) => c));
-val _ = inline "type_syntax" (type_name "type" (fn (c, _) => Long_Name.base_name c));  (* FIXME authentic syntax *)
+val _ = inline "type_syntax" (type_name "type" (fn (c, _) => Syntax.mark_type c));
 
 
 (* constants *)
