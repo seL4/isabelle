@@ -47,6 +47,7 @@ test: \
   HOL-MicroJava \
   HOL-Mirabelle \
   HOL-Modelcheck \
+  HOL-Mutabelle \
   HOL-NanoJava \
   HOL-Nitpick_Examples \
   HOL-Nominal-Examples \
