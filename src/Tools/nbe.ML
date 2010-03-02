@@ -235,7 +235,7 @@ fun nbe_fun 0 "" = "nbe_value"
 fun nbe_dict v n = "d_" ^ v ^ "_" ^ string_of_int n;
 fun nbe_bound v = "v_" ^ v;
 fun nbe_bound_optional NONE = "_"
-  | nbe_bound_optional  (SOME v) = nbe_bound v;
+  | nbe_bound_optional (SOME v) = nbe_bound v;
 fun nbe_default v = "w_" ^ v;
 
 (*note: these three are the "turning spots" where proper argument order is established!*)
@@ -434,7 +434,7 @@ fun compile_stmts ctxt stmts_deps =
       #-> fold (fn (name, univ) => (Graph.map_node name o apfst) (K (SOME univ))))
   end;
 
-fun ensure_stmts ctxt naming program =
+fun ensure_stmts ctxt program =
   let
     fun add_stmts names (gr, (maxidx, idx_tab)) = if exists ((can o Graph.get_node) gr) names
       then (gr, (maxidx, idx_tab))
@@ -443,7 +443,6 @@ fun ensure_stmts ctxt naming program =
           Graph.imm_succs program name)) names);
   in
     fold_rev add_stmts (Graph.strong_conn program)
-    #> pair naming
   end;
 
 
@@ -513,18 +512,18 @@ fun term_of_univ thy program idx_tab t =
 
 structure Nbe_Functions = Code_Data
 (
-  type T = Code_Thingol.naming * ((Univ option * int) Graph.T * (int * string Inttab.table));
-  val empty = (Code_Thingol.empty_naming, (Graph.empty, (0, Inttab.empty)));
+  type T = (Univ option * int) Graph.T * (int * string Inttab.table);
+  val empty = (Graph.empty, (0, Inttab.empty));
 );
 
 
 (* compilation, evaluation and reification *)
 
-fun compile_eval thy naming program vs_t deps =
+fun compile_eval thy program vs_t deps =
   let
     val ctxt = ProofContext.init thy;
-    val (_, (gr, (_, idx_tab))) =
-      Nbe_Functions.change thy (ensure_stmts ctxt naming program o snd);
+    val (gr, (_, idx_tab)) =
+      Nbe_Functions.change thy (ensure_stmts ctxt program);
   in
     vs_t
     |> eval_term ctxt gr deps
@@ -534,7 +533,7 @@ fun compile_eval thy naming program vs_t deps =
 
 (* evaluation with type reconstruction *)
 
-fun normalize thy naming program ((vs0, (vs, ty)), t) deps =
+fun normalize thy program ((vs0, (vs, ty)), t) deps =
   let
     val ty' = typ_of_itype program vs0 ty;
     fun type_infer t =
@@ -546,7 +545,7 @@ fun normalize thy naming program ((vs0, (vs, ty)), t) deps =
         ^ setmp_CRITICAL show_types true (Syntax.string_of_term_global thy) t);
     val string_of_term = setmp_CRITICAL show_types true (Syntax.string_of_term_global thy);
   in
-    compile_eval thy naming program (vs, t) deps
+    compile_eval thy program (vs, t) deps
     |> traced (fn t => "Normalized:\n" ^ string_of_term t)
     |> type_infer
     |> traced (fn t => "Types inferred:\n" ^ string_of_term t)
@@ -565,11 +564,11 @@ fun mk_equals thy lhs raw_rhs =
   in Thm.mk_binop eq lhs rhs end;
 
 val (_, raw_norm_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (Binding.name "norm", fn (thy, naming, program, vsp_ty_t, deps, ct) =>
-    mk_equals thy ct (normalize thy naming program vsp_ty_t deps))));
+  (Thm.add_oracle (Binding.name "norm", fn (thy, program, vsp_ty_t, deps, ct) =>
+    mk_equals thy ct (normalize thy program vsp_ty_t deps))));
 
-fun norm_oracle thy naming program vsp_ty_t deps ct =
-  raw_norm_oracle (thy, naming, program, vsp_ty_t, deps, ct);
+fun norm_oracle thy program vsp_ty_t deps ct =
+  raw_norm_oracle (thy, program, vsp_ty_t, deps, ct);
 
 fun no_frees_conv conv ct =
   let
@@ -597,9 +596,9 @@ fun no_frees_rew rew t =
 val norm_conv = no_frees_conv (fn ct =>
   let
     val thy = Thm.theory_of_cterm ct;
-  in lift_triv_classes_conv thy (Code_Thingol.eval_conv thy (norm_oracle thy)) ct end);
+  in lift_triv_classes_conv thy (Code_Thingol.eval_conv thy (K (norm_oracle thy))) ct end);
 
-fun norm thy = lift_triv_classes_rew thy (no_frees_rew (Code_Thingol.eval thy I (normalize thy)));
+fun norm thy = lift_triv_classes_rew thy (no_frees_rew (Code_Thingol.eval thy I (K (normalize thy))));
 
 
 (* evaluation command *)
