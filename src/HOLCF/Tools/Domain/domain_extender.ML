@@ -153,6 +153,8 @@ fun gen_add_domain
           |> fold (AxClass.axiomatize_arity o thy_arity) dtnvs
       end;
 
+    val dbinds : binding list =
+        map (fn (_,dbind,_,_) => dbind) eqs''';
     val cons''' :
         (binding * (bool * binding option * 'a) list * mixfix) list list =
         map (fn (_,_,_,cons) => cons) eqs''';
@@ -164,7 +166,7 @@ fun gen_add_domain
     val eqs' : ((string * typ list) *
         (binding * (bool * binding option * typ) list * mixfix) list) list =
         check_and_sort_domain false dtnvs' cons'' thy;
-    val thy = Domain_Syntax.add_syntax eqs' thy;
+(*    val thy = Domain_Syntax.add_syntax eqs' thy; *)
     val dts : typ list = map (Type o fst) eqs';
     val new_dts : (string * string list) list =
         map (fn ((s,Ts),_) => (s, map (fst o dest_TFree) Ts)) eqs';
@@ -175,7 +177,15 @@ fun gen_add_domain
                       (args, Datatype_Prop.make_tnames (map third args)));
     val eqs : eq list =
         map (fn (dtnvs,cons') => (dtnvs, map one_con cons')) eqs';
-    val thy = Domain_Axioms.add_axioms eqs' eqs thy;
+
+    fun mk_arg_typ (lazy, dest_opt, T) = if lazy then mk_uT T else T;
+    fun mk_con_typ (bind, args, mx) =
+        if null args then oneT else foldr1 mk_sprodT (map mk_arg_typ args);
+    fun mk_eq_typ (_, cons) = foldr1 mk_ssumT (map mk_con_typ cons);
+    val repTs : typ list = map mk_eq_typ eqs';
+    val dom_eqns : (binding * (typ * typ)) list = dbinds ~~ (dts ~~ repTs);
+    val thy = Domain_Axioms.add_axioms dom_eqns thy;
+
     val ((rewss, take_rews), theorems_thy) =
         thy
           |> fold_map (fn (eq, (x,cs)) =>

@@ -274,7 +274,6 @@ using assms by (simp add: lub_distribs)
 use "Tools/cont_consts.ML"
 use "Tools/cont_proc.ML"
 use "Tools/Domain/domain_library.ML"
-use "Tools/Domain/domain_syntax.ML"
 use "Tools/Domain/domain_axioms.ML"
 use "Tools/Domain/domain_constructors.ML"
 use "Tools/Domain/domain_theorems.ML"
