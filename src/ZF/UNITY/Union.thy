@@ -40,22 +40,21 @@ definition
   "safety_prop(X) == X\<subseteq>program &
       SKIP \<in> X & (\<forall>G \<in> program. Acts(G) \<subseteq> (\<Union>F \<in> X. Acts(F)) --> G \<in> X)"
   
+notation (xsymbols)
+  SKIP  ("\<bottom>") and
+  Join  (infixl "\<squnion>" 65)
+
 syntax
   "_JOIN1"     :: "[pttrns, i] => i"         ("(3JN _./ _)" 10)
   "_JOIN"      :: "[pttrn, i, i] => i"       ("(3JN _:_./ _)" 10)
+syntax (xsymbols)
+  "_JOIN1"  :: "[pttrns, i] => i"     ("(3\<Squnion> _./ _)" 10)
+  "_JOIN"   :: "[pttrn, i, i] => i"   ("(3\<Squnion> _ \<in> _./ _)" 10)
 
 translations
   "JN x:A. B"   == "CONST JOIN(A, (%x. B))"
   "JN x y. B"   == "JN x. JN y. B"
   "JN x. B"     == "CONST JOIN(CONST state,(%x. B))"
-
-notation (xsymbols)
-  SKIP  ("\<bottom>") and
-  Join  (infixl "\<squnion>" 65)
-
-syntax (xsymbols)
-  "_JOIN1"  :: "[pttrns, i] => i"     ("(3\<Squnion> _./ _)" 10)
-  "_JOIN"   :: "[pttrn, i, i] => i"   ("(3\<Squnion> _ \<in> _./ _)" 10)
 
 
 subsection{*SKIP*}

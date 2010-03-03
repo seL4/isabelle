@@ -46,7 +46,6 @@ sig
   val qualified_path: bool -> binding -> naming -> naming
   val transform_binding: naming -> binding -> binding
   val full_name: naming -> binding -> string
-  val external_names: naming -> string -> string list
   val declare: bool -> naming -> binding -> T -> string * T
   type 'a table = T * 'a Symtab.table
   val define: bool -> naming -> binding * 'a -> 'a table -> string * 'a table
@@ -308,8 +307,6 @@ fun accesses naming binding =
     val sfxs = mandatory_suffixes spec;
     val pfxs = mandatory_prefixes spec;
   in pairself (map Long_Name.implode) (sfxs @ pfxs, sfxs) end;
-
-fun external_names naming = #2 o accesses naming o Binding.qualified_name;
 
 
 (* declaration *)

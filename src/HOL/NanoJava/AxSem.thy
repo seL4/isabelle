@@ -13,10 +13,10 @@ types assn   = "state => bool"
       triple = "assn \<times> stmt \<times>  assn"
      etriple = "assn \<times> expr \<times> vassn"
 translations
-  "assn"   \<leftharpoondown> (type)"state => bool"
- "vassn"   \<leftharpoondown> (type)"val => assn"
-  "triple" \<leftharpoondown> (type)"assn \<times> stmt \<times>  assn"
- "etriple" \<leftharpoondown> (type)"assn \<times> expr \<times> vassn"
+  (type) "assn" \<leftharpoondown> (type) "state => bool"
+  (type) "vassn" \<leftharpoondown> (type) "val => assn"
+  (type) "triple" \<leftharpoondown> (type) "assn \<times> stmt \<times> assn"
+  (type) "etriple" \<leftharpoondown> (type) "assn \<times> expr \<times> vassn"
 
 
 subsection "Hoare Logic Rules"

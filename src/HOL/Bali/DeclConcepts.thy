@@ -1377,7 +1377,7 @@ types
   fspec = "vname \<times> qtname"
 
 translations 
-  "fspec" <= (type) "vname \<times> qtname" 
+  (type) "fspec" <= (type) "vname \<times> qtname" 
 
 definition imethds :: "prog \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> mhead) tables" where
 "imethds G I 

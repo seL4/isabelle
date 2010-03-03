@@ -363,15 +363,11 @@ fun var_or_skolem _ s =
           (Pretty.str (setmp_CRITICAL show_question_marks true Term.string_of_vname (x', i))))
   | NONE => Pretty.mark Markup.var (Pretty.str s));
 
-fun class_markup _ c =    (* FIXME authentic syntax *)
-  Pretty.mark (Markup.tclassN, []) (Pretty.str c);
-
 fun plain_markup m _ s = Pretty.mark m (Pretty.str s);
 
 val token_trans =
  Syntax.tokentrans_mode ""
-  [("class", class_markup),
-   ("tfree", plain_markup Markup.tfree),
+  [("tfree", plain_markup Markup.tfree),
    ("tvar", plain_markup Markup.tvar),
    ("free", free_or_skolem),
    ("bound", plain_markup Markup.bound),
@@ -601,14 +597,12 @@ fun term_context ctxt =
    {get_sort = get_sort thy (Variable.def_sort ctxt),
     map_const = fn a => ((true, #1 (Term.dest_Const (read_const_proper ctxt false a)))
       handle ERROR _ => (false, Consts.intern (consts_of ctxt) a)),
-    map_free = intern_skolem ctxt (Variable.def_type ctxt false),
-    map_type = Sign.intern_tycons thy,
-    map_sort = Sign.intern_sort thy}
+    map_free = intern_skolem ctxt (Variable.def_type ctxt false)}
   end;
 
 fun decode_term ctxt =
-  let val {get_sort, map_const, map_free, map_type, map_sort} = term_context ctxt
-  in Syntax.decode_term get_sort map_const map_free map_type map_sort end;
+  let val {get_sort, map_const, map_free} = term_context ctxt
+  in Syntax.decode_term get_sort map_const map_free end;
 
 end;
 
@@ -677,26 +671,23 @@ local
 fun parse_sort ctxt text =
   let
     val (syms, pos) = Syntax.parse_token Markup.sort text;
-    val S = Syntax.standard_parse_sort ctxt (syn_of ctxt)
-        (Sign.intern_sort (theory_of ctxt)) (syms, pos)
+    val S = Syntax.standard_parse_sort ctxt (syn_of ctxt) (syms, pos)
       handle ERROR msg => cat_error msg  ("Failed to parse sort" ^ Position.str_of pos)
   in S end;
 
 fun parse_typ ctxt text =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = theory_of ctxt;
     val get_sort = get_sort thy (Variable.def_sort ctxt);
-
     val (syms, pos) = Syntax.parse_token Markup.typ text;
-    val T = Sign.intern_tycons thy
-        (Syntax.standard_parse_typ ctxt (syn_of ctxt) get_sort (Sign.intern_sort thy) (syms, pos))
-      handle ERROR msg => cat_error msg  ("Failed to parse type" ^ Position.str_of pos);
+    val T = Syntax.standard_parse_typ ctxt (syn_of ctxt) get_sort (syms, pos)
+      handle ERROR msg => cat_error msg ("Failed to parse type" ^ Position.str_of pos);
   in T end;
 
 fun parse_term T ctxt text =
   let
     val thy = theory_of ctxt;
-    val {get_sort, map_const, map_free, map_type, map_sort} = term_context ctxt;
+    val {get_sort, map_const, map_free} = term_context ctxt;
 
     val (T', _) = TypeInfer.paramify_dummies T 0;
     val (markup, kind) = if T' = propT then (Markup.prop, "proposition") else (Markup.term, "term");
@@ -704,29 +695,35 @@ fun parse_term T ctxt text =
 
     fun check t = (Syntax.check_term ctxt (TypeInfer.constrain T' t); NONE)
       handle ERROR msg => SOME msg;
-    val t = Syntax.standard_parse_term (Syntax.pp ctxt) check get_sort map_const map_free
-        map_type map_sort ctxt (Sign.is_logtype thy) (syn_of ctxt) T' (syms, pos)
+    val t =
+      Syntax.standard_parse_term (Syntax.pp ctxt) check get_sort map_const map_free
+        ctxt (Sign.is_logtype thy) (syn_of ctxt) T' (syms, pos)
       handle ERROR msg => cat_error msg  ("Failed to parse " ^ kind ^ Position.str_of pos);
   in t end;
 
 
-fun unparse_sort ctxt S =
-  Syntax.standard_unparse_sort ctxt (syn_of ctxt) (Sign.extern_sort (theory_of ctxt) S);
+fun unparse_sort ctxt =
+  Syntax.standard_unparse_sort {extern_class = Sign.extern_class (theory_of ctxt)}
+    ctxt (syn_of ctxt);
 
-fun unparse_typ ctxt T =
-  Syntax.standard_unparse_typ ctxt (syn_of ctxt) (Sign.extern_typ (theory_of ctxt) T);
+fun unparse_typ ctxt =
+  let
+    val thy = theory_of ctxt;
+    val extern = {extern_class = Sign.extern_class thy, extern_type = Sign.extern_type thy};
+  in Syntax.standard_unparse_typ extern ctxt (syn_of ctxt) end;
 
-fun unparse_term ctxt t =
+fun unparse_term ctxt =
   let
     val thy = theory_of ctxt;
     val syntax = syntax_of ctxt;
     val consts = consts_of ctxt;
+    val extern =
+     {extern_class = Sign.extern_class thy,
+      extern_type = Sign.extern_type thy,
+      extern_const = Consts.extern consts};
   in
-    t
-    |> Sign.extern_term thy
-    |> Local_Syntax.extern_term syntax
-    |> Syntax.standard_unparse_term (Consts.extern consts) ctxt
-        (Local_Syntax.syn_of syntax) (not (PureThy.old_appl_syntax thy))
+    Syntax.standard_unparse_term (Local_Syntax.idents_of syntax) extern ctxt
+      (Local_Syntax.syn_of syntax) (not (PureThy.old_appl_syntax thy))
   end;
 
 in
@@ -1010,18 +1007,20 @@ fun const_ast_tr intern ctxt [Syntax.Variable c] =
       in Syntax.Constant d end
   | const_ast_tr _ _ asts = raise Syntax.AST ("const_ast_tr", asts);
 
+val typ = Simple_Syntax.read_typ;
+
 in
 
 val _ = Context.>> (Context.map_theory
- (Sign.add_syntax
-   [("_context_const", "id => logic", Delimfix "CONST _"),
-    ("_context_const", "id => aprop", Delimfix "CONST _"),
-    ("_context_const", "longid => logic", Delimfix "CONST _"),
-    ("_context_const", "longid => aprop", Delimfix "CONST _"),
-    ("_context_xconst", "id => logic", Delimfix "XCONST _"),
-    ("_context_xconst", "id => aprop", Delimfix "XCONST _"),
-    ("_context_xconst", "longid => logic", Delimfix "XCONST _"),
-    ("_context_xconst", "longid => aprop", Delimfix "XCONST _")] #>
+ (Sign.add_syntax_i
+   [("_context_const", typ "id => logic", Delimfix "CONST _"),
+    ("_context_const", typ "id => aprop", Delimfix "CONST _"),
+    ("_context_const", typ "longid => logic", Delimfix "CONST _"),
+    ("_context_const", typ "longid => aprop", Delimfix "CONST _"),
+    ("_context_xconst", typ "id => logic", Delimfix "XCONST _"),
+    ("_context_xconst", typ "id => aprop", Delimfix "XCONST _"),
+    ("_context_xconst", typ "longid => logic", Delimfix "XCONST _"),
+    ("_context_xconst", typ "longid => aprop", Delimfix "XCONST _")] #>
   Sign.add_advanced_trfuns
     ([("_context_const", const_ast_tr true), ("_context_xconst", const_ast_tr false)], [], [], [])));
 
@@ -1032,8 +1031,8 @@ end;
 
 local
 
-fun type_syntax (Type (c, args), mx) =  (* FIXME authentic syntax *)
-      SOME (Local_Syntax.Type, (Long_Name.base_name c, Syntax.make_type (length args), mx))
+fun type_syntax (Type (c, args), mx) =
+      SOME (Local_Syntax.Type, (Syntax.mark_type c, Syntax.make_type (length args), mx))
   | type_syntax _ = NONE;
 
 fun const_syntax _ (Free (x, T), mx) = SOME (Local_Syntax.Fixed, (x, T, mx))
@@ -1345,7 +1344,7 @@ fun pretty_ctxt ctxt =
       val prt_term = Syntax.pretty_term ctxt;
 
       (*structures*)
-      val structs = Local_Syntax.structs_of (syntax_of ctxt);
+      val {structs, ...} = Local_Syntax.idents_of (syntax_of ctxt);
       val prt_structs =
         if null structs then []
         else [Pretty.block (Pretty.str "structures:" :: Pretty.brk 1 ::
@@ -1415,3 +1414,4 @@ fun pretty_context ctxt =
   end;
 
 end;
+

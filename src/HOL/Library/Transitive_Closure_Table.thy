@@ -107,25 +107,25 @@ proof (induct xs rule: measure_induct_rule [of length])
     proof (cases as)
       case Nil
       with xxs have x: "x = a" and xs: "xs = bs @ a # cs"
-	by auto
+        by auto
       from x xs `rtrancl_path r x xs y` have cs: "rtrancl_path r x cs y"
-	by (auto elim: rtrancl_path_appendE)
+        by (auto elim: rtrancl_path_appendE)
       from xs have "length cs < length xs" by simp
       then show ?thesis
-	by (rule less(1)) (iprover intro: cs less(2))+
+        by (rule less(1)) (iprover intro: cs less(2))+
     next
       case (Cons d ds)
       with xxs have xs: "xs = ds @ a # (bs @ [a] @ cs)"
-	by auto
+        by auto
       with `rtrancl_path r x xs y` obtain xa: "rtrancl_path r x (ds @ [a]) a"
         and ay: "rtrancl_path r a (bs @ a # cs) y"
-	by (auto elim: rtrancl_path_appendE)
+        by (auto elim: rtrancl_path_appendE)
       from ay have "rtrancl_path r a cs y" by (auto elim: rtrancl_path_appendE)
       with xa have xy: "rtrancl_path r x ((ds @ [a]) @ cs) y"
-	by (rule rtrancl_path_trans)
+        by (rule rtrancl_path_trans)
       from xs have "length ((ds @ [a]) @ cs) < length xs" by simp
       then show ?thesis
-	by (rule less(1)) (iprover intro: xy less(2))+
+        by (rule less(1)) (iprover intro: xy less(2))+
     qed
   qed
 qed

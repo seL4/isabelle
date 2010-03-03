@@ -286,14 +286,14 @@ where
 by auto
 
 lemma graph_implies_dom:
-	"mrec_graph x y \<Longrightarrow> mrec_dom x"
+  "mrec_graph x y \<Longrightarrow> mrec_dom x"
 apply (induct rule:mrec_graph.induct) 
 apply (rule accpI)
 apply (erule mrec_rel.cases)
 by simp
 
 lemma f_default: "\<not> mrec_dom (f, g, x, h) \<Longrightarrow> mrec f g x h = (Inr Exn, undefined)"
-	unfolding mrec_def 
+  unfolding mrec_def 
   by (rule fundef_default_value[OF mrec_sumC_def graph_implies_dom, of _ _ "(f, g, x, h)", simplified])
 
 lemma f_di_reverse: 

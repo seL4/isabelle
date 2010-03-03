@@ -697,10 +697,8 @@ fun decode_type thy t =
   let
     fun get_sort env xi =
       the_default (Sign.defaultS thy) (AList.lookup (op =) env (xi: indexname));
-    val map_sort = Sign.intern_sort thy;
   in
-    Syntax.typ_of_term (get_sort (Syntax.term_sorts map_sort t)) map_sort t
-    |> Sign.intern_tycons thy
+    Syntax.typ_of_term (get_sort (Syntax.term_sorts t)) t
   end;
 
 
@@ -752,8 +750,8 @@ fun record_field_types_tr more ctxt t =
 
                     val more' = mk_ext rest;
                   in
-                    (* FIXME authentic syntax *)
-                    list_comb (Syntax.const (suffix ext_typeN ext), alphas' @ [more'])
+                    list_comb
+                      (Syntax.const (Syntax.mark_type (suffix ext_typeN ext)), alphas' @ [more'])
                   end
               | NONE => err ("no fields defined for " ^ ext))
           | NONE => err (name ^ " is no proper field"))
@@ -857,7 +855,7 @@ fun record_type_tr' ctxt t =
     val T = decode_type thy t;
     val varifyT = varifyT (Term.maxidx_of_typ T);
 
-    val term_of_type = Syntax.term_of_typ (! Syntax.show_sorts) o Sign.extern_typ thy;
+    val term_of_type = Syntax.term_of_typ (! Syntax.show_sorts);
 
     fun strip_fields T =
       (case T of
@@ -922,8 +920,7 @@ fun record_type_abbr_tr' abbr alphas zeta last_ext schemeT ctxt tm =
 
     fun mk_type_abbr subst name alphas =
       let val abbrT = Type (name, map (fn a => varifyT (TFree (a, Sign.defaultS thy))) alphas) in
-        Syntax.term_of_typ (! Syntax.show_sorts)
-          (Sign.extern_typ thy (Envir.norm_type subst abbrT))
+        Syntax.term_of_typ (! Syntax.show_sorts) (Envir.norm_type subst abbrT)
       end;
 
     fun match rT T = Sign.typ_match thy (varifyT rT, T) Vartab.empty;
@@ -946,14 +943,14 @@ in
 
 fun record_ext_type_tr' name =
   let
-    val ext_type_name = suffix ext_typeN name;
+    val ext_type_name = Syntax.mark_type (suffix ext_typeN name);
     fun tr' ctxt ts =
       record_type_tr' ctxt (list_comb (Syntax.const ext_type_name, ts));
   in (ext_type_name, tr') end;
 
 fun record_ext_type_abbr_tr' abbr alphas zeta last_ext schemeT name =
   let
-    val ext_type_name = suffix ext_typeN name;
+    val ext_type_name = Syntax.mark_type (suffix ext_typeN name);
     fun tr' ctxt ts =
       record_type_abbr_tr' abbr alphas zeta last_ext schemeT ctxt
         (list_comb (Syntax.const ext_type_name, ts));
@@ -1949,8 +1946,7 @@ fun record_definition (args, binding) parent (parents: parent_info list) raw_fie
         val (args', more) = chop_last args;
         fun mk_ext' ((name, T), args) more = mk_ext (name, T) (args @ [more]);
         fun build Ts =
-          fold_rev mk_ext' (drop n ((extension_names ~~ Ts) ~~ chunks parent_chunks args'))
-            more;
+          fold_rev mk_ext' (drop n ((extension_names ~~ Ts) ~~ chunks parent_chunks args')) more;
       in
         if more = HOLogic.unit
         then build (map_range recT (parent_len + 1))
@@ -1960,27 +1956,25 @@ fun record_definition (args, binding) parent (parents: parent_info list) raw_fie
     val r_rec0 = mk_rec all_vars_more 0;
     val r_rec_unit0 = mk_rec (all_vars @ [HOLogic.unit]) 0;
 
-    fun r n = Free (rN, rec_schemeT n)
+    fun r n = Free (rN, rec_schemeT n);
     val r0 = r 0;
-    fun r_unit n = Free (rN, recT n)
+    fun r_unit n = Free (rN, recT n);
     val r_unit0 = r_unit 0;
-    val w = Free (wN, rec_schemeT 0)
+    val w = Free (wN, rec_schemeT 0);
 
 
     (* print translations *)
 
-    val external_names = Name_Space.external_names (Sign.naming_of ext_thy);
-
     val record_ext_type_abbr_tr's =
       let
-        val trnames = external_names (hd extension_names);
+        val trname = hd extension_names;
         val last_ext = unsuffix ext_typeN (fst extension);
-      in map (record_ext_type_abbr_tr' name alphas zeta last_ext rec_schemeT0) trnames end;
+      in [record_ext_type_abbr_tr' name alphas zeta last_ext rec_schemeT0 trname] end;
 
     val record_ext_type_tr's =
       let
         (*avoid conflict with record_type_abbr_tr's*)
-        val trnames = if parent_len > 0 then external_names extension_name else [];
+        val trnames = if parent_len > 0 then [extension_name] else [];
       in map record_ext_type_tr' trnames end;
 
     val advanced_print_translation =

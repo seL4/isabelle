@@ -149,24 +149,24 @@ record decl =
         access :: acc_modi
 
 translations
-  "decl" <= (type) "\<lparr>access::acc_modi\<rparr>"
-  "decl" <= (type) "\<lparr>access::acc_modi,\<dots>::'a\<rparr>"
+  (type) "decl" <= (type) "\<lparr>access::acc_modi\<rparr>"
+  (type) "decl" <= (type) "\<lparr>access::acc_modi,\<dots>::'a\<rparr>"
 
 subsection {* Member (field or method)*}
 record  member = decl +
          static :: stat_modi
 
 translations
-  "member" <= (type) "\<lparr>access::acc_modi,static::bool\<rparr>"
-  "member" <= (type) "\<lparr>access::acc_modi,static::bool,\<dots>::'a\<rparr>"
+  (type) "member" <= (type) "\<lparr>access::acc_modi,static::bool\<rparr>"
+  (type) "member" <= (type) "\<lparr>access::acc_modi,static::bool,\<dots>::'a\<rparr>"
 
 subsection {* Field *}
 
 record field = member +
         type :: ty
 translations
-  "field" <= (type) "\<lparr>access::acc_modi, static::bool, type::ty\<rparr>"
-  "field" <= (type) "\<lparr>access::acc_modi, static::bool, type::ty,\<dots>::'a\<rparr>"
+  (type) "field" <= (type) "\<lparr>access::acc_modi, static::bool, type::ty\<rparr>"
+  (type) "field" <= (type) "\<lparr>access::acc_modi, static::bool, type::ty,\<dots>::'a\<rparr>"
 
 types     
         fdecl           (* field declaration, cf. 8.3 *)
@@ -174,7 +174,7 @@ types
 
 
 translations
-  "fdecl" <= (type) "vname \<times> field"
+  (type) "fdecl" <= (type) "vname \<times> field"
 
 subsection  {* Method *}
 
@@ -193,17 +193,17 @@ types mdecl = "sig \<times> methd"  (* method declaration in a class *)
 
 
 translations
-  "mhead" <= (type) "\<lparr>access::acc_modi, static::bool, 
+  (type) "mhead" <= (type) "\<lparr>access::acc_modi, static::bool, 
                       pars::vname list, resT::ty\<rparr>"
-  "mhead" <= (type) "\<lparr>access::acc_modi, static::bool, 
+  (type) "mhead" <= (type) "\<lparr>access::acc_modi, static::bool, 
                       pars::vname list, resT::ty,\<dots>::'a\<rparr>"
-  "mbody" <= (type) "\<lparr>lcls::(vname \<times> ty) list,stmt::stmt\<rparr>"
-  "mbody" <= (type) "\<lparr>lcls::(vname \<times> ty) list,stmt::stmt,\<dots>::'a\<rparr>"      
-  "methd" <= (type) "\<lparr>access::acc_modi, static::bool, 
+  (type) "mbody" <= (type) "\<lparr>lcls::(vname \<times> ty) list,stmt::stmt\<rparr>"
+  (type) "mbody" <= (type) "\<lparr>lcls::(vname \<times> ty) list,stmt::stmt,\<dots>::'a\<rparr>"      
+  (type) "methd" <= (type) "\<lparr>access::acc_modi, static::bool, 
                       pars::vname list, resT::ty,mbody::mbody\<rparr>"
-  "methd" <= (type) "\<lparr>access::acc_modi, static::bool, 
+  (type) "methd" <= (type) "\<lparr>access::acc_modi, static::bool, 
                       pars::vname list, resT::ty,mbody::mbody,\<dots>::'a\<rparr>"
-  "mdecl" <= (type) "sig \<times> methd"
+  (type) "mdecl" <= (type) "sig \<times> methd"
 
 
 definition mhead :: "methd \<Rightarrow> mhead" where
@@ -306,13 +306,13 @@ types
         = "qtname \<times> iface"
 
 translations
-  "ibody" <= (type) "\<lparr>access::acc_modi,imethods::(sig \<times> mhead) list\<rparr>"
-  "ibody" <= (type) "\<lparr>access::acc_modi,imethods::(sig \<times> mhead) list,\<dots>::'a\<rparr>"
-  "iface" <= (type) "\<lparr>access::acc_modi,imethods::(sig \<times> mhead) list,
+  (type) "ibody" <= (type) "\<lparr>access::acc_modi,imethods::(sig \<times> mhead) list\<rparr>"
+  (type) "ibody" <= (type) "\<lparr>access::acc_modi,imethods::(sig \<times> mhead) list,\<dots>::'a\<rparr>"
+  (type) "iface" <= (type) "\<lparr>access::acc_modi,imethods::(sig \<times> mhead) list,
                       isuperIfs::qtname list\<rparr>"
-  "iface" <= (type) "\<lparr>access::acc_modi,imethods::(sig \<times> mhead) list,
+  (type) "iface" <= (type) "\<lparr>access::acc_modi,imethods::(sig \<times> mhead) list,
                       isuperIfs::qtname list,\<dots>::'a\<rparr>"
-  "idecl" <= (type) "qtname \<times> iface"
+  (type) "idecl" <= (type) "qtname \<times> iface"
 
 definition ibody :: "iface \<Rightarrow> ibody" where
   "ibody i \<equiv> \<lparr>access=access i,imethods=imethods i\<rparr>"
@@ -337,17 +337,17 @@ types
         = "qtname \<times> class"
 
 translations
-  "cbody" <= (type) "\<lparr>access::acc_modi,cfields::fdecl list,
+  (type) "cbody" <= (type) "\<lparr>access::acc_modi,cfields::fdecl list,
                       methods::mdecl list,init::stmt\<rparr>"
-  "cbody" <= (type) "\<lparr>access::acc_modi,cfields::fdecl list,
+  (type) "cbody" <= (type) "\<lparr>access::acc_modi,cfields::fdecl list,
                       methods::mdecl list,init::stmt,\<dots>::'a\<rparr>"
-  "class" <= (type) "\<lparr>access::acc_modi,cfields::fdecl list,
+  (type) "class" <= (type) "\<lparr>access::acc_modi,cfields::fdecl list,
                       methods::mdecl list,init::stmt,
                       super::qtname,superIfs::qtname list\<rparr>"
-  "class" <= (type) "\<lparr>access::acc_modi,cfields::fdecl list,
+  (type) "class" <= (type) "\<lparr>access::acc_modi,cfields::fdecl list,
                       methods::mdecl list,init::stmt,
                       super::qtname,superIfs::qtname list,\<dots>::'a\<rparr>"
-  "cdecl" <= (type) "qtname \<times> class"
+  (type) "cdecl" <= (type) "qtname \<times> class"
 
 definition cbody :: "class \<Rightarrow> cbody" where
   "cbody c \<equiv> \<lparr>access=access c, cfields=cfields c,methods=methods c,init=init c\<rparr>"
@@ -404,8 +404,8 @@ record prog =
         "classes"::"cdecl list"
 
 translations
-     "prog"<= (type) "\<lparr>ifaces::idecl list,classes::cdecl list\<rparr>"
-     "prog"<= (type) "\<lparr>ifaces::idecl list,classes::cdecl list,\<dots>::'a\<rparr>"
+     (type) "prog" <= (type) "\<lparr>ifaces::idecl list,classes::cdecl list\<rparr>"
+     (type) "prog" <= (type) "\<lparr>ifaces::idecl list,classes::cdecl list,\<dots>::'a\<rparr>"
 
 abbreviation
   iface :: "prog  \<Rightarrow> (qtname, iface) table"

@@ -69,7 +69,7 @@ fun syntax_numeral t =
 
 in
 
-fun numeral_tr' show_sorts (*"number_of"*) (Type (@{type_syntax fun}, [_, T])) (t :: ts) =
+fun numeral_tr' show_sorts (*"number_of"*) (Type (@{type_name fun}, [_, T])) (t :: ts) =
       let val t' =
         if not (! show_types) andalso can Term.dest_Type T then syntax_numeral t
         else Syntax.const Syntax.constrainC $ syntax_numeral t $ Syntax.term_of_typ show_sorts T

@@ -34,16 +34,16 @@ sig
   val non_typed_tr'': ('a -> term list -> term) -> 'a -> bool -> typ -> term list -> term
   val constrainAbsC: string
   val pure_trfuns:
-      (string * (Ast.ast list -> Ast.ast)) list *
-      (string * (term list -> term)) list *
-      (string * (term list -> term)) list *
-      (string * (Ast.ast list -> Ast.ast)) list
+    (string * (Ast.ast list -> Ast.ast)) list *
+    (string * (term list -> term)) list *
+    (string * (term list -> term)) list *
+    (string * (Ast.ast list -> Ast.ast)) list
   val pure_trfunsT: (string * (bool -> typ -> term list -> term)) list
   val struct_trfuns: string list ->
-      (string * (Ast.ast list -> Ast.ast)) list *
-      (string * (term list -> term)) list *
-      (string * (bool -> typ -> term list -> term)) list *
-      (string * (Ast.ast list -> Ast.ast)) list
+    (string * (Ast.ast list -> Ast.ast)) list *
+    (string * (term list -> term)) list *
+    (string * (bool -> typ -> term list -> term)) list *
+    (string * (Ast.ast list -> Ast.ast)) list
 end;
 
 signature SYN_TRANS =
@@ -131,7 +131,7 @@ fun mk_binder_tr (syn, name) =
 
 fun mk_type ty =
   Lexicon.const "_constrain" $
-    Lexicon.const "\\<^const>TYPE" $ (Lexicon.const "itself" $ ty);
+    Lexicon.const "\\<^const>TYPE" $ (Lexicon.const "\\<^type>itself" $ ty);
 
 fun ofclass_tr (*"_ofclass"*) [ty, cls] = cls $ mk_type ty
   | ofclass_tr (*"_ofclass"*) ts = raise TERM ("ofclass_tr", ts);
@@ -143,7 +143,7 @@ fun sort_constraint_tr (*"_sort_constraint"*) [ty] =
 
 (* meta propositions *)
 
-fun aprop_tr (*"_aprop"*) [t] = Lexicon.const "_constrain" $ t $ Lexicon.const "prop"
+fun aprop_tr (*"_aprop"*) [t] = Lexicon.const "_constrain" $ t $ Lexicon.const "\\<^type>prop"
   | aprop_tr (*"_aprop"*) ts = raise TERM ("aprop_tr", ts);
 
 
@@ -195,7 +195,8 @@ fun quote_antiquote_tr quoteN antiquoteN name =
 fun update_name_tr (Free (x, T) :: ts) = list_comb (Free (suffix "_update" x, T), ts)
   | update_name_tr (Const (x, T) :: ts) = list_comb (Const (suffix "_update" x, T), ts)
   | update_name_tr (((c as Const ("_constrain", _)) $ t $ ty) :: ts) =
-      list_comb (c $ update_name_tr [t] $ (Lexicon.const "fun" $ ty $ Lexicon.const "dummy"), ts)
+      list_comb (c $ update_name_tr [t] $
+        (Lexicon.const "\\<^type>fun" $ ty $ Lexicon.const "\\<^type>dummy"), ts)
   | update_name_tr ts = raise TERM ("update_name_tr", ts);
 
 
@@ -368,7 +369,7 @@ fun prop_tr' tm =
     fun is_prop Ts t =
       fastype_of1 (Ts, t) = propT handle TERM _ => false;
 
-    fun is_term (Const ("\\<^const>Pure.term", _) $ _) = true
+    fun is_term (Const ("Pure.term", _) $ _) = true
       | is_term _ = false;
 
     fun tr' _ (t as Const _) = t
@@ -381,7 +382,7 @@ fun prop_tr' tm =
       | tr' Ts (t as Bound _) =
           if is_prop Ts t then aprop t else t
       | tr' Ts (Abs (x, T, t)) = Abs (x, T, tr' (T :: Ts) t)
-      | tr' Ts (t as t1 $ (t2 as Const ("\\<^const>TYPE", Type ("itself", [T])))) =
+      | tr' Ts (t as t1 $ (t2 as Const ("TYPE", Type ("itself", [T])))) =
           if is_prop Ts t andalso not (is_term t) then Const ("_type_prop", T) $ tr' Ts t1
           else tr' Ts t1 $ tr' Ts t2
       | tr' Ts (t as t1 $ t2) =
@@ -568,7 +569,7 @@ fun asts_to_terms ctxt trf asts =
 
     val free_fixed = Term.map_aterms
       (fn t as Const (c, T) =>
-          (case try (unprefix Lexicon.fixedN) c of
+          (case try Lexicon.unmark_fixed c of
             NONE => t
           | SOME x => Free (x, T))
         | t => t);

@@ -22,10 +22,10 @@ by (rule typedef_finite_po [OF type_definition_Sprod])
 instance sprod :: ("{chfin,pcpo}", "{chfin,pcpo}") chfin
 by (rule typedef_chfin [OF type_definition_Sprod below_Sprod_def])
 
-syntax (xsymbols)
-  sprod          :: "[type, type] => type"        ("(_ \<otimes>/ _)" [21,20] 20)
-syntax (HTML output)
-  sprod          :: "[type, type] => type"        ("(_ \<otimes>/ _)" [21,20] 20)
+type_notation (xsymbols)
+  sprod  ("(_ \<otimes>/ _)" [21,20] 20)
+type_notation (HTML output)
+  sprod  ("(_ \<otimes>/ _)" [21,20] 20)
 
 lemma spair_lemma:
   "(strictify\<cdot>(\<Lambda> b. a)\<cdot>b, strictify\<cdot>(\<Lambda> a. b)\<cdot>a) \<in> Sprod"

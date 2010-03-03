@@ -17,9 +17,6 @@ datatype val
         | Addr loc      --{* addresses, i.e. locations of objects *}
 
 
-translations "val" <= (type) "Term.val"
-             "loc" <= (type) "Term.loc"
-
 consts   the_Bool   :: "val \<Rightarrow> bool"  
 primrec "the_Bool (Bool b) = b"
 consts   the_Intg   :: "val \<Rightarrow> int"

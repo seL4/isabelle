@@ -88,7 +88,7 @@ after method return. Also an exception must be restored after the finally
 statement *}
 
 translations
- "locals" <= (type) "(lname, val) table"
+ (type) "locals" <= (type) "(lname, val) table"
 
 datatype inv_mode                  --{* invocation mode for method calls *}
         = Static                   --{* static *}
@@ -100,8 +100,8 @@ record  sig =              --{* signature of a method, cf. 8.4.2  *}
           parTs::"ty list"        
 
 translations
-  "sig" <= (type) "\<lparr>name::mname,parTs::ty list\<rparr>"
-  "sig" <= (type) "\<lparr>name::mname,parTs::ty list,\<dots>::'a\<rparr>"
+  (type) "sig" <= (type) "\<lparr>name::mname,parTs::ty list\<rparr>"
+  (type) "sig" <= (type) "\<lparr>name::mname,parTs::ty list,\<dots>::'a\<rparr>"
 
 --{* function codes for unary operations *}
 datatype unop =  UPlus    -- {*{\tt +} unary plus*} 
@@ -237,11 +237,8 @@ intermediate steps of class-initialisation.
  
 types "term" = "(expr+stmt,var,expr list) sum3"
 translations
-  "sig"   <= (type) "mname \<times> ty list"
-  "var"   <= (type) "Term.var"
-  "expr"  <= (type) "Term.expr"
-  "stmt"  <= (type) "Term.stmt"
-  "term"  <= (type) "(expr+stmt,var,expr list) sum3"
+  (type) "sig"   <= (type) "mname \<times> ty list"
+  (type) "term"  <= (type) "(expr+stmt,var,expr list) sum3"
 
 abbreviation this :: expr
   where "this == Acc (LVar This)"

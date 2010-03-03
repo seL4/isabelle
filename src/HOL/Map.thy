@@ -12,10 +12,10 @@ imports List
 begin
 
 types ('a,'b) "~=>" = "'a => 'b option"  (infixr "~=>" 0)
-translations (type) "a ~=> b " <= (type) "a => b option"
+translations (type) "'a ~=> 'b" <= (type) "'a => 'b option"
 
-syntax (xsymbols)
-  "~=>" :: "[type, type] => type"  (infixr "\<rightharpoonup>" 0)
+type_notation (xsymbols)
+  "~=>"  (infixr "\<rightharpoonup>" 0)
 
 abbreviation
   empty :: "'a ~=> 'b" where

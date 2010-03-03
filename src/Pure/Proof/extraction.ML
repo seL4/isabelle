@@ -207,9 +207,11 @@ fun read_condeq thy =
   let val thy' = add_syntax thy
   in fn s =>
     let val t = Logic.varify (Syntax.read_prop_global thy' s)
-    in (map Logic.dest_equals (Logic.strip_imp_prems t),
-      Logic.dest_equals (Logic.strip_imp_concl t))
-    end handle TERM _ => error ("Not a (conditional) meta equality:\n" ^ s)
+    in
+      (map Logic.dest_equals (Logic.strip_imp_prems t),
+        Logic.dest_equals (Logic.strip_imp_concl t))
+      handle TERM _ => error ("Not a (conditional) meta equality:\n" ^ s)
+    end
   end;
 
 (** preprocessor **)

@@ -58,10 +58,9 @@ translations
   "\<lambda>Vals:v. b"  == "(\<lambda>v. b) \<circ> CONST the_In3"
 
   --{* relation on result values, state and auxiliary variables *}
-types 'a assn   =        "res \<Rightarrow> state \<Rightarrow> 'a \<Rightarrow> bool"
+types 'a assn = "res \<Rightarrow> state \<Rightarrow> 'a \<Rightarrow> bool"
 translations
-      "res"    <= (type) "AxSem.res"
-      "a assn" <= (type) "vals \<Rightarrow> state \<Rightarrow> a \<Rightarrow> bool"
+  (type) "'a assn" <= (type) "vals \<Rightarrow> state \<Rightarrow> 'a \<Rightarrow> bool"
 
 definition assn_imp :: "'a assn \<Rightarrow> 'a assn \<Rightarrow> bool" (infixr "\<Rightarrow>" 25) where
  "P \<Rightarrow> Q \<equiv> \<forall>Y s Z. P Y s Z \<longrightarrow> Q Y s Z"

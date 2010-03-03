@@ -31,21 +31,14 @@ fun mk_TFree s = TFree ("'" ^ s, pcpoS);
 
 (* basic types *)
 
-fun mk_btyp t (S,T) = Type (t,[S,T]);
+fun mk_btyp t (S, T) = Type (t, [S, T]);
 
-local
-  val intern_type = Sign.intern_type @{theory};
-  val u = intern_type "u";
-in
-
-val cfun_arrow = intern_type "->";
+val cfun_arrow = @{type_name "->"};
 val op ->> = mk_btyp cfun_arrow;
-val mk_ssumT = mk_btyp (intern_type "++");
-val mk_sprodT = mk_btyp (intern_type "**");
-fun mk_uT T = Type (u, [T]);
-val trT = Type (intern_type "tr" , []);
-val oneT = Type (intern_type "one", []);
-
-end;
+val mk_ssumT = mk_btyp (@{type_name "++"});
+val mk_sprodT = mk_btyp (@{type_name "**"});
+fun mk_uT T = Type (@{type_name u}, [T]);
+val trT = @{typ tr};
+val oneT = @{typ one};
 
 end;
