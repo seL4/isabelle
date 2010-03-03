@@ -6,15 +6,20 @@ New in this Isabelle version
 
 *** General ***
 
-* Authentic syntax for *all* term constants: provides simple and
-robust correspondence between formal entities and concrete syntax.
-Substantial INCOMPATIBILITY concerning low-level syntax translations
-(translation rules and translation functions in ML).  Some hints on
-upgrading:
+* Authentic syntax for *all* logical entities (type classes, type
+constructors, term constants): provides simple and robust
+correspondence between formal entities and concrete syntax.  Within
+the parse tree / AST representations, "constants" are decorated by
+their category (class, type, const) and spelled out explicitly with
+their full internal name.
+
+Substantial INCOMPATIBILITY concerning low-level syntax declarations
+and translations (translation rules and translation functions in ML).
+Some hints on upgrading:
 
   - Many existing uses of 'syntax' and 'translations' can be replaced
-    by more modern 'notation' and 'abbreviation', which are
-    independent of this issue.
+    by more modern 'type_notation', 'notation' and 'abbreviation',
+    which are independent of this issue.
 
   - 'translations' require markup within the AST; the term syntax
     provides the following special forms:
@@ -27,16 +32,29 @@ upgrading:
     system indicates accidental variables via the error "rhs contains
     extra variables".
 
+    Type classes and type constructors are marked according to their
+    concrete syntax.  Some old translations rules need to be written
+    for the "type" category, using type constructor application
+    instead of pseudo-term application of the default category
+    "logic".
+
   - 'parse_translation' etc. in ML may use the following
     antiquotations:
 
+      @{class_syntax c}   -- type class c within parse tree / AST
+      @{term_syntax c}    -- type constructor c within parse tree / AST
       @{const_syntax c}   -- ML version of "CONST c" above
       @{syntax_const c}   -- literally c (checked wrt. 'syntax' declarations)
 
+  - Literal types within 'typed_print_translations', i.e. those *not*
+    represented as pseudo-terms are represented verbatim.  Use @{class
+    c} or @{type_name c} here instead of the above syntax
+    antiquotations.
+
 Note that old non-authentic syntax was based on unqualified base
-names, so all of the above would coincide.  Recall that 'print_syntax'
-and ML_command "set Syntax.trace_ast" help to diagnose syntax
-problems.
+names, so all of the above "constant" names would coincide.  Recall
+that 'print_syntax' and ML_command "set Syntax.trace_ast" help to
+diagnose syntax problems.
 
 * Type constructors admit general mixfix syntax, not just infix.
 
