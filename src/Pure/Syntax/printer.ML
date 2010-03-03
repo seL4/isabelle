@@ -114,15 +114,17 @@ fun ast_of_term idents consts ctxt trf
     val {structs, fixes} = idents;
 
     fun mark_atoms ((t as Const (c, T)) $ u) =
-          if member (op =) consts c then (t $ u)
-          else Const (Lexicon.mark_const c, T) $ mark_atoms u
+          if member (op =) SynExt.standard_token_markers c
+          then t $ u else mark_atoms t $ mark_atoms u
       | mark_atoms (t $ u) = mark_atoms t $ mark_atoms u
       | mark_atoms (Abs (x, T, t)) = Abs (x, T, mark_atoms t)
-      | mark_atoms (Const (c, T)) = Const (Lexicon.mark_const c, T)
+      | mark_atoms (t as Const (c, T)) =
+          if member (op =) consts c then t
+          else Const (Lexicon.mark_const c, T)
       | mark_atoms (t as Free (x, T)) =
           let val i = find_index (fn s => s = x) structs + 1 in
             if i = 0 andalso member (op =) fixes x then
-              Term.Const (Lexicon.mark_fixed x, T)
+              Const (Lexicon.mark_fixed x, T)
             else if i = 1 andalso not show_structs then
               Lexicon.const "_struct" $ Lexicon.const "_indexdefault"
             else Lexicon.const "_free" $ t
