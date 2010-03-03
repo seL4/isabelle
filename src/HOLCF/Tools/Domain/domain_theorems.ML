@@ -29,30 +29,6 @@ val trace_domain = Unsynchronized.ref false;
 fun message s = if !quiet_mode then () else writeln s;
 fun trace s = if !trace_domain then tracing s else ();
 
-val adm_impl_admw = @{thm adm_impl_admw};
-val adm_all = @{thm adm_all};
-val adm_conj = @{thm adm_conj};
-val adm_subst = @{thm adm_subst};
-val ch2ch_fst = @{thm ch2ch_fst};
-val ch2ch_snd = @{thm ch2ch_snd};
-val ch2ch_Rep_CFunL = @{thm ch2ch_Rep_CFunL};
-val ch2ch_Rep_CFunR = @{thm ch2ch_Rep_CFunR};
-val chain_iterate = @{thm chain_iterate};
-val contlub_cfun_fun = @{thm contlub_cfun_fun};
-val contlub_fst = @{thm contlub_fst};
-val contlub_snd = @{thm contlub_snd};
-val contlubE = @{thm contlubE};
-val cont_const = @{thm cont_const};
-val cont_id = @{thm cont_id};
-val cont2cont_fst = @{thm cont2cont_fst};
-val cont2cont_snd = @{thm cont2cont_snd};
-val cont2cont_Rep_CFun = @{thm cont2cont_Rep_CFun};
-val fix_def2 = @{thm fix_def2};
-val lub_equal = @{thm lub_equal};
-val retraction_strict = @{thm retraction_strict};
-val wfix_ind = @{thm wfix_ind};
-val iso_intro = @{thm iso.intro};
-
 open Domain_Library;
 infixr 0 ===>;
 infixr 0 ==>;
@@ -147,6 +123,7 @@ val pat_rews = #pat_rews result;
 
 val pg = pg' thy;
 
+val retraction_strict = @{thm retraction_strict};
 val abs_strict = ax_rep_iso RS (allI RS retraction_strict);
 val rep_strict = ax_abs_iso RS (allI RS retraction_strict);
 val iso_rews = map Drule.export_without_context [ax_abs_iso, ax_rep_iso, abs_strict, rep_strict];
@@ -546,8 +523,8 @@ in (* local *)
             fun concf n dn = %:(P_name n) $ %:(x_name n);
           in Logic.list_implies (mapn one_adm 1 dnames, ind_term concf) end;
         val cont_rules =
-            [cont_id, cont_const, cont2cont_Rep_CFun,
-             cont2cont_fst, cont2cont_snd];
+            @{thms cont_id cont_const cont2cont_Rep_CFun
+                   cont2cont_fst cont2cont_snd};
         val subgoal =
           let fun p n dn = %:(P_name n) $ (dc_take dn $ Bound 0 `%(x_name n));
           in mk_trp (mk_all ("n", foldr1 mk_conj (mapn p 1 dnames))) end;
