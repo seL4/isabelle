@@ -11,7 +11,6 @@ uses
   ("Tools/cont_proc.ML")
   ("Tools/Domain/domain_constructors.ML")
   ("Tools/Domain/domain_library.ML")
-  ("Tools/Domain/domain_syntax.ML")
   ("Tools/Domain/domain_axioms.ML")
   ("Tools/Domain/domain_theorems.ML")
   ("Tools/Domain/domain_extender.ML")
