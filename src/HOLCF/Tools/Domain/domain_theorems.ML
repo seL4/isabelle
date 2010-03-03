@@ -12,6 +12,7 @@ sig
   val theorems:
     Domain_Library.eq * Domain_Library.eq list
     -> typ * (binding * (bool * binding option * typ) list * mixfix) list
+    -> Domain_Take_Proofs.iso_info
     -> theory -> thm list * theory;
 
   val comp_theorems: bstring * Domain_Library.eq list -> theory -> thm list * theory;
@@ -102,6 +103,7 @@ val all2E = @{lemma "!x y . P x y ==> (P x y ==> R) ==> R" by simp}
 fun theorems
     (((dname, _), cons) : eq, eqs : eq list)
     (dom_eqn : typ * (binding * (bool * binding option * typ) list * mixfix) list)
+    (iso_info : Domain_Take_Proofs.iso_info)
     (thy : theory) =
 let
 
@@ -111,43 +113,21 @@ val map_tab = Domain_Take_Proofs.get_map_tab thy;
 
 (* ----- getting the axioms and definitions --------------------------------- *)
 
+val ax_abs_iso = #abs_inverse iso_info;
+val ax_rep_iso = #rep_inverse iso_info;
+
+val abs_const = #abs_const iso_info;
+val rep_const = #rep_const iso_info;
+
 local
   fun ga s dn = PureThy.get_thm thy (dn ^ "." ^ s);
 in
-  val ax_abs_iso  = ga "abs_iso"  dname;
-  val ax_rep_iso  = ga "rep_iso"  dname;
   val ax_take_0      = ga "take_0" dname;
   val ax_take_Suc    = ga "take_Suc" dname;
   val ax_take_strict = ga "take_strict" dname;
 end; (* local *)
 
 (* ----- define constructors ------------------------------------------------ *)
-
-val lhsT = fst dom_eqn;
-
-val rhsT =
-  let
-    fun mk_arg_typ (lazy, sel, T) = if lazy then mk_uT T else T;
-    fun mk_con_typ (bind, args, mx) =
-        if null args then oneT else foldr1 mk_sprodT (map mk_arg_typ args);
-    fun mk_eq_typ (_, cons) = foldr1 mk_ssumT (map mk_con_typ cons);
-  in
-    mk_eq_typ dom_eqn
-  end;
-
-val rep_const = Const(dname^"_rep", lhsT ->> rhsT);
-
-val abs_const = Const(dname^"_abs", rhsT ->> lhsT);
-
-val iso_info : Domain_Take_Proofs.iso_info =
-  {
-    absT = lhsT,
-    repT = rhsT,
-    abs_const = abs_const,
-    rep_const = rep_const,
-    abs_inverse = ax_abs_iso,
-    rep_inverse = ax_rep_iso
-  };
 
 val (result, thy) =
   Domain_Constructors.add_domain_constructors

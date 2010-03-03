@@ -18,8 +18,8 @@ sig
       string Symtab.table -> (int -> term) -> Datatype.dtyp -> term
 
   val add_axioms :
-      (binding * (typ * typ)) list ->
-      theory -> theory
+      (binding * (typ * typ)) list -> theory ->
+      Domain_Take_Proofs.iso_info list * theory
 end;
 
 
@@ -146,7 +146,7 @@ fun add_axioms
           (map fst dom_eqns ~~ #take_consts take_info) thy;
 
   in
-    thy (* TODO: also return iso_infos, take_info, lub_take_thms *)
+    (iso_infos, thy) (* TODO: also return take_info, lub_take_thms *)
   end;
 
 end; (* struct *)
