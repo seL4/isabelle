@@ -1310,9 +1310,12 @@ lemma integrable_on_empty[intro]: shows "f integrable_on {}" unfolding integrabl
 lemma integral_empty[simp]: shows "integral {} f = 0"
   apply(rule integral_unique) using has_integral_empty .
 
-lemma has_integral_refl[intro]: shows "(f has_integral 0) {a..a}"
-  apply(rule has_integral_null) unfolding content_eq_0_interior
-  unfolding interior_closed_interval using interval_sing by auto
+lemma has_integral_refl[intro]: shows "(f has_integral 0) {a..a}" "(f has_integral 0) {a}"
+proof- have *:"{a} = {a..a}" apply(rule set_ext) unfolding mem_interval singleton_iff Cart_eq
+    apply safe prefer 3 apply(erule_tac x=i in allE) by(auto simp add: field_simps)
+  show "(f has_integral 0) {a..a}" "(f has_integral 0) {a}" unfolding *
+    apply(rule_tac[!] has_integral_null) unfolding content_eq_0_interior
+    unfolding interior_closed_interval using interval_sing by auto qed
 
 lemma integrable_on_refl[intro]: shows "f integrable_on {a..a}" unfolding integrable_on_def by auto
 
@@ -2810,6 +2813,9 @@ next fix a b c ::"real^1"
         thus ?thesis using assms unfolding * by auto qed qed qed 
 
 subsection {* Special case of additivity we need for the FCT. *}
+
+lemma interval_bound_sing[simp]: "interval_upperbound {a} = a"  "interval_lowerbound {a} = a"
+  unfolding interval_upperbound_def interval_lowerbound_def unfolding Cart_eq by auto
 
 lemma additive_tagged_division_1: fixes f::"real^1 \<Rightarrow> 'a::real_normed_vector"
   assumes "dest_vec1 a \<le> dest_vec1 b" "p tagged_division_of {a..b}"
