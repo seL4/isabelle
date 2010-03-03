@@ -424,7 +424,7 @@ in (* local *)
             map (K (atac 1)) (nonlazy args) @
             map (K (etac spec 1)) (filter is_rec args);
           fun cases_tacs (cons, cases) =
-            res_inst_tac context [(("x", 0), "x")] cases 1 ::
+            res_inst_tac context [(("y", 0), "x")] cases 1 ::
             asm_simp_tac (take_ss addsimps prems) 1 ::
             maps con_tacs cons;
         in
@@ -499,7 +499,7 @@ in (* local *)
             fun foo_tacs ctxt n (cons, cases) =
               simp_tac take_ss 1 ::
               rtac allI 1 ::
-              res_inst_tac ctxt [(("x", 0), x_name n)] cases 1 ::
+              res_inst_tac ctxt [(("y", 0), x_name n)] cases 1 ::
               asm_simp_tac take_ss 1 ::
               maps (con_tacs ctxt) cons;
             fun tacs ctxt =
