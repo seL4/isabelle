@@ -38,14 +38,10 @@ sig
   val string_of_typ : theory -> typ -> string;
 
   (* Creating HOLCF types *)
-  val ->> : typ * typ -> typ;
   val mk_ssumT : typ * typ -> typ;
   val mk_sprodT : typ * typ -> typ;
   val mk_uT : typ -> typ;
   val oneT : typ;
-  val mk_maybeT : typ -> typ;
-  val mk_ctupleT : typ list -> typ;
-  val mk_TFree : string -> typ;
   val pcpoS : sort;
 
   (* Creating HOLCF terms *)
@@ -53,21 +49,12 @@ sig
   val %%: : string -> term;
   val ` : term * term -> term;
   val `% : term * string -> term;
-  val /\ : string -> term -> term;
   val UU : term;
   val ID : term;
-  val oo : term * term -> term;
-  val mk_ctuple : term list -> term;
-  val mk_fix : term -> term;
-  val mk_iterate : term * term * term -> term;
-  val mk_fail : term;
-  val mk_return : term -> term;
   val list_ccomb : term * term list -> term;
   val con_app2 : string -> ('a -> term) -> 'a list -> term;
   val prj : ('a -> 'b -> 'a) -> ('a -> 'b -> 'a) -> 'a -> 'b list -> int -> 'a
   val proj : term -> 'a list -> int -> term;
-  val mk_ctuple_pat : term list -> term;
-  val mk_branch : term -> term;
 
   (* Creating propositions *)
   val mk_conj : term * term -> term;
@@ -78,7 +65,6 @@ sig
   val mk_ex : string * term -> term;
   val mk_constrainall : string * typ * term -> term;
   val === : term * term -> term;
-  val strict : term -> term;
   val defined : term -> term;
   val mk_adm : term -> term;
   val lift : ('a -> term) -> 'a list * term -> term;
@@ -88,7 +74,6 @@ sig
   val mk_trp : term -> term; (* HOLogic.mk_Trueprop *)
   val == : term * term -> term;
   val ===> : term * term -> term;
-  val ==> : term * term -> term;
   val mk_All : string * term -> term;
 
       (* Domain specifications *)
@@ -106,20 +91,9 @@ sig
   val nonlazy : arg list -> string list;
   val nonlazy_rec : arg list -> string list;
   val %# : arg -> term;
-  val /\# : arg * term -> term;
   val bound_arg : ''a list -> ''a -> term; (* ''a = arg or string *)
   val idx_name : 'a list -> string -> int -> string;
-  val app_rec_arg : (int -> term) -> arg -> term;
   val con_app : string -> arg list -> term;
-  val dtyp_of_eq : eq -> Datatype.dtyp;
-
-
-  (* Name mangling *)
-  val strip_esc : string -> string;
-  val extern_name : string -> string;
-  val dis_name : string -> string;
-  val mat_name : string -> string;
-  val pat_name : string -> string;
 end;
 
 structure Domain_Library :> DOMAIN_LIBRARY =
@@ -154,26 +128,6 @@ fun atomize ctxt thm =
 
 exception Impossible of string;
 fun Imposs msg = raise Impossible ("Domain:"^msg);
-
-(* ----- name handling ----- *)
-
-val strip_esc =
-    let fun strip ("'" :: c :: cs) = c :: strip cs
-          | strip ["'"] = []
-          | strip (c :: cs) = c :: strip cs
-          | strip [] = [];
-    in implode o strip o Symbol.explode end;
-
-fun extern_name con =
-    case Symbol.explode con of 
-      ("o"::"p"::" "::rest) => implode rest
-    | _ => con;
-fun dis_name  con = "is_"^ (extern_name con);
-fun dis_name_ con = "is_"^ (strip_esc   con);
-fun mat_name  con = "match_"^ (extern_name con);
-fun mat_name_ con = "match_"^ (strip_esc   con);
-fun pat_name  con = (extern_name con) ^ "_pat";
-fun pat_name_ con = (strip_esc   con) ^ "_pat";
 
 fun cpo_type sg t = Sign.of_sort sg (Sign.certify_typ sg t, @{sort cpo});
 fun pcpo_type sg t = Sign.of_sort sg (Sign.certify_typ sg t, @{sort pcpo});
@@ -210,35 +164,12 @@ fun nonlazy     args   = map vname (filter_out is_lazy args);
 fun nonlazy_rec args   = map vname (filter is_nonlazy_rec args);
 
 
-(* ----- combinators for making dtyps ----- *)
-
-fun mk_uD T = Datatype_Aux.DtType(@{type_name "u"}, [T]);
-fun mk_sprodD (T, U) = Datatype_Aux.DtType(@{type_name sprod}, [T, U]);
-fun mk_ssumD (T, U) = Datatype_Aux.DtType(@{type_name ssum}, [T, U]);
-fun mk_liftD T = Datatype_Aux.DtType(@{type_name "lift"}, [T]);
-val unitD = Datatype_Aux.DtType(@{type_name "unit"}, []);
-val boolD = Datatype_Aux.DtType(@{type_name "bool"}, []);
-val oneD = mk_liftD unitD;
-val trD = mk_liftD boolD;
-fun big_sprodD ds = case ds of [] => oneD | _ => foldr1 mk_sprodD ds;
-fun big_ssumD ds = case ds of [] => unitD | _ => foldr1 mk_ssumD ds;
-
-fun dtyp_of_arg ((lazy, D), _) = if lazy then mk_uD D else D;
-fun dtyp_of_cons (_, args) = big_sprodD (map dtyp_of_arg args);
-fun dtyp_of_eq (_, cons) = big_ssumD (map dtyp_of_cons cons);
-
-
 (* ----- support for type and mixfix expressions ----- *)
 
 fun mk_uT T = Type(@{type_name "u"}, [T]);
-fun mk_cfunT (T, U) = Type(@{type_name cfun}, [T, U]);
 fun mk_sprodT (T, U) = Type(@{type_name sprod}, [T, U]);
 fun mk_ssumT (T, U) = Type(@{type_name ssum}, [T, U]);
 val oneT = @{typ one};
-
-val op ->> = mk_cfunT;
-
-fun mk_TFree s = TFree ("'" ^ s, @{sort pcpo});
 
 (* ----- support for term expressions ----- *)
 
@@ -260,7 +191,6 @@ end
 fun mk_All  (x,P) = %%:"all" $ mk_lam(x,P); (* meta universal quantification *)
 
 infixr 0 ===>;  fun S ===> T = %%:"==>" $ S $ T;
-infixr 0 ==>;   fun S ==> T = mk_trp S ===> mk_trp T;
 infix 0 ==;     fun S ==  T = %%:"==" $ S $ T;
 infix 1 ===;    fun S === T = %%:"op =" $ S $ T;
 infix 1 ~=;     fun S ~=  T = HOLogic.mk_not (S === T);
@@ -275,42 +205,22 @@ fun mk_strictify t = %%: @{const_name strictify}`t;
 fun mk_ssplit t = %%: @{const_name ssplit}`t;
 fun mk_sscase (x, y) = %%: @{const_name sscase}`x`y;
 fun mk_fup (t,u) = %%: @{const_name fup} ` t ` u;
-val ONE = @{term ONE};
-fun mk_iterate (n,f,z) = %%: @{const_name iterate} $ n ` f ` z;
-fun mk_fix t = %%: @{const_name fix}`t;
-fun mk_return t = %%: @{const_name Fixrec.return}`t;
-val mk_fail = %%: @{const_name Fixrec.fail};
-
-fun mk_branch t = %%: @{const_name Fixrec.branch} $ t;
 
 val pcpoS = @{sort pcpo};
 
 val list_ccomb = Library.foldl (op `); (* continuous version of list_comb *)
 fun con_app2 con f args = list_ccomb(%%:con,map f args);
 fun con_app con = con_app2 con %#;
-fun if_rec  arg f y   = if is_rec arg then f (rec_of arg) else y;
-fun app_rec_arg p arg = if_rec arg (fn n => fn x => (p n)`x) I (%# arg);
 fun prj _  _  x (   _::[]) _ = x
   | prj f1 _  x (_::y::ys) 0 = f1 x y
   | prj f1 f2 x (y::   ys) j = prj f1 f2 (f2 x y) ys (j-1);
 fun  proj x      = prj (fn S => K(%%:"fst" $S)) (fn S => K(%%:"snd" $S)) x;
 fun lift tfn = Library.foldr (fn (x,t)=> (mk_trp(tfn x) ===> t));
 
-fun /\ v T = %%: @{const_name Abs_CFun} $ mk_lam(v,T);
-fun /\# (arg,T) = /\ (vname arg) T;
-infixr 9 oo; fun S oo T = %%: @{const_name cfcomp}`S`T;
 val UU = %%: @{const_name UU};
-fun strict f = f`UU === UU;
 fun defined t = t ~= UU;
 fun cpair (t,u) = %%: @{const_name Pair} $ t $ u;
 fun spair (t,u) = %%: @{const_name spair}`t`u;
-fun mk_ctuple [] = HOLogic.unit (* used in match_defs *)
-  | mk_ctuple ts = foldr1 cpair ts;
-fun mk_ctupleT [] = HOLogic.unitT   (* used in match_defs *)
-  | mk_ctupleT Ts = foldr1 HOLogic.mk_prodT Ts;
-fun mk_maybeT T = Type ("Fixrec.maybe",[T]);
-fun cpair_pat (p1,p2) = %%: @{const_name cpair_pat} $ p1 $ p2;
-val mk_ctuple_pat = foldr1 cpair_pat;
 fun lift_defined f = lift (fn x => defined (f x));
 fun bound_arg vns v = Bound (length vns - find_index (fn v' => v' = v) vns - 1);
 
