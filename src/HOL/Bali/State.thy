@@ -33,10 +33,10 @@ record  obj  =
           "values" :: "(vn, val) table"      
 
 translations 
-  "fspec" <= (type) "vname \<times> qtname" 
-  "vn"    <= (type) "fspec + int"
-  "obj"   <= (type) "\<lparr>tag::obj_tag, values::vn \<Rightarrow> val option\<rparr>"
-  "obj"   <= (type) "\<lparr>tag::obj_tag, values::vn \<Rightarrow> val option,\<dots>::'a\<rparr>"
+  (type) "fspec" <= (type) "vname \<times> qtname" 
+  (type) "vn"    <= (type) "fspec + int"
+  (type) "obj"   <= (type) "\<lparr>tag::obj_tag, values::vn \<Rightarrow> val option\<rparr>"
+  (type) "obj"   <= (type) "\<lparr>tag::obj_tag, values::vn \<Rightarrow> val option,\<dots>::'a\<rparr>"
 
 definition the_Arr :: "obj option \<Rightarrow> ty \<times> int \<times> (vn, val) table" where
  "the_Arr obj \<equiv> SOME (T,k,t). obj = Some \<lparr>tag=Arr T k,values=t\<rparr>"
@@ -134,7 +134,7 @@ syntax
 translations
   "Heap" => "CONST Inl"
   "Stat" => "CONST Inr"
-  "oref" <= (type) "loc + qtname"
+  (type) "oref" <= (type) "loc + qtname"
 
 definition fields_table :: "prog \<Rightarrow> qtname \<Rightarrow> (fspec \<Rightarrow> field \<Rightarrow> bool)  \<Rightarrow> (fspec, ty) table" where
  "fields_table G C P 
@@ -213,9 +213,9 @@ types   globs               --{* global variables: heap and static variables *}
         = "(lname, val) table" *) (* defined in Value.thy local variables *)
 
 translations
- "globs"  <= (type) "(oref , obj) table"
- "heap"   <= (type) "(loc  , obj) table"
-(*  "locals" <= (type) "(lname, val) table" *)
+ (type) "globs"  <= (type) "(oref , obj) table"
+ (type) "heap"   <= (type) "(loc  , obj) table"
+(*  (type) "locals" <= (type) "(lname, val) table" *)
 
 datatype st = (* pure state, i.e. contents of all variables *)
          st globs locals
@@ -567,10 +567,8 @@ types
   state = "abopt \<times> st"          --{* state including abruption information *}
 
 translations
-  "abopt"       <= (type) "State.abrupt option"
-  "abopt"       <= (type) "abrupt option"
-  "state"      <= (type) "abopt \<times> State.st"
-  "state"      <= (type) "abopt \<times> st"
+  (type) "abopt" <= (type) "abrupt option"
+  (type) "state" <= (type) "abopt \<times> st"
 
 abbreviation
   Norm :: "st \<Rightarrow> state"

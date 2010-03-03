@@ -23,9 +23,8 @@ types   fields
         obj = "cname \<times> fields"
 
 translations
-
-  "fields" \<leftharpoondown> (type)"fname => val option"
-  "obj"    \<leftharpoondown> (type)"cname \<times> fields"
+  (type) "fields" \<leftharpoondown> (type) "fname => val option"
+  (type) "obj"    \<leftharpoondown> (type) "cname \<times> fields"
 
 definition init_vars :: "('a \<rightharpoonup> 'b) => ('a \<rightharpoonup> val)" where
  "init_vars m == Option.map (\<lambda>T. Null) o m"
@@ -40,10 +39,9 @@ record  state
           locals :: locals
 
 translations
-
-  "heap"   \<leftharpoondown> (type)"loc   => obj option"
-  "locals" \<leftharpoondown> (type)"vname => val option"
-  "state" \<leftharpoondown> (type)"(|heap :: heap, locals :: locals|)"
+  (type) "heap" \<leftharpoondown> (type) "loc => obj option"
+  (type) "locals" \<leftharpoondown> (type) "vname => val option"
+  (type) "state" \<leftharpoondown> (type) "(|heap :: heap, locals :: locals|)"
 
 definition del_locs :: "state => state" where
  "del_locs s \<equiv> s (| locals := empty |)"

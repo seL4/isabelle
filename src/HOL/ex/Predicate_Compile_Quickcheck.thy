@@ -7,9 +7,9 @@ imports "../Predicate_Compile" Quickcheck Predicate_Compile_Alternative_Defs
 uses "../Tools/Predicate_Compile/predicate_compile_quickcheck.ML"
 begin
 
-setup {* Quickcheck.add_generator ("predicate_compile_wo_ff", Predicate_Compile_Quickcheck.quickcheck_compile_term false true) *}
-setup {* Quickcheck.add_generator ("predicate_compile_ff_fs", Predicate_Compile_Quickcheck.quickcheck_compile_term true true) *}
-setup {* Quickcheck.add_generator ("predicate_compile_ff_nofs", Predicate_Compile_Quickcheck.quickcheck_compile_term true false) *}
+setup {* Quickcheck.add_generator ("predicate_compile_wo_ff", Predicate_Compile_Quickcheck.quickcheck_compile_term false true 8) *}
+setup {* Quickcheck.add_generator ("predicate_compile_ff_fs", Predicate_Compile_Quickcheck.quickcheck_compile_term true true 8) *}
+setup {* Quickcheck.add_generator ("predicate_compile_ff_nofs", Predicate_Compile_Quickcheck.quickcheck_compile_term true false 8) *}
 
 (*
 datatype alphabet = a | b

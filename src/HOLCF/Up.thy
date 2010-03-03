@@ -14,8 +14,8 @@ subsection {* Definition of new type for lifting *}
 
 datatype 'a u = Ibottom | Iup 'a
 
-syntax (xsymbols)
-  "u" :: "type \<Rightarrow> type" ("(_\<^sub>\<bottom>)" [1000] 999)
+type_notation (xsymbols)
+  u  ("(_\<^sub>\<bottom>)" [1000] 999)
 
 primrec Ifup :: "('a \<rightarrow> 'b::pcpo) \<Rightarrow> 'a u \<Rightarrow> 'b" where
     "Ifup f Ibottom = \<bottom>"

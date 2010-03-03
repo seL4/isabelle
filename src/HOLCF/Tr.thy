@@ -14,7 +14,7 @@ types
   tr = "bool lift"
 
 translations
-  "tr" <= (type) "bool lift"
+  (type) "tr" <= (type) "bool lift"
 
 definition
   TT :: "tr" where

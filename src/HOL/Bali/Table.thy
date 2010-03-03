@@ -42,8 +42,7 @@ abbreviation
   where "table_of \<equiv> map_of"
 
 translations
-  (type)"'a \<rightharpoonup> 'b"       <= (type)"'a \<Rightarrow> 'b Datatype.option"
-  (type)"('a, 'b) table" <= (type)"'a \<rightharpoonup> 'b"
+  (type) "('a, 'b) table" <= (type) "'a \<rightharpoonup> 'b"
 
 (* ### To map *)
 lemma map_add_find_left[simp]:

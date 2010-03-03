@@ -54,7 +54,7 @@ val num_mutations = 0
 
 (* quickcheck options *)
 (*val quickcheck_generator = "SML"*)
-val iterations = 100
+val iterations = 10
 val size = 5
 
 exception RANDOM;

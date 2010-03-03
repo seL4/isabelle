@@ -282,7 +282,8 @@ fun mfix_to_xprod convert is_logtype (mfix as Mfix (sy, typ, const, pris, pri)) 
       if not (exists is_index args) then (const, typ, [])
       else
         let
-          val indexed_const = if const <> "" then "_indexed_" ^ const
+          val indexed_const =
+            if const <> "" then const ^ "_indexed"
             else err_in_mfix "Missing constant name for indexed syntax" mfix;
           val rangeT = Term.range_type typ handle Match =>
             err_in_mfix "Missing structure argument for indexed syntax" mfix;
@@ -387,7 +388,7 @@ fun eq_trfun ((_, s1: stamp), (_, s2)) = s1 = s2;
 fun tokentrans_mode m trs = map (fn (s, f) => (m, s, f)) trs;
 
 val standard_token_classes =
-  ["class", "tfree", "tvar", "free", "bound", "var", "numeral", "inner_string"];
+  ["tfree", "tvar", "free", "bound", "var", "numeral", "inner_string"];
 
 val standard_token_markers = map (fn s => "_" ^ s) standard_token_classes;
 

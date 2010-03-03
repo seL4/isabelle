@@ -15,8 +15,6 @@ begin
 
 declare vector_add_ldistrib[simp] vector_ssub_ldistrib[simp] vector_smult_assoc[simp] vector_smult_rneg[simp]
 declare vector_sadd_rdistrib[simp] vector_sub_rdistrib[simp]
-declare dot_ladd[simp] dot_radd[simp] dot_lsub[simp] dot_rsub[simp]
-declare dot_lmult[simp] dot_rmult[simp] dot_lneg[simp] dot_rneg[simp]
 declare UNIV_1[simp]
 
 (*lemma dim1in[intro]:"Suc 0 \<in> {1::nat .. CARD(1)}" by auto*)
@@ -1717,7 +1715,7 @@ lemma separating_hyperplane_closed_0:
     using norm_basis and dimindex_ge_1 by auto
   thus ?thesis apply(rule_tac x="basis a" in exI, rule_tac x=1 in exI) using True by auto
 next case False thus ?thesis using False using separating_hyperplane_closed_point[OF assms]
-    apply - apply(erule exE)+ unfolding dot_rzero apply(rule_tac x=a in exI, rule_tac x=b in exI) by auto qed
+    apply - apply(erule exE)+ unfolding inner.zero_right apply(rule_tac x=a in exI, rule_tac x=b in exI) by auto qed
 
 subsection {* Now set-to-set for closed/compact sets. *}
 

@@ -65,7 +65,7 @@ ML {*
 
 (* parse translation for sequences *)
 
-fun abs_seq' t = Abs ("s", Type (@{type_syntax seq'}, []), t);
+fun abs_seq' t = Abs ("s", Type (@{type_name seq'}, []), t);
 
 fun seqobj_tr (Const (@{syntax_const "_SeqO"}, _) $ f) =
       Const (@{const_syntax SeqO'}, dummyT) $ f

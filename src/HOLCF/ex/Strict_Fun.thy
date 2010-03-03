@@ -12,8 +12,8 @@ pcpodef (open) ('a, 'b) sfun (infixr "->!" 0)
   = "{f :: 'a \<rightarrow> 'b. f\<cdot>\<bottom> = \<bottom>}"
 by simp_all
 
-syntax (xsymbols)
-  sfun :: "type \<Rightarrow> type \<Rightarrow> type" (infixr "\<rightarrow>!" 0)
+type_notation (xsymbols)
+  sfun  (infixr "\<rightarrow>!" 0)
 
 text {* TODO: Define nice syntax for abstraction, application. *}
 

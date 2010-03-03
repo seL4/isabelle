@@ -23,12 +23,12 @@ types
 
 
 translations
-  "fdecl"   <= (type) "vname \<times> ty"
-  "sig"     <= (type) "mname \<times> ty list"
-  "mdecl c" <= (type) "sig \<times> ty \<times> c"
-  "class c" <= (type) "cname \<times> fdecl list \<times> (c mdecl) list"
-  "cdecl c" <= (type) "cname \<times> (c class)"
-  "prog  c" <= (type) "(c cdecl) list"
+  (type) "fdecl" <= (type) "vname \<times> ty"
+  (type) "sig" <= (type) "mname \<times> ty list"
+  (type) "'c mdecl" <= (type) "sig \<times> ty \<times> 'c"
+  (type) "'c class" <= (type) "cname \<times> fdecl list \<times> ('c mdecl) list"
+  (type) "'c cdecl" <= (type) "cname \<times> ('c class)"
+  (type) "'c prog" <= (type) "('c cdecl) list"
 
 
 definition "class" :: "'c prog => (cname \<rightharpoonup> 'c class)" where
