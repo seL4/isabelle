@@ -160,12 +160,21 @@ local
   fun get_deflation_take dn = PureThy.get_thm thy (dn ^ ".deflation_take");
   val axs_deflation_take = map get_deflation_take dnames;
 
+  fun copy_of_dtyp tab r dt =
+      if Datatype_Aux.is_rec_type dt then copy tab r dt else ID
+  and copy tab r (Datatype_Aux.DtRec i) = r i
+    | copy tab r (Datatype_Aux.DtTFree a) = ID
+    | copy tab r (Datatype_Aux.DtType (c, ds)) =
+      case Symtab.lookup tab c of
+        SOME f => list_ccomb (%%:f, map (copy_of_dtyp tab r) ds)
+      | NONE => (warning ("copy_of_dtyp: unknown type constructor " ^ c); ID);
+
   fun one_take_app (con, args) =
     let
       fun mk_take n = dc_take (List.nth (dnames, n)) $ %:"n";
       fun one_rhs arg =
           if Datatype_Aux.is_rec_type (dtyp_of arg)
-          then Domain_Axioms.copy_of_dtyp map_tab
+          then copy_of_dtyp map_tab
                  mk_take (dtyp_of arg) ` (%# arg)
           else (%# arg);
       val lhs = (dc_take dname $ (%%:"Suc" $ %:"n"))`(con_app con args);

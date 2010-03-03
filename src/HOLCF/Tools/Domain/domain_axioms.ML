@@ -14,9 +14,6 @@ sig
   val axiomatize_lub_take :
       binding * term -> theory -> thm * theory
 
-  val copy_of_dtyp :
-      string Symtab.table -> (int -> term) -> Datatype.dtyp -> term
-
   val add_axioms :
       (binding * (typ * typ)) list -> theory ->
       Domain_Take_Proofs.iso_info list * theory
@@ -25,32 +22,6 @@ end;
 
 structure Domain_Axioms : DOMAIN_AXIOMS =
 struct
-
-(* TODO: move copy_of_dtyp somewhere else! *)
-local open Domain_Library in
-
-infixr 0 ===>;infixr 0 ==>;infix 0 == ; 
-infix 1 ===; infix 1 ~= ; infix 1 <<; infix 1 ~<<;
-infix 9 `   ; infix 9 `% ; infix 9 `%%; infixr 9 oo;
-
-(* FIXME: use theory data for this *)
-val copy_tab : string Symtab.table =
-    Symtab.make [(@{type_name cfun}, @{const_name "cfun_map"}),
-                 (@{type_name ssum}, @{const_name "ssum_map"}),
-                 (@{type_name sprod}, @{const_name "sprod_map"}),
-                 (@{type_name "*"}, @{const_name "cprod_map"}),
-                 (@{type_name "u"}, @{const_name "u_map"})];
-
-fun copy_of_dtyp tab r dt =
-    if Datatype_Aux.is_rec_type dt then copy tab r dt else ID
-and copy tab r (Datatype_Aux.DtRec i) = r i
-  | copy tab r (Datatype_Aux.DtTFree a) = ID
-  | copy tab r (Datatype_Aux.DtType (c, ds)) =
-    case Symtab.lookup tab c of
-      SOME f => list_ccomb (%%:f, map (copy_of_dtyp tab r) ds)
-    | NONE => (warning ("copy_of_dtyp: unknown type constructor " ^ c); ID);
-
-end; (* local open *)
 
 open HOLCF_Library;
 
