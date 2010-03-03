@@ -6,7 +6,7 @@ Isabelle/HOLZF", available from http://www4.in.tum.de/~obua/partizan
 *)
 
 theory HOLZF 
-imports Helper
+imports Main
 begin
 
 typedecl ZF
@@ -298,7 +298,7 @@ lemma Elem_Fun_Lambda: "Elem F (Fun U V) \<Longrightarrow> ? f. F = Lambda U f"
   apply (rule_tac x="Fst z" in exI)
   apply (simp add: isOpair_def)
   apply (auto simp add: Fst Snd Opair)
-  apply (rule theI2')
+  apply (rule the1I2)
   apply auto
   apply (drule Fun_implies_PFun)
   apply (drule_tac x="Opair x ya" and y="Opair x yb" in PFun_inj)
@@ -306,7 +306,7 @@ lemma Elem_Fun_Lambda: "Elem F (Fun U V) \<Longrightarrow> ? f. F = Lambda U f"
   apply (drule Fun_implies_PFun)
   apply (drule_tac x="Opair x y" and y="Opair x ya" in PFun_inj)
   apply (auto simp add: Fst Snd)
-  apply (rule theI2')
+  apply (rule the1I2)
   apply (auto simp add: Fun_total)
   apply (drule Fun_implies_PFun)
   apply (drule_tac x="Opair a x" and y="Opair a y" in PFun_inj)

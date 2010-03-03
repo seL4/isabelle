@@ -756,7 +756,7 @@ $(LOG)/HOL-Unix.gz: $(OUT)/HOL Library/Nested_Environment.thy	\
 
 HOL-ZF: HOL $(LOG)/HOL-ZF.gz
 
-$(LOG)/HOL-ZF.gz: $(OUT)/HOL ZF/ROOT.ML ZF/Helper.thy ZF/LProd.thy	\
+$(LOG)/HOL-ZF.gz: $(OUT)/HOL ZF/ROOT.ML ZF/LProd.thy	\
   ZF/HOLZF.thy ZF/MainZF.thy ZF/Games.thy ZF/document/root.tex
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL ZF
 
