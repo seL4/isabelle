@@ -79,7 +79,9 @@ fun check_and_sort_domain
           | rm_sorts (Type(s,ts)) = Type(s,remove_sorts ts)
           | rm_sorts (TVar(s,_))  = TVar(s,[])
         and remove_sorts l = map rm_sorts l;
-        val indirect_ok = ["*","Cfun.->","Ssum.++","Sprod.**","Up.u"]
+        val indirect_ok =
+            [@{type_name "*"}, @{type_name cfun}, @{type_name ssum},
+             @{type_name sprod}, @{type_name u}];
         fun analyse indirect (TFree(v,s))  =
             (case AList.lookup (op =) tvars v of 
                NONE => error ("Free type variable " ^ quote v ^ " on rhs.")

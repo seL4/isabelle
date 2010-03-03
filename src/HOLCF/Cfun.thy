@@ -20,11 +20,11 @@ by (rule exI, rule cont_const)
 lemma adm_cont: "adm cont"
 by (rule admI, rule cont_lub_fun)
 
-cpodef (CFun)  ('a, 'b) "->" (infixr "->" 0) = "{f::'a => 'b. cont f}"
+cpodef (CFun)  ('a, 'b) cfun (infixr "->" 0) = "{f::'a => 'b. cont f}"
 by (simp_all add: Ex_cont adm_cont)
 
-syntax (xsymbols)
-  "->"     :: "[type, type] => type"      ("(_ \<rightarrow>/ _)" [1,0]0)
+type_notation (xsymbols)
+  cfun  ("(_ \<rightarrow>/ _)" [1, 0] 0)
 
 notation
   Rep_CFun  ("(_$/_)" [999,1000] 999)
@@ -103,16 +103,16 @@ subsection {* Continuous function space is pointed *}
 lemma UU_CFun: "\<bottom> \<in> CFun"
 by (simp add: CFun_def inst_fun_pcpo cont_const)
 
-instance "->" :: (finite_po, finite_po) finite_po
+instance cfun :: (finite_po, finite_po) finite_po
 by (rule typedef_finite_po [OF type_definition_CFun])
 
-instance "->" :: (finite_po, chfin) chfin
+instance cfun :: (finite_po, chfin) chfin
 by (rule typedef_chfin [OF type_definition_CFun below_CFun_def])
 
-instance "->" :: (cpo, discrete_cpo) discrete_cpo
+instance cfun :: (cpo, discrete_cpo) discrete_cpo
 by intro_classes (simp add: below_CFun_def Rep_CFun_inject)
 
-instance "->" :: (cpo, pcpo) pcpo
+instance cfun :: (cpo, pcpo) pcpo
 by (rule typedef_pcpo [OF type_definition_CFun below_CFun_def UU_CFun])
 
 lemmas Rep_CFun_strict =

@@ -51,12 +51,12 @@ fun mk_chain t =
 (*** Continuous function space ***)
 
 (* ->> is taken from holcf_logic.ML *)
-fun mk_cfunT (T, U) = Type(@{type_name "->"}, [T, U]);
+fun mk_cfunT (T, U) = Type(@{type_name cfun}, [T, U]);
 
 val (op ->>) = mk_cfunT;
 val (op -->>) = Library.foldr mk_cfunT;
 
-fun dest_cfunT (Type(@{type_name "->"}, [T, U])) = (T, U)
+fun dest_cfunT (Type(@{type_name cfun}, [T, U])) = (T, U)
   | dest_cfunT T = raise TYPE ("dest_cfunT", [T], []);
 
 fun capply_const (S, T) =
@@ -84,7 +84,7 @@ fun big_lambdas [] rhs = rhs
 fun mk_capply (t, u) =
   let val (S, T) =
     case fastype_of t of
-        Type(@{type_name "->"}, [S, T]) => (S, T)
+        Type(@{type_name cfun}, [S, T]) => (S, T)
       | _ => raise TERM ("mk_capply " ^ ML_Syntax.print_list ML_Syntax.print_term [t, u], [t, u]);
   in capply_const (S, T) $ t $ u end;
 
@@ -153,9 +153,9 @@ fun from_up T = fup_const (T, T) ` mk_ID T;
 
 val oneT = @{typ "one"};
 
-fun mk_sprodT (T, U) = Type(@{type_name "**"}, [T, U]);
+fun mk_sprodT (T, U) = Type(@{type_name sprod}, [T, U]);
 
-fun dest_sprodT (Type(@{type_name "**"}, [T, U])) = (T, U)
+fun dest_sprodT (Type(@{type_name sprod}, [T, U])) = (T, U)
   | dest_sprodT T = raise TYPE ("dest_sprodT", [T], []);
 
 fun spair_const (T, U) =
@@ -179,9 +179,9 @@ fun ssnd_const (T, U) =
 
 (*** Strict sum type ***)
 
-fun mk_ssumT (T, U) = Type(@{type_name "++"}, [T, U]);
+fun mk_ssumT (T, U) = Type(@{type_name ssum}, [T, U]);
 
-fun dest_ssumT (Type(@{type_name "++"}, [T, U])) = (T, U)
+fun dest_ssumT (Type(@{type_name ssum}, [T, U])) = (T, U)
   | dest_ssumT T = raise TYPE ("dest_ssumT", [T], []);
 
 fun sinl_const (T, U) = Const(@{const_name sinl}, T ->> mk_ssumT (T, U));

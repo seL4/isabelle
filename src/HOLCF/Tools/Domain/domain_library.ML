@@ -213,8 +213,8 @@ fun nonlazy_rec args   = map vname (filter is_nonlazy_rec args);
 (* ----- combinators for making dtyps ----- *)
 
 fun mk_uD T = Datatype_Aux.DtType(@{type_name "u"}, [T]);
-fun mk_sprodD (T, U) = Datatype_Aux.DtType(@{type_name "**"}, [T, U]);
-fun mk_ssumD (T, U) = Datatype_Aux.DtType(@{type_name "++"}, [T, U]);
+fun mk_sprodD (T, U) = Datatype_Aux.DtType(@{type_name sprod}, [T, U]);
+fun mk_ssumD (T, U) = Datatype_Aux.DtType(@{type_name ssum}, [T, U]);
 fun mk_liftD T = Datatype_Aux.DtType(@{type_name "lift"}, [T]);
 val unitD = Datatype_Aux.DtType(@{type_name "unit"}, []);
 val boolD = Datatype_Aux.DtType(@{type_name "bool"}, []);
@@ -231,9 +231,9 @@ fun dtyp_of_eq (_, cons) = big_ssumD (map dtyp_of_cons cons);
 (* ----- support for type and mixfix expressions ----- *)
 
 fun mk_uT T = Type(@{type_name "u"}, [T]);
-fun mk_cfunT (T, U) = Type(@{type_name "->"}, [T, U]);
-fun mk_sprodT (T, U) = Type(@{type_name "**"}, [T, U]);
-fun mk_ssumT (T, U) = Type(@{type_name "++"}, [T, U]);
+fun mk_cfunT (T, U) = Type(@{type_name cfun}, [T, U]);
+fun mk_sprodT (T, U) = Type(@{type_name sprod}, [T, U]);
+fun mk_ssumT (T, U) = Type(@{type_name ssum}, [T, U]);
 val oneT = @{typ one};
 
 val op ->> = mk_cfunT;

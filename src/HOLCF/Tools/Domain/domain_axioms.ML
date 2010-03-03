@@ -31,9 +31,9 @@ infix 9 `   ; infix 9 `% ; infix 9 `%%; infixr 9 oo;
 
 (* FIXME: use theory data for this *)
 val copy_tab : string Symtab.table =
-    Symtab.make [(@{type_name "->"}, @{const_name "cfun_map"}),
-                 (@{type_name "++"}, @{const_name "ssum_map"}),
-                 (@{type_name "**"}, @{const_name "sprod_map"}),
+    Symtab.make [(@{type_name cfun}, @{const_name "cfun_map"}),
+                 (@{type_name ssum}, @{const_name "ssum_map"}),
+                 (@{type_name sprod}, @{const_name "sprod_map"}),
                  (@{type_name "*"}, @{const_name "cprod_map"}),
                  (@{type_name "u"}, @{const_name "u_map"})];
 

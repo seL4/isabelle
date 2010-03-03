@@ -35,11 +35,11 @@ fun fixrec_eq_err thy s eq =
 (*************************************************************************)
 
 (* ->> is taken from holcf_logic.ML *)
-fun cfunT (T, U) = Type(@{type_name "->"}, [T, U]);
+fun cfunT (T, U) = Type(@{type_name cfun}, [T, U]);
 
 infixr 6 ->>; val (op ->>) = cfunT;
 
-fun dest_cfunT (Type(@{type_name "->"}, [T, U])) = (T, U)
+fun dest_cfunT (Type(@{type_name cfun}, [T, U])) = (T, U)
   | dest_cfunT T = raise TYPE ("dest_cfunT", [T], []);
 
 fun maybeT T = Type(@{type_name "maybe"}, [T]);
@@ -53,11 +53,11 @@ fun tupleT [] = HOLogic.unitT
 
 local
 
-fun binder_cfun (Type(@{type_name "->"},[T, U])) = T :: binder_cfun U
+fun binder_cfun (Type(@{type_name cfun},[T, U])) = T :: binder_cfun U
   | binder_cfun (Type(@{type_name "fun"},[T, U])) = T :: binder_cfun U
   | binder_cfun _   =  [];
 
-fun body_cfun (Type(@{type_name "->"},[T, U])) = body_cfun U
+fun body_cfun (Type(@{type_name cfun},[T, U])) = body_cfun U
   | body_cfun (Type(@{type_name "fun"},[T, U])) = body_cfun U
   | body_cfun T   =  T;
 
@@ -99,7 +99,7 @@ fun mk_cabs t =
 fun mk_capply (t, u) =
   let val (S, T) =
     case Term.fastype_of t of
-        Type(@{type_name "->"}, [S, T]) => (S, T)
+        Type(@{type_name cfun}, [S, T]) => (S, T)
       | _ => raise TERM ("mk_capply " ^ ML_Syntax.print_list ML_Syntax.print_term [t, u], [t, u]);
   in capply_const (S, T) $ t $ u end;
 
@@ -288,7 +288,7 @@ fun pre_build match_name pat rhs vs taken =
   | Const(c,T) =>
       let
         val n = Name.variant taken "v";
-        fun result_type (Type(@{type_name "->"},[_,T])) (x::xs) = result_type T xs
+        fun result_type (Type(@{type_name cfun},[_,T])) (x::xs) = result_type T xs
           | result_type (Type (@{type_name "fun"},[_,T])) (x::xs) = result_type T xs
           | result_type T _ = T;
         val v = Free(n, result_type T vs);

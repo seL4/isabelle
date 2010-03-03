@@ -12,22 +12,22 @@ defaultsort pcpo
 
 subsection {* Definition of strict sum type *}
 
-pcpodef (Ssum)  ('a, 'b) "++" (infixr "++" 10) = 
+pcpodef (Ssum)  ('a, 'b) ssum (infixr "++" 10) = 
   "{p :: tr \<times> ('a \<times> 'b).
     (fst p \<sqsubseteq> TT \<longleftrightarrow> snd (snd p) = \<bottom>) \<and>
     (fst p \<sqsubseteq> FF \<longleftrightarrow> fst (snd p) = \<bottom>)}"
 by simp_all
 
-instance "++" :: ("{finite_po,pcpo}", "{finite_po,pcpo}") finite_po
+instance ssum :: ("{finite_po,pcpo}", "{finite_po,pcpo}") finite_po
 by (rule typedef_finite_po [OF type_definition_Ssum])
 
-instance "++" :: ("{chfin,pcpo}", "{chfin,pcpo}") chfin
+instance ssum :: ("{chfin,pcpo}", "{chfin,pcpo}") chfin
 by (rule typedef_chfin [OF type_definition_Ssum below_Ssum_def])
 
 syntax (xsymbols)
-  "++"          :: "[type, type] => type"       ("(_ \<oplus>/ _)" [21, 20] 20)
+  ssum          :: "[type, type] => type"       ("(_ \<oplus>/ _)" [21, 20] 20)
 syntax (HTML output)
-  "++"          :: "[type, type] => type"       ("(_ \<oplus>/ _)" [21, 20] 20)
+  ssum          :: "[type, type] => type"       ("(_ \<oplus>/ _)" [21, 20] 20)
 
 subsection {* Definitions of constructors *}
 
@@ -150,13 +150,13 @@ apply (rule disjI2, rule disjI2, rule_tac x=b in exI)
 apply (simp add: sinr_Abs_Ssum Ssum_def)
 done
 
-lemma ssumE [cases type: ++]:
+lemma ssumE [cases type: ssum]:
   "\<lbrakk>p = \<bottom> \<Longrightarrow> Q;
    \<And>x. \<lbrakk>p = sinl\<cdot>x; x \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> Q;
    \<And>y. \<lbrakk>p = sinr\<cdot>y; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 by (cut_tac z=p in Exh_Ssum, auto)
 
-lemma ssum_induct [induct type: ++]:
+lemma ssum_induct [induct type: ssum]:
   "\<lbrakk>P \<bottom>;
    \<And>x. x \<noteq> \<bottom> \<Longrightarrow> P (sinl\<cdot>x);
    \<And>y. y \<noteq> \<bottom> \<Longrightarrow> P (sinr\<cdot>y)\<rbrakk> \<Longrightarrow> P x"
@@ -203,7 +203,7 @@ by (cases z, simp_all)
 
 subsection {* Strict sum preserves flatness *}
 
-instance "++" :: (flat, flat) flat
+instance ssum :: (flat, flat) flat
 apply (intro_classes, clarify)
 apply (case_tac x, simp)
 apply (case_tac y, simp_all add: flat_below_iff)
@@ -296,7 +296,7 @@ qed
 
 subsection {* Strict sum is a bifinite domain *}
 
-instantiation "++" :: (bifinite, bifinite) bifinite
+instantiation ssum :: (bifinite, bifinite) bifinite
 begin
 
 definition
