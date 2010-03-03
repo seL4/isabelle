@@ -230,10 +230,10 @@ fun define_take_functions
           (mk_tuple (map one_copy_rhs (rep_abs_consts ~~ dom_eqns)));
     val take_rhss =
       let
-        val i = Free ("i", HOLogic.natT);
-        val rhs = mk_iterate (i, take_functional)
+        val n = Free ("n", HOLogic.natT);
+        val rhs = mk_iterate (n, take_functional);
       in
-        map (Term.lambda i o snd) (mk_projs dom_binds rhs)
+        map (lambda n o snd) (mk_projs dom_binds rhs)
       end;
 
     (* define take constants *)
@@ -284,12 +284,12 @@ fun define_take_functions
       fold_map prove_take_0 (take_consts ~~ dnames ~~ dom_eqns) thy;
 
     (* prove take_Suc lemmas *)
-    val i = Free ("i", natT);
-    val take_is = map (fn t => t $ i) take_consts;
+    val n = Free ("n", natT);
+    val take_is = map (fn t => t $ n) take_consts;
     fun prove_take_Suc
           (((take_const, rep_abs), dname), (lhsT, rhsT)) thy =
       let
-        val lhs = take_const $ (@{term Suc} $ i);
+        val lhs = take_const $ (@{term Suc} $ n);
         val body = map_of_typ thy (newTs ~~ take_is) rhsT;
         val rhs = mk_cfcomp2 (rep_abs, body);
         val goal = mk_eqs (lhs, rhs);
@@ -308,8 +308,8 @@ fun define_take_functions
     val deflation_abs_rep_thms = map deflation_abs_rep iso_infos;
     val deflation_take_thm =
       let
-        val i = Free ("i", natT);
-        fun mk_goal take_const = mk_deflation (take_const $ i);
+        val n = Free ("n", natT);
+        fun mk_goal take_const = mk_deflation (take_const $ n);
         val goal = mk_trp (foldr1 mk_conj (map mk_goal take_consts));
         val adm_rules =
           @{thms adm_conj adm_subst [OF _ adm_deflation]
@@ -344,7 +344,7 @@ fun define_take_functions
     (* prove strictness of take functions *)
     fun prove_take_strict (take_const, dname) thy =
       let
-        val goal = mk_trp (mk_strict (take_const $ Free ("i", natT)));
+        val goal = mk_trp (mk_strict (take_const $ Free ("n", natT)));
         val tac = rtac @{thm deflation_strict} 1
                   THEN resolve_tac deflation_take_thms 1;
         val take_strict_thm = Goal.prove_global thy [] [] goal (K tac);
@@ -358,7 +358,8 @@ fun define_take_functions
     fun prove_take_take ((chain_take, deflation_take), dname) thy =
       let
         val take_take_thm =
-            @{thm deflation_chain_min} OF [chain_take, deflation_take];
+            Drule.export_without_context
+            (@{thm deflation_chain_min} OF [chain_take, deflation_take]);
       in
         add_qualified_thm "take_take" (dname, take_take_thm) thy
       end;
@@ -374,10 +375,10 @@ fun define_take_functions
         val (finite_const, thy) =
           Sign.declare_const ((finite_bind, finite_type), NoSyn) thy;
         val x = Free ("x", lhsT);
-        val i = Free ("i", natT);
+        val n = Free ("n", natT);
         val finite_rhs =
           lambda x (HOLogic.exists_const natT $
-            (lambda i (mk_eq (mk_capply (take_const $ i, x), x))));
+            (lambda n (mk_eq (mk_capply (take_const $ n, x), x))));
         val finite_eqn = Logic.mk_equals (finite_const, finite_rhs);
         val (finite_def_thm, thy) =
           thy

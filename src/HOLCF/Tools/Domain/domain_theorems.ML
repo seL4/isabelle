@@ -199,7 +199,7 @@ local
           [simp_tac (HOL_basic_ss addsimps rules) 1,
            asm_simp_tac (HOL_basic_ss addsimps rules2) 1];
     in pg con_appls goal (K tacs) end;
-  val take_apps = map (Drule.export_without_context o one_take_app) cons;
+  val take_apps = map one_take_app cons;
 in
   val take_rews = ax_take_0 :: ax_take_strict :: take_apps;
 end;
@@ -438,13 +438,15 @@ in (* local *)
   val take_lemmas =
     let
       fun take_lemma (ax_chain_take, ax_lub_take) =
-        @{thm lub_ID_take_lemma} OF [ax_chain_take, ax_lub_take];
+        Drule.export_without_context
+        (@{thm lub_ID_take_lemma} OF [ax_chain_take, ax_lub_take]);
     in map take_lemma (axs_chain_take ~~ axs_lub_take) end;
 
   val axs_reach =
     let
       fun reach (ax_chain_take, ax_lub_take) =
-        @{thm lub_ID_reach} OF [ax_chain_take, ax_lub_take];
+        Drule.export_without_context
+        (@{thm lub_ID_reach} OF [ax_chain_take, ax_lub_take]);
     in map reach (axs_chain_take ~~ axs_lub_take) end;
 
 (* ----- theorems concerning finiteness and induction ----------------------- *)

@@ -290,12 +290,12 @@ by (auto simp add: stream.finite_def)
 
 lemma stream_finite_lemma1: "stream_finite xs ==> stream_finite (x && xs)"
 apply (simp add: stream.finite_def,auto)
-apply (rule_tac x="Suc i" in exI)
+apply (rule_tac x="Suc n" in exI)
 by (simp add: stream_take_lemma4)
 
 lemma stream_finite_lemma2: "[| x ~= UU; stream_finite (x && xs) |] ==> stream_finite xs"
 apply (simp add: stream.finite_def, auto)
-apply (rule_tac x="i" in exI)
+apply (rule_tac x="n" in exI)
 by (erule stream_take_lemma3,simp)
 
 lemma stream_finite_rt_eq: "stream_finite (rt$s) = stream_finite s"

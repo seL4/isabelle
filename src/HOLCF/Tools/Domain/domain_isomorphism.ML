@@ -627,8 +627,8 @@ fun gen_domain_isomorphism
     (* prove lub of take equals ID *)
     fun prove_lub_take (((bind, take_const), map_ID_thm), (lhsT, rhsT)) thy =
       let
-        val i = Free ("i", natT);
-        val goal = mk_eqs (mk_lub (lambda i (take_const $ i)), mk_ID lhsT);
+        val n = Free ("n", natT);
+        val goal = mk_eqs (mk_lub (lambda n (take_const $ n)), mk_ID lhsT);
         val tac =
             EVERY
             [rtac @{thm trans} 1, rtac map_ID_thm 2,

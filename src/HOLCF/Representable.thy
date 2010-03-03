@@ -189,21 +189,21 @@ by (rule ep_pair.deflation_e_d_p) (simp add: ep_pair.intro assms)
 
 lemma deflation_chain_min:
   assumes chain: "chain d"
-  assumes defl: "\<And>i. deflation (d i)"
-  shows "d i\<cdot>(d j\<cdot>x) = d (min i j)\<cdot>x"
+  assumes defl: "\<And>n. deflation (d n)"
+  shows "d m\<cdot>(d n\<cdot>x) = d (min m n)\<cdot>x"
 proof (rule linorder_le_cases)
-  assume "i \<le> j"
-  with chain have "d i \<sqsubseteq> d j" by (rule chain_mono)
-  then have "d i\<cdot>(d j\<cdot>x) = d i\<cdot>x"
+  assume "m \<le> n"
+  with chain have "d m \<sqsubseteq> d n" by (rule chain_mono)
+  then have "d m\<cdot>(d n\<cdot>x) = d m\<cdot>x"
     by (rule deflation_below_comp1 [OF defl defl])
-  moreover from `i \<le> j` have "min i j = i" by simp
+  moreover from `m \<le> n` have "min m n = m" by simp
   ultimately show ?thesis by simp
 next
-  assume "j \<le> i"
-  with chain have "d j \<sqsubseteq> d i" by (rule chain_mono)
-  then have "d i\<cdot>(d j\<cdot>x) = d j\<cdot>x"
+  assume "n \<le> m"
+  with chain have "d n \<sqsubseteq> d m" by (rule chain_mono)
+  then have "d m\<cdot>(d n\<cdot>x) = d n\<cdot>x"
     by (rule deflation_below_comp2 [OF defl defl])
-  moreover from `j \<le> i` have "min i j = j" by simp
+  moreover from `n \<le> m` have "min m n = n" by simp
   ultimately show ?thesis by simp
 qed
 
