@@ -56,7 +56,7 @@ fun transform thy (c, T, mx) =
       trans_rules (syntax c2) (syntax c1) n mx)
   end;
 
-fun cfun_arity (Type (n, [_, T])) = if n = @{type_name "->"} then 1 + cfun_arity T else 0
+fun cfun_arity (Type (n, [_, T])) = if n = @{type_name cfun} then 1 + cfun_arity T else 0
   | cfun_arity _ = 0;
 
 fun is_contconst (_, _, NoSyn) = false

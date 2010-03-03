@@ -163,8 +163,7 @@ by (simp add: Last_def)
 
 lemma Last_cons: "Last$(x>>xs)= (if xs=nil then Def x else Last$xs)"
 apply (simp add: Last_def Consq_def)
-apply (rule_tac x="xs" in seq.casedist)
-apply simp
+apply (cases xs)
 apply simp_all
 done
 
@@ -208,7 +207,7 @@ done
 lemma Zip_UU2: "x~=nil ==> Zip$x$UU =UU"
 apply (subst Zip_unfold)
 apply simp
-apply (rule_tac x="x" in seq.casedist)
+apply (cases x)
 apply simp_all
 done
 

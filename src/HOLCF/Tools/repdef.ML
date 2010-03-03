@@ -20,32 +20,28 @@ end;
 structure Repdef :> REPDEF =
 struct
 
+open HOLCF_Library;
+
+infixr 6 ->>;
+infix -->>;
+
 (** type definitions **)
 
 type rep_info =
   { emb_def: thm, prj_def: thm, approx_def: thm, REP: thm };
 
-(* building terms *)
+(* building types and terms *)
 
-fun adm_const T = Const (@{const_name adm}, (T --> HOLogic.boolT) --> HOLogic.boolT);
-fun mk_adm (x, T, P) = adm_const T $ absfree (x, T, P);
-
-fun below_const T = Const (@{const_name below}, T --> T --> HOLogic.boolT);
-
-val natT = @{typ nat};
 val udomT = @{typ udom};
 fun alg_deflT T = Type (@{type_name alg_defl}, [T]);
-fun cfunT (T, U) = Type (@{type_name "->"}, [T, U]);
-fun emb_const T = Const (@{const_name emb}, cfunT (T, udomT));
-fun prj_const T = Const (@{const_name prj}, cfunT (udomT, T));
-fun approx_const T = Const (@{const_name approx}, natT --> cfunT (T, T));
+fun emb_const T = Const (@{const_name emb}, T ->> udomT);
+fun prj_const T = Const (@{const_name prj}, udomT ->> T);
+fun approx_const T = Const (@{const_name approx}, natT --> (T ->> T));
 
-fun LAM_const (T, U) = Const (@{const_name Abs_CFun}, (T --> U) --> cfunT (T, U));
-fun APP_const (T, U) = Const (@{const_name Rep_CFun}, cfunT (T, U) --> (T --> U));
-fun cast_const T = Const (@{const_name cast}, cfunT (alg_deflT T, cfunT (T, T)));
+fun cast_const T = Const (@{const_name cast}, alg_deflT T ->> T ->> T);
 fun mk_cast (t, x) =
-  APP_const (udomT, udomT)
-  $ (APP_const (alg_deflT udomT, cfunT (udomT, udomT)) $ cast_const udomT $ t)
+  capply_const (udomT, udomT)
+  $ (capply_const (alg_deflT udomT, udomT ->> udomT) $ cast_const udomT $ t)
   $ x;
 
 (* manipulating theorems *)
@@ -99,12 +95,12 @@ fun gen_add_repdef
     (*definitions*)
     val Rep_const = Const (#Rep_name info, newT --> udomT);
     val Abs_const = Const (#Abs_name info, udomT --> newT);
-    val emb_eqn = Logic.mk_equals (emb_const newT, LAM_const (newT, udomT) $ Rep_const);
-    val prj_eqn = Logic.mk_equals (prj_const newT, LAM_const (udomT, newT) $
+    val emb_eqn = Logic.mk_equals (emb_const newT, cabs_const (newT, udomT) $ Rep_const);
+    val prj_eqn = Logic.mk_equals (prj_const newT, cabs_const (udomT, newT) $
       Abs ("x", udomT, Abs_const $ mk_cast (defl, Bound 0)));
     val repdef_approx_const =
       Const (@{const_name repdef_approx}, (newT --> udomT) --> (udomT --> newT)
-        --> alg_deflT udomT --> natT --> cfunT (newT, newT));
+        --> alg_deflT udomT --> natT --> (newT ->> newT));
     val approx_eqn = Logic.mk_equals (approx_const newT,
       repdef_approx_const $ Rep_const $ Abs_const $ defl);
 

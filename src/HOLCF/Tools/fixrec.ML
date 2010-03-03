@@ -22,9 +22,14 @@ end;
 structure Fixrec :> FIXREC =
 struct
 
+open HOLCF_Library;
+
+infixr 6 ->>;
+infix -->>;
+infix 9 `;
+
 val def_cont_fix_eq = @{thm def_cont_fix_eq};
 val def_cont_fix_ind = @{thm def_cont_fix_ind};
-
 
 fun fixrec_err s = error ("fixrec definition error:\n" ^ s);
 fun fixrec_eq_err thy s eq =
@@ -34,42 +39,23 @@ fun fixrec_eq_err thy s eq =
 (***************************** building types ****************************)
 (*************************************************************************)
 
-(* ->> is taken from holcf_logic.ML *)
-fun cfunT (T, U) = Type(@{type_name "->"}, [T, U]);
-
-infixr 6 ->>; val (op ->>) = cfunT;
-
-fun dest_cfunT (Type(@{type_name "->"}, [T, U])) = (T, U)
-  | dest_cfunT T = raise TYPE ("dest_cfunT", [T], []);
-
-fun maybeT T = Type(@{type_name "maybe"}, [T]);
-
-fun dest_maybeT (Type(@{type_name "maybe"}, [T])) = T
-  | dest_maybeT T = raise TYPE ("dest_maybeT", [T], []);
-
-fun tupleT [] = HOLogic.unitT
-  | tupleT [T] = T
-  | tupleT (T :: Ts) = HOLogic.mk_prodT (T, tupleT Ts);
-
 local
 
-fun binder_cfun (Type(@{type_name "->"},[T, U])) = T :: binder_cfun U
+fun binder_cfun (Type(@{type_name cfun},[T, U])) = T :: binder_cfun U
   | binder_cfun (Type(@{type_name "fun"},[T, U])) = T :: binder_cfun U
   | binder_cfun _   =  [];
 
-fun body_cfun (Type(@{type_name "->"},[T, U])) = body_cfun U
+fun body_cfun (Type(@{type_name cfun},[T, U])) = body_cfun U
   | body_cfun (Type(@{type_name "fun"},[T, U])) = body_cfun U
   | body_cfun T   =  T;
 
 fun strip_cfun T : typ list * typ =
   (binder_cfun T, body_cfun T);
 
-fun cfunsT (Ts, U) = List.foldr cfunT U Ts;
-
 in
 
-fun matchT (T, U) =
-  body_cfun T ->> cfunsT (binder_cfun T, U) ->> U;
+fun matcherT (T, U) =
+  body_cfun T ->> (binder_cfun T -->> U) ->> U;
 
 end
 
@@ -86,43 +72,8 @@ fun dest_eqs t = HOLogic.dest_eq (HOLogic.dest_Trueprop t);
 fun chead_of (Const(@{const_name Rep_CFun},_)$f$t) = chead_of f
   | chead_of u = u;
 
-fun capply_const (S, T) =
-  Const(@{const_name Rep_CFun}, (S ->> T) --> (S --> T));
-
-fun cabs_const (S, T) =
-  Const(@{const_name Abs_CFun}, (S --> T) --> (S ->> T));
-
-fun mk_cabs t =
-  let val T = Term.fastype_of t
-  in cabs_const (Term.domain_type T, Term.range_type T) $ t end
-
-fun mk_capply (t, u) =
-  let val (S, T) =
-    case Term.fastype_of t of
-        Type(@{type_name "->"}, [S, T]) => (S, T)
-      | _ => raise TERM ("mk_capply " ^ ML_Syntax.print_list ML_Syntax.print_term [t, u], [t, u]);
-  in capply_const (S, T) $ t $ u end;
-
 infix 0 ==;  val (op ==) = Logic.mk_equals;
 infix 1 ===; val (op ===) = HOLogic.mk_eq;
-infix 9 `  ; val (op `) = mk_capply;
-
-(* builds the expression (LAM v. rhs) *)
-fun big_lambda v rhs =
-  cabs_const (Term.fastype_of v, Term.fastype_of rhs) $ Term.lambda v rhs;
-
-(* builds the expression (LAM v1 v2 .. vn. rhs) *)
-fun big_lambdas [] rhs = rhs
-  | big_lambdas (v::vs) rhs = big_lambda v (big_lambdas vs rhs);
-
-fun mk_return t =
-  let val T = Term.fastype_of t
-  in Const(@{const_name Fixrec.return}, T ->> maybeT T) ` t end;
-
-fun mk_bind (t, u) =
-  let val (T, mU) = dest_cfunT (Term.fastype_of u);
-      val bindT = maybeT T ->> (T ->> mU) ->> mU;
-  in Const(@{const_name Fixrec.bind}, bindT) ` t ` u end;
 
 fun mk_mplus (t, u) =
   let val mT = Term.fastype_of t
@@ -130,30 +81,8 @@ fun mk_mplus (t, u) =
 
 fun mk_run t =
   let val mT = Term.fastype_of t
-      val T = dest_maybeT mT
+      val T = dest_matchT mT
   in Const(@{const_name Fixrec.run}, mT ->> T) ` t end;
-
-fun mk_fix t =
-  let val (T, _) = dest_cfunT (Term.fastype_of t)
-  in Const(@{const_name fix}, (T ->> T) ->> T) ` t end;
-
-fun mk_cont t =
-  let val T = Term.fastype_of t
-  in Const(@{const_name cont}, T --> HOLogic.boolT) $ t end;
-
-val mk_fst = HOLogic.mk_fst
-val mk_snd = HOLogic.mk_snd
-
-(* builds the expression (v1,v2,..,vn) *)
-fun mk_tuple [] = HOLogic.unit
-|   mk_tuple (t::[]) = t
-|   mk_tuple (t::ts) = HOLogic.mk_prod (t, mk_tuple ts);
-
-(* builds the expression (%(v1,v2,..,vn). rhs) *)
-fun lambda_tuple [] rhs = Term.lambda (Free("unit", HOLogic.unitT)) rhs
-  | lambda_tuple (v::[]) rhs = Term.lambda v rhs
-  | lambda_tuple (v::vs) rhs =
-      HOLogic.mk_split (Term.lambda v (lambda_tuple vs rhs));
 
 
 (*************************************************************************)
@@ -288,11 +217,11 @@ fun pre_build match_name pat rhs vs taken =
   | Const(c,T) =>
       let
         val n = Name.variant taken "v";
-        fun result_type (Type(@{type_name "->"},[_,T])) (x::xs) = result_type T xs
+        fun result_type (Type(@{type_name cfun},[_,T])) (x::xs) = result_type T xs
           | result_type (Type (@{type_name "fun"},[_,T])) (x::xs) = result_type T xs
           | result_type T _ = T;
         val v = Free(n, result_type T vs);
-        val m = Const(match_name c, matchT (T, fastype_of rhs));
+        val m = Const(match_name c, matcherT (T, fastype_of rhs));
         val k = big_lambdas vs rhs;
       in
         (m`v`k, v, n::taken)
@@ -340,7 +269,7 @@ fun fatbar arity ms =
     val msum = foldr1 mk_mplus (map (unLAM arity) ms);
     val (Ts, U) = LAM_Ts arity (hd ms)
   in
-    reLAM (rev Ts, dest_maybeT U) (mk_run msum)
+    reLAM (rev Ts, dest_matchT U) (mk_run msum)
   end;
 
 (* this is the pattern-matching compiler function *)

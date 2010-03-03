@@ -6,37 +6,17 @@ Defines new types satisfying the given domain equations.
 
 signature DOMAIN_ISOMORPHISM =
 sig
-  type iso_info =
-    {
-      repT : typ,
-      absT : typ,
-      rep_const : term,
-      abs_const : term,
-      rep_inverse : thm,
-      abs_inverse : thm
-    }
   val domain_isomorphism :
     (string list * binding * mixfix * typ * (binding * binding) option) list
-      -> theory -> iso_info list * theory
+      -> theory -> Domain_Take_Proofs.iso_info list * theory
   val domain_isomorphism_cmd :
     (string list * binding * mixfix * string * (binding * binding) option) list
       -> theory -> theory
   val add_type_constructor :
     (string * term * string * thm  * thm * thm * thm) -> theory -> theory
-  val get_map_tab :
-    theory -> string Symtab.table
-  val define_take_functions :
-    (binding * iso_info) list -> theory ->
-    { take_consts : term list,
-      take_defs : thm list,
-      chain_take_thms : thm list,
-      take_0_thms : thm list,
-      take_Suc_thms : thm list,
-      deflation_take_thms : thm list
-    } * theory;
 end;
 
-structure Domain_Isomorphism :> DOMAIN_ISOMORPHISM =
+structure Domain_Isomorphism : DOMAIN_ISOMORPHISM =
 struct
 
 val beta_ss =
@@ -53,47 +33,51 @@ val beta_tac = simp_tac beta_ss;
 
 structure DeflData = Theory_Data
 (
+  (* terms like "foo_defl" *)
   type T = term Symtab.table;
   val empty = Symtab.empty;
   val extend = I;
   fun merge data = Symtab.merge (K true) data;
 );
 
-structure MapData = Theory_Data
+structure RepData = Theory_Data
 (
-  type T = string Symtab.table;
-  val empty = Symtab.empty;
-  val extend = I;
-  fun merge data = Symtab.merge (K true) data;
-);
-
-structure Thm_List : THEORY_DATA_ARGS =
-struct
+  (* theorems like "REP('a foo) = foo_defl$REP('a)" *)
   type T = thm list;
   val empty = [];
   val extend = I;
   val merge = Thm.merge_thms;
-end;
+);
 
-structure RepData = Theory_Data (Thm_List);
+structure MapIdData = Theory_Data
+(
+  (* theorems like "foo_map$ID = ID" *)
+  type T = thm list;
+  val empty = [];
+  val extend = I;
+  val merge = Thm.merge_thms;
+);
 
-structure IsodeflData = Theory_Data (Thm_List);
-
-structure MapIdData = Theory_Data (Thm_List);
-
-structure DeflMapData = Theory_Data (Thm_List);
+structure IsodeflData = Theory_Data
+(
+  (* theorems like "isodefl d t ==> isodefl (foo_map$d) (foo_defl$t)" *)
+  type T = thm list;
+  val empty = [];
+  val extend = I;
+  val merge = Thm.merge_thms;
+);
 
 fun add_type_constructor
   (tname, defl_const, map_name, REP_thm,
    isodefl_thm, map_ID_thm, defl_map_thm) =
     DeflData.map (Symtab.insert (K true) (tname, defl_const))
-    #> MapData.map (Symtab.insert (K true) (tname, map_name))
+    #> Domain_Take_Proofs.add_map_function (tname, map_name, defl_map_thm)
     #> RepData.map (Thm.add_thm REP_thm)
     #> IsodeflData.map (Thm.add_thm isodefl_thm)
-    #> MapIdData.map (Thm.add_thm map_ID_thm)
-    #> DeflMapData.map (Thm.add_thm defl_map_thm);
+    #> MapIdData.map (Thm.add_thm map_ID_thm);
 
-val get_map_tab = MapData.get;
+
+(* val get_map_tab = MapData.get; *)
 
 
 (******************************************************************************)
@@ -142,17 +126,7 @@ fun mk_eqs (t, u) = HOLogic.mk_Trueprop (HOLogic.mk_eq (t, u));
 (****************************** isomorphism info ******************************)
 (******************************************************************************)
 
-type iso_info =
-  {
-    absT : typ,
-    repT : typ,
-    abs_const : term,
-    rep_const : term,
-    abs_inverse : thm,
-    rep_inverse : thm
-  }
-
-fun deflation_abs_rep (info : iso_info) : thm =
+fun deflation_abs_rep (info : Domain_Take_Proofs.iso_info) : thm =
   let
     val abs_iso = #abs_inverse info;
     val rep_iso = #rep_inverse info;
@@ -250,22 +224,6 @@ fun defl_of_typ
                   else error ("defl_of_typ: type variable under unsupported type constructor " ^ c);
   in defl_of T end;
 
-fun map_of_typ
-    (tab : string Symtab.table)
-    (T : typ) : term =
-  let
-    fun is_closed_typ (Type (_, Ts)) = forall is_closed_typ Ts
-      | is_closed_typ _ = false;
-    fun map_of (T as TFree (a, _)) = Free (Library.unprefix "'" a, T ->> T)
-      | map_of (T as TVar _) = error ("map_of_typ: TVar")
-      | map_of (T as Type (c, Ts)) =
-        case Symtab.lookup tab c of
-          SOME t => list_ccomb (Const (t, mapT T), map map_of Ts)
-        | NONE => if is_closed_typ T
-                  then mk_ID T
-                  else error ("map_of_typ: type variable under unsupported type constructor " ^ c);
-  in map_of T end;
-
 
 (******************************************************************************)
 (********************* declaring definitions and theorems *********************)
@@ -293,217 +251,6 @@ fun add_qualified_thm name (path, thm) thy =
     ||> Sign.parent_path;
 
 (******************************************************************************)
-(************************** defining take functions ***************************)
-(******************************************************************************)
-
-fun define_take_functions
-    (spec : (binding * iso_info) list)
-    (thy : theory) =
-  let
-
-    (* retrieve components of spec *)
-    val dom_binds = map fst spec;
-    val iso_infos = map snd spec;
-    val dom_eqns = map (fn x => (#absT x, #repT x)) iso_infos;
-    val rep_abs_consts = map (fn x => (#rep_const x, #abs_const x)) iso_infos;
-    val dnames = map Binding.name_of dom_binds;
-
-    (* get table of map functions *)
-    val map_tab = MapData.get thy;
-
-    fun mk_projs []      t = []
-      | mk_projs (x::[]) t = [(x, t)]
-      | mk_projs (x::xs) t = (x, mk_fst t) :: mk_projs xs (mk_snd t);
-
-    fun mk_cfcomp2 ((rep_const, abs_const), f) =
-        mk_cfcomp (abs_const, mk_cfcomp (f, rep_const));
-
-    (* defining map functions over dtyps *)
-    fun copy_of_dtyp recs (T, dt) =
-        if Datatype_Aux.is_rec_type dt
-        then copy_of_dtyp' recs (T, dt)
-        else mk_ID T
-    and copy_of_dtyp' recs (T, Datatype_Aux.DtRec i) = nth recs i
-      | copy_of_dtyp' recs (T, Datatype_Aux.DtTFree a) = mk_ID T
-      | copy_of_dtyp' recs (T, Datatype_Aux.DtType (c, ds)) =
-        case Symtab.lookup map_tab c of
-          SOME f =>
-          list_ccomb
-            (Const (f, mapT T),
-             map (copy_of_dtyp recs) (snd (dest_Type T) ~~ ds))
-        | NONE =>
-          (warning ("copy_of_dtyp: unknown type constructor " ^ c); mk_ID T);
-
-    (* define take functional *)
-    val new_dts : (string * string list) list =
-      map (apsnd (map (fst o dest_TFree)) o dest_Type o fst) dom_eqns;
-    val copy_arg_type = mk_tupleT (map (fn (T, _) => T ->> T) dom_eqns);
-    val copy_arg = Free ("f", copy_arg_type);
-    val copy_args = map snd (mk_projs dom_binds copy_arg);
-    fun one_copy_rhs (rep_abs, (lhsT, rhsT)) =
-      let
-        val dtyp = Datatype_Aux.dtyp_of_typ new_dts rhsT;
-        val body = copy_of_dtyp copy_args (rhsT, dtyp);
-      in
-        mk_cfcomp2 (rep_abs, body)
-      end;
-    val take_functional =
-        big_lambda copy_arg
-          (mk_tuple (map one_copy_rhs (rep_abs_consts ~~ dom_eqns)));
-    val take_rhss =
-      let
-        val i = Free ("i", HOLogic.natT);
-        val rhs = mk_iterate (i, take_functional)
-      in
-        map (Term.lambda i o snd) (mk_projs dom_binds rhs)
-      end;
-
-    (* define take constants *)
-    fun define_take_const ((tbind, take_rhs), (lhsT, rhsT)) thy =
-      let
-        val take_type = HOLogic.natT --> lhsT ->> lhsT;
-        val take_bind = Binding.suffix_name "_take" tbind;
-        val (take_const, thy) =
-          Sign.declare_const ((take_bind, take_type), NoSyn) thy;
-        val take_eqn = Logic.mk_equals (take_const, take_rhs);
-        val (take_def_thm, thy) =
-          thy
-          |> Sign.add_path (Binding.name_of tbind)
-          |> yield_singleton
-              (PureThy.add_defs false o map Thm.no_attributes)
-              (Binding.name "take_def", take_eqn)
-          ||> Sign.parent_path;
-      in ((take_const, take_def_thm), thy) end;
-    val ((take_consts, take_defs), thy) = thy
-      |> fold_map define_take_const (dom_binds ~~ take_rhss ~~ dom_eqns)
-      |>> ListPair.unzip;
-
-    (* prove chain_take lemmas *)
-    fun prove_chain_take (take_const, dname) thy =
-      let
-        val goal = mk_trp (mk_chain take_const);
-        val rules = take_defs @ @{thms chain_iterate ch2ch_fst ch2ch_snd};
-        val tac = simp_tac (HOL_basic_ss addsimps rules) 1;
-        val chain_take_thm = Goal.prove_global thy [] [] goal (K tac);
-      in
-        add_qualified_thm "chain_take" (dname, chain_take_thm) thy
-      end;
-    val (chain_take_thms, thy) =
-      fold_map prove_chain_take (take_consts ~~ dnames) thy;
-
-    (* prove take_0 lemmas *)
-    fun prove_take_0 ((take_const, dname), (lhsT, rhsT)) thy =
-      let
-        val lhs = take_const $ @{term "0::nat"};
-        val goal = mk_eqs (lhs, mk_bottom (lhsT ->> lhsT));
-        val rules = take_defs @ @{thms iterate_0 fst_strict snd_strict};
-        val tac = simp_tac (HOL_basic_ss addsimps rules) 1;
-        val take_0_thm = Goal.prove_global thy [] [] goal (K tac);
-      in
-        add_qualified_thm "take_0" (dname, take_0_thm) thy
-      end;
-    val (take_0_thms, thy) =
-      fold_map prove_take_0 (take_consts ~~ dnames ~~ dom_eqns) thy;
-
-    (* prove take_Suc lemmas *)
-    val i = Free ("i", natT);
-    val take_is = map (fn t => t $ i) take_consts;
-    fun prove_take_Suc
-          (((take_const, rep_abs), dname), (lhsT, rhsT)) thy =
-      let
-        val lhs = take_const $ (@{term Suc} $ i);
-        val dtyp = Datatype_Aux.dtyp_of_typ new_dts rhsT;
-        val body = copy_of_dtyp take_is (rhsT, dtyp);
-        val rhs = mk_cfcomp2 (rep_abs, body);
-        val goal = mk_eqs (lhs, rhs);
-        val simps = @{thms iterate_Suc fst_conv snd_conv}
-        val rules = take_defs @ simps;
-        val tac = simp_tac (beta_ss addsimps rules) 1;
-        val take_Suc_thm = Goal.prove_global thy [] [] goal (K tac);
-      in
-        add_qualified_thm "take_Suc" (dname, take_Suc_thm) thy
-      end;
-    val (take_Suc_thms, thy) =
-      fold_map prove_take_Suc
-        (take_consts ~~ rep_abs_consts ~~ dnames ~~ dom_eqns) thy;
-
-    (* prove deflation theorems for take functions *)
-    val deflation_abs_rep_thms = map deflation_abs_rep iso_infos;
-    val deflation_take_thm =
-      let
-        val i = Free ("i", natT);
-        fun mk_goal take_const = mk_deflation (take_const $ i);
-        val goal = mk_trp (foldr1 mk_conj (map mk_goal take_consts));
-        val adm_rules =
-          @{thms adm_conj adm_subst [OF _ adm_deflation]
-                 cont2cont_fst cont2cont_snd cont_id};
-        val bottom_rules =
-          take_0_thms @ @{thms deflation_UU simp_thms};
-        val deflation_rules =
-          @{thms conjI deflation_ID}
-          @ deflation_abs_rep_thms
-          @ DeflMapData.get thy;
-      in
-        Goal.prove_global thy [] [] goal (fn _ =>
-         EVERY
-          [rtac @{thm nat.induct} 1,
-           simp_tac (HOL_basic_ss addsimps bottom_rules) 1,
-           asm_simp_tac (HOL_basic_ss addsimps take_Suc_thms) 1,
-           REPEAT (etac @{thm conjE} 1
-                   ORELSE resolve_tac deflation_rules 1
-                   ORELSE atac 1)])
-      end;
-    fun conjuncts [] thm = []
-      | conjuncts (n::[]) thm = [(n, thm)]
-      | conjuncts (n::ns) thm = let
-          val thmL = thm RS @{thm conjunct1};
-          val thmR = thm RS @{thm conjunct2};
-        in (n, thmL):: conjuncts ns thmR end;
-    val (deflation_take_thms, thy) =
-      fold_map (add_qualified_thm "deflation_take")
-        (map (apsnd Drule.export_without_context)
-          (conjuncts dnames deflation_take_thm)) thy;
-
-    (* prove strictness of take functions *)
-    fun prove_take_strict (take_const, dname) thy =
-      let
-        val goal = mk_trp (mk_strict (take_const $ Free ("i", natT)));
-        val tac = rtac @{thm deflation_strict} 1
-                  THEN resolve_tac deflation_take_thms 1;
-        val take_strict_thm = Goal.prove_global thy [] [] goal (K tac);
-      in
-        add_qualified_thm "take_strict" (dname, take_strict_thm) thy
-      end;
-    val (take_strict_thms, thy) =
-      fold_map prove_take_strict (take_consts ~~ dnames) thy;
-
-    (* prove take/take rules *)
-    fun prove_take_take ((chain_take, deflation_take), dname) thy =
-      let
-        val take_take_thm =
-            @{thm deflation_chain_min} OF [chain_take, deflation_take];
-      in
-        add_qualified_thm "take_take" (dname, take_take_thm) thy
-      end;
-    val (take_take_thms, thy) =
-      fold_map prove_take_take
-        (chain_take_thms ~~ deflation_take_thms ~~ dnames) thy;
-
-    val result =
-      {
-        take_consts = take_consts,
-        take_defs = take_defs,
-        chain_take_thms = chain_take_thms,
-        take_0_thms = take_0_thms,
-        take_Suc_thms = take_Suc_thms,
-        deflation_take_thms = deflation_take_thms
-      };
-
-  in
-    (result, thy)
-  end;
-
-(******************************************************************************)
 (******************************* main function ********************************)
 (******************************************************************************)
 
@@ -529,7 +276,7 @@ fun gen_domain_isomorphism
     (prep_typ: theory -> 'a -> (string * sort) list -> typ * (string * sort) list)
     (doms_raw: (string list * binding * mixfix * 'a * (binding * binding) option) list)
     (thy: theory)
-    : iso_info list * theory =
+    : Domain_Take_Proofs.iso_info list * theory =
   let
     val _ = Theory.requires thy "Representable" "domain isomorphisms";
 
@@ -669,7 +416,7 @@ fun gen_domain_isomorphism
       |>> ListPair.unzip;
 
     (* collect info about rep/abs *)
-    val iso_infos : iso_info list =
+    val iso_infos : Domain_Take_Proofs.iso_info list =
       let
         fun mk_info (((lhsT, rhsT), (repC, absC)), (rep_iso, abs_iso)) =
           {
@@ -696,19 +443,24 @@ fun gen_domain_isomorphism
       fold_map declare_map_const (dom_binds ~~ dom_eqns);
 
     (* defining equations for map functions *)
-    val map_tab1 = MapData.get thy;
-    val map_tab2 =
-      Symtab.make (map (fst o dest_Type o fst) dom_eqns
-                   ~~ map (fst o dest_Const) map_consts);
-    val map_tab' = Symtab.merge (K true) (map_tab1, map_tab2);
-    val thy = MapData.put map_tab' thy;
-    fun mk_map_spec ((rep_const, abs_const), (lhsT, rhsT)) =
-      let
-        val lhs = map_of_typ map_tab' lhsT;
-        val body = map_of_typ map_tab' rhsT;
-        val rhs = mk_cfcomp (abs_const, mk_cfcomp (body, rep_const));
-      in mk_eqs (lhs, rhs) end;
-    val map_specs = map mk_map_spec (rep_abs_consts ~~ dom_eqns);
+    local
+      fun unprime a = Library.unprefix "'" a;
+      fun mapvar T = Free (unprime (fst (dest_TFree T)), T ->> T);
+      fun map_lhs (map_const, lhsT) =
+          (lhsT, list_ccomb (map_const, map mapvar (snd (dest_Type lhsT))));
+      val tab1 = map map_lhs (map_consts ~~ map fst dom_eqns);
+      val Ts = (snd o dest_Type o fst o hd) dom_eqns;
+      val tab = (Ts ~~ map mapvar Ts) @ tab1;
+      fun mk_map_spec (((rep_const, abs_const), map_const), (lhsT, rhsT)) =
+        let
+          val lhs = Domain_Take_Proofs.map_of_typ thy tab lhsT;
+          val body = Domain_Take_Proofs.map_of_typ thy tab rhsT;
+          val rhs = mk_cfcomp (abs_const, mk_cfcomp (body, rep_const));
+        in mk_eqs (lhs, rhs) end;
+    in
+      val map_specs =
+          map mk_map_spec (rep_abs_consts ~~ map_consts ~~ dom_eqns);
+    end;
 
     (* register recursive definition of map functions *)
     val map_binds = map (Binding.suffix_name "_map") dom_binds;
@@ -816,7 +568,7 @@ fun gen_domain_isomorphism
         val deflation_rules =
           @{thms conjI deflation_ID}
           @ deflation_abs_rep_thms
-          @ DeflMapData.get thy;
+          @ Domain_Take_Proofs.get_deflation_thms thy;
       in
         Goal.prove_global thy [] assms goal (fn {prems, ...} =>
          EVERY
@@ -834,13 +586,25 @@ fun gen_domain_isomorphism
     val (deflation_map_thms, thy) = thy |>
       (PureThy.add_thms o map (Thm.no_attributes o apsnd Drule.export_without_context))
         (conjuncts deflation_map_binds deflation_map_thm);
-    val thy = DeflMapData.map (fold Thm.add_thm deflation_map_thms) thy;
+
+    (* register map functions in theory data *)
+    local
+      fun register_map ((dname, map_name), defl_thm) =
+          Domain_Take_Proofs.add_map_function (dname, map_name, defl_thm);
+      val dnames = map (fst o dest_Type o fst) dom_eqns;
+      val map_names = map (fst o dest_Const) map_consts;
+    in
+      val thy =
+          fold register_map (dnames ~~ map_names ~~ deflation_map_thms) thy;
+    end;
 
     (* definitions and proofs related to take functions *)
     val (take_info, thy) =
-      define_take_functions (dom_binds ~~ iso_infos) thy;
-    val {take_consts, take_defs, chain_take_thms, take_0_thms,
-         take_Suc_thms, deflation_take_thms} = take_info;
+        Domain_Take_Proofs.define_take_functions
+          (dom_binds ~~ iso_infos) thy;
+    val { take_consts, take_defs, chain_take_thms, take_0_thms,
+          take_Suc_thms, deflation_take_thms,
+          finite_consts, finite_defs } = take_info;
 
     (* least-upper-bound lemma for take functions *)
     val lub_take_lemma =

@@ -10,7 +10,7 @@ sig
   val add_domain_constructors :
       string
       -> (binding * (bool * binding option * typ) list * mixfix) list
-      -> Domain_Isomorphism.iso_info
+      -> Domain_Take_Proofs.iso_info
       -> theory
       -> { con_consts : term list,
            con_betas : thm list,
@@ -190,15 +190,15 @@ fun add_constructors
       val thm2 = rewrite_rule (map mk_meta_eq @{thms ex_defined_iffs}) thm1;
       val thm3 = rewrite_rule [mk_meta_eq @{thm conj_assoc}] thm2;
 
-      val x = Free ("x", lhsT);
+      val y = Free ("y", lhsT);
       fun one_con (con, args) =
         let
-          val (vs, nonlazy) = get_vars_avoiding ["x"] args;
-          val eqn = mk_eq (x, list_ccomb (con, vs));
+          val (vs, nonlazy) = get_vars_avoiding ["y"] args;
+          val eqn = mk_eq (y, list_ccomb (con, vs));
           val conj = foldr1 mk_conj (eqn :: map mk_defined nonlazy);
         in Library.foldr mk_ex (vs, conj) end;
-      val goal = mk_trp (foldr1 mk_disj (mk_undef x :: map one_con spec'));
-      (* first 3 rules replace "x = UU \/ P" with "rep$x = UU \/ P" *)
+      val goal = mk_trp (foldr1 mk_disj (mk_undef y :: map one_con spec'));
+      (* first 3 rules replace "y = UU \/ P" with "rep$y = UU \/ P" *)
       val tacs = [
           rtac (iso_locale RS @{thm iso.casedist_rule}) 1,
           rewrite_goals_tac [mk_meta_eq (iso_locale RS @{thm iso.iso_swap})],
@@ -1011,7 +1011,7 @@ fun add_pattern_combinators
 fun add_domain_constructors
     (dname : string)
     (spec : (binding * (bool * binding option * typ) list * mixfix) list)
-    (iso_info : Domain_Isomorphism.iso_info)
+    (iso_info : Domain_Take_Proofs.iso_info)
     (thy : theory) =
   let
 

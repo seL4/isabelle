@@ -55,12 +55,12 @@ lemma dnat_flat: "ALL x y::dnat. x<<y --> x=UU | x=y"
   apply (induct_tac x rule: dnat.ind)
     apply fast
    apply (rule allI)
-   apply (rule_tac x = y in dnat.casedist)
+   apply (case_tac y)
      apply simp
     apply simp
    apply simp
   apply (rule allI)
-  apply (rule_tac x = y in dnat.casedist)
+  apply (case_tac y)
     apply (fast intro!: UU_I)
    apply (thin_tac "ALL y. dnat << y --> dnat = UU | dnat = y")
    apply simp

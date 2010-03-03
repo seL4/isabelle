@@ -191,7 +191,7 @@ lemma scons_inject_eq:
 by simp
 
 lemma nil_less_is_nil: "nil<<x ==> nil=x"
-apply (rule_tac x="x" in seq.casedist)
+apply (cases x)
 apply simp
 apply simp
 apply simp
@@ -286,8 +286,8 @@ done
 
 lemma Finite_upward: "\<lbrakk>Finite x; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> Finite y"
 apply (induct arbitrary: y set: Finite)
-apply (rule_tac x=y in seq.casedist, simp, simp, simp)
-apply (rule_tac x=y in seq.casedist, simp, simp)
+apply (case_tac y, simp, simp, simp)
+apply (case_tac y, simp, simp)
 apply simp
 done
 

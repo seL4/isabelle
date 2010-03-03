@@ -93,13 +93,12 @@ sig
 
       (* Domain specifications *)
       eqtype arg;
-  type cons = string * mixfix * arg list;
+  type cons = string * arg list;
   type eq = (string * typ list) * cons list;
-  val mk_arg : (bool * Datatype.dtyp) * string option * string -> arg;
+  val mk_arg : (bool * Datatype.dtyp) * string -> arg;
   val is_lazy : arg -> bool;
   val rec_of : arg -> int;
   val dtyp_of : arg -> Datatype.dtyp;
-  val sel_of : arg -> string option;
   val vname : arg -> string;
   val upd_vname : (string -> string) -> arg -> arg;
   val is_rec : arg -> bool;
@@ -108,8 +107,6 @@ sig
   val nonlazy_rec : arg list -> string list;
   val %# : arg -> term;
   val /\# : arg * term -> term;
-  val when_body : cons list -> (int * int -> term) -> term;
-  val when_funs : 'a list -> string list;
   val bound_arg : ''a list -> ''a -> term; (* ''a = arg or string *)
   val idx_name : 'a list -> string -> int -> string;
   val app_rec_arg : (int -> term) -> arg -> term;
@@ -186,12 +183,10 @@ fun string_of_typ sg = Syntax.string_of_typ_global sg o Sign.certify_typ sg;
 
 type arg =
      (bool * Datatype.dtyp) *   (*  (lazy, recursive element) *)
-     string option *               (*   selector name    *)
      string;                       (*   argument name    *)
 
 type cons =
      string *         (* operator name of constr *)
-     mixfix *         (* mixfix syntax of constructor *)
      arg list;        (* argument list      *)
 
 type eq =
@@ -201,15 +196,14 @@ type eq =
 
 val mk_arg = I;
 
-fun rec_of ((_,dtyp),_,_) =
+fun rec_of ((_,dtyp),_) =
     case dtyp of Datatype_Aux.DtRec i => i | _ => ~1;
 (* FIXME: what about indirect recursion? *)
 
-fun is_lazy arg = fst (first arg);
-fun dtyp_of arg = snd (first arg);
-val sel_of    =       second;
-val     vname =       third;
-val upd_vname =   upd_third;
+fun is_lazy arg = fst (fst arg);
+fun dtyp_of arg = snd (fst arg);
+val     vname =       snd;
+val upd_vname =   apsnd;
 fun is_rec         arg = rec_of arg >=0;
 fun is_nonlazy_rec arg = is_rec arg andalso not (is_lazy arg);
 fun nonlazy     args   = map vname (filter_out is_lazy args);
@@ -219,8 +213,8 @@ fun nonlazy_rec args   = map vname (filter is_nonlazy_rec args);
 (* ----- combinators for making dtyps ----- *)
 
 fun mk_uD T = Datatype_Aux.DtType(@{type_name "u"}, [T]);
-fun mk_sprodD (T, U) = Datatype_Aux.DtType(@{type_name "**"}, [T, U]);
-fun mk_ssumD (T, U) = Datatype_Aux.DtType(@{type_name "++"}, [T, U]);
+fun mk_sprodD (T, U) = Datatype_Aux.DtType(@{type_name sprod}, [T, U]);
+fun mk_ssumD (T, U) = Datatype_Aux.DtType(@{type_name ssum}, [T, U]);
 fun mk_liftD T = Datatype_Aux.DtType(@{type_name "lift"}, [T]);
 val unitD = Datatype_Aux.DtType(@{type_name "unit"}, []);
 val boolD = Datatype_Aux.DtType(@{type_name "bool"}, []);
@@ -229,17 +223,17 @@ val trD = mk_liftD boolD;
 fun big_sprodD ds = case ds of [] => oneD | _ => foldr1 mk_sprodD ds;
 fun big_ssumD ds = case ds of [] => unitD | _ => foldr1 mk_ssumD ds;
 
-fun dtyp_of_arg ((lazy, D), _, _) = if lazy then mk_uD D else D;
-fun dtyp_of_cons (_, _, args) = big_sprodD (map dtyp_of_arg args);
+fun dtyp_of_arg ((lazy, D), _) = if lazy then mk_uD D else D;
+fun dtyp_of_cons (_, args) = big_sprodD (map dtyp_of_arg args);
 fun dtyp_of_eq (_, cons) = big_ssumD (map dtyp_of_cons cons);
 
 
 (* ----- support for type and mixfix expressions ----- *)
 
 fun mk_uT T = Type(@{type_name "u"}, [T]);
-fun mk_cfunT (T, U) = Type(@{type_name "->"}, [T, U]);
-fun mk_sprodT (T, U) = Type(@{type_name "**"}, [T, U]);
-fun mk_ssumT (T, U) = Type(@{type_name "++"}, [T, U]);
+fun mk_cfunT (T, U) = Type(@{type_name cfun}, [T, U]);
+fun mk_sprodT (T, U) = Type(@{type_name sprod}, [T, U]);
+fun mk_ssumT (T, U) = Type(@{type_name ssum}, [T, U]);
 val oneT = @{typ one};
 
 val op ->> = mk_cfunT;
@@ -330,23 +324,5 @@ fun cont_eta_contract (Const("Cfun.Abs_CFun",TT) $ Abs(a,T,body)) =
   | cont_eta_contract t    = t;
 
 fun idx_name dnames s n = s^(if length dnames = 1 then "" else string_of_int n);
-fun when_funs cons = if length cons = 1 then ["f"] 
-                     else mapn (fn n => K("f"^(string_of_int n))) 1 cons;
-fun when_body cons funarg =
-    let
-      fun one_fun n (_,_,[]  ) = /\ "dummy" (funarg(1,n))
-        | one_fun n (_,_,args) = let
-            val l2 = length args;
-            fun idxs m arg = (if is_lazy arg then (fn t => mk_fup (ID, t))
-                              else I) (Bound(l2-m));
-          in cont_eta_contract
-               (foldr'' 
-                  (fn (a,t) => mk_ssplit (/\# (a,t)))
-                  (args,
-                fn a=> /\#(a,(list_ccomb(funarg(l2,n),mapn idxs 1 args))))
-               ) end;
-    in (if length cons = 1 andalso length(third(hd cons)) <= 1
-        then mk_strictify else I)
-         (foldr1 mk_sscase (mapn one_fun 1 cons)) end;
 
 end; (* struct *)

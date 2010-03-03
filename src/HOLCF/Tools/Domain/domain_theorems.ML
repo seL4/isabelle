@@ -95,10 +95,6 @@ fun case_UU_tac ctxt rews i v =
   InductTacs.case_tac ctxt (v^"=UU") i THEN
   asm_simp_tac (HOLCF_ss addsimps rews) i;
 
-val chain_tac =
-  REPEAT_DETERM o resolve_tac 
-    [chain_iterate, ch2ch_Rep_CFunR, ch2ch_Rep_CFunL, ch2ch_fst, ch2ch_snd];
-
 (* ----- general proofs ----------------------------------------------------- *)
 
 val all2E = @{lemma "!x y . P x y ==> (P x y ==> R) ==> R" by simp}
@@ -110,7 +106,7 @@ fun theorems
 let
 
 val _ = message ("Proving isomorphism properties of domain "^dname^" ...");
-val map_tab = Domain_Isomorphism.get_map_tab thy;
+val map_tab = Domain_Take_Proofs.get_map_tab thy;
 
 
 (* ----- getting the axioms and definitions --------------------------------- *)
@@ -143,7 +139,7 @@ val rep_const = Const(dname^"_rep", lhsT ->> rhsT);
 
 val abs_const = Const(dname^"_abs", rhsT ->> lhsT);
 
-val iso_info : Domain_Isomorphism.iso_info =
+val iso_info : Domain_Take_Proofs.iso_info =
   {
     absT = lhsT,
     repT = rhsT,
@@ -171,8 +167,6 @@ val pat_rews = #pat_rews result;
 
 val pg = pg' thy;
 
-val dc_copy = %%:(dname^"_copy");
-
 val abs_strict = ax_rep_iso RS (allI RS retraction_strict);
 val rep_strict = ax_abs_iso RS (allI RS retraction_strict);
 val iso_rews = map Drule.export_without_context [ax_abs_iso, ax_rep_iso, abs_strict, rep_strict];
@@ -182,10 +176,11 @@ val iso_rews = map Drule.export_without_context [ax_abs_iso, ax_rep_iso, abs_str
 local
   fun dc_take dn = %%:(dn^"_take");
   val dnames = map (fst o fst) eqs;
-  fun get_take_strict dn = PureThy.get_thm thy (dn ^ ".take_strict");
-  val axs_take_strict = map get_take_strict dnames;
+  val deflation_thms = Domain_Take_Proofs.get_deflation_thms thy;
+  fun get_deflation_take dn = PureThy.get_thm thy (dn ^ ".deflation_take");
+  val axs_deflation_take = map get_deflation_take dnames;
 
-  fun one_take_app (con, _, args) =
+  fun one_take_app (con, args) =
     let
       fun mk_take n = dc_take (List.nth (dnames, n)) $ %:"n";
       fun one_rhs arg =
@@ -195,13 +190,11 @@ local
           else (%# arg);
       val lhs = (dc_take dname $ (%%:"Suc" $ %:"n"))`(con_app con args);
       val rhs = con_app2 con one_rhs args;
-      fun is_rec arg = Datatype_Aux.is_rec_type (dtyp_of arg);
-      fun is_nonlazy_rec arg = is_rec arg andalso not (is_lazy arg);
-      fun nonlazy_rec args = map vname (filter is_nonlazy_rec args);
-      val goal = lift_defined %: (nonlazy_rec args, mk_trp (lhs === rhs));
       val goal = mk_trp (lhs === rhs);
       val rules = [ax_take_Suc, ax_abs_iso, @{thm cfcomp2}];
-      val rules2 = @{thms take_con_rules ID1} @ axs_take_strict;
+      val rules2 =
+          @{thms take_con_rules ID1 deflation_strict}
+          @ deflation_thms @ axs_deflation_take;
       val tacs =
           [simp_tac (HOL_basic_ss addsimps rules) 1,
            asm_simp_tac (HOL_basic_ss addsimps rules2) 1];
@@ -239,7 +232,7 @@ end; (* let *)
 
 fun comp_theorems (comp_dnam, eqs: eq list) thy =
 let
-val map_tab = Domain_Isomorphism.get_map_tab thy;
+val map_tab = Domain_Take_Proofs.get_map_tab thy;
 
 val dnames = map (fst o fst) eqs;
 val conss  = map  snd        eqs;
@@ -273,7 +266,7 @@ local
   val dnames = map (fst o fst) eqs;
   val x_name = idx_name dnames "x"; 
 
-  fun one_con (con, _, args) =
+  fun one_con (con, args) =
     let
       val nonrec_args = filter_out is_rec args;
       val    rec_args = filter is_rec args;
@@ -353,7 +346,7 @@ val take_rews =
     maps (fn dn => PureThy.get_thms thy (dn ^ ".take_rews")) dnames;
 
 local
-  fun one_con p (con, _, args) =
+  fun one_con p (con, args) =
     let
       val P_names = map P_name (1 upto (length dnames));
       val vns = Name.variant_list P_names (map vname args);
@@ -377,7 +370,7 @@ local
   fun ind_prems_tac prems = EVERY
     (maps (fn cons =>
       (resolve_tac prems 1 ::
-        maps (fn (_,_,args) => 
+        maps (fn (_,args) => 
           resolve_tac prems 1 ::
           map (K(atac 1)) (nonlazy args) @
           map (K(atac 1)) (filter is_rec args))
@@ -392,7 +385,7 @@ local
           ((rec_of arg =  n andalso nfn(lazy_rec orelse is_lazy arg)) orelse 
             rec_of arg <> n andalso rec_to quant nfn rfn (rec_of arg::ns) 
               (lazy_rec orelse is_lazy arg) (n, (List.nth(conss,rec_of arg))))
-          ) o third) cons;
+          ) o snd) cons;
     fun all_rec_to ns  = rec_to forall not all_rec_to  ns;
     fun warn (n,cons) =
       if all_rec_to [] false (n,cons)
@@ -424,14 +417,14 @@ in (* local *)
                         (* FIXME! case_UU_tac *)
             case_UU_tac context (prems @ con_rews) 1
               (List.nth (dnames, rec_of arg) ^ "_take n$" ^ vname arg);
-          fun con_tacs (con, _, args) = 
+          fun con_tacs (con, args) = 
             asm_simp_tac take_ss 1 ::
             map arg_tac (filter is_nonlazy_rec args) @
             [resolve_tac prems 1] @
             map (K (atac 1)) (nonlazy args) @
             map (K (etac spec 1)) (filter is_rec args);
           fun cases_tacs (cons, cases) =
-            res_inst_tac context [(("x", 0), "x")] cases 1 ::
+            res_inst_tac context [(("y", 0), "x")] cases 1 ::
             asm_simp_tac (take_ss addsimps prems) 1 ::
             maps con_tacs cons;
         in
@@ -500,13 +493,13 @@ in (* local *)
               etac disjE 1,
               asm_simp_tac (HOL_ss addsimps con_rews) 1,
               asm_simp_tac take_ss 1];
-            fun con_tacs ctxt (con, _, args) =
+            fun con_tacs ctxt (con, args) =
               asm_simp_tac take_ss 1 ::
               maps (arg_tacs ctxt) (nonlazy_rec args);
             fun foo_tacs ctxt n (cons, cases) =
               simp_tac take_ss 1 ::
               rtac allI 1 ::
-              res_inst_tac ctxt [(("x", 0), x_name n)] cases 1 ::
+              res_inst_tac ctxt [(("y", 0), x_name n)] cases 1 ::
               asm_simp_tac take_ss 1 ::
               maps (con_tacs ctxt) cons;
             fun tacs ctxt =

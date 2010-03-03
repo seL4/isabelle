@@ -83,7 +83,7 @@ lemma fscons_inject [simp]: "(a~> s = b~> t) = (a = b &  s = t)"
 by (simp add: fscons_def2)
 
 lemma fstream_prefix: "a~> s << t ==> ? tt. t = a~> tt &  s << tt"
-apply (rule_tac x="t" in stream.casedist)
+apply (cases t)
 apply (cut_tac fscons_not_empty)
 apply (fast dest: eq_UU_iff [THEN iffD2])
 apply (simp add: fscons_def2)

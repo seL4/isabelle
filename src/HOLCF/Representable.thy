@@ -8,7 +8,7 @@ theory Representable
 imports Algebraic Universal Ssum Sprod One Fixrec
 uses
   ("Tools/repdef.ML")
-  ("Tools/holcf_library.ML")
+  ("Tools/Domain/domain_take_proofs.ML")
   ("Tools/Domain/domain_isomorphism.ML")
 begin
 
@@ -415,7 +415,7 @@ subsubsection {* Representable type constructors *}
 
 text "Functions between representable types are representable."
 
-instantiation "->" :: (rep, rep) rep
+instantiation cfun :: (rep, rep) rep
 begin
 
 definition emb_cfun_def: "emb = udom_emb oo cfun_map\<cdot>prj\<cdot>emb"
@@ -430,7 +430,7 @@ end
 
 text "Strict products of representable types are representable."
 
-instantiation "**" :: (rep, rep) rep
+instantiation sprod :: (rep, rep) rep
 begin
 
 definition emb_sprod_def: "emb = udom_emb oo sprod_map\<cdot>emb\<cdot>emb"
@@ -445,7 +445,7 @@ end
 
 text "Strict sums of representable types are representable."
 
-instantiation "++" :: (rep, rep) rep
+instantiation ssum :: (rep, rep) rep
 begin
 
 definition emb_ssum_def: "emb = udom_emb oo ssum_map\<cdot>emb\<cdot>emb"
@@ -777,18 +777,18 @@ done
 
 subsection {* Constructing Domain Isomorphisms *}
 
-use "Tools/holcf_library.ML"
+use "Tools/Domain/domain_take_proofs.ML"
 use "Tools/Domain/domain_isomorphism.ML"
 
 setup {*
   fold Domain_Isomorphism.add_type_constructor
-    [(@{type_name "->"}, @{term cfun_defl}, @{const_name cfun_map}, @{thm REP_cfun},
+    [(@{type_name cfun}, @{term cfun_defl}, @{const_name cfun_map}, @{thm REP_cfun},
         @{thm isodefl_cfun}, @{thm cfun_map_ID}, @{thm deflation_cfun_map}),
 
-     (@{type_name "++"}, @{term ssum_defl}, @{const_name ssum_map}, @{thm REP_ssum},
+     (@{type_name ssum}, @{term ssum_defl}, @{const_name ssum_map}, @{thm REP_ssum},
         @{thm isodefl_ssum}, @{thm ssum_map_ID}, @{thm deflation_ssum_map}),
 
-     (@{type_name "**"}, @{term sprod_defl}, @{const_name sprod_map}, @{thm REP_sprod},
+     (@{type_name sprod}, @{term sprod_defl}, @{const_name sprod_map}, @{thm REP_sprod},
         @{thm isodefl_sprod}, @{thm sprod_map_ID}, @{thm deflation_sprod_map}),
 
      (@{type_name "*"}, @{term cprod_defl}, @{const_name cprod_map}, @{thm REP_cprod},
