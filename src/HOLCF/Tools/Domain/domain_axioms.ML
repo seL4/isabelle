@@ -25,6 +25,10 @@ struct
 
 open HOLCF_Library;
 
+infixr 6 ->>;
+infix -->>;
+infix 9 `;
+
 fun axiomatize_isomorphism
     (dbind : binding, (lhsT, rhsT))
     (thy : theory)
