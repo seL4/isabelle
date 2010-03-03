@@ -107,8 +107,6 @@ sig
   val nonlazy_rec : arg list -> string list;
   val %# : arg -> term;
   val /\# : arg * term -> term;
-  val when_body : cons list -> (int * int -> term) -> term;
-  val when_funs : 'a list -> string list;
   val bound_arg : ''a list -> ''a -> term; (* ''a = arg or string *)
   val idx_name : 'a list -> string -> int -> string;
   val app_rec_arg : (int -> term) -> arg -> term;
@@ -326,23 +324,5 @@ fun cont_eta_contract (Const("Cfun.Abs_CFun",TT) $ Abs(a,T,body)) =
   | cont_eta_contract t    = t;
 
 fun idx_name dnames s n = s^(if length dnames = 1 then "" else string_of_int n);
-fun when_funs cons = if length cons = 1 then ["f"] 
-                     else mapn (fn n => K("f"^(string_of_int n))) 1 cons;
-fun when_body cons funarg =
-    let
-      fun one_fun n (_,[]  ) = /\ "dummy" (funarg(1,n))
-        | one_fun n (_,args) = let
-            val l2 = length args;
-            fun idxs m arg = (if is_lazy arg then (fn t => mk_fup (ID, t))
-                              else I) (Bound(l2-m));
-          in cont_eta_contract
-               (foldr'' 
-                  (fn (a,t) => mk_ssplit (/\# (a,t)))
-                  (args,
-                fn a=> /\#(a,(list_ccomb(funarg(l2,n),mapn idxs 1 args))))
-               ) end;
-    in (if length cons = 1 andalso length(snd (hd cons)) <= 1
-        then mk_strictify else I)
-         (foldr1 mk_sscase (mapn one_fun 1 cons)) end;
 
 end; (* struct *)
