@@ -33,10 +33,10 @@ fun mk_TFree s = TFree ("'" ^ s, pcpoS);
 
 fun mk_btyp t (S, T) = Type (t, [S, T]);
 
-val cfun_arrow = @{type_name "->"};
+val cfun_arrow = @{type_name "cfun"};
 val op ->> = mk_btyp cfun_arrow;
-val mk_ssumT = mk_btyp (@{type_name "++"});
-val mk_sprodT = mk_btyp (@{type_name "**"});
+val mk_ssumT = mk_btyp (@{type_name "ssum"});
+val mk_sprodT = mk_btyp (@{type_name "sprod"});
 fun mk_uT T = Type (@{type_name u}, [T]);
 val trT = @{typ tr};
 val oneT = @{typ one};
