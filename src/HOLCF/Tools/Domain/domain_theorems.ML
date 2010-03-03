@@ -176,8 +176,9 @@ val iso_rews = map Drule.export_without_context [ax_abs_iso, ax_rep_iso, abs_str
 local
   fun dc_take dn = %%:(dn^"_take");
   val dnames = map (fst o fst) eqs;
-  fun get_take_strict dn = PureThy.get_thm thy (dn ^ ".take_strict");
-  val axs_take_strict = map get_take_strict dnames;
+  val deflation_thms = Domain_Take_Proofs.get_deflation_thms thy;
+  fun get_deflation_take dn = PureThy.get_thm thy (dn ^ ".deflation_take");
+  val axs_deflation_take = map get_deflation_take dnames;
 
   fun one_take_app (con, args) =
     let
@@ -191,7 +192,9 @@ local
       val rhs = con_app2 con one_rhs args;
       val goal = mk_trp (lhs === rhs);
       val rules = [ax_take_Suc, ax_abs_iso, @{thm cfcomp2}];
-      val rules2 = @{thms take_con_rules ID1} @ axs_take_strict;
+      val rules2 =
+          @{thms take_con_rules ID1 deflation_strict}
+          @ deflation_thms @ axs_deflation_take;
       val tacs =
           [simp_tac (HOL_basic_ss addsimps rules) 1,
            asm_simp_tac (HOL_basic_ss addsimps rules2) 1];
