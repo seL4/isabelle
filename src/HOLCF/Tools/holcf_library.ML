@@ -9,6 +9,7 @@ struct
 
 infixr 6 ->>;
 infix -->>;
+infix 9 `;
 
 (*** Operations from Isabelle/HOL ***)
 
@@ -46,6 +47,17 @@ fun mk_cont t =
 
 fun mk_chain t =
   Const (@{const_name chain}, Term.fastype_of t --> boolT) $ t;
+
+fun mk_lub t =
+  let
+    val T = Term.range_type (Term.fastype_of t);
+    val lub_const = Const (@{const_name lub}, (T --> boolT) --> T);
+    val UNIV_const = @{term "UNIV :: nat set"};
+    val image_type = (natT --> T) --> (natT --> boolT) --> T --> boolT;
+    val image_const = Const (@{const_name image}, image_type);
+  in
+    lub_const $ (image_const $ t $ UNIV_const)
+  end;
 
 
 (*** Continuous function space ***)
@@ -88,7 +100,7 @@ fun mk_capply (t, u) =
       | _ => raise TERM ("mk_capply " ^ ML_Syntax.print_list ML_Syntax.print_term [t, u], [t, u]);
   in capply_const (S, T) $ t $ u end;
 
-infix 9 ` ; val (op `) = mk_capply;
+val (op `) = mk_capply;
 
 val list_ccomb : term * term list -> term = Library.foldl mk_capply;
 

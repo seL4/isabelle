@@ -106,17 +106,6 @@ fun isodefl_const T =
 fun mk_deflation t =
   Const (@{const_name deflation}, Term.fastype_of t --> boolT) $ t;
 
-fun mk_lub t =
-  let
-    val T = Term.range_type (Term.fastype_of t);
-    val lub_const = Const (@{const_name lub}, (T --> boolT) --> T);
-    val UNIV_const = @{term "UNIV :: nat set"};
-    val image_type = (natT --> T) --> (natT --> boolT) --> T --> boolT;
-    val image_const = Const (@{const_name image}, image_type);
-  in
-    lub_const $ (image_const $ t $ UNIV_const)
-  end;
-
 (* splits a cterm into the right and lefthand sides of equality *)
 fun dest_eqs t = HOLogic.dest_eq (HOLogic.dest_Trueprop t);
 
