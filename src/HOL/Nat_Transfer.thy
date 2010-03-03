@@ -25,7 +25,7 @@ text {* set up transfer direction *}
 lemma TransferMorphism_nat_int: "TransferMorphism nat (op <= (0::int))"
   by (simp add: TransferMorphism_def)
 
-declare TransferMorphism_nat_int[transfer
+declare TransferMorphism_nat_int [transfer
   add mode: manual
   return: nat_0_le
   labels: natint
@@ -80,7 +80,7 @@ lemma transfer_nat_int_relations:
       (nat (x::int) dvd nat y) = (x dvd y)"
   by (auto simp add: zdvd_int)
 
-declare TransferMorphism_nat_int[transfer add return:
+declare TransferMorphism_nat_int [transfer add return:
   transfer_nat_int_numerals
   transfer_nat_int_functions
   transfer_nat_int_function_closures
@@ -118,7 +118,7 @@ lemma ex_cong: "(\<And>x. Q x \<Longrightarrow> P x = P' x) \<Longrightarrow>
     (EX x. Q x \<and> P x) = (EX x. Q x \<and> P' x)"
   by auto
 
-declare TransferMorphism_nat_int[transfer add
+declare TransferMorphism_nat_int [transfer add
   return: transfer_nat_int_quantifiers
   cong: all_cong ex_cong]
 
@@ -190,7 +190,7 @@ lemma transfer_nat_int_set_cong: "(!!x. x >= 0 \<Longrightarrow> P x = P' x) \<L
     {(x::int). x >= 0 & P x} = {x. x >= 0 & P' x}"
   by auto
 
-declare TransferMorphism_nat_int[transfer add
+declare TransferMorphism_nat_int [transfer add
   return: transfer_nat_int_set_functions
     transfer_nat_int_set_function_closures
     transfer_nat_int_set_relations
@@ -262,7 +262,7 @@ lemma transfer_nat_int_sum_prod_cong:
   apply (subst setprod_cong, assumption, auto)
 done
 
-declare TransferMorphism_nat_int[transfer add
+declare TransferMorphism_nat_int [transfer add
   return: transfer_nat_int_sum_prod transfer_nat_int_sum_prod2
     transfer_nat_int_sum_prod_closure
   cong: transfer_nat_int_sum_prod_cong]
@@ -275,7 +275,7 @@ text {* set up transfer direction *}
 lemma TransferMorphism_int_nat: "TransferMorphism int (UNIV :: nat set)"
   by (simp add: TransferMorphism_def)
 
-declare TransferMorphism_int_nat[transfer add
+declare TransferMorphism_int_nat [transfer add
   mode: manual
 (*  labels: int-nat *)
   return: nat_int
@@ -326,7 +326,7 @@ lemma transfer_int_nat_relations:
     "(int x dvd int y) = (x dvd y)"
   by (auto simp add: zdvd_int)
 
-declare TransferMorphism_int_nat[transfer add return:
+declare TransferMorphism_int_nat [transfer add return:
   transfer_int_nat_numerals
   transfer_int_nat_functions
   transfer_int_nat_function_closures
@@ -346,7 +346,7 @@ lemma transfer_int_nat_quantifiers:
   apply auto
 done
 
-declare TransferMorphism_int_nat[transfer add
+declare TransferMorphism_int_nat [transfer add
   return: transfer_int_nat_quantifiers]
 
 
@@ -401,7 +401,7 @@ lemma transfer_int_nat_set_cong: "(!!x. P x = P' x) \<Longrightarrow>
     {(x::nat). P x} = {x. P' x}"
   by auto
 
-declare TransferMorphism_int_nat[transfer add
+declare TransferMorphism_int_nat [transfer add
   return: transfer_int_nat_set_functions
     transfer_int_nat_set_function_closures
     transfer_int_nat_set_relations
@@ -433,7 +433,7 @@ lemma transfer_int_nat_sum_prod2:
   apply (subst int_setprod, auto simp add: cong: setprod_cong)
 done
 
-declare TransferMorphism_int_nat[transfer add
+declare TransferMorphism_int_nat [transfer add
   return: transfer_int_nat_sum_prod transfer_int_nat_sum_prod2
   cong: setsum_cong setprod_cong]
 
