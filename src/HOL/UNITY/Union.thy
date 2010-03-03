@@ -35,7 +35,7 @@ constdefs
   safety_prop :: "'a program set => bool"
     "safety_prop X == SKIP: X & (\<forall>G. Acts G \<subseteq> UNION X Acts --> G \<in> X)"
 
-notation
+notation (xsymbols)
   SKIP  ("\<bottom>") and
   Join  (infixl "\<squnion>" 65)
 
