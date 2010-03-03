@@ -11,6 +11,9 @@ sig
       binding * (typ * typ) ->
       theory -> Domain_Take_Proofs.iso_info * theory
 
+  val axiomatize_lub_take :
+      binding * term -> theory -> thm * theory
+
   val copy_of_dtyp :
       string Symtab.table -> (int -> term) -> Datatype.dtyp -> term
 
@@ -23,7 +26,8 @@ end;
 structure Domain_Axioms : DOMAIN_AXIOMS =
 struct
 
-open Domain_Library;
+(* TODO: move copy_of_dtyp somewhere else! *)
+local open Domain_Library in
 
 infixr 0 ===>;infixr 0 ==>;infix 0 == ; 
 infix 1 ===; infix 1 ~= ; infix 1 <<; infix 1 ~<<;
@@ -46,7 +50,9 @@ and copy tab r (Datatype_Aux.DtRec i) = r i
       SOME f => list_ccomb (%%:f, map (copy_of_dtyp tab r) ds)
     | NONE => (warning ("copy_of_dtyp: unknown type constructor " ^ c); ID);
 
-local open HOLCF_Library in
+end; (* local open *)
+
+open HOLCF_Library;
 
 fun axiomatize_isomorphism
     (dbind : binding, (lhsT, rhsT))
@@ -96,20 +102,29 @@ fun axiomatize_isomorphism
     (result, thy)
   end;
 
-end;
+fun axiomatize_lub_take
+    (dbind : binding, take_const : term)
+    (thy : theory)
+    : thm * theory =
+  let
+    val dname = Long_Name.base_name (Binding.name_of dbind);
 
-(* legacy type inference *)
+    val i = Free ("i", natT);
+    val T = (fst o dest_cfunT o range_type o fastype_of) take_const;
 
-fun legacy_infer_term thy t =
-    singleton (Syntax.check_terms (ProofContext.init thy)) (Sign.intern_term thy t);
+    val lub_take_eqn =
+        mk_trp (mk_eq (mk_lub (lambda i (take_const $ i)), mk_ID T));
 
-fun legacy_infer_prop thy t = legacy_infer_term thy (TypeInfer.constrain propT t);
+    val thy = Sign.add_path dname thy;
 
-fun infer_props thy = map (apsnd (legacy_infer_prop thy));
+    val (lub_take_thm, thy) =
+        yield_singleton PureThy.add_axioms
+        ((Binding.name "lub_take", lub_take_eqn), []) thy;
 
-
-fun add_axioms_i x = snd o PureThy.add_axioms (map (Thm.no_attributes o apfst Binding.name) x);
-fun add_axioms_infer axms thy = add_axioms_i (infer_props thy axms) thy;
+    val thy = Sign.parent_path thy;
+  in
+    (lub_take_thm, thy)
+  end;
 
 fun add_axioms
     (dom_eqns : (binding * (typ * typ)) list)
@@ -120,34 +135,15 @@ fun add_axioms
     val (iso_infos, thy) =
         fold_map axiomatize_isomorphism dom_eqns thy;
 
-    fun add_one (dnam, axs) =
-        Sign.add_path dnam
-          #> add_axioms_infer axs
-          #> Sign.parent_path;
-
-    (* define take function *)
+    (* define take functions *)
     val (take_info, thy) =
         Domain_Take_Proofs.define_take_functions
           (map fst dom_eqns ~~ iso_infos) thy;
 
     (* declare lub_take axioms *)
-    local
-      fun ax_lub_take (dbind, take_const) =
-        let
-          val dnam = Long_Name.base_name (Binding.name_of dbind);
-          val lub = %%: @{const_name lub};
-          val image = %%: @{const_name image};
-          val UNIV = @{term "UNIV :: nat set"};
-          val lhs = lub $ (image $ take_const $ UNIV);
-          val ax = mk_trp (lhs === ID);
-        in
-          add_one (dnam, [("lub_take", ax)])
-        end
-      val dbinds = map fst dom_eqns;
-      val take_consts = #take_consts take_info;
-    in
-      val thy = fold ax_lub_take (dbinds ~~ take_consts) thy
-    end;
+    val (lub_take_thms, thy) =
+        fold_map axiomatize_lub_take
+          (map fst dom_eqns ~~ #take_consts take_info) thy;
 
   in
     thy (* TODO: also return iso_infos, take_info, lub_take_thms *)
