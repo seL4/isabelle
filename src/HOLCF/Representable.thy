@@ -8,7 +8,6 @@ theory Representable
 imports Algebraic Universal Ssum Sprod One Fixrec
 uses
   ("Tools/repdef.ML")
-  ("Tools/holcf_library.ML")
   ("Tools/Domain/domain_take_proofs.ML")
   ("Tools/Domain/domain_isomorphism.ML")
 begin
@@ -778,7 +777,6 @@ done
 
 subsection {* Constructing Domain Isomorphisms *}
 
-use "Tools/holcf_library.ML"
 use "Tools/Domain/domain_take_proofs.ML"
 use "Tools/Domain/domain_isomorphism.ML"
 
