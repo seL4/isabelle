@@ -11,11 +11,11 @@ theory Map
 imports List
 begin
 
-types ('a,'b) "~=>" = "'a => 'b option"  (infixr "~=>" 0)
+types ('a,'b) "map" = "'a => 'b option" (infixr "~=>" 0)
 translations (type) "'a ~=> 'b" <= (type) "'a => 'b option"
 
 type_notation (xsymbols)
-  "~=>"  (infixr "\<rightharpoonup>" 0)
+  "map" (infixr "\<rightharpoonup>" 0)
 
 abbreviation
   empty :: "'a ~=> 'b" where
@@ -648,6 +648,53 @@ next
     by(auto simp add: map_le_def)
   ultimately have "f = [x \<mapsto> v]" by-(rule map_le_antisym)
   thus "\<exists>v. f = [x \<mapsto> v]" by blast
+qed
+
+
+subsection {* Various *}
+
+lemma set_map_of_compr:
+  assumes distinct: "distinct (map fst xs)"
+  shows "set xs = {(k, v). map_of xs k = Some v}"
+using assms proof (induct xs)
+  case Nil then show ?case by simp
+next
+  case (Cons x xs)
+  obtain k v where "x = (k, v)" by (cases x) blast
+  with Cons.prems have "k \<notin> dom (map_of xs)"
+    by (simp add: dom_map_of_conv_image_fst)
+  then have *: "insert (k, v) {(k, v). map_of xs k = Some v} =
+    {(k', v'). (map_of xs(k \<mapsto> v)) k' = Some v'}"
+    by (auto split: if_splits)
+  from Cons have "set xs = {(k, v). map_of xs k = Some v}" by simp
+  with * `x = (k, v)` show ?case by simp
+qed
+
+lemma map_of_inject_set:
+  assumes distinct: "distinct (map fst xs)" "distinct (map fst ys)"
+  shows "map_of xs = map_of ys \<longleftrightarrow> set xs = set ys" (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  assume ?lhs
+  moreover from `distinct (map fst xs)` have "set xs = {(k, v). map_of xs k = Some v}"
+    by (rule set_map_of_compr)
+  moreover from `distinct (map fst ys)` have "set ys = {(k, v). map_of ys k = Some v}"
+    by (rule set_map_of_compr)
+  ultimately show ?rhs by simp
+next
+  assume ?rhs show ?lhs proof
+    fix k
+    show "map_of xs k = map_of ys k" proof (cases "map_of xs k")
+      case None
+      moreover with `?rhs` have "map_of ys k = None"
+        by (simp add: map_of_eq_None_iff)
+      ultimately show ?thesis by simp
+    next
+      case (Some v)
+      moreover with distinct `?rhs` have "map_of ys k = Some v"
+        by simp
+      ultimately show ?thesis by simp
+    qed
+  qed
 qed
 
 end
