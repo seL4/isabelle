@@ -6,7 +6,7 @@
 header {* Natural powers theory *}
 
 theory RealPow
-imports RealDef
+imports RealDef RComplete
 begin
 
 (* FIXME: declare this in Rings.thy or not at all *)
@@ -107,6 +107,28 @@ proof -
     by (rule power_le_imp_le_base)
 qed
 
+subsection {*Floor*}
+
+lemma floor_power:
+  assumes "x = real (floor x)"
+  shows "floor (x ^ n) = floor x ^ n"
+proof -
+  have *: "x ^ n = real (floor x ^ n)"
+    using assms by (induct n arbitrary: x) simp_all
+  show ?thesis unfolding real_of_int_inject[symmetric]
+    unfolding * floor_real_of_int ..
+qed
+
+lemma natfloor_power:
+  assumes "x = real (natfloor x)"
+  shows "natfloor (x ^ n) = natfloor x ^ n"
+proof -
+  from assms have "0 \<le> floor x" by auto
+  note assms[unfolded natfloor_def real_nat_eq_real[OF `0 \<le> floor x`]]
+  from floor_power[OF this]
+  show ?thesis unfolding natfloor_def nat_power_eq[OF `0 \<le> floor x`, symmetric]
+    by simp
+qed
 
 subsection {*Various Other Theorems*}
 
@@ -130,5 +152,6 @@ done
 
 lemma realpow_num_eq_if: "(m::real) ^ n = (if n=0 then 1 else m * m ^ (n - 1))"
 by (case_tac "n", auto)
+
 
 end
