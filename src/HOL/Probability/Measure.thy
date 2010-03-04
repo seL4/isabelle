@@ -104,7 +104,7 @@ proof -
   have ra: "range (binaryset A B) \<subseteq> sets M"
    by (simp add: range_binaryset_eq empty A B) 
  have di:  "disjoint_family (binaryset A B)" using disj
-   by (simp add: disjoint_family_def binaryset_def Int_commute) 
+   by (simp add: disjoint_family_on_def binaryset_def Int_commute) 
  from closed_cdi_Disj [OF cdi ra di]
  show ?thesis
    by (simp add: UN_binaryset_eq) 
@@ -118,7 +118,7 @@ proof -
   have ra: "range (binaryset A B) \<in> Pow (smallest_ccdi_sets M)"
     by (simp add: range_binaryset_eq  A B empty_sets smallest_ccdi_sets.Basic)
   have di:  "disjoint_family (binaryset A B)" using disj
-    by (simp add: disjoint_family_def binaryset_def Int_commute) 
+    by (simp add: disjoint_family_on_def binaryset_def Int_commute) 
   from Disj [OF ra di]
   show ?thesis
     by (simp add: UN_binaryset_eq) 
@@ -164,7 +164,7 @@ next
   have "range (\<lambda>i. a \<inter> A i) \<in> Pow(smallest_ccdi_sets M)" using Disj
     by blast
   moreover have "disjoint_family (\<lambda>i. a \<inter> A i)" using Disj
-    by (auto simp add: disjoint_family_def) 
+    by (auto simp add: disjoint_family_on_def) 
   ultimately have 2: "(\<Union>i. (\<lambda>i. a \<inter> A i) i) \<in> smallest_ccdi_sets M"
     by (rule smallest_ccdi_sets.Disj) 
   show ?case
@@ -208,7 +208,7 @@ next
   have "range (\<lambda>i. A i \<inter> b) \<in> Pow(smallest_ccdi_sets M)" using Disj
     by blast
   moreover have "disjoint_family (\<lambda>i. A i \<inter> b)" using Disj
-    by (auto simp add: disjoint_family_def) 
+    by (auto simp add: disjoint_family_on_def) 
   ultimately have 2: "(\<Union>i. (\<lambda>i. A i \<inter> b) i) \<in> smallest_ccdi_sets M"
     by (rule smallest_ccdi_sets.Disj) 
   show ?case
@@ -355,7 +355,7 @@ proof -
   hence "!!m n. m < n \<Longrightarrow> A m \<subseteq> A n"
     by (metis add_commute le_add_diff_inverse nat_less_le)
   thus ?thesis
-    by (auto simp add: disjoint_family_def)
+    by (auto simp add: disjoint_family_on_def)
       (metis insert_absorb insert_subset le_SucE le_antisym not_leE) 
 qed
 
@@ -642,7 +642,7 @@ proof -
                   show "range (\<lambda>i. f -` A i \<inter> space m1) \<subseteq> sets m1"
                     using f12 rA2 by (auto simp add: measurable_def)
                   show "disjoint_family (\<lambda>i. f -` A i \<inter> space m1)" using dA
-                    by (auto simp add: disjoint_family_def) 
+                    by (auto simp add: disjoint_family_on_def) 
                   show "(\<Union>i. f -` A i \<inter> space m1) \<in> sets m1"
                     proof (rule sigma_algebra.countable_UN [OF sa1])
                       show "range (\<lambda>i. f -` A i \<inter> space m1) \<subseteq> sets m1" using f12 rA2
@@ -820,7 +820,98 @@ proof -
   thus ?thesis
     by (metis subset_refl s)
 qed
-  
+
+lemma (in measure_space) measure_finitely_additive':
+  assumes "f \<in> ({0 :: nat ..< n} \<rightarrow> sets M)"
+  assumes "\<And> a b. \<lbrakk>a < n ; b < n ; a \<noteq> b\<rbrakk> \<Longrightarrow> f a \<inter> f b = {}"
+  assumes "s = \<Union> (f ` {0 ..< n})"
+  shows "(\<Sum> i \<in> {0 ..< n}. (measure M \<circ> f) i) = measure M s"
+proof -
+  def f' == "\<lambda> i. (if i < n then f i else {})"
+  have rf: "range f' \<subseteq> sets M" unfolding f'_def 
+    using assms empty_sets by auto
+  have df: "disjoint_family f'" unfolding f'_def disjoint_family_on_def 
+    using assms by simp
+  have "\<Union> range f' = (\<Union> i \<in> {0 ..< n}. f i)" 
+    unfolding f'_def by auto
+  then have "measure M s = measure M (\<Union> range f')" 
+    using assms by simp
+  then have part1: "(\<lambda> i. measure M (f' i)) sums measure M s" 
+    using df rf ca[unfolded countably_additive_def, rule_format, of f']
+    by auto
+
+  have "(\<lambda> i. measure M (f' i)) sums (\<Sum> i \<in> {0 ..< n}. measure M (f' i))" 
+    using series_zero[of "n" "\<lambda> i. measure M (f' i)", rule_format] 
+    unfolding f'_def by simp
+  also have "\<dots> = (\<Sum> i \<in> {0 ..< n}. measure M (f i))" 
+    unfolding f'_def by auto
+  finally have part2: "(\<lambda> i. measure M (f' i)) sums (\<Sum> i \<in> {0 ..< n}. measure M (f i))" by simp
+  show ?thesis 
+    using sums_unique[OF part1] 
+          sums_unique[OF part2] by auto
+qed
+
+
+lemma (in measure_space) measure_finitely_additive:
+  assumes "finite r"
+  assumes "r \<subseteq> sets M"
+  assumes d: "\<And> a b. \<lbrakk>a \<in> r ; b \<in> r ; a \<noteq> b\<rbrakk> \<Longrightarrow> a \<inter> b = {}"
+  shows "(\<Sum> i \<in> r. measure M i) = measure M (\<Union> r)"
+using assms
+proof -
+  (* counting the elements in r is enough *)
+  let ?R = "{0 ..< card r}"
+  obtain f where f: "f ` ?R = r" "inj_on f ?R"
+    using ex_bij_betw_nat_finite[unfolded bij_betw_def, OF `finite r`]
+    by auto
+  hence f_into_sets: "f \<in> ?R \<rightarrow> sets M" using assms by auto
+  have disj: "\<And> a b. \<lbrakk>a \<in> ?R ; b \<in> ?R ; a \<noteq> b\<rbrakk> \<Longrightarrow> f a \<inter> f b = {}"
+  proof -
+    fix a b assume asm: "a \<in> ?R" "b \<in> ?R" "a \<noteq> b"
+    hence neq: "f a \<noteq> f b" using f[unfolded inj_on_def, rule_format] by blast
+    from asm have "f a \<in> r" "f b \<in> r" using f by auto
+    thus "f a \<inter> f b = {}" using d[of "f a" "f b"] f using neq by auto
+  qed
+  have "(\<Union> r) = (\<Union> i \<in> ?R. f i)"
+    using f by auto
+  hence "measure M (\<Union> r)= measure M (\<Union> i \<in> ?R. f i)" by simp
+  also have "\<dots> = (\<Sum> i \<in> ?R. measure M (f i))"
+    using measure_finitely_additive'[OF f_into_sets disj] by simp
+  also have "\<dots> = (\<Sum> a \<in> r. measure M a)" 
+    using f[rule_format] setsum_reindex[of f ?R "\<lambda> a. measure M a"] by auto
+  finally show ?thesis by simp
+qed
+
+lemma (in measure_space) measure_finitely_additive'':
+  assumes "finite s"
+  assumes "\<And> i. i \<in> s \<Longrightarrow> a i \<in> sets M"
+  assumes d: "disjoint_family_on a s"
+  shows "(\<Sum> i \<in> s. measure M (a i)) = measure M (\<Union> i \<in> s. a i)"
+using assms
+proof -
+  (* counting the elements in s is enough *)
+  let ?R = "{0 ..< card s}"
+  obtain f where f: "f ` ?R = s" "inj_on f ?R"
+    using ex_bij_betw_nat_finite[unfolded bij_betw_def, OF `finite s`]
+    by auto
+  hence f_into_sets: "a \<circ> f \<in> ?R \<rightarrow> sets M" using assms unfolding o_def by auto
+  have disj: "\<And> i j. \<lbrakk>i \<in> ?R ; j \<in> ?R ; i \<noteq> j\<rbrakk> \<Longrightarrow> (a \<circ> f) i \<inter> (a \<circ> f) j = {}"
+  proof -
+    fix i j assume asm: "i \<in> ?R" "j \<in> ?R" "i \<noteq> j"
+    hence neq: "f i \<noteq> f j" using f[unfolded inj_on_def, rule_format] by blast
+    from asm have "f i \<in> s" "f j \<in> s" using f by auto
+    thus "(a \<circ> f) i \<inter> (a \<circ> f) j = {}"
+      using d f neq unfolding disjoint_family_on_def by auto
+  qed
+  have "(\<Union> i \<in> s. a i) = (\<Union> i \<in> f ` ?R. a i)" using f by auto
+  hence "(\<Union> i \<in> s. a i) = (\<Union> i \<in> ?R. a (f i))" by auto
+  hence "measure M (\<Union> i \<in> s. a i) = (\<Sum> i \<in> ?R. measure M (a (f i)))"
+    using measure_finitely_additive'[OF f_into_sets disj] by simp
+  also have "\<dots> = (\<Sum> i \<in> s. measure M (a i))"
+    using f[rule_format] setsum_reindex[of f ?R "\<lambda> i. measure M (a i)"] by auto
+  finally show ?thesis by simp
+qed
+
 lemma (in sigma_algebra) sigma_algebra_extend:
      "sigma_algebra \<lparr>space = space M, sets = sets M, measure_space.measure = f\<rparr>"
    by unfold_locales (auto intro!: space_closed)
@@ -845,7 +936,7 @@ proof -
       hence "finite (A ` I)"
         by (metis finite_UnionD finite_subset fin) 
       moreover have "inj_on A I" using disj
-        by (auto simp add: I_def disjoint_family_def inj_on_def) 
+        by (auto simp add: I_def disjoint_family_on_def inj_on_def) 
       ultimately have finI: "finite I"
         by (metis finite_imageD)
       hence "\<exists>N. \<forall>m\<ge>N. A m = {}"
@@ -873,7 +964,7 @@ proof -
           have "f (A n \<union> (\<Union> x<n. A x)) = f (A n) + f (\<Union> i<n. A i)"
             proof (rule Caratheodory.additiveD [OF addf])
               show "A n \<inter> (\<Union> x<n. A x) = {}" using disj
-                by (auto simp add: disjoint_family_def nat_less_le) blast
+                by (auto simp add: disjoint_family_on_def nat_less_le) blast
               show "A n \<in> sets M" using A 
                 by (force simp add: Mf_def) 
               show "(\<Union>i<n. A i) \<in> sets M"
@@ -907,4 +998,3 @@ lemma finite_additivity_sufficient:
   by (rule measure_down [OF sigma_algebra.finite_additivity_sufficient], auto) 
 
 end
-

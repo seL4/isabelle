@@ -1086,13 +1086,15 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL-SMT	\
 
 HOL-Probability: HOL $(LOG)/HOL-Probability.gz
 
-$(LOG)/HOL-Probability.gz: $(OUT)/HOL Probability/ROOT.ML \
-  Probability/Probability.thy \
-  Probability/Sigma_Algebra.thy \
-  Probability/SeriesPlus.thy \
-  Probability/Caratheodory.thy \
-  Probability/Measure.thy \
-  Probability/Borel.thy
+$(LOG)/HOL-Probability.gz: $(OUT)/HOL Probability/ROOT.ML	\
+  Probability/Probability.thy					\
+  Probability/Sigma_Algebra.thy					\
+  Probability/SeriesPlus.thy					\
+  Probability/Caratheodory.thy					\
+  Probability/Borel.thy						\
+  Probability/Measure.thy					\
+  Probability/Lebesgue.thy					\
+  Probability/Probability_Space.thy
 	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Probability
 
 

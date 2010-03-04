@@ -1,5 +1,5 @@
 theory Probability
-imports Measure Borel
+imports Probability_Space
 begin
 
 end
