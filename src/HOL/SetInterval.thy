@@ -445,6 +445,47 @@ lemma image_add_int_atLeastLessThan:
   apply auto
   done
 
+context ordered_ab_group_add
+begin
+
+lemma
+  fixes x :: 'a
+  shows image_uminus_greaterThan[simp]: "uminus ` {x<..} = {..<-x}"
+  and image_uminus_atLeast[simp]: "uminus ` {x..} = {..-x}"
+proof safe
+  fix y assume "y < -x"
+  hence *:  "x < -y" using neg_less_iff_less[of "-y" x] by simp
+  have "- (-y) \<in> uminus ` {x<..}"
+    by (rule imageI) (simp add: *)
+  thus "y \<in> uminus ` {x<..}" by simp
+next
+  fix y assume "y \<le> -x"
+  have "- (-y) \<in> uminus ` {x..}"
+    by (rule imageI) (insert `y \<le> -x`[THEN le_imp_neg_le], simp)
+  thus "y \<in> uminus ` {x..}" by simp
+qed simp_all
+
+lemma
+  fixes x :: 'a
+  shows image_uminus_lessThan[simp]: "uminus ` {..<x} = {-x<..}"
+  and image_uminus_atMost[simp]: "uminus ` {..x} = {-x..}"
+proof -
+  have "uminus ` {..<x} = uminus ` uminus ` {-x<..}"
+    and "uminus ` {..x} = uminus ` uminus ` {-x..}" by simp_all
+  thus "uminus ` {..<x} = {-x<..}" and "uminus ` {..x} = {-x..}"
+    by (simp_all add: image_image
+        del: image_uminus_greaterThan image_uminus_atLeast)
+qed
+
+lemma
+  fixes x :: 'a
+  shows image_uminus_atLeastAtMost[simp]: "uminus ` {x..y} = {-y..-x}"
+  and image_uminus_greaterThanAtMost[simp]: "uminus ` {x<..y} = {-y..<-x}"
+  and image_uminus_atLeastLessThan[simp]: "uminus ` {x..<y} = {-y<..-x}"
+  and image_uminus_greaterThanLessThan[simp]: "uminus ` {x<..<y} = {-y<..<-x}"
+  by (simp_all add: atLeastAtMost_def greaterThanAtMost_def atLeastLessThan_def
+      greaterThanLessThan_def image_Int[OF inj_uminus] Int_commute)
+end
 
 subsubsection {* Finiteness *}
 

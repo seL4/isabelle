@@ -378,6 +378,8 @@ apply (rule equalityI)
 apply (simp_all (no_asm_simp) add: inj_image_Compl_subset surj_Compl_image_subset)
 done
 
+lemma (in ordered_ab_group_add) inj_uminus[iff]: "inj uminus"
+  by (auto intro!: inj_onI)
 
 subsection{*Function Updating*}
 
