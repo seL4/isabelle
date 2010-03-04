@@ -83,6 +83,8 @@ Now the additional glog command will be available.
 See also the fine documentation for further details, especially the
 book http://hgbook.red-bean.com/
 
+There is also a nice tutorial at http://hginit.com/
+
 
 Shared pull/push access
 -----------------------
