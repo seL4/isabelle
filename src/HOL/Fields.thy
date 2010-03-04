@@ -1034,30 +1034,33 @@ lemma abs_div_pos: "(0::'a::{division_by_zero,linordered_field}) < y ==>
   apply (simp add: order_less_imp_le)
 done
 
-
 lemma field_le_epsilon:
-  fixes x y :: "'a :: {division_by_zero,linordered_field}"
+  fixes x y :: "'a\<Colon>linordered_field"
   assumes e: "\<And>e. 0 < e \<Longrightarrow> x \<le> y + e"
   shows "x \<le> y"
-proof (rule ccontr)
-  obtain two :: 'a where two: "two = 1 + 1" by simp
-  assume "\<not> x \<le> y"
-  then have yx: "y < x" by simp
-  then have "y + - y < x + - y" by (rule add_strict_right_mono)
-  then have "x - y > 0" by (simp add: diff_minus)
-  then have "(x - y) / two > 0"
-    by (rule divide_pos_pos) (simp add: two)
-  then have "x \<le> y + (x - y) / two" by (rule e)
-  also have "... = (x - y + two * y) / two"
-    by (simp add: add_divide_distrib two)
-  also have "... = (x + y) / two" 
-    by (simp add: two algebra_simps)
-  also have "... < x" using yx
-    by (simp add: two pos_divide_less_eq algebra_simps)
-  finally have "x < x" .
-  then show False ..
+proof (rule dense_le)
+  fix t assume "t < x"
+  hence "0 < x - t" by (simp add: less_diff_eq)
+  from e[OF this]
+  show "t \<le> y" by (simp add: field_simps)
 qed
 
+lemma field_le_mult_one_interval:
+  fixes x :: "'a\<Colon>{linordered_field,division_by_zero}"
+  assumes *: "\<And>z. \<lbrakk> 0 < z ; z < 1 \<rbrakk> \<Longrightarrow> z * x \<le> y"
+  shows "x \<le> y"
+proof (cases "0 < x")
+  assume "0 < x"
+  thus ?thesis
+    using dense_le_bounded[of 0 1 "y/x"] *
+    unfolding le_divide_eq if_P[OF `0 < x`] by simp
+next
+  assume "\<not>0 < x" hence "x \<le> 0" by simp
+  obtain s::'a where s: "0 < s" "s < 1" using dense[of 0 "1\<Colon>'a"] by auto
+  hence "x \<le> s * x" using mult_le_cancel_right[of 1 x s] `x \<le> 0` by auto
+  also note *[OF s]
+  finally show ?thesis .
+qed
 
 code_modulename SML
   Fields Arith
