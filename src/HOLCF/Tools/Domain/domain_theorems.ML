@@ -196,15 +196,20 @@ in
         pat_rews @ dist_les @ dist_eqs)
 end; (* let *)
 
-fun comp_theorems (comp_dnam, eqs: eq list) thy =
+fun prove_coinduction
+    (comp_dnam, eqs : eq list)
+    (take_lemmas : thm list)
+    (thy : theory) : thm * theory =
 let
-val map_tab = Domain_Take_Proofs.get_map_tab thy;
 
 val dnames = map (fst o fst) eqs;
-val conss  = map  snd        eqs;
 val comp_dname = Sign.full_bname thy comp_dnam;
+fun dc_take dn = %%:(dn^"_take");
+val x_name = idx_name dnames "x"; 
+val n_eqs = length eqs;
 
-val _ = message ("Proving induction properties of domain "^comp_dname^" ...");
+val take_rews =
+    maps (fn dn => PureThy.get_thms thy (dn ^ ".take_rews")) dnames;
 
 (* ----- define bisimulation predicate -------------------------------------- *)
 
@@ -279,6 +284,74 @@ in
         |> add_defs_infer [(Binding.name "bisim_def", bisim_eqn)]
         ||> Sign.parent_path;
 end; (* local *)
+
+(* ----- theorem concerning coinduction ------------------------------------- *)
+
+local
+  val pg = pg' thy;
+  val xs = mapn (fn n => K (x_name n)) 1 dnames;
+  fun bnd_arg n i = Bound(2*(n_eqs - n)-i-1);
+  val take_ss = HOL_ss addsimps (@{thm Rep_CFun_strict1} :: take_rews);
+  val sproj = prj (fn s => K("fst("^s^")")) (fn s => K("snd("^s^")"));
+  val _ = trace " Proving coind_lemma...";
+  val coind_lemma =
+    let
+      fun mk_prj n _ = proj (%:"R") eqs n $ bnd_arg n 0 $ bnd_arg n 1;
+      fun mk_eqn n dn =
+        (dc_take dn $ %:"n" ` bnd_arg n 0) ===
+        (dc_take dn $ %:"n" ` bnd_arg n 1);
+      fun mk_all2 (x,t) = mk_all (x, mk_all (x^"'", t));
+      val goal =
+        mk_trp (mk_imp (%%:(comp_dname^"_bisim") $ %:"R",
+          Library.foldr mk_all2 (xs,
+            Library.foldr mk_imp (mapn mk_prj 0 dnames,
+              foldr1 mk_conj (mapn mk_eqn 0 dnames)))));
+      fun x_tacs ctxt n x = [
+        rotate_tac (n+1) 1,
+        etac all2E 1,
+        eres_inst_tac ctxt [(("P", 1), sproj "R" eqs n^" "^x^" "^x^"'")] (mp RS disjE) 1,
+        TRY (safe_tac HOL_cs),
+        REPEAT (CHANGED (asm_simp_tac take_ss 1))];
+      fun tacs ctxt = [
+        rtac impI 1,
+        InductTacs.induct_tac ctxt [[SOME "n"]] 1,
+        simp_tac take_ss 1,
+        safe_tac HOL_cs] @
+        flat (mapn (x_tacs ctxt) 0 xs);
+    in pg [ax_bisim_def] goal tacs end;
+in
+  val _ = trace " Proving coind...";
+  val coind = 
+    let
+      fun mk_prj n x = mk_trp (proj (%:"R") eqs n $ %:x $ %:(x^"'"));
+      fun mk_eqn x = %:x === %:(x^"'");
+      val goal =
+        mk_trp (%%:(comp_dname^"_bisim") $ %:"R") ===>
+          Logic.list_implies (mapn mk_prj 0 xs,
+            mk_trp (foldr1 mk_conj (map mk_eqn xs)));
+      val tacs =
+        TRY (safe_tac HOL_cs) ::
+        maps (fn take_lemma => [
+          rtac take_lemma 1,
+          cut_facts_tac [coind_lemma] 1,
+          fast_tac HOL_cs 1])
+        take_lemmas;
+    in pg [] goal (K tacs) end;
+end; (* local *)
+
+in
+  (coind, thy)
+end;
+
+fun comp_theorems (comp_dnam, eqs: eq list) thy =
+let
+val map_tab = Domain_Take_Proofs.get_map_tab thy;
+
+val dnames = map (fst o fst) eqs;
+val conss  = map  snd        eqs;
+val comp_dname = Sign.full_bname thy comp_dnam;
+
+val _ = message ("Proving induction properties of domain "^comp_dname^" ...");
 
 val pg = pg' thy;
 
@@ -556,58 +629,7 @@ in (* local *)
 
 end; (* local *)
 
-(* ----- theorem concerning coinduction ------------------------------------- *)
-
-local
-  val xs = mapn (fn n => K (x_name n)) 1 dnames;
-  fun bnd_arg n i = Bound(2*(n_eqs - n)-i-1);
-  val take_ss = HOL_ss addsimps (@{thm Rep_CFun_strict1} :: take_rews);
-  val sproj = prj (fn s => K("fst("^s^")")) (fn s => K("snd("^s^")"));
-  val _ = trace " Proving coind_lemma...";
-  val coind_lemma =
-    let
-      fun mk_prj n _ = proj (%:"R") eqs n $ bnd_arg n 0 $ bnd_arg n 1;
-      fun mk_eqn n dn =
-        (dc_take dn $ %:"n" ` bnd_arg n 0) ===
-        (dc_take dn $ %:"n" ` bnd_arg n 1);
-      fun mk_all2 (x,t) = mk_all (x, mk_all (x^"'", t));
-      val goal =
-        mk_trp (mk_imp (%%:(comp_dname^"_bisim") $ %:"R",
-          Library.foldr mk_all2 (xs,
-            Library.foldr mk_imp (mapn mk_prj 0 dnames,
-              foldr1 mk_conj (mapn mk_eqn 0 dnames)))));
-      fun x_tacs ctxt n x = [
-        rotate_tac (n+1) 1,
-        etac all2E 1,
-        eres_inst_tac ctxt [(("P", 1), sproj "R" eqs n^" "^x^" "^x^"'")] (mp RS disjE) 1,
-        TRY (safe_tac HOL_cs),
-        REPEAT (CHANGED (asm_simp_tac take_ss 1))];
-      fun tacs ctxt = [
-        rtac impI 1,
-        InductTacs.induct_tac ctxt [[SOME "n"]] 1,
-        simp_tac take_ss 1,
-        safe_tac HOL_cs] @
-        flat (mapn (x_tacs ctxt) 0 xs);
-    in pg [ax_bisim_def] goal tacs end;
-in
-  val _ = trace " Proving coind...";
-  val coind = 
-    let
-      fun mk_prj n x = mk_trp (proj (%:"R") eqs n $ %:x $ %:(x^"'"));
-      fun mk_eqn x = %:x === %:(x^"'");
-      val goal =
-        mk_trp (%%:(comp_dname^"_bisim") $ %:"R") ===>
-          Logic.list_implies (mapn mk_prj 0 xs,
-            mk_trp (foldr1 mk_conj (map mk_eqn xs)));
-      val tacs =
-        TRY (safe_tac HOL_cs) ::
-        maps (fn take_lemma => [
-          rtac take_lemma 1,
-          cut_facts_tac [coind_lemma] 1,
-          fast_tac HOL_cs 1])
-        take_lemmas;
-    in pg [] goal (K tacs) end;
-end; (* local *)
+val (coind, thy) = prove_coinduction (comp_dnam, eqs) take_lemmas thy;
 
 val inducts = Project_Rule.projections (ProofContext.init thy) ind;
 fun ind_rule (dname, rule) = ((Binding.empty, [rule]), [Induct.induct_type dname]);
