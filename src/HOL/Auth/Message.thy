@@ -236,7 +236,7 @@ lemma parts_idem [simp]: "parts (parts H) = parts H"
 by blast
 
 lemma parts_subset_iff [simp]: "(parts G \<subseteq> parts H) = (G \<subseteq> parts H)"
-by (metis equalityE parts_idem parts_increasing parts_mono subset_trans)
+by (metis parts_idem parts_increasing parts_mono subset_trans)
 
 lemma parts_trans: "[| X\<in> parts G;  G \<subseteq> parts H |] ==> X\<in> parts H"
 by (drule parts_mono, blast)
@@ -611,7 +611,7 @@ lemma synth_idem: "synth (synth H) = synth H"
 by blast
 
 lemma synth_subset_iff [simp]: "(synth G \<subseteq> synth H) = (G \<subseteq> synth H)"
-by (metis equalityE subset_trans synth_idem synth_increasing synth_mono)
+by (metis subset_trans synth_idem synth_increasing synth_mono)
 
 lemma synth_trans: "[| X\<in> synth G;  G \<subseteq> synth H |] ==> X\<in> synth H"
 by (drule synth_mono, blast)
@@ -674,8 +674,7 @@ subsubsection{*For reasoning about the Fake rule in traces *}
 lemma parts_insert_subset_Un: "X\<in> G ==> parts(insert X H) \<subseteq> parts G \<union> parts H"
 by (metis UnCI Un_upper2 insert_subset parts_Un parts_mono)
 
-text{*More specifically for Fake.  Very occasionally we could do with a version
-  of the form  @{term"parts{X} \<subseteq> synth (analz H) \<union> parts H"} *}
+text{*More specifically for Fake. See also @{text Fake_parts_sing} below *}
 lemma Fake_parts_insert:
      "X \<in> synth (analz H) ==>  
       parts (insert X H) \<subseteq> synth (analz H) \<union> parts H"
@@ -884,17 +883,17 @@ by (iprover intro: synth_mono analz_mono)
 
 lemma Fake_analz_eq [simp]:
      "X \<in> synth(analz H) ==> synth (analz (insert X H)) = synth (analz H)"
-by (metis Fake_analz_insert Un_absorb Un_absorb1 Un_commute equalityI
+by (metis Fake_analz_insert Un_absorb Un_absorb1 Un_commute 
           subset_insertI synth_analz_mono synth_increasing synth_subset_iff)
 
 text{*Two generalizations of @{text analz_insert_eq}*}
 lemma gen_analz_insert_eq [rule_format]:
-     "X \<in> analz H ==> ALL G. H \<subseteq> G --> analz (insert X G) = analz G";
+     "X \<in> analz H ==> ALL G. H \<subseteq> G --> analz (insert X G) = analz G"
 by (blast intro: analz_cut analz_insertI analz_mono [THEN [2] rev_subsetD])
 
 lemma synth_analz_insert_eq [rule_format]:
      "X \<in> synth (analz H) 
-      ==> ALL G. H \<subseteq> G --> (Key K \<in> analz (insert X G)) = (Key K \<in> analz G)";
+      ==> ALL G. H \<subseteq> G --> (Key K \<in> analz (insert X G)) = (Key K \<in> analz G)"
 apply (erule synth.induct) 
 apply (simp_all add: gen_analz_insert_eq subset_trans [OF _ subset_insertI]) 
 done
