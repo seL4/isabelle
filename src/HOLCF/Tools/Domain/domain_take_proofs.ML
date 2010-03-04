@@ -188,6 +188,13 @@ fun add_qualified_thm name (path, thm) thy =
         (Thm.no_attributes (Binding.name name, thm))
     ||> Sign.parent_path;
 
+fun add_qualified_simp_thm name (path, thm) thy =
+    thy
+    |> Sign.add_path path
+    |> yield_singleton PureThy.add_thms
+        ((Binding.name name, thm), [Simplifier.simp_add])
+    ||> Sign.parent_path;
+
 (******************************************************************************)
 (************************** defining take functions ***************************)
 (******************************************************************************)
@@ -264,11 +271,7 @@ fun define_take_functions
         val tac = simp_tac (HOL_basic_ss addsimps rules) 1;
         val thm = Goal.prove_global thy [] [] goal (K tac);
       in
-        thy
-          |> Sign.add_path dname
-          |> yield_singleton PureThy.add_thms
-              ((Binding.name "chain_take", thm), [Simplifier.simp_add])
-          ||> Sign.parent_path
+        add_qualified_simp_thm "chain_take" (dname, thm) thy
       end;
     val (chain_take_thms, thy) =
       fold_map prove_chain_take (take_consts ~~ dnames) thy;
