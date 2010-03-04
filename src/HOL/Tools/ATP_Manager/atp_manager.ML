@@ -89,7 +89,7 @@ val global_state = Synchronized.var "atp_manager"
 fun unregister message thread = Synchronized.change global_state
   (fn state as {manager, timeout_heap, active, cancelling, messages, store} =>
     (case lookup_thread active thread of
-      SOME (birth_time, _, description) =>
+      SOME (_, _, description) =>
         let
           val active' = delete_thread thread active;
           val cancelling' = (thread, (Time.now (), description)) :: cancelling;
@@ -267,7 +267,7 @@ fun start_prover name birth_time death_time i proof_state =
                   "Empty clause: Try this command: " ^ Markup.markup Markup.sendback "apply metis"
                 | ERROR msg => ("Error: " ^ msg);
             val _ = unregister message (Thread.self ());
-          in () end)
+          in () end);
       in () end);
 
 
