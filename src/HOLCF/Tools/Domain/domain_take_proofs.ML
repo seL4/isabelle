@@ -262,9 +262,13 @@ fun define_take_functions
         val goal = mk_trp (mk_chain take_const);
         val rules = take_defs @ @{thms chain_iterate ch2ch_fst ch2ch_snd};
         val tac = simp_tac (HOL_basic_ss addsimps rules) 1;
-        val chain_take_thm = Goal.prove_global thy [] [] goal (K tac);
+        val thm = Goal.prove_global thy [] [] goal (K tac);
       in
-        add_qualified_thm "chain_take" (dname, chain_take_thm) thy
+        thy
+          |> Sign.add_path dname
+          |> yield_singleton PureThy.add_thms
+              ((Binding.name "chain_take", thm), [Simplifier.simp_add])
+          ||> Sign.parent_path
       end;
     val (chain_take_thms, thy) =
       fold_map prove_chain_take (take_consts ~~ dnames) thy;
@@ -342,17 +346,17 @@ fun define_take_functions
           (conjuncts dnames deflation_take_thm)) thy;
 
     (* prove strictness of take functions *)
-    fun prove_take_strict (take_const, dname) thy =
+    fun prove_take_strict (deflation_take, dname) thy =
       let
-        val goal = mk_trp (mk_strict (take_const $ Free ("n", natT)));
-        val tac = rtac @{thm deflation_strict} 1
-                  THEN resolve_tac deflation_take_thms 1;
-        val take_strict_thm = Goal.prove_global thy [] [] goal (K tac);
+        val take_strict_thm =
+            Drule.export_without_context
+            (@{thm deflation_strict} OF [deflation_take]);
       in
         add_qualified_thm "take_strict" (dname, take_strict_thm) thy
       end;
     val (take_strict_thms, thy) =
-      fold_map prove_take_strict (take_consts ~~ dnames) thy;
+      fold_map prove_take_strict
+        (deflation_take_thms ~~ dnames) thy;
 
     (* prove take/take rules *)
     fun prove_take_take ((chain_take, deflation_take), dname) thy =
@@ -366,6 +370,19 @@ fun define_take_functions
     val (take_take_thms, thy) =
       fold_map prove_take_take
         (chain_take_thms ~~ deflation_take_thms ~~ dnames) thy;
+
+    (* prove take_below rules *)
+    fun prove_take_below (deflation_take, dname) thy =
+      let
+        val take_below_thm =
+            Drule.export_without_context
+            (@{thm deflation.below} OF [deflation_take]);
+      in
+        add_qualified_thm "take_below" (dname, take_below_thm) thy
+      end;
+    val (take_below_thms, thy) =
+      fold_map prove_take_below
+        (deflation_take_thms ~~ dnames) thy;
 
     (* define finiteness predicates *)
     fun define_finite_const ((tbind, take_const), (lhsT, rhsT)) thy =

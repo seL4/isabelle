@@ -240,7 +240,6 @@ lemma fstreams_lub1:
      ==> (EX j t. Y j = <a> ooo t) & (EX X. chain X & (ALL i. EX j. <a> ooo X i << Y j) & (LUB i. X i) = s)"
 apply (auto simp add: fstreams_lub_lemma1)
 apply (rule_tac x="%n. stream_take n$s" in exI, auto)
-apply (simp add: chain_stream_take)
 apply (induct_tac i, auto)
 apply (drule fstreams_lub_lemma1, auto)
 apply (rule_tac x="j" in exI, auto)
@@ -293,7 +292,6 @@ lemma fstreams_lub2:
       ==> (EX j t. Y j = (a, <m> ooo t)) & (EX X. chain X & (ALL i. EX j. (a, <m> ooo X i) << Y j) & (LUB i. X i) = ms)"
 apply (auto simp add: fstreams_lub_lemma2)
 apply (rule_tac x="%n. stream_take n$ms" in exI, auto)
-apply (simp add: chain_stream_take)
 apply (induct_tac i, auto)
 apply (drule fstreams_lub_lemma2, auto)
 apply (rule_tac x="j" in exI, auto)
