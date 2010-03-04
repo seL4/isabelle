@@ -1656,6 +1656,10 @@ lemma vimage_if [simp]: "((\<lambda>x. if x \<in> B then c else d) -` A) =
     else if d \<in> A then -B else {})"  
   by (auto simp add: vimage_def) 
 
+lemma vimage_inter_cong:
+  "(\<And> w. w \<in> S \<Longrightarrow> f w = g w) \<Longrightarrow> f -` y \<inter> S = g -` y \<inter> S"
+  by auto
+
 lemma image_Int_subset: "f`(A Int B) <= f`A Int f`B"
 by blast
 
