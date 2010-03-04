@@ -21,8 +21,9 @@ sig
   val space_of: T -> Name_Space.T
   val is_concealed: T -> string -> bool
   val intern: T -> xstring -> string
-  val intern_syntax: T -> xstring -> string
   val extern: T -> string -> xstring
+  val intern_syntax: T -> xstring -> string
+  val extern_syntax: T -> string -> xstring
   val read_const: T -> string -> term
   val certify: Pretty.pp -> Type.tsig -> bool -> T -> term -> term  (*exception TYPE*)
   val typargs: T -> string * typ -> typ list
@@ -126,10 +127,15 @@ val is_concealed = Name_Space.is_concealed o space_of;
 val intern = Name_Space.intern o space_of;
 val extern = Name_Space.extern o space_of;
 
-fun intern_syntax consts name =
-  (case try Syntax.unmark_const name of
+fun intern_syntax consts s =
+  (case try Syntax.unmark_const s of
     SOME c => c
-  | NONE => intern consts name);
+  | NONE => intern consts s);
+
+fun extern_syntax consts s =
+  (case try Syntax.unmark_const s of
+    SOME c => extern consts c
+  | NONE => s);
 
 
 (* read_const *)

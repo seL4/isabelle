@@ -332,12 +332,12 @@ lemma inj_on_map_add_dom [iff]:
 by (fastsimp simp: map_add_def dom_def inj_on_def split: option.splits)
 
 lemma map_upds_fold_map_upd:
-  "f(ks[\<mapsto>]vs) = foldl (\<lambda>f (k, v). f(k\<mapsto>v)) f (zip ks vs)"
+  "m(ks[\<mapsto>]vs) = foldl (\<lambda>m (k, v). m(k \<mapsto> v)) m (zip ks vs)"
 unfolding map_upds_def proof (rule sym, rule zip_obtain_same_length)
   fix ks :: "'a list" and vs :: "'b list"
   assume "length ks = length vs"
-  then show "foldl (\<lambda>f (k, v). f(k\<mapsto>v)) f (zip ks vs) = f ++ map_of (rev (zip ks vs))"
-    by (induct arbitrary: f rule: list_induct2) simp_all
+  then show "foldl (\<lambda>m (k, v). m(k\<mapsto>v)) m (zip ks vs) = m ++ map_of (rev (zip ks vs))"
+    by(induct arbitrary: m rule: list_induct2) simp_all
 qed
 
 lemma map_add_map_of_foldr:
