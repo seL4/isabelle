@@ -214,6 +214,102 @@ lemmas domain_map_simps =
   ssum_map_sinl ssum_map_sinr sprod_map_spair u_map_up
 
 
+subsection {* Take functions and finiteness *}
+
+lemma lub_ID_take_lemma:
+  assumes "chain t" and "(\<Squnion>n. t n) = ID"
+  assumes "\<And>n. t n\<cdot>x = t n\<cdot>y" shows "x = y"
+proof -
+  have "(\<Squnion>n. t n\<cdot>x) = (\<Squnion>n. t n\<cdot>y)"
+    using assms(3) by simp
+  then have "(\<Squnion>n. t n)\<cdot>x = (\<Squnion>n. t n)\<cdot>y"
+    using assms(1) by (simp add: lub_distribs)
+  then show "x = y"
+    using assms(2) by simp
+qed
+
+lemma lub_ID_reach:
+  assumes "chain t" and "(\<Squnion>n. t n) = ID"
+  shows "(\<Squnion>n. t n\<cdot>x) = x"
+using assms by (simp add: lub_distribs)
+
+text {*
+  Let a ``decisive'' function be a deflation that maps every input to
+  either itself or bottom.  Then if a domain's take functions are all
+  decisive, then all values in the domain are finite.
+*}
+
+definition
+  decisive :: "('a::pcpo \<rightarrow> 'a) \<Rightarrow> bool"
+where
+  "decisive d \<longleftrightarrow> (\<forall>x. d\<cdot>x = x \<or> d\<cdot>x = \<bottom>)"
+
+lemma decisiveI: "(\<And>x. d\<cdot>x = x \<or> d\<cdot>x = \<bottom>) \<Longrightarrow> decisive d"
+  unfolding decisive_def by simp
+
+lemma decisive_cases:
+  assumes "decisive d" obtains "d\<cdot>x = x" | "d\<cdot>x = \<bottom>"
+using assms unfolding decisive_def by auto
+
+lemma decisive_bottom: "decisive \<bottom>"
+  unfolding decisive_def by simp
+
+lemma decisive_ID: "decisive ID"
+  unfolding decisive_def by simp
+
+lemma decisive_ssum_map:
+  assumes f: "decisive f"
+  assumes g: "decisive g"
+  shows "decisive (ssum_map\<cdot>f\<cdot>g)"
+apply (rule decisiveI, rename_tac s)
+apply (case_tac s, simp_all)
+apply (rule_tac x=x in decisive_cases [OF f], simp_all)
+apply (rule_tac x=y in decisive_cases [OF g], simp_all)
+done
+
+lemma decisive_sprod_map:
+  assumes f: "decisive f"
+  assumes g: "decisive g"
+  shows "decisive (sprod_map\<cdot>f\<cdot>g)"
+apply (rule decisiveI, rename_tac s)
+apply (case_tac s, simp_all)
+apply (rule_tac x=x in decisive_cases [OF f], simp_all)
+apply (rule_tac x=y in decisive_cases [OF g], simp_all)
+done
+
+lemma decisive_abs_rep:
+  fixes abs rep
+  assumes iso: "iso abs rep"
+  assumes d: "decisive d"
+  shows "decisive (abs oo d oo rep)"
+apply (rule decisiveI)
+apply (rule_tac x="rep\<cdot>x" in decisive_cases [OF d])
+apply (simp add: iso.rep_iso [OF iso])
+apply (simp add: iso.abs_strict [OF iso])
+done
+
+lemma lub_ID_finite:
+  assumes chain: "chain d"
+  assumes lub: "(\<Squnion>n. d n) = ID"
+  assumes decisive: "\<And>n. decisive (d n)"
+  shows "\<exists>n. d n\<cdot>x = x"
+proof -
+  have 1: "chain (\<lambda>n. d n\<cdot>x)" using chain by simp
+  have 2: "(\<Squnion>n. d n\<cdot>x) = x" using chain lub by (rule lub_ID_reach)
+  have "\<forall>n. d n\<cdot>x = x \<or> d n\<cdot>x = \<bottom>"
+    using decisive unfolding decisive_def by simp
+  hence "range (\<lambda>n. d n\<cdot>x) \<subseteq> {x, \<bottom>}"
+    by auto
+  hence "finite (range (\<lambda>n. d n\<cdot>x))"
+    by (rule finite_subset, simp)
+  with 1 have "finite_chain (\<lambda>n. d n\<cdot>x)"
+    by (rule finite_range_imp_finch)
+  then have "\<exists>n. (\<Squnion>n. d n\<cdot>x) = d n\<cdot>x"
+    unfolding finite_chain_def by (auto simp add: maxinch_is_thelub)
+  with 2 show "\<exists>n. d n\<cdot>x = x" by (auto elim: sym)
+qed
+
+
 subsection {* Installing the domain package *}
 
 lemmas con_strict_rules =
@@ -252,23 +348,6 @@ lemmas sel_defined_iff_rules =
 lemmas take_con_rules =
   ID1 ssum_map_sinl' ssum_map_sinr' ssum_map_strict
   sprod_map_spair' sprod_map_strict u_map_up u_map_strict
-
-lemma lub_ID_take_lemma:
-  assumes "chain t" and "(\<Squnion>n. t n) = ID"
-  assumes "\<And>n. t n\<cdot>x = t n\<cdot>y" shows "x = y"
-proof -
-  have "(\<Squnion>n. t n\<cdot>x) = (\<Squnion>n. t n\<cdot>y)"
-    using assms(3) by simp
-  then have "(\<Squnion>n. t n)\<cdot>x = (\<Squnion>n. t n)\<cdot>y"
-    using assms(1) by (simp add: lub_distribs)
-  then show "x = y"
-    using assms(2) by simp
-qed
-
-lemma lub_ID_reach:
-  assumes "chain t" and "(\<Squnion>n. t n) = ID"
-  shows "(\<Squnion>n. t n\<cdot>x) = x"
-using assms by (simp add: lub_distribs)
 
 use "Tools/cont_consts.ML"
 use "Tools/cont_proc.ML"

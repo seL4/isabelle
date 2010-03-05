@@ -216,8 +216,13 @@ let
     fun ga s dn = PureThy.get_thm thy (dn ^ "." ^ s);
     fun gts s dn = PureThy.get_thms thy (dn ^ "." ^ s);
   in
+    val axs_rep_iso = map (ga "rep_iso") dnames;
+    val axs_abs_iso = map (ga "abs_iso") dnames;
     val axs_chain_take = map (ga "chain_take") dnames;
+    val lub_take_thms = map (ga "lub_take") dnames;
     val axs_finite_def = map (ga "finite_def") dnames;
+    val take_0_thms = map (ga "take_0") dnames;
+    val take_Suc_thms = map (ga "take_Suc") dnames;
     val cases = map (ga  "casedist" ) dnames;
     val con_rews  = maps (gts "con_rews" ) dnames;
   end;
@@ -318,75 +323,41 @@ let
   (
     if is_finite
     then (* finite case *)
-      let 
-        fun take_enough dn = mk_ex ("n",dc_take dn $ Bound 0 ` %:"x" === %:"x");
-        fun dname_lemma dn =
+      let
+        val decisive_lemma =
           let
-            val prem1 = mk_trp (defined (%:"x"));
-            val disj1 = mk_all ("n", dc_take dn $ Bound 0 ` %:"x" === UU);
-            val prem2 = mk_trp (mk_disj (disj1, take_enough dn));
-            val concl = mk_trp (take_enough dn);
-            val goal = prem1 ===> prem2 ===> concl;
+            val iso_locale_thms =
+                map2 (fn x => fn y => @{thm iso.intro} OF [x, y])
+                axs_abs_iso axs_rep_iso;
+            val decisive_abs_rep_thms =
+                map (fn x => @{thm decisive_abs_rep} OF [x])
+                iso_locale_thms;
+            val n = Free ("n", @{typ nat});
+            fun mk_decisive t = %%: @{const_name decisive} $ t;
+            fun f dn = mk_decisive (dc_take dn $ n);
+            val goal = mk_trp (foldr1 mk_conj (map f dnames));
+            val rules0 = @{thm decisive_bottom} :: take_0_thms;
+            val rules1 =
+                take_Suc_thms @ decisive_abs_rep_thms
+                @ @{thms decisive_ID decisive_ssum_map decisive_sprod_map};
             val tacs = [
-              etac disjE 1,
-              etac notE 1,
-              resolve_tac take_lemmas 1,
-              asm_simp_tac take_ss 1,
-              atac 1];
+                rtac @{thm nat.induct} 1,
+                simp_tac (HOL_ss addsimps rules0) 1,
+                asm_simp_tac (HOL_ss addsimps rules1) 1];
           in pg [] goal (K tacs) end;
-        val _ = trace " Proving finite_lemmas1a";
-        val finite_lemmas1a = map dname_lemma dnames;
- 
-        val _ = trace " Proving finite_lemma1b";
-        val finite_lemma1b =
-          let
-            fun mk_eqn n ((dn, args), _) =
-              let
-                val disj1 = dc_take dn $ Bound 1 ` Bound 0 === UU;
-                val disj2 = dc_take dn $ Bound 1 ` Bound 0 === Bound 0;
-              in
-                mk_constrainall
-                  (x_name n, Type (dn,args), mk_disj (disj1, disj2))
-              end;
-            val goal =
-              mk_trp (mk_all ("n", foldr1 mk_conj (mapn mk_eqn 1 eqs)));
-            fun arg_tacs ctxt vn = [
-              eres_inst_tac ctxt [(("x", 0), vn)] all_dupE 1,
-              etac disjE 1,
-              asm_simp_tac (HOL_ss addsimps con_rews) 1,
-              asm_simp_tac take_ss 1];
-            fun con_tacs ctxt (con, args) =
-              asm_simp_tac take_ss 1 ::
-              maps (arg_tacs ctxt) (nonlazy_rec args);
-            fun foo_tacs ctxt n (cons, cases) =
-              simp_tac take_ss 1 ::
-              rtac allI 1 ::
-              res_inst_tac ctxt [(("y", 0), x_name n)] cases 1 ::
-              asm_simp_tac take_ss 1 ::
-              maps (con_tacs ctxt) cons;
-            fun tacs ctxt =
-              rtac allI 1 ::
-              InductTacs.induct_tac ctxt [[SOME "n"]] 1 ::
-              simp_tac take_ss 1 ::
-              TRY (safe_tac (empty_cs addSEs [conjE] addSIs [conjI])) ::
-              flat (mapn (foo_tacs ctxt) 1 (conss ~~ cases));
-          in pg [] goal tacs end;
-
-        fun one_finite (dn, l1b) =
+        fun take_enough dn = mk_ex ("n",dc_take dn $ Bound 0 ` %:"x" === %:"x");
+        fun one_finite (dn, decisive_thm) =
           let
             val goal = mk_trp (%%:(dn^"_finite") $ %:"x");
-            fun tacs ctxt = [
-                        (* FIXME! case_UU_tac *)
-              case_UU_tac ctxt take_rews 1 "x",
-              eresolve_tac finite_lemmas1a 1,
-              step_tac HOL_cs 1,
-              step_tac HOL_cs 1,
-              cut_facts_tac [l1b] 1,
-              fast_tac HOL_cs 1];
-          in pg axs_finite_def goal tacs end;
+            val tacs = [
+                rtac @{thm lub_ID_finite} 1,
+                resolve_tac axs_chain_take 1,
+                resolve_tac lub_take_thms 1,
+                rtac decisive_thm 1];
+          in pg axs_finite_def goal (K tacs) end;
 
         val _ = trace " Proving finites";
-        val finites = map one_finite (dnames ~~ atomize global_ctxt finite_lemma1b);
+        val finites = map one_finite (dnames ~~ atomize global_ctxt decisive_lemma);
         val _ = trace " Proving ind";
         val ind =
           let
