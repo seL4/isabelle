@@ -440,7 +440,7 @@ end; (* prove_induction *)
 fun prove_coinduction
     (comp_dnam, eqs : eq list)
     (take_lemmas : thm list)
-    (thy : theory) : thm * theory =
+    (thy : theory) : theory =
 let
 
 val dnames = map (fst o fst) eqs;
@@ -580,9 +580,10 @@ in
     in pg [] goal (K tacs) end;
 end; (* local *)
 
-in
-  (coind, thy)
-end;
+in thy |> Sign.add_path comp_dnam
+       |> snd o PureThy.add_thmss [((Binding.name "coind", [coind]), [])]
+       |> Sign.parent_path
+end; (* let *)
 
 fun comp_theorems (comp_dnam, eqs: eq list) thy =
 let
@@ -590,8 +591,6 @@ val map_tab = Domain_Take_Proofs.get_map_tab thy;
 
 val dnames = map (fst o fst) eqs;
 val comp_dname = Sign.full_bname thy comp_dnam;
-
-val _ = message ("Proving induction properties of domain "^comp_dname^" ...");
 
 (* ----- getting the composite axiom and definitions ------------------------ *)
 
@@ -603,9 +602,10 @@ local
   fun indirect_eq (_, cons) = exists indirect_con cons;
 in
   val is_indirect = exists indirect_eq eqs;
-  val _ = if is_indirect
-          then message "Definition uses indirect recursion."
-          else ();
+  val _ =
+      if is_indirect
+      then message "Indirect recursion detected, skipping proofs of (co)induction rules"
+      else message ("Proving induction properties of domain "^comp_dname^" ...");
 end;
 
 (* theorems about take *)
@@ -638,13 +638,14 @@ val thy =
     if is_indirect then thy else
     prove_induction (comp_dnam, eqs) take_lemmas axs_reach take_rews thy;
 
-val (coind, thy) = prove_coinduction (comp_dnam, eqs) take_lemmas thy;
+val thy =
+    if is_indirect then thy else
+    prove_coinduction (comp_dnam, eqs) take_lemmas thy;
 
 in thy |> Sign.add_path comp_dnam
        |> snd o PureThy.add_thmss [
            ((Binding.name "take_lemmas", take_lemmas ), []),
-           ((Binding.name "reach"      , axs_reach   ), []),
-           ((Binding.name "coind"      , [coind]     ), [])]
+           ((Binding.name "reach"      , axs_reach   ), [])]
        |> Sign.parent_path |> pair take_rews
 end; (* let *)
 end; (* struct *)
