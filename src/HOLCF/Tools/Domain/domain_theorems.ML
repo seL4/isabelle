@@ -278,6 +278,9 @@ let
     val n__eqs = mapn (fn n => fn (_,cons) => (n,cons)) 0 eqs;
     val is_emptys = map warn n__eqs;
     val is_finite = forall (not o lazy_rec_to [] false) n__eqs;
+    val _ = if is_finite
+            then message ("Proving finiteness rule for domain "^comp_dnam^" ...")
+            else ();
   end;
   val _ = trace " Proving finite_ind...";
   val finite_ind =
