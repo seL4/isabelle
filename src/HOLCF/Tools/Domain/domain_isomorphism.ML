@@ -350,7 +350,7 @@ fun gen_domain_isomorphism
         val goal = mk_eqs (mk_Rep_of lhsT, mk_Rep_of rhsT);
         val REP_simps = RepData.get thy;
         val tac =
-          simp_tac (HOL_basic_ss addsimps REP_simps) 1
+          rewrite_goals_tac (map mk_meta_eq REP_simps)
           THEN resolve_tac defl_unfold_thms 1;
       in
         Goal.prove_global thy [] [] goal (K tac)
