@@ -27,7 +27,6 @@ sig
     unit
 
   (*utility functions*)
-  val goal_thm_of : Proof.state -> thm
   val can_apply : Time.time -> (Proof.context -> int -> tactic) ->
     Proof.state -> bool
   val theorems_in_proof_term : thm -> thm list
@@ -155,11 +154,9 @@ fun step_hook tr pre post =
 
 (* Mirabelle utility functions *)
 
-val goal_thm_of = #goal o Proof.raw_goal  (* FIXME ?? *)
-
 fun can_apply time tac st =
   let
-    val {context = ctxt, facts, goal} = Proof.raw_goal st   (* FIXME ?? *)
+    val {context = ctxt, facts, goal} = Proof.goal st
     val full_tac = HEADGOAL (Method.insert_tac facts THEN' tac ctxt)
   in
     (case TimeLimit.timeLimit time (Seq.pull o full_tac) goal of
@@ -201,7 +198,7 @@ fun theorems_of_sucessful_proof state =
     NONE => []
   | SOME st =>
       if not (Toplevel.is_proof st) then []
-      else theorems_in_proof_term (goal_thm_of (Toplevel.proof_of st)))
+      else theorems_in_proof_term (#goal (Proof.goal (Toplevel.proof_of st))))
 
 fun get_setting settings (key, default) =
   the_default default (AList.lookup (op =) settings key)

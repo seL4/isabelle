@@ -253,7 +253,7 @@ fun start_prover name birth_time death_time i proof_state =
     NONE => warning ("Unknown external prover: " ^ quote name)
   | SOME prover =>
       let
-        val {context = ctxt, facts, goal} = Proof.raw_goal proof_state; (* FIXME Proof.goal *)
+        val {context = ctxt, facts, goal} = Proof.goal proof_state;
         val desc =
           "external prover " ^ quote name ^ " for subgoal " ^ string_of_int i ^ ":\n" ^
             Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i));
