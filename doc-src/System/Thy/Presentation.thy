@@ -183,14 +183,19 @@ text {*
 Usage: browser [OPTIONS] [GRAPHFILE]
 
   Options are:
+    -b           Admin/build only
     -c           cleanup -- remove GRAPHFILE after use
     -o FILE      output to FILE (ps, eps, pdf)
 \end{ttbox}
   When no filename is specified, the browser automatically changes to
   the directory @{setting ISABELLE_BROWSER_INFO}.
 
-  \medskip The @{verbatim "-c"} option causes the input file to be
-  removed after use.
+  \medskip The @{verbatim "-b"} option indicates that this is for
+  administrative build only, i.e.\ no browser popup if no files are
+  given.
+
+  The @{verbatim "-c"} option causes the input file to be removed
+  after use.
 
   The @{verbatim "-o"} option indicates batch-mode operation, with the
   output written to the indicated file; note that @{verbatim pdf}

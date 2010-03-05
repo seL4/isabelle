@@ -117,7 +117,7 @@ fun sh_test_thms prover time_limit subgoalno state filtered name_thms_pairs =
     val _ = priority ("Testing " ^ string_of_int (length name_thms_pairs) ^ " theorems... ")
     val name_thm_pairs = maps (fn (n, ths) => map (pair n) ths) name_thms_pairs
     val axclauses = Res_Axioms.cnf_rules_pairs (Proof.theory_of state) name_thm_pairs
-    val {context = ctxt, facts, goal} = Proof.raw_goal state   (* FIXME ?? *)
+    val {context = ctxt, facts, goal} = Proof.goal state
     val problem =
      {with_full_types = ! ATP_Manager.full_types,
       subgoal = subgoalno,

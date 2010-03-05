@@ -307,7 +307,7 @@ datatype sh_result =
 
 fun run_sh prover hard_timeout timeout dir st =
   let
-    val {context = ctxt, facts, goal} = Proof.raw_goal st   (* FIXME ?? *)
+    val {context = ctxt, facts, goal} = Proof.goal st
     val change_dir = (fn SOME d => Config.put ATP_Wrapper.destdir d | _ => I)
     val ctxt' =
       ctxt
@@ -434,39 +434,39 @@ fun run_metis full m name named_thms id
   end
 
 fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
-  let val goal = Thm.major_prem_of (#goal (Proof.raw_goal pre))  (* FIXME ?? *) in
-  if can Logic.dest_conjunction goal orelse can Logic.dest_equals goal
-  then () else
-  let
-    val named_thms = Unsynchronized.ref (NONE : (string * thm list) list option)
-    val minimize = AList.defined (op =) args minimizeK
-    val metis_ft = AList.defined (op =) args metis_ftK
-
-    fun apply_metis m1 m2 =
-      if metis_ft
-      then
-        if not (Mirabelle.catch_result metis_tag false
-            (run_metis false m1 name (these (!named_thms))) id st)
+  let val goal = Thm.major_prem_of (#goal (Proof.goal pre)) in
+    if can Logic.dest_conjunction goal orelse can Logic.dest_equals goal
+    then () else
+    let
+      val named_thms = Unsynchronized.ref (NONE : (string * thm list) list option)
+      val minimize = AList.defined (op =) args minimizeK
+      val metis_ft = AList.defined (op =) args metis_ftK
+  
+      fun apply_metis m1 m2 =
+        if metis_ft
         then
+          if not (Mirabelle.catch_result metis_tag false
+              (run_metis false m1 name (these (!named_thms))) id st)
+          then
+            (Mirabelle.catch_result metis_tag false
+              (run_metis true m2 name (these (!named_thms))) id st; ())
+          else ()
+        else
           (Mirabelle.catch_result metis_tag false
-            (run_metis true m2 name (these (!named_thms))) id st; ())
-        else ()
-      else
-        (Mirabelle.catch_result metis_tag false
-          (run_metis false m1 name (these (!named_thms))) id st; ())
-  in 
-    change_data id (set_mini minimize);
-    Mirabelle.catch sh_tag (run_sledgehammer args named_thms) id st;
-    if is_some (!named_thms)
-    then
-     (apply_metis Unminimized UnminimizedFT;
-      if minimize andalso not (null (these (!named_thms)))
+            (run_metis false m1 name (these (!named_thms))) id st; ())
+    in 
+      change_data id (set_mini minimize);
+      Mirabelle.catch sh_tag (run_sledgehammer args named_thms) id st;
+      if is_some (!named_thms)
       then
-       (Mirabelle.catch minimize_tag (run_minimize args named_thms) id st;
-        apply_metis Minimized MinimizedFT)
-      else ())
-    else ()
-  end
+       (apply_metis Unminimized UnminimizedFT;
+        if minimize andalso not (null (these (!named_thms)))
+        then
+         (Mirabelle.catch minimize_tag (run_minimize args named_thms) id st;
+          apply_metis Minimized MinimizedFT)
+        else ())
+      else ()
+    end
   end
 
 fun invoke args =
