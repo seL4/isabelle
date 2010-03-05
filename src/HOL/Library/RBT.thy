@@ -7,8 +7,21 @@ header {* Red-Black Trees *}
 
 (*<*)
 theory RBT
-imports Main AssocList
+imports Main
 begin
+
+lemma map_sorted_distinct_set_unique: (*FIXME move*)
+  assumes "inj_on f (set xs \<union> set ys)"
+  assumes "sorted (map f xs)" "distinct (map f xs)"
+    "sorted (map f ys)" "distinct (map f ys)"
+  assumes "set xs = set ys"
+  shows "xs = ys"
+proof -
+  from assms have "map f xs = map f ys"
+    by (simp add: sorted_distinct_set_unique)
+  moreover with `inj_on f (set xs \<union> set ys)` show "xs = ys"
+    by (blast intro: map_inj_on)
+qed
 
 subsection {* Datatype of RB trees *}
 
@@ -53,6 +66,10 @@ proof -
   from assms have "fst (k, v) \<in> fst ` set (entries t)" by (rule imageI)
   then show ?thesis by (simp add: keys_def)
 qed
+
+lemma keys_entries:
+  "k \<in> set (keys t) \<longleftrightarrow> (\<exists>v. (k, v) \<in> set (entries t))"
+  by (auto intro: entry_in_tree_keys) (auto simp add: keys_def)
 
 
 subsubsection {* Search tree properties *}
@@ -144,9 +161,6 @@ by (induct t) auto
 lemma lookup_tree_greater[simp]: "k \<guillemotleft>| t \<Longrightarrow> lookup t k = None"
 by (induct t) auto
 
-lemma lookup_in_tree: "sorted t \<Longrightarrow> (lookup t k = Some v) = entry_in_tree k v t"
-by (induct t) (auto simp: tree_less_prop tree_greater_prop entry_in_tree_keys)
-
 lemma lookup_Empty: "lookup Empty = empty"
 by (rule ext) simp
 
@@ -215,36 +229,45 @@ next
   finally show ?case .
 qed
 
-(*lemma map_of_inject:
-  assumes distinct: "distinct (map fst xs)" "distinct (map fst ys)"
-  shows "map_of xs = map_of ys \<longleftrightarrow> set xs = set ys"
+lemma lookup_in_tree: "sorted t \<Longrightarrow> lookup t k = Some v \<longleftrightarrow> (k, v) \<in> set (entries t)"
+  by (simp_all add: lookup_map_of_entries distinct_entries)
+
+lemma set_entries_inject:
+  assumes sorted: "sorted t1" "sorted t2" 
+  shows "set (entries t1) = set (entries t2) \<longleftrightarrow> entries t1 = entries t2"
+proof -
+  from sorted have "distinct (map fst (entries t1))"
+    "distinct (map fst (entries t2))"
+    by (auto intro: distinct_entries)
+  with sorted show ?thesis
+    by (auto intro: map_sorted_distinct_set_unique sorted_entries simp add: distinct_map)
+qed
 
 lemma entries_eqI:
   assumes sorted: "sorted t1" "sorted t2" 
   assumes lookup: "lookup t1 = lookup t2"
-  shows entries: "entries t1 = entries t2"
+  shows "entries t1 = entries t2"
 proof -
   from sorted lookup have "map_of (entries t1) = map_of (entries t2)"
-    by (simp_all add: lookup_map_of_entries)
-qed*)
+    by (simp add: lookup_map_of_entries)
+  with sorted have "set (entries t1) = set (entries t2)"
+    by (simp add: map_of_inject_set distinct_entries)
+  with sorted show ?thesis by (simp add: set_entries_inject)
+qed
 
-(* a kind of extensionality *)
+lemma entries_lookup:
+  assumes "sorted t1" "sorted t2" 
+  shows "entries t1 = entries t2 \<longleftrightarrow> lookup t1 = lookup t2"
+  using assms by (auto intro: entries_eqI simp add: lookup_map_of_entries)
+
 lemma lookup_from_in_tree: 
-  assumes sorted: "sorted t1" "sorted t2" 
-  and eq: "\<And>v. entry_in_tree (k\<Colon>'a\<Colon>linorder) v t1 = entry_in_tree k v t2" 
+  assumes "sorted t1" "sorted t2" 
+  and "\<And>v. (k\<Colon>'a\<Colon>linorder, v) \<in> set (entries t1) \<longleftrightarrow> (k, v) \<in> set (entries t2)" 
   shows "lookup t1 k = lookup t2 k"
-proof (cases "lookup t1 k")
-  case None
-  then have "\<And>v. \<not> entry_in_tree k v t1"
-    by (simp add: lookup_in_tree[symmetric] sorted)
-  with None show ?thesis
-    by (cases "lookup t2 k") (auto simp: lookup_in_tree sorted eq)
-next
-  case (Some a)
-  then show ?thesis
-    apply (cases "lookup t2 k")
-    apply (auto simp: lookup_in_tree sorted eq)
-    by (auto simp add: lookup_in_tree[symmetric] sorted Some)
+proof -
+  from assms have "k \<in> dom (lookup t1) \<longleftrightarrow> k \<in> dom (lookup t2)"
+    by (simp add: keys_entries lookup_keys)
+  with assms show ?thesis by (auto simp add: lookup_in_tree [symmetric])
 qed
 
 
@@ -984,32 +1007,36 @@ qed
 subsection {* Modifying existing entries *}
 
 primrec
-  map_entry :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a\<Colon>linorder) \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt"
+  map_entry :: "'a\<Colon>linorder \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt"
 where
-  "map_entry f k Empty = Empty"
-| "map_entry f k (Branch c lt x v rt) = (if k < x then (Branch c (map_entry f k lt) x v rt) else if k > x then (Branch c lt x v (map_entry f k rt)) else (Branch c lt x (f x v) rt))"
+  "map_entry k f Empty = Empty"
+| "map_entry k f (Branch c lt x v rt) =
+    (if k < x then Branch c (map_entry k f lt) x v rt
+    else if k > x then (Branch c lt x v (map_entry k f rt))
+    else Branch c lt x (f v) rt)"
 
-lemma map_entrywk_color_of: "color_of (map_entry f k t) = color_of t" by (induct t) simp+
-lemma map_entrywk_inv1: "inv1 (map_entry f k t) = inv1 t" by (induct t) (simp add: map_entrywk_color_of)+
-lemma map_entrywk_inv2: "inv2 (map_entry f k t) = inv2 t" "bheight (map_entry f k t) = bheight t" by (induct t) simp+
-lemma map_entrywk_tree_greater: "tree_greater k (map_entry f kk t) = tree_greater k t" by (induct t) simp+
-lemma map_entrywk_tree_less: "tree_less k (map_entry f kk t) = tree_less k t" by (induct t) simp+
-lemma map_entrywk_sorted: "sorted (map_entry f k t) = sorted t" by (induct t) (simp add: map_entrywk_tree_less map_entrywk_tree_greater)+
+lemma map_entry_color_of: "color_of (map_entry k f t) = color_of t" by (induct t) simp+
+lemma map_entry_inv1: "inv1 (map_entry k f t) = inv1 t" by (induct t) (simp add: map_entry_color_of)+
+lemma map_entry_inv2: "inv2 (map_entry k f t) = inv2 t" "bheight (map_entry k f t) = bheight t" by (induct t) simp+
+lemma map_entry_tree_greater: "tree_greater a (map_entry k f t) = tree_greater a t" by (induct t) simp+
+lemma map_entry_tree_less: "tree_less a (map_entry k f t) = tree_less a t" by (induct t) simp+
+lemma map_entry_sorted: "sorted (map_entry k f t) = sorted t"
+  by (induct t) (simp_all add: map_entry_tree_less map_entry_tree_greater)
 
-theorem map_entrywk_is_rbt [simp]: "is_rbt (map_entry f k t) = is_rbt t" 
-unfolding is_rbt_def by (simp add: map_entrywk_inv2 map_entrywk_color_of map_entrywk_sorted map_entrywk_inv1 )
+theorem map_entry_is_rbt [simp]: "is_rbt (map_entry k f t) = is_rbt t" 
+unfolding is_rbt_def by (simp add: map_entry_inv2 map_entry_color_of map_entry_sorted map_entry_inv1 )
 
 theorem map_entry_map [simp]:
-  "lookup (map_entry f k t) x = 
-  (if x = k then case lookup t x of None \<Rightarrow> None | Some y \<Rightarrow> Some (f k y)
+  "lookup (map_entry k f t) x = 
+  (if x = k then case lookup t x of None \<Rightarrow> None | Some y \<Rightarrow> Some (f y)
             else lookup t x)"
-by (induct t arbitrary: x) (auto split:option.splits)
+  by (induct t arbitrary: x) (auto split:option.splits)
 
 
 subsection {* Mapping all entries *}
 
 primrec
-  map :: "('a::linorder \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'c) rbt"
+  map :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'c) rbt"
 where
   "map f Empty = Empty"
 | "map f (Branch c lt k v rt) = Branch c (map f lt) k (f k v) (map f rt)"
