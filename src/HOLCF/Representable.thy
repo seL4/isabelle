@@ -12,6 +12,38 @@ uses
   ("Tools/Domain/domain_isomorphism.ML")
 begin
 
+subsection {* Preliminaries: Take proofs *}
+
+lemma deflation_abs_rep:
+  fixes abs and rep and d
+  assumes abs_iso: "\<And>x. rep\<cdot>(abs\<cdot>x) = x"
+  assumes rep_iso: "\<And>y. abs\<cdot>(rep\<cdot>y) = y"
+  shows "deflation d \<Longrightarrow> deflation (abs oo d oo rep)"
+by (rule ep_pair.deflation_e_d_p) (simp add: ep_pair.intro assms)
+
+lemma deflation_chain_min:
+  assumes chain: "chain d"
+  assumes defl: "\<And>n. deflation (d n)"
+  shows "d m\<cdot>(d n\<cdot>x) = d (min m n)\<cdot>x"
+proof (rule linorder_le_cases)
+  assume "m \<le> n"
+  with chain have "d m \<sqsubseteq> d n" by (rule chain_mono)
+  then have "d m\<cdot>(d n\<cdot>x) = d m\<cdot>x"
+    by (rule deflation_below_comp1 [OF defl defl])
+  moreover from `m \<le> n` have "min m n = m" by simp
+  ultimately show ?thesis by simp
+next
+  assume "n \<le> m"
+  with chain have "d n \<sqsubseteq> d m" by (rule chain_mono)
+  then have "d m\<cdot>(d n\<cdot>x) = d n\<cdot>x"
+    by (rule deflation_below_comp2 [OF defl defl])
+  moreover from `n \<le> m` have "min m n = n" by simp
+  ultimately show ?thesis by simp
+qed
+
+use "Tools/Domain/domain_take_proofs.ML"
+
+
 subsection {* Class of representable types *}
 
 text "Overloaded embedding and projection functions between
@@ -179,33 +211,6 @@ lemma domain_rep_iso:
   assumes rep_def: "rep \<equiv> (coerce :: 'b \<rightarrow> 'a)"
   shows "abs\<cdot>(rep\<cdot>x) = x"
 unfolding abs_def rep_def by (simp add: REP [symmetric])
-
-lemma deflation_abs_rep:
-  fixes abs and rep and d
-  assumes abs_iso: "\<And>x. rep\<cdot>(abs\<cdot>x) = x"
-  assumes rep_iso: "\<And>y. abs\<cdot>(rep\<cdot>y) = y"
-  shows "deflation d \<Longrightarrow> deflation (abs oo d oo rep)"
-by (rule ep_pair.deflation_e_d_p) (simp add: ep_pair.intro assms)
-
-lemma deflation_chain_min:
-  assumes chain: "chain d"
-  assumes defl: "\<And>n. deflation (d n)"
-  shows "d m\<cdot>(d n\<cdot>x) = d (min m n)\<cdot>x"
-proof (rule linorder_le_cases)
-  assume "m \<le> n"
-  with chain have "d m \<sqsubseteq> d n" by (rule chain_mono)
-  then have "d m\<cdot>(d n\<cdot>x) = d m\<cdot>x"
-    by (rule deflation_below_comp1 [OF defl defl])
-  moreover from `m \<le> n` have "min m n = m" by simp
-  ultimately show ?thesis by simp
-next
-  assume "n \<le> m"
-  with chain have "d n \<sqsubseteq> d m" by (rule chain_mono)
-  then have "d m\<cdot>(d n\<cdot>x) = d n\<cdot>x"
-    by (rule deflation_below_comp2 [OF defl defl])
-  moreover from `n \<le> m` have "min m n = n" by simp
-  ultimately show ?thesis by simp
-qed
 
 
 subsection {* Proving a subtype is representable *}
@@ -777,7 +782,6 @@ done
 
 subsection {* Constructing Domain Isomorphisms *}
 
-use "Tools/Domain/domain_take_proofs.ML"
 use "Tools/Domain/domain_isomorphism.ML"
 
 setup {*
