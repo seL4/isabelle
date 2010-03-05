@@ -13,6 +13,7 @@ function usage()
   echo "Usage: isabelle $PRG [OPTIONS] [GRAPHFILE]"
   echo
   echo "  Options are:"
+  echo "    -b           Admin/build only"
   echo "    -c           cleanup -- remove GRAPHFILE after use"
   echo "    -o FILE      output to FILE (ps, eps, pdf)"
   echo
@@ -30,12 +31,16 @@ function fail()
 
 # options
 
+ADMIN_BUILD=""
 CLEAN=""
 OUTFILE=""
 
-while getopts "co:" OPT
+while getopts "bco:" OPT
 do
   case "$OPT" in
+    b)
+      ADMIN_BUILD=true
+      ;;
     c)
       CLEAN=true
       ;;
@@ -64,10 +69,7 @@ GRAPHFILE=""
 
 classpath "$ISABELLE_HOME/lib/browser/GraphBrowser.jar"
 
-if [ -z "$GRAPHFILE" ]; then
-  [ -d "$ISABELLE_BROWSER_INFO" ] && cd "$ISABELLE_BROWSER_INFO"
-  exec "$ISABELLE_TOOL" java GraphBrowser.GraphBrowser
-else
+if [ -n "$GRAPHFILE" ]; then
   PRIVATE_FILE="${ISABELLE_TMP:-/tmp}/$$"$(basename "$GRAPHFILE")
   if [ -n "$CLEAN" ]; then
     mv -f "$GRAPHFILE" "$PRIVATE_FILE" || fail "Cannot move file: $FILE"
@@ -95,6 +97,11 @@ else
   fi
 
   rm -f "$PRIVATE_FILE"
+elif [ -z "$ADMIN_BUILD" ]; then
+  [ -d "$ISABELLE_BROWSER_INFO" ] && cd "$ISABELLE_BROWSER_INFO"
+  exec "$ISABELLE_TOOL" java GraphBrowser.GraphBrowser
+else
+  RC=0
 fi
 
 exit "$RC"
