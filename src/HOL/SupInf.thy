@@ -228,6 +228,24 @@ proof-
     by  (auto simp add: setge_def setle_def)
 qed
 
+lemma Sup_lessThan[simp]: "Sup {..<x} = (x::real)"
+  by (auto intro!: Sup_eq intro: dense_le)
+
+lemma Sup_greaterThanLessThan[simp]: "y < x \<Longrightarrow> Sup {y<..<x} = (x::real)"
+  by (auto intro!: Sup_eq intro: dense_le_bounded)
+
+lemma Sup_atLeastLessThan[simp]: "y < x \<Longrightarrow> Sup {y..<x} = (x::real)"
+  by (auto intro!: Sup_eq intro: dense_le_bounded)
+
+lemma Sup_atMost[simp]: "Sup {..x} = (x::real)"
+  by (auto intro!: Sup_eq_maximum)
+
+lemma Sup_greaterThanAtMost[simp]: "y < x \<Longrightarrow> Sup {y<..x} = (x::real)"
+  by (auto intro!: Sup_eq_maximum)
+
+lemma Sup_atLeastAtMost[simp]: "y \<le> x \<Longrightarrow> Sup {y..x} = (x::real)"
+  by (auto intro!: Sup_eq_maximum)
+
 
 subsection{*Infimum of a set of reals*}
 
@@ -405,6 +423,21 @@ proof -
   thus ?thesis
     by (simp add: Inf_real_def)
 qed
+
+lemma Inf_greaterThanLessThan[simp]: "y < x \<Longrightarrow> Inf {y<..<x} = (y::real)"
+  by (simp add: Inf_real_def)
+
+lemma Inf_atLeastLessThan[simp]: "y < x \<Longrightarrow> Inf {y..<x} = (y::real)"
+  by (simp add: Inf_real_def)
+
+lemma Inf_atLeast[simp]: "Inf {x..} = (x::real)"
+  by (simp add: Inf_real_def)
+
+lemma Inf_greaterThanAtMost[simp]: "y < x \<Longrightarrow> Inf {y<..x} = (y::real)"
+  by (simp add: Inf_real_def)
+
+lemma Inf_atLeastAtMost[simp]: "y \<le> x \<Longrightarrow> Inf {y..x} = (y::real)"
+  by (simp add: Inf_real_def)
 
 subsection{*Relate max and min to Sup and Inf.*}
 

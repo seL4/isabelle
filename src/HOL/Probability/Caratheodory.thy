@@ -15,8 +15,11 @@ record 'a measure_space = "'a algebra" +
   measure:: "'a set \<Rightarrow> real"
 
 definition
-  disjoint_family  where
-  "disjoint_family A \<longleftrightarrow> (\<forall>m n. m \<noteq> n \<longrightarrow> A m \<inter> A n = {})"
+  disjoint_family_on  where
+  "disjoint_family_on A S \<longleftrightarrow> (\<forall>m\<in>S. \<forall>n\<in>S. m \<noteq> n \<longrightarrow> A m \<inter> A n = {})"
+
+abbreviation
+  "disjoint_family A \<equiv> disjoint_family_on A UNIV"
 
 definition
   positive  where
@@ -99,9 +102,9 @@ lemma additiveD:
   by (auto simp add: additive_def)
 
 lemma countably_additiveD:
-  "countably_additive M f \<Longrightarrow> range A \<subseteq> sets M \<Longrightarrow> disjoint_family A 
+  "countably_additive M f \<Longrightarrow> range A \<subseteq> sets M \<Longrightarrow> disjoint_family A
    \<Longrightarrow> (\<Union>i. A i) \<in> sets M \<Longrightarrow> (\<lambda>n. f (A n))  sums  f (\<Union>i. A i)"
-  by (simp add: countably_additive_def) 
+  by (simp add: countably_additive_def)
 
 lemma Int_Diff_disjoint: "A \<inter> B \<inter> (A - B) = {}"
   by blast
@@ -111,7 +114,7 @@ lemma Int_Diff_Un: "A \<inter> B \<union> (A - B) = A"
 
 lemma disjoint_family_subset:
      "disjoint_family A \<Longrightarrow> (!!x. B x \<subseteq> A x) \<Longrightarrow> disjoint_family B"
-  by (force simp add: disjoint_family_def) 
+  by (force simp add: disjoint_family_on_def)
 
 subsection {* A Two-Element Series *}
 
@@ -119,28 +122,28 @@ definition binaryset :: "'a set \<Rightarrow> 'a set \<Rightarrow> nat \<Rightar
   where "binaryset A B = (\<lambda>\<^isup>x. {})(0 := A, Suc 0 := B)"
 
 lemma range_binaryset_eq: "range(binaryset A B) = {A,B,{}}"
-  apply (simp add: binaryset_def) 
-  apply (rule set_ext) 
-  apply (auto simp add: image_iff) 
+  apply (simp add: binaryset_def)
+  apply (rule set_ext)
+  apply (auto simp add: image_iff)
   done
 
 lemma UN_binaryset_eq: "(\<Union>i. binaryset A B i) = A \<union> B"
-  by (simp add: UNION_eq_Union_image range_binaryset_eq) 
+  by (simp add: UNION_eq_Union_image range_binaryset_eq)
 
-lemma LIMSEQ_binaryset: 
+lemma LIMSEQ_binaryset:
   assumes f: "f {} = 0"
   shows  "(\<lambda>n. \<Sum>i = 0..<n. f (binaryset A B i)) ----> f A + f B"
 proof -
   have "(\<lambda>n. \<Sum>i = 0..< Suc (Suc n). f (binaryset A B i)) = (\<lambda>n. f A + f B)"
-    proof 
+    proof
       fix n
       show "(\<Sum>i\<Colon>nat = 0\<Colon>nat..<Suc (Suc n). f (binaryset A B i)) = f A + f B"
-        by (induct n)  (auto simp add: binaryset_def f) 
+        by (induct n)  (auto simp add: binaryset_def f)
     qed
   moreover
-  have "... ----> f A + f B" by (rule LIMSEQ_const) 
+  have "... ----> f A + f B" by (rule LIMSEQ_const)
   ultimately
-  have "(\<lambda>n. \<Sum>i = 0..< Suc (Suc n). f (binaryset A B i)) ----> f A + f B" 
+  have "(\<lambda>n. \<Sum>i = 0..< Suc (Suc n). f (binaryset A B i)) ----> f A + f B"
     by metis
   hence "(\<lambda>n. \<Sum>i = 0..< n+2. f (binaryset A B i)) ----> f A + f B"
     by simp
@@ -285,23 +288,23 @@ lemma (in algebra) lambda_system_additive:
 lemma (in algebra) countably_subadditive_subadditive:
   assumes f: "positive M f" and cs: "countably_subadditive M f"
   shows  "subadditive M f"
-proof (auto simp add: subadditive_def) 
+proof (auto simp add: subadditive_def)
   fix x y
   assume x: "x \<in> sets M" and y: "y \<in> sets M" and "x \<inter> y = {}"
   hence "disjoint_family (binaryset x y)"
-    by (auto simp add: disjoint_family_def binaryset_def) 
-  hence "range (binaryset x y) \<subseteq> sets M \<longrightarrow> 
-         (\<Union>i. binaryset x y i) \<in> sets M \<longrightarrow> 
+    by (auto simp add: disjoint_family_on_def binaryset_def)
+  hence "range (binaryset x y) \<subseteq> sets M \<longrightarrow>
+         (\<Union>i. binaryset x y i) \<in> sets M \<longrightarrow>
          summable (f o (binaryset x y)) \<longrightarrow>
          f (\<Union>i. binaryset x y i) \<le> suminf (\<lambda>n. f (binaryset x y n))"
-    using cs by (simp add: countably_subadditive_def) 
-  hence "{x,y,{}} \<subseteq> sets M \<longrightarrow> x \<union> y \<in> sets M \<longrightarrow> 
+    using cs by (simp add: countably_subadditive_def)
+  hence "{x,y,{}} \<subseteq> sets M \<longrightarrow> x \<union> y \<in> sets M \<longrightarrow>
          summable (f o (binaryset x y)) \<longrightarrow>
          f (x \<union> y) \<le> suminf (\<lambda>n. f (binaryset x y n))"
     by (simp add: range_binaryset_eq UN_binaryset_eq)
   thus "f (x \<union> y) \<le>  f x + f y" using f x y binaryset_sums
-    by (auto simp add: Un sums_iff positive_def o_def) 
-qed 
+    by (auto simp add: Un sums_iff positive_def o_def)
+qed
 
 
 definition disjointed :: "(nat \<Rightarrow> 'a set) \<Rightarrow> nat \<Rightarrow> 'a set "
@@ -312,19 +315,19 @@ proof (induct n)
   case 0 show ?case by simp
 next
   case (Suc n)
-  thus ?case by (simp add: atLeastLessThanSuc disjointed_def) 
+  thus ?case by (simp add: atLeastLessThanSuc disjointed_def)
 qed
 
 lemma UN_disjointed_eq: "(\<Union>i. disjointed A i) = (\<Union>i. A i)"
-  apply (rule UN_finite2_eq [where k=0]) 
-  apply (simp add: finite_UN_disjointed_eq) 
+  apply (rule UN_finite2_eq [where k=0])
+  apply (simp add: finite_UN_disjointed_eq)
   done
 
 lemma less_disjoint_disjointed: "m<n \<Longrightarrow> disjointed A m \<inter> disjointed A n = {}"
   by (auto simp add: disjointed_def)
 
 lemma disjoint_family_disjointed: "disjoint_family (disjointed A)"
-  by (simp add: disjoint_family_def) 
+  by (simp add: disjoint_family_on_def)
      (metis neq_iff Int_commute less_disjoint_disjointed)
 
 lemma disjointed_subset: "disjointed A n \<subseteq> A n"
@@ -383,7 +386,7 @@ proof (induct n)
 next
   case (Suc n) 
   have "A n \<inter> (\<Union>i\<in>{0..<n}. A i) = {}" using disj 
-    by (auto simp add: disjoint_family_def neq_iff) blast
+    by (auto simp add: disjoint_family_on_def neq_iff) blast
   moreover 
   have "A n \<in> sets M" using A by blast 
   moreover have "(\<Union>i\<in>{0..<n}. A i) \<in> sets M"
@@ -440,7 +443,7 @@ proof (induct n)
 next
   case (Suc n) 
   have 2: "A n \<inter> UNION {0..<n} A = {}" using disj
-    by (force simp add: disjoint_family_def neq_iff) 
+    by (force simp add: disjoint_family_on_def neq_iff) 
   have 3: "A n \<in> lambda_system M f" using A
     by blast
   have 4: "UNION {0..<n} A \<in> lambda_system M f"
@@ -505,7 +508,7 @@ proof -
           by blast
         moreover 
         have "disjoint_family (\<lambda>i. a \<inter> A i)" using disj
-          by (auto simp add: disjoint_family_def) 
+          by (auto simp add: disjoint_family_on_def) 
         moreover 
         have "a \<inter> (\<Union>i. A i) \<in> sets M"
           by (metis Int U_in a)
@@ -584,7 +587,7 @@ proof -
   finally have "(f \<circ> (\<lambda>i. {})(0 := b)) sums f b" .
   thus ?thesis using a
     by (auto intro!: exI [of _ "(\<lambda>i. {})(0 := b)"] 
-             simp add: measure_set_def disjoint_family_def b split_if_mem2) 
+             simp add: measure_set_def disjoint_family_on_def b split_if_mem2) 
 qed  
 
 lemma (in algebra) inf_measure_pos0:
@@ -622,7 +625,7 @@ proof (auto simp add: additive_def)
   fix x y
   assume x: "x \<in> sets M" and y: "y \<in> sets M" and "x \<inter> y = {}"
   hence "disjoint_family (binaryset x y)"
-    by (auto simp add: disjoint_family_def binaryset_def) 
+    by (auto simp add: disjoint_family_on_def binaryset_def) 
   hence "range (binaryset x y) \<subseteq> sets M \<longrightarrow> 
          (\<Union>i. binaryset x y i) \<in> sets M \<longrightarrow> 
          f (\<Union>i. binaryset x y i) = suminf (\<lambda>n. f (binaryset x y n))"
@@ -655,7 +658,7 @@ proof (rule Inf_eq)
       show "range (\<lambda>n. A n \<inter> s) \<subseteq> sets M" using A s
         by blast
       show "disjoint_family (\<lambda>n. A n \<inter> s)" using disj
-        by (auto simp add: disjoint_family_def)
+        by (auto simp add: disjoint_family_on_def)
       show "(\<Union>i. A i \<inter> s) \<in> sets M" using A s
         by (metis UN_extend_simps(4) s seq)
     qed

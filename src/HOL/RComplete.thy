@@ -653,6 +653,18 @@ lemma floor_subtract_number_of: "floor (x - number_of n) =
 lemma floor_subtract_one: "floor (x - 1) = floor x - 1"
   by (rule floor_diff_one) (* already declared [simp] *)
 
+lemma le_mult_floor:
+  assumes "0 \<le> (a :: real)" and "0 \<le> b"
+  shows "floor a * floor b \<le> floor (a * b)"
+proof -
+  have "real (floor a) \<le> a"
+    and "real (floor b) \<le> b" by auto
+  hence "real (floor a * floor b) \<le> a * b"
+    using assms by (auto intro!: mult_mono)
+  also have "a * b < real (floor (a * b) + 1)" by auto
+  finally show ?thesis unfolding real_of_int_less_iff by simp
+qed
+
 lemma ceiling_real_of_nat [simp]: "ceiling (real (n::nat)) = int n"
   unfolding real_of_nat_def by simp
 
@@ -821,6 +833,19 @@ lemma le_natfloor: "real x <= a ==> x <= natfloor a"
   apply simp
 done
 
+lemma less_natfloor:
+  assumes "0 \<le> x" and "x < real (n :: nat)"
+  shows "natfloor x < n"
+proof (rule ccontr)
+  assume "\<not> ?thesis" hence *: "n \<le> natfloor x" by simp
+  note assms(2)
+  also have "real n \<le> real (natfloor x)"
+    using * unfolding real_of_nat_le_iff .
+  finally have "x < real (natfloor x)" .
+  with real_natfloor_le[OF assms(1)]
+  show False by auto
+qed
+
 lemma le_natfloor_eq: "0 <= x ==> (a <= natfloor x) = (real a <= x)"
   apply (rule iffI)
   apply (rule order_trans)
@@ -851,7 +876,7 @@ done
 
 lemma natfloor_eq: "real n <= x ==> x < real n + 1 ==> natfloor x = n"
   apply (unfold natfloor_def)
-  apply (subst nat_int [THEN sym]);back;
+  apply (subst (2) nat_int [THEN sym])
   apply (subst eq_nat_nat_iff)
   apply simp
   apply simp
@@ -905,6 +930,83 @@ lemma natfloor_subtract [simp]: "real a <= x ==>
   apply simp
 done
 
+lemma natfloor_div_nat: "1 <= x ==> y > 0 ==>
+  natfloor (x / real y) = natfloor x div y"
+proof -
+  assume "1 <= (x::real)" and "(y::nat) > 0"
+  have "natfloor x = (natfloor x) div y * y + (natfloor x) mod y"
+    by simp
+  then have a: "real(natfloor x) = real ((natfloor x) div y) * real y +
+    real((natfloor x) mod y)"
+    by (simp only: real_of_nat_add [THEN sym] real_of_nat_mult [THEN sym])
+  have "x = real(natfloor x) + (x - real(natfloor x))"
+    by simp
+  then have "x = real ((natfloor x) div y) * real y +
+      real((natfloor x) mod y) + (x - real(natfloor x))"
+    by (simp add: a)
+  then have "x / real y = ... / real y"
+    by simp
+  also have "... = real((natfloor x) div y) + real((natfloor x) mod y) /
+    real y + (x - real(natfloor x)) / real y"
+    by (auto simp add: algebra_simps add_divide_distrib
+      diff_divide_distrib prems)
+  finally have "natfloor (x / real y) = natfloor(...)" by simp
+  also have "... = natfloor(real((natfloor x) mod y) /
+    real y + (x - real(natfloor x)) / real y + real((natfloor x) div y))"
+    by (simp add: add_ac)
+  also have "... = natfloor(real((natfloor x) mod y) /
+    real y + (x - real(natfloor x)) / real y) + (natfloor x) div y"
+    apply (rule natfloor_add)
+    apply (rule add_nonneg_nonneg)
+    apply (rule divide_nonneg_pos)
+    apply simp
+    apply (simp add: prems)
+    apply (rule divide_nonneg_pos)
+    apply (simp add: algebra_simps)
+    apply (rule real_natfloor_le)
+    apply (insert prems, auto)
+    done
+  also have "natfloor(real((natfloor x) mod y) /
+    real y + (x - real(natfloor x)) / real y) = 0"
+    apply (rule natfloor_eq)
+    apply simp
+    apply (rule add_nonneg_nonneg)
+    apply (rule divide_nonneg_pos)
+    apply force
+    apply (force simp add: prems)
+    apply (rule divide_nonneg_pos)
+    apply (simp add: algebra_simps)
+    apply (rule real_natfloor_le)
+    apply (auto simp add: prems)
+    apply (insert prems, arith)
+    apply (simp add: add_divide_distrib [THEN sym])
+    apply (subgoal_tac "real y = real y - 1 + 1")
+    apply (erule ssubst)
+    apply (rule add_le_less_mono)
+    apply (simp add: algebra_simps)
+    apply (subgoal_tac "1 + real(natfloor x mod y) =
+      real(natfloor x mod y + 1)")
+    apply (erule ssubst)
+    apply (subst real_of_nat_le_iff)
+    apply (subgoal_tac "natfloor x mod y < y")
+    apply arith
+    apply (rule mod_less_divisor)
+    apply auto
+    using real_natfloor_add_one_gt
+    apply (simp add: algebra_simps)
+    done
+  finally show ?thesis by simp
+qed
+
+lemma le_mult_natfloor:
+  assumes "0 \<le> (a :: real)" and "0 \<le> b"
+  shows "natfloor a * natfloor b \<le> natfloor (a * b)"
+  unfolding natfloor_def
+  apply (subst nat_mult_distrib[symmetric])
+  using assms apply simp
+  apply (subst nat_le_eq_zle)
+  using assms le_mult_floor by (auto intro!: mult_nonneg_nonneg)
+
 lemma natceiling_zero [simp]: "natceiling 0 = 0"
   by (unfold natceiling_def, simp)
 
@@ -957,7 +1059,7 @@ lemma natceiling_le: "x <= real a ==> natceiling x <= a"
   apply (unfold natceiling_def)
   apply (case_tac "x < 0")
   apply simp
-  apply (subst nat_int [THEN sym]);back;
+  apply (subst (2) nat_int [THEN sym])
   apply (subst nat_le_eq_zle)
   apply simp
   apply (rule ceiling_le)
@@ -1042,72 +1144,5 @@ lemma natceiling_subtract [simp]: "real a <= x ==>
   apply simp
 done
 
-lemma natfloor_div_nat: "1 <= x ==> y > 0 ==>
-  natfloor (x / real y) = natfloor x div y"
-proof -
-  assume "1 <= (x::real)" and "(y::nat) > 0"
-  have "natfloor x = (natfloor x) div y * y + (natfloor x) mod y"
-    by simp
-  then have a: "real(natfloor x) = real ((natfloor x) div y) * real y +
-    real((natfloor x) mod y)"
-    by (simp only: real_of_nat_add [THEN sym] real_of_nat_mult [THEN sym])
-  have "x = real(natfloor x) + (x - real(natfloor x))"
-    by simp
-  then have "x = real ((natfloor x) div y) * real y +
-      real((natfloor x) mod y) + (x - real(natfloor x))"
-    by (simp add: a)
-  then have "x / real y = ... / real y"
-    by simp
-  also have "... = real((natfloor x) div y) + real((natfloor x) mod y) /
-    real y + (x - real(natfloor x)) / real y"
-    by (auto simp add: algebra_simps add_divide_distrib
-      diff_divide_distrib prems)
-  finally have "natfloor (x / real y) = natfloor(...)" by simp
-  also have "... = natfloor(real((natfloor x) mod y) /
-    real y + (x - real(natfloor x)) / real y + real((natfloor x) div y))"
-    by (simp add: add_ac)
-  also have "... = natfloor(real((natfloor x) mod y) /
-    real y + (x - real(natfloor x)) / real y) + (natfloor x) div y"
-    apply (rule natfloor_add)
-    apply (rule add_nonneg_nonneg)
-    apply (rule divide_nonneg_pos)
-    apply simp
-    apply (simp add: prems)
-    apply (rule divide_nonneg_pos)
-    apply (simp add: algebra_simps)
-    apply (rule real_natfloor_le)
-    apply (insert prems, auto)
-    done
-  also have "natfloor(real((natfloor x) mod y) /
-    real y + (x - real(natfloor x)) / real y) = 0"
-    apply (rule natfloor_eq)
-    apply simp
-    apply (rule add_nonneg_nonneg)
-    apply (rule divide_nonneg_pos)
-    apply force
-    apply (force simp add: prems)
-    apply (rule divide_nonneg_pos)
-    apply (simp add: algebra_simps)
-    apply (rule real_natfloor_le)
-    apply (auto simp add: prems)
-    apply (insert prems, arith)
-    apply (simp add: add_divide_distrib [THEN sym])
-    apply (subgoal_tac "real y = real y - 1 + 1")
-    apply (erule ssubst)
-    apply (rule add_le_less_mono)
-    apply (simp add: algebra_simps)
-    apply (subgoal_tac "1 + real(natfloor x mod y) =
-      real(natfloor x mod y + 1)")
-    apply (erule ssubst)
-    apply (subst real_of_nat_le_iff)
-    apply (subgoal_tac "natfloor x mod y < y")
-    apply arith
-    apply (rule mod_less_divisor)
-    apply auto
-    using real_natfloor_add_one_gt
-    apply (simp add: algebra_simps)
-    done
-  finally show ?thesis by simp
-qed
 
 end

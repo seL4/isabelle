@@ -17,7 +17,7 @@ definition indicator_fn where
 
 definition mono_convergent where
   "mono_convergent u f s \<equiv>
-        (\<forall>x m n. m \<le> n \<and> x \<in> s \<longrightarrow> u m x \<le> u n x) \<and>
+        (\<forall>x\<in>s. incseq (\<lambda>n. u n x)) \<and>
         (\<forall>x \<in> s. (\<lambda>i. u i x) ----> f x)"
 
 lemma in_borel_measurable:
@@ -355,7 +355,7 @@ proof -
                     borel_measurable_add_borel_measurable f g) 
   have "(\<lambda>x. -((f x + -g x) ^ 2 * inverse 4)) = 
         (\<lambda>x. 0 + ((f x + -g x) ^ 2 * inverse -4))"
-    by (simp add: minus_divide_right) 
+    by (simp add: minus_divide_right)
   also have "... \<in> borel_measurable M" 
     by (fast intro: affine_borel_measurable borel_measurable_square 
                     borel_measurable_add_borel_measurable 
@@ -388,7 +388,7 @@ proof -
         assume w: "w \<in> space M" and f: "f w \<le> a"
         hence "u i w \<le> f w"
           by (auto intro: SEQ.incseq_le
-                   simp add: incseq_def mc [unfolded mono_convergent_def])
+                   simp add: mc [unfolded mono_convergent_def])
         thus "u i w \<le> a" using f
           by auto
       next
@@ -420,6 +420,145 @@ next
   case (insert x s)
   thus ?case
     by (auto simp add: borel_measurable_add_borel_measurable) 
+qed
+
+section "Monotone convergence"
+
+lemma mono_convergentD:
+  assumes "mono_convergent u f s" and "x \<in> s"
+  shows "incseq (\<lambda>n. u n x)" and "(\<lambda>i. u i x) ----> f x"
+  using assms unfolding mono_convergent_def by auto
+
+
+lemma mono_convergentI:
+  assumes "\<And>x. x \<in> s \<Longrightarrow> incseq (\<lambda>n. u n x)"
+  assumes "\<And>x. x \<in> s \<Longrightarrow> (\<lambda>i. u i x) ----> f x"
+  shows "mono_convergent u f s"
+  using assms unfolding mono_convergent_def by auto
+
+lemma mono_convergent_le:
+  assumes "mono_convergent u f s" and "t \<in> s"
+  shows "u n t \<le> f t"
+using mono_convergentD[OF assms] by (auto intro!: incseq_le)
+
+definition "upclose f g x = max (f x) (g x)"
+
+primrec mon_upclose where
+"mon_upclose 0 u = u 0" |
+"mon_upclose (Suc n) u = upclose (u (Suc n)) (mon_upclose n u)"
+
+lemma mon_upclose_ex:
+  fixes u :: "nat \<Rightarrow> 'a \<Rightarrow> ('b\<Colon>linorder)"
+  shows "\<exists>n \<le> m. mon_upclose m u x = u n x"
+proof (induct m)
+  case (Suc m)
+  then obtain n where "n \<le> m" and *: "mon_upclose m u x = u n x" by blast
+  thus ?case
+  proof (cases "u n x \<le> u (Suc m) x")
+    case True with min_max.sup_absorb1 show ?thesis
+      by (auto simp: * upclose_def intro!: exI[of _ "Suc m"])
+  next
+    case False
+     with min_max.sup_absorb2 `n \<le> m` show ?thesis
+       by (auto simp: * upclose_def intro!: exI[of _ n] min_max.sup_absorb2)
+  qed
+qed simp
+
+lemma mon_upclose_all:
+  fixes u :: "nat \<Rightarrow> 'a \<Rightarrow> ('b\<Colon>linorder)"
+  assumes "m \<le> n"
+  shows "u m x \<le> mon_upclose n u x"
+using assms proof (induct n)
+  case 0 thus ?case by auto
+next
+  case (Suc n)
+  show ?case
+  proof (cases "m = Suc n")
+    case True thus ?thesis by (simp add: upclose_def)
+  next
+    case False
+    hence "m \<le> n" using `m \<le> Suc n` by simp
+    from Suc.hyps[OF this]
+    show ?thesis by (auto simp: upclose_def intro!: min_max.le_supI2)
+  qed
+qed
+
+lemma mono_convergent_limit:
+  fixes f :: "'a \<Rightarrow> real"
+  assumes "mono_convergent u f s" and "x \<in> s" and "0 < r"
+  shows "\<exists>N. \<forall>n\<ge>N. f x - u n x < r"
+proof -
+  from LIMSEQ_D[OF mono_convergentD(2)[OF assms(1,2)] `0 < r`]
+  obtain N where "\<And>n. N \<le> n \<Longrightarrow> \<bar> u n x - f x \<bar> < r" by auto
+  with mono_convergent_le[OF assms(1,2)] `0 < r`
+  show ?thesis by (auto intro!: exI[of _ N])
+qed
+
+lemma mon_upclose_le_mono_convergent:
+  assumes mc: "\<And>n. mono_convergent (\<lambda>m. u m n) (f n) s" and "x \<in> s"
+  and "incseq (\<lambda>n. f n x)"
+  shows "mon_upclose n (u n) x <= f n x"
+proof -
+  obtain m where *: "mon_upclose n (u n) x = u n m x" and "m \<le> n"
+    using mon_upclose_ex[of n "u n" x] by auto
+  note this(1)
+  also have "u n m x \<le> f m x" using mono_convergent_le[OF assms(1,2)] .
+  also have "... \<le> f n x" using assms(3) `m \<le> n` unfolding incseq_def by auto
+  finally show ?thesis .
+qed
+
+lemma mon_upclose_mono_convergent:
+  assumes mc_u: "\<And>n. mono_convergent (\<lambda>m. u m n) (f n) s"
+  and mc_f: "mono_convergent f h s"
+  shows "mono_convergent (\<lambda>n. mon_upclose n (u n)) h s"
+proof (rule mono_convergentI)
+  fix x assume "x \<in> s"
+  show "incseq (\<lambda>n. mon_upclose n (u n) x)" unfolding incseq_def
+  proof safe
+    fix m n :: nat assume "m \<le> n"
+    obtain i where mon: "mon_upclose m (u m) x = u m i x" and "i \<le> m"
+      using mon_upclose_ex[of m "u m" x] by auto
+    hence "i \<le> n" using `m \<le> n` by auto
+
+    note mon
+    also have "u m i x \<le> u n i x"
+      using mono_convergentD(1)[OF mc_u `x \<in> s`] `m \<le> n`
+      unfolding incseq_def by auto
+    also have "u n i x \<le> mon_upclose n (u n) x"
+      using mon_upclose_all[OF `i \<le> n`, of "u n" x] .
+    finally show "mon_upclose m (u m) x \<le> mon_upclose n (u n) x" .
+  qed
+
+  show "(\<lambda>i. mon_upclose i (u i) x) ----> h x"
+  proof (rule LIMSEQ_I)
+    fix r :: real assume "0 < r"
+    hence "0 < r / 2" by auto
+    from mono_convergent_limit[OF mc_f `x \<in> s` this]
+    obtain N where f_h: "\<And>n. N \<le> n \<Longrightarrow> h x - f n x < r / 2" by auto
+
+    from mono_convergent_limit[OF mc_u `x \<in> s` `0 < r / 2`]
+    obtain N' where u_f: "\<And>n. N' \<le> n \<Longrightarrow> f N x - u n N x < r / 2" by auto
+
+    show "\<exists>N. \<forall>n\<ge>N. norm (mon_upclose n (u n) x - h x) < r"
+    proof (rule exI[of _ "max N N'"], safe)
+      fix n assume "max N N' \<le> n"
+      hence "N \<le> n" and "N' \<le> n" by auto
+      hence "u n N x \<le> mon_upclose n (u n) x"
+        using mon_upclose_all[of N n "u n" x] by auto
+      moreover
+      from add_strict_mono[OF u_f[OF `N' \<le> n`] f_h[OF order_refl]]
+      have "h x - u n N x < r" by auto
+      ultimately have "h x - mon_upclose n (u n) x < r" by auto
+      moreover
+      obtain i where "mon_upclose n (u n) x = u n i x"
+        using mon_upclose_ex[of n "u n"] by blast
+      with mono_convergent_le[OF mc_u `x \<in> s`, of n i]
+           mono_convergent_le[OF mc_f `x \<in> s`, of i]
+      have "mon_upclose n (u n) x \<le> h x" by auto
+      ultimately
+      show "norm (mon_upclose n (u n) x - h x) < r" by auto
+     qed
+  qed
 qed
 
 end

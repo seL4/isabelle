@@ -378,6 +378,11 @@ apply (rule equalityI)
 apply (simp_all (no_asm_simp) add: inj_image_Compl_subset surj_Compl_image_subset)
 done
 
+lemma (in ordered_ab_group_add) inj_uminus[simp, intro]: "inj_on uminus A"
+  by (auto intro!: inj_onI)
+
+lemma (in linorder) strict_mono_imp_inj_on: "strict_mono f \<Longrightarrow> inj_on f A"
+  by (auto intro!: inj_onI dest: strict_mono_eq)
 
 subsection{*Function Updating*}
 

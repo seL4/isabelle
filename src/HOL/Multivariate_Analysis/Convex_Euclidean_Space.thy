@@ -342,8 +342,8 @@ lemma affine_hull_insert_span:
     apply(rule_tac x="insert a f" in exI)
     apply(rule_tac x="\<lambda>x. if x=a then 1 - setsum (\<lambda>x. u (x - a)) f else u (x - a)" in exI)
     using assms and f unfolding setsum_clauses(2)[OF f(1)] and if_smult
-    unfolding setsum_cases[OF f(1), of "{a}", unfolded singleton_iff] and *
-    by (auto simp add: setsum_subtractf scaleR_left.setsum algebra_simps) qed
+    unfolding setsum_cases[OF f(1), of "\<lambda>x. x = a"]
+    by (auto simp add: setsum_subtractf scaleR_left.setsum algebra_simps *) qed
 
 lemma affine_hull_span:
   fixes a :: "real ^ _"
@@ -492,7 +492,7 @@ lemma convex_finite: assumes "finite s"
   fix t u assume as:"\<forall>u. (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<longrightarrow> (\<Sum>x\<in>s. u x *\<^sub>R x) \<in> s" " finite t" "t \<subseteq> s" "\<forall>x\<in>t. 0 \<le> u x" "setsum u t = (1::real)"
   have *:"s \<inter> t = t" using as(3) by auto
   show "(\<Sum>x\<in>t. u x *\<^sub>R x) \<in> s" using as(1)[THEN spec[where x="\<lambda>x. if x\<in>t then u x else 0"]]
-    unfolding if_smult and setsum_cases[OF assms] and * using as(2-) by auto
+    unfolding if_smult and setsum_cases[OF assms] using as(2-) * by auto
 qed (erule_tac x=s in allE, erule_tac x=u in allE, auto)
 
 subsection {* Cones. *}
@@ -890,7 +890,7 @@ next
   show "u *\<^sub>R x + v *\<^sub>R y \<in> ?hull" apply(rule)
     apply(rule_tac x="k1 + k2" in exI, rule_tac x="\<lambda>i. if i \<in> {1..k1} then u * u1 i else v * u2 (i - k1)" in exI)
     apply(rule_tac x="\<lambda>i. if i \<in> {1..k1} then x1 i else x2 (i - k1)" in exI) apply(rule,rule) defer apply(rule)
-    unfolding * and setsum_cases[OF finite_atLeastAtMost[of 1 "k1 + k2"]] and setsum_reindex[OF inj] and o_def
+    unfolding * and setsum_cases[OF finite_atLeastAtMost[of 1 "k1 + k2"]] and setsum_reindex[OF inj] and o_def Collect_mem_eq
     unfolding scaleR_scaleR[THEN sym] scaleR_right.setsum [symmetric] setsum_right_distrib[THEN sym] proof-
     fix i assume i:"i \<in> {1..k1+k2}"
     show "0 \<le> (if i \<in> {1..k1} then u * u1 i else v * u2 (i - k1)) \<and> (if i \<in> {1..k1} then x1 i else x2 (i - k1)) \<in> s"

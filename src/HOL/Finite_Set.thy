@@ -1278,14 +1278,15 @@ qed
 
 lemma setsum_cases:
   assumes fA: "finite A"
-  shows "setsum (\<lambda>x. if x \<in> B then f x else g x) A =
-         setsum f (A \<inter> B) + setsum g (A \<inter> - B)"
+  shows "setsum (\<lambda>x. if P x then f x else g x) A =
+         setsum f (A \<inter> {x. P x}) + setsum g (A \<inter> - {x. P x})"
 proof-
-  have a: "A = A \<inter> B \<union> A \<inter> -B" "(A \<inter> B) \<inter> (A \<inter> -B) = {}" 
+  have a: "A = A \<inter> {x. P x} \<union> A \<inter> -{x. P x}" 
+          "(A \<inter> {x. P x}) \<inter> (A \<inter> -{x. P x}) = {}" 
     by blast+
   from fA 
-  have f: "finite (A \<inter> B)" "finite (A \<inter> -B)" by auto
-  let ?g = "\<lambda>x. if x \<in> B then f x else g x"
+  have f: "finite (A \<inter> {x. P x})" "finite (A \<inter> -{x. P x})" by auto
+  let ?g = "\<lambda>x. if P x then f x else g x"
   from setsum_Un_disjoint[OF f a(2), of ?g] a(1)
   show ?thesis by simp
 qed

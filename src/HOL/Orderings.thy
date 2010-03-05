@@ -1097,7 +1097,43 @@ class dense_linorder = linorder +
   assumes gt_ex: "\<exists>y. x < y" 
   and lt_ex: "\<exists>y. y < x"
   and dense: "x < y \<Longrightarrow> (\<exists>z. x < z \<and> z < y)"
+begin
 
+lemma dense_le:
+  fixes y z :: 'a
+  assumes "\<And>x. x < y \<Longrightarrow> x \<le> z"
+  shows "y \<le> z"
+proof (rule ccontr)
+  assume "\<not> ?thesis"
+  hence "z < y" by simp
+  from dense[OF this]
+  obtain x where "x < y" and "z < x" by safe
+  moreover have "x \<le> z" using assms[OF `x < y`] .
+  ultimately show False by auto
+qed
+
+lemma dense_le_bounded:
+  fixes x y z :: 'a
+  assumes "x < y"
+  assumes *: "\<And>w. \<lbrakk> x < w ; w < y \<rbrakk> \<Longrightarrow> w \<le> z"
+  shows "y \<le> z"
+proof (rule dense_le)
+  fix w assume "w < y"
+  from dense[OF `x < y`] obtain u where "x < u" "u < y" by safe
+  from linear[of u w]
+  show "w \<le> z"
+  proof (rule disjE)
+    assume "u \<le> w"
+    from less_le_trans[OF `x < u` `u \<le> w`] `w < y`
+    show "w \<le> z" by (rule *)
+  next
+    assume "w \<le> u"
+    from `w \<le> u` *[OF `x < u` `u < y`]
+    show "w \<le> z" by (rule order_trans)
+  qed
+qed
+
+end
 
 subsection {* Wellorders *}
 
