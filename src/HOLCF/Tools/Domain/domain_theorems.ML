@@ -157,13 +157,11 @@ local
       val lhs = (dc_take dname $ (%%:"Suc" $ %:"n"))`(con_app con args);
       val rhs = con_app2 con one_rhs args;
       val goal = mk_trp (lhs === rhs);
-      val rules = [ax_take_Suc, ax_abs_iso, @{thm cfcomp2}];
-      val rules2 =
-          @{thms take_con_rules ID1 deflation_strict}
+      val rules =
+          [ax_take_Suc, ax_abs_iso, @{thm cfcomp2}]
+          @ @{thms take_con_rules ID1 deflation_strict}
           @ deflation_thms @ axs_deflation_take;
-      val tacs =
-          [simp_tac (HOL_basic_ss addsimps rules) 1,
-           asm_simp_tac (HOL_basic_ss addsimps rules2) 1];
+      val tacs = [simp_tac (HOL_basic_ss addsimps rules) 1];
     in pg con_appls goal (K tacs) end;
   val take_apps = map one_take_app cons;
 in
