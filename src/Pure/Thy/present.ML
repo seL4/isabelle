@@ -402,6 +402,7 @@ fun finish () = CRITICAL (fn () =>
       if length path > 1 then update_index parent_html_prefix name else ();
       (case readme of NONE => () | SOME path => File.copy path html_prefix);
       write_graph sorted_graph (Path.append html_prefix graph_path);
+      File.isabelle_tool "browser" "-b";
       File.copy (Path.explode "~~/lib/browser/GraphBrowser.jar") html_prefix;
       List.app (fn (a, txt) => File.write (Path.append html_prefix (Path.basic a)) txt)
         (HTML.applet_pages name (Url.File index_path, name));
