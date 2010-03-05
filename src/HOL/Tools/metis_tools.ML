@@ -714,12 +714,12 @@ fun metis_general_tac mode ctxt ths i st0 =
   let val _ = trace_msg (fn () =>
         "Metis called with theorems " ^ cat_lines (map (Display.string_of_thm ctxt) ths))
   in
-     if exists_type Res_Axioms.type_has_empty_sort (prop_of st0)
-     then (error "metis: Proof state contains the empty sort"; Seq.empty)
-     else
-       (Meson.MESON Res_Axioms.neg_clausify
-         (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1) ctxt i
-        THEN Res_Axioms.expand_defs_tac st0) st0
+    if exists_type Res_Axioms.type_has_topsort (prop_of st0)
+    then raise METIS "Metis: Proof state contains the universal sort {}"
+    else
+      (Meson.MESON Res_Axioms.neg_clausify
+        (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1) ctxt i
+          THEN Res_Axioms.expand_defs_tac st0) st0
   end
   handle METIS s => (warning ("Metis: " ^ s); Seq.empty);
 
@@ -734,7 +734,7 @@ val setup =
   type_lits_setup #>
   method @{binding metis} HO "METIS for FOL & HOL problems" #>
   method @{binding metisF} FO "METIS for FOL problems" #>
-  method @{binding metisFT} FT "METIS With-fully typed translation" #>
+  method @{binding metisFT} FT "METIS with fully-typed translation" #>
   Method.setup @{binding finish_clausify}
     (Scan.succeed (K (SIMPLE_METHOD (Res_Axioms.expand_defs_tac refl))))
     "cleanup after conversion to clauses";

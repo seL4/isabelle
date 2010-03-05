@@ -12,7 +12,7 @@ sig
   val pairname: thm -> string * thm
   val multi_base_blacklist: string list
   val bad_for_atp: thm -> bool
-  val type_has_empty_sort: typ -> bool
+  val type_has_topsort: typ -> bool
   val cnf_rules_pairs: theory -> (string * thm) list -> (thm * (string * int)) list
   val neg_clausify: thm list -> thm list
   val expand_defs_tac: thm -> tactic
@@ -31,10 +31,10 @@ fun trace_msg msg = if ! trace then tracing (msg ()) else ();
 
 fun freeze_thm th = #1 (Drule.legacy_freeze_thaw th);
 
-fun type_has_empty_sort (TFree (_, [])) = true
-  | type_has_empty_sort (TVar (_, [])) = true
-  | type_has_empty_sort (Type (_, Ts)) = exists type_has_empty_sort Ts
-  | type_has_empty_sort _ = false;
+val type_has_topsort = Term.exists_subtype
+  (fn TFree (_, []) => true
+    | TVar (_, []) => true
+    | _ => false);
 
 
 (**** Transformation of Elimination Rules into First-Order Formulas****)
@@ -321,7 +321,7 @@ fun is_strange_thm th =
 
 fun bad_for_atp th =
   too_complex (prop_of th)
-  orelse exists_type type_has_empty_sort (prop_of th)
+  orelse exists_type type_has_topsort (prop_of th)
   orelse is_strange_thm th;
 
 val multi_base_blacklist =

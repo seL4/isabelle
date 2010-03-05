@@ -111,14 +111,14 @@ fun with_path cleanup after f path =
   |> Exn.release
   |> tap (after path);
 
-fun external_prover relevance_filter prepare write cmd args find_failure produce_answer
-    axiom_clauses filtered_clauses name subgoalno goal =
+fun external_prover relevance_filter prepare write cmd args produce_answer name
+    ({with_full_types, subgoal, goal, axiom_clauses, filtered_clauses}: problem) =
   let
     (* get clauses and prepare them for writing *)
     val (ctxt, (chain_ths, th)) = goal;
     val thy = ProofContext.theory_of ctxt;
     val chain_ths = map (Thm.put_name_hint Res_Reconstruct.chained_hint) chain_ths;
-    val goal_cls = #1 (Res_Axioms.neg_conjecture_clauses ctxt th subgoalno);
+    val goal_cls = #1 (Res_Axioms.neg_conjecture_clauses ctxt th subgoal);
     val the_filtered_clauses =
       (case filtered_clauses of
         NONE => relevance_filter goal goal_cls
@@ -138,8 +138,8 @@ fun external_prover relevance_filter prepare write cmd args find_failure produce
         Path.basic (problem_prefix' ^ serial_string () ^ "_" ^ string_of_int nr)
       in
         if destdir' = "" then File.tmp_path probfile
-        else if File.exists (Path.explode (destdir'))
-        then Path.append  (Path.explode (destdir')) probfile
+        else if File.exists (Path.explode destdir')
+        then Path.append  (Path.explode destdir') probfile
         else error ("No such directory: " ^ destdir')
       end;
 
@@ -167,7 +167,7 @@ fun external_prover relevance_filter prepare write cmd args find_failure produce
       if Config.get ctxt measure_runtime then split_time s else (s, 0)
     fun run_on probfile =
       if File.exists cmd then
-        write probfile clauses
+        write with_full_types probfile clauses
         |> pair (apfst split_time' (bash_output (cmd_line probfile)))
       else error ("Bad executable: " ^ Path.implode cmd);
 
@@ -178,16 +178,16 @@ fun external_prover relevance_filter prepare write cmd args find_failure produce
       else File.write (Path.explode (Path.implode probfile ^ "_proof")) proof;
 
     val (((proof, time), rc), conj_pos) =
-      with_path cleanup export run_on (prob_pathname subgoalno);
+      with_path cleanup export run_on (prob_pathname subgoal);
 
     (* check for success and print out some information on failure *)
-    val failure = find_failure proof;
+    val failure = Res_Reconstruct.find_failure proof;
     val success = rc = 0 andalso is_none failure;
     val (message, real_thm_names) =
       if is_some failure then ("External prover failed.", [])
       else if rc <> 0 then ("External prover failed: " ^ proof, [])
       else apfst (fn s => "Try this command: " ^ s)
-        (produce_answer name (proof, thm_names, conj_pos, ctxt, th, subgoalno));
+        (produce_answer name (proof, thm_names, conj_pos, ctxt, th, subgoal));
   in
     {success = success, message = message,
       theorem_names = real_thm_names, runtime = time, proof = proof,
@@ -201,22 +201,17 @@ fun gen_tptp_prover (name, prover_config) timeout problem =
   let
     val {max_new_clauses, insert_theory_const, emit_structured_proof, command, arguments} =
       prover_config;
-    val {with_full_types, subgoal, goal, axiom_clauses, filtered_clauses} = problem;
   in
     external_prover
       (Res_ATP.get_relevant max_new_clauses insert_theory_const)
       (Res_ATP.prepare_clauses false)
-      (Res_HOL_Clause.tptp_write_file with_full_types)
+      Res_HOL_Clause.tptp_write_file
       command
       (arguments timeout)
-      Res_Reconstruct.find_failure
       (if emit_structured_proof then Res_Reconstruct.structured_proof
        else Res_Reconstruct.lemma_list false)
-      axiom_clauses
-      filtered_clauses
       name
-      subgoal
-      goal
+      problem
   end;
 
 fun tptp_prover (name, config) = (name, gen_tptp_prover (name, config));
@@ -276,22 +271,17 @@ fun spass_config insert_theory_const: prover_config =
 
 fun gen_dfg_prover (name, prover_config: prover_config) timeout problem =
   let
-    val {max_new_clauses, insert_theory_const, command, arguments, ...} = prover_config
-    val {with_full_types, subgoal, goal, axiom_clauses, filtered_clauses} = problem
+    val {max_new_clauses, insert_theory_const, command, arguments, ...} = prover_config;
   in
     external_prover
       (Res_ATP.get_relevant max_new_clauses insert_theory_const)
       (Res_ATP.prepare_clauses true)
-      (Res_HOL_Clause.dfg_write_file with_full_types)
+      Res_HOL_Clause.dfg_write_file
       command
       (arguments timeout)
-      Res_Reconstruct.find_failure
       (Res_Reconstruct.lemma_list true)
-      axiom_clauses
-      filtered_clauses
       name
-      subgoal
-      goal
+      problem
   end;
 
 fun dfg_prover (name, config) = (name, gen_dfg_prover (name, config));
