@@ -10,19 +10,6 @@ theory RBT
 imports Main
 begin
 
-lemma map_sorted_distinct_set_unique: (*FIXME move*)
-  assumes "inj_on f (set xs \<union> set ys)"
-  assumes "sorted (map f xs)" "distinct (map f xs)"
-    "sorted (map f ys)" "distinct (map f ys)"
-  assumes "set xs = set ys"
-  shows "xs = ys"
-proof -
-  from assms have "map f xs = map f ys"
-    by (simp add: sorted_distinct_set_unique)
-  moreover with `inj_on f (set xs \<union> set ys)` show "xs = ys"
-    by (blast intro: map_inj_on)
-qed
-
 subsection {* Datatype of RB trees *}
 
 datatype color = R | B
