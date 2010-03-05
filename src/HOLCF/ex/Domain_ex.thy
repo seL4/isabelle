@@ -52,18 +52,18 @@ domain ('a, 'b) d6 = d6 "int lift" "'a \<oplus> 'b u" (lazy "('a :*: 'b) \<times
 
 text {*
   Indirect recusion is allowed for sums, products, lifting, and the
-  continuous function space.  However, the domain package currently
-  cannot prove the induction rules.  A fix is planned for the next
-  release.
+  continuous function space.  However, the domain package does not
+  generate an induction rule in terms of the constructors.
 *}
 
 domain 'a d7 = d7a "'a d7 \<oplus> int lift" | d7b "'a \<otimes> 'a d7" | d7c (lazy "'a d7 \<rightarrow> 'a")
 
-thm d7.ind -- "currently replaced with dummy theorem"
+(* d7.ind is absent *)
 
 text {*
   Indirect recursion using previously-defined datatypes is currently
-  not allowed.  This restriction should go away by the next release.
+  not allowed.  This restriction does not apply to the new definitional
+  domain package.
 *}
 (*
 domain 'a slist = SNil | SCons 'a "'a slist"
@@ -167,6 +167,7 @@ thm tree.chain_take
 thm tree.take_take
 thm tree.deflation_take
 thm tree.take_lemmas
+thm tree.lub_take
 thm tree.reach
 thm tree.finite_ind
 
@@ -199,15 +200,14 @@ text {*
   I don't know what is going on here.  The failed proof has to do with
   the finiteness predicate.
 *}
-(*
+
 domain foo = Foo (lazy "bar") and bar = Bar
-  -- "Tactic failed."
-*)
+  -- "Cannot prove induction rule"
 
 text {* Declaring class constraints on the LHS is currently broken. *}
 (*
 domain ('a::cpo) box = Box (lazy 'a)
-  -- "Malformed YXML encoding: multiple results"
+  -- "Proof failed"
 *)
 
 text {*
