@@ -14,6 +14,12 @@ begin
 
 subsection {* Preliminaries: Take proofs *}
 
+text {*
+  This section contains lemmas that are used in a module that supports
+  the domain isomorphism package; the module contains proofs related
+  to take functions and the finiteness predicate.
+*}
+
 lemma deflation_abs_rep:
   fixes abs and rep and d
   assumes abs_iso: "\<And>x. rep\<cdot>(abs\<cdot>x) = x"
