@@ -21,6 +21,7 @@ imports
   Product_ord
   "~~/src/HOL/ex/Records"
   SetsAndFunctions
+  Table
   Tree
   While_Combinator
   Word
