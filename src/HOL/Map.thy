@@ -243,8 +243,13 @@ lemma map_of_filter_in:
   "map_of xs k = Some z \<Longrightarrow> P k z \<Longrightarrow> map_of (filter (split P) xs) k = Some z"
 by (induct xs) auto
 
-lemma map_of_map: "map_of (map (%(a,b). (a,f b)) xs) x = Option.map f (map_of xs x)"
-by (induct xs) auto
+lemma map_of_map:
+  "map_of (map (\<lambda>(k, v). (k, f v)) xs) = Option.map f \<circ> map_of xs"
+  by (induct xs) (auto simp add: expand_fun_eq)
+
+lemma dom_option_map:
+  "dom (\<lambda>k. Option.map (f k) (m k)) = dom m"
+  by (simp add: dom_def)
 
 
 subsection {* @{const Option.map} related *}
@@ -554,6 +559,10 @@ lemma dom_minus:
 lemma insert_dom:
   "f x = Some y \<Longrightarrow> insert x (dom f) = dom f"
   unfolding dom_def by auto
+
+lemma map_of_map_keys:
+  "set xs = dom m \<Longrightarrow> map_of (map (\<lambda>k. (k, the (m k))) xs) = m"
+  by (rule ext) (auto simp add: map_of_map_restrict restrict_map_def)
 
 
 subsection {* @{term [source] ran} *}
