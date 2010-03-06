@@ -125,8 +125,8 @@ sig
   val haz_intro: int option -> attribute
   val rule_del: attribute
   val cla_modifiers: Method.modifier parser list
-  val cla_meth: (claset -> tactic) -> thm list -> Proof.context -> Proof.method
-  val cla_meth': (claset -> int -> tactic) -> thm list -> Proof.context -> Proof.method
+  val cla_meth: (claset -> tactic) -> Proof.context -> Proof.method
+  val cla_meth': (claset -> int -> tactic) -> Proof.context -> Proof.method
   val cla_method: (claset -> tactic) -> (Proof.context -> Proof.method) context_parser
   val cla_method': (claset -> int -> tactic) -> (Proof.context -> Proof.method) context_parser
   val setup: theory -> theory
@@ -969,14 +969,14 @@ val cla_modifiers =
   Args.$$$ introN -- Args.colon >> K (I, haz_intro NONE),
   Args.del -- Args.colon >> K (I, rule_del)];
 
-fun cla_meth tac prems ctxt = METHOD (fn facts =>
-  ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (claset_of ctxt));
+fun cla_meth tac ctxt = METHOD (fn facts =>
+  ALLGOALS (Method.insert_tac facts) THEN tac (claset_of ctxt));
 
-fun cla_meth' tac prems ctxt = METHOD (fn facts =>
-  HEADGOAL (Method.insert_tac (prems @ facts) THEN' tac (claset_of ctxt)));
+fun cla_meth' tac ctxt = METHOD (fn facts =>
+  HEADGOAL (Method.insert_tac facts THEN' tac (claset_of ctxt)));
 
-fun cla_method tac = Args.bang_facts --| Method.sections cla_modifiers >> (cla_meth tac);
-fun cla_method' tac = Args.bang_facts --| Method.sections cla_modifiers >> (cla_meth' tac);
+fun cla_method tac = Method.sections cla_modifiers >> K (cla_meth tac);
+fun cla_method' tac = Method.sections cla_modifiers >> K (cla_meth' tac);
 
 
 

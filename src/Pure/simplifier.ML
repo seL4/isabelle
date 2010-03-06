@@ -15,15 +15,15 @@ sig
   val simpset_of: Proof.context -> simpset
   val generic_simp_tac: bool -> bool * bool * bool -> simpset -> int -> tactic
   val safe_asm_full_simp_tac: simpset -> int -> tactic
-  val               simp_tac: simpset -> int -> tactic
-  val           asm_simp_tac: simpset -> int -> tactic
-  val          full_simp_tac: simpset -> int -> tactic
-  val        asm_lr_simp_tac: simpset -> int -> tactic
-  val      asm_full_simp_tac: simpset -> int -> tactic
-  val          simplify: simpset -> thm -> thm
-  val      asm_simplify: simpset -> thm -> thm
-  val     full_simplify: simpset -> thm -> thm
-  val   asm_lr_simplify: simpset -> thm -> thm
+  val simp_tac: simpset -> int -> tactic
+  val asm_simp_tac: simpset -> int -> tactic
+  val full_simp_tac: simpset -> int -> tactic
+  val asm_lr_simp_tac: simpset -> int -> tactic
+  val asm_full_simp_tac: simpset -> int -> tactic
+  val simplify: simpset -> thm -> thm
+  val asm_simplify: simpset -> thm -> thm
+  val full_simplify: simpset -> thm -> thm
+  val asm_lr_simplify: simpset -> thm -> thm
   val asm_full_simplify: simpset -> thm -> thm
 end;
 
@@ -41,10 +41,10 @@ sig
     -> (theory -> simpset -> term -> thm option) -> simproc
   val simproc: theory -> string -> string list
     -> (theory -> simpset -> term -> thm option) -> simproc
-  val          rewrite: simpset -> conv
-  val      asm_rewrite: simpset -> conv
-  val     full_rewrite: simpset -> conv
-  val   asm_lr_rewrite: simpset -> conv
+  val rewrite: simpset -> conv
+  val asm_rewrite: simpset -> conv
+  val full_rewrite: simpset -> conv
+  val asm_lr_rewrite: simpset -> conv
   val asm_full_rewrite: simpset -> conv
   val get_ss: Context.generic -> simpset
   val map_ss: (simpset -> simpset) -> Context.generic -> Context.generic
@@ -371,9 +371,9 @@ val simp_options =
   Scan.succeed asm_full_simp_tac);
 
 fun simp_method more_mods meth =
-  Args.bang_facts -- Scan.lift simp_options --|
+  Scan.lift simp_options --|
     Method.sections (more_mods @ simp_modifiers') >>
-    (fn (prems, tac) => fn ctxt => METHOD (fn facts => meth ctxt tac (prems @ facts)));
+    (fn tac => fn ctxt => METHOD (fn facts => meth ctxt tac facts));
 
 
 

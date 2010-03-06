@@ -384,7 +384,7 @@ The following improper proof methods emulate traditional tactics.
 
   \indexouternonterm{simpmod}
   \begin{rail}
-    ('simp' | 'simp\_all') ('!' ?) opt? (simpmod *)
+    ('simp' | 'simp\_all') opt? (simpmod *)
     ;
 
     opt: '(' ('no\_asm' | 'no\_asm\_simp' | 'no\_asm\_use' | 'asm\_lr' ) ')'
@@ -424,9 +424,7 @@ The following improper proof methods emulate traditional tactics.
   proofs this is usually quite well behaved in practice: just the
   local premises of the actual goal are involved, additional facts may
   be inserted via explicit forward-chaining (via \hyperlink{command.then}{\mbox{\isa{\isacommand{then}}}},
-  \hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}, \hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}} etc.).  The full context of
-  premises is only included if the ``\isa{{\isachardoublequote}{\isacharbang}{\isachardoublequote}}'' (bang) argument is
-  given, which should be used with some care, though.
+  \hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}, \hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}} etc.).
 
   Additional Simplifier options may be specified to tune the behavior
   further (mostly for unstructured scripts with many accidental local
@@ -626,9 +624,9 @@ The following improper proof methods emulate traditional tactics.
 
   \indexouternonterm{clamod}
   \begin{rail}
-    'blast' ('!' ?) nat? (clamod *)
+    'blast' nat? (clamod *)
     ;
-    ('fast' | 'slow' | 'best' | 'safe' | 'clarify') ('!' ?) (clamod *)
+    ('fast' | 'slow' | 'best' | 'safe' | 'clarify') (clamod *)
     ;
 
     clamod: (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del') ':' thmrefs
@@ -650,8 +648,7 @@ The following improper proof methods emulate traditional tactics.
   Any of the above methods support additional modifiers of the context
   of classical rules.  Their semantics is analogous to the attributes
   given before.  Facts provided by forward chaining are inserted into
-  the goal before commencing proof search.  The ``\isa{{\isachardoublequote}{\isacharbang}{\isachardoublequote}}''~argument causes the full context of assumptions to be
-  included as well.%
+  the goal before commencing proof search.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -671,9 +668,9 @@ The following improper proof methods emulate traditional tactics.
 
   \indexouternonterm{clasimpmod}
   \begin{rail}
-    'auto' '!'? (nat nat)? (clasimpmod *)
+    'auto' (nat nat)? (clasimpmod *)
     ;
-    ('force' | 'clarsimp' | 'fastsimp' | 'slowsimp' | 'bestsimp') '!'? (clasimpmod *)
+    ('force' | 'clarsimp' | 'fastsimp' | 'slowsimp' | 'bestsimp') (clasimpmod *)
     ;
 
     clasimpmod: ('simp' (() | 'add' | 'del' | 'only') |
@@ -694,8 +691,7 @@ The following improper proof methods emulate traditional tactics.
   here.
 
   Facts provided by forward chaining are inserted into the goal before
-  doing the search.  The ``\isa{{\isachardoublequote}{\isacharbang}{\isachardoublequote}}'' argument causes the full
-  context of assumptions to be included as well.
+  doing the search.
 
   \end{description}%
 \end{isamarkuptext}%

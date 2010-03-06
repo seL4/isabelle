@@ -57,7 +57,7 @@ sig
                  safe0_netpair: netpair, safep_netpair: netpair,
                  haz_netpair: netpair, dup_netpair: netpair, xtra_netpair: Context_Rules.netpair}
   val cla_modifiers: Method.modifier parser list
-  val cla_meth': (claset -> int -> tactic) -> thm list -> Proof.context -> Proof.method
+  val cla_meth': (claset -> int -> tactic) -> Proof.context -> Proof.method
 end;
 
 signature BLAST =
@@ -1309,10 +1309,9 @@ fun tryInThy thy cs lim s =
 val setup =
   setup_depth_limit #>
   Method.setup @{binding blast}
-    (Args.bang_facts -- Scan.lift (Scan.option OuterParse.nat) --|
-      Method.sections Data.cla_modifiers >>
-      (fn (prems, NONE) => Data.cla_meth' blast_tac prems
-        | (prems, SOME lim) => Data.cla_meth' (fn cs => depth_tac cs lim) prems))
+    (Scan.lift (Scan.option OuterParse.nat) --| Method.sections Data.cla_modifiers >>
+      (fn NONE => Data.cla_meth' blast_tac
+        | SOME lim => Data.cla_meth' (fn cs => depth_tac cs lim)))
     "classical tableau prover";
 
 end;

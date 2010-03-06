@@ -58,6 +58,9 @@ diagnose syntax problems.
 
 * Type constructors admit general mixfix syntax, not just infix.
 
+* Use of cumulative prems via "!" in some proof methods has been
+discontinued (legacy feature).
+
 
 *** Pure ***
 

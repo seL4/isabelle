@@ -795,16 +795,15 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    'iprover' ('!' ?) ( rulemod * )
+    'iprover' ( rulemod * )
     ;
   \end{rail}
 
   The @{method (HOL) iprover} method performs intuitionistic proof
   search, depending on specifically declared rules from the context,
   or given as explicit arguments.  Chained facts are inserted into the
-  goal before commencing proof search; ``@{method (HOL) iprover}@{text
-  "!"}''  means to include the current @{fact prems} as well.
-  
+  goal before commencing proof search.
+
   Rules need to be classified as @{attribute (Pure) intro},
   @{attribute (Pure) elim}, or @{attribute (Pure) dest}; here the
   ``@{text "!"}'' indicator refers to ``safe'' rules, which may be

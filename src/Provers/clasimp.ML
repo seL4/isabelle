@@ -258,21 +258,21 @@ val clasimp_modifiers =
 
 (* methods *)
 
-fun clasimp_meth tac prems ctxt = METHOD (fn facts =>
-  ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (clasimpset_of ctxt));
+fun clasimp_meth tac ctxt = METHOD (fn facts =>
+  ALLGOALS (Method.insert_tac facts) THEN tac (clasimpset_of ctxt));
 
-fun clasimp_meth' tac prems ctxt = METHOD (fn facts =>
-  HEADGOAL (Method.insert_tac (prems @ facts) THEN' tac (clasimpset_of ctxt)));
+fun clasimp_meth' tac ctxt = METHOD (fn facts =>
+  HEADGOAL (Method.insert_tac facts THEN' tac (clasimpset_of ctxt)));
 
 
 fun clasimp_method' tac =
-  Args.bang_facts --| Method.sections clasimp_modifiers >> (clasimp_meth' tac);
+  Method.sections clasimp_modifiers >> K (clasimp_meth' tac);
 
 val auto_method =
-  Args.bang_facts -- Scan.lift (Scan.option (OuterParse.nat -- OuterParse.nat)) --|
-  Method.sections clasimp_modifiers >>
-  (fn (prems, NONE) => clasimp_meth (CHANGED_PROP o auto_tac) prems
-    | (prems, SOME (m, n)) => clasimp_meth (CHANGED_PROP o (fn css => mk_auto_tac css m n)) prems);
+  Scan.lift (Scan.option (OuterParse.nat -- OuterParse.nat)) --|
+    Method.sections clasimp_modifiers >>
+  (fn NONE => clasimp_meth (CHANGED_PROP o auto_tac)
+    | SOME (m, n) => clasimp_meth (CHANGED_PROP o (fn css => mk_auto_tac css m n)));
 
 
 (* theory setup *)
