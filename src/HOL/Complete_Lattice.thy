@@ -82,6 +82,12 @@ lemma Sup_UNIV:
   "\<Squnion>UNIV = top"
   by (simp add: Inf_Sup Inf_empty [symmetric])
 
+lemma Sup_le_iff: "Sup A \<sqsubseteq> b \<longleftrightarrow> (\<forall>a\<in>A. a \<sqsubseteq> b)"
+  by (auto intro: Sup_least dest: Sup_upper)
+
+lemma le_Inf_iff: "b \<sqsubseteq> Inf A \<longleftrightarrow> (\<forall>a\<in>A. b \<sqsubseteq> a)"
+  by (auto intro: Inf_greatest dest: Inf_lower)
+
 definition SUPR :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
   "SUPR A f = \<Squnion> (f ` A)"
 
@@ -125,6 +131,12 @@ lemma INF_leI: "i : A \<Longrightarrow> (INF i:A. M i) \<sqsubseteq> M i"
 
 lemma le_INFI: "(\<And>i. i : A \<Longrightarrow> u \<sqsubseteq> M i) \<Longrightarrow> u \<sqsubseteq> (INF i:A. M i)"
   by (auto simp add: INFI_def intro: Inf_greatest)
+
+lemma SUP_le_iff: "(SUP i:A. M i) \<sqsubseteq> u \<longleftrightarrow> (\<forall>i \<in> A. M i \<sqsubseteq> u)"
+  unfolding SUPR_def by (auto simp add: Sup_le_iff)
+
+lemma le_INF_iff: "u \<sqsubseteq> (INF i:A. M i) \<longleftrightarrow> (\<forall>i \<in> A. u \<sqsubseteq> M i)"
+  unfolding INFI_def by (auto simp add: le_Inf_iff)
 
 lemma SUP_const[simp]: "A \<noteq> {} \<Longrightarrow> (SUP i:A. M) = M"
   by (auto intro: antisym SUP_leI le_SUPI)
@@ -384,7 +396,7 @@ lemma UN_UN_flatten: "(\<Union>x \<in> (\<Union>y\<in>A. B y). C x) = (\<Union>y
   by blast
 
 lemma UN_subset_iff: "((\<Union>i\<in>I. A i) \<subseteq> B) = (\<forall>i\<in>I. A i \<subseteq> B)"
-  by blast
+  by (fact SUP_le_iff)
 
 lemma image_Union: "f ` \<Union>S = (\<Union>x\<in>S. f ` x)"
   by blast
@@ -591,7 +603,7 @@ lemma INT_absorb: "k \<in> I ==> A k \<inter> (\<Inter>i\<in>I. A i) = (\<Inter>
   by blast
 
 lemma INT_subset_iff: "(B \<subseteq> (\<Inter>i\<in>I. A i)) = (\<forall>i\<in>I. B \<subseteq> A i)"
-  by blast
+  by (fact le_INF_iff)
 
 lemma INT_insert [simp]: "(\<Inter>x \<in> insert a A. B x) = B a \<inter> INTER A B"
   by blast
