@@ -265,6 +265,10 @@ done
 abbreviation (input)
   "mtd_mb == snd o snd"
 
+lemma map_of_map:
+  "map_of (map (\<lambda>(k, v). (k, f v)) xs) k = Option.map f (map_of xs k)"
+  by (simp add: map_of_map)
+
 lemma map_of_map_fst: "\<lbrakk> inj f;
   \<forall>x\<in>set xs. fst (f x) = fst x; \<forall>x\<in>set xs. fst (g x) = fst x \<rbrakk>
   \<Longrightarrow>  map_of (map g xs) k 
@@ -282,7 +286,6 @@ apply simp
 apply (simp add: surjective_pairing)
 done
 
-
 lemma comp_method [rule_format (no_asm)]: "\<lbrakk> ws_prog G; is_class G C\<rbrakk> \<Longrightarrow> 
   ((method (comp G, C) S) = 
   Option.map (\<lambda> (D,rT,b).  (D, rT, mtd_mb (compMethod G D (S, rT, b))))
@@ -290,7 +293,7 @@ lemma comp_method [rule_format (no_asm)]: "\<lbrakk> ws_prog G; is_class G C\<rb
 apply (simp add: method_def)
 apply (frule wf_subcls1)
 apply (simp add: comp_class_rec)
-apply (simp add: split_iter split_compose map_map[symmetric] del: map_map)
+apply (simp add: split_iter split_compose map_map [symmetric] del: map_map)
 apply (rule_tac R="%x y. ((x S) = (Option.map (\<lambda>(D, rT, b). 
   (D, rT, snd (snd (compMethod G D (S, rT, b))))) (y S)))" 
   in class_rec_relation)
@@ -307,7 +310,7 @@ apply (rule_tac f="(\<lambda>(s, m). (s, Object, m))" and
 defer                           (* inj \<dots> *)
 apply (simp add: inj_on_def split_beta) 
 apply (simp add: split_beta compMethod_def)
-apply (simp add: map_of_map [THEN sym])
+apply (simp add: map_of_map [symmetric])
 apply (simp add: split_beta)
 apply (simp add: Fun.comp_def split_beta)
 apply (subgoal_tac "(\<lambda>x\<Colon>(vname list \<times> fdecl list \<times> stmt \<times> expr) mdecl.
