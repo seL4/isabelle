@@ -290,6 +290,9 @@ definition sort_key :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b list \<Rightarrow
 abbreviation "sort \<equiv> sort_key (\<lambda>x. x)"
 abbreviation "insort \<equiv> insort_key (\<lambda>x. x)"
 
+definition insort_insert :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+  "insort_insert x xs = (if x \<in> set xs then xs else insort x xs)"
+
 end
 
 
@@ -3702,6 +3705,20 @@ proof (rule takeWhile_eq_filter[symmetric])
     using hd_conv_nth[of "?dW"] by simp
   finally show "\<not> t < f x" by simp
 qed
+
+lemma set_insort_insert:
+  "set (insort_insert x xs) = insert x (set xs)"
+  by (auto simp add: insort_insert_def set_insort)
+
+lemma distinct_insort_insert:
+  assumes "distinct xs"
+  shows "distinct (insort_insert x xs)"
+  using assms by (induct xs) (auto simp add: insort_insert_def set_insort)
+
+lemma sorted_insort_insert:
+  assumes "sorted xs"
+  shows "sorted (insort_insert x xs)"
+  using assms by (simp add: insort_insert_def sorted_insort)
 
 end
 
