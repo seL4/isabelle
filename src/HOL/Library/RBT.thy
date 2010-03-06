@@ -1054,7 +1054,30 @@ lemma fold_simps [simp, code]:
   "fold f (Branch c lt k v rt) = fold f rt \<circ> f k v \<circ> fold f lt"
   by (simp_all add: fold_def expand_fun_eq)
 
-hide (open) const Empty insert delete entries lookup map_entry map fold union sorted
+
+subsection {* Bulkloading a tree *}
+
+definition bulkload :: "('a \<times> 'b) list \<Rightarrow> ('a\<Colon>linorder, 'b) rbt" where (*FIXME move*)
+  "bulkload xs = foldr (\<lambda>(k, v). RBT.insert k v) xs RBT.Empty"
+
+lemma bulkload_is_rbt [simp, intro]:
+  "is_rbt (bulkload xs)"
+  unfolding bulkload_def by (induct xs) auto
+
+lemma lookup_bulkload:
+  "RBT.lookup (bulkload xs) = map_of xs"
+proof -
+  obtain ys where "ys = rev xs" by simp
+  have "\<And>t. is_rbt t \<Longrightarrow>
+    RBT.lookup (foldl (\<lambda>t (k, v). RBT.insert k v t) t ys) = RBT.lookup t ++ map_of (rev ys)"
+      by (induct ys) (simp_all add: bulkload_def split_def RBT.lookup_insert)
+  from this Empty_is_rbt have
+    "RBT.lookup (foldl (\<lambda>t (k, v). RBT.insert k v t) RBT.Empty (rev xs)) = RBT.lookup RBT.Empty ++ map_of xs"
+     by (simp add: `ys = rev xs`)
+  then show ?thesis by (simp add: bulkload_def foldl_foldr lookup_Empty split_def)
+qed
+
+hide (open) const Empty insert delete entries bulkload lookup map_entry map fold union sorted
 (*>*)
 
 text {* 
@@ -1081,30 +1104,44 @@ text {*
 
   This function should be used for reasoning about the semantics of the RBT
   operations. Furthermore, it implements the lookup functionality for
-  the data sortedructure: It is executable and the lookup is performed in
+  the data structure: It is executable and the lookup is performed in
   $O(\log n)$.  
 *}
 
 
 subsection {* Operations *}
 
+print_antiquotations
+
 text {*
   Currently, the following operations are supported:
 
-  @{term_type[display] "RBT.Empty"}
+  @{term_type [display] "RBT.Empty"}
   Returns the empty tree. $O(1)$
 
-  @{term_type[display] "RBT.insert"}
+  @{term_type [display] "RBT.insert"}
   Updates the map at a given position. $O(\log n)$
 
-  @{term_type[display] "RBT.delete"}
+  @{term_type [display] "RBT.delete"}
   Deletes a map entry at a given position. $O(\log n)$
 
-  @{term_type[display] "RBT.union"}
-  Forms the union of two trees, preferring entries from the first one.
+  @{term_type [display] "RBT.entries"}
+  Return a corresponding key-value list for a tree.
 
-  @{term_type[display] "RBT.map"}
-  Maps a function over the values of a map. $O(n)$
+  @{term_type [display] "RBT.bulkload"}
+  Builds a tree from a key-value list.
+
+  @{term_type [display] "RBT.map_entry"}
+  Maps a single entry in a tree.
+
+  @{term_type [display] "RBT.map"}
+  Maps all values in a tree. $O(n)$
+
+  @{term_type [display] "RBT.fold"}
+  Folds over all entries in a tree. $O(n)$
+
+  @{term_type [display] "RBT.union"}
+  Forms the union of two trees, preferring entries from the first one.
 *}
 
 
@@ -1121,10 +1158,16 @@ text {*
   @{thm delete_is_rbt}\hfill(@{text "delete_is_rbt"})
 
   \noindent
-  @{thm union_is_rbt}\hfill(@{text "union_is_rbt"})
+  @{thm bulkload_is_rbt}\hfill(@{text "bulkload_is_rbt"})
+
+  \noindent
+  @{thm map_entry_is_rbt}\hfill(@{text "map_entry_is_rbt"})
 
   \noindent
   @{thm map_is_rbt}\hfill(@{text "map_is_rbt"})
+
+  \noindent
+  @{thm union_is_rbt}\hfill(@{text "union_is_rbt"})
 *}
 
 
@@ -1133,27 +1176,32 @@ subsection {* Map Semantics *}
 text {*
   \noindent
   \underline{@{text "lookup_Empty"}}
-  @{thm[display] lookup_Empty}
+  @{thm [display] lookup_Empty}
   \vspace{1ex}
 
   \noindent
   \underline{@{text "lookup_insert"}}
-  @{thm[display] lookup_insert}
+  @{thm [display] lookup_insert}
   \vspace{1ex}
 
   \noindent
   \underline{@{text "lookup_delete"}}
-  @{thm[display] lookup_delete}
+  @{thm [display] lookup_delete}
   \vspace{1ex}
 
   \noindent
-  \underline{@{text "lookup_union"}}
-  @{thm[display] lookup_union}
+  \underline{@{text "lookup_bulkload"}}
+  @{thm [display] lookup_bulkload}
   \vspace{1ex}
 
   \noindent
   \underline{@{text "lookup_map"}}
-  @{thm[display] lookup_map}
+  @{thm [display] lookup_map}
+  \vspace{1ex}
+
+  \noindent
+  \underline{@{text "lookup_union"}}
+  @{thm [display] lookup_union}
   \vspace{1ex}
 *}
 
