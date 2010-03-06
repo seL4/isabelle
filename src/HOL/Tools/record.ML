@@ -896,25 +896,7 @@ fun record_type_tr' ctxt t =
 fun record_type_abbr_tr' abbr alphas zeta last_ext schemeT ctxt tm =
   let
     val thy = ProofContext.theory_of ctxt;
-
-    (*tm is term representation of a (nested) field type. We first reconstruct the
-      type from tm so that we can continue on the type level rather then the term level*)
-
-    (* FIXME !??? *)
-    (*WORKAROUND:
-      If a record type occurs in an error message of type inference there
-      may be some internal frees donoted by ??:
-      (Const "_tfree",_) $ Free ("??'a", _).
-
-      This will unfortunately be translated to Type ("??'a", []) instead of
-      TFree ("??'a", _) by typ_of_term, which will confuse unify below.
-      fixT works around.*)
-    fun fixT (T as Type (x, [])) =
-          if String.isPrefix "??'" x then TFree (x, Sign.defaultS thy) else T
-      | fixT (Type (x, xs)) = Type (x, map fixT xs)
-      | fixT T = T;
-
-    val T = fixT (decode_type thy tm);
+    val T = decode_type thy tm;
     val midx = maxidx_of_typ T;
     val varifyT = varifyT midx;
 
