@@ -63,8 +63,6 @@ signature TACTIC =
 sig
   include BASIC_TACTIC
   val innermost_params: int -> thm -> (string * typ) list
-  val term_lift_inst_rule:
-    thm * int * ((indexname * sort) * typ) list * ((indexname * typ) * term) list * thm -> thm
   val insert_tagged_brl: 'a * (bool * thm) ->
     ('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net ->
       ('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net
@@ -192,40 +190,6 @@ fun innermost_params i st =
 
 (*params of subgoal i as they are printed*)
 fun params_of_state i st = rev (innermost_params i st);
-
-(*
-Like lift_inst_rule but takes terms, not strings, where the terms may contain
-Bounds referring to parameters of the subgoal.
-
-insts: [...,(vj,tj),...]
-
-The tj may contain references to parameters of subgoal i of the state st
-in the form of Bound k, i.e. the tj may be subterms of the subgoal.
-To saturate the lose bound vars, the tj are enclosed in abstractions
-corresponding to the parameters of subgoal i, thus turning them into
-functions. At the same time, the types of the vj are lifted.
-
-NB: the types in insts must be correctly instantiated already,
-    i.e. Tinsts is not applied to insts.
-*)
-fun term_lift_inst_rule (st, i, Tinsts, insts, rule) =
-let
-    val thy = Thm.theory_of_thm st
-    val cert = Thm.cterm_of thy
-    val certT = Thm.ctyp_of thy
-    val maxidx = Thm.maxidx_of st
-    val paramTs = map #2 (params_of_state i st)
-    val inc = maxidx+1
-    fun liftvar ((a,j), T) = Var((a, j+inc), paramTs---> Logic.incr_tvar inc T)
-    (*lift only Var, not term, which must be lifted already*)
-    fun liftpair (v,t) = (cert (liftvar v), cert t)
-    fun liftTpair (((a, i), S), T) =
-      (certT (TVar ((a, i + inc), S)),
-       certT (Logic.incr_tvar inc T))
-in Drule.instantiate (map liftTpair Tinsts, map liftpair insts)
-                     (Thm.lift_rule (Thm.cprem_of st i) rule)
-end;
-
 
 
 (*** Applications of cut_rl ***)
