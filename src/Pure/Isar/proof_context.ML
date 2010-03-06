@@ -64,6 +64,7 @@ sig
   val expand_abbrevs: Proof.context -> term -> term
   val cert_term: Proof.context -> term -> term
   val cert_prop: Proof.context -> term -> term
+  val def_type: Proof.context -> indexname -> typ option
   val goal_export: Proof.context -> Proof.context -> thm list -> thm list
   val export: Proof.context -> Proof.context -> thm list -> thm list
   val export_morphism: Proof.context -> Proof.context -> morphism
@@ -628,13 +629,15 @@ end;
 
 (* type checking/inference *)
 
+fun def_type ctxt =
+  let val Mode {pattern, ...} = get_mode ctxt
+  in Variable.def_type ctxt pattern end;
+
 fun standard_infer_types ctxt ts =
-  let val Mode {pattern, ...} = get_mode ctxt in
-    TypeInfer.infer_types (Syntax.pp ctxt) (tsig_of ctxt) (Syntax.check_typs ctxt)
-      (try (Consts.the_constraint (consts_of ctxt))) (Variable.def_type ctxt pattern)
-      (Variable.names_of ctxt) (Variable.maxidx_of ctxt) ts
-    handle TYPE (msg, _, _) => error msg
-  end;
+  TypeInfer.infer_types (Syntax.pp ctxt) (tsig_of ctxt) (Syntax.check_typs ctxt)
+    (try (Consts.the_constraint (consts_of ctxt))) (def_type ctxt)
+    (Variable.names_of ctxt) (Variable.maxidx_of ctxt) ts
+  handle TYPE (msg, _, _) => error msg;
 
 local
 
