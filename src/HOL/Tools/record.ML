@@ -859,12 +859,12 @@ fun record_type_tr' ctxt t =
 
     fun strip_fields T =
       (case T of
-        Type (ext, args) =>
+        Type (ext, args as _ :: _) =>
           (case try (unsuffix ext_typeN) ext of
             SOME ext' =>
               (case get_extfields thy ext' of
-                SOME fields =>
-                  (case get_fieldext thy (fst (hd fields)) of
+                SOME (fields as (x, _) :: _) =>
+                  (case get_fieldext thy x of
                     SOME (_, alphas) =>
                      (let
                         val f :: fs = but_last fields;
@@ -877,9 +877,9 @@ fun record_type_tr' ctxt t =
                       in fields'' @ strip_fields more end
                       handle Type.TYPE_MATCH => [("", T)]
                         | Library.UnequalLengths => [("", T)])
-                  | NONE => [("", T)])
-              | NONE => [("", T)])
-          | NONE => [("", T)])
+                  | _ => [("", T)])
+              | _ => [("", T)])
+          | _ => [("", T)])
       | _ => [("", T)]);
 
     val (fields, (_, moreT)) = split_last (strip_fields T);
