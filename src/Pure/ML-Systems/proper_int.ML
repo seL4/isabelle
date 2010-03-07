@@ -165,6 +165,15 @@ struct
   val fromInt = Word.fromInt o dest_int;
 end;
 
+structure Word32 =
+struct
+  open Word32;
+  val wordSize = mk_int Word32.wordSize;
+  val toInt = mk_int o Word32.toInt;
+  val toIntX = mk_int o Word32.toIntX;
+  val fromInt = Word32.fromInt o dest_int;
+end;
+
 
 (* Real *)
 
