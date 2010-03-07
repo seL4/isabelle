@@ -57,8 +57,9 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES) Concurrent/cache.ML			\
   General/markup.ML General/name_space.ML General/ord_list.ML		\
   General/output.ML General/path.ML General/position.ML			\
   General/pretty.ML General/print_mode.ML General/properties.ML		\
-  General/queue.ML General/same.ML General/scan.ML General/secure.ML	\
-  General/seq.ML General/source.ML General/stack.ML General/symbol.ML	\
+  General/queue.ML General/same.ML General/scan.ML General/sha1.ML	\
+  General/sha1_polyml.ML General/secure.ML General/seq.ML		\
+  General/source.ML General/stack.ML General/symbol.ML			\
   General/symbol_pos.ML General/table.ML General/url.ML General/xml.ML	\
   General/yxml.ML Isar/args.ML Isar/attrib.ML Isar/auto_bind.ML		\
   Isar/calculation.ML Isar/class.ML Isar/class_target.ML Isar/code.ML	\

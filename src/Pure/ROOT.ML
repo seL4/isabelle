@@ -52,6 +52,11 @@ use "General/file.ML";
 use "General/xml.ML";
 use "General/yxml.ML";
 
+use "General/sha1.ML";
+if String.isPrefix "polyml" ml_system
+then use "General/sha1_polyml.ML"
+else ();
+
 
 (* concurrency within the ML runtime *)
 
