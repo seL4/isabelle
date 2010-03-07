@@ -168,13 +168,17 @@ in
   val take_rews = ax_take_0 :: ax_take_strict :: take_apps;
 end;
 
+val case_ns =
+    "bottom" :: map (fn (b,_,_) => Binding.name_of b) (snd dom_eqn);
+
 in
   thy
     |> Sign.add_path (Long_Name.base_name dname)
     |> snd o PureThy.add_thmss [
         ((Binding.name "iso_rews"  , iso_rews    ), [Simplifier.simp_add]),
         ((Binding.name "exhaust"   , [exhaust]   ), []),
-        ((Binding.name "casedist"  , [casedist]  ), [Induct.cases_type dname]),
+        ((Binding.name "casedist"  , [casedist]  ),
+         [Rule_Cases.case_names case_ns, Induct.cases_type dname]),
         ((Binding.name "when_rews" , when_rews   ), [Simplifier.simp_add]),
         ((Binding.name "compacts"  , con_compacts), [Simplifier.simp_add]),
         ((Binding.name "con_rews"  , con_rews    ),
@@ -422,8 +426,20 @@ let
            | ERROR _ =>
              (warning "Cannot prove induction rule"; ([], TrueI));
 
+val case_ns =
+  let
+    val bottoms =
+        if length dnames = 1 then ["bottom"] else
+        map (fn s => "bottom_" ^ Long_Name.base_name s) dnames;
+    fun one_eq bot (_,cons) =
+          bot :: map (fn (c,_) => Long_Name.base_name c) cons;
+  in flat (map2 one_eq bottoms eqs) end;
+
 val inducts = Project_Rule.projections (ProofContext.init thy) ind;
-fun ind_rule (dname, rule) = ((Binding.empty, [rule]), [Induct.induct_type dname]);
+fun ind_rule (dname, rule) =
+    ((Binding.empty, [rule]),
+     [Rule_Cases.case_names case_ns, Induct.induct_type dname]);
+
 val induct_failed = (Thm.prop_of ind = Thm.prop_of TrueI);
 
 in thy |> Sign.add_path comp_dnam
