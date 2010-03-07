@@ -595,11 +595,11 @@ val introN = "intro";
 fun atomize_spec thy ts =
   let
     val t = Logic.mk_conjunction_balanced ts;
-    val body = ObjectLogic.atomize_term thy t;
+    val body = Object_Logic.atomize_term thy t;
     val bodyT = Term.fastype_of body;
   in
     if bodyT = propT then (t, propT, Thm.reflexive (Thm.cterm_of thy t))
-    else (body, bodyT, ObjectLogic.atomize (Thm.cterm_of thy t))
+    else (body, bodyT, Object_Logic.atomize (Thm.cterm_of thy t))
   end;
 
 (* achieve plain syntax for locale predicates (without "PROP") *)
@@ -634,7 +634,7 @@ fun def_pred binding parms defs ts norm_ts thy =
 
     val args = map Logic.mk_type extraTs @ map Free xs;
     val head = Term.list_comb (Const (name, predT), args);
-    val statement = ObjectLogic.ensure_propT thy head;
+    val statement = Object_Logic.ensure_propT thy head;
 
     val ([pred_def], defs_thy) =
       thy

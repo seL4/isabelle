@@ -171,8 +171,8 @@ fun fold_meth ths ctxt = SIMPLE_METHOD (CHANGED_PROP (Local_Defs.fold_tac ctxt t
 
 (* atomize rule statements *)
 
-fun atomize false = SIMPLE_METHOD' (CHANGED_PROP o ObjectLogic.atomize_prems_tac)
-  | atomize true = RAW_METHOD (K (HEADGOAL (CHANGED_PROP o ObjectLogic.full_atomize_tac)));
+fun atomize false = SIMPLE_METHOD' (CHANGED_PROP o Object_Logic.atomize_prems_tac)
+  | atomize true = RAW_METHOD (K (HEADGOAL (CHANGED_PROP o Object_Logic.full_atomize_tac)));
 
 
 (* this -- resolve facts directly *)

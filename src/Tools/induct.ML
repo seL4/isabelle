@@ -137,7 +137,7 @@ fun swap_prems_conv 0 = Conv.all_conv
       Conv.implies_concl_conv (swap_prems_conv (i-1)) then_conv
       Conv.rewr_conv Drule.swap_prems_eq
 
-fun drop_judgment ctxt = ObjectLogic.drop_judgment (ProofContext.theory_of ctxt);
+fun drop_judgment ctxt = Object_Logic.drop_judgment (ProofContext.theory_of ctxt);
 
 fun find_eq ctxt t =
   let
@@ -511,7 +511,7 @@ val conjunction_congs = [@{thm Pure.all_conjunction}, @{thm imp_conjunction}];
 
 fun atomize_term thy =
   MetaSimplifier.rewrite_term thy Data.atomize []
-  #> ObjectLogic.drop_judgment thy;
+  #> Object_Logic.drop_judgment thy;
 
 val atomize_cterm = MetaSimplifier.rewrite true Data.atomize;
 

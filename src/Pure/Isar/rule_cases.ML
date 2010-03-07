@@ -110,7 +110,7 @@ fun extract_case thy (case_outline, raw_prop) name concls =
         val (assumes1, assumes2) = extract_assumes (Long_Name.qualify name) case_outline prop
           |> pairself (map (apsnd (maps Logic.dest_conjunctions)));
 
-        val concl = ObjectLogic.drop_judgment thy (Logic.strip_assums_concl prop);
+        val concl = Object_Logic.drop_judgment thy (Logic.strip_assums_concl prop);
         val binds =
           (case_conclN, concl) :: dest_binops concls concl
           |> map (fn (x, t) => ((x, 0), SOME (abs_fixes t)));

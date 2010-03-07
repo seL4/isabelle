@@ -63,7 +63,7 @@ fun transfer_thm_of ctxt ths t =
     val u = unstar_term consts t'
     val tac =
       rewrite_goals_tac (ths' @ refolds' @ unfolds') THEN
-      ALLGOALS ObjectLogic.full_atomize_tac THEN
+      ALLGOALS Object_Logic.full_atomize_tac THEN
       match_tac [transitive_thm] 1 THEN
       resolve_tac [@{thm transfer_start}] 1 THEN
       REPEAT_ALL_NEW (resolve_tac intros) 1 THEN

@@ -410,7 +410,7 @@ end;
 
  fun norm_arith_tac ctxt = 
    clarify_tac HOL_cs THEN'
-   ObjectLogic.full_atomize_tac THEN'
+   Object_Logic.full_atomize_tac THEN'
    CSUBGOAL ( fn (p,i) => rtac (norm_arith ctxt (Thm.dest_arg p )) i);
 
 end;

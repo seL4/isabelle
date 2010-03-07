@@ -115,7 +115,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
       (fn prems =>
          [rewrite_goals_tac (map mk_meta_eq [fst_conv, snd_conv]),
           rtac (cterm_instantiate inst induct) 1,
-          ALLGOALS ObjectLogic.atomize_prems_tac,
+          ALLGOALS Object_Logic.atomize_prems_tac,
           rewrite_goals_tac (@{thm o_def} :: map mk_meta_eq rec_rewrites),
           REPEAT ((resolve_tac prems THEN_ALL_NEW (fn i =>
             REPEAT (etac allE i) THEN atac i)) 1)]);

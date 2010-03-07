@@ -1762,8 +1762,8 @@ exception NO_TRIPLE of unit
 (* theory -> styp -> term -> term list * term list * term *)
 fun triple_for_intro_rule thy x t =
   let
-    val prems = Logic.strip_imp_prems t |> map (ObjectLogic.atomize_term thy)
-    val concl = Logic.strip_imp_concl t |> ObjectLogic.atomize_term thy
+    val prems = Logic.strip_imp_prems t |> map (Object_Logic.atomize_term thy)
+    val concl = Logic.strip_imp_concl t |> Object_Logic.atomize_term thy
     val (main, side) = List.partition (exists_Const (curry (op =) x)) prems
     (* term -> bool *)
      val is_good_head = curry (op =) (Const x) o head_of

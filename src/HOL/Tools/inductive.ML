@@ -788,7 +788,7 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
        else if coind then
          singleton (ProofContext.export
            (snd (Variable.add_fixes (map (fst o dest_Free) params) lthy1)) lthy1)
-           (rotate_prems ~1 (ObjectLogic.rulify
+           (rotate_prems ~1 (Object_Logic.rulify
              (fold_rule rec_preds_defs
                (rewrite_rule simp_thms'''
                 (mono RS (fp_def RS @{thm def_coinduct}))))))

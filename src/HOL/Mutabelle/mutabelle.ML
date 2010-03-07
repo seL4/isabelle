@@ -494,7 +494,7 @@ fun freeze (t $ u) = freeze t $ freeze u
 fun inst_type insts (Type (s, Ts)) = Type (s, map (inst_type insts) Ts)
  | inst_type insts T = the_default HOLogic.intT (AList.lookup op = insts T);
 
-fun preprocess thy insts t = ObjectLogic.atomize_term thy
+fun preprocess thy insts t = Object_Logic.atomize_term thy
  (map_types (inst_type insts) (freeze t));
 
 fun is_executable thy insts th =

@@ -282,7 +282,7 @@ fun wf_union_tac ctxt st =
       let
         val (vars, prems, lhs, rhs) = dest_term ineq
       in
-        mk_pair_compr (fastype_of lhs, vars, lhs, rhs, map (ObjectLogic.atomize_term thy) prems)
+        mk_pair_compr (fastype_of lhs, vars, lhs, rhs, map (Object_Logic.atomize_term thy) prems)
       end
 
     val relation =

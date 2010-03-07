@@ -181,7 +181,7 @@ fun mkGoal P = Const ("*Goal*", []) $ P;
 fun isGoal (Const ("*Goal*", _) $ _) = true
   | isGoal _ = false;
 
-val TruepropC = ObjectLogic.judgment_name Data.thy;
+val TruepropC = Object_Logic.judgment_name Data.thy;
 val TruepropT = Sign.the_const_type Data.thy TruepropC;
 
 fun mk_Trueprop t = Term.$ (Term.Const (TruepropC, TruepropT), t);
@@ -1251,7 +1251,7 @@ fun fromSubgoal thy t =
 fun timing_depth_tac start cs lim i st0 =
   let val thy = Thm.theory_of_thm st0
       val state = initialize thy
-      val st = Conv.gconv_rule ObjectLogic.atomize_prems i st0
+      val st = Conv.gconv_rule Object_Logic.atomize_prems i st0
       val skoprem = fromSubgoal thy (List.nth(prems_of st, i-1))
       val hyps  = strip_imp_prems skoprem
       and concl = strip_imp_concl skoprem

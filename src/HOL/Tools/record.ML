@@ -2214,7 +2214,7 @@ fun record_definition (args, binding) parent (parents: parent_info list) raw_fie
             [(cterm_of defs_thy Pvar, cterm_of defs_thy
               (lambda w (HOLogic.imp $ HOLogic.mk_eq (r0, w) $ C)))]
             induct_scheme;
-        in ObjectLogic.rulify (mp OF [ind, refl]) end;
+        in Object_Logic.rulify (mp OF [ind, refl]) end;
 
     val cases_scheme_prf = future_forward_prf cases_scheme_prf cases_scheme_prop;
     val cases_scheme = timeit_msg "record cases_scheme proof:" cases_scheme_prf;

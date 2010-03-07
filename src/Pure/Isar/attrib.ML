@@ -252,7 +252,7 @@ val folded = unfolded_syntax Local_Defs.fold;
 (* rule format *)
 
 val rule_format = Args.mode "no_asm"
-  >> (fn true => ObjectLogic.rule_format_no_asm | false => ObjectLogic.rule_format);
+  >> (fn true => Object_Logic.rule_format_no_asm | false => Object_Logic.rule_format);
 
 val elim_format = Thm.rule_attribute (K Tactic.make_elim);
 
@@ -306,9 +306,9 @@ val _ = Context.>> (Context.map_theory
   setup (Binding.name "no_vars") (Scan.succeed no_vars) "frozen schematic vars" #>
   setup (Binding.name "eta_long") (Scan.succeed eta_long)
     "put theorem into eta long beta normal form" #>
-  setup (Binding.name "atomize") (Scan.succeed ObjectLogic.declare_atomize)
+  setup (Binding.name "atomize") (Scan.succeed Object_Logic.declare_atomize)
     "declaration of atomize rule" #>
-  setup (Binding.name "rulify") (Scan.succeed ObjectLogic.declare_rulify)
+  setup (Binding.name "rulify") (Scan.succeed Object_Logic.declare_rulify)
     "declaration of rulify rule" #>
   setup (Binding.name "rotated") (Scan.lift rotated) "rotated theorem premises" #>
   setup (Binding.name "defn") (add_del Local_Defs.defn_add Local_Defs.defn_del)

@@ -316,7 +316,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
         val raw_propp = obtains |> map (fn (_, (_, props)) => map (rpair []) props);
         val (propp, elems_ctxt) = prep_stmt (elems @ constraints) raw_propp ctxt;
 
-        val thesis = ObjectLogic.fixed_judgment (ProofContext.theory_of ctxt) Auto_Bind.thesisN;
+        val thesis = Object_Logic.fixed_judgment (ProofContext.theory_of ctxt) Auto_Bind.thesisN;
 
         fun assume_case ((name, (vars, _)), asms) ctxt' =
           let

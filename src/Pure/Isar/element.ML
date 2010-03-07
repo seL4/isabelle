@@ -223,12 +223,12 @@ fun pretty_statement ctxt kind raw_th =
     val cert = Thm.cterm_of thy;
 
     val th = MetaSimplifier.norm_hhf raw_th;
-    val is_elim = ObjectLogic.is_elim th;
+    val is_elim = Object_Logic.is_elim th;
 
     val ((_, [th']), ctxt') = Variable.import true [th] (Variable.set_body false ctxt);
     val prop = Thm.prop_of th';
     val (prems, concl) = Logic.strip_horn prop;
-    val concl_term = ObjectLogic.drop_judgment thy concl;
+    val concl_term = Object_Logic.drop_judgment thy concl;
 
     val fixes = fold_aterms (fn v as Free (x, T) =>
         if Variable.newly_fixed ctxt' ctxt x andalso not (v aconv concl_term)

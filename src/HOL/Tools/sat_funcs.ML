@@ -434,7 +434,7 @@ fun rawsat_tac ctxt i =
 
 val pre_cnf_tac =
         rtac ccontr THEN'
-        ObjectLogic.atomize_prems_tac THEN'
+        Object_Logic.atomize_prems_tac THEN'
         CONVERSION Drule.beta_eta_conversion;
 
 (* ------------------------------------------------------------------------- *)

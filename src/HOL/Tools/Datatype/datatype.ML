@@ -417,7 +417,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
 
         val inj_thm = Skip_Proof.prove_global thy5 [] []
           (HOLogic.mk_Trueprop (mk_conj ind_concl1)) (fn _ => EVERY
-            [(indtac induct [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
+            [(indtac induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
              REPEAT (EVERY
                [rtac allI 1, rtac impI 1,
                 exh_tac (exh_thm_of dt_info) 1,
@@ -443,7 +443,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
         val elem_thm = 
             Skip_Proof.prove_global thy5 [] [] (HOLogic.mk_Trueprop (mk_conj ind_concl2))
               (fn _ =>
-               EVERY [(indtac induct [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
+               EVERY [(indtac induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
                 rewrite_goals_tac rewrites,
                 REPEAT ((resolve_tac rep_intrs THEN_ALL_NEW
                   ((REPEAT o etac allE) THEN' ares_tac elem_thms)) 1)]);
@@ -479,7 +479,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     val iso_thms = if length descr = 1 then [] else
       drop (length newTs) (split_conj_thm
         (Skip_Proof.prove_global thy5 [] [] iso_t (fn _ => EVERY
-           [(indtac rep_induct [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
+           [(indtac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
             REPEAT (rtac TrueI 1),
             rewrite_goals_tac (mk_meta_eq @{thm choice_eq} ::
               symmetric (mk_meta_eq @{thm expand_fun_eq}) :: range_eqs),
@@ -617,7 +617,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
       (Logic.strip_imp_prems dt_induct_prop) (Logic.strip_imp_concl dt_induct_prop)
       (fn {prems, ...} => EVERY
         [rtac indrule_lemma' 1,
-         (indtac rep_induct [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
+         (indtac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
          EVERY (map (fn (prem, r) => (EVERY
            [REPEAT (eresolve_tac Abs_inverse_thms 1),
             simp_tac (HOL_basic_ss addsimps ((symmetric r)::Rep_inverse_thms')) 1,

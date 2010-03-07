@@ -34,7 +34,7 @@ sig
   val rule_format_no_asm: attribute
 end;
 
-structure ObjectLogic: OBJECT_LOGIC =
+structure Object_Logic: OBJECT_LOGIC =
 struct
 
 (** theory data **)

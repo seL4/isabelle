@@ -967,10 +967,11 @@ fun ring_solve ctxt form =
           (semiring_normalize_wrapper ctxt res)) form));
 
 fun ring_tac add_ths del_ths ctxt =
-  ObjectLogic.full_atomize_tac
-  THEN' asm_full_simp_tac (Simplifier.context ctxt (fst (NormalizerData.get ctxt)) delsimps del_ths addsimps add_ths)
+  Object_Logic.full_atomize_tac
+  THEN' asm_full_simp_tac
+    (Simplifier.context ctxt (fst (NormalizerData.get ctxt)) delsimps del_ths addsimps add_ths)
   THEN' CSUBGOAL (fn (p, i) =>
-    rtac (let val form = (ObjectLogic.dest_judgment p)
+    rtac (let val form = Object_Logic.dest_judgment p
           in case get_ring_ideal_convs ctxt form of
            NONE => reflexive form
           | SOME thy => #ring_conv thy form
@@ -1008,7 +1009,7 @@ fun ideal_tac add_ths del_ths ctxt =
    end
   in  
      clarify_tac @{claset} i 
-     THEN ObjectLogic.full_atomize_tac i 
+     THEN Object_Logic.full_atomize_tac i 
      THEN asm_full_simp_tac (Simplifier.context ctxt (#poly_eq_ss thy)) i 
      THEN clarify_tac @{claset} i 
      THEN (REPEAT (CONVERSION (#unwind_conv thy) i))
