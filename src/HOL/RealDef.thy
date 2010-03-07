@@ -701,6 +701,9 @@ done
 lemma real_of_int_div4: "real (n div x) <= real (n::int) / real x" 
 by (insert real_of_int_div2 [of n x], simp)
 
+lemma Ints_real_of_int [simp]: "real (x::int) \<in> Ints"
+unfolding real_of_int_def by (rule Ints_of_int)
+
 
 subsection{*Embedding the Naturals into the Reals*}
 
@@ -851,6 +854,12 @@ lemma real_nat_eq_real [simp]: "0 <= x ==> real(nat x) = real x"
   apply force
   apply (simp only: real_of_int_real_of_nat)
 done
+
+lemma Nats_real_of_nat [simp]: "real (n::nat) \<in> Nats"
+unfolding real_of_nat_def by (rule of_nat_in_Nats)
+
+lemma Ints_real_of_nat [simp]: "real (n::nat) \<in> Ints"
+unfolding real_of_nat_def by (rule Ints_of_nat)
 
 
 subsection{* Rationals *}
