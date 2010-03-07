@@ -1400,6 +1400,20 @@ apply (rule range_eqI)
 apply (rule of_nat_mult [symmetric])
 done
 
+lemma Nats_cases [cases set: Nats]:
+  assumes "x \<in> \<nat>"
+  obtains (of_nat) n where "x = of_nat n"
+  unfolding Nats_def
+proof -
+  from `x \<in> \<nat>` have "x \<in> range of_nat" unfolding Nats_def .
+  then obtain n where "x = of_nat n" ..
+  then show thesis ..
+qed
+
+lemma Nats_induct [case_names of_nat, induct set: Nats]:
+  "x \<in> \<nat> \<Longrightarrow> (\<And>n. P (of_nat n)) \<Longrightarrow> P x"
+  by (rule Nats_cases) auto
+
 end
 
 
