@@ -478,6 +478,7 @@ fun gen_domain_isomorphism
           @{thms adm_conj adm_isodefl cont2cont_fst cont2cont_snd cont_id};
         val bottom_rules =
           @{thms fst_strict snd_strict isodefl_bottom simp_thms};
+        val REP_simps = map (fn th => th RS sym) (RepData.get thy);
         val isodefl_rules =
           @{thms conjI isodefl_ID_REP}
           @ isodefl_abs_rep_thms
@@ -493,6 +494,7 @@ fun gen_domain_isomorphism
            simp_tac (HOL_basic_ss addsimps bottom_rules) 1,
            simp_tac beta_ss 1,
            simp_tac (HOL_basic_ss addsimps @{thms fst_conv snd_conv}) 1,
+           simp_tac (HOL_basic_ss addsimps REP_simps) 1,
            REPEAT (etac @{thm conjE} 1),
            REPEAT (resolve_tac (isodefl_rules @ prems) 1 ORELSE atac 1)])
       end;
