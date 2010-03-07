@@ -1262,6 +1262,15 @@ definition Ints  :: "'a set" where
 notation (xsymbols)
   Ints  ("\<int>")
 
+lemma Ints_of_int [simp]: "of_int z \<in> \<int>"
+  by (simp add: Ints_def)
+
+lemma Ints_of_nat [simp]: "of_nat n \<in> \<int>"
+apply (simp add: Ints_def)
+apply (rule range_eqI)
+apply (rule of_int_of_nat_eq [symmetric])
+done
+
 lemma Ints_0 [simp]: "0 \<in> \<int>"
 apply (simp add: Ints_def)
 apply (rule range_eqI)
@@ -1286,11 +1295,20 @@ apply (rule range_eqI)
 apply (rule of_int_minus [symmetric])
 done
 
+lemma Ints_diff [simp]: "a \<in> \<int> \<Longrightarrow> b \<in> \<int> \<Longrightarrow> a - b \<in> \<int>"
+apply (auto simp add: Ints_def)
+apply (rule range_eqI)
+apply (rule of_int_diff [symmetric])
+done
+
 lemma Ints_mult [simp]: "a \<in> \<int> \<Longrightarrow> b \<in> \<int> \<Longrightarrow> a * b \<in> \<int>"
 apply (auto simp add: Ints_def)
 apply (rule range_eqI)
 apply (rule of_int_mult [symmetric])
 done
+
+lemma Ints_power [simp]: "a \<in> \<int> \<Longrightarrow> a ^ n \<in> \<int>"
+by (induct n) simp_all
 
 lemma Ints_cases [cases set: Ints]:
   assumes "q \<in> \<int>"
@@ -1307,12 +1325,6 @@ lemma Ints_induct [case_names of_int, induct set: Ints]:
   by (rule Ints_cases) auto
 
 end
-
-lemma Ints_diff [simp]: "a \<in> \<int> \<Longrightarrow> b \<in> \<int> \<Longrightarrow> a-b \<in> \<int>"
-apply (auto simp add: Ints_def)
-apply (rule range_eqI)
-apply (rule of_int_diff [symmetric])
-done
 
 text {* The premise involving @{term Ints} prevents @{term "a = 1/2"}. *}
 
@@ -1350,9 +1362,14 @@ proof -
   qed
 qed 
 
-lemma Ints_number_of:
+lemma Ints_number_of [simp]:
   "(number_of w :: 'a::number_ring) \<in> Ints"
   unfolding number_of_eq Ints_def by simp
+
+lemma Nats_number_of [simp]:
+  "Int.Pls \<le> w \<Longrightarrow> (number_of w :: 'a::number_ring) \<in> Nats"
+unfolding Int.Pls_def number_of_eq
+by (simp only: of_nat_nat [symmetric] of_nat_in_Nats)
 
 lemma Ints_odd_less_0: 
   assumes in_Ints: "a \<in> Ints"
