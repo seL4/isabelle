@@ -218,6 +218,7 @@ use "Isar/code.ML";
 use "Isar/spec_parse.ML";
 use "Isar/spec_rules.ML";
 use "Isar/specification.ML";
+use "Isar/typedecl.ML";
 use "Isar/constdefs.ML";
 
 (*toplevel transactions*)

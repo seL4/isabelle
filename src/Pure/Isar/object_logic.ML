@@ -8,7 +8,6 @@ signature OBJECT_LOGIC =
 sig
   val get_base_sort: theory -> sort option
   val add_base_sort: sort -> theory -> theory
-  val typedecl: binding * string list * mixfix -> theory -> typ * theory
   val add_judgment: binding * typ * mixfix -> theory -> theory
   val add_judgment_cmd: binding * string * mixfix -> theory -> theory
   val judgment_name: theory -> string
@@ -80,24 +79,6 @@ val get_base_sort = #base_sort o get_data;
 fun add_base_sort S = map_data (fn (base_sort, judgment, atomize_rulify) =>
   if is_some base_sort then error "Attempt to redeclare object-logic base sort"
   else (SOME S, judgment, atomize_rulify));
-
-
-(* typedecl *)
-
-fun typedecl (b, vs, mx) thy =
-  let
-    val base_sort = get_base_sort thy;
-    val _ = has_duplicates (op =) vs andalso
-      error ("Duplicate parameters in type declaration " ^ quote (Binding.str_of b));
-    val name = Sign.full_name thy b;
-    val n = length vs;
-    val T = Type (name, map (fn v => TFree (v, [])) vs);
-  in
-    thy
-    |> Sign.add_types [(b, n, mx)]
-    |> (case base_sort of NONE => I | SOME S => AxClass.axiomatize_arity (name, replicate n S, S))
-    |> pair T
-  end;
 
 
 (* add judgment *)
