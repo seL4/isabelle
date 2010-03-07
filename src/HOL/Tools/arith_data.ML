@@ -55,7 +55,7 @@ fun gen_arith_tac verbose ctxt =
   let
     val tactics = (Arith_Tactics.get o ProofContext.theory_of) ctxt
     fun invoke (_, (name, tac)) k st = (if verbose
-      then warning ("Trying " ^ name ^ "...") else ();
+      then priority ("Trying " ^ name ^ "...") else ();
       tac verbose ctxt k st);
   in FIRST' (map invoke (rev tactics)) end;
 
