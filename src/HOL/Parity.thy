@@ -218,7 +218,7 @@ lemma neg_power_if:
   done
 
 lemma zero_le_even_power: "even n ==>
-    0 <= (x::'a::{linordered_ring_strict,monoid_mult}) ^ n"
+    0 <= (x::'a::{linordered_ring,monoid_mult}) ^ n"
   apply (simp add: even_nat_equiv_def2)
   apply (erule exE)
   apply (erule ssubst)

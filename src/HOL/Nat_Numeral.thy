@@ -113,7 +113,7 @@ lemma power_minus_even [simp]:
 
 end
 
-context linordered_ring_strict
+context linordered_ring
 begin
 
 lemma sum_squares_ge_zero:
@@ -123,6 +123,11 @@ lemma sum_squares_ge_zero:
 lemma not_sum_squares_lt_zero:
   "\<not> x * x + y * y < 0"
   by (simp add: not_less sum_squares_ge_zero)
+
+end
+
+context linordered_ring_strict
+begin
 
 lemma sum_squares_eq_zero_iff:
   "x * x + y * y = 0 \<longleftrightarrow> x = 0 \<and> y = 0"
@@ -134,14 +139,7 @@ lemma sum_squares_le_zero_iff:
 
 lemma sum_squares_gt_zero_iff:
   "0 < x * x + y * y \<longleftrightarrow> x \<noteq> 0 \<or> y \<noteq> 0"
-proof -
-  have "x * x + y * y \<noteq> 0 \<longleftrightarrow> x \<noteq> 0 \<or> y \<noteq> 0"
-    by (simp add: sum_squares_eq_zero_iff)
-  then have "0 \<noteq> x * x + y * y \<longleftrightarrow> x \<noteq> 0 \<or> y \<noteq> 0"
-    by auto
-  then show ?thesis
-    by (simp add: less_le sum_squares_ge_zero)
-qed
+  by (simp add: not_le [symmetric] sum_squares_le_zero_iff)
 
 end
 

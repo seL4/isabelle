@@ -796,6 +796,13 @@ proof
      auto intro: add_nonneg_nonneg, auto intro!: less_imp_le add_neg_neg)
 qed (auto simp add: abs_if)
 
+lemma zero_le_square [simp]: "0 \<le> a * a"
+  using linear [of 0 a]
+  by (auto simp add: mult_nonneg_nonneg mult_nonpos_nonpos)
+
+lemma not_square_less_zero [simp]: "\<not> (a * a < 0)"
+  by (simp add: not_less)
+
 end
 
 (* The "strict" suffix can be seen as describing the combination of linordered_ring and no_zero_divisors.
@@ -872,12 +879,6 @@ lemma mult_le_0_iff:
   apply (insert zero_le_mult_iff [of "-a" b]) 
   apply force
   done
-
-lemma zero_le_square [simp]: "0 \<le> a * a"
-by (simp add: zero_le_mult_iff linear)
-
-lemma not_square_less_zero [simp]: "\<not> (a * a < 0)"
-by (simp add: not_less)
 
 text{*Cancellation laws for @{term "c*a < c*b"} and @{term "a*c < b*c"},
    also with the relations @{text "\<le>"} and equality.*}
