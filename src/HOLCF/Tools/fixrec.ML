@@ -146,9 +146,9 @@ fun add_fixdefs
     val predicate = lambda_tuple lhss (list_comb (P, lhss));
     val tuple_induct_thm = (def_cont_fix_ind OF [tuple_fixdef_thm, cont_thm])
       |> Drule.instantiate' [] [SOME (Thm.cterm_of thy predicate)]
-      |> LocalDefs.unfold lthy @{thms split_paired_all split_conv split_strict};
+      |> Local_Defs.unfold lthy @{thms split_paired_all split_conv split_strict};
     val tuple_unfold_thm = (def_cont_fix_eq OF [tuple_fixdef_thm, cont_thm])
-      |> LocalDefs.unfold lthy' @{thms split_conv};
+      |> Local_Defs.unfold lthy' @{thms split_conv};
     fun unfolds [] thm = []
       | unfolds (n::[]) thm = [(n, thm)]
       | unfolds (n::ns) thm = let

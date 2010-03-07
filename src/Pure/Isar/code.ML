@@ -566,7 +566,7 @@ fun assert_abs_eqn thy some_tyco thm =
 
 fun assert_eqn thy = error_thm (gen_assert_eqn thy true);
 
-fun meta_rewrite thy = LocalDefs.meta_rewrite_rule (ProofContext.init thy);
+fun meta_rewrite thy = Local_Defs.meta_rewrite_rule (ProofContext.init thy);
 
 fun mk_eqn thy = error_thm (gen_assert_eqn thy false) o
   apfst (meta_rewrite thy);
@@ -810,7 +810,7 @@ fun equations_of_cert thy (cert as Equations (cert_thm, propers)) =
         val tyscm = typscheme_of_cert thy cert;
         val thms = if null propers then [] else
           cert_thm
-          |> LocalDefs.expand [snd (get_head thy cert_thm)]
+          |> Local_Defs.expand [snd (get_head thy cert_thm)]
           |> Thm.varifyT
           |> Conjunction.elim_balanced (length propers);
       in (tyscm, map (pair NONE o dest_eqn thy o Thm.prop_of) thms ~~ (map SOME thms ~~ propers)) end

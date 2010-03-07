@@ -123,7 +123,7 @@ fun gen_probl D cs =
 (* General reduction pair application *)
 fun rem_inv_img ctxt =
   let
-    val unfold_tac = LocalDefs.unfold_tac ctxt
+    val unfold_tac = Local_Defs.unfold_tac ctxt
   in
     rtac @{thm subsetI} 1
     THEN etac @{thm CollectE} 1
@@ -259,7 +259,7 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
             THEN mset_pwleq_tac 1
             THEN EVERY (map2 (less_proof false) qs ps)
             THEN (if strict orelse qs <> lq
-                  then LocalDefs.unfold_tac ctxt set_of_simps
+                  then Local_Defs.unfold_tac ctxt set_of_simps
                        THEN steps_tac MAX true
                        (subtract (op =) qs lq) (subtract (op =) ps lp)
                   else all_tac)
@@ -290,7 +290,7 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
          THEN (rtac (order_rpair ms_rp label) 1)
          THEN PRIMITIVE (instantiate' [] [SOME level_mapping])
          THEN unfold_tac @{thms rp_inv_image_def} (simpset_of ctxt)
-         THEN LocalDefs.unfold_tac ctxt
+         THEN Local_Defs.unfold_tac ctxt
            (@{thms split_conv} @ @{thms fst_conv} @ @{thms snd_conv})
          THEN REPEAT (SOMEGOAL (resolve_tac [@{thm Un_least}, @{thm empty_subsetI}]))
          THEN EVERY (map (prove_lev true) sl)

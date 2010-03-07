@@ -499,11 +499,11 @@ fun init (Fixes fixes) = Context.map_proof (ProofContext.add_fixes fixes #> #2)
       let
         val defs' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) defs;
         val asms = defs' |> map (fn ((name, atts), (t, ps)) =>
-            let val ((c, _), t') = LocalDefs.cert_def ctxt t  (* FIXME adapt ps? *)
+            let val ((c, _), t') = Local_Defs.cert_def ctxt t  (* FIXME adapt ps? *)
             in (t', ((Thm.def_binding_optional (Binding.name c) name, atts), [(t', ps)])) end);
         val (_, ctxt') = ctxt
           |> fold Variable.auto_fixes (map #1 asms)
-          |> ProofContext.add_assms_i LocalDefs.def_export (map #2 asms);
+          |> ProofContext.add_assms_i Local_Defs.def_export (map #2 asms);
       in ctxt' end)
   | init (Notes (kind, facts)) = (fn context =>
       let

@@ -475,7 +475,7 @@ fun expand_defs_tac st0 st =
                                       (map Thm.term_of hyps)
       val fixed = OldTerm.term_frees (concl_of st) @
                   fold (union (op aconv)) (map OldTerm.term_frees remaining_hyps) []
-  in Seq.of_list [LocalDefs.expand (filter (is_okdef fixed o Thm.term_of) defs) st] end;
+  in Seq.of_list [Local_Defs.expand (filter (is_okdef fixed o Thm.term_of) defs) st] end;
 
 
 fun meson_general_tac ctxt ths i st0 =

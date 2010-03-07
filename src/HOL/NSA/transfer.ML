@@ -56,7 +56,7 @@ fun transfer_thm_of ctxt ths t =
   let
     val thy = ProofContext.theory_of ctxt;
     val {intros,unfolds,refolds,consts} = TransferData.get (Context.Proof ctxt);
-    val meta = LocalDefs.meta_rewrite_rule ctxt;
+    val meta = Local_Defs.meta_rewrite_rule ctxt;
     val ths' = map meta ths;
     val unfolds' = map meta unfolds and refolds' = map meta refolds;
     val (_$_$t') = concl_of (MetaSimplifier.rewrite true unfolds' (cterm_of thy t))

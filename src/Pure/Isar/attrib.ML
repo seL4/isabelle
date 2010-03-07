@@ -245,8 +245,8 @@ fun rename_abs x = (Scan.repeat (Args.maybe Args.name) >> (apsnd o Drule.rename_
 fun unfolded_syntax rule =
   thms >> (fn ths => Thm.rule_attribute (fn context => rule (Context.proof_of context) ths));
 
-val unfolded = unfolded_syntax LocalDefs.unfold;
-val folded = unfolded_syntax LocalDefs.fold;
+val unfolded = unfolded_syntax Local_Defs.unfold;
+val folded = unfolded_syntax Local_Defs.fold;
 
 
 (* rule format *)
@@ -311,7 +311,7 @@ val _ = Context.>> (Context.map_theory
   setup (Binding.name "rulify") (Scan.succeed ObjectLogic.declare_rulify)
     "declaration of rulify rule" #>
   setup (Binding.name "rotated") (Scan.lift rotated) "rotated theorem premises" #>
-  setup (Binding.name "defn") (add_del LocalDefs.defn_add LocalDefs.defn_del)
+  setup (Binding.name "defn") (add_del Local_Defs.defn_add Local_Defs.defn_del)
     "declaration of definitional transformations" #>
   setup (Binding.name "abs_def") (Scan.succeed (Thm.rule_attribute (K Drule.abs_def)))
     "abstract over free variables of a definition"));

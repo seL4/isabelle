@@ -127,7 +127,7 @@ fun add {semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules),
         check_rules fieldN f_rules 2 andalso
         check_rules idomN idom 2;
 
-      val mk_meta = LocalDefs.meta_rewrite_rule ctxt;
+      val mk_meta = Local_Defs.meta_rewrite_rule ctxt;
       val sr_rules' = map mk_meta sr_rules;
       val r_rules' = map mk_meta r_rules;
       val f_rules' = map mk_meta f_rules;

@@ -165,8 +165,8 @@ fun elim ths = SIMPLE_METHOD' (CHANGED_PROP o REPEAT_ALL_NEW (Tactic.ematch_tac 
 
 (* unfold/fold definitions *)
 
-fun unfold_meth ths ctxt = SIMPLE_METHOD (CHANGED_PROP (LocalDefs.unfold_tac ctxt ths));
-fun fold_meth ths ctxt = SIMPLE_METHOD (CHANGED_PROP (LocalDefs.fold_tac ctxt ths));
+fun unfold_meth ths ctxt = SIMPLE_METHOD (CHANGED_PROP (Local_Defs.unfold_tac ctxt ths));
+fun fold_meth ths ctxt = SIMPLE_METHOD (CHANGED_PROP (Local_Defs.fold_tac ctxt ths));
 
 
 (* atomize rule statements *)
