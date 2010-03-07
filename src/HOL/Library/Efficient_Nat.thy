@@ -181,7 +181,7 @@ fun remove_suc_clause thy thms =
       | find_var (t $ u) = (case find_var t of NONE => find_var u | x => x)
       | find_var _ = NONE;
     fun find_thm th =
-      let val th' = Conv.fconv_rule ObjectLogic.atomize th
+      let val th' = Conv.fconv_rule Object_Logic.atomize th
       in Option.map (pair (th, th')) (find_var (prop_of th')) end
   in
     case get_first find_thm thms of
@@ -189,7 +189,7 @@ fun remove_suc_clause thy thms =
     | SOME ((th, th'), (Sucv, v)) =>
         let
           val cert = cterm_of (Thm.theory_of_thm th);
-          val th'' = ObjectLogic.rulify (Thm.implies_elim
+          val th'' = Object_Logic.rulify (Thm.implies_elim
             (Conv.fconv_rule (Thm.beta_conversion true)
               (Drule.instantiate' []
                 [SOME (cert (lambda v (Abs ("x", HOLogic.natT,

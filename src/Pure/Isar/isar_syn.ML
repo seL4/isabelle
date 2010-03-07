@@ -105,7 +105,7 @@ val _ =
 val _ =
   OuterSyntax.command "typedecl" "type declaration" K.thy_decl
     (P.type_args -- P.binding -- P.opt_mixfix >> (fn ((args, a), mx) =>
-      Toplevel.theory (ObjectLogic.typedecl (a, args, mx) #> snd)));
+      Toplevel.theory (Typedecl.typedecl (a, args, mx) #> snd)));
 
 val _ =
   OuterSyntax.command "types" "declare type abbreviations" K.thy_decl
@@ -127,7 +127,7 @@ val _ =
 
 val _ =
   OuterSyntax.command "judgment" "declare object-logic judgment" K.thy_decl
-    (P.const_binding >> (Toplevel.theory o ObjectLogic.add_judgment_cmd));
+    (P.const_binding >> (Toplevel.theory o Object_Logic.add_judgment_cmd));
 
 val _ =
   OuterSyntax.command "consts" "declare constants" K.thy_decl

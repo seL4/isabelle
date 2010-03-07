@@ -234,11 +234,11 @@ fun dlo_tac ctxt = CSUBGOAL (fn (p, i) =>
   (case dlo_instance ctxt p of
     (ss, NONE) => simp_tac ss i
   | (ss,  SOME instance) =>
-      ObjectLogic.full_atomize_tac i THEN
+      Object_Logic.full_atomize_tac i THEN
       simp_tac ss i
       THEN (CONVERSION Thm.eta_long_conversion) i
       THEN (TRY o generalize_tac (cfrees (#atoms instance))) i
-      THEN ObjectLogic.full_atomize_tac i
-      THEN CONVERSION (ObjectLogic.judgment_conv (raw_dlo_conv ss instance)) i
+      THEN Object_Logic.full_atomize_tac i
+      THEN CONVERSION (Object_Logic.judgment_conv (raw_dlo_conv ss instance)) i
       THEN (simp_tac ss i)));  
 end;

@@ -125,8 +125,8 @@ sig
   val haz_intro: int option -> attribute
   val rule_del: attribute
   val cla_modifiers: Method.modifier parser list
-  val cla_meth: (claset -> tactic) -> thm list -> Proof.context -> Proof.method
-  val cla_meth': (claset -> int -> tactic) -> thm list -> Proof.context -> Proof.method
+  val cla_meth: (claset -> tactic) -> Proof.context -> Proof.method
+  val cla_meth': (claset -> int -> tactic) -> Proof.context -> Proof.method
   val cla_method: (claset -> tactic) -> (Proof.context -> Proof.method) context_parser
   val cla_method': (claset -> int -> tactic) -> (Proof.context -> Proof.method) context_parser
   val setup: theory -> theory
@@ -153,7 +153,7 @@ FAILED"; classical_rule will strenthen this to
 *)
 
 fun classical_rule rule =
-  if ObjectLogic.is_elim rule then
+  if Object_Logic.is_elim rule then
     let
       val rule' = rule RS classical;
       val concl' = Thm.concl_of rule';
@@ -173,7 +173,7 @@ fun classical_rule rule =
   else rule;
 
 (*flatten nested meta connectives in prems*)
-val flat_rule = Conv.fconv_rule (Conv.prems_conv ~1 ObjectLogic.atomize_prems);
+val flat_rule = Conv.fconv_rule (Conv.prems_conv ~1 Object_Logic.atomize_prems);
 
 
 (*** Useful tactics for classical reasoning ***)
@@ -724,24 +724,24 @@ fun slow_step_tac cs i = safe_tac cs ORELSE appWrappers cs
 
 (*Dumb but fast*)
 fun fast_tac cs =
-  ObjectLogic.atomize_prems_tac THEN' SELECT_GOAL (DEPTH_SOLVE (step_tac cs 1));
+  Object_Logic.atomize_prems_tac THEN' SELECT_GOAL (DEPTH_SOLVE (step_tac cs 1));
 
 (*Slower but smarter than fast_tac*)
 fun best_tac cs =
-  ObjectLogic.atomize_prems_tac THEN'
+  Object_Logic.atomize_prems_tac THEN'
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, sizef) (step_tac cs 1));
 
 (*even a bit smarter than best_tac*)
 fun first_best_tac cs =
-  ObjectLogic.atomize_prems_tac THEN'
+  Object_Logic.atomize_prems_tac THEN'
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, sizef) (FIRSTGOAL (step_tac cs)));
 
 fun slow_tac cs =
-  ObjectLogic.atomize_prems_tac THEN'
+  Object_Logic.atomize_prems_tac THEN'
   SELECT_GOAL (DEPTH_SOLVE (slow_step_tac cs 1));
 
 fun slow_best_tac cs =
-  ObjectLogic.atomize_prems_tac THEN'
+  Object_Logic.atomize_prems_tac THEN'
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, sizef) (slow_step_tac cs 1));
 
 
@@ -749,13 +749,13 @@ fun slow_best_tac cs =
 val weight_ASTAR = Unsynchronized.ref 5;
 
 fun astar_tac cs =
-  ObjectLogic.atomize_prems_tac THEN'
+  Object_Logic.atomize_prems_tac THEN'
   SELECT_GOAL
     (ASTAR (has_fewer_prems 1, fn lev => fn thm => size_of_thm thm + !weight_ASTAR * lev)
       (step_tac cs 1));
 
 fun slow_astar_tac cs =
-  ObjectLogic.atomize_prems_tac THEN'
+  Object_Logic.atomize_prems_tac THEN'
   SELECT_GOAL
     (ASTAR (has_fewer_prems 1, fn lev => fn thm => size_of_thm thm + !weight_ASTAR * lev)
       (slow_step_tac cs 1));
@@ -969,14 +969,14 @@ val cla_modifiers =
   Args.$$$ introN -- Args.colon >> K (I, haz_intro NONE),
   Args.del -- Args.colon >> K (I, rule_del)];
 
-fun cla_meth tac prems ctxt = METHOD (fn facts =>
-  ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (claset_of ctxt));
+fun cla_meth tac ctxt = METHOD (fn facts =>
+  ALLGOALS (Method.insert_tac facts) THEN tac (claset_of ctxt));
 
-fun cla_meth' tac prems ctxt = METHOD (fn facts =>
-  HEADGOAL (Method.insert_tac (prems @ facts) THEN' tac (claset_of ctxt)));
+fun cla_meth' tac ctxt = METHOD (fn facts =>
+  HEADGOAL (Method.insert_tac facts THEN' tac (claset_of ctxt)));
 
-fun cla_method tac = Args.bang_facts --| Method.sections cla_modifiers >> (cla_meth tac);
-fun cla_method' tac = Args.bang_facts --| Method.sections cla_modifiers >> (cla_meth' tac);
+fun cla_method tac = Method.sections cla_modifiers >> K (cla_meth tac);
+fun cla_method' tac = Method.sections cla_modifiers >> K (cla_meth' tac);
 
 
 

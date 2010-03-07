@@ -190,14 +190,14 @@ fun dest_Trueprop (Const ("Trueprop", _) $ P) = P
 
 fun conj_intr thP thQ =
   let
-    val (P, Q) = pairself (ObjectLogic.dest_judgment o Thm.cprop_of) (thP, thQ)
+    val (P, Q) = pairself (Object_Logic.dest_judgment o Thm.cprop_of) (thP, thQ)
       handle CTERM (msg, _) => raise THM (msg, 0, [thP, thQ]);
     val inst = Thm.instantiate ([], [(@{cpat "?P::bool"}, P), (@{cpat "?Q::bool"}, Q)]);
   in Drule.implies_elim_list (inst @{thm conjI}) [thP, thQ] end;
 
 fun conj_elim thPQ =
   let
-    val (P, Q) = Thm.dest_binop (ObjectLogic.dest_judgment (Thm.cprop_of thPQ))
+    val (P, Q) = Thm.dest_binop (Object_Logic.dest_judgment (Thm.cprop_of thPQ))
       handle CTERM (msg, _) => raise THM (msg, 0, [thPQ]);
     val inst = Thm.instantiate ([], [(@{cpat "?P::bool"}, P), (@{cpat "?Q::bool"}, Q)]);
     val thP = Thm.implies_elim (inst @{thm conjunct1}) thPQ;

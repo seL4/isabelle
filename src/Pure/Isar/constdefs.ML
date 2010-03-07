@@ -34,7 +34,7 @@ fun gen_constdef prep_vars prep_prop prep_att
             ProofContext.add_fixes [(x, T, mx)] #> snd #> pair (SOME x, mx)));
 
     val prop = prep_prop var_ctxt raw_prop;
-    val (c, T) = #1 (LocalDefs.cert_def thy_ctxt (Logic.strip_imp_concl prop));
+    val (c, T) = #1 (Local_Defs.cert_def thy_ctxt (Logic.strip_imp_concl prop));
     val _ =
       (case Option.map Name.of_binding d of
         NONE => ()

@@ -807,7 +807,7 @@ fun prove_hol_model (scope as {hol_ctxt = {thy, ctxt, debug, ...},
     fun try_out negate =
       let
         val concl = (negate ? curry (op $) @{const Not})
-                    (ObjectLogic.atomize_term thy prop)
+                    (Object_Logic.atomize_term thy prop)
         val prop = HOLogic.mk_Trueprop (HOLogic.mk_imp (assm, concl))
                    |> map_types (map_type_tfree
                                      (fn (s, []) => TFree (s, HOLogic.typeS)

@@ -151,8 +151,8 @@ by (induct t) auto
 lemma lookup_Empty: "lookup Empty = empty"
 by (rule ext) simp
 
-lemma lookup_map_of_entries:
-  "sorted t \<Longrightarrow> lookup t = map_of (entries t)"
+lemma map_of_entries:
+  "sorted t \<Longrightarrow> map_of (entries t) = lookup t"
 proof (induct t)
   case Empty thus ?case by (simp add: lookup_Empty)
 next
@@ -213,11 +213,11 @@ next
     } ultimately show ?thesis using less_linear by blast
   qed
   also from Branch have "lookup t2 ++ [k \<mapsto> v] ++ lookup t1 = map_of (entries (Branch c t1 k v t2))" by simp
-  finally show ?case .
+  finally show ?case by simp
 qed
 
 lemma lookup_in_tree: "sorted t \<Longrightarrow> lookup t k = Some v \<longleftrightarrow> (k, v) \<in> set (entries t)"
-  by (simp_all add: lookup_map_of_entries distinct_entries)
+  by (simp add: map_of_entries [symmetric] distinct_entries)
 
 lemma set_entries_inject:
   assumes sorted: "sorted t1" "sorted t2" 
@@ -236,7 +236,7 @@ lemma entries_eqI:
   shows "entries t1 = entries t2"
 proof -
   from sorted lookup have "map_of (entries t1) = map_of (entries t2)"
-    by (simp add: lookup_map_of_entries)
+    by (simp add: map_of_entries)
   with sorted have "set (entries t1) = set (entries t2)"
     by (simp add: map_of_inject_set distinct_entries)
   with sorted show ?thesis by (simp add: set_entries_inject)
@@ -245,7 +245,7 @@ qed
 lemma entries_lookup:
   assumes "sorted t1" "sorted t2" 
   shows "entries t1 = entries t2 \<longleftrightarrow> lookup t1 = lookup t2"
-  using assms by (auto intro: entries_eqI simp add: lookup_map_of_entries)
+  using assms by (auto intro: entries_eqI simp add: map_of_entries [symmetric])
 
 lemma lookup_from_in_tree: 
   assumes "sorted t1" "sorted t2" 
@@ -1013,11 +1013,9 @@ lemma map_entry_sorted: "sorted (map_entry k f t) = sorted t"
 theorem map_entry_is_rbt [simp]: "is_rbt (map_entry k f t) = is_rbt t" 
 unfolding is_rbt_def by (simp add: map_entry_inv2 map_entry_color_of map_entry_sorted map_entry_inv1 )
 
-theorem map_entry_map [simp]:
-  "lookup (map_entry k f t) x = 
-  (if x = k then case lookup t x of None \<Rightarrow> None | Some y \<Rightarrow> Some (f y)
-            else lookup t x)"
-  by (induct t arbitrary: x) (auto split:option.splits)
+theorem lookup_map_entry:
+  "lookup (map_entry k f t) = (lookup t)(k := Option.map f (lookup t k))"
+  by (induct t) (auto split: option.splits simp add: expand_fun_eq)
 
 
 subsection {* Mapping all entries *}
@@ -1040,8 +1038,8 @@ lemma map_inv2: "inv2 (map f t) = inv2 t" "bheight (map f t) = bheight t" by (in
 theorem map_is_rbt [simp]: "is_rbt (map f t) = is_rbt t" 
 unfolding is_rbt_def by (simp add: map_inv1 map_inv2 map_sorted map_color_of)
 
-theorem lookup_map [simp]: "lookup (map f t) x = Option.map (f x) (lookup t x)"
-by (induct t) auto
+theorem lookup_map: "lookup (map f t) x = Option.map (f x) (lookup t x)"
+  by (induct t) auto
 
 
 subsection {* Folding over entries *}
@@ -1057,7 +1055,7 @@ lemma fold_simps [simp, code]:
 
 subsection {* Bulkloading a tree *}
 
-definition bulkload :: "('a \<times> 'b) list \<Rightarrow> ('a\<Colon>linorder, 'b) rbt" where (*FIXME move*)
+definition bulkload :: "('a \<times> 'b) list \<Rightarrow> ('a\<Colon>linorder, 'b) rbt" where
   "bulkload xs = foldr (\<lambda>(k, v). RBT.insert k v) xs RBT.Empty"
 
 lemma bulkload_is_rbt [simp, intro]:

@@ -44,7 +44,7 @@ subsubsection {* Core syntax *}
 
 classes type
 defaultsort type
-setup {* ObjectLogic.add_base_sort @{sort type} *}
+setup {* Object_Logic.add_base_sort @{sort type} *}
 
 arities
   "fun" :: (type, type) type

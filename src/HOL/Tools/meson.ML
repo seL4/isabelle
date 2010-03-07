@@ -587,7 +587,7 @@ fun skolemize_prems_tac ctxt prems =
   Function mkcl converts theorems to clauses.*)
 fun MESON mkcl cltac ctxt i st =
   SELECT_GOAL
-    (EVERY [ObjectLogic.atomize_prems_tac 1,
+    (EVERY [Object_Logic.atomize_prems_tac 1,
             rtac ccontr 1,
             Subgoal.FOCUS (fn {context = ctxt', prems = negs, ...} =>
                       EVERY1 [skolemize_prems_tac ctxt negs,

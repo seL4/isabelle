@@ -89,7 +89,7 @@ fun method_setup name =
   Method.setup name
     (Scan.lift (Scan.option OuterParse.nat) --| Method.sections modifiers >>
       (fn opt_lim => fn ctxt =>
-        SIMPLE_METHOD' (ObjectLogic.atomize_prems_tac THEN' prover_tac ctxt opt_lim)))
+        SIMPLE_METHOD' (Object_Logic.atomize_prems_tac THEN' prover_tac ctxt opt_lim)))
     "intuitionistic proof search";
 
 end;

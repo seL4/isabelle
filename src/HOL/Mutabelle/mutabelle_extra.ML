@@ -91,7 +91,7 @@ type report = entry list
 fun inst_type insts (Type (s, Ts)) = Type (s, map (inst_type insts) Ts)
   | inst_type insts T = the_default HOLogic.intT (AList.lookup op = insts T)
 
-fun preprocess thy insts t = ObjectLogic.atomize_term thy
+fun preprocess thy insts t = Object_Logic.atomize_term thy
  (map_types (inst_type insts) (Mutabelle.freeze t));
 
 fun invoke_quickcheck quickcheck_generator thy t =

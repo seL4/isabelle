@@ -87,8 +87,8 @@ local
       | NONE =>
           let
             val args = Name.variant_list [] (replicate arity "'")
-            val (T, thy') = ObjectLogic.typedecl (Binding.name isa_name, args,
-              mk_syntax name arity) thy
+            val (T, thy') =
+              Typedecl.typedecl (Binding.name isa_name, args, mk_syntax name arity) thy
             val type_name = fst (Term.dest_Type T)
           in (((name, type_name), log_new name type_name), thy') end)
     end

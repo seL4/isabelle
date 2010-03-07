@@ -57,7 +57,6 @@ sig
   val type_name: bool -> string context_parser
   val const: bool -> string context_parser
   val const_proper: bool -> string context_parser
-  val bang_facts: thm list context_parser
   val goal_spec: ((int -> tactic) -> tactic) context_parser
   val parse: token list parser
   val parse1: (string -> bool) -> token list parser
@@ -223,11 +222,6 @@ fun const_proper strict =
 
 
 (* improper method arguments *)
-
-val bang_facts = Scan.peek (fn context =>
-  P.position ($$$ "!") >> (fn (_, pos) =>
-    (legacy_feature ("use of cumulative prems (!) in proof method" ^ Position.str_of pos);
-      Assumption.all_prems_of (Context.proof_of context))) || Scan.succeed []);
 
 val from_to =
   P.nat -- ($$$ "-" |-- P.nat) >> (fn (i, j) => fn tac => Seq.INTERVAL tac i j) ||

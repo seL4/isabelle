@@ -276,7 +276,7 @@ fun to_nnf th ctxt0 =
   let val th1 = th |> transform_elim |> zero_var_indexes
       val ((_, [th2]), ctxt) = Variable.import true [th1] ctxt0
       val th3 = th2
-        |> Conv.fconv_rule ObjectLogic.atomize
+        |> Conv.fconv_rule Object_Logic.atomize
         |> Meson.make_nnf ctxt |> strip_lambdas ~1
   in  (th3, ctxt)  end;
 
@@ -475,7 +475,7 @@ fun expand_defs_tac st0 st =
                                       (map Thm.term_of hyps)
       val fixed = OldTerm.term_frees (concl_of st) @
                   fold (union (op aconv)) (map OldTerm.term_frees remaining_hyps) []
-  in Seq.of_list [LocalDefs.expand (filter (is_okdef fixed o Thm.term_of) defs) st] end;
+  in Seq.of_list [Local_Defs.expand (filter (is_okdef fixed o Thm.term_of) defs) st] end;
 
 
 fun meson_general_tac ctxt ths i st0 =
@@ -493,7 +493,7 @@ val meson_method_setup =
 (*** Converting a subgoal into negated conjecture clauses. ***)
 
 fun neg_skolemize_tac ctxt =
-  EVERY' [rtac ccontr, ObjectLogic.atomize_prems_tac, Meson.skolemize_tac ctxt];
+  EVERY' [rtac ccontr, Object_Logic.atomize_prems_tac, Meson.skolemize_tac ctxt];
 
 val neg_clausify = Meson.make_clauses #> map combinators #> Meson.finish_cnf;
 

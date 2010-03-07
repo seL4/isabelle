@@ -398,6 +398,10 @@ lemma map_of_map_restrict:
   "map_of (map (\<lambda>k. (k, f k)) ks) = (Some \<circ> f) |` set ks"
   by (induct ks) (simp_all add: expand_fun_eq restrict_map_insert)
 
+lemma restrict_complement_singleton_eq:
+  "f |` (- {x}) = f(x := None)"
+  by (simp add: restrict_map_def expand_fun_eq)
+
 
 subsection {* @{term [source] map_upds} *}
 
@@ -707,4 +711,3 @@ next
 qed
 
 end
-

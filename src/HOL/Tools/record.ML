@@ -859,12 +859,12 @@ fun record_type_tr' ctxt t =
 
     fun strip_fields T =
       (case T of
-        Type (ext, args) =>
+        Type (ext, args as _ :: _) =>
           (case try (unsuffix ext_typeN) ext of
             SOME ext' =>
               (case get_extfields thy ext' of
-                SOME fields =>
-                  (case get_fieldext thy (fst (hd fields)) of
+                SOME (fields as (x, _) :: _) =>
+                  (case get_fieldext thy x of
                     SOME (_, alphas) =>
                      (let
                         val f :: fs = but_last fields;
@@ -877,9 +877,9 @@ fun record_type_tr' ctxt t =
                       in fields'' @ strip_fields more end
                       handle Type.TYPE_MATCH => [("", T)]
                         | Library.UnequalLengths => [("", T)])
-                  | NONE => [("", T)])
-              | NONE => [("", T)])
-          | NONE => [("", T)])
+                  | _ => [("", T)])
+              | _ => [("", T)])
+          | _ => [("", T)])
       | _ => [("", T)]);
 
     val (fields, (_, moreT)) = split_last (strip_fields T);
@@ -896,25 +896,7 @@ fun record_type_tr' ctxt t =
 fun record_type_abbr_tr' abbr alphas zeta last_ext schemeT ctxt tm =
   let
     val thy = ProofContext.theory_of ctxt;
-
-    (*tm is term representation of a (nested) field type. We first reconstruct the
-      type from tm so that we can continue on the type level rather then the term level*)
-
-    (* FIXME !??? *)
-    (*WORKAROUND:
-      If a record type occurs in an error message of type inference there
-      may be some internal frees donoted by ??:
-      (Const "_tfree",_) $ Free ("??'a", _).
-
-      This will unfortunately be translated to Type ("??'a", []) instead of
-      TFree ("??'a", _) by typ_of_term, which will confuse unify below.
-      fixT works around.*)
-    fun fixT (T as Type (x, [])) =
-          if String.isPrefix "??'" x then TFree (x, Sign.defaultS thy) else T
-      | fixT (Type (x, xs)) = Type (x, map fixT xs)
-      | fixT T = T;
-
-    val T = fixT (decode_type thy tm);
+    val T = decode_type thy tm;
     val midx = maxidx_of_typ T;
     val varifyT = varifyT midx;
 
@@ -2232,7 +2214,7 @@ fun record_definition (args, binding) parent (parents: parent_info list) raw_fie
             [(cterm_of defs_thy Pvar, cterm_of defs_thy
               (lambda w (HOLogic.imp $ HOLogic.mk_eq (r0, w) $ C)))]
             induct_scheme;
-        in ObjectLogic.rulify (mp OF [ind, refl]) end;
+        in Object_Logic.rulify (mp OF [ind, refl]) end;
 
     val cases_scheme_prf = future_forward_prf cases_scheme_prf cases_scheme_prop;
     val cases_scheme = timeit_msg "record cases_scheme proof:" cases_scheme_prf;

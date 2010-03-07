@@ -151,9 +151,9 @@ fun simplify_defn strict thy cs ss congs wfs id pats def0 =
                {f = f, R = R, rules = rules,
                 full_pats_TCs = full_pats_TCs,
                 TCs = TCs}
-       val rules' = map (Drule.export_without_context o ObjectLogic.rulify_no_asm)
+       val rules' = map (Drule.export_without_context o Object_Logic.rulify_no_asm)
                         (R.CONJUNCTS rules)
-         in  {induct = meta_outer (ObjectLogic.rulify_no_asm (induction RS spec')),
+         in  {induct = meta_outer (Object_Logic.rulify_no_asm (induction RS spec')),
         rules = ListPair.zip(rules', rows),
         tcs = (termination_goals rules') @ tcs}
    end
@@ -180,7 +180,7 @@ local
     | solve_eq (th, [a], i) = [(a, i)]
     | solve_eq (th, splitths as (_ :: _), i) = 
       (writeln "Proving unsplit equation...";
-      [((Drule.export_without_context o ObjectLogic.rulify_no_asm)
+      [((Drule.export_without_context o Object_Logic.rulify_no_asm)
           (CaseSplit.splitto splitths th), i)])
       (* if there's an error, pretend nothing happened with this definition 
          We should probably print something out so that the user knows...? *)

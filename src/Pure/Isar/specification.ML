@@ -193,7 +193,7 @@ val axiomatization_cmd = gen_axioms true read_specification;
 fun gen_def do_print prep (raw_var, raw_spec) lthy =
   let
     val (vars, [((raw_name, atts), prop)]) = fst (prep (the_list raw_var) [raw_spec] lthy);
-    val (((x, T), rhs), prove) = LocalDefs.derived_def lthy true prop;
+    val (((x, T), rhs), prove) = Local_Defs.derived_def lthy true prop;
     val var as (b, _) =
       (case vars of
         [] => (Binding.name x, NoSyn)
@@ -232,7 +232,7 @@ fun gen_abbrev do_print prep mode (raw_var, raw_prop) lthy =
     val ((vars, [(_, prop)]), _) =
       prep (the_list raw_var) [(Attrib.empty_binding, raw_prop)]
         (lthy |> ProofContext.set_mode ProofContext.mode_abbrev);
-    val ((x, T), rhs) = LocalDefs.abs_def (#2 (LocalDefs.cert_def lthy prop));
+    val ((x, T), rhs) = Local_Defs.abs_def (#2 (Local_Defs.cert_def lthy prop));
     val var =
       (case vars of
         [] => (Binding.name x, NoSyn)
@@ -316,7 +316,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
         val raw_propp = obtains |> map (fn (_, (_, props)) => map (rpair []) props);
         val (propp, elems_ctxt) = prep_stmt (elems @ constraints) raw_propp ctxt;
 
-        val thesis = ObjectLogic.fixed_judgment (ProofContext.theory_of ctxt) Auto_Bind.thesisN;
+        val thesis = Object_Logic.fixed_judgment (ProofContext.theory_of ctxt) Auto_Bind.thesisN;
 
         fun assume_case ((name, (vars, _)), asms) ctxt' =
           let

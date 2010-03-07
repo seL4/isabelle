@@ -57,8 +57,9 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES) Concurrent/cache.ML			\
   General/markup.ML General/name_space.ML General/ord_list.ML		\
   General/output.ML General/path.ML General/position.ML			\
   General/pretty.ML General/print_mode.ML General/properties.ML		\
-  General/queue.ML General/same.ML General/scan.ML General/secure.ML	\
-  General/seq.ML General/source.ML General/stack.ML General/symbol.ML	\
+  General/queue.ML General/same.ML General/scan.ML General/sha1.ML	\
+  General/sha1_polyml.ML General/secure.ML General/seq.ML		\
+  General/source.ML General/stack.ML General/symbol.ML			\
   General/symbol_pos.ML General/table.ML General/url.ML General/xml.ML	\
   General/yxml.ML Isar/args.ML Isar/attrib.ML Isar/auto_bind.ML		\
   Isar/calculation.ML Isar/class.ML Isar/class_target.ML Isar/code.ML	\
@@ -72,18 +73,19 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES) Concurrent/cache.ML			\
   Isar/proof_display.ML Isar/proof_node.ML Isar/rule_cases.ML		\
   Isar/rule_insts.ML Isar/runtime.ML Isar/skip_proof.ML			\
   Isar/spec_parse.ML Isar/spec_rules.ML Isar/specification.ML		\
-  Isar/theory_target.ML Isar/toplevel.ML Isar/value_parse.ML		\
-  ML/ml_antiquote.ML ML/ml_compiler.ML ML/ml_compiler_polyml-5.3.ML	\
-  ML/ml_context.ML ML/ml_env.ML ML/ml_lex.ML ML/ml_parse.ML		\
-  ML/ml_syntax.ML ML/ml_thms.ML ML-Systems/install_pp_polyml.ML		\
-  ML-Systems/install_pp_polyml-5.3.ML ML-Systems/use_context.ML		\
-  Proof/extraction.ML Proof/proof_rewrite_rules.ML			\
-  Proof/proof_syntax.ML Proof/proofchecker.ML Proof/reconstruct.ML	\
-  ProofGeneral/pgip.ML ProofGeneral/pgip_input.ML			\
-  ProofGeneral/pgip_isabelle.ML ProofGeneral/pgip_markup.ML		\
-  ProofGeneral/pgip_output.ML ProofGeneral/pgip_parser.ML		\
-  ProofGeneral/pgip_tests.ML ProofGeneral/pgip_types.ML			\
-  ProofGeneral/preferences.ML ProofGeneral/proof_general_emacs.ML	\
+  Isar/theory_target.ML Isar/toplevel.ML Isar/typedecl.ML		\
+  Isar/value_parse.ML ML/ml_antiquote.ML ML/ml_compiler.ML		\
+  ML/ml_compiler_polyml-5.3.ML ML/ml_context.ML ML/ml_env.ML		\
+  ML/ml_lex.ML ML/ml_parse.ML ML/ml_syntax.ML ML/ml_thms.ML		\
+  ML-Systems/install_pp_polyml.ML ML-Systems/install_pp_polyml-5.3.ML	\
+  ML-Systems/use_context.ML Proof/extraction.ML				\
+  Proof/proof_rewrite_rules.ML Proof/proof_syntax.ML			\
+  Proof/proofchecker.ML Proof/reconstruct.ML ProofGeneral/pgip.ML	\
+  ProofGeneral/pgip_input.ML ProofGeneral/pgip_isabelle.ML		\
+  ProofGeneral/pgip_markup.ML ProofGeneral/pgip_output.ML		\
+  ProofGeneral/pgip_parser.ML ProofGeneral/pgip_tests.ML		\
+  ProofGeneral/pgip_types.ML ProofGeneral/preferences.ML		\
+  ProofGeneral/proof_general_emacs.ML					\
   ProofGeneral/proof_general_pgip.ML Pure.thy ROOT.ML Syntax/ast.ML	\
   Syntax/lexicon.ML Syntax/mixfix.ML Syntax/parser.ML			\
   Syntax/printer.ML Syntax/simple_syntax.ML Syntax/syn_ext.ML		\

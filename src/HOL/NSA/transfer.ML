@@ -56,14 +56,14 @@ fun transfer_thm_of ctxt ths t =
   let
     val thy = ProofContext.theory_of ctxt;
     val {intros,unfolds,refolds,consts} = TransferData.get (Context.Proof ctxt);
-    val meta = LocalDefs.meta_rewrite_rule ctxt;
+    val meta = Local_Defs.meta_rewrite_rule ctxt;
     val ths' = map meta ths;
     val unfolds' = map meta unfolds and refolds' = map meta refolds;
     val (_$_$t') = concl_of (MetaSimplifier.rewrite true unfolds' (cterm_of thy t))
     val u = unstar_term consts t'
     val tac =
       rewrite_goals_tac (ths' @ refolds' @ unfolds') THEN
-      ALLGOALS ObjectLogic.full_atomize_tac THEN
+      ALLGOALS Object_Logic.full_atomize_tac THEN
       match_tac [transitive_thm] 1 THEN
       resolve_tac [@{thm transfer_start}] 1 THEN
       REPEAT_ALL_NEW (resolve_tac intros) 1 THEN

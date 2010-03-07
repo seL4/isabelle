@@ -48,7 +48,7 @@ fun RANGE_WARN tacs = RANGE (map WARN tacs)
 fun atomize_thm thm =
 let
   val thm' = Thm.freezeT (forall_intr_vars thm) (* FIXME/TODO: is this proper Isar-technology? *)
-  val thm'' = ObjectLogic.atomize (cprop_of thm')
+  val thm'' = Object_Logic.atomize (cprop_of thm')
 in
   @{thm equal_elim_rule1} OF [thm'', thm']
 end
@@ -616,7 +616,7 @@ end
 
 (* the tactic leaves three subgoals to be proved *)
 fun procedure_tac ctxt rthm =
-  ObjectLogic.full_atomize_tac
+  Object_Logic.full_atomize_tac
   THEN' gen_frees_tac ctxt
   THEN' SUBGOAL (fn (goal, i) =>
     let

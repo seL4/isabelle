@@ -57,7 +57,7 @@ sig
                  safe0_netpair: netpair, safep_netpair: netpair,
                  haz_netpair: netpair, dup_netpair: netpair, xtra_netpair: Context_Rules.netpair}
   val cla_modifiers: Method.modifier parser list
-  val cla_meth': (claset -> int -> tactic) -> thm list -> Proof.context -> Proof.method
+  val cla_meth': (claset -> int -> tactic) -> Proof.context -> Proof.method
 end;
 
 signature BLAST =
@@ -181,7 +181,7 @@ fun mkGoal P = Const ("*Goal*", []) $ P;
 fun isGoal (Const ("*Goal*", _) $ _) = true
   | isGoal _ = false;
 
-val TruepropC = ObjectLogic.judgment_name Data.thy;
+val TruepropC = Object_Logic.judgment_name Data.thy;
 val TruepropT = Sign.the_const_type Data.thy TruepropC;
 
 fun mk_Trueprop t = Term.$ (Term.Const (TruepropC, TruepropT), t);
@@ -1251,7 +1251,7 @@ fun fromSubgoal thy t =
 fun timing_depth_tac start cs lim i st0 =
   let val thy = Thm.theory_of_thm st0
       val state = initialize thy
-      val st = Conv.gconv_rule ObjectLogic.atomize_prems i st0
+      val st = Conv.gconv_rule Object_Logic.atomize_prems i st0
       val skoprem = fromSubgoal thy (List.nth(prems_of st, i-1))
       val hyps  = strip_imp_prems skoprem
       and concl = strip_imp_concl skoprem
@@ -1309,10 +1309,9 @@ fun tryInThy thy cs lim s =
 val setup =
   setup_depth_limit #>
   Method.setup @{binding blast}
-    (Args.bang_facts -- Scan.lift (Scan.option OuterParse.nat) --|
-      Method.sections Data.cla_modifiers >>
-      (fn (prems, NONE) => Data.cla_meth' blast_tac prems
-        | (prems, SOME lim) => Data.cla_meth' (fn cs => depth_tac cs lim) prems))
+    (Scan.lift (Scan.option OuterParse.nat) --| Method.sections Data.cla_modifiers >>
+      (fn NONE => Data.cla_meth' blast_tac
+        | SOME lim => Data.cla_meth' (fn cs => depth_tac cs lim)))
     "classical tableau prover";
 
 end;

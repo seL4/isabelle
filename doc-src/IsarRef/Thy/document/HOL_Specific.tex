@@ -805,15 +805,15 @@ Each theory contains a default set of theorems that are used in
   \end{matharray}
 
   \begin{rail}
-    'iprover' ('!' ?) ( rulemod * )
+    'iprover' ( rulemod * )
     ;
   \end{rail}
 
   The \hyperlink{method.HOL.iprover}{\mbox{\isa{iprover}}} method performs intuitionistic proof
   search, depending on specifically declared rules from the context,
   or given as explicit arguments.  Chained facts are inserted into the
-  goal before commencing proof search; ``\hyperlink{method.HOL.iprover}{\mbox{\isa{iprover}}}\isa{{\isachardoublequote}{\isacharbang}{\isachardoublequote}}''  means to include the current \hyperlink{fact.prems}{\mbox{\isa{prems}}} as well.
-  
+  goal before commencing proof search.
+
   Rules need to be classified as \hyperlink{attribute.Pure.intro}{\mbox{\isa{intro}}},
   \hyperlink{attribute.Pure.elim}{\mbox{\isa{elim}}}, or \hyperlink{attribute.Pure.dest}{\mbox{\isa{dest}}}; here the
   ``\isa{{\isachardoublequote}{\isacharbang}{\isachardoublequote}}'' indicator refers to ``safe'' rules, which may be

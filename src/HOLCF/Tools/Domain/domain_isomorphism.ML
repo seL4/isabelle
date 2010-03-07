@@ -174,7 +174,7 @@ fun add_fixdefs
         (K (beta_tac 1));
     val tuple_unfold_thm =
       (@{thm def_cont_fix_eq} OF [tuple_fixdef_thm, cont_thm])
-      |> LocalDefs.unfold (ProofContext.init thy) @{thms split_conv};
+      |> Local_Defs.unfold (ProofContext.init thy) @{thms split_conv};
 
     fun mk_unfold_thms [] thm = []
       | mk_unfold_thms (n::[]) thm = [(n, thm)]

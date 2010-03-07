@@ -298,7 +298,7 @@ fun closeup _ _ false elem = elem
           Assumes asms => Assumes (asms |> map (fn (a, propps) =>
             (a, map (fn (t, ps) => (close_frees t, no_binds ps)) propps)))
         | Defines defs => Defines (defs |> map (fn ((name, atts), (t, ps)) =>
-            let val ((c, _), t') = LocalDefs.cert_def ctxt (close_frees t)
+            let val ((c, _), t') = Local_Defs.cert_def ctxt (close_frees t)
             in ((Thm.def_binding_optional (Binding.name c) name, atts), (t', no_binds ps)) end))
         | e => e)
       end;
@@ -513,8 +513,8 @@ val norm_term = Envir.beta_norm oo Term.subst_atomic;
 
 fun bind_def ctxt eq (xs, env, eqs) =
   let
-    val _ = LocalDefs.cert_def ctxt eq;
-    val ((y, T), b) = LocalDefs.abs_def eq;
+    val _ = Local_Defs.cert_def ctxt eq;
+    val ((y, T), b) = Local_Defs.abs_def eq;
     val b' = norm_term env b;
     fun err msg = error (msg ^ ": " ^ quote y);
   in
@@ -595,11 +595,11 @@ val introN = "intro";
 fun atomize_spec thy ts =
   let
     val t = Logic.mk_conjunction_balanced ts;
-    val body = ObjectLogic.atomize_term thy t;
+    val body = Object_Logic.atomize_term thy t;
     val bodyT = Term.fastype_of body;
   in
     if bodyT = propT then (t, propT, Thm.reflexive (Thm.cterm_of thy t))
-    else (body, bodyT, ObjectLogic.atomize (Thm.cterm_of thy t))
+    else (body, bodyT, Object_Logic.atomize (Thm.cterm_of thy t))
   end;
 
 (* achieve plain syntax for locale predicates (without "PROP") *)
@@ -634,7 +634,7 @@ fun def_pred binding parms defs ts norm_ts thy =
 
     val args = map Logic.mk_type extraTs @ map Free xs;
     val head = Term.list_comb (Const (name, predT), args);
-    val statement = ObjectLogic.ensure_propT thy head;
+    val statement = Object_Logic.ensure_propT thy head;
 
     val ([pred_def], defs_thy) =
       thy
@@ -808,8 +808,8 @@ fun gen_interpretation prep_expr parse_prop prep_attr
         val eqns = map (Morphism.thm (export' $> export)) raw_eqns;
         val eqn_attrss = map2 (fn attrs => fn eqn =>
           ((apsnd o map) (Attrib.attribute_i thy) attrs, [([eqn], [])])) attrss eqns;
-        fun meta_rewrite thy = map (LocalDefs.meta_rewrite_rule (ProofContext.init thy) #>
-          Drule.abs_def) o maps snd;
+        fun meta_rewrite thy =
+          map (Local_Defs.meta_rewrite_rule (ProofContext.init thy) #> Drule.abs_def) o maps snd;
       in
         thy
         |> PureThy.note_thmss Thm.lemmaK eqn_attrss

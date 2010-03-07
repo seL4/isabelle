@@ -788,7 +788,7 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
        else if coind then
          singleton (ProofContext.export
            (snd (Variable.add_fixes (map (fst o dest_Free) params) lthy1)) lthy1)
-           (rotate_prems ~1 (ObjectLogic.rulify
+           (rotate_prems ~1 (Object_Logic.rulify
              (fold_rule rec_preds_defs
                (rewrite_rule simp_thms'''
                 (mono RS (fp_def RS @{thm def_coinduct}))))))
@@ -832,7 +832,7 @@ fun gen_add_inductive_i mk_def
         let
           val _ = Binding.is_empty name andalso null atts orelse
             error "Abbreviations may not have names or attributes";
-          val ((x, T), rhs) = LocalDefs.abs_def (snd (LocalDefs.cert_def ctxt1 t));
+          val ((x, T), rhs) = Local_Defs.abs_def (snd (Local_Defs.cert_def ctxt1 t));
           val var =
             (case find_first (fn ((c, _), _) => Binding.name_of c = x) cnames_syn of
               NONE => error ("Undeclared head of abbreviation " ^ quote x)
@@ -854,8 +854,8 @@ fun gen_add_inductive_i mk_def
     val ps = map Free pnames;
 
     val (_, ctxt2) = lthy |> Variable.add_fixes (map (Binding.name_of o fst o fst) cnames_syn');
-    val _ = map (fn abbr => LocalDefs.fixed_abbrev abbr ctxt2) abbrevs;
-    val ctxt3 = ctxt2 |> fold (snd oo LocalDefs.fixed_abbrev) abbrevs;
+    val _ = map (fn abbr => Local_Defs.fixed_abbrev abbr ctxt2) abbrevs;
+    val ctxt3 = ctxt2 |> fold (snd oo Local_Defs.fixed_abbrev) abbrevs;
     val expand = Assumption.export_term ctxt3 lthy #> ProofContext.cert_term lthy;
 
     fun close_rule r = list_all_free (rev (fold_aterms

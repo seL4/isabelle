@@ -606,11 +606,11 @@ fun qed_goal name thy goal tacsf = ML_Context.ml_store_thm (name, prove_goal thy
 fun qed_goalw name thy rews goal tacsf =
   ML_Context.ml_store_thm (name, prove_goalw thy rews goal tacsf);
 fun qed_spec_mp name =
-  ML_Context.ml_store_thm (name, ObjectLogic.rulify_no_asm (result ()));
+  ML_Context.ml_store_thm (name, Object_Logic.rulify_no_asm (result ()));
 fun qed_goal_spec_mp name thy s p =
-  bind_thm (name, ObjectLogic.rulify_no_asm (prove_goal thy s p));
+  bind_thm (name, Object_Logic.rulify_no_asm (prove_goal thy s p));
 fun qed_goalw_spec_mp name thy defs s p =
-  bind_thm (name, ObjectLogic.rulify_no_asm (prove_goalw thy defs s p));
+  bind_thm (name, Object_Logic.rulify_no_asm (prove_goalw thy defs s p));
 
 end;
 

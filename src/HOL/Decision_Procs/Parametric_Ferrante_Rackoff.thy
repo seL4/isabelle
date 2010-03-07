@@ -3098,7 +3098,7 @@ structure FRParTac =
 struct
 
 fun frpar_tac T ps ctxt i = 
- (ObjectLogic.full_atomize_tac i) 
+ Object_Logic.full_atomize_tac i
  THEN (fn st =>
   let
     val g = List.nth (cprems_of st, i - 1)
@@ -3108,7 +3108,7 @@ fun frpar_tac T ps ctxt i =
   in rtac (th RS iffD2) i st end);
 
 fun frpar2_tac T ps ctxt i = 
- (ObjectLogic.full_atomize_tac i) 
+ Object_Logic.full_atomize_tac i
  THEN (fn st =>
   let
     val g = List.nth (cprems_of st, i - 1)

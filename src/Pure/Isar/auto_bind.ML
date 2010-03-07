@@ -23,7 +23,7 @@ val thesisN = "thesis";
 val thisN = "this";
 val assmsN = "assms";
 
-fun strip_judgment thy = ObjectLogic.drop_judgment thy o Logic.strip_assums_concl;
+fun strip_judgment thy = Object_Logic.drop_judgment thy o Logic.strip_assums_concl;
 
 fun statement_binds thy name prop =
   [((name, 0), SOME (Term.list_abs (Logic.strip_params prop, strip_judgment thy prop)))];

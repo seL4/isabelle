@@ -76,7 +76,7 @@ fun eliminate fix_ctxt rule xs As thm =
     val thy = ProofContext.theory_of fix_ctxt;
 
     val _ = eliminate_term fix_ctxt xs (Thm.full_prop_of thm);
-    val _ = ObjectLogic.is_judgment thy (Thm.concl_of thm) orelse
+    val _ = Object_Logic.is_judgment thy (Thm.concl_of thm) orelse
       error "Conclusion in obtained context must be object-logic judgment";
 
     val ((_, [thm']), ctxt') = Variable.import true [thm] fix_ctxt;
@@ -100,7 +100,7 @@ fun obtain_export ctxt rule xs _ As =
 fun bind_judgment ctxt name =
   let
     val (bind, ctxt') = ProofContext.bind_fixes [name] ctxt;
-    val (t as _ $ Free v) = bind (ObjectLogic.fixed_judgment (ProofContext.theory_of ctxt) name);
+    val (t as _ $ Free v) = bind (Object_Logic.fixed_judgment (ProofContext.theory_of ctxt) name);
   in ((v, t), ctxt') end;
 
 val thatN = "that";

@@ -121,7 +121,7 @@ fun import_export_proof ctxt (name, raw_th) =
 
     (*export assumes/defines*)
     val th = Goal.norm_result raw_th;
-    val (defs, th') = LocalDefs.export ctxt thy_ctxt th;
+    val (defs, th') = Local_Defs.export ctxt thy_ctxt th;
     val concl_conv = MetaSimplifier.rewrite true defs (Thm.cprop_of th);
     val assms = map (MetaSimplifier.rewrite_rule defs o Thm.assume) (Assumption.all_assms_of ctxt);
     val nprems = Thm.nprems_of th' - Thm.nprems_of th;
@@ -152,7 +152,7 @@ fun import_export_proof ctxt (name, raw_th) =
     val result'' =
       (case SINGLE (Seq.INTERVAL assm_tac 1 nprems) result' of
         NONE => raise THM ("Failed to re-import result", 0, [result'])
-      | SOME res => LocalDefs.trans_props ctxt [res, Thm.symmetric concl_conv])
+      | SOME res => Local_Defs.trans_props ctxt [res, Thm.symmetric concl_conv])
       |> Goal.norm_result
       |> PureThy.name_thm false false name;
 
@@ -235,7 +235,7 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((b,
     lthy'
     |> is_locale ? term_syntax ta false (locale_const ta Syntax.mode_default ((b, mx2), t))
     |> is_class ? class_target ta (Class_Target.declare target ((b, mx1), t))
-    |> LocalDefs.add_def ((b, NoSyn), t)
+    |> Local_Defs.add_def ((b, NoSyn), t)
   end;
 
 
@@ -266,7 +266,7 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t)
           (Sign.add_abbrev (#1 prmode) (b, global_rhs) #-> (fn (lhs, _) =>
            Sign.notation true prmode [(lhs, mx3)])))
     |> ProofContext.add_abbrev PrintMode.internal (b, t) |> snd
-    |> LocalDefs.fixed_abbrev ((b, NoSyn), t)
+    |> Local_Defs.fixed_abbrev ((b, NoSyn), t)
   end;
 
 
@@ -279,7 +279,7 @@ fun define ta ((b, mx), ((name, atts), rhs)) lthy =
 
     val name' = Thm.def_binding_optional b name;
     val (rhs', rhs_conv) =
-      LocalDefs.export_cterm lthy thy_ctxt (Thm.cterm_of thy rhs) |>> Thm.term_of;
+      Local_Defs.export_cterm lthy thy_ctxt (Thm.cterm_of thy rhs) |>> Thm.term_of;
     val xs = Variable.add_fixed (Local_Theory.target_of lthy) rhs' [];
     val T = Term.fastype_of rhs;
 
@@ -296,7 +296,7 @@ fun define ta ((b, mx), ((name, atts), rhs)) lthy =
             if is_none (Class_Target.instantiation_param lthy b)
             then Thm.add_def false false (name', Logic.mk_equals (lhs', rhs'))
             else AxClass.define_overloaded name' (fst (dest_Const lhs'), rhs'));
-    val def = LocalDefs.trans_terms lthy3
+    val def = Local_Defs.trans_terms lthy3
       [(*c == global.c xs*)     local_def,
        (*global.c xs == rhs'*)  global_def,
        (*rhs' == rhs*)          Thm.symmetric rhs_conv];

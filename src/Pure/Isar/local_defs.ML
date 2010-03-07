@@ -34,7 +34,7 @@ sig
     ((string * typ) * term) * (Proof.context -> thm -> thm)
 end;
 
-structure LocalDefs: LOCAL_DEFS =
+structure Local_Defs: LOCAL_DEFS =
 struct
 
 (** primitive definitions **)

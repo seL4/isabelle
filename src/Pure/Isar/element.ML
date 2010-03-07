@@ -223,12 +223,12 @@ fun pretty_statement ctxt kind raw_th =
     val cert = Thm.cterm_of thy;
 
     val th = MetaSimplifier.norm_hhf raw_th;
-    val is_elim = ObjectLogic.is_elim th;
+    val is_elim = Object_Logic.is_elim th;
 
     val ((_, [th']), ctxt') = Variable.import true [th] (Variable.set_body false ctxt);
     val prop = Thm.prop_of th';
     val (prems, concl) = Logic.strip_horn prop;
-    val concl_term = ObjectLogic.drop_judgment thy concl;
+    val concl_term = Object_Logic.drop_judgment thy concl;
 
     val fixes = fold_aterms (fn v as Free (x, T) =>
         if Variable.newly_fixed ctxt' ctxt x andalso not (v aconv concl_term)
@@ -499,11 +499,11 @@ fun init (Fixes fixes) = Context.map_proof (ProofContext.add_fixes fixes #> #2)
       let
         val defs' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) defs;
         val asms = defs' |> map (fn ((name, atts), (t, ps)) =>
-            let val ((c, _), t') = LocalDefs.cert_def ctxt t  (* FIXME adapt ps? *)
+            let val ((c, _), t') = Local_Defs.cert_def ctxt t  (* FIXME adapt ps? *)
             in (t', ((Thm.def_binding_optional (Binding.name c) name, atts), [(t', ps)])) end);
         val (_, ctxt') = ctxt
           |> fold Variable.auto_fixes (map #1 asms)
-          |> ProofContext.add_assms_i LocalDefs.def_export (map #2 asms);
+          |> ProofContext.add_assms_i Local_Defs.def_export (map #2 asms);
       in ctxt' end)
   | init (Notes (kind, facts)) = (fn context =>
       let

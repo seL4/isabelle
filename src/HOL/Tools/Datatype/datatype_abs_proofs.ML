@@ -209,7 +209,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
         val induct' = cterm_instantiate ((map cert induct_Ps) ~~
           (map cert insts)) induct;
         val (tac, _) = fold mk_unique_tac (descr' ~~ rec_elims ~~ recTs ~~ rec_result_Ts)
-           (((rtac induct' THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1
+           (((rtac induct' THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1
               THEN rewrite_goals_tac [mk_meta_eq @{thm choice_eq}], rec_intrs));
 
       in split_conj_thm (Skip_Proof.prove_global thy1 [] []

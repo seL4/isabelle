@@ -87,7 +87,7 @@ val del_post = map_post o MetaSimplifier.del_simp;
 
 fun add_unfold_post raw_thm thy =
   let
-    val thm = LocalDefs.meta_rewrite_rule (ProofContext.init thy) raw_thm;
+    val thm = Local_Defs.meta_rewrite_rule (ProofContext.init thy) raw_thm;
     val thm_sym = Thm.symmetric thm;
   in
     thy |> map_pre_post (fn (pre, post) =>

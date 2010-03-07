@@ -62,7 +62,7 @@ fun mk_congeq ctxt fs th =
    fun tryext x = (x RS ext2 handle THM _ =>  x)
    val cong = (Goal.prove ctxt'' [] (map mk_def env)
                           (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, replace_fterms rhs)))
-                          (fn x => LocalDefs.unfold_tac (#context x) (map tryext (#prems x))
+                          (fn x => Local_Defs.unfold_tac (#context x) (map tryext (#prems x))
                                                         THEN rtac th' 1)) RS sym
 
    val (cong' :: vars') =

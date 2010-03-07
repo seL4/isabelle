@@ -199,7 +199,7 @@ fun test_goal quiet report generator_name size iterations default_T no_assms ins
     val gi' = Logic.list_implies (if no_assms then [] else assms,
                                   subst_bounds (frees, strip gi))
       |> monomorphic_term thy insts default_T
-      |> ObjectLogic.atomize_term thy;
+      |> Object_Logic.atomize_term thy;
   in gen_test_term ctxt quiet report generator_name size iterations gi' end;
 
 fun pretty_counterex ctxt NONE = Pretty.str "Quickcheck found no counterexample."
