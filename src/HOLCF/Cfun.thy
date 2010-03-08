@@ -126,9 +126,12 @@ text {* function application is strict in its first argument *}
 lemma Rep_CFun_strict1 [simp]: "\<bottom>\<cdot>x = \<bottom>"
 by (simp add: Rep_CFun_strict)
 
+lemma LAM_strict [simp]: "(\<Lambda> x. \<bottom>) = \<bottom>"
+by (simp add: inst_fun_pcpo [symmetric] Abs_CFun_strict)
+
 text {* for compatibility with old HOLCF-Version *}
 lemma inst_cfun_pcpo: "\<bottom> = (\<Lambda> x. \<bottom>)"
-by (simp add: inst_fun_pcpo [symmetric] Abs_CFun_strict)
+by simp
 
 subsection {* Basic properties of continuous functions *}
 
