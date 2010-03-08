@@ -208,8 +208,6 @@ end; (* let *)
 
 fun prove_induction
     (comp_dnam, eqs : eq list)
-    (take_lemmas : thm list)
-    (axs_reach : thm list)
     (take_rews : thm list)
     (take_info : Domain_Take_Proofs.take_induct_info)
     (thy : theory) =
@@ -232,7 +230,7 @@ let
   end;
 
   val {take_0_thms, take_Suc_thms, chain_take_thms, ...} = take_info;
-  val {lub_take_thms, finite_defs, ...} = take_info;
+  val {lub_take_thms, finite_defs, reach_thms, ...} = take_info;
 
   fun one_con p (con, args) =
     let
@@ -410,7 +408,7 @@ let
                 EVERY [rtac allI 1, rtac finite_ind 1, ind_prems_tac prems];
             val subthm = Goal.prove context [] [] subgoal' (K subtac);
           in
-            map (fn ax_reach => rtac (ax_reach RS subst) 1) axs_reach @ [
+            map (fn ax_reach => rtac (ax_reach RS subst) 1) reach_thms @ [
             cut_facts_tac (subthm :: take (length dnames) prems) 1,
             REPEAT (rtac @{thm conjI} 1 ORELSE
                     EVERY [etac @{thm admD [OF _ ch2ch_Rep_CFunL]} 1,
@@ -636,7 +634,6 @@ end;
 (* theorems about take *)
 
 val take_lemmas = #take_lemma_thms take_info;
-val axs_reach = #reach_thms take_info;
 
 val take_rews =
     maps (fn dn => PureThy.get_thms thy (dn ^ ".take_rews")) dnames;
@@ -644,7 +641,7 @@ val take_rews =
 (* prove induction rules, unless definition is indirect recursive *)
 val thy =
     if is_indirect then thy else
-    prove_induction (comp_dnam, eqs) take_lemmas axs_reach take_rews take_info thy;
+    prove_induction (comp_dnam, eqs) take_rews take_info thy;
 
 val thy =
     if is_indirect then thy else
