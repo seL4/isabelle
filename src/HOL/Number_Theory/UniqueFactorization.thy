@@ -295,7 +295,7 @@ lemma transfer_nat_int_multiplicity: "p >= 0 \<Longrightarrow> n >= 0 \<Longrigh
   multiplicity (nat p) (nat n) = multiplicity p n"
   by (auto simp add: multiplicity_int_def)
 
-declare TransferMorphism_nat_int[transfer add return: 
+declare transfer_morphism_nat_int[transfer add return: 
   transfer_nat_int_prime_factors transfer_nat_int_prime_factors_closure
   transfer_nat_int_multiplicity]
 
@@ -312,7 +312,7 @@ lemma transfer_int_nat_multiplicity:
     "multiplicity (int p) (int n) = multiplicity p n"
   by (auto simp add: multiplicity_int_def)
 
-declare TransferMorphism_int_nat[transfer add return: 
+declare transfer_morphism_int_nat[transfer add return: 
   transfer_int_nat_prime_factors transfer_int_nat_prime_factors_closure
   transfer_int_nat_multiplicity]
 
@@ -636,7 +636,7 @@ lemma transfer_nat_int_sum_prod_closure3:
   apply (rule setprod_nonneg, auto)
 done
 
-declare TransferMorphism_nat_int[transfer 
+declare transfer_morphism_nat_int[transfer 
   add return: transfer_nat_int_sum_prod_closure3
   del: transfer_nat_int_sum_prod2 (1)]
 
@@ -657,7 +657,7 @@ lemma multiplicity_setprod_int: "p >= 0 \<Longrightarrow> finite S \<Longrightar
   apply auto
 done
 
-declare TransferMorphism_nat_int[transfer 
+declare transfer_morphism_nat_int[transfer 
   add return: transfer_nat_int_sum_prod2 (1)]
 
 lemma multiplicity_prod_prime_powers_nat:

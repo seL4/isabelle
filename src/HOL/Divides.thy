@@ -2326,7 +2326,7 @@ lemma transfer_nat_int_function_closures:
   apply auto
 done
 
-declare TransferMorphism_nat_int [transfer add return:
+declare transfer_morphism_nat_int [transfer add return:
   transfer_nat_int_functions
   transfer_nat_int_function_closures
 ]
@@ -2341,7 +2341,7 @@ lemma transfer_int_nat_function_closures:
     "is_nat x \<Longrightarrow> is_nat y \<Longrightarrow> is_nat (x mod y)"
   by (simp_all only: is_nat_def transfer_nat_int_function_closures)
 
-declare TransferMorphism_int_nat [transfer add return:
+declare transfer_morphism_int_nat [transfer add return:
   transfer_int_nat_functions
   transfer_int_nat_function_closures
 ]

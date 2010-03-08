@@ -69,7 +69,7 @@ lemma transfer_nat_int_fib_closure:
   "n >= (0::int) \<Longrightarrow> fib n >= 0"
   by (auto simp add: fib_int_def)
 
-declare TransferMorphism_nat_int[transfer add return: 
+declare transfer_morphism_nat_int[transfer add return: 
     transfer_nat_int_fib transfer_nat_int_fib_closure]
 
 lemma transfer_int_nat_fib:
@@ -80,7 +80,7 @@ lemma transfer_int_nat_fib_closure:
   "is_nat n \<Longrightarrow> fib n >= 0"
   unfolding fib_int_def by auto
 
-declare TransferMorphism_int_nat[transfer add return: 
+declare transfer_morphism_int_nat[transfer add return: 
     transfer_int_nat_fib transfer_int_nat_fib_closure]
 
 

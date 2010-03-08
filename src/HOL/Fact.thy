@@ -58,7 +58,7 @@ lemma transfer_nat_int_factorial_closure:
   "x >= (0::int) \<Longrightarrow> fact x >= 0"
   by (auto simp add: fact_int_def)
 
-declare TransferMorphism_nat_int[transfer add return: 
+declare transfer_morphism_nat_int[transfer add return: 
     transfer_nat_int_factorial transfer_nat_int_factorial_closure]
 
 lemma transfer_int_nat_factorial:
@@ -69,7 +69,7 @@ lemma transfer_int_nat_factorial_closure:
   "is_nat x \<Longrightarrow> fact x >= 0"
   by (auto simp add: fact_int_def)
 
-declare TransferMorphism_int_nat[transfer add return: 
+declare transfer_morphism_int_nat[transfer add return: 
     transfer_int_nat_factorial transfer_int_nat_factorial_closure]
 
 

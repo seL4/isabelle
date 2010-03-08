@@ -99,7 +99,7 @@ lemma transfer_nat_int_gcd_closures:
   "x >= (0::int) \<Longrightarrow> y >= 0 \<Longrightarrow> lcm x y >= 0"
   by (auto simp add: gcd_int_def lcm_int_def)
 
-declare TransferMorphism_nat_int[transfer add return:
+declare transfer_morphism_nat_int[transfer add return:
     transfer_nat_int_gcd transfer_nat_int_gcd_closures]
 
 lemma transfer_int_nat_gcd:
@@ -112,7 +112,7 @@ lemma transfer_int_nat_gcd_closures:
   "is_nat x \<Longrightarrow> is_nat y \<Longrightarrow> lcm x y >= 0"
   by (auto simp add: gcd_int_def lcm_int_def)
 
-declare TransferMorphism_int_nat[transfer add return:
+declare transfer_morphism_int_nat[transfer add return:
     transfer_int_nat_gcd transfer_int_nat_gcd_closures]
 
 

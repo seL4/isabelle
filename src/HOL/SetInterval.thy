@@ -1228,7 +1228,7 @@ lemma transfer_nat_int_set_function_closures:
     "x >= 0 \<Longrightarrow> nat_set {x..y}"
   by (simp add: nat_set_def)
 
-declare TransferMorphism_nat_int[transfer add
+declare transfer_morphism_nat_int[transfer add
   return: transfer_nat_int_set_functions
     transfer_nat_int_set_function_closures
 ]
@@ -1244,7 +1244,7 @@ lemma transfer_int_nat_set_function_closures:
     "is_nat x \<Longrightarrow> nat_set {x..y}"
   by (simp only: transfer_nat_int_set_function_closures is_nat_def)
 
-declare TransferMorphism_int_nat[transfer add
+declare transfer_morphism_int_nat[transfer add
   return: transfer_int_nat_set_functions
     transfer_int_nat_set_function_closures
 ]

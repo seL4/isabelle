@@ -73,7 +73,7 @@ lemma transfer_nat_int_binomial_closure:
   "n >= (0::int) \<Longrightarrow> k >= 0 \<Longrightarrow> binomial n k >= 0"
   by (auto simp add: binomial_int_def)
 
-declare TransferMorphism_nat_int[transfer add return: 
+declare transfer_morphism_nat_int[transfer add return: 
     transfer_nat_int_binomial transfer_nat_int_binomial_closure]
 
 lemma transfer_int_nat_binomial:
@@ -84,7 +84,7 @@ lemma transfer_int_nat_binomial_closure:
   "is_nat n \<Longrightarrow> is_nat k \<Longrightarrow> binomial n k >= 0"
   by (auto simp add: binomial_int_def)
 
-declare TransferMorphism_int_nat[transfer add return: 
+declare transfer_morphism_int_nat[transfer add return: 
     transfer_int_nat_binomial transfer_int_nat_binomial_closure]
 
 

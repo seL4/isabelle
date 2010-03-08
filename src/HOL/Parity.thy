@@ -32,7 +32,7 @@ lemma transfer_int_nat_relations:
   "even (int x) \<longleftrightarrow> even x"
   by (simp add: even_nat_def)
 
-declare TransferMorphism_int_nat[transfer add return:
+declare transfer_morphism_int_nat[transfer add return:
   transfer_int_nat_relations
 ]
 
