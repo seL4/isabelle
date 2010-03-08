@@ -39,6 +39,7 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Discrete.thy \
   Deflation.thy \
   Domain.thy \
+  Domain_Aux.thy \
   Eventual.thy \
   Ffun.thy \
   Fixrec.thy \
