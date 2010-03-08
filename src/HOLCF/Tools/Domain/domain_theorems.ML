@@ -320,9 +320,7 @@ let
         in
           tacs1 @ maps cases_tacs (conss ~~ cases)
         end;
-    in pg'' thy [] goal tacf
-       handle ERROR _ => (warning "Proof of finite_ind failed."; TrueI)
-    end;
+    in pg'' thy [] goal tacf end;
 
 (* ----- theorems concerning finiteness and induction ----------------------- *)
 
@@ -330,7 +328,6 @@ let
 
   val _ = trace " Proving ind...";
   val ind =
-  (
     if is_finite
     then (* finite case *)
       let
@@ -387,16 +384,7 @@ let
                            asm_simp_tac HOL_basic_ss 1])
             ]
           end;
-        val ind = (pg'' thy [] goal tacf
-          handle ERROR _ =>
-            (warning "Cannot prove infinite induction rule"; TrueI)
-                  );
-      in ind end
-  )
-      handle THM _ =>
-             (warning "Induction proofs failed (THM raised)."; TrueI)
-           | ERROR _ =>
-             (warning "Cannot prove induction rule"; TrueI);
+      in pg'' thy [] goal tacf end;
 
 val case_ns =
   let
@@ -412,14 +400,11 @@ fun ind_rule (dname, rule) =
     ((Binding.empty, [rule]),
      [Rule_Cases.case_names case_ns, Induct.induct_type dname]);
 
-val induct_failed = (Thm.prop_of ind = Thm.prop_of TrueI);
-
 in thy |> Sign.add_path comp_dnam
        |> snd o PureThy.add_thmss [
            ((Binding.name "finite_ind" , [finite_ind]), []),
            ((Binding.name "ind"        , [ind]       ), [])]
-       |> (if induct_failed then I
-           else snd o PureThy.add_thmss (map ind_rule (dnames ~~ inducts)))
+       |> (snd o PureThy.add_thmss (map ind_rule (dnames ~~ inducts)))
        |> Sign.parent_path
 end; (* prove_induction *)
 
