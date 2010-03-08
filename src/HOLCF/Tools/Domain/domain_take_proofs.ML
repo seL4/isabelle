@@ -29,6 +29,10 @@ sig
   val define_take_functions :
     (binding * iso_info) list -> theory -> take_info * theory
 
+  val add_lub_take_theorems :
+    (binding * iso_info) list -> take_info -> thm list ->
+    theory -> unit * theory
+
   val map_of_typ :
     theory -> (typ * term) list -> typ -> term
 
@@ -420,6 +424,52 @@ fun define_take_functions
         finite_consts = finite_consts,
         finite_defs = finite_defs
       };
+
+  in
+    (result, thy)
+  end;
+
+fun add_lub_take_theorems
+    (spec : (binding * iso_info) list)
+    (take_info : take_info)
+    (lub_take_thms : thm list)
+    (thy : theory) =
+  let
+
+    (* retrieve components of spec *)
+    val dom_binds = map fst spec;
+    val iso_infos = map snd spec;
+    val dom_eqns = map (fn x => (#absT x, #repT x)) iso_infos;
+    val dnames = map Binding.name_of dom_binds;
+    val {chain_take_thms, deflation_take_thms, ...} = take_info;
+
+    (* prove take lemmas *)
+    fun prove_take_lemma ((chain_take, lub_take), dname) thy =
+      let
+        val take_lemma =
+            Drule.export_without_context
+              (@{thm lub_ID_take_lemma} OF [chain_take, lub_take]);
+      in
+        add_qualified_thm "take_lemma" (dname, take_lemma) thy
+      end;
+    val (take_lemma_thms, thy) =
+      fold_map prove_take_lemma
+        (chain_take_thms ~~ lub_take_thms ~~ dnames) thy;
+
+    (* prove reach lemmas *)
+    fun prove_reach_lemma ((chain_take, lub_take), dname) thy =
+      let
+        val thm =
+            Drule.export_without_context
+              (@{thm lub_ID_reach} OF [chain_take, lub_take]);
+      in
+        add_qualified_thm "reach" (dname, thm) thy
+      end;
+    val (reach_thms, thy) =
+      fold_map prove_reach_lemma
+        (chain_take_thms ~~ lub_take_thms ~~ dnames) thy;
+
+    val result = ();
 
   in
     (result, thy)

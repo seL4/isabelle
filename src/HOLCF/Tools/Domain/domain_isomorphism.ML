@@ -644,6 +644,10 @@ fun gen_domain_isomorphism
         fold_map prove_lub_take
           (dom_binds ~~ take_consts ~~ map_ID_thms ~~ dom_eqns) thy;
 
+    (* prove additional take theorems *)
+    val (take_info2, thy) =
+        Domain_Take_Proofs.add_lub_take_theorems
+          (dom_binds ~~ iso_infos) take_info lub_take_thms thy;
   in
     (iso_infos, thy)
   end;

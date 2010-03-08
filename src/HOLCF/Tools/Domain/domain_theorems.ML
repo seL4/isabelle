@@ -631,28 +631,9 @@ end;
 
 local
   fun ga s dn = PureThy.get_thm thy (dn ^ "." ^ s);
-  val axs_chain_take = map (ga "chain_take") dnames;
-  val axs_lub_take   = map (ga "lub_take"  ) dnames;
-  fun take_thms ((ax_chain_take, ax_lub_take), dname) thy =
-    let
-      val dnam = Long_Name.base_name dname;
-      val take_lemma =
-          Drule.export_without_context
-            (@{thm lub_ID_take_lemma} OF [ax_chain_take, ax_lub_take]);
-      val reach =
-          Drule.export_without_context
-            (@{thm lub_ID_reach} OF [ax_chain_take, ax_lub_take]);
-      val thy =
-          thy |> Sign.add_path dnam
-              |> snd o PureThy.add_thms [
-                 ((Binding.name "take_lemma", take_lemma), []),
-                 ((Binding.name "reach"     , reach     ), [])]
-              |> Sign.parent_path;
-    in ((take_lemma, reach), thy) end;
 in
-  val ((take_lemmas, axs_reach), thy) =
-      fold_map take_thms (axs_chain_take ~~ axs_lub_take ~~ dnames) thy
-      |>> ListPair.unzip;
+  val take_lemmas = map (ga "take_lemma") dnames;
+  val axs_reach   = map (ga "reach"     ) dnames;
 end;
 
 val take_rews =
