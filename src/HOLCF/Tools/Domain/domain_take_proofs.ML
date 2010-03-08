@@ -31,7 +31,7 @@ sig
 
   val add_lub_take_theorems :
     (binding * iso_info) list -> take_info -> thm list ->
-    theory -> unit * theory
+    theory -> thm list * theory
 
   val map_of_typ :
     theory -> (typ * term) list -> typ -> term
@@ -429,6 +429,80 @@ fun define_take_functions
     (result, thy)
   end;
 
+fun prove_finite_take_induct
+    (spec : (binding * iso_info) list)
+    (take_info : take_info)
+    (lub_take_thms : thm list)
+    (thy : theory) =
+  let
+    val dom_binds = map fst spec;
+    val iso_infos = map snd spec;
+    val absTs = map #absT iso_infos;
+    val dnames = map Binding.name_of dom_binds;
+    val {take_consts, ...} = take_info;
+    val {chain_take_thms, take_0_thms, take_Suc_thms, ...} = take_info;
+    val {finite_consts, finite_defs, ...} = take_info;
+
+    val decisive_lemma =
+      let
+        fun iso_locale info =
+            @{thm iso.intro} OF [#abs_inverse info, #rep_inverse info];
+        val iso_locale_thms = map iso_locale iso_infos;
+        val decisive_abs_rep_thms =
+            map (fn x => @{thm decisive_abs_rep} OF [x]) iso_locale_thms;
+        val n = Free ("n", @{typ nat});
+        fun mk_decisive t =
+            Const (@{const_name decisive}, fastype_of t --> boolT) $ t;
+        fun f take_const = mk_decisive (take_const $ n);
+        val goal = mk_trp (foldr1 mk_conj (map f take_consts));
+        val rules0 = @{thm decisive_bottom} :: take_0_thms;
+        val rules1 =
+            take_Suc_thms @ decisive_abs_rep_thms
+            @ @{thms decisive_ID decisive_ssum_map decisive_sprod_map};
+        val tac = EVERY [
+            rtac @{thm nat.induct} 1,
+            simp_tac (HOL_ss addsimps rules0) 1,
+            asm_simp_tac (HOL_ss addsimps rules1) 1];
+      in Goal.prove_global thy [] [] goal (K tac) end;
+    fun conjuncts 1 thm = [thm]
+      | conjuncts n thm = let
+          val thmL = thm RS @{thm conjunct1};
+          val thmR = thm RS @{thm conjunct2};
+        in thmL :: conjuncts (n-1) thmR end;
+    val decisive_thms = conjuncts (length spec) decisive_lemma;
+
+    fun prove_finite_thm (absT, finite_const) =
+      let
+        val goal = mk_trp (finite_const $ Free ("x", absT));
+        val tac =
+            EVERY [
+            rewrite_goals_tac finite_defs,
+            rtac @{thm lub_ID_finite} 1,
+            resolve_tac chain_take_thms 1,
+            resolve_tac lub_take_thms 1,
+            resolve_tac decisive_thms 1];
+      in
+        Goal.prove_global thy [] [] goal (K tac)
+      end;
+    val finite_thms =
+        map prove_finite_thm (absTs ~~ finite_consts);
+
+    fun prove_take_induct ((ch_take, lub_take), decisive) =
+        Drule.export_without_context
+          (@{thm lub_ID_finite_take_induct} OF [ch_take, lub_take, decisive]);
+    val take_induct_thms =
+        map prove_take_induct
+          (chain_take_thms ~~ lub_take_thms ~~ decisive_thms);
+
+    val thy = thy
+        |> fold (snd oo add_qualified_thm "finite")
+            (dnames ~~ finite_thms)
+        |> fold (snd oo add_qualified_thm "take_induct")
+            (dnames ~~ take_induct_thms);
+  in
+    ((finite_thms, take_induct_thms), thy)
+  end;
+
 fun add_lub_take_theorems
     (spec : (binding * iso_info) list)
     (take_info : take_info)
@@ -439,8 +513,10 @@ fun add_lub_take_theorems
     (* retrieve components of spec *)
     val dom_binds = map fst spec;
     val iso_infos = map snd spec;
-    val dom_eqns = map (fn x => (#absT x, #repT x)) iso_infos;
+    val absTs = map #absT iso_infos;
+    val repTs = map #repT iso_infos;
     val dnames = map Binding.name_of dom_binds;
+    val {take_consts, take_0_thms, take_Suc_thms, ...} = take_info;
     val {chain_take_thms, deflation_take_thms, ...} = take_info;
 
     (* prove take lemmas *)
@@ -469,8 +545,41 @@ fun add_lub_take_theorems
       fold_map prove_reach_lemma
         (chain_take_thms ~~ lub_take_thms ~~ dnames) thy;
 
-    val result = ();
+    (* test for finiteness of domain definitions *)
+    local
+      val types = [@{type_name ssum}, @{type_name sprod}];
+      fun finite d T = if T mem absTs then d else finite' d T
+      and finite' d (Type (c, Ts)) =
+          let val d' = d andalso c mem types;
+          in forall (finite d') Ts end
+        | finite' d _ = true;
+    in
+      val is_finite = forall (finite true) repTs;
+    end;
 
+    val ((finite_thms, take_induct_thms), thy) =
+      if is_finite
+      then
+        let
+          val ((finites, take_inducts), thy) =
+              prove_finite_take_induct spec take_info lub_take_thms thy;
+        in
+          ((SOME finites, take_inducts), thy)
+        end
+      else
+        let
+          fun prove_take_induct (chain_take, lub_take) =
+              Drule.export_without_context
+                (@{thm lub_ID_take_induct} OF [chain_take, lub_take]);
+          val take_inducts =
+              map prove_take_induct (chain_take_thms ~~ lub_take_thms);
+          val thy = fold (snd oo add_qualified_thm "take_induct")
+                         (dnames ~~ take_inducts) thy;
+        in
+          ((NONE, take_inducts), thy)
+        end;
+
+    val result = take_induct_thms;
   in
     (result, thy)
   end;

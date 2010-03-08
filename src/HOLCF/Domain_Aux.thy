@@ -163,6 +163,15 @@ lemma lub_ID_reach:
   shows "(\<Squnion>n. t n\<cdot>x) = x"
 using assms by (simp add: lub_distribs)
 
+lemma lub_ID_take_induct:
+  assumes "chain t" and "(\<Squnion>n. t n) = ID"
+  assumes "adm P" and "\<And>n. P (t n\<cdot>x)" shows "P x"
+proof -
+  from `chain t` have "chain (\<lambda>n. t n\<cdot>x)" by simp
+  from `adm P` this `\<And>n. P (t n\<cdot>x)` have "P (\<Squnion>n. t n\<cdot>x)" by (rule admD)
+  with `chain t` `(\<Squnion>n. t n) = ID` show "P x" by (simp add: lub_distribs)
+qed
+
 
 subsection {* Finiteness *}
 
@@ -241,6 +250,11 @@ proof -
     unfolding finite_chain_def by (auto simp add: maxinch_is_thelub)
   with 2 show "\<exists>n. d n\<cdot>x = x" by (auto elim: sym)
 qed
+
+lemma lub_ID_finite_take_induct:
+  assumes "chain d" and "(\<Squnion>n. d n) = ID" and "\<And>n. decisive (d n)"
+  shows "(\<And>n. P (d n\<cdot>x)) \<Longrightarrow> P x"
+using lub_ID_finite [OF assms] by metis
 
 subsection {* ML setup *}
 
