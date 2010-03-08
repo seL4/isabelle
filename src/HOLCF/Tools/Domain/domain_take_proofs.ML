@@ -26,12 +26,19 @@ sig
       finite_consts : term list,
       finite_defs : thm list
     }
+  type take_induct_info =
+    {
+      reach_thms : thm list,
+      take_lemma_thms : thm list,
+      is_finite : bool,
+      take_induct_thms : thm list
+    }
   val define_take_functions :
     (binding * iso_info) list -> theory -> take_info * theory
 
   val add_lub_take_theorems :
     (binding * iso_info) list -> take_info -> thm list ->
-    theory -> thm list * theory
+    theory -> take_induct_info * theory
 
   val map_of_typ :
     theory -> (typ * term) list -> typ -> term
@@ -65,6 +72,14 @@ type take_info =
     deflation_take_thms : thm list,
     finite_consts : term list,
     finite_defs : thm list
+  };
+
+type take_induct_info =
+  {
+    reach_thms : thm list,
+    take_lemma_thms : thm list,
+    is_finite : bool,
+    take_induct_thms : thm list
   };
 
 val beta_ss =
@@ -579,7 +594,13 @@ fun add_lub_take_theorems
           ((NONE, take_inducts), thy)
         end;
 
-    val result = take_induct_thms;
+    val result =
+      {
+        reach_thms = reach_thms,
+        take_lemma_thms = take_lemma_thms,
+        is_finite = is_finite,
+        take_induct_thms = take_induct_thms
+      };
   in
     (result, thy)
   end;
