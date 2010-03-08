@@ -11,6 +11,7 @@ sig
        * (binding * binding) option) list ->
       theory ->
       (Domain_Take_Proofs.iso_info list
+       * Domain_Take_Proofs.take_info
        * Domain_Take_Proofs.take_induct_info) * theory
 
   val domain_isomorphism_cmd :
@@ -270,6 +271,7 @@ fun gen_domain_isomorphism
     (doms_raw: (string list * binding * mixfix * 'a * (binding * binding) option) list)
     (thy: theory)
     : (Domain_Take_Proofs.iso_info list
+       * Domain_Take_Proofs.take_info
        * Domain_Take_Proofs.take_induct_info) * theory =
   let
     val _ = Theory.requires thy "Representable" "domain isomorphisms";
@@ -654,7 +656,7 @@ fun gen_domain_isomorphism
         Domain_Take_Proofs.add_lub_take_theorems
           (dom_binds ~~ iso_infos) take_info lub_take_thms thy;
   in
-    ((iso_infos, take_info2), thy)
+    ((iso_infos, take_info, take_info2), thy)
   end;
 
 val domain_isomorphism = gen_domain_isomorphism cert_typ;

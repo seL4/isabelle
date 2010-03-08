@@ -17,6 +17,7 @@ sig
 
   val comp_theorems :
       bstring * Domain_Library.eq list ->
+      Domain_Take_Proofs.take_info ->
       Domain_Take_Proofs.take_induct_info ->
       theory -> thm list * theory
 
@@ -211,6 +212,7 @@ fun prove_induction
     (take_lemmas : thm list)
     (axs_reach : thm list)
     (take_rews : thm list)
+    (take_info : Domain_Take_Proofs.take_info)
     (thy : theory) =
 let
   val dnames = map (fst o fst) eqs;
@@ -229,11 +231,11 @@ let
     val axs_chain_take = map (ga "chain_take") dnames;
     val lub_take_thms = map (ga "lub_take") dnames;
     val axs_finite_def = map (ga "finite_def") dnames;
-    val take_0_thms = map (ga "take_0") dnames;
-    val take_Suc_thms = map (ga "take_Suc") dnames;
     val cases = map (ga  "casedist" ) dnames;
     val con_rews  = maps (gts "con_rews" ) dnames;
   end;
+
+  val {take_0_thms, take_Suc_thms, ...} = take_info;
 
   fun one_con p (con, args) =
     let
@@ -610,6 +612,7 @@ end; (* let *)
 
 fun comp_theorems
     (comp_dnam : string, eqs : eq list)
+    (take_info : Domain_Take_Proofs.take_info)
     (take_induct_info : Domain_Take_Proofs.take_induct_info)
     (thy : theory) =
 let
@@ -645,7 +648,7 @@ val take_rews =
 (* prove induction rules, unless definition is indirect recursive *)
 val thy =
     if is_indirect then thy else
-    prove_induction (comp_dnam, eqs) take_lemmas axs_reach take_rews thy;
+    prove_induction (comp_dnam, eqs) take_lemmas axs_reach take_rews take_info thy;
 
 val thy =
     if is_indirect then thy else
