@@ -15,7 +15,11 @@ sig
     -> Domain_Take_Proofs.iso_info
     -> theory -> thm list * theory;
 
-  val comp_theorems: bstring * Domain_Library.eq list -> theory -> thm list * theory;
+  val comp_theorems :
+      bstring * Domain_Library.eq list ->
+      Domain_Take_Proofs.take_induct_info ->
+      theory -> thm list * theory
+
   val quiet_mode: bool Unsynchronized.ref;
   val trace_domain: bool Unsynchronized.ref;
 end;
@@ -604,7 +608,10 @@ in thy |> Sign.add_path comp_dnam
        |> Sign.parent_path
 end; (* let *)
 
-fun comp_theorems (comp_dnam, eqs: eq list) thy =
+fun comp_theorems
+    (comp_dnam : string, eqs : eq list)
+    (take_induct_info : Domain_Take_Proofs.take_induct_info)
+    (thy : theory) =
 let
 val map_tab = Domain_Take_Proofs.get_map_tab thy;
 
@@ -629,12 +636,8 @@ end;
 
 (* theorems about take *)
 
-local
-  fun ga s dn = PureThy.get_thm thy (dn ^ "." ^ s);
-in
-  val take_lemmas = map (ga "take_lemma") dnames;
-  val axs_reach   = map (ga "reach"     ) dnames;
-end;
+val take_lemmas = #take_lemma_thms take_induct_info;
+val axs_reach = #reach_thms take_induct_info;
 
 val take_rews =
     maps (fn dn => PureThy.get_thms thy (dn ^ ".take_rews")) dnames;

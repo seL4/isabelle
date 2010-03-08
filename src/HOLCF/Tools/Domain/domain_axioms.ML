@@ -16,7 +16,8 @@ sig
 
   val add_axioms :
       (binding * (typ * typ)) list -> theory ->
-      Domain_Take_Proofs.iso_info list * theory
+      (Domain_Take_Proofs.iso_info list
+       * Domain_Take_Proofs.take_induct_info) * theory
 end;
 
 
@@ -126,7 +127,7 @@ fun add_axioms
           (map fst dom_eqns ~~ iso_infos) take_info lub_take_thms thy;
 
   in
-    (iso_infos, thy) (* TODO: also return take_info, lub_take_thms *)
+    ((iso_infos, take_info2), thy) (* TODO: also return take_info, lub_take_thms *)
   end;
 
 end; (* struct *)
