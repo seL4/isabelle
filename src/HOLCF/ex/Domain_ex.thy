@@ -166,7 +166,7 @@ thm tree.take_rews
 thm tree.chain_take
 thm tree.take_take
 thm tree.deflation_take
-thm tree.take_lemmas
+thm tree.take_lemma
 thm tree.lub_take
 thm tree.reach
 thm tree.finite_ind

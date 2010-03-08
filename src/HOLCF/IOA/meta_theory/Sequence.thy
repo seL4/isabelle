@@ -850,7 +850,7 @@ subsection "take_lemma"
 
 lemma seq_take_lemma: "(!n. seq_take n$x = seq_take n$x') = (x = x')"
 apply (rule iffI)
-apply (rule seq.take_lemmas)
+apply (rule seq.take_lemma)
 apply auto
 done
 
@@ -936,7 +936,7 @@ lemma take_lemma_principle2:
                ==> A x --> (f x)=(g x)"
 apply (case_tac "Forall Q x")
 apply (auto dest!: divide_Seq3)
-apply (rule seq.take_lemmas)
+apply (rule seq.take_lemma)
 apply auto
 done
 
@@ -957,7 +957,7 @@ lemma take_lemma_induct:
                               = seq_take (Suc n)$(g (s1 @@ y>>s2)) |]
                ==> A x --> (f x)=(g x)"
 apply (rule impI)
-apply (rule seq.take_lemmas)
+apply (rule seq.take_lemma)
 apply (rule mp)
 prefer 2 apply assumption
 apply (rule_tac x="x" in spec)
@@ -978,7 +978,7 @@ lemma take_lemma_less_induct:
                               = seq_take n$(g (s1 @@ y>>s2)) |]
                ==> A x --> (f x)=(g x)"
 apply (rule impI)
-apply (rule seq.take_lemmas)
+apply (rule seq.take_lemma)
 apply (rule mp)
 prefer 2 apply assumption
 apply (rule_tac x="x" in spec)
@@ -1000,7 +1000,7 @@ lemma take_lemma_in_eq_out:
                          = seq_take (Suc n)$(g (y>>s)) |]
                ==> A x --> (f x)=(g x)"
 apply (rule impI)
-apply (rule seq.take_lemmas)
+apply (rule seq.take_lemma)
 apply (rule mp)
 prefer 2 apply assumption
 apply (rule_tac x="x" in spec)

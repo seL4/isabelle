@@ -845,7 +845,7 @@ apply (subgoal_tac "stream_take (Suc na)$s1 =
 by blast+
 
 lemma pointwise_eq_lemma[rule_format]: "ALL n. i_th n s1 = i_th n s2 ==> s1 = s2"
-by (insert i_th_stream_take_eq [THEN stream.take_lemmas],blast)
+by (insert i_th_stream_take_eq [THEN stream.take_lemma],blast)
 
 (* ----------------------------------------------------------------------- *)
    subsection "finiteness"
@@ -912,7 +912,7 @@ apply (case_tac "#s1")
    apply (simp+,rule slen_take_lemma3 [of _ s1 s2])
   apply (simp+,rule_tac x="UU" in exI)
 apply (insert slen_take_lemma3 [of _ s1 s2])
-by (rule stream.take_lemmas,simp)
+by (rule stream.take_lemma,simp)
 
 (* ----------------------------------------------------------------------- *)
    subsection "continuity"

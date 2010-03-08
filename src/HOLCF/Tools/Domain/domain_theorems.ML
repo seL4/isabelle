@@ -633,20 +633,26 @@ local
   fun ga s dn = PureThy.get_thm thy (dn ^ "." ^ s);
   val axs_chain_take = map (ga "chain_take") dnames;
   val axs_lub_take   = map (ga "lub_take"  ) dnames;
-in
-  val _ = trace " Proving take_lemmas...";
-  val take_lemmas =
+  fun take_thms ((ax_chain_take, ax_lub_take), dname) thy =
     let
-      fun take_lemma (ax_chain_take, ax_lub_take) =
+      val dnam = Long_Name.base_name dname;
+      val take_lemma =
           Drule.export_without_context
             (@{thm lub_ID_take_lemma} OF [ax_chain_take, ax_lub_take]);
-    in map take_lemma (axs_chain_take ~~ axs_lub_take) end;
-  val axs_reach =
-    let
-      fun reach (ax_chain_take, ax_lub_take) =
+      val reach =
           Drule.export_without_context
             (@{thm lub_ID_reach} OF [ax_chain_take, ax_lub_take]);
-    in map reach (axs_chain_take ~~ axs_lub_take) end;
+      val thy =
+          thy |> Sign.add_path dnam
+              |> snd o PureThy.add_thms [
+                 ((Binding.name "take_lemma", take_lemma), []),
+                 ((Binding.name "reach"     , reach     ), [])]
+              |> Sign.parent_path;
+    in ((take_lemma, reach), thy) end;
+in
+  val ((take_lemmas, axs_reach), thy) =
+      fold_map take_thms (axs_chain_take ~~ axs_lub_take ~~ dnames) thy
+      |>> ListPair.unzip;
 end;
 
 val take_rews =
@@ -661,10 +667,7 @@ val thy =
     if is_indirect then thy else
     prove_coinduction (comp_dnam, eqs) take_lemmas thy;
 
-in thy |> Sign.add_path comp_dnam
-       |> snd o PureThy.add_thmss [
-           ((Binding.name "take_lemmas", take_lemmas ), []),
-           ((Binding.name "reach"      , axs_reach   ), [])]
-       |> Sign.parent_path |> pair take_rews
+in
+  (take_rews, thy)
 end; (* let *)
 end; (* struct *)

@@ -52,7 +52,7 @@ lemma lemma5: "y && YYS = YYS"
   done
 
 lemma wir_moel: "YS = YYS"
-  apply (rule stream.take_lemmas)
+  apply (rule stream.take_lemma)
   apply (induct_tac n)
   apply (simp (no_asm))
   apply (subst YS_def2)

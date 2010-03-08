@@ -467,7 +467,7 @@ lemma FilterAmksch_is_schA: "!! A B. [| compatible A B; compatible B A;
   LastActExtsch A schA & LastActExtsch B schB   
   --> Filter (%a. a:act A)$(mksch A B$tr$schA$schB) = schA"
 apply (intro strip)
-apply (rule seq.take_lemmas)
+apply (rule seq.take_lemma)
 apply (rule mp)
 prefer 2 apply assumption
 back back back back
@@ -687,7 +687,7 @@ lemma FilterBmksch_is_schB: "!! A B. [| compatible A B; compatible B A;
   LastActExtsch A schA & LastActExtsch B schB   
   --> Filter (%a. a:act B)$(mksch A B$tr$schA$schB) = schB"
 apply (intro strip)
-apply (rule seq.take_lemmas)
+apply (rule seq.take_lemma)
 apply (rule mp)
 prefer 2 apply assumption
 back back back back

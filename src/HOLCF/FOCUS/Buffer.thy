@@ -284,7 +284,7 @@ apply (fast)
 done
 
 lemma BufAC_Asm_cong: "\<lbrakk>f \<in> BufEq; ff \<in> BufEq; s \<in> BufAC_Asm\<rbrakk> \<Longrightarrow> f\<cdot>s = ff\<cdot>s"
-apply (rule stream.take_lemmas)
+apply (rule stream.take_lemma)
 apply (erule (2) BufAC_Asm_cong_lemma)
 done
 
