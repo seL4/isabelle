@@ -16,9 +16,7 @@ sig
       abs_inverse : thm,
       rep_inverse : thm
     }
-
-  val define_take_functions :
-    (binding * iso_info) list -> theory ->
+  type take_info =
     { take_consts : term list,
       take_defs : thm list,
       chain_take_thms : thm list,
@@ -27,7 +25,9 @@ sig
       deflation_take_thms : thm list,
       finite_consts : term list,
       finite_defs : thm list
-    } * theory
+    }
+  val define_take_functions :
+    (binding * iso_info) list -> theory -> take_info * theory
 
   val map_of_typ :
     theory -> (typ * term) list -> typ -> term
@@ -50,6 +50,17 @@ type iso_info =
     rep_const : term,
     abs_inverse : thm,
     rep_inverse : thm
+  };
+
+type take_info =
+  { take_consts : term list,
+    take_defs : thm list,
+    chain_take_thms : thm list,
+    take_0_thms : thm list,
+    take_Suc_thms : thm list,
+    deflation_take_thms : thm list,
+    finite_consts : term list,
+    finite_defs : thm list
   };
 
 val beta_ss =
