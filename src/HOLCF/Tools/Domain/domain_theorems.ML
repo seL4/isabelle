@@ -215,7 +215,7 @@ let
   val dnames = map (fst o fst) eqs;
   val conss  = map  snd        eqs;
   fun dc_take dn = %%:(dn^"_take");
-  val x_name = idx_name dnames "x"; 
+  val x_name = idx_name dnames "x";
   val P_name = idx_name dnames "P";
   val pg = pg' thy;
 
@@ -229,6 +229,7 @@ let
     val con_rews  = maps (gts "con_rews" ) dnames;
   end;
 
+  val {take_consts, ...} = take_info;
   val {take_0_thms, take_Suc_thms, chain_take_thms, ...} = take_info;
   val {lub_take_thms, finite_defs, reach_thms, ...} = take_info;
   val {take_induct_thms, ...} = take_info;
@@ -357,14 +358,26 @@ let
             @{thms cont_id cont_const cont2cont_Rep_CFun
                    cont2cont_fst cont2cont_snd};
         val subgoal =
-          let fun p n dn = %:(P_name n) $ (dc_take dn $ Bound 0 `%(x_name n));
-          in mk_trp (mk_all ("n", foldr1 mk_conj (mapn p 1 dnames))) end;
-        val subgoal' = legacy_infer_term thy subgoal;
+          let
+            val Ts = map (Type o fst) eqs;
+            val P_names = Datatype_Prop.indexify_names (map (K "P") dnames);
+            val x_names = Datatype_Prop.indexify_names (map (K "x") dnames);
+            val P_types = map (fn T => T --> HOLogic.boolT) Ts;
+            val Ps = map Free (P_names ~~ P_types);
+            val xs = map Free (x_names ~~ Ts);
+            val n = Free ("n", HOLogic.natT);
+            val goals =
+                map (fn ((P,t),x) => P $ HOLCF_Library.mk_capply (t $ n, x))
+                  (Ps ~~ take_consts ~~ xs);
+          in
+            HOLogic.mk_Trueprop
+            (HOLogic.mk_all ("n", HOLogic.natT, foldr1 HOLogic.mk_conj goals))
+          end;
         fun tacf {prems, context} =
           let
             val subtac =
                 EVERY [rtac allI 1, rtac finite_ind 1, ind_prems_tac prems];
-            val subthm = Goal.prove context [] [] subgoal' (K subtac);
+            val subthm = Goal.prove context [] [] subgoal (K subtac);
           in
             map (fn ax_reach => rtac (ax_reach RS subst) 1) reach_thms @ [
             cut_facts_tac (subthm :: take (length dnames) prems) 1,
