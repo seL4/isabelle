@@ -997,4 +997,25 @@ lemma finite_additivity_sufficient:
       \<Longrightarrow> measure_space M"
   by (rule measure_down [OF sigma_algebra.finite_additivity_sufficient], auto) 
 
+lemma (in measure_space) measure_setsum_split:
+  assumes "finite r" and "a \<in> sets M" and br_in_M: "b ` r \<subseteq> sets M"
+  assumes "(\<Union>i \<in> r. b i) = space M"
+  assumes "disjoint_family_on b r"
+  shows "(measure M) a = (\<Sum> i \<in> r. measure M (a \<inter> (b i)))"
+proof -
+  have *: "measure M a = measure M (\<Union>i \<in> r. a \<inter> b i)"
+    using assms by auto
+  show ?thesis unfolding *
+  proof (rule measure_finitely_additive''[symmetric])
+    show "finite r" using `finite r` by auto
+    { fix i assume "i \<in> r"
+      hence "b i \<in> sets M" using br_in_M by auto
+      thus "a \<inter> b i \<in> sets M" using `a \<in> sets M` by auto
+    }
+    show "disjoint_family_on (\<lambda>i. a \<inter> b i) r"
+      using `disjoint_family_on b r`
+      unfolding disjoint_family_on_def by auto
+  qed
+qed
+
 end
