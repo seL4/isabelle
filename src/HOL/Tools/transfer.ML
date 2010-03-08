@@ -1,11 +1,16 @@
-(*  Author:     Amine Chaieb, University of Cambridge, 2009
-    Author:     Jeremy Avigad, Carnegie Mellon University
+(*  Author:   Amine Chaieb, University of Cambridge, 2009
+              Jeremy Avigad, Carnegie Mellon University
+              Florian Haftmann, TU Muenchen
+
+Simple transfer principle on theorems.
 *)
 
 signature TRANSFER =
 sig
+  datatype selection = Direction of term * term | Hints of string list | Prop
+  val transfer: Context.generic -> selection -> string list -> thm -> thm
   type entry
-  val get: Proof.context -> (thm * entry) list
+  val add: entry * entry -> thm -> Context.generic -> Context.generic
   val del: thm -> Context.generic -> Context.generic
   val setup: theory -> theory
 end;
@@ -15,12 +20,14 @@ struct
 
 (* data administration *)
 
+val direction_of = Thm.dest_binop o Thm.dest_arg o cprop_of;
+
 fun check_morphism_key ctxt key =
   let
     val _ = (Thm.match o pairself Thm.cprop_of) (@{thm transfer_morphismI}, key)
       handle Pattern.MATCH => error
-        ("Expected theorem of the form " ^ quote (Display.string_of_thm ctxt @{thm transfer_morphismI}));
-  in (Thm.dest_binop o Thm.dest_arg o Thm.cprop_of) key end;
+        ("Transfer: expected theorem of the form " ^ quote (Display.string_of_thm ctxt @{thm transfer_morphismI}));
+  in direction_of key end;
 
 type entry = { inj : thm list, emb : thm list, ret : thm list, cong : thm list,
   guess : bool, hints : string list };
@@ -35,23 +42,61 @@ structure Data = Generic_Data
 (
   type T = (thm * entry) list;
   val empty = [];
-  val extend  = I;
+  val extend = I;
   val merge = AList.join Thm.eq_thm (K merge_entry);
 );
 
-val get = Data.get o Context.Proof;
 
-fun del key = Data.map (remove (eq_fst Thm.eq_thm) (key, []));
+(* data lookup *)
 
-val del_attribute = Thm.declaration_attribute del;
+fun get_by_direction context (a, D) =
+  let
+    val ctxt = Context.proof_of context;
+    val certify = Thm.cterm_of (Context.theory_of context);
+    val a0 = certify a;
+    val D0 = certify D;
+    fun eq_direction ((a, D), thm') =
+      let
+        val (a', D') = direction_of thm';
+      in a0 aconvc a' andalso D0 aconvc D' end;
+  in case AList.lookup eq_direction (Data.get context) (a, D) of
+      SOME e => ((a0, D0), e)
+    | NONE => error ("Transfer: no such instance: ("
+        ^ Syntax.string_of_term ctxt a ^ ", " ^ Syntax.string_of_term ctxt D ^ ")")
+  end;
+
+fun get_by_hints context hints =
+  let
+    val insts = map_filter (fn (k, e) => if exists (member (op =) (#hints e)) hints
+      then SOME (direction_of k, e) else NONE) (Data.get context);
+    val _ = if null insts then error ("Transfer: no such labels: " ^ commas (map quote hints)) else ();
+  in insts end;
+
+fun splits P [] = []
+  | splits P (xs as (x :: _)) =
+      let
+        val (pss, qss) = List.partition (P x) xs;
+      in if null pss then [qss] else if null qss then [pss] else pss :: splits P qss end;
+
+fun get_by_prop context t =
+  let
+    val tys = map snd (Term.add_vars t []);
+    val _ = if null tys then error "Transfer: unable to guess instance" else ();
+    val tyss = splits (curry Type.could_unify) tys;
+    val get_ty = typ_of o ctyp_of_term o fst o direction_of;
+    val insts = map_filter (fn tys => get_first (fn (k, ss) =>
+      if Type.could_unify (hd tys, range_type (get_ty k))
+      then SOME (direction_of k, ss)
+      else NONE) (Data.get context)) tyss;
+    val _ = if null insts then
+      error "Transfer: no instances, provide direction or hints explicitly" else ();
+  in insts end;
 
 
 (* applying transfer data *)
 
-fun build_simpset inj_only {inj = inj, emb = emb, ret = ret, cong = cg, guess = g, hints = hints} =
-  HOL_ss addsimps inj addsimps (if inj_only then [] else emb @ ret) addcongs cg;
-
-fun basic_transfer_rule inj_only a0 D0 e leave ctxt0 th =
+fun transfer_thm inj_only a0 D0 {inj = inj, emb = emb, ret = ret, cong = cg, guess = _, hints = _}
+    leave ctxt0 th =
   let
     val ([a, D], ctxt) = apfst (map Drule.dest_term o snd)
       (Variable.import true (map Drule.mk_term [a0, D0]) ctxt0);
@@ -66,81 +111,32 @@ fun basic_transfer_rule inj_only a0 D0 e leave ctxt0 th =
     val certify = Thm.cterm_of (ProofContext.theory_of ctxt'');
     val cns = map (certify o Var) ns;
     val cfis = map (certify o (fn n => Free (n, bT))) ins;
-    val cis = map (Thm.capply a) cfis
+    val cis = map (Thm.capply a) cfis;
     val (hs, ctxt''') = Assumption.add_assumes (map (fn ct =>
       Thm.capply @{cterm "Trueprop"} (Thm.capply D ct)) cfis) ctxt'';
     val th1 = Drule.cterm_instantiate (cns ~~ cis) th;
     val th2 = fold Thm.elim_implies hs (fold_rev implies_intr (map cprop_of hs) th1);
-    val th3 = Simplifier.asm_full_simplify (Simplifier.context ctxt'''
-      (build_simpset inj_only e)) (fold_rev implies_intr (map cprop_of hs) th2);
+    val simpset = (Simplifier.context ctxt''' HOL_ss)
+      addsimps inj addsimps (if inj_only then [] else emb @ ret) addcongs cg;
+    val th3 = Simplifier.asm_full_simplify simpset
+      (fold_rev implies_intr (map cprop_of hs) th2);
   in hd (Variable.export ctxt''' ctxt0 [th3]) end;
 
-fun transfer_rule (a, D) leave (gctxt, th) =
-  let
-    fun transfer_ruleh a D leave ctxt th =
-      let
-        val al = get ctxt;
-        val certify = Thm.cterm_of (ProofContext.theory_of ctxt);
-        val a0 = certify a;
-        val D0 = certify D;
-        fun h (th', e) =
-          let
-            val (a',D') = (Thm.dest_binop o Thm.dest_arg o cprop_of) th'
-          in if a0 aconvc a' andalso D0 aconvc D' then SOME e else NONE end;
-      in case get_first h al of
-          SOME e => basic_transfer_rule false a0 D0 e leave ctxt th
-        | NONE => error "Transfer: corresponding instance not found in context data"
-      end;
-  in 
-    (gctxt, transfer_ruleh a D leave (Context.proof_of gctxt) th)
-  end;
+fun transfer_thm_multiple inj_only insts leave ctxt thm =
+  Conjunction.intr_balanced (map
+    (fn ((a, D), e) => transfer_thm false a D e leave ctxt thm) insts);
 
-fun splits P [] = []
-  | splits P (xxs as (x :: xs)) =
-      let
-        val pss = filter (P x) xxs;
-        val qss = filter_out (P x) xxs;
-      in if null pss then [qss] else if null qss then [pss] else pss:: splits P qss end;
+datatype selection = Direction of term * term | Hints of string list | Prop;
 
-fun all_transfers leave (gctxt, th) =
-  let
-    val ctxt = Context.proof_of gctxt;
-    val tys = map snd (Term.add_vars (prop_of th) []);
-    val _ = if null tys then error "transfer: Unable to guess instance" else ();
-    val tyss = splits (curry Type.could_unify) tys;
-    val get_ty = typ_of o ctyp_of_term o fst o Thm.dest_binop o Thm.dest_arg o cprop_of;
-    val get_aD = Thm.dest_binop o Thm.dest_arg o cprop_of;
-    val insts =
-      map_filter (fn tys =>
-        get_first (fn (k,ss) =>
-          if Type.could_unify (hd tys, range_type (get_ty k))
-          then SOME (get_aD k, ss)
-          else NONE) (get ctxt)) tyss;
-    val _ =
-      if null insts then
-        error "Transfer guesser: there were no possible instances, use direction: in order to provide a direction"
-      else ();
-    val ths = map (fn ((a, D), e) => basic_transfer_rule false a D e leave ctxt th) insts;
-    val cth = Conjunction.intr_balanced ths;
-  in (gctxt, cth) end;
+fun insts_for context thm (Direction direction) = [get_by_direction context direction]
+  | insts_for context thm (Hints hints) = get_by_hints context hints
+  | insts_for context thm Prop = get_by_prop context (Thm.prop_of thm);
 
-fun transfer_rule_by_hint ls leave (gctxt, th) =
-  let
-    val ctxt = Context.proof_of gctxt;
-    val get_aD = Thm.dest_binop o Thm.dest_arg o cprop_of;
-    val insts = map_filter (fn (k,e) => if exists (member (op =) (#hints e)) ls
-      then SOME (get_aD k, e) else NONE) (get ctxt);
-    val _ = if null insts then error "Transfer: No labels provided are stored in the context" else ();
-    val ths = map  (fn ((a,D),e) => basic_transfer_rule false a D e leave ctxt th) insts;
-    val cth = Conjunction.intr_balanced ths;
-  in (gctxt, cth) end;
-
-fun transferred_attribute ls NONE leave =
-      if null ls then all_transfers leave else transfer_rule_by_hint ls leave
-  | transferred_attribute _ (SOME (a, D)) leave = transfer_rule (a, D) leave;
+fun transfer context selection leave thm =
+  transfer_thm_multiple false (insts_for context thm selection) leave (Context.proof_of context) thm;
 
 
-(* adding transfer data *)
+(* maintaining transfer data *)
 
 fun merge_update eq m (k, v) [] = [(k, v)]
   | merge_update eq m (k, v) ((k', v') :: al) =
@@ -159,13 +155,13 @@ fun merge_entries {inj = inj0, emb = emb0, ret = ret0, cong = cg0, guess = g0, h
      hints = subtract (op =) hints0 (union (op =) hints1 hints2) }
   end;
 
-fun add ((inja, injd), (emba, embd), (reta, retd), (cga, cgd), g, (hintsa, hintsd)) key =
-  Data.map (fn al =>
+fun add (e0 as {inj = inja, emb = emba, ret = reta, cong = cga, guess = g, hints = hintsa},
+  ed as {inj = injd, emb = embd, ret = retd, cong = cgd, guess = _, hints = hintsd}) key context =
+  context
+  |> Data.map (fn al =>
     let
-      val ctxt0 = ProofContext.init (Thm.theory_of_thm key); (*FIXME*)
-      val (a0, D0) = check_morphism_key ctxt0 key;
-      val e0 = {inj = inja, emb = emba, ret = reta, cong = cga, guess = g, hints = hintsa};
-      val ed = {inj = injd, emb = embd, ret = retd, cong = cgd, guess = g, hints = hintsd};
+      val ctxt = Context.proof_of context;
+      val (a0, D0) = check_morphism_key ctxt key;
       val entry = if g then
         let
           val inj' = if null inja then #inj
@@ -173,13 +169,13 @@ fun add ((inja, injd), (emba, embd), (reta, retd), (cga, cgd), g, (hintsa, hints
               | NONE => error "Transfer: cannot generate return rules on the fly, either add injectivity axiom or force manual mode with mode: manual")
             else inja
           val ret' = merge Thm.eq_thm (reta, map
-            (fn th => basic_transfer_rule true a0 D0 {inj = inj', emb = [], ret = [], cong = cga, guess = g,
-              hints = hintsa} [] ctxt0 th RS sym) emba);
+            (fn th => transfer_thm true a0 D0 {inj = inj', emb = [], ret = [], cong = cga, guess = g,
+              hints = hintsa} [] ctxt th RS sym) emba);
         in {inj = inja, emb = emba, ret = ret', cong = cga, guess = g, hints = hintsa} end
         else e0;
     in merge_update Thm.eq_thm (merge_entries ed) (key, entry) al end);
 
-fun add_attribute args = Thm.declaration_attribute (add args);
+fun del key = Data.map (remove (eq_fst Thm.eq_thm) (key, []));
 
 
 (* syntax *)
@@ -220,20 +216,23 @@ val return = (keyword_colon returnN |-- thms) -- these (keyword_colon delN |-- t
 val cong = (keyword_colon congN |-- thms) -- these (keyword_colon delN |-- thms);
 val labels = (keyword_colon labelsN |-- names) -- these (keyword_colon delN |-- names);
 
-val entry = Scan.optional mode true -- these_pair inj -- these_pair embed
-  -- these_pair return -- these_pair cong -- these_pair labels;
+val entry_pair = Scan.optional mode true -- these_pair inj -- these_pair embed
+  -- these_pair return -- these_pair cong -- these_pair labels
+  >> (fn (((((g, (inja, injd)), (emba, embd)), (reta, retd)), (cga, cgd)), (hintsa, hintsd)) =>
+      ({inj = inja, emb = emba, ret = reta, cong = cga, guess = g, hints = hintsa},
+        {inj = injd, emb = embd, ret = retd, cong = cgd, guess = g, hints = hintsd}));
 
-val transfer_directive = these names -- Scan.option (keyword_colon directionN
-  |-- (Args.term -- Args.term)) -- these (keyword_colon leavingN |-- names);
+val selection = (keyword_colon directionN |-- (Args.term -- Args.term) >> Direction)
+  || these names >> (fn hints => if null hints then Prop else Hints hints);
 
 in
 
-val transfer_syntax = (Scan.lift (Args.$$$ delN >> K del_attribute)
-  || Scan.unless any_keyword (keyword addN) |-- entry
-    >> (fn (((((g, inj), embed), ret), cg), hints) => add_attribute (inj, embed, ret, cg, g, hints)))
+val transfer_attribute = Scan.lift (Args.$$$ delN >> K (Thm.declaration_attribute del))
+  || Scan.unless any_keyword (keyword addN) |-- entry_pair
+    >> (fn entry_pair => Thm.declaration_attribute (add entry_pair))
 
-val transferred_syntax = transfer_directive
-  >> (fn ((hints, aD), leave) => transferred_attribute hints aD leave);
+val transferred_attribute = selection -- these (keyword_colon leavingN |-- names)
+  >> (fn (selection, leave) => Thm.rule_attribute (fn context => transfer context selection leave));
 
 end;
 
@@ -241,9 +240,9 @@ end;
 (* theory setup *)
 
 val setup =
-  Attrib.setup @{binding transfer} transfer_syntax
+  Attrib.setup @{binding transfer} transfer_attribute
     "Installs transfer data" #>
-  Attrib.setup @{binding transferred} transferred_syntax
+  Attrib.setup @{binding transferred} transferred_attribute
     "Transfers theorems";
 
 end;
