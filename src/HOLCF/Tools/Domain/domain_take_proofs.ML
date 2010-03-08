@@ -168,6 +168,13 @@ fun define_const
     ((const, def_thm), thy)
   end;
 
+fun add_qualified_def name (path, eqn) thy =
+    thy
+    |> Sign.add_path path
+    |> yield_singleton (PureThy.add_defs false)
+        (Thm.no_attributes (Binding.name name, eqn))
+    ||> Sign.parent_path;
+
 fun add_qualified_thm name (path, thm) thy =
     thy
     |> Sign.add_path path
@@ -239,12 +246,8 @@ fun define_take_functions
           Sign.declare_const ((take_bind, take_type), NoSyn) thy;
         val take_eqn = Logic.mk_equals (take_const, take_rhs);
         val (take_def_thm, thy) =
-          thy
-          |> Sign.add_path (Binding.name_of tbind)
-          |> yield_singleton
-              (PureThy.add_defs false o map Thm.no_attributes)
-              (Binding.name "take_def", take_eqn)
-          ||> Sign.parent_path;
+            add_qualified_def "take_def"
+             (Binding.name_of tbind, take_eqn) thy;
       in ((take_const, take_def_thm), thy) end;
     val ((take_consts, take_defs), thy) = thy
       |> fold_map define_take_const (dom_binds ~~ take_rhss ~~ dom_eqns)
@@ -388,12 +391,8 @@ fun define_take_functions
             (lambda n (mk_eq (mk_capply (take_const $ n, x), x))));
         val finite_eqn = Logic.mk_equals (finite_const, finite_rhs);
         val (finite_def_thm, thy) =
-          thy
-          |> Sign.add_path (Binding.name_of tbind)
-          |> yield_singleton
-              (PureThy.add_defs false o map Thm.no_attributes)
-              (Binding.name "finite_def", finite_eqn)
-          ||> Sign.parent_path;
+            add_qualified_def "finite_def"
+             (Binding.name_of tbind, finite_eqn) thy;
       in ((finite_const, finite_def_thm), thy) end;
     val ((finite_consts, finite_defs), thy) = thy
       |> fold_map define_finite_const (dom_binds ~~ take_consts ~~ dom_eqns)
