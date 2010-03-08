@@ -1,11 +1,16 @@
-(*  Author:     Amine Chaieb, University of Cambridge, 2009
-    Author:     Jeremy Avigad, Carnegie Mellon University
+(*  Author:   Amine Chaieb, University of Cambridge, 2009
+              Jeremy Avigad, Carnegie Mellon University
+              Florian Haftmann, TU Muenchen
+
+Simple transfer principle on theorems.
 *)
 
 signature TRANSFER =
 sig
+  datatype selection = Direction of term * term | Hints of string list | Prop
+  val transfer: Context.generic -> selection -> string list -> thm -> thm
   type entry
-  val get: Proof.context -> (thm * entry) list
+  val add: entry * entry -> thm -> Context.generic -> Context.generic
   val del: thm -> Context.generic -> Context.generic
   val setup: theory -> theory
 end;
@@ -90,9 +95,7 @@ fun get_by_prop context t =
 
 (* applying transfer data *)
 
-val get = Data.get o Context.Proof;
-
-fun transfer_thm inj_only a0 D0 {inj = inj, emb = emb, ret = ret, cong = cg, guess = g, hints = hints}
+fun transfer_thm inj_only a0 D0 {inj = inj, emb = emb, ret = ret, cong = cg, guess = _, hints = _}
     leave ctxt0 th =
   let
     val ([a, D], ctxt) = apfst (map Drule.dest_term o snd)
@@ -108,7 +111,7 @@ fun transfer_thm inj_only a0 D0 {inj = inj, emb = emb, ret = ret, cong = cg, gue
     val certify = Thm.cterm_of (ProofContext.theory_of ctxt'');
     val cns = map (certify o Var) ns;
     val cfis = map (certify o (fn n => Free (n, bT))) ins;
-    val cis = map (Thm.capply a) cfis
+    val cis = map (Thm.capply a) cfis;
     val (hs, ctxt''') = Assumption.add_assumes (map (fn ct =>
       Thm.capply @{cterm "Trueprop"} (Thm.capply D ct)) cfis) ctxt'';
     val th1 = Drule.cterm_instantiate (cns ~~ cis) th;
@@ -123,22 +126,14 @@ fun transfer_thm_multiple inj_only insts leave ctxt thm =
   Conjunction.intr_balanced (map
     (fn ((a, D), e) => transfer_thm false a D e leave ctxt thm) insts);
 
-fun transfer_by_direction (a, D) leave (context, thm) =
-  let
-    val ((a0, D0), e) = get_by_direction context (a, D);
-  in (context, transfer_thm false a0 D0 e leave (Context.proof_of context) thm) end;
+datatype selection = Direction of term * term | Hints of string list | Prop;
 
-fun transfer_by_hints hints leave (context, thm) =
-  (context, transfer_thm_multiple false (get_by_hints context hints)
-    leave (Context.proof_of context) thm);
+fun insts_for context thm (Direction direction) = [get_by_direction context direction]
+  | insts_for context thm (Hints hints) = get_by_hints context hints
+  | insts_for context thm Prop = get_by_prop context (Thm.prop_of thm);
 
-fun transfer_by_prop leave (context, thm) =
-  (context, transfer_thm_multiple false (get_by_prop context (Thm.prop_of thm))
-    leave (Context.proof_of context) thm);
-
-fun transferred_attribute [] NONE leave = transfer_by_prop leave
-  | transferred_attribute hints NONE leave = transfer_by_hints hints leave
-  | transferred_attribute _ (SOME (a, D)) leave = transfer_by_direction (a, D) leave;
+fun transfer context selection leave thm =
+  transfer_thm_multiple false (insts_for context thm selection) leave (Context.proof_of context) thm;
 
 
 (* maintaining transfer data *)
@@ -160,13 +155,13 @@ fun merge_entries {inj = inj0, emb = emb0, ret = ret0, cong = cg0, guess = g0, h
      hints = subtract (op =) hints0 (union (op =) hints1 hints2) }
   end;
 
-fun add ((inja, injd), (emba, embd), (reta, retd), (cga, cgd), g, (hintsa, hintsd)) key =
-  Data.map (fn al =>
+fun add (e0 as {inj = inja, emb = emba, ret = reta, cong = cga, guess = g, hints = hintsa},
+  ed as {inj = injd, emb = embd, ret = retd, cong = cgd, guess = _, hints = hintsd}) key context =
+  context
+  |> Data.map (fn al =>
     let
-      val ctxt0 = ProofContext.init (Thm.theory_of_thm key); (*FIXME*)
-      val (a0, D0) = check_morphism_key ctxt0 key;
-      val e0 = {inj = inja, emb = emba, ret = reta, cong = cga, guess = g, hints = hintsa};
-      val ed = {inj = injd, emb = embd, ret = retd, cong = cgd, guess = g, hints = hintsd};
+      val ctxt = Context.proof_of context;
+      val (a0, D0) = check_morphism_key ctxt key;
       val entry = if g then
         let
           val inj' = if null inja then #inj
@@ -175,16 +170,12 @@ fun add ((inja, injd), (emba, embd), (reta, retd), (cga, cgd), g, (hintsa, hints
             else inja
           val ret' = merge Thm.eq_thm (reta, map
             (fn th => transfer_thm true a0 D0 {inj = inj', emb = [], ret = [], cong = cga, guess = g,
-              hints = hintsa} [] ctxt0 th RS sym) emba);
+              hints = hintsa} [] ctxt th RS sym) emba);
         in {inj = inja, emb = emba, ret = ret', cong = cga, guess = g, hints = hintsa} end
         else e0;
     in merge_update Thm.eq_thm (merge_entries ed) (key, entry) al end);
 
-fun add_attribute args = Thm.declaration_attribute (add args);
-
 fun del key = Data.map (remove (eq_fst Thm.eq_thm) (key, []));
-
-val del_attribute = Thm.declaration_attribute del;
 
 
 (* syntax *)
@@ -225,20 +216,23 @@ val return = (keyword_colon returnN |-- thms) -- these (keyword_colon delN |-- t
 val cong = (keyword_colon congN |-- thms) -- these (keyword_colon delN |-- thms);
 val labels = (keyword_colon labelsN |-- names) -- these (keyword_colon delN |-- names);
 
-val entry = Scan.optional mode true -- these_pair inj -- these_pair embed
-  -- these_pair return -- these_pair cong -- these_pair labels;
+val entry_pair = Scan.optional mode true -- these_pair inj -- these_pair embed
+  -- these_pair return -- these_pair cong -- these_pair labels
+  >> (fn (((((g, (inja, injd)), (emba, embd)), (reta, retd)), (cga, cgd)), (hintsa, hintsd)) =>
+      ({inj = inja, emb = emba, ret = reta, cong = cga, guess = g, hints = hintsa},
+        {inj = injd, emb = embd, ret = retd, cong = cgd, guess = g, hints = hintsd}));
 
-val transfer_directive = these names -- Scan.option (keyword_colon directionN
-  |-- (Args.term -- Args.term)) -- these (keyword_colon leavingN |-- names);
+val selection = (keyword_colon directionN |-- (Args.term -- Args.term) >> Direction)
+  || these names >> (fn hints => if null hints then Prop else Hints hints);
 
 in
 
-val transfer_syntax = (Scan.lift (Args.$$$ delN >> K del_attribute)
-  || Scan.unless any_keyword (keyword addN) |-- entry
-    >> (fn (((((g, inj), embed), ret), cg), hints) => add_attribute (inj, embed, ret, cg, g, hints)))
+val transfer_attribute = Scan.lift (Args.$$$ delN >> K (Thm.declaration_attribute del))
+  || Scan.unless any_keyword (keyword addN) |-- entry_pair
+    >> (fn entry_pair => Thm.declaration_attribute (add entry_pair))
 
-val transferred_syntax = transfer_directive
-  >> (fn ((hints, direction), leave) => transferred_attribute hints direction leave);
+val transferred_attribute = selection -- these (keyword_colon leavingN |-- names)
+  >> (fn (selection, leave) => Thm.rule_attribute (fn context => transfer context selection leave));
 
 end;
 
@@ -246,9 +240,9 @@ end;
 (* theory setup *)
 
 val setup =
-  Attrib.setup @{binding transfer} transfer_syntax
+  Attrib.setup @{binding transfer} transfer_attribute
     "Installs transfer data" #>
-  Attrib.setup @{binding transferred} transferred_syntax
+  Attrib.setup @{binding transferred} transferred_attribute
     "Transfers theorems";
 
 end;
