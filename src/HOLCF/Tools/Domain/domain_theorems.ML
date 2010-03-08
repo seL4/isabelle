@@ -231,6 +231,7 @@ let
 
   val {take_0_thms, take_Suc_thms, chain_take_thms, ...} = take_info;
   val {lub_take_thms, finite_defs, reach_thms, ...} = take_info;
+  val {take_induct_thms, ...} = take_info;
 
   fun one_con p (con, args) =
     let
@@ -282,7 +283,7 @@ let
   in
     val n__eqs = mapn (fn n => fn (_,cons) => (n,cons)) 0 eqs;
     val is_emptys = map warn n__eqs;
-    val is_finite = forall (not o lazy_rec_to [] false) n__eqs;
+    val is_finite = #is_finite take_info;
     val _ = if is_finite
             then message ("Proving finiteness rule for domain "^comp_dnam^" ...")
             else ();
@@ -326,70 +327,27 @@ let
 
   val global_ctxt = ProofContext.init thy;
 
-  val _ = trace " Proving finites, ind...";
-  val (finites, ind) =
+  val _ = trace " Proving ind...";
+  val ind =
   (
     if is_finite
     then (* finite case *)
       let
-        val decisive_lemma =
+        fun concf n dn = %:(P_name n) $ %:(x_name n);
+        fun tacf {prems, context} =
           let
-            val iso_locale_thms =
-                map2 (fn x => fn y => @{thm iso.intro} OF [x, y])
-                axs_abs_iso axs_rep_iso;
-            val decisive_abs_rep_thms =
-                map (fn x => @{thm decisive_abs_rep} OF [x])
-                iso_locale_thms;
-            val n = Free ("n", @{typ nat});
-            fun mk_decisive t = %%: @{const_name decisive} $ t;
-            fun f dn = mk_decisive (dc_take dn $ n);
-            val goal = mk_trp (foldr1 mk_conj (map f dnames));
-            val rules0 = @{thm decisive_bottom} :: take_0_thms;
-            val rules1 =
-                take_Suc_thms @ decisive_abs_rep_thms
-                @ @{thms decisive_ID decisive_ssum_map decisive_sprod_map};
-            val tacs = [
-                rtac @{thm nat.induct} 1,
-                simp_tac (HOL_ss addsimps rules0) 1,
-                asm_simp_tac (HOL_ss addsimps rules1) 1];
-          in pg [] goal (K tacs) end;
-        fun take_enough dn = mk_ex ("n",dc_take dn $ Bound 0 ` %:"x" === %:"x");
-        fun one_finite (dn, decisive_thm) =
-          let
-            val goal = mk_trp (%%:(dn^"_finite") $ %:"x");
-            val tacs = [
-                rtac @{thm lub_ID_finite} 1,
-                resolve_tac chain_take_thms 1,
-                resolve_tac lub_take_thms 1,
-                rtac decisive_thm 1];
-          in pg finite_defs goal (K tacs) end;
-
-        val _ = trace " Proving finites";
-        val finites = map one_finite (dnames ~~ atomize global_ctxt decisive_lemma);
-        val _ = trace " Proving ind";
-        val ind =
-          let
-            fun concf n dn = %:(P_name n) $ %:(x_name n);
-            fun tacf {prems, context} =
-              let
-                fun finite_tacs (finite, fin_ind) = [
-                  rtac(rewrite_rule finite_defs finite RS exE)1,
-                  etac subst 1,
-                  rtac fin_ind 1,
-                  ind_prems_tac prems];
-              in
-                TRY (safe_tac HOL_cs) ::
-                maps finite_tacs (finites ~~ atomize global_ctxt finite_ind)
-              end;
-          in pg'' thy [] (ind_term concf) tacf end;
-      in (finites, ind) end (* let *)
+            fun finite_tacs (take_induct, fin_ind) = [
+                rtac take_induct 1,
+                rtac fin_ind 1,
+                ind_prems_tac prems];
+          in
+            TRY (safe_tac HOL_cs) ::
+            maps finite_tacs (take_induct_thms ~~ atomize global_ctxt finite_ind)
+          end;
+      in pg'' thy [] (ind_term concf) tacf end
 
     else (* infinite case *)
       let
-        fun one_finite n dn =
-          read_instantiate global_ctxt [(("P", 0), dn ^ "_finite " ^ x_name n)] excluded_middle;
-        val finites = mapn one_finite 1 dnames;
-
         val goal =
           let
             fun one_adm n _ = mk_trp (mk_adm (%:(P_name n)));
@@ -420,12 +378,12 @@ let
           handle ERROR _ =>
             (warning "Cannot prove infinite induction rule"; TrueI)
                   );
-      in (finites, ind) end
+      in ind end
   )
       handle THM _ =>
-             (warning "Induction proofs failed (THM raised)."; ([], TrueI))
+             (warning "Induction proofs failed (THM raised)."; TrueI)
            | ERROR _ =>
-             (warning "Cannot prove induction rule"; ([], TrueI));
+             (warning "Cannot prove induction rule"; TrueI);
 
 val case_ns =
   let
@@ -445,7 +403,6 @@ val induct_failed = (Thm.prop_of ind = Thm.prop_of TrueI);
 
 in thy |> Sign.add_path comp_dnam
        |> snd o PureThy.add_thmss [
-           ((Binding.name "finites"    , finites     ), []),
            ((Binding.name "finite_ind" , [finite_ind]), []),
            ((Binding.name "ind"        , [ind]       ), [])]
        |> (if induct_failed then I
