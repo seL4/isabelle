@@ -17,7 +17,8 @@ sig
       rep_inverse : thm
     }
   type take_info =
-    { take_consts : term list,
+    {
+      take_consts : term list,
       take_defs : thm list,
       chain_take_thms : thm list,
       take_0_thms : thm list,
@@ -28,10 +29,19 @@ sig
     }
   type take_induct_info =
     {
-      reach_thms : thm list,
-      take_lemma_thms : thm list,
-      is_finite : bool,
-      take_induct_thms : thm list
+      take_consts         : term list,
+      take_defs           : thm list,
+      chain_take_thms     : thm list,
+      take_0_thms         : thm list,
+      take_Suc_thms       : thm list,
+      deflation_take_thms : thm list,
+      finite_consts       : term list,
+      finite_defs         : thm list,
+      lub_take_thms       : thm list,
+      reach_thms          : thm list,
+      take_lemma_thms     : thm list,
+      is_finite           : bool,
+      take_induct_thms    : thm list
     }
   val define_take_functions :
     (binding * iso_info) list -> theory -> take_info * theory
@@ -76,10 +86,19 @@ type take_info =
 
 type take_induct_info =
   {
-    reach_thms : thm list,
-    take_lemma_thms : thm list,
-    is_finite : bool,
-    take_induct_thms : thm list
+    take_consts         : term list,
+    take_defs           : thm list,
+    chain_take_thms     : thm list,
+    take_0_thms         : thm list,
+    take_Suc_thms       : thm list,
+    deflation_take_thms : thm list,
+    finite_consts       : term list,
+    finite_defs         : thm list,
+    lub_take_thms       : thm list,
+    reach_thms          : thm list,
+    take_lemma_thms     : thm list,
+    is_finite           : bool,
+    take_induct_thms    : thm list
   };
 
 val beta_ss =
@@ -596,10 +615,19 @@ fun add_lub_take_theorems
 
     val result =
       {
-        reach_thms = reach_thms,
-        take_lemma_thms = take_lemma_thms,
-        is_finite = is_finite,
-        take_induct_thms = take_induct_thms
+        take_consts         = #take_consts take_info,
+        take_defs           = #take_defs take_info,
+        chain_take_thms     = #chain_take_thms take_info,
+        take_0_thms         = #take_0_thms take_info,
+        take_Suc_thms       = #take_Suc_thms take_info,
+        deflation_take_thms = #deflation_take_thms take_info,
+        finite_consts       = #finite_consts take_info,
+        finite_defs         = #finite_defs take_info,
+        lub_take_thms       = lub_take_thms,
+        reach_thms          = reach_thms,
+        take_lemma_thms     = take_lemma_thms,
+        is_finite           = is_finite,
+        take_induct_thms    = take_induct_thms
       };
   in
     (result, thy)

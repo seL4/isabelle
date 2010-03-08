@@ -17,7 +17,6 @@ sig
 
   val comp_theorems :
       bstring * Domain_Library.eq list ->
-      Domain_Take_Proofs.take_info ->
       Domain_Take_Proofs.take_induct_info ->
       theory -> thm list * theory
 
@@ -212,7 +211,7 @@ fun prove_induction
     (take_lemmas : thm list)
     (axs_reach : thm list)
     (take_rews : thm list)
-    (take_info : Domain_Take_Proofs.take_info)
+    (take_info : Domain_Take_Proofs.take_induct_info)
     (thy : theory) =
 let
   val dnames = map (fst o fst) eqs;
@@ -228,14 +227,12 @@ let
   in
     val axs_rep_iso = map (ga "rep_iso") dnames;
     val axs_abs_iso = map (ga "abs_iso") dnames;
-    val axs_chain_take = map (ga "chain_take") dnames;
-    val lub_take_thms = map (ga "lub_take") dnames;
-    val axs_finite_def = map (ga "finite_def") dnames;
     val cases = map (ga  "casedist" ) dnames;
     val con_rews  = maps (gts "con_rews" ) dnames;
   end;
 
-  val {take_0_thms, take_Suc_thms, ...} = take_info;
+  val {take_0_thms, take_Suc_thms, chain_take_thms, ...} = take_info;
+  val {lub_take_thms, finite_defs, ...} = take_info;
 
   fun one_con p (con, args) =
     let
@@ -364,10 +361,10 @@ let
             val goal = mk_trp (%%:(dn^"_finite") $ %:"x");
             val tacs = [
                 rtac @{thm lub_ID_finite} 1,
-                resolve_tac axs_chain_take 1,
+                resolve_tac chain_take_thms 1,
                 resolve_tac lub_take_thms 1,
                 rtac decisive_thm 1];
-          in pg axs_finite_def goal (K tacs) end;
+          in pg finite_defs goal (K tacs) end;
 
         val _ = trace " Proving finites";
         val finites = map one_finite (dnames ~~ atomize global_ctxt decisive_lemma);
@@ -378,7 +375,7 @@ let
             fun tacf {prems, context} =
               let
                 fun finite_tacs (finite, fin_ind) = [
-                  rtac(rewrite_rule axs_finite_def finite RS exE)1,
+                  rtac(rewrite_rule finite_defs finite RS exE)1,
                   etac subst 1,
                   rtac fin_ind 1,
                   ind_prems_tac prems];
@@ -417,7 +414,7 @@ let
             cut_facts_tac (subthm :: take (length dnames) prems) 1,
             REPEAT (rtac @{thm conjI} 1 ORELSE
                     EVERY [etac @{thm admD [OF _ ch2ch_Rep_CFunL]} 1,
-                           resolve_tac axs_chain_take 1,
+                           resolve_tac chain_take_thms 1,
                            asm_simp_tac HOL_basic_ss 1])
             ]
           end;
@@ -612,8 +609,7 @@ end; (* let *)
 
 fun comp_theorems
     (comp_dnam : string, eqs : eq list)
-    (take_info : Domain_Take_Proofs.take_info)
-    (take_induct_info : Domain_Take_Proofs.take_induct_info)
+    (take_info : Domain_Take_Proofs.take_induct_info)
     (thy : theory) =
 let
 val map_tab = Domain_Take_Proofs.get_map_tab thy;
@@ -639,8 +635,8 @@ end;
 
 (* theorems about take *)
 
-val take_lemmas = #take_lemma_thms take_induct_info;
-val axs_reach = #reach_thms take_induct_info;
+val take_lemmas = #take_lemma_thms take_info;
+val axs_reach = #reach_thms take_info;
 
 val take_rews =
     maps (fn dn => PureThy.get_thms thy (dn ^ ".take_rews")) dnames;

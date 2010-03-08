@@ -184,7 +184,7 @@ fun gen_add_domain
     fun mk_eq_typ (_, cons) = foldr1 mk_ssumT (map mk_con_typ cons);
     val repTs : typ list = map mk_eq_typ eqs';
     val dom_eqns : (binding * (typ * typ)) list = dbinds ~~ (dts ~~ repTs);
-    val ((iso_infos, take_info, take_info2), thy) =
+    val ((iso_infos, take_info), thy) =
         Domain_Axioms.add_axioms dom_eqns thy;
 
     val ((rewss, take_rews), theorems_thy) =
@@ -192,7 +192,7 @@ fun gen_add_domain
           |> fold_map (fn ((eq, (x,cs)), info) =>
                 Domain_Theorems.theorems (eq, eqs) (Type x, cs) info)
              (eqs ~~ eqs' ~~ iso_infos)
-          ||>> Domain_Theorems.comp_theorems (comp_dnam, eqs) take_info take_info2;
+          ||>> Domain_Theorems.comp_theorems (comp_dnam, eqs) take_info;
   in
     theorems_thy
       |> Sign.add_path (Long_Name.base_name comp_dnam)
@@ -246,7 +246,7 @@ fun gen_add_new_domain
         if null args then oneT else foldr1 mk_sprodT (map mk_arg_typ args);
     fun mk_eq_typ (_, cons) = foldr1 mk_ssumT (map mk_con_typ cons);
     
-    val ((iso_infos, take_info, take_info2), thy) = thy |>
+    val ((iso_infos, take_info), thy) = thy |>
       Domain_Isomorphism.domain_isomorphism
         (map (fn ((vs, dname, mx, _), eq) =>
                  (map fst vs, dname, mx, mk_eq_typ eq, NONE))
@@ -268,7 +268,7 @@ fun gen_add_new_domain
           |> fold_map (fn ((eq, (x,cs)), info) =>
                Domain_Theorems.theorems (eq, eqs) (Type x, cs) info)
              (eqs ~~ eqs' ~~ iso_infos)
-          ||>> Domain_Theorems.comp_theorems (comp_dnam, eqs) take_info take_info2;
+          ||>> Domain_Theorems.comp_theorems (comp_dnam, eqs) take_info;
   in
     theorems_thy
       |> Sign.add_path (Long_Name.base_name comp_dnam)
