@@ -15,6 +15,10 @@ sig
   val term_of_typ: bool -> typ -> term
   val no_brackets: unit -> bool
   val no_type_brackets: unit -> bool
+  val type_ast_trs:
+   {read_class: Proof.context -> string -> string,
+    read_type: Proof.context -> string -> string} ->
+    (string * (Proof.context -> Ast.ast list -> Ast.ast)) list
 end;
 
 signature TYPE_EXT =
@@ -23,9 +27,7 @@ sig
   val term_of_sort: sort -> term
   val tappl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val sortT: typ
-  val type_ext:
-   {read_class: theory -> string -> string,
-    read_type: theory -> string -> string} -> SynExt.syn_ext
+  val type_ext: SynExt.syn_ext
 end;
 
 structure TypeExt: TYPE_EXT =
@@ -240,7 +242,7 @@ val typesT = Type ("types", []);
 
 local open Lexicon SynExt in
 
-fun type_ext {read_class, read_type} = syn_ext' false (K false)
+val type_ext = syn_ext' false (K false)
   [Mfix ("_",           tidT --> typeT,                "", [], max_pri),
    Mfix ("_",           tvarT --> typeT,               "", [], max_pri),
    Mfix ("_",           idT --> typeT,                 "_type_name", [], max_pri),
@@ -267,18 +269,17 @@ fun type_ext {read_class, read_type} = syn_ext' false (K false)
    Mfix ("'(_')",       typeT --> typeT,               "", [0], max_pri),
    Mfix ("'_",          typeT,                         "\\<^type>dummy", [], max_pri)]
   ["_type_prop"]
-  (map SynExt.mk_trfun
-   [("_class_name", class_name_tr o read_class o ProofContext.theory_of),
-    ("_classes", classes_tr o read_class o ProofContext.theory_of),
-    ("_type_name", type_name_tr o read_type o ProofContext.theory_of),
-    ("_tapp", tapp_ast_tr o read_type o ProofContext.theory_of),
-    ("_tappl", tappl_ast_tr o read_type o ProofContext.theory_of),
-    ("_bracket", K bracket_ast_tr)],
-   [],
-   [],
-   map SynExt.mk_trfun [("\\<^type>fun", K fun_ast_tr')])
+  ([], [], [], map SynExt.mk_trfun [("\\<^type>fun", K fun_ast_tr')])
   []
   ([], []);
+
+fun type_ast_trs {read_class, read_type} =
+ [("_class_name", class_name_tr o read_class),
+  ("_classes", classes_tr o read_class),
+  ("_type_name", type_name_tr o read_type),
+  ("_tapp", tapp_ast_tr o read_type),
+  ("_tappl", tappl_ast_tr o read_type),
+  ("_bracket", K bracket_ast_tr)];
 
 end;
 
