@@ -130,7 +130,7 @@ fun prepare_typedef prep_term def name (tname, vs, mx) raw_set opt_morphs thy =
           in Drule.export_without_context (Drule.equal_elim_rule2 OF [goal_eq, th]) end;
 
     fun typedef_result inhabited =
-      Typedecl.typedecl (tname, vs, mx)
+      Typedecl.typedecl_global (tname, vs, mx)
       #> snd
       #> Sign.add_consts_i
         [(Rep_name, newT --> oldT, NoSyn),
