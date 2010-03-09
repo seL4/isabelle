@@ -417,7 +417,8 @@ fun instantiation_param lthy b = instantiation_params lthy
 
 fun read_multi_arity thy (raw_tycos, raw_sorts, raw_sort) =
   let
-    val all_arities = map (fn raw_tyco => Sign.read_arity thy
+    val ctxt = ProofContext.init thy;
+    val all_arities = map (fn raw_tyco => ProofContext.read_arity ctxt
       (raw_tyco, raw_sorts, raw_sort)) raw_tycos;
     val tycos = map #1 all_arities;
     val (_, sorts, sort) = hd all_arities;

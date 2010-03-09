@@ -29,10 +29,7 @@ sig
   val mode_default: mode
   val mode_input: mode
   val merge_syntaxes: syntax -> syntax -> syntax
-  val empty_syntax: syntax
-  val basic_syntax:
-   {read_class: theory -> xstring -> string,
-    read_type: theory -> xstring -> string} -> syntax
+  val basic_syntax: syntax
   val basic_nonterms: string list
   val print_gram: syntax -> unit
   val print_trans: syntax -> unit
@@ -383,9 +380,9 @@ fun merge_syntaxes (Syntax (tabs1, _)) (Syntax (tabs2, _)) =
 
 (* basic syntax *)
 
-fun basic_syntax read =
+val basic_syntax =
   empty_syntax
-  |> update_syntax mode_default (TypeExt.type_ext read)
+  |> update_syntax mode_default TypeExt.type_ext
   |> update_syntax mode_default SynExt.pure_ext;
 
 val basic_nonterms =
