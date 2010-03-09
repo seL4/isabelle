@@ -287,8 +287,9 @@ fun basic_string_for_nut indent ctxt u =
        "Tuple " ^ Syntax.string_of_typ ctxt T ^ " " ^ string_for_rep R ^
        implode (map sub us)
      | Construct (us', T, R, us) =>
-       "Construct " ^ implode (map sub us') ^ Syntax.string_of_typ ctxt T ^
-       " " ^ string_for_rep R ^ " " ^ implode (map sub us)
+       "Construct " ^ implode (map sub us') ^ " " ^
+       Syntax.string_of_typ ctxt T ^ " " ^ string_for_rep R ^ " " ^
+       implode (map sub us)
      | BoundName (j, T, R, nick) =>
        "BoundName " ^ signed_string_of_int j ^ " " ^
        Syntax.string_of_typ ctxt T ^ " " ^ string_for_rep R ^ " " ^ nick
@@ -459,7 +460,8 @@ fun mk_snd (_, Const (@{const_name Pair}, T) $ _ $ t2) =
       (res_T, Const (@{const_name snd}, T --> res_T) $ t)
     end
 (* typ * term -> (typ * term) list *)
-fun factorize (z as (Type ("*", _), _)) = maps factorize [mk_fst z, mk_snd z]
+fun factorize (z as (Type (@{type_name "*"}, _), _)) =
+    maps factorize [mk_fst z, mk_snd z]
   | factorize z = [z]
 
 (* hol_context -> op2 -> term -> nut *)
@@ -623,7 +625,8 @@ fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, ...}) eq =
           if is_built_in_const thy stds false x then Cst (Add, T, Any)
           else ConstName (s, T, Any)
         | (Const (@{const_name minus_class.minus},
-                  Type ("fun", [T1 as Type ("fun", [_, @{typ bool}]), _])),
+                  Type (@{type_name fun},
+                        [T1 as Type (@{type_name fun}, [_, @{typ bool}]), _])),
            [t1, t2]) =>
           Op2 (SetDifference, T1, Any, sub t1, sub t2)
         | (Const (x as (s as @{const_name minus_class.minus}, T)), []) =>
@@ -642,7 +645,8 @@ fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, ...}) eq =
           else
             do_apply t0 ts
         | (Const (@{const_name ord_class.less_eq},
-                  Type ("fun", [Type ("fun", [_, @{typ bool}]), _])),
+                  Type (@{type_name fun},
+                        [Type (@{type_name fun}, [_, @{typ bool}]), _])),
            [t1, t2]) =>
           Op2 (Subset, bool_T, Any, sub t1, sub t2)
         (* FIXME: find out if this case is necessary *)
@@ -666,7 +670,7 @@ fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, ...}) eq =
         | (Const (@{const_name unknown}, T), []) => Cst (Unknown, T, Any)
         | (Const (@{const_name is_unknown}, _), [t1]) =>
           Op1 (IsUnknown, bool_T, Any, sub t1)
-        | (Const (@{const_name Tha}, Type ("fun", [_, T2])), [t1]) =>
+        | (Const (@{const_name Tha}, Type (@{type_name fun}, [_, T2])), [t1]) =>
           Op1 (Tha, T2, Any, sub t1)
         | (Const (@{const_name Frac}, T), []) => Cst (Fracs, T, Any)
         | (Const (@{const_name norm_frac}, T), []) => Cst (NormFrac, T, Any)
@@ -676,11 +680,13 @@ fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, ...}) eq =
                   T as @{typ "unsigned_bit word => signed_bit word"}), []) =>
           Cst (NatToInt, T, Any)
         | (Const (@{const_name semilattice_inf_class.inf},
-                  Type ("fun", [T1 as Type ("fun", [_, @{typ bool}]), _])),
+                  Type (@{type_name fun},
+                        [T1 as Type (@{type_name fun}, [_, @{typ bool}]), _])),
            [t1, t2]) =>
           Op2 (Intersect, T1, Any, sub t1, sub t2)
         | (Const (@{const_name semilattice_sup_class.sup},
-                  Type ("fun", [T1 as Type ("fun", [_, @{typ bool}]), _])),
+                  Type (@{type_name fun},
+                        [T1 as Type (@{type_name fun}, [_, @{typ bool}]), _])),
            [t1, t2]) =>
           Op2 (Union, T1, Any, sub t1, sub t2)
         | (t0 as Const (x as (s, T)), ts) =>
@@ -956,7 +962,7 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
                  if ok then Cst (Num j, T, Atom (k, j0))
                  else Cst (Unrep, T, Opt (Atom (k, j0)))
                end)
-        | Cst (Suc, T as Type ("fun", [T1, _]), _) =>
+        | Cst (Suc, T as Type (@{type_name fun}, [T1, _]), _) =>
           let val R = Atom (spec_of_type scope T1) in
             Cst (Suc, T, Func (R, Opt R))
           end
@@ -1306,12 +1312,13 @@ fun rename_plain_var v (ws, pool, table) =
   in (w :: ws, pool, NameTable.update (v, w) table) end
 
 (* typ -> rep -> nut list -> nut *)
-fun shape_tuple (T as Type ("*", [T1, T2])) (R as Struct [R1, R2]) us =
+fun shape_tuple (T as Type (@{type_name "*"}, [T1, T2])) (R as Struct [R1, R2])
+                us =
     let val arity1 = arity_of_rep R1 in
       Tuple (T, R, [shape_tuple T1 R1 (List.take (us, arity1)),
                     shape_tuple T2 R2 (List.drop (us, arity1))])
     end
-  | shape_tuple (T as Type ("fun", [_, T2])) (R as Vect (k, R')) us =
+  | shape_tuple (T as Type (@{type_name fun}, [_, T2])) (R as Vect (k, R')) us =
     Tuple (T, R, map (shape_tuple T2 R') (batch_list (length us div k) us))
   | shape_tuple T _ [u] =
     if type_of u = T then u else raise NUT ("Nitpick_Nut.shape_tuple", [u])

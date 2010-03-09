@@ -39,6 +39,7 @@ val default_default_params =
    ("bits", ["1,2,3,4,6,8,10,12"]),
    ("bisim_depth", ["7"]),
    ("box", ["smart"]),
+   ("finitize", ["smart"]),
    ("mono", ["smart"]),
    ("std", ["true"]),
    ("wf", ["smart"]),
@@ -78,6 +79,7 @@ val default_default_params =
 
 val negated_params =
   [("dont_box", "box"),
+   ("dont_finitize", "finitize"),
    ("non_mono", "mono"),
    ("non_std", "std"),
    ("non_wf", "wf"),
@@ -111,8 +113,8 @@ fun is_known_raw_param s =
   AList.defined (op =) negated_params s orelse
   s = "max" orelse s = "eval" orelse s = "expect" orelse
   exists (fn p => String.isPrefix (p ^ " ") s)
-         ["card", "max", "iter", "box", "dont_box", "mono", "non_mono", "std",
-          "non_std", "wf", "non_wf", "format"]
+         ["card", "max", "iter", "box", "dont_box", "finitize", "dont_finitize",
+          "mono", "non_mono", "std", "non_std", "wf", "non_wf", "format"]
 
 (* string * 'a -> unit *)
 fun check_raw_param (s, _) =
@@ -297,14 +299,8 @@ fun extract_params ctxt auto default_params override_params =
     val iters_assigns = lookup_ints_assigns read_const_polymorphic "iter" 0
     val bitss = lookup_int_seq "bits" 1
     val bisim_depths = lookup_int_seq "bisim_depth" ~1
-    val boxes =
-      lookup_bool_option_assigns read_type_polymorphic "box" @
-      map_filter (fn (SOME T, _) =>
-                     if is_fun_type T orelse is_pair_type T then
-                       SOME (SOME T, SOME true)
-                     else
-                       NONE
-                   | (NONE, _) => NONE) cards_assigns
+    val boxes = lookup_bool_option_assigns read_type_polymorphic "box"
+    val finitizes = lookup_bool_option_assigns read_type_polymorphic "finitize"
     val monos = lookup_bool_option_assigns read_type_polymorphic "mono"
     val stds = lookup_bool_assigns read_type_polymorphic "std"
     val wfs = lookup_bool_option_assigns read_const_polymorphic "wf"
@@ -349,8 +345,8 @@ fun extract_params ctxt auto default_params override_params =
   in
     {cards_assigns = cards_assigns, maxes_assigns = maxes_assigns,
      iters_assigns = iters_assigns, bitss = bitss, bisim_depths = bisim_depths,
-     boxes = boxes, monos = monos, stds = stds, wfs = wfs,
-     sat_solver = sat_solver, blocking = blocking, falsify = falsify,
+     boxes = boxes, finitizes = finitizes, monos = monos, stds = stds,
+     wfs = wfs, sat_solver = sat_solver, blocking = blocking, falsify = falsify,
      debug = debug, verbose = verbose, overlord = overlord,
      user_axioms = user_axioms, assms = assms,
      merge_type_vars = merge_type_vars, binary_ints = binary_ints,

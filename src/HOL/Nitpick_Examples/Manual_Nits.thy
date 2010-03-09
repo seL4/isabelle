@@ -8,7 +8,7 @@ Examples from the Nitpick manual.
 header {* Examples from the Nitpick Manual *}
 
 theory Manual_Nits
-imports Main Coinductive_List Quotient_Product RealDef
+imports Main Quotient_Product RealDef
 begin
 
 chapter {* 3. First Steps *}
@@ -173,13 +173,35 @@ oops
 
 subsection {* 3.9. Coinductive Datatypes *}
 
+(* Lazy lists are defined in Andreas Lochbihler's "Coinductive" AFP entry. Since
+we cannot rely on its presence, we expediently provide our own axiomatization.
+The examples also work unchanged with Lochbihler's "Coinductive_List" theory. *)
+
+typedef 'a llist = "UNIV\<Colon>('a list + (nat \<Rightarrow> 'a)) set" by auto
+
+definition LNil where "LNil = Abs_llist (Inl [])"
+definition LCons where
+"LCons y ys = Abs_llist (case Rep_llist ys of
+                           Inl ys' \<Rightarrow> Inl (y # ys')
+                         | Inr f \<Rightarrow> Inr (\<lambda>n. case n of 0 \<Rightarrow> y | Suc m \<Rightarrow> f m))"
+
+axiomatization iterates :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist"
+
+lemma iterates_def [nitpick_simp]:
+"iterates f a = LCons a (iterates f (f a))"
+sorry
+
+setup {*
+Nitpick.register_codatatype @{typ "'a llist"} ""
+    (map dest_Const [@{term LNil}, @{term LCons}])
+*}
+
 lemma "xs \<noteq> LCons a xs"
 nitpick
 oops
 
 lemma "\<lbrakk>xs = LCons a xs; ys = iterates (\<lambda>b. a) b\<rbrakk> \<Longrightarrow> xs = ys"
 nitpick [verbose]
-nitpick [bisim_depth = -1, verbose]
 oops
 
 lemma "\<lbrakk>xs = LCons a xs; ys = LCons a ys\<rbrakk> \<Longrightarrow> xs = ys"

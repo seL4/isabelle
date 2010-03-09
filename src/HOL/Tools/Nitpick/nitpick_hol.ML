@@ -65,8 +65,8 @@ sig
   val strip_any_connective : term -> term list * term
   val conjuncts_of : term -> term list
   val disjuncts_of : term -> term list
-  val unarize_and_unbox_type : typ -> typ
-  val unarize_unbox_and_uniterize_type : typ -> typ
+  val unarize_unbox_etc_type : typ -> typ
+  val uniterize_unarize_unbox_etc_type : typ -> typ
   val string_for_type : Proof.context -> typ -> string
   val prefix_name : string -> string -> string
   val shortest_name : string -> string
@@ -148,11 +148,13 @@ sig
     theory -> (typ option * bool) list -> styp -> term -> int -> typ -> term
   val construct_value :
     theory -> (typ option * bool) list -> styp -> term list -> term
+  val coerce_term : hol_context -> typ list -> typ -> typ -> term -> term
   val card_of_type : (typ * int) list -> typ -> int
   val bounded_card_of_type : int -> int -> (typ * int) list -> typ -> int
   val bounded_exact_card_of_type :
     hol_context -> typ list -> int -> int -> (typ * int) list -> typ -> int
   val is_finite_type : hol_context -> typ -> bool
+  val is_small_finite_type : hol_context -> typ -> bool
   val special_bounds : term list -> (indexname * typ) list
   val abs_var : indexname * typ -> term -> term
   val is_funky_typedef : theory -> typ -> bool
@@ -401,22 +403,24 @@ fun unarize_type @{typ "unsigned_bit word"} = nat_T
   | unarize_type @{typ "signed_bit word"} = int_T
   | unarize_type (Type (s, Ts as _ :: _)) = Type (s, map unarize_type Ts)
   | unarize_type T = T
-fun unarize_and_unbox_type (Type (@{type_name fun_box}, Ts)) =
-    unarize_and_unbox_type (Type ("fun", Ts))
-  | unarize_and_unbox_type (Type (@{type_name pair_box}, Ts)) =
-    Type ("*", map unarize_and_unbox_type Ts)
-  | unarize_and_unbox_type @{typ "unsigned_bit word"} = nat_T
-  | unarize_and_unbox_type @{typ "signed_bit word"} = int_T
-  | unarize_and_unbox_type (Type (s, Ts as _ :: _)) =
-    Type (s, map unarize_and_unbox_type Ts)
-  | unarize_and_unbox_type T = T
+fun unarize_unbox_etc_type (Type (@{type_name fin_fun}, Ts)) =
+    unarize_unbox_etc_type (Type (@{type_name fun}, Ts))
+  | unarize_unbox_etc_type (Type (@{type_name fun_box}, Ts)) =
+    unarize_unbox_etc_type (Type (@{type_name fun}, Ts))
+  | unarize_unbox_etc_type (Type (@{type_name pair_box}, Ts)) =
+    Type (@{type_name "*"}, map unarize_unbox_etc_type Ts)
+  | unarize_unbox_etc_type @{typ "unsigned_bit word"} = nat_T
+  | unarize_unbox_etc_type @{typ "signed_bit word"} = int_T
+  | unarize_unbox_etc_type (Type (s, Ts as _ :: _)) =
+    Type (s, map unarize_unbox_etc_type Ts)
+  | unarize_unbox_etc_type T = T
 fun uniterize_type (Type (s, Ts as _ :: _)) = Type (s, map uniterize_type Ts)
   | uniterize_type @{typ bisim_iterator} = nat_T
   | uniterize_type T = T
-val unarize_unbox_and_uniterize_type = uniterize_type o unarize_and_unbox_type
+val uniterize_unarize_unbox_etc_type = uniterize_type o unarize_unbox_etc_type
 
 (* Proof.context -> typ -> string *)
-fun string_for_type ctxt = Syntax.string_of_typ ctxt o unarize_and_unbox_type
+fun string_for_type ctxt = Syntax.string_of_typ ctxt o unarize_unbox_etc_type
 
 (* string -> string -> string *)
 val prefix_name = Long_Name.qualify o Long_Name.base_name
@@ -439,9 +443,10 @@ val shorten_names_in_term =
   #> map_types shorten_names_in_type
 
 (* theory -> typ * typ -> bool *)
-fun type_match thy (T1, T2) =
+fun strict_type_match thy (T1, T2) =
   (Sign.typ_match thy (T2, T1) Vartab.empty; true)
   handle Type.TYPE_MATCH => false
+fun type_match thy = strict_type_match thy o pairself unarize_unbox_etc_type
 (* theory -> styp * styp -> bool *)
 fun const_match thy ((s1, T1), (s2, T2)) =
   s1 = s2 andalso type_match thy (T1, T2)
@@ -454,14 +459,14 @@ fun term_match thy (Const x1, Const x2) = const_match thy (x1, x2)
 (* typ -> bool *)
 fun is_TFree (TFree _) = true
   | is_TFree _ = false
-fun is_higher_order_type (Type ("fun", _)) = true
+fun is_higher_order_type (Type (@{type_name fun}, _)) = true
   | is_higher_order_type (Type (_, Ts)) = exists is_higher_order_type Ts
   | is_higher_order_type _ = false
-fun is_fun_type (Type ("fun", _)) = true
+fun is_fun_type (Type (@{type_name fun}, _)) = true
   | is_fun_type _ = false
-fun is_set_type (Type ("fun", [_, @{typ bool}])) = true
+fun is_set_type (Type (@{type_name fun}, [_, @{typ bool}])) = true
   | is_set_type _ = false
-fun is_pair_type (Type ("*", _)) = true
+fun is_pair_type (Type (@{type_name "*"}, _)) = true
   | is_pair_type _ = false
 fun is_lfp_iterator_type (Type (s, _)) = String.isPrefix lfp_iterator_prefix s
   | is_lfp_iterator_type _ = false
@@ -494,19 +499,20 @@ fun const_for_iterator_type (Type (s, Ts)) = (after_name_sep s, Ts ---> bool_T)
 
 (* int -> typ -> typ list * typ *)
 fun strip_n_binders 0 T = ([], T)
-  | strip_n_binders n (Type ("fun", [T1, T2])) =
+  | strip_n_binders n (Type (@{type_name fun}, [T1, T2])) =
     strip_n_binders (n - 1) T2 |>> cons T1
   | strip_n_binders n (Type (@{type_name fun_box}, Ts)) =
-    strip_n_binders n (Type ("fun", Ts))
+    strip_n_binders n (Type (@{type_name fun}, Ts))
   | strip_n_binders _ T = raise TYPE ("Nitpick_HOL.strip_n_binders", [T], [])
 (* typ -> typ *)
 val nth_range_type = snd oo strip_n_binders
 
 (* typ -> int *)
-fun num_factors_in_type (Type ("*", [T1, T2])) =
+fun num_factors_in_type (Type (@{type_name "*"}, [T1, T2])) =
     fold (Integer.add o num_factors_in_type) [T1, T2] 0
   | num_factors_in_type _ = 1
-fun num_binder_types (Type ("fun", [_, T2])) = 1 + num_binder_types T2
+fun num_binder_types (Type (@{type_name fun}, [_, T2])) =
+    1 + num_binder_types T2
   | num_binder_types _ = 0
 (* typ -> typ list *)
 val curried_binder_types = maps HOLogic.flatten_tupleT o binder_types
@@ -515,7 +521,7 @@ fun maybe_curried_binder_types T =
 
 (* typ -> term list -> term *)
 fun mk_flat_tuple _ [t] = t
-  | mk_flat_tuple (Type ("*", [T1, T2])) (t :: ts) =
+  | mk_flat_tuple (Type (@{type_name "*"}, [T1, T2])) (t :: ts) =
     HOLogic.pair_const T1 T2 $ t $ (mk_flat_tuple T2 ts)
   | mk_flat_tuple T ts = raise TYPE ("Nitpick_HOL.mk_flat_tuple", [T], ts)
 (* int -> term -> term list *)
@@ -595,7 +601,7 @@ fun register_codatatype co_T case_name constr_xs thy =
     val (co_s, co_Ts) = dest_Type co_T
     val _ =
       if forall is_TFree co_Ts andalso not (has_duplicates (op =) co_Ts) andalso
-         co_s <> "fun" andalso
+         co_s <> @{type_name fun} andalso
          not (is_basic_datatype thy [(NONE, true)] co_s) then
         ()
       else
@@ -669,7 +675,7 @@ fun no_of_record_field thy s T1 =
   find_index (curry (op =) s o fst)
              (Record.get_extT_fields thy T1 ||> single |> op @)
 (* theory -> styp -> bool *)
-fun is_record_get thy (s, Type ("fun", [T1, _])) =
+fun is_record_get thy (s, Type (@{type_name fun}, [T1, _])) =
     exists (curry (op =) s o fst) (all_record_fields thy T1)
   | is_record_get _ _ = false
 fun is_record_update thy (s, T) =
@@ -677,30 +683,33 @@ fun is_record_update thy (s, T) =
   exists (curry (op =) (unsuffix Record.updateN s) o fst)
          (all_record_fields thy (body_type T))
   handle TYPE _ => false
-fun is_abs_fun thy (s, Type ("fun", [_, Type (s', _)])) =
+fun is_abs_fun thy (s, Type (@{type_name fun}, [_, Type (s', _)])) =
     (case typedef_info thy s' of
        SOME {Abs_name, ...} => s = Abs_name
      | NONE => false)
   | is_abs_fun _ _ = false
-fun is_rep_fun thy (s, Type ("fun", [Type (s', _), _])) =
+fun is_rep_fun thy (s, Type (@{type_name fun}, [Type (s', _), _])) =
     (case typedef_info thy s' of
        SOME {Rep_name, ...} => s = Rep_name
      | NONE => false)
   | is_rep_fun _ _ = false
 (* Proof.context -> styp -> bool *)
-fun is_quot_abs_fun ctxt (x as (_, Type ("fun", [_, Type (s', _)]))) =
+fun is_quot_abs_fun ctxt
+                    (x as (_, Type (@{type_name fun}, [_, Type (s', _)]))) =
     (try (Quotient_Term.absrep_const_chk Quotient_Term.AbsF ctxt) s'
      = SOME (Const x))
   | is_quot_abs_fun _ _ = false
-fun is_quot_rep_fun ctxt (x as (_, Type ("fun", [Type (s', _), _]))) =
+fun is_quot_rep_fun ctxt
+                    (x as (_, Type (@{type_name fun}, [Type (s', _), _]))) =
     (try (Quotient_Term.absrep_const_chk Quotient_Term.RepF ctxt) s'
      = SOME (Const x))
   | is_quot_rep_fun _ _ = false
 
 (* theory -> styp -> styp *)
-fun mate_of_rep_fun thy (x as (_, Type ("fun", [T1 as Type (s', _), T2]))) =
+fun mate_of_rep_fun thy (x as (_, Type (@{type_name fun},
+                                        [T1 as Type (s', _), T2]))) =
     (case typedef_info thy s' of
-       SOME {Abs_name, ...} => (Abs_name, Type ("fun", [T2, T1]))
+       SOME {Abs_name, ...} => (Abs_name, Type (@{type_name fun}, [T2, T1]))
      | NONE => raise TERM ("Nitpick_HOL.mate_of_rep_fun", [Const x]))
   | mate_of_rep_fun _ x = raise TERM ("Nitpick_HOL.mate_of_rep_fun", [Const x])
 (* theory -> typ -> typ *)
@@ -729,10 +738,10 @@ fun is_coconstr thy (s, T) =
   end
   handle TYPE ("dest_Type", _, _) => false
 fun is_constr_like thy (s, T) =
-  member (op =) [@{const_name FunBox}, @{const_name PairBox},
-                 @{const_name Quot}, @{const_name Zero_Rep},
-                 @{const_name Suc_Rep}] s orelse
-  let val (x as (_, T)) = (s, unarize_and_unbox_type T) in
+  member (op =) [@{const_name FinFun}, @{const_name FunBox},
+                 @{const_name PairBox}, @{const_name Quot},
+                 @{const_name Zero_Rep}, @{const_name Suc_Rep}] s orelse
+  let val (x as (_, T)) = (s, unarize_unbox_etc_type T) in
     Refute.is_IDT_constructor thy x orelse is_record_constr x orelse
     (is_abs_fun thy x andalso is_pure_typedef thy (range_type T)) orelse
     is_coconstr thy x
@@ -749,8 +758,8 @@ fun is_constr thy stds (x as (_, T)) =
 (* string -> bool *)
 val is_sel = String.isPrefix discr_prefix orf String.isPrefix sel_prefix
 val is_sel_like_and_no_discr =
-  String.isPrefix sel_prefix
-  orf (member (op =) [@{const_name fst}, @{const_name snd}])
+  String.isPrefix sel_prefix orf
+  (member (op =) [@{const_name fst}, @{const_name snd}])
 
 (* boxability -> boxability *)
 fun in_fun_lhs_for InConstr = InSel
@@ -763,10 +772,10 @@ fun in_fun_rhs_for InConstr = InConstr
 (* hol_context -> boxability -> typ -> bool *)
 fun is_boxing_worth_it (hol_ctxt : hol_context) boxy T =
   case T of
-    Type ("fun", _) =>
+    Type (@{type_name fun}, _) =>
     (boxy = InPair orelse boxy = InFunLHS) andalso
     not (is_boolean_type (body_type T))
-  | Type ("*", Ts) =>
+  | Type (@{type_name "*"}, Ts) =>
     boxy = InPair orelse boxy = InFunRHS1 orelse boxy = InFunRHS2 orelse
     ((boxy = InExpr orelse boxy = InFunLHS) andalso
      exists (is_boxing_worth_it hol_ctxt InPair)
@@ -780,7 +789,7 @@ and should_box_type (hol_ctxt as {thy, boxes, ...}) boxy z =
 (* hol_context -> boxability -> typ -> typ *)
 and box_type hol_ctxt boxy T =
   case T of
-    Type (z as ("fun", [T1, T2])) =>
+    Type (z as (@{type_name fun}, [T1, T2])) =>
     if boxy <> InConstr andalso boxy <> InSel andalso
        should_box_type hol_ctxt boxy z then
       Type (@{type_name fun_box},
@@ -788,12 +797,13 @@ and box_type hol_ctxt boxy T =
     else
       box_type hol_ctxt (in_fun_lhs_for boxy) T1
       --> box_type hol_ctxt (in_fun_rhs_for boxy) T2
-  | Type (z as ("*", Ts)) =>
+  | Type (z as (@{type_name "*"}, Ts)) =>
     if boxy <> InConstr andalso boxy <> InSel
        andalso should_box_type hol_ctxt boxy z then
       Type (@{type_name pair_box}, map (box_type hol_ctxt InSel) Ts)
     else
-      Type ("*", map (box_type hol_ctxt
+      Type (@{type_name "*"},
+            map (box_type hol_ctxt
                           (if boxy = InConstr orelse boxy = InSel then boxy
                            else InPair)) Ts)
   | _ => T
@@ -979,7 +989,7 @@ fun nth_arg_sel_term_for_constr thy stds (x as (s, T)) n =
     else
       let
         (* int -> typ -> int * term *)
-        fun aux m (Type ("*", [T1, T2])) =
+        fun aux m (Type (@{type_name "*"}, [T1, T2])) =
             let
               val (m, t1) = aux m T1
               val (m, t2) = aux m T2
@@ -1018,10 +1028,85 @@ fun construct_value _ _ x [] = Const x
       | _ => list_comb (Const x, args)
     end
 
+(* hol_context -> typ -> term -> term *)
+fun constr_expand (hol_ctxt as {thy, stds, ...}) T t =
+  (case head_of t of
+     Const x => if is_constr_like thy x then t else raise SAME ()
+   | _ => raise SAME ())
+  handle SAME () =>
+         let
+           val x' as (_, T') =
+             if is_pair_type T then
+               let val (T1, T2) = HOLogic.dest_prodT T in
+                 (@{const_name Pair}, T1 --> T2 --> T)
+               end
+             else
+               datatype_constrs hol_ctxt T |> hd
+           val arg_Ts = binder_types T'
+         in
+           list_comb (Const x', map2 (select_nth_constr_arg thy stds x' t)
+                                     (index_seq 0 (length arg_Ts)) arg_Ts)
+         end
+
+(* (term -> term) -> int -> term -> term *)
+fun coerce_bound_no f j t =
+  case t of
+    t1 $ t2 => coerce_bound_no f j t1 $ coerce_bound_no f j t2
+  | Abs (s, T, t') => Abs (s, T, coerce_bound_no f (j + 1) t')
+  | Bound j' => if j' = j then f t else t
+  | _ => t
+(* hol_context -> typ -> typ -> term -> term *)
+fun coerce_bound_0_in_term hol_ctxt new_T old_T =
+  old_T <> new_T ? coerce_bound_no (coerce_term hol_ctxt [new_T] old_T new_T) 0
+(* hol_context -> typ list -> typ -> typ -> term -> term *)
+and coerce_term (hol_ctxt as {thy, stds, fast_descrs, ...}) Ts new_T old_T t =
+  if old_T = new_T then
+    t
+  else
+    case (new_T, old_T) of
+      (Type (new_s, new_Ts as [new_T1, new_T2]),
+       Type (@{type_name fun}, [old_T1, old_T2])) =>
+      (case eta_expand Ts t 1 of
+         Abs (s, _, t') =>
+         Abs (s, new_T1,
+              t' |> coerce_bound_0_in_term hol_ctxt new_T1 old_T1
+                 |> coerce_term hol_ctxt (new_T1 :: Ts) new_T2 old_T2)
+         |> Envir.eta_contract
+         |> new_s <> @{type_name fun}
+            ? construct_value thy stds
+                  (if new_s = @{type_name fin_fun} then @{const_name FinFun}
+                   else @{const_name FunBox},
+                   Type (@{type_name fun}, new_Ts) --> new_T)
+              o single
+       | t' => raise TERM ("Nitpick_HOL.coerce_term", [t']))
+    | (Type (new_s, new_Ts as [new_T1, new_T2]),
+       Type (old_s, old_Ts as [old_T1, old_T2])) =>
+      if old_s = @{type_name fin_fun} orelse old_s = @{type_name fun_box} orelse
+         old_s = @{type_name pair_box} orelse old_s = @{type_name "*"} then
+        case constr_expand hol_ctxt old_T t of
+          Const (old_s, _) $ t1 =>
+          if new_s = @{type_name fun} then
+            coerce_term hol_ctxt Ts new_T (Type (@{type_name fun}, old_Ts)) t1
+          else
+            construct_value thy stds
+                (old_s, Type (@{type_name fun}, new_Ts) --> new_T)
+                [coerce_term hol_ctxt Ts (Type (@{type_name fun}, new_Ts))
+                             (Type (@{type_name fun}, old_Ts)) t1]
+        | Const _ $ t1 $ t2 =>
+          construct_value thy stds
+              (if new_s = @{type_name "*"} then @{const_name Pair}
+               else @{const_name PairBox}, new_Ts ---> new_T)
+              (map3 (coerce_term hol_ctxt Ts) [new_T1, new_T2] [old_T1, old_T2]
+                    [t1, t2])
+        | t' => raise TERM ("Nitpick_HOL.coerce_term", [t'])
+      else
+        raise TYPE ("Nitpick_HOL.coerce_term", [new_T, old_T], [t])
+    | _ => raise TYPE ("Nitpick_HOL.coerce_term", [new_T, old_T], [t])
+
 (* (typ * int) list -> typ -> int *)
-fun card_of_type assigns (Type ("fun", [T1, T2])) =
+fun card_of_type assigns (Type (@{type_name fun}, [T1, T2])) =
     reasonable_power (card_of_type assigns T2) (card_of_type assigns T1)
-  | card_of_type assigns (Type ("*", [T1, T2])) =
+  | card_of_type assigns (Type (@{type_name "*"}, [T1, T2])) =
     card_of_type assigns T1 * card_of_type assigns T2
   | card_of_type _ (Type (@{type_name itself}, _)) = 1
   | card_of_type _ @{typ prop} = 2
@@ -1033,7 +1118,8 @@ fun card_of_type assigns (Type ("fun", [T1, T2])) =
     | NONE => if T = @{typ bisim_iterator} then 0
               else raise TYPE ("Nitpick_HOL.card_of_type", [T], [])
 (* int -> (typ * int) list -> typ -> int *)
-fun bounded_card_of_type max default_card assigns (Type ("fun", [T1, T2])) =
+fun bounded_card_of_type max default_card assigns
+                         (Type (@{type_name fun}, [T1, T2])) =
     let
       val k1 = bounded_card_of_type max default_card assigns T1
       val k2 = bounded_card_of_type max default_card assigns T2
@@ -1041,7 +1127,8 @@ fun bounded_card_of_type max default_card assigns (Type ("fun", [T1, T2])) =
       if k1 = max orelse k2 = max then max
       else Int.min (max, reasonable_power k2 k1)
     end
-  | bounded_card_of_type max default_card assigns (Type ("*", [T1, T2])) =
+  | bounded_card_of_type max default_card assigns
+                         (Type (@{type_name "*"}, [T1, T2])) =
     let
       val k1 = bounded_card_of_type max default_card assigns T1
       val k2 = bounded_card_of_type max default_card assigns T2
@@ -1064,7 +1151,7 @@ fun bounded_exact_card_of_type hol_ctxt finitizable_dataTs max default_card
        else if member (op =) finitizable_dataTs T then
          raise SAME ()
        else case T of
-         Type ("fun", [T1, T2]) =>
+         Type (@{type_name fun}, [T1, T2]) =>
          let
            val k1 = aux avoid T1
            val k2 = aux avoid T2
@@ -1073,7 +1160,7 @@ fun bounded_exact_card_of_type hol_ctxt finitizable_dataTs max default_card
            else if k1 >= max orelse k2 >= max then max
            else Int.min (max, reasonable_power k2 k1)
          end
-       | Type ("*", [T1, T2]) =>
+       | Type (@{type_name "*"}, [T1, T2]) =>
          let
            val k1 = aux avoid T1
            val k2 = aux avoid T2
@@ -1104,9 +1191,16 @@ fun bounded_exact_card_of_type hol_ctxt finitizable_dataTs max default_card
              AList.lookup (op =) assigns T |> the_default default_card
   in Int.min (max, aux [] T) end
 
+val small_type_max_card = 5
+
 (* hol_context -> typ -> bool *)
 fun is_finite_type hol_ctxt T =
-  bounded_exact_card_of_type hol_ctxt [] 1 2 [] T <> 0
+  bounded_exact_card_of_type hol_ctxt [] 1 2 [] T > 0
+(* hol_context -> typ -> bool *)
+fun is_small_finite_type hol_ctxt T =
+  let val n = bounded_exact_card_of_type hol_ctxt [] 1 2 [] T in
+    n > 0 andalso n <= small_type_max_card
+  end
 
 (* term -> bool *)
 fun is_ground_term (t1 $ t2) = is_ground_term t1 andalso is_ground_term t2
@@ -1144,7 +1238,8 @@ fun is_typedef_axiom thy boring (@{const "==>"} $ _ $ t2) =
     is_typedef_axiom thy boring t2
   | is_typedef_axiom thy boring
         (@{const Trueprop} $ (Const (@{const_name Typedef.type_definition}, _)
-         $ Const (_, Type ("fun", [Type (s, _), _])) $ Const _ $ _)) =
+         $ Const (_, Type (@{type_name fun}, [Type (s, _), _]))
+         $ Const _ $ _)) =
     boring <> is_funky_typedef_name thy s andalso is_typedef thy s
   | is_typedef_axiom _ _ _ = false
 
@@ -1538,8 +1633,8 @@ fun is_real_equational_fun ({thy, stds, fast_descrs, simp_table, psimp_table,
 fun is_inductive_pred hol_ctxt =
   is_real_inductive_pred hol_ctxt andf (not o is_real_equational_fun hol_ctxt)
 fun is_equational_fun hol_ctxt =
-  (is_real_equational_fun hol_ctxt orf is_real_inductive_pred hol_ctxt
-   orf (String.isPrefix ubfp_prefix orf String.isPrefix lbfp_prefix) o fst)
+  (is_real_equational_fun hol_ctxt orf is_real_inductive_pred hol_ctxt orf
+   (String.isPrefix ubfp_prefix orf String.isPrefix lbfp_prefix) o fst)
 
 (* term * term -> term *)
 fun s_betapply (Const (@{const_name If}, _) $ @{const True} $ t, _) = t
@@ -1586,7 +1681,7 @@ fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
     fun do_term depth Ts t =
       case t of
         (t0 as Const (@{const_name Int.number_class.number_of},
-                      Type ("fun", [_, ran_T]))) $ t1 =>
+                      Type (@{type_name fun}, [_, ran_T]))) $ t1 =>
         ((if is_number_type thy ran_T then
             let
               val j = t1 |> HOLogic.dest_numeral
@@ -1612,7 +1707,7 @@ fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
         betapplys (t0 |> loose_bvar1 (t2', 0) ? do_term depth Ts,
                    map (do_term depth Ts) [t1, t2])
       | Const (x as (@{const_name distinct},
-               Type ("fun", [Type (@{type_name list}, [T']), _])))
+               Type (@{type_name fun}, [Type (@{type_name list}, [T']), _])))
         $ (t1 as _ $ _) =>
         (t1 |> HOLogic.dest_list |> distinctness_formula T'
          handle TERM _ => do_const depth Ts t x [t1])
@@ -1969,7 +2064,7 @@ fun starred_linear_pred_const (hol_ctxt as {simp_table, ...}) (s, T) def =
     val tuple_T = HOLogic.mk_tupleT tuple_arg_Ts
     val set_T = tuple_T --> bool_T
     val curried_T = tuple_T --> set_T
-    val uncurried_T = Type ("*", [tuple_T, tuple_T]) --> bool_T
+    val uncurried_T = Type (@{type_name "*"}, [tuple_T, tuple_T]) --> bool_T
     val (base_rhs, step_rhs) = linear_pred_base_and_step_rhss fp_app
     val base_x as (base_s, _) = (base_prefix ^ s, outer_Ts ---> set_T)
     val base_eq = HOLogic.mk_eq (list_comb (Const base_x, outer_vars), base_rhs)
@@ -2092,8 +2187,8 @@ fun add_ground_types hol_ctxt binarize =
   let
     fun aux T accum =
       case T of
-        Type ("fun", Ts) => fold aux Ts accum
-      | Type ("*", Ts) => fold aux Ts accum
+        Type (@{type_name fun}, Ts) => fold aux Ts accum
+      | Type (@{type_name "*"}, Ts) => fold aux Ts accum
       | Type (@{type_name itself}, [T1]) => aux T1 accum
       | Type (_, Ts) =>
         if member (op =) (@{typ prop} :: @{typ bool} :: @{typ unit} :: accum)
@@ -2161,7 +2256,7 @@ fun lookup_format thy def_table formats t =
 (* int list -> int list -> typ -> typ *)
 fun format_type default_format format T =
   let
-    val T = unarize_unbox_and_uniterize_type T
+    val T = uniterize_unarize_unbox_etc_type T
     val format = format |> filter (curry (op <) 0)
   in
     if forall (curry (op =) 1) format then
@@ -2200,7 +2295,7 @@ fun user_friendly_const ({thy, evals, def_table, skolems, special_funs, ...}
            (* term -> term *)
            val do_term = map_aterms (fn Const x => fst (do_const x) | t' => t')
            val (x' as (_, T'), js, ts) =
-             AList.find (op =) (!special_funs) (s, unarize_and_unbox_type T)
+             AList.find (op =) (!special_funs) (s, unarize_unbox_etc_type T)
              |> the_single
            val max_j = List.last js
            val Ts = List.take (binder_types T', max_j + 1)
@@ -2294,7 +2389,7 @@ fun user_friendly_const ({thy, evals, def_table, skolems, special_funs, ...}
          let val t = Const (original_name s, T) in
            (t, format_term_type thy def_table formats t)
          end)
-      |>> map_types unarize_unbox_and_uniterize_type
+      |>> map_types uniterize_unarize_unbox_etc_type
       |>> shorten_names_in_term |>> Term.map_abs_vars shortest_name
   in do_const end
 

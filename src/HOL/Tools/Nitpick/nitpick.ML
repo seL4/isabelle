@@ -15,6 +15,7 @@ sig
     bitss: int list,
     bisim_depths: int list,
     boxes: (typ option * bool option) list,
+    finitizes: (typ option * bool option) list,
     monos: (typ option * bool option) list,
     stds: (typ option * bool) list,
     wfs: (styp option * bool option) list,
@@ -87,6 +88,7 @@ type params = {
   bitss: int list,
   bisim_depths: int list,
   boxes: (typ option * bool option) list,
+  finitizes: (typ option * bool option) list,
   monos: (typ option * bool option) list,
   stds: (typ option * bool) list,
   wfs: (styp option * bool option) list,
@@ -200,13 +202,13 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
             error "You must import the theory \"Nitpick\" to use Nitpick"
 *)
     val {cards_assigns, maxes_assigns, iters_assigns, bitss, bisim_depths,
-         boxes, monos, stds, wfs, sat_solver, falsify, debug, verbose, overlord,
-         user_axioms, assms, merge_type_vars, binary_ints, destroy_constrs,
-         specialize, skolemize, star_linear_preds, uncurry, fast_descrs,
-         peephole_optim, tac_timeout, sym_break, sharing_depth, flatten_props,
-         max_threads, show_skolems, show_datatypes, show_consts, evals, formats,
-         max_potential, max_genuine, check_potential, check_genuine, batch_size,
-         ...} =
+         boxes, finitizes, monos, stds, wfs, sat_solver, falsify, debug,
+         verbose, overlord, user_axioms, assms, merge_type_vars, binary_ints,
+         destroy_constrs, specialize, skolemize, star_linear_preds, uncurry,
+         fast_descrs, peephole_optim, tac_timeout, sym_break, sharing_depth,
+         flatten_props, max_threads, show_skolems, show_datatypes, show_consts,
+         evals, formats, max_potential, max_genuine, check_potential,
+         check_genuine, batch_size, ...} =
       params
     val state_ref = Unsynchronized.ref state
     (* Pretty.T -> unit *)
@@ -289,7 +291,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val _ = null (Term.add_tvars assms_t []) orelse
             raise NOT_SUPPORTED "schematic type variables"
     val (nondef_ts, def_ts, got_all_mono_user_axioms, no_poly_user_axioms,
-         binarize) = preprocess_term hol_ctxt assms_t
+         binarize) = preprocess_term hol_ctxt finitizes monos assms_t
     val got_all_user_axioms =
       got_all_mono_user_axioms andalso no_poly_user_axioms
 
@@ -321,7 +323,11 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       fold add_free_and_const_names (nondef_us @ def_us) ([], [])
     val (sel_names, nonsel_names) =
       List.partition (is_sel o nickname_of) const_names
-    val genuine_means_genuine = got_all_user_axioms andalso none_true wfs
+    val sound_finitizes =
+      none_true (filter_out (fn (SOME (Type (@{type_name fun}, _)), _) => true
+                          | _ => false) finitizes)
+    val genuine_means_genuine =
+      got_all_user_axioms andalso none_true wfs andalso sound_finitizes
     val standard = forall snd stds
 (*
     val _ = List.app (priority o string_for_nut ctxt) (nondef_us @ def_us)
@@ -340,21 +346,30 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         ". " ^ extra
       end
     (* typ -> bool *)
-    fun is_type_always_monotonic T =
+    fun is_type_fundamentally_monotonic T =
       (is_datatype thy stds T andalso not (is_quot_type thy T) andalso
        (not (is_pure_typedef thy T) orelse is_univ_typedef thy T)) orelse
       is_number_type thy T orelse is_bit_type T
     fun is_type_actually_monotonic T =
       formulas_monotonic hol_ctxt binarize T (nondef_ts, def_ts)
+    fun is_type_kind_of_monotonic T =
+      case triple_lookup (type_match thy) monos T of
+        SOME (SOME false) => false
+      | _ => is_type_actually_monotonic T
     fun is_type_monotonic T =
       unique_scope orelse
       case triple_lookup (type_match thy) monos T of
         SOME (SOME b) => b
-      | _ => is_type_always_monotonic T orelse is_type_actually_monotonic T
-    fun is_type_finitizable T =
-      case triple_lookup (type_match thy) monos T of
-        SOME (SOME false) => false
-      | _ => is_type_actually_monotonic T
+      | _ => is_type_fundamentally_monotonic T orelse
+             is_type_actually_monotonic T
+    fun is_shallow_datatype_finitizable (T as Type (@{type_name fin_fun}, _)) =
+        is_type_kind_of_monotonic T
+      | is_shallow_datatype_finitizable (T as Type (@{type_name fun_box}, _)) =
+        is_type_kind_of_monotonic T
+      | is_shallow_datatype_finitizable T =
+        case triple_lookup (type_match thy) finitizes T of
+          SOME (SOME b) => b
+        | _ => is_type_kind_of_monotonic T
     fun is_datatype_deep T =
       not standard orelse T = nat_T orelse is_word_type T orelse
       exists (curry (op =) T o domain_type o type_of) sel_names
@@ -371,7 +386,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val (mono_Ts, nonmono_Ts) = List.partition is_type_monotonic all_Ts
     val _ =
       if verbose andalso not unique_scope then
-        case filter_out is_type_always_monotonic mono_Ts of
+        case filter_out is_type_fundamentally_monotonic mono_Ts of
           [] => ()
         | interesting_mono_Ts =>
           print_v (K (monotonicity_message interesting_mono_Ts
@@ -382,7 +397,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       all_Ts |> filter (is_datatype thy stds) |> List.partition is_datatype_deep
     val finitizable_dataTs =
       shallow_dataTs |> filter_out (is_finite_type hol_ctxt)
-                     |> filter is_type_finitizable
+                     |> filter is_shallow_datatype_finitizable
     val _ =
       if verbose andalso not (null finitizable_dataTs) then
         print_v (K (monotonicity_message finitizable_dataTs
@@ -649,6 +664,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                          ? cons ("user_axioms", "\"true\"")
                       |> not (none_true wfs)
                          ? cons ("wf", "\"smart\" or \"false\"")
+                      |> not sound_finitizes
+                         ? cons ("finitize", "\"smart\" or \"false\"")
                       |> not codatatypes_ok
                          ? cons ("bisim_depth", "a nonnegative value")
                  val ss =

@@ -106,22 +106,26 @@ fun constr_spec [] x = raise TERM ("Nitpick_Scope.constr_spec", [Const x])
     | NONE => constr_spec dtypes x
 
 (* dtype_spec list -> bool -> typ -> bool *)
-fun is_complete_type dtypes facto (Type ("fun", [T1, T2])) =
+fun is_complete_type dtypes facto (Type (@{type_name fun}, [T1, T2])) =
     is_concrete_type dtypes facto T1 andalso is_complete_type dtypes facto T2
-  | is_complete_type dtypes facto (Type ("*", Ts)) =
+  | is_complete_type dtypes facto (Type (@{type_name fin_fun}, [T1, T2])) =
+    is_exact_type dtypes facto T1 andalso is_complete_type dtypes facto T2
+  | is_complete_type dtypes facto (Type (@{type_name "*"}, Ts)) =
     forall (is_complete_type dtypes facto) Ts
   | is_complete_type dtypes facto T =
     not (is_integer_like_type T) andalso not (is_bit_type T) andalso
     fun_from_pair (#complete (the (datatype_spec dtypes T))) facto
     handle Option.Option => true
-and is_concrete_type dtypes facto (Type ("fun", [T1, T2])) =
+and is_concrete_type dtypes facto (Type (@{type_name fun}, [T1, T2])) =
     is_complete_type dtypes facto T1 andalso is_concrete_type dtypes facto T2
-  | is_concrete_type dtypes facto (Type ("*", Ts)) =
+  | is_concrete_type dtypes facto (Type (@{type_name fin_fun}, [_, T2])) =
+    is_concrete_type dtypes facto T2
+  | is_concrete_type dtypes facto (Type (@{type_name "*"}, Ts)) =
     forall (is_concrete_type dtypes facto) Ts
   | is_concrete_type dtypes facto T =
     fun_from_pair (#concrete (the (datatype_spec dtypes T))) facto
     handle Option.Option => true
-fun is_exact_type dtypes facto =
+and is_exact_type dtypes facto =
   is_complete_type dtypes facto andf is_concrete_type dtypes facto
 
 (* int Typtab.table -> typ -> int *)
@@ -528,15 +532,15 @@ fun scope_from_descriptor (hol_ctxt as {thy, stds, ...}) binarize sym_break
 
 (* theory -> typ list -> (typ option * int list) list
    -> (typ option * int list) list *)
-fun repair_cards_assigns_wrt_boxing _ _ [] = []
-  | repair_cards_assigns_wrt_boxing thy Ts ((SOME T, ks) :: cards_assigns) =
+fun repair_cards_assigns_wrt_boxing_etc _ _ [] = []
+  | repair_cards_assigns_wrt_boxing_etc thy Ts ((SOME T, ks) :: cards_assigns) =
     (if is_fun_type T orelse is_pair_type T then
-       Ts |> filter (curry (type_match thy o swap) T o unarize_and_unbox_type)
-          |> map (rpair ks o SOME)
+       Ts |> filter (curry (type_match thy o swap) T) |> map (rpair ks o SOME)
      else
-       [(SOME T, ks)]) @ repair_cards_assigns_wrt_boxing thy Ts cards_assigns
-  | repair_cards_assigns_wrt_boxing thy Ts ((NONE, ks) :: cards_assigns) =
-    (NONE, ks) :: repair_cards_assigns_wrt_boxing thy Ts cards_assigns
+       [(SOME T, ks)]) @
+       repair_cards_assigns_wrt_boxing_etc thy Ts cards_assigns
+  | repair_cards_assigns_wrt_boxing_etc thy Ts ((NONE, ks) :: cards_assigns) =
+    (NONE, ks) :: repair_cards_assigns_wrt_boxing_etc thy Ts cards_assigns
 
 val max_scopes = 4096
 val distinct_threshold = 512
@@ -548,8 +552,8 @@ fun all_scopes (hol_ctxt as {thy, ...}) binarize sym_break cards_assigns
                maxes_assigns iters_assigns bitss bisim_depths mono_Ts nonmono_Ts
                deep_dataTs finitizable_dataTs =
   let
-    val cards_assigns = repair_cards_assigns_wrt_boxing thy mono_Ts
-                                                        cards_assigns
+    val cards_assigns = repair_cards_assigns_wrt_boxing_etc thy mono_Ts
+                                                            cards_assigns
     val blocks = blocks_for_types hol_ctxt binarize cards_assigns maxes_assigns
                                   iters_assigns bitss bisim_depths mono_Ts
                                   nonmono_Ts
