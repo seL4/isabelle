@@ -47,6 +47,9 @@ sig
   val class_space: theory -> Name_Space.T
   val type_space: theory -> Name_Space.T
   val const_space: theory -> Name_Space.T
+  val class_alias: binding -> class -> theory -> theory
+  val type_alias: binding -> string -> theory -> theory
+  val const_alias: binding -> string -> theory -> theory
   val intern_class: theory -> xstring -> string
   val extern_class: theory -> string -> xstring
   val intern_type: theory -> xstring -> string
@@ -232,6 +235,10 @@ val declared_const = can o the_const_constraint;
 val class_space = Type.class_space o tsig_of;
 val type_space = Type.type_space o tsig_of;
 val const_space = Consts.space_of o consts_of;
+
+fun class_alias b c thy = map_tsig (Type.class_alias (naming_of thy) b c) thy;
+fun type_alias b c thy = map_tsig (Type.type_alias (naming_of thy) b c) thy;
+fun const_alias b c thy = map_consts (Consts.alias (naming_of thy) b c) thy;
 
 val intern_class = Name_Space.intern o class_space;
 val extern_class = Name_Space.extern o class_space;

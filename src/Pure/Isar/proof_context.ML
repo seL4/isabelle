@@ -28,6 +28,7 @@ sig
   val full_name: Proof.context -> binding -> string
   val syn_of: Proof.context -> Syntax.syntax
   val tsig_of: Proof.context -> Type.tsig
+  val default_sort: Proof.context -> indexname -> sort
   val consts_of: Proof.context -> Consts.T
   val the_const_constraint: Proof.context -> string -> typ
   val set_syntax_mode: Syntax.mode -> Proof.context -> Proof.context
@@ -127,6 +128,9 @@ sig
     Context.generic -> Context.generic
   val target_notation: bool -> Syntax.mode -> (term * mixfix) list -> morphism ->
     Context.generic -> Context.generic
+  val class_alias: binding -> class -> Proof.context -> Proof.context
+  val type_alias: binding -> string -> Proof.context -> Proof.context
+  val const_alias: binding -> string -> Proof.context -> Proof.context
   val add_const_constraint: string * typ option -> Proof.context -> Proof.context
   val add_abbrev: string -> binding * term -> Proof.context -> (term * term) * Proof.context
   val revert_abbrev: string -> string -> Proof.context -> Proof.context
@@ -249,6 +253,7 @@ val set_syntax_mode = map_syntax o Local_Syntax.set_mode;
 val restore_syntax_mode = map_syntax o Local_Syntax.restore_mode o syntax_of;
 
 val tsig_of = #1 o #tsigs o rep_context;
+fun default_sort ctxt = the_default (Type.defaultS (tsig_of ctxt)) o Variable.def_sort ctxt;
 
 val consts_of = #1 o #consts o rep_context;
 val the_const_constraint = Consts.the_constraint o consts_of;
@@ -473,7 +478,7 @@ fun read_type_name ctxt strict text =
   in
     if Syntax.is_tid c then
      (Position.report Markup.tfree pos;
-      TFree (c, the_default (Type.defaultS tsig) (Variable.def_sort ctxt (c, ~1))))
+      TFree (c, default_sort ctxt (c, ~1)))
     else
       let
         val d = Type.intern_type tsig c;
@@ -745,7 +750,7 @@ fun parse_term T ctxt text =
     val t =
       Syntax.standard_parse_term (Syntax.pp ctxt) check get_sort map_const map_free
         ctxt (Type.is_logtype (tsig_of ctxt)) (syn_of ctxt) T' (syms, pos)
-      handle ERROR msg => cat_error msg  ("Failed to parse " ^ kind ^ Position.str_of pos);
+      handle ERROR msg => cat_error msg ("Failed to parse " ^ kind ^ Position.str_of pos);
   in t end;
 
 
@@ -1011,7 +1016,7 @@ end;
 
 
 
-(** parameters **)
+(** basic logical entities **)
 
 (* variables *)
 
@@ -1043,7 +1048,7 @@ val cert_vars = prep_vars (K I) true;
 end;
 
 
-(* authentic logical entities *)
+(* authentic syntax *)
 
 val _ = Context.>>
   (Context.map_theory
@@ -1121,8 +1126,14 @@ fun target_notation add mode args phi =
       in if Term.aconv_untyped (t, t') then SOME (t', mx) else NONE end);
   in Context.mapping (Sign.notation add mode args') (notation add mode args') end;
 
-
 end;
+
+
+(* aliases *)
+
+fun class_alias b c ctxt = (map_tsigs o apfst) (Type.class_alias (naming_of ctxt) b c) ctxt;
+fun type_alias b c ctxt = (map_tsigs o apfst) (Type.type_alias (naming_of ctxt) b c) ctxt;
+fun const_alias b c ctxt = (map_consts o apfst) (Consts.alias (naming_of ctxt) b c) ctxt;
 
 
 (* local constants *)

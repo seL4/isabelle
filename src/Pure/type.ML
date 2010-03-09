@@ -21,6 +21,7 @@ sig
     log_types: string list}
   val empty_tsig: tsig
   val class_space: tsig -> Name_Space.T
+  val class_alias: Name_Space.naming -> binding -> string -> tsig -> tsig
   val intern_class: tsig -> xstring -> string
   val extern_class: tsig -> string -> xstring
   val defaultS: tsig -> sort
@@ -40,6 +41,7 @@ sig
   val set_mode: mode -> Proof.context -> Proof.context
   val restore_mode: Proof.context -> Proof.context -> Proof.context
   val type_space: tsig -> Name_Space.T
+  val type_alias: Name_Space.naming -> binding -> string -> tsig -> tsig
   val intern_type: tsig -> xstring -> string
   val extern_type: tsig -> string -> xstring
   val is_logtype: tsig -> string -> bool
@@ -141,6 +143,9 @@ val empty_tsig =
 
 val class_space = #1 o #classes o rep_tsig;
 
+fun class_alias naming binding name = map_tsig (fn ((space, classes), default, types) =>
+  ((Name_Space.alias naming binding name space, classes), default, types));
+
 val intern_class = Name_Space.intern o class_space;
 val extern_class = Name_Space.extern o class_space;
 
@@ -181,6 +186,9 @@ fun restore_mode ctxt = set_mode (get_mode ctxt);
 (* types *)
 
 val type_space = #1 o #types o rep_tsig;
+
+fun type_alias naming binding name = map_tsig (fn (classes, default, (space, types)) =>
+  (classes, default, (Name_Space.alias naming binding name space, types)));
 
 val intern_type = Name_Space.intern o type_space;
 val extern_type = Name_Space.extern o type_space;
