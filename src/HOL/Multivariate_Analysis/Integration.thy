@@ -3908,4 +3908,8 @@ proof assume ?r
     proof(rule,rule,rule B,safe) case goal1 from B(2)[OF this] guess z .. note z=conjunctD2[OF this]
       from integral_unique[OF this(1)] show ?case using z(2) by auto qed qed qed 
 
+
+
+declare [[smt_certificates=""]]
+
 end
