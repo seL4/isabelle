@@ -849,17 +849,20 @@ in (ct1, ct2) end;
 
 fun splitasms ctxt (asms : thm list) : splittree =
 let val {neqE, ...} = get_data ctxt
-    fun elim_neq (asms', []) = Tip (rev asms')
-      | elim_neq (asms', asm::asms) =
-      (case get_first (fn th => SOME (asm COMP th) handle THM _ => NONE) neqE of
+    fun elim_neq [] (asms', []) = Tip (rev asms')
+      | elim_neq [] (asms', asms) = Tip (rev asms' @ asms)
+      | elim_neq (neq :: neqs) (asms', []) = elim_neq neqs ([],rev asms')
+      | elim_neq (neqs as (neq :: _)) (asms', asm::asms) =
+      (case get_first (fn th => SOME (asm COMP th) handle THM _ => NONE) [neq] of
         SOME spl =>
           let val (ct1, ct2) = extract (cprop_of spl)
               val thm1 = assume ct1
               val thm2 = assume ct2
-          in Spl (spl, ct1, elim_neq (asms', asms@[thm1]), ct2, elim_neq (asms', asms@[thm2]))
+          in Spl (spl, ct1, elim_neq neqs (asms', asms@[thm1]),
+            ct2, elim_neq neqs (asms', asms@[thm2]))
           end
-      | NONE => elim_neq (asm::asms', asms))
-in elim_neq ([], asms) end;
+      | NONE => elim_neq neqs (asm::asms', asms))
+in elim_neq neqE ([], asms) end;
 
 fun fwdproof ss (Tip asms : splittree) (j::js : injust list) = (mkthm ss asms j, js)
   | fwdproof ss (Spl (thm, ct1, tree1, ct2, tree2)) js =
