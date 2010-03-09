@@ -8,7 +8,7 @@ Simple transfer principle on theorems.
 signature TRANSFER =
 sig
   datatype selection = Direction of term * term | Hints of string list | Prop
-  val transfer: Context.generic -> selection -> string list -> thm -> thm
+  val transfer: Context.generic -> selection -> string list -> thm -> thm list
   type entry
   val add: entry * entry -> thm -> Context.generic -> Context.generic
   val del: thm -> Context.generic -> Context.generic
@@ -29,13 +29,13 @@ fun check_morphism_key ctxt key =
         ("Transfer: expected theorem of the form " ^ quote (Display.string_of_thm ctxt @{thm transfer_morphismI}));
   in direction_of key end;
 
-type entry = { inj : thm list, emb : thm list, ret : thm list, cong : thm list,
+type entry = { inj : thm list, embed : thm list, return : thm list, cong : thm list,
   guess : bool, hints : string list };
 
-fun merge_entry ({ inj = inj1, emb = emb1, ret = ret1, cong = cong1, guess = guess1, hints = hints1 } : entry,
-  { inj = inj2, emb = emb2, ret = ret2, cong = cong2, guess = guess2, hints = hints2 } : entry) =
-    { inj = merge Thm.eq_thm (inj1, inj2), emb = merge Thm.eq_thm (emb1, emb2),
-      ret = merge Thm.eq_thm (ret1, ret2), cong = merge Thm.eq_thm (cong1, cong2),
+fun merge_entry ({ inj = inj1, embed = embed1, return = return1, cong = cong1, guess = guess1, hints = hints1 } : entry,
+  { inj = inj2, embed = embed2, return = return2, cong = cong2, guess = guess2, hints = hints2 } : entry) =
+    { inj = merge Thm.eq_thm (inj1, inj2), embed = merge Thm.eq_thm (embed1, embed2),
+      return = merge Thm.eq_thm (return1, return2), cong = merge Thm.eq_thm (cong1, cong2),
       guess = guess1 andalso guess2, hints = merge (op =) (hints1, hints2) };
 
 structure Data = Generic_Data
@@ -58,8 +58,8 @@ fun get_by_direction context (a, D) =
     fun eq_direction ((a, D), thm') =
       let
         val (a', D') = direction_of thm';
-      in a0 aconvc a' andalso D0 aconvc D' end;
-  in case AList.lookup eq_direction (Data.get context) (a, D) of
+      in a aconvc a' andalso D aconvc D' end;
+  in case AList.lookup eq_direction (Data.get context) (a0, D0) of
       SOME e => ((a0, D0), e)
     | NONE => error ("Transfer: no such instance: ("
         ^ Syntax.string_of_term ctxt a ^ ", " ^ Syntax.string_of_term ctxt D ^ ")")
@@ -95,7 +95,7 @@ fun get_by_prop context t =
 
 (* applying transfer data *)
 
-fun transfer_thm inj_only a0 D0 {inj = inj, emb = emb, ret = ret, cong = cg, guess = _, hints = _}
+fun transfer_thm inj_only a0 D0 { inj, embed, return, cong, guess = _, hints = _ }
     leave ctxt0 th =
   let
     val ([a, D], ctxt) = apfst (map Drule.dest_term o snd)
@@ -117,14 +117,13 @@ fun transfer_thm inj_only a0 D0 {inj = inj, emb = emb, ret = ret, cong = cg, gue
     val th1 = Drule.cterm_instantiate (cns ~~ cis) th;
     val th2 = fold Thm.elim_implies hs (fold_rev implies_intr (map cprop_of hs) th1);
     val simpset = (Simplifier.context ctxt''' HOL_ss)
-      addsimps inj addsimps (if inj_only then [] else emb @ ret) addcongs cg;
+      addsimps inj addsimps (if inj_only then [] else embed @ return) addcongs cong;
     val th3 = Simplifier.asm_full_simplify simpset
       (fold_rev implies_intr (map cprop_of hs) th2);
   in hd (Variable.export ctxt''' ctxt0 [th3]) end;
 
 fun transfer_thm_multiple inj_only insts leave ctxt thm =
-  Conjunction.intr_balanced (map
-    (fn ((a, D), e) => transfer_thm false a D e leave ctxt thm) insts);
+  map (fn ((a, D), e) => transfer_thm false a D e leave ctxt thm) insts;
 
 datatype selection = Direction of term * term | Hints of string list | Prop;
 
@@ -144,34 +143,34 @@ fun merge_update eq m (k, v) [] = [(k, v)]
 
 (*? fun merge_update eq m (k, v) = AList.map_entry eq k (fn v' => m (v, v'));*)
 
-fun merge_entries {inj = inj0, emb = emb0, ret = ret0, cong = cg0, guess = g0, hints = hints0}
-    ({inj = inj1, emb = emb1, ret = ret1, cong = cg1, guess = g1, hints = hints1},
-     {inj = inj2, emb = emb2, ret = ret2, cong = cg2, guess = g2, hints = hints2} : entry) =
+fun merge_entries {inj = inj0, embed = embed0, return = return0, cong = cong0, guess = guess0, hints = hints0}
+    ({inj = inj1, embed = embed1, return = return1, cong = cong1, guess = guess1, hints = hints1},
+     {inj = inj2, embed = embed2, return = return2, cong = cong2, guess = guess2, hints = hints2} : entry) =
   let
     fun h xs0 xs ys = subtract Thm.eq_thm xs0 (merge Thm.eq_thm (xs, ys))
   in
-    {inj = h inj0 inj1 inj2, emb = h emb0 emb1 emb2,
-     ret = h ret0 ret1 ret2, cong = h cg0 cg1 cg2, guess = g1 andalso g2,
+    {inj = h inj0 inj1 inj2, embed = h embed0 embed1 embed2,
+     return = h return0 return1 return2, cong = h cong0 cong1 cong2, guess = guess1 andalso guess2,
      hints = subtract (op =) hints0 (union (op =) hints1 hints2) }
   end;
 
-fun add (e0 as {inj = inja, emb = emba, ret = reta, cong = cga, guess = g, hints = hintsa},
-  ed as {inj = injd, emb = embd, ret = retd, cong = cgd, guess = _, hints = hintsd}) key context =
+fun add (e0 as {inj = inja, embed = embeda, return = returna, cong = conga, guess = guess, hints = hintsa},
+  ed as {inj = injd, embed = embedd, return = returnd, cong = congd, guess = _, hints = hintsd}) key context =
   context
   |> Data.map (fn al =>
     let
       val ctxt = Context.proof_of context;
       val (a0, D0) = check_morphism_key ctxt key;
-      val entry = if g then
+      val entry = if guess then
         let
           val inj' = if null inja then #inj
             (case AList.lookup Thm.eq_thm al key of SOME e => e
               | NONE => error "Transfer: cannot generate return rules on the fly, either add injectivity axiom or force manual mode with mode: manual")
             else inja
-          val ret' = merge Thm.eq_thm (reta, map
-            (fn th => transfer_thm true a0 D0 {inj = inj', emb = [], ret = [], cong = cga, guess = g,
-              hints = hintsa} [] ctxt th RS sym) emba);
-        in {inj = inja, emb = emba, ret = ret', cong = cga, guess = g, hints = hintsa} end
+          val return' = merge Thm.eq_thm (returna, map
+            (fn th => transfer_thm true a0 D0 {inj = inj', embed = [], return = [], cong = conga,
+              guess = guess, hints = hintsa} [] ctxt th RS sym) embeda);
+        in {inj = inja, embed = embeda, return = return', cong = conga, guess = guess, hints = hintsa} end
         else e0;
     in merge_update Thm.eq_thm (merge_entries ed) (key, entry) al end);
 
@@ -188,22 +187,24 @@ fun these_pair scan = Scan.optional scan ([], []);
 fun keyword k = Scan.lift (Args.$$$ k) >> K ();
 fun keyword_colon k = Scan.lift (Args.$$$ k -- Args.colon) >> K ();
 
-val congN = "cong";
-val injN = "inj";
-val embedN = "embed";
-val returnN = "return";
 val addN = "add";
 val delN = "del";
 val modeN = "mode";
 val automaticN = "automatic";
 val manualN = "manual";
-val directionN = "direction";
+val injN = "inj";
+val embedN = "embed";
+val returnN = "return";
+val congN = "cong";
 val labelsN = "labels";
-val leavingN = "leaving";
 
-val any_keyword = keyword_colon congN || keyword_colon injN || keyword_colon embedN
-  || keyword_colon returnN || keyword_colon directionN || keyword_colon modeN
-  || keyword_colon delN || keyword_colon labelsN || keyword_colon leavingN;
+val leavingN = "leaving";
+val directionN = "direction";
+
+val any_keyword = keyword_colon addN || keyword_colon delN || keyword_colon modeN
+  || keyword_colon injN || keyword_colon embedN || keyword_colon returnN
+  || keyword_colon congN || keyword_colon labelsN
+  || keyword_colon leavingN || keyword_colon directionN;
 
 val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
 val names = Scan.repeat (Scan.unless any_keyword (Scan.lift Args.name))
@@ -218,9 +219,10 @@ val labels = (keyword_colon labelsN |-- names) -- these (keyword_colon delN |-- 
 
 val entry_pair = Scan.optional mode true -- these_pair inj -- these_pair embed
   -- these_pair return -- these_pair cong -- these_pair labels
-  >> (fn (((((g, (inja, injd)), (emba, embd)), (reta, retd)), (cga, cgd)), (hintsa, hintsd)) =>
-      ({inj = inja, emb = emba, ret = reta, cong = cga, guess = g, hints = hintsa},
-        {inj = injd, emb = embd, ret = retd, cong = cgd, guess = g, hints = hintsd}));
+  >> (fn (((((g, (inja, injd)), (embeda, embedd)), (returna, returnd)), (conga, congd)),
+       (hintsa, hintsd)) =>
+      ({inj = inja, embed = embeda, return = returna, cong = conga, guess = g, hints = hintsa},
+        {inj = injd, embed = embedd, return = returnd, cong = congd, guess = g, hints = hintsd}));
 
 val selection = (keyword_colon directionN |-- (Args.term -- Args.term) >> Direction)
   || these names >> (fn hints => if null hints then Prop else Hints hints);
@@ -232,7 +234,8 @@ val transfer_attribute = Scan.lift (Args.$$$ delN >> K (Thm.declaration_attribut
     >> (fn entry_pair => Thm.declaration_attribute (add entry_pair))
 
 val transferred_attribute = selection -- these (keyword_colon leavingN |-- names)
-  >> (fn (selection, leave) => Thm.rule_attribute (fn context => transfer context selection leave));
+  >> (fn (selection, leave) => Thm.rule_attribute (fn context =>
+      Conjunction.intr_balanced o transfer context selection leave));
 
 end;
 
