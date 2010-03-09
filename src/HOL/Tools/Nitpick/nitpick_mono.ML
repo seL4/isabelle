@@ -264,20 +264,22 @@ fun fin_fun_body _ _ (t as @{term False}) = SOME t
                 $ (Const (@{const_name unknown}, ran_T)) $ (t0 $ t1 $ t2 $ t3)))
   | fin_fun_body _ _ _ = NONE
 
-(* mdata -> typ -> typ -> mtyp * sign_atom * mtyp *)
-fun fresh_mfun_for_fun_type (mdata as {max_fresh, ...} : mdata) T1 T2 =
+(* mdata -> bool -> typ -> typ -> mtyp * sign_atom * mtyp *)
+fun fresh_mfun_for_fun_type (mdata as {max_fresh, ...} : mdata) all_minus
+                            T1 T2 =
   let
-    val M1 = fresh_mtype_for_type mdata T1
-    val M2 = fresh_mtype_for_type mdata T2
-    val a = if is_fin_fun_supported_type (body_type T2) andalso
-               exists_alpha_sub_mtype_fresh M1 then
+    val M1 = fresh_mtype_for_type mdata all_minus T1
+    val M2 = fresh_mtype_for_type mdata all_minus T2
+    val a = if not all_minus andalso exists_alpha_sub_mtype_fresh M1 andalso
+               is_fin_fun_supported_type (body_type T2) then
               V (Unsynchronized.inc max_fresh)
             else
               S Minus
   in (M1, a, M2) end
-(* mdata -> typ -> mtyp *)
+(* mdata -> bool -> typ -> mtyp *)
 and fresh_mtype_for_type (mdata as {hol_ctxt as {thy, ...}, binarize, alpha_T,
-                                    datatype_mcache, constr_mcache, ...}) =
+                                    datatype_mcache, constr_mcache, ...})
+                         all_minus =
   let
     (* typ -> mtyp *)
     fun do_type T =
@@ -285,7 +287,7 @@ and fresh_mtype_for_type (mdata as {hol_ctxt as {thy, ...}, binarize, alpha_T,
         MAlpha
       else case T of
         Type (@{type_name fun}, [T1, T2]) =>
-        MFun (fresh_mfun_for_fun_type mdata T1 T2)
+        MFun (fresh_mfun_for_fun_type mdata false T1 T2)
       | Type (@{type_name "*"}, [T1, T2]) => MPair (pairself do_type (T1, T2))
       | Type (z as (s, _)) =>
         if could_exist_alpha_sub_mtype thy alpha_T T then
@@ -347,14 +349,14 @@ fun mtype_for_constr (mdata as {hol_ctxt = {thy, ...}, alpha_T, constr_mcache,
     case AList.lookup (op =) (!constr_mcache) x of
       SOME M => M
     | NONE => if T = alpha_T then
-                let val M = fresh_mtype_for_type mdata T in
+                let val M = fresh_mtype_for_type mdata false T in
                   (Unsynchronized.change constr_mcache (cons (x, M)); M)
                 end
               else
-                (fresh_mtype_for_type mdata (body_type T);
+                (fresh_mtype_for_type mdata false (body_type T);
                  AList.lookup (op =) (!constr_mcache) x |> the)
   else
-    fresh_mtype_for_type mdata T
+    fresh_mtype_for_type mdata false T
 fun mtype_for_sel (mdata as {hol_ctxt, binarize, ...}) (x as (s, _)) =
   x |> binarized_and_boxed_constr_for_sel hol_ctxt binarize
     |> mtype_for_constr mdata |> sel_mtype_from_constr_mtype s
@@ -629,7 +631,7 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
                              alpha_T, max_fresh, ...}) =
   let
     (* typ -> mtyp *)
-    val mtype_for = fresh_mtype_for_type mdata
+    val mtype_for = fresh_mtype_for_type mdata false
     (* mtyp -> mtyp *)
     fun plus_set_mtype_for_dom M =
       MFun (M, S (if exists_alpha_sub_mtype M then Plus else Minus), bool_M)
@@ -765,12 +767,6 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
                   val ba_set_M = range_type T |> mtype_for_set
                 in (MFun (ab_set_M, S Minus, ba_set_M), accum) end
               | @{const_name trancl} => do_fragile_set_operation T accum
-              | @{const_name rtrancl} =>
-                (print_g "*** rtrancl"; mtype_unsolvable)
-              | @{const_name finite} =>
-                let val M1 = mtype_for (domain_type (domain_type T)) in
-                  (MFun (plus_set_mtype_for_dom M1, S Minus, bool_M), accum)
-                end
               | @{const_name rel_comp} =>
                 let
                   val x = Unsynchronized.inc max_fresh
@@ -792,6 +788,10 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
                   (MFun (MFun (a_M, S Minus, b_M), S Minus,
                          MFun (plus_set_mtype_for_dom a_M, S Minus,
                                plus_set_mtype_for_dom b_M)), accum)
+                end
+              | @{const_name finite} =>
+                let val M1 = mtype_for (domain_type (domain_type T)) in
+                  (MFun (plus_set_mtype_for_dom M1, S Minus, bool_M), accum)
                 end
               | @{const_name Sigma} =>
                 let
@@ -840,13 +840,8 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
                   (mtype_for_sel mdata x, accum)
                 else if is_constr thy stds x then
                   (mtype_for_constr mdata x, accum)
-                else if is_built_in_const thy stds fast_descrs x andalso
-                        s <> @{const_name is_unknown} andalso
-                        s <> @{const_name unknown} then
-                  (* the "unknown" part is a hack *)
-                  case def_of_const thy def_table x of
-                    SOME t' => do_term t' accum |>> mtype_of_mterm
-                  | NONE => (print_g ("*** built-in " ^ s); mtype_unsolvable)
+                else if is_built_in_const thy stds fast_descrs x then
+                  (fresh_mtype_for_type mdata true T, accum)
                 else
                   let val M = mtype_for T in
                     (M, ({bound_Ts = bound_Ts, bound_Ms = bound_Ms,
@@ -934,7 +929,7 @@ fun consider_general_equals mdata def (x as (_, T)) t1 t2 accum =
     val M1 = mtype_of_mterm m1
     val M2 = mtype_of_mterm m2
     val accum = accum ||> add_mtypes_equal M1 M2
-    val body_M = fresh_mtype_for_type mdata (nth_range_type 2 T)
+    val body_M = fresh_mtype_for_type mdata false (nth_range_type 2 T)
     val m = MApp (MApp (MRaw (Const x,
                 MFun (M1, S Minus, MFun (M2, S Minus, body_M))), m1), m2)
   in
@@ -950,7 +945,7 @@ fun consider_general_equals mdata def (x as (_, T)) t1 t2 accum =
 fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, ...}) =
   let
     (* typ -> mtyp *)
-    val mtype_for = fresh_mtype_for_type mdata
+    val mtype_for = fresh_mtype_for_type mdata false
     (* term -> accumulator -> mterm * accumulator *)
     val do_term = consider_term mdata
     (* sign -> term -> accumulator -> mterm * accumulator *)
@@ -1057,7 +1052,7 @@ fun consider_definitional_axiom (mdata as {hol_ctxt = {thy, ...}, ...}) t =
   else
     let
       (* typ -> mtyp *)
-      val mtype_for = fresh_mtype_for_type mdata
+      val mtype_for = fresh_mtype_for_type mdata false
       (* term -> accumulator -> mterm * accumulator *)
       val do_term = consider_term mdata
       (* term -> string -> typ -> term -> accumulator -> mterm * accumulator *)
@@ -1203,11 +1198,23 @@ fun finitize_funs (hol_ctxt as {thy, stds, fast_descrs, constr_cache, ...})
             val T' = type_from_mtype T M
           in
             case t of
-              Const (x as (s, T)) =>
-              if s = @{const_name finite} then
+              Const (x as (s, _)) =>
+              if s = @{const_name insert} then
+                case nth_range_type 2 T' of
+                  set_T' as Type (@{type_name fin_fun}, [elem_T', _]) =>
+                    Abs (Name.uu, elem_T', Abs (Name.uu, set_T',
+                        Const (@{const_name If},
+                               bool_T --> set_T' --> set_T' --> set_T')
+                        $ (Const (@{const_name is_unknown}, elem_T' --> bool_T)
+                           $ Bound 1)
+                        $ (Const (@{const_name unknown}, set_T'))
+                        $ (coerce_term hol_ctxt Ts T' T (Const x)
+                           $ Bound 1 $ Bound 0)))
+                | _ => Const (s, T')
+              else if s = @{const_name finite} then
                 case domain_type T' of
-                  T1' as Type (@{type_name fin_fun}, _) =>
-                  Abs (Name.uu, T1', @{const True})
+                  set_T' as Type (@{type_name fin_fun}, _) =>
+                  Abs (Name.uu, set_T', @{const True})
                 | _ => Const (s, T')
               else if s = @{const_name "=="} orelse
                       s = @{const_name "op ="} then
@@ -1232,16 +1239,6 @@ fun finitize_funs (hol_ctxt as {thy, stds, fast_descrs, constr_cache, ...})
             | _ => raise MTERM ("Nitpick_Mono.finitize_funs.term_from_mterm",
                                 [m])
           end
-        | MAbs (s, T, M, a, m') =>
-          let
-            val T = type_from_mtype T M
-            val t' = term_from_mterm (T :: Ts) m'
-            val T' = fastype_of1 (T :: Ts, t')
-          in
-            Abs (s, T, t')
-            |> should_finitize (T --> T') a
-               ? construct_value thy stds (fin_fun_constr T T') o single
-          end
         | MApp (m1, m2) =>
           let
             val (t1, t2) = pairself (term_from_mterm Ts) (m1, m2)
@@ -1257,6 +1254,16 @@ fun finitize_funs (hol_ctxt as {thy, stds, fast_descrs, constr_cache, ...})
               | _ => raise TYPE ("Nitpick_Mono.finitize_funs.term_from_mterm",
                                  [T1], [])
           in betapply (t1', coerce_term hol_ctxt Ts T2' T2 t2) end
+        | MAbs (s, T, M, a, m') =>
+          let
+            val T = type_from_mtype T M
+            val t' = term_from_mterm (T :: Ts) m'
+            val T' = fastype_of1 (T :: Ts, t')
+          in
+            Abs (s, T, t')
+            |> should_finitize (T --> T') a
+               ? construct_value thy stds (fin_fun_constr T T') o single
+          end
     in
       Unsynchronized.change constr_cache (map (apsnd (map finitize_constr)));
       pairself (map (term_from_mterm [])) msp

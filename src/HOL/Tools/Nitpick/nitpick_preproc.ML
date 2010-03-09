@@ -1342,6 +1342,8 @@ fun finitize_all_types_of_funs (hol_ctxt as {thy, ...}) binarize finitizes monos
   let
     val Ts = ground_types_in_terms hol_ctxt binarize (nondef_ts @ def_ts)
              |> filter_out (fn Type (@{type_name fun_box}, _) => true
+                             | @{typ signed_bit} => true
+                             | @{typ unsigned_bit} => true
                              | T => is_small_finite_type hol_ctxt T orelse
                                     triple_lookup (type_match thy) monos T
                                     = SOME (SOME false))
