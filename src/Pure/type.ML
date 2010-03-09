@@ -13,12 +13,16 @@ sig
     Abbreviation of string list * typ * bool |
     Nonterminal
   type tsig
+  val eq_tsig: tsig * tsig -> bool
   val rep_tsig: tsig ->
    {classes: Name_Space.T * Sorts.algebra,
     default: sort,
     types: decl Name_Space.table,
     log_types: string list}
   val empty_tsig: tsig
+  val class_space: tsig -> Name_Space.T
+  val intern_class: tsig -> xstring -> string
+  val extern_class: tsig -> string -> xstring
   val defaultS: tsig -> sort
   val logical_types: tsig -> string list
   val eq_sort: tsig -> sort * sort -> bool
@@ -35,6 +39,10 @@ sig
   val get_mode: Proof.context -> mode
   val set_mode: mode -> Proof.context -> Proof.context
   val restore_mode: Proof.context -> Proof.context -> Proof.context
+  val type_space: tsig -> Name_Space.T
+  val intern_type: tsig -> xstring -> string
+  val extern_type: tsig -> string -> xstring
+  val is_logtype: tsig -> string -> bool
   val the_decl: tsig -> string -> decl
   val cert_typ_mode: mode -> tsig -> typ -> typ
   val cert_typ: tsig -> typ -> typ
@@ -103,6 +111,13 @@ datatype tsig =
     types: decl Name_Space.table,           (*declared types*)
     log_types: string list};                (*logical types sorted by number of arguments*)
 
+fun eq_tsig
+   (TSig {classes = classes1, default = default1, types = types1, log_types = _},
+    TSig {classes = classes2, default = default2, types = types2, log_types = _}) =
+  pointer_eq (classes1, classes2) andalso
+  default1 = default2 andalso
+  pointer_eq (types1, types2);
+
 fun rep_tsig (TSig comps) = comps;
 
 fun make_tsig (classes, default, types, log_types) =
@@ -123,6 +138,11 @@ val empty_tsig =
 
 
 (* classes and sorts *)
+
+val class_space = #1 o #classes o rep_tsig;
+
+val intern_class = Name_Space.intern o class_space;
+val extern_class = Name_Space.extern o class_space;
 
 fun defaultS (TSig {default, ...}) = default;
 fun logical_types (TSig {log_types, ...}) = log_types;
@@ -158,7 +178,15 @@ fun set_mode mode = Mode.map (K mode);
 fun restore_mode ctxt = set_mode (get_mode ctxt);
 
 
-(* lookup types *)
+(* types *)
+
+val type_space = #1 o #types o rep_tsig;
+
+val intern_type = Name_Space.intern o type_space;
+val extern_type = Name_Space.extern o type_space;
+
+val is_logtype = member (op =) o logical_types;
+
 
 fun undecl_type c = "Undeclared type constructor: " ^ quote c;
 

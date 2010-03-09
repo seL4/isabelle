@@ -53,11 +53,7 @@ sig
   val extern_type: theory -> string -> xstring
   val intern_const: theory -> xstring -> string
   val extern_const: theory -> string -> xstring
-  val intern_sort: theory -> sort -> sort
-  val extern_sort: theory -> sort -> sort
-  val intern_typ: theory -> typ -> typ
   val intern_term: theory -> term -> term
-  val the_type_decl: theory -> string -> Type.decl
   val arity_number: theory -> string -> int
   val arity_sorts: theory -> string -> sort -> sort list
   val certify_class: theory -> class -> class
@@ -71,9 +67,6 @@ sig
   val no_frees: Pretty.pp -> term -> term
   val no_vars: Pretty.pp -> term -> term
   val cert_def: Proof.context -> term -> (string * typ) * term
-  val read_class: theory -> xstring -> class
-  val read_arity: theory -> xstring * string list * string -> arity
-  val cert_arity: theory -> arity -> arity
   val add_defsort: string -> theory -> theory
   val add_defsort_i: sort -> theory -> theory
   val add_types: (binding * int * mixfix) list -> theory -> theory
@@ -154,7 +147,7 @@ structure SignData = Theory_Data_PP
     make_sign (Name_Space.default_naming, syn, tsig, consts);
 
   val empty =
-    make_sign (Name_Space.default_naming, Syntax.empty_syntax, Type.empty_tsig, Consts.empty);
+    make_sign (Name_Space.default_naming, Syntax.basic_syntax, Type.empty_tsig, Consts.empty);
 
   fun merge pp (sign1, sign2) =
     let
@@ -236,8 +229,8 @@ val declared_const = can o the_const_constraint;
 
 (** intern / extern names **)
 
-val class_space = #1 o #classes o Type.rep_tsig o tsig_of;
-val type_space = #1 o #types o Type.rep_tsig o tsig_of;
+val class_space = Type.class_space o tsig_of;
+val type_space = Type.type_space o tsig_of;
 val const_space = Consts.space_of o consts_of;
 
 val intern_class = Name_Space.intern o class_space;
@@ -246,9 +239,6 @@ val intern_type = Name_Space.intern o type_space;
 val extern_type = Name_Space.extern o type_space;
 val intern_const = Name_Space.intern o const_space;
 val extern_const = Name_Space.extern o const_space;
-
-val intern_sort = map o intern_class;
-val extern_sort = map o extern_class;
 
 local
 
@@ -265,7 +255,6 @@ fun map_term f g h (Const (c, T)) = Const (h c, map_typ f g T)
 
 in
 
-fun intern_typ thy = map_typ (intern_class thy) (intern_type thy);
 fun intern_term thy = map_term (intern_class thy) (intern_type thy) (intern_const thy);
 
 end;
@@ -276,7 +265,6 @@ end;
 
 (* certify wrt. type signature *)
 
-val the_type_decl = Type.the_decl o tsig_of;
 val arity_number = Type.arity_number o tsig_of;
 fun arity_sorts thy = Type.arity_sorts (Syntax.pp_global thy) (tsig_of thy);
 
@@ -364,51 +352,6 @@ fun cert_def ctxt tm =
     |> Primitive_Defs.dest_def ctxt Term.is_Const (K false) (K false)
   in (Term.dest_Const (Term.head_of lhs), rhs) end
   handle TERM (msg, _) => error msg;
-
-
-
-(** read and certify entities **)    (*exception ERROR*)
-
-(* classes *)
-
-fun read_class thy text =
-  let
-    val (syms, pos) = Syntax.read_token text;
-    val c = certify_class thy (intern_class thy (Symbol_Pos.content syms))
-      handle TYPE (msg, _, _) => error (msg ^ Position.str_of pos);
-    val _ = Position.report (Markup.tclass c) pos;
-  in c end;
-
-
-(* type arities *)
-
-fun prep_arity prep_tycon prep_sort thy (t, Ss, S) =
-  let val arity = (prep_tycon thy t, map (prep_sort thy) Ss, prep_sort thy S)
-  in Type.add_arity (Syntax.pp_global thy) arity (tsig_of thy); arity end;
-
-val read_arity = prep_arity intern_type Syntax.read_sort_global;
-val cert_arity = prep_arity (K I) certify_sort;
-
-
-(* type syntax entities *)
-
-local
-
-fun read_type thy text =
-  let
-    val (syms, pos) = Syntax.read_token text;
-    val c = intern_type thy (Symbol_Pos.content syms);
-    val _ = the_type_decl thy c;
-    val _ = Position.report (Markup.tycon c) pos;
-  in c end;
-
-in
-
-val _ = Context.>>
-  (Context.map_theory
-    (map_syn (K (Syntax.basic_syntax {read_class = read_class, read_type = read_type}))));
-
-end;
 
 
 

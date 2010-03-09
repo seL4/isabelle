@@ -338,7 +338,7 @@ in
 
 val subclass = gen_subclass (K I) user_proof;
 fun prove_subclass tac = gen_subclass (K I) (tactic_proof tac);
-val subclass_cmd = gen_subclass Sign.read_class user_proof;
+val subclass_cmd = gen_subclass (ProofContext.read_class o ProofContext.init) user_proof;
 
 end; (*local*)
 
