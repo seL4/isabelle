@@ -76,6 +76,10 @@ Minor INCOMPATIBILITY.
 within a local theory context, with explicit checking of the
 constructors involved (in contrast to the raw 'syntax' versions).
 
+* Command 'typedecl' now works within a local theory context --
+without introducing dependencies on parameters or assumptions, which
+is not possible in Isabelle/Pure.
+
 
 *** HOL ***
 

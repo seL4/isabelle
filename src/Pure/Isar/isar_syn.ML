@@ -103,16 +103,15 @@ val _ =
 (* types *)
 
 val _ =
-  OuterSyntax.command "typedecl" "type declaration" K.thy_decl
-    (P.type_args -- P.binding -- P.opt_mixfix >> (fn ((args, a), mx) =>
-      Toplevel.theory (Typedecl.typedecl (a, args, mx) #> snd)));
+  OuterSyntax.local_theory "typedecl" "type declaration" K.thy_decl
+    (P.type_args -- P.binding -- P.opt_mixfix
+      >> (fn ((args, a), mx) => Typedecl.typedecl (a, args, mx) #> snd));
 
 val _ =
   OuterSyntax.command "types" "declare type abbreviations" K.thy_decl
     (Scan.repeat1
       (P.type_args -- P.binding -- (P.$$$ "=" |-- P.!!! (P.typ -- P.opt_mixfix')))
-      >> (Toplevel.theory o Sign.add_tyabbrs o
-        map (fn ((args, a), (T, mx)) => (a, args, T, mx))));
+      >> (Toplevel.theory o Sign.add_tyabbrs o map (fn ((args, a), (T, mx)) => (a, args, T, mx))));
 
 val _ =
   OuterSyntax.command "nonterminals" "declare types treated as grammar nonterminal symbols"
