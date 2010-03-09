@@ -360,7 +360,7 @@ end end;
 
 
 (*For Isabelle, the lhs of a definition must be a constant.*)
-fun mk_const_def sign (c, Ty, rhs) =
+fun legacy_const_def sign (c, Ty, rhs) =
   singleton (Syntax.check_terms (ProofContext.init sign))
     (Sign.intern_term sign (Const("==",dummyT) $ Const(c,Ty) $ rhs));
 
@@ -385,7 +385,7 @@ fun wfrec_definition0 thy fid R (functional as Abs(x, Ty, _)) =
      val wfrec_R_M =  map_types poly_tvars
                           (wfrec $ map_types poly_tvars R)
                       $ functional
-     val def_term = mk_const_def thy (x, Ty, wfrec_R_M)
+     val def_term = legacy_const_def thy (x, Ty, wfrec_R_M)
      val ([def], thy') = PureThy.add_defs false [Thm.no_attributes (Binding.name def_name, def_term)] thy
  in (thy', def) end;
 end;
@@ -540,7 +540,7 @@ fun lazyR_def thy fid tflCongs eqns =
      val {lhs,rhs} = S.dest_eq proto_def'
      val (c,args) = S.strip_comb lhs
      val (name,Ty) = dest_atom c
-     val defn = mk_const_def thy (name, Ty, S.list_mk_abs (args,rhs))
+     val defn = legacy_const_def thy (name, Ty, S.list_mk_abs (args,rhs))
      val ([def0], theory) =
        thy
        |> PureThy.add_defs false
