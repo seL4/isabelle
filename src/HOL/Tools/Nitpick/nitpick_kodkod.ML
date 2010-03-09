@@ -1388,7 +1388,7 @@ fun kodkod_formula_from_nut ofs
                                               (Func (R1, Formula Neut)) r))
                (to_opt R1 u1)
          | _ => raise NUT ("Nitpick_Kodkod.to_r (SingletonSet)", [u]))
-      | Op1 (Tha, _, R, u1) =>
+      | Op1 (SafeThe, _, R, u1) =>
         if is_opt_rep R then
           kk_join (to_rep (Func (unopt_rep R, Opt bool_atom_R)) u1) true_atom
         else

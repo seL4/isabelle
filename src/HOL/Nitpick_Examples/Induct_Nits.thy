@@ -61,7 +61,7 @@ sorry
 lemma "q2 = {}"
 nitpick [expect = genuine]
 nitpick [dont_star_linear_preds, expect = genuine]
-nitpick [wf, expect = likely_genuine]
+nitpick [wf, expect = quasi_genuine]
 oops
 
 lemma "p2 = UNIV"
@@ -72,7 +72,7 @@ oops
 lemma "q2 = UNIV"
 nitpick [expect = none]
 nitpick [dont_star_linear_preds, expect = none]
-nitpick [wf, expect = likely_genuine]
+nitpick [wf, expect = quasi_genuine]
 sorry
 
 lemma "p2 = q2"

@@ -221,7 +221,8 @@ fun box_fun_and_pair_in_term (hol_ctxt as {thy, stds, fast_descrs, ...}) def
         $ do_term new_Ts old_Ts polar t2
       | Const (s as @{const_name The}, T) => do_description_operator s T
       | Const (s as @{const_name Eps}, T) => do_description_operator s T
-      | Const (s as @{const_name Tha}, T) => do_description_operator s T
+      | Const (s as @{const_name safe_The}, T) => do_description_operator s T
+      | Const (s as @{const_name safe_Eps}, T) => do_description_operator s T
       | Const (x as (s, T)) =>
         Const (s, if s = @{const_name converse} orelse
                      s = @{const_name trancl} then

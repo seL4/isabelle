@@ -361,7 +361,8 @@ val built_in_consts =
    (@{const_name finite}, 1),
    (@{const_name unknown}, 0),
    (@{const_name is_unknown}, 1),
-   (@{const_name Tha}, 1),
+   (@{const_name safe_The}, 1),
+   (@{const_name safe_Eps}, 1),
    (@{const_name Frac}, 0),
    (@{const_name norm_frac}, 0)]
 val built_in_nat_consts =
@@ -1821,7 +1822,7 @@ fun codatatype_bisim_axioms (hol_ctxt as {thy, stds, ...}) T =
     val bisim_max = @{const bisim_iterator_max}
     val n_var = Var (("n", 0), iter_T)
     val n_var_minus_1 =
-      Const (@{const_name Tha}, (iter_T --> bool_T) --> iter_T)
+      Const (@{const_name safe_The}, (iter_T --> bool_T) --> iter_T)
       $ Abs ("m", iter_T, HOLogic.eq_const iter_T
                           $ (suc_const iter_T $ Bound 0) $ n_var)
     val x_var = Var (("x", 0), T)

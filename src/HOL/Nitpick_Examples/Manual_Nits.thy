@@ -18,29 +18,29 @@ nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1, timeout = 15 s]
 subsection {* 3.1. Propositional Logic *}
 
 lemma "P \<longleftrightarrow> Q"
-nitpick
+nitpick [expect = genuine]
 apply auto
-nitpick 1
-nitpick 2
+nitpick [expect = genuine] 1
+nitpick [expect = genuine] 2
 oops
 
 subsection {* 3.2. Type Variables *}
 
 lemma "P x \<Longrightarrow> P (THE y. P y)"
-nitpick [verbose]
+nitpick [verbose, expect = genuine]
 oops
 
 subsection {* 3.3. Constants *}
 
 lemma "P x \<Longrightarrow> P (THE y. P y)"
-nitpick [show_consts]
-nitpick [full_descrs, show_consts]
-nitpick [dont_specialize, full_descrs, show_consts]
+nitpick [show_consts, expect = genuine]
+nitpick [full_descrs, show_consts, expect = genuine]
+nitpick [dont_specialize, full_descrs, show_consts, expect = genuine]
 oops
 
 lemma "\<exists>!x. P x \<Longrightarrow> P (THE y. P y)"
-nitpick
-nitpick [card 'a = 1-50]
+nitpick [expect = none]
+nitpick [card 'a = 1\<midarrow>50, expect = none]
 (* sledgehammer *)
 apply (metis the_equality)
 done
@@ -48,45 +48,45 @@ done
 subsection {* 3.4. Skolemization *}
 
 lemma "\<exists>g. \<forall>x. g (f x) = x \<Longrightarrow> \<forall>y. \<exists>x. y = f x"
-nitpick
+nitpick [expect = genuine]
 oops
 
 lemma "\<exists>x. \<forall>f. f x = x"
-nitpick
+nitpick [expect = genuine]
 oops
 
 lemma "refl r \<Longrightarrow> sym r"
-nitpick
+nitpick [expect = genuine]
 oops
 
 subsection {* 3.5. Natural Numbers and Integers *}
 
 lemma "\<lbrakk>i \<le> j; n \<le> (m\<Colon>int)\<rbrakk> \<Longrightarrow> i * n + j * m \<le> i * m + j * n"
-nitpick
+nitpick [expect = genuine]
 oops
 
 lemma "\<forall>n. Suc n \<noteq> n \<Longrightarrow> P"
-nitpick [card nat = 100, check_potential]
+nitpick [card nat = 100, check_potential, expect = genuine]
 oops
 
 lemma "P Suc"
-nitpick
+nitpick [expect = none]
 oops
 
 lemma "P (op +\<Colon>nat\<Rightarrow>nat\<Rightarrow>nat)"
-nitpick [card nat = 1]
-nitpick [card nat = 2]
+nitpick [card nat = 1, expect = genuine]
+nitpick [card nat = 2, expect = none]
 oops
 
 subsection {* 3.6. Inductive Datatypes *}
 
 lemma "hd (xs @ [y, y]) = hd xs"
-nitpick
-nitpick [show_consts, show_datatypes]
+nitpick [expect = genuine]
+nitpick [show_consts, show_datatypes, expect = genuine]
 oops
 
 lemma "\<lbrakk>length xs = 1; length ys = 1\<rbrakk> \<Longrightarrow> xs = ys"
-nitpick [show_datatypes]
+nitpick [show_datatypes, expect = genuine]
 oops
 
 subsection {* 3.7. Typedefs, Records, Rationals, and Reals *}
@@ -99,7 +99,7 @@ definition B :: three where "B \<equiv> Abs_three 1"
 definition C :: three where "C \<equiv> Abs_three 2"
 
 lemma "\<lbrakk>P A; P B\<rbrakk> \<Longrightarrow> P x"
-nitpick [show_datatypes]
+nitpick [show_datatypes, expect = genuine]
 oops
 
 fun my_int_rel where
@@ -114,7 +114,7 @@ definition add_raw where
 quotient_definition "add\<Colon>my_int \<Rightarrow> my_int \<Rightarrow> my_int" is add_raw
 
 lemma "add x y = add x x"
-nitpick [show_datatypes]
+nitpick [show_datatypes, expect = genuine]
 oops
 
 record point =
@@ -122,11 +122,11 @@ record point =
   Ycoord :: int
 
 lemma "Xcoord (p\<Colon>point) = Xcoord (q\<Colon>point)"
-nitpick [show_datatypes]
+nitpick [show_datatypes, expect = genuine]
 oops
 
 lemma "4 * x + 3 * (y\<Colon>real) \<noteq> 1 / 2"
-nitpick [show_datatypes]
+nitpick [show_datatypes, expect = genuine]
 oops
 
 subsection {* 3.8. Inductive and Coinductive Predicates *}
@@ -136,11 +136,11 @@ inductive even where
 "even n \<Longrightarrow> even (Suc (Suc n))"
 
 lemma "\<exists>n. even n \<and> even (Suc n)"
-nitpick [card nat = 100, unary_ints, verbose]
+nitpick [card nat = 100, unary_ints, verbose, expect = potential]
 oops
 
 lemma "\<exists>n \<le> 99. even n \<and> even (Suc n)"
-nitpick [card nat = 100, unary_ints, verbose]
+nitpick [card nat = 100, unary_ints, verbose, expect = genuine]
 oops
 
 inductive even' where
@@ -149,18 +149,18 @@ inductive even' where
 "\<lbrakk>even' m; even' n\<rbrakk> \<Longrightarrow> even' (m + n)"
 
 lemma "\<exists>n \<in> {0, 2, 4, 6, 8}. \<not> even' n"
-nitpick [card nat = 10, unary_ints, verbose, show_consts]
+nitpick [card nat = 10, unary_ints, verbose, show_consts, expect = genuine]
 oops
 
 lemma "even' (n - 2) \<Longrightarrow> even' n"
-nitpick [card nat = 10, show_consts]
+nitpick [card nat = 10, show_consts, expect = genuine]
 oops
 
 coinductive nats where
 "nats (x\<Colon>nat) \<Longrightarrow> nats x"
 
 lemma "nats = {0, 1, 2, 3, 4}"
-nitpick [card nat = 10, show_consts]
+nitpick [card nat = 10, show_consts, expect = genuine]
 oops
 
 inductive odd where
@@ -168,7 +168,7 @@ inductive odd where
 "\<lbrakk>odd m; even n\<rbrakk> \<Longrightarrow> odd (m + n)"
 
 lemma "odd n \<Longrightarrow> odd (n - 2)"
-nitpick [card nat = 10, show_consts]
+nitpick [card nat = 10, show_consts, expect = genuine]
 oops
 
 subsection {* 3.9. Coinductive Datatypes *}
@@ -179,7 +179,8 @@ The examples also work unchanged with Lochbihler's "Coinductive_List" theory. *)
 
 typedef 'a llist = "UNIV\<Colon>('a list + (nat \<Rightarrow> 'a)) set" by auto
 
-definition LNil where "LNil = Abs_llist (Inl [])"
+definition LNil where
+"LNil = Abs_llist (Inl [])"
 definition LCons where
 "LCons y ys = Abs_llist (case Rep_llist ys of
                            Inl ys' \<Rightarrow> Inl (y # ys')
@@ -197,16 +198,16 @@ Nitpick.register_codatatype @{typ "'a llist"} ""
 *}
 
 lemma "xs \<noteq> LCons a xs"
-nitpick
+nitpick [expect = genuine]
 oops
 
 lemma "\<lbrakk>xs = LCons a xs; ys = iterates (\<lambda>b. a) b\<rbrakk> \<Longrightarrow> xs = ys"
-nitpick [verbose]
+nitpick [verbose, expect = genuine]
 oops
 
 lemma "\<lbrakk>xs = LCons a xs; ys = LCons a ys\<rbrakk> \<Longrightarrow> xs = ys"
-nitpick [bisim_depth = -1, show_datatypes]
-nitpick
+nitpick [bisim_depth = -1, show_datatypes, expect = quasi_genuine]
+nitpick [expect = none]
 sorry
 
 subsection {* 3.10. Boxing *}
@@ -230,9 +231,9 @@ primrec subst\<^isub>1 where
 "subst\<^isub>1 \<sigma> (App t u) = App (subst\<^isub>1 \<sigma> t) (subst\<^isub>1 \<sigma> u)"
 
 lemma "\<not> loose t 0 \<Longrightarrow> subst\<^isub>1 \<sigma> t = t"
-nitpick [verbose]
-nitpick [eval = "subst\<^isub>1 \<sigma> t"]
-(* nitpick [dont_box] *)
+nitpick [verbose, expect = genuine]
+nitpick [eval = "subst\<^isub>1 \<sigma> t", expect = genuine]
+(* nitpick [dont_box, expect = unknown] *)
 oops
 
 primrec subst\<^isub>2 where
@@ -242,19 +243,19 @@ primrec subst\<^isub>2 where
 "subst\<^isub>2 \<sigma> (App t u) = App (subst\<^isub>2 \<sigma> t) (subst\<^isub>2 \<sigma> u)"
 
 lemma "\<not> loose t 0 \<Longrightarrow> subst\<^isub>2 \<sigma> t = t"
-nitpick [card = 1\<midarrow>6]
+nitpick [card = 1\<midarrow>6, expect = none]
 sorry
 
 subsection {* 3.11. Scope Monotonicity *}
 
 lemma "length xs = length ys \<Longrightarrow> rev (zip xs ys) = zip xs (rev ys)"
-nitpick [verbose]
-nitpick [card = 8, verbose]
+nitpick [verbose, expect = genuine]
+nitpick [card = 8, verbose, expect = genuine]
 oops
 
 lemma "\<exists>g. \<forall>x\<Colon>'b. g (f x) = x \<Longrightarrow> \<forall>y\<Colon>'a. \<exists>x. y = f x"
-nitpick [mono]
-nitpick
+nitpick [mono, expect = none]
+nitpick [expect = genuine]
 oops
 
 subsection {* 3.12. Inductive Properties *}
@@ -265,21 +266,21 @@ inductive_set reach where
 "n \<in> reach \<Longrightarrow> n + 2 \<in> reach"
 
 lemma "n \<in> reach \<Longrightarrow> 2 dvd n"
-nitpick [unary_ints]
+nitpick [unary_ints, expect = none]
 apply (induct set: reach)
   apply auto
- nitpick
+ nitpick [expect = none]
  apply (thin_tac "n \<in> reach")
- nitpick
+ nitpick [expect = genuine]
 oops
 
 lemma "n \<in> reach \<Longrightarrow> 2 dvd n \<and> n \<noteq> 0"
-nitpick [unary_ints]
+nitpick [unary_ints, expect = none]
 apply (induct set: reach)
   apply auto
- nitpick
+ nitpick [expect = none]
  apply (thin_tac "n \<in> reach")
- nitpick
+ nitpick [expect = genuine]
 oops
 
 lemma "n \<in> reach \<Longrightarrow> 2 dvd n \<and> n \<ge> 4"
@@ -297,13 +298,13 @@ primrec swap where
 "swap (Branch t u) a b = Branch (swap t a b) (swap u a b)"
 
 lemma "{a, b} \<subseteq> labels t \<Longrightarrow> labels (swap t a b) = labels t"
-nitpick
+(* nitpick *)
 proof (induct t)
   case Leaf thus ?case by simp
 next
   case (Branch t u) thus ?case
-  nitpick
-  nitpick [non_std, show_all]
+  (* nitpick *)
+  nitpick [non_std, show_all, expect = genuine]
 oops
 
 lemma "labels (swap t a b) =
@@ -338,7 +339,7 @@ inductive_set S\<^isub>1 and A\<^isub>1 and B\<^isub>1 where
 
 theorem S\<^isub>1_sound:
 "w \<in> S\<^isub>1 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-nitpick
+nitpick [expect = genuine]
 oops
 
 inductive_set S\<^isub>2 and A\<^isub>2 and B\<^isub>2 where
@@ -351,7 +352,7 @@ inductive_set S\<^isub>2 and A\<^isub>2 and B\<^isub>2 where
 
 theorem S\<^isub>2_sound:
 "w \<in> S\<^isub>2 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-nitpick
+nitpick [expect = genuine]
 oops
 
 inductive_set S\<^isub>3 and A\<^isub>3 and B\<^isub>3 where
@@ -369,7 +370,7 @@ sorry
 
 theorem S\<^isub>3_complete:
 "length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^isub>3"
-nitpick
+nitpick [expect = genuine]
 oops
 
 inductive_set S\<^isub>4 and A\<^isub>4 and B\<^isub>4 where
@@ -465,11 +466,11 @@ primrec insort\<^isub>1 where
                              (if x > y then insort\<^isub>1 u x else u))"
 
 theorem wf_insort\<^isub>1: "wf t \<Longrightarrow> wf (insort\<^isub>1 t x)"
-nitpick
+nitpick [expect = genuine]
 oops
 
 theorem wf_insort\<^isub>1_nat: "wf t \<Longrightarrow> wf (insort\<^isub>1 t (x\<Colon>nat))"
-nitpick [eval = "insort\<^isub>1 t x"]
+nitpick [eval = "insort\<^isub>1 t x", expect = genuine]
 oops
 
 primrec insort\<^isub>2 where

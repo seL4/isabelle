@@ -768,12 +768,9 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
               | @{const_name rtrancl} =>
                 (print_g "*** rtrancl"; mtype_unsolvable)
               | @{const_name finite} =>
-                if is_finite_type hol_ctxt T then
-                  let val M1 = mtype_for (domain_type (domain_type T)) in
-                    (MFun (plus_set_mtype_for_dom M1, S Minus, bool_M), accum)
-                  end
-                else
-                  (print_g "*** finite"; mtype_unsolvable)
+                let val M1 = mtype_for (domain_type (domain_type T)) in
+                  (MFun (plus_set_mtype_for_dom M1, S Minus, bool_M), accum)
+                end
               | @{const_name rel_comp} =>
                 let
                   val x = Unsynchronized.inc max_fresh
@@ -813,14 +810,15 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
                   (MFun (a_set_M, S Minus,
                          MFun (a_to_b_set_M, S Minus, ab_set_M)), accum)
                 end
-              | @{const_name Tha} =>
-                let
-                  val a_M = mtype_for (domain_type (domain_type T))
-                  val a_set_M = plus_set_mtype_for_dom a_M
-                in (MFun (a_set_M, S Minus, a_M), accum) end
               | _ =>
-                if s = @{const_name minus_class.minus} andalso
-                   is_set_type (domain_type T) then
+                if s = @{const_name safe_The} orelse
+                   s = @{const_name safe_Eps} then
+                  let
+                    val a_set_M = mtype_for (domain_type T)
+                    val a_M = dest_MFun a_set_M |> #1
+                  in (MFun (a_set_M, S Minus, a_M), accum) end
+                else if s = @{const_name minus_class.minus} andalso
+                        is_set_type (domain_type T) then
                   let
                     val set_T = domain_type T
                     val left_set_M = mtype_for set_T
@@ -1206,7 +1204,13 @@ fun finitize_funs (hol_ctxt as {thy, stds, fast_descrs, constr_cache, ...})
           in
             case t of
               Const (x as (s, T)) =>
-              if member (op =) [@{const_name "=="}, @{const_name "op ="}] s then
+              if s = @{const_name finite} then
+                case domain_type T' of
+                  T1' as Type (@{type_name fin_fun}, _) =>
+                  Abs (Name.uu, T1', @{const True})
+                | _ => Const (s, T')
+              else if s = @{const_name "=="} orelse
+                      s = @{const_name "op ="} then
                 Const (s, T')
               else if is_built_in_const thy stds fast_descrs x then
                 coerce_term hol_ctxt Ts T' T t
