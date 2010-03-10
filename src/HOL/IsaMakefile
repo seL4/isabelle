@@ -415,6 +415,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Enum.thy Library/Float.thy Library/Quotient_List.thy          \
   Library/Quotient_Option.thy Library/Quotient_Product.thy              \
   Library/Quotient_Sum.thy Library/Quotient_Syntax.thy                  \
+  Library/Nat_Bijection.thy						\
   $(SRC)/Tools/float.ML                                                 \
   $(SRC)/HOL/Tools/float_arith.ML Library/positivstellensatz.ML		\
   Library/reify_data.ML Library/reflection.ML Library/LaTeXsugar.thy	\

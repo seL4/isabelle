@@ -5,7 +5,7 @@
 header {* Encoding (almost) everything into natural numbers *}
 
 theory Countable
-imports Main Rat Nat_Int_Bij
+imports Main Rat Nat_Bijection
 begin
 
 subsection {* The class of countable types *}
@@ -48,7 +48,7 @@ lemma from_nat_to_nat [simp]:
 subsection {* Countable types *}
 
 instance nat :: countable
-  by (rule countable_classI [of "id"]) simp 
+  by (rule countable_classI [of "id"]) simp
 
 subclass (in finite) countable
 proof
@@ -63,47 +63,9 @@ qed
 
 text {* Pairs *}
 
-primrec sum :: "nat \<Rightarrow> nat"
-where
-  "sum 0 = 0"
-| "sum (Suc n) = Suc n + sum n"
-
-lemma sum_arith: "sum n = n * Suc n div 2"
-  by (induct n) auto
-
-lemma sum_mono: "n \<ge> m \<Longrightarrow> sum n \<ge> sum m"
-  by (induct n m rule: diff_induct) auto
-
-definition
-  "pair_encode = (\<lambda>(m, n). sum (m + n) + m)"
-
-lemma inj_pair_cencode: "inj pair_encode"
-  unfolding pair_encode_def
-proof (rule injI, simp only: split_paired_all split_conv)
-  fix a b c d
-  assume eq: "sum (a + b) + a = sum (c + d) + c"
-  have "a + b = c + d \<or> a + b \<ge> Suc (c + d) \<or> c + d \<ge> Suc (a + b)" by arith
-  then
-  show "(a, b) = (c, d)"
-  proof (elim disjE)
-    assume sumeq: "a + b = c + d"
-    then have "a = c" using eq by auto
-    moreover from sumeq this have "b = d" by auto
-    ultimately show ?thesis by simp
-  next
-    assume "a + b \<ge> Suc (c + d)"
-    from sum_mono[OF this] eq
-    show ?thesis by auto
-  next
-    assume "c + d \<ge> Suc (a + b)"
-    from sum_mono[OF this] eq
-    show ?thesis by auto
-  qed
-qed
-
 instance "*" :: (countable, countable) countable
-by (rule countable_classI [of "\<lambda>(x, y). pair_encode (to_nat x, to_nat y)"])
-  (auto dest: injD [OF inj_pair_cencode] injD [OF inj_to_nat])
+  by (rule countable_classI [of "\<lambda>(x, y). prod_encode (to_nat x, to_nat y)"])
+    (auto simp add: prod_encode_eq)
 
 
 text {* Sums *}
@@ -111,76 +73,28 @@ text {* Sums *}
 instance "+":: (countable, countable) countable
   by (rule countable_classI [of "(\<lambda>x. case x of Inl a \<Rightarrow> to_nat (False, to_nat a)
                                      | Inr b \<Rightarrow> to_nat (True, to_nat b))"])
-    (auto split:sum.splits)
+    (simp split: sum.split_asm)
 
 
 text {* Integers *}
 
-lemma int_cases: "(i::int) = 0 \<or> i < 0 \<or> i > 0"
-by presburger
-
-lemma int_pos_neg_zero:
-  obtains (zero) "(z::int) = 0" "sgn z = 0" "abs z = 0"
-  | (pos) n where "z = of_nat n" "sgn z = 1" "abs z = of_nat n"
-  | (neg) n where "z = - (of_nat n)" "sgn z = -1" "abs z = of_nat n"
-apply atomize_elim
-apply (insert int_cases[of z])
-apply (auto simp:zsgn_def)
-apply (rule_tac x="nat (-z)" in exI, simp)
-apply (rule_tac x="nat z" in exI, simp)
-done
-
 instance int :: countable
-proof (rule countable_classI [of "(\<lambda>i. to_nat (nat (sgn i + 1), nat (abs i)))"], 
-    auto dest: injD [OF inj_to_nat])
-  fix x y 
-  assume a: "nat (sgn x + 1) = nat (sgn y + 1)" "nat (abs x) = nat (abs y)"
-  show "x = y"
-  proof (cases rule: int_pos_neg_zero[of x])
-    case zero 
-    with a show "x = y" by (cases rule: int_pos_neg_zero[of y]) auto
-  next
-    case (pos n)
-    with a show "x = y" by (cases rule: int_pos_neg_zero[of y]) auto
-  next
-    case (neg n)
-    with a show "x = y" by (cases rule: int_pos_neg_zero[of y]) auto
-  qed
-qed
+  by (rule countable_classI [of "int_encode"])
+    (simp add: int_encode_eq)
 
 
 text {* Options *}
 
 instance option :: (countable) countable
-by (rule countable_classI[of "\<lambda>x. case x of None \<Rightarrow> 0
-                                     | Some y \<Rightarrow> Suc (to_nat y)"])
- (auto split:option.splits)
+  by (rule countable_classI [of "option_case 0 (Suc \<circ> to_nat)"])
+    (simp split: option.split_asm)
 
 
 text {* Lists *}
 
-lemma from_nat_to_nat_map [simp]: "map from_nat (map to_nat xs) = xs"
-  by (simp add: comp_def)
-
-primrec
-  list_encode :: "'a\<Colon>countable list \<Rightarrow> nat"
-where
-  "list_encode [] = 0"
-| "list_encode (x#xs) = Suc (to_nat (x, list_encode xs))"
-
 instance list :: (countable) countable
-proof (rule countable_classI [of "list_encode"])
-  fix xs ys :: "'a list"
-  assume cenc: "list_encode xs = list_encode ys"
-  then show "xs = ys"
-  proof (induct xs arbitrary: ys)
-    case (Nil ys)
-    with cenc show ?case by (cases ys, auto)
-  next
-    case (Cons x xs' ys)
-    thus ?case by (cases ys) auto
-  qed
-qed
+  by (rule countable_classI [of "list_encode \<circ> map to_nat"])
+    (simp add: list_encode_eq)
 
 
 text {* Functions *}
@@ -200,8 +114,8 @@ qed
 subsection {* The Rationals are Countably Infinite *}
 
 definition nat_to_rat_surj :: "nat \<Rightarrow> rat" where
-"nat_to_rat_surj n = (let (a,b) = nat_to_nat2 n
-                      in Fract (nat_to_int_bij a) (nat_to_int_bij b))"
+"nat_to_rat_surj n = (let (a,b) = prod_decode n
+                      in Fract (int_decode a) (int_decode b))"
 
 lemma surj_nat_to_rat_surj: "surj nat_to_rat_surj"
 unfolding surj_def
@@ -210,10 +124,9 @@ proof
   show "\<exists>n. r = nat_to_rat_surj n"
   proof (cases r)
     fix i j assume [simp]: "r = Fract i j" and "j > 0"
-    have "r = (let m = inv nat_to_int_bij i; n = inv nat_to_int_bij j
-               in nat_to_rat_surj(nat2_to_nat (m,n)))"
-      using nat2_to_nat_inj surj_f_inv_f[OF surj_nat_to_int_bij]
-      by(simp add:Let_def nat_to_rat_surj_def nat_to_nat2_def)
+    have "r = (let m = int_encode i; n = int_encode j
+               in nat_to_rat_surj(prod_encode (m,n)))"
+      by (simp add: Let_def nat_to_rat_surj_def)
     thus "\<exists>n. r = nat_to_rat_surj n" by(auto simp:Let_def)
   qed
 qed
