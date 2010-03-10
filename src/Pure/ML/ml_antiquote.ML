@@ -102,8 +102,8 @@ val _ = value "cpat"
 
 (* type classes *)
 
-fun class syn = Args.theory -- Scan.lift Args.name_source >> (fn (thy, s) =>
-  Sign.read_class thy s
+fun class syn = Args.context -- Scan.lift Args.name_source >> (fn (ctxt, s) =>
+  ProofContext.read_class ctxt s
   |> syn ? Syntax.mark_class
   |> ML_Syntax.print_string);
 
@@ -119,8 +119,8 @@ val _ = inline "sort" (Args.context -- Scan.lift Args.name_source >> (fn (ctxt, 
 fun type_name kind check = Args.context -- Scan.lift (OuterParse.position Args.name_source)
   >> (fn (ctxt, (s, pos)) =>
     let
-      val Type (c, _) = ProofContext.read_type_name ctxt false s;
-      val decl = Sign.the_type_decl (ProofContext.theory_of ctxt) c;
+      val Type (c, _) = ProofContext.read_type_name_proper ctxt false s;
+      val decl = Type.the_decl (ProofContext.tsig_of ctxt) c;
       val res =
         (case try check (c, decl) of
           SOME res => res

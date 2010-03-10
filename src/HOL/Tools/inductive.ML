@@ -22,7 +22,7 @@ signature BASIC_INDUCTIVE =
 sig
   type inductive_result =
     {preds: term list, elims: thm list, raw_induct: thm,
-     induct: thm, intrs: thm list}
+     induct: thm, inducts: thm list, intrs: thm list}
   val morph_result: morphism -> inductive_result -> inductive_result
   type inductive_info = {names: string list, coind: bool} * inductive_result
   val the_inductive: Proof.context -> string -> inductive_info
@@ -73,7 +73,7 @@ sig
     local_theory -> inductive_result * local_theory
   val declare_rules: binding -> bool -> bool -> string list ->
     thm list -> binding list -> Attrib.src list list -> (thm * string list * int) list ->
-    thm -> local_theory -> thm list * thm list * thm * local_theory
+    thm -> local_theory -> thm list * thm list * thm * thm list * local_theory
   val add_ind_def: add_ind_def
   val gen_add_inductive_i: add_ind_def -> inductive_flags ->
     ((binding * typ) * mixfix) list -> (string * typ) list -> (Attrib.binding * term) list ->
@@ -121,16 +121,16 @@ val simp_thms''' = map mk_meta_eq
 
 type inductive_result =
   {preds: term list, elims: thm list, raw_induct: thm,
-   induct: thm, intrs: thm list};
+   induct: thm, inducts: thm list, intrs: thm list};
 
-fun morph_result phi {preds, elims, raw_induct: thm, induct, intrs} =
+fun morph_result phi {preds, elims, raw_induct: thm, induct, inducts, intrs} =
   let
     val term = Morphism.term phi;
     val thm = Morphism.thm phi;
     val fact = Morphism.fact phi;
   in
    {preds = map term preds, elims = fact elims, raw_induct = thm raw_induct,
-    induct = thm induct, intrs = fact intrs}
+    induct = thm induct, inducts = fact inducts, intrs = fact intrs}
   end;
 
 type inductive_info =
@@ -737,8 +737,8 @@ fun declare_rules rec_binding coind no_ind cnames
         ((rec_qualified true (Binding.name (coind_prefix coind ^ "induct")),
           map (Attrib.internal o K) (#2 induct)), [rulify (#1 induct)]);
 
-    val lthy3 =
-      if no_ind orelse coind then lthy2
+    val (inducts, lthy3) =
+      if no_ind orelse coind then ([], lthy2)
       else
         let val inducts = cnames ~~ Project_Rule.projects lthy2 (1 upto length cnames) induct' in
           lthy2 |>
@@ -746,9 +746,9 @@ fun declare_rules rec_binding coind no_ind cnames
             inducts |> map (fn (name, th) => ([th],
               [Attrib.internal (K ind_case_names),
                Attrib.internal (K (Rule_Cases.consumes 1)),
-               Attrib.internal (K (Induct.induct_pred name))])))] |> snd
+               Attrib.internal (K (Induct.induct_pred name))])))] |>> snd o hd
         end;
-  in (intrs', elims', induct', lthy3) end;
+  in (intrs', elims', induct', inducts, lthy3) end;
 
 type inductive_flags =
   {quiet_mode: bool, verbose: bool, alt_name: binding, coind: bool,
@@ -796,7 +796,7 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
          prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono fp_def
            rec_preds_defs lthy1);
 
-    val (intrs', elims', induct, lthy2) = declare_rules rec_name coind no_ind
+    val (intrs', elims', induct, inducts, lthy2) = declare_rules rec_name coind no_ind
       cnames intrs intr_names intr_atts elims raw_induct lthy1;
 
     val result =
@@ -804,7 +804,8 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
        intrs = intrs',
        elims = elims',
        raw_induct = rulify raw_induct,
-       induct = induct};
+       induct = induct,
+       inducts = inducts};
 
     val lthy3 = lthy2
       |> Local_Theory.declaration false (fn phi =>

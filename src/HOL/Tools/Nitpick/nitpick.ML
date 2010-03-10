@@ -15,6 +15,7 @@ sig
     bitss: int list,
     bisim_depths: int list,
     boxes: (typ option * bool option) list,
+    finitizes: (typ option * bool option) list,
     monos: (typ option * bool option) list,
     stds: (typ option * bool) list,
     wfs: (styp option * bool option) list,
@@ -87,6 +88,7 @@ type params = {
   bitss: int list,
   bisim_depths: int list,
   boxes: (typ option * bool option) list,
+  finitizes: (typ option * bool option) list,
   monos: (typ option * bool option) list,
   stds: (typ option * bool) list,
   wfs: (styp option * bool option) list,
@@ -200,13 +202,13 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
             error "You must import the theory \"Nitpick\" to use Nitpick"
 *)
     val {cards_assigns, maxes_assigns, iters_assigns, bitss, bisim_depths,
-         boxes, monos, stds, wfs, sat_solver, falsify, debug, verbose, overlord,
-         user_axioms, assms, merge_type_vars, binary_ints, destroy_constrs,
-         specialize, skolemize, star_linear_preds, uncurry, fast_descrs,
-         peephole_optim, tac_timeout, sym_break, sharing_depth, flatten_props,
-         max_threads, show_skolems, show_datatypes, show_consts, evals, formats,
-         max_potential, max_genuine, check_potential, check_genuine, batch_size,
-         ...} =
+         boxes, finitizes, monos, stds, wfs, sat_solver, falsify, debug,
+         verbose, overlord, user_axioms, assms, merge_type_vars, binary_ints,
+         destroy_constrs, specialize, skolemize, star_linear_preds, uncurry,
+         fast_descrs, peephole_optim, tac_timeout, sym_break, sharing_depth,
+         flatten_props, max_threads, show_skolems, show_datatypes, show_consts,
+         evals, formats, max_potential, max_genuine, check_potential,
+         check_genuine, batch_size, ...} =
       params
     val state_ref = Unsynchronized.ref state
     (* Pretty.T -> unit *)
@@ -289,7 +291,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val _ = null (Term.add_tvars assms_t []) orelse
             raise NOT_SUPPORTED "schematic type variables"
     val (nondef_ts, def_ts, got_all_mono_user_axioms, no_poly_user_axioms,
-         binarize) = preprocess_term hol_ctxt assms_t
+         binarize) = preprocess_term hol_ctxt finitizes monos assms_t
     val got_all_user_axioms =
       got_all_mono_user_axioms andalso no_poly_user_axioms
 
@@ -321,7 +323,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       fold add_free_and_const_names (nondef_us @ def_us) ([], [])
     val (sel_names, nonsel_names) =
       List.partition (is_sel o nickname_of) const_names
-    val genuine_means_genuine = got_all_user_axioms andalso none_true wfs
+    val sound_finitizes =
+      none_true (filter_out (fn (SOME (Type (@{type_name fun}, _)), _) => true
+                          | _ => false) finitizes)
     val standard = forall snd stds
 (*
     val _ = List.app (priority o string_for_nut ctxt) (nondef_us @ def_us)
@@ -340,21 +344,30 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         ". " ^ extra
       end
     (* typ -> bool *)
-    fun is_type_always_monotonic T =
+    fun is_type_fundamentally_monotonic T =
       (is_datatype thy stds T andalso not (is_quot_type thy T) andalso
        (not (is_pure_typedef thy T) orelse is_univ_typedef thy T)) orelse
       is_number_type thy T orelse is_bit_type T
     fun is_type_actually_monotonic T =
       formulas_monotonic hol_ctxt binarize T (nondef_ts, def_ts)
+    fun is_type_kind_of_monotonic T =
+      case triple_lookup (type_match thy) monos T of
+        SOME (SOME false) => false
+      | _ => is_type_actually_monotonic T
     fun is_type_monotonic T =
       unique_scope orelse
       case triple_lookup (type_match thy) monos T of
         SOME (SOME b) => b
-      | _ => is_type_always_monotonic T orelse is_type_actually_monotonic T
-    fun is_type_finitizable T =
-      case triple_lookup (type_match thy) monos T of
-        SOME (SOME false) => false
-      | _ => is_type_actually_monotonic T
+      | _ => is_type_fundamentally_monotonic T orelse
+             is_type_actually_monotonic T
+    fun is_shallow_datatype_finitizable (T as Type (@{type_name fin_fun}, _)) =
+        is_type_kind_of_monotonic T
+      | is_shallow_datatype_finitizable (T as Type (@{type_name fun_box}, _)) =
+        is_type_kind_of_monotonic T
+      | is_shallow_datatype_finitizable T =
+        case triple_lookup (type_match thy) finitizes T of
+          SOME (SOME b) => b
+        | _ => is_type_kind_of_monotonic T
     fun is_datatype_deep T =
       not standard orelse T = nat_T orelse is_word_type T orelse
       exists (curry (op =) T o domain_type o type_of) sel_names
@@ -371,7 +384,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val (mono_Ts, nonmono_Ts) = List.partition is_type_monotonic all_Ts
     val _ =
       if verbose andalso not unique_scope then
-        case filter_out is_type_always_monotonic mono_Ts of
+        case filter_out is_type_fundamentally_monotonic mono_Ts of
           [] => ()
         | interesting_mono_Ts =>
           print_v (K (monotonicity_message interesting_mono_Ts
@@ -382,7 +395,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       all_Ts |> filter (is_datatype thy stds) |> List.partition is_datatype_deep
     val finitizable_dataTs =
       shallow_dataTs |> filter_out (is_finite_type hol_ctxt)
-                     |> filter is_type_finitizable
+                     |> filter is_shallow_datatype_finitizable
     val _ =
       if verbose andalso not (null finitizable_dataTs) then
         print_v (K (monotonicity_message finitizable_dataTs
@@ -588,7 +601,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     fun show_kodkod_warning "" = ()
       | show_kodkod_warning s = print_m (fn () => "Kodkod warning: " ^ s ^ ".")
 
-    (* bool -> KK.raw_bound list -> problem_extension -> bool option *)
+    (* bool -> KK.raw_bound list -> problem_extension -> bool * bool option *)
     fun print_and_check_model genuine bounds
             ({free_names, sel_names, nonsel_names, rel_table, scope, ...}
              : problem_extension) =
@@ -599,117 +612,126 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                                  show_consts = show_consts}
               scope formats frees free_names sel_names nonsel_names rel_table
               bounds
-        val genuine_means_genuine = genuine_means_genuine andalso codatatypes_ok
+        val genuine_means_genuine =
+          got_all_user_axioms andalso none_true wfs andalso
+          sound_finitizes andalso codatatypes_ok
       in
-        pprint (Pretty.chunks
-            [Pretty.blk (0,
-                 (pstrs ("Nitpick found a" ^
-                         (if not genuine then " potential "
-                          else if genuine_means_genuine then " "
-                          else " likely genuine ") ^ das_wort_model) @
-                  (case pretties_for_scope scope verbose of
-                     [] => []
-                   | pretties => pstrs " for " @ pretties) @
-                  [Pretty.str ":\n"])),
-             Pretty.indent indent_size reconstructed_model]);
-        if genuine then
-          (if check_genuine andalso standard then
-             (case prove_hol_model scope tac_timeout free_names sel_names
+        (pprint (Pretty.chunks
+             [Pretty.blk (0,
+                  (pstrs ("Nitpick found a" ^
+                          (if not genuine then " potential "
+                           else if genuine_means_genuine then " "
+                           else " quasi genuine ") ^ das_wort_model) @
+                   (case pretties_for_scope scope verbose of
+                      [] => []
+                    | pretties => pstrs " for " @ pretties) @
+                   [Pretty.str ":\n"])),
+              Pretty.indent indent_size reconstructed_model]);
+         if genuine then
+           (if check_genuine andalso standard then
+              case prove_hol_model scope tac_timeout free_names sel_names
                                    rel_table bounds assms_t of
-                SOME true => print ("Confirmation by \"auto\": The above " ^
-                                    das_wort_model ^ " is really genuine.")
+                SOME true =>
+                print ("Confirmation by \"auto\": The above " ^
+                       das_wort_model ^ " is really genuine.")
               | SOME false =>
                 if genuine_means_genuine then
                   error ("A supposedly genuine " ^ das_wort_model ^ " was \
                          \shown to be spurious by \"auto\".\nThis should never \
                          \happen.\nPlease send a bug report to blanchet\
                          \te@in.tum.de.")
-                else
-                  print ("Refutation by \"auto\": The above " ^ das_wort_model ^
-                         " is spurious.")
-              | NONE => print "No confirmation by \"auto\".")
-           else
-             ();
-           if not standard andalso likely_in_struct_induct_step then
-             print "The existence of a nonstandard model suggests that the \
-                   \induction hypothesis is not general enough or perhaps even \
-                   \wrong. See the \"Inductive Properties\" section of the \
-                   \Nitpick manual for details (\"isabelle doc nitpick\")."
-           else
-             ();
-           if has_syntactic_sorts orig_t then
-             print "Hint: Maybe you forgot a type constraint?"
-           else
-             ();
-           if not genuine_means_genuine then
-             if no_poly_user_axioms then
-               let
-                 val options =
-                   [] |> not got_all_mono_user_axioms
-                         ? cons ("user_axioms", "\"true\"")
-                      |> not (none_true wfs)
-                         ? cons ("wf", "\"smart\" or \"false\"")
-                      |> not codatatypes_ok
-                         ? cons ("bisim_depth", "a nonnegative value")
-                 val ss =
-                   map (fn (name, value) => quote name ^ " set to " ^ value)
-                       options
-               in
-                 print ("Try again with " ^
-                        space_implode " " (serial_commas "and" ss) ^
-                        " to confirm that the " ^ das_wort_model ^
-                        " is genuine.")
-               end
-             else
-               print ("Nitpick is unable to guarantee the authenticity of \
-                      \the " ^ das_wort_model ^ " in the presence of \
-                      \polymorphic axioms.")
-           else
-             ();
-           NONE)
-        else
-          if not genuine then
-            (Unsynchronized.inc met_potential;
-             if check_potential then
-               let
-                 val status = prove_hol_model scope tac_timeout free_names
+                 else
+                   print ("Refutation by \"auto\": The above " ^
+                          das_wort_model ^ " is spurious.")
+               | NONE => print "No confirmation by \"auto\"."
+            else
+              ();
+            if not standard andalso likely_in_struct_induct_step then
+              print "The existence of a nonstandard model suggests that the \
+                    \induction hypothesis is not general enough or perhaps \
+                    \even wrong. See the \"Inductive Properties\" section of \
+                    \the Nitpick manual for details (\"isabelle doc nitpick\")."
+            else
+              ();
+            if has_syntactic_sorts orig_t then
+              print "Hint: Maybe you forgot a type constraint?"
+            else
+              ();
+            if not genuine_means_genuine then
+              if no_poly_user_axioms then
+                let
+                  val options =
+                    [] |> not got_all_mono_user_axioms
+                          ? cons ("user_axioms", "\"true\"")
+                       |> not (none_true wfs)
+                          ? cons ("wf", "\"smart\" or \"false\"")
+                       |> not sound_finitizes
+                          ? cons ("finitize", "\"smart\" or \"false\"")
+                       |> not codatatypes_ok
+                          ? cons ("bisim_depth", "a nonnegative value")
+                  val ss =
+                    map (fn (name, value) => quote name ^ " set to " ^ value)
+                        options
+                in
+                  print ("Try again with " ^
+                         space_implode " " (serial_commas "and" ss) ^
+                         " to confirm that the " ^ das_wort_model ^
+                         " is genuine.")
+                end
+              else
+                print ("Nitpick is unable to guarantee the authenticity of \
+                       \the " ^ das_wort_model ^ " in the presence of \
+                       \polymorphic axioms.")
+            else
+              ();
+            NONE)
+         else
+           if not genuine then
+             (Unsynchronized.inc met_potential;
+              if check_potential then
+                let
+                  val status = prove_hol_model scope tac_timeout free_names
                                               sel_names rel_table bounds assms_t
-               in
-                 (case status of
-                    SOME true => print ("Confirmation by \"auto\": The above " ^
-                                        das_wort_model ^ " is genuine.")
-                  | SOME false => print ("Refutation by \"auto\": The above " ^
-                                         das_wort_model ^ " is spurious.")
-                  | NONE => print "No confirmation by \"auto\".");
-                 status
-               end
-             else
-               NONE)
-          else
-            NONE
+                in
+                  (case status of
+                     SOME true => print ("Confirmation by \"auto\": The \
+                                         \above " ^ das_wort_model ^
+                                         " is genuine.")
+                   | SOME false => print ("Refutation by \"auto\": The above " ^
+                                          das_wort_model ^ " is spurious.")
+                   | NONE => print "No confirmation by \"auto\".");
+                  status
+                end
+              else
+                NONE)
+           else
+             NONE)
+        |> pair genuine_means_genuine
       end
-    (* int -> int -> int -> bool -> rich_problem list -> int * int * int *)
-    fun solve_any_problem max_potential max_genuine donno first_time problems =
+    (* bool * int * int * int -> bool -> rich_problem list
+       -> bool * int * int * int *)
+    fun solve_any_problem (found_really_genuine, max_potential, max_genuine,
+                           donno) first_time problems =
       let
         val max_potential = Int.max (0, max_potential)
         val max_genuine = Int.max (0, max_genuine)
-        (* bool -> int * KK.raw_bound list -> bool option *)
+        (* bool -> int * KK.raw_bound list -> bool * bool option *)
         fun print_and_check genuine (j, bounds) =
           print_and_check_model genuine bounds (snd (nth problems j))
         val max_solutions = max_potential + max_genuine
                             |> not need_incremental ? curry Int.min 1
       in
         if max_solutions <= 0 then
-          (0, 0, donno)
+          (found_really_genuine, 0, 0, donno)
         else
           case KK.solve_any_problem overlord deadline max_threads max_solutions
                                     (map fst problems) of
             KK.NotInstalled =>
             (print_m install_kodkodi_message;
-             (max_potential, max_genuine, donno + 1))
+             (found_really_genuine, max_potential, max_genuine, donno + 1))
           | KK.Normal ([], unsat_js, s) =>
             (update_checked_problems problems unsat_js; show_kodkod_warning s;
-             (max_potential, max_genuine, donno))
+             (found_really_genuine, max_potential, max_genuine, donno))
           | KK.Normal (sat_ps, unsat_js, s) =>
             let
               val (lib_ps, con_ps) =
@@ -719,16 +741,19 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
               show_kodkod_warning s;
               if null con_ps then
                 let
-                  val num_genuine = take max_potential lib_ps
-                                    |> map (print_and_check false)
-                                    |> filter (curry (op =) (SOME true))
-                                    |> length
+                  val genuine_codes =
+                    lib_ps |> take max_potential
+                           |> map (print_and_check false)
+                           |> filter (curry (op =) (SOME true) o snd)
+                  val found_really_genuine =
+                    found_really_genuine orelse exists fst genuine_codes
+                  val num_genuine = length genuine_codes
                   val max_genuine = max_genuine - num_genuine
                   val max_potential = max_potential
                                       - (length lib_ps - num_genuine)
                 in
                   if max_genuine <= 0 then
-                    (0, 0, donno)
+                    (found_really_genuine, 0, 0, donno)
                   else
                     let
                       (* "co_js" is the list of sound problems whose unsound
@@ -748,18 +773,21 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                                  |> max_potential <= 0
                                     ? filter_out (#unsound o snd)
                     in
-                      solve_any_problem max_potential max_genuine donno false
-                                        problems
+                      solve_any_problem (found_really_genuine, max_potential,
+                                         max_genuine, donno) false problems
                     end
                 end
               else
                 let
-                  val _ = take max_genuine con_ps
-                          |> List.app (ignore o print_and_check true)
-                  val max_genuine = max_genuine - length con_ps
+                  val genuine_codes =
+                    con_ps |> take max_genuine
+                           |> map (print_and_check true)
+                  val max_genuine = max_genuine - length genuine_codes
+                  val found_really_genuine =
+                    found_really_genuine orelse exists fst genuine_codes
                 in
                   if max_genuine <= 0 orelse not first_time then
-                    (0, max_genuine, donno)
+                    (found_really_genuine, 0, max_genuine, donno)
                   else
                     let
                       val bye_js = sort_distinct int_ord
@@ -767,7 +795,10 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                       val problems =
                         problems |> filter_out_indices bye_js
                                  |> filter_out (#unsound o snd)
-                    in solve_any_problem 0 max_genuine donno false problems end
+                    in
+                      solve_any_problem (found_really_genuine, 0, max_genuine,
+                                         donno) false problems
+                    end
                 end
             end
           | KK.TimedOut unsat_js =>
@@ -778,11 +809,13 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
           | KK.Error (s, unsat_js) =>
             (update_checked_problems problems unsat_js;
              print_v (K ("Kodkod error: " ^ s ^ "."));
-             (max_potential, max_genuine, donno + 1))
+             (found_really_genuine, max_potential, max_genuine, donno + 1))
       end
 
-    (* int -> int -> scope list -> int * int * int -> int * int * int *)
-    fun run_batch j n scopes (max_potential, max_genuine, donno) =
+    (* int -> int -> scope list -> bool * int * int * int
+       -> bool * int * int * int *)
+    fun run_batch j n scopes (found_really_genuine, max_potential, max_genuine,
+                              donno) =
       let
         val _ =
           if null scopes then
@@ -852,7 +885,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
           else
             ()
       in
-        solve_any_problem max_potential max_genuine donno true (rev problems)
+        solve_any_problem (found_really_genuine, max_potential, max_genuine,
+                           donno) true (rev problems)
       end
 
     (* rich_problem list -> scope -> int *)
@@ -884,8 +918,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
            "") ^ "."
       end
 
-    (* int -> int -> scope list -> int * int * int -> KK.outcome *)
-    fun run_batches _ _ [] (max_potential, max_genuine, donno) =
+    (* int -> int -> scope list -> bool * int * int * int -> KK.outcome *)
+    fun run_batches _ _ []
+                    (found_really_genuine, max_potential, max_genuine, donno) =
         if donno > 0 andalso max_genuine > 0 then
           (print_m (fn () => excipit "ran out of some resource"); "unknown")
         else if max_genuine = original_max_genuine then
@@ -902,10 +937,12 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                  "Nitpick could not find a" ^
                  (if max_genuine = 1 then " better " ^ das_wort_model ^ "."
                   else "ny better " ^ das_wort_model ^ "s.")); "potential")
+        else if found_really_genuine then
+          "genuine"
         else
-          if genuine_means_genuine then "genuine" else "likely_genuine"
+          "quasi_genuine"
       | run_batches j n (batch :: batches) z =
-        let val (z as (_, max_genuine, _)) = run_batch j n batch z in
+        let val (z as (_, _, max_genuine, _)) = run_batch j n batch z in
           run_batches (j + 1) n (if max_genuine > 0 then batches else []) z
         end
 
@@ -925,7 +962,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
 
     val batches = batch_list batch_size (!scopes)
     val outcome_code =
-      (run_batches 0 (length batches) batches (max_potential, max_genuine, 0)
+      (run_batches 0 (length batches) batches
+                   (false, max_potential, max_genuine, 0)
        handle Exn.Interrupt => do_interrupted ())
       handle TimeLimit.TimeOut =>
              (print_m (fn () => excipit "ran out of time");

@@ -15,7 +15,11 @@ sig
     -> Domain_Take_Proofs.iso_info
     -> theory -> thm list * theory;
 
-  val comp_theorems: bstring * Domain_Library.eq list -> theory -> thm list * theory;
+  val comp_theorems :
+      bstring * Domain_Library.eq list ->
+      Domain_Take_Proofs.take_induct_info ->
+      theory -> thm list * theory
+
   val quiet_mode: bool Unsynchronized.ref;
   val trace_domain: bool Unsynchronized.ref;
 end;
@@ -204,15 +208,14 @@ end; (* let *)
 
 fun prove_induction
     (comp_dnam, eqs : eq list)
-    (take_lemmas : thm list)
-    (axs_reach : thm list)
     (take_rews : thm list)
+    (take_info : Domain_Take_Proofs.take_induct_info)
     (thy : theory) =
 let
   val dnames = map (fst o fst) eqs;
   val conss  = map  snd        eqs;
   fun dc_take dn = %%:(dn^"_take");
-  val x_name = idx_name dnames "x"; 
+  val x_name = idx_name dnames "x";
   val P_name = idx_name dnames "P";
   val pg = pg' thy;
 
@@ -222,14 +225,14 @@ let
   in
     val axs_rep_iso = map (ga "rep_iso") dnames;
     val axs_abs_iso = map (ga "abs_iso") dnames;
-    val axs_chain_take = map (ga "chain_take") dnames;
-    val lub_take_thms = map (ga "lub_take") dnames;
-    val axs_finite_def = map (ga "finite_def") dnames;
-    val take_0_thms = map (ga "take_0") dnames;
-    val take_Suc_thms = map (ga "take_Suc") dnames;
     val cases = map (ga  "casedist" ) dnames;
     val con_rews  = maps (gts "con_rews" ) dnames;
   end;
+
+  val {take_consts, ...} = take_info;
+  val {take_0_thms, take_Suc_thms, chain_take_thms, ...} = take_info;
+  val {lub_take_thms, finite_defs, reach_thms, ...} = take_info;
+  val {take_induct_thms, ...} = take_info;
 
   fun one_con p (con, args) =
     let
@@ -281,7 +284,7 @@ let
   in
     val n__eqs = mapn (fn n => fn (_,cons) => (n,cons)) 0 eqs;
     val is_emptys = map warn n__eqs;
-    val is_finite = forall (not o lazy_rec_to [] false) n__eqs;
+    val is_finite = #is_finite take_info;
     val _ = if is_finite
             then message ("Proving finiteness rule for domain "^comp_dnam^" ...")
             else ();
@@ -317,78 +320,32 @@ let
         in
           tacs1 @ maps cases_tacs (conss ~~ cases)
         end;
-    in pg'' thy [] goal tacf
-       handle ERROR _ => (warning "Proof of finite_ind failed."; TrueI)
-    end;
+    in pg'' thy [] goal tacf end;
 
 (* ----- theorems concerning finiteness and induction ----------------------- *)
 
   val global_ctxt = ProofContext.init thy;
 
-  val _ = trace " Proving finites, ind...";
-  val (finites, ind) =
-  (
+  val _ = trace " Proving ind...";
+  val ind =
     if is_finite
     then (* finite case *)
       let
-        val decisive_lemma =
+        fun concf n dn = %:(P_name n) $ %:(x_name n);
+        fun tacf {prems, context} =
           let
-            val iso_locale_thms =
-                map2 (fn x => fn y => @{thm iso.intro} OF [x, y])
-                axs_abs_iso axs_rep_iso;
-            val decisive_abs_rep_thms =
-                map (fn x => @{thm decisive_abs_rep} OF [x])
-                iso_locale_thms;
-            val n = Free ("n", @{typ nat});
-            fun mk_decisive t = %%: @{const_name decisive} $ t;
-            fun f dn = mk_decisive (dc_take dn $ n);
-            val goal = mk_trp (foldr1 mk_conj (map f dnames));
-            val rules0 = @{thm decisive_bottom} :: take_0_thms;
-            val rules1 =
-                take_Suc_thms @ decisive_abs_rep_thms
-                @ @{thms decisive_ID decisive_ssum_map decisive_sprod_map};
-            val tacs = [
-                rtac @{thm nat.induct} 1,
-                simp_tac (HOL_ss addsimps rules0) 1,
-                asm_simp_tac (HOL_ss addsimps rules1) 1];
-          in pg [] goal (K tacs) end;
-        fun take_enough dn = mk_ex ("n",dc_take dn $ Bound 0 ` %:"x" === %:"x");
-        fun one_finite (dn, decisive_thm) =
-          let
-            val goal = mk_trp (%%:(dn^"_finite") $ %:"x");
-            val tacs = [
-                rtac @{thm lub_ID_finite} 1,
-                resolve_tac axs_chain_take 1,
-                resolve_tac lub_take_thms 1,
-                rtac decisive_thm 1];
-          in pg axs_finite_def goal (K tacs) end;
-
-        val _ = trace " Proving finites";
-        val finites = map one_finite (dnames ~~ atomize global_ctxt decisive_lemma);
-        val _ = trace " Proving ind";
-        val ind =
-          let
-            fun concf n dn = %:(P_name n) $ %:(x_name n);
-            fun tacf {prems, context} =
-              let
-                fun finite_tacs (finite, fin_ind) = [
-                  rtac(rewrite_rule axs_finite_def finite RS exE)1,
-                  etac subst 1,
-                  rtac fin_ind 1,
-                  ind_prems_tac prems];
-              in
-                TRY (safe_tac HOL_cs) ::
-                maps finite_tacs (finites ~~ atomize global_ctxt finite_ind)
-              end;
-          in pg'' thy [] (ind_term concf) tacf end;
-      in (finites, ind) end (* let *)
+            fun finite_tacs (take_induct, fin_ind) = [
+                rtac take_induct 1,
+                rtac fin_ind 1,
+                ind_prems_tac prems];
+          in
+            TRY (safe_tac HOL_cs) ::
+            maps finite_tacs (take_induct_thms ~~ atomize global_ctxt finite_ind)
+          end;
+      in pg'' thy [] (ind_term concf) tacf end
 
     else (* infinite case *)
       let
-        fun one_finite n dn =
-          read_instantiate global_ctxt [(("P", 0), dn ^ "_finite " ^ x_name n)] excluded_middle;
-        val finites = mapn one_finite 1 dnames;
-
         val goal =
           let
             fun one_adm n _ = mk_trp (mk_adm (%:(P_name n)));
@@ -398,33 +355,36 @@ let
             @{thms cont_id cont_const cont2cont_Rep_CFun
                    cont2cont_fst cont2cont_snd};
         val subgoal =
-          let fun p n dn = %:(P_name n) $ (dc_take dn $ Bound 0 `%(x_name n));
-          in mk_trp (mk_all ("n", foldr1 mk_conj (mapn p 1 dnames))) end;
-        val subgoal' = legacy_infer_term thy subgoal;
+          let
+            val Ts = map (Type o fst) eqs;
+            val P_names = Datatype_Prop.indexify_names (map (K "P") dnames);
+            val x_names = Datatype_Prop.indexify_names (map (K "x") dnames);
+            val P_types = map (fn T => T --> HOLogic.boolT) Ts;
+            val Ps = map Free (P_names ~~ P_types);
+            val xs = map Free (x_names ~~ Ts);
+            val n = Free ("n", HOLogic.natT);
+            val goals =
+                map (fn ((P,t),x) => P $ HOLCF_Library.mk_capply (t $ n, x))
+                  (Ps ~~ take_consts ~~ xs);
+          in
+            HOLogic.mk_Trueprop
+            (HOLogic.mk_all ("n", HOLogic.natT, foldr1 HOLogic.mk_conj goals))
+          end;
         fun tacf {prems, context} =
           let
             val subtac =
                 EVERY [rtac allI 1, rtac finite_ind 1, ind_prems_tac prems];
-            val subthm = Goal.prove context [] [] subgoal' (K subtac);
+            val subthm = Goal.prove context [] [] subgoal (K subtac);
           in
-            map (fn ax_reach => rtac (ax_reach RS subst) 1) axs_reach @ [
+            map (fn ax_reach => rtac (ax_reach RS subst) 1) reach_thms @ [
             cut_facts_tac (subthm :: take (length dnames) prems) 1,
             REPEAT (rtac @{thm conjI} 1 ORELSE
                     EVERY [etac @{thm admD [OF _ ch2ch_Rep_CFunL]} 1,
-                           resolve_tac axs_chain_take 1,
+                           resolve_tac chain_take_thms 1,
                            asm_simp_tac HOL_basic_ss 1])
             ]
           end;
-        val ind = (pg'' thy [] goal tacf
-          handle ERROR _ =>
-            (warning "Cannot prove infinite induction rule"; TrueI)
-                  );
-      in (finites, ind) end
-  )
-      handle THM _ =>
-             (warning "Induction proofs failed (THM raised)."; ([], TrueI))
-           | ERROR _ =>
-             (warning "Cannot prove induction rule"; ([], TrueI));
+      in pg'' thy [] goal tacf end;
 
 val case_ns =
   let
@@ -440,15 +400,11 @@ fun ind_rule (dname, rule) =
     ((Binding.empty, [rule]),
      [Rule_Cases.case_names case_ns, Induct.induct_type dname]);
 
-val induct_failed = (Thm.prop_of ind = Thm.prop_of TrueI);
-
 in thy |> Sign.add_path comp_dnam
        |> snd o PureThy.add_thmss [
-           ((Binding.name "finites"    , finites     ), []),
            ((Binding.name "finite_ind" , [finite_ind]), []),
            ((Binding.name "ind"        , [ind]       ), [])]
-       |> (if induct_failed then I
-           else snd o PureThy.add_thmss (map ind_rule (dnames ~~ inducts)))
+       |> (snd o PureThy.add_thmss (map ind_rule (dnames ~~ inducts)))
        |> Sign.parent_path
 end; (* prove_induction *)
 
@@ -604,7 +560,10 @@ in thy |> Sign.add_path comp_dnam
        |> Sign.parent_path
 end; (* let *)
 
-fun comp_theorems (comp_dnam, eqs: eq list) thy =
+fun comp_theorems
+    (comp_dnam : string, eqs : eq list)
+    (take_info : Domain_Take_Proofs.take_induct_info)
+    (thy : theory) =
 let
 val map_tab = Domain_Take_Proofs.get_map_tab thy;
 
@@ -629,31 +588,7 @@ end;
 
 (* theorems about take *)
 
-local
-  fun ga s dn = PureThy.get_thm thy (dn ^ "." ^ s);
-  val axs_chain_take = map (ga "chain_take") dnames;
-  val axs_lub_take   = map (ga "lub_take"  ) dnames;
-  fun take_thms ((ax_chain_take, ax_lub_take), dname) thy =
-    let
-      val dnam = Long_Name.base_name dname;
-      val take_lemma =
-          Drule.export_without_context
-            (@{thm lub_ID_take_lemma} OF [ax_chain_take, ax_lub_take]);
-      val reach =
-          Drule.export_without_context
-            (@{thm lub_ID_reach} OF [ax_chain_take, ax_lub_take]);
-      val thy =
-          thy |> Sign.add_path dnam
-              |> snd o PureThy.add_thms [
-                 ((Binding.name "take_lemma", take_lemma), []),
-                 ((Binding.name "reach"     , reach     ), [])]
-              |> Sign.parent_path;
-    in ((take_lemma, reach), thy) end;
-in
-  val ((take_lemmas, axs_reach), thy) =
-      fold_map take_thms (axs_chain_take ~~ axs_lub_take ~~ dnames) thy
-      |>> ListPair.unzip;
-end;
+val take_lemmas = #take_lemma_thms take_info;
 
 val take_rews =
     maps (fn dn => PureThy.get_thms thy (dn ^ ".take_rews")) dnames;
@@ -661,7 +596,7 @@ val take_rews =
 (* prove induction rules, unless definition is indirect recursive *)
 val thy =
     if is_indirect then thy else
-    prove_induction (comp_dnam, eqs) take_lemmas axs_reach take_rews thy;
+    prove_induction (comp_dnam, eqs) take_rews take_info thy;
 
 val thy =
     if is_indirect then thy else

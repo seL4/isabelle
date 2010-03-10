@@ -36,8 +36,10 @@ open Nitpick_Kodkod
 datatype rep = SRep | RRep
 
 (* Proof.context -> typ -> unit *)
-fun check_type ctxt (Type ("fun", Ts)) = List.app (check_type ctxt) Ts
-  | check_type ctxt (Type ("*", Ts)) = List.app (check_type ctxt) Ts
+fun check_type ctxt (Type (@{type_name fun}, Ts)) =
+    List.app (check_type ctxt) Ts
+  | check_type ctxt (Type (@{type_name "*"}, Ts)) =
+    List.app (check_type ctxt) Ts
   | check_type _ @{typ bool} = ()
   | check_type _ (TFree (_, @{sort "{}"})) = ()
   | check_type _ (TFree (_, @{sort HOL.type})) = ()
@@ -45,13 +47,14 @@ fun check_type ctxt (Type ("fun", Ts)) = List.app (check_type ctxt) Ts
     raise NOT_SUPPORTED ("type " ^ quote (Syntax.string_of_typ ctxt T))
 
 (* rep -> (typ -> int) -> typ -> int list *)
-fun atom_schema_of SRep card (Type ("fun", [T1, T2])) =
+fun atom_schema_of SRep card (Type (@{type_name fun}, [T1, T2])) =
     replicate_list (card T1) (atom_schema_of SRep card T2)
-  | atom_schema_of RRep card (Type ("fun", [T1, @{typ bool}])) =
+  | atom_schema_of RRep card (Type (@{type_name fun}, [T1, @{typ bool}])) =
     atom_schema_of SRep card T1
-  | atom_schema_of RRep card (Type ("fun", [T1, T2])) =
+  | atom_schema_of RRep card (Type (@{type_name fun}, [T1, T2])) =
     atom_schema_of SRep card T1 @ atom_schema_of RRep card T2
-  | atom_schema_of _ card (Type ("*", Ts)) = maps (atom_schema_of SRep card) Ts
+  | atom_schema_of _ card (Type (@{type_name "*"}, Ts)) =
+    maps (atom_schema_of SRep card) Ts
   | atom_schema_of _ card T = [card T]
 (* rep -> (typ -> int) -> typ -> int *)
 val arity_of = length ooo atom_schema_of
@@ -89,7 +92,7 @@ fun atom_from_formula f = RelIf (f, true_atom, false_atom)
 fun kodkod_formula_from_term ctxt card frees =
   let
     (* typ -> rel_expr -> rel_expr *)
-    fun R_rep_from_S_rep (T as Type ("fun", [T1, @{typ bool}])) r =
+    fun R_rep_from_S_rep (T as Type (@{type_name fun}, [T1, @{typ bool}])) r =
         let
           val jss = atom_schema_of SRep card T1 |> map (rpair 0)
                     |> all_combinations
@@ -100,7 +103,7 @@ fun kodkod_formula_from_term ctxt card frees =
                (index_seq 0 (length jss)) jss
           |> foldl1 Union
         end
-      | R_rep_from_S_rep (Type ("fun", [T1, T2])) r =
+      | R_rep_from_S_rep (Type (@{type_name fun}, [T1, T2])) r =
         let
           val jss = atom_schema_of SRep card T1 |> map (rpair 0)
                     |> all_combinations
@@ -115,7 +118,7 @@ fun kodkod_formula_from_term ctxt card frees =
         end
       | R_rep_from_S_rep _ r = r
     (* typ list -> typ -> rel_expr -> rel_expr *)
-    fun S_rep_from_R_rep Ts (T as Type ("fun", _)) r =
+    fun S_rep_from_R_rep Ts (T as Type (@{type_name fun}, _)) r =
         Comprehension (decls_for SRep card Ts T,
             RelEq (R_rep_from_S_rep T
                        (rel_expr_for_bound_var card SRep (T :: Ts) 0), r))
@@ -137,7 +140,9 @@ fun kodkod_formula_from_term ctxt card frees =
        | Const (@{const_name "op ="}, _) $ t1 $ t2 =>
          RelEq (to_R_rep Ts t1, to_R_rep Ts t2)
        | Const (@{const_name ord_class.less_eq},
-                Type ("fun", [Type ("fun", [_, @{typ bool}]), _])) $ t1 $ t2 =>
+                Type (@{type_name fun},
+                      [Type (@{type_name fun}, [_, @{typ bool}]), _]))
+         $ t1 $ t2 =>
          Subset (to_R_rep Ts t1, to_R_rep Ts t2)
        | @{const "op &"} $ t1 $ t2 => And (to_F Ts t1, to_F Ts t2)
        | @{const "op |"} $ t1 $ t2 => Or (to_F Ts t1, to_F Ts t2)
@@ -179,7 +184,8 @@ fun kodkod_formula_from_term ctxt card frees =
        | Const (@{const_name "op ="}, _) $ _ => to_R_rep Ts (eta_expand Ts t 1)
        | Const (@{const_name "op ="}, _) => to_R_rep Ts (eta_expand Ts t 2)
        | Const (@{const_name ord_class.less_eq},
-                Type ("fun", [Type ("fun", [_, @{typ bool}]), _])) $ _ =>
+                Type (@{type_name fun},
+                      [Type (@{type_name fun}, [_, @{typ bool}]), _])) $ _ =>
          to_R_rep Ts (eta_expand Ts t 1)
        | Const (@{const_name ord_class.less_eq}, _) =>
          to_R_rep Ts (eta_expand Ts t 2)
@@ -190,7 +196,7 @@ fun kodkod_formula_from_term ctxt card frees =
        | @{const "op -->"} $ _ => to_R_rep Ts (eta_expand Ts t 1)
        | @{const "op -->"} => to_R_rep Ts (eta_expand Ts t 2)
        | Const (@{const_name bot_class.bot},
-                T as Type ("fun", [_, @{typ bool}])) =>
+                T as Type (@{type_name fun}, [_, @{typ bool}])) =>
          empty_n_ary_rel (arity_of RRep card T)
        | Const (@{const_name insert}, _) $ t1 $ t2 =>
          Union (to_S_rep Ts t1, to_R_rep Ts t2)
@@ -203,27 +209,35 @@ fun kodkod_formula_from_term ctxt card frees =
            raise NOT_SUPPORTED "transitive closure for function or pair type"
        | Const (@{const_name trancl}, _) => to_R_rep Ts (eta_expand Ts t 1)
        | Const (@{const_name semilattice_inf_class.inf},
-                Type ("fun", [Type ("fun", [_, @{typ bool}]), _])) $ t1 $ t2 =>
+                Type (@{type_name fun},
+                      [Type (@{type_name fun}, [_, @{typ bool}]), _]))
+         $ t1 $ t2 =>
          Intersect (to_R_rep Ts t1, to_R_rep Ts t2)
        | Const (@{const_name semilattice_inf_class.inf}, _) $ _ =>
          to_R_rep Ts (eta_expand Ts t 1)
        | Const (@{const_name semilattice_inf_class.inf}, _) =>
          to_R_rep Ts (eta_expand Ts t 2)
        | Const (@{const_name semilattice_sup_class.sup},
-                Type ("fun", [Type ("fun", [_, @{typ bool}]), _])) $ t1 $ t2 =>
+                Type (@{type_name fun},
+                      [Type (@{type_name fun}, [_, @{typ bool}]), _]))
+         $ t1 $ t2 =>
          Union (to_R_rep Ts t1, to_R_rep Ts t2)
        | Const (@{const_name semilattice_sup_class.sup}, _) $ _ =>
          to_R_rep Ts (eta_expand Ts t 1)
        | Const (@{const_name semilattice_sup_class.sup}, _) =>
          to_R_rep Ts (eta_expand Ts t 2)
        | Const (@{const_name minus_class.minus},
-                Type ("fun", [Type ("fun", [_, @{typ bool}]), _])) $ t1 $ t2 =>
+                Type (@{type_name fun},
+                      [Type (@{type_name fun}, [_, @{typ bool}]), _]))
+         $ t1 $ t2 =>
          Difference (to_R_rep Ts t1, to_R_rep Ts t2)
        | Const (@{const_name minus_class.minus},
-                Type ("fun", [Type ("fun", [_, @{typ bool}]), _])) $ _ =>
+                Type (@{type_name fun},
+                      [Type (@{type_name fun}, [_, @{typ bool}]), _])) $ _ =>
          to_R_rep Ts (eta_expand Ts t 1)
        | Const (@{const_name minus_class.minus},
-                Type ("fun", [Type ("fun", [_, @{typ bool}]), _])) =>
+                Type (@{type_name fun},
+                      [Type (@{type_name fun}, [_, @{typ bool}]), _])) =>
          to_R_rep Ts (eta_expand Ts t 2)
        | Const (@{const_name Pair}, _) $ _ $ _ => raise SAME ()
        | Const (@{const_name Pair}, _) $ _ => raise SAME ()
@@ -277,7 +291,8 @@ fun bound_for_free card i (s, T) =
   end
 
 (* (typ -> int) -> typ list -> typ -> rel_expr -> formula *)
-fun declarative_axiom_for_rel_expr card Ts (Type ("fun", [T1, T2])) r =
+fun declarative_axiom_for_rel_expr card Ts (Type (@{type_name fun}, [T1, T2]))
+                                   r =
     if body_type T2 = bool_T then
       True
     else
@@ -294,8 +309,9 @@ fun kodkod_problem_from_term ctxt raw_card t =
   let
     val thy = ProofContext.theory_of ctxt
     (* typ -> int *)
-    fun card (Type ("fun", [T1, T2])) = reasonable_power (card T2) (card T1)
-      | card (Type ("*", [T1, T2])) = card T1 * card T2
+    fun card (Type (@{type_name fun}, [T1, T2])) =
+        reasonable_power (card T2) (card T1)
+      | card (Type (@{type_name "*"}, [T1, T2])) = card T1 * card T2
       | card @{typ bool} = 2
       | card T = Int.max (1, raw_card T)
     val neg_t = @{const Not} $ Object_Logic.atomize_term thy t

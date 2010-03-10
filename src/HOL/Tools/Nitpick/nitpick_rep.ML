@@ -158,9 +158,9 @@ fun smart_range_rep _ _ _ Unit = Unit
   | smart_range_rep _ _ _ (Func (_, R2)) = R2
   | smart_range_rep ofs T ran_card (Opt R) =
     Opt (smart_range_rep ofs T ran_card R)
-  | smart_range_rep ofs (Type ("fun", [_, T2])) _ (Atom (1, _)) =
+  | smart_range_rep ofs (Type (@{type_name fun}, [_, T2])) _ (Atom (1, _)) =
     Atom (1, offset_of_type ofs T2)
-  | smart_range_rep ofs (Type ("fun", [_, T2])) ran_card (Atom _) =
+  | smart_range_rep ofs (Type (@{type_name fun}, [_, T2])) ran_card (Atom _) =
     Atom (ran_card (), offset_of_type ofs T2)
   | smart_range_rep _ _ _ R = raise REP ("Nitpick_Rep.smart_range_rep", [R])
 
@@ -183,10 +183,10 @@ fun one_rep _ _ Any = raise REP ("Nitpick_Rep.one_rep", [Any])
   | one_rep _ _ (Vect z) = Vect z
   | one_rep ofs T (Opt R) = one_rep ofs T R
   | one_rep ofs T R = Atom (card_of_rep R, offset_of_type ofs T)
-fun optable_rep ofs (Type ("fun", [_, T2])) (Func (R1, R2)) =
+fun optable_rep ofs (Type (@{type_name fun}, [_, T2])) (Func (R1, R2)) =
     Func (R1, optable_rep ofs T2 R2)
   | optable_rep ofs T R = one_rep ofs T R
-fun opt_rep ofs (Type ("fun", [_, T2])) (Func (R1, R2)) =
+fun opt_rep ofs (Type (@{type_name fun}, [_, T2])) (Func (R1, R2)) =
     Func (R1, opt_rep ofs T2 R2)
   | opt_rep ofs T R = Opt (optable_rep ofs T R)
 (* rep -> rep *)
@@ -264,11 +264,11 @@ fun rep_to_binary_rel_rep ofs T R =
 
 (* scope -> typ -> rep *)
 fun best_one_rep_for_type (scope as {card_assigns, ...} : scope)
-                          (Type ("fun", [T1, T2])) =
+                          (Type (@{type_name fun}, [T1, T2])) =
     (case best_one_rep_for_type scope T2 of
        Unit => Unit
      | R2 => Vect (card_of_type card_assigns T1, R2))
-  | best_one_rep_for_type scope (Type ("*", [T1, T2])) =
+  | best_one_rep_for_type scope (Type (@{type_name "*"}, [T1, T2])) =
     (case (best_one_rep_for_type scope T1, best_one_rep_for_type scope T2) of
        (Unit, Unit) => Unit
      | (R1, R2) => Struct [R1, R2])
@@ -284,12 +284,12 @@ fun best_one_rep_for_type (scope as {card_assigns, ...} : scope)
 (* Datatypes are never represented by Unit, because it would confuse
    "nfa_transitions_for_ctor". *)
 (* scope -> typ -> rep *)
-fun best_opt_set_rep_for_type scope (Type ("fun", [T1, T2])) =
+fun best_opt_set_rep_for_type scope (Type (@{type_name fun}, [T1, T2])) =
     Func (best_one_rep_for_type scope T1, best_opt_set_rep_for_type scope T2)
   | best_opt_set_rep_for_type (scope as {ofs, ...}) T =
     opt_rep ofs T (best_one_rep_for_type scope T)
 fun best_non_opt_set_rep_for_type (scope as {ofs, ...})
-                                  (Type ("fun", [T1, T2])) =
+                                  (Type (@{type_name fun}, [T1, T2])) =
     (case (best_one_rep_for_type scope T1,
            best_non_opt_set_rep_for_type scope T2) of
        (_, Unit) => Unit
@@ -302,7 +302,7 @@ fun best_set_rep_for_type (scope as {datatypes, ...}) T =
   (if is_exact_type datatypes true T then best_non_opt_set_rep_for_type
    else best_opt_set_rep_for_type) scope T
 fun best_non_opt_symmetric_reps_for_fun_type (scope as {ofs, ...})
-                                             (Type ("fun", [T1, T2])) =
+                                           (Type (@{type_name fun}, [T1, T2])) =
     (optable_rep ofs T1 (best_one_rep_for_type scope T1),
      optable_rep ofs T2 (best_one_rep_for_type scope T2))
   | best_non_opt_symmetric_reps_for_fun_type _ T =
@@ -325,11 +325,11 @@ and atom_schema_of_reps Rs = maps atom_schema_of_rep Rs
 fun type_schema_of_rep _ (Formula _) = []
   | type_schema_of_rep _ Unit = []
   | type_schema_of_rep T (Atom _) = [T]
-  | type_schema_of_rep (Type ("*", [T1, T2])) (Struct [R1, R2]) =
+  | type_schema_of_rep (Type (@{type_name "*"}, [T1, T2])) (Struct [R1, R2]) =
     type_schema_of_reps [T1, T2] [R1, R2]
-  | type_schema_of_rep (Type ("fun", [_, T2])) (Vect (k, R)) =
+  | type_schema_of_rep (Type (@{type_name fun}, [_, T2])) (Vect (k, R)) =
     replicate_list k (type_schema_of_rep T2 R)
-  | type_schema_of_rep (Type ("fun", [T1, T2])) (Func (R1, R2)) =
+  | type_schema_of_rep (Type (@{type_name fun}, [T1, T2])) (Func (R1, R2)) =
     type_schema_of_rep T1 R1 @ type_schema_of_rep T2 R2
   | type_schema_of_rep T (Opt R) = type_schema_of_rep T R
   | type_schema_of_rep _ R = raise REP ("Nitpick_Rep.type_schema_of_rep", [R])

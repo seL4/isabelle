@@ -954,7 +954,7 @@ subsection {* Types and type abbreviations \label{sec:types-pure} *}
 text {*
   \begin{matharray}{rcll}
     @{command_def "types"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def "typedecl"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "typedecl"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "arities"} & : & @{text "theory \<rightarrow> theory"} & (axiomatic!) \\
   \end{matharray}
 

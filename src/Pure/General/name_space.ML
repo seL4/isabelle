@@ -47,6 +47,7 @@ sig
   val transform_binding: naming -> binding -> binding
   val full_name: naming -> binding -> string
   val declare: bool -> naming -> binding -> T -> string * T
+  val alias: naming -> binding -> string -> T -> T
   type 'a table = T * 'a Symtab.table
   val define: bool -> naming -> binding * 'a -> 'a table -> string * 'a table
   val empty_table: string -> 'a table
@@ -72,8 +73,7 @@ val is_hidden = String.isPrefix "??.";
 (* datatype entry *)
 
 type entry =
- {externals: xstring list,
-  concealed: bool,
+ {concealed: bool,
   group: serial option,
   theory_name: string,
   pos: Position.T,
@@ -96,7 +96,7 @@ datatype T =
   Name_Space of
    {kind: string,
     internals: (string list * string list) Symtab.table,  (*visible, hidden*)
-    entries: entry Symtab.table};
+    entries: (xstring list * entry) Symtab.table};        (*externals, entry*)
 
 fun make_name_space (kind, internals, entries) =
   Name_Space {kind = kind, internals = internals, entries = entries};
@@ -115,8 +115,7 @@ fun kind_of (Name_Space {kind, ...}) = kind;
 fun the_entry (Name_Space {kind, entries, ...}) name =
   (case Symtab.lookup entries name of
     NONE => error ("Unknown " ^ kind ^ " " ^ quote name)
-  | SOME {concealed, group, theory_name, pos, id, ...} =>
-      {concealed = concealed, group = group, theory_name = theory_name, pos = pos, id = id});
+  | SOME (_, entry) => entry);
 
 fun is_concealed space name = #concealed (the_entry space name);
 
@@ -134,7 +133,7 @@ fun lookup (Name_Space {internals, ...}) xname =
 fun get_accesses (Name_Space {entries, ...}) name =
   (case Symtab.lookup entries name of
     NONE => [name]
-  | SOME {externals, ...} => externals);
+  | SOME (externals, _) => externals);
 
 fun valid_accesses (Name_Space {internals, ...}) name =
   Symtab.fold (fn (xname, (names, _)) =>
@@ -212,7 +211,7 @@ fun merge
         then raise Symtab.SAME
         else (Library.merge (op =) (names1, names2), Library.merge (op =) (names1', names2'))));
     val entries' = (entries1, entries2) |> Symtab.join
-      (fn name => fn (entry1, entry2) =>
+      (fn name => fn ((_, entry1), (_, entry2)) =>
         if #id entry1 = #id entry2 then raise Symtab.SAME
         else err_dup kind' (name, entry1) (name, entry2));
   in make_name_space (kind', internals', entries') end;
@@ -311,13 +310,13 @@ fun accesses naming binding =
 
 (* declaration *)
 
-fun new_entry strict entry =
+fun new_entry strict (name, (externals, entry)) =
   map_name_space (fn (kind, internals, entries) =>
     let
       val entries' =
-        (if strict then Symtab.update_new else Symtab.update) entry entries
+        (if strict then Symtab.update_new else Symtab.update) (name, (externals, entry)) entries
           handle Symtab.DUP dup =>
-            err_dup kind (dup, the (Symtab.lookup entries dup)) entry;
+            err_dup kind (dup, #2 (the (Symtab.lookup entries dup))) (name, entry);
     in (kind, internals, entries') end);
 
 fun declare strict naming binding space =
@@ -330,14 +329,33 @@ fun declare strict naming binding space =
     val _ = name = "" andalso err_bad binding;
 
     val entry =
-     {externals = accs',
-      concealed = concealed,
+     {concealed = concealed,
       group = group,
       theory_name = theory_name,
       pos = Position.default (Binding.pos_of binding),
       id = serial ()};
-    val space' = space |> fold (add_name name) accs |> new_entry strict (name, entry);
+    val space' = space
+      |> fold (add_name name) accs
+      |> new_entry strict (name, (accs', entry));
   in (name, space') end;
+
+
+(* alias *)
+
+fun alias naming binding name space =
+  let
+    val (accs, accs') = accesses naming binding;
+    val space' = space
+      |> fold (add_name name) accs
+      |> map_name_space (fn (kind, internals, entries) =>
+        let
+          val _ = Symtab.defined entries name orelse
+            error ("Undefined " ^ kind ^ " " ^ quote name);
+          val entries' = entries
+            |> Symtab.map_entry name (fn (externals, entry) =>
+              (Library.merge (op =) (externals, accs'), entry))
+        in (kind, internals, entries') end);
+  in space' end;
 
 
 

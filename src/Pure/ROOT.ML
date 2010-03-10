@@ -148,7 +148,6 @@ use "conjunction.ML";
 use "assumption.ML";
 use "display.ML";
 use "goal.ML";
-use "axclass.ML";
 
 
 (* Isar -- Intelligible Semi-Automated Reasoning *)
@@ -209,6 +208,7 @@ use "Isar/obtain.ML";
 use "Isar/local_theory.ML";
 use "Isar/overloading.ML";
 use "Isar/locale.ML";
+use "axclass.ML";
 use "Isar/class_target.ML";
 use "Isar/theory_target.ML";
 use "Isar/expression.ML";

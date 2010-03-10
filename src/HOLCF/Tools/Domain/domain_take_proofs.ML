@@ -16,10 +16,9 @@ sig
       abs_inverse : thm,
       rep_inverse : thm
     }
-
-  val define_take_functions :
-    (binding * iso_info) list -> theory ->
-    { take_consts : term list,
+  type take_info =
+    {
+      take_consts : term list,
       take_defs : thm list,
       chain_take_thms : thm list,
       take_0_thms : thm list,
@@ -27,7 +26,29 @@ sig
       deflation_take_thms : thm list,
       finite_consts : term list,
       finite_defs : thm list
-    } * theory
+    }
+  type take_induct_info =
+    {
+      take_consts         : term list,
+      take_defs           : thm list,
+      chain_take_thms     : thm list,
+      take_0_thms         : thm list,
+      take_Suc_thms       : thm list,
+      deflation_take_thms : thm list,
+      finite_consts       : term list,
+      finite_defs         : thm list,
+      lub_take_thms       : thm list,
+      reach_thms          : thm list,
+      take_lemma_thms     : thm list,
+      is_finite           : bool,
+      take_induct_thms    : thm list
+    }
+  val define_take_functions :
+    (binding * iso_info) list -> theory -> take_info * theory
+
+  val add_lub_take_theorems :
+    (binding * iso_info) list -> take_info -> thm list ->
+    theory -> take_induct_info * theory
 
   val map_of_typ :
     theory -> (typ * term) list -> typ -> term
@@ -50,6 +71,34 @@ type iso_info =
     rep_const : term,
     abs_inverse : thm,
     rep_inverse : thm
+  };
+
+type take_info =
+  { take_consts : term list,
+    take_defs : thm list,
+    chain_take_thms : thm list,
+    take_0_thms : thm list,
+    take_Suc_thms : thm list,
+    deflation_take_thms : thm list,
+    finite_consts : term list,
+    finite_defs : thm list
+  };
+
+type take_induct_info =
+  {
+    take_consts         : term list,
+    take_defs           : thm list,
+    chain_take_thms     : thm list,
+    take_0_thms         : thm list,
+    take_Suc_thms       : thm list,
+    deflation_take_thms : thm list,
+    finite_consts       : term list,
+    finite_defs         : thm list,
+    lub_take_thms       : thm list,
+    reach_thms          : thm list,
+    take_lemma_thms     : thm list,
+    is_finite           : bool,
+    take_induct_thms    : thm list
   };
 
 val beta_ss =
@@ -168,6 +217,13 @@ fun define_const
     ((const, def_thm), thy)
   end;
 
+fun add_qualified_def name (path, eqn) thy =
+    thy
+    |> Sign.add_path path
+    |> yield_singleton (PureThy.add_defs false)
+        (Thm.no_attributes (Binding.name name, eqn))
+    ||> Sign.parent_path;
+
 fun add_qualified_thm name (path, thm) thy =
     thy
     |> Sign.add_path path
@@ -239,12 +295,8 @@ fun define_take_functions
           Sign.declare_const ((take_bind, take_type), NoSyn) thy;
         val take_eqn = Logic.mk_equals (take_const, take_rhs);
         val (take_def_thm, thy) =
-          thy
-          |> Sign.add_path (Binding.name_of tbind)
-          |> yield_singleton
-              (PureThy.add_defs false o map Thm.no_attributes)
-              (Binding.name "take_def", take_eqn)
-          ||> Sign.parent_path;
+            add_qualified_def "take_def"
+             (Binding.name_of tbind, take_eqn) thy;
       in ((take_const, take_def_thm), thy) end;
     val ((take_consts, take_defs), thy) = thy
       |> fold_map define_take_const (dom_binds ~~ take_rhss ~~ dom_eqns)
@@ -388,12 +440,8 @@ fun define_take_functions
             (lambda n (mk_eq (mk_capply (take_const $ n, x), x))));
         val finite_eqn = Logic.mk_equals (finite_const, finite_rhs);
         val (finite_def_thm, thy) =
-          thy
-          |> Sign.add_path (Binding.name_of tbind)
-          |> yield_singleton
-              (PureThy.add_defs false o map Thm.no_attributes)
-              (Binding.name "finite_def", finite_eqn)
-          ||> Sign.parent_path;
+            add_qualified_def "finite_def"
+             (Binding.name_of tbind, finite_eqn) thy;
       in ((finite_const, finite_def_thm), thy) end;
     val ((finite_consts, finite_defs), thy) = thy
       |> fold_map define_finite_const (dom_binds ~~ take_consts ~~ dom_eqns)
@@ -411,6 +459,176 @@ fun define_take_functions
         finite_defs = finite_defs
       };
 
+  in
+    (result, thy)
+  end;
+
+fun prove_finite_take_induct
+    (spec : (binding * iso_info) list)
+    (take_info : take_info)
+    (lub_take_thms : thm list)
+    (thy : theory) =
+  let
+    val dom_binds = map fst spec;
+    val iso_infos = map snd spec;
+    val absTs = map #absT iso_infos;
+    val dnames = map Binding.name_of dom_binds;
+    val {take_consts, ...} = take_info;
+    val {chain_take_thms, take_0_thms, take_Suc_thms, ...} = take_info;
+    val {finite_consts, finite_defs, ...} = take_info;
+
+    val decisive_lemma =
+      let
+        fun iso_locale info =
+            @{thm iso.intro} OF [#abs_inverse info, #rep_inverse info];
+        val iso_locale_thms = map iso_locale iso_infos;
+        val decisive_abs_rep_thms =
+            map (fn x => @{thm decisive_abs_rep} OF [x]) iso_locale_thms;
+        val n = Free ("n", @{typ nat});
+        fun mk_decisive t =
+            Const (@{const_name decisive}, fastype_of t --> boolT) $ t;
+        fun f take_const = mk_decisive (take_const $ n);
+        val goal = mk_trp (foldr1 mk_conj (map f take_consts));
+        val rules0 = @{thm decisive_bottom} :: take_0_thms;
+        val rules1 =
+            take_Suc_thms @ decisive_abs_rep_thms
+            @ @{thms decisive_ID decisive_ssum_map decisive_sprod_map};
+        val tac = EVERY [
+            rtac @{thm nat.induct} 1,
+            simp_tac (HOL_ss addsimps rules0) 1,
+            asm_simp_tac (HOL_ss addsimps rules1) 1];
+      in Goal.prove_global thy [] [] goal (K tac) end;
+    fun conjuncts 1 thm = [thm]
+      | conjuncts n thm = let
+          val thmL = thm RS @{thm conjunct1};
+          val thmR = thm RS @{thm conjunct2};
+        in thmL :: conjuncts (n-1) thmR end;
+    val decisive_thms = conjuncts (length spec) decisive_lemma;
+
+    fun prove_finite_thm (absT, finite_const) =
+      let
+        val goal = mk_trp (finite_const $ Free ("x", absT));
+        val tac =
+            EVERY [
+            rewrite_goals_tac finite_defs,
+            rtac @{thm lub_ID_finite} 1,
+            resolve_tac chain_take_thms 1,
+            resolve_tac lub_take_thms 1,
+            resolve_tac decisive_thms 1];
+      in
+        Goal.prove_global thy [] [] goal (K tac)
+      end;
+    val finite_thms =
+        map prove_finite_thm (absTs ~~ finite_consts);
+
+    fun prove_take_induct ((ch_take, lub_take), decisive) =
+        Drule.export_without_context
+          (@{thm lub_ID_finite_take_induct} OF [ch_take, lub_take, decisive]);
+    val take_induct_thms =
+        map prove_take_induct
+          (chain_take_thms ~~ lub_take_thms ~~ decisive_thms);
+
+    val thy = thy
+        |> fold (snd oo add_qualified_thm "finite")
+            (dnames ~~ finite_thms)
+        |> fold (snd oo add_qualified_thm "take_induct")
+            (dnames ~~ take_induct_thms);
+  in
+    ((finite_thms, take_induct_thms), thy)
+  end;
+
+fun add_lub_take_theorems
+    (spec : (binding * iso_info) list)
+    (take_info : take_info)
+    (lub_take_thms : thm list)
+    (thy : theory) =
+  let
+
+    (* retrieve components of spec *)
+    val dom_binds = map fst spec;
+    val iso_infos = map snd spec;
+    val absTs = map #absT iso_infos;
+    val repTs = map #repT iso_infos;
+    val dnames = map Binding.name_of dom_binds;
+    val {take_consts, take_0_thms, take_Suc_thms, ...} = take_info;
+    val {chain_take_thms, deflation_take_thms, ...} = take_info;
+
+    (* prove take lemmas *)
+    fun prove_take_lemma ((chain_take, lub_take), dname) thy =
+      let
+        val take_lemma =
+            Drule.export_without_context
+              (@{thm lub_ID_take_lemma} OF [chain_take, lub_take]);
+      in
+        add_qualified_thm "take_lemma" (dname, take_lemma) thy
+      end;
+    val (take_lemma_thms, thy) =
+      fold_map prove_take_lemma
+        (chain_take_thms ~~ lub_take_thms ~~ dnames) thy;
+
+    (* prove reach lemmas *)
+    fun prove_reach_lemma ((chain_take, lub_take), dname) thy =
+      let
+        val thm =
+            Drule.export_without_context
+              (@{thm lub_ID_reach} OF [chain_take, lub_take]);
+      in
+        add_qualified_thm "reach" (dname, thm) thy
+      end;
+    val (reach_thms, thy) =
+      fold_map prove_reach_lemma
+        (chain_take_thms ~~ lub_take_thms ~~ dnames) thy;
+
+    (* test for finiteness of domain definitions *)
+    local
+      val types = [@{type_name ssum}, @{type_name sprod}];
+      fun finite d T = if T mem absTs then d else finite' d T
+      and finite' d (Type (c, Ts)) =
+          let val d' = d andalso c mem types;
+          in forall (finite d') Ts end
+        | finite' d _ = true;
+    in
+      val is_finite = forall (finite true) repTs;
+    end;
+
+    val ((finite_thms, take_induct_thms), thy) =
+      if is_finite
+      then
+        let
+          val ((finites, take_inducts), thy) =
+              prove_finite_take_induct spec take_info lub_take_thms thy;
+        in
+          ((SOME finites, take_inducts), thy)
+        end
+      else
+        let
+          fun prove_take_induct (chain_take, lub_take) =
+              Drule.export_without_context
+                (@{thm lub_ID_take_induct} OF [chain_take, lub_take]);
+          val take_inducts =
+              map prove_take_induct (chain_take_thms ~~ lub_take_thms);
+          val thy = fold (snd oo add_qualified_thm "take_induct")
+                         (dnames ~~ take_inducts) thy;
+        in
+          ((NONE, take_inducts), thy)
+        end;
+
+    val result =
+      {
+        take_consts         = #take_consts take_info,
+        take_defs           = #take_defs take_info,
+        chain_take_thms     = #chain_take_thms take_info,
+        take_0_thms         = #take_0_thms take_info,
+        take_Suc_thms       = #take_Suc_thms take_info,
+        deflation_take_thms = #deflation_take_thms take_info,
+        finite_consts       = #finite_consts take_info,
+        finite_defs         = #finite_defs take_info,
+        lub_take_thms       = lub_take_thms,
+        reach_thms          = reach_thms,
+        take_lemma_thms     = take_lemma_thms,
+        is_finite           = is_finite,
+        take_induct_thms    = take_induct_thms
+      };
   in
     (result, thy)
   end;

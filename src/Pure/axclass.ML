@@ -280,7 +280,7 @@ fun cert_classrel thy raw_rel =
   in (c1, c2) end;
 
 fun read_classrel thy raw_rel =
-  cert_classrel thy (pairself (Sign.read_class thy) raw_rel)
+  cert_classrel thy (pairself (ProofContext.read_class (ProofContext.init thy)) raw_rel)
     handle TYPE (msg, _, _) => error msg;
 
 
@@ -387,7 +387,7 @@ fun prove_classrel raw_rel tac thy =
 fun prove_arity raw_arity tac thy =
   let
     val ctxt = ProofContext.init thy;
-    val arity = Sign.cert_arity thy raw_arity;
+    val arity = ProofContext.cert_arity ctxt raw_arity;
     val names = map (prefix arity_prefix) (Logic.name_arities arity);
     val props = Logic.mk_arities arity;
     val ths = Goal.prove_multi ctxt [] [] props
@@ -530,7 +530,7 @@ fun ax_classrel prep =
     (map (prefix classrel_prefix o Logic.name_classrel)) add_classrel;
 
 fun ax_arity prep =
-  axiomatize prep Logic.mk_arities
+  axiomatize (prep o ProofContext.init) Logic.mk_arities
     (map (prefix arity_prefix) o Logic.name_arities) add_arity;
 
 fun class_const c =
@@ -550,11 +550,11 @@ fun ax_class prep_class prep_classrel (bclass, raw_super) thy =
 in
 
 val axiomatize_class = ax_class Sign.certify_class cert_classrel;
-val axiomatize_class_cmd = ax_class Sign.read_class read_classrel;
+val axiomatize_class_cmd = ax_class (ProofContext.read_class o ProofContext.init) read_classrel;
 val axiomatize_classrel = ax_classrel cert_classrel;
 val axiomatize_classrel_cmd = ax_classrel read_classrel;
-val axiomatize_arity = ax_arity Sign.cert_arity;
-val axiomatize_arity_cmd = ax_arity Sign.read_arity;
+val axiomatize_arity = ax_arity ProofContext.cert_arity;
+val axiomatize_arity_cmd = ax_arity ProofContext.read_arity;
 
 end;
 

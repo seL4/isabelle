@@ -400,7 +400,7 @@ code_const nat
   (SML "IntInf.max/ (/0,/ _)")
   (OCaml "Big'_int.max'_big'_int/ Big'_int.zero'_big'_int")
 
-text {* For Haskell ans Scala, things are slightly different again. *}
+text {* For Haskell and Scala, things are slightly different again. *}
 
 code_const int and nat
   (Haskell "toInteger" and "fromInteger")

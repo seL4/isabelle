@@ -107,7 +107,7 @@ lemma "(x::triv) = \<bottom>" by (induct x, simp_all)
 
 subsection {* Generated constants and theorems *}
 
-domain 'a tree = Leaf (lazy 'a) | Node (left :: "'a tree") (lazy right :: "'a tree")
+domain 'a tree = Leaf (lazy 'a) | Node (left :: "'a tree") (right :: "'a tree")
 
 lemmas tree_abs_defined_iff =
   iso.abs_defined_iff [OF iso.intro [OF tree.abs_iso tree.rep_iso]]
@@ -174,7 +174,7 @@ thm tree.finite_ind
 text {* Rules about finiteness predicate *}
 term tree_finite
 thm tree.finite_def
-thm tree.finites
+thm tree.finite (* only generated for flat datatypes *)
 
 text {* Rules about bisimulation predicate *}
 term tree_bisim
@@ -195,14 +195,6 @@ domain xx = xx ("x y")
 domain 'a foo = foo (sel::"'a") ("a b")
   -- {* Inner syntax error at "= UU" *}
 *)
-
-text {*
-  I don't know what is going on here.  The failed proof has to do with
-  the finiteness predicate.
-*}
-
-domain foo = Foo (lazy "bar") and bar = Bar
-  -- "Cannot prove induction rule"
 
 text {* Declaring class constraints on the LHS is currently broken. *}
 (*

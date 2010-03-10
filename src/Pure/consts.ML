@@ -19,6 +19,7 @@ sig
   val is_monomorphic: T -> string -> bool                      (*exception TYPE*)
   val the_constraint: T -> string -> typ                       (*exception TYPE*)
   val space_of: T -> Name_Space.T
+  val alias: Name_Space.naming -> binding -> string -> T -> T
   val is_concealed: T -> string -> bool
   val intern: T -> xstring -> string
   val extern: T -> string -> xstring
@@ -121,6 +122,9 @@ fun the_constraint (consts as Consts {constraints, ...}) c =
 (* name space and syntax *)
 
 fun space_of (Consts {decls = (space, _), ...}) = space;
+
+fun alias naming binding name = map_consts (fn ((space, decls), constraints, rev_abbrevs) =>
+  ((Name_Space.alias naming binding name space, decls), constraints, rev_abbrevs));
 
 val is_concealed = Name_Space.is_concealed o space_of;
 
