@@ -47,7 +47,6 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   HOLCF.thy \
   Lift.thy \
   LowerPD.thy \
-  NatIso.thy \
   One.thy \
   Pcpodef.thy \
   Pcpo.thy \
