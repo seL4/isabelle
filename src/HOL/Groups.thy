@@ -67,6 +67,18 @@ qed
 
 end
 
+locale monoid = semigroup +
+  fixes g :: 'a ("0")
+  assumes left_neutral [simp]: "0 * a = a"
+  assumes right_neutral [simp]: "a * 0 = a"
+
+locale comm_monoid = abel_semigroup +
+  fixes g :: 'a ("0")
+  assumes comm_neutral: "a * 0 = a"
+
+sublocale comm_monoid < monoid proof
+qed (simp_all add: commute comm_neutral)
+
 
 subsection {* Generic operations *}
 
@@ -173,36 +185,42 @@ end
 theorems mult_ac = mult_assoc mult_commute mult_left_commute
 
 class monoid_add = zero + semigroup_add +
-  assumes add_0_left [simp]: "0 + a = a"
-    and add_0_right [simp]: "a + 0 = a"
+  assumes add_0_left: "0 + a = a"
+    and add_0_right: "a + 0 = a"
+
+sublocale monoid_add < zero!: monoid plus 0 proof
+qed (fact add_0_left add_0_right)+
 
 lemma zero_reorient: "0 = x \<longleftrightarrow> x = 0"
 by (rule eq_commute)
 
 class comm_monoid_add = zero + ab_semigroup_add +
   assumes add_0: "0 + a = a"
-begin
 
-subclass monoid_add
-  proof qed (insert add_0, simp_all add: add_commute)
+sublocale comm_monoid_add < zero!: comm_monoid plus 0 proof
+qed (insert add_0, simp add: ac_simps)
 
-end
+subclass (in comm_monoid_add) monoid_add proof
+qed (fact zero.left_neutral zero.right_neutral)+
 
 class monoid_mult = one + semigroup_mult +
-  assumes mult_1_left [simp]: "1 * a  = a"
-  assumes mult_1_right [simp]: "a * 1 = a"
+  assumes mult_1_left: "1 * a  = a"
+    and mult_1_right: "a * 1 = a"
+
+sublocale monoid_mult < one!: monoid times 1 proof
+qed (fact mult_1_left mult_1_right)+
 
 lemma one_reorient: "1 = x \<longleftrightarrow> x = 1"
 by (rule eq_commute)
 
 class comm_monoid_mult = one + ab_semigroup_mult +
   assumes mult_1: "1 * a = a"
-begin
 
-subclass monoid_mult
-  proof qed (insert mult_1, simp_all add: mult_commute)
+sublocale comm_monoid_mult < one!: comm_monoid times 1 proof
+qed (insert mult_1, simp add: ac_simps)
 
-end
+subclass (in comm_monoid_mult) monoid_mult proof
+qed (fact one.left_neutral one.right_neutral)+
 
 class cancel_semigroup_add = semigroup_add +
   assumes add_left_imp_eq: "a + b = a + c \<Longrightarrow> b = c"
