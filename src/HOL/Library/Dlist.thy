@@ -123,8 +123,6 @@ lemma list_of_dlist_filter [simp, code abstract]:
   "list_of_dlist (filter P dxs) = List.filter P (list_of_dlist dxs)"
   by (simp add: filter_def)
 
-declare null_def [code] member_def [code] length_def [code] fold_def [code] -- {* explicit is better than implicit *}
-
 
 section {* Implementation of sets by distinct lists -- canonical! *}
 
