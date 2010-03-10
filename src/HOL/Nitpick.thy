@@ -96,10 +96,10 @@ definition wfrec' ::  "('a \<times> 'a \<Rightarrow> bool) \<Rightarrow> (('a \<
                 else THE y. wfrec_rel R (%f x. F (Recdef.cut f R x) x) x y"
 
 definition card' :: "('a \<Rightarrow> bool) \<Rightarrow> nat" where
-"card' X \<equiv> length (SOME xs. set xs = X \<and> distinct xs)"
+"card' A \<equiv> if finite A then length (safe_Eps (\<lambda>xs. set xs = A \<and> distinct xs)) else 0"
 
 definition setsum' :: "('a \<Rightarrow> 'b\<Colon>comm_monoid_add) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'b" where
-"setsum' f A \<equiv> if finite A then listsum (map f (SOME xs. set xs = A \<and> distinct xs)) else 0"
+"setsum' f A \<equiv> if finite A then listsum (map f (safe_Eps (\<lambda>xs. set xs = A \<and> distinct xs))) else 0"
 
 inductive fold_graph' :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'b \<Rightarrow> bool" where
 "fold_graph' f z {} z" |

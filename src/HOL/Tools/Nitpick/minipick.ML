@@ -336,7 +336,8 @@ fun solve_any_kodkod_problem thy problems =
     val max_solutions = 1
   in
     case solve_any_problem overlord NONE max_threads max_solutions problems of
-      NotInstalled => "unknown"
+      JavaNotInstalled => "unknown"
+    | KodkodiNotInstalled => "unknown"
     | Normal ([], _, _) => "none"
     | Normal _ => "genuine"
     | TimedOut _ => "unknown"

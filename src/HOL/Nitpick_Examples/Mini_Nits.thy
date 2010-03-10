@@ -24,8 +24,6 @@ fun genuine n t = (minipick n t = "genuine" orelse raise FAIL)
 fun unknown n t = (minipick n t = "unknown" orelse raise FAIL)
 *}
 
-ML {* minipick 1 @{prop "\<forall>x\<Colon>'a. \<exists>y\<Colon>'b. f x = y"} *}
-
 ML {* genuine 1 @{prop "x = Not"} *}
 ML {* none 1 @{prop "\<exists>x. x = Not"} *}
 ML {* none 1 @{prop "\<not> False"} *}
