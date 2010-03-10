@@ -280,9 +280,9 @@ specification (CardSecret PANSecret)
   inj_PANSecret:   "inj PANSecret"
   CardSecret_neq_PANSecret: "CardSecret k \<noteq> PANSecret k'"
     --{*No CardSecret equals any PANSecret*}
-  apply (rule_tac x="curry nat2_to_nat 0" in exI)
-  apply (rule_tac x="curry nat2_to_nat 1" in exI)
-  apply (simp add: nat2_to_nat_inj [THEN inj_eq] inj_on_def)
+  apply (rule_tac x="curry prod_encode 0" in exI)
+  apply (rule_tac x="curry prod_encode 1" in exI)
+  apply (simp add: prod_encode_eq inj_on_def)
   done
 
 declare Says_imp_knows_Spy [THEN parts.Inj, dest]
