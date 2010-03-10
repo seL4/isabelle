@@ -1653,6 +1653,7 @@ fun kodkod_formula_from_nut ofs
                        else
                          kk_comprehension [KK.DeclOne ((1, ~1), to_r discr_u)]
                              (kk_rel_eq (kk_join (KK.Var (1, ~1)) sel_r) arg_r)
+                         |> is_opt_rep (rep_of arg_u) ? to_guard [arg_u] R1
                      end) sel_us arg_us
         in fold1 kk_intersect set_rs end
       | BoundRel (x, _, _, _) => KK.Var x
@@ -1723,10 +1724,8 @@ fun kodkod_formula_from_nut ofs
           map2 (kk_not oo kk_n_ary_function kk)
                (map (unopt_rep o rep_of) func_guard_us) func_guard_rs
       in
-        if null guard_fs then
-          r
-        else
-          kk_rel_if (fold1 kk_or guard_fs) (empty_rel_for_rep R) r
+        if null guard_fs then r
+        else kk_rel_if (fold1 kk_or guard_fs) (empty_rel_for_rep R) r
       end
     (* rep -> rep -> KK.rel_expr -> int -> KK.rel_expr *)
     and to_project new_R old_R r j0 =

@@ -206,4 +206,39 @@ nitpick [unary_ints, expect = none]
 nitpick [binary_ints, expect = none]
 sorry
 
+datatype tree = Null | Node nat tree tree
+
+primrec labels where
+"labels Null = {}" |
+"labels (Node x t u) = {x} \<union> labels t \<union> labels u"
+
+lemma "labels (Node x t u) \<noteq> labels (Node y v w)"
+nitpick [expect = genuine]
+nitpick [dont_finitize, expect = potential]
+oops
+
+lemma "labels (Node x t u) \<noteq> {}"
+nitpick [expect = none]
+oops
+
+lemma "card (labels t) > 0"
+nitpick [expect = genuine]
+nitpick [dont_finitize, expect = potential]
+oops
+
+lemma "(\<Sum>n \<in> labels t. n + 2) \<ge> 2"
+nitpick [expect = genuine]
+nitpick [dont_finitize, expect = potential]
+oops
+
+lemma "t \<noteq> Null \<Longrightarrow> (\<Sum>n \<in> labels t. n + 2) \<ge> 2"
+nitpick [expect = none]
+nitpick [dont_finitize, expect = none]
+sorry
+
+lemma "(\<Sum>i \<in> labels (Node x t u). f i\<Colon>nat) = f x + (\<Sum>i \<in> labels t. f i) + (\<Sum>i \<in> labels u. f i)"
+nitpick [expect = genuine]
+nitpick [dont_finitize, expect = none]
+oops
+
 end

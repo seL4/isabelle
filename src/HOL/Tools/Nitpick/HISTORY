@@ -11,6 +11,7 @@ Version 2010
   * Improved efficiency of "destroy_constrs" optimization
   * Fixed soundness bugs related to "destroy_constrs" optimization and record
     getters
+  * Fixed soundness bug related to higher-order constructors
   * Renamed "MiniSatJNI", "zChaffJNI", "BerkMinAlloy", and "SAT4JLight" to
  	"MiniSat_JNI", "zChaff_JNI", "BerkMin_Alloy", and "SAT4J_Light"
 
