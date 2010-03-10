@@ -100,34 +100,42 @@ fun get_by_prop context t =
 
 (* applying transfer data *)
 
-fun transfer_thm inj_only ((a0, D0), (inj, embed, return, cong)) leave ctxt0 th =
+fun transfer_thm ((raw_a, raw_D), (inj, embed, return, cong)) leave ctxt1 thm =
   let
-    val ([a, D], ctxt) = apfst (map Drule.dest_term o snd)
-      (Variable.import true (map Drule.mk_term [a0, D0]) ctxt0);
-    val (aT, bT) =
-      let val T = typ_of (ctyp_of_term a)
-      in (Term.range_type T, Term.domain_type T) end;
-    val ctxt' = (Variable.declare_term (term_of a) o Variable.declare_term (term_of D)
-      o Variable.declare_thm th) ctxt;
-    val ns = filter (fn i => Type.could_unify (snd i, aT) andalso
-      not (member (op =) leave (fst (fst i)))) (Term.add_vars (prop_of th) []);
-    val (ins, ctxt'') = Variable.variant_fixes (map (fst o fst) ns) ctxt';
-    val certify = Thm.cterm_of (ProofContext.theory_of ctxt'');
-    val cns = map (certify o Var) ns;
-    val cfis = map (certify o (fn n => Free (n, bT))) ins;
-    val cis = map (Thm.capply a) cfis;
-    val (hs, ctxt''') = Assumption.add_assumes (map (fn ct =>
-      Thm.capply @{cterm "Trueprop"} (Thm.capply D ct)) cfis) ctxt'';
-    val th1 = Drule.cterm_instantiate (cns ~~ cis) th;
-    val th2 = fold Thm.elim_implies hs (fold_rev implies_intr (map cprop_of hs) th1);
-    val simpset = Simplifier.context ctxt''' HOL_ss
-      addsimps inj addsimps (if inj_only then [] else embed @ return) addcongs cong;
-    val th3 = Simplifier.asm_full_simplify simpset
-      (fold_rev implies_intr (map cprop_of hs) th2);
-  in hd (Variable.export ctxt''' ctxt0 [th3]) end;
+    (* identify morphism function *)
+    val ([a, D], ctxt2) = ctxt1
+      |> Variable.import true (map Drule.mk_term [raw_a, raw_D])
+      |>> map Drule.dest_term o snd;
+    val transform = Thm.capply @{cterm "Trueprop"} o Thm.capply D;
+    val T = Thm.typ_of (Thm.ctyp_of_term a);
+    val (aT, bT) = (Term.range_type T, Term.domain_type T);
+    
+    (* determine variables to transfer *)
+    val ctxt3 = ctxt2
+      |> Variable.declare_thm thm
+      |> Variable.declare_term (term_of a)
+      |> Variable.declare_term (term_of D);
+    val certify = Thm.cterm_of (ProofContext.theory_of ctxt3);
+    val vars = filter (fn ((v, _), T) => Type.could_unify (T, aT) andalso
+      not (member (op =) leave v)) (Term.add_vars (Thm.prop_of thm) []);
+    val c_vars = map (certify o Var) vars;
+    val (vs', ctxt4) = Variable.variant_fixes (map (fst o fst) vars) ctxt3;
+    val c_vars' = map (certify o (fn v => Free (v, bT))) vs';
+    val c_exprs' = map (Thm.capply a) c_vars';
 
-fun transfer_thm_multiple inj_only insts leave ctxt thm =
-  map (fn inst => transfer_thm false inst leave ctxt thm) insts;
+    (* transfer *)
+    val (hyps, ctxt5) = ctxt4
+      |> Assumption.add_assumes (map transform c_vars');
+    val simpset = Simplifier.context ctxt5 HOL_ss
+      addsimps (inj @ embed @ return) addcongs cong;
+    val thm' = thm
+      |> Drule.cterm_instantiate (c_vars ~~ c_exprs')
+      |> fold_rev Thm.implies_intr (map cprop_of hyps)
+      |> Simplifier.asm_full_simplify simpset
+  in singleton (Variable.export ctxt5 ctxt1) thm' end;
+
+fun transfer_thm_multiple insts leave ctxt thm =
+  map (fn inst => transfer_thm inst leave ctxt thm) insts;
 
 datatype selection = Direction of term * term | Hints of string list | Prop;
 
@@ -136,7 +144,7 @@ fun insts_for context thm (Direction direction) = [get_by_direction context dire
   | insts_for context thm Prop = get_by_prop context (Thm.prop_of thm);
 
 fun transfer context selection leave thm =
-  transfer_thm_multiple false (insts_for context thm selection) leave (Context.proof_of context) thm;
+  transfer_thm_multiple (insts_for context thm selection) leave (Context.proof_of context) thm;
 
 
 (* maintaining transfer data *)
@@ -147,7 +155,7 @@ fun extend_entry ctxt (a, D) guess
   let
     fun add_del eq del add = union eq add #> subtract eq del;
     val guessed = if guess
-      then map (fn thm => transfer_thm true
+      then map (fn thm => transfer_thm
         ((a, D), (if null inj1 then inj2 else inj1, [], [], cong1)) [] ctxt thm RS sym) embed1
       else [];
   in
@@ -190,6 +198,7 @@ fun keyword_colon k = Scan.lift (Args.$$$ k -- Args.colon) >> K ();
 
 val addN = "add";
 val delN = "del";
+val keyN = "key";
 val modeN = "mode";
 val automaticN = "automatic";
 val manualN = "manual";
@@ -202,8 +211,8 @@ val labelsN = "labels";
 val leavingN = "leaving";
 val directionN = "direction";
 
-val any_keyword = keyword_colon addN || keyword_colon delN || keyword_colon modeN
-  || keyword_colon injN || keyword_colon embedN || keyword_colon returnN
+val any_keyword = keyword_colon addN || keyword_colon delN || keyword_colon keyN
+  || keyword_colon modeN || keyword_colon injN || keyword_colon embedN || keyword_colon returnN
   || keyword_colon congN || keyword_colon labelsN
   || keyword_colon leavingN || keyword_colon directionN;
 
@@ -222,18 +231,22 @@ val entry_pair = these_pair inj -- these_pair embed
   -- these_pair return -- these_pair cong -- these_pair labels
   >> (fn (((((inja, injd), (embeda, embedd)), (returna, returnd)), (conga, congd)),
        (hintsa, hintsd)) =>
-      ({inj = inja, embed = embeda, return = returna, cong = conga, hints = hintsa},
-        {inj = injd, embed = embedd, return = returnd, cong = congd, hints = hintsd}));
+      ({ inj = inja, embed = embeda, return = returna, cong = conga, hints = hintsa },
+        { inj = injd, embed = embedd, return = returnd, cong = congd, hints = hintsd }));
 
 val selection = (keyword_colon directionN |-- (Args.term -- Args.term) >> Direction)
   || these names >> (fn hints => if null hints then Prop else Hints hints);
 
 in
 
-val transfer_attribute = Scan.lift (Args.$$$ delN >> K (Thm.declaration_attribute drop))
-  || Scan.unless any_keyword (keyword addN) |-- Scan.optional mode true -- entry_pair
+val transfer_attribute = keyword delN >> K (Thm.declaration_attribute drop)
+  || keyword addN |-- Scan.optional mode true -- entry_pair
     >> (fn (guess, (entry_add, entry_del)) => Thm.declaration_attribute
-      (fn thm => add thm guess entry_add #> del thm entry_del));
+      (fn thm => add thm guess entry_add #> del thm entry_del))
+  || keyword_colon keyN |-- Attrib.thm
+    >> (fn key => Thm.declaration_attribute
+      (fn thm => add key false
+        { inj = [], embed = [], return = [thm], cong = [], hints = [] }));
 
 val transferred_attribute = selection -- these (keyword_colon leavingN |-- names)
   >> (fn (selection, leave) => Thm.rule_attribute (fn context =>
