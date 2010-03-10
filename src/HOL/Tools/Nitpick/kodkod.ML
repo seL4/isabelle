@@ -157,7 +157,8 @@ sig
   type raw_bound = n_ary_index * int list list
 
   datatype outcome =
-    NotInstalled |
+    JavaNotInstalled |
+    KodkodiNotInstalled |
     Normal of (int * raw_bound list) list * int list * string |
     TimedOut of int list |
     Interrupted of int list option |
@@ -303,7 +304,8 @@ type problem = {
 type raw_bound = n_ary_index * int list list
 
 datatype outcome =
-  NotInstalled |
+  JavaNotInstalled |
+  KodkodiNotInstalled |
   Normal of (int * raw_bound list) list * int list * string |
   TimedOut of int list |
   Interrupted of int list option |
@@ -1095,9 +1097,13 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
                 else if code = 0 then
                   Normal ([], js, first_error)
                 else if first_error |> Substring.full
+                        |> Substring.position "exec: java" |> snd
+                        |> Substring.isEmpty |> not then
+                  JavaNotInstalled
+                else if first_error |> Substring.full
                         |> Substring.position "NoClassDefFoundError" |> snd
                         |> Substring.isEmpty |> not then
-                  NotInstalled
+                  KodkodiNotInstalled
                 else if first_error <> "" then
                   Error (first_error, js)
                 else if io_error then

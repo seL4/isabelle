@@ -149,6 +149,9 @@ fun pretties_for_formulas _ _ [] = []
                (length ts downto 1) ts))]
 
 (* unit -> string *)
+fun install_java_message () =
+  "Nitpick requires a Java 1.5 virtual machine called \"java\"."
+(* unit -> string *)
 fun install_kodkodi_message () =
   "Nitpick requires the external Java program Kodkodi. To install it, download \
   \the package from Isabelle's web page and add the \"kodkodi-x.y.z\" \
@@ -726,7 +729,10 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         else
           case KK.solve_any_problem overlord deadline max_threads max_solutions
                                     (map fst problems) of
-            KK.NotInstalled =>
+            KK.JavaNotInstalled =>
+            (print_m install_java_message;
+             (found_really_genuine, max_potential, max_genuine, donno + 1))
+          | KK.KodkodiNotInstalled =>
             (print_m install_kodkodi_message;
              (found_really_genuine, max_potential, max_genuine, donno + 1))
           | KK.Normal ([], unsat_js, s) =>
@@ -911,8 +917,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       in
         "Nitpick " ^ did_so_and_so ^
         (if is_some (!checked_problems) andalso total > 0 then
-           " after checking " ^
-           string_of_int (Int.min (total - 1, unsat)) ^ " of " ^
+           " " ^ string_of_int (Int.min (total - 1, unsat)) ^ " of " ^
            string_of_int total ^ " scope" ^ plural_s total
          else
            "") ^ "."
@@ -922,7 +927,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     fun run_batches _ _ []
                     (found_really_genuine, max_potential, max_genuine, donno) =
         if donno > 0 andalso max_genuine > 0 then
-          (print_m (fn () => excipit "ran out of some resource"); "unknown")
+          (print_m (fn () => excipit "checked"); "unknown")
         else if max_genuine = original_max_genuine then
           if max_potential = original_max_potential then
             (print_m (fn () =>
@@ -966,10 +971,11 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                    (false, max_potential, max_genuine, 0)
        handle Exn.Interrupt => do_interrupted ())
       handle TimeLimit.TimeOut =>
-             (print_m (fn () => excipit "ran out of time");
+             (print_m (fn () => excipit "ran out of time after checking");
               if !met_potential > 0 then "potential" else "unknown")
-           | Exn.Interrupt => if auto orelse debug then raise Interrupt
-                              else error (excipit "was interrupted")
+           | Exn.Interrupt =>
+             if auto orelse debug then raise Interrupt
+             else error (excipit "was interrupted after checking")
     val _ = print_v (fn () => "Total time: " ^
                               signed_string_of_int (Time.toMilliseconds
                                     (Timer.checkRealTimer timer)) ^ " ms.")
