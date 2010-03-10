@@ -41,7 +41,7 @@ Notes A {|Agent B, Nonce PMS|}.
 
 header{*The TLS Protocol: Transport Layer Security*}
 
-theory TLS imports Public Nat_Int_Bij begin
+theory TLS imports Public Nat_Bijection begin
 
 definition certificate :: "[agent,key] => msg" where
     "certificate A KA == Crypt (priSK Server) {|Agent A, Key KA|}"
@@ -74,19 +74,17 @@ abbreviation
 specification (PRF)
   inj_PRF: "inj PRF"
   --{*the pseudo-random function is collision-free*}
-   apply (rule exI [of _ "%(x,y,z). nat2_to_nat(x, nat2_to_nat(y,z))"])
-   apply (simp add: inj_on_def) 
-   apply (blast dest!: nat2_to_nat_inj [THEN injD]) 
+   apply (rule exI [of _ "%(x,y,z). prod_encode(x, prod_encode(y,z))"])
+   apply (simp add: inj_on_def prod_encode_eq)
    done
 
 specification (sessionK)
   inj_sessionK: "inj sessionK"
   --{*sessionK is collision-free; also, no clientK clashes with any serverK.*}
    apply (rule exI [of _ 
-         "%((x,y,z), r). nat2_to_nat(role_case 0 1 r, 
-                           nat2_to_nat(x, nat2_to_nat(y,z)))"])
-   apply (simp add: inj_on_def split: role.split) 
-   apply (blast dest!: nat2_to_nat_inj [THEN injD]) 
+         "%((x,y,z), r). prod_encode(role_case 0 1 r, 
+                           prod_encode(x, prod_encode(y,z)))"])
+   apply (simp add: inj_on_def prod_encode_eq split: role.split) 
    done
 
 axioms
