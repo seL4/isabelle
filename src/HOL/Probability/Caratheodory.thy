@@ -816,9 +816,9 @@ proof (auto simp add: countably_subadditive_def o_def, rule field_le_epsilon)
           by (simp add: eqe) 
         finally show ?thesis using  Series.summable_le2 [OF 1 2] by auto
       qed
-    def C \<equiv> "(split BB) o nat_to_nat2"
+    def C \<equiv> "(split BB) o prod_decode"
     have C: "!!n. C n \<in> sets M"
-      apply (rule_tac p="nat_to_nat2 n" in PairE)
+      apply (rule_tac p="prod_decode n" in PairE)
       apply (simp add: C_def)
       apply (metis BB subsetD rangeI)  
       done
@@ -828,11 +828,10 @@ proof (auto simp add: countably_subadditive_def o_def, rule field_le_epsilon)
         assume x: "x \<in> A i"
         with sbBB [of i] obtain j where "x \<in> BB i j"
           by blast        
-        thus "\<exists>i. x \<in> split BB (nat_to_nat2 i)"
-          by (metis nat_to_nat2_surj internal_split_def prod.cases 
-                prod_case_split surj_f_inv_f)
+        thus "\<exists>i. x \<in> split BB (prod_decode i)"
+          by (metis prod_encode_inverse prod.cases prod_case_split)
       qed 
-    have "(f \<circ> C) = (f \<circ> (\<lambda>(x, y). BB x y)) \<circ> nat_to_nat2"
+    have "(f \<circ> C) = (f \<circ> (\<lambda>(x, y). BB x y)) \<circ> prod_decode"
       by (rule ext)  (auto simp add: C_def) 
     also have "... sums suminf ll" 
       proof (rule suminf_2dimen)

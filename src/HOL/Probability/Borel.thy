@@ -186,20 +186,20 @@ qed
 
 definition
   nat_to_rat_surj :: "nat \<Rightarrow> rat" where
- "nat_to_rat_surj n = (let (i,j) = nat_to_nat2 n
-                       in Fract (nat_to_int_bij i) (nat_to_int_bij j))"
+ "nat_to_rat_surj n = (let (i,j) = prod_decode n
+                       in Fract (int_decode i) (int_decode j))"
 
 lemma nat_to_rat_surj: "surj nat_to_rat_surj"
 proof (auto simp add: surj_def nat_to_rat_surj_def) 
   fix y
-  show "\<exists>x. y = (\<lambda>(i, j). Fract (nat_to_int_bij i) (nat_to_int_bij j)) (nat_to_nat2 x)"
+  show "\<exists>x. y = (\<lambda>(i, j). Fract (int_decode i) (int_decode j)) (prod_decode x)"
   proof (cases y)
     case (Fract a b)
-      obtain i where i: "nat_to_int_bij i = a" using surj_nat_to_int_bij
+      obtain i where i: "int_decode i = a" using surj_int_decode
         by (metis surj_def) 
-      obtain j where j: "nat_to_int_bij j = b" using surj_nat_to_int_bij
+      obtain j where j: "int_decode j = b" using surj_int_decode
         by (metis surj_def)
-      obtain n where n: "nat_to_nat2 n = (i,j)" using nat_to_nat2_surj
+      obtain n where n: "prod_decode n = (i,j)" using surj_prod_decode
         by (metis surj_def)
 
       from Fract i j n show ?thesis
