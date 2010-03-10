@@ -247,7 +247,7 @@ lemma nat_of_code [code]:
   "nat_of i = nat_of_aux i 0"
   by (simp add: nat_of_aux_def)
 
-definition div_mod_code_numeral ::  "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral \<times> code_numeral" where
+definition div_mod_code_numeral :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral \<times> code_numeral" where
   [code del]: "div_mod_code_numeral n m = (n div m, n mod m)"
 
 lemma [code]:
