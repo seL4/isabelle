@@ -393,7 +393,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Inner_Product.thy Library/Kleene_Algebra.thy			\
   Library/Lattice_Algebras.thy Library/Lattice_Syntax.thy		\
   Library/Library.thy Library/List_Prefix.thy Library/List_Set.thy	\
-  Library/State_Monad.thy Library/Nat_Int_Bij.thy Library/Multiset.thy	\
+  Library/State_Monad.thy Library/Multiset.thy				\
   Library/Permutation.thy Library/Quotient_Type.thy			\
   Library/Quicksort.thy Library/Nat_Infinity.thy Library/Word.thy	\
   Library/README.html Library/Continuity.thy				\
