@@ -1474,7 +1474,7 @@ locale folding =
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b"
   fixes F :: "'a set \<Rightarrow> 'b \<Rightarrow> 'b"
   assumes commute_comp: "f x \<circ> f y = f y \<circ> f x"
-  assumes eq_fold: "F A s = Finite_Set.fold f s A"
+  assumes eq_fold: "finite A \<Longrightarrow> F A s = fold f s A"
 begin
 
 lemma fun_left_commute:
@@ -1496,8 +1496,8 @@ lemma insert [simp]:
 proof -
   interpret fun_left_comm f by (fact fun_left_comm)
   from fold_insert2 assms
-  have "\<And>s. Finite_Set.fold f s (insert x A) = Finite_Set.fold f (f x s) A" .
-  then show ?thesis by (simp add: eq_fold expand_fun_eq)
+  have "\<And>s. fold f s (insert x A) = fold f (f x s) A" .
+  with `finite A` show ?thesis by (simp add: eq_fold expand_fun_eq)
 qed
 
 lemma remove:
@@ -1513,11 +1513,7 @@ qed
 lemma insert_remove:
   assumes "finite A"
   shows "F (insert x A) = F (A - {x}) \<circ> f x"
-proof (cases "x \<in> A")
-  case True with assms show ?thesis by (simp add: remove insert_absorb)
-next
-  case False with assms show ?thesis by simp
-qed
+  using assms by (cases "x \<in> A") (simp_all add: remove insert_absorb)
 
 lemma commute_comp':
   assumes "finite A"
@@ -1572,8 +1568,8 @@ lemma insert_idem [simp]:
 proof -
   interpret fun_left_comm_idem f by (fact fun_left_comm_idem)
   from fold_insert_idem2 assms
-  have "\<And>s. Finite_Set.fold f s (insert x A) = Finite_Set.fold f (f x s) A" .
-  then show ?thesis by (simp add: eq_fold expand_fun_eq)
+  have "\<And>s. fold f s (insert x A) = fold f (f x s) A" .
+  with assms show ?thesis by (simp add: eq_fold expand_fun_eq)
 qed
 
 lemma union_idem:
@@ -1589,5 +1585,543 @@ next
 qed
 
 end
+
+no_notation (in times) times (infixl "*" 70)
+no_notation (in one) Groups.one ("1")
+
+locale folding_image_simple = comm_monoid +
+  fixes g :: "('b \<Rightarrow> 'a)"
+  fixes F :: "'b set \<Rightarrow> 'a"
+  assumes eq_fold: "finite A \<Longrightarrow> F A = fold_image f g 1 A"
+begin
+
+lemma empty [simp]:
+  "F {} = 1"
+  by (simp add: eq_fold)
+
+lemma insert [simp]:
+  assumes "finite A" and "x \<notin> A"
+  shows "F (insert x A) = g x * F A"
+proof -
+  interpret fun_left_comm "%x y. (g x) * y" proof
+  qed (simp add: ac_simps)
+  with assms have "fold_image (op *) g 1 (insert x A) = g x * fold_image (op *) g 1 A"
+    by (simp add: fold_image_def)
+  with `finite A` show ?thesis by (simp add: eq_fold)
+qed
+
+lemma remove:
+  assumes "finite A" and "x \<in> A"
+  shows "F A = g x * F (A - {x})"
+proof -
+  from `x \<in> A` obtain B where A: "A = insert x B" and "x \<notin> B"
+    by (auto dest: mk_disjoint_insert)
+  moreover from `finite A` this have "finite B" by simp
+  ultimately show ?thesis by simp
+qed
+
+lemma insert_remove:
+  assumes "finite A"
+  shows "F (insert x A) = g x * F (A - {x})"
+  using assms by (cases "x \<in> A") (simp_all add: remove insert_absorb)
+
+lemma union_inter:
+  assumes "finite A" and "finite B"
+  shows "F A * F B = F (A \<union> B) * F (A \<inter> B)"
+using assms proof (induct A)
+  case empty then show ?case by simp
+next
+  case (insert x A) then show ?case
+    by (auto simp add: insert_absorb Int_insert_left commute [of _ "g x"] assoc left_commute)
+qed
+
+corollary union_disjoint:
+  assumes "finite A" and "finite B"
+  assumes "A \<inter> B = {}"
+  shows "F (A \<union> B) = F A * F B"
+  using assms by (simp add: union_inter)
+
+end
+
+locale folding_image = comm_monoid +
+  fixes F :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> 'a"
+  assumes eq_fold: "\<And>g. finite A \<Longrightarrow> F g A = fold_image f g 1 A"
+
+sublocale folding_image < folding_image_simple "op *" 1 g "F g" proof
+qed (fact eq_fold)
+
+context folding_image
+begin
+
+lemma reindex:
+  assumes "finite A" and "inj_on h A"
+  shows "F g (h ` A) = F (g \<circ> h) A"
+  using assms by (induct A) auto
+
+lemma cong:
+  assumes "finite A" and "\<And>x. x \<in> A \<Longrightarrow> g x = h x"
+  shows "F g A = F h A"
+proof -
+  from assms have "ALL C. C <= A --> (ALL x:C. g x = h x) --> F g C = F h C"
+  apply - apply (erule finite_induct) apply simp
+  apply (simp add: subset_insert_iff, clarify)
+  apply (subgoal_tac "finite C")
+  prefer 2 apply (blast dest: finite_subset [COMP swap_prems_rl])
+  apply (subgoal_tac "C = insert x (C - {x})")
+  prefer 2 apply blast
+  apply (erule ssubst)
+  apply (drule spec)
+  apply (erule (1) notE impE)
+  apply (simp add: Ball_def del: insert_Diff_single)
+  done
+  with assms show ?thesis by simp
+qed
+
+lemma UNION_disjoint:
+  assumes "finite I" and "\<forall>i\<in>I. finite (A i)"
+  and "\<forall>i\<in>I. \<forall>j\<in>I. i \<noteq> j \<longrightarrow> A i \<inter> A j = {}"
+  shows "F g (UNION I A) = F (F g \<circ> A) I"
+apply (insert assms)
+apply (induct set: finite, simp, atomize)
+apply (subgoal_tac "\<forall>i\<in>Fa. x \<noteq> i")
+ prefer 2 apply blast
+apply (subgoal_tac "A x Int UNION Fa A = {}")
+ prefer 2 apply blast
+apply (simp add: union_disjoint)
+done
+
+lemma distrib:
+  assumes "finite A"
+  shows "F (\<lambda>x. g x * h x) A = F g A * F h A"
+  using assms by (rule finite_induct) (simp_all add: assoc commute left_commute)
+
+lemma related: 
+  assumes Re: "R 1 1" 
+  and Rop: "\<forall>x1 y1 x2 y2. R x1 x2 \<and> R y1 y2 \<longrightarrow> R (x1 * y1) (x2 * y2)" 
+  and fS: "finite S" and Rfg: "\<forall>x\<in>S. R (h x) (g x)"
+  shows "R (F h S) (F g S)"
+  using fS by (rule finite_subset_induct) (insert assms, auto)
+
+lemma eq_general:
+  assumes fS: "finite S"
+  and h: "\<forall>y\<in>S'. \<exists>!x. x \<in> S \<and> h x = y" 
+  and f12:  "\<forall>x\<in>S. h x \<in> S' \<and> f2 (h x) = f1 x"
+  shows "F f1 S = F f2 S'"
+proof-
+  from h f12 have hS: "h ` S = S'" by blast
+  {fix x y assume H: "x \<in> S" "y \<in> S" "h x = h y"
+    from f12 h H  have "x = y" by auto }
+  hence hinj: "inj_on h S" unfolding inj_on_def Ex1_def by blast
+  from f12 have th: "\<And>x. x \<in> S \<Longrightarrow> (f2 \<circ> h) x = f1 x" by auto 
+  from hS have "F f2 S' = F f2 (h ` S)" by simp
+  also have "\<dots> = F (f2 o h) S" using reindex [OF fS hinj, of f2] .
+  also have "\<dots> = F f1 S " using th cong [OF fS, of "f2 o h" f1]
+    by blast
+  finally show ?thesis ..
+qed
+
+lemma eq_general_inverses:
+  assumes fS: "finite S" 
+  and kh: "\<And>y. y \<in> T \<Longrightarrow> k y \<in> S \<and> h (k y) = y"
+  and hk: "\<And>x. x \<in> S \<Longrightarrow> h x \<in> T \<and> k (h x) = x \<and> g (h x) = j x"
+  shows "F j S = F g T"
+  (* metis solves it, but not yet available here *)
+  apply (rule eq_general [OF fS, of T h g j])
+  apply (rule ballI)
+  apply (frule kh)
+  apply (rule ex1I[])
+  apply blast
+  apply clarsimp
+  apply (drule hk) apply simp
+  apply (rule sym)
+  apply (erule conjunct1[OF conjunct2[OF hk]])
+  apply (rule ballI)
+  apply (drule hk)
+  apply blast
+  done
+
+end
+
+notation (in times) times (infixl "*" 70)
+notation (in one) Groups.one ("1")
+
+
+subsection {* Finite cardinality *}
+
+text {* This definition, although traditional, is ugly to work with:
+@{text "card A == LEAST n. EX f. A = {f i | i. i < n}"}.
+But now that we have @{text fold_image} things are easy:
+*}
+
+definition card :: "'a set \<Rightarrow> nat" where
+  "card A = (if finite A then fold_image (op +) (\<lambda>x. 1) 0 A else 0)"
+
+interpretation card!: folding_image_simple "op +" 0 "\<lambda>x. 1" card proof
+qed (simp add: card_def)
+
+lemma card_infinite [simp]:
+  "\<not> finite A \<Longrightarrow> card A = 0"
+  by (simp add: card_def)
+
+lemma card_empty:
+  "card {} = 0"
+  by (fact card.empty)
+
+lemma card_insert_disjoint:
+  "finite A ==> x \<notin> A ==> card (insert x A) = Suc (card A)"
+  by simp
+
+lemma card_insert_if:
+  "finite A ==> card (insert x A) = (if x \<in> A then card A else Suc (card A))"
+  by auto (simp add: card.insert_remove card.remove)
+
+lemma card_ge_0_finite:
+  "card A > 0 \<Longrightarrow> finite A"
+  by (rule ccontr) simp
+
+lemma card_0_eq [simp, noatp]:
+  "finite A \<Longrightarrow> card A = 0 \<longleftrightarrow> A = {}"
+  by (auto dest: mk_disjoint_insert)
+
+lemma finite_UNIV_card_ge_0:
+  "finite (UNIV :: 'a set) \<Longrightarrow> card (UNIV :: 'a set) > 0"
+  by (rule ccontr) simp
+
+lemma card_eq_0_iff:
+  "card A = 0 \<longleftrightarrow> A = {} \<or> \<not> finite A"
+  by auto
+
+lemma card_gt_0_iff:
+  "0 < card A \<longleftrightarrow> A \<noteq> {} \<and> finite A"
+  by (simp add: neq0_conv [symmetric] card_eq_0_iff) 
+
+lemma card_Suc_Diff1: "finite A ==> x: A ==> Suc (card (A - {x})) = card A"
+apply(rule_tac t = A in insert_Diff [THEN subst], assumption)
+apply(simp del:insert_Diff_single)
+done
+
+lemma card_Diff_singleton:
+  "finite A ==> x: A ==> card (A - {x}) = card A - 1"
+by (simp add: card_Suc_Diff1 [symmetric])
+
+lemma card_Diff_singleton_if:
+  "finite A ==> card (A-{x}) = (if x : A then card A - 1 else card A)"
+by (simp add: card_Diff_singleton)
+
+lemma card_Diff_insert[simp]:
+assumes "finite A" and "a:A" and "a ~: B"
+shows "card(A - insert a B) = card(A - B) - 1"
+proof -
+  have "A - insert a B = (A - B) - {a}" using assms by blast
+  then show ?thesis using assms by(simp add:card_Diff_singleton)
+qed
+
+lemma card_insert: "finite A ==> card (insert x A) = Suc (card (A - {x}))"
+by (simp add: card_insert_if card_Suc_Diff1 del:card_Diff_insert)
+
+lemma card_insert_le: "finite A ==> card A <= card (insert x A)"
+by (simp add: card_insert_if)
+
+lemma card_mono:
+  assumes "finite B" and "A \<subseteq> B"
+  shows "card A \<le> card B"
+proof -
+  from assms have "finite A" by (auto intro: finite_subset)
+  then show ?thesis using assms proof (induct A arbitrary: B)
+    case empty then show ?case by simp
+  next
+    case (insert x A)
+    then have "x \<in> B" by simp
+    from insert have "A \<subseteq> B - {x}" and "finite (B - {x})" by auto
+    with insert.hyps have "card A \<le> card (B - {x})" by auto
+    with `finite A` `x \<notin> A` `finite B` `x \<in> B` show ?case by simp (simp only: card.remove)
+  qed
+qed
+
+lemma card_seteq: "finite B ==> (!!A. A <= B ==> card B <= card A ==> A = B)"
+apply (induct set: finite, simp, clarify)
+apply (subgoal_tac "finite A & A - {x} <= F")
+ prefer 2 apply (blast intro: finite_subset, atomize)
+apply (drule_tac x = "A - {x}" in spec)
+apply (simp add: card_Diff_singleton_if split add: split_if_asm)
+apply (case_tac "card A", auto)
+done
+
+lemma psubset_card_mono: "finite B ==> A < B ==> card A < card B"
+apply (simp add: psubset_eq linorder_not_le [symmetric])
+apply (blast dest: card_seteq)
+done
+
+lemma card_Un_Int: "finite A ==> finite B
+    ==> card A + card B = card (A Un B) + card (A Int B)"
+  by (fact card.union_inter)
+
+lemma card_Un_disjoint: "finite A ==> finite B
+    ==> A Int B = {} ==> card (A Un B) = card A + card B"
+  by (fact card.union_disjoint)
+
+lemma card_Diff_subset:
+  assumes "finite B" and "B \<subseteq> A"
+  shows "card (A - B) = card A - card B"
+proof (cases "finite A")
+  case False with assms show ?thesis by simp
+next
+  case True with assms show ?thesis by (induct B arbitrary: A) simp_all
+qed
+
+lemma card_Diff_subset_Int:
+  assumes AB: "finite (A \<inter> B)" shows "card (A - B) = card A - card (A \<inter> B)"
+proof -
+  have "A - B = A - A \<inter> B" by auto
+  thus ?thesis
+    by (simp add: card_Diff_subset AB) 
+qed
+
+lemma card_Diff1_less: "finite A ==> x: A ==> card (A - {x}) < card A"
+apply (rule Suc_less_SucD)
+apply (simp add: card_Suc_Diff1 del:card_Diff_insert)
+done
+
+lemma card_Diff2_less:
+  "finite A ==> x: A ==> y: A ==> card (A - {x} - {y}) < card A"
+apply (case_tac "x = y")
+ apply (simp add: card_Diff1_less del:card_Diff_insert)
+apply (rule less_trans)
+ prefer 2 apply (auto intro!: card_Diff1_less simp del:card_Diff_insert)
+done
+
+lemma card_Diff1_le: "finite A ==> card (A - {x}) <= card A"
+apply (case_tac "x : A")
+ apply (simp_all add: card_Diff1_less less_imp_le)
+done
+
+lemma card_psubset: "finite B ==> A \<subseteq> B ==> card A < card B ==> A < B"
+by (erule psubsetI, blast)
+
+lemma insert_partition:
+  "\<lbrakk> x \<notin> F; \<forall>c1 \<in> insert x F. \<forall>c2 \<in> insert x F. c1 \<noteq> c2 \<longrightarrow> c1 \<inter> c2 = {} \<rbrakk>
+  \<Longrightarrow> x \<inter> \<Union> F = {}"
+by auto
+
+lemma finite_psubset_induct[consumes 1, case_names psubset]:
+  assumes "finite A" and "!!A. finite A \<Longrightarrow> (!!B. finite B \<Longrightarrow> B \<subset> A \<Longrightarrow> P(B)) \<Longrightarrow> P(A)" shows "P A"
+using assms(1)
+proof (induct A rule: measure_induct_rule[where f=card])
+  case (less A)
+  show ?case
+  proof(rule assms(2)[OF less(2)])
+    fix B assume "finite B" "B \<subset> A"
+    show "P B" by(rule less(1)[OF psubset_card_mono[OF less(2) `B \<subset> A`] `finite B`])
+  qed
+qed
+
+text{* main cardinality theorem *}
+lemma card_partition [rule_format]:
+  "finite C ==>
+     finite (\<Union> C) -->
+     (\<forall>c\<in>C. card c = k) -->
+     (\<forall>c1 \<in> C. \<forall>c2 \<in> C. c1 \<noteq> c2 --> c1 \<inter> c2 = {}) -->
+     k * card(C) = card (\<Union> C)"
+apply (erule finite_induct, simp)
+apply (simp add: card_Un_disjoint insert_partition 
+       finite_subset [of _ "\<Union> (insert x F)"])
+done
+
+lemma card_eq_UNIV_imp_eq_UNIV:
+  assumes fin: "finite (UNIV :: 'a set)"
+  and card: "card A = card (UNIV :: 'a set)"
+  shows "A = (UNIV :: 'a set)"
+proof
+  show "A \<subseteq> UNIV" by simp
+  show "UNIV \<subseteq> A"
+  proof
+    fix x
+    show "x \<in> A"
+    proof (rule ccontr)
+      assume "x \<notin> A"
+      then have "A \<subset> UNIV" by auto
+      with fin have "card A < card (UNIV :: 'a set)" by (fact psubset_card_mono)
+      with card show False by simp
+    qed
+  qed
+qed
+
+text{*The form of a finite set of given cardinality*}
+
+lemma card_eq_SucD:
+assumes "card A = Suc k"
+shows "\<exists>b B. A = insert b B & b \<notin> B & card B = k & (k=0 \<longrightarrow> B={})"
+proof -
+  have fin: "finite A" using assms by (auto intro: ccontr)
+  moreover have "card A \<noteq> 0" using assms by auto
+  ultimately obtain b where b: "b \<in> A" by auto
+  show ?thesis
+  proof (intro exI conjI)
+    show "A = insert b (A-{b})" using b by blast
+    show "b \<notin> A - {b}" by blast
+    show "card (A - {b}) = k" and "k = 0 \<longrightarrow> A - {b} = {}"
+      using assms b fin by(fastsimp dest:mk_disjoint_insert)+
+  qed
+qed
+
+lemma card_Suc_eq:
+  "(card A = Suc k) =
+   (\<exists>b B. A = insert b B & b \<notin> B & card B = k & (k=0 \<longrightarrow> B={}))"
+apply(rule iffI)
+ apply(erule card_eq_SucD)
+apply(auto)
+apply(subst card_insert)
+ apply(auto intro:ccontr)
+done
+
+lemma finite_fun_UNIVD2:
+  assumes fin: "finite (UNIV :: ('a \<Rightarrow> 'b) set)"
+  shows "finite (UNIV :: 'b set)"
+proof -
+  from fin have "finite (range (\<lambda>f :: 'a \<Rightarrow> 'b. f arbitrary))"
+    by(rule finite_imageI)
+  moreover have "UNIV = range (\<lambda>f :: 'a \<Rightarrow> 'b. f arbitrary)"
+    by(rule UNIV_eq_I) auto
+  ultimately show "finite (UNIV :: 'b set)" by simp
+qed
+
+lemma card_UNIV_unit: "card (UNIV :: unit set) = 1"
+  unfolding UNIV_unit by simp
+
+
+subsubsection {* Cardinality of image *}
+
+lemma card_image_le: "finite A ==> card (f ` A) <= card A"
+apply (induct set: finite)
+ apply simp
+apply (simp add: le_SucI card_insert_if)
+done
+
+lemma card_image:
+  assumes "inj_on f A"
+  shows "card (f ` A) = card A"
+proof (cases "finite A")
+  case True then show ?thesis using assms by (induct A) simp_all
+next
+  case False then have "\<not> finite (f ` A)" using assms by (auto dest: finite_imageD)
+  with False show ?thesis by simp
+qed
+
+lemma bij_betw_same_card: "bij_betw f A B \<Longrightarrow> card A = card B"
+by(auto simp: card_image bij_betw_def)
+
+lemma endo_inj_surj: "finite A ==> f ` A \<subseteq> A ==> inj_on f A ==> f ` A = A"
+by (simp add: card_seteq card_image)
+
+lemma eq_card_imp_inj_on:
+  "[| finite A; card(f ` A) = card A |] ==> inj_on f A"
+apply (induct rule:finite_induct)
+apply simp
+apply(frule card_image_le[where f = f])
+apply(simp add:card_insert_if split:if_splits)
+done
+
+lemma inj_on_iff_eq_card:
+  "finite A ==> inj_on f A = (card(f ` A) = card A)"
+by(blast intro: card_image eq_card_imp_inj_on)
+
+
+lemma card_inj_on_le:
+  "[|inj_on f A; f ` A \<subseteq> B; finite B |] ==> card A \<le> card B"
+apply (subgoal_tac "finite A") 
+ apply (force intro: card_mono simp add: card_image [symmetric])
+apply (blast intro: finite_imageD dest: finite_subset) 
+done
+
+lemma card_bij_eq:
+  "[|inj_on f A; f ` A \<subseteq> B; inj_on g B; g ` B \<subseteq> A;
+     finite A; finite B |] ==> card A = card B"
+by (auto intro: le_antisym card_inj_on_le)
+
+
+subsubsection {* Cardinality of sums *}
+
+lemma card_Plus:
+  assumes "finite A" and "finite B"
+  shows "card (A <+> B) = card A + card B"
+proof -
+  have "Inl`A \<inter> Inr`B = {}" by fast
+  with assms show ?thesis
+    unfolding Plus_def
+    by (simp add: card_Un_disjoint card_image)
+qed
+
+lemma card_Plus_conv_if:
+  "card (A <+> B) = (if finite A \<and> finite B then card A + card B else 0)"
+  by (auto simp add: card_Plus)
+
+
+subsubsection {* Cardinality of the Powerset *}
+
+lemma card_Pow: "finite A ==> card (Pow A) = Suc (Suc 0) ^ card A"  (* FIXME numeral 2 (!?) *)
+apply (induct set: finite)
+ apply (simp_all add: Pow_insert)
+apply (subst card_Un_disjoint, blast)
+  apply (blast intro: finite_imageI, blast)
+apply (subgoal_tac "inj_on (insert x) (Pow F)")
+ apply (simp add: card_image Pow_insert)
+apply (unfold inj_on_def)
+apply (blast elim!: equalityE)
+done
+
+text {* Relates to equivalence classes.  Based on a theorem of F. Kammüller.  *}
+
+lemma dvd_partition:
+  "finite (Union C) ==>
+    ALL c : C. k dvd card c ==>
+    (ALL c1: C. ALL c2: C. c1 \<noteq> c2 --> c1 Int c2 = {}) ==>
+  k dvd card (Union C)"
+apply(frule finite_UnionD)
+apply(rotate_tac -1)
+apply (induct set: finite, simp_all, clarify)
+apply (subst card_Un_disjoint)
+   apply (auto simp add: disjoint_eq_subset_Compl)
+done
+
+
+subsubsection {* Relating injectivity and surjectivity *}
+
+lemma finite_surj_inj: "finite(A) \<Longrightarrow> A <= f`A \<Longrightarrow> inj_on f A"
+apply(rule eq_card_imp_inj_on, assumption)
+apply(frule finite_imageI)
+apply(drule (1) card_seteq)
+ apply(erule card_image_le)
+apply simp
+done
+
+lemma finite_UNIV_surj_inj: fixes f :: "'a \<Rightarrow> 'a"
+shows "finite(UNIV:: 'a set) \<Longrightarrow> surj f \<Longrightarrow> inj f"
+by (blast intro: finite_surj_inj subset_UNIV dest:surj_range)
+
+lemma finite_UNIV_inj_surj: fixes f :: "'a \<Rightarrow> 'a"
+shows "finite(UNIV:: 'a set) \<Longrightarrow> inj f \<Longrightarrow> surj f"
+by(fastsimp simp:surj_def dest!: endo_inj_surj)
+
+corollary infinite_UNIV_nat[iff]: "~finite(UNIV::nat set)"
+proof
+  assume "finite(UNIV::nat set)"
+  with finite_UNIV_inj_surj[of Suc]
+  show False by simp (blast dest: Suc_neq_Zero surjD)
+qed
+
+(* Often leads to bogus ATP proofs because of reduced type information, hence noatp *)
+lemma infinite_UNIV_char_0[noatp]:
+  "\<not> finite (UNIV::'a::semiring_char_0 set)"
+proof
+  assume "finite (UNIV::'a set)"
+  with subset_UNIV have "finite (range of_nat::'a set)"
+    by (rule finite_subset)
+  moreover have "inj (of_nat::nat \<Rightarrow> 'a)"
+    by (simp add: inj_on_def)
+  ultimately have "finite (UNIV::nat set)"
+    by (rule finite_imageD)
+  then show "False"
+    by simp
+qed
 
 end

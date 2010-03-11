@@ -6,7 +6,7 @@
 header {* Big operators and finite (non-empty) sets *}
 
 theory Big_Operators
-imports Finite_Set
+imports Plain
 begin
 
 subsection {* Generalized summation over a set *}
@@ -704,6 +704,80 @@ shows "inj_on (%(a,b). f a * g b) (A \<times> B) ==>
 by(auto simp: setsum_product setsum_cartesian_product
         intro!:  setsum_reindex_cong[symmetric])
 
+lemma setsum_constant [simp]: "(\<Sum>x \<in> A. y) = of_nat(card A) * y"
+apply (cases "finite A")
+apply (erule finite_induct)
+apply (auto simp add: algebra_simps)
+done
+
+lemma setsum_bounded:
+  assumes le: "\<And>i. i\<in>A \<Longrightarrow> f i \<le> (K::'a::{semiring_1, ordered_ab_semigroup_add})"
+  shows "setsum f A \<le> of_nat(card A) * K"
+proof (cases "finite A")
+  case True
+  thus ?thesis using le setsum_mono[where K=A and g = "%x. K"] by simp
+next
+  case False thus ?thesis by (simp add: setsum_def)
+qed
+
+
+subsubsection {* Cardinality as special case of @{const setsum} *}
+
+lemma card_eq_setsum:
+  "card A = setsum (\<lambda>x. 1) A"
+  by (simp only: card_def setsum_def)
+
+lemma card_UN_disjoint:
+  "finite I ==> (ALL i:I. finite (A i)) ==>
+   (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {})
+   ==> card (UNION I A) = (\<Sum>i\<in>I. card(A i))"
+apply (simp add: card_eq_setsum del: setsum_constant)
+apply (subgoal_tac
+         "setsum (%i. card (A i)) I = setsum (%i. (setsum (%x. 1) (A i))) I")
+apply (simp add: setsum_UN_disjoint del: setsum_constant)
+apply (simp cong: setsum_cong)
+done
+
+lemma card_Union_disjoint:
+  "finite C ==> (ALL A:C. finite A) ==>
+   (ALL A:C. ALL B:C. A \<noteq> B --> A Int B = {})
+   ==> card (Union C) = setsum card C"
+apply (frule card_UN_disjoint [of C id])
+apply (unfold Union_def id_def, assumption+)
+done
+
+text{*The image of a finite set can be expressed using @{term fold_image}.*}
+lemma image_eq_fold_image:
+  "finite A ==> f ` A = fold_image (op Un) (%x. {f x}) {} A"
+proof (induct rule: finite_induct)
+  case empty then show ?case by simp
+next
+  interpret ab_semigroup_mult "op Un"
+    proof qed auto
+  case insert 
+  then show ?case by simp
+qed
+
+subsubsection {* Cardinality of products *}
+
+lemma card_SigmaI [simp]:
+  "\<lbrakk> finite A; ALL a:A. finite (B a) \<rbrakk>
+  \<Longrightarrow> card (SIGMA x: A. B x) = (\<Sum>a\<in>A. card (B a))"
+by(simp add: card_eq_setsum setsum_Sigma del:setsum_constant)
+
+(*
+lemma SigmaI_insert: "y \<notin> A ==>
+  (SIGMA x:(insert y A). B x) = (({y} <*> (B y)) \<union> (SIGMA x: A. B x))"
+  by auto
+*)
+
+lemma card_cartesian_product: "card (A <*> B) = card(A) * card(B)"
+  by (cases "finite A \<and> finite B")
+    (auto simp add: card_eq_0_iff dest: finite_cartesian_productD1 finite_cartesian_productD2)
+
+lemma card_cartesian_product_singleton:  "card({x} <*> A) = card(A)"
+by (simp add: card_cartesian_product)
+
 
 subsection {* Generalized product over a set *}
 
@@ -1016,230 +1090,6 @@ proof (cases "finite A")
     by induct (auto simp add: field_simps abs_mult)
 qed auto
 
-
-subsection {* Finite cardinality *}
-
-text {* This definition, although traditional, is ugly to work with:
-@{text "card A == LEAST n. EX f. A = {f i | i. i < n}"}.
-But now that we have @{text setsum} things are easy:
-*}
-
-definition card :: "'a set \<Rightarrow> nat" where
-  "card A = setsum (\<lambda>x. 1) A"
-
-lemmas card_eq_setsum = card_def
-
-lemma card_empty [simp]: "card {} = 0"
-  by (simp add: card_def)
-
-lemma card_insert_disjoint [simp]:
-  "finite A ==> x \<notin> A ==> card (insert x A) = Suc(card A)"
-  by (simp add: card_def)
-
-lemma card_insert_if:
-  "finite A ==> card (insert x A) = (if x:A then card A else Suc(card(A)))"
-  by (simp add: insert_absorb)
-
-lemma card_infinite [simp]: "~ finite A ==> card A = 0"
-  by (simp add: card_def)
-
-lemma card_ge_0_finite:
-  "card A > 0 \<Longrightarrow> finite A"
-  by (rule ccontr) simp
-
-lemma card_0_eq [simp,noatp]: "finite A ==> (card A = 0) = (A = {})"
-  apply auto
-  apply (drule_tac a = x in mk_disjoint_insert, clarify, auto)
-  done
-
-lemma finite_UNIV_card_ge_0:
-  "finite (UNIV :: 'a set) \<Longrightarrow> card (UNIV :: 'a set) > 0"
-  by (rule ccontr) simp
-
-lemma card_eq_0_iff: "(card A = 0) = (A = {} | ~ finite A)"
-  by auto
-
-lemma card_gt_0_iff: "(0 < card A) = (A \<noteq> {} & finite A)"
-  by (simp add: neq0_conv [symmetric] card_eq_0_iff) 
-
-lemma card_Suc_Diff1: "finite A ==> x: A ==> Suc (card (A - {x})) = card A"
-apply(rule_tac t = A in insert_Diff [THEN subst], assumption)
-apply(simp del:insert_Diff_single)
-done
-
-lemma card_Diff_singleton:
-  "finite A ==> x: A ==> card (A - {x}) = card A - 1"
-by (simp add: card_Suc_Diff1 [symmetric])
-
-lemma card_Diff_singleton_if:
-  "finite A ==> card (A-{x}) = (if x : A then card A - 1 else card A)"
-by (simp add: card_Diff_singleton)
-
-lemma card_Diff_insert[simp]:
-assumes "finite A" and "a:A" and "a ~: B"
-shows "card(A - insert a B) = card(A - B) - 1"
-proof -
-  have "A - insert a B = (A - B) - {a}" using assms by blast
-  then show ?thesis using assms by(simp add:card_Diff_singleton)
-qed
-
-lemma card_insert: "finite A ==> card (insert x A) = Suc (card (A - {x}))"
-by (simp add: card_insert_if card_Suc_Diff1 del:card_Diff_insert)
-
-lemma card_insert_le: "finite A ==> card A <= card (insert x A)"
-by (simp add: card_insert_if)
-
-lemma card_mono: "\<lbrakk> finite B; A \<subseteq> B \<rbrakk> \<Longrightarrow> card A \<le> card B"
-by (simp add: card_def setsum_mono2)
-
-lemma card_seteq: "finite B ==> (!!A. A <= B ==> card B <= card A ==> A = B)"
-apply (induct set: finite, simp, clarify)
-apply (subgoal_tac "finite A & A - {x} <= F")
- prefer 2 apply (blast intro: finite_subset, atomize)
-apply (drule_tac x = "A - {x}" in spec)
-apply (simp add: card_Diff_singleton_if split add: split_if_asm)
-apply (case_tac "card A", auto)
-done
-
-lemma psubset_card_mono: "finite B ==> A < B ==> card A < card B"
-apply (simp add: psubset_eq linorder_not_le [symmetric])
-apply (blast dest: card_seteq)
-done
-
-lemma card_Un_Int: "finite A ==> finite B
-    ==> card A + card B = card (A Un B) + card (A Int B)"
-by(simp add:card_def setsum_Un_Int)
-
-lemma card_Un_disjoint: "finite A ==> finite B
-    ==> A Int B = {} ==> card (A Un B) = card A + card B"
-by (simp add: card_Un_Int)
-
-lemma card_Diff_subset:
-  "finite B ==> B <= A ==> card (A - B) = card A - card B"
-by(simp add:card_def setsum_diff_nat)
-
-lemma card_Diff_subset_Int:
-  assumes AB: "finite (A \<inter> B)" shows "card (A - B) = card A - card (A \<inter> B)"
-proof -
-  have "A - B = A - A \<inter> B" by auto
-  thus ?thesis
-    by (simp add: card_Diff_subset AB) 
-qed
-
-lemma card_Diff1_less: "finite A ==> x: A ==> card (A - {x}) < card A"
-apply (rule Suc_less_SucD)
-apply (simp add: card_Suc_Diff1 del:card_Diff_insert)
-done
-
-lemma card_Diff2_less:
-  "finite A ==> x: A ==> y: A ==> card (A - {x} - {y}) < card A"
-apply (case_tac "x = y")
- apply (simp add: card_Diff1_less del:card_Diff_insert)
-apply (rule less_trans)
- prefer 2 apply (auto intro!: card_Diff1_less simp del:card_Diff_insert)
-done
-
-lemma card_Diff1_le: "finite A ==> card (A - {x}) <= card A"
-apply (case_tac "x : A")
- apply (simp_all add: card_Diff1_less less_imp_le)
-done
-
-lemma card_psubset: "finite B ==> A \<subseteq> B ==> card A < card B ==> A < B"
-by (erule psubsetI, blast)
-
-lemma insert_partition:
-  "\<lbrakk> x \<notin> F; \<forall>c1 \<in> insert x F. \<forall>c2 \<in> insert x F. c1 \<noteq> c2 \<longrightarrow> c1 \<inter> c2 = {} \<rbrakk>
-  \<Longrightarrow> x \<inter> \<Union> F = {}"
-by auto
-
-lemma finite_psubset_induct[consumes 1, case_names psubset]:
-  assumes "finite A" and "!!A. finite A \<Longrightarrow> (!!B. finite B \<Longrightarrow> B \<subset> A \<Longrightarrow> P(B)) \<Longrightarrow> P(A)" shows "P A"
-using assms(1)
-proof (induct A rule: measure_induct_rule[where f=card])
-  case (less A)
-  show ?case
-  proof(rule assms(2)[OF less(2)])
-    fix B assume "finite B" "B \<subset> A"
-    show "P B" by(rule less(1)[OF psubset_card_mono[OF less(2) `B \<subset> A`] `finite B`])
-  qed
-qed
-
-text{* main cardinality theorem *}
-lemma card_partition [rule_format]:
-  "finite C ==>
-     finite (\<Union> C) -->
-     (\<forall>c\<in>C. card c = k) -->
-     (\<forall>c1 \<in> C. \<forall>c2 \<in> C. c1 \<noteq> c2 --> c1 \<inter> c2 = {}) -->
-     k * card(C) = card (\<Union> C)"
-apply (erule finite_induct, simp)
-apply (simp add: card_Un_disjoint insert_partition 
-       finite_subset [of _ "\<Union> (insert x F)"])
-done
-
-lemma card_eq_UNIV_imp_eq_UNIV:
-  assumes fin: "finite (UNIV :: 'a set)"
-  and card: "card A = card (UNIV :: 'a set)"
-  shows "A = (UNIV :: 'a set)"
-proof
-  show "A \<subseteq> UNIV" by simp
-  show "UNIV \<subseteq> A"
-  proof
-    fix x
-    show "x \<in> A"
-    proof (rule ccontr)
-      assume "x \<notin> A"
-      then have "A \<subset> UNIV" by auto
-      with fin have "card A < card (UNIV :: 'a set)" by (fact psubset_card_mono)
-      with card show False by simp
-    qed
-  qed
-qed
-
-text{*The form of a finite set of given cardinality*}
-
-lemma card_eq_SucD:
-assumes "card A = Suc k"
-shows "\<exists>b B. A = insert b B & b \<notin> B & card B = k & (k=0 \<longrightarrow> B={})"
-proof -
-  have fin: "finite A" using assms by (auto intro: ccontr)
-  moreover have "card A \<noteq> 0" using assms by auto
-  ultimately obtain b where b: "b \<in> A" by auto
-  show ?thesis
-  proof (intro exI conjI)
-    show "A = insert b (A-{b})" using b by blast
-    show "b \<notin> A - {b}" by blast
-    show "card (A - {b}) = k" and "k = 0 \<longrightarrow> A - {b} = {}"
-      using assms b fin by(fastsimp dest:mk_disjoint_insert)+
-  qed
-qed
-
-lemma card_Suc_eq:
-  "(card A = Suc k) =
-   (\<exists>b B. A = insert b B & b \<notin> B & card B = k & (k=0 \<longrightarrow> B={}))"
-apply(rule iffI)
- apply(erule card_eq_SucD)
-apply(auto)
-apply(subst card_insert)
- apply(auto intro:ccontr)
-done
-
-lemma finite_fun_UNIVD2:
-  assumes fin: "finite (UNIV :: ('a \<Rightarrow> 'b) set)"
-  shows "finite (UNIV :: 'b set)"
-proof -
-  from fin have "finite (range (\<lambda>f :: 'a \<Rightarrow> 'b. f arbitrary))"
-    by(rule finite_imageI)
-  moreover have "UNIV = range (\<lambda>f :: 'a \<Rightarrow> 'b. f arbitrary)"
-    by(rule UNIV_eq_I) auto
-  ultimately show "finite (UNIV :: 'b set)" by simp
-qed
-
-lemma setsum_constant [simp]: "(\<Sum>x \<in> A. y) = of_nat(card A) * y"
-apply (cases "finite A")
-apply (erule finite_induct)
-apply (auto simp add: algebra_simps)
-done
-
 lemma setprod_constant: "finite A ==> (\<Prod>x\<in> A. (y::'a::{comm_monoid_mult})) = y^(card A)"
 apply (erule finite_induct)
 apply auto
@@ -1272,207 +1122,6 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-
-lemma setsum_bounded:
-  assumes le: "\<And>i. i\<in>A \<Longrightarrow> f i \<le> (K::'a::{semiring_1, ordered_ab_semigroup_add})"
-  shows "setsum f A \<le> of_nat(card A) * K"
-proof (cases "finite A")
-  case True
-  thus ?thesis using le setsum_mono[where K=A and g = "%x. K"] by simp
-next
-  case False thus ?thesis by (simp add: setsum_def)
-qed
-
-
-lemma card_UNIV_unit: "card (UNIV :: unit set) = 1"
-  unfolding UNIV_unit by simp
-
-
-subsubsection {* Cardinality of unions *}
-
-lemma card_UN_disjoint:
-  "finite I ==> (ALL i:I. finite (A i)) ==>
-   (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {})
-   ==> card (UNION I A) = (\<Sum>i\<in>I. card(A i))"
-apply (simp add: card_def del: setsum_constant)
-apply (subgoal_tac
-         "setsum (%i. card (A i)) I = setsum (%i. (setsum (%x. 1) (A i))) I")
-apply (simp add: setsum_UN_disjoint del: setsum_constant)
-apply (simp cong: setsum_cong)
-done
-
-lemma card_Union_disjoint:
-  "finite C ==> (ALL A:C. finite A) ==>
-   (ALL A:C. ALL B:C. A \<noteq> B --> A Int B = {})
-   ==> card (Union C) = setsum card C"
-apply (frule card_UN_disjoint [of C id])
-apply (unfold Union_def id_def, assumption+)
-done
-
-
-subsubsection {* Cardinality of image *}
-
-text{*The image of a finite set can be expressed using @{term fold_image}.*}
-lemma image_eq_fold_image:
-  "finite A ==> f ` A = fold_image (op Un) (%x. {f x}) {} A"
-proof (induct rule: finite_induct)
-  case empty then show ?case by simp
-next
-  interpret ab_semigroup_mult "op Un"
-    proof qed auto
-  case insert 
-  then show ?case by simp
-qed
-
-lemma card_image_le: "finite A ==> card (f ` A) <= card A"
-apply (induct set: finite)
- apply simp
-apply (simp add: le_SucI card_insert_if)
-done
-
-lemma card_image: "inj_on f A ==> card (f ` A) = card A"
-by(simp add:card_def setsum_reindex o_def del:setsum_constant)
-
-lemma bij_betw_same_card: "bij_betw f A B \<Longrightarrow> card A = card B"
-by(auto simp: card_image bij_betw_def)
-
-lemma endo_inj_surj: "finite A ==> f ` A \<subseteq> A ==> inj_on f A ==> f ` A = A"
-by (simp add: card_seteq card_image)
-
-lemma eq_card_imp_inj_on:
-  "[| finite A; card(f ` A) = card A |] ==> inj_on f A"
-apply (induct rule:finite_induct)
-apply simp
-apply(frule card_image_le[where f = f])
-apply(simp add:card_insert_if split:if_splits)
-done
-
-lemma inj_on_iff_eq_card:
-  "finite A ==> inj_on f A = (card(f ` A) = card A)"
-by(blast intro: card_image eq_card_imp_inj_on)
-
-
-lemma card_inj_on_le:
-  "[|inj_on f A; f ` A \<subseteq> B; finite B |] ==> card A \<le> card B"
-apply (subgoal_tac "finite A") 
- apply (force intro: card_mono simp add: card_image [symmetric])
-apply (blast intro: finite_imageD dest: finite_subset) 
-done
-
-lemma card_bij_eq:
-  "[|inj_on f A; f ` A \<subseteq> B; inj_on g B; g ` B \<subseteq> A;
-     finite A; finite B |] ==> card A = card B"
-by (auto intro: le_antisym card_inj_on_le)
-
-
-subsubsection {* Cardinality of products *}
-
-(*
-lemma SigmaI_insert: "y \<notin> A ==>
-  (SIGMA x:(insert y A). B x) = (({y} <*> (B y)) \<union> (SIGMA x: A. B x))"
-  by auto
-*)
-
-lemma card_SigmaI [simp]:
-  "\<lbrakk> finite A; ALL a:A. finite (B a) \<rbrakk>
-  \<Longrightarrow> card (SIGMA x: A. B x) = (\<Sum>a\<in>A. card (B a))"
-by(simp add:card_def setsum_Sigma del:setsum_constant)
-
-lemma card_cartesian_product: "card (A <*> B) = card(A) * card(B)"
-apply (cases "finite A") 
-apply (cases "finite B") 
-apply (auto simp add: card_eq_0_iff
-            dest: finite_cartesian_productD1 finite_cartesian_productD2)
-done
-
-lemma card_cartesian_product_singleton:  "card({x} <*> A) = card(A)"
-by (simp add: card_cartesian_product)
-
-
-subsubsection {* Cardinality of sums *}
-
-lemma card_Plus:
-  assumes "finite A" and "finite B"
-  shows "card (A <+> B) = card A + card B"
-proof -
-  have "Inl`A \<inter> Inr`B = {}" by fast
-  with assms show ?thesis
-    unfolding Plus_def
-    by (simp add: card_Un_disjoint card_image)
-qed
-
-lemma card_Plus_conv_if:
-  "card (A <+> B) = (if finite A \<and> finite B then card(A) + card(B) else 0)"
-by(auto simp: card_def setsum_Plus simp del: setsum_constant)
-
-
-subsubsection {* Cardinality of the Powerset *}
-
-lemma card_Pow: "finite A ==> card (Pow A) = Suc (Suc 0) ^ card A"  (* FIXME numeral 2 (!?) *)
-apply (induct set: finite)
- apply (simp_all add: Pow_insert)
-apply (subst card_Un_disjoint, blast)
-  apply (blast intro: finite_imageI, blast)
-apply (subgoal_tac "inj_on (insert x) (Pow F)")
- apply (simp add: card_image Pow_insert)
-apply (unfold inj_on_def)
-apply (blast elim!: equalityE)
-done
-
-text {* Relates to equivalence classes.  Based on a theorem of F. Kammüller.  *}
-
-lemma dvd_partition:
-  "finite (Union C) ==>
-    ALL c : C. k dvd card c ==>
-    (ALL c1: C. ALL c2: C. c1 \<noteq> c2 --> c1 Int c2 = {}) ==>
-  k dvd card (Union C)"
-apply(frule finite_UnionD)
-apply(rotate_tac -1)
-apply (induct set: finite, simp_all, clarify)
-apply (subst card_Un_disjoint)
-   apply (auto simp add: disjoint_eq_subset_Compl)
-done
-
-
-subsubsection {* Relating injectivity and surjectivity *}
-
-lemma finite_surj_inj: "finite(A) \<Longrightarrow> A <= f`A \<Longrightarrow> inj_on f A"
-apply(rule eq_card_imp_inj_on, assumption)
-apply(frule finite_imageI)
-apply(drule (1) card_seteq)
- apply(erule card_image_le)
-apply simp
-done
-
-lemma finite_UNIV_surj_inj: fixes f :: "'a \<Rightarrow> 'a"
-shows "finite(UNIV:: 'a set) \<Longrightarrow> surj f \<Longrightarrow> inj f"
-by (blast intro: finite_surj_inj subset_UNIV dest:surj_range)
-
-lemma finite_UNIV_inj_surj: fixes f :: "'a \<Rightarrow> 'a"
-shows "finite(UNIV:: 'a set) \<Longrightarrow> inj f \<Longrightarrow> surj f"
-by(fastsimp simp:surj_def dest!: endo_inj_surj)
-
-corollary infinite_UNIV_nat[iff]: "~finite(UNIV::nat set)"
-proof
-  assume "finite(UNIV::nat set)"
-  with finite_UNIV_inj_surj[of Suc]
-  show False by simp (blast dest: Suc_neq_Zero surjD)
-qed
-
-(* Often leads to bogus ATP proofs because of reduced type information, hence noatp *)
-lemma infinite_UNIV_char_0[noatp]:
-  "\<not> finite (UNIV::'a::semiring_char_0 set)"
-proof
-  assume "finite (UNIV::'a set)"
-  with subset_UNIV have "finite (range of_nat::'a set)"
-    by (rule finite_subset)
-  moreover have "inj (of_nat::nat \<Rightarrow> 'a)"
-    by (simp add: inj_on_def)
-  ultimately have "finite (UNIV::nat set)"
-    by (rule finite_imageD)
-  then show "False"
-    by simp
-qed
 
 subsubsection {* Fold1 in lattices with @{const inf} and @{const sup} *}
 
