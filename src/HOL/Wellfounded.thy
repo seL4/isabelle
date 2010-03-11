@@ -8,7 +8,7 @@
 header {*Well-founded Recursion*}
 
 theory Wellfounded
-imports Finite_Set Transitive_Closure
+imports Transitive_Closure
 uses ("Tools/Function/size.ML")
 begin
 

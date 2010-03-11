@@ -10,7 +10,7 @@ text {* Auxiliary. *}
 
 lemma add_setsum_orient:
   "setsum f {k..<j} + setsum f {l..<k} = setsum f {l..<k} + setsum f {k..<j}"
-  by (fact plus.commute)
+  by (fact add.commute)
 
 lemma add_setsum_int:
   fixes j k l :: int
