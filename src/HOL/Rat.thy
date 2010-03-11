@@ -1104,11 +1104,11 @@ end
 
 lemma rat_less_eq_code [code]:
   "p \<le> q \<longleftrightarrow> (let (a, c) = quotient_of p; (b, d) = quotient_of q in a * d \<le> c * b)"
-  by (cases p, cases q) (simp add: quotient_of_Fract times.commute)
+  by (cases p, cases q) (simp add: quotient_of_Fract mult.commute)
 
 lemma rat_less_code [code]:
   "p < q \<longleftrightarrow> (let (a, c) = quotient_of p; (b, d) = quotient_of q in a * d < c * b)"
-  by (cases p, cases q) (simp add: quotient_of_Fract times.commute)
+  by (cases p, cases q) (simp add: quotient_of_Fract mult.commute)
 
 lemma [code]:
   "of_rat p = (let (a, b) = quotient_of p in of_int a / of_int b)"
