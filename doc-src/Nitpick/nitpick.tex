@@ -150,12 +150,12 @@ as follows:
 \textbf{begin}
 \postw
 
-The results presented here were obtained using the JNI version of MiniSat and
-with multithreading disabled to reduce nondeterminism and a time limit of
-15~seconds (instead of 30~seconds). This was done by adding the line
+The results presented here were obtained using the JNI (Java Native Interface)
+version of MiniSat and with multithreading disabled to reduce nondeterminism.
+This was done by adding the line
 
 \prew
-\textbf{nitpick\_params} [\textit{sat\_solver}~= \textit{MiniSat\_JNI}, \,\textit{max\_threads}~= 1, \,\textit{timeout} = 15$\,s$]
+\textbf{nitpick\_params} [\textit{sat\_solver}~= \textit{MiniSat\_JNI}, \,\textit{max\_threads}~= 1]
 \postw
 
 after the \textbf{begin} keyword. The JNI version of MiniSat is bundled with
@@ -2203,11 +2203,9 @@ Enabling this option effectively enables \textit{show\_skolems},
 Specifies the maximum number of potential counterexamples to display. Setting
 this option to 0 speeds up the search for a genuine counterexample. This option
 is implicitly set to 0 for automatic runs. If you set this option to a value
-greater than 1, you will need an incremental SAT solver: For efficiency, it is
-recommended to install the JNI version of MiniSat and set \textit{sat\_solver} =
-\textit{MiniSat\_JNI}. Also be aware that many of the counterexamples may look
-identical, unless the \textit{show\_all} (\S\ref{output-format}) option is
-enabled.
+greater than 1, you will need an incremental SAT solver, such as
+\textit{MiniSat\_JNI} (recommended) and \textit{SAT4J}. Be aware that many of
+the counterexamples may be identical.
 
 \nopagebreak
 {\small See also \textit{check\_potential} (\S\ref{authentication}) and
@@ -2215,11 +2213,9 @@ enabled.
 
 \opdefault{max\_genuine}{int}{$\mathbf{1}$}
 Specifies the maximum number of genuine counterexamples to display. If you set
-this option to a value greater than 1, you will need an incremental SAT solver:
-For efficiency, it is recommended to install the JNI version of MiniSat and set
-\textit{sat\_solver} = \textit{MiniSat\_JNI}. Also be aware that many of the
-counterexamples may look identical, unless the \textit{show\_all}
-(\S\ref{output-format}) option is enabled.
+this option to a value greater than 1, you will need an incremental SAT solver,
+such as \textit{MiniSat\_JNI} (recommended) and \textit{SAT4J}. Be aware that
+many of the counterexamples may be identical.
 
 \nopagebreak
 {\small See also \textit{check\_genuine} (\S\ref{authentication}) and
@@ -2330,13 +2326,11 @@ The \cpp{} sources and executables for MiniSat are available at
 and 2.0 beta (2007-07-21).
 
 \item[$\bullet$] \textbf{\textit{MiniSat\_JNI}}: The JNI (Java Native Interface)
-version of MiniSat is bundled in \texttt{nativesolver.\allowbreak tgz}, which
-you will find on Kodkod's web site \cite{kodkod-2009}. Unlike the standard
+version of MiniSat is bundled with Kodkodi and is precompiled for the major
+platforms. It is also available from \texttt{native\-solver.\allowbreak tgz},
+which you will find on Kodkod's web site \cite{kodkod-2009}. Unlike the standard
 version of MiniSat, the JNI version can be used incrementally.
 
-%%% No longer true:
-%%% "It is bundled with Kodkodi and requires no further installation or
-%%% configuration steps. Alternatively,"
 \item[$\bullet$] \textbf{\textit{PicoSAT}}: PicoSAT is an efficient solver
 written in C. You can install a standard version of
 PicoSAT and set the environment variable \texttt{PICOSAT\_HOME} to the directory
@@ -2355,8 +2349,9 @@ The \cpp{} sources and executables for zChaff are available at
 versions 2004-05-13, 2004-11-15, and 2007-03-12.
 
 \item[$\bullet$] \textbf{\textit{zChaff\_JNI}}: The JNI version of zChaff is
-bundled in \texttt{native\-solver.\allowbreak tgz}, which you will find on
-Kodkod's web site \cite{kodkod-2009}.
+bundled with Kodkodi and is precompiled for the major
+platforms. It is also available from \texttt{native\-solver.\allowbreak tgz},
+which you will find on Kodkod's web site \cite{kodkod-2009}.
 
 \item[$\bullet$] \textbf{\textit{RSat}}: RSat is an efficient solver written in
 \cpp{}. To use RSat, set the environment variable \texttt{RSAT\_HOME} to the

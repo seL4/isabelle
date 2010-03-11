@@ -13,7 +13,7 @@ begin
 
 chapter {* 3. First Steps *}
 
-nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1, timeout = 15 s]
+nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1]
 
 subsection {* 3.1. Propositional Logic *}
 
@@ -136,11 +136,11 @@ inductive even where
 "even n \<Longrightarrow> even (Suc (Suc n))"
 
 lemma "\<exists>n. even n \<and> even (Suc n)"
-nitpick [card nat = 100, unary_ints, verbose, expect = potential]
+nitpick [card nat = 50, unary_ints, verbose, expect = potential]
 oops
 
-lemma "\<exists>n \<le> 99. even n \<and> even (Suc n)"
-nitpick [card nat = 100, unary_ints, verbose, expect = genuine]
+lemma "\<exists>n \<le> 49. even n \<and> even (Suc n)"
+nitpick [card nat = 50, unary_ints, verbose, expect = genuine]
 oops
 
 inductive even' where
@@ -243,7 +243,7 @@ primrec subst\<^isub>2 where
 "subst\<^isub>2 \<sigma> (App t u) = App (subst\<^isub>2 \<sigma> t) (subst\<^isub>2 \<sigma> u)"
 
 lemma "\<not> loose t 0 \<Longrightarrow> subst\<^isub>2 \<sigma> t = t"
-nitpick [card = 1\<midarrow>6, expect = none]
+nitpick [card = 1\<midarrow>5, expect = none]
 sorry
 
 subsection {* 3.11. Scope Monotonicity *}
@@ -317,7 +317,7 @@ proof (induct t)
   case Leaf thus ?case by simp
 next
   case (Branch t u) thus ?case
-  nitpick [non_std, show_all]
+  nitpick [non_std, card = 1\<midarrow>5, expect = none]
   by auto
 qed
 
@@ -365,7 +365,7 @@ inductive_set S\<^isub>3 and A\<^isub>3 and B\<^isub>3 where
 
 theorem S\<^isub>3_sound:
 "w \<in> S\<^isub>3 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-nitpick
+nitpick [card = 1\<midarrow>6, expect = none]
 sorry
 
 theorem S\<^isub>3_complete:
@@ -384,19 +384,19 @@ inductive_set S\<^isub>4 and A\<^isub>4 and B\<^isub>4 where
 
 theorem S\<^isub>4_sound:
 "w \<in> S\<^isub>4 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-nitpick
+nitpick [card = 1\<midarrow>6, expect = none]
 sorry
 
 theorem S\<^isub>4_complete:
 "length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^isub>4"
-nitpick
+nitpick [card = 1\<midarrow>6, expect = none]
 sorry
 
 theorem S\<^isub>4_A\<^isub>4_B\<^isub>4_sound_and_complete:
 "w \<in> S\<^isub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 "w \<in> A\<^isub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] + 1"
 "w \<in> B\<^isub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = b] = length [x \<leftarrow> w. x = a] + 1"
-nitpick
+nitpick [card = 1\<midarrow>6, expect = none]
 sorry
 
 subsection {* 4.2. AA Trees *}
@@ -450,13 +450,13 @@ fun split where
 theorem dataset_skew_split:
 "dataset (skew t) = dataset t"
 "dataset (split t) = dataset t"
-nitpick
+nitpick [card = 1\<midarrow>6, expect = none]
 sorry
 
 theorem wf_skew_split:
 "wf t \<Longrightarrow> skew t = t"
 "wf t \<Longrightarrow> split t = t"
-nitpick
+nitpick [card = 1\<midarrow>6, expect = none]
 sorry
 
 primrec insort\<^isub>1 where
@@ -480,11 +480,11 @@ primrec insort\<^isub>2 where
                        (if x > y then insort\<^isub>2 u x else u))"
 
 theorem wf_insort\<^isub>2: "wf t \<Longrightarrow> wf (insort\<^isub>2 t x)"
-nitpick
+nitpick [card = 1\<midarrow>6, expect = none]
 sorry
 
 theorem dataset_insort\<^isub>2: "dataset (insort\<^isub>2 t x) = {x} \<union> dataset t"
-nitpick
+nitpick [card = 1\<midarrow>6, expect = none]
 sorry
 
 end
