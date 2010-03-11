@@ -324,8 +324,7 @@ fun close_derivation thm =
 
 fun add_axiom (b, prop) thy =
   let
-    val b' = if Binding.is_empty b
-      then Binding.name ("axiom_" ^ serial_string ()) else b;
+    val b' = if Binding.is_empty b then Binding.name ("axiom_" ^ serial_string ()) else b;
     val thy' = thy |> Theory.add_axioms_i [(b', prop)];
     val axm = unvarify (Thm.axiom thy' (Sign.full_name thy' b'));
   in (axm, thy') end;

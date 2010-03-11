@@ -17,7 +17,7 @@ sig
   val fixed_abbrev: (binding * mixfix) * term -> Proof.context ->
     (term * term) * Proof.context
   val export: Proof.context -> Proof.context -> thm -> thm list * thm
-  val export_cterm: Proof.context -> Proof.context -> cterm -> cterm * thm
+  val export_cterm: Proof.context -> Proof.context -> cterm -> thm list * cterm
   val trans_terms: Proof.context -> thm list -> thm
   val trans_props: Proof.context -> thm list -> thm
   val print_rules: Proof.context -> unit
@@ -155,8 +155,7 @@ fun export inner outer =    (*beware of closure sizes*)
      TERM b as          b xs == b as
 *)
 fun export_cterm inner outer ct =
-  let val (defs, ct') = export inner outer (Drule.mk_term ct) ||> Drule.dest_term
-  in (ct', MetaSimplifier.rewrite true defs ct) end;
+  export inner outer (Drule.mk_term ct) ||> Drule.dest_term;
 
 
 (* basic transitivity reasoning -- modulo beta-eta *)

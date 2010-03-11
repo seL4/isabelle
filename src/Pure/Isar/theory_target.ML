@@ -278,8 +278,11 @@ fun define ta ((b, mx), ((name, atts), rhs)) lthy =
     val thy_ctxt = ProofContext.init thy;
 
     val name' = Thm.def_binding_optional b name;
-    val (rhs', rhs_conv) =
-      Local_Defs.export_cterm lthy thy_ctxt (Thm.cterm_of thy rhs) |>> Thm.term_of;
+
+    val crhs = Thm.cterm_of thy rhs;
+    val (defs, rhs') = Local_Defs.export_cterm lthy thy_ctxt crhs ||> Thm.term_of;
+    val rhs_conv = MetaSimplifier.rewrite true defs crhs;
+
     val xs = Variable.add_fixed (Local_Theory.target_of lthy) rhs' [];
     val T = Term.fastype_of rhs;
 
