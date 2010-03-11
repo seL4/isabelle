@@ -319,6 +319,8 @@ type 'a fold_expr_funcs = {
   int_expr_func: int_expr -> 'a -> 'a
 }
 
+(** Auxiliary functions on ML representation of Kodkod problems **)
+
 (* 'a fold_expr_funcs -> formula -> 'a -> 'a *)
 fun fold_formula (F : 'a fold_expr_funcs) formula =
   case formula of
@@ -512,18 +514,7 @@ fun problems_equivalent (p1 : problem) (p2 : problem) =
   filter (is_relevant_setting o fst) (#settings p1)
   = filter (is_relevant_setting o fst) (#settings p2)
 
-val created_temp_dir = Unsynchronized.ref false
-
-(* bool -> string * string *)
-fun serial_string_and_temporary_dir_for_overlord overlord =
-  if overlord then
-    ("", getenv "ISABELLE_HOME_USER")
-  else
-    let
-      val dir = getenv "ISABELLE_TMP"
-      val _ = if !created_temp_dir then ()
-              else (created_temp_dir := true; File.mkdir (Path.explode dir))
-    in (serial_string (), dir) end
+(** Serialization of problem **)
 
 (* int -> string *)
 fun base_name j =
@@ -901,6 +892,8 @@ fun write_problem_file out problems =
     map out_problem problems
   end
 
+(** Parsing of solution **)
+
 (* string -> bool *)
 fun is_ident_char s =
   Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s orelse
@@ -1015,6 +1008,21 @@ fun read_output_file path =
 (* The fudge term below is to account for Kodkodi's slow start-up time, which
    is partly due to the JVM and partly due to the ML "bash" function. *)
 val fudge_ms = 250
+
+(** Main Kodkod entry point **)
+
+val created_temp_dir = Unsynchronized.ref false
+
+(* bool -> string * string *)
+fun serial_string_and_temporary_dir_for_overlord overlord =
+  if overlord then
+    ("", getenv "ISABELLE_HOME_USER")
+  else
+    let
+      val dir = getenv "ISABELLE_TMP"
+      val _ = if !created_temp_dir then ()
+              else (created_temp_dir := true; File.mkdir (Path.explode dir))
+    in (serial_string (), dir) end
 
 (* bool -> Time.time option -> int -> int -> problem list -> outcome *)
 fun solve_any_problem overlord deadline max_threads max_solutions problems =

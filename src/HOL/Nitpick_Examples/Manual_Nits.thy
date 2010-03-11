@@ -280,19 +280,19 @@ inductive_set reach where
 "n \<in> reach \<Longrightarrow> n + 2 \<in> reach"
 
 lemma "n \<in> reach \<Longrightarrow> 2 dvd n"
-nitpick [unary_ints, expect = none]
+nitpick [card = 1\<midarrow>5, bits = 1\<midarrow>5, expect = none]
 apply (induct set: reach)
   apply auto
- nitpick [expect = none]
+ nitpick [card = 1\<midarrow>5, bits = 1\<midarrow>5, expect = none]
  apply (thin_tac "n \<in> reach")
  nitpick [expect = genuine]
 oops
 
 lemma "n \<in> reach \<Longrightarrow> 2 dvd n \<and> n \<noteq> 0"
-nitpick [unary_ints, expect = none]
+nitpick [card = 1\<midarrow>5, bits = 1\<midarrow>5, expect = none]
 apply (induct set: reach)
   apply auto
- nitpick [expect = none]
+ nitpick [card = 1\<midarrow>5, bits = 1\<midarrow>5, expect = none]
  apply (thin_tac "n \<in> reach")
  nitpick [expect = genuine]
 oops

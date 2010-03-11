@@ -72,6 +72,7 @@ val maybe_mixfix = "_\<^sup>?"
 val base_mixfix = "_\<^bsub>base\<^esub>"
 val step_mixfix = "_\<^bsub>step\<^esub>"
 val abs_mixfix = "\<guillemotleft>_\<guillemotright>"
+val arg_var_prefix = "x"
 val cyclic_co_val_name = "\<omega>"
 val cyclic_const_prefix = "\<xi>"
 val cyclic_type_name = nitpick_prefix ^ cyclic_const_prefix
@@ -79,6 +80,31 @@ val opt_flag = nitpick_prefix ^ "opt"
 val non_opt_flag = nitpick_prefix ^ "non_opt"
 
 type atom_pool = ((string * int) * int list) list
+
+(* Proof.context -> ((string * string) * (string * string)) * Proof.context *)
+fun add_wacky_syntax ctxt =
+  let
+    (* term -> string *)
+    val name_of = fst o dest_Const
+    val thy = ProofContext.theory_of ctxt |> Context.reject_draft
+    val (maybe_t, thy) =
+      Sign.declare_const ((@{binding nitpick_maybe}, @{typ "'a => 'a"}),
+                          Mixfix (maybe_mixfix, [1000], 1000)) thy
+    val (abs_t, thy) =
+      Sign.declare_const ((@{binding nitpick_abs}, @{typ "'a => 'b"}),
+                          Mixfix (abs_mixfix, [40], 40)) thy
+    val (base_t, thy) =
+      Sign.declare_const ((@{binding nitpick_base}, @{typ "'a => 'a"}),
+                          Mixfix (base_mixfix, [1000], 1000)) thy
+    val (step_t, thy) =
+      Sign.declare_const ((@{binding nitpick_step}, @{typ "'a => 'a"}),
+                          Mixfix (step_mixfix, [1000], 1000)) thy
+  in
+    (pairself (pairself name_of) ((maybe_t, abs_t), (base_t, step_t)),
+     ProofContext.transfer_syntax thy ctxt)
+  end
+
+(** Term reconstruction **)
 
 (* atom_pool Unsynchronized.ref -> string -> int -> int -> string *)
 fun nth_atom_suffix pool s j k =
@@ -646,6 +672,211 @@ and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
     oooo term_for_rep true []
   end
 
+(** Constant postprocessing **)
+
+(* int -> typ -> typ list *)
+fun dest_n_tuple_type 1 T = [T]
+  | dest_n_tuple_type n (Type (_, [T1, T2])) =
+    T1 :: dest_n_tuple_type (n - 1) T2
+  | dest_n_tuple_type _ T =
+    raise TYPE ("Nitpick_Model.dest_n_tuple_type", [T], [])
+
+(* theory -> const_table -> styp -> int list *)
+fun const_format thy def_table (x as (s, T)) =
+  if String.isPrefix unrolled_prefix s then
+    const_format thy def_table (original_name s, range_type T)
+  else if String.isPrefix skolem_prefix s then
+    let
+      val k = unprefix skolem_prefix s
+              |> strip_first_name_sep |> fst |> space_explode "@"
+              |> hd |> Int.fromString |> the
+    in [k, num_binder_types T - k] end
+  else if original_name s <> s then
+    [num_binder_types T]
+  else case def_of_const thy def_table x of
+    SOME t' => if fixpoint_kind_of_rhs t' <> NoFp then
+                 let val k = length (strip_abs_vars t') in
+                   [k, num_binder_types T - k]
+                 end
+               else
+                 [num_binder_types T]
+  | NONE => [num_binder_types T]
+(* int list -> int list -> int list *)
+fun intersect_formats _ [] = []
+  | intersect_formats [] _ = []
+  | intersect_formats ks1 ks2 =
+    let val ((ks1', k1), (ks2', k2)) = pairself split_last (ks1, ks2) in
+      intersect_formats (ks1' @ (if k1 > k2 then [k1 - k2] else []))
+                        (ks2' @ (if k2 > k1 then [k2 - k1] else [])) @
+      [Int.min (k1, k2)]
+    end
+
+(* theory -> const_table -> (term option * int list) list -> term -> int list *)
+fun lookup_format thy def_table formats t =
+  case AList.lookup (fn (SOME x, SOME y) =>
+                        (term_match thy) (x, y) | _ => false)
+                    formats (SOME t) of
+    SOME format => format
+  | NONE => let val format = the (AList.lookup (op =) formats NONE) in
+              case t of
+                Const x => intersect_formats format
+                                             (const_format thy def_table x)
+              | _ => format
+            end
+
+(* int list -> int list -> typ -> typ *)
+fun format_type default_format format T =
+  let
+    val T = uniterize_unarize_unbox_etc_type T
+    val format = format |> filter (curry (op <) 0)
+  in
+    if forall (curry (op =) 1) format then
+      T
+    else
+      let
+        val (binder_Ts, body_T) = strip_type T
+        val batched =
+          binder_Ts
+          |> map (format_type default_format default_format)
+          |> rev |> chunk_list_unevenly (rev format)
+          |> map (HOLogic.mk_tupleT o rev)
+      in List.foldl (op -->) body_T batched end
+  end
+(* theory -> const_table -> (term option * int list) list -> term -> typ *)
+fun format_term_type thy def_table formats t =
+  format_type (the (AList.lookup (op =) formats NONE))
+              (lookup_format thy def_table formats t) (fastype_of t)
+
+(* int list -> int -> int list -> int list *)
+fun repair_special_format js m format =
+  m - 1 downto 0 |> chunk_list_unevenly (rev format)
+                 |> map (rev o filter_out (member (op =) js))
+                 |> filter_out null |> map length |> rev
+
+(* hol_context -> string * string -> (term option * int list) list
+   -> styp -> term * typ *)
+fun user_friendly_const ({thy, evals, def_table, skolems, special_funs, ...}
+                         : hol_context) (base_name, step_name) formats =
+  let
+    val default_format = the (AList.lookup (op =) formats NONE)
+    (* styp -> term * typ *)
+    fun do_const (x as (s, T)) =
+      (if String.isPrefix special_prefix s then
+         let
+           (* term -> term *)
+           val do_term = map_aterms (fn Const x => fst (do_const x) | t' => t')
+           val (x' as (_, T'), js, ts) =
+             AList.find (op =) (!special_funs) (s, unarize_unbox_etc_type T)
+             |> the_single
+           val max_j = List.last js
+           val Ts = List.take (binder_types T', max_j + 1)
+           val missing_js = filter_out (member (op =) js) (0 upto max_j)
+           val missing_Ts = filter_indices missing_js Ts
+           (* int -> indexname *)
+           fun nth_missing_var n =
+             ((arg_var_prefix ^ nat_subscript (n + 1), 0), nth missing_Ts n)
+           val missing_vars = map nth_missing_var (0 upto length missing_js - 1)
+           val vars = special_bounds ts @ missing_vars
+           val ts' =
+             map (fn j =>
+                     case AList.lookup (op =) (js ~~ ts) j of
+                       SOME t => do_term t
+                     | NONE =>
+                       Var (nth missing_vars
+                                (find_index (curry (op =) j) missing_js)))
+                 (0 upto max_j)
+           val t = do_const x' |> fst
+           val format =
+             case AList.lookup (fn (SOME t1, SOME t2) => term_match thy (t1, t2)
+                                 | _ => false) formats (SOME t) of
+               SOME format =>
+               repair_special_format js (num_binder_types T') format
+             | NONE =>
+               const_format thy def_table x'
+               |> repair_special_format js (num_binder_types T')
+               |> intersect_formats default_format
+         in
+           (list_comb (t, ts') |> fold_rev abs_var vars,
+            format_type default_format format T)
+         end
+       else if String.isPrefix uncurry_prefix s then
+         let
+           val (ss, s') = unprefix uncurry_prefix s
+                          |> strip_first_name_sep |>> space_explode "@"
+         in
+           if String.isPrefix step_prefix s' then
+             do_const (s', T)
+           else
+             let
+               val k = the (Int.fromString (hd ss))
+               val j = the (Int.fromString (List.last ss))
+               val (before_Ts, (tuple_T, rest_T)) =
+                 strip_n_binders j T ||> (strip_n_binders 1 #>> hd)
+               val T' = before_Ts ---> dest_n_tuple_type k tuple_T ---> rest_T
+             in do_const (s', T') end
+         end
+       else if String.isPrefix unrolled_prefix s then
+         let val t = Const (original_name s, range_type T) in
+           (lambda (Free (iter_var_prefix, nat_T)) t,
+            format_type default_format
+                        (lookup_format thy def_table formats t) T)
+         end
+       else if String.isPrefix base_prefix s then
+         (Const (base_name, T --> T) $ Const (unprefix base_prefix s, T),
+          format_type default_format default_format T)
+       else if String.isPrefix step_prefix s then
+         (Const (step_name, T --> T) $ Const (unprefix step_prefix s, T),
+          format_type default_format default_format T)
+       else if String.isPrefix quot_normal_prefix s then
+         let val t = Const (nitpick_prefix ^ "normalize quotient type", T) in
+           (t, format_term_type thy def_table formats t)
+         end
+       else if String.isPrefix skolem_prefix s then
+         let
+           val ss = the (AList.lookup (op =) (!skolems) s)
+           val (Ts, Ts') = chop (length ss) (binder_types T)
+           val frees = map Free (ss ~~ Ts)
+           val s' = original_name s
+         in
+           (fold lambda frees (Const (s', Ts' ---> T)),
+            format_type default_format
+                        (lookup_format thy def_table formats (Const x)) T)
+         end
+       else if String.isPrefix eval_prefix s then
+         let
+           val t = nth evals (the (Int.fromString (unprefix eval_prefix s)))
+         in (t, format_term_type thy def_table formats t) end
+       else if s = @{const_name undefined_fast_The} then
+         (Const (nitpick_prefix ^ "The fallback", T),
+          format_type default_format
+                      (lookup_format thy def_table formats
+                           (Const (@{const_name The}, (T --> bool_T) --> T))) T)
+       else if s = @{const_name undefined_fast_Eps} then
+         (Const (nitpick_prefix ^ "Eps fallback", T),
+          format_type default_format
+                      (lookup_format thy def_table formats
+                           (Const (@{const_name Eps}, (T --> bool_T) --> T))) T)
+       else
+         let val t = Const (original_name s, T) in
+           (t, format_term_type thy def_table formats t)
+         end)
+      |>> map_types uniterize_unarize_unbox_etc_type
+      |>> shorten_names_in_term |>> Term.map_abs_vars shortest_name
+  in do_const end
+
+(* styp -> string *)
+fun assign_operator_for_const (s, T) =
+  if String.isPrefix ubfp_prefix s then
+    if is_fun_type T then "\<subseteq>" else "\<le>"
+  else if String.isPrefix lbfp_prefix s then
+    if is_fun_type T then "\<supseteq>" else "\<ge>"
+  else if original_name s <> s then
+    assign_operator_for_const (strip_first_name_sep s |> snd, T)
+  else
+    "="
+
+(** Model reconstruction **)
+
 (* atom_pool -> scope -> nut list -> nut NameTable.table -> KK.raw_bound list
    -> nut -> term *)
 fun term_for_name pool scope sel_names rel_table bounds name =
@@ -653,29 +884,6 @@ fun term_for_name pool scope sel_names rel_table bounds name =
     tuple_list_for_name rel_table bounds name
     |> reconstruct_term false pool (("", ""), ("", "")) scope sel_names
                         rel_table bounds T T (rep_of name)
-  end
-
-(* Proof.context -> ((string * string) * (string * string)) * Proof.context *)
-fun add_wacky_syntax ctxt =
-  let
-    (* term -> string *)
-    val name_of = fst o dest_Const
-    val thy = ProofContext.theory_of ctxt |> Context.reject_draft
-    val (maybe_t, thy) =
-      Sign.declare_const ((@{binding nitpick_maybe}, @{typ "'a => 'a"}),
-                          Mixfix (maybe_mixfix, [1000], 1000)) thy
-    val (abs_t, thy) =
-      Sign.declare_const ((@{binding nitpick_abs}, @{typ "'a => 'b"}),
-                          Mixfix (abs_mixfix, [40], 40)) thy
-    val (base_t, thy) =
-      Sign.declare_const ((@{binding nitpick_base}, @{typ "'a => 'a"}),
-                          Mixfix (base_mixfix, [1000], 1000)) thy
-    val (step_t, thy) =
-      Sign.declare_const ((@{binding nitpick_step}, @{typ "'a => 'a"}),
-                          Mixfix (step_mixfix, [1000], 1000)) thy
-  in
-    (pairself (pairself name_of) ((maybe_t, abs_t), (base_t, step_t)),
-     ProofContext.transfer_syntax thy ctxt)
   end
 
 (* term -> term *)
