@@ -51,7 +51,7 @@ structure Data = Generic_Data
 
 (* data lookup *)
 
-fun transfer_rules_of { inj, embed, return, cong, ... } =
+fun transfer_rules_of ({ inj, embed, return, cong, ... } : entry) =
   (inj, embed, return, cong);
 
 fun get_by_direction context (a, D) =
