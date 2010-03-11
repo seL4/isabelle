@@ -39,8 +39,9 @@ fun typedecl (b, vs, mx) lthy =
         | SOME S => AxClass.axiomatize_arity (name, replicate n S, S)))
     |> Local_Theory.checkpoint
     |> Local_Theory.type_notation true Syntax.mode_default [(T, mx)]
-    |> Local_Theory.type_syntax false
-      (fn _ => Context.mapping (Sign.type_alias b name) (ProofContext.type_alias b name))
+    |> Local_Theory.type_syntax false (fn phi =>
+        let val b' = Morphism.binding phi b
+        in Context.mapping (Sign.type_alias b' name) (ProofContext.type_alias b' name) end)
     |> ProofContext.type_alias b name
     |> Variable.declare_typ T
     |> pair T
