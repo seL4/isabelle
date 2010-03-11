@@ -16,15 +16,20 @@ sig
     show_skolems: bool,
     show_datatypes: bool,
     show_consts: bool}
-  type term_postprocessor = Proof.context -> typ -> term -> term
+  type term_postprocessor =
+    Proof.context -> string -> (typ -> term list) -> typ -> term -> term
 
   structure NameTable : TABLE
 
+  val irrelevant : string
+  val unknown : string
+  val unrep : string
   val register_term_postprocessor :
     typ -> term_postprocessor -> theory -> theory
   val unregister_term_postprocessor : typ -> theory -> theory
   val tuple_list_for_name :
     nut NameTable.table -> Kodkod.raw_bound list -> nut -> int list list
+  val dest_plain_fun : term -> bool * (term list * term list)
   val reconstruct_hol_model :
     params -> scope -> (term option * int list) list -> styp list -> nut list
     -> nut list -> nut list -> nut NameTable.table -> Kodkod.raw_bound list
@@ -51,7 +56,8 @@ type params = {
   show_datatypes: bool,
   show_consts: bool}
 
-type term_postprocessor = Proof.context -> typ -> term -> term
+type term_postprocessor =
+  Proof.context -> string -> (typ -> term list) -> typ -> term -> term
 
 structure Data = Theory_Data(
   type T = (typ * term_postprocessor) list
@@ -59,6 +65,7 @@ structure Data = Theory_Data(
   val extend = I
   fun merge (ps1, ps2) = AList.merge (op =) (K true) (ps1, ps2))
 
+val irrelevant = "_"
 val unknown = "?"
 val unrep = "\<dots>"
 val maybe_mixfix = "_\<^sup>?"
@@ -182,9 +189,9 @@ fun make_plain_fun maybe_opt T1 T2 =
     (* typ -> typ -> (term * term) list -> term *)
     fun aux T1 T2 [] =
         Const (if maybe_opt then opt_flag else non_opt_flag, T1 --> T2)
-      | aux T1 T2 ((t1, t2) :: ps) =
+      | aux T1 T2 ((t1, t2) :: tps) =
         Const (@{const_name fun_upd}, (T1 --> T2) --> T1 --> T2 --> T1 --> T2)
-        $ aux T1 T2 ps $ t1 $ t2
+        $ aux T1 T2 tps $ t1 $ t2
   in aux T1 T2 o rev end
 (* term -> bool *)
 fun is_plain_fun (Const (s, _)) = (s = opt_flag orelse s = non_opt_flag)
@@ -195,9 +202,12 @@ fun is_plain_fun (Const (s, _)) = (s = opt_flag orelse s = non_opt_flag)
 val dest_plain_fun =
   let
     (* term -> bool * (term list * term list) *)
-    fun aux (Const (s, _)) = (s <> non_opt_flag, ([], []))
+    fun aux (Abs (_, _, Const (s, _))) = (s <> irrelevant, ([], []))
+      | aux (Const (s, _)) = (s <> non_opt_flag, ([], []))
       | aux (Const (@{const_name fun_upd}, _) $ t0 $ t1 $ t2) =
-        let val (s, (ts1, ts2)) = aux t0 in (s, (t1 :: ts1, t2 :: ts2)) end
+        let val (maybe_opt, (ts1, ts2)) = aux t0 in
+          (maybe_opt, (t1 :: ts1, t2 :: ts2))
+        end
       | aux t = raise TERM ("Nitpick_Model.dest_plain_fun", [t])
   in apsnd (pairself rev) o aux end
 
@@ -227,22 +237,22 @@ fun typecast_fun (Type (@{type_name fun}, [T1', T2'])) T1 T2 t =
       (* typ -> typ -> typ -> typ -> term -> term *)
       fun do_curry T1 T1a T1b T2 t =
         let
-          val (maybe_opt, ps) = dest_plain_fun t
-          val ps =
-            ps |>> map (break_in_two T1 T1a T1b)
-               |> uncurry (map2 (fn (t1a, t1b) => fn t2 => (t1a, (t1b, t2))))
-               |> AList.coalesce (op =)
-               |> map (apsnd (make_plain_fun maybe_opt T1b T2))
-        in make_plain_fun maybe_opt T1a (T1b --> T2) ps end
+          val (maybe_opt, tsp) = dest_plain_fun t
+          val tps =
+            tsp |>> map (break_in_two T1 T1a T1b)
+                |> uncurry (map2 (fn (t1a, t1b) => fn t2 => (t1a, (t1b, t2))))
+                |> AList.coalesce (op =)
+                |> map (apsnd (make_plain_fun maybe_opt T1b T2))
+        in make_plain_fun maybe_opt T1a (T1b --> T2) tps end
       (* typ -> typ -> term -> term *)
       and do_uncurry T1 T2 t =
         let
           val (maybe_opt, tsp) = dest_plain_fun t
-          val ps =
+          val tps =
             tsp |> op ~~
                 |> maps (fn (t1, t2) =>
                             multi_pair_up T1 t1 (snd (dest_plain_fun t2)))
-        in make_plain_fun maybe_opt T1 T2 ps end
+        in make_plain_fun maybe_opt T1 T2 tps end
       (* typ -> typ -> typ -> typ -> term -> term *)
       and do_arrow T1' T2' _ _ (Const (s, _)) = Const (s, T1' --> T2')
         | do_arrow T1' T2' T1 T2
@@ -291,22 +301,37 @@ fun mk_tuple (Type (@{type_name "*"}, [T1, T2])) ts =
 (* theory -> typ * typ -> bool *)
 fun varified_type_match thy (candid_T, pat_T) =
   strict_type_match thy (candid_T, Logic.varifyT pat_T)
-(* Proof.context -> typ -> term -> term *)
-fun postprocess_term ctxt T =
-  let val thy = ProofContext.theory_of ctxt in
-    if null (Data.get thy) then
-      I
-    else
-      (T |> AList.lookup (varified_type_match thy) (Data.get thy)
-         |> the_default (K (K I))) ctxt T
-  end
 
+(* atom_pool -> (string * string) * (string * string) -> scope -> nut list
+   -> nut list -> nut list -> nut NameTable.table -> KK.raw_bound list -> typ
+   -> term list *)
+fun all_values_of_type pool wacky_names (scope as {card_assigns, ...} : scope)
+                       sel_names rel_table bounds card T =
+  let
+    val card = if card = 0 then card_of_type card_assigns T else card
+    (* nat -> term *)
+    fun nth_value_of_type n =
+      let
+        (* bool -> term *)
+        fun term unfold =
+          reconstruct_term unfold pool wacky_names scope sel_names rel_table
+                           bounds T T (Atom (card, 0)) [[n]]
+      in
+        case term false of
+          t as Const (s, _) =>
+          if String.isPrefix cyclic_const_prefix s then
+            HOLogic.mk_eq (t, term true)
+          else
+            t
+        | t => t
+      end
+  in index_seq 0 card |> map nth_value_of_type |> sort nice_term_ord end
 (* bool -> atom_pool -> (string * string) * (string * string) -> scope
    -> nut list -> nut list -> nut list -> nut NameTable.table
    -> KK.raw_bound list -> typ -> typ -> rep -> int list list -> term *)
-fun reconstruct_term unfold pool ((maybe_name, abs_name), _)
-        ({hol_ctxt as {ctxt, thy, stds, ...}, binarize, card_assigns, bits,
-          datatypes, ofs, ...} : scope) sel_names rel_table bounds =
+and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
+        (scope as {hol_ctxt as {ctxt, thy, stds, ...}, binarize, card_assigns,
+                   bits, datatypes, ofs, ...}) sel_names rel_table bounds =
   let
     val for_auto = (maybe_name = "")
     (* int list list -> int *)
@@ -318,6 +343,25 @@ fun reconstruct_term unfold pool ((maybe_name, abs_name), _)
         fold (fn j => Integer.add (reasonable_power 2 j |> j = bits ? op ~))
              js 0
       end
+    (* typ -> term list *)
+    val all_values =
+      all_values_of_type pool wacky_names scope sel_names rel_table bounds 0
+    (* typ -> term -> term *)
+    fun postprocess_term (Type (@{type_name fun}, _)) = I
+      | postprocess_term T =
+        if null (Data.get thy) then
+          I
+        else case AList.lookup (varified_type_match thy) (Data.get thy) T of
+          SOME postproc => postproc ctxt maybe_name all_values T
+        | NONE => I
+    (* typ list -> term -> term *)
+    fun postprocess_subterms Ts (t1 $ t2) =
+        let val t = postprocess_subterms Ts t1 $ postprocess_subterms Ts t2 in
+          postprocess_term (fastype_of1 (Ts, t)) t
+        end
+      | postprocess_subterms Ts (Abs (s, T, t')) =
+        Abs (s, T, postprocess_subterms (T :: Ts) t')
+      | postprocess_subterms Ts t = postprocess_term (fastype_of1 (Ts, t)) t
     (* bool -> typ -> typ -> (term * term) list -> term *)
     fun make_set maybe_opt T1 T2 tps =
       let
@@ -352,16 +396,16 @@ fun reconstruct_term unfold pool ((maybe_name, abs_name), _)
                                   (T1 --> T2) --> T1 --> T2 --> T1 --> T2)
         (* (term * term) list -> term *)
         fun aux' [] = Const (@{const_abbrev Map.empty}, T1 --> T2)
-          | aux' ((t1, t2) :: ps) =
+          | aux' ((t1, t2) :: tps) =
             (case t2 of
-               Const (@{const_name None}, _) => aux' ps
-             | _ => update_const $ aux' ps $ t1 $ t2)
-        fun aux ps =
+               Const (@{const_name None}, _) => aux' tps
+             | _ => update_const $ aux' tps $ t1 $ t2)
+        fun aux tps =
           if maybe_opt andalso not (is_complete_type datatypes false T1) then
-            update_const $ aux' ps $ Const (unrep, T1)
+            update_const $ aux' tps $ Const (unrep, T1)
             $ (Const (@{const_name Some}, T2' --> T2) $ Const (unknown, T2'))
           else
-            aux' ps
+            aux' tps
       in aux end
     (* typ list -> term -> term *)
     fun polish_funs Ts t =
@@ -396,7 +440,11 @@ fun reconstruct_term unfold pool ((maybe_name, abs_name), _)
              | Abs (s, T, t') => Abs (s, T, polish_funs (T :: Ts) t')
              | Const (s, Type (@{type_name fun}, [T1, T2])) =>
                if s = opt_flag orelse s = non_opt_flag then
-                 Abs ("x", T1, Const (unknown, T2))
+                 Abs ("x", T1,
+                      Const (if is_complete_type datatypes false T1 then
+                               irrelevant
+                             else
+                               unknown, T2))
                else
                  t
              | t => t
@@ -541,7 +589,6 @@ fun reconstruct_term unfold pool ((maybe_name, abs_name), _)
                   t
               end
           end
-          |> postprocess_term ctxt T
     (* (typ * int) list -> int -> rep -> typ -> typ -> typ -> int list
        -> term *)
     and term_for_vect seen k R T1 T2 T' js =
@@ -594,7 +641,10 @@ fun reconstruct_term unfold pool ((maybe_name, abs_name), _)
         raise ARG ("Nitpick_Model.reconstruct_term.term_for_rep",
                    Refute.string_of_typ T ^ " " ^ string_for_rep R ^ " " ^
                    string_of_int (length jss))
-  in polish_funs [] o unarize_unbox_etc_term oooo term_for_rep true [] end
+  in
+    postprocess_subterms [] o polish_funs [] o unarize_unbox_etc_term
+    oooo term_for_rep true []
+  end
 
 (* atom_pool -> scope -> nut list -> nut NameTable.table -> KK.raw_bound list
    -> nut -> term *)
@@ -702,14 +752,14 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
             t
         | t => t
       end
-    (* nat -> typ -> typ list *)
-    fun all_values_of_type card T =
-      index_seq 0 card |> map (nth_value_of_type card T) |> sort nice_term_ord
+    (* nat -> typ -> term list *)
+    val all_values =
+      all_values_of_type pool wacky_names scope sel_names rel_table bounds
     (* dtype_spec list -> dtype_spec -> bool *)
     fun is_codatatype_wellformed (cos : dtype_spec list)
                                  ({typ, card, ...} : dtype_spec) =
       let
-        val ts = all_values_of_type card typ
+        val ts = all_values card typ
         val max_depth = Integer.sum (map #card cos)
       in
         forall (not o bisimilar_values (map #typ cos) max_depth)
@@ -750,7 +800,7 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
             | _ => []) @
            [Pretty.str "=",
             Pretty.enum "," "{" "}"
-                (map (Syntax.pretty_term ctxt) (all_values_of_type card typ) @
+                (map (Syntax.pretty_term ctxt) (all_values card typ) @
                  (if fun_from_pair complete false then []
                   else [Pretty.str unrep]))]))
     (* typ -> dtype_spec list *)

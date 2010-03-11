@@ -7,6 +7,7 @@ Version 2010
   * Added support for quotient types
   * Added support for local definitions (for "function" and "termination"
     proofs)
+  * Added support for term postprocessors
   * Optimized "Multiset.multiset" and "FinFun.finfun"
   * Improved efficiency of "destroy_constrs" optimization
   * Fixed soundness bugs related to "destroy_constrs" optimization and record

@@ -1729,4 +1729,33 @@ lemma mult_less_asym:
   "M \<subset># N ==> (\<not> P ==> N \<subset># (M::'a::order multiset)) ==> P"
   by (fact multiset_order.less_asym)
 
+ML {*
+(* Proof.context -> string -> (typ -> term list) -> typ -> term -> term *)
+fun multiset_postproc _ maybe_name all_values (T as Type (_, [elem_T]))
+                      (Const _ $ t') =
+    let
+      val (maybe_opt, ps) =
+        Nitpick_Model.dest_plain_fun t' ||> op ~~
+        ||> map (apsnd (snd o HOLogic.dest_number))
+      fun elems_for t =
+        case AList.lookup (op =) ps t of
+          SOME n => replicate n t
+        | NONE => [Const (maybe_name, elem_T --> elem_T) $ t]
+    in
+      case maps elems_for (all_values elem_T) @
+           (if maybe_opt then [Const (Nitpick_Model.unrep, elem_T)] else []) of
+        [] => Const (@{const_name zero_class.zero}, T)
+      | ts => foldl1 (fn (t1, t2) =>
+                         Const (@{const_name plus_class.plus}, T --> T --> T)
+                         $ t1 $ t2)
+                     (map (curry (op $) (Const (@{const_name single},
+                                                elem_T --> T))) ts)
+    end
+  | multiset_postproc _ _ _ _ t = t
+*}
+
+setup {*
+Nitpick.register_term_postprocessor @{typ "'a multiset"} multiset_postproc
+*}
+
 end

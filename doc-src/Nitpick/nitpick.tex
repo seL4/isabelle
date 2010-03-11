@@ -137,8 +137,8 @@ in.\allowbreak tum.\allowbreak de}.
 suggesting several textual improvements.
 % and Perry James for reporting a typo.
 
-\section{Overview}
-\label{overview}
+\section{First Steps}
+\label{first-steps}
 
 This section introduces Nitpick by presenting small examples. If possible, you
 should try out the examples on your workstation. Your theory file should start
@@ -472,7 +472,7 @@ outsourced to \textit{auto} by passing \textit{check\_potential}. For example:
 
 \prew
 \textbf{lemma} ``$\forall n.\; \textit{Suc}~n \mathbin{\not=} n \,\Longrightarrow\, P$'' \\
-\textbf{nitpick} [\textit{card~nat}~= 100, \textit{check\_potential}] \\[2\smallskipamount]
+\textbf{nitpick} [\textit{card~nat}~= 50, \textit{check\_potential}] \\[2\smallskipamount]
 \slshape Warning: The conjecture either trivially holds for the given scopes or lies outside Nitpick's supported
 fragment. Only potential counterexamples may be found. \\[2\smallskipamount]
 Nitpick found a potential counterexample: \\[2\smallskipamount]
@@ -629,7 +629,7 @@ genuine counterexample for \textit{card}~$'a~\textit{list}$~= 10, it is very
 unlikely that one could be found for smaller cardinalities.
 
 \subsection{Typedefs, Quotient Types, Records, Rationals, and Reals}
-\label{typedefs-records-rationals-and-reals}
+\label{typedefs-quotient-types-records-rationals-and-reals}
 
 Nitpick generally treats types declared using \textbf{typedef} as datatypes
 whose single constructor is the corresponding \textit{Abs\_\kern.1ex} function.
@@ -684,7 +684,26 @@ natural numbers $(m, n)$ such that $x + n = m$:
 
 In the counterexample, $\Abs{(0,\, 0)}$ and $\Abs{(1,\, 0)}$ represent the
 integers $0$ and $1$, respectively. Other representants would have been
-possible---e.g., $\Abs{(5,\, 5)}$ and $\Abs{(12,\, 11)}$.
+possible---e.g., $\Abs{(5,\, 5)}$ and $\Abs{(12,\, 11)}$. If we are going to
+use \textit{my\_int} extensively, it pays off to install a term postprocessor
+that converts the pair notation to the standard mathematical notation:
+
+\prew
+$\textbf{ML}~\,\{{*} \\
+\!\begin{aligned}[t]
+%& ({*}~\,\textit{Proof.context} \rightarrow \textit{string} \rightarrow (\textit{typ} \rightarrow \textit{term~list\/}) \rightarrow \textit{typ} \rightarrow \textit{term} \\[-2pt]
+%& \phantom{(*}~\,{\rightarrow}\;\textit{term}~\,{*}) \\[-2pt]
+& \textbf{fun}\,~\textit{my\_int\_postproc}~\_~\_~\_~T~(\textit{Const}~\_~\$~(\textit{Const}~\_~\$~\textit{t1}~\$~\textit{t2\/})) = {} \\[-2pt]
+& \phantom{fun}\,~\textit{HOLogic.mk\_number}~T~(\textit{snd}~(\textit{HOLogic.dest\_number~t1}) \\[-2pt]
+& \phantom{fun\,~\textit{HOLogic.mk\_number}~T~(}{-}~\textit{snd}~(\textit{HOLogic.dest\_number~t2\/})) \\[-2pt]
+& \phantom{fun}\!{\mid}\,~\textit{my\_int\_postproc}~\_~\_~\_~\_~t = t \\[-2pt]
+{*}\}\end{aligned}$ \\[2\smallskipamount]
+$\textbf{setup}~\,\{{*} \\
+\!\begin{aligned}[t]
+& \textit{Nitpick.register\_term\_postprocessor}~\!\begin{aligned}[t]
+  & @\{\textrm{typ}~\textit{my\_int}\}~\textit{my\_int\_postproc}\end{aligned} \\[-2pt]
+{*}\}\end{aligned}$
+\postw
 
 Records are also handled as datatypes with a single constructor:
 
@@ -771,25 +790,25 @@ Let's try an example:
 
 \prew
 \textbf{lemma} ``$\exists n.\; \textit{even}~n \mathrel{\land} \textit{even}~(\textit{Suc}~n)$'' \\
-\textbf{nitpick}~[\textit{card nat}~= 100, \textit{unary\_ints}, \textit{verbose}] \\[2\smallskipamount]
+\textbf{nitpick}~[\textit{card nat}~= 50, \textit{unary\_ints}, \textit{verbose}] \\[2\smallskipamount]
 \slshape The inductive predicate ``\textit{even}'' was proved well-founded.
 Nitpick can compute it efficiently. \\[2\smallskipamount]
 Trying 1 scope: \\
-\hbox{}\qquad \textit{card nat}~= 100. \\[2\smallskipamount]
-Nitpick found a potential counterexample for \textit{card nat}~= 100: \\[2\smallskipamount]
+\hbox{}\qquad \textit{card nat}~= 50. \\[2\smallskipamount]
+Nitpick found a potential counterexample for \textit{card nat}~= 50: \\[2\smallskipamount]
 \hbox{}\qquad Empty assignment \\[2\smallskipamount]
 Nitpick could not find a better counterexample. \\[2\smallskipamount]
 Total time: 2274 ms.
 \postw
 
 No genuine counterexample is possible because Nitpick cannot rule out the
-existence of a natural number $n \ge 100$ such that both $\textit{even}~n$ and
+existence of a natural number $n \ge 50$ such that both $\textit{even}~n$ and
 $\textit{even}~(\textit{Suc}~n)$ are true. To help Nitpick, we can bound the
 existential quantifier:
 
 \prew
-\textbf{lemma} ``$\exists n \mathbin{\le} 99.\; \textit{even}~n \mathrel{\land} \textit{even}~(\textit{Suc}~n)$'' \\
-\textbf{nitpick}~[\textit{card nat}~= 100, \textit{unary\_ints}] \\[2\smallskipamount]
+\textbf{lemma} ``$\exists n \mathbin{\le} 49.\; \textit{even}~n \mathrel{\land} \textit{even}~(\textit{Suc}~n)$'' \\
+\textbf{nitpick}~[\textit{card nat}~= 50, \textit{unary\_ints}] \\[2\smallskipamount]
 \slshape Nitpick found a counterexample: \\[2\smallskipamount]
 \hbox{}\qquad Empty assignment
 \postw
@@ -1211,26 +1230,26 @@ Nitpick might be able to skip some scopes.
 Trying 8 scopes: \\
 \hbox{}\qquad \textit{card} $'a$~= 1, \textit{card} $'b$~= 1,
 \textit{card} \textit{nat}~= 1, \textit{card} ``$('a \times {'}b)$
-\textit{list}''~= 1, \\
-\hbox{}\qquad\quad \textit{card} ``\kern1pt$'a$ \textit{list}''~= 1, and
-\textit{card} ``\kern1pt$'b$ \textit{list}''~= 1. \\
+\textit{list\/}''~= 1, \\
+\hbox{}\qquad\quad \textit{card} ``\kern1pt$'a$ \textit{list\/}''~= 1, and
+\textit{card} ``\kern1pt$'b$ \textit{list\/}''~= 1. \\
 \hbox{}\qquad \textit{card} $'a$~= 2, \textit{card} $'b$~= 2,
 \textit{card} \textit{nat}~= 2, \textit{card} ``$('a \times {'}b)$
-\textit{list}''~= 2, \\
-\hbox{}\qquad\quad \textit{card} ``\kern1pt$'a$ \textit{list}''~= 2, and
-\textit{card} ``\kern1pt$'b$ \textit{list}''~= 2. \\
+\textit{list\/}''~= 2, \\
+\hbox{}\qquad\quad \textit{card} ``\kern1pt$'a$ \textit{list\/}''~= 2, and
+\textit{card} ``\kern1pt$'b$ \textit{list\/}''~= 2. \\
 \hbox{}\qquad $\qquad\vdots$ \\[.5\smallskipamount]
 \hbox{}\qquad \textit{card} $'a$~= 8, \textit{card} $'b$~= 8,
 \textit{card} \textit{nat}~= 8, \textit{card} ``$('a \times {'}b)$
-\textit{list}''~= 8, \\
-\hbox{}\qquad\quad \textit{card} ``\kern1pt$'a$ \textit{list}''~= 8, and
-\textit{card} ``\kern1pt$'b$ \textit{list}''~= 8.
+\textit{list\/}''~= 8, \\
+\hbox{}\qquad\quad \textit{card} ``\kern1pt$'a$ \textit{list\/}''~= 8, and
+\textit{card} ``\kern1pt$'b$ \textit{list\/}''~= 8.
 \\[2\smallskipamount]
 Nitpick found a counterexample for
 \textit{card} $'a$~= 5, \textit{card} $'b$~= 5,
 \textit{card} \textit{nat}~= 5, \textit{card} ``$('a \times {'}b)$
-\textit{list}''~= 5, \textit{card} ``\kern1pt$'a$ \textit{list}''~= 5, and
-\textit{card} ``\kern1pt$'b$ \textit{list}''~= 5:
+\textit{list\/}''~= 5, \textit{card} ``\kern1pt$'a$ \textit{list\/}''~= 5, and
+\textit{card} ``\kern1pt$'b$ \textit{list\/}''~= 5:
 \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
 \hbox{}\qquad\qquad $\textit{xs} = [a_1, a_2]$ \\
@@ -1851,7 +1870,7 @@ concise.
 The number of options can be overwhelming at first glance. Do not let that worry
 you: Nitpick's defaults have been chosen so that it almost always does the right
 thing, and the most important options have been covered in context in
-\S\ref{overview}.
+\S\ref{first-steps}.
 
 The descriptions below refer to the following syntactic quantities:
 
@@ -2622,7 +2641,7 @@ constant; otherwise it uses the actual definition axiom.
 
 then Nitpick assumes that the definition was made using an inductive package and
 based on the introduction rules marked with \textit{nitpick\_\allowbreak
-ind\_\allowbreak intros} tries to determine whether the definition is
+\allowbreak intros} tries to determine whether the definition is
 well-founded.
 \end{enum}
 \end{enum}
@@ -2664,7 +2683,8 @@ on when experimenting with \textit{nitpick\_} attributes.
 Nitpick provides a rich Standard ML interface used mainly for internal purposes
 and debugging. Among the most interesting functions exported by Nitpick are
 those that let you invoke the tool programmatically and those that let you
-register and unregister custom coinductive datatypes.
+register and unregister custom coinductive datatypes as well as term
+postprocessors.
 
 \subsection{Invocation of Nitpick}
 \label{invocation-of-nitpick}
@@ -2695,7 +2715,7 @@ The second argument lets you override option values before they are parsed and
 put into a \textit{params} record. Here is an example:
 
 \prew
-$\textbf{val}\,~\textit{params} = \textit{Nitpick\_Isar.default\_params}~\textit{thy}~[(\textrm{``}\textrm{timeout}\textrm{''},\, \textrm{``}\textrm{none}\textrm{''})]$ \\
+$\textbf{val}\,~\textit{params} = \textit{Nitpick\_Isar.default\_params}~\textit{thy}~[(\textrm{``}\textrm{timeout\/}\textrm{''},\, \textrm{``}\textrm{none}\textrm{''})]$ \\
 $\textbf{val}\,~(\textit{outcome},\, \textit{state}') = \textit{Nitpick.pick\_nits\_in\_subgoal}~\begin{aligned}[t]
 & \textit{state}~\textit{params}~\textit{false} \\[-2pt]
 & \textit{subgoal}\end{aligned}$
@@ -2726,7 +2746,7 @@ to your theory file:
 \prew
 $\textbf{setup}~\,\{{*}\,~\!\begin{aligned}[t]
 & \textit{Nitpick.register\_codatatype} \\[-2pt]
-& \qquad @\{\antiq{typ}~``\kern1pt'a~\textit{llist}\textrm{''}\}~@\{\antiq{const\_name}~ \textit{llist\_case}\} \\[-2pt] %% TYPESETTING
+& \qquad @\{\antiq{typ}~``\kern1pt'a~\textit{llist\/}\textrm{''}\}~@\{\antiq{const\_name}~ \textit{llist\_case}\} \\[-2pt] %% TYPESETTING
 & \qquad (\textit{map}~\textit{dest\_Const}~[@\{\antiq{term}~\textit{LNil}\},\, @\{\antiq{term}~\textit{LCons}\}])\,\ {*}\}\end{aligned}$
 \postw
 
@@ -2740,13 +2760,33 @@ your theory file and try to check a few conjectures about lazy lists:
 
 \prew
 $\textbf{setup}~\,\{{*}\,~\textit{Nitpick.unregister\_codatatype}~@\{\antiq{typ}~``
-\kern1pt'a~\textit{list}\textrm{''}\}\ \,{*}\}$
+\kern1pt'a~\textit{list\/}\textrm{''}\}\ \,{*}\}$
 \postw
 
 Inductive datatypes can be registered as coinductive datatypes, given
 appropriate coinductive constructors. However, doing so precludes
 the use of the inductive constructors---Nitpick will generate an error if they
 are needed.
+
+\subsection{Registration of Term Postprocessors}
+\label{registration-of-term-postprocessors}
+
+It is possible to change the output of any term that Nitpick considers a
+datatype by registering a term postprocessor. The interface for registering and
+unregistering postprocessors consists of the following pair of functions defined
+in the \textit{Nitpick} structure:
+
+\prew
+$\textbf{type}\,~\textit{term\_postprocessor}\,~{=} {}$ \\
+$\hbox{}\quad\textit{Proof.context} \rightarrow \textit{string} \rightarrow (\textit{typ} \rightarrow \textit{term~list\/}) \rightarrow \textit{typ} \rightarrow \textit{term} \rightarrow \textit{term}$ \\
+$\textbf{val}\,~\textit{register\_term\_postprocessors} : {}$ \\
+$\hbox{}\quad\textit{typ} \rightarrow \textit{term\_postprocessor} \rightarrow \textit{theory} \rightarrow \textit{theory}$ \\
+$\textbf{val}\,~\textit{unregister\_term\_postprocessors} :\,
+\textit{typ} \rightarrow \textit{theory} \rightarrow \textit{theory}$
+\postw
+
+\S\ref{typedefs-quotient-types-records-rationals-and-reals} and
+\texttt{src/HOL/Library/Multiset.thy} illustrate this feature in context.
 
 \section{Known Bugs and Limitations}
 \label{known-bugs-and-limitations}
