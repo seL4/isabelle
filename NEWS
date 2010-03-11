@@ -102,7 +102,7 @@ INCOMPATIBILITY.
 
 INCOMPATIBILITY.
 
-* Class division ring also requires proof of fact divide_inverse.  However instantiation
+* Class division_ring also requires proof of fact divide_inverse.  However instantiation
 of parameter divide has also been required previously.  INCOMPATIBILITY.
 
 * More consistent naming of type classes involving orderings (and lattices):
