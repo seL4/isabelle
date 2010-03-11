@@ -142,7 +142,6 @@ $(OUT)/HOL-Base: base.ML $(BASE_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -f base.ML -d false -g false $(OUT)/Pure HOL-Base
 
 PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
-  Big_Operators.thy \
   Complete_Lattice.thy \
   Datatype.thy \
   Extraction.thy \
@@ -248,6 +247,7 @@ $(OUT)/HOL-Plain: plain.ML $(PLAIN_DEPENDENCIES)
 
 MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   ATP_Linkup.thy \
+  Big_Operators.thy \
   Code_Evaluation.thy \
   Code_Numeral.thy \
   Divides.thy \

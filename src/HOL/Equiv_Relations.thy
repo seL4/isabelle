@@ -5,7 +5,7 @@
 header {* Equivalence Relations in Higher-Order Set Theory *}
 
 theory Equiv_Relations
-imports Finite_Set Relation Plain
+imports Big_Operators Relation Plain
 begin
 
 subsection {* Equivalence relations *}
