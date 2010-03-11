@@ -43,7 +43,7 @@ lemmas mult_left_idem = times.left_idem
 end
 
 
-subsection {* Conrete lattices *}
+subsection {* Concrete lattices *}
 
 notation
   less_eq  (infix "\<sqsubseteq>" 50) and

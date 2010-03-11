@@ -94,8 +94,8 @@ lemma kuhn_counting_lemma: assumes "finite faces" "finite simplices"
     using lem1[unfolded lem3 lem2 lem5] by auto
   have even_minus_odd:"\<And>x y. even x \<Longrightarrow> odd (y::int) \<Longrightarrow> odd (x - y)" using assms by auto
   have odd_minus_even:"\<And>x y. odd x \<Longrightarrow> even (y::int) \<Longrightarrow> odd (x - y)" using assms by auto
-  show ?thesis unfolding even_nat_def unfolding card_def and lem4[THEN sym] and *[unfolded card_def]
-    unfolding card_def[THEN sym] apply(rule odd_minus_even) unfolding zadd_int[THEN sym] apply(rule odd_plus_even)
+  show ?thesis unfolding even_nat_def unfolding card_eq_setsum and lem4[THEN sym] and *[unfolded card_eq_setsum]
+    unfolding card_eq_setsum[THEN sym] apply (rule odd_minus_even) unfolding zadd_int[THEN sym] apply(rule odd_plus_even)
     apply(rule assms(7)[unfolded even_nat_def]) unfolding int_mult by auto qed
 
 subsection {* The odd/even result for faces of complete vertices, generalized. *}

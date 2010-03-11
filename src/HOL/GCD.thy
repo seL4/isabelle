@@ -1358,10 +1358,10 @@ lemma lcm_dvd1_int: "(m::int) dvd lcm m n"
 done
 
 lemma lcm_dvd2_nat: "(n::nat) dvd lcm m n"
-  using lcm_dvd1_nat [of n m] by (simp only: lcm_nat_def times.commute gcd_nat.commute)
+  using lcm_dvd1_nat [of n m] by (simp only: lcm_nat_def mult.commute gcd_nat.commute)
 
 lemma lcm_dvd2_int: "(n::int) dvd lcm m n"
-  using lcm_dvd1_int [of n m] by (simp only: lcm_int_def lcm_nat_def times.commute gcd_nat.commute)
+  using lcm_dvd1_int [of n m] by (simp only: lcm_int_def lcm_nat_def mult.commute gcd_nat.commute)
 
 lemma dvd_lcm_I1_nat[simp]: "(k::nat) dvd m \<Longrightarrow> k dvd lcm m n"
 by(metis lcm_dvd1_nat dvd_trans)
