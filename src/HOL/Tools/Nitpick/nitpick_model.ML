@@ -16,9 +16,13 @@ sig
     show_skolems: bool,
     show_datatypes: bool,
     show_consts: bool}
+  type term_postprocessor = Proof.context -> typ -> term -> term
 
   structure NameTable : TABLE
 
+  val register_term_postprocessor :
+    typ -> term_postprocessor -> theory -> theory
+  val unregister_term_postprocessor : typ -> theory -> theory
   val tuple_list_for_name :
     nut NameTable.table -> Kodkod.raw_bound list -> nut -> int list list
   val reconstruct_hol_model :
@@ -46,6 +50,14 @@ type params = {
   show_skolems: bool,
   show_datatypes: bool,
   show_consts: bool}
+
+type term_postprocessor = Proof.context -> typ -> term -> term
+
+structure Data = Theory_Data(
+  type T = (typ * term_postprocessor) list
+  val empty = []
+  val extend = I
+  fun merge (ps1, ps2) = AList.merge (op =) (K true) (ps1, ps2))
 
 val unknown = "?"
 val unrep = "\<dots>"
@@ -104,6 +116,11 @@ fun nice_term_ord (Abs (_, _, t1), Abs (_, _, t2)) = nice_term_ord (t1, t2)
                 EQUAL => nice_term_ord (t12, t22)
               | ord => ord)
            | _ => Term_Ord.fast_term_ord tp
+
+(* typ -> term_postprocessor -> theory -> theory *)
+fun register_term_postprocessor T p = Data.map (cons (T, p))
+(* typ -> theory -> theory *)
+fun unregister_term_postprocessor T = Data.map (AList.delete (op =) T)
 
 (* nut NameTable.table -> KK.raw_bound list -> nut -> int list list *)
 fun tuple_list_for_name rel_table bounds name =
@@ -271,12 +288,25 @@ fun mk_tuple (Type (@{type_name "*"}, [T1, T2])) ts =
   | mk_tuple _ (t :: _) = t
   | mk_tuple T [] = raise TYPE ("Nitpick_Model.mk_tuple", [T], [])
 
+(* theory -> typ * typ -> bool *)
+fun varified_type_match thy (candid_T, pat_T) =
+  strict_type_match thy (candid_T, Logic.varifyT pat_T)
+(* Proof.context -> typ -> term -> term *)
+fun postprocess_term ctxt T =
+  let val thy = ProofContext.theory_of ctxt in
+    if null (Data.get thy) then
+      I
+    else
+      (T |> AList.lookup (varified_type_match thy) (Data.get thy)
+         |> the_default (K (K I))) ctxt T
+  end
+
 (* bool -> atom_pool -> (string * string) * (string * string) -> scope
    -> nut list -> nut list -> nut list -> nut NameTable.table
    -> KK.raw_bound list -> typ -> typ -> rep -> int list list -> term *)
 fun reconstruct_term unfold pool ((maybe_name, abs_name), _)
-        ({hol_ctxt as {thy, stds, ...}, binarize, card_assigns, bits, datatypes,
-          ofs, ...} : scope) sel_names rel_table bounds =
+        ({hol_ctxt as {ctxt, thy, stds, ...}, binarize, card_assigns, bits,
+          datatypes, ofs, ...} : scope) sel_names rel_table bounds =
   let
     val for_auto = (maybe_name = "")
     (* int list list -> int *)
@@ -476,23 +506,11 @@ fun reconstruct_term unfold pool ((maybe_name, abs_name), _)
                     |> dest_n_tuple (length uncur_arg_Ts)
                 val t =
                   if constr_s = @{const_name Abs_Frac} then
-                    let
-                      val num_T = body_type T
-                      (* int -> term *)
-                      val mk_num = HOLogic.mk_number num_T
-                    in
-                      case ts of
-                        [Const (@{const_name Pair}, _) $ t1 $ t2] =>
-                        (case snd (HOLogic.dest_number t1) of
-                           0 => mk_num 0
-                         | n1 => case HOLogic.dest_number t2 |> snd of
-                                   1 => mk_num n1
-                                 | n2 => Const (@{const_name divide},
-                                                num_T --> num_T --> num_T)
-                                         $ mk_num n1 $ mk_num n2)
-                      | _ => raise TERM ("Nitpick_Model.reconstruct_term.\
-                                         \term_for_atom (Abs_Frac)", ts)
-                    end
+                    case ts of
+                      [Const (@{const_name Pair}, _) $ t1 $ t2] =>
+                      frac_from_term_pair (body_type T) t1 t2
+                    | _ => raise TERM ("Nitpick_Model.reconstruct_term.\
+                                       \term_for_atom (Abs_Frac)", ts)
                   else if not for_auto andalso
                           (is_abs_fun thy constr_x orelse
                            constr_s = @{const_name Quot}) then
@@ -523,6 +541,7 @@ fun reconstruct_term unfold pool ((maybe_name, abs_name), _)
                   t
               end
           end
+          |> postprocess_term ctxt T
     (* (typ * int) list -> int -> rep -> typ -> typ -> typ -> int list
        -> term *)
     and term_for_vect seen k R T1 T2 T' js =

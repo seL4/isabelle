@@ -72,9 +72,11 @@ sig
   val shortest_name : string -> string
   val short_name : string -> string
   val shorten_names_in_term : term -> term
+  val strict_type_match : theory -> typ * typ -> bool
   val type_match : theory -> typ * typ -> bool
   val const_match : theory -> styp * styp -> bool
   val term_match : theory -> term * term -> bool
+  val frac_from_term_pair : typ -> term -> term -> term
   val is_TFree : typ -> bool
   val is_higher_order_type : typ -> bool
   val is_fun_type : typ -> bool
@@ -456,6 +458,15 @@ fun term_match thy (Const x1, Const x2) = const_match thy (x1, x2)
   | term_match thy (Free (s1, T1), Free (s2, T2)) =
     const_match thy ((shortest_name s1, T1), (shortest_name s2, T2))
   | term_match _ (t1, t2) = t1 aconv t2
+
+(* typ -> term -> term -> term *)
+fun frac_from_term_pair T t1 t2 =
+  case snd (HOLogic.dest_number t1) of
+    0 => HOLogic.mk_number T 0
+  | n1 => case snd (HOLogic.dest_number t2) of
+            1 => HOLogic.mk_number T n1
+          | n2 => Const (@{const_name divide}, T --> T --> T)
+                  $ HOLogic.mk_number T n1 $ HOLogic.mk_number T n2
 
 (* typ -> bool *)
 fun is_TFree (TFree _) = true

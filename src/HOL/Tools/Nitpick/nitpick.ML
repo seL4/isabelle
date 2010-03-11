@@ -8,6 +8,7 @@ Finite model generation for HOL formulas using Kodkod.
 signature NITPICK =
 sig
   type styp = Nitpick_Util.styp
+  type term_postprocessor = Nitpick_Model.term_postprocessor
   type params = {
     cards_assigns: (typ option * int list) list,
     maxes_assigns: (styp option * int list) list,
@@ -58,6 +59,9 @@ sig
   val unregister_frac_type : string -> theory -> theory
   val register_codatatype : typ -> string -> styp list -> theory -> theory
   val unregister_codatatype : typ -> theory -> theory
+  val register_term_postprocessor :
+    typ -> term_postprocessor -> theory -> theory
+  val unregister_term_postprocessor : typ -> theory -> theory
   val pick_nits_in_term :
     Proof.state -> params -> bool -> int -> int -> int -> (term * term) list
     -> term list -> term -> string * Proof.state

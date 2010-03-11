@@ -117,6 +117,19 @@ lemma "add x y = add x x"
 nitpick [show_datatypes, expect = genuine]
 oops
 
+ML {*
+(* Proof.context -> typ -> term -> term *)
+fun my_int_postproc _ T (Const _ $ (Const _ $ t1 $ t2)) =
+    HOLogic.mk_number T (snd (HOLogic.dest_number t1) - snd (HOLogic.dest_number t2))
+  | my_int_postproc _ _ t = t
+*}
+
+setup {* Nitpick.register_term_postprocessor @{typ my_int} my_int_postproc *}
+
+lemma "add x y = add x x"
+nitpick [show_datatypes]
+oops
+
 record point =
   Xcoord :: int
   Ycoord :: int
