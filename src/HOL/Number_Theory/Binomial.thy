@@ -364,7 +364,7 @@ proof (induct set: finite)
         finally have "card ({T. T \<le> insert x F \<and> card T = k + 1}) = 
           card F choose (k + 1) + (card F choose k)".
         with iassms choose_plus_one_nat show ?thesis
-          by auto
+          by (auto simp del: card.insert)
       qed
     qed
   qed
