@@ -198,15 +198,12 @@ fun get_specification options thy t =
           SOME th
         else
           NONE
-    val spec = case map_filter filtering (map (normalize thy o Thm.transfer thy) (Predicate_Compile_Alternative_Defs.get ctxt))
-     of [] => (case Spec_Rules.retrieve ctxt t
-       of [] => (case rev ( 
-         (map_filter filtering (map (normalize_intros thy o Thm.transfer thy)
-           (Nitpick_Intros.get ctxt))))
-         of [] => error ("No specification for " ^ (Syntax.string_of_term_global thy t))
-          | ths => ths)
-       | ((_, (_, ths)) :: _) => map (normalize_equation thy o Thm.transfer thy) ths)
-     | ths => rev ths
+    fun filter_defs ths = map_filter filtering (map (normalize thy o Thm.transfer thy) ths)
+    val spec = case filter_defs (Predicate_Compile_Alternative_Defs.get ctxt) of
+      [] => (case Spec_Rules.retrieve ctxt t of
+          [] => error ("No specification for " ^ (Syntax.string_of_term_global thy t))
+        | ((_, (_, ths)) :: _) => filter_defs ths)
+    | ths => rev ths
     val _ =
       if show_intermediate_results options then
         Output.tracing (commas (map (Display.string_of_thm_global thy) spec))
