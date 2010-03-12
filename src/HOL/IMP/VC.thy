@@ -10,7 +10,7 @@ awp:   weakest (liberal) precondition
 
 header "Verification Conditions"
 
-theory VC imports Hoare begin
+theory VC imports Hoare_Op begin
 
 datatype  acom = Askip
                | Aass   loc aexp
@@ -63,51 +63,36 @@ where
 Soundness and completeness of vc
 *)
 
-declare hoare.intros [intro]
+declare hoare.conseq [intro]
 
-lemma l: "!s. P s --> P s" by fast
 
-lemma vc_sound: "(!s. vc c Q s) --> |- {awp c Q} astrip c {Q}"
-apply (induct c arbitrary: Q)
-    apply (simp_all (no_asm))
-    apply fast
-   apply fast
-  apply fast
- (* if *)
- apply atomize
- apply (tactic "deepen_tac @{claset} 4 1")
-(* while *)
-apply atomize
-apply (intro allI impI)
-apply (rule conseq)
-  apply (rule l)
- apply (rule While)
- defer
- apply fast
-apply (rule_tac P="awp c fun2" in conseq)
-  apply fast
- apply fast
-apply fast
-done
+lemma vc_sound: "(ALL s. vc c Q s) \<Longrightarrow> |- {awp c Q} astrip c {Q}"
+proof(induct c arbitrary: Q)
+  case (Awhile b I c)
+  show ?case
+  proof(simp, rule While')
+    from `\<forall>s. vc (Awhile b I c) Q s`
+    have vc: "ALL s. vc c I s" and IQ: "ALL s. I s \<and> \<not> b s \<longrightarrow> Q s" and
+         awp: "ALL s. I s & b s --> awp c I s" by simp_all
+    from vc have "|- {awp c I} astrip c {I}" using Awhile.hyps by blast
+    with awp show "|- {\<lambda>s. I s \<and> b s} astrip c {I}"
+      by(rule strengthen_pre)
+    show "\<forall>s. I s \<and> \<not> b s \<longrightarrow> Q s" by(rule IQ)
+  qed
+qed auto
 
-lemma awp_mono [rule_format (no_asm)]:
-  "!P Q. (!s. P s --> Q s) --> (!s. awp c P s --> awp c Q s)"
-apply (induct c)
-    apply (simp_all (no_asm_simp))
-apply (rule allI, rule allI, rule impI)
-apply (erule allE, erule allE, erule mp)
-apply (erule allE, erule allE, erule mp, assumption)
-done
 
-lemma vc_mono [rule_format (no_asm)]:
-  "!P Q. (!s. P s --> Q s) --> (!s. vc c P s --> vc c Q s)"
-apply (induct c)
-    apply (simp_all (no_asm_simp))
-apply safe
-apply (erule allE,erule allE,erule impE,erule_tac [2] allE,erule_tac [2] mp)
-prefer 2 apply assumption
-apply (fast elim: awp_mono)
-done
+lemma awp_mono:
+  "(!s. P s --> Q s) ==> awp c P s ==> awp c Q s"
+proof (induct c arbitrary: P Q s)
+  case Asemi thus ?case by simp metis
+qed simp_all
+
+lemma vc_mono:
+  "(!s. P s --> Q s) ==> vc c P s ==> vc c Q s"
+proof(induct c arbitrary: P Q)
+  case Asemi thus ?case by simp (metis awp_mono)
+qed simp_all
 
 lemma vc_complete: assumes der: "|- {P}c{Q}"
   shows "(\<exists>ac. astrip ac = c & (\<forall>s. vc ac Q s) & (\<forall>s. P s --> awp ac Q s))"

@@ -434,6 +434,14 @@ lemma (in measure_space) borel_measurable_divide:
   unfolding field_divide_inverse
   by (rule borel_measurable_inverse borel_measurable_times_borel_measurable assms)+
 
+lemma (in measure_space) borel_measurable_vimage:
+  assumes borel: "f \<in> borel_measurable M"
+  shows "f -` {X} \<inter> space M \<in> sets M"
+proof -
+  have "{w \<in> space M. f w = X} = {w. f w = X} \<inter> space M" by auto
+  with borel_measurable_eq_borel_measurable[OF borel borel_measurable_const, of X]
+  show ?thesis unfolding vimage_def by simp
+qed
 
 section "Monotone convergence"
 
