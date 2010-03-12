@@ -981,6 +981,24 @@ next
     by (blast intro: eq_refl X)
 qed
 
+lemma incseq_SucI:
+  assumes "\<And>n. X n \<le> X (Suc n)"
+  shows "incseq X" unfolding incseq_def
+proof safe
+  fix m n :: nat
+  { fix d m :: nat
+    have "X m \<le> X (m + d)"
+    proof (induct d)
+      case (Suc d)
+      also have "X (m + d) \<le> X (m + Suc d)"
+        using assms by simp
+      finally show ?case .
+    qed simp }
+  note this[of m "n - m"]
+  moreover assume "m \<le> n"
+  ultimately show "X m \<le> X n" by simp
+qed
+
 lemma decseq_imp_monoseq:  "decseq X \<Longrightarrow> monoseq X"
   by (simp add: decseq_def monoseq_def)
 

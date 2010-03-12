@@ -673,6 +673,9 @@ lemma psfis_nnfis:
   unfolding nnfis_def mono_convergent_def incseq_def
   by (auto intro!: exI[of _ "\<lambda>n. f"] exI[of _ "\<lambda>n. a"] LIMSEQ_const)
 
+lemma nnfis_0: "0 \<in> nnfis (\<lambda> x. 0)"
+  by (rule psfis_nnfis[OF psfis_0])
+
 lemma nnfis_times:
   assumes "a \<in> nnfis f" and "0 \<le> z"
   shows "z * a \<in> nnfis (\<lambda>t. z * f t)"
@@ -836,7 +839,7 @@ lemma nnfis_pos_on_mspace:
 using assms
 proof -
   from assms[unfolded nnfis_def] guess u y by auto note uy = this
-  hence "\<And> n. 0 \<le> u n x" 
+  hence "\<And> n. 0 \<le> u n x"
     unfolding nnfis_def psfis_def pos_simple_def nonneg_def mono_convergent_def
     by auto
   thus "0 \<le> f x" using uy[rule_format]
@@ -1307,6 +1310,190 @@ proof -
     by (auto intro!: mult_imp_le_div_pos[OF `0 < a ^ n`], simp add: real_mult_commute)
 qed
 
+section "Lebesgue integration on countable spaces"
+
+lemma nnfis_on_countable:
+  assumes borel: "f \<in> borel_measurable M"
+  and bij: "bij_betw enum S (f ` space M - {0})"
+  and enum_zero: "enum ` (-S) \<subseteq> {0}"
+  and nn_enum: "\<And>n. 0 \<le> enum n"
+  and sums: "(\<lambda>r. enum r * measure M (f -` {enum r} \<inter> space M)) sums x" (is "?sum sums x")
+  shows "x \<in> nnfis f"
+proof -
+  have inj_enum: "inj_on enum S"
+    and range_enum: "enum ` S = f ` space M - {0}"
+    using bij by (auto simp: bij_betw_def)
+
+  let "?x n z" = "\<Sum>i = 0..<n. enum i * indicator_fn (f -` {enum i} \<inter> space M) z"
+
+  show ?thesis
+  proof (rule nnfis_mon_conv)
+    show "(\<lambda>n. \<Sum>i = 0..<n. ?sum i) ----> x" using sums unfolding sums_def .
+  next
+    fix n
+    show "(\<Sum>i = 0..<n. ?sum i) \<in> nnfis (?x n)"
+    proof (induct n)
+      case 0 thus ?case by (simp add: nnfis_0)
+    next
+      case (Suc n) thus ?case using nn_enum
+        by (auto intro!: nnfis_add nnfis_times psfis_nnfis[OF psfis_indicator] borel_measurable_vimage[OF borel])
+    qed
+  next
+    show "mono_convergent ?x f (space M)"
+    proof (rule mono_convergentI)
+      fix x
+      show "incseq (\<lambda>n. ?x n x)"
+        by (rule incseq_SucI, auto simp: indicator_fn_def nn_enum)
+
+      have fin: "\<And>n. finite (enum ` ({0..<n} \<inter> S))" by auto
+
+      assume "x \<in> space M"
+      hence "f x \<in> enum ` S \<or> f x = 0" using range_enum by auto
+      thus "(\<lambda>n. ?x n x) ----> f x"
+      proof (rule disjE)
+        assume "f x \<in> enum ` S"
+        then obtain i where "i \<in> S" and "f x = enum i" by auto
+
+        { fix n
+          have sum_ranges:
+            "i < n \<Longrightarrow> enum`({0..<n} \<inter> S) \<inter> {z. enum i = z \<and> x\<in>space M} = {enum i}"
+            "\<not> i < n \<Longrightarrow> enum`({0..<n} \<inter> S) \<inter> {z. enum i = z \<and> x\<in>space M} = {}"
+            using `x \<in> space M` `i \<in> S` inj_enum[THEN inj_on_iff] by auto
+          have "?x n x =
+            (\<Sum>i \<in> {0..<n} \<inter> S. enum i * indicator_fn (f -` {enum i} \<inter> space M) x)"
+            using enum_zero by (auto intro!: setsum_mono_zero_cong_right)
+          also have "... =
+            (\<Sum>z \<in> enum`({0..<n} \<inter> S). z * indicator_fn (f -` {z} \<inter> space M) x)"
+            using inj_enum[THEN subset_inj_on] by (auto simp: setsum_reindex)
+          also have "... = (if i < n then f x else 0)"
+            unfolding indicator_fn_def if_distrib[where x=1 and y=0]
+              setsum_cases[OF fin]
+            using sum_ranges `f x = enum i`
+            by auto
+          finally have "?x n x = (if i < n then f x else 0)" . }
+        note sum_equals_if = this
+
+        show ?thesis unfolding sum_equals_if
+          by (rule LIMSEQ_offset[where k="i + 1"]) (auto intro!: LIMSEQ_const)
+      next
+        assume "f x = 0"
+        { fix n have "?x n x = 0"
+            unfolding indicator_fn_def if_distrib[where x=1 and y=0]
+              setsum_cases[OF finite_atLeastLessThan]
+            using `f x = 0` `x \<in> space M`
+            by (auto split: split_if) }
+        thus ?thesis using `f x = 0` by (auto intro!: LIMSEQ_const)
+      qed
+    qed
+  qed
+qed
+
+lemma integral_on_countable:
+  assumes borel: "f \<in> borel_measurable M"
+  and bij: "bij_betw enum S (f ` space M)"
+  and enum_zero: "enum ` (-S) \<subseteq> {0}"
+  and abs_summable: "summable (\<lambda>r. \<bar>enum r * measure M (f -` {enum r} \<inter> space M)\<bar>)"
+  shows "integrable f"
+  and "integral f = (\<Sum>r. enum r * measure M (f -` {enum r} \<inter> space M))" (is "_ = suminf (?sum f enum)")
+proof -
+  { fix f enum
+    assume borel: "f \<in> borel_measurable M"
+      and bij: "bij_betw enum S (f ` space M)"
+      and enum_zero: "enum ` (-S) \<subseteq> {0}"
+      and abs_summable: "summable (\<lambda>r. \<bar>enum r * measure M (f -` {enum r} \<inter> space M)\<bar>)"
+    have inj_enum: "inj_on enum S" and range_enum: "f ` space M = enum ` S"
+      using bij unfolding bij_betw_def by auto
+
+    have [simp, intro]: "\<And>X. 0 \<le> measure M (f -` {X} \<inter> space M)"
+      by (rule positive, rule borel_measurable_vimage[OF borel])
+
+    have "(\<Sum>r. ?sum (pos_part f) (pos_part enum) r) \<in> nnfis (pos_part f) \<and>
+          summable (\<lambda>r. ?sum (pos_part f) (pos_part enum) r)"
+    proof (rule conjI, rule nnfis_on_countable)
+      have pos_f_image: "pos_part f ` space M - {0} = f ` space M \<inter> {0<..}"
+        unfolding pos_part_def max_def by auto
+
+      show "bij_betw (pos_part enum) {x \<in> S. 0 < enum x} (pos_part f ` space M - {0})"
+        unfolding bij_betw_def pos_f_image
+        unfolding pos_part_def max_def range_enum
+        by (auto intro!: inj_onI simp: inj_enum[THEN inj_on_eq_iff])
+
+      show "\<And>n. 0 \<le> pos_part enum n" unfolding pos_part_def max_def by auto
+
+      show "pos_part f \<in> borel_measurable M"
+        by (rule pos_part_borel_measurable[OF borel])
+
+      show "pos_part enum ` (- {x \<in> S. 0 < enum x}) \<subseteq> {0}"
+        unfolding pos_part_def max_def using enum_zero by auto
+
+      show "summable (\<lambda>r. ?sum (pos_part f) (pos_part enum) r)"
+      proof (rule summable_comparison_test[OF _ abs_summable], safe intro!: exI[of _ 0])
+        fix n :: nat
+        have "pos_part enum n \<noteq> 0 \<Longrightarrow> (pos_part f -` {enum n} \<inter> space M) =
+          (if 0 < enum n then (f -` {enum n} \<inter> space M) else {})"
+          unfolding pos_part_def max_def by (auto split: split_if_asm)
+        thus "norm (?sum (pos_part f) (pos_part enum) n) \<le> \<bar>?sum f enum n \<bar>"
+          by (cases "pos_part enum n = 0",
+            auto simp: pos_part_def max_def abs_mult not_le split: split_if_asm intro!: mult_nonpos_nonneg)
+      qed
+      thus "(\<lambda>r. ?sum (pos_part f) (pos_part enum) r) sums (\<Sum>r. ?sum (pos_part f) (pos_part enum) r)"
+        by (rule summable_sums)
+    qed }
+  note pos = this
+
+  note pos_part = pos[OF assms(1-4)]
+  moreover
+  have neg_part_to_pos_part:
+    "\<And>f :: _ \<Rightarrow> real. neg_part f = pos_part (uminus \<circ> f)"
+    by (auto simp: pos_part_def neg_part_def min_def max_def expand_fun_eq)
+
+  have neg_part: "(\<Sum>r. ?sum (neg_part f) (neg_part enum) r) \<in> nnfis (neg_part f) \<and>
+    summable (\<lambda>r. ?sum (neg_part f) (neg_part enum) r)"
+    unfolding neg_part_to_pos_part
+  proof (rule pos)
+    show "uminus \<circ> f \<in> borel_measurable M" unfolding comp_def
+      by (rule borel_measurable_uminus_borel_measurable[OF borel])
+
+    show "bij_betw (uminus \<circ> enum) S ((uminus \<circ> f) ` space M)"
+      using bij unfolding bij_betw_def
+      by (auto intro!: comp_inj_on simp: image_compose)
+
+    show "(uminus \<circ> enum) ` (- S) \<subseteq> {0}"
+      using enum_zero by auto
+
+    have minus_image: "\<And>r. (uminus \<circ> f) -` {(uminus \<circ> enum) r} \<inter> space M = f -` {enum r} \<inter> space M"
+      by auto
+    show "summable (\<lambda>r. \<bar>(uminus \<circ> enum) r * measure_space.measure M ((uminus \<circ> f) -` {(uminus \<circ> enum) r} \<inter> space M)\<bar>)"
+      unfolding minus_image using abs_summable by simp
+  qed
+  ultimately show "integrable f" unfolding integrable_def by auto
+
+  { fix r
+    have "?sum (pos_part f) (pos_part enum) r - ?sum (neg_part f) (neg_part enum) r = ?sum f enum r"
+    proof (cases rule: linorder_cases)
+      assume "0 < enum r"
+      hence "pos_part f -` {enum r} \<inter> space M = f -` {enum r} \<inter> space M"
+        unfolding pos_part_def max_def by (auto split: split_if_asm)
+      with `0 < enum r` show ?thesis unfolding pos_part_def neg_part_def min_def max_def expand_fun_eq
+        by auto
+    next
+      assume "enum r < 0"
+      hence "neg_part f -` {- enum r} \<inter> space M = f -` {enum r} \<inter> space M"
+        unfolding neg_part_def min_def by (auto split: split_if_asm)
+      with `enum r < 0` show ?thesis unfolding pos_part_def neg_part_def min_def max_def expand_fun_eq
+        by auto
+    qed (simp add: neg_part_def pos_part_def) }
+  note sum_diff_eq_sum = this
+
+  have "(\<Sum>r. ?sum (pos_part f) (pos_part enum) r) - (\<Sum>r. ?sum (neg_part f) (neg_part enum) r)
+    = (\<Sum>r. ?sum (pos_part f) (pos_part enum) r - ?sum (neg_part f) (neg_part enum) r)"
+    using neg_part pos_part by (auto intro: suminf_diff)
+  also have "... = (\<Sum>r. ?sum f enum r)" unfolding sum_diff_eq_sum ..
+  finally show "integral f = suminf (?sum f enum)"
+    unfolding integral_def using pos_part neg_part
+    by (auto dest: the_nnfis)
+qed
+
 section "Lebesgue integration on finite space"
 
 lemma integral_finite_on_sets:
@@ -1427,219 +1614,6 @@ next
   finally show "w x = v {x} / measure M {x}"
     using `measure M {x} \<noteq> 0` by (simp add: eq_divide_eq)
 qed fact
-
-section "Lebesgue integration on countable spaces"
-
-definition
-  "enumerate s \<equiv> SOME f. bij_betw f UNIV s"
-
-lemma countable_space_integral_reduce:
-  assumes "positive M (measure M)" and "f \<in> borel_measurable M"
-  and "countable (f ` space M)"
-  and "\<not> finite (pos_part f ` space M)"
-  and "\<not> finite (neg_part f ` space M)"
-  and "((\<lambda>r. r * measure m (neg_part f -` {r} \<inter> space m)) o enumerate (neg_part f ` space M)) sums n"
-  and "((\<lambda>r. r * measure m (pos_part f -` {r} \<inter> space m)) o enumerate (pos_part f ` space M)) sums p"
-  shows "integral f = p - n"
-oops
-
-(*
-val countable_space_integral_reduce = store_thm
-  ("countable_space_integral_reduce",
-   "\<forall>m f p n. measure_space m \<and>
-	     positive m \<and>
-	     f \<in> borel_measurable (space m, sets m) \<and>
-	     countable (IMAGE f (space m)) \<and>
-	     ~(FINITE (IMAGE (pos_part f) (space m))) \<and>
-	     ~(FINITE (IMAGE (neg_part f) (space m))) \<and>
-	     (\<lambda>r. r *
-		  measure m (PREIMAGE (neg_part f) {r} \<inter> space m)) o
-		enumerate ((IMAGE (neg_part f) (space m))) sums n \<and>
-	     (\<lambda>r. r *
-		  measure m (PREIMAGE (pos_part f) {r} \<inter> space m)) o
-		enumerate ((IMAGE (pos_part f) (space m))) sums p ==>
-	     (integral m f = p - n)",
-   RW_TAC std_ss [integral_def]
-   ++ Suff `((@i. i \<in> nnfis m (pos_part f)) = p) \<and> ((@i. i \<in> nnfis m (neg_part f)) = n)`
-   >> RW_TAC std_ss []
-   ++ (CONJ_TAC ++ MATCH_MP_TAC SELECT_UNIQUE ++ RW_TAC std_ss [])
-   >> (Suff `p \<in> nnfis m (pos_part f)` >> METIS_TAC [nnfis_unique]
-       ++ MATCH_MP_TAC nnfis_mon_conv
-       ++ `BIJ (enumerate(IMAGE (pos_part f) (space m))) UNIV (IMAGE (pos_part f) (space m))`
-		by (`countable (IMAGE (pos_part f) (space m))`
-			by (MATCH_MP_TAC COUNTABLE_SUBSET
-			    ++ Q.EXISTS_TAC `0 INSERT (IMAGE f (space m))`
-			    ++ RW_TAC std_ss [SUBSET_DEF, IN_IMAGE, pos_part_def, COUNTABLE_INSERT, IN_INSERT]
-			    ++ METIS_TAC [])
-		     ++ METIS_TAC [COUNTABLE_ALT])
-       ++ FULL_SIMP_TAC std_ss [sums, BIJ_DEF, INJ_DEF, SURJ_DEF, IN_UNIV]
-       ++ Q.EXISTS_TAC `(\<lambda>n t. if t \<in> space m \<and> pos_part f t \<in> IMAGE (enumerate (IMAGE (pos_part f) (space m)))
-			(pred_set$count n) then pos_part f t else 0)`
-       ++ Q.EXISTS_TAC `(\<lambda>n.
-         sum (0,n)
-           ((\<lambda>r.
-               r *
-               measure m (PREIMAGE (pos_part f) {r} \<inter> space m)) o
-            enumerate (IMAGE (pos_part f) (space m))))`
-       ++ ASM_SIMP_TAC std_ss []
-       ++ CONJ_TAC
-       >> (RW_TAC std_ss [mono_convergent_def]
-	   >> (RW_TAC real_ss [IN_IMAGE, pred_setTheory.IN_COUNT, pos_part_def] ++ METIS_TAC [LESS_LESS_EQ_TRANS])
-	   ++ RW_TAC std_ss [SEQ]
-	   ++ `\<exists>N. enumerate (IMAGE (pos_part f) (space m)) N = (pos_part f) t`
-		by METIS_TAC [IN_IMAGE]
-	   ++ Q.EXISTS_TAC `SUC N`
-	   ++ RW_TAC real_ss [GREATER_EQ, real_ge, IN_IMAGE, REAL_SUB_LZERO]
-	   ++ FULL_SIMP_TAC std_ss [pred_setTheory.IN_COUNT]
-	   ++ METIS_TAC [DECIDE "!n:num. n < SUC n", LESS_LESS_EQ_TRANS, pos_part_def])
-       ++ STRIP_TAC ++ MATCH_MP_TAC psfis_nnfis ++ ASM_SIMP_TAC std_ss [GSYM REAL_SUM_IMAGE_COUNT]
-	   ++ `(\<lambda>t. (if t \<in> space m \<and> pos_part f t \<in> IMAGE (enumerate (IMAGE (pos_part f) (space m))) (pred_set$count n')
-      			then pos_part f t else  0)) =
-		(\<lambda>t. SIGMA (\<lambda>i. (\<lambda>i. enumerate (IMAGE (pos_part f) (space m)) i) i *
-			indicator_fn ((\<lambda>i. PREIMAGE (pos_part f) {enumerate (IMAGE (pos_part f) (space m)) i}
-					   \<inter> (space m)) i) t)
-		     (pred_set$count n'))`
-		by (RW_TAC std_ss [FUN_EQ_THM] ++ RW_TAC real_ss [IN_IMAGE]
-		    >> (`pred_set$count n' = x INSERT (pred_set$count n')`
-				by (ONCE_REWRITE_TAC [EXTENSION] ++ RW_TAC std_ss [IN_INSERT] ++ METIS_TAC [])
-			++ POP_ORW
-			++ RW_TAC std_ss [REAL_SUM_IMAGE_THM, pred_setTheory.FINITE_COUNT]
-			++ ONCE_REWRITE_TAC [(REWRITE_RULE [pred_setTheory.FINITE_COUNT] o
-				REWRITE_RULE [FINITE_DELETE] o Q.ISPEC `pred_set$count n' DELETE x`) REAL_SUM_IMAGE_IN_IF]
-			++ RW_TAC real_ss [IN_DELETE, indicator_fn_def, IN_INTER, IN_SING, IN_PREIMAGE]
-			++ `(\x'. (if x' \<in> pred_set$count n' \<and> ~(x' = x) then
-				enumerate (IMAGE (pos_part f) (space m)) x' *
-				(if enumerate (IMAGE (pos_part f) (space m)) x =
-				enumerate (IMAGE (pos_part f) (space m)) x'
-				then 1 else 0) else 0)) = (\<lambda>x. 0)`
-				by (RW_TAC std_ss [FUN_EQ_THM] ++ RW_TAC real_ss [] ++ METIS_TAC [])
-			++ POP_ORW
-			++ RW_TAC real_ss [REAL_SUM_IMAGE_0, pred_setTheory.FINITE_COUNT, FINITE_DELETE])
-		    ++ FULL_SIMP_TAC real_ss [IN_IMAGE, indicator_fn_def, IN_INTER, IN_PREIMAGE, IN_SING]
-		    >> RW_TAC real_ss [REAL_SUM_IMAGE_0, pred_setTheory.FINITE_COUNT, FINITE_DELETE]
-		    ++ ONCE_REWRITE_TAC [(REWRITE_RULE [pred_setTheory.FINITE_COUNT] o Q.ISPEC `pred_set$count n'`)
-			REAL_SUM_IMAGE_IN_IF]
-		    ++ `(\<lambda>x. (if x \<in> pred_set$count n' then
-			(\<lambda>i. enumerate (IMAGE (pos_part f) (space m)) i *
-           		(if (pos_part f t = enumerate (IMAGE (pos_part f) (space m)) i) \<and>
-             		 t \<in> space m then 1 else 0)) x else 0)) = (\<lambda>x. 0)`
-			by (RW_TAC std_ss [FUN_EQ_THM] ++ RW_TAC real_ss [] ++ METIS_TAC [])
-		    ++ POP_ORW
-		    ++ RW_TAC real_ss [REAL_SUM_IMAGE_0, pred_setTheory.FINITE_COUNT])
-	   ++ POP_ORW
-	   ++ `((\<lambda>r. r * measure m (PREIMAGE (pos_part f) {r} \<inter> space m)) o
-		enumerate (IMAGE (pos_part f) (space m))) =
-		(\<lambda>i. (\<lambda>i. enumerate (IMAGE (pos_part f) (space m)) i) i *
-			measure m ((\<lambda>i.
-                PREIMAGE (pos_part f)
-                  {enumerate (IMAGE (pos_part f) (space m)) i} \<inter>
-                space m) i))`
-		by (RW_TAC std_ss [FUN_EQ_THM, o_DEF] ++ RW_TAC real_ss [])
-	   ++ POP_ORW
-	   ++ MATCH_MP_TAC psfis_intro
-	   ++ ASM_SIMP_TAC std_ss [pred_setTheory.FINITE_COUNT]
-	   ++ REVERSE CONJ_TAC
-	   >> (FULL_SIMP_TAC real_ss [IN_IMAGE, pos_part_def]
-	       ++ METIS_TAC [REAL_LE_REFL])
-	   ++ `(pos_part f) \<in> borel_measurable (space m, sets m)`
-		by METIS_TAC [pos_part_neg_part_borel_measurable]
-	   ++ REPEAT STRIP_TAC
-	   ++ `PREIMAGE (pos_part f) {enumerate (IMAGE (pos_part f) (space m)) i} \<inter> space m =
-		{w | w \<in> space m \<and> ((pos_part f) w = (\<lambda>w. enumerate (IMAGE (pos_part f) (space m)) i) w)}`
-		by (ONCE_REWRITE_TAC [EXTENSION] ++ RW_TAC std_ss [GSPECIFICATION, IN_INTER, IN_PREIMAGE, IN_SING]
-		    ++ DECIDE_TAC)
-	   ++ POP_ORW
-	   ++ MATCH_MP_TAC borel_measurable_eq_borel_measurable
-	   ++ METIS_TAC [borel_measurable_const, measure_space_def])
-   ++ Suff `n \<in> nnfis m (neg_part f)` >> METIS_TAC [nnfis_unique]
-   ++ MATCH_MP_TAC nnfis_mon_conv
-   ++ `BIJ (enumerate(IMAGE (neg_part f) (space m))) UNIV (IMAGE (neg_part f) (space m))`
-		by (`countable (IMAGE (neg_part f) (space m))`
-			by (MATCH_MP_TAC COUNTABLE_SUBSET
-			    ++ Q.EXISTS_TAC `0 INSERT (IMAGE abs (IMAGE f (space m)))`
-			    ++ RW_TAC std_ss [SUBSET_DEF, IN_IMAGE, abs, neg_part_def, COUNTABLE_INSERT, IN_INSERT, COUNTABLE_IMAGE]
-			    ++ METIS_TAC [])
-		     ++ METIS_TAC [COUNTABLE_ALT])
-   ++ FULL_SIMP_TAC std_ss [sums, BIJ_DEF, INJ_DEF, SURJ_DEF, IN_UNIV]
-   ++ Q.EXISTS_TAC `(\<lambda>n t. if t \<in> space m \<and> neg_part f t \<in> IMAGE (enumerate (IMAGE (neg_part f) (space m)))
-			(pred_set$count n) then neg_part f t else 0)`
-   ++ Q.EXISTS_TAC `(\<lambda>n.
-         sum (0,n)
-           ((\<lambda>r.
-               r *
-               measure m (PREIMAGE (neg_part f) {r} \<inter> space m)) o
-            enumerate (IMAGE (neg_part f) (space m))))`
-   ++ ASM_SIMP_TAC std_ss []
-   ++ CONJ_TAC
-   >> (RW_TAC std_ss [mono_convergent_def]
-	   >> (RW_TAC real_ss [IN_IMAGE, pred_setTheory.IN_COUNT, neg_part_def] ++ METIS_TAC [LESS_LESS_EQ_TRANS, REAL_LE_NEGTOTAL])
-	   ++ RW_TAC std_ss [SEQ]
-	   ++ `\<exists>N. enumerate (IMAGE (neg_part f) (space m)) N = (neg_part f) t`
-		by METIS_TAC [IN_IMAGE]
-	   ++ Q.EXISTS_TAC `SUC N`
-	   ++ RW_TAC real_ss [GREATER_EQ, real_ge, IN_IMAGE, REAL_SUB_LZERO]
-	   ++ FULL_SIMP_TAC std_ss [pred_setTheory.IN_COUNT]
-	   ++ METIS_TAC [DECIDE "!n:num. n < SUC n", LESS_LESS_EQ_TRANS, neg_part_def])
-   ++ STRIP_TAC ++ MATCH_MP_TAC psfis_nnfis ++ ASM_SIMP_TAC std_ss [GSYM REAL_SUM_IMAGE_COUNT]
-	   ++ `(\<lambda>t. (if t \<in> space m \<and> neg_part f t \<in> IMAGE (enumerate (IMAGE (neg_part f) (space m))) (pred_set$count n')
-      			then neg_part f t else  0)) =
-		(\<lambda>t. SIGMA (\<lambda>i. (\<lambda>i. enumerate (IMAGE (neg_part f) (space m)) i) i *
-			indicator_fn ((\<lambda>i. PREIMAGE (neg_part f) {enumerate (IMAGE (neg_part f) (space m)) i}
-					   \<inter> (space m)) i) t)
-		     (pred_set$count n'))`
-		by (RW_TAC std_ss [FUN_EQ_THM] ++ RW_TAC real_ss [IN_IMAGE]
-		    >> (`pred_set$count n' = x INSERT (pred_set$count n')`
-				by (ONCE_REWRITE_TAC [EXTENSION] ++ RW_TAC std_ss [IN_INSERT] ++ METIS_TAC [])
-			++ POP_ORW
-			++ RW_TAC std_ss [REAL_SUM_IMAGE_THM, pred_setTheory.FINITE_COUNT]
-			++ ONCE_REWRITE_TAC [(REWRITE_RULE [pred_setTheory.FINITE_COUNT] o
-				REWRITE_RULE [FINITE_DELETE] o Q.ISPEC `pred_set$count n' DELETE x`) REAL_SUM_IMAGE_IN_IF]
-			++ RW_TAC real_ss [IN_DELETE, indicator_fn_def, IN_INTER, IN_SING, IN_PREIMAGE]
-			++ `(\x'. (if x' \<in> pred_set$count n' \<and> ~(x' = x) then
-				enumerate (IMAGE (neg_part f) (space m)) x' *
-				(if enumerate (IMAGE (neg_part f) (space m)) x =
-				enumerate (IMAGE (neg_part f) (space m)) x'
-				then 1 else 0) else 0)) = (\<lambda>x. 0)`
-				by (RW_TAC std_ss [FUN_EQ_THM] ++ RW_TAC real_ss [] ++ METIS_TAC [])
-			++ POP_ORW
-			++ RW_TAC real_ss [REAL_SUM_IMAGE_0, pred_setTheory.FINITE_COUNT, FINITE_DELETE])
-		    ++ FULL_SIMP_TAC real_ss [IN_IMAGE, indicator_fn_def, IN_INTER, IN_PREIMAGE, IN_SING]
-		    >> RW_TAC real_ss [REAL_SUM_IMAGE_0, pred_setTheory.FINITE_COUNT, FINITE_DELETE]
-		    ++ ONCE_REWRITE_TAC [(REWRITE_RULE [pred_setTheory.FINITE_COUNT] o Q.ISPEC `pred_set$count n'`)
-			REAL_SUM_IMAGE_IN_IF]
-		    ++ `(\<lambda>x. (if x \<in> pred_set$count n' then
-			(\<lambda>i. enumerate (IMAGE (neg_part f) (space m)) i *
-           		(if (neg_part f t = enumerate (IMAGE (neg_part f) (space m)) i) \<and>
-             		 t \<in> space m then 1 else 0)) x else 0)) = (\<lambda>x. 0)`
-			by (RW_TAC std_ss [FUN_EQ_THM] ++ RW_TAC real_ss [] ++ METIS_TAC [])
-		    ++ POP_ORW
-		    ++ RW_TAC real_ss [REAL_SUM_IMAGE_0, pred_setTheory.FINITE_COUNT])
-	   ++ POP_ORW
-	   ++ `((\<lambda>r. r * measure m (PREIMAGE (neg_part f) {r} \<inter> space m)) o
-		enumerate (IMAGE (neg_part f) (space m))) =
-		(\<lambda>i. (\<lambda>i. enumerate (IMAGE (neg_part f) (space m)) i) i *
-			measure m ((\<lambda>i.
-                PREIMAGE (neg_part f)
-                  {enumerate (IMAGE (neg_part f) (space m)) i} \<inter>
-                space m) i))`
-		by (RW_TAC std_ss [FUN_EQ_THM, o_DEF] ++ RW_TAC real_ss [])
-	   ++ POP_ORW
-	   ++ MATCH_MP_TAC psfis_intro
-	   ++ ASM_SIMP_TAC std_ss [pred_setTheory.FINITE_COUNT]
-	   ++ REVERSE CONJ_TAC
-	   >> (FULL_SIMP_TAC real_ss [IN_IMAGE, neg_part_def]
-	       ++ METIS_TAC [REAL_LE_REFL, REAL_LE_NEGTOTAL])
-	   ++ `(neg_part f) \<in> borel_measurable (space m, sets m)`
-		by METIS_TAC [pos_part_neg_part_borel_measurable]
-	   ++ REPEAT STRIP_TAC
-	   ++ `PREIMAGE (neg_part f) {enumerate (IMAGE (neg_part f) (space m)) i} \<inter> space m =
-		{w | w \<in> space m \<and> ((neg_part f) w = (\<lambda>w. enumerate (IMAGE (neg_part f) (space m)) i) w)}`
-		by (ONCE_REWRITE_TAC [EXTENSION] ++ RW_TAC std_ss [GSPECIFICATION, IN_INTER, IN_PREIMAGE, IN_SING]
-		    ++ DECIDE_TAC)
-	   ++ POP_ORW
-	   ++ MATCH_MP_TAC borel_measurable_eq_borel_measurable
-	   ++ METIS_TAC [borel_measurable_const, measure_space_def]);
-*)
 
 end
 
