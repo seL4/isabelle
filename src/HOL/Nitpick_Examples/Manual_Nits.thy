@@ -464,13 +464,13 @@ fun split where
 theorem dataset_skew_split:
 "dataset (skew t) = dataset t"
 "dataset (split t) = dataset t"
-nitpick [card = 1\<midarrow>6, expect = none]
+nitpick [card = 1\<midarrow>5, expect = none]
 sorry
 
 theorem wf_skew_split:
 "wf t \<Longrightarrow> skew t = t"
 "wf t \<Longrightarrow> split t = t"
-nitpick [card = 1\<midarrow>6, expect = none]
+nitpick [card = 1\<midarrow>5, expect = none]
 sorry
 
 primrec insort\<^isub>1 where
@@ -494,11 +494,11 @@ primrec insort\<^isub>2 where
                        (if x > y then insort\<^isub>2 u x else u))"
 
 theorem wf_insort\<^isub>2: "wf t \<Longrightarrow> wf (insort\<^isub>2 t x)"
-nitpick [card = 1\<midarrow>6, expect = none]
+nitpick [card = 1\<midarrow>5, expect = none]
 sorry
 
 theorem dataset_insort\<^isub>2: "dataset (insort\<^isub>2 t x) = {x} \<union> dataset t"
-nitpick [card = 1\<midarrow>6, expect = none]
+nitpick [card = 1\<midarrow>5, expect = none]
 sorry
 
 end
