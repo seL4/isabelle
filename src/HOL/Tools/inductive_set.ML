@@ -521,7 +521,7 @@ fun add_ind_set_def
     val (intr_names, intr_atts) = split_list (map fst intros);
     val raw_induct' = to_set [] (Context.Proof lthy3) raw_induct;
     val (intrs', elims', induct, inducts, lthy4) =
-      Inductive.declare_rules rec_name coind no_ind cnames
+      Inductive.declare_rules rec_name coind no_ind cnames (map fst defs)
         (map (to_set [] (Context.Proof lthy3)) intrs) intr_names intr_atts
         (map (fn th => (to_set [] (Context.Proof lthy3) th,
            map fst (fst (Rule_Cases.get th)),

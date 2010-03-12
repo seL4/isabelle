@@ -71,7 +71,7 @@ sig
     term list -> (Attrib.binding * term) list -> thm list ->
     term list -> (binding * mixfix) list ->
     local_theory -> inductive_result * local_theory
-  val declare_rules: binding -> bool -> bool -> string list ->
+  val declare_rules: binding -> bool -> bool -> string list -> term list ->
     thm list -> binding list -> Attrib.src list list -> (thm * string list * int) list ->
     thm -> local_theory -> thm list * thm list * thm * thm list * local_theory
   val add_ind_def: add_ind_def
@@ -698,7 +698,7 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind
   end;
 
 fun declare_rules rec_binding coind no_ind cnames
-    intrs intr_bindings intr_atts elims raw_induct lthy =
+    preds intrs intr_bindings intr_atts elims raw_induct lthy =
   let
     val rec_name = Binding.name_of rec_binding;
     fun rec_qualified qualified = Binding.qualify qualified rec_name;
@@ -715,6 +715,8 @@ fun declare_rules rec_binding coind no_ind cnames
 
     val (intrs', lthy1) =
       lthy |>
+      Spec_Rules.add
+        (if coind then Spec_Rules.Co_Inductive else Spec_Rules.Inductive) (preds, intrs) |>
       Local_Theory.notes
         (map (rec_qualified false) intr_bindings ~~ intr_atts ~~
           map (fn th => [([th],
@@ -797,7 +799,7 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
            rec_preds_defs lthy1);
 
     val (intrs', elims', induct, inducts, lthy2) = declare_rules rec_name coind no_ind
-      cnames intrs intr_names intr_atts elims raw_induct lthy1;
+      cnames preds intrs intr_names intr_atts elims raw_induct lthy1;
 
     val result =
       {preds = preds,
