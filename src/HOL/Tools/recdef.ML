@@ -7,7 +7,7 @@ Wrapper module for Konrad Slind's TFL package.
 signature RECDEF =
 sig
   val get_recdef: theory -> string
-    -> {simps: thm list, rules: thm list list, induct: thm, tcs: term list} option
+    -> {lhs: term, simps: thm list, rules: thm list list, induct: thm, tcs: term list} option
   val get_hints: Proof.context -> {simps: thm list, congs: (string * thm) list, wfs: thm list}
   val simp_add: attribute
   val simp_del: attribute
@@ -17,9 +17,9 @@ sig
   val wf_del: attribute
   val add_recdef: bool -> xstring -> string -> ((binding * string) * Attrib.src list) list ->
     Attrib.src option -> theory -> theory
-      * {simps: thm list, rules: thm list list, induct: thm, tcs: term list}
+      * {lhs: term, simps: thm list, rules: thm list list, induct: thm, tcs: term list}
   val add_recdef_i: bool -> xstring -> term -> ((binding * term) * attribute list) list ->
-    theory -> theory * {simps: thm list, rules: thm list list, induct: thm, tcs: term list}
+    theory -> theory * {lhs: term, simps: thm list, rules: thm list list, induct: thm, tcs: term list}
   val defer_recdef: xstring -> string list -> (Facts.ref * Attrib.src list) list
     -> theory -> theory * {induct_rules: thm}
   val defer_recdef_i: xstring -> term list -> thm list -> theory -> theory * {induct_rules: thm}
@@ -84,7 +84,7 @@ end;
 
 (* theory data *)
 
-type recdef_info = {simps: thm list, rules: thm list list, induct: thm, tcs: term list};
+type recdef_info = {lhs: term, simps: thm list, rules: thm list list, induct: thm, tcs: term list};
 
 structure GlobalRecdefData = Theory_Data
 (
@@ -198,7 +198,7 @@ fun gen_add_recdef tfl_fn prep_att prep_hints not_permissive raw_name R eq_srcs 
     (*We must remove imp_cong to prevent looping when the induction rule
       is simplified. Many induction rules have nested implications that would
       give rise to looping conditional rewriting.*)
-    val (thy, {rules = rules_idx, induct, tcs}) =
+    val (thy, {lhs, rules = rules_idx, induct, tcs}) =
         tfl_fn not_permissive thy cs (ss delcongs [imp_cong])
                congs wfs name R eqs;
     val rules = (map o map) fst (partition_eq (eq_snd (op = : int * int -> bool)) rules_idx);
@@ -211,8 +211,8 @@ fun gen_add_recdef tfl_fn prep_att prep_hints not_permissive raw_name R eq_srcs 
       |> PureThy.add_thmss
         (((Binding.name "simps", flat rules), simp_att) :: ((eq_names ~~ rules) ~~ eq_atts))
       ||>> PureThy.add_thms [((Binding.name "induct", induct), [])]
-      ||> Spec_Rules.add_global Spec_Rules.Equational (tcs, flat rules);
-    val result = {simps = simps', rules = rules', induct = induct', tcs = tcs};
+      ||> Spec_Rules.add_global Spec_Rules.Equational ([lhs], flat rules);
+    val result = {lhs = lhs, simps = simps', rules = rules', induct = induct', tcs = tcs};
     val thy =
       thy
       |> put_recdef name result

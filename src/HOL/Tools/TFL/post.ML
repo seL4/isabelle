@@ -8,9 +8,9 @@ Second part of main module (postprocessing of TFL definitions).
 signature TFL =
 sig
   val define_i: bool -> theory -> claset -> simpset -> thm list -> thm list -> xstring ->
-    term -> term list -> theory * {rules: (thm * int) list, induct: thm, tcs: term list}
+    term -> term list -> theory * {lhs: term, rules: (thm * int) list, induct: thm, tcs: term list}
   val define: bool -> theory -> claset -> simpset -> thm list -> thm list -> xstring ->
-    string -> string list -> theory * {rules: (thm * int) list, induct: thm, tcs: term list}
+    string -> string list -> theory * {lhs: term, rules: (thm * int) list, induct: thm, tcs: term list}
   val defer_i: theory -> thm list -> xstring -> term list -> theory * thm
   val defer: theory -> thm list -> xstring -> string list -> theory * thm
 end;
@@ -204,12 +204,13 @@ end;
 fun define_i strict thy cs ss congs wfs fid R eqs =
   let val {functional,pats} = Prim.mk_functional thy eqs
       val (thy, def) = Prim.wfrec_definition0 thy (Long_Name.base_name fid) R functional
+      val (lhs, _) = Logic.dest_equals (prop_of def)
       val {induct, rules, tcs} = 
           simplify_defn strict thy cs ss congs wfs fid pats def
       val rules' = 
           if strict then derive_init_eqs thy rules eqs
           else rules
-  in (thy, {rules = rules', induct = induct, tcs = tcs}) end;
+  in (thy, {lhs = lhs, rules = rules', induct = induct, tcs = tcs}) end;
 
 fun define strict thy cs ss congs wfs fid R seqs =
   define_i strict thy cs ss congs wfs fid
