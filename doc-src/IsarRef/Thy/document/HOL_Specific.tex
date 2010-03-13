@@ -22,19 +22,16 @@
 }
 \isamarkuptrue%
 %
-\isamarkupsection{Primitive types \label{sec:hol-typedef}%
+\isamarkupsection{Typedef axiomatization \label{sec:hol-typedef}%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{HOL}{command}{typedecl}\hypertarget{command.HOL.typedecl}{\hyperlink{command.HOL.typedecl}{\mbox{\isa{\isacommand{typedecl}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
-    \indexdef{HOL}{command}{typedef}\hypertarget{command.HOL.typedef}{\hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
+    \indexdef{HOL}{command}{typedef}\hypertarget{command.HOL.typedef}{\hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
   \end{matharray}
 
   \begin{rail}
-    'typedecl' typespec mixfix?
-    ;
     'typedef' altname? abstype '=' repset
     ;
 
@@ -48,21 +45,25 @@
 
   \begin{description}
   
-  \item \hyperlink{command.HOL.typedecl}{\mbox{\isa{\isacommand{typedecl}}}}~\isa{{\isachardoublequote}{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub n{\isacharparenright}\ t{\isachardoublequote}} is similar
-  to the original \hyperlink{command.typedecl}{\mbox{\isa{\isacommand{typedecl}}}} of Isabelle/Pure (see
-  \secref{sec:types-pure}), but also declares type arity \isa{{\isachardoublequote}t\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}type{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ type{\isacharparenright}\ type{\isachardoublequote}}, making \isa{t} an actual HOL type
-  constructor.  %FIXME check, update
+  \item \hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}}~\isa{{\isachardoublequote}{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub n{\isacharparenright}\ t\ {\isacharequal}\ A{\isachardoublequote}}
+  axiomatizes a Gordon/HOL-style type definition in the background
+  theory of the current context, depending on a non-emptiness result
+  of the set \isa{A} (which needs to be proven interactively).
+
+  The raw type may not depend on parameters or assumptions of the
+  context --- this is logically impossible in Isabelle/HOL --- but the
+  non-emptiness property can be local, potentially resulting in
+  multiple interpretations in target contexts.  Thus the established
+  bijection between the representing set \isa{A} and the new type
+  \isa{t} may semantically depend on local assumptions.
   
-  \item \hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}}~\isa{{\isachardoublequote}{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub n{\isacharparenright}\ t\ {\isacharequal}\ A{\isachardoublequote}} sets up
-  a goal stating non-emptiness of the set \isa{A}.  After finishing
-  the proof, the theory will be augmented by a Gordon/HOL-style type
-  definition, which establishes a bijection between the representing
-  set \isa{A} and the new type \isa{t}.
-  
-  Technically, \hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}} defines both a type \isa{t} and a set (term constant) of the same name (an alternative base
-  name may be given in parentheses).  The injection from type to set
-  is called \isa{Rep{\isacharunderscore}t}, its inverse \isa{Abs{\isacharunderscore}t} (this may be
-  changed via an explicit \hyperlink{keyword.HOL.morphisms}{\mbox{\isa{\isakeyword{morphisms}}}} declaration).
+  By default, \hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}} defines both a type \isa{t}
+  and a set (term constant) of the same name, unless an alternative
+  base name is given in parentheses, or the ``\isa{{\isachardoublequote}{\isacharparenleft}open{\isacharparenright}{\isachardoublequote}}''
+  declaration is used to suppress a separate constant definition
+  altogether.  The injection from type to set is called \isa{Rep{\isacharunderscore}t},
+  its inverse \isa{Abs{\isacharunderscore}t} --- this may be changed via an explicit
+  \hyperlink{keyword.HOL.morphisms}{\mbox{\isa{\isakeyword{morphisms}}}} declaration.
   
   Theorems \isa{Rep{\isacharunderscore}t}, \isa{Rep{\isacharunderscore}t{\isacharunderscore}inverse}, and \isa{Abs{\isacharunderscore}t{\isacharunderscore}inverse} provide the most basic characterization as a
   corresponding injection/surjection pair (in both directions).  Rules
@@ -74,17 +75,11 @@
   on surjectivity; these are already declared as set or type rules for
   the generic \hyperlink{method.cases}{\mbox{\isa{cases}}} and \hyperlink{method.induct}{\mbox{\isa{induct}}} methods.
   
-  An alternative name may be specified in parentheses; the default is
-  to use \isa{t} as indicated before.  The ``\isa{{\isachardoublequote}{\isacharparenleft}open{\isacharparenright}{\isachardoublequote}}''
-  declaration suppresses a separate constant definition for the
-  representing set.
+  An alternative name for the set definition (and other derived
+  entities) may be specified in parentheses; the default is to use
+  \isa{t} as indicated before.
 
-  \end{description}
-
-  Note that raw type declarations are rarely used in practice; the
-  main application is with experimental (or even axiomatic!) theory
-  fragments.  Instead of primitive HOL type definitions, user-level
-  theories usually refer to higher-level packages such as \hyperlink{command.HOL.record}{\mbox{\isa{\isacommand{record}}}} (see \secref{sec:hol-record}) or \hyperlink{command.HOL.datatype}{\mbox{\isa{\isacommand{datatype}}}} (see \secref{sec:hol-datatype}).%
+  \end{description}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -920,7 +915,7 @@ Identifying incorrect propositions usually involves evaluation of
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{Invoking automated reasoning tools -- The Sledgehammer%
+\isamarkupsection{Invoking automated reasoning tools --- The Sledgehammer%
 }
 \isamarkuptrue%
 %
