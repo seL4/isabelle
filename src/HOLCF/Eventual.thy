@@ -13,16 +13,8 @@ lemma MOST_INFM:
   apply (simp add: Compl_partition2 inf)
   done
 
-lemma MOST_comp: "\<lbrakk>inj f; MOST x. P x\<rbrakk> \<Longrightarrow> MOST x. P (f x)"
-unfolding MOST_iff_finiteNeg
-by (drule (1) finite_vimageI, simp)
-
-lemma INFM_comp: "\<lbrakk>inj f; INFM x. P (f x)\<rbrakk> \<Longrightarrow> INFM x. P x"
-unfolding Inf_many_def
-by (clarify, drule (1) finite_vimageI, simp)
-
 lemma MOST_SucI: "MOST n. P n \<Longrightarrow> MOST n. P (Suc n)"
-by (rule MOST_comp [OF inj_Suc])
+by (rule MOST_inj [OF _ inj_Suc])
 
 lemma MOST_SucD: "MOST n. P (Suc n) \<Longrightarrow> MOST n. P n"
 unfolding MOST_nat
