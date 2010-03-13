@@ -150,8 +150,8 @@ domain 'a tree = Leaf (lazy 'a) | Branch (lazy "'a forest")
 and    'a forest = Empty | Trees (lazy "'a tree") "'a forest"
 
 text {*
-  To define mutually recursive functions, separate the equations
-  for each function using the keyword @{text "and"}.
+  To define mutually recursive functions, give multiple type signatures
+  separated by the keyword @{text "and"}.
 *}
 
 fixrec
@@ -173,13 +173,31 @@ by fixrec_simp
 
 text {*
   Theorems generated:
-  @{text map_tree_def}
-  @{text map_forest_def}
-  @{text map_tree_unfold}
-  @{text map_forest_unfold}
-  @{text map_tree_simps}
-  @{text map_forest_simps}
-  @{text map_tree_map_forest_induct}
+  @{text map_tree_def}  @{thm map_tree_def}
+  @{text map_forest_def}  @{thm map_forest_def}
+  @{text map_tree.unfold}  @{thm map_tree.unfold}
+  @{text map_forest.unfold}  @{thm map_forest.unfold}
+  @{text map_tree.simps}  @{thm map_tree.simps}
+  @{text map_forest.simps}  @{thm map_forest.simps}
+  @{text map_tree_map_forest.induct}  @{thm map_tree_map_forest.induct}
 *}
+
+
+subsection {* Using @{text fixrec} inside locales *}
+
+locale test =
+  fixes foo :: "'a \<rightarrow> 'a"
+  assumes foo_strict: "foo\<cdot>\<bottom> = \<bottom>"
+begin
+
+fixrec
+  bar :: "'a u \<rightarrow> 'a"
+where
+  "bar\<cdot>(up\<cdot>x) = foo\<cdot>x"
+
+lemma bar_strict: "bar\<cdot>\<bottom> = \<bottom>"
+by fixrec_simp
+
+end
 
 end

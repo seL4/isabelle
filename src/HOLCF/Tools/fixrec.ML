@@ -101,10 +101,10 @@ local
 
 fun name_of (Const (n, T)) = n
   | name_of (Free (n, T)) = n
-  | name_of _ = fixrec_err "name_of"
+  | name_of t = raise TERM ("Fixrec.add_unfold: lhs not a constant", [t]);
 
 val lhs_name =
-  name_of o fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of;
+  name_of o head_of o fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of;
 
 in
 
@@ -311,7 +311,7 @@ fun fixrec_simp_tac ctxt =
       else HOLogic.dest_Trueprop (Logic.strip_imp_concl t);
     fun tac (t, i) =
       let
-        val Const (c, T) = chead_of (fst (HOLogic.dest_eq (concl t)));
+        val Const (c, T) = head_of (chead_of (fst (HOLogic.dest_eq (concl t))));
         val unfold_thm = the (Symtab.lookup tab c);
         val rule = unfold_thm RS @{thm ssubst_lhs};
       in
