@@ -10,10 +10,11 @@ val HOLCF_ss = @{simpset};
 signature DOMAIN_THEOREMS =
 sig
   val theorems:
-    Domain_Library.eq * Domain_Library.eq list
-    -> typ * (binding * (bool * binding option * typ) list * mixfix) list
-    -> Domain_Take_Proofs.iso_info
-    -> theory -> thm list * theory;
+    Domain_Library.eq * Domain_Library.eq list ->
+    typ * (binding * (bool * binding option * typ) list * mixfix) list ->
+    Domain_Take_Proofs.iso_info ->
+    Domain_Take_Proofs.take_induct_info ->
+    theory -> thm list * theory;
 
   val comp_theorems :
       binding * Domain_Library.eq list ->
@@ -84,6 +85,7 @@ fun theorems
     (((dname, _), cons) : eq, eqs : eq list)
     (dom_eqn : typ * (binding * (bool * binding option * typ) list * mixfix) list)
     (iso_info : Domain_Take_Proofs.iso_info)
+    (take_info : Domain_Take_Proofs.take_induct_info)
     (thy : theory) =
 let
 
@@ -103,9 +105,10 @@ local
   fun ga s dn = PureThy.get_thm thy (dn ^ "." ^ s);
 in
   val ax_take_0      = ga "take_0" dname;
-  val ax_take_Suc    = ga "take_Suc" dname;
   val ax_take_strict = ga "take_strict" dname;
 end; (* local *)
+
+val {take_Suc_thms, deflation_take_thms, ...} = take_info;
 
 (* ----- define constructors ------------------------------------------------ *)
 
@@ -138,8 +141,6 @@ local
   fun dc_take dn = %%:(dn^"_take");
   val dnames = map (fst o fst) eqs;
   val deflation_thms = Domain_Take_Proofs.get_deflation_thms thy;
-  fun get_deflation_take dn = PureThy.get_thm thy (dn ^ ".deflation_take");
-  val axs_deflation_take = map get_deflation_take dnames;
 
   fun copy_of_dtyp tab r dt =
       if Datatype_Aux.is_rec_type dt then copy tab r dt else ID
@@ -162,9 +163,9 @@ local
       val rhs = con_app2 con one_rhs args;
       val goal = mk_trp (lhs === rhs);
       val rules =
-          [ax_take_Suc, ax_abs_iso, @{thm cfcomp2}]
-          @ @{thms take_con_rules ID1 deflation_strict}
-          @ deflation_thms @ axs_deflation_take;
+          [ax_abs_iso]
+          @ @{thms take_con_rules ID1 cfcomp2 deflation_strict}
+          @ take_Suc_thms @ deflation_thms @ deflation_take_thms;
       val tacs = [simp_tac (HOL_basic_ss addsimps rules) 1];
     in pg con_appls goal (K tacs) end;
   val take_apps = map one_take_app cons;

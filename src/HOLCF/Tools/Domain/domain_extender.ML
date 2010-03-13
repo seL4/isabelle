@@ -190,7 +190,7 @@ fun gen_add_domain
     val ((rewss, take_rews), theorems_thy) =
         thy
           |> fold_map (fn ((eq, (x,cs)), info) =>
-                Domain_Theorems.theorems (eq, eqs) (Type x, cs) info)
+                Domain_Theorems.theorems (eq, eqs) (Type x, cs) info take_info)
              (eqs ~~ eqs' ~~ iso_infos)
           ||>> Domain_Theorems.comp_theorems (comp_dbind, eqs) take_info;
   in
@@ -265,7 +265,7 @@ fun gen_add_new_domain
     val ((rewss, take_rews), theorems_thy) =
         thy
           |> fold_map (fn ((eq, (x,cs)), info) =>
-               Domain_Theorems.theorems (eq, eqs) (Type x, cs) info)
+               Domain_Theorems.theorems (eq, eqs) (Type x, cs) info take_info)
              (eqs ~~ eqs' ~~ iso_infos)
           ||>> Domain_Theorems.comp_theorems (comp_dbind, eqs) take_info;
   in
