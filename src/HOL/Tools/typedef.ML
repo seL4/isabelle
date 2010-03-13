@@ -158,22 +158,11 @@ fun prepare_typedef prep_term def_set name (tname, vs, mx) raw_set opt_morphs lt
 
     (* set definition *)
 
-    (* FIXME let Local_Theory.define handle hidden polymorphism (!??!) *)
-
-    val rhs_tfrees = Term.add_tfrees set [];
-    val rhs_tfreesT = Term.add_tfreesT setT [];
-
-    val set_argsT = lhs_tfrees
-      |> filter (member (op =) rhs_tfrees andf (not o member (op =) rhs_tfreesT))
-      |> map TFree;
-    val set_args = map Logic.mk_type set_argsT;
-
     val ((set', set_def), set_lthy) =
       if def_set then
         typedecl_lthy
-        |> Local_Theory.define
-          ((name, NoSyn), ((Thm.def_binding name, []), fold_rev lambda set_args set))
-        |>> (fn (s, (_, set_def)) => (Term.list_comb (s, set_args), SOME set_def))
+        |> Local_Theory.define ((name, NoSyn), ((Thm.def_binding name, []), set))
+        |>> (fn (set', (_, set_def)) => (set', SOME set_def))
       else ((set, NONE), typedecl_lthy);
 
 
