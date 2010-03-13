@@ -138,7 +138,7 @@ fun add_fixdefs
       | defs (l::[]) r = [one_def l r]
       | defs (l::ls) r = one_def l (mk_fst r) :: defs ls (mk_snd r);
     val fixdefs = defs lhss fixpoint;
-    val (fixdef_thms : (term * (string * thm)) list, lthy') = lthy
+    val (fixdef_thms : (term * (string * thm)) list, lthy) = lthy
       |> fold_map Local_Theory.define (map (apfst fst) fixes ~~ fixdefs);
     fun pair_equalI (thm1, thm2) = @{thm Pair_equalI} OF [thm1, thm2];
     val tuple_fixdef_thm = foldr1 pair_equalI (map (snd o snd) fixdef_thms);
@@ -148,7 +148,7 @@ fun add_fixdefs
       |> Drule.instantiate' [] [SOME (Thm.cterm_of thy predicate)]
       |> Local_Defs.unfold lthy @{thms split_paired_all split_conv split_strict};
     val tuple_unfold_thm = (def_cont_fix_eq OF [tuple_fixdef_thm, cont_thm])
-      |> Local_Defs.unfold lthy' @{thms split_conv};
+      |> Local_Defs.unfold lthy @{thms split_conv};
     fun unfolds [] thm = []
       | unfolds (n::[]) thm = [(n, thm)]
       | unfolds (n::ns) thm = let
@@ -169,10 +169,10 @@ fun add_fixdefs
       in
         ((thm_name, [src]), [thm])
       end;
-    val (thmss, lthy'') = lthy'
+    val (thmss, lthy) = lthy
       |> fold_map Local_Theory.note (induct_note :: map unfold_note unfold_thms);
   in
-    (lthy'', names, fixdef_thms, map snd unfold_thms)
+    (lthy, names, fixdef_thms, map snd unfold_thms)
   end;
 
 (*************************************************************************)
@@ -377,12 +377,12 @@ fun gen_fixrec
 
     val matches = map (compile_pats match_name) (map (map snd) blocks);
     val spec' = map (pair Attrib.empty_binding) matches;
-    val (lthy', cnames, fixdef_thms, unfold_thms) =
+    val (lthy, cnames, fixdef_thms, unfold_thms) =
       add_fixdefs fixes spec' lthy;
   in
     if strict then let (* only prove simp rules if strict = true *)
       val simps : (Attrib.binding * thm) list list =
-        map (make_simps lthy') (unfold_thms ~~ blocks);
+        map (make_simps lthy) (unfold_thms ~~ blocks);
       fun mk_bind n : Attrib.binding =
        (Binding.qualify true n (Binding.name "simps"),
          [Attrib.internal (K Simplifier.simp_add)]);
@@ -390,12 +390,12 @@ fun gen_fixrec
         map (fn (n,xs) => (mk_bind n, map snd xs)) (names ~~ simps);
       val simps2 : (Attrib.binding * thm list) list =
         map (apsnd (fn thm => [thm])) (flat simps);
-      val (_, lthy'') = lthy'
+      val (_, lthy) = lthy
         |> fold_map Local_Theory.note (simps1 @ simps2);
     in
-      lthy''
+      lthy
     end
-    else lthy'
+    else lthy
   end;
 
 in
