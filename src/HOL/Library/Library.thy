@@ -10,7 +10,6 @@ imports
   Char_ord
   Code_Char_chr
   Code_Integer
-  Coinductive_List
   Continuity
   ContNotDenum
   Countable
