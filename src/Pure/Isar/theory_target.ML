@@ -179,7 +179,7 @@ fun notes (Target {target, is_locale, ...}) kind facts lthy =
   end;
 
 
-(* declare_const *)
+(* consts *)
 
 fun fork_mixfix (Target {is_locale, is_class, ...}) mx =
   if not is_locale then (NoSyn, NoSyn, mx)
@@ -207,34 +207,6 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx)
           same_shape ?
             (Context.mapping (Sign.revert_abbrev mode d) (ProofContext.revert_abbrev mode d) #>
              Morphism.form (ProofContext.target_notation true prmode [(lhs', mx)]))))
-  end;
-
-fun syntax_error c = error ("Illegal mixfix syntax for overloaded constant " ^ quote c);
-
-fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((b, T), mx) lthy =
-  let
-    val xs = filter depends (#1 (ProofContext.inferred_fixes (Local_Theory.target_of lthy)));
-    val U = map #2 xs ---> T;
-    val (mx1, mx2, mx3) = fork_mixfix ta mx;
-    val (const, lthy') = lthy |>
-      (case Class_Target.instantiation_param lthy b of
-        SOME c' =>
-          if mx3 <> NoSyn then syntax_error c'
-          else Local_Theory.theory_result (AxClass.declare_overloaded (c', U))
-            ##> Class_Target.confirm_declaration b
-        | NONE =>
-            (case Overloading.operation lthy b of
-              SOME (c', _) =>
-                if mx3 <> NoSyn then syntax_error c'
-                else Local_Theory.theory_result (Overloading.declare (c', U))
-                  ##> Overloading.confirm b
-            | NONE => Local_Theory.theory_result (Sign.declare_const ((b, U), mx3))));
-    val t = Term.list_comb (const, map Free xs);
-  in
-    lthy'
-    |> is_locale ? term_syntax ta false (locale_const ta Syntax.mode_default ((b, mx2), t))
-    |> is_class ? class_target ta (Class_Target.declare target ((b, mx1), t))
-    |> Local_Defs.add_def ((b, NoSyn), t)
   end;
 
 
@@ -271,6 +243,43 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t)
 
 (* define *)
 
+local
+
+fun syntax_error c = error ("Illegal mixfix syntax for overloaded constant " ^ quote c);
+
+fun declare_const (ta as Target {target, is_locale, is_class, ...}) xs ((b, T), mx) lthy =
+  let
+    val params =
+      rev (Variable.fixes_of (Local_Theory.target_of lthy))
+      |> map_filter (fn (_, x) =>
+        (case AList.lookup (op =) xs x of
+          SOME T => SOME (x, T)
+        | NONE => NONE));
+    val U = map #2 params ---> T;
+    val (mx1, mx2, mx3) = fork_mixfix ta mx;
+    val (const, lthy') = lthy |>
+      (case Class_Target.instantiation_param lthy b of
+        SOME c' =>
+          if mx3 <> NoSyn then syntax_error c'
+          else Local_Theory.theory_result (AxClass.declare_overloaded (c', U))
+            ##> Class_Target.confirm_declaration b
+      | NONE =>
+          (case Overloading.operation lthy b of
+            SOME (c', _) =>
+              if mx3 <> NoSyn then syntax_error c'
+              else Local_Theory.theory_result (Overloading.declare (c', U))
+                ##> Overloading.confirm b
+          | NONE => Local_Theory.theory_result (Sign.declare_const ((b, U), mx3))));
+    val t = Term.list_comb (const, map Free params);
+  in
+    lthy'
+    |> is_locale ? term_syntax ta false (locale_const ta Syntax.mode_default ((b, mx2), t))
+    |> is_class ? class_target ta (Class_Target.declare target ((b, mx1), t))
+    |> Local_Defs.add_def ((b, NoSyn), t)
+  end;
+
+in
+
 fun define ta ((b, mx), ((name, atts), rhs)) lthy =
   let
     val thy = ProofContext.theory_of lthy;
@@ -286,7 +295,7 @@ fun define ta ((b, mx), ((name, atts), rhs)) lthy =
     val T = Term.fastype_of rhs;
 
     (*const*)
-    val ((lhs, local_def), lthy2) = lthy |> declare_const ta (member (op =) xs) ((b, T), mx);
+    val ((lhs, local_def), lthy2) = lthy |> declare_const ta xs ((b, T), mx);
     val (_, lhs') = Logic.dest_equals (Thm.prop_of local_def);
 
     (*def*)
@@ -295,9 +304,9 @@ fun define ta ((b, mx), ((name, atts), rhs)) lthy =
         (case Overloading.operation lthy b of
           SOME (_, checked) => Overloading.define checked name' (fst (dest_Const lhs'), rhs')
         | NONE =>
-            if is_none (Class_Target.instantiation_param lthy b)
-            then Thm.add_def false false (name', Logic.mk_equals (lhs', rhs'))
-            else AxClass.define_overloaded name' (fst (dest_Const lhs'), rhs'));
+            if is_some (Class_Target.instantiation_param lthy b)
+            then AxClass.define_overloaded name' (fst (dest_Const lhs'), rhs')
+            else Thm.add_def false false (name', Logic.mk_equals (lhs', rhs')));
     val def = Local_Defs.trans_terms lthy3
       [(*c == global.c xs*)     local_def,
        (*global.c xs == rhs'*)  global_def,
@@ -307,6 +316,8 @@ fun define ta ((b, mx), ((name, atts), rhs)) lthy =
     val ([(res_name, [res])], lthy4) = lthy3
       |> notes ta "" [((name', atts), [([def], [])])];
   in ((lhs, (res_name, res)), lthy4) end;
+
+end;
 
 
 (* init various targets *)
