@@ -104,8 +104,8 @@ fun do_typedef name repT alphas thy =
   let
     fun get_thms thy name =
       let
-        val {Rep_inject = rep_inject, Abs_name = absN, abs_type = absT,
-          Abs_inverse = abs_inverse, ...} = Typedef.the_info thy name;
+        val [{Rep_inject = rep_inject, Abs_name = absN, abs_type = absT,
+          Abs_inverse = abs_inverse, ...}] = Typedef.get_info_global thy name;
         val rewrite_rule =
           MetaSimplifier.rewrite_rule [@{thm iso_tuple_UNIV_I}, @{thm iso_tuple_True_simp}];
       in

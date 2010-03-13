@@ -4,17 +4,14 @@ begin
 
 chapter {* Isabelle/HOL \label{ch:hol} *}
 
-section {* Primitive types \label{sec:hol-typedef} *}
+section {* Typedef axiomatization \label{sec:hol-typedef} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def (HOL) "typedecl"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "typedef"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
+    @{command_def (HOL) "typedef"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
   \end{matharray}
 
   \begin{rail}
-    'typedecl' typespec mixfix?
-    ;
     'typedef' altname? abstype '=' repset
     ;
 
@@ -28,23 +25,25 @@ text {*
 
   \begin{description}
   
-  \item @{command (HOL) "typedecl"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"} is similar
-  to the original @{command "typedecl"} of Isabelle/Pure (see
-  \secref{sec:types-pure}), but also declares type arity @{text "t ::
-  (type, \<dots>, type) type"}, making @{text t} an actual HOL type
-  constructor.  %FIXME check, update
+  \item @{command (HOL) "typedef"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = A"}
+  axiomatizes a Gordon/HOL-style type definition in the background
+  theory of the current context, depending on a non-emptiness result
+  of the set @{text A} (which needs to be proven interactively).
+
+  The raw type may not depend on parameters or assumptions of the
+  context --- this is logically impossible in Isabelle/HOL --- but the
+  non-emptiness property can be local, potentially resulting in
+  multiple interpretations in target contexts.  Thus the established
+  bijection between the representing set @{text A} and the new type
+  @{text t} may semantically depend on local assumptions.
   
-  \item @{command (HOL) "typedef"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = A"} sets up
-  a goal stating non-emptiness of the set @{text A}.  After finishing
-  the proof, the theory will be augmented by a Gordon/HOL-style type
-  definition, which establishes a bijection between the representing
-  set @{text A} and the new type @{text t}.
-  
-  Technically, @{command (HOL) "typedef"} defines both a type @{text
-  t} and a set (term constant) of the same name (an alternative base
-  name may be given in parentheses).  The injection from type to set
-  is called @{text Rep_t}, its inverse @{text Abs_t} (this may be
-  changed via an explicit @{keyword (HOL) "morphisms"} declaration).
+  By default, @{command (HOL) "typedef"} defines both a type @{text t}
+  and a set (term constant) of the same name, unless an alternative
+  base name is given in parentheses, or the ``@{text "(open)"}''
+  declaration is used to suppress a separate constant definition
+  altogether.  The injection from type to set is called @{text Rep_t},
+  its inverse @{text Abs_t} --- this may be changed via an explicit
+  @{keyword (HOL) "morphisms"} declaration.
   
   Theorems @{text Rep_t}, @{text Rep_t_inverse}, and @{text
   Abs_t_inverse} provide the most basic characterization as a
@@ -57,19 +56,11 @@ text {*
   on surjectivity; these are already declared as set or type rules for
   the generic @{method cases} and @{method induct} methods.
   
-  An alternative name may be specified in parentheses; the default is
-  to use @{text t} as indicated before.  The ``@{text "(open)"}''
-  declaration suppresses a separate constant definition for the
-  representing set.
+  An alternative name for the set definition (and other derived
+  entities) may be specified in parentheses; the default is to use
+  @{text t} as indicated before.
 
   \end{description}
-
-  Note that raw type declarations are rarely used in practice; the
-  main application is with experimental (or even axiomatic!) theory
-  fragments.  Instead of primitive HOL type definitions, user-level
-  theories usually refer to higher-level packages such as @{command
-  (HOL) "record"} (see \secref{sec:hol-record}) or @{command (HOL)
-  "datatype"} (see \secref{sec:hol-datatype}).
 *}
 
 
@@ -906,7 +897,7 @@ text {*
 *}
 
 
-section {* Invoking automated reasoning tools -- The Sledgehammer *}
+section {* Invoking automated reasoning tools --- The Sledgehammer *}
 
 text {*
   Isabelle/HOL includes a generic \emph{ATP manager} that allows

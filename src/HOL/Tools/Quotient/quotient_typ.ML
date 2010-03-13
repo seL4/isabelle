@@ -75,7 +75,7 @@ let
      EVERY1 (map rtac [@{thm exI}, mem_def2, @{thm exI}, @{thm refl}])
 in
   Local_Theory.theory_result
-    (Typedef.add_typedef false NONE
+    (Typedef.add_typedef_global false NONE
        (qty_name, vs, mx)
           (typedef_term rel rty lthy)
              NONE typedef_tac) lthy

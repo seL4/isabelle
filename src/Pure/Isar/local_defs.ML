@@ -20,6 +20,7 @@ sig
   val export_cterm: Proof.context -> Proof.context -> cterm -> thm list * cterm
   val trans_terms: Proof.context -> thm list -> thm
   val trans_props: Proof.context -> thm list -> thm
+  val contract: Proof.context -> thm list -> cterm -> thm -> thm
   val print_rules: Proof.context -> unit
   val defn_add: attribute
   val defn_del: attribute
@@ -179,6 +180,8 @@ val trans_props = trans_list (fn eq => fn th => th COMP (eq COMP Drule.equal_eli
 
 end;
 
+fun contract ctxt defs ct th =
+  trans_props ctxt [th, Thm.symmetric (MetaSimplifier.rewrite true defs ct)];
 
 
 (** defived definitions **)

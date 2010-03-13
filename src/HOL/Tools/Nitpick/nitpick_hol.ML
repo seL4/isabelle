@@ -560,14 +560,15 @@ fun typedef_info thy s =
           set_def = NONE, prop_of_Rep = @{prop "Rep_Frac x \<in> Frac"}
                           |> Logic.varify,
           set_name = @{const_name Frac}, Abs_inverse = NONE, Rep_inverse = NONE}
-  else case Typedef.get_info thy s of
-    SOME {abs_type, rep_type, Abs_name, Rep_name, set_def, Rep, Abs_inverse,
-          Rep_inverse, ...} =>
+  else case Typedef.get_info_global thy s of
+    (* FIXME handle multiple typedef interpretations (!??) *)
+    [{abs_type, rep_type, Abs_name, Rep_name, set_def, Rep, Abs_inverse,
+          Rep_inverse, ...}] =>
     SOME {abs_type = abs_type, rep_type = rep_type, Abs_name = Abs_name,
           Rep_name = Rep_name, set_def = set_def, prop_of_Rep = prop_of Rep,
           set_name = set_prefix ^ s, Abs_inverse = SOME Abs_inverse,
           Rep_inverse = SOME Rep_inverse}
-  | NONE => NONE
+  | _ => NONE
 
 (* theory -> string -> bool *)
 val is_typedef = is_some oo typedef_info

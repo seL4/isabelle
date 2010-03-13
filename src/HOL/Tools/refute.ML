@@ -614,7 +614,7 @@ struct
       (let
         (* Term.term -> Term.typ option *)
         fun type_of_type_definition (Const (s', T')) =
-          if s'="Typedef.type_definition" then
+          if s'= @{const_name type_definition} then
             SOME T'
           else
             NONE
