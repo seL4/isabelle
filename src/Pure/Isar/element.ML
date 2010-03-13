@@ -55,9 +55,6 @@ sig
   val satisfy_facts: witness list ->
     (Attrib.binding * (thm list * Attrib.src list) list) list ->
     (Attrib.binding * (thm list * Attrib.src list) list) list
-  val generalize_facts: Proof.context -> Proof.context ->
-    (Attrib.binding * (thm list * Attrib.src list) list) list ->
-    (Attrib.binding * (thm list * Attrib.src list) list) list
   val eq_morphism: theory -> thm list -> morphism
   val transfer_morphism: theory -> morphism
   val init: context_i -> Context.generic -> Context.generic
@@ -456,22 +453,6 @@ fun eq_morphism thy thms = Morphism.morphism
   typ = I,
   term = MetaSimplifier.rewrite_term thy thms [],
   fact = map (MetaSimplifier.rewrite_rule thms)};
-
-
-(* generalize type/term parameters *)
-
-val maxidx_atts = fold Args.maxidx_values;
-
-fun generalize_facts inner outer facts =
-  let
-    val thy = ProofContext.theory_of inner;
-    val maxidx =
-      fold (fn ((_, atts), bs) => maxidx_atts atts #> fold (maxidx_atts o #2) bs) facts ~1;
-    val exp_fact = map (Thm.adjust_maxidx_thm maxidx) #> Variable.export inner outer;
-    val exp_term = Drule.term_rule thy (singleton exp_fact);
-    val exp_typ = Logic.type_map exp_term;
-    val morphism = Morphism.morphism {binding = I, typ = exp_typ, term = exp_term, fact = exp_fact};
-  in facts_map (morph_ctxt morphism) facts end;
 
 
 (* transfer to theory using closure *)
