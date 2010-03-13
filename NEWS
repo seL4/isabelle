@@ -64,6 +64,12 @@ discontinued (legacy feature).
 
 *** Pure ***
 
+* Local theory specifications may depend on extra type variables that
+are not present in the result type -- arguments TYPE('a) :: 'a itself
+are added internally.  For example:
+
+  definition unitary :: bool where "unitary = (ALL (x::'a) y. x = y)"
+
 * Code generator: details of internal data cache have no impact on
 the user space functionality any longer.
 
