@@ -158,13 +158,13 @@ fun add_fixdefs
     val unfold_thms = unfolds names tuple_unfold_thm;
     val induct_note : Attrib.binding * Thm.thm list =
       let
-        val thm_name = Binding.name (all_names ^ "_induct");
+        val thm_name = Binding.qualify true all_names (Binding.name "induct");
       in
         ((thm_name, []), [tuple_induct_thm])
       end;
     fun unfold_note (name, thm) : Attrib.binding * Thm.thm list =
       let
-        val thm_name = Binding.name (name ^ "_unfold");
+        val thm_name = Binding.qualify true name (Binding.name "unfold");
         val src = Attrib.internal (K add_unfold);
       in
         ((thm_name, [src]), [thm])
@@ -384,7 +384,7 @@ fun gen_fixrec
       val simps : (Attrib.binding * thm) list list =
         map (make_simps lthy') (unfold_thms ~~ blocks);
       fun mk_bind n : Attrib.binding =
-       (Binding.name (n ^ "_simps"),
+       (Binding.qualify true n (Binding.name "simps"),
          [Attrib.internal (K Simplifier.simp_add)]);
       val simps1 : (Attrib.binding * thm list) list =
         map (fn (n,xs) => (mk_bind n, map snd xs)) (names ~~ simps);
@@ -415,7 +415,7 @@ fun fix_pat thy t =
     val eq = mk_trp (HOLogic.eq_const T $ t $ Var (("x",0),T));
     val cname = case chead_of t of Const(c,_) => c | _ =>
               fixrec_err "function is not declared as constant in theory";
-    val unfold_thm = PureThy.get_thm thy (cname^"_unfold");
+    val unfold_thm = PureThy.get_thm thy (cname^".unfold");
     val simp = Goal.prove_global thy [] [] eq
           (fn _ => EVERY [stac unfold_thm 1, simp_tac (global_simpset_of thy) 1]);
   in simp end;

@@ -85,27 +85,27 @@ fixrec tree3 :: "int lift tree"
 where "tree3 = Node\<cdot>(Node\<cdot>(Leaf\<cdot>(Def 1))\<cdot>tree3)
                    \<cdot>(Node\<cdot>(Leaf\<cdot>(Def 3))\<cdot>(Leaf\<cdot>(Def 4)))"
 
-declare tree1_simps tree2_simps tree3_simps [simp del]
+declare tree1.simps tree2.simps tree3.simps [simp del]
 
 lemma pick_tree1:
   "pick\<cdot>tree1 = {Def 1, Def 2, Def 3, Def 4}\<natural>"
-apply (subst tree1_simps)
+apply (subst tree1.simps)
 apply simp
 apply (simp add: convex_plus_ac)
 done
 
 lemma pick_tree2:
   "pick\<cdot>tree2 = {Def 1, Def 2, \<bottom>, Def 4}\<natural>"
-apply (subst tree2_simps)
+apply (subst tree2.simps)
 apply simp
 apply (simp add: convex_plus_ac)
 done
 
 lemma pick_tree3:
   "pick\<cdot>tree3 = {Def 1, \<bottom>, Def 3, Def 4}\<natural>"
-apply (subst tree3_simps)
+apply (subst tree3.simps)
 apply simp
-apply (induct rule: tree3_induct)
+apply (induct rule: tree3.induct)
 apply simp
 apply simp
 apply (simp add: convex_plus_ac)
