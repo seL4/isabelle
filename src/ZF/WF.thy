@@ -1,5 +1,4 @@
 (*  Title:      ZF/WF.thy
-    ID:         $Id$
     Author:     Tobias Nipkow and Lawrence C Paulson
     Copyright   1994  University of Cambridge
 

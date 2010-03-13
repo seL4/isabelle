@@ -1,5 +1,4 @@
 (*  Title:      ZF/IMP/Com.thy
-    ID:         $Id$
     Author:     Heiko Loetzbeyer and Robert Sandner, TU München
 *)
 

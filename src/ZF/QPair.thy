@@ -1,12 +1,11 @@
-(*  Title:      ZF/qpair.thy
-    ID:         $Id$
+(*  Title:      ZF/QPair.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Many proofs are borrowed from pair.thy and sum.thy
 
 Do we EVER have rank(a) < rank(<a;b>) ?  Perhaps if the latter rank
-    is not a limit ordinal? 
+is not a limit ordinal? 
 *)
 
 header{*Quine-Inspired Ordered Pairs and Disjoint Sums*}

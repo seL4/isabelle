@@ -1,5 +1,4 @@
 (*  Title:      Provers/Arith/fast_lin_arith.ML
-    ID:         $Id$
     Author:     Tobias Nipkow and Tjark Weber and Sascha Boehme
 
 A generic linear arithmetic package.  It provides two tactics

@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory If
 imports FOLP
 begin

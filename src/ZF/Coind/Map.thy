@@ -1,11 +1,8 @@
 (*  Title:      ZF/Coind/Map.thy
-    ID:         $Id$
     Author:     Jacob Frost, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 
-
-Some sample proofs of inclusions for the final coalgebra "U" (by lcp) 
-
+Some sample proofs of inclusions for the final coalgebra "U" (by lcp).
 *)
 
 theory Map imports Main begin

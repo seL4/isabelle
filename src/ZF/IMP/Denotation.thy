@@ -1,5 +1,4 @@
 (*  Title:      ZF/IMP/Denotation.thy
-    ID:         $Id$
     Author:     Heiko Loetzbeyer and Robert Sandner, TU München
 *)
 

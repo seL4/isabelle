@@ -1,5 +1,4 @@
 (*  Title:      Provers/Arith/abel_cancel.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 

@@ -1,9 +1,8 @@
-(*  Title:      ZF/ex/BinEx.ML
-    ID:         $Id$
+(*  Title:      ZF/ex/BinEx.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-Examples of performing binary arithmetic by simplification
+Examples of performing binary arithmetic by simplification.
 *)
 
 theory BinEx imports Main begin

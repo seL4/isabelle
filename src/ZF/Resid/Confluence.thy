@@ -1,8 +1,6 @@
-(*  Title:      Confluence.thy
-    ID:         $Id$
+(*  Title:      ZF/Resid/Confluence.thy
     Author:     Ole Rasmussen
     Copyright   1995  University of Cambridge
-    Logic Image: ZF
 *)
 
 theory Confluence imports Reduction begin

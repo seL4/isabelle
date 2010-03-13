@@ -1,9 +1,8 @@
-(*  Title:      ZF/simpdata
-    ID:         $Id$
+(*  Title:      ZF/simpdata.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-Rewriting for ZF set theory: specialized extraction of rewrites from theorems
+Rewriting for ZF set theory: specialized extraction of rewrites from theorems.
 *)
 
 (*** New version of mk_rew_rules ***)

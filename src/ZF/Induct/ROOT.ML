@@ -1,5 +1,4 @@
 (*  Title:      ZF/Induct/ROOT.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2001  University of Cambridge
 

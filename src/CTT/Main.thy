@@ -1,6 +1,3 @@
-
-(* $Id$ *)
-
 header {* Main includes everything *}
 
 theory Main

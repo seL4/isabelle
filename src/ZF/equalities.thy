@@ -1,8 +1,6 @@
-(*  Title:      ZF/equalities
-    ID:         $Id$
+(*  Title:      ZF/equalities.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
-
 *)
 
 header{*Basic Equalities and Inclusions*}

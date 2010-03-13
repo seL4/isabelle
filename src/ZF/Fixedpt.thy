@@ -1,5 +1,4 @@
-(*  Title:      ZF/fixedpt.thy
-    ID:         $Id$
+(*  Title:      ZF/Fixedpt.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 *)

@@ -1,5 +1,4 @@
 (*  Title:      Provers/Arith/cancel_numeral_factor.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2000  University of Cambridge
 

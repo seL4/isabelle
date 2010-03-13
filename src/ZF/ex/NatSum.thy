@@ -1,5 +1,4 @@
 (*  Title:      ZF/ex/Natsum.thy
-    ID:         $Id$
     Author:     Tobias Nipkow & Lawrence C Paulson
 
 A summation operator. sum(f,n+1) is the sum of all f(i), i=0...n.

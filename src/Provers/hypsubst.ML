@@ -1,5 +1,4 @@
 (*  Title:      Provers/hypsubst.ML
-    ID:         $Id$
     Authors:    Martin D Coen, Tobias Nipkow and Lawrence C Paulson
     Copyright   1995  University of Cambridge
 

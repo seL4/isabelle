@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory ILL_predlog
 imports ILL
 begin

@@ -1,5 +1,4 @@
 (*  Title:      Sequents/simpdata.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson
     Copyright   1999  University of Cambridge
 

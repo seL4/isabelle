@@ -1,11 +1,10 @@
 (*  Title:      ZF/Tools/cartprod.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 
-Signatures for inductive definitions
+Signatures for inductive definitions.
 
-Syntactic operations for Cartesian Products
+Syntactic operations for Cartesian Products.
 *)
 
 signature FP =          (** Description of a fixed point operator **)

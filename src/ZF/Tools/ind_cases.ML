@@ -1,5 +1,4 @@
 (*  Title:      ZF/Tools/ind_cases.ML
-    ID:         $Id$
     Author:     Markus Wenzel, LMU Muenchen
 
 Generic inductive cases facility for (co)inductive definitions.

@@ -1,8 +1,6 @@
-(*  Title:      ZF/epsilon.thy
-    ID:         $Id$
+(*  Title:      ZF/Epsilon.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
-
 *)
 
 header{*Epsilon Induction and Recursion*}

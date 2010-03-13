@@ -1,6 +1,3 @@
-
-(* $Id$ *)
-
 header {*  Section 10.4 *}
 
 theory Ex1

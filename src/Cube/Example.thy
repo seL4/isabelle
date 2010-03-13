@@ -1,6 +1,3 @@
-
-(* $Id$ *)
-
 header {* Lambda Cube Examples *}
 
 theory Example

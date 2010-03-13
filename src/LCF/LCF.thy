@@ -1,5 +1,4 @@
 (*  Title:      LCF/LCF.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1992  University of Cambridge
 *)
