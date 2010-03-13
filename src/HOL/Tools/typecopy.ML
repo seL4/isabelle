@@ -80,7 +80,7 @@ fun typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
         end
   in
     thy
-    |> Typedef.add_typedef false (SOME raw_tyco) (raw_tyco, map fst vs, NoSyn)
+    |> Typedef.add_typedef_global false (SOME raw_tyco) (raw_tyco, map fst vs, NoSyn)
       (HOLogic.mk_UNIV ty) (Option.map swap constr_proj) tac
     |-> (fn (tyco, info) => add_info tyco info)
   end;
@@ -91,8 +91,9 @@ fun typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
 fun add_default_code tyco thy =
   let
     val SOME { constr = c, proj = (proj, _), proj_def = proj_eq, vs = vs,
-      typ = ty_rep, ... } =  get_info thy tyco;
-    val SOME { Rep_inject = proj_inject, ... } = Typedef.get_info thy tyco;
+      typ = ty_rep, ... } = get_info thy tyco;
+    (* FIXME handle multiple typedef interpretations (!??) *)
+    val [{ Rep_inject = proj_inject, ... }] = Typedef.get_info_global thy tyco;
     val constr = (c, Logic.unvarifyT (Sign.the_const_type thy c));
     val ty = Type (tyco, map TFree vs);
     val proj = Const (proj, ty --> ty_rep);
