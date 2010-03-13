@@ -7,25 +7,25 @@ Theory extender for domain command, including theory syntax.
 signature DOMAIN_EXTENDER =
 sig
   val add_domain_cmd:
-      string ->
+      binding ->
       ((string * string option) list * binding * mixfix *
        (binding * (bool * binding option * string) list * mixfix) list) list
       -> theory -> theory
 
   val add_domain:
-      string ->
+      binding ->
       ((string * string option) list * binding * mixfix *
        (binding * (bool * binding option * typ) list * mixfix) list) list
       -> theory -> theory
 
   val add_new_domain_cmd:
-      string ->
+      binding ->
       ((string * string option) list * binding * mixfix *
        (binding * (bool * binding option * string) list * mixfix) list) list
       -> theory -> theory
 
   val add_new_domain:
-      string ->
+      binding ->
       ((string * string option) list * binding * mixfix *
        (binding * (bool * binding option * typ) list * mixfix) list) list
       -> theory -> theory
@@ -126,7 +126,7 @@ fun check_and_sort_domain
 
 fun gen_add_domain
     (prep_typ : theory -> 'a -> typ)
-    (comp_dnam : string)
+    (comp_dbind : binding)
     (eqs''' : ((string * string option) list * binding * mixfix *
                (binding * (bool * binding option * 'a) list * mixfix) list) list)
     (thy : theory) =
@@ -192,19 +192,18 @@ fun gen_add_domain
           |> fold_map (fn ((eq, (x,cs)), info) =>
                 Domain_Theorems.theorems (eq, eqs) (Type x, cs) info)
              (eqs ~~ eqs' ~~ iso_infos)
-          ||>> Domain_Theorems.comp_theorems (comp_dnam, eqs) take_info;
+          ||>> Domain_Theorems.comp_theorems (comp_dbind, eqs) take_info;
   in
     theorems_thy
-      |> Sign.add_path (Long_Name.base_name comp_dnam)
       |> PureThy.add_thmss
-           [((Binding.name "rews", flat rewss @ take_rews), [])]
+           [((Binding.qualified true "rews" comp_dbind,
+              flat rewss @ take_rews), [])]
       |> snd
-      |> Sign.parent_path
   end;
 
 fun gen_add_new_domain
     (prep_typ : theory -> 'a -> typ)
-    (comp_dnam : string)
+    (comp_dbind : binding)
     (eqs''' : ((string * string option) list * binding * mixfix *
                (binding * (bool * binding option * 'a) list * mixfix) list) list)
     (thy : theory) =
@@ -268,14 +267,13 @@ fun gen_add_new_domain
           |> fold_map (fn ((eq, (x,cs)), info) =>
                Domain_Theorems.theorems (eq, eqs) (Type x, cs) info)
              (eqs ~~ eqs' ~~ iso_infos)
-          ||>> Domain_Theorems.comp_theorems (comp_dnam, eqs) take_info;
+          ||>> Domain_Theorems.comp_theorems (comp_dbind, eqs) take_info;
   in
     theorems_thy
-      |> Sign.add_path (Long_Name.base_name comp_dnam)
       |> PureThy.add_thmss
-           [((Binding.name "rews", flat rewss @ take_rews), [])]
+           [((Binding.qualified true "rews" comp_dbind,
+              flat rewss @ take_rews), [])]
       |> snd
-      |> Sign.parent_path
   end;
 
 val add_domain = gen_add_domain Sign.certify_typ;
@@ -314,12 +312,12 @@ val domain_decl =
     (P.$$$ "=" |-- P.enum1 "|" cons_decl);
 
 val domains_decl =
-  Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") --
+  Scan.option (P.$$$ "(" |-- P.binding --| P.$$$ ")") --
     P.and_list1 domain_decl;
 
 fun mk_domain
     (definitional : bool)
-    (opt_name : string option,
+    (opt_name : binding option,
      doms : ((((string * string option) list * binding) * mixfix) *
              ((binding * (bool * binding option * string) list) * mixfix) list) list ) =
   let
@@ -328,12 +326,13 @@ fun mk_domain
                  (binding * (bool * binding option * string) list * mixfix) list) list =
         map (fn (((vs, t), mx), cons) =>
                 (vs, t, mx, map (fn ((c, ds), mx) => (c, ds, mx)) cons)) doms;
-    val comp_dnam =
-        case opt_name of NONE => space_implode "_" names | SOME s => s;
+    val comp_dbind =
+        case opt_name of NONE => Binding.name (space_implode "_" names)
+                       | SOME s => s;
   in
     if definitional 
-    then add_new_domain_cmd comp_dnam specs
-    else add_domain_cmd comp_dnam specs
+    then add_new_domain_cmd comp_dbind specs
+    else add_domain_cmd comp_dbind specs
   end;
 
 val _ =

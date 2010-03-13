@@ -16,7 +16,7 @@ sig
     -> theory -> thm list * theory;
 
   val comp_theorems :
-      bstring * Domain_Library.eq list ->
+      binding * Domain_Library.eq list ->
       Domain_Take_Proofs.take_induct_info ->
       theory -> thm list * theory
 
@@ -207,11 +207,12 @@ end; (* let *)
 (******************************************************************************)
 
 fun prove_induction
-    (comp_dnam, eqs : eq list)
+    (comp_dbind : binding, eqs : eq list)
     (take_rews : thm list)
     (take_info : Domain_Take_Proofs.take_induct_info)
     (thy : theory) =
 let
+  val comp_dname = Sign.full_name thy comp_dbind;
   val dnames = map (fst o fst) eqs;
   val conss  = map  snd        eqs;
   fun dc_take dn = %%:(dn^"_take");
@@ -286,7 +287,7 @@ let
     val is_emptys = map warn n__eqs;
     val is_finite = #is_finite take_info;
     val _ = if is_finite
-            then message ("Proving finiteness rule for domain "^comp_dnam^" ...")
+            then message ("Proving finiteness rule for domain "^comp_dname^" ...")
             else ();
   end;
   val _ = trace " Proving finite_ind...";
@@ -400,12 +401,12 @@ fun ind_rule (dname, rule) =
     ((Binding.empty, [rule]),
      [Rule_Cases.case_names case_ns, Induct.induct_type dname]);
 
-in thy |> Sign.add_path comp_dnam
-       |> snd o PureThy.add_thmss [
-           ((Binding.name "finite_ind" , [finite_ind]), []),
-           ((Binding.name "ind"        , [ind]       ), [])]
-       |> (snd o PureThy.add_thmss (map ind_rule (dnames ~~ inducts)))
-       |> Sign.parent_path
+in
+  thy
+  |> snd o PureThy.add_thmss [
+     ((Binding.qualified true "finite_ind" comp_dbind, [finite_ind]), []),
+     ((Binding.qualified true "ind"        comp_dbind, [ind]       ), [])]
+  |> (snd o PureThy.add_thmss (map ind_rule (dnames ~~ inducts)))
 end; (* prove_induction *)
 
 (******************************************************************************)
@@ -413,13 +414,13 @@ end; (* prove_induction *)
 (******************************************************************************)
 
 fun prove_coinduction
-    (comp_dnam, eqs : eq list)
+    (comp_dbind : binding, eqs : eq list)
     (take_lemmas : thm list)
     (thy : theory) : theory =
 let
 
 val dnames = map (fst o fst) eqs;
-val comp_dname = Sign.full_bname thy comp_dnam;
+val comp_dname = Sign.full_name thy comp_dbind;
 fun dc_take dn = %%:(dn^"_take");
 val x_name = idx_name dnames "x"; 
 val n_eqs = length eqs;
@@ -433,7 +434,7 @@ local
   open HOLCF_Library
   val dtypes  = map (Type o fst) eqs;
   val relprod = mk_tupleT (map (fn tp => tp --> tp --> boolT) dtypes);
-  val bisim_bind = Binding.name (comp_dnam ^ "_bisim");
+  val bisim_bind = Binding.suffix_name "_bisim" comp_dbind;
   val bisim_type = relprod --> boolT;
 in
   val (bisim_const, thy) =
@@ -448,10 +449,6 @@ local
   fun infer_props thy = map (apsnd (legacy_infer_prop thy));
   fun add_defs_i x = PureThy.add_defs false (map Thm.no_attributes x);
   fun add_defs_infer defs thy = add_defs_i (infer_props thy defs) thy;
-
-  val comp_dname = Sign.full_bname thy comp_dnam;
-  val dnames = map (fst o fst) eqs;
-  val x_name = idx_name dnames "x"; 
 
   fun one_con (con, args) =
     let
@@ -494,11 +491,9 @@ local
          mk_lam("R", foldr1 mk_conj (mapn one_comp 0 eqs));
 
 in
-  val ([ax_bisim_def], thy) =
-      thy
-        |> Sign.add_path comp_dnam
-        |> add_defs_infer [(Binding.name "bisim_def", bisim_eqn)]
-        ||> Sign.parent_path;
+  val (ax_bisim_def, thy) =
+      yield_singleton add_defs_infer
+        (Binding.qualified true "bisim_def" comp_dbind, bisim_eqn) thy;
 end; (* local *)
 
 (* ----- theorem concerning coinduction ------------------------------------- *)
@@ -555,20 +550,19 @@ in
     in pg [] goal (K tacs) end;
 end; (* local *)
 
-in thy |> Sign.add_path comp_dnam
-       |> snd o PureThy.add_thmss [((Binding.name "coind", [coind]), [])]
-       |> Sign.parent_path
+in thy |> snd o PureThy.add_thmss
+                  [((Binding.qualified true "coind" comp_dbind, [coind]), [])]
 end; (* let *)
 
 fun comp_theorems
-    (comp_dnam : string, eqs : eq list)
+    (comp_dbind : binding, eqs : eq list)
     (take_info : Domain_Take_Proofs.take_induct_info)
     (thy : theory) =
 let
 val map_tab = Domain_Take_Proofs.get_map_tab thy;
 
 val dnames = map (fst o fst) eqs;
-val comp_dname = Sign.full_bname thy comp_dnam;
+val comp_dname = Sign.full_name thy comp_dbind;
 
 (* ----- getting the composite axiom and definitions ------------------------ *)
 
@@ -596,11 +590,11 @@ val take_rews =
 (* prove induction rules, unless definition is indirect recursive *)
 val thy =
     if is_indirect then thy else
-    prove_induction (comp_dnam, eqs) take_rews take_info thy;
+    prove_induction (comp_dbind, eqs) take_rews take_info thy;
 
 val thy =
     if is_indirect then thy else
-    prove_coinduction (comp_dnam, eqs) take_lemmas thy;
+    prove_coinduction (comp_dbind, eqs) take_lemmas thy;
 
 in
   (take_rews, thy)
