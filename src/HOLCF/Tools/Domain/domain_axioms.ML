@@ -35,8 +35,6 @@ fun axiomatize_isomorphism
     (thy : theory)
     : Domain_Take_Proofs.iso_info * theory =
   let
-    val dname = Long_Name.base_name (Binding.name_of dbind);
-
     val abs_bind = Binding.suffix_name "_abs" dbind;
     val rep_bind = Binding.suffix_name "_rep" dbind;
 
@@ -53,17 +51,16 @@ fun axiomatize_isomorphism
     val rep_iso_eqn =
         Logic.all x (mk_trp (mk_eq (abs_const ` (rep_const ` x), x)));
 
-    val thy = Sign.add_path dname thy;
+    val abs_iso_bind = Binding.qualified true "abs_iso" dbind;
+    val rep_iso_bind = Binding.qualified true "rep_iso" dbind;
 
     val (abs_iso_thm, thy) =
         yield_singleton PureThy.add_axioms
-        ((Binding.name "abs_iso", abs_iso_eqn), []) thy;
+        ((abs_iso_bind, abs_iso_eqn), []) thy;
 
     val (rep_iso_thm, thy) =
         yield_singleton PureThy.add_axioms
-        ((Binding.name "rep_iso", rep_iso_eqn), []) thy;
-
-    val thy = Sign.parent_path thy;
+        ((rep_iso_bind, rep_iso_eqn), []) thy;
 
     val result =
         {
@@ -83,21 +80,17 @@ fun axiomatize_lub_take
     (thy : theory)
     : thm * theory =
   let
-    val dname = Long_Name.base_name (Binding.name_of dbind);
-
     val i = Free ("i", natT);
     val T = (fst o dest_cfunT o range_type o fastype_of) take_const;
 
     val lub_take_eqn =
         mk_trp (mk_eq (mk_lub (lambda i (take_const $ i)), mk_ID T));
 
-    val thy = Sign.add_path dname thy;
+    val lub_take_bind = Binding.qualified true "lub_take" dbind;
 
     val (lub_take_thm, thy) =
         yield_singleton PureThy.add_axioms
-        ((Binding.name "lub_take", lub_take_eqn), []) thy;
-
-    val thy = Sign.parent_path thy;
+        ((lub_take_bind, lub_take_eqn), []) thy;
   in
     (lub_take_thm, thy)
   end;

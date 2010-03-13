@@ -236,12 +236,9 @@ fun define_const
     ((const, def_thm), thy)
   end;
 
-fun add_qualified_thm name (path, thm) thy =
-    thy
-    |> Sign.add_path path
-    |> yield_singleton PureThy.add_thms
-        (Thm.no_attributes (Binding.name name, thm))
-    ||> Sign.parent_path;
+fun add_qualified_thm name (dbind, thm) =
+    yield_singleton PureThy.add_thms
+      ((Binding.qualified true name dbind, thm), []);
 
 (******************************************************************************)
 (******************************* main function ********************************)
@@ -306,7 +303,7 @@ fun gen_domain_isomorphism
         | dups => error ("Duplicate parameter(s) for domain " ^ quote (Binding.str_of tname) ^
             " : " ^ commas dups))
       end) doms;
-    val dom_binds = map (fn (_, tbind, _, _, _) => tbind) doms;
+    val dbinds = map (fn (_, dbind, _, _, _) => dbind) doms;
     val morphs = map (fn (_, _, _, _, morphs) => morphs) doms;
 
     (* declare deflation combinator constants *)
@@ -331,7 +328,7 @@ fun gen_domain_isomorphism
     val defl_specs = map mk_defl_spec dom_eqns;
 
     (* register recursive definition of deflation combinators *)
-    val defl_binds = map (Binding.suffix_name "_defl") dom_binds;
+    val defl_binds = map (Binding.suffix_name "_defl") dbinds;
     val ((defl_apply_thms, defl_unfold_thms), thy) =
       add_fixdefs (defl_binds ~~ defl_specs) thy;
 
@@ -363,7 +360,7 @@ fun gen_domain_isomorphism
     val REP_eq_thms = map mk_REP_eq_thm dom_eqns;
 
     (* register REP equations *)
-    val REP_eq_binds = map (Binding.prefix_name "REP_eq_") dom_binds;
+    val REP_eq_binds = map (Binding.prefix_name "REP_eq_") dbinds;
     val (_, thy) = thy |>
       (PureThy.add_thms o map Thm.no_attributes)
         (REP_eq_binds ~~ REP_eq_thms);
@@ -381,32 +378,27 @@ fun gen_domain_isomorphism
         (((rep_const, abs_const), (rep_def, abs_def)), thy)
       end;
     val ((rep_abs_consts, rep_abs_defs), thy) = thy
-      |> fold_map mk_rep_abs (dom_binds ~~ morphs ~~ dom_eqns)
+      |> fold_map mk_rep_abs (dbinds ~~ morphs ~~ dom_eqns)
       |>> ListPair.unzip;
 
     (* prove isomorphism and isodefl rules *)
     fun mk_iso_thms ((tbind, REP_eq), (rep_def, abs_def)) thy =
       let
-        fun make thm = Drule.export_without_context (thm OF [REP_eq, abs_def, rep_def]);
+        fun make thm =
+            Drule.export_without_context (thm OF [REP_eq, abs_def, rep_def]);
         val rep_iso_thm = make @{thm domain_rep_iso};
         val abs_iso_thm = make @{thm domain_abs_iso};
         val isodefl_thm = make @{thm isodefl_abs_rep};
-        val rep_iso_bind = Binding.name "rep_iso";
-        val abs_iso_bind = Binding.name "abs_iso";
-        val isodefl_bind = Binding.name "isodefl_abs_rep";
-        val (_, thy) = thy
-          |> Sign.add_path (Binding.name_of tbind)
-          |> (PureThy.add_thms o map Thm.no_attributes)
-              [(rep_iso_bind, rep_iso_thm),
-               (abs_iso_bind, abs_iso_thm),
-               (isodefl_bind, isodefl_thm)]
-          ||> Sign.parent_path;
+        val thy = thy
+          |> snd o add_qualified_thm "rep_iso" (tbind, rep_iso_thm)
+          |> snd o add_qualified_thm "abs_iso" (tbind, abs_iso_thm)
+          |> snd o add_qualified_thm "isodefl_abs_rep" (tbind, isodefl_thm);
       in
         (((rep_iso_thm, abs_iso_thm), isodefl_thm), thy)
       end;
     val ((iso_thms, isodefl_abs_rep_thms), thy) =
       thy
-      |> fold_map mk_iso_thms (dom_binds ~~ REP_eq_thms ~~ rep_abs_defs)
+      |> fold_map mk_iso_thms (dbinds ~~ REP_eq_thms ~~ rep_abs_defs)
       |>> ListPair.unzip;
 
     (* collect info about rep/abs *)
@@ -434,7 +426,7 @@ fun gen_domain_isomorphism
         Sign.declare_const ((map_bind, map_type), NoSyn) thy
       end;
     val (map_consts, thy) = thy |>
-      fold_map declare_map_const (dom_binds ~~ dom_eqns);
+      fold_map declare_map_const (dbinds ~~ dom_eqns);
 
     (* defining equations for map functions *)
     local
@@ -457,7 +449,7 @@ fun gen_domain_isomorphism
     end;
 
     (* register recursive definition of map functions *)
-    val map_binds = map (Binding.suffix_name "_map") dom_binds;
+    val map_binds = map (Binding.suffix_name "_map") dbinds;
     val ((map_apply_thms, map_unfold_thms), thy) =
       add_fixdefs (map_binds ~~ map_specs) thy;
 
@@ -503,7 +495,7 @@ fun gen_domain_isomorphism
            REPEAT (etac @{thm conjE} 1),
            REPEAT (resolve_tac (isodefl_rules @ prems) 1 ORELSE atac 1)])
       end;
-    val isodefl_binds = map (Binding.prefix_name "isodefl_") dom_binds;
+    val isodefl_binds = map (Binding.prefix_name "isodefl_") dbinds;
     fun conjuncts [] thm = []
       | conjuncts (n::[]) thm = [(n, thm)]
       | conjuncts (n::ns) thm = let
@@ -530,7 +522,7 @@ fun gen_domain_isomorphism
       in
         Goal.prove_global thy [] [] goal (K tac)
       end;
-    val map_ID_binds = map (Binding.suffix_name "_map_ID") dom_binds;
+    val map_ID_binds = map (Binding.suffix_name "_map_ID") dbinds;
     val map_ID_thms =
       map prove_map_ID_thm
         (map_consts ~~ dom_eqns ~~ REP_thms ~~ isodefl_thms);
@@ -577,7 +569,7 @@ fun gen_domain_isomorphism
            REPEAT (etac @{thm conjE} 1),
            REPEAT (resolve_tac (deflation_rules @ prems) 1 ORELSE atac 1)])
       end;
-    val deflation_map_binds = dom_binds |>
+    val deflation_map_binds = dbinds |>
         map (Binding.prefix_name "deflation_" o Binding.suffix_name "_map");
     val (deflation_map_thms, thy) = thy |>
       (PureThy.add_thms o map (Thm.no_attributes o apsnd Drule.export_without_context))
@@ -597,7 +589,7 @@ fun gen_domain_isomorphism
     (* definitions and proofs related to take functions *)
     val (take_info, thy) =
         Domain_Take_Proofs.define_take_functions
-          (dom_binds ~~ iso_infos) thy;
+          (dbinds ~~ iso_infos) thy;
     val { take_consts, take_defs, chain_take_thms, take_0_thms,
           take_Suc_thms, deflation_take_thms,
           finite_consts, finite_defs } = take_info;
@@ -632,7 +624,7 @@ fun gen_domain_isomorphism
       end;
 
     (* prove lub of take equals ID *)
-    fun prove_lub_take (((bind, take_const), map_ID_thm), (lhsT, rhsT)) thy =
+    fun prove_lub_take (((dbind, take_const), map_ID_thm), (lhsT, rhsT)) thy =
       let
         val n = Free ("n", natT);
         val goal = mk_eqs (mk_lub (lambda n (take_const $ n)), mk_ID lhsT);
@@ -643,16 +635,16 @@ fun gen_domain_isomorphism
              REPEAT (etac @{thm Pair_inject} 1), atac 1];
         val lub_take_thm = Goal.prove_global thy [] [] goal (K tac);
       in
-        add_qualified_thm "lub_take" (Binding.name_of bind, lub_take_thm) thy
+        add_qualified_thm "lub_take" (dbind, lub_take_thm) thy
       end;
     val (lub_take_thms, thy) =
         fold_map prove_lub_take
-          (dom_binds ~~ take_consts ~~ map_ID_thms ~~ dom_eqns) thy;
+          (dbinds ~~ take_consts ~~ map_ID_thms ~~ dom_eqns) thy;
 
     (* prove additional take theorems *)
     val (take_info2, thy) =
         Domain_Take_Proofs.add_lub_take_theorems
-          (dom_binds ~~ iso_infos) take_info lub_take_thms thy;
+          (dbinds ~~ iso_infos) take_info lub_take_thms thy;
   in
     ((iso_infos, take_info2), thy)
   end;

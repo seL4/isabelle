@@ -203,40 +203,17 @@ fun map_of_typ (thy : theory) (sub : (typ * term) list) (T : typ) : term =
 (********************* declaring definitions and theorems *********************)
 (******************************************************************************)
 
-fun define_const
-    (bind : binding, rhs : term)
-    (thy : theory)
-    : (term * thm) * theory =
-  let
-    val typ = Term.fastype_of rhs;
-    val (const, thy) = Sign.declare_const ((bind, typ), NoSyn) thy;
-    val eqn = Logic.mk_equals (const, rhs);
-    val def = Thm.no_attributes (Binding.suffix_name "_def" bind, eqn);
-    val (def_thm, thy) = yield_singleton (PureThy.add_defs false) def thy;
-  in
-    ((const, def_thm), thy)
-  end;
+fun add_qualified_def name (dbind, eqn) =
+    yield_singleton (PureThy.add_defs false)
+     ((Binding.qualified true name dbind, eqn), []);
 
-fun add_qualified_def name (path, eqn) thy =
-    thy
-    |> Sign.add_path path
-    |> yield_singleton (PureThy.add_defs false)
-        (Thm.no_attributes (Binding.name name, eqn))
-    ||> Sign.parent_path;
+fun add_qualified_thm name (dbind, thm) =
+    yield_singleton PureThy.add_thms
+      ((Binding.qualified true name dbind, thm), []);
 
-fun add_qualified_thm name (path, thm) thy =
-    thy
-    |> Sign.add_path path
-    |> yield_singleton PureThy.add_thms
-        (Thm.no_attributes (Binding.name name, thm))
-    ||> Sign.parent_path;
-
-fun add_qualified_simp_thm name (path, thm) thy =
-    thy
-    |> Sign.add_path path
-    |> yield_singleton PureThy.add_thms
-        ((Binding.name name, thm), [Simplifier.simp_add])
-    ||> Sign.parent_path;
+fun add_qualified_simp_thm name (dbind, thm) =
+    yield_singleton PureThy.add_thms
+      ((Binding.qualified true name dbind, thm), [Simplifier.simp_add]);
 
 (******************************************************************************)
 (************************** defining take functions ***************************)
@@ -248,11 +225,10 @@ fun define_take_functions
   let
 
     (* retrieve components of spec *)
-    val dom_binds = map fst spec;
+    val dbinds = map fst spec;
     val iso_infos = map snd spec;
     val dom_eqns = map (fn x => (#absT x, #repT x)) iso_infos;
     val rep_abs_consts = map (fn x => (#rep_const x, #abs_const x)) iso_infos;
-    val dnames = map Binding.name_of dom_binds;
 
     (* get table of map functions *)
     val map_tab = MapData.get thy;
@@ -268,7 +244,7 @@ fun define_take_functions
     val newTs : typ list = map fst dom_eqns;
     val copy_arg_type = mk_tupleT (map (fn T => T ->> T) newTs);
     val copy_arg = Free ("f", copy_arg_type);
-    val copy_args = map snd (mk_projs dom_binds copy_arg);
+    val copy_args = map snd (mk_projs dbinds copy_arg);
     fun one_copy_rhs (rep_abs, (lhsT, rhsT)) =
       let
         val body = map_of_typ thy (newTs ~~ copy_args) rhsT;
@@ -283,40 +259,39 @@ fun define_take_functions
         val n = Free ("n", HOLogic.natT);
         val rhs = mk_iterate (n, take_functional);
       in
-        map (lambda n o snd) (mk_projs dom_binds rhs)
+        map (lambda n o snd) (mk_projs dbinds rhs)
       end;
 
     (* define take constants *)
-    fun define_take_const ((tbind, take_rhs), (lhsT, rhsT)) thy =
+    fun define_take_const ((dbind, take_rhs), (lhsT, rhsT)) thy =
       let
         val take_type = HOLogic.natT --> lhsT ->> lhsT;
-        val take_bind = Binding.suffix_name "_take" tbind;
+        val take_bind = Binding.suffix_name "_take" dbind;
         val (take_const, thy) =
           Sign.declare_const ((take_bind, take_type), NoSyn) thy;
         val take_eqn = Logic.mk_equals (take_const, take_rhs);
         val (take_def_thm, thy) =
-            add_qualified_def "take_def"
-             (Binding.name_of tbind, take_eqn) thy;
+            add_qualified_def "take_def" (dbind, take_eqn) thy;
       in ((take_const, take_def_thm), thy) end;
     val ((take_consts, take_defs), thy) = thy
-      |> fold_map define_take_const (dom_binds ~~ take_rhss ~~ dom_eqns)
+      |> fold_map define_take_const (dbinds ~~ take_rhss ~~ dom_eqns)
       |>> ListPair.unzip;
 
     (* prove chain_take lemmas *)
-    fun prove_chain_take (take_const, dname) thy =
+    fun prove_chain_take (take_const, dbind) thy =
       let
         val goal = mk_trp (mk_chain take_const);
         val rules = take_defs @ @{thms chain_iterate ch2ch_fst ch2ch_snd};
         val tac = simp_tac (HOL_basic_ss addsimps rules) 1;
         val thm = Goal.prove_global thy [] [] goal (K tac);
       in
-        add_qualified_simp_thm "chain_take" (dname, thm) thy
+        add_qualified_simp_thm "chain_take" (dbind, thm) thy
       end;
     val (chain_take_thms, thy) =
-      fold_map prove_chain_take (take_consts ~~ dnames) thy;
+      fold_map prove_chain_take (take_consts ~~ dbinds) thy;
 
     (* prove take_0 lemmas *)
-    fun prove_take_0 ((take_const, dname), (lhsT, rhsT)) thy =
+    fun prove_take_0 ((take_const, dbind), (lhsT, rhsT)) thy =
       let
         val lhs = take_const $ @{term "0::nat"};
         val goal = mk_eqs (lhs, mk_bottom (lhsT ->> lhsT));
@@ -324,16 +299,16 @@ fun define_take_functions
         val tac = simp_tac (HOL_basic_ss addsimps rules) 1;
         val take_0_thm = Goal.prove_global thy [] [] goal (K tac);
       in
-        add_qualified_thm "take_0" (dname, take_0_thm) thy
+        add_qualified_thm "take_0" (dbind, take_0_thm) thy
       end;
     val (take_0_thms, thy) =
-      fold_map prove_take_0 (take_consts ~~ dnames ~~ dom_eqns) thy;
+      fold_map prove_take_0 (take_consts ~~ dbinds ~~ dom_eqns) thy;
 
     (* prove take_Suc lemmas *)
     val n = Free ("n", natT);
     val take_is = map (fn t => t $ n) take_consts;
     fun prove_take_Suc
-          (((take_const, rep_abs), dname), (lhsT, rhsT)) thy =
+          (((take_const, rep_abs), dbind), (lhsT, rhsT)) thy =
       let
         val lhs = take_const $ (@{term Suc} $ n);
         val body = map_of_typ thy (newTs ~~ take_is) rhsT;
@@ -344,11 +319,11 @@ fun define_take_functions
         val tac = simp_tac (beta_ss addsimps rules) 1;
         val take_Suc_thm = Goal.prove_global thy [] [] goal (K tac);
       in
-        add_qualified_thm "take_Suc" (dname, take_Suc_thm) thy
+        add_qualified_thm "take_Suc" (dbind, take_Suc_thm) thy
       end;
     val (take_Suc_thms, thy) =
       fold_map prove_take_Suc
-        (take_consts ~~ rep_abs_consts ~~ dnames ~~ dom_eqns) thy;
+        (take_consts ~~ rep_abs_consts ~~ dbinds ~~ dom_eqns) thy;
 
     (* prove deflation theorems for take functions *)
     val deflation_abs_rep_thms = map deflation_abs_rep iso_infos;
@@ -385,52 +360,52 @@ fun define_take_functions
     val (deflation_take_thms, thy) =
       fold_map (add_qualified_thm "deflation_take")
         (map (apsnd Drule.export_without_context)
-          (conjuncts dnames deflation_take_thm)) thy;
+          (conjuncts dbinds deflation_take_thm)) thy;
 
     (* prove strictness of take functions *)
-    fun prove_take_strict (deflation_take, dname) thy =
+    fun prove_take_strict (deflation_take, dbind) thy =
       let
         val take_strict_thm =
             Drule.export_without_context
             (@{thm deflation_strict} OF [deflation_take]);
       in
-        add_qualified_thm "take_strict" (dname, take_strict_thm) thy
+        add_qualified_thm "take_strict" (dbind, take_strict_thm) thy
       end;
     val (take_strict_thms, thy) =
       fold_map prove_take_strict
-        (deflation_take_thms ~~ dnames) thy;
+        (deflation_take_thms ~~ dbinds) thy;
 
     (* prove take/take rules *)
-    fun prove_take_take ((chain_take, deflation_take), dname) thy =
+    fun prove_take_take ((chain_take, deflation_take), dbind) thy =
       let
         val take_take_thm =
             Drule.export_without_context
             (@{thm deflation_chain_min} OF [chain_take, deflation_take]);
       in
-        add_qualified_thm "take_take" (dname, take_take_thm) thy
+        add_qualified_thm "take_take" (dbind, take_take_thm) thy
       end;
     val (take_take_thms, thy) =
       fold_map prove_take_take
-        (chain_take_thms ~~ deflation_take_thms ~~ dnames) thy;
+        (chain_take_thms ~~ deflation_take_thms ~~ dbinds) thy;
 
     (* prove take_below rules *)
-    fun prove_take_below (deflation_take, dname) thy =
+    fun prove_take_below (deflation_take, dbind) thy =
       let
         val take_below_thm =
             Drule.export_without_context
             (@{thm deflation.below} OF [deflation_take]);
       in
-        add_qualified_thm "take_below" (dname, take_below_thm) thy
+        add_qualified_thm "take_below" (dbind, take_below_thm) thy
       end;
     val (take_below_thms, thy) =
       fold_map prove_take_below
-        (deflation_take_thms ~~ dnames) thy;
+        (deflation_take_thms ~~ dbinds) thy;
 
     (* define finiteness predicates *)
-    fun define_finite_const ((tbind, take_const), (lhsT, rhsT)) thy =
+    fun define_finite_const ((dbind, take_const), (lhsT, rhsT)) thy =
       let
         val finite_type = lhsT --> boolT;
-        val finite_bind = Binding.suffix_name "_finite" tbind;
+        val finite_bind = Binding.suffix_name "_finite" dbind;
         val (finite_const, thy) =
           Sign.declare_const ((finite_bind, finite_type), NoSyn) thy;
         val x = Free ("x", lhsT);
@@ -440,11 +415,10 @@ fun define_take_functions
             (lambda n (mk_eq (mk_capply (take_const $ n, x), x))));
         val finite_eqn = Logic.mk_equals (finite_const, finite_rhs);
         val (finite_def_thm, thy) =
-            add_qualified_def "finite_def"
-             (Binding.name_of tbind, finite_eqn) thy;
+            add_qualified_def "finite_def" (dbind, finite_eqn) thy;
       in ((finite_const, finite_def_thm), thy) end;
     val ((finite_consts, finite_defs), thy) = thy
-      |> fold_map define_finite_const (dom_binds ~~ take_consts ~~ dom_eqns)
+      |> fold_map define_finite_const (dbinds ~~ take_consts ~~ dom_eqns)
       |>> ListPair.unzip;
 
     val result =
@@ -469,10 +443,9 @@ fun prove_finite_take_induct
     (lub_take_thms : thm list)
     (thy : theory) =
   let
-    val dom_binds = map fst spec;
+    val dbinds = map fst spec;
     val iso_infos = map snd spec;
     val absTs = map #absT iso_infos;
-    val dnames = map Binding.name_of dom_binds;
     val {take_consts, ...} = take_info;
     val {chain_take_thms, take_0_thms, take_Suc_thms, ...} = take_info;
     val {finite_consts, finite_defs, ...} = take_info;
@@ -530,9 +503,9 @@ fun prove_finite_take_induct
 
     val thy = thy
         |> fold (snd oo add_qualified_thm "finite")
-            (dnames ~~ finite_thms)
+            (dbinds ~~ finite_thms)
         |> fold (snd oo add_qualified_thm "take_induct")
-            (dnames ~~ take_induct_thms);
+            (dbinds ~~ take_induct_thms);
   in
     ((finite_thms, take_induct_thms), thy)
   end;
@@ -545,39 +518,38 @@ fun add_lub_take_theorems
   let
 
     (* retrieve components of spec *)
-    val dom_binds = map fst spec;
+    val dbinds = map fst spec;
     val iso_infos = map snd spec;
     val absTs = map #absT iso_infos;
     val repTs = map #repT iso_infos;
-    val dnames = map Binding.name_of dom_binds;
     val {take_consts, take_0_thms, take_Suc_thms, ...} = take_info;
     val {chain_take_thms, deflation_take_thms, ...} = take_info;
 
     (* prove take lemmas *)
-    fun prove_take_lemma ((chain_take, lub_take), dname) thy =
+    fun prove_take_lemma ((chain_take, lub_take), dbind) thy =
       let
         val take_lemma =
             Drule.export_without_context
               (@{thm lub_ID_take_lemma} OF [chain_take, lub_take]);
       in
-        add_qualified_thm "take_lemma" (dname, take_lemma) thy
+        add_qualified_thm "take_lemma" (dbind, take_lemma) thy
       end;
     val (take_lemma_thms, thy) =
       fold_map prove_take_lemma
-        (chain_take_thms ~~ lub_take_thms ~~ dnames) thy;
+        (chain_take_thms ~~ lub_take_thms ~~ dbinds) thy;
 
     (* prove reach lemmas *)
-    fun prove_reach_lemma ((chain_take, lub_take), dname) thy =
+    fun prove_reach_lemma ((chain_take, lub_take), dbind) thy =
       let
         val thm =
             Drule.export_without_context
               (@{thm lub_ID_reach} OF [chain_take, lub_take]);
       in
-        add_qualified_thm "reach" (dname, thm) thy
+        add_qualified_thm "reach" (dbind, thm) thy
       end;
     val (reach_thms, thy) =
       fold_map prove_reach_lemma
-        (chain_take_thms ~~ lub_take_thms ~~ dnames) thy;
+        (chain_take_thms ~~ lub_take_thms ~~ dbinds) thy;
 
     (* test for finiteness of domain definitions *)
     local
@@ -608,7 +580,7 @@ fun add_lub_take_theorems
           val take_inducts =
               map prove_take_induct (chain_take_thms ~~ lub_take_thms);
           val thy = fold (snd oo add_qualified_thm "take_induct")
-                         (dnames ~~ take_inducts) thy;
+                         (dbinds ~~ take_inducts) thy;
         in
           ((NONE, take_inducts), thy)
         end;
