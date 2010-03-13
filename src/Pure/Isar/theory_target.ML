@@ -122,7 +122,6 @@ fun import_export_proof ctxt (name, raw_th) =
     (*export assumes/defines*)
     val th = Goal.norm_result raw_th;
     val (defs, th') = Local_Defs.export ctxt thy_ctxt th;
-    val concl_conv = MetaSimplifier.rewrite true defs (Thm.cprop_of th);
     val assms = map (MetaSimplifier.rewrite_rule defs o Thm.assume) (Assumption.all_assms_of ctxt);
     val nprems = Thm.nprems_of th' - Thm.nprems_of th;
 
@@ -152,7 +151,7 @@ fun import_export_proof ctxt (name, raw_th) =
     val result'' =
       (case SINGLE (Seq.INTERVAL assm_tac 1 nprems) result' of
         NONE => raise THM ("Failed to re-import result", 0, [result'])
-      | SOME res => Local_Defs.trans_props ctxt [res, Thm.symmetric concl_conv])
+      | SOME res => Local_Defs.contract ctxt defs (Thm.cprop_of th) res)
       |> Goal.norm_result
       |> PureThy.name_thm false false name;
 
