@@ -4,6 +4,6 @@
 HOLCF -- a semantic extension of HOL by the LCF logic.
 *)
 
-no_document use_thys ["Nat_Bijection"];
+no_document use_thys ["Nat_Bijection", "Infinite_Set"];
 
 use_thys ["HOLCF"];
