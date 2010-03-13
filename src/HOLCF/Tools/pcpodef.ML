@@ -181,7 +181,7 @@ fun add_podef def opt_name typ set opt_morphs tac thy =
   let
     val name = the_default (#1 typ) opt_name;
     val ((full_tname, info as {type_definition, set_def, Rep_name, ...}), thy2) = thy
-      |> Typedef.add_typedef def opt_name typ set opt_morphs tac;
+      |> Typedef.add_typedef_global def opt_name typ set opt_morphs tac;
     val oldT = #rep_type info;
     val newT = #abs_type info;
     val lhs_tfrees = map dest_TFree (snd (dest_Type newT));

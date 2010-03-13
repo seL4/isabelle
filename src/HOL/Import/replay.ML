@@ -343,7 +343,7 @@ fun replay_chached_thm int_thms thyname thmname =
           | delta (Hol_theorem (thyname, thmname, th)) thy =
             add_hol4_theorem thyname thmname ([], th_of thy th) thy
           | delta (Typedef (thmname, (t, vs, mx), c, repabs, th)) thy = 
-            snd (Typedef.add_typedef false (Option.map Binding.name thmname) (Binding.name t, vs, mx) c
+            snd (Typedef.add_typedef_global false (Option.map Binding.name thmname) (Binding.name t, vs, mx) c
         (Option.map (pairself Binding.name) repabs) (rtac (th_of thy th) 1) thy)
           | delta (Hol_type_mapping (thyname, tycname, fulltyname)) thy =  
             add_hol4_type_mapping thyname tycname true fulltyname thy
