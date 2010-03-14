@@ -1,8 +1,7 @@
-(*  Title:      quotient_def.thy
+(*  Title:      HOL/Tools/Quotient/quotient_def.thy
     Author:     Cezary Kaliszyk and Christian Urban
 
-    Definitions for constants on quotient types.
-
+Definitions for constants on quotient types.
 *)
 
 signature QUOTIENT_DEF =

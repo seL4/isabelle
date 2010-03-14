@@ -1,8 +1,8 @@
-(*  Title:      quotient_tacs.thy
+(*  Title:      HOL/Tools/Quotient/quotient_tacs.thy
     Author:     Cezary Kaliszyk and Christian Urban
 
-    Tactics for solving goal arising from lifting
-    theorems to quotient types.
+Tactics for solving goal arising from lifting theorems to quotient
+types.
 *)
 
 signature QUOTIENT_TACS =

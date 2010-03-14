@@ -1,11 +1,12 @@
-(*  Title:      Quotient_Product.thy
+(*  Title:      HOL/Library/Quotient_Product.thy
     Author:     Cezary Kaliszyk and Christian Urban
 *)
+
+header {* Quotient infrastructure for the product type *}
+
 theory Quotient_Product
 imports Main Quotient_Syntax
 begin
-
-section {* Quotient infrastructure for the product type. *}
 
 fun
   prod_rel
@@ -99,6 +100,5 @@ lemma prod_fun_id[id_simps]:
 lemma prod_rel_eq[id_simps]:
   shows "prod_rel (op =) (op =) = (op =)"
   by (simp add: expand_fun_eq)
-
 
 end

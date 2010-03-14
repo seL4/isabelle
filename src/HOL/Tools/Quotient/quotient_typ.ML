@@ -1,8 +1,7 @@
-(*  Title:      quotient_typ.thy
+(*  Title:      HOL/Tools/Quotient/quotient_typ.thy
     Author:     Cezary Kaliszyk and Christian Urban
 
-    Definition of a quotient type.
-
+Definition of a quotient type.
 *)
 
 signature QUOTIENT_TYPE =

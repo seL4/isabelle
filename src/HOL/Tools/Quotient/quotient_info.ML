@@ -1,10 +1,8 @@
-(*  Title:      quotient_info.thy
+(*  Title:      HOL/Tools/Quotient/quotient_info.thy
     Author:     Cezary Kaliszyk and Christian Urban
 
-    Data slots for the quotient package.
-
+Data slots for the quotient package.
 *)
-
 
 signature QUOTIENT_INFO =
 sig
@@ -290,4 +288,3 @@ val _ = map improper_command
 
 
 end; (* structure *)
-

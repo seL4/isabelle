@@ -1,11 +1,12 @@
-(*  Title:      Quotient_Sum.thy
+(*  Title:      HOL/Library/Quotient_Sum.thy
     Author:     Cezary Kaliszyk and Christian Urban
 *)
+
+header {* Quotient infrastructure for the sum type *}
+
 theory Quotient_Sum
 imports Main Quotient_Syntax
 begin
-
-section {* Quotient infrastructure for the sum type. *}
 
 fun
   sum_rel

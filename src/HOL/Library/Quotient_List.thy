@@ -1,11 +1,12 @@
-(*  Title:      Quotient_List.thy
+(*  Title:      HOL/Library/Quotient_List.thy
     Author:     Cezary Kaliszyk and Christian Urban
 *)
+
+header {* Quotient infrastructure for the list type *}
+
 theory Quotient_List
 imports Main Quotient_Syntax
 begin
-
-section {* Quotient infrastructure for the list type. *}
 
 fun
   list_rel

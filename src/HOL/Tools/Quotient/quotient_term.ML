@@ -1,8 +1,8 @@
-(*  Title:      quotient_term.thy
+(*  Title:      HOL/Tools/Quotient/quotient_term.thy
     Author:     Cezary Kaliszyk and Christian Urban
 
-    Constructs terms corresponding to goals from
-    lifting theorems to quotient types.
+Constructs terms corresponding to goals from lifting theorems to
+quotient types.
 *)
 
 signature QUOTIENT_TERM =
@@ -779,8 +779,4 @@ in
   lift_aux t
 end
 
-
 end; (* structure *)
-
-
-
