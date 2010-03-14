@@ -8,7 +8,7 @@ and proves related theorems.
 signature DOMAIN_CONSTRUCTORS =
 sig
   val add_domain_constructors :
-      string
+      binding
       -> (binding * (bool * binding option * typ) list * mixfix) list
       -> Domain_Take_Proofs.iso_info
       -> theory
@@ -367,7 +367,7 @@ fun add_constructors
 fun add_case_combinator
     (spec : (term * (bool * typ) list) list)
     (lhsT : typ)
-    (dname : string)
+    (dbind : binding)
     (con_betas : thm list)
     (casedist : thm)
     (iso_locale : thm)
@@ -420,7 +420,7 @@ fun add_case_combinator
 
     (* definition of case combinator *)
     local
-      val case_bind = Binding.name (dname ^ "_when");
+      val case_bind = Binding.suffix_name "_when" dbind;
       fun one_con f (_, args) =
         let
           fun argT (lazy, T) = if lazy then mk_upT T else T;
@@ -1011,11 +1011,12 @@ fun add_pattern_combinators
 (******************************************************************************)
 
 fun add_domain_constructors
-    (dname : string)
+    (dbind : binding)
     (spec : (binding * (bool * binding option * typ) list * mixfix) list)
     (iso_info : Domain_Take_Proofs.iso_info)
     (thy : theory) =
   let
+    val dname = Binding.name_of dbind;
 
     (* retrieve facts about rep/abs *)
     val lhsT = #absT iso_info;
@@ -1049,7 +1050,7 @@ fun add_domain_constructors
         fun prep_con c (b, args, mx) = (c, map prep_arg args);
         val case_spec = map2 prep_con con_consts spec;
       in
-        add_case_combinator case_spec lhsT dname
+        add_case_combinator case_spec lhsT dbind
           con_betas casedist iso_locale rep_const thy
       end;
 

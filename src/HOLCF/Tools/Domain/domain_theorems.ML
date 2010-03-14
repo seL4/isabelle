@@ -115,8 +115,7 @@ val {take_Suc_thms, deflation_take_thms, ...} = take_info;
 (* ----- define constructors ------------------------------------------------ *)
 
 val (result, thy) =
-  Domain_Constructors.add_domain_constructors
-    (Long_Name.base_name dname) spec iso_info thy;
+    Domain_Constructors.add_domain_constructors dbind spec iso_info thy;
 
 val con_appls = #con_betas result;
 val {exhaust, casedist, ...} = result;
