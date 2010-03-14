@@ -392,12 +392,16 @@ let
 
 val case_ns =
   let
+    val adms =
+        if is_finite then [] else
+        if length dnames = 1 then ["adm"] else
+        map (fn s => "adm_" ^ Long_Name.base_name s) dnames;
     val bottoms =
         if length dnames = 1 then ["bottom"] else
         map (fn s => "bottom_" ^ Long_Name.base_name s) dnames;
     fun one_eq bot (_,cons) =
           bot :: map (fn (c,_) => Long_Name.base_name c) cons;
-  in flat (map2 one_eq bottoms eqs) end;
+  in adms @ flat (map2 one_eq bottoms eqs) end;
 
 val inducts = Project_Rule.projections (ProofContext.init thy) ind;
 fun ind_rule (dname, rule) =
