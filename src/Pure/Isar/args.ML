@@ -14,7 +14,6 @@ sig
   val pretty_src: Proof.context -> src -> Pretty.T
   val map_name: (string -> string) -> src -> src
   val morph_values: morphism -> src -> src
-  val maxidx_values: src -> int -> int
   val assignable: src -> src
   val closure: src -> src
   val context: Proof.context context_parser
@@ -110,13 +109,6 @@ fun morph_values phi = map_args (T.map_value
     | T.Term t => T.Term (Morphism.term phi t)
     | T.Fact ths => T.Fact (Morphism.fact phi ths)
     | T.Attribute att => T.Attribute (Morphism.transform phi att)));
-
-fun maxidx_values (Src ((_, args), _)) = args |> fold (fn arg =>
-  (case T.get_value arg of
-    SOME (T.Typ T) => Term.maxidx_typ T
-  | SOME (T.Term t) => Term.maxidx_term t
-  | SOME (T.Fact ths) => fold Thm.maxidx_thm ths
-  | _ => I));
 
 val assignable = map_args T.assignable;
 val closure = map_args T.closure;
