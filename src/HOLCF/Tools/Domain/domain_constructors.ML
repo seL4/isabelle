@@ -386,8 +386,13 @@ fun add_case_combinator
       in sscase_const (T, U, V) ` t ` u end;
     fun strictify_const T = Const (@{const_name strictify}, T ->> T);
     fun mk_strictify t = strictify_const (fastype_of t) ` t;
+    fun mk_sscases [t] = mk_strictify t
+      | mk_sscases ts = foldr1 mk_sscase ts;
     fun ssplit_const (T, U, V) =
       Const (@{const_name ssplit}, (T ->> U ->> V) ->> mk_sprodT (T, U) ->> V);
+    fun mk_fup t =
+      let val (T, U) = dest_cfunT (fastype_of t);
+      in fup_const (T, U) ` t end;
     fun mk_ssplit t =
       let val (T, (U, V)) = apsnd dest_cfunT (dest_cfunT (fastype_of t));
       in ssplit_const (T, U, V) ` t end;
@@ -395,16 +400,6 @@ fun add_case_combinator
       | lambda_stuple [x]     t = mk_strictify (big_lambda x t)
       | lambda_stuple [x,y]   t = mk_ssplit (big_lambdas [x, y] t)
       | lambda_stuple (x::xs) t = mk_ssplit (big_lambda x (lambda_stuple xs t));
-
-    (* eta contraction for simplifying definitions *)
-    fun cont_eta_contract (Const(@{const_name Abs_CFun},TT) $ Abs(a,T,body)) = 
-        (case cont_eta_contract body  of
-           body' as (Const(@{const_name Abs_CFun},Ta) $ f $ Bound 0) => 
-           if not (0 mem loose_bnos f) then incr_boundvars ~1 f 
-           else   Const(@{const_name Abs_CFun},TT) $ Abs(a,T,body')
-         | body' => Const(@{const_name Abs_CFun},TT) $ Abs(a,T,body'))
-      | cont_eta_contract(f$t) = cont_eta_contract f $ cont_eta_contract t
-      | cont_eta_contract t    = t;
 
     (* prove rep/abs rules *)
     val rep_strict = iso_locale RS @{thm iso.rep_strict};
@@ -421,18 +416,20 @@ fun add_case_combinator
     (* definition of case combinator *)
     local
       val case_bind = Binding.suffix_name "_when" dbind;
+      fun lambda_arg (lazy, v) t =
+          (if lazy then mk_fup else I) (big_lambda v t);
+      fun lambda_args []      t = mk_one_when t
+        | lambda_args (x::[]) t = lambda_arg x t
+        | lambda_args (x::xs) t = mk_ssplit (lambda_arg x (lambda_args xs t));
       fun one_con f (_, args) =
         let
-          fun argT (lazy, T) = if lazy then mk_upT T else T;
-          fun down (lazy, T) v = if lazy then from_up T ` v else v;
-          val Ts = map argT args;
+          val Ts = map snd args;
           val ns = Name.variant_list fns (Datatype_Prop.make_tnames Ts);
           val vs = map Free (ns ~~ Ts);
-          val xs = map2 down args vs;
         in
-          cont_eta_contract (lambda_stuple vs (list_ccomb (f, xs)))
+          lambda_args (map fst args ~~ vs) (list_ccomb (f, vs))
         end;
-      val body = foldr1 mk_sscase (map2 one_con fs spec);
+      val body = mk_sscases (map2 one_con fs spec);
       val rhs = big_lambdas fs (mk_cfcomp (body, rep_const));
       val ((case_consts, case_defs), thy) =
           define_consts [(case_bind, rhs, NoSyn)] thy;
