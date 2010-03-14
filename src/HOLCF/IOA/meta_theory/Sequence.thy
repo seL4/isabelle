@@ -258,7 +258,7 @@ done
 
 lemma Seq_exhaust: "x = UU | x = nil | (? a s. x = a >> s)"
 apply (simp add: Consq_def2)
-apply (cut_tac seq.exhaust)
+apply (cut_tac seq.nchotomy)
 apply (fast dest: not_Undef_is_Def [THEN iffD1])
 done
 
@@ -332,7 +332,7 @@ subsection "induction"
 
 lemma Seq_induct:
 "!! P. [| adm P; P UU; P nil; !! a s. P s ==> P (a>>s)|] ==> P x"
-apply (erule (2) seq.ind)
+apply (erule (2) seq.induct)
 apply defined
 apply (simp add: Consq_def)
 done
@@ -459,7 +459,7 @@ apply (rule_tac x="x" in Seq_induct, simp_all)
 done
 
 lemma nilConc [simp]: "s@@ nil = s"
-apply (rule_tac x="s" in seq.ind)
+apply (induct s)
 apply simp
 apply simp
 apply simp

@@ -95,7 +95,7 @@ text {* Induction rules for flat datatypes have no admissibility side-condition.
 domain 'a flattree = Tip | Branch "'a flattree" "'a flattree"
 
 lemma "\<lbrakk>P \<bottom>; P Tip; \<And>x y. \<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>; P x; P y\<rbrakk> \<Longrightarrow> P (Branch\<cdot>x\<cdot>y)\<rbrakk> \<Longrightarrow> P x"
-by (rule flattree.ind) -- "no admissibility requirement"
+by (rule flattree.induct) -- "no admissibility requirement"
 
 text {* Trivial datatypes will produce a warning message. *}
 
@@ -123,8 +123,8 @@ text {* Rules about constructors *}
 term Leaf
 term Node
 thm Leaf_def Node_def
+thm tree.nchotomy
 thm tree.exhaust
-thm tree.casedist
 thm tree.compacts
 thm tree.con_rews
 thm tree.dist_les
@@ -166,10 +166,11 @@ thm tree.take_rews
 thm tree.chain_take
 thm tree.take_take
 thm tree.deflation_take
+thm tree.take_below
 thm tree.take_lemma
 thm tree.lub_take
 thm tree.reach
-thm tree.finite_ind
+thm tree.finite_induct
 
 text {* Rules about finiteness predicate *}
 term tree_finite
@@ -179,10 +180,10 @@ thm tree.finite (* only generated for flat datatypes *)
 text {* Rules about bisimulation predicate *}
 term tree_bisim
 thm tree.bisim_def
-thm tree.coind
+thm tree.coinduct
 
 text {* Induction rule *}
-thm tree.ind
+thm tree.induct
 
 
 subsection {* Known bugs *}

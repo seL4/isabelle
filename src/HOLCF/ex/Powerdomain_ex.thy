@@ -40,7 +40,7 @@ definition
 lemma r1_r2: "r1\<cdot>\<langle>x,a\<rangle>\<cdot>\<langle>y,b\<rangle> = (r2\<cdot>\<langle>x,a\<rangle>\<cdot>\<langle>y,b\<rangle> :: tr convex_pd)"
 apply (simp add: r1_def r2_def)
 apply (simp add: is_le_def is_less_def)
-apply (cases "compare\<cdot>x\<cdot>y" rule: ordering.casedist)
+apply (cases "compare\<cdot>x\<cdot>y")
 apply simp_all
 done
 
@@ -70,8 +70,7 @@ fixpat
   pick_strict [simp]: "pick\<cdot>\<bottom>"
 
 lemma pick_mirror: "pick\<cdot>(mirror\<cdot>t) = pick\<cdot>t"
-by (induct t rule: tree.ind)
-   (simp_all add: convex_plus_ac)
+by (induct t) (simp_all add: convex_plus_ac)
 
 fixrec tree1 :: "int lift tree"
 where "tree1 = Node\<cdot>(Node\<cdot>(Leaf\<cdot>(Def 1))\<cdot>(Leaf\<cdot>(Def 2)))

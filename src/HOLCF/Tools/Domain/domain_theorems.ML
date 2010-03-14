@@ -118,8 +118,8 @@ val (result, thy) =
     Domain_Constructors.add_domain_constructors dbind spec iso_info thy;
 
 val con_appls = #con_betas result;
-val {exhaust, casedist, ...} = result;
-val {con_compacts, con_rews, inverts, injects, dist_les, dist_eqs, ...} = result;
+val {nchotomy, exhaust, ...} = result;
+val {compacts, con_rews, inverts, injects, dist_les, dist_eqs, ...} = result;
 val {sel_rews, ...} = result;
 val when_rews = #cases result;
 val when_strict = hd when_rews;
@@ -185,11 +185,11 @@ in
   thy
   |> PureThy.add_thmss [
      ((qualified "iso_rews"  , iso_rews    ), [simp]),
-     ((qualified "exhaust"   , [exhaust]   ), []),
-     ((qualified "casedist"  , [casedist]  ),
+     ((qualified "nchotomy"  , [nchotomy]  ), []),
+     ((qualified "exhaust"   , [exhaust]   ),
       [Rule_Cases.case_names case_ns, Induct.cases_type dname]),
      ((qualified "when_rews" , when_rews   ), [simp]),
-     ((qualified "compacts"  , con_compacts), [simp]),
+     ((qualified "compacts"  , compacts    ), [simp]),
      ((qualified "con_rews"  , con_rews    ), [simp, fixrec_simp]),
      ((qualified "sel_rews"  , sel_rews    ), [simp]),
      ((qualified "dis_rews"  , dis_rews    ), [simp]),
@@ -229,7 +229,7 @@ let
   in
     val axs_rep_iso = map (ga "rep_iso") dnames;
     val axs_abs_iso = map (ga "abs_iso") dnames;
-    val cases = map (ga  "casedist" ) dnames;
+    val exhausts = map (ga  "exhaust" ) dnames;
     val con_rews  = maps (gts "con_rews" ) dnames;
   end;
 
@@ -317,12 +317,12 @@ let
             [resolve_tac prems 1] @
             map (K (atac 1)) (nonlazy args) @
             map (K (etac spec 1)) (filter is_rec args);
-          fun cases_tacs (cons, cases) =
-            res_inst_tac context [(("y", 0), "x")] cases 1 ::
+          fun cases_tacs (cons, exhaust) =
+            res_inst_tac context [(("y", 0), "x")] exhaust 1 ::
             asm_simp_tac (take_ss addsimps prems) 1 ::
             maps con_tacs cons;
         in
-          tacs1 @ maps cases_tacs (conss ~~ cases)
+          tacs1 @ maps cases_tacs (conss ~~ exhausts)
         end;
     in pg'' thy [] goal tacf end;
 
@@ -407,8 +407,8 @@ fun ind_rule (dname, rule) =
 in
   thy
   |> snd o PureThy.add_thmss [
-     ((Binding.qualified true "finite_ind" comp_dbind, [finite_ind]), []),
-     ((Binding.qualified true "ind"        comp_dbind, [ind]       ), [])]
+     ((Binding.qualified true "finite_induct" comp_dbind, [finite_ind]), []),
+     ((Binding.qualified true "induct"        comp_dbind, [ind]       ), [])]
   |> (snd o PureThy.add_thmss (map ind_rule (dnames ~~ inducts)))
 end; (* prove_induction *)
 
@@ -554,7 +554,7 @@ in
 end; (* local *)
 
 in thy |> snd o PureThy.add_thmss
-                  [((Binding.qualified true "coind" comp_dbind, [coind]), [])]
+    [((Binding.qualified true "coinduct" comp_dbind, [coind]), [])]
 end; (* let *)
 
 fun comp_theorems

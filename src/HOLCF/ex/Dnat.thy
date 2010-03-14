@@ -52,7 +52,7 @@ lemmas iterator_rews = iterator1 iterator2 iterator3
 
 lemma dnat_flat: "ALL x y::dnat. x<<y --> x=UU | x=y"
   apply (rule allI)
-  apply (induct_tac x rule: dnat.ind)
+  apply (induct_tac x)
     apply fast
    apply (rule allI)
    apply (case_tac y)

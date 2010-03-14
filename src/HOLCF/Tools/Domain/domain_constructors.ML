@@ -14,9 +14,9 @@ sig
       -> theory
       -> { con_consts : term list,
            con_betas : thm list,
+           nchotomy : thm,
            exhaust : thm,
-           casedist : thm,
-           con_compacts : thm list,
+           compacts : thm list,
            con_rews : thm list,
            inverts : thm list,
            injects : thm list,
@@ -206,15 +206,15 @@ fun add_constructors
           rewrite_goals_tac [mk_meta_eq (iso_locale RS @{thm iso.iso_swap})],
           rtac thm3 1];
     in
-      val exhaust = prove thy con_betas goal (K tacs);
-      val casedist =
-          (exhaust RS @{thm exh_casedist0})
+      val nchotomy = prove thy con_betas goal (K tacs);
+      val exhaust =
+          (nchotomy RS @{thm exh_casedist0})
           |> rewrite_rule @{thms exh_casedists}
           |> Drule.export_without_context;
     end;
 
     (* prove compactness rules for constructors *)
-    val con_compacts =
+    val compacts =
       let
         val rules = @{thms compact_sinl compact_sinr compact_spair
                            compact_up compact_ONE};
@@ -347,9 +347,9 @@ fun add_constructors
       {
         con_consts = con_consts,
         con_betas = con_betas,
+        nchotomy = nchotomy,
         exhaust = exhaust,
-        casedist = casedist,
-        con_compacts = con_compacts,
+        compacts = compacts,
         con_rews = con_rews,
         inverts = inverts,
         injects = injects,
@@ -369,7 +369,7 @@ fun add_case_combinator
     (lhsT : typ)
     (dbind : binding)
     (con_betas : thm list)
-    (casedist : thm)
+    (exhaust : thm)
     (iso_locale : thm)
     (rep_const : term)
     (thy : theory)
@@ -674,7 +674,7 @@ fun add_discriminators
     (bindings : binding list)
     (spec : (term * (bool * typ) list) list)
     (lhsT : typ)
-    (casedist : thm)
+    (exhaust : thm)
     (case_const : typ -> term)
     (case_rews : thm list)
     (thy : theory) =
@@ -745,7 +745,7 @@ fun add_discriminators
           val tacs =
             [rtac @{thm iffI} 1,
              asm_simp_tac (HOL_basic_ss addsimps dis_stricts) 2,
-             rtac casedist 1, atac 1,
+             rtac exhaust 1, atac 1,
              DETERM_UNTIL_SOLVED (CHANGED
                (asm_full_simp_tac (simple_ss addsimps simps) 1))];
           val goal = mk_trp (mk_eq (mk_undef (dis ` x), mk_undef x));
@@ -766,7 +766,7 @@ fun add_match_combinators
     (bindings : binding list)
     (spec : (term * (bool * typ) list) list)
     (lhsT : typ)
-    (casedist : thm)
+    (exhaust : thm)
     (case_const : typ -> term)
     (case_rews : thm list)
     (thy : theory) =
@@ -858,7 +858,7 @@ fun add_pattern_combinators
     (bindings : binding list)
     (spec : (term * (bool * typ) list) list)
     (lhsT : typ)
-    (casedist : thm)
+    (exhaust : thm)
     (case_const : typ -> term)
     (case_rews : thm list)
     (thy : theory) =
@@ -1041,7 +1041,7 @@ fun add_domain_constructors
       in
         add_constructors con_spec abs_const iso_locale thy
       end;
-    val {con_consts, con_betas, casedist, ...} = con_result;
+    val {con_consts, con_betas, exhaust, ...} = con_result;
 
     (* define case combinator *)
     val ((case_const : typ -> term, cases : thm list), thy) =
@@ -1051,7 +1051,7 @@ fun add_domain_constructors
         val case_spec = map2 prep_con con_consts spec;
       in
         add_case_combinator case_spec lhsT dbind
-          con_betas casedist iso_locale rep_const thy
+          con_betas exhaust iso_locale rep_const thy
       end;
 
     (* define and prove theorems for selector functions *)
@@ -1073,7 +1073,7 @@ fun add_domain_constructors
         val dis_spec = map2 prep_con con_consts spec;
       in
         add_discriminators bindings dis_spec lhsT
-          casedist case_const cases thy
+          exhaust case_const cases thy
       end
 
     (* define and prove theorems for match combinators *)
@@ -1085,7 +1085,7 @@ fun add_domain_constructors
         val mat_spec = map2 prep_con con_consts spec;
       in
         add_match_combinators bindings mat_spec lhsT
-          casedist case_const cases thy
+          exhaust case_const cases thy
       end
 
     (* define and prove theorems for pattern combinators *)
@@ -1097,7 +1097,7 @@ fun add_domain_constructors
         val pat_spec = map2 prep_con con_consts spec;
       in
         add_pattern_combinators bindings pat_spec lhsT
-          casedist case_const cases thy
+          exhaust case_const cases thy
       end
 
     (* restore original signature path *)
@@ -1106,9 +1106,9 @@ fun add_domain_constructors
     val result =
       { con_consts = con_consts,
         con_betas = con_betas,
-        exhaust = #exhaust con_result,
-        casedist = casedist,
-        con_compacts = #con_compacts con_result,
+        nchotomy = #nchotomy con_result,
+        exhaust = exhaust,
+        compacts = #compacts con_result,
         con_rews = #con_rews con_result,
         inverts = #inverts con_result,
         injects = #injects con_result,

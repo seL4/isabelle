@@ -135,7 +135,7 @@ by (simp add: fsingleton_def2)
 lemma fstreams_ind: 
   "[| adm P; P <>; !!a s. P s ==> P (<a> ooo s) |] ==> P x"
 apply (simp add: fsingleton_def2)
-apply (rule stream.ind, auto)
+apply (rule stream.induct, auto)
 by (drule not_Undef_is_Def [THEN iffD1], auto)
 
 lemma fstreams_ind2:
@@ -189,7 +189,7 @@ lemma rt_fstreams[simp]: "rt$(<a> ooo s) = s"
 by (simp add: fsingleton_def2)
 
 lemma ft_eq[simp]: "(ft$s = Def a) = (EX t. s = <a> ooo t)"
-apply (rule stream.casedist [of s],auto)
+apply (cases s, auto)
 by ((*drule sym,*) auto simp add: fsingleton_def2)
 
 lemma surjective_fstreams: "(<d> ooo y = x) = (ft$x = Def d & rt$x = y)"

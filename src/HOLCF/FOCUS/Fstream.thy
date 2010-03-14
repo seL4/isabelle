@@ -58,7 +58,7 @@ done
 
 lemma fstream_exhaust: "x = UU |  (? a y. x = a~> y)"
 apply (simp add: fscons_def2)
-apply (cut_tac stream.exhaust)
+apply (cut_tac stream.nchotomy)
 apply (fast dest: not_Undef_is_Def [THEN iffD1])
 done
 
@@ -179,7 +179,7 @@ section "induction"
 
 lemma fstream_ind:
         "[| adm P; P <>; !!a s. P s ==> P (a~> s) |] ==> P x"
-apply (erule stream.ind)
+apply (erule stream.induct)
 apply (assumption)
 apply (unfold fscons_def2)
 apply (fast dest: not_Undef_is_Def [THEN iffD1])

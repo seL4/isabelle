@@ -205,7 +205,7 @@ by simp
 
 
 lemma sfiltersconc: "sfilter$P$(x @@ y) = (sfilter$P$x @@ sfilter$P$y)"
-apply (rule_tac x="x" in seq.ind)
+apply (induct x)
 (* adm *)
 apply simp
 (* base cases *)
@@ -220,7 +220,7 @@ done
 
 lemma sforallPstakewhileP: "sforall P (stakewhile$P$x)"
 apply (simp add: sforall_def)
-apply (rule_tac x="x" in seq.ind)
+apply (induct x)
 (* adm *)
 apply simp
 (* base cases *)
@@ -235,7 +235,7 @@ done
 
 lemma forallPsfilterP: "sforall P (sfilter$P$x)"
 apply (simp add: sforall_def)
-apply (rule_tac x="x" in seq.ind)
+apply (induct x)
 (* adm *)
 apply simp
 (* base cases *)
@@ -318,7 +318,7 @@ lemma seq_finite_ind: "!!P.[|P(UU);P(nil);
    !! x s1.[|x~=UU;P(s1)|] ==> P(x##s1)
    |] ==> seq_finite(s) --> P(s)"
 apply (rule seq_finite_ind_lemma)
-apply (erule seq.finite_ind)
+apply (erule seq.finite_induct)
  apply assumption
 apply simp
 done
