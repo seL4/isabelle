@@ -119,6 +119,9 @@ fun mk_cfcomp (f, g) =
     else raise TYPE ("mk_cfcomp", [U, U'], [f, g])
   end;
 
+fun strictify_const T = Const (@{const_name strictify}, T ->> T);
+fun mk_strictify t = strictify_const (fastype_of t) ` t;
+
 fun mk_strict t =
   let val (T, U) = dest_cfunT (fastype_of t);
   in mk_eq (t ` mk_bottom T, mk_bottom U) end;
@@ -158,12 +161,20 @@ fun mk_up t = up_const (fastype_of t) ` t;
 fun fup_const (T, U) =
   Const(@{const_name fup}, (T ->> U) ->> mk_upT T ->> U);
 
+fun mk_fup t = fup_const (dest_cfunT (fastype_of t)) ` t;
+
 fun from_up T = fup_const (T, T) ` mk_ID T;
 
 
-(*** Strict product type ***)
+(*** Lifted unit type ***)
 
 val oneT = @{typ "one"};
+
+fun one_when_const T = Const (@{const_name one_when}, T ->> oneT ->> T);
+fun mk_one_when t = one_when_const (fastype_of t) ` t;
+
+
+(*** Strict product type ***)
 
 fun mk_sprodT (T, U) = Type(@{type_name sprod}, [T, U]);
 
@@ -187,6 +198,13 @@ fun sfst_const (T, U) =
 
 fun ssnd_const (T, U) =
   Const(@{const_name ssnd}, mk_sprodT (T, U) ->> U);
+
+fun ssplit_const (T, U, V) =
+  Const (@{const_name ssplit}, (T ->> U ->> V) ->> mk_sprodT (T, U) ->> V);
+
+fun mk_ssplit t =
+  let val (T, (U, V)) = apsnd dest_cfunT (dest_cfunT (fastype_of t));
+  in ssplit_const (T, U, V) ` t end;
 
 
 (*** Strict sum type ***)
@@ -220,6 +238,11 @@ fun mk_sinjects ts =
 fun sscase_const (T, U, V) =
   Const(@{const_name sscase},
     (T ->> V) ->> (U ->> V) ->> mk_ssumT (T, U) ->> V);
+
+fun mk_sscase (t, u) =
+  let val (T, V) = dest_cfunT (fastype_of t);
+      val (U, V) = dest_cfunT (fastype_of u);
+  in sscase_const (T, U, V) ` t ` u end;
 
 fun from_sinl (T, U) =
   sscase_const (T, U, T) ` mk_ID T ` mk_bottom (U ->> T);
