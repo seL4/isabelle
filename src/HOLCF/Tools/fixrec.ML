@@ -422,6 +422,7 @@ fun fix_pat thy t =
 
 fun gen_add_fixpat prep_term prep_attrib ((name, srcs), strings) thy =
   let
+    val _ = legacy_feature "\"fixpat\"; prefer \"fixrec_simp\" method instead";
     val atts = map (prep_attrib thy) srcs;
     val ts = map (prep_term thy) strings;
     val simps = map (fix_pat thy) ts;
