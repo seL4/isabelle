@@ -2,7 +2,6 @@
 
 header {* Pretty syntax for lattice operations *}
 
-(*<*)
 theory Lattice_Syntax
 imports Complete_Lattice
 begin
@@ -16,4 +15,3 @@ notation
   Sup  ("\<Squnion>_" [900] 900)
 
 end
-(*>*)
