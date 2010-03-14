@@ -1,7 +1,8 @@
-(*  Title:      HOL/Tools/Quotient/quotient_typ.thy
+(*  Title:      quotient_typ.thy
     Author:     Cezary Kaliszyk and Christian Urban
 
-Definition of a quotient type.
+    Definition of a quotient type.
+
 *)
 
 signature QUOTIENT_TYPE =
@@ -71,13 +72,10 @@ end
 fun typedef_make (vs, qty_name, mx, rel, rty) lthy =
 let
   val typedef_tac =
-     EVERY1 (map rtac [@{thm exI}, mem_def2, @{thm exI}, @{thm refl}])
+    EVERY1 (map rtac [@{thm exI}, mem_def2, @{thm exI}, @{thm refl}])
 in
-  Local_Theory.theory_result
-    (Typedef.add_typedef_global false NONE
-       (qty_name, vs, mx)
-          (typedef_term rel rty lthy)
-             NONE typedef_tac) lthy
+  Typedef.add_typedef false NONE (qty_name, vs, mx) 
+    (typedef_term rel rty lthy) NONE typedef_tac lthy
 end
 
 
@@ -275,17 +273,13 @@ fun quotient_type_cmd specs lthy =
 let
   fun parse_spec ((((vs, qty_name), mx), rty_str), rel_str) lthy =
   let
-    (* new parsing with proper declaration *)
     val rty = Syntax.read_typ lthy rty_str
     val lthy1 = Variable.declare_typ rty lthy
-    val pre_rel = Syntax.parse_term lthy1 rel_str
-    val pre_rel' = Syntax.type_constraint (rty --> rty --> @{typ bool}) pre_rel
-    val rel = Syntax.check_term lthy1 pre_rel'
-    val lthy2 = Variable.declare_term rel lthy1
-
-    (* old parsing *)
-    (* val rty = Syntax.read_typ lthy rty_str
-       val rel = Syntax.read_term lthy rel_str *)
+    val rel = 
+      Syntax.parse_term lthy1 rel_str
+      |> Syntax.type_constraint (rty --> rty --> @{typ bool}) 
+      |> Syntax.check_term lthy1 
+    val lthy2 = Variable.declare_term rel lthy1 
   in
     (((vs, qty_name, mx), (rty, rel)), lthy2)
   end
