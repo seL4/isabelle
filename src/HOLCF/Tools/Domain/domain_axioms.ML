@@ -119,6 +119,11 @@ fun add_axioms
         Domain_Take_Proofs.add_lub_take_theorems
           (map fst dom_eqns ~~ iso_infos) take_info lub_take_thms thy;
 
+    (* define map functions *)
+    val (map_info, thy) =
+        Domain_Isomorphism.define_map_functions
+          (map fst dom_eqns ~~ iso_infos) thy;
+
   in
     ((iso_infos, take_info2), thy)
   end;
