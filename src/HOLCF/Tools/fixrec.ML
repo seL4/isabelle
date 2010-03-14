@@ -305,7 +305,7 @@ structure FixrecSimpData = Generic_Data
 fun fixrec_simp_tac ctxt =
   let
     val tab = FixrecUnfoldData.get (Context.Proof ctxt);
-    val ss = FixrecSimpData.get (Context.Proof ctxt);
+    val ss = Simplifier.context ctxt (FixrecSimpData.get (Context.Proof ctxt));
     fun concl t =
       if Logic.is_all t then concl (snd (Logic.dest_all t))
       else HOLogic.dest_Trueprop (Logic.strip_imp_concl t);
