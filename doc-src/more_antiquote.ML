@@ -53,13 +53,13 @@ local
 
 val pr_text = enclose "\\isa{" "}" o Pretty.output o Pretty.str;
 
-fun pr_class ctxt = Sign.read_class (ProofContext.theory_of ctxt)
-  #> Sign.extern_class (ProofContext.theory_of ctxt)
+fun pr_class ctxt = ProofContext.read_class ctxt
+  #> Type.extern_class (ProofContext.tsig_of ctxt)
   #> pr_text;
 
-fun pr_type ctxt = Sign.intern_type (ProofContext.theory_of ctxt)
-  #> tap (Sign.arity_number (ProofContext.theory_of ctxt))
-  #> Sign.extern_type (ProofContext.theory_of ctxt)
+fun pr_type ctxt = ProofContext.read_type_name_proper ctxt true
+  #> (#1 o Term.dest_Type)
+  #> Type.extern_type (ProofContext.tsig_of ctxt)
   #> pr_text;
 
 in
