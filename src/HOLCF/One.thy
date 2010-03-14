@@ -22,10 +22,10 @@ text {* Exhaustion and Elimination for type @{typ one} *}
 lemma Exh_one: "t = \<bottom> \<or> t = ONE"
 unfolding ONE_def by (induct t) simp_all
 
-lemma oneE: "\<lbrakk>p = \<bottom> \<Longrightarrow> Q; p = ONE \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
+lemma oneE [case_names bottom ONE]: "\<lbrakk>p = \<bottom> \<Longrightarrow> Q; p = ONE \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 unfolding ONE_def by (induct p) simp_all
 
-lemma one_induct: "\<lbrakk>P \<bottom>; P ONE\<rbrakk> \<Longrightarrow> P x"
+lemma one_induct [case_names bottom ONE]: "\<lbrakk>P \<bottom>; P ONE\<rbrakk> \<Longrightarrow> P x"
 by (cases x rule: oneE) simp_all
 
 lemma dist_below_one [simp]: "\<not> ONE \<sqsubseteq> \<bottom>"

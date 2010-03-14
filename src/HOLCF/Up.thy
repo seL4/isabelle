@@ -237,13 +237,15 @@ by simp (* FIXME: remove? *)
 lemma up_below [simp]: "up\<cdot>x \<sqsubseteq> up\<cdot>y \<longleftrightarrow> x \<sqsubseteq> y"
 by (simp add: up_def cont_Iup)
 
-lemma upE [cases type: u]: "\<lbrakk>p = \<bottom> \<Longrightarrow> Q; \<And>x. p = up\<cdot>x \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
+lemma upE [case_names bottom up, cases type: u]:
+  "\<lbrakk>p = \<bottom> \<Longrightarrow> Q; \<And>x. p = up\<cdot>x \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 apply (cases p)
 apply (simp add: inst_up_pcpo)
 apply (simp add: up_def cont_Iup)
 done
 
-lemma up_induct [induct type: u]: "\<lbrakk>P \<bottom>; \<And>x. P (up\<cdot>x)\<rbrakk> \<Longrightarrow> P x"
+lemma up_induct [case_names bottom up, induct type: u]:
+  "\<lbrakk>P \<bottom>; \<And>x. P (up\<cdot>x)\<rbrakk> \<Longrightarrow> P x"
 by (cases x, simp_all)
 
 text {* lifting preserves chain-finiteness *}

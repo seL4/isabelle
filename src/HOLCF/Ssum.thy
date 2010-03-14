@@ -151,19 +151,19 @@ apply (rule disjI2, rule disjI2, rule_tac x=b in exI)
 apply (simp add: sinr_Abs_Ssum Ssum_def)
 done
 
-lemma ssumE [cases type: ssum]:
+lemma ssumE [case_names bottom sinl sinr, cases type: ssum]:
   "\<lbrakk>p = \<bottom> \<Longrightarrow> Q;
    \<And>x. \<lbrakk>p = sinl\<cdot>x; x \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> Q;
    \<And>y. \<lbrakk>p = sinr\<cdot>y; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
-by (cut_tac z=p in Exh_Ssum, auto)
+using Exh_Ssum [of p] by auto
 
-lemma ssum_induct [induct type: ssum]:
+lemma ssum_induct [case_names bottom sinl sinr, induct type: ssum]:
   "\<lbrakk>P \<bottom>;
    \<And>x. x \<noteq> \<bottom> \<Longrightarrow> P (sinl\<cdot>x);
    \<And>y. y \<noteq> \<bottom> \<Longrightarrow> P (sinr\<cdot>y)\<rbrakk> \<Longrightarrow> P x"
 by (cases x, simp_all)
 
-lemma ssumE2:
+lemma ssumE2 [case_names sinl sinr]:
   "\<lbrakk>\<And>x. p = sinl\<cdot>x \<Longrightarrow> Q; \<And>y. p = sinr\<cdot>y \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 by (cases p, simp only: sinl_strict [symmetric], simp, simp)
 

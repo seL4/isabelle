@@ -80,11 +80,11 @@ apply (simp add: strictify_conv_if)
 apply fast
 done
 
-lemma sprodE [cases type: sprod]:
+lemma sprodE [case_names bottom spair, cases type: sprod]:
   "\<lbrakk>p = \<bottom> \<Longrightarrow> Q; \<And>x y. \<lbrakk>p = (:x, y:); x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
-by (cut_tac z=p in Exh_Sprod, auto)
+using Exh_Sprod [of p] by auto
 
-lemma sprod_induct [induct type: sprod]:
+lemma sprod_induct [case_names bottom spair, induct type: sprod]:
   "\<lbrakk>P \<bottom>; \<And>x y. \<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> P (:x, y:)\<rbrakk> \<Longrightarrow> P x"
 by (cases x, simp_all)
 

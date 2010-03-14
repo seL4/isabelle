@@ -29,10 +29,12 @@ text {* Exhaustion and Elimination for type @{typ tr} *}
 lemma Exh_tr: "t = \<bottom> \<or> t = TT \<or> t = FF"
 unfolding FF_def TT_def by (induct t) auto
 
-lemma trE: "\<lbrakk>p = \<bottom> \<Longrightarrow> Q; p = TT \<Longrightarrow> Q; p = FF \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
+lemma trE [case_names bottom TT FF]:
+  "\<lbrakk>p = \<bottom> \<Longrightarrow> Q; p = TT \<Longrightarrow> Q; p = FF \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 unfolding FF_def TT_def by (induct p) auto
 
-lemma tr_induct: "\<lbrakk>P \<bottom>; P TT; P FF\<rbrakk> \<Longrightarrow> P x"
+lemma tr_induct [case_names bottom TT FF]:
+  "\<lbrakk>P \<bottom>; P TT; P FF\<rbrakk> \<Longrightarrow> P x"
 by (cases x rule: trE) simp_all
 
 text {* distinctness for type @{typ tr} *}
