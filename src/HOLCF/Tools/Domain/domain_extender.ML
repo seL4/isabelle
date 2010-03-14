@@ -166,7 +166,6 @@ fun gen_add_domain
     val eqs' : ((string * typ list) *
         (binding * (bool * binding option * typ) list * mixfix) list) list =
         check_and_sort_domain false dtnvs' cons'' thy;
-(*    val thy = Domain_Syntax.add_syntax eqs' thy; *)
     val dts : typ list = map (Type o fst) eqs';
     val new_dts : (string * string list) list =
         map (fn ((s,Ts),_) => (s, map (fst o dest_TFree) Ts)) eqs';
@@ -189,9 +188,9 @@ fun gen_add_domain
 
     val ((rewss, take_rews), theorems_thy) =
         thy
-          |> fold_map (fn ((eq, (x,cs)), info) =>
-                Domain_Theorems.theorems (eq, eqs) (Type x, cs) info take_info)
-             (eqs ~~ eqs' ~~ iso_infos)
+          |> fold_map (fn (((dbind, eq), (_,cs)), info) =>
+                Domain_Theorems.theorems (eq, eqs) dbind cs info take_info)
+             (dbinds ~~ eqs ~~ eqs' ~~ iso_infos)
           ||>> Domain_Theorems.comp_theorems (comp_dbind, eqs) take_info;
   in
     theorems_thy
@@ -228,6 +227,8 @@ fun gen_add_new_domain
       |> Sign.add_types (map thy_type dtnvs)
       |> fold (AxClass.axiomatize_arity o thy_arity) dtnvs;
 
+    val dbinds : binding list =
+        map (fn (_,dbind,_,_) => dbind) eqs''';
     val cons''' :
         (binding * (bool * binding option * 'a) list * mixfix) list list =
         map (fn (_,_,_,cons) => cons) eqs''';
@@ -264,9 +265,9 @@ fun gen_add_new_domain
         map (fn (dtnvs,cons') => (dtnvs, map one_con cons')) eqs';
     val ((rewss, take_rews), theorems_thy) =
         thy
-          |> fold_map (fn ((eq, (x,cs)), info) =>
-               Domain_Theorems.theorems (eq, eqs) (Type x, cs) info take_info)
-             (eqs ~~ eqs' ~~ iso_infos)
+          |> fold_map (fn (((dbind, eq), (x,cs)), info) =>
+               Domain_Theorems.theorems (eq, eqs) dbind cs info take_info)
+             (dbinds ~~ eqs ~~ eqs' ~~ iso_infos)
           ||>> Domain_Theorems.comp_theorems (comp_dbind, eqs) take_info;
   in
     theorems_thy

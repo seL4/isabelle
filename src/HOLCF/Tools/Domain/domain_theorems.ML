@@ -10,11 +10,12 @@ val HOLCF_ss = @{simpset};
 signature DOMAIN_THEOREMS =
 sig
   val theorems:
-    Domain_Library.eq * Domain_Library.eq list ->
-    typ * (binding * (bool * binding option * typ) list * mixfix) list ->
-    Domain_Take_Proofs.iso_info ->
-    Domain_Take_Proofs.take_induct_info ->
-    theory -> thm list * theory;
+      Domain_Library.eq * Domain_Library.eq list ->
+      binding ->
+      (binding * (bool * binding option * typ) list * mixfix) list ->
+      Domain_Take_Proofs.iso_info ->
+      Domain_Take_Proofs.take_induct_info ->
+      theory -> thm list * theory;
 
   val comp_theorems :
       binding * Domain_Library.eq list ->
@@ -83,7 +84,8 @@ val all2E = @{lemma "!x y . P x y ==> (P x y ==> R) ==> R" by simp}
 
 fun theorems
     (((dname, _), cons) : eq, eqs : eq list)
-    (dom_eqn : typ * (binding * (bool * binding option * typ) list * mixfix) list)
+    (dbind : binding)
+    (spec : (binding * (bool * binding option * typ) list * mixfix) list)
     (iso_info : Domain_Take_Proofs.iso_info)
     (take_info : Domain_Take_Proofs.take_induct_info)
     (thy : theory) =
@@ -114,7 +116,7 @@ val {take_Suc_thms, deflation_take_thms, ...} = take_info;
 
 val (result, thy) =
   Domain_Constructors.add_domain_constructors
-    (Long_Name.base_name dname) (snd dom_eqn) iso_info thy;
+    (Long_Name.base_name dname) spec iso_info thy;
 
 val con_appls = #con_betas result;
 val {exhaust, casedist, ...} = result;
@@ -174,33 +176,34 @@ in
 end;
 
 val case_ns =
-    "bottom" :: map (fn (b,_,_) => Binding.name_of b) (snd dom_eqn);
+    "bottom" :: map (fn (b,_,_) => Binding.name_of b) spec;
+
+fun qualified name = Binding.qualified true name dbind;
+val simp = Simplifier.simp_add;
+val fixrec_simp = Fixrec.fixrec_simp_add;
 
 in
   thy
-    |> Sign.add_path (Long_Name.base_name dname)
-    |> snd o PureThy.add_thmss [
-        ((Binding.name "iso_rews"  , iso_rews    ), [Simplifier.simp_add]),
-        ((Binding.name "exhaust"   , [exhaust]   ), []),
-        ((Binding.name "casedist"  , [casedist]  ),
-         [Rule_Cases.case_names case_ns, Induct.cases_type dname]),
-        ((Binding.name "when_rews" , when_rews   ), [Simplifier.simp_add]),
-        ((Binding.name "compacts"  , con_compacts), [Simplifier.simp_add]),
-        ((Binding.name "con_rews"  , con_rews    ),
-         [Simplifier.simp_add, Fixrec.fixrec_simp_add]),
-        ((Binding.name "sel_rews"  , sel_rews    ), [Simplifier.simp_add]),
-        ((Binding.name "dis_rews"  , dis_rews    ), [Simplifier.simp_add]),
-        ((Binding.name "pat_rews"  , pat_rews    ), [Simplifier.simp_add]),
-        ((Binding.name "dist_les"  , dist_les    ), [Simplifier.simp_add]),
-        ((Binding.name "dist_eqs"  , dist_eqs    ), [Simplifier.simp_add]),
-        ((Binding.name "inverts"   , inverts     ), [Simplifier.simp_add]),
-        ((Binding.name "injects"   , injects     ), [Simplifier.simp_add]),
-        ((Binding.name "take_rews" , take_rews   ), [Simplifier.simp_add]),
-        ((Binding.name "match_rews", mat_rews    ),
-         [Simplifier.simp_add, Fixrec.fixrec_simp_add])]
-    |> Sign.parent_path
-    |> pair (iso_rews @ when_rews @ con_rews @ sel_rews @ dis_rews @
-        pat_rews @ dist_les @ dist_eqs)
+  |> PureThy.add_thmss [
+     ((qualified "iso_rews"  , iso_rews    ), [simp]),
+     ((qualified "exhaust"   , [exhaust]   ), []),
+     ((qualified "casedist"  , [casedist]  ),
+      [Rule_Cases.case_names case_ns, Induct.cases_type dname]),
+     ((qualified "when_rews" , when_rews   ), [simp]),
+     ((qualified "compacts"  , con_compacts), [simp]),
+     ((qualified "con_rews"  , con_rews    ), [simp, fixrec_simp]),
+     ((qualified "sel_rews"  , sel_rews    ), [simp]),
+     ((qualified "dis_rews"  , dis_rews    ), [simp]),
+     ((qualified "pat_rews"  , pat_rews    ), [simp]),
+     ((qualified "dist_les"  , dist_les    ), [simp]),
+     ((qualified "dist_eqs"  , dist_eqs    ), [simp]),
+     ((qualified "inverts"   , inverts     ), [simp]),
+     ((qualified "injects"   , injects     ), [simp]),
+     ((qualified "take_rews" , take_rews   ), [simp]),
+     ((qualified "match_rews", mat_rews    ), [simp, fixrec_simp])]
+  |> snd
+  |> pair (iso_rews @ when_rews @ con_rews @ sel_rews @ dis_rews @
+      pat_rews @ dist_les @ dist_eqs)
 end; (* let *)
 
 (******************************************************************************)
