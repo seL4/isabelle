@@ -1586,8 +1586,8 @@ qed
 
 end
 
-no_notation (in times) times (infixl "*" 70)
-no_notation (in one) Groups.one ("1")
+no_notation times (infixl "*" 70)
+no_notation Groups.one ("1")
 
 locale folding_image_simple = comm_monoid +
   fixes g :: "('b \<Rightarrow> 'a)"
@@ -1742,8 +1742,8 @@ lemma eq_general_inverses:
 
 end
 
-notation (in times) times (infixl "*" 70)
-notation (in one) Groups.one ("1")
+notation times (infixl "*" 70)
+notation Groups.one ("1")
 
 
 subsection {* Finite cardinality *}
