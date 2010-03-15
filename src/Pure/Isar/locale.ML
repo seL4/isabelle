@@ -33,7 +33,7 @@ sig
     (string * sort) list * ((string * typ) * mixfix) list ->
     term option * term list ->
     thm option * thm option -> thm list ->
-    declaration list * declaration list ->
+    declaration list ->
     (string * (Attrib.binding * (thm list * Attrib.src list) list) list) list ->
     (string * morphism) list -> theory -> theory
   val intern: theory -> xstring -> string
@@ -44,14 +44,12 @@ sig
   val axioms_of: theory -> string -> thm list
   val instance_of: theory -> string -> morphism -> term list
   val specification_of: theory -> string -> term option * term list
-  val declarations_of: theory -> string -> declaration list * declaration list
 
   (* Storing results *)
   val add_thmss: string -> string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
     Proof.context -> Proof.context
-  val add_type_syntax: string -> declaration -> Proof.context -> Proof.context
-  val add_term_syntax: string -> declaration -> Proof.context -> Proof.context
   val add_declaration: string -> declaration -> Proof.context -> Proof.context
+  val add_syntax_declaration: string -> declaration -> Proof.context -> Proof.context
 
   (* Activation *)
   val activate_declarations: string * morphism -> Proof.context -> Proof.context
@@ -97,26 +95,27 @@ datatype locale = Loc of {
   intros: thm option * thm option,
   axioms: thm list,
   (** dynamic part **)
-  decls: (declaration * stamp) list * (declaration * stamp) list,
-    (* type and term syntax declarations *)
+  syntax_decls: (declaration * stamp) list,
+    (* syntax declarations *)
   notes: ((string * (Attrib.binding * (thm list * Attrib.src list) list) list) * stamp) list,
     (* theorem declarations *)
   dependencies: ((string * morphism) * stamp) list
     (* locale dependencies (sublocale relation) *)
 };
 
-fun mk_locale ((parameters, spec, intros, axioms), ((decls, notes), dependencies)) =
+fun mk_locale ((parameters, spec, intros, axioms), ((syntax_decls, notes), dependencies)) =
   Loc {parameters = parameters, intros = intros, axioms = axioms, spec = spec,
-    decls = decls, notes = notes, dependencies = dependencies};
+    syntax_decls = syntax_decls, notes = notes, dependencies = dependencies};
 
-fun map_locale f (Loc {parameters, spec, intros, axioms, decls, notes, dependencies}) =
-  mk_locale (f ((parameters, spec, intros, axioms), ((decls, notes), dependencies)));
+fun map_locale f (Loc {parameters, spec, intros, axioms, syntax_decls, notes, dependencies}) =
+  mk_locale (f ((parameters, spec, intros, axioms), ((syntax_decls, notes), dependencies)));
 
-fun merge_locale (Loc {parameters, spec, intros, axioms, decls = (decls1, decls2),
-  notes, dependencies}, Loc {decls = (decls1', decls2'), notes = notes',
-    dependencies = dependencies', ...}) = mk_locale
+fun merge_locale
+ (Loc {parameters, spec, intros, axioms, syntax_decls, notes, dependencies},
+  Loc {syntax_decls = syntax_decls', notes = notes', dependencies = dependencies', ...}) =
+    mk_locale
       ((parameters, spec, intros, axioms),
-        (((merge (eq_snd op =) (decls1, decls1'), merge (eq_snd op =) (decls2, decls2')),
+        ((merge (eq_snd op =) (syntax_decls, syntax_decls'),
           merge (eq_snd op =) (notes, notes')),
             merge (eq_snd op =) (dependencies, dependencies')));
 
@@ -139,11 +138,11 @@ fun the_locale thy name =
     SOME (Loc loc) => loc
   | NONE => error ("Unknown locale " ^ quote name));
 
-fun register_locale binding parameters spec intros axioms decls notes dependencies thy =
+fun register_locale binding parameters spec intros axioms syntax_decls notes dependencies thy =
   thy |> Locales.map (Name_Space.define true (Sign.naming_of thy)
     (binding,
       mk_locale ((parameters, spec, intros, axioms),
-        ((pairself (map (fn decl => (decl, stamp ()))) decls, map (fn n => (n, stamp ())) notes),
+        ((map (fn decl => (decl, stamp ())) syntax_decls, map (fn n => (n, stamp ())) notes),
           map (fn d => (d, stamp ())) dependencies))) #> snd);
 
 fun change_locale name =
@@ -166,9 +165,6 @@ fun instance_of thy name morph = params_of thy name |>
   map (Morphism.term morph o Free o #1);
 
 fun specification_of thy = #spec o the_locale thy;
-
-fun declarations_of thy name = the_locale thy name |>
-  #decls |> pairself (map fst);
 
 fun dependencies_of thy name = the_locale thy name |>
   #dependencies |> map fst;
@@ -257,14 +253,13 @@ end;
 
 (* Declarations, facts and entire locale content *)
 
-fun activate_decls (name, morph) context =
+fun activate_syntax_decls (name, morph) context =
   let
     val thy = Context.theory_of context;
-    val {decls = (typ_decls, term_decls), ...} = the_locale thy name;
+    val {syntax_decls, ...} = the_locale thy name;
   in
     context
-    |> fold_rev (fn (decl, _) => decl morph) typ_decls
-    |> fold_rev (fn (decl, _) => decl morph) term_decls
+    |> fold_rev (fn (decl, _) => decl morph) syntax_decls
   end;
 
 fun activate_notes activ_elem transfer thy (name, morph) input =
@@ -300,7 +295,10 @@ fun activate_all name thy activ_elem transfer (marked, input) =
 fun activate_declarations dep = Context.proof_map (fn context =>
   let
     val thy = Context.theory_of context;
-  in roundup thy activate_decls Morphism.identity dep (get_idents context, context) |-> put_idents end);
+  in
+    roundup thy activate_syntax_decls Morphism.identity dep (get_idents context, context)
+    |-> put_idents
+  end);
 
 fun activate_facts dep context =
   let
@@ -512,23 +510,15 @@ fun add_thmss loc kind args ctxt =
 
 (* Declarations *)
 
-local
-
-fun decl_attrib decl phi = Thm.declaration_attribute (K (decl phi));
-
-fun add_decls add loc decl =
-  ProofContext.theory ((change_locale loc o apfst o apfst) (add (decl, stamp ()))) #>
+fun add_declaration loc decl =
   add_thmss loc ""
-    [((Binding.conceal Binding.empty, [Attrib.internal (decl_attrib decl)]),
+    [((Binding.conceal Binding.empty,
+        [Attrib.internal (fn phi => Thm.declaration_attribute (K (decl phi)))]),
       [([Drule.dummy_thm], [])])];
 
-in
-
-val add_type_syntax = add_decls (apfst o cons);
-val add_term_syntax = add_decls (apsnd o cons);
-val add_declaration = add_decls (K I);
-
-end;
+fun add_syntax_declaration loc decl =
+  ProofContext.theory ((change_locale loc o apfst o apfst) (cons (decl, stamp ())))
+  #> add_declaration loc decl;
 
 
 (*** Reasoning about locales ***)

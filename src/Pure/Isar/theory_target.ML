@@ -99,9 +99,8 @@ fun target_decl add (Target {target, ...}) pervasive decl lthy =
 
 in
 
-val type_syntax = target_decl Locale.add_type_syntax;
-val term_syntax = target_decl Locale.add_term_syntax;
 val declaration = target_decl Locale.add_declaration;
+val syntax_declaration = target_decl Locale.add_syntax_declaration;
 
 end;
 
@@ -229,7 +228,7 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t)
         Local_Theory.theory_result (Sign.add_abbrev PrintMode.internal (b, global_rhs))
         #-> (fn (lhs, _) =>
           let val lhs' = Term.list_comb (Logic.unvarify lhs, xs) in
-            term_syntax ta false (locale_const ta prmode ((b, mx2), lhs')) #>
+            syntax_declaration ta false (locale_const ta prmode ((b, mx2), lhs')) #>
             is_class ? class_target ta (Class_Target.abbrev target prmode ((b, mx1), t'))
           end)
       else
@@ -277,7 +276,7 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...})
     val t = Term.list_comb (const, params);
   in
     lthy'
-    |> is_locale ? term_syntax ta false (locale_const ta Syntax.mode_default ((b, mx2), t))
+    |> is_locale ? syntax_declaration ta false (locale_const ta Syntax.mode_default ((b, mx2), t))
     |> is_class ? class_target ta (Class_Target.declare target ((b, mx1), t))
     |> Local_Defs.add_def ((b, NoSyn), t)
   end;
@@ -354,9 +353,8 @@ fun init_lthy (ta as Target {target, instantiation, overloading, ...}) =
     abbrev = abbrev ta,
     define = define ta,
     notes = notes ta,
-    type_syntax = type_syntax ta,
-    term_syntax = term_syntax ta,
     declaration = declaration ta,
+    syntax_declaration = syntax_declaration ta,
     reinit = fn lthy => init_lthy_ctxt ta (ProofContext.theory_of lthy),
     exit = Local_Theory.target_of o
       (if not (null (#1 instantiation)) then Class_Target.conclude_instantiation

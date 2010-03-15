@@ -39,9 +39,8 @@ sig
     local_theory -> (string * thm list) list * local_theory
   val notes_kind: string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
     local_theory -> (string * thm list) list * local_theory
-  val type_syntax: bool -> declaration -> local_theory -> local_theory
-  val term_syntax: bool -> declaration -> local_theory -> local_theory
   val declaration: bool -> declaration -> local_theory -> local_theory
+  val syntax_declaration: bool -> declaration -> local_theory -> local_theory
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> local_theory -> local_theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val class_alias: binding -> class -> local_theory -> local_theory
@@ -72,9 +71,8 @@ type operations =
   notes: string ->
     (Attrib.binding * (thm list * Attrib.src list) list) list ->
     local_theory -> (string * thm list) list * local_theory,
-  type_syntax: bool -> declaration -> local_theory -> local_theory,
-  term_syntax: bool -> declaration -> local_theory -> local_theory,
   declaration: bool -> declaration -> local_theory -> local_theory,
+  syntax_declaration: bool -> declaration -> local_theory -> local_theory,
   reinit: local_theory -> local_theory,
   exit: local_theory -> Proof.context};
 
@@ -195,9 +193,8 @@ val pretty = operation #pretty;
 val abbrev = apsnd checkpoint ooo operation2 #abbrev;
 val define = apsnd checkpoint oo operation1 #define;
 val notes_kind = apsnd checkpoint ooo operation2 #notes;
-val type_syntax = checkpoint ooo operation2 #type_syntax;
-val term_syntax = checkpoint ooo operation2 #term_syntax;
 val declaration = checkpoint ooo operation2 #declaration;
+val syntax_declaration = checkpoint ooo operation2 #syntax_declaration;
 
 val notes = notes_kind "";
 fun note (a, ths) = notes [(a, [(ths, [])])] #>> the_single;
@@ -207,24 +204,24 @@ fun note (a, ths) = notes [(a, [(ths, [])])] #>> the_single;
 
 fun type_notation add mode raw_args lthy =
   let val args = map (apfst (Morphism.typ (target_morphism lthy))) raw_args
-  in type_syntax false (ProofContext.target_type_notation add mode args) lthy end;
+  in syntax_declaration false (ProofContext.target_type_notation add mode args) lthy end;
 
 fun notation add mode raw_args lthy =
   let val args = map (apfst (Morphism.term (target_morphism lthy))) raw_args
-  in term_syntax false (ProofContext.target_notation add mode args) lthy end;
+  in syntax_declaration false (ProofContext.target_notation add mode args) lthy end;
 
 
 (* name space aliases *)
 
-fun alias syntax_declaration global_alias local_alias b name =
+fun alias global_alias local_alias b name =
   syntax_declaration false (fn phi =>
     let val b' = Morphism.binding phi b
     in Context.mapping (global_alias b' name) (local_alias b' name) end)
   #> local_alias b name;
 
-val class_alias = alias type_syntax Sign.class_alias ProofContext.class_alias;
-val type_alias = alias type_syntax Sign.type_alias ProofContext.type_alias;
-val const_alias = alias term_syntax Sign.const_alias ProofContext.const_alias;
+val class_alias = alias Sign.class_alias ProofContext.class_alias;
+val type_alias = alias Sign.type_alias ProofContext.type_alias;
+val const_alias = alias Sign.const_alias ProofContext.const_alias;
 
 
 (* init *)
