@@ -142,7 +142,7 @@ datatype sign = Sign of
 fun make_sign (naming, syn, tsig, consts) =
   Sign {naming = naming, syn = syn, tsig = tsig, consts = consts};
 
-structure SignData = Theory_Data_PP
+structure Data = Theory_Data_PP
 (
   type T = sign;
   fun extend (Sign {syn, tsig, consts, ...}) =
@@ -163,9 +163,9 @@ structure SignData = Theory_Data_PP
     in make_sign (naming, syn, tsig, consts) end;
 );
 
-fun rep_sg thy = SignData.get thy |> (fn Sign args => args);
+fun rep_sg thy = Data.get thy |> (fn Sign args => args);
 
-fun map_sign f = SignData.map (fn Sign {naming, syn, tsig, consts} =>
+fun map_sign f = Data.map (fn Sign {naming, syn, tsig, consts} =>
   make_sign (f (naming, syn, tsig, consts)));
 
 fun map_naming f = map_sign (fn (naming, syn, tsig, consts) => (f naming, syn, tsig, consts));
