@@ -360,9 +360,9 @@ end end;
 
 
 (*For Isabelle, the lhs of a definition must be a constant.*)
-fun legacy_const_def sign (c, Ty, rhs) =
+fun const_def sign (c, Ty, rhs) =
   singleton (Syntax.check_terms (ProofContext.init sign))
-    (Sign.intern_term sign (Const("==",dummyT) $ Const(c,Ty) $ rhs));
+    (Const("==",dummyT) $ Const(c,Ty) $ rhs);
 
 (*Make all TVars available for instantiation by adding a ? to the front*)
 fun poly_tvars (Type(a,Ts)) = Type(a, map (poly_tvars) Ts)
@@ -376,17 +376,13 @@ local val f_eq_wfrec_R_M =
       val (wfrec,_) = S.strip_comb rhs
 in
 fun wfrec_definition0 thy fid R (functional as Abs(x, Ty, _)) =
- let val def_name = if x<>fid then
-                        raise TFL_ERR "wfrec_definition0"
-                                      ("Expected a definition of " ^
-                                             quote fid ^ " but found one of " ^
-                                      quote x)
-                    else x ^ "_def"
+ let val def_name = Long_Name.base_name fid ^ "_def"
      val wfrec_R_M =  map_types poly_tvars
                           (wfrec $ map_types poly_tvars R)
                       $ functional
-     val def_term = legacy_const_def thy (x, Ty, wfrec_R_M)
-     val ([def], thy') = PureThy.add_defs false [Thm.no_attributes (Binding.name def_name, def_term)] thy
+     val def_term = const_def thy (fid, Ty, wfrec_R_M)
+     val ([def], thy') =
+      PureThy.add_defs false [Thm.no_attributes (Binding.name def_name, def_term)] thy
  in (thy', def) end;
 end;
 
@@ -540,7 +536,7 @@ fun lazyR_def thy fid tflCongs eqns =
      val {lhs,rhs} = S.dest_eq proto_def'
      val (c,args) = S.strip_comb lhs
      val (name,Ty) = dest_atom c
-     val defn = legacy_const_def thy (name, Ty, S.list_mk_abs (args,rhs))
+     val defn = const_def thy (name, Ty, S.list_mk_abs (args,rhs))
      val ([def0], theory) =
        thy
        |> PureThy.add_defs false
