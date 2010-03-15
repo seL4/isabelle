@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/Cfun.thy
     Author:     Franz Regensburger
-
-Definition of the type ->  of continuous functions.
+    Author:     Brian Huffman
 *)
 
 header {* The type of continuous functions *}

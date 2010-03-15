@@ -1,3 +1,9 @@
+(*  Title:      HOLCF/Eventual.thy
+    Author:     Brian Huffman
+*)
+
+header {* Eventually-constant sequences *}
+
 theory Eventual
 imports Infinite_Set
 begin

@@ -2,6 +2,8 @@
     Author:     Brian Huffman
 *)
 
+header {* A universal bifinite domain *}
+
 theory Universal
 imports CompactBasis Nat_Bijection
 begin

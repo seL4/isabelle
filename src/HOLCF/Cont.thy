@@ -1,5 +1,6 @@
 (*  Title:      HOLCF/Cont.thy
     Author:     Franz Regensburger
+    Author:     Brian Huffman
 *)
 
 header {* Continuity and monotonicity *}

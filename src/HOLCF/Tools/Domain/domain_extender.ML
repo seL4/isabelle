@@ -1,5 +1,6 @@
 (*  Title:      HOLCF/Tools/Domain/domain_extender.ML
     Author:     David von Oheimb
+    Author:     Brian Huffman
 
 Theory extender for domain command, including theory syntax.
 *)

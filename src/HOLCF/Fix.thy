@@ -1,5 +1,6 @@
 (*  Title:      HOLCF/Fix.thy
     Author:     Franz Regensburger
+    Author:     Brian Huffman
 *)
 
 header {* Fixed point operator and admissibility *}
