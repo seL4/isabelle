@@ -203,7 +203,7 @@ end;
  *---------------------------------------------------------------------------*)
 fun define_i strict thy cs ss congs wfs fid R eqs =
   let val {functional,pats} = Prim.mk_functional thy eqs
-      val (thy, def) = Prim.wfrec_definition0 thy (Long_Name.base_name fid) R functional
+      val (thy, def) = Prim.wfrec_definition0 thy fid R functional
       val (lhs, _) = Logic.dest_equals (prop_of def)
       val {induct, rules, tcs} = 
           simplify_defn strict thy cs ss congs wfs fid pats def
@@ -228,8 +228,7 @@ fun func_of_cond_eqn tm =
   #1 (S.strip_comb (#lhs (S.dest_eq (#2 (S.strip_forall (#2 (S.strip_imp tm)))))));
 
 fun defer_i thy congs fid eqs =
- let val {rules,R,theory,full_pats_TCs,SV,...} =
-             Prim.lazyR_def thy (Long_Name.base_name fid) congs eqs
+ let val {rules,R,theory,full_pats_TCs,SV,...} = Prim.lazyR_def thy fid congs eqs
      val f = func_of_cond_eqn (concl (R.CONJUNCT1 rules handle U.ERR _ => rules));
      val dummy = writeln "Proving induction theorem ...";
      val induction = Prim.mk_induction theory
