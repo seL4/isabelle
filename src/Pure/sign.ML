@@ -56,7 +56,6 @@ sig
   val extern_type: theory -> string -> xstring
   val intern_const: theory -> xstring -> string
   val extern_const: theory -> string -> xstring
-  val intern_term: theory -> term -> term
   val arity_number: theory -> string -> int
   val arity_sorts: theory -> string -> sort -> sort list
   val certify_class: theory -> class -> class
@@ -246,25 +245,6 @@ val intern_type = Name_Space.intern o type_space;
 val extern_type = Name_Space.extern o type_space;
 val intern_const = Name_Space.intern o const_space;
 val extern_const = Name_Space.extern o const_space;
-
-local
-
-fun map_typ f g (Type (c, Ts)) = Type (g c, map (map_typ f g) Ts)
-  | map_typ f _ (TFree (x, S)) = TFree (x, map f S)
-  | map_typ f _ (TVar (xi, S)) = TVar (xi, map f S);
-
-fun map_term f g h (Const (c, T)) = Const (h c, map_typ f g T)
-  | map_term f g _ (Free (x, T)) = Free (x, map_typ f g T)
-  | map_term f g _ (Var (xi, T)) = Var (xi, map_typ f g T)
-  | map_term _ _ _ (t as Bound _) = t
-  | map_term f g h (Abs (x, T, t)) = Abs (x, map_typ f g T, map_term f g h t)
-  | map_term f g h (t $ u) = map_term f g h t $ map_term f g h u;
-
-in
-
-fun intern_term thy = map_term (intern_class thy) (intern_type thy) (intern_const thy);
-
-end;
 
 
 

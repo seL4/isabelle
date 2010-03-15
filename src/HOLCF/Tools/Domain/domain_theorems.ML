@@ -50,9 +50,29 @@ infixr 9 oo;
 
 (* ----- general proof facilities ------------------------------------------- *)
 
+local
+
+fun map_typ f g (Type (c, Ts)) = Type (g c, map (map_typ f g) Ts)
+  | map_typ f _ (TFree (x, S)) = TFree (x, map f S)
+  | map_typ f _ (TVar (xi, S)) = TVar (xi, map f S);
+
+fun map_term f g h (Const (c, T)) = Const (h c, map_typ f g T)
+  | map_term f g _ (Free (x, T)) = Free (x, map_typ f g T)
+  | map_term f g _ (Var (xi, T)) = Var (xi, map_typ f g T)
+  | map_term _ _ _ (t as Bound _) = t
+  | map_term f g h (Abs (x, T, t)) = Abs (x, map_typ f g T, map_term f g h t)
+  | map_term f g h (t $ u) = map_term f g h t $ map_term f g h u;
+
+in
+
+fun intern_term thy =
+  map_term (Sign.intern_class thy) (Sign.intern_type thy) (Sign.intern_const thy);
+
+end;
+
 fun legacy_infer_term thy t =
   let val ctxt = ProofContext.set_mode ProofContext.mode_schematic (ProofContext.init thy)
-  in singleton (Syntax.check_terms ctxt) (Sign.intern_term thy t) end;
+  in singleton (Syntax.check_terms ctxt) (intern_term thy t) end;
 
 fun pg'' thy defs t tacs =
   let
@@ -451,7 +471,7 @@ end;
 local
 
   fun legacy_infer_term thy t =
-      singleton (Syntax.check_terms (ProofContext.init thy)) (Sign.intern_term thy t);
+      singleton (Syntax.check_terms (ProofContext.init thy)) (intern_term thy t);
   fun legacy_infer_prop thy t = legacy_infer_term thy (TypeInfer.constrain propT t);
   fun infer_props thy = map (apsnd (legacy_infer_prop thy));
   fun add_defs_i x = PureThy.add_defs false (map Thm.no_attributes x);
