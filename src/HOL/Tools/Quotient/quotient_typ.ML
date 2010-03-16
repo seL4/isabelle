@@ -1,7 +1,7 @@
-(*  Title:      quotient_typ.thy
+(*  Title:      HOL/Tools/Quotient/quotient_typ.thy
     Author:     Cezary Kaliszyk and Christian Urban
 
-    Definition of a quotient type.
+Definition of a quotient type.
 
 *)
 
@@ -74,8 +74,17 @@ let
   val typedef_tac =
     EVERY1 (map rtac [@{thm exI}, mem_def2, @{thm exI}, @{thm refl}])
 in
+(* FIXME: purely local typedef causes at the moment 
+   problems with type variables
+  
   Typedef.add_typedef false NONE (qty_name, vs, mx) 
     (typedef_term rel rty lthy) NONE typedef_tac lthy
+*)
+   Local_Theory.theory_result
+     (Typedef.add_typedef_global false NONE
+       (qty_name, vs, mx)
+         (typedef_term rel rty lthy)
+           NONE typedef_tac) lthy
 end
 
 
