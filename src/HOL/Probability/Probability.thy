@@ -1,5 +1,5 @@
 theory Probability
-imports Probability_Space
+imports Probability_Space Product_Measure
 begin
 
 end

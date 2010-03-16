@@ -1389,6 +1389,7 @@ proof -
 qed
 
 lemma integral_on_countable:
+  fixes enum :: "nat \<Rightarrow> real"
   assumes borel: "f \<in> borel_measurable M"
   and bij: "bij_betw enum S (f ` space M)"
   and enum_zero: "enum ` (-S) \<subseteq> {0}"
