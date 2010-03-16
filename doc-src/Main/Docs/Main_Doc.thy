@@ -396,8 +396,8 @@ Type @{typ int}
 @{const Finite_Set.card} & @{term_type_only Finite_Set.card "'a set => nat"}\\
 @{const Finite_Set.fold} & @{term_type_only Finite_Set.fold "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b"}\\
 @{const Finite_Set.fold_image} & @{typ "('b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b"}\\
-@{const Finite_Set.setsum} & @{term_type_only Finite_Set.setsum "('a => 'b) => 'a set => 'b::comm_monoid_add"}\\
-@{const Finite_Set.setprod} & @{term_type_only Finite_Set.setprod "('a => 'b) => 'a set => 'b::comm_monoid_mult"}\\
+@{const Big_Operators.setsum} & @{term_type_only Big_Operators.setsum "('a => 'b) => 'a set => 'b::comm_monoid_add"}\\
+@{const Big_Operators.setprod} & @{term_type_only Big_Operators.setprod "('a => 'b) => 'a set => 'b::comm_monoid_mult"}\\
 \end{supertabular}
 
 
