@@ -2617,6 +2617,12 @@ must be of the form
 where the $P_i$'s are side conditions that do not involve $c$ and $M$ is an
 optional monotonic operator. The order of the assumptions is irrelevant.
 
+\flushitem{\textit{nitpick\_choice\_spec}}
+
+\nopagebreak
+This attribute specifies the (free-form) specification of a constant defined
+using the \hbox{(\textbf{ax\_})}\allowbreak\textbf{specification} command.
+
 \end{itemize}
 
 When faced with a constant, Nitpick proceeds as follows:
@@ -2629,7 +2635,12 @@ is not empty, Nitpick uses these rules as the specification of the constant.
 the constant is not empty, it uses these rules as the specification of the
 constant.
 
-\item[3.] Otherwise, it looks up the definition of the constant:
+\item[3.] Otherwise, if the constant was defined using the
+\hbox{(\textbf{ax\_})}\allowbreak\textbf{specification} command and the
+\textit{nitpick\_choice\_spec} set associated with the constant is not empty, it
+uses these theorems as the specification of the constant.
+
+\item[4.] Otherwise, it looks up the definition of the constant:
 
 \begin{enum}
 \item[1.] If the \textit{nitpick\_def} set associated with the constant
