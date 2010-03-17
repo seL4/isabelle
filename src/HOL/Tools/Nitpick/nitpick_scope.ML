@@ -46,7 +46,7 @@ sig
   val spec_of_type : scope -> typ -> int * int
   val pretties_for_scope : scope -> bool -> Pretty.T list
   val multiline_string_for_scope : scope -> string
-  val scopes_equivalent : scope -> scope -> bool
+  val scopes_equivalent : scope * scope -> bool
   val scope_less_eq : scope -> scope -> bool
   val all_scopes :
     hol_context -> bool -> int -> (typ option * int list) list
@@ -213,8 +213,8 @@ fun multiline_string_for_scope scope =
     | lines => space_implode "\n" lines
   end
 
-(* scope -> scope -> bool *)
-fun scopes_equivalent (s1 : scope) (s2 : scope) =
+(* scope * scope -> bool *)
+fun scopes_equivalent (s1 : scope, s2 : scope) =
   #datatypes s1 = #datatypes s2 andalso #card_assigns s1 = #card_assigns s2
 fun scope_less_eq (s1 : scope) (s2 : scope) =
   (s1, s2) |> pairself (map snd o #card_assigns) |> op ~~ |> forall (op <=)

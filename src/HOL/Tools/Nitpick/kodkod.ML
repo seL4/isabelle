@@ -169,7 +169,7 @@ sig
   val max_arity : int -> int
   val arity_of_rel_expr : rel_expr -> int
   val is_problem_trivially_false : problem -> bool
-  val problems_equivalent : problem -> problem -> bool
+  val problems_equivalent : problem * problem -> bool
   val solve_any_problem :
     bool -> Time.time option -> int -> int -> problem list -> outcome
 end;
@@ -500,19 +500,28 @@ and arity_of_decl (DeclNo ((n, _), _)) = n
 fun is_problem_trivially_false ({formula = False, ...} : problem) = true
   | is_problem_trivially_false _ = false
 
-(* string -> bool *)
-val is_relevant_setting = not o member (op =) ["solver", "delay"]
+(* string -> string list *)
+val chop_solver = take 2 o space_explode ","
 
-(* problem -> problem -> bool *)
-fun problems_equivalent (p1 : problem) (p2 : problem) =
+(* setting list * setting list -> bool *)
+fun settings_equivalent ([], []) = true
+  | settings_equivalent ((key1, value1) :: settings1,
+                         (key2, value2) :: settings2) =
+    key1 = key2 andalso
+    (value1 = value2 orelse key1 = "delay" orelse
+     (key1 = "solver" andalso chop_solver value1 = chop_solver value2)) andalso
+    settings_equivalent (settings1, settings2)
+  | settings_equivalent _ = false
+
+(* problem * problem -> bool *)
+fun problems_equivalent (p1 : problem, p2 : problem) =
   #univ_card p1 = #univ_card p2 andalso
   #formula p1 = #formula p2 andalso
   #bounds p1 = #bounds p2 andalso
   #expr_assigns p1 = #expr_assigns p2 andalso
   #tuple_assigns p1 = #tuple_assigns p2 andalso
   #int_bounds p1 = #int_bounds p2 andalso
-  filter (is_relevant_setting o fst) (#settings p1)
-  = filter (is_relevant_setting o fst) (#settings p2)
+  settings_equivalent (#settings p1, #settings p2)
 
 (** Serialization of problem **)
 
@@ -1005,10 +1014,6 @@ fun read_output_file path =
           |>> rev ||> rev)
   handle IO.Io _ => (true, ([], [])) | OS.SysErr _ => (true, ([], []))
 
-(* The fudge term below is to account for Kodkodi's slow start-up time, which
-   is partly due to the JVM and partly due to the ML "bash" function. *)
-val fudge_ms = 250
-
 (** Main Kodkod entry point **)
 
 val created_temp_dir = Unsynchronized.ref false
@@ -1024,8 +1029,20 @@ fun serial_string_and_temporary_dir_for_overlord overlord =
               else (created_temp_dir := true; File.mkdir (Path.explode dir))
     in (serial_string (), dir) end
 
+(* The fudge term below is to account for Kodkodi's slow start-up time, which
+   is partly due to the JVM and partly due to the ML "bash" function. *)
+val fudge_ms = 250
+
+(* Time.time option -> int *)
+fun milliseconds_until_deadline deadline =
+  case deadline of
+    NONE => ~1
+  | SOME time =>
+    Int.max (0, Time.toMilliseconds (Time.- (time, Time.now ())) - fudge_ms)
+
 (* bool -> Time.time option -> int -> int -> problem list -> outcome *)
-fun solve_any_problem overlord deadline max_threads max_solutions problems =
+fun uncached_solve_any_problem overlord deadline max_threads max_solutions
+                               problems =
   let
     val j = find_index (curry (op =) True o #formula) problems
     val indexed_problems = if j >= 0 then
@@ -1061,12 +1078,7 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
           else List.app (K () o try File.rm) [in_path, out_path, err_path]
       in
         let
-          val ms =
-            case deadline of
-              NONE => ~1
-            | SOME time =>
-              Int.max (0, Time.toMilliseconds (Time.- (time, Time.now ()))
-                          - fudge_ms)
+          val ms = milliseconds_until_deadline deadline
           val outcome =
             let
               val code =
@@ -1133,6 +1145,37 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
                         (remove_temporary_files (); Interrupted NONE)
                end
       end
+  end
+
+val cached_outcome =
+  Synchronized.var "Kodkod.cached_outcome"
+                   (NONE : ((int * problem list) * outcome) option)
+
+(* bool -> Time.time option -> int -> int -> problem list -> outcome *)
+fun solve_any_problem overlord deadline max_threads max_solutions problems =
+  let
+    (* unit -> outcome *)
+    fun do_solve () = uncached_solve_any_problem overlord deadline max_threads
+                                                 max_solutions problems
+  in
+    if overlord then
+      do_solve ()
+    else
+      case AList.lookup (fn ((max1, ps1), (max2, ps2)) =>
+                            max1 = max2 andalso length ps1 = length ps2 andalso
+                            forall problems_equivalent (ps1 ~~ ps2))
+                        (the_list (Synchronized.value cached_outcome))
+                        (max_solutions, problems) of
+        SOME outcome => outcome
+      | NONE =>
+        let val outcome = do_solve () in
+          (case outcome of
+             Normal (ps, js, "") =>
+             Synchronized.change cached_outcome
+                                 (K (SOME ((max_solutions, problems), outcome)))
+           | _ => ());
+          outcome
+        end
   end
 
 end;

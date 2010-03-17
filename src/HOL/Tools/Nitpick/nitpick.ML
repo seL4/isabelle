@@ -777,8 +777,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                         |> filter (fn j =>
                                       j >= 0 andalso
                                       scopes_equivalent
-                                          (#scope (snd (nth problems j)))
-                                          (#scope (snd (nth problems (j + 1)))))
+                                          (#scope (snd (nth problems j)),
+                                           #scope (snd (nth problems (j + 1)))))
                       val bye_js = sort_distinct int_ord (map fst sat_ps @
                                                           unsat_js @ co_js)
                       val problems =
@@ -862,8 +862,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
              SOME problem =>
              (problems
               |> (null problems orelse
-                  not (KK.problems_equivalent (fst problem)
-                                              (fst (hd problems))))
+                  not (KK.problems_equivalent (fst problem, fst (hd problems))))
                   ? cons problem, donno)
            | NONE => (problems, donno + 1))
         val (problems, donno) =
@@ -904,7 +903,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
 
     (* rich_problem list -> scope -> int *)
     fun scope_count (problems : rich_problem list) scope =
-      length (filter (scopes_equivalent scope o #scope o snd) problems)
+      length (filter (curry scopes_equivalent scope o #scope o snd) problems)
     (* string -> string *)
     fun excipit did_so_and_so =
       let
