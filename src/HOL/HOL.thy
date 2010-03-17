@@ -2022,7 +2022,7 @@ structure Nitpick_Intros = Named_Thms
 )
 structure Nitpick_Choice_Specs = Named_Thms
 (
-  val name = "nitpick_choice_specs"
+  val name = "nitpick_choice_spec"
   val description = "choice specification of constants as needed by Nitpick"
 )
 *}
