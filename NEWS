@@ -221,6 +221,40 @@ sets to lattices:
 * Renamed Library/Quotient.thy to Library/Quotient_Type.thy to avoid
 clash with new theory Quotient in Main HOL.
 
+* Library/Nat_Bijection.thy is a collection of bijective functions
+between nat and other types, which supersedes the older libraries
+Library/Nat_Int_Bij.thy and HOLCF/NatIso.thy.  INCOMPATIBILITY.
+
+  Constants:
+  Nat_Int_Bij.nat2_to_nat         ~> prod_encode
+  Nat_Int_Bij.nat_to_nat2         ~> prod_decode
+  Nat_Int_Bij.int_to_nat_bij      ~> int_encode
+  Nat_Int_Bij.nat_to_int_bij      ~> int_decode
+  Countable.pair_encode           ~> prod_encode
+  NatIso.prod2nat                 ~> prod_encode
+  NatIso.nat2prod                 ~> prod_decode
+  NatIso.sum2nat                  ~> sum_encode
+  NatIso.nat2sum                  ~> sum_decode
+  NatIso.list2nat                 ~> list_encode
+  NatIso.nat2list                 ~> list_decode
+  NatIso.set2nat                  ~> set_encode
+  NatIso.nat2set                  ~> set_decode
+
+  Lemmas:
+  Nat_Int_Bij.bij_nat_to_int_bij  ~> bij_int_decode
+  Nat_Int_Bij.nat2_to_nat_inj     ~> inj_prod_encode
+  Nat_Int_Bij.nat2_to_nat_surj    ~> surj_prod_encode
+  Nat_Int_Bij.nat_to_nat2_inj     ~> inj_prod_decode
+  Nat_Int_Bij.nat_to_nat2_surj    ~> surj_prod_decode
+  Nat_Int_Bij.i2n_n2i_id          ~> int_encode_inverse
+  Nat_Int_Bij.n2i_i2n_id          ~> int_decode_inverse
+  Nat_Int_Bij.surj_nat_to_int_bij ~> surj_int_encode
+  Nat_Int_Bij.surj_int_to_nat_bij ~> surj_int_decode
+  Nat_Int_Bij.inj_nat_to_int_bij  ~> inj_int_encode
+  Nat_Int_Bij.inj_int_to_nat_bij  ~> inj_int_decode
+  Nat_Int_Bij.bij_nat_to_int_bij  ~> bij_int_encode
+  Nat_Int_Bij.bij_int_to_nat_bij  ~> bij_int_decode
+
 
 *** ML ***
 
