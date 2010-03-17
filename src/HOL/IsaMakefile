@@ -290,7 +290,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/int_arith.ML \
   Tools/list_code.ML \
   Tools/meson.ML \
-  Tools/metis_tools.ML \
   Tools/nat_numeral_simprocs.ML \
   Tools/numeral.ML \
   Tools/numeral_simprocs.ML \
@@ -315,12 +314,13 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Quotient/quotient_term.ML \
   Tools/Quotient/quotient_typ.ML \
   Tools/recdef.ML \
-  Tools/res_atp.ML \
-  Tools/res_axioms.ML \
   Tools/res_blacklist.ML \
-  Tools/res_clause.ML \
-  Tools/res_hol_clause.ML \
-  Tools/res_reconstruct.ML \
+  Tools/Sledgehammer/metis_tactics.ML \
+  Tools/Sledgehammer/sledgehammer_fact_filter.ML \
+  Tools/Sledgehammer/sledgehammer_fact_preprocessor.ML \
+  Tools/Sledgehammer/sledgehammer_fol_clause.ML \
+  Tools/Sledgehammer/sledgehammer_hol_clause.ML \
+  Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML \
   Tools/string_code.ML \
   Tools/string_syntax.ML \
   Tools/transfer.ML \

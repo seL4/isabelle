@@ -10,16 +10,16 @@ theory ATP_Linkup
 imports Plain Hilbert_Choice
 uses
   "Tools/polyhash.ML"
-  "Tools/res_clause.ML"
-  ("Tools/res_axioms.ML")
-  ("Tools/res_hol_clause.ML")
-  ("Tools/res_reconstruct.ML")
-  ("Tools/res_atp.ML")
+  "Tools/Sledgehammer/sledgehammer_fol_clause.ML"
+  ("Tools/Sledgehammer/sledgehammer_fact_preprocessor.ML")
+  ("Tools/Sledgehammer/sledgehammer_hol_clause.ML")
+  ("Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML")
+  ("Tools/Sledgehammer/sledgehammer_fact_filter.ML")
   ("Tools/ATP_Manager/atp_manager.ML")
   ("Tools/ATP_Manager/atp_wrapper.ML")
   ("Tools/ATP_Manager/atp_minimal.ML")
   "~~/src/Tools/Metis/metis.ML"
-  ("Tools/metis_tools.ML")
+  ("Tools/Sledgehammer/metis_tactics.ML")
 begin
 
 definition COMBI :: "'a => 'a"
@@ -91,12 +91,15 @@ done
 
 subsection {* Setup of external ATPs *}
 
-use "Tools/res_axioms.ML" setup Res_Axioms.setup
-use "Tools/res_hol_clause.ML"
-use "Tools/res_reconstruct.ML" setup Res_Reconstruct.setup
-use "Tools/res_atp.ML"
+use "Tools/Sledgehammer/sledgehammer_fact_preprocessor.ML"
+setup Res_Axioms.setup
+use "Tools/Sledgehammer/sledgehammer_hol_clause.ML"
+use "Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML"
+setup Res_Reconstruct.setup
+use "Tools/Sledgehammer/sledgehammer_fact_filter.ML"
 
-use "Tools/ATP_Manager/atp_wrapper.ML" setup ATP_Wrapper.setup
+use "Tools/ATP_Manager/atp_wrapper.ML"
+setup ATP_Wrapper.setup
 use "Tools/ATP_Manager/atp_manager.ML"
 use "Tools/ATP_Manager/atp_minimal.ML"
 
@@ -121,7 +124,7 @@ setup {* ATP_Manager.add_prover ATP_Wrapper.remote_eprover *}
 
 subsection {* The Metis prover *}
 
-use "Tools/metis_tools.ML"
+use "Tools/Sledgehammer/metis_tactics.ML"
 setup MetisTools.setup
 
 end
