@@ -50,6 +50,7 @@ type mdata =
    datatype_mcache: ((string * typ list) * mtyp) list Unsynchronized.ref,
    constr_mcache: (styp * mtyp) list Unsynchronized.ref}
 
+exception UNSOLVABLE of unit
 exception MTYPE of string * mtyp list * typ list
 exception MTERM of string * mterm list
 
@@ -381,9 +382,7 @@ datatype comp_op = Eq | Leq
 type comp = sign_atom * sign_atom * comp_op * var list
 type sign_expr = literal list
 
-datatype constraint_set =
-  UnsolvableCSet |
-  CSet of literal list * comp list * sign_expr list
+type constraint_set = literal list * comp list * sign_expr list
 
 (* comp_op -> string *)
 fun string_for_comp_op Eq = "="
@@ -393,9 +392,6 @@ fun string_for_comp_op Eq = "="
 fun string_for_sign_expr [] = "\<bot>"
   | string_for_sign_expr lits =
     space_implode " \<or> " (map string_for_literal lits)
-
-(* constraint_set *)
-val slack = CSet ([], [], [])
 
 (* literal -> literal list option -> literal list option *)
 fun do_literal _ NONE = NONE
@@ -455,13 +451,12 @@ fun do_mtype_comp _ _ _ _ NONE = NONE
                  [M1, M2], [])
 
 (* comp_op -> mtyp -> mtyp -> constraint_set -> constraint_set *)
-fun add_mtype_comp _ _ _ UnsolvableCSet = UnsolvableCSet
-  | add_mtype_comp cmp M1 M2 (CSet (lits, comps, sexps)) =
+fun add_mtype_comp cmp M1 M2 (lits, comps, sexps) =
     (print_g ("*** Add " ^ string_for_mtype M1 ^ " " ^ string_for_comp_op cmp ^
               " " ^ string_for_mtype M2);
      case do_mtype_comp cmp [] M1 M2 (SOME (lits, comps)) of
-       NONE => (print_g "**** Unsolvable"; UnsolvableCSet)
-     | SOME (lits, comps) => CSet (lits, comps, sexps))
+       NONE => (print_g "**** Unsolvable"; raise UNSOLVABLE ())
+     | SOME (lits, comps) => (lits, comps, sexps))
 
 (* mtyp -> mtyp -> constraint_set -> constraint_set *)
 val add_mtypes_equal = add_mtype_comp Eq
@@ -505,13 +500,12 @@ fun do_notin_mtype_fv _ _ _ NONE = NONE
     raise MTYPE ("Nitpick_Mono.do_notin_mtype_fv", [M], [])
 
 (* sign -> mtyp -> constraint_set -> constraint_set *)
-fun add_notin_mtype_fv _ _ UnsolvableCSet = UnsolvableCSet
-  | add_notin_mtype_fv sn M (CSet (lits, comps, sexps)) =
+fun add_notin_mtype_fv sn M (lits, comps, sexps) =
     (print_g ("*** Add " ^ string_for_mtype M ^ " is " ^
               (case sn of Minus => "concrete" | Plus => "complete") ^ ".");
      case do_notin_mtype_fv sn [] M (SOME (lits, sexps)) of
-       NONE => (print_g "**** Unsolvable"; UnsolvableCSet)
-     | SOME (lits, sexps) => CSet (lits, comps, sexps))
+       NONE => (print_g "**** Unsolvable"; raise UNSOLVABLE ())
+     | SOME (lits, sexps) => (lits, comps, sexps))
 
 (* mtyp -> constraint_set -> constraint_set *)
 val add_mtype_is_concrete = add_notin_mtype_fv Minus
@@ -576,8 +570,7 @@ fun print_solution lits =
   end
 
 (* var -> constraint_set -> literal list option *)
-fun solve _ UnsolvableCSet = (print_g "*** Problem: Unsolvable"; NONE)
-  | solve max_var (CSet (lits, comps, sexps)) =
+fun solve max_var (lits, comps, sexps) =
     let
       (* (int -> bool option) -> literal list option *)
       fun do_assigns assigns =
@@ -613,7 +606,6 @@ type mtype_context =
 type accumulator = mtype_context * constraint_set
 
 val initial_gamma = {bound_Ts = [], bound_Ms = [], frees = [], consts = []}
-val unsolvable_accum = (initial_gamma, UnsolvableCSet)
 
 (* typ -> mtyp -> mtype_context -> mtype_context *)
 fun push_bound T M {bound_Ts, bound_Ms, frees, consts} =
@@ -684,10 +676,6 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
         M as MPair (a_M, b_M) =>
         pair (MFun (M, S Minus, if n = 0 then a_M else b_M))
       | M => raise MTYPE ("Nitpick_Mono.consider_term.do_nth_pair_sel", [M], [])
-    (* mtyp * accumulator *)
-    val mtype_unsolvable = (dummy_M, unsolvable_accum)
-    (* term -> mterm * accumulator *)
-    fun mterm_unsolvable t = (MRaw (t, dummy_M), unsolvable_accum)
     (* term -> string -> typ -> term -> term -> term -> accumulator
        -> mterm * accumulator *)
     fun do_bounded_quantifier t0 abs_s abs_T connective_t bound_t body_t accum =
@@ -710,8 +698,7 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
                            body_m))), accum)
       end
     (* term -> accumulator -> mterm * accumulator *)
-    and do_term t (_, UnsolvableCSet) = mterm_unsolvable t
-      | do_term t (accum as (gamma as {bound_Ts, bound_Ms, frees, consts},
+    and do_term t (accum as (gamma as {bound_Ts, bound_Ms, frees, consts},
                              cset)) =
         (case t of
            Const (x as (s, T)) =>
@@ -734,8 +721,8 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
                   |>> mtype_of_mterm
                 end
               | @{const_name "op ="} => do_equals T accum
-              | @{const_name The} => (print_g "*** The"; mtype_unsolvable)
-              | @{const_name Eps} => (print_g "*** Eps"; mtype_unsolvable)
+              | @{const_name The} => (print_g "*** The"; raise UNSOLVABLE ())
+              | @{const_name Eps} => (print_g "*** Eps"; raise UNSOLVABLE ())
               | @{const_name If} =>
                 do_robust_set_operation (range_type T) accum
                 |>> curry3 MFun bool_M (S Minus)
@@ -855,7 +842,7 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
                 (M, ({bound_Ts = bound_Ts, bound_Ms = bound_Ms,
                       frees = (x, M) :: frees, consts = consts}, cset))
               end) |>> curry MRaw t
-         | Var _ => (print_g "*** Var"; mterm_unsolvable t)
+         | Var _ => (print_g "*** Var"; raise UNSOLVABLE ())
          | Bound j => (MRaw (t, nth bound_Ms j), accum)
          | Abs (s, T, t') =>
            (case fin_fun_body T (fastype_of1 (T :: bound_Ts, t')) t' of
@@ -893,26 +880,16 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
              val (m1, accum) = do_term t1 accum
              val (m2, accum) = do_term t2 accum
            in
-             case accum of
-               (_, UnsolvableCSet) => mterm_unsolvable t
-             | _ =>
-               let
-                 val T11 = domain_type (fastype_of1 (bound_Ts, t1))
-                 val T2 = fastype_of1 (bound_Ts, t2)
-                 val M11 = mtype_of_mterm m1 |> dest_MFun |> #1
-                 val M2 = mtype_of_mterm m2
-               in (MApp (m1, m2), accum ||> add_is_sub_mtype M2 M11) end
+             let
+               val T11 = domain_type (fastype_of1 (bound_Ts, t1))
+               val T2 = fastype_of1 (bound_Ts, t2)
+               val M11 = mtype_of_mterm m1 |> dest_MFun |> #1
+               val M2 = mtype_of_mterm m2
+             in (MApp (m1, m2), accum ||> add_is_sub_mtype M2 M11) end
            end)
         |> tap (fn (m, _) => print_g ("  \<Gamma> \<turnstile> " ^
                                       string_for_mterm ctxt m))
   in do_term end
-
-(*
-    accum |> (case a of
-                S Minus => accum 
-              | S Plus => unsolvable_accum
-              | V x => do_literal (x, Minus) lits)
-*)
 
 (* int -> mtyp -> accumulator -> accumulator *)
 fun force_minus_funs 0 _ = I
@@ -949,9 +926,7 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, ...}) =
     (* term -> accumulator -> mterm * accumulator *)
     val do_term = consider_term mdata
     (* sign -> term -> accumulator -> mterm * accumulator *)
-    fun do_formula _ t (_, UnsolvableCSet) =
-        (MRaw (t, dummy_M), unsolvable_accum)
-      | do_formula sn t accum =
+    fun do_formula sn t accum =
         let
           (* styp -> string -> typ -> term -> mterm * accumulator *)
           fun do_quantifier (quant_x as (quant_s, _)) abs_s abs_T body_t =
@@ -1084,9 +1059,7 @@ fun consider_definitional_axiom (mdata as {hol_ctxt = {thy, ...}, ...}) t =
           (MApp (MApp (MRaw (t0, mtype_for (fastype_of t0)), m1), m2), accum)
         end
       (* term -> accumulator -> accumulator *)
-      and do_formula t (_, UnsolvableCSet) =
-          (MRaw (t, dummy_M), unsolvable_accum)
-        | do_formula t accum =
+      and do_formula t accum =
           case t of
             (t0 as Const (@{const_name all}, _)) $ Abs (s1, T1, t1) =>
             do_all t0 s1 T1 t1 accum
@@ -1134,7 +1107,7 @@ fun infer which no_harmless (hol_ctxt as {ctxt, ...}) binarize alpha_T
                      Syntax.string_of_typ ctxt alpha_T)
     val mdata as {max_fresh, constr_mcache, ...} =
       initial_mdata hol_ctxt binarize no_harmless alpha_T
-    val accum = (initial_gamma, slack)
+    val accum = (initial_gamma, ([], [], []))
     val (nondef_ms, accum) =
       ([], accum) |> amass (consider_general_formula mdata Plus) (hd nondef_ts)
                   |> fold (amass (consider_nondefinitional_axiom mdata))
@@ -1147,7 +1120,8 @@ fun infer which no_harmless (hol_ctxt as {ctxt, ...}) binarize alpha_T
                     SOME (lits, (nondef_ms, def_ms), !constr_mcache))
     | _ => NONE
   end
-  handle MTYPE (loc, Ms, Ts) =>
+  handle UNSOLVABLE () => NONE
+       | MTYPE (loc, Ms, Ts) =>
          raise BAD (loc, commas (map string_for_mtype Ms @
                                  map (Syntax.string_of_typ ctxt) Ts))
        | MTERM (loc, ms) =>
@@ -1166,108 +1140,112 @@ fun finitize_funs (hol_ctxt as {thy, stds, fast_descrs, constr_cache, ...})
                   binarize finitizes alpha_T tsp =
   case infer "Finiteness" true hol_ctxt binarize alpha_T tsp of
     SOME (lits, msp, constr_mtypes) =>
-    let
-      (* typ -> sign_atom -> bool *)
-      fun should_finitize T a =
-        case triple_lookup (type_match thy) finitizes T of
-          SOME (SOME false) => false
-        | _ => resolve_sign_atom lits a = S Plus
-      (* typ -> mtyp -> typ *)
-      fun type_from_mtype T M =
-        case (M, T) of
-          (MAlpha, _) => T
-        | (MFun (M1, a, M2), Type (@{type_name fun}, Ts)) =>
-          Type (if should_finitize T a then @{type_name fin_fun}
-                else @{type_name fun}, map2 type_from_mtype Ts [M1, M2])
-        | (MPair (M1, M2), Type (@{type_name "*"}, Ts)) =>
-          Type (@{type_name "*"}, map2 type_from_mtype Ts [M1, M2])
-        | (MType _, _) => T
-        | _ => raise MTYPE ("Nitpick_Mono.finitize_funs.type_from_mtype",
-                            [M], [T])
-      (* styp -> styp *)
-      fun finitize_constr (x as (s, T)) =
-        (s, case AList.lookup (op =) constr_mtypes x of
-              SOME M => type_from_mtype T M
-            | NONE => T)
-      (* typ list -> mterm -> term *)
-      fun term_from_mterm Ts m =
-        case m of
-          MRaw (t, M) =>
-          let
-            val T = fastype_of1 (Ts, t)
-            val T' = type_from_mtype T M
-          in
-            case t of
-              Const (x as (s, _)) =>
-              if s = @{const_name insert} then
-                case nth_range_type 2 T' of
-                  set_T' as Type (@{type_name fin_fun}, [elem_T', _]) =>
-                    Abs (Name.uu, elem_T', Abs (Name.uu, set_T',
-                        Const (@{const_name If},
-                               bool_T --> set_T' --> set_T' --> set_T')
-                        $ (Const (@{const_name is_unknown}, elem_T' --> bool_T)
-                           $ Bound 1)
-                        $ (Const (@{const_name unknown}, set_T'))
-                        $ (coerce_term hol_ctxt Ts T' T (Const x)
-                           $ Bound 1 $ Bound 0)))
-                | _ => Const (s, T')
-              else if s = @{const_name finite} then
-                case domain_type T' of
-                  set_T' as Type (@{type_name fin_fun}, _) =>
-                  Abs (Name.uu, set_T', @{const True})
-                | _ => Const (s, T')
-              else if s = @{const_name "=="} orelse
-                      s = @{const_name "op ="} then
-                Const (s, T')
-              else if is_built_in_const thy stds fast_descrs x then
-                coerce_term hol_ctxt Ts T' T t
-              else if is_constr thy stds x then
-                Const (finitize_constr x)
-              else if is_sel s then
-                let
-                  val n = sel_no_from_name s
-                  val x' = x |> binarized_and_boxed_constr_for_sel hol_ctxt
-                                                                   binarize
-                             |> finitize_constr
-                  val x'' = binarized_and_boxed_nth_sel_for_constr hol_ctxt
-                                                                   binarize x' n
-                in Const x'' end
-              else
-                Const (s, T')
-            | Free (s, T) => Free (s, type_from_mtype T M)
-            | Bound _ => t
-            | _ => raise MTERM ("Nitpick_Mono.finitize_funs.term_from_mterm",
-                                [m])
-          end
-        | MApp (m1, m2) =>
-          let
-            val (t1, t2) = pairself (term_from_mterm Ts) (m1, m2)
-            val (T1, T2) = pairself (curry fastype_of1 Ts) (t1, t2)
-            val (t1', T2') =
-              case T1 of
-                Type (s, [T11, T12]) => 
-                (if s = @{type_name fin_fun} then
-                   select_nth_constr_arg thy stds (fin_fun_constr T11 T12) t1 0
-                                         (T11 --> T12)
-                 else
-                   t1, T11)
-              | _ => raise TYPE ("Nitpick_Mono.finitize_funs.term_from_mterm",
-                                 [T1], [])
-          in betapply (t1', coerce_term hol_ctxt Ts T2' T2 t2) end
-        | MAbs (s, T, M, a, m') =>
-          let
-            val T = type_from_mtype T M
-            val t' = term_from_mterm (T :: Ts) m'
-            val T' = fastype_of1 (T :: Ts, t')
-          in
-            Abs (s, T, t')
-            |> should_finitize (T --> T') a
-               ? construct_value thy stds (fin_fun_constr T T') o single
-          end
-    in
-      Unsynchronized.change constr_cache (map (apsnd (map finitize_constr)));
-      pairself (map (term_from_mterm [])) msp
-    end
+    if forall (curry (op =) Minus o snd) lits then
+      tsp
+    else
+      let
+        (* typ -> sign_atom -> bool *)
+        fun should_finitize T a =
+          case triple_lookup (type_match thy) finitizes T of
+            SOME (SOME false) => false
+          | _ => resolve_sign_atom lits a = S Plus
+        (* typ -> mtyp -> typ *)
+        fun type_from_mtype T M =
+          case (M, T) of
+            (MAlpha, _) => T
+          | (MFun (M1, a, M2), Type (@{type_name fun}, Ts)) =>
+            Type (if should_finitize T a then @{type_name fin_fun}
+                  else @{type_name fun}, map2 type_from_mtype Ts [M1, M2])
+          | (MPair (M1, M2), Type (@{type_name "*"}, Ts)) =>
+            Type (@{type_name "*"}, map2 type_from_mtype Ts [M1, M2])
+          | (MType _, _) => T
+          | _ => raise MTYPE ("Nitpick_Mono.finitize_funs.type_from_mtype",
+                              [M], [T])
+        (* styp -> styp *)
+        fun finitize_constr (x as (s, T)) =
+          (s, case AList.lookup (op =) constr_mtypes x of
+                SOME M => type_from_mtype T M
+              | NONE => T)
+        (* typ list -> mterm -> term *)
+        fun term_from_mterm Ts m =
+          case m of
+            MRaw (t, M) =>
+            let
+              val T = fastype_of1 (Ts, t)
+              val T' = type_from_mtype T M
+            in
+              case t of
+                Const (x as (s, _)) =>
+                if s = @{const_name insert} then
+                  case nth_range_type 2 T' of
+                    set_T' as Type (@{type_name fin_fun}, [elem_T', _]) =>
+                      Abs (Name.uu, elem_T', Abs (Name.uu, set_T',
+                          Const (@{const_name If},
+                                 bool_T --> set_T' --> set_T' --> set_T')
+                          $ (Const (@{const_name is_unknown},
+                                    elem_T' --> bool_T) $ Bound 1)
+                          $ (Const (@{const_name unknown}, set_T'))
+                          $ (coerce_term hol_ctxt Ts T' T (Const x)
+                             $ Bound 1 $ Bound 0)))
+                  | _ => Const (s, T')
+                else if s = @{const_name finite} then
+                  case domain_type T' of
+                    set_T' as Type (@{type_name fin_fun}, _) =>
+                    Abs (Name.uu, set_T', @{const True})
+                  | _ => Const (s, T')
+                else if s = @{const_name "=="} orelse
+                        s = @{const_name "op ="} then
+                  Const (s, T')
+                else if is_built_in_const thy stds fast_descrs x then
+                  coerce_term hol_ctxt Ts T' T t
+                else if is_constr thy stds x then
+                  Const (finitize_constr x)
+                else if is_sel s then
+                  let
+                    val n = sel_no_from_name s
+                    val x' =
+                      x |> binarized_and_boxed_constr_for_sel hol_ctxt binarize
+                        |> finitize_constr
+                    val x'' =
+                      binarized_and_boxed_nth_sel_for_constr hol_ctxt binarize
+                                                             x' n
+                  in Const x'' end
+                else
+                  Const (s, T')
+              | Free (s, T) => Free (s, type_from_mtype T M)
+              | Bound _ => t
+              | _ => raise MTERM ("Nitpick_Mono.finitize_funs.term_from_mterm",
+                                  [m])
+            end
+          | MApp (m1, m2) =>
+            let
+              val (t1, t2) = pairself (term_from_mterm Ts) (m1, m2)
+              val (T1, T2) = pairself (curry fastype_of1 Ts) (t1, t2)
+              val (t1', T2') =
+                case T1 of
+                  Type (s, [T11, T12]) => 
+                  (if s = @{type_name fin_fun} then
+                     select_nth_constr_arg thy stds (fin_fun_constr T11 T12) t1
+                                           0 (T11 --> T12)
+                   else
+                     t1, T11)
+                | _ => raise TYPE ("Nitpick_Mono.finitize_funs.term_from_mterm",
+                                   [T1], [])
+            in betapply (t1', coerce_term hol_ctxt Ts T2' T2 t2) end
+          | MAbs (s, T, M, a, m') =>
+            let
+              val T = type_from_mtype T M
+              val t' = term_from_mterm (T :: Ts) m'
+              val T' = fastype_of1 (T :: Ts, t')
+            in
+              Abs (s, T, t')
+              |> should_finitize (T --> T') a
+                 ? construct_value thy stds (fin_fun_constr T T') o single
+            end
+      in
+        Unsynchronized.change constr_cache (map (apsnd (map finitize_constr)));
+        pairself (map (term_from_mterm [])) msp
+      end
   | NONE => tsp
 
 end;
