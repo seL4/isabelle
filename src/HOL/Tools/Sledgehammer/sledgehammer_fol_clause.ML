@@ -104,15 +104,15 @@ val const_trans_table =
                    (@{const_name "op |"}, "or"),
                    (@{const_name "op -->"}, "implies"),
                    (@{const_name "op :"}, "in"),
-                   ("ATP_Linkup.fequal", "fequal"),
-                   ("ATP_Linkup.COMBI", "COMBI"),
-                   ("ATP_Linkup.COMBK", "COMBK"),
-                   ("ATP_Linkup.COMBB", "COMBB"),
-                   ("ATP_Linkup.COMBC", "COMBC"),
-                   ("ATP_Linkup.COMBS", "COMBS"),
-                   ("ATP_Linkup.COMBB'", "COMBB_e"),
-                   ("ATP_Linkup.COMBC'", "COMBC_e"),
-                   ("ATP_Linkup.COMBS'", "COMBS_e")];
+                   ("Sledgehammer.fequal", "fequal"),
+                   ("Sledgehammer.COMBI", "COMBI"),
+                   ("Sledgehammer.COMBK", "COMBK"),
+                   ("Sledgehammer.COMBB", "COMBB"),
+                   ("Sledgehammer.COMBC", "COMBC"),
+                   ("Sledgehammer.COMBS", "COMBS"),
+                   ("Sledgehammer.COMBB'", "COMBB_e"),
+                   ("Sledgehammer.COMBC'", "COMBC_e"),
+                   ("Sledgehammer.COMBS'", "COMBS_e")];
 
 val type_const_trans_table =
       Symtab.make [("*", "prod"),

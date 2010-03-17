@@ -5,7 +5,7 @@
 header {* The datatype of finite lists *}
 
 theory List
-imports Plain Presburger ATP_Linkup Recdef
+imports Plain Presburger Sledgehammer Recdef
 uses ("Tools/list_code.ML")
 begin
 

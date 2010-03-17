@@ -1,12 +1,12 @@
-(*  Title:      HOL/ATP_Linkup.thy
+(*  Title:      HOL/Sledgehammer.thy
     Author:     Lawrence C Paulson
     Author:     Jia Meng, NICTA
     Author:     Fabian Immler, TUM
 *)
 
-header {* The Isabelle-ATP Linkup *}
+header {* Sledgehammer: Isabelle--ATP Linkup *}
 
-theory ATP_Linkup
+theory Sledgehammer
 imports Plain Hilbert_Choice
 uses
   "Tools/polyhash.ML"

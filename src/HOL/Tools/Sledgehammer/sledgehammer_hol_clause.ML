@@ -53,13 +53,13 @@ structure SFC = Sledgehammer_FOL_Clause;
 
 (* theorems for combinators and function extensionality *)
 val ext = thm "HOL.ext";
-val comb_I = thm "ATP_Linkup.COMBI_def";
-val comb_K = thm "ATP_Linkup.COMBK_def";
-val comb_B = thm "ATP_Linkup.COMBB_def";
-val comb_C = thm "ATP_Linkup.COMBC_def";
-val comb_S = thm "ATP_Linkup.COMBS_def";
-val fequal_imp_equal = thm "ATP_Linkup.fequal_imp_equal";
-val equal_imp_fequal = thm "ATP_Linkup.equal_imp_fequal";
+val comb_I = thm "Sledgehammer.COMBI_def";
+val comb_K = thm "Sledgehammer.COMBK_def";
+val comb_B = thm "Sledgehammer.COMBB_def";
+val comb_C = thm "Sledgehammer.COMBC_def";
+val comb_S = thm "Sledgehammer.COMBS_def";
+val fequal_imp_equal = thm "Sledgehammer.fequal_imp_equal";
+val equal_imp_fequal = thm "Sledgehammer.equal_imp_fequal";
 
 
 (* Parameter t_full below indicates that full type information is to be

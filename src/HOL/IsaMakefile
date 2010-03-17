@@ -246,7 +246,6 @@ $(OUT)/HOL-Plain: plain.ML $(PLAIN_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -f plain.ML -g true $(OUT)/Pure HOL-Plain
 
 MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
-  ATP_Linkup.thy \
   Big_Operators.thy \
   Code_Evaluation.thy \
   Code_Numeral.thy \
@@ -271,6 +270,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Random_Sequence.thy \
   Recdef.thy \
   SetInterval.thy \
+  Sledgehammer.thy \
   String.thy \
   Typerep.thy \
   $(SRC)/Provers/Arith/assoc_fold.ML \
