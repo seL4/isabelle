@@ -92,10 +92,10 @@ done
 subsection {* Setup of external ATPs *}
 
 use "Tools/Sledgehammer/sledgehammer_fact_preprocessor.ML"
-setup Res_Axioms.setup
+setup Sledgehammer_Fact_Preprocessor.setup
 use "Tools/Sledgehammer/sledgehammer_hol_clause.ML"
 use "Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML"
-setup Res_Reconstruct.setup
+setup Sledgehammer_Proof_Reconstruct.setup
 use "Tools/Sledgehammer/sledgehammer_fact_filter.ML"
 
 use "Tools/ATP_Manager/atp_wrapper.ML"
@@ -125,6 +125,6 @@ setup {* ATP_Manager.add_prover ATP_Wrapper.remote_eprover *}
 subsection {* The Metis prover *}
 
 use "Tools/Sledgehammer/metis_tactics.ML"
-setup MetisTools.setup
+setup Metis_Tactics.setup
 
 end

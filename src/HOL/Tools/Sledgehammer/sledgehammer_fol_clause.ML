@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/res_clause.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_fol_clause.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory
 
 Storing/printing FOL clauses and arity clauses.  Typed equality is
@@ -7,7 +7,7 @@ treated differently.
 FIXME: combine with res_hol_clause!
 *)
 
-signature RES_CLAUSE =
+signature SLEDGEHAMMER_FOL_CLAUSE =
 sig
   val schematic_var_prefix: string
   val fixed_var_prefix: string
@@ -77,7 +77,7 @@ sig
   val tptp_classrelClause : classrelClause -> string
 end
 
-structure Res_Clause: RES_CLAUSE =
+structure Sledgehammer_FOL_Clause : SLEDGEHAMMER_FOL_CLAUSE =
 struct
 
 val schematic_var_prefix = "V_";

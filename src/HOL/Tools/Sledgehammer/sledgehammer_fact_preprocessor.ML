@@ -1,10 +1,10 @@
-(*  Title:      HOL/Tools/res_axioms.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_fact_preprocessor.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory
 
 Transformation of axiom rules (elim/intro/etc) into CNF forms.
 *)
 
-signature RES_AXIOMS =
+signature SLEDGEHAMMER_FACT_PREPROCESSOR =
 sig
   val trace: bool Unsynchronized.ref
   val trace_msg: (unit -> string) -> unit
@@ -23,7 +23,7 @@ sig
   val setup: theory -> theory
 end;
 
-structure Res_Axioms: RES_AXIOMS =
+structure Sledgehammer_Fact_Preprocessor : SLEDGEHAMMER_FACT_PREPROCESSOR =
 struct
 
 val trace = Unsynchronized.ref false;
@@ -285,7 +285,7 @@ fun assume_skolem_of_def s th =
   map (skolem_of_def o assume o (cterm_of (theory_of_thm th))) (assume_skofuns s th);
 
 
-(*** Blacklisting (duplicated in Res_ATP?) ***)
+(*** Blacklisting (duplicated in "Sledgehammer_Fact_Filter"?) ***)
 
 val max_lambda_nesting = 3;
 
@@ -385,14 +385,16 @@ fun pair_name_cls k (n, []) = []
 fun cnf_rules_pairs_aux _ pairs [] = pairs
   | cnf_rules_pairs_aux thy pairs ((name,th)::ths) =
       let val pairs' = (pair_name_cls 0 (name, cnf_axiom thy th)) @ pairs
-                       handle THM _ => pairs | Res_Clause.CLAUSE _ => pairs
+                       handle THM _ => pairs |
+                              Sledgehammer_FOL_Clause.CLAUSE _ => pairs
       in  cnf_rules_pairs_aux thy pairs' ths  end;
 
 (*The combination of rev and tail recursion preserves the original order*)
 fun cnf_rules_pairs thy l = cnf_rules_pairs_aux thy [] (rev l);
 
 
-(**** Convert all facts of the theory into clauses (Res_Clause.clause, or Res_HOL_Clause.clause) ****)
+(**** Convert all facts of the theory into clauses
+      (Sledgehammer_FOL_Clause.clause, or Sledgehammer_HOL_Clause.clause) ****)
 
 local
 

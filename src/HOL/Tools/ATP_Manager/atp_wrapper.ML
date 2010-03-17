@@ -52,6 +52,9 @@ end;
 structure ATP_Wrapper: ATP_WRAPPER =
 struct
 
+structure SFF = Sledgehammer_Fact_Filter
+structure SPR = Sledgehammer_Proof_Reconstruct
+
 (** generic ATP wrapper **)
 
 (* external problem files *)
@@ -117,8 +120,8 @@ fun external_prover relevance_filter prepare write cmd args produce_answer name
     (* get clauses and prepare them for writing *)
     val (ctxt, (chain_ths, th)) = goal;
     val thy = ProofContext.theory_of ctxt;
-    val chain_ths = map (Thm.put_name_hint Res_Reconstruct.chained_hint) chain_ths;
-    val goal_cls = #1 (Res_Axioms.neg_conjecture_clauses ctxt th subgoal);
+    val chain_ths = map (Thm.put_name_hint SPR.chained_hint) chain_ths;
+    val goal_cls = #1 (Sledgehammer_Fact_Preprocessor.neg_conjecture_clauses ctxt th subgoal);
     val the_filtered_clauses =
       (case filtered_clauses of
         NONE => relevance_filter goal goal_cls
@@ -181,7 +184,7 @@ fun external_prover relevance_filter prepare write cmd args produce_answer name
       with_path cleanup export run_on (prob_pathname subgoal);
 
     (* check for success and print out some information on failure *)
-    val failure = Res_Reconstruct.find_failure proof;
+    val failure = SPR.find_failure proof;
     val success = rc = 0 andalso is_none failure;
     val (message, real_thm_names) =
       if is_some failure then ("External prover failed.", [])
@@ -203,13 +206,13 @@ fun gen_tptp_prover (name, prover_config) timeout problem =
       prover_config;
   in
     external_prover
-      (Res_ATP.get_relevant max_new_clauses insert_theory_const)
-      (Res_ATP.prepare_clauses false)
-      Res_HOL_Clause.tptp_write_file
+      (SFF.get_relevant max_new_clauses insert_theory_const)
+      (SFF.prepare_clauses false)
+      Sledgehammer_HOL_Clause.tptp_write_file
       command
       (arguments timeout)
-      (if emit_structured_proof then Res_Reconstruct.structured_proof
-       else Res_Reconstruct.lemma_list false)
+      (if emit_structured_proof then SPR.structured_proof
+       else SPR.lemma_list false)
       name
       problem
   end;
@@ -274,12 +277,12 @@ fun gen_dfg_prover (name, prover_config: prover_config) timeout problem =
     val {max_new_clauses, insert_theory_const, command, arguments, ...} = prover_config;
   in
     external_prover
-      (Res_ATP.get_relevant max_new_clauses insert_theory_const)
-      (Res_ATP.prepare_clauses true)
-      Res_HOL_Clause.dfg_write_file
+      (SFF.get_relevant max_new_clauses insert_theory_const)
+      (SFF.prepare_clauses true)
+      Sledgehammer_HOL_Clause.dfg_write_file
       command
       (arguments timeout)
-      (Res_Reconstruct.lemma_list true)
+      (SPR.lemma_list true)
       name
       problem
   end;
@@ -298,7 +301,7 @@ fun get_systems () =
   let
     val (answer, rc) = bash_output ("\"$ISABELLE_ATP_MANAGER/SystemOnTPTP\" -w")
   in
-    if rc <> 0 then error ("Failed to get available systems from SystemOnTPTP:\n" ^ answer)
+    if rc <> 0 then error ("Failed to get available systems at SystemOnTPTP:\n" ^ answer)
     else split_lines answer
   end;
 
@@ -310,7 +313,7 @@ fun get_system prefix = Synchronized.change_result systems (fn systems =>
 
 fun the_system prefix =
   (case get_system prefix of
-    NONE => error ("No system like " ^ quote prefix ^ " at SystemOnTPTP")
+    NONE => error ("System " ^ quote prefix ^ " not available at SystemOnTPTP")
   | SOME sys => sys);
 
 fun remote_prover_config prover_prefix args max_new insert_tc: prover_config =
