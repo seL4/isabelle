@@ -37,6 +37,7 @@ sig
     user_nondefs: term list,
     simp_table: const_table Unsynchronized.ref,
     psimp_table: const_table,
+    choice_spec_table: const_table,
     intro_table: const_table,
     ground_thm_table: term list Inttab.table,
     ersatz_table: (string * string) list,
@@ -180,6 +181,8 @@ sig
   val const_nondef_table : term list -> const_table
   val const_simp_table : Proof.context -> (term * term) list -> const_table
   val const_psimp_table : Proof.context -> (term * term) list -> const_table
+  val const_choice_spec_table :
+    Proof.context -> (term * term) list -> const_table
   val inductive_intro_table :
     Proof.context -> (term * term) list -> const_table -> const_table
   val ground_theorem_table : theory -> term list Inttab.table
@@ -197,6 +200,10 @@ sig
   val is_equational_fun : hol_context -> styp -> bool
   val is_constr_pattern_lhs : theory -> term -> bool
   val is_constr_pattern_formula : theory -> term -> bool
+  val nondef_props_for_const :
+    theory -> bool -> const_table -> styp -> term list
+  val is_choice_spec_fun : hol_context -> styp -> bool
+  val is_choice_spec_axiom : theory -> const_table -> term -> bool
   val codatatype_bisim_axioms : hol_context -> typ -> term list
   val is_well_founded_inductive_pred : hol_context -> styp -> bool
   val unrolled_inductive_pred_const : hol_context -> bool -> styp -> term
@@ -241,6 +248,7 @@ type hol_context = {
   user_nondefs: term list,
   simp_table: const_table Unsynchronized.ref,
   psimp_table: const_table,
+  choice_spec_table: const_table,
   intro_table: const_table,
   ground_thm_table: term list Inttab.table,
   ersatz_table: (string * string) list,
@@ -1441,18 +1449,6 @@ fun unfold_mutually_inductive_preds thy table =
                  | NONE => t)
                | t => t)
 
-(* term -> string * term *)
-fun pair_for_prop t =
-  case term_under_def t of
-    Const (s, _) => (s, t)
-  | t' => raise TERM ("Nitpick_HOL.pair_for_prop", [t, t'])
-
-(* (Proof.context -> term list) -> Proof.context -> (term * term) list
-   -> const_table *)
-fun table_for get ctxt subst =
-  ctxt |> get |> map (pair_for_prop o subst_atomic subst)
-       |> AList.group (op =) |> Symtab.make
-
 (* theory -> (typ option * bool) list -> (string * int) list *)
 fun case_const_names thy stds =
   Symtab.fold (fn (dtype_s, {index, descr, case_name, ...}) =>
@@ -1513,6 +1509,67 @@ fun is_constr_pattern_formula thy t =
   case lhs_of_equation t of
     SOME t' => is_constr_pattern_lhs thy t'
   | NONE => false
+
+(* Similar to "Refute.specialize_type" but returns all matches rather than only
+   the first (preorder) match. *)
+(* theory -> styp -> term -> term list *)
+fun multi_specialize_type thy slack (s, T) t =
+  let
+    (* term -> (typ * term) list -> (typ * term) list *)
+    fun aux (Const (s', T')) ys =
+        if s = s' then
+          ys |> (if AList.defined (op =) ys T' then
+                   I
+                 else
+                   cons (T', Refute.monomorphic_term
+                                 (Sign.typ_match thy (T', T) Vartab.empty) t)
+                   handle Type.TYPE_MATCH => I
+                        | Refute.REFUTE _ =>
+                          if slack then
+                            I
+                          else
+                            raise NOT_SUPPORTED ("too much polymorphism in \
+                                                 \axiom involving " ^ quote s))
+        else
+          ys
+      | aux _ ys = ys
+  in map snd (fold_aterms aux t []) end
+(* theory -> bool -> const_table -> styp -> term list *)
+fun nondef_props_for_const thy slack table (x as (s, _)) =
+  these (Symtab.lookup table s) |> maps (multi_specialize_type thy slack x)
+
+(* term -> term *)
+fun unvarify_term (t1 $ t2) = unvarify_term t1 $ unvarify_term t2
+  | unvarify_term (Var ((s, 0), T)) = Free (s, T)
+  | unvarify_term (Abs (s, T, t')) = Abs (s, T, unvarify_term t')
+  | unvarify_term t = t
+(* theory -> term -> term *)
+fun axiom_for_choice_spec thy =
+  unvarify_term
+  #> Object_Logic.atomize_term thy
+  #> Choice_Specification.close_form
+  #> HOLogic.mk_Trueprop
+(* hol_context -> styp -> bool *)
+fun is_choice_spec_fun ({thy, def_table, nondef_table, choice_spec_table, ...}
+                        : hol_context) x =
+  case nondef_props_for_const thy true choice_spec_table x of
+    [] => false
+  | ts => case def_of_const thy def_table x of
+            SOME (Const (@{const_name Eps}, _) $ _) => true
+          | SOME _ => false
+          | NONE =>
+            let val ts' = nondef_props_for_const thy true nondef_table x in
+              length ts' = length ts andalso
+              forall (fn t =>
+                         exists (curry (op aconv) (axiom_for_choice_spec thy t))
+                                ts') ts
+            end
+
+(* theory -> const_table -> term -> bool *)
+fun is_choice_spec_axiom thy choice_spec_table t =
+  Symtab.exists (fn (_, ts) =>
+                    exists (curry (op aconv) t o axiom_for_choice_spec thy) ts)
+                choice_spec_table
 
 (** Constant unfolding **)
 
@@ -1700,7 +1757,8 @@ fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
                   else
                     (Const x, ts)
                 end
-              else if is_equational_fun hol_ctxt x then
+              else if is_equational_fun hol_ctxt x orelse
+                      is_choice_spec_fun hol_ctxt x then
                 (Const x, ts)
               else case def_of_const thy def_table x of
                 SOME def =>
@@ -1719,29 +1777,45 @@ fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
 
 (** Axiom extraction/generation **)
 
+(* term -> string * term *)
+fun pair_for_prop t =
+  case term_under_def t of
+    Const (s, _) => (s, t)
+  | t' => raise TERM ("Nitpick_HOL.pair_for_prop", [t, t'])
+(* (Proof.context -> term list) -> Proof.context -> (term * term) list
+   -> const_table *)
+fun def_table_for get ctxt subst =
+  ctxt |> get |> map (pair_for_prop o subst_atomic subst)
+       |> AList.group (op =) |> Symtab.make
+(* term -> string * term *)
+fun paired_with_consts t = map (rpair t) (Term.add_const_names t [])
 (* Proof.context -> (term * term) list -> term list -> const_table *)
 fun const_def_table ctxt subst ts =
-  table_for (map prop_of o Nitpick_Defs.get) ctxt subst
+  def_table_for (map prop_of o Nitpick_Defs.get) ctxt subst
   |> fold (fn (s, t) => Symtab.map_default (s, []) (cons t))
           (map pair_for_prop ts)
 (* term list -> const_table *)
 fun const_nondef_table ts =
-  fold (fn t => append (map (fn s => (s, t)) (Term.add_const_names t []))) ts []
-  |> AList.group (op =) |> Symtab.make
+  fold (append o paired_with_consts) ts [] |> AList.group (op =) |> Symtab.make
 (* Proof.context -> (term * term) list -> const_table *)
-val const_simp_table = table_for (map prop_of o Nitpick_Simps.get)
-val const_psimp_table = table_for (map prop_of o Nitpick_Psimps.get)
+val const_simp_table = def_table_for (map prop_of o Nitpick_Simps.get)
+val const_psimp_table = def_table_for (map prop_of o Nitpick_Psimps.get)
+fun const_choice_spec_table ctxt subst =
+  map (subst_atomic subst o prop_of) (Nitpick_Choice_Specs.get ctxt)
+  |> const_nondef_table
 (* Proof.context -> (term * term) list -> const_table -> const_table *)
 fun inductive_intro_table ctxt subst def_table =
-  table_for (map (unfold_mutually_inductive_preds (ProofContext.theory_of ctxt)
-                                                  def_table o prop_of)
-             o Nitpick_Intros.get) ctxt subst
+  def_table_for
+      (map (unfold_mutually_inductive_preds (ProofContext.theory_of ctxt)
+                                            def_table o prop_of)
+           o Nitpick_Intros.get) ctxt subst
 (* theory -> term list Inttab.table *)
 fun ground_theorem_table thy =
   fold ((fn @{const Trueprop} $ t1 =>
             is_ground_term t1 ? Inttab.map_default (hash_term t1, []) (cons t1)
           | _ => I) o prop_of o snd) (PureThy.all_thms_of thy) Inttab.empty
 
+(* TODO: Move to "Nitpick.thy" *)
 val basic_ersatz_table =
   [(@{const_name prod_case}, @{const_name split}),
    (@{const_name card}, @{const_name card'}),

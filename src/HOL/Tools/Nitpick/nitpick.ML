@@ -276,6 +276,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val nondef_table = const_nondef_table (built_in_nondefs @ user_nondefs)
     val simp_table = Unsynchronized.ref (const_simp_table ctxt subst)
     val psimp_table = const_psimp_table ctxt subst
+    val choice_spec_table = const_choice_spec_table ctxt subst
+    val user_nondefs =
+      user_nondefs |> filter_out (is_choice_spec_axiom thy choice_spec_table)
     val intro_table = inductive_intro_table ctxt subst def_table
     val ground_thm_table = ground_theorem_table thy
     val ersatz_table = ersatz_table thy
@@ -289,9 +292,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
        case_names = case_names, def_table = def_table,
        nondef_table = nondef_table, user_nondefs = user_nondefs,
        simp_table = simp_table, psimp_table = psimp_table,
-       intro_table = intro_table, ground_thm_table = ground_thm_table,
-       ersatz_table = ersatz_table, skolems = Unsynchronized.ref [],
-       special_funs = Unsynchronized.ref [],
+       choice_spec_table = choice_spec_table, intro_table = intro_table,
+       ground_thm_table = ground_thm_table, ersatz_table = ersatz_table,
+       skolems = Unsynchronized.ref [], special_funs = Unsynchronized.ref [],
        unrolled_preds = Unsynchronized.ref [], wf_cache = Unsynchronized.ref [],
        constr_cache = Unsynchronized.ref []}
     val frees = Term.add_frees assms_t []

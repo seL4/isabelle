@@ -1,6 +1,6 @@
 (*  Title:      HOL/Nitpick.thy
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2008, 2009
+    Copyright   2008, 2009, 2010
 
 Nitpick: Yet another counterexample generator for Isabelle/HOL.
 *)

@@ -25,10 +25,11 @@ val hol_ctxt : Nitpick_HOL.hol_context =
    fast_descrs = false, tac_timeout = NONE, evals = [], case_names = [],
    def_table = def_table, nondef_table = Symtab.empty, user_nondefs = [],
    simp_table = Unsynchronized.ref Symtab.empty, psimp_table = Symtab.empty,
-   intro_table = Symtab.empty, ground_thm_table = Inttab.empty,
-   ersatz_table = [], skolems = Unsynchronized.ref [],
-   special_funs = Unsynchronized.ref [], unrolled_preds = Unsynchronized.ref [],
-   wf_cache = Unsynchronized.ref [], constr_cache = Unsynchronized.ref []}
+   choice_spec_table = Symtab.empty, intro_table = Symtab.empty,
+   ground_thm_table = Inttab.empty, ersatz_table = [],
+   skolems = Unsynchronized.ref [], special_funs = Unsynchronized.ref [],
+   unrolled_preds = Unsynchronized.ref [], wf_cache = Unsynchronized.ref [],
+   constr_cache = Unsynchronized.ref []}
 (* term -> bool *)
 fun is_mono t = Nitpick_Mono.formulas_monotonic hol_ctxt false @{typ 'a} ([t], [])
 fun is_const t =

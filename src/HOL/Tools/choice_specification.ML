@@ -6,6 +6,7 @@ Package for defining constants by specification.
 
 signature CHOICE_SPECIFICATION =
 sig
+  val close_form : term -> term
   val add_specification: string option -> (bstring * xstring * bool) list ->
     theory * thm -> theory * thm
 end
@@ -14,6 +15,10 @@ structure Choice_Specification: CHOICE_SPECIFICATION =
 struct
 
 (* actual code *)
+
+fun close_form t =
+    fold_rev (fn (s, T) => fn t => HOLogic.mk_all (s, T, t))
+             (map dest_Free (OldTerm.term_frees t)) t
 
 local
     fun mk_definitional [] arg = arg
@@ -120,8 +125,7 @@ fun process_spec axiomatic cos alt_props thy =
                 val frees = OldTerm.term_frees prop
                 val _ = forall (fn v => Sign.of_sort thy (type_of v,HOLogic.typeS)) frees
                   orelse error "Specificaton: Only free variables of sort 'type' allowed"
-                val prop_closed = fold_rev (fn (vname, T) => fn prop =>
-                  HOLogic.mk_all (vname, T, prop)) (map dest_Free frees) prop
+                val prop_closed = close_form prop
             in
                 (prop_closed,frees)
             end
@@ -190,7 +194,8 @@ fun process_spec axiomatic cos alt_props thy =
                         args |> apsnd (remove_alls frees)
                              |> apsnd undo_imps
                              |> apsnd Drule.export_without_context
-                             |> Thm.theory_attributes (map (Attrib.attribute thy) atts)
+                             |> Thm.theory_attributes (map (Attrib.attribute thy)
+                                                           (Attrib.internal (K Nitpick_Choice_Specs.add) :: atts))
                              |> add_final
                              |> Library.swap
                     end

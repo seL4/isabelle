@@ -5,6 +5,7 @@ Version 2010
   * Added and implemented "finitize" option to improve the precision of infinite
     datatypes based on a monotonicity analysis
   * Added support for quotient types
+  * Added support for "specification" and "ax_specification" constructs
   * Added support for local definitions (for "function" and "termination"
     proofs)
   * Added support for term postprocessors

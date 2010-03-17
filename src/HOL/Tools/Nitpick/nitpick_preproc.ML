@@ -938,35 +938,6 @@ fun special_congruence_axioms (hol_ctxt as {special_funs, ...}) xs =
 
 (** Axiom selection **)
 
-(* Similar to "Refute.specialize_type" but returns all matches rather than only
-   the first (preorder) match. *)
-(* theory -> styp -> term -> term list *)
-fun multi_specialize_type thy slack (s, T) t =
-  let
-    (* term -> (typ * term) list -> (typ * term) list *)
-    fun aux (Const (s', T')) ys =
-        if s = s' then
-          ys |> (if AList.defined (op =) ys T' then
-                   I
-                 else
-                  cons (T', Refute.monomorphic_term
-                                (Sign.typ_match thy (T', T) Vartab.empty) t)
-                  handle Type.TYPE_MATCH => I
-                       | Refute.REFUTE _ =>
-                         if slack then
-                           I
-                         else
-                           raise NOT_SUPPORTED ("too much polymorphism in \
-                                                \axiom involving " ^ quote s))
-        else
-          ys
-      | aux _ ys = ys
-  in map snd (fold_aterms aux t []) end
-
-(* theory -> bool -> const_table -> styp -> term list *)
-fun nondef_props_for_const thy slack table (x as (s, _)) =
-  these (Symtab.lookup table s) |> maps (multi_specialize_type thy slack x)
-
 (* 'a Symtab.table -> 'a list *)
 fun all_table_entries table = Symtab.fold (append o snd) table []
 (* const_table -> string -> const_table *)
@@ -985,8 +956,8 @@ val axioms_max_depth = 255
 (* hol_context -> term -> term list * term list * bool * bool *)
 fun axioms_for_term
         (hol_ctxt as {thy, ctxt, max_bisim_depth, stds, user_axioms,
-                      fast_descrs, evals, def_table, nondef_table, user_nondefs,
-                      ...}) t =
+                      fast_descrs, evals, def_table, nondef_table,
+                      choice_spec_table, user_nondefs, ...}) t =
   let
     type accumulator = styp list * (term list * term list)
     (* (term list * term list -> term list)
@@ -1047,6 +1018,9 @@ fun axioms_for_term
              else if is_equational_fun hol_ctxt x then
                fold (add_eq_axiom depth) (equational_fun_axioms hol_ctxt x)
                     accum
+             else if is_choice_spec_fun hol_ctxt x then
+               fold (add_nondef_axiom depth)
+                    (nondef_props_for_const thy true choice_spec_table x) accum
              else if is_abs_fun thy x then
                if is_quot_type thy (range_type T) then
                  raise NOT_SUPPORTED "\"Abs_\" function of quotient type"

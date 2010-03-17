@@ -293,8 +293,9 @@ val is_long_identifier = forall Syntax.is_identifier o space_explode "."
 (* string -> string *)
 fun maybe_quote y =
   let val s = unyxml y in
-    y |> (not (is_long_identifier (perhaps (try (unprefix "'")) s)) orelse
-          OuterKeyword.is_keyword s) ? quote
+    y |> ((not (is_long_identifier (perhaps (try (unprefix "'")) s)) andalso
+           not (is_long_identifier (perhaps (try (unprefix "?")) s))) orelse
+           OuterKeyword.is_keyword s) ? quote
   end
 
 end;

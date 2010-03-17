@@ -1999,8 +1999,6 @@ quickcheck_params [size = 5, iterations = 50]
 
 subsubsection {* Nitpick setup *}
 
-text {* This will be relocated once Nitpick is moved to HOL. *}
-
 ML {*
 structure Nitpick_Defs = Named_Thms
 (
@@ -2022,6 +2020,11 @@ structure Nitpick_Intros = Named_Thms
   val name = "nitpick_intro"
   val description = "introduction rules for (co)inductive predicates as needed by Nitpick"
 )
+structure Nitpick_Choice_Specs = Named_Thms
+(
+  val name = "nitpick_choice_specs"
+  val description = "choice specification of constants as needed by Nitpick"
+)
 *}
 
 setup {*
@@ -2029,6 +2032,7 @@ setup {*
   #> Nitpick_Simps.setup
   #> Nitpick_Psimps.setup
   #> Nitpick_Intros.setup
+  #> Nitpick_Choice_Specs.setup
 *}
 
 
