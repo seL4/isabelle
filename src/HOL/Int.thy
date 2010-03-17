@@ -1829,11 +1829,12 @@ qed
 lemma pos_zmult_eq_1_iff_lemma: "(m * n = 1) ==> m = (1::int) | m = -1"
 by (insert abs_zmult_eq_1 [of m n], arith)
 
-lemma pos_zmult_eq_1_iff: "0 < (m::int) ==> (m * n = 1) = (m = 1 & n = 1)"
-apply (auto dest: pos_zmult_eq_1_iff_lemma) 
-apply (simp add: mult_commute [of m]) 
-apply (frule pos_zmult_eq_1_iff_lemma, auto) 
-done
+lemma pos_zmult_eq_1_iff:
+  assumes "0 < (m::int)" shows "(m * n = 1) = (m = 1 & n = 1)"
+proof -
+  from assms have "m * n = 1 ==> m = 1" by (auto dest: pos_zmult_eq_1_iff_lemma)
+  thus ?thesis by (auto dest: pos_zmult_eq_1_iff_lemma)
+qed
 
 lemma zmult_eq_1_iff: "(m*n = (1::int)) = ((m = 1 & n = 1) | (m = -1 & n = -1))"
 apply (rule iffI) 

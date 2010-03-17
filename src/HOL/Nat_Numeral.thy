@@ -643,8 +643,9 @@ lemma power_number_of_odd:
   fixes z :: "'a::number_ring"
   shows "z ^ number_of (Int.Bit1 w) = (if (0::int) <= number_of w
      then (let w = z ^ (number_of w) in z * w * w) else 1)"
-apply (auto simp add: Let_def Bit1_def nat_number_of_def number_of_is_id
-  mult_assoc nat_add_distrib power_add not_le simp del: nat_number_of)
+unfolding Let_def Bit1_def nat_number_of_def number_of_is_id
+apply (cases "0 <= w")
+apply (simp only: mult_assoc nat_add_distrib power_add, simp)
 apply (simp add: not_le mult_2 [symmetric] add_assoc)
 done
 
@@ -673,9 +674,10 @@ lemma nat_number_of_Bit1:
   "number_of (Int.Bit1 w) =
     (if neg (number_of w :: int) then 0
      else let n = number_of w in Suc (n + n))"
-apply (auto simp add: Let_def Bit1_def nat_number_of_def number_of_is_id neg_def
-  nat_add_distrib simp del: nat_number_of)
+unfolding Let_def Bit1_def nat_number_of_def number_of_is_id neg_def
+apply (cases "w < 0")
 apply (simp add: mult_2 [symmetric] add_assoc)
+apply (simp only: nat_add_distrib, simp)
 done
 
 lemmas nat_number =

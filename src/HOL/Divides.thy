@@ -588,8 +588,16 @@ proof -
   from divmod_nat_rel have divmod_nat_m_n: "divmod_nat_rel m n (m div n, m mod n)" .
   with assms have m_div_n: "m div n \<ge> 1"
     by (cases "m div n") (auto simp add: divmod_nat_rel_def)
-  from assms divmod_nat_m_n have "divmod_nat_rel (m - n) n (m div n - Suc 0, m mod n)"
-    by (cases "m div n") (auto simp add: divmod_nat_rel_def)
+  have "divmod_nat_rel (m - n) n (m div n - Suc 0, m mod n)"
+  proof -
+    from assms have
+      "n \<noteq> 0"
+      "\<And>k. m = Suc k * n + m mod n ==> m - n = (Suc k - Suc 0) * n + m mod n"
+      by simp_all
+    then show ?thesis using assms divmod_nat_m_n 
+      by (cases "m div n")
+         (simp_all only: divmod_nat_rel_def fst_conv snd_conv, simp_all)
+  qed
   with divmod_nat_eq have "divmod_nat (m - n) n = (m div n - Suc 0, m mod n)" by simp
   moreover from divmod_nat_div_mod have "divmod_nat (m - n) n = ((m - n) div n, (m - n) mod n)" .
   ultimately have "m div n = Suc ((m - n) div n)"
@@ -1122,7 +1130,7 @@ done
 
 lemma mod2_gr_0 [simp]: "0 < (m\<Colon>nat) mod 2 \<longleftrightarrow> m mod 2 = 1"
 proof -
-  { fix n :: nat have  "(n::nat) < 2 \<Longrightarrow> n = 0 \<or> n = 1" by (induct n) simp_all }
+  { fix n :: nat have  "(n::nat) < 2 \<Longrightarrow> n = 0 \<or> n = 1" by (cases n) simp_all }
   moreover have "m mod 2 < 2" by simp
   ultimately have "m mod 2 = 0 \<or> m mod 2 = 1" .
   then show ?thesis by auto
@@ -1166,8 +1174,11 @@ by (simp add: div_le_mono)
 lemma Suc_n_div_2_gt_zero [simp]: "(0::nat) < n ==> 0 < (n + 1) div 2"
 by (cases n) simp_all
 
-lemma div_2_gt_zero [simp]: "(1::nat) < n ==> 0 < n div 2" 
-using Suc_n_div_2_gt_zero [of "n - 1"] by simp
+lemma div_2_gt_zero [simp]: assumes A: "(1::nat) < n" shows "0 < n div 2"
+proof -
+  from A have B: "0 < n - 1" and C: "n - 1 + 1 = n" by simp_all
+  from Suc_n_div_2_gt_zero [OF B] C show ?thesis by simp 
+qed
 
   (* Potential use of algebra : Equality modulo n*)
 lemma mod_mult_self3 [simp]: "(k*n + m) mod n = m mod (n::nat)"
@@ -2092,15 +2103,16 @@ next
                   div_pos_pos_trivial)
 qed
 
-lemma neg_zdiv_mult_2: "a \<le> (0::int) ==> (1 + 2*b) div (2*a) = (b+1) div a"
-apply (subgoal_tac " (1 + 2* (-b - 1)) div (2 * (-a)) = (-b - 1) div (-a) ")
-apply (rule_tac [2] pos_zdiv_mult_2)
-apply (auto simp add: right_diff_distrib)
-apply (subgoal_tac " (-1 - (2 * b)) = - (1 + (2 * b))")
-apply (simp only: zdiv_zminus_zminus diff_minus minus_add_distrib [symmetric])
-apply (simp_all add: algebra_simps)
-apply (simp only: ab_diff_minus minus_add_distrib [symmetric] number_of_Min zdiv_zminus_zminus)
-done
+lemma neg_zdiv_mult_2: 
+  assumes A: "a \<le> (0::int)" shows "(1 + 2*b) div (2*a) = (b+1) div a"
+proof -
+  have R: "1 + - (2 * (b + 1)) = - (1 + 2 * b)" by simp
+  have "(1 + 2 * (-b - 1)) div (2 * (-a)) = (-b - 1) div (-a)"
+    by (rule pos_zdiv_mult_2, simp add: A)
+  thus ?thesis
+    by (simp only: R zdiv_zminus_zminus diff_minus
+      minus_add_distrib [symmetric] mult_minus_right)
+qed
 
 lemma zdiv_number_of_Bit0 [simp]:
      "number_of (Int.Bit0 v) div number_of (Int.Bit0 w) =  
