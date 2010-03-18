@@ -105,7 +105,7 @@ val _ =
 val _ =
   OuterSyntax.local_theory "typedecl" "type declaration" K.thy_decl
     (P.type_args -- P.binding -- P.opt_mixfix
-      >> (fn ((args, a), mx) => Typedecl.typedecl (a, args, mx) #> snd));
+      >> (fn ((args, a), mx) => Typedecl.typedecl (a, map (rpair dummyS) args, mx) #> snd));
 
 val _ =
   OuterSyntax.command "types" "declare type abbreviations" K.thy_decl
