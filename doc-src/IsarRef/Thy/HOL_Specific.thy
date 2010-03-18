@@ -17,7 +17,7 @@ text {*
 
     altname: '(' (name | 'open' | 'open' name) ')'
     ;
-    abstype: typespec mixfix?
+    abstype: typespecsorts mixfix?
     ;
     repset: term ('morphisms' name name)?
     ;
