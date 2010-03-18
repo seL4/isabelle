@@ -5,7 +5,7 @@
 header {* Definition of Quotient Types *}
 
 theory Quotient
-imports Plain ATP_Linkup
+imports Plain Sledgehammer
 uses
   ("~~/src/HOL/Tools/Quotient/quotient_info.ML")
   ("~~/src/HOL/Tools/Quotient/quotient_typ.ML")

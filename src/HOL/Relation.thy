@@ -121,7 +121,7 @@ by (simp add: Id_on_def)
 lemma Id_on_eqI: "a = b ==> a : A ==> (a, b) : Id_on A"
 by (simp add: Id_on_def)
 
-lemma Id_onI [intro!,noatp]: "a : A ==> (a, a) : Id_on A"
+lemma Id_onI [intro!,no_atp]: "a : A ==> (a, a) : Id_on A"
 by (rule Id_on_eqI) (rule refl)
 
 lemma Id_onE [elim!]:
@@ -361,7 +361,7 @@ by (auto simp: total_on_def)
 
 subsection {* Domain *}
 
-declare Domain_def [noatp]
+declare Domain_def [no_atp]
 
 lemma Domain_iff: "(a : Domain r) = (EX y. (a, y) : r)"
 by (unfold Domain_def) blast
@@ -484,7 +484,7 @@ by(auto simp:Field_def)
 
 subsection {* Image of a set under a relation *}
 
-declare Image_def [noatp]
+declare Image_def [no_atp]
 
 lemma Image_iff: "(b : r``A) = (EX x:A. (x, b) : r)"
 by (simp add: Image_def)
@@ -495,7 +495,7 @@ by (simp add: Image_def)
 lemma Image_singleton_iff [iff]: "(b : r``{a}) = ((a, b) : r)"
 by (rule Image_iff [THEN trans]) simp
 
-lemma ImageI [intro,noatp]: "(a, b) : r ==> a : A ==> b : r``A"
+lemma ImageI [intro,no_atp]: "(a, b) : r ==> a : A ==> b : r``A"
 by (unfold Image_def) blast
 
 lemma ImageE [elim!]:

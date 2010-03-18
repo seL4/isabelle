@@ -231,7 +231,7 @@ proof (rule set_ext)
     by (simp add: Sup_fun_def Sup_bool_def) (simp add: mem_def)
 qed
 
-lemma Union_iff [simp, noatp]:
+lemma Union_iff [simp, no_atp]:
   "A \<in> \<Union>C \<longleftrightarrow> (\<exists>X\<in>C. A\<in>X)"
   by (unfold Union_eq) blast
 
@@ -269,10 +269,10 @@ lemma Union_Un_distrib [simp]: "\<Union>(A Un B) = \<Union>A \<union> \<Union>B"
 lemma Union_Int_subset: "\<Union>(A \<inter> B) \<subseteq> \<Union>A \<inter> \<Union>B"
   by blast
 
-lemma Union_empty_conv [simp,noatp]: "(\<Union>A = {}) = (\<forall>x\<in>A. x = {})"
+lemma Union_empty_conv [simp,no_atp]: "(\<Union>A = {}) = (\<forall>x\<in>A. x = {})"
   by blast
 
-lemma empty_Union_conv [simp,noatp]: "({} = \<Union>A) = (\<forall>x\<in>A. x = {})"
+lemma empty_Union_conv [simp,no_atp]: "({} = \<Union>A) = (\<forall>x\<in>A. x = {})"
   by blast
 
 lemma Union_disjoint: "(\<Union>C \<inter> A = {}) = (\<forall>B\<in>C. B \<inter> A = {})"
@@ -332,7 +332,7 @@ lemma Union_def:
   "\<Union>S = (\<Union>x\<in>S. x)"
   by (simp add: UNION_eq_Union_image image_def)
 
-lemma UNION_def [noatp]:
+lemma UNION_def [no_atp]:
   "(\<Union>x\<in>A. B x) = {y. \<exists>x\<in>A. y \<in> B x}"
   by (auto simp add: UNION_eq_Union_image Union_eq)
   
@@ -368,13 +368,13 @@ lemma UN_upper: "a \<in> A ==> B a \<subseteq> (\<Union>x\<in>A. B x)"
 lemma UN_least: "(!!x. x \<in> A ==> B x \<subseteq> C) ==> (\<Union>x\<in>A. B x) \<subseteq> C"
   by (iprover intro: subsetI elim: UN_E dest: subsetD)
 
-lemma Collect_bex_eq [noatp]: "{x. \<exists>y\<in>A. P x y} = (\<Union>y\<in>A. {x. P x y})"
+lemma Collect_bex_eq [no_atp]: "{x. \<exists>y\<in>A. P x y} = (\<Union>y\<in>A. {x. P x y})"
   by blast
 
 lemma UN_insert_distrib: "u \<in> A ==> (\<Union>x\<in>A. insert a (B x)) = insert a (\<Union>x\<in>A. B x)"
   by blast
 
-lemma UN_empty [simp,noatp]: "(\<Union>x\<in>{}. B x) = {}"
+lemma UN_empty [simp,no_atp]: "(\<Union>x\<in>{}. B x) = {}"
   by blast
 
 lemma UN_empty2 [simp]: "(\<Union>x\<in>A. {}) = {}"
@@ -412,7 +412,7 @@ lemma UNION_empty_conv[simp]:
   "((UN x:A. B x) = {}) = (\<forall>x\<in>A. B x = {})"
 by blast+
 
-lemma Collect_ex_eq [noatp]: "{x. \<exists>y. P x y} = (\<Union>y. {x. P x y})"
+lemma Collect_ex_eq [no_atp]: "{x. \<exists>y. P x y} = (\<Union>y. {x. P x y})"
   by blast
 
 lemma ball_UN: "(\<forall>z \<in> UNION A B. P z) = (\<forall>x\<in>A. \<forall>z \<in> B x. P z)"
@@ -467,7 +467,7 @@ proof (rule set_ext)
     by (simp add: Inf_fun_def Inf_bool_def) (simp add: mem_def)
 qed
 
-lemma Inter_iff [simp,noatp]: "(A : Inter C) = (ALL X:C. A:X)"
+lemma Inter_iff [simp,no_atp]: "(A : Inter C) = (ALL X:C. A:X)"
   by (unfold Inter_eq) blast
 
 lemma InterI [intro!]: "(!!X. X:C ==> A:X) ==> A : Inter C"
@@ -515,7 +515,7 @@ lemma Inter_Un_subset: "\<Inter>A \<union> \<Inter>B \<subseteq> \<Inter>(A \<in
 lemma Inter_Un_distrib: "\<Inter>(A \<union> B) = \<Inter>A \<inter> \<Inter>B"
   by blast
 
-lemma Inter_UNIV_conv [simp,noatp]:
+lemma Inter_UNIV_conv [simp,no_atp]:
   "(\<Inter>A = UNIV) = (\<forall>x\<in>A. x = UNIV)"
   "(UNIV = \<Inter>A) = (\<forall>x\<in>A. x = UNIV)"
   by blast+
@@ -724,7 +724,7 @@ lemma INT_simps [simp]:
   "!!A B f. (INT x:f`A. B x)    = (INT a:A. B (f a))"
   by auto
 
-lemma ball_simps [simp,noatp]:
+lemma ball_simps [simp,no_atp]:
   "!!A P Q. (ALL x:A. P x | Q) = ((ALL x:A. P x) | Q)"
   "!!A P Q. (ALL x:A. P | Q x) = (P | (ALL x:A. Q x))"
   "!!A P Q. (ALL x:A. P --> Q x) = (P --> (ALL x:A. Q x))"
@@ -739,7 +739,7 @@ lemma ball_simps [simp,noatp]:
   "!!A P. (~(ALL x:A. P x)) = (EX x:A. ~P x)"
   by auto
 
-lemma bex_simps [simp,noatp]:
+lemma bex_simps [simp,no_atp]:
   "!!A P Q. (EX x:A. P x & Q) = ((EX x:A. P x) & Q)"
   "!!A P Q. (EX x:A. P & Q x) = (P & (EX x:A. Q x))"
   "!!P. (EX x:{}. P x) = False"

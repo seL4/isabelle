@@ -462,7 +462,7 @@ lemma subsetD [elim, intro?]: "A \<subseteq> B ==> c \<in> A ==> c \<in> B"
   unfolding mem_def by (erule le_funE, erule le_boolE)
   -- {* Rule in Modus Ponens style. *}
 
-lemma rev_subsetD [noatp,intro?]: "c \<in> A ==> A \<subseteq> B ==> c \<in> B"
+lemma rev_subsetD [no_atp,intro?]: "c \<in> A ==> A \<subseteq> B ==> c \<in> B"
   -- {* The same, with reversed premises for use with @{text erule} --
       cf @{text rev_mp}. *}
   by (rule subsetD)
@@ -471,13 +471,13 @@ text {*
   \medskip Converts @{prop "A \<subseteq> B"} to @{prop "x \<in> A ==> x \<in> B"}.
 *}
 
-lemma subsetCE [noatp,elim]: "A \<subseteq> B ==> (c \<notin> A ==> P) ==> (c \<in> B ==> P) ==> P"
+lemma subsetCE [no_atp,elim]: "A \<subseteq> B ==> (c \<notin> A ==> P) ==> (c \<in> B ==> P) ==> P"
   -- {* Classical elimination rule. *}
   unfolding mem_def by (blast dest: le_funE le_boolE)
 
-lemma subset_eq [noatp]: "A \<le> B = (\<forall>x\<in>A. x \<in> B)" by blast
+lemma subset_eq [no_atp]: "A \<le> B = (\<forall>x\<in>A. x \<in> B)" by blast
 
-lemma contra_subsetD [noatp]: "A \<subseteq> B ==> c \<notin> B ==> c \<notin> A"
+lemma contra_subsetD [no_atp]: "A \<subseteq> B ==> c \<notin> B ==> c \<notin> A"
   by blast
 
 lemma subset_refl [simp]: "A \<subseteq> A"
@@ -791,11 +791,11 @@ by auto
 
 subsubsection {* Singletons, using insert *}
 
-lemma singletonI [intro!,noatp]: "a : {a}"
+lemma singletonI [intro!,no_atp]: "a : {a}"
     -- {* Redundant? But unlike @{text insertCI}, it proves the subgoal immediately! *}
   by (rule insertI1)
 
-lemma singletonD [dest!,noatp]: "b : {a} ==> b = a"
+lemma singletonD [dest!,no_atp]: "b : {a} ==> b = a"
   by blast
 
 lemmas singletonE = singletonD [elim_format]
@@ -806,11 +806,11 @@ lemma singleton_iff: "(b : {a}) = (b = a)"
 lemma singleton_inject [dest!]: "{a} = {b} ==> a = b"
   by blast
 
-lemma singleton_insert_inj_eq [iff,noatp]:
+lemma singleton_insert_inj_eq [iff,no_atp]:
      "({b} = insert a A) = (a = b & A \<subseteq> {b})"
   by blast
 
-lemma singleton_insert_inj_eq' [iff,noatp]:
+lemma singleton_insert_inj_eq' [iff,no_atp]:
      "(insert a A = {b}) = (a = b & A \<subseteq> {b})"
   by blast
 
@@ -837,7 +837,7 @@ text {*
 *}
 
 definition image :: "('a => 'b) => 'a set => 'b set" (infixr "`" 90) where
-  image_def [noatp]: "f ` A = {y. EX x:A. y = f(x)}"
+  image_def [no_atp]: "f ` A = {y. EX x:A. y = f(x)}"
 
 abbreviation
   range :: "('a => 'b) => 'b set" where -- "of function"
@@ -942,10 +942,10 @@ subsection {* Further operations and lemmas *}
 
 subsubsection {* The ``proper subset'' relation *}
 
-lemma psubsetI [intro!,noatp]: "A \<subseteq> B ==> A \<noteq> B ==> A \<subset> B"
+lemma psubsetI [intro!,no_atp]: "A \<subseteq> B ==> A \<noteq> B ==> A \<subset> B"
   by (unfold less_le) blast
 
-lemma psubsetE [elim!,noatp]: 
+lemma psubsetE [elim!,no_atp]: 
     "[|A \<subset> B;  [|A \<subseteq> B; ~ (B\<subseteq>A)|] ==> R|] ==> R"
   by (unfold less_le) blast
 
@@ -1102,12 +1102,12 @@ lemma insert_Collect: "insert a (Collect P) = {u. u \<noteq> a --> P u}"
 lemma insert_inter_insert[simp]: "insert a A \<inter> insert a B = insert a (A \<inter> B)"
   by blast
 
-lemma insert_disjoint [simp,noatp]:
+lemma insert_disjoint [simp,no_atp]:
  "(insert a A \<inter> B = {}) = (a \<notin> B \<and> A \<inter> B = {})"
  "({} = insert a A \<inter> B) = (a \<notin> B \<and> {} = A \<inter> B)"
   by auto
 
-lemma disjoint_insert [simp,noatp]:
+lemma disjoint_insert [simp,no_atp]:
  "(B \<inter> insert a A = {}) = (a \<notin> B \<and> B \<inter> A = {})"
  "({} = A \<inter> insert b B) = (b \<notin> A \<and> {} = A \<inter> B)"
   by auto
@@ -1139,7 +1139,7 @@ lemma empty_is_image[iff]: "({} = f ` A) = (A = {})"
 by blast
 
 
-lemma image_Collect [noatp]: "f ` {x. P x} = {f x | x. P x}"
+lemma image_Collect [no_atp]: "f ` {x. P x} = {f x | x. P x}"
   -- {* NOT suitable as a default simprule: the RHS isn't simpler than the LHS,
       with its implicit quantifier and conjunction.  Also image enjoys better
       equational properties than does the RHS. *}
@@ -1156,7 +1156,7 @@ lemma image_cong: "M = N ==> (!!x. x \<in> N ==> f x = g x) ==> f`M = g`N"
 
 text {* \medskip @{text range}. *}
 
-lemma full_SetCompr_eq [noatp]: "{u. \<exists>x. u = f x} = range f"
+lemma full_SetCompr_eq [no_atp]: "{u. \<exists>x. u = f x} = range f"
   by auto
 
 lemma range_composition: "range (\<lambda>x. f (g x)) = f`range g"
@@ -1213,7 +1213,7 @@ lemma Int_Un_distrib: "A \<inter> (B \<union> C) = (A \<inter> B) \<union> (A \<
 lemma Int_Un_distrib2: "(B \<union> C) \<inter> A = (B \<inter> A) \<union> (C \<inter> A)"
   by blast
 
-lemma Int_UNIV [simp,noatp]: "(A \<inter> B = UNIV) = (A = UNIV & B = UNIV)"
+lemma Int_UNIV [simp,no_atp]: "(A \<inter> B = UNIV) = (A = UNIV & B = UNIV)"
   by blast
 
 lemma Int_subset_iff [simp]: "(C \<subseteq> A \<inter> B) = (C \<subseteq> A & C \<subseteq> B)"
@@ -1376,7 +1376,7 @@ text {* \medskip Set difference. *}
 lemma Diff_eq: "A - B = A \<inter> (-B)"
   by blast
 
-lemma Diff_eq_empty_iff [simp,noatp]: "(A - B = {}) = (A \<subseteq> B)"
+lemma Diff_eq_empty_iff [simp,no_atp]: "(A - B = {}) = (A \<subseteq> B)"
   by blast
 
 lemma Diff_cancel [simp]: "A - A = {}"
@@ -1397,7 +1397,7 @@ lemma Diff_empty [simp]: "A - {} = A"
 lemma Diff_UNIV [simp]: "A - UNIV = {}"
   by blast
 
-lemma Diff_insert0 [simp,noatp]: "x \<notin> A ==> A - insert x B = A - B"
+lemma Diff_insert0 [simp,no_atp]: "x \<notin> A ==> A - insert x B = A - B"
   by blast
 
 lemma Diff_insert: "A - insert a B = A - B - {a}"
@@ -1639,7 +1639,7 @@ lemma vimage_mono: "A \<subseteq> B ==> f -` A \<subseteq> f -` B"
   -- {* monotonicity *}
   by blast
 
-lemma vimage_image_eq [noatp]: "f -` (f ` A) = {y. EX x:A. f x = f y}"
+lemma vimage_image_eq [no_atp]: "f -` (f ` A) = {y. EX x:A. f x = f y}"
 by (blast intro: sym)
 
 lemma image_vimage_subset: "f ` (f -` A) <= A"

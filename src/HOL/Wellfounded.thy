@@ -908,7 +908,7 @@ lemma size_bool [code]:
 lemma nat_size [simp, code]: "size (n\<Colon>nat) = n"
   by (induct n) simp_all
 
-declare "prod.size" [noatp]
+declare "prod.size" [no_atp]
 
 lemma [code]:
   "size (P :: 'a Predicate.pred) = 0" by (cases P) simp
