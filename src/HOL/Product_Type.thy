@@ -998,6 +998,15 @@ by blast
 lemma vimage_Times: "f -` (A \<times> B) = ((fst \<circ> f) -` A) \<inter> ((snd \<circ> f) -` B)"
   by (auto, rule_tac p = "f x" in PairE, auto)
 
+lemma swap_inj_on:
+  "inj_on (%(i, j). (j, i)) (A \<times> B)"
+  by (unfold inj_on_def) fast
+
+lemma swap_product:
+  "(%(i, j). (j, i)) ` (A \<times> B) = B \<times> A"
+  by (simp add: split_def image_def) blast
+
+
 subsubsection {* Code generator setup *}
 
 lemma [code]:
