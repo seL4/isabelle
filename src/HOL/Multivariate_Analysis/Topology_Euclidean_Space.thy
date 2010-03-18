@@ -1459,7 +1459,7 @@ proof
     { fix x::"'a" assume "x \<noteq> 0 \<and> dist x 0 < d"
       hence "f (a + x) \<in> S" using d
       apply(erule_tac x="x+a" in allE)
-      by(auto simp add: comm_monoid_add.mult_commute dist_norm dist_commute)
+      by (auto simp add: add_commute dist_norm dist_commute)
     }
     hence "\<exists>d>0. \<forall>x. x \<noteq> 0 \<and> dist x 0 < d \<longrightarrow> f (a + x) \<in> S"
       using d(1) by auto
@@ -1476,7 +1476,7 @@ next
       unfolding Limits.eventually_at by fast
     { fix x::"'a" assume "x \<noteq> a \<and> dist x a < d"
       hence "f x \<in> S" using d apply(erule_tac x="x-a" in allE)
-        by(auto simp add: comm_monoid_add.mult_commute dist_norm dist_commute)
+        by(auto simp add: add_commute dist_norm dist_commute)
     }
     hence "\<exists>d>0. \<forall>x. x \<noteq> a \<and> dist x a < d \<longrightarrow> f x \<in> S" using d(1) by auto
     hence "eventually (\<lambda>x. f x \<in> S) (at a)" unfolding Limits.eventually_at .
@@ -2755,8 +2755,8 @@ proof(rule ccontr)
   have "d>0" using `e>0` unfolding d_def e_def using zero_le_dist[of _ l', unfolded order_le_less] by auto
   obtain k where k:"f k \<noteq> l'"  "dist (f k) l' < d" using `d>0` and assms(3)[unfolded islimpt_approachable, THEN spec[where x="d"]] by auto
   have "k\<ge>N" using k(1)[unfolded dist_nz] using k(2)[unfolded d_def]
-    by force
-  hence "dist l' l < e" using N[THEN spec[where x=k]] using k(2)[unfolded d_def] and dist_triangle_half_r[of "f k" l' e l] by auto
+    by (force simp del: Min.insert_idem)
+  hence "dist l' l < e" using N[THEN spec[where x=k]] using k(2)[unfolded d_def] and dist_triangle_half_r[of "f k" l' e l] by (auto simp del: Min.insert_idem)
   thus False unfolding e_def by auto
 qed
 
