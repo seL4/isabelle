@@ -325,7 +325,7 @@ fun run_sh prover hard_timeout timeout dir st =
     if success then (message, SH_OK (time_isa, time_atp, theorem_names))
     else (message, SH_FAIL(time_isa, time_atp))
   end
-  handle Res_HOL_Clause.TOO_TRIVIAL => ("trivial", SH_OK (0, 0, []))
+  handle Sledgehammer_HOL_Clause.TOO_TRIVIAL => ("trivial", SH_OK (0, 0, []))
        | ERROR msg => ("error: " ^ msg, SH_ERROR)
        | TimeLimit.TimeOut => ("timeout", SH_ERROR)
 
@@ -407,8 +407,8 @@ fun run_metis full m name named_thms id
     ({pre=st, timeout, log, pos, ...}: Mirabelle.run_args) =
   let
     fun metis thms ctxt =
-      if full then MetisTools.metisFT_tac ctxt thms
-      else MetisTools.metis_tac ctxt thms
+      if full then Metis_Tactics.metisFT_tac ctxt thms
+      else Metis_Tactics.metis_tac ctxt thms
     fun apply_metis thms = Mirabelle.can_apply timeout (metis thms) st
 
     fun with_time (false, t) = "failed (" ^ string_of_int t ^ ")"
