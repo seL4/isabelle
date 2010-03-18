@@ -9,13 +9,44 @@ theory Big_Operators
 imports Plain
 begin
 
+subsection {* Generic monoid operation over a set *}
+
+no_notation times (infixl "*" 70)
+no_notation Groups.one ("1")
+
+locale comm_monoid_big = comm_monoid +
+  fixes F :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> 'a"
+  assumes F_eq: "F g A = (if finite A then fold_image (op *) g 1 A else 1)"
+
+sublocale comm_monoid_big < folding_image proof
+qed (simp add: F_eq)
+
+context comm_monoid_big
+begin
+
+lemma infinite [simp]:
+  "\<not> finite A \<Longrightarrow> F g A = 1"
+  by (simp add: F_eq)
+
+end
+
+text {* for ad-hoc proofs for @{const fold_image} *}
+
+lemma (in comm_monoid_add) comm_monoid_mult:
+  "comm_monoid_mult (op +) 0"
+proof qed (auto intro: add_assoc add_commute)
+
+notation times (infixl "*" 70)
+notation Groups.one ("1")
+
+
 subsection {* Generalized summation over a set *}
 
-interpretation comm_monoid_add: comm_monoid_mult "op +" "0::'a::comm_monoid_add"
-  proof qed (auto intro: add_assoc add_commute)
+definition (in comm_monoid_add) setsum :: "('b \<Rightarrow> 'a) => 'b set => 'a" where
+  "setsum f A = (if finite A then fold_image (op +) f 0 A else 0)"
 
-definition setsum :: "('a => 'b) => 'a set => 'b::comm_monoid_add"
-where "setsum f A == if finite A then fold_image (op +) f 0 A else 0"
+sublocale comm_monoid_add < setsum!: comm_monoid_big "op +" 0 setsum proof
+qed (fact setsum_def)
 
 abbreviation
   Setsum  ("\<Sum>_" [1000] 999) where
@@ -63,26 +94,30 @@ let
 in [(@{const_syntax setsum}, setsum_tr')] end
 *}
 
+lemma setsum_empty:
+  "setsum f {} = 0"
+  by (fact setsum.empty)
 
-lemma setsum_empty [simp]: "setsum f {} = 0"
-by (simp add: setsum_def)
-
-lemma setsum_insert [simp]:
+lemma setsum_insert:
   "finite F ==> a \<notin> F ==> setsum f (insert a F) = f a + setsum f F"
-by (simp add: setsum_def)
+  by (fact setsum.insert)
 
-lemma setsum_infinite [simp]: "~ finite A ==> setsum f A = 0"
-by (simp add: setsum_def)
+lemma setsum_infinite:
+  "~ finite A ==> setsum f A = 0"
+  by (fact setsum.infinite)
 
-lemma setsum_reindex:
-     "inj_on f B ==> setsum h (f ` B) = setsum (h \<circ> f) B"
-by(auto simp add: setsum_def comm_monoid_add.fold_image_reindex dest!:finite_imageD)
+lemma (in comm_monoid_add) setsum_reindex:
+  assumes "inj_on f B" shows "setsum h (f ` B) = setsum (h \<circ> f) B"
+proof -
+  interpret comm_monoid_mult "op +" 0 by (fact comm_monoid_mult)
+  from assms show ?thesis by (auto simp add: setsum_def fold_image_reindex dest!:finite_imageD)
+qed
 
-lemma setsum_reindex_id:
-     "inj_on f B ==> setsum f B = setsum id (f ` B)"
-by (auto simp add: setsum_reindex)
+lemma (in comm_monoid_add) setsum_reindex_id:
+  "inj_on f B ==> setsum f B = setsum id (f ` B)"
+  by (simp add: setsum_reindex)
 
-lemma setsum_reindex_nonzero: 
+lemma (in comm_monoid_add) setsum_reindex_nonzero: 
   assumes fS: "finite S"
   and nz: "\<And> x y. x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x \<noteq> y \<Longrightarrow> f x = f y \<Longrightarrow> h (f x) = 0"
   shows "setsum h (f ` S) = setsum (h o f) S"
@@ -98,8 +133,8 @@ next
     from "2.prems"[of x y] "2.hyps" xy y have h0: "h (f x) = 0" by simp
     have "setsum h (f ` insert x F) = setsum h (f ` F)" using fxF by auto
     also have "\<dots> = setsum (h o f) (insert x F)" 
-      unfolding setsum_insert[OF `finite F` `x\<notin>F`]
-      using h0 
+      unfolding setsum.insert[OF `finite F` `x\<notin>F`]
+      using h0
       apply simp
       apply (rule "2.hyps"(3))
       apply (rule_tac y="y" in  "2.prems")
@@ -111,9 +146,9 @@ next
     have "setsum h (f ` insert x F) = h (f x) + setsum h (f ` F)" 
       using fxF "2.hyps" by simp 
     also have "\<dots> = setsum (h o f) (insert x F)"
-      unfolding setsum_insert[OF `finite F` `x\<notin>F`]
+      unfolding setsum.insert[OF `finite F` `x\<notin>F`]
       apply simp
-      apply (rule cong[OF refl[of "op + (h (f x))"]])
+      apply (rule cong [OF refl [of "op + (h (f x))"]])
       apply (rule "2.hyps"(3))
       apply (rule_tac y="y" in  "2.prems")
       apply simp_all
@@ -122,40 +157,37 @@ next
   ultimately show ?case by blast
 qed
 
-lemma setsum_cong:
+lemma (in comm_monoid_add) setsum_cong:
   "A = B ==> (!!x. x:B ==> f x = g x) ==> setsum f A = setsum g B"
-by(fastsimp simp: setsum_def intro: comm_monoid_add.fold_image_cong)
+  by (cases "finite A") (auto intro: setsum.cong)
 
-lemma strong_setsum_cong[cong]:
+lemma (in comm_monoid_add) strong_setsum_cong [cong]:
   "A = B ==> (!!x. x:B =simp=> f x = g x)
    ==> setsum (%x. f x) A = setsum (%x. g x) B"
-by(fastsimp simp: simp_implies_def setsum_def intro: comm_monoid_add.fold_image_cong)
+  by (rule setsum_cong) (simp_all add: simp_implies_def)
 
-lemma setsum_cong2: "\<lbrakk>\<And>x. x \<in> A \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> setsum f A = setsum g A"
-by (rule setsum_cong[OF refl], auto)
+lemma (in comm_monoid_add) setsum_cong2: "\<lbrakk>\<And>x. x \<in> A \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> setsum f A = setsum g A"
+  by (auto intro: setsum_cong)
 
-lemma setsum_reindex_cong:
+lemma (in comm_monoid_add) setsum_reindex_cong:
    "[|inj_on f A; B = f ` A; !!a. a:A \<Longrightarrow> g a = h (f a)|] 
     ==> setsum h B = setsum g A"
-by (simp add: setsum_reindex cong: setsum_cong)
+  by (simp add: setsum_reindex cong: setsum_cong)
 
+lemma (in comm_monoid_add) setsum_0[simp]: "setsum (%i. 0) A = 0"
+  by (cases "finite A") (erule finite_induct, auto)
 
-lemma setsum_0[simp]: "setsum (%i. 0) A = 0"
-apply (clarsimp simp: setsum_def)
-apply (erule finite_induct, auto)
-done
+lemma (in comm_monoid_add) setsum_0': "ALL a:A. f a = 0 ==> setsum f A = 0"
+  by (simp add:setsum_cong)
 
-lemma setsum_0': "ALL a:A. f a = 0 ==> setsum f A = 0"
-by(simp add:setsum_cong)
-
-lemma setsum_Un_Int: "finite A ==> finite B ==>
+lemma (in comm_monoid_add) setsum_Un_Int: "finite A ==> finite B ==>
   setsum g (A Un B) + setsum g (A Int B) = setsum g A + setsum g B"
   -- {* The reversed orientation looks more natural, but LOOPS as a simprule! *}
-by(simp add: setsum_def comm_monoid_add.fold_image_Un_Int [symmetric])
+  by (fact setsum.union_inter)
 
-lemma setsum_Un_disjoint: "finite A ==> finite B
+lemma (in comm_monoid_add) setsum_Un_disjoint: "finite A ==> finite B
   ==> A Int B = {} ==> setsum g (A Un B) = setsum g A + setsum g B"
-by (subst setsum_Un_Int [symmetric], auto)
+  by (fact setsum.union_disjoint)
 
 lemma setsum_mono_zero_left: 
   assumes fT: "finite T" and ST: "S \<subseteq> T"
@@ -250,11 +282,14 @@ qed
 
 (*But we can't get rid of finite I. If infinite, although the rhs is 0, 
   the lhs need not be, since UNION I A could still be finite.*)
-lemma setsum_UN_disjoint:
-    "finite I ==> (ALL i:I. finite (A i)) ==>
-        (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}) ==>
-      setsum f (UNION I A) = (\<Sum>i\<in>I. setsum f (A i))"
-by(simp add: setsum_def comm_monoid_add.fold_image_UN_disjoint cong: setsum_cong)
+lemma (in comm_monoid_add) setsum_UN_disjoint:
+  assumes "finite I" and "ALL i:I. finite (A i)"
+    and "ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}"
+  shows "setsum f (UNION I A) = (\<Sum>i\<in>I. setsum f (A i))"
+proof -
+  interpret comm_monoid_mult "op +" 0 by (fact comm_monoid_mult)
+  from assms show ?thesis by (simp add: setsum_def fold_image_UN_disjoint cong: setsum_cong)
+qed
 
 text{*No need to assume that @{term C} is finite.  If infinite, the rhs is
 directly 0, and @{term "Union C"} is also infinite, hence the lhs is also 0.*}
@@ -270,9 +305,13 @@ done
 
 (*But we can't get rid of finite A. If infinite, although the lhs is 0, 
   the rhs need not be, since SIGMA A B could still be finite.*)
-lemma setsum_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
-    (\<Sum>x\<in>A. (\<Sum>y\<in>B x. f x y)) = (\<Sum>(x,y)\<in>(SIGMA x:A. B x). f x y)"
-by(simp add:setsum_def comm_monoid_add.fold_image_Sigma split_def cong:setsum_cong)
+lemma (in comm_monoid_add) setsum_Sigma:
+  assumes "finite A" and  "ALL x:A. finite (B x)"
+  shows "(\<Sum>x\<in>A. (\<Sum>y\<in>B x. f x y)) = (\<Sum>(x,y)\<in>(SIGMA x:A. B x). f x y)"
+proof -
+  interpret comm_monoid_mult "op +" 0 by (fact comm_monoid_mult)
+  from assms show ?thesis by (simp add: setsum_def fold_image_Sigma split_def cong: setsum_cong)
+qed
 
 text{*Here we can eliminate the finiteness assumptions, by cases.*}
 lemma setsum_cartesian_product: 
@@ -286,8 +325,8 @@ apply (auto simp add: setsum_def
             dest: finite_cartesian_productD1 finite_cartesian_productD2) 
 done
 
-lemma setsum_addf: "setsum (%x. f x + g x) A = (setsum f A + setsum g A)"
-by(simp add:setsum_def comm_monoid_add.fold_image_distrib)
+lemma (in comm_monoid_add) setsum_addf: "setsum (%x. f x + g x) A = (setsum f A + setsum g A)"
+  by (cases "finite A") (simp_all add: setsum.distrib)
 
 
 subsubsection {* Properties in more restricted classes of structures *}
@@ -321,43 +360,34 @@ lemma setsum_Un: "finite A ==> finite B ==>
    setsum f A + setsum f B - setsum f (A Int B)"
 by (subst setsum_Un_Int [symmetric], auto simp add: algebra_simps)
 
-lemma (in comm_monoid_mult) fold_image_1: "finite S \<Longrightarrow> (\<forall>x\<in>S. f x = 1) \<Longrightarrow> fold_image op * f 1 S = 1"
-  apply (induct set: finite)
-  apply simp by auto
-
-lemma (in comm_monoid_mult) fold_image_Un_one:
-  assumes fS: "finite S" and fT: "finite T"
-  and I0: "\<forall>x \<in> S\<inter>T. f x = 1"
-  shows "fold_image (op *) f 1 (S \<union> T) = fold_image (op *) f 1 S * fold_image (op *) f 1 T"
-proof-
-  have "fold_image op * f 1 (S \<inter> T) = 1" 
-    apply (rule fold_image_1)
-    using fS fT I0 by auto 
-  with fold_image_Un_Int[OF fS fT] show ?thesis by simp
-qed
-
-lemma setsum_eq_general_reverses:
+lemma (in comm_monoid_add) setsum_eq_general_reverses:
   assumes fS: "finite S" and fT: "finite T"
   and kh: "\<And>y. y \<in> T \<Longrightarrow> k y \<in> S \<and> h (k y) = y"
   and hk: "\<And>x. x \<in> S \<Longrightarrow> h x \<in> T \<and> k (h x) = x \<and> g (h x) = f x"
   shows "setsum f S = setsum g T"
+proof -
+  interpret comm_monoid_mult "op +" 0 by (fact comm_monoid_mult)
+  show ?thesis
   apply (simp add: setsum_def fS fT)
-  apply (rule comm_monoid_add.fold_image_eq_general_inverses[OF fS])
+  apply (rule fold_image_eq_general_inverses)
+  apply (rule fS)
   apply (erule kh)
   apply (erule hk)
   done
+qed
 
-
-
-lemma setsum_Un_zero:  
+lemma (in comm_monoid_add) setsum_Un_zero:  
   assumes fS: "finite S" and fT: "finite T"
   and I0: "\<forall>x \<in> S\<inter>T. f x = 0"
   shows "setsum f (S \<union> T) = setsum f S  + setsum f T"
+proof -
+  interpret comm_monoid_mult "op +" 0 by (fact comm_monoid_mult)
+  show ?thesis
   using fS fT
   apply (simp add: setsum_def)
-  apply (rule comm_monoid_add.fold_image_Un_one)
+  apply (rule fold_image_Un_one)
   using I0 by auto
-
+qed
 
 lemma setsum_UNION_zero: 
   assumes fS: "finite S" and fSS: "\<forall>T \<in> S. finite T"
@@ -375,7 +405,6 @@ next
   show ?case 
     by (auto simp add: H[symmetric] intro: setsum_Un_zero[OF fTF(1) fUF, of f])
 qed
-
 
 lemma setsum_diff1_nat: "(setsum f (A - {a}) :: nat) =
   (if a:A then setsum f A - f a else setsum f A)"
@@ -651,7 +680,6 @@ next
   case False thus ?thesis by (simp add: setsum_def)
 qed
 
-
 lemma setsum_Plus:
   fixes A :: "'a set" and B :: "'b set"
   assumes fin: "finite A" "finite B"
@@ -667,14 +695,6 @@ qed
 
 
 text {* Commuting outer and inner summation *}
-
-lemma swap_inj_on:
-  "inj_on (%(i, j). (j, i)) (A \<times> B)"
-  by (unfold inj_on_def) fast
-
-lemma swap_product:
-  "(%(i, j). (j, i)) ` (A \<times> B) = B \<times> A"
-  by (simp add: split_def image_def) blast
 
 lemma setsum_commute:
   "(\<Sum>i\<in>A. \<Sum>j\<in>B. f i j) = (\<Sum>j\<in>B. \<Sum>i\<in>A. f i j)"
@@ -781,8 +801,11 @@ by (simp add: card_cartesian_product)
 
 subsection {* Generalized product over a set *}
 
-definition setprod :: "('a => 'b) => 'a set => 'b::comm_monoid_mult"
-where "setprod f A == if finite A then fold_image (op *) f 1 A else 1"
+definition (in comm_monoid_mult) setprod :: "('b \<Rightarrow> 'a) => 'b set => 'a" where
+  "setprod f A = (if finite A then fold_image (op *) f 1 A else 1)"
+
+sublocale comm_monoid_add < setprod!: comm_monoid_big "op *" 1 setprod proof
+qed (fact setprod_def)
 
 abbreviation
   Setprod  ("\<Prod>_" [1000] 999) where
@@ -813,16 +836,15 @@ translations
   "PROD x|P. t" => "CONST setprod (%x. t) {x. P}"
   "\<Prod>x|P. t" => "CONST setprod (%x. t) {x. P}"
 
+lemma setprod_empty: "setprod f {} = 1"
+  by (fact setprod.empty)
 
-lemma setprod_empty [simp]: "setprod f {} = 1"
-by (auto simp add: setprod_def)
-
-lemma setprod_insert [simp]: "[| finite A; a \<notin> A |] ==>
+lemma setprod_insert: "[| finite A; a \<notin> A |] ==>
     setprod f (insert a A) = f a * setprod f A"
-by (simp add: setprod_def)
+  by (fact setprod.insert)
 
-lemma setprod_infinite [simp]: "~ finite A ==> setprod f A = 1"
-by (simp add: setprod_def)
+lemma setprod_infinite: "~ finite A ==> setprod f A = 1"
+  by (fact setprod.infinite)
 
 lemma setprod_reindex:
    "inj_on f B ==> setprod h (f ` B) = setprod (h \<circ> f) B"
@@ -1123,16 +1145,62 @@ proof-
 qed
 
 
-subsubsection {* Fold1 in lattices with @{const inf} and @{const sup} *}
+subsection {* Versions of @{const inf} and @{const sup} on non-empty sets *}
 
-text{*
-  As an application of @{text fold1} we define infimum
-  and supremum in (not necessarily complete!) lattices
-  over (non-empty) sets by means of @{text fold1}.
-*}
+no_notation times (infixl "*" 70)
+no_notation Groups.one ("1")
+
+locale semilattice_big = semilattice +
+  fixes F :: "'a set \<Rightarrow> 'a"
+  assumes F_eq: "finite A \<Longrightarrow> F A = fold1 (op *) A"
+
+sublocale semilattice_big < folding_one_idem proof
+qed (simp_all add: F_eq)
+
+notation times (infixl "*" 70)
+notation Groups.one ("1")
+
+context lattice
+begin
+
+definition Inf_fin :: "'a set \<Rightarrow> 'a" ("\<Sqinter>\<^bsub>fin\<^esub>_" [900] 900) where
+  "Inf_fin = fold1 inf"
+
+definition Sup_fin :: "'a set \<Rightarrow> 'a" ("\<Squnion>\<^bsub>fin\<^esub>_" [900] 900) where
+  "Sup_fin = fold1 sup"
+
+end
+
+sublocale lattice < Inf_fin!: semilattice_big inf Inf_fin proof
+qed (simp add: Inf_fin_def)
+
+sublocale lattice < Sup_fin!: semilattice_big sup Sup_fin proof
+qed (simp add: Sup_fin_def)
 
 context semilattice_inf
 begin
+
+lemma ab_semigroup_idem_mult_inf: "ab_semigroup_idem_mult inf"
+proof qed (rule inf_assoc inf_commute inf_idem)+
+
+lemma fold_inf_insert[simp]: "finite A \<Longrightarrow> fold inf b (insert a A) = inf a (fold inf b A)"
+by(rule fun_left_comm_idem.fold_insert_idem[OF ab_semigroup_idem_mult.fun_left_comm_idem[OF ab_semigroup_idem_mult_inf]])
+
+lemma inf_le_fold_inf: "finite A \<Longrightarrow> ALL a:A. b \<le> a \<Longrightarrow> inf b c \<le> fold inf c A"
+by (induct pred: finite) (auto intro: le_infI1)
+
+lemma fold_inf_le_inf: "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> fold inf b A \<le> inf a b"
+proof(induct arbitrary: a pred:finite)
+  case empty thus ?case by simp
+next
+  case (insert x A)
+  show ?case
+  proof cases
+    assume "A = {}" thus ?thesis using insert by simp
+  next
+    assume "A \<noteq> {}" thus ?thesis using insert by (auto intro: le_infI2)
+  qed
+qed
 
 lemma below_fold1_iff:
   assumes "finite A" "A \<noteq> {}"
@@ -1179,18 +1247,25 @@ qed
 
 end
 
-context lattice
+context semilattice_sup
 begin
 
-definition
-  Inf_fin :: "'a set \<Rightarrow> 'a" ("\<Sqinter>\<^bsub>fin\<^esub>_" [900] 900)
-where
-  "Inf_fin = fold1 inf"
+lemma ab_semigroup_idem_mult_sup: "ab_semigroup_idem_mult sup"
+by (rule semilattice_inf.ab_semigroup_idem_mult_inf)(rule dual_semilattice)
 
-definition
-  Sup_fin :: "'a set \<Rightarrow> 'a" ("\<Squnion>\<^bsub>fin\<^esub>_" [900] 900)
-where
-  "Sup_fin = fold1 sup"
+lemma fold_sup_insert[simp]: "finite A \<Longrightarrow> fold sup b (insert a A) = sup a (fold sup b A)"
+by(rule semilattice_inf.fold_inf_insert)(rule dual_semilattice)
+
+lemma fold_sup_le_sup: "finite A \<Longrightarrow> ALL a:A. a \<le> b \<Longrightarrow> fold sup c A \<le> sup b c"
+by(rule semilattice_inf.inf_le_fold_inf)(rule dual_semilattice)
+
+lemma sup_le_fold_sup: "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> sup a b \<le> fold sup b A"
+by(rule semilattice_inf.fold_inf_le_inf)(rule dual_semilattice)
+
+end
+
+context lattice
+begin
 
 lemma Inf_le_Sup [simp]: "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<Sqinter>\<^bsub>fin\<^esub>A \<le> \<Squnion>\<^bsub>fin\<^esub>A"
 apply(unfold Sup_fin_def Inf_fin_def)
@@ -1342,16 +1417,57 @@ qed
 end
 
 
-subsubsection {* Fold1 in linear orders with @{const min} and @{const max} *}
+subsection {* Versions of @{const min} and @{const max} on non-empty sets *}
 
-text{*
-  As an application of @{text fold1} we define minimum
-  and maximum in (not necessarily complete!) linear orders
-  over (non-empty) sets by means of @{text fold1}.
-*}
+definition (in linorder) Min :: "'a set \<Rightarrow> 'a" where
+  "Min = fold1 min"
+
+definition (in linorder) Max :: "'a set \<Rightarrow> 'a" where
+  "Max = fold1 max"
+
+sublocale linorder < Min!: semilattice_big min Min proof
+qed (simp add: Min_def)
+
+sublocale linorder < Max!: semilattice_big max Max proof
+qed (simp add: Max_def)
 
 context linorder
 begin
+
+lemmas Min_singleton = Min.singleton
+lemmas Max_singleton = Max.singleton
+
+lemma Min_insert:
+  assumes "finite A" and "A \<noteq> {}"
+  shows "Min (insert x A) = min x (Min A)"
+  using assms by simp
+
+lemma Max_insert:
+  assumes "finite A" and "A \<noteq> {}"
+  shows "Max (insert x A) = max x (Max A)"
+  using assms by simp
+
+lemma Min_Un:
+  assumes "finite A" and "A \<noteq> {}" and "finite B" and "B \<noteq> {}"
+  shows "Min (A \<union> B) = min (Min A) (Min B)"
+  using assms by (rule Min.union_idem)
+
+lemma Max_Un:
+  assumes "finite A" and "A \<noteq> {}" and "finite B" and "B \<noteq> {}"
+  shows "Max (A \<union> B) = max (Max A) (Max B)"
+  using assms by (rule Max.union_idem)
+
+lemma hom_Min_commute:
+  assumes "\<And>x y. h (min x y) = min (h x) (h y)"
+    and "finite N" and "N \<noteq> {}"
+  shows "h (Min N) = Min (h ` N)"
+  using assms by (rule Min.hom_commute)
+
+lemma hom_Max_commute:
+  assumes "\<And>x y. h (max x y) = max (h x) (h y)"
+    and "finite N" and "N \<noteq> {}"
+  shows "h (Max N) = Max (h ` N)"
+  using assms by (rule Max.hom_commute)
 
 lemma ab_semigroup_idem_mult_min:
   "ab_semigroup_idem_mult min"
@@ -1429,37 +1545,6 @@ next
   finally show ?thesis .
 qed
 
-definition
-  Min :: "'a set \<Rightarrow> 'a"
-where
-  "Min = fold1 min"
-
-definition
-  Max :: "'a set \<Rightarrow> 'a"
-where
-  "Max = fold1 max"
-
-lemmas Min_singleton [simp] = fold1_singleton_def [OF Min_def]
-lemmas Max_singleton [simp] = fold1_singleton_def [OF Max_def]
-
-lemma Min_insert [simp]:
-  assumes "finite A" and "A \<noteq> {}"
-  shows "Min (insert x A) = min x (Min A)"
-proof -
-  interpret ab_semigroup_idem_mult min
-    by (rule ab_semigroup_idem_mult_min)
-  from assms show ?thesis by (rule fold1_insert_idem_def [OF Min_def])
-qed
-
-lemma Max_insert [simp]:
-  assumes "finite A" and "A \<noteq> {}"
-  shows "Max (insert x A) = max x (Max A)"
-proof -
-  interpret ab_semigroup_idem_mult max
-    by (rule ab_semigroup_idem_mult_max)
-  from assms show ?thesis by (rule fold1_insert_idem_def [OF Max_def])
-qed
-
 lemma Min_in [simp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "Min A \<in> A"
@@ -1476,48 +1561,6 @@ proof -
   interpret ab_semigroup_idem_mult max
     by (rule ab_semigroup_idem_mult_max)
   from assms fold1_in [of A] show ?thesis by (fastsimp simp: Max_def max_def)
-qed
-
-lemma Min_Un:
-  assumes "finite A" and "A \<noteq> {}" and "finite B" and "B \<noteq> {}"
-  shows "Min (A \<union> B) = min (Min A) (Min B)"
-proof -
-  interpret ab_semigroup_idem_mult min
-    by (rule ab_semigroup_idem_mult_min)
-  from assms show ?thesis
-    by (simp add: Min_def fold1_Un2)
-qed
-
-lemma Max_Un:
-  assumes "finite A" and "A \<noteq> {}" and "finite B" and "B \<noteq> {}"
-  shows "Max (A \<union> B) = max (Max A) (Max B)"
-proof -
-  interpret ab_semigroup_idem_mult max
-    by (rule ab_semigroup_idem_mult_max)
-  from assms show ?thesis
-    by (simp add: Max_def fold1_Un2)
-qed
-
-lemma hom_Min_commute:
-  assumes "\<And>x y. h (min x y) = min (h x) (h y)"
-    and "finite N" and "N \<noteq> {}"
-  shows "h (Min N) = Min (h ` N)"
-proof -
-  interpret ab_semigroup_idem_mult min
-    by (rule ab_semigroup_idem_mult_min)
-  from assms show ?thesis
-    by (simp add: Min_def hom_fold1_commute)
-qed
-
-lemma hom_Max_commute:
-  assumes "\<And>x y. h (max x y) = max (h x) (h y)"
-    and "finite N" and "N \<noteq> {}"
-  shows "h (Max N) = Max (h ` N)"
-proof -
-  interpret ab_semigroup_idem_mult max
-    by (rule ab_semigroup_idem_mult_max)
-  from assms show ?thesis
-    by (simp add: Max_def hom_fold1_commute [of h])
 qed
 
 lemma Min_le [simp]:
