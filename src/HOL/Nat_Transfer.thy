@@ -10,12 +10,13 @@ begin
 
 subsection {* Generic transfer machinery *}
 
-definition transfer_morphism:: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> bool"
-  where "transfer_morphism f A \<longleftrightarrow> True"
+definition transfer_morphism:: "('b \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> bool"
+  where "transfer_morphism f A \<longleftrightarrow> (\<forall>P. (\<forall>x. P x) \<longrightarrow> (\<forall>y. A y \<longrightarrow> P (f y)))"
 
 lemma transfer_morphismI:
-  "transfer_morphism f A"
-  by (simp add: transfer_morphism_def)
+  assumes "\<And>P y. (\<And>x. P x) \<Longrightarrow> A y \<Longrightarrow> P (f y)"
+  shows "transfer_morphism f A"
+  using assms by (auto simp add: transfer_morphism_def)
 
 use "Tools/transfer.ML"
 
@@ -27,7 +28,7 @@ subsection {* Set up transfer from nat to int *}
 text {* set up transfer direction *}
 
 lemma transfer_morphism_nat_int: "transfer_morphism nat (op <= (0::int))"
-  by (fact transfer_morphismI)
+  by (rule transfer_morphismI) simp
 
 declare transfer_morphism_nat_int [transfer add
   mode: manual
@@ -266,7 +267,7 @@ subsection {* Set up transfer from int to nat *}
 text {* set up transfer direction *}
 
 lemma transfer_morphism_int_nat: "transfer_morphism int (\<lambda>n. True)"
-  by (fact transfer_morphismI)
+by (rule transfer_morphismI) simp
 
 declare transfer_morphism_int_nat [transfer add
   mode: manual

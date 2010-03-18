@@ -23,11 +23,13 @@ struct
 
 val direction_of = Thm.dest_binop o Thm.dest_arg o cprop_of;
 
+val transfer_morphism_key = Drule.strip_imp_concl (Thm.cprop_of @{thm transfer_morphismI});
+
 fun check_morphism_key ctxt key =
   let
-    val _ = (Thm.match o pairself Thm.cprop_of) (@{thm transfer_morphismI}, key)
-      handle Pattern.MATCH => error
-        ("Transfer: expected theorem of the form " ^ quote (Display.string_of_thm ctxt @{thm transfer_morphismI}));
+    val _ = Thm.match (transfer_morphism_key, Thm.cprop_of key)
+      handle Pattern.MATCH => error ("Transfer: expected theorem of the form "
+        ^ quote (Syntax.string_of_term ctxt (Thm.term_of transfer_morphism_key)));
   in direction_of key end;
 
 type entry = { inj : thm list, embed : thm list, return : thm list, cong : thm list,
