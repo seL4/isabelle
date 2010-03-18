@@ -355,13 +355,13 @@ by auto (metis Inf_insert_nonempty z)
 
 lemma Inf_greater:
   fixes z :: real
-  shows "X \<noteq> {} \<Longrightarrow>  Inf X < z \<Longrightarrow> \<exists>x \<in> X. x < z"
+  shows "X \<noteq> {} \<Longrightarrow> Inf X < z \<Longrightarrow> \<exists>x \<in> X. x < z"
   by (metis Inf_real_iff mem_def not_leE)
 
 lemma Inf_close:
   fixes e :: real
   shows "X \<noteq> {} \<Longrightarrow> 0 < e \<Longrightarrow> \<exists>x \<in> X. x < Inf X + e"
-  by (metis add_strict_increasing comm_monoid_add.mult_commute Inf_greater linorder_not_le pos_add_strict)
+  by (metis add_strict_increasing add_commute Inf_greater linorder_not_le pos_add_strict)
 
 lemma Inf_finite_Min:
   fixes S :: "real set"
@@ -417,7 +417,7 @@ proof -
   also have "... \<le> e" 
     apply (rule Sup_asclose) 
     apply (auto simp add: S)
-    apply (metis abs_minus_add_cancel b comm_monoid_add.mult_commute real_diff_def) 
+    apply (metis abs_minus_add_cancel b add_commute real_diff_def) 
     done
   finally have "\<bar>- Sup (uminus ` S) - l\<bar> \<le> e" .
   thus ?thesis
