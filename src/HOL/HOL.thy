@@ -23,7 +23,6 @@ uses
   "~~/src/Tools/coherent.ML"
   "~~/src/Tools/eqsubst.ML"
   "~~/src/Provers/quantifier1.ML"
-  "Tools/res_blacklist.ML"
   ("Tools/simpdata.ML")
   "~~/src/Tools/random_word.ML"
   "~~/src/Tools/atomize_elim.ML"
@@ -34,8 +33,6 @@ uses
 begin
 
 setup {* Intuitionistic.method_setup @{binding iprover} *}
-
-setup Res_Blacklist.setup
 
 
 subsection {* Primitive logic *}
@@ -794,6 +791,25 @@ lemma atomize_elimL[atomize_elim]: "(!!B. (A ==> B) ==> B) == Trueprop A" ..
 
 subsection {* Package setup *}
 
+subsubsection {* Sledgehammer setup *}
+
+text {*
+Theorems blacklisted to Sledgehammer. These theorems typically produce clauses
+that are prolific (match too many equality or membership literals) and relate to
+seldom-used facts. Some duplicate other rules.
+*}
+
+ML {*
+structure No_ATPs = Named_Thms
+(
+  val name = "no_atp"
+  val description = "theorems that should be avoided by Sledgehammer"
+)
+*}
+
+setup {* No_ATPs.setup *}
+
+
 subsubsection {* Classical Reasoner setup *}
 
 lemma imp_elim: "P --> Q ==> (~ R ==> P) ==> (Q ==> R) ==> R"
@@ -1041,7 +1057,7 @@ lemma not_ex: "(~ (? x. P(x))) = (! x.~P(x))" by iprover
 lemma imp_ex: "((? x. P x) --> Q) = (! x. P x --> Q)" by iprover
 lemma all_not_ex: "(ALL x. P x) = (~ (EX x. ~ P x ))" by blast
 
-declare All_def [noatp]
+declare All_def [no_atp]
 
 lemma ex_disj_distrib: "(? x. P(x) | Q(x)) = ((? x. P(x)) | (? x. Q(x)))" by iprover
 lemma all_conj_distrib: "(!x. P(x) & Q(x)) = ((! x. P(x)) & (! x. Q(x)))" by iprover
@@ -1088,7 +1104,7 @@ lemma split_if: "P (if Q then x else y) = ((Q --> P(x)) & (~Q --> P(y)))"
 lemma split_if_asm: "P (if Q then x else y) = (~((Q & ~P x) | (~Q & ~P y)))"
 by (simplesubst split_if, blast)
 
-lemmas if_splits [noatp] = split_if split_if_asm
+lemmas if_splits [no_atp] = split_if split_if_asm
 
 lemma if_cancel: "(if c then x else x) = x"
 by (simplesubst split_if, blast)

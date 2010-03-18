@@ -165,19 +165,19 @@ subsection {*Two-sided intervals*}
 context ord
 begin
 
-lemma greaterThanLessThan_iff [simp,noatp]:
+lemma greaterThanLessThan_iff [simp,no_atp]:
   "(i : {l<..<u}) = (l < i & i < u)"
 by (simp add: greaterThanLessThan_def)
 
-lemma atLeastLessThan_iff [simp,noatp]:
+lemma atLeastLessThan_iff [simp,no_atp]:
   "(i : {l..<u}) = (l <= i & i < u)"
 by (simp add: atLeastLessThan_def)
 
-lemma greaterThanAtMost_iff [simp,noatp]:
+lemma greaterThanAtMost_iff [simp,no_atp]:
   "(i : {l<..u}) = (l < i & i <= u)"
 by (simp add: greaterThanAtMost_def)
 
-lemma atLeastAtMost_iff [simp,noatp]:
+lemma atLeastAtMost_iff [simp,no_atp]:
   "(i : {l..u}) = (l <= i & i <= u)"
 by (simp add: atLeastAtMost_def)
 
@@ -844,7 +844,7 @@ by(auto)
 
 subsubsection {* Some Subset Conditions *}
 
-lemma ivl_subset [simp,noatp]:
+lemma ivl_subset [simp,no_atp]:
  "({i..<j} \<subseteq> {m..<n}) = (j \<le> i | m \<le> i & j \<le> (n::'a::linorder))"
 apply(auto simp:linorder_not_le)
 apply(rule ccontr)

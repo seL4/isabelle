@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/res_clause.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_fol_clause.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory
 
 Storing/printing FOL clauses and arity clauses.  Typed equality is
@@ -7,7 +7,7 @@ treated differently.
 FIXME: combine with res_hol_clause!
 *)
 
-signature RES_CLAUSE =
+signature SLEDGEHAMMER_FOL_CLAUSE =
 sig
   val schematic_var_prefix: string
   val fixed_var_prefix: string
@@ -77,7 +77,7 @@ sig
   val tptp_classrelClause : classrelClause -> string
 end
 
-structure Res_Clause: RES_CLAUSE =
+structure Sledgehammer_FOL_Clause : SLEDGEHAMMER_FOL_CLAUSE =
 struct
 
 val schematic_var_prefix = "V_";
@@ -104,15 +104,15 @@ val const_trans_table =
                    (@{const_name "op |"}, "or"),
                    (@{const_name "op -->"}, "implies"),
                    (@{const_name "op :"}, "in"),
-                   ("ATP_Linkup.fequal", "fequal"),
-                   ("ATP_Linkup.COMBI", "COMBI"),
-                   ("ATP_Linkup.COMBK", "COMBK"),
-                   ("ATP_Linkup.COMBB", "COMBB"),
-                   ("ATP_Linkup.COMBC", "COMBC"),
-                   ("ATP_Linkup.COMBS", "COMBS"),
-                   ("ATP_Linkup.COMBB'", "COMBB_e"),
-                   ("ATP_Linkup.COMBC'", "COMBC_e"),
-                   ("ATP_Linkup.COMBS'", "COMBS_e")];
+                   ("Sledgehammer.fequal", "fequal"),
+                   ("Sledgehammer.COMBI", "COMBI"),
+                   ("Sledgehammer.COMBK", "COMBK"),
+                   ("Sledgehammer.COMBB", "COMBB"),
+                   ("Sledgehammer.COMBC", "COMBC"),
+                   ("Sledgehammer.COMBS", "COMBS"),
+                   ("Sledgehammer.COMBB'", "COMBB_e"),
+                   ("Sledgehammer.COMBC'", "COMBC_e"),
+                   ("Sledgehammer.COMBS'", "COMBS_e")];
 
 val type_const_trans_table =
       Symtab.make [("*", "prod"),
