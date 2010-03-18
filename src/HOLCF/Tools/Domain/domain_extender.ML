@@ -301,16 +301,8 @@ val dest_decl : (bool * binding option * string) parser =
 val cons_decl =
   P.binding -- Scan.repeat dest_decl -- P.opt_mixfix;
 
-val type_var' : (string * string option) parser =
-  (P.type_ident -- Scan.option (P.$$$ "::" |-- P.!!! P.sort));
-
-val type_args' : (string * string option) list parser =
-  type_var' >> single
-  || P.$$$ "(" |-- P.!!! (P.list1 type_var' --| P.$$$ ")")
-  || Scan.succeed [];
-
 val domain_decl =
-  (type_args' -- P.binding -- P.opt_mixfix) --
+  (P.type_args_constrained -- P.binding -- P.opt_mixfix) --
     (P.$$$ "=" |-- P.enum1 "|" cons_decl);
 
 val domains_decl =
