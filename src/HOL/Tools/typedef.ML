@@ -127,8 +127,6 @@ fun primitive_typedef typedef_name newT oldT Rep_name Abs_name A thy =
 
 (* prepare_typedef *)
 
-fun declare_type_name a = Variable.declare_constraints (Logic.mk_type (TFree (a, dummyS)));
-
 fun prepare_typedef prep_term def_set name (tname, vs, mx) raw_set opt_morphs lthy =
   let
     val full_name = Local_Theory.full_name lthy name;
@@ -137,7 +135,10 @@ fun prepare_typedef prep_term def_set name (tname, vs, mx) raw_set opt_morphs lt
 
     (* rhs *)
 
-    val set = prep_term (lthy |> fold declare_type_name vs) raw_set;
+    val (_, tmp_lthy) = lthy |> Typedecl.predeclare_constraints (tname, map (rpair dummyS) vs, mx);
+    val set = prep_term tmp_lthy raw_set;
+    val tmp_lthy' = tmp_lthy |> Variable.declare_constraints set;
+
     val setT = Term.fastype_of set;
     val oldT = HOLogic.dest_setT setT handle TYPE _ =>
       error ("Not a set type: " ^ quote (Syntax.string_of_typ lthy setT));
@@ -148,8 +149,9 @@ fun prepare_typedef prep_term def_set name (tname, vs, mx) raw_set opt_morphs lt
 
     (* lhs *)
 
+    val args = map (fn a => (a, ProofContext.default_sort tmp_lthy' (a, ~1))) vs;
     val (newT, typedecl_lthy) = lthy
-      |> Typedecl.typedecl_wrt [set] (tname, vs, mx)
+      |> Typedecl.typedecl (tname, args, mx)
       ||> Variable.declare_term set;
 
     val Type (full_tname, type_args) = newT;
