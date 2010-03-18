@@ -82,7 +82,7 @@ in
 *)
    Local_Theory.theory_result
      (Typedef.add_typedef_global false NONE
-       (qty_name, vs, mx)
+       (qty_name, map (rpair dummyS) vs, mx)
          (typedef_term rel rty lthy)
            NONE typedef_tac) lthy
 end

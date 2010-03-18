@@ -80,7 +80,8 @@ fun typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
         end
   in
     thy
-    |> Typedef.add_typedef_global false (SOME raw_tyco) (raw_tyco, map fst vs, NoSyn)
+    |> Typedef.add_typedef_global false (SOME raw_tyco)
+      (raw_tyco, map (fn (v, _) => (v, dummyS)) vs, NoSyn)   (* FIXME keep constraints!? *)
       (HOLogic.mk_UNIV ty) (Option.map swap constr_proj) tac
     |-> (fn (tyco, info) => add_info tyco info)
   end;

@@ -473,7 +473,7 @@ fun gen_domain_isomorphism
         val reps = map (mk_Rep_of o tfree) vs;
         val defl = list_ccomb (defl_const, reps);
         val ((_, _, _, {REP, ...}), thy) =
-          Repdef.add_repdef false NONE (tbind, vs, mx) defl NONE thy;
+          Repdef.add_repdef false NONE (tbind, map (rpair dummyS) vs, mx) defl NONE thy;
       in
         (REP, thy)
       end;

@@ -2095,7 +2095,7 @@ fun new_type_definition thyname thmname tycname hth thy =
             val typ = (tycname,tnames,tsyn)
             val ((_, typedef_info), thy') =
               Typedef.add_typedef_global false (SOME (Binding.name thmname))
-                (Binding.name tycname, tnames, tsyn) c NONE (rtac th2 1) thy
+                (Binding.name tycname, map (rpair dummyS) tnames, tsyn) c NONE (rtac th2 1) thy
             val _ = ImportRecorder.add_typedef (SOME thmname) typ c NONE th2
 
             val th3 = (#type_definition typedef_info) RS typedef_hol2hol4
@@ -2182,7 +2182,8 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
             val tsyn = mk_syn thy tycname
             val typ = (tycname,tnames,tsyn)
             val ((_, typedef_info), thy') =
-              Typedef.add_typedef_global false NONE (Binding.name tycname,tnames,tsyn) c
+              Typedef.add_typedef_global false NONE
+                (Binding.name tycname, map (rpair dummyS) tnames, tsyn) c
                 (SOME(Binding.name rep_name,Binding.name abs_name)) (rtac th2 1) thy
             val _ = ImportRecorder.add_typedef NONE typ c (SOME(rep_name,abs_name)) th2
             val fulltyname = Sign.intern_type thy' tycname

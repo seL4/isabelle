@@ -616,7 +616,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
       thy4
       |> fold_map (fn ((((name, mx), tvs), (cname, U)), name') => fn thy =>
           Typedef.add_typedef_global false (SOME (Binding.name name'))
-            (Binding.name name, map fst tvs, mx)
+            (Binding.name name, map (fn (v, _) => (v, dummyS)) tvs, mx)  (* FIXME keep constraints!? *)
             (Const ("Collect", (U --> HOLogic.boolT) --> HOLogic.mk_setT U) $
                Const (cname, U --> HOLogic.boolT)) NONE
             (rtac exI 1 THEN rtac CollectI 1 THEN
