@@ -451,7 +451,7 @@ fun do_mtype_comp _ _ _ _ NONE = NONE
                  [M1, M2], [])
 
 (* comp_op -> mtyp -> mtyp -> constraint_set -> constraint_set *)
-fun add_mtype_comp cmp M1 M2 (lits, comps, sexps) =
+fun add_mtype_comp cmp M1 M2 ((lits, comps, sexps) : constraint_set) =
     (print_g ("*** Add " ^ string_for_mtype M1 ^ " " ^ string_for_comp_op cmp ^
               " " ^ string_for_mtype M2);
      case do_mtype_comp cmp [] M1 M2 (SOME (lits, comps)) of
@@ -500,7 +500,7 @@ fun do_notin_mtype_fv _ _ _ NONE = NONE
     raise MTYPE ("Nitpick_Mono.do_notin_mtype_fv", [M], [])
 
 (* sign -> mtyp -> constraint_set -> constraint_set *)
-fun add_notin_mtype_fv sn M (lits, comps, sexps) =
+fun add_notin_mtype_fv sn M ((lits, comps, sexps) : constraint_set) =
     (print_g ("*** Add " ^ string_for_mtype M ^ " is " ^
               (case sn of Minus => "concrete" | Plus => "complete") ^ ".");
      case do_notin_mtype_fv sn [] M (SOME (lits, sexps)) of
