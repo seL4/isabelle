@@ -9,11 +9,11 @@ sig
   type rep_info =
     { emb_def: thm, prj_def: thm, approx_def: thm, REP: thm }
 
-  val add_repdef: bool -> binding option -> binding * string list * mixfix ->
+  val add_repdef: bool -> binding option -> binding * (string * sort) list * mixfix ->
     term -> (binding * binding) option -> theory ->
     (Typedef.info * Pcpodef.cpo_info * Pcpodef.pcpo_info * rep_info) * theory
 
-  val repdef_cmd: (bool * binding) * (binding * string list * mixfix) * string
+  val repdef_cmd: (bool * binding) * (binding * (string * string option) list * mixfix) * string
     * (binding * binding) option -> theory -> theory
 end;
 
@@ -55,25 +55,27 @@ fun gen_add_repdef
       (prep_term: Proof.context -> 'a -> term)
       (def: bool)
       (name: binding)
-      (typ as (tname, vs, mx) : binding * string list * mixfix)
+      (typ as (tname, raw_args, mx) : binding * (string * sort) list * mixfix)
       (raw_defl: 'a)
       (opt_morphs: (binding * binding) option)
       (thy: theory)
     : (Typedef.info * Pcpodef.cpo_info * Pcpodef.pcpo_info * rep_info) * theory =
   let
     val _ = Theory.requires thy "Representable" "repdefs";
-    val ctxt = ProofContext.init thy;
 
     (*rhs*)
-    val defl = prep_term (ctxt |> fold declare_type_name vs) raw_defl;
+    val (_, tmp_lthy) =
+      thy |> Theory.copy |> Theory_Target.init NONE
+      |> Typedecl.predeclare_constraints (tname, raw_args, mx);
+    val defl = prep_term tmp_lthy raw_defl;
+    val tmp_lthy' = tmp_lthy |> Variable.declare_constraints defl;
+
     val deflT = Term.fastype_of defl;
     val _ = if deflT = @{typ "udom alg_defl"} then ()
-            else error ("Not type udom alg_defl: " ^ quote (Syntax.string_of_typ ctxt deflT));
-    val rhs_tfrees = Term.add_tfrees defl [];
+            else error ("Not type udom alg_defl: " ^ quote (Syntax.string_of_typ tmp_lthy deflT));
 
     (*lhs*)
-    val defS = Sign.defaultS thy;
-    val lhs_tfrees = map (fn v => (v, the_default defS (AList.lookup (op =) rhs_tfrees v))) vs;
+    val lhs_tfrees = map (fn (a, _) => (a, ProofContext.default_sort tmp_lthy' (a, ~1))) raw_args;
     val lhs_sorts = map snd lhs_tfrees;
     val full_tname = Sign.full_name thy tname;
     val newT = Type (full_tname, map TFree lhs_tfrees);
@@ -152,8 +154,12 @@ fun add_repdef def opt_name typ defl opt_morphs thy =
     gen_add_repdef Syntax.check_term def name typ defl opt_morphs thy
   end;
 
-fun repdef_cmd ((def, name), typ, A, morphs) =
-  snd o gen_add_repdef Syntax.read_term def name typ A morphs;
+fun repdef_cmd ((def, name), (b, raw_args, mx), A, morphs) thy =
+  let
+    val ctxt = ProofContext.init thy;
+    val args = map (apsnd (Typedecl.read_constraint ctxt)) raw_args;
+  in snd (gen_add_repdef Syntax.read_term def name (b, args, mx) A morphs thy) end;
+
 
 (** outer syntax **)
 
@@ -163,11 +169,11 @@ val repdef_decl =
   Scan.optional (P.$$$ "(" |--
       ((P.$$$ "open" >> K false) -- Scan.option P.binding || P.binding >> (fn s => (true, SOME s)))
         --| P.$$$ ")") (true, NONE) --
-    (P.type_args -- P.binding) -- P.opt_mixfix -- (P.$$$ "=" |-- P.term) --
+    (P.type_args_constrained -- P.binding) -- P.opt_mixfix -- (P.$$$ "=" |-- P.term) --
     Scan.option (P.$$$ "morphisms" |-- P.!!! (P.binding -- P.binding));
 
-fun mk_repdef ((((((def, opt_name), (vs, t)), mx), A), morphs)) =
-  repdef_cmd ((def, the_default t opt_name), (t, vs, mx), A, morphs);
+fun mk_repdef ((((((def, opt_name), (args, t)), mx), A), morphs)) =
+  repdef_cmd ((def, the_default t opt_name), (t, args, mx), A, morphs);
 
 val _ =
   OuterSyntax.command "repdef" "HOLCF definition of representable domains" K.thy_decl

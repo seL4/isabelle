@@ -17,13 +17,13 @@ sig
   val get_info_global: theory -> string -> info list
   val interpretation: (string -> theory -> theory) -> theory -> theory
   val setup: theory -> theory
-  val add_typedef: bool -> binding option -> binding * string list * mixfix ->
+  val add_typedef: bool -> binding option -> binding * (string * sort) list * mixfix ->
     term -> (binding * binding) option -> tactic -> local_theory -> (string * info) * local_theory
-  val add_typedef_global: bool -> binding option -> binding * string list * mixfix ->
+  val add_typedef_global: bool -> binding option -> binding * (string * sort) list * mixfix ->
     term -> (binding * binding) option -> tactic -> theory -> (string * info) * theory
-  val typedef: (bool * binding) * (binding * string list * mixfix) * term *
+  val typedef: (bool * binding) * (binding * (string * sort) list * mixfix) * term *
     (binding * binding) option -> local_theory -> Proof.state
-  val typedef_cmd: (bool * binding) * (binding * string list * mixfix) * string *
+  val typedef_cmd: (bool * binding) * (binding * (string * string option) list * mixfix) * string *
     (binding * binding) option -> local_theory -> Proof.state
 end;
 
@@ -127,7 +127,7 @@ fun primitive_typedef typedef_name newT oldT Rep_name Abs_name A thy =
 
 (* prepare_typedef *)
 
-fun prepare_typedef prep_term def_set name (tname, vs, mx) raw_set opt_morphs lthy =
+fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_morphs lthy =
   let
     val full_name = Local_Theory.full_name lthy name;
     val bname = Binding.name_of name;
@@ -135,7 +135,7 @@ fun prepare_typedef prep_term def_set name (tname, vs, mx) raw_set opt_morphs lt
 
     (* rhs *)
 
-    val (_, tmp_lthy) = lthy |> Typedecl.predeclare_constraints (tname, map (rpair dummyS) vs, mx);
+    val (_, tmp_lthy) = lthy |> Typedecl.predeclare_constraints (tname, raw_args, mx);
     val set = prep_term tmp_lthy raw_set;
     val tmp_lthy' = tmp_lthy |> Variable.declare_constraints set;
 
@@ -149,7 +149,7 @@ fun prepare_typedef prep_term def_set name (tname, vs, mx) raw_set opt_morphs lt
 
     (* lhs *)
 
-    val args = map (fn a => (a, ProofContext.default_sort tmp_lthy' (a, ~1))) vs;
+    val args = map (fn (a, _) => (a, ProofContext.default_sort tmp_lthy' (a, ~1))) raw_args;
     val (newT, typedecl_lthy) = lthy
       |> Typedecl.typedecl (tname, args, mx)
       ||> Variable.declare_term set;
@@ -275,17 +275,18 @@ fun add_typedef_global def opt_name typ set opt_morphs tac =
 
 local
 
-fun gen_typedef prep_term ((def, name), typ, set, opt_morphs) lthy =
+fun gen_typedef prep_term prep_constraint ((def, name), (b, raw_args, mx), set, opt_morphs) lthy =
   let
+    val args = map (apsnd (prep_constraint lthy)) raw_args;
     val ((goal, goal_pat, typedef_result), lthy') =
-      prepare_typedef prep_term def name typ set opt_morphs lthy;
+      prepare_typedef prep_term def name (b, args, mx) set opt_morphs lthy;
     fun after_qed [[th]] = snd o typedef_result th;
   in Proof.theorem_i NONE after_qed [[(goal, [goal_pat])]] lthy' end;
 
 in
 
-val typedef = gen_typedef Syntax.check_term;
-val typedef_cmd = gen_typedef Syntax.read_term;
+val typedef = gen_typedef Syntax.check_term (K I);
+val typedef_cmd = gen_typedef Syntax.read_term Typedecl.read_constraint;
 
 end;
 
@@ -303,10 +304,10 @@ val _ =
     (Scan.optional (P.$$$ "(" |--
         ((P.$$$ "open" >> K false) -- Scan.option P.binding ||
           P.binding >> (fn s => (true, SOME s))) --| P.$$$ ")") (true, NONE) --
-      (P.type_args -- P.binding) -- P.opt_mixfix -- (P.$$$ "=" |-- P.term) --
+      (P.type_args_constrained -- P.binding) -- P.opt_mixfix -- (P.$$$ "=" |-- P.term) --
       Scan.option (P.$$$ "morphisms" |-- P.!!! (P.binding -- P.binding))
-    >> (fn ((((((def, opt_name), (vs, t)), mx), A), morphs)) =>
-        typedef_cmd ((def, the_default t opt_name), (t, vs, mx), A, morphs)));
+    >> (fn ((((((def, opt_name), (args, t)), mx), A), morphs)) =>
+        typedef_cmd ((def, the_default t opt_name), (t, args, mx), A, morphs)));
 
 end;
 
