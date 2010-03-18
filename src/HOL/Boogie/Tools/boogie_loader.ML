@@ -86,7 +86,7 @@ local
         SOME type_name => (((name, type_name), log_ex name type_name), thy)
       | NONE =>
           let
-            val args = Name.variant_list [] (replicate arity "'")
+            val args = map (rpair dummyS) (Name.invents Name.context "'a" arity)
             val (T, thy') =
               Typedecl.typedecl_global (Binding.name isa_name, args, mk_syntax name arity) thy
             val type_name = fst (Term.dest_Type T)
