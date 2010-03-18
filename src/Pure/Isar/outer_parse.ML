@@ -68,6 +68,7 @@ sig
   val arity: (string * string list * string) parser
   val multi_arity: (string list * string list * string) parser
   val type_args: string list parser
+  val type_args_constrained: (string * string option) list parser
   val typ_group: string parser
   val typ: string parser
   val mixfix: mixfix parser
@@ -252,10 +253,13 @@ val typ_group = group "type"
 
 val typ = inner_syntax typ_group;
 
-val type_args =
-  type_ident >> single ||
-  $$$ "(" |-- !!! (list1 type_ident --| $$$ ")") ||
+fun type_arguments arg =
+  arg >> single ||
+  $$$ "(" |-- !!! (list1 arg --| $$$ ")") ||
   Scan.succeed [];
+
+val type_args = type_arguments type_ident;
+val type_args_constrained = type_arguments (type_ident -- Scan.option ($$$ "::" |-- !!! sort));
 
 
 (* mixfix annotations *)

@@ -6,6 +6,7 @@ Type declarations (within the object logic).
 
 signature TYPEDECL =
 sig
+  val read_constraint: Proof.context -> string option -> sort
   val predeclare_constraints: binding * (string * sort) list * mixfix ->
     local_theory -> string * local_theory
   val typedecl: binding * (string * sort) list * mixfix -> local_theory -> typ * local_theory
@@ -33,6 +34,9 @@ fun basic_typedecl (b, n, mx) lthy =
 
 
 (* syntactic version -- useful for internalizing additional types/terms beforehand *)
+
+fun read_constraint _ NONE = dummyS
+  | read_constraint ctxt (SOME s) = Syntax.read_sort ctxt s;
 
 fun predeclare_constraints (b, raw_args, mx) =
   basic_typedecl (b, length raw_args, mx) ##>
