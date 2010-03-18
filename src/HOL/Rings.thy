@@ -127,7 +127,7 @@ proof -
   then show ?thesis ..
 qed
 
-lemma dvd_0_left_iff [noatp, simp]: "0 dvd a \<longleftrightarrow> a = 0"
+lemma dvd_0_left_iff [no_atp, simp]: "0 dvd a \<longleftrightarrow> a = 0"
 by (auto intro: dvd_refl elim!: dvdE)
 
 lemma dvd_0_right [iff]: "a dvd 0"
@@ -221,8 +221,8 @@ lemma minus_mult_right: "- (a * b) = a * - b"
 by (rule minus_unique) (simp add: right_distrib [symmetric]) 
 
 text{*Extract signs from products*}
-lemmas mult_minus_left [simp, noatp] = minus_mult_left [symmetric]
-lemmas mult_minus_right [simp,noatp] = minus_mult_right [symmetric]
+lemmas mult_minus_left [simp, no_atp] = minus_mult_left [symmetric]
+lemmas mult_minus_right [simp,no_atp] = minus_mult_right [symmetric]
 
 lemma minus_mult_minus [simp]: "- a * - b = a * b"
 by simp
@@ -236,11 +236,11 @@ by (simp add: right_distrib diff_minus)
 lemma left_diff_distrib[algebra_simps]: "(a - b) * c = a * c - b * c"
 by (simp add: left_distrib diff_minus)
 
-lemmas ring_distribs[noatp] =
+lemmas ring_distribs[no_atp] =
   right_distrib left_distrib left_diff_distrib right_diff_distrib
 
 text{*Legacy - use @{text algebra_simps} *}
-lemmas ring_simps[noatp] = algebra_simps
+lemmas ring_simps[no_atp] = algebra_simps
 
 lemma eq_add_iff1:
   "a * e + c = b * e + d \<longleftrightarrow> (a - b) * e + c = d"
@@ -252,7 +252,7 @@ by (simp add: algebra_simps)
 
 end
 
-lemmas ring_distribs[noatp] =
+lemmas ring_distribs[no_atp] =
   right_distrib left_distrib left_diff_distrib right_diff_distrib
 
 class comm_ring = comm_semiring + ab_group_add
@@ -319,7 +319,7 @@ next
 qed
 
 text{*Cancellation of equalities with a common factor*}
-lemma mult_cancel_right [simp, noatp]:
+lemma mult_cancel_right [simp, no_atp]:
   "a * c = b * c \<longleftrightarrow> c = 0 \<or> a = b"
 proof -
   have "(a * c = b * c) = ((a - b) * c = 0)"
@@ -327,7 +327,7 @@ proof -
   thus ?thesis by (simp add: disj_commute)
 qed
 
-lemma mult_cancel_left [simp, noatp]:
+lemma mult_cancel_left [simp, no_atp]:
   "c * a = c * b \<longleftrightarrow> c = 0 \<or> a = b"
 proof -
   have "(c * a = c * b) = (c * (a - b) = 0)"
@@ -743,7 +743,7 @@ begin
 subclass ordered_ab_group_add ..
 
 text{*Legacy - use @{text algebra_simps} *}
-lemmas ring_simps[noatp] = algebra_simps
+lemmas ring_simps[no_atp] = algebra_simps
 
 lemma less_add_iff1:
   "a * e + c < b * e + d \<longleftrightarrow> (a - b) * e + c < d"
@@ -950,7 +950,7 @@ by (auto simp: mult_less_cancel_left)
 end
 
 text{*Legacy - use @{text algebra_simps} *}
-lemmas ring_simps[noatp] = algebra_simps
+lemmas ring_simps[no_atp] = algebra_simps
 
 lemmas mult_sign_intros =
   mult_nonneg_nonneg mult_nonneg_nonpos
@@ -1099,7 +1099,7 @@ end
 
 text {* Simprules for comparisons where common factors can be cancelled. *}
 
-lemmas mult_compare_simps[noatp] =
+lemmas mult_compare_simps[no_atp] =
     mult_le_cancel_right mult_le_cancel_left
     mult_le_cancel_right1 mult_le_cancel_right2
     mult_le_cancel_left1 mult_le_cancel_left2
@@ -1180,7 +1180,7 @@ proof -
   thus ?thesis by (simp add: ac cpos mult_strict_mono) 
 qed
 
-lemmas eq_minus_self_iff[noatp] = equal_neg_zero
+lemmas eq_minus_self_iff[no_atp] = equal_neg_zero
 
 lemma less_minus_self_iff: "(a < -a) = (a < (0::'a::linordered_idom))"
   unfolding order_less_le less_eq_neg_nonpos equal_neg_zero ..

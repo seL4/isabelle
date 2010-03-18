@@ -1534,12 +1534,12 @@ proof -
   from assms show ?thesis by (simp add: Max_def fold1_belowI)
 qed
 
-lemma Min_ge_iff [simp, noatp]:
+lemma Min_ge_iff [simp, no_atp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "x \<le> Min A \<longleftrightarrow> (\<forall>a\<in>A. x \<le> a)"
   using assms by (simp add: Min_def min_max.below_fold1_iff)
 
-lemma Max_le_iff [simp, noatp]:
+lemma Max_le_iff [simp, no_atp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "Max A \<le> x \<longleftrightarrow> (\<forall>a\<in>A. a \<le> x)"
 proof -
@@ -1548,12 +1548,12 @@ proof -
   from assms show ?thesis by (simp add: Max_def below_fold1_iff)
 qed
 
-lemma Min_gr_iff [simp, noatp]:
+lemma Min_gr_iff [simp, no_atp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "x < Min A \<longleftrightarrow> (\<forall>a\<in>A. x < a)"
   using assms by (simp add: Min_def strict_below_fold1_iff)
 
-lemma Max_less_iff [simp, noatp]:
+lemma Max_less_iff [simp, no_atp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "Max A < x \<longleftrightarrow> (\<forall>a\<in>A. a < x)"
 proof -
@@ -1563,12 +1563,12 @@ proof -
     by (simp add: Max_def dual.strict_below_fold1_iff [folded dual.dual_max])
 qed
 
-lemma Min_le_iff [noatp]:
+lemma Min_le_iff [no_atp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "Min A \<le> x \<longleftrightarrow> (\<exists>a\<in>A. a \<le> x)"
   using assms by (simp add: Min_def fold1_below_iff)
 
-lemma Max_ge_iff [noatp]:
+lemma Max_ge_iff [no_atp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "x \<le> Max A \<longleftrightarrow> (\<exists>a\<in>A. x \<le> a)"
 proof -
@@ -1578,12 +1578,12 @@ proof -
     by (simp add: Max_def dual.fold1_below_iff [folded dual.dual_max])
 qed
 
-lemma Min_less_iff [noatp]:
+lemma Min_less_iff [no_atp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "Min A < x \<longleftrightarrow> (\<exists>a\<in>A. a < x)"
   using assms by (simp add: Min_def fold1_strict_below_iff)
 
-lemma Max_gr_iff [noatp]:
+lemma Max_gr_iff [no_atp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "x < Max A \<longleftrightarrow> (\<exists>a\<in>A. x < a)"
 proof -

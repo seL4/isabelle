@@ -524,13 +524,13 @@ lemma finite [simp]: "finite (A \<Colon> 'a set)"
 
 end
 
-lemma UNIV_unit [noatp]:
+lemma UNIV_unit [no_atp]:
   "UNIV = {()}" by auto
 
 instance unit :: finite proof
 qed (simp add: UNIV_unit)
 
-lemma UNIV_bool [noatp]:
+lemma UNIV_bool [no_atp]:
   "UNIV = {False, True}" by auto
 
 instance bool :: finite proof
@@ -1779,7 +1779,7 @@ lemma card_ge_0_finite:
   "card A > 0 \<Longrightarrow> finite A"
   by (rule ccontr) simp
 
-lemma card_0_eq [simp, noatp]:
+lemma card_0_eq [simp, no_atp]:
   "finite A \<Longrightarrow> card A = 0 \<longleftrightarrow> A = {}"
   by (auto dest: mk_disjoint_insert)
 
@@ -2109,8 +2109,8 @@ proof
   show False by simp (blast dest: Suc_neq_Zero surjD)
 qed
 
-(* Often leads to bogus ATP proofs because of reduced type information, hence noatp *)
-lemma infinite_UNIV_char_0[noatp]:
+(* Often leads to bogus ATP proofs because of reduced type information, hence no_atp *)
+lemma infinite_UNIV_char_0[no_atp]:
   "\<not> finite (UNIV::'a::semiring_char_0 set)"
 proof
   assume "finite (UNIV::'a set)"

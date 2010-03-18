@@ -412,10 +412,11 @@ fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
 fun name_thm_pairs ctxt =
   let
     val (mults, singles) = List.partition is_multi (all_valid_thms ctxt)
-    fun blacklisted (_, th) =
-      run_blacklist_filter andalso Res_Blacklist.blacklisted ctxt th
+    val blacklist =
+      if run_blacklist_filter then No_ATPs.get ctxt |> map Thm.prop_of else []
+    fun is_blacklisted (_, th) = member (op =) blacklist (Thm.prop_of th)
   in
-    filter_out blacklisted
+    filter_out is_blacklisted
       (fold add_single_names singles (fold add_multi_names mults []))
   end;
 

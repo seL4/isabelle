@@ -326,7 +326,7 @@ fun bad_for_atp th =
 
 val multi_base_blacklist =
   ["defs","select_defs","update_defs","induct","inducts","split","splits","split_asm",
-   "cases","ext_cases"];  (* FIXME put other record thms here, or declare as "noatp" *)
+   "cases","ext_cases"];  (* FIXME put other record thms here, or declare as "no_atp" *)
 
 (*Keep the full complexity of the original name*)
 fun flatten_name s = space_implode "_X" (Long_Name.explode s);

@@ -163,16 +163,16 @@ qed
 lemma pprt_0[simp]: "pprt 0 = 0" by (simp add: pprt_def)
 lemma nprt_0[simp]: "nprt 0 = 0" by (simp add: nprt_def)
 
-lemma pprt_eq_id [simp, noatp]: "0 \<le> x \<Longrightarrow> pprt x = x"
+lemma pprt_eq_id [simp, no_atp]: "0 \<le> x \<Longrightarrow> pprt x = x"
   by (simp add: pprt_def sup_aci sup_absorb1)
 
-lemma nprt_eq_id [simp, noatp]: "x \<le> 0 \<Longrightarrow> nprt x = x"
+lemma nprt_eq_id [simp, no_atp]: "x \<le> 0 \<Longrightarrow> nprt x = x"
   by (simp add: nprt_def inf_aci inf_absorb1)
 
-lemma pprt_eq_0 [simp, noatp]: "x \<le> 0 \<Longrightarrow> pprt x = 0"
+lemma pprt_eq_0 [simp, no_atp]: "x \<le> 0 \<Longrightarrow> pprt x = 0"
   by (simp add: pprt_def sup_aci sup_absorb2)
 
-lemma nprt_eq_0 [simp, noatp]: "0 \<le> x \<Longrightarrow> nprt x = 0"
+lemma nprt_eq_0 [simp, no_atp]: "0 \<le> x \<Longrightarrow> nprt x = 0"
   by (simp add: nprt_def inf_aci inf_absorb2)
 
 lemma sup_0_imp_0: "sup a (- a) = 0 \<Longrightarrow> a = 0"
@@ -197,10 +197,10 @@ apply (simp add: sup_commute)
 apply (erule sup_0_imp_0)
 done
 
-lemma inf_0_eq_0 [simp, noatp]: "inf a (- a) = 0 \<longleftrightarrow> a = 0"
+lemma inf_0_eq_0 [simp, no_atp]: "inf a (- a) = 0 \<longleftrightarrow> a = 0"
 by (rule, erule inf_0_imp_0) simp
 
-lemma sup_0_eq_0 [simp, noatp]: "sup a (- a) = 0 \<longleftrightarrow> a = 0"
+lemma sup_0_eq_0 [simp, no_atp]: "sup a (- a) = 0 \<longleftrightarrow> a = 0"
 by (rule, erule sup_0_imp_0) simp
 
 lemma zero_le_double_add_iff_zero_le_single_add [simp]:
@@ -295,10 +295,10 @@ unfolding le_iff_sup by (simp add: pprt_def sup_commute)
 lemma zero_le_iff_nprt_id: "a \<le> 0 \<longleftrightarrow> nprt a = a"
 unfolding le_iff_inf by (simp add: nprt_def inf_commute)
 
-lemma pprt_mono [simp, noatp]: "a \<le> b \<Longrightarrow> pprt a \<le> pprt b"
+lemma pprt_mono [simp, no_atp]: "a \<le> b \<Longrightarrow> pprt a \<le> pprt b"
 unfolding le_iff_sup by (simp add: pprt_def sup_aci sup_assoc [symmetric, of a])
 
-lemma nprt_mono [simp, noatp]: "a \<le> b \<Longrightarrow> nprt a \<le> nprt b"
+lemma nprt_mono [simp, no_atp]: "a \<le> b \<Longrightarrow> nprt a \<le> nprt b"
 unfolding le_iff_inf by (simp add: nprt_def inf_aci inf_assoc [symmetric, of a])
 
 end

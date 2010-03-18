@@ -86,7 +86,7 @@ by (auto simp add: Integ_def intrel_def quotient_def)
 
 text{*Reduces equality on abstractions to equality on representatives:
   @{prop "\<lbrakk>x \<in> Integ; y \<in> Integ\<rbrakk> \<Longrightarrow> (Abs_Integ x = Abs_Integ y) = (x=y)"} *}
-declare Abs_Integ_inject [simp,noatp]  Abs_Integ_inverse [simp,noatp]
+declare Abs_Integ_inject [simp,no_atp]  Abs_Integ_inverse [simp,no_atp]
 
 text{*Case analysis on the representation of an integer as an equivalence
       class of pairs of naturals.*}
@@ -522,7 +522,7 @@ text{*This version is proved for all ordered rings, not just integers!
       It is proved here because attribute @{text arith_split} is not available
       in theory @{text Rings}.
       But is it really better than just rewriting with @{text abs_if}?*}
-lemma abs_split [arith_split,noatp]:
+lemma abs_split [arith_split,no_atp]:
      "P(abs(a::'a::linordered_idom)) = ((0 \<le> a --> P a) & (a < 0 --> P(-a)))"
 by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
 
@@ -1874,16 +1874,16 @@ lemmas right_diff_distrib_number_of [simp] =
 
 text{*These are actually for fields, like real: but where else to put them?*}
 
-lemmas zero_less_divide_iff_number_of [simp, noatp] =
+lemmas zero_less_divide_iff_number_of [simp, no_atp] =
   zero_less_divide_iff [of "number_of w", standard]
 
-lemmas divide_less_0_iff_number_of [simp, noatp] =
+lemmas divide_less_0_iff_number_of [simp, no_atp] =
   divide_less_0_iff [of "number_of w", standard]
 
-lemmas zero_le_divide_iff_number_of [simp, noatp] =
+lemmas zero_le_divide_iff_number_of [simp, no_atp] =
   zero_le_divide_iff [of "number_of w", standard]
 
-lemmas divide_le_0_iff_number_of [simp, noatp] =
+lemmas divide_le_0_iff_number_of [simp, no_atp] =
   divide_le_0_iff [of "number_of w", standard]
 
 
@@ -1896,53 +1896,53 @@ lemmas inverse_eq_divide_number_of [simp] =
 text {*These laws simplify inequalities, moving unary minus from a term
 into the literal.*}
 
-lemmas less_minus_iff_number_of [simp, noatp] =
+lemmas less_minus_iff_number_of [simp, no_atp] =
   less_minus_iff [of "number_of v", standard]
 
-lemmas le_minus_iff_number_of [simp, noatp] =
+lemmas le_minus_iff_number_of [simp, no_atp] =
   le_minus_iff [of "number_of v", standard]
 
-lemmas equation_minus_iff_number_of [simp, noatp] =
+lemmas equation_minus_iff_number_of [simp, no_atp] =
   equation_minus_iff [of "number_of v", standard]
 
-lemmas minus_less_iff_number_of [simp, noatp] =
+lemmas minus_less_iff_number_of [simp, no_atp] =
   minus_less_iff [of _ "number_of v", standard]
 
-lemmas minus_le_iff_number_of [simp, noatp] =
+lemmas minus_le_iff_number_of [simp, no_atp] =
   minus_le_iff [of _ "number_of v", standard]
 
-lemmas minus_equation_iff_number_of [simp, noatp] =
+lemmas minus_equation_iff_number_of [simp, no_atp] =
   minus_equation_iff [of _ "number_of v", standard]
 
 
 text{*To Simplify Inequalities Where One Side is the Constant 1*}
 
-lemma less_minus_iff_1 [simp,noatp]:
+lemma less_minus_iff_1 [simp,no_atp]:
   fixes b::"'b::{linordered_idom,number_ring}"
   shows "(1 < - b) = (b < -1)"
 by auto
 
-lemma le_minus_iff_1 [simp,noatp]:
+lemma le_minus_iff_1 [simp,no_atp]:
   fixes b::"'b::{linordered_idom,number_ring}"
   shows "(1 \<le> - b) = (b \<le> -1)"
 by auto
 
-lemma equation_minus_iff_1 [simp,noatp]:
+lemma equation_minus_iff_1 [simp,no_atp]:
   fixes b::"'b::number_ring"
   shows "(1 = - b) = (b = -1)"
 by (subst equation_minus_iff, auto)
 
-lemma minus_less_iff_1 [simp,noatp]:
+lemma minus_less_iff_1 [simp,no_atp]:
   fixes a::"'b::{linordered_idom,number_ring}"
   shows "(- a < 1) = (-1 < a)"
 by auto
 
-lemma minus_le_iff_1 [simp,noatp]:
+lemma minus_le_iff_1 [simp,no_atp]:
   fixes a::"'b::{linordered_idom,number_ring}"
   shows "(- a \<le> 1) = (-1 \<le> a)"
 by auto
 
-lemma minus_equation_iff_1 [simp,noatp]:
+lemma minus_equation_iff_1 [simp,no_atp]:
   fixes a::"'b::number_ring"
   shows "(- a = 1) = (a = -1)"
 by (subst minus_equation_iff, auto)
@@ -1950,16 +1950,16 @@ by (subst minus_equation_iff, auto)
 
 text {*Cancellation of constant factors in comparisons (@{text "<"} and @{text "\<le>"}) *}
 
-lemmas mult_less_cancel_left_number_of [simp, noatp] =
+lemmas mult_less_cancel_left_number_of [simp, no_atp] =
   mult_less_cancel_left [of "number_of v", standard]
 
-lemmas mult_less_cancel_right_number_of [simp, noatp] =
+lemmas mult_less_cancel_right_number_of [simp, no_atp] =
   mult_less_cancel_right [of _ "number_of v", standard]
 
-lemmas mult_le_cancel_left_number_of [simp, noatp] =
+lemmas mult_le_cancel_left_number_of [simp, no_atp] =
   mult_le_cancel_left [of "number_of v", standard]
 
-lemmas mult_le_cancel_right_number_of [simp, noatp] =
+lemmas mult_le_cancel_right_number_of [simp, no_atp] =
   mult_le_cancel_right [of _ "number_of v", standard]
 
 
