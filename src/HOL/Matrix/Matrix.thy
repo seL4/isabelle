@@ -1015,7 +1015,7 @@ lemma mult_matrix_singleton_right[simp]:
   apply (subst foldseq_almostzero[of _ j])
   apply (simp add: assms)+
   apply (auto)
-  apply (metis comm_monoid_add.mult_1 le_antisym le_diff_eq not_neg_nat zero_le_imp_of_nat zle_int)
+  apply (metis add_0 le_antisym le_diff_eq not_neg_nat zero_le_imp_of_nat zle_int)
   done
 
 lemma mult_matrix_ext:
