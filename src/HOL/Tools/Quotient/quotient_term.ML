@@ -131,12 +131,12 @@ end
 (* produces the rep or abs constant for a qty *)
 fun absrep_const flag ctxt qty_str =
 let
-  val thy = ProofContext.theory_of ctxt
   val qty_name = Long_Name.base_name qty_str
+  val qualifier = Long_Name.qualifier qty_str
 in
   case flag of
-    AbsF => Const (Sign.full_bname thy ("abs_" ^ qty_name), dummyT)
-  | RepF => Const (Sign.full_bname thy ("rep_" ^ qty_name), dummyT)
+    AbsF => Const (Long_Name.qualify qualifier ("abs_" ^ qty_name), dummyT)
+  | RepF => Const (Long_Name.qualify qualifier ("rep_" ^ qty_name), dummyT)
 end
 
 (* Lets Nitpick represent elements of quotient types as elements of the raw type *)

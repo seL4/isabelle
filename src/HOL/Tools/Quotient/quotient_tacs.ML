@@ -289,7 +289,8 @@ end
 fun rep_abs_rsp_tac ctxt =
   SUBGOAL (fn (goal, i) =>
     case (try bare_concl goal) of
-      SOME (rel $ _ $ (rep $ (abs $ _))) =>
+      SOME (rel $ _ $ (rep $ (Bound _ $ _))) => no_tac
+    | SOME (rel $ _ $ (rep $ (abs $ _))) =>
         let
           val thy = ProofContext.theory_of ctxt;
           val (ty_a, ty_b) = dest_fun_type (fastype_of abs);
