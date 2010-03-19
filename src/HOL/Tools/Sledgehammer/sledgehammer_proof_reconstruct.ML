@@ -428,26 +428,33 @@ val proofstart = "proof (neg_clausify)\n";
 fun isar_header [] = proofstart
   | isar_header ts = proofstart ^ "fix " ^ space_implode " " ts ^ "\n";
 
-fun decode_tstp_file cnfs ctxt th sgno thm_names =
-  let val _ = trace_proof_msg (K "\ndecode_tstp_file: start\n")
-      val tuples = map (dest_tstp o tstp_line o explode) cnfs
-      val _ = trace_proof_msg (fn () => Int.toString (length tuples) ^ " tuples extracted\n")
-      val ctxt = ProofContext.set_mode ProofContext.mode_schematic ctxt
-      val raw_lines = List.foldr add_prfline [] (decode_tstp_list ctxt tuples)
-      val _ = trace_proof_msg (fn () => Int.toString (length raw_lines) ^ " raw_lines extracted\n")
-      val nonnull_lines = List.foldr add_nonnull_prfline [] raw_lines
-      val _ = trace_proof_msg (fn () => Int.toString (length nonnull_lines) ^ " nonnull_lines extracted\n")
-      val (_, lines) = List.foldr (add_wanted_prfline ctxt) (0,[]) nonnull_lines
-      val _ = trace_proof_msg (fn () => Int.toString (length lines) ^ " lines extracted\n")
-      val (ccls, fixes) = neg_conjecture_clauses ctxt th sgno
-      val _ = trace_proof_msg (fn () => Int.toString (length ccls) ^ " conjecture clauses\n")
-      val ccls = map forall_intr_vars ccls
-      val _ = app (fn th => trace_proof_msg (fn () => "\nccl: " ^ string_of_thm ctxt th)) ccls
-      val ilines = isar_lines ctxt (map prop_of ccls) (stringify_deps thm_names [] lines)
-      val _ = trace_proof_msg (K "\ndecode_tstp_file: finishing\n")
-  in
-    isar_header (map #1 fixes) ^ implode ilines ^ "qed\n"
-  end handle STREE _ => error "Could not extract proof (ATP output malformed?)";
+fun isar_proof_from_tstp_file cnfs ctxt th sgno thm_names =
+  let
+    val _ = trace_proof_msg (K "\nisar_proof_from_tstp_file: start\n")
+    val tuples = map (dest_tstp o tstp_line o explode) cnfs
+    val _ = trace_proof_msg (fn () =>
+      Int.toString (length tuples) ^ " tuples extracted\n")
+    val ctxt = ProofContext.set_mode ProofContext.mode_schematic ctxt
+    val raw_lines = List.foldr add_prfline [] (decode_tstp_list ctxt tuples)
+    val _ = trace_proof_msg (fn () =>
+      Int.toString (length raw_lines) ^ " raw_lines extracted\n")
+    val nonnull_lines = List.foldr add_nonnull_prfline [] raw_lines
+    val _ = trace_proof_msg (fn () =>
+      Int.toString (length nonnull_lines) ^ " nonnull_lines extracted\n")
+    val (_, lines) = List.foldr (add_wanted_prfline ctxt) (0,[]) nonnull_lines
+    val _ = trace_proof_msg (fn () =>
+      Int.toString (length lines) ^ " lines extracted\n")
+    val (ccls, fixes) = neg_conjecture_clauses ctxt th sgno
+    val _ = trace_proof_msg (fn () =>
+      Int.toString (length ccls) ^ " conjecture clauses\n")
+    val ccls = map forall_intr_vars ccls
+    val _ = app (fn th => trace_proof_msg
+                              (fn () => "\nccl: " ^ string_of_thm ctxt th)) ccls
+    val isar_lines = isar_lines ctxt (map prop_of ccls)
+                                (stringify_deps thm_names [] lines)
+    val _ = trace_proof_msg (K "\nisar_proof_from_tstp_file: finishing\n")
+  in isar_header (map #1 fixes) ^ implode isar_lines ^ "qed\n" end
+  handle STREE _ => error "Could not extract proof (ATP output malformed?)";
 
 
 (*=== EXTRACTING PROOF-TEXT === *)
@@ -530,19 +537,17 @@ fun metis_line [] = "apply metis"
 (* atp_minimize [atp=<prover>] <lemmas> *)
 fun minimize_line _ [] = ""
   | minimize_line name lemmas = "For minimizing the number of lemmas try this command:\n" ^
-        (Markup.markup Markup.sendback) ("atp_minimize [atp=" ^ name ^ "] " ^
-                                         space_implode " " (kill_chained lemmas))
-
-val sendback_metis_no_chained =
-  Markup.markup Markup.sendback o metis_line o kill_chained
+        Markup.markup Markup.sendback ("atp_minimize [atp = " ^ name ^ "] " ^
+                                       space_implode " " (kill_chained lemmas))
 
 fun metis_lemma_list dfg name result =
-  let val (lemmas, used_conj) = extract_lemmas (get_step_nums dfg) result
-  in (sendback_metis_no_chained lemmas ^ "\n" ^ minimize_line name lemmas ^
-    (if used_conj then
-       ""
-     else
-       "\nWarning: The goal is provable because the context is inconsistent."),
+  let val (lemmas, used_conj) = extract_lemmas (get_step_nums dfg) result in
+    (Markup.markup Markup.sendback (metis_line (kill_chained lemmas)) ^ "\n" ^
+     minimize_line name lemmas ^
+     (if used_conj then
+        ""
+      else
+        "\nWarning: The goal is provable because the context is inconsistent."),
      kill_chained lemmas)
   end;
 
@@ -551,15 +556,17 @@ fun structured_isar_proof name (result as (proof, thm_names, conj_count, ctxt,
   let
     (* Could use "split_lines", but it can return blank lines *)
     val lines = String.tokens (equal #"\n");
-    val kill_spaces = String.translate (fn c => if Char.isSpace c then "" else str c)
+    val kill_spaces =
+      String.translate (fn c => if Char.isSpace c then "" else str c)
     val extract = get_proof_extract proof
     val cnfs = filter (String.isPrefix "cnf(") (map kill_spaces (lines extract))
     val (one_line_proof, lemma_names) = metis_lemma_list false name result
-    val structured =
-      if chained_hint mem_string (String.tokens (fn c => c = #" ") one_line_proof) then ""
-      else decode_tstp_file cnfs ctxt goal subgoalno thm_names
+    val tokens = String.tokens (fn c => c = #" ") one_line_proof
+    val isar_proof =
+      if member (op =) tokens chained_hint then ""
+      else isar_proof_from_tstp_file cnfs ctxt goal subgoalno thm_names
   in
-    (one_line_proof ^ "\n\n" ^ Markup.markup Markup.sendback structured,
+    (one_line_proof ^ "\n\n" ^ Markup.markup Markup.sendback isar_proof,
      lemma_names)
   end
 

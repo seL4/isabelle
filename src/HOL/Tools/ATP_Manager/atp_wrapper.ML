@@ -184,7 +184,7 @@ fun vampire_prover_config full : prover_config =
   emit_structured_proof = full};
 
 val vampire = tptp_prover ("vampire", vampire_prover_config false);
-val vampire_full = tptp_prover ("vampire_full", vampire_prover_config true);
+val vampire_isar = tptp_prover ("vampire_isar", vampire_prover_config true);
 
 
 (* E prover *)
@@ -206,7 +206,7 @@ fun eprover_config full : prover_config =
   emit_structured_proof = full};
 
 val eprover = tptp_prover ("e", eprover_config false);
-val eprover_full = tptp_prover ("e_full", eprover_config true);
+val eprover_isar = tptp_prover ("e_isar", eprover_config true);
 
 
 (* SPASS *)
@@ -290,7 +290,7 @@ val remote_spass = tptp_prover ("remote_spass", remote_prover_config
   "SPASS---" "-x" spass_max_new_clauses spass_insert_theory_const);
 
 val provers =
-  [spass, vampire, eprover, vampire_full, eprover_full, spass_no_tc,
+  [spass, vampire, eprover, vampire_isar, eprover_isar, spass_no_tc,
    remote_vampire, remote_spass, remote_eprover]
 val prover_setup = fold add_prover provers
 
