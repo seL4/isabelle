@@ -101,29 +101,10 @@ use "Tools/Sledgehammer/sledgehammer_hol_clause.ML"
 use "Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML"
 setup Sledgehammer_Proof_Reconstruct.setup
 use "Tools/Sledgehammer/sledgehammer_fact_filter.ML"
-
+use "Tools/ATP_Manager/atp_manager.ML"
 use "Tools/ATP_Manager/atp_wrapper.ML"
 setup ATP_Wrapper.setup
-use "Tools/ATP_Manager/atp_manager.ML"
 use "Tools/ATP_Manager/atp_minimal.ML"
-
-text {* basic provers *}
-setup {* ATP_Manager.add_prover ATP_Wrapper.spass *}
-setup {* ATP_Manager.add_prover ATP_Wrapper.vampire *}
-setup {* ATP_Manager.add_prover ATP_Wrapper.eprover *}
-
-text {* provers with stuctured output *}
-setup {* ATP_Manager.add_prover ATP_Wrapper.vampire_full *}
-setup {* ATP_Manager.add_prover ATP_Wrapper.eprover_full *}
-
-text {* on some problems better results *}
-setup {* ATP_Manager.add_prover ATP_Wrapper.spass_no_tc *}
-
-text {* remote provers via SystemOnTPTP *}
-setup {* ATP_Manager.add_prover ATP_Wrapper.remote_vampire *}
-setup {* ATP_Manager.add_prover ATP_Wrapper.remote_spass *}
-setup {* ATP_Manager.add_prover ATP_Wrapper.remote_eprover *}
-
 use "Tools/Sledgehammer/sledgehammer_isar.ML"
 
 

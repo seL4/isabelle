@@ -6,48 +6,15 @@ Wrapper functions for external ATPs.
 
 signature ATP_WRAPPER =
 sig
-  (*hooks for problem files*)
-  val destdir: string Config.T
-  val problem_prefix: string Config.T
-  val measure_runtime: bool Config.T
-  val setup: theory -> theory
+  type prover = ATP_Manager.prover
 
-  (*prover configuration, problem format, and prover result*)
-  type prover_config =
-   {command: Path.T,
-    arguments: int -> string,
-    failure_strs: string list,
-    max_new_clauses: int,
-    insert_theory_const: bool,
-    emit_structured_proof: bool}
-  type problem =
-   {with_full_types: bool,
-    subgoal: int,
-    goal: Proof.context * (thm list * thm),
-    axiom_clauses: (thm * (string * int)) list option,
-    filtered_clauses: (thm * (string * int)) list option}
-  val problem_of_goal: bool -> int -> Proof.context * (thm list * thm) -> problem
-  type prover_result =
-   {success: bool,
-    message: string,
-    theorem_names: string list,
-    runtime: int,
-    proof: string,
-    internal_thm_names: string Vector.vector,
-    filtered_clauses: (thm * (string * int)) list}
-  type prover = int -> problem -> prover_result
+  (* hooks for problem files *)
+  val destdir : string Config.T
+  val problem_prefix : string Config.T
+  val measure_runtime : bool Config.T
 
-  (*common provers*)
-  val vampire: string * prover
-  val vampire_full: string * prover
-  val eprover: string * prover
-  val eprover_full: string * prover
-  val spass: string * prover
-  val spass_no_tc: string * prover
-  val remote_vampire: string * prover
-  val remote_eprover: string * prover
-  val remote_spass: string * prover
-  val refresh_systems: unit -> unit
+  val refresh_systems_on_tptp : unit -> unit
+  val setup : theory -> theory
 end;
 
 structure ATP_Wrapper : ATP_WRAPPER =
@@ -56,6 +23,7 @@ struct
 open Sledgehammer_HOL_Clause
 open Sledgehammer_Fact_Filter
 open Sledgehammer_Proof_Reconstruct
+open ATP_Manager
 
 (** generic ATP wrapper **)
 
@@ -70,10 +38,8 @@ val (problem_prefix, problem_prefix_setup) =
 val (measure_runtime, measure_runtime_setup) =
   Attrib.config_bool "atp_measure_runtime" false;
 
-val setup = destdir_setup #> problem_prefix_setup #> measure_runtime_setup;
 
-
-(* prover configuration, problem format, and prover result *)
+(* prover configuration *)
 
 type prover_config =
  {command: Path.T,
@@ -82,31 +48,6 @@ type prover_config =
   max_new_clauses: int,
   insert_theory_const: bool,
   emit_structured_proof: bool};
-
-type problem =
- {with_full_types: bool,
-  subgoal: int,
-  goal: Proof.context * (thm list * thm),
-  axiom_clauses: (thm * (string * int)) list option,
-  filtered_clauses: (thm * (string * int)) list option};
-
-fun problem_of_goal with_full_types subgoal goal : problem =
- {with_full_types = with_full_types,
-  subgoal = subgoal,
-  goal = goal,
-  axiom_clauses = NONE,
-  filtered_clauses = NONE};
-
-type prover_result =
- {success: bool,
-  message: string,
-  theorem_names: string list,  (*relevant theorems*)
-  runtime: int,  (*user time of the ATP, in milliseconds*)
-  proof: string,
-  internal_thm_names: string Vector.vector,
-  filtered_clauses: (thm * (string * int)) list};
-
-type prover = int -> problem -> prover_result;
 
 
 (* basic template *)
@@ -316,7 +257,8 @@ fun get_systems () =
     else split_lines answer
   end;
 
-fun refresh_systems () = Synchronized.change systems (fn _ => get_systems ());
+fun refresh_systems_on_tptp () =
+  Synchronized.change systems (fn _ => get_systems ());
 
 fun get_system prefix = Synchronized.change_result systems (fn systems =>
   (if null systems then get_systems () else systems)
@@ -346,5 +288,16 @@ val remote_eprover = tptp_prover ("remote_e", remote_prover_config
 
 val remote_spass = tptp_prover ("remote_spass", remote_prover_config
   "SPASS---" "-x" spass_max_new_clauses spass_insert_theory_const);
+
+val provers =
+  [spass, vampire, eprover, vampire_full, eprover_full, spass_no_tc,
+   remote_vampire, remote_spass, remote_eprover]
+val prover_setup = fold add_prover provers
+
+val setup =
+  destdir_setup
+  #> problem_prefix_setup
+  #> measure_runtime_setup
+  #> prover_setup;
 
 end;

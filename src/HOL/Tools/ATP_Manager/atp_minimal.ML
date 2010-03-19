@@ -1,16 +1,19 @@
 (*  Title:      HOL/Tools/ATP_Manager/atp_minimal.ML
     Author:     Philipp Meyer, TU Muenchen
 
-Minimization of theorem list for metis by using an external automated theorem prover
+Minimization of theorem list for Metis using automatic theorem provers.
 *)
 
 signature ATP_MINIMAL =
 sig
+  type prover = ATP_Manager.prover
+  type prover_result = ATP_Manager.prover_result
   type 'a minimize_fun = ('a list -> bool) -> 'a list -> 'a list
+
   val linear_minimize : 'a minimize_fun
   val binary_minimize : 'a minimize_fun
   val minimize_theorems :
-    (string * thm list) minimize_fun -> ATP_Wrapper.prover -> string -> int
+    (string * thm list) minimize_fun -> prover -> string -> int
     -> Proof.state -> (string * thm list) list
     -> (string * thm list) list option * string
 end;
@@ -19,6 +22,7 @@ structure ATP_Minimal : ATP_MINIMAL =
 struct
 
 open Sledgehammer_Fact_Preprocessor
+open ATP_Manager
 
 type 'a minimize_fun = ('a list -> bool) -> 'a list -> 'a list
 
@@ -87,30 +91,29 @@ val failure_strings =
    ("# Cannot determine problem status within resource limit", Timeout),
    ("Error", Error)]
 
-fun produce_answer (result : ATP_Wrapper.prover_result) =
-  let
-    val {success, proof = result_string, internal_thm_names = thm_name_vec,
-      filtered_clauses = filtered, ...} = result
-  in
-    if success then
-      (Success (Vector.foldr (op ::) [] thm_name_vec, filtered), result_string)
-    else
-      let
-        val failure = failure_strings |> get_first (fn (s, t) =>
-            if String.isSubstring s result_string then SOME (t, result_string) else NONE)
-      in
-        (case failure of
-          SOME res => res
-        | NONE => (Failure, result_string))
-      end
-  end
+fun produce_answer ({success, proof, internal_thm_names, filtered_clauses, ...}
+                    : prover_result) =
+  if success then
+    (Success (Vector.foldr (op ::) [] internal_thm_names, filtered_clauses),
+     proof)
+  else
+    let
+      val failure = failure_strings |> get_first (fn (s, t) =>
+          if String.isSubstring s proof then SOME (t, proof) else NONE)
+    in
+      (case failure of
+        SOME res => res
+      | NONE => (Failure, proof))
+    end
 
 
 (* wrapper for calling external prover *)
 
-fun sh_test_thms prover time_limit subgoalno state filtered name_thms_pairs =
+fun sledgehammer_test_theorems prover time_limit subgoalno state filtered
+                               name_thms_pairs =
   let
-    val _ = priority ("Testing " ^ string_of_int (length name_thms_pairs) ^ " theorems... ")
+    val _ = priority ("Testing " ^ string_of_int (length name_thms_pairs) ^
+                      " theorems... ")
     val name_thm_pairs = maps (fn (n, ths) => map (pair n) ths) name_thms_pairs
     val axclauses = cnf_rules_pairs (Proof.theory_of state) name_thm_pairs
     val {context = ctxt, facts, goal} = Proof.goal state
@@ -122,9 +125,7 @@ fun sh_test_thms prover time_limit subgoalno state filtered name_thms_pairs =
       filtered_clauses = filtered}
     val (result, proof) = produce_answer (prover time_limit problem)
     val _ = priority (string_of_result result)
-  in
-    (result, proof)
-  end
+  in (result, proof) end
 
 
 (* minimalization of thms *)
@@ -136,7 +137,7 @@ fun minimize_theorems gen_min prover prover_name time_limit state
       priority ("Minimize called with " ^ string_of_int (length name_thms_pairs) ^
         " theorems, prover: " ^ prover_name ^
         ", time limit: " ^ string_of_int time_limit ^ " seconds")
-    val test_thms_fun = sh_test_thms prover time_limit 1 state
+    val test_thms_fun = sledgehammer_test_theorems prover time_limit 1 state
     fun test_thms filtered thms =
       case test_thms_fun filtered thms of (Success _, _) => true | _ => false
   in
