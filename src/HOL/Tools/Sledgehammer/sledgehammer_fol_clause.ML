@@ -44,19 +44,19 @@ sig
   datatype arLit =
       TConsLit of class * string * string list
     | TVarLit of class * string
-  datatype arityClause = ArityClause of
+  datatype arity_clause = ArityClause of
    {axiom_name: axiom_name, conclLit: arLit, premLits: arLit list}
-  datatype classrelClause = ClassrelClause of
+  datatype classrel_clause = ClassrelClause of
    {axiom_name: axiom_name, subclass: class, superclass: class}
-  val make_classrel_clauses: theory -> class list -> class list -> classrelClause list
-  val make_arity_clauses_dfg: bool -> theory -> string list -> class list -> class list * arityClause list
-  val make_arity_clauses: theory -> string list -> class list -> class list * arityClause list
+  val make_classrel_clauses: theory -> class list -> class list -> classrel_clause list
+  val make_arity_clauses_dfg: bool -> theory -> string list -> class list -> class list * arity_clause list
+  val make_arity_clauses: theory -> string list -> class list -> class list * arity_clause list
   val add_type_sort_preds: typ * int Symtab.table -> int Symtab.table
-  val add_classrelClause_preds : classrelClause * int Symtab.table -> int Symtab.table
+  val add_classrel_clause_preds : classrel_clause * int Symtab.table -> int Symtab.table
   val class_of_arityLit: arLit -> class
-  val add_arityClause_preds: arityClause * int Symtab.table -> int Symtab.table
+  val add_arity_clause_preds: arity_clause * int Symtab.table -> int Symtab.table
   val add_foltype_funcs: fol_type * int Symtab.table -> int Symtab.table
-  val add_arityClause_funcs: arityClause * int Symtab.table -> int Symtab.table
+  val add_arity_clause_funcs: arity_clause * int Symtab.table -> int Symtab.table
   val init_functab: int Symtab.table
   val dfg_sign: bool -> string -> string
   val dfg_of_typeLit: bool -> type_literal -> string
@@ -67,14 +67,14 @@ sig
   val string_of_start: string -> string
   val string_of_descrip : string -> string
   val dfg_tfree_clause : string -> string
-  val dfg_classrelClause: classrelClause -> string
-  val dfg_arity_clause: arityClause -> string
+  val dfg_classrel_clause: classrel_clause -> string
+  val dfg_arity_clause: arity_clause -> string
   val tptp_sign: bool -> string -> string
   val tptp_of_typeLit : bool -> type_literal -> string
   val gen_tptp_cls : int * string * kind * string list * string list -> string
   val tptp_tfree_clause : string -> string
-  val tptp_arity_clause : arityClause -> string
-  val tptp_classrelClause : classrelClause -> string
+  val tptp_arity_clause : arity_clause -> string
+  val tptp_classrel_clause : classrel_clause -> string
 end
 
 structure Sledgehammer_FOL_Clause : SLEDGEHAMMER_FOL_CLAUSE =
@@ -96,28 +96,23 @@ val class_prefix = "class_";
 
 fun union_all xss = List.foldl (uncurry (union (op =))) [] xss;
 
-(*Provide readable names for the more common symbolic functions*)
+(* Provide readable names for the more common symbolic functions *)
 val const_trans_table =
-      Symtab.make [(@{const_name "op ="}, "equal"),
-                   (@{const_name Orderings.less_eq}, "lessequals"),
-                   (@{const_name "op &"}, "and"),
-                   (@{const_name "op |"}, "or"),
-                   (@{const_name "op -->"}, "implies"),
-                   (@{const_name "op :"}, "in"),
-                   ("Sledgehammer.fequal", "fequal"),
-                   ("Sledgehammer.COMBI", "COMBI"),
-                   ("Sledgehammer.COMBK", "COMBK"),
-                   ("Sledgehammer.COMBB", "COMBB"),
-                   ("Sledgehammer.COMBC", "COMBC"),
-                   ("Sledgehammer.COMBS", "COMBS"),
-                   ("Sledgehammer.COMBB'", "COMBB_e"),
-                   ("Sledgehammer.COMBC'", "COMBC_e"),
-                   ("Sledgehammer.COMBS'", "COMBS_e")];
+  Symtab.make [(@{const_name "op ="}, "equal"),
+               (@{const_name Orderings.less_eq}, "lessequals"),
+               (@{const_name "op &"}, "and"),
+               (@{const_name "op |"}, "or"),
+               (@{const_name "op -->"}, "implies"),
+               (@{const_name "op :"}, "in"),
+               (@{const_name fequal}, "fequal"),
+               (@{const_name COMBI}, "COMBI"),
+               (@{const_name COMBK}, "COMBK"),
+               (@{const_name COMBB}, "COMBB"),
+               (@{const_name COMBC}, "COMBC"),
+               (@{const_name COMBS}, "COMBS")];
 
 val type_const_trans_table =
-      Symtab.make [("*", "prod"),
-                   ("+", "sum"),
-                   ("~=>", "map")];
+  Symtab.make [("*", "prod"), ("+", "sum"), ("~=>", "map")];
 
 (*Escaping of special characters.
   Alphanumeric characters are left unchanged.
@@ -290,7 +285,7 @@ exception ARCLAUSE of string;
 datatype arLit = TConsLit of class * string * string list
                | TVarLit of class * string;
 
-datatype arityClause =
+datatype arity_clause =
          ArityClause of {axiom_name: axiom_name,
                          conclLit: arLit,
                          premLits: arLit list};
@@ -316,7 +311,7 @@ fun make_axiom_arity_clause dfg (tcons, axiom_name, (cls,args)) =
 
 (**** Isabelle class relations ****)
 
-datatype classrelClause =
+datatype classrel_clause =
          ClassrelClause of {axiom_name: axiom_name,
                             subclass: class,
                             superclass: class};
@@ -330,13 +325,13 @@ fun class_pairs thy [] supers = []
           fun add_supers (sub,pairs) = List.foldl (add_super sub) pairs supers
       in  List.foldl add_supers [] subs  end;
 
-fun make_classrelClause (sub,super) =
+fun make_classrel_clause (sub,super) =
   ClassrelClause {axiom_name = clrelclause_prefix ^ ascii_of sub ^ "_" ^ ascii_of super,
                   subclass = make_type_class sub,
                   superclass = make_type_class super};
 
 fun make_classrel_clauses thy subs supers =
-  map make_classrelClause (class_pairs thy subs supers);
+  map make_classrel_clause (class_pairs thy subs supers);
 
 
 (** Isabelle arities **)
@@ -391,13 +386,13 @@ fun update_many (tab, keypairs) = List.foldl (uncurry Symtab.update) tab keypair
 fun add_type_sort_preds (T, preds) =
       update_many (preds, map pred_of_sort (sorts_on_typs T));
 
-fun add_classrelClause_preds (ClassrelClause {subclass,superclass,...}, preds) =
+fun add_classrel_clause_preds (ClassrelClause {subclass,superclass,...}, preds) =
   Symtab.update (subclass,1) (Symtab.update (superclass,1) preds);
 
 fun class_of_arityLit (TConsLit (tclass, _, _)) = tclass
   | class_of_arityLit (TVarLit (tclass, _)) = tclass;
 
-fun add_arityClause_preds (ArityClause {conclLit,premLits,...}, preds) =
+fun add_arity_clause_preds (ArityClause {conclLit,premLits,...}, preds) =
   let val classes = map (make_type_class o class_of_arityLit) (conclLit::premLits)
       fun upd (class,preds) = Symtab.update (class,1) preds
   in  List.foldl upd preds classes  end;
@@ -414,7 +409,7 @@ fun add_type_sort_funcs (TVar _, funcs) = funcs
   | add_type_sort_funcs (TFree (a, _), funcs) =
       Symtab.update (make_fixed_type_var a, 0) funcs
 
-fun add_arityClause_funcs (ArityClause {conclLit,...}, funcs) =
+fun add_arity_clause_funcs (ArityClause {conclLit,...}, funcs) =
   let val TConsLit (_, tcons, tvars) = conclLit
   in  Symtab.update (tcons, length tvars) funcs  end;
 
@@ -480,7 +475,7 @@ fun dfg_of_arLit (TConsLit (c,t,args)) =
 
 fun dfg_classrelLits sub sup =  "not(" ^ sub ^ "(T)), " ^ sup ^ "(T)";
 
-fun dfg_classrelClause (ClassrelClause {axiom_name,subclass,superclass,...}) =
+fun dfg_classrel_clause (ClassrelClause {axiom_name,subclass,superclass,...}) =
   "clause(forall([T],\nor( " ^ dfg_classrelLits subclass superclass ^ ")),\n" ^
   axiom_name ^ ").\n\n";
 
@@ -528,7 +523,7 @@ fun tptp_classrelLits sub sup =
   let val tvar = "(T)"
   in  tptp_pack [tptp_sign false (sub^tvar), tptp_sign true (sup^tvar)]  end;
 
-fun tptp_classrelClause (ClassrelClause {axiom_name,subclass,superclass,...}) =
+fun tptp_classrel_clause (ClassrelClause {axiom_name,subclass,superclass,...}) =
   "cnf(" ^ axiom_name ^ ",axiom," ^ tptp_classrelLits subclass superclass ^ ").\n"
 
 end;

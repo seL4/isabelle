@@ -8,6 +8,7 @@ signature SLEDGEHAMMER_FACT_PREPROCESSOR =
 sig
   val trace: bool Unsynchronized.ref
   val trace_msg: (unit -> string) -> unit
+  val skolem_prefix: string
   val cnf_axiom: theory -> thm -> thm list
   val pairname: thm -> string * thm
   val multi_base_blacklist: string list
@@ -15,7 +16,6 @@ sig
   val type_has_topsort: typ -> bool
   val cnf_rules_pairs: theory -> (string * thm) list -> (thm * (string * int)) list
   val neg_clausify: thm list -> thm list
-  val expand_defs_tac: thm -> tactic
   val combinators: thm -> thm
   val neg_conjecture_clauses: Proof.context -> thm -> int -> thm list * (string * typ) list
   val suppress_endtheory: bool Unsynchronized.ref
@@ -26,8 +26,12 @@ end;
 structure Sledgehammer_Fact_Preprocessor : SLEDGEHAMMER_FACT_PREPROCESSOR =
 struct
 
+open Sledgehammer_FOL_Clause
+
 val trace = Unsynchronized.ref false;
-fun trace_msg msg = if ! trace then tracing (msg ()) else ();
+fun trace_msg msg = if !trace then tracing (msg ()) else ();
+
+val skolem_prefix = "sko_"
 
 fun freeze_thm th = #1 (Drule.legacy_freeze_thaw th);
 
@@ -75,7 +79,7 @@ fun declare_skofuns s th =
     fun dec_sko (Const ("Ex",_) $ (xtp as Abs (_, T, p))) (axs, thy) =
           (*Existential: declare a Skolem function, then insert into body and continue*)
           let
-            val cname = "sko_" ^ s ^ "_" ^ Int.toString (Unsynchronized.inc nref)
+            val cname = skolem_prefix ^ s ^ "_" ^ Int.toString (Unsynchronized.inc nref)
             val args0 = OldTerm.term_frees xtp  (*get the formal parameter list*)
             val Ts = map type_of args0
             val extraTs = rhs_extra_types (Ts ---> T) xtp
@@ -110,7 +114,7 @@ fun assume_skofuns s th =
                 val args = subtract (op =) skos (OldTerm.term_frees xtp) (*the formal parameters*)
                 val Ts = map type_of args
                 val cT = Ts ---> T
-                val id = "sko_" ^ s ^ "_" ^ Int.toString (Unsynchronized.inc sko_count)
+                val id = skolem_prefix ^ s ^ "_" ^ Int.toString (Unsynchronized.inc sko_count)
                 val c = Free (id, cT)
                 val rhs = list_abs_free (map dest_Free args,
                                          HOLogic.choice_const T $ xtp)
@@ -386,15 +390,14 @@ fun cnf_rules_pairs_aux _ pairs [] = pairs
   | cnf_rules_pairs_aux thy pairs ((name,th)::ths) =
       let val pairs' = (pair_name_cls 0 (name, cnf_axiom thy th)) @ pairs
                        handle THM _ => pairs |
-                              Sledgehammer_FOL_Clause.CLAUSE _ => pairs
+                              CLAUSE _ => pairs
       in  cnf_rules_pairs_aux thy pairs' ths  end;
 
 (*The combination of rev and tail recursion preserves the original order*)
 fun cnf_rules_pairs thy l = cnf_rules_pairs_aux thy [] (rev l);
 
 
-(**** Convert all facts of the theory into clauses
-      (Sledgehammer_FOL_Clause.clause, or Sledgehammer_HOL_Clause.clause) ****)
+(**** Convert all facts of the theory into FOL or HOL clauses ****)
 
 local
 
@@ -455,43 +458,6 @@ fun clause_cache_endtheory thy =
   lambda_free, but then the individual theory caches become much bigger.*)
 
 
-(*** meson proof methods ***)
-
-(*Expand all new definitions of abstraction or Skolem functions in a proof state.*)
-fun is_absko (Const ("==", _) $ Free (a,_) $ u) = String.isPrefix "sko_" a
-  | is_absko _ = false;
-
-fun is_okdef xs (Const ("==", _) $ t $ u) =   (*Definition of Free, not in certain terms*)
-      is_Free t andalso not (member (op aconv) xs t)
-  | is_okdef _ _ = false
-
-(*This function tries to cope with open locales, which introduce hypotheses of the form
-  Free == t, conjecture clauses, which introduce various hypotheses, and also definitions
-  of sko_ functions. *)
-fun expand_defs_tac st0 st =
-  let val hyps0 = #hyps (rep_thm st0)
-      val hyps = #hyps (crep_thm st)
-      val newhyps = filter_out (member (op aconv) hyps0 o Thm.term_of) hyps
-      val defs = filter (is_absko o Thm.term_of) newhyps
-      val remaining_hyps = filter_out (member (op aconv) (map Thm.term_of defs))
-                                      (map Thm.term_of hyps)
-      val fixed = OldTerm.term_frees (concl_of st) @
-                  fold (union (op aconv)) (map OldTerm.term_frees remaining_hyps) []
-  in Seq.of_list [Local_Defs.expand (filter (is_okdef fixed o Thm.term_of) defs) st] end;
-
-
-fun meson_general_tac ctxt ths i st0 =
-  let
-    val thy = ProofContext.theory_of ctxt
-    val ctxt0 = Classical.put_claset HOL_cs ctxt
-  in (Meson.meson_tac ctxt0 (maps (cnf_axiom thy) ths) i THEN expand_defs_tac st0) st0 end;
-
-val meson_method_setup =
-  Method.setup @{binding meson} (Attrib.thms >> (fn ths => fn ctxt =>
-    SIMPLE_METHOD' (CHANGED_PROP o meson_general_tac ctxt ths)))
-    "MESON resolution proof procedure";
-
-
 (*** Converting a subgoal into negated conjecture clauses. ***)
 
 fun neg_skolemize_tac ctxt =
@@ -534,11 +500,9 @@ val clausify_setup =
   "conversion of theorem to clauses";
 
 
-
 (** setup **)
 
 val setup =
-  meson_method_setup #>
   neg_clausify_setup #>
   clausify_setup #>
   perhaps saturate_skolem_cache #>

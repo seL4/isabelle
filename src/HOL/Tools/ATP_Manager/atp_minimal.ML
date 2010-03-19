@@ -14,7 +14,7 @@ sig
     (string * thm list) list -> ((string * thm list) list * int) option * string
 end
 
-structure ATP_Minimal: ATP_MINIMAL =
+structure ATP_Minimal : ATP_MINIMAL =
 struct
 
 (* Linear minimization *)
@@ -170,7 +170,7 @@ fun gen_minimalize gen_min prover prover_name time_limit state name_thms_pairs =
         (NONE, "Error in prover: " ^ msg)
     | (Failure, _) =>
         (NONE, "Failure: No proof with the theorems supplied"))
-    handle Sledgehammer_HOL_Clause.TOO_TRIVIAL =>
+    handle Sledgehammer_HOL_Clause.TRIVIAL =>
         (SOME ([], 0), "Trivial: Try this command: " ^ Markup.markup Markup.sendback "apply metis")
       | ERROR msg => (NONE, "Error: " ^ msg)
   end
