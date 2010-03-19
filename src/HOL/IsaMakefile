@@ -320,6 +320,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Sledgehammer/sledgehammer_fact_preprocessor.ML \
   Tools/Sledgehammer/sledgehammer_fol_clause.ML \
   Tools/Sledgehammer/sledgehammer_hol_clause.ML \
+  Tools/Sledgehammer/sledgehammer_isar.ML \
   Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML \
   Tools/string_code.ML \
   Tools/string_syntax.ML \

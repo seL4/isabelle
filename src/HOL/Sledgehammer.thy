@@ -20,6 +20,7 @@ uses
   ("Tools/ATP_Manager/atp_manager.ML")
   ("Tools/ATP_Manager/atp_wrapper.ML")
   ("Tools/ATP_Manager/atp_minimal.ML")
+  ("Tools/Sledgehammer/sledgehammer_isar.ML")
   ("Tools/Sledgehammer/meson_tactic.ML")
   ("Tools/Sledgehammer/metis_tactics.ML")
 begin
@@ -90,6 +91,7 @@ apply (rule ext)
 apply (simp add: COMBC_def) 
 done
 
+
 subsection {* Setup of external ATPs *}
 
 use "Tools/Sledgehammer/sledgehammer_fol_clause.ML"
@@ -121,6 +123,8 @@ text {* remote provers via SystemOnTPTP *}
 setup {* ATP_Manager.add_prover ATP_Wrapper.remote_vampire *}
 setup {* ATP_Manager.add_prover ATP_Wrapper.remote_spass *}
 setup {* ATP_Manager.add_prover ATP_Wrapper.remote_eprover *}
+
+use "Tools/Sledgehammer/sledgehammer_isar.ML"
 
 
 subsection {* The MESON prover *}

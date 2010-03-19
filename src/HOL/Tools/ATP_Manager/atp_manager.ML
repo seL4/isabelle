@@ -282,36 +282,4 @@ fun sledgehammer names proof_state =
     val _ = List.app (fn name => start_prover name birth_time death_time 1 proof_state) provers;
   in () end;
 
-
-
-(** Isar command syntax **)
-
-local structure K = OuterKeyword and P = OuterParse in
-
-val _ =
-  OuterSyntax.improper_command "atp_kill" "kill all managed provers" K.diag
-    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative kill));
-
-val _ =
-  OuterSyntax.improper_command "atp_info" "print information about managed provers" K.diag
-    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative info));
-
-val _ =
-  OuterSyntax.improper_command "atp_messages" "print recent messages issued by managed provers" K.diag
-    (Scan.option (P.$$$ "(" |-- P.nat --| P.$$$ ")") >>
-      (fn limit => Toplevel.no_timing o Toplevel.imperative (fn () => messages limit)));
-
-val _ =
-  OuterSyntax.improper_command "print_atps" "print external provers" K.diag
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_theory o
-      Toplevel.keep (print_provers o Toplevel.theory_of)));
-
-val _ =
-  OuterSyntax.command "sledgehammer" "call all automatic theorem provers" K.diag
-    (Scan.repeat P.xname >> (fn names => Toplevel.no_timing o Toplevel.unknown_proof o
-      Toplevel.keep (sledgehammer names o Toplevel.proof_of)));
-
 end;
-
-end;
-

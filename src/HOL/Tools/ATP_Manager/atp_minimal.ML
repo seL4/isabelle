@@ -6,27 +6,31 @@ Minimization of theorem list for metis by using an external automated theorem pr
 
 signature ATP_MINIMAL =
 sig
-  val minimize: ATP_Wrapper.prover -> string -> int -> Proof.state ->
-    (string * thm list) list -> ((string * thm list) list * int) option * string
-  (* To be removed once TN has finished his measurements;
-     the int component of the result should then be removed: *)
-  val minimalize: ATP_Wrapper.prover -> string -> int -> Proof.state ->
-    (string * thm list) list -> ((string * thm list) list * int) option * string
-end
+  type 'a minimize_fun = ('a list -> bool) -> 'a list -> 'a list
+  val linear_minimize : 'a minimize_fun
+  val binary_minimize : 'a minimize_fun
+  val minimize_theorems :
+    (string * thm list) minimize_fun -> ATP_Wrapper.prover -> string -> int
+    -> Proof.state -> (string * thm list) list
+    -> (string * thm list) list option * string
+end;
 
 structure ATP_Minimal : ATP_MINIMAL =
 struct
 
-(* Linear minimization *)
+open Sledgehammer_Fact_Preprocessor
 
-fun lin_gen_minimize p s =
-let
-  fun min [] needed = needed
-    | min (x::xs) needed =
-        if p(xs @ needed) then min xs needed else min xs (x::needed)
-in (min s [], length s) end;
+type 'a minimize_fun = ('a list -> bool) -> 'a list -> 'a list
 
-(* Clever minimalization algorithm *)
+(* Linear minimization algorithm *)
+
+fun linear_minimize p s =
+  let
+    fun aux [] needed = needed
+      | aux (x :: xs) needed = aux xs (needed |> not (p (xs @ needed)) ? cons x)
+  in aux s [] end;
+
+(* Binary minimalization *)
 
 local
   fun isplit (l, r) [] = (l, r)
@@ -37,24 +41,21 @@ in
 end
 
 local
-  fun min p sup [] = raise Empty
-    | min p sup [s0] = [s0]
+  fun min _ _ [] = raise Empty
+    | min _ _ [s0] = [s0]
     | min p sup s =
       let
         val (l0, r0) = split s
       in
-        if p (sup @ l0)
-        then min p sup l0
+        if p (sup @ l0) then
+          min p sup l0
+        else if p (sup @ r0) then
+          min p sup r0
         else
-          if p (sup @ r0)
-          then min p sup r0
-          else
-            let
-              val l = min p (sup @ r0) l0
-              val r = min p (sup @ l) r0
-            in
-              l @ r
-            end
+          let
+            val l = min p (sup @ r0) l0
+            val r = min p (sup @ l) r0
+          in l @ r end
       end
 in
   (* return a minimal subset v of s that satisfies p
@@ -62,15 +63,10 @@ in
    @post v subset s & p(v) &
          forall e in v. ~p(v \ e)
    *)
-  fun minimal p s =
-    let
-      val count = Unsynchronized.ref 0
-      fun p_count xs = (Unsynchronized.inc count; p xs)
-      val v =
-        (case min p_count [] s of
-          [x] => if p_count [] then [] else [x]
-        | m => m);
-    in (v, ! count) end
+  fun binary_minimize p s =
+    case min p [] s of
+      [x] => if p [] then [] else [x]
+    | m => m
 end
 
 
@@ -91,7 +87,7 @@ val failure_strings =
    ("# Cannot determine problem status within resource limit", Timeout),
    ("Error", Error)]
 
-fun produce_answer (result: ATP_Wrapper.prover_result) =
+fun produce_answer (result : ATP_Wrapper.prover_result) =
   let
     val {success, proof = result_string, internal_thm_names = thm_name_vec,
       filtered_clauses = filtered, ...} = result
@@ -116,7 +112,7 @@ fun sh_test_thms prover time_limit subgoalno state filtered name_thms_pairs =
   let
     val _ = priority ("Testing " ^ string_of_int (length name_thms_pairs) ^ " theorems... ")
     val name_thm_pairs = maps (fn (n, ths) => map (pair n) ths) name_thms_pairs
-    val axclauses = Sledgehammer_Fact_Preprocessor.cnf_rules_pairs (Proof.theory_of state) name_thm_pairs
+    val axclauses = cnf_rules_pairs (Proof.theory_of state) name_thm_pairs
     val {context = ctxt, facts, goal} = Proof.goal state
     val problem =
      {with_full_types = ! ATP_Manager.full_types,
@@ -133,7 +129,8 @@ fun sh_test_thms prover time_limit subgoalno state filtered name_thms_pairs =
 
 (* minimalization of thms *)
 
-fun gen_minimalize gen_min prover prover_name time_limit state name_thms_pairs =
+fun minimize_theorems gen_min prover prover_name time_limit state
+                      name_thms_pairs =
   let
     val _ =
       priority ("Minimize called with " ^ string_of_int (length name_thms_pairs) ^
@@ -152,15 +149,14 @@ fun gen_minimalize gen_min prover prover_name time_limit state name_thms_pairs =
             if length ordered_used < length name_thms_pairs then
               filter (fn (name1, _) => List.exists (equal name1) ordered_used) name_thms_pairs
             else name_thms_pairs
-          val (min_thms, n) =
-            if null to_use then ([], 0)
+          val min_thms =
+            if null to_use then []
             else gen_min (test_thms (SOME filtered)) to_use
           val min_names = sort_distinct string_ord (map fst min_thms)
           val _ = priority (cat_lines
-            ["Iterations: " ^ string_of_int n (* FIXME TN remove later *),
-             "Minimal " ^ string_of_int (length min_thms) ^ " theorems"])
+            ["Minimal " ^ string_of_int (length min_thms) ^ " theorems"])
         in
-          (SOME (min_thms, n), "Try this command: " ^
+          (SOME min_thms, "Try this command: " ^
             Markup.markup Markup.sendback ("apply (metis " ^ space_implode " " min_names ^ ")"))
         end
     | (Timeout, _) =>
@@ -171,67 +167,8 @@ fun gen_minimalize gen_min prover prover_name time_limit state name_thms_pairs =
     | (Failure, _) =>
         (NONE, "Failure: No proof with the theorems supplied"))
     handle Sledgehammer_HOL_Clause.TRIVIAL =>
-        (SOME ([], 0), "Trivial: Try this command: " ^ Markup.markup Markup.sendback "apply metis")
+        (SOME [], "Trivial: Try this command: " ^ Markup.markup Markup.sendback "apply metis")
       | ERROR msg => (NONE, "Error: " ^ msg)
   end
 
-
-(* Isar command and parsing input *)
-
-local structure K = OuterKeyword and P = OuterParse and T = OuterLex in
-
-fun get_thms context =
-  map (fn (name, interval) =>
-    let
-      val thmref = Facts.Named ((name, Position.none), interval)
-      val ths = ProofContext.get_fact context thmref
-      val name' = Facts.string_of_ref thmref
-    in
-      (name', ths)
-    end)
-
-val default_prover = "remote_vampire"
-val default_time_limit = 5
-
-fun get_time_limit_arg time_string =
-  (case Int.fromString time_string of
-    SOME t => t
-  | NONE => error ("Invalid time limit: " ^ quote time_string))
-
-fun get_opt (name, a) (p, t) =
-  (case name of
-    "time" => (p, get_time_limit_arg a)
-  | "atp" => (a, t)
-  | n => error ("Invalid argument: " ^ n))
-
-fun get_options args = fold get_opt args (default_prover, default_time_limit)
-
-val minimize = gen_minimalize lin_gen_minimize
-
-val minimalize = gen_minimalize minimal
-
-fun sh_min_command args thm_names state =
-  let
-    val (prover_name, time_limit) = get_options args
-    val prover =
-      (case ATP_Manager.get_prover (Proof.theory_of state) prover_name of
-        SOME prover => prover
-      | NONE => error ("Unknown prover: " ^ quote prover_name))
-    val name_thms_pairs = get_thms (Proof.context_of state) thm_names
-  in
-    writeln (#2 (minimize prover prover_name time_limit state name_thms_pairs))
-  end
-
-val parse_args =
-  Scan.optional (Args.bracks (P.list (P.xname --| P.$$$ "=" -- P.xname))) []
-val parse_thm_names = Scan.repeat (P.xname -- Scan.option Attrib.thm_sel)
-
-val _ =
-  OuterSyntax.command "atp_minimize" "minimize theorem list with external prover" K.diag
-    (parse_args -- parse_thm_names >> (fn (args, thm_names) =>
-      Toplevel.no_timing o Toplevel.unknown_proof o
-        Toplevel.keep (sh_min_command args thm_names o Toplevel.proof_of)))
-
-end
-
-end
+end;
