@@ -34,7 +34,7 @@ fun pretty_const pp (c, args) =
   let
     val prt_args =
       if null args then []
-      else [Pretty.list "(" ")" (map (Pretty.typ pp o Logic.unvarifyT) args)];
+      else [Pretty.list "(" ")" (map (Pretty.typ pp o Logic.unvarifyT_global) args)];
   in Pretty.block (Pretty.str c :: prt_args) end;
 
 fun plain_args args =

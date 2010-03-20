@@ -59,7 +59,7 @@ sig
     (ctyp * ctyp) list * (cterm * cterm) list
   val certify_instantiate:
     ((indexname * sort) * typ) list * ((indexname * typ) * term) list -> thm -> thm
-  val unvarify: thm -> thm
+  val unvarify_global: thm -> thm
   val close_derivation: thm -> thm
   val add_axiom: binding * term -> theory -> thm * theory
   val add_def: bool -> bool -> binding * term -> theory -> thm * theory
@@ -295,12 +295,12 @@ fun certify_instantiate insts th =
   Thm.instantiate (certify_inst (Thm.theory_of_thm th) insts) th;
 
 
-(* unvarify: global schematic variables *)
+(* unvarify_global: global schematic variables *)
 
-fun unvarify th =
+fun unvarify_global th =
   let
     val prop = Thm.full_prop_of th;
-    val _ = map Logic.unvarify (prop :: Thm.hyps_of th)
+    val _ = map Logic.unvarify_global (prop :: Thm.hyps_of th)
       handle TERM (msg, _) => raise THM (msg, 0, [th]);
 
     val instT = rev (Term.add_tvars prop []) |> map (fn v as ((a, _), S) => (v, TFree (a, S)));
@@ -326,7 +326,7 @@ fun add_axiom (b, prop) thy =
   let
     val b' = if Binding.is_empty b then Binding.name ("axiom_" ^ serial_string ()) else b;
     val thy' = thy |> Theory.add_axioms_i [(b', prop)];
-    val axm = unvarify (Thm.axiom thy' (Sign.full_name thy' b'));
+    val axm = unvarify_global (Thm.axiom thy' (Sign.full_name thy' b'));
   in (axm, thy') end;
 
 fun add_def unchecked overloaded (b, prop) thy =
@@ -334,12 +334,12 @@ fun add_def unchecked overloaded (b, prop) thy =
     val tfrees = rev (map TFree (Term.add_tfrees prop []));
     val tfrees' = map (fn a => TFree (a, [])) (Name.invents Name.context Name.aT (length tfrees));
     val strip_sorts = tfrees ~~ tfrees';
-    val recover_sorts = map (pairself (Thm.ctyp_of thy o Logic.varifyT)) (tfrees' ~~ tfrees);
+    val recover_sorts = map (pairself (Thm.ctyp_of thy o Logic.varifyT_global)) (tfrees' ~~ tfrees);
 
     val prop' = Term.map_types (Term.map_atyps (perhaps (AList.lookup (op =) strip_sorts))) prop;
     val thy' = Theory.add_defs_i unchecked overloaded [(b, prop')] thy;
     val axm' = Thm.axiom thy' (Sign.full_name thy' b);
-    val thm = unvarify (Thm.instantiate (recover_sorts, []) axm');
+    val thm = unvarify_global (Thm.instantiate (recover_sorts, []) axm');
   in (thm, thy') end;
 
 

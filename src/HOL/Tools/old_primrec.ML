@@ -35,7 +35,7 @@ fun primrec_eq_err thy s eq =
 fun unify_consts thy cs intr_ts =
   (let
     fun varify t (i, ts) =
-      let val t' = map_types (Logic.incr_tvar (i + 1)) (snd (Type.varify [] t))
+      let val t' = map_types (Logic.incr_tvar (i + 1)) (snd (Type.varify_global [] t))
       in (maxidx_of_term t', t'::ts) end;
     val (i, cs') = fold_rev varify cs (~1, []);
     val (i', intr_ts') = fold_rev varify intr_ts (i, []);
@@ -281,7 +281,7 @@ fun gen_primrec_i note def alt_name eqns_atts thy =
       thy'
       |> fold_map note ((map fst eqns ~~ atts) ~~ map single simps);
     val simps'' = maps snd simps';
-    val lhss = map (Logic.varify o fst o Logic.dest_equals o snd) defs';
+    val lhss = map (Logic.varify_global o fst o Logic.dest_equals o snd) defs';
   in
     thy''
     |> note (("simps",

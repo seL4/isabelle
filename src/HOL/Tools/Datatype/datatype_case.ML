@@ -46,7 +46,7 @@ fun ty_info tab sT =
       in
         SOME {case_name = case_name,
           constructors = map (fn (cname, dts') =>
-            Const (cname, Logic.varifyT (map mk_ty dts' ---> T))) constrs}
+            Const (cname, Logic.varifyT_global (map mk_ty dts' ---> T))) constrs}
       end
   | NONE => NONE;
 
@@ -87,7 +87,7 @@ fun fresh_constr ty_match ty_inst colty used c =
     val (_, Ty) = dest_Const c
     val Ts = binder_types Ty;
     val names = Name.variant_list used
-      (Datatype_Prop.make_tnames (map Logic.unvarifyT Ts));
+      (Datatype_Prop.make_tnames (map Logic.unvarifyT_global Ts));
     val ty = body_type Ty;
     val ty_theta = ty_match ty colty handle Type.TYPE_MATCH =>
       raise CASE_ERROR ("type mismatch", ~1)

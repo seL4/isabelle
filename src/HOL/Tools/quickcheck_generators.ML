@@ -316,7 +316,7 @@ fun mk_random_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy
 fun perhaps_constrain thy insts raw_vs =
   let
     fun meet_random (T, sort) = Sorts.meet_sort (Sign.classes_of thy) 
-      (Logic.varifyT T, sort);
+      (Logic.varifyT_global T, sort);
     val vtab = Vartab.empty
       |> fold (fn (v, sort) => Vartab.update ((v, 0), sort)) raw_vs
       |> fold meet_random insts;

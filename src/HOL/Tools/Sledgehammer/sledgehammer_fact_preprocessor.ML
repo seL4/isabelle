@@ -267,7 +267,7 @@ fun skolem_of_def def =
   in  Goal.prove_internal [ex_tm] conc tacf
        |> forall_intr_list frees
        |> Thm.forall_elim_vars 0  (*Introduce Vars, but don't discharge defs.*)
-       |> Thm.varifyT
+       |> Thm.varifyT_global
   end;
 
 

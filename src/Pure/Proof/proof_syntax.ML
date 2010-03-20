@@ -217,7 +217,7 @@ fun read_term thy =
 
 fun read_proof thy =
   let val rd = read_term thy proofT
-  in fn ty => fn s => proof_of_term thy ty (Logic.varify (rd s)) end;
+  in fn ty => fn s => proof_of_term thy ty (Logic.varify_global (rd s)) end;
 
 fun proof_syntax prf =
   let

@@ -290,6 +290,10 @@ needs to be pure.  Functor Theory_Data_PP retains the traditional
 Pretty.pp argument to merge, which is absent in the standard
 Theory_Data version.
 
+* Renamed varify/unvarify operations to varify_global/unvarify_global
+to emphasize that these only work in a global situation (which is
+quite rare).
+
 
 *** System ***
 

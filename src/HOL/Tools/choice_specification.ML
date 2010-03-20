@@ -90,9 +90,9 @@ fun collect_consts (        t $ u,tms) = collect_consts (u,collect_consts (t,tms
   | collect_consts (tm as Const _,tms) = insert (op aconv) tm tms
   | collect_consts (            _,tms) = tms
 
-(* Complementing Type.varify... *)
+(* Complementing Type.varify_global... *)
 
-fun unvarify t fmap =
+fun unvarify_global t fmap =
     let
         val fmap' = map Library.swap fmap
         fun unthaw (f as (a, S)) =
@@ -135,7 +135,7 @@ fun process_spec axiomatic cos alt_props thy =
         val prop  = myfoldr HOLogic.mk_conj (map fst props'')
         val cprop = cterm_of thy (HOLogic.mk_Trueprop prop)
 
-        val (vmap, prop_thawed) = Type.varify [] prop
+        val (vmap, prop_thawed) = Type.varify_global [] prop
         val thawed_prop_consts = collect_consts (prop_thawed,[])
         val (altcos,overloaded) = Library.split_list cos
         val (names,sconsts) = Library.split_list altcos
@@ -145,14 +145,14 @@ fun process_spec axiomatic cos alt_props thy =
 
         fun proc_const c =
             let
-                val (_, c') = Type.varify [] c
+                val (_, c') = Type.varify_global [] c
                 val (cname,ctyp) = dest_Const c'
             in
                 case filter (fn t => let val (name,typ) = dest_Const t
                                      in name = cname andalso Sign.typ_equiv thy (typ, ctyp)
                                      end) thawed_prop_consts of
                     [] => error ("Specification: No suitable instances of constant \"" ^ Syntax.string_of_term_global thy c ^ "\" found")
-                  | [cf] => unvarify cf vmap
+                  | [cf] => unvarify_global cf vmap
                   | _ => error ("Specification: Several variations of \"" ^ Syntax.string_of_term_global thy c ^ "\" found (try applying explicit type constraints)")
             end
         val proc_consts = map proc_const consts

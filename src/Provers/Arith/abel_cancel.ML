@@ -88,7 +88,7 @@ fun sum_proc ss t =
 
 val sum_conv =
   Simplifier.mk_simproc "cancel_sums"
-    (map (Drule.cterm_fun Logic.varify) Data.sum_pats) (K sum_proc);
+    (map (Drule.cterm_fun Logic.varify_global) Data.sum_pats) (K sum_proc);
 
 
 (*A simproc to cancel like terms on the opposite sides of relations:

@@ -441,7 +441,7 @@ fun gen_add_consts parse_typ raw_args thy =
         val c = full_name thy b;
         val T = (prepT raw_T handle TYPE (msg, _, _) => error msg) handle ERROR msg =>
           cat_error msg ("in declaration of constant " ^ quote (Binding.str_of b));
-        val T' = Logic.varifyT T;
+        val T' = Logic.varifyT_global T;
       in ((b, T'), (Syntax.mark_const c, T', mx), Const (c, T)) end;
     val args = map prep raw_args;
   in
@@ -486,7 +486,7 @@ fun revert_abbrev mode c = map_consts (Consts.revert_abbrev mode c);
 fun add_const_constraint (c, opt_T) thy =
   let
     fun prepT raw_T =
-      let val T = Logic.varifyT (Type.no_tvars (Term.no_dummyT (certify_typ thy raw_T)))
+      let val T = Logic.varifyT_global (Type.no_tvars (Term.no_dummyT (certify_typ thy raw_T)))
       in cert_term thy (Const (c, T)); T end
       handle TYPE (msg, _, _) => error msg;
   in thy |> map_consts (Consts.constrain (c, Option.map prepT opt_T)) end;

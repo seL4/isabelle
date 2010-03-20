@@ -177,7 +177,7 @@ local
 
 fun gen_add_axioms prep_axm raw_axms thy = thy |> map_axioms (fn axioms =>
   let
-    val axms = map (apsnd Logic.varify o prep_axm thy) raw_axms;
+    val axms = map (apsnd Logic.varify_global o prep_axm thy) raw_axms;
     val axioms' = fold (#2 oo Name_Space.define true (Sign.naming_of thy)) axms axioms;
   in axioms' end);
 
@@ -200,7 +200,7 @@ fun dependencies thy unchecked def description lhs rhs =
     val consts = Sign.consts_of thy;
     fun prep const =
       let val Const (c, T) = Sign.no_vars pp (Const const)
-      in (c, Consts.typargs consts (c, Logic.varifyT T)) end;
+      in (c, Consts.typargs consts (c, Logic.varifyT_global T)) end;
 
     val lhs_vars = Term.add_tfreesT (#2 lhs) [];
     val rhs_extras = fold (#2 #> Term.fold_atyps (fn TFree v =>
@@ -229,7 +229,7 @@ fun check_overloading thy overloaded (c, T) =
   let
     val declT = Sign.the_const_constraint thy c
       handle TYPE (msg, _, _) => error msg;
-    val T' = Logic.varifyT T;
+    val T' = Logic.varifyT_global T;
 
     fun message txt =
       [Pretty.block [Pretty.str "Specification of constant ",

@@ -61,7 +61,7 @@ fun typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
         let
           val exists_thm =
             UNIV_I
-            |> Drule.instantiate' [SOME (ctyp_of thy (Logic.varifyT ty_rep))] [];
+            |> Drule.instantiate' [SOME (ctyp_of thy (Logic.varifyT_global ty_rep))] [];
           val inject' = inject OF [exists_thm, exists_thm];
           val proj_def = inverse OF [exists_thm];
           val info = {
@@ -95,7 +95,7 @@ fun add_default_code tyco thy =
       typ = ty_rep, ... } = get_info thy tyco;
     (* FIXME handle multiple typedef interpretations (!??) *)
     val [{ Rep_inject = proj_inject, ... }] = Typedef.get_info_global thy tyco;
-    val constr = (c, Logic.unvarifyT (Sign.the_const_type thy c));
+    val constr = (c, Logic.unvarifyT_global (Sign.the_const_type thy c));
     val ty = Type (tyco, map TFree vs);
     val proj = Const (proj, ty --> ty_rep);
     val (t_x, t_y) = (Free ("x", ty), Free ("y", ty));
@@ -109,7 +109,7 @@ fun add_default_code tyco thy =
           THEN ALLGOALS (rtac @{thm refl});
     fun mk_eq_refl thy = @{thm HOL.eq_refl}
       |> Thm.instantiate
-         ([pairself (Thm.ctyp_of thy) (TVar (("'a", 0), @{sort eq}), Logic.varifyT ty)], [])
+         ([pairself (Thm.ctyp_of thy) (TVar (("'a", 0), @{sort eq}), Logic.varifyT_global ty)], [])
       |> AxClass.unoverload thy;
   in
     thy

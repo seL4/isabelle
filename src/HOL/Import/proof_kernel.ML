@@ -1418,7 +1418,7 @@ fun INST_TYPE lambda (hth as HOLThm(rens,th)) thy =
         val _ = message "INST_TYPE:"
         val _ = if_debug pth hth
         val tys_before = OldTerm.add_term_tfrees (prop_of th,[])
-        val th1 = Thm.varifyT th
+        val th1 = Thm.varifyT_global th
         val tys_after = OldTerm.add_term_tvars (prop_of th1,[])
         val tyinst = map (fn (bef, iS) =>
                              (case try (Lib.assoc (TFree bef)) lambda of
@@ -2028,7 +2028,7 @@ fun new_specification thyname thmname names hth thy =
                                  names'
                                  (thy1,th)
             val _ = ImportRecorder.add_specification names' th
-            val res' = Thm.unvarify res
+            val res' = Thm.unvarify_global res
             val hth = HOLThm(rens,res')
             val rew = rewrite_hol4_term (concl_of res') thy'
             val th  = equal_elim rew res'

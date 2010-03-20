@@ -128,7 +128,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
         (Binding.qualified_name (space_implode "_" (ind_name :: vs @ ["correctness"])), thm)
       ||> Sign.restore_naming thy;
 
-    val ivs = rev (Term.add_vars (Logic.varify (Datatype_Prop.make_ind [descr] sorts)) []);
+    val ivs = rev (Term.add_vars (Logic.varify_global (Datatype_Prop.make_ind [descr] sorts)) []);
     val rvs = rev (Thm.fold_terms Term.add_vars thm' []);
     val ivs1 = map Var (filter_out (fn (_, T) =>  (* FIXME set (!??) *)
       tname_of (body_type T) mem [@{type_abbrev set}, @{type_name bool}]) ivs);
@@ -139,7 +139,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
         (fold_rev (fn (f, p) => fn prf =>
           (case head_of (strip_abs_body f) of
              Free (s, T) =>
-               let val T' = Logic.varifyT T
+               let val T' = Logic.varifyT_global T
                in Abst (s, SOME T', Proofterm.prf_abstract_over
                  (Var ((s, 0), T')) (AbsP ("H", SOME p, prf)))
                end
@@ -149,8 +149,8 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
 
     val r' =
       if null is then r
-      else Logic.varify (fold_rev lambda
-        (map Logic.unvarify ivs1 @ filter_out is_unit
+      else Logic.varify_global (fold_rev lambda
+        (map Logic.unvarify_global ivs1 @ filter_out is_unit
             (map (head_of o strip_abs_body) rec_fns)) r);
 
   in Extraction.add_realizers_i [(ind_name, (vs, r', prf))] thy' end;
@@ -179,7 +179,7 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaust, ...}
     val (rs, prems) = split_list (map (make_casedist_prem T) constrs);
     val r = Const (case_name, map fastype_of rs ---> T --> rT);
 
-    val y = Var (("y", 0), Logic.varifyT T);
+    val y = Var (("y", 0), Logic.varifyT_global T);
     val y' = Free ("y", T);
 
     val thm = OldGoals.prove_goalw_cterm [] (cert (Logic.list_implies (prems,
@@ -200,10 +200,10 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaust, ...}
     val P = Var (("P", 0), rT' --> HOLogic.boolT);
     val prf = forall_intr_prf (y, forall_intr_prf (P,
       fold_rev (fn (p, r) => fn prf =>
-          forall_intr_prf (Logic.varify r, AbsP ("H", SOME (Logic.varify p), prf)))
+          forall_intr_prf (Logic.varify_global r, AbsP ("H", SOME (Logic.varify_global p), prf)))
         (prems ~~ rs)
         (Proofterm.proof_combP (prf_of thm', map PBound (length prems - 1 downto 0)))));
-    val r' = Logic.varify (Abs ("y", T,
+    val r' = Logic.varify_global (Abs ("y", T,
       list_abs (map dest_Free rs, list_comb (r,
         map Bound ((length rs - 1 downto 0) @ [length rs])))));
 

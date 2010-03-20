@@ -206,7 +206,7 @@ structure ExtractionData = Theory_Data
 fun read_condeq thy =
   let val thy' = add_syntax thy
   in fn s =>
-    let val t = Logic.varify (Syntax.read_prop_global thy' s)
+    let val t = Logic.varify_global (Syntax.read_prop_global thy' s)
     in
       (map Logic.dest_equals (Logic.strip_imp_prems t),
         Logic.dest_equals (Logic.strip_imp_concl t))
@@ -732,7 +732,7 @@ fun extract thms thy =
            in
              thy'
              |> PureThy.store_thm (Binding.qualified_name (corr_name s vs),
-                  Thm.varifyT (funpow (length (OldTerm.term_vars corr_prop))
+                  Thm.varifyT_global (funpow (length (OldTerm.term_vars corr_prop))
                     (Thm.forall_elim_var 0) (forall_intr_frees
                       (ProofChecker.thm_of_proof thy'
                        (fst (Proofterm.freeze_thaw_prf prf))))))

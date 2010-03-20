@@ -613,7 +613,7 @@ and ensure_inst thy (algbr as (_, algebra)) eqngr (class, tyco) =
       let
         val c_inst = Const (c, map_type_tfree (K arity_typ') ty);
         val thm = AxClass.unoverload_conv thy (Thm.cterm_of thy c_inst);
-        val c_ty = (apsnd Logic.unvarifyT o dest_Const o snd
+        val c_ty = (apsnd Logic.unvarifyT_global o dest_Const o snd
           o Logic.dest_equals o Thm.prop_of) thm;
       in
         ensure_const thy algbr eqngr c

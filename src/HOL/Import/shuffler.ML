@@ -265,7 +265,7 @@ fun inst_tfrees thy [] thm = thm
     let
         val cU = ctyp_of thy U
         val tfrees = OldTerm.add_term_tfrees (prop_of thm,[])
-        val (rens, thm') = Thm.varifyT'
+        val (rens, thm') = Thm.varifyT_global'
     (remove (op = o apsnd fst) name tfrees) thm
         val mid =
             case rens of
@@ -592,7 +592,7 @@ fun set_prop thy t =
         fun process [] = NONE
           | process ((name,th)::thms) =
             let
-                val norm_th = Thm.varifyT (norm_thm thy (close_thm (Thm.transfer thy th)))
+                val norm_th = Thm.varifyT_global (norm_thm thy (close_thm (Thm.transfer thy th)))
                 val triv_th = trivial rhs
                 val _ = message ("Shuffler.set_prop: Gluing together " ^ (string_of_thm norm_th) ^ " and " ^ (string_of_thm triv_th))
                 val mod_th = case Seq.pull (Thm.bicompose false (*true*) (false,norm_th,0) 1 triv_th) of

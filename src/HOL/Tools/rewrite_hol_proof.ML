@@ -16,7 +16,7 @@ struct
 open Proofterm;
 
 val rews = map (pairself (Proof_Syntax.proof_of_term @{theory} true) o
-    Logic.dest_equals o Logic.varify o Proof_Syntax.read_term @{theory} propT)
+    Logic.dest_equals o Logic.varify_global o Proof_Syntax.read_term @{theory} propT)
 
   (** eliminate meta-equality rules **)
 

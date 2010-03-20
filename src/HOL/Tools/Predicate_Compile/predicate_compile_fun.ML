@@ -87,7 +87,7 @@ fun pred_of f =
 (* theory -> term -> (string list, term list list) *)
 
 fun dest_code_eqn eqn = let
-  val (lhs, rhs) = Logic.dest_equals (Logic.unvarify (Thm.prop_of eqn))
+  val (lhs, rhs) = Logic.dest_equals (Logic.unvarify_global (Thm.prop_of eqn))
   val (func, args) = strip_comb lhs
 in ((func, args), rhs) end;
 
@@ -372,7 +372,7 @@ fun define_predicates specs thy =
             *)
             
             val thy'' = Fun_Pred.map
-              (fold Item_Net.update (map (apfst Logic.varify)
+              (fold Item_Net.update (map (apfst Logic.varify_global)
                 (distinct (op =) funs ~~ (#preds ind_result)))) thy'
             (*val _ = print_specs thy'' specs*)
           in
@@ -397,7 +397,7 @@ fun rewrite_intro thy intro =
     | lookup_pred _ = NONE
     *)
     fun lookup_pred t = lookup thy (Fun_Pred.get thy) t
-    val intro_t = (Logic.unvarify o prop_of) intro
+    val intro_t = Logic.unvarify_global (prop_of intro)
     val (prems, concl) = Logic.strip_horn intro_t
     val frees = map fst (Term.add_frees intro_t [])
     fun rewrite prem names =

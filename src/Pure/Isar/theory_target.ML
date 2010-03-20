@@ -227,7 +227,7 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t)
      (if is_locale then
         Local_Theory.theory_result (Sign.add_abbrev PrintMode.internal (b, global_rhs))
         #-> (fn (lhs, _) =>
-          let val lhs' = Term.list_comb (Logic.unvarify lhs, xs) in
+          let val lhs' = Term.list_comb (Logic.unvarify_global lhs, xs) in
             syntax_declaration ta false (locale_const ta prmode ((b, mx2), lhs')) #>
             is_class ? class_target ta (Class_Target.abbrev target prmode ((b, mx1), t'))
           end)

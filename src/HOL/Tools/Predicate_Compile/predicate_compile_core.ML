@@ -404,7 +404,7 @@ fun unify_consts thy cs intr_ts =
   (let
      val add_term_consts_2 = fold_aterms (fn Const c => insert (op =) c | _ => I);
      fun varify (t, (i, ts)) =
-       let val t' = map_types (Logic.incr_tvar (i + 1)) (#2 (Type.varify [] t))
+       let val t' = map_types (Logic.incr_tvar (i + 1)) (#2 (Type.varify_global [] t))
        in (maxidx_of_term t', t'::ts) end;
      val (i, cs') = List.foldr varify (~1, []) cs;
      val (i', intr_ts') = List.foldr varify (i, []) intr_ts;

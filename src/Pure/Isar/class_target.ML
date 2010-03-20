@@ -332,7 +332,7 @@ fun declare class ((c, mx), dict) thy =
     |> Sign.declare_const ((b, Type.strip_sorts ty'), mx)
     |> snd
     |> Thm.add_def false false (b_def, def_eq)
-    |>> Thm.varifyT
+    |>> Thm.varifyT_global
     |-> (fn def_thm => PureThy.store_thm (b_def, def_thm)
       #> snd
       #> register_operation class (c', (dict', SOME (Thm.symmetric def_thm))))
@@ -347,7 +347,7 @@ fun abbrev class prmode ((c, mx), rhs) thy =
     val c' = Sign.full_name thy b;
     val rhs' = Pattern.rewrite_term thy unchecks [] rhs;
     val ty' = Term.fastype_of rhs';
-    val rhs'' = map_types Logic.varifyT rhs';
+    val rhs'' = map_types Logic.varifyT_global rhs';
   in
     thy
     |> Sign.add_abbrev (#1 prmode) (b, rhs'')
@@ -530,7 +530,7 @@ fun gen_instantiation_instance do_proof after_qed lthy =
     val (tycos, vs, sort) = (#arities o the_instantiation) lthy;
     val arities_proof = maps (fn tyco => Logic.mk_arities (tyco, map snd vs, sort)) tycos;
     fun after_qed' results =
-      Local_Theory.theory (fold (AxClass.add_arity o Thm.varifyT) results)
+      Local_Theory.theory (fold (AxClass.add_arity o Thm.varifyT_global) results)
       #> after_qed;
   in
     lthy

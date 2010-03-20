@@ -257,7 +257,7 @@ fun adjungate_axclass bname class base_sort sups supsort supparam_names global_s
         | t => t);
     val raw_pred = Locale.intros_of thy class
       |> fst
-      |> Option.map (Logic.unvarify o Logic.strip_imp_concl o Thm.prop_of);
+      |> Option.map (Logic.unvarify_global o Logic.strip_imp_concl o Thm.prop_of);
     fun get_axiom thy = case (#axioms o AxClass.get_info thy) class
      of [] => NONE
       | [thm] => SOME thm;

@@ -162,7 +162,7 @@ fun inst_morph (parm_names, parm_types) ((prfx, mandatory), insts') ctxt =
     val type_parm_names = fold Term.add_tfreesT parm_types [] |> map fst;
 
     (* type inference and contexts *)
-    val parm_types' = map (TypeInfer.paramify_vars o Logic.varifyT) parm_types;
+    val parm_types' = map (TypeInfer.paramify_vars o Logic.varifyT_global) parm_types;
     val type_parms = fold Term.add_tvarsT parm_types' [] |> map (Logic.mk_type o TVar);
     val arg = type_parms @ map2 TypeInfer.constrain parm_types' insts';
     val res = Syntax.check_terms ctxt arg;
@@ -346,7 +346,7 @@ fun prep_full_context_statement parse_typ parse_prop prep_vars_elem prep_inst pr
         val (parm_names, parm_types) = Locale.params_of thy loc |> map #1 |> split_list;
         val inst' = prep_inst ctxt parm_names inst;
         val parm_types' = map (TypeInfer.paramify_vars o
-          Term.map_type_tvar (fn ((x, _), S) => TVar ((x, i), S)) o Logic.varifyT) parm_types;
+          Term.map_type_tvar (fn ((x, _), S) => TVar ((x, i), S)) o Logic.varifyT_global) parm_types;
         val inst'' = map2 TypeInfer.constrain parm_types' inst';
         val insts' = insts @ [(loc, (prfx, inst''))];
         val (insts'', _, _, ctxt' (* FIXME not used *) ) = check_autofix insts' [] [] ctxt;

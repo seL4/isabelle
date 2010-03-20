@@ -3438,7 +3438,7 @@ ML {*
     | mk_result prec NONE = @{term "UNIV :: real set"}
 
   fun realify t = let
-      val t = Logic.varify t
+      val t = Logic.varify_global t
       val m = map (fn (name, sort) => (name, @{typ real})) (Term.add_tvars t [])
       val t = Term.subst_TVars m t
     in t end

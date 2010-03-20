@@ -56,7 +56,7 @@ fun gen_constdef prep_vars prep_prop prep_att
       |> Sign.add_consts_i [(b, T, mx)]
       |> PureThy.add_defs false [((name, def), atts)]
       |-> (fn [thm] =>  (* FIXME thm vs. atts !? *)
-        Spec_Rules.add_global Spec_Rules.Equational ([Logic.varify head], [thm]) #>
+        Spec_Rules.add_global Spec_Rules.Equational ([Logic.varify_global head], [thm]) #>
         Code.add_default_eqn thm);
   in ((c, T), thy') end;
 

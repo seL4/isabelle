@@ -313,7 +313,7 @@ fun flat_higher_order_arguments (intross, thy) =
         fun replace_abs_arg (abs_arg as Abs _ ) (new_defs, thy) =
           let
             val vars = map Var (Term.add_vars abs_arg [])
-            val abs_arg' = Logic.unvarify abs_arg
+            val abs_arg' = Logic.unvarify_global abs_arg
             val frees = map Free (Term.add_frees abs_arg' [])
             val constname = Name.variant (map (Long_Name.base_name o fst) new_defs)
               ((Long_Name.base_name constname) ^ "_hoaux")
@@ -326,7 +326,8 @@ fun flat_higher_order_arguments (intross, thy) =
               |> Sign.add_consts_i [(Binding.name constname, constT, NoSyn)]
               |> PureThy.add_defs false [((Binding.name (constname ^ "_def"), def), [])]
           in
-            (list_comb (Logic.varify const, vars), ((full_constname, [definition])::new_defs, thy'))
+            (list_comb (Logic.varify_global const, vars),
+              ((full_constname, [definition])::new_defs, thy'))
           end
         | replace_abs_arg arg (new_defs, thy) =
           if (is_predT (fastype_of arg)) then

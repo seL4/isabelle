@@ -131,9 +131,9 @@ fun pretty_full_theory verbose thy =
     fun prt_sort S = Syntax.pretty_sort ctxt S;
     fun prt_arity t (c, (_, Ss)) = Syntax.pretty_arity ctxt (t, Ss, [c]);
     fun prt_typ ty = Pretty.quote (Syntax.pretty_typ ctxt ty);
-    val prt_typ_no_tvars = prt_typ o Logic.unvarifyT;
+    val prt_typ_no_tvars = prt_typ o Logic.unvarifyT_global;
     fun prt_term t = Pretty.quote (Syntax.pretty_term ctxt t);
-    val prt_term_no_vars = prt_term o Logic.unvarify;
+    val prt_term_no_vars = prt_term o Logic.unvarify_global;
     fun prt_const (c, ty) = [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty];
     val prt_const' = Defs.pretty_const (Syntax.pp ctxt);
 

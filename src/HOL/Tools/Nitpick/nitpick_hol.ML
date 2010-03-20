@@ -566,7 +566,7 @@ fun typedef_info thy s =
     SOME {abs_type = Type (s, []), rep_type = @{typ "int * int"},
           Abs_name = @{const_name Abs_Frac}, Rep_name = @{const_name Rep_Frac},
           set_def = NONE, prop_of_Rep = @{prop "Rep_Frac x \<in> Frac"}
-                          |> Logic.varify,
+                          |> Logic.varify_global,
           set_name = @{const_name Frac}, Abs_inverse = NONE, Rep_inverse = NONE}
   else case Typedef.get_info_global thy s of
     (* FIXME handle multiple typedef interpretations (!??) *)
@@ -599,7 +599,7 @@ fun instantiate_type thy T1 T1' T2 =
   handle Type.TYPE_MATCH =>
          raise TYPE ("Nitpick_HOL.instantiate_type", [T1, T1'], [])
 fun varify_and_instantiate_type thy T1 T1' T2 =
-  instantiate_type thy (Logic.varifyT T1) T1' (Logic.varifyT T2)
+  instantiate_type thy (Logic.varifyT_global T1) T1' (Logic.varifyT_global T2)
 
 (* theory -> typ -> typ -> styp *)
 fun repair_constr_type thy body_T' T =

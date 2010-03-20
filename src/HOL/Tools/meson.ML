@@ -667,7 +667,7 @@ fun negated_asm_of_head th =
 fun make_meta_clause th =
   let val (fth,thaw) = Drule.legacy_freeze_thaw_robust th
   in  
-      (zero_var_indexes o Thm.varifyT o thaw 0 o 
+      (zero_var_indexes o Thm.varifyT_global o thaw 0 o 
        negated_asm_of_head o make_horn resolution_clause_rules) fth
   end;
 

@@ -337,7 +337,7 @@ fun build_tsig thy =
         (Binding.qualified_name tyco, n) | _ => I) decls
   end;
 
-fun cert_signature thy = Logic.varifyT o Type.cert_typ (build_tsig thy) o Type.no_tvars;
+fun cert_signature thy = Logic.varifyT_global o Type.cert_typ (build_tsig thy) o Type.no_tvars;
 
 fun read_signature thy = cert_signature thy o Type.strip_sorts
   o Syntax.parse_typ (ProofContext.init thy);
@@ -374,7 +374,7 @@ fun ty_sorts thy (c, raw_ty) =
   let
     val _ = Thm.cterm_of thy (Const (c, raw_ty));
     val ty = subst_signature thy c raw_ty;
-    val ty_decl = (Logic.unvarifyT o const_typ thy) c;
+    val ty_decl = (Logic.unvarifyT_global o const_typ thy) c;
     fun last_typ c_ty ty =
       let
         val tfrees = Term.add_tfreesT ty [];
@@ -684,7 +684,7 @@ fun constrain_thm thy vs sorts thm =
       (fn TFree (v, _) => TFree (v, the (AList.lookup (op =) mapping v)));
   in
     thm
-    |> Thm.varifyT
+    |> Thm.varifyT_global
     |> Thm.certify_instantiate (inst, [])
     |> pair subst
   end;
@@ -697,7 +697,7 @@ fun concretify_abs thy tyco abs_thm =
     val ty_abs = (fastype_of o snd o dest_comb) lhs;
     val abs = Thm.cterm_of thy (Const (c, ty --> ty_abs));
     val raw_concrete_thm = Drule.transitive_thm OF [Thm.symmetric cert, Thm.combination (Thm.reflexive abs) abs_thm];
-  in (c, (Thm.varifyT o zero_var_indexes) raw_concrete_thm) end;
+  in (c, (Thm.varifyT_global o zero_var_indexes) raw_concrete_thm) end;
 
 fun add_rhss_of_eqn thy t =
   let
@@ -706,7 +706,8 @@ fun add_rhss_of_eqn thy t =
       | add_const _ = I
   in fold_aterms add_const t end;
 
-fun dest_eqn thy = apfst (snd o strip_comb) o Logic.dest_equals o subst_signatures thy o Logic.unvarify;
+fun dest_eqn thy =
+  apfst (snd o strip_comb) o Logic.dest_equals o subst_signatures thy o Logic.unvarify_global;
 
 abstype cert = Equations of thm * bool list
   | Projection of term * string
@@ -811,14 +812,14 @@ fun equations_of_cert thy (cert as Equations (cert_thm, propers)) =
         val thms = if null propers then [] else
           cert_thm
           |> Local_Defs.expand [snd (get_head thy cert_thm)]
-          |> Thm.varifyT
+          |> Thm.varifyT_global
           |> Conjunction.elim_balanced (length propers);
       in (tyscm, map (pair NONE o dest_eqn thy o Thm.prop_of) thms ~~ (map SOME thms ~~ propers)) end
   | equations_of_cert thy (Projection (t, tyco)) =
       let
         val (_, ((abs, _), _)) = get_abstype_spec thy tyco;
         val tyscm = typscheme_projection thy t;
-        val t' = map_types Logic.varifyT t;
+        val t' = map_types Logic.varifyT_global t;
       in (tyscm, [((SOME abs, dest_eqn thy t'), (NONE, true))]) end
   | equations_of_cert thy (Abstract (abs_thm, tyco)) =
       let
@@ -827,22 +828,24 @@ fun equations_of_cert thy (cert as Equations (cert_thm, propers)) =
         val _ = fold_aterms (fn Const (c, _) => if c = abs
           then error ("Abstraction violation in abstract code equation\n" ^ Display.string_of_thm_global thy abs_thm)
           else I | _ => I) (Thm.prop_of abs_thm);
-      in (tyscm, [((SOME abs, dest_eqn thy (Thm.prop_of concrete_thm)), (SOME (Thm.varifyT abs_thm), true))]) end;
+      in
+        (tyscm, [((SOME abs, dest_eqn thy (Thm.prop_of concrete_thm)), (SOME (Thm.varifyT_global abs_thm), true))])
+      end;
 
 fun pretty_cert thy (cert as Equations _) =
       (map_filter (Option.map (Display.pretty_thm_global thy o AxClass.overload thy) o fst o snd)
          o snd o equations_of_cert thy) cert
   | pretty_cert thy (Projection (t, _)) =
-      [Syntax.pretty_term_global thy (map_types Logic.varifyT t)]
+      [Syntax.pretty_term_global thy (map_types Logic.varifyT_global t)]
   | pretty_cert thy (Abstract (abs_thm, tyco)) =
-      [(Display.pretty_thm_global thy o AxClass.overload thy o Thm.varifyT) abs_thm];
+      [(Display.pretty_thm_global thy o AxClass.overload thy o Thm.varifyT_global) abs_thm];
 
 fun bare_thms_of_cert thy (cert as Equations _) =
       (map_filter (fn (_, (some_thm, proper)) => if proper then some_thm else NONE)
         o snd o equations_of_cert thy) cert
   | bare_thms_of_cert thy (Projection _) = []
   | bare_thms_of_cert thy (Abstract (abs_thm, tyco)) =
-      [Thm.varifyT (snd (concretify_abs thy tyco abs_thm))];
+      [Thm.varifyT_global (snd (concretify_abs thy tyco abs_thm))];
 
 end;
 
@@ -1157,7 +1160,7 @@ fun add_abstype proto_abs proto_rep thy =
       (del_eqns abs
       #> register_type (tyco, (vs, Abstractor (abs_ty, (rep, cert))))
       #> change_fun_spec false rep ((K o Proj)
-        (map_types Logic.varifyT (mk_proj tyco vs ty abs rep), tyco))
+        (map_types Logic.varifyT_global (mk_proj tyco vs ty abs rep), tyco))
       #> Abstype_Interpretation.data (tyco, serial ()));
   in
     thy

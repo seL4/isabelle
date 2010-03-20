@@ -827,7 +827,7 @@ val equality_axms =
 
 val [reflexive_axm, symmetric_axm, transitive_axm, equal_intr_axm,
   equal_elim_axm, abstract_rule_axm, combination_axm] =
-    map (fn (s, t) => PAxm ("Pure." ^ s, varify t, NONE)) equality_axms;
+    map (fn (s, t) => PAxm ("Pure." ^ s, varify_global t, NONE)) equality_axms;
 
 end;
 

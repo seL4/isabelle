@@ -310,7 +310,7 @@ fun mk_case_cert thy tyco =
       (#case_rewrites o Datatype_Data.the_info thy) tyco;
     val thms as hd_thm :: _ = raw_thms
       |> Conjunction.intr_balanced
-      |> Thm.unvarify
+      |> Thm.unvarify_global
       |> Conjunction.elim_balanced (length raw_thms)
       |> map Simpdata.mk_meta_eq
       |> map Drule.zero_var_indexes
@@ -332,7 +332,7 @@ fun mk_case_cert thy tyco =
     |> Thm.implies_intr asm
     |> Thm.generalize ([], params) 0
     |> AxClass.unoverload thy
-    |> Thm.varifyT
+    |> Thm.varifyT_global
   end;
 
 

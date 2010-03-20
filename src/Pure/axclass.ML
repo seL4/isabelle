@@ -309,7 +309,7 @@ fun declare_overloaded (c, T) thy =
     |-> (fn const' as Const (c'', _) =>
       Thm.add_def false true
         (Binding.name (Thm.def_name c'), Logic.mk_equals (Const (c, T'), const'))
-      #>> Thm.varifyT
+      #>> Thm.varifyT_global
       #-> (fn thm => add_inst_param (c, tyco) (c'', thm)
       #> PureThy.add_thm ((Binding.conceal (Binding.name c'), thm), [])
       #> snd

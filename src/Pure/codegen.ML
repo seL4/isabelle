@@ -474,7 +474,7 @@ val rename_term = hd o rename_terms o single;
 (**** retrieve definition of constant ****)
 
 fun is_instance T1 T2 =
-  Type.raw_instance (T1, if null (OldTerm.typ_tfrees T2) then T2 else Logic.varifyT T2);
+  Type.raw_instance (T1, if null (OldTerm.typ_tfrees T2) then T2 else Logic.varifyT_global T2);
 
 fun get_assoc_code thy (s, T) = Option.map snd (find_first (fn ((s', T'), _) =>
   s = s' andalso is_instance T T') (#consts (CodegenData.get thy)));

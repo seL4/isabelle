@@ -102,12 +102,12 @@ fun lift_triv_classes_conv thy conv ct =
           o apfst (fst o fst o dest_TVar) o Logic.dest_of_class) prem_props;
       in Drule.implies_elim_list thm prem_thms end;
   in ct
-    |> Drule.cterm_rule Thm.varifyT
+    |> Drule.cterm_rule Thm.varifyT_global
     |> Thm.instantiate_cterm (Thm.certify_inst thy (map (fn (v, ((sort, _), sort')) =>
         (((v, 0), sort), TFree (v, sort'))) vs, []))
     |> Drule.cterm_rule Thm.freezeT
     |> conv
-    |> Thm.varifyT
+    |> Thm.varifyT_global
     |> fold (fn (v, (_, sort')) => Thm.unconstrainT (certT (TVar ((v, 0), sort')))) vs
     |> Thm.certify_instantiate (map (fn (v, ((sort, _), _)) =>
         (((v, 0), []), TVar ((v, 0), sort))) vs, [])

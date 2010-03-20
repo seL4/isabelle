@@ -54,7 +54,7 @@ sig
   (*special treatment of type vars*)
   val strip_sorts: typ -> typ
   val no_tvars: typ -> typ
-  val varify: (string * sort) list -> term -> ((string * sort) * indexname) list * term
+  val varify_global: (string * sort) list -> term -> ((string * sort) * indexname) list * term
   val legacy_freeze_thaw_type: typ -> typ * (typ -> typ)
   val legacy_freeze_type: typ -> typ
   val legacy_freeze_thaw: term -> term * (term -> term)
@@ -284,9 +284,9 @@ fun no_tvars T =
       commas_quote (map (Term.string_of_vname o #1) (rev vs)), [T], []));
 
 
-(* varify *)
+(* varify_global *)
 
-fun varify fixed t =
+fun varify_global fixed t =
   let
     val fs = Term.fold_types (Term.fold_atyps
       (fn TFree v => if member (op =) fixed v then I else insert (op =) v | _ => I)) t [];

@@ -126,11 +126,11 @@ fun builtin_make entries =
   let
     fun dest (t, bn) =
       let val (n, T) = Term.dest_Const t
-      in (n, (Logic.varifyT T, K (SOME o pair bn))) end
+      in (n, (Logic.varifyT_global T, K (SOME o pair bn))) end
   in Symtab.make (AList.group (op =) (map dest entries)) end
 
 fun builtin_add (t, f) tab =
-  let val (n, T) = apsnd Logic.varifyT (Term.dest_Const t)
+  let val (n, T) = apsnd Logic.varifyT_global (Term.dest_Const t)
   in Symtab.map_default (n, []) (AList.update (op =) (T, f)) tab end
 
 fun builtin_lookup tab thy (n, T) ts =

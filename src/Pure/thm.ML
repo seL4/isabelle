@@ -137,8 +137,8 @@ sig
   val map_tags: (Properties.T -> Properties.T) -> thm -> thm
   val norm_proof: thm -> thm
   val adjust_maxidx_thm: int -> thm -> thm
-  val varifyT: thm -> thm
-  val varifyT': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
+  val varifyT_global: thm -> thm
+  val varifyT_global': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
   val freezeT: thm -> thm
   val assumption: int -> thm -> thm Seq.seq
   val eq_assumption: int -> thm -> thm
@@ -1244,11 +1244,11 @@ fun unconstrainT
   end;
 
 (* Replace all TFrees not fixed or in the hyps by new TVars *)
-fun varifyT' fixed (Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...})) =
+fun varifyT_global' fixed (Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...})) =
   let
     val tfrees = fold Term.add_tfrees hyps fixed;
     val prop1 = attach_tpairs tpairs prop;
-    val (al, prop2) = Type.varify tfrees prop1;
+    val (al, prop2) = Type.varify_global tfrees prop1;
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2);
   in
     (al, Thm (deriv_rule1 (Pt.varify_proof prop tfrees) der,
@@ -1261,7 +1261,7 @@ fun varifyT' fixed (Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...})
       prop = prop3}))
   end;
 
-val varifyT = #2 o varifyT' [];
+val varifyT_global = #2 o varifyT_global' [];
 
 (* Replace all TVars by new TFrees *)
 fun freezeT (Thm (der, {thy_ref, shyps, hyps, tpairs, prop, ...})) =

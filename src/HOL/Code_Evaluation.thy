@@ -87,13 +87,14 @@ let
     let
       val t = list_comb (Const (c, tys ---> ty),
         map Free (Name.names Name.context "a" tys));
-      val (arg, rhs) = pairself (Thm.cterm_of thy o map_types Logic.unvarifyT o Logic.varify)
-        (t, (map_aterms (fn t as Free (v, ty) => HOLogic.mk_term_of ty t | t => t) o HOLogic.reflect_term) t)
+      val (arg, rhs) =
+        pairself (Thm.cterm_of thy o map_types Logic.unvarifyT_global o Logic.varify_global)
+          (t, (map_aterms (fn t as Free (v, ty) => HOLogic.mk_term_of ty t | t => t) o HOLogic.reflect_term) t)
       val cty = Thm.ctyp_of thy ty;
     in
       @{thm term_of_anything}
       |> Drule.instantiate' [SOME cty] [SOME arg, SOME rhs]
-      |> Thm.varifyT
+      |> Thm.varifyT_global
     end;
   fun add_term_of_code tyco raw_vs raw_cs thy =
     let
@@ -131,7 +132,7 @@ let
     in
       @{thm term_of_anything}
       |> Drule.instantiate' [SOME cty] [SOME (Thm.cterm_of thy arg), SOME rhs]
-      |> Thm.varifyT
+      |> Thm.varifyT_global
     end;
   fun add_term_of_code tyco raw_vs abs raw_ty_rep proj thy =
     let

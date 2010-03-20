@@ -70,9 +70,9 @@ fun dt_of_intrs thy vs nparms intrs =
     val params = map dest_Var (take nparms ts);
     val tname = Binding.name (space_implode "_" (Long_Name.base_name s ^ "T" :: vs));
     fun constr_of_intr intr = (Binding.name (Long_Name.base_name (name_of_thm intr)),
-      map (Logic.unvarifyT o snd) (subtract (op =) params (rev (Term.add_vars (prop_of intr) []))) @
+      map (Logic.unvarifyT_global o snd) (subtract (op =) params (rev (Term.add_vars (prop_of intr) []))) @
         filter_out (equal Extraction.nullT) (map
-          (Logic.unvarifyT o Extraction.etype_of thy vs []) (prems_of intr)),
+          (Logic.unvarifyT_global o Extraction.etype_of thy vs []) (prems_of intr)),
             NoSyn);
   in (map (fn a => "'" ^ a) vs @ map (fst o fst) iTs, tname, NoSyn,
     map constr_of_intr intrs)
@@ -339,13 +339,13 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
         let
           val Const (s, T) = head_of (HOLogic.dest_Trueprop (Logic.strip_assums_concl rintr));
           val s' = Long_Name.base_name s;
-          val T' = Logic.unvarifyT T;
+          val T' = Logic.unvarifyT_global T;
         in (((s', T'), NoSyn), (Const (s, T'), Free (s', T'))) end)
       |> distinct (op = o pairself (#1 o #1))
       |> map (apfst (apfst (apfst Binding.name)))
       |> split_list;
 
-    val rlzparams = map (fn Var ((s, _), T) => (s, Logic.unvarifyT T))
+    val rlzparams = map (fn Var ((s, _), T) => (s, Logic.unvarifyT_global T))
       (List.take (snd (strip_comb
         (HOLogic.dest_Trueprop (Logic.strip_assums_concl (hd rintrs)))), nparms));
 
@@ -357,7 +357,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
           no_elim = false, no_ind = false, skip_mono = false, fork_mono = false}
         rlzpreds rlzparams (map (fn (rintr, intr) =>
           ((Binding.name (Long_Name.base_name (name_of_thm intr)), []),
-           subst_atomic rlzpreds' (Logic.unvarify rintr)))
+           subst_atomic rlzpreds' (Logic.unvarify_global rintr)))
              (rintrs ~~ maps snd rss)) [] ||>
       Sign.root_path;
     val thy3 = fold (PureThy.hide_fact false o name_of_thm) (#intrs ind_info) thy3';
@@ -383,7 +383,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
           (used @ rnames) (replicate (length intrs) "s");
         val rlzs' as (prems, _, _) :: _ = map (fn (rlz, name) =>
           let
-            val (P, Q) = strip_one name (Logic.unvarify rlz);
+            val (P, Q) = strip_one name (Logic.unvarify_global rlz);
             val Q' = strip_all' [] rnames' Q
           in
             (Logic.strip_imp_prems Q', P, Logic.strip_imp_concl Q')
@@ -446,7 +446,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
             map reorder2 (intrs ~~ (length prems - 1 downto 0)) @
             [Bound (length prems)]));
         val rlz = Extraction.realizes_of thy (vs @ Ps) r (prop_of elim);
-        val rlz' = strip_all (Logic.unvarify rlz);
+        val rlz' = strip_all (Logic.unvarify_global rlz);
         val rews = map mk_meta_eq case_thms;
         val thm = Goal.prove_global thy []
           (Logic.strip_imp_prems rlz') (Logic.strip_imp_concl rlz') (fn {prems, ...} => EVERY

@@ -312,7 +312,7 @@ val export_without_context_open =
     Thm.forall_elim_vars (maxidx + 1)
     #> Thm.strip_shyps
     #> zero_var_indexes
-    #> Thm.varifyT);
+    #> Thm.varifyT_global);
 
 val export_without_context =
   flexflex_unique
@@ -691,7 +691,7 @@ val remdups_rl =
 
 local
   val A = certify (Free ("A", propT));
-  val axiom = Thm.unvarify o Thm.axiom (Context.the_theory (Context.the_thread_data ()));
+  val axiom = Thm.unvarify_global o Thm.axiom (Context.the_theory (Context.the_thread_data ()));
   val prop_def = axiom "Pure.prop_def";
   val term_def = axiom "Pure.term_def";
   val sort_constraint_def = axiom "Pure.sort_constraint_def";
@@ -762,7 +762,8 @@ val sort_constraintI =
 val sort_constraint_eq =
   store_standard_thm (Binding.conceal (Binding.name "sort_constraint_eq"))
     (Thm.equal_intr
-      (Thm.implies_intr CA (Thm.implies_elim (Thm.assume CA) (Thm.unvarify sort_constraintI)))
+      (Thm.implies_intr CA (Thm.implies_elim (Thm.assume CA)
+        (Thm.unvarify_global sort_constraintI)))
       (implies_intr_list [A, C] (Thm.assume A)));
 
 end;

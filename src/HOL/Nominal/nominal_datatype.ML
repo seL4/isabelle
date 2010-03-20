@@ -849,7 +849,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     fun prove_perm_rep_perm (atom, perm_closed_thms) = map (fn th =>
       let
-        val _ $ (_ $ (Rep $ x)) = Logic.unvarify (prop_of th);
+        val _ $ (_ $ (Rep $ x)) = Logic.unvarify_global (prop_of th);
         val Type ("fun", [T, U]) = fastype_of Rep;
         val permT = mk_permT (Type (atom, []));
         val pi = Free ("pi", permT);
@@ -1394,7 +1394,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           (pnames ~~ map head_of (HOLogic.dest_conj
              (HOLogic.dest_Trueprop (concl_of induct_aux)))) @
       map (fn (_, f) =>
-        let val f' = Logic.varify f
+        let val f' = Logic.varify_global f
         in (cterm_of thy9 f',
           cterm_of thy9 (Const ("Nominal.supp", fastype_of f')))
         end) fresh_fs) induct_aux;
@@ -1677,14 +1677,14 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val induct_aux_rec = Drule.cterm_instantiate
       (map (pairself (cterm_of thy11) o apsnd (augment_sort thy11 fs_cp_sort))
-         (map (fn (aT, f) => (Logic.varify f, Abs ("z", HOLogic.unitT,
+         (map (fn (aT, f) => (Logic.varify_global f, Abs ("z", HOLogic.unitT,
             Const ("Nominal.supp", fun_tupleT --> HOLogic.mk_setT aT) $ fun_tuple)))
               fresh_fs @
           map (fn (((P, T), (x, U)), Q) =>
-           (Var ((P, 0), Logic.varifyT (fsT' --> T --> HOLogic.boolT)),
+           (Var ((P, 0), Logic.varifyT_global (fsT' --> T --> HOLogic.boolT)),
             Abs ("z", HOLogic.unitT, absfree (x, U, Q))))
               (pnames ~~ recTs ~~ rec_unique_frees ~~ rec_unique_concls) @
-          map (fn (s, T) => (Var ((s, 0), Logic.varifyT T), Free (s, T)))
+          map (fn (s, T) => (Var ((s, 0), Logic.varifyT_global T), Free (s, T)))
             rec_unique_frees)) induct_aux;
 
     fun obtain_fresh_name vs ths rec_fin_supp T (freshs1, freshs2, ctxt) =

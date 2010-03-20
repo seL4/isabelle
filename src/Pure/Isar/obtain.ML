@@ -197,7 +197,7 @@ fun result tac facts ctxt =
 
     val closed_rule = Thm.forall_intr (cert (Free thesis_var)) rule;
     val ((_, [rule']), ctxt') = Variable.import false [closed_rule] ctxt;
-    val obtain_rule = Thm.forall_elim (cert (Logic.varify (Free thesis_var))) rule';
+    val obtain_rule = Thm.forall_elim (cert (Logic.varify_global (Free thesis_var))) rule';
     val ((params, stmt), fix_ctxt) = Variable.focus (Thm.cprem_of obtain_rule 1) ctxt';
     val (prems, ctxt'') =
       Assumption.add_assms (obtain_export fix_ctxt obtain_rule (map #2 params))
@@ -252,7 +252,7 @@ fun unify_params vars thesis_var raw_rule ctxt =
     val vars' =
       map (dest_Free o Thm.term_of o Drule.dest_term) terms' ~~
       (map snd vars @ replicate (length ys) NoSyn);
-    val rule'' = Thm.forall_elim (cert (Logic.varify (Free thesis_var))) rule';
+    val rule'' = Thm.forall_elim (cert (Logic.varify_global (Free thesis_var))) rule';
   in ((vars', rule''), ctxt') end;
 
 fun inferred_type (binding, _, mx) ctxt =

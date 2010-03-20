@@ -218,7 +218,7 @@ fun in_list_forb consSig (consNameStr,consType) [] = false
      val typeSignature = #tsig (Sign.rep_sg consSig)
    in
      if ((consNameStr = forbNameStr) 
-       andalso (Type.typ_instance typeSignature (consType,(Logic.varifyT forbType))))
+       andalso (Type.typ_instance typeSignature (consType,(Logic.varifyT_global forbType))))
      then true
      else in_list_forb consSig (consNameStr,consType) xs
    end;

@@ -326,7 +326,7 @@ fun mk_tuple (Type (@{type_name "*"}, [T1, T2])) ts =
 
 (* theory -> typ * typ -> bool *)
 fun varified_type_match thy (candid_T, pat_T) =
-  strict_type_match thy (candid_T, Logic.varifyT pat_T)
+  strict_type_match thy (candid_T, Logic.varifyT_global pat_T)
 
 (* atom_pool -> (string * string) * (string * string) -> scope -> nut list
    -> nut list -> nut list -> nut NameTable.table -> KK.raw_bound list -> typ
