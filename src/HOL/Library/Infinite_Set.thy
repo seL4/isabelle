@@ -52,6 +52,9 @@ qed
 lemma Un_infinite: "infinite S \<Longrightarrow> infinite (S \<union> T)"
   by simp
 
+lemma infinite_Un: "infinite (S \<union> T) \<longleftrightarrow> infinite S \<or> infinite T"
+  by simp
+
 lemma infinite_super:
   assumes T: "S \<subseteq> T" and S: "infinite S"
   shows "infinite T"
