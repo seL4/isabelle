@@ -812,24 +812,24 @@ val B = Free ("B", propT);
 val f = Free ("f", aT --> bT);
 val g = Free ("g", aT --> bT);
 
-local open Logic in
-
 val equality_axms =
-  [("reflexive", mk_equals (x, x)),
-   ("symmetric", mk_implies (mk_equals (x, y), mk_equals (y, x))),
-   ("transitive", list_implies ([mk_equals (x, y), mk_equals (y, z)], mk_equals (x, z))),
-   ("equal_intr", list_implies ([mk_implies (A, B), mk_implies (B, A)], mk_equals (A, B))),
-   ("equal_elim", list_implies ([mk_equals (A, B), A], B)),
-   ("abstract_rule", mk_implies
-      (all x (mk_equals (f $ x, g $ x)), mk_equals (lambda x (f $ x), lambda x (g $ x)))),
-   ("combination", list_implies
-      ([mk_equals (f, g), mk_equals (x, y)], mk_equals (f $ x, g $ y)))];
+ [("reflexive", Logic.mk_equals (x, x)),
+  ("symmetric", Logic.mk_implies (Logic.mk_equals (x, y), Logic.mk_equals (y, x))),
+  ("transitive",
+    Logic.list_implies ([Logic.mk_equals (x, y), Logic.mk_equals (y, z)], Logic.mk_equals (x, z))),
+  ("equal_intr",
+    Logic.list_implies ([Logic.mk_implies (A, B), Logic.mk_implies (B, A)], Logic.mk_equals (A, B))),
+  ("equal_elim", Logic.list_implies ([Logic.mk_equals (A, B), A], B)),
+  ("abstract_rule",
+    Logic.mk_implies
+      (Logic.all x
+        (Logic.mk_equals (f $ x, g $ x)), Logic.mk_equals (lambda x (f $ x), lambda x (g $ x)))),
+  ("combination", Logic.list_implies
+    ([Logic.mk_equals (f, g), Logic.mk_equals (x, y)], Logic.mk_equals (f $ x, g $ y)))];
 
 val [reflexive_axm, symmetric_axm, transitive_axm, equal_intr_axm,
   equal_elim_axm, abstract_rule_axm, combination_axm] =
-    map (fn (s, t) => PAxm ("Pure." ^ s, varify_global t, NONE)) equality_axms;
-
-end;
+    map (fn (s, t) => PAxm ("Pure." ^ s, Logic.varify_global t, NONE)) equality_axms;
 
 val reflexive = reflexive_axm % NONE;
 
