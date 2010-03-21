@@ -24,12 +24,12 @@ record 'a monoid =  "'a partial_object" +
 
 definition
   m_inv :: "('a, 'b) monoid_scheme => 'a => 'a" ("inv\<index> _" [81] 80)
-  where "inv\<^bsub>G\<^esub> x == (THE y. y \<in> carrier G & x \<otimes>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub> & y \<otimes>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub>)"
+  where "inv\<^bsub>G\<^esub> x = (THE y. y \<in> carrier G & x \<otimes>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub> & y \<otimes>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub>)"
 
 definition
   Units :: "_ => 'a set"
   --{*The set of invertible elements*}
-  where "Units G == {y. y \<in> carrier G & (\<exists>x \<in> carrier G. x \<otimes>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub> & y \<otimes>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub>)}"
+  where "Units G = {y. y \<in> carrier G & (\<exists>x \<in> carrier G. x \<otimes>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub> & y \<otimes>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub>)}"
 
 consts
   pow :: "[('a, 'm) monoid_scheme, 'a, 'b::number] => 'a" (infixr "'(^')\<index>" 75)
@@ -479,10 +479,12 @@ lemma (in monoid) Units_subgroup:
 
 subsection {* Direct Products *}
 
-definition DirProd :: "_ \<Rightarrow> _ \<Rightarrow> ('a \<times> 'b) monoid" (infixr "\<times>\<times>" 80) where
-  "G \<times>\<times> H \<equiv> \<lparr>carrier = carrier G \<times> carrier H,
-                mult = (\<lambda>(g, h) (g', h'). (g \<otimes>\<^bsub>G\<^esub> g', h \<otimes>\<^bsub>H\<^esub> h')),
-                one = (\<one>\<^bsub>G\<^esub>, \<one>\<^bsub>H\<^esub>)\<rparr>"
+definition
+  DirProd :: "_ \<Rightarrow> _ \<Rightarrow> ('a \<times> 'b) monoid" (infixr "\<times>\<times>" 80) where
+  "G \<times>\<times> H =
+    \<lparr>carrier = carrier G \<times> carrier H,
+     mult = (\<lambda>(g, h) (g', h'). (g \<otimes>\<^bsub>G\<^esub> g', h \<otimes>\<^bsub>H\<^esub> h')),
+     one = (\<one>\<^bsub>G\<^esub>, \<one>\<^bsub>H\<^esub>)\<rparr>"
 
 lemma DirProd_monoid:
   assumes "monoid G" and "monoid H"
@@ -537,7 +539,7 @@ subsection {* Homomorphisms and Isomorphisms *}
 
 definition
   hom :: "_ => _ => ('a => 'b) set" where
-  "hom G H ==
+  "hom G H =
     {h. h \<in> carrier G -> carrier H &
       (\<forall>x \<in> carrier G. \<forall>y \<in> carrier G. h (x \<otimes>\<^bsub>G\<^esub> y) = h x \<otimes>\<^bsub>H\<^esub> h y)}"
 
@@ -545,8 +547,9 @@ lemma (in group) hom_compose:
   "[|h \<in> hom G H; i \<in> hom H I|] ==> compose (carrier G) i h \<in> hom G I"
 by (fastsimp simp add: hom_def compose_def)
 
-definition iso :: "_ => _ => ('a => 'b) set" (infixr "\<cong>" 60) where
-  "G \<cong> H == {h. h \<in> hom G H & bij_betw h (carrier G) (carrier H)}"
+definition
+  iso :: "_ => _ => ('a => 'b) set" (infixr "\<cong>" 60)
+  where "G \<cong> H = {h. h \<in> hom G H & bij_betw h (carrier G) (carrier H)}"
 
 lemma iso_refl: "(%x. x) \<in> G \<cong> G"
 by (simp add: iso_def hom_def inj_on_def bij_betw_def Pi_def)

@@ -12,8 +12,9 @@ section {*Sylow's Theorem*}
 
 subsection {*The Combinatorial Argument Underlying the First Sylow Theorem*}
 
-definition exponent :: "nat => nat => nat" where
-"exponent p s == if prime p then (GREATEST r. p^r dvd s) else 0"
+definition
+  exponent :: "nat => nat => nat"
+  where "exponent p s = (if prime p then (GREATEST r. p^r dvd s) else 0)"
 
 
 text{*Prime Theorems*}

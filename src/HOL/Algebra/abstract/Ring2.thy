@@ -30,16 +30,17 @@ class ring = zero + one + plus + minus + uminus + times + inverse + power + dvd 
   and divide_def:       "a / b = a * inverse b"
 begin
 
-definition assoc :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "assoc" 50) where
-  assoc_def: "a assoc b \<longleftrightarrow> a dvd b & b dvd a"
+definition
+  assoc :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "assoc" 50)
+  where "a assoc b \<longleftrightarrow> a dvd b & b dvd a"
 
-definition irred :: "'a \<Rightarrow> bool" where
-  irred_def: "irred a \<longleftrightarrow> a ~= 0 & ~ a dvd 1
-                          & (ALL d. d dvd a --> d dvd 1 | a dvd d)"
+definition
+  irred :: "'a \<Rightarrow> bool" where
+  "irred a \<longleftrightarrow> a ~= 0 & ~ a dvd 1 & (ALL d. d dvd a --> d dvd 1 | a dvd d)"
 
-definition prime :: "'a \<Rightarrow> bool" where
-  prime_def: "prime p \<longleftrightarrow> p ~= 0 & ~ p dvd 1
-                          & (ALL a b. p dvd (a*b) --> p dvd a | p dvd b)"
+definition
+  prime :: "'a \<Rightarrow> bool" where
+  "prime p \<longleftrightarrow> p ~= 0 & ~ p dvd 1 & (ALL a b. p dvd (a*b) --> p dvd a | p dvd b)"
 
 end
 

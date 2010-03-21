@@ -27,7 +27,7 @@ locale weak_partial_order = equivalence L for L (structure) +
 
 definition
   lless :: "[_, 'a, 'a] => bool" (infixl "\<sqsubset>\<index>" 50)
-  where "x \<sqsubset>\<^bsub>L\<^esub> y == x \<sqsubseteq>\<^bsub>L\<^esub> y & x .\<noteq>\<^bsub>L\<^esub> y"
+  where "x \<sqsubset>\<^bsub>L\<^esub> y \<longleftrightarrow> x \<sqsubseteq>\<^bsub>L\<^esub> y & x .\<noteq>\<^bsub>L\<^esub> y"
 
 
 subsubsection {* The order relation *}
@@ -104,11 +104,11 @@ subsubsection {* Upper and lower bounds of a set *}
 
 definition
   Upper :: "[_, 'a set] => 'a set"
-  where "Upper L A == {u. (ALL x. x \<in> A \<inter> carrier L --> x \<sqsubseteq>\<^bsub>L\<^esub> u)} \<inter> carrier L"
+  where "Upper L A = {u. (ALL x. x \<in> A \<inter> carrier L --> x \<sqsubseteq>\<^bsub>L\<^esub> u)} \<inter> carrier L"
 
 definition
   Lower :: "[_, 'a set] => 'a set"
-  where "Lower L A == {l. (ALL x. x \<in> A \<inter> carrier L --> l \<sqsubseteq>\<^bsub>L\<^esub> x)} \<inter> carrier L"
+  where "Lower L A = {l. (ALL x. x \<in> A \<inter> carrier L --> l \<sqsubseteq>\<^bsub>L\<^esub> x)} \<inter> carrier L"
 
 lemma Upper_closed [intro!, simp]:
   "Upper L A \<subseteq> carrier L"
@@ -278,11 +278,11 @@ subsubsection {* Least and greatest, as predicate *}
 
 definition
   least :: "[_, 'a, 'a set] => bool"
-  where "least L l A == A \<subseteq> carrier L & l \<in> A & (ALL x : A. l \<sqsubseteq>\<^bsub>L\<^esub> x)"
+  where "least L l A \<longleftrightarrow> A \<subseteq> carrier L & l \<in> A & (ALL x : A. l \<sqsubseteq>\<^bsub>L\<^esub> x)"
 
 definition
   greatest :: "[_, 'a, 'a set] => bool"
-  where "greatest L g A == A \<subseteq> carrier L & g \<in> A & (ALL x : A. x \<sqsubseteq>\<^bsub>L\<^esub> g)"
+  where "greatest L g A \<longleftrightarrow> A \<subseteq> carrier L & g \<in> A & (ALL x : A. x \<sqsubseteq>\<^bsub>L\<^esub> g)"
 
 text (in weak_partial_order) {* Could weaken these to @{term "l \<in> carrier L \<and> l
   .\<in> A"} and @{term "g \<in> carrier L \<and> g .\<in> A"}. *}
@@ -404,19 +404,19 @@ text {* Supremum and infimum *}
 
 definition
   sup :: "[_, 'a set] => 'a" ("\<Squnion>\<index>_" [90] 90)
-  where "\<Squnion>\<^bsub>L\<^esub>A == SOME x. least L x (Upper L A)"
+  where "\<Squnion>\<^bsub>L\<^esub>A = (SOME x. least L x (Upper L A))"
 
 definition
   inf :: "[_, 'a set] => 'a" ("\<Sqinter>\<index>_" [90] 90)
-  where "\<Sqinter>\<^bsub>L\<^esub>A == SOME x. greatest L x (Lower L A)"
+  where "\<Sqinter>\<^bsub>L\<^esub>A = (SOME x. greatest L x (Lower L A))"
 
 definition
   join :: "[_, 'a, 'a] => 'a" (infixl "\<squnion>\<index>" 65)
-  where "x \<squnion>\<^bsub>L\<^esub> y == \<Squnion>\<^bsub>L\<^esub>{x, y}"
+  where "x \<squnion>\<^bsub>L\<^esub> y = \<Squnion>\<^bsub>L\<^esub>{x, y}"
 
 definition
   meet :: "[_, 'a, 'a] => 'a" (infixl "\<sqinter>\<index>" 70)
-  where "x \<sqinter>\<^bsub>L\<^esub> y == \<Sqinter>\<^bsub>L\<^esub>{x, y}"
+  where "x \<sqinter>\<^bsub>L\<^esub> y = \<Sqinter>\<^bsub>L\<^esub>{x, y}"
 
 
 subsection {* Lattices *}
@@ -988,11 +988,11 @@ lemma (in weak_partial_order) weak_complete_latticeI:
 
 definition
   top :: "_ => 'a" ("\<top>\<index>")
-  where "\<top>\<^bsub>L\<^esub> == sup L (carrier L)"
+  where "\<top>\<^bsub>L\<^esub> = sup L (carrier L)"
 
 definition
   bottom :: "_ => 'a" ("\<bottom>\<index>")
-  where "\<bottom>\<^bsub>L\<^esub> == inf L (carrier L)"
+  where "\<bottom>\<^bsub>L\<^esub> = inf L (carrier L)"
 
 
 lemma (in weak_complete_lattice) supI:

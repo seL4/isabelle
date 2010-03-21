@@ -26,8 +26,9 @@ inductive_set
 
 inductive_cases empty_foldSetDE [elim!]: "({}, x) \<in> foldSetD D f e"
 
-definition foldD :: "['a set, 'b => 'a => 'a, 'a, 'b set] => 'a" where
-  "foldD D f e A == THE x. (A, x) \<in> foldSetD D f e"
+definition
+  foldD :: "['a set, 'b => 'a => 'a, 'a, 'b set] => 'a"
+  where "foldD D f e A = (THE x. (A, x) \<in> foldSetD D f e)"
 
 lemma foldSetD_closed:
   "[| (A, z) \<in> foldSetD D f e ; e \<in> D; !!x y. [| x \<in> A; y \<in> D |] ==> f x y \<in> D 
@@ -286,11 +287,11 @@ lemma (in ACeD) foldD_Un_disjoint:
 subsubsection {* Products over Finite Sets *}
 
 definition
-  finprod :: "[('b, 'm) monoid_scheme, 'a => 'b, 'a set] => 'b" where
-  "finprod G f A ==
-    if finite A
+  finprod :: "[('b, 'm) monoid_scheme, 'a => 'b, 'a set] => 'b"
+  where "finprod G f A =
+   (if finite A
     then foldD (carrier G) (mult G o f) \<one>\<^bsub>G\<^esub> A
-    else undefined"
+    else undefined)"
 
 syntax
   "_finprod" :: "index => idt => 'a set => 'b => 'b"

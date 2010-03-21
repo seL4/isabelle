@@ -10,23 +10,23 @@ section {*Cosets and Quotient Groups*}
 
 definition
   r_coset    :: "[_, 'a set, 'a] \<Rightarrow> 'a set"    (infixl "#>\<index>" 60)
-  where "H #>\<^bsub>G\<^esub> a \<equiv> \<Union>h\<in>H. {h \<otimes>\<^bsub>G\<^esub> a}"
+  where "H #>\<^bsub>G\<^esub> a = (\<Union>h\<in>H. {h \<otimes>\<^bsub>G\<^esub> a})"
 
 definition
   l_coset    :: "[_, 'a, 'a set] \<Rightarrow> 'a set"    (infixl "<#\<index>" 60)
-  where "a <#\<^bsub>G\<^esub> H \<equiv> \<Union>h\<in>H. {a \<otimes>\<^bsub>G\<^esub> h}"
+  where "a <#\<^bsub>G\<^esub> H = (\<Union>h\<in>H. {a \<otimes>\<^bsub>G\<^esub> h})"
 
 definition
   RCOSETS  :: "[_, 'a set] \<Rightarrow> ('a set)set"   ("rcosets\<index> _" [81] 80)
-  where "rcosets\<^bsub>G\<^esub> H \<equiv> \<Union>a\<in>carrier G. {H #>\<^bsub>G\<^esub> a}"
+  where "rcosets\<^bsub>G\<^esub> H = (\<Union>a\<in>carrier G. {H #>\<^bsub>G\<^esub> a})"
 
 definition
   set_mult  :: "[_, 'a set ,'a set] \<Rightarrow> 'a set" (infixl "<#>\<index>" 60)
-  where "H <#>\<^bsub>G\<^esub> K \<equiv> \<Union>h\<in>H. \<Union>k\<in>K. {h \<otimes>\<^bsub>G\<^esub> k}"
+  where "H <#>\<^bsub>G\<^esub> K = (\<Union>h\<in>H. \<Union>k\<in>K. {h \<otimes>\<^bsub>G\<^esub> k})"
 
 definition
   SET_INV :: "[_,'a set] \<Rightarrow> 'a set"  ("set'_inv\<index> _" [81] 80)
-  where "set_inv\<^bsub>G\<^esub> H \<equiv> \<Union>h\<in>H. {inv\<^bsub>G\<^esub> h}"
+  where "set_inv\<^bsub>G\<^esub> H = (\<Union>h\<in>H. {inv\<^bsub>G\<^esub> h})"
 
 
 locale normal = subgroup + group +
@@ -595,7 +595,7 @@ subsubsection{*An Equivalence Relation*}
 
 definition
   r_congruent :: "[('a,'b)monoid_scheme, 'a set] \<Rightarrow> ('a*'a)set"  ("rcong\<index> _")
-  where "rcong\<^bsub>G\<^esub> H \<equiv> {(x,y). x \<in> carrier G & y \<in> carrier G & inv\<^bsub>G\<^esub> x \<otimes>\<^bsub>G\<^esub> y \<in> H}"
+  where "rcong\<^bsub>G\<^esub> H = {(x,y). x \<in> carrier G & y \<in> carrier G & inv\<^bsub>G\<^esub> x \<otimes>\<^bsub>G\<^esub> y \<in> H}"
 
 
 lemma (in subgroup) equiv_rcong:
@@ -754,8 +754,9 @@ qed
 
 subsection {*Order of a Group and Lagrange's Theorem*}
 
-definition order :: "('a, 'b) monoid_scheme \<Rightarrow> nat" where
-  "order S \<equiv> card (carrier S)"
+definition
+  order :: "('a, 'b) monoid_scheme \<Rightarrow> nat"
+  where "order S = card (carrier S)"
 
 lemma (in group) rcosets_part_G:
   assumes "subgroup H G"
@@ -824,10 +825,10 @@ done
 
 subsection {*Quotient Groups: Factorization of a Group*}
 
-definition FactGroup :: "[('a,'b) monoid_scheme, 'a set] \<Rightarrow> ('a set) monoid" (infixl "Mod" 65) where
+definition
+  FactGroup :: "[('a,'b) monoid_scheme, 'a set] \<Rightarrow> ('a set) monoid" (infixl "Mod" 65)
     --{*Actually defined for groups rather than monoids*}
-  "FactGroup G H \<equiv>
-    \<lparr>carrier = rcosets\<^bsub>G\<^esub> H, mult = set_mult G, one = H\<rparr>"
+   where "FactGroup G H = \<lparr>carrier = rcosets\<^bsub>G\<^esub> H, mult = set_mult G, one = H\<rparr>"
 
 lemma (in normal) setmult_closed:
      "\<lbrakk>K1 \<in> rcosets H; K2 \<in> rcosets H\<rbrakk> \<Longrightarrow> K1 <#> K2 \<in> rcosets H"
@@ -890,10 +891,10 @@ subsection{*The First Isomorphism Theorem*}
 text{*The quotient by the kernel of a homomorphism is isomorphic to the 
   range of that homomorphism.*}
 
-definition kernel :: "('a, 'm) monoid_scheme \<Rightarrow> ('b, 'n) monoid_scheme \<Rightarrow> 
-             ('a \<Rightarrow> 'b) \<Rightarrow> 'a set" where 
+definition
+  kernel :: "('a, 'm) monoid_scheme \<Rightarrow> ('b, 'n) monoid_scheme \<Rightarrow>  ('a \<Rightarrow> 'b) \<Rightarrow> 'a set"
     --{*the kernel of a homomorphism*}
-  "kernel G H h \<equiv> {x. x \<in> carrier G & h x = \<one>\<^bsub>H\<^esub>}"
+  where "kernel G H h = {x. x \<in> carrier G & h x = \<one>\<^bsub>H\<^esub>}"
 
 lemma (in group_hom) subgroup_kernel: "subgroup (kernel G H h) G"
 apply (rule subgroup.intro) 

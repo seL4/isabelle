@@ -54,11 +54,12 @@ record ('a, 'p) up_ring = "('a, 'p) module" +
   monom :: "['a, nat] => 'p"
   coeff :: "['p, nat] => 'a"
 
-definition up :: "('a, 'm) ring_scheme => (nat => 'a) set"
-  where up_def: "up R == {f. f \<in> UNIV -> carrier R & (EX n. bound \<zero>\<^bsub>R\<^esub> n f)}"
+definition
+  up :: "('a, 'm) ring_scheme => (nat => 'a) set"
+  where "up R = {f. f \<in> UNIV -> carrier R & (EX n. bound \<zero>\<^bsub>R\<^esub> n f)}"
 
 definition UP :: "('a, 'm) ring_scheme => ('a, nat => 'a) up_ring"
-  where UP_def: "UP R == (|
+  where "UP R = (|
    carrier = up R,
    mult = (%p:up R. %q:up R. %n. \<Oplus>\<^bsub>R\<^esub>i \<in> {..n}. p i \<otimes>\<^bsub>R\<^esub> q (n-i)),
    one = (%i. if i=0 then \<one>\<^bsub>R\<^esub> else \<zero>\<^bsub>R\<^esub>),
@@ -711,8 +712,9 @@ end
 
 subsection {* The Degree Function *}
 
-definition deg :: "[('a, 'm) ring_scheme, nat => 'a] => nat"
-  where "deg R p == LEAST n. bound \<zero>\<^bsub>R\<^esub> n (coeff (UP R) p)"
+definition
+  deg :: "[('a, 'm) ring_scheme, nat => 'a] => nat"
+  where "deg R p = (LEAST n. bound \<zero>\<^bsub>R\<^esub> n (coeff (UP R) p))"
 
 context UP_ring
 begin
@@ -1173,8 +1175,8 @@ lemma (in UP_ring) const_ring_hom:
 definition
   eval :: "[('a, 'm) ring_scheme, ('b, 'n) ring_scheme,
            'a => 'b, 'b, nat => 'a] => 'b"
-  where "eval R S phi s == \<lambda>p \<in> carrier (UP R).
-    \<Oplus>\<^bsub>S\<^esub>i \<in> {..deg R p}. phi (coeff (UP R) p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i"
+  where "eval R S phi s = (\<lambda>p \<in> carrier (UP R).
+    \<Oplus>\<^bsub>S\<^esub>i \<in> {..deg R p}. phi (coeff (UP R) p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
 
 context UP
 begin
@@ -1854,11 +1856,11 @@ lemma UP_pre_univ_propI:
   by (auto intro!: UP_pre_univ_prop.intro ring_hom_cring.intro
     ring_hom_cring_axioms.intro UP_cring.intro)
 
-definition  INTEG :: "int ring"
-  where INTEG_def: "INTEG == (| carrier = UNIV, mult = op *, one = 1, zero = 0, add = op + |)"
+definition
+  INTEG :: "int ring"
+  where "INTEG = (| carrier = UNIV, mult = op *, one = 1, zero = 0, add = op + |)"
 
-lemma INTEG_cring:
-  "cring INTEG"
+lemma INTEG_cring: "cring INTEG"
   by (unfold INTEG_def) (auto intro!: cringI abelian_groupI comm_monoidI
     zadd_zminus_inverse2 zadd_zmult_distrib)
 

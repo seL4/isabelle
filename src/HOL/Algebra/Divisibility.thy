@@ -162,26 +162,26 @@ subsubsection {* Function definitions *}
 
 definition
   factor :: "[_, 'a, 'a] \<Rightarrow> bool" (infix "divides\<index>" 65)
-  where "a divides\<^bsub>G\<^esub> b == \<exists>c\<in>carrier G. b = a \<otimes>\<^bsub>G\<^esub> c"
+  where "a divides\<^bsub>G\<^esub> b \<longleftrightarrow> (\<exists>c\<in>carrier G. b = a \<otimes>\<^bsub>G\<^esub> c)"
 
 definition
   associated :: "[_, 'a, 'a] => bool" (infix "\<sim>\<index>" 55)
-  where "a \<sim>\<^bsub>G\<^esub> b == a divides\<^bsub>G\<^esub> b \<and> b divides\<^bsub>G\<^esub> a"
+  where "a \<sim>\<^bsub>G\<^esub> b \<longleftrightarrow> a divides\<^bsub>G\<^esub> b \<and> b divides\<^bsub>G\<^esub> a"
 
 abbreviation
   "division_rel G == \<lparr>carrier = carrier G, eq = op \<sim>\<^bsub>G\<^esub>, le = op divides\<^bsub>G\<^esub>\<rparr>"
 
 definition
   properfactor :: "[_, 'a, 'a] \<Rightarrow> bool"
-  where "properfactor G a b == a divides\<^bsub>G\<^esub> b \<and> \<not>(b divides\<^bsub>G\<^esub> a)"
+  where "properfactor G a b \<longleftrightarrow> a divides\<^bsub>G\<^esub> b \<and> \<not>(b divides\<^bsub>G\<^esub> a)"
 
 definition
   irreducible :: "[_, 'a] \<Rightarrow> bool"
-  where "irreducible G a == a \<notin> Units G \<and> (\<forall>b\<in>carrier G. properfactor G b a \<longrightarrow> b \<in> Units G)"
+  where "irreducible G a \<longleftrightarrow> a \<notin> Units G \<and> (\<forall>b\<in>carrier G. properfactor G b a \<longrightarrow> b \<in> Units G)"
 
 definition
   prime :: "[_, 'a] \<Rightarrow> bool" where
-  "prime G p ==
+  "prime G p \<longleftrightarrow>
     p \<notin> Units G \<and> 
     (\<forall>a\<in>carrier G. \<forall>b\<in>carrier G. p divides\<^bsub>G\<^esub> (a \<otimes>\<^bsub>G\<^esub> b) \<longrightarrow> p divides\<^bsub>G\<^esub> a \<or> p divides\<^bsub>G\<^esub> b)"
 
@@ -1043,11 +1043,11 @@ subsubsection {* Function definitions *}
 
 definition
   factors :: "[_, 'a list, 'a] \<Rightarrow> bool"
-  where "factors G fs a == (\<forall>x \<in> (set fs). irreducible G x) \<and> foldr (op \<otimes>\<^bsub>G\<^esub>) fs \<one>\<^bsub>G\<^esub> = a"
+  where "factors G fs a \<longleftrightarrow> (\<forall>x \<in> (set fs). irreducible G x) \<and> foldr (op \<otimes>\<^bsub>G\<^esub>) fs \<one>\<^bsub>G\<^esub> = a"
 
 definition
   wfactors ::"[_, 'a list, 'a] \<Rightarrow> bool"
-  where "wfactors G fs a == (\<forall>x \<in> (set fs). irreducible G x) \<and> foldr (op \<otimes>\<^bsub>G\<^esub>) fs \<one>\<^bsub>G\<^esub> \<sim>\<^bsub>G\<^esub> a"
+  where "wfactors G fs a \<longleftrightarrow> (\<forall>x \<in> (set fs). irreducible G x) \<and> foldr (op \<otimes>\<^bsub>G\<^esub>) fs \<one>\<^bsub>G\<^esub> \<sim>\<^bsub>G\<^esub> a"
 
 abbreviation
   list_assoc :: "('a,_) monoid_scheme \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" (infix "[\<sim>]\<index>" 44)
@@ -1055,7 +1055,7 @@ abbreviation
 
 definition
   essentially_equal :: "[_, 'a list, 'a list] \<Rightarrow> bool"
-  where "essentially_equal G fs1 fs2 == (\<exists>fs1'. fs1 <~~> fs1' \<and> fs1' [\<sim>]\<^bsub>G\<^esub> fs2)"
+  where "essentially_equal G fs1 fs2 \<longleftrightarrow> (\<exists>fs1'. fs1 <~~> fs1' \<and> fs1' [\<sim>]\<^bsub>G\<^esub> fs2)"
 
 
 locale factorial_monoid = comm_monoid_cancel +
@@ -1903,7 +1903,7 @@ abbreviation
   "assocs G x == eq_closure_of (division_rel G) {x}"
 
 definition
-  "fmset G as \<equiv> multiset_of (map (\<lambda>a. assocs G a) as)"
+  "fmset G as = multiset_of (map (\<lambda>a. assocs G a) as)"
 
 
 text {* Helper lemmas *}
@@ -2618,24 +2618,24 @@ subsubsection {* Definitions *}
 
 definition
   isgcd :: "[('a,_) monoid_scheme, 'a, 'a, 'a] \<Rightarrow> bool"  ("(_ gcdof\<index> _ _)" [81,81,81] 80)
-  where "x gcdof\<^bsub>G\<^esub> a b \<equiv> x divides\<^bsub>G\<^esub> a \<and> x divides\<^bsub>G\<^esub> b \<and> 
+  where "x gcdof\<^bsub>G\<^esub> a b \<longleftrightarrow> x divides\<^bsub>G\<^esub> a \<and> x divides\<^bsub>G\<^esub> b \<and>
     (\<forall>y\<in>carrier G. (y divides\<^bsub>G\<^esub> a \<and> y divides\<^bsub>G\<^esub> b \<longrightarrow> y divides\<^bsub>G\<^esub> x))"
 
 definition
   islcm :: "[_, 'a, 'a, 'a] \<Rightarrow> bool"  ("(_ lcmof\<index> _ _)" [81,81,81] 80)
-  where "x lcmof\<^bsub>G\<^esub> a b \<equiv> a divides\<^bsub>G\<^esub> x \<and> b divides\<^bsub>G\<^esub> x \<and> 
+  where "x lcmof\<^bsub>G\<^esub> a b \<longleftrightarrow> a divides\<^bsub>G\<^esub> x \<and> b divides\<^bsub>G\<^esub> x \<and>
     (\<forall>y\<in>carrier G. (a divides\<^bsub>G\<^esub> y \<and> b divides\<^bsub>G\<^esub> y \<longrightarrow> x divides\<^bsub>G\<^esub> y))"
 
 definition
   somegcd :: "('a,_) monoid_scheme \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a"
-  where "somegcd G a b == SOME x. x \<in> carrier G \<and> x gcdof\<^bsub>G\<^esub> a b"
+  where "somegcd G a b = (SOME x. x \<in> carrier G \<and> x gcdof\<^bsub>G\<^esub> a b)"
 
 definition
   somelcm :: "('a,_) monoid_scheme \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a"
-  where "somelcm G a b == SOME x. x \<in> carrier G \<and> x lcmof\<^bsub>G\<^esub> a b"
+  where "somelcm G a b = (SOME x. x \<in> carrier G \<and> x lcmof\<^bsub>G\<^esub> a b)"
 
 definition
-  "SomeGcd G A == inf (division_rel G) A"
+  "SomeGcd G A = inf (division_rel G) A"
 
 
 locale gcd_condition_monoid = comm_monoid_cancel +
@@ -3633,9 +3633,10 @@ subsubsection {* Application to factorial monoids *}
 
 text {* Number of factors for wellfoundedness *}
 
-definition factorcount :: "_ \<Rightarrow> 'a \<Rightarrow> nat" where
-  "factorcount G a == THE c. (ALL as. set as \<subseteq> carrier G \<and> 
-                                      wfactors G as a \<longrightarrow> c = length as)"
+definition
+  factorcount :: "_ \<Rightarrow> 'a \<Rightarrow> nat" where
+  "factorcount G a =
+    (THE c. (ALL as. set as \<subseteq> carrier G \<and> wfactors G as a \<longrightarrow> c = length as))"
 
 lemma (in monoid) ee_length:
   assumes ee: "essentially_equal G as bs"

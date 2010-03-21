@@ -14,7 +14,7 @@ subsection {* Multiplication on Cosets *}
 definition
   rcoset_mult :: "[('a, _) ring_scheme, 'a set, 'a set, 'a set] \<Rightarrow> 'a set"
     ("[mod _:] _ \<Otimes>\<index> _" [81,81,81] 80)
-  where "rcoset_mult R I A B \<equiv> \<Union>a\<in>A. \<Union>b\<in>B. I +>\<^bsub>R\<^esub> (a \<otimes>\<^bsub>R\<^esub> b)"
+  where "rcoset_mult R I A B = (\<Union>a\<in>A. \<Union>b\<in>B. I +>\<^bsub>R\<^esub> (a \<otimes>\<^bsub>R\<^esub> b))"
 
 
 text {* @{const "rcoset_mult"} fulfils the properties required by
@@ -91,7 +91,7 @@ subsection {* Quotient Ring Definition *}
 
 definition
   FactRing :: "[('a,'b) ring_scheme, 'a set] \<Rightarrow> ('a set) ring"  (infixl "Quot" 65)
-  where "FactRing R I \<equiv>
+  where "FactRing R I =
     \<lparr>carrier = a_rcosets\<^bsub>R\<^esub> I, mult = rcoset_mult R I, one = (I +>\<^bsub>R\<^esub> \<one>\<^bsub>R\<^esub>), zero = I, add = set_add R\<rparr>"
 
 

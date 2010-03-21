@@ -21,23 +21,23 @@ record 'a eq_object = "'a partial_object" +
 
 definition
   elem :: "_ \<Rightarrow> 'a \<Rightarrow> 'a set \<Rightarrow> bool" (infixl ".\<in>\<index>" 50)
-  where "x .\<in>\<^bsub>S\<^esub> A \<equiv> (\<exists>y \<in> A. x .=\<^bsub>S\<^esub> y)"
+  where "x .\<in>\<^bsub>S\<^esub> A \<longleftrightarrow> (\<exists>y \<in> A. x .=\<^bsub>S\<^esub> y)"
 
 definition
   set_eq :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a set \<Rightarrow> bool" (infixl "{.=}\<index>" 50)
-  where "A {.=}\<^bsub>S\<^esub> B == ((\<forall>x \<in> A. x .\<in>\<^bsub>S\<^esub> B) \<and> (\<forall>x \<in> B. x .\<in>\<^bsub>S\<^esub> A))"
+  where "A {.=}\<^bsub>S\<^esub> B \<longleftrightarrow> ((\<forall>x \<in> A. x .\<in>\<^bsub>S\<^esub> B) \<and> (\<forall>x \<in> B. x .\<in>\<^bsub>S\<^esub> A))"
 
 definition
   eq_class_of :: "_ \<Rightarrow> 'a \<Rightarrow> 'a set" ("class'_of\<index> _")
-  where "class_of\<^bsub>S\<^esub> x == {y \<in> carrier S. x .=\<^bsub>S\<^esub> y}"
+  where "class_of\<^bsub>S\<^esub> x = {y \<in> carrier S. x .=\<^bsub>S\<^esub> y}"
 
 definition
   eq_closure_of :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a set" ("closure'_of\<index> _")
-  where "closure_of\<^bsub>S\<^esub> A == {y \<in> carrier S. y .\<in>\<^bsub>S\<^esub> A}"
+  where "closure_of\<^bsub>S\<^esub> A = {y \<in> carrier S. y .\<in>\<^bsub>S\<^esub> A}"
 
 definition
   eq_is_closed :: "_ \<Rightarrow> 'a set \<Rightarrow> bool" ("is'_closed\<index> _")
-  where "is_closed\<^bsub>S\<^esub> A == (A \<subseteq> carrier S \<and> closure_of\<^bsub>S\<^esub> A = A)"
+  where "is_closed\<^bsub>S\<^esub> A \<longleftrightarrow> A \<subseteq> carrier S \<and> closure_of\<^bsub>S\<^esub> A = A"
 
 abbreviation
   not_eq :: "_ \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl ".\<noteq>\<index>" 50)

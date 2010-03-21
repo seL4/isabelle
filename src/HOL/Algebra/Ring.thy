@@ -22,11 +22,11 @@ text {* Derived operations. *}
 
 definition
   a_inv :: "[('a, 'm) ring_scheme, 'a ] => 'a" ("\<ominus>\<index> _" [81] 80)
-  where "a_inv R == m_inv (| carrier = carrier R, mult = add R, one = zero R |)"
+  where "a_inv R = m_inv (| carrier = carrier R, mult = add R, one = zero R |)"
 
 definition
   a_minus :: "[('a, 'm) ring_scheme, 'a, 'a] => 'a" (infixl "\<ominus>\<index>" 65)
-  where "[| x \<in> carrier R; y \<in> carrier R |] ==> x \<ominus>\<^bsub>R\<^esub> y == x \<oplus>\<^bsub>R\<^esub> (\<ominus>\<^bsub>R\<^esub> y)"
+  where "[| x \<in> carrier R; y \<in> carrier R |] ==> x \<ominus>\<^bsub>R\<^esub> y = x \<oplus>\<^bsub>R\<^esub> (\<ominus>\<^bsub>R\<^esub> y)"
 
 locale abelian_monoid =
   fixes G (structure)
@@ -200,9 +200,9 @@ text {*
   This definition makes it easy to lift lemmas from @{term finprod}.
 *}
 
-definition finsum :: "[('b, 'm) ring_scheme, 'a => 'b, 'a set] => 'b" where
-  "finsum G f A == finprod (| carrier = carrier G,
-     mult = add G, one = zero G |) f A"
+definition
+  finsum :: "[('b, 'm) ring_scheme, 'a => 'b, 'a set] => 'b" where
+  "finsum G f A = finprod (| carrier = carrier G, mult = add G, one = zero G |) f A"
 
 syntax
   "_finsum" :: "index => idt => 'a set => 'b => 'b"
@@ -732,7 +732,7 @@ subsection {* Morphisms *}
 
 definition
   ring_hom :: "[('a, 'm) ring_scheme, ('b, 'n) ring_scheme] => ('a => 'b) set"
-  where "ring_hom R S ==
+  where "ring_hom R S =
     {h. h \<in> carrier R -> carrier S &
       (ALL x y. x \<in> carrier R & y \<in> carrier R -->
         h (x \<otimes>\<^bsub>R\<^esub> y) = h x \<otimes>\<^bsub>S\<^esub> h y & h (x \<oplus>\<^bsub>R\<^esub> y) = h x \<oplus>\<^bsub>S\<^esub> h y) &

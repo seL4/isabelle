@@ -22,8 +22,9 @@ done
 
 subsection {* @{text "\<Z>"}: The Set of Integers as Algebraic Structure *}
 
-definition int_ring :: "int ring" ("\<Z>") where
-  "int_ring \<equiv> \<lparr>carrier = UNIV, mult = op *, one = 1, zero = 0, add = op +\<rparr>"
+definition
+  int_ring :: "int ring" ("\<Z>") where
+  "int_ring = \<lparr>carrier = UNIV, mult = op *, one = 1, zero = 0, add = op +\<rparr>"
 
 lemma int_Zcarr [intro!, simp]:
   "k \<in> carrier \<Z>"
@@ -323,8 +324,9 @@ done
 
 subsection {* Ideals and the Modulus *}
 
-definition ZMod :: "int => int => int set" where
-  "ZMod k r == (Idl\<^bsub>\<Z>\<^esub> {k}) +>\<^bsub>\<Z>\<^esub> r"
+definition
+  ZMod :: "int => int => int set"
+  where "ZMod k r = (Idl\<^bsub>\<Z>\<^esub> {k}) +>\<^bsub>\<Z>\<^esub> r"
 
 lemmas ZMod_defs =
   ZMod_def genideal_def
@@ -405,8 +407,9 @@ by (rule, erule ZMod_imp_zmod, erule zmod_imp_ZMod)
 
 subsection {* Factorization *}
 
-definition ZFact :: "int \<Rightarrow> int set ring" where
-  "ZFact k == \<Z> Quot (Idl\<^bsub>\<Z>\<^esub> {k})"
+definition
+  ZFact :: "int \<Rightarrow> int set ring"
+  where "ZFact k = \<Z> Quot (Idl\<^bsub>\<Z>\<^esub> {k})"
 
 lemmas ZFact_defs = ZFact_def FactRing_def
 

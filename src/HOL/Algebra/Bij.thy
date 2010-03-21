@@ -7,12 +7,14 @@ theory Bij imports Group begin
 
 section {* Bijections of a Set, Permutation and Automorphism Groups *}
 
-definition Bij :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) set" where
+definition
+  Bij :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) set"
     --{*Only extensional functions, since otherwise we get too many.*}
-  "Bij S \<equiv> extensional S \<inter> {f. bij_betw f S S}"
+   where "Bij S = extensional S \<inter> {f. bij_betw f S S}"
 
-definition BijGroup :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) monoid" where
-  "BijGroup S \<equiv>
+definition
+  BijGroup :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) monoid"
+  where "BijGroup S =
     \<lparr>carrier = Bij S,
      mult = \<lambda>g \<in> Bij S. \<lambda>f \<in> Bij S. compose S g f,
      one = \<lambda>x \<in> S. x\<rparr>"
@@ -69,11 +71,13 @@ apply (subgoal_tac "\<exists>x'\<in>S. \<exists>y'\<in>S. x = h x' & y = h y'", 
 done
 
 
-definition auto :: "('a, 'b) monoid_scheme \<Rightarrow> ('a \<Rightarrow> 'a) set" where
-  "auto G \<equiv> hom G G \<inter> Bij (carrier G)"
+definition
+  auto :: "('a, 'b) monoid_scheme \<Rightarrow> ('a \<Rightarrow> 'a) set"
+  where "auto G = hom G G \<inter> Bij (carrier G)"
 
-definition AutoGroup :: "('a, 'c) monoid_scheme \<Rightarrow> ('a \<Rightarrow> 'a) monoid" where
-  "AutoGroup G \<equiv> BijGroup (carrier G) \<lparr>carrier := auto G\<rparr>"
+definition
+  AutoGroup :: "('a, 'c) monoid_scheme \<Rightarrow> ('a \<Rightarrow> 'a) monoid"
+  where "AutoGroup G = BijGroup (carrier G) \<lparr>carrier := auto G\<rparr>"
 
 lemma (in group) id_in_auto: "(\<lambda>x \<in> carrier G. x) \<in> auto G"
   by (simp add: auto_def hom_def restrictI group.axioms id_Bij)
