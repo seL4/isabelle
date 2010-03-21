@@ -1231,7 +1231,7 @@ fun unconstrainT
       raise THM ("unconstrainT: not a type variable", 0, [th]);
     val T' = TVar ((x, i), []);
     val unconstrain = Term.map_types (Term.map_atyps (fn U => if U = T then T' else U));
-    val constraints = map (curry Logic.mk_of_class T') S;
+    val constraints = Logic.mk_of_sort (T', S);
   in
     Thm (deriv_rule0 (Pt.PAxm ("Pure.unconstrainT", prop, SOME [])),
      {thy_ref = Theory.merge_refs (thy_ref1, thy_ref2),

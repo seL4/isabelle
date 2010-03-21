@@ -38,6 +38,7 @@ sig
   val class_of_const: string -> class
   val mk_of_class: typ * class -> term
   val dest_of_class: term -> typ * class
+  val mk_of_sort: typ * sort -> term list
   val name_classrel: string * string -> string
   val mk_classrel: class * class -> term
   val dest_classrel: term -> class * class
@@ -217,13 +218,15 @@ fun class_of_const c = unsuffix classN c
   handle Fail _ => raise TERM ("class_of_const: bad name " ^ quote c, []);
 
 
-(* class membership *)
+(* class/sort membership *)
 
 fun mk_of_class (ty, c) =
   Const (const_of_class c, Term.itselfT ty --> propT) $ mk_type ty;
 
 fun dest_of_class (Const (c_class, _) $ ty) = (dest_type ty, class_of_const c_class)
   | dest_of_class t = raise TERM ("dest_of_class", [t]);
+
+fun mk_of_sort (ty, S) = map (fn c => mk_of_class (ty, c)) S;
 
 
 (* class relations *)
