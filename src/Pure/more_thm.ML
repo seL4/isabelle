@@ -322,24 +322,33 @@ fun close_derivation thm =
 
 (* rules *)
 
+fun stripped_sorts thy t =
+  let
+    val tfrees = rev (map TFree (Term.add_tfrees t []));
+    val tfrees' = map (fn a => TFree (a, [])) (Name.invents Name.context Name.aT (length tfrees));
+    val strip = tfrees ~~ tfrees';
+    val recover = map (pairself (Thm.ctyp_of thy o Logic.varifyT_global) o swap) strip;
+    val t' = Term.map_types (Term.map_atyps (perhaps (AList.lookup (op =) strip))) t;
+  in (strip, recover, t') end;
+
 fun add_axiom (b, prop) thy =
   let
     val b' = if Binding.is_empty b then Binding.name ("unnamed_axiom_" ^ serial_string ()) else b;
-    val thy' = thy |> Theory.add_axioms_i [(b', prop)];
-    val axm = unvarify_global (Thm.axiom thy' (Sign.full_name thy' b'));
-  in (axm, thy') end;
+    val (strip, recover, prop') = stripped_sorts thy prop;
+    val constraints = map (fn (TFree (_, S), T) => (T, S)) strip;
+    val of_sorts = maps (fn (T as TFree (_, S), _) => of_sort (Thm.ctyp_of thy T, S)) strip;
+    val thy' = thy
+      |> Theory.add_axioms_i [(b', Logic.list_implies (maps Logic.mk_of_sort constraints, prop'))];
+    val axm' = Thm.axiom thy' (Sign.full_name thy' b');
+    val thm = unvarify_global (Thm.instantiate (recover, []) axm') |> fold elim_implies of_sorts;
+  in (thm, thy') end;
 
 fun add_def unchecked overloaded (b, prop) thy =
   let
-    val tfrees = rev (map TFree (Term.add_tfrees prop []));
-    val tfrees' = map (fn a => TFree (a, [])) (Name.invents Name.context Name.aT (length tfrees));
-    val strip_sorts = tfrees ~~ tfrees';
-    val recover_sorts = map (pairself (Thm.ctyp_of thy o Logic.varifyT_global)) (tfrees' ~~ tfrees);
-
-    val prop' = Term.map_types (Term.map_atyps (perhaps (AList.lookup (op =) strip_sorts))) prop;
+    val (strip, recover, prop') = stripped_sorts thy prop;
     val thy' = Theory.add_defs_i unchecked overloaded [(b, prop')] thy;
     val axm' = Thm.axiom thy' (Sign.full_name thy' b);
-    val thm = unvarify_global (Thm.instantiate (recover_sorts, []) axm');
+    val thm = unvarify_global (Thm.instantiate (recover, []) axm');
   in (thm, thy') end;
 
 
