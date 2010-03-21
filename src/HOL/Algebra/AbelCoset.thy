@@ -17,26 +17,29 @@ text {* Hiding @{text "<+>"} from @{theory Sum_Type} until I come
 
 no_notation Plus (infixr "<+>" 65)
 
-constdefs (structure G)
+definition
   a_r_coset    :: "[_, 'a set, 'a] \<Rightarrow> 'a set"    (infixl "+>\<index>" 60)
-  "a_r_coset G \<equiv> r_coset \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
+  where "a_r_coset G \<equiv> r_coset \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
 
+definition
   a_l_coset    :: "[_, 'a, 'a set] \<Rightarrow> 'a set"    (infixl "<+\<index>" 60)
-  "a_l_coset G \<equiv> l_coset \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
+  where "a_l_coset G \<equiv> l_coset \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
 
+definition
   A_RCOSETS  :: "[_, 'a set] \<Rightarrow> ('a set)set"   ("a'_rcosets\<index> _" [81] 80)
-  "A_RCOSETS G H \<equiv> RCOSETS \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> H"
+  where "A_RCOSETS G H \<equiv> RCOSETS \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> H"
 
+definition
   set_add  :: "[_, 'a set ,'a set] \<Rightarrow> 'a set" (infixl "<+>\<index>" 60)
-  "set_add G \<equiv> set_mult \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
+  where "set_add G \<equiv> set_mult \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
 
+definition
   A_SET_INV :: "[_,'a set] \<Rightarrow> 'a set"  ("a'_set'_inv\<index> _" [81] 80)
-  "A_SET_INV G H \<equiv> SET_INV \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> H"
+  where "A_SET_INV G H \<equiv> SET_INV \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> H"
 
-constdefs (structure G)
-  a_r_congruent :: "[('a,'b)ring_scheme, 'a set] \<Rightarrow> ('a*'a)set"
-                  ("racong\<index> _")
-   "a_r_congruent G \<equiv> r_congruent \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
+definition
+  a_r_congruent :: "[('a,'b)ring_scheme, 'a set] \<Rightarrow> ('a*'a)set"  ("racong\<index> _")
+  where "a_r_congruent G \<equiv> r_congruent \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
 
 definition A_FactGroup :: "[('a,'b) ring_scheme, 'a set] \<Rightarrow> ('a set) monoid" (infixl "A'_Mod" 65) where
     --{*Actually defined for groups rather than monoids*}

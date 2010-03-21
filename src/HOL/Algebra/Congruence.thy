@@ -19,21 +19,25 @@ subsection {* Structure with Carrier and Equivalence Relation @{text eq} *}
 record 'a eq_object = "'a partial_object" +
   eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl ".=\<index>" 50)
 
-constdefs (structure S)
+definition
   elem :: "_ \<Rightarrow> 'a \<Rightarrow> 'a set \<Rightarrow> bool" (infixl ".\<in>\<index>" 50)
-  "x .\<in> A \<equiv> (\<exists>y \<in> A. x .= y)"
+  where "x .\<in>\<^bsub>S\<^esub> A \<equiv> (\<exists>y \<in> A. x .=\<^bsub>S\<^esub> y)"
 
+definition
   set_eq :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a set \<Rightarrow> bool" (infixl "{.=}\<index>" 50)
-  "A {.=} B == ((\<forall>x \<in> A. x .\<in> B) \<and> (\<forall>x \<in> B. x .\<in> A))"
+  where "A {.=}\<^bsub>S\<^esub> B == ((\<forall>x \<in> A. x .\<in>\<^bsub>S\<^esub> B) \<and> (\<forall>x \<in> B. x .\<in>\<^bsub>S\<^esub> A))"
 
+definition
   eq_class_of :: "_ \<Rightarrow> 'a \<Rightarrow> 'a set" ("class'_of\<index> _")
-  "class_of x == {y \<in> carrier S. x .= y}"
+  where "class_of\<^bsub>S\<^esub> x == {y \<in> carrier S. x .=\<^bsub>S\<^esub> y}"
 
+definition
   eq_closure_of :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a set" ("closure'_of\<index> _")
-  "closure_of A == {y \<in> carrier S. y .\<in> A}"
+  where "closure_of\<^bsub>S\<^esub> A == {y \<in> carrier S. y .\<in>\<^bsub>S\<^esub> A}"
 
+definition
   eq_is_closed :: "_ \<Rightarrow> 'a set \<Rightarrow> bool" ("is'_closed\<index> _")
-  "is_closed A == (A \<subseteq> carrier S \<and> closure_of A = A)"
+  where "is_closed\<^bsub>S\<^esub> A == (A \<subseteq> carrier S \<and> closure_of\<^bsub>S\<^esub> A = A)"
 
 abbreviation
   not_eq :: "_ \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl ".\<noteq>\<index>" 50)

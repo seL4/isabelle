@@ -160,30 +160,30 @@ subsection {* Divisibility and Association *}
 
 subsubsection {* Function definitions *}
 
-constdefs (structure G)
+definition
   factor :: "[_, 'a, 'a] \<Rightarrow> bool" (infix "divides\<index>" 65)
-  "a divides b == \<exists>c\<in>carrier G. b = a \<otimes> c"
+  where "a divides\<^bsub>G\<^esub> b == \<exists>c\<in>carrier G. b = a \<otimes>\<^bsub>G\<^esub> c"
 
-constdefs (structure G)
+definition
   associated :: "[_, 'a, 'a] => bool" (infix "\<sim>\<index>" 55)
-  "a \<sim> b == a divides b \<and> b divides a"
+  where "a \<sim>\<^bsub>G\<^esub> b == a divides\<^bsub>G\<^esub> b \<and> b divides\<^bsub>G\<^esub> a"
 
 abbreviation
   "division_rel G == \<lparr>carrier = carrier G, eq = op \<sim>\<^bsub>G\<^esub>, le = op divides\<^bsub>G\<^esub>\<rparr>"
 
-constdefs (structure G)
+definition
   properfactor :: "[_, 'a, 'a] \<Rightarrow> bool"
-  "properfactor G a b == a divides b \<and> \<not>(b divides a)"
+  where "properfactor G a b == a divides\<^bsub>G\<^esub> b \<and> \<not>(b divides\<^bsub>G\<^esub> a)"
 
-constdefs (structure G)
+definition
   irreducible :: "[_, 'a] \<Rightarrow> bool"
-  "irreducible G a == a \<notin> Units G \<and> (\<forall>b\<in>carrier G. properfactor G b a \<longrightarrow> b \<in> Units G)"
+  where "irreducible G a == a \<notin> Units G \<and> (\<forall>b\<in>carrier G. properfactor G b a \<longrightarrow> b \<in> Units G)"
 
-constdefs (structure G)
-  prime :: "[_, 'a] \<Rightarrow> bool"
-  "prime G p == p \<notin> Units G \<and> 
-                (\<forall>a\<in>carrier G. \<forall>b\<in>carrier G. p divides (a \<otimes> b) \<longrightarrow> p divides a \<or> p divides b)"
-
+definition
+  prime :: "[_, 'a] \<Rightarrow> bool" where
+  "prime G p ==
+    p \<notin> Units G \<and> 
+    (\<forall>a\<in>carrier G. \<forall>b\<in>carrier G. p divides\<^bsub>G\<^esub> (a \<otimes>\<^bsub>G\<^esub> b) \<longrightarrow> p divides\<^bsub>G\<^esub> a \<or> p divides\<^bsub>G\<^esub> b)"
 
 
 subsubsection {* Divisibility *}
@@ -1041,20 +1041,21 @@ subsection {* Factorization and Factorial Monoids *}
 
 subsubsection {* Function definitions *}
 
-constdefs (structure G)
+definition
   factors :: "[_, 'a list, 'a] \<Rightarrow> bool"
-  "factors G fs a == (\<forall>x \<in> (set fs). irreducible G x) \<and> foldr (op \<otimes>) fs \<one> = a"
+  where "factors G fs a == (\<forall>x \<in> (set fs). irreducible G x) \<and> foldr (op \<otimes>\<^bsub>G\<^esub>) fs \<one>\<^bsub>G\<^esub> = a"
 
+definition
   wfactors ::"[_, 'a list, 'a] \<Rightarrow> bool"
-  "wfactors G fs a == (\<forall>x \<in> (set fs). irreducible G x) \<and> foldr (op \<otimes>) fs \<one> \<sim> a"
+  where "wfactors G fs a == (\<forall>x \<in> (set fs). irreducible G x) \<and> foldr (op \<otimes>\<^bsub>G\<^esub>) fs \<one>\<^bsub>G\<^esub> \<sim>\<^bsub>G\<^esub> a"
 
 abbreviation
-  list_assoc :: "('a,_) monoid_scheme \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" (infix "[\<sim>]\<index>" 44) where
-  "list_assoc G == list_all2 (op \<sim>\<^bsub>G\<^esub>)"
+  list_assoc :: "('a,_) monoid_scheme \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" (infix "[\<sim>]\<index>" 44)
+  where "list_assoc G == list_all2 (op \<sim>\<^bsub>G\<^esub>)"
 
-constdefs (structure G)
+definition
   essentially_equal :: "[_, 'a list, 'a list] \<Rightarrow> bool"
-  "essentially_equal G fs1 fs2 == (\<exists>fs1'. fs1 <~~> fs1' \<and> fs1' [\<sim>] fs2)"
+  where "essentially_equal G fs1 fs2 == (\<exists>fs1'. fs1 <~~> fs1' \<and> fs1' [\<sim>]\<^bsub>G\<^esub> fs2)"
 
 
 locale factorial_monoid = comm_monoid_cancel +
@@ -1901,7 +1902,7 @@ text {* Gives useful operations like intersection *}
 abbreviation
   "assocs G x == eq_closure_of (division_rel G) {x}"
 
-constdefs (structure G)
+definition
   "fmset G as \<equiv> multiset_of (map (\<lambda>a. assocs G a) as)"
 
 
@@ -2615,23 +2616,25 @@ subsection {* Greatest Common Divisors and Lowest Common Multiples *}
 
 subsubsection {* Definitions *}
 
-constdefs (structure G)
+definition
   isgcd :: "[('a,_) monoid_scheme, 'a, 'a, 'a] \<Rightarrow> bool"  ("(_ gcdof\<index> _ _)" [81,81,81] 80)
-  "x gcdof a b \<equiv> x divides a \<and> x divides b \<and> 
-                 (\<forall>y\<in>carrier G. (y divides a \<and> y divides b \<longrightarrow> y divides x))"
+  where "x gcdof\<^bsub>G\<^esub> a b \<equiv> x divides\<^bsub>G\<^esub> a \<and> x divides\<^bsub>G\<^esub> b \<and> 
+    (\<forall>y\<in>carrier G. (y divides\<^bsub>G\<^esub> a \<and> y divides\<^bsub>G\<^esub> b \<longrightarrow> y divides\<^bsub>G\<^esub> x))"
 
+definition
   islcm :: "[_, 'a, 'a, 'a] \<Rightarrow> bool"  ("(_ lcmof\<index> _ _)" [81,81,81] 80)
-  "x lcmof a b \<equiv> a divides x \<and> b divides x \<and> 
-                 (\<forall>y\<in>carrier G. (a divides y \<and> b divides y \<longrightarrow> x divides y))"
+  where "x lcmof\<^bsub>G\<^esub> a b \<equiv> a divides\<^bsub>G\<^esub> x \<and> b divides\<^bsub>G\<^esub> x \<and> 
+    (\<forall>y\<in>carrier G. (a divides\<^bsub>G\<^esub> y \<and> b divides\<^bsub>G\<^esub> y \<longrightarrow> x divides\<^bsub>G\<^esub> y))"
 
-constdefs (structure G)
+definition
   somegcd :: "('a,_) monoid_scheme \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a"
-  "somegcd G a b == SOME x. x \<in> carrier G \<and> x gcdof a b"
+  where "somegcd G a b == SOME x. x \<in> carrier G \<and> x gcdof\<^bsub>G\<^esub> a b"
 
+definition
   somelcm :: "('a,_) monoid_scheme \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a"
-  "somelcm G a b == SOME x. x \<in> carrier G \<and> x lcmof a b"
+  where "somelcm G a b == SOME x. x \<in> carrier G \<and> x lcmof\<^bsub>G\<^esub> a b"
 
-constdefs (structure G)
+definition
   "SomeGcd G A == inf (division_rel G) A"
 
 

@@ -285,11 +285,12 @@ lemma (in ACeD) foldD_Un_disjoint:
 
 subsubsection {* Products over Finite Sets *}
 
-constdefs (structure G)
-  finprod :: "[('b, 'm) monoid_scheme, 'a => 'b, 'a set] => 'b"
-  "finprod G f A == if finite A
-      then foldD (carrier G) (mult G o f) \<one> A
-      else undefined"
+definition
+  finprod :: "[('b, 'm) monoid_scheme, 'a => 'b, 'a set] => 'b" where
+  "finprod G f A ==
+    if finite A
+    then foldD (carrier G) (mult G o f) \<one>\<^bsub>G\<^esub> A
+    else undefined"
 
 syntax
   "_finprod" :: "index => idt => 'a set => 'b => 'b"

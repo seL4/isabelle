@@ -8,21 +8,25 @@ theory Coset imports Group begin
 
 section {*Cosets and Quotient Groups*}
 
-constdefs (structure G)
+definition
   r_coset    :: "[_, 'a set, 'a] \<Rightarrow> 'a set"    (infixl "#>\<index>" 60)
-  "H #> a \<equiv> \<Union>h\<in>H. {h \<otimes> a}"
+  where "H #>\<^bsub>G\<^esub> a \<equiv> \<Union>h\<in>H. {h \<otimes>\<^bsub>G\<^esub> a}"
 
+definition
   l_coset    :: "[_, 'a, 'a set] \<Rightarrow> 'a set"    (infixl "<#\<index>" 60)
-  "a <# H \<equiv> \<Union>h\<in>H. {a \<otimes> h}"
+  where "a <#\<^bsub>G\<^esub> H \<equiv> \<Union>h\<in>H. {a \<otimes>\<^bsub>G\<^esub> h}"
 
+definition
   RCOSETS  :: "[_, 'a set] \<Rightarrow> ('a set)set"   ("rcosets\<index> _" [81] 80)
-  "rcosets H \<equiv> \<Union>a\<in>carrier G. {H #> a}"
+  where "rcosets\<^bsub>G\<^esub> H \<equiv> \<Union>a\<in>carrier G. {H #>\<^bsub>G\<^esub> a}"
 
+definition
   set_mult  :: "[_, 'a set ,'a set] \<Rightarrow> 'a set" (infixl "<#>\<index>" 60)
-  "H <#> K \<equiv> \<Union>h\<in>H. \<Union>k\<in>K. {h \<otimes> k}"
+  where "H <#>\<^bsub>G\<^esub> K \<equiv> \<Union>h\<in>H. \<Union>k\<in>K. {h \<otimes>\<^bsub>G\<^esub> k}"
 
+definition
   SET_INV :: "[_,'a set] \<Rightarrow> 'a set"  ("set'_inv\<index> _" [81] 80)
-  "set_inv H \<equiv> \<Union>h\<in>H. {inv h}"
+  where "set_inv\<^bsub>G\<^esub> H \<equiv> \<Union>h\<in>H. {inv\<^bsub>G\<^esub> h}"
 
 
 locale normal = subgroup + group +
@@ -589,10 +593,9 @@ lemma (in normal) rcosets_mult_eq: "M \<in> rcosets H \<Longrightarrow> H <#> M 
 
 subsubsection{*An Equivalence Relation*}
 
-constdefs (structure G)
-  r_congruent :: "[('a,'b)monoid_scheme, 'a set] \<Rightarrow> ('a*'a)set"
-                  ("rcong\<index> _")
-   "rcong H \<equiv> {(x,y). x \<in> carrier G & y \<in> carrier G & inv x \<otimes> y \<in> H}"
+definition
+  r_congruent :: "[('a,'b)monoid_scheme, 'a set] \<Rightarrow> ('a*'a)set"  ("rcong\<index> _")
+  where "rcong\<^bsub>G\<^esub> H \<equiv> {(x,y). x \<in> carrier G & y \<in> carrier G & inv\<^bsub>G\<^esub> x \<otimes>\<^bsub>G\<^esub> y \<in> H}"
 
 
 lemma (in subgroup) equiv_rcong:

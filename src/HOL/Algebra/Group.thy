@@ -22,13 +22,14 @@ record 'a monoid =  "'a partial_object" +
   mult    :: "['a, 'a] \<Rightarrow> 'a" (infixl "\<otimes>\<index>" 70)
   one     :: 'a ("\<one>\<index>")
 
-constdefs (structure G)
+definition
   m_inv :: "('a, 'b) monoid_scheme => 'a => 'a" ("inv\<index> _" [81] 80)
-  "inv x == (THE y. y \<in> carrier G & x \<otimes> y = \<one> & y \<otimes> x = \<one>)"
+  where "inv\<^bsub>G\<^esub> x == (THE y. y \<in> carrier G & x \<otimes>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub> & y \<otimes>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub>)"
 
+definition
   Units :: "_ => 'a set"
   --{*The set of invertible elements*}
-  "Units G == {y. y \<in> carrier G & (\<exists>x \<in> carrier G. x \<otimes> y = \<one> & y \<otimes> x = \<one>)}"
+  where "Units G == {y. y \<in> carrier G & (\<exists>x \<in> carrier G. x \<otimes>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub> & y \<otimes>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub>)}"
 
 consts
   pow :: "[('a, 'm) monoid_scheme, 'a, 'b::number] => 'a" (infixr "'(^')\<index>" 75)
@@ -534,8 +535,8 @@ qed
 
 subsection {* Homomorphisms and Isomorphisms *}
 
-constdefs (structure G and H)
-  hom :: "_ => _ => ('a => 'b) set"
+definition
+  hom :: "_ => _ => ('a => 'b) set" where
   "hom G H ==
     {h. h \<in> carrier G -> carrier H &
       (\<forall>x \<in> carrier G. \<forall>y \<in> carrier G. h (x \<otimes>\<^bsub>G\<^esub> y) = h x \<otimes>\<^bsub>H\<^esub> h y)}"
