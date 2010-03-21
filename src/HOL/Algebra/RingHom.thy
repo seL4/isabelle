@@ -1,6 +1,5 @@
-(*
-  Title:     HOL/Algebra/RingHom.thy
-  Author:    Stephan Hohe, TU Muenchen
+(*  Title:      HOL/Algebra/RingHom.thy
+    Author:     Stephan Hohe, TU Muenchen
 *)
 
 theory RingHom
@@ -99,6 +98,7 @@ proof -
   show ?thesis by (intro ring_hom_cring.intro ring_hom_cring_axioms.intro)
     (rule R.is_cring, rule S.is_cring, rule homh)
 qed
+
 
 subsection {* The Kernel of a Ring Homomorphism *}
 

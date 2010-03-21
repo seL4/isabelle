@@ -1,7 +1,8 @@
 (*  Title:      HOL/Algebra/Exponent.thy
-    Author:     Florian Kammueller, with new proofs by L C Paulson
+    Author:     Florian Kammueller
+    Author:     L C Paulson
 
-    exponent p s   yields the greatest power of p that divides s.
+exponent p s   yields the greatest power of p that divides s.
 *)
 
 theory Exponent

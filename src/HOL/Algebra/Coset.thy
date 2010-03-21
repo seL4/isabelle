@@ -1,10 +1,12 @@
 (*  Title:      HOL/Algebra/Coset.thy
-    Author:     Florian Kammueller, with new proofs by L C Paulson, and
-                Stephan Hohe
+    Author:     Florian Kammueller
+    Author:     L C Paulson
+    Author:     Stephan Hohe
 *)
 
-theory Coset imports Group begin
-
+theory Coset
+imports Group
+begin
 
 section {*Cosets and Quotient Groups*}
 
@@ -653,6 +655,7 @@ proof -
   show ?thesis by (force simp add: r_congruent_def l_coset_def m_assoc [symmetric] a ) 
 qed
 
+
 subsubsection{*Two Distinct Right Cosets are Disjoint*}
 
 lemma (in group) rcos_equation:
@@ -677,6 +680,7 @@ proof -
     apply (blast intro: rcos_equation prems sym)
     done
 qed
+
 
 subsection {* Further lemmas for @{text "r_congruent"} *}
 

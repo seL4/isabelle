@@ -1,10 +1,11 @@
-(*
-    Universal property and evaluation homomorphism of univariate polynomials
-    $Id$
-    Author: Clemens Ballarin, started 15 April 1997
+(*  Author: Clemens Ballarin, started 15 April 1997
+
+Universal property and evaluation homomorphism of univariate polynomials.
 *)
 
-theory PolyHomo imports UnivPoly2 begin
+theory PolyHomo
+imports UnivPoly2
+begin
 
 definition
   EVAL2 :: "['a::ring => 'b, 'b, 'a up] => 'b::ring" where

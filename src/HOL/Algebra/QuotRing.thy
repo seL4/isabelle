@@ -1,6 +1,5 @@
-(*
-  Title:     HOL/Algebra/QuotRing.thy
-  Author:    Stephan Hohe
+(*  Title:      HOL/Algebra/QuotRing.thy
+    Author:     Stephan Hohe
 *)
 
 theory QuotRing
@@ -179,6 +178,7 @@ apply (rule quotient_is_cring)
 apply (rule is_cring)
 done
 qed
+
 
 subsection {* Factorization over Prime Ideals *}
 

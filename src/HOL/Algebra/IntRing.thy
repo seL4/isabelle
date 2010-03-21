@@ -1,12 +1,10 @@
-(*
-  Title:     HOL/Algebra/IntRing.thy
-  Author:    Stephan Hohe, TU Muenchen
+(*  Title:      HOL/Algebra/IntRing.thy
+    Author:     Stephan Hohe, TU Muenchen
 *)
 
 theory IntRing
 imports QuotRing Lattice Int "~~/src/HOL/Old_Number_Theory/Primes"
 begin
-
 
 section {* The Ring of Integers *}
 
@@ -49,6 +47,8 @@ apply (intro domain.intro domain_axioms.intro)
  apply (unfold int_ring_def, simp+)
 done
 *)
+
+
 subsection {* Interpretations *}
 
 text {* Since definitions of derived operations are global, their

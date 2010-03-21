@@ -2,8 +2,9 @@
     Author:     Florian Kammueller, with new proofs by L C Paulson
 *)
 
-theory Bij imports Group begin
-
+theory Bij
+imports Group
+begin
 
 section {* Bijections of a Set, Permutation and Automorphism Groups *}
 

@@ -1,12 +1,10 @@
-(*
-  Title:     HOL/Algebra/AbelCoset.thy
-  Author:    Stephan Hohe, TU Muenchen
+(*  Title:      HOL/Algebra/AbelCoset.thy
+    Author:     Stephan Hohe, TU Muenchen
 *)
 
 theory AbelCoset
 imports Coset Ring
 begin
-
 
 subsection {* More Lifting from Groups to Abelian Groups *}
 
@@ -520,6 +518,7 @@ by (rule normal.r_coset_hom_Mod [OF a_normal,
 text {* The isomorphism theorems have been omitted from lifting, at
   least for now *}
 
+
 subsubsection{*The First Isomorphism Theorem*}
 
 text{*The quotient by the kernel of a homomorphism is isomorphic to the 
@@ -642,6 +641,7 @@ theorem (in abelian_group_hom) A_FactGroup_iso:
 by (rule group_hom.FactGroup_iso[OF a_group_hom,
     folded a_kernel_def A_FactGroup_def, simplified ring_record_simps])
 
+
 subsubsection {* Cosets *}
 
 text {* Not eveything from \texttt{CosetExt.thy} is lifted here. *}
@@ -724,7 +724,6 @@ lemma (in abelian_subgroup) a_rcosets_carrier:
   "X \<in> a_rcosets H \<Longrightarrow> X \<subseteq> carrier G"
 by (rule subgroup.rcosets_carrier [OF a_subgroup a_group,
     folded A_RCOSETS_def, simplified monoid_record_simps])
-
 
 
 subsubsection {* Addition of Subgroups *}

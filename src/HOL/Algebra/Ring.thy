@@ -1,14 +1,12 @@
-(*
-  Title:     The algebraic hierarchy of rings
-  Author:    Clemens Ballarin, started 9 December 1996
-  Copyright: Clemens Ballarin
+(*  Title:      The algebraic hierarchy of rings
+    Author:     Clemens Ballarin, started 9 December 1996
+    Copyright:  Clemens Ballarin
 *)
 
 theory Ring
 imports FiniteProduct
 uses ("ringsimp.ML")
 begin
-
 
 section {* The Algebraic Hierarchy of Rings *}
 
@@ -600,6 +598,7 @@ proof -
   interpret ring R by fact
   from R show ?thesis by algebra
 qed
+
 
 subsubsection {* Sums over Finite Sets *}
 

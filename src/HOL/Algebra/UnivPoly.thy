@@ -1,7 +1,6 @@
-(*
-  Title:     HOL/Algebra/UnivPoly.thy
-  Author:    Clemens Ballarin, started 9 December 1996
-  Copyright: Clemens Ballarin
+(*  Title:      HOL/Algebra/UnivPoly.thy
+    Author:     Clemens Ballarin, started 9 December 1996
+    Copyright:  Clemens Ballarin
 
 Contributions, in particular on long division, by Jesus Aransay.
 *)
@@ -9,7 +8,6 @@ Contributions, in particular on long division, by Jesus Aransay.
 theory UnivPoly
 imports Module RingHom
 begin
-
 
 section {* Univariate Polynomials *}
 
@@ -429,7 +427,8 @@ proof (rule up_eqI)
     using l [of "(\<lambda>i. coeff P p i)" "(\<lambda>i. coeff P q i)" "n"] by (simp add: Pi_def m_comm)
 qed (simp_all add: R1 R2)
 
-subsection{*Polynomials over a commutative ring for a commutative ring*}
+
+subsection {*Polynomials over a commutative ring for a commutative ring*}
 
 theorem UP_cring:
   "cring P" using UP_ring unfolding cring_def by (auto intro!: comm_monoidI UP_m_assoc UP_m_comm)
@@ -1473,6 +1472,7 @@ abbreviation lcoeff :: "(nat =>'a) => 'a" where "lcoeff p == coeff P p (deg R p)
 
 lemma lcoeff_nonzero2: assumes p_in_R: "p \<in> carrier P" and p_not_zero: "p \<noteq> \<zero>\<^bsub>P\<^esub>" shows "lcoeff p \<noteq> \<zero>" 
   using lcoeff_nonzero [OF p_not_zero p_in_R] .
+
 
 subsection{*The long division algorithm: some previous facts.*}
 

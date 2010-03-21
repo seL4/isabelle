@@ -1,9 +1,11 @@
-(*
-    Principle ideal domains
-    Author: Clemens Ballarin, started 5 October 1999
+(*  Author: Clemens Ballarin, started 5 October 1999
+
+Principle ideal domains.
 *)
 
-theory PID imports Ideal2 begin
+theory PID
+imports Ideal2
+begin
 
 instance pid < factorial
   apply intro_classes

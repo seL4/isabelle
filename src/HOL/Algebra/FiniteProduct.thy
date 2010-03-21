@@ -4,8 +4,9 @@
 This file is largely based on HOL/Finite_Set.thy.
 *)
 
-theory FiniteProduct imports Group begin
-
+theory FiniteProduct
+imports Group
+begin
 
 subsection {* Product Operator for Commutative Monoids *}
 

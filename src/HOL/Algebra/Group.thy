@@ -1,6 +1,5 @@
-(*
-  Title:  HOL/Algebra/Group.thy
-  Author: Clemens Ballarin, started 4 February 2003
+(*  Title:      HOL/Algebra/Group.thy
+    Author:     Clemens Ballarin, started 4 February 2003
 
 Based on work by Florian Kammueller, L C Paulson and Markus Wenzel.
 *)
@@ -8,7 +7,6 @@ Based on work by Florian Kammueller, L C Paulson and Markus Wenzel.
 theory Group
 imports Lattice FuncSet
 begin
-
 
 section {* Monoids and Groups *}
 

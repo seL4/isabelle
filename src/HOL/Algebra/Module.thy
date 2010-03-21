@@ -3,8 +3,9 @@
     Copyright:  Clemens Ballarin
 *)
 
-theory Module imports Ring begin
-
+theory Module
+imports Ring
+begin
 
 section {* Modules over an Abelian Group *}
 

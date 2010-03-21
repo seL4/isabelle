@@ -1,6 +1,5 @@
-(*
-  Title:     Divisibility in monoids and rings
-  Author:    Clemens Ballarin, started 18 July 2008
+(*  Title:      Divisibility in monoids and rings
+    Author:     Clemens Ballarin, started 18 July 2008
 
 Based on work by Stephan Hohe.
 *)
@@ -155,6 +154,7 @@ proof clarsimp
   from carr' li' ri'
       show "a \<in> Units G" by (simp add: Units_def, fast)
 qed
+
 
 subsection {* Divisibility and Association *}
 

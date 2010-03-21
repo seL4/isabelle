@@ -1,4 +1,4 @@
-(*  Author:    Clemens Ballarin
+(*  Author:     Clemens Ballarin
 
 Normalisation method for locales ring and cring.
 *)

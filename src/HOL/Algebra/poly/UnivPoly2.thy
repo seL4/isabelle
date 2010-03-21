@@ -1,7 +1,6 @@
-(*
-  Title:     Univariate Polynomials
-  Author:    Clemens Ballarin, started 9 December 1996
-  Copyright: Clemens Ballarin
+(*  Title:      Univariate Polynomials
+    Author:     Clemens Ballarin, started 9 December 1996
+    Copyright:  Clemens Ballarin
 *)
 
 header {* Univariate Polynomials *}
@@ -14,6 +13,7 @@ begin
    like i:{m..n} get simplified (to m <= i & i <= n). *)
 
 declare strong_setsum_cong [cong]
+
 
 section {* Definition of type up *}
 
@@ -478,6 +478,7 @@ proof -
   also have "... = -(a *s p)" by simp
   finally show ?thesis .
 qed
+
 
 section {* The degree function *}
 

@@ -1,9 +1,11 @@
-(*
-    Experimental theory: long division of polynomials
-    Author: Clemens Ballarin, started 23 June 1999
+(*  Author: Clemens Ballarin, started 23 June 1999
+
+Experimental theory: long division of polynomials.
 *)
 
-theory LongDiv imports PolyHomo begin
+theory LongDiv
+imports PolyHomo
+begin
 
 definition
   lcoeff :: "'a::ring up => 'a" where

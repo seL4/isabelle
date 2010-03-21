@@ -1,12 +1,13 @@
-(*
-  Title:     HOL/Algebra/Lattice.thy
-  Author:    Clemens Ballarin, started 7 November 2003
-  Copyright: Clemens Ballarin
+(*  Title:      HOL/Algebra/Lattice.thy
+    Author:     Clemens Ballarin, started 7 November 2003
+    Copyright:  Clemens Ballarin
 
 Most congruence rules by Stephan Hohe.
 *)
 
-theory Lattice imports Congruence begin
+theory Lattice
+imports Congruence
+begin
 
 section {* Orders and Lattices *}
 

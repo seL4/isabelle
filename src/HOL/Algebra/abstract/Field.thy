@@ -1,9 +1,11 @@
-(*
-    Properties of abstract class field
-    Author: Clemens Ballarin, started 15 November 1997
+(*  Author: Clemens Ballarin, started 15 November 1997
+
+Properties of abstract class field.
 *)
 
-theory Field imports Factor PID begin
+theory Field
+imports Factor PID
+begin
 
 instance field < "domain"
   apply intro_classes

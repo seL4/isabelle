@@ -1,10 +1,11 @@
-(*
-  Title:  Algebra/Congruence.thy
-  Author: Clemens Ballarin, started 3 January 2008
-  Copyright: Clemens Ballarin
+(*  Title:      Algebra/Congruence.thy
+    Author:     Clemens Ballarin, started 3 January 2008
+    Copyright:  Clemens Ballarin
 *)
 
-theory Congruence imports Main begin
+theory Congruence
+imports Main
+begin
 
 section {* Objects *}
 
