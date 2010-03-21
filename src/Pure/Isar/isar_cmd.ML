@@ -14,7 +14,7 @@ sig
   val typed_print_translation: bool * (Symbol_Pos.text * Position.T) -> theory -> theory
   val print_ast_translation: bool * (Symbol_Pos.text * Position.T) -> theory -> theory
   val oracle: bstring * Position.T -> Symbol_Pos.text * Position.T -> theory -> theory
-  val add_axioms: ((binding * string) * Attrib.src list) list -> theory -> theory
+  val add_axioms: (Attrib.binding * string) list -> theory -> theory
   val add_defs: (bool * bool) * ((binding * string) * Attrib.src list) list -> theory -> theory
   val declaration: bool -> Symbol_Pos.text * Position.T -> local_theory -> local_theory
   val simproc_setup: string -> string list -> Symbol_Pos.text * Position.T -> string list ->
@@ -164,16 +164,14 @@ fun oracle (name, pos) (body_txt, body_pos) =
   in Context.theory_map (ML_Context.exec (fn () => ML_Context.eval false body_pos txt)) end;
 
 
-(* axioms *)
+(* old-style axioms *)
 
-fun add_axms f args thy =
-  f (map (fn ((b, ax), srcs) => ((b, ax), map (Attrib.attribute thy) srcs)) args) thy;
+val add_axioms = fold (fn (b, ax) => snd o Specification.axiomatization_cmd [] [(b, [ax])]);
 
-val add_axioms = add_axms (snd oo PureThy.add_axioms_cmd);
-
-fun add_defs ((unchecked, overloaded), args) =
-  add_axms
-    (snd oo (if unchecked then PureThy.add_defs_unchecked_cmd else PureThy.add_defs_cmd) overloaded) args;
+fun add_defs ((unchecked, overloaded), args) thy =
+  thy |> (if unchecked then PureThy.add_defs_unchecked_cmd else PureThy.add_defs_cmd) overloaded
+    (map (fn ((b, ax), srcs) => ((b, ax), map (Attrib.attribute thy) srcs)) args)
+  |> snd;
 
 
 (* declarations *)

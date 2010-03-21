@@ -33,7 +33,6 @@ sig
   val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list
     -> theory -> (string * thm list) list * theory
   val add_axioms: ((binding * term) * attribute list) list -> theory -> thm list * theory
-  val add_axioms_cmd: ((binding * string) * attribute list) list -> theory -> thm list * theory
   val add_defs: bool -> ((binding * term) * attribute list) list ->
     theory -> thm list * theory
   val add_defs_unchecked: bool -> ((binding * term) * attribute list) list ->
@@ -216,7 +215,6 @@ in
   val add_axioms             = add_axm Theory.add_axioms_i;
   val add_defs_cmd           = add_axm o Theory.add_defs false;
   val add_defs_unchecked_cmd = add_axm o Theory.add_defs true;
-  val add_axioms_cmd         = add_axm Theory.add_axioms;
 end;
 
 

@@ -178,11 +178,9 @@ val _ =
 
 (* axioms and definitions *)
 
-val named_spec = SpecParse.thm_name ":" -- P.prop >> (fn ((x, y), z) => ((x, z), y));
-
 val _ =
   OuterSyntax.command "axioms" "state arbitrary propositions (axiomatic!)" K.thy_decl
-    (Scan.repeat1 named_spec >> (Toplevel.theory o IsarCmd.add_axioms));
+    (Scan.repeat1 SpecParse.spec >> (Toplevel.theory o IsarCmd.add_axioms));
 
 val opt_unchecked_overloaded =
   Scan.optional (P.$$$ "(" |-- P.!!!
@@ -191,7 +189,8 @@ val opt_unchecked_overloaded =
 
 val _ =
   OuterSyntax.command "defs" "define constants" K.thy_decl
-    (opt_unchecked_overloaded -- Scan.repeat1 named_spec
+    (opt_unchecked_overloaded --
+      Scan.repeat1 (SpecParse.thm_name ":" -- P.prop >> (fn ((x, y), z) => ((x, z), y)))
       >> (Toplevel.theory o IsarCmd.add_defs));
 
 
