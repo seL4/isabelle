@@ -30,13 +30,19 @@ definition
   where "Units G = {y. y \<in> carrier G & (\<exists>x \<in> carrier G. x \<otimes>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub> & y \<otimes>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub>)}"
 
 consts
-  pow :: "[('a, 'm) monoid_scheme, 'a, 'b::number] => 'a" (infixr "'(^')\<index>" 75)
+  pow :: "[('a, 'm) monoid_scheme, 'a, 'b::number] => 'a"  (infixr "'(^')\<index>" 75)
 
-defs (overloaded)
-  nat_pow_def: "pow G a n == nat_rec \<one>\<^bsub>G\<^esub> (%u b. b \<otimes>\<^bsub>G\<^esub> a) n"
-  int_pow_def: "pow G a z ==
-    let p = nat_rec \<one>\<^bsub>G\<^esub> (%u b. b \<otimes>\<^bsub>G\<^esub> a)
-    in if neg z then inv\<^bsub>G\<^esub> (p (nat (-z))) else p (nat z)"
+overloading nat_pow == "pow :: [_, 'a, nat] => 'a"
+begin
+  definition "nat_pow G a n = nat_rec \<one>\<^bsub>G\<^esub> (%u b. b \<otimes>\<^bsub>G\<^esub> a) n"
+end
+
+overloading int_pow == "pow :: [_, 'a, int] => 'a"
+begin
+  definition "int_pow G a z =
+   (let p = nat_rec \<one>\<^bsub>G\<^esub> (%u b. b \<otimes>\<^bsub>G\<^esub> a)
+    in if neg z then inv\<^bsub>G\<^esub> (p (nat (-z))) else p (nat z))"
+end
 
 locale monoid =
   fixes G (structure)
