@@ -28,8 +28,7 @@ sig
   val at_end: (theory -> theory option) -> theory -> theory
   val begin_theory: string -> theory list -> theory
   val end_theory: theory -> theory
-  val add_axioms_i: (binding * term) list -> theory -> theory
-  val add_axioms: (binding * string) list -> theory -> theory
+  val add_axiom: binding * term -> theory -> theory
   val add_deps: string -> string * typ -> (string * typ) list -> theory -> theory
   val add_defs_i: bool -> bool -> (binding * term) list -> theory -> theory
   val add_defs: bool -> bool -> (binding * string) list -> theory -> theory
@@ -171,22 +170,13 @@ fun read_axm thy (b, str) =
     cat_error msg ("The error(s) above occurred in axiom " ^ quote (Binding.str_of b));
 
 
-(* add_axioms(_i) *)
+(* add_axiom *)
 
-local
-
-fun gen_add_axioms prep_axm raw_axms thy = thy |> map_axioms (fn axioms =>
+fun add_axiom raw_axm thy = thy |> map_axioms (fn axioms =>
   let
-    val axms = map (apsnd Logic.varify_global o prep_axm thy) raw_axms;
-    val axioms' = fold (#2 oo Name_Space.define true (Sign.naming_of thy)) axms axioms;
+    val axm = apsnd Logic.varify_global (cert_axm thy raw_axm);
+    val (_, axioms') = Name_Space.define true (Sign.naming_of thy) axm axioms;
   in axioms' end);
-
-in
-
-val add_axioms_i = gen_add_axioms cert_axm;
-val add_axioms = gen_add_axioms read_axm;
-
-end;
 
 
 
@@ -269,7 +259,7 @@ fun gen_add_defs prep_axm unchecked overloaded raw_axms thy =
   let val axms = map (prep_axm thy) raw_axms in
     thy
     |> map_defs (fold (check_def thy unchecked overloaded) axms)
-    |> add_axioms_i axms
+    |> fold add_axiom axms
   end;
 
 in

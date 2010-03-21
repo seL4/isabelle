@@ -337,8 +337,8 @@ fun add_axiom (b, prop) thy =
     val (strip, recover, prop') = stripped_sorts thy prop;
     val constraints = map (fn (TFree (_, S), T) => (T, S)) strip;
     val of_sorts = maps (fn (T as TFree (_, S), _) => of_sort (Thm.ctyp_of thy T, S)) strip;
-    val thy' = thy
-      |> Theory.add_axioms_i [(b', Logic.list_implies (maps Logic.mk_of_sort constraints, prop'))];
+    val thy' =
+      Theory.add_axiom (b', Logic.list_implies (maps Logic.mk_of_sort constraints, prop')) thy;
     val axm' = Thm.axiom thy' (Sign.full_name thy' b');
     val thm = unvarify_global (Thm.instantiate (recover, []) axm') |> fold elim_implies of_sorts;
   in (thm, thy') end;
