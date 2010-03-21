@@ -54,13 +54,8 @@ fun axiomatize_isomorphism
     val abs_iso_bind = Binding.qualified true "abs_iso" dbind;
     val rep_iso_bind = Binding.qualified true "rep_iso" dbind;
 
-    val (abs_iso_thm, thy) =
-        yield_singleton PureThy.add_axioms
-        ((abs_iso_bind, abs_iso_eqn), []) thy;
-
-    val (rep_iso_thm, thy) =
-        yield_singleton PureThy.add_axioms
-        ((rep_iso_bind, rep_iso_eqn), []) thy;
+    val (abs_iso_thm, thy) = Drule.add_axiom (abs_iso_bind, abs_iso_eqn) thy;
+    val (rep_iso_thm, thy) = Drule.add_axiom (rep_iso_bind, rep_iso_eqn) thy;
 
     val result =
         {
@@ -88,9 +83,7 @@ fun axiomatize_lub_take
 
     val lub_take_bind = Binding.qualified true "lub_take" dbind;
 
-    val (lub_take_thm, thy) =
-        yield_singleton PureThy.add_axioms
-        ((lub_take_bind, lub_take_eqn), []) thy;
+    val (lub_take_thm, thy) = Drule.add_axiom (lub_take_bind, lub_take_eqn) thy;
   in
     (lub_take_thm, thy)
   end;

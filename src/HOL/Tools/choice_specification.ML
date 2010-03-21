@@ -44,9 +44,9 @@ local
         let
             fun process [] (thy,tm) =
                 let
-                    val (thms, thy') = PureThy.add_axioms [((Binding.name axname, HOLogic.mk_Trueprop tm),[])] thy
+                    val (thm, thy') = Drule.add_axiom (Binding.name axname, HOLogic.mk_Trueprop tm) thy
                 in
-                    (thy',hd thms)
+                    (thy', thm)
                 end
               | process ((thname,cname,covld)::cos) (thy,tm) =
                 case tm of

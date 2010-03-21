@@ -182,8 +182,8 @@ fun flatten constname atom (defs, thy) =
          val new_defs = map new_def assms
          val (definition, thy') = thy
           |> Sign.add_consts_i [(Binding.name constname, constT, NoSyn)]
-          |> PureThy.add_axioms (map_index
-              (fn (i, t) => ((Binding.name (constname ^ "_def" ^ string_of_int i), t), [])) new_defs)
+          |> fold_map Drule.add_axiom (map_index
+              (fn (i, t) => (Binding.name (constname ^ "_def" ^ string_of_int i), t)) new_defs)
         in
           (lhs, ((full_constname, definition) :: defs, thy'))
         end

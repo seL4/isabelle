@@ -521,7 +521,7 @@ fun axiomatize prep mk name add raw_args thy =
     val names = name args;
   in
     thy
-    |> PureThy.add_axioms (map (rpair []) (map Binding.name names ~~ specs))
+    |> fold_map Drule.add_axiom (map Binding.name names ~~ specs)
     |-> fold add
   end;
 

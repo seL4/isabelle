@@ -241,7 +241,7 @@ fun add_axioms verbose axs thy =
   let val (used, new) = mark_axioms thy (name_axioms axs)
   in
     thy
-    |> PureThy.add_axioms (map (rpair [] o apfst Binding.name) new)
+    |> fold_map (Drule.add_axiom o apfst Binding.name) new
     |-> Context.theory_map o fold Boogie_Axioms.add_thm
     |> log verbose "The following axioms were added:" (map fst new)
     |> (fn thy' => log verbose "The following axioms already existed:"

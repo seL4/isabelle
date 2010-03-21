@@ -32,7 +32,6 @@ sig
   val add_thms_dynamic: binding * (Context.generic -> thm list) -> theory -> theory
   val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list
     -> theory -> (string * thm list) list * theory
-  val add_axioms: ((binding * term) * attribute list) list -> theory -> thm list * theory
   val add_defs: bool -> ((binding * term) * attribute list) list ->
     theory -> thm list * theory
   val add_defs_unchecked: bool -> ((binding * term) * attribute list) list ->
@@ -201,18 +200,14 @@ fun note_thmss kind = fold_map (fn ((b, more_atts), ths_atts) => fn thy =>
 (* store axioms as theorems *)
 
 local
-  fun get_ax thy (b, _) = Thm.axiom thy (Sign.full_name thy b);
-  fun get_axs thy named_axs = map (Thm.forall_elim_vars 0 o get_ax thy) named_axs;
-  fun add_axm add = fold_map (fn ((b, ax), atts) => fn thy =>
+  fun add_axm add = fold_map (fn ((b, prop), atts) => fn thy =>
     let
-      val named_ax = [(b, ax)];
-      val thy' = add named_ax thy;
-      val thm = hd (get_axs thy' named_ax);
+      val thy' = add [(b, prop)] thy;
+      val thm = Thm.forall_elim_vars 0 (Thm.axiom thy' (Sign.full_name thy' b));
     in apfst hd (gen_add_thms (K I) [((b, thm), atts)] thy') end);
 in
   val add_defs               = add_axm o Theory.add_defs_i false;
   val add_defs_unchecked     = add_axm o Theory.add_defs_i true;
-  val add_axioms             = add_axm Theory.add_axioms_i;
   val add_defs_cmd           = add_axm o Theory.add_defs false;
   val add_defs_unchecked_cmd = add_axm o Theory.add_defs true;
 end;
@@ -367,6 +362,6 @@ val _ = Context.>> (Context.map_theory
   #> Sign.hide_const false "Pure.sort_constraint"
   #> Sign.hide_const false "Pure.conjunction"
   #> add_thmss [((Binding.name "nothing", []), [])] #> snd
-  #> Theory.add_axioms_i (map (apfst Binding.name) Proofterm.equality_axms)));
+  #> fold (fn (a, prop) => snd o Thm.add_axiom (Binding.name a, prop)) Proofterm.equality_axms));
 
 end;
