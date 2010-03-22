@@ -145,6 +145,23 @@ no_notation scomp (infixl "o\<rightarrow>" 60)
 
 subsection {* The Random-Predicate Monad *} 
 
+fun iter' ::
+  "'a itself => code_numeral => code_numeral => code_numeral * code_numeral => ('a::random) Predicate.pred"
+where
+  "iter' T nrandom sz seed = (if nrandom = 0 then bot_class.bot else
+     let ((x, _), seed') = random sz seed
+   in Predicate.Seq (%u. Predicate.Insert x (iter' T (nrandom - 1) sz seed')))"
+
+definition iter :: "code_numeral => code_numeral => code_numeral * code_numeral => ('a::random) Predicate.pred"
+where
+  "iter nrandom sz seed = iter' (TYPE('a)) nrandom sz seed"
+
+lemma [code]:
+  "iter nrandom sz seed = (if nrandom = 0 then bot_class.bot else
+     let ((x, _), seed') = random sz seed
+   in Predicate.Seq (%u. Predicate.Insert x (iter (nrandom - 1) sz seed')))"
+unfolding iter_def iter'.simps[of _ nrandom] ..
+
 types 'a randompred = "Random.seed \<Rightarrow> ('a Predicate.pred \<times> Random.seed)"
 
 definition empty :: "'a randompred"
@@ -182,9 +199,9 @@ definition Random :: "(Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow
 definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a randompred \<Rightarrow> 'b randompred)"
   where "map f P = bind P (single o f)"
 
-hide (open) fact empty_def single_def bind_def union_def if_randompred_def not_randompred_def Random_def map_def
+hide (open) fact iter'.simps iter_def empty_def single_def bind_def union_def if_randompred_def not_randompred_def Random_def map_def
 hide (open) type randompred
 hide (open) const random collapse beyond random_fun_aux random_fun_lift
-  empty single bind union if_randompred not_randompred Random map
+  iter' iter empty single bind union if_randompred not_randompred Random map
 
 end

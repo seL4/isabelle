@@ -570,7 +570,7 @@ val bool_options = ["show_steps", "show_intermediate_results", "show_proof_trace
   "no_topmost_reordering"]
 
 val compilation_names = [("pred", Pred),
-  (*("random", Random),*)
+  ("random", Random),
   ("depth_limited", Depth_Limited), (*("annotated", Annotated),*)
   ("dseq", DSeq), ("random_dseq", Pos_Random_DSeq)]
 

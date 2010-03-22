@@ -868,19 +868,6 @@ val compfuns = CompilationFuns {mk_predT = mk_random_dseqT, dest_predT = dest_ra
 
 end;
 
-
-
-fun mk_random T =
-  let
-    val random = Const ("Quickcheck.random_class.random",
-      @{typ code_numeral} --> @{typ Random.seed} -->
-        HOLogic.mk_prodT (HOLogic.mk_prodT (T, @{typ "unit => term"}), @{typ Random.seed}))
-  in
-    Const ("Random_Sequence.Random", (@{typ code_numeral} --> @{typ Random.seed} -->
-      HOLogic.mk_prodT (HOLogic.mk_prodT (T, @{typ "unit => term"}), @{typ Random.seed})) -->
-      Random_Sequence_CompFuns.mk_random_dseqT T) $ random
-  end;
-
 (* for external use with interactive mode *)
 val pred_compfuns = PredicateCompFuns.compfuns
 val randompred_compfuns = Random_Sequence_CompFuns.compfuns;
@@ -1447,6 +1434,7 @@ datatype comp_modifiers = Comp_Modifiers of
   compilation : compilation,
   function_name_prefix : string,
   compfuns : compilation_funs,
+  mk_random : typ -> term list -> term,
   modify_funT : typ -> typ,
   additional_arguments : string list -> term list,
   wrap_compilation : compilation_funs -> string -> typ -> mode -> term list -> term -> term,
@@ -1459,6 +1447,7 @@ val compilation = #compilation o dest_comp_modifiers
 val function_name_prefix = #function_name_prefix o dest_comp_modifiers
 val compfuns = #compfuns o dest_comp_modifiers
 
+val mk_random = #mk_random o dest_comp_modifiers
 val funT_of' = funT_of o compfuns
 val modify_funT = #modify_funT o dest_comp_modifiers
 fun funT_of comp mode = modify_funT comp o funT_of' comp mode
@@ -1612,8 +1601,7 @@ fun compile_clause compilation_modifiers compfuns thy all_vs param_vs additional
                  end
              | Generator (v, T) =>
                  let
-                   val u = mk_random T
-                   
+                   val u = Comp_Mod.mk_random compilation_modifiers T additional_arguments
                    val rest = compile_prems [Free (v, T)]  vs' names'' ps;
                  in
                    (u, rest)
@@ -2543,9 +2531,10 @@ val depth_limited_comp_modifiers = Comp_Mod.Comp_Modifiers
   compilation = Depth_Limited,
   function_name_prefix = "depth_limited_",
   compfuns = PredicateCompFuns.compfuns,
+  mk_random = (fn _ => error "no random generation"),
   additional_arguments = fn names =>
     let
-      val [depth_name] = Name.variant_list names ["depth"]
+      val depth_name = Name.variant names "depth"
     in [Free (depth_name, @{typ code_numeral})] end,
   modify_funT = (fn T => let val (Ts, U) = strip_type T
   val Ts' = [@{typ code_numeral}] in (Ts @ Ts') ---> U end),
@@ -2570,20 +2559,33 @@ val depth_limited_comp_modifiers = Comp_Mod.Comp_Modifiers
           $ depth $ Const (@{const_name Groups.one}, @{typ "Code_Numeral.code_numeral"})
     in [depth'] end
   }
-(*
+
 val random_comp_modifiers = Comp_Mod.Comp_Modifiers
   {
   compilation = Random,
-  function_name_of = function_name_of Random,
-  set_function_name = set_function_name Random,
   function_name_prefix = "random_",
-  funT_of = K random_function_funT_of : (compilation_funs -> mode -> typ -> typ),
-  additional_arguments = fn names => [Free (Name.variant names "size", @{typ code_numeral})],
+  compfuns = PredicateCompFuns.compfuns,
+  mk_random = (fn T => fn additional_arguments =>
+  list_comb (Const(@{const_name Quickcheck.iter},
+  [@{typ code_numeral}, @{typ code_numeral}, @{typ Random.seed}] ---> 
+    PredicateCompFuns.mk_predT T), additional_arguments)),
+  modify_funT = (fn T =>
+    let
+      val (Ts, U) = strip_type T
+      val Ts' = [@{typ code_numeral}, @{typ code_numeral}, @{typ "code_numeral * code_numeral"}]
+    in (Ts @ Ts') ---> U end),
+  additional_arguments = (fn names =>
+    let
+      val [nrandom, size, seed] = Name.variant_list names ["nrandom", "size", "seed"]
+    in
+      [Free (nrandom, @{typ code_numeral}), Free (size, @{typ code_numeral}),
+        Free (seed, @{typ "code_numeral * code_numeral"})]
+    end),
   wrap_compilation = K (K (K (K (K I))))
     : (compilation_funs -> string -> typ -> mode -> term list -> term -> term),
   transform_additional_arguments = K I : (indprem -> term list -> term list)
   }
-*)
+
 (* different instantiantions of the predicate compiler *)
 
 val predicate_comp_modifiers = Comp_Mod.Comp_Modifiers
@@ -2591,7 +2593,8 @@ val predicate_comp_modifiers = Comp_Mod.Comp_Modifiers
   compilation = Pred,
   function_name_prefix = "",
   compfuns = PredicateCompFuns.compfuns,
-    modify_funT = I,
+  mk_random = (fn _ => error "no random generation"),
+  modify_funT = I,
   additional_arguments = K [],
   wrap_compilation = K (K (K (K (K I))))
    : (compilation_funs -> string -> typ -> mode -> term list -> term -> term),
@@ -2615,6 +2618,7 @@ val annotated_comp_modifiers = Comp_Mod.Comp_Modifiers
   compilation = Annotated,
   function_name_prefix = "annotated_",
   compfuns = PredicateCompFuns.compfuns,
+  mk_random = (fn _ => error "no random generation"),
   modify_funT = I,
   additional_arguments = K [],
   wrap_compilation =
@@ -2629,6 +2633,7 @@ val dseq_comp_modifiers = Comp_Mod.Comp_Modifiers
   compilation = DSeq,
   function_name_prefix = "dseq_",
   compfuns = DSequence_CompFuns.compfuns,
+  mk_random = (fn _ => error "no random generation"),
   modify_funT = I,
   additional_arguments = K [],
   wrap_compilation = K (K (K (K (K I))))
@@ -2641,6 +2646,17 @@ val pos_random_dseq_comp_modifiers = Comp_Mod.Comp_Modifiers
   compilation = Pos_Random_DSeq,
   function_name_prefix = "random_dseq_",
   compfuns = Random_Sequence_CompFuns.compfuns,
+  mk_random = (fn T => fn additional_arguments =>
+  let
+    val random = Const ("Quickcheck.random_class.random",
+      @{typ code_numeral} --> @{typ Random.seed} -->
+        HOLogic.mk_prodT (HOLogic.mk_prodT (T, @{typ "unit => term"}), @{typ Random.seed}))
+  in
+    Const ("Random_Sequence.Random", (@{typ code_numeral} --> @{typ Random.seed} -->
+      HOLogic.mk_prodT (HOLogic.mk_prodT (T, @{typ "unit => term"}), @{typ Random.seed})) -->
+      Random_Sequence_CompFuns.mk_random_dseqT T) $ random
+  end),
+
   modify_funT = I,
   additional_arguments = K [],
   wrap_compilation = K (K (K (K (K I))))
@@ -2653,6 +2669,7 @@ val neg_random_dseq_comp_modifiers = Comp_Mod.Comp_Modifiers
   compilation = Neg_Random_DSeq,
   function_name_prefix = "random_dseq_neg_",
   compfuns = Random_Sequence_CompFuns.compfuns,
+  mk_random = (fn _ => error "no random generation"),
   modify_funT = I,
   additional_arguments = K [],
   wrap_compilation = K (K (K (K (K I))))
@@ -2683,16 +2700,19 @@ val add_annotated_equations = gen_add_equations
   comp_modifiers = annotated_comp_modifiers,
   use_random = false,
   qname = "annotated_equation"})
-(*
-val add_quickcheck_equations = gen_add_equations
-  (Steps {infer_modes = infer_modes_with_generator,
-  define_functions = define_functions random_comp_modifiers RandomPredCompFuns.compfuns,
-  compile_preds = compile_preds random_comp_modifiers RandomPredCompFuns.compfuns,
+
+val add_random_equations = gen_add_equations
+  (Steps {
+  define_functions =
+    fn options => fn preds => fn (s, modes) =>
+      define_functions random_comp_modifiers PredicateCompFuns.compfuns options preds
+      (s, map_filter (fn (true, m) => SOME m | _ => NONE) modes),
+  comp_modifiers = random_comp_modifiers,
   prove = prove_by_skip,
   add_code_equations = K (K I),
-  defined = defined_functions Random,
+  use_random = true,
   qname = "random_equation"})
-*)
+
 val add_dseq_equations = gen_add_equations
   (Steps {
   define_functions =
@@ -2777,9 +2797,8 @@ fun generic_code_pred prep_const options raw_const lthy =
            | DSeq => add_dseq_equations
            | Pos_Random_DSeq => add_random_dseq_equations
            | Depth_Limited => add_depth_limited_equations
+           | Random => add_random_equations
            | compilation => error ("Compilation not supported")
-           (*| Random => (fn opt => fn cs => add_equations opt cs #> add_quickcheck_equations opt cs)
-           | Annotated => add_annotated_equations*)
            ) options [const]))
       end
   in
@@ -2858,7 +2877,8 @@ fun analyze_compr thy compfuns param_user_modes (compilation, arguments) t_compr
         val additional_arguments =
           case compilation of
             Pred => []
-          | Random => [@{term "5 :: code_numeral"}]
+          | Random => map (HOLogic.mk_number @{typ "code_numeral"}) arguments @
+            [@{term "(1, 1) :: code_numeral * code_numeral"}]
           | Annotated => []
           | Depth_Limited => [HOLogic.mk_number @{typ "code_numeral"} (hd arguments)]
           | DSeq => []
@@ -2885,7 +2905,7 @@ fun eval thy param_user_modes (options as (compilation, arguments)) k t_compr =
   let
     val compfuns =
       case compilation of
-        Random => RandomPredCompFuns.compfuns
+        Random => PredicateCompFuns.compfuns
       | DSeq => DSequence_CompFuns.compfuns
       | Pos_Random_DSeq => Random_Sequence_CompFuns.compfuns
       | _ => PredicateCompFuns.compfuns
@@ -2894,12 +2914,12 @@ fun eval thy param_user_modes (options as (compilation, arguments)) k t_compr =
     val t' = mk_map compfuns T HOLogic.termT (HOLogic.term_of_const T) t;
     val ts =
       case compilation of
-        Random =>
+       (* Random =>
           fst (Predicate.yieldn k
           (Code_Eval.eval NONE ("Predicate_Compile_Core.random_eval_ref", random_eval_ref)
             (fn proc => fn g => fn s => g s |>> Predicate.map proc) thy t' []
-            |> Random_Engine.run))
-      | Pos_Random_DSeq =>
+            |> Random_Engine.run))*)
+        Pos_Random_DSeq =>
           let
             val [nrandom, size, depth] = arguments
           in
