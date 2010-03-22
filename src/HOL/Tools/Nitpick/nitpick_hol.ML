@@ -1263,6 +1263,10 @@ fun is_typedef_axiom thy boring (@{const "==>"} $ _ $ t2) =
          $ Const _ $ _)) =
     boring <> is_funky_typedef_name thy s andalso is_typedef thy s
   | is_typedef_axiom _ _ _ = false
+(* term -> bool *)
+fun is_class_axiom t =
+  (t |> Logic.strip_horn |> swap |> op :: |> map Logic.dest_of_class; true)
+  handle TERM _ => false
 
 (* Distinguishes between (1) constant definition axioms, (2) type arity and
    typedef axioms, and (3) other axioms, and returns the pair ((1), (3)).
@@ -1306,7 +1310,9 @@ fun all_axioms_of thy subst =
   let
     (* theory list -> term list *)
     val axioms_of_thys =
-      maps Thm.axioms_of #> map (apsnd (subst_atomic subst o prop_of))
+      maps Thm.axioms_of
+      #> map (apsnd (subst_atomic subst o prop_of))
+      #> filter_out (is_class_axiom o snd)
     val specs = Defs.all_specifications_of (Theory.defs_of thy)
     val def_names = specs |> maps snd |> map_filter #def
                     |> OrdList.make fast_string_ord
