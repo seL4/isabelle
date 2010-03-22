@@ -325,7 +325,7 @@ fun is_constructor thy t =
   else false
 *)
 
-val is_constr = Code.is_constr;
+val is_constr = Code.is_constr o ProofContext.theory_of;
 
 fun strip_ex (Const ("Ex", _) $ Abs (x, T, t)) =
   let
