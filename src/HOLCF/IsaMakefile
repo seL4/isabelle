@@ -61,7 +61,6 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Universal.thy \
   UpperPD.thy \
   Up.thy \
-  Tools/adm_tac.ML \
   Tools/cont_consts.ML \
   Tools/cont_proc.ML \
   Tools/holcf_library.ML \

@@ -10,18 +10,9 @@ imports
   Domain
   Powerdomains
   Sum_Cpo
-uses
-  "Tools/adm_tac.ML"
 begin
 
 defaultsort pcpo
-
-declaration {* fn _ =>
-  Simplifier.map_ss (fn simpset => simpset addSolver
-    (mk_solver' "adm_tac" (fn ss =>
-      Adm.adm_tac (Simplifier.the_context ss)
-        (cut_facts_tac (Simplifier.prems_of_ss ss) THEN' cont_tacRs ss))));
-*}
 
 text {* Legacy theorem names *}
 
