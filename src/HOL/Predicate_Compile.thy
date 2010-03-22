@@ -1,4 +1,3 @@
-
 (*  Title:      HOL/Predicate_Compile.thy
     Author:     Stefan Berghofer, Lukas Bulwahn, Florian Haftmann, TU Muenchen
 *)
