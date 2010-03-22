@@ -174,14 +174,14 @@ val vampire_failure_strs =
 val vampire_max_new_clauses = 60;
 val vampire_insert_theory_const = false;
 
-fun vampire_prover_config full : prover_config =
+fun vampire_prover_config isar : prover_config =
  {command = Path.explode "$VAMPIRE_HOME/vampire",
   arguments = (fn timeout => "--output_syntax tptp --mode casc" ^
     " -t " ^ string_of_int timeout),
   failure_strs = vampire_failure_strs,
   max_new_clauses = vampire_max_new_clauses,
   insert_theory_const = vampire_insert_theory_const,
-  emit_structured_proof = full};
+  emit_structured_proof = isar};
 
 val vampire = tptp_prover ("vampire", vampire_prover_config false);
 val vampire_isar = tptp_prover ("vampire_isar", vampire_prover_config true);
@@ -196,14 +196,14 @@ val eprover_failure_strs =
 val eprover_max_new_clauses = 100;
 val eprover_insert_theory_const = false;
 
-fun eprover_config full : prover_config =
+fun eprover_config isar : prover_config =
  {command = Path.explode "$E_HOME/eproof",
   arguments = (fn timeout => "--tstp-in --tstp-out -l5 -xAutoDev -tAutoDev" ^
     " --silent --cpu-limit=" ^ string_of_int timeout),
   failure_strs = eprover_failure_strs,
   max_new_clauses = eprover_max_new_clauses,
   insert_theory_const = eprover_insert_theory_const,
-  emit_structured_proof = full};
+  emit_structured_proof = isar};
 
 val eprover = tptp_prover ("e", eprover_config false);
 val eprover_isar = tptp_prover ("e_isar", eprover_config true);

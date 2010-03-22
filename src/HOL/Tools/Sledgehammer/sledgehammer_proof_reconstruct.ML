@@ -333,26 +333,30 @@ fun permuted_clause t =
             then SOME ctm else perm ctms
   in perm end;
 
-fun have_or_show "show " _ = "show \""
-  | have_or_show have lname = have ^ lname ^ ": \""
-
 (*ctms is a list of conjecture clauses as yielded by Isabelle. Those returned by the
   ATP may have their literals reordered.*)
-fun isar_lines ctxt ctms =
-  let val string_of = PrintMode.setmp [] (fn term => Syntax.string_of_term ctxt term)
-      val _ = trace_proof_msg (K "\n\nisar_lines: start\n")
-      fun doline _ (lname, t, []) =  (*No deps: it's a conjecture clause, with no proof.*)
-           (case permuted_clause t ctms of
-                SOME u => "assume " ^ lname ^ ": \"" ^ string_of u ^ "\"\n"
-              | NONE => "assume? " ^ lname ^ ": \"" ^ string_of t ^ "\"\n")  (*no match!!*)
-        | doline have (lname, t, deps) =
-            have_or_show have lname ^ string_of (gen_all_vars (HOLogic.mk_Trueprop t)) ^
-            "\"\n  by (metis " ^ space_implode " " deps ^ ")\n"
-      fun dolines [(lname, t, deps)] = [doline "show " (lname, t, deps)]
-        | dolines ((lname, t, deps)::lines) = doline "have " (lname, t, deps) :: dolines lines
-  in setmp_CRITICAL show_sorts (Config.get ctxt recon_sorts) dolines end;
+fun isar_proof_body ctxt ctms =
+  let
+    val _ = trace_proof_msg (K "\n\nisar_proof_body: start\n")
+    val string_of_term = PrintMode.setmp [] (Syntax.string_of_term ctxt)
+    fun have_or_show "show" _ = "show \""
+      | have_or_show have lname = have ^ " " ^ lname ^ ": \""
+    fun do_line _ (lname, t, []) =
+       (* No deps: it's a conjecture clause, with no proof. *)
+       (case permuted_clause t ctms of
+          SOME u => "assume " ^ lname ^ ": \"" ^ string_of_term u ^ "\"\n"
+        | NONE => raise TERM ("Sledgehammer_Proof_Reconstruct.isar_proof_body",
+                              [t]))
+      | do_line have (lname, t, deps) =
+        have_or_show have lname ^
+        string_of_term (gen_all_vars (HOLogic.mk_Trueprop t)) ^
+        "\"\n  by (metis " ^ space_implode " " deps ^ ")\n"
+    fun do_lines [(lname, t, deps)] = [do_line "show" (lname, t, deps)]
+      | do_lines ((lname, t, deps) :: lines) =
+        do_line "have" (lname, t, deps) :: do_lines lines
+  in setmp_CRITICAL show_sorts (Config.get ctxt recon_sorts) do_lines end;
 
-fun notequal t (_,t',_) = not (t aconv t');
+fun unequal t (_, t', _) = not (t aconv t');
 
 (*No "real" literals means only type information*)
 fun eq_types t = t aconv HOLogic.true_const;
@@ -368,7 +372,7 @@ fun add_prfline ((lno, "axiom", t, []), lines) =  (*axioms are not proof lines*)
       if eq_types t (*must be clsrel/clsarity: type information, so delete refs to it*)
       then map (replace_deps (lno, [])) lines
       else
-       (case take_prefix (notequal t) lines of
+       (case take_prefix (unequal t) lines of
            (_,[]) => lines                  (*no repetition of proof line*)
          | (pre, (lno', _, _) :: post) =>   (*repetition: replace later line by earlier one*)
              pre @ map (replace_deps (lno', [lno])) post)
@@ -378,7 +382,7 @@ fun add_prfline ((lno, "axiom", t, []), lines) =  (*axioms are not proof lines*)
       if eq_types t then (lno, t, deps) :: lines
       (*Type information will be deleted later; skip repetition test.*)
       else (*FIXME: Doesn't this code risk conflating proofs involving different types??*)
-      case take_prefix (notequal t) lines of
+      case take_prefix (unequal t) lines of
          (_,[]) => (lno, t, deps) :: lines  (*no repetition of proof line*)
        | (pre, (lno', t', _) :: post) =>
            (lno, t', deps) ::               (*repetition: replace later line by earlier one*)
@@ -450,10 +454,10 @@ fun isar_proof_from_tstp_file cnfs ctxt th sgno thm_names =
     val ccls = map forall_intr_vars ccls
     val _ = app (fn th => trace_proof_msg
                               (fn () => "\nccl: " ^ string_of_thm ctxt th)) ccls
-    val isar_lines = isar_lines ctxt (map prop_of ccls)
-                                (stringify_deps thm_names [] lines)
+    val body = isar_proof_body ctxt (map prop_of ccls)
+                               (stringify_deps thm_names [] lines)
     val _ = trace_proof_msg (K "\nisar_proof_from_tstp_file: finishing\n")
-  in isar_header (map #1 fixes) ^ implode isar_lines ^ "qed\n" end
+  in isar_header (map #1 fixes) ^ implode body ^ "qed\n" end
   handle STREE _ => error "Could not extract proof (ATP output malformed?)";
 
 

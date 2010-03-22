@@ -463,7 +463,8 @@ fun clause_cache_endtheory thy =
 fun neg_skolemize_tac ctxt =
   EVERY' [rtac ccontr, Object_Logic.atomize_prems_tac, Meson.skolemize_tac ctxt];
 
-val neg_clausify = Meson.make_clauses #> map combinators #> Meson.finish_cnf;
+val neg_clausify =
+  Meson.make_clauses_unsorted #> map combinators #> Meson.finish_cnf;
 
 fun neg_conjecture_clauses ctxt st0 n =
   let
