@@ -204,12 +204,12 @@ datatype pred_data = PredData of {
 
 fun rep_pred_data (PredData data) = data;
 
-fun mk_pred_data ((intros, elim), (function_names, predfun_data, needs_random)) =
+fun mk_pred_data ((intros, elim), (function_names, (predfun_data, needs_random))) =
   PredData {intros = intros, elim = elim,
     function_names = function_names, predfun_data = predfun_data, needs_random = needs_random}
 
 fun map_pred_data f (PredData {intros, elim, function_names, predfun_data, needs_random}) =
-  mk_pred_data (f ((intros, elim), (function_names, predfun_data, needs_random)))
+  mk_pred_data (f ((intros, elim), (function_names, (predfun_data, needs_random))))
 
 fun eq_option eq (NONE, NONE) = true
   | eq_option eq (SOME x, SOME y) = eq (x, y)
@@ -603,7 +603,7 @@ fun preprocess_elim thy elimrule =
 
 fun expand_tuples_elim th = th
 
-val no_compilation = ([], [], [])
+val no_compilation = ([], ([], []))
 
 fun fetch_pred_data thy name =
   case try (Inductive.the_inductive (ProofContext.init thy)) name of
@@ -619,9 +619,6 @@ fun fetch_pred_data thy name =
         val pre_elim = nth (#elims result) index
         val pred = nth (#preds result) index
         val nparams = length (Inductive.params_of (#raw_induct result))
-        (*val elim = singleton (Inductive_Set.codegen_preproc thy) (preprocess_elim thy nparams 
-          (expand_tuples_elim pre_elim))*)
-        (* FIXME: missing Inductive Set preprocessing *)
         val ctxt = ProofContext.init thy
         val elim_t = mk_casesrule ctxt pred intros
         val elim =
@@ -633,7 +630,7 @@ fun fetch_pred_data thy name =
 
 fun add_predfun_data name mode data =
   let
-    val add = (apsnd o apsnd3) (cons (mode, mk_predfun_data data))
+    val add = (apsnd o apsnd o apfst) (cons (mode, mk_predfun_data data))
   in PredData.map (Graph.map_node name (map_pred_data add)) end
 
 fun is_inductive_predicate thy name =
@@ -694,14 +691,14 @@ fun register_intros (constname, pre_intros) thy =
 
 fun defined_function_of compilation pred =
   let
-    val set = (apsnd o apfst3) (cons (compilation, []))
+    val set = (apsnd o apfst) (cons (compilation, []))
   in
     PredData.map (Graph.map_node pred (map_pred_data set))
   end
 
 fun set_function_name compilation pred mode name =
   let
-    val set = (apsnd o apfst3)
+    val set = (apsnd o apfst)
       (AList.map_default (op =) (compilation, [(mode, name)]) (cons (mode, name)))
   in
     PredData.map (Graph.map_node pred (map_pred_data set))
@@ -709,7 +706,7 @@ fun set_function_name compilation pred mode name =
 
 fun set_needs_random name modes =
   let
-    val set = (apsnd o aptrd3) (K modes)
+    val set = (apsnd o apsnd o apsnd) (K modes)
   in
     PredData.map (Graph.map_node name (map_pred_data set))
   end
