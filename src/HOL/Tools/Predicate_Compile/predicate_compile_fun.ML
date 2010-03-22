@@ -119,20 +119,20 @@ fun keep_functions thy t =
     SOME (c, _) => Predicate_Compile_Data.keep_function thy c
   | _ => false
 
-fun mk_prems thy lookup_pred t (names, prems) =
+fun flatten thy lookup_pred t (names, prems) =
   let
-    fun mk_prems' (t as Const (name, T)) (names, prems) =
+    fun flatten' (t as Const (name, T)) (names, prems) =
       (if is_constr thy name orelse (is_none (lookup_pred t)) then
         [(t, (names, prems))]
       else
        (*(if is_none (try lookup_pred t) then
           [(Abs ("uu", fastype_of t, HOLogic.mk_eq (t, Bound 0)), (names, prems))]
         else*) [(the (lookup_pred t), (names, prems))])
-    | mk_prems' (t as Free (f, T)) (names, prems) = 
+    | flatten' (t as Free (f, T)) (names, prems) = 
       (case lookup_pred t of
         SOME t' => [(t', (names, prems))]
       | NONE => [(t, (names, prems))])
-    | mk_prems' (t as Abs _) (names, prems) =
+    | flatten' (t as Abs _) (names, prems) =
       if Predicate_Compile_Aux.is_predT (fastype_of t) then
         ([(Envir.eta_contract t, (names, prems))])
       else
@@ -144,7 +144,7 @@ fun mk_prems thy lookup_pred t (names, prems) =
           val body' = subst_bounds (rev frees, body)
           val resname = Name.variant (absnames @ names) "res"
           val resvar = Free (resname, fastype_of body)
-          val t = mk_prems' body' ([], [])
+          val t = flatten' body' ([], [])
             |> map (fn (res, (inner_names, inner_prems)) =>
               let
                 fun mk_exists (x, T) t = HOLogic.mk_exists (x, T, t)
@@ -163,7 +163,7 @@ fun mk_prems thy lookup_pred t (names, prems) =
         in
           [(t, (names, prems))]
         end
-    | mk_prems' t (names, prems) =
+    | flatten' t (names, prems) =
       if Predicate_Compile_Aux.is_constrt thy t orelse keep_functions thy t then
         [(t, (names, prems))]
       else
@@ -172,9 +172,9 @@ fun mk_prems thy lookup_pred t (names, prems) =
             (let
               val (_, [B, x, y]) = strip_comb t
             in
-              (mk_prems' x (names, prems)
+              (flatten' x (names, prems)
               |> map (fn (res, (names, prems)) => (res, (names, (HOLogic.mk_Trueprop B) :: prems))))
-              @ (mk_prems' y (names, prems)
+              @ (flatten' y (names, prems)
               |> map (fn (res, (names, prems)) =>
                 (res, (names, (HOLogic.mk_Trueprop (HOLogic.mk_not B)) :: prems))))
             end)
@@ -182,9 +182,9 @@ fun mk_prems thy lookup_pred t (names, prems) =
             (let
               val (_, [f, g]) = strip_comb t
             in
-              mk_prems' f (names, prems)
+              flatten' f (names, prems)
               |> maps (fn (res, (names, prems)) =>
-                mk_prems' (betapply (g, res)) (names, prems))
+                flatten' (betapply (g, res)) (names, prems))
             end)
         | Const (@{const_name "split"}, _) => 
             (let
@@ -193,7 +193,7 @@ fun mk_prems thy lookup_pred t (names, prems) =
               val (T1, T2) = HOLogic.dest_prodT (fastype_of res)
               val (resv1, resv2) = (Free (res1, T1), Free (res2, T2))
             in
-              mk_prems' (betapplys (g, [resv1, resv2]))
+              flatten' (betapplys (g, [resv1, resv2]))
               (res1 :: res2 :: names,
               HOLogic.mk_Trueprop (HOLogic.mk_eq (res, HOLogic.mk_prod (resv1, resv2))) :: prems)
             end)
@@ -209,7 +209,7 @@ fun mk_prems thy lookup_pred t (names, prems) =
             val subst = Pattern.match thy (split_t, t) (Vartab.empty, Vartab.empty)
             val (_, split_args) = strip_comb split_t
             val match = split_args ~~ args
-            fun mk_prems_of_assm assm =
+            fun flatten_of_assm assm =
               let
                 val (vTs, assm') = strip_all (Envir.beta_norm (Envir.subst_term subst assm))
                 val var_names = Name.variant_list names (map fst vTs)
@@ -219,15 +219,15 @@ fun mk_prems thy lookup_pred t (names, prems) =
                 val (lhss : term list, rhss) =
                   split_list (map (HOLogic.dest_eq o HOLogic.dest_Trueprop) prems')
               in
-                folds_map mk_prems' lhss (var_names @ names, prems)
+                folds_map flatten' lhss (var_names @ names, prems)
                 |> map (fn (ress, (names, prems)) =>
                   let
                     val prems' = map (HOLogic.mk_Trueprop o HOLogic.mk_eq) (ress ~~ rhss)
                   in (names, prems' @ prems) end)
-                |> maps (mk_prems' inner_t)
+                |> maps (flatten' inner_t)
               end
           in
-            maps mk_prems_of_assm assms
+            maps flatten_of_assm assms
           end
         else
           let
@@ -246,14 +246,14 @@ fun mk_prems thy lookup_pred t (names, prems) =
             val namesprems =
               case t' of
                 NONE =>
-                  folds_map mk_prems' args (names', prems) |>
+                  folds_map flatten' args (names', prems) |>
                   map
                     (fn (argvs, (names'', prems')) =>
                     let
                       val prem = HOLogic.mk_Trueprop (HOLogic.mk_eq (resvar, list_comb (f, argvs)))
                     in (names'', prem :: prems') end)
               | SOME pred =>
-                  folds_map mk_prems' args (names', prems)
+                  folds_map flatten' args (names', prems)
                   |> map (fn (argvs, (names'', prems')) =>
                     let
                       fun lift_arg T t =
@@ -282,7 +282,7 @@ fun mk_prems thy lookup_pred t (names, prems) =
             map (pair resvar) namesprems
           end
   in
-    mk_prems' (Pattern.eta_long [] t) (names, prems)
+    flatten' (Pattern.eta_long [] t) (names, prems)
   end;
 
 (* assumption: mutual recursive predicates all have the same parameters. *)  
@@ -320,7 +320,7 @@ fun define_predicates specs thy =
       else
         let
           val names = Term.add_free_names rhs []
-        in mk_prems thy lookup_pred rhs (names, [])
+        in flatten thy lookup_pred rhs (names, [])
           |> map (fn (resultt, (names', prems)) =>
             Logic.list_implies (prems, HOLogic.mk_Trueprop (list_comb (pred, args @ [resultt]))))
         end
@@ -392,7 +392,7 @@ fun rewrite_intro thy intro =
           | NONE => (t, I)
         val (P, args) = (strip_comb lit)
       in
-        folds_map (mk_prems thy lookup_pred) args (names, [])
+        folds_map (flatten thy lookup_pred) args (names, [])
         |> map (fn (resargs, (names', prems')) =>
           let
             val prem' = HOLogic.mk_Trueprop (mk_lit (list_comb (P, resargs)))
