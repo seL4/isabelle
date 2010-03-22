@@ -58,8 +58,8 @@ fun make_me_data (calls,success,proofs,time,timeout,lemmas,posns) =
          timeout=timeout, lemmas=lemmas, posns=posns}
 
 val empty_sh_data = make_sh_data (0, 0, 0, 0, 0, 0, 0)
-val empty_min_data = make_min_data(0, 0, 0)
-val empty_me_data = make_me_data(0, 0, 0, 0, 0, (0,0,0), [])
+val empty_min_data = make_min_data (0, 0)
+val empty_me_data = make_me_data (0, 0, 0, 0, 0, (0,0,0), [])
 
 fun tuple_of_sh_data (ShData {calls, success, lemmas, max_lems, time_isa,
   time_atp, time_atp_fail}) = (calls, success, lemmas, max_lems, time_isa,
@@ -319,7 +319,7 @@ fun run_sh prover hard_timeout timeout dir st =
     if success then (message, SH_OK (time_isa, time_atp, theorem_names))
     else (message, SH_FAIL(time_isa, time_atp))
   end
-  handle Sledgehammer_HOL_Clause.TOO_TRIVIAL => ("trivial", SH_OK (0, 0, []))
+  handle Sledgehammer_HOL_Clause.TRIVIAL => ("trivial", SH_OK (0, 0, []))
        | ERROR msg => ("error: " ^ msg, SH_ERROR)
        | TimeLimit.TimeOut => ("timeout", SH_ERROR)
 
@@ -385,7 +385,7 @@ fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
     val _ = log separator
   in
     case minimize timeout st (these (!named_thms)) of
-      (SOME (named_thms',its), msg) =>
+      (SOME named_thms', msg) =>
         (change_data id inc_min_succs;
          change_data id (inc_min_ab_ratios ((100 * length named_thms') div n0));
          if length named_thms' = n0
