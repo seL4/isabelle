@@ -139,21 +139,6 @@ fun flatten constname atom (defs, thy) =
           val subst = Pattern.match thy (split_t, atom) (Vartab.empty, Vartab.empty)
           val (_, split_args) = strip_comb split_t
           val match = split_args ~~ args
-          
-          (*
-          fun mk_prems_of_assm assm =
-            let
-              val (vTs, assm') = strip_all (Envir.beta_norm (Envir.subst_term subst assm))
-              val names = [] (* TODO *)
-              val var_names = Name.variant_list names (map fst vTs)
-              val vars = map Free (var_names ~~ (map snd vTs))
-              val (prems', pre_res) = Logic.strip_horn (subst_bounds (rev vars, assm'))
-              val (HOLogic.dest_eq (HOLogic.dest_Trueprop prem))
-              val (_, [inner_t]) = strip_comb (HOLogic.dest_Trueprop pre_res)
-            in
-              (*mk_prems' inner_t (var_names @ names, prems' @ prems)*) error "asda"
-            end
-          *)
           val names = Term.add_free_names atom []
           val frees = map Free (Term.add_frees atom [])
           val constname = Name.variant (map (Long_Name.base_name o fst) defs)
@@ -167,17 +152,27 @@ fun flatten constname atom (defs, thy) =
               val var_names = Name.variant_list names (map fst vTs)
               val vars = map Free (var_names ~~ (map snd vTs))
               val (prems', pre_res) = Logic.strip_horn (subst_bounds (rev vars, assm'))
-              fun mk_subst prem =
+              fun partition_prem_subst prem =
+                case HOLogic.dest_eq (HOLogic.dest_Trueprop prem) of
+                  (Free (x, T), r) => (NONE, SOME ((x, T), r))
+                | _ => (SOME prem, NONE)
+              fun partition f xs =
                 let
-                  val (Free (x, T), r) = HOLogic.dest_eq (HOLogic.dest_Trueprop prem)
-                in
-                  ((x, T), r)
-                end
-              val subst = map mk_subst prems'
+                  fun partition' acc1 acc2 [] = (rev acc1, rev acc2)
+                    | partition' acc1 acc2 (x :: xs) =
+                      let
+                        val (y, z) = f x
+                        val acc1' = case y of NONE => acc1 | SOME y' => y' :: acc1
+                        val acc2' = case z of NONE => acc2 | SOME z' => z' :: acc2
+                      in partition' acc1' acc2' xs end
+                in partition' [] [] xs end
+              val (prems'', subst) = partition partition_prem_subst prems'
               val (_, [inner_t]) = strip_comb (HOLogic.dest_Trueprop pre_res)
-              val def = Logic.mk_equals (lhs, inner_t)
+              val pre_def = Logic.mk_equals (lhs,
+                fold (curry HOLogic.mk_conj) (map HOLogic.dest_Trueprop prems'') inner_t)
+              val def = Envir.expand_term_frees subst pre_def
             in
-              Envir.expand_term_frees subst def
+              def
             end
          val new_defs = map new_def assms
          val (definition, thy') = thy
