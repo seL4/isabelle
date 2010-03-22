@@ -239,24 +239,20 @@ fun mk_prems thy lookup_pred t (names, prems) =
             val resvar = Free (resname, body_type (fastype_of t))
             val _ = assert (fastype_of t = body_type (fastype_of t))
             val names' = resname :: names
-            fun mk_prems'' (t as Const (c, _)) =
-              if is_constr thy c orelse (is_none (lookup_pred t)) then
-                let
-                  val _ = ()(*tracing ("not translating function " ^ Syntax.string_of_term_global thy t)*)
-                in
-                folds_map mk_prems' args (names', prems) |>
-                map
-                  (fn (argvs, (names'', prems')) =>
-                  let
-                    val prem = HOLogic.mk_Trueprop (HOLogic.mk_eq (resvar, list_comb (f, argvs)))
-                  in (names'', prem :: prems') end)
-                end
-              else
-                let
-                  (* lookup_pred is falsch für polymorphe Argumente und bool. *)
-                  val pred = the (lookup_pred t)
-                  val Ts = binder_types (fastype_of pred)
-                in
+            val t' = lookup_pred f
+            val Ts = case t' of
+              SOME pred => (fst (split_last (binder_types (fastype_of pred))))
+            | NONE => binder_types (fastype_of t)
+            val namesprems =
+              case t' of
+                NONE =>
+                  folds_map mk_prems' args (names', prems) |>
+                  map
+                    (fn (argvs, (names'', prems')) =>
+                    let
+                      val prem = HOLogic.mk_Trueprop (HOLogic.mk_eq (resvar, list_comb (f, argvs)))
+                    in (names'', prem :: prems') end)
+              | SOME pred =>
                   folds_map mk_prems' args (names', prems)
                   |> map (fn (argvs, (names'', prems')) =>
                     let
@@ -279,24 +275,11 @@ fun mk_prems thy lookup_pred t (names, prems) =
                           end
                       (*val _ = tracing ("Ts: " ^ commas (map (Syntax.string_of_typ_global thy) Ts))
                       val _ = map2 check_arity Ts (map fastype_of (argvs @ [resvar]))*)
-                      val argvs' = map2 lift_arg (fst (split_last Ts)) argvs
+                      val argvs' = map2 lift_arg Ts argvs
                       val prem = HOLogic.mk_Trueprop (list_comb (pred, argvs' @ [resvar]))
                     in (names'', prem :: prems') end)
-                end
-            | mk_prems'' (t as Free (_, _)) =
-              folds_map mk_prems' args (names', prems) |>
-                map
-                  (fn (argvs, (names'', prems')) =>
-                  let
-                    val prem = 
-                      case lookup_pred t of
-                        NONE => HOLogic.mk_Trueprop (HOLogic.mk_eq (resvar, list_comb (f, argvs)))
-                      | SOME p => HOLogic.mk_Trueprop (list_comb (p, argvs @ [resvar]))
-                  in (names'', prem :: prems') end)
-            | mk_prems'' t =
-              error ("Invalid term: " ^ Syntax.string_of_term_global thy t)
           in
-            map (pair resvar) (mk_prems'' f)
+            map (pair resvar) namesprems
           end
   in
     mk_prems' (Pattern.eta_long [] t) (names, prems)
