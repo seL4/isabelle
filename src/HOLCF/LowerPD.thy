@@ -498,13 +498,15 @@ by (induct xs rule: lower_pd_induct, simp_all)
 lemma ep_pair_lower_map: "ep_pair e p \<Longrightarrow> ep_pair (lower_map\<cdot>e) (lower_map\<cdot>p)"
 apply default
 apply (induct_tac x rule: lower_pd_induct, simp_all add: ep_pair.e_inverse)
-apply (induct_tac y rule: lower_pd_induct, simp_all add: ep_pair.e_p_below monofun_cfun)
+apply (induct_tac y rule: lower_pd_induct)
+apply (simp_all add: ep_pair.e_p_below monofun_cfun)
 done
 
 lemma deflation_lower_map: "deflation d \<Longrightarrow> deflation (lower_map\<cdot>d)"
 apply default
 apply (induct_tac x rule: lower_pd_induct, simp_all add: deflation.idem)
-apply (induct_tac x rule: lower_pd_induct, simp_all add: deflation.below monofun_cfun)
+apply (induct_tac x rule: lower_pd_induct)
+apply (simp_all add: deflation.below monofun_cfun)
 done
 
 end

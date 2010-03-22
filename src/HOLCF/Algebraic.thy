@@ -714,7 +714,8 @@ apply (rule finite_deflation_approx)
 apply (rule finite_deflation_approx)
 apply (rule chainE)
 apply (rule chain_approx)
-apply (simp add: cast_alg_defl_principal Abs_fin_defl_inverse finite_deflation_approx)
+apply (simp add: cast_alg_defl_principal
+  Abs_fin_defl_inverse finite_deflation_approx)
 done
 
 subsection {* Bifinite domains and algebraic deflations *}

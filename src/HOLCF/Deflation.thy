@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Continuous deflations and embedding-projection pairs *}
+header {* Continuous deflations and ep-pairs *}
 
 theory Deflation
 imports Cfun
