@@ -96,7 +96,6 @@ sig
                      number_of : serial * (theory -> typ -> int -> cterm)})
                 -> Context.generic -> Context.generic
   val trace: bool Unsynchronized.ref
-  val warning_count: int Unsynchronized.ref;
 end;
 
 functor Fast_Lin_Arith
@@ -426,9 +425,6 @@ fun trace_term ctxt msg t =
 fun trace_msg msg =
   if !trace then tracing msg else ();
 
-val warning_count = Unsynchronized.ref 0;
-val warning_count_max = 10;
-
 val union_term = union Pattern.aeconv;
 val union_bterm = union (fn ((b:bool, t), (b', t')) => b = b' andalso Pattern.aeconv (t, t'));
 
@@ -532,17 +528,11 @@ fun mkthm ss asms (just: injust) =
       val _ =
         if LA_Logic.is_False fls then ()
         else
-          let val count = CRITICAL (fn () => Unsynchronized.inc warning_count) in
-            if count > warning_count_max then ()
-            else
-              (tracing (cat_lines
-                (["Assumptions:"] @ map (Display.string_of_thm ctxt) asms @ [""] @
-                 ["Proved:", Display.string_of_thm ctxt fls, ""] @
-                 (if count <> warning_count_max then []
-                  else ["\n(Reached maximal message count -- disabling future warnings)"])));
-                warning "Linear arithmetic should have refuted the assumptions.\n\
-                  \Please inform Tobias Nipkow.")
-          end;
+         (tracing (cat_lines
+           (["Assumptions:"] @ map (Display.string_of_thm ctxt) asms @ [""] @
+            ["Proved:", Display.string_of_thm ctxt fls, ""]));
+          warning "Linear arithmetic should have refuted the assumptions.\n\
+            \Please inform Tobias Nipkow.")
     in fls end
     handle FalseE thm => trace_thm ctxt "False reached early:" thm
   end;
