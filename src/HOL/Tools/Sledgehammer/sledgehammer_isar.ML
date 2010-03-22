@@ -31,7 +31,7 @@ val _ =
       Toplevel.keep (print_provers o Toplevel.theory_of)));
 
 val _ =
-  OuterSyntax.command "sledgehammer"
+  OuterSyntax.improper_command "sledgehammer"
     "search for first-order proof using automatic theorem provers" K.diag
     (Scan.repeat P.xname >> (fn names => Toplevel.no_timing o Toplevel.unknown_proof o
       Toplevel.keep (sledgehammer names o Toplevel.proof_of)));
@@ -77,7 +77,7 @@ val parse_args =
 val parse_thm_names = Scan.repeat (P.xname -- Scan.option Attrib.thm_sel)
 
 val _ =
-  OuterSyntax.command "atp_minimize" "minimize theorem list with external prover" K.diag
+  OuterSyntax.improper_command "atp_minimize" "minimize theorem list with external prover" K.diag
     (parse_args -- parse_thm_names >> (fn (args, thm_names) =>
       Toplevel.no_timing o Toplevel.unknown_proof o
         Toplevel.keep (atp_minimize_command args thm_names o Toplevel.proof_of)))
