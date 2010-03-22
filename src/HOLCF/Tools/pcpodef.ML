@@ -327,7 +327,7 @@ fun gen_cpodef_proof prep_term prep_constraint
     val (goal1, goal2, make_result) =
       prepare_cpodef prep_term def name (b, args, mx) set opt_morphs thy;
     fun after_qed [[th1, th2]] = ProofContext.theory (snd o make_result th1 th2)
-      | after_qed _ = error "cpodef_proof";
+      | after_qed _ = raise Fail "cpodef_proof";
   in Proof.theorem_i NONE after_qed [[(goal1, []), (goal2, [])]] ctxt end;
 
 fun gen_pcpodef_proof prep_term prep_constraint
@@ -338,7 +338,7 @@ fun gen_pcpodef_proof prep_term prep_constraint
     val (goal1, goal2, make_result) =
       prepare_pcpodef prep_term def name (b, args, mx) set opt_morphs thy;
     fun after_qed [[th1, th2]] = ProofContext.theory (snd o make_result th1 th2)
-      | after_qed _ = error "pcpodef_proof";
+      | after_qed _ = raise Fail "pcpodef_proof";
   in Proof.theorem_i NONE after_qed [[(goal1, []), (goal2, [])]] ctxt end;
 
 in

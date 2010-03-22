@@ -227,7 +227,7 @@ fun mk_sinjects ts =
       in
         (v::vs, mk_ssumT (T, U))
       end
-    fun inj [] = error "mk_sinjects: empty list"
+    fun inj [] = raise Fail "mk_sinjects: empty list"
       | inj ((t, T)::[]) = ([t], T)
       | inj ((t, T)::ts) = combine (t, T) (inj ts);
   in
