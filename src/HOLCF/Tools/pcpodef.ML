@@ -87,29 +87,32 @@ fun prove_cpo
     val cpo_thms = map (Thm.transfer thy) [type_definition, below_def, admissible'];
     val (full_tname, Ts) = dest_Type newT;
     val lhs_sorts = map (snd o dest_TFree) Ts;
-    val thy2 =
-      thy
-      |> AxClass.prove_arity (full_tname, lhs_sorts, @{sort cpo})
-          (Tactic.rtac (@{thm typedef_cpo} OF cpo_thms) 1);
+    val tac = Tactic.rtac (@{thm typedef_cpo} OF cpo_thms) 1;
+    val thy = AxClass.prove_arity (full_tname, lhs_sorts, @{sort cpo}) tac thy;
     (* transfer thms so that they will know about the new cpo instance *)
-    val cpo_thms' = map (Thm.transfer thy2) cpo_thms;
+    val cpo_thms' = map (Thm.transfer thy) cpo_thms;
     fun make thm = Drule.export_without_context (thm OF cpo_thms');
-    val ([adm, cont_Rep, cont_Abs, lub, thelub, compact], thy3) =
-      thy2
+    val cont_Rep = make @{thm typedef_cont_Rep};
+    val cont_Abs = make @{thm typedef_cont_Abs};
+    val lub = make @{thm typedef_lub};
+    val thelub = make @{thm typedef_thelub};
+    val compact = make @{thm typedef_compact};
+    val (_, thy) =
+      thy
       |> Sign.add_path (Binding.name_of name)
       |> PureThy.add_thms
-        ([((Binding.prefix_name "adm_" name, admissible'), []),
-          ((Binding.prefix_name "cont_" Rep_name, make @{thm typedef_cont_Rep}), []),
-          ((Binding.prefix_name "cont_" Abs_name, make @{thm typedef_cont_Abs}), []),
-          ((Binding.prefix_name "lub_" name, make @{thm typedef_lub}), []),
-          ((Binding.prefix_name "thelub_" name, make @{thm typedef_thelub}), []),
-          ((Binding.prefix_name "compact_" name, make @{thm typedef_compact}), [])])
-      ||> Sign.restore_naming thy2;
+        ([((Binding.prefix_name "adm_"      name, admissible'), []),
+          ((Binding.prefix_name "cont_" Rep_name, cont_Rep   ), []),
+          ((Binding.prefix_name "cont_" Abs_name, cont_Abs   ), []),
+          ((Binding.prefix_name "lub_"      name, lub        ), []),
+          ((Binding.prefix_name "thelub_"   name, thelub     ), []),
+          ((Binding.prefix_name "compact_"  name, compact    ), [])])
+      ||> Sign.parent_path;
     val cpo_info : cpo_info =
       { below_def = below_def, adm = admissible', cont_Rep = cont_Rep,
         cont_Abs = cont_Abs, lub = lub, thelub = thelub, compact = compact };
   in
-    (cpo_info, thy3)
+    (cpo_info, thy)
   end;
 
 fun prove_pcpo
@@ -127,29 +130,33 @@ fun prove_pcpo
     val pcpo_thms = map (Thm.transfer thy) [type_definition, below_def, UU_mem'];
     val (full_tname, Ts) = dest_Type newT;
     val lhs_sorts = map (snd o dest_TFree) Ts;
-    val thy2 = thy
-      |> AxClass.prove_arity (full_tname, lhs_sorts, @{sort pcpo})
-        (Tactic.rtac (@{thm typedef_pcpo} OF pcpo_thms) 1);
-    val pcpo_thms' = map (Thm.transfer thy2) pcpo_thms;
+    val tac = Tactic.rtac (@{thm typedef_pcpo} OF pcpo_thms) 1;
+    val thy = AxClass.prove_arity (full_tname, lhs_sorts, @{sort pcpo}) tac thy;
+    val pcpo_thms' = map (Thm.transfer thy) pcpo_thms;
     fun make thm = Drule.export_without_context (thm OF pcpo_thms');
-    val ([Rep_strict, Abs_strict, Rep_strict_iff, Abs_strict_iff,
-          Rep_defined, Abs_defined], thy3) =
-      thy2
+    val Rep_strict = make @{thm typedef_Rep_strict};
+    val Abs_strict = make @{thm typedef_Abs_strict};
+    val Rep_strict_iff = make @{thm typedef_Rep_strict_iff};
+    val Abs_strict_iff = make @{thm typedef_Abs_strict_iff};
+    val Rep_defined = make @{thm typedef_Rep_defined};
+    val Abs_defined = make @{thm typedef_Abs_defined};
+    val (_, thy) =
+      thy
       |> Sign.add_path (Binding.name_of name)
       |> PureThy.add_thms
-        ([((Binding.suffix_name "_strict" Rep_name, make @{thm typedef_Rep_strict}), []),
-          ((Binding.suffix_name "_strict" Abs_name, make @{thm typedef_Abs_strict}), []),
-          ((Binding.suffix_name "_strict_iff" Rep_name, make @{thm typedef_Rep_strict_iff}), []),
-          ((Binding.suffix_name "_strict_iff" Abs_name, make @{thm typedef_Abs_strict_iff}), []),
-          ((Binding.suffix_name "_defined" Rep_name, make @{thm typedef_Rep_defined}), []),
-          ((Binding.suffix_name "_defined" Abs_name, make @{thm typedef_Abs_defined}), [])])
-      ||> Sign.restore_naming thy2;
+        ([((Binding.suffix_name "_strict"     Rep_name, Rep_strict), []),
+          ((Binding.suffix_name "_strict"     Abs_name, Abs_strict), []),
+          ((Binding.suffix_name "_strict_iff" Rep_name, Rep_strict_iff), []),
+          ((Binding.suffix_name "_strict_iff" Abs_name, Abs_strict_iff), []),
+          ((Binding.suffix_name "_defined"    Rep_name, Rep_defined), []),
+          ((Binding.suffix_name "_defined"    Abs_name, Abs_defined), [])])
+      ||> Sign.parent_path;
     val pcpo_info =
       { Rep_strict = Rep_strict, Abs_strict = Abs_strict,
         Rep_strict_iff = Rep_strict_iff, Abs_strict_iff = Abs_strict_iff,
         Rep_defined = Rep_defined, Abs_defined = Abs_defined };
   in
-    (pcpo_info, thy3)
+    (pcpo_info, thy)
   end;
 
 (* prepare_cpodef *)
@@ -319,7 +326,8 @@ fun gen_cpodef_proof prep_term prep_constraint
     val args = map (apsnd (prep_constraint ctxt)) raw_args;
     val (goal1, goal2, make_result) =
       prepare_cpodef prep_term def name (b, args, mx) set opt_morphs thy;
-    fun after_qed [[th1, th2]] = ProofContext.theory (snd o make_result th1 th2);
+    fun after_qed [[th1, th2]] = ProofContext.theory (snd o make_result th1 th2)
+      | after_qed _ = error "cpodef_proof";
   in Proof.theorem_i NONE after_qed [[(goal1, []), (goal2, [])]] ctxt end;
 
 fun gen_pcpodef_proof prep_term prep_constraint
@@ -329,7 +337,8 @@ fun gen_pcpodef_proof prep_term prep_constraint
     val args = map (apsnd (prep_constraint ctxt)) raw_args;
     val (goal1, goal2, make_result) =
       prepare_pcpodef prep_term def name (b, args, mx) set opt_morphs thy;
-    fun after_qed [[th1, th2]] = ProofContext.theory (snd o make_result th1 th2);
+    fun after_qed [[th1, th2]] = ProofContext.theory (snd o make_result th1 th2)
+      | after_qed _ = error "pcpodef_proof";
   in Proof.theorem_i NONE after_qed [[(goal1, []), (goal2, [])]] ctxt end;
 
 in
