@@ -399,6 +399,18 @@ fun maps_premises f intro =
     Logic.list_implies (maps f premises, head)
   end
 
+fun map_concl f intro =
+  let
+    val (premises, head) = Logic.strip_horn intro
+  in
+    Logic.list_implies (premises, f head)
+  end
+
+(* combinators to apply a function to all basic parts of nested products *)
+
+fun map_products f (Const ("Pair", T) $ t1 $ t2) =
+  Const ("Pair", T) $ map_products f t1 $ map_products f t2
+  | map_products f t = f t
 
 (* split theorems of case expressions *)
 
@@ -618,5 +630,16 @@ fun expand_tuples thy intro =
   in
     intro'''''
   end
+
+(* eta contract higher-order arguments *)
+
+
+fun eta_contract_ho_arguments thy intro =
+  let
+    fun f atom = list_comb (apsnd ((map o map_products) Envir.eta_contract) (strip_comb atom))
+  in
+    map_term thy (map_concl f o map_atoms f) intro
+  end
+
 
 end;

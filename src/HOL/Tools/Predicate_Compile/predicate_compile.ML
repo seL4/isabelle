@@ -111,7 +111,8 @@ fun preprocess_strong_conn_constnames options gr ts thy =
       val intross5 =
         map (fn (s, ths) => (overload_const thy''' s, map (AxClass.overload thy''') ths)) intross4
       val intross6 = map_specs (map (expand_tuples thy''')) intross5
-      val _ = print_intross options thy''' "introduction rules before registering: " intross6
+      val intross7 = map_specs (map (eta_contract_ho_arguments thy''')) intross6
+      val _ = print_intross options thy''' "introduction rules before registering: " intross7
       val _ = print_step options "Registering introduction rules..."
       val thy'''' = fold Predicate_Compile_Core.register_intros intross6 thy'''
     in
