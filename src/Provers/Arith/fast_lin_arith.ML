@@ -541,7 +541,7 @@ fun mkthm ss asms (just: injust) =
                  (if count <> warning_count_max then []
                   else ["\n(Reached maximal message count -- disabling future warnings)"])));
                 warning "Linear arithmetic should have refuted the assumptions.\n\
-                  \Please inform Tobias Nipkow (nipkow@in.tum.de).")
+                  \Please inform Tobias Nipkow.")
           end;
     in fls end
     handle FalseE thm => trace_thm ctxt "False reached early:" thm
