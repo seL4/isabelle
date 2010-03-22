@@ -8,7 +8,7 @@ Unit tests for Nitpick.
 signature NITPICK_TESTS =
 sig
   val run_all_tests : unit -> unit
-end
+end;
 
 structure Nitpick_Tests =
 struct

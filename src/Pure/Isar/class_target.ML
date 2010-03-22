@@ -16,12 +16,13 @@ sig
   val rules: theory -> class -> thm option * thm
   val these_params: theory -> sort -> (string * (class * (string * typ))) list
   val these_defs: theory -> sort -> thm list
-  val these_operations: theory -> sort -> (string * (class * (typ * term))) list
+  val these_operations: theory -> sort
+    -> (string * (class * (typ * term))) list
   val print_classes: theory -> unit
 
   val begin: class list -> sort -> Proof.context -> Proof.context
   val init: class -> theory -> Proof.context
-  val declare: class -> (binding * mixfix) * term -> theory -> theory
+  val declare: class -> (binding * mixfix) * (term list * term) -> theory -> theory
   val abbrev: class -> Syntax.mode -> (binding * mixfix) * term -> theory -> theory
   val class_prefix: string -> string
   val refresh_syntax: class -> Proof.context -> Proof.context
@@ -253,8 +254,8 @@ fun register_subclass (sub, sup) some_dep_morph some_wit export thy =
 
 (* class context syntax *)
 
-fun these_unchecks thy =
-  map (fn (c, (_, (ty, t))) => (t, Const (c, ty))) o these_operations thy;
+fun these_unchecks thy = map (fn (c, (_, (ty, t))) => (t, Const (c, ty)))
+  o these_operations thy;
 
 fun redeclare_const thy c =
   let val b = Long_Name.base_name c
@@ -317,15 +318,15 @@ fun init class thy =
 
 val class_prefix = Logic.const_of_class o Long_Name.base_name;
 
-fun declare class ((c, mx), dict) thy =
+fun declare class ((c, mx), (type_params, dict)) thy =
   let
     val morph = morphism thy class;
     val b = Morphism.binding morph c;
     val b_def = Morphism.binding morph (Binding.suffix_name "_dict" b);
     val c' = Sign.full_name thy b;
     val dict' = Morphism.term morph dict;
-    val ty' = Term.fastype_of dict';
-    val def_eq = Logic.mk_equals (Const (c', ty'), dict')
+    val ty' = map Term.fastype_of type_params ---> Term.fastype_of dict';
+    val def_eq = Logic.mk_equals (list_comb (Const (c', ty'), type_params), dict')
       |> map_types Type.strip_sorts;
   in
     thy
@@ -335,7 +336,7 @@ fun declare class ((c, mx), dict) thy =
     |>> Thm.varifyT_global
     |-> (fn def_thm => PureThy.store_thm (b_def, def_thm)
       #> snd
-      #> register_operation class (c', (dict', SOME (Thm.symmetric def_thm))))
+      #> null type_params ? register_operation class (c', (dict', SOME (Thm.symmetric def_thm))))
     |> Sign.add_const_constraint (c', SOME ty')
   end;
 

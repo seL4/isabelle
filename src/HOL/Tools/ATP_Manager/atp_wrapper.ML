@@ -6,54 +6,24 @@ Wrapper functions for external ATPs.
 
 signature ATP_WRAPPER =
 sig
-  (*hooks for problem files*)
-  val destdir: string Config.T
-  val problem_prefix: string Config.T
-  val measure_runtime: bool Config.T
-  val setup: theory -> theory
+  type prover = ATP_Manager.prover
 
-  (*prover configuration, problem format, and prover result*)
-  type prover_config =
-   {command: Path.T,
-    arguments: int -> string,
-    max_new_clauses: int,
-    insert_theory_const: bool,
-    emit_structured_proof: bool}
-  type problem =
-   {with_full_types: bool,
-    subgoal: int,
-    goal: Proof.context * (thm list * thm),
-    axiom_clauses: (thm * (string * int)) list option,
-    filtered_clauses: (thm * (string * int)) list option}
-  val problem_of_goal: bool -> int -> Proof.context * (thm list * thm) -> problem
-  type prover_result =
-   {success: bool,
-    message: string,
-    theorem_names: string list,
-    runtime: int,
-    proof: string,
-    internal_thm_names: string Vector.vector,
-    filtered_clauses: (thm * (string * int)) list}
-  type prover = int -> problem -> prover_result
+  (* hooks for problem files *)
+  val destdir : string Config.T
+  val problem_prefix : string Config.T
+  val measure_runtime : bool Config.T
 
-  (*common provers*)
-  val vampire: string * prover
-  val vampire_full: string * prover
-  val eprover: string * prover
-  val eprover_full: string * prover
-  val spass: string * prover
-  val spass_no_tc: string * prover
-  val remote_vampire: string * prover
-  val remote_eprover: string * prover
-  val remote_spass: string * prover
-  val refresh_systems: unit -> unit
+  val refresh_systems_on_tptp : unit -> unit
+  val setup : theory -> theory
 end;
 
-structure ATP_Wrapper: ATP_WRAPPER =
+structure ATP_Wrapper : ATP_WRAPPER =
 struct
 
-structure SFF = Sledgehammer_Fact_Filter
-structure SPR = Sledgehammer_Proof_Reconstruct
+open Sledgehammer_HOL_Clause
+open Sledgehammer_Fact_Filter
+open Sledgehammer_Proof_Reconstruct
+open ATP_Manager
 
 (** generic ATP wrapper **)
 
@@ -68,42 +38,16 @@ val (problem_prefix, problem_prefix_setup) =
 val (measure_runtime, measure_runtime_setup) =
   Attrib.config_bool "atp_measure_runtime" false;
 
-val setup = destdir_setup #> problem_prefix_setup #> measure_runtime_setup;
 
-
-(* prover configuration, problem format, and prover result *)
+(* prover configuration *)
 
 type prover_config =
  {command: Path.T,
   arguments: int -> string,
+  failure_strs: string list,
   max_new_clauses: int,
   insert_theory_const: bool,
   emit_structured_proof: bool};
-
-type problem =
- {with_full_types: bool,
-  subgoal: int,
-  goal: Proof.context * (thm list * thm),
-  axiom_clauses: (thm * (string * int)) list option,
-  filtered_clauses: (thm * (string * int)) list option};
-
-fun problem_of_goal with_full_types subgoal goal : problem =
- {with_full_types = with_full_types,
-  subgoal = subgoal,
-  goal = goal,
-  axiom_clauses = NONE,
-  filtered_clauses = NONE};
-
-type prover_result =
- {success: bool,
-  message: string,
-  theorem_names: string list,  (*relevant theorems*)
-  runtime: int,  (*user time of the ATP, in milliseconds*)
-  proof: string,
-  internal_thm_names: string Vector.vector,
-  filtered_clauses: (thm * (string * int)) list};
-
-type prover = int -> problem -> prover_result;
 
 
 (* basic template *)
@@ -114,13 +58,20 @@ fun with_path cleanup after f path =
   |> Exn.release
   |> tap (after path);
 
-fun external_prover relevance_filter prepare write cmd args produce_answer name
-    ({with_full_types, subgoal, goal, axiom_clauses, filtered_clauses}: problem) =
+fun find_failure strs proof =
+  case filter (fn s => String.isSubstring s proof) strs of
+    [] => if is_proof_well_formed proof then NONE
+          else SOME "Ill-formed ATP output"
+  | (failure :: _) => SOME failure
+
+fun external_prover relevance_filter prepare write cmd args failure_strs
+        produce_answer name ({with_full_types, subgoal, goal, axiom_clauses,
+                              filtered_clauses}: problem) =
   let
     (* get clauses and prepare them for writing *)
     val (ctxt, (chain_ths, th)) = goal;
     val thy = ProofContext.theory_of ctxt;
-    val chain_ths = map (Thm.put_name_hint SPR.chained_hint) chain_ths;
+    val chain_ths = map (Thm.put_name_hint chained_hint) chain_ths;
     val goal_cls = #1 (Sledgehammer_Fact_Preprocessor.neg_conjecture_clauses ctxt th subgoal);
     val the_filtered_clauses =
       (case filtered_clauses of
@@ -184,7 +135,7 @@ fun external_prover relevance_filter prepare write cmd args produce_answer name
       with_path cleanup export run_on (prob_pathname subgoal);
 
     (* check for success and print out some information on failure *)
-    val failure = SPR.find_failure proof;
+    val failure = find_failure failure_strs proof;
     val success = rc = 0 andalso is_none failure;
     val (message, real_thm_names) =
       if is_some failure then ("External prover failed.", [])
@@ -200,25 +151,16 @@ fun external_prover relevance_filter prepare write cmd args produce_answer name
 
 (* generic TPTP-based provers *)
 
-fun gen_tptp_prover (name, prover_config) timeout problem =
-  let
-    val {max_new_clauses, insert_theory_const, emit_structured_proof, command, arguments} =
-      prover_config;
-  in
-    external_prover
-      (SFF.get_relevant max_new_clauses insert_theory_const)
-      (SFF.prepare_clauses false)
-      Sledgehammer_HOL_Clause.tptp_write_file
-      command
-      (arguments timeout)
-      (if emit_structured_proof then SPR.structured_proof
-       else SPR.lemma_list false)
-      name
-      problem
-  end;
+fun generic_tptp_prover
+        (name, {command, arguments, failure_strs, max_new_clauses,
+                insert_theory_const, emit_structured_proof}) timeout =
+  external_prover (get_relevant_facts max_new_clauses insert_theory_const)
+      (prepare_clauses false) write_tptp_file command (arguments timeout)
+      failure_strs
+      (if emit_structured_proof then structured_isar_proof
+       else metis_lemma_list false) name;
 
-fun tptp_prover (name, config) = (name, gen_tptp_prover (name, config));
-
+fun tptp_prover (name, p) = (name, generic_tptp_prover (name, p));
 
 
 (** common provers **)
@@ -227,40 +169,51 @@ fun tptp_prover (name, config) = (name, gen_tptp_prover (name, config));
 
 (*NB: Vampire does not work without explicit timelimit*)
 
+val vampire_failure_strs =
+  ["Satisfiability detected", "Refutation not found", "CANNOT PROVE"];
 val vampire_max_new_clauses = 60;
 val vampire_insert_theory_const = false;
 
-fun vampire_prover_config full : prover_config =
+fun vampire_prover_config isar : prover_config =
  {command = Path.explode "$VAMPIRE_HOME/vampire",
   arguments = (fn timeout => "--output_syntax tptp --mode casc" ^
     " -t " ^ string_of_int timeout),
+  failure_strs = vampire_failure_strs,
   max_new_clauses = vampire_max_new_clauses,
   insert_theory_const = vampire_insert_theory_const,
-  emit_structured_proof = full};
+  emit_structured_proof = isar};
 
 val vampire = tptp_prover ("vampire", vampire_prover_config false);
-val vampire_full = tptp_prover ("vampire_full", vampire_prover_config true);
+val vampire_isar = tptp_prover ("vampire_isar", vampire_prover_config true);
 
 
 (* E prover *)
 
+val eprover_failure_strs =
+  ["SZS status: Satisfiable", "SZS status Satisfiable",
+   "SZS status: ResourceOut", "SZS status ResourceOut",
+   "# Cannot determine problem status"];
 val eprover_max_new_clauses = 100;
 val eprover_insert_theory_const = false;
 
-fun eprover_config full : prover_config =
+fun eprover_config isar : prover_config =
  {command = Path.explode "$E_HOME/eproof",
   arguments = (fn timeout => "--tstp-in --tstp-out -l5 -xAutoDev -tAutoDev" ^
     " --silent --cpu-limit=" ^ string_of_int timeout),
+  failure_strs = eprover_failure_strs,
   max_new_clauses = eprover_max_new_clauses,
   insert_theory_const = eprover_insert_theory_const,
-  emit_structured_proof = full};
+  emit_structured_proof = isar};
 
 val eprover = tptp_prover ("e", eprover_config false);
-val eprover_full = tptp_prover ("e_full", eprover_config true);
+val eprover_isar = tptp_prover ("e_isar", eprover_config true);
 
 
 (* SPASS *)
 
+val spass_failure_strs =
+  ["SPASS beiseite: Completion found.", "SPASS beiseite: Ran out of time.",
+   "SPASS beiseite: Maximal number of loops exceeded."];
 val spass_max_new_clauses = 40;
 val spass_insert_theory_const = true;
 
@@ -268,26 +221,25 @@ fun spass_config insert_theory_const: prover_config =
  {command = Path.explode "$SPASS_HOME/SPASS",
   arguments = (fn timeout => "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0" ^
     " -FullRed=0 -DocProof -TimeLimit=" ^ string_of_int timeout),
+  failure_strs = spass_failure_strs,
   max_new_clauses = spass_max_new_clauses,
   insert_theory_const = insert_theory_const,
   emit_structured_proof = false};
 
-fun gen_dfg_prover (name, prover_config: prover_config) timeout problem =
-  let
-    val {max_new_clauses, insert_theory_const, command, arguments, ...} = prover_config;
-  in
-    external_prover
-      (SFF.get_relevant max_new_clauses insert_theory_const)
-      (SFF.prepare_clauses true)
-      Sledgehammer_HOL_Clause.dfg_write_file
-      command
-      (arguments timeout)
-      (SPR.lemma_list true)
-      name
-      problem
-  end;
+fun generic_dfg_prover
+        (name, ({command, arguments, failure_strs, max_new_clauses,
+                 insert_theory_const, ...} : prover_config)) timeout =
+  external_prover
+    (get_relevant_facts max_new_clauses insert_theory_const)
+    (prepare_clauses true)
+    write_dfg_file
+    command
+    (arguments timeout)
+    failure_strs
+    (metis_lemma_list true)
+    name;
 
-fun dfg_prover (name, config) = (name, gen_dfg_prover (name, config));
+fun dfg_prover (name, p) = (name, generic_dfg_prover (name, p));
 
 val spass = dfg_prover ("spass", spass_config spass_insert_theory_const);
 val spass_no_tc = dfg_prover ("spass_no_tc", spass_config false);
@@ -305,7 +257,8 @@ fun get_systems () =
     else split_lines answer
   end;
 
-fun refresh_systems () = Synchronized.change systems (fn _ => get_systems ());
+fun refresh_systems_on_tptp () =
+  Synchronized.change systems (fn _ => get_systems ());
 
 fun get_system prefix = Synchronized.change_result systems (fn systems =>
   (if null systems then get_systems () else systems)
@@ -316,10 +269,13 @@ fun the_system prefix =
     NONE => error ("System " ^ quote prefix ^ " not available at SystemOnTPTP")
   | SOME sys => sys);
 
+val remote_failure_strs = ["Remote-script could not extract proof"];
+
 fun remote_prover_config prover_prefix args max_new insert_tc: prover_config =
  {command = Path.explode "$ISABELLE_ATP_MANAGER/SystemOnTPTP",
-  arguments =
-    (fn timeout => args ^ " -t " ^ string_of_int timeout ^ " -s " ^ the_system prover_prefix),
+  arguments = (fn timeout =>
+    args ^ " -t " ^ string_of_int timeout ^ " -s " ^ the_system prover_prefix),
+  failure_strs = remote_failure_strs,
   max_new_clauses = max_new,
   insert_theory_const = insert_tc,
   emit_structured_proof = false};
@@ -332,5 +288,16 @@ val remote_eprover = tptp_prover ("remote_e", remote_prover_config
 
 val remote_spass = tptp_prover ("remote_spass", remote_prover_config
   "SPASS---" "-x" spass_max_new_clauses spass_insert_theory_const);
+
+val provers =
+  [spass, vampire, eprover, vampire_isar, eprover_isar, spass_no_tc,
+   remote_vampire, remote_spass, remote_eprover]
+val prover_setup = fold add_prover provers
+
+val setup =
+  destdir_setup
+  #> problem_prefix_setup
+  #> measure_runtime_setup
+  #> prover_setup;
 
 end;

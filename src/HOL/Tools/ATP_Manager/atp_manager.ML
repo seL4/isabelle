@@ -7,6 +7,23 @@ Central manager component for ATP threads.
 
 signature ATP_MANAGER =
 sig
+  type problem =
+   {with_full_types: bool,
+    subgoal: int,
+    goal: Proof.context * (thm list * thm),
+    axiom_clauses: (thm * (string * int)) list option,
+    filtered_clauses: (thm * (string * int)) list option}
+  val problem_of_goal: bool -> int -> Proof.context * (thm list * thm) -> problem
+  type prover_result =
+   {success: bool,
+    message: string,
+    theorem_names: string list,
+    runtime: int,
+    proof: string,
+    internal_thm_names: string Vector.vector,
+    filtered_clauses: (thm * (string * int)) list}
+  type prover = int -> problem -> prover_result
+
   val atps: string Unsynchronized.ref
   val get_atps: unit -> string list
   val timeout: int Unsynchronized.ref
@@ -14,14 +31,42 @@ sig
   val kill: unit -> unit
   val info: unit -> unit
   val messages: int option -> unit
-  val add_prover: string * ATP_Wrapper.prover -> theory -> theory
-  val get_prover: theory -> string -> ATP_Wrapper.prover option
+  val add_prover: string * prover -> theory -> theory
+  val get_prover: theory -> string -> prover option
   val print_provers: theory -> unit
   val sledgehammer: string list -> Proof.state -> unit
 end;
 
-structure ATP_Manager: ATP_MANAGER =
+structure ATP_Manager : ATP_MANAGER =
 struct
+
+(** problems, results, and provers **)
+
+type problem =
+ {with_full_types: bool,
+  subgoal: int,
+  goal: Proof.context * (thm list * thm),
+  axiom_clauses: (thm * (string * int)) list option,
+  filtered_clauses: (thm * (string * int)) list option};
+
+fun problem_of_goal with_full_types subgoal goal : problem =
+ {with_full_types = with_full_types,
+  subgoal = subgoal,
+  goal = goal,
+  axiom_clauses = NONE,
+  filtered_clauses = NONE};
+
+type prover_result =
+ {success: bool,
+  message: string,
+  theorem_names: string list,  (*relevant theorems*)
+  runtime: int,  (*user time of the ATP, in milliseconds*)
+  proof: string,
+  internal_thm_names: string Vector.vector,
+  filtered_clauses: (thm * (string * int)) list};
+
+type prover = int -> problem -> prover_result;
+
 
 (** preferences **)
 
@@ -228,7 +273,7 @@ fun err_dup_prover name = error ("Duplicate prover: " ^ quote name);
 
 structure Provers = Theory_Data
 (
-  type T = (ATP_Wrapper.prover * stamp) Symtab.table;
+  type T = (prover * stamp) Symtab.table;
   val empty = Symtab.empty;
   val extend = I;
   fun merge data : T = Symtab.merge (eq_snd op =) data
@@ -261,9 +306,9 @@ fun start_prover name birth_time death_time i proof_state =
         val _ = Toplevel.thread true (fn () =>
           let
             val _ = register birth_time death_time (Thread.self (), desc);
-            val problem = ATP_Wrapper.problem_of_goal (! full_types) i (ctxt, (facts, goal));
+            val problem = problem_of_goal (! full_types) i (ctxt, (facts, goal));
             val message = #message (prover (! timeout) problem)
-              handle Sledgehammer_HOL_Clause.TOO_TRIVIAL =>   (* FIXME !? *)
+              handle Sledgehammer_HOL_Clause.TRIVIAL =>   (* FIXME !? *)
                   "Empty clause: Try this command: " ^ Markup.markup Markup.sendback "apply metis"
                 | ERROR msg => ("Error: " ^ msg);
             val _ = unregister message (Thread.self ());
@@ -282,36 +327,4 @@ fun sledgehammer names proof_state =
     val _ = List.app (fn name => start_prover name birth_time death_time 1 proof_state) provers;
   in () end;
 
-
-
-(** Isar command syntax **)
-
-local structure K = OuterKeyword and P = OuterParse in
-
-val _ =
-  OuterSyntax.improper_command "atp_kill" "kill all managed provers" K.diag
-    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative kill));
-
-val _ =
-  OuterSyntax.improper_command "atp_info" "print information about managed provers" K.diag
-    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative info));
-
-val _ =
-  OuterSyntax.improper_command "atp_messages" "print recent messages issued by managed provers" K.diag
-    (Scan.option (P.$$$ "(" |-- P.nat --| P.$$$ ")") >>
-      (fn limit => Toplevel.no_timing o Toplevel.imperative (fn () => messages limit)));
-
-val _ =
-  OuterSyntax.improper_command "print_atps" "print external provers" K.diag
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_theory o
-      Toplevel.keep (print_provers o Toplevel.theory_of)));
-
-val _ =
-  OuterSyntax.command "sledgehammer" "call all automatic theorem provers" K.diag
-    (Scan.repeat P.xname >> (fn names => Toplevel.no_timing o Toplevel.unknown_proof o
-      Toplevel.keep (sledgehammer names o Toplevel.proof_of)));
-
 end;
-
-end;
-

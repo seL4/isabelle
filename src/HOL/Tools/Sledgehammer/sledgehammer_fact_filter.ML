@@ -4,47 +4,45 @@
 
 signature SLEDGEHAMMER_FACT_FILTER =
 sig
-  type classrelClause = Sledgehammer_FOL_Clause.classrelClause
-  type arityClause = Sledgehammer_FOL_Clause.arityClause
+  type classrel_clause = Sledgehammer_FOL_Clause.classrel_clause
+  type arity_clause = Sledgehammer_FOL_Clause.arity_clause
   type axiom_name = Sledgehammer_HOL_Clause.axiom_name
-  type clause = Sledgehammer_HOL_Clause.clause
-  type clause_id = Sledgehammer_HOL_Clause.clause_id
-  datatype mode = Auto | Fol | Hol
+  type hol_clause = Sledgehammer_HOL_Clause.hol_clause
+  type hol_clause_id = Sledgehammer_HOL_Clause.hol_clause_id
   val tvar_classes_of_terms : term list -> string list
   val tfree_classes_of_terms : term list -> string list
   val type_consts_of_terms : theory -> term list -> string list
-  val get_relevant : int -> bool -> Proof.context * (thm list * 'a) -> thm list ->
+  val get_relevant_facts : int -> bool -> Proof.context * (thm list * 'a) -> thm list ->
     (thm * (string * int)) list
   val prepare_clauses : bool -> thm list -> thm list ->
-    (thm * (axiom_name * clause_id)) list ->
-    (thm * (axiom_name * clause_id)) list -> theory ->
+    (thm * (axiom_name * hol_clause_id)) list ->
+    (thm * (axiom_name * hol_clause_id)) list -> theory ->
     axiom_name vector *
-      (clause list * clause list * clause list *
-      clause list * classrelClause list * arityClause list)
+      (hol_clause list * hol_clause list * hol_clause list *
+      hol_clause list * classrel_clause list * arity_clause list)
 end;
 
 structure Sledgehammer_Fact_Filter : SLEDGEHAMMER_FACT_FILTER =
 struct
 
-structure SFC = Sledgehammer_FOL_Clause
-structure SFP = Sledgehammer_Fact_Preprocessor
-structure SHC = Sledgehammer_HOL_Clause
+open Sledgehammer_FOL_Clause
+open Sledgehammer_Fact_Preprocessor
+open Sledgehammer_HOL_Clause
 
-type classrelClause = SFC.classrelClause
-type arityClause = SFC.arityClause
-type axiom_name = SHC.axiom_name
-type clause = SHC.clause
-type clause_id = SHC.clause_id
+type axiom_name = axiom_name
+type hol_clause = hol_clause
+type hol_clause_id = hol_clause_id
 
 (********************************************************************)
 (* some settings for both background automatic ATP calling procedure*)
 (* and also explicit ATP invocation methods                         *)
 (********************************************************************)
 
-(*Translation mode can be auto-detected, or forced to be first-order or higher-order*)
+(* Translation mode can be auto-detected, or forced to be first-order or
+   higher-order *)
 datatype mode = Auto | Fol | Hol;
 
-val linkup_logic_mode = Auto;
+val translation_mode = Auto;
 
 (*** background linkup ***)
 val run_blacklist_filter = true;
@@ -59,7 +57,7 @@ val follow_defs = false;  (*Follow definitions. Makes problems bigger.*)
 (* Relevance Filtering                                         *)
 (***************************************************************)
 
-fun strip_Trueprop (Const("Trueprop",_) $ t) = t
+fun strip_Trueprop (@{const Trueprop} $ t) = t
   | strip_Trueprop t = t;
 
 (*A surprising number of theorems contain only a few significant constants.
@@ -79,7 +77,10 @@ val weight_fn = log_weight2;
   being chosen, but for some reason filtering works better with them listed. The
   logical signs All, Ex, &, and --> are omitted because any remaining occurrrences
   must be within comprehensions.*)
-val standard_consts = ["Trueprop","==>","all","==","op |","Not","op ="];
+val standard_consts =
+  [@{const_name Trueprop}, @{const_name "==>"}, @{const_name all},
+   @{const_name "=="}, @{const_name "op |"}, @{const_name Not},
+   @{const_name "op ="}];
 
 
 (*** constants with types ***)
@@ -233,7 +234,7 @@ fun defines thy thm gctypes =
             end
             handle ConstFree => false
     in    
-        case tm of Const ("Trueprop",_) $ (Const("op =",_) $ lhs $ rhs) => 
+        case tm of @{const Trueprop} $ (Const(@{const_name "op ="}, _) $ lhs $ rhs) => 
                    defs lhs rhs 
                  | _ => false
     end;
@@ -252,10 +253,10 @@ fun take_best max_new (newpairs : (annotd_cls*real) list) =
       let val cls = sort compare_pairs newpairs
           val accepted = List.take (cls, max_new)
       in
-        SFP.trace_msg (fn () => ("Number of candidates, " ^ Int.toString nnew ^ 
+        trace_msg (fn () => ("Number of candidates, " ^ Int.toString nnew ^ 
                        ", exceeds the limit of " ^ Int.toString (max_new)));
-        SFP.trace_msg (fn () => ("Effective pass mark: " ^ Real.toString (#2 (List.last accepted))));
-        SFP.trace_msg (fn () => "Actually passed: " ^
+        trace_msg (fn () => ("Effective pass mark: " ^ Real.toString (#2 (List.last accepted))));
+        trace_msg (fn () => "Actually passed: " ^
           space_implode ", " (map (fn (((_,(name,_)),_),_) => name) accepted));
 
         (map #1 accepted, map #1 (List.drop (cls, max_new)))
@@ -270,7 +271,7 @@ fun relevant_clauses max_new thy ctab p rel_consts =
                 val rel_consts' = List.foldl add_const_typ_table rel_consts new_consts
                 val newp = p + (1.0-p) / convergence
             in
-              SFP.trace_msg (fn () => "relevant this iteration: " ^ Int.toString (length newrels));
+              trace_msg (fn () => "relevant this iteration: " ^ Int.toString (length newrels));
                (map #1 newrels) @ 
                (relevant_clauses max_new thy ctab newp rel_consts' (more_rejects@rejects))
             end
@@ -278,12 +279,12 @@ fun relevant_clauses max_new thy ctab p rel_consts =
             let val weight = clause_weight ctab rel_consts consts_typs
             in
               if p <= weight orelse (follow_defs andalso defines thy (#1 clsthm) rel_consts)
-              then (SFP.trace_msg (fn () => (name ^ " clause " ^ Int.toString n ^ 
+              then (trace_msg (fn () => (name ^ " clause " ^ Int.toString n ^ 
                                             " passes: " ^ Real.toString weight));
                     relevant ((ax,weight)::newrels, rejects) axs)
               else relevant (newrels, ax::rejects) axs
             end
-    in  SFP.trace_msg (fn () => ("relevant_clauses, current pass mark = " ^ Real.toString p));
+    in  trace_msg (fn () => ("relevant_clauses, current pass mark = " ^ Real.toString p));
         relevant ([],[]) 
     end;
         
@@ -292,12 +293,12 @@ fun relevance_filter max_new theory_const thy axioms goals =
  then
   let val const_tab = List.foldl (count_axiom_consts theory_const thy) Symtab.empty axioms
       val goal_const_tab = get_goal_consts_typs thy goals
-      val _ = SFP.trace_msg (fn () => ("Initial constants: " ^
+      val _ = trace_msg (fn () => ("Initial constants: " ^
                                  space_implode ", " (Symtab.keys goal_const_tab)));
       val rels = relevant_clauses max_new thy const_tab (pass_mark) 
                    goal_const_tab  (map (pair_consts_typs_axiom theory_const thy) axioms)
   in
-      SFP.trace_msg (fn () => ("Total relevant: " ^ Int.toString (length rels)));
+      trace_msg (fn () => ("Total relevant: " ^ Int.toString (length rels)));
       rels
   end
  else axioms;
@@ -332,7 +333,7 @@ fun hashw_term ((Const(c,_)), w) = Polyhash.hashw_string (c,w)
   | hashw_term ((Abs(_,_,t)), w) = hashw_term (t, w)
   | hashw_term ((P$Q), w) = hashw_term (Q, (hashw_term (P, w)));
 
-fun hash_literal (Const("Not",_)$P) = Word.notb(hashw_term(P,0w0))
+fun hash_literal (@{const Not} $ P) = Word.notb(hashw_term(P,0w0))
   | hash_literal P = hashw_term(P,0w0);
 
 fun hash_term t = Word.toIntX (xor_words (map hash_literal (HOLogic.disjuncts (strip_Trueprop t))));
@@ -351,7 +352,7 @@ fun mk_clause_table n =
 fun make_unique xs =
   let val ht = mk_clause_table 7000
   in
-      SFP.trace_msg (fn () => ("make_unique gets " ^ Int.toString (length xs) ^ " clauses"));
+      trace_msg (fn () => ("make_unique gets " ^ Int.toString (length xs) ^ " clauses"));
       app (ignore o Polyhash.peekInsert ht) xs;
       Polyhash.listItems ht
   end;
@@ -383,7 +384,7 @@ fun all_valid_thms ctxt =
 
           val name1 = Facts.extern facts name;
           val name2 = Name_Space.extern full_space name;
-          val ths = filter_out SFP.bad_for_atp ths0;
+          val ths = filter_out bad_for_atp ths0;
         in
           if Facts.is_concealed facts name orelse null ths orelse
             run_blacklist_filter andalso is_package_def name then I
@@ -403,7 +404,7 @@ fun add_single_names (a, []) pairs = pairs
 
 (*Ignore blacklisted basenames*)
 fun add_multi_names (a, ths) pairs =
-  if (Long_Name.base_name a) mem_string SFP.multi_base_blacklist then pairs
+  if (Long_Name.base_name a) mem_string multi_base_blacklist then pairs
   else add_single_names (a, ths) pairs;
 
 fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
@@ -412,12 +413,17 @@ fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
 fun name_thm_pairs ctxt =
   let
     val (mults, singles) = List.partition is_multi (all_valid_thms ctxt)
-    val blacklist =
-      if run_blacklist_filter then No_ATPs.get ctxt |> map Thm.prop_of else []
-    fun is_blacklisted (_, th) = member (op =) blacklist (Thm.prop_of th)
+    val ps = [] |> fold add_multi_names mults
+                |> fold add_single_names singles
   in
-    filter_out is_blacklisted
-      (fold add_single_names singles (fold add_multi_names mults []))
+    if run_blacklist_filter then
+      let
+        val blacklist = No_ATPs.get ctxt
+                        |> map (`Thm.full_prop_of) |> Termtab.make
+        val is_blacklisted = Termtab.defined blacklist o Thm.full_prop_of o snd
+      in ps |> filter_out is_blacklisted end
+    else
+      ps
   end;
 
 fun check_named ("", th) =
@@ -426,7 +432,7 @@ fun check_named ("", th) =
 
 fun get_all_lemmas ctxt =
   let val included_thms =
-        tap (fn ths => SFP.trace_msg
+        tap (fn ths => trace_msg
                      (fn () => ("Including all " ^ Int.toString (length ths) ^ " theorems")))
             (name_thm_pairs ctxt)
   in
@@ -440,7 +446,7 @@ fun get_all_lemmas ctxt =
 fun add_classes (sorts, cset) = List.foldl setinsert cset (flat sorts);
 
 (*Remove this trivial type class*)
-fun delete_type cset = Symtab.delete_safe "HOL.type" cset;
+fun delete_type cset = Symtab.delete_safe (the_single @{sort HOL.type}) cset;
 
 fun tvar_classes_of_terms ts =
   let val sorts_list = map (map #2 o OldTerm.term_tvars) ts
@@ -499,13 +505,9 @@ fun is_recordtype T = not (null (Record.dest_recTs T));
 fun too_general_eqterms (Var (ix,T), t) = not (occurs ix t) orelse is_recordtype T
   | too_general_eqterms _ = false;
 
-fun too_general_equality (Const ("op =", _) $ x $ y) =
+fun too_general_equality (Const (@{const_name "op ="}, _) $ x $ y) =
       too_general_eqterms (x,y) orelse too_general_eqterms(y,x)
   | too_general_equality _ = false;
-
-(* tautologous? *)
-fun is_taut (Const ("Trueprop", _) $ Const ("True", _)) = true
-  | is_taut _ = false;
 
 fun has_typed_var tycons = exists_subterm
   (fn Var (_, Type (a, _)) => member (op =) tycons a | _ => false);
@@ -514,28 +516,29 @@ fun has_typed_var tycons = exists_subterm
   they lead to unsoundness. Note that "unit" satisfies numerous equations like ?X=().
   The resulting clause will have no type constraint, yielding false proofs. Even "bool"
   leads to many unsound proofs, though (obviously) only for higher-order problems.*)
-val unwanted_types = ["Product_Type.unit","bool"];
+val unwanted_types = [@{type_name unit}, @{type_name bool}];
 
 fun unwanted t =
-  is_taut t orelse has_typed_var unwanted_types t orelse
+  t = @{prop True} orelse has_typed_var unwanted_types t orelse
   forall too_general_equality (HOLogic.disjuncts (strip_Trueprop t));
 
 (*Clauses containing variables of type "unit" or "bool" are unlikely to be useful and
   likely to lead to unsound proofs.*)
 fun remove_unwanted_clauses cls = filter (not o unwanted o prop_of o fst) cls;
 
-fun isFO thy goal_cls = case linkup_logic_mode of
-      Auto => forall (Meson.is_fol_term thy) (map prop_of goal_cls)
-    | Fol => true
-    | Hol => false
+fun is_first_order thy goal_cls =
+  case translation_mode of
+    Auto => forall (Meson.is_fol_term thy) (map prop_of goal_cls)
+  | Fol => true
+  | Hol => false
 
-fun get_relevant max_new theory_const (ctxt, (chain_ths, th)) goal_cls =
+fun get_relevant_facts max_new theory_const (ctxt, (chain_ths, th)) goal_cls =
   let
     val thy = ProofContext.theory_of ctxt
-    val isFO = isFO thy goal_cls
+    val is_FO = is_first_order thy goal_cls
     val included_cls = get_all_lemmas ctxt
-      |> SFP.cnf_rules_pairs thy |> make_unique
-      |> restrict_to_logic thy isFO
+      |> cnf_rules_pairs thy |> make_unique
+      |> restrict_to_logic thy is_FO
       |> remove_unwanted_clauses
   in
     relevance_filter max_new theory_const thy included_cls (map prop_of goal_cls) 
@@ -547,28 +550,27 @@ fun prepare_clauses dfg goal_cls chain_ths axcls extra_cls thy =
   let
     (* add chain thms *)
     val chain_cls =
-      SFP.cnf_rules_pairs thy (filter check_named (map SFP.pairname chain_ths))
+      cnf_rules_pairs thy (filter check_named (map pairname chain_ths))
     val axcls = chain_cls @ axcls
     val extra_cls = chain_cls @ extra_cls
-    val isFO = isFO thy goal_cls
+    val is_FO = is_first_order thy goal_cls
     val ccls = subtract_cls goal_cls extra_cls
-    val _ = app (fn th => SFP.trace_msg (fn _ => Display.string_of_thm_global thy th)) ccls
+    val _ = app (fn th => trace_msg (fn _ => Display.string_of_thm_global thy th)) ccls
     val ccltms = map prop_of ccls
     and axtms = map (prop_of o #1) extra_cls
     val subs = tfree_classes_of_terms ccltms
     and supers = tvar_classes_of_terms axtms
-    and tycons = type_consts_of_terms thy (ccltms@axtms)
+    and tycons = type_consts_of_terms thy (ccltms @ axtms)
     (*TFrees in conjecture clauses; TVars in axiom clauses*)
-    val conjectures = SHC.make_conjecture_clauses dfg thy ccls
-    val (_, extra_clauses) = ListPair.unzip (SHC.make_axiom_clauses dfg thy extra_cls)
-    val (clnames,axiom_clauses) = ListPair.unzip (SHC.make_axiom_clauses dfg thy axcls)
-    val helper_clauses = SHC.get_helper_clauses dfg thy isFO (conjectures, extra_cls, [])
-    val (supers',arity_clauses) = SFC.make_arity_clauses_dfg dfg thy tycons supers
-    val classrel_clauses = SFC.make_classrel_clauses thy subs supers'
+    val conjectures = make_conjecture_clauses dfg thy ccls
+    val (_, extra_clauses) = ListPair.unzip (make_axiom_clauses dfg thy extra_cls)
+    val (clnames, axiom_clauses) = ListPair.unzip (make_axiom_clauses dfg thy axcls)
+    val helper_clauses = get_helper_clauses dfg thy is_FO (conjectures, extra_cls, [])
+    val (supers', arity_clauses) = make_arity_clauses_dfg dfg thy tycons supers
+    val classrel_clauses = make_classrel_clauses thy subs supers'
   in
     (Vector.fromList clnames,
       (conjectures, axiom_clauses, extra_clauses, helper_clauses, classrel_clauses, arity_clauses))
   end
 
 end;
-

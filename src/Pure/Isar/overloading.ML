@@ -13,7 +13,7 @@ sig
   val define: bool -> binding -> string * term -> theory -> thm * theory
   val operation: Proof.context -> binding -> (string * bool) option
   val pretty: Proof.context -> Pretty.T
-  
+
   type improvable_syntax
   val add_improvable_syntax: Proof.context -> Proof.context
   val map_improvable_syntax: (improvable_syntax -> improvable_syntax)

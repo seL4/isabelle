@@ -63,9 +63,8 @@ local
       THEN' Boogie_Tactics.drop_assert_at_tac
       THEN' SUBPROOF (fn _ => Tactic.rtac thm 1) context))
 in
-fun boogie_vc (vc_name, vc_opts) lthy =
+fun boogie_vc (vc_name, vc_opts) thy =
   let
-    val thy = ProofContext.theory_of lthy
     val vc = get_vc thy vc_name
 
     fun extract vc l =
@@ -92,16 +91,16 @@ fun boogie_vc (vc_name, vc_opts) lthy =
       | _ => (pair ts, K I))
 
     val discharge = fold (Boogie_VCs.discharge o pair vc_name)
-    fun after_qed [thms] = Local_Theory.theory (discharge (vcs ~~ thms))
+    fun after_qed [thms] = ProofContext.theory (discharge (vcs ~~ thms))
       | after_qed _ = I
   in
-    lthy
+    ProofContext.init thy
     |> fold Variable.auto_fixes ts
-    |> (fn lthy1 => lthy1
+    |> (fn ctxt1 => ctxt1
     |> prepare
-    |-> (fn us => fn lthy2 => lthy2
+    |-> (fn us => fn ctxt2 => ctxt2
     |> Proof.theorem_i NONE (fn thmss => fn ctxt =>
-         let val export = map (finish lthy1) o ProofContext.export ctxt lthy2
+         let val export = map (finish ctxt1) o ProofContext.export ctxt ctxt2
          in after_qed (map export thmss) ctxt end) [map (rpair []) us]))
   end
 end
@@ -300,7 +299,7 @@ val _ =
     "Enter into proof mode for a specific verification condition."
     OuterKeyword.thy_goal
     (vc_name -- vc_opts >> (fn args =>
-      (Toplevel.print o Toplevel.local_theory_to_proof NONE (boogie_vc args))))
+      (Toplevel.print o Toplevel.theory_to_proof (boogie_vc args))))
 
 
 val quick_timeout = 5

@@ -22,7 +22,6 @@ sig
   val global_setup: theory -> theory
   val split_limit: int Config.T
   val neq_limit: int Config.T
-  val warning_count: int Unsynchronized.ref
   val trace: bool Unsynchronized.ref
 end;
 
@@ -797,7 +796,6 @@ fun set_number_of f = Fast_Arith.map_data (map_number_of (K (serial (), f)))
 fun simple_tac ctxt = Fast_Arith.lin_arith_tac ctxt false;
 val lin_arith_tac = Fast_Arith.lin_arith_tac;
 val trace = Fast_Arith.trace;
-val warning_count = Fast_Arith.warning_count;
 
 (* reduce contradictory <= to False.
    Most of the work is done by the cancel tactics. *)

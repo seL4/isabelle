@@ -62,7 +62,7 @@ sig
   val pstrs : string -> Pretty.T list
   val unyxml : string -> string
   val maybe_quote : string -> string
-end
+end;
 
 structure Nitpick_Util : NITPICK_UTIL =
 struct

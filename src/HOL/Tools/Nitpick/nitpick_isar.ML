@@ -13,7 +13,7 @@ sig
   val auto: bool Unsynchronized.ref
   val default_params : theory -> (string * string) list -> params
   val setup : theory -> theory
-end
+end;
 
 structure Nitpick_Isar : NITPICK_ISAR =
 struct

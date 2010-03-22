@@ -277,7 +277,7 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...})
   in
     lthy'
     |> is_locale ? syntax_declaration ta false (locale_const ta Syntax.mode_default ((b, mx2), t))
-    |> is_class ? class_target ta (Class_Target.declare target ((b, mx1), t))
+    |> is_class ? class_target ta (Class_Target.declare target ((b, mx1), (type_params, t)))
     |> Local_Defs.add_def ((b, NoSyn), t)
   end;
 

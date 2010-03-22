@@ -238,10 +238,14 @@ local
     |> split_list_kind thy o Termtab.dest
 in
 fun add_axioms verbose axs thy =
-  let val (used, new) = mark_axioms thy (name_axioms axs)
+  let
+    val (used, new) = mark_axioms thy (name_axioms axs)
+    fun add (n, t) =
+      Specification.axiomatization [] [((Binding.name n, []), [t])] #>>
+      hd o hd o snd
   in
     thy
-    |> fold_map (Drule.add_axiom o apfst Binding.name) new
+    |> fold_map add new
     |-> Context.theory_map o fold Boogie_Axioms.add_thm
     |> log verbose "The following axioms were added:" (map fst new)
     |> (fn thy' => log verbose "The following axioms already existed:"

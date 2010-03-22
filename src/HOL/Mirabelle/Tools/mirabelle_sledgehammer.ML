@@ -42,8 +42,7 @@ datatype me_data = MeData of {
 
 datatype min_data = MinData of {
   succs: int,
-  ab_ratios: int,
-  it_ratios: int
+  ab_ratios: int
   }
 
 fun make_sh_data
@@ -51,23 +50,22 @@ fun make_sh_data
   ShData{calls=calls, success=success, lemmas=lemmas, max_lems=max_lems,
          time_isa=time_isa, time_atp=time_atp, time_atp_fail=time_atp_fail}
 
-fun make_min_data (succs, ab_ratios, it_ratios) =
-  MinData{succs=succs, ab_ratios=ab_ratios, it_ratios=it_ratios}
+fun make_min_data (succs, ab_ratios) =
+  MinData{succs=succs, ab_ratios=ab_ratios}
 
 fun make_me_data (calls,success,proofs,time,timeout,lemmas,posns) =
   MeData{calls=calls, success=success, proofs=proofs, time=time,
          timeout=timeout, lemmas=lemmas, posns=posns}
 
 val empty_sh_data = make_sh_data (0, 0, 0, 0, 0, 0, 0)
-val empty_min_data = make_min_data(0, 0, 0)
-val empty_me_data = make_me_data(0, 0, 0, 0, 0, (0,0,0), [])
+val empty_min_data = make_min_data (0, 0)
+val empty_me_data = make_me_data (0, 0, 0, 0, 0, (0,0,0), [])
 
 fun tuple_of_sh_data (ShData {calls, success, lemmas, max_lems, time_isa,
   time_atp, time_atp_fail}) = (calls, success, lemmas, max_lems, time_isa,
   time_atp, time_atp_fail)
 
-fun tuple_of_min_data (MinData {succs, ab_ratios, it_ratios}) =
-  (succs, ab_ratios, it_ratios)
+fun tuple_of_min_data (MinData {succs, ab_ratios}) = (succs, ab_ratios)
 
 fun tuple_of_me_data (MeData {calls, success, proofs, time, timeout, lemmas,
   posns}) = (calls, success, proofs, time, timeout, lemmas, posns)
@@ -147,13 +145,10 @@ fun inc_sh_time_atp_fail t = map_sh_data
     => (calls,success,lemmas,max_lems,time_isa,time_atp,time_atp_fail + t))
 
 val inc_min_succs = map_min_data
-  (fn (succs,ab_ratios,it_ratios) => (succs+1, ab_ratios, it_ratios))
+  (fn (succs,ab_ratios) => (succs+1, ab_ratios))
 
 fun inc_min_ab_ratios r = map_min_data
-  (fn (succs, ab_ratios, it_ratios) => (succs, ab_ratios+r, it_ratios))
-
-fun inc_min_it_ratios r = map_min_data
-  (fn (succs, ab_ratios, it_ratios) => (succs, ab_ratios, it_ratios+r))
+  (fn (succs, ab_ratios) => (succs, ab_ratios+r))
 
 val inc_metis_calls = map_me_data
   (fn (calls,success,proofs,time,timeout,lemmas,posns)
@@ -234,10 +229,9 @@ fun log_me_data log tag sh_calls (metis_calls, metis_success,
   else ()
  )
 
-fun log_min_data log (succs, ab_ratios, it_ratios) =
+fun log_min_data log (succs, ab_ratios) =
   (log ("Number of successful minimizations: " ^ string_of_int succs);
-   log ("After/before ratios: " ^ string_of_int ab_ratios);
-   log ("Iterations ratios: " ^ string_of_int it_ratios)
+   log ("After/before ratios: " ^ string_of_int ab_ratios)
   )
 
 in
@@ -313,19 +307,19 @@ fun run_sh prover hard_timeout timeout dir st =
       ctxt
       |> change_dir dir
       |> Config.put ATP_Wrapper.measure_runtime true
-    val problem = ATP_Wrapper.problem_of_goal (! ATP_Manager.full_types) 1 (ctxt', (facts, goal));
+    val problem = ATP_Manager.problem_of_goal (! ATP_Manager.full_types) 1 (ctxt', (facts, goal));
 
     val time_limit =
       (case hard_timeout of
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
-    val ({success, message, theorem_names, runtime=time_atp, ...}: ATP_Wrapper.prover_result,
+    val ({success, message, theorem_names, runtime=time_atp, ...}: ATP_Manager.prover_result,
         time_isa) = time_limit (Mirabelle.cpu_time (fn t => prover t problem)) timeout
   in
     if success then (message, SH_OK (time_isa, time_atp, theorem_names))
     else (message, SH_FAIL(time_isa, time_atp))
   end
-  handle Sledgehammer_HOL_Clause.TOO_TRIVIAL => ("trivial", SH_OK (0, 0, []))
+  handle Sledgehammer_HOL_Clause.TRIVIAL => ("trivial", SH_OK (0, 0, []))
        | ERROR msg => ("error: " ^ msg, SH_ERROR)
        | TimeLimit.TimeOut => ("timeout", SH_ERROR)
 
@@ -380,9 +374,10 @@ end
 
 fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
   let
+    open ATP_Minimal
     val n0 = length (these (!named_thms))
     val (prover_name, prover) = get_atp (Proof.theory_of st) args
-    val minimize = ATP_Minimal.minimalize prover prover_name
+    val minimize = minimize_theorems linear_minimize prover prover_name
     val timeout =
       AList.lookup (op =) args minimize_timeoutK
       |> Option.map (fst o read_int o explode)
@@ -390,10 +385,9 @@ fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
     val _ = log separator
   in
     case minimize timeout st (these (!named_thms)) of
-      (SOME (named_thms',its), msg) =>
+      (SOME named_thms', msg) =>
         (change_data id inc_min_succs;
          change_data id (inc_min_ab_ratios ((100 * length named_thms') div n0));
-         change_data id (inc_min_it_ratios ((100*its) div n0));
          if length named_thms' = n0
          then log (minimize_tag id ^ "already minimal")
          else (named_thms := SOME named_thms';

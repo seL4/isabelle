@@ -18,6 +18,7 @@ sig
   val make_nnf: Proof.context -> thm -> thm
   val skolemize: Proof.context -> thm -> thm
   val is_fol_term: theory -> term -> bool
+  val make_clauses_unsorted: thm list -> thm list
   val make_clauses: thm list -> thm list
   val make_horns: thm list -> thm list
   val best_prolog_tac: (thm -> int) -> thm list -> tactic
@@ -560,7 +561,8 @@ fun add_clauses th cls =
 
 (*Make clauses from a list of theorems, previously Skolemized and put into nnf.
   The resulting clauses are HOL disjunctions.*)
-fun make_clauses ths = sort_clauses (fold_rev add_clauses ths []);
+fun make_clauses_unsorted ths = fold_rev add_clauses ths [];
+val make_clauses = sort_clauses o make_clauses_unsorted;
 
 (*Convert a list of clauses (disjunctions) to Horn clauses (contrapositives)*)
 fun make_horns ths =
