@@ -514,6 +514,12 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
 
 local
 
+(* old-style axioms *)
+
+fun add_axiom (b, prop) =
+  Thm.add_axiom (b, prop) #->
+  (fn thm => PureThy.add_thm ((b, Drule.export_without_context thm), []));
+
 fun axiomatize prep mk name add raw_args thy =
   let
     val args = prep thy raw_args;
@@ -521,7 +527,7 @@ fun axiomatize prep mk name add raw_args thy =
     val names = name args;
   in
     thy
-    |> fold_map Drule.add_axiom (map Binding.name names ~~ specs)
+    |> fold_map add_axiom (map Binding.name names ~~ specs)
     |-> fold add
   end;
 
