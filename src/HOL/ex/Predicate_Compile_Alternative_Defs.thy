@@ -93,11 +93,12 @@ proof -
   case list_all2
   from this show thesis
     apply -
-    apply (case_tac xa)
     apply (case_tac xb)
+    apply (case_tac xc)
     apply auto
-    apply (case_tac xb)
+    apply (case_tac xc)
     apply auto
+    apply fastsimp
     done
 qed
 
