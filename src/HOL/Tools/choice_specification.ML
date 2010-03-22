@@ -44,9 +44,10 @@ local
         let
             fun process [] (thy,tm) =
                 let
-                    val (thm, thy') = Drule.add_axiom (Binding.name axname, HOLogic.mk_Trueprop tm) thy
+                    val (thm, thy') =
+                      Specification.axiom ((Binding.name axname, []), HOLogic.mk_Trueprop tm) thy
                 in
-                    (thy', thm)
+                    (thy', Drule.export_without_context thm)
                 end
               | process ((thname,cname,covld)::cos) (thy,tm) =
                 case tm of

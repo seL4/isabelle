@@ -77,7 +77,6 @@ sig
   val flexflex_unique: thm -> thm
   val export_without_context: thm -> thm
   val export_without_context_open: thm -> thm
-  val add_axiom: (binding * term) -> theory -> thm * theory
   val store_thm: binding -> thm -> thm
   val store_standard_thm: binding -> thm -> thm
   val store_thm_open: binding -> thm -> thm
@@ -319,12 +318,6 @@ val export_without_context =
   flexflex_unique
   #> export_without_context_open
   #> Thm.close_derivation;
-
-
-(* old-style axioms *)
-
-fun add_axiom (b, prop) =
-  Thm.add_axiom (b, prop) #-> (fn thm => PureThy.add_thm ((b, export_without_context thm), []));
 
 
 (*Convert all Vars in a theorem to Frees.  Also return a function for

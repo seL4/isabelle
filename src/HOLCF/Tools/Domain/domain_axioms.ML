@@ -54,8 +54,8 @@ fun axiomatize_isomorphism
     val abs_iso_bind = Binding.qualified true "abs_iso" dbind;
     val rep_iso_bind = Binding.qualified true "rep_iso" dbind;
 
-    val (abs_iso_thm, thy) = Drule.add_axiom (abs_iso_bind, abs_iso_eqn) thy;
-    val (rep_iso_thm, thy) = Drule.add_axiom (rep_iso_bind, rep_iso_eqn) thy;
+    val (abs_iso_thm, thy) = Specification.axiom ((abs_iso_bind, []), abs_iso_eqn) thy;
+    val (rep_iso_thm, thy) = Specification.axiom ((rep_iso_bind, []), rep_iso_eqn) thy;
 
     val result =
         {
@@ -63,8 +63,8 @@ fun axiomatize_isomorphism
           repT = rhsT,
           abs_const = abs_const,
           rep_const = rep_const,
-          abs_inverse = abs_iso_thm,
-          rep_inverse = rep_iso_thm
+          abs_inverse = Drule.export_without_context abs_iso_thm,
+          rep_inverse = Drule.export_without_context rep_iso_thm
         };
   in
     (result, thy)
@@ -83,9 +83,9 @@ fun axiomatize_lub_take
 
     val lub_take_bind = Binding.qualified true "lub_take" dbind;
 
-    val (lub_take_thm, thy) = Drule.add_axiom (lub_take_bind, lub_take_eqn) thy;
+    val (lub_take_thm, thy) = Specification.axiom ((lub_take_bind, []), lub_take_eqn) thy;
   in
-    (lub_take_thm, thy)
+    (Drule.export_without_context lub_take_thm, thy)
   end;
 
 fun add_axioms
