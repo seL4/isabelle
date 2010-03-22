@@ -2145,17 +2145,12 @@ fun prove_match2 options ctxt out_ts =
           let
             val info = Datatype.the_info thy ((fst o dest_Type o fastype_of) t)
             val num_of_constrs = length (#case_rewrites info)
-            (* special treatment of pairs -- because of fishing *)
-            val split_rules = case (fst o dest_Type o fastype_of) t of
-              "*" => [@{thm prod.split_asm}] 
-              | _ => PureThy.get_thms thy (((fst o dest_Type o fastype_of) t) ^ ".split_asm")
             val (_, ts) = strip_comb t
           in
-            (print_tac options ("Term " ^ (Syntax.string_of_term ctxt t) ^ 
-              "splitting with rules \n" ^
-            commas (map (Display.string_of_thm ctxt) split_rules)))
-            THEN TRY ((Splitter.split_asm_tac split_rules 1)
-            THEN (print_tac options "after splitting with split_asm rules")
+            print_tac options ("Term " ^ (Syntax.string_of_term ctxt t) ^ 
+              "splitting with rules \n" ^ Display.string_of_thm ctxt (#split_asm info))
+            THEN TRY ((Splitter.split_asm_tac [#split_asm info] 1)
+              THEN (print_tac options "after splitting with split_asm rules")
             (* THEN (Simplifier.asm_full_simp_tac HOL_basic_ss 1)
               THEN (DETERM (TRY (etac @{thm Pair_inject} 1)))*)
               THEN (REPEAT_DETERM_N (num_of_constrs - 1)
