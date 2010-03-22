@@ -12,7 +12,7 @@ sig
     hol_context -> (typ option * bool option) list
     -> (typ option * bool option) list -> term
     -> term list * term list * bool * bool * bool
-end
+end;
 
 structure Nitpick_Preproc : NITPICK_PREPROC =
 struct

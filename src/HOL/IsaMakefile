@@ -314,11 +314,13 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Quotient/quotient_term.ML \
   Tools/Quotient/quotient_typ.ML \
   Tools/recdef.ML \
+  Tools/Sledgehammer/meson_tactic.ML \
   Tools/Sledgehammer/metis_tactics.ML \
   Tools/Sledgehammer/sledgehammer_fact_filter.ML \
   Tools/Sledgehammer/sledgehammer_fact_preprocessor.ML \
   Tools/Sledgehammer/sledgehammer_fol_clause.ML \
   Tools/Sledgehammer/sledgehammer_hol_clause.ML \
+  Tools/Sledgehammer/sledgehammer_isar.ML \
   Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML \
   Tools/string_code.ML \
   Tools/string_syntax.ML \
