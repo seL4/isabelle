@@ -68,14 +68,14 @@ fun gen_add_repdef
       thy |> Theory.copy |> Theory_Target.init NONE
       |> Typedecl.predeclare_constraints (tname, raw_args, mx);
     val defl = prep_term tmp_lthy raw_defl;
-    val tmp_lthy' = tmp_lthy |> Variable.declare_constraints defl;
+    val tmp_lthy = tmp_lthy |> Variable.declare_constraints defl;
 
     val deflT = Term.fastype_of defl;
     val _ = if deflT = @{typ "udom alg_defl"} then ()
             else error ("Not type udom alg_defl: " ^ quote (Syntax.string_of_typ tmp_lthy deflT));
 
     (*lhs*)
-    val lhs_tfrees = map (fn (a, _) => (a, ProofContext.default_sort tmp_lthy' (a, ~1))) raw_args;
+    val lhs_tfrees = map (fn (a, _) => (a, ProofContext.default_sort tmp_lthy (a, ~1))) raw_args;
     val lhs_sorts = map snd lhs_tfrees;
     val full_tname = Sign.full_name thy tname;
     val newT = Type (full_tname, map TFree lhs_tfrees);
@@ -91,7 +91,7 @@ fun gen_add_repdef
     (*pcpodef*)
     val tac1 = rtac @{thm CollectI} 1 THEN rtac @{thm bottom_in_deflation} 1;
     val tac2 = rtac @{thm adm_mem_Collect_in_deflation} 1;
-    val ((info, cpo_info, pcpo_info), thy2) = thy
+    val ((info, cpo_info, pcpo_info), thy) = thy
       |> Pcpodef.add_pcpodef def (SOME name) typ set (SOME morphs) (tac1, tac2);
 
     (*definitions*)
@@ -105,44 +105,49 @@ fun gen_add_repdef
         --> alg_deflT udomT --> natT --> (newT ->> newT));
     val approx_eqn = Logic.mk_equals (approx_const newT,
       repdef_approx_const $ Rep_const $ Abs_const $ defl);
+    val name_def = Binding.suffix_name "_def" name;
+    val emb_bind = (Binding.prefix_name "emb_" name_def, []);
+    val prj_bind = (Binding.prefix_name "prj_" name_def, []);
+    val approx_bind = (Binding.prefix_name "approx_" name_def, []);
 
     (*instantiate class rep*)
-    val name_def = Binding.suffix_name "_def" name;
-    val ([emb_ldef, prj_ldef, approx_ldef], lthy3) = thy2
-      |> Theory_Target.instantiation ([full_tname], lhs_tfrees, @{sort rep})
-      |> fold_map Specification.definition
-          [ (NONE, ((Binding.prefix_name "emb_" name_def, []), emb_eqn))
-          , (NONE, ((Binding.prefix_name "prj_" name_def, []), prj_eqn))
-          , (NONE, ((Binding.prefix_name "approx_" name_def, []), approx_eqn)) ]
-      |>> map (snd o snd);
-    val ctxt_thy = ProofContext.init (ProofContext.theory_of lthy3);
-    val [emb_def, prj_def, approx_def] =
-      ProofContext.export lthy3 ctxt_thy [emb_ldef, prj_ldef, approx_ldef];
+    val lthy = thy
+      |> Theory_Target.instantiation ([full_tname], lhs_tfrees, @{sort rep});
+    val ((_, (_, emb_ldef)), lthy) =
+        Specification.definition (NONE, (emb_bind, emb_eqn)) lthy;
+    val ((_, (_, prj_ldef)), lthy) =
+        Specification.definition (NONE, (prj_bind, prj_eqn)) lthy;
+    val ((_, (_, approx_ldef)), lthy) =
+        Specification.definition (NONE, (approx_bind, approx_eqn)) lthy;
+    val ctxt_thy = ProofContext.init (ProofContext.theory_of lthy);
+    val emb_def = singleton (ProofContext.export lthy ctxt_thy) emb_ldef;
+    val prj_def = singleton (ProofContext.export lthy ctxt_thy) prj_ldef;
+    val approx_def = singleton (ProofContext.export lthy ctxt_thy) approx_ldef;
     val type_definition_thm =
       MetaSimplifier.rewrite_rule
         (the_list (#set_def info))
         (#type_definition info);
     val typedef_thms =
       [type_definition_thm, #below_def cpo_info, emb_def, prj_def, approx_def];
-    val thy4 = lthy3
+    val thy = lthy
       |> Class.prove_instantiation_instance
           (K (Tactic.rtac (@{thm typedef_rep_class} OF typedef_thms) 1))
       |> Local_Theory.exit_global;
 
     (*other theorems*)
-    val typedef_thms' = map (Thm.transfer thy4)
+    val typedef_thms' = map (Thm.transfer thy)
       [type_definition_thm, #below_def cpo_info, emb_def, prj_def];
-    val ([REP_thm], thy5) = thy4
+    val (REP_thm, thy) = thy
       |> Sign.add_path (Binding.name_of name)
-      |> PureThy.add_thms
-        [((Binding.prefix_name "REP_" name,
-          Drule.export_without_context (@{thm typedef_REP} OF typedef_thms')), [])]
-      ||> Sign.restore_naming thy4;
+      |> PureThy.add_thm
+         ((Binding.prefix_name "REP_" name,
+          Drule.export_without_context (@{thm typedef_REP} OF typedef_thms')), [])
+      ||> Sign.restore_naming thy;
 
     val rep_info =
       { emb_def = emb_def, prj_def = prj_def, approx_def = approx_def, REP = REP_thm };
   in
-    ((info, cpo_info, pcpo_info, rep_info), thy5)
+    ((info, cpo_info, pcpo_info, rep_info), thy)
   end
   handle ERROR msg =>
     cat_error msg ("The error(s) above occurred in repdef " ^ quote (Binding.str_of name));
