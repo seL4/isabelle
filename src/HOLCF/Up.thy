@@ -169,7 +169,7 @@ text {* for compatibility with old HOLCF-Version *}
 lemma inst_up_pcpo: "\<bottom> = Ibottom"
 by (rule minimal_up [THEN UU_I, symmetric])
 
-subsection {* Continuity of @{term Iup} and @{term Ifup} *}
+subsection {* Continuity of \emph{Iup} and \emph{Ifup} *}
 
 text {* continuity for @{term Iup} *}
 

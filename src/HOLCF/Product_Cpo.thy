@@ -10,7 +10,7 @@ begin
 
 defaultsort cpo
 
-subsection {* Type @{typ unit} is a pcpo *}
+subsection {* Unit type is a pcpo *}
 
 instantiation unit :: below
 begin
@@ -58,7 +58,7 @@ next
     by (fast intro: below_trans)
 qed
 
-subsection {* Monotonicity of @{text "(_,_)"}, @{term fst}, @{term snd} *}
+subsection {* Monotonicity of \emph{Pair}, \emph{fst}, \emph{snd} *}
 
 lemma prod_belowI: "\<lbrakk>fst p \<sqsubseteq> fst q; snd p \<sqsubseteq> snd q\<rbrakk> \<Longrightarrow> p \<sqsubseteq> q"
 unfolding below_prod_def by simp
@@ -187,7 +187,7 @@ by simp
 lemma split_strict [simp]: "split f \<bottom> = f \<bottom> \<bottom>"
 unfolding split_def by simp
 
-subsection {* Continuity of @{text "(_,_)"}, @{term fst}, @{term snd} *}
+subsection {* Continuity of \emph{Pair}, \emph{fst}, \emph{snd} *}
 
 lemma cont_pair1: "cont (\<lambda>x. (x, y))"
 apply (rule contI)

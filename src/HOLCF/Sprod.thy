@@ -88,7 +88,7 @@ lemma sprod_induct [case_names bottom spair, induct type: sprod]:
   "\<lbrakk>P \<bottom>; \<And>x y. \<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> P (:x, y:)\<rbrakk> \<Longrightarrow> P x"
 by (cases x, simp_all)
 
-subsection {* Properties of @{term spair} *}
+subsection {* Properties of \emph{spair} *}
 
 lemma spair_strict1 [simp]: "(:\<bottom>, y:) = \<bottom>"
 by (simp add: Rep_Sprod_simps strictify_conv_if)
@@ -134,7 +134,7 @@ by simp
 lemma sprodE2: "(\<And>x y. p = (:x, y:) \<Longrightarrow> Q) \<Longrightarrow> Q"
 by (cases p, simp only: inst_sprod_pcpo2, simp)
 
-subsection {* Properties of @{term sfst} and @{term ssnd} *}
+subsection {* Properties of \emph{sfst} and \emph{ssnd} *}
 
 lemma sfst_strict [simp]: "sfst\<cdot>\<bottom> = \<bottom>"
 by (simp add: sfst_def cont_Rep_Sprod Rep_Sprod_strict)
@@ -208,7 +208,7 @@ apply simp
 apply simp
 done
 
-subsection {* Properties of @{term ssplit} *}
+subsection {* Properties of \emph{ssplit} *}
 
 lemma ssplit1 [simp]: "ssplit\<cdot>f\<cdot>\<bottom> = \<bottom>"
 by (simp add: ssplit_def)

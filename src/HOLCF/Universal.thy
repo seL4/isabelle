@@ -187,7 +187,7 @@ apply (clarsimp simp add: ubasis_until')
 apply simp
 done
 
-subsubsection {* Take function for @{typ ubasis} *}
+subsubsection {* Take function for \emph{ubasis} *}
 
 definition
   ubasis_take :: "nat \<Rightarrow> ubasis \<Rightarrow> ubasis"
@@ -338,7 +338,7 @@ unfolding approx_udom_def
 by (rule udom.completion_approx_eq_principal)
 
 
-subsection {* Universality of @{typ udom} *}
+subsection {* Universality of \emph{udom} *}
 
 defaultsort bifinite
 
@@ -816,7 +816,7 @@ hide (open) const
   place
   sub
 
-subsubsection {* EP-pair from any bifinite domain into @{typ udom} *}
+subsubsection {* EP-pair from any bifinite domain into \emph{udom} *}
 
 definition
   udom_emb :: "'a::bifinite \<rightarrow> udom"

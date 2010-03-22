@@ -55,7 +55,7 @@ lemma monofunE:
 by (simp add: monofun_def)
 
 
-subsection {* @{prop "monofun f \<and> contlub f \<equiv> cont f"} *}
+subsection {* Equivalence of alternate definition *}
 
 text {* monotone functions map chains to chains *}
 

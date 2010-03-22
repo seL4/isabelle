@@ -35,7 +35,7 @@ lemmas emb_strict = rep.e_strict
 lemmas prj_strict = rep.p_strict
 
 
-subsection {* Making @{term rep} the default class *}
+subsection {* Making \emph{rep} the default class *}
 
 text {*
   From now on, free type variables are assumed to be in class
@@ -342,7 +342,7 @@ unfolding mem_Collect_eq by (rule adm_in_deflation)
 use "Tools/repdef.ML"
 
 
-subsection {* Instances of class @{text rep} *}
+subsection {* Instances of class \emph{rep} *}
 
 subsubsection {* Universal Domain *}
 

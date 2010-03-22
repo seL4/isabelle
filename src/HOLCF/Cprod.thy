@@ -10,7 +10,7 @@ begin
 
 defaultsort cpo
 
-subsection {* Type @{typ unit} is a pcpo *}
+subsection {* Continuous case function for unit type *}
 
 definition
   unit_when :: "'a \<rightarrow> unit \<rightarrow> 'a" where

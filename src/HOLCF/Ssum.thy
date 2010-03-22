@@ -58,7 +58,7 @@ by (simp add: sinl_Abs_Ssum Abs_Ssum_inverse sinl_Ssum)
 lemma Rep_Ssum_sinr: "Rep_Ssum (sinr\<cdot>b) = (strictify\<cdot>(\<Lambda> _. FF)\<cdot>b, \<bottom>, b)"
 by (simp add: sinr_Abs_Ssum Abs_Ssum_inverse sinr_Ssum)
 
-subsection {* Properties of @{term sinl} and @{term sinr} *}
+subsection {* Properties of \emph{sinl} and \emph{sinr} *}
 
 text {* Ordering *}
 

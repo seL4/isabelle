@@ -129,7 +129,7 @@ proof
   thus "\<exists>x. range S <<| x" ..
 qed
 
-subsubsection {* Continuity of @{term Rep} and @{term Abs} *}
+subsubsection {* Continuity of \emph{Rep} and \emph{Abs} *}
 
 text {* For any sub-cpo, the @{term Rep} function is continuous. *}
 
@@ -229,7 +229,7 @@ theorem typedef_pcpo:
   shows "OFCLASS('b, pcpo_class)"
 by (rule typedef_pcpo_generic [OF type below UU_in_A], rule minimal)
 
-subsubsection {* Strictness of @{term Rep} and @{term Abs} *}
+subsubsection {* Strictness of \emph{Rep} and \emph{Abs} *}
 
 text {*
   For a sub-pcpo where @{term \<bottom>} is a member of the defining
