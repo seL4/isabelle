@@ -496,14 +496,15 @@ code_pred (expected_modes: (o => bool) => i => o => bool, (o => bool) => i => i 
 code_pred [dseq] filter3 .
 thm filter3.dseq_equation
 *)
+(*
 inductive filter4
 where
   "List.filter P xs = ys ==> filter4 P xs ys"
 
-(*code_pred (expected_modes: i => i => o => bool, i => i => i => bool) filter4 .*)
+code_pred (expected_modes: i => i => o => bool, i => i => i => bool) filter4 .
 (*code_pred [depth_limited] filter4 .*)
 (*code_pred [random] filter4 .*)
-
+*)
 subsection {* reverse predicate *}
 
 inductive rev where
@@ -889,11 +890,11 @@ qed
 
 code_pred [random_dseq inductify] lexn
 proof -
-  fix n xs ys
+  fix r n xs ys
   assume 1: "lexn r n (xs, ys)"
-  assume 2: "\<And>i x xs' y ys'. r = r ==> n = Suc i ==> (xs, ys) = (x # xs', y # ys') ==> has_length xs' i ==> has_length ys' i ==> r (x, y) ==> thesis"
-  assume 3: "\<And>i x xs' ys'. r = r ==> n = Suc i ==> (xs, ys) = (x # xs', x # ys') ==> lexn r i (xs', ys') ==> thesis"
-  from 1 2 3 show thesis   
+  assume 2: "\<And>r' i x xs' y ys'. r = r' ==> n = Suc i ==> (xs, ys) = (x # xs', y # ys') ==> has_length xs' i ==> has_length ys' i ==> r' (x, y) ==> thesis"
+  assume 3: "\<And>r' i x xs' ys'. r = r' ==> n = Suc i ==> (xs, ys) = (x # xs', x # ys') ==> lexn r' i (xs', ys') ==> thesis"
+  from 1 2 3 show thesis
     unfolding lexn_conv Collect_def mem_def
     apply (auto simp add: has_length)
     apply (case_tac xys)
@@ -913,7 +914,7 @@ code_pred [inductify] lex .
 thm lex.equation
 thm lex_def
 declare lenlex_conv[code_pred_def]
-code_pred [inductify, show_steps, show_intermediate_results] lenlex .
+code_pred [inductify] lenlex .
 thm lenlex.equation
 
 code_pred [random_dseq inductify] lenlex .
@@ -923,7 +924,6 @@ values [random_dseq 4, 2, 4] 100 "{(xs, ys::int list). lenlex (%(x, y). x <= y) 
 thm lists.intros
 
 code_pred [inductify] lists .
-
 thm lists.equation
 
 subsection {* AVL Tree *}
@@ -1002,8 +1002,8 @@ code_pred (modes:
   (o * o => bool) => i => bool,
   (i * o => bool) => i => bool) [inductify] Domain .
 thm Domain.equation
-thm Range_def
 
+thm Range_def
 code_pred (modes:
   (o * o => bool) => o => bool,
   (o * o => bool) => i => bool,
@@ -1013,9 +1013,9 @@ thm Range.equation
 code_pred [inductify] Field .
 thm Field.equation
 
-(*thm refl_on_def
+thm refl_on_def
 code_pred [inductify] refl_on .
-thm refl_on.equation*)
+thm refl_on.equation
 code_pred [inductify] total_on .
 thm total_on.equation
 code_pred [inductify] antisym .
@@ -1025,9 +1025,9 @@ thm trans.equation
 code_pred [inductify] single_valued .
 thm single_valued.equation
 thm inv_image_def
-(*code_pred [inductify] inv_image .
+code_pred [inductify] inv_image .
 thm inv_image.equation
-*)
+
 subsection {* Inverting list functions *}
 
 (*code_pred [inductify] length .
