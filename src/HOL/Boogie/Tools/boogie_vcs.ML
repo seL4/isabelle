@@ -27,6 +27,9 @@ sig
   val state_of_vc: theory -> string -> string list * string list
   val close: theory -> theory
   val is_closed: theory -> bool
+
+  val rewrite_vcs: (theory -> term -> term) -> (theory -> thm -> thm) ->
+    theory -> theory
 end
 
 structure Boogie_VCs: BOOGIE_VCS =
@@ -252,30 +255,35 @@ end
 
 (* the VC store *)
 
-fun err_vcs () = error "undischarged Boogie verification conditions found"
+fun err_unfinished () = error "An unfinished Boogie environment is still open."
+
+fun err_vcs names = error (Pretty.string_of
+  (Pretty.big_list "Undischarged Boogie verification conditions found:"
+    (map Pretty.str names)))
 
 structure VCs = Theory_Data
 (
-  type T = (vc * thm) Symtab.table option
+  type T = ((vc * (term * thm)) Symtab.table * (theory -> thm -> thm)) option
   val empty = NONE
   val extend = I
   fun merge (NONE, NONE) = NONE
-    | merge _ = err_vcs ()
+    | merge _ = err_unfinished ()
 )
 
-fun prep thy t = vc_of_term t |> (fn vc => (vc, thm_of thy vc))
+fun prep thy = vc_of_term #> (fn vc => (vc, (prop_of_vc vc, thm_of thy vc)))
 
 fun set vcs thy = VCs.map (fn
-    NONE => SOME (Symtab.make (map (apsnd (prep thy)) vcs))
-  | SOME _ => err_vcs ()) thy
+    NONE => SOME (Symtab.make (map (apsnd (prep thy)) vcs), K I)
+  | SOME _ => err_unfinished ()) thy
 
 fun lookup thy name =
   (case VCs.get thy of
-    SOME vcs => Option.map fst (Symtab.lookup vcs name)
+    SOME (vcs, _) => Option.map fst (Symtab.lookup vcs name)
   | NONE => NONE)
 
 fun discharge (name, prf) =
-  VCs.map (Option.map (Symtab.map_entry name (join prf)))
+  let fun jn (vc, (t, thm)) = join prf (vc, thm) |> apsnd (pair t)
+  in VCs.map (Option.map (apfst (Symtab.map_entry name jn))) end
 
 datatype state = Proved | NotProved | PartiallyProved
 
@@ -284,21 +292,35 @@ fun state_of_vc thy name =
     SOME vc => names_of vc
   | NONE => ([], []))
 
+fun state_of_vc' (vc, _) =
+  (case names_of vc of
+    ([], _) => Proved
+  | (_, []) => NotProved
+  | (_, _) => PartiallyProved)
+
 fun state_of thy =
   (case VCs.get thy of
-    SOME vcs => Symtab.dest vcs |> map (apsnd (fst #> names_of #> (fn
-        ([], _) => Proved
-      | (_, []) => NotProved
-      | (_, _) => PartiallyProved)))
+    SOME (vcs, _) => map (apsnd state_of_vc') (Symtab.dest vcs)
   | NONE => [])
 
+fun finished g (_, (t, thm)) = Thm.prop_of (g thm) aconv t
+
 fun close thy = thy |> VCs.map (fn
-    SOME _ =>
-      if forall (fn (_, Proved) => true | _ => false) (state_of thy)
-      then NONE
-      else err_vcs ()
+    SOME (vcs, g) =>
+      let fun check vc = state_of_vc' vc = Proved andalso finished (g thy) vc
+      in
+        Symtab.dest vcs
+        |> map_filter (fn (n, vc) => if check vc then NONE else SOME n)
+        |> (fn names => if null names then NONE else err_vcs names)
+      end
   | NONE => NONE)
 
 val is_closed = is_none o VCs.get
+
+fun rewrite_vcs f g thy =
+  let
+    fun rewr (_, (t, _)) = vc_of_term (f thy t)
+      |> (fn vc => (vc, (t, thm_of thy vc)))
+  in VCs.map (Option.map (fn (vcs, _) => (Symtab.map rewr vcs, g))) thy end
 
 end
