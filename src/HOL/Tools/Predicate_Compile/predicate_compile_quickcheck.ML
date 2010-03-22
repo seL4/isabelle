@@ -181,8 +181,10 @@ fun compile_term options ctxt t =
     val thy2 = Context.theory_map (Predicate_Compile_Alternative_Defs.add_thm intro) thy1
     val (thy3, preproc_time) =  cpu_time "predicate preprocessing"
         (fn () => Predicate_Compile.preprocess options const thy2)
+    (* FIXME: this is just for testing the predicate compiler proof procedure! *)
+    val thy3' = Predicate_Compile_Core.add_equations options [full_constname] thy3
     val (thy4, core_comp_time) = cpu_time "random_dseq core compilation"
-        (fn () => Predicate_Compile_Core.add_random_dseq_equations options [full_constname] thy3)
+        (fn () => Predicate_Compile_Core.add_random_dseq_equations options [full_constname] thy3')
     val _ = Predicate_Compile_Core.print_all_modes Pos_Random_DSeq thy4
     val modes = Predicate_Compile_Core.modes_of Pos_Random_DSeq thy4 full_constname
     val output_mode = fold_rev (curry Fun) (map (K Output) (binder_types constT)) Bool
