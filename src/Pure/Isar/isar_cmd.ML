@@ -166,7 +166,7 @@ fun oracle (name, pos) (body_txt, body_pos) =
 
 (* old-style axioms *)
 
-val add_axioms = fold (fn (b, ax) => snd o Specification.axiomatization_cmd [] [(b, [ax])]);
+val add_axioms = fold (snd oo Specification.axiom_cmd);
 
 fun add_defs ((unchecked, overloaded), args) thy =
   thy |> (if unchecked then PureThy.add_defs_unchecked_cmd else PureThy.add_defs_cmd) overloaded

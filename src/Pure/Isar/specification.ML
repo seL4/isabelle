@@ -32,6 +32,8 @@ sig
   val axiomatization_cmd: (binding * string option * mixfix) list ->
     (Attrib.binding * string list) list -> theory ->
     (term list * thm list list) * theory
+  val axiom: Attrib.binding * term -> theory -> thm * theory
+  val axiom_cmd: Attrib.binding * string -> theory -> thm * theory
   val definition:
     (binding * typ option * mixfix) option * (Attrib.binding * term) ->
     local_theory -> (term * (string * thm)) * local_theory
@@ -186,6 +188,9 @@ fun gen_axioms do_print prep raw_vars raw_specs thy =
 
 val axiomatization = gen_axioms false check_specification;
 val axiomatization_cmd = gen_axioms true read_specification;
+
+fun axiom (b, ax) = axiomatization [] [(b, [ax])] #>> (hd o hd o snd);
+fun axiom_cmd (b, ax) = axiomatization_cmd [] [(b, [ax])] #>> (hd o hd o snd);
 
 
 (* definition *)
