@@ -10,7 +10,6 @@ imports Random_Sequence Quickcheck
 uses
   "Tools/Predicate_Compile/predicate_compile_aux.ML"
   "Tools/Predicate_Compile/predicate_compile_core.ML"
-  "Tools/Predicate_Compile/predicate_compile_set.ML"
   "Tools/Predicate_Compile/predicate_compile_data.ML"
   "Tools/Predicate_Compile/predicate_compile_fun.ML"
   "Tools/Predicate_Compile/predicate_compile_pred.ML"
