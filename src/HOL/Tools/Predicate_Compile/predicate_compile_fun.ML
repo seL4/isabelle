@@ -239,12 +239,12 @@ fun flatten thy lookup_pred t (names, prems) =
             end)
         | Const (@{const_name "split"}, _) => 
             (let
-              val (_, [g, res]) = strip_comb t
+              val (_, g :: res :: args) = strip_comb t
               val [res1, res2] = Name.variant_list names ["res1", "res2"]
               val (T1, T2) = HOLogic.dest_prodT (fastype_of res)
               val (resv1, resv2) = (Free (res1, T1), Free (res2, T2))
             in
-              flatten' (betapplys (g, [resv1, resv2]))
+              flatten' (betapplys (g, (resv1 :: resv2 :: args)))
               (res1 :: res2 :: names,
               HOLogic.mk_Trueprop (HOLogic.mk_eq (res, HOLogic.mk_prod (resv1, resv2))) :: prems)
             end)
