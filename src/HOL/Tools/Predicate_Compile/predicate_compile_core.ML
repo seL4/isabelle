@@ -2586,6 +2586,50 @@ val random_comp_modifiers = Comp_Mod.Comp_Modifiers
   transform_additional_arguments = K I : (indprem -> term list -> term list)
   }
 
+val depth_limited_random_comp_modifiers = Comp_Mod.Comp_Modifiers
+  {
+  compilation = Depth_Limited_Random,
+  function_name_prefix = "depth_limited_random_",
+  compfuns = PredicateCompFuns.compfuns,
+  mk_random = (fn T => fn additional_arguments =>
+  list_comb (Const(@{const_name Quickcheck.iter},
+  [@{typ code_numeral}, @{typ code_numeral}, @{typ Random.seed}] ---> 
+    PredicateCompFuns.mk_predT T), tl additional_arguments)),
+  modify_funT = (fn T =>
+    let
+      val (Ts, U) = strip_type T
+      val Ts' = [@{typ code_numeral}, @{typ code_numeral}, @{typ code_numeral},
+        @{typ "code_numeral * code_numeral"}]
+    in (Ts @ Ts') ---> U end),
+  additional_arguments = (fn names =>
+    let
+      val [depth, nrandom, size, seed] = Name.variant_list names ["depth", "nrandom", "size", "seed"]
+    in
+      [Free (depth, @{typ code_numeral}), Free (nrandom, @{typ code_numeral}),
+        Free (size, @{typ code_numeral}), Free (seed, @{typ "code_numeral * code_numeral"})]
+    end),
+  wrap_compilation =
+  fn compfuns => fn s => fn T => fn mode => fn additional_arguments => fn compilation =>
+    let
+      val depth = hd (additional_arguments)
+      val (_, Ts) = split_modeT' mode (binder_types T)
+      val T' = mk_predT compfuns (HOLogic.mk_tupleT Ts)
+      val if_const = Const (@{const_name "If"}, @{typ bool} --> T' --> T' --> T')
+    in
+      if_const $ HOLogic.mk_eq (depth, @{term "0 :: code_numeral"})
+        $ mk_bot compfuns (dest_predT compfuns T')
+        $ compilation
+    end,
+  transform_additional_arguments =
+    fn prem => fn additional_arguments =>
+    let
+      val [depth, nrandom, size, seed] = additional_arguments
+      val depth' =
+        Const (@{const_name Groups.minus}, @{typ "code_numeral => code_numeral => code_numeral"})
+          $ depth $ Const (@{const_name Groups.one}, @{typ "Code_Numeral.code_numeral"})
+    in [depth', nrandom, size, seed] end
+}
+
 (* different instantiantions of the predicate compiler *)
 
 val predicate_comp_modifiers = Comp_Mod.Comp_Modifiers
@@ -2713,6 +2757,18 @@ val add_random_equations = gen_add_equations
   use_random = true,
   qname = "random_equation"})
 
+val add_depth_limited_random_equations = gen_add_equations
+  (Steps {
+  define_functions =
+    fn options => fn preds => fn (s, modes) =>
+      define_functions depth_limited_random_comp_modifiers PredicateCompFuns.compfuns options preds
+      (s, map_filter (fn (true, m) => SOME m | _ => NONE) modes),
+  comp_modifiers = depth_limited_random_comp_modifiers,
+  prove = prove_by_skip,
+  add_code_equations = K (K I),
+  use_random = true,
+  qname = "depth_limited_random_equation"})
+
 val add_dseq_equations = gen_add_equations
   (Steps {
   define_functions =
@@ -2798,6 +2854,7 @@ fun generic_code_pred prep_const options raw_const lthy =
            | Pos_Random_DSeq => add_random_dseq_equations
            | Depth_Limited => add_depth_limited_equations
            | Random => add_random_equations
+           | Depth_Limited_Random => add_depth_limited_random_equations
            | compilation => error ("Compilation not supported")
            ) options [const]))
       end
@@ -2881,6 +2938,8 @@ fun analyze_compr thy compfuns param_user_modes (compilation, arguments) t_compr
             [@{term "(1, 1) :: code_numeral * code_numeral"}]
           | Annotated => []
           | Depth_Limited => [HOLogic.mk_number @{typ "code_numeral"} (hd arguments)]
+          | Depth_Limited_Random => map (HOLogic.mk_number @{typ "code_numeral"}) arguments @
+            [@{term "(1, 1) :: code_numeral * code_numeral"}]
           | DSeq => []
           | Pos_Random_DSeq => []
         val comp_modifiers =
@@ -2888,6 +2947,7 @@ fun analyze_compr thy compfuns param_user_modes (compilation, arguments) t_compr
             Pred => predicate_comp_modifiers
           | Random => random_comp_modifiers
           | Depth_Limited => depth_limited_comp_modifiers
+          | Depth_Limited_Random => depth_limited_random_comp_modifiers
           (*| Annotated => annotated_comp_modifiers*)
           | DSeq => dseq_comp_modifiers
           | Pos_Random_DSeq => pos_random_dseq_comp_modifiers

@@ -478,7 +478,7 @@ fun equals_conv lhs_cv rhs_cv ct =
 
 (* Different options for compiler *)
 
-datatype compilation = Pred | Random | Depth_Limited | DSeq | Annotated
+datatype compilation = Pred | Depth_Limited | Random | Depth_Limited_Random | DSeq | Annotated
   | Pos_Random_DSeq | Neg_Random_DSeq
 
 
@@ -493,6 +493,7 @@ fun string_of_compilation c = case c of
     Pred => ""
   | Random => "random"
   | Depth_Limited => "depth limited"
+  | Depth_Limited_Random => "depth limited random"
   | DSeq => "dseq"
   | Annotated => "annotated"
   | Pos_Random_DSeq => "pos_random dseq"
@@ -571,7 +572,9 @@ val bool_options = ["show_steps", "show_intermediate_results", "show_proof_trace
 
 val compilation_names = [("pred", Pred),
   ("random", Random),
-  ("depth_limited", Depth_Limited), (*("annotated", Annotated),*)
+  ("depth_limited", Depth_Limited),
+  ("depth_limited_random", Depth_Limited_Random),
+  (*("annotated", Annotated),*)
   ("dseq", DSeq), ("random_dseq", Pos_Random_DSeq)]
 
 fun print_step options s =
