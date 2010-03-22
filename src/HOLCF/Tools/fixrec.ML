@@ -275,12 +275,16 @@ fun fatbar arity ms =
 (* this is the pattern-matching compiler function *)
 fun compile_pats match_name eqs =
   let
-    val (((n::names),(a::arities)),mats) =
+    val ((names, arities), mats) =
       apfst ListPair.unzip (ListPair.unzip (map (match_eq match_name) eqs));
-    val cname = if forall (fn x => n=x) names then n
-          else fixrec_err "all equations in block must define the same function";
-    val arity = if forall (fn x => a=x) arities then a
-          else fixrec_err "all equations in block must have the same arity";
+    val cname =
+        case distinct (op =) names of
+          [n] => n
+        | _ => fixrec_err "all equations in block must define the same function";
+    val arity =
+        case distinct (op =) arities of
+          [a] => a
+        | _ => fixrec_err "all equations in block must have the same arity";
     val rhs = fatbar arity mats;
   in
     mk_trp (cname === rhs)
@@ -311,7 +315,8 @@ fun fixrec_simp_tac ctxt =
       else HOLogic.dest_Trueprop (Logic.strip_imp_concl t);
     fun tac (t, i) =
       let
-        val Const (c, T) = head_of (chead_of (fst (HOLogic.dest_eq (concl t))));
+        val (c, T) =
+            (dest_Const o head_of o chead_of o fst o HOLogic.dest_eq o concl) t;
         val unfold_thm = the (Symtab.lookup tab c);
         val rule = unfold_thm RS @{thm ssubst_lhs};
       in
