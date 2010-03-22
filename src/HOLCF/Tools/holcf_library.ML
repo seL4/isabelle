@@ -62,7 +62,6 @@ fun mk_lub t =
 
 (*** Continuous function space ***)
 
-(* ->> is taken from holcf_logic.ML *)
 fun mk_cfunT (T, U) = Type(@{type_name cfun}, [T, U]);
 
 val (op ->>) = mk_cfunT;

@@ -75,7 +75,6 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Tools/fixrec.ML \
   Tools/pcpodef.ML \
   Tools/repdef.ML \
-  holcf_logic.ML \
   document/root.tex
 	@$(ISABELLE_TOOL) usedir -b -g true -r $(OUT)/HOL HOLCF
 

@@ -11,7 +11,6 @@ imports
   Powerdomains
   Sum_Cpo
 uses
-  "holcf_logic.ML"
   "Tools/adm_tac.ML"
 begin
 
