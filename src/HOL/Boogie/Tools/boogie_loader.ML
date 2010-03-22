@@ -240,13 +240,10 @@ in
 fun add_axioms verbose axs thy =
   let
     val (used, new) = mark_axioms thy (name_axioms axs)
-    fun add (n, t) =
-      Specification.axiomatization [] [((Binding.name n, []), [t])] #>>
-      hd o hd o snd
   in
     thy
-    |> fold_map add new
-    |-> Context.theory_map o fold Boogie_Axioms.add_thm
+    |> fold_map (fn (n, t) => Specification.axiom ((Binding.name n, []), t)) new
+    |-> Context.theory_map o fold (Boogie_Axioms.add_thm o Drule.export_without_context)
     |> log verbose "The following axioms were added:" (map fst new)
     |> (fn thy' => log verbose "The following axioms already existed:"
          (map (Display.string_of_thm_global thy') used) thy')
