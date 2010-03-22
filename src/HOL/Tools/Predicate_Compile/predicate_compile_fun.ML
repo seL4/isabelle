@@ -331,84 +331,75 @@ fun define_predicates specs thy =
   if forall (fn (const, _) => defined_const thy const) specs then
     ([], thy)
   else
-  let
-    val consts = map fst specs
-    val eqns = maps snd specs
-    (*val eqns = maps (Predicate_Compile_Preproc_Data.get_specification thy) consts*)
-      (* create prednames *)
-    val ((funs, argss), rhss) = map_split dest_code_eqn eqns |>> split_list
-    val argss' = map (map transform_ho_arg) argss
-    (* TODO: higher order arguments also occur in tuples! *)
-    val ho_argss = distinct (op =) (maps (filter (is_funtype o fastype_of)) argss)
-    val params = distinct (op =) (maps (filter (is_funtype o fastype_of)) argss')
-    val pnames = map dest_Free params
-    val preds = map pred_of funs
-    val prednames = map (fst o dest_Free) preds
-    val funnames = map (fst o dest_Const) funs
-    val fun_pred_names = (funnames ~~ prednames)  
-      (* mapping from term (Free or Const) to term *)
-    fun map_Free f = Free o f o dest_Free
-    val net = fold Item_Net.update
-      ((funs ~~ preds) @ (ho_argss ~~ params))
-        (Fun_Pred.get thy)
-    fun lookup_pred t = lookup thy net t
-    (* create intro rules *)
-  
-    fun mk_intros ((func, pred), (args, rhs)) =
-      if (body_type (fastype_of func) = @{typ bool}) then
-       (*TODO: preprocess predicate definition of rhs *)
-        [Logic.list_implies ([HOLogic.mk_Trueprop rhs], HOLogic.mk_Trueprop (list_comb (pred, args)))]
-      else
-        let
-          val names = Term.add_free_names rhs []
-        in flatten thy lookup_pred rhs (names, [])
-          |> map (fn (resultt, (names', prems)) =>
-            Logic.list_implies (prems, HOLogic.mk_Trueprop (list_comb (pred, args @ [resultt]))))
-        end
-    fun mk_rewr_thm (func, pred) = @{thm refl}
-  in
-    case (*try *)SOME (maps mk_intros ((funs ~~ preds) ~~ (argss' ~~ rhss))) of
-      NONE =>
-        let val _ = tracing "error occured!" in ([], thy) end
-    | SOME intr_ts =>
-        if is_some (try (map (cterm_of thy)) intr_ts) then
-          let
-            val (ind_result, thy') =
-              thy
-              |> Sign.map_naming Name_Space.conceal
-              |> Inductive.add_inductive_global
-                {quiet_mode = false, verbose = false, alt_name = Binding.empty, coind = false,
-                  no_elim = false, no_ind = false, skip_mono = false, fork_mono = false}
-                (map (fn (s, T) =>
-                  ((Binding.name s, T), NoSyn)) (distinct (op =) (map dest_Free preds)))
-                []
-                (map (fn x => (Attrib.empty_binding, x)) intr_ts)
-                []
-              ||> Sign.restore_naming thy
-            val prednames = map (fst o dest_Const) (#preds ind_result)
-            (* val rewr_thms = map mk_rewr_eq ((distinct (op =) funs) ~~ (#preds ind_result)) *)
-            (* add constants to my table *)
-            
-            val specs = map (fn predname => (predname, filter (Predicate_Compile_Aux.is_intro predname)
-              (#intrs ind_result))) prednames
-            (*
-            val thy'' = Pred_Compile_Preproc.map (fold Symtab.update_new (consts ~~ prednames)) thy'
-            *)
-            
-            val thy'' = Fun_Pred.map
-              (fold Item_Net.update (map (apfst Logic.varify_global)
-                (distinct (op =) funs ~~ (#preds ind_result)))) thy'
-            (*val _ = print_specs thy'' specs*)
-          in
-            (specs, thy'')
-          end
+    let
+      val consts = map fst specs
+      val eqns = maps snd specs
+      (*val eqns = maps (Predicate_Compile_Preproc_Data.get_specification thy) consts*)
+        (* create prednames *)
+      val ((funs, argss), rhss) = map_split dest_code_eqn eqns |>> split_list
+      val argss' = map (map transform_ho_arg) argss
+      (* TODO: higher order arguments also occur in tuples! *)
+      fun is_lifted (t1, t2) = (fastype_of t2 = pred_type (fastype_of t1))
+      val lifted_args = distinct (op =) (filter is_lifted (flat argss ~~ flat argss'))
+      val preds = map pred_of funs
+        (* mapping from term (Free or Const) to term *)
+      val net = fold Item_Net.update
+        ((funs ~~ preds) @ lifted_args)
+          (Fun_Pred.get thy)
+      fun lookup_pred t = lookup thy net t
+      (* create intro rules *)
+    
+      fun mk_intros ((func, pred), (args, rhs)) =
+        if (body_type (fastype_of func) = @{typ bool}) then
+         (*TODO: preprocess predicate definition of rhs *)
+          [Logic.list_implies ([HOLogic.mk_Trueprop rhs], HOLogic.mk_Trueprop (list_comb (pred, args)))]
         else
           let
-            val _ = Output.tracing (
-            "Introduction rules of function_predicate are not welltyped: " ^
-              commas (map (Syntax.string_of_term_global thy) intr_ts))
-          in ([], thy) end
-  end
+            val names = Term.add_free_names rhs []
+          in flatten thy lookup_pred rhs (names, [])
+            |> map (fn (resultt, (names', prems)) =>
+              Logic.list_implies (prems, HOLogic.mk_Trueprop (list_comb (pred, args @ [resultt]))))
+          end
+      fun mk_rewr_thm (func, pred) = @{thm refl}
+    in
+      case (*try *)SOME (maps mk_intros ((funs ~~ preds) ~~ (argss' ~~ rhss))) of
+        NONE =>
+          let val _ = tracing "error occured!" in ([], thy) end
+      | SOME intr_ts =>
+          if is_some (try (map (cterm_of thy)) intr_ts) then
+            let
+              val (ind_result, thy') =
+                thy
+                |> Sign.map_naming Name_Space.conceal
+                |> Inductive.add_inductive_global
+                  {quiet_mode = false, verbose = false, alt_name = Binding.empty, coind = false,
+                    no_elim = false, no_ind = false, skip_mono = false, fork_mono = false}
+                  (map (fn (s, T) =>
+                    ((Binding.name s, T), NoSyn)) (distinct (op =) (map dest_Free preds)))
+                  []
+                  (map (fn x => (Attrib.empty_binding, x)) intr_ts)
+                  []
+                ||> Sign.restore_naming thy
+              val prednames = map (fst o dest_Const) (#preds ind_result)
+              (* val rewr_thms = map mk_rewr_eq ((distinct (op =) funs) ~~ (#preds ind_result)) *)
+              (* add constants to my table *)
+              
+              val specs = map (fn predname => (predname, filter (Predicate_Compile_Aux.is_intro predname)
+                (#intrs ind_result))) prednames
+              val thy'' = Fun_Pred.map
+                (fold Item_Net.update (map (apfst Logic.varify_global)
+                  (distinct (op =) funs ~~ (#preds ind_result)))) thy'
+              (*val _ = print_specs thy'' specs*)
+            in
+              (specs, thy'')
+            end
+          else
+            let
+              val _ = Output.tracing (
+              "Introduction rules of function_predicate are not welltyped: " ^
+                commas (map (Syntax.string_of_term_global thy) intr_ts))
+            in ([], thy) end
+    end
 
 fun rewrite_intro thy intro =
   let
