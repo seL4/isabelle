@@ -814,9 +814,8 @@ done
 
 lemma nForall_HDFilter:
  "~Forall P y --> (? x. HD$(Filter (%a. ~P a)$y) = Def x)"
-(* Pay attention: is only admissible with chain-finite package to be added to
-        adm test *)
-apply (rule_tac x="y" in Seq_induct)
+unfolding not_Undef_is_Def [symmetric]
+apply (induct y rule: Seq_induct)
 apply (simp add: Forall_def sforall_def)
 apply simp_all
 done
