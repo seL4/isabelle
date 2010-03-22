@@ -212,6 +212,7 @@ val list_ccomb = Library.foldl (op `); (* continuous version of list_comb *)
 fun con_app2 con f args = list_ccomb(%%:con,map f args);
 fun con_app con = con_app2 con %#;
 fun prj _  _  x (   _::[]) _ = x
+  | prj _  _  _ []         _ = error "Domain_Library.prj: empty list"
   | prj f1 _  x (_::y::ys) 0 = f1 x y
   | prj f1 f2 x (y::   ys) j = prj f1 f2 (f2 x y) ys (j-1);
 fun  proj x      = prj (fn S => K(%%:"fst" $S)) (fn S => K(%%:"snd" $S)) x;
