@@ -79,12 +79,12 @@ fun print_tac' options s =
 
 fun debug_tac msg = Seq.single; (* (fn st => (Output.tracing msg; Seq.single st)); *)
 
-fun assert b = if not b then error "Assertion failed" else warning "Assertion holds"
+fun assert b = if not b then raise Fail "Assertion failed" else warning "Assertion holds"
 
 datatype assertion = Max_number_of_subgoals of int
 fun assert_tac (Max_number_of_subgoals i) st =
   if (nprems_of st <= i) then Seq.single st
-  else error ("assert_tac: Numbers of subgoals mismatch at goal state :"
+  else raise Fail ("assert_tac: Numbers of subgoals mismatch at goal state :"
     ^ "\n" ^ Pretty.string_of (Pretty.chunks
       (Goal_Display.pretty_goals_without_context (! Goal_Display.goals_limit) st)));
 
@@ -153,8 +153,8 @@ fun mode_of (Context m) = m
   | mode_of (Term m) = m
   | mode_of (Mode_App (d1, d2)) =
     (case mode_of d1 of Fun (m, m') =>
-        (if eq_mode (m, mode_of d2) then m' else error "mode_of")
-      | _ => error "mode_of2")
+        (if eq_mode (m, mode_of d2) then m' else raise Fail "mode_of")
+      | _ => raise Fail "mode_of2")
   | mode_of (Mode_Pair (d1, d2)) =
     Pair (mode_of d1, mode_of d2)
 
@@ -220,8 +220,8 @@ fun eq_option eq (NONE, NONE) = true
   | eq_option eq _ = false
 
 fun eq_pred_data (PredData d1, PredData d2) = 
-  eq_list (Thm.eq_thm) (#intros d1, #intros d2) andalso
-  eq_option (Thm.eq_thm) (#elim d1, #elim d2)
+  eq_list Thm.eq_thm (#intros d1, #intros d2) andalso
+  eq_option Thm.eq_thm (#elim d1, #elim d2)
 
 structure PredData = Theory_Data
 (
@@ -318,7 +318,7 @@ fun string_of_prem thy (Prem t) =
     (Syntax.string_of_term_global thy (HOLogic.mk_not t)) ^ "(negative premise)"
   | string_of_prem thy (Sidecond t) =
     (Syntax.string_of_term_global thy t) ^ "(sidecondition)"
-  | string_of_prem thy _ = error "string_of_prem: unexpected input"
+  | string_of_prem thy _ = raise Fail "string_of_prem: unexpected input"
 
 fun string_of_clause thy pred (ts, prems) =
   (space_implode " --> "
@@ -449,7 +449,7 @@ fun import_intros inp_pred [] ctxt =
         let
           val (pred', _) = strip_intro_concl th
           val _ = if not (fst (dest_Const pred) = fst (dest_Const pred')) then
-            error "Trying to instantiate another predicate" else ()
+            raise Fail "Trying to instantiate another predicate" else ()
         in Thm.certify_instantiate (subst_of (pred', pred), []) th end;
       fun instantiate_ho_args th =
         let
@@ -569,7 +569,7 @@ fun imp_prems_conv cv ct =
 fun Trueprop_conv cv ct =
   case Thm.term_of ct of
     Const ("Trueprop", _) $ _ => Conv.arg_conv cv ct  
-  | _ => error "Trueprop_conv"
+  | _ => raise Fail "Trueprop_conv"
 
 fun preprocess_intro thy rule =
   Conv.fconv_rule
@@ -767,7 +767,9 @@ val mk_sup = HOLogic.mk_binop @{const_name sup};
 fun mk_if cond = Const (@{const_name Predicate.if_pred},
   HOLogic.boolT --> mk_predT HOLogic.unitT) $ cond;
 
-fun mk_not t = let val T = mk_predT HOLogic.unitT
+fun mk_not t =
+  let
+    val T = mk_predT HOLogic.unitT
   in Const (@{const_name Predicate.not_pred}, T --> T) $ t end
 
 fun mk_Enum f =
@@ -825,7 +827,9 @@ val mk_sup = HOLogic.mk_binop @{const_name Quickcheck.union}
 fun mk_if cond = Const (@{const_name Quickcheck.if_randompred},
   HOLogic.boolT --> mk_randompredT HOLogic.unitT) $ cond;
 
-fun mk_not t = let val T = mk_randompredT HOLogic.unitT
+fun mk_not t =
+  let
+    val T = mk_randompredT HOLogic.unitT
   in Const (@{const_name Quickcheck.not_randompred}, T --> T) $ t end
 
 fun mk_map T1 T2 tf tp = Const (@{const_name Quickcheck.map},
@@ -841,33 +845,33 @@ structure DSequence_CompFuns =
 struct
 
 fun mk_dseqT T = Type ("fun", [@{typ code_numeral}, Type ("fun", [@{typ bool},
-  Type (@{type_name Option.option}, [Type  ("Lazy_Sequence.lazy_sequence", [T])])])])
+  Type (@{type_name Option.option}, [Type  (@{type_name Lazy_Sequence.lazy_sequence}, [T])])])])
 
 fun dest_dseqT (Type ("fun", [@{typ code_numeral}, Type ("fun", [@{typ bool},
-  Type (@{type_name Option.option}, [Type ("Lazy_Sequence.lazy_sequence", [T])])])])) = T
+  Type (@{type_name Option.option}, [Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])])])])) = T
   | dest_dseqT T = raise TYPE ("dest_dseqT", [T], []);
 
-fun mk_bot T = Const ("DSequence.empty", mk_dseqT T);
+fun mk_bot T = Const (@{const_name DSequence.empty}, mk_dseqT T);
 
 fun mk_single t =
   let val T = fastype_of t
-  in Const("DSequence.single", T --> mk_dseqT T) $ t end;
+  in Const(@{const_name DSequence.single}, T --> mk_dseqT T) $ t end;
 
 fun mk_bind (x, f) =
   let val T as Type ("fun", [_, U]) = fastype_of f
   in
-    Const ("DSequence.bind", fastype_of x --> T --> U) $ x $ f
+    Const (@{const_name DSequence.bind}, fastype_of x --> T --> U) $ x $ f
   end;
 
-val mk_sup = HOLogic.mk_binop "DSequence.union";
+val mk_sup = HOLogic.mk_binop @{const_name DSequence.union};
 
-fun mk_if cond = Const ("DSequence.if_seq",
+fun mk_if cond = Const (@{const_name DSequence.if_seq},
   HOLogic.boolT --> mk_dseqT HOLogic.unitT) $ cond;
 
 fun mk_not t = let val T = mk_dseqT HOLogic.unitT
-  in Const ("DSequence.not_seq", T --> T) $ t end
+  in Const (@{const_name DSequence.not_seq}, T --> T) $ t end
 
-fun mk_map T1 T2 tf tp = Const ("DSequence.map",
+fun mk_map T1 T2 tf tp = Const (@{const_name DSequence.map},
   (T1 --> T2) --> mk_dseqT T1 --> mk_dseqT T2) $ tf $ tp
 
 val compfuns = CompilationFuns {mk_predT = mk_dseqT, dest_predT = dest_dseqT,
@@ -888,28 +892,31 @@ fun dest_random_dseqT (Type ("fun", [@{typ code_numeral}, Type ("fun", [@{typ co
   Type (@{type_name "*"}, [T, @{typ Random.seed}])])])])) = DSequence_CompFuns.dest_dseqT T
   | dest_random_dseqT T = raise TYPE ("dest_random_dseqT", [T], []);
 
-fun mk_bot T = Const ("Random_Sequence.empty", mk_random_dseqT T);
+fun mk_bot T = Const (@{const_name Random_Sequence.empty}, mk_random_dseqT T);
 
 fun mk_single t =
-  let val T = fastype_of t
-  in Const("Random_Sequence.single", T --> mk_random_dseqT T) $ t end;
+  let
+    val T = fastype_of t
+  in Const(@{const_name Random_Sequence.single}, T --> mk_random_dseqT T) $ t end;
 
 fun mk_bind (x, f) =
   let
     val T as Type ("fun", [_, U]) = fastype_of f
   in
-    Const ("Random_Sequence.bind", fastype_of x --> T --> U) $ x $ f
+    Const (@{const_name Random_Sequence.bind}, fastype_of x --> T --> U) $ x $ f
   end;
 
-val mk_sup = HOLogic.mk_binop "Random_Sequence.union";
+val mk_sup = HOLogic.mk_binop @{const_name Random_Sequence.union};
 
-fun mk_if cond = Const ("Random_Sequence.if_random_dseq",
+fun mk_if cond = Const (@{const_name Random_Sequence.if_random_dseq},
   HOLogic.boolT --> mk_random_dseqT HOLogic.unitT) $ cond;
 
-fun mk_not t = let val T = mk_random_dseqT HOLogic.unitT
-  in Const ("Random_Sequence.not_random_dseq", T --> T) $ t end
+fun mk_not t =
+  let
+    val T = mk_random_dseqT HOLogic.unitT
+  in Const (@{const_name Random_Sequence.not_random_dseq}, T --> T) $ t end
 
-fun mk_map T1 T2 tf tp = Const ("Random_Sequence.map",
+fun mk_map T1 T2 tf tp = Const (@{const_name Random_Sequence.map},
   (T1 --> T2) --> mk_random_dseqT T1 --> mk_random_dseqT T2) $ tf $ tp
 
 val compfuns = CompilationFuns {mk_predT = mk_random_dseqT, dest_predT = dest_random_dseqT,
@@ -982,8 +989,8 @@ fun print_failed_mode options thy modes p (pol, m) rs is =
   else ()
 
 fun error_of p (pol, m) is =
-  ("  Clauses " ^ commas (map (fn i => string_of_int (i + 1)) is) ^ " of " ^
-        p ^ " violates mode " ^ string_of_mode m)
+  "  Clauses " ^ commas (map (fn i => string_of_int (i + 1)) is) ^ " of " ^
+        p ^ " violates mode " ^ string_of_mode m
 
 fun is_all_input mode =
   let
@@ -1004,7 +1011,7 @@ fun all_input_of T =
     if U = HOLogic.boolT then
       fold_rev (curry Fun) (map input_of Ts) Bool
     else
-      error "all_input_of: not a predicate"
+      raise Fail "all_input_of: not a predicate"
   end
 
 fun partial_hd [] = NONE
@@ -1146,11 +1153,11 @@ and all_derivations_of thy modes vs (Const ("Pair", _) $ t1 $ t2) =
       case mode_of d1 of
         Fun (m', _) => map (fn (d2, mvars2) =>
           (Mode_App (d1, d2), union (op =) mvars1 mvars2)) (derivations_of thy modes vs t2 m')
-        | _ => error "Something went wrong") derivs1
+        | _ => raise Fail "Something went wrong") derivs1
   end
   | all_derivations_of thy modes vs (Const (s, T)) = the (lookup_mode modes (Const (s, T)))
   | all_derivations_of thy modes vs (Free (x, T)) = the (lookup_mode modes (Free (x, T)))
-  | all_derivations_of _ modes vs _ = error "all_derivations_of"
+  | all_derivations_of _ modes vs _ = raise Fail "all_derivations_of"
 
 fun rev_option_ord ord (NONE, NONE) = EQUAL
   | rev_option_ord ord (NONE, SOME _) = GREATER
@@ -1223,7 +1230,7 @@ fun select_mode_prem (mode_analysis_options : mode_analysis_options) thy pol (mo
       | choose_mode_of_prem (Negprem t) = partial_hd
           (sort (deriv_ord2 thy modes t) (filter (fn (d, missing_vars) => is_all_input (head_mode_of d))
              (all_derivations_of thy neg_modes vs t)))
-      | choose_mode_of_prem p = error ("choose_mode_of_prem: " ^ string_of_prem thy p)
+      | choose_mode_of_prem p = raise Fail ("choose_mode_of_prem: " ^ string_of_prem thy p)
   in
     if #reorder_premises mode_analysis_options then
       partial_hd (sort (premise_ord thy modes) (ps ~~ map choose_mode_of_prem ps))
@@ -1252,7 +1259,7 @@ fun check_mode_clause' (mode_analysis_options : mode_analysis_options) thy param
         Prem t => union (op =) vs (term_vs t)
       | Sidecond t => union (op =) vs (term_vs t)
       | Negprem t => union (op =) vs (term_vs t)
-      | _ => error "I do not know")
+      | _ => raise Fail "I do not know")
     fun check_mode_prems acc_ps rnd vs [] = SOME (acc_ps, vs, rnd)
       | check_mode_prems acc_ps rnd vs ps =
         (case

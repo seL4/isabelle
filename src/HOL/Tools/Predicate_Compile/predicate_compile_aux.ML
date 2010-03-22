@@ -20,14 +20,15 @@ fun comb_option f (SOME x1, SOME x2) = SOME (f (x1, x2))
   | comb_option f (SOME x1, NONE) = SOME x1
   | comb_option f (NONE, NONE) = NONE
 
-fun map2_optional f (x :: xs) (y :: ys) = (f x (SOME y)) :: (map2_optional f xs ys)
+fun map2_optional f (x :: xs) (y :: ys) = f x (SOME y) :: (map2_optional f xs ys)
   | map2_optional f (x :: xs) [] = (f x NONE) :: (map2_optional f xs [])
   | map2_optional f [] [] = []
 
 fun find_indices f xs =
   map_filter (fn (i, true) => SOME i | (i, false) => NONE) (map_index (apsnd f) xs)
 
-fun assert check = if check then () else error "Assertion failed!"
+fun assert check = if check then () else raise Fail "Assertion failed!"
+
 (* mode *)
 
 datatype mode = Bool | Input | Output | Pair of mode * mode | Fun of mode * mode
@@ -48,7 +49,7 @@ fun eq_mode (Fun (m1, m2), Fun (m3, m4)) = eq_mode (m1, m3) andalso eq_mode (m2,
 (* name: binder_modes? *)
 fun strip_fun_mode (Fun (mode, mode')) = mode :: strip_fun_mode mode'
   | strip_fun_mode Bool = []
-  | strip_fun_mode _ = error "Bad mode for strip_fun_mode"
+  | strip_fun_mode _ = raise Fail "Bad mode for strip_fun_mode"
 
 fun dest_fun_mode (Fun (mode, mode')) = mode :: dest_fun_mode mode'
   | dest_fun_mode mode = [mode]
@@ -67,51 +68,36 @@ fun all_modes_of_typ' (T as Type ("fun", _)) =
     else
       [Input, Output]
   end
-  | all_modes_of_typ' (Type ("*", [T1, T2])) = 
+  | all_modes_of_typ' (Type (@{type_name "*"}, [T1, T2])) = 
     map_product (curry Pair) (all_modes_of_typ' T1) (all_modes_of_typ' T2)
   | all_modes_of_typ' _ = [Input, Output]
 
 fun all_modes_of_typ (T as Type ("fun", _)) =
-  let
-    val (S, U) = strip_type T
-  in
-    if U = HOLogic.boolT then
-      fold_rev (fn m1 => fn m2 => map_product (curry Fun) m1 m2)
-        (map all_modes_of_typ' S) [Bool]
-    else
-      [Input, Output]
-  end
-  | all_modes_of_typ (Type ("bool", [])) = [Bool]
+    let
+      val (S, U) = strip_type T
+    in
+      if U = @{typ bool} then
+        fold_rev (fn m1 => fn m2 => map_product (curry Fun) m1 m2)
+          (map all_modes_of_typ' S) [Bool]
+      else
+        [Input, Output]
+    end
+  | all_modes_of_typ @{typ bool} = [Bool]
   | all_modes_of_typ T = all_modes_of_typ' T
 
 fun all_smodes_of_typ (T as Type ("fun", _)) =
   let
     val (S, U) = strip_type T
-    fun all_smodes (Type ("*", [T1, T2])) = 
+    fun all_smodes (Type (@{type_name "*"}, [T1, T2])) = 
       map_product (curry Pair) (all_smodes T1) (all_smodes T2)
       | all_smodes _ = [Input, Output]
   in
     if U = HOLogic.boolT then
       fold_rev (fn m1 => fn m2 => map_product (curry Fun) m1 m2) (map all_smodes S) [Bool]
     else
-      error "all_smodes_of_typ: invalid type for predicate"
+      raise Fail "all_smodes_of_typ: invalid type for predicate"
   end
-(*
-fun extract_params arg =
-  case fastype_of arg of
-    (T as Type ("fun", _)) =>
-      (if (body_type T = HOLogic.boolT) then
-        (case arg of
-          Free _ => [arg] | _ => error "extract_params: Unexpected term")
-      else [])
-  | (Type ("*", [T1, T2])) =>
-      let
-        val (t1, t2) = HOLogic.dest_prod arg
-      in
-        extract_params t1 @ extract_params t2
-      end
-  | _ => []
-*)
+
 fun ho_arg_modes_of mode =
   let
     fun ho_arg_mode (m as Fun _) =  [m]
@@ -125,7 +111,7 @@ fun ho_args_of mode ts =
   let
     fun ho_arg (Fun _) (SOME t) = [t]
       | ho_arg (Fun _) NONE = error "ho_arg_of"
-      | ho_arg (Pair (m1, m2)) (SOME (Const ("Pair", _) $ t1 $ t2)) =
+      | ho_arg (Pair (m1, m2)) (SOME (Const (@{const_name Pair}, _) $ t1 $ t2)) =
           ho_arg m1 (SOME t1) @ ho_arg m2 (SOME t2)
       | ho_arg (Pair (m1, m2)) NONE = ho_arg m1 NONE @ ho_arg m2 NONE
       | ho_arg _ _ = []
@@ -146,13 +132,13 @@ fun replace_ho_args mode hoargs ts =
         end
       | replace (_, t) hoargs = (t, hoargs)
   in
-    fst (fold_map replace ((strip_fun_mode mode) ~~ ts) hoargs)
+    fst (fold_map replace (strip_fun_mode mode ~~ ts) hoargs)
   end
 
 fun ho_argsT_of mode Ts =
   let
     fun ho_arg (Fun _) T = [T]
-      | ho_arg (Pair (m1, m2)) (Type ("*", [T1, T2])) = ho_arg m1 T1 @ ho_arg m2 T2
+      | ho_arg (Pair (m1, m2)) (Type (@{type_name "*"}, [T1, T2])) = ho_arg m1 T1 @ ho_arg m2 T2
       | ho_arg _ _ = []
   in
     flat (map2 ho_arg (strip_fun_mode mode) Ts)
@@ -172,7 +158,7 @@ fun split_map_mode f mode ts =
       | split_arg_mode' m t =
         if eq_mode (m, Input) then (SOME t, NONE)
         else if eq_mode (m, Output) then (NONE,  SOME t)
-        else error "split_map_mode: mode and term do not match"
+        else raise Fail "split_map_mode: mode and term do not match"
   in
     (pairself (map_filter I) o split_list) (map2 split_arg_mode' (strip_fun_mode mode) ts)
   end
@@ -181,7 +167,7 @@ fun split_map_mode f mode ts =
 fun split_map_modeT f mode Ts =
   let
     fun split_arg_mode' (m as Fun _) T = f m T
-      | split_arg_mode' (Pair (m1, m2)) (Type ("*", [T1, T2])) =
+      | split_arg_mode' (Pair (m1, m2)) (Type (@{type_name "*"}, [T1, T2])) =
         let
           val (i1, o1) = split_arg_mode' m1 T1
           val (i2, o2) = split_arg_mode' m2 T2
@@ -190,14 +176,14 @@ fun split_map_modeT f mode Ts =
         end
       | split_arg_mode' Input T = (SOME T, NONE)
       | split_arg_mode' Output T = (NONE,  SOME T)
-      | split_arg_mode' _ _ = error "split_modeT': mode and type do not match"
+      | split_arg_mode' _ _ = raise Fail "split_modeT': mode and type do not match"
   in
     (pairself (map_filter I) o split_list) (map2 split_arg_mode' (strip_fun_mode mode) Ts)
   end
 
 fun split_mode mode ts = split_map_mode (fn _ => fn _ => (NONE, NONE)) mode ts
 
-fun fold_map_aterms_prodT comb f (Type ("*", [T1, T2])) s =
+fun fold_map_aterms_prodT comb f (Type (@{type_name "*"}, [T1, T2])) s =
   let
     val (x1, s') = fold_map_aterms_prodT comb f T1 s
     val (x2, s'') = fold_map_aterms_prodT comb f T2 s'
@@ -215,7 +201,7 @@ fun map_filter_prod f (Const ("Pair", _) $ t1 $ t2) =
 fun split_modeT' mode Ts =
   let
     fun split_arg_mode' (Fun _) T = ([], [])
-      | split_arg_mode' (Pair (m1, m2)) (Type ("*", [T1, T2])) =
+      | split_arg_mode' (Pair (m1, m2)) (Type (@{type_name "*"}, [T1, T2])) =
         let
           val (i1, o1) = split_arg_mode' m1 T1
           val (i2, o2) = split_arg_mode' m2 T2
@@ -224,7 +210,7 @@ fun split_modeT' mode Ts =
         end
       | split_arg_mode' Input T = ([T], [])
       | split_arg_mode' Output T = ([], [T])
-      | split_arg_mode' _ _ = error "split_modeT': mode and type do not match"
+      | split_arg_mode' _ _ = raise Fail "split_modeT': mode and type do not match"
   in
     (pairself flat o split_list) (map2 split_arg_mode' (strip_fun_mode mode) Ts)
   end
@@ -296,7 +282,7 @@ fun is_pred thy constname =
     val T = (Sign.the_const_type thy constname)
   in body_type T = @{typ "bool"} end;
 
-fun is_predT (T as Type("fun", [_, _])) = (snd (strip_type T) = HOLogic.boolT)
+fun is_predT (T as Type("fun", [_, _])) = (snd (strip_type T) = @{typ bool})
   | is_predT _ = false
 
 (*** check if a term contains only constructor functions ***)
@@ -366,7 +352,7 @@ fun map_atoms f intro =
   let
     val (literals, head) = Logic.strip_horn intro
     fun appl t = (case t of
-        (@{term "Not"} $ t') => HOLogic.mk_not (f t')
+        (@{term Not} $ t') => HOLogic.mk_not (f t')
       | _ => f t)
   in
     Logic.list_implies
@@ -377,7 +363,7 @@ fun fold_atoms f intro s =
   let
     val (literals, head) = Logic.strip_horn intro
     fun appl t s = (case t of
-      (@{term "Not"} $ t') => f t' s
+      (@{term Not} $ t') => f t' s
       | _ => f t s)
   in fold appl (map HOLogic.dest_Trueprop literals) s end
 
@@ -385,7 +371,7 @@ fun fold_map_atoms f intro s =
   let
     val (literals, head) = Logic.strip_horn intro
     fun appl t s = (case t of
-      (@{term "Not"} $ t') => apfst HOLogic.mk_not (f t' s)
+      (@{term Not} $ t') => apfst HOLogic.mk_not (f t' s)
       | _ => f t s)
     val (literals', s') = fold_map appl (map HOLogic.dest_Trueprop literals) s
   in
@@ -489,7 +475,8 @@ fun negative_compilation_of Pos_Random_DSeq = Neg_Random_DSeq
 fun compilation_for_polarity false Pos_Random_DSeq = Neg_Random_DSeq
   | compilation_for_polarity _ c = c
 
-fun string_of_compilation c = case c of
+fun string_of_compilation c =
+  case c of
     Pred => ""
   | Random => "random"
   | Depth_Limited => "depth limited"
@@ -589,9 +576,9 @@ fun expand_tuples thy intro =
       (case HOLogic.strip_tupleT (fastype_of arg) of
         (Ts as _ :: _ :: _) =>
         let
-          fun rewrite_arg' (Const ("Pair", _) $ _ $ t2, Type ("*", [_, T2]))
+          fun rewrite_arg' (Const (@{const_name "Pair"}, _) $ _ $ t2, Type (@{type_name "*"}, [_, T2]))
             (args, (pats, intro_t, ctxt)) = rewrite_arg' (t2, T2) (args, (pats, intro_t, ctxt))
-            | rewrite_arg' (t, Type ("*", [T1, T2])) (args, (pats, intro_t, ctxt)) =
+            | rewrite_arg' (t, Type (@{type_name "*"}, [T1, T2])) (args, (pats, intro_t, ctxt)) =
               let
                 val ([x, y], ctxt') = Variable.variant_fixes ["x", "y"] ctxt
                 val pat = (t, HOLogic.mk_prod (Free (x, T1), Free (y, T2)))
