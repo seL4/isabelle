@@ -84,6 +84,12 @@ by (rule chainI, simp add: chainE)
 
 text {* @{term fst} and @{term snd} are monotone *}
 
+lemma fst_monofun: "x \<sqsubseteq> y \<Longrightarrow> fst x \<sqsubseteq> fst y"
+unfolding below_prod_def by simp
+
+lemma snd_monofun: "x \<sqsubseteq> y \<Longrightarrow> snd x \<sqsubseteq> snd y"
+unfolding below_prod_def by simp
+
 lemma monofun_fst: "monofun fst"
 by (simp add: monofun_def below_prod_def)
 
