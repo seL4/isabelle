@@ -101,6 +101,7 @@ $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF \
   ex/Fixrec_ex.thy \
   ex/Focus_ex.thy \
   ex/Hoare.thy \
+  ex/Letrec.thy \
   ex/Loop.thy \
   ex/New_Domain.thy \
   ex/Powerdomain_ex.thy \
