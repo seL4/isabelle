@@ -34,11 +34,11 @@ definition
 
 definition
   csnd :: "('a * 'b) \<rightarrow> 'b" where
-  "csnd = (\<Lambda> p. snd p)"      
+  "csnd = (\<Lambda> p. snd p)"
 
 definition
   csplit :: "('a \<rightarrow> 'b \<rightarrow> 'c) \<rightarrow> ('a * 'b) \<rightarrow> 'c" where
-  "csplit = (\<Lambda> f p. f\<cdot>(cfst\<cdot>p)\<cdot>(csnd\<cdot>p))"
+  "csplit = (\<Lambda> f p. f\<cdot>(fst p)\<cdot>(snd p))"
 
 syntax
   "_ctuple" :: "['a, args] \<Rightarrow> 'a * 'b"  ("(1<_,/ _>)")
@@ -146,13 +146,13 @@ lemma csplit1 [simp]: "csplit\<cdot>f\<cdot>\<bottom> = f\<cdot>\<bottom>\<cdot>
 by (simp add: csplit_def)
 
 lemma csplit2 [simp]: "csplit\<cdot>f\<cdot><x,y> = f\<cdot>x\<cdot>y"
-by (simp add: csplit_def)
+by (simp add: csplit_def cpair_def)
 
 lemma csplit3 [simp]: "csplit\<cdot>cpair\<cdot>z = z"
-by (simp add: csplit_def cpair_cfst_csnd)
+by (simp add: csplit_def cpair_def)
 
 lemma csplit_Pair [simp]: "csplit\<cdot>f\<cdot>(x, y) = f\<cdot>x\<cdot>y"
-by (simp add: csplit_def cfst_def csnd_def)
+by (simp add: csplit_def)
 
 lemmas Cprod_rews = cfst_cpair csnd_cpair csplit2
 
