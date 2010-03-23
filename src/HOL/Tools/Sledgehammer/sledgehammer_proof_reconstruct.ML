@@ -540,9 +540,10 @@ fun metis_line [] = "apply metis"
 
 (* atp_minimize [atp=<prover>] <lemmas> *)
 fun minimize_line _ [] = ""
-  | minimize_line name lemmas = "For minimizing the number of lemmas try this command:\n" ^
-        Markup.markup Markup.sendback ("atp_minimize [atp = " ^ name ^ "] " ^
-                                       space_implode " " (kill_chained lemmas))
+  | minimize_line name lemmas =
+      "To minimize the number of lemmas, try this command:\n" ^
+      Markup.markup Markup.sendback ("atp_minimize [atp = " ^ name ^ "] " ^
+                                     space_implode " " (kill_chained lemmas))
 
 fun metis_lemma_list dfg name result =
   let val (lemmas, used_conj) = extract_lemmas (get_step_nums dfg) result in
@@ -570,8 +571,11 @@ fun structured_isar_proof name (result as (proof, thm_names, conj_count, ctxt,
       if member (op =) tokens chained_hint then ""
       else isar_proof_from_tstp_file cnfs ctxt goal subgoalno thm_names
   in
-    (one_line_proof ^ "\n\n" ^ Markup.markup Markup.sendback isar_proof,
-     lemma_names)
+    (* Hack: The " \n" shouldn't be part of the markup. This is a workaround
+       for a strange ProofGeneral bug, whereby the first two letters of the word
+       "proof" are not highlighted. *)
+    (one_line_proof ^ "\n\nStructured proof:" ^
+     Markup.markup Markup.sendback (" \n" ^ isar_proof), lemma_names)
   end
 
 end;
