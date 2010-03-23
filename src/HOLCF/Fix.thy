@@ -6,7 +6,7 @@
 header {* Fixed point operator and admissibility *}
 
 theory Fix
-imports Cfun Cprod
+imports Cfun
 begin
 
 defaultsort pcpo
