@@ -552,14 +552,13 @@ text %mlref {*
   @{index_ML Thm.implies_elim: "thm -> thm -> thm"} \\
   @{index_ML Thm.generalize: "string list * string list -> int -> thm -> thm"} \\
   @{index_ML Thm.instantiate: "(ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm"} \\
-  @{index_ML Thm.axiom: "theory -> string -> thm"} \\
+  @{index_ML Thm.add_axiom: "binding * term -> theory -> thm * theory"} \\
   @{index_ML Thm.add_oracle: "binding * ('a -> cterm) -> theory
   -> (string * ('a -> thm)) * theory"} \\
+  @{index_ML Thm.add_def: "bool -> bool -> binding * term -> theory -> thm * theory"} \\
   \end{mldecls}
   \begin{mldecls}
-  @{index_ML Theory.add_axioms_i: "(binding * term) list -> theory -> theory"} \\
   @{index_ML Theory.add_deps: "string -> string * typ -> (string * typ) list -> theory -> theory"} \\
-  @{index_ML Theory.add_defs_i: "bool -> bool -> (binding * term) list -> theory -> theory"} \\
   \end{mldecls}
 
   \begin{description}
@@ -607,25 +606,27 @@ text %mlref {*
   term variables.  Note that the types in @{text "\<^vec>x\<^isub>\<tau>"}
   refer to the instantiated versions.
 
-  \item @{ML Thm.axiom}~@{text "thy name"} retrieves a named
-  axiom, cf.\ @{text "axiom"} in \figref{fig:prim-rules}.
+  \item @{ML Thm.add_axiom}~@{text "(name, A) thy"} declares an
+  arbitrary proposition as axiom, and retrieves it as a theorem from
+  the resulting theory, cf.\ @{text "axiom"} in
+  \figref{fig:prim-rules}.  Note that the low-level representation in
+  the axiom table may differ slightly from the returned theorem.
 
   \item @{ML Thm.add_oracle}~@{text "(binding, oracle)"} produces a named
   oracle rule, essentially generating arbitrary axioms on the fly,
   cf.\ @{text "axiom"} in \figref{fig:prim-rules}.
 
-  \item @{ML Theory.add_axioms_i}~@{text "[(name, A), \<dots>]"} declares
-  arbitrary propositions as axioms.
+  \item @{ML Thm.add_def}~@{text "unchecked overloaded (name, c
+  \<^vec>x \<equiv> t)"} states a definitional axiom for an existing constant
+  @{text "c"}.  Dependencies are recorded via @{ML Theory.add_deps},
+  unless the @{text "unchecked"} option is set.  Note that the
+  low-level representation in the axiom table may differ slightly from
+  the returned theorem.
 
   \item @{ML Theory.add_deps}~@{text "name c\<^isub>\<tau>
   \<^vec>d\<^isub>\<sigma>"} declares dependencies of a named specification
   for constant @{text "c\<^isub>\<tau>"}, relative to existing
   specifications for constants @{text "\<^vec>d\<^isub>\<sigma>"}.
-
-  \item @{ML Theory.add_defs_i}~@{text "unchecked overloaded [(name, c
-  \<^vec>x \<equiv> t), \<dots>]"} states a definitional axiom for an existing
-  constant @{text "c"}.  Dependencies are recorded (cf.\ @{ML
-  Theory.add_deps}), unless the @{text "unchecked"} option is set.
 
   \end{description}
 *}

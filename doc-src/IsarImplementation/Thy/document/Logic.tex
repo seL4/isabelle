@@ -560,14 +560,13 @@ The theory \isa{Pure} contains constant declarations for the
   \indexdef{}{ML}{Thm.implies\_elim}\verb|Thm.implies_elim: thm -> thm -> thm| \\
   \indexdef{}{ML}{Thm.generalize}\verb|Thm.generalize: string list * string list -> int -> thm -> thm| \\
   \indexdef{}{ML}{Thm.instantiate}\verb|Thm.instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm| \\
-  \indexdef{}{ML}{Thm.axiom}\verb|Thm.axiom: theory -> string -> thm| \\
+  \indexdef{}{ML}{Thm.add\_axiom}\verb|Thm.add_axiom: binding * term -> theory -> thm * theory| \\
   \indexdef{}{ML}{Thm.add\_oracle}\verb|Thm.add_oracle: binding * ('a -> cterm) -> theory|\isasep\isanewline%
 \verb|  -> (string * ('a -> thm)) * theory| \\
+  \indexdef{}{ML}{Thm.add\_def}\verb|Thm.add_def: bool -> bool -> binding * term -> theory -> thm * theory| \\
   \end{mldecls}
   \begin{mldecls}
-  \indexdef{}{ML}{Theory.add\_axioms\_i}\verb|Theory.add_axioms_i: (binding * term) list -> theory -> theory| \\
   \indexdef{}{ML}{Theory.add\_deps}\verb|Theory.add_deps: string -> string * typ -> (string * typ) list -> theory -> theory| \\
-  \indexdef{}{ML}{Theory.add\_defs\_i}\verb|Theory.add_defs_i: bool -> bool -> (binding * term) list -> theory -> theory| \\
   \end{mldecls}
 
   \begin{description}
@@ -612,22 +611,25 @@ The theory \isa{Pure} contains constant declarations for the
   term variables.  Note that the types in \isa{\isactrlvec x\isactrlisub {\isasymtau}}
   refer to the instantiated versions.
 
-  \item \verb|Thm.axiom|~\isa{thy\ name} retrieves a named
-  axiom, cf.\ \isa{axiom} in \figref{fig:prim-rules}.
+  \item \verb|Thm.add_axiom|~\isa{{\isacharparenleft}name{\isacharcomma}\ A{\isacharparenright}\ thy} declares an
+  arbitrary proposition as axiom, and retrieves it as a theorem from
+  the resulting theory, cf.\ \isa{axiom} in
+  \figref{fig:prim-rules}.  Note that the low-level representation in
+  the axiom table may differ slightly from the returned theorem.
 
   \item \verb|Thm.add_oracle|~\isa{{\isacharparenleft}binding{\isacharcomma}\ oracle{\isacharparenright}} produces a named
   oracle rule, essentially generating arbitrary axioms on the fly,
   cf.\ \isa{axiom} in \figref{fig:prim-rules}.
 
-  \item \verb|Theory.add_axioms_i|~\isa{{\isacharbrackleft}{\isacharparenleft}name{\isacharcomma}\ A{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}} declares
-  arbitrary propositions as axioms.
+  \item \verb|Thm.add_def|~\isa{unchecked\ overloaded\ {\isacharparenleft}name{\isacharcomma}\ c\ \isactrlvec x\ {\isasymequiv}\ t{\isacharparenright}} states a definitional axiom for an existing constant
+  \isa{c}.  Dependencies are recorded via \verb|Theory.add_deps|,
+  unless the \isa{unchecked} option is set.  Note that the
+  low-level representation in the axiom table may differ slightly from
+  the returned theorem.
 
   \item \verb|Theory.add_deps|~\isa{name\ c\isactrlisub {\isasymtau}\ \isactrlvec d\isactrlisub {\isasymsigma}} declares dependencies of a named specification
   for constant \isa{c\isactrlisub {\isasymtau}}, relative to existing
   specifications for constants \isa{\isactrlvec d\isactrlisub {\isasymsigma}}.
-
-  \item \verb|Theory.add_defs_i|~\isa{unchecked\ overloaded\ {\isacharbrackleft}{\isacharparenleft}name{\isacharcomma}\ c\ \isactrlvec x\ {\isasymequiv}\ t{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}} states a definitional axiom for an existing
-  constant \isa{c}.  Dependencies are recorded (cf.\ \verb|Theory.add_deps|), unless the \isa{unchecked} option is set.
 
   \end{description}%
 \end{isamarkuptext}%
