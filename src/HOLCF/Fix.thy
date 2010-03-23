@@ -207,7 +207,7 @@ subsection {* Recursive let bindings *}
 
 definition
   CLetrec :: "('a \<rightarrow> 'a \<times> 'b) \<rightarrow> 'b" where
-  "CLetrec = (\<Lambda> F. csnd\<cdot>(F\<cdot>(\<mu> x. cfst\<cdot>(F\<cdot>x))))"
+  "CLetrec = (\<Lambda> F. snd (F\<cdot>(\<mu> x. fst (F\<cdot>x))))"
 
 nonterminals
   recbinds recbindt recbind
@@ -221,13 +221,13 @@ syntax
   "_Letrec"   :: "[recbinds, 'a] \<Rightarrow> 'a"      ("(Letrec (_)/ in (_))" 10)
 
 translations
-  (recbindt) "x = a, \<langle>y,ys\<rangle> = \<langle>b,bs\<rangle>" == (recbindt) "\<langle>x,y,ys\<rangle> = \<langle>a,b,bs\<rangle>"
-  (recbindt) "x = a, y = b"          == (recbindt) "\<langle>x,y\<rangle> = \<langle>a,b\<rangle>"
+  (recbindt) "x = a, (y,ys) = (b,bs)" == (recbindt) "(x,y,ys) = (a,b,bs)"
+  (recbindt) "x = a, y = b"          == (recbindt) "(x,y) = (a,b)"
 
 translations
   "_Letrec (_recbinds b bs) e" == "_Letrec b (_Letrec bs e)"
-  "Letrec xs = a in \<langle>e,es\<rangle>"    == "CONST CLetrec\<cdot>(\<Lambda> xs. \<langle>a,e,es\<rangle>)"
-  "Letrec xs = a in e"         == "CONST CLetrec\<cdot>(\<Lambda> xs. \<langle>a,e\<rangle>)"
+  "Letrec xs = a in (e,es)"    == "CONST CLetrec\<cdot>(\<Lambda> xs. (a,e,es))"
+  "Letrec xs = a in e"         == "CONST CLetrec\<cdot>(\<Lambda> xs. (a,e))"
 
 text {*
   Bekic's Theorem: Simultaneous fixed points over pairs
