@@ -547,17 +547,26 @@ by (simp add: strictify_conv_if)
 lemma strictify2 [simp]: "x \<noteq> \<bottom> \<Longrightarrow> strictify\<cdot>f\<cdot>x = f\<cdot>x"
 by (simp add: strictify_conv_if)
 
-subsection {* Continuous let-bindings *}
+subsection {* Continuity of let-bindings *}
 
-definition
-  CLet :: "'a \<rightarrow> ('a \<rightarrow> 'b) \<rightarrow> 'b" where
-  "CLet = (\<Lambda> s f. f\<cdot>s)"
+lemma cont2cont_Let:
+  assumes f: "cont (\<lambda>x. f x)"
+  assumes g1: "\<And>y. cont (\<lambda>x. g x y)"
+  assumes g2: "\<And>x. cont (\<lambda>y. g x y)"
+  shows "cont (\<lambda>x. let y = f x in g x y)"
+unfolding Let_def using f g2 g1 by (rule cont_apply)
 
-syntax
-  "_CLet" :: "[letbinds, 'a] => 'a" ("(Let (_)/ in (_))" 10)
-
-translations
-  "_CLet (_binds b bs) e" == "_CLet b (_CLet bs e)"
-  "Let x = a in e" == "CONST CLet\<cdot>a\<cdot>(\<Lambda> x. e)"
+lemma cont2cont_Let' [cont2cont]:
+  assumes f: "cont (\<lambda>x. f x)"
+  assumes g: "cont (\<lambda>p. g (fst p) (snd p))"
+  shows "cont (\<lambda>x. let y = f x in g x y)"
+using f
+proof (rule cont2cont_Let)
+  fix x show "cont (\<lambda>y. g x y)"
+    using g by (rule cont_fst_snd_D2)
+next
+  fix y show "cont (\<lambda>x. g x y)"
+    using g by (rule cont_fst_snd_D1)
+qed
 
 end
