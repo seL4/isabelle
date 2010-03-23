@@ -38,7 +38,7 @@ definition
 definition
   "conditional_prob e1 e2 \<equiv> conditional_expectation (indicator_fn e1) e2"
 
-lemma positive: "positive M prob"
+lemma positive': "positive M prob"
   unfolding positive_def using positive empty_measure by blast
 
 lemma prob_compl:
@@ -60,7 +60,7 @@ unfolding indep_def by auto
 
 lemma prob_space_increasing:
   "increasing M prob"
-by (rule additive_increasing[OF positive additive])
+by (rule additive_increasing[OF positive' additive])
 
 lemma prob_subadditive:
   assumes "s \<in> events" "t \<in> events"
@@ -167,7 +167,7 @@ proof -
       assms rf' unfolding f'_def by blast
 
   hence absinc: "\<And> i. \<bar> prob (f' i) \<bar> \<le> prob (f i)"
-    using abs_of_nonneg positive[unfolded positive_def]
+    using abs_of_nonneg positive'[unfolded positive_def]
       assms rf' by auto
 
   have "prob (\<Union> i. f i) = prob (\<Union> i. f' i)" using uf'f by simp
@@ -192,7 +192,7 @@ lemma prob_countably_zero:
   using assms
 proof -
   have leq0: "0 \<le> prob (\<Union> i. c i)"
-    using assms positive[unfolded positive_def, rule_format] 
+    using assms positive'[unfolded positive_def, rule_format] 
     by auto
 
   have "prob (\<Union> i. c i) \<le> (\<Sum> i. prob (c i))"
@@ -285,7 +285,7 @@ proof -
 
   have pos: "\<And> e. e \<in> sets s \<Longrightarrow> distribution X e \<ge> 0"
     unfolding distribution_def
-    using positive[unfolded positive_def]
+    using positive'[unfolded positive_def]
     assms[unfolded measurable_def] by auto
 
   have cas: "countably_additive ?N (distribution X)"
@@ -366,7 +366,7 @@ proof -
   let "?M" = "\<lparr> space = ((X ` (space M)) \<times> (Y ` (space M))), 
     sets = Pow ((X ` (space M)) \<times> (Y ` (space M)))\<rparr>"
   have pos: "positive ?S (\<lambda>a. prob ((\<lambda>x. (X x,Y x)) -` a \<inter> space M))"
-    unfolding positive_def using positive[unfolded positive_def] assms by auto
+    unfolding positive_def using positive'[unfolded positive_def] assms by auto
   { fix x y
     have A: "((\<lambda>x. (X x, Y x)) -` x) \<inter> space M \<in> sets M" using assms by auto
     have B: "((\<lambda>x. (X x, Y x)) -` y) \<inter> space M \<in> sets M" using assms by auto
@@ -397,7 +397,7 @@ lemma finite_marginal_product_space_POW2:
 proof -
   let "?S" = "\<lparr> space = s1 \<times> s2, sets = Pow (s1 \<times> s2) \<rparr>"
   let "?M" = "\<lparr> space = s1 \<times> s2, sets = Pow (s1 \<times> s2), measure = joint_distribution X Y \<rparr>"
-  have pos: "positive ?S (joint_distribution X Y)" using positive
+  have pos: "positive ?S (joint_distribution X Y)" using positive'
     unfolding positive_def joint_distribution_def using assms by auto
   { fix x y
     have A: "((\<lambda>x. (X x, Y x)) -` x) \<inter> space M \<in> sets M" using assms by auto
