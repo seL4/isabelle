@@ -175,7 +175,7 @@ where
   szip_nil: "szip$nil$y=nil"
 | szip_cons_nil: "x~=UU ==> szip$(x##xs)$nil=UU"
 | szip_cons:
-    "[| x~=UU; y~=UU|] ==> szip$(x##xs)$(y##ys) = <x,y>##szip$xs$ys"
+    "[| x~=UU; y~=UU|] ==> szip$(x##xs)$(y##ys) = (x,y)##szip$xs$ys"
 
 lemma szip_UU1 [simp]: "szip$UU$y=UU"
 by fixrec_simp
