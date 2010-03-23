@@ -24,6 +24,8 @@ open Nitpick_Rep
 open Nitpick_Nut
 open Nitpick
 
+structure K = OuterKeyword and P = OuterParse
+
 val auto = Unsynchronized.ref false;
 
 val _ =
@@ -34,48 +36,48 @@ val _ =
 type raw_param = string * string list
 
 val default_default_params =
-  [("card", ["1\<midarrow>8"]),
-   ("iter", ["0,1,2,4,8,12,16,24"]),
-   ("bits", ["1,2,3,4,6,8,10,12"]),
-   ("bisim_depth", ["7"]),
-   ("box", ["smart"]),
-   ("finitize", ["smart"]),
-   ("mono", ["smart"]),
-   ("std", ["true"]),
-   ("wf", ["smart"]),
-   ("sat_solver", ["smart"]),
-   ("batch_size", ["smart"]),
-   ("blocking", ["true"]),
-   ("falsify", ["true"]),
-   ("user_axioms", ["smart"]),
-   ("assms", ["true"]),
-   ("merge_type_vars", ["false"]),
-   ("binary_ints", ["smart"]),
-   ("destroy_constrs", ["true"]),
-   ("specialize", ["true"]),
-   ("skolemize", ["true"]),
-   ("star_linear_preds", ["true"]),
-   ("uncurry", ["true"]),
-   ("fast_descrs", ["true"]),
-   ("peephole_optim", ["true"]),
-   ("timeout", ["30 s"]),
-   ("tac_timeout", ["500 ms"]),
-   ("sym_break", ["20"]),
-   ("sharing_depth", ["3"]),
-   ("flatten_props", ["false"]),
-   ("max_threads", ["0"]),
-   ("verbose", ["false"]),
-   ("debug", ["false"]),
-   ("overlord", ["false"]),
-   ("show_all", ["false"]),
-   ("show_skolems", ["true"]),
-   ("show_datatypes", ["false"]),
-   ("show_consts", ["false"]),
-   ("format", ["1"]),
-   ("max_potential", ["1"]),
-   ("max_genuine", ["1"]),
-   ("check_potential", ["false"]),
-   ("check_genuine", ["false"])]
+  [("card", "1\<midarrow>8"),
+   ("iter", "0,1,2,4,8,12,16,24"),
+   ("bits", "1,2,3,4,6,8,10,12"),
+   ("bisim_depth", "7"),
+   ("box", "smart"),
+   ("finitize", "smart"),
+   ("mono", "smart"),
+   ("std", "true"),
+   ("wf", "smart"),
+   ("sat_solver", "smart"),
+   ("batch_size", "smart"),
+   ("blocking", "true"),
+   ("falsify", "true"),
+   ("user_axioms", "smart"),
+   ("assms", "true"),
+   ("merge_type_vars", "false"),
+   ("binary_ints", "smart"),
+   ("destroy_constrs", "true"),
+   ("specialize", "true"),
+   ("skolemize", "true"),
+   ("star_linear_preds", "true"),
+   ("uncurry", "true"),
+   ("fast_descrs", "true"),
+   ("peephole_optim", "true"),
+   ("timeout", "30 s"),
+   ("tac_timeout", "500 ms"),
+   ("sym_break", "20"),
+   ("sharing_depth", "3"),
+   ("flatten_props", "false"),
+   ("max_threads", "0"),
+   ("debug", "false"),
+   ("verbose", "false"),
+   ("overlord", "false"),
+   ("show_all", "false"),
+   ("show_skolems", "true"),
+   ("show_datatypes", "false"),
+   ("show_consts", "false"),
+   ("format", "1"),
+   ("max_potential", "1"),
+   ("max_genuine", "1"),
+   ("check_potential", "false"),
+   ("check_genuine", "false")]
 
 val negated_params =
   [("dont_box", "box"),
@@ -97,8 +99,8 @@ val negated_params =
    ("full_descrs", "fast_descrs"),
    ("no_peephole_optim", "peephole_optim"),
    ("dont_flatten_props", "flatten_props"),
-   ("quiet", "verbose"),
    ("no_debug", "debug"),
+   ("quiet", "verbose"),
    ("no_overlord", "overlord"),
    ("dont_show_all", "show_all"),
    ("hide_skolems", "show_skolems"),
@@ -119,7 +121,7 @@ fun is_known_raw_param s =
 (* string * 'a -> unit *)
 fun check_raw_param (s, _) =
   if is_known_raw_param s then ()
-  else error ("Unknown parameter " ^ quote s ^ ".")  
+  else error ("Unknown parameter: " ^ quote s ^ ".")  
 
 (* string -> string option *)
 fun unnegate_param_name name =
@@ -139,20 +141,15 @@ fun unnegate_raw_param (name, value) =
   | NONE => (name, value)
 
 structure Data = Theory_Data(
-  type T = {params: raw_param list}
-  val empty = {params = rev default_default_params}
+  type T = raw_param list
+  val empty = default_default_params |> map (apsnd single)
   val extend = I
-  fun merge ({params = ps1}, {params = ps2}) : T =
-    {params = AList.merge (op =) (K true) (ps1, ps2)})
+  fun merge p : T = AList.merge (op =) (K true) p)
 
 (* raw_param -> theory -> theory *)
-fun set_default_raw_param param thy =
-  let val {params} = Data.get thy in
-    Data.put {params = AList.update (op =) (unnegate_raw_param param) params}
-             thy
-  end
+val set_default_raw_param = Data.map o AList.update (op =) o unnegate_raw_param
 (* theory -> raw_param list *)
-val default_raw_params = #params o Data.get
+val default_raw_params = Data.get
 
 (* string -> bool *)
 fun is_punctuation s = (s = "," orelse s = "-" orelse s = "\<midarrow>")
@@ -164,26 +161,6 @@ fun stringify_raw_param_value [] = ""
     s1 ^ (if is_punctuation s1 orelse is_punctuation s2 then "" else " ") ^
     stringify_raw_param_value (s2 :: ss)
 
-(* bool -> string -> string -> bool option *)
-fun bool_option_from_string option name s =
-  (case s of
-     "smart" => if option then NONE else raise Option
-   | "false" => SOME false
-   | "true" => SOME true
-   | "" => SOME true
-   | _ => raise Option)
-  handle Option.Option =>
-         let val ss = map quote ((option ? cons "smart") ["true", "false"]) in
-           error ("Parameter " ^ quote name ^ " must be assigned " ^
-                  space_implode " " (serial_commas "or" ss) ^ ".")
-         end
-(* bool -> raw_param list -> bool option -> string -> bool option *)
-fun general_lookup_bool option raw_params default_value name =
-  case AList.lookup (op =) raw_params name of
-    SOME s => s |> stringify_raw_param_value
-                |> bool_option_from_string option name
-  | NONE => default_value
-
 (* int -> string -> int *)
 fun maxed_int_from_string min_int s = Int.max (min_int, the (Int.fromString s))
 
@@ -192,14 +169,20 @@ fun extract_params ctxt auto default_params override_params =
   let
     val override_params = map unnegate_raw_param override_params
     val raw_params = rev override_params @ rev default_params
+    (* string -> string *)
     val lookup =
       Option.map stringify_raw_param_value o AList.lookup (op =) raw_params
-    (* string -> string *)
-    fun lookup_string name = the_default "" (lookup name)
+    val lookup_string = the_default "" o lookup
+    (* bool -> bool option -> string -> bool option *)
+    fun general_lookup_bool option default_value name =
+      case lookup name of
+        SOME s => s |> stringify_raw_param_value
+                    |> Sledgehammer_Util.parse_bool_option option name
+      | NONE => default_value
     (* string -> bool *)
-    val lookup_bool = the o general_lookup_bool false raw_params (SOME false)
+    val lookup_bool = the o general_lookup_bool false (SOME false)
     (* string -> bool option *)
-    val lookup_bool_option = general_lookup_bool true raw_params NONE
+    val lookup_bool_option = general_lookup_bool true NONE
     (* string -> string option -> int *)
     fun do_int name value =
       case value of
@@ -253,7 +236,8 @@ fun extract_params ctxt auto default_params override_params =
       :: map (fn (name, value) =>
                  (SOME (read (String.extract (name, size prefix + 1, NONE))),
                   value |> stringify_raw_param_value
-                        |> bool_option_from_string false name |> the))
+                        |> Sledgehammer_Util.parse_bool_option false name
+                        |> the))
              (filter (String.isPrefix (prefix ^ " ") o fst) raw_params)
     (* (string -> 'a) -> string -> ('a option * bool option) list *)
     fun lookup_bool_option_assigns read prefix =
@@ -261,28 +245,13 @@ fun extract_params ctxt auto default_params override_params =
       :: map (fn (name, value) =>
                  (SOME (read (String.extract (name, size prefix + 1, NONE))),
                   value |> stringify_raw_param_value
-                        |> bool_option_from_string true name))
+                        |> Sledgehammer_Util.parse_bool_option true name))
              (filter (String.isPrefix (prefix ^ " ") o fst) raw_params)
     (* string -> Time.time option *)
     fun lookup_time name =
       case lookup name of
         NONE => NONE
-      | SOME "none" => NONE
-      | SOME s =>
-        let
-          val msecs =
-            case space_explode " " s of
-              [s1, "min"] => 60000 * the (Int.fromString s1)
-            | [s1, "s"] => 1000 * the (Int.fromString s1)
-            | [s1, "ms"] => the (Int.fromString s1)
-            | _ => 0
-        in
-          if msecs <= 0 then
-            error ("Parameter " ^ quote name ^ " must be assigned a positive \
-                   \time value (e.g., \"60 s\", \"200 ms\") or \"none\".")
-          else
-            SOME (Time.fromMilliseconds msecs)
-        end
+      | SOME s => Sledgehammer_Util.parse_time_option name s
     (* string -> term list *)
     val lookup_term_list =
       AList.lookup (op =) raw_params #> these #> Syntax.read_terms ctxt
@@ -368,22 +337,18 @@ fun default_params thy =
   extract_params (ProofContext.init thy) false (default_raw_params thy)
   o map (apsnd single)
 
-(* OuterParse.token list -> string * OuterParse.token list *)
-val scan_key = Scan.repeat1 OuterParse.typ_group >> space_implode " "
-
-(* OuterParse.token list -> string list * OuterParse.token list *)
-val scan_value =
-  Scan.repeat1 (OuterParse.minus >> single
-                || Scan.repeat1 (Scan.unless OuterParse.minus OuterParse.name)
-                || OuterParse.$$$ "," |-- OuterParse.number >> prefix ","
-                   >> single) >> flat
-
-(* OuterParse.token list -> raw_param * OuterParse.token list *)
-val scan_param =
-  scan_key -- (Scan.option (OuterParse.$$$ "=" |-- scan_value) >> these)
-(* OuterParse.token list -> raw_param list option * OuterParse.token list *)
-val scan_params = Scan.option (OuterParse.$$$ "[" |-- OuterParse.list scan_param
-                               --| OuterParse.$$$ "]")
+(* P.token list -> string * P.token list *)
+val parse_key = Scan.repeat1 P.typ_group >> space_implode " "
+(* P.token list -> string list * P.token list *)
+val parse_value =
+  Scan.repeat1 (P.minus >> single
+                || Scan.repeat1 (Scan.unless P.minus P.name)
+                || P.$$$ "," |-- P.number >> prefix "," >> single) >> flat
+(* P.token list -> raw_param * P.token list *)
+val parse_param =
+  parse_key -- (Scan.option (P.$$$ "=" |-- parse_value) >> these)
+(* P.token list -> raw_param list option * P.token list *)
+val parse_params = Scan.option (P.$$$ "[" |-- P.list parse_param --| P.$$$ "]")
 
 (* Proof.context -> ('a -> 'a) -> 'a -> 'a *)
 fun handle_exceptions ctxt f x =
@@ -422,7 +387,6 @@ fun handle_exceptions ctxt f x =
          (warning ("Ill-formed Kodkodi output: " ^ details ^ "."); x)
        | Refute.REFUTE (loc, details) =>
          error ("Unhandled Refute error (" ^ quote loc ^ "): " ^ details ^ ".")
-
 
 (* raw_param list -> bool -> int -> int -> Proof.state -> bool * Proof.state *)
 fun pick_nits override_params auto i step state =
@@ -469,18 +433,18 @@ fun nitpick_params_trans opt_params =
                                params |> map string_for_raw_param
                                       |> sort_strings |> cat_lines)))))
 
-(* OuterParse.token list
-   -> (Toplevel.transition -> Toplevel.transition) * OuterParse.token list *)
-val scan_nitpick_command =
-  (scan_params -- Scan.option OuterParse.nat) #>> nitpick_trans
-val scan_nitpick_params_command = scan_params #>> nitpick_params_trans
+(* P.token list
+   -> (Toplevel.transition -> Toplevel.transition) * P.token list *)
+val parse_nitpick_command =
+  (parse_params -- Scan.option P.nat) #>> nitpick_trans
+val parse_nitpick_params_command = parse_params #>> nitpick_params_trans
 
 val _ = OuterSyntax.improper_command "nitpick"
             "try to find a counterexample for a given subgoal using Kodkod"
-            OuterKeyword.diag scan_nitpick_command
+            K.diag parse_nitpick_command
 val _ = OuterSyntax.command "nitpick_params"
             "set and display the default parameters for Nitpick"
-            OuterKeyword.thy_decl scan_nitpick_params_command
+            K.thy_decl parse_nitpick_params_command
 
 (* Proof.state -> bool * Proof.state *)
 fun auto_nitpick state =
