@@ -804,7 +804,7 @@ subsection {* Generalized product over a set *}
 definition (in comm_monoid_mult) setprod :: "('b \<Rightarrow> 'a) => 'b set => 'a" where
   "setprod f A = (if finite A then fold_image (op *) f 1 A else 1)"
 
-sublocale comm_monoid_add < setprod!: comm_monoid_big "op *" 1 setprod proof
+sublocale comm_monoid_mult < setprod!: comm_monoid_big "op *" 1 setprod proof
 qed (fact setprod_def)
 
 abbreviation
