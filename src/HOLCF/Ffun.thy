@@ -196,22 +196,13 @@ done
 
 text {* the lub of a chain of continuous functions is continuous *}
 
-lemma contlub_lub_fun:
-  "\<lbrakk>chain F; \<forall>i. cont (F i)\<rbrakk> \<Longrightarrow> contlub (\<Squnion>i. F i)"
-apply (rule contlubI)
-apply (simp add: thelub_fun)
-apply (simp add: cont2contlubE)
-apply (rule ex_lub)
-apply (erule ch2ch_fun)
-apply (simp add: ch2ch_cont)
-done
-
 lemma cont_lub_fun:
   "\<lbrakk>chain F; \<forall>i. cont (F i)\<rbrakk> \<Longrightarrow> cont (\<Squnion>i. F i)"
-apply (rule monocontlub2cont)
+apply (rule contI2)
 apply (erule monofun_lub_fun)
 apply (simp add: cont2mono)
-apply (erule (1) contlub_lub_fun)
+apply (simp add: thelub_fun cont2contlubE)
+apply (simp add: diag_lub ch2ch_fun ch2ch_cont)
 done
 
 lemma cont2cont_lub:
@@ -224,9 +215,8 @@ apply (erule (1) monofun_fun_arg [THEN monofun_fun_fun])
 done
 
 lemma cont2cont_fun: "cont f \<Longrightarrow> cont (\<lambda>x. f x y)"
-apply (rule monocontlub2cont)
+apply (rule contI2)
 apply (erule cont2mono [THEN mono2mono_fun])
-apply (rule contlubI)
 apply (simp add: cont2contlubE)
 apply (simp add: thelub_fun ch2ch_cont)
 done
@@ -242,14 +232,10 @@ done
 
 lemma cont2cont_lambda [simp]:
   assumes f: "\<And>y. cont (\<lambda>x. f x y)" shows "cont f"
-apply (subgoal_tac "monofun f")
-apply (rule monocontlub2cont)
-apply assumption
-apply (rule contlubI)
-apply (rule ext)
-apply (simp add: thelub_fun ch2ch_monofun)
-apply (erule cont2contlubE [OF f])
+apply (rule contI2)
 apply (simp add: mono2mono_lambda cont2mono f)
+apply (rule below_fun_ext)
+apply (simp add: thelub_fun cont2contlubE [OF f])
 done
 
 text {* What D.A.Schmidt calls continuity of abstraction; never used here *}
@@ -272,23 +258,12 @@ apply (rule monofunI)
 apply (simp add: monofun_fun monofunE)
 done
 
-lemma cont2contlub_app:
-  "\<lbrakk>cont f; \<forall>x. cont (f x); cont t\<rbrakk> \<Longrightarrow> contlub (\<lambda>x. (f x) (t x))"
-apply (rule contlubI)
-apply (subgoal_tac "chain (\<lambda>i. f (Y i))")
-apply (subgoal_tac "chain (\<lambda>i. t (Y i))")
-apply (simp add: cont2contlubE thelub_fun)
-apply (rule diag_lub)
-apply (erule ch2ch_fun)
-apply (drule spec)
-apply (erule (1) ch2ch_cont)
-apply (erule (1) ch2ch_cont)
-apply (erule (1) ch2ch_cont)
-done
-
 lemma cont2cont_app:
   "\<lbrakk>cont f; \<forall>x. cont (f x); cont t\<rbrakk> \<Longrightarrow> cont (\<lambda>x. (f x) (t x))"
-by (blast intro: monocontlub2cont mono2mono_app cont2mono cont2contlub_app)
+apply (erule cont_apply [where t=t])
+apply (erule spec)
+apply (erule cont2cont_fun)
+done
 
 lemmas cont2cont_app2 = cont2cont_app [rule_format]
 

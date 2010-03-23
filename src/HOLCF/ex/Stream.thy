@@ -920,11 +920,8 @@ lemma chain_scons: "chain S ==> chain (%i. a && S i)"
 apply (simp add: chain_def,auto)
 by (rule monofun_cfun_arg,simp)
 
-lemma contlub_scons: "contlub (%x. a && x)"
-by (simp add: contlub_Rep_CFun2)
-
 lemma contlub_scons_lemma: "chain S ==> (LUB i. a && S i) = a && (LUB i. S i)"
-by (rule contlubE [OF contlub_Rep_CFun2, symmetric])
+by (rule cont2contlubE [OF cont_Rep_CFun2, symmetric])
 
 lemma finite_lub_sconc: "chain Y ==> (stream_finite x) ==>
                         (LUB i. x ooo Y i) = (x ooo (LUB i. Y i))"
@@ -939,9 +936,6 @@ apply (case_tac "#x=Infty")
  apply (simp add: sconc_def)
 apply (drule finite_lub_sconc,auto simp add: slen_infinite)
 done
-
-lemma contlub_sconc: "contlub (%y. x ooo y)"
-by (rule cont_sconc [THEN cont2contlub])
 
 lemma monofun_sconc: "monofun (%y. x ooo y)"
 by (simp add: monofun_def sconc_mono)

@@ -22,21 +22,16 @@ definition
   monofun :: "('a \<Rightarrow> 'b) \<Rightarrow> bool"  -- "monotonicity"  where
   "monofun f = (\<forall>x y. x \<sqsubseteq> y \<longrightarrow> f x \<sqsubseteq> f y)"
 
+(*
 definition
   contlub :: "('a::cpo \<Rightarrow> 'b::cpo) \<Rightarrow> bool"  -- "first cont. def" where
   "contlub f = (\<forall>Y. chain Y \<longrightarrow> f (\<Squnion>i. Y i) = (\<Squnion>i. f (Y i)))"
+*)
 
 definition
-  cont :: "('a::cpo \<Rightarrow> 'b::cpo) \<Rightarrow> bool"  -- "secnd cont. def" where
+  cont :: "('a::cpo \<Rightarrow> 'b::cpo) \<Rightarrow> bool"
+where
   "cont f = (\<forall>Y. chain Y \<longrightarrow> range (\<lambda>i. f (Y i)) <<| f (\<Squnion>i. Y i))"
-
-lemma contlubI:
-  "\<lbrakk>\<And>Y. chain Y \<Longrightarrow> f (\<Squnion>i. Y i) = (\<Squnion>i. f (Y i))\<rbrakk> \<Longrightarrow> contlub f"
-by (simp add: contlub_def)
-
-lemma contlubE: 
-  "\<lbrakk>contlub f; chain Y\<rbrakk> \<Longrightarrow> f (\<Squnion>i. Y i) = (\<Squnion>i. f (Y i))" 
-by (simp add: contlub_def)
 
 lemma contI:
   "\<lbrakk>\<And>Y. chain Y \<Longrightarrow> range (\<lambda>i. f (Y i)) <<| f (\<Squnion>i. Y i)\<rbrakk> \<Longrightarrow> cont f"
@@ -74,16 +69,7 @@ apply (erule monofunE)
 apply (erule ub_rangeD)
 done
 
-text {* left to right: @{prop "monofun f \<and> contlub f \<Longrightarrow> cont f"} *}
-
-lemma monocontlub2cont: "\<lbrakk>monofun f; contlub f\<rbrakk> \<Longrightarrow> cont f"
-apply (rule contI)
-apply (rule thelubE)
-apply (erule (1) ch2ch_monofun)
-apply (erule (1) contlubE [symmetric])
-done
-
-text {* first a lemma about binary chains *}
+text {* a lemma about binary chains *}
 
 lemma binchain_cont:
   "\<lbrakk>cont f; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> range (\<lambda>i::nat. f (if i = 0 then x else y)) <<| f y"
@@ -95,8 +81,7 @@ apply (rule_tac f=f in arg_cong)
 apply (erule lub_bin_chain [THEN thelubI])
 done
 
-text {* right to left: @{prop "cont f \<Longrightarrow> monofun f \<and> contlub f"} *}
-text {* part1: @{prop "cont f \<Longrightarrow> monofun f"} *}
+text {* continuity implies monotonicity *}
 
 lemma cont2mono: "cont f \<Longrightarrow> monofun f"
 apply (rule monofunI)
@@ -109,33 +94,30 @@ lemmas cont2monofunE = cont2mono [THEN monofunE]
 
 lemmas ch2ch_cont = cont2mono [THEN ch2ch_monofun]
 
-text {* right to left: @{prop "cont f \<Longrightarrow> monofun f \<and> contlub f"} *}
-text {* part2: @{prop "cont f \<Longrightarrow> contlub f"} *}
+text {* continuity implies preservation of lubs *}
 
-lemma cont2contlub: "cont f \<Longrightarrow> contlub f"
-apply (rule contlubI)
+lemma cont2contlubE:
+  "\<lbrakk>cont f; chain Y\<rbrakk> \<Longrightarrow> f (\<Squnion> i. Y i) = (\<Squnion> i. f (Y i))"
 apply (rule thelubI [symmetric])
 apply (erule (1) contE)
 done
-
-lemmas cont2contlubE = cont2contlub [THEN contlubE]
 
 lemma contI2:
   assumes mono: "monofun f"
   assumes below: "\<And>Y. \<lbrakk>chain Y; chain (\<lambda>i. f (Y i))\<rbrakk>
      \<Longrightarrow> f (\<Squnion>i. Y i) \<sqsubseteq> (\<Squnion>i. f (Y i))"
   shows "cont f"
-apply (rule monocontlub2cont)
-apply (rule mono)
-apply (rule contlubI)
-apply (rule below_antisym)
-apply (rule below, assumption)
+apply (rule contI)
+apply (rule thelubE)
 apply (erule ch2ch_monofun [OF mono])
+apply (rule below_antisym)
 apply (rule is_lub_thelub)
 apply (erule ch2ch_monofun [OF mono])
 apply (rule ub2ub_monofun [OF mono])
 apply (rule is_lubD1)
 apply (erule cpo_lubI)
+apply (rule below, assumption)
+apply (erule ch2ch_monofun [OF mono])
 done
 
 subsection {* Continuity simproc *}
@@ -190,7 +172,7 @@ lemma cont_apply:
   assumes 2: "\<And>x. cont (\<lambda>y. f x y)"
   assumes 3: "\<And>y. cont (\<lambda>x. f x y)"
   shows "cont (\<lambda>x. (f x) (t x))"
-proof (rule monocontlub2cont [OF monofunI contlubI])
+proof (rule contI2 [OF monofunI])
   fix x y :: "'a" assume "x \<sqsubseteq> y"
   then show "f x (t x) \<sqsubseteq> f y (t y)"
     by (auto intro: cont2monofunE [OF 1]
@@ -199,11 +181,11 @@ proof (rule monocontlub2cont [OF monofunI contlubI])
                     below_trans)
 next
   fix Y :: "nat \<Rightarrow> 'a" assume "chain Y"
-  then show "f (\<Squnion>i. Y i) (t (\<Squnion>i. Y i)) = (\<Squnion>i. f (Y i) (t (Y i)))"
+  then show "f (\<Squnion>i. Y i) (t (\<Squnion>i. Y i)) \<sqsubseteq> (\<Squnion>i. f (Y i) (t (Y i)))"
     by (simp only: cont2contlubE [OF 1] ch2ch_cont [OF 1]
                    cont2contlubE [OF 2] ch2ch_cont [OF 2]
                    cont2contlubE [OF 3] ch2ch_cont [OF 3]
-                   diag_lub)
+                   diag_lub below_refl)
 qed
 
 lemma cont_compose:
@@ -234,9 +216,7 @@ lemma cont_finch2finch:
 by (rule cont2mono [THEN monofun_finch2finch])
 
 lemma chfindom_monofun2cont: "monofun f \<Longrightarrow> cont (f::'a::chfin \<Rightarrow> 'b::cpo)"
-apply (rule monocontlub2cont)
-apply assumption
-apply (rule contlubI)
+apply (erule contI2)
 apply (frule chfin2finch)
 apply (clarsimp simp add: finite_chain_def)
 apply (subgoal_tac "max_in_chain i (\<lambda>i. f (Y i))")

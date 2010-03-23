@@ -203,26 +203,16 @@ apply (rule lub_const)
 apply (erule cpo_lubI)
 done
 
-lemma contlub_fst: "contlub fst"
-apply (rule contlubI)
-apply (simp add: thelub_cprod)
-done
-
-lemma contlub_snd: "contlub snd"
-apply (rule contlubI)
-apply (simp add: thelub_cprod)
-done
-
 lemma cont_fst: "cont fst"
-apply (rule monocontlub2cont)
-apply (rule monofun_fst)
-apply (rule contlub_fst)
+apply (rule contI)
+apply (simp add: thelub_cprod)
+apply (erule cpo_lubI [OF ch2ch_fst])
 done
 
 lemma cont_snd: "cont snd"
-apply (rule monocontlub2cont)
-apply (rule monofun_snd)
-apply (rule contlub_snd)
+apply (rule contI)
+apply (simp add: thelub_cprod)
+apply (erule cpo_lubI [OF ch2ch_snd])
 done
 
 lemma cont2cont_Pair [cont2cont]:

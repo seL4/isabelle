@@ -185,23 +185,20 @@ apply (simp add: CFun_def)
 done
 
 lemmas monofun_Rep_CFun = cont_Rep_CFun [THEN cont2mono]
-lemmas contlub_Rep_CFun = cont_Rep_CFun [THEN cont2contlub]
 
 lemmas monofun_Rep_CFun1 = cont_Rep_CFun1 [THEN cont2mono, standard]
-lemmas contlub_Rep_CFun1 = cont_Rep_CFun1 [THEN cont2contlub, standard]
 lemmas monofun_Rep_CFun2 = cont_Rep_CFun2 [THEN cont2mono, standard]
-lemmas contlub_Rep_CFun2 = cont_Rep_CFun2 [THEN cont2contlub, standard]
 
 text {* contlub, cont properties of @{term Rep_CFun} in each argument *}
 
 lemma contlub_cfun_arg: "chain Y \<Longrightarrow> f\<cdot>(\<Squnion>i. Y i) = (\<Squnion>i. f\<cdot>(Y i))"
-by (rule contlub_Rep_CFun2 [THEN contlubE])
+by (rule cont_Rep_CFun2 [THEN cont2contlubE])
 
 lemma cont_cfun_arg: "chain Y \<Longrightarrow> range (\<lambda>i. f\<cdot>(Y i)) <<| f\<cdot>(\<Squnion>i. Y i)"
 by (rule cont_Rep_CFun2 [THEN contE])
 
 lemma contlub_cfun_fun: "chain F \<Longrightarrow> (\<Squnion>i. F i)\<cdot>x = (\<Squnion>i. F i\<cdot>x)"
-by (rule contlub_Rep_CFun1 [THEN contlubE])
+by (rule cont_Rep_CFun1 [THEN cont2contlubE])
 
 lemma cont_cfun_fun: "chain F \<Longrightarrow> range (\<lambda>i. F i\<cdot>x) <<| (\<Squnion>i. F i)\<cdot>x"
 by (rule cont_Rep_CFun1 [THEN contE])
@@ -530,25 +527,15 @@ apply (rule monofunI)
 apply (auto simp add: monofun_cfun_arg)
 done
 
-(*FIXME: long proof*)
-lemma contlub_strictify2: "contlub (\<lambda>x. if x = \<bottom> then \<bottom> else f\<cdot>x)"
-apply (rule contlubI)
-apply (case_tac "(\<Squnion>i. Y i) = \<bottom>")
-apply (drule (1) chain_UU_I)
-apply simp
-apply (simp del: if_image_distrib)
-apply (simp only: contlub_cfun_arg)
-apply (rule lub_equal2)
-apply (rule chain_mono2 [THEN exE])
-apply (erule chain_UU_I_inverse2)
-apply (assumption)
-apply (rule_tac x=x in exI, clarsimp)
-apply (erule chain_monofun)
-apply (erule monofun_strictify2 [THEN ch2ch_monofun])
+lemma cont_strictify2: "cont (\<lambda>x. if x = \<bottom> then \<bottom> else f\<cdot>x)"
+apply (rule contI2)
+apply (rule monofun_strictify2)
+apply (case_tac "(\<Squnion>i. Y i) = \<bottom>", simp)
+apply (simp add: contlub_cfun_arg del: if_image_distrib)
+apply (drule chain_UU_I_inverse2, clarify, rename_tac j)
+apply (rule lub_mono2, rule_tac x=j in exI, simp_all)
+apply (auto dest!: chain_mono_less)
 done
-
-lemmas cont_strictify2 =
-  monocontlub2cont [OF monofun_strictify2 contlub_strictify2, standard]
 
 lemma strictify_conv_if: "strictify\<cdot>f\<cdot>x = (if x = \<bottom> then \<bottom> else f\<cdot>x)"
   unfolding strictify_def
