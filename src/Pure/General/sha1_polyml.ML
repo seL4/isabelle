@@ -24,7 +24,7 @@ fun digest_external str =
     val digest = CInterface.alloc 20 CInterface.Cchar;
     val _ =
       CInterface.call3 (CInterface.get_sym (File.platform_path lib_path) "sha1_buffer")
-        (CInterface.STRING, CInterface.INT, CInterface.POINTER)
+        (CInterface.STRING, CInterface.LONG, CInterface.POINTER)
         CInterface.POINTER (str, size str, CInterface.address digest);
   in fold (suffix o hex_string digest) (0 upto 19) "" end;
 
