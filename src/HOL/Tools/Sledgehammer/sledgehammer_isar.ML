@@ -16,9 +16,21 @@ struct
 
 open ATP_Manager
 open ATP_Minimal
+open ATP_Wrapper
 open Sledgehammer_Util
 
 structure K = OuterKeyword and P = OuterParse
+
+datatype facta = Facta of {add: Facts.ref list, del: Facts.ref list, only: bool}
+
+fun add_to_facta ns = Facta {add = ns, del = [], only = false};
+fun del_from_facta ns = Facta {add = [], del = ns, only = false};
+fun only_facta ns = Facta {add = ns, del = [], only = true};
+val default_facta = add_to_facta []
+fun merge_facta_pairwise (Facta f1) (Facta f2) =
+  Facta {add = #add f1 @ #add f2, del = #del f1 @ #del f2,
+         only = #only f1 orelse #only f2} 
+fun merge_facta fs = fold merge_facta_pairwise fs default_facta
 
 type raw_param = string * string list
 
@@ -116,19 +128,18 @@ fun extract_params thy default_params override_params =
      minimize_timeout = minimize_timeout}
   end
 
-fun default_params thy =
-  extract_params thy (default_raw_params thy) o map (apsnd single)
+fun get_params thy = extract_params thy (default_raw_params thy)
+fun default_params thy = get_params thy o map (apsnd single)
 
-fun atp_minimize_command args thm_names state =
+fun atp_minimize_command override_params old_style_args fact_refs state =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
-    fun theorems_from_names ctxt =
-      map (fn (name, interval) =>
+    fun theorems_from_refs ctxt =
+      map (fn fact_ref =>
               let
-                val thmref = Facts.Named ((name, Position.none), interval)
-                val ths = ProofContext.get_fact ctxt thmref
-                val name' = Facts.string_of_ref thmref
+                val ths = ProofContext.get_fact ctxt fact_ref
+                val name' = Facts.string_of_ref fact_ref
               in (name', ths) end)
     fun get_time_limit_arg s =
       (case Int.fromString s of
@@ -139,49 +150,67 @@ fun atp_minimize_command args thm_names state =
         "time" => (p, get_time_limit_arg a)
       | "atp" => (a, t)
       | n => error ("Invalid argument: " ^ n))
-    val {atps, minimize_timeout, ...} = default_params thy []
-    fun get_options args = fold get_opt args (hd atps, minimize_timeout)
-    val (atp, timeout) = get_options args
+    val {atps, minimize_timeout, ...} = get_params thy override_params
+    val (atp, timeout) = fold get_opt old_style_args (hd atps, minimize_timeout)
     val params =
-      default_params thy
-          [("atps", atp),
-           ("minimize_timeout", string_of_int (Time.toSeconds timeout) ^ " s")]
+      get_params thy
+          [("atps", [atp]),
+           ("minimize_timeout",
+            [string_of_int (Time.toSeconds timeout) ^ " s"])]
     val prover =
       (case get_prover thy atp of
         SOME prover => prover
       | NONE => error ("Unknown ATP: " ^ quote atp))
-    val name_thms_pairs = theorems_from_names ctxt thm_names
+    val name_thms_pairs = theorems_from_refs ctxt fact_refs
   in
     writeln (#2 (minimize_theorems params linear_minimize prover atp state
                                    name_thms_pairs))
   end
 
-val parse_args =
-  Scan.optional (Args.bracks (P.list (P.xname --| P.$$$ "=" -- P.xname))) []
-val parse_thm_names = Scan.repeat (P.xname -- Scan.option Attrib.thm_sel)
-val _ =
-  OuterSyntax.improper_command "atp_minimize"
-    "minimize theorem list with external prover" K.diag
-    (parse_args -- parse_thm_names >> (fn (args, thm_names) =>
-      Toplevel.no_timing o Toplevel.unknown_proof o
-        Toplevel.keep (atp_minimize_command args thm_names o Toplevel.proof_of)))
+val runN = "run"
+val minimizeN = "minimize"
+val messagesN = "messages"
+val available_atpsN = "available_atps"
+val running_atpsN = "running_atps"
+val kill_atpsN = "kill_atps"
+val refresh_tptpN = "refresh_tptp"
+val helpN = "help"
 
-fun hammer_away override_params i state =
+val addN = "add"
+val delN = "del"
+val onlyN = "only"
+
+fun hammer_away override_params subcommand opt_i (Facta f) state =
   let
     val thy = Proof.theory_of state
     val _ = List.app check_raw_param override_params
-    val params = extract_params thy (default_raw_params thy) override_params
-  in sledgehammer params i state end
+  in
+    if subcommand = runN then
+      sledgehammer (get_params thy override_params) (the_default 1 opt_i) state
+    else if subcommand = minimizeN then
+      atp_minimize_command override_params [] (#add f) state
+    else if subcommand = messagesN then
+      messages opt_i
+    else if subcommand = available_atpsN then
+      available_atps thy
+    else if subcommand = running_atpsN then
+      running_atps ()
+    else if subcommand = kill_atpsN then
+      kill_atps ()
+    else if subcommand = refresh_tptpN then
+      refresh_systems_on_tptp ()
+    else
+      error ("Unknown subcommand: " ^ quote subcommand ^ ".")
+  end
 
-fun sledgehammer_trans (opt_params, opt_i) =
-  Toplevel.keep (hammer_away (these opt_params) (the_default 1 opt_i)
-                 o Toplevel.proof_of)
+fun sledgehammer_trans (((params, subcommand), opt_i), facta) =
+  Toplevel.keep (hammer_away params subcommand opt_i facta o Toplevel.proof_of)
 
 fun string_for_raw_param (name, value) = name ^ " = " ^ space_implode " " value
 
-fun sledgehammer_params_trans opt_params =
+fun sledgehammer_params_trans params =
   Toplevel.theory
-      (fold set_default_raw_param (these opt_params)
+      (fold set_default_raw_param params
        #> tap (fn thy => 
                   writeln ("Default parameters for Sledgehammer:\n" ^
                            (case rev (default_raw_params thy) of
@@ -195,22 +224,36 @@ val parse_key = Scan.repeat1 P.typ_group >> space_implode " "
 val parse_value =
   Scan.repeat1 (P.minus >> single
                 || Scan.repeat1 (Scan.unless P.minus P.name)) >> flat
-val parse_param =
-  parse_key -- (Scan.option (P.$$$ "=" |-- parse_value) >> these)
-val parse_params =
-  Scan.option (P.$$$ "[" |-- P.list parse_param --| P.$$$ "]")
+val parse_param = parse_key -- Scan.optional (P.$$$ "=" |-- parse_value) []
+val parse_params = Scan.optional (Args.bracks (P.list parse_param)) []
+val parse_fact_refs =
+  Scan.repeat (P.xname -- Scan.option Attrib.thm_sel
+               >> (fn (name, interval) =>
+                      Facts.Named ((name, Position.none), interval)))
+val parse_slew =
+  (Args.add |-- Args.colon |-- parse_fact_refs >> add_to_facta)
+  || (Args.del |-- Args.colon |-- parse_fact_refs >> del_from_facta)
+  || (P.$$$ onlyN |-- Args.colon |-- parse_fact_refs >> only_facta)
+val parse_facta =
+  Args.parens (Scan.optional (parse_fact_refs >> only_facta) default_facta
+               -- Scan.repeat parse_slew) >> op :: >> merge_facta
 val parse_sledgehammer_command =
-  (parse_params -- Scan.option P.nat) #>> sledgehammer_trans
+  (parse_params -- Scan.optional P.name runN -- Scan.option P.nat
+   -- parse_facta)
+  #>> sledgehammer_trans
 val parse_sledgehammer_params_command =
   parse_params #>> sledgehammer_params_trans
 
+val parse_minimize_args =
+  Scan.optional (Args.bracks (P.list (P.xname --| P.$$$ "=" -- P.xname))) []
+
 val _ =
   OuterSyntax.improper_command "atp_kill" "kill all managed provers" K.diag
-    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative kill))
+    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative kill_atps))
 val _ =
   OuterSyntax.improper_command "atp_info"
     "print information about managed provers" K.diag
-    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative info))
+    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative running_atps))
 val _ =
   OuterSyntax.improper_command "atp_messages"
     "print recent messages issued by managed provers" K.diag
@@ -220,7 +263,15 @@ val _ =
 val _ =
   OuterSyntax.improper_command "print_atps" "print external provers" K.diag
     (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_theory o
-      Toplevel.keep (print_provers o Toplevel.theory_of)))
+      Toplevel.keep (available_atps o Toplevel.theory_of)))
+val _ =
+  OuterSyntax.improper_command "atp_minimize"
+    "minimize theorem list with external prover" K.diag
+    (parse_minimize_args -- parse_fact_refs >> (fn (args, fact_refs) =>
+      Toplevel.no_timing o Toplevel.unknown_proof o
+        Toplevel.keep (atp_minimize_command [] args fact_refs
+                       o Toplevel.proof_of)))
+
 val _ =
   OuterSyntax.improper_command "sledgehammer"
     "search for first-order proof using automatic theorem provers" K.diag
