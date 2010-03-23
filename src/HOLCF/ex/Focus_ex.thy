@@ -30,7 +30,7 @@ agent g
         input  channel x:'b
         output channel y:'c
 is network
-        <y,z> = f$<x,z>
+        (y,z) = f$(x,z)
 end network
 end g
 
@@ -47,7 +47,7 @@ is_f :: ('b stream * ('b,'c) tc stream ->
                 'c stream * ('b,'c) tc stream) => bool
 
 is_f f  = !i1 i2 o1 o2.
-        f$<i1,i2> = <o1,o2> --> Rf(i1,i2,o1,o2)
+        f$(i1,i2) = (o1,o2) --> Rf(i1,i2,o1,o2)
 
 Specification of agent g is translated to predicate is_g which uses
 predicate is_net_g
@@ -56,8 +56,8 @@ is_net_g :: ('b stream * ('b,'c) tc stream -> 'c stream * ('b,'c) tc stream) =>
             'b stream => 'c stream => bool
 
 is_net_g f x y =
-        ? z. <y,z> = f$<x,z> &
-        !oy hz. <oy,hz> = f$<x,hz> --> z << hz
+        ? z. (y,z) = f$(x,z) &
+        !oy hz. (oy,hz) = f$(x,hz) --> z << hz
 
 
 is_g :: ('b stream -> 'c stream) => bool
@@ -84,7 +84,7 @@ We define:
 
 def_g g  =
          (? f. is_f f  &
-              g = (LAM x. cfst$(f$<x,fix$(LAM k.csnd$(f$<x,k>))>)) )
+              g = (LAM x. fst (f$(x,fix$(LAM k. snd (f$(x,k)))))) )
 
 Now we prove:
 
@@ -110,14 +110,14 @@ axiomatization
 
 definition
   is_f :: "('b stream * ('b,'c) tc stream -> 'c stream * ('b,'c) tc stream) => bool" where
-  "is_f f = (!i1 i2 o1 o2. f$<i1,i2> = <o1,o2> --> Rf(i1,i2,o1,o2))"
+  "is_f f = (!i1 i2 o1 o2. f$(i1,i2) = (o1,o2) --> Rf(i1,i2,o1,o2))"
 
 definition
   is_net_g :: "('b stream *('b,'c) tc stream -> 'c stream * ('b,'c) tc stream) =>
     'b stream => 'c stream => bool" where
   "is_net_g f x y == (? z.
-                        <y,z> = f$<x,z> &
-                        (!oy hz. <oy,hz> = f$<x,hz> --> z << hz))"
+                        (y,z) = f$(x,z) &
+                        (!oy hz. (oy,hz) = f$(x,hz) --> z << hz))"
 
 definition
   is_g :: "('b stream -> 'c stream) => bool" where
@@ -125,27 +125,27 @@ definition
 
 definition
   def_g :: "('b stream -> 'c stream) => bool" where
-  "def_g g == (? f. is_f f  & g = (LAM x. cfst$(f$<x,fix$(LAM  k. csnd$(f$<x,k>))>)))"
+  "def_g g == (? f. is_f f  & g = (LAM x. fst (f$(x,fix$(LAM  k. snd (f$(x,k)))))))"
 
 
 (* first some logical trading *)
 
 lemma lemma1:
 "is_g(g) =
-  (? f. is_f(f) &  (!x.(? z. <g$x,z> = f$<x,z> &
-                   (! w y. <y,w> = f$<x,w>  --> z << w))))"
+  (? f. is_f(f) &  (!x.(? z. (g$x,z) = f$(x,z) &
+                   (! w y. (y,w) = f$(x,w)  --> z << w))))"
 apply (simp add: is_g_def is_net_g_def)
 apply fast
 done
 
 lemma lemma2:
-"(? f. is_f(f) &  (!x. (? z. <g$x,z> = f$<x,z> &
-                  (!w y. <y,w> = f$<x,w>  --> z << w))))
+"(? f. is_f(f) &  (!x. (? z. (g$x,z) = f$(x,z) &
+                  (!w y. (y,w) = f$(x,w)  --> z << w))))
   =
   (? f. is_f(f) &  (!x. ? z.
-        g$x = cfst$(f$<x,z>) &
-          z = csnd$(f$<x,z>) &
-        (! w y.  <y,w> = f$<x,w> --> z << w)))"
+        g$x = fst (f$(x,z)) &
+          z = snd (f$(x,z)) &
+        (! w y.  (y,w) = f$(x,w) --> z << w)))"
 apply (rule iffI)
 apply (erule exE)
 apply (rule_tac x = "f" in exI)
@@ -174,11 +174,9 @@ apply (rule_tac x = "z" in exI)
 apply (erule conjE)+
 apply (rule conjI)
 prefer 2 apply (assumption)
-apply (rule trans)
-apply (rule_tac [2] surjective_pairing_Cprod2)
-apply (erule subst)
-apply (erule subst)
-apply (rule refl)
+apply (rule prod_eqI)
+apply simp
+apply simp
 done
 
 lemma lemma3: "def_g(g) --> is_g(g)"
@@ -189,12 +187,10 @@ apply (rule_tac x = "f" in exI)
 apply (erule conjE)+
 apply (erule conjI)
 apply (intro strip)
-apply (rule_tac x = "fix$ (LAM k. csnd$ (f$<x,k>))" in exI)
+apply (rule_tac x = "fix$ (LAM k. snd (f$(x,k)))" in exI)
 apply (rule conjI)
  apply (tactic "asm_simp_tac HOLCF_ss 1")
- apply (rule trans)
-  apply (rule_tac [2] surjective_pairing_Cprod2)
- apply (rule cfun_arg_cong)
+ apply (rule prod_eqI, simp, simp)
  apply (rule trans)
   apply (rule fix_eq)
  apply (simp (no_asm))
@@ -219,20 +215,17 @@ apply (rule ext_cfun)
 apply (erule_tac x = "x" in allE)
 apply (erule exE)
 apply (erule conjE)+
-apply (subgoal_tac "fix$ (LAM k. csnd$ (f$<x, k>)) = z")
+apply (subgoal_tac "fix$ (LAM k. snd (f$(x, k))) = z")
  apply simp
-apply (subgoal_tac "! w y. f$<x, w> = <y, w> --> z << w")
+apply (subgoal_tac "! w y. f$(x, w) = (y, w) --> z << w")
 apply (rule fix_eqI)
 apply simp
 (*apply (rule allI)*)
 (*apply (tactic "simp_tac HOLCF_ss 1")*)
 (*apply (intro strip)*)
-apply (subgoal_tac "f$<x, za> = <cfst$ (f$<x,za>) ,za>")
+apply (subgoal_tac "f$(x, za) = (fst (f$(x,za)) ,za)")
 apply fast
-apply (rule trans)
-apply (rule surjective_pairing_Cprod2 [symmetric])
-apply (rule cfun_arg_cong)
-apply simp
+apply (rule prod_eqI, simp, simp)
 apply (intro strip)
 apply (erule allE)+
 apply (erule mp)
