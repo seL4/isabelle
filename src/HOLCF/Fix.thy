@@ -236,29 +236,31 @@ text {*
 
 lemma fix_cprod:
   "fix\<cdot>(F::'a \<times> 'b \<rightarrow> 'a \<times> 'b) =
-   \<langle>\<mu> x. cfst\<cdot>(F\<cdot>\<langle>x, \<mu> y. csnd\<cdot>(F\<cdot>\<langle>x, y\<rangle>)\<rangle>),
-    \<mu> y. csnd\<cdot>(F\<cdot>\<langle>\<mu> x. cfst\<cdot>(F\<cdot>\<langle>x, \<mu> y. csnd\<cdot>(F\<cdot>\<langle>x, y\<rangle>)\<rangle>), y\<rangle>)\<rangle>"
-  (is "fix\<cdot>F = \<langle>?x, ?y\<rangle>")
+   (\<mu> x. fst (F\<cdot>(x, \<mu> y. snd (F\<cdot>(x, y)))),
+    \<mu> y. snd (F\<cdot>(\<mu> x. fst (F\<cdot>(x, \<mu> y. snd (F\<cdot>(x, y)))), y)))"
+  (is "fix\<cdot>F = (?x, ?y)")
 proof (rule fix_eqI)
-  have 1: "cfst\<cdot>(F\<cdot>\<langle>?x, ?y\<rangle>) = ?x"
+  have 1: "fst (F\<cdot>(?x, ?y)) = ?x"
     by (rule trans [symmetric, OF fix_eq], simp)
-  have 2: "csnd\<cdot>(F\<cdot>\<langle>?x, ?y\<rangle>) = ?y"
+  have 2: "snd (F\<cdot>(?x, ?y)) = ?y"
     by (rule trans [symmetric, OF fix_eq], simp)
-  from 1 2 show "F\<cdot>\<langle>?x, ?y\<rangle> = \<langle>?x, ?y\<rangle>" by (simp add: eq_cprod)
+  from 1 2 show "F\<cdot>(?x, ?y) = (?x, ?y)" by (simp add: Pair_fst_snd_eq)
 next
   fix z assume F_z: "F\<cdot>z = z"
-  then obtain x y where z: "z = \<langle>x,y\<rangle>" by (rule_tac p=z in cprodE)
-  from F_z z have F_x: "cfst\<cdot>(F\<cdot>\<langle>x, y\<rangle>) = x" by simp
-  from F_z z have F_y: "csnd\<cdot>(F\<cdot>\<langle>x, y\<rangle>) = y" by simp
-  let ?y1 = "\<mu> y. csnd\<cdot>(F\<cdot>\<langle>x, y\<rangle>)"
+  obtain x y where z: "z = (x,y)" by (rule prod.exhaust)
+  from F_z z have F_x: "fst (F\<cdot>(x, y)) = x" by simp
+  from F_z z have F_y: "snd (F\<cdot>(x, y)) = y" by simp
+  let ?y1 = "\<mu> y. snd (F\<cdot>(x, y))"
   have "?y1 \<sqsubseteq> y" by (rule fix_least, simp add: F_y)
-  hence "cfst\<cdot>(F\<cdot>\<langle>x, ?y1\<rangle>) \<sqsubseteq> cfst\<cdot>(F\<cdot>\<langle>x, y\<rangle>)" by (simp add: monofun_cfun)
-  hence "cfst\<cdot>(F\<cdot>\<langle>x, ?y1\<rangle>) \<sqsubseteq> x" using F_x by simp
+  hence "fst (F\<cdot>(x, ?y1)) \<sqsubseteq> fst (F\<cdot>(x, y))"
+    by (simp add: fst_monofun monofun_cfun)
+  hence "fst (F\<cdot>(x, ?y1)) \<sqsubseteq> x" using F_x by simp
   hence 1: "?x \<sqsubseteq> x" by (simp add: fix_least_below)
-  hence "csnd\<cdot>(F\<cdot>\<langle>?x, y\<rangle>) \<sqsubseteq> csnd\<cdot>(F\<cdot>\<langle>x, y\<rangle>)" by (simp add: monofun_cfun)
-  hence "csnd\<cdot>(F\<cdot>\<langle>?x, y\<rangle>) \<sqsubseteq> y" using F_y by simp
+  hence "snd (F\<cdot>(?x, y)) \<sqsubseteq> snd (F\<cdot>(x, y))"
+    by (simp add: snd_monofun monofun_cfun)
+  hence "snd (F\<cdot>(?x, y)) \<sqsubseteq> y" using F_y by simp
   hence 2: "?y \<sqsubseteq> y" by (simp add: fix_least_below)
-  show "\<langle>?x, ?y\<rangle> \<sqsubseteq> z" using z 1 2 by simp
+  show "(?x, ?y) \<sqsubseteq> z" using z 1 2 by simp
 qed
 
 end
