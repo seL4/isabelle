@@ -57,8 +57,8 @@ where
   mirror_Leaf: "mirror\<cdot>(Leaf\<cdot>a) = Leaf\<cdot>a"
 | mirror_Node: "mirror\<cdot>(Node\<cdot>l\<cdot>r) = Node\<cdot>(mirror\<cdot>r)\<cdot>(mirror\<cdot>l)"
 
-fixpat
-  mirror_strict [simp]: "mirror\<cdot>\<bottom>"
+lemma mirror_strict [simp]: "mirror\<cdot>\<bottom> = \<bottom>"
+by fixrec_simp
 
 fixrec
   pick :: "'a tree \<rightarrow> 'a convex_pd"
@@ -66,8 +66,8 @@ where
   pick_Leaf: "pick\<cdot>(Leaf\<cdot>a) = {a}\<natural>"
 | pick_Node: "pick\<cdot>(Node\<cdot>l\<cdot>r) = pick\<cdot>l +\<natural> pick\<cdot>r"
 
-fixpat
-  pick_strict [simp]: "pick\<cdot>\<bottom>"
+lemma pick_strict [simp]: "pick\<cdot>\<bottom> = \<bottom>"
+by fixrec_simp
 
 lemma pick_mirror: "pick\<cdot>(mirror\<cdot>t) = pick\<cdot>t"
 by (induct t) (simp_all add: convex_plus_ac)
