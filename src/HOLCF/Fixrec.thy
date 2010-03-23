@@ -419,10 +419,6 @@ by (simp_all add: branch_def ONE_pat_def)
 
 subsection {* Wildcards, as-patterns, and lazy patterns *}
 
-syntax
-  "_as_pat" :: "[idt, 'a] \<Rightarrow> 'a" (infixr "\<as>" 10)
-  "_lazy_pat" :: "'a \<Rightarrow> 'a" ("\<lazy> _" [1000] 1000)
-
 definition
   wild_pat :: "'a \<rightarrow> unit maybe" where
   "wild_pat = (\<Lambda> x. return\<cdot>())"
@@ -438,24 +434,14 @@ definition
 text {* Parse translations (patterns) *}
 translations
   "_pat _" => "CONST wild_pat"
-  "_pat (_as_pat x y)" => "CONST as_pat (_pat y)"
-  "_pat (_lazy_pat x)" => "CONST lazy_pat (_pat x)"
 
 text {* Parse translations (variables) *}
 translations
   "_variable _ r" => "_variable _noargs r"
-  "_variable (_as_pat x y) r" => "_variable (_args x y) r"
-  "_variable (_lazy_pat x) r" => "_variable x r"
 
 text {* Print translations *}
 translations
   "_" <= "_match (CONST wild_pat) _noargs"
-  "_as_pat x (_match p v)" <= "_match (CONST as_pat p) (_args (_variable x) v)"
-  "_lazy_pat (_match p v)" <= "_match (CONST lazy_pat p) v"
-
-text {* Lazy patterns in lambda abstractions *}
-translations
-  "_cabs (_lazy_pat p) r" == "CONST Fixrec.cases oo (_Case1 (_lazy_pat p) r)"
 
 lemma wild_pat [simp]: "branch wild_pat\<cdot>(unit_when\<cdot>r)\<cdot>x = return\<cdot>r"
 by (simp add: branch_def wild_pat_def)
