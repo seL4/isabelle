@@ -28,16 +28,16 @@ definition
 
 definition
   r1 :: "(int lift \<times> 'a) \<rightarrow> (int lift \<times> 'a) \<rightarrow> tr convex_pd" where
-  "r1 = (\<Lambda> \<langle>x,_\<rangle> \<langle>y,_\<rangle>. case compare\<cdot>x\<cdot>y of
+  "r1 = (\<Lambda> (x,_) (y,_). case compare\<cdot>x\<cdot>y of
           LT \<Rightarrow> {TT}\<natural> |
           EQ \<Rightarrow> {TT, FF}\<natural> |
           GT \<Rightarrow> {FF}\<natural>)"
 
 definition
   r2 :: "(int lift \<times> 'a) \<rightarrow> (int lift \<times> 'a) \<rightarrow> tr convex_pd" where
-  "r2 = (\<Lambda> \<langle>x,_\<rangle> \<langle>y,_\<rangle>. {is_le\<cdot>x\<cdot>y, is_less\<cdot>x\<cdot>y}\<natural>)"
+  "r2 = (\<Lambda> (x,_) (y,_). {is_le\<cdot>x\<cdot>y, is_less\<cdot>x\<cdot>y}\<natural>)"
 
-lemma r1_r2: "r1\<cdot>\<langle>x,a\<rangle>\<cdot>\<langle>y,b\<rangle> = (r2\<cdot>\<langle>x,a\<rangle>\<cdot>\<langle>y,b\<rangle> :: tr convex_pd)"
+lemma r1_r2: "r1\<cdot>(x,a)\<cdot>(y,b) = (r2\<cdot>(x,a)\<cdot>(y,b) :: tr convex_pd)"
 apply (simp add: r1_def r2_def)
 apply (simp add: is_le_def is_less_def)
 apply (cases "compare\<cdot>x\<cdot>y")
