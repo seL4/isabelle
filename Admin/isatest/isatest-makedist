@@ -96,7 +96,7 @@ $SSH macbroy21 "$MAKEALL $HOME/settings/at-poly-test"
 sleep 15
 $SSH macbroy22 "$MAKEALL $HOME/settings/at-poly"
 sleep 15
-$SSH macbroy23 "$MAKEALL -l HOL HOL-ex $HOME/settings/at-sml-dev-e"
+$SSH macbroy23 "$MAKEALL -l HOL HOL-Library $HOME/settings/at-sml-dev-e"
 sleep 15
 $SSH macbroy24 "$MAKEALL $HOME/settings/at64-poly"
 sleep 15
