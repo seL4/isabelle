@@ -261,29 +261,4 @@ next
   show "\<langle>?x, ?y\<rangle> \<sqsubseteq> z" using z 1 2 by simp
 qed
 
-subsection {* Weak admissibility *}
-
-definition
-  admw :: "('a \<Rightarrow> bool) \<Rightarrow> bool" where
-  "admw P = (\<forall>F. (\<forall>n. P (iterate n\<cdot>F\<cdot>\<bottom>)) \<longrightarrow> P (\<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>))"
-
-text {* an admissible formula is also weak admissible *}
-
-lemma adm_impl_admw: "adm P \<Longrightarrow> admw P"
-apply (unfold admw_def)
-apply (intro strip)
-apply (erule admD)
-apply (rule chain_iterate)
-apply (erule spec)
-done
-
-text {* computational induction for weak admissible formulae *}
-
-lemma wfix_ind: "\<lbrakk>admw P; \<forall>n. P (iterate n\<cdot>F\<cdot>\<bottom>)\<rbrakk> \<Longrightarrow> P (fix\<cdot>F)"
-by (simp add: fix_def2 admw_def)
-
-lemma def_wfix_ind:
-  "\<lbrakk>f \<equiv> fix\<cdot>F; admw P; \<forall>n. P (iterate n\<cdot>F\<cdot>\<bottom>)\<rbrakk> \<Longrightarrow> P f"
-by (simp, rule wfix_ind)
-
 end
