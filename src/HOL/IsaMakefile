@@ -10,13 +10,14 @@ generate: HOL-Generate-HOL HOL-Generate-HOLLight
 images: \
   HOL \
   HOL-Algebra \
-  HOL-Boogie \
   HOL-Base \
+  HOL-Boogie \
   HOL-Main \
   HOL-Multivariate_Analysis \
   HOL-NSA \
   HOL-Nominal \
   HOL-Plain \
+  HOL-Probability \
   HOL-Proofs \
   HOL-SMT \
   HOL-Word \
@@ -54,7 +55,6 @@ test: \
   HOL-Number_Theory \
   HOL-Old_Number_Theory \
   HOL-Quotient_Examples \
-  HOL-Probability \
   HOL-Prolog \
   HOL-Proofs-Extraction \
   HOL-Proofs-Lambda \
@@ -1084,17 +1084,13 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL-SMT	\
 
 ## HOL-Probability
 
-HOL-Probability: HOL $(LOG)/HOL-Probability.gz
+HOL-Probability: HOL $(OUT)/HOL-Probability
 
-$(LOG)/HOL-Probability.gz: $(OUT)/HOL Probability/ROOT.ML	\
-  Probability/Probability.thy					\
-  Probability/Sigma_Algebra.thy					\
-  Probability/SeriesPlus.thy					\
-  Probability/Caratheodory.thy					\
-  Probability/Borel.thy						\
-  Probability/Measure.thy					\
-  Probability/Lebesgue.thy					\
-  Probability/Product_Measure.thy				\
+$(OUT)/HOL-Probability: $(OUT)/HOL Probability/ROOT.ML		\
+  Probability/Probability.thy Probability/Sigma_Algebra.thy	\
+  Probability/SeriesPlus.thy Probability/Caratheodory.thy	\
+  Probability/Borel.thy Probability/Measure.thy			\
+  Probability/Lebesgue.thy Probability/Product_Measure.thy	\
   Probability/Probability_Space.thy
 	@cd Probability; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Probability
 
@@ -1316,12 +1312,12 @@ clean:
 		$(LOG)/HOL-SMT-Examples.gz $(LOG)/HOL-SMT.gz		\
 		$(LOG)/HOL-Statespace.gz $(LOG)/HOL-Subst.gz		\
 		$(LOG)/HOL-UNITY.gz $(LOG)/HOL-Unix.gz			\
-		$(LOG)/HOL-Word-Examples.gz		\
-		$(LOG)/HOL-Word.gz $(LOG)/HOL-ZF.gz $(LOG)/HOL-ex.gz	\
-		$(LOG)/HOL.gz $(LOG)/HOL4.gz $(LOG)/TLA-Buffer.gz	\
-		$(LOG)/TLA-Inc.gz $(LOG)/TLA-Memory.gz $(LOG)/TLA.gz	\
-		$(OUT)/HOL $(OUT)/HOL-Algebra $(OUT)/HOL-Base		\
-		$(OUT)/HOL-Boogie $(OUT)/HOL-Main			\
-		$(OUT)/HOL-Multivariate_Analysis $(OUT)/HOL-NSA		\
-		$(OUT)/HOL-Nominal $(OUT)/HOL-Plain $(OUT)/HOL-Proofs	\
+		$(LOG)/HOL-Word-Examples.gz $(LOG)/HOL-Word.gz		\
+		$(LOG)/HOL-ZF.gz $(LOG)/HOL-ex.gz $(LOG)/HOL.gz		\
+		$(LOG)/HOL4.gz $(LOG)/TLA-Buffer.gz $(LOG)/TLA-Inc.gz	\
+		$(LOG)/TLA-Memory.gz $(LOG)/TLA.gz $(OUT)/HOL		\
+		$(OUT)/HOL-Algebra $(OUT)/HOL-Base $(OUT)/HOL-Boogie	\
+		$(OUT)/HOL-Main $(OUT)/HOL-Multivariate_Analysis	\
+		$(OUT)/HOL-NSA $(OUT)/HOL-Nominal $(OUT)/HOL-Plain	\
+		$(OUT)/HOL-Probability $(OUT)/HOL-Proofs		\
 		$(OUT)/HOL-SMT $(OUT)/HOL-Word $(OUT)/HOL4 $(OUT)/TLA
