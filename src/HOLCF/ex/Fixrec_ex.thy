@@ -13,7 +13,7 @@ subsection {* Basic @{text fixrec} examples *}
 text {*
   Fixrec patterns can mention any constructor defined by the domain
   package, as well as any of the following built-in constructors:
-  cpair, spair, sinl, sinr, up, ONE, TT, FF.
+  Pair, spair, sinl, sinr, up, ONE, TT, FF.
 *}
 
 text {* Typical usage is with lazy constructors. *}
@@ -50,7 +50,7 @@ text {* Notice that the patterns are not exhaustive. *}
 fixrec
   lzip :: "'a llist \<rightarrow> 'b llist \<rightarrow> ('a \<times> 'b) llist"
 where
-  "lzip\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>(lCons\<cdot>y\<cdot>ys) = lCons\<cdot><x,y>\<cdot>(lzip\<cdot>xs\<cdot>ys)"
+  "lzip\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>(lCons\<cdot>y\<cdot>ys) = lCons\<cdot>(x, y)\<cdot>(lzip\<cdot>xs\<cdot>ys)"
 | "lzip\<cdot>lNil\<cdot>lNil = lNil"
 
 text {* @{text fixrec_simp} is useful for producing strictness theorems. *}
@@ -118,7 +118,7 @@ text {*
 fixrec (permissive)
   lzip2 :: "'a llist \<rightarrow> 'b llist \<rightarrow> ('a \<times> 'b) llist"
 where
-  "lzip2\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>(lCons\<cdot>y\<cdot>ys) = lCons\<cdot><x,y>\<cdot>(lzip\<cdot>xs\<cdot>ys)"
+  "lzip2\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>(lCons\<cdot>y\<cdot>ys) = lCons\<cdot>(x, y)\<cdot>(lzip\<cdot>xs\<cdot>ys)"
 | "lzip2\<cdot>xs\<cdot>ys = lNil"
 
 text {*
@@ -130,7 +130,7 @@ text {*
 text {* Simp rules can be generated later using @{text fixrec_simp}. *}
 
 lemma lzip2_simps [simp]:
-  "lzip2\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>(lCons\<cdot>y\<cdot>ys) = lCons\<cdot><x,y>\<cdot>(lzip\<cdot>xs\<cdot>ys)"
+  "lzip2\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>(lCons\<cdot>y\<cdot>ys) = lCons\<cdot>(x, y)\<cdot>(lzip\<cdot>xs\<cdot>ys)"
   "lzip2\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>lNil = lNil"
   "lzip2\<cdot>lNil\<cdot>(lCons\<cdot>y\<cdot>ys) = lNil"
   "lzip2\<cdot>lNil\<cdot>lNil = lNil"
