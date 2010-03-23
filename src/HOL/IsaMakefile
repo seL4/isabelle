@@ -1096,7 +1096,7 @@ $(LOG)/HOL-Probability.gz: $(OUT)/HOL Probability/ROOT.ML	\
   Probability/Lebesgue.thy					\
   Probability/Product_Measure.thy				\
   Probability/Probability_Space.thy
-	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Probability
+	@cd Probability; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Probability
 
 
 ## HOL-Nominal
