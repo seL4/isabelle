@@ -16,7 +16,7 @@ fun hex_string arr i =
   in (op ^) (pairself hex_digit (Integer.div_mod (Char.ord c) 16)) end
 
 val lib_path =
-  ("$ML_HOME/" ^ (if String.isSuffix "cygwin" ml_system then "sha1.dll" else "libsha1.so"))
+  ("$ML_HOME/" ^ (if String.isSuffix "cygwin" ml_platform then "sha1.dll" else "libsha1.so"))
   |> Path.explode;
 
 fun digest_external str =
