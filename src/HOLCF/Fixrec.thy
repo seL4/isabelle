@@ -276,13 +276,13 @@ types ('a, 'b) pat = "'a \<rightarrow> 'b maybe"
 
 definition
   cpair_pat :: "('a, 'c) pat \<Rightarrow> ('b, 'd) pat \<Rightarrow> ('a \<times> 'b, 'c \<times> 'd) pat" where
-  "cpair_pat p1 p2 = (\<Lambda>\<langle>x, y\<rangle>.
-    bind\<cdot>(p1\<cdot>x)\<cdot>(\<Lambda> a. bind\<cdot>(p2\<cdot>y)\<cdot>(\<Lambda> b. return\<cdot>\<langle>a, b\<rangle>)))"
+  "cpair_pat p1 p2 = (\<Lambda>(x, y).
+    bind\<cdot>(p1\<cdot>x)\<cdot>(\<Lambda> a. bind\<cdot>(p2\<cdot>y)\<cdot>(\<Lambda> b. return\<cdot>(a, b))))"
 
 definition
   spair_pat ::
   "('a, 'c) pat \<Rightarrow> ('b, 'd) pat \<Rightarrow> ('a::pcpo \<otimes> 'b::pcpo, 'c \<times> 'd) pat" where
-  "spair_pat p1 p2 = (\<Lambda>(:x, y:). cpair_pat p1 p2\<cdot>\<langle>x, y\<rangle>)"
+  "spair_pat p1 p2 = (\<Lambda>(:x, y:). cpair_pat p1 p2\<cdot>(x, y))"
 
 definition
   sinl_pat :: "('a, 'c) pat \<Rightarrow> ('a::pcpo \<oplus> 'b::pcpo, 'c) pat" where
@@ -310,7 +310,7 @@ definition
 
 text {* Parse translations (patterns) *}
 translations
-  "_pat (XCONST cpair\<cdot>x\<cdot>y)" => "CONST cpair_pat (_pat x) (_pat y)"
+  "_pat (XCONST Pair x y)" => "CONST cpair_pat (_pat x) (_pat y)"
   "_pat (XCONST spair\<cdot>x\<cdot>y)" => "CONST spair_pat (_pat x) (_pat y)"
   "_pat (XCONST sinl\<cdot>x)" => "CONST sinl_pat (_pat x)"
   "_pat (XCONST sinr\<cdot>x)" => "CONST sinr_pat (_pat x)"
@@ -321,12 +321,12 @@ translations
 
 text {* CONST version is also needed for constructors with special syntax *}
 translations
-  "_pat (CONST cpair\<cdot>x\<cdot>y)" => "CONST cpair_pat (_pat x) (_pat y)"
+  "_pat (CONST Pair x y)" => "CONST cpair_pat (_pat x) (_pat y)"
   "_pat (CONST spair\<cdot>x\<cdot>y)" => "CONST spair_pat (_pat x) (_pat y)"
 
 text {* Parse translations (variables) *}
 translations
-  "_variable (XCONST cpair\<cdot>x\<cdot>y) r" => "_variable (_args x y) r"
+  "_variable (XCONST Pair x y) r" => "_variable (_args x y) r"
   "_variable (XCONST spair\<cdot>x\<cdot>y) r" => "_variable (_args x y) r"
   "_variable (XCONST sinl\<cdot>x) r" => "_variable x r"
   "_variable (XCONST sinr\<cdot>x) r" => "_variable x r"
@@ -336,12 +336,12 @@ translations
   "_variable (XCONST ONE) r" => "_variable _noargs r"
 
 translations
-  "_variable (CONST cpair\<cdot>x\<cdot>y) r" => "_variable (_args x y) r"
+  "_variable (CONST Pair x y) r" => "_variable (_args x y) r"
   "_variable (CONST spair\<cdot>x\<cdot>y) r" => "_variable (_args x y) r"
 
 text {* Print translations *}
 translations
-  "CONST cpair\<cdot>(_match p1 v1)\<cdot>(_match p2 v2)"
+  "CONST Pair (_match p1 v1) (_match p2 v2)"
       <= "_match (CONST cpair_pat p1 p2) (_args v1 v2)"
   "CONST spair\<cdot>(_match p1 v1)\<cdot>(_match p2 v2)"
       <= "_match (CONST spair_pat p1 p2) (_args v1 v2)"
@@ -353,20 +353,20 @@ translations
   "CONST ONE" <= "_match (CONST ONE_pat) _noargs"
 
 lemma cpair_pat1:
-  "branch p\<cdot>r\<cdot>x = \<bottom> \<Longrightarrow> branch (cpair_pat p q)\<cdot>(csplit\<cdot>r)\<cdot>\<langle>x, y\<rangle> = \<bottom>"
+  "branch p\<cdot>r\<cdot>x = \<bottom> \<Longrightarrow> branch (cpair_pat p q)\<cdot>(csplit\<cdot>r)\<cdot>(x, y) = \<bottom>"
 apply (simp add: branch_def cpair_pat_def)
 apply (rule_tac p="p\<cdot>x" in maybeE, simp_all)
 done
 
 lemma cpair_pat2:
-  "branch p\<cdot>r\<cdot>x = fail \<Longrightarrow> branch (cpair_pat p q)\<cdot>(csplit\<cdot>r)\<cdot>\<langle>x, y\<rangle> = fail"
+  "branch p\<cdot>r\<cdot>x = fail \<Longrightarrow> branch (cpair_pat p q)\<cdot>(csplit\<cdot>r)\<cdot>(x, y) = fail"
 apply (simp add: branch_def cpair_pat_def)
 apply (rule_tac p="p\<cdot>x" in maybeE, simp_all)
 done
 
 lemma cpair_pat3:
   "branch p\<cdot>r\<cdot>x = return\<cdot>s \<Longrightarrow>
-   branch (cpair_pat p q)\<cdot>(csplit\<cdot>r)\<cdot>\<langle>x, y\<rangle> = branch q\<cdot>s\<cdot>y"
+   branch (cpair_pat p q)\<cdot>(csplit\<cdot>r)\<cdot>(x, y) = branch q\<cdot>s\<cdot>y"
 apply (simp add: branch_def cpair_pat_def)
 apply (rule_tac p="p\<cdot>x" in maybeE, simp_all)
 apply (rule_tac p="q\<cdot>y" in maybeE, simp_all)
@@ -379,7 +379,7 @@ lemma spair_pat [simp]:
   "branch (spair_pat p1 p2)\<cdot>r\<cdot>\<bottom> = \<bottom>"
   "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk>
      \<Longrightarrow> branch (spair_pat p1 p2)\<cdot>r\<cdot>(:x, y:) =
-         branch (cpair_pat p1 p2)\<cdot>r\<cdot>\<langle>x, y\<rangle>"
+         branch (cpair_pat p1 p2)\<cdot>r\<cdot>(x, y)"
 by (simp_all add: branch_def spair_pat_def)
 
 lemma sinl_pat [simp]:
@@ -425,7 +425,7 @@ definition
 
 definition
   as_pat :: "('a \<rightarrow> 'b maybe) \<Rightarrow> 'a \<rightarrow> ('a \<times> 'b) maybe" where
-  "as_pat p = (\<Lambda> x. bind\<cdot>(p\<cdot>x)\<cdot>(\<Lambda> a. return\<cdot>\<langle>x, a\<rangle>))"
+  "as_pat p = (\<Lambda> x. bind\<cdot>(p\<cdot>x)\<cdot>(\<Lambda> a. return\<cdot>(x, a)))"
 
 definition
   lazy_pat :: "('a \<rightarrow> 'b::pcpo maybe) \<Rightarrow> ('a \<rightarrow> 'b maybe)" where
@@ -516,7 +516,6 @@ lemma match_UU_simps [simp]:
 by (simp_all add: match_UU_def)
 
 lemma match_cpair_simps [simp]:
-  "match_cpair\<cdot>\<langle>x, y\<rangle>\<cdot>k = k\<cdot>x\<cdot>y"
   "match_cpair\<cdot>(x, y)\<cdot>k = k\<cdot>x\<cdot>y"
 by (simp_all add: match_cpair_def)
 
@@ -602,7 +601,6 @@ setup {*
       (@{const_name sinl}, @{const_name match_sinl}),
       (@{const_name sinr}, @{const_name match_sinr}),
       (@{const_name spair}, @{const_name match_spair}),
-      (@{const_name cpair}, @{const_name match_cpair}),
       (@{const_name Pair}, @{const_name match_cpair}),
       (@{const_name ONE}, @{const_name match_ONE}),
       (@{const_name TT}, @{const_name match_TT}),
