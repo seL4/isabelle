@@ -99,7 +99,7 @@ fun extract_params thy default_params override_params =
     val lookup_string = the_default "" o lookup
     fun general_lookup_bool option default_value name =
       case lookup name of
-        SOME s => s |> parse_bool_option option name
+        SOME s => parse_bool_option option name s
       | NONE => default_value
     val lookup_bool = the o general_lookup_bool false (SOME false)
     val lookup_bool_option = general_lookup_bool true NONE

@@ -568,9 +568,6 @@ fun get_relevant_facts relevance_threshold higher_order follow_defs max_new
    create additional clauses based on the information from extra_cls *)
 fun prepare_clauses higher_order dfg goal_cls chain_ths axcls extra_cls thy =
   let
-(* ### *)
-val _ = priority ("prepare clauses: axiom " ^ Int.toString (length axcls) ^
-                  ", extra " ^ Int.toString (length extra_cls))
     (* add chain thms *)
     val chain_cls =
       cnf_rules_pairs thy (filter check_named (map pairname chain_ths))
