@@ -950,7 +950,6 @@ HOL-ex: HOL $(LOG)/HOL-ex.gz
 
 $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   Number_Theory/Primes.thy						\
-  Tools/Predicate_Compile/predicate_compile_core.ML			\
   ex/Abstract_NAT.thy ex/Antiquote.thy ex/Arith_Examples.thy		\
   ex/Arithmetic_Series_Complex.thy ex/BT.thy ex/BinEx.thy		\
   ex/Binary.thy ex/CTL.thy ex/Chinese.thy ex/Classical.thy		\
