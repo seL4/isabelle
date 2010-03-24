@@ -11,8 +11,7 @@ no_document use_thys [
   "Eval_Examples",
   "Codegenerator_Test",
   "Codegenerator_Pretty_Test",
-  "NormalForm",
-  "Predicate_Compile_Quickcheck"
+  "NormalForm"
 ];
 
 use_thys [

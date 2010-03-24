@@ -419,7 +419,8 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Nat_Bijection.thy $(SRC)/Tools/float.ML			\
   $(SRC)/HOL/Tools/float_arith.ML Library/positivstellensatz.ML		\
   Library/reify_data.ML Library/reflection.ML Library/LaTeXsugar.thy	\
-  Library/OptionalSugar.thy Library/SML_Quickcheck.thy
+  Library/OptionalSugar.thy \
+  Library/Predicate_Compile_Quickcheck.thy Library/SML_Quickcheck.thy
 	@cd Library; $(ISABELLE_TOOL) usedir $(OUT)/HOL Library
 
 
@@ -965,7 +966,6 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   ex/Lagrange.thy ex/LocaleTest2.thy ex/MT.thy				\
   ex/MergeSort.thy ex/Meson_Test.thy ex/MonoidGroup.thy			\
   ex/Multiquote.thy ex/NatSum.thy ex/Numeral.thy ex/PER.thy		\
-  ex/Predicate_Compile_Quickcheck.thy 					\
   ex/PresburgerEx.thy ex/Primrec.thy ex/Quickcheck_Examples.thy		\
   ex/ROOT.ML ex/Recdefs.thy ex/Records.thy ex/ReflectionEx.thy		\
   ex/Refute_Examples.thy ex/SAT_Examples.thy ex/SVC_Oracle.thy		\
