@@ -72,7 +72,7 @@ lemma lemma6: "YYS << YS"
   apply (unfold YYS_def)
   apply (rule fix_least)
   apply (subst beta_cfun)
-  apply (tactic "cont_tacR 1")
+  apply simp
   apply (simp add: YS_def2 [symmetric])
   done
 
