@@ -46,6 +46,46 @@ setup {* Predicate_Compile_Data.keep_functions [@{const_name number_of}] *}
 
 setup {* Predicate_Compile_Data.ignore_consts [@{const_name div}, @{const_name mod}, @{const_name times}] *}
 
+subsection {* Inductive definitions for arithmetic on natural numbers *}
+
+inductive plusP
+where
+  "plusP x 0 x"
+|  "plusP x y z ==> plusP x (Suc y) (Suc z)"
+
+setup {* Predicate_Compile_Fun.add_function_predicate_translation
+  (@{term "op + :: nat => nat => nat"}, @{term "plusP"}) *}
+
+inductive less_nat
+where
+  "less_nat 0 (Suc y)"
+| "less_nat x y ==> less_nat (Suc x) (Suc y)"
+
+lemma [code_pred_inline]:
+  "x < y = less_nat x y"
+apply (rule iffI)
+apply (induct x arbitrary: y)
+apply (case_tac y) apply (auto intro: less_nat.intros)
+apply (case_tac y)
+apply (auto intro: less_nat.intros)
+apply (induct rule: less_nat.induct)
+apply auto
+done
+
+inductive less_eq_nat
+where
+  "less_eq_nat 0 y"
+| "less_eq_nat x y ==> less_eq_nat (Suc x) (Suc y)"
+
+lemma [code_pred_inline]:
+"x <= y = less_eq_nat x y"
+apply (rule iffI)
+apply (induct x arbitrary: y)
+apply (auto intro: less_eq_nat.intros)
+apply (case_tac y) apply (auto intro: less_eq_nat.intros)
+apply (induct rule: less_eq_nat.induct)
+apply auto done
+
 section {* Alternative list definitions *}
 
 text {* size simps are not yet added to the Spec_Rules interface. So they are just added manually here! *}
