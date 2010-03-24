@@ -1272,7 +1272,7 @@ $(LOG)/HOL-Boogie-Examples.gz: $(OUT)/HOL-Boogie			\
 HOL-Mutabelle: HOL $(LOG)/HOL-Mutabelle.gz
 
 $(LOG)/HOL-Mutabelle.gz: $(OUT)/HOL Mutabelle/MutabelleExtra.thy	\
-  Mutabelle/ROOT.ML Mutabelle/mutabelle.ML			\
+  Mutabelle/ROOT.ML Mutabelle/mutabelle.ML				\
   Mutabelle/mutabelle_extra.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Mutabelle
 
@@ -1281,19 +1281,21 @@ $(LOG)/HOL-Mutabelle.gz: $(OUT)/HOL Mutabelle/MutabelleExtra.thy	\
 
 HOL-Quotient_Examples: HOL $(LOG)/HOL-Quotient_Examples.gz
 
-$(LOG)/HOL-Quotient_Examples.gz: $(OUT)/HOL	      			\
+$(LOG)/HOL-Quotient_Examples.gz: $(OUT)/HOL				\
   Quotient_Examples/LarryInt.thy Quotient_Examples/LarryDatatype.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Quotient_Examples
+
 
 ## HOL-Predicate_Compile_Examples
 
 HOL-Predicate_Compile_Examples: HOL $(LOG)/HOL-Predicate_Compile_Examples.gz
 
-$(LOG)/HOL-Predicate_Compile_Examples.gz: $(OUT)/HOL	      		\
+$(LOG)/HOL-Predicate_Compile_Examples.gz: $(OUT)/HOL			\
   Predicate_Compile_Examples/ROOT.ML					\
   Predicate_Compile_Examples/Predicate_Compile_Examples.thy		\
   Predicate_Compile_Examples/Predicate_Compile_Quickcheck_Examples.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Predicate_Compile_Examples
+
 
 ## clean
 
@@ -1318,6 +1320,7 @@ clean:
 		$(LOG)/HOL-Nominal-Examples.gz $(LOG)/HOL-Nominal.gz	\
 		$(LOG)/HOL-Number_Theory.gz				\
 		$(LOG)/HOL-Old_Number_Theory.gz $(LOG)/HOL-Plain.gz	\
+		$(LOG)/HOL-Predicate_Compile_Examples.gz		\
 		$(LOG)/HOL-Probability.gz $(LOG)/HOL-Prolog.gz		\
 		$(LOG)/HOL-Proofs.gz $(LOG)/HOL-Proofs-Extraction.gz	\
 		$(LOG)/HOL-Proofs-Lambda.gz $(LOG)/HOL-SET_Protocol.gz	\
