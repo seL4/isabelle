@@ -1,4 +1,4 @@
-theory Predicate_Compile_Quickcheck_ex
+theory Predicate_Compile_Quickcheck_Examples
 imports Predicate_Compile_Quickcheck
 begin
 

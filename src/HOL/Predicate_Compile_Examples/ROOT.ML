@@ -1,1 +1,1 @@
-use_thys ["Predicate_Compile_Examples"];
+use_thys ["Predicate_Compile_Examples", "Predicate_Compile_Quickcheck_Examples"];
