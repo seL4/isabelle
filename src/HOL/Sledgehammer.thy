@@ -12,6 +12,7 @@ imports Plain Hilbert_Choice
 uses
   "Tools/polyhash.ML"
   "~~/src/Tools/Metis/metis.ML"
+  "Tools/Sledgehammer/sledgehammer_util.ML"
   ("Tools/Sledgehammer/sledgehammer_fol_clause.ML")
   ("Tools/Sledgehammer/sledgehammer_fact_preprocessor.ML")
   ("Tools/Sledgehammer/sledgehammer_hol_clause.ML")
