@@ -92,14 +92,14 @@ use "term.ML";
 use "term_ord.ML";
 use "term_subst.ML";
 use "old_term.ML";
-use "logic.ML";
 use "General/pretty.ML";
 use "context.ML";
 use "context_position.ML";
-use "Syntax/lexicon.ML";
-use "Syntax/simple_syntax.ML";
 use "sorts.ML";
 use "type.ML";
+use "logic.ML";
+use "Syntax/lexicon.ML";
+use "Syntax/simple_syntax.ML";
 use "config.ML";
 
 
