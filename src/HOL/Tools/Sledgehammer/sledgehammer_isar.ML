@@ -21,23 +21,25 @@ open Sledgehammer_Util
 
 structure K = OuterKeyword and P = OuterParse
 
-datatype facta = Facta of {add: Facts.ref list, del: Facts.ref list, only: bool}
-
-fun add_to_facta ns = Facta {add = ns, del = [], only = false};
-fun del_from_facta ns = Facta {add = [], del = ns, only = false};
-fun only_facta ns = Facta {add = ns, del = [], only = true};
-val default_facta = add_to_facta []
-fun merge_facta_pairwise (Facta f1) (Facta f2) =
-  Facta {add = #add f1 @ #add f2, del = #del f1 @ #del f2,
-         only = #only f1 orelse #only f2} 
-fun merge_facta fs = fold merge_facta_pairwise fs default_facta
+fun add_to_relevance_override ns : relevance_override =
+  {add = ns, del = [], only = false}
+fun del_from_relevance_override ns : relevance_override =
+  {add = [], del = ns, only = false}
+fun only_relevance_override ns : relevance_override =
+  {add = ns, del = [], only = true}
+val default_relevance_override = add_to_relevance_override []
+fun merge_relevance_override_pairwise r1 r2 : relevance_override =
+  {add = #add r1 @ #add r2, del = #del r1 @ #del r2,
+   only = #only r1 orelse #only r2} 
+fun merge_relevance_overrides rs =
+  fold merge_relevance_override_pairwise rs default_relevance_override
 
 type raw_param = string * string list
 
 val default_default_params =
   [("debug", "false"),
    ("verbose", "false"),
-   ("relevance_threshold", "0.5"),
+   ("relevance_threshold", "50"),
    ("higher_order", "smart"),
    ("respect_no_atp", "true"),
    ("follow_defs", "false"),
@@ -105,15 +107,19 @@ fun extract_params thy default_params override_params =
       the_timeout (case lookup name of
                      NONE => NONE
                    | SOME s => parse_time_option name s)
-    fun lookup_real name =
+    fun lookup_int name =
       case lookup name of
-        NONE => 0.0
-      | SOME s => 0.0 (* FIXME ### *)
+        NONE => 0
+      | SOME s => case Int.fromString s of
+                    SOME n => n
+                  | NONE => error ("Parameter " ^ quote name ^
+                                   " must be assigned an integer value.")
     val debug = lookup_bool "debug"
     val verbose = debug orelse lookup_bool "verbose"
     val atps = lookup_string "atps" |> space_explode " "
     val full_types = lookup_bool "full_types"
-    val relevance_threshold = lookup_real "relevance_threshold"
+    val relevance_threshold =
+      0.01 * Real.fromInt (lookup_int "relevance_threshold")
     val higher_order = lookup_bool_option "higher_order"
     val respect_no_atp = lookup_bool "respect_no_atp"
     val follow_defs = lookup_bool "follow_defs"
@@ -180,15 +186,16 @@ val addN = "add"
 val delN = "del"
 val onlyN = "only"
 
-fun hammer_away override_params subcommand opt_i (Facta f) state =
+fun hammer_away override_params subcommand opt_i relevance_override state =
   let
     val thy = Proof.theory_of state
     val _ = List.app check_raw_param override_params
   in
     if subcommand = runN then
-      sledgehammer (get_params thy override_params) (the_default 1 opt_i) state
+      sledgehammer (get_params thy override_params) (the_default 1 opt_i)
+                   relevance_override state
     else if subcommand = minimizeN then
-      atp_minimize_command override_params [] (#add f) state
+      atp_minimize_command override_params [] (#add relevance_override) state
     else if subcommand = messagesN then
       messages opt_i
     else if subcommand = available_atpsN then
@@ -203,8 +210,9 @@ fun hammer_away override_params subcommand opt_i (Facta f) state =
       error ("Unknown subcommand: " ^ quote subcommand ^ ".")
   end
 
-fun sledgehammer_trans (((params, subcommand), opt_i), facta) =
-  Toplevel.keep (hammer_away params subcommand opt_i facta o Toplevel.proof_of)
+fun sledgehammer_trans (((subcommand, params), relevance_override), opt_i) =
+  Toplevel.keep (hammer_away params subcommand opt_i relevance_override
+                 o Toplevel.proof_of)
 
 fun string_for_raw_param (name, value) = name ^ " = " ^ space_implode " " value
 
@@ -221,32 +229,35 @@ fun sledgehammer_params_trans params =
                                       |> sort_strings |> cat_lines)))))
 
 val parse_key = Scan.repeat1 P.typ_group >> space_implode " "
-val parse_value =
-  Scan.repeat1 (P.minus >> single
-                || Scan.repeat1 (Scan.unless P.minus P.name)) >> flat
+val parse_value = Scan.repeat1 P.xname
 val parse_param = parse_key -- Scan.optional (P.$$$ "=" |-- parse_value) []
 val parse_params = Scan.optional (Args.bracks (P.list parse_param)) []
 val parse_fact_refs =
-  Scan.repeat (P.xname -- Scan.option Attrib.thm_sel
-               >> (fn (name, interval) =>
-                      Facts.Named ((name, Position.none), interval)))
-val parse_slew =
-  (Args.add |-- Args.colon |-- parse_fact_refs >> add_to_facta)
-  || (Args.del |-- Args.colon |-- parse_fact_refs >> del_from_facta)
-  || (P.$$$ onlyN |-- Args.colon |-- parse_fact_refs >> only_facta)
-val parse_facta =
-  Args.parens (Scan.optional (parse_fact_refs >> only_facta) default_facta
-               -- Scan.repeat parse_slew) >> op :: >> merge_facta
+  Scan.repeat1 (Scan.unless (P.name -- Args.colon)
+                            (P.xname -- Scan.option Attrib.thm_sel)
+                >> (fn (name, interval) =>
+                       Facts.Named ((name, Position.none), interval)))
+val parse_relevance_chunk =
+  (Args.add |-- Args.colon |-- parse_fact_refs >> add_to_relevance_override)
+  || (Args.del |-- Args.colon |-- parse_fact_refs
+      >> del_from_relevance_override)
+  || (P.$$$ onlyN |-- Args.colon |-- parse_fact_refs >> only_relevance_override)
+val parse_relevance_override =
+  Scan.optional (Args.parens
+      (Scan.optional (parse_fact_refs >> only_relevance_override)
+                     default_relevance_override
+       -- Scan.repeat parse_relevance_chunk)
+       >> op :: >> merge_relevance_overrides)
+      default_relevance_override
 val parse_sledgehammer_command =
-  (parse_params -- Scan.optional P.name runN -- Scan.option P.nat
-   -- parse_facta)
-  #>> sledgehammer_trans
+  (Scan.optional P.short_ident runN -- parse_params -- parse_relevance_override
+   -- Scan.option P.nat) #>> sledgehammer_trans
 val parse_sledgehammer_params_command =
   parse_params #>> sledgehammer_params_trans
 
 val parse_minimize_args =
-  Scan.optional (Args.bracks (P.list (P.xname --| P.$$$ "=" -- P.xname))) []
-
+  Scan.optional (Args.bracks (P.list (P.short_ident --| P.$$$ "=" -- P.xname)))
+                []
 val _ =
   OuterSyntax.improper_command "atp_kill" "kill all managed provers" K.diag
     (Scan.succeed (Toplevel.no_timing o Toplevel.imperative kill_atps))

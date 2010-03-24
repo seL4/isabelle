@@ -9,11 +9,16 @@ sig
   type axiom_name = Sledgehammer_HOL_Clause.axiom_name
   type hol_clause = Sledgehammer_HOL_Clause.hol_clause
   type hol_clause_id = Sledgehammer_HOL_Clause.hol_clause_id
+  type relevance_override =
+    {add: Facts.ref list,
+     del: Facts.ref list,
+     only: bool}
+
   val tvar_classes_of_terms : term list -> string list
   val tfree_classes_of_terms : term list -> string list
   val type_consts_of_terms : theory -> term list -> string list
   val get_relevant_facts :
-    real -> bool option -> bool -> int -> bool
+    real -> bool option -> bool -> int -> bool -> relevance_override
     -> Proof.context * (thm list * 'a) -> thm list
     -> (thm * (string * int)) list
   val prepare_clauses : bool option -> bool -> thm list -> thm list ->
@@ -31,9 +36,10 @@ open Sledgehammer_FOL_Clause
 open Sledgehammer_Fact_Preprocessor
 open Sledgehammer_HOL_Clause
 
-type axiom_name = axiom_name
-type hol_clause = hol_clause
-type hol_clause_id = hol_clause_id
+type relevance_override =
+  {add: Facts.ref list,
+   del: Facts.ref list,
+   only: bool}
 
 (********************************************************************)
 (* some settings for both background automatic ATP calling procedure*)
@@ -257,8 +263,12 @@ fun take_best max_new (newpairs : (annotd_cls*real) list) =
       end
   end;
 
-fun relevant_clauses follow_defs max_new thy ctab p rel_consts =
-  let fun relevant ([],_) [] = [] : (thm * (string * int)) list  (*Nothing added this iteration*)
+fun relevant_clauses ctxt follow_defs max_new
+                     (relevance_override as {add, del, only}) thy ctab p
+                     rel_consts =
+  let val add_thms = maps (ProofContext.get_fact ctxt) add
+      val del_thms = maps (ProofContext.get_fact ctxt) del
+      fun relevant ([],_) [] = [] : (thm * (string * int)) list  (*Nothing added this iteration*)
         | relevant (newpairs,rejects) [] =
             let val (newrels,more_rejects) = take_best max_new newpairs
                 val new_consts = maps #2 newrels
@@ -266,12 +276,17 @@ fun relevant_clauses follow_defs max_new thy ctab p rel_consts =
                 val newp = p + (1.0-p) / convergence
             in
               trace_msg (fn () => "relevant this iteration: " ^ Int.toString (length newrels));
-               (map #1 newrels) @ 
-               (relevant_clauses follow_defs max_new thy ctab newp rel_consts'
-                                 (more_rejects @ rejects))
+                map #1 newrels @ 
+                relevant_clauses ctxt follow_defs max_new relevance_override thy ctab
+                                 newp rel_consts' (more_rejects @ rejects)
             end
-        | relevant (newrels,rejects) ((ax as (clsthm as (_,(name,n)),consts_typs)) :: axs) =
-            let val weight = clause_weight ctab rel_consts consts_typs
+        | relevant (newrels, rejects)
+                   ((ax as (clsthm as (thm, (name, n)), consts_typs)) :: axs) =
+            let
+              val weight = if member Thm.eq_thm del_thms thm then 0.0
+                           else if member Thm.eq_thm add_thms thm then 1.0
+                           else if only then 0.0
+                           else clause_weight ctab rel_consts consts_typs
             in
               if p <= weight orelse (follow_defs andalso defines thy (#1 clsthm) rel_consts)
               then (trace_msg (fn () => (name ^ " clause " ^ Int.toString n ^ 
@@ -280,12 +295,12 @@ fun relevant_clauses follow_defs max_new thy ctab p rel_consts =
               else relevant (newrels, ax::rejects) axs
             end
     in  trace_msg (fn () => ("relevant_clauses, current pass mark = " ^ Real.toString p));
-        relevant ([],[]) 
+        relevant ([],[])
     end;
         
-fun relevance_filter relevance_threshold follow_defs max_new add_theory_const
-                     thy axioms goals = 
-  if relevance_threshold >= 0.1 then
+fun relevance_filter ctxt relevance_threshold follow_defs max_new
+                     add_theory_const relevance_override thy axioms goals = 
+  if relevance_threshold > 0.0 then
     let
       val const_tab = List.foldl (count_axiom_consts add_theory_const thy)
                                  Symtab.empty axioms
@@ -294,8 +309,8 @@ fun relevance_filter relevance_threshold follow_defs max_new add_theory_const
         trace_msg (fn () => "Initial constants: " ^
                             commas (Symtab.keys goal_const_tab))
       val relevant =
-        relevant_clauses follow_defs max_new thy const_tab
-                         relevance_threshold goal_const_tab
+        relevant_clauses ctxt follow_defs max_new relevance_override thy
+                         const_tab relevance_threshold goal_const_tab
                          (map (pair_consts_typs_axiom add_theory_const thy)
                               axioms)
     in
@@ -534,7 +549,8 @@ fun is_first_order thy higher_order goal_cls =
   | SOME b => not b
 
 fun get_relevant_facts relevance_threshold higher_order follow_defs max_new
-                       add_theory_const (ctxt, (chain_ths, th)) goal_cls =
+                       add_theory_const relevance_override
+                       (ctxt, (chain_ths, th)) goal_cls =
   let
     val thy = ProofContext.theory_of ctxt
     val is_FO = is_first_order thy higher_order goal_cls
@@ -543,14 +559,18 @@ fun get_relevant_facts relevance_threshold higher_order follow_defs max_new
       |> restrict_to_logic thy is_FO
       |> remove_unwanted_clauses
   in
-    relevance_filter relevance_threshold follow_defs max_new add_theory_const
-                     thy included_cls (map prop_of goal_cls)
+    relevance_filter ctxt relevance_threshold follow_defs max_new
+                     add_theory_const relevance_override thy included_cls
+                     (map prop_of goal_cls)
   end;
 
 (* prepare for passing to writer,
    create additional clauses based on the information from extra_cls *)
 fun prepare_clauses higher_order dfg goal_cls chain_ths axcls extra_cls thy =
   let
+(* ### *)
+val _ = priority ("prepare clauses: axiom " ^ Int.toString (length axcls) ^
+                  ", extra " ^ Int.toString (length extra_cls))
     (* add chain thms *)
     val chain_cls =
       cnf_rules_pairs thy (filter check_named (map pairname chain_ths))
