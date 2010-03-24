@@ -55,6 +55,7 @@ test: \
   HOL-Number_Theory \
   HOL-Old_Number_Theory \
   HOL-Quotient_Examples \
+  HOL-Predicate_Compile_Examples \
   HOL-Prolog \
   HOL-Proofs-Extraction \
   HOL-Proofs-Lambda \
@@ -964,7 +965,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   ex/Lagrange.thy ex/LocaleTest2.thy ex/MT.thy				\
   ex/MergeSort.thy ex/Meson_Test.thy ex/MonoidGroup.thy			\
   ex/Multiquote.thy ex/NatSum.thy ex/Numeral.thy ex/PER.thy		\
-  ex/Predicate_Compile_ex.thy ex/Predicate_Compile_Quickcheck.thy	\
+  ex/Predicate_Compile_Quickcheck.thy 					\
   ex/PresburgerEx.thy ex/Primrec.thy ex/Quickcheck_Examples.thy		\
   ex/ROOT.ML ex/Recdefs.thy ex/Records.thy ex/ReflectionEx.thy		\
   ex/Refute_Examples.thy ex/SAT_Examples.thy ex/SVC_Oracle.thy		\
@@ -1282,6 +1283,13 @@ $(LOG)/HOL-Quotient_Examples.gz: $(OUT)/HOL	      			\
   Quotient_Examples/LarryInt.thy Quotient_Examples/LarryDatatype.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Quotient_Examples
 
+## HOL-Predicate_Compile_Examples
+
+HOL-Predicate_Compile_Examples: HOL $(LOG)/HOL-Predicate_Compile_Examples.gz
+
+$(LOG)/HOL-Predicate_Compile_Examples.gz: $(OUT)/HOL	      			\
+  Predicate_Compile_Examples/ROOT.ML Predicate_Compile_Examples/Predicate_Compile_Examples.thy
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Predicate_Compile_Examples
 
 ## clean
 

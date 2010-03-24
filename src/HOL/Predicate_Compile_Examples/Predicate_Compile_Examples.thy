@@ -1,5 +1,5 @@
-theory Predicate_Compile_ex
-imports Predicate_Compile_Alternative_Defs
+theory Predicate_Compile_Examples
+imports "../ex/Predicate_Compile_Alternative_Defs"
 begin
 
 subsection {* Basic predicates *}
