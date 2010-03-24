@@ -1078,7 +1078,10 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL-SMT	\
   Multivariate_Analysis/Topology_Euclidean_Space.thy	\
   Multivariate_Analysis/Convex_Euclidean_Space.thy      \
   Multivariate_Analysis/Brouwer_Fixpoint.thy            \
-  Multivariate_Analysis/Derivative.thy
+  Multivariate_Analysis/Derivative.thy			\
+  Multivariate_Analysis/Integration.thy			\
+  Multivariate_Analysis/Integration.cert		\
+  Multivariate_Analysis/Real_Integration.thy
 	@cd Multivariate_Analysis; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-SMT HOL-Multivariate_Analysis
 
 
