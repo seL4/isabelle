@@ -176,8 +176,7 @@ fun extract_params ctxt auto default_params override_params =
     (* bool -> bool option -> string -> bool option *)
     fun general_lookup_bool option default_value name =
       case lookup name of
-        SOME s => s |> stringify_raw_param_value
-                    |> Sledgehammer_Util.parse_bool_option option name
+        SOME s => Sledgehammer_Util.parse_bool_option option name s
       | NONE => default_value
     (* string -> bool *)
     val lookup_bool = the o general_lookup_bool false (SOME false)
@@ -345,10 +344,10 @@ val parse_value =
                 || Scan.repeat1 (Scan.unless P.minus P.name)
                 || P.$$$ "," |-- P.number >> prefix "," >> single) >> flat
 (* P.token list -> raw_param * P.token list *)
-val parse_param =
-  parse_key -- (Scan.option (P.$$$ "=" |-- parse_value) >> these)
-(* P.token list -> raw_param list option * P.token list *)
-val parse_params = Scan.option (P.$$$ "[" |-- P.list parse_param --| P.$$$ "]")
+val parse_param = parse_key -- Scan.optional (P.$$$ "=" |-- parse_value) []
+(* P.token list -> raw_param list * P.token list *)
+val parse_params =
+  Scan.optional (P.$$$ "[" |-- P.list parse_param --| P.$$$ "]") []
 
 (* Proof.context -> ('a -> 'a) -> 'a -> 'a *)
 fun handle_exceptions ctxt f x =
@@ -409,21 +408,20 @@ fun pick_nits override_params auto i step state =
     else (Toplevel.thread true (fn () => (go (); ())); (false, state))
   end
 
-(* raw_param list option * int option -> Toplevel.transition
-   -> Toplevel.transition *)
-fun nitpick_trans (opt_params, opt_i) =
+(* raw_param list * int -> Toplevel.transition -> Toplevel.transition *)
+fun nitpick_trans (params, i) =
   Toplevel.keep (fn st =>
-      (pick_nits (these opt_params) false (the_default 1 opt_i)
-                 (Toplevel.proof_position_of st) (Toplevel.proof_of st); ()))
+      (pick_nits params false i (Toplevel.proof_position_of st)
+                 (Toplevel.proof_of st); ()))
 
 (* raw_param -> string *)
 fun string_for_raw_param (name, value) =
   name ^ " = " ^ stringify_raw_param_value value
 
-(* raw_param list option -> Toplevel.transition -> Toplevel.transition *)
-fun nitpick_params_trans opt_params =
+(* raw_param list -> Toplevel.transition -> Toplevel.transition *)
+fun nitpick_params_trans params =
   Toplevel.theory
-      (fold set_default_raw_param (these opt_params)
+      (fold set_default_raw_param params
        #> tap (fn thy => 
                   writeln ("Default parameters for Nitpick:\n" ^
                            (case rev (default_raw_params thy) of
@@ -436,7 +434,7 @@ fun nitpick_params_trans opt_params =
 (* P.token list
    -> (Toplevel.transition -> Toplevel.transition) * P.token list *)
 val parse_nitpick_command =
-  (parse_params -- Scan.option P.nat) #>> nitpick_trans
+  (parse_params -- Scan.optional P.nat 1) #>> nitpick_trans
 val parse_nitpick_params_command = parse_params #>> nitpick_params_trans
 
 val _ = OuterSyntax.improper_command "nitpick"

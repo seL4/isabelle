@@ -346,7 +346,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     fun monotonicity_message Ts extra =
       let val ss = map (quote o string_for_type ctxt) Ts in
         "The type" ^ plural_s_for_list ss ^ " " ^
-        space_implode " " (serial_commas "and" ss) ^ " " ^
+        space_implode " " (Sledgehammer_Util.serial_commas "and" ss) ^ " " ^
         (if none_true monos then
            "passed the monotonicity test"
          else
@@ -684,7 +684,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                         options
                 in
                   print ("Try again with " ^
-                         space_implode " " (serial_commas "and" ss) ^
+                         space_implode " "
+                             (Sledgehammer_Util.serial_commas "and" ss) ^
                          " to confirm that the " ^ das_wort_model ^
                          " is genuine.")
                 end
