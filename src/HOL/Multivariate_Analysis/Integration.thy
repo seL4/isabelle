@@ -8,7 +8,7 @@ theory Integration
 begin
 
 declare [[smt_certificates="~~/src/HOL/Multivariate_Analysis/Integration.cert"]]
-declare [[smt_record=true]]
+declare [[smt_record=false]]
 declare [[z3_proofs=true]]
 
 lemma conjunctD2: assumes "a \<and> b" shows a b using assms by auto

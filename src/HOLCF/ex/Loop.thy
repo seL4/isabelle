@@ -137,10 +137,8 @@ lemma loop_lemma5 [rule_format (no_asm)]:
     ALL m. while$b$g$(iterate m$(step$b$g)$x)=UU"
 apply (simplesubst while_def2)
 apply (rule fix_ind)
-apply (rule adm_all)
-apply (rule adm_eq)
-apply (tactic "cont_tacR 1")
-apply (simp (no_asm))
+apply simp
+apply simp
 apply (rule allI)
 apply (simp (no_asm))
 apply (rule_tac p = "b$ (iterate m$ (step$b$g) $x) " in trE)

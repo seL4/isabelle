@@ -170,28 +170,6 @@ by (erule lift_definedE, simp)
 lemma flift2_defined_iff [simp]: "(flift2 f\<cdot>x = \<bottom>) = (x = \<bottom>)"
 by (cases x, simp_all)
 
-text {*
-  \medskip Extension of @{text cont_tac} and installation of simplifier.
-*}
-
-lemmas cont_lemmas_ext =
-  cont2cont_flift1 cont2cont_lift_case cont2cont_lambda
-  cont_Rep_CFun_app cont_Rep_CFun_app_app cont_if
-
-ML {*
-local
-  val cont_lemmas2 = thms "cont_lemmas1" @ thms "cont_lemmas_ext";
-  val flift1_def = thm "flift1_def";
-in
-
-fun cont_tac  i = resolve_tac cont_lemmas2 i;
-fun cont_tacR i = REPEAT (cont_tac i);
-
-fun cont_tacRs ss i =
-  simp_tac ss i THEN
-  REPEAT (cont_tac i)
-end;
-*}
 
 subsection {* Lifted countable types are bifinite *}
 

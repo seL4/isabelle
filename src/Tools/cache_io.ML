@@ -1,4 +1,4 @@
-(*  Title:      Tools/Cache_IO/cache_io.ML
+(*  Title:      Tools/cache_io.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Cache for output of external processes.
@@ -76,15 +76,6 @@ fun make path =
   in Cache {path=path, table=Synchronized.var (Path.implode path) table} end
 
 
-fun get_hash_key path =
-  let
-    val arg = File.shell_path path
-    val (out, res) = bash_output (getenv "COMPUTE_HASH_KEY" ^ " " ^ arg)
-  in
-    if res = 0 then hd (split_lines out)
-    else error ("Cache IO: failed to generate hash key for file " ^ arg)
-  end
-
 fun load_cached_result cache_path (p, len1, len2) =
   let
     fun load line (i, xsp) =
@@ -95,7 +86,7 @@ fun load_cached_result cache_path (p, len1, len2) =
   in pairself rev (snd (File.fold_lines load cache_path (1, ([], [])))) end
 
 fun cached' (Cache {path=cache_path, table}) make_cmd in_path =
-  let val key = get_hash_key in_path
+  let val key = SHA1.digest (File.read in_path)
   in
     (case Symtab.lookup (snd (Synchronized.value table)) key of
       SOME pos => load_cached_result cache_path pos

@@ -1078,7 +1078,10 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL-SMT	\
   Multivariate_Analysis/Topology_Euclidean_Space.thy	\
   Multivariate_Analysis/Convex_Euclidean_Space.thy      \
   Multivariate_Analysis/Brouwer_Fixpoint.thy            \
-  Multivariate_Analysis/Derivative.thy
+  Multivariate_Analysis/Derivative.thy			\
+  Multivariate_Analysis/Integration.thy			\
+  Multivariate_Analysis/Integration.cert		\
+  Multivariate_Analysis/Real_Integration.thy
 	@cd Multivariate_Analysis; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-SMT HOL-Multivariate_Analysis
 
 
@@ -1228,7 +1231,7 @@ $(OUT)/HOL-SMT: $(OUT)/HOL-Word SMT/ROOT.ML SMT/SMT_Base.thy SMT/Z3.thy \
   SMT/Tools/yices_solver.ML SMT/Tools/z3_proof_terms.ML                 \
   SMT/Tools/z3_proof_rules.ML SMT/Tools/z3_proof.ML                     \
   SMT/Tools/z3_model.ML SMT/Tools/z3_interface.ML			\
-  SMT/Tools/z3_solver.ML $(SRC)/Tools/Cache_IO/cache_io.ML
+  SMT/Tools/z3_solver.ML $(SRC)/Tools/cache_io.ML
 	@cd SMT; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-Word HOL-SMT
 
 
