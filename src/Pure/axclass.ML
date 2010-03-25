@@ -37,9 +37,6 @@ sig
   val param_of_inst: theory -> string * string -> string
   val inst_of_param: theory -> string -> (string * string) option
   val thynames_of_arity: theory -> class * string -> string list
-  type cache
-  val of_sort: theory -> typ * sort -> cache -> thm list * cache  (*exception Sorts.CLASS_ERROR*)
-  val cache: cache
   val introN: string
   val axiomsN: string
 end;
@@ -563,60 +560,5 @@ val axiomatize_arity = ax_arity ProofContext.cert_arity;
 val axiomatize_arity_cmd = ax_arity ProofContext.read_arity;
 
 end;
-
-
-
-(** explicit derivations -- cached **)
-
-datatype cache = Types of (class * thm) list Typtab.table;
-
-local
-
-fun lookup_type (Types cache) = AList.lookup (op =) o Typtab.lookup_list cache;
-fun insert_type T der (Types cache) = Types (Typtab.insert_list (eq_fst op =) (T, der) cache);
-
-fun derive_type _ (_, []) = []
-  | derive_type thy (typ, sort) =
-      let
-        val certT = Thm.ctyp_of thy;
-        val vars = Term.fold_atyps
-            (fn T as TFree (_, S) => insert (eq_fst op =) (T, S)
-              | T as TVar (_, S) => insert (eq_fst op =) (T, S)
-              | _ => I) typ [];
-        val hyps = vars
-          |> map (fn (T, S) => (T, Thm.of_sort (certT T, S) ~~ S));
-        val ths = (typ, sort)
-          |> Sorts.of_sort_derivation (Sign.classes_of thy)
-           {class_relation =
-              fn (th, c1) => fn c2 => th RS the_classrel thy (c1, c2),
-            type_constructor =
-              fn a => fn dom => fn c =>
-                let val Ss = map (map snd) dom and ths = maps (map fst) dom
-                in ths MRS the_arity thy a (c, Ss) end,
-            type_variable =
-              the_default [] o AList.lookup (op =) hyps};
-      in ths end;
-
-in
-
-fun of_sort thy (typ, sort) cache =
-  let
-    val sort' = filter (is_none o lookup_type cache typ) sort;
-    val ths' = derive_type thy (typ, sort')
-      handle ERROR msg => cat_error msg ("The error(s) above occurred for sort derivation: " ^
-        Syntax.string_of_typ_global thy typ ^ " :: " ^ Syntax.string_of_sort_global thy sort');
-    val cache' = cache |> fold (insert_type typ) (sort' ~~ ths');
-    val ths =
-      sort |> map (fn c =>
-        Goal.finish
-          (Syntax.init_pretty_global thy)
-          (the (lookup_type cache' typ c) RS
-            Goal.init (Thm.cterm_of thy (Logic.mk_of_class (typ, c))))
-        |> Thm.adjust_maxidx_thm ~1);
-  in (ths, cache') end;
-
-end;
-
-val cache = Types Typtab.empty;
 
 end;
