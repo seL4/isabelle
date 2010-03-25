@@ -280,7 +280,8 @@ fun change_data id f = (Unsynchronized.change data (AList.map_entry (op =) id f)
 
 fun get_atp thy args =
   let
-    fun default_atp_name () = hd (ATP_Manager.get_atps ())
+    fun default_atp_name () =
+      hd (#atps (Sledgehammer_Isar.default_params thy []))
       handle Empty => error "No ATP available."
     fun get_prover name =
       (case ATP_Manager.get_prover thy name of
@@ -302,22 +303,28 @@ datatype sh_result =
 fun run_sh prover hard_timeout timeout dir st =
   let
     val {context = ctxt, facts, goal} = Proof.goal st
+    val thy = ProofContext.theory_of ctxt
     val change_dir = (fn SOME d => Config.put ATP_Wrapper.destdir d | _ => I)
     val ctxt' =
       ctxt
       |> change_dir dir
       |> Config.put ATP_Wrapper.measure_runtime true
-    val problem = ATP_Manager.problem_of_goal (! ATP_Manager.full_types) 1 (ctxt', (facts, goal));
-
+    val params = Sledgehammer_Isar.default_params thy []
+    val problem =
+      {subgoal = 1, goal = (ctxt', (facts, goal)),
+       relevance_override = {add = [], del = [], only = false},
+       axiom_clauses = NONE, filtered_clauses = NONE}
     val time_limit =
       (case hard_timeout of
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
-    val ({success, message, theorem_names, runtime=time_atp, ...}: ATP_Manager.prover_result,
-        time_isa) = time_limit (Mirabelle.cpu_time (fn t => prover t problem)) timeout
+    val ({success, message, relevant_thm_names,
+          atp_run_time_in_msecs = time_atp, ...}: ATP_Manager.prover_result,
+        time_isa) = time_limit (Mirabelle.cpu_time
+                      (prover params (Time.fromSeconds timeout))) problem
   in
-    if success then (message, SH_OK (time_isa, time_atp, theorem_names))
-    else (message, SH_FAIL(time_isa, time_atp))
+    if success then (message, SH_OK (time_isa, time_atp, relevant_thm_names))
+    else (message, SH_FAIL (time_isa, time_atp))
   end
   handle Sledgehammer_HOL_Clause.TRIVIAL => ("trivial", SH_OK (0, 0, []))
        | ERROR msg => ("error: " ^ msg, SH_ERROR)
@@ -375,16 +382,19 @@ end
 fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
   let
     open ATP_Minimal
+    open Sledgehammer_Isar
+    val thy = Proof.theory_of st
     val n0 = length (these (!named_thms))
-    val (prover_name, prover) = get_atp (Proof.theory_of st) args
-    val minimize = minimize_theorems linear_minimize prover prover_name
+    val (prover_name, prover) = get_atp thy args
     val timeout =
       AList.lookup (op =) args minimize_timeoutK
       |> Option.map (fst o read_int o explode)
       |> the_default 5
+    val params = default_params thy [("minimize_timeout", Int.toString timeout)]
+    val minimize = minimize_theorems params linear_minimize prover prover_name
     val _ = log separator
   in
-    case minimize timeout st (these (!named_thms)) of
+    case minimize st (these (!named_thms)) of
       (SOME named_thms', msg) =>
         (change_data id inc_min_succs;
          change_data id (inc_min_ab_ratios ((100 * length named_thms') div n0));

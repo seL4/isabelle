@@ -11,13 +11,13 @@ sig
   val default_params : theory -> (string * string) list -> params
 end;
 
-structure Sledgehammer_Isar : sig end =
+structure Sledgehammer_Isar : SLEDGEHAMMER_ISAR =
 struct
 
+open Sledgehammer_Util
 open ATP_Manager
 open ATP_Minimal
 open ATP_Wrapper
-open Sledgehammer_Util
 
 structure K = OuterKeyword and P = OuterParse
 
@@ -55,12 +55,12 @@ val negated_params =
    ("dont_follow_defs", "follow_defs"),
    ("metis_proof", "isar_proof")]
 
-val property_affected_params = ["atps", "full_types", "timeout"]
+val property_dependent_params = ["atps", "full_types", "timeout"]
 
 fun is_known_raw_param s =
   AList.defined (op =) default_default_params s orelse
   AList.defined (op =) negated_params s orelse
-  member (op =) property_affected_params s
+  member (op =) property_dependent_params s
 
 fun check_raw_param (s, _) =
   if is_known_raw_param s then ()

@@ -108,7 +108,7 @@ fun declare_skofuns s th =
 (*Traverse a theorem, accumulating Skolem function definitions.*)
 fun assume_skofuns s th =
   let val sko_count = Unsynchronized.ref 0   (* FIXME ??? *)
-      fun dec_sko (Const (@{const_name "Ex"}, _) $ (xtp as Abs(_,T,p))) defs =
+      fun dec_sko (Const (@{const_name Ex}, _) $ (xtp as Abs(_,T,p))) defs =
             (*Existential: declare a Skolem function, then insert into body and continue*)
             let val skos = map (#1 o Logic.dest_equals) defs  (*existing sko fns*)
                 val args = subtract (op =) skos (OldTerm.term_frees xtp) (*the formal parameters*)
