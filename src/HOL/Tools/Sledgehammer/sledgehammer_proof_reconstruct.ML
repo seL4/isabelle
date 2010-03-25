@@ -339,18 +339,18 @@ fun isar_proof_body ctxt ctms =
   let
     val _ = trace_proof_msg (K "\n\nisar_proof_body: start\n")
     val string_of_term = PrintMode.setmp [] (Syntax.string_of_term ctxt)
-    fun have_or_show "show" _ = "show \""
-      | have_or_show have lname = have ^ " " ^ lname ^ ": \""
+    fun have_or_show "show" _ = "  show \""
+      | have_or_show have lname = "  " ^ have ^ " " ^ lname ^ ": \""
     fun do_line _ (lname, t, []) =
        (* No deps: it's a conjecture clause, with no proof. *)
        (case permuted_clause t ctms of
-          SOME u => "assume " ^ lname ^ ": \"" ^ string_of_term u ^ "\"\n"
+          SOME u => "  assume " ^ lname ^ ": \"" ^ string_of_term u ^ "\"\n"
         | NONE => raise TERM ("Sledgehammer_Proof_Reconstruct.isar_proof_body",
                               [t]))
       | do_line have (lname, t, deps) =
         have_or_show have lname ^
         string_of_term (gen_all_vars (HOLogic.mk_Trueprop t)) ^
-        "\"\n  by (metis " ^ space_implode " " deps ^ ")\n"
+        "\"\n    by (metis " ^ space_implode " " deps ^ ")\n"
     fun do_lines [(lname, t, deps)] = [do_line "show" (lname, t, deps)]
       | do_lines ((lname, t, deps) :: lines) =
         do_line "have" (lname, t, deps) :: do_lines lines
@@ -535,18 +535,20 @@ val chained_hint = "CHAINED";
 val kill_chained = filter_out (curry (op =) chained_hint)
 
 (* metis-command *)
-fun metis_line [] = "apply metis"
-  | metis_line xs = "apply (metis " ^ space_implode " " xs ^ ")"
+fun metis_line [] = "by metis"
+  | metis_line xs = "by (metis " ^ space_implode " " xs ^ ")"
 
-(* atp_minimize [atp=<prover>] <lemmas> *)
 fun minimize_line _ [] = ""
-  | minimize_line name lemmas = "For minimizing the number of lemmas try this command:\n" ^
-        Markup.markup Markup.sendback ("atp_minimize [atp = " ^ name ^ "] " ^
-                                       space_implode " " (kill_chained lemmas))
+  | minimize_line name lemmas =
+      "To minimize the number of lemmas, try this command:\n" ^
+      Markup.markup Markup.sendback
+                    ("sledgehammer minimize [atps = " ^ name ^ "] (" ^
+                     space_implode " " (kill_chained lemmas) ^ ")") ^ "."
 
 fun metis_lemma_list dfg name result =
   let val (lemmas, used_conj) = extract_lemmas (get_step_nums dfg) result in
-    (Markup.markup Markup.sendback (metis_line (kill_chained lemmas)) ^ "\n" ^
+    ("Try this command: " ^
+     Markup.markup Markup.sendback (metis_line (kill_chained lemmas)) ^ ".\n" ^
      minimize_line name lemmas ^
      (if used_conj then
         ""
@@ -570,8 +572,11 @@ fun structured_isar_proof name (result as (proof, thm_names, conj_count, ctxt,
       if member (op =) tokens chained_hint then ""
       else isar_proof_from_tstp_file cnfs ctxt goal subgoalno thm_names
   in
-    (one_line_proof ^ "\n\n" ^ Markup.markup Markup.sendback isar_proof,
-     lemma_names)
+    (* Hack: The " \n" shouldn't be part of the markup. This is a workaround
+       for a strange ProofGeneral bug, whereby the first two letters of the word
+       "proof" are not highlighted. *)
+    (one_line_proof ^ "\n\nStructured proof:" ^
+     Markup.markup Markup.sendback (" \n" ^ isar_proof), lemma_names)
   end
 
 end;

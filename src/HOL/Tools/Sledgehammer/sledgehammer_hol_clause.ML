@@ -48,7 +48,7 @@ struct
 open Sledgehammer_FOL_Clause
 open Sledgehammer_Fact_Preprocessor
 
-(* Parameter t_full below indicates that full type information is to be
+(* Parameter "full_types" below indicates that full type information is to be
 exported *)
 
 (* If true, each function will be directly applied to as many arguments as
@@ -210,10 +210,8 @@ val type_wrapper = "ti";
 fun head_needs_hBOOL const_needs_hBOOL (CombConst(c,_,_)) = needs_hBOOL const_needs_hBOOL c
   | head_needs_hBOOL _ _ = true;
 
-fun wrap_type t_full (s, tp) =
-  if t_full then
-      type_wrapper ^ paren_pack [s, string_of_fol_type tp]
-  else s;
+fun wrap_type full_types (s, tp) =
+  if full_types then type_wrapper ^ paren_pack [s, string_of_fol_type tp] else s;
 
 fun apply ss = "hAPP" ^ paren_pack ss;
 
@@ -224,7 +222,7 @@ fun string_apply (v, args) = rev_apply (v, rev args);
 
 (*Apply an operator to the argument strings, using either the "apply" operator or
   direct function application.*)
-fun string_of_applic t_full cma (CombConst (c, _, tvars), args) =
+fun string_of_applic full_types cma (CombConst (c, _, tvars), args) =
       let val c = if c = "equal" then "c_fequal" else c
           val nargs = min_arity_of cma c
           val args1 = List.take(args, nargs)
@@ -232,21 +230,22 @@ fun string_of_applic t_full cma (CombConst (c, _, tvars), args) =
                                          Int.toString nargs ^ " but is applied to " ^
                                          space_implode ", " args)
           val args2 = List.drop(args, nargs)
-          val targs = if not t_full then map string_of_fol_type tvars else []
+          val targs = if full_types then [] else map string_of_fol_type tvars
       in
           string_apply (c ^ paren_pack (args1@targs), args2)
       end
   | string_of_applic _ _ (CombVar (v, _), args) = string_apply (v, args)
   | string_of_applic _ _ _ = error "string_of_applic";
 
-fun wrap_type_if t_full cnh (head, s, tp) =
-  if head_needs_hBOOL cnh head then wrap_type t_full (s, tp) else s;
+fun wrap_type_if full_types cnh (head, s, tp) =
+  if head_needs_hBOOL cnh head then wrap_type full_types (s, tp) else s;
 
-fun string_of_combterm (params as (t_full, cma, cnh)) t =
+fun string_of_combterm (params as (full_types, cma, cnh)) t =
   let val (head, args) = strip_combterm_comb t
-  in  wrap_type_if t_full cnh (head,
-                    string_of_applic t_full cma (head, map (string_of_combterm (params)) args),
-                    type_of_combterm t)
+  in  wrap_type_if full_types cnh (head,
+          string_of_applic full_types cma
+                           (head, map (string_of_combterm (params)) args),
+          type_of_combterm t)
   end;
 
 (*Boolean-valued terms are here converted to literals.*)
@@ -318,11 +317,11 @@ fun clause2dfg params (cls as HOLClause {axiom_name, clause_id, kind,
 
 fun addtypes tvars tab = List.foldl add_foltype_funcs tab tvars;
 
-fun add_decls (t_full, cma, cnh) (CombConst (c, _, tvars), (funcs, preds)) =
+fun add_decls (full_types, cma, cnh) (CombConst (c, _, tvars), (funcs, preds)) =
       if c = "equal" then (addtypes tvars funcs, preds)
       else
         let val arity = min_arity_of cma c
-            val ntys = if not t_full then length tvars else 0
+            val ntys = if not full_types then length tvars else 0
             val addit = Symtab.update(c, arity+ntys)
         in
             if needs_hBOOL cnh c then (addtypes tvars (addit funcs), preds)
@@ -452,12 +451,12 @@ fun count_constants (conjectures, _, extra_clauses, helper_clauses, _, _) =
 
 (* TPTP format *)
 
-fun write_tptp_file t_full file clauses =
+fun write_tptp_file full_types file clauses =
   let
     val (conjectures, axclauses, _, helper_clauses,
       classrel_clauses, arity_clauses) = clauses
     val (cma, cnh) = count_constants clauses
-    val params = (t_full, cma, cnh)
+    val params = (full_types, cma, cnh)
     val (tptp_clss,tfree_litss) = ListPair.unzip (map (clause2tptp params) conjectures)
     val tfree_clss = map tptp_tfree_clause (List.foldl (uncurry (union (op =))) [] tfree_litss)
     val _ =
@@ -474,12 +473,12 @@ fun write_tptp_file t_full file clauses =
 
 (* DFG format *)
 
-fun write_dfg_file t_full file clauses =
+fun write_dfg_file full_types file clauses =
   let
     val (conjectures, axclauses, _, helper_clauses,
       classrel_clauses, arity_clauses) = clauses
     val (cma, cnh) = count_constants clauses
-    val params = (t_full, cma, cnh)
+    val params = (full_types, cma, cnh)
     val (dfg_clss, tfree_litss) = ListPair.unzip (map (clause2dfg params) conjectures)
     and probname = Path.implode (Path.base file)
     val axstrs = map (#1 o (clause2dfg params)) axclauses

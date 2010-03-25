@@ -20,6 +20,7 @@ end;
 structure ATP_Wrapper : ATP_WRAPPER =
 struct
 
+open Sledgehammer_Fact_Preprocessor
 open Sledgehammer_HOL_Clause
 open Sledgehammer_Fact_Filter
 open Sledgehammer_Proof_Reconstruct
@@ -43,11 +44,11 @@ val (measure_runtime, measure_runtime_setup) =
 
 type prover_config =
  {command: Path.T,
-  arguments: int -> string,
+  arguments: Time.time -> string,
   failure_strs: string list,
   max_new_clauses: int,
-  insert_theory_const: bool,
-  emit_structured_proof: bool};
+  add_theory_const: bool,
+  supports_isar_proofs: bool};
 
 
 (* basic template *)
@@ -64,24 +65,25 @@ fun find_failure strs proof =
           else SOME "Ill-formed ATP output"
   | (failure :: _) => SOME failure
 
-fun external_prover relevance_filter prepare write cmd args failure_strs
-        produce_answer name ({with_full_types, subgoal, goal, axiom_clauses,
-                              filtered_clauses}: problem) =
+fun generic_prover get_facts prepare write cmd args failure_strs produce_answer
+        name ({full_types, ...} : params)
+        ({subgoal, goal, relevance_override, axiom_clauses, filtered_clauses}
+         : problem) =
   let
     (* get clauses and prepare them for writing *)
     val (ctxt, (chain_ths, th)) = goal;
     val thy = ProofContext.theory_of ctxt;
     val chain_ths = map (Thm.put_name_hint chained_hint) chain_ths;
-    val goal_cls = #1 (Sledgehammer_Fact_Preprocessor.neg_conjecture_clauses ctxt th subgoal);
+    val goal_cls = #1 (neg_conjecture_clauses ctxt th subgoal);
     val the_filtered_clauses =
       (case filtered_clauses of
-        NONE => relevance_filter goal goal_cls
+        NONE => get_facts relevance_override goal goal_cls
       | SOME fcls => fcls);
     val the_axiom_clauses =
       (case axiom_clauses of
         NONE => the_filtered_clauses
       | SOME axcls => axcls);
-    val (thm_names, clauses) =
+    val (internal_thm_names, clauses) =
       prepare goal_cls chain_ths the_axiom_clauses the_filtered_clauses thy;
 
     (* path to unique problem file *)
@@ -121,7 +123,7 @@ fun external_prover relevance_filter prepare write cmd args failure_strs
       if Config.get ctxt measure_runtime then split_time s else (s, 0)
     fun run_on probfile =
       if File.exists cmd then
-        write with_full_types probfile clauses
+        write full_types probfile clauses
         |> pair (apfst split_time' (bash_output (cmd_line probfile)))
       else error ("Bad executable: " ^ Path.implode cmd);
 
@@ -131,21 +133,24 @@ fun external_prover relevance_filter prepare write cmd args failure_strs
       if destdir' = "" then ()
       else File.write (Path.explode (Path.implode probfile ^ "_proof")) proof;
 
-    val (((proof, time), rc), conj_pos) =
+    val (((proof, atp_run_time_in_msecs), rc), conj_pos) =
       with_path cleanup export run_on (prob_pathname subgoal);
 
     (* check for success and print out some information on failure *)
     val failure = find_failure failure_strs proof;
     val success = rc = 0 andalso is_none failure;
-    val (message, real_thm_names) =
+    val (message, relevant_thm_names) =
       if is_some failure then ("External prover failed.", [])
       else if rc <> 0 then ("External prover failed: " ^ proof, [])
-      else apfst (fn s => "Try this command: " ^ s)
-        (produce_answer name (proof, thm_names, conj_pos, ctxt, th, subgoal));
+      else
+        (produce_answer name (proof, internal_thm_names, conj_pos, ctxt, th,
+                              subgoal));
   in
     {success = success, message = message,
-      theorem_names = real_thm_names, runtime = time, proof = proof,
-      internal_thm_names = thm_names, filtered_clauses = the_filtered_clauses}
+     relevant_thm_names = relevant_thm_names,
+     atp_run_time_in_msecs = atp_run_time_in_msecs, proof = proof,
+     internal_thm_names = internal_thm_names,
+     filtered_clauses = the_filtered_clauses}
   end;
 
 
@@ -153,96 +158,87 @@ fun external_prover relevance_filter prepare write cmd args failure_strs
 
 fun generic_tptp_prover
         (name, {command, arguments, failure_strs, max_new_clauses,
-                insert_theory_const, emit_structured_proof}) timeout =
-  external_prover (get_relevant_facts max_new_clauses insert_theory_const)
-      (prepare_clauses false) write_tptp_file command (arguments timeout)
-      failure_strs
-      (if emit_structured_proof then structured_isar_proof
-       else metis_lemma_list false) name;
+                add_theory_const, supports_isar_proofs})
+        (params as {relevance_threshold, higher_order, follow_defs, isar_proof,
+                    ...}) timeout =
+  generic_prover
+      (get_relevant_facts relevance_threshold higher_order follow_defs
+                          max_new_clauses add_theory_const)
+      (prepare_clauses higher_order false) write_tptp_file command
+      (arguments timeout) failure_strs
+      (if supports_isar_proofs andalso isar_proof then structured_isar_proof
+       else metis_lemma_list false) name params;
 
-fun tptp_prover (name, p) = (name, generic_tptp_prover (name, p));
+fun tptp_prover name p = (name, generic_tptp_prover (name, p));
 
 
 (** common provers **)
 
 (* Vampire *)
 
-(*NB: Vampire does not work without explicit timelimit*)
+(* NB: Vampire does not work without explicit time limit. *)
 
-val vampire_failure_strs =
-  ["Satisfiability detected", "Refutation not found", "CANNOT PROVE"];
-val vampire_max_new_clauses = 60;
-val vampire_insert_theory_const = false;
-
-fun vampire_prover_config isar : prover_config =
- {command = Path.explode "$VAMPIRE_HOME/vampire",
-  arguments = (fn timeout => "--output_syntax tptp --mode casc" ^
-    " -t " ^ string_of_int timeout),
-  failure_strs = vampire_failure_strs,
-  max_new_clauses = vampire_max_new_clauses,
-  insert_theory_const = vampire_insert_theory_const,
-  emit_structured_proof = isar};
-
-val vampire = tptp_prover ("vampire", vampire_prover_config false);
-val vampire_isar = tptp_prover ("vampire_isar", vampire_prover_config true);
+val vampire_config : prover_config =
+  {command = Path.explode "$VAMPIRE_HOME/vampire",
+   arguments = (fn timeout => "--output_syntax tptp --mode casc -t " ^
+                              string_of_int (Time.toSeconds timeout)),
+   failure_strs =
+     ["Satisfiability detected", "Refutation not found", "CANNOT PROVE"],
+   max_new_clauses = 60,
+   add_theory_const = false,
+   supports_isar_proofs = true}
+val vampire = tptp_prover "vampire" vampire_config
 
 
 (* E prover *)
 
-val eprover_failure_strs =
-  ["SZS status: Satisfiable", "SZS status Satisfiable",
-   "SZS status: ResourceOut", "SZS status ResourceOut",
-   "# Cannot determine problem status"];
-val eprover_max_new_clauses = 100;
-val eprover_insert_theory_const = false;
-
-fun eprover_config isar : prover_config =
- {command = Path.explode "$E_HOME/eproof",
-  arguments = (fn timeout => "--tstp-in --tstp-out -l5 -xAutoDev -tAutoDev" ^
-    " --silent --cpu-limit=" ^ string_of_int timeout),
-  failure_strs = eprover_failure_strs,
-  max_new_clauses = eprover_max_new_clauses,
-  insert_theory_const = eprover_insert_theory_const,
-  emit_structured_proof = isar};
-
-val eprover = tptp_prover ("e", eprover_config false);
-val eprover_isar = tptp_prover ("e_isar", eprover_config true);
+val e_config : prover_config =
+  {command = Path.explode "$E_HOME/eproof",
+   arguments = (fn timeout => "--tstp-in --tstp-out -l5 -xAutoDev \
+                              \-tAutoDev --silent --cpu-limit=" ^
+                              string_of_int (Time.toSeconds timeout)),
+   failure_strs =
+       ["SZS status: Satisfiable", "SZS status Satisfiable",
+        "SZS status: ResourceOut", "SZS status ResourceOut",
+        "# Cannot determine problem status"],
+   max_new_clauses = 100,
+   add_theory_const = false,
+   supports_isar_proofs = true}
+val e = tptp_prover "e" e_config
 
 
 (* SPASS *)
 
-val spass_failure_strs =
-  ["SPASS beiseite: Completion found.", "SPASS beiseite: Ran out of time.",
-   "SPASS beiseite: Maximal number of loops exceeded."];
-val spass_max_new_clauses = 40;
-val spass_insert_theory_const = true;
-
-fun spass_config insert_theory_const: prover_config =
- {command = Path.explode "$SPASS_HOME/SPASS",
-  arguments = (fn timeout => "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0" ^
-    " -FullRed=0 -DocProof -TimeLimit=" ^ string_of_int timeout),
-  failure_strs = spass_failure_strs,
-  max_new_clauses = spass_max_new_clauses,
-  insert_theory_const = insert_theory_const,
-  emit_structured_proof = false};
-
 fun generic_dfg_prover
         (name, ({command, arguments, failure_strs, max_new_clauses,
-                 insert_theory_const, ...} : prover_config)) timeout =
-  external_prover
-    (get_relevant_facts max_new_clauses insert_theory_const)
-    (prepare_clauses true)
-    write_dfg_file
-    command
-    (arguments timeout)
-    failure_strs
-    (metis_lemma_list true)
-    name;
+                 add_theory_const, ...} : prover_config))
+        (params as {relevance_threshold, higher_order, follow_defs, ...})
+        timeout =
+  generic_prover
+      (get_relevant_facts relevance_threshold higher_order follow_defs
+                          max_new_clauses add_theory_const)
+      (prepare_clauses higher_order true) write_dfg_file command
+      (arguments timeout) failure_strs (metis_lemma_list true) name params;
 
 fun dfg_prover (name, p) = (name, generic_dfg_prover (name, p));
 
-val spass = dfg_prover ("spass", spass_config spass_insert_theory_const);
-val spass_no_tc = dfg_prover ("spass_no_tc", spass_config false);
+fun spass_config_for add_theory_const : prover_config =
+ {command = Path.explode "$SPASS_HOME/SPASS",
+  arguments = (fn timeout => "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0" ^
+    " -FullRed=0 -DocProof -TimeLimit=" ^
+    string_of_int (Time.toSeconds timeout)),
+  failure_strs =
+    ["SPASS beiseite: Completion found.", "SPASS beiseite: Ran out of time.",
+     "SPASS beiseite: Maximal number of loops exceeded."],
+  max_new_clauses = 40,
+  add_theory_const = add_theory_const,
+  supports_isar_proofs = false};
+
+val spass_config = spass_config_for true
+val spass = dfg_prover ("spass", spass_config)
+
+val spass_no_tc_config = spass_config_for false
+val spass_no_tc = dfg_prover ("spass_no_tc", spass_no_tc_config)
 
 
 (* remote prover invocation via SystemOnTPTP *)
@@ -251,10 +247,12 @@ val systems = Synchronized.var "atp_wrapper_systems" ([]: string list);
 
 fun get_systems () =
   let
-    val (answer, rc) = bash_output ("\"$ISABELLE_ATP_MANAGER/SystemOnTPTP\" -w")
+    val (answer, rc) = bash_output "\"$ISABELLE_ATP_MANAGER/SystemOnTPTP\" -w"
   in
-    if rc <> 0 then error ("Failed to get available systems at SystemOnTPTP:\n" ^ answer)
-    else split_lines answer
+    if rc <> 0 then
+      error ("Failed to get available systems at SystemOnTPTP:\n" ^ answer)
+    else
+      split_lines answer
   end;
 
 fun refresh_systems_on_tptp () =
@@ -271,27 +269,34 @@ fun the_system prefix =
 
 val remote_failure_strs = ["Remote-script could not extract proof"];
 
-fun remote_prover_config prover_prefix args max_new insert_tc: prover_config =
- {command = Path.explode "$ISABELLE_ATP_MANAGER/SystemOnTPTP",
-  arguments = (fn timeout =>
-    args ^ " -t " ^ string_of_int timeout ^ " -s " ^ the_system prover_prefix),
-  failure_strs = remote_failure_strs,
-  max_new_clauses = max_new,
-  insert_theory_const = insert_tc,
-  emit_structured_proof = false};
+fun remote_prover_config prover_prefix args max_new_clauses add_theory_const
+                         : prover_config =
+  {command = Path.explode "$ISABELLE_ATP_MANAGER/SystemOnTPTP",
+   arguments = (fn timeout =>
+     args ^ " -t " ^ string_of_int (Time.toSeconds timeout) ^ " -s " ^
+     the_system prover_prefix),
+   failure_strs = remote_failure_strs,
+   max_new_clauses = max_new_clauses,
+   add_theory_const = add_theory_const,
+   supports_isar_proofs = false}
 
-val remote_vampire = tptp_prover ("remote_vampire", remote_prover_config
-  "Vampire---9" "" vampire_max_new_clauses vampire_insert_theory_const);
+val remote_vampire =
+  tptp_prover "remote_vampire"
+      (remote_prover_config "Vampire---9" ""
+           (#max_new_clauses vampire_config) (#add_theory_const vampire_config))
 
-val remote_eprover = tptp_prover ("remote_e", remote_prover_config
-  "EP---" "" eprover_max_new_clauses eprover_insert_theory_const);
+val remote_e =
+  tptp_prover "remote_e"
+      (remote_prover_config "EP---" ""
+           (#max_new_clauses e_config) (#add_theory_const e_config))
 
-val remote_spass = tptp_prover ("remote_spass", remote_prover_config
-  "SPASS---" "-x" spass_max_new_clauses spass_insert_theory_const);
+val remote_spass =
+  tptp_prover "remote_spass"
+      (remote_prover_config "SPASS---" "-x"
+           (#max_new_clauses spass_config) (#add_theory_const spass_config))
 
 val provers =
-  [spass, vampire, eprover, vampire_isar, eprover_isar, spass_no_tc,
-   remote_vampire, remote_spass, remote_eprover]
+  [spass, vampire, e, spass_no_tc, remote_vampire, remote_spass, remote_e]
 val prover_setup = fold add_prover provers
 
 val setup =

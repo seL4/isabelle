@@ -51,9 +51,9 @@ val ctp_false = cterm_of @{theory HOL} (HOLogic.mk_Trueprop HOLogic.false_const)
   conclusion variable to False.*)
 fun transform_elim th =
   case concl_of th of    (*conclusion variable*)
-       Const("Trueprop",_) $ (v as Var(_,Type("bool",[]))) =>
+       @{const Trueprop} $ (v as Var (_, @{typ bool})) =>
            Thm.instantiate ([], [(cterm_of @{theory HOL} v, cfalse)]) th
-    | v as Var(_, Type("prop",[])) =>
+    | v as Var(_, @{typ prop}) =>
            Thm.instantiate ([], [(cterm_of @{theory HOL} v, ctp_false)]) th
     | _ => th;
 
@@ -76,7 +76,7 @@ fun rhs_extra_types lhsT rhs =
 fun declare_skofuns s th =
   let
     val nref = Unsynchronized.ref 0    (* FIXME ??? *)
-    fun dec_sko (Const ("Ex",_) $ (xtp as Abs (_, T, p))) (axs, thy) =
+    fun dec_sko (Const (@{const_name Ex}, _) $ (xtp as Abs (_, T, p))) (axs, thy) =
           (*Existential: declare a Skolem function, then insert into body and continue*)
           let
             val cname = skolem_prefix ^ s ^ "_" ^ Int.toString (Unsynchronized.inc nref)
@@ -95,20 +95,20 @@ fun declare_skofuns s th =
               Theory.add_defs_i true false [(Binding.name cdef, Logic.mk_equals (c, rhs))] thy'
             val ax = Thm.axiom thy'' (Sign.full_bname thy'' cdef)
           in dec_sko (subst_bound (list_comb (c, args), p)) (ax :: axs, thy'') end
-      | dec_sko (Const ("All", _) $ (Abs (a, T, p))) thx =
+      | dec_sko (Const (@{const_name All}, _) $ (Abs (a, T, p))) thx =
           (*Universal quant: insert a free variable into body and continue*)
           let val fname = Name.variant (OldTerm.add_term_names (p, [])) a
           in dec_sko (subst_bound (Free (fname, T), p)) thx end
-      | dec_sko (Const ("op &", _) $ p $ q) thx = dec_sko q (dec_sko p thx)
-      | dec_sko (Const ("op |", _) $ p $ q) thx = dec_sko q (dec_sko p thx)
-      | dec_sko (Const ("Trueprop", _) $ p) thx = dec_sko p thx
+      | dec_sko (@{const "op &"} $ p $ q) thx = dec_sko q (dec_sko p thx)
+      | dec_sko (@{const "op |"} $ p $ q) thx = dec_sko q (dec_sko p thx)
+      | dec_sko (@{const Trueprop} $ p) thx = dec_sko p thx
       | dec_sko t thx = thx (*Do nothing otherwise*)
   in fn thy => dec_sko (Thm.prop_of th) ([], thy) end;
 
 (*Traverse a theorem, accumulating Skolem function definitions.*)
 fun assume_skofuns s th =
   let val sko_count = Unsynchronized.ref 0   (* FIXME ??? *)
-      fun dec_sko (Const ("Ex",_) $ (xtp as Abs(_,T,p))) defs =
+      fun dec_sko (Const (@{const_name Ex}, _) $ (xtp as Abs(_,T,p))) defs =
             (*Existential: declare a Skolem function, then insert into body and continue*)
             let val skos = map (#1 o Logic.dest_equals) defs  (*existing sko fns*)
                 val args = subtract (op =) skos (OldTerm.term_frees xtp) (*the formal parameters*)
@@ -123,13 +123,13 @@ fun assume_skofuns s th =
             in dec_sko (subst_bound (list_comb(c,args), p))
                        (def :: defs)
             end
-        | dec_sko (Const ("All",_) $ Abs (a, T, p)) defs =
+        | dec_sko (Const (@{const_name All},_) $ Abs (a, T, p)) defs =
             (*Universal quant: insert a free variable into body and continue*)
             let val fname = Name.variant (OldTerm.add_term_names (p,[])) a
             in dec_sko (subst_bound (Free(fname,T), p)) defs end
-        | dec_sko (Const ("op &", _) $ p $ q) defs = dec_sko q (dec_sko p defs)
-        | dec_sko (Const ("op |", _) $ p $ q) defs = dec_sko q (dec_sko p defs)
-        | dec_sko (Const ("Trueprop", _) $ p) defs = dec_sko p defs
+        | dec_sko (@{const "op &"} $ p $ q) defs = dec_sko q (dec_sko p defs)
+        | dec_sko (@{const "op |"} $ p $ q) defs = dec_sko q (dec_sko p defs)
+        | dec_sko (@{const Trueprop} $ p) defs = dec_sko p defs
         | dec_sko t defs = defs (*Do nothing otherwise*)
   in  dec_sko (prop_of th) []  end;
 
@@ -156,7 +156,7 @@ end;
 fun strip_lambdas 0 th = th
   | strip_lambdas n th =
       case prop_of th of
-          _ $ (Const ("op =", _) $ _ $ Abs (x,_,_)) =>
+          _ $ (Const (@{const_name "op ="}, _) $ _ $ Abs (x, _, _)) =>
               strip_lambdas (n-1) (freeze_thm (th RS xfun_cong x))
         | _ => th;
 
@@ -171,7 +171,7 @@ fun abstract ct =
   let
       val thy = theory_of_cterm ct
       val Abs(x,_,body) = term_of ct
-      val Type("fun",[xT,bodyT]) = typ_of (ctyp_of_term ct)
+      val Type(@{type_name fun}, [xT,bodyT]) = typ_of (ctyp_of_term ct)
       val cxT = ctyp_of thy xT and cbodyT = ctyp_of thy bodyT
       fun makeK() = instantiate' [SOME cxT, SOME cbodyT] [SOME (cterm_of thy body)] @{thm abs_K}
   in
@@ -262,8 +262,9 @@ fun skolem_of_def def =
       val (chilbert,cabs) = Thm.dest_comb ch
       val thy = Thm.theory_of_cterm chilbert
       val t = Thm.term_of chilbert
-      val T = case t of Const ("Hilbert_Choice.Eps", Type("fun",[_,T])) => T
-                      | _ => raise THM ("skolem_of_def: expected Eps", 0, [def])
+      val T = case t of
+                Const (@{const_name Eps}, Type (@{type_name fun},[_,T])) => T
+              | _ => raise THM ("skolem_of_def: expected Eps", 0, [def])
       val cex = Thm.cterm_of thy (HOLogic.exists_const T)
       val ex_tm = c_mkTrueprop (Thm.capply cex cabs)
       and conc =  c_mkTrueprop (Drule.beta_conv cabs (Drule.list_comb(c,frees)));
@@ -289,7 +290,7 @@ fun assume_skolem_of_def s th =
   map (skolem_of_def o assume o (cterm_of (theory_of_thm th))) (assume_skofuns s th);
 
 
-(*** Blacklisting (duplicated in "Sledgehammer_Fact_Filter"?) ***)
+(*** Blacklisting (FIXME: duplicated in "Sledgehammer_Fact_Filter"?) ***)
 
 val max_lambda_nesting = 3;
 
@@ -320,7 +321,8 @@ fun too_complex t =
 
 fun is_strange_thm th =
   case head_of (concl_of th) of
-      Const (a, _) => (a <> "Trueprop" andalso a <> "==")
+      Const (a, _) => (a <> @{const_name Trueprop} andalso
+                       a <> @{const_name "=="})
     | _ => false;
 
 fun bad_for_atp th =
@@ -328,9 +330,10 @@ fun bad_for_atp th =
   orelse exists_type type_has_topsort (prop_of th)
   orelse is_strange_thm th;
 
+(* FIXME: put other record thms here, or declare as "no_atp" *)
 val multi_base_blacklist =
-  ["defs","select_defs","update_defs","induct","inducts","split","splits","split_asm",
-   "cases","ext_cases"];  (* FIXME put other record thms here, or declare as "no_atp" *)
+  ["defs", "select_defs", "update_defs", "induct", "inducts", "split", "splits",
+   "split_asm", "cases", "ext_cases"];
 
 (*Keep the full complexity of the original name*)
 fun flatten_name s = space_implode "_X" (Long_Name.explode s);

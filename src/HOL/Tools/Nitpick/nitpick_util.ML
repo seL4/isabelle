@@ -46,7 +46,6 @@ sig
   val triple_lookup :
     (''a * ''a -> bool) -> (''a option * 'b) list -> ''a -> 'b option
   val is_substring_of : string -> string -> bool
-  val serial_commas : string -> string list -> string list
   val plural_s : int -> string
   val plural_s_for_list : 'a list -> string
   val flip_polarity : polarity -> polarity
@@ -232,13 +231,6 @@ fun triple_lookup _ [(NONE, z)] _ = SOME z
 fun is_substring_of needle stack =
   not (Substring.isEmpty (snd (Substring.position needle
                                                   (Substring.full stack))))
-
-(* string -> string list -> string list *)
-fun serial_commas _ [] = ["??"]
-  | serial_commas _ [s] = [s]
-  | serial_commas conj [s1, s2] = [s1, conj, s2]
-  | serial_commas conj [s1, s2, s3] = [s1 ^ ",", s2 ^ ",", conj, s3]
-  | serial_commas conj (s :: ss) = s ^ "," :: serial_commas conj ss
 
 (* int -> string *)
 fun plural_s n = if n = 1 then "" else "s"

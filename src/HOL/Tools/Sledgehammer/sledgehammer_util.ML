@@ -1,0 +1,53 @@
+(*  Title:      HOL/Sledgehammer/sledgehammer_util.ML
+    Author:     Jasmin Blanchette, TU Muenchen
+
+General-purpose functions used by the Sledgehammer modules.
+*)
+
+signature SLEDGEHAMMER_UTIL =
+sig
+  val serial_commas : string -> string list -> string list
+  val parse_bool_option : bool -> string -> string -> bool option
+  val parse_time_option : string -> string -> Time.time option
+end;
+
+structure Sledgehammer_Util : SLEDGEHAMMER_UTIL =
+struct
+
+fun serial_commas _ [] = ["??"]
+  | serial_commas _ [s] = [s]
+  | serial_commas conj [s1, s2] = [s1, conj, s2]
+  | serial_commas conj [s1, s2, s3] = [s1 ^ ",", s2 ^ ",", conj, s3]
+  | serial_commas conj (s :: ss) = s ^ "," :: serial_commas conj ss
+
+fun parse_bool_option option name s =
+  (case s of
+     "smart" => if option then NONE else raise Option
+   | "false" => SOME false
+   | "true" => SOME true
+   | "" => SOME true
+   | _ => raise Option)
+  handle Option.Option =>
+         let val ss = map quote ((option ? cons "smart") ["true", "false"]) in
+           error ("Parameter " ^ quote name ^ " must be assigned " ^
+                  space_implode " " (serial_commas "or" ss) ^ ".")
+         end
+
+fun parse_time_option _ "none" = NONE
+  | parse_time_option name s =
+    let
+      val msecs =
+        case space_explode " " s of
+          [s1, "min"] => 60000 * the (Int.fromString s1)
+        | [s1, "s"] => 1000 * the (Int.fromString s1)
+        | [s1, "ms"] => the (Int.fromString s1)
+        | _ => 0
+    in
+      if msecs <= 0 then
+        error ("Parameter " ^ quote name ^ " must be assigned a positive time \
+               \value (e.g., \"60 s\", \"200 ms\") or \"none\".")
+      else
+        SOME (Time.fromMilliseconds msecs)
+    end
+
+end;
