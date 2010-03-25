@@ -774,7 +774,8 @@ and translate_dicts thy (algbr as (proj_sort, algebra)) eqngr some_thm (ty, sort
         val sort' = proj_sort sort;
       in map_index (fn (n, class) => (Local ([], (v, (n, sort'))), class)) sort' end;
     val typargs = Sorts.of_sort_derivation algebra
-      {class_relation = class_relation, type_constructor = type_constructor,
+      {class_relation = Sorts.classrel_derivation algebra class_relation,
+       type_constructor = type_constructor,
        type_variable = type_variable} (ty, proj_sort sort)
       handle Sorts.CLASS_ERROR e => not_wellsorted thy some_thm ty sort e;
     fun mk_dict (Global (inst, yss)) =

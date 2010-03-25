@@ -56,12 +56,13 @@ sig
     -> sort Vartab.table -> sort Vartab.table   (*exception CLASS_ERROR*)
   val meet_sort_typ: algebra -> typ * sort -> typ -> typ   (*exception CLASS_ERROR*)
   val of_sort: algebra -> typ * sort -> bool
-  val weaken: algebra -> ('a * class -> class -> 'a) -> 'a * class -> class -> 'a
   val of_sort_derivation: algebra ->
     {class_relation: 'a * class -> class -> 'a,
      type_constructor: string -> ('a * class) list list -> class -> 'a,
      type_variable: typ -> ('a * class) list} ->
     typ * sort -> 'a list   (*exception CLASS_ERROR*)
+  val classrel_derivation: algebra ->
+    ('a * class -> class -> 'a) -> 'a * class -> class -> 'a  (*exception CLASS_ERROR*)
   val witness_sorts: algebra -> string list -> (typ * sort) list -> sort list -> (typ * sort) list
 end;
 
@@ -317,7 +318,7 @@ fun subalgebra pp P sargs (algebra as Algebra {classes, arities}) =
 
 (** sorts of types **)
 
-(* errors -- delayed message composition *)
+(* errors -- performance tuning via delayed message composition *)
 
 datatype class_error =
   NoClassrel of class * class |
@@ -391,24 +392,13 @@ fun of_sort algebra =
 
 (* animating derivations *)
 
-fun weaken algebra class_relation =
-  let
-    fun path (x, c1 :: c2 :: cs) = path (class_relation (x, c1) c2, c2 :: cs)
-      | path (x, _) = x;
-  in fn (x, c1) => fn c2 =>
-    (case Graph.irreducible_paths (classes_of algebra) (c1, c2) of
-      [] => raise CLASS_ERROR (NoClassrel (c1, c2))
-    | cs :: _ => path (x, cs))
-  end;
-
 fun of_sort_derivation algebra {class_relation, type_constructor, type_variable} =
   let
-    val weaken = weaken algebra class_relation;
     val arities = arities_of algebra;
 
-    fun weakens S1 S2 = S2 |> map (fn c2 =>
+    fun weaken S1 S2 = S2 |> map (fn c2 =>
       (case S1 |> find_first (fn (_, c1) => class_le algebra (c1, c2)) of
-        SOME d1 => weaken d1 c2
+        SOME d1 => class_relation d1 c2
       | NONE => raise CLASS_ERROR (NoSubsort (map #2 S1, S2))));
 
     fun derive _ [] = []
@@ -420,11 +410,22 @@ fun of_sort_derivation algebra {class_relation, type_constructor, type_variable}
             S |> map (fn c =>
               let
                 val (c0, Ss') = the (AList.lookup (op =) (Symtab.lookup_list arities a) c);
-                val dom' = map2 (fn d => fn S' => weakens d S' ~~ S') dom Ss';
-              in weaken (type_constructor a dom' c0, c0) c end)
+                val dom' = map2 (fn d => fn S' => weaken d S' ~~ S') dom Ss';
+              in class_relation (type_constructor a dom' c0, c0) c end)
           end
-      | derive T S = weakens (type_variable T) S;
+      | derive T S = weaken (type_variable T) S;
   in uncurry derive end;
+
+fun classrel_derivation algebra class_relation =
+  let
+    fun path (x, c1 :: c2 :: cs) = path (class_relation (x, c1) c2, c2 :: cs)
+      | path (x, _) = x;
+  in
+    fn (x, c1) => fn c2 =>
+      (case Graph.irreducible_paths (classes_of algebra) (c1, c2) of
+        [] => raise CLASS_ERROR (NoClassrel (c1, c2))
+      | cs :: _ => path (x, cs))
+  end;
 
 
 (* witness_sorts *)
