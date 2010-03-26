@@ -61,6 +61,15 @@ diagnose syntax problems.
 * Use of cumulative prems via "!" in some proof methods has been
 discontinued (legacy feature).
 
+* References 'trace_simp' and 'debug_simp' have been replaced by
+configuration options stored in the context. Enabling tracing
+(the case of debugging is similar) in proofs works via
+
+  using [[trace_simp=true]]
+
+Tracing is then active for all invocations of the simplifier
+in subsequent goal refinement steps.
+
 
 *** Pure ***
 
