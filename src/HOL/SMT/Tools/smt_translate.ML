@@ -433,21 +433,26 @@ local
     in fresh_name (p, i) ||> (fn (_, i') => (nT, ((pf, pp), i'))) end
 
   val empty_sign = (Typtab.empty, Termtab.empty, Termtab.empty)
-  fun lookup_typ (typs, _, _) = Typtab.lookup typs
-  fun lookup_fun true (_, funs, _) = Termtab.lookup funs
-    | lookup_fun false (_, _, preds) = Termtab.lookup preds
-  fun add_typ x (typs, funs, preds) = (Typtab.update x typs, funs, preds)
-  fun add_fun true x (typs, funs, preds) = (typs, Termtab.update x funs, preds)
-    | add_fun false x (typs, funs, preds) = (typs, funs, Termtab.update x preds)
+  fun lookup_typ (typs, _, _) = Option.map snd o Typtab.lookup typs
+  fun lookup_fun true (_, funs, _) = Option.map snd o Termtab.lookup funs
+    | lookup_fun false (_, _, preds) = Option.map snd o Termtab.lookup preds
+  fun ext (k, v) = (k, (serial (), v))
+  fun p_ord p = prod_ord int_ord (K EQUAL) p
+  fun add_typ x (typs, funs, preds) =
+    (Typtab.update (ext x) typs, funs, preds)
+  fun add_fun true x (typs, funs, preds) =
+        (typs, Termtab.update (ext x) funs, preds)
+    | add_fun false x (typs, funs, preds) =
+        (typs, funs, Termtab.update (ext x) preds)
   fun make_sign (typs, funs, preds) = {
-    typs = map snd (Typtab.dest typs),
-    funs = map snd (Termtab.dest funs),
-    preds = map (apsnd fst o snd) (Termtab.dest preds) }
+    typs = map snd (sort p_ord (map snd (Typtab.dest typs))),
+    funs = map snd (sort p_ord (map snd (Termtab.dest funs))),
+    preds = map (apsnd fst o snd) (sort p_ord (map snd (Termtab.dest preds))) }
   fun make_rtab (typs, funs, preds) =
     let
-      val rTs = Typtab.dest typs |> map swap |> Symtab.make
+      val rTs = Typtab.dest typs |> map (swap o apsnd snd) |> Symtab.make
       val rts = Termtab.dest funs @ Termtab.dest preds
-        |> map (apfst fst o swap) |> Symtab.make
+        |> map (apfst fst o swap o apsnd snd) |> Symtab.make
     in {typs=rTs, terms=rts} end
 
   fun either f g x = (case f x of NONE => g x | y => y)
