@@ -224,7 +224,7 @@ decl up_1 :: bool
 #30 := [asserted]: #14
 [mp #30 #70]: false
 unsat
-c6eb111aa830c9669a030c2e58b4e827706981da 194 0
+212c7825456dae820eef6b1fa0cb8c5ceeff8780 194 0
 #2 := false
 decl up_1 :: bool
 #4 := up_1
@@ -472,7 +472,7 @@ decl uf_3 :: T1
 #113 := [quant-inst]: #199
 [unit-resolution #113 #536 #49]: false
 unsat
-94169ba151f7a720e818287ce490015dde764bad 1667 0
+62bff2883948b13c19c4cd52ed250bf0afc3ec90 1667 0
 #2 := false
 decl up_54 :: bool
 #126 := up_54
@@ -2219,7 +2219,7 @@ decl ?x2!1 :: int
 #82 := [and-elim #81]: #55
 [unit-resolution #82 #95]: false
 unsat
-18bde40beb0dd1fc2613a67805e24d767dd9a3bf 135 0
+bc722e6a73140d95a8643a8d8a522de8bf529dea 135 0
 #2 := false
 decl up_1 :: (-> T1 T2 bool)
 #5 := (:var 0 T2)
@@ -2355,7 +2355,8 @@ decl ?x3!0 :: T2
 #176 := [quant-inst]: #538
 [unit-resolution #176 #252 #535]: false
 unsat
-013861f683c286a3ef38681266913846a3a39b9a 135 2
+3ad10572aa4268ecfd73368c6cc15680136648a3 136 0
+WARNING: failed to find a pattern for quantifier (quantifier id: k!12)
 #2 := false
 decl up_1 :: (-> T1 T2 bool)
 #5 := (:var 0 T2)
@@ -2491,8 +2492,6 @@ decl ?x6!3 :: T2
 #235 := [quant-inst]: #597
 [unit-resolution #235 #311 #594]: false
 unsat
-WARNING: failed to find a pattern for quantifier (quantifier id: k!12)
-
 0e958e27514643bb596851e6dbb61a23f6b348b0 56 0
 #2 := false
 decl up_1 :: (-> T1 bool)
@@ -2942,7 +2941,7 @@ decl uf_1 :: real
 #294 := [unit-resolution #190 #293]: #188
 [th-lemma #280 #294]: false
 unsat
-8e6af261ea9f94b967813d4e2f2abcb94463d612 124 0
+a67db8da0b1a1104d4370e2e261e8521096f24e1 124 0
 #2 := false
 decl uf_1 :: (-> T1 T2)
 decl uf_3 :: T1
@@ -3222,7 +3221,7 @@ unsat
 #25 := [asserted]: #9
 [mp #25 #49]: false
 unsat
-5f3503ae4a43341932052006638f286bea551e87 45 0
+7a45124c81166760c08802d05bb1a73c01b0f138 45 0
 #2 := false
 #11 := 4::real
 decl uf_2 :: real
@@ -3268,7 +3267,7 @@ decl uf_1 :: real
 #60 := [mp #36 #59]: #51
 [th-lemma #60 #47 #38]: false
 unsat
-347776ce17d7d3f6d1252ead05795e4eee6f4b20 59 0
+f946ff901958cea1a0225dfba1e556060c889a10 59 0
 #2 := false
 #16 := (not false)
 decl uf_2 :: int
@@ -3328,7 +3327,7 @@ decl uf_1 :: int
 #34 := [asserted]: #18
 [mp #34 #71]: false
 unsat
-f7b1b99e3470f713e48aaae1336ace10223be6f0 212 0
+88d529b1517abb78e220ec8f58e3b3405bb2453b 212 0
 #2 := false
 decl uf_4 :: T1
 #13 := uf_4
@@ -3628,7 +3627,7 @@ decl uf_1 :: int
 #99 := [unit-resolution #77 #98 #91 #82]: #54
 [unit-resolution #99 #112]: false
 unsat
-9791139ea2cfda88ae799477fc61e411aab42b18 673 0
+d4ecdf21a3d5d758670676ddb9e6e093ea9fcc15 673 0
 #2 := false
 #169 := 0::int
 decl uf_2 :: int
@@ -4302,7 +4301,7 @@ decl uf_3 :: int
 #410 := [mp #349 #409]: #405
 [unit-resolution #410 #710 #709 #697 #706]: false
 unsat
-0d07e457c5602ba4a5dc70af32b6dc53a80a858c 2291 0
+efea5b71ce31ca68241e4ee8755a8335445d88e6 2291 0
 #2 := false
 #6 := 0::int
 decl z3name!0 :: int
@@ -6881,7 +6880,7 @@ decl uf_1 :: real
 #126 := [mp #101 #125]: #115
 [unit-resolution #126 #132 #129]: false
 unsat
-c8ed8eae868ac61c8f3a616f1b0b1df4032f4eac 208 0
+8bded5c2f0cd48cce9a86100cc4c6ce26ec88a2e 208 0
 #2 := false
 #9 := 0::int
 #11 := 4::int
@@ -7646,7 +7645,8 @@ decl ?x1!0 :: int
 #167 := [unit-resolution #154 #90]: #166
 [unit-resolution #167 #165 #162]: false
 unsat
-b7c4f9440c4594c46eee14ce57f17610bb7e2536 83 2
+b7c4f9440c4594c46eee14ce57f17610bb7e2536 84 0
+WARNING: failed to find a pattern for quantifier (quantifier id: k!2)
 #2 := false
 #5 := 0::int
 #4 := (:var 0 int)
@@ -7730,9 +7730,8 @@ b7c4f9440c4594c46eee14ce57f17610bb7e2536 83 2
 #62 := [mp~ #54 #61]: #49
 [unit-resolution #62 #174]: false
 unsat
+7a9cc3ee85422788d981af84d181bd61d65f774c 181 0
 WARNING: failed to find a pattern for quantifier (quantifier id: k!2)
-
-7a9cc3ee85422788d981af84d181bd61d65f774c 180 2
 #2 := false
 #4 := 0::int
 #5 := (:var 0 int)
@@ -7913,8 +7912,6 @@ decl ?x1!1 :: int
 #585 := [unit-resolution #128 #581]: #55
 [unit-resolution #585 #307]: false
 unsat
-WARNING: failed to find a pattern for quantifier (quantifier id: k!2)
-
 5201b12abd6b3d0f247a34c1fd9f443fc951c55f 68 0
 #2 := false
 #12 := 1::int
@@ -8568,7 +8565,7 @@ decl uf_1 :: real
 #32 := [asserted]: #16
 [mp #32 #74]: false
 unsat
-99d65e323e3d85dbdc2d8c52c169db4d46ead198 141 0
+a89308e99854a72f032798efa6ed32cee1f069ad 141 0
 #2 := false
 decl uf_4 :: int
 #9 := uf_4
@@ -10479,7 +10476,7 @@ decl uf_1 :: (-> int T1)
 #361 := [unit-resolution #639 #655]: #647
 [th-lemma #656 #361 #261]: false
 unsat
-980ba021fe0853c3aa46377383e3f0f6fa9e2888 557 0
+201224fffb303874a019c931bc3ddb7a48e74843 557 0
 #2 := false
 #9 := 0::int
 decl uf_2 :: (-> T1 int)
@@ -11131,9 +11128,9 @@ decl uf_1 :: (-> bv[2] int)
 #287 := [th-lemma]: #627
 [unit-resolution #287 #47 #635]: false
 unsat
-2e4bd6e1ab7bfedbefd3ada8caf5332ba5651065 1 0
+585c02dc1784e4298147af8e1f7a14d1e20f4938 1 0
 unsat
-96d2e1aad559535e781a07ee5e55bb19caef769c 50 0
+af0e29f90d51c2b97a1ecaa16facf1cd8b6c5ba3 50 0
 #2 := false
 decl uf_6 :: T2
 #23 := uf_6
@@ -11184,7 +11181,7 @@ decl uf_5 :: T3
 #66 := [asserted]: #26
 [unit-resolution #66 #235]: false
 unsat
-008ad82b0a62ff600e66e8f2cc72b5795c7c5032 105 0
+dda7f93ea68b6650d60fb96e3a60e68637d12660 105 0
 #2 := false
 decl uf_6 :: (-> T4 T2)
 decl uf_10 :: T4
@@ -11290,7 +11287,7 @@ decl uf_1 :: (-> T2 T3 T1)
 #110 := [asserted]: #46
 [unit-resolution #110 #238]: false
 unsat
-0a15a60660bc0c3f06688ad5de50ed50a24d0df0 181 0
+bab035487a4c595c2090c8097591bd8874c90db9 181 0
 #2 := false
 decl uf_1 :: (-> T1 T2 T3)
 decl uf_3 :: T2
@@ -11472,7 +11469,7 @@ decl uf_4 :: T2
 #76 := [asserted]: #38
 [unit-resolution #76 #489]: false
 unsat
-dde2364f13fc9ce8af00c7a02bfea9a6c979a805 62 0
+4e1c8dc2fbb6a09931090ee5acf8d0e6f34352b4 62 0
 #2 := false
 decl up_4 :: (-> T1 T2 bool)
 decl uf_3 :: T2
@@ -11535,7 +11532,7 @@ decl up_1 :: (-> T1 T2 bool)
 #73 := [unit-resolution #71 #68]: #72
 [unit-resolution #73 #59 #61]: false
 unsat
-3cb6787c7063b0a04bff9e2bfa4203b73903dabe 115 0
+87c5323638926f09820cf502a43fcd61cba03c0c 115 0
 #2 := false
 decl up_2 :: (-> T2 bool)
 decl uf_3 :: T2
@@ -11651,7 +11648,7 @@ decl uf_4 :: T1
 #560 := [mp #344 #559]: #557
 [unit-resolution #560 #576 #561]: false
 unsat
-dcb635ada6f2482ea11de30713fe962bcb57c9ad 464 0
+352491b756faec7ffa24a6d9cce95d2879223e60 464 0
 #2 := false
 decl uf_2 :: (-> T2 T3 T3)
 decl uf_4 :: T3
@@ -12138,7 +12135,7 @@ decl up_1 :: (-> T1 bool)
 #25 := [asserted]: #9
 [mp #25 #34]: false
 unsat
-f6e9645ebbb8739d12b8e96bc83ddef33c7d53bc 366 0
+c5b3c6b4f593e27f97db06f2c64fc61d8f9bebaa 366 0
 #2 := false
 decl uf_1 :: (-> int T1)
 #37 := 6::int
@@ -12505,7 +12502,7 @@ decl uf_2 :: (-> T1 int)
 #182 := [asserted]: #40
 [unit-resolution #182 #399]: false
 unsat
-b15b527236338a437e355afcde07dd3c6dfc451f 408 0
+9d577a545efebaa46a634487a3e922a7cddbb866 408 0
 #2 := false
 #22 := 0::int
 #8 := 2::int
@@ -12914,7 +12911,7 @@ decl uf_2 :: T2
 #375 := [unit-resolution #374 #407]: #708
 [th-lemma #375 #370 #465]: false
 unsat
-71b79533f46a8514b2fc189fc382867d50f52a9a 50 0
+af6e260cca3c1cafcab25bb9a90bb548b2b7ec6b 50 0
 #2 := false
 decl up_35 :: (-> int bool)
 #112 := 1::int
@@ -12965,7 +12962,7 @@ decl uf_37 :: T13
 #504 := [quant-inst]: #503
 [unit-resolution #504 #916 #297]: false
 unsat
-e40ba7aed8ae5409337a331038da0587c03354d6 506 0
+679f514494fa97481f8fb2124de829ed6e4d2b68 506 0
 #2 := false
 decl uf_17 :: (-> T8 T3)
 decl uf_18 :: (-> T1 T8)

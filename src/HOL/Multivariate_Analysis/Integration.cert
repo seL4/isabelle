@@ -1,4 +1,4 @@
-534d3afbd3505abffa6b03e3986bfa7aa3cff358 428 0
+9d0325fd923020e9d1f3e7c851ac5a92d68bdbdf 428 0
 #2 := false
 decl uf_10 :: T1
 #38 := uf_10
@@ -427,7 +427,7 @@ decl uf_11 :: T2
 #674 := [lemma #673]: #571
 [unit-resolution #674 #690]: false
 unsat
-985f86fd1ea01264c02b8076ffd658677bd4d29a 419 0
+c87f23eea66c69622dc5ab167ea6f34f69f5b963 419 0
 #2 := false
 #194 := 0::real
 decl uf_4 :: (-> T2 T3 real)
@@ -847,7 +847,7 @@ decl uf_8 :: T2
 #224 := [and-elim #222]: #214
 [th-lemma #224 #275 #689]: false
 unsat
-00b949278548f13329cf92f11a0ad2161fa40793 907 0
+1596317f793892bf21292b98f5b9358a7fbbbc34 907 0
 #2 := false
 #299 := 0::real
 decl uf_1 :: (-> T3 T2 real)
@@ -1755,7 +1755,7 @@ decl uf_13 :: T3
 #1366 := [unit-resolution #1233 #1365]: #1231
 [th-lemma #1366 #1364 #1362]: false
 unsat
-f5cf3017773c1cf700f533cb220ba6c9eb22de56 211 0
+697101e22cd936070cda4e34ef646648761a3ec5 211 0
 #2 := false
 #33 := 0::real
 decl uf_11 :: (-> T5 T6 real)
@@ -1967,7 +1967,7 @@ decl uf_1 :: T1
 #328 := [unit-resolution #319 #327]: #300
 [th-lemma #326 #334 #195 #328 #187 #138]: false
 unsat
-ad41c2d9b185dd9b4fd0abefcdc55357d2105ed8 285 0
+76dd2264ac7b34ef64af3aea7f49f78e51b20a36 285 0
 #2 := false
 #7 := 0::real
 decl uf_4 :: real
@@ -2253,7 +2253,7 @@ decl uf_1 :: real
 #286 := [lemma #284]: #285
 [unit-resolution #286 #308 #305]: false
 unsat
-076d8565ad4c4370b16a3b0c139e8c8e8fb58224 97 0
+5bc83521693fc90ddbd62a1d655c9b76740f7f5c 97 0
 #2 := false
 #18 := 0::real
 decl uf_1 :: (-> T2 T1 real)
@@ -2351,7 +2351,7 @@ decl uf_3 :: T2
 #173 := [mp #167 #172]: #165
 [unit-resolution #173 #147 #76]: false
 unsat
-8e6ea05b53a9ffb5a6dec689eb004bdb0c2a755b 57 0
+537f6487ce8905f62d380a496ea77f3492821720 57 0
 #2 := false
 #4 := 0::real
 decl uf_1 :: (-> T2 real)
@@ -2409,7 +2409,7 @@ decl uf_10 :: T4
 #269 := [quant-inst]: #268
 [unit-resolution #269 #247 #274]: false
 unsat
-d278c38176edc1fb6492d54817f0a9092db653e6 91 0
+6ed731a5c059cb83dd6a40492311dd9bf8e4de9b 91 0
 #2 := false
 #38 := 0::real
 decl uf_1 :: (-> T1 T2 real)
@@ -2501,7 +2501,7 @@ decl uf_2 :: T1
 #153 := [mp #147 #152]: #145
 [unit-resolution #153 #129 #160]: false
 unsat
-38b5e95092f91070fab780891ebf7b83d5f95757 222 0
+283acece9403e0ed1dff5dca04d9b1e77248a71c 222 0
 #2 := false
 #4 := 0::real
 decl uf_2 :: (-> T2 T1 real)
@@ -2724,7 +2724,7 @@ decl uf_4 :: T2
 #308 := [th-lemma]: #307
 [unit-resolution #308 #305 #290]: false
 unsat
-4968b0a0840255d92fbecd59ed4dac302603b2bd 248 0
+c140056bfbcb9e3878073e8d474395da7df06aaf 248 0
 #2 := false
 #4 := 0::real
 decl uf_2 :: (-> T2 T1 real)
@@ -2973,7 +2973,94 @@ decl uf_3 :: T2
 #380 := [th-lemma]: #379
 [unit-resolution #380 #377 #363]: false
 unsat
-a3b02dd75d8b2261f1b7ef7215268d84fd25e972 149 0
+9df215500c4e556185e187283e11a68edbd664b5 86 0
+#2 := false
+#37 := 0::real
+decl uf_2 :: (-> T2 T1 real)
+decl uf_4 :: T1
+#12 := uf_4
+decl uf_3 :: T2
+#5 := uf_3
+#13 := (uf_2 uf_3 uf_4)
+#34 := -1::real
+#140 := (* -1::real #13)
+decl uf_1 :: real
+#4 := uf_1
+#141 := (+ uf_1 #140)
+#143 := (>= #141 0::real)
+#6 := (:var 0 T1)
+#7 := (uf_2 uf_3 #6)
+#127 := (pattern #7)
+#35 := (* -1::real #7)
+#36 := (+ uf_1 #35)
+#47 := (>= #36 0::real)
+#134 := (forall (vars (?x2 T1)) (:pat #127) #47)
+#49 := (forall (vars (?x2 T1)) #47)
+#137 := (iff #49 #134)
+#135 := (iff #47 #47)
+#136 := [refl]: #135
+#138 := [quant-intro #136]: #137
+#67 := (~ #49 #49)
+#58 := (~ #47 #47)
+#66 := [refl]: #58
+#68 := [nnf-pos #66]: #67
+#10 := (<= #7 uf_1)
+#11 := (forall (vars (?x2 T1)) #10)
+#50 := (iff #11 #49)
+#46 := (iff #10 #47)
+#48 := [rewrite]: #46
+#51 := [quant-intro #48]: #50
+#32 := [asserted]: #11
+#52 := [mp #32 #51]: #49
+#69 := [mp~ #52 #68]: #49
+#139 := [mp #69 #138]: #134
+#149 := (not #134)
+#150 := (or #149 #143)
+#151 := [quant-inst]: #150
+#144 := [unit-resolution #151 #139]: #143
+#142 := (<= #141 0::real)
+#38 := (<= #36 0::real)
+#128 := (forall (vars (?x1 T1)) (:pat #127) #38)
+#41 := (forall (vars (?x1 T1)) #38)
+#131 := (iff #41 #128)
+#129 := (iff #38 #38)
+#130 := [refl]: #129
+#132 := [quant-intro #130]: #131
+#62 := (~ #41 #41)
+#64 := (~ #38 #38)
+#65 := [refl]: #64
+#63 := [nnf-pos #65]: #62
+#8 := (<= uf_1 #7)
+#9 := (forall (vars (?x1 T1)) #8)
+#42 := (iff #9 #41)
+#39 := (iff #8 #38)
+#40 := [rewrite]: #39
+#43 := [quant-intro #40]: #42
+#31 := [asserted]: #9
+#44 := [mp #31 #43]: #41
+#61 := [mp~ #44 #63]: #41
+#133 := [mp #61 #132]: #128
+#145 := (not #128)
+#146 := (or #145 #142)
+#147 := [quant-inst]: #146
+#148 := [unit-resolution #147 #133]: #142
+#45 := (= uf_1 #13)
+#55 := (not #45)
+#14 := (= #13 uf_1)
+#15 := (not #14)
+#56 := (iff #15 #55)
+#53 := (iff #14 #45)
+#54 := [rewrite]: #53
+#57 := [monotonicity #54]: #56
+#33 := [asserted]: #15
+#60 := [mp #33 #57]: #55
+#153 := (not #143)
+#152 := (not #142)
+#154 := (or #45 #152 #153)
+#155 := [th-lemma]: #154
+[unit-resolution #155 #60 #148 #144]: false
+unsat
+7e78f7c132b9e8e998decefbcdf818aa16be5cc1 149 0
 #2 := false
 #19 := 0::real
 decl uf_1 :: (-> T1 T2 real)
@@ -3122,91 +3209,4 @@ decl uf_5 :: T1
 #200 := [def-axiom]: #199
 #228 := [unit-resolution #200 #220]: #173
 [th-lemma #228 #227 #211]: false
-unsat
-06d4133eb0950a5f12d22480aa2707e31af2b064 86 0
-#2 := false
-#37 := 0::real
-decl uf_2 :: (-> T2 T1 real)
-decl uf_4 :: T1
-#12 := uf_4
-decl uf_3 :: T2
-#5 := uf_3
-#13 := (uf_2 uf_3 uf_4)
-#34 := -1::real
-#140 := (* -1::real #13)
-decl uf_1 :: real
-#4 := uf_1
-#141 := (+ uf_1 #140)
-#143 := (>= #141 0::real)
-#6 := (:var 0 T1)
-#7 := (uf_2 uf_3 #6)
-#127 := (pattern #7)
-#35 := (* -1::real #7)
-#36 := (+ uf_1 #35)
-#47 := (>= #36 0::real)
-#134 := (forall (vars (?x2 T1)) (:pat #127) #47)
-#49 := (forall (vars (?x2 T1)) #47)
-#137 := (iff #49 #134)
-#135 := (iff #47 #47)
-#136 := [refl]: #135
-#138 := [quant-intro #136]: #137
-#67 := (~ #49 #49)
-#58 := (~ #47 #47)
-#66 := [refl]: #58
-#68 := [nnf-pos #66]: #67
-#10 := (<= #7 uf_1)
-#11 := (forall (vars (?x2 T1)) #10)
-#50 := (iff #11 #49)
-#46 := (iff #10 #47)
-#48 := [rewrite]: #46
-#51 := [quant-intro #48]: #50
-#32 := [asserted]: #11
-#52 := [mp #32 #51]: #49
-#69 := [mp~ #52 #68]: #49
-#139 := [mp #69 #138]: #134
-#149 := (not #134)
-#150 := (or #149 #143)
-#151 := [quant-inst]: #150
-#144 := [unit-resolution #151 #139]: #143
-#142 := (<= #141 0::real)
-#38 := (<= #36 0::real)
-#128 := (forall (vars (?x1 T1)) (:pat #127) #38)
-#41 := (forall (vars (?x1 T1)) #38)
-#131 := (iff #41 #128)
-#129 := (iff #38 #38)
-#130 := [refl]: #129
-#132 := [quant-intro #130]: #131
-#62 := (~ #41 #41)
-#64 := (~ #38 #38)
-#65 := [refl]: #64
-#63 := [nnf-pos #65]: #62
-#8 := (<= uf_1 #7)
-#9 := (forall (vars (?x1 T1)) #8)
-#42 := (iff #9 #41)
-#39 := (iff #8 #38)
-#40 := [rewrite]: #39
-#43 := [quant-intro #40]: #42
-#31 := [asserted]: #9
-#44 := [mp #31 #43]: #41
-#61 := [mp~ #44 #63]: #41
-#133 := [mp #61 #132]: #128
-#145 := (not #128)
-#146 := (or #145 #142)
-#147 := [quant-inst]: #146
-#148 := [unit-resolution #147 #133]: #142
-#45 := (= uf_1 #13)
-#55 := (not #45)
-#14 := (= #13 uf_1)
-#15 := (not #14)
-#56 := (iff #15 #55)
-#53 := (iff #14 #45)
-#54 := [rewrite]: #53
-#57 := [monotonicity #54]: #56
-#33 := [asserted]: #15
-#60 := [mp #33 #57]: #55
-#153 := (not #143)
-#152 := (not #142)
-#154 := (or #45 #152 #153)
-#155 := [th-lemma]: #154
-[unit-resolution #155 #60 #148 #144]: false
 unsat
