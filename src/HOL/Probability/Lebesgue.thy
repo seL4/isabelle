@@ -1542,31 +1542,6 @@ lemma integral_finite:
     integral_cong[of "\<lambda>x. f x * indicator_fn (space M) x" f]
   by (auto simp add: indicator_fn_def)
 
-lemma integral_finite_singleton:
-  assumes fin: "finite (space M)" and "Pow (space M) = sets M"
-  shows "integral f = (\<Sum>x \<in> space M. f x * measure M {x})"
-proof -
-  have "f \<in> borel_measurable M"
-    unfolding borel_measurable_le_iff
-    using assms by auto
-  { fix r let ?x = "f -` {r} \<inter> space M"
-    have "?x \<subseteq> space M" by auto
-    with assms have "measure M ?x = (\<Sum>i \<in> ?x. measure M {i})"
-      by (auto intro!: measure_real_sum_image) }
-  note measure_eq_setsum = this
-  show ?thesis
-    unfolding integral_finite[OF `f \<in> borel_measurable M` fin]
-      measure_eq_setsum setsum_right_distrib
-    apply (subst setsum_Sigma)
-    apply (simp add: assms)
-    apply (simp add: assms)
-  proof (rule setsum_reindex_cong[symmetric])
-    fix a assume "a \<in> Sigma (f ` space M) (\<lambda>x. f -` {x} \<inter> space M)"
-    thus "(\<lambda>(x, y). x * measure M {y}) a = f (snd a) * measure_space.measure M {snd a}"
-      by auto
-  qed (auto intro!: image_eqI inj_onI)
-qed
-
 section "Radon–Nikodym derivative"
 
 definition
@@ -1574,48 +1549,103 @@ definition
     f \<in> borel_measurable M \<and>
     (\<forall>a \<in> sets M. (integral (\<lambda>x. f x * indicator_fn a x) = v a))"
 
-lemma RN_deriv_finite_singleton:
+end
+
+locale finite_measure_space = measure_space +
+  assumes finite_space: "finite (space M)"
+  and sets_eq_Pow: "sets M = Pow (space M)"
+
+lemma sigma_algebra_cong:
+  fixes M :: "('a, 'b) algebra_scheme" and M' :: "('a, 'c) algebra_scheme"
+  assumes *: "sigma_algebra M"
+  and cong: "space M = space M'" "sets M = sets M'"
+  shows "sigma_algebra M'"
+using * unfolding sigma_algebra_def algebra_def sigma_algebra_axioms_def unfolding cong .
+
+lemma finite_Pow_additivity_sufficient:
+  assumes "finite (space M)" and "sets M = Pow (space M)"
+  and "positive M (measure M)" and "additive M (measure M)"
+  shows "finite_measure_space M"
+proof -
+  have "sigma_algebra M"
+    using assms by (auto intro!: sigma_algebra_cong[OF sigma_algebra_Pow])
+
+  have "measure_space M"
+    by (rule Measure.finite_additivity_sufficient) (fact+)
+  thus ?thesis
+    unfolding finite_measure_space_def finite_measure_space_axioms_def
+    using assms by simp
+qed
+
+lemma finite_measure_spaceI:
+  assumes "measure_space M" and "finite (space M)" and "sets M = Pow (space M)"
+  shows "finite_measure_space M"
+  unfolding finite_measure_space_def finite_measure_space_axioms_def
+  using assms by simp
+
+lemma (in finite_measure_space) integral_finite_singleton:
+  "integral f = (\<Sum>x \<in> space M. f x * measure M {x})"
+proof -
+  have "f \<in> borel_measurable M"
+    unfolding borel_measurable_le_iff
+    using sets_eq_Pow by auto
+  { fix r let ?x = "f -` {r} \<inter> space M"
+    have "?x \<subseteq> space M" by auto
+    with finite_space sets_eq_Pow have "measure M ?x = (\<Sum>i \<in> ?x. measure M {i})"
+      by (auto intro!: measure_real_sum_image) }
+  note measure_eq_setsum = this
+  show ?thesis
+    unfolding integral_finite[OF `f \<in> borel_measurable M` finite_space]
+      measure_eq_setsum setsum_right_distrib
+    apply (subst setsum_Sigma)
+    apply (simp add: finite_space)
+    apply (simp add: finite_space)
+  proof (rule setsum_reindex_cong[symmetric])
+    fix a assume "a \<in> Sigma (f ` space M) (\<lambda>x. f -` {x} \<inter> space M)"
+    thus "(\<lambda>(x, y). x * measure M {y}) a = f (snd a) * measure_space.measure M {snd a}"
+      by auto
+  qed (auto intro!: image_eqI inj_onI)
+qed
+
+lemma (in finite_measure_space) RN_deriv_finite_singleton:
   fixes v :: "'a set \<Rightarrow> real"
-  assumes finite: "finite (space M)" and Pow: "Pow (space M) = sets M"
-  and ms_v: "measure_space (M\<lparr>measure := v\<rparr>)"
+  assumes ms_v: "measure_space (M\<lparr>measure := v\<rparr>)"
   and eq_0: "\<And>x. measure M {x} = 0 \<Longrightarrow> v {x} = 0"
   and "x \<in> space M" and "measure M {x} \<noteq> 0"
   shows "RN_deriv v x = v {x} / (measure M {x})" (is "_ = ?v x")
   unfolding RN_deriv_def
 proof (rule someI2_ex[where Q = "\<lambda>f. f x = ?v x"], rule exI[where x = ?v], safe)
   show "(\<lambda>a. v {a} / measure_space.measure M {a}) \<in> borel_measurable M"
-    unfolding borel_measurable_le_iff using Pow by auto
+    unfolding borel_measurable_le_iff using sets_eq_Pow by auto
 next
   fix a assume "a \<in> sets M"
   hence "a \<subseteq> space M" and "finite a"
-    using sets_into_space finite by (auto intro: finite_subset)
+    using sets_into_space finite_space by (auto intro: finite_subset)
   have *: "\<And>x a. (if measure M {x} = 0 then 0 else v {x} * indicator_fn a x) =
     v {x} * indicator_fn a x" using eq_0 by auto
 
   from measure_space.measure_real_sum_image[OF ms_v, of a]
-    Pow `a \<in> sets M` sets_into_space `finite a`
+    sets_eq_Pow `a \<in> sets M` sets_into_space `finite a`
   have "v a = (\<Sum>x\<in>a. v {x})" by auto
   thus "integral (\<lambda>x. v {x} / measure_space.measure M {x} * indicator_fn a x) = v a"
-    apply (simp add: eq_0 integral_finite_singleton[OF finite Pow])
+    apply (simp add: eq_0 integral_finite_singleton)
     apply (unfold divide_1)
-    by (simp add: * indicator_fn_def if_distrib setsum_cases finite `a \<subseteq> space M` Int_absorb1)
+    by (simp add: * indicator_fn_def if_distrib setsum_cases finite_space `a \<subseteq> space M` Int_absorb1)
 next
   fix w assume "w \<in> borel_measurable M"
   assume int_eq_v: "\<forall>a\<in>sets M. integral (\<lambda>x. w x * indicator_fn a x) = v a"
-  have "{x} \<in> sets M" using Pow `x \<in> space M` by auto
+  have "{x} \<in> sets M" using sets_eq_Pow `x \<in> space M` by auto
 
   have "w x * measure M {x} =
     (\<Sum>y\<in>space M. w y * indicator_fn {x} y * measure M {y})"
     apply (subst (3) mult_commute)
-    unfolding indicator_fn_def if_distrib setsum_cases[OF finite]
+    unfolding indicator_fn_def if_distrib setsum_cases[OF finite_space]
     using `x \<in> space M` by simp
   also have "... = v {x}"
     using int_eq_v[rule_format, OF `{x} \<in> sets M`]
-    by (simp add: integral_finite_singleton[OF finite Pow])
+    by (simp add: integral_finite_singleton)
   finally show "w x = v {x} / measure M {x}"
     using `measure M {x} \<noteq> 0` by (simp add: eq_divide_eq)
 qed fact
-
-end
 
 end

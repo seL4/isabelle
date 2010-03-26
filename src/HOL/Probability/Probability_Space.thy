@@ -350,75 +350,6 @@ lemma finite_expectation:
   assumes "finite (space M) \<and> random_variable borel_space X"
   shows "expectation X = (\<Sum> r \<in> X ` (space M). r * distribution X {r})"
 using assms unfolding distribution_def using finite_expectation1 by auto
-
-lemma finite_marginal_product_space_POW:
-  assumes "Pow (space M) = events"
-  assumes "random_variable \<lparr> space = X ` (space M), sets = Pow (X ` (space M))\<rparr> X"
-  assumes "random_variable \<lparr> space = Y ` (space M), sets = Pow (Y ` (space M))\<rparr> Y"
-  assumes "finite (space M)"
-  shows "measure_space \<lparr> space = ((X ` (space M)) \<times> (Y ` (space M))),
-  sets = Pow ((X ` (space M)) \<times> (Y ` (space M))),
-  measure = (\<lambda>a. prob ((\<lambda>x. (X x,Y x)) -` a \<inter> space M))\<rparr>"
-  using assms
-proof -
-  let "?S" = "\<lparr> space = ((X ` (space M)) \<times> (Y ` (space M))), 
-    sets = Pow ((X ` (space M)) \<times> (Y ` (space M)))\<rparr>"
-  let "?M" = "\<lparr> space = ((X ` (space M)) \<times> (Y ` (space M))), 
-    sets = Pow ((X ` (space M)) \<times> (Y ` (space M)))\<rparr>"
-  have pos: "positive ?S (\<lambda>a. prob ((\<lambda>x. (X x,Y x)) -` a \<inter> space M))"
-    unfolding positive_def using positive'[unfolded positive_def] assms by auto
-  { fix x y
-    have A: "((\<lambda>x. (X x, Y x)) -` x) \<inter> space M \<in> sets M" using assms by auto
-    have B: "((\<lambda>x. (X x, Y x)) -` y) \<inter> space M \<in> sets M" using assms by auto
-    assume "x \<inter> y = {}"
-    from additive[unfolded additive_def, rule_format, OF A B] this
-    have "prob (((\<lambda>x. (X x, Y x)) -` x \<union>
-      (\<lambda>x. (X x, Y x)) -` y) \<inter> space M) =
-      prob ((\<lambda>x. (X x, Y x)) -` x \<inter> space M) +
-      prob ((\<lambda>x. (X x, Y x)) -` y \<inter> space M)" 
-      apply (subst Int_Un_distrib2)
-      by auto }
-  hence add: "additive ?S (\<lambda>a. prob ((\<lambda>x. (X x,Y x)) -` a \<inter> space M))"
-    unfolding additive_def by auto
-  interpret S: sigma_algebra "?S" 
-    unfolding sigma_algebra_def algebra_def
-      sigma_algebra_axioms_def by auto
-  show ?thesis
-     using add pos S.finite_additivity_sufficient assms by auto
-qed
-
-lemma finite_marginal_product_space_POW2:
-  assumes "Pow (space M) = events"
-  assumes "random_variable \<lparr>space = s1, sets = Pow s1\<rparr> X"
-  assumes "random_variable \<lparr>space = s2, sets = Pow s2\<rparr> Y"
-  assumes "finite (space M)"
-  assumes "finite s1" "finite s2"
-  shows "measure_space \<lparr> space = s1 \<times> s2, sets = Pow (s1 \<times> s2), measure = joint_distribution X Y\<rparr>"
-proof -
-  let "?S" = "\<lparr> space = s1 \<times> s2, sets = Pow (s1 \<times> s2) \<rparr>"
-  let "?M" = "\<lparr> space = s1 \<times> s2, sets = Pow (s1 \<times> s2), measure = joint_distribution X Y \<rparr>"
-  have pos: "positive ?S (joint_distribution X Y)" using positive'
-    unfolding positive_def joint_distribution_def using assms by auto
-  { fix x y
-    have A: "((\<lambda>x. (X x, Y x)) -` x) \<inter> space M \<in> sets M" using assms by auto
-    have B: "((\<lambda>x. (X x, Y x)) -` y) \<inter> space M \<in> sets M" using assms by auto
-    assume "x \<inter> y = {}"
-    from additive[unfolded additive_def, rule_format, OF A B] this
-    have "prob (((\<lambda>x. (X x, Y x)) -` x \<union>
-      (\<lambda>x. (X x, Y x)) -` y) \<inter> space M) =
-      prob ((\<lambda>x. (X x, Y x)) -` x \<inter> space M) +
-      prob ((\<lambda>x. (X x, Y x)) -` y \<inter> space M)" 
-      apply (subst Int_Un_distrib2)
-      by auto }
-  hence add: "additive ?S (joint_distribution X Y)"
-    unfolding additive_def joint_distribution_def by auto
-  interpret S: sigma_algebra "?S" 
-    unfolding sigma_algebra_def algebra_def
-      sigma_algebra_axioms_def by auto
-  show ?thesis
-     using add pos S.finite_additivity_sufficient assms by auto
-qed
-
 lemma prob_x_eq_1_imp_prob_y_eq_0:
   assumes "{x} \<in> events"
   assumes "(prob {x} = 1)"
@@ -453,6 +384,45 @@ proof -
   ultimately show ?thesis by auto
 qed
 
+
 end
+
+locale finite_prob_space = prob_space + finite_measure_space
+
+lemma (in finite_prob_space) finite_marginal_product_space_POW2:
+  assumes "finite s1" "finite s2"
+  shows "finite_measure_space \<lparr> space = s1 \<times> s2, sets = Pow (s1 \<times> s2), measure = joint_distribution X Y\<rparr>"
+    (is "finite_measure_space ?M")
+proof (rule finite_Pow_additivity_sufficient)
+  show "positive ?M (measure ?M)"
+    unfolding positive_def using positive'[unfolded positive_def] assms sets_eq_Pow
+    by (simp add: joint_distribution_def)
+
+  show "additive ?M (measure ?M)" unfolding additive_def
+  proof safe
+    fix x y
+    have A: "((\<lambda>x. (X x, Y x)) -` x) \<inter> space M \<in> sets M" using assms sets_eq_Pow by auto
+    have B: "((\<lambda>x. (X x, Y x)) -` y) \<inter> space M \<in> sets M" using assms sets_eq_Pow by auto
+    assume "x \<inter> y = {}"
+    from additive[unfolded additive_def, rule_format, OF A B] this
+    show "measure ?M (x \<union> y) = measure ?M x + measure ?M y"
+      apply (simp add: joint_distribution_def)
+      apply (subst Int_Un_distrib2)
+      by auto
+  qed
+
+  show "finite (space ?M)"
+    using assms by auto
+
+  show "sets ?M = Pow (space ?M)"
+    by simp
+qed
+
+lemma (in finite_prob_space) finite_marginal_product_space_POW:
+  shows "finite_measure_space \<lparr> space = X ` space M \<times> Y ` space M,
+                                sets = Pow (X ` space M \<times> Y ` space M),
+                                measure = joint_distribution X Y\<rparr>"
+    (is "finite_measure_space ?M")
+  using finite_space by (auto intro!: finite_marginal_product_space_POW2)
 
 end

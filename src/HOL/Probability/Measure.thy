@@ -10,7 +10,34 @@ definition prod_sets where
   "prod_sets A B = {z. \<exists>x \<in> A. \<exists>y \<in> B. z = x \<times> y}"
 
 lemma prod_setsI: "x \<in> A \<Longrightarrow> y \<in> B \<Longrightarrow> (x \<times> y) \<in> prod_sets A B"
-  by (auto simp add: prod_sets_def) 
+  by (auto simp add: prod_sets_def)
+
+lemma sigma_prod_sets_finite:
+  assumes "finite A" and "finite B"
+  shows "sets (sigma (A \<times> B) (prod_sets (Pow A) (Pow B))) = Pow (A \<times> B)"
+proof (simp add: sigma_def, safe)
+  have fin: "finite (A \<times> B)" using assms by (rule finite_cartesian_product)
+
+  fix x assume subset: "x \<subseteq> A \<times> B"
+  hence "finite x" using fin by (rule finite_subset)
+  from this subset show "x \<in> sigma_sets (A\<times>B) (prod_sets (Pow A) (Pow B))"
+    (is "x \<in> sigma_sets ?prod ?sets")
+  proof (induct x)
+    case empty show ?case by (rule sigma_sets.Empty)
+  next
+    case (insert a x)
+    hence "{a} \<in> sigma_sets ?prod ?sets" by (auto simp: prod_sets_def intro!: sigma_sets.Basic)
+    moreover have "x \<in> sigma_sets ?prod ?sets" using insert by auto
+    ultimately show ?case unfolding insert_is_Un[of a x] by (rule sigma_sets_Un)
+  qed
+next
+  fix x a b
+  assume "x \<in> sigma_sets (A\<times>B) (prod_sets (Pow A) (Pow B))" and "(a, b) \<in> x"
+  from sigma_sets_into_sp[OF _ this(1)] this(2)
+  show "a \<in> A" and "b \<in> B"
+    by (auto simp: prod_sets_def)
+qed
+
 
 definition
   closed_cdi  where
@@ -26,7 +53,7 @@ inductive_set
   smallest_ccdi_sets :: "('a, 'b) algebra_scheme \<Rightarrow> 'a set set"
   for M
   where
-    Basic [intro]: 
+    Basic [intro]:
       "a \<in> sets M \<Longrightarrow> a \<in> smallest_ccdi_sets M"
   | Compl [intro]:
       "a \<in> smallest_ccdi_sets M \<Longrightarrow> space M - a \<in> smallest_ccdi_sets M"
