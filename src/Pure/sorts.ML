@@ -254,18 +254,21 @@ fun insert pp algebra t (c, (c0, Ss)) ars =
           (filter_out (fn (c'', (_, Ss'')) => c = c'' andalso Ss'' = Ss') ars)
       else err_conflict pp t NONE (c, Ss) (c, Ss'));
 
-fun insert_ars pp algebra (t, ars) arities =
-  let val ars' =
-    Symtab.lookup_list arities t
-    |> fold_rev (fold_rev (insert pp algebra t)) (map (complete algebra) ars)
-  in Symtab.update (t, ars') arities end;
-
 in
 
-fun add_arities pp arg algebra = algebra |> map_arities (insert_ars pp algebra arg);
+fun insert_ars pp algebra t = fold_rev (insert pp algebra t);
+
+fun insert_complete_ars pp algebra (t, ars) arities =
+  let val ars' =
+    Symtab.lookup_list arities t
+    |> fold_rev (insert_ars pp algebra t) (map (complete algebra) ars);
+  in Symtab.update (t, ars') arities end;
+
+fun add_arities pp arg algebra =
+  algebra |> map_arities (insert_complete_ars pp algebra arg);
 
 fun add_arities_table pp algebra =
-  Symtab.fold (fn (t, ars) => insert_ars pp algebra (t, map snd ars));
+  Symtab.fold (fn (t, ars) => insert_complete_ars pp algebra (t, map snd ars));
 
 end;
 
@@ -291,11 +294,22 @@ fun merge_algebra pp
   let
     val classes' = Graph.merge_trans_acyclic (op =) (classes1, classes2)
       handle Graph.DUP c => err_dup_class c
-          | Graph.CYCLES css => err_cyclic_classes pp css;
+        | Graph.CYCLES css => err_cyclic_classes pp css;
     val algebra0 = make_algebra (classes', Symtab.empty);
-    val arities' = Symtab.empty
-      |> add_arities_table pp algebra0 arities1
-      |> add_arities_table pp algebra0 arities2;
+    val arities' =
+      (case (pointer_eq (classes1, classes2), pointer_eq (arities1, arities2)) of
+        (true, true) => arities1
+      | (true, false) =>  (*no completion*)
+          (arities1, arities2) |> Symtab.join (fn t => fn (ars1, ars2) =>
+            if pointer_eq (ars1, ars2) then raise Symtab.SAME
+            else insert_ars pp algebra0 t ars2 ars1)
+      | (false, true) =>  (*unary completion*)
+          Symtab.empty
+          |> add_arities_table pp algebra0 arities1
+      | (false, false) => (*binary completion*)
+          Symtab.empty
+          |> add_arities_table pp algebra0 arities1
+          |> add_arities_table pp algebra0 arities2);
   in make_algebra (classes', arities') end;
 
 
