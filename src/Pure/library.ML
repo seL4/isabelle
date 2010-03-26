@@ -774,6 +774,8 @@ fun match_string pat str =
             | NONE => match (p :: ps) (String.substring (s, 1, size s - 1)));
   in match (space_explode "*" pat) str end;
 
+
+
 (** lists as sets -- see also Pure/General/ord_list.ML **)
 
 (* canonical operations *)
