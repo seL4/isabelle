@@ -396,6 +396,8 @@ val _ = Context.>> (Context.map_theory
   register_config Unify.search_bound_value #>
   register_config Unify.trace_simp_value #>
   register_config Unify.trace_types_value #>
-  register_config MetaSimplifier.simp_depth_limit_value));
+  register_config MetaSimplifier.simp_depth_limit_value #>
+  register_config MetaSimplifier.debug_simp_value #>
+  register_config MetaSimplifier.trace_simp_value));
 
 end;

@@ -322,6 +322,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Sledgehammer/sledgehammer_hol_clause.ML \
   Tools/Sledgehammer/sledgehammer_isar.ML \
   Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML \
+  Tools/Sledgehammer/sledgehammer_util.ML \
   Tools/string_code.ML \
   Tools/string_syntax.ML \
   Tools/transfer.ML \

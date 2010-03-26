@@ -32,129 +32,66 @@ proof -
     by simp
 qed
 
+lemma finite_prod_measure_space:
+  assumes "finite_measure_space M" and "finite_measure_space M'"
+  shows "prod_measure_space M M' =
+      \<lparr> space = space M \<times> space M',
+        sets = Pow (space M \<times> space M'),
+        measure = prod_measure M M' \<rparr>"
+proof -
+  interpret M: finite_measure_space M by fact
+  interpret M': finite_measure_space M' by fact
+  show ?thesis using M.finite_space M'.finite_space
+    by (simp add: sigma_prod_sets_finite M.sets_eq_Pow M'.sets_eq_Pow
+      prod_measure_space_def)
+qed
 
+lemma finite_measure_space_finite_prod_measure:
+  assumes "finite_measure_space M" and "finite_measure_space M'"
+  shows "finite_measure_space (prod_measure_space M M')"
+proof (rule finite_Pow_additivity_sufficient)
+  interpret M: finite_measure_space M by fact
+  interpret M': finite_measure_space M' by fact
 
-lemma measure_space_finite_prod_measure:
-  fixes M :: "('a, 'b) measure_space_scheme"
-    and M' :: "('c, 'd) measure_space_scheme"
-  assumes "measure_space M" and "measure_space M'"
-  and finM: "finite (space M)" "Pow (space M) = sets M"
-  and finM': "finite (space M')" "Pow (space M') = sets M'"
-  shows "measure_space (prod_measure_space M M')"
-proof (rule finite_additivity_sufficient)
-  interpret M: measure_space M by fact
-  interpret M': measure_space M' by fact
-
-  have measure: "measure_space.measure (prod_measure_space M M') = prod_measure M M'"
-    unfolding prod_measure_space_def by simp
-
-  have prod_sets: "prod_sets (sets M) (sets M') \<subseteq> Pow (space M \<times> space M')"
-    using M.sets_into_space M'.sets_into_space unfolding prod_sets_def by auto
-  show sigma: "sigma_algebra (prod_measure_space M M')" unfolding prod_measure_space_def
-    by (rule sigma_algebra_sigma_sets[where a="prod_sets (sets M) (sets M')"])
-       (simp_all add: sigma_def prod_sets)
-
-  then interpret sa: sigma_algebra "prod_measure_space M M'" .
-
-  { fix x y assume "y \<in> sets (prod_measure_space M M')" and "x \<in> space M"
-    hence "y \<subseteq> space M \<times> space M'"
-      using sa.sets_into_space unfolding prod_measure_space_def by simp
-    hence "Pair x -` y \<in> sets M'"
-      using `x \<in> space M` unfolding finM'(2)[symmetric] by auto }
-  note Pair_in_sets = this
+  from M.finite_space M'.finite_space
+  show "finite (space (prod_measure_space M M'))" and
+    "sets (prod_measure_space M M') = Pow (space (prod_measure_space M M'))"
+    by (simp_all add: finite_prod_measure_space[OF assms])
 
   show "additive (prod_measure_space M M') (measure (prod_measure_space M M'))"
-    unfolding measure additive_def
-  proof safe
-    fix x y assume x: "x \<in> sets (prod_measure_space M M')" and y: "y \<in> sets (prod_measure_space M M')"
+    unfolding additive_def finite_prod_measure_space[OF assms]
+  proof (simp, safe)
+    fix x y assume subs: "x \<subseteq> space M \<times> space M'" "y \<subseteq> space M \<times> space M'"
       and disj_x_y: "x \<inter> y = {}"
-    { fix z have "Pair z -` x \<inter> Pair z -` y = {}" using disj_x_y by auto }
-    note Pair_disj = this
-
-    from M'.measure_additive[OF Pair_in_sets[OF x] Pair_in_sets[OF y] Pair_disj, symmetric]
-    show "prod_measure M M' (x \<union> y) = prod_measure M M' x + prod_measure M M' y"
-      unfolding prod_measure_def
-      apply (subst (1 2 3) M.integral_finite_singleton[OF finM])
+    have "\<And>z. measure M' (Pair z -` x \<union> Pair z -` y) =
+        measure M' (Pair z -` x) + measure M' (Pair z -` y)"
+      using disj_x_y subs by (subst M'.measure_additive) (auto simp: M'.sets_eq_Pow)
+    thus "prod_measure M M' (x \<union> y) = prod_measure M M' x + prod_measure M M' y"
+      unfolding prod_measure_def M.integral_finite_singleton
       by (simp_all add: setsum_addf[symmetric] field_simps)
   qed
-
-  show "finite (space (prod_measure_space M M'))"
-    unfolding prod_measure_space_def using finM finM' by simp
-
-  have singletonM: "\<And>x. x \<in> space M \<Longrightarrow> {x} \<in> sets M"
-    unfolding finM(2)[symmetric] by simp
 
   show "positive (prod_measure_space M M') (measure (prod_measure_space M M'))"
     unfolding positive_def
-  proof (safe, simp add: M.integral_zero prod_measure_space_def prod_measure_def)
-    fix Q assume "Q \<in> sets (prod_measure_space M M')"
-    from Pair_in_sets[OF this]
-    show "0 \<le> measure (prod_measure_space M M') Q"
-      unfolding prod_measure_space_def prod_measure_def
-      apply (subst M.integral_finite_singleton[OF finM])
-      using M.positive M'.positive singletonM
-      by (auto intro!: setsum_nonneg mult_nonneg_nonneg)
-  qed
+    by (auto intro!: setsum_nonneg mult_nonneg_nonneg M'.positive M.positive
+      simp add: M.integral_zero finite_prod_measure_space[OF assms]
+        prod_measure_def M.integral_finite_singleton
+        M.sets_eq_Pow M'.sets_eq_Pow)
 qed
 
-lemma measure_space_finite_prod_measure_alterantive:
-  assumes "measure_space M" and "measure_space M'"
-  and finM: "finite (space M)" "Pow (space M) = sets M"
-  and finM': "finite (space M')" "Pow (space M') = sets M'"
-  shows "measure_space \<lparr> space = space M \<times> space M',
-                         sets = Pow (space M \<times> space M'),
-		         measure = prod_measure M M' \<rparr>"
-  (is "measure_space ?space")
-proof (rule finite_additivity_sufficient)
-  interpret M: measure_space M by fact
-  interpret M': measure_space M' by fact
+lemma finite_measure_space_finite_prod_measure_alterantive:
+  assumes M: "finite_measure_space M" and M': "finite_measure_space M'"
+  shows "finite_measure_space \<lparr> space = space M \<times> space M', sets = Pow (space M \<times> space M'), measure = prod_measure M M' \<rparr>"
+    (is "finite_measure_space ?M")
+proof -
+  interpret M: finite_measure_space M by fact
+  interpret M': finite_measure_space M' by fact
 
-  show "sigma_algebra ?space"
-    using sigma_algebra.sigma_algebra_extend[where M="\<lparr> space = space M \<times> space M', sets = Pow (space M \<times> space M') \<rparr>"]
-    by (auto intro!: sigma_algebra_Pow)
-  then interpret sa: sigma_algebra ?space .
-
-  have measure: "measure_space.measure (prod_measure_space M M') = prod_measure M M'"
-    unfolding prod_measure_space_def by simp
-
-  { fix x y assume "y \<in> sets ?space" and "x \<in> space M"
-    hence "y \<subseteq> space M \<times> space M'"
-      using sa.sets_into_space by simp
-    hence "Pair x -` y \<in> sets M'"
-      using `x \<in> space M` unfolding finM'(2)[symmetric] by auto }
-  note Pair_in_sets = this
-
-  show "additive ?space (measure ?space)"
-    unfolding measure additive_def
-  proof safe
-    fix x y assume x: "x \<in> sets ?space" and y: "y \<in> sets ?space"
-      and disj_x_y: "x \<inter> y = {}"
-    { fix z have "Pair z -` x \<inter> Pair z -` y = {}" using disj_x_y by auto }
-    note Pair_disj = this
-
-    from M'.measure_additive[OF Pair_in_sets[OF x] Pair_in_sets[OF y] Pair_disj, symmetric]
-    show "measure ?space (x \<union> y) = measure ?space x + measure ?space y"
-      apply (simp add: prod_measure_def)
-      apply (subst (1 2 3) M.integral_finite_singleton[OF finM])
-      by (simp_all add: setsum_addf[symmetric] field_simps)
-  qed
-
-  show "finite (space ?space)" using finM finM' by simp
-
-  have singletonM: "\<And>x. x \<in> space M \<Longrightarrow> {x} \<in> sets M"
-    unfolding finM(2)[symmetric] by simp
-
-  show "positive ?space (measure ?space)"
-    unfolding positive_def
-  proof (safe, simp add: M.integral_zero prod_measure_def)
-    fix Q assume "Q \<in> sets ?space"
-    from Pair_in_sets[OF this]
-    show "0 \<le> measure ?space Q"
-      unfolding prod_measure_space_def prod_measure_def
-      apply (subst M.integral_finite_singleton[OF finM])
-      using M.positive M'.positive singletonM
-      by (auto intro!: setsum_nonneg mult_nonneg_nonneg)
-  qed
+  show ?thesis
+    using finite_measure_space_finite_prod_measure[OF assms]
+    unfolding prod_measure_space_def M.sets_eq_Pow M'.sets_eq_Pow
+    using M.finite_space M'.finite_space
+    by (simp add: sigma_prod_sets_finite)
 qed
 
 end

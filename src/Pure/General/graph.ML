@@ -202,13 +202,17 @@ fun edges G = diff_edges G empty;
 
 fun no_edges (i, _) = (i, ([], []));
 
-fun join f (Graph tab1, G2 as Graph tab2) =
-  let fun join_node key ((i1, edges1), (i2, _)) = (f key (i1, i2), edges1)
-  in fold add_edge (edges G2) (Graph (Table.join join_node (tab1, Table.map no_edges tab2))) end;
+fun join f (G1 as Graph tab1, G2 as Graph tab2) =
+  let fun join_node key ((i1, edges1), (i2, _)) = (f key (i1, i2), edges1) in
+    if pointer_eq (G1, G2) then G1
+    else fold add_edge (edges G2) (Graph (Table.join join_node (tab1, Table.map no_edges tab2)))
+  end;
 
-fun gen_merge add eq (Graph tab1, G2 as Graph tab2) =
-  let fun eq_node ((i1, _), (i2, _)) = eq (i1, i2)
-  in fold add (edges G2) (Graph (Table.merge eq_node (tab1, Table.map no_edges tab2))) end;
+fun gen_merge add eq (G1 as Graph tab1, G2 as Graph tab2) =
+  let fun eq_node ((i1, _), (i2, _)) = eq (i1, i2) in
+    if pointer_eq (G1, G2) then G1
+    else fold add (edges G2) (Graph (Table.merge eq_node (tab1, Table.map no_edges tab2)))
+  end;
 
 fun merge eq GG = gen_merge add_edge eq GG;
 
@@ -273,9 +277,11 @@ fun add_edge_trans_acyclic (x, y) G =
   |> fold_product (curry add_edge) (all_preds G [x]) (all_succs G [y]);
 
 fun merge_trans_acyclic eq (G1, G2) =
-  merge_acyclic eq (G1, G2)
-  |> fold add_edge_trans_acyclic (diff_edges G1 G2)
-  |> fold add_edge_trans_acyclic (diff_edges G2 G1);
+  if pointer_eq (G1, G2) then G1
+  else
+    merge_acyclic eq (G1, G2)
+    |> fold add_edge_trans_acyclic (diff_edges G1 G2)
+    |> fold add_edge_trans_acyclic (diff_edges G2 G1);
 
 
 (*final declarations of this structure!*)

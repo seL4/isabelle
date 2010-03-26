@@ -56,12 +56,13 @@ sig
     -> sort Vartab.table -> sort Vartab.table   (*exception CLASS_ERROR*)
   val meet_sort_typ: algebra -> typ * sort -> typ -> typ   (*exception CLASS_ERROR*)
   val of_sort: algebra -> typ * sort -> bool
-  val weaken: algebra -> ('a * class -> class -> 'a) -> 'a * class -> class -> 'a
   val of_sort_derivation: algebra ->
     {class_relation: 'a * class -> class -> 'a,
      type_constructor: string -> ('a * class) list list -> class -> 'a,
      type_variable: typ -> ('a * class) list} ->
     typ * sort -> 'a list   (*exception CLASS_ERROR*)
+  val classrel_derivation: algebra ->
+    ('a * class -> class -> 'a) -> 'a * class -> class -> 'a  (*exception CLASS_ERROR*)
   val witness_sorts: algebra -> string list -> (typ * sort) list -> sort list -> (typ * sort) list
 end;
 
@@ -253,18 +254,21 @@ fun insert pp algebra t (c, (c0, Ss)) ars =
           (filter_out (fn (c'', (_, Ss'')) => c = c'' andalso Ss'' = Ss') ars)
       else err_conflict pp t NONE (c, Ss) (c, Ss'));
 
-fun insert_ars pp algebra (t, ars) arities =
-  let val ars' =
-    Symtab.lookup_list arities t
-    |> fold_rev (fold_rev (insert pp algebra t)) (map (complete algebra) ars)
-  in Symtab.update (t, ars') arities end;
-
 in
 
-fun add_arities pp arg algebra = algebra |> map_arities (insert_ars pp algebra arg);
+fun insert_ars pp algebra t = fold_rev (insert pp algebra t);
+
+fun insert_complete_ars pp algebra (t, ars) arities =
+  let val ars' =
+    Symtab.lookup_list arities t
+    |> fold_rev (insert_ars pp algebra t) (map (complete algebra) ars);
+  in Symtab.update (t, ars') arities end;
+
+fun add_arities pp arg algebra =
+  algebra |> map_arities (insert_complete_ars pp algebra arg);
 
 fun add_arities_table pp algebra =
-  Symtab.fold (fn (t, ars) => insert_ars pp algebra (t, map snd ars));
+  Symtab.fold (fn (t, ars) => insert_complete_ars pp algebra (t, map snd ars));
 
 end;
 
@@ -290,11 +294,22 @@ fun merge_algebra pp
   let
     val classes' = Graph.merge_trans_acyclic (op =) (classes1, classes2)
       handle Graph.DUP c => err_dup_class c
-          | Graph.CYCLES css => err_cyclic_classes pp css;
+        | Graph.CYCLES css => err_cyclic_classes pp css;
     val algebra0 = make_algebra (classes', Symtab.empty);
-    val arities' = Symtab.empty
-      |> add_arities_table pp algebra0 arities1
-      |> add_arities_table pp algebra0 arities2;
+    val arities' =
+      (case (pointer_eq (classes1, classes2), pointer_eq (arities1, arities2)) of
+        (true, true) => arities1
+      | (true, false) =>  (*no completion*)
+          (arities1, arities2) |> Symtab.join (fn t => fn (ars1, ars2) =>
+            if pointer_eq (ars1, ars2) then raise Symtab.SAME
+            else insert_ars pp algebra0 t ars2 ars1)
+      | (false, true) =>  (*unary completion*)
+          Symtab.empty
+          |> add_arities_table pp algebra0 arities1
+      | (false, false) => (*binary completion*)
+          Symtab.empty
+          |> add_arities_table pp algebra0 arities1
+          |> add_arities_table pp algebra0 arities2);
   in make_algebra (classes', arities') end;
 
 
@@ -317,7 +332,7 @@ fun subalgebra pp P sargs (algebra as Algebra {classes, arities}) =
 
 (** sorts of types **)
 
-(* errors -- delayed message composition *)
+(* errors -- performance tuning via delayed message composition *)
 
 datatype class_error =
   NoClassrel of class * class |
@@ -391,24 +406,13 @@ fun of_sort algebra =
 
 (* animating derivations *)
 
-fun weaken algebra class_relation =
-  let
-    fun path (x, c1 :: c2 :: cs) = path (class_relation (x, c1) c2, c2 :: cs)
-      | path (x, _) = x;
-  in fn (x, c1) => fn c2 =>
-    (case Graph.irreducible_paths (classes_of algebra) (c1, c2) of
-      [] => raise CLASS_ERROR (NoClassrel (c1, c2))
-    | cs :: _ => path (x, cs))
-  end;
-
 fun of_sort_derivation algebra {class_relation, type_constructor, type_variable} =
   let
-    val weaken = weaken algebra class_relation;
     val arities = arities_of algebra;
 
-    fun weakens S1 S2 = S2 |> map (fn c2 =>
+    fun weaken S1 S2 = S2 |> map (fn c2 =>
       (case S1 |> find_first (fn (_, c1) => class_le algebra (c1, c2)) of
-        SOME d1 => weaken d1 c2
+        SOME d1 => class_relation d1 c2
       | NONE => raise CLASS_ERROR (NoSubsort (map #2 S1, S2))));
 
     fun derive _ [] = []
@@ -420,11 +424,22 @@ fun of_sort_derivation algebra {class_relation, type_constructor, type_variable}
             S |> map (fn c =>
               let
                 val (c0, Ss') = the (AList.lookup (op =) (Symtab.lookup_list arities a) c);
-                val dom' = map2 (fn d => fn S' => weakens d S' ~~ S') dom Ss';
-              in weaken (type_constructor a dom' c0, c0) c end)
+                val dom' = map2 (fn d => fn S' => weaken d S' ~~ S') dom Ss';
+              in class_relation (type_constructor a dom' c0, c0) c end)
           end
-      | derive T S = weakens (type_variable T) S;
+      | derive T S = weaken (type_variable T) S;
   in uncurry derive end;
+
+fun classrel_derivation algebra class_relation =
+  let
+    fun path (x, c1 :: c2 :: cs) = path (class_relation (x, c1) c2, c2 :: cs)
+      | path (x, _) = x;
+  in
+    fn (x, c1) => fn c2 =>
+      (case Graph.irreducible_paths (classes_of algebra) (c1, c2) of
+        [] => raise CLASS_ERROR (NoClassrel (c1, c2))
+      | cs :: _ => path (x, cs))
+  end;
 
 
 (* witness_sorts *)

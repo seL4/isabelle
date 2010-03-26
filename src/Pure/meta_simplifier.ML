@@ -11,8 +11,10 @@ infix 4
 
 signature BASIC_META_SIMPLIFIER =
 sig
-  val debug_simp: bool Unsynchronized.ref
-  val trace_simp: bool Unsynchronized.ref
+  val debug_simp: bool Config.T
+  val debug_simp_value: Config.value Config.T
+  val trace_simp: bool Config.T
+  val trace_simp_value: Config.value Config.T
   val trace_simp_depth_limit: int Unsynchronized.ref
   type rrule
   val eq_rrule: rrule * rrule -> bool
@@ -271,8 +273,11 @@ fun simp_depth (Simpset ({depth = (depth, _), ...}, _)) = depth;
 
 exception SIMPLIFIER of string * thm;
 
-val debug_simp = Unsynchronized.ref false;
-val trace_simp = Unsynchronized.ref false;
+val debug_simp_value = Config.declare false "debug_simp" (Config.Bool false);
+val debug_simp = Config.bool debug_simp_value;
+
+val trace_simp_value = Config.declare false "trace_simp" (Config.Bool false);
+val trace_simp = Config.bool trace_simp_value;
 
 local
 
@@ -285,33 +290,39 @@ fun show_bounds (Simpset ({bounds = (_, bs), ...}, _)) t =
     fun subst (((b, T), _), x') = (Free (b, T), Syntax.mark_boundT (x', T));
   in Term.subst_atomic (ListPair.map subst (bs, xs)) t end;
 
+fun print_term ss warn a t ctxt = prnt ss warn (a () ^ "\n" ^
+  Syntax.string_of_term ctxt
+    (if Config.get ctxt debug_simp then t else show_bounds ss t));
+
 in
 
-fun print_term ss warn a thy t = prnt ss warn (a ^ "\n" ^
-  Syntax.string_of_term_global thy (if ! debug_simp then t else show_bounds ss t));
+fun print_term_global ss warn a thy t =
+  print_term ss warn (K a) t (ProofContext.init thy);
 
-fun debug warn a ss = if ! debug_simp then prnt ss warn (a ()) else ();
-fun trace warn a ss = if ! trace_simp then prnt ss warn (a ()) else ();
+fun if_enabled (Simpset ({context, ...}, _)) flag f =
+  (case context of
+    SOME ctxt => if Config.get ctxt flag then f ctxt else ()
+  | NONE => ())
 
-fun debug_term warn a ss thy t = if ! debug_simp then print_term ss warn (a ()) thy t else ();
-fun trace_term warn a ss thy t = if ! trace_simp then print_term ss warn (a ()) thy t else ();
+fun debug warn a ss = if_enabled ss debug_simp (fn _ => prnt ss warn (a ()));
+fun trace warn a ss = if_enabled ss trace_simp (fn _ => prnt ss warn (a ()));
+
+fun debug_term warn a ss t = if_enabled ss debug_simp (print_term ss warn a t);
+fun trace_term warn a ss t = if_enabled ss trace_simp (print_term ss warn a t);
 
 fun trace_cterm warn a ss ct =
-  if ! trace_simp then print_term ss warn (a ()) (Thm.theory_of_cterm ct) (Thm.term_of ct)
-  else ();
+  if_enabled ss trace_simp (print_term ss warn a (Thm.term_of ct));
 
 fun trace_thm a ss th =
-  if ! trace_simp then print_term ss false (a ()) (Thm.theory_of_thm th) (Thm.full_prop_of th)
-  else ();
+  if_enabled ss trace_simp (print_term ss false a (Thm.full_prop_of th));
 
 fun trace_named_thm a ss (th, name) =
-  if ! trace_simp then
-    print_term ss false (if name = "" then a () else a () ^ " " ^ quote name ^ ":")
-      (Thm.theory_of_thm th) (Thm.full_prop_of th)
-  else ();
+  if_enabled ss trace_simp (print_term ss false
+    (fn () => if name = "" then a () else a () ^ " " ^ quote name ^ ":")
+    (Thm.full_prop_of th));
 
 fun warn_thm a ss th =
-  print_term ss true a (Thm.theory_of_thm th) (Thm.full_prop_of th);
+  print_term_global ss true a (Thm.theory_of_thm th) (Thm.full_prop_of th);
 
 fun cond_warn_thm a (ss as Simpset ({context, ...}, _)) th =
   if is_some context then () else warn_thm a ss th;
@@ -824,7 +835,7 @@ fun check_conv msg ss thm thm' =
       val _ $ _ $ prop0 = Thm.prop_of thm;
     in
       trace_thm (fn () => "Proved wrong thm (Check subgoaler?)") ss thm';
-      trace_term false (fn () => "Should have proved:") ss thy prop0;
+      trace_term false (fn () => "Should have proved:") ss prop0;
       NONE
     end;
 
@@ -943,7 +954,7 @@ fun rewritec (prover, thyt, maxt) ss t =
     fun proc_rews [] = NONE
       | proc_rews (Proc {name, proc, lhs, ...} :: ps) =
           if Pattern.matches thyt (Thm.term_of lhs, Thm.term_of t) then
-            (debug_term false (fn () => "Trying procedure " ^ quote name ^ " on:") ss thyt eta_t;
+            (debug_term false (fn () => "Trying procedure " ^ quote name ^ " on:") ss eta_t;
              case proc ss eta_t' of
                NONE => (debug false (fn () => "FAILED") ss; proc_rews ps)
              | SOME raw_thm =>
@@ -1216,7 +1227,7 @@ fun check_bounds ss ct =
         | _ => I) (term_of ct) [];
     in
       if null bs then ()
-      else print_term ss true ("Simplifier: term contains loose bounds: " ^ commas_quote bs)
+      else print_term_global ss true ("Simplifier: term contains loose bounds: " ^ commas_quote bs)
         (Thm.theory_of_cterm ct) (Thm.term_of ct)
     end
   else ();

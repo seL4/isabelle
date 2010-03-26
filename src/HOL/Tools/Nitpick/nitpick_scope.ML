@@ -194,8 +194,11 @@ fun pretties_for_scope scope verbose =
               else
                 [])
   in
-    if null ss then []
-    else serial_commas "and" ss |> map Pretty.str |> Pretty.breaks
+    if null ss then
+      []
+    else
+      Sledgehammer_Util.serial_commas "and" ss
+      |> map Pretty.str |> Pretty.breaks
   end
 
 (* scope -> string *)
