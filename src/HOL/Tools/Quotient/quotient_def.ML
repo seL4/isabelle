@@ -12,7 +12,8 @@ sig
   val quotdef_cmd: (binding option * mixfix) * (Attrib.binding * (string * string)) ->
     local_theory -> (term * thm) * local_theory
 
-  val quotient_lift_const: string * term -> local_theory -> (term * thm) * local_theory
+  val quotient_lift_const: typ list -> string * term -> local_theory ->
+    (term * thm) * local_theory
 end;
 
 structure Quotient_Def: QUOTIENT_DEF =
@@ -86,9 +87,9 @@ in
   quotient_def (decl, (attr, (lhs, rhs))) lthy''
 end
 
-fun quotient_lift_const (b, t) ctxt =
+fun quotient_lift_const qtys (b, t) ctxt =
   quotient_def ((NONE, NoSyn), (Attrib.empty_binding,
-    (Quotient_Term.quotient_lift_const (b, t) ctxt, t))) ctxt
+    (Quotient_Term.quotient_lift_const qtys (b, t) ctxt, t))) ctxt
 
 local
   structure P = OuterParse;

@@ -15,6 +15,7 @@ sig
   val lift_tac: Proof.context -> thm list -> int -> tactic
   val quotient_tac: Proof.context -> int -> tactic
   val quot_true_tac: Proof.context -> (term -> term) -> int -> tactic
+  val lifted: typ list -> Proof.context -> thm -> thm
   val lifted_attrib: attribute
 end;
 
@@ -650,17 +651,16 @@ in
   THEN' RANGE (map mk_tac rthms)
 end
 
-(* An Attribute which automatically constructs the qthm *)
-fun lifted_attrib_aux context thm =
+fun lifted qtys ctxt thm =
 let
-  val ctxt = Context.proof_of context
   val ((_, [thm']), ctxt') = Variable.import false [thm] ctxt
-  val goal = (quotient_lift_all ctxt' o prop_of) thm'
+  val goal = (quotient_lift_all qtys ctxt' o prop_of) thm'
 in
   Goal.prove ctxt' [] [] goal (K (lift_tac ctxt' [thm] 1))
   |> singleton (ProofContext.export ctxt' ctxt)
 end;
 
-val lifted_attrib = Thm.rule_attribute lifted_attrib_aux
+(* An Attribute which automatically constructs the qthm *)
+val lifted_attrib = Thm.rule_attribute (fn ctxt => lifted [] (Context.proof_of ctxt))
 
 end; (* structure *)
