@@ -8,8 +8,8 @@ represented by a non-empty set.
 signature TYPEDEF =
 sig
   type info =
-   {rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string, inhabited: thm,
-    type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
+   {rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string} *
+   {inhabited: thm, type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
     Abs_inverse: thm, Rep_inject: thm, Abs_inject: thm, Rep_cases: thm, Abs_cases: thm,
     Rep_induct: thm, Abs_induct: thm}
   val transform_info: morphism -> info -> info
@@ -35,26 +35,26 @@ struct
 (* theory data *)
 
 type info =
- {(*global part*)
-  rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string,
+  (*global part*)
+  {rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string} *
   (*local part*)
-  inhabited: thm, type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
-  Abs_inverse: thm, Rep_inject: thm, Abs_inject: thm, Rep_cases: thm, Abs_cases: thm,
-  Rep_induct: thm, Abs_induct: thm};
+  {inhabited: thm, type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
+    Abs_inverse: thm, Rep_inject: thm, Abs_inject: thm, Rep_cases: thm, Abs_cases: thm,
+    Rep_induct: thm, Abs_induct: thm};
 
 fun transform_info phi (info: info) =
   let
     val thm = Morphism.thm phi;
-    val {rep_type, abs_type, Rep_name, Abs_name, inhabited, type_definition,
+    val (global_info, {inhabited, type_definition,
       set_def, Rep, Rep_inverse, Abs_inverse, Rep_inject, Abs_inject,
-      Rep_cases, Abs_cases, Rep_induct, Abs_induct} = info;
+      Rep_cases, Abs_cases, Rep_induct, Abs_induct}) = info;
   in
-   {rep_type = rep_type, abs_type = abs_type, Rep_name = Rep_name, Abs_name = Abs_name,
-    inhabited = thm inhabited, type_definition = thm type_definition,
-    set_def = Option.map thm set_def, Rep = thm Rep, Rep_inverse = thm Rep_inverse,
-    Abs_inverse = thm Abs_inverse, Rep_inject = thm Rep_inject, Abs_inject = thm Abs_inject,
-    Rep_cases = thm Rep_cases, Abs_cases = thm Abs_cases, Rep_induct = thm Rep_induct,
-    Abs_induct = thm Abs_induct}
+    (global_info,
+     {inhabited = thm inhabited, type_definition = thm type_definition,
+      set_def = Option.map thm set_def, Rep = thm Rep, Rep_inverse = thm Rep_inverse,
+      Abs_inverse = thm Abs_inverse, Rep_inject = thm Rep_inject, Abs_inject = thm Abs_inject,
+      Rep_cases = thm Rep_cases, Abs_cases = thm Abs_cases, Rep_induct = thm Rep_induct,
+      Abs_induct = thm Abs_induct})
   end;
 
 structure Data = Generic_Data
@@ -235,12 +235,13 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
                 [Rule_Cases.case_names [Binding.name_of Abs_name], Induct.induct_type full_tname]),
               make @{thm type_definition.Abs_induct});
 
-        val info = {rep_type = oldT, abs_type = newT,
-          Rep_name = #1 (Term.dest_Const RepC), Abs_name = #1 (Term.dest_Const AbsC),
-            inhabited = inhabited, type_definition = type_definition, set_def = set_def,
+        val info =
+          ({rep_type = oldT, abs_type = newT,
+            Rep_name = #1 (Term.dest_Const RepC), Abs_name = #1 (Term.dest_Const AbsC)},
+           {inhabited = inhabited, type_definition = type_definition, set_def = set_def,
             Rep = Rep, Rep_inverse = Rep_inverse, Abs_inverse = Abs_inverse,
             Rep_inject = Rep_inject, Abs_inject = Abs_inject, Rep_cases = Rep_cases,
-          Abs_cases = Abs_cases, Rep_induct = Rep_induct, Abs_induct = Abs_induct};
+          Abs_cases = Abs_cases, Rep_induct = Rep_induct, Abs_induct = Abs_induct});
       in
         lthy2
         |> Local_Theory.declaration true (fn phi => put_info full_tname (transform_info phi info))

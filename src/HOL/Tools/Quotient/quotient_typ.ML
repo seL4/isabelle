@@ -89,7 +89,7 @@ end
 
 
 (* tactic to prove the quot_type theorem for the new type *)
-fun typedef_quot_type_tac equiv_thm (typedef_info: Typedef.info) =
+fun typedef_quot_type_tac equiv_thm ((_, typedef_info): Typedef.info) =
 let
   val rep_thm = #Rep typedef_info RS mem_def1
   val rep_inv = #Rep_inverse typedef_info
@@ -143,10 +143,10 @@ let
   val ((qty_full_name, typedef_info), lthy1) = typedef_make (vs, qty_name, mx, rel, rty) lthy
 
   (* abs and rep functions from the typedef *)
-  val Abs_ty = #abs_type typedef_info
-  val Rep_ty = #rep_type typedef_info
-  val Abs_name = #Abs_name typedef_info
-  val Rep_name = #Rep_name typedef_info
+  val Abs_ty = #abs_type (#1 typedef_info)
+  val Rep_ty = #rep_type (#1 typedef_info)
+  val Abs_name = #Abs_name (#1 typedef_info)
+  val Rep_name = #Rep_name (#1 typedef_info)
   val Abs_const = Const (Abs_name, Rep_ty --> Abs_ty)
   val Rep_const = Const (Rep_name, Abs_ty --> Rep_ty)
 

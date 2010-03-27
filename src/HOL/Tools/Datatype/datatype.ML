@@ -276,11 +276,11 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
 
     val _ = message config "Proving isomorphism properties ...";
 
-    val newT_iso_axms = map (fn (_, td) =>
+    val newT_iso_axms = map (fn (_, (_, td)) =>
       (collect_simp (#Abs_inverse td), #Rep_inverse td,
        collect_simp (#Rep td))) typedefs;
 
-    val newT_iso_inj_thms = map (fn (_, td) =>
+    val newT_iso_inj_thms = map (fn (_, (_, td)) =>
       (collect_simp (#Abs_inject td) RS iffD1, #Rep_inject td RS iffD1)) typedefs;
 
     (********* isomorphisms between existing types and "unfolded" types *******)

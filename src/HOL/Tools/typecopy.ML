@@ -55,9 +55,9 @@ fun typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
     val vs =
       AList.make (the_default HOLogic.typeS o AList.lookup (op =) (Term.add_tfreesT ty [])) raw_vs;
     val tac = Tactic.rtac UNIV_witness 1;
-    fun add_info tyco ( { abs_type = ty_abs, rep_type = ty_rep, Abs_name = c_abs,
-      Rep_name = c_rep, Abs_inject = inject,
-      Abs_inverse = inverse, ... } : Typedef.info ) thy =
+    fun add_info tyco (({ abs_type = ty_abs, rep_type = ty_rep, Abs_name = c_abs,
+          Rep_name = c_rep, ...}, { Abs_inject = inject, Abs_inverse = inverse, ... })
+          : Typedef.info) thy =
         let
           val exists_thm =
             UNIV_I
@@ -94,7 +94,7 @@ fun add_default_code tyco thy =
     val SOME { constr = c, proj = (proj, _), proj_def = proj_eq, vs = vs,
       typ = ty_rep, ... } = get_info thy tyco;
     (* FIXME handle multiple typedef interpretations (!??) *)
-    val [{ Rep_inject = proj_inject, ... }] = Typedef.get_info_global thy tyco;
+    val [(_, { Rep_inject = proj_inject, ... })] = Typedef.get_info_global thy tyco;
     val constr = (c, Logic.unvarifyT_global (Sign.the_const_type thy c));
     val ty = Type (tyco, map TFree vs);
     val proj = Const (proj, ty --> ty_rep);
