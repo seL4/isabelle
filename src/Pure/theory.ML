@@ -240,7 +240,9 @@ fun check_def thy unchecked overloaded (b, tm) defs =
   let
     val ctxt = ProofContext.init thy;
     val name = Sign.full_name thy b;
-    val (lhs_const, rhs) = Sign.cert_def ctxt tm;
+    val ((lhs, rhs), _) = Primitive_Defs.dest_def ctxt Term.is_Const (K false) (K false) tm
+      handle TERM (msg, _) => error msg;
+    val lhs_const = Term.dest_Const (Term.head_of lhs);
     val rhs_consts = fold_aterms (fn Const const => insert (op =) const | _ => I) rhs [];
     val _ = check_overloading thy overloaded lhs_const;
   in defs |> dependencies thy unchecked (SOME name) name lhs_const rhs_consts end
