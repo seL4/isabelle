@@ -272,7 +272,7 @@ fun All xs t = Term.list_all_free (xs, t);
 infix 0 :== ===;
 infixr 0 ==>;
 
-val op :== = Primitive_Defs.mk_defpair;
+val op :== = OldGoals.mk_defpair;
 val op === = Trueprop o HOLogic.mk_eq;
 val op ==> = Logic.mk_implies;
 

@@ -10,6 +10,7 @@ may be a stack of pending proofs.
 
 signature OLD_GOALS =
 sig
+  val mk_defpair: term * term -> string * term
   val strip_context: term -> (string * typ) list * term list * term
   val metahyps_thms: int -> thm -> thm list option
   val METAHYPS: (thm list -> tactic) -> int -> tactic
@@ -65,6 +66,13 @@ end;
 
 structure OldGoals: OLD_GOALS =
 struct
+
+fun mk_defpair (lhs, rhs) =
+  (case Term.head_of lhs of
+    Const (name, _) =>
+      (Long_Name.base_name name ^ "_def", Logic.mk_equals (lhs, rhs))
+  | _ => raise TERM ("Malformed definition: head of lhs not a constant", [lhs, rhs]));
+
 
 (**** METAHYPS -- tactical for using hypotheses as meta-level assumptions
        METAHYPS (fn prems => tac prems) i
