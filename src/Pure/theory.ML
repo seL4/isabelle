@@ -30,8 +30,7 @@ sig
   val end_theory: theory -> theory
   val add_axiom: binding * term -> theory -> theory
   val add_deps: string -> string * typ -> (string * typ) list -> theory -> theory
-  val add_defs_i: bool -> bool -> (binding * term) list -> theory -> theory
-  val add_defs: bool -> bool -> (binding * string) list -> theory -> theory
+  val add_def: bool -> bool -> binding * term -> theory -> theory
   val add_finals_i: bool -> term list -> theory -> theory
   val add_finals: bool -> string list -> theory -> theory
   val specify_const: (binding * typ) * mixfix -> theory -> term * theory
@@ -151,9 +150,9 @@ fun end_theory thy =
 
 
 
-(** add axioms **)
+(** primitive specifications **)
 
-(* prepare axioms *)
+(* raw axioms *)
 
 fun cert_axm thy (b, raw_tm) =
   let
@@ -165,22 +164,12 @@ fun cert_axm thy (b, raw_tm) =
     (b, Sign.no_vars (Syntax.pp_global thy) t)
   end;
 
-fun read_axm thy (b, str) =
-  cert_axm thy (b, Syntax.read_prop_global thy str) handle ERROR msg =>
-    cat_error msg ("The error(s) above occurred in axiom " ^ quote (Binding.str_of b));
-
-
-(* add_axiom *)
-
 fun add_axiom raw_axm thy = thy |> map_axioms (fn axioms =>
   let
     val axm = apsnd Logic.varify_global (cert_axm thy raw_axm);
     val (_, axioms') = Name_Space.define true (Sign.naming_of thy) axm axioms;
   in axioms' end);
 
-
-
-(** add constant definitions **)
 
 (* dependencies *)
 
@@ -213,7 +202,7 @@ fun specify_const decl thy =
   in (t, add_deps "" const [] thy') end;
 
 
-(* check_overloading *)
+(* overloading *)
 
 fun check_overloading thy overloaded (c, T) =
   let
@@ -236,7 +225,9 @@ fun check_overloading thy overloaded (c, T) =
   end;
 
 
-(* check_def *)
+(* definitional axioms *)
+
+local
 
 fun check_def thy unchecked overloaded (b, tm) defs =
   let
@@ -250,22 +241,14 @@ fun check_def thy unchecked overloaded (b, tm) defs =
    [Pretty.str ("The error(s) above occurred in definition " ^ quote (Binding.str_of b) ^ ":"),
     Pretty.fbrk, Pretty.quote (Syntax.pretty_term_global thy tm)]));
 
-
-(* add_defs(_i) *)
-
-local
-
-fun gen_add_defs prep_axm unchecked overloaded raw_axms thy =
-  let val axms = map (prep_axm thy) raw_axms in
-    thy
-    |> map_defs (fold (check_def thy unchecked overloaded) axms)
-    |> fold add_axiom axms
-  end;
-
 in
 
-val add_defs_i = gen_add_defs cert_axm;
-val add_defs = gen_add_defs read_axm;
+fun add_def unchecked overloaded raw_axm thy =
+  let val axm = cert_axm thy raw_axm in
+    thy
+    |> map_defs (check_def thy unchecked overloaded axm)
+    |> add_axiom axm
+  end;
 
 end;
 

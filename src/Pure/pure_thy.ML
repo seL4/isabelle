@@ -200,16 +200,30 @@ fun note_thmss kind = fold_map (fn ((b, more_atts), ths_atts) => fn thy =>
 (* store axioms as theorems *)
 
 local
-  fun add_axm add = fold_map (fn ((b, prop), atts) => fn thy =>
-    let
-      val thy' = add [(b, prop)] thy;
-      val thm = Thm.forall_elim_vars 0 (Thm.axiom thy' (Sign.full_name thy' b));
-    in apfst hd (gen_add_thms (K I) [((b, thm), atts)] thy') end);
+
+fun no_read _ (_, t) = t;
+
+fun read thy (b, str) =
+  Syntax.read_prop_global thy str handle ERROR msg =>
+    cat_error msg ("The error(s) above occurred in definition " ^ quote (Binding.str_of b));
+
+fun add prep unchecked overloaded = fold_map (fn ((b, raw_prop), atts) => fn thy =>
+  let
+    val prop = prep thy (b, raw_prop);
+    val (def, thy') = Thm.add_def unchecked overloaded (b, prop) thy;
+    val thm = def
+      |> Thm.forall_intr_frees
+      |> Thm.forall_elim_vars 0
+      |> Thm.varifyT_global;
+  in yield_singleton (gen_add_thms (K I)) ((b, thm), atts) thy' end);
+
 in
-  val add_defs               = add_axm o Theory.add_defs_i false;
-  val add_defs_unchecked     = add_axm o Theory.add_defs_i true;
-  val add_defs_cmd           = add_axm o Theory.add_defs false;
-  val add_defs_unchecked_cmd = add_axm o Theory.add_defs true;
+
+val add_defs = add no_read false;
+val add_defs_unchecked = add no_read true;
+val add_defs_cmd = add read false;
+val add_defs_unchecked_cmd = add read true;
+
 end;
 
 

@@ -733,7 +733,7 @@ fun extract thms thy =
              thy'
              |> PureThy.store_thm (Binding.qualified_name (corr_name s vs),
                   Thm.varifyT_global (funpow (length (OldTerm.term_vars corr_prop))
-                    (Thm.forall_elim_var 0) (forall_intr_frees
+                    (Thm.forall_elim_var 0) (Thm.forall_intr_frees
                       (ProofChecker.thm_of_proof thy'
                        (fst (Proofterm.freeze_thaw_prf prf))))))
              |> snd

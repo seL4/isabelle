@@ -59,6 +59,7 @@ sig
     (ctyp * ctyp) list * (cterm * cterm) list
   val certify_instantiate:
     ((indexname * sort) * typ) list * ((indexname * typ) * term) list -> thm -> thm
+  val forall_intr_frees: thm -> thm
   val unvarify_global: thm -> thm
   val close_derivation: thm -> thm
   val add_axiom: binding * term -> theory -> thm * theory
@@ -295,6 +296,18 @@ fun certify_instantiate insts th =
   Thm.instantiate (certify_inst (Thm.theory_of_thm th) insts) th;
 
 
+(* forall_intr_frees: generalization over all suitable Free variables *)
+
+fun forall_intr_frees th =
+  let
+    val thy = Thm.theory_of_thm th;
+    val {prop, hyps, tpairs, ...} = Thm.rep_thm th;
+    val fixed = fold Term.add_frees (Thm.terms_of_tpairs tpairs @ hyps) [];
+    val frees = Term.fold_aterms (fn Free v =>
+      if member (op =) fixed v then I else insert (op =) v | _ => I) prop [];
+  in fold (Thm.forall_intr o Thm.cterm_of thy o Free) frees th end;
+
+
 (* unvarify_global: global schematic variables *)
 
 fun unvarify_global th =
@@ -346,7 +359,7 @@ fun add_axiom (b, prop) thy =
 fun add_def unchecked overloaded (b, prop) thy =
   let
     val (strip, recover, prop') = stripped_sorts thy prop;
-    val thy' = Theory.add_defs_i unchecked overloaded [(b, prop')] thy;
+    val thy' = Theory.add_def unchecked overloaded (b, prop') thy;
     val axm' = Thm.axiom thy' (Sign.full_name thy' b);
     val thm = unvarify_global (Thm.instantiate (recover, []) axm');
   in (thm, thy') end;
