@@ -68,7 +68,8 @@ configuration options stored in the context. Enabling tracing
   using [[trace_simp=true]]
 
 Tracing is then active for all invocations of the simplifier
-in subsequent goal refinement steps.
+in subsequent goal refinement steps. Tracing may also still be
+enabled or disabled via the ProofGeneral settings menu.
 
 
 *** Pure ***

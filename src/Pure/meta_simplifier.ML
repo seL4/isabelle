@@ -15,6 +15,7 @@ sig
   val debug_simp_value: Config.value Config.T
   val trace_simp: bool Config.T
   val trace_simp_value: Config.value Config.T
+  val trace_simp_ref: bool Unsynchronized.ref
   val trace_simp_depth_limit: int Unsynchronized.ref
   type rrule
   val eq_rrule: rrule * rrule -> bool
@@ -278,6 +279,7 @@ val debug_simp = Config.bool debug_simp_value;
 
 val trace_simp_value = Config.declare false "trace_simp" (Config.Bool false);
 val trace_simp = Config.bool trace_simp_value;
+val trace_simp_ref = Unsynchronized.ref false;
 
 local
 
@@ -299,25 +301,31 @@ in
 fun print_term_global ss warn a thy t =
   print_term ss warn (K a) t (ProofContext.init thy);
 
-fun if_enabled (Simpset ({context, ...}, _)) flag f =
+fun if_enabled (Simpset ({context, ...}, _)) b flag f =
   (case context of
-    SOME ctxt => if Config.get ctxt flag then f ctxt else ()
+    SOME ctxt => if b orelse Config.get ctxt flag then f ctxt else ()
   | NONE => ())
 
-fun debug warn a ss = if_enabled ss debug_simp (fn _ => prnt ss warn (a ()));
-fun trace warn a ss = if_enabled ss trace_simp (fn _ => prnt ss warn (a ()));
+fun debug warn a ss =
+  if_enabled ss false debug_simp (fn _ => prnt ss warn (a ()));
+fun trace warn a ss =
+  if_enabled ss (!trace_simp_ref) trace_simp (fn _ => prnt ss warn (a ()));
 
-fun debug_term warn a ss t = if_enabled ss debug_simp (print_term ss warn a t);
-fun trace_term warn a ss t = if_enabled ss trace_simp (print_term ss warn a t);
+fun debug_term warn a ss t =
+  if_enabled ss false debug_simp (print_term ss warn a t);
+fun trace_term warn a ss t =
+  if_enabled ss (!trace_simp_ref) trace_simp (print_term ss warn a t);
 
 fun trace_cterm warn a ss ct =
-  if_enabled ss trace_simp (print_term ss warn a (Thm.term_of ct));
+  if_enabled ss (!trace_simp_ref) trace_simp
+    (print_term ss warn a (Thm.term_of ct));
 
 fun trace_thm a ss th =
-  if_enabled ss trace_simp (print_term ss false a (Thm.full_prop_of th));
+  if_enabled ss (!trace_simp_ref) trace_simp
+    (print_term ss false a (Thm.full_prop_of th));
 
 fun trace_named_thm a ss (th, name) =
-  if_enabled ss trace_simp (print_term ss false
+  if_enabled ss (!trace_simp_ref) trace_simp (print_term ss false
     (fn () => if name = "" then a () else a () ^ " " ^ quote name ^ ":")
     (Thm.full_prop_of th));
 

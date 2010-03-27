@@ -146,7 +146,10 @@ val advanced_display_preferences =
     "Show leading question mark of variable name"];
 
 val tracing_preferences =
- [nat_pref trace_simp_depth_limit
+ [bool_pref trace_simp_ref
+    "trace-simplifier"
+    "Trace simplification rules.",
+  nat_pref trace_simp_depth_limit
     "trace-simplifier-depth"
     "Trace simplifier depth limit.",
   bool_pref trace_rules
