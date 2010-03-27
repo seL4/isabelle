@@ -72,6 +72,7 @@ sig
   val map_type_tfree: (string * sort -> typ) -> typ -> typ
   val map_types: (typ -> typ) -> term -> term
   val fold_atyps: (typ -> 'a -> 'a) -> typ -> 'a -> 'a
+  val fold_atyps_sorts: (typ * sort -> 'a -> 'a) -> typ -> 'a -> 'a
   val fold_aterms: (term -> 'a -> 'a) -> term -> 'a -> 'a
   val fold_term_types: (term -> typ -> 'a -> 'a) -> term -> 'a -> 'a
   val fold_types: (typ -> 'a -> 'a) -> term -> 'a -> 'a
@@ -430,6 +431,9 @@ fun map_types f =
 
 fun fold_atyps f (Type (_, Ts)) = fold (fold_atyps f) Ts
   | fold_atyps f T = f T;
+
+fun fold_atyps_sorts f =
+  fold_atyps (fn T as TFree (_, S) => f (T, S) | T as TVar (_, S) => f (T, S));
 
 fun fold_aterms f (t $ u) = fold_aterms f t #> fold_aterms f u
   | fold_aterms f (Abs (_, _, t)) = fold_aterms f t

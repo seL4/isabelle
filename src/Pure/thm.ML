@@ -484,10 +484,7 @@ fun strip_shyps (thm as Thm (_, {shyps = [], ...})) = thm
   | strip_shyps (thm as Thm (der, {thy_ref, tags, maxidx, shyps, hyps, tpairs, prop})) =
       let
         val thy = Theory.deref thy_ref;
-        val present =
-          (fold_terms o fold_types o fold_atyps)
-            (fn T as TFree (_, S) => insert (eq_snd op =) (T, S)
-              | T as TVar (_, S) => insert (eq_snd op =) (T, S)) thm [];
+        val present = (fold_terms o fold_types o fold_atyps_sorts) (insert (eq_snd op =)) thm [];
         val extra = fold (Sorts.remove_sort o #2) present shyps;
         val witnessed = Sign.witness_sorts thy present extra;
         val extra' = fold (Sorts.remove_sort o #2) witnessed extra

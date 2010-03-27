@@ -91,10 +91,10 @@ fun declare_skofuns s th =
             val (c, thy') =
               Sign.declare_const ((Binding.conceal (Binding.name cname), cT), NoSyn) thy
             val cdef = cname ^ "_def"
-            val thy'' =
-              Theory.add_defs_i true false [(Binding.name cdef, Logic.mk_equals (c, rhs))] thy'
-            val ax = Thm.axiom thy'' (Sign.full_bname thy'' cdef)
-          in dec_sko (subst_bound (list_comb (c, args), p)) (ax :: axs, thy'') end
+            val (ax, thy'') =
+              Thm.add_def true false (Binding.name cdef, Logic.mk_equals (c, rhs)) thy'
+            val ax' = Drule.export_without_context ax
+          in dec_sko (subst_bound (list_comb (c, args), p)) (ax' :: axs, thy'') end
       | dec_sko (Const (@{const_name All}, _) $ (Abs (a, T, p))) thx =
           (*Universal quant: insert a free variable into body and continue*)
           let val fname = Name.variant (OldTerm.add_term_names (p, [])) a

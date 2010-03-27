@@ -59,6 +59,7 @@ sig
     (ctyp * ctyp) list * (cterm * cterm) list
   val certify_instantiate:
     ((indexname * sort) * typ) list * ((indexname * typ) * term) list -> thm -> thm
+  val forall_intr_frees: thm -> thm
   val unvarify_global: thm -> thm
   val close_derivation: thm -> thm
   val add_axiom: binding * term -> theory -> thm * theory
@@ -295,6 +296,18 @@ fun certify_instantiate insts th =
   Thm.instantiate (certify_inst (Thm.theory_of_thm th) insts) th;
 
 
+(* forall_intr_frees: generalization over all suitable Free variables *)
+
+fun forall_intr_frees th =
+  let
+    val thy = Thm.theory_of_thm th;
+    val {prop, hyps, tpairs, ...} = Thm.rep_thm th;
+    val fixed = fold Term.add_frees (Thm.terms_of_tpairs tpairs @ hyps) [];
+    val frees = Term.fold_aterms (fn Free v =>
+      if member (op =) fixed v then I else insert (op =) v | _ => I) prop [];
+  in fold (Thm.forall_intr o Thm.cterm_of thy o Free) frees th end;
+
+
 (* unvarify_global: global schematic variables *)
 
 fun unvarify_global th =
@@ -334,21 +347,30 @@ fun stripped_sorts thy t =
 fun add_axiom (b, prop) thy =
   let
     val b' = if Binding.is_empty b then Binding.name ("unnamed_axiom_" ^ serial_string ()) else b;
+    val _ = Sign.no_vars (Syntax.pp_global thy) prop;
     val (strip, recover, prop') = stripped_sorts thy prop;
     val constraints = map (fn (TFree (_, S), T) => (T, S)) strip;
     val of_sorts = maps (fn (T as TFree (_, S), _) => of_sort (Thm.ctyp_of thy T, S)) strip;
     val thy' =
       Theory.add_axiom (b', Logic.list_implies (maps Logic.mk_of_sort constraints, prop')) thy;
     val axm' = Thm.axiom thy' (Sign.full_name thy' b');
-    val thm = unvarify_global (Thm.instantiate (recover, []) axm') |> fold elim_implies of_sorts;
+    val thm =
+      Thm.instantiate (recover, []) axm'
+      |> unvarify_global
+      |> fold elim_implies of_sorts;
   in (thm, thy') end;
 
 fun add_def unchecked overloaded (b, prop) thy =
   let
-    val (strip, recover, prop') = stripped_sorts thy prop;
-    val thy' = Theory.add_defs_i unchecked overloaded [(b, prop')] thy;
+    val _ = Sign.no_vars (Syntax.pp_global thy) prop;
+    val prems = map (Thm.cterm_of thy) (Logic.strip_imp_prems prop);
+    val (_, recover, concl') = stripped_sorts thy (Logic.strip_imp_concl prop);
+    val thy' = Theory.add_def unchecked overloaded (b, concl') thy;
     val axm' = Thm.axiom thy' (Sign.full_name thy' b);
-    val thm = unvarify_global (Thm.instantiate (recover, []) axm');
+    val thm =
+      Thm.instantiate (recover, []) axm'
+      |> unvarify_global
+      |> fold_rev Thm.implies_intr prems;
   in (thm, thy') end;
 
 

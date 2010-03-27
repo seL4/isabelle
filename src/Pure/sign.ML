@@ -68,7 +68,6 @@ sig
   val cert_prop: theory -> term -> term
   val no_frees: Pretty.pp -> term -> term
   val no_vars: Pretty.pp -> term -> term
-  val cert_def: Proof.context -> term -> (string * typ) * term
   val add_defsort: string -> theory -> theory
   val add_defsort_i: sort -> theory -> theory
   val add_types: (binding * int * mixfix) list -> theory -> theory
@@ -331,14 +330,6 @@ fun no_variables kind add addT mk mkT pp tm =
 
 val no_frees = no_variables "free" Term.add_frees Term.add_tfrees Free TFree;
 val no_vars = no_variables "schematic" Term.add_vars Term.add_tvars Var TVar;
-
-fun cert_def ctxt tm =
-  let val ((lhs, rhs), _) = tm
-    |> no_vars (Syntax.pp ctxt)
-    |> Logic.strip_imp_concl
-    |> Primitive_Defs.dest_def ctxt Term.is_Const (K false) (K false)
-  in (Term.dest_Const (Term.head_of lhs), rhs) end
-  handle TERM (msg, _) => error msg;
 
 
 

@@ -16,7 +16,6 @@ sig
   val cterm_fun: (term -> term) -> (cterm -> cterm)
   val ctyp_fun: (typ -> typ) -> (ctyp -> ctyp)
   val forall_intr_list: cterm list -> thm -> thm
-  val forall_intr_frees: thm -> thm
   val forall_intr_vars: thm -> thm
   val forall_elim_list: cterm list -> thm -> thm
   val gen_all: thm -> thm
@@ -214,16 +213,6 @@ fun unconstrainTs th =
 (*Generalization over a list of variables*)
 val forall_intr_list = fold_rev forall_intr;
 
-(*Generalization over all suitable Free variables*)
-fun forall_intr_frees th =
-    let
-      val thy = Thm.theory_of_thm th;
-      val {prop, hyps, tpairs, ...} = rep_thm th;
-      val fixed = fold Term.add_frees (Thm.terms_of_tpairs tpairs @ hyps) [];
-      val frees = Term.fold_aterms (fn Free v =>
-        if member (op =) fixed v then I else insert (op =) v | _ => I) prop [];
-    in fold (forall_intr o cterm_of thy o Free) frees th end;
-
 (*Generalization over Vars -- canonical order*)
 fun forall_intr_vars th =
   fold forall_intr
@@ -306,7 +295,7 @@ fun flexflex_unique th =
 
 val export_without_context_open =
   implies_intr_hyps
-  #> forall_intr_frees
+  #> Thm.forall_intr_frees
   #> `Thm.maxidx_of
   #-> (fn maxidx =>
     Thm.forall_elim_vars (maxidx + 1)
