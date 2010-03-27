@@ -159,10 +159,17 @@ fun cert_axm thy (b, raw_tm) =
     val t = Sign.cert_prop thy raw_tm
       handle TYPE (msg, _, _) => error msg
         | TERM (msg, _) => error msg;
+    val _ = Term.no_dummy_patterns t handle TERM (msg, _) => error msg;
+
+    val bad_sorts =
+      rev ((fold_types o fold_atyps_sorts) (fn (_, []) => I | (T, _) => insert (op =) T) t []);
+    val _ = null bad_sorts orelse
+      error ("Illegal sort constraints in primitive specification: " ^
+        commas (map (setmp_CRITICAL show_sorts true (Syntax.string_of_typ_global thy)) bad_sorts));
   in
-    Term.no_dummy_patterns t handle TERM (msg, _) => error msg;
     (b, Sign.no_vars (Syntax.pp_global thy) t)
-  end;
+  end handle ERROR msg =>
+    cat_error msg ("The error(s) above occurred in axiom " ^ quote (Binding.str_of b));
 
 fun add_axiom raw_axm thy = thy |> map_axioms (fn axioms =>
   let
