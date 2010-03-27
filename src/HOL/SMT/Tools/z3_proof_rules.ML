@@ -1143,6 +1143,7 @@ val z3_simpset = HOL_ss addsimps @{thms array_rules}
   addsimps @{thms add_bin_simps} addsimps @{thms succ_bin_simps}
   addsimps @{thms minus_bin_simps} addsimps @{thms pred_bin_simps}
   addsimps @{thms mult_bin_simps} addsimps @{thms iszero_simps}
+  addsimps [@{thm mult_1_left}]
   addsimprocs [
     Simplifier.simproc @{theory} "fast_int_arith" [
       "(m::int) < n", "(m::int) <= n", "(m::int) = n"] (K Lin_Arith.simproc),
