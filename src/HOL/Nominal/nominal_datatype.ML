@@ -640,9 +640,9 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
             new_type_names);
 
     val perm_defs = map snd typedefs;
-    val Abs_inverse_thms = map (collect_simp o #Abs_inverse o fst) typedefs;
-    val Rep_inverse_thms = map (#Rep_inverse o fst) typedefs;
-    val Rep_thms = map (collect_simp o #Rep o fst) typedefs;
+    val Abs_inverse_thms = map (collect_simp o #Abs_inverse o snd o fst) typedefs;
+    val Rep_inverse_thms = map (#Rep_inverse o snd o fst) typedefs;
+    val Rep_thms = map (collect_simp o #Rep o snd o fst) typedefs;
 
 
     (** prove that new types are in class pt_<name> **)
@@ -826,8 +826,8 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
         new_type_names ~~ newTs ~~ newTs' ~~ constr_syntax)
       (thy7, [], [], []);
 
-    val abs_inject_thms = map (collect_simp o #Abs_inject o fst) typedefs
-    val rep_inject_thms = map (#Rep_inject o fst) typedefs
+    val abs_inject_thms = map (collect_simp o #Abs_inject o snd o fst) typedefs
+    val rep_inject_thms = map (#Rep_inject o snd o fst) typedefs
 
     (* prove theorem  Rep_i (Constr_j ...) = Constr'_j ...  *)
 

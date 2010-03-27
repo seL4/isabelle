@@ -95,8 +95,8 @@ fun gen_add_repdef
       |> Pcpodef.add_pcpodef def (SOME name) typ set (SOME morphs) (tac1, tac2);
 
     (*definitions*)
-    val Rep_const = Const (#Rep_name info, newT --> udomT);
-    val Abs_const = Const (#Abs_name info, udomT --> newT);
+    val Rep_const = Const (#Rep_name (#1 info), newT --> udomT);
+    val Abs_const = Const (#Abs_name (#1 info), udomT --> newT);
     val emb_eqn = Logic.mk_equals (emb_const newT, cabs_const (newT, udomT) $ Rep_const);
     val prj_eqn = Logic.mk_equals (prj_const newT, cabs_const (udomT, newT) $
       Abs ("x", udomT, Abs_const $ mk_cast (defl, Bound 0)));
@@ -125,8 +125,8 @@ fun gen_add_repdef
     val approx_def = singleton (ProofContext.export lthy ctxt_thy) approx_ldef;
     val type_definition_thm =
       MetaSimplifier.rewrite_rule
-        (the_list (#set_def info))
-        (#type_definition info);
+        (the_list (#set_def (#2 info)))
+        (#type_definition (#2 info));
     val typedef_thms =
       [type_definition_thm, #below_def cpo_info, emb_def, prj_def, approx_def];
     val thy = lthy

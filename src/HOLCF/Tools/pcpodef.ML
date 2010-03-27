@@ -193,10 +193,10 @@ fun prepare prep_term name (tname, raw_args, mx) raw_set opt_morphs thy =
 fun add_podef def opt_name typ set opt_morphs tac thy =
   let
     val name = the_default (#1 typ) opt_name;
-    val ((full_tname, info as {type_definition, set_def, Rep_name, ...}), thy2) = thy
+    val ((full_tname, info as ({Rep_name, ...}, {type_definition, set_def, ...})), thy2) = thy
       |> Typedef.add_typedef_global def opt_name typ set opt_morphs tac;
-    val oldT = #rep_type info;
-    val newT = #abs_type info;
+    val oldT = #rep_type (#1 info);
+    val newT = #abs_type (#1 info);
     val lhs_tfrees = map dest_TFree (snd (dest_Type newT));
 
     val RepC = Const (Rep_name, newT --> oldT);
@@ -235,7 +235,7 @@ fun prepare_cpodef
 
     fun cpodef_result nonempty admissible thy =
       let
-        val ((info as {type_definition, set_def, ...}, below_def), thy2) = thy
+        val ((info as (_, {type_definition, set_def, ...}), below_def), thy2) = thy
           |> add_podef def (SOME name) typ set opt_morphs (Tactic.rtac nonempty 1);
         val (cpo_info, thy3) = thy2
           |> prove_cpo name newT morphs type_definition set_def below_def admissible;
@@ -270,7 +270,7 @@ fun prepare_pcpodef
     fun pcpodef_result UU_mem admissible thy =
       let
         val tac = Tactic.rtac exI 1 THEN Tactic.rtac UU_mem 1;
-        val ((info as {type_definition, set_def, ...}, below_def), thy2) = thy
+        val ((info as (_, {type_definition, set_def, ...}), below_def), thy2) = thy
           |> add_podef def (SOME name) typ set opt_morphs tac;
         val (cpo_info, thy3) = thy2
           |> prove_cpo name newT morphs type_definition set_def below_def admissible;

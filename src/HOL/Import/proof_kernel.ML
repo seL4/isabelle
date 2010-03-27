@@ -2098,7 +2098,7 @@ fun new_type_definition thyname thmname tycname hth thy =
                 (Binding.name tycname, map (rpair dummyS) tnames, tsyn) c NONE (rtac th2 1) thy
             val _ = ImportRecorder.add_typedef (SOME thmname) typ c NONE th2
 
-            val th3 = (#type_definition typedef_info) RS typedef_hol2hol4
+            val th3 = (#type_definition (#2 typedef_info)) RS typedef_hol2hol4
 
             val fulltyname = Sign.intern_type thy' tycname
             val thy'' = add_hol4_type_mapping thyname tycname true fulltyname thy'
@@ -2195,7 +2195,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
                     [SOME (ctyp_of thy' aty), SOME (ctyp_of thy' tT)]
                     [NONE, NONE, NONE, SOME (cterm_of thy' (Free ("a", aty))), SOME (cterm_of thy' (Free ("r", tT)))]
                     typedef_hol2hollight
-            val th4 = (#type_definition typedef_info) RS typedef_hol2hollight'
+            val th4 = (#type_definition (#2 typedef_info)) RS typedef_hol2hollight'
             val _ = null (Thm.fold_terms Term.add_tvars th4 []) orelse
               raise ERR "type_introduction" "no type variables expected any more"
             val _ = null (Thm.fold_terms Term.add_vars th4 []) orelse

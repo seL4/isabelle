@@ -31,10 +31,10 @@ fun typedef_codegen thy defs dep module brack t gr =
   in
     (case strip_comb t of
        (Const (s, Type ("fun", [T, U])), ts) =>
-         if lookup #Rep_name T = s andalso
+         if lookup (#Rep_name o #1) T = s andalso
            is_none (Codegen.get_assoc_type thy (get_name T))
          then mk_fun s T ts
-         else if lookup #Abs_name U = s andalso
+         else if lookup (#Abs_name o #1) U = s andalso
            is_none (Codegen.get_assoc_type thy (get_name U))
          then mk_fun s U ts
          else NONE
@@ -48,7 +48,7 @@ fun mk_tyexpr [] s = Codegen.str s
 fun typedef_tycodegen thy defs dep module brack (Type (s, Ts)) gr =
       (case Typedef.get_info_global thy s of
         (* FIXME handle multiple typedef interpretations (!??) *)
-        [{abs_type as newT as Type (tname, Us), rep_type = oldT, Abs_name, Rep_name, ...}] =>
+        [({abs_type as newT as Type (tname, Us), rep_type = oldT, Abs_name, Rep_name, ...}, _)] =>
           if is_some (Codegen.get_assoc_type thy tname) then NONE
           else
             let
