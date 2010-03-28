@@ -30,14 +30,14 @@ open ATP_Manager
 
 (* external problem files *)
 
-val (destdir, destdir_setup) = Attrib.config_string "atp_destdir" "";
+val (destdir, destdir_setup) = Attrib.config_string "atp_destdir" (K "");
   (*Empty string means create files in Isabelle's temporary files directory.*)
 
 val (problem_prefix, problem_prefix_setup) =
-  Attrib.config_string "atp_problem_prefix" "prob";
+  Attrib.config_string "atp_problem_prefix" (K "prob");
 
 val (measure_runtime, measure_runtime_setup) =
-  Attrib.config_bool "atp_measure_runtime" false;
+  Attrib.config_bool "atp_measure_runtime" (K false);
 
 
 (* prover configuration *)

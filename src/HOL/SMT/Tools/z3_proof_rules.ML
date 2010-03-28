@@ -476,7 +476,7 @@ datatype assms = Some of thm list | Many of thm Net.net
 val true_false = @{lemma "True == ~ False" by simp}
 
 val (trace_assms, trace_assms_setup) =
-  Attrib.config_bool "z3_trace_assms" false
+  Attrib.config_bool "z3_trace_assms" (K false)
 
 local
   val TT_eq = @{lemma "(P = (~False)) == P" by simp}

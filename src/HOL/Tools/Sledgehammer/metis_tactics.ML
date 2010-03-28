@@ -27,7 +27,7 @@ open Sledgehammer_Fact_Filter
 val trace = Unsynchronized.ref false;
 fun trace_msg msg = if !trace then tracing (msg ()) else ();
 
-val (type_lits, type_lits_setup) = Attrib.config_bool "metis_type_lits" true;
+val (type_lits, type_lits_setup) = Attrib.config_bool "metis_type_lits" (K true);
 
 datatype mode = FO | HO | FT  (* first-order, higher-order, fully-typed *)
 

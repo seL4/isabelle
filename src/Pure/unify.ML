@@ -32,19 +32,19 @@ struct
 (*Unification options*)
 
 (*tracing starts above this depth, 0 for full*)
-val trace_bound_value = Config.declare true "unify_trace_bound" (Config.Int 50);
+val trace_bound_value = Config.declare true "unify_trace_bound" (K (Config.Int 50));
 val trace_bound = Config.int trace_bound_value;
 
 (*unification quits above this depth*)
-val search_bound_value = Config.declare true "unify_search_bound" (Config.Int 60);
+val search_bound_value = Config.declare true "unify_search_bound" (K (Config.Int 60));
 val search_bound = Config.int search_bound_value;
 
 (*print dpairs before calling SIMPL*)
-val trace_simp_value = Config.declare true "unify_trace_simp" (Config.Bool false);
+val trace_simp_value = Config.declare true "unify_trace_simp" (K (Config.Bool false));
 val trace_simp = Config.bool trace_simp_value;
 
 (*announce potential incompleteness of type unification*)
-val trace_types_value = Config.declare true "unify_trace_types" (Config.Bool false);
+val trace_types_value = Config.declare true "unify_trace_types" (K (Config.Bool false));
 val trace_types = Config.bool trace_types_value;
 
 

@@ -100,8 +100,8 @@ fun add_inj_const c = Lin_Arith_Data.map (fn {splits, inj_consts, discrete} =>
   {splits = splits, inj_consts = update (op =) c inj_consts,
    discrete = discrete});
 
-val (split_limit, setup_split_limit) = Attrib.config_int "linarith_split_limit" 9;
-val (neq_limit, setup_neq_limit) = Attrib.config_int "linarith_neq_limit" 9;
+val (split_limit, setup_split_limit) = Attrib.config_int "linarith_split_limit" (K 9);
+val (neq_limit, setup_neq_limit) = Attrib.config_int "linarith_neq_limit" (K 9);
 
 
 structure LA_Data =

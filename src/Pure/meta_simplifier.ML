@@ -251,7 +251,7 @@ fun eq_solver (Solver {id = id1, ...}, Solver {id = id2, ...}) = (id1 = id2);
 
 (* simp depth *)
 
-val simp_depth_limit_value = Config.declare false "simp_depth_limit" (Config.Int 100);
+val simp_depth_limit_value = Config.declare false "simp_depth_limit" (K (Config.Int 100));
 val simp_depth_limit = Config.int simp_depth_limit_value;
 
 val trace_simp_depth_limit = Unsynchronized.ref 1;
@@ -274,10 +274,10 @@ fun simp_depth (Simpset ({depth = (depth, _), ...}, _)) = depth;
 
 exception SIMPLIFIER of string * thm;
 
-val debug_simp_value = Config.declare false "debug_simp" (Config.Bool false);
+val debug_simp_value = Config.declare false "debug_simp" (K (Config.Bool false));
 val debug_simp = Config.bool debug_simp_value;
 
-val trace_simp_value = Config.declare false "trace_simp" (Config.Bool false);
+val trace_simp_value = Config.declare false "trace_simp" (K (Config.Bool false));
 val trace_simp = Config.bool trace_simp_value;
 val trace_simp_ref = Unsynchronized.ref false;
 

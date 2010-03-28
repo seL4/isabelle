@@ -17,8 +17,8 @@ struct
 val solver_name = "z3"
 val env_var = "Z3_SOLVER"
 
-val (proofs, proofs_setup) = Attrib.config_bool "z3_proofs" false
-val (options, options_setup) = Attrib.config_string "z3_options" ""
+val (proofs, proofs_setup) = Attrib.config_bool "z3_proofs" (K false)
+val (options, options_setup) = Attrib.config_string "z3_options" (K "")
 
 fun add xs ys = ys @ xs
 

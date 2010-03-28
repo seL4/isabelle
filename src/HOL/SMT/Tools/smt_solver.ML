@@ -79,13 +79,13 @@ type solver_config = {
 
 (* SMT options *)
 
-val (timeout, setup_timeout) = Attrib.config_int "smt_timeout" 30
+val (timeout, setup_timeout) = Attrib.config_int "smt_timeout" (K 30)
 
 fun with_timeout ctxt f x =
   TimeLimit.timeLimit (Time.fromSeconds (Config.get ctxt timeout)) f x
   handle TimeLimit.TimeOut => raise SMT "timeout"
 
-val (trace, setup_trace) = Attrib.config_bool "smt_trace" false
+val (trace, setup_trace) = Attrib.config_bool "smt_trace" (K false)
 
 fun trace_msg ctxt f x =
   if Config.get ctxt trace then tracing (f x) else ()
@@ -93,7 +93,7 @@ fun trace_msg ctxt f x =
 
 (* SMT certificates *)
 
-val (record, setup_record) = Attrib.config_bool "smt_record" true
+val (record, setup_record) = Attrib.config_bool "smt_record" (K true)
 
 structure Certificates = Generic_Data
 (

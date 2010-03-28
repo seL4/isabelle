@@ -794,10 +794,10 @@ fun deepen bound f i =
       NONE => deepen bound f (i + 1)
     | SOME x => SOME x);
 
-val (depth_bound, setup_depth_bound) = Attrib.config_int "ind_quickcheck_depth" 10;
-val (depth_start, setup_depth_start) = Attrib.config_int "ind_quickcheck_depth_start" 1;
-val (random_values, setup_random_values) = Attrib.config_int "ind_quickcheck_random" 5;
-val (size_offset, setup_size_offset) = Attrib.config_int "ind_quickcheck_size_offset" 0;
+val (depth_bound, setup_depth_bound) = Attrib.config_int "ind_quickcheck_depth" (K 10);
+val (depth_start, setup_depth_start) = Attrib.config_int "ind_quickcheck_depth_start" (K 1);
+val (random_values, setup_random_values) = Attrib.config_int "ind_quickcheck_random" (K 5);
+val (size_offset, setup_size_offset) = Attrib.config_int "ind_quickcheck_size_offset" (K 0);
 
 fun test_term ctxt report t =
   let

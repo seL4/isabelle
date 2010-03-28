@@ -43,10 +43,10 @@ struct
 
 (* Mirabelle configuration *)
 
-val (logfile, setup1) = Attrib.config_string "mirabelle_logfile" ""
-val (timeout, setup2) = Attrib.config_int "mirabelle_timeout" 30
-val (start_line, setup3) = Attrib.config_int "mirabelle_start_line" 0
-val (end_line, setup4) = Attrib.config_int "mirabelle_end_line" ~1
+val (logfile, setup1) = Attrib.config_string "mirabelle_logfile" (K "")
+val (timeout, setup2) = Attrib.config_int "mirabelle_timeout" (K 30)
+val (start_line, setup3) = Attrib.config_int "mirabelle_start_line" (K 0)
+val (end_line, setup4) = Attrib.config_int "mirabelle_end_line" (K ~1)
 
 val setup = setup1 #> setup2 #> setup3 #> setup4
 

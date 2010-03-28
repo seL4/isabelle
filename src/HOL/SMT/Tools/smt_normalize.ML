@@ -290,7 +290,7 @@ end
 (* include additional rules *)
 
 val (unfold_defs, unfold_defs_setup) =
-  Attrib.config_bool "smt_unfold_defs" true
+  Attrib.config_bool "smt_unfold_defs" (K true)
 
 local
   val pair_rules = [@{thm fst_conv}, @{thm snd_conv}, @{thm pair_collapse}]

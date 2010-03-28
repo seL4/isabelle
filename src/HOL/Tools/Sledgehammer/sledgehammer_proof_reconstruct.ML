@@ -34,10 +34,10 @@ fun trace_proof_msg f =
 fun string_of_thm ctxt = PrintMode.setmp [] (Display.string_of_thm ctxt);
 
 (*For generating structured proofs: keep every nth proof line*)
-val (modulus, modulus_setup) = Attrib.config_int "sledgehammer_modulus" 1;
+val (modulus, modulus_setup) = Attrib.config_int "sledgehammer_modulus" (K 1);
 
 (*Indicates whether to include sort information in generated proofs*)
-val (recon_sorts, recon_sorts_setup) = Attrib.config_bool "sledgehammer_sorts" true;
+val (recon_sorts, recon_sorts_setup) = Attrib.config_bool "sledgehammer_sorts" (K true);
 
 val setup = modulus_setup #> recon_sorts_setup;
 

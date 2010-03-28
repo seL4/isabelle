@@ -48,7 +48,7 @@ val trace = Unsynchronized.ref false;
 fun trace_msg msg = if ! trace then tracing (msg ()) else ();
 
 val max_clauses_default = 60;
-val (max_clauses, setup) = Attrib.config_int "max_clauses" max_clauses_default;
+val (max_clauses, setup) = Attrib.config_int "max_clauses" (K max_clauses_default);
 
 val disj_forward = @{thm disj_forward};
 val disj_forward2 = @{thm disj_forward2};
