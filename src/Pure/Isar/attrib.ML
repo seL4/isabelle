@@ -36,12 +36,12 @@ sig
   val multi_thm: thm list context_parser
   val print_configs: Proof.context -> unit
   val internal: (morphism -> attribute) -> src
-  val config_bool: bstring -> bool -> bool Config.T * (theory -> theory)
-  val config_int: bstring -> int -> int Config.T * (theory -> theory)
-  val config_string: bstring -> string -> string Config.T * (theory -> theory)
-  val config_bool_global: bstring -> bool -> bool Config.T * (theory -> theory)
-  val config_int_global: bstring -> int -> int Config.T * (theory -> theory)
-  val config_string_global: bstring -> string -> string Config.T * (theory -> theory)
+  val config_bool: bstring -> (Proof.context -> bool) -> bool Config.T * (theory -> theory)
+  val config_int: bstring -> (Proof.context -> int) -> int Config.T * (theory -> theory)
+  val config_string: bstring -> (Proof.context -> string) -> string Config.T * (theory -> theory)
+  val config_bool_global: bstring -> (Proof.context -> bool) -> bool Config.T * (theory -> theory)
+  val config_int_global: bstring -> (Proof.context -> int) -> int Config.T * (theory -> theory)
+  val config_string_global: bstring -> (Proof.context -> string) -> string Config.T * (theory -> theory)
 end;
 
 structure Attrib: ATTRIB =
@@ -373,7 +373,7 @@ fun register_config config thy =
 
 fun declare_config make coerce global name default =
   let
-    val config_value = Config.declare global name (make default);
+    val config_value = Config.declare global name (make o default);
     val config = coerce config_value;
   in (config, register_config config_value) end;
 

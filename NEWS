@@ -304,6 +304,9 @@ Theory_Data version.
 to emphasize that these only work in a global situation (which is
 quite rare).
 
+* Configuration options now admit dynamic default values, depending on
+the context or even global references.
+
 
 *** System ***
 
