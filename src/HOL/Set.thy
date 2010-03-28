@@ -507,7 +507,6 @@ lemma set_ext: assumes prem: "(!!x. (x:A) = (x:B))" shows "A = B"
   apply (rule Collect_mem_eq)
   done
 
-(* Due to Brian Huffman *)
 lemma expand_set_eq: "(A = B) = (ALL x. (x:A) = (x:B))"
 by(auto intro:set_ext)
 
@@ -1002,25 +1001,25 @@ lemma subset_insert: "x \<notin> A ==> (A \<subseteq> insert x B) = (A \<subsete
 text {* \medskip Finite Union -- the least upper bound of two sets. *}
 
 lemma Un_upper1: "A \<subseteq> A \<union> B"
-  by blast
+  by (fact sup_ge1)
 
 lemma Un_upper2: "B \<subseteq> A \<union> B"
-  by blast
+  by (fact sup_ge2)
 
 lemma Un_least: "A \<subseteq> C ==> B \<subseteq> C ==> A \<union> B \<subseteq> C"
-  by blast
+  by (fact sup_least)
 
 
 text {* \medskip Finite Intersection -- the greatest lower bound of two sets. *}
 
 lemma Int_lower1: "A \<inter> B \<subseteq> A"
-  by blast
+  by (fact inf_le1)
 
 lemma Int_lower2: "A \<inter> B \<subseteq> B"
-  by blast
+  by (fact inf_le2)
 
 lemma Int_greatest: "C \<subseteq> A ==> C \<subseteq> B ==> C \<subseteq> A \<inter> B"
-  by blast
+  by (fact inf_greatest)
 
 
 text {* \medskip Set difference. *}
@@ -1166,34 +1165,34 @@ by (subst image_image, simp)
 text {* \medskip @{text Int} *}
 
 lemma Int_absorb [simp]: "A \<inter> A = A"
-  by blast
+  by (fact inf_idem)
 
 lemma Int_left_absorb: "A \<inter> (A \<inter> B) = A \<inter> B"
-  by blast
+  by (fact inf_left_idem)
 
 lemma Int_commute: "A \<inter> B = B \<inter> A"
-  by blast
+  by (fact inf_commute)
 
 lemma Int_left_commute: "A \<inter> (B \<inter> C) = B \<inter> (A \<inter> C)"
-  by blast
+  by (fact inf_left_commute)
 
 lemma Int_assoc: "(A \<inter> B) \<inter> C = A \<inter> (B \<inter> C)"
-  by blast
+  by (fact inf_assoc)
 
 lemmas Int_ac = Int_assoc Int_left_absorb Int_commute Int_left_commute
   -- {* Intersection is an AC-operator *}
 
 lemma Int_absorb1: "B \<subseteq> A ==> A \<inter> B = B"
-  by blast
+  by (fact inf_absorb2)
 
 lemma Int_absorb2: "A \<subseteq> B ==> A \<inter> B = A"
-  by blast
+  by (fact inf_absorb1)
 
 lemma Int_empty_left [simp]: "{} \<inter> B = {}"
-  by blast
+  by (fact inf_bot_left)
 
 lemma Int_empty_right [simp]: "A \<inter> {} = {}"
-  by blast
+  by (fact inf_bot_right)
 
 lemma disjoint_eq_subset_Compl: "(A \<inter> B = {}) = (A \<subseteq> -B)"
   by blast
@@ -1202,22 +1201,22 @@ lemma disjoint_iff_not_equal: "(A \<inter> B = {}) = (\<forall>x\<in>A. \<forall
   by blast
 
 lemma Int_UNIV_left [simp]: "UNIV \<inter> B = B"
-  by blast
+  by (fact inf_top_left)
 
 lemma Int_UNIV_right [simp]: "A \<inter> UNIV = A"
-  by blast
+  by (fact inf_top_right)
 
 lemma Int_Un_distrib: "A \<inter> (B \<union> C) = (A \<inter> B) \<union> (A \<inter> C)"
-  by blast
+  by (fact inf_sup_distrib1)
 
 lemma Int_Un_distrib2: "(B \<union> C) \<inter> A = (B \<inter> A) \<union> (C \<inter> A)"
-  by blast
+  by (fact inf_sup_distrib2)
 
 lemma Int_UNIV [simp,no_atp]: "(A \<inter> B = UNIV) = (A = UNIV & B = UNIV)"
-  by blast
+  by (fact inf_eq_top_iff)
 
 lemma Int_subset_iff [simp]: "(C \<subseteq> A \<inter> B) = (C \<subseteq> A & C \<subseteq> B)"
-  by blast
+  by (fact le_inf_iff)
 
 lemma Int_Collect: "(x \<in> A \<inter> {x. P x}) = (x \<in> A & P x)"
   by blast
@@ -1226,40 +1225,40 @@ lemma Int_Collect: "(x \<in> A \<inter> {x. P x}) = (x \<in> A & P x)"
 text {* \medskip @{text Un}. *}
 
 lemma Un_absorb [simp]: "A \<union> A = A"
-  by blast
+  by (fact sup_idem)
 
 lemma Un_left_absorb: "A \<union> (A \<union> B) = A \<union> B"
-  by blast
+  by (fact sup_left_idem)
 
 lemma Un_commute: "A \<union> B = B \<union> A"
-  by blast
+  by (fact sup_commute)
 
 lemma Un_left_commute: "A \<union> (B \<union> C) = B \<union> (A \<union> C)"
-  by blast
+  by (fact sup_left_commute)
 
 lemma Un_assoc: "(A \<union> B) \<union> C = A \<union> (B \<union> C)"
-  by blast
+  by (fact sup_assoc)
 
 lemmas Un_ac = Un_assoc Un_left_absorb Un_commute Un_left_commute
   -- {* Union is an AC-operator *}
 
 lemma Un_absorb1: "A \<subseteq> B ==> A \<union> B = B"
-  by blast
+  by (fact sup_absorb2)
 
 lemma Un_absorb2: "B \<subseteq> A ==> A \<union> B = A"
-  by blast
+  by (fact sup_absorb1)
 
 lemma Un_empty_left [simp]: "{} \<union> B = B"
-  by blast
+  by (fact sup_bot_left)
 
 lemma Un_empty_right [simp]: "A \<union> {} = A"
-  by blast
+  by (fact sup_bot_right)
 
 lemma Un_UNIV_left [simp]: "UNIV \<union> B = UNIV"
-  by blast
+  by (fact sup_top_left)
 
 lemma Un_UNIV_right [simp]: "A \<union> UNIV = UNIV"
-  by blast
+  by (fact sup_top_right)
 
 lemma Un_insert_left [simp]: "(insert a B) \<union> C = insert a (B \<union> C)"
   by blast
@@ -1292,23 +1291,23 @@ lemma Int_insert_right_if1[simp]:
   by auto
 
 lemma Un_Int_distrib: "A \<union> (B \<inter> C) = (A \<union> B) \<inter> (A \<union> C)"
-  by blast
+  by (fact sup_inf_distrib1)
 
 lemma Un_Int_distrib2: "(B \<inter> C) \<union> A = (B \<union> A) \<inter> (C \<union> A)"
-  by blast
+  by (fact sup_inf_distrib2)
 
 lemma Un_Int_crazy:
     "(A \<inter> B) \<union> (B \<inter> C) \<union> (C \<inter> A) = (A \<union> B) \<inter> (B \<union> C) \<inter> (C \<union> A)"
   by blast
 
 lemma subset_Un_eq: "(A \<subseteq> B) = (A \<union> B = B)"
-  by blast
+  by (fact le_iff_sup)
 
 lemma Un_empty [iff]: "(A \<union> B = {}) = (A = {} & B = {})"
-  by blast
+  by (fact sup_eq_bot_iff)
 
 lemma Un_subset_iff [simp]: "(A \<union> B \<subseteq> C) = (A \<subseteq> C & B \<subseteq> C)"
-  by blast
+  by (fact le_sup_iff)
 
 lemma Un_Diff_Int: "(A - B) \<union> (A \<inter> B) = A"
   by blast
@@ -1320,25 +1319,25 @@ lemma Diff_Int2: "A \<inter> C - B \<inter> C = A \<inter> C - B"
 text {* \medskip Set complement *}
 
 lemma Compl_disjoint [simp]: "A \<inter> -A = {}"
-  by blast
+  by (fact inf_compl_bot)
 
 lemma Compl_disjoint2 [simp]: "-A \<inter> A = {}"
-  by blast
+  by (fact compl_inf_bot)
 
 lemma Compl_partition: "A \<union> -A = UNIV"
-  by blast
+  by (fact sup_compl_top)
 
 lemma Compl_partition2: "-A \<union> A = UNIV"
-  by blast
+  by (fact compl_sup_top)
 
 lemma double_complement [simp]: "- (-A) = (A::'a set)"
-  by blast
+  by (fact double_compl)
 
 lemma Compl_Un [simp]: "-(A \<union> B) = (-A) \<inter> (-B)"
-  by blast
+  by (fact compl_sup)
 
 lemma Compl_Int [simp]: "-(A \<inter> B) = (-A) \<union> (-B)"
-  by blast
+  by (fact compl_inf)
 
 lemma subset_Compl_self_eq: "(A \<subseteq> -A) = (A = {})"
   by blast
@@ -1348,16 +1347,16 @@ lemma Un_Int_assoc_eq: "((A \<inter> B) \<union> C = A \<inter> (B \<union> C)) 
   by blast
 
 lemma Compl_UNIV_eq [simp]: "-UNIV = {}"
-  by blast
+  by (fact compl_top_eq)
 
 lemma Compl_empty_eq [simp]: "-{} = UNIV"
-  by blast
+  by (fact compl_bot_eq)
 
 lemma Compl_subset_Compl_iff [iff]: "(-A \<subseteq> -B) = (B \<subseteq> A)"
-  by blast
+  by (fact compl_le_compl_iff)
 
 lemma Compl_eq_Compl_iff [iff]: "(-A = -B) = (A = (B::'a set))"
-  by blast
+  by (fact compl_eq_compl_iff)
 
 text {* \medskip Bounded quantifiers.
 
@@ -1531,16 +1530,16 @@ lemma insert_mono: "C \<subseteq> D ==> insert a C \<subseteq> insert a D"
   by blast
 
 lemma Un_mono: "A \<subseteq> C ==> B \<subseteq> D ==> A \<union> B \<subseteq> C \<union> D"
-  by blast
+  by (fact sup_mono)
 
 lemma Int_mono: "A \<subseteq> C ==> B \<subseteq> D ==> A \<inter> B \<subseteq> C \<inter> D"
-  by blast
+  by (fact inf_mono)
 
 lemma Diff_mono: "A \<subseteq> C ==> D \<subseteq> B ==> A - B \<subseteq> C - D"
   by blast
 
 lemma Compl_anti_mono: "A \<subseteq> B ==> -B \<subseteq> -A"
-  by blast
+  by (fact compl_mono)
 
 text {* \medskip Monotonicity of implications. *}
 
