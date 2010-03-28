@@ -142,7 +142,7 @@ val lookup_simproc =
           val ctxt = Simplifier.the_context ss;
           val basic_ss = #1 (StateFunData.get (Context.Proof ctxt));
           val ss' = Simplifier.context 
-                     (Config.map MetaSimplifier.simp_depth_limit (K 100) ctxt) basic_ss;
+                     (Config.put MetaSimplifier.simp_depth_limit 100 ctxt) basic_ss;
           val thm = Simplifier.rewrite ss' ct;
         in if (op aconv) (Logic.dest_equals (prop_of thm))
            then NONE
@@ -233,7 +233,7 @@ val update_simproc =
                | mk_updterm _ t = init_seed t;
 
              val ctxt = Simplifier.the_context ss |>
-                        Config.map MetaSimplifier.simp_depth_limit (K 100);
+                        Config.put MetaSimplifier.simp_depth_limit 100;
              val ss1 = Simplifier.context ctxt ss';
              val ss2 = Simplifier.context ctxt 
                          (#1 (StateFunData.get (Context.Proof ctxt)));
@@ -267,7 +267,7 @@ val ex_lookup_eq_simproc =
     (fn thy => fn ss => fn t =>
        let
          val ctxt = Simplifier.the_context ss |>
-                    Config.map MetaSimplifier.simp_depth_limit (K 100)
+                    Config.put MetaSimplifier.simp_depth_limit 100
          val ex_lookup_ss = #2 (StateFunData.get (Context.Proof ctxt));
          val ss' = (Simplifier.context ctxt ex_lookup_ss);
          fun prove prop =
