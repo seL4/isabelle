@@ -106,10 +106,10 @@ lemma Sup_insert_nonempty:
 proof (cases "Sup X \<le> a")
   case True
   thus ?thesis
-    apply (simp add: max_def) 
+    apply (simp add: max_def)
     apply (rule Sup_eq_maximum)
-    apply (metis insertCI)
-    apply (metis Sup_upper insertE le_iff_sup real_le_linear real_le_trans sup_absorb1 z)     
+    apply (rule insertI1)
+    apply (metis Sup_upper [OF _ z] insertE real_le_linear real_le_trans)
     done
 next
   case False
@@ -177,7 +177,7 @@ lemma Sup_finite_le_iff:
   fixes S :: "real set"
   assumes fS: "finite S" and Se: "S \<noteq> {}"
   shows "a \<ge> Sup S \<longleftrightarrow> (\<forall> x \<in> S. a \<ge> x)"
-by (metis Max_ge Se Sup_finite_Max Sup_finite_in fS le_iff_sup real_le_trans) 
+by (metis Max_ge Se Sup_finite_Max Sup_finite_in fS real_le_trans)
 
 lemma Sup_finite_gt_iff: 
   fixes S :: "real set"
@@ -331,8 +331,8 @@ next
   have "Inf (insert a X) \<le> Inf X"
     apply (rule Inf_greatest)
     apply (metis empty_psubset_nonempty psubset_eq x)
-    apply (rule Inf_lower_EX) 
-    apply (blast intro: elim:) 
+    apply (rule Inf_lower_EX)
+    apply (erule insertI2)
     apply (metis insert_iff real_le_linear real_le_refl real_le_trans z)
     done
   moreover 
