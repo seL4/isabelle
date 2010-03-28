@@ -36,12 +36,12 @@ sig
   val multi_thm: thm list context_parser
   val print_configs: Proof.context -> unit
   val internal: (morphism -> attribute) -> src
-  val config_bool: bstring -> (Proof.context -> bool) -> bool Config.T * (theory -> theory)
-  val config_int: bstring -> (Proof.context -> int) -> int Config.T * (theory -> theory)
-  val config_string: bstring -> (Proof.context -> string) -> string Config.T * (theory -> theory)
-  val config_bool_global: bstring -> (Proof.context -> bool) -> bool Config.T * (theory -> theory)
-  val config_int_global: bstring -> (Proof.context -> int) -> int Config.T * (theory -> theory)
-  val config_string_global: bstring -> (Proof.context -> string) -> string Config.T * (theory -> theory)
+  val config_bool: bstring -> (Context.generic -> bool) -> bool Config.T * (theory -> theory)
+  val config_int: bstring -> (Context.generic -> int) -> int Config.T * (theory -> theory)
+  val config_string: bstring -> (Context.generic -> string) -> string Config.T * (theory -> theory)
+  val config_bool_global: bstring -> (Context.generic -> bool) -> bool Config.T * (theory -> theory)
+  val config_int_global: bstring -> (Context.generic -> int) -> int Config.T * (theory -> theory)
+  val config_string_global: bstring -> (Context.generic -> string) -> string Config.T * (theory -> theory)
 end;
 
 structure Attrib: ATTRIB =

@@ -22,7 +22,7 @@ sig
   val get_generic: Context.generic -> 'a T -> 'a
   val map_generic: 'a T -> ('a -> 'a) -> Context.generic -> Context.generic
   val put_generic: 'a T -> 'a -> Context.generic -> Context.generic
-  val declare: bool -> string -> (Proof.context -> value) -> value T
+  val declare: bool -> string -> (Context.generic -> value) -> value T
   val name_of: 'a T -> string
 end;
 
@@ -105,7 +105,7 @@ fun declare global name default =
     fun get_value context =
       (case Inttab.lookup (Value.get context) id of
         SOME value => value
-      | NONE => default (Context.proof_of context));
+      | NONE => default context);
 
     fun update_value f context =
       Value.map (Inttab.update (id, type_check name f (get_value context))) context;
