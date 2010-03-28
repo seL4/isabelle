@@ -794,21 +794,10 @@ fun deepen bound f i =
       NONE => deepen bound f (i + 1)
     | SOME x => SOME x);
 
-val depth_bound_value =
-  Config.declare false "ind_quickcheck_depth" (Config.Int 10);
-val depth_bound = Config.int depth_bound_value;
-
-val depth_start_value =
-  Config.declare false "ind_quickcheck_depth_start" (Config.Int 1);
-val depth_start = Config.int depth_start_value;
-
-val random_values_value =
-  Config.declare false "ind_quickcheck_random" (Config.Int 5);
-val random_values = Config.int random_values_value;
-
-val size_offset_value =
-  Config.declare false "ind_quickcheck_size_offset" (Config.Int 0);
-val size_offset = Config.int size_offset_value;
+val (depth_bound, setup_depth_bound) = Attrib.config_int "ind_quickcheck_depth" 10;
+val (depth_start, setup_depth_start) = Attrib.config_int "ind_quickcheck_depth_start" 1;
+val (random_values, setup_random_values) = Attrib.config_int "ind_quickcheck_random" 5;
+val (size_offset, setup_size_offset) = Attrib.config_int "ind_quickcheck_size_offset" 0;
 
 fun test_term ctxt report t =
   let
@@ -860,10 +849,10 @@ fun test_term ctxt report t =
   in test end;
 
 val quickcheck_setup =
-  Attrib.register_config depth_bound_value #>
-  Attrib.register_config depth_start_value #>
-  Attrib.register_config random_values_value #>
-  Attrib.register_config size_offset_value #>
+  setup_depth_bound #>
+  setup_depth_start #>
+  setup_random_values #>
+  setup_size_offset #>
   Quickcheck.add_generator ("SML_inductive", test_term);
 
 end;
