@@ -20,7 +20,6 @@ sig
   val target_of: local_theory -> Proof.context
   val raw_theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
   val raw_theory: (theory -> theory) -> local_theory -> local_theory
-  val checkpoint: local_theory -> local_theory
   val theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
   val theory: (theory -> theory) -> local_theory -> local_theory
   val target_result: (Proof.context -> 'a * Proof.context) -> local_theory -> 'a * local_theory
@@ -149,7 +148,8 @@ fun theory_result f lthy =
     thy
     |> Sign.map_naming (K (naming_of lthy))
     |> f
-    ||> Sign.restore_naming thy);
+    ||> Sign.restore_naming thy
+    ||> Theory.checkpoint);
 
 fun theory f = #2 o theory_result (f #> pair ());
 
