@@ -90,10 +90,10 @@ lemma le_infI2:
   by (rule order_trans) auto
 
 lemma le_infI: "x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> b \<Longrightarrow> x \<sqsubseteq> a \<sqinter> b"
-  by (blast intro: inf_greatest)
+  by (rule inf_greatest) (* FIXME: duplicate lemma *)
 
 lemma le_infE: "x \<sqsubseteq> a \<sqinter> b \<Longrightarrow> (x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> b \<Longrightarrow> P) \<Longrightarrow> P"
-  by (blast intro: order_trans le_infI1 le_infI2)
+  by (blast intro: order_trans inf_le1 inf_le2)
 
 lemma le_inf_iff [simp]:
   "x \<sqsubseteq> y \<sqinter> z \<longleftrightarrow> x \<sqsubseteq> y \<and> x \<sqsubseteq> z"
@@ -102,6 +102,9 @@ lemma le_inf_iff [simp]:
 lemma le_iff_inf:
   "x \<sqsubseteq> y \<longleftrightarrow> x \<sqinter> y = x"
   by (auto intro: le_infI1 antisym dest: eq_iff [THEN iffD1])
+
+lemma inf_mono: "a \<sqsubseteq> c \<Longrightarrow> b \<le> d \<Longrightarrow> a \<sqinter> b \<sqsubseteq> c \<sqinter> d"
+  by (fast intro: inf_greatest le_infI1 le_infI2)
 
 lemma mono_inf:
   fixes f :: "'a \<Rightarrow> 'b\<Colon>semilattice_inf"
@@ -123,11 +126,11 @@ lemma le_supI2:
 
 lemma le_supI:
   "a \<sqsubseteq> x \<Longrightarrow> b \<sqsubseteq> x \<Longrightarrow> a \<squnion> b \<sqsubseteq> x"
-  by (blast intro: sup_least)
+  by (rule sup_least) (* FIXME: duplicate lemma *)
 
 lemma le_supE:
   "a \<squnion> b \<sqsubseteq> x \<Longrightarrow> (a \<sqsubseteq> x \<Longrightarrow> b \<sqsubseteq> x \<Longrightarrow> P) \<Longrightarrow> P"
-  by (blast intro: le_supI1 le_supI2 order_trans)
+  by (blast intro: order_trans sup_ge1 sup_ge2)
 
 lemma le_sup_iff [simp]:
   "x \<squnion> y \<sqsubseteq> z \<longleftrightarrow> x \<sqsubseteq> z \<and> y \<sqsubseteq> z"
@@ -136,6 +139,9 @@ lemma le_sup_iff [simp]:
 lemma le_iff_sup:
   "x \<sqsubseteq> y \<longleftrightarrow> x \<squnion> y = y"
   by (auto intro: le_supI2 antisym dest: eq_iff [THEN iffD1])
+
+lemma sup_mono: "a \<sqsubseteq> c \<Longrightarrow> b \<le> d \<Longrightarrow> a \<squnion> b \<sqsubseteq> c \<squnion> d"
+  by (fast intro: sup_least le_supI1 le_supI2)
 
 lemma mono_sup:
   fixes f :: "'a \<Rightarrow> 'b\<Colon>semilattice_sup"
@@ -345,6 +351,12 @@ lemma dual_distrib_lattice:
   by (rule distrib_lattice.intro, rule dual_lattice)
     (unfold_locales, fact inf_sup_distrib1)
 
+lemmas sup_inf_distrib =
+  sup_inf_distrib1 sup_inf_distrib2
+
+lemmas inf_sup_distrib =
+  inf_sup_distrib1 inf_sup_distrib2
+
 lemmas distrib =
   sup_inf_distrib1 sup_inf_distrib2 inf_sup_distrib1 inf_sup_distrib2
 
@@ -393,39 +405,13 @@ lemma sup_bot_right [simp]:
   "x \<squnion> \<bottom> = x"
   by (rule sup_absorb1) simp
 
-lemma inf_eq_top_eq1:
-  assumes "A \<sqinter> B = \<top>"
-  shows "A = \<top>"
-proof (cases "B = \<top>")
-  case True with assms show ?thesis by simp
-next
-  case False with top_greatest have "B \<sqsubset> \<top>" by (auto intro: neq_le_trans)
-  then have "A \<sqinter> B \<sqsubset> \<top>" by (rule less_infI2)
-  with assms show ?thesis by simp
-qed
+lemma inf_eq_top_iff [simp]:
+  "x \<sqinter> y = \<top> \<longleftrightarrow> x = \<top> \<and> y = \<top>"
+  by (simp add: eq_iff)
 
-lemma inf_eq_top_eq2:
-  assumes "A \<sqinter> B = \<top>"
-  shows "B = \<top>"
-  by (rule inf_eq_top_eq1, unfold inf_commute [of B]) (fact assms)
-
-lemma sup_eq_bot_eq1:
-  assumes "A \<squnion> B = \<bottom>"
-  shows "A = \<bottom>"
-proof -
-  interpret dual: bounded_lattice "op \<ge>" "op >" "op \<squnion>" "op \<sqinter>" \<top> \<bottom>
-    by (rule dual_bounded_lattice)
-  from dual.inf_eq_top_eq1 assms show ?thesis .
-qed
-
-lemma sup_eq_bot_eq2:
-  assumes "A \<squnion> B = \<bottom>"
-  shows "B = \<bottom>"
-proof -
-  interpret dual: bounded_lattice "op \<ge>" "op >" "op \<squnion>" "op \<sqinter>" \<top> \<bottom>
-    by (rule dual_bounded_lattice)
-  from dual.inf_eq_top_eq2 assms show ?thesis .
-qed
+lemma sup_eq_bot_iff [simp]:
+  "x \<squnion> y = \<bottom> \<longleftrightarrow> x = \<bottom> \<and> y = \<bottom>"
+  by (simp add: eq_iff)
 
 end
 
@@ -472,10 +458,7 @@ lemma compl_eq_compl_iff [simp]:
   "- x = - y \<longleftrightarrow> x = y"
 proof
   assume "- x = - y"
-  then have "- x \<sqinter> y = \<bottom>"
-    and "- x \<squnion> y = \<top>"
-    by (simp_all add: compl_inf_bot compl_sup_top)
-  then have "- (- x) = y" by (rule compl_unique)
+  then have "- (- x) = - (- y)" by (rule arg_cong)
   then show "x = y" by simp
 next
   assume "x = y"
@@ -499,18 +482,14 @@ qed
 lemma compl_inf [simp]:
   "- (x \<sqinter> y) = - x \<squnion> - y"
 proof (rule compl_unique)
-  have "(x \<sqinter> y) \<sqinter> (- x \<squnion> - y) = ((x \<sqinter> y) \<sqinter> - x) \<squnion> ((x \<sqinter> y) \<sqinter> - y)"
-    by (rule inf_sup_distrib1)
-  also have "... = (y \<sqinter> (x \<sqinter> - x)) \<squnion> (x \<sqinter> (y \<sqinter> - y))"
-    by (simp only: inf_commute inf_assoc inf_left_commute)
-  finally show "(x \<sqinter> y) \<sqinter> (- x \<squnion> - y) = \<bottom>"
+  have "(x \<sqinter> y) \<sqinter> (- x \<squnion> - y) = (y \<sqinter> (x \<sqinter> - x)) \<squnion> (x \<sqinter> (y \<sqinter> - y))"
+    by (simp only: inf_sup_distrib inf_aci)
+  then show "(x \<sqinter> y) \<sqinter> (- x \<squnion> - y) = \<bottom>"
     by (simp add: inf_compl_bot)
 next
-  have "(x \<sqinter> y) \<squnion> (- x \<squnion> - y) = (x \<squnion> (- x \<squnion> - y)) \<sqinter> (y \<squnion> (- x \<squnion> - y))"
-    by (rule sup_inf_distrib2)
-  also have "... = (- y \<squnion> (x \<squnion> - x)) \<sqinter> (- x \<squnion> (y \<squnion> - y))"
-    by (simp only: sup_commute sup_assoc sup_left_commute)
-  finally show "(x \<sqinter> y) \<squnion> (- x \<squnion> - y) = \<top>"
+  have "(x \<sqinter> y) \<squnion> (- x \<squnion> - y) = (- y \<squnion> (x \<squnion> - x)) \<sqinter> (- x \<squnion> (y \<squnion> - y))"
+    by (simp only: sup_inf_distrib sup_aci)
+  then show "(x \<sqinter> y) \<squnion> (- x \<squnion> - y) = \<top>"
     by (simp add: sup_compl_top)
 qed
 
@@ -521,6 +500,21 @@ proof -
     by (rule dual_boolean_algebra)
   then show ?thesis by simp
 qed
+
+lemma compl_mono:
+  "x \<sqsubseteq> y \<Longrightarrow> - y \<sqsubseteq> - x"
+proof -
+  assume "x \<sqsubseteq> y"
+  then have "x \<squnion> y = y" by (simp only: le_iff_sup)
+  then have "- (x \<squnion> y) = - y" by simp
+  then have "- x \<sqinter> - y = - y" by simp
+  then have "- y \<sqinter> - x = - y" by (simp only: inf_commute)
+  then show "- y \<sqsubseteq> - x" by (simp only: le_iff_inf)
+qed
+
+lemma compl_le_compl_iff: (* TODO: declare [simp] ? *)
+  "- x \<le> - y \<longleftrightarrow> y \<le> x"
+by (auto dest: compl_mono)
 
 end
 
@@ -550,7 +544,7 @@ next
   have leI: "\<And>x y z. x \<sqsubseteq> z \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<nabla> y \<sqsubseteq> z" by (blast intro: least)
   show "x \<nabla> y \<sqsubseteq> x \<squnion> y" by (rule leI) simp_all
 qed
-  
+
 
 subsection {* @{const min}/@{const max} on linear orders as
   special case of @{const inf}/@{const sup} *}
