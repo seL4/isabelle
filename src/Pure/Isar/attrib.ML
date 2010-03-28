@@ -36,7 +36,6 @@ sig
   val multi_thm: thm list context_parser
   val print_configs: Proof.context -> unit
   val internal: (morphism -> attribute) -> src
-  val register_config: Config.value Config.T -> theory -> theory
   val config_bool: bstring -> bool -> bool Config.T * (theory -> theory)
   val config_int: bstring -> int -> int Config.T * (theory -> theory)
   val config_string: bstring -> string -> string Config.T * (theory -> theory)
