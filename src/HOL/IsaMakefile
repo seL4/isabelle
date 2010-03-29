@@ -296,7 +296,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/numeral.ML \
   Tools/numeral_simprocs.ML \
   Tools/numeral_syntax.ML \
-  Tools/polyhash.ML \
   Tools/Predicate_Compile/predicate_compile_aux.ML \
   Tools/Predicate_Compile/predicate_compile_core.ML \
   Tools/Predicate_Compile/predicate_compile_data.ML \

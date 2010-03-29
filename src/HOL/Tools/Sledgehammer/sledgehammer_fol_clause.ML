@@ -180,11 +180,11 @@ fun make_schematic_type_var (x,i) =
       tvar_prefix ^ (ascii_of_indexname (trim_type_var x,i));
 fun make_fixed_type_var x = tfree_prefix ^ (ascii_of (trim_type_var x));
 
-(*HACK because SPASS truncates identifiers to 63 characters :-(( *)
-(*32-bit hash,so we expect no collisions unless there are around 65536 long identifiers...*)
-fun controlled_length dfg_format s =
-  if size s > 60 andalso dfg_format
-  then Word.toString (Polyhash.hashw_string(s,0w0))
+(* HACK because SPASS 3.0 truncates identifiers to 63 characters. (This is
+   solved in 3.7 and perhaps in earlier versions too.) *)
+(* 32-bit hash, so we expect no collisions. *)
+fun controlled_length dfg s =
+  if dfg andalso size s > 60 then Word.toString (hashw_string (s, 0w0))
   else s;
 
 fun lookup_const dfg c =
@@ -197,8 +197,9 @@ fun lookup_type_const dfg c =
         SOME c' => c'
       | NONE => controlled_length dfg (ascii_of c);
 
-fun make_fixed_const _ "op =" = "equal"   (*MUST BE "equal" because it's built-in to ATPs*)
-  | make_fixed_const dfg c      = const_prefix ^ lookup_const dfg c;
+(* "op =" MUST BE "equal" because it's built into ATPs. *)
+fun make_fixed_const _ (@{const_name "op ="}) = "equal"
+  | make_fixed_const dfg c = const_prefix ^ lookup_const dfg c;
 
 fun make_fixed_type_const dfg c = tconst_prefix ^ lookup_type_const dfg c;
 
