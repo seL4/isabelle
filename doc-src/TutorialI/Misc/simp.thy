@@ -416,14 +416,20 @@ Many other hints about the simplifier's actions may appear.
 In more complicated cases, the trace can be very lengthy.  Thus it is
 advisable to reset the \pgmenu{Trace Simplifier} flag after having
 obtained the desired trace.
-% Since this is easily forgotten (and may have the unpleasant effect of
-% swamping the interface with trace information), here is how you can switch
-% the trace on locally: * }
-%
-%using [[trace_simp=true]] apply(simp)
-% In fact, any proof step can be prefixed with this \isa{using} clause,
-% causing any local simplification to be traced.
- *}
+Since this is easily forgotten (and may have the unpleasant effect of
+swamping the interface with trace information), here is how you can switch
+the trace on locally in a proof: *}
+
+(*<*)lemma "x=x"
+(*>*)
+using [[trace_simp=true]]
+apply simp
+(*<*)oops(*>*)
+
+text{* \noindent
+Within the current proof, all simplifications in subsequent proof steps
+will be traced, but the text reminds you to remove the \isa{using} clause
+after it has done its job. *}
 
 subsection{*Finding Theorems\label{sec:find}*}
 
