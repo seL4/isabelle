@@ -2912,7 +2912,6 @@ fun generic_code_pred prep_const options raw_const lthy =
     val const = prep_const thy raw_const
     val lthy' = Local_Theory.theory (PredData.map
         (extend (fetch_pred_data thy) (depending_preds_of thy) const)) lthy
-      |> Local_Theory.checkpoint
     val thy' = ProofContext.theory_of lthy'
     val preds = Graph.all_succs (PredData.get thy') [const] |> filter_out (has_elim thy')
     fun mk_cases const =

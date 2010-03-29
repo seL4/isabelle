@@ -28,9 +28,10 @@ fun del_from_relevance_override ns : relevance_override =
 fun only_relevance_override ns : relevance_override =
   {add = ns, del = [], only = true}
 val default_relevance_override = add_to_relevance_override []
-fun merge_relevance_override_pairwise r1 r2 : relevance_override =
+fun merge_relevance_override_pairwise (r1 : relevance_override)
+                                      (r2 : relevance_override) =
   {add = #add r1 @ #add r2, del = #del r1 @ #del r2,
-   only = #only r1 orelse #only r2} 
+   only = #only r1 orelse #only r2}
 fun merge_relevance_overrides rs =
   fold merge_relevance_override_pairwise rs default_relevance_override
 
