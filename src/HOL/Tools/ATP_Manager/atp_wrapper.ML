@@ -159,11 +159,12 @@ fun generic_prover get_facts prepare write cmd args failure_strs produce_answer
 fun generic_tptp_prover
         (name, {command, arguments, failure_strs, max_new_clauses,
                 add_theory_const, supports_isar_proofs})
-        (params as {relevance_threshold, higher_order, follow_defs, isar_proof,
-                    ...}) timeout =
+        (params as {respect_no_atp, relevance_threshold, convergence,
+                    higher_order, follow_defs, isar_proof, ...}) timeout =
   generic_prover
-      (get_relevant_facts relevance_threshold higher_order follow_defs
-                          max_new_clauses add_theory_const)
+      (get_relevant_facts respect_no_atp relevance_threshold convergence
+                          higher_order follow_defs max_new_clauses
+                          add_theory_const)
       (prepare_clauses higher_order false) write_tptp_file command
       (arguments timeout) failure_strs
       (if supports_isar_proofs andalso isar_proof then structured_isar_proof
@@ -212,11 +213,12 @@ val e = tptp_prover "e" e_config
 fun generic_dfg_prover
         (name, ({command, arguments, failure_strs, max_new_clauses,
                  add_theory_const, ...} : prover_config))
-        (params as {relevance_threshold, higher_order, follow_defs, ...})
-        timeout =
+        (params as {respect_no_atp, relevance_threshold, convergence,
+                    higher_order, follow_defs, isar_proof, ...}) timeout =
   generic_prover
-      (get_relevant_facts relevance_threshold higher_order follow_defs
-                          max_new_clauses add_theory_const)
+      (get_relevant_facts respect_no_atp relevance_threshold convergence
+                          higher_order follow_defs max_new_clauses
+                          add_theory_const)
       (prepare_clauses higher_order true) write_dfg_file command
       (arguments timeout) failure_strs (metis_lemma_list true) name params;
 

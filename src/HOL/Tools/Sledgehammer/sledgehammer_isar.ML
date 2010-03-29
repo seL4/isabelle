@@ -40,9 +40,10 @@ type raw_param = string * string list
 val default_default_params =
   [("debug", "false"),
    ("verbose", "false"),
-   ("relevance_threshold", "50"),
-   ("higher_order", "smart"),
    ("respect_no_atp", "true"),
+   ("relevance_threshold", "50"),
+   ("convergence", "320"),
+   ("higher_order", "smart"),
    ("follow_defs", "false"),
    ("isar_proof", "false"),
    ("minimize_timeout", "5 s")]
@@ -50,9 +51,9 @@ val default_default_params =
 val negated_params =
   [("no_debug", "debug"),
    ("quiet", "verbose"),
+   ("ignore_no_atp", "respect_no_atp"),
    ("partial_types", "full_types"),
    ("first_order", "higher_order"),
-   ("ignore_no_atp", "respect_no_atp"),
    ("dont_follow_defs", "follow_defs"),
    ("metis_proof", "isar_proof")]
 
@@ -119,19 +120,20 @@ fun extract_params thy default_params override_params =
     val verbose = debug orelse lookup_bool "verbose"
     val atps = lookup_string "atps" |> space_explode " "
     val full_types = lookup_bool "full_types"
+    val respect_no_atp = lookup_bool "respect_no_atp"
     val relevance_threshold =
       0.01 * Real.fromInt (lookup_int "relevance_threshold")
+    val convergence = 0.01 * Real.fromInt (lookup_int "convergence")
     val higher_order = lookup_bool_option "higher_order"
-    val respect_no_atp = lookup_bool "respect_no_atp"
     val follow_defs = lookup_bool "follow_defs"
     val isar_proof = lookup_bool "isar_proof"
     val timeout = lookup_time "timeout"
     val minimize_timeout = lookup_time "minimize_timeout"
   in
     {debug = debug, verbose = verbose, atps = atps, full_types = full_types,
-     relevance_threshold = relevance_threshold, higher_order = higher_order,
-     respect_no_atp = respect_no_atp, follow_defs = follow_defs,
-     isar_proof = isar_proof, timeout = timeout,
+     respect_no_atp = respect_no_atp, relevance_threshold = relevance_threshold,
+     convergence = convergence, higher_order = higher_order,
+     follow_defs = follow_defs, isar_proof = isar_proof, timeout = timeout,
      minimize_timeout = minimize_timeout}
   end
 

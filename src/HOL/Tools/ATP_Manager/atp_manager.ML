@@ -14,9 +14,10 @@ sig
      verbose: bool,
      atps: string list,
      full_types: bool,
-     relevance_threshold: real,
-     higher_order: bool option,
      respect_no_atp: bool,
+     relevance_threshold: real,
+     convergence: real,
+     higher_order: bool option,
      follow_defs: bool,
      isar_proof: bool,
      timeout: Time.time,
@@ -56,15 +57,16 @@ type relevance_override = Sledgehammer_Fact_Filter.relevance_override
 
 (** parameters, problems, results, and provers **)
 
-(* TODO: "theory_const", "blacklist_filter", "convergence" *)
+(* TODO: "theory_const" *)
 type params =
   {debug: bool,
    verbose: bool,
    atps: string list,
    full_types: bool,
-   relevance_threshold: real,
-   higher_order: bool option,
    respect_no_atp: bool,
+   relevance_threshold: real,
+   convergence: real,
+   higher_order: bool option,
    follow_defs: bool,
    isar_proof: bool,
    timeout: Time.time,
