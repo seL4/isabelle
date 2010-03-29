@@ -873,6 +873,105 @@ val compfuns = CompilationFuns {mk_predT = mk_dseqT, dest_predT = dest_dseqT,
 
 end;
 
+structure New_Pos_Random_Sequence_CompFuns =
+struct
+
+fun mk_pos_random_dseqT T =
+  @{typ code_numeral} --> @{typ code_numeral} --> @{typ Random.seed} -->
+    @{typ code_numeral} --> Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])
+
+fun dest_pos_random_dseqT (Type ("fun", [@{typ code_numeral}, Type ("fun", [@{typ code_numeral},
+    Type ("fun", [@{typ Random.seed}, Type ("fun", [@{typ code_numeral},
+    Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])])])])])) = T
+  | dest_pos_random_dseqT T = raise TYPE ("dest_random_dseqT", [T], []);
+
+fun mk_bot T = Const (@{const_name New_Random_Sequence.pos_empty}, mk_pos_random_dseqT T);
+
+fun mk_single t =
+  let
+    val T = fastype_of t
+  in Const(@{const_name New_Random_Sequence.pos_single}, T --> mk_pos_random_dseqT T) $ t end;
+
+fun mk_bind (x, f) =
+  let
+    val T as Type ("fun", [_, U]) = fastype_of f
+  in
+    Const (@{const_name New_Random_Sequence.pos_bind}, fastype_of x --> T --> U) $ x $ f
+  end;
+
+val mk_sup = HOLogic.mk_binop @{const_name New_Random_Sequence.pos_union};
+
+fun mk_if cond = Const (@{const_name New_Random_Sequence.pos_if_random_dseq},
+  HOLogic.boolT --> mk_pos_random_dseqT HOLogic.unitT) $ cond;
+
+fun mk_not t =
+  let
+    val pT = mk_pos_random_dseqT HOLogic.unitT
+    val nT =
+  @{typ code_numeral} --> @{typ code_numeral} --> @{typ Random.seed} -->
+    @{typ code_numeral} --> Type (@{type_name Option.option},
+      [Type (@{type_name Lazy_Sequence.lazy_sequence}, [@{typ unit}])])
+
+  in Const (@{const_name New_Random_Sequence.pos_not_random_dseq}, nT --> pT) $ t end
+
+fun mk_map T1 T2 tf tp = Const (@{const_name New_Random_Sequence.pos_map},
+  (T1 --> T2) --> mk_pos_random_dseqT T1 --> mk_pos_random_dseqT T2) $ tf $ tp
+
+val compfuns = CompilationFuns {mk_predT = mk_pos_random_dseqT, dest_predT = dest_pos_random_dseqT,
+    mk_bot = mk_bot, mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if,
+    mk_not = mk_not, mk_map = mk_map}
+
+end;
+
+structure New_Neg_Random_Sequence_CompFuns =
+struct
+
+fun mk_neg_random_dseqT T =
+   @{typ code_numeral} --> @{typ code_numeral} --> @{typ Random.seed} -->
+    @{typ code_numeral} --> 
+    Type (@{type_name Option.option}, [Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])])
+
+fun dest_neg_random_dseqT (Type ("fun", [@{typ code_numeral}, Type ("fun", [@{typ code_numeral},
+    Type ("fun", [@{typ Random.seed}, Type ("fun", [@{typ code_numeral},
+    Type (@{type_name Option.option},
+      [Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])])])])])])) = T
+  | dest_neg_random_dseqT T = raise TYPE ("dest_random_dseqT", [T], []);
+
+fun mk_bot T = Const (@{const_name New_Random_Sequence.neg_empty}, mk_neg_random_dseqT T);
+
+fun mk_single t =
+  let
+    val T = fastype_of t
+  in Const(@{const_name New_Random_Sequence.neg_single}, T --> mk_neg_random_dseqT T) $ t end;
+
+fun mk_bind (x, f) =
+  let
+    val T as Type ("fun", [_, U]) = fastype_of f
+  in
+    Const (@{const_name New_Random_Sequence.neg_bind}, fastype_of x --> T --> U) $ x $ f
+  end;
+
+val mk_sup = HOLogic.mk_binop @{const_name New_Random_Sequence.neg_union};
+
+fun mk_if cond = Const (@{const_name New_Random_Sequence.neg_if_random_dseq},
+  HOLogic.boolT --> mk_neg_random_dseqT HOLogic.unitT) $ cond;
+
+fun mk_not t =
+  let
+    val nT = mk_neg_random_dseqT HOLogic.unitT
+    val pT = @{typ code_numeral} --> @{typ code_numeral} --> @{typ Random.seed} -->
+    @{typ code_numeral} --> Type (@{type_name Lazy_Sequence.lazy_sequence}, [@{typ unit}])
+  in Const (@{const_name New_Random_Sequence.neg_not_random_dseq}, pT --> nT) $ t end
+
+fun mk_map T1 T2 tf tp = Const (@{const_name New_Random_Sequence.neg_map},
+  (T1 --> T2) --> mk_neg_random_dseqT T1 --> mk_neg_random_dseqT T2) $ tf $ tp
+
+val compfuns = CompilationFuns {mk_predT = mk_neg_random_dseqT, dest_predT = dest_neg_random_dseqT,
+    mk_bot = mk_bot, mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if,
+    mk_not = mk_not, mk_map = mk_map}
+
+end;
+
 structure Random_Sequence_CompFuns =
 struct
 
@@ -1638,6 +1737,7 @@ fun compile_clause compilation_modifiers compfuns ctxt all_vs param_vs additiona
                  end
              | Negprem t =>
                  let
+                   
                    val u = mk_not compfuns
                      (compile_expr compilation_modifiers compfuns ctxt
                        (not pol) (t, deriv) additional_arguments')
@@ -1686,7 +1786,7 @@ fun compile_pred compilation_modifiers thy all_vs param_vs s T (pol, mode) moded
     
     val (in_ts, _) = fold_map (fold_map_aterms_prodT (curry HOLogic.mk_prod)
       (fn T => fn (param_vs, names) =>
-        if is_param_type T then                                                
+        if is_param_type T then
           (Free (hd param_vs, T), (tl param_vs, names))
         else
           let
@@ -2809,6 +2909,42 @@ val neg_random_dseq_comp_modifiers = Comp_Mod.Comp_Modifiers
   transform_additional_arguments = K I : (indprem -> term list -> term list)
   }
 
+
+val new_pos_random_dseq_comp_modifiers = Comp_Mod.Comp_Modifiers
+  {
+  compilation = New_Pos_Random_DSeq,
+  function_name_prefix = "new_random_dseq_",
+  compfuns = New_Pos_Random_Sequence_CompFuns.compfuns,
+  mk_random = (fn T => fn additional_arguments =>
+  let
+    val random = Const ("Quickcheck.random_class.random",
+      @{typ code_numeral} --> @{typ Random.seed} -->
+        HOLogic.mk_prodT (HOLogic.mk_prodT (T, @{typ "unit => term"}), @{typ Random.seed}))
+  in
+    Const ("New_Random_Sequence.Random", (@{typ code_numeral} --> @{typ Random.seed} -->
+      HOLogic.mk_prodT (HOLogic.mk_prodT (T, @{typ "unit => term"}), @{typ Random.seed})) -->
+      New_Pos_Random_Sequence_CompFuns.mk_pos_random_dseqT T) $ random
+  end),
+  modify_funT = I,
+  additional_arguments = K [],
+  wrap_compilation = K (K (K (K (K I))))
+   : (compilation_funs -> string -> typ -> mode -> term list -> term -> term),
+  transform_additional_arguments = K I : (indprem -> term list -> term list)
+  }
+
+val new_neg_random_dseq_comp_modifiers = Comp_Mod.Comp_Modifiers
+  {
+  compilation = New_Neg_Random_DSeq,
+  function_name_prefix = "new_random_dseq_neg_",
+  compfuns = New_Neg_Random_Sequence_CompFuns.compfuns,
+  mk_random = (fn _ => error "no random generation"),
+  modify_funT = I,
+  additional_arguments = K [],
+  wrap_compilation = K (K (K (K (K I))))
+   : (compilation_funs -> string -> typ -> mode -> term list -> term -> term),
+  transform_additional_arguments = K I : (indprem -> term list -> term list)
+  }
+
 val add_depth_limited_equations = gen_add_equations
   (Steps {
   define_functions =
@@ -2887,6 +3023,23 @@ val add_random_dseq_equations = gen_add_equations
   use_random = true,
   qname = "random_dseq_equation"})
 
+val add_new_random_dseq_equations = gen_add_equations
+  (Steps {
+  define_functions =
+    fn options => fn preds => fn (s, modes) =>
+    let
+      val pos_modes = map_filter (fn (true, m) => SOME m | _ => NONE) modes
+      val neg_modes = map_filter (fn (false, m) => SOME m | _ => NONE) modes
+    in define_functions new_pos_random_dseq_comp_modifiers New_Pos_Random_Sequence_CompFuns.compfuns
+      options preds (s, pos_modes)
+      #> define_functions new_neg_random_dseq_comp_modifiers New_Neg_Random_Sequence_CompFuns.compfuns
+      options preds (s, neg_modes)
+    end,
+  prove = prove_by_skip,
+  add_code_equations = K (K I),
+  comp_modifiers = new_pos_random_dseq_comp_modifiers,
+  use_random = true,
+  qname = "new_random_dseq_equation"})
 
 (** user interface **)
 
@@ -2942,6 +3095,7 @@ fun generic_code_pred prep_const options raw_const lthy =
            | Depth_Limited => add_depth_limited_equations
            | Random => add_random_equations
            | Depth_Limited_Random => add_depth_limited_random_equations
+           | New_Pos_Random_DSeq => add_new_random_dseq_equations
            | compilation => error ("Compilation not supported")
            ) options [const]))
       end

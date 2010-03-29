@@ -465,14 +465,17 @@ fun equals_conv lhs_cv rhs_cv ct =
 (* Different options for compiler *)
 
 datatype compilation = Pred | Depth_Limited | Random | Depth_Limited_Random | DSeq | Annotated
-  | Pos_Random_DSeq | Neg_Random_DSeq
+  | Pos_Random_DSeq | Neg_Random_DSeq | New_Pos_Random_DSeq | New_Neg_Random_DSeq
 
 
 fun negative_compilation_of Pos_Random_DSeq = Neg_Random_DSeq
   | negative_compilation_of Neg_Random_DSeq = Pos_Random_DSeq
+  | negative_compilation_of New_Pos_Random_DSeq = New_Neg_Random_DSeq
+  | negative_compilation_of New_Neg_Random_DSeq = New_Pos_Random_DSeq
   | negative_compilation_of c = c
   
 fun compilation_for_polarity false Pos_Random_DSeq = Neg_Random_DSeq
+  | compilation_for_polarity false New_Pos_Random_DSeq = New_Neg_Random_DSeq
   | compilation_for_polarity _ c = c
 
 fun string_of_compilation c =
@@ -485,6 +488,16 @@ fun string_of_compilation c =
   | Annotated => "annotated"
   | Pos_Random_DSeq => "pos_random dseq"
   | Neg_Random_DSeq => "neg_random_dseq"
+  | New_Pos_Random_DSeq => "new_pos_random dseq"
+  | New_Neg_Random_DSeq => "new_neg_random_dseq"
+  
+val compilation_names = [("pred", Pred),
+  ("random", Random),
+  ("depth_limited", Depth_Limited),
+  ("depth_limited_random", Depth_Limited_Random),
+  (*("annotated", Annotated),*)
+  ("dseq", DSeq), ("random_dseq", Pos_Random_DSeq),
+  ("new_random_dseq", New_Pos_Random_DSeq)]
   
 (*datatype compilation_options =
   Pred | Random of int | Depth_Limited of int | DSeq of int | Annotated*)
@@ -556,13 +569,6 @@ val default_options = Options {
 val bool_options = ["show_steps", "show_intermediate_results", "show_proof_trace", "show_modes",
   "show_mode_inference", "show_compilation", "skip_proof", "inductify", "no_function_flattening",
   "no_topmost_reordering"]
-
-val compilation_names = [("pred", Pred),
-  ("random", Random),
-  ("depth_limited", Depth_Limited),
-  ("depth_limited_random", Depth_Limited_Random),
-  (*("annotated", Annotated),*)
-  ("dseq", DSeq), ("random_dseq", Pos_Random_DSeq)]
 
 fun print_step options s =
   if show_steps options then tracing s else ()
