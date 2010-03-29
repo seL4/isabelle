@@ -235,6 +235,8 @@ val opt_mode = (P.$$$ "_" >> K NONE) || (parse_mode_expr >> SOME)
 val opt_param_modes = Scan.optional (P.$$$ "[" |-- Args.$$$ "mode" |-- P.$$$ ":" |--
   P.enum ", " opt_mode --| P.$$$ "]" >> SOME) NONE
 
+val stats = Scan.optional (Args.$$$ "stats" >> K true) false
+
 val value_options =
   let
     val expected_values = Scan.optional (Args.$$$ "expected" |-- P.term >> SOME) NONE
@@ -245,7 +247,8 @@ val value_options =
             compilation_names))
         (Pred, [])
   in
-    Scan.optional (P.$$$ "[" |-- expected_values -- scan_compilation --| P.$$$ "]") (NONE, (Pred, []))
+    Scan.optional (P.$$$ "[" |-- (expected_values -- stats) -- scan_compilation --| P.$$$ "]")
+      ((NONE, false), (Pred, []))
   end
 
 (* code_pred command and values command *)

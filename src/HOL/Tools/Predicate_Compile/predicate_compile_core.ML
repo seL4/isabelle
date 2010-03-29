@@ -10,7 +10,7 @@ sig
   val code_pred : Predicate_Compile_Aux.options -> string -> Proof.context -> Proof.state
   val code_pred_cmd : Predicate_Compile_Aux.options -> string -> Proof.context -> Proof.state
   val values_cmd : string list -> Predicate_Compile_Aux.mode option list option
-    -> (string option * (Predicate_Compile_Aux.compilation * int list))
+    -> ((string option * bool) * (Predicate_Compile_Aux.compilation * int list))
     -> int -> string -> Toplevel.state -> unit
   val register_predicate : (string * thm list * thm) -> theory -> theory
   val register_intros : string * thm list -> theory -> theory
@@ -41,6 +41,9 @@ sig
     option Unsynchronized.ref
   val new_random_dseq_eval_ref :
     (unit -> int -> int -> int * int -> int -> term Lazy_Sequence.lazy_sequence)
+      option Unsynchronized.ref
+  val new_random_dseq_stats_eval_ref :
+    (unit -> int -> int -> int * int -> int -> (term * int) Lazy_Sequence.lazy_sequence)
       option Unsynchronized.ref
   val code_pred_intro_attrib : attribute
   
@@ -3136,6 +3139,9 @@ val random_dseq_eval_ref =
   Unsynchronized.ref (NONE : (unit -> int -> int -> int * int -> term DSequence.dseq * (int * int)) option);
 val new_random_dseq_eval_ref =
   Unsynchronized.ref (NONE : (unit -> int -> int -> int * int -> int -> term Lazy_Sequence.lazy_sequence) option)
+val new_random_dseq_stats_eval_ref =
+    Unsynchronized.ref (NONE :
+      (unit -> int -> int -> int * int -> int -> (term * int) Lazy_Sequence.lazy_sequence) option)
 
 (*FIXME turn this into an LCF-guarded preprocessor for comprehensions*)
 fun analyze_compr thy compfuns param_user_modes (compilation, arguments) t_compr =
@@ -3227,8 +3233,14 @@ fun analyze_compr thy compfuns param_user_modes (compilation, arguments) t_compr
       error "Evaluation with values is not possible because compilation with code_pred was not invoked"
   end
 
-fun eval thy param_user_modes (options as (compilation, arguments)) k t_compr =
+fun eval thy stats param_user_modes (options as (compilation, arguments)) k t_compr =
   let
+    fun count xs x =
+      let
+        fun count' i [] = i
+          | count' i (x' :: xs) = if x = x' then count' (i + 1) xs else count' i xs
+      in count' 0 xs end
+    fun accumulate xs = map (fn x => (x, count xs x)) (sort int_ord (distinct (op =) xs))
     val compfuns =
       case compilation of
         Random => PredicateCompFuns.compfuns
@@ -3236,11 +3248,16 @@ fun eval thy param_user_modes (options as (compilation, arguments)) k t_compr =
       | Pos_Random_DSeq => Random_Sequence_CompFuns.compfuns
       | New_Pos_Random_DSeq => New_Pos_Random_Sequence_CompFuns.compfuns
       | _ => PredicateCompFuns.compfuns
-      
     val t = analyze_compr thy compfuns param_user_modes options t_compr;
     val T = dest_predT compfuns (fastype_of t);
-    val t' = mk_map compfuns T HOLogic.termT (HOLogic.term_of_const T) t;
-    val ts =
+    val t' =
+      if stats andalso compilation = New_Pos_Random_DSeq then
+        mk_map compfuns T (HOLogic.mk_prodT (HOLogic.termT, @{typ code_numeral}))
+          (absdummy (T, HOLogic.mk_prod (HOLogic.term_of_const T $ Bound 0,
+            @{term Code_Numeral.of_nat} $ (HOLogic.size_const T $ Bound 0)))) t
+      else
+        mk_map compfuns T HOLogic.termT (HOLogic.term_of_const T) t
+    val (ts, statistics) =
       case compilation of
        (* Random =>
           fst (Predicate.yieldn k
@@ -3251,39 +3268,48 @@ fun eval thy param_user_modes (options as (compilation, arguments)) k t_compr =
           let
             val [nrandom, size, depth] = arguments
           in
-            fst (DSequence.yieldn k
+            rpair NONE (fst (DSequence.yieldn k
               (Code_Eval.eval NONE ("Predicate_Compile_Core.random_dseq_eval_ref", random_dseq_eval_ref)
                 (fn proc => fn g => fn nrandom => fn size => fn s => g nrandom size s |>> DSequence.map proc)
                   thy t' [] nrandom size
                 |> Random_Engine.run)
-              depth true)
+              depth true))
           end
       | DSeq =>
-          fst (DSequence.yieldn k
+          rpair NONE (fst (DSequence.yieldn k
             (Code_Eval.eval NONE ("Predicate_Compile_Core.dseq_eval_ref", dseq_eval_ref)
-              DSequence.map thy t' []) (the_single arguments) true)
+              DSequence.map thy t' []) (the_single arguments) true))
       | New_Pos_Random_DSeq =>
           let
             val [nrandom, size, depth] = arguments
             val seed = Random_Engine.next_seed ()
           in
-            fst (Lazy_Sequence.yieldn k
-              (Code_Eval.eval NONE
-                ("Predicate_Compile_Core.new_random_dseq_eval_ref", new_random_dseq_eval_ref)
-                (fn proc => fn g => fn nrandom => fn size => fn s => fn depth => g nrandom size s depth
-                  |> Lazy_Sequence.map proc)
-                  thy t' [] nrandom size seed depth))
+            if stats then
+              apsnd (SOME o accumulate) (split_list
+              (fst (Lazy_Sequence.yieldn k
+                (Code_Eval.eval NONE
+                  ("Predicate_Compile_Core.new_random_dseq_stats_eval_ref", new_random_dseq_stats_eval_ref)
+                  (fn proc => fn g => fn nrandom => fn size => fn s => fn depth => g nrandom size s depth
+                    |> Lazy_Sequence.map (apfst proc))
+                    thy t' [] nrandom size seed depth))))
+            else rpair NONE
+              (fst (Lazy_Sequence.yieldn k
+                (Code_Eval.eval NONE
+                  ("Predicate_Compile_Core.new_random_dseq_eval_ref", new_random_dseq_eval_ref)
+                  (fn proc => fn g => fn nrandom => fn size => fn s => fn depth => g nrandom size s depth
+                    |> Lazy_Sequence.map proc)
+                    thy t' [] nrandom size seed depth)))
           end
       | _ =>
-          fst (Predicate.yieldn k
+          rpair NONE (fst (Predicate.yieldn k
             (Code_Eval.eval NONE ("Predicate_Compile_Core.eval_ref", eval_ref)
-              Predicate.map thy t' []))
-  in (T, ts) end;
+              Predicate.map thy t' [])))
+  in ((T, ts), statistics) end;
 
-fun values ctxt param_user_modes (raw_expected, comp_options) k t_compr =
+fun values ctxt param_user_modes ((raw_expected, stats), comp_options) k t_compr =
   let
     val thy = ProofContext.theory_of ctxt
-    val (T, ts) = eval thy param_user_modes comp_options k t_compr
+    val ((T, ts), statistics) = eval thy stats param_user_modes comp_options k t_compr
     val setT = HOLogic.mk_setT T
     val elems = HOLogic.mk_set T ts
     val cont = Free ("...", setT)
@@ -3298,20 +3324,36 @@ fun values ctxt param_user_modes (raw_expected, comp_options) k t_compr =
             "expected values: " ^ Syntax.string_of_term ctxt (Syntax.read_term ctxt s) ^ "\n" ^
             "computed values: " ^ Syntax.string_of_term ctxt elems ^ "\n")
   in
-    if k = ~1 orelse length ts < k then elems
-      else Const (@{const_abbrev Set.union}, setT --> setT --> setT) $ elems $ cont
+    (if k = ~1 orelse length ts < k then elems
+    else Const (@{const_abbrev Set.union}, setT --> setT --> setT) $ elems $ cont, statistics)
   end;
 
 fun values_cmd print_modes param_user_modes options k raw_t state =
   let
     val ctxt = Toplevel.context_of state
     val t = Syntax.read_term ctxt raw_t
-    val t' = values ctxt param_user_modes options k t
+    val (t', stats) = values ctxt param_user_modes options k t
     val ty' = Term.type_of t'
     val ctxt' = Variable.auto_fixes t' ctxt
+    val pretty_stat =
+      case stats of
+          NONE => []
+        | SOME xs =>
+          let
+            val total = fold (curry (op +)) (map snd xs) 0
+            fun pretty_entry (s, n) =
+              [Pretty.str "size", Pretty.brk 1,
+               Pretty.str (string_of_int s), Pretty.str ":", Pretty.brk 1,
+               Pretty.str (string_of_int n), Pretty.fbrk]
+          in
+            [Pretty.fbrk, Pretty.str "Statistics:", Pretty.fbrk,
+             Pretty.str "total:", Pretty.brk 1, Pretty.str (string_of_int total), Pretty.fbrk]
+             @ maps pretty_entry xs
+          end
     val p = PrintMode.with_modes print_modes (fn () =>
-      Pretty.block [Pretty.quote (Syntax.pretty_term ctxt' t'), Pretty.fbrk,
-        Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' ty')]) ();
+      Pretty.block ([Pretty.quote (Syntax.pretty_term ctxt' t'), Pretty.fbrk,
+        Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' ty')]
+        @ pretty_stat)) ();
   in Pretty.writeln p end;
 
 end;
