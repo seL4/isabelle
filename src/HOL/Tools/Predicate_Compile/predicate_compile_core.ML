@@ -28,6 +28,8 @@ sig
   val intros_of : theory -> string -> thm list
   val add_intro : thm -> theory -> theory
   val set_elim : thm -> theory -> theory
+  val register_alternative_function : string -> Predicate_Compile_Aux.mode -> string -> theory -> theory
+  val alternative_function_of : theory -> string -> Predicate_Compile_Aux.mode -> string option
   val preprocess_intro : theory -> thm -> thm
   val print_stored_rules : theory -> unit
   val print_all_modes : Predicate_Compile_Aux.compilation -> theory -> unit
@@ -719,6 +721,22 @@ fun set_needs_random name modes =
   in
     PredData.map (Graph.map_node name (map_pred_data set))
   end
+
+(* registration of alternative function names *)
+
+structure Alt_Names_Data = Theory_Data
+(
+  type T = (mode * string) list Symtab.table;
+  val empty = Symtab.empty;
+  val extend = I;
+  val merge = Symtab.merge (op =);
+);
+
+fun register_alternative_function pred_name mode fun_name =
+  Alt_Names_Data.map (Symtab.insert_list (op =) (pred_name, (mode, fun_name)))
+
+fun alternative_function_of thy pred_name mode =
+  AList.lookup (op =) (Symtab.lookup_list (Alt_Names_Data.get thy) pred_name) mode
 
 (* datastructures and setup for generic compilation *)
 
@@ -1919,9 +1937,18 @@ fun compile_expr compilation_modifiers ctxt (t, deriv) additional_arguments =
         (t, Term Input) => SOME t
       | (t, Term Output) => NONE
       | (Const (name, T), Context mode) =>
-        SOME (Const (function_name_of (Comp_Mod.compilation compilation_modifiers)
-          (ProofContext.theory_of ctxt) name mode,
-          Comp_Mod.funT_of compilation_modifiers mode T))
+        (case alternative_function_of (ProofContext.theory_of ctxt) name mode of
+          SOME alt_function_name =>
+            let
+              val (inpTs, outpTs) = split_modeT' mode (binder_types T)
+              val bs = map (pair "x") inpTs
+              val bounds = map Bound (rev (0 upto (length bs) - 1))
+              val f = Const (alt_function_name, inpTs ---> HOLogic.mk_tupleT outpTs)
+            in SOME (list_abs (bs, mk_single compfuns (list_comb (f, bounds)))) end
+        | NONE =>
+          SOME (Const (function_name_of (Comp_Mod.compilation compilation_modifiers)
+            (ProofContext.theory_of ctxt) name mode,
+            Comp_Mod.funT_of compilation_modifiers mode T)))
       | (Free (s, T), Context m) =>
         SOME (Free (s, Comp_Mod.funT_of compilation_modifiers m T))
       | (t, Context m) =>
