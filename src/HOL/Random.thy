@@ -1,3 +1,4 @@
+
 (* Author: Florian Haftmann, TU Muenchen *)
 
 header {* A HOL random engine *}
@@ -153,6 +154,14 @@ val seed = Unsynchronized.ref
   in (s1 + 1, s2 + 1) end);
 
 in
+
+fun next_seed () =
+  let
+    val (seed1, seed') = @{code split_seed} (! seed)
+    val _ = seed := seed'
+  in
+    seed1
+  end
 
 fun run f =
   let

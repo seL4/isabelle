@@ -131,6 +131,7 @@ sig
   datatype 'a lazy_sequence = Lazy_Sequence of unit -> ('a * 'a lazy_sequence) option
   val yield : 'a lazy_sequence -> ('a * 'a lazy_sequence) option
   val yieldn : int -> 'a lazy_sequence -> ('a list * 'a lazy_sequence)
+  val map : ('a -> 'b) -> 'a lazy_sequence -> 'b lazy_sequence
 end;
 
 structure Lazy_Sequence : LAZY_SEQUENCE =
@@ -141,6 +142,8 @@ struct
 val yield = @{code yield}
 
 val yieldn = @{code yieldn}
+
+val map = @{code map}
 
 end;
 *}

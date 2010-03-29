@@ -39,6 +39,9 @@ sig
   val dseq_eval_ref : (unit -> term DSequence.dseq) option Unsynchronized.ref
   val random_dseq_eval_ref : (unit -> int -> int -> int * int -> term DSequence.dseq * (int * int))
     option Unsynchronized.ref
+  val new_random_dseq_eval_ref :
+    (unit -> int -> int -> int * int -> int -> term Lazy_Sequence.lazy_sequence)
+      option Unsynchronized.ref
   val code_pred_intro_attrib : attribute
   
   (* used by Quickcheck_Generator *) 
@@ -58,8 +61,10 @@ sig
   
   val pred_compfuns : compilation_funs
   val randompred_compfuns : compilation_funs
+  val new_randompred_compfuns : compilation_funs
   val add_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
   val add_random_dseq_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
+  val add_new_random_dseq_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
   val mk_tracing : string -> term -> term
 end;
 
@@ -1020,6 +1025,7 @@ end;
 (* for external use with interactive mode *)
 val pred_compfuns = PredicateCompFuns.compfuns
 val randompred_compfuns = Random_Sequence_CompFuns.compfuns;
+val new_randompred_compfuns = New_Pos_Random_Sequence_CompFuns.compfuns
 
 (* compilation modifiers *)
 
@@ -1892,7 +1898,7 @@ fun string_of_tderiv ctxt (t, deriv) =
   | (t, Term Output) => Syntax.string_of_term ctxt t ^ "[Output]"
   | (t, Context m) => Syntax.string_of_term ctxt t ^ "[" ^ string_of_mode m ^ "]")
 
-fun compile_expr compilation_modifiers ctxt pol (t, deriv) additional_arguments =
+fun compile_expr compilation_modifiers ctxt (t, deriv) additional_arguments =
   let
     val compfuns = Comp_Mod.compfuns compilation_modifiers
     fun expr_of (t, deriv) =
@@ -1926,7 +1932,7 @@ fun compile_expr compilation_modifiers ctxt pol (t, deriv) additional_arguments 
   end
 
 fun compile_clause compilation_modifiers ctxt all_vs param_vs additional_arguments
-  (pol, mode) inp (ts, moded_ps) =
+  mode inp (ts, moded_ps) =
   let
     val compfuns = Comp_Mod.compfuns compilation_modifiers
     val iss = ho_arg_modes_of mode
@@ -1959,8 +1965,7 @@ fun compile_clause compilation_modifiers ctxt all_vs param_vs additional_argumen
                Prem t =>
                  let
                    val u =
-                     compile_expr compilation_modifiers ctxt
-                       pol (t, deriv) additional_arguments'
+                     compile_expr compilation_modifiers ctxt (t, deriv) additional_arguments'
                    val (_, out_ts''') = split_mode mode (snd (strip_comb t))
                    val rest = compile_prems out_ts''' vs' names'' ps
                  in
@@ -1971,8 +1976,7 @@ fun compile_clause compilation_modifiers ctxt all_vs param_vs additional_argumen
                    val neg_compilation_modifiers =
                      negative_comp_modifiers_of compilation_modifiers
                    val u = mk_not compfuns
-                     (compile_expr neg_compilation_modifiers ctxt
-                       (not pol) (t, deriv) additional_arguments')
+                     (compile_expr neg_compilation_modifiers ctxt (t, deriv) additional_arguments')
                    val (_, out_ts''') = split_mode mode (snd (strip_comb t))
                    val rest = compile_prems out_ts''' vs' names'' ps
                  in
@@ -2005,6 +2009,8 @@ fun compile_clause compilation_modifiers ctxt all_vs param_vs additional_argumen
 fun compile_pred compilation_modifiers thy all_vs param_vs s T (pol, mode) moded_cls =
   let
     val ctxt = ProofContext.init thy
+    val compilation_modifiers = if pol then compilation_modifiers else
+      negative_comp_modifiers_of compilation_modifiers
     val additional_arguments = Comp_Mod.additional_arguments compilation_modifiers
       (all_vs @ param_vs)
     val compfuns = Comp_Mod.compfuns compilation_modifiers
@@ -2029,7 +2035,7 @@ fun compile_pred compilation_modifiers thy all_vs param_vs s T (pol, mode) moded
       (fn t as Free (x, _) => if member (op =) param_vs x then NONE else SOME t | t => SOME t)) in_ts
     val cl_ts =
       map (compile_clause compilation_modifiers
-        ctxt all_vs param_vs additional_arguments (pol, mode) (HOLogic.mk_tuple in_ts')) moded_cls;
+        ctxt all_vs param_vs additional_arguments mode (HOLogic.mk_tuple in_ts')) moded_cls;
     val compilation = Comp_Mod.wrap_compilation compilation_modifiers compfuns
       s T mode additional_arguments
       (if null cl_ts then
@@ -3127,6 +3133,8 @@ val random_eval_ref =
 val dseq_eval_ref = Unsynchronized.ref (NONE : (unit -> term DSequence.dseq) option);
 val random_dseq_eval_ref =
   Unsynchronized.ref (NONE : (unit -> int -> int -> int * int -> term DSequence.dseq * (int * int)) option);
+val new_random_dseq_eval_ref =
+  Unsynchronized.ref (NONE : (unit -> int -> int -> int * int -> int -> term Lazy_Sequence.lazy_sequence) option)
 
 (*FIXME turn this into an LCF-guarded preprocessor for comprehensions*)
 fun analyze_compr thy compfuns param_user_modes (compilation, arguments) t_compr =
@@ -3196,6 +3204,7 @@ fun analyze_compr thy compfuns param_user_modes (compilation, arguments) t_compr
             [@{term "(1, 1) :: code_numeral * code_numeral"}]
           | DSeq => []
           | Pos_Random_DSeq => []
+          | New_Pos_Random_DSeq => []
         val comp_modifiers =
           case compilation of
             Pred => predicate_comp_modifiers
@@ -3205,8 +3214,9 @@ fun analyze_compr thy compfuns param_user_modes (compilation, arguments) t_compr
           (*| Annotated => annotated_comp_modifiers*)
           | DSeq => dseq_comp_modifiers
           | Pos_Random_DSeq => pos_random_dseq_comp_modifiers
+          | New_Pos_Random_DSeq => new_pos_random_dseq_comp_modifiers
         val t_pred = compile_expr comp_modifiers (ProofContext.init thy)
-          true (body, deriv) additional_arguments;
+          (body, deriv) additional_arguments;
         val T_pred = dest_predT compfuns (fastype_of t_pred)
         val arrange = split_lambda (HOLogic.mk_tuple outargs) output_tuple
       in
@@ -3223,7 +3233,9 @@ fun eval thy param_user_modes (options as (compilation, arguments)) k t_compr =
         Random => PredicateCompFuns.compfuns
       | DSeq => DSequence_CompFuns.compfuns
       | Pos_Random_DSeq => Random_Sequence_CompFuns.compfuns
+      | New_Pos_Random_DSeq => New_Pos_Random_Sequence_CompFuns.compfuns
       | _ => PredicateCompFuns.compfuns
+      
     val t = analyze_compr thy compfuns param_user_modes options t_compr;
     val T = dest_predT compfuns (fastype_of t);
     val t' = mk_map compfuns T HOLogic.termT (HOLogic.term_of_const T) t;
@@ -3249,6 +3261,18 @@ fun eval thy param_user_modes (options as (compilation, arguments)) k t_compr =
           fst (DSequence.yieldn k
             (Code_Eval.eval NONE ("Predicate_Compile_Core.dseq_eval_ref", dseq_eval_ref)
               DSequence.map thy t' []) (the_single arguments) true)
+      | New_Pos_Random_DSeq =>
+          let
+            val [nrandom, size, depth] = arguments
+            val seed = Random_Engine.next_seed ()
+          in
+            fst (Lazy_Sequence.yieldn k
+              (Code_Eval.eval NONE
+                ("Predicate_Compile_Core.new_random_dseq_eval_ref", new_random_dseq_eval_ref)
+                (fn proc => fn g => fn nrandom => fn size => fn s => fn depth => g nrandom size s depth
+                  |> Lazy_Sequence.map proc)
+                  thy t' [] nrandom size seed depth))
+          end
       | _ =>
           fst (Predicate.yieldn k
             (Code_Eval.eval NONE ("Predicate_Compile_Core.eval_ref", eval_ref)
