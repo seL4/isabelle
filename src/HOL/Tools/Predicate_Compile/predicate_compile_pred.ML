@@ -113,7 +113,7 @@ fun flatten constname atom (defs, thy) =
       (lhs, ((full_constname, [definition]) :: defs, thy'))
     end
   else
-    (case (fst (strip_comb atom)) of
+    case (fst (strip_comb atom)) of
       (Const (@{const_name If}, _)) => let
           val if_beta = @{lemma "(if c then x else y) z = (if c then x z else y z)" by simp}
           val atom' = MetaSimplifier.rewrite_term thy
@@ -122,14 +122,16 @@ fun flatten constname atom (defs, thy) =
         in
           flatten constname atom' (defs, thy)
         end
-    | _ =>  
-      if (has_split_thm thy (fst (strip_comb atom))) then
+    | _ =>
+      case find_split_thm thy (fst (strip_comb atom)) of
+        NONE => (atom, (defs, thy))
+      | SOME raw_split_thm =>
         let
           val (f, args) = strip_comb atom
-          val split_thm = prepare_split_thm (ProofContext.init thy) (the (find_split_thm' thy f))
+          val split_thm = prepare_split_thm (ProofContext.init thy) raw_split_thm
           (* TODO: contextify things - this line is to unvarify the split_thm *)
           (*val ((_, [isplit_thm]), _) = Variable.import true [split_thm] (ProofContext.init thy)*)
-          val (assms, concl) = Logic.strip_horn (Thm.prop_of split_thm)
+          val (assms, concl) = Logic.strip_horn (prop_of split_thm)
           val (P, [split_t]) = strip_comb (HOLogic.dest_Trueprop concl) 
           val Tcons = datatype_names_of_case_name thy (fst (dest_Const f))
           val ths = maps (instantiated_case_rewrites thy) Tcons
@@ -182,8 +184,7 @@ fun flatten constname atom (defs, thy) =
         in
           (lhs, ((full_constname, map Drule.export_without_context definition) :: defs, thy'))
         end
-      else
-        (atom, (defs, thy)))
+
 
 fun flatten_intros constname intros thy =
   let

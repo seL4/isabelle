@@ -400,52 +400,13 @@ fun map_products f (Const ("Pair", T) $ t1 $ t2) =
 
 (* split theorems of case expressions *)
 
-(*
-fun has_split_rule_cname @{const_name "nat_case"} = true
-  | has_split_rule_cname @{const_name "list_case"} = true
-  | has_split_rule_cname _ = false
-  
-fun has_split_rule_term thy (Const (@{const_name "nat_case"}, _)) = true 
-  | has_split_rule_term thy (Const (@{const_name "list_case"}, _)) = true 
-  | has_split_rule_term thy _ = false
-
-fun has_split_rule_term' thy (Const (@{const_name "If"}, _)) = true
-  | has_split_rule_term' thy (Const (@{const_name "Let"}, _)) = true
-  | has_split_rule_term' thy c = has_split_rule_term thy c
-
-*)
 fun prepare_split_thm ctxt split_thm =
     (split_thm RS @{thm iffD2})
     |> Local_Defs.unfold ctxt [@{thm atomize_conjL[symmetric]},
       @{thm atomize_all[symmetric]}, @{thm atomize_imp[symmetric]}]
 
-fun find_split_thm thy (Const (name, typ)) =
-  let
-    fun split_name str =
-      case first_field "." str
-        of (SOME (field, rest)) => field :: split_name rest
-         | NONE => [str]
-    val splitted_name = split_name name
-  in
-    if length splitted_name > 0 andalso
-       String.isSuffix "_case" (List.last splitted_name)
-    then
-      (List.take (splitted_name, length splitted_name - 1)) @ ["split"]
-      |> space_implode "."
-      |> PureThy.get_thm thy
-      |> SOME
-      handle ERROR msg => NONE
-    else NONE
-  end
-  | find_split_thm _ _ = NONE
-
-
-(* TODO: split rules for let and if are different *)
-fun find_split_thm' thy (Const (@{const_name "If"}, _)) = SOME @{thm split_if}
-  | find_split_thm' thy (Const (@{const_name "Let"}, _)) = SOME @{thm refl} (* TODO *)
-  | find_split_thm' thy c = find_split_thm thy c
-
-fun has_split_thm thy t = is_some (find_split_thm thy t)
+fun find_split_thm thy (Const (name, T)) = Option.map #split (Datatype_Data.info_of_case thy name)
+  | find_split_thm thy _ = NONE
 
 fun strip_all t = (Term.strip_all_vars t, Term.strip_all_body t)
 

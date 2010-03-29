@@ -202,11 +202,12 @@ fun flatten thy lookup_pred t (names, prems) =
               HOLogic.mk_Trueprop (HOLogic.mk_eq (res, HOLogic.mk_prod (resv1, resv2))) :: prems)
             end)
         | _ =>
-        if has_split_thm thy (fst (strip_comb t)) then
+        case find_split_thm thy (fst (strip_comb t)) of
+          SOME raw_split_thm =>
           let
             val (f, args) = strip_comb t
-            val split_thm = prepare_split_thm (ProofContext.init thy) (the (find_split_thm' thy f))
-            val (assms, concl) = Logic.strip_horn (Thm.prop_of split_thm)
+            val split_thm = prepare_split_thm (ProofContext.init thy) raw_split_thm
+            val (assms, concl) = Logic.strip_horn (prop_of split_thm)
             val (P, [split_t]) = strip_comb (HOLogic.dest_Trueprop concl) 
             val subst = Pattern.match thy (split_t, t) (Vartab.empty, Vartab.empty)
             val (_, split_args) = strip_comb split_t
@@ -231,7 +232,7 @@ fun flatten thy lookup_pred t (names, prems) =
           in
             maps flatten_of_assm assms
           end
-        else
+      | NONE =>
           let
             val (f, args) = strip_comb t
             val args = map (Pattern.eta_long []) args
