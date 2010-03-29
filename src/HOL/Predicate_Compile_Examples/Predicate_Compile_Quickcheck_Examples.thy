@@ -108,7 +108,7 @@ inductive_set S\<^isub>3 and A\<^isub>3 and B\<^isub>3 where
 | "w \<in> S\<^isub>3 \<Longrightarrow> b # w \<in> B\<^isub>3"
 | "\<lbrakk>v \<in> B\<^isub>3; w \<in> B\<^isub>3\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>3"
 
-code_pred [inductify] S\<^isub>3 .
+code_pred [inductify, skip_proof] S\<^isub>3 .
 thm S\<^isub>3.equation
 (*
 values 10 "{x. S\<^isub>3 x}"

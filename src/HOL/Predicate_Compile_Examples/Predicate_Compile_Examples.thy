@@ -788,7 +788,7 @@ subsection {* Transforming functions into logic programs *}
 definition
   "case_f xs ys = (case (xs @ ys) of [] => [] | (x # xs) => xs)"
 
-code_pred [inductify] case_f .
+code_pred [inductify, skip_proof] case_f .
 thm case_fP.equation
 thm case_fP.intros
 
@@ -910,11 +910,11 @@ thm lex_conv
 declare list.size(3,4)[code_pred_def]
 (*code_pred [inductify, show_steps, show_intermediate_results] length .*)
 setup {* Predicate_Compile_Data.ignore_consts [@{const_name Orderings.top_class.top}] *}
-code_pred [inductify] lex .
+code_pred [inductify, skip_proof] lex .
 thm lex.equation
 thm lex_def
 declare lenlex_conv[code_pred_def]
-code_pred [inductify] lenlex .
+code_pred [inductify, skip_proof] lenlex .
 thm lenlex.equation
 
 code_pred [random_dseq inductify] lenlex .
@@ -1037,7 +1037,7 @@ thm size_listP.random_equation
 *)
 (*values [random] 1 "{xs. size_listP (xs::nat list) (5::nat)}"*)
 
-code_pred (expected_modes: i => o => bool, o => i => bool, i => i => bool) [inductify] List.concat .
+code_pred (expected_modes: i => o => bool, o => i => bool, i => i => bool) [inductify, skip_proof] List.concat .
 thm concatP.equation
 
 values "{ys. concatP [[1, 2], [3, (4::int)]] ys}"
@@ -1068,31 +1068,31 @@ thm tlP.equation
 values "{x. tlP [1, 2, (3::nat)] x}"
 values "{x. tlP [1, 2, (3::int)] [3]}"
 
-code_pred [inductify] last .
+code_pred [inductify, skip_proof] last .
 thm lastP.equation
 
-code_pred [inductify] butlast .
+code_pred [inductify, skip_proof] butlast .
 thm butlastP.equation
 
-code_pred [inductify] take .
+code_pred [inductify, skip_proof] take .
 thm takeP.equation
 
-code_pred [inductify] drop .
+code_pred [inductify, skip_proof] drop .
 thm dropP.equation
-code_pred [inductify] zip .
+code_pred [inductify, skip_proof] zip .
 thm zipP.equation
 
-code_pred [inductify] upt .
-code_pred [inductify] remdups .
+code_pred [inductify, skip_proof] upt .
+code_pred [inductify, skip_proof] remdups .
 thm remdupsP.equation
 code_pred [dseq inductify] remdups .
 values [dseq 4] 5 "{xs. remdupsP xs [1, (2::int)]}"
 
-code_pred [inductify] remove1 .
+code_pred [inductify, skip_proof] remove1 .
 thm remove1P.equation
 values "{xs. remove1P 1 xs [2, (3::int)]}"
 
-code_pred [inductify] removeAll .
+code_pred [inductify, skip_proof] removeAll .
 thm removeAllP.equation
 code_pred [dseq inductify] removeAll .
 
@@ -1100,17 +1100,17 @@ values [dseq 4] 10 "{xs. removeAllP 1 xs [(2::nat)]}"
 
 code_pred [inductify] distinct .
 thm distinct.equation
-code_pred [inductify] replicate .
+code_pred [inductify, skip_proof] replicate .
 thm replicateP.equation
 values 5 "{(n, xs). replicateP n (0::int) xs}"
 
-code_pred [inductify] splice .
+code_pred [inductify, skip_proof] splice .
 thm splice.simps
 thm spliceP.equation
 
 values "{xs. spliceP xs [1, 2, 3] [1, 1, 1, 2, 1, (3::nat)]}"
 
-code_pred [inductify] List.rev .
+code_pred [inductify, skip_proof] List.rev .
 code_pred [inductify] map .
 code_pred [inductify] foldr .
 code_pred [inductify] foldl .
@@ -1159,7 +1159,7 @@ inductive_set S\<^isub>3 and A\<^isub>3 and B\<^isub>3 where
 | "w \<in> S\<^isub>3 \<Longrightarrow> b # w \<in> B\<^isub>3"
 | "\<lbrakk>v \<in> B\<^isub>3; w \<in> B\<^isub>3\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>3"
 
-code_pred [inductify] S\<^isub>3p .
+code_pred [inductify, skip_proof] S\<^isub>3p .
 thm S\<^isub>3p.equation
 
 values 10 "{x. S\<^isub>3p x}"

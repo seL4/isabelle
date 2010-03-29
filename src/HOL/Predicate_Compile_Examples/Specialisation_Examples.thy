@@ -218,7 +218,7 @@ where
     \<Gamma> \<turnstile> t\<^isub>1 \<bullet>\<^isub>\<tau> T\<^isub>2 : T\<^isub>1\<^isub>2[0 \<mapsto>\<^isub>\<tau> T\<^isub>2]\<^isub>\<tau>"
 | T_Sub: "\<Gamma> \<turnstile> t : S \<Longrightarrow> \<Gamma> \<turnstile> S <: T \<Longrightarrow> \<Gamma> \<turnstile> t : T"
 
-code_pred [inductify] typing .
+code_pred [inductify, skip_proof] typing .
 
 thm typing.equation
 
