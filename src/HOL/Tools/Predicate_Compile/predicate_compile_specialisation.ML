@@ -45,8 +45,23 @@ fun import (pred, intros) args ctxt =
     (((pred', intros'), args'), ctxt')
   end
 
-
-
+(* patterns only constructed of variables and pairs/tuples are trivial constructor terms*)
+fun is_nontrivial_constrt thy t =
+  let
+    val cnstrs = flat (maps
+      (map (fn (_, (Tname, _, cs)) => map (apsnd (rpair Tname o length)) cs) o #descr o snd)
+      (Symtab.dest (Datatype.get_all thy)));
+    fun check t = (case strip_comb t of
+        (Var _, []) => (true, true)
+      | (Free _, []) => (true, true)
+      | (Const (@{const_name Pair}, _), ts) =>
+        pairself (forall I) (split_list (map check ts))
+      | (Const (s, T), ts) => (case (AList.lookup (op =) cnstrs s, body_type T) of
+            (SOME (i, Tname), Type (Tname', _)) => (false,
+              length ts = i andalso Tname = Tname' andalso forall (snd o check) ts)
+          | _ => (false, false))
+      | _ => (false, false))
+  in check t = (false, true) end;
 
 fun specialise_intros black_list (pred, intros) pats thy =
   let
@@ -101,7 +116,6 @@ fun specialise_intros black_list (pred, intros) pats thy =
 and find_specialisations black_list specs thy =
   let
     val add_vars = fold_aterms (fn Var v => cons v | _ => I);
-    fun is_nontrivial_constrt thy t = not (is_Var t) andalso (is_constrt thy t)
     fun fresh_free T free_names =
       let
         val free_name = Name.variant free_names "x"
