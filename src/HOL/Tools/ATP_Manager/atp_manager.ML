@@ -17,6 +17,7 @@ sig
      respect_no_atp: bool,
      relevance_threshold: real,
      convergence: real,
+     theory_const: bool option,
      higher_order: bool option,
      follow_defs: bool,
      isar_proof: bool,
@@ -57,7 +58,6 @@ type relevance_override = Sledgehammer_Fact_Filter.relevance_override
 
 (** parameters, problems, results, and provers **)
 
-(* TODO: "theory_const" *)
 type params =
   {debug: bool,
    verbose: bool,
@@ -66,6 +66,7 @@ type params =
    respect_no_atp: bool,
    relevance_threshold: real,
    convergence: real,
+   theory_const: bool option,
    higher_order: bool option,
    follow_defs: bool,
    isar_proof: bool,

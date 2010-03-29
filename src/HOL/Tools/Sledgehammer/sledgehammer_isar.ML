@@ -43,6 +43,7 @@ val default_default_params =
    ("respect_no_atp", "true"),
    ("relevance_threshold", "50"),
    ("convergence", "320"),
+   ("theory_const", "smart"),
    ("higher_order", "smart"),
    ("follow_defs", "false"),
    ("isar_proof", "false"),
@@ -53,6 +54,7 @@ val negated_params =
    ("quiet", "verbose"),
    ("ignore_no_atp", "respect_no_atp"),
    ("partial_types", "full_types"),
+   ("no_theory_const", "theory_const"),
    ("first_order", "higher_order"),
    ("dont_follow_defs", "follow_defs"),
    ("metis_proof", "isar_proof")]
@@ -124,6 +126,7 @@ fun extract_params thy default_params override_params =
     val relevance_threshold =
       0.01 * Real.fromInt (lookup_int "relevance_threshold")
     val convergence = 0.01 * Real.fromInt (lookup_int "convergence")
+    val theory_const = lookup_bool_option "theory_const"
     val higher_order = lookup_bool_option "higher_order"
     val follow_defs = lookup_bool "follow_defs"
     val isar_proof = lookup_bool "isar_proof"
@@ -132,8 +135,9 @@ fun extract_params thy default_params override_params =
   in
     {debug = debug, verbose = verbose, atps = atps, full_types = full_types,
      respect_no_atp = respect_no_atp, relevance_threshold = relevance_threshold,
-     convergence = convergence, higher_order = higher_order,
-     follow_defs = follow_defs, isar_proof = isar_proof, timeout = timeout,
+     convergence = convergence, theory_const = theory_const,
+     higher_order = higher_order, follow_defs = follow_defs,
+     isar_proof = isar_proof, timeout = timeout,
      minimize_timeout = minimize_timeout}
   end
 

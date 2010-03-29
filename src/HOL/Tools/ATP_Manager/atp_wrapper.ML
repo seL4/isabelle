@@ -47,7 +47,7 @@ type prover_config =
   arguments: Time.time -> string,
   failure_strs: string list,
   max_new_clauses: int,
-  add_theory_const: bool,
+  prefers_theory_const: bool,
   supports_isar_proofs: bool};
 
 
@@ -158,13 +158,14 @@ fun generic_prover get_facts prepare write cmd args failure_strs produce_answer
 
 fun generic_tptp_prover
         (name, {command, arguments, failure_strs, max_new_clauses,
-                add_theory_const, supports_isar_proofs})
+                prefers_theory_const, supports_isar_proofs})
         (params as {respect_no_atp, relevance_threshold, convergence,
-                    higher_order, follow_defs, isar_proof, ...}) timeout =
+                    theory_const, higher_order, follow_defs, isar_proof, ...})
+        timeout =
   generic_prover
       (get_relevant_facts respect_no_atp relevance_threshold convergence
                           higher_order follow_defs max_new_clauses
-                          add_theory_const)
+                          (the_default prefers_theory_const theory_const))
       (prepare_clauses higher_order false) write_tptp_file command
       (arguments timeout) failure_strs
       (if supports_isar_proofs andalso isar_proof then structured_isar_proof
@@ -186,7 +187,7 @@ val vampire_config : prover_config =
    failure_strs =
      ["Satisfiability detected", "Refutation not found", "CANNOT PROVE"],
    max_new_clauses = 60,
-   add_theory_const = false,
+   prefers_theory_const = false,
    supports_isar_proofs = true}
 val vampire = tptp_prover "vampire" vampire_config
 
@@ -203,7 +204,7 @@ val e_config : prover_config =
         "SZS status: ResourceOut", "SZS status ResourceOut",
         "# Cannot determine problem status"],
    max_new_clauses = 100,
-   add_theory_const = false,
+   prefers_theory_const = false,
    supports_isar_proofs = true}
 val e = tptp_prover "e" e_config
 
@@ -212,19 +213,20 @@ val e = tptp_prover "e" e_config
 
 fun generic_dfg_prover
         (name, ({command, arguments, failure_strs, max_new_clauses,
-                 add_theory_const, ...} : prover_config))
+                 prefers_theory_const, ...} : prover_config))
         (params as {respect_no_atp, relevance_threshold, convergence,
-                    higher_order, follow_defs, isar_proof, ...}) timeout =
+                    theory_const, higher_order, follow_defs, isar_proof, ...})
+        timeout =
   generic_prover
       (get_relevant_facts respect_no_atp relevance_threshold convergence
                           higher_order follow_defs max_new_clauses
-                          add_theory_const)
+                          (the_default prefers_theory_const theory_const))
       (prepare_clauses higher_order true) write_dfg_file command
       (arguments timeout) failure_strs (metis_lemma_list true) name params;
 
 fun dfg_prover (name, p) = (name, generic_dfg_prover (name, p));
 
-fun spass_config_for add_theory_const : prover_config =
+val spass_config : prover_config =
  {command = Path.explode "$SPASS_HOME/SPASS",
   arguments = (fn timeout => "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0" ^
     " -FullRed=0 -DocProof -TimeLimit=" ^
@@ -233,14 +235,9 @@ fun spass_config_for add_theory_const : prover_config =
     ["SPASS beiseite: Completion found.", "SPASS beiseite: Ran out of time.",
      "SPASS beiseite: Maximal number of loops exceeded."],
   max_new_clauses = 40,
-  add_theory_const = add_theory_const,
-  supports_isar_proofs = false};
-
-val spass_config = spass_config_for true
+  prefers_theory_const = true,
+  supports_isar_proofs = false}
 val spass = dfg_prover ("spass", spass_config)
-
-val spass_no_tc_config = spass_config_for false
-val spass_no_tc = dfg_prover ("spass_no_tc", spass_no_tc_config)
 
 
 (* remote prover invocation via SystemOnTPTP *)
@@ -271,34 +268,29 @@ fun the_system prefix =
 
 val remote_failure_strs = ["Remote-script could not extract proof"];
 
-fun remote_prover_config prover_prefix args max_new_clauses add_theory_const
-                         : prover_config =
+fun remote_prover_config prover_prefix args
+        ({failure_strs, max_new_clauses, prefers_theory_const, ...}
+         : prover_config) : prover_config =
   {command = Path.explode "$ISABELLE_ATP_MANAGER/SystemOnTPTP",
    arguments = (fn timeout =>
      args ^ " -t " ^ string_of_int (Time.toSeconds timeout) ^ " -s " ^
      the_system prover_prefix),
-   failure_strs = remote_failure_strs,
+   failure_strs = remote_failure_strs @ failure_strs,
    max_new_clauses = max_new_clauses,
-   add_theory_const = add_theory_const,
+   prefers_theory_const = prefers_theory_const,
    supports_isar_proofs = false}
 
 val remote_vampire =
   tptp_prover "remote_vampire"
-      (remote_prover_config "Vampire---9" ""
-           (#max_new_clauses vampire_config) (#add_theory_const vampire_config))
+              (remote_prover_config "Vampire---9" "" vampire_config)
 
 val remote_e =
-  tptp_prover "remote_e"
-      (remote_prover_config "EP---" ""
-           (#max_new_clauses e_config) (#add_theory_const e_config))
+  tptp_prover "remote_e" (remote_prover_config "EP---" "" e_config)
 
 val remote_spass =
-  tptp_prover "remote_spass"
-      (remote_prover_config "SPASS---" "-x"
-           (#max_new_clauses spass_config) (#add_theory_const spass_config))
+  tptp_prover "remote_spass" (remote_prover_config "SPASS---" "-x" spass_config)
 
-val provers =
-  [spass, vampire, e, spass_no_tc, remote_vampire, remote_spass, remote_e]
+val provers = [spass, vampire, e, remote_vampire, remote_spass, remote_e]
 val prover_setup = fold add_prover provers
 
 val setup =

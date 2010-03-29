@@ -127,8 +127,8 @@ fun get_goal_consts_typs thy = List.foldl (add_term_consts_typs_rm thy) null_con
 
 (*Inserts a dummy "constant" referring to the theory name, so that relevance
   takes the given theory into account.*)
-fun const_prop_of add_theory_const th =
- if add_theory_const then
+fun const_prop_of theory_const th =
+ if theory_const then
   let val name = Context.theory_name (theory_of_thm th)
       val t = Const (name ^ ". 1", HOLogic.boolT)
   in  t $ prop_of th  end
@@ -157,7 +157,7 @@ end;
 
 structure CTtab = Table(type key = const_typ list val ord = dict_ord const_typ_ord);
 
-fun count_axiom_consts add_theory_const thy ((thm,_), tab) = 
+fun count_axiom_consts theory_const thy ((thm,_), tab) = 
   let fun count_const (a, T, tab) =
         let val (c, cts) = const_with_typ thy (a,T)
         in  (*Two-dimensional table update. Constant maps to types maps to count.*)
@@ -170,7 +170,7 @@ fun count_axiom_consts add_theory_const thy ((thm,_), tab) =
             count_term_consts (t, count_term_consts (u, tab))
         | count_term_consts (Abs(_,_,t), tab) = count_term_consts (t, tab)
         | count_term_consts (_, tab) = tab
-  in  count_term_consts (const_prop_of add_theory_const thm, tab)  end;
+  in  count_term_consts (const_prop_of theory_const thm, tab)  end;
 
 
 (**** Actual Filtering Code ****)
@@ -202,8 +202,8 @@ fun consts_typs_of_term thy t =
   let val tab = add_term_consts_typs_rm thy (t, null_const_tab)
   in  Symtab.fold add_expand_pairs tab []  end;
 
-fun pair_consts_typs_axiom add_theory_const thy (p as (thm, _)) =
-  (p, (consts_typs_of_term thy (const_prop_of add_theory_const thm)));
+fun pair_consts_typs_axiom theory_const thy (p as (thm, _)) =
+  (p, (consts_typs_of_term thy (const_prop_of theory_const thm)));
 
 exception ConstFree;
 fun dest_ConstFree (Const aT) = aT
@@ -289,10 +289,10 @@ fun relevant_clauses ctxt convergence follow_defs max_new
     end;
         
 fun relevance_filter ctxt relevance_threshold convergence follow_defs max_new
-                     add_theory_const relevance_override thy axioms goals = 
+                     theory_const relevance_override thy axioms goals = 
   if relevance_threshold > 0.0 then
     let
-      val const_tab = List.foldl (count_axiom_consts add_theory_const thy)
+      val const_tab = List.foldl (count_axiom_consts theory_const thy)
                                  Symtab.empty axioms
       val goal_const_tab = get_goal_consts_typs thy goals
       val _ =
@@ -301,8 +301,7 @@ fun relevance_filter ctxt relevance_threshold convergence follow_defs max_new
       val relevant =
         relevant_clauses ctxt convergence follow_defs max_new relevance_override
                          thy const_tab relevance_threshold goal_const_tab
-                         (map (pair_consts_typs_axiom add_theory_const thy)
-                              axioms)
+                         (map (pair_consts_typs_axiom theory_const thy) axioms)
     in
       trace_msg (fn () => "Total relevant: " ^ Int.toString (length relevant));
       relevant
@@ -540,7 +539,7 @@ fun is_first_order thy higher_order goal_cls =
   | SOME b => not b
 
 fun get_relevant_facts respect_no_atp relevance_threshold convergence
-                       higher_order follow_defs max_new add_theory_const
+                       higher_order follow_defs max_new theory_const
                        relevance_override (ctxt, (chain_ths, th)) goal_cls =
   let
     val thy = ProofContext.theory_of ctxt
@@ -551,7 +550,7 @@ fun get_relevant_facts respect_no_atp relevance_threshold convergence
       |> remove_unwanted_clauses
   in
     relevance_filter ctxt relevance_threshold convergence follow_defs max_new
-                     add_theory_const relevance_override thy included_cls
+                     theory_const relevance_override thy included_cls
                      (map prop_of goal_cls)
   end;
 
