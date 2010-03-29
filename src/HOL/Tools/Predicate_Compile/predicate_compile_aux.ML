@@ -630,7 +630,6 @@ fun expand_tuples thy intro =
 
 (* eta contract higher-order arguments *)
 
-
 fun eta_contract_ho_arguments thy intro =
   let
     fun f atom = list_comb (apsnd ((map o map_products) Envir.eta_contract) (strip_comb atom))
@@ -638,5 +637,42 @@ fun eta_contract_ho_arguments thy intro =
     map_term thy (map_concl f o map_atoms f) intro
   end
 
+(* remove equalities *)
+
+fun remove_equalities thy intro =
+  let
+    fun remove_eqs intro_t =
+      let
+        val (prems, concl) = Logic.strip_horn intro_t
+        fun remove_eq (prems, concl) =
+          let
+            fun removable_eq prem =
+              case try (HOLogic.dest_eq o HOLogic.dest_Trueprop) prem of
+                SOME (lhs, rhs) => (case lhs of
+                  Var _ => true
+                  | _ => (case rhs of Var _ => true | _ => false))
+              | NONE => false
+          in
+            case find_first removable_eq prems of
+              NONE => (prems, concl)
+            | SOME eq =>
+              let
+                val (lhs, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop eq)
+                val prems' = remove (op =) eq prems
+                val subst = (case lhs of
+                  (v as Var _) =>
+                    (fn t => if t = v then rhs else t)
+                | _ => (case rhs of
+                   (v as Var _) => (fn t => if t = v then lhs else t)))
+              in
+                remove_eq (map (map_aterms subst) prems', map_aterms subst concl)
+              end
+          end
+      in
+        Logic.list_implies (remove_eq (prems, concl))
+      end
+  in
+    map_term thy remove_eqs intro
+  end
 
 end;

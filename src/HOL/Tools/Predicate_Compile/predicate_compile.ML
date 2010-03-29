@@ -108,13 +108,15 @@ fun preprocess_strong_conn_constnames options gr ts thy =
       val _ = print_intross options thy''' "Introduction rules with new constants: " intross3
       val intross4 = map_specs (maps remove_pointless_clauses) intross3
       val _ = print_intross options thy''' "After removing pointless clauses: " intross4
-      val intross5 =
-        map (fn (s, ths) => (overload_const thy''' s, map (AxClass.overload thy''') ths)) intross4
-      val intross6 = map_specs (map (expand_tuples thy''')) intross5
-      val intross7 = map_specs (map (eta_contract_ho_arguments thy''')) intross6
-      val _ = print_intross options thy''' "introduction rules before registering: " intross7
+      val intross5 = map_specs (map (remove_equalities thy''')) intross4
+      val _ = print_intross options thy''' "After removing equality premises:" intross5
+      val intross6 =
+        map (fn (s, ths) => (overload_const thy''' s, map (AxClass.overload thy''') ths)) intross5
+      val intross7 = map_specs (map (expand_tuples thy''')) intross6
+      val intross8 = map_specs (map (eta_contract_ho_arguments thy''')) intross7
+      val _ = print_intross options thy''' "introduction rules before registering: " intross8
       val _ = print_step options "Registering introduction rules..."
-      val thy'''' = fold Predicate_Compile_Core.register_intros intross6 thy'''
+      val thy'''' = fold Predicate_Compile_Core.register_intros intross8 thy'''
     in
       thy''''
     end;
