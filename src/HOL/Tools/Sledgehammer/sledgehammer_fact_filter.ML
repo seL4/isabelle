@@ -329,49 +329,16 @@ fun is_package_def a =
      String.isSuffix "_def" a  orelse  String.isSuffix "_defs" a
   end;
 
-(** a hash function from Term.term to int, and also a hash table **)
-val xor_words = List.foldl Word.xorb 0w0;
+fun mk_clause_table xs =
+  fold (Termtab.update o `(prop_of o fst)) xs Termtab.empty
 
-fun hashw_term ((Const(c,_)), w) = Polyhash.hashw_string (c,w)
-  | hashw_term ((Free(a,_)), w) = Polyhash.hashw_string (a,w)
-  | hashw_term ((Var(_,_)), w) = w
-  | hashw_term ((Bound i), w) = Polyhash.hashw_int(i,w)
-  | hashw_term ((Abs(_,_,t)), w) = hashw_term (t, w)
-  | hashw_term ((P$Q), w) = hashw_term (Q, (hashw_term (P, w)));
-
-fun hash_literal (@{const Not} $ P) = Word.notb(hashw_term(P,0w0))
-  | hash_literal P = hashw_term(P,0w0);
-
-fun hash_term t = Word.toIntX (xor_words (map hash_literal (HOLogic.disjuncts (strip_Trueprop t))));
-
-fun equal_thm (thm1,thm2) = Term.aconv(prop_of thm1, prop_of thm2);
-
-exception HASH_CLAUSE;
-
-(*Create a hash table for clauses, of the given size*)
-fun mk_clause_table n =
-      Polyhash.mkTable (hash_term o prop_of, equal_thm)
-                       (n, HASH_CLAUSE);
-
-(*Use a hash table to eliminate duplicates from xs. Argument is a list of
-  (thm * (string * int)) tuples. The theorems are hashed into the table. *)
 fun make_unique xs =
-  let val ht = mk_clause_table 7000
-  in
-      trace_msg (fn () => ("make_unique gets " ^ Int.toString (length xs) ^ " clauses"));
-      app (ignore o Polyhash.peekInsert ht) xs;
-      Polyhash.listItems ht
-  end;
+  Termtab.fold (cons o snd) (mk_clause_table xs) []
 
-(*Remove existing axiom clauses from the conjecture clauses, as this can dramatically
-  boost an ATP's performance (for some reason)*)
-fun subtract_cls c_clauses ax_clauses =
-  let val ht = mk_clause_table 2200
-      fun known x = is_some (Polyhash.peek ht x)
-  in
-      app (ignore o Polyhash.peekInsert ht) ax_clauses;
-      filter (not o known) c_clauses
-  end;
+(* Remove existing axiom clauses from the conjecture clauses, as this can
+   dramatically boost an ATP's performance (for some reason). *)
+fun subtract_cls ax_clauses =
+  filter_out (Termtab.defined (mk_clause_table ax_clauses) o prop_of)
 
 fun all_valid_thms respect_no_atp ctxt =
   let
@@ -555,7 +522,7 @@ fun prepare_clauses higher_order dfg goal_cls chain_ths axcls extra_cls thy =
     val axcls = chain_cls @ axcls
     val extra_cls = chain_cls @ extra_cls
     val is_FO = is_first_order thy higher_order goal_cls
-    val ccls = subtract_cls goal_cls extra_cls
+    val ccls = subtract_cls extra_cls goal_cls
     val _ = app (fn th => trace_msg (fn _ => Display.string_of_thm_global thy th)) ccls
     val ccltms = map prop_of ccls
     and axtms = map (prop_of o #1) extra_cls
