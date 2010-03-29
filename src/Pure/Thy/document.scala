@@ -102,7 +102,7 @@ object Document
           val spans0 = Thy_Syntax.parse_spans(session.current_syntax.scan(sources.mkString))
 
           val (before_edit, spans1) =
-            if (!spans0.isEmpty && Some(spans0.first) == prefix.map(_.span))
+            if (!spans0.isEmpty && Some(spans0.head) == prefix.map(_.span))
               (prefix, spans0.tail)
             else (if (prefix.isDefined) commands.prev(prefix.get) else None, spans0)
 

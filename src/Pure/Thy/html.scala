@@ -41,13 +41,13 @@ object HTML
         val t = new StringBuilder
         def flush() {
           if (!t.isEmpty) {
-            ts + XML.Text(t.toString)
+            ts += XML.Text(t.toString)
             t.clear
           }
         }
         def add(elem: XML.Tree) {
           flush()
-          ts + elem
+          ts += elem
         }
         val syms = Symbol.iterator(txt).map(_.toString)
         while (syms.hasNext) {

@@ -288,7 +288,7 @@ class Isabelle_System extends Standard_System
         for (file <- files if file.isFile) logics += file.getName
       }
     }
-    logics.toList.sort(_ < _)
+    logics.toList.sortWith(_ < _)
   }
 
 

@@ -84,7 +84,7 @@ class State(
                 val (begin, end) = Position.get_offsets(atts)
                 if (begin.isEmpty || end.isEmpty) state
                 else if (kind == Markup.ML_TYPING) {
-                  val info = body.first.asInstanceOf[XML.Text].content   // FIXME proper match!?
+                  val info = body.head.asInstanceOf[XML.Text].content   // FIXME proper match!?
                   state.add_markup(
                     command.markup_node(begin.get - 1, end.get - 1, Command.TypeInfo(info)))
                 }
