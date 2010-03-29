@@ -422,16 +422,7 @@ fun name_thm_pairs respect_no_atp ctxt =
       List.partition is_multi (all_valid_thms respect_no_atp ctxt)
     val ps = [] |> fold add_multi_names mults
                 |> fold add_single_names singles
-  in
-    if respect_no_atp then
-      let
-        val blacklist = No_ATPs.get ctxt
-                        |> map (`Thm.full_prop_of) |> Termtab.make
-        val is_blacklisted = Termtab.defined blacklist o Thm.full_prop_of o snd
-      in ps |> filter_out is_blacklisted end
-    else
-      ps
-  end;
+  in ps |> respect_no_atp ? filter_out (No_ATPs.member ctxt o snd) end;
 
 fun check_named ("", th) =
       (warning ("No name for theorem " ^ Display.string_of_thm_without_context th); false)

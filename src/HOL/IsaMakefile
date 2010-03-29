@@ -99,7 +99,8 @@ Pure:
 
 $(OUT)/Pure: Pure
 
-BASE_DEPENDENCIES = $(OUT)/Pure \
+BASE_DEPENDENCIES = $(SRC)/HOL/Tools/Sledgehammer/named_thm_set.ML \
+  $(OUT)/Pure \
   $(SRC)/Provers/blast.ML \
   $(SRC)/Provers/clasimp.ML \
   $(SRC)/Provers/classical.ML \
