@@ -1563,50 +1563,60 @@ fun lex_ord ord1 ord2 (x, x') =
     EQUAL => ord2 (x, x')
   | ord => ord
 
-fun deriv_ord2' thy modes t1 t2 ((deriv1, mvars1), (deriv2, mvars2)) =
+fun deriv_ord2' thy pred modes t1 t2 ((deriv1, mvars1), (deriv2, mvars2)) =
   let
+    (* prefer modes without requirement for generating random values *)
     fun mvars_ord ((t1, deriv1, mvars1), (t2, deriv2, mvars2)) =
       int_ord (length mvars1, length mvars2)
+    (* prefer non-random modes *)
     fun random_mode_ord ((t1, deriv1, mvars1), (t2, deriv2, mvars2)) =
       int_ord (if random_mode_in_deriv modes t1 deriv1 then 1 else 0,
         if random_mode_in_deriv modes t1 deriv1 then 1 else 0)
+    (* prefer modes with more input and less output *)
     fun output_mode_ord ((t1, deriv1, mvars1), (t2, deriv2, mvars2)) =
       int_ord (number_of_output_positions (head_mode_of deriv1),
         number_of_output_positions (head_mode_of deriv2))
+    (* prefer recursive calls *)
+    fun is_rec_premise t =
+      case fst (strip_comb t) of Const (c, T) => c = pred | _ => false
+    fun recursive_ord ((t1, deriv1, mvars1), (t2, deriv2, mvars2)) =
+      int_ord (if is_rec_premise t1 then 0 else 1,
+        if is_rec_premise t2 then 0 else 1)
+    val ord = lex_ord mvars_ord (lex_ord random_mode_ord (lex_ord output_mode_ord recursive_ord))
   in
-    lex_ord mvars_ord (lex_ord random_mode_ord output_mode_ord)
-      ((t1, deriv1, mvars1), (t2, deriv2, mvars2))
+    ord ((t1, deriv1, mvars1), (t2, deriv2, mvars2))
   end
 
-fun deriv_ord2 thy modes t = deriv_ord2' thy modes t t
+fun deriv_ord2 thy pred modes t = deriv_ord2' thy pred modes t t
 
 fun deriv_ord ((deriv1, mvars1), (deriv2, mvars2)) =
   int_ord (length mvars1, length mvars2)
 
-fun premise_ord thy modes ((prem1, a1), (prem2, a2)) =
-  rev_option_ord (deriv_ord2' thy modes (term_of_prem prem1) (term_of_prem prem2)) (a1, a2)
+fun premise_ord thy pred modes ((prem1, a1), (prem2, a2)) =
+  rev_option_ord (deriv_ord2' thy pred modes (term_of_prem prem1) (term_of_prem prem2)) (a1, a2)
 
 fun print_mode_list modes =
   tracing ("modes: " ^ (commas (map (fn (s, ms) => s ^ ": " ^
     commas (map (fn (m, r) => string_of_mode m ^ (if r then " random " else " not ")) ms)) modes)))
 
-fun select_mode_prem (mode_analysis_options : mode_analysis_options) (thy : theory) pol (modes, (pos_modes, neg_modes)) vs ps =
+fun select_mode_prem (mode_analysis_options : mode_analysis_options) (thy : theory) pred
+  pol (modes, (pos_modes, neg_modes)) vs ps =
   let
     fun choose_mode_of_prem (Prem t) = partial_hd
-        (sort (deriv_ord2 thy modes t) (all_derivations_of thy pos_modes vs t))
+        (sort (deriv_ord2 thy pred modes t) (all_derivations_of thy pos_modes vs t))
       | choose_mode_of_prem (Sidecond t) = SOME (Context Bool, missing_vars vs t)
       | choose_mode_of_prem (Negprem t) = partial_hd
-          (sort (deriv_ord2 thy modes t) (filter (fn (d, missing_vars) => is_all_input (head_mode_of d))
+          (sort (deriv_ord2 thy pred modes t) (filter (fn (d, missing_vars) => is_all_input (head_mode_of d))
              (all_derivations_of thy neg_modes vs t)))
       | choose_mode_of_prem p = raise Fail ("choose_mode_of_prem: " ^ string_of_prem thy p)
   in
     if #reorder_premises mode_analysis_options then
-      partial_hd (sort (premise_ord thy modes) (ps ~~ map choose_mode_of_prem ps))
+      partial_hd (sort (premise_ord thy pred modes) (ps ~~ map choose_mode_of_prem ps))
     else
       SOME (hd ps, choose_mode_of_prem (hd ps))
   end
 
-fun check_mode_clause' (mode_analysis_options : mode_analysis_options) thy param_vs (modes :
+fun check_mode_clause' (mode_analysis_options : mode_analysis_options) thy pred param_vs (modes :
   (string * ((bool * mode) * bool) list) list) ((pol, mode) : bool * mode) (ts, ps) =
   let
     val vTs = distinct (op =) (fold Term.add_frees (map term_of_prem ps) (fold Term.add_frees ts []))
@@ -1631,7 +1641,7 @@ fun check_mode_clause' (mode_analysis_options : mode_analysis_options) thy param
     fun check_mode_prems acc_ps rnd vs [] = SOME (acc_ps, vs, rnd)
       | check_mode_prems acc_ps rnd vs ps =
         (case
-          (select_mode_prem mode_analysis_options thy pol (modes', (pos_modes', neg_modes')) vs ps) of
+          (select_mode_prem mode_analysis_options thy pred pol (modes', (pos_modes', neg_modes')) vs ps) of
           SOME (p, SOME (deriv, [])) => check_mode_prems ((p, deriv) :: acc_ps) rnd
             (known_vs_after p vs) (filter_out (equal p) ps)
         | SOME (p, SOME (deriv, missing_vars)) =>
@@ -1678,7 +1688,7 @@ fun check_modes_pred' mode_analysis_options options thy param_vs clauses modes (
     fun check_mode m =
       let
         val res = Output.cond_timeit false "work part of check_mode for one mode" (fn _ => 
-          map (check_mode_clause' mode_analysis_options thy param_vs modes m) rs)
+          map (check_mode_clause' mode_analysis_options thy p param_vs modes m) rs)
       in
         Output.cond_timeit false "aux part of check_mode for one mode" (fn _ => 
         case find_indices is_none res of
@@ -1701,7 +1711,7 @@ fun get_modes_pred' mode_analysis_options thy param_vs clauses modes (p, ms) =
     (p, map (fn (m, rnd) =>
       (m, map
         ((fn (ts, ps, rnd) => (ts, ps)) o the o
-          check_mode_clause' mode_analysis_options thy param_vs modes m) rs)) ms)
+          check_mode_clause' mode_analysis_options thy p param_vs modes m) rs)) ms)
   end;
 
 fun fixp f (x : (string * ((bool * mode) * bool) list) list) =
@@ -1759,8 +1769,8 @@ fun infer_modes mode_analysis_options options compilation preds all_modes param_
       else
         map (fn (s, ms) => (s, map (fn m => ((true, m), false)) ms)) all_modes
     fun iteration modes = map
-      (check_modes_pred' mode_analysis_options options thy param_vs clauses (modes @ extra_modes))
-        modes
+      (check_modes_pred' mode_analysis_options options thy param_vs clauses
+        (modes @ extra_modes)) modes
     val ((modes : (string * ((bool * mode) * bool) list) list), errors) =
       Output.cond_timeit false "Fixpount computation of mode analysis" (fn () =>
       if collect_errors then
