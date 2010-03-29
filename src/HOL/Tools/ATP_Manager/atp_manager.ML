@@ -21,6 +21,8 @@ sig
      higher_order: bool option,
      follow_defs: bool,
      isar_proof: bool,
+     modulus: int,
+     sorts: bool,
      timeout: Time.time,
      minimize_timeout: Time.time}
   type problem =
@@ -71,6 +73,8 @@ type params =
    higher_order: bool option,
    follow_defs: bool,
    isar_proof: bool,
+   modulus: int,
+   sorts: bool,
    timeout: Time.time,
    minimize_timeout: Time.time}
 

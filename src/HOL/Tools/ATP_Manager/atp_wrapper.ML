@@ -160,7 +160,8 @@ fun generic_tptp_prover
         (name, {command, arguments, failure_strs, max_new_clauses,
                 prefers_theory_const, supports_isar_proofs})
         (params as {respect_no_atp, relevance_threshold, convergence,
-                    theory_const, higher_order, follow_defs, isar_proof, ...})
+                    theory_const, higher_order, follow_defs, isar_proof,
+                    modulus, sorts, ...})
         timeout =
   generic_prover
       (get_relevant_facts respect_no_atp relevance_threshold convergence
@@ -168,8 +169,10 @@ fun generic_tptp_prover
                           (the_default prefers_theory_const theory_const))
       (prepare_clauses higher_order false) write_tptp_file command
       (arguments timeout) failure_strs
-      (if supports_isar_proofs andalso isar_proof then structured_isar_proof
-       else metis_lemma_list false) name params;
+      (if supports_isar_proofs andalso isar_proof then
+         structured_isar_proof modulus sorts
+       else
+         metis_lemma_list false) name params;
 
 fun tptp_prover name p = (name, generic_tptp_prover (name, p));
 
@@ -215,7 +218,7 @@ fun generic_dfg_prover
         (name, ({command, arguments, failure_strs, max_new_clauses,
                  prefers_theory_const, ...} : prover_config))
         (params as {respect_no_atp, relevance_threshold, convergence,
-                    theory_const, higher_order, follow_defs, isar_proof, ...})
+                    theory_const, higher_order, follow_defs, ...})
         timeout =
   generic_prover
       (get_relevant_facts respect_no_atp relevance_threshold convergence

@@ -47,6 +47,8 @@ val default_default_params =
    ("higher_order", "smart"),
    ("follow_defs", "false"),
    ("isar_proof", "false"),
+   ("modulus", "1"),
+   ("sorts", "false"),
    ("minimize_timeout", "5 s")]
 
 val negated_params =
@@ -57,7 +59,8 @@ val negated_params =
    ("no_theory_const", "theory_const"),
    ("first_order", "higher_order"),
    ("dont_follow_defs", "follow_defs"),
-   ("metis_proof", "isar_proof")]
+   ("metis_proof", "isar_proof"),
+   ("no_sorts", "sorts")]
 
 val property_dependent_params = ["atps", "full_types", "timeout"]
 
@@ -130,6 +133,8 @@ fun extract_params thy default_params override_params =
     val higher_order = lookup_bool_option "higher_order"
     val follow_defs = lookup_bool "follow_defs"
     val isar_proof = lookup_bool "isar_proof"
+    val modulus = Int.max (1, lookup_int "modulus")
+    val sorts = lookup_bool "sorts"
     val timeout = lookup_time "timeout"
     val minimize_timeout = lookup_time "minimize_timeout"
   in
@@ -137,8 +142,8 @@ fun extract_params thy default_params override_params =
      respect_no_atp = respect_no_atp, relevance_threshold = relevance_threshold,
      convergence = convergence, theory_const = theory_const,
      higher_order = higher_order, follow_defs = follow_defs,
-     isar_proof = isar_proof, timeout = timeout,
-     minimize_timeout = minimize_timeout}
+     isar_proof = isar_proof, modulus = modulus, sorts = sorts,
+     timeout = timeout, minimize_timeout = minimize_timeout}
   end
 
 fun get_params thy = extract_params thy (default_raw_params thy)
