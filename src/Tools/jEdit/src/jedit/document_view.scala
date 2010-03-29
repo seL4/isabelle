@@ -8,6 +8,8 @@
 package isabelle.jedit
 
 
+import isabelle._
+
 import scala.actors.Actor._
 
 import java.awt.event.{MouseAdapter, MouseEvent}

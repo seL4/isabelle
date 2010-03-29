@@ -8,6 +8,8 @@
 package isabelle.jedit
 
 
+import isabelle._
+
 import scala.collection.Set
 import scala.collection.immutable.TreeSet
 

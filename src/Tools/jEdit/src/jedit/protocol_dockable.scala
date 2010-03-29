@@ -7,6 +7,8 @@
 package isabelle.jedit
 
 
+import isabelle._
+
 import scala.actors.Actor._
 
 import java.awt.{Dimension, Graphics, BorderLayout}

@@ -7,6 +7,8 @@
 package isabelle.jedit
 
 
+import isabelle._
+
 import console.{Console, ConsolePane, Shell, Output}
 
 import org.gjt.sp.jedit.{jEdit, JARClassLoader}
@@ -63,7 +65,7 @@ class Scala_Console extends Shell("Scala")
 
     def write(cbuf: Array[Char], off: Int, len: Int)
     {
-      if (len > 0) write(new String(cbuf.subArray(off, off + len)))
+      if (len > 0) write(new String(cbuf.slice(off, off + len)))
     }
 
     override def write(str: String)

@@ -20,7 +20,7 @@ import scala.collection.mutable
 object Standard_System
 {
   val charset = "UTF-8"
-  val codec = Codec(charset)
+  def codec(): Codec = Codec(charset)
 
 
   /* permissive UTF-8 decoding */
@@ -136,7 +136,7 @@ object Standard_System
   def process_output(proc: Process): (String, Int) =
   {
     proc.getOutputStream.close
-    val output = Source.fromInputStream(proc.getInputStream)(codec).mkString  // FIXME
+    val output = Source.fromInputStream(proc.getInputStream)(codec()).mkString  // FIXME
     val rc =
       try { proc.waitFor }
       finally {
