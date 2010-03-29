@@ -14,7 +14,7 @@ sig
   val linear_minimize : 'a minimize_fun
   val binary_minimize : 'a minimize_fun
   val minimize_theorems :
-    params -> (string * thm list) minimize_fun -> prover -> string
+    params -> (string * thm list) minimize_fun -> prover -> string -> int
     -> Proof.state -> (string * thm list) list
     -> (string * thm list) list option * string
 end;
@@ -23,6 +23,7 @@ structure ATP_Minimal : ATP_MINIMAL =
 struct
 
 open Sledgehammer_Fact_Preprocessor
+open Sledgehammer_Proof_Reconstruct
 open ATP_Manager
 
 type 'a minimize_fun = ('a list -> bool) -> 'a list -> 'a list
@@ -111,7 +112,7 @@ fun produce_answer ({success, proof, internal_thm_names, filtered_clauses, ...}
 (* wrapper for calling external prover *)
 
 fun sledgehammer_test_theorems (params as {full_types, ...} : params) prover
-        timeout subgoalno state filtered name_thms_pairs =
+        timeout subgoal state filtered name_thms_pairs =
   let
     val _ = priority ("Testing " ^ string_of_int (length name_thms_pairs) ^
                       " theorems... ")
@@ -119,7 +120,7 @@ fun sledgehammer_test_theorems (params as {full_types, ...} : params) prover
     val axclauses = cnf_rules_pairs (Proof.theory_of state) name_thm_pairs
     val {context = ctxt, facts, goal} = Proof.goal state
     val problem =
-     {subgoal = subgoalno, goal = (ctxt, (facts, goal)),
+     {subgoal = subgoal, goal = (ctxt, (facts, goal)),
       relevance_override = {add = [], del = [], only = false},
       axiom_clauses = SOME axclauses, filtered_clauses = filtered}
     val (result, proof) = produce_answer (prover params timeout problem)
@@ -130,7 +131,7 @@ fun sledgehammer_test_theorems (params as {full_types, ...} : params) prover
 (* minimalization of thms *)
 
 fun minimize_theorems (params as {minimize_timeout, ...}) gen_min prover
-                      prover_name state name_thms_pairs =
+                      prover_name i state name_thms_pairs =
   let
     val msecs = Time.toMilliseconds minimize_timeout
     val _ =
@@ -138,9 +139,10 @@ fun minimize_theorems (params as {minimize_timeout, ...}) gen_min prover
         " theorems, ATP: " ^ prover_name ^
         ", time limit: " ^ string_of_int msecs ^ " ms")
     val test_thms_fun =
-      sledgehammer_test_theorems params prover minimize_timeout 1 state
+      sledgehammer_test_theorems params prover minimize_timeout i state
     fun test_thms filtered thms =
       case test_thms_fun filtered thms of (Success _, _) => true | _ => false
+    val n = state |> Proof.raw_goal |> #goal |> prop_of |> Logic.count_prems
   in
     (* try prove first to check result and get used theorems *)
     (case test_thms_fun NONE name_thms_pairs of
@@ -157,13 +159,7 @@ fun minimize_theorems (params as {minimize_timeout, ...}) gen_min prover
           val min_names = sort_distinct string_ord (map fst min_thms)
           val _ = priority (cat_lines
             ["Minimal " ^ string_of_int (length min_thms) ^ " theorems"])
-        in
-          (SOME min_thms,
-           "Try this command: " ^
-           Markup.markup Markup.sendback
-                         ("by (metis " ^ space_implode " " min_names ^ ")")
-           ^ ".")
-        end
+        in (SOME min_thms, metis_line i n min_names) end
     | (Timeout, _) =>
         (NONE, "Timeout: You may need to increase the time limit of " ^
           string_of_int msecs ^ " ms. Invoke \"atp_minimize [time=...]\".")
@@ -172,8 +168,7 @@ fun minimize_theorems (params as {minimize_timeout, ...}) gen_min prover
     | (Failure, _) =>
         (NONE, "Failure: No proof with the theorems supplied"))
     handle Sledgehammer_HOL_Clause.TRIVIAL =>
-        (SOME [], "Trivial: Try this command: " ^
-                  Markup.markup Markup.sendback "by metis" ^ ".")
+        (SOME [], metis_line i n [])
       | ERROR msg => (NONE, "Error: " ^ msg)
   end
 

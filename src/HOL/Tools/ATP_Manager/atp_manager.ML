@@ -54,7 +54,8 @@ end;
 structure ATP_Manager : ATP_MANAGER =
 struct
 
-type relevance_override = Sledgehammer_Fact_Filter.relevance_override
+open Sledgehammer_Fact_Filter
+open Sledgehammer_Proof_Reconstruct
 
 (** parameters, problems, results, and provers **)
 
@@ -322,6 +323,7 @@ fun start_prover (params as {timeout, ...}) birth_time death_time i
   | SOME prover =>
       let
         val {context = ctxt, facts, goal} = Proof.goal proof_state;
+        val n = Logic.count_prems (prop_of goal)
         val desc =
           "ATP " ^ quote name ^ " for subgoal " ^ string_of_int i ^ ":\n" ^
             Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i));
@@ -334,9 +336,8 @@ fun start_prover (params as {timeout, ...}) birth_time death_time i
                relevance_override = relevance_override, axiom_clauses = NONE,
                filtered_clauses = NONE}
             val message = #message (prover params timeout problem)
-              handle Sledgehammer_HOL_Clause.TRIVIAL =>   (* FIXME !? *)
-                  "Try this command: " ^
-                  Markup.markup Markup.sendback "by metis" ^ "."
+              handle Sledgehammer_HOL_Clause.TRIVIAL =>
+                  metis_line i n []
                 | ERROR msg => ("Error: " ^ msg);
             val _ = unregister message (Thread.self ());
           in () end);

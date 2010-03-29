@@ -80,6 +80,8 @@ end
 structure Sledgehammer_FOL_Clause : SLEDGEHAMMER_FOL_CLAUSE =
 struct
 
+open Sledgehammer_Util
+
 val schematic_var_prefix = "V_";
 val fixed_var_prefix = "v_";
 
@@ -184,8 +186,7 @@ fun make_fixed_type_var x = tfree_prefix ^ (ascii_of (trim_type_var x));
    solved in 3.7 and perhaps in earlier versions too.) *)
 (* 32-bit hash, so we expect no collisions. *)
 fun controlled_length dfg s =
-  if dfg andalso size s > 60 then Word.toString (hashw_string (s, 0w0))
-  else s;
+  if dfg andalso size s > 60 then Word.toString (hashw_string (s, 0w0)) else s;
 
 fun lookup_const dfg c =
     case Symtab.lookup const_trans_table c of

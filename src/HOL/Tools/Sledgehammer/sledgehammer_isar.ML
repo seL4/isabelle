@@ -144,7 +144,7 @@ fun extract_params thy default_params override_params =
 fun get_params thy = extract_params thy (default_raw_params thy)
 fun default_params thy = get_params thy o map (apsnd single)
 
-fun atp_minimize_command override_params old_style_args fact_refs state =
+fun atp_minimize_command override_params old_style_args i fact_refs state =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
@@ -176,7 +176,7 @@ fun atp_minimize_command override_params old_style_args fact_refs state =
       | NONE => error ("Unknown ATP: " ^ quote atp))
     val name_thms_pairs = theorems_from_refs ctxt fact_refs
   in
-    writeln (#2 (minimize_theorems params linear_minimize prover atp state
+    writeln (#2 (minimize_theorems params linear_minimize prover atp i state
                                    name_thms_pairs))
   end
 
@@ -202,7 +202,8 @@ fun hammer_away override_params subcommand opt_i relevance_override state =
       sledgehammer (get_params thy override_params) (the_default 1 opt_i)
                    relevance_override state
     else if subcommand = minimizeN then
-      atp_minimize_command override_params [] (#add relevance_override) state
+      atp_minimize_command override_params [] (the_default 1 opt_i)
+                           (#add relevance_override) state
     else if subcommand = messagesN then
       messages opt_i
     else if subcommand = available_atpsN then
@@ -287,7 +288,7 @@ val _ =
     "minimize theorem list with external prover" K.diag
     (parse_minimize_args -- parse_fact_refs >> (fn (args, fact_refs) =>
       Toplevel.no_timing o Toplevel.unknown_proof o
-        Toplevel.keep (atp_minimize_command [] args fact_refs
+        Toplevel.keep (atp_minimize_command [] args 1 fact_refs
                        o Toplevel.proof_of)))
 
 val _ =
