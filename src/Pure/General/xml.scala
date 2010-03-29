@@ -36,7 +36,7 @@ object XML
   private def append_text(text: String, s: StringBuilder) {
     if (text == null) s ++ text
     else {
-      for (c <- text.elements) c match {
+      for (c <- text.iterator) c match {
         case '<' => s ++ "&lt;"
         case '>' => s ++ "&gt;"
         case '&' => s ++ "&amp;"

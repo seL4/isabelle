@@ -70,7 +70,7 @@ class Markup_Tree(val node: Markup_Node, val branches: List[Markup_Tree])
           markup <- markups
         } yield markup
       if (next_x < node.stop)
-        filled_gaps + new Markup_Node(next_x, node.stop, node.info)
+        filled_gaps ::: List(new Markup_Node(next_x, node.stop, node.info))
       else filled_gaps
     }
   }

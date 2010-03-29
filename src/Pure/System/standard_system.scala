@@ -12,7 +12,7 @@ import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream,
   BufferedInputStream, FileInputStream, BufferedReader, InputStreamReader,
   File, FileFilter, IOException}
 
-import scala.io.Source
+import scala.io.{Source, Codec}
 import scala.util.matching.Regex
 import scala.collection.mutable
 
@@ -20,6 +20,7 @@ import scala.collection.mutable
 object Standard_System
 {
   val charset = "UTF-8"
+  val codec = Codec(charset)
 
 
   /* permissive UTF-8 decoding */
@@ -135,7 +136,7 @@ object Standard_System
   def process_output(proc: Process): (String, Int) =
   {
     proc.getOutputStream.close
-    val output = Source.fromInputStream(proc.getInputStream, charset).mkString  // FIXME
+    val output = Source.fromInputStream(proc.getInputStream)(codec).mkString  // FIXME
     val rc =
       try { proc.waitFor }
       finally {

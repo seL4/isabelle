@@ -7,6 +7,7 @@ Efficient scanning of keywords.
 package isabelle
 
 
+import scala.collection.generic.Addable
 import scala.collection.immutable.PagedSeq
 import scala.util.parsing.input.{OffsetPosition, Position => InputPosition, Reader}
 import scala.util.parsing.combinator.RegexParsers
@@ -27,7 +28,7 @@ object Scan
     def apply(elems: String*): Lexicon = empty ++ elems
   }
 
-  class Lexicon extends scala.collection.Set[String] with RegexParsers
+  class Lexicon extends Addable[String, Lexicon] with RegexParsers
   {
     /* representation */
 
@@ -65,20 +66,25 @@ object Scan
       }
 
 
-    /* Set methods */
+    /* pseudo Set methods */
 
-    override def stringPrefix = "Lexicon"
+    def iterator: Iterator[String] = content(main_tree, Nil).sort(_ <= _).iterator
 
-    override def isEmpty: Boolean = { main_tree.branches.isEmpty }
+    override def toString: String = iterator.mkString("Lexicon(", ", ", ")")
 
-    def size: Int = content(main_tree, Nil).length
-    def elements: Iterator[String] = content(main_tree, Nil).sort(_ <= _).elements
+    def empty: Lexicon = Lexicon.empty
+    def isEmpty: Boolean = main_tree.branches.isEmpty
 
     def contains(elem: String): Boolean =
       lookup(elem) match {
         case Some((tip, _)) => tip
         case _ => false
       }
+
+
+    /* Addable methods */
+
+    def repr = this
 
     def + (elem: String): Lexicon =
       if (contains(elem)) this
@@ -101,11 +107,6 @@ object Scan
         val old = this
         new Lexicon { override val main_tree = extend(old.main_tree, 0) }
       }
-
-    def + (elem1: String, elem2: String, elems: String*): Lexicon =
-      this + elem1 + elem2 ++ elems
-    def ++ (elems: Iterable[String]): Lexicon = (this /: elems) ((s, elem) => s + elem)
-    def ++ (elems: Iterator[String]): Lexicon = (this /: elems) ((s, elem) => s + elem)
 
 
 

@@ -24,7 +24,7 @@ class Isabelle_System extends Standard_System
 
   private val environment: Map[String, String] =
   {
-    import scala.collection.jcl.Conversions._
+    import scala.collection.JavaConversions._
 
     val env0 = Map(java.lang.System.getenv.toList: _*)
 
@@ -297,7 +297,7 @@ class Isabelle_System extends Standard_System
   private def read_symbols(path: String): List[String] =
   {
     val file = platform_file(path)
-    if (file.isFile) Source.fromFile(file).getLines.toList
+    if (file.isFile) Source.fromFile(file).getLines().toList
     else Nil
   }
   val symbols = new Symbol.Interpretation(

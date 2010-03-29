@@ -88,7 +88,7 @@ then
   echo "###"
 
   rm -rf classes && mkdir classes
-  "$SCALA_HOME/bin/scalac" -unchecked -deprecation -d classes -target jvm-1.5 "${SOURCES[@]}" || \
+  "$SCALA_HOME/bin/scalac" -unchecked -deprecation -d classes -target:jvm-1.5 "${SOURCES[@]}" || \
     fail "Failed to compile sources"
   mkdir -p "$TARGET_DIR" || fail "Failed to create directory $TARGET_DIR"
   (
