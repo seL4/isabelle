@@ -31,11 +31,8 @@ fun lookup thy net t =
   case Item_Net.retrieve net t of
     [] => NONE
   | [(f, p)] =>
-    let
-      val subst = Pattern.match thy (f, t) (Vartab.empty, Vartab.empty)
-    in
-      SOME (Envir.subst_term subst p)
-    end
+    SOME (Envir.subst_term (Pattern.match thy (f, t) (Vartab.empty, Vartab.empty)) p)
+      handle Pattern.MATCH => NONE
   | _ => NONE
 
 fun pred_of_function thy name =
