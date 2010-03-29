@@ -427,11 +427,10 @@ fun equals_conv lhs_cv rhs_cv ct =
   | _ => error "equals_conv"  
 *)
 
-(* Different options for compiler *)
+(* Different compilations *)
 
 datatype compilation = Pred | Depth_Limited | Random | Depth_Limited_Random | DSeq | Annotated
   | Pos_Random_DSeq | Neg_Random_DSeq | New_Pos_Random_DSeq | New_Neg_Random_DSeq
-
 
 fun negative_compilation_of Pos_Random_DSeq = Neg_Random_DSeq
   | negative_compilation_of Neg_Random_DSeq = Pos_Random_DSeq
@@ -455,7 +454,7 @@ fun string_of_compilation c =
   | Neg_Random_DSeq => "neg_random_dseq"
   | New_Pos_Random_DSeq => "new_pos_random dseq"
   | New_Neg_Random_DSeq => "new_neg_random_dseq"
-  
+
 val compilation_names = [("pred", Pred),
   ("random", Random),
   ("depth_limited", Depth_Limited),
@@ -463,7 +462,15 @@ val compilation_names = [("pred", Pred),
   (*("annotated", Annotated),*)
   ("dseq", DSeq), ("random_dseq", Pos_Random_DSeq),
   ("new_random_dseq", New_Pos_Random_DSeq)]
-  
+
+val non_random_compilations = [Pred, Depth_Limited, DSeq, Annotated]
+
+
+val random_compilations = [Random, Depth_Limited_Random,
+  Pos_Random_DSeq, Neg_Random_DSeq, New_Pos_Random_DSeq, New_Neg_Random_DSeq]
+
+(* Different options for compiler *)
+
 (*datatype compilation_options =
   Pred | Random of int | Depth_Limited of int | DSeq of int | Annotated*)
 
