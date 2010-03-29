@@ -20,15 +20,6 @@ where
   "yield Empty = None"
 | "yield (Insert x xq) = Some (x, xq)"
 
-fun yieldn :: "code_numeral => 'a lazy_sequence => 'a list * 'a lazy_sequence"
-where
-  "yieldn i S = (if i = 0 then ([], S) else
-    case yield S of
-      None => ([], S)
-    | Some (x, S') => let
-       (xs, S'') = yieldn (i - 1) S'
-      in (x # xs, S''))"
-
 lemma [simp]: "yield xq = Some (x, xq') ==> size xq' < size xq"
 by (cases xq) auto
 
@@ -141,7 +132,14 @@ struct
 
 val yield = @{code yield}
 
-val yieldn = @{code yieldn}
+fun anamorph f k x = (if k = 0 then ([], x)
+  else case f x
+   of NONE => ([], x)
+    | SOME (v, y) => let
+        val (vs, z) = anamorph f (k - 1) y
+      in (v :: vs, z) end);
+
+fun yieldn S = anamorph yield S;
 
 val map = @{code map}
 
@@ -155,7 +153,7 @@ code_type lazy_sequence (Eval "_/ Lazy'_Sequence.lazy'_sequence")
 code_const Lazy_Sequence (Eval "Lazy'_Sequence.Lazy'_Sequence")
 
 hide (open) type lazy_sequence
-hide (open) const Empty Insert Lazy_Sequence yield yieldn empty single append flat map bind if_seq not_seq
-hide fact yield.simps yieldn.simps empty_def single_def append.simps flat.simps map.simps bind_def if_seq_def not_seq_def
+hide (open) const Empty Insert Lazy_Sequence yield empty single append flat map bind if_seq not_seq
+hide fact yield.simps empty_def single_def append.simps flat.simps map.simps bind_def if_seq_def not_seq_def
 
 end
