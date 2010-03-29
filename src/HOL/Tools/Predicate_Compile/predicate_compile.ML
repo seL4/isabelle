@@ -9,12 +9,16 @@ sig
   val setup : theory -> theory
   val preprocess : Predicate_Compile_Aux.options -> string -> theory -> theory
   val present_graph : bool Unsynchronized.ref
+  val intro_hook : (theory -> thm -> unit) option Unsynchronized.ref
 end;
 
 structure Predicate_Compile (*: PREDICATE_COMPILE*) =
 struct
 
 val present_graph = Unsynchronized.ref false
+
+val intro_hook = Unsynchronized.ref NONE : (theory -> thm -> unit) option Unsynchronized.ref
+  
 
 open Predicate_Compile_Aux;
 
@@ -114,6 +118,7 @@ fun preprocess_strong_conn_constnames options gr ts thy =
         map (fn (s, ths) => (overload_const thy''' s, map (AxClass.overload thy''') ths)) intross5
       val intross7 = map_specs (map (expand_tuples thy''')) intross6
       val intross8 = map_specs (map (eta_contract_ho_arguments thy''')) intross7
+      val _ = case !intro_hook of NONE => () | SOME f => (map_specs (map (f thy''')) intross8; ())
       val _ = print_intross options thy''' "introduction rules before registering: " intross8
       val _ = print_step options "Registering introduction rules..."
       val thy'''' = fold Predicate_Compile_Core.register_intros intross8 thy'''
