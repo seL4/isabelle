@@ -916,10 +916,9 @@ fun mk_if cond = Const (@{const_name New_Random_Sequence.pos_if_random_dseq},
 fun mk_not t =
   let
     val pT = mk_pos_random_dseqT HOLogic.unitT
-    val nT =
-  @{typ code_numeral} --> @{typ code_numeral} --> @{typ Random.seed} -->
-    @{typ code_numeral} --> Type (@{type_name Option.option},
-      [Type (@{type_name Lazy_Sequence.lazy_sequence}, [@{typ unit}])])
+    val nT = @{typ code_numeral} --> @{typ code_numeral} --> @{typ Random.seed} -->
+      @{typ code_numeral} --> Type (@{type_name Lazy_Sequence.lazy_sequence},
+        [Type (@{type_name Option.option}, [@{typ unit}])])
 
   in Const (@{const_name New_Random_Sequence.pos_not_random_dseq}, nT --> pT) $ t end
 
@@ -938,12 +937,12 @@ struct
 fun mk_neg_random_dseqT T =
    @{typ code_numeral} --> @{typ code_numeral} --> @{typ Random.seed} -->
     @{typ code_numeral} --> 
-    Type (@{type_name Option.option}, [Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])])
+    Type (@{type_name Lazy_Sequence.lazy_sequence}, [Type (@{type_name Option.option}, [T])])
 
 fun dest_neg_random_dseqT (Type ("fun", [@{typ code_numeral}, Type ("fun", [@{typ code_numeral},
     Type ("fun", [@{typ Random.seed}, Type ("fun", [@{typ code_numeral},
-    Type (@{type_name Option.option},
-      [Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])])])])])])) = T
+      Type (@{type_name Lazy_Sequence.lazy_sequence},
+        [Type (@{type_name Option.option}, [T])])])])])])) = T
   | dest_neg_random_dseqT T = raise TYPE ("dest_random_dseqT", [T], []);
 
 fun mk_bot T = Const (@{const_name New_Random_Sequence.neg_empty}, mk_neg_random_dseqT T);

@@ -152,6 +152,59 @@ code_type lazy_sequence (Eval "_/ Lazy'_Sequence.lazy'_sequence")
 
 code_const Lazy_Sequence (Eval "Lazy'_Sequence.Lazy'_Sequence")
 
+section {* With Hit Bound Value *}
+text {* assuming in negative context *}
+
+types 'a hit_bound_lazy_sequence = "'a option lazy_sequence"
+
+definition hit_bound :: "'a hit_bound_lazy_sequence"
+where
+  [code]: "hit_bound = Lazy_Sequence (%u. Some (None, empty))"
+
+
+definition hb_single :: "'a => 'a hit_bound_lazy_sequence"
+where
+  [code]: "hb_single x = Lazy_Sequence (%u. Some (Some x, empty))"
+
+primrec hb_flat :: "'a hit_bound_lazy_sequence hit_bound_lazy_sequence => 'a hit_bound_lazy_sequence"
+where
+  "hb_flat Empty = Empty"
+| "hb_flat (Insert xq xqq) = append (case xq of None => hit_bound | Some xq => xq) (hb_flat xqq)"
+
+lemma [code]:
+  "hb_flat xqq = Lazy_Sequence (%u. case yield xqq of
+    None => None
+  | Some (xq, xqq') => yield (append (case xq of None => hit_bound | Some xq => xq) (hb_flat xqq')))"
+apply (cases "xqq")
+apply (auto simp add: Seq_yield)
+unfolding Lazy_Sequence_def
+by auto
+
+primrec hb_map :: "('a => 'b) => 'a hit_bound_lazy_sequence => 'b hit_bound_lazy_sequence"
+where
+  "hb_map f Empty = Empty"
+| "hb_map f (Insert x xq) = Insert (Option.map f x) (hb_map f xq)"
+
+lemma [code]:
+  "hb_map f xq = Lazy_Sequence (%u. Option.map (%(x, xq'). (Option.map f x, hb_map f xq')) (yield xq))"
+apply (cases xq)
+apply (auto simp add: Seq_yield)
+unfolding Lazy_Sequence_def
+apply auto
+done
+
+definition hb_bind :: "'a hit_bound_lazy_sequence => ('a => 'b hit_bound_lazy_sequence) => 'b hit_bound_lazy_sequence"
+where
+  [code]: "hb_bind xq f = hb_flat (hb_map f xq)"
+
+definition hb_if_seq :: "bool => unit hit_bound_lazy_sequence"
+where
+  "hb_if_seq b = (if b then hb_single () else empty)"
+
+definition hb_not_seq :: "unit hit_bound_lazy_sequence => unit lazy_sequence"
+where
+  "hb_not_seq xq = (case yield xq of None => single () | Some (x, xq) => empty)"
+
 hide (open) type lazy_sequence
 hide (open) const Empty Insert Lazy_Sequence yield empty single append flat map bind if_seq not_seq
 hide fact yield.simps empty_def single_def append.simps flat.simps map.simps bind_def if_seq_def not_seq_def
