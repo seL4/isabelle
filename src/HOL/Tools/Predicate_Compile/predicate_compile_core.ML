@@ -3165,7 +3165,10 @@ fun analyze_compr thy compfuns param_user_modes (compilation, arguments) t_compr
     val body = subst_bounds (output_frees, body)
     val T_compr = HOLogic.mk_ptupleT fp Ts
     val output_tuple = HOLogic.mk_ptuple fp T_compr (rev output_frees)
-    val (pred as Const (name, T), all_args) = strip_comb body
+    val (pred as Const (name, T), all_args) =
+      case strip_comb body of
+        (Const (name, T), all_args) => (Const (name, T), all_args)
+      | (head, _) => error ("Not a constant: " ^ Syntax.string_of_term_global thy head)
   in
     if defined_functions compilation thy name then
       let
