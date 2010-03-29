@@ -46,6 +46,9 @@ fun eq_mode (Fun (m1, m2), Fun (m3, m4)) = eq_mode (m1, m3) andalso eq_mode (m2,
   | eq_mode (Bool, Bool) = true
   | eq_mode _ = false
 
+fun list_fun_mode [] = Bool
+  | list_fun_mode (m :: ms) = Fun (m, list_fun_mode ms)
+
 (* name: binder_modes? *)
 fun strip_fun_mode (Fun (mode, mode')) = mode :: strip_fun_mode mode'
   | strip_fun_mode Bool = []

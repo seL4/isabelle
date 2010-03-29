@@ -736,7 +736,7 @@ fun register_alternative_function pred_name mode fun_name =
   Alt_Names_Data.map (Symtab.insert_list (op =) (pred_name, (mode, fun_name)))
 
 fun alternative_function_of thy pred_name mode =
-  AList.lookup (op =) (Symtab.lookup_list (Alt_Names_Data.get thy) pred_name) mode
+  AList.lookup eq_mode (Symtab.lookup_list (Alt_Names_Data.get thy) pred_name) mode
 
 (* datastructures and setup for generic compilation *)
 

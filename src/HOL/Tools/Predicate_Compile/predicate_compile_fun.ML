@@ -327,8 +327,14 @@ fun define_predicates specs thy =
       val thy'' = Fun_Pred.map
         (fold Item_Net.update (map (apfst Logic.varify_global)
           (distinct (op =) funs ~~ (#preds ind_result)))) thy'
+      fun functional_mode_of T =
+        list_fun_mode (replicate (length (binder_types T)) Input @ [Output])
+      val thy''' = fold
+        (fn (predname, Const (name, T)) => Predicate_Compile_Core.register_alternative_function
+          predname (functional_mode_of T) name)
+      (prednames ~~ distinct (op =) funs) thy''
     in
-      (specs, thy'')
+      (specs, thy''')
     end
 
 fun rewrite_intro thy intro =
