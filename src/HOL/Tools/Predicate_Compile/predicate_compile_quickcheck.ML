@@ -9,8 +9,14 @@ sig
   (*val quickcheck : Proof.context -> term -> int -> term list option*)
   val test_ref :
     ((unit -> int -> int -> int * int -> term list DSequence.dseq * (int * int)) option) Unsynchronized.ref
+  val new_test_ref :
+    ((unit -> int -> int -> int * int -> int -> term list Lazy_Sequence.lazy_sequence) option) Unsynchronized.ref;
+  val eval_random_ref :
+    ((unit -> int -> int -> int -> int * int -> term list Predicate.pred) option) Unsynchronized.ref;
+
   val tracing : bool Unsynchronized.ref;
-  val quickcheck_compile_term : bool -> bool -> int ->
+  val quiet : bool Unsynchronized.ref;
+  val quickcheck_compile_term : Predicate_Compile_Aux.compilation -> bool -> bool -> int ->
     Proof.context -> bool -> term -> int -> term list option * (bool list * bool);
 (*  val test_term : Proof.context -> bool -> int -> int -> int -> int -> term -> *)
   val nrandom : int Unsynchronized.ref;
@@ -27,13 +33,20 @@ open Predicate_Compile_Aux;
 val test_ref =
   Unsynchronized.ref (NONE : (unit -> int -> int -> int * int -> term list DSequence.dseq * (int * int)) option);
 
+val new_test_ref =
+  Unsynchronized.ref (NONE : (unit -> int -> int -> int * int -> int -> term list Lazy_Sequence.lazy_sequence) option)
+
+val eval_random_ref =
+  Unsynchronized.ref (NONE : (unit -> int -> int -> int -> int * int -> term list Predicate.pred) option);
+
+
 val tracing = Unsynchronized.ref false;
 
 val quiet = Unsynchronized.ref true;
 
 val target = "Quickcheck"
 
-val nrandom = Unsynchronized.ref 2;
+val nrandom = Unsynchronized.ref 3;
 
 val debug = Unsynchronized.ref false;
 
@@ -131,9 +144,17 @@ fun get_options () =
 
 fun dest_compfuns (Predicate_Compile_Core.CompilationFuns funs) = funs
 val mk_predT = #mk_predT (dest_compfuns Predicate_Compile_Core.pred_compfuns)
+val mk_return' = #mk_single (dest_compfuns Predicate_Compile_Core.pred_compfuns)
+val mk_bind' = #mk_bind (dest_compfuns Predicate_Compile_Core.pred_compfuns)
+
 val mk_randompredT = #mk_predT (dest_compfuns Predicate_Compile_Core.randompred_compfuns)
 val mk_return = #mk_single (dest_compfuns Predicate_Compile_Core.randompred_compfuns)
 val mk_bind = #mk_bind (dest_compfuns Predicate_Compile_Core.randompred_compfuns)
+
+val mk_new_randompredT = #mk_predT (dest_compfuns Predicate_Compile_Core.new_randompred_compfuns)
+val mk_new_return = #mk_single (dest_compfuns Predicate_Compile_Core.new_randompred_compfuns)
+val mk_new_bind = #mk_bind (dest_compfuns Predicate_Compile_Core.new_randompred_compfuns)
+
 
 fun mk_split_lambda [] t = Abs ("u", HOLogic.unitT, t)
   | mk_split_lambda [x] t = lambda x t
@@ -160,7 +181,7 @@ fun cpu_time description f =
     val time = Time.toMilliseconds (#cpu (end_timing start))
   in (Exn.release result, (description, time)) end
 
-fun compile_term options ctxt t =
+fun compile_term compilation options ctxt t =
   let
     val ctxt' = ProofContext.theory (Context.copy_thy) ctxt
     val thy = (ProofContext.theory_of ctxt') 
@@ -181,33 +202,90 @@ fun compile_term options ctxt t =
     val thy2 = Context.theory_map (Predicate_Compile_Alternative_Defs.add_thm intro) thy1
     val (thy3, preproc_time) =  cpu_time "predicate preprocessing"
         (fn () => Predicate_Compile.preprocess options const thy2)
-    (* FIXME: this is just for testing the predicate compiler proof procedure! *)
-    val thy3' = Predicate_Compile_Core.add_equations options [full_constname] thy3
     val (thy4, core_comp_time) = cpu_time "random_dseq core compilation"
-        (fn () => Predicate_Compile_Core.add_random_dseq_equations options [full_constname] thy3')
-    val _ = Predicate_Compile_Core.print_all_modes Pos_Random_DSeq thy4
-    val modes = Predicate_Compile_Core.modes_of Pos_Random_DSeq thy4 full_constname
+        (fn () =>
+          case compilation of
+            Pos_Random_DSeq =>
+              Predicate_Compile_Core.add_random_dseq_equations options [full_constname] thy3
+          | New_Pos_Random_DSeq =>
+              Predicate_Compile_Core.add_new_random_dseq_equations options [full_constname] thy3
+          (*| Depth_Limited_Random =>
+              Predicate_Compile_Core.add_depth_limited_random_equations options [full_constname] thy3*))
+    val _ = Predicate_Compile_Core.print_all_modes compilation thy4
+    val modes = Predicate_Compile_Core.modes_of compilation thy4 full_constname
     val output_mode = fold_rev (curry Fun) (map (K Output) (binder_types constT)) Bool
     val prog =
       if member eq_mode modes output_mode then
         let
-          val name = Predicate_Compile_Core.function_name_of Pos_Random_DSeq thy4
-            full_constname (true, output_mode)
-          val T = (mk_randompredT (HOLogic.mk_tupleT (map snd vs')))
+          val name = Predicate_Compile_Core.function_name_of compilation thy4
+            full_constname output_mode
+          val T = 
+            case compilation of
+              Pos_Random_DSeq => mk_randompredT (HOLogic.mk_tupleT (map snd vs'))
+            | New_Pos_Random_DSeq => mk_new_randompredT (HOLogic.mk_tupleT (map snd vs'))
+            | Depth_Limited_Random =>
+              [@{typ code_numeral}, @{typ code_numeral}, @{typ code_numeral},
+              @{typ "code_numeral * code_numeral"}] ---> mk_predT (HOLogic.mk_tupleT (map snd vs'))
         in
           Const (name, T)
         end
       else error ("Predicate Compile Quickcheck failed: " ^ commas (map string_of_mode modes))
-    val qc_term = mk_bind (prog,
-      mk_split_lambda (map Free vs') (mk_return (HOLogic.mk_list @{typ term}
-      (map2 HOLogic.mk_term_of (map snd vs') (map Free vs')))))
-    val compilation =
-      Code_Eval.eval (SOME target) ("Predicate_Compile_Quickcheck.test_ref", test_ref)
-        (fn proc => fn g => fn n => fn size => fn s => g n size s |>> (DSequence.map o map) proc)
-        thy4 qc_term []
+    
+    val qc_term =
+      case compilation of
+          Pos_Random_DSeq => mk_bind (prog,
+            mk_split_lambda (map Free vs') (mk_return (HOLogic.mk_list @{typ term}
+            (map2 HOLogic.mk_term_of (map snd vs') (map Free vs')))))
+        | New_Pos_Random_DSeq => mk_new_bind (prog,
+            mk_split_lambda (map Free vs') (mk_new_return (HOLogic.mk_list @{typ term}
+            (map2 HOLogic.mk_term_of (map snd vs') (map Free vs')))))
+        | Depth_Limited_Random => fold_rev (curry absdummy)
+            [@{typ code_numeral}, @{typ code_numeral}, @{typ code_numeral},
+             @{typ "code_numeral * code_numeral"}]
+            (mk_bind' (list_comb (prog, map Bound (3 downto 0)),
+            mk_split_lambda (map Free vs') (mk_return' (HOLogic.mk_list @{typ term}
+            (map2 HOLogic.mk_term_of (map snd vs') (map Free vs'))))))
+    val prog =
+      case compilation of
+        Pos_Random_DSeq =>
+          let
+            val compiled_term =
+              Code_Eval.eval (SOME target) ("Predicate_Compile_Quickcheck.test_ref", test_ref)
+                (fn proc => fn g => fn n => fn size => fn s => g n size s |>> (DSequence.map o map) proc)
+                thy4 qc_term []
+          in
+            (fn size => fn nrandom => fn depth =>
+              Option.map fst (DSequence.yield
+                (compiled_term nrandom size |> Random_Engine.run) depth true))
+          end
+      | New_Pos_Random_DSeq =>
+          let
+            val compiled_term =
+              Code_Eval.eval (SOME target)
+                ("Predicate_Compile_Quickcheck.new_test_ref", new_test_ref)
+                (fn proc => fn g => fn nrandom => fn size => fn s => fn depth =>
+                  g nrandom size s depth |> (Lazy_Sequence.map o map) proc)
+                  thy4 qc_term []
+          in
+            fn size => fn nrandom => fn depth => Option.map fst (Lazy_Sequence.yield 
+               (
+               let
+                 val seed = Random_Engine.next_seed ()
+               in compiled_term nrandom size seed depth end))
+          end
+      | Depth_Limited_Random =>
+          let
+            val compiled_term = Code_Eval.eval (SOME target)
+              ("Predicate_Compile_Quickcheck.eval_random_ref", eval_random_ref)
+                (fn proc => fn g => fn depth => fn nrandom => fn size => fn seed =>
+                  g depth nrandom size seed |> (Predicate.map o map) proc)
+                thy4 qc_term []
+          in
+            fn size => fn nrandom => fn depth => Option.map fst (Predicate.yield 
+              (compiled_term depth nrandom size (Random_Engine.run (fn s => (s, s)))))
+          end
   in
-    (fn size => fn nrandom => fn depth =>
-      Option.map fst (DSequence.yield (compilation nrandom size |> Random_Engine.run) depth true))
+    prog
   end
 
 fun try_upto quiet f i =
@@ -229,21 +307,21 @@ fun try_upto quiet f i =
 
 (* quickcheck interface functions *)
 
-fun compile_term' options depth ctxt report t =
+fun compile_term' compilation options depth ctxt report t =
   let
-    val c = compile_term options ctxt t
+    val c = compile_term compilation options ctxt t
     val dummy_report = ([], false)
   in
     fn size => (try_upto (!quiet) (c size (!nrandom)) depth, dummy_report)
   end
 
-fun quickcheck_compile_term function_flattening fail_safe_function_flattening depth =
+fun quickcheck_compile_term compilation function_flattening fail_safe_function_flattening depth =
   let
      val options =
        set_fail_safe_function_flattening fail_safe_function_flattening
          (set_function_flattening function_flattening (get_options ()))
   in
-    compile_term' options depth
+    compile_term' compilation options depth
   end
 
 end;

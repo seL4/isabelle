@@ -63,6 +63,7 @@ sig
   val randompred_compfuns : compilation_funs
   val new_randompred_compfuns : compilation_funs
   val add_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
+  val add_depth_limited_random_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
   val add_random_dseq_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
   val add_new_random_dseq_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
   val mk_tracing : string -> term -> term
