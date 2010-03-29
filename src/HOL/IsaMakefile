@@ -301,6 +301,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Predicate_Compile/predicate_compile_data.ML \
   Tools/Predicate_Compile/predicate_compile_fun.ML \
   Tools/Predicate_Compile/predicate_compile.ML \
+  Tools/Predicate_Compile/predicate_compile_specialisation.ML \
   Tools/Predicate_Compile/predicate_compile_pred.ML \
   Tools/quickcheck_generators.ML \
   Tools/Qelim/cooper_data.ML \

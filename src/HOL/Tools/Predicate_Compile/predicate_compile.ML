@@ -97,7 +97,7 @@ fun preprocess_strong_conn_constnames options gr ts thy =
       val _ = print_step options
         ("Compiling functions (" ^ commas (map (Syntax.string_of_term_global thy) funnames) ^
           ") to predicates...")
-      val (fun_pred_specs, thy') =
+      val (fun_pred_specs, thy1) =
         (if function_flattening options andalso (not (null funnames)) then
           if fail_safe_function_flattening options then
             case try (Predicate_Compile_Fun.define_predicates (get_specs funnames)) thy of
@@ -106,24 +106,26 @@ fun preprocess_strong_conn_constnames options gr ts thy =
           else Predicate_Compile_Fun.define_predicates (get_specs funnames) thy
         else ([], thy))
         (*||> Theory.checkpoint*)
-      val _ = print_specs options thy' fun_pred_specs
+      val _ = print_specs options thy1 fun_pred_specs
       val specs = (get_specs prednames) @ fun_pred_specs
-      val (intross3, thy''') = process_specification options specs thy'
-      val _ = print_intross options thy''' "Introduction rules with new constants: " intross3
+      val (intross3, thy2) = process_specification options specs thy1
+      val _ = print_intross options thy2 "Introduction rules with new constants: " intross3
       val intross4 = map_specs (maps remove_pointless_clauses) intross3
-      val _ = print_intross options thy''' "After removing pointless clauses: " intross4
-      val intross5 = map_specs (map (remove_equalities thy''')) intross4
-      val _ = print_intross options thy''' "After removing equality premises:" intross5
+      val _ = print_intross options thy2 "After removing pointless clauses: " intross4
+      val intross5 = map_specs (map (remove_equalities thy2)) intross4
+      val _ = print_intross options thy2 "After removing equality premises:" intross5
       val intross6 =
-        map (fn (s, ths) => (overload_const thy''' s, map (AxClass.overload thy''') ths)) intross5
-      val intross7 = map_specs (map (expand_tuples thy''')) intross6
-      val intross8 = map_specs (map (eta_contract_ho_arguments thy''')) intross7
-      val _ = case !intro_hook of NONE => () | SOME f => (map_specs (map (f thy''')) intross8; ())
-      val _ = print_intross options thy''' "introduction rules before registering: " intross8
+        map (fn (s, ths) => (overload_const thy2 s, map (AxClass.overload thy2) ths)) intross5
+      val intross7 = map_specs (map (expand_tuples thy2)) intross6
+      val intross8 = map_specs (map (eta_contract_ho_arguments thy2)) intross7
+      val _ = case !intro_hook of NONE => () | SOME f => (map_specs (map (f thy2)) intross8; ())
+      val _ = print_step options ("Looking for specialisations in " ^ commas (map fst intross8) ^ "...")
+      val (intross9, thy3) = Predicate_Compile_Specialisation.find_specialisations [] intross8 thy2
+      val _ = print_intross options thy3 "introduction rules before registering: " intross9
       val _ = print_step options "Registering introduction rules..."
-      val thy'''' = fold Predicate_Compile_Core.register_intros intross8 thy'''
+      val thy4 = fold Predicate_Compile_Core.register_intros intross9 thy3
     in
-      thy''''
+      thy4
     end;
 
 fun preprocess options t thy =

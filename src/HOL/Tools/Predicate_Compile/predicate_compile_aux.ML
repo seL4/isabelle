@@ -295,12 +295,13 @@ fun is_constrt thy =
       (map (fn (_, (Tname, _, cs)) => map (apsnd (rpair Tname o length)) cs) o #descr o snd)
       (Symtab.dest (Datatype.get_all thy)));
     fun check t = (case strip_comb t of
-        (Free _, []) => true
+        (Var _, []) => true
+      | (Free _, []) => true
       | (Const (s, T), ts) => (case (AList.lookup (op =) cnstrs s, body_type T) of
             (SOME (i, Tname), Type (Tname', _)) => length ts = i andalso Tname = Tname' andalso forall check ts
           | _ => false)
       | _ => false)
-  in check end;  
+  in check end;
 
 fun is_funtype (Type ("fun", [_, _])) = true
   | is_funtype _ = false;
