@@ -1940,7 +1940,8 @@ fun compile_expr compilation_modifiers ctxt (t, deriv) additional_arguments =
         (case alternative_function_of (ProofContext.theory_of ctxt) name mode of
           SOME alt_function_name =>
             let
-              val (inpTs, outpTs) = split_modeT' mode (binder_types T)
+              val (inpTs, outpTs) = split_map_modeT (fn _ => fn T => (SOME T, NONE))
+                mode (binder_types T)
               val bs = map (pair "x") inpTs
               val bounds = map Bound (rev (0 upto (length bs) - 1))
               val f = Const (alt_function_name, inpTs ---> HOLogic.mk_tupleT outpTs)
