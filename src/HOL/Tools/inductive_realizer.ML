@@ -1,7 +1,7 @@
 (*  Title:      HOL/Tools/inductive_realizer.ML
     Author:     Stefan Berghofer, TU Muenchen
 
-Porgram extraction from proofs involving inductive predicates:
+Program extraction from proofs involving inductive predicates:
 Realizers for induction and elimination rules.
 *)
 
@@ -64,7 +64,6 @@ fun relevant_vars prop = List.foldr (fn
 fun dt_of_intrs thy vs nparms intrs =
   let
     val iTs = OldTerm.term_tvars (prop_of (hd intrs));
-    val Tvs = map TVar iTs;
     val (Const (s, _), ts) = strip_comb (HOLogic.dest_Trueprop
       (Logic.strip_imp_concl (prop_of (hd intrs))));
     val params = map dest_Var (take nparms ts);
