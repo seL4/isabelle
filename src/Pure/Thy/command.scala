@@ -35,11 +35,11 @@ class Command(
 {
   /* classification */
 
-  def is_command: Boolean = !span.isEmpty && span.first.is_command
+  def is_command: Boolean = !span.isEmpty && span.head.is_command
   def is_ignored: Boolean = span.forall(_.is_ignored)
   def is_malformed: Boolean = !is_command && !is_ignored
 
-  def name: String = if (is_command) span.first.content else ""
+  def name: String = if (is_command) span.head.content else ""
   override def toString = if (is_command) name else if (is_ignored) "<ignored>" else "<malformed>"
 
 

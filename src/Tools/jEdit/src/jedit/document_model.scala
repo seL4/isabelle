@@ -8,6 +8,8 @@
 package isabelle.jedit
 
 
+import isabelle._
+
 import scala.actors.Actor, Actor._
 import scala.collection.mutable
 

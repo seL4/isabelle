@@ -7,14 +7,16 @@
 package isabelle.jedit
 
 
+import isabelle._
+
 import org.gjt.sp.jedit.io.Encoding
 import org.gjt.sp.jedit.buffer.JEditBuffer
 
-import java.nio.charset.{Charset, CharsetDecoder, CodingErrorAction}
+import java.nio.charset.{Charset, CodingErrorAction}
 import java.io.{InputStream, OutputStream, Reader, Writer, InputStreamReader, OutputStreamWriter,
   CharArrayReader, ByteArrayOutputStream}
 
-import scala.io.{Source, BufferedSource}
+import scala.io.{Codec, Source, BufferedSource}
 
 
 object Isabelle_Encoding
@@ -28,24 +30,23 @@ object Isabelle_Encoding
 class Isabelle_Encoding extends Encoding
 {
   private val charset = Charset.forName(Standard_System.charset)
-  private val BUFSIZE = 32768
+  val BUFSIZE = 32768
 
-  private def text_reader(in: InputStream, decoder: CharsetDecoder): Reader =
+  private def text_reader(in: InputStream, codec: Codec): Reader =
   {
-    def source(): Source =
-      BufferedSource.fromInputStream(in, decoder, BUFSIZE, { () => source() })
+    val source = new BufferedSource(in)(codec)
     new CharArrayReader(Isabelle.system.symbols.decode(source.mkString).toArray)
   }
 
 	override def getTextReader(in: InputStream): Reader =
-    text_reader(in, charset.newDecoder())
+    text_reader(in, Standard_System.codec())
 
 	override def getPermissiveTextReader(in: InputStream): Reader =
 	{
-		val decoder = charset.newDecoder()
-		decoder.onMalformedInput(CodingErrorAction.REPLACE)
-		decoder.onUnmappableCharacter(CodingErrorAction.REPLACE)
-		text_reader(in, decoder)
+		val codec = Standard_System.codec()
+		codec.onMalformedInput(CodingErrorAction.REPLACE)
+		codec.onUnmappableCharacter(CodingErrorAction.REPLACE)
+		text_reader(in, codec)
 	}
 
   override def getTextWriter(out: OutputStream): Writer =

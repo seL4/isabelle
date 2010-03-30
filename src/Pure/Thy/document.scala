@@ -14,7 +14,7 @@ object Document
   def command_starts(commands: Linear_Set[Command]): Iterator[(Command, Int)] =
   {
     var offset = 0
-    for (cmd <- commands.elements) yield {
+    for (cmd <- commands.iterator) yield {
       val start = offset
       offset += cmd.length
       (cmd, start)
@@ -92,17 +92,17 @@ object Document
     def parse_spans(commands: Linear_Set[Command]): Linear_Set[Command] =
     {
       // FIXME relative search!
-      commands.elements.find(is_unparsed) match {
+      commands.iterator.find(is_unparsed) match {
         case Some(first_unparsed) =>
           val prefix = commands.prev(first_unparsed)
-          val body = commands.elements(first_unparsed).takeWhile(is_unparsed).toList
+          val body = commands.iterator(first_unparsed).takeWhile(is_unparsed).toList
           val suffix = commands.next(body.last)
 
           val sources = (prefix.toList ::: body ::: suffix.toList).flatMap(_.span.map(_.source))
           val spans0 = Thy_Syntax.parse_spans(session.current_syntax.scan(sources.mkString))
 
           val (before_edit, spans1) =
-            if (!spans0.isEmpty && Some(spans0.first) == prefix.map(_.span))
+            if (!spans0.isEmpty && Some(spans0.head) == prefix.map(_.span))
               (prefix, spans0.tail)
             else (if (prefix.isDefined) commands.prev(prefix.get) else None, spans0)
 
@@ -128,8 +128,8 @@ object Document
       val commands1 = Library.timeit("edit_text") { edit_text(edits, commands0) }
       val commands2 = Library.timeit("parse_spans") { parse_spans(commands1) }
 
-      val removed_commands = commands0.elements.filter(!commands2.contains(_)).toList
-      val inserted_commands = commands2.elements.filter(!commands0.contains(_)).toList
+      val removed_commands = commands0.iterator.filter(!commands2.contains(_)).toList
+      val inserted_commands = commands2.iterator.filter(!commands0.contains(_)).toList
 
       val doc_edits =
         removed_commands.reverse.map(cmd => (commands0.prev(cmd), None)) :::
