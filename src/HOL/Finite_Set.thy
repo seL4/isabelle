@@ -616,124 +616,55 @@ by (induct set: finite) auto
 
 subsubsection{*From @{const fold_graph} to @{term fold}*}
 
-lemma image_less_Suc: "h ` {i. i < Suc m} = insert (h m) (h ` {i. i < m})"
-  by (auto simp add: less_Suc_eq) 
-
-lemma insert_image_inj_on_eq:
-     "[|insert (h m) A = h ` {i. i < Suc m}; h m \<notin> A; 
-        inj_on h {i. i < Suc m}|] 
-      ==> A = h ` {i. i < m}"
-apply (auto simp add: image_less_Suc inj_on_def)
-apply (blast intro: less_trans) 
-done
-
-lemma insert_inj_onE:
-  assumes aA: "insert a A = h`{i::nat. i<n}" and anot: "a \<notin> A" 
-      and inj_on: "inj_on h {i::nat. i<n}"
-  shows "\<exists>hm m. inj_on hm {i::nat. i<m} & A = hm ` {i. i<m} & m < n"
-proof (cases n)
-  case 0 thus ?thesis using aA by auto
-next
-  case (Suc m)
-  have nSuc: "n = Suc m" by fact
-  have mlessn: "m<n" by (simp add: nSuc)
-  from aA obtain k where hkeq: "h k = a" and klessn: "k<n" by (blast elim!: equalityE)
-  let ?hm = "Fun.swap k m h"
-  have inj_hm: "inj_on ?hm {i. i < n}" using klessn mlessn 
-    by (simp add: inj_on)
-  show ?thesis
-  proof (intro exI conjI)
-    show "inj_on ?hm {i. i < m}" using inj_hm
-      by (auto simp add: nSuc less_Suc_eq intro: subset_inj_on)
-    show "m<n" by (rule mlessn)
-    show "A = ?hm ` {i. i < m}" 
-    proof (rule insert_image_inj_on_eq)
-      show "inj_on (Fun.swap k m h) {i. i < Suc m}" using inj_hm nSuc by simp
-      show "?hm m \<notin> A" by (simp add: swap_def hkeq anot) 
-      show "insert (?hm m) A = ?hm ` {i. i < Suc m}"
-        using aA hkeq nSuc klessn
-        by (auto simp add: swap_def image_less_Suc fun_upd_image 
-                           less_Suc_eq inj_on_image_set_diff [OF inj_on])
-    qed
-  qed
-qed
-
 context fun_left_comm
 begin
 
-lemma fold_graph_determ_aux:
-  "A = h`{i::nat. i<n} \<Longrightarrow> inj_on h {i. i<n}
-   \<Longrightarrow> fold_graph f z A x \<Longrightarrow> fold_graph f z A x'
-   \<Longrightarrow> x' = x"
-proof (induct n arbitrary: A x x' h rule: less_induct)
-  case (less n)
-  have IH: "\<And>m h A x x'. m < n \<Longrightarrow> A = h ` {i. i<m}
-      \<Longrightarrow> inj_on h {i. i<m} \<Longrightarrow> fold_graph f z A x
-      \<Longrightarrow> fold_graph f z A x' \<Longrightarrow> x' = x" by fact
-  have Afoldx: "fold_graph f z A x" and Afoldx': "fold_graph f z A x'"
-    and A: "A = h`{i. i<n}" and injh: "inj_on h {i. i<n}" by fact+
-  show ?case
-  proof (rule fold_graph.cases [OF Afoldx])
-    assume "A = {}" and "x = z"
-    with Afoldx' show "x' = x" by auto
+lemma fold_graph_insertE_aux:
+  "fold_graph f z A y \<Longrightarrow> a \<in> A \<Longrightarrow> \<exists>y'. y = f a y' \<and> fold_graph f z (A - {a}) y'"
+proof (induct set: fold_graph)
+  case (insertI x A y) show ?case
+  proof (cases "x = a")
+    assume "x = a" with insertI show ?case by auto
   next
-    fix B b u
-    assume AbB: "A = insert b B" and x: "x = f b u"
-      and notinB: "b \<notin> B" and Bu: "fold_graph f z B u"
-    show "x'=x" 
-    proof (rule fold_graph.cases [OF Afoldx'])
-      assume "A = {}" and "x' = z"
-      with AbB show "x' = x" by blast
-    next
-      fix C c v
-      assume AcC: "A = insert c C" and x': "x' = f c v"
-        and notinC: "c \<notin> C" and Cv: "fold_graph f z C v"
-      from A AbB have Beq: "insert b B = h`{i. i<n}" by simp
-      from insert_inj_onE [OF Beq notinB injh]
-      obtain hB mB where inj_onB: "inj_on hB {i. i < mB}" 
-        and Beq: "B = hB ` {i. i < mB}" and lessB: "mB < n" by auto 
-      from A AcC have Ceq: "insert c C = h`{i. i<n}" by simp
-      from insert_inj_onE [OF Ceq notinC injh]
-      obtain hC mC where inj_onC: "inj_on hC {i. i < mC}"
-        and Ceq: "C = hC ` {i. i < mC}" and lessC: "mC < n" by auto 
-      show "x'=x"
-      proof cases
-        assume "b=c"
-        then moreover have "B = C" using AbB AcC notinB notinC by auto
-        ultimately show ?thesis  using Bu Cv x x' IH [OF lessC Ceq inj_onC]
-          by auto
-      next
-        assume diff: "b \<noteq> c"
-        let ?D = "B - {c}"
-        have B: "B = insert c ?D" and C: "C = insert b ?D"
-          using AbB AcC notinB notinC diff by(blast elim!:equalityE)+
-        have "finite A" by(rule fold_graph_imp_finite [OF Afoldx])
-        with AbB have "finite ?D" by simp
-        then obtain d where Dfoldd: "fold_graph f z ?D d"
-          using finite_imp_fold_graph by iprover
-        moreover have cinB: "c \<in> B" using B by auto
-        ultimately have "fold_graph f z B (f c d)" by(rule Diff1_fold_graph)
-        hence "f c d = u" by (rule IH [OF lessB Beq inj_onB Bu]) 
-        moreover have "f b d = v"
-        proof (rule IH[OF lessC Ceq inj_onC Cv])
-          show "fold_graph f z C (f b d)" using C notinB Dfoldd by fastsimp
-        qed
-        ultimately show ?thesis
-          using fun_left_comm [of c b] x x' by (auto simp add: o_def)
-      qed
-    qed
+    assume "x \<noteq> a"
+    then obtain y' where y: "y = f a y'" and y': "fold_graph f z (A - {a}) y'"
+      using insertI by auto
+    have 1: "f x y = f a (f x y')"
+      unfolding y by (rule fun_left_comm)
+    have 2: "fold_graph f z (insert x A - {a}) (f x y')"
+      using y' and `x \<noteq> a` and `x \<notin> A`
+      by (simp add: insert_Diff_if fold_graph.insertI)
+    from 1 2 show ?case by fast
   qed
-qed
+qed simp
+
+lemma fold_graph_insertE:
+  assumes "fold_graph f z (insert x A) v" and "x \<notin> A"
+  obtains y where "v = f x y" and "fold_graph f z A y"
+using assms by (auto dest: fold_graph_insertE_aux [OF _ insertI1])
 
 lemma fold_graph_determ:
   "fold_graph f z A x \<Longrightarrow> fold_graph f z A y \<Longrightarrow> y = x"
-apply (frule fold_graph_imp_finite [THEN finite_imp_nat_seg_image_inj_on]) 
-apply (blast intro: fold_graph_determ_aux [rule_format])
-done
+proof (induct arbitrary: y set: fold_graph)
+  case (insertI x A y v)
+  from `fold_graph f z (insert x A) v` and `x \<notin> A`
+  obtain y' where "v = f x y'" and "fold_graph f z A y'"
+    by (rule fold_graph_insertE)
+  from `fold_graph f z A y'` have "y' = y" by (rule insertI)
+  with `v = f x y'` show "v = f x y" by simp
+qed fast
 
 lemma fold_equality:
   "fold_graph f z A y \<Longrightarrow> fold f z A = y"
 by (unfold fold_def) (blast intro: fold_graph_determ)
+
+lemma fold_graph_fold: "finite A \<Longrightarrow> fold_graph f z A (fold f z A)"
+unfolding fold_def
+apply (rule theI')
+apply (rule ex_ex1I)
+apply (erule finite_imp_fold_graph)
+apply (erule (1) fold_graph_determ)
+done
 
 text{* The base case for @{text fold}: *}
 
@@ -742,21 +673,11 @@ by (unfold fold_def) blast
 
 text{* The various recursion equations for @{const fold}: *}
 
-lemma fold_insert_aux: "x \<notin> A
-  \<Longrightarrow> fold_graph f z (insert x A) v \<longleftrightarrow>
-      (\<exists>y. fold_graph f z A y \<and> v = f x y)"
-apply auto
-apply (rule_tac A1 = A and f1 = f in finite_imp_fold_graph [THEN exE])
- apply (fastsimp dest: fold_graph_imp_finite)
-apply (blast intro: fold_graph_determ)
-done
-
 lemma fold_insert [simp]:
   "finite A ==> x \<notin> A ==> fold f z (insert x A) = f x (fold f z A)"
-apply (simp add: fold_def fold_insert_aux)
-apply (rule the_equality)
- apply (auto intro: finite_imp_fold_graph
-        cong add: conj_cong simp add: fold_def[symmetric] fold_equality)
+apply (rule fold_equality)
+apply (erule fold_graph.insertI)
+apply (erule fold_graph_fold)
 done
 
 lemma fold_fun_comm:
@@ -1185,7 +1106,7 @@ proof -
   interpret fun_left_comm "op *::'a \<Rightarrow> 'a \<Rightarrow> 'a" by (rule fun_left_comm)
 from assms show ?thesis
 proof (induct rule: fold_graph.induct)
-  case emptyI thus ?case by (force simp add: fold_insert_aux mult_commute)
+  case emptyI show ?case by (subst mult_commute [of z b], fast)
 next
   case (insertI x A y)
     have "fold_graph times z (insert x (insert b A)) (x * (z * y))"
