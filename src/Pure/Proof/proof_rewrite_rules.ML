@@ -179,7 +179,7 @@ fun rew b _ =
           (PAxm ("Pure.reflexive", _, _) % _)) =
         let val (U, V) = (case T of
           Type (_, [U, V]) => (U, V) | _ => (dummyT, dummyT))
-        in SOME (prf %% (ax combination_axm [V, U] %> eq % ?? eq % ?? t % ?? t %%
+        in SOME (prf %% (ax combination_axm [U, V] %> eq % ?? eq % ?? t % ?? t %%
           (ax reflexive_axm [T] % ?? eq) %% (ax reflexive_axm [U] % ?? t)))
         end
 
@@ -229,7 +229,7 @@ fun insert_refl defs Ts (prf1 %% prf2) =
           if member (op =) defs s then
             let
               val vs = vars_of prop;
-              val tvars = OldTerm.term_tvars prop;
+              val tvars = Term.add_tvars prop [] |> rev;
               val (_, rhs) = Logic.dest_equals prop;
               val rhs' = Term.betapplys (subst_TVars (map fst tvars ~~ Ts)
                 (fold_rev (fn x => fn b => Abs ("", dummyT, abstract_over (x, b))) vs rhs),
