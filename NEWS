@@ -96,6 +96,10 @@ constructors involved (in contrast to the raw 'syntax' versions).
 without introducing dependencies on parameters or assumptions, which
 is not possible in Isabelle/Pure.
 
+* Proof terms: Type substitutions on proof constants now use canonical
+order of type variables. INCOMPATIBILITY: Tools working with proof
+terms may need to be adapted.
+
 
 *** HOL ***
 
