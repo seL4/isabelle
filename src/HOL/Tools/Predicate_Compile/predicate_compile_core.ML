@@ -6,50 +6,39 @@ A compiler from predicates specified by intro/elim rules to equations.
 
 signature PREDICATE_COMPILE_CORE =
 sig
+  type mode = Predicate_Compile_Aux.mode
+  type options = Predicate_Compile_Aux.options
+  type compilation = Predicate_Compile_Aux.compilation
+  type compilation_funs = Predicate_Compile_Aux.compilation_funs
+  
   val setup : theory -> theory
-  val code_pred : Predicate_Compile_Aux.options -> string -> Proof.context -> Proof.state
-  val code_pred_cmd : Predicate_Compile_Aux.options -> string -> Proof.context -> Proof.state
-  val values_cmd : string list -> Predicate_Compile_Aux.mode option list option
-    -> ((string option * bool) * (Predicate_Compile_Aux.compilation * int list))
-    -> int -> string -> Toplevel.state -> unit
+  val code_pred : options -> string -> Proof.context -> Proof.state
+  val code_pred_cmd : options -> string -> Proof.context -> Proof.state
+  val values_cmd : string list -> mode option list option
+    -> ((string option * bool) * (compilation * int list)) -> int -> string -> Toplevel.state -> unit
   val register_predicate : (string * thm list * thm) -> theory -> theory
   val register_intros : string * thm list -> theory -> theory
   val is_registered : theory -> string -> bool
-  val function_name_of : Predicate_Compile_Aux.compilation -> theory
-    -> string -> Predicate_Compile_Aux.mode -> string
-  val predfun_intro_of: Proof.context -> string -> Predicate_Compile_Aux.mode -> thm
-  val predfun_elim_of: Proof.context -> string -> Predicate_Compile_Aux.mode -> thm
+  val function_name_of : compilation -> theory -> string -> mode -> string
+  val predfun_intro_of: Proof.context -> string -> mode -> thm
+  val predfun_elim_of: Proof.context -> string -> mode -> thm
   val all_preds_of : theory -> string list
-  val modes_of: Predicate_Compile_Aux.compilation
-    -> theory -> string -> Predicate_Compile_Aux.mode list
-  val all_modes_of : Predicate_Compile_Aux.compilation
-    -> theory -> (string * Predicate_Compile_Aux.mode list) list
-  val all_random_modes_of : theory -> (string * Predicate_Compile_Aux.mode list) list
+  val modes_of: compilation -> theory -> string -> mode list
+  val all_modes_of : compilation -> theory -> (string * mode list) list
+  val all_random_modes_of : theory -> (string * mode list) list
   val intros_of : theory -> string -> thm list
   val add_intro : thm -> theory -> theory
   val set_elim : thm -> theory -> theory
-  datatype compilation_funs = CompilationFuns of {
-    mk_predT : typ -> typ,
-    dest_predT : typ -> typ,
-    mk_bot : typ -> term,
-    mk_single : term -> term,
-    mk_bind : term * term -> term,
-    mk_sup : term * term -> term,
-    mk_if : term -> term,
-    mk_not : term -> term,
-    mk_map : typ -> typ -> term -> term -> term
-  };
-  val register_alternative_function : string -> Predicate_Compile_Aux.mode -> string -> theory -> theory
-  val alternative_compilation_of : theory -> string -> Predicate_Compile_Aux.mode ->
+  val register_alternative_function : string -> mode -> string -> theory -> theory
+  val alternative_compilation_of : theory -> string -> mode ->
     (compilation_funs -> typ -> term) option
-  val functional_compilation : string -> Predicate_Compile_Aux.mode -> compilation_funs -> typ -> term
-  val force_modes_and_functions : string ->
-    (Predicate_Compile_Aux.mode * (string * bool)) list -> theory -> theory
+  val functional_compilation : string -> mode -> compilation_funs -> typ -> term
+  val force_modes_and_functions : string -> (mode * (string * bool)) list -> theory -> theory
   val force_modes_and_compilations : string ->
-    (Predicate_Compile_Aux.mode * ((compilation_funs -> typ -> term) * bool)) list -> theory -> theory
+    (mode * ((compilation_funs -> typ -> term) * bool)) list -> theory -> theory
   val preprocess_intro : theory -> thm -> thm
   val print_stored_rules : theory -> unit
-  val print_all_modes : Predicate_Compile_Aux.compilation -> theory -> unit
+  val print_all_modes : compilation -> theory -> unit
   val mk_casesrule : Proof.context -> term -> thm list -> term
   val eval_ref : (unit -> term Predicate.pred) option Unsynchronized.ref
   val random_eval_ref : (unit -> int * int -> term Predicate.pred * (int * int))
@@ -66,10 +55,10 @@ sig
   val code_pred_intro_attrib : attribute
   (* used by Quickcheck_Generator *) 
   (* temporary for testing of the compilation *)
-  val add_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
-  val add_depth_limited_random_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
-  val add_random_dseq_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
-  val add_new_random_dseq_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
+  val add_equations : options -> string list -> theory -> theory
+  val add_depth_limited_random_equations : options -> string list -> theory -> theory
+  val add_random_dseq_equations : options -> string list -> theory -> theory
+  val add_new_random_dseq_equations : options -> string list -> theory -> theory
   val mk_tracing : string -> term -> term
 end;
 
