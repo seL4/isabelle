@@ -7,12 +7,12 @@ Entry point for the predicate compiler; definition of Toplevel commands code_pre
 signature PREDICATE_COMPILE =
 sig
   val setup : theory -> theory
-  val preprocess : Predicate_Compile_Aux.options -> string -> theory -> theory
+  val preprocess : Predicate_Compile_Aux.options -> term -> theory -> theory
   val present_graph : bool Unsynchronized.ref
   val intro_hook : (theory -> thm -> unit) option Unsynchronized.ref
 end;
 
-structure Predicate_Compile (*: PREDICATE_COMPILE*) =
+structure Predicate_Compile : PREDICATE_COMPILE =
 struct
 
 val present_graph = Unsynchronized.ref false
