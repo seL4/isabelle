@@ -4,9 +4,138 @@
 Auxilary functions for predicate compiler.
 *)
 
-(* FIXME proper signature! *)
+signature PREDICATE_COMPILE_AUX =
+sig
+  (* general functions *)
+  val apfst3 : ('a -> 'd) -> 'a * 'b * 'c -> 'd * 'b * 'c
+  val apsnd3 : ('b -> 'd) -> 'a * 'b * 'c -> 'a * 'd * 'c
+  val aptrd3 : ('c -> 'd) -> 'a * 'b * 'c -> 'a * 'b * 'd
+  val find_indices : ('a -> bool) -> 'a list -> int list
+  val assert : bool -> unit
+  (* mode *)
+  datatype mode = Bool | Input | Output | Pair of mode * mode | Fun of mode * mode
+  val eq_mode : mode * mode -> bool
+  val list_fun_mode : mode list -> mode
+  val strip_fun_mode : mode -> mode list
+  val dest_fun_mode : mode -> mode list
+  val dest_tuple_mode : mode -> mode list
+  val all_modes_of_typ : typ -> mode list
+  val all_smodes_of_typ : typ -> mode list
+  val fold_map_aterms_prodT : ('a -> 'a -> 'a) -> (typ -> 'b -> 'a * 'b) -> typ -> 'b -> 'a * 'b
+  val map_filter_prod : (term -> term option) -> term -> term option
+  val replace_ho_args : mode -> term list -> term list -> term list
+  val ho_arg_modes_of : mode -> mode list
+  val ho_argsT_of : mode -> typ list -> typ list
+  val ho_args_of : mode -> term list -> term list
+  val split_map_mode : (mode -> term -> term option * term option)
+    -> mode -> term list -> term list * term list
+  val split_map_modeT : (mode -> typ -> typ option * typ option)
+    -> mode -> typ list -> typ list * typ list
+  val split_mode : mode -> term list -> term list * term list
+  val split_modeT' : mode -> typ list -> typ list * typ list
+  val string_of_mode : mode -> string
+  val ascii_string_of_mode : mode -> string
+  (* premises *)
+  datatype indprem = Prem of term | Negprem of term | Sidecond of term
+    | Generator of (string * typ)
+  (* general syntactic functions *)
+  val conjuncts : term -> term list
+  val is_equationlike : thm -> bool
+  val is_pred_equation : thm -> bool
+  val is_intro : string -> thm -> bool
+  val is_predT : typ -> bool
+  val is_constrt : theory -> term -> bool
+  val is_constr : Proof.context -> string -> bool
+  val focus_ex : term -> Name.context -> ((string * typ) list * term) * Name.context
+  val strip_all : term -> (string * typ) list * term
+  (* introduction rule combinators *)
+  val map_atoms : (term -> term) -> term -> term
+  val fold_atoms : (term -> 'a -> 'a) -> term -> 'a -> 'a
+  val fold_map_atoms : (term -> 'a -> term * 'a) -> term -> 'a -> term * 'a
+  val maps_premises : (term -> term list) -> term -> term
+  val map_concl : (term -> term) -> term -> term
+  val map_term : theory -> (term -> term) -> thm -> thm
+  (* split theorems of case expressions *)
+  val prepare_split_thm : Proof.context -> thm -> thm
+  val find_split_thm : theory -> term -> thm option
+  (* datastructures and setup for generic compilation *)
+  datatype compilation_funs = CompilationFuns of {
+    mk_predT : typ -> typ,
+    dest_predT : typ -> typ,
+    mk_bot : typ -> term,
+    mk_single : term -> term,
+    mk_bind : term * term -> term,
+    mk_sup : term * term -> term,
+    mk_if : term -> term,
+    mk_not : term -> term,
+    mk_map : typ -> typ -> term -> term -> term
+  };
+  val mk_predT : compilation_funs -> typ -> typ
+  val dest_predT : compilation_funs -> typ -> typ
+  val mk_bot : compilation_funs -> typ -> term
+  val mk_single : compilation_funs -> term -> term
+  val mk_bind : compilation_funs -> term * term -> term
+  val mk_sup : compilation_funs -> term * term -> term
+  val mk_if : compilation_funs -> term -> term
+  val mk_not : compilation_funs -> term -> term
+  val mk_map : compilation_funs -> typ -> typ -> term -> term -> term
+  val funT_of : compilation_funs -> mode -> typ -> typ
+  (* Different compilations *)
+  datatype compilation = Pred | Depth_Limited | Random | Depth_Limited_Random | DSeq | Annotated
+    | Pos_Random_DSeq | Neg_Random_DSeq | New_Pos_Random_DSeq | New_Neg_Random_DSeq
+  val negative_compilation_of : compilation -> compilation
+  val compilation_for_polarity : bool -> compilation -> compilation
+  val string_of_compilation : compilation -> string
+  val compilation_names : (string * compilation) list
+  val non_random_compilations : compilation list
+  val random_compilations : compilation list
+  (* Different options for compiler *)
+  datatype options = Options of {  
+    expected_modes : (string * mode list) option,
+    proposed_modes : (string * mode list) option,
+    proposed_names : ((string * mode) * string) list,
+    show_steps : bool,
+    show_proof_trace : bool,
+    show_intermediate_results : bool,
+    show_mode_inference : bool,
+    show_modes : bool,
+    show_compilation : bool,
+    show_caught_failures : bool,
+    skip_proof : bool,
+    no_topmost_reordering : bool,
+    function_flattening : bool,
+    fail_safe_function_flattening : bool,
+    no_higher_order_predicate : string list,
+    inductify : bool,
+    compilation : compilation
+  };
+  val expected_modes : options -> (string * mode list) option
+  val proposed_modes : options -> (string * mode list) option
+  val proposed_names : options -> string -> mode -> string option
+  val show_steps : options -> bool
+  val show_proof_trace : options -> bool
+  val show_intermediate_results : options -> bool
+  val show_mode_inference : options -> bool
+  val show_modes : options -> bool
+  val show_compilation : options -> bool
+  val show_caught_failures : options -> bool
+  val skip_proof : options -> bool
+  val no_topmost_reordering : options -> bool
+  val function_flattening : options -> bool
+  val fail_safe_function_flattening : options -> bool
+  val no_higher_order_predicate : options -> string list
+  val is_inductify : options -> bool
+  val compilation : options -> compilation
+  val default_options : options
+  val bool_options : string list
+  val print_step : options -> string -> unit
+  (* simple transformations *)
+  val expand_tuples : theory -> thm -> thm
+  val eta_contract_ho_arguments : theory -> thm -> thm
+  val remove_equalities : theory -> thm -> thm
+end;
 
-structure Predicate_Compile_Aux =
+structure Predicate_Compile_Aux : PREDICATE_COMPILE_AUX =
 struct
 
 (* general functions *)
@@ -54,12 +183,12 @@ fun strip_fun_mode (Fun (mode, mode')) = mode :: strip_fun_mode mode'
   | strip_fun_mode Bool = []
   | strip_fun_mode _ = raise Fail "Bad mode for strip_fun_mode"
 
+(* name: strip_fun_mode? *)
 fun dest_fun_mode (Fun (mode, mode')) = mode :: dest_fun_mode mode'
   | dest_fun_mode mode = [mode]
 
 fun dest_tuple_mode (Pair (mode, mode')) = mode :: dest_tuple_mode mode'
   | dest_tuple_mode _ = []
-
 
 fun all_modes_of_typ' (T as Type ("fun", _)) = 
   let
@@ -98,7 +227,7 @@ fun all_smodes_of_typ (T as Type ("fun", _)) =
     if U = HOLogic.boolT then
       fold_rev (fn m1 => fn m2 => map_product (curry Fun) m1 m2) (map all_smodes S) [Bool]
     else
-      raise Fail "all_smodes_of_typ: invalid type for predicate"
+      raise Fail "invalid type for predicate"
   end
 
 fun ho_arg_modes_of mode =
@@ -113,7 +242,7 @@ fun ho_arg_modes_of mode =
 fun ho_args_of mode ts =
   let
     fun ho_arg (Fun _) (SOME t) = [t]
-      | ho_arg (Fun _) NONE = error "ho_arg_of"
+      | ho_arg (Fun _) NONE = raise Fail "mode and term do not match"
       | ho_arg (Pair (m1, m2)) (SOME (Const (@{const_name Pair}, _) $ t1 $ t2)) =
           ho_arg m1 (SOME t1) @ ho_arg m2 (SOME t2)
       | ho_arg (Pair (m1, m2)) NONE = ho_arg m1 NONE @ ho_arg m2 NONE
@@ -331,6 +460,8 @@ fun is_constructor thy t =
 
 val is_constr = Code.is_constr o ProofContext.theory_of;
 
+fun strip_all t = (Term.strip_all_vars t, Term.strip_all_body t)
+
 fun strip_ex (Const ("Ex", _) $ Abs (x, T, t)) =
   let
     val (xTs, t') = strip_ex t
@@ -349,8 +480,6 @@ fun focus_ex t nctxt =
   in ((ps', t''), nctxt') end;
 
 (* introduction rule combinators *)
-
-(* combinators to apply a function to all literals of an introduction rules *)
 
 fun map_atoms f intro = 
   let
@@ -411,9 +540,6 @@ fun prepare_split_thm ctxt split_thm =
 
 fun find_split_thm thy (Const (name, T)) = Option.map #split (Datatype_Data.info_of_case thy name)
   | find_split_thm thy _ = NONE
-
-fun strip_all t = (Term.strip_all_vars t, Term.strip_all_body t)
-
 
 (* lifting term operations to theorems *)
 
@@ -576,7 +702,9 @@ val bool_options = ["show_steps", "show_intermediate_results", "show_proof_trace
 fun print_step options s =
   if show_steps options then tracing s else ()
 
-(* tuple processing *)
+(* simple transformations *)
+
+(** tuple processing **)
 
 fun expand_tuples thy intro =
   let
@@ -631,7 +759,7 @@ fun expand_tuples thy intro =
     intro'''''
   end
 
-(* eta contract higher-order arguments *)
+(** eta contract higher-order arguments **)
 
 fun eta_contract_ho_arguments thy intro =
   let
@@ -640,7 +768,7 @@ fun eta_contract_ho_arguments thy intro =
     map_term thy (map_concl f o map_atoms f) intro
   end
 
-(* remove equalities *)
+(** remove equalities **)
 
 fun remove_equalities thy intro =
   let
