@@ -469,10 +469,41 @@ val non_random_compilations = [Pred, Depth_Limited, DSeq, Annotated]
 val random_compilations = [Random, Depth_Limited_Random,
   Pos_Random_DSeq, Neg_Random_DSeq, New_Pos_Random_DSeq, New_Neg_Random_DSeq]
 
-(* Different options for compiler *)
+(* datastructures and setup for generic compilation *)
 
-(*datatype compilation_options =
-  Pred | Random of int | Depth_Limited of int | DSeq of int | Annotated*)
+datatype compilation_funs = CompilationFuns of {
+  mk_predT : typ -> typ,
+  dest_predT : typ -> typ,
+  mk_bot : typ -> term,
+  mk_single : term -> term,
+  mk_bind : term * term -> term,
+  mk_sup : term * term -> term,
+  mk_if : term -> term,
+  mk_not : term -> term,
+  mk_map : typ -> typ -> term -> term -> term
+};
+
+fun mk_predT (CompilationFuns funs) = #mk_predT funs
+fun dest_predT (CompilationFuns funs) = #dest_predT funs
+fun mk_bot (CompilationFuns funs) = #mk_bot funs
+fun mk_single (CompilationFuns funs) = #mk_single funs
+fun mk_bind (CompilationFuns funs) = #mk_bind funs
+fun mk_sup (CompilationFuns funs) = #mk_sup funs
+fun mk_if (CompilationFuns funs) = #mk_if funs
+fun mk_not (CompilationFuns funs) = #mk_not funs
+fun mk_map (CompilationFuns funs) = #mk_map funs
+
+(** function types and names of different compilations **)
+
+fun funT_of compfuns mode T =
+  let
+    val Ts = binder_types T
+    val (inTs, outTs) = split_map_modeT (fn m => fn T => (SOME (funT_of compfuns m T), NONE)) mode Ts
+  in
+    inTs ---> (mk_predT compfuns (HOLogic.mk_tupleT outTs))
+  end;
+
+(* Different options for compiler *)
 
 datatype options = Options of {  
   expected_modes : (string * mode list) option,

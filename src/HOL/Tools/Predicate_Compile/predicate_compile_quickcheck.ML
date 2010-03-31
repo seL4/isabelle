@@ -142,19 +142,17 @@ fun get_options () =
     (set_function_flattening (!function_flattening)
       (if !debug then debug_options else options))
 
-fun dest_compfuns (Predicate_Compile_Core.CompilationFuns funs) = funs
-val mk_predT = #mk_predT (dest_compfuns Predicate_Compile_Core.pred_compfuns)
-val mk_return' = #mk_single (dest_compfuns Predicate_Compile_Core.pred_compfuns)
-val mk_bind' = #mk_bind (dest_compfuns Predicate_Compile_Core.pred_compfuns)
+val mk_predT = Predicate_Compile_Aux.mk_predT PredicateCompFuns.compfuns
+val mk_return' = Predicate_Compile_Aux.mk_single PredicateCompFuns.compfuns
+val mk_bind' = Predicate_Compile_Aux.mk_bind PredicateCompFuns.compfuns
 
-val mk_randompredT = #mk_predT (dest_compfuns Predicate_Compile_Core.randompred_compfuns)
-val mk_return = #mk_single (dest_compfuns Predicate_Compile_Core.randompred_compfuns)
-val mk_bind = #mk_bind (dest_compfuns Predicate_Compile_Core.randompred_compfuns)
+val mk_randompredT = Predicate_Compile_Aux.mk_predT RandomPredCompFuns.compfuns
+val mk_return = Predicate_Compile_Aux.mk_single RandomPredCompFuns.compfuns
+val mk_bind = Predicate_Compile_Aux.mk_bind RandomPredCompFuns.compfuns
 
-val mk_new_randompredT = #mk_predT (dest_compfuns Predicate_Compile_Core.new_randompred_compfuns)
-val mk_new_return = #mk_single (dest_compfuns Predicate_Compile_Core.new_randompred_compfuns)
-val mk_new_bind = #mk_bind (dest_compfuns Predicate_Compile_Core.new_randompred_compfuns)
-
+val mk_new_randompredT = Predicate_Compile_Aux.mk_predT New_Pos_Random_Sequence_CompFuns.compfuns
+val mk_new_return = Predicate_Compile_Aux.mk_single New_Pos_Random_Sequence_CompFuns.compfuns
+val mk_new_bind = Predicate_Compile_Aux.mk_bind New_Pos_Random_Sequence_CompFuns.compfuns
 
 fun mk_split_lambda [] t = Abs ("u", HOLogic.unitT, t)
   | mk_split_lambda [x] t = lambda x t
