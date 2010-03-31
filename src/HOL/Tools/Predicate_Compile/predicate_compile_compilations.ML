@@ -29,6 +29,11 @@ val mk_sup = HOLogic.mk_binop @{const_name sup};
 fun mk_if cond = Const (@{const_name Predicate.if_pred},
   HOLogic.boolT --> mk_predT HOLogic.unitT) $ cond;
 
+fun mk_iterate_upto T (f, from, to) =
+  list_comb (Const (@{const_name Code_Numeral.iterate_upto},
+      [@{typ code_numeral} --> T, @{typ code_numeral}, @{typ code_numeral}] ---> mk_predT T),
+    [f, from, to])
+
 fun mk_not t =
   let
     val T = mk_predT HOLogic.unitT
@@ -54,8 +59,8 @@ fun mk_map T1 T2 tf tp = Const (@{const_name Predicate.map},
 
 val compfuns = Predicate_Compile_Aux.CompilationFuns
     {mk_predT = mk_predT, dest_predT = dest_predT, mk_bot = mk_bot,
-    mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if, mk_not = mk_not,
-    mk_map = mk_map};
+    mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if,
+    mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map};
 
 end;
 
@@ -90,6 +95,11 @@ val mk_sup = HOLogic.mk_binop @{const_name Quickcheck.union}
 fun mk_if cond = Const (@{const_name Quickcheck.if_randompred},
   HOLogic.boolT --> mk_randompredT HOLogic.unitT) $ cond;
 
+fun mk_iterate_upto T (f, from, to) =
+  list_comb (Const (@{const_name Quickcheck.iterate_upto},
+      [@{typ code_numeral} --> T, @{typ code_numeral}, @{typ code_numeral}] ---> mk_randompredT T),
+    [f, from, to])
+
 fun mk_not t =
   let
     val T = mk_randompredT HOLogic.unitT
@@ -101,7 +111,7 @@ fun mk_map T1 T2 tf tp = Const (@{const_name Quickcheck.map},
 val compfuns = Predicate_Compile_Aux.CompilationFuns
     {mk_predT = mk_randompredT, dest_predT = dest_randompredT,
     mk_bot = mk_bot, mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if,
-    mk_not = mk_not, mk_map = mk_map};
+    mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map};
 
 end;
 
@@ -132,6 +142,8 @@ val mk_sup = HOLogic.mk_binop @{const_name DSequence.union};
 fun mk_if cond = Const (@{const_name DSequence.if_seq},
   HOLogic.boolT --> mk_dseqT HOLogic.unitT) $ cond;
 
+fun mk_iterate_upto T (f, from, to) = raise Fail "No iterate_upto compilation"
+
 fun mk_not t = let val T = mk_dseqT HOLogic.unitT
   in Const (@{const_name DSequence.not_seq}, T --> T) $ t end
 
@@ -141,7 +153,7 @@ fun mk_map T1 T2 tf tp = Const (@{const_name DSequence.map},
 val compfuns = Predicate_Compile_Aux.CompilationFuns
     {mk_predT = mk_dseqT, dest_predT = dest_dseqT,
     mk_bot = mk_bot, mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if,
-    mk_not = mk_not, mk_map = mk_map}
+    mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
 
 end;
 
@@ -176,6 +188,12 @@ val mk_sup = HOLogic.mk_binop @{const_name New_Random_Sequence.pos_union};
 fun mk_if cond = Const (@{const_name New_Random_Sequence.pos_if_random_dseq},
   HOLogic.boolT --> mk_pos_random_dseqT HOLogic.unitT) $ cond;
 
+fun mk_iterate_upto T (f, from, to) =
+  list_comb (Const (@{const_name New_Random_Sequence.pos_iterate_upto},
+      [@{typ code_numeral} --> T, @{typ code_numeral}, @{typ code_numeral}]
+        ---> mk_pos_random_dseqT T),
+    [f, from, to])
+
 fun mk_not t =
   let
     val pT = mk_pos_random_dseqT HOLogic.unitT
@@ -191,7 +209,7 @@ fun mk_map T1 T2 tf tp = Const (@{const_name New_Random_Sequence.pos_map},
 val compfuns = Predicate_Compile_Aux.CompilationFuns
     {mk_predT = mk_pos_random_dseqT, dest_predT = dest_pos_random_dseqT,
     mk_bot = mk_bot, mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if,
-    mk_not = mk_not, mk_map = mk_map}
+    mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
 
 end;
 
@@ -228,6 +246,12 @@ val mk_sup = HOLogic.mk_binop @{const_name New_Random_Sequence.neg_union};
 fun mk_if cond = Const (@{const_name New_Random_Sequence.neg_if_random_dseq},
   HOLogic.boolT --> mk_neg_random_dseqT HOLogic.unitT) $ cond;
 
+fun mk_iterate_upto T (f, from, to) =
+  list_comb (Const (@{const_name New_Random_Sequence.neg_iterate_upto},
+      [@{typ code_numeral} --> T, @{typ code_numeral}, @{typ code_numeral}]
+        ---> mk_neg_random_dseqT T),
+    [f, from, to])
+
 fun mk_not t =
   let
     val nT = mk_neg_random_dseqT HOLogic.unitT
@@ -241,7 +265,7 @@ fun mk_map T1 T2 tf tp = Const (@{const_name New_Random_Sequence.neg_map},
 val compfuns = Predicate_Compile_Aux.CompilationFuns
     {mk_predT = mk_neg_random_dseqT, dest_predT = dest_neg_random_dseqT,
     mk_bot = mk_bot, mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if,
-    mk_not = mk_not, mk_map = mk_map}
+    mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
 
 end;
 
@@ -276,6 +300,8 @@ val mk_sup = HOLogic.mk_binop @{const_name Random_Sequence.union};
 fun mk_if cond = Const (@{const_name Random_Sequence.if_random_dseq},
   HOLogic.boolT --> mk_random_dseqT HOLogic.unitT) $ cond;
 
+fun mk_iterate_upto T (f, from, to) = raise Fail "No iterate_upto compilation"
+
 fun mk_not t =
   let
     val T = mk_random_dseqT HOLogic.unitT
@@ -287,7 +313,7 @@ fun mk_map T1 T2 tf tp = Const (@{const_name Random_Sequence.map},
 val compfuns = Predicate_Compile_Aux.CompilationFuns
     {mk_predT = mk_random_dseqT, dest_predT = dest_random_dseqT,
     mk_bot = mk_bot, mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if,
-    mk_not = mk_not, mk_map = mk_map}
+    mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
 
 end;
 

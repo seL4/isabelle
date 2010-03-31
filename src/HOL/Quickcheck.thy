@@ -187,6 +187,10 @@ definition if_randompred :: "bool \<Rightarrow> unit randompred"
 where
   "if_randompred b = (if b then single () else empty)"
 
+definition iterate_upto :: "(code_numeral => 'a) => code_numeral => code_numeral => 'a randompred"
+where
+  "iterate_upto f n m = Pair (Code_Numeral.iterate_upto f n m)"
+
 definition not_randompred :: "unit randompred \<Rightarrow> unit randompred"
 where
   "not_randompred P = (\<lambda>s. let
@@ -199,9 +203,9 @@ definition Random :: "(Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow
 definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a randompred \<Rightarrow> 'b randompred)"
   where "map f P = bind P (single o f)"
 
-hide (open) fact iter'.simps iter_def empty_def single_def bind_def union_def if_randompred_def not_randompred_def Random_def map_def
+hide (open) fact iter'.simps iter_def empty_def single_def bind_def union_def if_randompred_def iterate_upto_def not_randompred_def Random_def map_def
 hide (open) type randompred
 hide (open) const random collapse beyond random_fun_aux random_fun_lift
-  iter' iter empty single bind union if_randompred not_randompred Random map
+  iter' iter empty single bind union if_randompred iterate_upto not_randompred Random map
 
 end

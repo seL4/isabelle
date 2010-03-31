@@ -67,6 +67,7 @@ sig
     mk_bind : term * term -> term,
     mk_sup : term * term -> term,
     mk_if : term -> term,
+    mk_iterate_upto : typ -> term * term * term -> term,
     mk_not : term -> term,
     mk_map : typ -> typ -> term -> term -> term
   };
@@ -77,6 +78,7 @@ sig
   val mk_bind : compilation_funs -> term * term -> term
   val mk_sup : compilation_funs -> term * term -> term
   val mk_if : compilation_funs -> term -> term
+  val mk_iterate_upto : compilation_funs -> typ -> term * term * term -> term
   val mk_not : compilation_funs -> term -> term
   val mk_map : compilation_funs -> typ -> typ -> term -> term -> term
   val funT_of : compilation_funs -> mode -> typ -> typ
@@ -605,6 +607,7 @@ datatype compilation_funs = CompilationFuns of {
   mk_bind : term * term -> term,
   mk_sup : term * term -> term,
   mk_if : term -> term,
+  mk_iterate_upto : typ -> term * term * term -> term,
   mk_not : term -> term,
   mk_map : typ -> typ -> term -> term -> term
 };
@@ -616,6 +619,7 @@ fun mk_single (CompilationFuns funs) = #mk_single funs
 fun mk_bind (CompilationFuns funs) = #mk_bind funs
 fun mk_sup (CompilationFuns funs) = #mk_sup funs
 fun mk_if (CompilationFuns funs) = #mk_if funs
+fun mk_iterate_upto (CompilationFuns funs) = #mk_iterate_upto funs
 fun mk_not (CompilationFuns funs) = #mk_not funs
 fun mk_map (CompilationFuns funs) = #mk_map funs
 

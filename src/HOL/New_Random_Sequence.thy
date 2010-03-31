@@ -28,6 +28,10 @@ definition pos_if_random_dseq :: "bool => unit pos_random_dseq"
 where
   "pos_if_random_dseq b = (if b then pos_single () else pos_empty)"
 
+definition pos_iterate_upto :: "(code_numeral => 'a) => code_numeral => code_numeral => 'a pos_random_dseq"
+where
+  "pos_iterate_upto f n m = (\<lambda>nrandom size seed. New_DSequence.pos_iterate_upto f n m)"
+
 definition pos_not_random_dseq :: "unit neg_random_dseq => unit pos_random_dseq"
 where
   "pos_not_random_dseq R = (\<lambda>nrandom size seed. New_DSequence.pos_not_seq (R nrandom size seed))"
@@ -66,6 +70,10 @@ definition neg_if_random_dseq :: "bool => unit neg_random_dseq"
 where
   "neg_if_random_dseq b = (if b then neg_single () else neg_empty)"
 
+definition neg_iterate_upto :: "(code_numeral => 'a) => code_numeral => code_numeral => 'a neg_random_dseq"
+where
+  "neg_iterate_upto f n m = (\<lambda>nrandom size seed. New_DSequence.neg_iterate_upto f n m)"
+
 definition neg_not_random_dseq :: "unit pos_random_dseq => unit neg_random_dseq"
 where
   "neg_not_random_dseq R = (\<lambda>nrandom size seed. New_DSequence.neg_not_seq (R nrandom size seed))"
@@ -88,8 +96,9 @@ hide const DSequence.empty DSequence.single DSequence.eval
   DSequence.map
 *)
 
-hide (open) const pos_empty pos_single pos_bind pos_union pos_if_random_dseq pos_not_random_dseq iter Random pos_map
-  neg_empty neg_single neg_bind neg_union neg_if_random_dseq neg_not_random_dseq neg_map
+hide (open) const
+  pos_empty pos_single pos_bind pos_union pos_if_random_dseq pos_iterate_upto pos_not_random_dseq iter Random pos_map
+  neg_empty neg_single neg_bind neg_union neg_if_random_dseq neg_iterate_upto neg_not_random_dseq neg_map
 hide type New_DSequence.pos_dseq New_DSequence.neg_dseq pos_random_dseq neg_random_dseq
 (* FIXME: hide facts *)
 (*hide (open) fact empty_def single_def bind_def union_def if_random_dseq_def not_random_dseq_def Random.simps map_def*)
