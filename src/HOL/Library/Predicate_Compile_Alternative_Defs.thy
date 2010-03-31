@@ -1,5 +1,5 @@
 theory Predicate_Compile_Alternative_Defs
-imports "../Predicate_Compile"
+imports Main
 begin
 
 section {* Common constants *}
@@ -46,15 +46,95 @@ setup {* Predicate_Compile_Data.keep_functions [@{const_name number_of}] *}
 
 setup {* Predicate_Compile_Data.ignore_consts [@{const_name div}, @{const_name mod}, @{const_name times}] *}
 
-subsection {* Inductive definitions for arithmetic on natural numbers *}
+section {* Arithmetic operations *}
 
-inductive plusP
+subsection {* Arithmetic on naturals and integers *}
+
+definition plus_eq_nat :: "nat => nat => nat => bool"
 where
-  "plusP x 0 x"
-|  "plusP x y z ==> plusP x (Suc y) (Suc z)"
+  "plus_eq_nat x y z = (x + y = z)"
 
-setup {* Predicate_Compile_Fun.add_function_predicate_translation
-  (@{term "op + :: nat => nat => nat"}, @{term "plusP"}) *}
+definition minus_eq_nat :: "nat => nat => nat => bool"
+where
+  "minus_eq_nat x y z = (x - y = z)"
+
+definition plus_eq_int :: "int => int => int => bool"
+where
+  "plus_eq_int x y z = (x + y = z)"
+
+definition minus_eq_int :: "int => int => int => bool"
+where
+  "minus_eq_int x y z = (x - y = z)"
+
+definition subtract
+where
+  [code_inline]: "subtract x y = y - x"
+
+setup {*
+let
+  val Fun = Predicate_Compile_Aux.Fun
+  val Input = Predicate_Compile_Aux.Input
+  val Output = Predicate_Compile_Aux.Output
+  val Bool = Predicate_Compile_Aux.Bool
+  val iio = Fun (Input, Fun (Input, Fun (Output, Bool)))
+  val ioi = Fun (Input, Fun (Output, Fun (Input, Bool)))
+  val oii = Fun (Output, Fun (Input, Fun (Input, Bool)))
+  val ooi = Fun (Output, Fun (Output, Fun (Input, Bool)))
+  val plus_nat = Predicate_Compile_Core.functional_compilation @{const_name plus} iio
+  val minus_nat = Predicate_Compile_Core.functional_compilation @{const_name "minus"} iio
+  fun subtract_nat compfuns (_ : typ) =
+    let
+      val T = Predicate_Compile_Aux.mk_predT compfuns @{typ nat}
+    in
+      absdummy (@{typ nat}, absdummy (@{typ nat},
+        Const (@{const_name "If"}, @{typ bool} --> T --> T --> T) $
+          (@{term "op > :: nat => nat => bool"} $ Bound 1 $ Bound 0) $
+          Predicate_Compile_Aux.mk_bot compfuns @{typ nat} $
+          Predicate_Compile_Aux.mk_single compfuns
+          (@{term "op - :: nat => nat => nat"} $ Bound 0 $ Bound 1)))
+    end
+  fun enumerate_addups_nat compfuns (_ : typ) =
+    absdummy (@{typ nat}, Predicate_Compile_Aux.mk_iterate_upto compfuns @{typ "nat * nat"}
+    (absdummy (@{typ code_numeral}, @{term "Pair :: nat => nat => nat * nat"} $
+      (@{term "Code_Numeral.nat_of"} $ Bound 0) $
+      (@{term "op - :: nat => nat => nat"} $ Bound 1 $ (@{term "Code_Numeral.nat_of"} $ Bound 0))),
+      @{term "0 :: code_numeral"}, @{term "Code_Numeral.of_nat"} $ Bound 0))
+  fun enumerate_nats compfuns  (_ : typ) =
+    let
+      val (single_const, _) = strip_comb (Predicate_Compile_Aux.mk_single compfuns @{term "0 :: nat"})
+      val T = Predicate_Compile_Aux.mk_predT compfuns @{typ nat}
+    in
+      absdummy(@{typ nat}, absdummy (@{typ nat},
+        Const (@{const_name If}, @{typ bool} --> T --> T --> T) $
+          (@{term "op = :: nat => nat => bool"} $ Bound 0 $ @{term "0::nat"}) $
+          (Predicate_Compile_Aux.mk_iterate_upto compfuns @{typ nat} (@{term "Code_Numeral.nat_of"},
+            @{term "0::code_numeral"}, @{term "Code_Numeral.of_nat"} $ Bound 1)) $
+            (single_const $ (@{term "op + :: nat => nat => nat"} $ Bound 1 $ Bound 0))))
+    end
+in
+  Predicate_Compile_Core.force_modes_and_compilations @{const_name plus_eq_nat}
+    [(iio, (plus_nat, false)), (oii, (subtract_nat, false)), (ioi, (subtract_nat, false)),
+     (ooi, (enumerate_addups_nat, false))]
+  #> Predicate_Compile_Fun.add_function_predicate_translation
+       (@{term "plus :: nat => nat => nat"}, @{term "plus_eq_nat"})
+  #> Predicate_Compile_Core.force_modes_and_compilations @{const_name minus_eq_nat}
+       [(iio, (minus_nat, false)), (oii, (enumerate_nats, false))]
+  #> Predicate_Compile_Fun.add_function_predicate_translation
+      (@{term "minus :: nat => nat => nat"}, @{term "minus_eq_nat"})
+  #> Predicate_Compile_Core.force_modes_and_functions @{const_name plus_eq_int}
+    [(iio, (@{const_name plus}, false)), (ioi, (@{const_name subtract}, false)),
+     (oii, (@{const_name subtract}, false))]
+  #> Predicate_Compile_Fun.add_function_predicate_translation
+       (@{term "plus :: int => int => int"}, @{term "plus_eq_int"})
+  #> Predicate_Compile_Core.force_modes_and_functions @{const_name minus_eq_int}
+    [(iio, (@{const_name minus}, false)), (oii, (@{const_name plus}, false)),
+     (ioi, (@{const_name minus}, false))]
+  #> Predicate_Compile_Fun.add_function_predicate_translation
+      (@{term "minus :: int => int => int"}, @{term "minus_eq_int"})
+end
+*}
+
+subsection {* Inductive definitions for ordering on naturals *}
 
 inductive less_nat
 where
@@ -88,12 +168,18 @@ apply auto done
 
 section {* Alternative list definitions *}
 
-text {* size simps are not yet added to the Spec_Rules interface. So they are just added manually here! *}
- 
-lemma [code_pred_def]:
-  "length [] = 0"
-  "length (x # xs) = Suc (length xs)"
-by auto
+subsection {* Alternative rules for length *}
+
+definition size_list :: "'a list => nat"
+where "size_list = size"
+
+lemma size_list_simps:
+  "size_list [] = 0"
+  "size_list (x # xs) = Suc (size_list xs)"
+by (auto simp add: size_list_def)
+
+declare size_list_simps[code_pred_def]
+declare size_list_def[symmetric, code_pred_inline]
 
 subsection {* Alternative rules for set *}
 
