@@ -1,5 +1,5 @@
 theory Specialisation_Examples
-imports Main "../ex/Predicate_Compile_Alternative_Defs"
+imports Main Predicate_Compile_Alternative_Defs
 begin
 
 section {* Specialisation Examples *}
