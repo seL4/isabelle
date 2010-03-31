@@ -28,12 +28,15 @@ structure Fun_Pred = Theory_Data
 )
 
 fun lookup thy net t =
-  case Item_Net.retrieve net t of
-    [] => NONE
-  | [(f, p)] =>
+  let
+    val poss_preds = map_filter (fn (f, p) =>
     SOME (Envir.subst_term (Pattern.match thy (f, t) (Vartab.empty, Vartab.empty)) p)
-      handle Pattern.MATCH => NONE
-  | _ => NONE
+    handle Pattern.MATCH => NONE) (Item_Net.retrieve net t)
+  in
+    case poss_preds of
+      [p] => SOME p
+    | _ => NONE
+  end
 
 fun pred_of_function thy name =
   case Item_Net.retrieve (Fun_Pred.get thy) (Const (name, Term.dummyT)) of
