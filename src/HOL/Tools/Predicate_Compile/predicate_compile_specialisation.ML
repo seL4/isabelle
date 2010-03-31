@@ -181,6 +181,7 @@ and find_specialisations black_list specs thy =
                     else
                       (case try (Predicate_Compile_Core.intros_of thy) pred_name of
                         NONE => thy
+                      | SOME [] => thy
                       | SOME intros =>
                           specialise_intros ((map fst specs) @ (pred_name :: black_list))
                             (pred, intros) pats thy)
