@@ -16,7 +16,6 @@ values [expected "{}" random_dseq 1, 1, 1] "{x. False'}"
 
 value "False'"
 
-
 inductive True' :: "bool"
 where
   "True ==> True'"
@@ -841,7 +840,6 @@ thm test_lexord.random_dseq_equation
 values "{x. test_lexord ([1, 2, 3], [1, 2, 5])}"
 (*values [depth_limited 5] "{x. test_lexord ([1, 2, 3], [1, 2, 5])}"*)
 
-declare list.size(3,4)[code_pred_def]
 lemmas [code_pred_def] = lexn_conv lex_conv lenlex_conv
 (*
 code_pred [inductify] lexn .
@@ -888,7 +886,7 @@ next
     by auto
 qed
 
-code_pred [random_dseq inductify] lexn
+code_pred [random_dseq] lexn
 proof -
   fix r n xs ys
   assume 1: "lexn r n (xs, ys)"
@@ -903,13 +901,8 @@ proof -
     apply fastsimp done
 qed
 
-
 values [random_dseq 1, 2, 5] 10 "{(n, xs, ys::int list). lexn (%(x, y). x <= y) n (xs, ys)}"
-thm lenlex_conv
-thm lex_conv
-declare list.size(3,4)[code_pred_def]
-(*code_pred [inductify, show_steps, show_intermediate_results] length .*)
-setup {* Predicate_Compile_Data.ignore_consts [@{const_name Orderings.top_class.top}] *}
+
 code_pred [inductify, skip_proof] lex .
 thm lex.equation
 thm lex_def
@@ -921,8 +914,8 @@ code_pred [random_dseq inductify] lenlex .
 thm lenlex.random_dseq_equation
 
 values [random_dseq 4, 2, 4] 100 "{(xs, ys::int list). lenlex (%(x, y). x <= y) (xs, ys)}"
-thm lists.intros
 
+thm lists.intros
 code_pred [inductify] lists .
 thm lists.equation
 
@@ -965,8 +958,8 @@ code_pred (expected_modes: i => bool) [inductify] is_ord .
 thm is_ord_aux.equation
 thm is_ord.equation
 
-
 subsection {* Definitions about Relations *}
+
 term "converse"
 code_pred (modes:
   (i * i => bool) => i * i => bool,
@@ -1030,12 +1023,12 @@ thm inv_image.equation
 
 subsection {* Inverting list functions *}
 
-(*code_pred [inductify] length .
-code_pred [random inductify] length .
+code_pred [inductify] size_list .
+code_pred [new_random_dseq inductify] size_list .
 thm size_listP.equation
-thm size_listP.random_equation
-*)
-(*values [random] 1 "{xs. size_listP (xs::nat list) (5::nat)}"*)
+thm size_listP.new_random_dseq_equation
+
+values [new_random_dseq 2,3,10] 3 "{xs. size_listP (xs::nat list) (5::nat)}"
 
 code_pred (expected_modes: i => o => bool, o => i => bool, i => i => bool) [inductify, skip_proof] List.concat .
 thm concatP.equation
@@ -1175,6 +1168,8 @@ inductive_set S\<^isub>4 and A\<^isub>4 and B\<^isub>4 where
 
 code_pred (expected_modes: o => bool, i => bool) S\<^isub>4p .
 
+hide const a b
+
 subsection {* Lambda *}
 
 datatype type =
@@ -1274,5 +1269,130 @@ code_pred eval_var .
 thm eval_var.equation
 
 values "{val. eval_var (Add (IrConst 1) (IrConst 2)) (| Env = (\<lambda>x. 0)|) val}"
+
+section {* Function predicate replacement *}
+
+text {*
+If the mode analysis uses the functional mode, we
+replace predicates that resulted from functions again by their functions.
+*}
+
+inductive test_append
+where
+  "List.append xs ys = zs ==> test_append xs ys zs"
+
+code_pred [inductify, skip_proof] test_append .
+thm test_append.equation
+
+text {* If append is not turned into a predicate, then the mode
+  o => o => i => bool could not be inferred. *}
+
+values 4 "{(xs::int list, ys). test_append xs ys [1, 2, 3, 4]}"
+
+text {* If appendP is not reverted back to a function, then mode i => i => o => bool
+  fails after deleting the predicate equation. *}
+
+declare appendP.equation[code del]
+
+values "{xs::int list. test_append [1,2] [3,4] xs}"
+values "{xs::int list. test_append (replicate 1000 1) (replicate 1000 2) xs}"
+values "{xs::int list. test_append (replicate 2000 1) (replicate 2000 2) xs}"
+
+subsection {* Function with tuples *}
+
+fun append'
+where
+  "append' ([], ys) = ys"
+| "append' (x # xs, ys) = x # append' (xs, ys)"
+
+inductive test_append'
+where
+  "append' (xs, ys) = zs ==> test_append' xs ys zs"
+
+code_pred [inductify, skip_proof] test_append' .
+
+thm test_append'.equation
+
+values "{(xs::int list, ys). test_append' xs ys [1, 2, 3, 4]}"
+
+declare append'P.equation[code del]
+
+values "{zs :: int list. test_append' [1,2,3] [4,5] zs}"
+
+section {* Arithmetic examples *}
+
+subsection {* Examples on nat *}
+
+inductive plus_nat_test :: "nat => nat => nat => bool"
+where
+  "x + y = z ==> plus_nat_test x y z"
+
+code_pred [inductify, skip_proof] plus_nat_test .
+code_pred [new_random_dseq inductify] plus_nat_test .
+
+thm plus_nat_test.equation
+thm plus_nat_test.new_random_dseq_equation
+
+values [expected "{9::nat}"] "{z. plus_nat_test 4 5 z}"
+values [expected "{9::nat}"] "{z. plus_nat_test 7 2 z}"
+values [expected "{4::nat}"] "{y. plus_nat_test 5 y 9}"
+values [expected "{}"] "{y. plus_nat_test 9 y 8}"
+values [expected "{6::nat}"] "{y. plus_nat_test 1 y 7}"
+values [expected "{2::nat}"] "{x. plus_nat_test x 7 9}"
+values [expected "{}"] "{x. plus_nat_test x 9 7}"
+values [expected "{(0::nat,0::nat)}"] "{(x, y). plus_nat_test x y 0}"
+values [expected "{(0, Suc 0), (Suc 0, 0)}"] "{(x, y). plus_nat_test x y 1}"
+values [expected "{(0, 5), (4, Suc 0), (3, 2), (2, 3), (Suc 0, 4), (5, 0)}"]
+  "{(x, y). plus_nat_test x y 5}"
+
+inductive minus_nat_test :: "nat => nat => nat => bool"
+where
+  "x - y = z ==> minus_nat_test x y z"
+
+code_pred [inductify, skip_proof] minus_nat_test .
+code_pred [new_random_dseq inductify] minus_nat_test .
+
+thm minus_nat_test.equation
+thm minus_nat_test.new_random_dseq_equation
+
+values [expected "{0::nat}"] "{z. minus_nat_test 4 5 z}"
+values [expected "{5::nat}"] "{z. minus_nat_test 7 2 z}"
+values [expected "{16::nat}"] "{x. minus_nat_test x 7 9}"
+values [expected "{16::nat}"] "{x. minus_nat_test x 9 7}"
+values [expected "{0, Suc 0, 2, 3}"] "{x. minus_nat_test x 3 0}"
+values [expected "{0::nat}"] "{x. minus_nat_test x 0 0}"
+
+subsection {* Examples on int *}
+
+inductive plus_int_test :: "int => int => int => bool"
+where
+  "a + b = c ==> plus_int_test a b c"
+
+code_pred [inductify, skip_proof] plus_int_test .
+code_pred [new_random_dseq inductify] plus_int_test .
+
+thm plus_int_test.equation
+thm plus_int_test.new_random_dseq_equation
+
+values [expected "{1::int}"] "{a. plus_int_test a 6 7}"
+values [expected "{1::int}"] "{b. plus_int_test 6 b 7}"
+values [expected "{11::int}"] "{c. plus_int_test 5 6 c}"
+
+inductive minus_int_test :: "int => int => int => bool"
+where
+  "a - b = c ==> minus_int_test a b c"
+
+code_pred [inductify, skip_proof] minus_int_test .
+code_pred [new_random_dseq inductify] minus_int_test .
+
+thm minus_int_test.equation
+thm minus_int_test.new_random_dseq_equation
+
+values [expected "{4::int}"] "{c. minus_int_test 9 5 c}"
+values [expected "{9::int}"] "{a. minus_int_test a 4 5}"
+values [expected "{- 1::int}"] "{b. minus_int_test 4 b 5}"
+
+
+
 
 end
