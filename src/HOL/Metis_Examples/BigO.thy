@@ -28,7 +28,7 @@ lemma bigo_pos_const: "(EX (c::'a::linordered_idom).
 
 (*** Now various verions with an increasing modulus ***)
 
-declare [[sledgehammer_modulus = 1]]
+sledgehammer_params [modulus = 1]
 
 lemma (*bigo_pos_const:*) "(EX (c::'a::linordered_idom). 
     ALL x. (abs (h x)) <= (c * (abs (f x))))
@@ -97,7 +97,7 @@ show "False"
   by (metis abs_le_iff 5 18 14)
 qed
 
-declare [[sledgehammer_modulus = 2]]
+sledgehammer_params [modulus = 2]
 
 lemma (*bigo_pos_const:*) "(EX (c::'a::linordered_idom). 
     ALL x. (abs (h x)) <= (c * (abs (f x))))
@@ -138,7 +138,7 @@ show "False"
   by (metis 8 abs_ge_zero abs_mult_pos abs_mult 1 9 3 abs_le_iff)
 qed
 
-declare [[sledgehammer_modulus = 3]]
+sledgehammer_params [modulus = 3]
 
 lemma (*bigo_pos_const:*) "(EX (c::'a::linordered_idom). 
     ALL x. (abs (h x)) <= (c * (abs (f x))))
@@ -170,7 +170,7 @@ show "False"
 qed
 
 
-declare [[sledgehammer_modulus = 1]]
+sledgehammer_params [modulus = 4]
 
 lemma (*bigo_pos_const:*) "(EX (c::'a::linordered_idom). 
     ALL x. (abs (h x)) <= (c * (abs (f x))))
@@ -206,7 +206,7 @@ show "False"
 qed
 
 
-declare [[sledgehammer_sorts = true]]
+sledgehammer_params [sorts]
 
 lemma bigo_alt_def: "O(f) = 
     {h. EX c. (0 < c & (ALL x. abs (h x) <= c * abs (f x)))}"
