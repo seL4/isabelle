@@ -12,11 +12,11 @@ sig
   val num_typargs: theory -> string -> int
   val make_tvar: string -> typ
   val strip_prefix: string -> string -> string option
-  val setup: theory -> theory
   val is_proof_well_formed: string -> bool
+  val metis_line: int -> int -> string list -> string
   val metis_lemma_list: bool -> string ->
     string * string vector * (int * int) * Proof.context * thm * int -> string * string list
-  val structured_isar_proof: string ->
+  val structured_isar_proof: int -> bool -> string ->
     string * string vector * (int * int) * Proof.context * thm * int -> string * string list
 end;
 
@@ -32,14 +32,6 @@ fun trace_proof_msg f =
   if !trace then File.append (File.tmp_path trace_proof_path) (f ()) else ();
 
 fun string_of_thm ctxt = PrintMode.setmp [] (Display.string_of_thm ctxt);
-
-(*For generating structured proofs: keep every nth proof line*)
-val (modulus, modulus_setup) = Attrib.config_int "sledgehammer_modulus" (K 1);
-
-(*Indicates whether to include sort information in generated proofs*)
-val (recon_sorts, recon_sorts_setup) = Attrib.config_bool "sledgehammer_sorts" (K true);
-
-val setup = modulus_setup #> recon_sorts_setup;
 
 (**** PARSING OF TSTP FORMAT ****)
 
@@ -335,10 +327,13 @@ fun permuted_clause t =
 
 (*ctms is a list of conjecture clauses as yielded by Isabelle. Those returned by the
   ATP may have their literals reordered.*)
-fun isar_proof_body ctxt ctms =
+fun isar_proof_body ctxt sorts ctms =
   let
     val _ = trace_proof_msg (K "\n\nisar_proof_body: start\n")
-    val string_of_term = PrintMode.setmp [] (Syntax.string_of_term ctxt)
+    val string_of_term = 
+      PrintMode.setmp (filter (curry (op =) Symbol.xsymbolsN)
+                              (print_mode_value ()))
+                      (Syntax.string_of_term ctxt)
     fun have_or_show "show" _ = "  show \""
       | have_or_show have lname = "  " ^ have ^ " " ^ lname ^ ": \""
     fun do_line _ (lname, t, []) =
@@ -354,7 +349,7 @@ fun isar_proof_body ctxt ctms =
     fun do_lines [(lname, t, deps)] = [do_line "show" (lname, t, deps)]
       | do_lines ((lname, t, deps) :: lines) =
         do_line "have" (lname, t, deps) :: do_lines lines
-  in setmp_CRITICAL show_sorts (Config.get ctxt recon_sorts) do_lines end;
+  in setmp_CRITICAL show_sorts sorts do_lines end;
 
 fun unequal t (_, t', _) = not (t aconv t');
 
@@ -404,13 +399,13 @@ fun bad_free (Free (a,_)) = String.isPrefix skolem_prefix a
   counts the number of proof lines processed so far.
   Deleted lines are replaced by their own dependencies. Note that the "add_nonnull_prfline"
   phase may delete some dependencies, hence this phase comes later.*)
-fun add_wanted_prfline ctxt ((lno, t, []), (nlines, lines)) =
+fun add_wanted_prfline ctxt _ ((lno, t, []), (nlines, lines)) =
       (nlines, (lno, t, []) :: lines)   (*conjecture clauses must be kept*)
-  | add_wanted_prfline ctxt ((lno, t, deps), (nlines, lines)) =
+  | add_wanted_prfline ctxt modulus ((lno, t, deps), (nlines, lines)) =
       if eq_types t orelse not (null (Term.add_tvars t [])) orelse
          exists_subterm bad_free t orelse
          (not (null lines) andalso   (*final line can't be deleted for these reasons*)
-          (length deps < 2 orelse nlines mod (Config.get ctxt modulus) <> 0))
+          (length deps < 2 orelse nlines mod modulus <> 0))
       then (nlines+1, map (replace_deps (lno, deps)) lines) (*Delete line*)
       else (nlines+1, (lno, t, deps) :: lines);
 
@@ -427,12 +422,15 @@ fun stringify_deps thm_names deps_map [] = []
                stringify_deps thm_names ((lno,lname)::deps_map) lines
            end;
 
-val proofstart = "proof (neg_clausify)\n";
+fun isar_proof_start i =
+  (if i = 1 then "" else "prefer " ^ string_of_int i ^ "\n") ^
+  "proof (neg_clausify)\n";
+fun isar_fixes [] = ""
+  | isar_fixes ts = "  fix " ^ space_implode " " ts ^ "\n";
+fun isar_proof_end 1 = "qed"
+  | isar_proof_end _ = "next"
 
-fun isar_header [] = proofstart
-  | isar_header ts = proofstart ^ "fix " ^ space_implode " " ts ^ "\n";
-
-fun isar_proof_from_tstp_file cnfs ctxt th sgno thm_names =
+fun isar_proof_from_tstp_file cnfs modulus sorts ctxt goal i thm_names =
   let
     val _ = trace_proof_msg (K "\nisar_proof_from_tstp_file: start\n")
     val tuples = map (dest_tstp o tstp_line o explode) cnfs
@@ -445,19 +443,23 @@ fun isar_proof_from_tstp_file cnfs ctxt th sgno thm_names =
     val nonnull_lines = List.foldr add_nonnull_prfline [] raw_lines
     val _ = trace_proof_msg (fn () =>
       Int.toString (length nonnull_lines) ^ " nonnull_lines extracted\n")
-    val (_, lines) = List.foldr (add_wanted_prfline ctxt) (0,[]) nonnull_lines
+    val (_, lines) = List.foldr (add_wanted_prfline ctxt modulus) (0,[]) nonnull_lines
     val _ = trace_proof_msg (fn () =>
       Int.toString (length lines) ^ " lines extracted\n")
-    val (ccls, fixes) = neg_conjecture_clauses ctxt th sgno
+    val (ccls, fixes) = neg_conjecture_clauses ctxt goal i
     val _ = trace_proof_msg (fn () =>
       Int.toString (length ccls) ^ " conjecture clauses\n")
     val ccls = map forall_intr_vars ccls
     val _ = app (fn th => trace_proof_msg
                               (fn () => "\nccl: " ^ string_of_thm ctxt th)) ccls
-    val body = isar_proof_body ctxt (map prop_of ccls)
+    val body = isar_proof_body ctxt sorts (map prop_of ccls)
                                (stringify_deps thm_names [] lines)
+    val n = Logic.count_prems (prop_of goal)
     val _ = trace_proof_msg (K "\nisar_proof_from_tstp_file: finishing\n")
-  in isar_header (map #1 fixes) ^ implode body ^ "qed\n" end
+  in
+    isar_proof_start i ^ isar_fixes (map #1 fixes) ^ implode body ^
+    isar_proof_end n ^ "\n"
+  end
   handle STREE _ => error "Could not extract proof (ATP output malformed?)";
 
 
@@ -534,22 +536,30 @@ fun extract_lemmas get_step_nums (proof, thm_names, conj_count, _, _, _) =
 val chained_hint = "CHAINED";
 val kill_chained = filter_out (curry (op =) chained_hint)
 
-(* metis-command *)
-fun metis_line [] = "by metis"
-  | metis_line xs = "by (metis " ^ space_implode " " xs ^ ")"
-
+fun apply_command _ 1 = "by "
+  | apply_command 1 _ = "apply "
+  | apply_command i _ = "prefer " ^ string_of_int i ^ " apply "
+fun metis_command i n [] =
+    apply_command i n ^ "metis"
+  | metis_command i n xs =
+    apply_command i n ^ "(metis " ^ space_implode " " xs ^ ")"
+fun metis_line i n xs =
+  "Try this command: " ^
+  Markup.markup Markup.sendback (metis_command i n xs) ^ ".\n" 
 fun minimize_line _ [] = ""
-  | minimize_line name lemmas =
-      "To minimize the number of lemmas, try this command:\n" ^
+  | minimize_line name xs =
+      "To minimize the number of lemmas, try this command: " ^
       Markup.markup Markup.sendback
                     ("sledgehammer minimize [atps = " ^ name ^ "] (" ^
-                     space_implode " " (kill_chained lemmas) ^ ")") ^ "."
+                     space_implode " " xs ^ ")") ^ ".\n"
 
-fun metis_lemma_list dfg name result =
-  let val (lemmas, used_conj) = extract_lemmas (get_step_nums dfg) result in
-    ("Try this command: " ^
-     Markup.markup Markup.sendback (metis_line (kill_chained lemmas)) ^ ".\n" ^
-     minimize_line name lemmas ^
+fun metis_lemma_list dfg name (result as (_, _, _, _, goal, i)) =
+  let
+    val (lemmas, used_conj) = extract_lemmas (get_step_nums dfg) result
+    val n = Logic.count_prems (prop_of goal)
+    val xs = kill_chained lemmas
+  in
+    (metis_line i n xs ^ minimize_line name xs ^
      (if used_conj then
         ""
       else
@@ -557,10 +567,10 @@ fun metis_lemma_list dfg name result =
      kill_chained lemmas)
   end;
 
-fun structured_isar_proof name (result as (proof, thm_names, conj_count, ctxt,
-                                           goal, subgoalno)) =
+fun structured_isar_proof modulus sorts name
+        (result as (proof, thm_names, conj_count, ctxt, goal, i)) =
   let
-    (* Could use "split_lines", but it can return blank lines *)
+    (* We could use "split_lines", but it can return blank lines. *)
     val lines = String.tokens (equal #"\n");
     val kill_spaces =
       String.translate (fn c => if Char.isSpace c then "" else str c)
@@ -570,13 +580,12 @@ fun structured_isar_proof name (result as (proof, thm_names, conj_count, ctxt,
     val tokens = String.tokens (fn c => c = #" ") one_line_proof
     val isar_proof =
       if member (op =) tokens chained_hint then ""
-      else isar_proof_from_tstp_file cnfs ctxt goal subgoalno thm_names
+      else isar_proof_from_tstp_file cnfs modulus sorts ctxt goal i thm_names
   in
-    (* Hack: The " \n" shouldn't be part of the markup. This is a workaround
-       for a strange ProofGeneral bug, whereby the first two letters of the word
-       "proof" are not highlighted. *)
-    (one_line_proof ^ "\n\nStructured proof:" ^
-     Markup.markup Markup.sendback (" \n" ^ isar_proof), lemma_names)
+    (one_line_proof ^
+     (if isar_proof = "" then ""
+      else "\nStructured proof:\n" ^ Markup.markup Markup.sendback isar_proof),
+     lemma_names)
   end
 
 end;

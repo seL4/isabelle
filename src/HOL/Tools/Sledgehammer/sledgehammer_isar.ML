@@ -40,21 +40,27 @@ type raw_param = string * string list
 val default_default_params =
   [("debug", "false"),
    ("verbose", "false"),
-   ("relevance_threshold", "50"),
-   ("higher_order", "smart"),
    ("respect_no_atp", "true"),
+   ("relevance_threshold", "50"),
+   ("convergence", "320"),
+   ("theory_const", "smart"),
+   ("higher_order", "smart"),
    ("follow_defs", "false"),
    ("isar_proof", "false"),
+   ("modulus", "1"),
+   ("sorts", "false"),
    ("minimize_timeout", "5 s")]
 
 val negated_params =
   [("no_debug", "debug"),
    ("quiet", "verbose"),
-   ("partial_types", "full_types"),
-   ("first_order", "higher_order"),
    ("ignore_no_atp", "respect_no_atp"),
+   ("partial_types", "full_types"),
+   ("no_theory_const", "theory_const"),
+   ("first_order", "higher_order"),
    ("dont_follow_defs", "follow_defs"),
-   ("metis_proof", "isar_proof")]
+   ("metis_proof", "isar_proof"),
+   ("no_sorts", "sorts")]
 
 val property_dependent_params = ["atps", "full_types", "timeout"]
 
@@ -119,26 +125,31 @@ fun extract_params thy default_params override_params =
     val verbose = debug orelse lookup_bool "verbose"
     val atps = lookup_string "atps" |> space_explode " "
     val full_types = lookup_bool "full_types"
+    val respect_no_atp = lookup_bool "respect_no_atp"
     val relevance_threshold =
       0.01 * Real.fromInt (lookup_int "relevance_threshold")
+    val convergence = 0.01 * Real.fromInt (lookup_int "convergence")
+    val theory_const = lookup_bool_option "theory_const"
     val higher_order = lookup_bool_option "higher_order"
-    val respect_no_atp = lookup_bool "respect_no_atp"
     val follow_defs = lookup_bool "follow_defs"
     val isar_proof = lookup_bool "isar_proof"
+    val modulus = Int.max (1, lookup_int "modulus")
+    val sorts = lookup_bool "sorts"
     val timeout = lookup_time "timeout"
     val minimize_timeout = lookup_time "minimize_timeout"
   in
     {debug = debug, verbose = verbose, atps = atps, full_types = full_types,
-     relevance_threshold = relevance_threshold, higher_order = higher_order,
-     respect_no_atp = respect_no_atp, follow_defs = follow_defs,
-     isar_proof = isar_proof, timeout = timeout,
-     minimize_timeout = minimize_timeout}
+     respect_no_atp = respect_no_atp, relevance_threshold = relevance_threshold,
+     convergence = convergence, theory_const = theory_const,
+     higher_order = higher_order, follow_defs = follow_defs,
+     isar_proof = isar_proof, modulus = modulus, sorts = sorts,
+     timeout = timeout, minimize_timeout = minimize_timeout}
   end
 
 fun get_params thy = extract_params thy (default_raw_params thy)
 fun default_params thy = get_params thy o map (apsnd single)
 
-fun atp_minimize_command override_params old_style_args fact_refs state =
+fun atp_minimize_command override_params old_style_args i fact_refs state =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
@@ -170,7 +181,7 @@ fun atp_minimize_command override_params old_style_args fact_refs state =
       | NONE => error ("Unknown ATP: " ^ quote atp))
     val name_thms_pairs = theorems_from_refs ctxt fact_refs
   in
-    writeln (#2 (minimize_theorems params linear_minimize prover atp state
+    writeln (#2 (minimize_theorems params linear_minimize prover atp i state
                                    name_thms_pairs))
   end
 
@@ -196,7 +207,8 @@ fun hammer_away override_params subcommand opt_i relevance_override state =
       sledgehammer (get_params thy override_params) (the_default 1 opt_i)
                    relevance_override state
     else if subcommand = minimizeN then
-      atp_minimize_command override_params [] (#add relevance_override) state
+      atp_minimize_command override_params [] (the_default 1 opt_i)
+                           (#add relevance_override) state
     else if subcommand = messagesN then
       messages opt_i
     else if subcommand = available_atpsN then
@@ -281,7 +293,7 @@ val _ =
     "minimize theorem list with external prover" K.diag
     (parse_minimize_args -- parse_fact_refs >> (fn (args, fact_refs) =>
       Toplevel.no_timing o Toplevel.unknown_proof o
-        Toplevel.keep (atp_minimize_command [] args fact_refs
+        Toplevel.keep (atp_minimize_command [] args 1 fact_refs
                        o Toplevel.proof_of)))
 
 val _ =

@@ -99,7 +99,8 @@ Pure:
 
 $(OUT)/Pure: Pure
 
-BASE_DEPENDENCIES = $(OUT)/Pure \
+BASE_DEPENDENCIES = $(SRC)/HOL/Tools/Sledgehammer/named_thm_set.ML \
+  $(OUT)/Pure \
   $(SRC)/Provers/blast.ML \
   $(SRC)/Provers/clasimp.ML \
   $(SRC)/Provers/classical.ML \
@@ -295,7 +296,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/numeral.ML \
   Tools/numeral_simprocs.ML \
   Tools/numeral_syntax.ML \
-  Tools/polyhash.ML \
   Tools/Predicate_Compile/predicate_compile_aux.ML \
   Tools/Predicate_Compile/predicate_compile_compilations.ML \
   Tools/Predicate_Compile/predicate_compile_core.ML \

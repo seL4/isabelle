@@ -217,6 +217,7 @@ end;
 structure Nitpick_HOL : NITPICK_HOL =
 struct
 
+open Sledgehammer_Util
 open Nitpick_Util
 
 type const_table = term list Symtab.table
@@ -1229,8 +1230,8 @@ fun is_ground_term (t1 $ t2) = is_ground_term t1 andalso is_ground_term t2
   | is_ground_term _ = false
 
 (* term -> word -> word *)
-fun hashw_term (t1 $ t2) = Polyhash.hashw (hashw_term t1, hashw_term t2)
-  | hashw_term (Const (s, _)) = Polyhash.hashw_string (s, 0w0)
+fun hashw_term (t1 $ t2) = hashw (hashw_term t1, hashw_term t2)
+  | hashw_term (Const (s, _)) = hashw_string (s, 0w0)
   | hashw_term _ = 0w0
 (* term -> int *)
 val hash_term = Word.toInt o hashw_term

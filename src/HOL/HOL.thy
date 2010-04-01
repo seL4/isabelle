@@ -30,6 +30,7 @@ uses
   ("~~/src/Tools/induct_tacs.ML")
   ("Tools/recfun_codegen.ML")
   "~~/src/Tools/more_conv.ML"
+  "~~/src/HOL/Tools/Sledgehammer/named_thm_set.ML"
 begin
 
 setup {* Intuitionistic.method_setup @{binding iprover} *}
@@ -800,10 +801,10 @@ seldom-used facts. Some duplicate other rules.
 *}
 
 ML {*
-structure No_ATPs = Named_Thms
+structure No_ATPs = Named_Thm_Set
 (
   val name = "no_atp"
-  val description = "theorems that should be avoided by Sledgehammer"
+  val description = "theorems that should be filtered out by Sledgehammer"
 )
 *}
 

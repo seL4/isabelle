@@ -10,7 +10,6 @@ header {* Sledgehammer: Isabelle--ATP Linkup *}
 theory Sledgehammer
 imports Plain Hilbert_Choice
 uses
-  "Tools/polyhash.ML"
   "~~/src/Tools/Metis/metis.ML"
   "Tools/Sledgehammer/sledgehammer_util.ML"
   ("Tools/Sledgehammer/sledgehammer_fol_clause.ML")
@@ -100,7 +99,6 @@ use "Tools/Sledgehammer/sledgehammer_fact_preprocessor.ML"
 setup Sledgehammer_Fact_Preprocessor.setup
 use "Tools/Sledgehammer/sledgehammer_hol_clause.ML"
 use "Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML"
-setup Sledgehammer_Proof_Reconstruct.setup
 use "Tools/Sledgehammer/sledgehammer_fact_filter.ML"
 use "Tools/ATP_Manager/atp_manager.ML"
 use "Tools/ATP_Manager/atp_wrapper.ML"
