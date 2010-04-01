@@ -661,13 +661,33 @@ Many other hints about the simplifier's actions may appear.
 In more complicated cases, the trace can be very lengthy.  Thus it is
 advisable to reset the \pgmenu{Trace Simplifier} flag after having
 obtained the desired trace.
-% Since this is easily forgotten (and may have the unpleasant effect of
-% swamping the interface with trace information), here is how you can switch
-% the trace on locally: * }
+Since this is easily forgotten (and may have the unpleasant effect of
+swamping the interface with trace information), here is how you can switch
+the trace on locally in a proof:%
+\end{isamarkuptext}%
+\isamarkuptrue%
 %
-%using [[trace_simp=true]] apply(simp)
-% In fact, any proof step can be prefixed with this \isa{using} clause,
-% causing any local simplification to be traced.%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{using}\isamarkupfalse%
+\ {\isacharbrackleft}{\isacharbrackleft}trace{\isacharunderscore}simp{\isacharequal}true{\isacharbrackright}{\isacharbrackright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ simp%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\noindent
+Within the current proof, all simplifications in subsequent proof steps
+will be traced, but the text reminds you to remove the \isa{using} clause
+after it has done its job.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
