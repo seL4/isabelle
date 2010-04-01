@@ -391,7 +391,7 @@ fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
       |> Option.map (fst o read_int o explode)
       |> the_default 5
     val params = default_params thy [("minimize_timeout", Int.toString timeout)]
-    val minimize = minimize_theorems params linear_minimize prover prover_name
+    val minimize = minimize_theorems params linear_minimize prover prover_name 1
     val _ = log separator
   in
     case minimize st (these (!named_thms)) of
