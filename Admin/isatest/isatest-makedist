@@ -105,6 +105,8 @@ sleep 15
 $SSH macbroy5 "$MAKEALL $HOME/settings/mac-poly"
 sleep 15
 $SSH macbroy6 "sleep 10800; $MAKEALL $HOME/settings/at-mac-poly-5.1-para"
+sleep 15
+$SSH atbroy102 "mount -a; $MAKEALL $HOME/settings/cygwin-poly"
 #sleep 15
 #$SSH atbroy51 "$HOME/admin/isatest/isatest-annomaly"
 #sleep 15
