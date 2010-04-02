@@ -349,6 +349,13 @@ structure Registrations = Theory_Data
 
 (* Primitive operations *)
 
+fun add_reg export (dep, morph) =
+  Registrations.map (apfst (cons ((dep, (morph, export)), serial ())));
+
+fun add_mixin serial' mixin =
+  (* registration to be amended identified by its serial id *)
+  Registrations.map (apsnd (AList.map_default (op =) (serial', []) (cons (mixin, serial ()))));
+
 fun get_mixins thy (name, morph) =
   let
     val (regs, mixins) = Registrations.get thy;
@@ -363,6 +370,7 @@ fun collect_mixins thy (name, morph) =
   roundup thy (fn dep => fn mixins =>
     merge (eq_snd op =) (mixins, get_mixins thy dep)) Morphism.identity (name, morph) ([], [])
   |> snd |> filter (snd o fst);  (* only inheritable mixins *)
+  (* FIXME refactor usage *)
 
 fun compose_mixins mixins =
   fold_rev Morphism.compose (map (fst o fst) mixins) Morphism.identity;
@@ -373,12 +381,13 @@ fun reg_morph mixins ((name, (base, export)), serial) =
 
 fun these_registrations thy name = Registrations.get thy
   |>> filter (curry (op =) name o fst o fst)
-(*  |-> (fn regs => fn mixins => map (reg_morph mixins) regs); *)
+  (* with inherited mixins *)
   |-> (fn regs => fn _ => map (fn ((name, (base, export)) ,_) =>
     (name, base $> (collect_mixins thy (name, base $> export) |> compose_mixins) $> export)) regs);
 
 fun all_registrations thy = Registrations.get thy
   |-> (fn regs => fn mixins => map (reg_morph mixins) regs);
+  (* without inherited mixins *)
 
 fun activate_notes' activ_elem transfer thy export (name, morph) input =
   let
@@ -447,9 +456,7 @@ fun amend_registration (name, morph) mixin export thy =
           quote (extern thy name) ^ " and\nparameter instantiation " ^
           space_implode " " (map (quote o Syntax.string_of_term_global thy) base) ^
           " available")
-      | SOME (_, serial') => Registrations.map 
-          (apsnd (AList.map_default (op =) (serial', []) (cons (mixin, serial ())))) thy
-    (* FIXME deal with inheritance: propagate to existing children *)
+      | SOME (_, serial') => add_mixin serial' mixin thy
   end;
 
 (* Note that a registration that would be subsumed by an existing one will not be
@@ -462,38 +469,31 @@ fun add_registration (name, base_morph) mixin export thy =
     if member (ident_eq thy) (get_idents (Context.Theory thy)) (name, base)
     then thy
     else
-      let
-        fun add_reg (dep', morph') =
-          let
-(*            val mixins = collect_mixins thy (dep', morph' $> export); *)
-            val mixins = [];  (* FIXME *)
-            val serial = serial ();
-          in
-            Registrations.map (apfst (cons ((dep', (morph', export)), serial))
-              #> not (null mixins) ? apsnd (cons (serial, mixins)))
-          end
-      in
-        (get_idents (Context.Theory thy), thy)
-        (* add new registrations with inherited mixins *)
-        |> roundup thy add_reg export (name, base_morph)
-        |> snd
-        (* add mixin *)
-        |> (case mixin of NONE => I
-             | SOME mixin => amend_registration (name, base_morph) mixin export)
-        (* activate import hierarchy as far as not already active *)
-        |> Context.theory_map (activate_facts' export (name, base_morph))
-      end
+      (get_idents (Context.Theory thy), thy)
+      (* add new registrations with inherited mixins *)
+      |> roundup thy (add_reg export) export (name, base_morph)
+      |> snd
+      (* add mixin *)
+      |> (case mixin of NONE => I
+           | SOME mixin => amend_registration (name, base_morph) mixin export)
+      (* activate import hierarchy as far as not already active *)
+      |> Context.theory_map (activate_facts' export (name, base_morph))
   end;
 
 
 (*** Dependencies ***)
 
+fun add_reg_activate_facts export (dep, morph) thy =
+  (get_idents (Context.Theory thy), thy)
+  |> roundup thy (add_reg export) export (dep, morph)
+  |> snd
+  |> Context.theory_map (activate_facts' export (dep, morph));
+
 fun add_dependency loc (dep, morph) export thy =
   thy
   |> (change_locale loc o apsnd) (cons ((dep, morph $> export), serial ()))
-  |> (fn thy => fold_rev (Context.theory_map o activate_facts' export)
+  |> (fn thy => fold_rev (add_reg_activate_facts export)
       (all_registrations thy) thy);
-  (* FIXME deal with inheritance: propagate mixins to new children *)
 
 
 (*** Storing results ***)
@@ -513,7 +513,6 @@ fun add_thmss loc kind args ctxt =
                 Attrib.map_facts (Attrib.attribute_i thy)
             in PureThy.note_thmss kind args'' #> snd end)
         (these_registrations thy loc) thy))
-(* FIXME apply mixins *)
   in ctxt'' end;
 
 
@@ -581,4 +580,3 @@ val _ = Context.>> (Context.map_theory
     "back-chain all introduction rules of locales"));
 
 end;
-
