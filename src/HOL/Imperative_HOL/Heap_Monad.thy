@@ -82,9 +82,6 @@ definition
   raise :: "string \<Rightarrow> 'a Heap" where -- {* the string is just decoration *}
   [code del]: "raise s = Heap (Pair (Inr Exn))"
 
-notation (latex output)
-  "raise" ("\<^raw:{\textsf{raise}}>")
-
 lemma execute_raise [simp]:
   "execute (raise s) h = (Inr Exn, h)"
   by (simp add: raise_def)
@@ -115,13 +112,6 @@ syntax
 syntax (xsymbols)
   "_bindM" :: "pttrn \<Rightarrow> 'a \<Rightarrow> do_expr \<Rightarrow> do_expr"
     ("_ \<leftarrow> _;//_" [1000, 13, 12] 12)
-syntax (latex output)
-  "_do" :: "do_expr \<Rightarrow> 'a"
-    ("(\<^raw:{\textsf{do}}> (_))" [12] 100)
-  "_let" :: "pttrn \<Rightarrow> 'a \<Rightarrow> do_expr \<Rightarrow> do_expr"
-    ("\<^raw:\textsf{let}> _ = _;//_" [1000, 13, 12] 12)
-notation (latex output)
-  "return" ("\<^raw:{\textsf{return}}>")
 
 translations
   "_do f" => "f"
