@@ -34,16 +34,10 @@ lemma iterate_iterate:
   "iterate m\<cdot>F\<cdot>(iterate n\<cdot>F\<cdot>x) = iterate (m + n)\<cdot>F\<cdot>x"
 by (induct m) simp_all
 
-text {*
-  The sequence of function iterations is a chain.
-  This property is essential since monotonicity of iterate makes no sense.
-*}
-
-lemma chain_iterate2: "x \<sqsubseteq> F\<cdot>x \<Longrightarrow> chain (\<lambda>i. iterate i\<cdot>F\<cdot>x)"
-by (rule chainI, induct_tac i, auto elim: monofun_cfun_arg)
+text {* The sequence of function iterations is a chain. *}
 
 lemma chain_iterate [simp]: "chain (\<lambda>i. iterate i\<cdot>F\<cdot>\<bottom>)"
-by (rule chain_iterate2 [OF minimal])
+by (rule chainI, unfold iterate_Suc2, rule monofun_cfun_arg, rule minimal)
 
 
 subsection {* Least fixed point operator *}
