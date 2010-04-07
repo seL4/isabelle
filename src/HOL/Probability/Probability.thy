@@ -1,5 +1,7 @@
 theory Probability
-imports Probability_Space Product_Measure
+imports
+  Information
+  "ex/Dining_Cryptographers"
 begin
 
 end

@@ -1097,7 +1097,8 @@ $(OUT)/HOL-Probability: $(OUT)/HOL Probability/ROOT.ML		\
   Probability/SeriesPlus.thy Probability/Caratheodory.thy	\
   Probability/Borel.thy Probability/Measure.thy			\
   Probability/Lebesgue.thy Probability/Product_Measure.thy	\
-  Probability/Probability_Space.thy
+  Probability/Probability_Space.thy Probability/Information.thy \
+  Probability/ex/Dining_Cryptographers.thy
 	@cd Probability; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Probability
 
 
