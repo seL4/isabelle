@@ -42,6 +42,10 @@ end
 structure SMT_Normalize: SMT_NORMALIZE =
 struct
 
+infix 2 ??
+fun (test ?? f) x = if test x then f x else x
+
+
 local
   val all1 = @{lemma "All P == ALL x. P x" by (rule reflexive)}
   val all2 = @{lemma "All == (%P. ALL x. P x)" by (rule reflexive)}
@@ -141,10 +145,9 @@ fun normalize_rule ctxt =
   Drule.forall_intr_vars #>
   Conv.fconv_rule (atomize_conv ctxt)
 
-fun instantiate_free (cv, ct) thm =
-  if Term.exists_subterm (equal (Thm.term_of cv)) (Thm.prop_of thm)
-  then Thm.forall_elim ct (Thm.forall_intr cv thm)
-  else thm
+fun instantiate_free (cv, ct) =
+  (Term.exists_subterm (equal (Thm.term_of cv)) o Thm.prop_of) ??
+  (Thm.forall_elim ct o Thm.forall_intr cv)
 
 fun discharge_definition ct thm =
   let val (cv, cu) = Thm.dest_equals ct
@@ -172,11 +175,10 @@ local
     | is_trivial_let _ = false
 
   fun let_conv _ = if_true_conv is_trivial_let (Conv.rewr_conv @{thm Let_def})
-
-  fun cond_let_conv ctxt = if_true_conv (Term.exists_subterm is_trivial_let)
-    (More_Conv.top_conv let_conv ctxt)
 in
-fun trivial_let ctxt = map (Conv.fconv_rule (cond_let_conv ctxt))
+fun trivial_let ctxt =
+  map ((Term.exists_subterm is_trivial_let o Thm.prop_of) ??
+    Conv.fconv_rule (More_Conv.top_conv let_conv ctxt))
 end
 
 
@@ -190,7 +192,6 @@ local
         Term.exists_subterm neg_numeral t andalso
         is_number_sort (ProofContext.theory_of ctxt) (Term.body_type T)
     | is_neg_number _ _ = false
-  fun has_neg_number ctxt = Term.exists_subterm (is_neg_number ctxt)
 
   val pos_numeral_ss = HOL_ss
     addsimps [@{thm Int.number_of_minus}, @{thm Int.number_of_Min}]
@@ -207,11 +208,10 @@ local
   fun pos_conv ctxt = if_conv (is_neg_number ctxt)
     (Simplifier.rewrite (Simplifier.context ctxt pos_numeral_ss))
     Conv.no_conv
-
-  fun cond_pos_conv ctxt = if_true_conv (has_neg_number ctxt)
-    (More_Conv.top_sweep_conv pos_conv ctxt)
 in
-fun positive_numerals ctxt = map (Conv.fconv_rule (cond_pos_conv ctxt))
+fun positive_numerals ctxt =
+  map ((Term.exists_subterm (is_neg_number ctxt) o Thm.prop_of) ??
+    Conv.fconv_rule (More_Conv.top_sweep_conv pos_conv ctxt))
 end
 
 
@@ -275,15 +275,9 @@ local
   val uses_nat_int =
     Term.exists_subterm (member (op aconv) [@{term int}, @{term nat}])
 in
-fun nat_as_int ctxt thms =
-  let
-    fun norm thm = thm
-      |> uses_nat_type (Thm.prop_of thm) ? Conv.fconv_rule (conv ctxt)
-    val thms' = map norm thms
-  in
-    if exists (uses_nat_int o Thm.prop_of) thms' then nat_embedding @ thms'
-    else thms'
-  end
+fun nat_as_int ctxt =
+  map ((uses_nat_type o Thm.prop_of) ?? Conv.fconv_rule (conv ctxt)) #>
+  exists (uses_nat_int o Thm.prop_of) ?? append nat_embedding
 end
 
 
@@ -302,13 +296,11 @@ local
   val is_fun_upd = (fn Const (@{const_name fun_upd}, _) => true | _ => false)
   val exists_fun_upd = Term.exists_subterm is_fun_upd
 in
-fun add_pair_rules _ thms =
-  thms
-  |> exists (exists_pair_type o Thm.prop_of) thms ? append pair_rules
+fun add_pair_rules _ =
+  exists (exists_pair_type o Thm.prop_of) ?? append pair_rules
 
-fun add_fun_upd_rules _ thms =
-  thms
-  |> exists (exists_fun_upd o Thm.prop_of) thms ? append fun_upd_rules
+fun add_fun_upd_rules _ =
+  exists (exists_fun_upd o Thm.prop_of) ?? append fun_upd_rules
 end
 
 
