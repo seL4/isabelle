@@ -62,11 +62,11 @@ of certificates): *}
 
 declare [[ smt_certificates = "" ]]
 
-text {* Enables or disables the addition of new certificates to
-the current certificates file (when disabled, only existing
-certificates are used and no SMT solver is invoked): *}
+text {* Allows or disallows the addition of new certificates to
+the current certificates file (when set to @{text false}, only
+existing certificates are used and no SMT solver is invoked): *}
 
-declare [[ smt_record = true ]]
+declare [[ smt_fixed = false ]]
 
 
 subsection {* Special configuration options *}

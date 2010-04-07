@@ -39,7 +39,7 @@ implementation max(array : [int]int, length : int) returns (max : int)
 boogie_open "~~/src/HOL/Boogie/Examples/Boogie_Max"
 
 declare [[smt_certificates="~~/src/HOL/Boogie/Examples/Boogie_Max.certs"]]
-declare [[smt_record=false]]
+declare [[smt_fixed=true]]
 
 boogie_vc max
   using [[z3_proofs=true]]

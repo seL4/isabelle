@@ -30,7 +30,7 @@ sig
   val trace_msg: Proof.context -> ('a -> string) -> 'a -> unit
 
   (*certificates*)
-  val record: bool Config.T
+  val fixed_certificates: bool Config.T
   val select_certificates: string -> Context.generic -> Context.generic
 
   (*solvers*)
@@ -93,7 +93,8 @@ fun trace_msg ctxt f x =
 
 (* SMT certificates *)
 
-val (record, setup_record) = Attrib.config_bool "smt_record" (K true)
+val (fixed_certificates, setup_fixed_certificates) =
+  Attrib.config_bool "smt_fixed" (K false)
 
 structure Certificates = Generic_Data
 (
@@ -157,7 +158,7 @@ fun run ctxt cmd args problem_path =
   in
     if is_none certs 
     then Cache_IO.run' (make_cmd (choose cmd) args) problem_path
-    else if Config.get ctxt record
+    else if Config.get ctxt fixed_certificates
     then Cache_IO.cached' (the certs) (make_cmd (choose cmd) args) problem_path
     else
      (tracing ("Using cached certificate from " ^
@@ -285,7 +286,7 @@ val setup =
     "SMT solver configuration" #>
   setup_timeout #>
   setup_trace #>
-  setup_record #>
+  setup_fixed_certificates #>
   Attrib.setup (Binding.name "smt_certificates")
     (Scan.lift (OuterParse.$$$ "=" |-- Args.name) >>
       (Thm.declaration_attribute o K o select_certificates))
