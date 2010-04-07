@@ -2,8 +2,10 @@
     Author:     Brian Huffman
 *)
 
+header {* A universal bifinite domain *}
+
 theory Universal
-imports CompactBasis NatIso
+imports CompactBasis Nat_Bijection
 begin
 
 subsection {* Basis datatype *}
@@ -13,7 +15,7 @@ types ubasis = nat
 definition
   node :: "nat \<Rightarrow> ubasis \<Rightarrow> ubasis set \<Rightarrow> ubasis"
 where
-  "node i a S = Suc (prod2nat (i, prod2nat (a, set2nat S)))"
+  "node i a S = Suc (prod_encode (i, prod_encode (a, set_encode S)))"
 
 lemma node_not_0 [simp]: "node i a S \<noteq> 0"
 unfolding node_def by simp
@@ -24,30 +26,30 @@ unfolding node_def by simp
 lemma node_inject [simp]:
   "\<lbrakk>finite S; finite T\<rbrakk>
     \<Longrightarrow> node i a S = node j b T \<longleftrightarrow> i = j \<and> a = b \<and> S = T"
-unfolding node_def by simp
+unfolding node_def by (simp add: prod_encode_eq set_encode_eq)
 
 lemma node_gt0: "i < node i a S"
 unfolding node_def less_Suc_eq_le
-by (rule le_prod2nat_1)
+by (rule le_prod_encode_1)
 
 lemma node_gt1: "a < node i a S"
 unfolding node_def less_Suc_eq_le
-by (rule order_trans [OF le_prod2nat_1 le_prod2nat_2])
+by (rule order_trans [OF le_prod_encode_1 le_prod_encode_2])
 
 lemma nat_less_power2: "n < 2^n"
 by (induct n) simp_all
 
 lemma node_gt2: "\<lbrakk>finite S; b \<in> S\<rbrakk> \<Longrightarrow> b < node i a S"
-unfolding node_def less_Suc_eq_le set2nat_def
-apply (rule order_trans [OF _ le_prod2nat_2])
-apply (rule order_trans [OF _ le_prod2nat_2])
+unfolding node_def less_Suc_eq_le set_encode_def
+apply (rule order_trans [OF _ le_prod_encode_2])
+apply (rule order_trans [OF _ le_prod_encode_2])
 apply (rule order_trans [where y="setsum (op ^ 2) {b}"])
 apply (simp add: nat_less_power2 [THEN order_less_imp_le])
 apply (erule setsum_mono2, simp, simp)
 done
 
-lemma eq_prod2nat_pairI:
-  "\<lbrakk>fst (nat2prod x) = a; snd (nat2prod x) = b\<rbrakk> \<Longrightarrow> x = prod2nat (a, b)"
+lemma eq_prod_encode_pairI:
+  "\<lbrakk>fst (prod_decode x) = a; snd (prod_decode x) = b\<rbrakk> \<Longrightarrow> x = prod_encode (a, b)"
 by (erule subst, erule subst, simp)
 
 lemma node_cases:
@@ -57,10 +59,10 @@ lemma node_cases:
  apply (cases x)
   apply (erule 1)
  apply (rule 2)
-  apply (rule finite_nat2set)
+  apply (rule finite_set_decode)
  apply (simp add: node_def)
- apply (rule eq_prod2nat_pairI [OF refl])
- apply (rule eq_prod2nat_pairI [OF refl refl])
+ apply (rule eq_prod_encode_pairI [OF refl])
+ apply (rule eq_prod_encode_pairI [OF refl refl])
 done
 
 lemma node_induct:
@@ -185,7 +187,7 @@ apply (clarsimp simp add: ubasis_until')
 apply simp
 done
 
-subsubsection {* Take function for @{typ ubasis} *}
+subsubsection {* Take function for \emph{ubasis} *}
 
 definition
   ubasis_take :: "nat \<Rightarrow> ubasis \<Rightarrow> ubasis"
@@ -336,7 +338,7 @@ unfolding approx_udom_def
 by (rule udom.completion_approx_eq_principal)
 
 
-subsection {* Universality of @{typ udom} *}
+subsection {* Universality of \emph{udom} *}
 
 defaultsort bifinite
 
@@ -814,7 +816,7 @@ hide (open) const
   place
   sub
 
-subsubsection {* EP-pair from any bifinite domain into @{typ udom} *}
+subsubsection {* EP-pair from any bifinite domain into \emph{udom} *}
 
 definition
   udom_emb :: "'a::bifinite \<rightarrow> udom"

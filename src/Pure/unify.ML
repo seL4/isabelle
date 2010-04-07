@@ -32,19 +32,19 @@ struct
 (*Unification options*)
 
 (*tracing starts above this depth, 0 for full*)
-val trace_bound_value = Config.declare true "unify_trace_bound" (Config.Int 50);
+val trace_bound_value = Config.declare true "unify_trace_bound" (K (Config.Int 50));
 val trace_bound = Config.int trace_bound_value;
 
 (*unification quits above this depth*)
-val search_bound_value = Config.declare true "unify_search_bound" (Config.Int 60);
+val search_bound_value = Config.declare true "unify_search_bound" (K (Config.Int 60));
 val search_bound = Config.int search_bound_value;
 
 (*print dpairs before calling SIMPL*)
-val trace_simp_value = Config.declare true "unify_trace_simp" (Config.Bool false);
+val trace_simp_value = Config.declare true "unify_trace_simp" (K (Config.Bool false));
 val trace_simp = Config.bool trace_simp_value;
 
 (*announce potential incompleteness of type unification*)
-val trace_types_value = Config.declare true "unify_trace_types" (Config.Bool false);
+val trace_types_value = Config.declare true "unify_trace_types" (K (Config.Bool false));
 val trace_types = Config.bool trace_types_value;
 
 
@@ -558,7 +558,7 @@ fun add_ffpair thy ((rbinder,t0,u0), (env,tpairs))
   if Term.eq_ix (v, w) then     (*...occur check would falsely return true!*)
       if T=U then (env, add_tpair (rbinder, (t,u), tpairs))
       else raise TERM ("add_ffpair: Var name confusion", [t,u])
-  else if TermOrd.indexname_ord (v, w) = LESS then (*prefer to update the LARGER variable*)
+  else if Term_Ord.indexname_ord (v, w) = LESS then (*prefer to update the LARGER variable*)
        clean_ffpair thy ((rbinder, u, t), (env,tpairs))
         else clean_ffpair thy ((rbinder, t, u), (env,tpairs))
     | _ => raise TERM ("add_ffpair: Vars expected", [t,u])

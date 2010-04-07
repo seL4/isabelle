@@ -1,11 +1,8 @@
-(* $Id$ *)
-
 theory If
 imports FOLP
 begin
 
-constdefs
-  "if" :: "[o,o,o]=>o"
+definition "if" :: "[o,o,o]=>o" where
   "if(P,Q,R) == P&Q | ~P&R"
 
 lemma ifI:

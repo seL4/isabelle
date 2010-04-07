@@ -144,11 +144,10 @@ subsection{*Freeness: Distinctness of Constructors*}
 (** Scons vs Atom **)
 
 lemma Scons_not_Atom [iff]: "Scons M N \<noteq> Atom(a)"
-apply (simp add: Atom_def Scons_def Push_Node_def One_nat_def)
-apply (blast intro: Node_K0_I Rep_Node [THEN Node_Push_I] 
+unfolding Atom_def Scons_def Push_Node_def One_nat_def
+by (blast intro: Node_K0_I Rep_Node [THEN Node_Push_I] 
          dest!: Abs_Node_inj 
          elim!: apfst_convE sym [THEN Push_neq_K0])  
-done
 
 lemmas Atom_not_Scons [iff] = Scons_not_Atom [THEN not_sym, standard]
 
@@ -199,14 +198,12 @@ done
 (** Injectiveness of Scons **)
 
 lemma Scons_inject_lemma1: "Scons M N <= Scons M' N' ==> M<=M'"
-apply (simp add: Scons_def One_nat_def)
-apply (blast dest!: Push_Node_inject)
-done
+unfolding Scons_def One_nat_def
+by (blast dest!: Push_Node_inject)
 
 lemma Scons_inject_lemma2: "Scons M N <= Scons M' N' ==> N<=N'"
-apply (simp add: Scons_def One_nat_def)
-apply (blast dest!: Push_Node_inject)
-done
+unfolding Scons_def One_nat_def
+by (blast dest!: Push_Node_inject)
 
 lemma Scons_inject1: "Scons M N = Scons M' N' ==> M=M'"
 apply (erule equalityE)
@@ -230,14 +227,14 @@ by (blast elim!: Scons_inject)
 (** Scons vs Leaf **)
 
 lemma Scons_not_Leaf [iff]: "Scons M N \<noteq> Leaf(a)"
-by (simp add: Leaf_def o_def Scons_not_Atom)
+unfolding Leaf_def o_def by (rule Scons_not_Atom)
 
 lemmas Leaf_not_Scons  [iff] = Scons_not_Leaf [THEN not_sym, standard]
 
 (** Scons vs Numb **)
 
 lemma Scons_not_Numb [iff]: "Scons M N \<noteq> Numb(k)"
-by (simp add: Numb_def o_def Scons_not_Atom)
+unfolding Numb_def o_def by (rule Scons_not_Atom)
 
 lemmas Numb_not_Scons [iff] = Scons_not_Numb [THEN not_sym, standard]
 
@@ -281,14 +278,15 @@ lemma ntrunc_Atom [simp]: "ntrunc (Suc k) (Atom a) = Atom(a)"
 by (auto simp add: Atom_def ntrunc_def ndepth_K0)
 
 lemma ntrunc_Leaf [simp]: "ntrunc (Suc k) (Leaf a) = Leaf(a)"
-by (simp add: Leaf_def o_def ntrunc_Atom)
+unfolding Leaf_def o_def by (rule ntrunc_Atom)
 
 lemma ntrunc_Numb [simp]: "ntrunc (Suc k) (Numb i) = Numb(i)"
-by (simp add: Numb_def o_def ntrunc_Atom)
+unfolding Numb_def o_def by (rule ntrunc_Atom)
 
 lemma ntrunc_Scons [simp]: 
     "ntrunc (Suc k) (Scons M N) = Scons (ntrunc k M) (ntrunc k N)"
-by (auto simp add: Scons_def ntrunc_def One_nat_def ndepth_Push_Node) 
+unfolding Scons_def ntrunc_def One_nat_def
+by (auto simp add: ndepth_Push_Node)
 
 
 
@@ -351,7 +349,7 @@ by (auto simp add: usum_def)
 (** Injection **)
 
 lemma In0_not_In1 [iff]: "In0(M) \<noteq> In1(N)"
-by (auto simp add: In0_def In1_def One_nat_def)
+unfolding In0_def In1_def One_nat_def by auto
 
 lemmas In1_not_In0 [iff] = In0_not_In1 [THEN not_sym, standard]
 
@@ -417,10 +415,10 @@ lemma Scons_mono: "[| M<=M';  N<=N' |] ==> Scons M N <= Scons M' N'"
 by (simp add: Scons_def, blast)
 
 lemma In0_mono: "M<=N ==> In0(M) <= In0(N)"
-by (simp add: In0_def subset_refl Scons_mono)
+by (simp add: In0_def Scons_mono)
 
 lemma In1_mono: "M<=N ==> In1(M) <= In1(N)"
-by (simp add: In1_def subset_refl Scons_mono)
+by (simp add: In1_def Scons_mono)
 
 
 (*** Split and Case ***)

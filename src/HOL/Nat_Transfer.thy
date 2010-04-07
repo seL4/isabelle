@@ -10,8 +10,13 @@ begin
 
 subsection {* Generic transfer machinery *}
 
-definition TransferMorphism:: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> bool"
-  where "TransferMorphism a B \<longleftrightarrow> True"
+definition transfer_morphism:: "('b \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> bool"
+  where "transfer_morphism f A \<longleftrightarrow> (\<forall>P. (\<forall>x. P x) \<longrightarrow> (\<forall>y. A y \<longrightarrow> P (f y)))"
+
+lemma transfer_morphismI:
+  assumes "\<And>P y. (\<And>x. P x) \<Longrightarrow> A y \<Longrightarrow> P (f y)"
+  shows "transfer_morphism f A"
+  using assms by (auto simp add: transfer_morphism_def)
 
 use "Tools/transfer.ML"
 
@@ -22,18 +27,18 @@ subsection {* Set up transfer from nat to int *}
 
 text {* set up transfer direction *}
 
-lemma TransferMorphism_nat_int: "TransferMorphism nat (op <= (0::int))"
-  by (simp add: TransferMorphism_def)
+lemma transfer_morphism_nat_int: "transfer_morphism nat (op <= (0::int))"
+  by (rule transfer_morphismI) simp
 
-declare TransferMorphism_nat_int[transfer
-  add mode: manual
+declare transfer_morphism_nat_int [transfer add
+  mode: manual
   return: nat_0_le
-  labels: natint
+  labels: nat_int
 ]
 
 text {* basic functions and relations *}
 
-lemma transfer_nat_int_numerals:
+lemma transfer_nat_int_numerals [transfer key: transfer_morphism_nat_int]:
     "(0::nat) = nat 0"
     "(1::nat) = nat 1"
     "(2::nat) = nat 2"
@@ -48,8 +53,7 @@ where
 lemma tsub_eq: "x >= y \<Longrightarrow> tsub x y = x - y"
   by (simp add: tsub_def)
 
-
-lemma transfer_nat_int_functions:
+lemma transfer_nat_int_functions [transfer key: transfer_morphism_nat_int]:
     "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> (nat x) + (nat y) = nat (x + y)"
     "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> (nat x) * (nat y) = nat (x * y)"
     "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> (nat x) - (nat y) = nat (tsub x y)"
@@ -57,7 +61,7 @@ lemma transfer_nat_int_functions:
   by (auto simp add: eq_nat_nat_iff nat_mult_distrib
       nat_power_eq tsub_def)
 
-lemma transfer_nat_int_function_closures:
+lemma transfer_nat_int_function_closures [transfer key: transfer_morphism_nat_int]:
     "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> x + y >= 0"
     "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> x * y >= 0"
     "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> tsub x y >= 0"
@@ -69,7 +73,7 @@ lemma transfer_nat_int_function_closures:
     "int z >= 0"
   by (auto simp add: zero_le_mult_iff tsub_def)
 
-lemma transfer_nat_int_relations:
+lemma transfer_nat_int_relations [transfer key: transfer_morphism_nat_int]:
     "x >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow>
       (nat (x::int) = nat y) = (x = y)"
     "x >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow>
@@ -79,13 +83,6 @@ lemma transfer_nat_int_relations:
     "x >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow>
       (nat (x::int) dvd nat y) = (x dvd y)"
   by (auto simp add: zdvd_int)
-
-declare TransferMorphism_nat_int[transfer add return:
-  transfer_nat_int_numerals
-  transfer_nat_int_functions
-  transfer_nat_int_function_closures
-  transfer_nat_int_relations
-]
 
 
 text {* first-order quantifiers *}
@@ -104,7 +101,7 @@ next
   then show "\<exists>x. P x" by auto
 qed
 
-lemma transfer_nat_int_quantifiers:
+lemma transfer_nat_int_quantifiers [transfer key: transfer_morphism_nat_int]:
     "(ALL (x::nat). P x) = (ALL (x::int). x >= 0 \<longrightarrow> P (nat x))"
     "(EX (x::nat). P x) = (EX (x::int). x >= 0 & P (nat x))"
   by (rule all_nat, rule ex_nat)
@@ -118,18 +115,15 @@ lemma ex_cong: "(\<And>x. Q x \<Longrightarrow> P x = P' x) \<Longrightarrow>
     (EX x. Q x \<and> P x) = (EX x. Q x \<and> P' x)"
   by auto
 
-declare TransferMorphism_nat_int[transfer add
-  return: transfer_nat_int_quantifiers
+declare transfer_morphism_nat_int [transfer add
   cong: all_cong ex_cong]
 
 
 text {* if *}
 
-lemma nat_if_cong: "(if P then (nat x) else (nat y)) =
-    nat (if P then x else y)"
+lemma nat_if_cong [transfer key: transfer_morphism_nat_int]:
+  "(if P then (nat x) else (nat y)) = nat (if P then x else y)"
   by auto
-
-declare TransferMorphism_nat_int [transfer add return: nat_if_cong]
 
 
 text {* operations with sets *}
@@ -190,7 +184,7 @@ lemma transfer_nat_int_set_cong: "(!!x. x >= 0 \<Longrightarrow> P x = P' x) \<L
     {(x::int). x >= 0 & P x} = {x. x >= 0 & P' x}"
   by auto
 
-declare TransferMorphism_nat_int[transfer add
+declare transfer_morphism_nat_int [transfer add
   return: transfer_nat_int_set_functions
     transfer_nat_int_set_function_closures
     transfer_nat_int_set_relations
@@ -262,7 +256,7 @@ lemma transfer_nat_int_sum_prod_cong:
   apply (subst setprod_cong, assumption, auto)
 done
 
-declare TransferMorphism_nat_int[transfer add
+declare transfer_morphism_nat_int [transfer add
   return: transfer_nat_int_sum_prod transfer_nat_int_sum_prod2
     transfer_nat_int_sum_prod_closure
   cong: transfer_nat_int_sum_prod_cong]
@@ -272,21 +266,17 @@ subsection {* Set up transfer from int to nat *}
 
 text {* set up transfer direction *}
 
-lemma TransferMorphism_int_nat: "TransferMorphism int (UNIV :: nat set)"
-  by (simp add: TransferMorphism_def)
+lemma transfer_morphism_int_nat: "transfer_morphism int (\<lambda>n. True)"
+by (rule transfer_morphismI) simp
 
-declare TransferMorphism_int_nat[transfer add
+declare transfer_morphism_int_nat [transfer add
   mode: manual
-(*  labels: int-nat *)
   return: nat_int
+  labels: int_nat
 ]
 
 
 text {* basic functions and relations *}
-
-lemma UNIV_apply:
-  "UNIV x = True"
-  by (simp add: top_fun_eq top_bool_eq)
 
 definition
   is_nat :: "int \<Rightarrow> bool"
@@ -326,12 +316,11 @@ lemma transfer_int_nat_relations:
     "(int x dvd int y) = (x dvd y)"
   by (auto simp add: zdvd_int)
 
-declare TransferMorphism_int_nat[transfer add return:
+declare transfer_morphism_int_nat [transfer add return:
   transfer_int_nat_numerals
   transfer_int_nat_functions
   transfer_int_nat_function_closures
   transfer_int_nat_relations
-  UNIV_apply
 ]
 
 
@@ -346,7 +335,7 @@ lemma transfer_int_nat_quantifiers:
   apply auto
 done
 
-declare TransferMorphism_int_nat[transfer add
+declare transfer_morphism_int_nat [transfer add
   return: transfer_int_nat_quantifiers]
 
 
@@ -356,7 +345,7 @@ lemma int_if_cong: "(if P then (int x) else (int y)) =
     int (if P then x else y)"
   by auto
 
-declare TransferMorphism_int_nat [transfer add return: int_if_cong]
+declare transfer_morphism_int_nat [transfer add return: int_if_cong]
 
 
 
@@ -401,7 +390,7 @@ lemma transfer_int_nat_set_cong: "(!!x. P x = P' x) \<Longrightarrow>
     {(x::nat). P x} = {x. P' x}"
   by auto
 
-declare TransferMorphism_int_nat[transfer add
+declare transfer_morphism_int_nat [transfer add
   return: transfer_int_nat_set_functions
     transfer_int_nat_set_function_closures
     transfer_int_nat_set_relations
@@ -433,7 +422,7 @@ lemma transfer_int_nat_sum_prod2:
   apply (subst int_setprod, auto simp add: cong: setprod_cong)
 done
 
-declare TransferMorphism_int_nat[transfer add
+declare transfer_morphism_int_nat [transfer add
   return: transfer_int_nat_sum_prod transfer_int_nat_sum_prod2
   cong: setsum_cong setprod_cong]
 

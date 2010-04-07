@@ -20,15 +20,6 @@ where
   "yield Empty = None"
 | "yield (Insert x xq) = Some (x, xq)"
 
-fun yieldn :: "code_numeral => 'a lazy_sequence => 'a list * 'a lazy_sequence"
-where
-  "yieldn i S = (if i = 0 then ([], S) else
-    case yield S of
-      None => ([], S)
-    | Some (x, S') => let
-       (xs, S'') = yieldn (i - 1) S'
-      in (x # xs, S''))"
-
 lemma [simp]: "yield xq = Some (x, xq') ==> size xq' < size xq"
 by (cases xq) auto
 
@@ -119,6 +110,13 @@ definition if_seq :: "bool => unit lazy_sequence"
 where
   "if_seq b = (if b then single () else empty)"
 
+function iterate_upto :: "(code_numeral => 'a) => code_numeral => code_numeral => 'a Lazy_Sequence.lazy_sequence"
+where
+  "iterate_upto f n m = Lazy_Sequence.Lazy_Sequence (%u. if n > m then None else Some (f n, iterate_upto f (n + 1) m))"
+by pat_completeness auto
+
+termination by (relation "measure (%(f, n, m). Code_Numeral.nat_of (m + 1 - n))") auto
+
 definition not_seq :: "unit lazy_sequence => unit lazy_sequence"
 where
   "not_seq xq = (case yield xq of None => single () | Some ((), xq) => empty)"
@@ -131,6 +129,7 @@ sig
   datatype 'a lazy_sequence = Lazy_Sequence of unit -> ('a * 'a lazy_sequence) option
   val yield : 'a lazy_sequence -> ('a * 'a lazy_sequence) option
   val yieldn : int -> 'a lazy_sequence -> ('a list * 'a lazy_sequence)
+  val map : ('a -> 'b) -> 'a lazy_sequence -> 'b lazy_sequence
 end;
 
 structure Lazy_Sequence : LAZY_SEQUENCE =
@@ -140,7 +139,16 @@ struct
 
 val yield = @{code yield}
 
-val yieldn = @{code yieldn}
+fun anamorph f k x = (if k = 0 then ([], x)
+  else case f x
+   of NONE => ([], x)
+    | SOME (v, y) => let
+        val (vs, z) = anamorph f (k - 1) y
+      in (v :: vs, z) end);
+
+fun yieldn S = anamorph yield S;
+
+val map = @{code map}
 
 end;
 *}
@@ -151,8 +159,61 @@ code_type lazy_sequence (Eval "_/ Lazy'_Sequence.lazy'_sequence")
 
 code_const Lazy_Sequence (Eval "Lazy'_Sequence.Lazy'_Sequence")
 
+section {* With Hit Bound Value *}
+text {* assuming in negative context *}
+
+types 'a hit_bound_lazy_sequence = "'a option lazy_sequence"
+
+definition hit_bound :: "'a hit_bound_lazy_sequence"
+where
+  [code]: "hit_bound = Lazy_Sequence (%u. Some (None, empty))"
+
+
+definition hb_single :: "'a => 'a hit_bound_lazy_sequence"
+where
+  [code]: "hb_single x = Lazy_Sequence (%u. Some (Some x, empty))"
+
+primrec hb_flat :: "'a hit_bound_lazy_sequence hit_bound_lazy_sequence => 'a hit_bound_lazy_sequence"
+where
+  "hb_flat Empty = Empty"
+| "hb_flat (Insert xq xqq) = append (case xq of None => hit_bound | Some xq => xq) (hb_flat xqq)"
+
+lemma [code]:
+  "hb_flat xqq = Lazy_Sequence (%u. case yield xqq of
+    None => None
+  | Some (xq, xqq') => yield (append (case xq of None => hit_bound | Some xq => xq) (hb_flat xqq')))"
+apply (cases "xqq")
+apply (auto simp add: Seq_yield)
+unfolding Lazy_Sequence_def
+by auto
+
+primrec hb_map :: "('a => 'b) => 'a hit_bound_lazy_sequence => 'b hit_bound_lazy_sequence"
+where
+  "hb_map f Empty = Empty"
+| "hb_map f (Insert x xq) = Insert (Option.map f x) (hb_map f xq)"
+
+lemma [code]:
+  "hb_map f xq = Lazy_Sequence (%u. Option.map (%(x, xq'). (Option.map f x, hb_map f xq')) (yield xq))"
+apply (cases xq)
+apply (auto simp add: Seq_yield)
+unfolding Lazy_Sequence_def
+apply auto
+done
+
+definition hb_bind :: "'a hit_bound_lazy_sequence => ('a => 'b hit_bound_lazy_sequence) => 'b hit_bound_lazy_sequence"
+where
+  [code]: "hb_bind xq f = hb_flat (hb_map f xq)"
+
+definition hb_if_seq :: "bool => unit hit_bound_lazy_sequence"
+where
+  "hb_if_seq b = (if b then hb_single () else empty)"
+
+definition hb_not_seq :: "unit hit_bound_lazy_sequence => unit lazy_sequence"
+where
+  "hb_not_seq xq = (case yield xq of None => single () | Some (x, xq) => empty)"
+
 hide (open) type lazy_sequence
-hide (open) const Empty Insert Lazy_Sequence yield yieldn empty single append flat map bind if_seq not_seq
-hide fact yield.simps yieldn.simps empty_def single_def append.simps flat.simps map.simps bind_def if_seq_def not_seq_def
+hide (open) const Empty Insert Lazy_Sequence yield empty single append flat map bind if_seq iterate_upto not_seq
+hide fact yield.simps empty_def single_def append.simps flat.simps map.simps bind_def iterate_upto.simps if_seq_def not_seq_def
 
 end

@@ -1,9 +1,6 @@
-(*  Title:      Residuals.thy
-    ID:         $Id$
+(*  Title:      ZF/Resid/Residuals.thy
     Author:     Ole Rasmussen
     Copyright   1995  University of Cambridge
-    Logic Image: ZF
-
 *)
 
 theory Residuals imports Substitution begin

@@ -7,6 +7,8 @@
 package isabelle.jedit
 
 
+import isabelle._
+
 import java.io.File
 
 import gatchan.jedit.hyperlinks.{Hyperlink, HyperlinkSource, AbstractHyperlink}

@@ -1,5 +1,4 @@
 (*  Title:      HOL/IOA/NTP/Multiset.thy
-    ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
 *)
 

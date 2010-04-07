@@ -54,22 +54,22 @@ nat}: it is equivalent to @{term"{0::nat..<n}"} but some lemmas involving
 @{term"{m..<n}"} may not exist in @{term"{..<n}"}-form as well. *}
 
 syntax
-  "@UNION_le"   :: "'a => 'a => 'b set => 'b set"       ("(3UN _<=_./ _)" 10)
-  "@UNION_less" :: "'a => 'a => 'b set => 'b set"       ("(3UN _<_./ _)" 10)
-  "@INTER_le"   :: "'a => 'a => 'b set => 'b set"       ("(3INT _<=_./ _)" 10)
-  "@INTER_less" :: "'a => 'a => 'b set => 'b set"       ("(3INT _<_./ _)" 10)
+  "_UNION_le"   :: "'a => 'a => 'b set => 'b set"       ("(3UN _<=_./ _)" 10)
+  "_UNION_less" :: "'a => 'a => 'b set => 'b set"       ("(3UN _<_./ _)" 10)
+  "_INTER_le"   :: "'a => 'a => 'b set => 'b set"       ("(3INT _<=_./ _)" 10)
+  "_INTER_less" :: "'a => 'a => 'b set => 'b set"       ("(3INT _<_./ _)" 10)
 
 syntax (xsymbols)
-  "@UNION_le"   :: "'a => 'a => 'b set => 'b set"       ("(3\<Union> _\<le>_./ _)" 10)
-  "@UNION_less" :: "'a => 'a => 'b set => 'b set"       ("(3\<Union> _<_./ _)" 10)
-  "@INTER_le"   :: "'a => 'a => 'b set => 'b set"       ("(3\<Inter> _\<le>_./ _)" 10)
-  "@INTER_less" :: "'a => 'a => 'b set => 'b set"       ("(3\<Inter> _<_./ _)" 10)
+  "_UNION_le"   :: "'a => 'a => 'b set => 'b set"       ("(3\<Union> _\<le>_./ _)" 10)
+  "_UNION_less" :: "'a => 'a => 'b set => 'b set"       ("(3\<Union> _<_./ _)" 10)
+  "_INTER_le"   :: "'a => 'a => 'b set => 'b set"       ("(3\<Inter> _\<le>_./ _)" 10)
+  "_INTER_less" :: "'a => 'a => 'b set => 'b set"       ("(3\<Inter> _<_./ _)" 10)
 
 syntax (latex output)
-  "@UNION_le"   :: "'a \<Rightarrow> 'a => 'b set => 'b set"       ("(3\<Union>(00_ \<le> _)/ _)" 10)
-  "@UNION_less" :: "'a \<Rightarrow> 'a => 'b set => 'b set"       ("(3\<Union>(00_ < _)/ _)" 10)
-  "@INTER_le"   :: "'a \<Rightarrow> 'a => 'b set => 'b set"       ("(3\<Inter>(00_ \<le> _)/ _)" 10)
-  "@INTER_less" :: "'a \<Rightarrow> 'a => 'b set => 'b set"       ("(3\<Inter>(00_ < _)/ _)" 10)
+  "_UNION_le"   :: "'a \<Rightarrow> 'a => 'b set => 'b set"       ("(3\<Union>(00_ \<le> _)/ _)" 10)
+  "_UNION_less" :: "'a \<Rightarrow> 'a => 'b set => 'b set"       ("(3\<Union>(00_ < _)/ _)" 10)
+  "_INTER_le"   :: "'a \<Rightarrow> 'a => 'b set => 'b set"       ("(3\<Inter>(00_ \<le> _)/ _)" 10)
+  "_INTER_less" :: "'a \<Rightarrow> 'a => 'b set => 'b set"       ("(3\<Inter>(00_ < _)/ _)" 10)
 
 translations
   "UN i<=n. A"  == "UN i:{..n}. A"
@@ -165,19 +165,19 @@ subsection {*Two-sided intervals*}
 context ord
 begin
 
-lemma greaterThanLessThan_iff [simp,noatp]:
+lemma greaterThanLessThan_iff [simp,no_atp]:
   "(i : {l<..<u}) = (l < i & i < u)"
 by (simp add: greaterThanLessThan_def)
 
-lemma atLeastLessThan_iff [simp,noatp]:
+lemma atLeastLessThan_iff [simp,no_atp]:
   "(i : {l..<u}) = (l <= i & i < u)"
 by (simp add: atLeastLessThan_def)
 
-lemma greaterThanAtMost_iff [simp,noatp]:
+lemma greaterThanAtMost_iff [simp,no_atp]:
   "(i : {l<..u}) = (l < i & i <= u)"
 by (simp add: greaterThanAtMost_def)
 
-lemma atLeastAtMost_iff [simp,noatp]:
+lemma atLeastAtMost_iff [simp,no_atp]:
   "(i : {l..u}) = (l <= i & i <= u)"
 by (simp add: atLeastAtMost_def)
 
@@ -445,6 +445,47 @@ lemma image_add_int_atLeastLessThan:
   apply auto
   done
 
+context ordered_ab_group_add
+begin
+
+lemma
+  fixes x :: 'a
+  shows image_uminus_greaterThan[simp]: "uminus ` {x<..} = {..<-x}"
+  and image_uminus_atLeast[simp]: "uminus ` {x..} = {..-x}"
+proof safe
+  fix y assume "y < -x"
+  hence *:  "x < -y" using neg_less_iff_less[of "-y" x] by simp
+  have "- (-y) \<in> uminus ` {x<..}"
+    by (rule imageI) (simp add: *)
+  thus "y \<in> uminus ` {x<..}" by simp
+next
+  fix y assume "y \<le> -x"
+  have "- (-y) \<in> uminus ` {x..}"
+    by (rule imageI) (insert `y \<le> -x`[THEN le_imp_neg_le], simp)
+  thus "y \<in> uminus ` {x..}" by simp
+qed simp_all
+
+lemma
+  fixes x :: 'a
+  shows image_uminus_lessThan[simp]: "uminus ` {..<x} = {-x<..}"
+  and image_uminus_atMost[simp]: "uminus ` {..x} = {-x..}"
+proof -
+  have "uminus ` {..<x} = uminus ` uminus ` {-x<..}"
+    and "uminus ` {..x} = uminus ` uminus ` {-x..}" by simp_all
+  thus "uminus ` {..<x} = {-x<..}" and "uminus ` {..x} = {-x..}"
+    by (simp_all add: image_image
+        del: image_uminus_greaterThan image_uminus_atLeast)
+qed
+
+lemma
+  fixes x :: 'a
+  shows image_uminus_atLeastAtMost[simp]: "uminus ` {x..y} = {-y..-x}"
+  and image_uminus_greaterThanAtMost[simp]: "uminus ` {x<..y} = {-y..<-x}"
+  and image_uminus_atLeastLessThan[simp]: "uminus ` {x..<y} = {-y<..-x}"
+  and image_uminus_greaterThanLessThan[simp]: "uminus ` {x<..<y} = {-y<..<-x}"
+  by (simp_all add: atLeastAtMost_def greaterThanAtMost_def atLeastLessThan_def
+      greaterThanLessThan_def image_Int[OF inj_uminus] Int_commute)
+end
 
 subsubsection {* Finiteness *}
 
@@ -539,7 +580,7 @@ lemma UN_finite2_eq:
   apply (rule subset_antisym)
    apply (rule UN_finite2_subset, blast)
  apply (rule UN_finite2_subset [where k=k])
- apply (force simp add: atLeastLessThan_add_Un [of 0] UN_Un) 
+ apply (force simp add: atLeastLessThan_add_Un [of 0])
  done
 
 
@@ -613,7 +654,7 @@ lemma image_atLeastZeroLessThan_int: "0 \<le> u ==>
   apply (unfold image_def lessThan_def)
   apply auto
   apply (rule_tac x = "nat x" in exI)
-  apply (auto simp add: zless_nat_conj zless_nat_eq_int_zless [THEN sym])
+  apply (auto simp add: zless_nat_eq_int_zless [THEN sym])
   done
 
 lemma finite_atLeastZeroLessThan_int: "finite {(0::int)..<u}"
@@ -803,7 +844,7 @@ by(auto)
 
 subsubsection {* Some Subset Conditions *}
 
-lemma ivl_subset [simp,noatp]:
+lemma ivl_subset [simp,no_atp]:
  "({i..<j} \<subseteq> {m..<n}) = (j \<le> i | m \<le> i & j \<le> (n::'a::linorder))"
 apply(auto simp:linorder_not_le)
 apply(rule ccontr)
@@ -970,6 +1011,27 @@ proof-
   finally show ?thesis .
 qed
 
+lemma setsum_le_included:
+  fixes f :: "'a \<Rightarrow> 'b::{comm_monoid_add,ordered_ab_semigroup_add_imp_le}"
+  assumes "finite s" "finite t"
+  and "\<forall>y\<in>t. 0 \<le> g y" "(\<forall>x\<in>s. \<exists>y\<in>t. i y = x \<and> f x \<le> g y)"
+  shows "setsum f s \<le> setsum g t"
+proof -
+  have "setsum f s \<le> setsum (\<lambda>y. setsum g {x. x\<in>t \<and> i x = y}) s"
+  proof (rule setsum_mono)
+    fix y assume "y \<in> s"
+    with assms obtain z where z: "z \<in> t" "y = i z" "f y \<le> g z" by auto
+    with assms show "f y \<le> setsum g {x \<in> t. i x = y}" (is "?A y \<le> ?B y")
+      using order_trans[of "?A (i z)" "setsum g {z}" "?B (i z)", intro]
+      by (auto intro!: setsum_mono2)
+  qed
+  also have "... \<le> setsum (\<lambda>y. setsum g {x. x\<in>t \<and> i x = y}) (i ` t)"
+    using assms(2-4) by (auto intro!: setsum_mono2 setsum_nonneg)
+  also have "... \<le> setsum g t"
+    using assms by (auto simp: setsum_image_gen[symmetric])
+  finally show ?thesis .
+qed
+
 lemma setsum_multicount_gen:
   assumes "finite s" "finite t" "\<forall>j\<in>t. (card {i\<in>s. R i j} = k j)"
   shows "setsum (\<lambda>i. (card {j\<in>t. R i j})) s = setsum k t" (is "?l = ?r")
@@ -985,7 +1047,7 @@ lemma setsum_multicount:
   shows "setsum (\<lambda>i. card {j\<in>T. R i j}) S = k * card T" (is "?l = ?r")
 proof-
   have "?l = setsum (\<lambda>i. k) T" by(rule setsum_multicount_gen)(auto simp:assms)
-  also have "\<dots> = ?r" by(simp add: setsum_constant mult_commute)
+  also have "\<dots> = ?r" by(simp add: mult_commute)
   finally show ?thesis by auto
 qed
 
@@ -1025,7 +1087,7 @@ subsection {* The formula for geometric sums *}
 lemma geometric_sum:
   "x ~= 1 ==> (\<Sum>i=0..<n. x ^ i) =
   (x ^ n - 1) / (x - 1::'a::{field})"
-by (induct "n") (simp_all add:field_simps power_Suc)
+by (induct "n") (simp_all add: field_simps)
 
 subsection {* The formula for arithmetic sums *}
 
@@ -1077,7 +1139,7 @@ proof -
     of_nat(n) * (a + (a + of_nat(n - 1)*d))"
     by (rule arith_series_general)
   thus ?thesis
-    unfolding One_nat_def by (auto simp add: of_nat_id)
+    unfolding One_nat_def by auto
 qed
 
 lemma arith_series_int:
@@ -1166,7 +1228,7 @@ lemma transfer_nat_int_set_function_closures:
     "x >= 0 \<Longrightarrow> nat_set {x..y}"
   by (simp add: nat_set_def)
 
-declare TransferMorphism_nat_int[transfer add
+declare transfer_morphism_nat_int[transfer add
   return: transfer_nat_int_set_functions
     transfer_nat_int_set_function_closures
 ]
@@ -1182,7 +1244,7 @@ lemma transfer_int_nat_set_function_closures:
     "is_nat x \<Longrightarrow> nat_set {x..y}"
   by (simp only: transfer_nat_int_set_function_closures is_nat_def)
 
-declare TransferMorphism_int_nat[transfer add
+declare transfer_morphism_int_nat[transfer add
   return: transfer_int_nat_set_functions
     transfer_int_nat_set_function_closures
 ]

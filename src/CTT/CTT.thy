@@ -1,5 +1,4 @@
 (*  Title:      CTT/CTT.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 *)
@@ -63,8 +62,8 @@ syntax
   "_PROD"   :: "[idt,t,t]=>t"       ("(3PROD _:_./ _)" 10)
   "_SUM"    :: "[idt,t,t]=>t"       ("(3SUM _:_./ _)" 10)
 translations
-  "PROD x:A. B" == "Prod(A, %x. B)"
-  "SUM x:A. B"  == "Sum(A, %x. B)"
+  "PROD x:A. B" == "CONST Prod(A, %x. B)"
+  "SUM x:A. B"  == "CONST Sum(A, %x. B)"
 
 abbreviation
   Arrow     :: "[t,t]=>t"  (infixr "-->" 30) where

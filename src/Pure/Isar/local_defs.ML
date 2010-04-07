@@ -17,9 +17,10 @@ sig
   val fixed_abbrev: (binding * mixfix) * term -> Proof.context ->
     (term * term) * Proof.context
   val export: Proof.context -> Proof.context -> thm -> thm list * thm
-  val export_cterm: Proof.context -> Proof.context -> cterm -> cterm * thm
+  val export_cterm: Proof.context -> Proof.context -> cterm -> thm list * cterm
   val trans_terms: Proof.context -> thm list -> thm
   val trans_props: Proof.context -> thm list -> thm
+  val contract: Proof.context -> thm list -> cterm -> thm -> thm
   val print_rules: Proof.context -> unit
   val defn_add: attribute
   val defn_del: attribute
@@ -34,7 +35,7 @@ sig
     ((string * typ) * term) * (Proof.context -> thm -> thm)
 end;
 
-structure LocalDefs: LOCAL_DEFS =
+structure Local_Defs: LOCAL_DEFS =
 struct
 
 (** primitive definitions **)
@@ -155,8 +156,7 @@ fun export inner outer =    (*beware of closure sizes*)
      TERM b as          b xs == b as
 *)
 fun export_cterm inner outer ct =
-  let val (defs, ct') = export inner outer (Drule.mk_term ct) ||> Drule.dest_term
-  in (ct', MetaSimplifier.rewrite true defs ct) end;
+  export inner outer (Drule.mk_term ct) ||> Drule.dest_term;
 
 
 (* basic transitivity reasoning -- modulo beta-eta *)
@@ -180,6 +180,8 @@ val trans_props = trans_list (fn eq => fn th => th COMP (eq COMP Drule.equal_eli
 
 end;
 
+fun contract ctxt defs ct th =
+  trans_props ctxt [th, Thm.symmetric (MetaSimplifier.rewrite true defs ct)];
 
 
 (** defived definitions **)

@@ -1,5 +1,4 @@
 (*  Title:      HOL/IOA/meta_theory/Asig.thy
-    ID:         $Id$
     Author:     Olaf Müller, Tobias Nipkow & Konrad Slind
 *)
 

@@ -37,9 +37,6 @@ sig
   val param_of_inst: theory -> string * string -> string
   val inst_of_param: theory -> string -> (string * string) option
   val thynames_of_arity: theory -> class * string -> string list
-  type cache
-  val of_sort: theory -> typ * sort -> cache -> thm list * cache  (*exception Sorts.CLASS_ERROR*)
-  val cache: cache
   val introN: string
   val axiomsN: string
 end;
@@ -190,7 +187,7 @@ fun insert_arity_completions thy (t, ((c, Ss), (th, thy_name))) arities =
       Sign.super_classes thy c
       |> filter_out (fn c1 => exists (fn ((c2, Ss2), _) => c1 = c2
           andalso Sorts.sorts_le algebra (Ss2, Ss)) (Symtab.lookup_list arities t));
-    val completions = map (fn c1 => (Sorts.weaken algebra
+    val completions = map (fn c1 => (Sorts.classrel_derivation algebra
       (fn (th, c2) => fn c3 => th RS the_classrel thy (c2, c3)) (th, c) c1
         |> Thm.close_derivation, c1)) super_class_completions;
     val arities' = fold (fn (th1, c1) => Symtab.cons_list (t, ((c1, Ss), (th1, thy_name))))
@@ -280,39 +277,41 @@ fun cert_classrel thy raw_rel =
   in (c1, c2) end;
 
 fun read_classrel thy raw_rel =
-  cert_classrel thy (pairself (Sign.read_class thy) raw_rel)
+  cert_classrel thy (pairself (ProofContext.read_class (ProofContext.init thy)) raw_rel)
     handle TYPE (msg, _, _) => error msg;
 
 
 (* declaration and definition of instances of overloaded constants *)
 
-fun inst_tyco_of thy (c, T) = case get_inst_tyco (Sign.consts_of thy) (c, T)
- of SOME tyco => tyco
-  | NONE => error ("Illegal type for instantiation of class parameter: "
-      ^ quote (c ^ " :: " ^ Syntax.string_of_typ_global thy T));
+fun inst_tyco_of thy (c, T) =
+  (case get_inst_tyco (Sign.consts_of thy) (c, T) of
+    SOME tyco => tyco
+  | NONE => error ("Illegal type for instantiation of class parameter: " ^
+      quote (c ^ " :: " ^ Syntax.string_of_typ_global thy T)));
 
 fun declare_overloaded (c, T) thy =
   let
-    val class = case class_of_param thy c
-     of SOME class => class
-      | NONE => error ("Not a class parameter: " ^ quote c);
+    val class =
+      (case class_of_param thy c of
+        SOME class => class
+      | NONE => error ("Not a class parameter: " ^ quote c));
     val tyco = inst_tyco_of thy (c, T);
     val name_inst = instance_name (tyco, class) ^ "_inst";
     val c' = Long_Name.base_name c ^ "_" ^ Long_Name.base_name tyco;
     val T' = Type.strip_sorts T;
   in
     thy
-    |> Sign.mandatory_path name_inst
+    |> Sign.qualified_path true (Binding.name name_inst)
     |> Sign.declare_const ((Binding.name c', T'), NoSyn)
     |-> (fn const' as Const (c'', _) =>
       Thm.add_def false true
         (Binding.name (Thm.def_name c'), Logic.mk_equals (Const (c, T'), const'))
-      #>> Thm.varifyT
+      #>> Thm.varifyT_global
       #-> (fn thm => add_inst_param (c, tyco) (c'', thm)
       #> PureThy.add_thm ((Binding.conceal (Binding.name c'), thm), [])
       #> snd
-      #> Sign.restore_naming thy
       #> pair (Const (c, T))))
+    ||> Sign.restore_naming thy
   end;
 
 fun define_overloaded b (c, t) thy =
@@ -385,7 +384,7 @@ fun prove_classrel raw_rel tac thy =
 fun prove_arity raw_arity tac thy =
   let
     val ctxt = ProofContext.init thy;
-    val arity = Sign.cert_arity thy raw_arity;
+    val arity = ProofContext.cert_arity ctxt raw_arity;
     val names = map (prefix arity_prefix) (Logic.name_arities arity);
     val props = Logic.mk_arities arity;
     val ths = Goal.prove_multi ctxt [] [] props
@@ -465,14 +464,14 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
 
     (* definition *)
 
-    val conjs = map (curry Logic.mk_of_class (Term.aT [])) super @ flat axiomss;
+    val conjs = Logic.mk_of_sort (Term.aT [], super) @ flat axiomss;
     val class_eq =
       Logic.mk_equals (Logic.mk_of_class (Term.aT [], class), Logic.mk_conjunction_balanced conjs);
 
     val ([def], def_thy) =
       thy
       |> Sign.primitive_class (bclass, super)
-      |> PureThy.add_defs false [((Binding.map_name Thm.def_name bconst, class_eq), [])];
+      |> PureThy.add_defs false [((Thm.def_binding bconst, class_eq), [])];
     val (raw_intro, (raw_classrel, raw_axioms)) =
       split_defined (length conjs) def ||> chop (length super);
 
@@ -482,12 +481,12 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
     val class_triv = Thm.class_triv def_thy class;
     val ([(_, [intro]), (_, classrel), (_, axioms)], facts_thy) =
       def_thy
-      |> Sign.mandatory_path (Binding.name_of bconst)
+      |> Sign.qualified_path true bconst
       |> PureThy.note_thmss ""
-        [((Binding.name introN, []), [([Drule.standard raw_intro], [])]),
-         ((Binding.name superN, []), [(map Drule.standard raw_classrel, [])]),
+        [((Binding.name introN, []), [([Drule.export_without_context raw_intro], [])]),
+         ((Binding.name superN, []), [(map Drule.export_without_context raw_classrel, [])]),
          ((Binding.name axiomsN, []),
-           [(map (fn th => Drule.standard (class_triv RS th)) raw_axioms, [])])]
+           [(map (fn th => Drule.export_without_context (class_triv RS th)) raw_axioms, [])])]
       ||> Sign.restore_naming def_thy;
 
 
@@ -497,7 +496,7 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
     val result_thy =
       facts_thy
       |> fold put_classrel (map (pair class) super ~~ classrel)
-      |> Sign.add_path (Binding.name_of bconst)
+      |> Sign.qualified_path false bconst
       |> PureThy.note_thmss "" (name_atts ~~ map Thm.simple_fact (unflat axiomss axioms)) |> snd
       |> Sign.restore_naming facts_thy
       |> map_axclasses (fn (axclasses, parameters) =>
@@ -512,6 +511,12 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
 
 local
 
+(* old-style axioms *)
+
+fun add_axiom (b, prop) =
+  Thm.add_axiom (b, prop) #->
+  (fn thm => PureThy.add_thm ((b, Drule.export_without_context thm), []));
+
 fun axiomatize prep mk name add raw_args thy =
   let
     val args = prep thy raw_args;
@@ -519,7 +524,7 @@ fun axiomatize prep mk name add raw_args thy =
     val names = name args;
   in
     thy
-    |> PureThy.add_axioms (map (rpair []) (map Binding.name names ~~ specs))
+    |> fold_map add_axiom (map Binding.name names ~~ specs)
     |-> fold add
   end;
 
@@ -528,7 +533,7 @@ fun ax_classrel prep =
     (map (prefix classrel_prefix o Logic.name_classrel)) add_classrel;
 
 fun ax_arity prep =
-  axiomatize prep Logic.mk_arities
+  axiomatize (prep o ProofContext.init) Logic.mk_arities
     (map (prefix arity_prefix) o Logic.name_arities) add_arity;
 
 fun class_const c =
@@ -548,67 +553,12 @@ fun ax_class prep_class prep_classrel (bclass, raw_super) thy =
 in
 
 val axiomatize_class = ax_class Sign.certify_class cert_classrel;
-val axiomatize_class_cmd = ax_class Sign.read_class read_classrel;
+val axiomatize_class_cmd = ax_class (ProofContext.read_class o ProofContext.init) read_classrel;
 val axiomatize_classrel = ax_classrel cert_classrel;
 val axiomatize_classrel_cmd = ax_classrel read_classrel;
-val axiomatize_arity = ax_arity Sign.cert_arity;
-val axiomatize_arity_cmd = ax_arity Sign.read_arity;
+val axiomatize_arity = ax_arity ProofContext.cert_arity;
+val axiomatize_arity_cmd = ax_arity ProofContext.read_arity;
 
 end;
-
-
-
-(** explicit derivations -- cached **)
-
-datatype cache = Types of (class * thm) list Typtab.table;
-
-local
-
-fun lookup_type (Types cache) = AList.lookup (op =) o Typtab.lookup_list cache;
-fun insert_type T der (Types cache) = Types (Typtab.insert_list (eq_fst op =) (T, der) cache);
-
-fun derive_type _ (_, []) = []
-  | derive_type thy (typ, sort) =
-      let
-        val certT = Thm.ctyp_of thy;
-        val vars = Term.fold_atyps
-            (fn T as TFree (_, S) => insert (eq_fst op =) (T, S)
-              | T as TVar (_, S) => insert (eq_fst op =) (T, S)
-              | _ => I) typ [];
-        val hyps = vars
-          |> map (fn (T, S) => (T, Thm.of_sort (certT T, S) ~~ S));
-        val ths = (typ, sort)
-          |> Sorts.of_sort_derivation (Sign.classes_of thy)
-           {class_relation =
-              fn (th, c1) => fn c2 => th RS the_classrel thy (c1, c2),
-            type_constructor =
-              fn a => fn dom => fn c =>
-                let val Ss = map (map snd) dom and ths = maps (map fst) dom
-                in ths MRS the_arity thy a (c, Ss) end,
-            type_variable =
-              the_default [] o AList.lookup (op =) hyps};
-      in ths end;
-
-in
-
-fun of_sort thy (typ, sort) cache =
-  let
-    val sort' = filter (is_none o lookup_type cache typ) sort;
-    val ths' = derive_type thy (typ, sort')
-      handle ERROR msg => cat_error msg ("The error(s) above occurred for sort derivation: " ^
-        Syntax.string_of_typ_global thy typ ^ " :: " ^ Syntax.string_of_sort_global thy sort');
-    val cache' = cache |> fold (insert_type typ) (sort' ~~ ths');
-    val ths =
-      sort |> map (fn c =>
-        Goal.finish
-          (Syntax.init_pretty_global thy)
-          (the (lookup_type cache' typ c) RS
-            Goal.init (Thm.cterm_of thy (Logic.mk_of_class (typ, c))))
-        |> Thm.adjust_maxidx_thm ~1);
-  in (ths, cache') end;
-
-end;
-
-val cache = Types Typtab.empty;
 
 end;

@@ -10,7 +10,7 @@ begin
 
 defaultsort cpo
 
-subsection {* Type @{typ unit} is a pcpo *}
+subsection {* Unit type is a pcpo *}
 
 instantiation unit :: below
 begin
@@ -58,7 +58,7 @@ next
     by (fast intro: below_trans)
 qed
 
-subsection {* Monotonicity of @{text "(_,_)"}, @{term fst}, @{term snd} *}
+subsection {* Monotonicity of \emph{Pair}, \emph{fst}, \emph{snd} *}
 
 lemma prod_belowI: "\<lbrakk>fst p \<sqsubseteq> fst q; snd p \<sqsubseteq> snd q\<rbrakk> \<Longrightarrow> p \<sqsubseteq> q"
 unfolding below_prod_def by simp
@@ -83,6 +83,12 @@ lemma ch2ch_Pair [simp]:
 by (rule chainI, simp add: chainE)
 
 text {* @{term fst} and @{term snd} are monotone *}
+
+lemma fst_monofun: "x \<sqsubseteq> y \<Longrightarrow> fst x \<sqsubseteq> fst y"
+unfolding below_prod_def by simp
+
+lemma snd_monofun: "x \<sqsubseteq> y \<Longrightarrow> snd x \<sqsubseteq> snd y"
+unfolding below_prod_def by simp
 
 lemma monofun_fst: "monofun fst"
 by (simp add: monofun_def below_prod_def)
@@ -187,7 +193,7 @@ by simp
 lemma split_strict [simp]: "split f \<bottom> = f \<bottom> \<bottom>"
 unfolding split_def by simp
 
-subsection {* Continuity of @{text "(_,_)"}, @{term fst}, @{term snd} *}
+subsection {* Continuity of \emph{Pair}, \emph{fst}, \emph{snd} *}
 
 lemma cont_pair1: "cont (\<lambda>x. (x, y))"
 apply (rule contI)
@@ -203,26 +209,16 @@ apply (rule lub_const)
 apply (erule cpo_lubI)
 done
 
-lemma contlub_fst: "contlub fst"
-apply (rule contlubI)
-apply (simp add: thelub_cprod)
-done
-
-lemma contlub_snd: "contlub snd"
-apply (rule contlubI)
-apply (simp add: thelub_cprod)
-done
-
 lemma cont_fst: "cont fst"
-apply (rule monocontlub2cont)
-apply (rule monofun_fst)
-apply (rule contlub_fst)
+apply (rule contI)
+apply (simp add: thelub_cprod)
+apply (erule cpo_lubI [OF ch2ch_fst])
 done
 
 lemma cont_snd: "cont snd"
-apply (rule monocontlub2cont)
-apply (rule monofun_snd)
-apply (rule contlub_snd)
+apply (rule contI)
+apply (simp add: thelub_cprod)
+apply (erule cpo_lubI [OF ch2ch_snd])
 done
 
 lemma cont2cont_Pair [cont2cont]:

@@ -1,5 +1,4 @@
 (*  Title:      HOL/Hoare/Pointers.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   2002 TUM
 
@@ -10,22 +9,22 @@ specifications (a bit). However, the proofs don't seem to get simpler
 - in fact in some case they appear to get (a bit) more complicated.
 *)
 
-theory Pointers0 imports Hoare begin
+theory Pointers0 imports Hoare_Logic begin
 
 subsection "References"
 
-axclass ref < type
-consts Null :: "'a::ref"
+class ref =
+  fixes Null :: 'a
 
 subsection "Field access and update"
 
 syntax
-  "@fassign"  :: "'a::ref => id => 'v => 's com"
+  "_fassign"  :: "'a::ref => id => 'v => 's com"
    ("(2_^._ :=/ _)" [70,1000,65] 61)
-  "@faccess"  :: "'a::ref => ('a::ref \<Rightarrow> 'v) => 'v"
+  "_faccess"  :: "'a::ref => ('a::ref \<Rightarrow> 'v) => 'v"
    ("_^._" [65,1000] 65)
 translations
-  "p^.f := e"  =>  "f := fun_upd f p e"
+  "p^.f := e"  =>  "f := CONST fun_upd f p e"
   "p^.f"       =>  "f p"
 
 
@@ -74,8 +73,7 @@ subsection "Lists on the heap"
 
 subsubsection "Relational abstraction"
 
-constdefs
- List :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> bool"
+definition List :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> bool" where
 "List h x as == Path h x as Null"
 
 lemma [simp]: "List h x [] = (x = Null)"
@@ -123,10 +121,10 @@ done
 
 subsection "Functional abstraction"
 
-constdefs
- islist :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> bool"
+definition islist :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> bool" where
 "islist h p == \<exists>as. List h p as"
- list :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list"
+
+definition list :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list" where
 "list h p == SOME as. List h p as"
 
 lemma List_conv_islist_list: "List h p as = (islist h p \<and> as = list h p)"
@@ -322,13 +320,11 @@ subsection "Merging two lists"
 
 text"This is still a bit rough, especially the proof."
 
-consts merge :: "'a list * 'a list * ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list"
-
-recdef merge "measure(%(xs,ys,f). size xs + size ys)"
+fun merge :: "'a list * 'a list * ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list" where
 "merge(x#xs,y#ys,f) = (if f x y then x # merge(xs,y#ys,f)
-                                else y # merge(x#xs,ys,f))"
-"merge(x#xs,[],f) = x # merge(xs,[],f)"
-"merge([],y#ys,f) = y # merge([],ys,f)"
+                                else y # merge(x#xs,ys,f))" |
+"merge(x#xs,[],f) = x # merge(xs,[],f)" |
+"merge([],y#ys,f) = y # merge([],ys,f)" |
 "merge([],[],f) = []"
 
 lemma imp_disjCL: "(P|Q \<longrightarrow> R) = ((P \<longrightarrow> R) \<and> (~P \<longrightarrow> Q \<longrightarrow> R))"
@@ -408,7 +404,7 @@ done
 
 subsection "Storage allocation"
 
-constdefs new :: "'a set \<Rightarrow> 'a::ref"
+definition new :: "'a set \<Rightarrow> 'a::ref" where
 "new A == SOME a. a \<notin> A & a \<noteq> Null"
 
 

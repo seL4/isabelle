@@ -1,4 +1,0 @@
-(benchmark Isabelle
-:assumption (not (exists (?x1 Int) (implies (forall (?x2 Int) (implies (<= ?x1 ?x2) (< 0 ?x2))) (< 0 ?x1))))
-:formula true
-)

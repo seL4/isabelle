@@ -1,9 +1,8 @@
-(*  Title:      ZF/simpdata
-    ID:         $Id$
+(*  Title:      ZF/simpdata.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-Rewriting for ZF set theory: specialized extraction of rewrites from theorems
+Rewriting for ZF set theory: specialized extraction of rewrites from theorems.
 *)
 
 (*** New version of mk_rew_rules ***)
@@ -32,9 +31,9 @@ fun atomize (conn_pairs, mem_pairs) th =
 (*Analyse a rigid formula*)
 val ZF_conn_pairs =
   [("Ball",     [@{thm bspec}]),
-   ("All",      [spec]),
-   ("op -->",   [mp]),
-   ("op &",     [conjunct1,conjunct2])];
+   ("All",      [@{thm spec}]),
+   ("op -->",   [@{thm mp}]),
+   ("op &",     [@{thm conjunct1}, @{thm conjunct2}])];
 
 (*Analyse a:b, where b is rigid*)
 val ZF_mem_pairs =

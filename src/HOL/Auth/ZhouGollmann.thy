@@ -21,8 +21,7 @@ abbreviation f_nrr :: nat where "f_nrr == 3"
 abbreviation f_con :: nat where "f_con == 4"
 
 
-constdefs
-  broken :: "agent set"    
+definition broken :: "agent set" where    
     --{*the compromised honest agents; TTP is included as it's not allowed to
         use the protocol*}
    "broken == bad - {Spy}"

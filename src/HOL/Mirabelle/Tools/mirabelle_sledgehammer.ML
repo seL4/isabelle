@@ -42,8 +42,7 @@ datatype me_data = MeData of {
 
 datatype min_data = MinData of {
   succs: int,
-  ab_ratios: int,
-  it_ratios: int
+  ab_ratios: int
   }
 
 fun make_sh_data
@@ -51,23 +50,22 @@ fun make_sh_data
   ShData{calls=calls, success=success, lemmas=lemmas, max_lems=max_lems,
          time_isa=time_isa, time_atp=time_atp, time_atp_fail=time_atp_fail}
 
-fun make_min_data (succs, ab_ratios, it_ratios) =
-  MinData{succs=succs, ab_ratios=ab_ratios, it_ratios=it_ratios}
+fun make_min_data (succs, ab_ratios) =
+  MinData{succs=succs, ab_ratios=ab_ratios}
 
 fun make_me_data (calls,success,proofs,time,timeout,lemmas,posns) =
   MeData{calls=calls, success=success, proofs=proofs, time=time,
          timeout=timeout, lemmas=lemmas, posns=posns}
 
 val empty_sh_data = make_sh_data (0, 0, 0, 0, 0, 0, 0)
-val empty_min_data = make_min_data(0, 0, 0)
-val empty_me_data = make_me_data(0, 0, 0, 0, 0, (0,0,0), [])
+val empty_min_data = make_min_data (0, 0)
+val empty_me_data = make_me_data (0, 0, 0, 0, 0, (0,0,0), [])
 
 fun tuple_of_sh_data (ShData {calls, success, lemmas, max_lems, time_isa,
   time_atp, time_atp_fail}) = (calls, success, lemmas, max_lems, time_isa,
   time_atp, time_atp_fail)
 
-fun tuple_of_min_data (MinData {succs, ab_ratios, it_ratios}) =
-  (succs, ab_ratios, it_ratios)
+fun tuple_of_min_data (MinData {succs, ab_ratios}) = (succs, ab_ratios)
 
 fun tuple_of_me_data (MeData {calls, success, proofs, time, timeout, lemmas,
   posns}) = (calls, success, proofs, time, timeout, lemmas, posns)
@@ -147,13 +145,10 @@ fun inc_sh_time_atp_fail t = map_sh_data
     => (calls,success,lemmas,max_lems,time_isa,time_atp,time_atp_fail + t))
 
 val inc_min_succs = map_min_data
-  (fn (succs,ab_ratios,it_ratios) => (succs+1, ab_ratios, it_ratios))
+  (fn (succs,ab_ratios) => (succs+1, ab_ratios))
 
 fun inc_min_ab_ratios r = map_min_data
-  (fn (succs, ab_ratios, it_ratios) => (succs, ab_ratios+r, it_ratios))
-
-fun inc_min_it_ratios r = map_min_data
-  (fn (succs, ab_ratios, it_ratios) => (succs, ab_ratios, it_ratios+r))
+  (fn (succs, ab_ratios) => (succs, ab_ratios+r))
 
 val inc_metis_calls = map_me_data
   (fn (calls,success,proofs,time,timeout,lemmas,posns)
@@ -234,10 +229,9 @@ fun log_me_data log tag sh_calls (metis_calls, metis_success,
   else ()
  )
 
-fun log_min_data log (succs, ab_ratios, it_ratios) =
+fun log_min_data log (succs, ab_ratios) =
   (log ("Number of successful minimizations: " ^ string_of_int succs);
-   log ("After/before ratios: " ^ string_of_int ab_ratios);
-   log ("Iterations ratios: " ^ string_of_int it_ratios)
+   log ("After/before ratios: " ^ string_of_int ab_ratios)
   )
 
 in
@@ -286,7 +280,8 @@ fun change_data id f = (Unsynchronized.change data (AList.map_entry (op =) id f)
 
 fun get_atp thy args =
   let
-    fun default_atp_name () = hd (ATP_Manager.get_atps ())
+    fun default_atp_name () =
+      hd (#atps (Sledgehammer_Isar.default_params thy []))
       handle Empty => error "No ATP available."
     fun get_prover name =
       (case ATP_Manager.get_prover thy name of
@@ -307,25 +302,31 @@ datatype sh_result =
 
 fun run_sh prover hard_timeout timeout dir st =
   let
-    val {context = ctxt, facts, goal} = Proof.raw_goal st   (* FIXME ?? *)
+    val {context = ctxt, facts, goal} = Proof.goal st
+    val thy = ProofContext.theory_of ctxt
     val change_dir = (fn SOME d => Config.put ATP_Wrapper.destdir d | _ => I)
     val ctxt' =
       ctxt
       |> change_dir dir
       |> Config.put ATP_Wrapper.measure_runtime true
-    val problem = ATP_Wrapper.problem_of_goal (! ATP_Manager.full_types) 1 (ctxt', (facts, goal));
-
+    val params = Sledgehammer_Isar.default_params thy []
+    val problem =
+      {subgoal = 1, goal = (ctxt', (facts, goal)),
+       relevance_override = {add = [], del = [], only = false},
+       axiom_clauses = NONE, filtered_clauses = NONE}
     val time_limit =
       (case hard_timeout of
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
-    val ({success, message, theorem_names, runtime=time_atp, ...}: ATP_Wrapper.prover_result,
-        time_isa) = time_limit (Mirabelle.cpu_time (fn t => prover t problem)) timeout
+    val ({success, message, relevant_thm_names,
+          atp_run_time_in_msecs = time_atp, ...}: ATP_Manager.prover_result,
+        time_isa) = time_limit (Mirabelle.cpu_time
+                      (prover params (Time.fromSeconds timeout))) problem
   in
-    if success then (message, SH_OK (time_isa, time_atp, theorem_names))
-    else (message, SH_FAIL(time_isa, time_atp))
+    if success then (message, SH_OK (time_isa, time_atp, relevant_thm_names))
+    else (message, SH_FAIL (time_isa, time_atp))
   end
-  handle Res_HOL_Clause.TOO_TRIVIAL => ("trivial", SH_OK (0, 0, []))
+  handle Sledgehammer_HOL_Clause.TRIVIAL => ("trivial", SH_OK (0, 0, []))
        | ERROR msg => ("error: " ^ msg, SH_ERROR)
        | TimeLimit.TimeOut => ("timeout", SH_ERROR)
 
@@ -380,20 +381,23 @@ end
 
 fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
   let
+    open ATP_Minimal
+    open Sledgehammer_Isar
+    val thy = Proof.theory_of st
     val n0 = length (these (!named_thms))
-    val (prover_name, prover) = get_atp (Proof.theory_of st) args
-    val minimize = ATP_Minimal.minimalize prover prover_name
+    val (prover_name, prover) = get_atp thy args
     val timeout =
       AList.lookup (op =) args minimize_timeoutK
       |> Option.map (fst o read_int o explode)
       |> the_default 5
+    val params = default_params thy [("minimize_timeout", Int.toString timeout)]
+    val minimize = minimize_theorems params linear_minimize prover prover_name 1
     val _ = log separator
   in
-    case minimize timeout st (these (!named_thms)) of
-      (SOME (named_thms',its), msg) =>
+    case minimize st (these (!named_thms)) of
+      (SOME named_thms', msg) =>
         (change_data id inc_min_succs;
          change_data id (inc_min_ab_ratios ((100 * length named_thms') div n0));
-         change_data id (inc_min_it_ratios ((100*its) div n0));
          if length named_thms' = n0
          then log (minimize_tag id ^ "already minimal")
          else (named_thms := SOME named_thms';
@@ -407,8 +411,8 @@ fun run_metis full m name named_thms id
     ({pre=st, timeout, log, pos, ...}: Mirabelle.run_args) =
   let
     fun metis thms ctxt =
-      if full then MetisTools.metisFT_tac ctxt thms
-      else MetisTools.metis_tac ctxt thms
+      if full then Metis_Tactics.metisFT_tac ctxt thms
+      else Metis_Tactics.metis_tac ctxt thms
     fun apply_metis thms = Mirabelle.can_apply timeout (metis thms) st
 
     fun with_time (false, t) = "failed (" ^ string_of_int t ^ ")"
@@ -434,39 +438,39 @@ fun run_metis full m name named_thms id
   end
 
 fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
-  let val goal = Thm.major_prem_of (#goal (Proof.raw_goal pre))  (* FIXME ?? *) in
-  if can Logic.dest_conjunction goal orelse can Logic.dest_equals goal
-  then () else
-  let
-    val named_thms = Unsynchronized.ref (NONE : (string * thm list) list option)
-    val minimize = AList.defined (op =) args minimizeK
-    val metis_ft = AList.defined (op =) args metis_ftK
-
-    fun apply_metis m1 m2 =
-      if metis_ft
-      then
-        if not (Mirabelle.catch_result metis_tag false
-            (run_metis false m1 name (these (!named_thms))) id st)
+  let val goal = Thm.major_prem_of (#goal (Proof.goal pre)) in
+    if can Logic.dest_conjunction goal orelse can Logic.dest_equals goal
+    then () else
+    let
+      val named_thms = Unsynchronized.ref (NONE : (string * thm list) list option)
+      val minimize = AList.defined (op =) args minimizeK
+      val metis_ft = AList.defined (op =) args metis_ftK
+  
+      fun apply_metis m1 m2 =
+        if metis_ft
         then
+          if not (Mirabelle.catch_result metis_tag false
+              (run_metis false m1 name (these (!named_thms))) id st)
+          then
+            (Mirabelle.catch_result metis_tag false
+              (run_metis true m2 name (these (!named_thms))) id st; ())
+          else ()
+        else
           (Mirabelle.catch_result metis_tag false
-            (run_metis true m2 name (these (!named_thms))) id st; ())
-        else ()
-      else
-        (Mirabelle.catch_result metis_tag false
-          (run_metis false m1 name (these (!named_thms))) id st; ())
-  in 
-    change_data id (set_mini minimize);
-    Mirabelle.catch sh_tag (run_sledgehammer args named_thms) id st;
-    if is_some (!named_thms)
-    then
-     (apply_metis Unminimized UnminimizedFT;
-      if minimize andalso not (null (these (!named_thms)))
+            (run_metis false m1 name (these (!named_thms))) id st; ())
+    in 
+      change_data id (set_mini minimize);
+      Mirabelle.catch sh_tag (run_sledgehammer args named_thms) id st;
+      if is_some (!named_thms)
       then
-       (Mirabelle.catch minimize_tag (run_minimize args named_thms) id st;
-        apply_metis Minimized MinimizedFT)
-      else ())
-    else ()
-  end
+       (apply_metis Unminimized UnminimizedFT;
+        if minimize andalso not (null (these (!named_thms)))
+        then
+         (Mirabelle.catch minimize_tag (run_minimize args named_thms) id st;
+          apply_metis Minimized MinimizedFT)
+        else ())
+      else ()
+    end
   end
 
 fun invoke args =

@@ -52,6 +52,9 @@ qed
 lemma Un_infinite: "infinite S \<Longrightarrow> infinite (S \<union> T)"
   by simp
 
+lemma infinite_Un: "infinite (S \<union> T) \<longleftrightarrow> infinite S \<or> infinite T"
+  by simp
+
 lemma infinite_super:
   assumes T: "S \<subseteq> T" and S: "infinite S"
   shows "infinite T"
@@ -192,10 +195,11 @@ proof -
     by (auto simp add: infinite_nat_iff_unbounded)
 qed
 
-lemma nat_infinite [simp]: "infinite (UNIV :: nat set)"
+(* duplicates Finite_Set.infinite_UNIV_nat *)
+lemma nat_infinite: "infinite (UNIV :: nat set)"
   by (auto simp add: infinite_nat_iff_unbounded)
 
-lemma nat_not_finite [elim]: "finite (UNIV::nat set) \<Longrightarrow> R"
+lemma nat_not_finite: "finite (UNIV::nat set) \<Longrightarrow> R"
   by simp
 
 text {*

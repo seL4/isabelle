@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/IOA/meta_theory/CompoScheds.thy
-    ID:         $Id$
     Author:     Olaf Müller
 *)
 
@@ -63,9 +62,6 @@ definition
         Int {sch. Filter (%a. a:actions sigB)$sch : schB}
         Int {sch. Forall (%x. x:(actions sigA Un actions sigB)) sch},
         asig_comp sigA sigB))"
-
-
-declare surjective_pairing [symmetric, simp]
 
 
 subsection "mkex rewrite rules"

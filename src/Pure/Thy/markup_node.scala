@@ -24,7 +24,7 @@ class Markup_Tree(val node: Markup_Node, val branches: List[Markup_Tree])
   def set_branches(bs: List[Markup_Tree]): Markup_Tree = new Markup_Tree(node, bs)
 
   private def add(branch: Markup_Tree) =   // FIXME avoid sort
-    set_branches((branch :: branches) sort ((a, b) => a.node.start < b.node.start))
+    set_branches((branch :: branches).sortWith((a, b) => a.node.start < b.node.start))
 
   private def remove(bs: List[Markup_Tree]) = set_branches(branches -- bs)
 
@@ -70,7 +70,7 @@ class Markup_Tree(val node: Markup_Node, val branches: List[Markup_Tree])
           markup <- markups
         } yield markup
       if (next_x < node.stop)
-        filled_gaps + new Markup_Node(next_x, node.stop, node.info)
+        filled_gaps ::: List(new Markup_Node(next_x, node.stop, node.info))
       else filled_gaps
     }
   }

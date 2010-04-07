@@ -1,5 +1,4 @@
 (*  Title:      Modal/S43.thy
-    ID:         $Id$
     Author:     Martin Coen
     Copyright   1991  University of Cambridge
 
@@ -14,25 +13,24 @@ consts
   S43pi :: "[seq'=>seq', seq'=>seq', seq'=>seq',
              seq'=>seq', seq'=>seq', seq'=>seq'] => prop"
 syntax
-  "@S43pi" :: "[seq, seq, seq, seq, seq, seq] => prop"
+  "_S43pi" :: "[seq, seq, seq, seq, seq, seq] => prop"
                          ("S43pi((_);(_);(_);(_);(_);(_))" [] 5)
 
-ML {*
-  val S43pi  = "S43pi";
-  val SS43pi = "@S43pi";
-
-  val tr  = seq_tr;
-  val tr' = seq_tr';
-
-  fun s43pi_tr[s1,s2,s3,s4,s5,s6]=
-        Const(S43pi,dummyT)$tr s1$tr s2$tr s3$tr s4$tr s5$tr s6;
-  fun s43pi_tr'[s1,s2,s3,s4,s5,s6] =
-        Const(SS43pi,dummyT)$tr' s1$tr' s2$tr' s3$tr' s4$tr' s5$tr' s6;
-
+parse_translation {*
+  let
+    val tr  = seq_tr;
+    fun s43pi_tr [s1, s2, s3, s4, s5, s6] =
+      Const (@{const_syntax S43pi}, dummyT) $ tr s1 $ tr s2 $ tr s3 $ tr s4 $ tr s5 $ tr s6;
+  in [(@{syntax_const "_S43pi"}, s43pi_tr)] end
 *}
 
-parse_translation {* [(SS43pi,s43pi_tr)] *}
-print_translation {* [(S43pi,s43pi_tr')] *}
+print_translation {*
+let
+  val tr' = seq_tr';
+  fun s43pi_tr' [s1, s2, s3, s4, s5, s6] =
+    Const(@{syntax_const "_S43pi"}, dummyT) $ tr' s1 $ tr' s2 $ tr' s3 $ tr' s4 $ tr' s5 $ tr' s6;
+in [(@{const_syntax S43pi}, s43pi_tr')] end
+*}
 
 axioms
 (* Definition of the star operation using a set of Horn clauses  *)

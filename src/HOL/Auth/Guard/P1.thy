@@ -39,7 +39,7 @@ it is not necessary in our modelization since crypto is assumed to be strong
 subsubsection{*offer chaining:
 B chains his offer for A with the head offer of L for sending it to C*}
 
-constdefs chain :: "agent => nat => agent => msg => agent => msg"
+definition chain :: "agent => nat => agent => msg => agent => msg" where
 "chain B ofr A L C ==
 let m1= Crypt (pubK A) (Nonce ofr) in
 let m2= Hash {|head L, Agent C|} in
@@ -56,9 +56,7 @@ by (auto simp: chain_def sign_def)
 
 subsubsection{*agent whose key is used to sign an offer*}
 
-consts shop :: "msg => msg"
-
-recdef shop "measure size"
+fun shop :: "msg => msg" where
 "shop {|B,X,Crypt K H|} = Agent (agt K)"
 
 lemma shop_chain [simp]: "shop (chain B ofr A L C) = Agent B"
@@ -66,9 +64,7 @@ by (simp add: chain_def sign_def)
 
 subsubsection{*nonce used in an offer*}
 
-consts nonce :: "msg => msg"
-
-recdef nonce "measure size"
+fun nonce :: "msg => msg" where
 "nonce {|B,{|Crypt K ofr,m2|},CryptH|} = ofr"
 
 lemma nonce_chain [simp]: "nonce (chain B ofr A L C) = Nonce ofr"
@@ -76,9 +72,7 @@ by (simp add: chain_def sign_def)
 
 subsubsection{*next shop*}
 
-consts next_shop :: "msg => agent"
-
-recdef next_shop "measure size"
+fun next_shop :: "msg => agent" where
 "next_shop {|B,{|m1,Hash{|headL,Agent C|}|},CryptH|} = C"
 
 lemma next_shop_chain [iff]: "next_shop (chain B ofr A L C) = C"
@@ -86,7 +80,7 @@ by (simp add: chain_def sign_def)
 
 subsubsection{*anchor of the offer list*}
 
-constdefs anchor :: "agent => nat => agent => msg"
+definition anchor :: "agent => nat => agent => msg" where
 "anchor A n B == chain A n A (cons nil nil) B"
 
 lemma anchor_inj [iff]: "(anchor A n B = anchor A' n' B')
@@ -107,7 +101,7 @@ by (simp add: anchor_def)
 
 subsubsection{*request event*}
 
-constdefs reqm :: "agent => nat => nat => msg => agent => msg"
+definition reqm :: "agent => nat => nat => msg => agent => msg" where
 "reqm A r n I B == {|Agent A, Number r, cons (Agent A) (cons (Agent B) I),
 cons (anchor A n B) nil|}"
 
@@ -118,7 +112,7 @@ by (auto simp: reqm_def)
 lemma Nonce_in_reqm [iff]: "Nonce n:parts {reqm A r n I B}"
 by (auto simp: reqm_def)
 
-constdefs req :: "agent => nat => nat => msg => agent => event"
+definition req :: "agent => nat => nat => msg => agent => event" where
 "req A r n I B == Says A B (reqm A r n I B)"
 
 lemma req_inj [iff]: "(req A r n I B = req A' r' n' I' B')
@@ -127,8 +121,8 @@ by (auto simp: req_def)
 
 subsubsection{*propose event*}
 
-constdefs prom :: "agent => nat => agent => nat => msg => msg =>
-msg => agent => msg"
+definition prom :: "agent => nat => agent => nat => msg => msg =>
+msg => agent => msg" where
 "prom B ofr A r I L J C == {|Agent A, Number r,
 app (J, del (Agent B, I)), cons (chain B ofr A L C) L|}"
 
@@ -140,8 +134,8 @@ by (auto simp: prom_def)
 lemma Nonce_in_prom [iff]: "Nonce ofr:parts {prom B ofr A r I L J C}"
 by (auto simp: prom_def)
 
-constdefs pro :: "agent => nat => agent => nat => msg => msg =>
-msg => agent => event"
+definition pro :: "agent => nat => agent => nat => msg => msg =>
+msg => agent => event" where
 "pro B ofr A r I L J C == Says B C (prom B ofr A r I L J C)"
 
 lemma pro_inj [dest]: "pro B ofr A r I L J C = pro B' ofr' A' r' I' L' J' C'
@@ -198,7 +192,7 @@ by (erule valid.induct, auto)
 
 subsubsection{*offers of an offer list*}
 
-constdefs offer_nonces :: "msg => msg set"
+definition offer_nonces :: "msg => msg set" where
 "offer_nonces L == {X. X:parts {L} & (EX n. X = Nonce n)}"
 
 subsubsection{*the originator can get the offers*}
@@ -209,18 +203,14 @@ offer_nonces_def initState.simps)
 
 subsubsection{*list of offers*}
 
-consts offers :: "msg => msg"
-
-recdef offers "measure size"
-"offers (cons M L) = cons {|shop M, nonce M|} (offers L)"
+fun offers :: "msg => msg" where
+"offers (cons M L) = cons {|shop M, nonce M|} (offers L)" |
 "offers other = nil"
 
 subsubsection{*list of agents whose keys are used to sign a list of offers*}
 
-consts shops :: "msg => msg"
-
-recdef shops "measure size"
-"shops (cons M L) = cons (shop M) (shops L)"
+fun shops :: "msg => msg" where
+"shops (cons M L) = cons (shop M) (shops L)" |
 "shops other = other"
 
 lemma shops_in_agl: "L:valid A n B ==> shops L:agl"
@@ -228,10 +218,8 @@ by (erule valid.induct, auto simp: anchor_def chain_def sign_def)
 
 subsubsection{*builds a trace from an itinerary*}
 
-consts offer_list :: "agent * nat * agent * msg * nat => msg"
-
-recdef offer_list "measure (%(A,n,B,I,ofr). size I)"
-"offer_list (A,n,B,nil,ofr) = cons (anchor A n B) nil"
+fun offer_list :: "agent * nat * agent * msg * nat => msg" where
+"offer_list (A,n,B,nil,ofr) = cons (anchor A n B) nil" |
 "offer_list (A,n,B,cons (Agent C) I,ofr) = (
 let L = offer_list (A,n,B,I,Suc ofr) in
 cons (chain (next_shop (head L)) ofr A L C) L)"
@@ -239,11 +227,9 @@ cons (chain (next_shop (head L)) ofr A L C) L)"
 lemma "I:agl ==> ALL ofr. offer_list (A,n,B,I,ofr):valid A n B"
 by (erule agl.induct, auto)
 
-consts trace :: "agent * nat * agent * nat * msg * msg * msg
-=> event list"
-
-recdef trace "measure (%(B,ofr,A,r,I,L,K). size K)"
-"trace (B,ofr,A,r,I,L,nil) = []"
+fun trace :: "agent * nat * agent * nat * msg * msg * msg
+=> event list" where
+"trace (B,ofr,A,r,I,L,nil) = []" |
 "trace (B,ofr,A,r,I,L,cons (Agent D) K) = (
 let C = (if K=nil then B else agt_nb (head K)) in
 let I' = (if K=nil then cons (Agent A) (cons (Agent B) I)
@@ -252,7 +238,7 @@ let I'' = app (I, cons (head K) nil) in
 pro C (Suc ofr) A r I' L nil D
 # trace (B,Suc ofr,A,r,I'',tail L,K))"
 
-constdefs trace' :: "agent => nat => nat => msg => agent => nat => event list"
+definition trace' :: "agent => nat => nat => msg => agent => nat => event list" where
 "trace' A r n I B ofr == (
 let AI = cons (Agent A) I in
 let L = offer_list (A,n,B,AI,ofr) in

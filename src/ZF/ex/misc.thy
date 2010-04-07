@@ -1,5 +1,4 @@
-(*  Title:      ZF/ex/misc.ML
-    ID:         $Id$
+(*  Title:      ZF/ex/misc.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 

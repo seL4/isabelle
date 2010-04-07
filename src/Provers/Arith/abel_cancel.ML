@@ -1,5 +1,4 @@
 (*  Title:      Provers/Arith/abel_cancel.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
@@ -28,29 +27,29 @@ open Data;
 
 (* FIXME dependent on abstract syntax *)
 
-fun zero t = Const (@{const_name HOL.zero}, t);
-fun minus t = Const (@{const_name HOL.uminus}, t --> t);
+fun zero t = Const (@{const_name Groups.zero}, t);
+fun minus t = Const (@{const_name Groups.uminus}, t --> t);
 
-fun add_terms pos (Const (@{const_name HOL.plus}, _) $ x $ y, ts) =
+fun add_terms pos (Const (@{const_name Groups.plus}, _) $ x $ y, ts) =
       add_terms pos (x, add_terms pos (y, ts))
-  | add_terms pos (Const (@{const_name HOL.minus}, _) $ x $ y, ts) =
+  | add_terms pos (Const (@{const_name Groups.minus}, _) $ x $ y, ts) =
       add_terms pos (x, add_terms (not pos) (y, ts))
-  | add_terms pos (Const (@{const_name HOL.uminus}, _) $ x, ts) =
+  | add_terms pos (Const (@{const_name Groups.uminus}, _) $ x, ts) =
       add_terms (not pos) (x, ts)
   | add_terms pos (x, ts) = (pos,x) :: ts;
 
 fun terms fml = add_terms true (fml, []);
 
-fun zero1 pt (u as (c as Const(@{const_name HOL.plus},_)) $ x $ y) =
+fun zero1 pt (u as (c as Const(@{const_name Groups.plus},_)) $ x $ y) =
       (case zero1 pt x of NONE => (case zero1 pt y of NONE => NONE
                                    | SOME z => SOME(c $ x $ z))
        | SOME z => SOME(c $ z $ y))
-  | zero1 (pos,t) (u as (c as Const(@{const_name HOL.minus},_)) $ x $ y) =
+  | zero1 (pos,t) (u as (c as Const(@{const_name Groups.minus},_)) $ x $ y) =
       (case zero1 (pos,t) x of
          NONE => (case zero1 (not pos,t) y of NONE => NONE
                   | SOME z => SOME(c $ x $ z))
        | SOME z => SOME(c $ z $ y))
-  | zero1 (pos,t) (u as (c as Const(@{const_name HOL.uminus},_)) $ x) =
+  | zero1 (pos,t) (u as (c as Const(@{const_name Groups.uminus},_)) $ x) =
       (case zero1 (not pos,t) x of NONE => NONE
        | SOME z => SOME(c $ z))
   | zero1 (pos,t) u =
@@ -71,7 +70,7 @@ fun find_common _ [] _ = raise Cancel
 fun cancel t =
   let
     val c $ lhs $ rhs = t
-    val opp = case c of Const(@{const_name HOL.plus},_) => true | _ => false;
+    val opp = case c of Const(@{const_name Groups.plus},_) => true | _ => false;
     val (pos,l) = find_common opp (terms lhs) (terms rhs)
     val posr = if opp then not pos else pos
     val t' = c $ (the(zero1 (pos,l) lhs)) $ (the(zero1 (posr,l) rhs))
@@ -89,7 +88,7 @@ fun sum_proc ss t =
 
 val sum_conv =
   Simplifier.mk_simproc "cancel_sums"
-    (map (Drule.cterm_fun Logic.varify) Data.sum_pats) (K sum_proc);
+    (map (Drule.cterm_fun Logic.varify_global) Data.sum_pats) (K sum_proc);
 
 
 (*A simproc to cancel like terms on the opposite sides of relations:

@@ -333,7 +333,7 @@ by(simp (no_asm_use) add: init_seg_of_def)
 
 lemma antisym_init_seg_of:
   "r initial_segment_of s \<Longrightarrow> s initial_segment_of r \<Longrightarrow> r=s"
-by(auto simp:init_seg_of_def)
+unfolding init_seg_of_def by safe
 
 lemma Chain_init_seg_of_Union:
   "R \<in> Chain init_seg_of \<Longrightarrow> r\<in>R \<Longrightarrow> r initial_segment_of \<Union>R"

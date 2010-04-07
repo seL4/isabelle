@@ -129,7 +129,8 @@ fun future_result ctxt result prop =
     val instT = map (fn (a, S) => (certT (TVar ((a, 0), S)), certT (TFree (a, S)))) tfrees;
 
     val global_prop =
-      cert (Term.map_types Logic.varifyT (fold_rev Logic.all xs (Logic.list_implies (As, prop))))
+      cert (Term.map_types Logic.varifyT_global
+        (fold_rev Logic.all xs (Logic.list_implies (As, prop))))
       |> Thm.weaken_sorts (Variable.sorts_of ctxt);
     val global_result = result |> Future.map
       (Drule.flexflex_unique #>
@@ -210,7 +211,7 @@ fun prove_future ctxt xs asms prop tac = hd (prove_common false ctxt xs asms [pr
 fun prove ctxt xs asms prop tac = hd (prove_common true ctxt xs asms [prop] tac);
 
 fun prove_global thy xs asms prop tac =
-  Drule.standard (prove (ProofContext.init thy) xs asms prop tac);
+  Drule.export_without_context (prove (ProofContext.init thy) xs asms prop tac);
 
 
 

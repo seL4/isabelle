@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/ex/Loop.thy
-    ID:         $Id$
     Author:     Franz Regensburger
 *)
 
@@ -115,7 +114,7 @@ apply (rule_tac s = "iterate (Suc n) $ (step$b$g) $x"
   and t = "g$ (iterate n$ (step$b$g) $x) " in ssubst)
 prefer 2 apply (assumption)
 apply (simp add: step_def2)
-apply (simp del: iterate_Suc add: loop_lemma2)
+apply (drule (1) loop_lemma2, simp)
 done
 
 lemma loop_lemma4 [rule_format]:
@@ -138,10 +137,8 @@ lemma loop_lemma5 [rule_format (no_asm)]:
     ALL m. while$b$g$(iterate m$(step$b$g)$x)=UU"
 apply (simplesubst while_def2)
 apply (rule fix_ind)
-apply (rule adm_all)
-apply (rule adm_eq)
-apply (tactic "cont_tacR 1")
-apply (simp (no_asm))
+apply simp
+apply simp
 apply (rule allI)
 apply (simp (no_asm))
 apply (rule_tac p = "b$ (iterate m$ (step$b$g) $x) " in trE)

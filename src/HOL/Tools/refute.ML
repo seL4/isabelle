@@ -614,7 +614,7 @@ struct
       (let
         (* Term.term -> Term.typ option *)
         fun type_of_type_definition (Const (s', T')) =
-          if s'="Typedef.type_definition" then
+          if s'= @{const_name type_definition} then
             SOME T'
           else
             NONE
@@ -708,13 +708,13 @@ struct
       (* other optimizations *)
       | Const (@{const_name Finite_Set.card}, _) => t
       | Const (@{const_name Finite_Set.finite}, _) => t
-      | Const (@{const_name HOL.less}, Type ("fun", [Type ("nat", []),
+      | Const (@{const_name Orderings.less}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("bool", [])])])) => t
-      | Const (@{const_name HOL.plus}, Type ("fun", [Type ("nat", []),
+      | Const (@{const_name Groups.plus}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
-      | Const (@{const_name HOL.minus}, Type ("fun", [Type ("nat", []),
+      | Const (@{const_name Groups.minus}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
-      | Const (@{const_name HOL.times}, Type ("fun", [Type ("nat", []),
+      | Const (@{const_name Groups.times}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
       | Const (@{const_name List.append}, _) => t
       | Const (@{const_name lfp}, _) => t
@@ -883,16 +883,16 @@ struct
       | Const (@{const_name Finite_Set.card}, T) => collect_type_axioms T axs
       | Const (@{const_name Finite_Set.finite}, T) =>
         collect_type_axioms T axs
-      | Const (@{const_name HOL.less}, T as Type ("fun", [Type ("nat", []),
+      | Const (@{const_name Orderings.less}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("bool", [])])])) =>
           collect_type_axioms T axs
-      | Const (@{const_name HOL.plus}, T as Type ("fun", [Type ("nat", []),
+      | Const (@{const_name Groups.plus}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
           collect_type_axioms T axs
-      | Const (@{const_name HOL.minus}, T as Type ("fun", [Type ("nat", []),
+      | Const (@{const_name Groups.minus}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
           collect_type_axioms T axs
-      | Const (@{const_name HOL.times}, T as Type ("fun", [Type ("nat", []),
+      | Const (@{const_name Groups.times}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
           collect_type_axioms T axs
       | Const (@{const_name List.append}, T) => collect_type_axioms T axs
@@ -2765,13 +2765,13 @@ struct
   (* theory -> model -> arguments -> Term.term ->
     (interpretation * model * arguments) option *)
 
-  (* only an optimization: 'HOL.less' could in principle be interpreted with *)
+  (* only an optimization: 'less' could in principle be interpreted with *)
   (* interpreters available already (using its definition), but the code     *)
   (* below is more efficient                                                 *)
 
   fun Nat_less_interpreter thy model args t =
     case t of
-      Const (@{const_name HOL.less}, Type ("fun", [Type ("nat", []),
+      Const (@{const_name Orderings.less}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("bool", [])])])) =>
       let
         val size_of_nat = size_of_type thy model (Type ("nat", []))
@@ -2788,13 +2788,13 @@ struct
   (* theory -> model -> arguments -> Term.term ->
     (interpretation * model * arguments) option *)
 
-  (* only an optimization: 'HOL.plus' could in principle be interpreted with *)
+  (* only an optimization: 'plus' could in principle be interpreted with *)
   (* interpreters available already (using its definition), but the code     *)
   (* below is more efficient                                                 *)
 
   fun Nat_plus_interpreter thy model args t =
     case t of
-      Const (@{const_name HOL.plus}, Type ("fun", [Type ("nat", []),
+      Const (@{const_name Groups.plus}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
       let
         val size_of_nat = size_of_type thy model (Type ("nat", []))
@@ -2819,13 +2819,13 @@ struct
   (* theory -> model -> arguments -> Term.term ->
     (interpretation * model * arguments) option *)
 
-  (* only an optimization: 'HOL.minus' could in principle be interpreted *)
+  (* only an optimization: 'minus' could in principle be interpreted *)
   (* with interpreters available already (using its definition), but the *)
   (* code below is more efficient                                        *)
 
   fun Nat_minus_interpreter thy model args t =
     case t of
-      Const (@{const_name HOL.minus}, Type ("fun", [Type ("nat", []),
+      Const (@{const_name Groups.minus}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
       let
         val size_of_nat = size_of_type thy model (Type ("nat", []))
@@ -2847,13 +2847,13 @@ struct
   (* theory -> model -> arguments -> Term.term ->
     (interpretation * model * arguments) option *)
 
-  (* only an optimization: 'HOL.times' could in principle be interpreted *)
+  (* only an optimization: 'times' could in principle be interpreted *)
   (* with interpreters available already (using its definition), but the *)
   (* code below is more efficient                                        *)
 
   fun Nat_times_interpreter thy model args t =
     case t of
-      Const (@{const_name HOL.times}, Type ("fun", [Type ("nat", []),
+      Const (@{const_name Groups.times}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
       let
         val size_of_nat = size_of_type thy model (Type ("nat", []))

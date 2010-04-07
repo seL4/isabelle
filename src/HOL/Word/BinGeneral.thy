@@ -742,7 +742,7 @@ lemma sb_inc_lem:
 
 lemma sb_inc_lem':
   "(a::int) < - (2^k) \<Longrightarrow> a + 2^k + 2^(Suc k) <= (a + 2^k) mod 2^(Suc k)"
-  by (rule iffD1 [OF less_diff_eq, THEN sb_inc_lem, simplified OrderedGroup.diff_0])
+  by (rule sb_inc_lem) simp
 
 lemma sbintrunc_inc:
   "x < - (2^n) ==> x + 2^(Suc n) <= sbintrunc n x"

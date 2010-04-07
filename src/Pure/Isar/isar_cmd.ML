@@ -14,7 +14,7 @@ sig
   val typed_print_translation: bool * (Symbol_Pos.text * Position.T) -> theory -> theory
   val print_ast_translation: bool * (Symbol_Pos.text * Position.T) -> theory -> theory
   val oracle: bstring * Position.T -> Symbol_Pos.text * Position.T -> theory -> theory
-  val add_axioms: ((binding * string) * Attrib.src list) list -> theory -> theory
+  val add_axioms: (Attrib.binding * string) list -> theory -> theory
   val add_defs: (bool * bool) * ((binding * string) * Attrib.src list) list -> theory -> theory
   val declaration: bool -> Symbol_Pos.text * Position.T -> local_theory -> local_theory
   val simproc_setup: string -> string list -> Symbol_Pos.text * Position.T -> string list ->
@@ -164,16 +164,14 @@ fun oracle (name, pos) (body_txt, body_pos) =
   in Context.theory_map (ML_Context.exec (fn () => ML_Context.eval false body_pos txt)) end;
 
 
-(* axioms *)
+(* old-style axioms *)
 
-fun add_axms f args thy =
-  f (map (fn ((b, ax), srcs) => ((b, ax), map (Attrib.attribute thy) srcs)) args) thy;
+val add_axioms = fold (snd oo Specification.axiom_cmd);
 
-val add_axioms = add_axms (snd oo PureThy.add_axioms_cmd);
-
-fun add_defs ((unchecked, overloaded), args) =
-  add_axms
-    (snd oo (if unchecked then PureThy.add_defs_unchecked_cmd else PureThy.add_defs_cmd) overloaded) args;
+fun add_defs ((unchecked, overloaded), args) thy =
+  thy |> (if unchecked then PureThy.add_defs_unchecked_cmd else PureThy.add_defs_cmd) overloaded
+    (map (fn ((b, ax), srcs) => ((b, ax), map (Attrib.attribute thy) srcs)) args)
+  |> snd;
 
 
 (* declarations *)
@@ -332,16 +330,14 @@ val print_syntax = Toplevel.unknown_context o
 val print_abbrevs = Toplevel.unknown_context o
   Toplevel.keep (ProofContext.print_abbrevs o Toplevel.context_of);
 
-val print_facts = Toplevel.unknown_context o Toplevel.keep (fn state =>
-  ProofContext.setmp_verbose_CRITICAL
-    ProofContext.print_lthms (Toplevel.context_of state));
+val print_facts = Toplevel.unknown_context o
+  Toplevel.keep (ProofContext.print_lthms o Toplevel.context_of);
 
-val print_configs = Toplevel.unknown_context o Toplevel.keep (fn state =>
-  Attrib.print_configs (Toplevel.context_of state));
+val print_configs = Toplevel.unknown_context o
+  Toplevel.keep (Attrib.print_configs o Toplevel.context_of);
 
-val print_theorems_proof = Toplevel.keep (fn state =>
-  ProofContext.setmp_verbose_CRITICAL
-    ProofContext.print_lthms (Proof.context_of (Toplevel.proof_of state)));
+val print_theorems_proof =
+  Toplevel.keep (ProofContext.print_lthms o Proof.context_of o Toplevel.proof_of);
 
 fun print_theorems_theory verbose = Toplevel.keep (fn state =>
   Toplevel.theory_of state |>
@@ -430,11 +426,11 @@ fun unused_thms opt_range = Toplevel.keep (fn state =>
 
 (* print proof context contents *)
 
-val print_binds = Toplevel.unknown_context o Toplevel.keep (fn state =>
-  ProofContext.setmp_verbose_CRITICAL ProofContext.print_binds (Toplevel.context_of state));
+val print_binds = Toplevel.unknown_context o
+  Toplevel.keep (ProofContext.print_binds o Toplevel.context_of);
 
-val print_cases = Toplevel.unknown_context o Toplevel.keep (fn state =>
-  ProofContext.setmp_verbose_CRITICAL ProofContext.print_cases (Toplevel.context_of state));
+val print_cases = Toplevel.unknown_context o
+  Toplevel.keep (ProofContext.print_cases o Toplevel.context_of);
 
 
 (* print theorems, terms, types etc. *)

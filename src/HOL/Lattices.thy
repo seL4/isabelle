@@ -5,10 +5,45 @@
 header {* Abstract lattices *}
 
 theory Lattices
-imports Orderings
+imports Orderings Groups
 begin
 
-subsection {* Lattices *}
+subsection {* Abstract semilattice *}
+
+text {*
+  This locales provide a basic structure for interpretation into
+  bigger structures;  extensions require careful thinking, otherwise
+  undesired effects may occur due to interpretation.
+*}
+
+locale semilattice = abel_semigroup +
+  assumes idem [simp]: "f a a = a"
+begin
+
+lemma left_idem [simp]:
+  "f a (f a b) = f a b"
+  by (simp add: assoc [symmetric])
+
+end
+
+
+subsection {* Idempotent semigroup *}
+
+class ab_semigroup_idem_mult = ab_semigroup_mult +
+  assumes mult_idem: "x * x = x"
+
+sublocale ab_semigroup_idem_mult < times!: semilattice times proof
+qed (fact mult_idem)
+
+context ab_semigroup_idem_mult
+begin
+
+lemmas mult_left_idem = times.left_idem
+
+end
+
+
+subsection {* Concrete lattices *}
 
 notation
   less_eq  (infix "\<sqsubseteq>" 50) and
@@ -16,13 +51,13 @@ notation
   top ("\<top>") and
   bot ("\<bottom>")
 
-class lower_semilattice = order +
+class semilattice_inf = order +
   fixes inf :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<sqinter>" 70)
   assumes inf_le1 [simp]: "x \<sqinter> y \<sqsubseteq> x"
   and inf_le2 [simp]: "x \<sqinter> y \<sqsubseteq> y"
   and inf_greatest: "x \<sqsubseteq> y \<Longrightarrow> x \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> y \<sqinter> z"
 
-class upper_semilattice = order +
+class semilattice_sup = order +
   fixes sup :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<squnion>" 65)
   assumes sup_ge1 [simp]: "x \<sqsubseteq> x \<squnion> y"
   and sup_ge2 [simp]: "y \<sqsubseteq> x \<squnion> y"
@@ -32,18 +67,18 @@ begin
 text {* Dual lattice *}
 
 lemma dual_semilattice:
-  "lower_semilattice (op \<ge>) (op >) sup"
-by (rule lower_semilattice.intro, rule dual_order)
+  "semilattice_inf (op \<ge>) (op >) sup"
+by (rule semilattice_inf.intro, rule dual_order)
   (unfold_locales, simp_all add: sup_least)
 
 end
 
-class lattice = lower_semilattice + upper_semilattice
+class lattice = semilattice_inf + semilattice_sup
 
 
 subsubsection {* Intro and elim rules*}
 
-context lower_semilattice
+context semilattice_inf
 begin
 
 lemma le_infI1:
@@ -55,10 +90,10 @@ lemma le_infI2:
   by (rule order_trans) auto
 
 lemma le_infI: "x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> b \<Longrightarrow> x \<sqsubseteq> a \<sqinter> b"
-  by (blast intro: inf_greatest)
+  by (rule inf_greatest) (* FIXME: duplicate lemma *)
 
 lemma le_infE: "x \<sqsubseteq> a \<sqinter> b \<Longrightarrow> (x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> b \<Longrightarrow> P) \<Longrightarrow> P"
-  by (blast intro: order_trans le_infI1 le_infI2)
+  by (blast intro: order_trans inf_le1 inf_le2)
 
 lemma le_inf_iff [simp]:
   "x \<sqsubseteq> y \<sqinter> z \<longleftrightarrow> x \<sqsubseteq> y \<and> x \<sqsubseteq> z"
@@ -68,14 +103,17 @@ lemma le_iff_inf:
   "x \<sqsubseteq> y \<longleftrightarrow> x \<sqinter> y = x"
   by (auto intro: le_infI1 antisym dest: eq_iff [THEN iffD1])
 
+lemma inf_mono: "a \<sqsubseteq> c \<Longrightarrow> b \<le> d \<Longrightarrow> a \<sqinter> b \<sqsubseteq> c \<sqinter> d"
+  by (fast intro: inf_greatest le_infI1 le_infI2)
+
 lemma mono_inf:
-  fixes f :: "'a \<Rightarrow> 'b\<Colon>lower_semilattice"
+  fixes f :: "'a \<Rightarrow> 'b\<Colon>semilattice_inf"
   shows "mono f \<Longrightarrow> f (A \<sqinter> B) \<sqsubseteq> f A \<sqinter> f B"
   by (auto simp add: mono_def intro: Lattices.inf_greatest)
 
 end
 
-context upper_semilattice
+context semilattice_sup
 begin
 
 lemma le_supI1:
@@ -88,11 +126,11 @@ lemma le_supI2:
 
 lemma le_supI:
   "a \<sqsubseteq> x \<Longrightarrow> b \<sqsubseteq> x \<Longrightarrow> a \<squnion> b \<sqsubseteq> x"
-  by (blast intro: sup_least)
+  by (rule sup_least) (* FIXME: duplicate lemma *)
 
 lemma le_supE:
   "a \<squnion> b \<sqsubseteq> x \<Longrightarrow> (a \<sqsubseteq> x \<Longrightarrow> b \<sqsubseteq> x \<Longrightarrow> P) \<Longrightarrow> P"
-  by (blast intro: le_supI1 le_supI2 order_trans)
+  by (blast intro: order_trans sup_ge1 sup_ge2)
 
 lemma le_sup_iff [simp]:
   "x \<squnion> y \<sqsubseteq> z \<longleftrightarrow> x \<sqsubseteq> z \<and> y \<sqsubseteq> z"
@@ -102,8 +140,11 @@ lemma le_iff_sup:
   "x \<sqsubseteq> y \<longleftrightarrow> x \<squnion> y = y"
   by (auto intro: le_supI2 antisym dest: eq_iff [THEN iffD1])
 
+lemma sup_mono: "a \<sqsubseteq> c \<Longrightarrow> b \<le> d \<Longrightarrow> a \<squnion> b \<sqsubseteq> c \<squnion> d"
+  by (fast intro: sup_least le_supI1 le_supI2)
+
 lemma mono_sup:
-  fixes f :: "'a \<Rightarrow> 'b\<Colon>upper_semilattice"
+  fixes f :: "'a \<Rightarrow> 'b\<Colon>semilattice_sup"
   shows "mono f \<Longrightarrow> f A \<squnion> f B \<sqsubseteq> f (A \<squnion> B)"
   by (auto simp add: mono_def intro: Lattices.sup_least)
 
@@ -112,57 +153,79 @@ end
 
 subsubsection {* Equational laws *}
 
-context lower_semilattice
+sublocale semilattice_inf < inf!: semilattice inf
+proof
+  fix a b c
+  show "(a \<sqinter> b) \<sqinter> c = a \<sqinter> (b \<sqinter> c)"
+    by (rule antisym) (auto intro: le_infI1 le_infI2)
+  show "a \<sqinter> b = b \<sqinter> a"
+    by (rule antisym) auto
+  show "a \<sqinter> a = a"
+    by (rule antisym) auto
+qed
+
+context semilattice_inf
 begin
 
-lemma inf_commute: "(x \<sqinter> y) = (y \<sqinter> x)"
-  by (rule antisym) auto
-
 lemma inf_assoc: "(x \<sqinter> y) \<sqinter> z = x \<sqinter> (y \<sqinter> z)"
-  by (rule antisym) (auto intro: le_infI1 le_infI2)
+  by (fact inf.assoc)
 
-lemma inf_idem[simp]: "x \<sqinter> x = x"
-  by (rule antisym) auto
+lemma inf_commute: "(x \<sqinter> y) = (y \<sqinter> x)"
+  by (fact inf.commute)
 
-lemma inf_left_idem[simp]: "x \<sqinter> (x \<sqinter> y) = x \<sqinter> y"
-  by (rule antisym) (auto intro: le_infI2)
+lemma inf_left_commute: "x \<sqinter> (y \<sqinter> z) = y \<sqinter> (x \<sqinter> z)"
+  by (fact inf.left_commute)
+
+lemma inf_idem: "x \<sqinter> x = x"
+  by (fact inf.idem)
+
+lemma inf_left_idem: "x \<sqinter> (x \<sqinter> y) = x \<sqinter> y"
+  by (fact inf.left_idem)
 
 lemma inf_absorb1: "x \<sqsubseteq> y \<Longrightarrow> x \<sqinter> y = x"
   by (rule antisym) auto
 
 lemma inf_absorb2: "y \<sqsubseteq> x \<Longrightarrow> x \<sqinter> y = y"
   by (rule antisym) auto
-
-lemma inf_left_commute: "x \<sqinter> (y \<sqinter> z) = y \<sqinter> (x \<sqinter> z)"
-  by (rule mk_left_commute [of inf]) (fact inf_assoc inf_commute)+
-  
+ 
 lemmas inf_aci = inf_commute inf_assoc inf_left_commute inf_left_idem
 
 end
 
-context upper_semilattice
+sublocale semilattice_sup < sup!: semilattice sup
+proof
+  fix a b c
+  show "(a \<squnion> b) \<squnion> c = a \<squnion> (b \<squnion> c)"
+    by (rule antisym) (auto intro: le_supI1 le_supI2)
+  show "a \<squnion> b = b \<squnion> a"
+    by (rule antisym) auto
+  show "a \<squnion> a = a"
+    by (rule antisym) auto
+qed
+
+context semilattice_sup
 begin
 
-lemma sup_commute: "(x \<squnion> y) = (y \<squnion> x)"
-  by (rule antisym) auto
-
 lemma sup_assoc: "(x \<squnion> y) \<squnion> z = x \<squnion> (y \<squnion> z)"
-  by (rule antisym) (auto intro: le_supI1 le_supI2)
+  by (fact sup.assoc)
 
-lemma sup_idem[simp]: "x \<squnion> x = x"
-  by (rule antisym) auto
+lemma sup_commute: "(x \<squnion> y) = (y \<squnion> x)"
+  by (fact sup.commute)
 
-lemma sup_left_idem[simp]: "x \<squnion> (x \<squnion> y) = x \<squnion> y"
-  by (rule antisym) (auto intro: le_supI2)
+lemma sup_left_commute: "x \<squnion> (y \<squnion> z) = y \<squnion> (x \<squnion> z)"
+  by (fact sup.left_commute)
+
+lemma sup_idem: "x \<squnion> x = x"
+  by (fact sup.idem)
+
+lemma sup_left_idem: "x \<squnion> (x \<squnion> y) = x \<squnion> y"
+  by (fact sup.left_idem)
 
 lemma sup_absorb1: "y \<sqsubseteq> x \<Longrightarrow> x \<squnion> y = x"
   by (rule antisym) auto
 
 lemma sup_absorb2: "x \<sqsubseteq> y \<Longrightarrow> x \<squnion> y = y"
   by (rule antisym) auto
-
-lemma sup_left_commute: "x \<squnion> (y \<squnion> z) = y \<squnion> (x \<squnion> z)"
-  by (rule mk_left_commute [of sup]) (fact sup_assoc sup_commute)+
 
 lemmas sup_aci = sup_commute sup_assoc sup_left_commute sup_left_idem
 
@@ -173,7 +236,7 @@ begin
 
 lemma dual_lattice:
   "lattice (op \<ge>) (op >) sup inf"
-  by (rule lattice.intro, rule dual_semilattice, rule upper_semilattice.intro, rule dual_order)
+  by (rule lattice.intro, rule dual_semilattice, rule semilattice_sup.intro, rule dual_order)
     (unfold_locales, auto)
 
 lemma inf_sup_absorb: "x \<sqinter> (x \<squnion> y) = x"
@@ -224,7 +287,7 @@ end
 
 subsubsection {* Strict order *}
 
-context lower_semilattice
+context semilattice_inf
 begin
 
 lemma less_infI1:
@@ -237,13 +300,13 @@ lemma less_infI2:
 
 end
 
-context upper_semilattice
+context semilattice_sup
 begin
 
 lemma less_supI1:
   "x \<sqsubset> a \<Longrightarrow> x \<sqsubset> a \<squnion> b"
 proof -
-  interpret dual: lower_semilattice "op \<ge>" "op >" sup
+  interpret dual: semilattice_inf "op \<ge>" "op >" sup
     by (fact dual_semilattice)
   assume "x \<sqsubset> a"
   then show "x \<sqsubset> a \<squnion> b"
@@ -253,7 +316,7 @@ qed
 lemma less_supI2:
   "x \<sqsubset> b \<Longrightarrow> x \<sqsubset> a \<squnion> b"
 proof -
-  interpret dual: lower_semilattice "op \<ge>" "op >" sup
+  interpret dual: semilattice_inf "op \<ge>" "op >" sup
     by (fact dual_semilattice)
   assume "x \<sqsubset> b"
   then show "x \<sqsubset> a \<squnion> b"
@@ -287,6 +350,12 @@ lemma dual_distrib_lattice:
   "distrib_lattice (op \<ge>) (op >) sup inf"
   by (rule distrib_lattice.intro, rule dual_lattice)
     (unfold_locales, fact inf_sup_distrib1)
+
+lemmas sup_inf_distrib =
+  sup_inf_distrib1 sup_inf_distrib2
+
+lemmas inf_sup_distrib =
+  inf_sup_distrib1 inf_sup_distrib2
 
 lemmas distrib =
   sup_inf_distrib1 sup_inf_distrib2 inf_sup_distrib1 inf_sup_distrib2
@@ -335,39 +404,13 @@ lemma sup_bot_right [simp]:
   "x \<squnion> \<bottom> = x"
   by (rule sup_absorb1) simp
 
-lemma inf_eq_top_eq1:
-  assumes "A \<sqinter> B = \<top>"
-  shows "A = \<top>"
-proof (cases "B = \<top>")
-  case True with assms show ?thesis by simp
-next
-  case False with top_greatest have "B \<sqsubset> \<top>" by (auto intro: neq_le_trans)
-  then have "A \<sqinter> B \<sqsubset> \<top>" by (rule less_infI2)
-  with assms show ?thesis by simp
-qed
+lemma inf_eq_top_iff [simp]:
+  "x \<sqinter> y = \<top> \<longleftrightarrow> x = \<top> \<and> y = \<top>"
+  by (simp add: eq_iff)
 
-lemma inf_eq_top_eq2:
-  assumes "A \<sqinter> B = \<top>"
-  shows "B = \<top>"
-  by (rule inf_eq_top_eq1, unfold inf_commute [of B]) (fact assms)
-
-lemma sup_eq_bot_eq1:
-  assumes "A \<squnion> B = \<bottom>"
-  shows "A = \<bottom>"
-proof -
-  interpret dual: bounded_lattice "op \<ge>" "op >" "op \<squnion>" "op \<sqinter>" \<top> \<bottom>
-    by (rule dual_bounded_lattice)
-  from dual.inf_eq_top_eq1 assms show ?thesis .
-qed
-
-lemma sup_eq_bot_eq2:
-  assumes "A \<squnion> B = \<bottom>"
-  shows "B = \<bottom>"
-proof -
-  interpret dual: bounded_lattice "op \<ge>" "op >" "op \<squnion>" "op \<sqinter>" \<top> \<bottom>
-    by (rule dual_bounded_lattice)
-  from dual.inf_eq_top_eq2 assms show ?thesis .
-qed
+lemma sup_eq_bot_iff [simp]:
+  "x \<squnion> y = \<bottom> \<longleftrightarrow> x = \<bottom> \<and> y = \<bottom>"
+  by (simp add: eq_iff)
 
 end
 
@@ -414,10 +457,7 @@ lemma compl_eq_compl_iff [simp]:
   "- x = - y \<longleftrightarrow> x = y"
 proof
   assume "- x = - y"
-  then have "- x \<sqinter> y = \<bottom>"
-    and "- x \<squnion> y = \<top>"
-    by (simp_all add: compl_inf_bot compl_sup_top)
-  then have "- (- x) = y" by (rule compl_unique)
+  then have "- (- x) = - (- y)" by (rule arg_cong)
   then show "x = y" by simp
 next
   assume "x = y"
@@ -441,18 +481,14 @@ qed
 lemma compl_inf [simp]:
   "- (x \<sqinter> y) = - x \<squnion> - y"
 proof (rule compl_unique)
-  have "(x \<sqinter> y) \<sqinter> (- x \<squnion> - y) = ((x \<sqinter> y) \<sqinter> - x) \<squnion> ((x \<sqinter> y) \<sqinter> - y)"
-    by (rule inf_sup_distrib1)
-  also have "... = (y \<sqinter> (x \<sqinter> - x)) \<squnion> (x \<sqinter> (y \<sqinter> - y))"
-    by (simp only: inf_commute inf_assoc inf_left_commute)
-  finally show "(x \<sqinter> y) \<sqinter> (- x \<squnion> - y) = \<bottom>"
+  have "(x \<sqinter> y) \<sqinter> (- x \<squnion> - y) = (y \<sqinter> (x \<sqinter> - x)) \<squnion> (x \<sqinter> (y \<sqinter> - y))"
+    by (simp only: inf_sup_distrib inf_aci)
+  then show "(x \<sqinter> y) \<sqinter> (- x \<squnion> - y) = \<bottom>"
     by (simp add: inf_compl_bot)
 next
-  have "(x \<sqinter> y) \<squnion> (- x \<squnion> - y) = (x \<squnion> (- x \<squnion> - y)) \<sqinter> (y \<squnion> (- x \<squnion> - y))"
-    by (rule sup_inf_distrib2)
-  also have "... = (- y \<squnion> (x \<squnion> - x)) \<sqinter> (- x \<squnion> (y \<squnion> - y))"
-    by (simp only: sup_commute sup_assoc sup_left_commute)
-  finally show "(x \<sqinter> y) \<squnion> (- x \<squnion> - y) = \<top>"
+  have "(x \<sqinter> y) \<squnion> (- x \<squnion> - y) = (- y \<squnion> (x \<squnion> - x)) \<sqinter> (- x \<squnion> (y \<squnion> - y))"
+    by (simp only: sup_inf_distrib sup_aci)
+  then show "(x \<sqinter> y) \<squnion> (- x \<squnion> - y) = \<top>"
     by (simp add: sup_compl_top)
 qed
 
@@ -464,12 +500,27 @@ proof -
   then show ?thesis by simp
 qed
 
+lemma compl_mono:
+  "x \<sqsubseteq> y \<Longrightarrow> - y \<sqsubseteq> - x"
+proof -
+  assume "x \<sqsubseteq> y"
+  then have "x \<squnion> y = y" by (simp only: le_iff_sup)
+  then have "- (x \<squnion> y) = - y" by simp
+  then have "- x \<sqinter> - y = - y" by simp
+  then have "- y \<sqinter> - x = - y" by (simp only: inf_commute)
+  then show "- y \<sqsubseteq> - x" by (simp only: le_iff_inf)
+qed
+
+lemma compl_le_compl_iff: (* TODO: declare [simp] ? *)
+  "- x \<le> - y \<longleftrightarrow> y \<le> x"
+by (auto dest: compl_mono)
+
 end
 
 
 subsection {* Uniqueness of inf and sup *}
 
-lemma (in lower_semilattice) inf_unique:
+lemma (in semilattice_inf) inf_unique:
   fixes f (infixl "\<triangle>" 70)
   assumes le1: "\<And>x y. x \<triangle> y \<sqsubseteq> x" and le2: "\<And>x y. x \<triangle> y \<sqsubseteq> y"
   and greatest: "\<And>x y z. x \<sqsubseteq> y \<Longrightarrow> x \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> y \<triangle> z"
@@ -481,7 +532,7 @@ next
   show "x \<sqinter> y \<sqsubseteq> x \<triangle> y" by (rule leI) simp_all
 qed
 
-lemma (in upper_semilattice) sup_unique:
+lemma (in semilattice_sup) sup_unique:
   fixes f (infixl "\<nabla>" 70)
   assumes ge1 [simp]: "\<And>x y. x \<sqsubseteq> x \<nabla> y" and ge2: "\<And>x y. y \<sqsubseteq> x \<nabla> y"
   and least: "\<And>x y z. y \<sqsubseteq> x \<Longrightarrow> z \<sqsubseteq> x \<Longrightarrow> y \<nabla> z \<sqsubseteq> x"
@@ -492,7 +543,7 @@ next
   have leI: "\<And>x y z. x \<sqsubseteq> z \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<nabla> y \<sqsubseteq> z" by (blast intro: least)
   show "x \<nabla> y \<sqsubseteq> x \<squnion> y" by (rule leI) simp_all
 qed
-  
+
 
 subsection {* @{const min}/@{const max} on linear orders as
   special case of @{const inf}/@{const sup} *}
@@ -504,20 +555,21 @@ proof
     by (auto simp add: min_def max_def)
 qed (auto simp add: min_def max_def not_le less_imp_le)
 
-lemma inf_min: "inf = (min \<Colon> 'a\<Colon>{lower_semilattice, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
+lemma inf_min: "inf = (min \<Colon> 'a\<Colon>{semilattice_inf, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
   by (rule ext)+ (auto intro: antisym)
 
-lemma sup_max: "sup = (max \<Colon> 'a\<Colon>{upper_semilattice, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
+lemma sup_max: "sup = (max \<Colon> 'a\<Colon>{semilattice_sup, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
   by (rule ext)+ (auto intro: antisym)
 
 lemmas le_maxI1 = min_max.sup_ge1
 lemmas le_maxI2 = min_max.sup_ge2
  
-lemmas max_ac = min_max.sup_assoc min_max.sup_commute
-  mk_left_commute [of max, OF min_max.sup_assoc min_max.sup_commute]
-
 lemmas min_ac = min_max.inf_assoc min_max.inf_commute
-  mk_left_commute [of min, OF min_max.inf_assoc min_max.inf_commute]
+  min_max.inf.left_commute
+
+lemmas max_ac = min_max.sup_assoc min_max.sup_commute
+  min_max.sup.left_commute
+
 
 
 subsection {* Bool as lattice *}

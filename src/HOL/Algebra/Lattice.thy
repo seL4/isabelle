@@ -1,12 +1,13 @@
-(*
-  Title:     HOL/Algebra/Lattice.thy
-  Author:    Clemens Ballarin, started 7 November 2003
-  Copyright: Clemens Ballarin
+(*  Title:      HOL/Algebra/Lattice.thy
+    Author:     Clemens Ballarin, started 7 November 2003
+    Copyright:  Clemens Ballarin
 
 Most congruence rules by Stephan Hohe.
 *)
 
-theory Lattice imports Congruence begin
+theory Lattice
+imports Congruence
+begin
 
 section {* Orders and Lattices *}
 
@@ -25,9 +26,9 @@ locale weak_partial_order = equivalence L for L (structure) +
     and le_cong:
       "\<lbrakk> x .= y; z .= w; x \<in> carrier L; y \<in> carrier L; z \<in> carrier L; w \<in> carrier L \<rbrakk> \<Longrightarrow> x \<sqsubseteq> z \<longleftrightarrow> y \<sqsubseteq> w"
 
-constdefs (structure L)
+definition
   lless :: "[_, 'a, 'a] => bool" (infixl "\<sqsubset>\<index>" 50)
-  "x \<sqsubset> y == x \<sqsubseteq> y & x .\<noteq> y"
+  where "x \<sqsubset>\<^bsub>L\<^esub> y \<longleftrightarrow> x \<sqsubseteq>\<^bsub>L\<^esub> y & x .\<noteq>\<^bsub>L\<^esub> y"
 
 
 subsubsection {* The order relation *}
@@ -102,12 +103,13 @@ lemma (in weak_partial_order) lless_trans [trans]:
 
 subsubsection {* Upper and lower bounds of a set *}
 
-constdefs (structure L)
+definition
   Upper :: "[_, 'a set] => 'a set"
-  "Upper L A == {u. (ALL x. x \<in> A \<inter> carrier L --> x \<sqsubseteq> u)} \<inter> carrier L"
+  where "Upper L A = {u. (ALL x. x \<in> A \<inter> carrier L --> x \<sqsubseteq>\<^bsub>L\<^esub> u)} \<inter> carrier L"
 
+definition
   Lower :: "[_, 'a set] => 'a set"
-  "Lower L A == {l. (ALL x. x \<in> A \<inter> carrier L --> l \<sqsubseteq> x)} \<inter> carrier L"
+  where "Lower L A = {l. (ALL x. x \<in> A \<inter> carrier L --> l \<sqsubseteq>\<^bsub>L\<^esub> x)} \<inter> carrier L"
 
 lemma Upper_closed [intro!, simp]:
   "Upper L A \<subseteq> carrier L"
@@ -275,12 +277,13 @@ qed
 
 subsubsection {* Least and greatest, as predicate *}
 
-constdefs (structure L)
+definition
   least :: "[_, 'a, 'a set] => bool"
-  "least L l A == A \<subseteq> carrier L & l \<in> A & (ALL x : A. l \<sqsubseteq> x)"
+  where "least L l A \<longleftrightarrow> A \<subseteq> carrier L & l \<in> A & (ALL x : A. l \<sqsubseteq>\<^bsub>L\<^esub> x)"
 
+definition
   greatest :: "[_, 'a, 'a set] => bool"
-  "greatest L g A == A \<subseteq> carrier L & g \<in> A & (ALL x : A. x \<sqsubseteq> g)"
+  where "greatest L g A \<longleftrightarrow> A \<subseteq> carrier L & g \<in> A & (ALL x : A. x \<sqsubseteq>\<^bsub>L\<^esub> g)"
 
 text (in weak_partial_order) {* Could weaken these to @{term "l \<in> carrier L \<and> l
   .\<in> A"} and @{term "g \<in> carrier L \<and> g .\<in> A"}. *}
@@ -400,18 +403,21 @@ lemma greatest_Lower_below:
 
 text {* Supremum and infimum *}
 
-constdefs (structure L)
+definition
   sup :: "[_, 'a set] => 'a" ("\<Squnion>\<index>_" [90] 90)
-  "\<Squnion>A == SOME x. least L x (Upper L A)"
+  where "\<Squnion>\<^bsub>L\<^esub>A = (SOME x. least L x (Upper L A))"
 
+definition
   inf :: "[_, 'a set] => 'a" ("\<Sqinter>\<index>_" [90] 90)
-  "\<Sqinter>A == SOME x. greatest L x (Lower L A)"
+  where "\<Sqinter>\<^bsub>L\<^esub>A = (SOME x. greatest L x (Lower L A))"
 
+definition
   join :: "[_, 'a, 'a] => 'a" (infixl "\<squnion>\<index>" 65)
-  "x \<squnion> y == \<Squnion> {x, y}"
+  where "x \<squnion>\<^bsub>L\<^esub> y = \<Squnion>\<^bsub>L\<^esub>{x, y}"
 
+definition
   meet :: "[_, 'a, 'a] => 'a" (infixl "\<sqinter>\<index>" 70)
-  "x \<sqinter> y == \<Sqinter> {x, y}"
+  where "x \<sqinter>\<^bsub>L\<^esub> y = \<Sqinter>\<^bsub>L\<^esub>{x, y}"
 
 
 subsection {* Lattices *}
@@ -981,12 +987,13 @@ lemma (in weak_partial_order) weak_complete_latticeI:
   shows "weak_complete_lattice L"
   proof qed (auto intro: sup_exists inf_exists)
 
-constdefs (structure L)
+definition
   top :: "_ => 'a" ("\<top>\<index>")
-  "\<top> == sup L (carrier L)"
+  where "\<top>\<^bsub>L\<^esub> = sup L (carrier L)"
 
+definition
   bottom :: "_ => 'a" ("\<bottom>\<index>")
-  "\<bottom> == inf L (carrier L)"
+  where "\<bottom>\<^bsub>L\<^esub> = inf L (carrier L)"
 
 
 lemma (in weak_complete_lattice) supI:

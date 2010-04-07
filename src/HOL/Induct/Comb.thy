@@ -1,5 +1,4 @@
 (*  Title:      HOL/Induct/Comb.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson
     Copyright   1996  University of Cambridge
 *)
@@ -134,21 +133,10 @@ apply (erule rtrancl_induct)
 apply (blast intro: rtrancl_trans)+
 done
 
-(** Counterexample to the diamond property for -1-> **)
-
-lemma KIII_contract1: "K##I##(I##I) -1-> I"
-by (rule contract.K)
-
-lemma KIII_contract2: "K##I##(I##I) -1-> K##I##((K##I)##(K##I))"
-by (unfold I_def, blast)
-
-lemma KIII_contract3: "K##I##((K##I)##(K##I)) -1-> I"
-by blast
+text {*Counterexample to the diamond property for @{term "x -1-> y"}*}
 
 lemma not_diamond_contract: "~ diamond(contract)"
-apply (unfold diamond_def) 
-apply (best intro: KIII_contract1 KIII_contract2 KIII_contract3)
-done
+by (unfold diamond_def, metis S_contractE contract.K) 
 
 
 subsection {* Results about Parallel Contraction *}
@@ -190,10 +178,7 @@ text {*
 *}
 
 lemma contract_subset_parcontract: "contract <= parcontract"
-apply (rule subsetI)
-apply (simp only: split_tupled_all)
-apply (erule contract.induct, blast+)
-done
+by (auto, erule contract.induct, blast+)
 
 text{*Reductions: simply throw together reflexivity, transitivity and
   the one-step reductions*}
@@ -205,16 +190,12 @@ lemma reduce_I: "I##x ---> x"
 by (unfold I_def, blast)
 
 lemma parcontract_subset_reduce: "parcontract <= contract^*"
-apply (rule subsetI)
-apply (simp only: split_tupled_all)
-apply (erule parcontract.induct, blast+)
-done
+by (auto, erule parcontract.induct, blast+)
 
 lemma reduce_eq_parreduce: "contract^* = parcontract^*"
-by (rule equalityI contract_subset_parcontract [THEN rtrancl_mono] 
-         parcontract_subset_reduce [THEN rtrancl_subset_rtrancl])+
+by (metis contract_subset_parcontract parcontract_subset_reduce rtrancl_subset)
 
-lemma diamond_reduce: "diamond(contract^*)"
+theorem diamond_reduce: "diamond(contract^*)"
 by (simp add: reduce_eq_parreduce diamond_rtrancl diamond_parcontract)
 
 end

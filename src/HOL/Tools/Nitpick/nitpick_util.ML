@@ -1,6 +1,6 @@
 (*  Title:      HOL/Tools/Nitpick/nitpick_util.ML
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2008, 2009
+    Copyright   2008, 2009, 2010
 
 General-purpose functions used by the Nitpick modules.
 *)
@@ -20,7 +20,9 @@ sig
   val nitpick_prefix : string
   val curry3 : ('a * 'b * 'c -> 'd) -> 'a -> 'b -> 'c -> 'd
   val pairf : ('a -> 'b) -> ('a -> 'c) -> 'a -> 'b * 'c
-  val int_for_bool : bool -> int
+  val pair_from_fun : (bool -> 'a) -> 'a * 'a
+  val fun_from_pair : 'a * 'a -> bool -> 'a
+  val int_from_bool : bool -> int
   val nat_minus : int -> int -> int
   val reasonable_power : int -> int -> int
   val exact_log : int -> int -> int
@@ -44,7 +46,6 @@ sig
   val triple_lookup :
     (''a * ''a -> bool) -> (''a option * 'b) list -> ''a -> 'b option
   val is_substring_of : string -> string -> bool
-  val serial_commas : string -> string list -> string list
   val plural_s : int -> string
   val plural_s_for_list : 'a list -> string
   val flip_polarity : polarity -> polarity
@@ -58,9 +59,9 @@ sig
   val setmp_show_all_types : ('a -> 'b) -> 'a -> 'b
   val indent_size : int
   val pstrs : string -> Pretty.T list
-  val plain_string_from_yxml : string -> string
+  val unyxml : string -> string
   val maybe_quote : string -> string
-end
+end;
 
 structure Nitpick_Util : NITPICK_UTIL =
 struct
@@ -84,15 +85,20 @@ fun curry3 f = fn x => fn y => fn z => f (x, y, z)
 (* ('a -> 'b) -> ('a -> 'c) -> 'a -> 'b * 'c *)
 fun pairf f g x = (f x, g x)
 
+(* (bool -> 'a) -> 'a * 'a *)
+fun pair_from_fun f = (f false, f true)
+(* 'a * 'a -> bool -> 'a *)
+fun fun_from_pair (f, t) b = if b then t else f
+
 (* bool -> int *)
-fun int_for_bool b = if b then 1 else 0
+fun int_from_bool b = if b then 1 else 0
 (* int -> int -> int *)
 fun nat_minus i j = if i > j then i - j else 0
 
 val max_exponent = 16384
 
 (* int -> int -> int *)
-fun reasonable_power a 0 = 1
+fun reasonable_power _ 0 = 1
   | reasonable_power a 1 = a
   | reasonable_power 0 _ = 0
   | reasonable_power 1 _ = 1
@@ -215,22 +221,16 @@ fun double_lookup eq ps key =
     SOME z => SOME z
   | NONE => ps |> find_first (is_none o fst) |> Option.map snd
 (* (''a * ''a -> bool) -> (''a option * 'b) list -> ''a -> 'b option *)
-fun triple_lookup eq ps key =
-  case AList.lookup (op =) ps (SOME key) of
-    SOME z => SOME z
-  | NONE => double_lookup eq ps key
+fun triple_lookup _ [(NONE, z)] _ = SOME z
+  | triple_lookup eq ps key =
+    case AList.lookup (op =) ps (SOME key) of
+      SOME z => SOME z
+    | NONE => double_lookup eq ps key
 
 (* string -> string -> bool *)
 fun is_substring_of needle stack =
   not (Substring.isEmpty (snd (Substring.position needle
                                                   (Substring.full stack))))
-
-(* string -> string list -> string list *)
-fun serial_commas _ [] = ["??"]
-  | serial_commas _ [s] = [s]
-  | serial_commas conj [s1, s2] = [s1, conj, s2]
-  | serial_commas conj [s1, s2, s3] = [s1 ^ ",", s2 ^ ",", conj, s3]
-  | serial_commas conj (s :: ss) = s ^ "," :: serial_commas conj ss
 
 (* int -> string *)
 fun plural_s n = if n = 1 then "" else "s"
@@ -278,15 +278,16 @@ val pstrs = Pretty.breaks o map Pretty.str o space_explode " "
 fun plain_string_from_xml_tree t =
   Buffer.empty |> XML.add_content t |> Buffer.content
 (* string -> string *)
-val plain_string_from_yxml = plain_string_from_xml_tree o YXML.parse
+val unyxml = plain_string_from_xml_tree o YXML.parse
 
 (* string -> bool *)
 val is_long_identifier = forall Syntax.is_identifier o space_explode "."
 (* string -> string *)
 fun maybe_quote y =
-  let val s = plain_string_from_yxml y in
-    y |> (not (is_long_identifier (perhaps (try (unprefix "'")) s)) orelse
-          OuterKeyword.is_keyword s) ? quote
+  let val s = unyxml y in
+    y |> ((not (is_long_identifier (perhaps (try (unprefix "'")) s)) andalso
+           not (is_long_identifier (perhaps (try (unprefix "?")) s))) orelse
+           OuterKeyword.is_keyword s) ? quote
   end
 
 end;

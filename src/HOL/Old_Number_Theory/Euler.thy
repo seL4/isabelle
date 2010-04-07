@@ -162,8 +162,11 @@ lemma aux1: "[| 0 < x; (x::int) < a; x \<noteq> (a - 1) |] ==> x < a - 1"
 lemma aux2: "[| (a::int) < c; b < c |] ==> (a \<le> b | b \<le> a)"
   by auto
 
+lemma d22set_induct_old: "(\<And>a::int. 1 < a \<longrightarrow> P (a - 1) \<Longrightarrow> P a) \<Longrightarrow> P x"
+using d22set.induct by blast
+
 lemma SRStar_d22set_prop: "2 < p \<Longrightarrow> (SRStar p) = {1} \<union> (d22set (p - 1))"
-  apply (induct p rule: d22set.induct)
+  apply (induct p rule: d22set_induct_old)
   apply auto
   apply (simp add: SRStar_def d22set.simps)
   apply (simp add: SRStar_def d22set.simps, clarify)

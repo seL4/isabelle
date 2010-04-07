@@ -1,5 +1,4 @@
 (*  Title:      LCF/LCF.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1992  University of Cambridge
 *)
@@ -19,8 +18,8 @@ defaultsort cpo
 
 typedecl tr
 typedecl void
-typedecl ('a,'b) "*"    (infixl 6)
-typedecl ('a,'b) "+"    (infixl 5)
+typedecl ('a,'b) "*"    (infixl "*" 6)
+typedecl ('a,'b) "+"    (infixl "+" 5)
 
 arities
   "fun" :: (cpo, cpo) cpo

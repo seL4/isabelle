@@ -36,13 +36,12 @@ sig
   val multi_thm: thm list context_parser
   val print_configs: Proof.context -> unit
   val internal: (morphism -> attribute) -> src
-  val register_config: Config.value Config.T -> theory -> theory
-  val config_bool: bstring -> bool -> bool Config.T * (theory -> theory)
-  val config_int: bstring -> int -> int Config.T * (theory -> theory)
-  val config_string: bstring -> string -> string Config.T * (theory -> theory)
-  val config_bool_global: bstring -> bool -> bool Config.T * (theory -> theory)
-  val config_int_global: bstring -> int -> int Config.T * (theory -> theory)
-  val config_string_global: bstring -> string -> string Config.T * (theory -> theory)
+  val config_bool: bstring -> (Context.generic -> bool) -> bool Config.T * (theory -> theory)
+  val config_int: bstring -> (Context.generic -> int) -> int Config.T * (theory -> theory)
+  val config_string: bstring -> (Context.generic -> string) -> string Config.T * (theory -> theory)
+  val config_bool_global: bstring -> (Context.generic -> bool) -> bool Config.T * (theory -> theory)
+  val config_int_global: bstring -> (Context.generic -> int) -> int Config.T * (theory -> theory)
+  val config_string_global: bstring -> (Context.generic -> string) -> string Config.T * (theory -> theory)
 end;
 
 structure Attrib: ATTRIB =
@@ -245,14 +244,14 @@ fun rename_abs x = (Scan.repeat (Args.maybe Args.name) >> (apsnd o Drule.rename_
 fun unfolded_syntax rule =
   thms >> (fn ths => Thm.rule_attribute (fn context => rule (Context.proof_of context) ths));
 
-val unfolded = unfolded_syntax LocalDefs.unfold;
-val folded = unfolded_syntax LocalDefs.fold;
+val unfolded = unfolded_syntax Local_Defs.unfold;
+val folded = unfolded_syntax Local_Defs.fold;
 
 
 (* rule format *)
 
 val rule_format = Args.mode "no_asm"
-  >> (fn true => ObjectLogic.rule_format_no_asm | false => ObjectLogic.rule_format);
+  >> (fn true => Object_Logic.rule_format_no_asm | false => Object_Logic.rule_format);
 
 val elim_format = Thm.rule_attribute (K Tactic.make_elim);
 
@@ -288,6 +287,8 @@ val _ = Context.>> (Context.map_theory
   setup (Binding.name "folded") folded "folded definitions" #>
   setup (Binding.name "consumes") (Scan.lift (Scan.optional P.nat 1) >> Rule_Cases.consumes)
     "number of consumed facts" #>
+  setup (Binding.name "constraints") (Scan.lift P.nat >> Rule_Cases.constraints)
+    "number of equality constraints" #>
   setup (Binding.name "case_names") (Scan.lift (Scan.repeat1 Args.name) >> Rule_Cases.case_names)
     "named rule cases" #>
   setup (Binding.name "case_conclusion")
@@ -296,7 +297,7 @@ val _ = Context.>> (Context.map_theory
   setup (Binding.name "params")
     (Scan.lift (P.and_list1 (Scan.repeat Args.name)) >> Rule_Cases.params)
     "named rule parameters" #>
-  setup (Binding.name "standard") (Scan.succeed (Thm.rule_attribute (K Drule.standard)))
+  setup (Binding.name "standard") (Scan.succeed (Thm.rule_attribute (K Drule.export_without_context)))
     "result put into standard form (legacy)" #>
   setup (Binding.name "rule_format") rule_format "result put into canonical rule format" #>
   setup (Binding.name "elim_format") (Scan.succeed elim_format)
@@ -304,12 +305,12 @@ val _ = Context.>> (Context.map_theory
   setup (Binding.name "no_vars") (Scan.succeed no_vars) "frozen schematic vars" #>
   setup (Binding.name "eta_long") (Scan.succeed eta_long)
     "put theorem into eta long beta normal form" #>
-  setup (Binding.name "atomize") (Scan.succeed ObjectLogic.declare_atomize)
+  setup (Binding.name "atomize") (Scan.succeed Object_Logic.declare_atomize)
     "declaration of atomize rule" #>
-  setup (Binding.name "rulify") (Scan.succeed ObjectLogic.declare_rulify)
+  setup (Binding.name "rulify") (Scan.succeed Object_Logic.declare_rulify)
     "declaration of rulify rule" #>
   setup (Binding.name "rotated") (Scan.lift rotated) "rotated theorem premises" #>
-  setup (Binding.name "defn") (add_del LocalDefs.defn_add LocalDefs.defn_del)
+  setup (Binding.name "defn") (add_del Local_Defs.defn_add Local_Defs.defn_del)
     "declaration of definitional transformations" #>
   setup (Binding.name "abs_def") (Scan.succeed (Thm.rule_attribute (K Drule.abs_def)))
     "abstract over free variables of a definition"));
@@ -372,7 +373,7 @@ fun register_config config thy =
 
 fun declare_config make coerce global name default =
   let
-    val config_value = Config.declare global name (make default);
+    val config_value = Config.declare global name (make o default);
     val config = coerce config_value;
   in (config, register_config config_value) end;
 
@@ -394,6 +395,8 @@ val _ = Context.>> (Context.map_theory
   register_config Unify.search_bound_value #>
   register_config Unify.trace_simp_value #>
   register_config Unify.trace_types_value #>
-  register_config MetaSimplifier.simp_depth_limit_value));
+  register_config MetaSimplifier.simp_depth_limit_value #>
+  register_config MetaSimplifier.debug_simp_value #>
+  register_config MetaSimplifier.trace_simp_value));
 
 end;

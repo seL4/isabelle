@@ -15,8 +15,7 @@ sig
   val is_empty: 'a T -> bool
   val keys: 'a T -> key list
   val dest: 'a T -> (key * key list) list
-  val get_first: key option -> (key * ('a * (key list * key list)) -> 'b option) ->
-    'a T -> 'b option
+  val get_first: (key * ('a * (key list * key list)) -> 'b option) -> 'a T -> 'b option
   val fold: (key * ('a * (key list * key list)) -> 'b -> 'b) -> 'a T -> 'b -> 'b
   val minimals: 'a T -> key list
   val maximals: 'a T -> key list
@@ -49,7 +48,6 @@ sig
   val topological_order: 'a T -> key list
   val add_edge_trans_acyclic: key * key -> 'a T -> 'a T               (*exception CYCLES*)
   val merge_trans_acyclic: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T   (*exception CYCLES*)
-  val extend: (key -> 'a * key list) -> key -> 'a T -> 'a T
 end;
 
 functor Graph(Key: KEY): GRAPH =
@@ -89,7 +87,7 @@ fun is_empty (Graph tab) = Table.is_empty tab;
 fun keys (Graph tab) = Table.keys tab;
 fun dest (Graph tab) = map (fn (x, (_, (_, succs))) => (x, succs)) (Table.dest tab);
 
-fun get_first b f (Graph tab) = Table.get_first b f tab;
+fun get_first f (Graph tab) = Table.get_first f tab;
 fun fold_graph f (Graph tab) = Table.fold f tab;
 
 fun minimals G = fold_graph (fn (m, (_, ([], _))) => cons m | _ => I) G [];
@@ -204,13 +202,17 @@ fun edges G = diff_edges G empty;
 
 fun no_edges (i, _) = (i, ([], []));
 
-fun join f (Graph tab1, G2 as Graph tab2) =
-  let fun join_node key ((i1, edges1), (i2, _)) = (f key (i1, i2), edges1)
-  in fold add_edge (edges G2) (Graph (Table.join join_node (tab1, Table.map no_edges tab2))) end;
+fun join f (G1 as Graph tab1, G2 as Graph tab2) =
+  let fun join_node key ((i1, edges1), (i2, _)) = (f key (i1, i2), edges1) in
+    if pointer_eq (G1, G2) then G1
+    else fold add_edge (edges G2) (Graph (Table.join join_node (tab1, Table.map no_edges tab2)))
+  end;
 
-fun gen_merge add eq (Graph tab1, G2 as Graph tab2) =
-  let fun eq_node ((i1, _), (i2, _)) = eq (i1, i2)
-  in fold add (edges G2) (Graph (Table.merge eq_node (tab1, Table.map no_edges tab2))) end;
+fun gen_merge add eq (G1 as Graph tab1, G2 as Graph tab2) =
+  let fun eq_node ((i1, _), (i2, _)) = eq (i1, i2) in
+    if pointer_eq (G1, G2) then G1
+    else fold add (edges G2) (Graph (Table.merge eq_node (tab1, Table.map no_edges tab2)))
+  end;
 
 fun merge eq GG = gen_merge add_edge eq GG;
 
@@ -275,25 +277,11 @@ fun add_edge_trans_acyclic (x, y) G =
   |> fold_product (curry add_edge) (all_preds G [x]) (all_succs G [y]);
 
 fun merge_trans_acyclic eq (G1, G2) =
-  merge_acyclic eq (G1, G2)
-  |> fold add_edge_trans_acyclic (diff_edges G1 G2)
-  |> fold add_edge_trans_acyclic (diff_edges G2 G1);
-
-
-(* constructing graphs *)
-
-fun extend explore =
-  let
-    fun ext x G =
-      if can (get_entry G) x then G
-      else
-        let val (info, ys) = explore x in
-          G
-          |> new_node (x, info)
-          |> fold ext ys
-          |> fold (fn y => add_edge (x, y)) ys
-        end
-  in ext end;
+  if pointer_eq (G1, G2) then G1
+  else
+    merge_acyclic eq (G1, G2)
+    |> fold add_edge_trans_acyclic (diff_edges G1 G2)
+    |> fold add_edge_trans_acyclic (diff_edges G2 G1);
 
 
 (*final declarations of this structure!*)
@@ -302,4 +290,4 @@ val fold = fold_graph;
 end;
 
 structure Graph = Graph(type key = string val ord = fast_string_ord);
-structure IntGraph = Graph(type key = int val ord = int_ord);
+structure Int_Graph = Graph(type key = int val ord = int_ord);

@@ -100,7 +100,7 @@ val weaken =
         val th4 = implies_elim_list (assume cPPQ) [th3,th3]
                                     |> implies_intr_list [cPPQ,cP]
     in
-        equal_intr th4 th1 |> Drule.standard
+        equal_intr th4 th1 |> Drule.export_without_context
     end
 
 val imp_comm =
@@ -120,7 +120,7 @@ val imp_comm =
         val th2 = implies_elim_list (assume cQPR) [assume cQ,assume cP]
                                     |> implies_intr_list [cQPR,cP,cQ]
     in
-        equal_intr th1 th2 |> Drule.standard
+        equal_intr th1 th2 |> Drule.export_without_context
     end
 
 val def_norm =
@@ -147,7 +147,7 @@ val def_norm =
                               |> forall_intr cv
                               |> implies_intr cPQ
     in
-        equal_intr th1 th2 |> Drule.standard
+        equal_intr th1 th2 |> Drule.export_without_context
     end
 
 val all_comm =
@@ -173,7 +173,7 @@ val all_comm =
                          |> forall_intr_list [cy,cx]
                          |> implies_intr cl
     in
-        equal_intr th1 th2 |> Drule.standard
+        equal_intr th1 th2 |> Drule.export_without_context
     end
 
 val equiv_comm =
@@ -187,7 +187,7 @@ val equiv_comm =
         val th1  = assume ctu |> symmetric |> implies_intr ctu
         val th2  = assume cut |> symmetric |> implies_intr cut
     in
-        equal_intr th1 th2 |> Drule.standard
+        equal_intr th1 th2 |> Drule.export_without_context
     end
 
 (* This simplification procedure rewrites !!x y. P x y
@@ -265,7 +265,7 @@ fun inst_tfrees thy [] thm = thm
     let
         val cU = ctyp_of thy U
         val tfrees = OldTerm.add_term_tfrees (prop_of thm,[])
-        val (rens, thm') = Thm.varifyT'
+        val (rens, thm') = Thm.varifyT_global'
     (remove (op = o apsnd fst) name tfrees) thm
         val mid =
             case rens of
@@ -351,7 +351,7 @@ val meta_sym_rew = thm "refl"
 
 fun equals_fun thy assume t =
     case t of
-        Const("op ==",_) $ u $ v => if TermOrd.term_ord (u,v) = LESS then SOME (meta_sym_rew) else NONE
+        Const("op ==",_) $ u $ v => if Term_Ord.term_ord (u,v) = LESS then SOME (meta_sym_rew) else NONE
       | _ => NONE
 
 fun eta_expand thy assumes origt =
@@ -488,7 +488,7 @@ be handy in its own right, for example for indexing terms. *)
 fun norm_term thy t =
     let
         val norms = ShuffleData.get thy
-        val ss = Simplifier.theory_context thy empty_ss
+        val ss = Simplifier.global_context thy empty_ss
           setmksimps single
           addsimps (map (Thm.transfer thy) norms)
           addsimprocs [quant_simproc thy, eta_expand_simproc thy,eta_contract_simproc thy]
@@ -592,7 +592,7 @@ fun set_prop thy t =
         fun process [] = NONE
           | process ((name,th)::thms) =
             let
-                val norm_th = Thm.varifyT (norm_thm thy (close_thm (Thm.transfer thy th)))
+                val norm_th = Thm.varifyT_global (norm_thm thy (close_thm (Thm.transfer thy th)))
                 val triv_th = trivial rhs
                 val _ = message ("Shuffler.set_prop: Gluing together " ^ (string_of_thm norm_th) ^ " and " ^ (string_of_thm triv_th))
                 val mod_th = case Seq.pull (Thm.bicompose false (*true*) (false,norm_th,0) 1 triv_th) of

@@ -37,17 +37,15 @@ record env =
          lcl:: "lenv"    --{* local environment *}     
   
 translations
-  "lenv" <= (type) "(lname, ty) table"
-  "lenv" <= (type) "lname \<Rightarrow> ty option"
-  "env" <= (type) "\<lparr>prg::prog,cls::qtname,lcl::lenv\<rparr>"
-  "env" <= (type) "\<lparr>prg::prog,cls::qtname,lcl::lenv,\<dots>::'a\<rparr>"
+  (type) "lenv" <= (type) "(lname, ty) table"
+  (type) "lenv" <= (type) "lname \<Rightarrow> ty option"
+  (type) "env" <= (type) "\<lparr>prg::prog,cls::qtname,lcl::lenv\<rparr>"
+  (type) "env" <= (type) "\<lparr>prg::prog,cls::qtname,lcl::lenv,\<dots>::'a\<rparr>"
 
 
-
-syntax
+abbreviation
   pkg :: "env \<Rightarrow> pname" --{* select the current package from an environment *}
-translations 
-  "pkg e" == "pid (cls e)"
+  where "pkg e == pid (cls e)"
 
 section "Static overloading: maximally specific methods "
 
@@ -55,11 +53,10 @@ types
   emhead = "ref_ty \<times> mhead"
 
 --{* Some mnemotic selectors for emhead *}
-constdefs 
-  "declrefT" :: "emhead \<Rightarrow> ref_ty"
+definition "declrefT" :: "emhead \<Rightarrow> ref_ty" where
   "declrefT \<equiv> fst"
 
-  "mhd"     :: "emhead \<Rightarrow> mhead"
+definition "mhd"     :: "emhead \<Rightarrow> mhead" where
   "mhd \<equiv> snd"
 
 lemma declrefT_simp[simp]:"declrefT (r,m) = r"
@@ -140,11 +137,10 @@ apply (auto dest: equalityD2 subsetD max_spec2appl_meths appl_methsD)
 done
 
 
-constdefs
-  empty_dt :: "dyn_ty"
+definition empty_dt :: "dyn_ty" where
  "empty_dt \<equiv> \<lambda>a. None"
 
-  invmode :: "('a::type)member_scheme \<Rightarrow> expr \<Rightarrow> inv_mode"
+definition invmode :: "('a::type)member_scheme \<Rightarrow> expr \<Rightarrow> inv_mode" where
 "invmode m e \<equiv> if is_static m 
                   then Static 
                   else if e=Super then SuperM else IntVir"
@@ -242,9 +238,9 @@ primrec
 
 section "Typing for terms"
 
-types tys  =        "ty + ty list"
+types tys  = "ty + ty list"
 translations
-  "tys"   <= (type) "ty + ty list"
+  (type) "tys" <= (type) "ty + ty list"
 
 
 inductive
@@ -426,29 +422,33 @@ where
                                          E,dt\<Turnstile>e#es\<Colon>\<doteq>T#Ts"
 
 
-syntax (* for purely static typing *)
-  "_wt"      :: "env \<Rightarrow> [term,tys] \<Rightarrow> bool" ("_|-_::_" [51,51,51] 50)
-  "_wt_stmt" :: "env \<Rightarrow>  stmt       \<Rightarrow> bool" ("_|-_:<>" [51,51   ] 50)
-  "_ty_expr" :: "env \<Rightarrow> [expr ,ty ] \<Rightarrow> bool" ("_|-_:-_" [51,51,51] 50)
-  "_ty_var"  :: "env \<Rightarrow> [var  ,ty ] \<Rightarrow> bool" ("_|-_:=_" [51,51,51] 50)
-  "_ty_exprs":: "env \<Rightarrow> [expr list,
-                     \<spacespace> ty   list] \<Rightarrow> bool" ("_|-_:#_" [51,51,51] 50)
+(* for purely static typing *)
+abbreviation
+  wt_syntax :: "env \<Rightarrow> [term,tys] \<Rightarrow> bool" ("_|-_::_" [51,51,51] 50)
+  where "E|-t::T == E,empty_dt\<Turnstile>t\<Colon> T"
 
-syntax (xsymbols)
-  "_wt"      :: "env \<Rightarrow> [term,tys] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>_"  [51,51,51] 50)
-  "_wt_stmt" ::  "env \<Rightarrow>  stmt       \<Rightarrow> bool" ("_\<turnstile>_\<Colon>\<surd>"  [51,51   ] 50)
-  "_ty_expr" :: "env \<Rightarrow> [expr ,ty ] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>-_" [51,51,51] 50)
-  "_ty_var"  :: "env \<Rightarrow> [var  ,ty ] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>=_" [51,51,51] 50)
-  "_ty_exprs" :: "env \<Rightarrow> [expr list,
-                    \<spacespace>  ty   list] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>\<doteq>_" [51,51,51] 50)
+abbreviation
+  wt_stmt_syntax :: "env \<Rightarrow> stmt \<Rightarrow> bool" ("_|-_:<>" [51,51   ] 50)
+  where "E|-s:<> == E|-In1r s :: Inl (PrimT Void)"
 
-translations
-        "E\<turnstile>t\<Colon> T" == "E,empty_dt\<Turnstile>t\<Colon> T"
-        "E\<turnstile>s\<Colon>\<surd>"  == "E\<turnstile>In1r s\<Colon>CONST Inl (PrimT Void)"
-        "E\<turnstile>e\<Colon>-T" == "E\<turnstile>In1l e\<Colon>CONST Inl T"
-        "E\<turnstile>e\<Colon>=T" == "E\<turnstile>In2  e\<Colon>CONST Inl T"
-        "E\<turnstile>e\<Colon>\<doteq>T" == "E\<turnstile>In3  e\<Colon>CONST Inr T"
+abbreviation
+  ty_expr_syntax :: "env \<Rightarrow> [expr, ty] \<Rightarrow> bool" ("_|-_:-_" [51,51,51] 50)
+  where "E|-e:-T == E|-In1l e :: Inl T"
 
+abbreviation
+  ty_var_syntax :: "env \<Rightarrow> [var, ty] \<Rightarrow> bool" ("_|-_:=_" [51,51,51] 50)
+  where "E|-e:=T == E|-In2 e :: Inl T"
+
+abbreviation
+  ty_exprs_syntax :: "env \<Rightarrow> [expr list, ty list] \<Rightarrow> bool" ("_|-_:#_" [51,51,51] 50)
+  where "E|-e:#T == E|-In3 e :: Inr T"
+
+notation (xsymbols)
+  wt_syntax  ("_\<turnstile>_\<Colon>_"  [51,51,51] 50) and
+  wt_stmt_syntax  ("_\<turnstile>_\<Colon>\<surd>"  [51,51   ] 50) and
+  ty_expr_syntax  ("_\<turnstile>_\<Colon>-_" [51,51,51] 50) and
+  ty_var_syntax  ("_\<turnstile>_\<Colon>=_" [51,51,51] 50) and
+  ty_exprs_syntax  ("_\<turnstile>_\<Colon>\<doteq>_" [51,51,51] 50)
 
 declare not_None_eq [simp del] 
 declare split_if [split del] split_if_asm [split del]

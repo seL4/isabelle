@@ -32,6 +32,8 @@ sig
   val axiomatization_cmd: (binding * string option * mixfix) list ->
     (Attrib.binding * string list) list -> theory ->
     (term list * thm list list) * theory
+  val axiom: Attrib.binding * term -> theory -> thm * theory
+  val axiom_cmd: Attrib.binding * string -> theory -> thm * theory
   val definition:
     (binding * typ option * mixfix) option * (Attrib.binding * term) ->
     local_theory -> (term * (string * thm)) * local_theory
@@ -42,6 +44,8 @@ sig
     local_theory -> local_theory
   val abbreviation_cmd: Syntax.mode -> (binding * string option * mixfix) option * string ->
     local_theory -> local_theory
+  val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> local_theory -> local_theory
+  val type_notation_cmd: bool -> Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val notation_cmd: bool -> Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
   val theorems: string ->
@@ -185,13 +189,16 @@ fun gen_axioms do_print prep raw_vars raw_specs thy =
 val axiomatization = gen_axioms false check_specification;
 val axiomatization_cmd = gen_axioms true read_specification;
 
+fun axiom (b, ax) = axiomatization [] [(b, [ax])] #>> (hd o hd o snd);
+fun axiom_cmd (b, ax) = axiomatization_cmd [] [(b, [ax])] #>> (hd o hd o snd);
+
 
 (* definition *)
 
 fun gen_def do_print prep (raw_var, raw_spec) lthy =
   let
     val (vars, [((raw_name, atts), prop)]) = fst (prep (the_list raw_var) [raw_spec] lthy);
-    val (((x, T), rhs), prove) = LocalDefs.derived_def lthy true prop;
+    val (((x, T), rhs), prove) = Local_Defs.derived_def lthy true prop;
     val var as (b, _) =
       (case vars of
         [] => (Binding.name x, NoSyn)
@@ -230,7 +237,7 @@ fun gen_abbrev do_print prep mode (raw_var, raw_prop) lthy =
     val ((vars, [(_, prop)]), _) =
       prep (the_list raw_var) [(Attrib.empty_binding, raw_prop)]
         (lthy |> ProofContext.set_mode ProofContext.mode_abbrev);
-    val ((x, T), rhs) = LocalDefs.abs_def (#2 (LocalDefs.cert_def lthy prop));
+    val ((x, T), rhs) = Local_Defs.abs_def (#2 (Local_Defs.cert_def lthy prop));
     val var =
       (case vars of
         [] => (Binding.name x, NoSyn)
@@ -255,11 +262,23 @@ val abbreviation_cmd = gen_abbrev true read_free_spec;
 
 (* notation *)
 
+local
+
+fun gen_type_notation prep_type add mode args lthy =
+  lthy |> Local_Theory.type_notation add mode (map (apfst (prep_type lthy)) args);
+
 fun gen_notation prep_const add mode args lthy =
   lthy |> Local_Theory.notation add mode (map (apfst (prep_const lthy)) args);
 
+in
+
+val type_notation = gen_type_notation (K I);
+val type_notation_cmd = gen_type_notation (fn ctxt => ProofContext.read_type_name ctxt false);
+
 val notation = gen_notation (K I);
-val notation_cmd = gen_notation ProofContext.read_const;
+val notation_cmd = gen_notation (fn ctxt => ProofContext.read_const ctxt false);
+
+end;
 
 
 (* fact statements *)
@@ -302,7 +321,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
         val raw_propp = obtains |> map (fn (_, (_, props)) => map (rpair []) props);
         val (propp, elems_ctxt) = prep_stmt (elems @ constraints) raw_propp ctxt;
 
-        val thesis = ObjectLogic.fixed_judgment (ProofContext.theory_of ctxt) Auto_Bind.thesisN;
+        val thesis = Object_Logic.fixed_judgment (ProofContext.theory_of ctxt) Auto_Bind.thesisN;
 
         fun assume_case ((name, (vars, _)), asms) ctxt' =
           let

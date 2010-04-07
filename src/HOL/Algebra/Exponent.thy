@@ -1,7 +1,8 @@
 (*  Title:      HOL/Algebra/Exponent.thy
-    Author:     Florian Kammueller, with new proofs by L C Paulson
+    Author:     Florian Kammueller
+    Author:     L C Paulson
 
-    exponent p s   yields the greatest power of p that divides s.
+exponent p s   yields the greatest power of p that divides s.
 *)
 
 theory Exponent
@@ -12,8 +13,9 @@ section {*Sylow's Theorem*}
 
 subsection {*The Combinatorial Argument Underlying the First Sylow Theorem*}
 
-definition exponent :: "nat => nat => nat" where
-"exponent p s == if prime p then (GREATEST r. p^r dvd s) else 0"
+definition
+  exponent :: "nat => nat => nat"
+  where "exponent p s = (if prime p then (GREATEST r. p^r dvd s) else 0)"
 
 
 text{*Prime Theorems*}

@@ -1,10 +1,9 @@
 (*  Title:      FOLP/ex/Quantifiers_Cla.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 First-Order Logic: quantifier examples (intuitionistic and classical)
-Needs declarations of the theory "thy" and the tactic "tac"
+Needs declarations of the theory "thy" and the tactic "tac".
 *)
 
 theory Quantifiers_Cla

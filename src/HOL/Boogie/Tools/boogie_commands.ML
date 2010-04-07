@@ -14,7 +14,7 @@ struct
 
 (* commands *)
 
-fun boogie_open (quiet, base_name) thy =
+fun boogie_open ((quiet, base_name), offsets) thy =
   let
     val path = Path.explode (base_name ^ ".b2i")
     val _ = File.exists path orelse
@@ -22,7 +22,7 @@ fun boogie_open (quiet, base_name) thy =
     val _ = Boogie_VCs.is_closed thy orelse
       error ("Found the beginning of a new Boogie environment, " ^
         "but another Boogie environment is still open.")
-  in Boogie_Loader.load_b2i (not quiet) path thy end
+  in Boogie_Loader.load_b2i (not quiet) offsets path thy end
 
 
 datatype vc_opts =
@@ -30,7 +30,8 @@ datatype vc_opts =
   VC_Take of int list * (bool * string list) option |
   VC_Only of string list |
   VC_Without of string list |
-  VC_Examine of string list 
+  VC_Examine of string list |
+  VC_Single of string
 
 fun get_vc thy vc_name =
   (case Boogie_VCs.lookup thy vc_name of
@@ -42,10 +43,35 @@ fun get_vc thy vc_name =
       | _ => error ("There is no verification condition " ^
           quote vc_name ^ ".")))
 
-fun boogie_vc (vc_name, vc_opts) lthy =
+local
+  fun split_goal t =
+    (case Boogie_Tactics.split t of
+      [tp] => tp
+    | _ => error "Multiple goals.")
+
+  fun single_prep t =
+    let
+      val (us, u) = split_goal t
+      val assms = [((@{binding vc_trace}, []), map (rpair []) us)]
+    in
+      pair [u] o snd o ProofContext.add_assms_i Assumption.assume_export assms
+    end
+
+  fun single_prove goal ctxt thm =
+    Goal.prove ctxt [] [] goal (fn {context, ...} => HEADGOAL (
+      Boogie_Tactics.split_tac
+      THEN' Boogie_Tactics.drop_assert_at_tac
+      THEN' SUBPROOF (fn _ => Tactic.rtac thm 1) context))
+in
+fun boogie_vc (vc_name, vc_opts) thy =
   let
-    val thy = ProofContext.theory_of lthy
     val vc = get_vc thy vc_name
+
+    fun extract vc l =
+      (case Boogie_VCs.extract vc l of
+        SOME vc' => vc'
+      | NONE => error ("There is no assertion to be proved with label " ^
+          quote l ^ "."))
 
     val vcs =
       (case vc_opts of
@@ -55,18 +81,29 @@ fun boogie_vc (vc_name, vc_opts) lthy =
       | VC_Take (ps, SOME (false, ls)) => [Boogie_VCs.paths_without ps ls vc]
       | VC_Only ls => [Boogie_VCs.only ls vc]
       | VC_Without ls => [Boogie_VCs.without ls vc]
-      | VC_Examine ls => map_filter (Boogie_VCs.extract vc) ls)
+      | VC_Examine ls => map (extract vc) ls
+      | VC_Single l => [extract vc l])
     val ts = map Boogie_VCs.prop_of_vc vcs
 
+    val (prepare, finish) =
+      (case vc_opts of
+         VC_Single _ => (single_prep (hd ts), single_prove (hd ts))
+      | _ => (pair ts, K I))
+
     val discharge = fold (Boogie_VCs.discharge o pair vc_name)
-    fun after_qed [thms] = Local_Theory.theory (discharge (vcs ~~ thms))
+    fun after_qed [thms] = ProofContext.theory (discharge (vcs ~~ thms))
       | after_qed _ = I
   in
-    lthy
+    ProofContext.init thy
     |> fold Variable.auto_fixes ts
-    |> Proof.theorem_i NONE after_qed [map (rpair []) ts]
+    |> (fn ctxt1 => ctxt1
+    |> prepare
+    |-> (fn us => fn ctxt2 => ctxt2
+    |> Proof.theorem_i NONE (fn thmss => fn ctxt =>
+         let val export = map (finish ctxt1) o ProofContext.export ctxt ctxt2
+         in after_qed (map export thmss) ctxt end) [map (rpair []) us]))
   end
-
+end
 
 fun write_list head =
   map Pretty.str o sort (dict_ord string_ord o pairself explode) #>
@@ -156,26 +193,27 @@ local
     |> Seq.hd
     |> Proof.global_done_proof
 in
-fun boogie_narrow_vc timeout vc_name meth thy =
+fun boogie_narrow_vc (quick, timeout) vc_name meth thy =
   let
-    val tp = TimeLimit.timeLimit (Time.fromSeconds timeout) (prove thy meth)
+    fun tp t = TimeLimit.timeLimit (Time.fromSeconds t) (prove thy meth)
 
-    fun try_vc (tag, split_tag) split vc = (trying tag;
-      (case try tp vc of
+    fun try_vc t (tag, split_tag) split vc = (trying tag;
+      (case try (tp t) vc of
         SOME _ => (success_on tag; [])
       | NONE => (failure_on tag split_tag; split vc)))
 
     fun some_asserts vc =
-      try_vc (string_of_asserts vc,
-        if Boogie_VCs.size_of vc = 1 then "." else ", further splitting ...")
-        (divide some_asserts) vc
+      let
+        val (t, sep) = if Boogie_VCs.size_of vc = 1 then (timeout, ".")
+          else (quick, ", further splitting ...")
+      in try_vc t (string_of_asserts vc, sep) (divide some_asserts) vc end
 
     fun single_path p =
-      try_vc (string_of_path p, ", splitting into assertions ...")
+      try_vc quick (string_of_path p, ", splitting into assertions ...")
         (divide some_asserts)
 
     val complete_vc =
-      try_vc ("full goal", ", splitting into paths ...")
+      try_vc quick ("full goal", ", splitting into paths ...")
         (par_map (uncurry single_path) o itemize_paths o Boogie_VCs.paths_of)
 
     val unsolved = complete_vc (get_vc thy vc_name)
@@ -225,16 +263,21 @@ fun scan_val n f = Args.$$$ n -- Args.colon |-- f
 fun scan_arg f = Args.parens f
 fun scan_opt n = Scan.optional (scan_arg (Args.$$$ n >> K true)) false
 
+val vc_offsets = Scan.optional (Args.bracks (OuterParse.list1
+  (OuterParse.string --| Args.colon -- OuterParse.nat))) []
+
 val _ =
   OuterSyntax.command "boogie_open"
     "Open a new Boogie environment and load a Boogie-generated .b2i file."
     OuterKeyword.thy_decl
-    (scan_opt "quiet" -- OuterParse.name >> (Toplevel.theory o boogie_open))
+    (scan_opt "quiet" -- OuterParse.name -- vc_offsets >> 
+      (Toplevel.theory o boogie_open))
 
 
 val vc_name = OuterParse.name
 
-val vc_labels = Scan.repeat1 OuterParse.name
+val vc_label = OuterParse.name
+val vc_labels = Scan.repeat1 vc_label
 
 val vc_paths =
   OuterParse.nat -- (Args.$$$ "-" |-- OuterParse.nat) >> (op upto) ||
@@ -242,31 +285,35 @@ val vc_paths =
 
 val vc_opts =
   scan_arg
-   (scan_val "examine" vc_labels >> VC_Examine ||
+   (scan_val "assertion" vc_label >> VC_Single ||
+    scan_val "examine" vc_labels >> VC_Examine ||
     scan_val "take" ((OuterParse.list vc_paths >> flat) -- Scan.option (
       scan_val "without" vc_labels >> pair false ||
       scan_val "and_also" vc_labels >> pair true) >> VC_Take) ||
     scan_val "only" vc_labels >> VC_Only ||
     scan_val "without" vc_labels >> VC_Without) ||
-  Scan.succeed VC_Complete  
+  Scan.succeed VC_Complete
 
 val _ =
   OuterSyntax.command "boogie_vc"
     "Enter into proof mode for a specific verification condition."
     OuterKeyword.thy_goal
     (vc_name -- vc_opts >> (fn args =>
-      (Toplevel.print o Toplevel.local_theory_to_proof NONE (boogie_vc args))))
+      (Toplevel.print o Toplevel.theory_to_proof (boogie_vc args))))
 
 
-val default_timeout = 5
+val quick_timeout = 5
+val default_timeout = 20
+
+fun timeout name = Scan.optional (scan_val name OuterParse.nat)
 
 val status_test =
   scan_arg (
-    (Args.$$$ "scan" >> K boogie_scan_vc ||
-     Args.$$$ "narrow" >> K boogie_narrow_vc) --
-    Scan.optional (scan_val "timeout" OuterParse.nat) default_timeout) --
+    Args.$$$ "scan" |-- timeout "timeout" quick_timeout >> boogie_scan_vc ||
+    Args.$$$ "narrow" |-- timeout "step_timeout" quick_timeout --
+      timeout "final_timeout" default_timeout >> boogie_narrow_vc) --
   vc_name -- Method.parse >>
-  (fn (((f, timeout), vc_name), meth) => f timeout vc_name meth)
+  (fn ((f, vc_name), meth) => f vc_name meth)
 
 val status_vc =
   (scan_arg

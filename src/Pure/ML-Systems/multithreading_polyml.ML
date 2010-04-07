@@ -8,7 +8,7 @@ signature MULTITHREADING_POLYML =
 sig
   val interruptible: ('a -> 'b) -> 'a -> 'b
   val uninterruptible: ((('c -> 'd) -> 'c -> 'd) -> 'a -> 'b) -> 'a -> 'b
-  val system_out: string -> string * int
+  val bash_output: string -> string * int
   structure TimeLimit: TIME_LIMIT
 end;
 
@@ -156,9 +156,9 @@ fun timeLimit time f x = uninterruptible (fn restore_attributes => fn () =>
 end;
 
 
-(* system shell processes, with propagation of interrupts *)
+(* GNU bash processes, with propagation of interrupts *)
 
-fun system_out script = with_attributes no_interrupts (fn orig_atts =>
+fun bash_output script = with_attributes no_interrupts (fn orig_atts =>
   let
     val script_name = OS.FileSys.tmpName ();
     val _ = write_file script_name script;
@@ -180,7 +180,7 @@ fun system_out script = with_attributes no_interrupts (fn orig_atts =>
     val system_thread = Thread.fork (fn () =>
       let
         val status =
-          OS.Process.system ("perl -w \"$ISABELLE_HOME/lib/scripts/system.pl\" group " ^
+          OS.Process.system ("exec \"$ISABELLE_HOME/lib/scripts/bash\" group " ^
             script_name ^ " " ^ pid_name ^ " " ^ output_name);
         val res =
           (case Posix.Process.fromStatus status of

@@ -20,7 +20,6 @@ sig
   val target_of: local_theory -> Proof.context
   val raw_theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
   val raw_theory: (theory -> theory) -> local_theory -> local_theory
-  val checkpoint: local_theory -> local_theory
   val theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
   val theory: (theory -> theory) -> local_theory -> local_theory
   val target_result: (Proof.context -> 'a * Proof.context) -> local_theory -> 'a * local_theory
@@ -39,10 +38,13 @@ sig
     local_theory -> (string * thm list) list * local_theory
   val notes_kind: string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
     local_theory -> (string * thm list) list * local_theory
-  val type_syntax: bool -> declaration -> local_theory -> local_theory
-  val term_syntax: bool -> declaration -> local_theory -> local_theory
   val declaration: bool -> declaration -> local_theory -> local_theory
+  val syntax_declaration: bool -> declaration -> local_theory -> local_theory
+  val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> local_theory -> local_theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
+  val class_alias: binding -> class -> local_theory -> local_theory
+  val type_alias: binding -> string -> local_theory -> local_theory
+  val const_alias: binding -> string -> local_theory -> local_theory
   val init: serial option -> string -> operations -> Proof.context -> local_theory
   val restore: local_theory -> local_theory
   val reinit: local_theory -> local_theory
@@ -68,9 +70,8 @@ type operations =
   notes: string ->
     (Attrib.binding * (thm list * Attrib.src list) list) list ->
     local_theory -> (string * thm list) list * local_theory,
-  type_syntax: bool -> declaration -> local_theory -> local_theory,
-  term_syntax: bool -> declaration -> local_theory -> local_theory,
   declaration: bool -> declaration -> local_theory -> local_theory,
+  syntax_declaration: bool -> declaration -> local_theory -> local_theory,
   reinit: local_theory -> local_theory,
   exit: local_theory -> Proof.context};
 
@@ -147,7 +148,8 @@ fun theory_result f lthy =
     thy
     |> Sign.map_naming (K (naming_of lthy))
     |> f
-    ||> Sign.restore_naming thy);
+    ||> Sign.restore_naming thy
+    ||> Theory.checkpoint);
 
 fun theory f = #2 o theory_result (f #> pair ());
 
@@ -191,16 +193,35 @@ val pretty = operation #pretty;
 val abbrev = apsnd checkpoint ooo operation2 #abbrev;
 val define = apsnd checkpoint oo operation1 #define;
 val notes_kind = apsnd checkpoint ooo operation2 #notes;
-val type_syntax = checkpoint ooo operation2 #type_syntax;
-val term_syntax = checkpoint ooo operation2 #term_syntax;
 val declaration = checkpoint ooo operation2 #declaration;
+val syntax_declaration = checkpoint ooo operation2 #syntax_declaration;
 
 val notes = notes_kind "";
 fun note (a, ths) = notes [(a, [(ths, [])])] #>> the_single;
 
+
+(* notation *)
+
+fun type_notation add mode raw_args lthy =
+  let val args = map (apfst (Morphism.typ (target_morphism lthy))) raw_args
+  in syntax_declaration false (ProofContext.target_type_notation add mode args) lthy end;
+
 fun notation add mode raw_args lthy =
   let val args = map (apfst (Morphism.term (target_morphism lthy))) raw_args
-  in term_syntax false (ProofContext.target_notation add mode args) lthy end;
+  in syntax_declaration false (ProofContext.target_notation add mode args) lthy end;
+
+
+(* name space aliases *)
+
+fun alias global_alias local_alias b name =
+  syntax_declaration false (fn phi =>
+    let val b' = Morphism.binding phi b
+    in Context.mapping (global_alias b' name) (local_alias b' name) end)
+  #> local_alias b name;
+
+val class_alias = alias Sign.class_alias ProofContext.class_alias;
+val type_alias = alias Sign.type_alias ProofContext.type_alias;
+val const_alias = alias Sign.const_alias ProofContext.const_alias;
 
 
 (* init *)

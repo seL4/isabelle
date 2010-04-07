@@ -27,23 +27,20 @@ instance ..
 
 end
 
-constdefs
-  component_of :: "'a program =>'a program=> bool"
-                                    (infixl "component'_of" 50)
+definition component_of :: "'a program =>'a program=> bool" (infixl "component'_of" 50) where
   "F component_of H == \<exists>G. F ok G & F\<squnion>G = H"
 
-  strict_component_of :: "'a program\<Rightarrow>'a program=> bool"
-                                    (infixl "strict'_component'_of" 50)
+definition strict_component_of :: "'a program\<Rightarrow>'a program=> bool" (infixl "strict'_component'_of" 50)  where
   "F strict_component_of H == F component_of H & F\<noteq>H"
 
-  preserves :: "('a=>'b) => 'a program set"
+definition preserves :: "('a=>'b) => 'a program set" where
     "preserves v == \<Inter>z. stable {s. v s = z}"
 
-  localize  :: "('a=>'b) => 'a program => 'a program"
+definition localize :: "('a=>'b) => 'a program => 'a program" where
   "localize v F == mk_program(Init F, Acts F,
                               AllowedActs F \<inter> (\<Union>G \<in> preserves v. Acts G))"
 
-  funPair      :: "['a => 'b, 'a => 'c, 'a] => 'b * 'c"
+definition funPair :: "['a => 'b, 'a => 'c, 'a] => 'b * 'c" where
   "funPair f g == %x. (f x, g x)"
 
 

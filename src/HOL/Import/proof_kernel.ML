@@ -186,7 +186,7 @@ val string_of_mixfix = Pretty.string_of o Syntax.pretty_mixfix;
 
 fun mk_syn thy c =
   if Syntax.is_identifier c andalso not (Syntax.is_keyword (Sign.syn_of thy) c) then NoSyn
-  else Syntax.literal c
+  else Delimfix (Syntax.escape c)
 
 fun quotename c =
   if Syntax.is_identifier c andalso not (OuterKeyword.is_keyword c) then c else quote c
@@ -1248,7 +1248,7 @@ fun split_name str =
 fun rewrite_hol4_term t thy =
     let
         val hol4rews1 = map (Thm.transfer thy) (HOL4Rewrites.get thy)
-        val hol4ss = Simplifier.theory_context thy empty_ss
+        val hol4ss = Simplifier.global_context thy empty_ss
           setmksimps single addsimps hol4rews1
     in
         Thm.transfer thy (Simplifier.full_rewrite hol4ss (cterm_of thy t))
@@ -1418,7 +1418,7 @@ fun INST_TYPE lambda (hth as HOLThm(rens,th)) thy =
         val _ = message "INST_TYPE:"
         val _ = if_debug pth hth
         val tys_before = OldTerm.add_term_tfrees (prop_of th,[])
-        val th1 = Thm.varifyT th
+        val th1 = Thm.varifyT_global th
         val tys_after = OldTerm.add_term_tvars (prop_of th1,[])
         val tyinst = map (fn (bef, iS) =>
                              (case try (Lib.assoc (TFree bef)) lambda of
@@ -2028,7 +2028,7 @@ fun new_specification thyname thmname names hth thy =
                                  names'
                                  (thy1,th)
             val _ = ImportRecorder.add_specification names' th
-            val res' = Thm.unvarify res
+            val res' = Thm.unvarify_global res
             val hth = HOLThm(rens,res')
             val rew = rewrite_hol4_term (concl_of res') thy'
             val th  = equal_elim rew res'
@@ -2094,11 +2094,11 @@ fun new_type_definition thyname thmname tycname hth thy =
             val tsyn = mk_syn thy tycname
             val typ = (tycname,tnames,tsyn)
             val ((_, typedef_info), thy') =
-              Typedef.add_typedef false (SOME (Binding.name thmname))
-                (Binding.name tycname, tnames, tsyn) c NONE (rtac th2 1) thy
+              Typedef.add_typedef_global false (SOME (Binding.name thmname))
+                (Binding.name tycname, map (rpair dummyS) tnames, tsyn) c NONE (rtac th2 1) thy
             val _ = ImportRecorder.add_typedef (SOME thmname) typ c NONE th2
 
-            val th3 = (#type_definition typedef_info) RS typedef_hol2hol4
+            val th3 = (#type_definition (#2 typedef_info)) RS typedef_hol2hol4
 
             val fulltyname = Sign.intern_type thy' tycname
             val thy'' = add_hol4_type_mapping thyname tycname true fulltyname thy'
@@ -2182,7 +2182,8 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
             val tsyn = mk_syn thy tycname
             val typ = (tycname,tnames,tsyn)
             val ((_, typedef_info), thy') =
-              Typedef.add_typedef false NONE (Binding.name tycname,tnames,tsyn) c
+              Typedef.add_typedef_global false NONE
+                (Binding.name tycname, map (rpair dummyS) tnames, tsyn) c
                 (SOME(Binding.name rep_name,Binding.name abs_name)) (rtac th2 1) thy
             val _ = ImportRecorder.add_typedef NONE typ c (SOME(rep_name,abs_name)) th2
             val fulltyname = Sign.intern_type thy' tycname
@@ -2194,7 +2195,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
                     [SOME (ctyp_of thy' aty), SOME (ctyp_of thy' tT)]
                     [NONE, NONE, NONE, SOME (cterm_of thy' (Free ("a", aty))), SOME (cterm_of thy' (Free ("r", tT)))]
                     typedef_hol2hollight
-            val th4 = (#type_definition typedef_info) RS typedef_hol2hollight'
+            val th4 = (#type_definition (#2 typedef_info)) RS typedef_hol2hollight'
             val _ = null (Thm.fold_terms Term.add_tvars th4 []) orelse
               raise ERR "type_introduction" "no type variables expected any more"
             val _ = null (Thm.fold_terms Term.add_vars th4 []) orelse

@@ -1,8 +1,6 @@
-(*
-    File:        TLA/Stfun.thy
-    ID:          $Id$
-    Author:      Stephan Merz
-    Copyright:   1998 University of Munich
+(*  Title:      HOL/TLA/Stfun.thy
+    Author:     Stephan Merz
+    Copyright:  1998 University of Munich
 *)
 
 header {* States and state functions for TLA as an "intensional" logic *}
@@ -13,7 +11,7 @@ begin
 
 typedecl state
 
-instance state :: world ..
+arities state :: world
 
 types
   'a stfun = "state => 'a"
@@ -37,12 +35,12 @@ consts
   stvars    :: "'a stfun => bool"
 
 syntax
-  "PRED"    :: "lift => 'a"                          ("PRED _")
+  "_PRED"   :: "lift => 'a"                          ("PRED _")
   "_stvars" :: "lift => bool"                        ("basevars _")
 
 translations
   "PRED P"   =>  "(P::state => _)"
-  "_stvars"  ==  "stvars"
+  "_stvars"  ==  "CONST stvars"
 
 defs
   (* Base variables may be assigned arbitrary (type-correct) values.

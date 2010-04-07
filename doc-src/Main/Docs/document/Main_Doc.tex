@@ -308,7 +308,7 @@ e.g.\ \mbox{\isa{{\isasymforall}{\isacharparenleft}x{\isacharcomma}\ y{\isacharp
 
 \section{Algebra}
 
-Theories \isa{OrderedGroup}, \isa{Ring{\isacharunderscore}and{\isacharunderscore}Field} and \isa{Divides} define a large collection of classes describing common algebraic
+Theories \isa{Groups}, \isa{Rings}, \isa{Fields} and \isa{Divides} define a large collection of classes describing common algebraic
 structures from semigroups up to fields. Everything is done in terms of
 overloaded operators:
 
@@ -416,7 +416,7 @@ Type \isa{int}
 \begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
 \isa{{\isasymSum}A} & \isa{{\isachardoublequote}setsum\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ x{\isacharparenright}\ A{\isachardoublequote}} & (\verb$SUM$)\\
 \isa{{\isasymSum}x{\isasymin}A{\isachardot}\ t} & \isa{{\isachardoublequote}setsum\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ t{\isacharparenright}\ A{\isachardoublequote}}\\
-\isa{{\isachardoublequote}{\isasymSum}x{\isacharbar}P{\isachardot}\ t{\isachardoublequote}} & \isa{{\isasymSum}x{\isasymin}{\isacharbraceleft}x{\isachardot}\ P{\isacharbraceright}{\isachardot}\ t}\\
+\isa{{\isachardoublequote}{\isasymSum}x{\isacharbar}P{\isachardot}\ t{\isachardoublequote}} & \isa{{\isasymSum}x\ {\isacharbar}\ P{\isachardot}\ t}\\
 \multicolumn{2}{@ {}l@ {}}{Similarly for \isa{{\isasymProd}} instead of \isa{{\isasymSum}}} & (\verb$PROD$)\\
 \end{supertabular}
 

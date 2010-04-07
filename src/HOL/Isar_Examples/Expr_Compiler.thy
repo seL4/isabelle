@@ -85,8 +85,7 @@ primrec
     | Apply f => exec instrs (f (hd stack) (hd (tl stack))
                    # (tl (tl stack))) env)"
 
-constdefs
-  execute :: "(('adr, 'val) instr) list => ('adr => 'val) => 'val"
+definition execute :: "(('adr, 'val) instr) list => ('adr => 'val) => 'val" where
   "execute instrs env == hd (exec instrs [] env)"
 
 

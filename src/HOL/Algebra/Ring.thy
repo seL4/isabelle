@@ -1,13 +1,12 @@
-(*
-  Title:     The algebraic hierarchy of rings
-  Author:    Clemens Ballarin, started 9 December 1996
-  Copyright: Clemens Ballarin
+(*  Title:      The algebraic hierarchy of rings
+    Author:     Clemens Ballarin, started 9 December 1996
+    Copyright:  Clemens Ballarin
 *)
 
 theory Ring
 imports FiniteProduct
-uses ("ringsimp.ML") begin
-
+uses ("ringsimp.ML")
+begin
 
 section {* The Algebraic Hierarchy of Rings *}
 
@@ -19,12 +18,13 @@ record 'a ring = "'a monoid" +
 
 text {* Derived operations. *}
 
-constdefs (structure R)
+definition
   a_inv :: "[('a, 'm) ring_scheme, 'a ] => 'a" ("\<ominus>\<index> _" [81] 80)
-  "a_inv R == m_inv (| carrier = carrier R, mult = add R, one = zero R |)"
+  where "a_inv R = m_inv (| carrier = carrier R, mult = add R, one = zero R |)"
 
+definition
   a_minus :: "[('a, 'm) ring_scheme, 'a, 'a] => 'a" (infixl "\<ominus>\<index>" 65)
-  "[| x \<in> carrier R; y \<in> carrier R |] ==> x \<ominus> y == x \<oplus> (\<ominus> y)"
+  where "[| x \<in> carrier R; y \<in> carrier R |] ==> x \<ominus>\<^bsub>R\<^esub> y = x \<oplus>\<^bsub>R\<^esub> (\<ominus>\<^bsub>R\<^esub> y)"
 
 locale abelian_monoid =
   fixes G (structure)
@@ -198,10 +198,9 @@ text {*
   This definition makes it easy to lift lemmas from @{term finprod}.
 *}
 
-constdefs
-  finsum :: "[('b, 'm) ring_scheme, 'a => 'b, 'a set] => 'b"
-  "finsum G f A == finprod (| carrier = carrier G,
-     mult = add G, one = zero G |) f A"
+definition
+  finsum :: "[('b, 'm) ring_scheme, 'a => 'b, 'a set] => 'b" where
+  "finsum G f A = finprod (| carrier = carrier G, mult = add G, one = zero G |) f A"
 
 syntax
   "_finsum" :: "index => idt => 'a set => 'b => 'b"
@@ -213,7 +212,7 @@ syntax (HTML output)
   "_finsum" :: "index => idt => 'a set => 'b => 'b"
       ("(3\<Oplus>__\<in>_. _)" [1000, 0, 51, 10] 10)
 translations
-  "\<Oplus>\<index>i:A. b" == "finsum \<struct>\<index> (%i. b) A"
+  "\<Oplus>\<index>i:A. b" == "CONST finsum \<struct>\<index> (%i. b) A"
   -- {* Beware of argument permutation! *}
 
 context abelian_monoid begin
@@ -600,6 +599,7 @@ proof -
   from R show ?thesis by algebra
 qed
 
+
 subsubsection {* Sums over Finite Sets *}
 
 lemma (in ring) finsum_ldistr:
@@ -729,12 +729,13 @@ qed
 
 subsection {* Morphisms *}
 
-constdefs (structure R S)
+definition
   ring_hom :: "[('a, 'm) ring_scheme, ('b, 'n) ring_scheme] => ('a => 'b) set"
-  "ring_hom R S == {h. h \<in> carrier R -> carrier S &
+  where "ring_hom R S =
+    {h. h \<in> carrier R -> carrier S &
       (ALL x y. x \<in> carrier R & y \<in> carrier R -->
-        h (x \<otimes> y) = h x \<otimes>\<^bsub>S\<^esub> h y & h (x \<oplus> y) = h x \<oplus>\<^bsub>S\<^esub> h y) &
-      h \<one> = \<one>\<^bsub>S\<^esub>}"
+        h (x \<otimes>\<^bsub>R\<^esub> y) = h x \<otimes>\<^bsub>S\<^esub> h y & h (x \<oplus>\<^bsub>R\<^esub> y) = h x \<oplus>\<^bsub>S\<^esub> h y) &
+      h \<one>\<^bsub>R\<^esub> = \<one>\<^bsub>S\<^esub>}"
 
 lemma ring_hom_memI:
   fixes R (structure) and S (structure)

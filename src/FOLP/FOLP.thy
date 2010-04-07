@@ -1,5 +1,4 @@
 (*  Title:      FOLP/FOLP.thy
-    ID:         $Id$
     Author:     Martin D Coen, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 *)

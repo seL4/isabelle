@@ -49,13 +49,13 @@ val one_to_of_int_one_simproc =
   make_simproc {lhss = lhss1, name = "one_to_of_int_one_simproc",
   proc = proc1, identifier = []};
 
-fun check (Const (@{const_name HOL.one}, @{typ int})) = false
-  | check (Const (@{const_name HOL.one}, _)) = true
+fun check (Const (@{const_name Groups.one}, @{typ int})) = false
+  | check (Const (@{const_name Groups.one}, _)) = true
   | check (Const (s, _)) = member (op =) [@{const_name "op ="},
-      @{const_name HOL.times}, @{const_name HOL.uminus},
-      @{const_name HOL.minus}, @{const_name HOL.plus},
-      @{const_name HOL.zero},
-      @{const_name HOL.less}, @{const_name HOL.less_eq}] s
+      @{const_name Groups.times}, @{const_name Groups.uminus},
+      @{const_name Groups.minus}, @{const_name Groups.plus},
+      @{const_name Groups.zero},
+      @{const_name Orderings.less}, @{const_name Orderings.less_eq}] s
   | check (a $ b) = check a andalso check b
   | check _ = false;
 
@@ -71,8 +71,8 @@ fun sproc phi ss ct = if check (term_of ct) then SOME (conv ct) else NONE
 
 val lhss' =
   [@{cpat "(?x::?'a::ring_char_0) = (?y::?'a)"},
-   @{cpat "(?x::?'a::ordered_idom) < (?y::?'a)"},
-   @{cpat "(?x::?'a::ordered_idom) <= (?y::?'a)"}]
+   @{cpat "(?x::?'a::linordered_idom) < (?y::?'a)"},
+   @{cpat "(?x::?'a::linordered_idom) <= (?y::?'a)"}]
 
 val zero_one_idom_simproc =
   make_simproc {lhss = lhss' , name = "zero_one_idom_simproc",
@@ -80,9 +80,9 @@ val zero_one_idom_simproc =
 
 val fast_int_arith_simproc =
   Simplifier.simproc @{theory} "fast_int_arith"
-     ["(m::'a::{ordered_idom,number_ring}) < n",
-      "(m::'a::{ordered_idom,number_ring}) <= n",
-      "(m::'a::{ordered_idom,number_ring}) = n"] (K Lin_Arith.simproc);
+     ["(m::'a::{linordered_idom,number_ring}) < n",
+      "(m::'a::{linordered_idom,number_ring}) <= n",
+      "(m::'a::{linordered_idom,number_ring}) = n"] (K Lin_Arith.simproc);
 
 val global_setup = Simplifier.map_simpset
   (fn simpset => simpset addsimprocs [fast_int_arith_simproc]);

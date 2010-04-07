@@ -82,9 +82,6 @@ definition
   raise :: "string \<Rightarrow> 'a Heap" where -- {* the string is just decoration *}
   [code del]: "raise s = Heap (Pair (Inr Exn))"
 
-notation (latex output)
-  "raise" ("\<^raw:{\textsf{raise}}>")
-
 lemma execute_raise [simp]:
   "execute (raise s) h = (Inr Exn, h)"
   by (simp add: raise_def)
@@ -115,13 +112,6 @@ syntax
 syntax (xsymbols)
   "_bindM" :: "pttrn \<Rightarrow> 'a \<Rightarrow> do_expr \<Rightarrow> do_expr"
     ("_ \<leftarrow> _;//_" [1000, 13, 12] 12)
-syntax (latex output)
-  "_do" :: "do_expr \<Rightarrow> 'a"
-    ("(\<^raw:{\textsf{do}}> (_))" [12] 100)
-  "_let" :: "pttrn \<Rightarrow> 'a \<Rightarrow> do_expr \<Rightarrow> do_expr"
-    ("\<^raw:\textsf{let}> _ = _;//_" [1000, 13, 12] 12)
-notation (latex output)
-  "return" ("\<^raw:{\textsf{return}}>")
 
 translations
   "_do f" => "f"
@@ -147,16 +137,16 @@ let
           val v_used = fold_aterms
             (fn Free (w, _) => (fn s => s orelse member (op =) vs w) | _ => I) g' false;
         in if v_used then
-          Const ("_bindM", dummyT) $ v $ f $ unfold_monad g'
+          Const (@{syntax_const "_bindM"}, dummyT) $ v $ f $ unfold_monad g'
         else
-          Const ("_chainM", dummyT) $ f $ unfold_monad g'
+          Const (@{syntax_const "_chainM"}, dummyT) $ f $ unfold_monad g'
         end
     | unfold_monad (Const (@{const_syntax chainM}, _) $ f $ g) =
-        Const ("_chainM", dummyT) $ f $ unfold_monad g
+        Const (@{syntax_const "_chainM"}, dummyT) $ f $ unfold_monad g
     | unfold_monad (Const (@{const_syntax Let}, _) $ f $ g) =
         let
           val (v, g') = dest_abs_eta g;
-        in Const ("_let", dummyT) $ v $ f $ unfold_monad g' end
+        in Const (@{syntax_const "_let"}, dummyT) $ v $ f $ unfold_monad g' end
     | unfold_monad (Const (@{const_syntax Pair}, _) $ f) =
         Const (@{const_syntax return}, dummyT) $ f
     | unfold_monad f = f;
@@ -164,14 +154,17 @@ let
     | contains_bindM (Const (@{const_syntax Let}, _) $ _ $ Abs (_, _, t)) =
         contains_bindM t;
   fun bindM_monad_tr' (f::g::ts) = list_comb
-    (Const ("_do", dummyT) $ unfold_monad (Const (@{const_syntax bindM}, dummyT) $ f $ g), ts);
-  fun Let_monad_tr' (f :: (g as Abs (_, _, g')) :: ts) = if contains_bindM g' then list_comb
-      (Const ("_do", dummyT) $ unfold_monad (Const (@{const_syntax Let}, dummyT) $ f $ g), ts)
+    (Const (@{syntax_const "_do"}, dummyT) $
+      unfold_monad (Const (@{const_syntax bindM}, dummyT) $ f $ g), ts);
+  fun Let_monad_tr' (f :: (g as Abs (_, _, g')) :: ts) =
+    if contains_bindM g' then list_comb
+      (Const (@{syntax_const "_do"}, dummyT) $
+        unfold_monad (Const (@{const_syntax Let}, dummyT) $ f $ g), ts)
     else raise Match;
-in [
-  (@{const_syntax bindM}, bindM_monad_tr'),
-  (@{const_syntax Let}, Let_monad_tr')
-] end;
+in
+ [(@{const_syntax bindM}, bindM_monad_tr'),
+  (@{const_syntax Let}, Let_monad_tr')]
+end;
 *}
 
 
@@ -267,15 +260,23 @@ lemma assert_cong [fundef_cong]:
   using assms by (auto simp add: assert_def return_bind raise_bind)
 
 subsubsection {* A monadic combinator for simple recursive functions *}
- 
-function (default "\<lambda>(f,g,x,h). (Inr Exn, undefined)") 
+
+text {* Using a locale to fix arguments f and g of MREC *}
+
+locale mrec =
+fixes
+  f :: "'a => ('b + 'a) Heap"
+  and g :: "'a => 'a => 'b => 'b Heap"
+begin
+
+function (default "\<lambda>(x,h). (Inr Exn, undefined)") 
   mrec 
 where
-  "mrec f g x h = 
+  "mrec x h = 
    (case Heap_Monad.execute (f x) h of
      (Inl (Inl r), h') \<Rightarrow> (Inl r, h')
    | (Inl (Inr s), h') \<Rightarrow> 
-          (case mrec f g s h' of
+          (case mrec s h' of
              (Inl z, h'') \<Rightarrow> Heap_Monad.execute (g x s z) h''
            | (Inr e, h'') \<Rightarrow> (Inr e, h''))
    | (Inr e, h') \<Rightarrow> (Inr e, h')
@@ -283,23 +284,23 @@ where
 by auto
 
 lemma graph_implies_dom:
-	"mrec_graph x y \<Longrightarrow> mrec_dom x"
+  "mrec_graph x y \<Longrightarrow> mrec_dom x"
 apply (induct rule:mrec_graph.induct) 
 apply (rule accpI)
 apply (erule mrec_rel.cases)
 by simp
 
-lemma f_default: "\<not> mrec_dom (f, g, x, h) \<Longrightarrow> mrec f g x h = (Inr Exn, undefined)"
-	unfolding mrec_def 
-  by (rule fundef_default_value[OF mrec_sumC_def graph_implies_dom, of _ _ "(f, g, x, h)", simplified])
+lemma mrec_default: "\<not> mrec_dom (x, h) \<Longrightarrow> mrec x h = (Inr Exn, undefined)"
+  unfolding mrec_def 
+  by (rule fundef_default_value[OF mrec_sumC_def graph_implies_dom, of _ _ "(x, h)", simplified])
 
-lemma f_di_reverse: 
-  assumes "\<not> mrec_dom (f, g, x, h)"
+lemma mrec_di_reverse: 
+  assumes "\<not> mrec_dom (x, h)"
   shows "
    (case Heap_Monad.execute (f x) h of
-     (Inl (Inl r), h') \<Rightarrow> mrecalse
-   | (Inl (Inr s), h') \<Rightarrow> \<not> mrec_dom (f, g, s, h')
-   | (Inr e, h') \<Rightarrow> mrecalse
+     (Inl (Inl r), h') \<Rightarrow> False
+   | (Inl (Inr s), h') \<Rightarrow> \<not> mrec_dom (s, h')
+   | (Inr e, h') \<Rightarrow> False
    )" 
 using assms
 by (auto split:prod.splits sum.splits)
@@ -307,39 +308,102 @@ by (auto split:prod.splits sum.splits)
 
 
 lemma mrec_rule:
-  "mrec f g x h = 
+  "mrec x h = 
    (case Heap_Monad.execute (f x) h of
      (Inl (Inl r), h') \<Rightarrow> (Inl r, h')
    | (Inl (Inr s), h') \<Rightarrow> 
-          (case mrec f g s h' of
+          (case mrec s h' of
              (Inl z, h'') \<Rightarrow> Heap_Monad.execute (g x s z) h''
            | (Inr e, h'') \<Rightarrow> (Inr e, h''))
    | (Inr e, h') \<Rightarrow> (Inr e, h')
    )"
-apply (cases "mrec_dom (f,g,x,h)", simp)
-apply (frule f_default)
-apply (frule f_di_reverse, simp)
-by (auto split: sum.split prod.split simp: f_default)
+apply (cases "mrec_dom (x,h)", simp)
+apply (frule mrec_default)
+apply (frule mrec_di_reverse, simp)
+by (auto split: sum.split prod.split simp: mrec_default)
 
 
 definition
-  "MREC f g x = Heap (mrec f g x)"
+  "MREC x = Heap (mrec x)"
 
 lemma MREC_rule:
-  "MREC f g x = 
+  "MREC x = 
   (do y \<leftarrow> f x;
                 (case y of 
                 Inl r \<Rightarrow> return r
               | Inr s \<Rightarrow> 
-                do z \<leftarrow> MREC f g s ;
+                do z \<leftarrow> MREC s ;
                    g x s z
                 done) done)"
   unfolding MREC_def
   unfolding bindM_def return_def
   apply simp
   apply (rule ext)
-  apply (unfold mrec_rule[of f g x])
+  apply (unfold mrec_rule[of x])
   by (auto split:prod.splits sum.splits)
+
+
+lemma MREC_pinduct:
+  assumes "Heap_Monad.execute (MREC x) h = (Inl r, h')"
+  assumes non_rec_case: "\<And> x h h' r. Heap_Monad.execute (f x) h = (Inl (Inl r), h') \<Longrightarrow> P x h h' r"
+  assumes rec_case: "\<And> x h h1 h2 h' s z r. Heap_Monad.execute (f x) h = (Inl (Inr s), h1) \<Longrightarrow> Heap_Monad.execute (MREC s) h1 = (Inl z, h2) \<Longrightarrow> P s h1 h2 z
+    \<Longrightarrow> Heap_Monad.execute (g x s z) h2 = (Inl r, h') \<Longrightarrow> P x h h' r"
+  shows "P x h h' r"
+proof -
+  from assms(1) have mrec: "mrec x h = (Inl r, h')"
+    unfolding MREC_def execute.simps .
+  from mrec have dom: "mrec_dom (x, h)"
+    apply -
+    apply (rule ccontr)
+    apply (drule mrec_default) by auto
+  from mrec have h'_r: "h' = (snd (mrec x h))" "r = (Sum_Type.Projl (fst (mrec x h)))"
+    by auto
+  from mrec have "P x h (snd (mrec x h)) (Sum_Type.Projl (fst (mrec x h)))"
+  proof (induct arbitrary: r h' rule: mrec.pinduct[OF dom])
+    case (1 x h)
+    obtain rr h' where "mrec x h = (rr, h')" by fastsimp
+    obtain fret h1 where exec_f: "Heap_Monad.execute (f x) h = (fret, h1)" by fastsimp
+    show ?case
+    proof (cases fret)
+      case (Inl a)
+      note Inl' = this
+      show ?thesis
+      proof (cases a)
+        case (Inl aa)
+        from this Inl' 1(1) exec_f mrec non_rec_case show ?thesis
+          by auto
+      next
+        case (Inr b)
+        note Inr' = this
+        obtain ret_mrec h2 where mrec_rec: "mrec b h1 = (ret_mrec, h2)" by fastsimp
+        from this Inl 1(1) exec_f mrec show ?thesis
+        proof (cases "ret_mrec")
+          case (Inl aaa)
+          from this mrec exec_f Inl' Inr' 1(1) mrec_rec 1(2)[OF exec_f Inl' Inr', of "aaa" "h2"] 1(3)
+            show ?thesis
+              apply auto
+              apply (rule rec_case)
+              unfolding MREC_def by auto
+        next
+          case (Inr b)
+          from this Inl 1(1) exec_f mrec Inr' mrec_rec 1(3) show ?thesis by auto
+        qed
+      qed
+    next
+      case (Inr b)
+      from this 1(1) mrec exec_f 1(3) show ?thesis by simp
+    qed
+  qed
+  from this h'_r show ?thesis by simp
+qed
+
+end
+
+text {* Providing global versions of the constant and the theorems *}
+
+abbreviation "MREC == mrec.MREC"
+lemmas MREC_rule = mrec.MREC_rule
+lemmas MREC_pinduct = mrec.MREC_pinduct
 
 hide (open) const heap execute
 

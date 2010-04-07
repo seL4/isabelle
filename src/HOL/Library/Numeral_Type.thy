@@ -32,12 +32,12 @@ subsection {* Cardinalities of types *}
 
 syntax "_type_card" :: "type => nat" ("(1CARD/(1'(_')))")
 
-translations "CARD(t)" => "CONST card (CONST UNIV \<Colon> t set)"
+translations "CARD('t)" => "CONST card (CONST UNIV \<Colon> 't set)"
 
 typed_print_translation {*
 let
-  fun card_univ_tr' show_sorts _ [Const (@{const_syntax UNIV}, Type(_,[T,_]))] =
-    Syntax.const "_type_card" $ Syntax.term_of_typ show_sorts T;
+  fun card_univ_tr' show_sorts _ [Const (@{const_syntax UNIV}, Type(_, [T, _]))] =
+    Syntax.const @{syntax_const "_type_card"} $ Syntax.term_of_typ show_sorts T;
 in [(@{const_syntax card}, card_univ_tr')]
 end
 *}
@@ -167,7 +167,7 @@ locale mod_type =
 begin
 
 lemma size0: "0 < n"
-by (cut_tac size1, simp)
+using size1 by simp
 
 lemmas definitions =
   zero_def one_def add_def mult_def minus_def diff_def
@@ -384,23 +384,18 @@ syntax
   "_NumeralType1" :: type ("1")
 
 translations
-  "_NumeralType1" == (type) "num1"
-  "_NumeralType0" == (type) "num0"
+  (type) "1" == (type) "num1"
+  (type) "0" == (type) "num0"
 
 parse_translation {*
 let
-
-val num1_const = Syntax.const "Numeral_Type.num1";
-val num0_const = Syntax.const "Numeral_Type.num0";
-val B0_const = Syntax.const "Numeral_Type.bit0";
-val B1_const = Syntax.const "Numeral_Type.bit1";
-
 fun mk_bintype n =
   let
-    fun mk_bit n = if n = 0 then B0_const else B1_const;
+    fun mk_bit 0 = Syntax.const @{type_syntax bit0}
+      | mk_bit 1 = Syntax.const @{type_syntax bit1};
     fun bin_of n =
-      if n = 1 then num1_const
-      else if n = 0 then num0_const
+      if n = 1 then Syntax.const @{type_syntax num1}
+      else if n = 0 then Syntax.const @{type_syntax num0}
       else if n = ~1 then raise TERM ("negative type numeral", [])
       else
         let val (q, r) = Integer.div_mod n 2;
@@ -411,7 +406,7 @@ fun numeral_tr (*"_NumeralType"*) [Const (str, _)] =
       mk_bintype (the (Int.fromString str))
   | numeral_tr (*"_NumeralType"*) ts = raise TERM ("numeral_tr", ts);
 
-in [("_NumeralType", numeral_tr)] end;
+in [(@{syntax_const "_NumeralType"}, numeral_tr)] end;
 *}
 
 print_translation {*
@@ -419,23 +414,22 @@ let
 fun int_of [] = 0
   | int_of (b :: bs) = b + 2 * int_of bs;
 
-fun bin_of (Const ("num0", _)) = []
-  | bin_of (Const ("num1", _)) = [1]
-  | bin_of (Const ("bit0", _) $ bs) = 0 :: bin_of bs
-  | bin_of (Const ("bit1", _) $ bs) = 1 :: bin_of bs
-  | bin_of t = raise TERM("bin_of", [t]);
+fun bin_of (Const (@{type_syntax num0}, _)) = []
+  | bin_of (Const (@{type_syntax num1}, _)) = [1]
+  | bin_of (Const (@{type_syntax bit0}, _) $ bs) = 0 :: bin_of bs
+  | bin_of (Const (@{type_syntax bit1}, _) $ bs) = 1 :: bin_of bs
+  | bin_of t = raise TERM ("bin_of", [t]);
 
 fun bit_tr' b [t] =
-  let
-    val rev_digs = b :: bin_of t handle TERM _ => raise Match
-    val i = int_of rev_digs;
-    val num = string_of_int (abs i);
-  in
-    Syntax.const "_NumeralType" $ Syntax.free num
-  end
+      let
+        val rev_digs = b :: bin_of t handle TERM _ => raise Match
+        val i = int_of rev_digs;
+        val num = string_of_int (abs i);
+      in
+        Syntax.const @{syntax_const "_NumeralType"} $ Syntax.free num
+      end
   | bit_tr' b _ = raise Match;
-
-in [("bit0", bit_tr' 0), ("bit1", bit_tr' 1)] end;
+in [(@{type_syntax bit0}, bit_tr' 0), (@{type_syntax bit1}, bit_tr' 1)] end;
 *}
 
 subsection {* Examples *}

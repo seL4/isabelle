@@ -55,9 +55,6 @@ sig
   val satisfy_facts: witness list ->
     (Attrib.binding * (thm list * Attrib.src list) list) list ->
     (Attrib.binding * (thm list * Attrib.src list) list) list
-  val generalize_facts: Proof.context -> Proof.context ->
-    (Attrib.binding * (thm list * Attrib.src list) list) list ->
-    (Attrib.binding * (thm list * Attrib.src list) list) list
   val eq_morphism: theory -> thm list -> morphism
   val transfer_morphism: theory -> morphism
   val init: context_i -> Context.generic -> Context.generic
@@ -223,12 +220,12 @@ fun pretty_statement ctxt kind raw_th =
     val cert = Thm.cterm_of thy;
 
     val th = MetaSimplifier.norm_hhf raw_th;
-    val is_elim = ObjectLogic.is_elim th;
+    val is_elim = Object_Logic.is_elim th;
 
     val ((_, [th']), ctxt') = Variable.import true [th] (Variable.set_body false ctxt);
     val prop = Thm.prop_of th';
     val (prems, concl) = Logic.strip_horn prop;
-    val concl_term = ObjectLogic.drop_judgment thy concl;
+    val concl_term = Object_Logic.drop_judgment thy concl;
 
     val fixes = fold_aterms (fn v as Free (x, T) =>
         if Variable.newly_fixed ctxt' ctxt x andalso not (v aconv concl_term)
@@ -458,22 +455,6 @@ fun eq_morphism thy thms = Morphism.morphism
   fact = map (MetaSimplifier.rewrite_rule thms)};
 
 
-(* generalize type/term parameters *)
-
-val maxidx_atts = fold Args.maxidx_values;
-
-fun generalize_facts inner outer facts =
-  let
-    val thy = ProofContext.theory_of inner;
-    val maxidx =
-      fold (fn ((_, atts), bs) => maxidx_atts atts #> fold (maxidx_atts o #2) bs) facts ~1;
-    val exp_fact = map (Thm.adjust_maxidx_thm maxidx) #> Variable.export inner outer;
-    val exp_term = Drule.term_rule thy (singleton exp_fact);
-    val exp_typ = Logic.type_map exp_term;
-    val morphism = Morphism.morphism {binding = I, typ = exp_typ, term = exp_term, fact = exp_fact};
-  in facts_map (morph_ctxt morphism) facts end;
-
-
 (* transfer to theory using closure *)
 
 fun transfer_morphism thy =
@@ -499,11 +480,11 @@ fun init (Fixes fixes) = Context.map_proof (ProofContext.add_fixes fixes #> #2)
       let
         val defs' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) defs;
         val asms = defs' |> map (fn ((name, atts), (t, ps)) =>
-            let val ((c, _), t') = LocalDefs.cert_def ctxt t  (* FIXME adapt ps? *)
+            let val ((c, _), t') = Local_Defs.cert_def ctxt t  (* FIXME adapt ps? *)
             in (t', ((Thm.def_binding_optional (Binding.name c) name, atts), [(t', ps)])) end);
         val (_, ctxt') = ctxt
           |> fold Variable.auto_fixes (map #1 asms)
-          |> ProofContext.add_assms_i LocalDefs.def_export (map #2 asms);
+          |> ProofContext.add_assms_i Local_Defs.def_export (map #2 asms);
       in ctxt' end)
   | init (Notes (kind, facts)) = (fn context =>
       let

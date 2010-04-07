@@ -13,12 +13,17 @@ sig
     Abbreviation of string list * typ * bool |
     Nonterminal
   type tsig
+  val eq_tsig: tsig * tsig -> bool
   val rep_tsig: tsig ->
    {classes: Name_Space.T * Sorts.algebra,
     default: sort,
     types: decl Name_Space.table,
     log_types: string list}
   val empty_tsig: tsig
+  val class_space: tsig -> Name_Space.T
+  val class_alias: Name_Space.naming -> binding -> string -> tsig -> tsig
+  val intern_class: tsig -> xstring -> string
+  val extern_class: tsig -> string -> xstring
   val defaultS: tsig -> sort
   val logical_types: tsig -> string list
   val eq_sort: tsig -> sort * sort -> bool
@@ -35,6 +40,12 @@ sig
   val get_mode: Proof.context -> mode
   val set_mode: mode -> Proof.context -> Proof.context
   val restore_mode: Proof.context -> Proof.context -> Proof.context
+  val type_space: tsig -> Name_Space.T
+  val type_alias: Name_Space.naming -> binding -> string -> tsig -> tsig
+  val intern_type: tsig -> xstring -> string
+  val extern_type: tsig -> string -> xstring
+  val is_logtype: tsig -> string -> bool
+  val the_decl: tsig -> string -> decl
   val cert_typ_mode: mode -> tsig -> typ -> typ
   val cert_typ: tsig -> typ -> typ
   val arity_number: tsig -> string -> int
@@ -43,7 +54,7 @@ sig
   (*special treatment of type vars*)
   val strip_sorts: typ -> typ
   val no_tvars: typ -> typ
-  val varify: (string * sort) list -> term -> ((string * sort) * indexname) list * term
+  val varify_global: (string * sort) list -> term -> ((string * sort) * indexname) list * term
   val legacy_freeze_thaw_type: typ -> typ * (typ -> typ)
   val legacy_freeze_type: typ -> typ
   val legacy_freeze_thaw: term -> term * (term -> term)
@@ -102,6 +113,13 @@ datatype tsig =
     types: decl Name_Space.table,           (*declared types*)
     log_types: string list};                (*logical types sorted by number of arguments*)
 
+fun eq_tsig
+   (TSig {classes = classes1, default = default1, types = types1, log_types = _},
+    TSig {classes = classes2, default = default2, types = types2, log_types = _}) =
+  pointer_eq (classes1, classes2) andalso
+  default1 = default2 andalso
+  pointer_eq (types1, types2);
+
 fun rep_tsig (TSig comps) = comps;
 
 fun make_tsig (classes, default, types, log_types) =
@@ -122,6 +140,14 @@ val empty_tsig =
 
 
 (* classes and sorts *)
+
+val class_space = #1 o #classes o rep_tsig;
+
+fun class_alias naming binding name = map_tsig (fn ((space, classes), default, types) =>
+  ((Name_Space.alias naming binding name space, classes), default, types));
+
+val intern_class = Name_Space.intern o class_space;
+val extern_class = Name_Space.extern o class_space;
 
 fun defaultS (TSig {default, ...}) = default;
 fun logical_types (TSig {log_types, ...}) = log_types;
@@ -157,11 +183,27 @@ fun set_mode mode = Mode.map (K mode);
 fun restore_mode ctxt = set_mode (get_mode ctxt);
 
 
-(* lookup types *)
+(* types *)
+
+val type_space = #1 o #types o rep_tsig;
+
+fun type_alias naming binding name = map_tsig (fn (classes, default, (space, types)) =>
+  (classes, default, (Name_Space.alias naming binding name space, types)));
+
+val intern_type = Name_Space.intern o type_space;
+val extern_type = Name_Space.extern o type_space;
+
+val is_logtype = member (op =) o logical_types;
+
 
 fun undecl_type c = "Undeclared type constructor: " ^ quote c;
 
 fun lookup_type (TSig {types = (_, types), ...}) = Symtab.lookup types;
+
+fun the_decl tsig c =
+  (case lookup_type tsig c of
+    NONE => error (undecl_type c)
+  | SOME decl => decl);
 
 
 (* certified types *)
@@ -189,15 +231,14 @@ fun cert_typ_mode (Mode {normalize, logical}) tsig ty =
             val Ts' = map cert Ts;
             fun nargs n = if length Ts <> n then err (bad_nargs c) else ();
           in
-            (case lookup_type tsig c of
-              SOME (LogicalType n) => (nargs n; Type (c, Ts'))
-            | SOME (Abbreviation (vs, U, syn)) =>
+            (case the_decl tsig c of
+              LogicalType n => (nargs n; Type (c, Ts'))
+            | Abbreviation (vs, U, syn) =>
                (nargs (length vs);
                 if syn then check_logical c else ();
                 if normalize then inst_typ (vs ~~ Ts') U
                 else Type (c, Ts'))
-            | SOME Nonterminal => (nargs 0; check_logical c; T)
-            | NONE => err (undecl_type c))
+            | Nonterminal => (nargs 0; check_logical c; T))
           end
       | cert (TFree (x, S)) = TFree (x, cert_sort tsig S)
       | cert (TVar (xi as (_, i), S)) =
@@ -243,9 +284,9 @@ fun no_tvars T =
       commas_quote (map (Term.string_of_vname o #1) (rev vs)), [T], []));
 
 
-(* varify *)
+(* varify_global *)
 
-fun varify fixed t =
+fun varify_global fixed t =
   let
     val fs = Term.fold_types (Term.fold_atyps
       (fn TFree v => if member (op =) fixed v then I else insert (op =) v | _ => I)) t [];

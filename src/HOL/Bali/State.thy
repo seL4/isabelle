@@ -33,14 +33,12 @@ record  obj  =
           "values" :: "(vn, val) table"      
 
 translations 
-  "fspec" <= (type) "vname \<times> qtname" 
-  "vn"    <= (type) "fspec + int"
-  "obj"   <= (type) "\<lparr>tag::obj_tag, values::vn \<Rightarrow> val option\<rparr>"
-  "obj"   <= (type) "\<lparr>tag::obj_tag, values::vn \<Rightarrow> val option,\<dots>::'a\<rparr>"
+  (type) "fspec" <= (type) "vname \<times> qtname" 
+  (type) "vn"    <= (type) "fspec + int"
+  (type) "obj"   <= (type) "\<lparr>tag::obj_tag, values::vn \<Rightarrow> val option\<rparr>"
+  (type) "obj"   <= (type) "\<lparr>tag::obj_tag, values::vn \<Rightarrow> val option,\<dots>::'a\<rparr>"
 
-constdefs
-  
-  the_Arr :: "obj option \<Rightarrow> ty \<times> int \<times> (vn, val) table"
+definition the_Arr :: "obj option \<Rightarrow> ty \<times> int \<times> (vn, val) table" where
  "the_Arr obj \<equiv> SOME (T,k,t). obj = Some \<lparr>tag=Arr T k,values=t\<rparr>"
 
 lemma the_Arr_Arr [simp]: "the_Arr (Some \<lparr>tag=Arr T k,values=cs\<rparr>) = (T,k,cs)"
@@ -52,9 +50,7 @@ lemma the_Arr_Arr1 [simp,intro,dest]:
 apply (auto simp add: the_Arr_def)
 done
 
-constdefs
-
-  upd_obj       :: "vn \<Rightarrow> val \<Rightarrow> obj \<Rightarrow> obj" 
+definition upd_obj :: "vn \<Rightarrow> val \<Rightarrow> obj \<Rightarrow> obj" where 
  "upd_obj n v \<equiv> \<lambda> obj . obj \<lparr>values:=(values obj)(n\<mapsto>v)\<rparr>"
 
 lemma upd_obj_def2 [simp]: 
@@ -62,8 +58,7 @@ lemma upd_obj_def2 [simp]:
 apply (auto simp: upd_obj_def)
 done
 
-constdefs
-  obj_ty        :: "obj \<Rightarrow> ty"
+definition obj_ty :: "obj \<Rightarrow> ty" where
  "obj_ty obj    \<equiv> case tag obj of 
                     CInst C \<Rightarrow> Class C 
                   | Arr T k \<Rightarrow> T.[]"
@@ -102,9 +97,7 @@ apply (unfold obj_ty_def)
 apply (auto split add: obj_tag.split_asm)
 done
 
-constdefs
-
-  obj_class :: "obj \<Rightarrow> qtname"
+definition obj_class :: "obj \<Rightarrow> qtname" where
  "obj_class obj \<equiv> case tag obj of 
                     CInst C \<Rightarrow> C 
                   | Arr T k \<Rightarrow> Object"
@@ -141,11 +134,9 @@ syntax
 translations
   "Heap" => "CONST Inl"
   "Stat" => "CONST Inr"
-  "oref" <= (type) "loc + qtname"
+  (type) "oref" <= (type) "loc + qtname"
 
-constdefs
-  fields_table::
-    "prog \<Rightarrow> qtname \<Rightarrow> (fspec \<Rightarrow> field \<Rightarrow> bool)  \<Rightarrow> (fspec, ty) table"
+definition fields_table :: "prog \<Rightarrow> qtname \<Rightarrow> (fspec \<Rightarrow> field \<Rightarrow> bool)  \<Rightarrow> (fspec, ty) table" where
  "fields_table G C P 
     \<equiv> Option.map type \<circ> table_of (filter (split P) (DeclConcepts.fields G C))"
 
@@ -182,14 +173,13 @@ apply assumption
 apply simp
 done
 
-constdefs
-  in_bounds :: "int \<Rightarrow> int \<Rightarrow> bool"            ("(_/ in'_bounds _)" [50, 51] 50)
+definition in_bounds :: "int \<Rightarrow> int \<Rightarrow> bool" ("(_/ in'_bounds _)" [50, 51] 50) where
  "i in_bounds k \<equiv> 0 \<le> i \<and> i < k"
 
-  arr_comps :: "'a \<Rightarrow> int \<Rightarrow> int \<Rightarrow> 'a option"
+definition arr_comps :: "'a \<Rightarrow> int \<Rightarrow> int \<Rightarrow> 'a option" where
  "arr_comps T k \<equiv> \<lambda>i. if i in_bounds k then Some T else None"
   
-  var_tys       :: "prog \<Rightarrow> obj_tag \<Rightarrow> oref \<Rightarrow> (vn, ty) table"
+definition var_tys       :: "prog \<Rightarrow> obj_tag \<Rightarrow> oref \<Rightarrow> (vn, ty) table" where
 "var_tys G oi r 
   \<equiv> case r of 
       Heap a \<Rightarrow> (case oi of 
@@ -223,24 +213,22 @@ types   globs               --{* global variables: heap and static variables *}
         = "(lname, val) table" *) (* defined in Value.thy local variables *)
 
 translations
- "globs"  <= (type) "(oref , obj) table"
- "heap"   <= (type) "(loc  , obj) table"
-(*  "locals" <= (type) "(lname, val) table" *)
+ (type) "globs"  <= (type) "(oref , obj) table"
+ (type) "heap"   <= (type) "(loc  , obj) table"
+(*  (type) "locals" <= (type) "(lname, val) table" *)
 
 datatype st = (* pure state, i.e. contents of all variables *)
          st globs locals
 
 subsection "access"
 
-constdefs
-
-  globs  :: "st \<Rightarrow> globs"
+definition globs :: "st \<Rightarrow> globs" where
  "globs  \<equiv> st_case (\<lambda>g l. g)"
   
-  locals :: "st \<Rightarrow> locals"
+definition locals :: "st \<Rightarrow> locals" where
  "locals \<equiv> st_case (\<lambda>g l. l)"
 
-  heap   :: "st \<Rightarrow> heap"
+definition heap   :: "st \<Rightarrow> heap" where
  "heap s \<equiv> globs s \<circ> Heap"
 
 
@@ -254,18 +242,15 @@ lemma heap_def2 [simp]:  "heap s a=globs s (Heap a)"
 by (simp add: heap_def)
 
 
-syntax
-  val_this     :: "st \<Rightarrow> val"
-  lookup_obj   :: "st \<Rightarrow> val \<Rightarrow> obj"
+abbreviation val_this :: "st \<Rightarrow> val"
+  where "val_this s == the (locals s This)"
 
-translations
- "val_this s"       == "CONST the (locals s This)" 
- "lookup_obj s a'"  == "CONST the (heap s (the_Addr a'))"
+abbreviation lookup_obj :: "st \<Rightarrow> val \<Rightarrow> obj"
+  where "lookup_obj s a' == the (heap s (the_Addr a'))"
 
 subsection "memory allocation"
 
-constdefs
-  new_Addr     :: "heap \<Rightarrow> loc option"
+definition new_Addr :: "heap \<Rightarrow> loc option" where
  "new_Addr h   \<equiv> if (\<forall>a. h a \<noteq> None) then None else Some (SOME a. h a = None)"
 
 lemma new_AddrD: "new_Addr h = Some a \<Longrightarrow> h a = None"
@@ -286,12 +271,8 @@ done
 
 subsection "initialization"
 
-syntax
-
-  init_vals     :: "('a, ty) table \<Rightarrow> ('a, val) table"
-
-translations
- "init_vals vs"    == "CONST Option.map default_val \<circ> vs"
+abbreviation init_vals :: "('a, ty) table \<Rightarrow> ('a, val) table"
+  where "init_vals vs == Option.map default_val \<circ> vs"
 
 lemma init_arr_comps_base [simp]: "init_vals (arr_comps T 0) = empty"
 apply (unfold arr_comps_def in_bounds_def)
@@ -309,27 +290,24 @@ done
 
 subsection "update"
 
-constdefs
-  gupd       :: "oref  \<Rightarrow> obj \<Rightarrow> st \<Rightarrow> st"        ("gupd'(_\<mapsto>_')"[10,10]1000)
+definition gupd :: "oref  \<Rightarrow> obj \<Rightarrow> st \<Rightarrow> st" ("gupd'(_\<mapsto>_')"[10,10]1000) where
  "gupd r obj  \<equiv> st_case (\<lambda>g l. st (g(r\<mapsto>obj)) l)"
 
-  lupd       :: "lname \<Rightarrow> val \<Rightarrow> st \<Rightarrow> st"        ("lupd'(_\<mapsto>_')"[10,10]1000)
+definition lupd       :: "lname \<Rightarrow> val \<Rightarrow> st \<Rightarrow> st" ("lupd'(_\<mapsto>_')"[10,10]1000) where
  "lupd vn v   \<equiv> st_case (\<lambda>g l. st g (l(vn\<mapsto>v)))"
 
-  upd_gobj   :: "oref \<Rightarrow> vn \<Rightarrow> val \<Rightarrow> st \<Rightarrow> st"
+definition upd_gobj   :: "oref \<Rightarrow> vn \<Rightarrow> val \<Rightarrow> st \<Rightarrow> st" where
  "upd_gobj r n v \<equiv> st_case (\<lambda>g l. st (chg_map (upd_obj n v) r g) l)"
 
-  set_locals  :: "locals \<Rightarrow> st \<Rightarrow> st"
+definition set_locals  :: "locals \<Rightarrow> st \<Rightarrow> st" where
  "set_locals l \<equiv> st_case (\<lambda>g l'. st g l)"
 
-  init_obj    :: "prog \<Rightarrow> obj_tag \<Rightarrow> oref \<Rightarrow> st \<Rightarrow> st"
+definition init_obj    :: "prog \<Rightarrow> obj_tag \<Rightarrow> oref \<Rightarrow> st \<Rightarrow> st" where
  "init_obj G oi r \<equiv> gupd(r\<mapsto>\<lparr>tag=oi, values=init_vals (var_tys G oi r)\<rparr>)"
 
-syntax
+abbreviation
   init_class_obj :: "prog \<Rightarrow> qtname \<Rightarrow> st \<Rightarrow> st"
-
-translations
- "init_class_obj G C" == "init_obj G CONST undefined (CONST Inr C)"
+  where "init_class_obj G C == init_obj G undefined (Inr C)"
 
 lemma gupd_def2 [simp]: "gupd(r\<mapsto>obj) (st g l) = st (g(r\<mapsto>obj)) l"
 apply (unfold gupd_def)
@@ -484,8 +462,7 @@ primrec "the_Std (Std x) = x"
 
         
 
-constdefs
-  abrupt_if    :: "bool \<Rightarrow> abopt \<Rightarrow> abopt \<Rightarrow> abopt"
+definition abrupt_if :: "bool \<Rightarrow> abopt \<Rightarrow> abopt \<Rightarrow> abopt" where
  "abrupt_if c x' x \<equiv> if c \<and> (x = None) then x' else x"
 
 lemma abrupt_if_True_None [simp]: "abrupt_if True x None = x"
@@ -513,19 +490,17 @@ apply (split split_if)
 apply auto
 done
 
-syntax
+abbreviation raise_if :: "bool \<Rightarrow> xname \<Rightarrow> abopt \<Rightarrow> abopt"
+  where "raise_if c xn == abrupt_if c (Some (Xcpt (Std xn)))"
 
-  raise_if :: "bool \<Rightarrow> xname \<Rightarrow> abopt \<Rightarrow> abopt"
-  np       :: "val  \<spacespace>        \<Rightarrow> abopt \<Rightarrow> abopt"
-  check_neg:: "val  \<spacespace>        \<Rightarrow> abopt \<Rightarrow> abopt"
-  error_if :: "bool \<Rightarrow> error \<Rightarrow> abopt \<Rightarrow> abopt"
-  
-translations
+abbreviation np :: "val \<Rightarrow> abopt \<Rightarrow> abopt"
+  where "np v == raise_if (v = Null) NullPointer"
 
- "raise_if c xn" == "abrupt_if c (Some (Xcpt (Std xn)))"
- "np v"          == "raise_if (v = Null)      NullPointer"
- "check_neg i'"  == "raise_if (the_Intg i'<0) NegArrSize"
- "error_if c e"  == "abrupt_if c (Some (Error e))"
+abbreviation check_neg :: "val \<Rightarrow> abopt \<Rightarrow> abopt"
+  where "check_neg i' == raise_if (the_Intg i'<0) NegArrSize"
+
+abbreviation error_if :: "bool \<Rightarrow> error \<Rightarrow> abopt \<Rightarrow> abopt"
+  where "error_if c e == abrupt_if c (Some (Error e))"
 
 lemma raise_if_None [simp]: "(raise_if c x y = None) = (\<not>c \<and> y = None)"
 apply (simp add: abrupt_if_def)
@@ -567,8 +542,7 @@ apply (simp add: abrupt_if_def)
 apply auto
 done
 
-constdefs
-   absorb :: "jump \<Rightarrow> abopt \<Rightarrow> abopt"
+definition absorb :: "jump \<Rightarrow> abopt \<Rightarrow> abopt" where
   "absorb j a \<equiv> if a=Some (Jump j) then None else a"
 
 lemma absorb_SomeD [dest!]: "absorb j a = Some x \<Longrightarrow> a = Some x"
@@ -592,22 +566,21 @@ section "full program state"
 types
   state = "abopt \<times> st"          --{* state including abruption information *}
 
-syntax 
-  Norm   :: "st \<Rightarrow> state"
-  abrupt :: "state \<Rightarrow> abopt"
-  store  :: "state \<Rightarrow> st"
-
 translations
-   
-  "Norm s"     == "(None,s)" 
-  "abrupt"     => "fst"
-  "store"      => "snd"
-  "abopt"       <= (type) "State.abrupt option"
-  "abopt"       <= (type) "abrupt option"
-  "state"      <= (type) "abopt \<times> State.st"
-  "state"      <= (type) "abopt \<times> st"
+  (type) "abopt" <= (type) "abrupt option"
+  (type) "state" <= (type) "abopt \<times> st"
 
+abbreviation
+  Norm :: "st \<Rightarrow> state"
+  where "Norm s == (None, s)"
 
+abbreviation (input)
+  abrupt :: "state \<Rightarrow> abopt"
+  where "abrupt == fst"
+
+abbreviation (input)
+  store :: "state \<Rightarrow> st"
+  where "store == snd"
 
 lemma single_stateE: "\<forall>Z. Z = (s::state) \<Longrightarrow> False"
 apply (erule_tac x = "(Some k,y)" in all_dupE)
@@ -620,9 +593,7 @@ apply (drule_tac x = "(if abrupt x = None then Some ?x else None,?y)" in spec)
 apply clarsimp
 done
 
-constdefs
-
-  normal     :: "state \<Rightarrow> bool"
+definition normal :: "state \<Rightarrow> bool" where
  "normal \<equiv> \<lambda>s. abrupt s = None"
 
 lemma normal_def2 [simp]: "normal s = (abrupt s = None)"
@@ -630,8 +601,7 @@ apply (unfold normal_def)
 apply (simp (no_asm))
 done
 
-constdefs
-  heap_free :: "nat \<Rightarrow> state \<Rightarrow> bool"
+definition heap_free :: "nat \<Rightarrow> state \<Rightarrow> bool" where
  "heap_free n \<equiv> \<lambda>s. atleast_free (heap (store s)) n"
 
 lemma heap_free_def2 [simp]: "heap_free n s = atleast_free (heap (store s)) n"
@@ -641,12 +611,10 @@ done
 
 subsection "update"
 
-constdefs
- 
-  abupd     :: "(abopt \<Rightarrow> abopt) \<Rightarrow> state \<Rightarrow> state"
+definition abupd :: "(abopt \<Rightarrow> abopt) \<Rightarrow> state \<Rightarrow> state" where
  "abupd f \<equiv> prod_fun f id"
 
-  supd     :: "(st \<Rightarrow> st) \<Rightarrow> state \<Rightarrow> state" 
+definition supd     :: "(st \<Rightarrow> st) \<Rightarrow> state \<Rightarrow> state" where
  "supd \<equiv> prod_fun id"
   
 lemma abupd_def2 [simp]: "abupd f (x,s) = (f x,s)"
@@ -683,15 +651,11 @@ lemma abupd_store_invariant [simp]: "store (abupd f s) = store s"
 lemma supd_abrupt_invariant [simp]: "abrupt (supd f s) = abrupt s"
   by (cases s) simp
 
-syntax
+abbreviation set_lvars :: "locals \<Rightarrow> state \<Rightarrow> state"
+  where "set_lvars l == supd (set_locals l)"
 
-  set_lvars     :: "locals \<Rightarrow> state \<Rightarrow> state"
-  restore_lvars :: "state  \<Rightarrow> state \<Rightarrow> state"
-  
-translations
-
- "set_lvars l" == "supd (set_locals l)"
- "restore_lvars s' s" == "set_lvars (locals (store s')) s"
+abbreviation restore_lvars :: "state  \<Rightarrow> state \<Rightarrow> state"
+  where "restore_lvars s' s == set_lvars (locals (store s')) s"
 
 lemma set_set_lvars [simp]: "\<And> s. set_lvars l (set_lvars l' s) = set_lvars l s"
 apply (simp (no_asm_simp) only: split_tupled_all)
@@ -705,12 +669,10 @@ done
 
 section "initialisation test"
 
-constdefs
-
-  inited   :: "qtname \<Rightarrow> globs \<Rightarrow> bool"
+definition inited :: "qtname \<Rightarrow> globs \<Rightarrow> bool" where
  "inited C g \<equiv> g (Stat C) \<noteq> None"
 
-  initd    :: "qtname \<Rightarrow> state \<Rightarrow> bool"
+definition initd    :: "qtname \<Rightarrow> state \<Rightarrow> bool" where
  "initd C \<equiv> inited C \<circ> globs \<circ> store"
 
 lemma not_inited_empty [simp]: "\<not>inited C empty"
@@ -744,7 +706,7 @@ apply (simp (no_asm))
 done
 
 section {* @{text error_free} *}
-constdefs error_free:: "state \<Rightarrow> bool"
+definition error_free :: "state \<Rightarrow> bool" where
 "error_free s \<equiv> \<not> (\<exists> err. abrupt s = Some (Error err))"
 
 lemma error_free_Norm [simp,intro]: "error_free (Norm s)"

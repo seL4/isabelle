@@ -1,10 +1,11 @@
-(*
-    Factorisation within a factorial domain
-    $Id$
-    Author: Clemens Ballarin, started 25 November 1997
+(*  Author: Clemens Ballarin, started 25 November 1997
+
+Factorisation within a factorial domain.
 *)
 
-theory Factor imports Ring2 begin
+theory Factor
+imports Ring2
+begin
 
 definition
   Factorisation :: "['a::ring, 'a list, 'a] => bool" where

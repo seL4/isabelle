@@ -1,5 +1,4 @@
-(*  Title:      ZF/ex/ramsey.thy
-    ID:         $Id$
+(*  Title:      ZF/ex/Ramsey.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
@@ -23,7 +22,6 @@ This function compute Ramsey numbers according to the proof given below
 fun ram 0 j = 1
   | ram i 0 = 1
   | ram i j = ram (i-1) j + ram i (j-1)
-
 *)
 
 theory Ramsey imports Main begin

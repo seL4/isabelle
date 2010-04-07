@@ -1,7 +1,6 @@
-(*
-    The Isabelle Algebraic Library
-    $Id$
-    Author: Clemens Ballarin, started 24 September 1999
+(*  Author: Clemens Ballarin, started 24 September 1999
+
+The Isabelle Algebraic Library.
 *)
 
 (* Preliminaries from set and number theory *)
@@ -23,8 +22,7 @@ use_thys [
 ];
 
 
-(*** Old development, based on axiomatic type classes.
-     Will be withdrawn in future. ***)
+(*** Old development, based on axiomatic type classes ***)
 
 no_document use_thys [
   "abstract/Abstract",  (*The ring theory*)

@@ -92,8 +92,7 @@ abbreviation
 
 
 (* Predicate formalising the association between authKeys and servKeys *)
-constdefs
-  AKcryptSK :: "[key, key, event list] => bool"
+definition AKcryptSK :: "[key, key, event list] => bool" where
   "AKcryptSK authK servK evs ==
      \<exists>A B tt.
        Says Tgs A \<lbrace>Crypt authK \<lbrace>Key servK, Agent B, tt\<rbrace>,

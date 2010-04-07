@@ -59,7 +59,8 @@ sig
     (ctyp * ctyp) list * (cterm * cterm) list
   val certify_instantiate:
     ((indexname * sort) * typ) list * ((indexname * typ) * term) list -> thm -> thm
-  val unvarify: thm -> thm
+  val forall_intr_frees: thm -> thm
+  val unvarify_global: thm -> thm
   val close_derivation: thm -> thm
   val add_axiom: binding * term -> theory -> thm * theory
   val add_def: bool -> bool -> binding * term -> theory -> thm * theory
@@ -77,6 +78,7 @@ sig
   val untag: string -> attribute
   val def_name: string -> string
   val def_name_optional: string -> string -> string
+  val def_binding: Binding.binding -> Binding.binding
   val def_binding_optional: Binding.binding -> Binding.binding -> Binding.binding
   val has_name_hint: thm -> bool
   val get_name_hint: thm -> string
@@ -150,12 +152,12 @@ fun thm_ord (th1, th2) =
     val {shyps = shyps1, hyps = hyps1, tpairs = tpairs1, prop = prop1, ...} = Thm.rep_thm th1;
     val {shyps = shyps2, hyps = hyps2, tpairs = tpairs2, prop = prop2, ...} = Thm.rep_thm th2;
   in
-    (case TermOrd.fast_term_ord (prop1, prop2) of
+    (case Term_Ord.fast_term_ord (prop1, prop2) of
       EQUAL =>
-        (case list_ord (prod_ord TermOrd.fast_term_ord TermOrd.fast_term_ord) (tpairs1, tpairs2) of
+        (case list_ord (prod_ord Term_Ord.fast_term_ord Term_Ord.fast_term_ord) (tpairs1, tpairs2) of
           EQUAL =>
-            (case list_ord TermOrd.fast_term_ord (hyps1, hyps2) of
-              EQUAL => list_ord TermOrd.sort_ord (shyps1, shyps2)
+            (case list_ord Term_Ord.fast_term_ord (hyps1, hyps2) of
+              EQUAL => list_ord Term_Ord.sort_ord (shyps1, shyps2)
             | ord => ord)
         | ord => ord)
     | ord => ord)
@@ -164,7 +166,7 @@ fun thm_ord (th1, th2) =
 
 (* tables and caches *)
 
-structure Ctermtab = Table(type key = cterm val ord = TermOrd.fast_term_ord o pairself Thm.term_of);
+structure Ctermtab = Table(type key = cterm val ord = Term_Ord.fast_term_ord o pairself Thm.term_of);
 structure Thmtab = Table(type key = thm val ord = thm_ord);
 
 fun cterm_cache f = Cache.create Ctermtab.empty Ctermtab.lookup Ctermtab.update f;
@@ -294,12 +296,24 @@ fun certify_instantiate insts th =
   Thm.instantiate (certify_inst (Thm.theory_of_thm th) insts) th;
 
 
-(* unvarify: global schematic variables *)
+(* forall_intr_frees: generalization over all suitable Free variables *)
 
-fun unvarify th =
+fun forall_intr_frees th =
+  let
+    val thy = Thm.theory_of_thm th;
+    val {prop, hyps, tpairs, ...} = Thm.rep_thm th;
+    val fixed = fold Term.add_frees (Thm.terms_of_tpairs tpairs @ hyps) [];
+    val frees = Term.fold_aterms (fn Free v =>
+      if member (op =) fixed v then I else insert (op =) v | _ => I) prop [];
+  in fold (Thm.forall_intr o Thm.cterm_of thy o Free) frees th end;
+
+
+(* unvarify_global: global schematic variables *)
+
+fun unvarify_global th =
   let
     val prop = Thm.full_prop_of th;
-    val _ = map Logic.unvarify (prop :: Thm.hyps_of th)
+    val _ = map Logic.unvarify_global (prop :: Thm.hyps_of th)
       handle TERM (msg, _) => raise THM (msg, 0, [th]);
 
     val instT = rev (Term.add_tvars prop []) |> map (fn v as ((a, _), S) => (v, TFree (a, S)));
@@ -321,25 +335,42 @@ fun close_derivation thm =
 
 (* rules *)
 
+fun stripped_sorts thy t =
+  let
+    val tfrees = rev (map TFree (Term.add_tfrees t []));
+    val tfrees' = map (fn a => TFree (a, [])) (Name.invents Name.context Name.aT (length tfrees));
+    val strip = tfrees ~~ tfrees';
+    val recover = map (pairself (Thm.ctyp_of thy o Logic.varifyT_global) o swap) strip;
+    val t' = Term.map_types (Term.map_atyps (perhaps (AList.lookup (op =) strip))) t;
+  in (strip, recover, t') end;
+
 fun add_axiom (b, prop) thy =
   let
-    val b' = if Binding.is_empty b
-      then Binding.name ("axiom_" ^ serial_string ()) else b;
-    val thy' = thy |> Theory.add_axioms_i [(b', prop)];
-    val axm = unvarify (Thm.axiom thy' (Sign.full_name thy' b'));
-  in (axm, thy') end;
+    val b' = if Binding.is_empty b then Binding.name ("unnamed_axiom_" ^ serial_string ()) else b;
+    val _ = Sign.no_vars (Syntax.pp_global thy) prop;
+    val (strip, recover, prop') = stripped_sorts thy prop;
+    val constraints = map (fn (TFree (_, S), T) => (T, S)) strip;
+    val of_sorts = maps (fn (T as TFree (_, S), _) => of_sort (Thm.ctyp_of thy T, S)) strip;
+    val thy' =
+      Theory.add_axiom (b', Logic.list_implies (maps Logic.mk_of_sort constraints, prop')) thy;
+    val axm' = Thm.axiom thy' (Sign.full_name thy' b');
+    val thm =
+      Thm.instantiate (recover, []) axm'
+      |> unvarify_global
+      |> fold elim_implies of_sorts;
+  in (thm, thy') end;
 
 fun add_def unchecked overloaded (b, prop) thy =
   let
-    val tfrees = rev (map TFree (Term.add_tfrees prop []));
-    val tfrees' = map (fn a => TFree (a, [])) (Name.invents Name.context Name.aT (length tfrees));
-    val strip_sorts = tfrees ~~ tfrees';
-    val recover_sorts = map (pairself (Thm.ctyp_of thy o Logic.varifyT)) (tfrees' ~~ tfrees);
-
-    val prop' = Term.map_types (Term.map_atyps (perhaps (AList.lookup (op =) strip_sorts))) prop;
-    val thy' = Theory.add_defs_i unchecked overloaded [(b, prop')] thy;
+    val _ = Sign.no_vars (Syntax.pp_global thy) prop;
+    val prems = map (Thm.cterm_of thy) (Logic.strip_imp_prems prop);
+    val (_, recover, concl') = stripped_sorts thy (Logic.strip_imp_concl prop);
+    val thy' = Theory.add_def unchecked overloaded (b, concl') thy;
     val axm' = Thm.axiom thy' (Sign.full_name thy' b);
-    val thm = unvarify (Thm.instantiate (recover_sorts, []) axm');
+    val thm =
+      Thm.instantiate (recover, []) axm'
+      |> unvarify_global
+      |> fold_rev Thm.implies_intr prems;
   in (thm, thy') end;
 
 
@@ -384,8 +415,10 @@ fun def_name c = c ^ "_def";
 fun def_name_optional c "" = def_name c
   | def_name_optional _ name = name;
 
+val def_binding = Binding.map_name def_name;
+
 fun def_binding_optional b name =
-  if Binding.is_empty name then Binding.map_name def_name b else name;
+  if Binding.is_empty name then def_binding b else name;
 
 
 (* unofficial theorem names *)

@@ -119,14 +119,14 @@ interpretation set_semigroup_mult: semigroup_mult "op \<otimes> :: ('a::semigrou
   apply (force simp add: mult_assoc)
   done
 
-interpretation set_comm_monoid_add: comm_monoid_add "{0}" "op \<oplus> :: ('a::comm_monoid_add) set => 'a set => 'a set"
+interpretation set_comm_monoid_add: comm_monoid_add "op \<oplus> :: ('a::comm_monoid_add) set => 'a set => 'a set" "{0}"
   apply default
    apply (unfold set_plus_def)
    apply (force simp add: add_ac)
   apply force
   done
 
-interpretation set_comm_monoid_mult: comm_monoid_mult "{1}" "op \<otimes> :: ('a::comm_monoid_mult) set => 'a set => 'a set"
+interpretation set_comm_monoid_mult: comm_monoid_mult "op \<otimes> :: ('a::comm_monoid_mult) set => 'a set => 'a set" "{1}"
   apply default
    apply (unfold set_times_def)
    apply (force simp add: mult_ac)

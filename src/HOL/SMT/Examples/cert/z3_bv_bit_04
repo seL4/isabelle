@@ -1,4 +1,0 @@
-(benchmark Isabelle
-:assumption (not (= (bvnot bv240[16]) bv65295[16]))
-:formula true
-)

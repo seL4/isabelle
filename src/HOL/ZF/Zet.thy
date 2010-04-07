@@ -1,5 +1,4 @@
 (*  Title:      HOL/ZF/Zet.thy
-    ID:         $Id$
     Author:     Steven Obua
 
     Introduces a type 'a zet of ZF representable sets.
@@ -13,15 +12,13 @@ begin
 typedef 'a zet = "{A :: 'a set | A f z. inj_on f A \<and> f ` A \<subseteq> explode z}"
   by blast
 
-constdefs
-  zin :: "'a \<Rightarrow> 'a zet \<Rightarrow> bool"
+definition zin :: "'a \<Rightarrow> 'a zet \<Rightarrow> bool" where
   "zin x A == x \<in> (Rep_zet A)"
 
 lemma zet_ext_eq: "(A = B) = (! x. zin x A = zin x B)"
   by (auto simp add: Rep_zet_inject[symmetric] zin_def)
 
-constdefs
-  zimage :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a zet \<Rightarrow> 'b zet"
+definition zimage :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a zet \<Rightarrow> 'b zet" where
   "zimage f A == Abs_zet (image f (Rep_zet A))"
 
 lemma zet_def': "zet = {A :: 'a set | A f z. inj_on f A \<and> f ` A = explode z}"
@@ -38,7 +35,7 @@ lemma image_zet_rep: "A \<in> zet \<Longrightarrow> ? z . g ` A = explode z"
   apply (rule_tac x="Repl z (g o (inv_into A f))" in exI)
   apply (simp add: explode_Repl_eq)
   apply (subgoal_tac "explode z = f ` A")
-  apply (simp_all add: comp_image_eq)
+  apply (simp_all add: image_compose)
   done
 
 lemma zet_image_mem:
@@ -59,7 +56,7 @@ proof -
     apply (auto simp add: subset injf)
     done
   show ?thesis
-    apply (simp add: zet_def' comp_image_eq[symmetric])
+    apply (simp add: zet_def' image_compose[symmetric])
     apply (rule exI[where x="?w"])
     apply (simp add: injw image_zet_rep Azet)
     done
@@ -74,10 +71,10 @@ lemma Rep_zimage_eq: "Rep_zet (zimage f A) = image f (Rep_zet A)"
 lemma zimage_iff: "zin y (zimage f A) = (? x. zin x A & y = f x)"
   by (auto simp add: zin_def Rep_zimage_eq)
 
-constdefs
-  zimplode :: "ZF zet \<Rightarrow> ZF"
+definition zimplode :: "ZF zet \<Rightarrow> ZF" where
   "zimplode A == implode (Rep_zet A)"
-  zexplode :: "ZF \<Rightarrow> ZF zet"
+
+definition zexplode :: "ZF \<Rightarrow> ZF zet" where
   "zexplode z == Abs_zet (explode z)"
 
 lemma Rep_zet_eq_explode: "? z. Rep_zet A = explode z"
@@ -111,13 +108,13 @@ lemma zin_zexplode_eq: "zin x (zexplode A) = Elem x A"
 lemma comp_zimage_eq: "zimage g (zimage f A) = zimage (g o f) A"
   apply (simp add: zimage_def)
   apply (subst Abs_zet_inverse)
-  apply (simp_all add: comp_image_eq zet_image_mem Rep_zet)
+  apply (simp_all add: image_compose zet_image_mem Rep_zet)
   done
     
-constdefs
-  zunion :: "'a zet \<Rightarrow> 'a zet \<Rightarrow> 'a zet"
+definition zunion :: "'a zet \<Rightarrow> 'a zet \<Rightarrow> 'a zet" where
   "zunion a b \<equiv> Abs_zet ((Rep_zet a) \<union> (Rep_zet b))"
-  zsubset :: "'a zet \<Rightarrow> 'a zet \<Rightarrow> bool"
+
+definition zsubset :: "'a zet \<Rightarrow> 'a zet \<Rightarrow> bool" where
   "zsubset a b \<equiv> ! x. zin x a \<longrightarrow> zin x b"
 
 lemma explode_union: "explode (union a b) = (explode a) \<union> (explode b)"
@@ -181,8 +178,7 @@ lemma Elem_zimplode: "(Elem x (zimplode z)) = (zin x z)"
   apply (simp_all add: zin_def Rep_zet range_explode_eq_zet)
   done
 
-constdefs
-  zempty :: "'a zet"
+definition zempty :: "'a zet" where
   "zempty \<equiv> Abs_zet {}"
 
 lemma zempty[simp]: "\<not> (zin x zempty)"
@@ -200,7 +196,7 @@ lemma zunion_zempty_right[simp]: "zunion a zempty = a"
 lemma zimage_id[simp]: "zimage id A = A"
   by (simp add: zet_ext_eq zimage_iff)
 
-lemma zimage_cong[recdef_cong]: "\<lbrakk> M = N; !! x. zin x N \<Longrightarrow> f x = g x \<rbrakk> \<Longrightarrow> zimage f M = zimage g N"
+lemma zimage_cong[recdef_cong, fundef_cong]: "\<lbrakk> M = N; !! x. zin x N \<Longrightarrow> f x = g x \<rbrakk> \<Longrightarrow> zimage f M = zimage g N"
   by (auto simp add: zet_ext_eq zimage_iff)
 
 end

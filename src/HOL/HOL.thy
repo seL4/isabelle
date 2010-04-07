@@ -23,7 +23,6 @@ uses
   "~~/src/Tools/coherent.ML"
   "~~/src/Tools/eqsubst.ML"
   "~~/src/Provers/quantifier1.ML"
-  "Tools/res_blacklist.ML"
   ("Tools/simpdata.ML")
   "~~/src/Tools/random_word.ML"
   "~~/src/Tools/atomize_elim.ML"
@@ -31,11 +30,10 @@ uses
   ("~~/src/Tools/induct_tacs.ML")
   ("Tools/recfun_codegen.ML")
   "~~/src/Tools/more_conv.ML"
+  "~~/src/HOL/Tools/Sledgehammer/named_thm_set.ML"
 begin
 
 setup {* Intuitionistic.method_setup @{binding iprover} *}
-
-setup Res_Blacklist.setup
 
 
 subsection {* Primitive logic *}
@@ -44,7 +42,7 @@ subsubsection {* Core syntax *}
 
 classes type
 defaultsort type
-setup {* ObjectLogic.add_base_sort @{sort type} *}
+setup {* Object_Logic.add_base_sort @{sort type} *}
 
 arities
   "fun" :: (type, type) type
@@ -129,16 +127,15 @@ syntax
   "_case2"      :: "[case_syn, cases_syn] => cases_syn"  ("_/ | _")
 
 translations
-  "THE x. P"              == "The (%x. P)"
+  "THE x. P"              == "CONST The (%x. P)"
   "_Let (_binds b bs) e"  == "_Let b (_Let bs e)"
-  "let x = a in e"        == "Let a (%x. e)"
+  "let x = a in e"        == "CONST Let a (%x. e)"
 
 print_translation {*
-(* To avoid eta-contraction of body: *)
-[("The", fn [Abs abs] =>
-     let val (x,t) = atomic_abs_tr' abs
-     in Syntax.const "_The" $ x $ t end)]
-*}
+  [(@{const_syntax The}, fn [Abs abs] =>
+      let val (x, t) = atomic_abs_tr' abs
+      in Syntax.const @{syntax_const "_The"} $ x $ t end)]
+*}  -- {* To avoid eta-contraction of body *}
 
 syntax (xsymbols)
   "_case1"      :: "['a, 'b] => case_syn"                ("(2_ \<Rightarrow>/ _)" 10)
@@ -795,6 +792,25 @@ lemma atomize_elimL[atomize_elim]: "(!!B. (A ==> B) ==> B) == Trueprop A" ..
 
 subsection {* Package setup *}
 
+subsubsection {* Sledgehammer setup *}
+
+text {*
+Theorems blacklisted to Sledgehammer. These theorems typically produce clauses
+that are prolific (match too many equality or membership literals) and relate to
+seldom-used facts. Some duplicate other rules.
+*}
+
+ML {*
+structure No_ATPs = Named_Thm_Set
+(
+  val name = "no_atp"
+  val description = "theorems that should be filtered out by Sledgehammer"
+)
+*}
+
+setup {* No_ATPs.setup *}
+
+
 subsubsection {* Classical Reasoner setup *}
 
 lemma imp_elim: "P --> Q ==> (~ R ==> P) ==> (Q ==> R) ==> R"
@@ -846,12 +862,16 @@ setup Classical.setup
 
 setup {*
 let
-  (*prevent substitution on bool*)
-  fun hyp_subst_tac' i thm = if i <= Thm.nprems_of thm andalso
-    Term.exists_Const (fn ("op =", Type (_, [T, _])) => T <> Type ("bool", []) | _ => false)
-      (nth (Thm.prems_of thm) (i - 1)) then Hypsubst.hyp_subst_tac i thm else no_tac thm;
+  fun non_bool_eq (@{const_name "op ="}, Type (_, [T, _])) = T <> @{typ bool}
+    | non_bool_eq _ = false;
+  val hyp_subst_tac' =
+    SUBGOAL (fn (goal, i) =>
+      if Term.exists_Const non_bool_eq goal
+      then Hypsubst.hyp_subst_tac i
+      else no_tac);
 in
   Hypsubst.hypsubst_setup
+  (*prevent substitution on bool*)
   #> Context_Rules.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac)
 end
 *}
@@ -1038,7 +1058,7 @@ lemma not_ex: "(~ (? x. P(x))) = (! x.~P(x))" by iprover
 lemma imp_ex: "((? x. P x) --> Q) = (! x. P x --> Q)" by iprover
 lemma all_not_ex: "(ALL x. P x) = (~ (EX x. ~ P x ))" by blast
 
-declare All_def [noatp]
+declare All_def [no_atp]
 
 lemma ex_disj_distrib: "(? x. P(x) | Q(x)) = ((? x. P(x)) | (? x. Q(x)))" by iprover
 lemma all_conj_distrib: "(!x. P(x) & Q(x)) = ((! x. P(x)) & (! x. Q(x)))" by iprover
@@ -1085,7 +1105,7 @@ lemma split_if: "P (if Q then x else y) = ((Q --> P(x)) & (~Q --> P(y)))"
 lemma split_if_asm: "P (if Q then x else y) = (~((Q & ~P x) | (~Q & ~P y)))"
 by (simplesubst split_if, blast)
 
-lemmas if_splits [noatp] = split_if split_if_asm
+lemmas if_splits [no_atp] = split_if split_if_asm
 
 lemma if_cancel: "(if c then x else x) = x"
 by (simplesubst split_if, blast)
@@ -1119,8 +1139,7 @@ text {*
   its premise.
 *}
 
-constdefs
-  simp_implies :: "[prop, prop] => prop"  (infixr "=simp=>" 1)
+definition simp_implies :: "[prop, prop] => prop"  (infixr "=simp=>" 1) where
   [code del]: "simp_implies \<equiv> op ==>"
 
 lemma simp_impliesI:
@@ -1393,13 +1412,23 @@ structure Project_Rule = Project_Rule
 )
 *}
 
-constdefs
-  induct_forall where "induct_forall P == \<forall>x. P x"
-  induct_implies where "induct_implies A B == A \<longrightarrow> B"
-  induct_equal where "induct_equal x y == x = y"
-  induct_conj where "induct_conj A B == A \<and> B"
-  induct_true where "induct_true == True"
-  induct_false where "induct_false == False"
+definition induct_forall where
+  "induct_forall P == \<forall>x. P x"
+
+definition induct_implies where
+  "induct_implies A B == A \<longrightarrow> B"
+
+definition induct_equal where
+  "induct_equal x y == x = y"
+
+definition induct_conj where
+  "induct_conj A B == A \<and> B"
+
+definition induct_true where
+  "induct_true == True"
+
+definition induct_false where
+  "induct_false == False"
 
 lemma induct_forall_eq: "(!!x. P x) == Trueprop (induct_forall (\<lambda>x. P x))"
   by (unfold atomize_all induct_forall_def)
@@ -1453,6 +1482,7 @@ structure Induct = Induct
   val atomize = @{thms induct_atomize}
   val rulify = @{thms induct_rulify'}
   val rulify_fallback = @{thms induct_rulify_fallback}
+  val equal_def = @{thm induct_equal_def}
   fun dest_def (Const (@{const_name induct_equal}, _) $ t $ u) = SOME (t, u)
     | dest_def _ = NONE
   val trivial_tac = match_tac @{thms induct_trueI}
@@ -1625,118 +1655,6 @@ lemma nnf_simps:
 by blast+
 
 
-subsection {* Generic classes and algebraic operations *}
-
-class zero = 
-  fixes zero :: 'a  ("0")
-
-class one =
-  fixes one  :: 'a  ("1")
-
-lemma Let_0 [simp]: "Let 0 f = f 0"
-  unfolding Let_def ..
-
-lemma Let_1 [simp]: "Let 1 f = f 1"
-  unfolding Let_def ..
-
-setup {*
-  Reorient_Proc.add
-    (fn Const(@{const_name HOL.zero}, _) => true
-      | Const(@{const_name HOL.one}, _) => true
-      | _ => false)
-*}
-
-simproc_setup reorient_zero ("0 = x") = Reorient_Proc.proc
-simproc_setup reorient_one ("1 = x") = Reorient_Proc.proc
-
-typed_print_translation {*
-let
-  fun tr' c = (c, fn show_sorts => fn T => fn ts =>
-    if (not o null) ts orelse T = dummyT
-      orelse not (! show_types) andalso can Term.dest_Type T
-    then raise Match
-    else Syntax.const Syntax.constrainC $ Syntax.const c $ Syntax.term_of_typ show_sorts T);
-in map tr' [@{const_syntax HOL.one}, @{const_syntax HOL.zero}] end;
-*} -- {* show types that are presumably too general *}
-
-hide (open) const zero one
-
-class plus =
-  fixes plus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "+" 65)
-
-class minus =
-  fixes minus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "-" 65)
-
-class uminus =
-  fixes uminus :: "'a \<Rightarrow> 'a"  ("- _" [81] 80)
-
-class times =
-  fixes times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "*" 70)
-
-class inverse =
-  fixes inverse :: "'a \<Rightarrow> 'a"
-    and divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "'/" 70)
-
-class abs =
-  fixes abs :: "'a \<Rightarrow> 'a"
-begin
-
-notation (xsymbols)
-  abs  ("\<bar>_\<bar>")
-
-notation (HTML output)
-  abs  ("\<bar>_\<bar>")
-
-end
-
-class sgn =
-  fixes sgn :: "'a \<Rightarrow> 'a"
-
-class ord =
-  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
-    and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
-begin
-
-notation
-  less_eq  ("op <=") and
-  less_eq  ("(_/ <= _)" [51, 51] 50) and
-  less  ("op <") and
-  less  ("(_/ < _)"  [51, 51] 50)
-  
-notation (xsymbols)
-  less_eq  ("op \<le>") and
-  less_eq  ("(_/ \<le> _)"  [51, 51] 50)
-
-notation (HTML output)
-  less_eq  ("op \<le>") and
-  less_eq  ("(_/ \<le> _)"  [51, 51] 50)
-
-abbreviation (input)
-  greater_eq  (infix ">=" 50) where
-  "x >= y \<equiv> y <= x"
-
-notation (input)
-  greater_eq  (infix "\<ge>" 50)
-
-abbreviation (input)
-  greater  (infix ">" 50) where
-  "x > y \<equiv> y < x"
-
-end
-
-syntax
-  "_index1"  :: index    ("\<^sub>1")
-translations
-  (index) "\<^sub>1" => (index) "\<^bsub>\<struct>\<^esub>"
-
-lemma mk_left_commute:
-  fixes f (infix "\<otimes>" 60)
-  assumes a: "\<And>x y z. (x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)" and
-          c: "\<And>x y. x \<otimes> y = y \<otimes> x"
-  shows "x \<otimes> (y \<otimes> z) = y \<otimes> (x \<otimes> z)"
-  by (rule trans [OF trans [OF c a] arg_cong [OF c, of "f y"]])
-
-
 subsection {* Basic ML bindings *}
 
 ML {*
@@ -1833,8 +1751,8 @@ let
 
 fun eq_codegen thy defs dep thyname b t gr =
     (case strip_comb t of
-       (Const ("op =", Type (_, [Type ("fun", _), _])), _) => NONE
-     | (Const ("op =", _), [t, u]) =>
+       (Const (@{const_name "op ="}, Type (_, [Type ("fun", _), _])), _) => NONE
+     | (Const (@{const_name "op ="}, _), [t, u]) =>
           let
             val (pt, gr') = Codegen.invoke_codegen thy defs dep thyname false t gr;
             val (pu, gr'') = Codegen.invoke_codegen thy defs dep thyname false u gr';
@@ -1843,7 +1761,7 @@ fun eq_codegen thy defs dep thyname b t gr =
             SOME (Codegen.parens
               (Pretty.block [pt, Codegen.str " =", Pretty.brk 1, pu]), gr''')
           end
-     | (t as Const ("op =", _), ts) => SOME (Codegen.invoke_codegen
+     | (t as Const (@{const_name "op ="}, _), ts) => SOME (Codegen.invoke_codegen
          thy defs dep thyname b (Codegen.eta_expand t ts 2) gr)
      | _ => NONE);
 
@@ -2098,8 +2016,6 @@ quickcheck_params [size = 5, iterations = 50]
 
 subsubsection {* Nitpick setup *}
 
-text {* This will be relocated once Nitpick is moved to HOL. *}
-
 ML {*
 structure Nitpick_Defs = Named_Thms
 (
@@ -2121,6 +2037,11 @@ structure Nitpick_Intros = Named_Thms
   val name = "nitpick_intro"
   val description = "introduction rules for (co)inductive predicates as needed by Nitpick"
 )
+structure Nitpick_Choice_Specs = Named_Thms
+(
+  val name = "nitpick_choice_spec"
+  val description = "choice specification of constants as needed by Nitpick"
+)
 *}
 
 setup {*
@@ -2128,6 +2049,7 @@ setup {*
   #> Nitpick_Simps.setup
   #> Nitpick_Psimps.setup
   #> Nitpick_Intros.setup
+  #> Nitpick_Choice_Specs.setup
 *}
 
 
@@ -2162,7 +2084,7 @@ fun strip_tac i = REPEAT (resolve_tac [impI, allI] i);
 
 (* combination of (spec RS spec RS ...(j times) ... spec RS mp) *)
 local
-  fun wrong_prem (Const ("All", _) $ (Abs (_, _, t))) = wrong_prem t
+  fun wrong_prem (Const (@{const_name All}, _) $ Abs (_, _, t)) = wrong_prem t
     | wrong_prem (Bound _) = true
     | wrong_prem _ = false;
   val filter_right = filter (not o wrong_prem o HOLogic.dest_Trueprop o hd o Thm.prems_of);

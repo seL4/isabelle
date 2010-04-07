@@ -1,5 +1,4 @@
 (*  Title:      StateFun.thy
-    ID:         $Id$
     Author:     Norbert Schirmer, TU Muenchen
 *)
 
@@ -23,7 +22,7 @@ The update is actually generalized to a map function. The map supplies
 better compositionality, especially if you think of nested state
 spaces.  *} 
 
-constdefs K_statefun:: "'a \<Rightarrow> 'b \<Rightarrow> 'a" "K_statefun c x \<equiv> c"
+definition K_statefun :: "'a \<Rightarrow> 'b \<Rightarrow> 'a" where "K_statefun c x \<equiv> c"
 
 lemma K_statefun_apply [simp]: "K_statefun c x = c"
   by (simp add: K_statefun_def)
@@ -34,12 +33,12 @@ lemma K_statefun_comp [simp]: "(K_statefun c \<circ> f) = K_statefun c"
 lemma K_statefun_cong [cong]: "K_statefun c x = K_statefun c x"
   by (rule refl)
 
-constdefs lookup:: "('v \<Rightarrow> 'a) \<Rightarrow> 'n \<Rightarrow> ('n \<Rightarrow> 'v) \<Rightarrow> 'a"
-"lookup destr n s \<equiv> destr (s n)"
+definition lookup:: "('v \<Rightarrow> 'a) \<Rightarrow> 'n \<Rightarrow> ('n \<Rightarrow> 'v) \<Rightarrow> 'a"
+  where "lookup destr n s = destr (s n)"
 
-constdefs update:: 
+definition update::
   "('v \<Rightarrow> 'a1) \<Rightarrow> ('a2 \<Rightarrow> 'v) \<Rightarrow> 'n \<Rightarrow> ('a1 \<Rightarrow> 'a2) \<Rightarrow> ('n \<Rightarrow> 'v) \<Rightarrow> ('n \<Rightarrow> 'v)"
-"update destr constr n f s \<equiv> s(n := constr (f (destr (s n))))"
+  where "update destr constr n f s = s(n := constr (f (destr (s n))))"
 
 lemma lookup_update_same:
   "(\<And>v. destr (constr v) = v) \<Longrightarrow> lookup destr n (update destr constr n f s) = 

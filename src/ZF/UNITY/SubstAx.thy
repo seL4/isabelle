@@ -366,7 +366,7 @@ fun ensures_tac ctxt sact =
               (* proving the domain part *)
              clarify_tac cs 3, dtac @{thm swap} 3, force_tac css 4,
              rtac @{thm ReplaceI} 3, force_tac css 3, force_tac css 4,
-             asm_full_simp_tac ss 3, rtac conjI 3, simp_tac ss 4,
+             asm_full_simp_tac ss 3, rtac @{thm conjI} 3, simp_tac ss 4,
              REPEAT (rtac @{thm state_update_type} 3),
              constrains_tac ctxt 1,
              ALLGOALS (clarify_tac cs),

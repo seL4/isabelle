@@ -1,11 +1,11 @@
-(* Title:      HOL/Library/Finite_Cartesian_Product
-   Author:     Amine Chaieb, University of Cambridge
+(*  Title:      HOL/Multivariate_Analysis/Finite_Cartesian_Product.thy
+    Author:     Amine Chaieb, University of Cambridge
 *)
 
 header {* Definition of finite Cartesian product types. *}
 
 theory Finite_Cartesian_Product
-imports Main (*FIXME: ATP_Linkup is only needed for metis at a few places. We could dispense of that by changing the proofs.*)
+imports Main
 begin
 
 subsection {* Finite Cartesian products, with indexing and lambdas. *}
@@ -14,9 +14,9 @@ typedef (open Cart)
   ('a, 'b) cart = "UNIV :: (('b::finite) \<Rightarrow> 'a) set"
   morphisms Cart_nth Cart_lambda ..
 
-notation Cart_nth (infixl "$" 90)
-
-notation (xsymbols) Cart_lambda (binder "\<chi>" 10)
+notation
+  Cart_nth (infixl "$" 90) and
+  Cart_lambda (binder "\<chi>" 10)
 
 (*
   Translate "'b ^ 'n" into "'b ^ ('n :: finite)". When 'n has already more than
@@ -27,22 +27,19 @@ syntax "_finite_cart" :: "type \<Rightarrow> type \<Rightarrow> type" ("(_ ^/ _)
 
 parse_translation {*
 let
-  fun cart t u = Syntax.const @{type_name cart} $ t $ u
+  fun cart t u = Syntax.const @{type_syntax cart} $ t $ u;
   fun finite_cart_tr [t, u as Free (x, _)] =
-        if Syntax.is_tid x
-        then cart t (Syntax.const "_ofsort" $ u $ Syntax.const (hd @{sort finite}))
+        if Syntax.is_tid x then
+          cart t (Syntax.const @{syntax_const "_ofsort"} $ u $ Syntax.const @{class_syntax finite})
         else cart t u
     | finite_cart_tr [t, u] = cart t u
 in
-  [("_finite_cart", finite_cart_tr)]
+  [(@{syntax_const "_finite_cart"}, finite_cart_tr)]
 end
 *}
 
 lemma stupid_ext: "(\<forall>x. f x = g x) \<longleftrightarrow> (f = g)"
-  apply auto
-  apply (rule ext)
-  apply auto
-  done
+  by (auto intro: ext)
 
 lemma Cart_eq: "(x = y) \<longleftrightarrow> (\<forall>i. x$i = y$i)"
   by (simp add: Cart_nth_inject [symmetric] expand_fun_eq)
@@ -75,24 +72,27 @@ lemma nth_sndtcart [simp]: "sndcart f $ i = f $ Inr i"
   unfolding sndcart_def by simp
 
 lemma finite_sum_image: "(UNIV::('a + 'b) set) = range Inl \<union> range Inr"
-by (auto, case_tac x, auto)
+  apply auto
+  apply (case_tac x)
+   apply auto
+  done
 
-lemma fstcart_pastecart: "fstcart (pastecart x y) = x"
+lemma fstcart_pastecart[simp]: "fstcart (pastecart x y) = x"
   by (simp add: Cart_eq)
 
-lemma sndcart_pastecart: "sndcart (pastecart x y) = y"
+lemma sndcart_pastecart[simp]: "sndcart (pastecart x y) = y"
   by (simp add: Cart_eq)
 
-lemma pastecart_fst_snd: "pastecart (fstcart z) (sndcart z) = z"
+lemma pastecart_fst_snd[simp]: "pastecart (fstcart z) (sndcart z) = z"
   by (simp add: Cart_eq pastecart_def fstcart_def sndcart_def split: sum.split)
 
 lemma pastecart_eq: "(x = y) \<longleftrightarrow> (fstcart x = fstcart y) \<and> (sndcart x = sndcart y)"
   using pastecart_fst_snd[of x] pastecart_fst_snd[of y] by metis
 
 lemma forall_pastecart: "(\<forall>p. P p) \<longleftrightarrow> (\<forall>x y. P (pastecart x y))"
-  by (metis pastecart_fst_snd fstcart_pastecart sndcart_pastecart)
+  by (metis pastecart_fst_snd)
 
-lemma exists_pastecart: "(\<exists>p. P p)  \<longleftrightarrow> (\<exists>x y. P (pastecart x y))"
-  by (metis pastecart_fst_snd fstcart_pastecart sndcart_pastecart)
+lemma exists_pastecart: "(\<exists>p. P p) \<longleftrightarrow> (\<exists>x y. P (pastecart x y))"
+  by (metis pastecart_fst_snd)
 
 end

@@ -1,10 +1,11 @@
-(*
-    Ideals for commutative rings
-    $Id$
-    Author: Clemens Ballarin, started 24 September 1999
+(*  Author: Clemens Ballarin, started 24 September 1999
+
+Ideals for commutative rings.
 *)
 
-theory Ideal2 imports Ring2 begin
+theory Ideal2
+imports Ring2
+begin
 
 definition
   is_ideal :: "('a::ring) set => bool" where
@@ -23,15 +24,14 @@ definition
 
 text {* Principle ideal domains *}
 
-axclass pid < "domain"
-  pid_ax: "is_ideal I ==> is_pideal I"
-
+class pid =
+  assumes pid_ax: "is_ideal (I :: 'a::domain \<Rightarrow> _) \<Longrightarrow> is_pideal I"
 
 (* is_ideal *)
 
 lemma is_idealI:
-  "!! I. [| !! a b. [| a:I; b:I |] ==> a + b : I;  
-      !! a. a:I ==> - a : I; 0 : I;  
+  "!! I. [| !! a b. [| a:I; b:I |] ==> a + b : I;
+      !! a. a:I ==> - a : I; 0 : I;
       !! a r. a:I ==> a * r : I |] ==> is_ideal I"
   unfolding is_ideal_def by blast
 
@@ -243,7 +243,7 @@ lemma subset_chain_lemma [rule_format (no_asm)]:
   apply force
   done
 
-lemma chain_is_ideal: "[| ALL i. is_ideal (I i); ALL i. I i <= I (Suc i) |]  
+lemma chain_is_ideal: "[| ALL i. is_ideal (I i); ALL i. I i <= I (Suc i) |]
     ==> is_ideal (Union (I`UNIV))"
   apply (rule is_idealI)
      apply auto

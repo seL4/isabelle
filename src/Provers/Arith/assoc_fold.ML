@@ -1,5 +1,4 @@
 (*  Title:      Provers/Arith/assoc_fold.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
 

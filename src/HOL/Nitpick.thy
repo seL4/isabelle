@@ -1,6 +1,6 @@
 (*  Title:      HOL/Nitpick.thy
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2008, 2009
+    Copyright   2008, 2009, 2010
 
 Nitpick: Yet another counterexample generator for Isabelle/HOL.
 *)
@@ -8,11 +8,12 @@ Nitpick: Yet another counterexample generator for Isabelle/HOL.
 header {* Nitpick: Yet Another Counterexample Generator for Isabelle/HOL *}
 
 theory Nitpick
-imports Map SAT
+imports Map Quotient SAT
 uses ("Tools/Nitpick/kodkod.ML")
      ("Tools/Nitpick/kodkod_sat.ML")
      ("Tools/Nitpick/nitpick_util.ML")
      ("Tools/Nitpick/nitpick_hol.ML")
+     ("Tools/Nitpick/nitpick_preproc.ML")
      ("Tools/Nitpick/nitpick_mono.ML")
      ("Tools/Nitpick/nitpick_scope.ML")
      ("Tools/Nitpick/nitpick_peephole.ML")
@@ -35,11 +36,12 @@ axiomatization unknown :: 'a
            and bisim :: "bisim_iterator \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
            and bisim_iterator_max :: bisim_iterator
            and Quot :: "'a \<Rightarrow> 'b"
-           and quot_normal :: "'a \<Rightarrow> 'a"
-           and Tha :: "('a \<Rightarrow> bool) \<Rightarrow> 'a"
+           and safe_The :: "('a \<Rightarrow> bool) \<Rightarrow> 'a"
+           and safe_Eps :: "('a \<Rightarrow> bool) \<Rightarrow> 'a"
 
-datatype ('a, 'b) pair_box = PairBox 'a 'b
+datatype ('a, 'b) fin_fun = FinFun "('a \<Rightarrow> 'b)"
 datatype ('a, 'b) fun_box = FunBox "('a \<Rightarrow> 'b)"
+datatype ('a, 'b) pair_box = PairBox 'a 'b
 
 typedecl unsigned_bit
 typedecl signed_bit
@@ -94,10 +96,10 @@ definition wfrec' ::  "('a \<times> 'a \<Rightarrow> bool) \<Rightarrow> (('a \<
                 else THE y. wfrec_rel R (%f x. F (Recdef.cut f R x) x) x y"
 
 definition card' :: "('a \<Rightarrow> bool) \<Rightarrow> nat" where
-"card' X \<equiv> length (SOME xs. set xs = X \<and> distinct xs)"
+"card' A \<equiv> if finite A then length (safe_Eps (\<lambda>xs. set xs = A \<and> distinct xs)) else 0"
 
 definition setsum' :: "('a \<Rightarrow> 'b\<Colon>comm_monoid_add) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'b" where
-"setsum' f A \<equiv> if finite A then listsum (map f (SOME xs. set xs = A \<and> distinct xs)) else 0"
+"setsum' f A \<equiv> if finite A then listsum (map f (safe_Eps (\<lambda>xs. set xs = A \<and> distinct xs))) else 0"
 
 inductive fold_graph' :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'b \<Rightarrow> bool" where
 "fold_graph' f z {} z" |
@@ -216,26 +218,12 @@ definition less_eq_frac :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where
 definition of_frac :: "'a \<Rightarrow> 'b\<Colon>{inverse,ring_1}" where
 "of_frac q \<equiv> of_int (num q) / of_int (denom q)"
 
-(* While Nitpick normally avoids to unfold definitions for locales, it
-   unfortunately needs to unfold them when dealing with the following built-in
-   constants. A cleaner approach would be to change "Nitpick_HOL" and
-   "Nitpick_Nut" so that they handle the unexpanded overloaded constants
-   directly, but this is slightly more tricky to implement. *)
-lemmas [nitpick_def] = div_int_inst.div_int div_int_inst.mod_int
-    div_nat_inst.div_nat div_nat_inst.mod_nat lower_semilattice_fun_inst.inf_fun
-    minus_fun_inst.minus_fun minus_int_inst.minus_int minus_nat_inst.minus_nat
-    one_int_inst.one_int one_nat_inst.one_nat ord_fun_inst.less_eq_fun
-    ord_int_inst.less_eq_int ord_int_inst.less_int ord_nat_inst.less_eq_nat
-    ord_nat_inst.less_nat plus_int_inst.plus_int plus_nat_inst.plus_nat
-    times_int_inst.times_int times_nat_inst.times_nat uminus_int_inst.uminus_int
-    upper_semilattice_fun_inst.sup_fun zero_int_inst.zero_int
-    zero_nat_inst.zero_nat
-
 use "Tools/Nitpick/kodkod.ML"
 use "Tools/Nitpick/kodkod_sat.ML"
 use "Tools/Nitpick/nitpick_util.ML"
 use "Tools/Nitpick/nitpick_hol.ML"
 use "Tools/Nitpick/nitpick_mono.ML"
+use "Tools/Nitpick/nitpick_preproc.ML"
 use "Tools/Nitpick/nitpick_scope.ML"
 use "Tools/Nitpick/nitpick_peephole.ML"
 use "Tools/Nitpick/nitpick_rep.ML"
@@ -250,12 +238,13 @@ use "Tools/Nitpick/minipick.ML"
 setup {* Nitpick_Isar.setup *}
 
 hide (open) const unknown is_unknown undefined_fast_The undefined_fast_Eps bisim 
-    bisim_iterator_max Quot quot_normal Tha PairBox FunBox Word refl' wf'
-    wf_wfrec wf_wfrec' wfrec' card' setsum' fold_graph' nat_gcd nat_lcm int_gcd
-    int_lcm Frac Abs_Frac Rep_Frac zero_frac one_frac num denom norm_frac frac
-    plus_frac times_frac uminus_frac number_of_frac inverse_frac less_eq_frac
-    of_frac
-hide (open) type bisim_iterator pair_box fun_box unsigned_bit signed_bit word
+    bisim_iterator_max Quot safe_The safe_Eps FinFun FunBox PairBox Word refl'
+    wf' wf_wfrec wf_wfrec' wfrec' card' setsum' fold_graph' nat_gcd nat_lcm
+    int_gcd int_lcm Frac Abs_Frac Rep_Frac zero_frac one_frac num denom
+    norm_frac frac plus_frac times_frac uminus_frac number_of_frac inverse_frac
+    less_eq_frac of_frac
+hide (open) type bisim_iterator fin_fun fun_box pair_box unsigned_bit signed_bit
+    word
 hide (open) fact If_def Ex1_def rtrancl_def rtranclp_def tranclp_def refl'_def
     wf'_def wf_wfrec'_def wfrec'_def card'_def setsum'_def fold_graph'_def
     The_psimp Eps_psimp unit_case_def nat_case_def list_size_simp nat_gcd_def

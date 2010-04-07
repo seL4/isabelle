@@ -1,5 +1,4 @@
 (*  Title:      HOL/UNITY/Token
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 *)
@@ -24,17 +23,16 @@ record state =
   proc  :: "nat => pstate"
 
 
-constdefs
-  HasTok :: "nat => state set"
+definition HasTok :: "nat => state set" where
     "HasTok i == {s. token s = i}"
 
-  H :: "nat => state set"
+definition H :: "nat => state set" where
     "H i == {s. proc s i = Hungry}"
 
-  E :: "nat => state set"
+definition E :: "nat => state set" where
     "E i == {s. proc s i = Eating}"
 
-  T :: "nat => state set"
+definition T :: "nat => state set" where
     "T i == {s. proc s i = Thinking}"
 
 

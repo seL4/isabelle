@@ -162,7 +162,7 @@ fun inst_morph (parm_names, parm_types) ((prfx, mandatory), insts') ctxt =
     val type_parm_names = fold Term.add_tfreesT parm_types [] |> map fst;
 
     (* type inference and contexts *)
-    val parm_types' = map (TypeInfer.paramify_vars o Logic.varifyT) parm_types;
+    val parm_types' = map (TypeInfer.paramify_vars o Logic.varifyT_global) parm_types;
     val type_parms = fold Term.add_tvarsT parm_types' [] |> map (Logic.mk_type o TVar);
     val arg = type_parms @ map2 TypeInfer.constrain parm_types' insts';
     val res = Syntax.check_terms ctxt arg;
@@ -298,7 +298,7 @@ fun closeup _ _ false elem = elem
           Assumes asms => Assumes (asms |> map (fn (a, propps) =>
             (a, map (fn (t, ps) => (close_frees t, no_binds ps)) propps)))
         | Defines defs => Defines (defs |> map (fn ((name, atts), (t, ps)) =>
-            let val ((c, _), t') = LocalDefs.cert_def ctxt (close_frees t)
+            let val ((c, _), t') = Local_Defs.cert_def ctxt (close_frees t)
             in ((Thm.def_binding_optional (Binding.name c) name, atts), (t', no_binds ps)) end))
         | e => e)
       end;
@@ -346,7 +346,7 @@ fun prep_full_context_statement parse_typ parse_prop prep_vars_elem prep_inst pr
         val (parm_names, parm_types) = Locale.params_of thy loc |> map #1 |> split_list;
         val inst' = prep_inst ctxt parm_names inst;
         val parm_types' = map (TypeInfer.paramify_vars o
-          Term.map_type_tvar (fn ((x, _), S) => TVar ((x, i), S)) o Logic.varifyT) parm_types;
+          Term.map_type_tvar (fn ((x, _), S) => TVar ((x, i), S)) o Logic.varifyT_global) parm_types;
         val inst'' = map2 TypeInfer.constrain parm_types' inst';
         val insts' = insts @ [(loc, (prfx, inst''))];
         val (insts'', _, _, ctxt' (* FIXME not used *) ) = check_autofix insts' [] [] ctxt;
@@ -513,8 +513,8 @@ val norm_term = Envir.beta_norm oo Term.subst_atomic;
 
 fun bind_def ctxt eq (xs, env, eqs) =
   let
-    val _ = LocalDefs.cert_def ctxt eq;
-    val ((y, T), b) = LocalDefs.abs_def eq;
+    val _ = Local_Defs.cert_def ctxt eq;
+    val ((y, T), b) = Local_Defs.abs_def eq;
     val b' = norm_term env b;
     fun err msg = error (msg ^ ": " ^ quote y);
   in
@@ -595,18 +595,18 @@ val introN = "intro";
 fun atomize_spec thy ts =
   let
     val t = Logic.mk_conjunction_balanced ts;
-    val body = ObjectLogic.atomize_term thy t;
+    val body = Object_Logic.atomize_term thy t;
     val bodyT = Term.fastype_of body;
   in
     if bodyT = propT then (t, propT, Thm.reflexive (Thm.cterm_of thy t))
-    else (body, bodyT, ObjectLogic.atomize (Thm.cterm_of thy t))
+    else (body, bodyT, Object_Logic.atomize (Thm.cterm_of thy t))
   end;
 
 (* achieve plain syntax for locale predicates (without "PROP") *)
 
-fun aprop_tr' n c = (Syntax.constN ^ c, fn ctxt => fn args =>
+fun aprop_tr' n c = (Syntax.mark_const c, fn ctxt => fn args =>
   if length args = n then
-    Syntax.const "_aprop" $
+    Syntax.const "_aprop" $   (* FIXME avoid old-style early externing (!??) *)
       Term.list_comb (Syntax.free (Consts.extern (ProofContext.consts_of ctxt) c), args)
   else raise Match);
 
@@ -634,15 +634,14 @@ fun def_pred binding parms defs ts norm_ts thy =
 
     val args = map Logic.mk_type extraTs @ map Free xs;
     val head = Term.list_comb (Const (name, predT), args);
-    val statement = ObjectLogic.ensure_propT thy head;
+    val statement = Object_Logic.ensure_propT thy head;
 
     val ([pred_def], defs_thy) =
       thy
       |> bodyT = propT ? Sign.add_advanced_trfuns ([], [], [aprop_tr' (length args) name], [])
       |> Sign.declare_const ((Binding.conceal binding, predT), NoSyn) |> snd
       |> PureThy.add_defs false
-        [((Binding.conceal (Binding.map_name Thm.def_name binding),
-            Logic.mk_equals (head, body)), [])];
+        [((Binding.conceal (Thm.def_binding binding), Logic.mk_equals (head, body)), [])];
     val defs_ctxt = ProofContext.init defs_thy |> Variable.declare_term head;
 
     val cert = Thm.cterm_of defs_thy;
@@ -681,7 +680,7 @@ fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
             |> def_pred abinding parms defs' exts exts';
           val (_, thy'') =
             thy'
-            |> Sign.mandatory_path (Binding.name_of abinding)
+            |> Sign.qualified_path true abinding
             |> PureThy.note_thmss ""
               [((Binding.conceal (Binding.name introN), []), [([intro], [Locale.unfold_add])])]
             ||> Sign.restore_naming thy';
@@ -695,11 +694,11 @@ fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
             |> def_pred binding parms defs' (ints @ the_list a_pred) (ints' @ the_list a_pred);
           val (_, thy'''') =
             thy'''
-            |> Sign.mandatory_path (Binding.name_of binding)
+            |> Sign.qualified_path true binding
             |> PureThy.note_thmss ""
                  [((Binding.conceal (Binding.name introN), []), [([intro], [Locale.intro_add])]),
                   ((Binding.conceal (Binding.name axiomsN), []),
-                    [(map (Drule.standard o Element.conclude_witness) axioms, [])])]
+                    [(map (Drule.export_without_context o Element.conclude_witness) axioms, [])])]
             ||> Sign.restore_naming thy''';
         in (SOME statement, SOME intro, axioms, thy'''') end;
   in ((a_pred, a_intro, a_axioms), (b_pred, b_intro, b_axioms), thy'''') end;
@@ -773,7 +772,7 @@ fun gen_add_locale prep_decl
 
     val loc_ctxt = thy'
       |> Locale.register_locale binding (extraTs, params)
-          (asm, rev defs) (a_intro, b_intro) axioms ([], []) (rev notes) (rev deps')
+          (asm, rev defs) (a_intro, b_intro) axioms [] (rev notes) (rev deps')
       |> Theory_Target.init (SOME name)
       |> fold (fn (kind, facts) => Local_Theory.notes_kind kind facts #> snd) notes';
 
@@ -809,8 +808,8 @@ fun gen_interpretation prep_expr parse_prop prep_attr
         val eqns = map (Morphism.thm (export' $> export)) raw_eqns;
         val eqn_attrss = map2 (fn attrs => fn eqn =>
           ((apsnd o map) (Attrib.attribute_i thy) attrs, [([eqn], [])])) attrss eqns;
-        fun meta_rewrite thy = map (LocalDefs.meta_rewrite_rule (ProofContext.init thy) #>
-          Drule.abs_def) o maps snd;
+        fun meta_rewrite thy =
+          map (Local_Defs.meta_rewrite_rule (ProofContext.init thy) #> Drule.abs_def) o maps snd;
       in
         thy
         |> PureThy.note_thmss Thm.lemmaK eqn_attrss

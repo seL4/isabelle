@@ -81,13 +81,12 @@ done
 
 (***********************************************************************)
 
-constdefs
-  progression :: "jvm_prog \<Rightarrow> cname \<Rightarrow> sig \<Rightarrow> 
+definition progression :: "jvm_prog \<Rightarrow> cname \<Rightarrow> sig \<Rightarrow> 
                  aheap \<Rightarrow> opstack \<Rightarrow> locvars \<Rightarrow>
                  bytecode \<Rightarrow>
                  aheap \<Rightarrow> opstack \<Rightarrow> locvars \<Rightarrow> 
                  bool"
-  ("{_,_,_} \<turnstile> {_, _, _} >- _ \<rightarrow> {_, _, _}" [61,61,61,61,61,61,90,61,61,61]60)
+  ("{_,_,_} \<turnstile> {_, _, _} >- _ \<rightarrow> {_, _, _}" [61,61,61,61,61,61,90,61,61,61]60) where
   "{G,C,S} \<turnstile> {hp0, os0, lvars0} >- instrs \<rightarrow> {hp1, os1, lvars1} ==
   \<forall> pre post frs.
   (gis (gmb G C S) = pre @ instrs @ post) \<longrightarrow>
@@ -161,10 +160,9 @@ apply auto
 done
 
 (*****)
-constdefs
-  jump_fwd :: "jvm_prog \<Rightarrow> cname \<Rightarrow> sig \<Rightarrow> 
+definition jump_fwd :: "jvm_prog \<Rightarrow> cname \<Rightarrow> sig \<Rightarrow> 
                  aheap \<Rightarrow> locvars \<Rightarrow> opstack \<Rightarrow> opstack \<Rightarrow> 
-                 instr \<Rightarrow> bytecode \<Rightarrow> bool"
+                 instr \<Rightarrow> bytecode \<Rightarrow> bool" where
   "jump_fwd G C S hp lvars os0 os1 instr instrs ==
   \<forall> pre post frs.
   (gis (gmb G C S) = pre @ instr # instrs @ post) \<longrightarrow>
@@ -216,10 +214,9 @@ done
 
 
 (* note: instrs and instr reversed wrt. jump_fwd *)
-constdefs
-  jump_bwd :: "jvm_prog \<Rightarrow> cname \<Rightarrow> sig \<Rightarrow> 
+definition jump_bwd :: "jvm_prog \<Rightarrow> cname \<Rightarrow> sig \<Rightarrow> 
                  aheap \<Rightarrow> locvars \<Rightarrow> opstack \<Rightarrow> opstack \<Rightarrow> 
-                 bytecode \<Rightarrow> instr \<Rightarrow> bool"
+                 bytecode \<Rightarrow> instr \<Rightarrow> bool" where
   "jump_bwd G C S hp lvars os0 os1 instrs instr ==
   \<forall> pre post frs.
   (gis (gmb G C S) = pre @ instrs @ instr # post) \<longrightarrow>
@@ -258,14 +255,14 @@ done
 (**********************************************************************)
 
 (* class C with signature S is defined in program G *)
-constdefs class_sig_defined :: "'c prog \<Rightarrow> cname \<Rightarrow> sig \<Rightarrow> bool"
+definition class_sig_defined :: "'c prog \<Rightarrow> cname \<Rightarrow> sig \<Rightarrow> bool" where
   "class_sig_defined G C S == 
   is_class G C \<and> (\<exists> D rT mb. (method (G, C) S = Some (D, rT, mb)))"
 
 
 (* The environment of a java method body 
   (characterized by class and signature) *)
-constdefs env_of_jmb :: "java_mb prog \<Rightarrow> cname \<Rightarrow> sig \<Rightarrow> java_mb env"
+definition env_of_jmb :: "java_mb prog \<Rightarrow> cname \<Rightarrow> sig \<Rightarrow> java_mb env" where
   "env_of_jmb G C S == 
   (let (mn,pTs) = S;
        (D,rT,(pns,lvars,blk,res)) = the(method (G, C) S) in
@@ -331,11 +328,13 @@ done
 
 (**********************************************************************)
 
-constdefs wtpd_expr :: "java_mb env \<Rightarrow> expr \<Rightarrow> bool"
+definition wtpd_expr :: "java_mb env \<Rightarrow> expr \<Rightarrow> bool" where
   "wtpd_expr E e == (\<exists> T. E\<turnstile>e :: T)"
-  wtpd_exprs :: "java_mb env \<Rightarrow> (expr list) \<Rightarrow> bool"
+
+definition wtpd_exprs :: "java_mb env \<Rightarrow> (expr list) \<Rightarrow> bool" where
   "wtpd_exprs E e == (\<exists> T. E\<turnstile>e [::] T)"
-  wtpd_stmt :: "java_mb env \<Rightarrow> stmt \<Rightarrow> bool" 
+
+definition wtpd_stmt :: "java_mb env \<Rightarrow> stmt \<Rightarrow> bool" where
   "wtpd_stmt E c == (E\<turnstile>c \<surd>)"
 
 lemma wtpd_expr_newc: "wtpd_expr E (NewC C) \<Longrightarrow> is_class (prg E) C"

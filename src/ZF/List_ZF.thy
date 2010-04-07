@@ -15,13 +15,13 @@ datatype
 
 
 syntax
- "[]"        :: i                                       ("[]")
- "@List"     :: "is => i"                                 ("[(_)]")
+ "_Nil" :: i  ("[]")
+ "_List" :: "is => i"  ("[(_)]")
 
 translations
-  "[x, xs]"     == "Cons(x, [xs])"
-  "[x]"         == "Cons(x, [])"
-  "[]"          == "Nil"
+  "[x, xs]"     == "CONST Cons(x, [xs])"
+  "[x]"         == "CONST Cons(x, [])"
+  "[]"          == "CONST Nil"
 
 
 consts

@@ -1,10 +1,11 @@
-(*
-  Title:  Algebra/Congruence.thy
-  Author: Clemens Ballarin, started 3 January 2008
-  Copyright: Clemens Ballarin
+(*  Title:      Algebra/Congruence.thy
+    Author:     Clemens Ballarin, started 3 January 2008
+    Copyright:  Clemens Ballarin
 *)
 
-theory Congruence imports Main begin
+theory Congruence
+imports Main
+begin
 
 section {* Objects *}
 
@@ -19,31 +20,37 @@ subsection {* Structure with Carrier and Equivalence Relation @{text eq} *}
 record 'a eq_object = "'a partial_object" +
   eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl ".=\<index>" 50)
 
-constdefs (structure S)
+definition
   elem :: "_ \<Rightarrow> 'a \<Rightarrow> 'a set \<Rightarrow> bool" (infixl ".\<in>\<index>" 50)
-  "x .\<in> A \<equiv> (\<exists>y \<in> A. x .= y)"
+  where "x .\<in>\<^bsub>S\<^esub> A \<longleftrightarrow> (\<exists>y \<in> A. x .=\<^bsub>S\<^esub> y)"
 
+definition
   set_eq :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a set \<Rightarrow> bool" (infixl "{.=}\<index>" 50)
-  "A {.=} B == ((\<forall>x \<in> A. x .\<in> B) \<and> (\<forall>x \<in> B. x .\<in> A))"
+  where "A {.=}\<^bsub>S\<^esub> B \<longleftrightarrow> ((\<forall>x \<in> A. x .\<in>\<^bsub>S\<^esub> B) \<and> (\<forall>x \<in> B. x .\<in>\<^bsub>S\<^esub> A))"
 
+definition
   eq_class_of :: "_ \<Rightarrow> 'a \<Rightarrow> 'a set" ("class'_of\<index> _")
-  "class_of x == {y \<in> carrier S. x .= y}"
+  where "class_of\<^bsub>S\<^esub> x = {y \<in> carrier S. x .=\<^bsub>S\<^esub> y}"
 
+definition
   eq_closure_of :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a set" ("closure'_of\<index> _")
-  "closure_of A == {y \<in> carrier S. y .\<in> A}"
+  where "closure_of\<^bsub>S\<^esub> A = {y \<in> carrier S. y .\<in>\<^bsub>S\<^esub> A}"
 
+definition
   eq_is_closed :: "_ \<Rightarrow> 'a set \<Rightarrow> bool" ("is'_closed\<index> _")
-  "is_closed A == (A \<subseteq> carrier S \<and> closure_of A = A)"
+  where "is_closed\<^bsub>S\<^esub> A \<longleftrightarrow> A \<subseteq> carrier S \<and> closure_of\<^bsub>S\<^esub> A = A"
 
-syntax
+abbreviation
   not_eq :: "_ \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl ".\<noteq>\<index>" 50)
-  not_elem :: "_ \<Rightarrow> 'a \<Rightarrow> 'a set \<Rightarrow> bool" (infixl ".\<notin>\<index>" 50)
-  set_not_eq :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a set \<Rightarrow> bool" (infixl "{.\<noteq>}\<index>" 50)
+  where "x .\<noteq>\<^bsub>S\<^esub> y == ~(x .=\<^bsub>S\<^esub> y)"
 
-translations
-  "x .\<noteq>\<index> y" == "~(x .=\<index> y)"
-  "x .\<notin>\<index> A" == "~(x .\<in>\<index> A)"
-  "A {.\<noteq>}\<index> B" == "~(A {.=}\<index> B)"
+abbreviation
+  not_elem :: "_ \<Rightarrow> 'a \<Rightarrow> 'a set \<Rightarrow> bool" (infixl ".\<notin>\<index>" 50)
+  where "x .\<notin>\<^bsub>S\<^esub> A == ~(x .\<in>\<^bsub>S\<^esub> A)"
+
+abbreviation
+  set_not_eq :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a set \<Rightarrow> bool" (infixl "{.\<noteq>}\<index>" 50)
+  where "A {.\<noteq>}\<^bsub>S\<^esub> B == ~(A {.=}\<^bsub>S\<^esub> B)"
 
 locale equivalence =
   fixes S (structure)

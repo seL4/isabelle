@@ -8,9 +8,9 @@ Second part of main module (postprocessing of TFL definitions).
 signature TFL =
 sig
   val define_i: bool -> theory -> claset -> simpset -> thm list -> thm list -> xstring ->
-    term -> term list -> theory * {rules: (thm * int) list, induct: thm, tcs: term list}
+    term -> term list -> theory * {lhs: term, rules: (thm * int) list, induct: thm, tcs: term list}
   val define: bool -> theory -> claset -> simpset -> thm list -> thm list -> xstring ->
-    string -> string list -> theory * {rules: (thm * int) list, induct: thm, tcs: term list}
+    string -> string list -> theory * {lhs: term, rules: (thm * int) list, induct: thm, tcs: term list}
   val defer_i: theory -> thm list -> xstring -> term list -> theory * thm
   val defer: theory -> thm list -> xstring -> string list -> theory * thm
 end;
@@ -125,11 +125,11 @@ fun proof_stage strict cs ss wfs theory {f, R, rules, full_pats_TCs, TCs} =
 
 (*lcp: curry the predicate of the induction rule*)
 fun curry_rule rl =
-  SplitRule.split_rule_var (Term.head_of (HOLogic.dest_Trueprop (concl_of rl))) rl;
+  Split_Rule.split_rule_var (Term.head_of (HOLogic.dest_Trueprop (concl_of rl))) rl;
 
 (*lcp: put a theorem into Isabelle form, using meta-level connectives*)
 val meta_outer =
-  curry_rule o Drule.standard o
+  curry_rule o Drule.export_without_context o
   rule_by_tactic (REPEAT (FIRSTGOAL (resolve_tac [allI, impI, conjI] ORELSE' etac conjE)));
 
 (*Strip off the outer !P*)
@@ -151,9 +151,9 @@ fun simplify_defn strict thy cs ss congs wfs id pats def0 =
                {f = f, R = R, rules = rules,
                 full_pats_TCs = full_pats_TCs,
                 TCs = TCs}
-       val rules' = map (Drule.standard o ObjectLogic.rulify_no_asm)
+       val rules' = map (Drule.export_without_context o Object_Logic.rulify_no_asm)
                         (R.CONJUNCTS rules)
-         in  {induct = meta_outer (ObjectLogic.rulify_no_asm (induction RS spec')),
+         in  {induct = meta_outer (Object_Logic.rulify_no_asm (induction RS spec')),
         rules = ListPair.zip(rules', rows),
         tcs = (termination_goals rules') @ tcs}
    end
@@ -180,7 +180,7 @@ local
     | solve_eq (th, [a], i) = [(a, i)]
     | solve_eq (th, splitths as (_ :: _), i) = 
       (writeln "Proving unsplit equation...";
-      [((Drule.standard o ObjectLogic.rulify_no_asm)
+      [((Drule.export_without_context o Object_Logic.rulify_no_asm)
           (CaseSplit.splitto splitths th), i)])
       (* if there's an error, pretend nothing happened with this definition 
          We should probably print something out so that the user knows...? *)
@@ -203,13 +203,14 @@ end;
  *---------------------------------------------------------------------------*)
 fun define_i strict thy cs ss congs wfs fid R eqs =
   let val {functional,pats} = Prim.mk_functional thy eqs
-      val (thy, def) = Prim.wfrec_definition0 thy (Long_Name.base_name fid) R functional
+      val (thy, def) = Prim.wfrec_definition0 thy fid R functional
+      val (lhs, _) = Logic.dest_equals (prop_of def)
       val {induct, rules, tcs} = 
           simplify_defn strict thy cs ss congs wfs fid pats def
       val rules' = 
           if strict then derive_init_eqs thy rules eqs
           else rules
-  in (thy, {rules = rules', induct = induct, tcs = tcs}) end;
+  in (thy, {lhs = lhs, rules = rules', induct = induct, tcs = tcs}) end;
 
 fun define strict thy cs ss congs wfs fid R seqs =
   define_i strict thy cs ss congs wfs fid
@@ -227,8 +228,7 @@ fun func_of_cond_eqn tm =
   #1 (S.strip_comb (#lhs (S.dest_eq (#2 (S.strip_forall (#2 (S.strip_imp tm)))))));
 
 fun defer_i thy congs fid eqs =
- let val {rules,R,theory,full_pats_TCs,SV,...} =
-             Prim.lazyR_def thy (Long_Name.base_name fid) congs eqs
+ let val {rules,R,theory,full_pats_TCs,SV,...} = Prim.lazyR_def thy fid congs eqs
      val f = func_of_cond_eqn (concl (R.CONJUNCT1 rules handle U.ERR _ => rules));
      val dummy = writeln "Proving induction theorem ...";
      val induction = Prim.mk_induction theory
@@ -236,7 +236,7 @@ fun defer_i thy congs fid eqs =
  in (theory,
      (*return the conjoined induction rule and recursion equations,
        with assumptions remaining to discharge*)
-     Drule.standard (induction RS (rules RS conjI)))
+     Drule.export_without_context (induction RS (rules RS conjI)))
  end
 
 fun defer thy congs fid seqs =

@@ -27,8 +27,8 @@ where
   [simp del]: "make_llist []     = return Empty"
             | "make_llist (x#xs) = do tl   \<leftarrow> make_llist xs;
                                       next \<leftarrow> Ref.new tl;
-	                              return (Node x next)
-		                   done"
+                                      return (Node x next)
+                                   done"
 
 
 text {* define traverse using the MREC combinator *}
@@ -985,6 +985,8 @@ definition test_3 where "test_3 =
     zs \<leftarrow> traverse ll_zs;
     return zs
   done)"
+
+code_reserved SML upto
 
 ML {* @{code test_1} () *}
 ML {* @{code test_2} () *}

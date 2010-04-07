@@ -1,5 +1,4 @@
 (*  Title:      HOL/Bali/Term.thy
-    ID:         $Id$
     Author:     David von Oheimb
 *)
 
@@ -89,7 +88,7 @@ after method return. Also an exception must be restored after the finally
 statement *}
 
 translations
- "locals" <= (type) "(lname, val) table"
+ (type) "locals" <= (type) "(lname, val) table"
 
 datatype inv_mode                  --{* invocation mode for method calls *}
         = Static                   --{* static *}
@@ -101,8 +100,8 @@ record  sig =              --{* signature of a method, cf. 8.4.2  *}
           parTs::"ty list"        
 
 translations
-  "sig" <= (type) "\<lparr>name::mname,parTs::ty list\<rparr>"
-  "sig" <= (type) "\<lparr>name::mname,parTs::ty list,\<dots>::'a\<rparr>"
+  (type) "sig" <= (type) "\<lparr>name::mname,parTs::ty list\<rparr>"
+  (type) "sig" <= (type) "\<lparr>name::mname,parTs::ty list,\<dots>::'a\<rparr>"
 
 --{* function codes for unary operations *}
 datatype unop =  UPlus    -- {*{\tt +} unary plus*} 
@@ -238,32 +237,28 @@ intermediate steps of class-initialisation.
  
 types "term" = "(expr+stmt,var,expr list) sum3"
 translations
-  "sig"   <= (type) "mname \<times> ty list"
-  "var"   <= (type) "Term.var"
-  "expr"  <= (type) "Term.expr"
-  "stmt"  <= (type) "Term.stmt"
-  "term"  <= (type) "(expr+stmt,var,expr list) sum3"
+  (type) "sig"   <= (type) "mname \<times> ty list"
+  (type) "term"  <= (type) "(expr+stmt,var,expr list) sum3"
 
-syntax
-  
-  this    :: expr
-  LAcc    :: "vname \<Rightarrow> expr" ("!!")
-  LAss    :: "vname \<Rightarrow> expr \<Rightarrow>stmt" ("_:==_" [90,85] 85)
-  Return  :: "expr \<Rightarrow> stmt"
+abbreviation this :: expr
+  where "this == Acc (LVar This)"
+
+abbreviation LAcc :: "vname \<Rightarrow> expr" ("!!")
+  where "!!v == Acc (LVar (EName (VNam v)))"
+
+abbreviation
+  LAss :: "vname \<Rightarrow> expr \<Rightarrow>stmt" ("_:==_" [90,85] 85)
+  where "v:==e == Expr (Ass (LVar (EName (VNam  v))) e)"
+
+abbreviation
+  Return :: "expr \<Rightarrow> stmt"
+  where "Return e == Expr (Ass (LVar (EName Res)) e);; Jmp Ret" --{* \tt Res := e;; Jmp Ret *}
+
+abbreviation
   StatRef :: "ref_ty \<Rightarrow> expr"
-
-translations
+  where "StatRef rt == Cast (RefT rt) (Lit Null)"
   
- "this"       == "Acc (LVar This)"
- "!!v"        == "Acc (LVar (EName (VNam v)))"
- "v:==e"      == "Expr (Ass (LVar (EName (VNam  v))) e)"
- "Return e"   == "Expr (Ass (LVar (EName Res)) e);; Jmp Ret" 
-                  --{* \tt Res := e;; Jmp Ret *}
- "StatRef rt" == "Cast (RefT rt) (Lit Null)"
-  
-constdefs
-
-  is_stmt :: "term \<Rightarrow> bool"
+definition is_stmt :: "term \<Rightarrow> bool" where
  "is_stmt t \<equiv> \<exists>c. t=In1r c"
 
 ML {* bind_thms ("is_stmt_rews", sum3_instantiate @{context} @{thm is_stmt_def}) *}
@@ -275,24 +270,28 @@ text {*
   expressions, variables and expression lists into general terms.
 *}
 
-syntax 
-  expr_inj_term:: "expr \<Rightarrow> term" ("\<langle>_\<rangle>\<^sub>e" 1000)
-  stmt_inj_term:: "stmt \<Rightarrow> term" ("\<langle>_\<rangle>\<^sub>s" 1000)
-  var_inj_term::  "var \<Rightarrow> term"  ("\<langle>_\<rangle>\<^sub>v" 1000)
-  lst_inj_term:: "expr list \<Rightarrow> term" ("\<langle>_\<rangle>\<^sub>l" 1000)
+abbreviation (input)
+  expr_inj_term :: "expr \<Rightarrow> term" ("\<langle>_\<rangle>\<^sub>e" 1000)
+  where "\<langle>e\<rangle>\<^sub>e == In1l e"
 
-translations 
-  "\<langle>e\<rangle>\<^sub>e" \<rightharpoonup> "In1l e"
-  "\<langle>c\<rangle>\<^sub>s" \<rightharpoonup> "In1r c"
-  "\<langle>v\<rangle>\<^sub>v" \<rightharpoonup> "In2 v"
-  "\<langle>es\<rangle>\<^sub>l" \<rightharpoonup> "In3 es"
+abbreviation (input)
+  stmt_inj_term :: "stmt \<Rightarrow> term" ("\<langle>_\<rangle>\<^sub>s" 1000)
+  where "\<langle>c\<rangle>\<^sub>s == In1r c"
+
+abbreviation (input)
+  var_inj_term :: "var \<Rightarrow> term"  ("\<langle>_\<rangle>\<^sub>v" 1000)
+  where "\<langle>v\<rangle>\<^sub>v == In2 v"
+
+abbreviation (input)
+  lst_inj_term :: "expr list \<Rightarrow> term" ("\<langle>_\<rangle>\<^sub>l" 1000)
+  where "\<langle>es\<rangle>\<^sub>l == In3 es"
 
 text {* It seems to be more elegant to have an overloaded injection like the
 following.
 *}
 
-axclass inj_term < "type"
-consts inj_term:: "'a::inj_term \<Rightarrow> term" ("\<langle>_\<rangle>" 1000)
+class inj_term =
+  fixes inj_term:: "'a \<Rightarrow> term" ("\<langle>_\<rangle>" 1000)
 
 text {* How this overloaded injections work can be seen in the theory 
 @{text DefiniteAssignment}. Other big inductive relations on
@@ -300,14 +299,19 @@ terms defined in theories @{text WellType}, @{text Eval}, @{text Evaln} and
 @{text AxSem} don't follow this convention right now, but introduce subtle 
 syntactic sugar in the relations themselves to make a distinction on 
 expressions, statements and so on. So unfortunately you will encounter a 
-mixture of dealing with these injections. The translations above are used
+mixture of dealing with these injections. The abbreviations above are used
 as bridge between the different conventions.  
 *}
 
-instance stmt::inj_term ..
+instantiation stmt :: inj_term
+begin
 
-defs (overloaded)
-stmt_inj_term_def: "\<langle>c::stmt\<rangle> \<equiv> In1r c"
+definition
+  stmt_inj_term_def: "\<langle>c::stmt\<rangle> \<equiv> In1r c"
+
+instance ..
+
+end
 
 lemma stmt_inj_term_simp: "\<langle>c::stmt\<rangle> = In1r c"
 by (simp add: stmt_inj_term_def)
@@ -315,10 +319,15 @@ by (simp add: stmt_inj_term_def)
 lemma  stmt_inj_term [iff]: "\<langle>x::stmt\<rangle> = \<langle>y\<rangle> \<equiv> x = y"
   by (simp add: stmt_inj_term_simp)
 
-instance expr::inj_term ..
+instantiation expr :: inj_term
+begin
 
-defs (overloaded)
-expr_inj_term_def: "\<langle>e::expr\<rangle> \<equiv> In1l e"
+definition
+  expr_inj_term_def: "\<langle>e::expr\<rangle> \<equiv> In1l e"
+
+instance ..
+
+end
 
 lemma expr_inj_term_simp: "\<langle>e::expr\<rangle> = In1l e"
 by (simp add: expr_inj_term_def)
@@ -326,10 +335,15 @@ by (simp add: expr_inj_term_def)
 lemma expr_inj_term [iff]: "\<langle>x::expr\<rangle> = \<langle>y\<rangle> \<equiv> x = y"
   by (simp add: expr_inj_term_simp)
 
-instance var::inj_term ..
+instantiation var :: inj_term
+begin
 
-defs (overloaded)
-var_inj_term_def: "\<langle>v::var\<rangle> \<equiv> In2 v"
+definition
+  var_inj_term_def: "\<langle>v::var\<rangle> \<equiv> In2 v"
+
+instance ..
+
+end
 
 lemma var_inj_term_simp: "\<langle>v::var\<rangle> = In2 v"
 by (simp add: var_inj_term_def)
@@ -337,10 +351,32 @@ by (simp add: var_inj_term_def)
 lemma var_inj_term [iff]: "\<langle>x::var\<rangle> = \<langle>y\<rangle> \<equiv> x = y"
   by (simp add: var_inj_term_simp)
 
-instance "list":: (type) inj_term ..
+class expr_of =
+  fixes expr_of :: "'a \<Rightarrow> expr"
 
-defs (overloaded)
-expr_list_inj_term_def: "\<langle>es::expr list\<rangle> \<equiv> In3 es"
+instantiation expr :: expr_of
+begin
+
+definition
+  "expr_of = (\<lambda>(e::expr). e)"
+
+instance ..
+
+end 
+
+instantiation list :: (expr_of) inj_term
+begin
+
+definition
+  "\<langle>es::'a list\<rangle> \<equiv> In3 (map expr_of es)"
+
+instance ..
+
+end
+
+lemma expr_list_inj_term_def:
+  "\<langle>es::expr list\<rangle> \<equiv> In3 es"
+  by (simp add: inj_term_list_def expr_of_expr_def)
 
 lemma expr_list_inj_term_simp: "\<langle>es::expr list\<rangle> = In3 es"
 by (simp add: expr_list_inj_term_def)
@@ -426,7 +462,7 @@ primrec
 "eval_binop CondAnd v1 v2 = Bool ((the_Bool v1) \<and> (the_Bool v2))"
 "eval_binop CondOr  v1 v2 = Bool ((the_Bool v1) \<or> (the_Bool v2))"
 
-constdefs need_second_arg :: "binop \<Rightarrow> val \<Rightarrow> bool"
+definition need_second_arg :: "binop \<Rightarrow> val \<Rightarrow> bool" where
 "need_second_arg binop v1 \<equiv> \<not> ((binop=CondAnd \<and>  \<not> the_Bool v1) \<or>
                                (binop=CondOr  \<and> the_Bool v1))"
 text {* @{term CondAnd} and @{term CondOr} only evalulate the second argument

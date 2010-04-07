@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Dagstuhl
 imports Stream
 begin
@@ -54,12 +52,12 @@ lemma lemma5: "y && YYS = YYS"
   done
 
 lemma wir_moel: "YS = YYS"
-  apply (rule stream.take_lemmas)
+  apply (rule stream.take_lemma)
   apply (induct_tac n)
-  apply (simp (no_asm) add: stream.rews)
+  apply (simp (no_asm))
   apply (subst YS_def2)
   apply (subst YYS_def2)
-  apply (simp add: stream.rews)
+  apply simp
   apply (rule lemma5 [symmetric, THEN subst])
   apply (rule refl)
   done
@@ -74,7 +72,7 @@ lemma lemma6: "YYS << YS"
   apply (unfold YYS_def)
   apply (rule fix_least)
   apply (subst beta_cfun)
-  apply (tactic "cont_tacR 1")
+  apply simp
   apply (simp add: YS_def2 [symmetric])
   done
 

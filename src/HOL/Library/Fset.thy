@@ -126,17 +126,18 @@ definition insert :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
   [simp]: "insert x A = Fset (Set.insert x (member A))"
 
 lemma insert_Set [code]:
-  "insert x (Set xs) = Set (List_Set.insert x xs)"
-  "insert x (Coset xs) = Coset (remove_all x xs)"
-  by (simp_all add: Set_def Coset_def insert_set insert_set_compl)
+  "insert x (Set xs) = Set (List.insert x xs)"
+  "insert x (Coset xs) = Coset (removeAll x xs)"
+  by (simp_all add: Set_def Coset_def set_insert)
 
 definition remove :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
   [simp]: "remove x A = Fset (List_Set.remove x (member A))"
 
 lemma remove_Set [code]:
-  "remove x (Set xs) = Set (remove_all x xs)"
-  "remove x (Coset xs) = Coset (List_Set.insert x xs)"
-  by (simp_all add: Set_def Coset_def remove_set remove_set_compl)
+  "remove x (Set xs) = Set (removeAll x xs)"
+  "remove x (Coset xs) = Coset (List.insert x xs)"
+  by (simp_all add: Set_def Coset_def remove_set_compl)
+    (simp add: List_Set.remove_def)
 
 definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a fset \<Rightarrow> 'b fset" where
   [simp]: "map f A = Fset (image f (member A))"
@@ -203,7 +204,7 @@ proof -
     by (simp add: inter project_def Set_def)
   have "foldl (\<lambda>A x. List_Set.remove x A) (member A) xs =
     member (foldl (\<lambda>A x. Fset (List_Set.remove x (member A))) A xs)"
-    by (rule foldl_apply_inv) simp
+    by (rule foldl_apply) (simp add: expand_fun_eq)
   then show "inf A (Coset xs) = foldl (\<lambda>A x. remove x A) A xs"
     by (simp add: Diff_eq [symmetric] minus_set)
 qed
@@ -214,7 +215,7 @@ lemma subtract_remove [code]:
 proof -
   have "foldl (\<lambda>A x. List_Set.remove x A) (member A) xs =
     member (foldl (\<lambda>A x. Fset (List_Set.remove x (member A))) A xs)"
-    by (rule foldl_apply_inv) simp
+    by (rule foldl_apply) (simp add: expand_fun_eq)
   then show "A - Set xs = foldl (\<lambda>A x. remove x A) A xs"
     by (simp add: minus_set)
   show "A - Coset xs = Set (List.filter (member A) xs)"
@@ -227,7 +228,7 @@ lemma union_insert [code]:
 proof -
   have "foldl (\<lambda>A x. Set.insert x A) (member A) xs =
     member (foldl (\<lambda>A x. Fset (Set.insert x (member A))) A xs)"
-    by (rule foldl_apply_inv) simp
+    by (rule foldl_apply) (simp add: expand_fun_eq)
   then show "sup (Set xs) A = foldl (\<lambda>A x. insert x A) A xs"
     by (simp add: union_set)
   show "sup (Coset xs) A = Coset (List.filter (Not \<circ> member A) xs)"

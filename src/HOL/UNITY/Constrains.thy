@@ -32,22 +32,21 @@ inductive_set
   | Acts:  "[| act: Acts F;  s \<in> reachable F;  (s,s'): act |]
             ==> s' \<in> reachable F"
 
-constdefs
-  Constrains :: "['a set, 'a set] => 'a program set"  (infixl "Co" 60)
+definition Constrains :: "['a set, 'a set] => 'a program set" (infixl "Co" 60) where
     "A Co B == {F. F \<in> (reachable F \<inter> A)  co  B}"
 
-  Unless  :: "['a set, 'a set] => 'a program set"     (infixl "Unless" 60)
+definition Unless  :: "['a set, 'a set] => 'a program set" (infixl "Unless" 60) where
     "A Unless B == (A-B) Co (A \<union> B)"
 
-  Stable     :: "'a set => 'a program set"
+definition Stable     :: "'a set => 'a program set" where
     "Stable A == A Co A"
 
   (*Always is the weak form of "invariant"*)
-  Always :: "'a set => 'a program set"
+definition Always :: "'a set => 'a program set" where
     "Always A == {F. Init F \<subseteq> A} \<inter> Stable A"
 
   (*Polymorphic in both states and the meaning of \<le> *)
-  Increasing :: "['a => 'b::{order}] => 'a program set"
+definition Increasing :: "['a => 'b::{order}] => 'a program set" where
     "Increasing f == \<Inter>z. Stable {s. z \<le> f s}"
 
 

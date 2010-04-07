@@ -30,16 +30,17 @@ class ring = zero + one + plus + minus + uminus + times + inverse + power + dvd 
   and divide_def:       "a / b = a * inverse b"
 begin
 
-definition assoc :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "assoc" 50) where
-  assoc_def: "a assoc b \<longleftrightarrow> a dvd b & b dvd a"
+definition
+  assoc :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "assoc" 50)
+  where "a assoc b \<longleftrightarrow> a dvd b & b dvd a"
 
-definition irred :: "'a \<Rightarrow> bool" where
-  irred_def: "irred a \<longleftrightarrow> a ~= 0 & ~ a dvd 1
-                          & (ALL d. d dvd a --> d dvd 1 | a dvd d)"
+definition
+  irred :: "'a \<Rightarrow> bool" where
+  "irred a \<longleftrightarrow> a ~= 0 & ~ a dvd 1 & (ALL d. d dvd a --> d dvd 1 | a dvd d)"
 
-definition prime :: "'a \<Rightarrow> bool" where
-  prime_def: "prime p \<longleftrightarrow> p ~= 0 & ~ p dvd 1
-                          & (ALL a b. p dvd (a*b) --> p dvd a | p dvd b)"
+definition
+  prime :: "'a \<Rightarrow> bool" where
+  "prime p \<longleftrightarrow> p ~= 0 & ~ p dvd 1 & (ALL a b. p dvd (a*b) --> p dvd a | p dvd b)"
 
 end
 
@@ -64,10 +65,8 @@ class factorial = "domain" +
 subsection {* Euclidean domains *}
 
 (*
-axclass
-  euclidean < "domain"
-
-  euclidean_ax:  "b ~= 0 ==> Ex (% (q, r, e_size::('a::ringS)=>nat).
+class euclidean = "domain" +
+  assumes euclidean_ax: "b ~= 0 ==> Ex (% (q, r, e_size::('a::ringS)=>nat).
                    a = b * q + r & e_size r < e_size b)"
 
   Nothing has been proved about Euclidean domains, yet.
@@ -205,11 +204,11 @@ lemma r_minus: "(a::'a::ring) * (-b) = - (a * b)"
 ML {*
 fun ring_ord (Const (a, _)) =
     find_index (fn a' => a = a')
-      [@{const_name HOL.zero}, @{const_name HOL.plus}, @{const_name HOL.uminus},
-        @{const_name HOL.minus}, @{const_name HOL.one}, @{const_name HOL.times}]
+      [@{const_name Groups.zero}, @{const_name Groups.plus}, @{const_name Groups.uminus},
+        @{const_name Groups.minus}, @{const_name Groups.one}, @{const_name Groups.times}]
   | ring_ord _ = ~1;
 
-fun termless_ring (a, b) = (TermOrd.term_lpo ring_ord (a, b) = LESS);
+fun termless_ring (a, b) = (Term_Ord.term_lpo ring_ord (a, b) = LESS);
 
 val ring_ss = HOL_basic_ss settermless termless_ring addsimps
   [thm "a_assoc", thm "l_zero", thm "l_neg", thm "a_comm", thm "m_assoc",

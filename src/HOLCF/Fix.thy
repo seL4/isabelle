@@ -1,11 +1,12 @@
 (*  Title:      HOLCF/Fix.thy
     Author:     Franz Regensburger
+    Author:     Brian Huffman
 *)
 
 header {* Fixed point operator and admissibility *}
 
 theory Fix
-imports Cfun Cprod
+imports Cfun
 begin
 
 defaultsort pcpo
@@ -33,16 +34,10 @@ lemma iterate_iterate:
   "iterate m\<cdot>F\<cdot>(iterate n\<cdot>F\<cdot>x) = iterate (m + n)\<cdot>F\<cdot>x"
 by (induct m) simp_all
 
-text {*
-  The sequence of function iterations is a chain.
-  This property is essential since monotonicity of iterate makes no sense.
-*}
-
-lemma chain_iterate2: "x \<sqsubseteq> F\<cdot>x \<Longrightarrow> chain (\<lambda>i. iterate i\<cdot>F\<cdot>x)"
-by (rule chainI, induct_tac i, auto elim: monofun_cfun_arg)
+text {* The sequence of function iterations is a chain. *}
 
 lemma chain_iterate [simp]: "chain (\<lambda>i. iterate i\<cdot>F\<cdot>\<bottom>)"
-by (rule chain_iterate2 [OF minimal])
+by (rule chainI, unfold iterate_Suc2, rule monofun_cfun_arg, rule minimal)
 
 
 subsection {* Least fixed point operator *}
@@ -72,6 +67,10 @@ apply (rule ch2ch_lambda)
 apply (rule chain_iterate)
 apply simp
 done
+
+lemma iterate_below_fix: "iterate n\<cdot>f\<cdot>\<bottom> \<sqsubseteq> fix\<cdot>f"
+  unfolding fix_def2
+  using chain_iterate by (rule is_ub_thelub)
 
 text {*
   Kleene's fixed point theorems for continuous functions in pointed
@@ -198,31 +197,7 @@ proof -
     by (simp add: fix_def2)
 qed
 
-subsection {* Recursive let bindings *}
-
-definition
-  CLetrec :: "('a \<rightarrow> 'a \<times> 'b) \<rightarrow> 'b" where
-  "CLetrec = (\<Lambda> F. csnd\<cdot>(F\<cdot>(\<mu> x. cfst\<cdot>(F\<cdot>x))))"
-
-nonterminals
-  recbinds recbindt recbind
-
-syntax
-  "_recbind"  :: "['a, 'a] \<Rightarrow> recbind"               ("(2_ =/ _)" 10)
-  ""          :: "recbind \<Rightarrow> recbindt"               ("_")
-  "_recbindt" :: "[recbind, recbindt] \<Rightarrow> recbindt"   ("_,/ _")
-  ""          :: "recbindt \<Rightarrow> recbinds"              ("_")
-  "_recbinds" :: "[recbindt, recbinds] \<Rightarrow> recbinds"  ("_;/ _")
-  "_Letrec"   :: "[recbinds, 'a] \<Rightarrow> 'a"      ("(Letrec (_)/ in (_))" 10)
-
-translations
-  (recbindt) "x = a, \<langle>y,ys\<rangle> = \<langle>b,bs\<rangle>" == (recbindt) "\<langle>x,y,ys\<rangle> = \<langle>a,b,bs\<rangle>"
-  (recbindt) "x = a, y = b"          == (recbindt) "\<langle>x,y\<rangle> = \<langle>a,b\<rangle>"
-
-translations
-  "_Letrec (_recbinds b bs) e" == "_Letrec b (_Letrec bs e)"
-  "Letrec xs = a in \<langle>e,es\<rangle>"    == "CONST CLetrec\<cdot>(\<Lambda> xs. \<langle>a,e,es\<rangle>)"
-  "Letrec xs = a in e"         == "CONST CLetrec\<cdot>(\<Lambda> xs. \<langle>a,e\<rangle>)"
+subsection {* Fixed-points on product types *}
 
 text {*
   Bekic's Theorem: Simultaneous fixed points over pairs
@@ -231,54 +206,31 @@ text {*
 
 lemma fix_cprod:
   "fix\<cdot>(F::'a \<times> 'b \<rightarrow> 'a \<times> 'b) =
-   \<langle>\<mu> x. cfst\<cdot>(F\<cdot>\<langle>x, \<mu> y. csnd\<cdot>(F\<cdot>\<langle>x, y\<rangle>)\<rangle>),
-    \<mu> y. csnd\<cdot>(F\<cdot>\<langle>\<mu> x. cfst\<cdot>(F\<cdot>\<langle>x, \<mu> y. csnd\<cdot>(F\<cdot>\<langle>x, y\<rangle>)\<rangle>), y\<rangle>)\<rangle>"
-  (is "fix\<cdot>F = \<langle>?x, ?y\<rangle>")
+   (\<mu> x. fst (F\<cdot>(x, \<mu> y. snd (F\<cdot>(x, y)))),
+    \<mu> y. snd (F\<cdot>(\<mu> x. fst (F\<cdot>(x, \<mu> y. snd (F\<cdot>(x, y)))), y)))"
+  (is "fix\<cdot>F = (?x, ?y)")
 proof (rule fix_eqI)
-  have 1: "cfst\<cdot>(F\<cdot>\<langle>?x, ?y\<rangle>) = ?x"
+  have 1: "fst (F\<cdot>(?x, ?y)) = ?x"
     by (rule trans [symmetric, OF fix_eq], simp)
-  have 2: "csnd\<cdot>(F\<cdot>\<langle>?x, ?y\<rangle>) = ?y"
+  have 2: "snd (F\<cdot>(?x, ?y)) = ?y"
     by (rule trans [symmetric, OF fix_eq], simp)
-  from 1 2 show "F\<cdot>\<langle>?x, ?y\<rangle> = \<langle>?x, ?y\<rangle>" by (simp add: eq_cprod)
+  from 1 2 show "F\<cdot>(?x, ?y) = (?x, ?y)" by (simp add: Pair_fst_snd_eq)
 next
   fix z assume F_z: "F\<cdot>z = z"
-  then obtain x y where z: "z = \<langle>x,y\<rangle>" by (rule_tac p=z in cprodE)
-  from F_z z have F_x: "cfst\<cdot>(F\<cdot>\<langle>x, y\<rangle>) = x" by simp
-  from F_z z have F_y: "csnd\<cdot>(F\<cdot>\<langle>x, y\<rangle>) = y" by simp
-  let ?y1 = "\<mu> y. csnd\<cdot>(F\<cdot>\<langle>x, y\<rangle>)"
+  obtain x y where z: "z = (x,y)" by (rule prod.exhaust)
+  from F_z z have F_x: "fst (F\<cdot>(x, y)) = x" by simp
+  from F_z z have F_y: "snd (F\<cdot>(x, y)) = y" by simp
+  let ?y1 = "\<mu> y. snd (F\<cdot>(x, y))"
   have "?y1 \<sqsubseteq> y" by (rule fix_least, simp add: F_y)
-  hence "cfst\<cdot>(F\<cdot>\<langle>x, ?y1\<rangle>) \<sqsubseteq> cfst\<cdot>(F\<cdot>\<langle>x, y\<rangle>)" by (simp add: monofun_cfun)
-  hence "cfst\<cdot>(F\<cdot>\<langle>x, ?y1\<rangle>) \<sqsubseteq> x" using F_x by simp
+  hence "fst (F\<cdot>(x, ?y1)) \<sqsubseteq> fst (F\<cdot>(x, y))"
+    by (simp add: fst_monofun monofun_cfun)
+  hence "fst (F\<cdot>(x, ?y1)) \<sqsubseteq> x" using F_x by simp
   hence 1: "?x \<sqsubseteq> x" by (simp add: fix_least_below)
-  hence "csnd\<cdot>(F\<cdot>\<langle>?x, y\<rangle>) \<sqsubseteq> csnd\<cdot>(F\<cdot>\<langle>x, y\<rangle>)" by (simp add: monofun_cfun)
-  hence "csnd\<cdot>(F\<cdot>\<langle>?x, y\<rangle>) \<sqsubseteq> y" using F_y by simp
+  hence "snd (F\<cdot>(?x, y)) \<sqsubseteq> snd (F\<cdot>(x, y))"
+    by (simp add: snd_monofun monofun_cfun)
+  hence "snd (F\<cdot>(?x, y)) \<sqsubseteq> y" using F_y by simp
   hence 2: "?y \<sqsubseteq> y" by (simp add: fix_least_below)
-  show "\<langle>?x, ?y\<rangle> \<sqsubseteq> z" using z 1 2 by simp
+  show "(?x, ?y) \<sqsubseteq> z" using z 1 2 by simp
 qed
-
-subsection {* Weak admissibility *}
-
-definition
-  admw :: "('a \<Rightarrow> bool) \<Rightarrow> bool" where
-  "admw P = (\<forall>F. (\<forall>n. P (iterate n\<cdot>F\<cdot>\<bottom>)) \<longrightarrow> P (\<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>))"
-
-text {* an admissible formula is also weak admissible *}
-
-lemma adm_impl_admw: "adm P \<Longrightarrow> admw P"
-apply (unfold admw_def)
-apply (intro strip)
-apply (erule admD)
-apply (rule chain_iterate)
-apply (erule spec)
-done
-
-text {* computational induction for weak admissible formulae *}
-
-lemma wfix_ind: "\<lbrakk>admw P; \<forall>n. P (iterate n\<cdot>F\<cdot>\<bottom>)\<rbrakk> \<Longrightarrow> P (fix\<cdot>F)"
-by (simp add: fix_def2 admw_def)
-
-lemma def_wfix_ind:
-  "\<lbrakk>f \<equiv> fix\<cdot>F; admw P; \<forall>n. P (iterate n\<cdot>F\<cdot>\<bottom>)\<rbrakk> \<Longrightarrow> P f"
-by (simp, rule wfix_ind)
 
 end

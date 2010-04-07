@@ -1,6 +1,3 @@
-
-(* $Id$ *)
-
 header {* Example 3.8 *}
 
 theory Ex2

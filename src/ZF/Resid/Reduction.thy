@@ -1,8 +1,6 @@
-(*  Title:      Reduction.thy
-    ID:         $Id$
+(*  Title:      ZF/Resid/Reduction.thy
     Author:     Ole Rasmussen
     Copyright   1995  University of Cambridge
-    Logic Image: ZF
 *)
 
 theory Reduction imports Residuals begin

@@ -1,6 +1,6 @@
 (*  Title:      HOL/Tools/Nitpick/nitpick_tests.ML
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2008, 2009
+    Copyright   2008, 2009, 2010
 
 Unit tests for Nitpick.
 *)
@@ -8,7 +8,7 @@ Unit tests for Nitpick.
 signature NITPICK_TESTS =
 sig
   val run_all_tests : unit -> unit
-end
+end;
 
 structure Nitpick_Tests =
 struct
@@ -19,9 +19,7 @@ open Nitpick_Rep
 open Nitpick_Nut
 open Nitpick_Kodkod
 
-val settings =
-  [("solver", "\"zChaff\""),
-   ("skolem_depth", "-1")]
+val settings = [("solver", "\"DefaultSAT4J\"")]
 
 fun cast_to_rep R u = Op1 (Cast, type_of u, R, u)
 
@@ -294,7 +292,8 @@ val tests =
 *)
   ]
 
-fun problem_for_nut ctxt name u =
+(* Proof.context -> string * nut -> Kodkod.problem *)
+fun problem_for_nut ctxt (name, u) =
   let
     val debug = false
     val peephole_optim = true
@@ -308,7 +307,7 @@ fun problem_for_nut ctxt name u =
                        NameTable.empty
     val u = Op1 (Not, type_of u, rep_of u, u)
             |> rename_vars_in_nut pool table
-    val formula = kodkod_formula_from_nut bits Typtab.empty false constrs u
+    val formula = kodkod_formula_from_nut Typtab.empty constrs u
     val bounds = map (bound_for_plain_rel ctxt debug) free_rels
     val univ_card = univ_card nat_card int_card j0 bounds formula
     val declarative_axioms = map (declarative_axiom_for_plain_rel constrs)
@@ -320,15 +319,11 @@ fun problem_for_nut ctxt name u =
      formula = formula}
   end
 
-(* string -> unit *)
-fun run_test name =
-  case Kodkod.solve_any_problem false NONE 0 1
-           [problem_for_nut @{context} name
-                            (the (AList.lookup (op =) tests name))] of
-    Kodkod.Normal ([], _) => ()
-  | _ => warning ("Test " ^ quote name ^ " failed")
-
 (* unit -> unit *)
-fun run_all_tests () = List.app run_test (map fst tests)
+fun run_all_tests () =
+  case Kodkod.solve_any_problem false NONE 0 1
+                                (map (problem_for_nut @{context}) tests) of
+    Kodkod.Normal ([], _, _) => ()
+  | _ => error "Tests failed"
 
 end;

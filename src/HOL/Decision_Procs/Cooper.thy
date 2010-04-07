@@ -293,10 +293,10 @@ lemma bound0_qf: "bound0 p \<Longrightarrow> qfree p"
 by (induct p, simp_all)
 
 
-constdefs djf:: "('a \<Rightarrow> fm) \<Rightarrow> 'a \<Rightarrow> fm \<Rightarrow> fm"
+definition djf :: "('a \<Rightarrow> fm) \<Rightarrow> 'a \<Rightarrow> fm \<Rightarrow> fm" where
   "djf f p q \<equiv> (if q=T then T else if q=F then f p else 
   (let fp = f p in case fp of T \<Rightarrow> T | F \<Rightarrow> q | _ \<Rightarrow> Or (f p) q))"
-constdefs evaldjf:: "('a \<Rightarrow> fm) \<Rightarrow> 'a list \<Rightarrow> fm"
+definition evaldjf :: "('a \<Rightarrow> fm) \<Rightarrow> 'a list \<Rightarrow> fm" where
   "evaldjf f ps \<equiv> foldr (djf f) ps F"
 
 lemma djf_Or: "Ifm bbs bs (djf f p q) = Ifm bbs bs (Or (f p) q)"
@@ -340,7 +340,7 @@ proof-
   thus ?thesis by (simp only: list_all_iff)
 qed
 
-constdefs DJ :: "(fm \<Rightarrow> fm) \<Rightarrow> fm \<Rightarrow> fm"
+definition DJ :: "(fm \<Rightarrow> fm) \<Rightarrow> fm \<Rightarrow> fm" where
   "DJ f p \<equiv> evaldjf f (disjuncts p)"
 
 lemma DJ: assumes fdj: "\<forall> p q. f (Or p q) = Or (f p) (f q)"
@@ -395,7 +395,7 @@ recdef lex_ns "measure (\<lambda> (xs,ys). length xs + length ys)"
   "lex_ns ([], ms) = True"
   "lex_ns (ns, []) = False"
   "lex_ns (n#ns, m#ms) = (n<m \<or> ((n = m) \<and> lex_ns (ns,ms))) "
-constdefs lex_bnd :: "num \<Rightarrow> num \<Rightarrow> bool"
+definition lex_bnd :: "num \<Rightarrow> num \<Rightarrow> bool" where
   "lex_bnd t s \<equiv> lex_ns (bnds t, bnds s)"
 
 consts
@@ -455,10 +455,10 @@ by (induct t rule: nummul.induct, auto simp add: algebra_simps numadd)
 lemma nummul_nb: "\<And> i. numbound0 t \<Longrightarrow> numbound0 (nummul i t)"
 by (induct t rule: nummul.induct, auto simp add: numadd_nb)
 
-constdefs numneg :: "num \<Rightarrow> num"
+definition numneg :: "num \<Rightarrow> num" where
   "numneg t \<equiv> nummul (- 1) t"
 
-constdefs numsub :: "num \<Rightarrow> num \<Rightarrow> num"
+definition numsub :: "num \<Rightarrow> num \<Rightarrow> num" where
   "numsub s t \<equiv> (if s = t then C 0 else numadd (s, numneg t))"
 
 lemma numneg: "Inum bs (numneg t) = Inum bs (Neg t)"
@@ -505,7 +505,7 @@ by (cases p, auto)
 lemma not_bn: "bound0 p \<Longrightarrow> bound0 (not p)"
 by (cases p, auto)
 
-constdefs conj :: "fm \<Rightarrow> fm \<Rightarrow> fm"
+definition conj :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
   "conj p q \<equiv> (if (p = F \<or> q=F) then F else if p=T then q else if q=T then p else And p q)"
 lemma conj: "Ifm bbs bs (conj p q) = Ifm bbs bs (And p q)"
 by (cases "p=F \<or> q=F",simp_all add: conj_def) (cases p,simp_all)
@@ -515,7 +515,7 @@ using conj_def by auto
 lemma conj_nb: "\<lbrakk>bound0 p ; bound0 q\<rbrakk> \<Longrightarrow> bound0 (conj p q)"
 using conj_def by auto 
 
-constdefs disj :: "fm \<Rightarrow> fm \<Rightarrow> fm"
+definition disj :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
   "disj p q \<equiv> (if (p = T \<or> q=T) then T else if p=F then q else if q=F then p else Or p q)"
 
 lemma disj: "Ifm bbs bs (disj p q) = Ifm bbs bs (Or p q)"
@@ -525,7 +525,7 @@ using disj_def by auto
 lemma disj_nb: "\<lbrakk>bound0 p ; bound0 q\<rbrakk> \<Longrightarrow> bound0 (disj p q)"
 using disj_def by auto 
 
-constdefs   imp :: "fm \<Rightarrow> fm \<Rightarrow> fm"
+definition imp :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
   "imp p q \<equiv> (if (p = F \<or> q=T) then T else if p=T then q else if q=F then not p else Imp p q)"
 lemma imp: "Ifm bbs bs (imp p q) = Ifm bbs bs (Imp p q)"
 by (cases "p=F \<or> q=T",simp_all add: imp_def,cases p) (simp_all add: not)
@@ -534,7 +534,7 @@ using imp_def by (cases "p=F \<or> q=T",simp_all add: imp_def,cases p) (simp_all
 lemma imp_nb: "\<lbrakk>bound0 p ; bound0 q\<rbrakk> \<Longrightarrow> bound0 (imp p q)"
 using imp_def by (cases "p=F \<or> q=T",simp_all add: imp_def,cases p) simp_all
 
-constdefs   iff :: "fm \<Rightarrow> fm \<Rightarrow> fm"
+definition iff :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
   "iff p q \<equiv> (if (p = q) then T else if (p = not q \<or> not p = q) then F else 
        if p=F then not q else if q=F then not p else if p=T then q else if q=T then p else 
   Iff p q)"
@@ -1749,7 +1749,7 @@ lemma cp_thm':
   shows "(\<exists> x. Ifm bbs (x#bs) p) = ((\<exists> j\<in> {1 .. d}. Ifm bbs (j#bs) (minusinf p)) \<or> (\<exists> j\<in> {1.. d}. \<exists> b\<in> (Inum (i#bs)) ` set (\<beta> p). Ifm bbs ((b+j)#bs) p))"
   using cp_thm[OF lp up dd dp,where i="i"] by auto
 
-constdefs unit:: "fm \<Rightarrow> fm \<times> num list \<times> int"
+definition unit :: "fm \<Rightarrow> fm \<times> num list \<times> int" where
   "unit p \<equiv> (let p' = zlfm p ; l = \<zeta> p' ; q = And (Dvd l (CN 0 1 (C 0))) (a\<beta> p' l); d = \<delta> q;
              B = remdups (map simpnum (\<beta> q)) ; a = remdups (map simpnum (\<alpha> q))
              in if length B \<le> length a then (q,B,d) else (mirror q, a,d))"
@@ -1814,7 +1814,7 @@ proof-
 qed
     (* Cooper's Algorithm *)
 
-constdefs cooper :: "fm \<Rightarrow> fm"
+definition cooper :: "fm \<Rightarrow> fm" where
   "cooper p \<equiv> 
   (let (q,B,d) = unit p; js = iupt 1 d;
        mq = simpfm (minusinf q);

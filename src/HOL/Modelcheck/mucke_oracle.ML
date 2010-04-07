@@ -498,7 +498,7 @@ fun callmc s =
       else mucke_home ^ "/mucke";
     val mucke_input_file = File.tmp_path (Path.basic "tmp.mu");
     val _ = File.write mucke_input_file s;
-    val (result, _) = system_out (mucke ^ " -nb -res " ^ File.shell_path mucke_input_file);
+    val (result, _) = bash_output (mucke ^ " -nb -res " ^ File.shell_path mucke_input_file);
   in
     if not (!trace_mc) then (File.rm mucke_input_file) else (); 
     result

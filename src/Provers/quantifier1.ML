@@ -1,5 +1,4 @@
-(*  Title:      Provers/quantifier1
-    ID:         $Id$
+(*  Title:      Provers/quantifier1.ML
     Author:     Tobias Nipkow
     Copyright   1997  TU Munich
 

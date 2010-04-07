@@ -1,10 +1,8 @@
 (*  Title:      HOL/Lambda/Commutation.thy
-    ID:         $Id$
     Author:     Tobias Nipkow & Sidi Ould Ehmety
     Copyright   1995  TU Muenchen
 
-Commutation theory for proving the Church Rosser theorem
-        ported from Isabelle/HOL  by Sidi Ould Ehmety
+Commutation theory for proving the Church Rosser theorem.
 *)
 
 theory Commutation imports Main begin

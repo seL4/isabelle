@@ -33,7 +33,7 @@ val allowed_consts =
    @{term "abs :: int => _"},
    @{term "max :: int => _"}, @{term "max :: nat => _"},
    @{term "min :: int => _"}, @{term "min :: nat => _"},
-   @{term "HOL.uminus :: int => _"}, (*@ {term "HOL.uminus :: nat => _"},*)
+   @{term "uminus :: int => _"}, (*@ {term "uminus :: nat => _"},*)
    @{term "Not"}, @{term "Suc"},
    @{term "Ex :: (int => _) => _"}, @{term "Ex :: (nat => _) => _"},
    @{term "All :: (int => _) => _"}, @{term "All :: (nat => _) => _"},

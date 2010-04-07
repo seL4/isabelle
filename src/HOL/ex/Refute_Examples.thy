@@ -249,12 +249,13 @@ oops
 
 text {* "The transitive closure 'T' of an arbitrary relation 'P' is non-empty." *}
 
-constdefs
-  "trans" :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
+definition "trans" :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
   "trans P == (ALL x y z. P x y \<longrightarrow> P y z \<longrightarrow> P x z)"
-  "subset" :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
+
+definition "subset" :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
   "subset P Q == (ALL x y. P x y \<longrightarrow> Q x y)"
-  "trans_closure" :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
+
+definition "trans_closure" :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
   "trans_closure P Q == (subset Q P) & (trans P) & (ALL R. subset Q R \<longrightarrow> trans R \<longrightarrow> subset P R)"
 
 lemma "trans_closure T P \<longrightarrow> (\<exists>x y. T x y)"
@@ -1417,29 +1418,20 @@ oops
 
 (*****************************************************************************)
 
-subsubsection {* Axiomatic type classes and overloading *}
+subsubsection {* Type classes and overloading *}
 
 text {* A type class without axioms: *}
 
-axclass classA
+class classA
 
 lemma "P (x::'a::classA)"
   refute
 oops
 
-text {* The axiom of this type class does not contain any type variables: *}
-
-axclass classB
-  classB_ax: "P | ~ P"
-
-lemma "P (x::'a::classB)"
-  refute
-oops
-
 text {* An axiom with a type variable (denoting types which have at least two elements): *}
 
-axclass classC < type
-  classC_ax: "\<exists>x y. x \<noteq> y"
+class classC =
+  assumes classC_ax: "\<exists>x y. x \<noteq> y"
 
 lemma "P (x::'a::classC)"
   refute
@@ -1451,11 +1443,9 @@ oops
 
 text {* A type class for which a constant is defined: *}
 
-consts
-  classD_const :: "'a \<Rightarrow> 'a"
-
-axclass classD < type
-  classD_ax: "classD_const (classD_const x) = classD_const x"
+class classD =
+  fixes classD_const :: "'a \<Rightarrow> 'a"
+  assumes classD_ax: "classD_const (classD_const x) = classD_const x"
 
 lemma "P (x::'a::classD)"
   refute
@@ -1463,13 +1453,9 @@ oops
 
 text {* A type class with multiple superclasses: *}
 
-axclass classE < classC, classD
+class classE = classC + classD
 
 lemma "P (x::'a::classE)"
-  refute
-oops
-
-lemma "P (x::'a::{classB, classE})"
   refute
 oops
 
@@ -1483,12 +1469,6 @@ done
 lemma "OFCLASS('a::classC, type_class)"
   refute  -- {* no countermodel exists *}
   apply intro_classes
-done
-
-lemma "OFCLASS('a, classB_class)"
-  refute  -- {* no countermodel exists *}
-  apply intro_classes
-  apply simp
 done
 
 lemma "OFCLASS('a::type, classC_class)"

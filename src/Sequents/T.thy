@@ -1,5 +1,4 @@
-(*  Title:      Modal/T.thy
-    ID:         $Id$
+(*  Title:      Sequents/T.thy
     Author:     Martin Coen
     Copyright   1991  University of Cambridge
 *)

@@ -297,8 +297,12 @@ text {*
   only plain postfix notation is available here, but no infixes.
 
   \indexouternonterm{typespec}
+  \indexouternonterm{typespecsorts}
   \begin{rail}
     typespec: (() | typefree | '(' ( typefree + ',' ) ')') name
+    ;
+
+    typespecsorts: (() | (typefree ('::' sort)?) | '(' ( (typefree ('::' sort)?) + ',' ) ')') name
     ;
   \end{rail}
 *}

@@ -3,7 +3,7 @@
 *)
 
 theory Matrix
-imports Main
+imports Main Lattice_Algebras
 begin
 
 types 'a infmatrix = "nat \<Rightarrow> nat \<Rightarrow> 'a"
@@ -24,15 +24,15 @@ lemma finite_nonzero_positions : "finite (nonzero_positions (Rep_matrix A))"
 apply (rule Abs_matrix_induct)
 by (simp add: Abs_matrix_inverse matrix_def)
 
-constdefs
-  nrows :: "('a::zero) matrix \<Rightarrow> nat"
+definition nrows :: "('a::zero) matrix \<Rightarrow> nat" where
   "nrows A == if nonzero_positions(Rep_matrix A) = {} then 0 else Suc(Max ((image fst) (nonzero_positions (Rep_matrix A))))"
-  ncols :: "('a::zero) matrix \<Rightarrow> nat"
+
+definition ncols :: "('a::zero) matrix \<Rightarrow> nat" where
   "ncols A == if nonzero_positions(Rep_matrix A) = {} then 0 else Suc(Max ((image snd) (nonzero_positions (Rep_matrix A))))"
 
 lemma nrows:
   assumes hyp: "nrows A \<le> m"
-  shows "(Rep_matrix A m n) = 0" (is ?concl)
+  shows "(Rep_matrix A m n) = 0"
 proof cases
   assume "nonzero_positions(Rep_matrix A) = {}"
   then show "(Rep_matrix A m n) = 0" by (simp add: nonzero_positions_def)
@@ -50,10 +50,10 @@ next
   thus "Rep_matrix A m n = 0" by (simp add: nonzero_positions_def image_Collect)
 qed
 
-constdefs
-  transpose_infmatrix :: "'a infmatrix \<Rightarrow> 'a infmatrix"
+definition transpose_infmatrix :: "'a infmatrix \<Rightarrow> 'a infmatrix" where
   "transpose_infmatrix A j i == A i j"
-  transpose_matrix :: "('a::zero) matrix \<Rightarrow> 'a matrix"
+
+definition transpose_matrix :: "('a::zero) matrix \<Rightarrow> 'a matrix" where
   "transpose_matrix == Abs_matrix o transpose_infmatrix o Rep_matrix"
 
 declare transpose_infmatrix_def[simp]
@@ -157,13 +157,13 @@ proof (simp add: ncols_def, auto)
   ultimately show "False" using b by (simp)
 qed
 
-lemma less_ncols: "(n < ncols A) = (? j i. n <= i & (Rep_matrix A j i) \<noteq> 0)" (is ?concl)
+lemma less_ncols: "(n < ncols A) = (? j i. n <= i & (Rep_matrix A j i) \<noteq> 0)"
 proof -
   have a: "!! (a::nat) b. (a < b) = (~(b <= a))" by arith
-  show ?concl by (simp add: a ncols_le)
+  show ?thesis by (simp add: a ncols_le)
 qed
 
-lemma le_ncols: "(n <= ncols A) = (\<forall> m. (\<forall> j i. m <= i \<longrightarrow> (Rep_matrix A j i) = 0) \<longrightarrow> n <= m)" (is ?concl)
+lemma le_ncols: "(n <= ncols A) = (\<forall> m. (\<forall> j i. m <= i \<longrightarrow> (Rep_matrix A j i) = 0) \<longrightarrow> n <= m)"
 apply (auto)
 apply (subgoal_tac "ncols A <= m")
 apply (simp)
@@ -179,13 +179,13 @@ proof -
   finally show "(nrows A <= n) = (! j i. n <= j \<longrightarrow> (Rep_matrix A j i) = 0)" by (auto)
 qed
 
-lemma less_nrows: "(m < nrows A) = (? j i. m <= j & (Rep_matrix A j i) \<noteq> 0)" (is ?concl)
+lemma less_nrows: "(m < nrows A) = (? j i. m <= j & (Rep_matrix A j i) \<noteq> 0)"
 proof -
   have a: "!! (a::nat) b. (a < b) = (~(b <= a))" by arith
-  show ?concl by (simp add: a nrows_le)
+  show ?thesis by (simp add: a nrows_le)
 qed
 
-lemma le_nrows: "(n <= nrows A) = (\<forall> m. (\<forall> j i. m <= j \<longrightarrow> (Rep_matrix A j i) = 0) \<longrightarrow> n <= m)" (is ?concl)
+lemma le_nrows: "(n <= nrows A) = (\<forall> m. (\<forall> j i. m <= j \<longrightarrow> (Rep_matrix A j i) = 0) \<longrightarrow> n <= m)"
 apply (auto)
 apply (subgoal_tac "nrows A <= m")
 apply (simp)
@@ -256,14 +256,16 @@ proof -
   ultimately show "finite ?u" by (rule finite_subset)
 qed
 
-constdefs
-  apply_infmatrix :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a infmatrix \<Rightarrow> 'b infmatrix"
+definition apply_infmatrix :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a infmatrix \<Rightarrow> 'b infmatrix" where
   "apply_infmatrix f == % A. (% j i. f (A j i))"
-  apply_matrix :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a::zero) matrix \<Rightarrow> ('b::zero) matrix"
+
+definition apply_matrix :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a::zero) matrix \<Rightarrow> ('b::zero) matrix" where
   "apply_matrix f == % A. Abs_matrix (apply_infmatrix f (Rep_matrix A))"
-  combine_infmatrix :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a infmatrix \<Rightarrow> 'b infmatrix \<Rightarrow> 'c infmatrix"
+
+definition combine_infmatrix :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a infmatrix \<Rightarrow> 'b infmatrix \<Rightarrow> 'c infmatrix" where
   "combine_infmatrix f == % A B. (% j i. f (A j i) (B j i))"
-  combine_matrix :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a::zero) matrix \<Rightarrow> ('b::zero) matrix \<Rightarrow> ('c::zero) matrix"
+
+definition combine_matrix :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a::zero) matrix \<Rightarrow> ('b::zero) matrix \<Rightarrow> ('c::zero) matrix" where
   "combine_matrix f == % A B. Abs_matrix (combine_infmatrix f (Rep_matrix A) (Rep_matrix B))"
 
 lemma expand_apply_infmatrix[simp]: "apply_infmatrix f A j i = f (A j i)"
@@ -272,10 +274,10 @@ by (simp add: apply_infmatrix_def)
 lemma expand_combine_infmatrix[simp]: "combine_infmatrix f A B j i = f (A j i) (B j i)"
 by (simp add: combine_infmatrix_def)
 
-constdefs
-commutative :: "('a \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> bool"
+definition commutative :: "('a \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> bool" where
 "commutative f == ! x y. f x y = f y x"
-associative :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> bool"
+
+definition associative :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> bool" where
 "associative f == ! x y z. f (f x y) z = f x (f y z)"
 
 text{*
@@ -356,12 +358,13 @@ lemma combine_nrows: "f 0 0 = 0 \<Longrightarrow> nrows A <= q \<Longrightarrow>
 lemma combine_ncols: "f 0 0 = 0 \<Longrightarrow> ncols A <= q \<Longrightarrow> ncols B <= q \<Longrightarrow> ncols(combine_matrix f A B) <= q"
   by (simp add: ncols_le)
 
-constdefs
-  zero_r_neutral :: "('a \<Rightarrow> 'b::zero \<Rightarrow> 'a) \<Rightarrow> bool"
+definition zero_r_neutral :: "('a \<Rightarrow> 'b::zero \<Rightarrow> 'a) \<Rightarrow> bool" where
   "zero_r_neutral f == ! a. f a 0 = a"
-  zero_l_neutral :: "('a::zero \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> bool"
+
+definition zero_l_neutral :: "('a::zero \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> bool" where
   "zero_l_neutral f == ! a. f 0 a = a"
-  zero_closed :: "(('a::zero) \<Rightarrow> ('b::zero) \<Rightarrow> ('c::zero)) \<Rightarrow> bool"
+
+definition zero_closed :: "(('a::zero) \<Rightarrow> ('b::zero) \<Rightarrow> ('c::zero)) \<Rightarrow> bool" where
   "zero_closed f == (!x. f x 0 = 0) & (!y. f 0 y = 0)"
 
 consts foldseq :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a"
@@ -476,7 +479,7 @@ qed
 
 lemma foldseq_significant_positions:
   assumes p: "! i. i <= N \<longrightarrow> S i = T i"
-  shows "foldseq f S N = foldseq f T N" (is ?concl)
+  shows "foldseq f S N = foldseq f T N"
 proof -
   have "!! m . ! s t. (! i. i<=m \<longrightarrow> s i = t i) \<longrightarrow> foldseq f s m = foldseq f t m"
     apply (induct_tac m)
@@ -493,10 +496,12 @@ proof -
       have d:"!! s t. (\<forall>i\<le>n. s i = t i) \<Longrightarrow> foldseq f s n = foldseq f t n" by (simp add: a)
       show "f (t 0) (foldseq f (\<lambda>k. s (Suc k)) n) = f (t 0) (foldseq f (\<lambda>k. t (Suc k)) n)" by (rule c, simp add: d b)
     qed
-  with p show ?concl by simp
+  with p show ?thesis by simp
 qed
 
-lemma foldseq_tail: "M <= N \<Longrightarrow> foldseq f S N = foldseq f (% k. (if k < M then (S k) else (foldseq f (% k. S(k+M)) (N-M)))) M" (is "?p \<Longrightarrow> ?concl")
+lemma foldseq_tail:
+  assumes "M <= N"
+  shows "foldseq f S N = foldseq f (% k. (if k < M then (S k) else (foldseq f (% k. S(k+M)) (N-M)))) M"
 proof -
   have suc: "!! a b. \<lbrakk>a <= Suc b; a \<noteq> Suc b\<rbrakk> \<Longrightarrow> a <= b" by arith
   have a:"!! a b c . a = b \<Longrightarrow> f c a = f c b" by blast
@@ -530,7 +535,7 @@ proof -
         apply (rule a)
         by (simp add: subc if_def)
     qed
-  then show "?p \<Longrightarrow> ?concl" by simp
+  then show ?thesis using assms by simp
 qed
 
 lemma foldseq_zerotail:
@@ -553,14 +558,13 @@ lemma foldseq_zerotail2:
   assumes "! x. f x 0 = x"
   and "! i. n < i \<longrightarrow> s i = 0"
   and nm: "n <= m"
-  shows
-  "foldseq f s n = foldseq f s m" (is ?concl)
+  shows "foldseq f s n = foldseq f s m"
 proof -
-  have "f 0 0 = 0" by (simp add: prems)
+  have "f 0 0 = 0" by (simp add: assms)
   have b:"!! m n. n <= m \<Longrightarrow> m \<noteq> n \<Longrightarrow> ? k. m-n = Suc k" by arith
   have c: "0 <= m" by simp
   have d: "!! k. k \<noteq> 0 \<Longrightarrow> ? l. k = Suc l" by arith
-  show ?concl
+  show ?thesis
     apply (subst foldseq_tail[OF nm])
     apply (rule foldseq_significant_positions)
     apply (auto)
@@ -569,10 +573,11 @@ proof -
     apply (drule b[OF nm])
     apply (auto)
     apply (case_tac "k=0")
-    apply (simp add: prems)
+    apply (simp add: assms)
     apply (drule d)
     apply (auto)
-    by (simp add: prems foldseq_zero)
+    apply (simp add: assms foldseq_zero)
+    done
 qed
 
 lemma foldseq_zerostart:
@@ -620,11 +625,11 @@ qed
 
 lemma foldseq_almostzero:
   assumes f0x:"! x. f 0 x = x" and fx0: "! x. f x 0 = x" and s0:"! i. i \<noteq> j \<longrightarrow> s i = 0"
-  shows "foldseq f s n = (if (j <= n) then (s j) else 0)" (is ?concl)
+  shows "foldseq f s n = (if (j <= n) then (s j) else 0)"
 proof -
   from s0 have a: "! i. i < j \<longrightarrow> s i = 0" by simp
   from s0 have b: "! i. j < i \<longrightarrow> s i = 0" by simp
-  show ?concl
+  show ?thesis
     apply auto
     apply (subst foldseq_zerotail2[of f, OF fx0, of j, OF b, of n, THEN sym])
     apply simp
@@ -636,7 +641,7 @@ qed
 
 lemma foldseq_distr_unary:
   assumes "!! a b. g (f a b) = f (g a) (g b)"
-  shows "g(foldseq f s n) = foldseq f (% x. g(s x)) n" (is ?concl)
+  shows "g(foldseq f s n) = foldseq f (% x. g(s x)) n"
 proof -
   have "! s. g(foldseq f s n) = foldseq f (% x. g(s x)) n"
     apply (induct_tac n)
@@ -644,64 +649,68 @@ proof -
     apply (simp)
     apply (auto)
     apply (drule_tac x="% k. s (Suc k)" in spec)
-    by (simp add: prems)
-  then show ?concl by simp
+    by (simp add: assms)
+  then show ?thesis by simp
 qed
 
-constdefs
-  mult_matrix_n :: "nat \<Rightarrow> (('a::zero) \<Rightarrow> ('b::zero) \<Rightarrow> ('c::zero)) \<Rightarrow> ('c \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> 'a matrix \<Rightarrow> 'b matrix \<Rightarrow> 'c matrix"
+definition mult_matrix_n :: "nat \<Rightarrow> (('a::zero) \<Rightarrow> ('b::zero) \<Rightarrow> ('c::zero)) \<Rightarrow> ('c \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> 'a matrix \<Rightarrow> 'b matrix \<Rightarrow> 'c matrix" where
   "mult_matrix_n n fmul fadd A B == Abs_matrix(% j i. foldseq fadd (% k. fmul (Rep_matrix A j k) (Rep_matrix B k i)) n)"
-  mult_matrix :: "(('a::zero) \<Rightarrow> ('b::zero) \<Rightarrow> ('c::zero)) \<Rightarrow> ('c \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> 'a matrix \<Rightarrow> 'b matrix \<Rightarrow> 'c matrix"
+
+definition mult_matrix :: "(('a::zero) \<Rightarrow> ('b::zero) \<Rightarrow> ('c::zero)) \<Rightarrow> ('c \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> 'a matrix \<Rightarrow> 'b matrix \<Rightarrow> 'c matrix" where
   "mult_matrix fmul fadd A B == mult_matrix_n (max (ncols A) (nrows B)) fmul fadd A B"
 
 lemma mult_matrix_n:
-  assumes prems: "ncols A \<le>  n" (is ?An) "nrows B \<le> n" (is ?Bn) "fadd 0 0 = 0" "fmul 0 0 = 0"
-  shows c:"mult_matrix fmul fadd A B = mult_matrix_n n fmul fadd A B" (is ?concl)
+  assumes "ncols A \<le>  n" (is ?An) "nrows B \<le> n" (is ?Bn) "fadd 0 0 = 0" "fmul 0 0 = 0"
+  shows c:"mult_matrix fmul fadd A B = mult_matrix_n n fmul fadd A B"
 proof -
-  show ?concl using prems
+  show ?thesis using assms
     apply (simp add: mult_matrix_def mult_matrix_n_def)
     apply (rule comb[of "Abs_matrix" "Abs_matrix"], simp, (rule ext)+)
-    by (rule foldseq_zerotail, simp_all add: nrows_le ncols_le prems)
+    apply (rule foldseq_zerotail, simp_all add: nrows_le ncols_le assms)
+    done
 qed
 
 lemma mult_matrix_nm:
-  assumes prems: "ncols A <= n" "nrows B <= n" "ncols A <= m" "nrows B <= m" "fadd 0 0 = 0" "fmul 0 0 = 0"
+  assumes "ncols A <= n" "nrows B <= n" "ncols A <= m" "nrows B <= m" "fadd 0 0 = 0" "fmul 0 0 = 0"
   shows "mult_matrix_n n fmul fadd A B = mult_matrix_n m fmul fadd A B"
 proof -
-  from prems have "mult_matrix_n n fmul fadd A B = mult_matrix fmul fadd A B" by (simp add: mult_matrix_n)
-  also from prems have "\<dots> = mult_matrix_n m fmul fadd A B" by (simp add: mult_matrix_n[THEN sym])
+  from assms have "mult_matrix_n n fmul fadd A B = mult_matrix fmul fadd A B"
+    by (simp add: mult_matrix_n)
+  also from assms have "\<dots> = mult_matrix_n m fmul fadd A B"
+    by (simp add: mult_matrix_n[THEN sym])
   finally show "mult_matrix_n n fmul fadd A B = mult_matrix_n m fmul fadd A B" by simp
 qed
 
-constdefs
-  r_distributive :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> bool"
+definition r_distributive :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> bool" where
   "r_distributive fmul fadd == ! a u v. fmul a (fadd u v) = fadd (fmul a u) (fmul a v)"
-  l_distributive :: "('a \<Rightarrow> 'b \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> bool"
+
+definition l_distributive :: "('a \<Rightarrow> 'b \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> bool" where
   "l_distributive fmul fadd == ! a u v. fmul (fadd u v) a = fadd (fmul u a) (fmul v a)"
-  distributive :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> bool"
+
+definition distributive :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> bool" where
   "distributive fmul fadd == l_distributive fmul fadd & r_distributive fmul fadd"
 
 lemma max1: "!! a x y. (a::nat) <= x \<Longrightarrow> a <= max x y" by (arith)
 lemma max2: "!! b x y. (b::nat) <= y \<Longrightarrow> b <= max x y" by (arith)
 
 lemma r_distributive_matrix:
- assumes prems:
+ assumes
   "r_distributive fmul fadd"
   "associative fadd"
   "commutative fadd"
   "fadd 0 0 = 0"
   "! a. fmul a 0 = 0"
   "! a. fmul 0 a = 0"
- shows "r_distributive (mult_matrix fmul fadd) (combine_matrix fadd)" (is ?concl)
+ shows "r_distributive (mult_matrix fmul fadd) (combine_matrix fadd)"
 proof -
-  from prems show ?concl
+  from assms show ?thesis
     apply (simp add: r_distributive_def mult_matrix_def, auto)
     proof -
       fix a::"'a matrix"
       fix u::"'b matrix"
       fix v::"'b matrix"
       let ?mx = "max (ncols a) (max (nrows u) (nrows v))"
-      from prems show "mult_matrix_n (max (ncols a) (nrows (combine_matrix fadd u v))) fmul fadd a (combine_matrix fadd u v) =
+      from assms show "mult_matrix_n (max (ncols a) (nrows (combine_matrix fadd u v))) fmul fadd a (combine_matrix fadd u v) =
         combine_matrix fadd (mult_matrix_n (max (ncols a) (nrows u)) fmul fadd a u) (mult_matrix_n (max (ncols a) (nrows v)) fmul fadd a v)"
         apply (subst mult_matrix_nm[of _ _ _ ?mx fadd fmul])
         apply (simp add: max1 max2 combine_nrows combine_ncols)+
@@ -725,23 +734,23 @@ proof -
 qed
 
 lemma l_distributive_matrix:
- assumes prems:
+ assumes
   "l_distributive fmul fadd"
   "associative fadd"
   "commutative fadd"
   "fadd 0 0 = 0"
   "! a. fmul a 0 = 0"
   "! a. fmul 0 a = 0"
- shows "l_distributive (mult_matrix fmul fadd) (combine_matrix fadd)" (is ?concl)
+ shows "l_distributive (mult_matrix fmul fadd) (combine_matrix fadd)"
 proof -
-  from prems show ?concl
+  from assms show ?thesis
     apply (simp add: l_distributive_def mult_matrix_def, auto)
     proof -
       fix a::"'b matrix"
       fix u::"'a matrix"
       fix v::"'a matrix"
       let ?mx = "max (nrows a) (max (ncols u) (ncols v))"
-      from prems show "mult_matrix_n (max (ncols (combine_matrix fadd u v)) (nrows a)) fmul fadd (combine_matrix fadd u v) a =
+      from assms show "mult_matrix_n (max (ncols (combine_matrix fadd u v)) (nrows a)) fmul fadd (combine_matrix fadd u v) a =
                combine_matrix fadd (mult_matrix_n (max (ncols u) (nrows a)) fmul fadd u a) (mult_matrix_n (max (ncols v) (nrows a)) fmul fadd v a)"
         apply (subst mult_matrix_nm[of v _ _ ?mx fadd fmul])
         apply (simp add: max1 max2 combine_nrows combine_ncols)+
@@ -835,20 +844,22 @@ lemma apply_zero_matrix_def[simp]: "apply_matrix (% x. 0) A = 0"
   apply (simp add: apply_matrix_def apply_infmatrix_def)
   by (simp add: zero_matrix_def)
 
-constdefs
-  singleton_matrix :: "nat \<Rightarrow> nat \<Rightarrow> ('a::zero) \<Rightarrow> 'a matrix"
+definition singleton_matrix :: "nat \<Rightarrow> nat \<Rightarrow> ('a::zero) \<Rightarrow> 'a matrix" where
   "singleton_matrix j i a == Abs_matrix(% m n. if j = m & i = n then a else 0)"
-  move_matrix :: "('a::zero) matrix \<Rightarrow> int \<Rightarrow> int \<Rightarrow> 'a matrix"
+
+definition move_matrix :: "('a::zero) matrix \<Rightarrow> int \<Rightarrow> int \<Rightarrow> 'a matrix" where
   "move_matrix A y x == Abs_matrix(% j i. if (neg ((int j)-y)) | (neg ((int i)-x)) then 0 else Rep_matrix A (nat ((int j)-y)) (nat ((int i)-x)))"
-  take_rows :: "('a::zero) matrix \<Rightarrow> nat \<Rightarrow> 'a matrix"
+
+definition take_rows :: "('a::zero) matrix \<Rightarrow> nat \<Rightarrow> 'a matrix" where
   "take_rows A r == Abs_matrix(% j i. if (j < r) then (Rep_matrix A j i) else 0)"
-  take_columns :: "('a::zero) matrix \<Rightarrow> nat \<Rightarrow> 'a matrix"
+
+definition take_columns :: "('a::zero) matrix \<Rightarrow> nat \<Rightarrow> 'a matrix" where
   "take_columns A c == Abs_matrix(% j i. if (i < c) then (Rep_matrix A j i) else 0)"
 
-constdefs
-  column_of_matrix :: "('a::zero) matrix \<Rightarrow> nat \<Rightarrow> 'a matrix"
+definition column_of_matrix :: "('a::zero) matrix \<Rightarrow> nat \<Rightarrow> 'a matrix" where
   "column_of_matrix A n == take_columns (move_matrix A 0 (- int n)) 1"
-  row_of_matrix :: "('a::zero) matrix \<Rightarrow> nat \<Rightarrow> 'a matrix"
+
+definition row_of_matrix :: "('a::zero) matrix \<Rightarrow> nat \<Rightarrow> 'a matrix" where
   "row_of_matrix A m == take_rows (move_matrix A (- int m) 0) 1"
 
 lemma Rep_singleton_matrix[simp]: "Rep_matrix (singleton_matrix j i e) m n = (if j = m & i = n then e else 0)"
@@ -989,7 +1000,7 @@ apply (rule ext)+
 by (simp add: nrows)
 
 lemma mult_matrix_singleton_right[simp]:
-  assumes prems:
+  assumes
   "! x. fmul x 0 = 0"
   "! x. fmul 0 x = 0"
   "! x. fadd 0 x = x"
@@ -998,13 +1009,13 @@ lemma mult_matrix_singleton_right[simp]:
   apply (simp add: mult_matrix_def)
   apply (subst mult_matrix_nm[of _ _ _ "max (ncols A) (Suc j)"])
   apply (auto)
-  apply (simp add: prems)+
+  apply (simp add: assms)+
   apply (simp add: mult_matrix_n_def apply_matrix_def apply_infmatrix_def)
   apply (rule comb[of "Abs_matrix" "Abs_matrix"], auto, (rule ext)+)
   apply (subst foldseq_almostzero[of _ j])
-  apply (simp add: prems)+
+  apply (simp add: assms)+
   apply (auto)
-  apply (metis comm_monoid_add.mult_1 le_antisym le_diff_eq not_neg_nat zero_le_imp_of_nat zle_int)
+  apply (metis add_0 le_antisym le_diff_eq not_neg_nat zero_le_imp_of_nat zle_int)
   done
 
 lemma mult_matrix_ext:
@@ -1032,7 +1043,7 @@ proof(rule contrapos_np[of "False"], simp)
   let ?S = "singleton_matrix I 0 e"
   let ?comp = "mult_matrix fmul fadd"
   have d: "!!x f g. f = g \<Longrightarrow> f x = g x" by blast
-  have e: "(% x. fmul x e) 0 = 0" by (simp add: prems)
+  have e: "(% x. fmul x e) 0 = 0" by (simp add: assms)
   have "~(?comp A ?S = ?comp B ?S)"
     apply (rule notI)
     apply (simp add: fprems eprops)
@@ -1042,22 +1053,22 @@ proof(rule contrapos_np[of "False"], simp)
   with contraprems show "False" by simp
 qed
 
-constdefs
-  foldmatrix :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> ('a infmatrix) \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 'a"
+definition foldmatrix :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> ('a infmatrix) \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 'a" where
   "foldmatrix f g A m n == foldseq_transposed g (% j. foldseq f (A j) n) m"
-  foldmatrix_transposed :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> ('a infmatrix) \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 'a"
+
+definition foldmatrix_transposed :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> ('a infmatrix) \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 'a" where
   "foldmatrix_transposed f g A m n == foldseq g (% j. foldseq_transposed f (A j) n) m"
 
 lemma foldmatrix_transpose:
   assumes
   "! a b c d. g(f a b) (f c d) = f (g a c) (g b d)"
   shows
-  "foldmatrix f g A m n = foldmatrix_transposed g f (transpose_infmatrix A) n m" (is ?concl)
+  "foldmatrix f g A m n = foldmatrix_transposed g f (transpose_infmatrix A) n m"
 proof -
   have forall:"!! P x. (! x. P x) \<Longrightarrow> P x" by auto
   have tworows:"! A. foldmatrix f g A 1 n = foldmatrix_transposed g f (transpose_infmatrix A) n 1"
     apply (induct n)
-    apply (simp add: foldmatrix_def foldmatrix_transposed_def prems)+
+    apply (simp add: foldmatrix_def foldmatrix_transposed_def assms)+
     apply (auto)
     by (drule_tac x="(% j i. A j (Suc i))" in forall, simp)
   show "foldmatrix f g A m n = foldmatrix_transposed g f (transpose_infmatrix A) n m"
@@ -1077,7 +1088,7 @@ assumes
 shows
   "foldseq g (% j. foldseq f (A j) n) m = foldseq f (% j. foldseq g ((transpose_infmatrix A) j) m) n"
   apply (insert foldmatrix_transpose[of g f A m n])
-  by (simp add: foldmatrix_def foldmatrix_transposed_def foldseq_assoc[THEN sym] prems)
+  by (simp add: foldmatrix_def foldmatrix_transposed_def foldseq_assoc[THEN sym] assms)
 
 lemma mult_n_nrows:
 assumes
@@ -1089,10 +1100,11 @@ apply (subst nrows_le)
 apply (simp add: mult_matrix_n_def)
 apply (subst RepAbs_matrix)
 apply (rule_tac x="nrows A" in exI)
-apply (simp add: nrows prems foldseq_zero)
+apply (simp add: nrows assms foldseq_zero)
 apply (rule_tac x="ncols B" in exI)
-apply (simp add: ncols prems foldseq_zero)
-by (simp add: nrows prems foldseq_zero)
+apply (simp add: ncols assms foldseq_zero)
+apply (simp add: nrows assms foldseq_zero)
+done
 
 lemma mult_n_ncols:
 assumes
@@ -1104,10 +1116,11 @@ apply (subst ncols_le)
 apply (simp add: mult_matrix_n_def)
 apply (subst RepAbs_matrix)
 apply (rule_tac x="nrows A" in exI)
-apply (simp add: nrows prems foldseq_zero)
+apply (simp add: nrows assms foldseq_zero)
 apply (rule_tac x="ncols B" in exI)
-apply (simp add: ncols prems foldseq_zero)
-by (simp add: ncols prems foldseq_zero)
+apply (simp add: ncols assms foldseq_zero)
+apply (simp add: ncols assms foldseq_zero)
+done
 
 lemma mult_nrows:
 assumes
@@ -1115,7 +1128,7 @@ assumes
 "! a. fmul a 0 = 0"
 "fadd 0 0 = 0"
 shows "nrows (mult_matrix fmul fadd A B) \<le> nrows A"
-by (simp add: mult_matrix_def mult_n_nrows prems)
+by (simp add: mult_matrix_def mult_n_nrows assms)
 
 lemma mult_ncols:
 assumes
@@ -1123,7 +1136,7 @@ assumes
 "! a. fmul a 0 = 0"
 "fadd 0 0 = 0"
 shows "ncols (mult_matrix fmul fadd A B) \<le> ncols B"
-by (simp add: mult_matrix_def mult_n_ncols prems)
+by (simp add: mult_matrix_def mult_n_ncols assms)
 
 lemma nrows_move_matrix_le: "nrows (move_matrix A j i) <= nat((int (nrows A)) + j)"
   apply (auto simp add: nrows_le)
@@ -1138,7 +1151,7 @@ lemma ncols_move_matrix_le: "ncols (move_matrix A j i) <= nat((int (ncols A)) + 
   done
 
 lemma mult_matrix_assoc:
-  assumes prems:
+  assumes
   "! a. fmul1 0 a = 0"
   "! a. fmul1 a 0 = 0"
   "! a. fmul2 0 a = 0"
@@ -1151,50 +1164,52 @@ lemma mult_matrix_assoc:
   "! a b c. fmul2 (fmul1 a b) c = fmul1 a (fmul2 b c)"
   "! a b c. fmul2 (fadd1 a b) c = fadd1 (fmul2 a c) (fmul2 b c)"
   "! a b c. fmul1 c (fadd2 a b) = fadd2 (fmul1 c a) (fmul1 c b)"
-  shows "mult_matrix fmul2 fadd2 (mult_matrix fmul1 fadd1 A B) C = mult_matrix fmul1 fadd1 A (mult_matrix fmul2 fadd2 B C)" (is ?concl)
+  shows "mult_matrix fmul2 fadd2 (mult_matrix fmul1 fadd1 A B) C = mult_matrix fmul1 fadd1 A (mult_matrix fmul2 fadd2 B C)"
 proof -
   have comb_left:  "!! A B x y. A = B \<Longrightarrow> (Rep_matrix (Abs_matrix A)) x y = (Rep_matrix(Abs_matrix B)) x y" by blast
   have fmul2fadd1fold: "!! x s n. fmul2 (foldseq fadd1 s n)  x = foldseq fadd1 (% k. fmul2 (s k) x) n"
-    by (rule_tac g1 = "% y. fmul2 y x" in ssubst [OF foldseq_distr_unary], simp_all!)
+    by (rule_tac g1 = "% y. fmul2 y x" in ssubst [OF foldseq_distr_unary], insert assms, simp_all)
   have fmul1fadd2fold: "!! x s n. fmul1 x (foldseq fadd2 s n) = foldseq fadd2 (% k. fmul1 x (s k)) n"
-      by (rule_tac g1 = "% y. fmul1 x y" in ssubst [OF foldseq_distr_unary], simp_all!)
+    using assms by (rule_tac g1 = "% y. fmul1 x y" in ssubst [OF foldseq_distr_unary], simp_all)
   let ?N = "max (ncols A) (max (ncols B) (max (nrows B) (nrows C)))"
-  show ?concl
+  show ?thesis
     apply (simp add: Rep_matrix_inject[THEN sym])
     apply (rule ext)+
     apply (simp add: mult_matrix_def)
     apply (simplesubst mult_matrix_nm[of _ "max (ncols (mult_matrix_n (max (ncols A) (nrows B)) fmul1 fadd1 A B)) (nrows C)" _ "max (ncols B) (nrows C)"])
-    apply (simp add: max1 max2 mult_n_ncols mult_n_nrows prems)+
-    apply (simplesubst mult_matrix_nm[of _ "max (ncols A) (nrows (mult_matrix_n (max (ncols B) (nrows C)) fmul2 fadd2 B C))" _ "max (ncols A) (nrows B)"])     apply (simp add: max1 max2 mult_n_ncols mult_n_nrows prems)+
+    apply (simp add: max1 max2 mult_n_ncols mult_n_nrows assms)+
+    apply (simplesubst mult_matrix_nm[of _ "max (ncols A) (nrows (mult_matrix_n (max (ncols B) (nrows C)) fmul2 fadd2 B C))" _ "max (ncols A) (nrows B)"])
+    apply (simp add: max1 max2 mult_n_ncols mult_n_nrows assms)+
     apply (simplesubst mult_matrix_nm[of _ _ _ "?N"])
-    apply (simp add: max1 max2 mult_n_ncols mult_n_nrows prems)+
+    apply (simp add: max1 max2 mult_n_ncols mult_n_nrows assms)+
     apply (simplesubst mult_matrix_nm[of _ _ _ "?N"])
-    apply (simp add: max1 max2 mult_n_ncols mult_n_nrows prems)+
+    apply (simp add: max1 max2 mult_n_ncols mult_n_nrows assms)+
     apply (simplesubst mult_matrix_nm[of _ _ _ "?N"])
-    apply (simp add: max1 max2 mult_n_ncols mult_n_nrows prems)+
+    apply (simp add: max1 max2 mult_n_ncols mult_n_nrows assms)+
     apply (simplesubst mult_matrix_nm[of _ _ _ "?N"])
-    apply (simp add: max1 max2 mult_n_ncols mult_n_nrows prems)+
+    apply (simp add: max1 max2 mult_n_ncols mult_n_nrows assms)+
     apply (simp add: mult_matrix_n_def)
     apply (rule comb_left)
     apply ((rule ext)+, simp)
     apply (simplesubst RepAbs_matrix)
     apply (rule exI[of _ "nrows B"])
-    apply (simp add: nrows prems foldseq_zero)
+    apply (simp add: nrows assms foldseq_zero)
     apply (rule exI[of _ "ncols C"])
-    apply (simp add: prems ncols foldseq_zero)
+    apply (simp add: assms ncols foldseq_zero)
     apply (subst RepAbs_matrix)
     apply (rule exI[of _ "nrows A"])
-    apply (simp add: nrows prems foldseq_zero)
+    apply (simp add: nrows assms foldseq_zero)
     apply (rule exI[of _ "ncols B"])
-    apply (simp add: prems ncols foldseq_zero)
-    apply (simp add: fmul2fadd1fold fmul1fadd2fold prems)
+    apply (simp add: assms ncols foldseq_zero)
+    apply (simp add: fmul2fadd1fold fmul1fadd2fold assms)
     apply (subst foldseq_foldseq)
-    apply (simp add: prems)+
-    by (simp add: transpose_infmatrix)
+    apply (simp add: assms)+
+    apply (simp add: transpose_infmatrix)
+    done
 qed
 
 lemma
-  assumes prems:
+  assumes
   "! a. fmul1 0 a = 0"
   "! a. fmul1 a 0 = 0"
   "! a. fmul2 0 a = 0"
@@ -1211,10 +1226,11 @@ lemma
   "(mult_matrix fmul1 fadd1 A) o (mult_matrix fmul2 fadd2 B) = mult_matrix fmul2 fadd2 (mult_matrix fmul1 fadd1 A B)"
 apply (rule ext)+
 apply (simp add: comp_def )
-by (simp add: mult_matrix_assoc prems)
+apply (simp add: mult_matrix_assoc assms)
+done
 
 lemma mult_matrix_assoc_simple:
-  assumes prems:
+  assumes
   "! a. fmul 0 a = 0"
   "! a. fmul a 0 = 0"
   "fadd 0 0 = 0"
@@ -1222,14 +1238,16 @@ lemma mult_matrix_assoc_simple:
   "commutative fadd"
   "associative fmul"
   "distributive fmul fadd"
-  shows "mult_matrix fmul fadd (mult_matrix fmul fadd A B) C = mult_matrix fmul fadd A (mult_matrix fmul fadd B C)" (is ?concl)
+  shows "mult_matrix fmul fadd (mult_matrix fmul fadd A B) C = mult_matrix fmul fadd A (mult_matrix fmul fadd B C)"
 proof -
   have "!! a b c d. fadd (fadd a b) (fadd c d) = fadd (fadd a c) (fadd b d)"
-    by (simp! add: associative_def commutative_def)
-  then show ?concl
+    using assms by (simp add: associative_def commutative_def)
+  then show ?thesis
     apply (subst mult_matrix_assoc)
-    apply (simp_all!)
-    by (simp add: associative_def distributive_def l_distributive_def r_distributive_def)+
+    using assms
+    apply simp_all
+    apply (simp_all add: associative_def distributive_def l_distributive_def r_distributive_def)
+    done
 qed
 
 lemma transpose_apply_matrix: "f 0 = 0 \<Longrightarrow> transpose_matrix (apply_matrix f A) = apply_matrix f (transpose_matrix A)"
@@ -1252,9 +1270,10 @@ lemma Rep_mult_matrix:
   foldseq fadd (% k. fmul (Rep_matrix A j k) (Rep_matrix B k i)) (max (ncols A) (nrows B))"
 apply (simp add: mult_matrix_def mult_matrix_n_def)
 apply (subst RepAbs_matrix)
-apply (rule exI[of _ "nrows A"], simp! add: nrows foldseq_zero)
-apply (rule exI[of _ "ncols B"], simp! add: ncols foldseq_zero)
-by simp
+apply (rule exI[of _ "nrows A"], insert assms, simp add: nrows foldseq_zero)
+apply (rule exI[of _ "ncols B"], insert assms, simp add: ncols foldseq_zero)
+apply simp
+done
 
 lemma transpose_mult_matrix:
   assumes
@@ -1266,7 +1285,9 @@ lemma transpose_mult_matrix:
   "transpose_matrix (mult_matrix fmul fadd A B) = mult_matrix fmul fadd (transpose_matrix B) (transpose_matrix A)"
   apply (simp add: Rep_matrix_inject[THEN sym])
   apply (rule ext)+
-  by (simp! add: Rep_mult_matrix max_ac)
+  using assms
+  apply (simp add: Rep_mult_matrix max_ac)
+  done
 
 lemma column_transpose_matrix: "column_of_matrix (transpose_matrix A) n = transpose_matrix (row_of_matrix A n)"
 apply (simp add:  Rep_matrix_inject[THEN sym])
@@ -1312,7 +1333,7 @@ lemma le_apply_matrix:
   "(a::('a::{ord, zero}) matrix) <= b"
   shows
   "apply_matrix f a <= apply_matrix f b"
-  by (simp! add: le_matrix_def)
+  using assms by (simp add: le_matrix_def)
 
 lemma le_combine_matrix:
   assumes
@@ -1322,7 +1343,7 @@ lemma le_combine_matrix:
   "C <= D"
   shows
   "combine_matrix f A C <= combine_matrix f B D"
-by (simp! add: le_matrix_def)
+  using assms by (simp add: le_matrix_def)
 
 lemma le_left_combine_matrix:
   assumes
@@ -1331,7 +1352,7 @@ lemma le_left_combine_matrix:
   "A <= B"
   shows
   "combine_matrix f C A <= combine_matrix f C B"
-  by (simp! add: le_matrix_def)
+  using assms by (simp add: le_matrix_def)
 
 lemma le_right_combine_matrix:
   assumes
@@ -1340,7 +1361,7 @@ lemma le_right_combine_matrix:
   "A <= B"
   shows
   "combine_matrix f A C <= combine_matrix f B C"
-  by (simp! add: le_matrix_def)
+  using assms by (simp add: le_matrix_def)
 
 lemma le_transpose_matrix: "(A <= B) = (transpose_matrix A <= transpose_matrix B)"
   by (simp add: le_matrix_def, auto)
@@ -1352,8 +1373,9 @@ lemma le_foldseq:
   shows
   "foldseq f s n <= foldseq f t n"
 proof -
-  have "! s t. (! i. i<=n \<longrightarrow> s i <= t i) \<longrightarrow> foldseq f s n <= foldseq f t n" by (induct_tac n, simp_all!)
-  then show "foldseq f s n <= foldseq f t n" by (simp!)
+  have "! s t. (! i. i<=n \<longrightarrow> s i <= t i) \<longrightarrow> foldseq f s n <= foldseq f t n"
+    by (induct n) (simp_all add: assms)
+  then show "foldseq f s n <= foldseq f t n" using assms by simp
 qed
 
 lemma le_left_mult:
@@ -1367,11 +1389,13 @@ lemma le_left_mult:
   "A <= B"
   shows
   "mult_matrix fmul fadd C A <= mult_matrix fmul fadd C B"
-  apply (simp! add: le_matrix_def Rep_mult_matrix)
+  using assms
+  apply (simp add: le_matrix_def Rep_mult_matrix)
   apply (auto)
   apply (simplesubst foldseq_zerotail[of _ _ _ "max (ncols C) (max (nrows A) (nrows B))"], simp_all add: nrows ncols max1 max2)+
   apply (rule le_foldseq)
-  by (auto)
+  apply (auto)
+  done
 
 lemma le_right_mult:
   assumes
@@ -1384,11 +1408,13 @@ lemma le_right_mult:
   "A <= B"
   shows
   "mult_matrix fmul fadd A C <= mult_matrix fmul fadd B C"
-  apply (simp! add: le_matrix_def Rep_mult_matrix)
+  using assms
+  apply (simp add: le_matrix_def Rep_mult_matrix)
   apply (auto)
   apply (simplesubst foldseq_zerotail[of _ _ _ "max (nrows C) (max (ncols A) (ncols B))"], simp_all add: nrows ncols max1 max2)+
   apply (rule le_foldseq)
-  by (auto)
+  apply (auto)
+  done
 
 lemma spec2: "! j i. P j i \<Longrightarrow> P j i" by blast
 lemma neg_imp: "(\<not> Q \<longrightarrow> \<not> P) \<Longrightarrow> P \<longrightarrow> Q" by blast
@@ -1545,7 +1571,7 @@ proof
     by (simp add: plus_matrix_def diff_matrix_def minus_matrix_def Rep_matrix_inject[symmetric] ext)
 qed
 
-instance matrix :: (pordered_ab_group_add) pordered_ab_group_add
+instance matrix :: (ordered_ab_group_add) ordered_ab_group_add
 proof
   fix A B C :: "'a matrix"
   assume "A <= B"
@@ -1556,8 +1582,8 @@ proof
     done
 qed
   
-instance matrix :: (lordered_ab_group_add) lordered_ab_group_add_meet ..
-instance matrix :: (lordered_ab_group_add) lordered_ab_group_add_join ..
+instance matrix :: (lattice_ab_group_add) semilattice_inf_ab_group_add ..
+instance matrix :: (lattice_ab_group_add) semilattice_sup_ab_group_add ..
 
 instance matrix :: (semiring_0) semiring_0
 proof
@@ -1583,7 +1609,7 @@ qed
 
 instance matrix :: (ring) ring ..
 
-instance matrix :: (pordered_ring) pordered_ring
+instance matrix :: (ordered_ring) ordered_ring
 proof
   fix A B C :: "'a matrix"
   assume a: "A \<le> B"
@@ -1600,9 +1626,9 @@ proof
     done
 qed
 
-instance matrix :: (lordered_ring) lordered_ring
+instance matrix :: (lattice_ring) lattice_ring
 proof
-  fix A B C :: "('a :: lordered_ring) matrix"
+  fix A B C :: "('a :: lattice_ring) matrix"
   show "abs A = sup A (-A)" 
     by (simp add: abs_matrix_def)
 qed
@@ -1691,12 +1717,13 @@ by (simp add: diff_matrix_def transpose_combine_matrix)
 lemma transpose_matrix_minus: "transpose_matrix (-(A::('a::group_add) matrix)) = - transpose_matrix (A::'a matrix)"
 by (simp add: minus_matrix_def transpose_apply_matrix)
 
-constdefs 
-  right_inverse_matrix :: "('a::{ring_1}) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool"
+definition right_inverse_matrix :: "('a::{ring_1}) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool" where
   "right_inverse_matrix A X == (A * X = one_matrix (max (nrows A) (ncols X))) \<and> nrows X \<le> ncols A" 
-  left_inverse_matrix :: "('a::{ring_1}) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool"
+
+definition left_inverse_matrix :: "('a::{ring_1}) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool" where
   "left_inverse_matrix A X == (X * A = one_matrix (max(nrows X) (ncols A))) \<and> ncols X \<le> nrows A" 
-  inverse_matrix :: "('a::{ring_1}) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool"
+
+definition inverse_matrix :: "('a::{ring_1}) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool" where
   "inverse_matrix A X == (right_inverse_matrix A X) \<and> (left_inverse_matrix A X)"
 
 lemma right_inverse_matrix_dim: "right_inverse_matrix A X \<Longrightarrow> nrows A = ncols X"
@@ -1713,15 +1740,16 @@ lemma left_right_inverse_matrix_unique:
 proof -
   have "Y = Y * one_matrix (nrows A)" 
     apply (subst one_matrix_mult_right)
-    apply (insert prems)
-    by (simp_all add: left_inverse_matrix_def)
+    using assms
+    apply (simp_all add: left_inverse_matrix_def)
+    done
   also have "\<dots> = Y * (A * X)" 
-    apply (insert prems)
+    apply (insert assms)
     apply (frule right_inverse_matrix_dim)
     by (simp add: right_inverse_matrix_def)
   also have "\<dots> = (Y * A) * X" by (simp add: mult_assoc)
   also have "\<dots> = X" 
-    apply (insert prems)
+    apply (insert assms)
     apply (frule left_inverse_matrix_dim)
     apply (simp_all add:  left_inverse_matrix_def right_inverse_matrix_def one_matrix_mult_left)
     done
@@ -1738,7 +1766,7 @@ lemma zero_imp_mult_zero: "(a::'a::semiring_0) = 0 | b = 0 \<Longrightarrow> a *
 by auto
 
 lemma Rep_matrix_zero_imp_mult_zero:
-  "! j i k. (Rep_matrix A j k = 0) | (Rep_matrix B k i) = 0  \<Longrightarrow> A * B = (0::('a::lordered_ring) matrix)"
+  "! j i k. (Rep_matrix A j k = 0) | (Rep_matrix B k i) = 0  \<Longrightarrow> A * B = (0::('a::lattice_ring) matrix)"
 apply (subst Rep_matrix_inject[symmetric])
 apply (rule ext)+
 apply (auto simp add: Rep_matrix_mult foldseq_zero zero_imp_mult_zero)
@@ -1781,8 +1809,7 @@ done
 lemma move_matrix_mult: "move_matrix ((A::('a::semiring_0) matrix)*B) j i = (move_matrix A j 0) * (move_matrix B 0 i)"
 by (simp add: move_matrix_ortho[of "A*B"] move_matrix_col_mult move_matrix_row_mult)
 
-constdefs
-  scalar_mult :: "('a::ring) \<Rightarrow> 'a matrix \<Rightarrow> 'a matrix"
+definition scalar_mult :: "('a::ring) \<Rightarrow> 'a matrix \<Rightarrow> 'a matrix" where
   "scalar_mult a m == apply_matrix (op * a) m"
 
 lemma scalar_mult_zero[simp]: "scalar_mult y 0 = 0" 
@@ -1803,7 +1830,7 @@ done
 lemma Rep_minus[simp]: "Rep_matrix (-(A::_::group_add)) x y = - (Rep_matrix A x y)"
 by (simp add: minus_matrix_def)
 
-lemma Rep_abs[simp]: "Rep_matrix (abs (A::_::lordered_ab_group_add)) x y = abs (Rep_matrix A x y)"
+lemma Rep_abs[simp]: "Rep_matrix (abs (A::_::lattice_ab_group_add)) x y = abs (Rep_matrix A x y)"
 by (simp add: abs_lattice sup_matrix_def)
 
 end

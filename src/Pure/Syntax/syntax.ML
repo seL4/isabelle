@@ -29,7 +29,7 @@ sig
   val mode_default: mode
   val mode_input: mode
   val merge_syntaxes: syntax -> syntax -> syntax
-  val basic_syn: syntax
+  val basic_syntax: syntax
   val basic_nonterms: string list
   val print_gram: syntax -> unit
   val print_trans: syntax -> unit
@@ -41,25 +41,24 @@ sig
   val ambiguity_limit: int Unsynchronized.ref
   val standard_parse_term: Pretty.pp -> (term -> string option) ->
     (((string * int) * sort) list -> string * int -> Term.sort) ->
-    (string -> bool * string) -> (string -> string option) ->
-    (typ -> typ) -> (sort -> sort) -> Proof.context ->
+    (string -> bool * string) -> (string -> string option) -> Proof.context ->
     (string -> bool) -> syntax -> typ -> Symbol_Pos.T list * Position.T -> term
   val standard_parse_typ: Proof.context -> syntax ->
-    ((indexname * sort) list -> indexname -> sort) -> (sort -> sort) ->
-    Symbol_Pos.T list * Position.T -> typ
-  val standard_parse_sort: Proof.context -> syntax -> (sort -> sort) ->
-    Symbol_Pos.T list * Position.T -> sort
+    ((indexname * sort) list -> indexname -> sort) -> Symbol_Pos.T list * Position.T -> typ
+  val standard_parse_sort: Proof.context -> syntax -> Symbol_Pos.T list * Position.T -> sort
   datatype 'a trrule =
     ParseRule of 'a * 'a |
     PrintRule of 'a * 'a |
     ParsePrintRule of 'a * 'a
   val map_trrule: ('a -> 'b) -> 'a trrule -> 'b trrule
-  val standard_unparse_term: (string -> xstring) ->
-    Proof.context -> syntax -> bool -> term -> Pretty.T
-  val standard_unparse_typ: Proof.context -> syntax -> typ -> Pretty.T
-  val standard_unparse_sort: Proof.context -> syntax -> sort -> Pretty.T
-  val update_type_gram: (string * int * mixfix) list -> syntax -> syntax
-  val update_consts: string list -> syntax -> syntax
+  val is_const: syntax -> string -> bool
+  val standard_unparse_term: {structs: string list, fixes: string list} ->
+    {extern_class: string -> xstring, extern_type: string -> xstring,
+      extern_const: string -> xstring} -> Proof.context -> syntax -> bool -> term -> Pretty.T
+  val standard_unparse_typ: {extern_class: string -> xstring, extern_type: string -> xstring} ->
+    Proof.context -> syntax -> typ -> Pretty.T
+  val standard_unparse_sort: {extern_class: string -> xstring} ->
+    Proof.context -> syntax -> sort -> Pretty.T
   val update_trfuns:
     (string * ((ast list -> ast) * stamp)) list *
     (string * ((term list -> term) * stamp)) list *
@@ -72,9 +71,8 @@ sig
     (string * ((Proof.context -> ast list -> ast) * stamp)) list -> syntax -> syntax
   val extend_tokentrfuns: (string * string * (Proof.context -> string -> Pretty.T)) list ->
     syntax -> syntax
-  val update_const_gram: (string -> bool) ->
-    mode -> (string * typ * mixfix) list -> syntax -> syntax
-  val remove_const_gram: (string -> bool) ->
+  val update_type_gram: bool -> mode -> (string * typ * mixfix) list -> syntax -> syntax
+  val update_const_gram: bool -> (string -> bool) ->
     mode -> (string * typ * mixfix) list -> syntax -> syntax
   val update_trrules: Proof.context -> (string -> bool) -> syntax ->
     (string * string) trrule list -> syntax -> syntax
@@ -301,7 +299,7 @@ fun update_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
       lexicon =
         if changed then fold Scan.extend_lexicon (SynExt.delims_of xprods) lexicon else lexicon,
       gram = if changed then Parser.extend_gram gram xprods else gram,
-      consts = Library.merge (op =) (consts1, filter_out Long_Name.is_qualified consts2),
+      consts = Library.merge (op =) (consts1, filter_out Lexicon.is_marked consts2),
       prmodes = insert (op =) mode (Library.merge (op =) (prmodes1, prmodes2)),
       parse_ast_trtab =
         update_trtab "parse ast translation" (if_inout parse_ast_translation) parse_ast_trtab,
@@ -382,7 +380,7 @@ fun merge_syntaxes (Syntax (tabs1, _)) (Syntax (tabs2, _)) =
 
 (* basic syntax *)
 
-val basic_syn =
+val basic_syntax =
   empty_syntax
   |> update_syntax mode_default TypeExt.type_ext
   |> update_syntax mode_default SynExt.pure_ext;
@@ -449,9 +447,9 @@ end;
 fun guess_infix (Syntax ({gram, ...}, _)) c =
   (case Parser.guess_infix_lr gram c of
     SOME (s, l, r, j) => SOME
-     (if l then Mixfix.InfixlName (s, j)
-      else if r then Mixfix.InfixrName (s, j)
-      else Mixfix.InfixName (s, j))
+     (if l then Mixfix.Infixl (s, j)
+      else if r then Mixfix.Infixr (s, j)
+      else Mixfix.Infix (s, j))
   | NONE => NONE);
 
 
@@ -532,7 +530,7 @@ fun disambig _ _ [t] = t
             \Retry with smaller Syntax.ambiguity_level for more information."
           else "";
 
-        val errs = map check ts;
+        val errs = Par_List.map check ts;
         val results = map_filter (fn (t, NONE) => SOME t | _ => NONE) (ts ~~ errs);
         val len = length results;
       in
@@ -548,26 +546,25 @@ fun disambig _ _ [t] = t
             map (Pretty.string_of_term pp) (take limit results)))
       end;
 
-fun standard_parse_term pp check get_sort map_const map_free map_type map_sort
-    ctxt is_logtype syn ty (syms, pos) =
+fun standard_parse_term pp check get_sort map_const map_free ctxt is_logtype syn ty (syms, pos) =
   read ctxt is_logtype syn ty (syms, pos)
-  |> map (TypeExt.decode_term get_sort map_const map_free map_type map_sort)
+  |> map (TypeExt.decode_term get_sort map_const map_free)
   |> disambig (Printer.pp_show_brackets pp) check;
 
 
 (* read types *)
 
-fun standard_parse_typ ctxt syn get_sort map_sort (syms, pos) =
+fun standard_parse_typ ctxt syn get_sort (syms, pos) =
   (case read ctxt (K false) syn SynExt.typeT (syms, pos) of
-    [t] => TypeExt.typ_of_term (get_sort (TypeExt.term_sorts map_sort t)) map_sort t
+    [t] => TypeExt.typ_of_term (get_sort (TypeExt.term_sorts t)) t
   | _ => error (ambiguity_msg pos));
 
 
 (* read sorts *)
 
-fun standard_parse_sort ctxt syn map_sort (syms, pos) =
+fun standard_parse_sort ctxt syn (syms, pos) =
   (case read ctxt (K false) syn TypeExt.sortT (syms, pos) of
-    [t] => TypeExt.sort_of_term map_sort t
+    [t] => TypeExt.sort_of_term t
   | _ => error (ambiguity_msg pos));
 
 
@@ -592,6 +589,8 @@ fun print_rule (ParseRule _) = NONE
   | print_rule (ParsePrintRule pats) = SOME (swap pats);
 
 
+fun is_const (Syntax ({consts, ...}, _)) c = member (op =) consts c;
+
 local
 
 fun check_rule (rule as (lhs, rhs)) =
@@ -603,11 +602,9 @@ fun check_rule (rule as (lhs, rhs)) =
 
 fun read_pattern ctxt is_logtype syn (root, str) =
   let
-    val Syntax ({consts, ...}, _) = syn;
-
     fun constify (ast as Ast.Constant _) = ast
       | constify (ast as Ast.Variable x) =
-          if member (op =) consts x orelse Long_Name.is_qualified x then Ast.Constant x
+          if is_const syn x orelse Long_Name.is_qualified x then Ast.Constant x
           else ast
       | constify (Ast.Appl asts) = Ast.Appl (map constify asts);
 
@@ -641,8 +638,8 @@ local
 
 fun unparse_t t_to_ast prt_t markup ctxt (Syntax (tabs, _)) curried t =
   let
-    val {print_trtab, print_ruletab, print_ast_trtab, tokentrtab, prtabs, ...} = tabs;
-    val ast = t_to_ast ctxt (lookup_tr' print_trtab) t;
+    val {consts, print_trtab, print_ruletab, print_ast_trtab, tokentrtab, prtabs, ...} = tabs;
+    val ast = t_to_ast consts ctxt (lookup_tr' print_trtab) t;
   in
     Pretty.markup markup (prt_t ctxt curried prtabs (lookup_tr' print_ast_trtab)
       (lookup_tokentr tokentrtab (print_mode_value ()))
@@ -651,14 +648,16 @@ fun unparse_t t_to_ast prt_t markup ctxt (Syntax (tabs, _)) curried t =
 
 in
 
-fun standard_unparse_term extern =
-  unparse_t Printer.term_to_ast (Printer.pretty_term_ast extern) Markup.term;
+fun standard_unparse_term idents extern =
+  unparse_t (Printer.term_to_ast idents) (Printer.pretty_term_ast extern) Markup.term;
 
-fun standard_unparse_typ ctxt syn =
-  unparse_t Printer.typ_to_ast Printer.pretty_typ_ast Markup.typ ctxt syn false;
+fun standard_unparse_typ extern ctxt syn =
+  unparse_t (K Printer.typ_to_ast) (Printer.pretty_typ_ast extern) Markup.typ ctxt syn false;
 
-fun standard_unparse_sort ctxt syn =
-  unparse_t Printer.sort_to_ast Printer.pretty_typ_ast Markup.sort ctxt syn false;
+fun standard_unparse_sort {extern_class} ctxt syn =
+  unparse_t (K Printer.sort_to_ast)
+    (Printer.pretty_typ_ast {extern_class = extern_class, extern_type = I})
+    Markup.sort ctxt syn false;
 
 end;
 
@@ -668,17 +667,15 @@ end;
 
 fun ext_syntax f decls = update_syntax mode_default (f decls);
 
-val update_type_gram       = ext_syntax Mixfix.syn_ext_types;
-val update_consts          = ext_syntax SynExt.syn_ext_const_names;
-val update_trfuns          = ext_syntax SynExt.syn_ext_trfuns;
+val update_trfuns = ext_syntax SynExt.syn_ext_trfuns;
 val update_advanced_trfuns = ext_syntax SynExt.syn_ext_advanced_trfuns;
-val extend_tokentrfuns     = ext_syntax SynExt.syn_ext_tokentrfuns;
+val extend_tokentrfuns = ext_syntax SynExt.syn_ext_tokentrfuns;
 
-fun update_const_gram is_logtype prmode decls =
-  update_syntax prmode (Mixfix.syn_ext_consts is_logtype decls);
+fun update_type_gram add prmode decls =
+  (if add then update_syntax else remove_syntax) prmode (Mixfix.syn_ext_types decls);
 
-fun remove_const_gram is_logtype prmode decls =
-  remove_syntax prmode (Mixfix.syn_ext_consts is_logtype decls);
+fun update_const_gram add is_logtype prmode decls =
+  (if add then update_syntax else remove_syntax) prmode (Mixfix.syn_ext_consts is_logtype decls);
 
 fun update_trrules ctxt is_logtype syn =
   ext_syntax SynExt.syn_ext_rules o read_rules ctxt is_logtype syn;
@@ -913,8 +910,8 @@ open Lexicon SynExt Ast Parser TypeExt SynTrans Mixfix Printer;
 
 end;
 
-structure BasicSyntax: BASIC_SYNTAX = Syntax;
-open BasicSyntax;
+structure Basic_Syntax: BASIC_SYNTAX = Syntax;
+open Basic_Syntax;
 
 forget_structure "Ast";
 forget_structure "SynExt";

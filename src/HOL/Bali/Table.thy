@@ -37,15 +37,12 @@ types ('a, 'b) table    --{* table with key type 'a and contents type 'b *}
 
 section "map of / table of"
 
-syntax
-  table_of      :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) table"   --{* concrete table *}
-  
 abbreviation
-  "table_of \<equiv> map_of"
+  table_of :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) table"   --{* concrete table *}
+  where "table_of \<equiv> map_of"
 
 translations
-  (type)"'a \<rightharpoonup> 'b"       <= (type)"'a \<Rightarrow> 'b Datatype.option"
-  (type)"('a, 'b) table" <= (type)"'a \<rightharpoonup> 'b"
+  (type) "('a, 'b) table" <= (type) "'a \<rightharpoonup> 'b"
 
 (* ### To map *)
 lemma map_add_find_left[simp]:
@@ -53,9 +50,7 @@ lemma map_add_find_left[simp]:
 by (simp add: map_add_def)
 
 section {* Conditional Override *}
-constdefs
-cond_override:: 
-  "('b \<Rightarrow>'b \<Rightarrow> bool) \<Rightarrow> ('a, 'b)table \<Rightarrow> ('a, 'b)table \<Rightarrow> ('a, 'b) table"
+definition cond_override :: "('b \<Rightarrow>'b \<Rightarrow> bool) \<Rightarrow> ('a, 'b)table \<Rightarrow> ('a, 'b)table \<Rightarrow> ('a, 'b) table" where
 
 --{* when merging tables old and new, only override an entry of table old when  
    the condition cond holds *}
@@ -100,8 +95,7 @@ by (rule finite_UnI)
 
 section {* Filter on Tables *}
 
-constdefs
-filter_tab:: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a, 'b) table \<Rightarrow> ('a, 'b) table"
+definition filter_tab :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a, 'b) table \<Rightarrow> ('a, 'b) table" where
 "filter_tab c t \<equiv> \<lambda> k. (case t k of 
                            None   \<Rightarrow> None
                          | Some x \<Rightarrow> if c k x then Some x else None)"

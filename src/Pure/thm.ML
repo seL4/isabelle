@@ -137,8 +137,8 @@ sig
   val map_tags: (Properties.T -> Properties.T) -> thm -> thm
   val norm_proof: thm -> thm
   val adjust_maxidx_thm: int -> thm -> thm
-  val varifyT: thm -> thm
-  val varifyT': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
+  val varifyT_global: thm -> thm
+  val varifyT_global': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
   val freezeT: thm -> thm
   val assumption: int -> thm -> thm Seq.seq
   val eq_assumption: int -> thm -> thm
@@ -384,9 +384,9 @@ fun attach_tpairs tpairs prop =
 
 fun full_prop_of (Thm (_, {tpairs, prop, ...})) = attach_tpairs tpairs prop;
 
-val union_hyps = OrdList.union TermOrd.fast_term_ord;
-val insert_hyps = OrdList.insert TermOrd.fast_term_ord;
-val remove_hyps = OrdList.remove TermOrd.fast_term_ord;
+val union_hyps = OrdList.union Term_Ord.fast_term_ord;
+val insert_hyps = OrdList.insert Term_Ord.fast_term_ord;
+val remove_hyps = OrdList.remove Term_Ord.fast_term_ord;
 
 
 (* merge theories of cterms/thms -- trivial absorption only *)
@@ -484,10 +484,7 @@ fun strip_shyps (thm as Thm (_, {shyps = [], ...})) = thm
   | strip_shyps (thm as Thm (der, {thy_ref, tags, maxidx, shyps, hyps, tpairs, prop})) =
       let
         val thy = Theory.deref thy_ref;
-        val present =
-          (fold_terms o fold_types o fold_atyps)
-            (fn T as TFree (_, S) => insert (eq_snd op =) (T, S)
-              | T as TVar (_, S) => insert (eq_snd op =) (T, S)) thm [];
+        val present = (fold_terms o fold_types o fold_atyps_sorts) (insert (eq_snd op =)) thm [];
         val extra = fold (Sorts.remove_sort o #2) present shyps;
         val witnessed = Sign.witness_sorts thy present extra;
         val extra' = fold (Sorts.remove_sort o #2) witnessed extra
@@ -1231,7 +1228,7 @@ fun unconstrainT
       raise THM ("unconstrainT: not a type variable", 0, [th]);
     val T' = TVar ((x, i), []);
     val unconstrain = Term.map_types (Term.map_atyps (fn U => if U = T then T' else U));
-    val constraints = map (curry Logic.mk_of_class T') S;
+    val constraints = Logic.mk_of_sort (T', S);
   in
     Thm (deriv_rule0 (Pt.PAxm ("Pure.unconstrainT", prop, SOME [])),
      {thy_ref = Theory.merge_refs (thy_ref1, thy_ref2),
@@ -1244,11 +1241,11 @@ fun unconstrainT
   end;
 
 (* Replace all TFrees not fixed or in the hyps by new TVars *)
-fun varifyT' fixed (Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...})) =
+fun varifyT_global' fixed (Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...})) =
   let
     val tfrees = fold Term.add_tfrees hyps fixed;
     val prop1 = attach_tpairs tpairs prop;
-    val (al, prop2) = Type.varify tfrees prop1;
+    val (al, prop2) = Type.varify_global tfrees prop1;
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2);
   in
     (al, Thm (deriv_rule1 (Pt.varify_proof prop tfrees) der,
@@ -1261,7 +1258,7 @@ fun varifyT' fixed (Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...})
       prop = prop3}))
   end;
 
-val varifyT = #2 o varifyT' [];
+val varifyT_global = #2 o varifyT_global' [];
 
 (* Replace all TVars by new TFrees *)
 fun freezeT (Thm (der, {thy_ref, shyps, hyps, tpairs, prop, ...})) =

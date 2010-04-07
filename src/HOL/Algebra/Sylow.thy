@@ -1,9 +1,10 @@
 (*  Title:      HOL/Algebra/Sylow.thy
-    ID:         $Id$
     Author:     Florian Kammueller, with new proofs by L C Paulson
 *)
 
-theory Sylow imports Coset Exponent begin
+theory Sylow
+imports Coset Exponent
+begin
 
 text {*
   See also \cite{Kammueller-Paulson:1999}.

@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/IOA/ABP/Abschannels.thy
-    ID:         $Id$
     Author:     Olaf Müller
 *)
 

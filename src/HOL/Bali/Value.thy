@@ -1,5 +1,4 @@
 (*  Title:      HOL/Bali/Value.thy
-    ID:         $Id$
     Author:     David von Oheimb
 *)
 header {* Java values *}
@@ -17,9 +16,6 @@ datatype val
         | Null          --{* null reference *}
         | Addr loc      --{* addresses, i.e. locations of objects *}
 
-
-translations "val" <= (type) "Term.val"
-             "loc" <= (type) "Term.loc"
 
 consts   the_Bool   :: "val \<Rightarrow> bool"  
 primrec "the_Bool (Bool b) = b"

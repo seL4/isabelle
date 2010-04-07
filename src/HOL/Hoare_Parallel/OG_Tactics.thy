@@ -171,8 +171,7 @@ lemma AnnAwait_atomics:
   "\<parallel>- (q \<inter> (r \<inter> b)) a q \<Longrightarrow> interfree_aux (None, q, Some (AnnAwait r b a))"
 by(simp add: interfree_aux_def oghoare_sound)
 
-constdefs 
-  interfree_swap :: "('a ann_triple_op * ('a ann_triple_op) list) \<Rightarrow> bool"
+definition interfree_swap :: "('a ann_triple_op * ('a ann_triple_op) list) \<Rightarrow> bool" where
   "interfree_swap == \<lambda>(x, xs). \<forall>y\<in>set xs. interfree_aux (com x, post x, com y)
   \<and> interfree_aux(com y, post y, com x)"
 
@@ -208,7 +207,7 @@ lemma interfree_Map:
   \<Longrightarrow> interfree (map (\<lambda>k. (c k, Q k)) [a..<b])"
 by(force simp add: interfree_def less_diff_conv)
 
-constdefs map_ann_hoare :: "(('a ann_com_op * 'a assn) list) \<Rightarrow> bool " ("[\<turnstile>] _" [0] 45)
+definition map_ann_hoare :: "(('a ann_com_op * 'a assn) list) \<Rightarrow> bool " ("[\<turnstile>] _" [0] 45) where
   "[\<turnstile>] Ts == (\<forall>i<length Ts. \<exists>c q. Ts!i=(Some c, q) \<and> \<turnstile> c q)"
 
 lemma MapAnnEmpty: "[\<turnstile>] []"

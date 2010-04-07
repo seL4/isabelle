@@ -26,13 +26,15 @@ sig
   val naming_of: Proof.context -> Name_Space.naming
   val restore_naming: Proof.context -> Proof.context -> Proof.context
   val full_name: Proof.context -> binding -> string
+  val syn_of: Proof.context -> Syntax.syntax
+  val tsig_of: Proof.context -> Type.tsig
+  val default_sort: Proof.context -> indexname -> sort
   val consts_of: Proof.context -> Consts.T
-  val const_syntax_name: Proof.context -> string -> string
   val the_const_constraint: Proof.context -> string -> typ
-  val mk_const: Proof.context -> string * typ list -> term
   val set_syntax_mode: Syntax.mode -> Proof.context -> Proof.context
   val restore_syntax_mode: Proof.context -> Proof.context -> Proof.context
   val facts_of: Proof.context -> Facts.T
+  val cases_of: Proof.context -> (string * (Rule_Cases.T * bool)) list
   val transfer_syntax: theory -> Proof.context -> Proof.context
   val transfer: theory -> Proof.context -> Proof.context
   val theory: (theory -> theory) -> Proof.context -> Proof.context
@@ -41,6 +43,9 @@ sig
   val pretty_term_abbrev: Proof.context -> term -> Pretty.T
   val pretty_fact_aux: Proof.context -> bool -> string * thm list -> Pretty.T
   val pretty_fact: Proof.context -> string * thm list -> Pretty.T
+  val read_class: Proof.context -> xstring -> class
+  val read_arity: Proof.context -> xstring * string list * string -> arity
+  val cert_arity: Proof.context -> arity -> arity
   val read_typ: Proof.context -> string -> typ
   val read_typ_syntax: Proof.context -> string -> typ
   val read_typ_abbrev: Proof.context -> string -> typ
@@ -52,9 +57,10 @@ sig
   val infer_type: Proof.context -> string -> typ
   val inferred_param: string -> Proof.context -> typ * Proof.context
   val inferred_fixes: Proof.context -> (string * typ) list * Proof.context
-  val read_tyname: Proof.context -> string -> typ
-  val read_const_proper: Proof.context -> string -> term
-  val read_const: Proof.context -> string -> term
+  val read_type_name: Proof.context -> bool -> string -> typ
+  val read_type_name_proper: Proof.context -> bool -> string -> typ
+  val read_const_proper: Proof.context -> bool -> string -> term
+  val read_const: Proof.context -> bool -> string -> term
   val allow_dummies: Proof.context -> Proof.context
   val decode_term: Proof.context -> term -> term
   val standard_infer_types: Proof.context -> term list -> term list
@@ -64,6 +70,7 @@ sig
   val expand_abbrevs: Proof.context -> term -> term
   val cert_term: Proof.context -> term -> term
   val cert_prop: Proof.context -> term -> term
+  val def_type: Proof.context -> indexname -> typ option
   val goal_export: Proof.context -> Proof.context -> thm list -> thm list
   val export: Proof.context -> Proof.context -> thm list -> thm list
   val export_morphism: Proof.context -> Proof.context -> morphism
@@ -115,20 +122,25 @@ sig
   val add_cases: bool -> (string * Rule_Cases.T option) list -> Proof.context -> Proof.context
   val apply_case: Rule_Cases.T -> Proof.context -> (string * term list) list * Proof.context
   val get_case: Proof.context -> string -> string option list -> Rule_Cases.T
+  val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> Proof.context -> Proof.context
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> Proof.context -> Proof.context
+  val target_type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> morphism ->
+    Context.generic -> Context.generic
   val target_notation: bool -> Syntax.mode -> (term * mixfix) list -> morphism ->
     Context.generic -> Context.generic
+  val class_alias: binding -> class -> Proof.context -> Proof.context
+  val type_alias: binding -> string -> Proof.context -> Proof.context
+  val const_alias: binding -> string -> Proof.context -> Proof.context
   val add_const_constraint: string * typ option -> Proof.context -> Proof.context
   val add_abbrev: string -> binding * term -> Proof.context -> (term * term) * Proof.context
   val revert_abbrev: string -> string -> Proof.context -> Proof.context
-  val verbose: bool Unsynchronized.ref
-  val setmp_verbose_CRITICAL: ('a -> 'b) -> 'a -> 'b
   val print_syntax: Proof.context -> unit
   val print_abbrevs: Proof.context -> unit
   val print_binds: Proof.context -> unit
   val print_lthms: Proof.context -> unit
   val print_cases: Proof.context -> unit
   val debug: bool Unsynchronized.ref
+  val verbose: bool Unsynchronized.ref
   val prems_limit: int Unsynchronized.ref
   val pretty_ctxt: Proof.context -> Pretty.T list
   val pretty_context: Proof.context -> Pretty.T list
@@ -164,16 +176,17 @@ val mode_abbrev    = make_mode (false, false, false, true);
 
 datatype ctxt =
   Ctxt of
-   {mode: mode,                                       (*inner syntax mode*)
-    naming: Name_Space.naming,                        (*local naming conventions*)
-    syntax: Local_Syntax.T,                           (*local syntax*)
-    consts: Consts.T * Consts.T,                      (*local/global consts*)
-    facts: Facts.T,                                   (*local facts*)
+   {mode: mode,                       (*inner syntax mode*)
+    naming: Name_Space.naming,        (*local naming conventions*)
+    syntax: Local_Syntax.T,           (*local syntax*)
+    tsigs: Type.tsig * Type.tsig,     (*local/global type signature -- local name space only*)
+    consts: Consts.T * Consts.T,      (*local/global consts -- local name space/abbrevs only*)
+    facts: Facts.T,                   (*local facts*)
     cases: (string * (Rule_Cases.T * bool)) list};    (*named case contexts*)
 
-fun make_ctxt (mode, naming, syntax, consts, facts, cases) =
+fun make_ctxt (mode, naming, syntax, tsigs, consts, facts, cases) =
   Ctxt {mode = mode, naming = naming, syntax = syntax,
-    consts = consts, facts = facts, cases = cases};
+    tsigs = tsigs, consts = consts, facts = facts, cases = cases};
 
 val local_naming = Name_Space.default_naming |> Name_Space.add_path "local";
 
@@ -182,41 +195,46 @@ structure ContextData = Proof_Data
   type T = ctxt;
   fun init thy =
     make_ctxt (mode_default, local_naming, Local_Syntax.init thy,
+      (Sign.tsig_of thy, Sign.tsig_of thy),
       (Sign.consts_of thy, Sign.consts_of thy), Facts.empty, []);
 );
 
 fun rep_context ctxt = ContextData.get ctxt |> (fn Ctxt args => args);
 
 fun map_context f =
-  ContextData.map (fn Ctxt {mode, naming, syntax, consts, facts, cases} =>
-    make_ctxt (f (mode, naming, syntax, consts, facts, cases)));
+  ContextData.map (fn Ctxt {mode, naming, syntax, tsigs, consts, facts, cases} =>
+    make_ctxt (f (mode, naming, syntax, tsigs, consts, facts, cases)));
 
-fun set_mode mode = map_context (fn (_, naming, syntax, consts, facts, cases) =>
-  (mode, naming, syntax, consts, facts, cases));
+fun set_mode mode = map_context (fn (_, naming, syntax, tsigs, consts, facts, cases) =>
+  (mode, naming, syntax, tsigs, consts, facts, cases));
 
 fun map_mode f =
-  map_context (fn (Mode {stmt, pattern, schematic, abbrev}, naming, syntax, consts, facts, cases) =>
-    (make_mode (f (stmt, pattern, schematic, abbrev)), naming, syntax, consts, facts, cases));
+  map_context (fn (Mode {stmt, pattern, schematic, abbrev}, naming, syntax, tsigs, consts, facts, cases) =>
+    (make_mode (f (stmt, pattern, schematic, abbrev)), naming, syntax, tsigs, consts, facts, cases));
 
 fun map_naming f =
-  map_context (fn (mode, naming, syntax, consts, facts, cases) =>
-    (mode, f naming, syntax, consts, facts, cases));
+  map_context (fn (mode, naming, syntax, tsigs, consts, facts, cases) =>
+    (mode, f naming, syntax, tsigs, consts, facts, cases));
 
 fun map_syntax f =
-  map_context (fn (mode, naming, syntax, consts, facts, cases) =>
-    (mode, naming, f syntax, consts, facts, cases));
+  map_context (fn (mode, naming, syntax, tsigs, consts, facts, cases) =>
+    (mode, naming, f syntax, tsigs, consts, facts, cases));
+
+fun map_tsigs f =
+  map_context (fn (mode, naming, syntax, tsigs, consts, facts, cases) =>
+    (mode, naming, syntax, f tsigs, consts, facts, cases));
 
 fun map_consts f =
-  map_context (fn (mode, naming, syntax, consts, facts, cases) =>
-    (mode, naming, syntax, f consts, facts, cases));
+  map_context (fn (mode, naming, syntax, tsigs, consts, facts, cases) =>
+    (mode, naming, syntax, tsigs, f consts, facts, cases));
 
 fun map_facts f =
-  map_context (fn (mode, naming, syntax, consts, facts, cases) =>
-    (mode, naming, syntax, consts, f facts, cases));
+  map_context (fn (mode, naming, syntax, tsigs, consts, facts, cases) =>
+    (mode, naming, syntax, tsigs, consts, f facts, cases));
 
 fun map_cases f =
-  map_context (fn (mode, naming, syntax, consts, facts, cases) =>
-    (mode, naming, syntax, consts, facts, f cases));
+  map_context (fn (mode, naming, syntax, tsigs, consts, facts, cases) =>
+    (mode, naming, syntax, tsigs, consts, facts, f cases));
 
 val get_mode = #mode o rep_context;
 val restore_mode = set_mode o get_mode;
@@ -234,11 +252,11 @@ val syn_of = Local_Syntax.syn_of o syntax_of;
 val set_syntax_mode = map_syntax o Local_Syntax.set_mode;
 val restore_syntax_mode = map_syntax o Local_Syntax.restore_mode o syntax_of;
 
-val consts_of = #1 o #consts o rep_context;
-val const_syntax_name = Consts.syntax_name o consts_of;
-val the_const_constraint = Consts.the_constraint o consts_of;
+val tsig_of = #1 o #tsigs o rep_context;
+fun default_sort ctxt = the_default (Type.defaultS (tsig_of ctxt)) o Variable.def_sort ctxt;
 
-fun mk_const ctxt (c, Ts) = Const (c, Consts.instance (consts_of ctxt) (c, Ts));
+val consts_of = #1 o #consts o rep_context;
+val the_const_constraint = Consts.the_constraint o consts_of;
 
 val facts_of = #facts o rep_context;
 val cases_of = #cases o rep_context;
@@ -246,8 +264,13 @@ val cases_of = #cases o rep_context;
 
 (* theory transfer *)
 
-fun transfer_syntax thy =
-  map_syntax (Local_Syntax.rebuild thy) #>
+fun transfer_syntax thy ctxt = ctxt |>
+  map_syntax (Local_Syntax.rebuild thy) |>
+  map_tsigs (fn tsigs as (local_tsig, global_tsig) =>
+    let val thy_tsig = Sign.tsig_of thy in
+      if Type.eq_tsig (thy_tsig, global_tsig) then tsigs
+      else (Type.merge_tsigs (Syntax.pp ctxt) (local_tsig, thy_tsig), thy_tsig)
+    end) |>
   map_consts (fn consts as (local_consts, global_consts) =>
     let val thy_consts = Sign.consts_of thy in
       if Consts.eq_consts (thy_consts, global_consts) then consts
@@ -299,23 +322,49 @@ fun pretty_fact ctxt = pretty_fact_aux ctxt true;
 
 (** prepare types **)
 
-(* read_typ *)
+(* classes *)
+
+fun read_class ctxt text =
+  let
+    val tsig = tsig_of ctxt;
+    val (syms, pos) = Syntax.read_token text;
+    val c = Type.cert_class tsig (Type.intern_class tsig (Symbol_Pos.content syms))
+      handle TYPE (msg, _, _) => error (msg ^ Position.str_of pos);
+    val _ = Position.report (Markup.tclass c) pos;
+  in c end;
+
+
+(* type arities *)
+
+local
+
+fun prep_arity prep_tycon prep_sort ctxt (t, Ss, S) =
+  let val arity = (prep_tycon ctxt t, map (prep_sort ctxt) Ss, prep_sort ctxt S)
+  in Type.add_arity (Syntax.pp ctxt) arity (tsig_of ctxt); arity end;
+
+in
+
+val read_arity = prep_arity (Type.intern_type o tsig_of) Syntax.read_sort;
+val cert_arity = prep_arity (K I) (Type.cert_sort o tsig_of);
+
+end;
+
+
+(* types *)
 
 fun read_typ_mode mode ctxt s =
   Syntax.read_typ (Type.set_mode mode ctxt) s;
 
-val read_typ        = read_typ_mode Type.mode_default;
+val read_typ = read_typ_mode Type.mode_default;
 val read_typ_syntax = read_typ_mode Type.mode_syntax;
 val read_typ_abbrev = read_typ_mode Type.mode_abbrev;
 
 
-(* cert_typ *)
-
 fun cert_typ_mode mode ctxt T =
-  Sign.certify_typ_mode mode (theory_of ctxt) T
+  Type.cert_typ_mode mode (tsig_of ctxt) T
     handle TYPE (msg, _, _) => error msg;
 
-val cert_typ        = cert_typ_mode Type.mode_default;
+val cert_typ = cert_typ_mode Type.mode_default;
 val cert_typ_syntax = cert_typ_mode Type.mode_syntax;
 val cert_typ_abbrev = cert_typ_mode Type.mode_abbrev;
 
@@ -364,15 +413,11 @@ fun var_or_skolem _ s =
           (Pretty.str (setmp_CRITICAL show_question_marks true Term.string_of_vname (x', i))))
   | NONE => Pretty.mark Markup.var (Pretty.str s));
 
-fun class_markup _ c =    (* FIXME authentic name *)
-  Pretty.mark (Markup.tclassN, []) (Pretty.str c);
-
 fun plain_markup m _ s = Pretty.mark m (Pretty.str s);
 
 val token_trans =
  Syntax.tokentrans_mode ""
-  [("class", class_markup),
-   ("tfree", plain_markup Markup.tfree),
+  [("tfree", plain_markup Markup.tfree),
    ("tvar", plain_markup Markup.tvar),
    ("free", free_or_skolem),
    ("bound", plain_markup Markup.bound),
@@ -409,40 +454,61 @@ local
 
 val token_content = Syntax.read_token #>> Symbol_Pos.content;
 
-fun prep_const_proper ctxt (c, pos) =
-  let val t as (Const (d, _)) =
-    (case Variable.lookup_const ctxt c of
-      SOME d => Const (d, Consts.type_scheme (consts_of ctxt) d handle TYPE (msg, _, _) => error msg)
-    | NONE => Consts.read_const (consts_of ctxt) c)
-  in Position.report (Markup.const d) pos; t end;
+fun prep_const_proper ctxt strict (c, pos) =
+  let
+    fun err msg = error (msg ^ Position.str_of pos);
+    val consts = consts_of ctxt;
+    val t as Const (d, _) =
+      (case Variable.lookup_const ctxt c of
+        SOME d =>
+          Const (d, Consts.type_scheme (consts_of ctxt) d handle TYPE (msg, _, _) => err msg)
+      | NONE => Consts.read_const consts c);
+    val _ =
+      if strict then ignore (Consts.the_type consts d) handle TYPE (msg, _, _) => err msg
+      else ();
+    val _ = Position.report (Markup.const d) pos;
+  in t end;
 
 in
 
-fun read_tyname ctxt str =
+fun read_type_name ctxt strict text =
   let
-    val thy = theory_of ctxt;
-    val (c, pos) = token_content str;
+    val tsig = tsig_of ctxt;
+    val (c, pos) = token_content text;
   in
     if Syntax.is_tid c then
      (Position.report Markup.tfree pos;
-      TFree (c, the_default (Sign.defaultS thy) (Variable.def_sort ctxt (c, ~1))))
+      TFree (c, default_sort ctxt (c, ~1)))
     else
       let
-        val d = Sign.intern_type thy c;
+        val d = Type.intern_type tsig c;
+        val decl = Type.the_decl tsig d;
         val _ = Position.report (Markup.tycon d) pos;
-      in Type (d, replicate (Sign.arity_number thy d) dummyT) end
+        fun err () = error ("Bad type name: " ^ quote d);
+        val args =
+          (case decl of
+            Type.LogicalType n => n
+          | Type.Abbreviation (vs, _, _) => if strict then err () else length vs
+          | Type.Nonterminal => if strict then err () else 0);
+      in Type (d, replicate args dummyT) end
   end;
 
-fun read_const_proper ctxt = prep_const_proper ctxt o token_content;
+fun read_type_name_proper ctxt strict text =
+  (case read_type_name ctxt strict text of
+    T as Type _ => T
+  | T => error ("Not a type constructor: " ^ Syntax.string_of_typ ctxt T));
 
-fun read_const ctxt str =
-  let val (c, pos) = token_content str in
+
+fun read_const_proper ctxt strict = prep_const_proper ctxt strict o token_content;
+
+fun read_const ctxt strict text =
+  let val (c, pos) = token_content text in
     (case (lookup_skolem ctxt c, Variable.is_const ctxt c) of
       (SOME x, false) =>
         (Position.report (Markup.name x
             (if can Name.dest_skolem x then Markup.skolem else Markup.free)) pos;
           Free (x, infer_type ctxt x))
-    | _ => prep_const_proper ctxt (c, pos))
+    | _ => prep_const_proper ctxt strict (c, pos))
   end;
 
 end;
@@ -458,8 +524,6 @@ val read_term_abbrev    = read_term_mode mode_abbrev;
 
 
 (* local abbreviations *)
-
-val tsig_of = Sign.tsig_of o ProofContext.theory_of;
 
 local
 
@@ -494,7 +558,7 @@ fun contract_abbrevs ctxt t =
     fun match_abbrev u = Option.map #1 (get_first (Pattern.match_rew thy u) (retrieve u));
   in
     if abbrev orelse print_mode_active "no_abbrevs" orelse not (can Term.type_of t) then t
-    else Pattern.rewrite_term thy [] [match_abbrev] t
+    else Pattern.rewrite_term_top thy [] [match_abbrev] t
   end;
 
 
@@ -542,9 +606,9 @@ end;
 
 (* types *)
 
-fun get_sort thy def_sort raw_env =
+fun get_sort ctxt def_sort raw_env =
   let
-    val tsig = Sign.tsig_of thy;
+    val tsig = tsig_of ctxt;
 
     fun eq ((xi, S), (xi', S')) =
       Term.eq_ix (xi, xi') andalso Type.eq_sort tsig (S, S');
@@ -560,8 +624,8 @@ fun get_sort thy def_sort raw_env =
       | (SOME S, NONE) => S
       | (SOME S, SOME S') =>
           if Type.eq_sort tsig (S, S') then S'
-          else error ("Sort constraint " ^ Syntax.string_of_sort_global thy S ^
-            " inconsistent with default " ^ Syntax.string_of_sort_global thy S' ^
+          else error ("Sort constraint " ^ Syntax.string_of_sort ctxt S ^
+            " inconsistent with default " ^ Syntax.string_of_sort ctxt S' ^
             " for type variable " ^ quote (Term.string_of_vname' xi)));
   in get end;
 
@@ -571,7 +635,7 @@ fun intern_skolem ctxt def_type x =
   let
     val _ = no_skolem false x;
     val sko = lookup_skolem ctxt x;
-    val is_const = can (read_const_proper ctxt) x orelse Long_Name.is_qualified x;
+    val is_const = can (read_const_proper ctxt false) x orelse Long_Name.is_qualified x;
     val is_declared = is_some (def_type (x, ~1));
   in
     if Variable.is_const ctxt x then NONE
@@ -583,18 +647,14 @@ fun intern_skolem ctxt def_type x =
 in
 
 fun term_context ctxt =
-  let val thy = theory_of ctxt in
-   {get_sort = get_sort thy (Variable.def_sort ctxt),
-    map_const = fn a => ((true, #1 (Term.dest_Const (read_const_proper ctxt a)))
-      handle ERROR _ => (false, Consts.intern (consts_of ctxt) a)),
-    map_free = intern_skolem ctxt (Variable.def_type ctxt false),
-    map_type = Sign.intern_tycons thy,
-    map_sort = Sign.intern_sort thy}
-  end;
+  {get_sort = get_sort ctxt (Variable.def_sort ctxt),
+   map_const = fn a => ((true, #1 (Term.dest_Const (read_const_proper ctxt false a)))
+     handle ERROR _ => (false, Consts.intern (consts_of ctxt) a)),
+   map_free = intern_skolem ctxt (Variable.def_type ctxt false)};
 
 fun decode_term ctxt =
-  let val {get_sort, map_const, map_free, map_type, map_sort} = term_context ctxt
-  in Syntax.decode_term get_sort map_const map_free map_type map_sort end;
+  let val {get_sort, map_const, map_free} = term_context ctxt
+  in Syntax.decode_term get_sort map_const map_free end;
 
 end;
 
@@ -620,13 +680,15 @@ end;
 
 (* type checking/inference *)
 
+fun def_type ctxt =
+  let val Mode {pattern, ...} = get_mode ctxt
+  in Variable.def_type ctxt pattern end;
+
 fun standard_infer_types ctxt ts =
-  let val Mode {pattern, ...} = get_mode ctxt in
-    TypeInfer.infer_types (Syntax.pp ctxt) (tsig_of ctxt) (Syntax.check_typs ctxt)
-      (try (Consts.the_constraint (consts_of ctxt))) (Variable.def_type ctxt pattern)
-      (Variable.names_of ctxt) (Variable.maxidx_of ctxt) ts
-    handle TYPE (msg, _, _) => error msg
-  end;
+  TypeInfer.infer_types (Syntax.pp ctxt) (tsig_of ctxt) (Syntax.check_typs ctxt)
+    (try (Consts.the_constraint (consts_of ctxt))) (def_type ctxt)
+    (Variable.names_of ctxt) (Variable.maxidx_of ctxt) ts
+  handle TYPE (msg, _, _) => error msg;
 
 local
 
@@ -663,26 +725,21 @@ local
 fun parse_sort ctxt text =
   let
     val (syms, pos) = Syntax.parse_token Markup.sort text;
-    val S = Syntax.standard_parse_sort ctxt (syn_of ctxt)
-        (Sign.intern_sort (theory_of ctxt)) (syms, pos)
+    val S = Syntax.standard_parse_sort ctxt (syn_of ctxt) (syms, pos)
       handle ERROR msg => cat_error msg  ("Failed to parse sort" ^ Position.str_of pos)
   in S end;
 
 fun parse_typ ctxt text =
   let
-    val thy = ProofContext.theory_of ctxt;
-    val get_sort = get_sort thy (Variable.def_sort ctxt);
-
+    val get_sort = get_sort ctxt (Variable.def_sort ctxt);
     val (syms, pos) = Syntax.parse_token Markup.typ text;
-    val T = Sign.intern_tycons thy
-        (Syntax.standard_parse_typ ctxt (syn_of ctxt) get_sort (Sign.intern_sort thy) (syms, pos))
-      handle ERROR msg => cat_error msg  ("Failed to parse type" ^ Position.str_of pos);
+    val T = Syntax.standard_parse_typ ctxt (syn_of ctxt) get_sort (syms, pos)
+      handle ERROR msg => cat_error msg ("Failed to parse type" ^ Position.str_of pos);
   in T end;
 
 fun parse_term T ctxt text =
   let
-    val thy = theory_of ctxt;
-    val {get_sort, map_const, map_free, map_type, map_sort} = term_context ctxt;
+    val {get_sort, map_const, map_free} = term_context ctxt;
 
     val (T', _) = TypeInfer.paramify_dummies T 0;
     val (markup, kind) = if T' = propT then (Markup.prop, "proposition") else (Markup.term, "term");
@@ -690,29 +747,35 @@ fun parse_term T ctxt text =
 
     fun check t = (Syntax.check_term ctxt (TypeInfer.constrain T' t); NONE)
       handle ERROR msg => SOME msg;
-    val t = Syntax.standard_parse_term (Syntax.pp ctxt) check get_sort map_const map_free
-        map_type map_sort ctxt (Sign.is_logtype thy) (syn_of ctxt) T' (syms, pos)
-      handle ERROR msg => cat_error msg  ("Failed to parse " ^ kind ^ Position.str_of pos);
+    val t =
+      Syntax.standard_parse_term (Syntax.pp ctxt) check get_sort map_const map_free
+        ctxt (Type.is_logtype (tsig_of ctxt)) (syn_of ctxt) T' (syms, pos)
+      handle ERROR msg => cat_error msg ("Failed to parse " ^ kind ^ Position.str_of pos);
   in t end;
 
 
-fun unparse_sort ctxt S =
-  Syntax.standard_unparse_sort ctxt (syn_of ctxt) (Sign.extern_sort (theory_of ctxt) S);
+fun unparse_sort ctxt =
+  Syntax.standard_unparse_sort {extern_class = Type.extern_class (tsig_of ctxt)}
+    ctxt (syn_of ctxt);
 
-fun unparse_typ ctxt T =
-  Syntax.standard_unparse_typ ctxt (syn_of ctxt) (Sign.extern_typ (theory_of ctxt) T);
-
-fun unparse_term ctxt t =
+fun unparse_typ ctxt =
   let
-    val thy = theory_of ctxt;
+    val tsig = tsig_of ctxt;
+    val extern = {extern_class = Type.extern_class tsig, extern_type = Type.extern_type tsig};
+  in Syntax.standard_unparse_typ extern ctxt (syn_of ctxt) end;
+
+fun unparse_term ctxt =
+  let
+    val tsig = tsig_of ctxt;
     val syntax = syntax_of ctxt;
     val consts = consts_of ctxt;
+    val extern =
+     {extern_class = Type.extern_class tsig,
+      extern_type = Type.extern_type tsig,
+      extern_const = Consts.extern consts};
   in
-    t
-    |> Sign.extern_term (Consts.extern_early consts) thy
-    |> Local_Syntax.extern_term syntax
-    |> Syntax.standard_unparse_term (Consts.extern consts) ctxt (Local_Syntax.syn_of syntax)
-        (not (PureThy.old_appl_syntax thy))
+    Syntax.standard_unparse_term (Local_Syntax.idents_of syntax) extern ctxt
+      (Local_Syntax.syn_of syntax) (not (PureThy.old_appl_syntax (theory_of ctxt)))
   end;
 
 in
@@ -953,7 +1016,7 @@ end;
 
 
 
-(** parameters **)
+(** basic logical entities **)
 
 (* variables *)
 
@@ -964,19 +1027,18 @@ fun declare_var (x, opt_T, mx) ctxt =
 local
 
 fun prep_vars prep_typ internal =
-  fold_map (fn (raw_b, raw_T, raw_mx) => fn ctxt =>
+  fold_map (fn (b, raw_T, mx) => fn ctxt =>
     let
-      val raw_x = Name.of_binding raw_b;
-      val (x, mx) = Syntax.const_mixfix raw_x raw_mx;
+      val x = Name.of_binding b;
       val _ = Syntax.is_identifier (no_skolem internal x) orelse
-        error ("Illegal variable name: " ^ quote x);
+        error ("Illegal variable name: " ^ quote (Binding.str_of b));
 
       fun cond_tvars T =
         if internal then T
         else Type.no_tvars T handle TYPE (msg, _, _) => error msg;
       val opt_T = Option.map (cond_tvars o cert_typ ctxt o prep_typ ctxt) raw_T;
-      val var = (Binding.map_name (K x) raw_b, opt_T, mx);
-    in (var, ctxt |> declare_var (x, opt_T, mx) |> #2) end);
+      val (_, ctxt') = ctxt |> declare_var (x, opt_T, mx);
+    in ((b, opt_T, mx), ctxt') end);
 
 in
 
@@ -986,29 +1048,38 @@ val cert_vars = prep_vars (K I) true;
 end;
 
 
-(* authentic constants *)
+(* authentic syntax *)
+
+val _ = Context.>>
+  (Context.map_theory
+    (Sign.add_advanced_trfuns
+      (Syntax.type_ast_trs
+        {read_class = read_class,
+          read_type = fn ctxt => #1 o dest_Type o read_type_name_proper ctxt false}, [], [], [])));
 
 local
 
 fun const_ast_tr intern ctxt [Syntax.Variable c] =
       let
-        val Const (c', _) = read_const_proper ctxt c;
-        val d = if intern then const_syntax_name ctxt c' else c;
+        val Const (c', _) = read_const_proper ctxt false c;
+        val d = if intern then Syntax.mark_const c' else c;
       in Syntax.Constant d end
   | const_ast_tr _ _ asts = raise Syntax.AST ("const_ast_tr", asts);
+
+val typ = Simple_Syntax.read_typ;
 
 in
 
 val _ = Context.>> (Context.map_theory
- (Sign.add_syntax
-   [("_context_const", "id => logic", Delimfix "CONST _"),
-    ("_context_const", "id => aprop", Delimfix "CONST _"),
-    ("_context_const", "longid => logic", Delimfix "CONST _"),
-    ("_context_const", "longid => aprop", Delimfix "CONST _"),
-    ("_context_xconst", "id => logic", Delimfix "XCONST _"),
-    ("_context_xconst", "id => aprop", Delimfix "XCONST _"),
-    ("_context_xconst", "longid => logic", Delimfix "XCONST _"),
-    ("_context_xconst", "longid => aprop", Delimfix "XCONST _")] #>
+ (Sign.add_syntax_i
+   [("_context_const", typ "id => logic", Delimfix "CONST _"),
+    ("_context_const", typ "id => aprop", Delimfix "CONST _"),
+    ("_context_const", typ "longid => logic", Delimfix "CONST _"),
+    ("_context_const", typ "longid => aprop", Delimfix "CONST _"),
+    ("_context_xconst", typ "id => logic", Delimfix "XCONST _"),
+    ("_context_xconst", typ "id => aprop", Delimfix "XCONST _"),
+    ("_context_xconst", typ "longid => logic", Delimfix "XCONST _"),
+    ("_context_xconst", typ "longid => aprop", Delimfix "XCONST _")] #>
   Sign.add_advanced_trfuns
     ([("_context_const", const_ast_tr true), ("_context_xconst", const_ast_tr false)], [], [], [])));
 
@@ -1019,16 +1090,34 @@ end;
 
 local
 
-fun const_syntax _ (Free (x, T), mx) = SOME (true, (x, T, mx))
+fun type_syntax (Type (c, args), mx) =
+      SOME (Local_Syntax.Type, (Syntax.mark_type c, Syntax.make_type (length args), mx))
+  | type_syntax _ = NONE;
+
+fun const_syntax _ (Free (x, T), mx) = SOME (Local_Syntax.Fixed, (x, T, mx))
   | const_syntax ctxt (Const (c, _), mx) =
-      Option.map (pair false) (try (Consts.syntax (consts_of ctxt)) (c, mx))
+      (case try (Consts.type_scheme (consts_of ctxt)) c of
+        SOME T => SOME (Local_Syntax.Const, (Syntax.mark_const c, T, mx))
+      | NONE => NONE)
   | const_syntax _ _ = NONE;
+
+fun gen_notation syntax add mode args ctxt =
+  ctxt |> map_syntax
+    (Local_Syntax.update_modesyntax (theory_of ctxt) add mode (map_filter (syntax ctxt) args));
 
 in
 
-fun notation add mode args ctxt =
-  ctxt |> map_syntax
-    (Local_Syntax.update_modesyntax (theory_of ctxt) add mode (map_filter (const_syntax ctxt) args));
+val type_notation = gen_notation (K type_syntax);
+val notation = gen_notation const_syntax;
+
+fun target_type_notation add  mode args phi =
+  let
+    val args' = args |> map_filter (fn (T, mx) =>
+      let
+        val T' = Morphism.typ phi T;
+        val similar = (case (T, T') of (Type (c, _), Type (c', _)) => c = c' | _ => false);
+      in if similar then SOME (T', mx) else NONE end);
+  in Context.mapping (Sign.type_notation add mode args') (type_notation add mode args') end;
 
 fun target_notation add mode args phi =
   let
@@ -1038,6 +1127,13 @@ fun target_notation add mode args phi =
   in Context.mapping (Sign.notation add mode args') (notation add mode args') end;
 
 end;
+
+
+(* aliases *)
+
+fun class_alias b c ctxt = (map_tsigs o apfst) (Type.class_alias (naming_of ctxt) b c) ctxt;
+fun type_alias b c ctxt = (map_tsigs o apfst) (Type.type_alias (naming_of ctxt) b c) ctxt;
+fun const_alias b c ctxt = (map_consts o apfst) (Consts.alias (naming_of ctxt) b c) ctxt;
 
 
 (* local constants *)
@@ -1074,7 +1170,7 @@ fun prep_mixfix (x, T, mx) =
   if mx <> NoSyn andalso mx <> Structure andalso
       (can Name.dest_internal x orelse can Name.dest_skolem x) then
     error ("Illegal mixfix syntax for internal/skolem constant " ^ quote x)
-  else (true, (x, T, mx));
+  else (Local_Syntax.Fixed, (x, T, mx));
 
 in
 
@@ -1197,14 +1293,6 @@ end;
 
 (** print context information **)
 
-val debug = Unsynchronized.ref false;
-
-val verbose = Unsynchronized.ref false;
-fun verb f x = if ! verbose then f (x ()) else [];
-
-fun setmp_verbose_CRITICAL f x = setmp_CRITICAL verbose true f x;
-
-
 (* local syntax *)
 
 val print_syntax = Syntax.print_syntax o syn_of;
@@ -1222,7 +1310,7 @@ fun pretty_abbrevs show_globals ctxt =
           else cons (c, Logic.mk_equals (Const (c, T), t));
     val abbrevs = Name_Space.extern_table (space, Symtab.make (Symtab.fold add_abbr consts []));
   in
-    if null abbrevs andalso not (! verbose) then []
+    if null abbrevs then []
     else [Pretty.big_list "abbreviations:" (map (pretty_term_abbrev ctxt o #2) abbrevs)]
   end;
 
@@ -1236,7 +1324,7 @@ fun pretty_binds ctxt =
     val binds = Variable.binds_of ctxt;
     fun prt_bind (xi, (T, t)) = pretty_term_abbrev ctxt (Logic.mk_equals (Var (xi, T), t));
   in
-    if Vartab.is_empty binds andalso not (! verbose) then []
+    if Vartab.is_empty binds then []
     else [Pretty.big_list "term bindings:" (map prt_bind (Vartab.dest binds))]
   end;
 
@@ -1250,10 +1338,10 @@ fun pretty_lthms ctxt =
     val local_facts = facts_of ctxt;
     val props = Facts.props local_facts;
     val facts =
-      (if null props then [] else [("unnamed", props)]) @
+      (if null props then [] else [("<unnamed>", props)]) @
       Facts.dest_static [] local_facts;
   in
-    if null facts andalso not (! verbose) then []
+    if null facts then []
     else [Pretty.big_list "facts:" (map #1 (sort_wrt (#1 o #2) (map (`(pretty_fact ctxt)) facts)))]
   end;
 
@@ -1276,8 +1364,9 @@ fun pretty_case (name, (fixes, ((asms, (lets, cs)), ctxt))) =
       ((if a = "" then [] else [Pretty.str (a ^ ":")]) @ map (Pretty.quote o prt_term) ts));
 
     fun prt_sect _ _ _ [] = []
-      | prt_sect s sep prt xs = [Pretty.block (Pretty.breaks (Pretty.str s ::
-            flat (Library.separate sep (map (Library.single o prt) xs))))];
+      | prt_sect s sep prt xs =
+          [Pretty.block (Pretty.breaks (Pretty.str s ::
+            flat (separate sep (map (single o prt) xs))))];
   in
     Pretty.block (Pretty.fbreaks
       (Pretty.str (name ^ ":") ::
@@ -1298,7 +1387,7 @@ fun pretty_cases ctxt =
           cons (name, (fixes, case_result c ctxt));
     val cases = fold add_case (cases_of ctxt) [];
   in
-    if null cases andalso not (! verbose) then []
+    if null cases then []
     else [Pretty.big_list "cases:" (map pretty_case cases)]
   end;
 
@@ -1309,6 +1398,8 @@ end;
 
 (* core context *)
 
+val debug = Unsynchronized.ref false;
+val verbose = Unsynchronized.ref false;
 val prems_limit = Unsynchronized.ref ~1;
 
 fun pretty_ctxt ctxt =
@@ -1318,8 +1409,9 @@ fun pretty_ctxt ctxt =
       val prt_term = Syntax.pretty_term ctxt;
 
       (*structures*)
-      val structs = Local_Syntax.structs_of (syntax_of ctxt);
-      val prt_structs = if null structs then []
+      val {structs, ...} = Local_Syntax.idents_of (syntax_of ctxt);
+      val prt_structs =
+        if null structs then []
         else [Pretty.block (Pretty.str "structures:" :: Pretty.brk 1 ::
           Pretty.commas (map Pretty.str structs))];
 
@@ -1330,7 +1422,8 @@ fun pretty_ctxt ctxt =
       val fixes =
         rev (filter_out ((can Name.dest_internal orf member (op =) structs) o #1)
           (Variable.fixes_of ctxt));
-      val prt_fixes = if null fixes then []
+      val prt_fixes =
+        if null fixes then []
         else [Pretty.block (Pretty.str "fixed variables:" :: Pretty.brk 1 ::
           Pretty.commas (map prt_fix fixes))];
 
@@ -1338,7 +1431,8 @@ fun pretty_ctxt ctxt =
       val prems = Assumption.all_prems_of ctxt;
       val len = length prems;
       val suppressed = len - ! prems_limit;
-      val prt_prems = if null prems then []
+      val prt_prems =
+        if null prems then []
         else [Pretty.big_list "prems:" ((if suppressed <= 0 then [] else [Pretty.str "..."]) @
           map (Display.pretty_thm ctxt) (drop suppressed prems))];
     in prt_structs @ prt_fixes @ prt_prems end;
@@ -1348,6 +1442,9 @@ fun pretty_ctxt ctxt =
 
 fun pretty_context ctxt =
   let
+    val is_verbose = ! verbose;
+    fun verb f x = if is_verbose then f (x ()) else [];
+
     val prt_term = Syntax.pretty_term ctxt;
     val prt_typ = Syntax.pretty_typ ctxt;
     val prt_sort = Syntax.pretty_sort ctxt;
@@ -1382,3 +1479,4 @@ fun pretty_context ctxt =
   end;
 
 end;
+

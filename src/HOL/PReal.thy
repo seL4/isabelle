@@ -9,10 +9,10 @@ provides some of the definitions.
 header {* Positive real numbers *}
 
 theory PReal
-imports Rational 
+imports Rat
 begin
 
-text{*Could be generalized and moved to @{text Ring_and_Field}*}
+text{*Could be generalized and moved to @{text Groups}*}
 lemma add_eq_exists: "\<exists>x. a+x = (b::rat)"
 by (rule_tac x="b-a" in exI, simp)
 
@@ -23,7 +23,7 @@ definition
             (\<forall>y \<in> A. ((\<forall>z. 0<z & z < y --> z \<in> A) & (\<exists>u \<in> A. y < u))))"
 
 lemma interval_empty_iff:
-  "{y. (x::'a::dense_linear_order) < y \<and> y < z} = {} \<longleftrightarrow> \<not> x < z"
+  "{y. (x::'a::dense_linorder) < y \<and> y < z} = {} \<longleftrightarrow> \<not> x < z"
   by (auto dest: dense)
 
 
@@ -750,7 +750,7 @@ proof (induct u, induct y)
   have frle: "Fract a b \<le> Fract ?k 1 * (Fract c d)" 
   proof -
     have "?thesis = ((a * d * b * d) \<le> c * b * (a * d * b * d))"
-      by (simp add: mult_rat le_rat order_less_imp_not_eq2 mult_ac) 
+      by (simp add: order_less_imp_not_eq2 mult_ac) 
     moreover
     have "(1 * (a * d * b * d)) \<le> c * b * (a * d * b * d)"
       by (rule mult_mono, 
@@ -822,7 +822,7 @@ proof -
       also with ypos have "... = (r/y) * (y + ?d)"
         by (simp only: algebra_simps divide_inverse, simp)
       also have "... = r*x" using ypos
-        by (simp add: times_divide_eq_left) 
+        by simp
       finally show "r + ?d < r*x" .
     qed
     with r notin rdpos
@@ -1155,7 +1155,7 @@ lemmas preal_cancels =
     preal_add_le_cancel_right preal_add_le_cancel_left
     preal_add_left_cancel_iff preal_add_right_cancel_iff
 
-instance preal :: ordered_cancel_ab_semigroup_add
+instance preal :: linordered_cancel_ab_semigroup_add
 proof
   fix a b c :: preal
   show "a + b = a + c \<Longrightarrow> b = c" by (rule preal_add_left_cancel)

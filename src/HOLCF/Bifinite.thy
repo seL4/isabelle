@@ -295,7 +295,7 @@ proof (intro finite_deflation.intro finite_deflation_axioms.intro)
     by (rule finite_range_imp_finite_fixes)
 qed
 
-instantiation "->" :: (profinite, profinite) profinite
+instantiation cfun :: (profinite, profinite) profinite
 begin
 
 definition
@@ -325,7 +325,7 @@ qed
 
 end
 
-instance "->" :: (profinite, bifinite) bifinite ..
+instance cfun :: (profinite, bifinite) bifinite ..
 
 lemma approx_cfun: "approx n\<cdot>f\<cdot>x = approx n\<cdot>(f\<cdot>(approx n\<cdot>x))"
 by (simp add: approx_cfun_def)

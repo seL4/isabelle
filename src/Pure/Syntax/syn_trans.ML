@@ -19,6 +19,7 @@ sig
   val antiquote_tr': string -> term -> term
   val quote_tr': string -> term -> term
   val quote_antiquote_tr': string -> string -> string -> string * (term list -> term)
+  val update_name_tr': term -> term
   val mark_bound: string -> term
   val mark_boundT: string * typ -> term
   val bound_vars: (string * typ) list -> term -> term
@@ -33,16 +34,16 @@ sig
   val non_typed_tr'': ('a -> term list -> term) -> 'a -> bool -> typ -> term list -> term
   val constrainAbsC: string
   val pure_trfuns:
-      (string * (Ast.ast list -> Ast.ast)) list *
-      (string * (term list -> term)) list *
-      (string * (term list -> term)) list *
-      (string * (Ast.ast list -> Ast.ast)) list
+    (string * (Ast.ast list -> Ast.ast)) list *
+    (string * (term list -> term)) list *
+    (string * (term list -> term)) list *
+    (string * (Ast.ast list -> Ast.ast)) list
   val pure_trfunsT: (string * (bool -> typ -> term list -> term)) list
   val struct_trfuns: string list ->
-      (string * (Ast.ast list -> Ast.ast)) list *
-      (string * (term list -> term)) list *
-      (string * (bool -> typ -> term list -> term)) list *
-      (string * (Ast.ast list -> Ast.ast)) list
+    (string * (Ast.ast list -> Ast.ast)) list *
+    (string * (term list -> term)) list *
+    (string * (bool -> typ -> term list -> term)) list *
+    (string * (Ast.ast list -> Ast.ast)) list
 end;
 
 signature SYN_TRANS =
@@ -128,19 +129,21 @@ fun mk_binder_tr (syn, name) =
 
 (* type propositions *)
 
-fun mk_type ty = Lexicon.const "_constrain" $ Lexicon.const "TYPE" $ (Lexicon.const "itself" $ ty);
+fun mk_type ty =
+  Lexicon.const "_constrain" $
+    Lexicon.const "\\<^const>TYPE" $ (Lexicon.const "\\<^type>itself" $ ty);
 
 fun ofclass_tr (*"_ofclass"*) [ty, cls] = cls $ mk_type ty
   | ofclass_tr (*"_ofclass"*) ts = raise TERM ("ofclass_tr", ts);
 
 fun sort_constraint_tr (*"_sort_constraint"*) [ty] =
-      Lexicon.const "Pure.sort_constraint" $ mk_type ty
+      Lexicon.const "\\<^const>Pure.sort_constraint" $ mk_type ty
   | sort_constraint_tr (*"_sort_constraint"*) ts = raise TERM ("sort_constraint_tr", ts);
 
 
 (* meta propositions *)
 
-fun aprop_tr (*"_aprop"*) [t] = Lexicon.const "_constrain" $ t $ Lexicon.const "prop"
+fun aprop_tr (*"_aprop"*) [t] = Lexicon.const "_constrain" $ t $ Lexicon.const "\\<^type>prop"
   | aprop_tr (*"_aprop"*) ts = raise TERM ("aprop_tr", ts);
 
 
@@ -151,7 +154,7 @@ fun bigimpl_ast_tr (*"_bigimpl"*) (asts as [asms, concl]) =
         (case Ast.unfold_ast_p "_asms" asms of
           (asms', Ast.Appl [Ast.Constant "_asm", asm']) => asms' @ [asm']
         | _ => raise Ast.AST ("bigimpl_ast_tr", asts))
-      in Ast.fold_ast_p "==>" (prems, concl) end
+      in Ast.fold_ast_p "\\<^const>==>" (prems, concl) end
   | bigimpl_ast_tr (*"_bigimpl"*) asts = raise Ast.AST ("bigimpl_ast_tr", asts);
 
 
@@ -185,6 +188,16 @@ fun quote_antiquote_tr quoteN antiquoteN name =
     fun tr [t] = Lexicon.const name $ quote_tr antiquoteN t
       | tr ts = raise TERM ("quote_tr", ts);
   in (quoteN, tr) end;
+
+
+(* corresponding updates *)
+
+fun update_name_tr (Free (x, T) :: ts) = list_comb (Free (suffix "_update" x, T), ts)
+  | update_name_tr (Const (x, T) :: ts) = list_comb (Const (suffix "_update" x, T), ts)
+  | update_name_tr (((c as Const ("_constrain", _)) $ t $ ty) :: ts) =
+      list_comb (c $ update_name_tr [t] $
+        (Lexicon.const "\\<^type>fun" $ ty $ Lexicon.const "\\<^type>dummy"), ts)
+  | update_name_tr ts = raise TERM ("update_name_tr", ts);
 
 
 (* indexed syntax *)
@@ -340,7 +353,7 @@ fun idtyp_ast_tr' a [Ast.Appl [Ast.Constant c, x, ty], xs] =
 
 (* type propositions *)
 
-fun type_prop_tr' _ (*"_type_prop"*) T [Const ("Pure.sort_constraint", _)] =
+fun type_prop_tr' _ (*"_type_prop"*) T [Const ("\\<^const>Pure.sort_constraint", _)] =
       Lexicon.const "_sort_constraint" $ TypeExt.term_of_typ true T
   | type_prop_tr' show_sorts (*"_type_prop"*) T [t] =
       Lexicon.const "_ofclass" $ TypeExt.term_of_typ show_sorts T $ t
@@ -383,7 +396,7 @@ fun prop_tr' tm =
 fun impl_ast_tr' (*"==>"*) asts =
   if TypeExt.no_brackets () then raise Match
   else
-    (case Ast.unfold_ast_p "==>" (Ast.Appl (Ast.Constant "==>" :: asts)) of
+    (case Ast.unfold_ast_p "\\<^const>==>" (Ast.Appl (Ast.Constant "\\<^const>==>" :: asts)) of
       (prems as _ :: _ :: _, concl) =>
         let
           val (asms, asm) = split_last prems;
@@ -444,6 +457,19 @@ fun quote_antiquote_tr' quoteN antiquoteN name =
   in (name, tr') end;
 
 
+(* corresponding updates *)
+
+fun upd_tr' (x_upd, T) =
+  (case try (unsuffix "_update") x_upd of
+    SOME x => (x, if T = dummyT then T else Term.domain_type T)
+  | NONE => raise Match);
+
+fun update_name_tr' (Free x) = Free (upd_tr' x)
+  | update_name_tr' ((c as Const ("_free", _)) $ Free x) = c $ Free (upd_tr' x)
+  | update_name_tr' (Const x) = Const (upd_tr' x)
+  | update_name_tr' _ = raise Match;
+
+
 (* indexed syntax *)
 
 fun index_ast_tr' (*"_index"*) [Ast.Appl [Ast.Constant "_struct", ast]] = ast
@@ -468,20 +494,36 @@ fun struct_ast_tr' structs (*"_struct"*) [Ast.Constant "_indexdefault"] =
 (** Pure translations **)
 
 val pure_trfuns =
- ([("_constify", constify_ast_tr), ("_appl", appl_ast_tr), ("_applC", applC_ast_tr),
-   ("_lambda", lambda_ast_tr), ("_idtyp", idtyp_ast_tr), ("_idtypdummy", idtypdummy_ast_tr),
-   ("_bigimpl", bigimpl_ast_tr), ("_indexdefault", indexdefault_ast_tr),
-   ("_indexnum", indexnum_ast_tr), ("_indexvar", indexvar_ast_tr), ("_struct", struct_ast_tr)],
-  [("_abs", abs_tr), ("_aprop", aprop_tr), ("_ofclass", ofclass_tr),
-   ("_sort_constraint", sort_constraint_tr), ("_TYPE", type_tr),
-   ("_DDDOT", dddot_tr), ("_index", index_tr)],
-  ([]: (string * (term list -> term)) list),
-  [("_abs", abs_ast_tr'), ("_idts", idtyp_ast_tr' "_idts"),
-   ("_pttrns", idtyp_ast_tr' "_pttrns"), ("==>", impl_ast_tr'),
-   ("_index", index_ast_tr')]);
+  ([("_constify", constify_ast_tr),
+    ("_appl", appl_ast_tr),
+    ("_applC", applC_ast_tr),
+    ("_lambda", lambda_ast_tr),
+    ("_idtyp", idtyp_ast_tr),
+    ("_idtypdummy", idtypdummy_ast_tr),
+    ("_bigimpl", bigimpl_ast_tr),
+    ("_indexdefault", indexdefault_ast_tr),
+    ("_indexnum", indexnum_ast_tr),
+    ("_indexvar", indexvar_ast_tr),
+    ("_struct", struct_ast_tr)],
+   [("_abs", abs_tr),
+    ("_aprop", aprop_tr),
+    ("_ofclass", ofclass_tr),
+    ("_sort_constraint", sort_constraint_tr),
+    ("_TYPE", type_tr),
+    ("_DDDOT", dddot_tr),
+    ("_update_name", update_name_tr),
+    ("_index", index_tr)],
+   ([]: (string * (term list -> term)) list),
+   [("_abs", abs_ast_tr'),
+    ("_idts", idtyp_ast_tr' "_idts"),
+    ("_pttrns", idtyp_ast_tr' "_pttrns"),
+    ("\\<^const>==>", impl_ast_tr'),
+    ("_index", index_ast_tr')]);
 
 val pure_trfunsT =
-  [("_type_prop", type_prop_tr'), ("TYPE", type_tr'), ("_type_constraint_", type_constraint_tr')];
+ [("_type_prop", type_prop_tr'),
+  ("\\<^const>TYPE", type_tr'),
+  ("_type_constraint_", type_constraint_tr')];
 
 fun struct_trfuns structs =
   ([], [("_struct", struct_tr structs)], [], [("_struct", struct_ast_tr' structs)]);
@@ -527,7 +569,7 @@ fun asts_to_terms ctxt trf asts =
 
     val free_fixed = Term.map_aterms
       (fn t as Const (c, T) =>
-          (case try (unprefix Lexicon.fixedN) c of
+          (case try Lexicon.unmark_fixed c of
             NONE => t
           | SOME x => Free (x, T))
         | t => t);

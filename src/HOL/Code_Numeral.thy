@@ -144,7 +144,7 @@ code_datatype "number_of \<Colon> int \<Rightarrow> code_numeral"
 
 subsection {* Basic arithmetic *}
 
-instantiation code_numeral :: "{minus, ordered_semidom, semiring_div, linorder}"
+instantiation code_numeral :: "{minus, linordered_semidom, semiring_div, linorder}"
 begin
 
 definition [simp, code del]:
@@ -247,7 +247,7 @@ lemma nat_of_code [code]:
   "nat_of i = nat_of_aux i 0"
   by (simp add: nat_of_aux_def)
 
-definition div_mod_code_numeral ::  "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral \<times> code_numeral" where
+definition div_mod_code_numeral :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral \<times> code_numeral" where
   [code del]: "div_mod_code_numeral n m = (n div m, n mod m)"
 
 lemma [code]:
@@ -280,6 +280,16 @@ qed
 
 hide (open) const of_nat nat_of int_of
 
+subsubsection {* Lazy Evaluation of an indexed function *}
+
+function iterate_upto :: "(code_numeral => 'a) => code_numeral => code_numeral => 'a Predicate.pred"
+where
+  "iterate_upto f n m = Predicate.Seq (%u. if n > m then Predicate.Empty else Predicate.Insert (f n) (iterate_upto f (n + 1) m))"
+by pat_completeness auto
+
+termination by (relation "measure (%(f, n, m). Code_Numeral.nat_of (m + 1 - n))") auto
+
+hide (open) const iterate_upto
 
 subsection {* Code generator setup *}
 

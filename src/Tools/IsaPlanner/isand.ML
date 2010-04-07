@@ -213,7 +213,7 @@ fun unfix_tfrees ns th =
     let 
       val varfiytfrees = map (Term.dest_TFree o Thm.typ_of) ns
       val skiptfrees = subtract (op =) varfiytfrees (OldTerm.add_term_tfrees (Thm.prop_of th,[]));
-    in #2 (Thm.varifyT' skiptfrees th) end;
+    in #2 (Thm.varifyT_global' skiptfrees th) end;
 
 (* change schematic/meta vars to fresh free vars, avoiding name clashes 
    with "names" *)

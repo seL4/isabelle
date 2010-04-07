@@ -1,6 +1,6 @@
 (*  Title:      HOL/Nitpick_Examples/Refute_Nits.thy
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2009
+    Copyright   2009, 2010
 
 Refute examples adapted to Nitpick.
 *)
@@ -11,7 +11,8 @@ theory Refute_Nits
 imports Main
 begin
 
-nitpick_params [sat_solver = MiniSatJNI, max_threads = 1, timeout = 60 s]
+nitpick_params [max_potential = 0, sat_solver = MiniSat_JNI, max_threads = 1,
+                timeout = 60 s]
 
 lemma "P \<and> Q"
 apply (rule conjI)
@@ -174,14 +175,14 @@ lemma "\<lbrakk>\<forall>x. P x x; \<forall>x y. P x y \<longrightarrow> P y x\<
 nitpick [expect = genuine]
 oops
 
-text {* The "Drinker's theorem" ... *}
+text {* The ``Drinker's theorem'' *}
 
 lemma "\<exists>x. f x = g x \<longrightarrow> f = g"
 nitpick [expect = none]
 apply (auto simp add: ext)
 done
 
-text {* ... and an incorrect version of it *}
+text {* And an incorrect version of it *}
 
 lemma "(\<exists>x. f x = g x) \<longrightarrow> f = g"
 nitpick [expect = genuine]
@@ -241,21 +242,24 @@ lemma "x \<noteq> Ex1"
 nitpick [expect = genuine]
 oops
 
-text {* "The transitive closure 'T' of an arbitrary relation 'P' is non-empty." *}
+text {* ``The transitive closure of an arbitrary relation is non-empty.'' *}
 
-constdefs
-"trans" :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
+definition "trans" :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
 "trans P \<equiv> (ALL x y z. P x y \<longrightarrow> P y z \<longrightarrow> P x z)"
-"subset" :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
+
+definition
+"subset" :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
 "subset P Q \<equiv> (ALL x y. P x y \<longrightarrow> Q x y)"
-"trans_closure" :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
+
+definition
+"trans_closure" :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
 "trans_closure P Q \<equiv> (subset Q P) \<and> (trans P) \<and> (ALL R. subset Q R \<longrightarrow> trans R \<longrightarrow> subset P R)"
 
 lemma "trans_closure T P \<longrightarrow> (\<exists>x y. T x y)"
 nitpick [expect = genuine]
 oops
 
-text {* "The union of transitive closures is equal to the transitive closure of unions." *}
+text {* ``The union of transitive closures is equal to the transitive closure of unions.'' *}
 
 lemma "(\<forall>x y. (P x y \<or> R x y) \<longrightarrow> T x y) \<longrightarrow> trans T \<longrightarrow> (\<forall>Q. (\<forall>x y. (P x y \<or> R x y) \<longrightarrow> Q x y) \<longrightarrow> trans Q \<longrightarrow> subset T Q)
  \<longrightarrow> trans_closure TP P
@@ -264,19 +268,19 @@ lemma "(\<forall>x y. (P x y \<or> R x y) \<longrightarrow> T x y) \<longrightar
 nitpick [expect = genuine]
 oops
 
-text {* "Every surjective function is invertible." *}
+text {* ``Every surjective function is invertible.'' *}
 
 lemma "(\<forall>y. \<exists>x. y = f x) \<longrightarrow> (\<exists>g. \<forall>x. g (f x) = x)"
 nitpick [expect = genuine]
 oops
 
-text {* "Every invertible function is surjective." *}
+text {* ``Every invertible function is surjective.'' *}
 
 lemma "(\<exists>g. \<forall>x. g (f x) = x) \<longrightarrow> (\<forall>y. \<exists>x. y = f x)"
 nitpick [expect = genuine]
 oops
 
-text {* Every point is a fixed point of some function. *}
+text {* ``Every point is a fixed point of some function.'' *}
 
 lemma "\<exists>f. f x = x"
 nitpick [card = 1\<midarrow>7, expect = none]
@@ -284,21 +288,21 @@ apply (rule_tac x = "\<lambda>x. x" in exI)
 apply simp
 done
 
-text {* Axiom of Choice: first an incorrect version ... *}
+text {* Axiom of Choice: first an incorrect version *}
 
 lemma "(\<forall>x. \<exists>y. P x y) \<longrightarrow> (\<exists>!f. \<forall>x. P x (f x))"
 nitpick [expect = genuine]
 oops
 
-text {* ... and now two correct ones *}
+text {* And now two correct ones *}
 
 lemma "(\<forall>x. \<exists>y. P x y) \<longrightarrow> (\<exists>f. \<forall>x. P x (f x))"
-nitpick [card = 1-5, expect = none]
+nitpick [card = 1-4, expect = none]
 apply (simp add: choice)
 done
 
 lemma "(\<forall>x. \<exists>!y. P x y) \<longrightarrow> (\<exists>!f. \<forall>x. P x (f x))"
-nitpick [card = 1-4, expect = none]
+nitpick [card = 1-3, expect = none]
 apply auto
  apply (simp add: ex1_implies_ex choice)
 apply (fast intro: ext)
@@ -807,12 +811,12 @@ nitpick [expect = genuine]
 oops
 
 lemma "list_rec nil cons [] = nil"
-nitpick [expect = none]
+nitpick [card = 1\<midarrow>5, expect = none]
 apply simp
 done
 
 lemma "list_rec nil cons (x#xs) = cons x xs (list_rec nil cons xs)"
-nitpick [expect = none]
+nitpick [card = 1\<midarrow>5, expect = none]
 apply simp
 done
 
@@ -885,7 +889,7 @@ apply simp
 done
 
 lemma "BinTree_rec l n (Node x y) = n x y (BinTree_rec l n x) (BinTree_rec l n y)"
-nitpick [card = 1\<midarrow>6, expect = none]
+nitpick [card = 1\<midarrow>5, expect = none]
 apply simp
 done
 
@@ -923,12 +927,12 @@ nitpick [expect = genuine]
 oops
 
 lemma "aexp_bexp_rec_1 number ite equal (Number x) = number x"
-nitpick [card = 1\<midarrow>4, expect = none]
+nitpick [card = 1\<midarrow>3, expect = none]
 apply simp
 done
 
 lemma "aexp_bexp_rec_1 number ite equal (ITE x y z) = ite x y z (aexp_bexp_rec_2 number ite equal x) (aexp_bexp_rec_1 number ite equal y) (aexp_bexp_rec_1 number ite equal z)"
-nitpick [card = 1\<midarrow>4, expect = none]
+nitpick [card = 1\<midarrow>3, expect = none]
 apply simp
 done
 
@@ -941,7 +945,7 @@ nitpick [expect = genuine]
 oops
 
 lemma "aexp_bexp_rec_2 number ite equal (Equal x y) = equal x y (aexp_bexp_rec_1 number ite equal x) (aexp_bexp_rec_1 number ite equal y)"
-nitpick [card = 1\<midarrow>4, expect = none]
+nitpick [card = 1\<midarrow>3, expect = none]
 apply simp
 done
 
@@ -1001,32 +1005,32 @@ nitpick [expect = genuine]
 oops
 
 lemma "X_Y_rec_1 a b c d e f A = a"
-nitpick [expect = none]
+nitpick [card = 1\<midarrow>5, expect = none]
 apply simp
 done
 
 lemma "X_Y_rec_1 a b c d e f (B x) = b x (X_Y_rec_1 a b c d e f x)"
-nitpick [expect = none]
+nitpick [card = 1\<midarrow>5, expect = none]
 apply simp
 done
 
 lemma "X_Y_rec_1 a b c d e f (C y) = c y (X_Y_rec_2 a b c d e f y)"
-nitpick [expect = none]
+nitpick [card = 1\<midarrow>5, expect = none]
 apply simp
 done
 
 lemma "X_Y_rec_2 a b c d e f (D x) = d x (X_Y_rec_1 a b c d e f x)"
-nitpick [expect = none]
+nitpick [card = 1\<midarrow>5, expect = none]
 apply simp
 done
 
 lemma "X_Y_rec_2 a b c d e f (E y) = e y (X_Y_rec_2 a b c d e f y)"
-nitpick [expect = none]
+nitpick [card = 1\<midarrow>5, expect = none]
 apply simp
 done
 
 lemma "X_Y_rec_2 a b c d e f F = f"
-nitpick [expect = none]
+nitpick [card = 1\<midarrow>5, expect = none]
 apply simp
 done
 
@@ -1057,12 +1061,12 @@ nitpick [expect = genuine]
 oops
 
 lemma "XOpt_rec_1 cx dx n1 s1 n2 s2 (CX x) = cx x (XOpt_rec_2 cx dx n1 s1 n2 s2 x)"
-nitpick [card = 1\<midarrow>6, expect = none]
+nitpick [card = 1\<midarrow>5, expect = none]
 apply simp
 done
 
 lemma "XOpt_rec_1 cx dx n1 s1 n2 s2 (DX x) = dx x (\<lambda>b. XOpt_rec_3 cx dx n1 s1 n2 s2 (x b))"
-nitpick [card = 1\<midarrow>4, expect = none]
+nitpick [card = 1\<midarrow>3, expect = none]
 apply simp
 done
 
@@ -1150,17 +1154,17 @@ nitpick [expect = genuine]
 oops
 
 lemma "Trie_rec_1 tr nil cons (TR x) = tr x (Trie_rec_2 tr nil cons x)"
-nitpick [card = 1\<midarrow>6, expect = none]
+nitpick [card = 1\<midarrow>4, expect = none]
 apply simp
 done
 
 lemma "Trie_rec_2 tr nil cons [] = nil"
-nitpick [card = 1\<midarrow>6, expect = none]
+nitpick [card = 1\<midarrow>4, expect = none]
 apply simp
 done
 
 lemma "Trie_rec_2 tr nil cons (x#xs) = cons x xs (Trie_rec_1 tr nil cons x) (Trie_rec_2 tr nil cons xs)"
-nitpick [card = 1\<midarrow>6, expect = none]
+nitpick [card = 1\<midarrow>4, expect = none]
 apply simp
 done
 
@@ -1365,40 +1369,31 @@ nitpick [expect = genuine]
 oops
 
 lemma "f (lfp f) = lfp f"
-nitpick [expect = genuine]
+nitpick [card = 2, expect = genuine]
 oops
 
 lemma "f (gfp f) = gfp f"
-nitpick [expect = genuine]
+nitpick [card = 2, expect = genuine]
 oops
 
 lemma "lfp f = gfp f"
-nitpick [expect = genuine]
+nitpick [card = 2, expect = genuine]
 oops
 
 subsubsection {* Axiomatic Type Classes and Overloading *}
 
 text {* A type class without axioms: *}
 
-axclass classA
+class classA
 
 lemma "P (x\<Colon>'a\<Colon>classA)"
 nitpick [expect = genuine]
 oops
 
-text {* The axiom of this type class does not contain any type variables: *}
-
-axclass classB
-classB_ax: "P \<or> \<not> P"
-
-lemma "P (x\<Colon>'a\<Colon>classB)"
-nitpick [expect = genuine]
-oops
-
 text {* An axiom with a type variable (denoting types which have at least two elements): *}
 
-axclass classC < type
-classC_ax: "\<exists>x y. x \<noteq> y"
+class classC =
+  assumes classC_ax: "\<exists>x y. x \<noteq> y"
 
 lemma "P (x\<Colon>'a\<Colon>classC)"
 nitpick [expect = genuine]
@@ -1410,11 +1405,9 @@ sorry
 
 text {* A type class for which a constant is defined: *}
 
-consts
-classD_const :: "'a \<Rightarrow> 'a"
-
-axclass classD < type
-classD_ax: "classD_const (classD_const x) = classD_const x"
+class classD =
+  fixes classD_const :: "'a \<Rightarrow> 'a"
+  assumes classD_ax: "classD_const (classD_const x) = classD_const x"
 
 lemma "P (x\<Colon>'a\<Colon>classD)"
 nitpick [expect = genuine]
@@ -1422,13 +1415,9 @@ oops
 
 text {* A type class with multiple superclasses: *}
 
-axclass classE < classC, classD
+class classE = classC + classD
 
 lemma "P (x\<Colon>'a\<Colon>classE)"
-nitpick [expect = genuine]
-oops
-
-lemma "P (x\<Colon>'a\<Colon>{classB, classE})"
 nitpick [expect = genuine]
 oops
 
@@ -1442,12 +1431,6 @@ done
 lemma "OFCLASS('a\<Colon>classC, type_class)"
 nitpick [expect = none]
 apply intro_classes
-done
-
-lemma "OFCLASS('a, classB_class)"
-nitpick [expect = none]
-apply intro_classes
-apply simp
 done
 
 lemma "OFCLASS('a\<Colon>type, classC_class)"

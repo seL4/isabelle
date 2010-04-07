@@ -6,7 +6,7 @@ Context assumptions, parameterized by export rules.
 
 signature ASSUMPTION =
 sig
-  type export
+  type export = bool -> cterm list -> (thm -> thm) * (term -> term)
   val assume_export: export
   val presume_export: export
   val assume: cterm -> thm

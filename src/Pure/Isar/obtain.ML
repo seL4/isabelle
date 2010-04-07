@@ -76,7 +76,7 @@ fun eliminate fix_ctxt rule xs As thm =
     val thy = ProofContext.theory_of fix_ctxt;
 
     val _ = eliminate_term fix_ctxt xs (Thm.full_prop_of thm);
-    val _ = ObjectLogic.is_judgment thy (Thm.concl_of thm) orelse
+    val _ = Object_Logic.is_judgment thy (Thm.concl_of thm) orelse
       error "Conclusion in obtained context must be object-logic judgment";
 
     val ((_, [thm']), ctxt') = Variable.import true [thm] fix_ctxt;
@@ -100,7 +100,7 @@ fun obtain_export ctxt rule xs _ As =
 fun bind_judgment ctxt name =
   let
     val (bind, ctxt') = ProofContext.bind_fixes [name] ctxt;
-    val (t as _ $ Free v) = bind (ObjectLogic.fixed_judgment (ProofContext.theory_of ctxt) name);
+    val (t as _ $ Free v) = bind (Object_Logic.fixed_judgment (ProofContext.theory_of ctxt) name);
   in ((v, t), ctxt') end;
 
 val thatN = "that";
@@ -197,7 +197,7 @@ fun result tac facts ctxt =
 
     val closed_rule = Thm.forall_intr (cert (Free thesis_var)) rule;
     val ((_, [rule']), ctxt') = Variable.import false [closed_rule] ctxt;
-    val obtain_rule = Thm.forall_elim (cert (Logic.varify (Free thesis_var))) rule';
+    val obtain_rule = Thm.forall_elim (cert (Logic.varify_global (Free thesis_var))) rule';
     val ((params, stmt), fix_ctxt) = Variable.focus (Thm.cprem_of obtain_rule 1) ctxt';
     val (prems, ctxt'') =
       Assumption.add_assms (obtain_export fix_ctxt obtain_rule (map #2 params))
@@ -252,7 +252,7 @@ fun unify_params vars thesis_var raw_rule ctxt =
     val vars' =
       map (dest_Free o Thm.term_of o Drule.dest_term) terms' ~~
       (map snd vars @ replicate (length ys) NoSyn);
-    val rule'' = Thm.forall_elim (cert (Logic.varify (Free thesis_var))) rule';
+    val rule'' = Thm.forall_elim (cert (Logic.varify_global (Free thesis_var))) rule';
   in ((vars', rule''), ctxt') end;
 
 fun inferred_type (binding, _, mx) ctxt =

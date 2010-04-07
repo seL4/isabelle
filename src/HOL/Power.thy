@@ -130,7 +130,7 @@ qed
 
 end
 
-context ordered_semidom
+context linordered_semidom
 begin
 
 lemma zero_less_power [simp]:
@@ -323,7 +323,7 @@ lemma power_eq_imp_eq_base:
 
 end
 
-context ordered_idom
+context linordered_idom
 begin
 
 lemma power_abs:
@@ -332,9 +332,9 @@ lemma power_abs:
 
 lemma abs_power_minus [simp]:
   "abs ((-a) ^ n) = abs (a ^ n)"
-  by (simp add: abs_minus_cancel power_abs) 
+  by (simp add: power_abs)
 
-lemma zero_less_power_abs_iff [simp, noatp]:
+lemma zero_less_power_abs_iff [simp, no_atp]:
   "0 < abs a ^ n \<longleftrightarrow> a \<noteq> 0 \<or> n = 0"
 proof (induct n)
   case 0 show ?case by simp

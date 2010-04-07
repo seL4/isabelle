@@ -11,11 +11,11 @@ theory Map
 imports List
 begin
 
-types ('a,'b) "~=>" = "'a => 'b option"  (infixr "~=>" 0)
-translations (type) "a ~=> b " <= (type) "a => b option"
+types ('a,'b) "map" = "'a => 'b option" (infixr "~=>" 0)
+translations (type) "'a ~=> 'b" <= (type) "'a => 'b option"
 
-syntax (xsymbols)
-  "~=>" :: "[type, type] => type"  (infixr "\<rightharpoonup>" 0)
+type_notation (xsymbols)
+  "map" (infixr "\<rightharpoonup>" 0)
 
 abbreviation
   empty :: "'a ~=> 'b" where
@@ -68,7 +68,7 @@ syntax (xsymbols)
 
 translations
   "_MapUpd m (_Maplets xy ms)"  == "_MapUpd (_MapUpd m xy) ms"
-  "_MapUpd m (_maplet  x y)"    == "m(x:=Some y)"
+  "_MapUpd m (_maplet  x y)"    == "m(x := CONST Some y)"
   "_Map ms"                     == "_MapUpd (CONST empty) ms"
   "_Map (_Maplets ms1 ms2)"     <= "_MapUpd (_Map ms1) ms2"
   "_Maplets ms1 (_Maplets ms2 ms3)" <= "_Maplets (_Maplets ms1 ms2) ms3"
@@ -243,8 +243,13 @@ lemma map_of_filter_in:
   "map_of xs k = Some z \<Longrightarrow> P k z \<Longrightarrow> map_of (filter (split P) xs) k = Some z"
 by (induct xs) auto
 
-lemma map_of_map: "map_of (map (%(a,b). (a,f b)) xs) x = Option.map f (map_of xs x)"
-by (induct xs) auto
+lemma map_of_map:
+  "map_of (map (\<lambda>(k, v). (k, f v)) xs) = Option.map f \<circ> map_of xs"
+  by (induct xs) (auto simp add: expand_fun_eq)
+
+lemma dom_option_map:
+  "dom (\<lambda>k. Option.map (f k) (m k)) = dom m"
+  by (simp add: dom_def)
 
 
 subsection {* @{const Option.map} related *}
@@ -331,6 +336,19 @@ lemma inj_on_map_add_dom [iff]:
   "inj_on (m ++ m') (dom m') = inj_on m' (dom m')"
 by (fastsimp simp: map_add_def dom_def inj_on_def split: option.splits)
 
+lemma map_upds_fold_map_upd:
+  "m(ks[\<mapsto>]vs) = foldl (\<lambda>m (k, v). m(k \<mapsto> v)) m (zip ks vs)"
+unfolding map_upds_def proof (rule sym, rule zip_obtain_same_length)
+  fix ks :: "'a list" and vs :: "'b list"
+  assume "length ks = length vs"
+  then show "foldl (\<lambda>m (k, v). m(k\<mapsto>v)) m (zip ks vs) = m ++ map_of (rev (zip ks vs))"
+    by(induct arbitrary: m rule: list_induct2) simp_all
+qed
+
+lemma map_add_map_of_foldr:
+  "m ++ map_of ps = foldr (\<lambda>(k, v) m. m(k \<mapsto> v)) ps m"
+  by (induct ps) (auto simp add: expand_fun_eq map_add_def)
+
 
 subsection {* @{term [source] restrict_map} *}
 
@@ -375,6 +393,14 @@ by (simp add: restrict_map_def expand_fun_eq)
 lemma fun_upd_restrict_conv [simp]:
   "x \<in> D \<Longrightarrow> (m|`D)(x := y) = (m|`(D-{x}))(x := y)"
 by (simp add: restrict_map_def expand_fun_eq)
+
+lemma map_of_map_restrict:
+  "map_of (map (\<lambda>k. (k, f k)) ks) = (Some \<circ> f) |` set ks"
+  by (induct ks) (simp_all add: expand_fun_eq restrict_map_insert)
+
+lemma restrict_complement_singleton_eq:
+  "f |` (- {x}) = f(x := None)"
+  by (simp add: restrict_map_def expand_fun_eq)
 
 
 subsection {* @{term [source] map_upds} *}
@@ -480,12 +506,13 @@ lemma dom_fun_upd [simp]:
   "dom(f(x := y)) = (if y=None then dom f - {x} else insert x (dom f))"
 by(auto simp add:dom_def)
 
-lemma dom_map_of: "dom(map_of xys) = {x. \<exists>y. (x,y) : set xys}"
-by (induct xys) (auto simp del: fun_upd_apply)
+lemma dom_if:
+  "dom (\<lambda>x. if P x then f x else g x) = dom f \<inter> {x. P x} \<union> dom g \<inter> {x. \<not> P x}"
+  by (auto split: if_splits)
 
 lemma dom_map_of_conv_image_fst:
-  "dom(map_of xys) = fst ` (set xys)"
-by(force simp: dom_map_of)
+  "dom (map_of xys) = fst ` set xys"
+  by (induct xys) (auto simp add: dom_if)
 
 lemma dom_map_of_zip [simp]: "[| length xs = length ys; distinct xs |] ==>
   dom(map_of(zip xs ys)) = set xs"
@@ -520,13 +547,8 @@ lemma map_add_dom_app_simps:
 by (auto simp add: map_add_def split: option.split_asm)
 
 lemma dom_const [simp]:
-  "dom (\<lambda>x. Some y) = UNIV"
+  "dom (\<lambda>x. Some (f x)) = UNIV"
   by auto
-
-lemma dom_if:
-  "dom (\<lambda>x. if P x then f x else g x) = dom f \<inter> {x. P x} \<union> dom g \<inter> {x. \<not> P x}"
-  by (auto split: if_splits)
-
 
 (* Due to John Matthews - could be rephrased with dom *)
 lemma finite_map_freshness:
@@ -541,6 +563,10 @@ lemma dom_minus:
 lemma insert_dom:
   "f x = Some y \<Longrightarrow> insert x (dom f) = dom f"
   unfolding dom_def by auto
+
+lemma map_of_map_keys:
+  "set xs = dom m \<Longrightarrow> map_of (map (\<lambda>k. (k, the (m k))) xs) = m"
+  by (rule ext) (auto simp add: map_of_map_restrict restrict_map_def)
 
 
 subsection {* @{term [source] ran} *}
@@ -558,6 +584,19 @@ apply auto
 apply (subgoal_tac "aa ~= a")
  apply auto
 done
+
+lemma ran_distinct: 
+  assumes dist: "distinct (map fst al)" 
+  shows "ran (map_of al) = snd ` set al"
+using assms proof (induct al)
+  case Nil then show ?case by simp
+next
+  case (Cons kv al)
+  then have "ran (map_of al) = snd ` set al" by simp
+  moreover from Cons.prems have "map_of al (fst kv) = None"
+    by (simp add: map_of_eq_None_iff)
+  ultimately show ?case by (simp only: map_of.simps ran_map_upd) simp
+qed
 
 
 subsection {* @{text "map_le"} *}
@@ -610,7 +649,6 @@ by (fastsimp simp add: map_le_def map_add_def dom_def)
 lemma map_add_le_mapI: "\<lbrakk> f \<subseteq>\<^sub>m h; g \<subseteq>\<^sub>m h; f \<subseteq>\<^sub>m f++g \<rbrakk> \<Longrightarrow> f++g \<subseteq>\<^sub>m h"
 by (clarsimp simp add: map_le_def map_add_def dom_def split: option.splits)
 
-
 lemma dom_eq_singleton_conv: "dom f = {x} \<longleftrightarrow> (\<exists>v. f = [x \<mapsto> v])"
 proof(rule iffI)
   assume "\<exists>v. f = [x \<mapsto> v]"
@@ -623,6 +661,53 @@ next
     by(auto simp add: map_le_def)
   ultimately have "f = [x \<mapsto> v]" by-(rule map_le_antisym)
   thus "\<exists>v. f = [x \<mapsto> v]" by blast
+qed
+
+
+subsection {* Various *}
+
+lemma set_map_of_compr:
+  assumes distinct: "distinct (map fst xs)"
+  shows "set xs = {(k, v). map_of xs k = Some v}"
+using assms proof (induct xs)
+  case Nil then show ?case by simp
+next
+  case (Cons x xs)
+  obtain k v where "x = (k, v)" by (cases x) blast
+  with Cons.prems have "k \<notin> dom (map_of xs)"
+    by (simp add: dom_map_of_conv_image_fst)
+  then have *: "insert (k, v) {(k, v). map_of xs k = Some v} =
+    {(k', v'). (map_of xs(k \<mapsto> v)) k' = Some v'}"
+    by (auto split: if_splits)
+  from Cons have "set xs = {(k, v). map_of xs k = Some v}" by simp
+  with * `x = (k, v)` show ?case by simp
+qed
+
+lemma map_of_inject_set:
+  assumes distinct: "distinct (map fst xs)" "distinct (map fst ys)"
+  shows "map_of xs = map_of ys \<longleftrightarrow> set xs = set ys" (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  assume ?lhs
+  moreover from `distinct (map fst xs)` have "set xs = {(k, v). map_of xs k = Some v}"
+    by (rule set_map_of_compr)
+  moreover from `distinct (map fst ys)` have "set ys = {(k, v). map_of ys k = Some v}"
+    by (rule set_map_of_compr)
+  ultimately show ?rhs by simp
+next
+  assume ?rhs show ?lhs proof
+    fix k
+    show "map_of xs k = map_of ys k" proof (cases "map_of xs k")
+      case None
+      moreover with `?rhs` have "map_of ys k = None"
+        by (simp add: map_of_eq_None_iff)
+      ultimately show ?thesis by simp
+    next
+      case (Some v)
+      moreover with distinct `?rhs` have "map_of ys k = Some v"
+        by simp
+      ultimately show ?thesis by simp
+    qed
+  qed
 qed
 
 end

@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/J/Decl.thy
-    ID:         $Id$
     Author:     David von Oheimb
     Copyright   1999 Technische Universitaet Muenchen
 *)
@@ -24,19 +23,18 @@ types
 
 
 translations
-  "fdecl"   <= (type) "vname \<times> ty"
-  "sig"     <= (type) "mname \<times> ty list"
-  "mdecl c" <= (type) "sig \<times> ty \<times> c"
-  "class c" <= (type) "cname \<times> fdecl list \<times> (c mdecl) list"
-  "cdecl c" <= (type) "cname \<times> (c class)"
-  "prog  c" <= (type) "(c cdecl) list"
+  (type) "fdecl" <= (type) "vname \<times> ty"
+  (type) "sig" <= (type) "mname \<times> ty list"
+  (type) "'c mdecl" <= (type) "sig \<times> ty \<times> 'c"
+  (type) "'c class" <= (type) "cname \<times> fdecl list \<times> ('c mdecl) list"
+  (type) "'c cdecl" <= (type) "cname \<times> ('c class)"
+  (type) "'c prog" <= (type) "('c cdecl) list"
 
 
-constdefs
-  "class" :: "'c prog => (cname \<rightharpoonup> 'c class)"
+definition "class" :: "'c prog => (cname \<rightharpoonup> 'c class)" where
   "class \<equiv> map_of"
 
-  is_class :: "'c prog => cname => bool"
+definition is_class :: "'c prog => cname => bool" where
   "is_class G C \<equiv> class G C \<noteq> None"
 
 
@@ -46,10 +44,8 @@ apply (fold dom_def)
 apply (rule finite_dom_map_of)
 done
 
-consts
-  is_type :: "'c prog => ty    => bool"
-primrec
+primrec is_type :: "'c prog => ty => bool" where
   "is_type G (PrimT pt) = True"
-  "is_type G (RefT t) = (case t of NullT => True | ClassT C => is_class G C)"
+| "is_type G (RefT t) = (case t of NullT => True | ClassT C => is_class G C)"
 
 end

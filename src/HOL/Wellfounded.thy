@@ -8,7 +8,7 @@
 header {*Well-founded Recursion*}
 
 theory Wellfounded
-imports Finite_Set Transitive_Closure
+imports Transitive_Closure
 uses ("Tools/Function/size.ML")
 begin
 
@@ -489,7 +489,7 @@ lemma wf_less_than [iff]: "wf less_than"
   by (simp add: less_than_def wf_pred_nat [THEN wf_trancl])
 
 lemma trans_less_than [iff]: "trans less_than"
-  by (simp add: less_than_def trans_trancl)
+  by (simp add: less_than_def)
 
 lemma less_than_iff [iff]: "((x,y): less_than) = (x<y)"
   by (simp add: less_than_def less_eq)
@@ -908,7 +908,7 @@ lemma size_bool [code]:
 lemma nat_size [simp, code]: "size (n\<Colon>nat) = n"
   by (induct n) simp_all
 
-declare "prod.size" [noatp]
+declare "prod.size" [no_atp]
 
 lemma [code]:
   "size (P :: 'a Predicate.pred) = 0" by (cases P) simp

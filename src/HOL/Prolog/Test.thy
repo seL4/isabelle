@@ -1,5 +1,4 @@
 (*  Title:    HOL/Prolog/Test.thy
-    ID:       $Id$
     Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
 *)
 
@@ -19,7 +18,7 @@ consts
 
 syntax
   (* list Enumeration *)
-  "@list"     :: "args => 'a list"                          ("[(_)]")
+  "_list"     :: "args => 'a list"                          ("[(_)]")
 
 translations
   "[x, xs]"     == "x#[xs]"

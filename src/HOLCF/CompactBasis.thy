@@ -217,7 +217,8 @@ apply (erule (1) finite_ne_induct)
 apply (cut_tac a=x in PDUnit)
 apply (simp add: PDUnit_def)
 apply (drule_tac a=x in PDPlus)
-apply (simp add: PDUnit_def PDPlus_def Abs_pd_basis_inverse [unfolded pd_basis_def])
+apply (simp add: PDUnit_def PDPlus_def
+  Abs_pd_basis_inverse [unfolded pd_basis_def])
 done
 
 lemma pd_basis_induct:
@@ -245,7 +246,8 @@ lemma fold_pd_PDPlus:
   shows "fold_pd g f (PDPlus t u) = f (fold_pd g f t) (fold_pd g f u)"
 proof -
   interpret ab_semigroup_idem_mult f by fact
-  show ?thesis unfolding fold_pd_def Rep_PDPlus by (simp add: image_Un fold1_Un2)
+  show ?thesis unfolding fold_pd_def Rep_PDPlus
+    by (simp add: image_Un fold1_Un2)
 qed
 
 text {* Take function for powerdomain basis *}

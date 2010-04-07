@@ -105,45 +105,45 @@ nonterminals "is" patterns
 
 syntax
   ""          :: "i => is"                   ("_")
-  "@Enum"     :: "[i, is] => is"             ("_,/ _")
+  "_Enum"     :: "[i, is] => is"             ("_,/ _")
 
-  "@Finset"   :: "is => i"                   ("{(_)}")
-  "@Tuple"    :: "[i, is] => i"              ("<(_,/ _)>")
-  "@Collect"  :: "[pttrn, i, o] => i"        ("(1{_: _ ./ _})")
-  "@Replace"  :: "[pttrn, pttrn, i, o] => i" ("(1{_ ./ _: _, _})")
-  "@RepFun"   :: "[i, pttrn, i] => i"        ("(1{_ ./ _: _})" [51,0,51])
-  "@INTER"    :: "[pttrn, i, i] => i"        ("(3INT _:_./ _)" 10)
-  "@UNION"    :: "[pttrn, i, i] => i"        ("(3UN _:_./ _)" 10)
-  "@PROD"     :: "[pttrn, i, i] => i"        ("(3PROD _:_./ _)" 10)
-  "@SUM"      :: "[pttrn, i, i] => i"        ("(3SUM _:_./ _)" 10)
-  "@lam"      :: "[pttrn, i, i] => i"        ("(3lam _:_./ _)" 10)
-  "@Ball"     :: "[pttrn, i, o] => o"        ("(3ALL _:_./ _)" 10)
-  "@Bex"      :: "[pttrn, i, o] => o"        ("(3EX _:_./ _)" 10)
+  "_Finset"   :: "is => i"                   ("{(_)}")
+  "_Tuple"    :: "[i, is] => i"              ("<(_,/ _)>")
+  "_Collect"  :: "[pttrn, i, o] => i"        ("(1{_: _ ./ _})")
+  "_Replace"  :: "[pttrn, pttrn, i, o] => i" ("(1{_ ./ _: _, _})")
+  "_RepFun"   :: "[i, pttrn, i] => i"        ("(1{_ ./ _: _})" [51,0,51])
+  "_INTER"    :: "[pttrn, i, i] => i"        ("(3INT _:_./ _)" 10)
+  "_UNION"    :: "[pttrn, i, i] => i"        ("(3UN _:_./ _)" 10)
+  "_PROD"     :: "[pttrn, i, i] => i"        ("(3PROD _:_./ _)" 10)
+  "_SUM"      :: "[pttrn, i, i] => i"        ("(3SUM _:_./ _)" 10)
+  "_lam"      :: "[pttrn, i, i] => i"        ("(3lam _:_./ _)" 10)
+  "_Ball"     :: "[pttrn, i, o] => o"        ("(3ALL _:_./ _)" 10)
+  "_Bex"      :: "[pttrn, i, o] => o"        ("(3EX _:_./ _)" 10)
 
   (** Patterns -- extends pre-defined type "pttrn" used in abstractions **)
 
-  "@pattern"  :: "patterns => pttrn"         ("<_>")
+  "_pattern"  :: "patterns => pttrn"         ("<_>")
   ""          :: "pttrn => patterns"         ("_")
-  "@patterns" :: "[pttrn, patterns] => patterns"  ("_,/_")
+  "_patterns" :: "[pttrn, patterns] => patterns"  ("_,/_")
 
 translations
-  "{x, xs}"     == "cons(x, {xs})"
-  "{x}"         == "cons(x, 0)"
-  "{x:A. P}"    == "Collect(A, %x. P)"
-  "{y. x:A, Q}" == "Replace(A, %x y. Q)"
-  "{b. x:A}"    == "RepFun(A, %x. b)"
-  "INT x:A. B"  == "Inter({B. x:A})"
-  "UN x:A. B"   == "Union({B. x:A})"
-  "PROD x:A. B" == "Pi(A, %x. B)"
-  "SUM x:A. B"  == "Sigma(A, %x. B)"
-  "lam x:A. f"  == "Lambda(A, %x. f)"
-  "ALL x:A. P"  == "Ball(A, %x. P)"
-  "EX x:A. P"   == "Bex(A, %x. P)"
+  "{x, xs}"     == "CONST cons(x, {xs})"
+  "{x}"         == "CONST cons(x, 0)"
+  "{x:A. P}"    == "CONST Collect(A, %x. P)"
+  "{y. x:A, Q}" == "CONST Replace(A, %x y. Q)"
+  "{b. x:A}"    == "CONST RepFun(A, %x. b)"
+  "INT x:A. B"  == "CONST Inter({B. x:A})"
+  "UN x:A. B"   == "CONST Union({B. x:A})"
+  "PROD x:A. B" == "CONST Pi(A, %x. B)"
+  "SUM x:A. B"  == "CONST Sigma(A, %x. B)"
+  "lam x:A. f"  == "CONST Lambda(A, %x. f)"
+  "ALL x:A. P"  == "CONST Ball(A, %x. P)"
+  "EX x:A. P"   == "CONST Bex(A, %x. P)"
 
   "<x, y, z>"   == "<x, <y, z>>"
-  "<x, y>"      == "Pair(x, y)"
-  "%<x,y,zs>.b" == "split(%x <y,zs>.b)"
-  "%<x,y>.b"    == "split(%x y. b)"
+  "<x, y>"      == "CONST Pair(x, y)"
+  "%<x,y,zs>.b" == "CONST split(%x <y,zs>.b)"
+  "%<x,y>.b"    == "CONST split(%x y. b)"
 
 
 notation (xsymbols)
@@ -158,18 +158,18 @@ notation (xsymbols)
   Inter           ("\<Inter>_" [90] 90)
 
 syntax (xsymbols)
-  "@Collect"  :: "[pttrn, i, o] => i"        ("(1{_ \<in> _ ./ _})")
-  "@Replace"  :: "[pttrn, pttrn, i, o] => i" ("(1{_ ./ _ \<in> _, _})")
-  "@RepFun"   :: "[i, pttrn, i] => i"        ("(1{_ ./ _ \<in> _})" [51,0,51])
-  "@UNION"    :: "[pttrn, i, i] => i"        ("(3\<Union>_\<in>_./ _)" 10)
-  "@INTER"    :: "[pttrn, i, i] => i"        ("(3\<Inter>_\<in>_./ _)" 10)
-  "@PROD"     :: "[pttrn, i, i] => i"        ("(3\<Pi>_\<in>_./ _)" 10)
-  "@SUM"      :: "[pttrn, i, i] => i"        ("(3\<Sigma>_\<in>_./ _)" 10)
-  "@lam"      :: "[pttrn, i, i] => i"        ("(3\<lambda>_\<in>_./ _)" 10)
-  "@Ball"     :: "[pttrn, i, o] => o"        ("(3\<forall>_\<in>_./ _)" 10)
-  "@Bex"      :: "[pttrn, i, o] => o"        ("(3\<exists>_\<in>_./ _)" 10)
-  "@Tuple"    :: "[i, is] => i"              ("\<langle>(_,/ _)\<rangle>")
-  "@pattern"  :: "patterns => pttrn"         ("\<langle>_\<rangle>")
+  "_Collect"  :: "[pttrn, i, o] => i"        ("(1{_ \<in> _ ./ _})")
+  "_Replace"  :: "[pttrn, pttrn, i, o] => i" ("(1{_ ./ _ \<in> _, _})")
+  "_RepFun"   :: "[i, pttrn, i] => i"        ("(1{_ ./ _ \<in> _})" [51,0,51])
+  "_UNION"    :: "[pttrn, i, i] => i"        ("(3\<Union>_\<in>_./ _)" 10)
+  "_INTER"    :: "[pttrn, i, i] => i"        ("(3\<Inter>_\<in>_./ _)" 10)
+  "_PROD"     :: "[pttrn, i, i] => i"        ("(3\<Pi>_\<in>_./ _)" 10)
+  "_SUM"      :: "[pttrn, i, i] => i"        ("(3\<Sigma>_\<in>_./ _)" 10)
+  "_lam"      :: "[pttrn, i, i] => i"        ("(3\<lambda>_\<in>_./ _)" 10)
+  "_Ball"     :: "[pttrn, i, o] => o"        ("(3\<forall>_\<in>_./ _)" 10)
+  "_Bex"      :: "[pttrn, i, o] => o"        ("(3\<exists>_\<in>_./ _)" 10)
+  "_Tuple"    :: "[i, is] => i"              ("\<langle>(_,/ _)\<rangle>")
+  "_pattern"  :: "patterns => pttrn"         ("\<langle>_\<rangle>")
 
 notation (HTML output)
   cart_prod       (infixr "\<times>" 80) and
@@ -182,18 +182,18 @@ notation (HTML output)
   Inter           ("\<Inter>_" [90] 90)
 
 syntax (HTML output)
-  "@Collect"  :: "[pttrn, i, o] => i"        ("(1{_ \<in> _ ./ _})")
-  "@Replace"  :: "[pttrn, pttrn, i, o] => i" ("(1{_ ./ _ \<in> _, _})")
-  "@RepFun"   :: "[i, pttrn, i] => i"        ("(1{_ ./ _ \<in> _})" [51,0,51])
-  "@UNION"    :: "[pttrn, i, i] => i"        ("(3\<Union>_\<in>_./ _)" 10)
-  "@INTER"    :: "[pttrn, i, i] => i"        ("(3\<Inter>_\<in>_./ _)" 10)
-  "@PROD"     :: "[pttrn, i, i] => i"        ("(3\<Pi>_\<in>_./ _)" 10)
-  "@SUM"      :: "[pttrn, i, i] => i"        ("(3\<Sigma>_\<in>_./ _)" 10)
-  "@lam"      :: "[pttrn, i, i] => i"        ("(3\<lambda>_\<in>_./ _)" 10)
-  "@Ball"     :: "[pttrn, i, o] => o"        ("(3\<forall>_\<in>_./ _)" 10)
-  "@Bex"      :: "[pttrn, i, o] => o"        ("(3\<exists>_\<in>_./ _)" 10)
-  "@Tuple"    :: "[i, is] => i"              ("\<langle>(_,/ _)\<rangle>")
-  "@pattern"  :: "patterns => pttrn"         ("\<langle>_\<rangle>")
+  "_Collect"  :: "[pttrn, i, o] => i"        ("(1{_ \<in> _ ./ _})")
+  "_Replace"  :: "[pttrn, pttrn, i, o] => i" ("(1{_ ./ _ \<in> _, _})")
+  "_RepFun"   :: "[i, pttrn, i] => i"        ("(1{_ ./ _ \<in> _})" [51,0,51])
+  "_UNION"    :: "[pttrn, i, i] => i"        ("(3\<Union>_\<in>_./ _)" 10)
+  "_INTER"    :: "[pttrn, i, i] => i"        ("(3\<Inter>_\<in>_./ _)" 10)
+  "_PROD"     :: "[pttrn, i, i] => i"        ("(3\<Pi>_\<in>_./ _)" 10)
+  "_SUM"      :: "[pttrn, i, i] => i"        ("(3\<Sigma>_\<in>_./ _)" 10)
+  "_lam"      :: "[pttrn, i, i] => i"        ("(3\<lambda>_\<in>_./ _)" 10)
+  "_Ball"     :: "[pttrn, i, o] => o"        ("(3\<forall>_\<in>_./ _)" 10)
+  "_Bex"      :: "[pttrn, i, o] => o"        ("(3\<exists>_\<in>_./ _)" 10)
+  "_Tuple"    :: "[i, is] => i"              ("\<langle>(_,/ _)\<rangle>")
+  "_pattern"  :: "patterns => pttrn"         ("\<langle>_\<rangle>")
 
 
 finalconsts

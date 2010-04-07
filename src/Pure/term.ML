@@ -12,10 +12,10 @@ infix aconv;
 
 signature BASIC_TERM =
 sig
-  eqtype indexname
-  eqtype class
-  eqtype sort
-  eqtype arity
+  type indexname = string * int
+  type class = string
+  type sort = class list
+  type arity = string * sort list * sort
   datatype typ =
     Type  of string * typ list |
     TFree of string * sort |
@@ -45,6 +45,7 @@ sig
   val dest_Const: term -> string * typ
   val dest_Free: term -> string * typ
   val dest_Var: term -> indexname * typ
+  val dest_comb: term -> term * term
   val domain_type: typ -> typ
   val range_type: typ -> typ
   val binder_types: typ -> typ list
@@ -71,6 +72,7 @@ sig
   val map_type_tfree: (string * sort -> typ) -> typ -> typ
   val map_types: (typ -> typ) -> term -> term
   val fold_atyps: (typ -> 'a -> 'a) -> typ -> 'a -> 'a
+  val fold_atyps_sorts: (typ * sort -> 'a -> 'a) -> typ -> 'a -> 'a
   val fold_aterms: (term -> 'a -> 'a) -> term -> 'a -> 'a
   val fold_term_types: (term -> typ -> 'a -> 'a) -> term -> 'a -> 'a
   val fold_types: (typ -> 'a -> 'a) -> term -> 'a -> 'a
@@ -278,6 +280,9 @@ fun dest_Free (Free x) =  x
 fun dest_Var (Var x) =  x
   | dest_Var t = raise TERM("dest_Var", [t]);
 
+fun dest_comb (t1 $ t2) = (t1, t2)
+  | dest_comb t = raise TERM("dest_comb", [t]);
+
 
 fun domain_type (Type("fun", [T,_])) = T
 and range_type  (Type("fun", [_,T])) = T;
@@ -426,6 +431,9 @@ fun map_types f =
 
 fun fold_atyps f (Type (_, Ts)) = fold (fold_atyps f) Ts
   | fold_atyps f T = f T;
+
+fun fold_atyps_sorts f =
+  fold_atyps (fn T as TFree (_, S) => f (T, S) | T as TVar (_, S) => f (T, S));
 
 fun fold_aterms f (t $ u) = fold_aterms f t #> fold_aterms f u
   | fold_aterms f (Abs (_, _, t)) = fold_aterms f t

@@ -22,6 +22,8 @@ struct
 fun gen_constdef prep_vars prep_prop prep_att
     structs (raw_decl, ((raw_name, raw_atts), raw_prop)) thy =
   let
+    val _ = legacy_feature ("\"constdefs\"; prefer \"definition\" instead");
+
     fun err msg ts = error (cat_lines (msg :: map (Syntax.string_of_term_global thy) ts));
 
     val thy_ctxt = ProofContext.init thy;
@@ -34,7 +36,7 @@ fun gen_constdef prep_vars prep_prop prep_att
             ProofContext.add_fixes [(x, T, mx)] #> snd #> pair (SOME x, mx)));
 
     val prop = prep_prop var_ctxt raw_prop;
-    val (c, T) = #1 (LocalDefs.cert_def thy_ctxt (Logic.strip_imp_concl prop));
+    val (c, T) = #1 (Local_Defs.cert_def thy_ctxt (Logic.strip_imp_concl prop));
     val _ =
       (case Option.map Name.of_binding d of
         NONE => ()
@@ -54,7 +56,7 @@ fun gen_constdef prep_vars prep_prop prep_att
       |> Sign.add_consts_i [(b, T, mx)]
       |> PureThy.add_defs false [((name, def), atts)]
       |-> (fn [thm] =>  (* FIXME thm vs. atts !? *)
-        Spec_Rules.add_global Spec_Rules.Equational ([Logic.varify head], [thm]) #>
+        Spec_Rules.add_global Spec_Rules.Equational ([Logic.varify_global head], [thm]) #>
         Code.add_default_eqn thm);
   in ((c, T), thy') end;
 

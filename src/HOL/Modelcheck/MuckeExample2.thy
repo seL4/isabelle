@@ -8,8 +8,7 @@ theory MuckeExample2
 imports MuckeSyn
 begin
 
-constdefs
-  Init  :: "bool pred"
+definition Init :: "bool pred" where
   "Init x == x"
   R     :: "[bool,bool] => bool"
   "R x y == (x & ~y) | (~x & y)"

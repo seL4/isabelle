@@ -34,6 +34,8 @@ sig
   val get_consumes: thm -> int
   val consumes: int -> attribute
   val consumes_default: int -> attribute
+  val get_constraints: thm -> int
+  val constraints: int -> attribute
   val name: string list -> thm -> thm
   val case_names: string list -> attribute
   val case_conclusion: string * string list -> attribute
@@ -108,7 +110,7 @@ fun extract_case thy (case_outline, raw_prop) name concls =
         val (assumes1, assumes2) = extract_assumes (Long_Name.qualify name) case_outline prop
           |> pairself (map (apsnd (maps Logic.dest_conjunctions)));
 
-        val concl = ObjectLogic.drop_judgment thy (Logic.strip_assums_concl prop);
+        val concl = Object_Logic.drop_judgment thy (Logic.strip_assums_concl prop);
         val binds =
           (case_conclN, concl) :: dest_binops concls concl
           |> map (fn (x, t) => ((x, 0), SOME (abs_fixes t)));
@@ -236,6 +238,30 @@ fun consumes_default n x =
 
 
 
+(** equality constraints **)
+
+val constraints_tagN = "constraints";
+
+fun lookup_constraints th =
+  (case AList.lookup (op =) (Thm.get_tags th) constraints_tagN of
+    NONE => NONE
+  | SOME s =>
+      (case Lexicon.read_nat s of SOME n => SOME n
+      | _ => raise THM ("Malformed 'constraints' tag of theorem", 0, [th])));
+
+fun get_constraints th = the_default 0 (lookup_constraints th);
+
+fun put_constraints NONE th = th
+  | put_constraints (SOME n) th = th
+      |> Thm.untag_rule constraints_tagN
+      |> Thm.tag_rule (constraints_tagN, string_of_int (if n < 0 then 0 else n));
+
+val save_constraints = put_constraints o lookup_constraints;
+
+fun constraints n = Thm.rule_attribute (K (put_constraints (SOME n)));
+
+
+
 (** case names **)
 
 val implode_args = space_implode ";";
@@ -308,6 +334,7 @@ val inner_rule = Thm.rule_attribute (K (put_inner_rule true));
 
 fun save th =
   save_consumes th #>
+  save_constraints th #>
   save_case_names th #>
   save_case_concls th #>
   save_inner_rule th;
@@ -352,7 +379,7 @@ fun internalize_params rule =
 local
 
 fun equal_cterms ts us =
-  is_equal (list_ord (TermOrd.fast_term_ord o pairself Thm.term_of) (ts, us));
+  is_equal (list_ord (Term_Ord.fast_term_ord o pairself Thm.term_of) (ts, us));
 
 fun prep_rule n th =
   let

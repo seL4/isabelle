@@ -27,9 +27,9 @@ val mk_meta_prems =
 
 (*Congruence rules for = or <-> (instead of ==)*)
 fun mk_meta_cong rl =
-  Drule.standard (mk_meta_eq (mk_meta_prems rl))
-  handle THM _ =>
-  error("Premises and conclusion of congruence rules must use =-equality or <->");
+  Drule.export_without_context (mk_meta_eq (mk_meta_prems rl))
+    handle THM _ =>
+      error("Premises and conclusion of congruence rules must use =-equality or <->");
 
 val mksimps_pairs =
   [("op -->", [@{thm mp}]), ("op &", [@{thm conjunct1}, @{thm conjunct2}]),
@@ -128,7 +128,7 @@ fun   safe_solver prems = FIRST'[match_tac (triv_rls @ prems),
 
 (*No simprules, but basic infastructure for simplification*)
 val FOL_basic_ss =
-  Simplifier.theory_context @{theory} empty_ss
+  Simplifier.global_context @{theory} empty_ss
   setsubgoaler asm_simp_tac
   setSSolver (mk_solver "FOL safe" safe_solver)
   setSolver (mk_solver "FOL unsafe" unsafe_solver)

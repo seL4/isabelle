@@ -164,8 +164,7 @@ defs
 lemma word_base0_def: "word_base0 = (%a::'a::type list. mk_word (CONSTR 0 a (%n::nat. BOTTOM)))"
   by (import word_base word_base0_def)
 
-constdefs
-  WORD :: "'a list => 'a word" 
+definition WORD :: "'a list => 'a word" where 
   "WORD == word_base0"
 
 lemma WORD: "WORD = word_base0"
@@ -680,8 +679,7 @@ lemma BIT_EQ_IMP_WORD_EQ: "(All::(nat => bool) => bool)
 
 ;setup_theory word_num
 
-constdefs
-  LVAL :: "('a => nat) => nat => 'a list => nat" 
+definition LVAL :: "('a => nat) => nat => 'a list => nat" where 
   "LVAL ==
 %(f::'a::type => nat) b::nat. foldl (%(e::nat) x::'a::type. b * e + f x) 0"
 
@@ -756,8 +754,7 @@ specification (NLIST) NLIST_DEF: "(ALL (frep::nat => 'a::type) (b::nat) m::nat. 
     SNOC (frep (m mod b)) (NLIST n frep b (m div b)))"
   by (import word_num NLIST_DEF)
 
-constdefs
-  NWORD :: "nat => (nat => 'a) => nat => nat => 'a word" 
+definition NWORD :: "nat => (nat => 'a) => nat => nat => 'a word" where 
   "NWORD ==
 %(n::nat) (frep::nat => 'a::type) (b::nat) m::nat. WORD (NLIST n frep b m)"
 
@@ -1076,8 +1073,7 @@ lemma EXISTSABIT_WCAT: "ALL (w1::'a::type word) (w2::'a::type word) P::'a::type 
    EXISTSABIT P (WCAT (w1, w2)) = (EXISTSABIT P w1 | EXISTSABIT P w2)"
   by (import word_bitop EXISTSABIT_WCAT)
 
-constdefs
-  SHR :: "bool => 'a => 'a word => 'a word * 'a" 
+definition SHR :: "bool => 'a => 'a word => 'a word * 'a" where 
   "SHR ==
 %(f::bool) (b::'a::type) w::'a::type word.
    (WCAT
@@ -1093,8 +1089,7 @@ lemma SHR_DEF: "ALL (f::bool) (b::'a::type) w::'a::type word.
     bit 0 w)"
   by (import word_bitop SHR_DEF)
 
-constdefs
-  SHL :: "bool => 'a word => 'a => 'a * 'a word" 
+definition SHL :: "bool => 'a word => 'a => 'a * 'a word" where 
   "SHL ==
 %(f::bool) (w::'a::type word) b::'a::type.
    (bit (PRE (WORDLEN w)) w,
@@ -1196,8 +1191,7 @@ lemma WSEG_SHL_0: "ALL n::nat.
 
 ;setup_theory bword_num
 
-constdefs
-  BV :: "bool => nat" 
+definition BV :: "bool => nat" where 
   "BV == %b::bool. if b then Suc 0 else 0"
 
 lemma BV_DEF: "ALL b::bool. BV b = (if b then Suc 0 else 0)"
@@ -1248,15 +1242,13 @@ lemma BNVAL_WCAT: "ALL (n::nat) m::nat.
              BNVAL (WCAT (w1, w2)) = BNVAL w1 * 2 ^ m + BNVAL w2))"
   by (import bword_num BNVAL_WCAT)
 
-constdefs
-  VB :: "nat => bool" 
+definition VB :: "nat => bool" where 
   "VB == %n::nat. n mod 2 ~= 0"
 
 lemma VB_DEF: "ALL n::nat. VB n = (n mod 2 ~= 0)"
   by (import bword_num VB_DEF)
 
-constdefs
-  NBWORD :: "nat => nat => bool word" 
+definition NBWORD :: "nat => nat => bool word" where 
   "NBWORD == %(n::nat) m::nat. WORD (NLIST n VB 2 m)"
 
 lemma NBWORD_DEF: "ALL (n::nat) m::nat. NBWORD n m = WORD (NLIST n VB 2 m)"

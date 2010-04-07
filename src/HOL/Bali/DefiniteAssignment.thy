@@ -74,7 +74,7 @@ primrec
 "jumpNestingOkS jmps (FinA a c) = False"
 
 
-constdefs jumpNestingOk :: "jump set \<Rightarrow> term \<Rightarrow> bool"
+definition jumpNestingOk :: "jump set \<Rightarrow> term \<Rightarrow> bool" where
 "jumpNestingOk jmps t \<equiv> (case t of
                       In1 se \<Rightarrow> (case se of
                                    Inl e \<Rightarrow> True
@@ -156,7 +156,7 @@ primrec
 "assignsEs     [] = {}"
 "assignsEs (e#es) = assignsE e \<union> assignsEs es"
 
-constdefs assigns:: "term \<Rightarrow> lname set"
+definition assigns :: "term \<Rightarrow> lname set" where
 "assigns t \<equiv> (case t of
                 In1 se \<Rightarrow> (case se of
                              Inl e \<Rightarrow> assignsE e
@@ -429,20 +429,14 @@ qed
 
 subsection {* Lifting set operations to range of tables (map to a set) *}
 
-constdefs 
- union_ts:: "('a,'b) tables \<Rightarrow> ('a,'b) tables \<Rightarrow> ('a,'b) tables"
-                    ("_ \<Rightarrow>\<union> _" [67,67] 65)
+definition union_ts :: "('a,'b) tables \<Rightarrow> ('a,'b) tables \<Rightarrow> ('a,'b) tables" ("_ \<Rightarrow>\<union> _" [67,67] 65) where
  "A \<Rightarrow>\<union> B \<equiv> \<lambda> k. A k \<union> B k"
 
-constdefs
- intersect_ts:: "('a,'b) tables \<Rightarrow> ('a,'b) tables \<Rightarrow> ('a,'b) tables"
-                    ("_ \<Rightarrow>\<inter>  _" [72,72] 71)
+definition intersect_ts :: "('a,'b) tables \<Rightarrow> ('a,'b) tables \<Rightarrow> ('a,'b) tables" ("_ \<Rightarrow>\<inter>  _" [72,72] 71) where
  "A \<Rightarrow>\<inter>  B \<equiv> \<lambda> k. A k \<inter> B k"
 
-constdefs
- all_union_ts:: "('a,'b) tables \<Rightarrow> 'b set \<Rightarrow> ('a,'b) tables" 
-                                                     (infixl "\<Rightarrow>\<union>\<^sub>\<forall>" 40)
-"A \<Rightarrow>\<union>\<^sub>\<forall> B \<equiv> \<lambda> k. A k \<union> B"
+definition all_union_ts :: "('a,'b) tables \<Rightarrow> 'b set \<Rightarrow> ('a,'b) tables" (infixl "\<Rightarrow>\<union>\<^sub>\<forall>" 40) where 
+ "A \<Rightarrow>\<union>\<^sub>\<forall> B \<equiv> \<lambda> k. A k \<union> B"
   
 subsubsection {* Binary union of tables *}
 
@@ -513,15 +507,15 @@ record assigned =
          brk :: "breakass" --{* Definetly assigned variables for 
                                 abrupt completion with a break *}
 
-constdefs rmlab :: "'a \<Rightarrow> ('a,'b) tables \<Rightarrow> ('a,'b) tables"
+definition rmlab :: "'a \<Rightarrow> ('a,'b) tables \<Rightarrow> ('a,'b) tables" where
 "rmlab k A \<equiv> \<lambda> x. if x=k then UNIV else A x"
  
 (*
-constdefs setbrk :: "breakass \<Rightarrow> assigned \<Rightarrow> breakass set"
+definition setbrk :: "breakass \<Rightarrow> assigned \<Rightarrow> breakass set" where
 "setbrk b A \<equiv> {b} \<union> {a| a. a\<in> brk A \<and> lab a \<noteq> lab b}"
 *)
 
-constdefs range_inter_ts :: "('a,'b) tables \<Rightarrow> 'b set" ("\<Rightarrow>\<Inter>_" 80)
+definition range_inter_ts :: "('a,'b) tables \<Rightarrow> 'b set" ("\<Rightarrow>\<Inter>_" 80) where 
  "\<Rightarrow>\<Inter>A \<equiv> {x |x. \<forall> k. x \<in> A k}"
 
 text {*

@@ -1,6 +1,3 @@
-
-(* $Id$ *)
-
 header {* Addition with fixpoint of successor *}
 
 theory Ex3

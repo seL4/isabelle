@@ -52,18 +52,18 @@ domain ('a, 'b) d6 = d6 "int lift" "'a \<oplus> 'b u" (lazy "('a :*: 'b) \<times
 
 text {*
   Indirect recusion is allowed for sums, products, lifting, and the
-  continuous function space.  However, the domain package currently
-  cannot prove the induction rules.  A fix is planned for the next
-  release.
+  continuous function space.  However, the domain package does not
+  generate an induction rule in terms of the constructors.
 *}
 
 domain 'a d7 = d7a "'a d7 \<oplus> int lift" | d7b "'a \<otimes> 'a d7" | d7c (lazy "'a d7 \<rightarrow> 'a")
 
-thm d7.ind -- "currently replaced with dummy theorem"
+(* d7.ind is absent *)
 
 text {*
   Indirect recursion using previously-defined datatypes is currently
-  not allowed.  This restriction should go away by the next release.
+  not allowed.  This restriction does not apply to the new definitional
+  domain package.
 *}
 (*
 domain 'a slist = SNil | SCons 'a "'a slist"
@@ -95,11 +95,11 @@ text {* Induction rules for flat datatypes have no admissibility side-condition.
 domain 'a flattree = Tip | Branch "'a flattree" "'a flattree"
 
 lemma "\<lbrakk>P \<bottom>; P Tip; \<And>x y. \<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>; P x; P y\<rbrakk> \<Longrightarrow> P (Branch\<cdot>x\<cdot>y)\<rbrakk> \<Longrightarrow> P x"
-by (rule flattree.ind) -- "no admissibility requirement"
+by (rule flattree.induct) -- "no admissibility requirement"
 
 text {* Trivial datatypes will produce a warning message. *}
 
-domain triv = triv1 triv triv
+domain triv = Triv triv triv
   -- "domain Domain_ex.triv is empty!"
 
 lemma "(x::triv) = \<bottom>" by (induct x, simp_all)
@@ -107,7 +107,7 @@ lemma "(x::triv) = \<bottom>" by (induct x, simp_all)
 
 subsection {* Generated constants and theorems *}
 
-domain 'a tree = Leaf (lazy 'a) | Node (left :: "'a tree") (lazy right :: "'a tree")
+domain 'a tree = Leaf (lazy 'a) | Node (left :: "'a tree") (right :: "'a tree")
 
 lemmas tree_abs_defined_iff =
   iso.abs_defined_iff [OF iso.intro [OF tree.abs_iso tree.rep_iso]]
@@ -122,9 +122,9 @@ thm tree.iso_rews
 text {* Rules about constructors *}
 term Leaf
 term Node
-thm tree.Leaf_def tree.Node_def
+thm Leaf_def Node_def
+thm tree.nchotomy
 thm tree.exhaust
-thm tree.casedist
 thm tree.compacts
 thm tree.con_rews
 thm tree.dist_les
@@ -134,7 +134,7 @@ thm tree.injects
 
 text {* Rules about case combinator *}
 term tree_when
-thm tree.when_def
+thm tree.tree_when_def
 thm tree.when_rews
 
 text {* Rules about selectors *}
@@ -157,30 +157,33 @@ term match_Leaf
 term match_Node
 thm tree.match_rews
 
-text {* Rules about copy function *}
-term tree_copy
-thm tree.copy_def
-thm tree.copy_rews
-
 text {* Rules about take function *}
 term tree_take
 thm tree.take_def
+thm tree.take_0
+thm tree.take_Suc
 thm tree.take_rews
-thm tree.take_lemmas
-thm tree.finite_ind
+thm tree.chain_take
+thm tree.take_take
+thm tree.deflation_take
+thm tree.take_below
+thm tree.take_lemma
+thm tree.lub_take
+thm tree.reach
+thm tree.finite_induct
 
 text {* Rules about finiteness predicate *}
 term tree_finite
 thm tree.finite_def
-thm tree.finites
+thm tree.finite (* only generated for flat datatypes *)
 
 text {* Rules about bisimulation predicate *}
 term tree_bisim
 thm tree.bisim_def
-thm tree.coind
+thm tree.coinduct
 
 text {* Induction rule *}
-thm tree.ind
+thm tree.induct
 
 
 subsection {* Known bugs *}
@@ -194,19 +197,10 @@ domain 'a foo = foo (sel::"'a") ("a b")
   -- {* Inner syntax error at "= UU" *}
 *)
 
-text {*
-  I don't know what is going on here.  The failed proof has to do with
-  the finiteness predicate.
-*}
-(*
-domain foo = Foo (lazy "bar") and bar = Bar
-  -- "Tactic failed."
-*)
-
 text {* Declaring class constraints on the LHS is currently broken. *}
 (*
 domain ('a::cpo) box = Box (lazy 'a)
-  -- "Malformed YXML encoding: multiple results"
+  -- "Proof failed"
 *)
 
 text {*

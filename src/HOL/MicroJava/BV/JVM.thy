@@ -9,14 +9,13 @@ theory JVM
 imports Typing_Framework_JVM
 begin
 
-constdefs
-  kiljvm :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> exception_table \<Rightarrow> 
-             instr list \<Rightarrow> JVMType.state list \<Rightarrow> JVMType.state list"
+definition kiljvm :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> exception_table \<Rightarrow> 
+             instr list \<Rightarrow> JVMType.state list \<Rightarrow> JVMType.state list" where
   "kiljvm G maxs maxr rT et bs ==
   kildall (JVMType.le G maxs maxr) (JVMType.sup G maxs maxr) (exec G maxs rT et bs)"
 
-  wt_kil :: "jvm_prog \<Rightarrow> cname \<Rightarrow> ty list \<Rightarrow> ty \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 
-             exception_table \<Rightarrow> instr list \<Rightarrow> bool"
+definition wt_kil :: "jvm_prog \<Rightarrow> cname \<Rightarrow> ty list \<Rightarrow> ty \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 
+             exception_table \<Rightarrow> instr list \<Rightarrow> bool" where
   "wt_kil G C pTs rT mxs mxl et ins ==
    check_bounded ins et \<and> 0 < size ins \<and> 
    (let first  = Some ([],(OK (Class C))#((map OK pTs))@(replicate mxl Err));
@@ -24,10 +23,9 @@ constdefs
         result = kiljvm G mxs (1+size pTs+mxl) rT et ins start
     in \<forall>n < size ins. result!n \<noteq> Err)"
 
-  wt_jvm_prog_kildall :: "jvm_prog \<Rightarrow> bool"
+definition wt_jvm_prog_kildall :: "jvm_prog \<Rightarrow> bool" where
   "wt_jvm_prog_kildall G ==
   wf_prog (\<lambda>G C (sig,rT,(maxs,maxl,b,et)). wt_kil G C (snd sig) rT maxs maxl et b) G"
-
 
 theorem is_bcv_kiljvm:
   "\<lbrakk> wf_prog wf_mb G; bounded (exec G maxs rT et bs) (size bs) \<rbrakk> \<Longrightarrow>

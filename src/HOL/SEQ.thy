@@ -435,7 +435,7 @@ by (drule (1) LIMSEQ_add, simp)
 
 lemma LIMSEQ_diff_approach_zero2:
   fixes L :: "'a::real_normed_vector"
-  shows "f ----> L ==> (%x. f x - g x) ----> 0 ==> g ----> L";
+  shows "f ----> L ==> (%x. f x - g x) ----> 0 ==> g ----> L"
 by (drule (1) LIMSEQ_diff, simp)
 
 text{*A sequence tends to zero iff its abs does*}
@@ -573,7 +573,7 @@ apply (rule allI, rule def_nat_rec_Suc, simp)
 apply (rule allI, rule impI, rule ext)
 apply (erule conjE)
 apply (induct_tac x)
-apply (simp add: nat_rec_0)
+apply simp
 apply (erule_tac x="n" in allE)
 apply (simp)
 done
@@ -981,6 +981,24 @@ next
     by (blast intro: eq_refl X)
 qed
 
+lemma incseq_SucI:
+  assumes "\<And>n. X n \<le> X (Suc n)"
+  shows "incseq X" unfolding incseq_def
+proof safe
+  fix m n :: nat
+  { fix d m :: nat
+    have "X m \<le> X (m + d)"
+    proof (induct d)
+      case (Suc d)
+      also have "X (m + d) \<le> X (m + Suc d)"
+        using assms by simp
+      finally show ?case .
+    qed simp }
+  note this[of m "n - m"]
+  moreover assume "m \<le> n"
+  ultimately show "X m \<le> X n" by simp
+qed
+
 lemma decseq_imp_monoseq:  "decseq X \<Longrightarrow> monoseq X"
   by (simp add: decseq_def monoseq_def)
 
@@ -1046,6 +1064,17 @@ lemma Cauchy_iff:
   fixes X :: "nat \<Rightarrow> 'a::real_normed_vector"
   shows "Cauchy X \<longleftrightarrow> (\<forall>e>0. \<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. norm (X m - X n) < e)"
 unfolding Cauchy_def dist_norm ..
+
+lemma Cauchy_iff2:
+     "Cauchy X =
+      (\<forall>j. (\<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. \<bar>X m - X n\<bar> < inverse(real (Suc j))))"
+apply (simp add: Cauchy_iff, auto)
+apply (drule reals_Archimedean, safe)
+apply (drule_tac x = n in spec, auto)
+apply (rule_tac x = M in exI, auto)
+apply (drule_tac x = m in spec, simp)
+apply (drule_tac x = na in spec, auto)
+done
 
 lemma CauchyI:
   fixes X :: "nat \<Rightarrow> 'a::real_normed_vector"

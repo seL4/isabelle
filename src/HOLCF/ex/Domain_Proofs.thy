@@ -196,7 +196,7 @@ unfolding REP_foo REP_bar REP_baz REP_simps
 by (rule bar_defl_unfold)
 
 lemma REP_baz': "REP('a baz) = REP(('a foo convex_pd \<rightarrow> tr)\<^sub>\<bottom>)"
-unfolding REP_foo REP_bar REP_baz REP_simps
+unfolding REP_foo REP_bar REP_baz REP_simps REP_convex
 by (rule baz_defl_unfold)
 
 (********************************************************************)

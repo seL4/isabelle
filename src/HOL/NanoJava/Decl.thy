@@ -38,11 +38,11 @@ types   prog
         = "cdecl list"
 
 translations
-  "fdecl" \<leftharpoondown> (type)"fname \<times> ty"
-  "mdecl" \<leftharpoondown> (type)"mname \<times> ty \<times> ty \<times> stmt"
-  "class" \<leftharpoondown> (type)"cname \<times> fdecl list \<times> mdecl list"
-  "cdecl" \<leftharpoondown> (type)"cname \<times> class"
-  "prog " \<leftharpoondown> (type)"cdecl list"
+  (type) "fdecl" \<leftharpoondown> (type) "fname \<times> ty"
+  (type) "mdecl" \<leftharpoondown> (type) "mname \<times> ty \<times> ty \<times> stmt"
+  (type) "class" \<leftharpoondown> (type) "cname \<times> fdecl list \<times> mdecl list"
+  (type) "cdecl" \<leftharpoondown> (type) "cname \<times> class"
+  (type) "prog " \<leftharpoondown> (type) "cdecl list"
 
 consts
 
@@ -50,11 +50,10 @@ consts
   Object  :: cname      --{* name of root class *}
 
 
-constdefs
- "class"     :: "cname \<rightharpoonup> class"
+definition "class" :: "cname \<rightharpoonup> class" where
  "class      \<equiv> map_of Prog"
 
-  is_class   :: "cname => bool"
+definition is_class   :: "cname => bool" where
  "is_class C \<equiv> class C \<noteq> None"
 
 lemma finite_is_class: "finite {C. is_class C}"

@@ -198,9 +198,9 @@ fun zero_var_inst vars =
 
 fun zero_var_indexes_inst ts =
   let
-    val tvars = sort TermOrd.tvar_ord (fold Term.add_tvars ts []);
+    val tvars = sort Term_Ord.tvar_ord (fold Term.add_tvars ts []);
     val instT = map (apsnd TVar) (zero_var_inst tvars);
-    val vars = sort TermOrd.var_ord (map (apsnd (instantiateT instT)) (fold Term.add_vars ts []));
+    val vars = sort Term_Ord.var_ord (map (apsnd (instantiateT instT)) (fold Term.add_vars ts []));
     val inst = map (apsnd Var) (zero_var_inst vars);
   in (instT, inst) end;
 

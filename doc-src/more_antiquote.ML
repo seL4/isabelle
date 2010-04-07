@@ -53,13 +53,13 @@ local
 
 val pr_text = enclose "\\isa{" "}" o Pretty.output o Pretty.str;
 
-fun pr_class ctxt = Sign.read_class (ProofContext.theory_of ctxt)
-  #> Sign.extern_class (ProofContext.theory_of ctxt)
+fun pr_class ctxt = ProofContext.read_class ctxt
+  #> Type.extern_class (ProofContext.tsig_of ctxt)
   #> pr_text;
 
-fun pr_type ctxt = Sign.intern_type (ProofContext.theory_of ctxt)
-  #> tap (Sign.arity_number (ProofContext.theory_of ctxt))
-  #> Sign.extern_type (ProofContext.theory_of ctxt)
+fun pr_type ctxt = ProofContext.read_type_name_proper ctxt true
+  #> (#1 o Term.dest_Type)
+  #> Type.extern_type (ProofContext.tsig_of ctxt)
   #> pr_text;
 
 in
@@ -91,9 +91,9 @@ fun pretty_code_thm src ctxt raw_const =
     val (_, eqngr) = Code_Preproc.obtain thy [const] [];
     fun holize thm = @{thm meta_eq_to_obj_eq} OF [thm];
     val thms = Code_Preproc.cert eqngr const
-      |> Code.equations_thms_cert thy
+      |> Code.equations_of_cert thy
       |> snd
-      |> map_filter (fn (_, (thm, proper)) => if proper then SOME thm else NONE)
+      |> map_filter (fn (_, (some_thm, proper)) => if proper then some_thm else NONE)
       |> map (holize o no_vars ctxt o AxClass.overload thy);
   in ThyOutput.output (ThyOutput.maybe_pretty_source (pretty_thm ctxt) src thms) end;
 

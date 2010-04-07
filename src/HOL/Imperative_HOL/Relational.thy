@@ -469,7 +469,7 @@ lemma crel_updI:
 
 (* thm crel_mapI is missing *)
 
-subsection {* Introduction rules for reference commands *}
+subsubsection {* Introduction rules for reference commands *}
 
 lemma crel_lookupI:
   shows "crel (!ref) h h (get_ref ref h)"
@@ -483,7 +483,7 @@ lemma crel_changeI:
   shows "crel (Ref.change f ref) h (set_ref ref (f (get_ref ref h)) h) (f (get_ref ref h))"
 unfolding change_def Let_def by (auto intro!: crelI crel_returnI crel_lookupI crel_updateI)
 
-subsection {* Introduction rules for the assert command *}
+subsubsection {* Introduction rules for the assert command *}
 
 lemma crel_assertI:
   assumes "P x"
@@ -492,7 +492,26 @@ lemma crel_assertI:
   unfolding assert_def
   by (auto intro!: crel_ifI crel_returnI crel_raiseI)
  
-section {* Defintion of the noError predicate *}
+subsection {* Induction rule for the MREC combinator *}
+
+lemma MREC_induct:
+  assumes "crel (MREC f g x) h h' r"
+  assumes "\<And> x h h' r. crel (f x) h h' (Inl r) \<Longrightarrow> P x h h' r"
+  assumes "\<And> x h h1 h2 h' s z r. crel (f x) h h1 (Inr s) \<Longrightarrow> crel (MREC f g s) h1 h2 z \<Longrightarrow> P s h1 h2 z
+    \<Longrightarrow> crel (g x s z) h2 h' r \<Longrightarrow> P x h h' r"
+  shows "P x h h' r"
+proof (rule MREC_pinduct[OF assms(1)[unfolded crel_def, symmetric]])
+  fix x h h1 h2 h' s z r
+  assume "Heap_Monad.execute (f x) h = (Inl (Inr s), h1)"
+    "Heap_Monad.execute (MREC f g s) h1 = (Inl z, h2)"
+    "P s h1 h2 z"
+    "Heap_Monad.execute (g x s z) h2 = (Inl r, h')"
+  from assms(3)[unfolded crel_def, OF this(1)[symmetric] this(2)[symmetric] this(3) this(4)[symmetric]]
+  show "P x h h' r" .
+next
+qed (auto simp add: assms(2)[unfolded crel_def])
+
+section {* Definition of the noError predicate *}
 
 text {* We add a simple definitional setting for crel intro rules
   where we only would like to show that the computation does not result in a exception for heap h,

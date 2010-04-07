@@ -131,7 +131,7 @@ lemma transfer_nat_int_cong:
   apply assumption
 done
 
-declare TransferMorphism_nat_int[transfer add return: 
+declare transfer_morphism_nat_int[transfer add return: 
     transfer_nat_int_cong]
 
 lemma transfer_int_nat_cong:
@@ -140,7 +140,7 @@ lemma transfer_int_nat_cong:
   apply (auto simp add: zmod_int [symmetric])
 done
 
-declare TransferMorphism_int_nat[transfer add return: 
+declare transfer_morphism_int_nat[transfer add return: 
     transfer_int_nat_cong]
 
 

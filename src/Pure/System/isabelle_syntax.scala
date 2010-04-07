@@ -40,7 +40,7 @@ object Isabelle_Syntax
     result: StringBuilder)
   {
     result.append("(")
-    val elems = body.elements
+    val elems = body.iterator
     if (elems.hasNext) append_elem(elems.next, result)
     while (elems.hasNext) {
       result.append(", ")

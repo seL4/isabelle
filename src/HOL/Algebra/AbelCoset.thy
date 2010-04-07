@@ -1,12 +1,10 @@
-(*
-  Title:     HOL/Algebra/AbelCoset.thy
-  Author:    Stephan Hohe, TU Muenchen
+(*  Title:      HOL/Algebra/AbelCoset.thy
+    Author:     Stephan Hohe, TU Muenchen
 *)
 
 theory AbelCoset
 imports Coset Ring
 begin
-
 
 subsection {* More Lifting from Groups to Abelian Groups *}
 
@@ -17,39 +15,41 @@ text {* Hiding @{text "<+>"} from @{theory Sum_Type} until I come
 
 no_notation Plus (infixr "<+>" 65)
 
-constdefs (structure G)
+definition
   a_r_coset    :: "[_, 'a set, 'a] \<Rightarrow> 'a set"    (infixl "+>\<index>" 60)
-  "a_r_coset G \<equiv> r_coset \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
+  where "a_r_coset G = r_coset \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
 
+definition
   a_l_coset    :: "[_, 'a, 'a set] \<Rightarrow> 'a set"    (infixl "<+\<index>" 60)
-  "a_l_coset G \<equiv> l_coset \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
+  where "a_l_coset G = l_coset \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
 
+definition
   A_RCOSETS  :: "[_, 'a set] \<Rightarrow> ('a set)set"   ("a'_rcosets\<index> _" [81] 80)
-  "A_RCOSETS G H \<equiv> RCOSETS \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> H"
+  where "A_RCOSETS G H = RCOSETS \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> H"
 
+definition
   set_add  :: "[_, 'a set ,'a set] \<Rightarrow> 'a set" (infixl "<+>\<index>" 60)
-  "set_add G \<equiv> set_mult \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
+  where "set_add G = set_mult \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
 
+definition
   A_SET_INV :: "[_,'a set] \<Rightarrow> 'a set"  ("a'_set'_inv\<index> _" [81] 80)
-  "A_SET_INV G H \<equiv> SET_INV \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> H"
+  where "A_SET_INV G H = SET_INV \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> H"
 
-constdefs (structure G)
-  a_r_congruent :: "[('a,'b)ring_scheme, 'a set] \<Rightarrow> ('a*'a)set"
-                  ("racong\<index> _")
-   "a_r_congruent G \<equiv> r_congruent \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
+definition
+  a_r_congruent :: "[('a,'b)ring_scheme, 'a set] \<Rightarrow> ('a*'a)set"  ("racong\<index> _")
+  where "a_r_congruent G = r_congruent \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
 
-constdefs
-  A_FactGroup :: "[('a,'b) ring_scheme, 'a set] \<Rightarrow> ('a set) monoid"
-     (infixl "A'_Mod" 65)
+definition
+  A_FactGroup :: "[('a,'b) ring_scheme, 'a set] \<Rightarrow> ('a set) monoid" (infixl "A'_Mod" 65)
     --{*Actually defined for groups rather than monoids*}
-  "A_FactGroup G H \<equiv> FactGroup \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> H"
+  where "A_FactGroup G H = FactGroup \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> H"
 
-constdefs
-  a_kernel :: "('a, 'm) ring_scheme \<Rightarrow> ('b, 'n) ring_scheme \<Rightarrow> 
-             ('a \<Rightarrow> 'b) \<Rightarrow> 'a set" 
+definition
+  a_kernel :: "('a, 'm) ring_scheme \<Rightarrow> ('b, 'n) ring_scheme \<Rightarrow>  ('a \<Rightarrow> 'b) \<Rightarrow> 'a set"
     --{*the kernel of a homomorphism (additive)*}
-  "a_kernel G H h \<equiv> kernel \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>
-                              \<lparr>carrier = carrier H, mult = add H, one = zero H\<rparr> h"
+  where "a_kernel G H h =
+    kernel \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>
+      \<lparr>carrier = carrier H, mult = add H, one = zero H\<rparr> h"
 
 locale abelian_group_hom = G: abelian_group G + H: abelian_group H
     for G (structure) and H (structure) +
@@ -518,6 +518,7 @@ by (rule normal.r_coset_hom_Mod [OF a_normal,
 text {* The isomorphism theorems have been omitted from lifting, at
   least for now *}
 
+
 subsubsection{*The First Isomorphism Theorem*}
 
 text{*The quotient by the kernel of a homomorphism is isomorphic to the 
@@ -527,7 +528,7 @@ lemmas a_kernel_defs =
   a_kernel_def kernel_def
 
 lemma a_kernel_def':
-  "a_kernel R S h \<equiv> {x \<in> carrier R. h x = \<zero>\<^bsub>S\<^esub>}"
+  "a_kernel R S h = {x \<in> carrier R. h x = \<zero>\<^bsub>S\<^esub>}"
 by (rule a_kernel_def[unfolded kernel_def, simplified ring_record_simps])
 
 
@@ -640,6 +641,7 @@ theorem (in abelian_group_hom) A_FactGroup_iso:
 by (rule group_hom.FactGroup_iso[OF a_group_hom,
     folded a_kernel_def A_FactGroup_def, simplified ring_record_simps])
 
+
 subsubsection {* Cosets *}
 
 text {* Not eveything from \texttt{CosetExt.thy} is lifted here. *}
@@ -722,7 +724,6 @@ lemma (in abelian_subgroup) a_rcosets_carrier:
   "X \<in> a_rcosets H \<Longrightarrow> X \<subseteq> carrier G"
 by (rule subgroup.rcosets_carrier [OF a_subgroup a_group,
     folded A_RCOSETS_def, simplified monoid_record_simps])
-
 
 
 subsubsection {* Addition of Subgroups *}

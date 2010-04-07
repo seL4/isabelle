@@ -20,8 +20,7 @@ record ('a,'b) merge_d =
   "'b merge" +
   dummy :: 'a       (*dummy field for new variables*)
 
-constdefs
-  non_dummy :: "('a,'b) merge_d => 'b merge"
+definition non_dummy :: "('a,'b) merge_d => 'b merge" where
     "non_dummy s == (|In = In s, Out = Out s, iOut = iOut s|)"
 
 record 'b distr =

@@ -1,5 +1,4 @@
 (*  Title:      HOL/IOA/NTP/Spec.thy
-    ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
 *)
 

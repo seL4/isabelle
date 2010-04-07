@@ -1,28 +1,34 @@
 (*  Title:      HOL/Algebra/Coset.thy
-    Author:     Florian Kammueller, with new proofs by L C Paulson, and
-                Stephan Hohe
+    Author:     Florian Kammueller
+    Author:     L C Paulson
+    Author:     Stephan Hohe
 *)
 
-theory Coset imports Group begin
-
+theory Coset
+imports Group
+begin
 
 section {*Cosets and Quotient Groups*}
 
-constdefs (structure G)
+definition
   r_coset    :: "[_, 'a set, 'a] \<Rightarrow> 'a set"    (infixl "#>\<index>" 60)
-  "H #> a \<equiv> \<Union>h\<in>H. {h \<otimes> a}"
+  where "H #>\<^bsub>G\<^esub> a = (\<Union>h\<in>H. {h \<otimes>\<^bsub>G\<^esub> a})"
 
+definition
   l_coset    :: "[_, 'a, 'a set] \<Rightarrow> 'a set"    (infixl "<#\<index>" 60)
-  "a <# H \<equiv> \<Union>h\<in>H. {a \<otimes> h}"
+  where "a <#\<^bsub>G\<^esub> H = (\<Union>h\<in>H. {a \<otimes>\<^bsub>G\<^esub> h})"
 
+definition
   RCOSETS  :: "[_, 'a set] \<Rightarrow> ('a set)set"   ("rcosets\<index> _" [81] 80)
-  "rcosets H \<equiv> \<Union>a\<in>carrier G. {H #> a}"
+  where "rcosets\<^bsub>G\<^esub> H = (\<Union>a\<in>carrier G. {H #>\<^bsub>G\<^esub> a})"
 
+definition
   set_mult  :: "[_, 'a set ,'a set] \<Rightarrow> 'a set" (infixl "<#>\<index>" 60)
-  "H <#> K \<equiv> \<Union>h\<in>H. \<Union>k\<in>K. {h \<otimes> k}"
+  where "H <#>\<^bsub>G\<^esub> K = (\<Union>h\<in>H. \<Union>k\<in>K. {h \<otimes>\<^bsub>G\<^esub> k})"
 
+definition
   SET_INV :: "[_,'a set] \<Rightarrow> 'a set"  ("set'_inv\<index> _" [81] 80)
-  "set_inv H \<equiv> \<Union>h\<in>H. {inv h}"
+  where "set_inv\<^bsub>G\<^esub> H = (\<Union>h\<in>H. {inv\<^bsub>G\<^esub> h})"
 
 
 locale normal = subgroup + group +
@@ -589,10 +595,9 @@ lemma (in normal) rcosets_mult_eq: "M \<in> rcosets H \<Longrightarrow> H <#> M 
 
 subsubsection{*An Equivalence Relation*}
 
-constdefs (structure G)
-  r_congruent :: "[('a,'b)monoid_scheme, 'a set] \<Rightarrow> ('a*'a)set"
-                  ("rcong\<index> _")
-   "rcong H \<equiv> {(x,y). x \<in> carrier G & y \<in> carrier G & inv x \<otimes> y \<in> H}"
+definition
+  r_congruent :: "[('a,'b)monoid_scheme, 'a set] \<Rightarrow> ('a*'a)set"  ("rcong\<index> _")
+  where "rcong\<^bsub>G\<^esub> H = {(x,y). x \<in> carrier G & y \<in> carrier G & inv\<^bsub>G\<^esub> x \<otimes>\<^bsub>G\<^esub> y \<in> H}"
 
 
 lemma (in subgroup) equiv_rcong:
@@ -650,6 +655,7 @@ proof -
   show ?thesis by (force simp add: r_congruent_def l_coset_def m_assoc [symmetric] a ) 
 qed
 
+
 subsubsection{*Two Distinct Right Cosets are Disjoint*}
 
 lemma (in group) rcos_equation:
@@ -674,6 +680,7 @@ proof -
     apply (blast intro: rcos_equation prems sym)
     done
 qed
+
 
 subsection {* Further lemmas for @{text "r_congruent"} *}
 
@@ -751,9 +758,9 @@ qed
 
 subsection {*Order of a Group and Lagrange's Theorem*}
 
-constdefs
+definition
   order :: "('a, 'b) monoid_scheme \<Rightarrow> nat"
-  "order S \<equiv> card (carrier S)"
+  where "order S = card (carrier S)"
 
 lemma (in group) rcosets_part_G:
   assumes "subgroup H G"
@@ -822,12 +829,10 @@ done
 
 subsection {*Quotient Groups: Factorization of a Group*}
 
-constdefs
-  FactGroup :: "[('a,'b) monoid_scheme, 'a set] \<Rightarrow> ('a set) monoid"
-     (infixl "Mod" 65)
+definition
+  FactGroup :: "[('a,'b) monoid_scheme, 'a set] \<Rightarrow> ('a set) monoid" (infixl "Mod" 65)
     --{*Actually defined for groups rather than monoids*}
-  "FactGroup G H \<equiv>
-    \<lparr>carrier = rcosets\<^bsub>G\<^esub> H, mult = set_mult G, one = H\<rparr>"
+   where "FactGroup G H = \<lparr>carrier = rcosets\<^bsub>G\<^esub> H, mult = set_mult G, one = H\<rparr>"
 
 lemma (in normal) setmult_closed:
      "\<lbrakk>K1 \<in> rcosets H; K2 \<in> rcosets H\<rbrakk> \<Longrightarrow> K1 <#> K2 \<in> rcosets H"
@@ -890,11 +895,10 @@ subsection{*The First Isomorphism Theorem*}
 text{*The quotient by the kernel of a homomorphism is isomorphic to the 
   range of that homomorphism.*}
 
-constdefs
-  kernel :: "('a, 'm) monoid_scheme \<Rightarrow> ('b, 'n) monoid_scheme \<Rightarrow> 
-             ('a \<Rightarrow> 'b) \<Rightarrow> 'a set" 
+definition
+  kernel :: "('a, 'm) monoid_scheme \<Rightarrow> ('b, 'n) monoid_scheme \<Rightarrow>  ('a \<Rightarrow> 'b) \<Rightarrow> 'a set"
     --{*the kernel of a homomorphism*}
-  "kernel G H h \<equiv> {x. x \<in> carrier G & h x = \<one>\<^bsub>H\<^esub>}"
+  where "kernel G H h = {x. x \<in> carrier G & h x = \<one>\<^bsub>H\<^esub>}"
 
 lemma (in group_hom) subgroup_kernel: "subgroup (kernel G H h) G"
 apply (rule subgroup.intro) 

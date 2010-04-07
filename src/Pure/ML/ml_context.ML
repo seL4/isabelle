@@ -22,9 +22,7 @@ sig
   val stored_thms: thm list Unsynchronized.ref
   val ml_store_thm: string * thm -> unit
   val ml_store_thms: string * thm list -> unit
-  type antiq =
-    {struct_name: string, background: Proof.context} ->
-      (Proof.context -> string * string) * Proof.context
+  type antiq = Proof.context -> (Proof.context -> string * string) * Proof.context
   val add_antiq: string -> (Position.T -> antiq context_parser) -> unit
   val trace: bool Unsynchronized.ref
   val eval_antiquotes: ML_Lex.token Antiquote.antiquote list * Position.T ->
@@ -72,8 +70,8 @@ fun ml_store sel (name, ths) =
 val ml_store_thms = ml_store "";
 fun ml_store_thm (name, th) = ml_store "hd" (name, [th]);
 
-fun bind_thm (name, thm) = ml_store_thm (name, Drule.standard thm);
-fun bind_thms (name, thms) = ml_store_thms (name, map Drule.standard thms);
+fun bind_thm (name, thm) = ml_store_thm (name, Drule.export_without_context thm);
+fun bind_thms (name, thms) = ml_store_thms (name, map Drule.export_without_context thms);
 
 fun thm name = ProofContext.get_thm (the_local_context ()) name;
 fun thms name = ProofContext.get_thms (the_local_context ()) name;
@@ -84,9 +82,7 @@ fun thms name = ProofContext.get_thms (the_local_context ()) name;
 
 (* antiquotation commands *)
 
-type antiq =
-  {struct_name: string, background: Proof.context} ->
-    (Proof.context -> string * string) * Proof.context;
+type antiq = Proof.context -> (Proof.context -> string * string) * Proof.context;
 
 local
 
@@ -123,8 +119,7 @@ val antiq =
   P.!!! (P.position P.xname -- Args.parse --| Scan.ahead P.eof)
   >> (fn ((x, pos), y) => Args.src ((x, y), pos));
 
-val struct_name = "Isabelle";
-val begin_env = ML_Lex.tokenize ("structure " ^ struct_name ^ " =\nstruct\n");
+val begin_env = ML_Lex.tokenize "structure Isabelle =\nstruct\n";
 val end_env = ML_Lex.tokenize "end;";
 val reset_env = ML_Lex.tokenize "structure Isabelle = struct end";
 
@@ -151,7 +146,7 @@ fun eval_antiquotes (ants, pos) opt_context =
                 let
                   val context = Stack.top scope;
                   val (f, context') = antiquotation (T.read_antiq lex antiq (ss, #1 range)) context;
-                  val (decl, background') = f {background = background, struct_name = struct_name};
+                  val (decl, background') = f background;
                   val decl' = decl #> pairself (ML_Lex.tokenize #> map (ML_Lex.set_range range));
                 in (decl', (Stack.map_top (K context') scope, background')) end
             | expand (Antiquote.Open _) (scope, background) =

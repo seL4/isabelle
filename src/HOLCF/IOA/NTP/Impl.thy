@@ -1,5 +1,4 @@
 (*  Title:      HOL/IOA/NTP/Impl.thy
-    ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
 *)
 
@@ -62,7 +61,7 @@ definition "inv4(s) == rbit(rec(s)) = (~sbit(sen(s))) --> sq(sen(s)) ~= []"
 
 subsection {* Invariants *}
 
-declare Let_def [simp] le_SucI [simp]
+declare le_SucI [simp]
 
 lemmas impl_ioas =
   impl_def sender_ioa_def receiver_ioa_def srch_ioa_thm [THEN eq_reflection]

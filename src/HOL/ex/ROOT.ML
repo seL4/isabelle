@@ -11,10 +11,7 @@ no_document use_thys [
   "Eval_Examples",
   "Codegenerator_Test",
   "Codegenerator_Pretty_Test",
-  "NormalForm",
-  "Predicate_Compile",
-  "Predicate_Compile_ex",
-  "Predicate_Compile_Quickcheck"
+  "NormalForm"
 ];
 
 use_thys [
@@ -65,7 +62,10 @@ use_thys [
   "HarmonicSeries",
   "Refute_Examples",
   "Quickcheck_Examples",
-  "Landau"
+  "Landau",
+  "Execute_Choice",
+  "Summation",
+  "Gauge_Integration"
 ];
 
 HTML.with_charset "utf-8" (no_document use_thys)

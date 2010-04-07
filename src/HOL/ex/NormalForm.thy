@@ -3,7 +3,7 @@
 header {* Testing implementation of normalization by evaluation *}
 
 theory NormalForm
-imports Main Rational
+imports Complex_Main
 begin
 
 lemma "True" by normalization

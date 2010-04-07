@@ -210,7 +210,7 @@ fun generalize_tac f = CSUBGOAL (fn (p, i) => PRIMITIVE (fn st =>
  let 
    fun all T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "all"}
    fun gen x t = Thm.capply (all (ctyp_of_term x)) (Thm.cabs x t)
-   val ts = sort (fn (a,b) => TermOrd.fast_term_ord (term_of a, term_of b)) (f p)
+   val ts = sort (fn (a,b) => Term_Ord.fast_term_ord (term_of a, term_of b)) (f p)
    val p' = fold_rev gen ts p
  in implies_intr p' (implies_elim st (fold forall_elim ts (assume p'))) end));
 
@@ -234,11 +234,11 @@ fun dlo_tac ctxt = CSUBGOAL (fn (p, i) =>
   (case dlo_instance ctxt p of
     (ss, NONE) => simp_tac ss i
   | (ss,  SOME instance) =>
-      ObjectLogic.full_atomize_tac i THEN
+      Object_Logic.full_atomize_tac i THEN
       simp_tac ss i
       THEN (CONVERSION Thm.eta_long_conversion) i
       THEN (TRY o generalize_tac (cfrees (#atoms instance))) i
-      THEN ObjectLogic.full_atomize_tac i
-      THEN CONVERSION (ObjectLogic.judgment_conv (raw_dlo_conv ss instance)) i
+      THEN Object_Logic.full_atomize_tac i
+      THEN CONVERSION (Object_Logic.judgment_conv (raw_dlo_conv ss instance)) i
       THEN (simp_tac ss i)));  
 end;

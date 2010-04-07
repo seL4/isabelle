@@ -1,5 +1,4 @@
 (*  Title:      LCF/ex/ROOT.ML
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1991  University of Cambridge
 

@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/ex/Stream.thy
-    ID:         $Id$
     Author:     Franz Regensburger, David von Oheimb, Borislav Gajanovic
 *)
 
@@ -54,8 +53,6 @@ definition
                         | \<infinity>    \<Rightarrow> s1)"
 
 
-declare stream.rews [simp add]
-
 (* ----------------------------------------------------------------------- *)
 (* theorems about scons                                                    *)
 (* ----------------------------------------------------------------------- *)
@@ -70,24 +67,19 @@ lemma scons_not_empty: "[| a && x = UU; a ~= UU |] ==> R"
 by simp
 
 lemma stream_exhaust_eq: "(x ~= UU) = (EX a y. a ~= UU &  x = a && y)"
-by (auto,insert stream.exhaust [of x],auto)
+by (cases x, auto)
 
 lemma stream_neq_UU: "x~=UU ==> EX a a_s. x=a&&a_s & a~=UU"
 by (simp add: stream_exhaust_eq,auto)
 
-lemma stream_inject_eq [simp]:
-  "[| a ~= UU; b ~= UU |] ==> (a && s = b && t) = (a = b &  s = t)"
-by (insert stream.injects [of a s b t], auto)
-
 lemma stream_prefix:
   "[| a && s << t; a ~= UU  |] ==> EX b tt. t = b && tt &  b ~= UU &  s << tt"
-by (insert stream.exhaust [of t], auto)
+by (cases t, auto)
 
 lemma stream_prefix':
   "b ~= UU ==> x << b && z =
    (x = UU |  (EX a y. x = a && y &  a ~= UU &  a << b &  y << z))"
-apply (case_tac "x=UU",auto)
-by (drule stream_exhaust_eq [THEN iffD1],auto)
+by (cases x, auto)
 
 
 (*
@@ -111,7 +103,7 @@ section "stream_when"
 
 
 lemma stream_when_strictf: "stream_when$UU$s=UU"
-by (rule stream.casedist [of s], auto)
+by (cases s, auto)
 
 
 
@@ -124,13 +116,13 @@ section "ft & rt"
 
 
 lemma ft_defin: "s~=UU ==> ft$s~=UU"
-by (drule stream_exhaust_eq [THEN iffD1],auto)
+by simp
 
 lemma rt_strict_rev: "rt$s~=UU ==> s~=UU"
 by auto
 
 lemma surjectiv_scons: "(ft$s)&&(rt$s)=s"
-by (rule stream.casedist [of s], auto)
+by (cases s, auto)
 
 lemma monofun_rt_mult: "x << s ==> iterate i$rt$x << iterate i$rt$s"
 by (rule monofun_cfun_arg)
@@ -146,16 +138,10 @@ section "stream_take"
 
 
 lemma stream_reach2: "(LUB i. stream_take i$s) = s"
-apply (insert stream.reach [of s], erule subst) back
-apply (simp add: fix_def2 stream.take_def)
-apply (insert contlub_cfun_fun [of "%i. iterate i$stream_copy$UU" s,THEN sym])
-by (simp add: chain_iterate)
+by (rule stream.reach)
 
 lemma chain_stream_take: "chain (%i. stream_take i$s)"
-apply (rule chainI)
-apply (rule monofun_cfun_fun)
-apply (simp add: stream.take_def del: iterate_Suc)
-by (rule chainE, simp add: chain_iterate)
+by simp
 
 lemma stream_take_prefix [simp]: "stream_take n$s << s"
 apply (insert stream_reach2 [of s])
@@ -244,7 +230,7 @@ lemma stream_finite_ind:
  "[| stream_finite x; P UU; !!a s. [| a ~= UU; P s |] ==> P (a && s) |] ==> P x"
 apply (simp add: stream.finite_def,auto)
 apply (erule subst)
-by (drule stream.finite_ind [of P _ x], auto)
+by (drule stream.finite_induct [of P _ x], auto)
 
 lemma stream_finite_ind2:
 "[| P UU; !! x. x ~= UU ==> P (x && UU); !! y z s. [| y ~= UU; z ~= UU; P s |] ==> P (y && z && s )|] ==>
@@ -262,10 +248,9 @@ by (drule stream_exhaust_eq [THEN iffD1],clarsimp)
 lemma stream_ind2:
 "[| adm P; P UU; !!a. a ~= UU ==> P (a && UU); !!a b s. [| a ~= UU; b ~= UU; P s |] ==> P (a && b && s) |] ==> P x"
 apply (insert stream.reach [of x],erule subst)
-apply (frule adm_impl_admw, rule wfix_ind, auto)
-apply (rule adm_subst [THEN adm_impl_admw],auto)
+apply (erule admD, rule chain_stream_take)
 apply (insert stream_finite_ind2 [of P])
-by (simp add: stream.take_def)
+by simp
 
 
 
@@ -278,16 +263,9 @@ section "coinduction"
 
 lemma stream_coind_lemma2: "!s1 s2. R s1 s2 --> ft$s1 = ft$s2 &  R (rt$s1) (rt$s2) ==> stream_bisim R"
  apply (simp add: stream.bisim_def,clarsimp)
- apply (case_tac "x=UU",clarsimp)
-  apply (erule_tac x="UU" in allE,simp)
-  apply (case_tac "x'=UU",simp)
-  apply (drule stream_exhaust_eq [THEN iffD1],auto)+
- apply (case_tac "x'=UU",auto)
-  apply (erule_tac x="a && y" in allE)
-  apply (erule_tac x="UU" in allE)+
-  apply (auto,drule stream_exhaust_eq [THEN iffD1],clarsimp)
- apply (erule_tac x="a && y" in allE)
- apply (erule_tac x="aa && ya" in allE) back
+ apply (drule spec, drule spec, drule (1) mp)
+ apply (case_tac "x", simp)
+ apply (case_tac "x'", simp)
 by auto
 
 
@@ -316,7 +294,7 @@ apply (rule_tac x="n" in exI)
 by (erule stream_take_lemma3,simp)
 
 lemma stream_finite_rt_eq: "stream_finite (rt$s) = stream_finite s"
-apply (rule stream.casedist [of s], auto)
+apply (cases s, auto)
 apply (rule stream_finite_lemma1, simp)
 by (rule stream_finite_lemma2,simp)
 
@@ -361,11 +339,10 @@ apply (simp add: slen_def, auto)
 by (drule stream_finite_lemma1,auto)
 
 lemma slen_less_1_eq: "(#x < Fin (Suc 0)) = (x = \<bottom>)"
-by (rule stream.casedist [of x], auto simp del: iSuc_Fin
-    simp add: Fin_0 iSuc_Fin[THEN sym] i0_iless_iSuc iSuc_mono)
+by (cases x, auto simp add: Fin_0 iSuc_Fin[THEN sym])
 
 lemma slen_empty_eq: "(#x = 0) = (x = \<bottom>)"
-by (rule stream.casedist [of x], auto)
+by (cases x, auto)
 
 lemma slen_scons_eq: "(Fin (Suc n) < #x) = (? a y. x = a && y &  a ~= \<bottom> &  Fin n < #y)"
 apply (auto, case_tac "x=UU",auto)
@@ -375,16 +352,16 @@ apply (case_tac "#y") apply simp_all
 done
 
 lemma slen_iSuc: "#x = iSuc n --> (? a y. x = a&&y &  a ~= \<bottom> &  #y = n)"
-by (rule stream.casedist [of x], auto)
+by (cases x, auto)
 
 lemma slen_stream_take_finite [simp]: "#(stream_take n$s) ~= \<infinity>"
 by (simp add: slen_def)
 
 lemma slen_scons_eq_rev: "(#x < Fin (Suc (Suc n))) = (!a y. x ~= a && y |  a = \<bottom> |  #y < Fin (Suc n))"
- apply (rule stream.casedist [of x], auto)
+ apply (cases x, auto)
    apply (simp add: zero_inat_def)
-  apply (case_tac "#s") apply (simp_all add: iSuc_Fin)
- apply (case_tac "#s") apply (simp_all add: iSuc_Fin)
+  apply (case_tac "#stream") apply (simp_all add: iSuc_Fin)
+ apply (case_tac "#stream") apply (simp_all add: iSuc_Fin)
 done
 
 lemma slen_take_lemma4 [rule_format]:
@@ -433,8 +410,8 @@ lemma slen_take_lemma1: "#x = Fin n ==> stream_take n\<cdot>x = x"
 by (rule slen_take_eq_rev [THEN iffD1], auto)
 
 lemma slen_rt_mono: "#s2 <= #s1 ==> #(rt$s2) <= #(rt$s1)"
-apply (rule stream.casedist [of s1])
- by (rule stream.casedist [of s2],simp+)+
+apply (cases s1)
+ by (cases s2, simp+)+
 
 lemma slen_take_lemma5: "#(stream_take n$s) <= Fin n"
 apply (case_tac "stream_take n$s = s")
@@ -498,7 +475,7 @@ lemma stream_take_Suc_neq: "stream_take (Suc n)$s ~=s ==>
 apply auto
 apply (subgoal_tac "stream_take n$s ~=s")
  apply (insert slen_take_lemma4 [of n s],auto)
-apply (rule stream.casedist [of s],simp)
+apply (cases s, simp)
 by (simp add: slen_take_lemma4 iSuc_Fin)
 
 (* ----------------------------------------------------------------------- *)
@@ -599,7 +576,7 @@ by (simp add: i_rt_slen slen_take_lemma1)
 
 lemma stream_finite_i_rt [simp]: "stream_finite (i_rt n s) = stream_finite s"
 apply (induct_tac n, auto)
- apply (rule stream.casedist [of "s"], auto simp del: i_rt_Suc)
+ apply (cases s, auto simp del: i_rt_Suc)
 by (simp add: i_rt_Suc_back stream_finite_rt_eq)+
 
 lemma take_i_rt_len_lemma: "ALL sl x j t. Fin sl = #x & n <= sl &
@@ -636,8 +613,8 @@ lemma i_th_i_rt_step:
 "[| i_th n s1 << i_th n s2; i_rt (Suc n) s1 << i_rt (Suc n) s2 |] ==>
    i_rt n s1 << i_rt n s2"
 apply (simp add: i_th_def i_rt_Suc_back)
-apply (rule stream.casedist [of "i_rt n s1"],simp)
-apply (rule stream.casedist [of "i_rt n s2"],auto)
+apply (cases "i_rt n s1", simp)
+apply (cases "i_rt n s2", auto)
 done
 
 lemma i_th_stream_take_Suc [rule_format]:
@@ -776,7 +753,7 @@ apply (cases "#x",auto)
 by (simp add: sconc_def)
 
 lemma ft_sconc: "x ~= UU ==> ft$(x ooo y) = ft$x"
-by (rule stream.casedist [of x],auto)
+by (cases x, auto)
 
 lemma sconc_assoc: "(x ooo y) ooo z = x ooo y ooo z"
 apply (case_tac "#x")
@@ -817,7 +794,7 @@ apply (case_tac "#x",auto)
 (* ----------------------------------------------------------------------- *)
 
 lemma rt_sconc [rule_format, simp]: "s~=UU --> rt$(s ooo x) = rt$s ooo x"
-by (rule stream.casedist,auto)
+by (cases s, auto)
 
 lemma i_th_sconc_lemma [rule_format]:
   "ALL x y. Fin n < #x --> i_th n (x ooo y) = i_th n x"
@@ -863,7 +840,7 @@ apply (subgoal_tac "stream_take (Suc na)$s1 =
 by blast+
 
 lemma pointwise_eq_lemma[rule_format]: "ALL n. i_th n s1 = i_th n s2 ==> s1 = s2"
-by (insert i_th_stream_take_eq [THEN stream.take_lemmas],blast)
+by (insert i_th_stream_take_eq [THEN stream.take_lemma],blast)
 
 (* ----------------------------------------------------------------------- *)
    subsection "finiteness"
@@ -930,7 +907,7 @@ apply (case_tac "#s1")
    apply (simp+,rule slen_take_lemma3 [of _ s1 s2])
   apply (simp+,rule_tac x="UU" in exI)
 apply (insert slen_take_lemma3 [of _ s1 s2])
-by (rule stream.take_lemmas,simp)
+by (rule stream.take_lemma,simp)
 
 (* ----------------------------------------------------------------------- *)
    subsection "continuity"
@@ -943,11 +920,8 @@ lemma chain_scons: "chain S ==> chain (%i. a && S i)"
 apply (simp add: chain_def,auto)
 by (rule monofun_cfun_arg,simp)
 
-lemma contlub_scons: "contlub (%x. a && x)"
-by (simp add: contlub_Rep_CFun2)
-
 lemma contlub_scons_lemma: "chain S ==> (LUB i. a && S i) = a && (LUB i. S i)"
-by (rule contlubE [OF contlub_Rep_CFun2, symmetric])
+by (rule cont2contlubE [OF cont_Rep_CFun2, symmetric])
 
 lemma finite_lub_sconc: "chain Y ==> (stream_finite x) ==>
                         (LUB i. x ooo Y i) = (x ooo (LUB i. Y i))"
@@ -962,9 +936,6 @@ apply (case_tac "#x=Infty")
  apply (simp add: sconc_def)
 apply (drule finite_lub_sconc,auto simp add: slen_infinite)
 done
-
-lemma contlub_sconc: "contlub (%y. x ooo y)"
-by (rule cont_sconc [THEN cont2contlub])
 
 lemma monofun_sconc: "monofun (%y. x ooo y)"
 by (simp add: monofun_def sconc_mono)

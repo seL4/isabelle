@@ -33,7 +33,7 @@ val nT = HOLogic.natT;
              @{thm "real_of_nat_number_of"},
              @{thm "real_of_nat_Suc"}, @{thm "real_of_nat_one"}, @{thm "real_of_one"},
              @{thm "real_of_int_zero"}, @{thm "real_of_nat_zero"},
-             @{thm "Ring_and_Field.divide_zero"}, 
+             @{thm "Fields.divide_zero"}, 
              @{thm "divide_divide_eq_left"}, @{thm "times_divide_eq_right"}, 
              @{thm "times_divide_eq_left"}, @{thm "divide_divide_eq_right"},
              @{thm "diff_def"}, @{thm "minus_divide_left"}]
@@ -88,7 +88,7 @@ fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
 
 
 fun mir_tac ctxt q i = 
-    ObjectLogic.atomize_prems_tac i
+    Object_Logic.atomize_prems_tac i
         THEN simp_tac (HOL_basic_ss addsimps [@{thm "abs_ge_zero"}] addsimps simp_thms) i
         THEN REPEAT_DETERM (split_tac [@{thm "split_min"}, @{thm "split_max"}, @{thm "abs_split"}] i)
         THEN (fn st =>

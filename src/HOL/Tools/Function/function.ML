@@ -81,7 +81,7 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config lth
 
     fun afterqed [[proof]] lthy =
       let
-        val FunctionResult {fs, R, psimps, trsimps,  simple_pinducts,
+        val FunctionResult {fs, R, psimps, trsimps, simple_pinducts,
           termination, domintros, cases, ...} =
           cont (Thm.close_derivation proof)
 
@@ -97,6 +97,7 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config lth
           |> addsmps (conceal_partial o Binding.qualify false "partial")
                "psimps" conceal_partial psimp_attribs psimps
           ||> fold_option (snd oo addsmps I "simps" I simp_attribs) trsimps
+          ||> fold_option (Spec_Rules.add Spec_Rules.Equational o pair fs) trsimps
           ||>> Local_Theory.note ((conceal_partial (qualify "pinduct"),
                  [Attrib.internal (K (Rule_Cases.case_names cnames)),
                   Attrib.internal (K (Rule_Cases.consumes 1)),
@@ -126,7 +127,7 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config lth
 val add_function =
   gen_add_function false Specification.check_spec (TypeInfer.anyT HOLogic.typeS)
 val add_function_cmd = gen_add_function true Specification.read_spec "_::type"
-
+                                                
 fun gen_termination_proof prep_term raw_term_opt lthy =
   let
     val term_opt = Option.map (prep_term lthy) raw_term_opt
@@ -145,7 +146,7 @@ fun gen_termination_proof prep_term raw_term_opt lthy =
         let
           val totality = Thm.close_derivation totality
           val remove_domain_condition =
-            full_simplify (HOL_basic_ss addsimps [totality, True_implies_equals])
+            full_simplify (HOL_basic_ss addsimps [totality, @{thm True_implies_equals}])
           val tsimps = map remove_domain_condition psimps
           val tinduct = map remove_domain_condition pinducts
 
@@ -164,7 +165,7 @@ fun gen_termination_proof prep_term raw_term_opt lthy =
               simps=SOME simps, inducts=SOME inducts, termination=termination }
             in
               Local_Theory.declaration false (add_function_data o morph_function_data info')
-              #> Spec_Rules.add Spec_Rules.Equational (fs, simps)
+              #> Spec_Rules.add Spec_Rules.Equational (fs, tsimps)
             end)
         end
   in

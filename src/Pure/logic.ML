@@ -38,6 +38,7 @@ sig
   val class_of_const: string -> class
   val mk_of_class: typ * class -> term
   val dest_of_class: term -> typ * class
+  val mk_of_sort: typ * sort -> term list
   val name_classrel: string * string -> string
   val mk_classrel: class * class -> term
   val dest_classrel: term -> class * class
@@ -68,10 +69,10 @@ sig
   val list_rename_params: string list * term -> term
   val assum_pairs: int * term -> (term*term)list
   val assum_problems: int * term -> (term -> term) * term list * term
-  val varifyT: typ -> typ
-  val unvarifyT: typ -> typ
-  val varify: term -> term
-  val unvarify: term -> term
+  val varifyT_global: typ -> typ
+  val unvarifyT_global: typ -> typ
+  val varify_global: term -> term
+  val unvarify_global: term -> term
   val get_goal: term -> int -> term
   val goal_params: term -> int -> term * term list
   val prems_of_goal: term -> int -> term list
@@ -217,13 +218,15 @@ fun class_of_const c = unsuffix classN c
   handle Fail _ => raise TERM ("class_of_const: bad name " ^ quote c, []);
 
 
-(* class membership *)
+(* class/sort membership *)
 
 fun mk_of_class (ty, c) =
   Const (const_of_class c, Term.itselfT ty --> propT) $ mk_type ty;
 
 fun dest_of_class (Const (c_class, _) $ ty) = (dest_type ty, class_of_const c_class)
   | dest_of_class t = raise TERM ("dest_of_class", [t]);
+
+fun mk_of_sort (ty, S) = map (fn c => mk_of_class (ty, c)) S;
 
 
 (* class relations *)
@@ -465,35 +468,35 @@ fun assum_problems (nasms, A) =
 fun bad_schematic xi = "Illegal schematic variable: " ^ quote (Term.string_of_vname xi);
 fun bad_fixed x = "Illegal fixed variable: " ^ quote x;
 
-fun varifyT_same ty = ty
+fun varifyT_global_same ty = ty
   |> Term_Subst.map_atypsT_same
     (fn TFree (a, S) => TVar ((a, 0), S)
       | TVar (ai, _) => raise TYPE (bad_schematic ai, [ty], []));
 
-fun unvarifyT_same ty = ty
+fun unvarifyT_global_same ty = ty
   |> Term_Subst.map_atypsT_same
     (fn TVar ((a, 0), S) => TFree (a, S)
       | TVar (ai, _) => raise TYPE (bad_schematic ai, [ty], [])
       | TFree (a, _) => raise TYPE (bad_fixed a, [ty], []));
 
-val varifyT = Same.commit varifyT_same;
-val unvarifyT = Same.commit unvarifyT_same;
+val varifyT_global = Same.commit varifyT_global_same;
+val unvarifyT_global = Same.commit unvarifyT_global_same;
 
-fun varify tm = tm
+fun varify_global tm = tm
   |> Same.commit (Term_Subst.map_aterms_same
     (fn Free (x, T) => Var ((x, 0), T)
       | Var (xi, _) => raise TERM (bad_schematic xi, [tm])
       | _ => raise Same.SAME))
-  |> Same.commit (Term_Subst.map_types_same varifyT_same)
+  |> Same.commit (Term_Subst.map_types_same varifyT_global_same)
   handle TYPE (msg, _, _) => raise TERM (msg, [tm]);
 
-fun unvarify tm = tm
+fun unvarify_global tm = tm
   |> Same.commit (Term_Subst.map_aterms_same
     (fn Var ((x, 0), T) => Free (x, T)
       | Var (xi, _) => raise TERM (bad_schematic xi, [tm])
       | Free (x, _) => raise TERM (bad_fixed x, [tm])
       | _ => raise Same.SAME))
-  |> Same.commit (Term_Subst.map_types_same unvarifyT_same)
+  |> Same.commit (Term_Subst.map_types_same unvarifyT_global_same)
   handle TYPE (msg, _, _) => raise TERM (msg, [tm]);
 
 

@@ -83,7 +83,7 @@ val rule_names = Symtab.make [
 val rule_of_string = Symtab.lookup rule_names
 fun string_of_rule r =
   let fun fit (s, r') = if r = r' then SOME s else NONE 
-  in the (Symtab.get_first NONE fit rule_names) end
+  in the (Symtab.get_first fit rule_names) end
 
 
 (* proof representation *)
@@ -476,7 +476,7 @@ datatype assms = Some of thm list | Many of thm Net.net
 val true_false = @{lemma "True == ~ False" by simp}
 
 val (trace_assms, trace_assms_setup) =
-  Attrib.config_bool "z3_trace_assms" false
+  Attrib.config_bool "z3_trace_assms" (K false)
 
 local
   val TT_eq = @{lemma "(P = (~False)) == P" by simp}
@@ -545,7 +545,7 @@ local
 
   fun derive conj t lits idx ptab =
     let
-      val (l, lit) = the (Termtab.get_first NONE (get_lit conj t) lits)
+      val (l, lit) = the (Termtab.get_first (get_lit conj t) lits)
       val ls = explode_thm conj false false [t] lit
       val lits' = fold (Termtab.update o ` prop_of) ls (Termtab.delete l lits)
       fun upd (Sequent {hyps, vars, thm}) =
@@ -1143,6 +1143,7 @@ val z3_simpset = HOL_ss addsimps @{thms array_rules}
   addsimps @{thms add_bin_simps} addsimps @{thms succ_bin_simps}
   addsimps @{thms minus_bin_simps} addsimps @{thms pred_bin_simps}
   addsimps @{thms mult_bin_simps} addsimps @{thms iszero_simps}
+  addsimps [@{thm mult_1_left}]
   addsimprocs [
     Simplifier.simproc @{theory} "fast_int_arith" [
       "(m::int) < n", "(m::int) <= n", "(m::int) = n"] (K Lin_Arith.simproc),
@@ -1231,7 +1232,7 @@ local
       (case Termtab.lookup tab @{term False} of
         SOME rs => extract_lit thm rs
       | NONE =>
-          pairself (extract_lit thm) (the (Termtab.get_first NONE pnlits tab))
+          pairself (extract_lit thm) (the (Termtab.get_first pnlits tab))
           |> (fn (nlit, plit) => nlit COMP (plit COMP contra_rule)))
     end
   val falseE_v = Thm.dest_arg (Thm.dest_arg (Thm.cprop_of @{thm FalseE}))

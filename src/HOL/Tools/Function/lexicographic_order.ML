@@ -24,7 +24,7 @@ fun mk_measures domT mfuns =
   let
     val relT = HOLogic.mk_setT (HOLogic.mk_prodT (domT, domT))
     val mlexT = (domT --> HOLogic.natT) --> relT --> relT
-    fun mk_ms [] = Const (@{const_name Set.empty}, relT)
+    fun mk_ms [] = Const (@{const_abbrev Set.empty}, relT)
       | mk_ms (f::fs) =
         Const (@{const_name mlex_prod}, mlexT) $ f $ mk_ms fs
   in
@@ -80,10 +80,10 @@ fun mk_cell (thy : theory) solve_tac (vars, prems, lhs, rhs) mfun =
   let
     val goals = cterm_of thy o mk_goal (vars, prems, mfun $ lhs, mfun $ rhs)
   in
-    case try_proof (goals @{const_name HOL.less}) solve_tac of
+    case try_proof (goals @{const_name Orderings.less}) solve_tac of
       Solved thm => Less thm
     | Stuck thm =>
-      (case try_proof (goals @{const_name HOL.less_eq}) solve_tac of
+      (case try_proof (goals @{const_name Orderings.less_eq}) solve_tac of
          Solved thm2 => LessEq (thm2, thm)
        | Stuck thm2 =>
          if prems_of thm2 = [HOLogic.Trueprop $ HOLogic.false_const] then False thm2

@@ -1,27 +1,101 @@
 (*  Title:      HOL/Tools/ATP_Manager/atp_manager.ML
     Author:     Fabian Immler, TU Muenchen
     Author:     Makarius
+    Author:     Jasmin Blanchette, TU Muenchen
 
 Central manager component for ATP threads.
 *)
 
 signature ATP_MANAGER =
 sig
+  type relevance_override = Sledgehammer_Fact_Filter.relevance_override
+  type params =
+    {debug: bool,
+     verbose: bool,
+     atps: string list,
+     full_types: bool,
+     respect_no_atp: bool,
+     relevance_threshold: real,
+     convergence: real,
+     theory_const: bool option,
+     higher_order: bool option,
+     follow_defs: bool,
+     isar_proof: bool,
+     modulus: int,
+     sorts: bool,
+     timeout: Time.time,
+     minimize_timeout: Time.time}
+  type problem =
+    {subgoal: int,
+     goal: Proof.context * (thm list * thm),
+     relevance_override: relevance_override,
+     axiom_clauses: (thm * (string * int)) list option,
+     filtered_clauses: (thm * (string * int)) list option}
+  type prover_result =
+    {success: bool,
+     message: string,
+     relevant_thm_names: string list,
+     atp_run_time_in_msecs: int,
+     proof: string,
+     internal_thm_names: string Vector.vector,
+     filtered_clauses: (thm * (string * int)) list}
+  type prover = params -> Time.time -> problem -> prover_result
+
   val atps: string Unsynchronized.ref
-  val get_atps: unit -> string list
   val timeout: int Unsynchronized.ref
   val full_types: bool Unsynchronized.ref
-  val kill: unit -> unit
-  val info: unit -> unit
+  val kill_atps: unit -> unit
+  val running_atps: unit -> unit
   val messages: int option -> unit
-  val add_prover: string * ATP_Wrapper.prover -> theory -> theory
-  val get_prover: theory -> string -> ATP_Wrapper.prover option
-  val print_provers: theory -> unit
-  val sledgehammer: string list -> Proof.state -> unit
+  val add_prover: string * prover -> theory -> theory
+  val get_prover: theory -> string -> prover option
+  val available_atps: theory -> unit
+  val sledgehammer: params -> int -> relevance_override -> Proof.state -> unit
 end;
 
-structure ATP_Manager: ATP_MANAGER =
+structure ATP_Manager : ATP_MANAGER =
 struct
+
+open Sledgehammer_Fact_Filter
+open Sledgehammer_Proof_Reconstruct
+
+(** parameters, problems, results, and provers **)
+
+type params =
+  {debug: bool,
+   verbose: bool,
+   atps: string list,
+   full_types: bool,
+   respect_no_atp: bool,
+   relevance_threshold: real,
+   convergence: real,
+   theory_const: bool option,
+   higher_order: bool option,
+   follow_defs: bool,
+   isar_proof: bool,
+   modulus: int,
+   sorts: bool,
+   timeout: Time.time,
+   minimize_timeout: Time.time}
+
+type problem =
+  {subgoal: int,
+   goal: Proof.context * (thm list * thm),
+   relevance_override: relevance_override,
+   axiom_clauses: (thm * (string * int)) list option,
+   filtered_clauses: (thm * (string * int)) list option};
+
+type prover_result =
+  {success: bool,
+   message: string,
+   relevant_thm_names: string list,
+   atp_run_time_in_msecs: int,
+   proof: string,
+   internal_thm_names: string Vector.vector,
+   filtered_clauses: (thm * (string * int)) list};
+
+type prover = params -> Time.time -> problem -> prover_result;
+
 
 (** preferences **)
 
@@ -29,8 +103,6 @@ val message_store_limit = 20;
 val message_display_limit = 5;
 
 val atps = Unsynchronized.ref "e spass remote_vampire";
-fun get_atps () = String.tokens (Symbol.is_ascii_blank o String.str) (! atps);
-
 val timeout = Unsynchronized.ref 60;
 val full_types = Unsynchronized.ref false;
 
@@ -89,7 +161,7 @@ val global_state = Synchronized.var "atp_manager"
 fun unregister message thread = Synchronized.change global_state
   (fn state as {manager, timeout_heap, active, cancelling, messages, store} =>
     (case lookup_thread active thread of
-      SOME (birth_time, _, description) =>
+      SOME (_, _, description) =>
         let
           val active' = delete_thread thread active;
           val cancelling' = (thread, (Time.now (), description)) :: cancelling;
@@ -173,9 +245,9 @@ fun register birth_time death_time (thread, desc) =
 
 (** user commands **)
 
-(* kill *)
+(* kill ATPs *)
 
-fun kill () = Synchronized.change global_state
+fun kill_atps () = Synchronized.change global_state
   (fn {manager, timeout_heap, active, cancelling, messages, store} =>
     let
       val killing = map (fn (th, (_, _, desc)) => (th, (Time.now (), desc))) active;
@@ -183,11 +255,11 @@ fun kill () = Synchronized.change global_state
     in state' end);
 
 
-(* info *)
+(* running_atps *)
 
 fun seconds time = string_of_int (Time.toSeconds time) ^ "s";
 
-fun info () =
+fun running_atps () =
   let
     val {active, cancelling, ...} = Synchronized.value global_state;
 
@@ -228,7 +300,7 @@ fun err_dup_prover name = error ("Duplicate prover: " ^ quote name);
 
 structure Provers = Theory_Data
 (
-  type T = (ATP_Wrapper.prover * stamp) Symtab.table;
+  type T = (prover * stamp) Symtab.table;
   val empty = Symtab.empty;
   val extend = I;
   fun merge data : T = Symtab.merge (eq_snd op =) data
@@ -242,76 +314,51 @@ fun add_prover (name, prover) thy =
 fun get_prover thy name =
   Option.map #1 (Symtab.lookup (Provers.get thy) name);
 
-fun print_provers thy = Pretty.writeln
-  (Pretty.strs ("external provers:" :: sort_strings (Symtab.keys (Provers.get thy))));
+fun available_atps thy = Pretty.writeln
+  (Pretty.strs ("ATPs:" :: sort_strings (Symtab.keys (Provers.get thy))));
 
 
 (* start prover thread *)
 
-fun start_prover name birth_time death_time i proof_state =
+fun start_prover (params as {timeout, ...}) birth_time death_time i
+                 relevance_override proof_state name =
   (case get_prover (Proof.theory_of proof_state) name of
-    NONE => warning ("Unknown external prover: " ^ quote name)
+    NONE => warning ("Unknown ATP: " ^ quote name)
   | SOME prover =>
       let
-        val {context = ctxt, facts, goal} = Proof.raw_goal proof_state; (* FIXME Proof.goal *)
+        val {context = ctxt, facts, goal} = Proof.goal proof_state;
+        val n = Logic.count_prems (prop_of goal)
         val desc =
-          "external prover " ^ quote name ^ " for subgoal " ^ string_of_int i ^ ":\n" ^
+          "ATP " ^ quote name ^ " for subgoal " ^ string_of_int i ^ ":\n" ^
             Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i));
 
         val _ = Toplevel.thread true (fn () =>
           let
             val _ = register birth_time death_time (Thread.self (), desc);
-            val problem = ATP_Wrapper.problem_of_goal (! full_types) i (ctxt, (facts, goal));
-            val message = #message (prover (! timeout) problem)
-              handle Res_HOL_Clause.TOO_TRIVIAL =>   (* FIXME !? *)
-                  "Empty clause: Try this command: " ^ Markup.markup Markup.sendback "apply metis"
+            val problem =
+              {subgoal = i, goal = (ctxt, (facts, goal)),
+               relevance_override = relevance_override, axiom_clauses = NONE,
+               filtered_clauses = NONE}
+            val message = #message (prover params timeout problem)
+              handle Sledgehammer_HOL_Clause.TRIVIAL =>
+                  metis_line i n []
                 | ERROR msg => ("Error: " ^ msg);
             val _ = unregister message (Thread.self ());
-          in () end)
+          in () end);
       in () end);
 
 
-(* sledghammer for first subgoal *)
+(* Sledgehammer the given subgoal *)
 
-fun sledgehammer names proof_state =
+fun sledgehammer (params as {atps, timeout, ...}) i relevance_override
+                 proof_state =
   let
-    val provers = if null names then get_atps () else names;
-    val birth_time = Time.now ();
-    val death_time = Time.+ (birth_time, Time.fromSeconds (! timeout));
-    val _ = kill ();   (*RACE wrt. other invocations of sledgehammer*)
-    val _ = List.app (fn name => start_prover name birth_time death_time 1 proof_state) provers;
-  in () end;
-
-
-
-(** Isar command syntax **)
-
-local structure K = OuterKeyword and P = OuterParse in
-
-val _ =
-  OuterSyntax.improper_command "atp_kill" "kill all managed provers" K.diag
-    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative kill));
-
-val _ =
-  OuterSyntax.improper_command "atp_info" "print information about managed provers" K.diag
-    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative info));
-
-val _ =
-  OuterSyntax.improper_command "atp_messages" "print recent messages issued by managed provers" K.diag
-    (Scan.option (P.$$$ "(" |-- P.nat --| P.$$$ ")") >>
-      (fn limit => Toplevel.no_timing o Toplevel.imperative (fn () => messages limit)));
-
-val _ =
-  OuterSyntax.improper_command "print_atps" "print external provers" K.diag
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_theory o
-      Toplevel.keep (print_provers o Toplevel.theory_of)));
-
-val _ =
-  OuterSyntax.command "sledgehammer" "call all automatic theorem provers" K.diag
-    (Scan.repeat P.xname >> (fn names => Toplevel.no_timing o Toplevel.unknown_proof o
-      Toplevel.keep (sledgehammer names o Toplevel.proof_of)));
+    val birth_time = Time.now ()
+    val death_time = Time.+ (birth_time, timeout)
+    val _ = kill_atps () (* RACE w.r.t. other invocations of Sledgehammer *)
+    val _ = priority "Sledgehammering..."
+    val _ = List.app (start_prover params birth_time death_time i
+                                   relevance_override proof_state) atps
+  in () end
 
 end;
-
-end;
-

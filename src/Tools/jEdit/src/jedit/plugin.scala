@@ -9,6 +9,8 @@
 package isabelle.jedit
 
 
+import isabelle._
+
 import java.io.{FileInputStream, IOException}
 import java.awt.Font
 import javax.swing.JTextArea

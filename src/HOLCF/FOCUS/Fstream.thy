@@ -58,7 +58,7 @@ done
 
 lemma fstream_exhaust: "x = UU |  (? a y. x = a~> y)"
 apply (simp add: fscons_def2)
-apply (cut_tac stream.exhaust)
+apply (cut_tac stream.nchotomy)
 apply (fast dest: not_Undef_is_Def [THEN iffD1])
 done
 
@@ -83,7 +83,7 @@ lemma fscons_inject [simp]: "(a~> s = b~> t) = (a = b &  s = t)"
 by (simp add: fscons_def2)
 
 lemma fstream_prefix: "a~> s << t ==> ? tt. t = a~> tt &  s << tt"
-apply (rule_tac x="t" in stream.casedist)
+apply (cases t)
 apply (cut_tac fscons_not_empty)
 apply (fast dest: eq_UU_iff [THEN iffD2])
 apply (simp add: fscons_def2)
@@ -179,7 +179,7 @@ section "induction"
 
 lemma fstream_ind:
         "[| adm P; P <>; !!a s. P s ==> P (a~> s) |] ==> P x"
-apply (erule stream.ind)
+apply (erule stream.induct)
 apply (assumption)
 apply (unfold fscons_def2)
 apply (fast dest: not_Undef_is_Def [THEN iffD1])
@@ -207,7 +207,7 @@ done
 lemma fsfilter_fscons:
         "A(C)x~> xs = (if x:A then x~> (A(C)xs) else A(C)xs)"
 apply (unfold fsfilter_def)
-apply (simp add: fscons_def2 sfilter_scons If_and_if)
+apply (simp add: fscons_def2 If_and_if)
 done
 
 lemma fsfilter_emptys: "{}(C)x = UU"

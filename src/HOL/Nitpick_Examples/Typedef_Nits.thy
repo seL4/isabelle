@@ -1,6 +1,6 @@
 (*  Title:      HOL/Nitpick_Examples/Typedef_Nits.thy
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2009
+    Copyright   2009, 2010
 
 Examples featuring Nitpick applied to typedefs.
 *)
@@ -8,10 +8,11 @@ Examples featuring Nitpick applied to typedefs.
 header {* Examples Featuring Nitpick Applied to Typedefs *}
 
 theory Typedef_Nits
-imports Main Rational
+imports Complex_Main
 begin
 
-nitpick_params [card = 1\<midarrow>4, timeout = 30 s]
+nitpick_params [card = 1\<midarrow>4, sat_solver = MiniSat_JNI, max_threads = 1,
+                timeout = 60 s]
 
 typedef three = "{0\<Colon>nat, 1, 2}"
 by blast
@@ -63,7 +64,7 @@ nitpick [expect = genuine]
 oops
 
 lemma "x \<noteq> (y\<Colon>bool bounded) \<Longrightarrow> z = x \<or> z = y"
-nitpick [expect = none]
+nitpick [fast_descrs (* ### FIXME *), expect = none]
 sorry
 
 lemma "x \<noteq> (y\<Colon>(bool \<times> bool) bounded) \<Longrightarrow> z = x \<or> z = y"
@@ -137,15 +138,16 @@ nitpick [expect = none]
 by (rule Inl_Rep_not_Inr_Rep)
 
 lemma "Abs_Sum (Rep_Sum a) = a"
-nitpick [card = 1\<midarrow>2, timeout = 60 s, expect = none]
+nitpick [card = 1, expect = none]
+nitpick [card = 2, expect = none]
 by (rule Rep_Sum_inverse)
 
 lemma "0::nat \<equiv> Abs_Nat Zero_Rep"
-(* nitpick [expect = none] FIXME *)
+nitpick [expect = none]
 by (rule Zero_nat_def_raw)
 
 lemma "Suc \<equiv> \<lambda>n. Abs_Nat (Suc_Rep (Rep_Nat n))"
-(* nitpick [expect = none] FIXME *)
+nitpick [expect = none]
 by (rule Suc_def)
 
 lemma "Suc \<equiv> \<lambda>n. Abs_Nat (Suc_Rep (Suc_Rep (Rep_Nat n)))"

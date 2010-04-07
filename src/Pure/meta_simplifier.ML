@@ -11,8 +11,11 @@ infix 4
 
 signature BASIC_META_SIMPLIFIER =
 sig
-  val debug_simp: bool Unsynchronized.ref
-  val trace_simp: bool Unsynchronized.ref
+  val debug_simp: bool Config.T
+  val debug_simp_value: Config.value Config.T
+  val trace_simp: bool Config.T
+  val trace_simp_value: Config.value Config.T
+  val trace_simp_default: bool Unsynchronized.ref
   val trace_simp_depth_limit: int Unsynchronized.ref
   type rrule
   val eq_rrule: rrule * rrule -> bool
@@ -111,7 +114,7 @@ sig
   val inherit_context: simpset -> simpset -> simpset
   val the_context: simpset -> Proof.context
   val context: Proof.context -> simpset -> simpset
-  val theory_context: theory  -> simpset -> simpset
+  val global_context: theory  -> simpset -> simpset
   val debug_bounds: bool Unsynchronized.ref
   val set_reorient: (theory -> term list -> term -> term -> bool) -> simpset -> simpset
   val set_solvers: solver list -> simpset -> simpset
@@ -248,7 +251,7 @@ fun eq_solver (Solver {id = id1, ...}, Solver {id = id2, ...}) = (id1 = id2);
 
 (* simp depth *)
 
-val simp_depth_limit_value = Config.declare false "simp_depth_limit" (Config.Int 100);
+val simp_depth_limit_value = Config.declare false "simp_depth_limit" (K (Config.Int 100));
 val simp_depth_limit = Config.int simp_depth_limit_value;
 
 val trace_simp_depth_limit = Unsynchronized.ref 1;
@@ -271,8 +274,13 @@ fun simp_depth (Simpset ({depth = (depth, _), ...}, _)) = depth;
 
 exception SIMPLIFIER of string * thm;
 
-val debug_simp = Unsynchronized.ref false;
-val trace_simp = Unsynchronized.ref false;
+val debug_simp_value = Config.declare false "debug_simp" (K (Config.Bool false));
+val debug_simp = Config.bool debug_simp_value;
+
+val trace_simp_default = Unsynchronized.ref false;
+val trace_simp_value =
+  Config.declare false "trace_simp" (fn _ => Config.Bool (!trace_simp_default));
+val trace_simp = Config.bool trace_simp_value;
 
 local
 
@@ -285,33 +293,39 @@ fun show_bounds (Simpset ({bounds = (_, bs), ...}, _)) t =
     fun subst (((b, T), _), x') = (Free (b, T), Syntax.mark_boundT (x', T));
   in Term.subst_atomic (ListPair.map subst (bs, xs)) t end;
 
+fun print_term ss warn a t ctxt = prnt ss warn (a () ^ "\n" ^
+  Syntax.string_of_term ctxt
+    (if Config.get ctxt debug_simp then t else show_bounds ss t));
+
 in
 
-fun print_term ss warn a thy t = prnt ss warn (a ^ "\n" ^
-  Syntax.string_of_term_global thy (if ! debug_simp then t else show_bounds ss t));
+fun print_term_global ss warn a thy t =
+  print_term ss warn (K a) t (ProofContext.init thy);
 
-fun debug warn a ss = if ! debug_simp then prnt ss warn (a ()) else ();
-fun trace warn a ss = if ! trace_simp then prnt ss warn (a ()) else ();
+fun if_enabled (Simpset ({context, ...}, _)) flag f =
+  (case context of
+    SOME ctxt => if Config.get ctxt flag then f ctxt else ()
+  | NONE => ())
 
-fun debug_term warn a ss thy t = if ! debug_simp then print_term ss warn (a ()) thy t else ();
-fun trace_term warn a ss thy t = if ! trace_simp then print_term ss warn (a ()) thy t else ();
+fun debug warn a ss = if_enabled ss debug_simp (fn _ => prnt ss warn (a ()));
+fun trace warn a ss = if_enabled ss trace_simp (fn _ => prnt ss warn (a ()));
+
+fun debug_term warn a ss t = if_enabled ss debug_simp (print_term ss warn a t);
+fun trace_term warn a ss t = if_enabled ss trace_simp (print_term ss warn a t);
 
 fun trace_cterm warn a ss ct =
-  if ! trace_simp then print_term ss warn (a ()) (Thm.theory_of_cterm ct) (Thm.term_of ct)
-  else ();
+  if_enabled ss trace_simp (print_term ss warn a (Thm.term_of ct));
 
 fun trace_thm a ss th =
-  if ! trace_simp then print_term ss false (a ()) (Thm.theory_of_thm th) (Thm.full_prop_of th)
-  else ();
+  if_enabled ss trace_simp (print_term ss false a (Thm.full_prop_of th));
 
 fun trace_named_thm a ss (th, name) =
-  if ! trace_simp then
-    print_term ss false (if name = "" then a () else a () ^ " " ^ quote name ^ ":")
-      (Thm.theory_of_thm th) (Thm.full_prop_of th)
-  else ();
+  if_enabled ss trace_simp (print_term ss false
+    (fn () => if name = "" then a () else a () ^ " " ^ quote name ^ ":")
+    (Thm.full_prop_of th));
 
 fun warn_thm a ss th =
-  print_term ss true a (Thm.theory_of_thm th) (Thm.full_prop_of th);
+  print_term_global ss true a (Thm.theory_of_thm th) (Thm.full_prop_of th);
 
 fun cond_warn_thm a (ss as Simpset ({context, ...}, _)) th =
   if is_some context then () else warn_thm a ss th;
@@ -341,7 +355,7 @@ fun the_context (Simpset ({context = SOME ctxt, ...}, _)) = ctxt
 fun context ctxt =
   map_simpset1 (fn (rules, prems, bounds, depth, _) => (rules, prems, bounds, depth, SOME ctxt));
 
-val theory_context = context o ProofContext.init;
+val global_context = context o ProofContext.init;
 
 fun activate_context thy ss =
   let
@@ -612,8 +626,8 @@ fun mk_simproc name lhss proc =
   make_simproc {name = name, lhss = lhss, proc = fn _ => fn ss => fn ct =>
     proc (ProofContext.theory_of (the_context ss)) ss (Thm.term_of ct), identifier = []};
 
-(* FIXME avoid global thy and Logic.varify *)
-fun simproc_i thy name = mk_simproc name o map (Thm.cterm_of thy o Logic.varify);
+(* FIXME avoid global thy and Logic.varify_global *)
+fun simproc_i thy name = mk_simproc name o map (Thm.cterm_of thy o Logic.varify_global);
 fun simproc thy name = simproc_i thy name o map (Syntax.read_term_global thy);
 
 
@@ -755,7 +769,7 @@ val basic_mk_rews: mk_rews =
   mk_eq_True = K NONE,
   reorient = default_reorient};
 
-val empty_ss = init_ss basic_mk_rews TermOrd.termless (K (K no_tac)) ([], []);
+val empty_ss = init_ss basic_mk_rews Term_Ord.termless (K (K no_tac)) ([], []);
 
 
 (* merge *)  (*NOTE: ignores some fields of 2nd simpset*)
@@ -824,7 +838,7 @@ fun check_conv msg ss thm thm' =
       val _ $ _ $ prop0 = Thm.prop_of thm;
     in
       trace_thm (fn () => "Proved wrong thm (Check subgoaler?)") ss thm';
-      trace_term false (fn () => "Should have proved:") ss thy prop0;
+      trace_term false (fn () => "Should have proved:") ss prop0;
       NONE
     end;
 
@@ -943,7 +957,7 @@ fun rewritec (prover, thyt, maxt) ss t =
     fun proc_rews [] = NONE
       | proc_rews (Proc {name, proc, lhs, ...} :: ps) =
           if Pattern.matches thyt (Thm.term_of lhs, Thm.term_of t) then
-            (debug_term false (fn () => "Trying procedure " ^ quote name ^ " on:") ss thyt eta_t;
+            (debug_term false (fn () => "Trying procedure " ^ quote name ^ " on:") ss eta_t;
              case proc ss eta_t' of
                NONE => (debug false (fn () => "FAILED") ss; proc_rews ps)
              | SOME raw_thm =>
@@ -1025,7 +1039,8 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
                  val b' = #1 (Term.dest_Free (Thm.term_of v));
                  val _ =
                    if b <> b' then
-                     warning ("Simplifier: renamed bound variable " ^ quote b ^ " to " ^ quote b')
+                     warning ("Simplifier: renamed bound variable " ^
+                       quote b ^ " to " ^ quote b' ^ Position.str_of (Position.thread_data ()))
                    else ();
                  val ss' = add_bound ((b', T), a) ss;
                  val skel' = case skel of Abs (_, _, sk) => sk | _ => skel0;
@@ -1215,7 +1230,7 @@ fun check_bounds ss ct =
         | _ => I) (term_of ct) [];
     in
       if null bs then ()
-      else print_term ss true ("Simplifier: term contains loose bounds: " ^ commas_quote bs)
+      else print_term_global ss true ("Simplifier: term contains loose bounds: " ^ commas_quote bs)
         (Thm.theory_of_cterm ct) (Thm.term_of ct)
     end
   else ();
@@ -1240,7 +1255,7 @@ val simple_prover =
 
 fun rewrite _ [] ct = Thm.reflexive ct
   | rewrite full thms ct = rewrite_cterm (full, false, false) simple_prover
-      (theory_context (Thm.theory_of_cterm ct) empty_ss addsimps thms) ct;
+      (global_context (Thm.theory_of_cterm ct) empty_ss addsimps thms) ct;
 
 fun simplify full thms = Conv.fconv_rule (rewrite full thms);
 val rewrite_rule = simplify true;
@@ -1254,7 +1269,7 @@ fun rewrite_thm mode prover ss = Conv.fconv_rule (rewrite_cterm mode prover ss);
 (*Rewrite the subgoals of a proof state (represented by a theorem)*)
 fun rewrite_goals_rule thms th =
   Conv.fconv_rule (Conv.prems_conv ~1 (rewrite_cterm (true, true, true) simple_prover
-    (theory_context (Thm.theory_of_thm th) empty_ss addsimps thms))) th;
+    (global_context (Thm.theory_of_thm th) empty_ss addsimps thms))) th;
 
 (*Rewrite the subgoal of a proof state (represented by a theorem)*)
 fun rewrite_goal_rule mode prover ss i thm =
@@ -1278,7 +1293,7 @@ fun asm_rewrite_goal_tac mode prover_tac ss i thm =
 fun rewrite_goal_tac rews =
   let val ss = empty_ss addsimps rews in
     fn i => fn st => asm_rewrite_goal_tac (true, false, false) (K no_tac)
-      (theory_context (Thm.theory_of_thm st) ss) i st
+      (global_context (Thm.theory_of_thm st) ss) i st
   end;
 
 (*Prunes all redundant parameters from the proof state by rewriting.
@@ -1316,7 +1331,7 @@ local
 fun gen_norm_hhf ss th =
   (if Drule.is_norm_hhf (Thm.prop_of th) then th
    else Conv.fconv_rule
-    (rewrite_cterm (true, false, false) (K (K NONE)) (theory_context (Thm.theory_of_thm th) ss)) th)
+    (rewrite_cterm (true, false, false) (K (K NONE)) (global_context (Thm.theory_of_thm th) ss)) th)
   |> Thm.adjust_maxidx_thm ~1
   |> Drule.gen_all;
 

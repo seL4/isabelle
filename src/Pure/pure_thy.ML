@@ -32,8 +32,6 @@ sig
   val add_thms_dynamic: binding * (Context.generic -> thm list) -> theory -> theory
   val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list
     -> theory -> (string * thm list) list * theory
-  val add_axioms: ((binding * term) * attribute list) list -> theory -> thm list * theory
-  val add_axioms_cmd: ((binding * string) * attribute list) list -> theory -> thm list * theory
   val add_defs: bool -> ((binding * term) * attribute list) list ->
     theory -> thm list * theory
   val add_defs_unchecked: bool -> ((binding * term) * attribute list) list ->
@@ -202,21 +200,30 @@ fun note_thmss kind = fold_map (fn ((b, more_atts), ths_atts) => fn thy =>
 (* store axioms as theorems *)
 
 local
-  fun get_ax thy (b, _) = Thm.axiom thy (Sign.full_name thy b);
-  fun get_axs thy named_axs = map (Thm.forall_elim_vars 0 o get_ax thy) named_axs;
-  fun add_axm add = fold_map (fn ((b, ax), atts) => fn thy =>
-    let
-      val named_ax = [(b, ax)];
-      val thy' = add named_ax thy;
-      val thm = hd (get_axs thy' named_ax);
-    in apfst hd (gen_add_thms (K I) [((b, thm), atts)] thy') end);
+
+fun no_read _ (_, t) = t;
+
+fun read thy (b, str) =
+  Syntax.read_prop_global thy str handle ERROR msg =>
+    cat_error msg ("The error(s) above occurred in definition " ^ quote (Binding.str_of b));
+
+fun add prep unchecked overloaded = fold_map (fn ((b, raw_prop), atts) => fn thy =>
+  let
+    val prop = prep thy (b, raw_prop);
+    val (def, thy') = Thm.add_def unchecked overloaded (b, prop) thy;
+    val thm = def
+      |> Thm.forall_intr_frees
+      |> Thm.forall_elim_vars 0
+      |> Thm.varifyT_global;
+  in yield_singleton (gen_add_thms (K I)) ((b, thm), atts) thy' end);
+
 in
-  val add_defs               = add_axm o Theory.add_defs_i false;
-  val add_defs_unchecked     = add_axm o Theory.add_defs_i true;
-  val add_axioms             = add_axm Theory.add_axioms_i;
-  val add_defs_cmd           = add_axm o Theory.add_defs false;
-  val add_defs_unchecked_cmd = add_axm o Theory.add_defs true;
-  val add_axioms_cmd         = add_axm Theory.add_axioms;
+
+val add_defs = add no_read false;
+val add_defs_unchecked = add no_read true;
+val add_defs_cmd = add read false;
+val add_defs_unchecked_cmd = add read true;
+
 end;
 
 
@@ -225,6 +232,9 @@ end;
 
 val typ = Simple_Syntax.read_typ;
 val prop = Simple_Syntax.read_prop;
+
+val tycon = Syntax.mark_type;
+val const = Syntax.mark_const;
 
 val typeT = Syntax.typeT;
 val spropT = Syntax.spropT;
@@ -309,34 +319,35 @@ val _ = Context.>> (Context.map_theory
     ("_indexdefault", typ "index",                     Delimfix ""),
     ("_indexvar",   typ "index",                       Delimfix "'\\<index>"),
     ("_struct",     typ "index => logic",              Mixfix ("\\<struct>_", [1000], 1000)),
-    ("==>",         typ "prop => prop => prop",        Delimfix "op ==>"),
-    (Term.dummy_patternN, typ "aprop",                 Delimfix "'_"),
+    ("_update_name", typ "idt",                        NoSyn),
+    (const "==>",   typ "prop => prop => prop",        Delimfix "op ==>"),
+    (const Term.dummy_patternN, typ "aprop",           Delimfix "'_"),
     ("_sort_constraint", typ "type => prop",           Delimfix "(1SORT'_CONSTRAINT/(1'(_')))"),
-    ("Pure.term",   typ "logic => prop",               Delimfix "TERM _"),
-    ("Pure.conjunction", typ "prop => prop => prop",   InfixrName ("&&&", 2))]
+    (const "Pure.term", typ "logic => prop",           Delimfix "TERM _"),
+    (const "Pure.conjunction", typ "prop => prop => prop", Infixr ("&&&", 2))]
   #> Sign.add_syntax_i applC_syntax
   #> Sign.add_modesyntax_i (Symbol.xsymbolsN, true)
-   [("fun",      typ "type => type => type",   Mixfix ("(_/ \\<Rightarrow> _)", [1, 0], 0)),
-    ("_bracket", typ "types => type => type",  Mixfix ("([_]/ \\<Rightarrow> _)", [0, 0], 0)),
-    ("_ofsort",  typ "tid => sort => type",    Mixfix ("_\\<Colon>_", [1000, 0], 1000)),
-    ("_constrain", typ "logic => type => logic", Mixfix ("_\\<Colon>_", [4, 0], 3)),
-    ("_constrain", [spropT, typeT] ---> spropT, Mixfix ("_\\<Colon>_", [4, 0], 3)),
-    ("_idtyp",    typ "id => type => idt",     Mixfix ("_\\<Colon>_", [], 0)),
-    ("_idtypdummy", typ "type => idt",         Mixfix ("'_()\\<Colon>_", [], 0)),
-    ("_type_constraint_", typ "'a",            NoSyn),
-    ("_lambda",  typ "pttrns => 'a => logic",  Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3)),
-    ("==",       typ "'a => 'a => prop",       InfixrName ("\\<equiv>", 2)),
-    ("all_binder", typ "idts => prop => prop", Mixfix ("(3\\<And>_./ _)", [0, 0], 0)),
-    ("==>",      typ "prop => prop => prop",   InfixrName ("\\<Longrightarrow>", 1)),
-    ("_DDDOT",   typ "aprop",                  Delimfix "\\<dots>"),
-    ("_bigimpl", typ "asms => prop => prop",   Mixfix ("((1\\<lbrakk>_\\<rbrakk>)/ \\<Longrightarrow> _)", [0, 1], 1)),
-    ("_DDDOT",   typ "logic",                  Delimfix "\\<dots>")]
+   [(tycon "fun",         typ "type => type => type",   Mixfix ("(_/ \\<Rightarrow> _)", [1, 0], 0)),
+    ("_bracket",          typ "types => type => type",  Mixfix ("([_]/ \\<Rightarrow> _)", [0, 0], 0)),
+    ("_ofsort",           typ "tid => sort => type",    Mixfix ("_\\<Colon>_", [1000, 0], 1000)),
+    ("_constrain",        typ "logic => type => logic", Mixfix ("_\\<Colon>_", [4, 0], 3)),
+    ("_constrain",        [spropT, typeT] ---> spropT,  Mixfix ("_\\<Colon>_", [4, 0], 3)),
+    ("_idtyp",            typ "id => type => idt",      Mixfix ("_\\<Colon>_", [], 0)),
+    ("_idtypdummy",       typ "type => idt",            Mixfix ("'_()\\<Colon>_", [], 0)),
+    ("_type_constraint_", typ "'a",                     NoSyn),
+    ("_lambda",           typ "pttrns => 'a => logic",  Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3)),
+    (const "==",          typ "'a => 'a => prop",       Infixr ("\\<equiv>", 2)),
+    (const "all_binder",  typ "idts => prop => prop",   Mixfix ("(3\\<And>_./ _)", [0, 0], 0)),
+    (const "==>",         typ "prop => prop => prop",   Infixr ("\\<Longrightarrow>", 1)),
+    ("_DDDOT",            typ "aprop",                  Delimfix "\\<dots>"),
+    ("_bigimpl",          typ "asms => prop => prop",   Mixfix ("((1\\<lbrakk>_\\<rbrakk>)/ \\<Longrightarrow> _)", [0, 1], 1)),
+    ("_DDDOT",            typ "logic",                  Delimfix "\\<dots>")]
   #> Sign.add_modesyntax_i ("", false)
-   [("prop", typ "prop => prop", Mixfix ("_", [0], 0))]
+   [(const "prop", typ "prop => prop", Mixfix ("_", [0], 0))]
   #> Sign.add_modesyntax_i ("HTML", false)
    [("_lambda", typ "pttrns => 'a => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3))]
   #> Sign.add_consts_i
-   [(Binding.name "==", typ "'a => 'a => prop", InfixrName ("==", 2)),
+   [(Binding.name "==", typ "'a => 'a => prop", Infixr ("==", 2)),
     (Binding.name "==>", typ "prop => prop => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
     (Binding.name "all", typ "('a => prop) => prop", Binder ("!!", 0, 0)),
     (Binding.name "prop", typ "prop => prop", NoSyn),
@@ -365,6 +376,6 @@ val _ = Context.>> (Context.map_theory
   #> Sign.hide_const false "Pure.sort_constraint"
   #> Sign.hide_const false "Pure.conjunction"
   #> add_thmss [((Binding.name "nothing", []), [])] #> snd
-  #> Theory.add_axioms_i (map (apfst Binding.name) Proofterm.equality_axms)));
+  #> fold (fn (a, prop) => snd o Thm.add_axiom (Binding.name a, prop)) Proofterm.equality_axms));
 
 end;

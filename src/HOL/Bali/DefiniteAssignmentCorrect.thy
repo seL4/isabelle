@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 header {* Correctness of Definite Assignment *}
 
 theory DefiniteAssignmentCorrect imports WellForm Eval begin

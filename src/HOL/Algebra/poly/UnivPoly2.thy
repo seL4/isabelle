@@ -1,7 +1,6 @@
-(*
-  Title:     Univariate Polynomials
-  Author:    Clemens Ballarin, started 9 December 1996
-  Copyright: Clemens Ballarin
+(*  Title:      Univariate Polynomials
+    Author:     Clemens Ballarin, started 9 December 1996
+    Copyright:  Clemens Ballarin
 *)
 
 header {* Univariate Polynomials *}
@@ -14,6 +13,7 @@ begin
    like i:{m..n} get simplified (to m <= i & i <= n). *)
 
 declare strong_setsum_cong [cong]
+
 
 section {* Definition of type up *}
 
@@ -47,16 +47,16 @@ typedef (UP)
 section {* Constants *}
 
 definition
-  coeff :: "['a up, nat] => ('a::zero)" where
-  "coeff p n = Rep_UP p n"
+  coeff :: "['a up, nat] => ('a::zero)"
+  where "coeff p n = Rep_UP p n"
 
 definition
-  monom :: "['a::zero, nat] => 'a up"  ("(3_*X^/_)" [71, 71] 70) where
-  "monom a n = Abs_UP (%i. if i=n then a else 0)"
+  monom :: "['a::zero, nat] => 'a up"  ("(3_*X^/_)" [71, 71] 70)
+  where "monom a n = Abs_UP (%i. if i=n then a else 0)"
 
 definition
-  smult :: "['a::{zero, times}, 'a up] => 'a up"  (infixl "*s" 70) where
-  "a *s p = Abs_UP (%i. a * Rep_UP p i)"
+  smult :: "['a::{zero, times}, 'a up] => 'a up"  (infixl "*s" 70)
+  where "a *s p = Abs_UP (%i. a * Rep_UP p i)"
 
 lemma coeff_bound_ex: "EX n. bound n (coeff p)"
 proof -
@@ -132,14 +132,14 @@ instantiation up :: ("{times, comm_monoid_add}") times
 begin
 
 definition
-  up_mult_def:  "p * q = Abs_UP (%n::nat. setsum
+  up_mult_def: "p * q = Abs_UP (%n::nat. setsum
                      (%i. Rep_UP p i * Rep_UP q (n-i)) {..n})"
 
 instance ..
 
 end
 
-instance up :: ("{times, comm_monoid_add}") Ring_and_Field.dvd ..
+instance up :: ("{times, comm_monoid_add}") Rings.dvd ..
 
 instantiation up :: ("{times, one, comm_monoid_add, uminus, minus}") inverse
 begin
@@ -149,7 +149,7 @@ definition
                      THE x. a * x = 1 else 0)"
 
 definition
-  up_divide_def:  "(a :: 'a up) / b = a * inverse b"
+  up_divide_def: "(a :: 'a up) / b = a * inverse b"
 
 instance ..
 
@@ -479,11 +479,12 @@ proof -
   finally show ?thesis .
 qed
 
+
 section {* The degree function *}
 
 definition
-  deg :: "('a::zero) up => nat" where
-  "deg p = (LEAST n. bound n (coeff p))"
+  deg :: "('a::zero) up => nat"
+  where "deg p = (LEAST n. bound n (coeff p))"
 
 lemma deg_aboveI:
   "(!!m. n < m ==> coeff p m = 0) ==> deg p <= n"

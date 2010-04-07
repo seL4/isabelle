@@ -149,10 +149,10 @@ properties of these functions.
 The function @{text "nlen"} returns the number of digits in a natural
 number n. *}
 
-consts nlen :: "nat \<Rightarrow> nat"
-recdef nlen "measure id"
+fun nlen :: "nat \<Rightarrow> nat"
+where
   "nlen 0 = 0"
-  "nlen x = 1 + nlen (x div 10)"
+| "nlen x = 1 + nlen (x div 10)"
 
 text {* The function @{text "sumdig"} returns the sum of all digits in
 some number n. *}

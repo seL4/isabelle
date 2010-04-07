@@ -4,7 +4,7 @@
   ML_SYSTEM="polyml-5.3.0"
   ML_PLATFORM="x86_64-darwin"
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"
-  ML_OPTIONS="--mutable 12000 --immutable 4000"
+  ML_OPTIONS="--mutable 4000 --immutable 4000"
 
 
 ISABELLE_HOME_USER=~/isabelle-mac-poly64-M4
@@ -24,4 +24,6 @@ ISABELLE_OUTPUT="$ISABELLE_HOME_USER/heaps"
 ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 
 ISABELLE_USEDIR_OPTIONS="-i false -d false -t true -M 4 -q 2"
+
+init_component /home/isabelle/contrib_devel/kodkodi
 

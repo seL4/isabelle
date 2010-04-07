@@ -32,7 +32,7 @@ lemma transfer_int_nat_relations:
   "even (int x) \<longleftrightarrow> even x"
   by (simp add: even_nat_def)
 
-declare TransferMorphism_int_nat[transfer add return:
+declare transfer_morphism_int_nat[transfer add return:
   transfer_int_nat_relations
 ]
 
@@ -184,7 +184,7 @@ lemma  minus_one_even_odd_power:
   apply (rule conjI)
   apply simp
   apply (insert even_zero_nat, blast)
-  apply (simp add: power_Suc)
+  apply simp
   done
 
 lemma minus_one_even_power [simp]:
@@ -199,7 +199,7 @@ lemma neg_one_even_odd_power:
      "(even x --> (-1::'a::{number_ring})^x = 1) &
       (odd x --> (-1::'a)^x = -1)"
   apply (induct x)
-  apply (simp, simp add: power_Suc)
+  apply (simp, simp)
   done
 
 lemma neg_one_even_power [simp]:
@@ -214,11 +214,11 @@ lemma neg_power_if:
      "(-x::'a::{comm_ring_1}) ^ n =
       (if even n then (x ^ n) else -(x ^ n))"
   apply (induct n)
-  apply (simp_all split: split_if_asm add: power_Suc)
+  apply simp_all
   done
 
 lemma zero_le_even_power: "even n ==>
-    0 <= (x::'a::{ordered_ring_strict,monoid_mult}) ^ n"
+    0 <= (x::'a::{linordered_ring,monoid_mult}) ^ n"
   apply (simp add: even_nat_equiv_def2)
   apply (erule exE)
   apply (erule ssubst)
@@ -227,12 +227,12 @@ lemma zero_le_even_power: "even n ==>
   done
 
 lemma zero_le_odd_power: "odd n ==>
-    (0 <= (x::'a::{ordered_idom}) ^ n) = (0 <= x)"
-apply (auto simp: odd_nat_equiv_def2 power_Suc power_add zero_le_mult_iff)
+    (0 <= (x::'a::{linordered_idom}) ^ n) = (0 <= x)"
+apply (auto simp: odd_nat_equiv_def2 power_add zero_le_mult_iff)
 apply (metis field_power_not_zero no_zero_divirors_neq0 order_antisym_conv zero_le_square)
 done
 
-lemma zero_le_power_eq[presburger]: "(0 <= (x::'a::{ordered_idom}) ^ n) =
+lemma zero_le_power_eq[presburger]: "(0 <= (x::'a::{linordered_idom}) ^ n) =
     (even n | (odd n & 0 <= x))"
   apply auto
   apply (subst zero_le_odd_power [symmetric])
@@ -240,19 +240,19 @@ lemma zero_le_power_eq[presburger]: "(0 <= (x::'a::{ordered_idom}) ^ n) =
   apply (erule zero_le_even_power)
   done
 
-lemma zero_less_power_eq[presburger]: "(0 < (x::'a::{ordered_idom}) ^ n) =
+lemma zero_less_power_eq[presburger]: "(0 < (x::'a::{linordered_idom}) ^ n) =
     (n = 0 | (even n & x ~= 0) | (odd n & 0 < x))"
 
   unfolding order_less_le zero_le_power_eq by auto
 
-lemma power_less_zero_eq[presburger]: "((x::'a::{ordered_idom}) ^ n < 0) =
+lemma power_less_zero_eq[presburger]: "((x::'a::{linordered_idom}) ^ n < 0) =
     (odd n & x < 0)"
   apply (subst linorder_not_le [symmetric])+
   apply (subst zero_le_power_eq)
   apply auto
   done
 
-lemma power_le_zero_eq[presburger]: "((x::'a::{ordered_idom}) ^ n <= 0) =
+lemma power_le_zero_eq[presburger]: "((x::'a::{linordered_idom}) ^ n <= 0) =
     (n ~= 0 & ((odd n & x <= 0) | (even n & x = 0)))"
   apply (subst linorder_not_less [symmetric])+
   apply (subst zero_less_power_eq)
@@ -260,7 +260,7 @@ lemma power_le_zero_eq[presburger]: "((x::'a::{ordered_idom}) ^ n <= 0) =
   done
 
 lemma power_even_abs: "even n ==>
-    (abs (x::'a::{ordered_idom}))^n = x^n"
+    (abs (x::'a::{linordered_idom}))^n = x^n"
   apply (subst power_abs [symmetric])
   apply (simp add: zero_le_even_power)
   done
@@ -280,7 +280,7 @@ lemma power_minus_odd [simp]: "odd n ==>
   apply simp
   done
 
-lemma power_mono_even: fixes x y :: "'a :: {ordered_idom}"
+lemma power_mono_even: fixes x y :: "'a :: {linordered_idom}"
   assumes "even n" and "\<bar>x\<bar> \<le> \<bar>y\<bar>"
   shows "x^n \<le> y^n"
 proof -
@@ -292,7 +292,7 @@ qed
 
 lemma odd_pos: "odd (n::nat) \<Longrightarrow> 0 < n" by presburger
 
-lemma power_mono_odd: fixes x y :: "'a :: {ordered_idom}"
+lemma power_mono_odd: fixes x y :: "'a :: {linordered_idom}"
   assumes "odd n" and "x \<le> y"
   shows "x^n \<le> y^n"
 proof (cases "y < 0")
@@ -372,11 +372,11 @@ lemmas power_even_abs_number_of [simp] = power_even_abs [of "number_of w" _, sta
 subsection {* An Equivalence for @{term [source] "0 \<le> a^n"} *}
 
 lemma even_power_le_0_imp_0:
-    "a ^ (2*k) \<le> (0::'a::{ordered_idom}) ==> a=0"
-  by (induct k) (auto simp add: zero_le_mult_iff mult_le_0_iff power_Suc)
+    "a ^ (2*k) \<le> (0::'a::{linordered_idom}) ==> a=0"
+  by (induct k) (auto simp add: zero_le_mult_iff mult_le_0_iff)
 
 lemma zero_le_power_iff[presburger]:
-  "(0 \<le> a^n) = (0 \<le> (a::'a::{ordered_idom}) | even n)"
+  "(0 \<le> a^n) = (0 \<le> (a::'a::{linordered_idom}) | even n)"
 proof cases
   assume even: "even n"
   then obtain k where "n = 2*k"
@@ -387,7 +387,7 @@ next
   then obtain k where "n = Suc(2*k)"
     by (auto simp add: odd_nat_equiv_def2 numeral_2_eq_2)
   thus ?thesis
-    by (auto simp add: power_Suc zero_le_mult_iff zero_le_even_power
+    by (auto simp add: zero_le_mult_iff zero_le_even_power
              dest!: even_power_le_0_imp_0)
 qed
 

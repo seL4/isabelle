@@ -7,15 +7,6 @@ theory List_Set
 imports Main
 begin
 
-subsection {* Various additional list functions *}
-
-definition insert :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-  "insert x xs = (if x \<in> set xs then xs else x # xs)"
-
-definition remove_all :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-  "remove_all x xs = filter (Not o op = x) xs"
-
-
 subsection {* Various additional set functions *}
 
 definition is_empty :: "'a set \<Rightarrow> bool" where
@@ -61,21 +52,13 @@ lemma empty_set:
   "{} = set []"
   by simp
 
-lemma insert_set:
-  "Set.insert x (set xs) = set (insert x xs)"
-  by (auto simp add: insert_def)
-
 lemma insert_set_compl:
-  "Set.insert x (- set xs) = - set (List_Set.remove_all x xs)"
-  by (auto simp del: mem_def simp add: remove_all_def)
-
-lemma remove_set:
-  "remove x (set xs) = set (remove_all x xs)"
-  by (auto simp add: remove_def remove_all_def)
+  "insert x (- set xs) = - set (removeAll x xs)"
+  by auto
 
 lemma remove_set_compl:
-  "List_Set.remove x (- set xs) = - set (List_Set.insert x xs)"
-  by (auto simp del: mem_def simp add: remove_def List_Set.insert_def)
+  "remove x (- set xs) = - set (List.insert x xs)"
+  by (auto simp del: mem_def simp add: remove_def List.insert_def)
 
 lemma image_set:
   "image f (set xs) = set (map f xs)"
@@ -127,8 +110,5 @@ lemma set_eq:
 lemma inter:
   "A \<inter> B = project (\<lambda>x. x \<in> A) B"
   by (auto simp add: project_def)
-
-
-hide (open) const insert
 
 end

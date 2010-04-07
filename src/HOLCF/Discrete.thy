@@ -10,7 +10,7 @@ begin
 
 datatype 'a discr = Discr "'a :: type"
 
-subsection {* Type @{typ "'a discr"} is a discrete cpo *}
+subsection {* Discrete ordering *}
 
 instantiation discr :: (type) below
 begin
@@ -22,13 +22,13 @@ definition
 instance ..
 end
 
+subsection {* Discrete cpo class instance *}
+
 instance discr :: (type) discrete_cpo
 by intro_classes (simp add: below_discr_def)
 
 lemma discr_below_eq [iff]: "((x::('a::type)discr) << y) = (x = y)"
 by simp (* FIXME: same discrete_cpo - remove? is [iff] important? *)
-
-subsection {* Type @{typ "'a discr"} is a cpo *}
 
 lemma discr_chain0: 
  "!!S::nat=>('a::type)discr. chain S ==> S i = S 0"
@@ -60,7 +60,7 @@ apply (unfold max_in_chain_def)
 apply (clarify, erule discr_chain0 [symmetric])
 done
 
-subsection {* @{term undiscr} *}
+subsection {* \emph{undiscr} *}
 
 definition
   undiscr :: "('a::type)discr => 'a" where

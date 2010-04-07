@@ -27,24 +27,24 @@ consts
   empty         :: "'a set"                             ("{}")
 
 syntax
-  "@Coll"       :: "[idt, o] => 'a set"                 ("(1{_./ _})") (*collection*)
+  "_Coll"       :: "[idt, o] => 'a set"                 ("(1{_./ _})") (*collection*)
 
   (* Big Intersection / Union *)
 
-  "@INTER"      :: "[idt, 'a set, 'b set] => 'b set"    ("(INT _:_./ _)" [0, 0, 0] 10)
-  "@UNION"      :: "[idt, 'a set, 'b set] => 'b set"    ("(UN _:_./ _)" [0, 0, 0] 10)
+  "_INTER"      :: "[idt, 'a set, 'b set] => 'b set"    ("(INT _:_./ _)" [0, 0, 0] 10)
+  "_UNION"      :: "[idt, 'a set, 'b set] => 'b set"    ("(UN _:_./ _)" [0, 0, 0] 10)
 
   (* Bounded Quantifiers *)
 
-  "@Ball"       :: "[idt, 'a set, o] => o"              ("(ALL _:_./ _)" [0, 0, 0] 10)
-  "@Bex"        :: "[idt, 'a set, o] => o"              ("(EX _:_./ _)" [0, 0, 0] 10)
+  "_Ball"       :: "[idt, 'a set, o] => o"              ("(ALL _:_./ _)" [0, 0, 0] 10)
+  "_Bex"        :: "[idt, 'a set, o] => o"              ("(EX _:_./ _)" [0, 0, 0] 10)
 
 translations
-  "{x. P}"      == "Collect(%x. P)"
-  "INT x:A. B"  == "INTER(A, %x. B)"
-  "UN x:A. B"   == "UNION(A, %x. B)"
-  "ALL x:A. P"  == "Ball(A, %x. P)"
-  "EX x:A. P"   == "Bex(A, %x. P)"
+  "{x. P}"      == "CONST Collect(%x. P)"
+  "INT x:A. B"  == "CONST INTER(A, %x. B)"
+  "UN x:A. B"   == "CONST UNION(A, %x. B)"
+  "ALL x:A. P"  == "CONST Ball(A, %x. P)"
+  "EX x:A. P"   == "CONST Bex(A, %x. P)"
 
 local
 

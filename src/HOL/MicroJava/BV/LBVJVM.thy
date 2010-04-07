@@ -11,18 +11,17 @@ begin
 
 types prog_cert = "cname \<Rightarrow> sig \<Rightarrow> JVMType.state list"
 
-constdefs
-  check_cert :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> JVMType.state list \<Rightarrow> bool"
+definition check_cert :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> JVMType.state list \<Rightarrow> bool" where
   "check_cert G mxs mxr n cert \<equiv> check_types G mxs mxr cert \<and> length cert = n+1 \<and>
                                  (\<forall>i<n. cert!i \<noteq> Err) \<and> cert!n = OK None"
 
-  lbvjvm :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> exception_table \<Rightarrow> 
-             JVMType.state list \<Rightarrow> instr list \<Rightarrow> JVMType.state \<Rightarrow> JVMType.state"
+definition lbvjvm :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> exception_table \<Rightarrow> 
+             JVMType.state list \<Rightarrow> instr list \<Rightarrow> JVMType.state \<Rightarrow> JVMType.state" where
   "lbvjvm G maxs maxr rT et cert bs \<equiv>
   wtl_inst_list bs cert  (JVMType.sup G maxs maxr) (JVMType.le G maxs maxr) Err (OK None) (exec G maxs rT et bs) 0"
 
-  wt_lbv :: "jvm_prog \<Rightarrow> cname \<Rightarrow> ty list \<Rightarrow> ty \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 
-             exception_table \<Rightarrow> JVMType.state list \<Rightarrow> instr list \<Rightarrow> bool"
+definition wt_lbv :: "jvm_prog \<Rightarrow> cname \<Rightarrow> ty list \<Rightarrow> ty \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 
+             exception_table \<Rightarrow> JVMType.state list \<Rightarrow> instr list \<Rightarrow> bool" where
   "wt_lbv G C pTs rT mxs mxl et cert ins \<equiv>
    check_bounded ins et \<and> 
    check_cert G mxs (1+size pTs+mxl) (length ins) cert \<and>
@@ -31,15 +30,15 @@ constdefs
         result = lbvjvm G mxs (1+size pTs+mxl) rT et cert ins (OK start)
     in result \<noteq> Err)"
 
-  wt_jvm_prog_lbv :: "jvm_prog \<Rightarrow> prog_cert \<Rightarrow> bool"
+definition wt_jvm_prog_lbv :: "jvm_prog \<Rightarrow> prog_cert \<Rightarrow> bool" where
   "wt_jvm_prog_lbv G cert \<equiv>
   wf_prog (\<lambda>G C (sig,rT,(maxs,maxl,b,et)). wt_lbv G C (snd sig) rT maxs maxl et (cert C sig) b) G"
 
-  mk_cert :: "jvm_prog \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> exception_table \<Rightarrow> instr list 
-              \<Rightarrow> method_type \<Rightarrow> JVMType.state list"
+definition mk_cert :: "jvm_prog \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> exception_table \<Rightarrow> instr list 
+              \<Rightarrow> method_type \<Rightarrow> JVMType.state list" where
   "mk_cert G maxs rT et bs phi \<equiv> make_cert (exec G maxs rT et bs) (map OK phi) (OK None)"
 
-  prg_cert :: "jvm_prog \<Rightarrow> prog_type \<Rightarrow> prog_cert"
+definition prg_cert :: "jvm_prog \<Rightarrow> prog_type \<Rightarrow> prog_cert" where
   "prg_cert G phi C sig \<equiv> let (C,rT,(maxs,maxl,ins,et)) = the (method (G,C) sig) in 
                            mk_cert G maxs rT et ins (phi C sig)"
  

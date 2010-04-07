@@ -7,6 +7,8 @@
 package isabelle.jedit
 
 
+import isabelle._
+
 import java.io.StringReader
 import java.awt.{BorderLayout, Dimension}
 import java.awt.event.MouseEvent

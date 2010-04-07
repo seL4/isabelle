@@ -73,14 +73,14 @@ lemma transfer_nat_int_prime:
   unfolding gcd_int_def lcm_int_def prime_int_def
   by auto
 
-declare TransferMorphism_nat_int[transfer add return:
+declare transfer_morphism_nat_int[transfer add return:
     transfer_nat_int_prime]
 
 lemma transfer_int_nat_prime:
   "prime (int x) = prime x"
   by (unfold gcd_int_def lcm_int_def prime_int_def, auto)
 
-declare TransferMorphism_int_nat[transfer add return:
+declare transfer_morphism_int_nat[transfer add return:
     transfer_int_nat_prime]
 
 

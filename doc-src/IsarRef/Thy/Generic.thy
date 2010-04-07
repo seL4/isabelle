@@ -364,7 +364,7 @@ text {*
 
   \indexouternonterm{simpmod}
   \begin{rail}
-    ('simp' | 'simp\_all') ('!' ?) opt? (simpmod *)
+    ('simp' | 'simp\_all') opt? (simpmod *)
     ;
 
     opt: '(' ('no\_asm' | 'no\_asm\_simp' | 'no\_asm\_use' | 'asm\_lr' ) ')'
@@ -404,9 +404,7 @@ text {*
   proofs this is usually quite well behaved in practice: just the
   local premises of the actual goal are involved, additional facts may
   be inserted via explicit forward-chaining (via @{command "then"},
-  @{command "from"}, @{command "using"} etc.).  The full context of
-  premises is only included if the ``@{text "!"}'' (bang) argument is
-  given, which should be used with some care, though.
+  @{command "from"}, @{command "using"} etc.).
 
   Additional Simplifier options may be specified to tune the behavior
   further (mostly for unstructured scripts with many accidental local
@@ -603,9 +601,9 @@ text {*
 
   \indexouternonterm{clamod}
   \begin{rail}
-    'blast' ('!' ?) nat? (clamod *)
+    'blast' nat? (clamod *)
     ;
-    ('fast' | 'slow' | 'best' | 'safe' | 'clarify') ('!' ?) (clamod *)
+    ('fast' | 'slow' | 'best' | 'safe' | 'clarify') (clamod *)
     ;
 
     clamod: (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del') ':' thmrefs
@@ -629,9 +627,7 @@ text {*
   Any of the above methods support additional modifiers of the context
   of classical rules.  Their semantics is analogous to the attributes
   given before.  Facts provided by forward chaining are inserted into
-  the goal before commencing proof search.  The ``@{text
-  "!"}''~argument causes the full context of assumptions to be
-  included as well.
+  the goal before commencing proof search.
 *}
 
 
@@ -649,9 +645,9 @@ text {*
 
   \indexouternonterm{clasimpmod}
   \begin{rail}
-    'auto' '!'? (nat nat)? (clasimpmod *)
+    'auto' (nat nat)? (clasimpmod *)
     ;
-    ('force' | 'clarsimp' | 'fastsimp' | 'slowsimp' | 'bestsimp') '!'? (clasimpmod *)
+    ('force' | 'clarsimp' | 'fastsimp' | 'slowsimp' | 'bestsimp') (clasimpmod *)
     ;
 
     clasimpmod: ('simp' (() | 'add' | 'del' | 'only') |
@@ -674,8 +670,7 @@ text {*
   here.
 
   Facts provided by forward chaining are inserted into the goal before
-  doing the search.  The ``@{text "!"}'' argument causes the full
-  context of assumptions to be included as well.
+  doing the search.
 
   \end{description}
 *}

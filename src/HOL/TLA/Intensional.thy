@@ -1,8 +1,6 @@
-(*
-    File:        TLA/Intensional.thy
-    ID:          $Id$
-    Author:      Stephan Merz
-    Copyright:   1998 University of Munich
+(*  Title:      HOL/TLA/Intensional.thy
+    Author:     Stephan Merz
+    Copyright:  1998 University of Munich
 *)
 
 header {* A framework for "intensional" (possible-world based) logics
@@ -12,8 +10,8 @@ theory Intensional
 imports Main
 begin
 
-axclass
-  world < type
+classes world
+classrel world < type
 
 (** abstract syntax **)
 
@@ -53,7 +51,7 @@ syntax
   "_holdsAt"    :: "['a, lift] => bool"                  ("(_ |= _)" [100,10] 10)
 
   (* Syntax for lifted expressions outside the scope of |- or |= *)
-  "LIFT"        :: "lift => 'a"                          ("LIFT _")
+  "_LIFT"       :: "lift => 'a"                          ("LIFT _")
 
   (* generic syntax for lifted constants and functions *)
   "_const"      :: "'a => lift"                          ("(#_)" [1000] 999)
@@ -95,11 +93,11 @@ syntax
   "_REx1" :: "[idts, lift] => lift"                      ("(3EX! _./ _)" [0, 10] 10)
 
 translations
-  "_const"        == "const"
-  "_lift"         == "lift"
-  "_lift2"        == "lift2"
-  "_lift3"        == "lift3"
-  "_Valid"        == "Valid"
+  "_const"        == "CONST const"
+  "_lift"         == "CONST lift"
+  "_lift2"        == "CONST lift2"
+  "_lift3"        == "CONST lift3"
+  "_Valid"        == "CONST Valid"
   "_RAll x A"     == "Rall x. A"
   "_REx x  A"     == "Rex x. A"
   "_REx1 x  A"    == "Rex! x. A"
@@ -112,11 +110,11 @@ translations
 
   "_liftEqu"      == "_lift2 (op =)"
   "_liftNeq u v"  == "_liftNot (_liftEqu u v)"
-  "_liftNot"      == "_lift Not"
+  "_liftNot"      == "_lift (CONST Not)"
   "_liftAnd"      == "_lift2 (op &)"
   "_liftOr"       == "_lift2 (op | )"
   "_liftImp"      == "_lift2 (op -->)"
-  "_liftIf"       == "_lift3 If"
+  "_liftIf"       == "_lift3 (CONST If)"
   "_liftPlus"     == "_lift2 (op +)"
   "_liftMinus"    == "_lift2 (op -)"
   "_liftTimes"    == "_lift2 (op *)"
@@ -126,12 +124,12 @@ translations
   "_liftLeq"      == "_lift2 (op <=)"
   "_liftMem"      == "_lift2 (op :)"
   "_liftNotMem x xs"   == "_liftNot (_liftMem x xs)"
-  "_liftFinset (_liftargs x xs)"  == "_lift2 CONST insert x (_liftFinset xs)"
-  "_liftFinset x" == "_lift2 CONST insert x (_const {})"
+  "_liftFinset (_liftargs x xs)"  == "_lift2 (CONST insert) x (_liftFinset xs)"
+  "_liftFinset x" == "_lift2 (CONST insert) x (_const {})"
   "_liftPair x (_liftargs y z)"       == "_liftPair x (_liftPair y z)"
-  "_liftPair"     == "_lift2 Pair"
-  "_liftCons"     == "lift2 Cons"
-  "_liftApp"      == "lift2 (op @)"
+  "_liftPair"     == "_lift2 (CONST Pair)"
+  "_liftCons"     == "CONST lift2 (CONST Cons)"
+  "_liftApp"      == "CONST lift2 (op @)"
   "_liftList (_liftargs x xs)"  == "_liftCons x (_liftList xs)"
   "_liftList x"   == "_liftCons x (_const [])"
 
@@ -173,7 +171,7 @@ syntax (HTML output)
   "_liftMem"    :: "[lift, lift] => lift"                ("(_/ \<in> _)" [50, 51] 50)
   "_liftNotMem" :: "[lift, lift] => lift"                ("(_/ \<notin> _)" [50, 51] 50)
 
-axioms
+defs
   Valid_def:   "|- A    ==  ALL w. w |= A"
 
   unl_con:     "LIFT #c w  ==  c"

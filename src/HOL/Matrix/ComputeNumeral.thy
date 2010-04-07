@@ -20,7 +20,7 @@ lemma iszero4: "iszero (Int.Bit1 x) = False" apply (subst Int.Bit1_def) apply (s
 lemmas bitiszero = iszero1 iszero2 iszero3 iszero4
 
 (* lezero for bit strings *)
-constdefs
+definition
   "lezero x == (x \<le> 0)"
 lemma lezero1: "lezero Int.Pls = True" unfolding Int.Pls_def lezero_def by auto
 lemma lezero2: "lezero Int.Min = True" unfolding Int.Min_def lezero_def by auto
@@ -60,7 +60,7 @@ lemmas bitmul = mult_Pls mult_Min mult_Pls_right mult_Min_right multb0x multxb0 
 
 lemmas bitarith = bitnorm bitiszero bitneg bitlezero biteq bitless bitle bitsucc bitpred bituminus bitadd bitmul 
 
-constdefs 
+definition
   "nat_norm_number_of (x::nat) == x"
 
 lemma nat_norm_number_of: "nat_norm_number_of (number_of w) = (if lezero w then 0 else number_of w)"
@@ -109,22 +109,22 @@ where
 
 lemmas compute_natarith = bitarith natnorm natsuc natadd natsub natmul nateq natless natle natfac.simps
 
-lemma number_eq: "(((number_of x)::'a::{number_ring, ordered_idom}) = (number_of y)) = (x = y)"
+lemma number_eq: "(((number_of x)::'a::{number_ring, linordered_idom}) = (number_of y)) = (x = y)"
   unfolding number_of_eq
   apply simp
   done
 
-lemma number_le: "(((number_of x)::'a::{number_ring, ordered_idom}) \<le>  (number_of y)) = (x \<le> y)"
+lemma number_le: "(((number_of x)::'a::{number_ring, linordered_idom}) \<le>  (number_of y)) = (x \<le> y)"
   unfolding number_of_eq
   apply simp
   done
 
-lemma number_less: "(((number_of x)::'a::{number_ring, ordered_idom}) <  (number_of y)) = (x < y)"
+lemma number_less: "(((number_of x)::'a::{number_ring, linordered_idom}) <  (number_of y)) = (x < y)"
   unfolding number_of_eq 
   apply simp
   done
 
-lemma number_diff: "((number_of x)::'a::{number_ring, ordered_idom}) - number_of y = number_of (x + (- y))"
+lemma number_diff: "((number_of x)::'a::{number_ring, linordered_idom}) - number_of y = number_of (x + (- y))"
   apply (subst diff_number_of_eq)
   apply simp
   done

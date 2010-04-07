@@ -14,23 +14,27 @@ sig
     { Rep_strict: thm, Abs_strict: thm, Rep_strict_iff: thm, Abs_strict_iff: thm,
       Rep_defined: thm, Abs_defined: thm }
 
-  val add_podef: bool -> binding option -> binding * string list * mixfix ->
+  val add_podef: bool -> binding option -> binding * (string * sort) list * mixfix ->
     term -> (binding * binding) option -> tactic -> theory ->
     (Typedef.info * thm) * theory
-  val add_cpodef: bool -> binding option -> binding * string list * mixfix ->
+  val add_cpodef: bool -> binding option -> binding * (string * sort) list * mixfix ->
     term -> (binding * binding) option -> tactic * tactic -> theory ->
     (Typedef.info * cpo_info) * theory
-  val add_pcpodef: bool -> binding option -> binding * string list * mixfix ->
+  val add_pcpodef: bool -> binding option -> binding * (string * sort) list * mixfix ->
     term -> (binding * binding) option -> tactic * tactic -> theory ->
     (Typedef.info * cpo_info * pcpo_info) * theory
 
-  val cpodef_proof: (bool * binding) * (binding * string list * mixfix) * term
+  val cpodef_proof: (bool * binding)
+    * (binding * (string * sort) list * mixfix) * term
     * (binding * binding) option -> theory -> Proof.state
-  val cpodef_proof_cmd: (bool * binding) * (binding * string list * mixfix) * string
+  val cpodef_proof_cmd: (bool * binding)
+    * (binding * (string * string option) list * mixfix) * string
     * (binding * binding) option -> theory -> Proof.state
-  val pcpodef_proof: (bool * binding) * (binding * string list * mixfix) * term
+  val pcpodef_proof: (bool * binding)
+    * (binding * (string * sort) list * mixfix) * term
     * (binding * binding) option -> theory -> Proof.state
-  val pcpodef_proof_cmd: (bool * binding) * (binding * string list * mixfix) * string
+  val pcpodef_proof_cmd: (bool * binding)
+    * (binding * (string * string option) list * mixfix) * string
     * (binding * binding) option -> theory -> Proof.state
 end;
 
@@ -83,29 +87,32 @@ fun prove_cpo
     val cpo_thms = map (Thm.transfer thy) [type_definition, below_def, admissible'];
     val (full_tname, Ts) = dest_Type newT;
     val lhs_sorts = map (snd o dest_TFree) Ts;
-    val thy2 =
-      thy
-      |> AxClass.prove_arity (full_tname, lhs_sorts, @{sort cpo})
-          (Tactic.rtac (@{thm typedef_cpo} OF cpo_thms) 1);
+    val tac = Tactic.rtac (@{thm typedef_cpo} OF cpo_thms) 1;
+    val thy = AxClass.prove_arity (full_tname, lhs_sorts, @{sort cpo}) tac thy;
     (* transfer thms so that they will know about the new cpo instance *)
-    val cpo_thms' = map (Thm.transfer thy2) cpo_thms;
-    fun make thm = Drule.standard (thm OF cpo_thms');
-    val ([adm, cont_Rep, cont_Abs, lub, thelub, compact], thy3) =
-      thy2
+    val cpo_thms' = map (Thm.transfer thy) cpo_thms;
+    fun make thm = Drule.export_without_context (thm OF cpo_thms');
+    val cont_Rep = make @{thm typedef_cont_Rep};
+    val cont_Abs = make @{thm typedef_cont_Abs};
+    val lub = make @{thm typedef_lub};
+    val thelub = make @{thm typedef_thelub};
+    val compact = make @{thm typedef_compact};
+    val (_, thy) =
+      thy
       |> Sign.add_path (Binding.name_of name)
       |> PureThy.add_thms
-        ([((Binding.prefix_name "adm_" name, admissible'), []),
-          ((Binding.prefix_name "cont_" Rep_name, make @{thm typedef_cont_Rep}), []),
-          ((Binding.prefix_name "cont_" Abs_name, make @{thm typedef_cont_Abs}), []),
-          ((Binding.prefix_name "lub_" name, make @{thm typedef_lub}), []),
-          ((Binding.prefix_name "thelub_" name, make @{thm typedef_thelub}), []),
-          ((Binding.prefix_name "compact_" name, make @{thm typedef_compact}), [])])
+        ([((Binding.prefix_name "adm_"      name, admissible'), []),
+          ((Binding.prefix_name "cont_" Rep_name, cont_Rep   ), []),
+          ((Binding.prefix_name "cont_" Abs_name, cont_Abs   ), []),
+          ((Binding.prefix_name "lub_"      name, lub        ), []),
+          ((Binding.prefix_name "thelub_"   name, thelub     ), []),
+          ((Binding.prefix_name "compact_"  name, compact    ), [])])
       ||> Sign.parent_path;
     val cpo_info : cpo_info =
       { below_def = below_def, adm = admissible', cont_Rep = cont_Rep,
         cont_Abs = cont_Abs, lub = lub, thelub = thelub, compact = compact };
   in
-    (cpo_info, thy3)
+    (cpo_info, thy)
   end;
 
 fun prove_pcpo
@@ -123,29 +130,33 @@ fun prove_pcpo
     val pcpo_thms = map (Thm.transfer thy) [type_definition, below_def, UU_mem'];
     val (full_tname, Ts) = dest_Type newT;
     val lhs_sorts = map (snd o dest_TFree) Ts;
-    val thy2 = thy
-      |> AxClass.prove_arity (full_tname, lhs_sorts, @{sort pcpo})
-        (Tactic.rtac (@{thm typedef_pcpo} OF pcpo_thms) 1);
-    val pcpo_thms' = map (Thm.transfer thy2) pcpo_thms;
-    fun make thm = Drule.standard (thm OF pcpo_thms');
-    val ([Rep_strict, Abs_strict, Rep_strict_iff, Abs_strict_iff,
-          Rep_defined, Abs_defined], thy3) =
-      thy2
+    val tac = Tactic.rtac (@{thm typedef_pcpo} OF pcpo_thms) 1;
+    val thy = AxClass.prove_arity (full_tname, lhs_sorts, @{sort pcpo}) tac thy;
+    val pcpo_thms' = map (Thm.transfer thy) pcpo_thms;
+    fun make thm = Drule.export_without_context (thm OF pcpo_thms');
+    val Rep_strict = make @{thm typedef_Rep_strict};
+    val Abs_strict = make @{thm typedef_Abs_strict};
+    val Rep_strict_iff = make @{thm typedef_Rep_strict_iff};
+    val Abs_strict_iff = make @{thm typedef_Abs_strict_iff};
+    val Rep_defined = make @{thm typedef_Rep_defined};
+    val Abs_defined = make @{thm typedef_Abs_defined};
+    val (_, thy) =
+      thy
       |> Sign.add_path (Binding.name_of name)
       |> PureThy.add_thms
-        ([((Binding.suffix_name "_strict" Rep_name, make @{thm typedef_Rep_strict}), []),
-          ((Binding.suffix_name "_strict" Abs_name, make @{thm typedef_Abs_strict}), []),
-          ((Binding.suffix_name "_strict_iff" Rep_name, make @{thm typedef_Rep_strict_iff}), []),
-          ((Binding.suffix_name "_strict_iff" Abs_name, make @{thm typedef_Abs_strict_iff}), []),
-          ((Binding.suffix_name "_defined" Rep_name, make @{thm typedef_Rep_defined}), []),
-          ((Binding.suffix_name "_defined" Abs_name, make @{thm typedef_Abs_defined}), [])])
+        ([((Binding.suffix_name "_strict"     Rep_name, Rep_strict), []),
+          ((Binding.suffix_name "_strict"     Abs_name, Abs_strict), []),
+          ((Binding.suffix_name "_strict_iff" Rep_name, Rep_strict_iff), []),
+          ((Binding.suffix_name "_strict_iff" Abs_name, Abs_strict_iff), []),
+          ((Binding.suffix_name "_defined"    Rep_name, Rep_defined), []),
+          ((Binding.suffix_name "_defined"    Abs_name, Abs_defined), [])])
       ||> Sign.parent_path;
     val pcpo_info =
       { Rep_strict = Rep_strict, Abs_strict = Abs_strict,
         Rep_strict_iff = Rep_strict_iff, Abs_strict_iff = Abs_strict_iff,
         Rep_defined = Rep_defined, Abs_defined = Abs_defined };
   in
-    (pcpo_info, thy3)
+    (pcpo_info, thy)
   end;
 
 (* prepare_cpodef *)
@@ -153,22 +164,23 @@ fun prove_pcpo
 fun declare_type_name a =
   Variable.declare_constraints (Logic.mk_type (TFree (a, dummyS)));
 
-fun prepare prep_term name (t, vs, mx) raw_set opt_morphs thy =
+fun prepare prep_term name (tname, raw_args, mx) raw_set opt_morphs thy =
   let
     val _ = Theory.requires thy "Pcpodef" "pcpodefs";
-    val ctxt = ProofContext.init thy;
 
     (*rhs*)
-    val set = prep_term (ctxt |> fold declare_type_name vs) raw_set;
+    val (_, tmp_lthy) =
+      thy |> Theory.copy |> Theory_Target.init NONE
+      |> Typedecl.predeclare_constraints (tname, raw_args, mx);
+    val set = prep_term tmp_lthy raw_set;
+    val tmp_lthy' = tmp_lthy |> Variable.declare_constraints set;
+
     val setT = Term.fastype_of set;
-    val rhs_tfrees = Term.add_tfrees set [];
     val oldT = HOLogic.dest_setT setT handle TYPE _ =>
-      error ("Not a set type: " ^ quote (Syntax.string_of_typ ctxt setT));
+      error ("Not a set type: " ^ quote (Syntax.string_of_typ tmp_lthy setT));
 
     (*lhs*)
-    val defS = Sign.defaultS thy;
-    val lhs_tfrees = map (fn v => (v, the_default defS (AList.lookup (op =) rhs_tfrees v))) vs;
-    val tname = Binding.map_name (Syntax.type_name mx) t;
+    val lhs_tfrees = map (fn (a, _) => (a, ProofContext.default_sort tmp_lthy' (a, ~1))) raw_args;
     val full_tname = Sign.full_name thy tname;
     val newT = Type (full_tname, map TFree lhs_tfrees);
 
@@ -181,10 +193,10 @@ fun prepare prep_term name (t, vs, mx) raw_set opt_morphs thy =
 fun add_podef def opt_name typ set opt_morphs tac thy =
   let
     val name = the_default (#1 typ) opt_name;
-    val ((full_tname, info as {type_definition, set_def, Rep_name, ...}), thy2) = thy
-      |> Typedef.add_typedef def opt_name typ set opt_morphs tac;
-    val oldT = #rep_type info;
-    val newT = #abs_type info;
+    val ((full_tname, info as ({Rep_name, ...}, {type_definition, set_def, ...})), thy2) = thy
+      |> Typedef.add_typedef_global def opt_name typ set opt_morphs tac;
+    val oldT = #rep_type (#1 info);
+    val newT = #abs_type (#1 info);
     val lhs_tfrees = map dest_TFree (snd (dest_Type newT));
 
     val RepC = Const (Rep_name, newT --> oldT);
@@ -207,7 +219,7 @@ fun prepare_cpodef
       (prep_term: Proof.context -> 'a -> term)
       (def: bool)
       (name: binding)
-      (typ: binding * string list * mixfix)
+      (typ: binding * (string * sort) list * mixfix)
       (raw_set: 'a)
       (opt_morphs: (binding * binding) option)
       (thy: theory)
@@ -223,7 +235,7 @@ fun prepare_cpodef
 
     fun cpodef_result nonempty admissible thy =
       let
-        val ((info as {type_definition, set_def, ...}, below_def), thy2) = thy
+        val ((info as (_, {type_definition, set_def, ...}), below_def), thy2) = thy
           |> add_podef def (SOME name) typ set opt_morphs (Tactic.rtac nonempty 1);
         val (cpo_info, thy3) = thy2
           |> prove_cpo name newT morphs type_definition set_def below_def admissible;
@@ -240,7 +252,7 @@ fun prepare_pcpodef
       (prep_term: Proof.context -> 'a -> term)
       (def: bool)
       (name: binding)
-      (typ: binding * string list * mixfix)
+      (typ: binding * (string * sort) list * mixfix)
       (raw_set: 'a)
       (opt_morphs: (binding * binding) option)
       (thy: theory)
@@ -258,7 +270,7 @@ fun prepare_pcpodef
     fun pcpodef_result UU_mem admissible thy =
       let
         val tac = Tactic.rtac exI 1 THEN Tactic.rtac UU_mem 1;
-        val ((info as {type_definition, set_def, ...}, below_def), thy2) = thy
+        val ((info as (_, {type_definition, set_def, ...}), below_def), thy2) = thy
           |> add_podef def (SOME name) typ set opt_morphs tac;
         val (cpo_info, thy3) = thy2
           |> prove_cpo name newT morphs type_definition set_def below_def admissible;
@@ -307,27 +319,35 @@ fun add_pcpodef def opt_name typ set opt_morphs (tac1, tac2) thy =
 
 local
 
-fun gen_cpodef_proof prep_term ((def, name), typ, set, opt_morphs) thy =
+fun gen_cpodef_proof prep_term prep_constraint
+    ((def, name), (b, raw_args, mx), set, opt_morphs) thy =
   let
+    val ctxt = ProofContext.init thy;
+    val args = map (apsnd (prep_constraint ctxt)) raw_args;
     val (goal1, goal2, make_result) =
-      prepare_cpodef prep_term def name typ set opt_morphs thy;
-    fun after_qed [[th1, th2]] = ProofContext.theory (snd o make_result th1 th2);
-  in Proof.theorem_i NONE after_qed [[(goal1, []), (goal2, [])]] (ProofContext.init thy) end;
+      prepare_cpodef prep_term def name (b, args, mx) set opt_morphs thy;
+    fun after_qed [[th1, th2]] = ProofContext.theory (snd o make_result th1 th2)
+      | after_qed _ = raise Fail "cpodef_proof";
+  in Proof.theorem_i NONE after_qed [[(goal1, []), (goal2, [])]] ctxt end;
 
-fun gen_pcpodef_proof prep_term ((def, name), typ, set, opt_morphs) thy =
+fun gen_pcpodef_proof prep_term prep_constraint
+    ((def, name), (b, raw_args, mx), set, opt_morphs) thy =
   let
+    val ctxt = ProofContext.init thy;
+    val args = map (apsnd (prep_constraint ctxt)) raw_args;
     val (goal1, goal2, make_result) =
-      prepare_pcpodef prep_term def name typ set opt_morphs thy;
-    fun after_qed [[th1, th2]] = ProofContext.theory (snd o make_result th1 th2);
-  in Proof.theorem_i NONE after_qed [[(goal1, []), (goal2, [])]] (ProofContext.init thy) end;
+      prepare_pcpodef prep_term def name (b, args, mx) set opt_morphs thy;
+    fun after_qed [[th1, th2]] = ProofContext.theory (snd o make_result th1 th2)
+      | after_qed _ = raise Fail "pcpodef_proof";
+  in Proof.theorem_i NONE after_qed [[(goal1, []), (goal2, [])]] ctxt end;
 
 in
 
-fun cpodef_proof x = gen_cpodef_proof Syntax.check_term x;
-fun cpodef_proof_cmd x = gen_cpodef_proof Syntax.read_term x;
+fun cpodef_proof x = gen_cpodef_proof Syntax.check_term (K I) x;
+fun cpodef_proof_cmd x = gen_cpodef_proof Syntax.read_term Typedecl.read_constraint x;
 
-fun pcpodef_proof x = gen_pcpodef_proof Syntax.check_term x;
-fun pcpodef_proof_cmd x = gen_pcpodef_proof Syntax.read_term x;
+fun pcpodef_proof x = gen_pcpodef_proof Syntax.check_term (K I) x;
+fun pcpodef_proof_cmd x = gen_pcpodef_proof Syntax.read_term Typedecl.read_constraint x;
 
 end;
 
@@ -341,12 +361,12 @@ val typedef_proof_decl =
   Scan.optional (P.$$$ "(" |--
       ((P.$$$ "open" >> K false) -- Scan.option P.binding || P.binding >> (fn s => (true, SOME s)))
         --| P.$$$ ")") (true, NONE) --
-    (P.type_args -- P.binding) -- P.opt_infix -- (P.$$$ "=" |-- P.term) --
+    (P.type_args_constrained -- P.binding) -- P.opt_mixfix -- (P.$$$ "=" |-- P.term) --
     Scan.option (P.$$$ "morphisms" |-- P.!!! (P.binding -- P.binding));
 
-fun mk_pcpodef_proof pcpo ((((((def, opt_name), (vs, t)), mx), A), morphs)) =
+fun mk_pcpodef_proof pcpo ((((((def, opt_name), (args, t)), mx), A), morphs)) =
   (if pcpo then pcpodef_proof_cmd else cpodef_proof_cmd)
-    ((def, the_default (Binding.map_name (Syntax.type_name mx) t) opt_name), (t, vs, mx), A, morphs);
+    ((def, the_default t opt_name), (t, args, mx), A, morphs);
 
 val _ =
   OuterSyntax.command "pcpodef" "HOLCF type definition (requires admissibility proof)" K.thy_goal

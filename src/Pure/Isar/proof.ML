@@ -599,7 +599,7 @@ fun gen_def prep_att prep_vars prep_binds args state =
     |>> map (fn (x, _, mx) => (x, mx))
     |-> (fn vars =>
       map_context_result (prep_binds false (map swap raw_rhss))
-      #-> (fn rhss => map_context_result (LocalDefs.add_defs (vars ~~ (name_atts ~~ rhss)))))
+      #-> (fn rhss => map_context_result (Local_Defs.add_defs (vars ~~ (name_atts ~~ rhss)))))
     |-> (put_facts o SOME o map (#2 o #2))
   end;
 
@@ -681,8 +681,8 @@ fun gen_using f g prep_atts prep_fact args state =
       in (statement, [], f ctxt ths using, g ctxt ths goal, before_qed, after_qed) end));
 
 fun append_using _ ths using = using @ filter_out Thm.is_dummy ths;
-fun unfold_using ctxt ths = map (LocalDefs.unfold ctxt ths);
-val unfold_goals = LocalDefs.unfold_goals;
+fun unfold_using ctxt ths = map (Local_Defs.unfold ctxt ths);
+val unfold_goals = Local_Defs.unfold_goals;
 
 in
 

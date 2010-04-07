@@ -15,8 +15,7 @@ lemma EXISTS_UNIQUE_DEF: "(Ex1 P) = (Ex P & (ALL x y. P x & P y --> (x = y)))"
 lemma COND_DEF:"(If b t f) = (@x. ((b = True) --> (x = t)) & ((b = False) --> (x = f)))"
   by auto
 
-constdefs
-  LET :: "['a \<Rightarrow> 'b,'a] \<Rightarrow> 'b"
+definition LET :: "['a \<Rightarrow> 'b,'a] \<Rightarrow> 'b" where
   "LET f s == f s"
 
 lemma [hol4rew]: "LET f s = Let s f"
@@ -119,10 +118,10 @@ lemma pair_case_def: "split = split"
 lemma LESS_OR_EQ: "m <= (n::nat) = (m < n | m = n)"
   by auto
 
-constdefs
-  nat_gt :: "nat => nat => bool"
+definition nat_gt :: "nat => nat => bool" where
   "nat_gt == %m n. n < m"
-  nat_ge :: "nat => nat => bool"
+
+definition nat_ge :: "nat => nat => bool" where
   "nat_ge == %m n. nat_gt m n | m = n"
 
 lemma [hol4rew]: "nat_gt m n = (n < m)"
@@ -200,8 +199,7 @@ next
   qed
 qed;
 
-constdefs
-  FUNPOW :: "('a => 'a) => nat => 'a => 'a"
+definition FUNPOW :: "('a => 'a) => nat => 'a => 'a" where
   "FUNPOW f n == f ^^ n"
 
 lemma FUNPOW: "(ALL f x. (f ^^ 0) x = x) &
@@ -229,14 +227,16 @@ lemma MIN_DEF: "min (m::nat) n = (if m < n then m else n)"
 lemma DIVISION: "(0::nat) < n --> (!k. (k = k div n * n + k mod n) & k mod n < n)"
   by simp
 
-constdefs
-  ALT_ZERO :: nat
+definition ALT_ZERO :: nat where 
   "ALT_ZERO == 0"
-  NUMERAL_BIT1 :: "nat \<Rightarrow> nat"
+
+definition NUMERAL_BIT1 :: "nat \<Rightarrow> nat" where 
   "NUMERAL_BIT1 n == n + (n + Suc 0)"
-  NUMERAL_BIT2 :: "nat \<Rightarrow> nat"
+
+definition NUMERAL_BIT2 :: "nat \<Rightarrow> nat" where 
   "NUMERAL_BIT2 n == n + (n + Suc (Suc 0))"
-  NUMERAL :: "nat \<Rightarrow> nat"
+
+definition NUMERAL :: "nat \<Rightarrow> nat" where 
   "NUMERAL x == x"
 
 lemma [hol4rew]: "NUMERAL ALT_ZERO = 0"
@@ -329,8 +329,7 @@ qed
 lemma NULL_DEF: "(null [] = True) & (!h t. null (h # t) = False)"
   by simp
 
-constdefs
-  sum :: "nat list \<Rightarrow> nat"
+definition sum :: "nat list \<Rightarrow> nat" where
   "sum l == foldr (op +) l 0"
 
 lemma SUM: "(sum [] = 0) & (!h t. sum (h#t) = h + sum t)"
@@ -359,8 +358,7 @@ lemma REPLICATE: "(ALL x. replicate 0 x = []) &
   (ALL n x. replicate (Suc n) x = x # replicate n x)"
   by simp
 
-constdefs
-  FOLDR :: "[['a,'b]\<Rightarrow>'b,'b,'a list] \<Rightarrow> 'b"
+definition FOLDR :: "[['a,'b]\<Rightarrow>'b,'b,'a list] \<Rightarrow> 'b" where
   "FOLDR f e l == foldr f l e"
 
 lemma [hol4rew]: "FOLDR f e l = foldr f l e"
@@ -418,8 +416,7 @@ qed
 lemma list_CASES: "(l = []) | (? t h. l = h#t)"
   by (induct l,auto)
 
-constdefs
-  ZIP :: "'a list * 'b list \<Rightarrow> ('a * 'b) list"
+definition ZIP :: "'a list * 'b list \<Rightarrow> ('a * 'b) list" where
   "ZIP == %(a,b). zip a b"
 
 lemma ZIP: "(zip [] [] = []) &
@@ -514,8 +511,7 @@ lemma abs: "abs (x::real) = (if 0 <= x then x else -x)"
 lemma pow: "(!x::real. x ^ 0 = 1) & (!x::real. ALL n. x ^ (Suc n) = x * x ^ n)"
   by simp
 
-constdefs
-  real_gt :: "real => real => bool" 
+definition real_gt :: "real => real => bool" where 
   "real_gt == %x y. y < x"
 
 lemma [hol4rew]: "real_gt x y = (y < x)"
@@ -524,8 +520,7 @@ lemma [hol4rew]: "real_gt x y = (y < x)"
 lemma real_gt: "ALL x (y::real). (y < x) = (y < x)"
   by simp
 
-constdefs
-  real_ge :: "real => real => bool"
+definition real_ge :: "real => real => bool" where
   "real_ge x y == y <= x"
 
 lemma [hol4rew]: "real_ge x y = (y <= x)"

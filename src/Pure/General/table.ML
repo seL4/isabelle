@@ -28,7 +28,7 @@ sig
   val keys: 'a table -> key list
   val min_key: 'a table -> key option
   val max_key: 'a table -> key option
-  val get_first: key option -> (key * 'a -> 'b option) -> 'a table -> 'b option
+  val get_first: (key * 'a -> 'b option) -> 'a table -> 'b option
   val exists: (key * 'a -> bool) -> 'a table -> bool
   val forall: (key * 'a -> bool) -> 'a table -> bool
   val lookup: 'a table -> key -> 'a option
@@ -131,40 +131,32 @@ fun max_key Empty = NONE
 
 (* get_first *)
 
-fun get_first boundary f tab =
+fun get_first f =
   let
-    val check =
-      (case boundary of
-        NONE => K true
-      | SOME b => (fn k => Key.ord (b, k) = LESS));
-    fun apply (k, x) = if check k then f (k, x) else NONE;
-    fun get_bounded tb k = if check k then get tb else NONE
-    and get Empty = NONE
+    fun get Empty = NONE
       | get (Branch2 (left, (k, x), right)) =
-          (case get_bounded left k of
+          (case get left of
             NONE =>
-              (case apply (k, x) of
+              (case f (k, x) of
                 NONE => get right
               | some => some)
           | some => some)
       | get (Branch3 (left, (k1, x1), mid, (k2, x2), right)) =
-          (case get_bounded left k1 of
+          (case get left of
             NONE =>
-              (case apply (k1, x1) of
+              (case f (k1, x1) of
                 NONE =>
-                  (case get_bounded mid k2 of
+                  (case get mid of
                     NONE =>
-                      (case apply (k2, x2) of
+                      (case f (k2, x2) of
                         NONE => get right
                       | some => some)
                   | some => some)
               | some => some)
           | some => some);
-  in get tab end;
+  in get end;
 
-fun exists pred =
-  is_some o get_first NONE (fn entry => if pred entry then SOME () else NONE);
-
+fun exists pred = is_some o get_first (fn entry => if pred entry then SOME () else NONE);
 fun forall pred = not o exists (not o pred);
 
 

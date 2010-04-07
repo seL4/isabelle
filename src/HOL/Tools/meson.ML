@@ -18,6 +18,7 @@ sig
   val make_nnf: Proof.context -> thm -> thm
   val skolemize: Proof.context -> thm -> thm
   val is_fol_term: theory -> term -> bool
+  val make_clauses_unsorted: thm list -> thm list
   val make_clauses: thm list -> thm list
   val make_horns: thm list -> thm list
   val best_prolog_tac: (thm -> int) -> thm list -> tactic
@@ -47,7 +48,7 @@ val trace = Unsynchronized.ref false;
 fun trace_msg msg = if ! trace then tracing (msg ()) else ();
 
 val max_clauses_default = 60;
-val (max_clauses, setup) = Attrib.config_int "max_clauses" max_clauses_default;
+val (max_clauses, setup) = Attrib.config_int "max_clauses" (K max_clauses_default);
 
 val disj_forward = @{thm disj_forward};
 val disj_forward2 = @{thm disj_forward2};
@@ -403,7 +404,7 @@ val has_bool_arg_const =
       (fn (c,T) => not(is_conn c) andalso exists (has_bool) (binder_types T));
 
 (*A higher-order instance of a first-order constant? Example is the definition of
-  HOL.one, 1, at a function type in theory SetsAndFunctions.*)
+  one, 1, at a function type in theory SetsAndFunctions.*)
 fun higher_inst_const thy (c,T) =
   case binder_types T of
       [] => false (*not a function type, OK*)
@@ -517,10 +518,10 @@ fun make_nnf1 ctxt th =
   nnf_ss also includes the one-point simprocs,
   which are needed to avoid the various one-point theorems from generating junk clauses.*)
 val nnf_simps =
-     [simp_implies_def, Ex1_def, Ball_def, Bex_def, if_True,
-      if_False, if_cancel, if_eq_cancel, cases_simp];
+  [@{thm simp_implies_def}, @{thm Ex1_def}, @{thm Ball_def},@{thm  Bex_def}, @{thm if_True},
+    @{thm if_False}, @{thm if_cancel}, @{thm if_eq_cancel}, @{thm cases_simp}];
 val nnf_extra_simps =
-      thms"split_ifs" @ ex_simps @ all_simps @ simp_thms;
+  @{thms split_ifs} @ @{thms ex_simps} @ @{thms all_simps} @ @{thms simp_thms};
 
 val nnf_ss =
   HOL_basic_ss addsimps nnf_extra_simps
@@ -560,7 +561,8 @@ fun add_clauses th cls =
 
 (*Make clauses from a list of theorems, previously Skolemized and put into nnf.
   The resulting clauses are HOL disjunctions.*)
-fun make_clauses ths = sort_clauses (fold_rev add_clauses ths []);
+fun make_clauses_unsorted ths = fold_rev add_clauses ths [];
+val make_clauses = sort_clauses o make_clauses_unsorted;
 
 (*Convert a list of clauses (disjunctions) to Horn clauses (contrapositives)*)
 fun make_horns ths =
@@ -587,7 +589,7 @@ fun skolemize_prems_tac ctxt prems =
   Function mkcl converts theorems to clauses.*)
 fun MESON mkcl cltac ctxt i st =
   SELECT_GOAL
-    (EVERY [ObjectLogic.atomize_prems_tac 1,
+    (EVERY [Object_Logic.atomize_prems_tac 1,
             rtac ccontr 1,
             Subgoal.FOCUS (fn {context = ctxt', prems = negs, ...} =>
                       EVERY1 [skolemize_prems_tac ctxt negs,
@@ -667,7 +669,7 @@ fun negated_asm_of_head th =
 fun make_meta_clause th =
   let val (fth,thaw) = Drule.legacy_freeze_thaw_robust th
   in  
-      (zero_var_indexes o Thm.varifyT o thaw 0 o 
+      (zero_var_indexes o Thm.varifyT_global o thaw 0 o 
        negated_asm_of_head o make_horn resolution_clause_rules) fth
   end;
 
@@ -685,7 +687,7 @@ fun make_last i th =
 
 (*Maps a rule that ends "... ==> P ==> False" to "... ==> ~P" while suppressing
   double-negations.*)
-val negate_head = rewrite_rule [atomize_not, not_not RS eq_reflection];
+val negate_head = rewrite_rule [@{thm atomize_not}, not_not RS eq_reflection];
 
 (*Maps the clause  [P1,...Pn]==>False to [P1,...,P(i-1),P(i+1),...Pn] ==> ~P*)
 fun select_literal i cl = negate_head (make_last i cl);

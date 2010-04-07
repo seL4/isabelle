@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 Proves about loops and tail-recursive functions
 ===============================================
 

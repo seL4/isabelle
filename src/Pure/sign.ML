@@ -41,26 +41,21 @@ sig
   val declared_tyname: theory -> string -> bool
   val declared_const: theory -> string -> bool
   val const_monomorphic: theory -> string -> bool
-  val const_syntax_name: theory -> string -> string
   val const_typargs: theory -> string * typ -> typ list
   val const_instance: theory -> string * typ list -> typ
   val mk_const: theory -> string * typ list -> term
   val class_space: theory -> Name_Space.T
   val type_space: theory -> Name_Space.T
   val const_space: theory -> Name_Space.T
+  val class_alias: binding -> class -> theory -> theory
+  val type_alias: binding -> string -> theory -> theory
+  val const_alias: binding -> string -> theory -> theory
   val intern_class: theory -> xstring -> string
   val extern_class: theory -> string -> xstring
   val intern_type: theory -> xstring -> string
   val extern_type: theory -> string -> xstring
   val intern_const: theory -> xstring -> string
   val extern_const: theory -> string -> xstring
-  val intern_sort: theory -> sort -> sort
-  val extern_sort: theory -> sort -> sort
-  val intern_typ: theory -> typ -> typ
-  val extern_typ: theory -> typ -> typ
-  val intern_term: theory -> term -> term
-  val extern_term: (string -> xstring) -> theory -> term -> term
-  val intern_tycons: theory -> typ -> typ
   val arity_number: theory -> string -> int
   val arity_sorts: theory -> string -> sort -> sort list
   val certify_class: theory -> class -> class
@@ -73,10 +68,6 @@ sig
   val cert_prop: theory -> term -> term
   val no_frees: Pretty.pp -> term -> term
   val no_vars: Pretty.pp -> term -> term
-  val cert_def: Proof.context -> term -> (string * typ) * term
-  val read_class: theory -> xstring -> class
-  val read_arity: theory -> xstring * string list * string -> arity
-  val cert_arity: theory -> arity -> arity
   val add_defsort: string -> theory -> theory
   val add_defsort_i: sort -> theory -> theory
   val add_types: (binding * int * mixfix) list -> theory -> theory
@@ -89,6 +80,7 @@ sig
   val add_modesyntax_i: Syntax.mode -> (string * typ * mixfix) list -> theory -> theory
   val del_modesyntax: Syntax.mode -> (string * string * mixfix) list -> theory -> theory
   val del_modesyntax_i: Syntax.mode -> (string * typ * mixfix) list -> theory -> theory
+  val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> theory -> theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> theory -> theory
   val declare_const: (binding * typ) * mixfix -> theory -> term * theory
   val add_consts: (binding * string * mixfix) list -> theory -> theory
@@ -127,6 +119,7 @@ sig
   val root_path: theory -> theory
   val parent_path: theory -> theory
   val mandatory_path: string -> theory -> theory
+  val qualified_path: bool -> binding -> theory -> theory
   val local_path: theory -> theory
   val restore_naming: theory -> theory -> theory
   val hide_class: bool -> string -> theory -> theory
@@ -148,14 +141,14 @@ datatype sign = Sign of
 fun make_sign (naming, syn, tsig, consts) =
   Sign {naming = naming, syn = syn, tsig = tsig, consts = consts};
 
-structure SignData = Theory_Data_PP
+structure Data = Theory_Data_PP
 (
   type T = sign;
   fun extend (Sign {syn, tsig, consts, ...}) =
     make_sign (Name_Space.default_naming, syn, tsig, consts);
 
   val empty =
-    make_sign (Name_Space.default_naming, Syntax.basic_syn, Type.empty_tsig, Consts.empty);
+    make_sign (Name_Space.default_naming, Syntax.basic_syntax, Type.empty_tsig, Consts.empty);
 
   fun merge pp (sign1, sign2) =
     let
@@ -169,9 +162,9 @@ structure SignData = Theory_Data_PP
     in make_sign (naming, syn, tsig, consts) end;
 );
 
-fun rep_sg thy = SignData.get thy |> (fn Sign args => args);
+fun rep_sg thy = Data.get thy |> (fn Sign args => args);
 
-fun map_sign f = SignData.map (fn Sign {naming, syn, tsig, consts} =>
+fun map_sign f = Data.map (fn Sign {naming, syn, tsig, consts} =>
   make_sign (f (naming, syn, tsig, consts)));
 
 fun map_naming f = map_sign (fn (naming, syn, tsig, consts) => (f naming, syn, tsig, consts));
@@ -225,7 +218,6 @@ val the_const_constraint = Consts.the_constraint o consts_of;
 val the_const_type = Consts.the_type o consts_of;
 val const_type = try o the_const_type;
 val const_monomorphic = Consts.is_monomorphic o consts_of;
-val const_syntax_name = Consts.syntax_name o consts_of;
 val const_typargs = Consts.typargs o consts_of;
 val const_instance = Consts.instance o consts_of;
 
@@ -238,9 +230,13 @@ val declared_const = can o the_const_constraint;
 
 (** intern / extern names **)
 
-val class_space = #1 o #classes o Type.rep_tsig o tsig_of;
-val type_space = #1 o #types o Type.rep_tsig o tsig_of;
+val class_space = Type.class_space o tsig_of;
+val type_space = Type.type_space o tsig_of;
 val const_space = Consts.space_of o consts_of;
+
+fun class_alias b c thy = map_tsig (Type.class_alias (naming_of thy) b c) thy;
+fun type_alias b c thy = map_tsig (Type.type_alias (naming_of thy) b c) thy;
+fun const_alias b c thy = map_consts (Consts.alias (naming_of thy) b c) thy;
 
 val intern_class = Name_Space.intern o class_space;
 val extern_class = Name_Space.extern o class_space;
@@ -248,60 +244,6 @@ val intern_type = Name_Space.intern o type_space;
 val extern_type = Name_Space.extern o type_space;
 val intern_const = Name_Space.intern o const_space;
 val extern_const = Name_Space.extern o const_space;
-
-val intern_sort = map o intern_class;
-val extern_sort = map o extern_class;
-
-local
-
-fun map_typ f g (Type (c, Ts)) = Type (g c, map (map_typ f g) Ts)
-  | map_typ f _ (TFree (x, S)) = TFree (x, map f S)
-  | map_typ f _ (TVar (xi, S)) = TVar (xi, map f S);
-
-fun map_term f g h (Const (c, T)) = Const (h c, map_typ f g T)
-  | map_term f g _ (Free (x, T)) = Free (x, map_typ f g T)
-  | map_term f g _ (Var (xi, T)) = Var (xi, map_typ f g T)
-  | map_term _ _ _ (t as Bound _) = t
-  | map_term f g h (Abs (x, T, t)) = Abs (x, map_typ f g T, map_term f g h t)
-  | map_term f g h (t $ u) = map_term f g h t $ map_term f g h u;
-
-val add_classesT = Term.fold_atyps
-  (fn TFree (_, S) => fold (insert (op =)) S
-    | TVar (_, S) => fold (insert (op =)) S
-    | _ => I);
-
-fun add_tyconsT (Type (c, Ts)) = insert (op =) c #> fold add_tyconsT Ts
-  | add_tyconsT _ = I;
-
-val add_consts = Term.fold_aterms (fn Const (c, _) => insert (op =) c | _ => I);
-
-fun mapping add_names f t =
-  let
-    fun f' (x: string) = let val y = f x in if x = y then NONE else SOME (x, y) end;
-    val tab = map_filter f' (add_names t []);
-    fun get x = the_default x (AList.lookup (op =) tab x);
-  in get end;
-
-fun typ_mapping f g thy T =
-  T |> map_typ
-    (mapping add_classesT (f thy) T)
-    (mapping add_tyconsT (g thy) T);
-
-fun term_mapping f g h thy t =
-  t |> map_term
-    (mapping (Term.fold_types add_classesT) (f thy) t)
-    (mapping (Term.fold_types add_tyconsT) (g thy) t)
-    (mapping add_consts (h thy) t);
-
-in
-
-val intern_typ = typ_mapping intern_class intern_type;
-val extern_typ = typ_mapping extern_class extern_type;
-val intern_term = term_mapping intern_class intern_type intern_const;
-fun extern_term h = term_mapping extern_class extern_type (K h);
-val intern_tycons = typ_mapping (K I) intern_type;
-
-end;
 
 
 
@@ -389,33 +331,6 @@ fun no_variables kind add addT mk mkT pp tm =
 val no_frees = no_variables "free" Term.add_frees Term.add_tfrees Free TFree;
 val no_vars = no_variables "schematic" Term.add_vars Term.add_tvars Var TVar;
 
-fun cert_def ctxt tm =
-  let val ((lhs, rhs), _) = tm
-    |> no_vars (Syntax.pp ctxt)
-    |> Logic.strip_imp_concl
-    |> Primitive_Defs.dest_def ctxt Term.is_Const (K false) (K false)
-  in (Term.dest_Const (Term.head_of lhs), rhs) end
-  handle TERM (msg, _) => error msg;
-
-
-
-(** read and certify entities **)    (*exception ERROR*)
-
-(* classes *)
-
-fun read_class thy c = certify_class thy (intern_class thy c)
-  handle TYPE (msg, _, _) => error msg;
-
-
-(* type arities *)
-
-fun prep_arity prep_tycon prep_sort thy (t, Ss, S) =
-  let val arity = (prep_tycon thy t, map (prep_sort thy) Ss, prep_sort thy S)
-  in Type.add_arity (Syntax.pp_global thy) arity (tsig_of thy); arity end;
-
-val read_arity = prep_arity intern_type Syntax.read_sort_global;
-val cert_arity = prep_arity (K I) certify_sort;
-
 
 
 (** signature extension functions **)  (*exception ERROR/TYPE*)
@@ -431,10 +346,14 @@ val add_defsort_i = gen_add_defsort certify_sort;
 
 (* add type constructors *)
 
+val type_syntax = Syntax.mark_type oo full_name;
+
 fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
   let
-    val syn' = Syntax.update_type_gram (map (fn (a, n, mx) => (Name.of_binding a, n, mx)) types) syn;
-    val decls = map (fn (a, n, mx) => (Binding.map_name (Syntax.type_name mx) a, n)) types;
+    val syn' =
+      Syntax.update_type_gram true Syntax.mode_default
+        (map (fn (a, n, mx) => (type_syntax thy a, Syntax.make_type n, mx)) types) syn;
+    val decls = map (fn (a, n, _) => (a, n)) types;
     val tsig' = fold (Type.add_type naming) decls tsig;
   in (naming, syn', tsig', consts) end);
 
@@ -443,19 +362,19 @@ fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
 
 fun add_nonterminals ns thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
   let
-    val syn' = Syntax.update_consts (map Name.of_binding ns) syn;
     val tsig' = fold (Type.add_nonterminal naming) ns tsig;
-  in (naming, syn', tsig', consts) end);
+  in (naming, syn, tsig', consts) end);
 
 
 (* add type abbreviations *)
 
-fun gen_add_tyabbr parse_typ (a, vs, rhs, mx) thy =
+fun gen_add_tyabbr parse_typ (b, vs, rhs, mx) thy =
   thy |> map_sign (fn (naming, syn, tsig, consts) =>
     let
       val ctxt = ProofContext.init thy;
-      val syn' = Syntax.update_type_gram [(Name.of_binding a, length vs, mx)] syn;
-      val b = Binding.map_name (Syntax.type_name mx) a;
+      val syn' =
+        Syntax.update_type_gram true Syntax.mode_default
+          [(type_syntax thy b, Syntax.make_type (length vs), mx)] syn;
       val abbr = (b, vs, certify_typ_mode Type.mode_syntax thy (parse_typ ctxt rhs))
         handle ERROR msg => cat_error msg ("in type abbreviation " ^ quote (Binding.str_of b));
       val tsig' = Type.add_abbrev naming abbr tsig;
@@ -471,62 +390,67 @@ fun gen_syntax change_gram parse_typ mode args thy =
   let
     val ctxt = ProofContext.init thy;
     fun prep (c, T, mx) = (c, certify_typ_mode Type.mode_syntax thy (parse_typ ctxt T), mx)
-      handle ERROR msg =>
-        cat_error msg ("in syntax declaration " ^ quote (Syntax.const_name mx c));
+      handle ERROR msg => cat_error msg ("in syntax declaration " ^ quote c);
   in thy |> map_syn (change_gram (is_logtype thy) mode (map prep args)) end;
 
-fun gen_add_syntax x = gen_syntax Syntax.update_const_gram x;
+fun gen_add_syntax x = gen_syntax (Syntax.update_const_gram true) x;
 
 val add_modesyntax = gen_add_syntax Syntax.parse_typ;
 val add_modesyntax_i = gen_add_syntax (K I);
 val add_syntax = add_modesyntax Syntax.mode_default;
 val add_syntax_i = add_modesyntax_i Syntax.mode_default;
-val del_modesyntax = gen_syntax Syntax.remove_const_gram Syntax.parse_typ;
-val del_modesyntax_i = gen_syntax Syntax.remove_const_gram (K I);
+val del_modesyntax = gen_syntax (Syntax.update_const_gram false) Syntax.parse_typ;
+val del_modesyntax_i = gen_syntax (Syntax.update_const_gram false) (K I);
+
+fun type_notation add mode args =
+  let
+    fun type_syntax (Type (c, args), mx) =
+          SOME (Syntax.mark_type c, Syntax.make_type (length args), mx)
+      | type_syntax _ = NONE;
+  in map_syn (Syntax.update_type_gram add mode (map_filter type_syntax args)) end;
 
 fun notation add mode args thy =
   let
-    val change_gram = if add then Syntax.update_const_gram else Syntax.remove_const_gram;
-    fun const_syntax (Const (c, _), mx) = try (Consts.syntax (consts_of thy)) (c, mx)
+    fun const_syntax (Const (c, _), mx) =
+          (case try (Consts.type_scheme (consts_of thy)) c of
+            SOME T => SOME (Syntax.mark_const c, T, mx)
+          | NONE => NONE)
       | const_syntax _ = NONE;
-  in gen_syntax change_gram (K I) mode (map_filter const_syntax args) thy end;
+  in gen_syntax (Syntax.update_const_gram add) (K I) mode (map_filter const_syntax args) thy end;
 
 
 (* add constants *)
 
 local
 
-fun gen_add_consts parse_typ authentic raw_args thy =
+fun gen_add_consts parse_typ raw_args thy =
   let
     val ctxt = ProofContext.init thy;
     val prepT = Type.no_tvars o Term.no_dummyT o certify_typ thy o parse_typ ctxt;
-    fun prep (raw_b, raw_T, raw_mx) =
+    fun prep (b, raw_T, mx) =
       let
-        val (mx_name, mx) = Syntax.const_mixfix (Name.of_binding raw_b) raw_mx;
-        val b = Binding.map_name (K mx_name) raw_b;
         val c = full_name thy b;
-        val c_syn = if authentic then Syntax.constN ^ c else Name.of_binding b;
         val T = (prepT raw_T handle TYPE (msg, _, _) => error msg) handle ERROR msg =>
           cat_error msg ("in declaration of constant " ^ quote (Binding.str_of b));
-        val T' = Logic.varifyT T;
-      in ((b, T'), (c_syn, T', mx), Const (c, T)) end;
+        val T' = Logic.varifyT_global T;
+      in ((b, T'), (Syntax.mark_const c, T', mx), Const (c, T)) end;
     val args = map prep raw_args;
   in
     thy
-    |> map_consts (fold (Consts.declare authentic (naming_of thy) o #1) args)
+    |> map_consts (fold (Consts.declare (naming_of thy) o #1) args)
     |> add_syntax_i (map #2 args)
     |> pair (map #3 args)
   end;
 
 in
 
-fun add_consts args = snd o gen_add_consts Syntax.parse_typ false args;
-fun add_consts_i args = snd o gen_add_consts (K I) false args;
+fun add_consts args = snd o gen_add_consts Syntax.parse_typ args;
+fun add_consts_i args = snd o gen_add_consts (K I) args;
 
 fun declare_const ((b, T), mx) thy =
   let
     val pos = Binding.pos_of b;
-    val ([const as Const (c, _)], thy') = gen_add_consts (K I) true [(b, T, mx)] thy;
+    val ([const as Const (c, _)], thy') = gen_add_consts (K I) [(b, T, mx)] thy;
     val _ = Position.report (Markup.const_decl c) pos;
   in (const, thy') end;
 
@@ -553,7 +477,7 @@ fun revert_abbrev mode c = map_consts (Consts.revert_abbrev mode c);
 fun add_const_constraint (c, opt_T) thy =
   let
     fun prepT raw_T =
-      let val T = Logic.varifyT (Type.no_tvars (Term.no_dummyT (certify_typ thy raw_T)))
+      let val T = Logic.varifyT_global (Type.no_tvars (Term.no_dummyT (certify_typ thy raw_T)))
       in cert_term thy (Const (c, T)); T end
       handle TYPE (msg, _, _) => error msg;
   in thy |> map_consts (Consts.constrain (c, Option.map prepT opt_T)) end;
@@ -564,9 +488,8 @@ fun add_const_constraint (c, opt_T) thy =
 fun primitive_class (bclass, classes) thy =
   thy |> map_sign (fn (naming, syn, tsig, consts) =>
     let
-      val syn' = Syntax.update_consts [Name.of_binding bclass] syn;
       val tsig' = Type.add_class (Syntax.pp_global thy) naming (bclass, classes) tsig;
-    in (naming, syn', tsig', consts) end)
+    in (naming, syn, tsig', consts) end)
   |> add_consts_i [(Binding.map_name Logic.const_of_class bclass, Term.a_itselfT --> propT, NoSyn)];
 
 fun primitive_classrel arg thy = thy |> map_tsig (Type.add_classrel (Syntax.pp_global thy) arg);
@@ -618,6 +541,7 @@ val add_path = map_naming o Name_Space.add_path;
 val root_path = map_naming Name_Space.root_path;
 val parent_path = map_naming Name_Space.parent_path;
 val mandatory_path = map_naming o Name_Space.mandatory_path;
+val qualified_path = map_naming oo Name_Space.qualified_path;
 
 fun local_path thy = thy |> root_path |> add_path (Context.theory_name thy);
 

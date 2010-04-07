@@ -1,4 +1,0 @@
-(benchmark Isabelle
-:assumption (not true)
-:formula true
-)

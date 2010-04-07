@@ -26,11 +26,6 @@ datatype
         | Min
         | Bit ("w: bin", "b: bool")     (infixl "BIT" 90)
 
-use "Tools/numeral_syntax.ML"
-
-syntax
-  "_Int"    :: "xnum => i"        ("_")
-
 consts
   integ_of  :: "i=>i"
   NCons     :: "[i,i]=>i"
@@ -106,7 +101,11 @@ primrec
     "bin_mult (v BIT b,w) = cond(b, bin_add(NCons(bin_mult(v,w),0),w),
                                  NCons(bin_mult(v,w),0))"
 
-setup NumeralSyntax.setup
+syntax
+  "_Int"    :: "xnum => i"        ("_")
+
+use "Tools/numeral_syntax.ML"
+setup Numeral_Syntax.setup
 
 
 declare bin.intros [simp,TC]

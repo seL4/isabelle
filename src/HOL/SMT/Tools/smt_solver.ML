@@ -20,7 +20,7 @@ sig
   type solver_config = {
     command: {env_var: string, remote_name: string option},
     arguments: string list,
-    interface: interface,
+    interface: string list -> interface,
     reconstruct: proof_data -> thm }
 
   (*options*)
@@ -28,8 +28,10 @@ sig
   val with_timeout: Proof.context -> ('a -> 'b) -> 'a -> 'b
   val trace: bool Config.T
   val trace_msg: Proof.context -> ('a -> string) -> 'a -> unit
-  val keep: string Config.T
-  val cert: string Config.T
+
+  (*certificates*)
+  val record: bool Config.T
+  val select_certificates: string -> Context.generic -> Context.generic
 
   (*solvers*)
   type solver = Proof.context -> thm list -> thm
@@ -71,48 +73,46 @@ type proof_data = {
 type solver_config = {
   command: {env_var: string, remote_name: string option},
   arguments: string list,
-  interface: interface,
+  interface: string list -> interface,
   reconstruct: proof_data -> thm }
 
 
 (* SMT options *)
 
-val (timeout, setup_timeout) = Attrib.config_int "smt_timeout" 30
+val (timeout, setup_timeout) = Attrib.config_int "smt_timeout" (K 30)
 
 fun with_timeout ctxt f x =
   TimeLimit.timeLimit (Time.fromSeconds (Config.get ctxt timeout)) f x
   handle TimeLimit.TimeOut => raise SMT "timeout"
 
-val (trace, setup_trace) = Attrib.config_bool "smt_trace" false
+val (trace, setup_trace) = Attrib.config_bool "smt_trace" (K false)
 
 fun trace_msg ctxt f x =
   if Config.get ctxt trace then tracing (f x) else ()
 
-val (keep, setup_keep) = Attrib.config_string "smt_keep" ""
-val (cert, setup_cert) = Attrib.config_string "smt_cert" ""
+
+(* SMT certificates *)
+
+val (record, setup_record) = Attrib.config_bool "smt_record" (K true)
+
+structure Certificates = Generic_Data
+(
+  type T = Cache_IO.cache option
+  val empty = NONE
+  val extend = I
+  fun merge (s, _) = s
+)
+
+fun select_certificates name = Certificates.put (
+  if name = "" then NONE
+  else SOME (Cache_IO.make (Path.explode name)))
 
 
 (* interface to external solvers *)
 
 local
 
-fun with_files ctxt f =
-  let
-    fun make_names n = (n, n ^ ".proof")
-
-    val keep' = Config.get ctxt keep
-    val paths as (problem_path, proof_path) =
-      if keep' <> "" andalso File.exists (Path.dir (Path.explode keep'))
-      then pairself Path.explode (make_names keep')
-      else pairself (File.tmp_path o Path.explode)
-        (make_names ("smt-" ^ serial_string ()))
-
-    val y = Exn.capture f (problem_path, proof_path)
-
-    val _ = if keep' = "" then (pairself (try File.rm) paths; ()) else ()
-  in Exn.release y end
-
-fun invoke ctxt output f (paths as (problem_path, proof_path)) =
+fun invoke ctxt output f problem_path =
   let
     fun pretty tag ls = Pretty.string_of (Pretty.big_list tag
       (map Pretty.str ls))
@@ -121,75 +121,67 @@ fun invoke ctxt output f (paths as (problem_path, proof_path)) =
     val _ = trace_msg ctxt (pretty "SMT problem:" o split_lines o File.read)
       problem_path
 
-    val _ = with_timeout ctxt f paths
-    fun lines_of path = the_default [] (try (File.fold_lines cons path) [])
-    val ls = rev (dropwhile (equal "") (lines_of proof_path))
+    val (res, err) = with_timeout ctxt f problem_path
+    val _ = trace_msg ctxt (pretty "SMT solver:") err
+
+    val ls = rev (dropwhile (equal "") (rev res))
     val _ = trace_msg ctxt (pretty "SMT result:") ls
   in (x, ls) end
 
-val expand_name = Path.implode o Path.expand o Path.explode 
-
-fun run_perl name args ps =
-  system_out (space_implode " " ("perl -w" ::
-    File.shell_path (Path.explode (getenv name)) ::
-    map File.shell_quote args @ ps))
-
-fun use_certificate ctxt ps =
-  let val name = Config.get ctxt cert
+fun choose {env_var, remote_name} =
+  let
+    val local_solver = getenv env_var
+    val remote_solver = the_default "" remote_name
+    val remote_url = getenv "REMOTE_SMT_URL"
   in
-    if name = "" then false
-    else
-     (tracing ("Using certificate " ^ quote (expand_name name) ^ " ...");
-      run_perl "CERT_SMT_SOLVER" [expand_name name] ps;
-      true)
+    if local_solver <> ""
+    then 
+     (tracing ("Invoking local SMT solver " ^ quote local_solver ^ " ...");
+      [local_solver])
+    else if remote_solver <> ""
+    then
+     (tracing ("Invoking remote SMT solver " ^ quote remote_solver ^ " at " ^
+        quote remote_url ^ " ...");
+      [getenv "REMOTE_SMT", remote_solver])
+    else error ("Undefined Isabelle environment variable: " ^ quote env_var)
   end
 
-fun run_locally f env_var args ps =
-  if getenv env_var = ""
-  then f ("Undefined Isabelle environment variable: " ^ quote env_var)
-  else
-    let val app = Path.expand (Path.explode (getenv env_var))
-    in
-      if not (File.exists app)
-      then f ("No such file: " ^ quote (Path.implode app))
-      else
-       (tracing ("Invoking local SMT solver " ^ quote (Path.implode app) ^
-          " ...");
-        system_out (space_implode " " (File.shell_path app ::
-        map File.shell_quote args @ ps)); ())
-    end
+fun make_cmd solver args problem_path proof_path = space_implode " " (
+  map File.shell_quote (solver @ args) @
+  [File.shell_path problem_path, "2>&1", ">", File.shell_path proof_path])
 
-fun run_remote remote_name args ps msg =
-  (case remote_name of
-    NONE => error msg
-  | SOME name =>
-      let
-        val url = getenv "REMOTE_SMT_URL"
-        val _ = tracing ("Invoking remote SMT solver " ^ quote name ^ " at " ^
-          quote url ^ " ...")
-      in (run_perl "REMOTE_SMT_SOLVER" (url :: name :: args) ps; ()) end)
+fun no_cmd _ _ = error ("Bad certificates cache: missing certificate")
 
-fun run ctxt {env_var, remote_name} args (problem_path, proof_path) =
-  let val ps = [File.shell_path problem_path, ">", File.shell_path proof_path]
+fun run ctxt cmd args problem_path =
+  let val certs = Certificates.get (Context.Proof ctxt)
   in
-    if use_certificate ctxt ps then ()
-    else run_locally (run_remote remote_name args ps) env_var args ps
+    if is_none certs 
+    then Cache_IO.run' (make_cmd (choose cmd) args) problem_path
+    else if Config.get ctxt record
+    then Cache_IO.cached' (the certs) (make_cmd (choose cmd) args) problem_path
+    else
+     (tracing ("Using cached certificate from " ^
+        File.shell_path (Cache_IO.cache_path_of (the certs)) ^ " ...");
+      Cache_IO.cached' (the certs) no_cmd problem_path)
   end
 
 in
 
 fun run_solver ctxt cmd args output =
-  with_files ctxt (invoke ctxt output (run ctxt cmd args))
+  Cache_IO.with_tmp_file "smt-" (invoke ctxt output (run ctxt cmd args))
 
 end
 
 fun make_proof_data ctxt ((recon, thms), ls) =
   {context=ctxt, output=ls, recon=recon, assms=SOME thms}
 
-fun gen_solver solver ctxt prems =
+fun gen_solver name solver ctxt prems =
   let
     val {command, arguments, interface, reconstruct} = solver ctxt
-    val {normalize=nc, translate=tc} = interface
+    val comments = ("solver: " ^ name) ::
+      ("timeout: " ^ string_of_int (Config.get ctxt timeout)) ::
+      "arguments:" :: arguments
+    val {normalize=nc, translate=tc} = interface comments
     val thy = ProofContext.theory_of ctxt
   in
     SMT_Normalize.normalize nc ctxt prems
@@ -232,17 +224,19 @@ structure Selected_Solver = Generic_Data
 
 val solver_name_of = Selected_Solver.get
 
-fun select_solver name gen =
-  if is_none (lookup_solver (Context.theory_of gen) name)
+fun select_solver name context =
+  if is_none (lookup_solver (Context.theory_of context) name)
   then error ("SMT solver not registered: " ^ quote name)
-  else Selected_Solver.map (K name) gen
+  else Selected_Solver.map (K name) context
 
-fun raw_solver_of gen =
-  (case lookup_solver (Context.theory_of gen) (solver_name_of gen) of
+fun raw_solver_of context name =
+  (case lookup_solver (Context.theory_of context) name of
     NONE => error "No SMT solver selected"
   | SOME (s, _) => s)
 
-val solver_of = gen_solver o raw_solver_of
+fun solver_of context =
+  let val name = solver_name_of context
+  in gen_solver name (raw_solver_of context name) end
 
 
 (* SMT tactic *)
@@ -291,10 +285,14 @@ val setup =
     "SMT solver configuration" #>
   setup_timeout #>
   setup_trace #>
-  setup_keep #>
-  setup_cert #>
+  setup_record #>
+  Attrib.setup (Binding.name "smt_certificates")
+    (Scan.lift (OuterParse.$$$ "=" |-- Args.name) >>
+      (Thm.declaration_attribute o K o select_certificates))
+    "SMT certificates" #>
   Method.setup (Binding.name "smt") smt_method
     "Applies an SMT solver to the current goal."
+
 
 fun print_setup gen =
   let

@@ -1,12 +1,12 @@
-(*  Title:      Fraction_Field.thy
+(*  Title:      HOL/Library/Fraction_Field.thy
     Author:     Amine Chaieb, University of Cambridge
 *)
 
 header{* A formalization of the fraction field of any integral domain 
-         A generalization of Rational.thy from int to any integral domain *}
+         A generalization of Rat.thy from int to any integral domain *}
 
 theory Fraction_Field
-imports Main (* Equiv_Relations Plain *)
+imports Main
 begin
 
 subsection {* General fractions construction *}

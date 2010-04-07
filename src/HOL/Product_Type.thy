@@ -46,7 +46,7 @@ definition
 where
   "() = Abs_unit True"
 
-lemma unit_eq [noatp]: "u = ()"
+lemma unit_eq [no_atp]: "u = ()"
   by (induct u) (simp add: unit_def Unity_def)
 
 text {*
@@ -78,7 +78,7 @@ text {*
   f} rather than by @{term [source] "%u. f ()"}.
 *}
 
-lemma unit_abs_eta_conv [simp,noatp]: "(%u::unit. f ()) = f"
+lemma unit_abs_eta_conv [simp,no_atp]: "(%u::unit. f ()) = f"
   by (rule ext) simp
 
 instantiation unit :: default
@@ -142,10 +142,10 @@ proof
     by rule+
 qed
 
-syntax (xsymbols)
-  "*"      :: "[type, type] => type"         ("(_ \<times>/ _)" [21, 20] 20)
-syntax (HTML output)
-  "*"      :: "[type, type] => type"         ("(_ \<times>/ _)" [21, 20] 20)
+type_notation (xsymbols)
+  "*"  ("(_ \<times>/ _)" [21, 20] 20)
+type_notation (HTML output)
+  "*"  ("(_ \<times>/ _)" [21, 20] 20)
 
 consts
   Pair     :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<times> 'b"
@@ -180,65 +180,81 @@ syntax
   "_patterns"   :: "[pttrn, patterns] => patterns"      ("_,/ _")
 
 translations
-  "(x, y)"       == "Pair x y"
+  "(x, y)" == "CONST Pair x y"
   "_tuple x (_tuple_args y z)" == "_tuple x (_tuple_arg (_tuple y z))"
-  "%(x,y,zs).b"  == "split(%x (y,zs).b)"
-  "%(x,y).b"     == "split(%x y. b)"
-  "_abs (Pair x y) t" => "%(x,y).t"
+  "%(x, y, zs). b" == "CONST split (%x (y, zs). b)"
+  "%(x, y). b" == "CONST split (%x y. b)"
+  "_abs (CONST Pair x y) t" => "%(x, y). t"
   (* The last rule accommodates tuples in `case C ... (x,y) ... => ...'
      The (x,y) is parsed as `Pair x y' because it is logic, not pttrn *)
 
-(* reconstructs pattern from (nested) splits, avoiding eta-contraction of body*)
-(* works best with enclosing "let", if "let" does not avoid eta-contraction   *)
+(*reconstruct pattern from (nested) splits, avoiding eta-contraction of body;
+  works best with enclosing "let", if "let" does not avoid eta-contraction*)
 print_translation {*
-let fun split_tr' [Abs (x,T,t as (Abs abs))] =
-      (* split (%x y. t) => %(x,y) t *)
-      let val (y,t') = atomic_abs_tr' abs;
-          val (x',t'') = atomic_abs_tr' (x,T,t');
-    
-      in Syntax.const "_abs" $ (Syntax.const "_pattern" $x'$y) $ t'' end
-    | split_tr' [Abs (x,T,(s as Const ("split",_)$t))] =
-       (* split (%x. (split (%y z. t))) => %(x,y,z). t *)
-       let val (Const ("_abs",_)$(Const ("_pattern",_)$y$z)$t') = split_tr' [t];
-           val (x',t'') = atomic_abs_tr' (x,T,t');
-       in Syntax.const "_abs"$ 
-           (Syntax.const "_pattern"$x'$(Syntax.const "_patterns"$y$z))$t'' end
-    | split_tr' [Const ("split",_)$t] =
-       (* split (split (%x y z. t)) => %((x,y),z). t *)   
-       split_tr' [(split_tr' [t])] (* inner split_tr' creates next pattern *)
-    | split_tr' [Const ("_abs",_)$x_y$(Abs abs)] =
-       (* split (%pttrn z. t) => %(pttrn,z). t *)
-       let val (z,t) = atomic_abs_tr' abs;
-       in Syntax.const "_abs" $ (Syntax.const "_pattern" $x_y$z) $ t end
-    | split_tr' _ =  raise Match;
-in [("split", split_tr')]
-end
+let
+  fun split_tr' [Abs (x, T, t as (Abs abs))] =
+        (* split (%x y. t) => %(x,y) t *)
+        let
+          val (y, t') = atomic_abs_tr' abs;
+          val (x', t'') = atomic_abs_tr' (x, T, t');
+        in
+          Syntax.const @{syntax_const "_abs"} $
+            (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
+        end
+    | split_tr' [Abs (x, T, (s as Const (@{const_syntax split}, _) $ t))] =
+        (* split (%x. (split (%y z. t))) => %(x,y,z). t *)
+        let
+          val Const (@{syntax_const "_abs"}, _) $
+            (Const (@{syntax_const "_pattern"}, _) $ y $ z) $ t' = split_tr' [t];
+          val (x', t'') = atomic_abs_tr' (x, T, t');
+        in
+          Syntax.const @{syntax_const "_abs"} $
+            (Syntax.const @{syntax_const "_pattern"} $ x' $
+              (Syntax.const @{syntax_const "_patterns"} $ y $ z)) $ t''
+        end
+    | split_tr' [Const (@{const_syntax split}, _) $ t] =
+        (* split (split (%x y z. t)) => %((x, y), z). t *)
+        split_tr' [(split_tr' [t])] (* inner split_tr' creates next pattern *)
+    | split_tr' [Const (@{syntax_const "_abs"}, _) $ x_y $ Abs abs] =
+        (* split (%pttrn z. t) => %(pttrn,z). t *)
+        let val (z, t) = atomic_abs_tr' abs in
+          Syntax.const @{syntax_const "_abs"} $
+            (Syntax.const @{syntax_const "_pattern"} $ x_y $ z) $ t
+        end
+    | split_tr' _ = raise Match;
+in [(@{const_syntax split}, split_tr')] end
 *}
 
 (* print "split f" as "\<lambda>(x,y). f x y" and "split (\<lambda>x. f x)" as "\<lambda>(x,y). f x y" *) 
 typed_print_translation {*
 let
-  fun split_guess_names_tr' _ T [Abs (x,_,Abs _)] = raise Match
-    | split_guess_names_tr' _ T  [Abs (x,xT,t)] =
+  fun split_guess_names_tr' _ T [Abs (x, _, Abs _)] = raise Match
+    | split_guess_names_tr' _ T [Abs (x, xT, t)] =
         (case (head_of t) of
-           Const ("split",_) => raise Match
-         | _ => let 
-                  val (_::yT::_) = binder_types (domain_type T) handle Bind => raise Match;
-                  val (y,t') = atomic_abs_tr' ("y",yT,(incr_boundvars 1 t)$Bound 0); 
-                  val (x',t'') = atomic_abs_tr' (x,xT,t');
-                in Syntax.const "_abs" $ (Syntax.const "_pattern" $x'$y) $ t'' end)
+          Const (@{const_syntax split}, _) => raise Match
+        | _ =>
+          let 
+            val (_ :: yT :: _) = binder_types (domain_type T) handle Bind => raise Match;
+            val (y, t') = atomic_abs_tr' ("y", yT, incr_boundvars 1 t $ Bound 0);
+            val (x', t'') = atomic_abs_tr' (x, xT, t');
+          in
+            Syntax.const @{syntax_const "_abs"} $
+              (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
+          end)
     | split_guess_names_tr' _ T [t] =
-       (case (head_of t) of
-           Const ("split",_) => raise Match 
-         | _ => let 
-                  val (xT::yT::_) = binder_types (domain_type T) handle Bind => raise Match;
-                  val (y,t') = 
-                        atomic_abs_tr' ("y",yT,(incr_boundvars 2 t)$Bound 1$Bound 0); 
-                  val (x',t'') = atomic_abs_tr' ("x",xT,t');
-                in Syntax.const "_abs" $ (Syntax.const "_pattern" $x'$y) $ t'' end)
+        (case head_of t of
+          Const (@{const_syntax split}, _) => raise Match
+        | _ =>
+          let
+            val (xT :: yT :: _) = binder_types (domain_type T) handle Bind => raise Match;
+            val (y, t') = atomic_abs_tr' ("y", yT, incr_boundvars 2 t $ Bound 1 $ Bound 0);
+            val (x', t'') = atomic_abs_tr' ("x", xT, t');
+          in
+            Syntax.const @{syntax_const "_abs"} $
+              (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
+          end)
     | split_guess_names_tr' _ _ _ = raise Match;
-in [("split", split_guess_names_tr')]
-end 
+in [(@{const_syntax split}, split_guess_names_tr')] end
 *}
 
 
@@ -432,44 +448,44 @@ text {*
 *}
 
 ML {*
-
 local
-  val cond_split_eta_ss = HOL_basic_ss addsimps [thm "cond_split_eta"]
-  fun  Pair_pat k 0 (Bound m) = (m = k)
-  |    Pair_pat k i (Const ("Pair",  _) $ Bound m $ t) = i > 0 andalso
-                        m = k+i andalso Pair_pat k (i-1) t
-  |    Pair_pat _ _ _ = false;
-  fun no_args k i (Abs (_, _, t)) = no_args (k+1) i t
-  |   no_args k i (t $ u) = no_args k i t andalso no_args k i u
-  |   no_args k i (Bound m) = m < k orelse m > k+i
-  |   no_args _ _ _ = true;
-  fun split_pat tp i (Abs  (_,_,t)) = if tp 0 i t then SOME (i,t) else NONE
-  |   split_pat tp i (Const ("split", _) $ Abs (_, _, t)) = split_pat tp (i+1) t
-  |   split_pat tp i _ = NONE;
+  val cond_split_eta_ss = HOL_basic_ss addsimps @{thms cond_split_eta};
+  fun Pair_pat k 0 (Bound m) = (m = k)
+    | Pair_pat k i (Const (@{const_name Pair},  _) $ Bound m $ t) =
+        i > 0 andalso m = k + i andalso Pair_pat k (i - 1) t
+    | Pair_pat _ _ _ = false;
+  fun no_args k i (Abs (_, _, t)) = no_args (k + 1) i t
+    | no_args k i (t $ u) = no_args k i t andalso no_args k i u
+    | no_args k i (Bound m) = m < k orelse m > k + i
+    | no_args _ _ _ = true;
+  fun split_pat tp i (Abs  (_, _, t)) = if tp 0 i t then SOME (i, t) else NONE
+    | split_pat tp i (Const (@{const_name split}, _) $ Abs (_, _, t)) = split_pat tp (i + 1) t
+    | split_pat tp i _ = NONE;
   fun metaeq ss lhs rhs = mk_meta_eq (Goal.prove (Simplifier.the_context ss) [] []
-        (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs,rhs)))
+        (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs)))
         (K (simp_tac (Simplifier.inherit_context ss cond_split_eta_ss) 1)));
 
-  fun beta_term_pat k i (Abs (_, _, t)) = beta_term_pat (k+1) i t
-  |   beta_term_pat k i (t $ u) = Pair_pat k i (t $ u) orelse
-                        (beta_term_pat k i t andalso beta_term_pat k i u)
-  |   beta_term_pat k i t = no_args k i t;
-  fun  eta_term_pat k i (f $ arg) = no_args k i f andalso Pair_pat k i arg
-  |    eta_term_pat _ _ _ = false;
+  fun beta_term_pat k i (Abs (_, _, t)) = beta_term_pat (k + 1) i t
+    | beta_term_pat k i (t $ u) =
+        Pair_pat k i (t $ u) orelse (beta_term_pat k i t andalso beta_term_pat k i u)
+    | beta_term_pat k i t = no_args k i t;
+  fun eta_term_pat k i (f $ arg) = no_args k i f andalso Pair_pat k i arg
+    | eta_term_pat _ _ _ = false;
   fun subst arg k i (Abs (x, T, t)) = Abs (x, T, subst arg (k+1) i t)
-  |   subst arg k i (t $ u) = if Pair_pat k i (t $ u) then incr_boundvars k arg
-                              else (subst arg k i t $ subst arg k i u)
-  |   subst arg k i t = t;
-  fun beta_proc ss (s as Const ("split", _) $ Abs (_, _, t) $ arg) =
+    | subst arg k i (t $ u) =
+        if Pair_pat k i (t $ u) then incr_boundvars k arg
+        else (subst arg k i t $ subst arg k i u)
+    | subst arg k i t = t;
+  fun beta_proc ss (s as Const (@{const_name split}, _) $ Abs (_, _, t) $ arg) =
         (case split_pat beta_term_pat 1 t of
-        SOME (i,f) => SOME (metaeq ss s (subst arg 0 i f))
+          SOME (i, f) => SOME (metaeq ss s (subst arg 0 i f))
         | NONE => NONE)
-  |   beta_proc _ _ = NONE;
-  fun eta_proc ss (s as Const ("split", _) $ Abs (_, _, t)) =
+    | beta_proc _ _ = NONE;
+  fun eta_proc ss (s as Const (@{const_name split}, _) $ Abs (_, _, t)) =
         (case split_pat eta_term_pat 1 t of
-          SOME (_,ft) => SOME (metaeq ss s (let val (f $ arg) = ft in f end))
+          SOME (_, ft) => SOME (metaeq ss s (let val (f $ arg) = ft in f end))
         | NONE => NONE)
-  |   eta_proc _ _ = NONE;
+    | eta_proc _ _ = NONE;
 in
   val split_beta_proc = Simplifier.simproc @{theory} "split_beta" ["split f z"] (K beta_proc);
   val split_eta_proc = Simplifier.simproc @{theory} "split_eta" ["split f"] (K eta_proc);
@@ -481,7 +497,7 @@ Addsimprocs [split_beta_proc, split_eta_proc];
 lemma split_beta [mono]: "(%(x, y). P x y) z = P (fst z) (snd z)"
   by (subst surjective_pairing, rule split_conv)
 
-lemma split_split [noatp]: "R(split c p) = (ALL x y. p = (x, y) --> R(c x y))"
+lemma split_split [no_atp]: "R(split c p) = (ALL x y. p = (x, y) --> R(c x y))"
   -- {* For use with @{text split} and the Simplifier. *}
   by (insert surj_pair [of p], clarify, simp)
 
@@ -492,7 +508,7 @@ text {*
   current goal contains one of those constants.
 *}
 
-lemma split_split_asm [noatp]: "R (split c p) = (~(EX x y. p = (x, y) & (~R (c x y))))"
+lemma split_split_asm [no_atp]: "R (split c p) = (~(EX x y. p = (x, y) & (~R (c x y))))"
 by (subst split_split, simp)
 
 
@@ -549,11 +565,11 @@ declare mem_splitE [elim!] splitE' [elim!] splitE [elim!]
 
 ML {*
 local (* filtering with exists_p_split is an essential optimization *)
-  fun exists_p_split (Const ("split",_) $ _ $ (Const ("Pair",_)$_$_)) = true
+  fun exists_p_split (Const (@{const_name split},_) $ _ $ (Const (@{const_name Pair},_)$_$_)) = true
     | exists_p_split (t $ u) = exists_p_split t orelse exists_p_split u
     | exists_p_split (Abs (_, _, t)) = exists_p_split t
     | exists_p_split _ = false;
-  val ss = HOL_basic_ss addsimps [thm "split_conv"];
+  val ss = HOL_basic_ss addsimps @{thms split_conv};
 in
 val split_conv_tac = SUBGOAL (fn (t, i) =>
     if exists_p_split t then safe_full_simp_tac ss i else no_tac);
@@ -566,10 +582,10 @@ declaration {* fn _ =>
   Classical.map_cs (fn cs => cs addSbefore ("split_conv_tac", split_conv_tac))
 *}
 
-lemma split_eta_SetCompr [simp,noatp]: "(%u. EX x y. u = (x, y) & P (x, y)) = P"
+lemma split_eta_SetCompr [simp,no_atp]: "(%u. EX x y. u = (x, y) & P (x, y)) = P"
   by (rule ext) fast
 
-lemma split_eta_SetCompr2 [simp,noatp]: "(%u. EX x y. u = (x, y) & P x y) = split P"
+lemma split_eta_SetCompr2 [simp,no_atp]: "(%u. EX x y. u = (x, y) & P x y) = split P"
   by (rule ext) fast
 
 lemma split_part [simp]: "(%(a,b). P & Q a b) = (%ab. P & split Q ab)"
@@ -618,10 +634,11 @@ where
 lemma internal_split_conv: "internal_split c (a, b) = c a b"
   by (simp only: internal_split_def split_conv)
 
+use "Tools/split_rule.ML"
+setup Split_Rule.setup
+
 hide const internal_split
 
-use "Tools/split_rule.ML"
-setup SplitRule.setup
 
 lemmas prod_caseI = prod.cases [THEN iffD2, standard]
 
@@ -855,10 +872,9 @@ notation (HTML output)
   Times  (infixr "\<times>" 80)
 
 syntax
-  "@Sigma" ::"[pttrn, 'a set, 'b set] => ('a * 'b) set" ("(3SIGMA _:_./ _)" [0, 0, 10] 10)
-
+  "_Sigma" :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"  ("(3SIGMA _:_./ _)" [0, 0, 10] 10)
 translations
-  "SIGMA x:A. B" == "Product_Type.Sigma A (%x. B)"
+  "SIGMA x:A. B" == "CONST Sigma A (%x. B)"
 
 lemma SigmaI [intro!]: "[| a:A;  b:B(a) |] ==> (a,b) : Sigma A B"
   by (unfold Sigma_def) blast
@@ -931,11 +947,11 @@ lemma UN_Times_distrib:
   -- {* Suggested by Pierre Chartier *}
   by blast
 
-lemma split_paired_Ball_Sigma [simp,noatp]:
+lemma split_paired_Ball_Sigma [simp,no_atp]:
     "(ALL z: Sigma A B. P z) = (ALL x:A. ALL y: B x. P(x,y))"
   by blast
 
-lemma split_paired_Bex_Sigma [simp,noatp]:
+lemma split_paired_Bex_Sigma [simp,no_atp]:
     "(EX z: Sigma A B. P z) = (EX x:A. EX y: B x. P(x,y))"
   by blast
 
@@ -981,6 +997,15 @@ by blast
 
 lemma vimage_Times: "f -` (A \<times> B) = ((fst \<circ> f) -` A) \<inter> ((snd \<circ> f) -` B)"
   by (auto, rule_tac p = "f x" in PairE, auto)
+
+lemma swap_inj_on:
+  "inj_on (%(i, j). (j, i)) (A \<times> B)"
+  by (unfold inj_on_def) fast
+
+lemma swap_product:
+  "(%(i, j). (j, i)) ` (A \<times> B) = B \<times> A"
+  by (simp add: split_def image_def) blast
+
 
 subsubsection {* Code generator setup *}
 
@@ -1034,7 +1059,6 @@ consts_code
   "Pair"    ("(_,/ _)")
 
 setup {*
-
 let
 
 fun strip_abs_split 0 t = ([], t)
@@ -1043,16 +1067,18 @@ fun strip_abs_split 0 t = ([], t)
         val s' = Codegen.new_name t s;
         val v = Free (s', T)
       in apfst (cons v) (strip_abs_split (i-1) (subst_bound (v, t))) end
-  | strip_abs_split i (u as Const ("split", _) $ t) = (case strip_abs_split (i+1) t of
+  | strip_abs_split i (u as Const (@{const_name split}, _) $ t) =
+      (case strip_abs_split (i+1) t of
         (v :: v' :: vs, u) => (HOLogic.mk_prod (v, v') :: vs, u)
       | _ => ([], u))
   | strip_abs_split i t =
       strip_abs_split i (Abs ("x", hd (binder_types (fastype_of t)), t $ Bound 0));
 
-fun let_codegen thy defs dep thyname brack t gr = (case strip_comb t of
-    (t1 as Const ("Let", _), t2 :: t3 :: ts) =>
+fun let_codegen thy defs dep thyname brack t gr =
+  (case strip_comb t of
+    (t1 as Const (@{const_name Let}, _), t2 :: t3 :: ts) =>
     let
-      fun dest_let (l as Const ("Let", _) $ t $ u) =
+      fun dest_let (l as Const (@{const_name Let}, _) $ t $ u) =
           (case strip_abs_split 1 u of
              ([p], u') => apfst (cons (p, t)) (dest_let u')
            | _ => ([], l))
@@ -1083,7 +1109,7 @@ fun let_codegen thy defs dep thyname brack t gr = (case strip_comb t of
   | _ => NONE);
 
 fun split_codegen thy defs dep thyname brack t gr = (case strip_comb t of
-    (t1 as Const ("split", _), t2 :: ts) =>
+    (t1 as Const (@{const_name split}, _), t2 :: ts) =>
       let
         val ([p], u) = strip_abs_split 1 (t1 $ t2);
         val (q, gr1) = Codegen.invoke_codegen thy defs dep thyname false p gr;

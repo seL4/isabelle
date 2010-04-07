@@ -223,20 +223,20 @@ fun strip_case ctxt = Datatype_Case.strip_case
 fun add_case_tr' case_names thy =
   Sign.add_advanced_trfuns ([], [],
     map (fn case_name =>
-      let val case_name' = Sign.const_syntax_name thy case_name
+      let val case_name' = Syntax.mark_const case_name
       in (case_name', Datatype_Case.case_tr' info_of_case case_name')
       end) case_names, []) thy;
 
 val trfun_setup =
   Sign.add_advanced_trfuns ([],
-    [("_case_syntax", Datatype_Case.case_tr true info_of_constr)],
+    [(@{syntax_const "_case_syntax"}, Datatype_Case.case_tr true info_of_constr)],
     [], []);
 
 
 
 (** document antiquotation **)
 
-val _ = ThyOutput.antiquotation "datatype" Args.tyname
+val _ = ThyOutput.antiquotation "datatype" (Args.type_name true)
   (fn {source = src, context = ctxt, ...} => fn dtco =>
     let
       val thy = ProofContext.theory_of ctxt;

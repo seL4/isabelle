@@ -54,9 +54,8 @@ apply  (drule_tac [2] subcls1D)
 apply  auto
 done
 
-constdefs
-  class_rec :: "'c prog \<Rightarrow> cname \<Rightarrow> 'a \<Rightarrow>
-    (cname \<Rightarrow> fdecl list \<Rightarrow> 'c mdecl list \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a"
+definition class_rec :: "'c prog \<Rightarrow> cname \<Rightarrow> 'a \<Rightarrow>
+    (cname \<Rightarrow> fdecl list \<Rightarrow> 'c mdecl list \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a" where
   "class_rec G == wfrec ((subcls1 G)^-1)
     (\<lambda>r C t f. case class G C of
          None \<Rightarrow> undefined

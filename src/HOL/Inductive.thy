@@ -301,10 +301,9 @@ let
   fun fun_tr ctxt [cs] =
     let
       val x = Free (Name.variant (Term.add_free_names cs []) "x", dummyT);
-      val ft = Datatype_Case.case_tr true Datatype_Data.info_of_constr
-                 ctxt [x, cs]
+      val ft = Datatype_Case.case_tr true Datatype_Data.info_of_constr ctxt [x, cs];
     in lambda x ft end
-in [("_lam_pats_syntax", fun_tr)] end
+in [(@{syntax_const "_lam_pats_syntax"}, fun_tr)] end
 *}
 
 end

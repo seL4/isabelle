@@ -6,7 +6,7 @@ Loading and interpreting Boogie-generated files.
 
 signature BOOGIE_LOADER =
 sig
-  val load_b2i: bool -> Path.T -> theory -> theory
+  val load_b2i: bool -> (string * int) list -> Path.T -> theory -> theory
 end
 
 structure Boogie_Loader: BOOGIE_LOADER =
@@ -49,6 +49,15 @@ fun label_name line col =
   if line = 0 orelse col = 0 then no_label_name
   else label_prefix ^ string_of_int line ^ "_" ^ string_of_int col
 
+fun mk_syntax name i =
+  let
+    val syn = Syntax.escape name
+    val args = space_implode ",/ " (replicate i "_")
+  in
+    if i = 0 then Mixfix (syn, [], 1000)
+    else Mixfix (syn ^ "()'(/" ^ args ^ "')", replicate i 0, 1000)
+  end
+
 
 datatype attribute_value = StringValue of string | TermValue of term
 
@@ -77,9 +86,9 @@ local
         SOME type_name => (((name, type_name), log_ex name type_name), thy)
       | NONE =>
           let
-            val args = Name.variant_list [] (replicate arity "'")
+            val args = map (rpair dummyS) (Name.invents Name.context "'a" arity)
             val (T, thy') =
-              ObjectLogic.typedecl (Binding.name isa_name, args, NoSyn) thy
+              Typedecl.typedecl_global (Binding.name isa_name, args, mk_syntax name arity) thy
             val type_name = fst (Term.dest_Type T)
           in (((name, type_name), log_new name type_name), thy') end)
     end
@@ -93,24 +102,6 @@ end
 
 
 local
-  val quote_mixfix =
-    Symbol.explode #> map
-      (fn "_" => "'_"
-        | "(" => "'("
-        | ")" => "')"
-        | "/" => "'/"
-        | s => s) #>
-    implode
-
-  fun mk_syntax name i =
-    let
-      val syn = quote_mixfix name
-      val args = concat (separate ",/ " (replicate i "_"))
-    in
-      if i = 0 then Mixfix (syn, [], 1000)
-      else Mixfix (syn ^ "()'(/" ^ args ^ "')", replicate i 0, 1000)
-    end
-
   fun maybe_builtin T =
     let
       fun const name = SOME (Const (name, T))
@@ -247,11 +238,12 @@ local
     |> split_list_kind thy o Termtab.dest
 in
 fun add_axioms verbose axs thy =
-  let val (used, new) = mark_axioms thy (name_axioms axs)
+  let
+    val (used, new) = mark_axioms thy (name_axioms axs)
   in
     thy
-    |> PureThy.add_axioms (map (rpair [] o apfst Binding.name) new)
-    |-> Context.theory_map o fold Boogie_Axioms.add_thm
+    |> fold_map (fn (n, t) => Specification.axiom ((Binding.name n, []), t)) new
+    |-> Context.theory_map o fold (Boogie_Axioms.add_thm o Drule.export_without_context)
     |> log verbose "The following axioms were added:" (map fst new)
     |> (fn thy' => log verbose "The following axioms already existed:"
          (map (Display.string_of_thm_global thy') used) thy')
@@ -414,11 +406,12 @@ local
 
   fun make_label (line, col) = Free (label_name line col, @{typ bool})
   fun labelled_by kind pos t = kind $ make_label pos $ t
-  val label =
-    $$$ "pos" |-- num -- num >> (fn (pos as (line, col)) =>
+  fun label offset =
+    $$$ "pos" |-- num -- num >> (fn (line, col) =>
       if label_name line col = no_label_name then I
-      else labelled_by @{term block_at} pos) ||
-    $$$ "neg" |-- num -- num >> labelled_by @{term assert_at} ||
+      else labelled_by @{term block_at} (line - offset, col)) ||
+    $$$ "neg" |-- num -- num >> (fn (line, col) =>
+      labelled_by @{term assert_at} (line - offset, col)) ||
     scan_fail "illegal label kind"
 
   fun mk_store ((m, k), v) =
@@ -489,7 +482,7 @@ local
         | rename _ t = t
     in rename nctxt t end
 in
-fun expr tds fds =
+fun expr offset tds fds =
   let
     fun binop t (u1, u2) = t $ u1 $ u2
     fun binexp s f = scan_line' s |-- exp -- exp >> f
@@ -514,10 +507,10 @@ fun expr tds fds =
       quants :|-- (fn (q, ((n, k), i)) =>
         scan_count (scan_line "var" var_name -- typ tds) n --
         scan_count (pattern exp) k --
-        scan_count (attribute tds fds) i --
+        scan_count (attribute offset tds fds) i --
         exp >> (fn (((vs, ps), _), t) =>
           fold_rev (mk_quant q) vs (mk_trigger ps t))) ||
-      scan_line "label" label -- exp >> (fn (mk, t) => mk t) ||
+      scan_line "label" (label offset) -- exp >> (fn (mk, t) => mk t) ||
       scan_line "int-num" num >> HOLogic.mk_number @{typ int} ||
       binexp "<" (binop @{term "op < :: int => _"}) ||
       binexp "<=" (binop @{term "op <= :: int => _"}) ||
@@ -540,10 +533,10 @@ fun expr tds fds =
       scan_fail "illegal expression") st
   in exp >> (rename_variables o unique_labels) end
 
-and attribute tds fds =
+and attribute offset tds fds =
   let
     val attr_val = 
-      scan_line' "expr-attr" |-- expr tds fds >> TermValue ||
+      scan_line' "expr-attr" |-- expr offset tds fds >> TermValue ||
       scan_line "string-attr" (Scan.repeat1 str) >>
         (StringValue o space_implode " ") ||
       scan_fail "illegal attribute value"
@@ -556,36 +549,40 @@ end
 
 fun type_decls verbose = Scan.depend (fn thy => 
   Scan.repeat (scan_line "type-decl" (str -- num -- num) :|-- (fn (ty, i) =>
-    scan_count (attribute Symtab.empty Symtab.empty) i >> K ty)) >>
+    scan_count (attribute 0 Symtab.empty Symtab.empty) i >> K ty)) >>
     (fn tys => declare_types verbose tys thy))
 
 fun fun_decls verbose tds = Scan.depend (fn thy =>
   Scan.repeat (scan_line "fun-decl" (str -- num -- num) :|--
     (fn ((name, arity), i) =>
       scan_count (typ tds) (arity - 1) -- typ tds --
-      scan_count (attribute tds Symtab.empty) i >> pair name)) >>
+      scan_count (attribute 0 tds Symtab.empty) i >> pair name)) >>
     (fn fns => declare_functions verbose fns thy))
 
 fun axioms verbose tds fds unique_axs = Scan.depend (fn thy =>
   Scan.repeat (scan_line "axiom" num :|-- (fn i =>
-    expr tds fds --| scan_count (attribute tds fds) i)) >>
+    expr 0 tds fds --| scan_count (attribute 0 tds fds) i)) >>
     (fn axs => (add_axioms verbose (unique_axs @ axs) thy, ())))
 
 fun var_decls tds fds = Scan.depend (fn thy =>
   Scan.repeat (scan_line "var-decl" (str -- num) :|-- (fn (_, i) =>
-    typ tds -- scan_count (attribute tds fds) i >> K ())) >> K (thy, ()))
+    typ tds -- scan_count (attribute 0 tds fds) i >> K ())) >> K (thy, ()))
 
-fun vcs verbose tds fds = Scan.depend (fn thy =>
-  Scan.repeat (scan_line "vc" (str -- num) -- 
-    (expr tds fds)) >> (fn vcs => ((), add_vcs verbose vcs thy)))
+fun local_vc_offset offsets vc_name =
+   Integer.add ~1 (the_default 1 (AList.lookup (op =) offsets vc_name))
 
-fun parse verbose thy = Scan.pass thy
+fun vcs verbose offsets tds fds = Scan.depend (fn thy =>
+  Scan.repeat (scan_line "vc" (str -- num) :-- (fn (name, _) =>
+    (expr (local_vc_offset offsets name) tds fds))) >> 
+    (fn vcs => ((), add_vcs verbose vcs thy)))
+
+fun parse verbose offsets thy = Scan.pass thy
  (type_decls verbose :|-- (fn tds =>
   fun_decls verbose tds :|-- (fn (unique_axs, fds) =>
   axioms verbose tds fds unique_axs |--
   var_decls tds fds |--
-  vcs verbose tds fds)))
+  vcs verbose offsets tds fds)))
 
-fun load_b2i verbose path thy = finite (parse verbose thy) path
+fun load_b2i verbose offsets path thy = finite (parse verbose offsets thy) path
 
 end

@@ -5,8 +5,10 @@
 header "Package for defining recursive functions in HOLCF"
 
 theory Fixrec
-imports Sprod Ssum Up One Tr Fix
-uses ("Tools/fixrec.ML")
+imports Cprod Sprod Ssum Up One Tr Fix
+uses
+  ("Tools/holcf_library.ML")
+  ("Tools/fixrec.ML")
 begin
 
 subsection {* Maybe monad type *}
@@ -226,10 +228,10 @@ translations
   "_variable _noargs r" => "CONST unit_when\<cdot>r"
 
 parse_translation {*
-(* rewrites (_pat x) => (return) *)
-(* rewrites (_variable x t) => (Abs_CFun (%x. t)) *)
-  [("_pat", K (Syntax.const "Fixrec.return")),
-   mk_binder_tr ("_variable", "Abs_CFun")];
+(* rewrite (_pat x) => (return) *)
+(* rewrite (_variable x t) => (Abs_CFun (%x. t)) *)
+ [(@{syntax_const "_pat"}, fn _ => Syntax.const @{const_syntax Fixrec.return}),
+  mk_binder_tr (@{syntax_const "_variable"}, @{const_syntax Abs_CFun})];
 *}
 
 text {* Printing Case expressions *}
@@ -240,29 +242,32 @@ syntax
 print_translation {*
   let
     fun dest_LAM (Const (@{const_syntax Rep_CFun},_) $ Const (@{const_syntax unit_when},_) $ t) =
-          (Syntax.const "_noargs", t)
+          (Syntax.const @{syntax_const "_noargs"}, t)
     |   dest_LAM (Const (@{const_syntax Rep_CFun},_) $ Const (@{const_syntax csplit},_) $ t) =
           let
             val (v1, t1) = dest_LAM t;
             val (v2, t2) = dest_LAM t1;
-          in (Syntax.const "_args" $ v1 $ v2, t2) end 
+          in (Syntax.const @{syntax_const "_args"} $ v1 $ v2, t2) end
     |   dest_LAM (Const (@{const_syntax Abs_CFun},_) $ t) =
           let
-            val abs = case t of Abs abs => abs
+            val abs =
+              case t of Abs abs => abs
                 | _ => ("x", dummyT, incr_boundvars 1 t $ Bound 0);
             val (x, t') = atomic_abs_tr' abs;
-          in (Syntax.const "_variable" $ x, t') end
+          in (Syntax.const @{syntax_const "_variable"} $ x, t') end
     |   dest_LAM _ = raise Match; (* too few vars: abort translation *)
 
     fun Case1_tr' [Const(@{const_syntax branch},_) $ p, r] =
-          let val (v, t) = dest_LAM r;
-          in Syntax.const "_Case1" $ (Syntax.const "_match" $ p $ v) $ t end;
+          let val (v, t) = dest_LAM r in
+            Syntax.const @{syntax_const "_Case1"} $
+              (Syntax.const @{syntax_const "_match"} $ p $ v) $ t
+          end;
 
   in [(@{const_syntax Rep_CFun}, Case1_tr')] end;
 *}
 
 translations
-  "x" <= "_match Fixrec.return (_variable x)"
+  "x" <= "_match (CONST Fixrec.return) (_variable x)"
 
 
 subsection {* Pattern combinators for data constructors *}
@@ -271,13 +276,13 @@ types ('a, 'b) pat = "'a \<rightarrow> 'b maybe"
 
 definition
   cpair_pat :: "('a, 'c) pat \<Rightarrow> ('b, 'd) pat \<Rightarrow> ('a \<times> 'b, 'c \<times> 'd) pat" where
-  "cpair_pat p1 p2 = (\<Lambda>\<langle>x, y\<rangle>.
-    bind\<cdot>(p1\<cdot>x)\<cdot>(\<Lambda> a. bind\<cdot>(p2\<cdot>y)\<cdot>(\<Lambda> b. return\<cdot>\<langle>a, b\<rangle>)))"
+  "cpair_pat p1 p2 = (\<Lambda>(x, y).
+    bind\<cdot>(p1\<cdot>x)\<cdot>(\<Lambda> a. bind\<cdot>(p2\<cdot>y)\<cdot>(\<Lambda> b. return\<cdot>(a, b))))"
 
 definition
   spair_pat ::
   "('a, 'c) pat \<Rightarrow> ('b, 'd) pat \<Rightarrow> ('a::pcpo \<otimes> 'b::pcpo, 'c \<times> 'd) pat" where
-  "spair_pat p1 p2 = (\<Lambda>(:x, y:). cpair_pat p1 p2\<cdot>\<langle>x, y\<rangle>)"
+  "spair_pat p1 p2 = (\<Lambda>(:x, y:). cpair_pat p1 p2\<cdot>(x, y))"
 
 definition
   sinl_pat :: "('a, 'c) pat \<Rightarrow> ('a::pcpo \<oplus> 'b::pcpo, 'c) pat" where
@@ -305,7 +310,7 @@ definition
 
 text {* Parse translations (patterns) *}
 translations
-  "_pat (XCONST cpair\<cdot>x\<cdot>y)" => "CONST cpair_pat (_pat x) (_pat y)"
+  "_pat (XCONST Pair x y)" => "CONST cpair_pat (_pat x) (_pat y)"
   "_pat (XCONST spair\<cdot>x\<cdot>y)" => "CONST spair_pat (_pat x) (_pat y)"
   "_pat (XCONST sinl\<cdot>x)" => "CONST sinl_pat (_pat x)"
   "_pat (XCONST sinr\<cdot>x)" => "CONST sinr_pat (_pat x)"
@@ -316,12 +321,12 @@ translations
 
 text {* CONST version is also needed for constructors with special syntax *}
 translations
-  "_pat (CONST cpair\<cdot>x\<cdot>y)" => "CONST cpair_pat (_pat x) (_pat y)"
+  "_pat (CONST Pair x y)" => "CONST cpair_pat (_pat x) (_pat y)"
   "_pat (CONST spair\<cdot>x\<cdot>y)" => "CONST spair_pat (_pat x) (_pat y)"
 
 text {* Parse translations (variables) *}
 translations
-  "_variable (XCONST cpair\<cdot>x\<cdot>y) r" => "_variable (_args x y) r"
+  "_variable (XCONST Pair x y) r" => "_variable (_args x y) r"
   "_variable (XCONST spair\<cdot>x\<cdot>y) r" => "_variable (_args x y) r"
   "_variable (XCONST sinl\<cdot>x) r" => "_variable x r"
   "_variable (XCONST sinr\<cdot>x) r" => "_variable x r"
@@ -331,12 +336,12 @@ translations
   "_variable (XCONST ONE) r" => "_variable _noargs r"
 
 translations
-  "_variable (CONST cpair\<cdot>x\<cdot>y) r" => "_variable (_args x y) r"
+  "_variable (CONST Pair x y) r" => "_variable (_args x y) r"
   "_variable (CONST spair\<cdot>x\<cdot>y) r" => "_variable (_args x y) r"
 
 text {* Print translations *}
 translations
-  "CONST cpair\<cdot>(_match p1 v1)\<cdot>(_match p2 v2)"
+  "CONST Pair (_match p1 v1) (_match p2 v2)"
       <= "_match (CONST cpair_pat p1 p2) (_args v1 v2)"
   "CONST spair\<cdot>(_match p1 v1)\<cdot>(_match p2 v2)"
       <= "_match (CONST spair_pat p1 p2) (_args v1 v2)"
@@ -348,20 +353,20 @@ translations
   "CONST ONE" <= "_match (CONST ONE_pat) _noargs"
 
 lemma cpair_pat1:
-  "branch p\<cdot>r\<cdot>x = \<bottom> \<Longrightarrow> branch (cpair_pat p q)\<cdot>(csplit\<cdot>r)\<cdot>\<langle>x, y\<rangle> = \<bottom>"
+  "branch p\<cdot>r\<cdot>x = \<bottom> \<Longrightarrow> branch (cpair_pat p q)\<cdot>(csplit\<cdot>r)\<cdot>(x, y) = \<bottom>"
 apply (simp add: branch_def cpair_pat_def)
 apply (rule_tac p="p\<cdot>x" in maybeE, simp_all)
 done
 
 lemma cpair_pat2:
-  "branch p\<cdot>r\<cdot>x = fail \<Longrightarrow> branch (cpair_pat p q)\<cdot>(csplit\<cdot>r)\<cdot>\<langle>x, y\<rangle> = fail"
+  "branch p\<cdot>r\<cdot>x = fail \<Longrightarrow> branch (cpair_pat p q)\<cdot>(csplit\<cdot>r)\<cdot>(x, y) = fail"
 apply (simp add: branch_def cpair_pat_def)
 apply (rule_tac p="p\<cdot>x" in maybeE, simp_all)
 done
 
 lemma cpair_pat3:
   "branch p\<cdot>r\<cdot>x = return\<cdot>s \<Longrightarrow>
-   branch (cpair_pat p q)\<cdot>(csplit\<cdot>r)\<cdot>\<langle>x, y\<rangle> = branch q\<cdot>s\<cdot>y"
+   branch (cpair_pat p q)\<cdot>(csplit\<cdot>r)\<cdot>(x, y) = branch q\<cdot>s\<cdot>y"
 apply (simp add: branch_def cpair_pat_def)
 apply (rule_tac p="p\<cdot>x" in maybeE, simp_all)
 apply (rule_tac p="q\<cdot>y" in maybeE, simp_all)
@@ -374,7 +379,7 @@ lemma spair_pat [simp]:
   "branch (spair_pat p1 p2)\<cdot>r\<cdot>\<bottom> = \<bottom>"
   "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk>
      \<Longrightarrow> branch (spair_pat p1 p2)\<cdot>r\<cdot>(:x, y:) =
-         branch (cpair_pat p1 p2)\<cdot>r\<cdot>\<langle>x, y\<rangle>"
+         branch (cpair_pat p1 p2)\<cdot>r\<cdot>(x, y)"
 by (simp_all add: branch_def spair_pat_def)
 
 lemma sinl_pat [simp]:
@@ -414,17 +419,13 @@ by (simp_all add: branch_def ONE_pat_def)
 
 subsection {* Wildcards, as-patterns, and lazy patterns *}
 
-syntax
-  "_as_pat" :: "[idt, 'a] \<Rightarrow> 'a" (infixr "\<as>" 10)
-  "_lazy_pat" :: "'a \<Rightarrow> 'a" ("\<lazy> _" [1000] 1000)
-
 definition
   wild_pat :: "'a \<rightarrow> unit maybe" where
   "wild_pat = (\<Lambda> x. return\<cdot>())"
 
 definition
   as_pat :: "('a \<rightarrow> 'b maybe) \<Rightarrow> 'a \<rightarrow> ('a \<times> 'b) maybe" where
-  "as_pat p = (\<Lambda> x. bind\<cdot>(p\<cdot>x)\<cdot>(\<Lambda> a. return\<cdot>\<langle>x, a\<rangle>))"
+  "as_pat p = (\<Lambda> x. bind\<cdot>(p\<cdot>x)\<cdot>(\<Lambda> a. return\<cdot>(x, a)))"
 
 definition
   lazy_pat :: "('a \<rightarrow> 'b::pcpo maybe) \<Rightarrow> ('a \<rightarrow> 'b maybe)" where
@@ -433,24 +434,14 @@ definition
 text {* Parse translations (patterns) *}
 translations
   "_pat _" => "CONST wild_pat"
-  "_pat (_as_pat x y)" => "CONST as_pat (_pat y)"
-  "_pat (_lazy_pat x)" => "CONST lazy_pat (_pat x)"
 
 text {* Parse translations (variables) *}
 translations
   "_variable _ r" => "_variable _noargs r"
-  "_variable (_as_pat x y) r" => "_variable (_args x y) r"
-  "_variable (_lazy_pat x) r" => "_variable x r"
 
 text {* Print translations *}
 translations
   "_" <= "_match (CONST wild_pat) _noargs"
-  "_as_pat x (_match p v)" <= "_match (CONST as_pat p) (_args (_variable x) v)"
-  "_lazy_pat (_match p v)" <= "_match (CONST lazy_pat p) v"
-
-text {* Lazy patterns in lambda abstractions *}
-translations
-  "_cabs (_lazy_pat p) r" == "CONST Fixrec.cases oo (_Case1 (_lazy_pat p) r)"
 
 lemma wild_pat [simp]: "branch wild_pat\<cdot>(unit_when\<cdot>r)\<cdot>x = return\<cdot>r"
 by (simp add: branch_def wild_pat_def)
@@ -525,7 +516,6 @@ lemma match_UU_simps [simp]:
 by (simp_all add: match_UU_def)
 
 lemma match_cpair_simps [simp]:
-  "match_cpair\<cdot>\<langle>x, y\<rangle>\<cdot>k = k\<cdot>x\<cdot>y"
   "match_cpair\<cdot>(x, y)\<cdot>k = k\<cdot>x\<cdot>y"
 by (simp_all add: match_cpair_def)
 
@@ -600,6 +590,7 @@ by simp
 
 subsection {* Initializing the fixrec package *}
 
+use "Tools/holcf_library.ML"
 use "Tools/fixrec.ML"
 
 setup {* Fixrec.setup *}
@@ -610,7 +601,6 @@ setup {*
       (@{const_name sinl}, @{const_name match_sinl}),
       (@{const_name sinr}, @{const_name match_sinr}),
       (@{const_name spair}, @{const_name match_spair}),
-      (@{const_name cpair}, @{const_name match_cpair}),
       (@{const_name Pair}, @{const_name match_cpair}),
       (@{const_name ONE}, @{const_name match_ONE}),
       (@{const_name TT}, @{const_name match_TT}),

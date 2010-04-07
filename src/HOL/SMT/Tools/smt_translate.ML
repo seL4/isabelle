@@ -126,11 +126,11 @@ fun builtin_make entries =
   let
     fun dest (t, bn) =
       let val (n, T) = Term.dest_Const t
-      in (n, (Logic.varifyT T, K (SOME o pair bn))) end
+      in (n, (Logic.varifyT_global T, K (SOME o pair bn))) end
   in Symtab.make (AList.group (op =) (map dest entries)) end
 
 fun builtin_add (t, f) tab =
-  let val (n, T) = apsnd Logic.varifyT (Term.dest_Const t)
+  let val (n, T) = apsnd Logic.varifyT_global (Term.dest_Const t)
   in Symtab.map_default (n, []) (AList.update (op =) (T, f)) tab end
 
 fun builtin_lookup tab thy (n, T) ts =
@@ -253,9 +253,9 @@ local
       | atoms_ord (SNum (i, _), SNum (j, _)) = int_ord (i, j)
       | atoms_ord _ = sys_error "atoms_ord"
 
-    fun types_ord (SConst (_, T), SConst (_, U)) = TermOrd.typ_ord (T, U)
-      | types_ord (SFree (_, T), SFree (_, U)) = TermOrd.typ_ord (T, U)
-      | types_ord (SNum (_, T), SNum (_, U)) = TermOrd.typ_ord (T, U)
+    fun types_ord (SConst (_, T), SConst (_, U)) = Term_Ord.typ_ord (T, U)
+      | types_ord (SFree (_, T), SFree (_, U)) = Term_Ord.typ_ord (T, U)
+      | types_ord (SNum (_, T), SNum (_, U)) = Term_Ord.typ_ord (T, U)
       | types_ord _ = sys_error "types_ord"
 
     fun fast_sym_ord tu =
@@ -433,21 +433,26 @@ local
     in fresh_name (p, i) ||> (fn (_, i') => (nT, ((pf, pp), i'))) end
 
   val empty_sign = (Typtab.empty, Termtab.empty, Termtab.empty)
-  fun lookup_typ (typs, _, _) = Typtab.lookup typs
-  fun lookup_fun true (_, funs, _) = Termtab.lookup funs
-    | lookup_fun false (_, _, preds) = Termtab.lookup preds
-  fun add_typ x (typs, funs, preds) = (Typtab.update x typs, funs, preds)
-  fun add_fun true x (typs, funs, preds) = (typs, Termtab.update x funs, preds)
-    | add_fun false x (typs, funs, preds) = (typs, funs, Termtab.update x preds)
+  fun lookup_typ (typs, _, _) = Option.map snd o Typtab.lookup typs
+  fun lookup_fun true (_, funs, _) = Option.map snd o Termtab.lookup funs
+    | lookup_fun false (_, _, preds) = Option.map snd o Termtab.lookup preds
+  fun ext (k, v) = (k, (serial (), v))
+  fun p_ord p = prod_ord int_ord (K EQUAL) p
+  fun add_typ x (typs, funs, preds) =
+    (Typtab.update (ext x) typs, funs, preds)
+  fun add_fun true x (typs, funs, preds) =
+        (typs, Termtab.update (ext x) funs, preds)
+    | add_fun false x (typs, funs, preds) =
+        (typs, funs, Termtab.update (ext x) preds)
   fun make_sign (typs, funs, preds) = {
-    typs = map snd (Typtab.dest typs),
-    funs = map snd (Termtab.dest funs),
-    preds = map (apsnd fst o snd) (Termtab.dest preds) }
+    typs = map snd (sort p_ord (map snd (Typtab.dest typs))),
+    funs = map snd (sort p_ord (map snd (Termtab.dest funs))),
+    preds = map (apsnd fst o snd) (sort p_ord (map snd (Termtab.dest preds))) }
   fun make_rtab (typs, funs, preds) =
     let
-      val rTs = Typtab.dest typs |> map swap |> Symtab.make
+      val rTs = Typtab.dest typs |> map (swap o apsnd snd) |> Symtab.make
       val rts = Termtab.dest funs @ Termtab.dest preds
-        |> map (apfst fst o swap) |> Symtab.make
+        |> map (apfst fst o swap o apsnd snd) |> Symtab.make
     in {typs=rTs, terms=rts} end
 
   fun either f g x = (case f x of NONE => g x | y => y)

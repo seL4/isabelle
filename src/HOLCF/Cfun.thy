@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/Cfun.thy
     Author:     Franz Regensburger
-
-Definition of the type ->  of continuous functions.
+    Author:     Brian Huffman
 *)
 
 header {* The type of continuous functions *}
@@ -20,11 +19,11 @@ by (rule exI, rule cont_const)
 lemma adm_cont: "adm cont"
 by (rule admI, rule cont_lub_fun)
 
-cpodef (CFun)  ('a, 'b) "->" (infixr "->" 0) = "{f::'a => 'b. cont f}"
+cpodef (CFun)  ('a, 'b) cfun (infixr "->" 0) = "{f::'a => 'b. cont f}"
 by (simp_all add: Ex_cont adm_cont)
 
-syntax (xsymbols)
-  "->"     :: "[type, type] => type"      ("(_ \<rightarrow>/ _)" [1,0]0)
+type_notation (xsymbols)
+  cfun  ("(_ \<rightarrow>/ _)" [1, 0] 0)
 
 notation
   Rep_CFun  ("(_$/_)" [999,1000] 999)
@@ -40,8 +39,8 @@ subsection {* Syntax for continuous lambda abstraction *}
 syntax "_cabs" :: "'a"
 
 parse_translation {*
-(* rewrites (_cabs x t) => (Abs_CFun (%x. t)) *)
-  [mk_binder_tr ("_cabs", @{const_syntax Abs_CFun})];
+(* rewrite (_cabs x t) => (Abs_CFun (%x. t)) *)
+  [mk_binder_tr (@{syntax_const "_cabs"}, @{const_syntax Abs_CFun})];
 *}
 
 text {* To avoid eta-contraction of body: *}
@@ -49,13 +48,13 @@ typed_print_translation {*
   let
     fun cabs_tr' _ _ [Abs abs] = let
           val (x,t) = atomic_abs_tr' abs
-        in Syntax.const "_cabs" $ x $ t end
+        in Syntax.const @{syntax_const "_cabs"} $ x $ t end
 
       | cabs_tr' _ T [t] = let
           val xT = domain_type (domain_type T);
           val abs' = ("x",xT,(incr_boundvars 1 t)$Bound 0);
           val (x,t') = atomic_abs_tr' abs';
-        in Syntax.const "_cabs" $ x $ t' end;
+        in Syntax.const @{syntax_const "_cabs"} $ x $ t' end;
 
   in [(@{const_syntax Abs_CFun}, cabs_tr')] end;
 *}
@@ -69,26 +68,28 @@ syntax (xsymbols)
   "_Lambda" :: "[cargs, 'a] \<Rightarrow> logic" ("(3\<Lambda> _./ _)" [1000, 10] 10)
 
 parse_ast_translation {*
-(* rewrites (LAM x y z. t) => (_cabs x (_cabs y (_cabs z t))) *)
-(* cf. Syntax.lambda_ast_tr from Syntax/syn_trans.ML *)
+(* rewrite (LAM x y z. t) => (_cabs x (_cabs y (_cabs z t))) *)
+(* cf. Syntax.lambda_ast_tr from src/Pure/Syntax/syn_trans.ML *)
   let
     fun Lambda_ast_tr [pats, body] =
-          Syntax.fold_ast_p "_cabs" (Syntax.unfold_ast "_cargs" pats, body)
+          Syntax.fold_ast_p @{syntax_const "_cabs"}
+            (Syntax.unfold_ast @{syntax_const "_cargs"} pats, body)
       | Lambda_ast_tr asts = raise Syntax.AST ("Lambda_ast_tr", asts);
-  in [("_Lambda", Lambda_ast_tr)] end;
+  in [(@{syntax_const "_Lambda"}, Lambda_ast_tr)] end;
 *}
 
 print_ast_translation {*
-(* rewrites (_cabs x (_cabs y (_cabs z t))) => (LAM x y z. t) *)
-(* cf. Syntax.abs_ast_tr' from Syntax/syn_trans.ML *)
+(* rewrite (_cabs x (_cabs y (_cabs z t))) => (LAM x y z. t) *)
+(* cf. Syntax.abs_ast_tr' from src/Pure/Syntax/syn_trans.ML *)
   let
     fun cabs_ast_tr' asts =
-      (case Syntax.unfold_ast_p "_cabs"
-          (Syntax.Appl (Syntax.Constant "_cabs" :: asts)) of
+      (case Syntax.unfold_ast_p @{syntax_const "_cabs"}
+          (Syntax.Appl (Syntax.Constant @{syntax_const "_cabs"} :: asts)) of
         ([], _) => raise Syntax.AST ("cabs_ast_tr'", asts)
       | (xs, body) => Syntax.Appl
-          [Syntax.Constant "_Lambda", Syntax.fold_ast "_cargs" xs, body]);
-  in [("_cabs", cabs_ast_tr')] end;
+          [Syntax.Constant @{syntax_const "_Lambda"},
+           Syntax.fold_ast @{syntax_const "_cargs"} xs, body]);
+  in [(@{syntax_const "_cabs"}, cabs_ast_tr')] end
 *}
 
 text {* Dummy patterns for continuous abstraction *}
@@ -101,16 +102,16 @@ subsection {* Continuous function space is pointed *}
 lemma UU_CFun: "\<bottom> \<in> CFun"
 by (simp add: CFun_def inst_fun_pcpo cont_const)
 
-instance "->" :: (finite_po, finite_po) finite_po
+instance cfun :: (finite_po, finite_po) finite_po
 by (rule typedef_finite_po [OF type_definition_CFun])
 
-instance "->" :: (finite_po, chfin) chfin
+instance cfun :: (finite_po, chfin) chfin
 by (rule typedef_chfin [OF type_definition_CFun below_CFun_def])
 
-instance "->" :: (cpo, discrete_cpo) discrete_cpo
+instance cfun :: (cpo, discrete_cpo) discrete_cpo
 by intro_classes (simp add: below_CFun_def Rep_CFun_inject)
 
-instance "->" :: (cpo, pcpo) pcpo
+instance cfun :: (cpo, pcpo) pcpo
 by (rule typedef_pcpo [OF type_definition_CFun below_CFun_def UU_CFun])
 
 lemmas Rep_CFun_strict =
@@ -124,9 +125,12 @@ text {* function application is strict in its first argument *}
 lemma Rep_CFun_strict1 [simp]: "\<bottom>\<cdot>x = \<bottom>"
 by (simp add: Rep_CFun_strict)
 
+lemma LAM_strict [simp]: "(\<Lambda> x. \<bottom>) = \<bottom>"
+by (simp add: inst_fun_pcpo [symmetric] Abs_CFun_strict)
+
 text {* for compatibility with old HOLCF-Version *}
 lemma inst_cfun_pcpo: "\<bottom> = (\<Lambda> x. \<bottom>)"
-by (simp add: inst_fun_pcpo [symmetric] Abs_CFun_strict)
+by simp
 
 subsection {* Basic properties of continuous functions *}
 
@@ -181,23 +185,20 @@ apply (simp add: CFun_def)
 done
 
 lemmas monofun_Rep_CFun = cont_Rep_CFun [THEN cont2mono]
-lemmas contlub_Rep_CFun = cont_Rep_CFun [THEN cont2contlub]
 
 lemmas monofun_Rep_CFun1 = cont_Rep_CFun1 [THEN cont2mono, standard]
-lemmas contlub_Rep_CFun1 = cont_Rep_CFun1 [THEN cont2contlub, standard]
 lemmas monofun_Rep_CFun2 = cont_Rep_CFun2 [THEN cont2mono, standard]
-lemmas contlub_Rep_CFun2 = cont_Rep_CFun2 [THEN cont2contlub, standard]
 
 text {* contlub, cont properties of @{term Rep_CFun} in each argument *}
 
 lemma contlub_cfun_arg: "chain Y \<Longrightarrow> f\<cdot>(\<Squnion>i. Y i) = (\<Squnion>i. f\<cdot>(Y i))"
-by (rule contlub_Rep_CFun2 [THEN contlubE])
+by (rule cont_Rep_CFun2 [THEN cont2contlubE])
 
 lemma cont_cfun_arg: "chain Y \<Longrightarrow> range (\<lambda>i. f\<cdot>(Y i)) <<| f\<cdot>(\<Squnion>i. Y i)"
 by (rule cont_Rep_CFun2 [THEN contE])
 
 lemma contlub_cfun_fun: "chain F \<Longrightarrow> (\<Squnion>i. F i)\<cdot>x = (\<Squnion>i. F i\<cdot>x)"
-by (rule contlub_Rep_CFun1 [THEN contlubE])
+by (rule cont_Rep_CFun1 [THEN cont2contlubE])
 
 lemma cont_cfun_fun: "chain F \<Longrightarrow> range (\<lambda>i. F i\<cdot>x) <<| (\<Squnion>i. F i)\<cdot>x"
 by (rule cont_Rep_CFun1 [THEN contE])
@@ -519,32 +520,22 @@ definition
 text {* results about strictify *}
 
 lemma cont_strictify1: "cont (\<lambda>f. if x = \<bottom> then \<bottom> else f\<cdot>x)"
-by (simp add: cont_if)
+by simp
 
 lemma monofun_strictify2: "monofun (\<lambda>x. if x = \<bottom> then \<bottom> else f\<cdot>x)"
 apply (rule monofunI)
 apply (auto simp add: monofun_cfun_arg)
 done
 
-(*FIXME: long proof*)
-lemma contlub_strictify2: "contlub (\<lambda>x. if x = \<bottom> then \<bottom> else f\<cdot>x)"
-apply (rule contlubI)
-apply (case_tac "(\<Squnion>i. Y i) = \<bottom>")
-apply (drule (1) chain_UU_I)
-apply simp
-apply (simp del: if_image_distrib)
-apply (simp only: contlub_cfun_arg)
-apply (rule lub_equal2)
-apply (rule chain_mono2 [THEN exE])
-apply (erule chain_UU_I_inverse2)
-apply (assumption)
-apply (rule_tac x=x in exI, clarsimp)
-apply (erule chain_monofun)
-apply (erule monofun_strictify2 [THEN ch2ch_monofun])
+lemma cont_strictify2: "cont (\<lambda>x. if x = \<bottom> then \<bottom> else f\<cdot>x)"
+apply (rule contI2)
+apply (rule monofun_strictify2)
+apply (case_tac "(\<Squnion>i. Y i) = \<bottom>", simp)
+apply (simp add: contlub_cfun_arg del: if_image_distrib)
+apply (drule chain_UU_I_inverse2, clarify, rename_tac j)
+apply (rule lub_mono2, rule_tac x=j in exI, simp_all)
+apply (auto dest!: chain_mono_less)
 done
-
-lemmas cont_strictify2 =
-  monocontlub2cont [OF monofun_strictify2 contlub_strictify2, standard]
 
 lemma strictify_conv_if: "strictify\<cdot>f\<cdot>x = (if x = \<bottom> then \<bottom> else f\<cdot>x)"
   unfolding strictify_def
@@ -556,17 +547,26 @@ by (simp add: strictify_conv_if)
 lemma strictify2 [simp]: "x \<noteq> \<bottom> \<Longrightarrow> strictify\<cdot>f\<cdot>x = f\<cdot>x"
 by (simp add: strictify_conv_if)
 
-subsection {* Continuous let-bindings *}
+subsection {* Continuity of let-bindings *}
 
-definition
-  CLet :: "'a \<rightarrow> ('a \<rightarrow> 'b) \<rightarrow> 'b" where
-  "CLet = (\<Lambda> s f. f\<cdot>s)"
+lemma cont2cont_Let:
+  assumes f: "cont (\<lambda>x. f x)"
+  assumes g1: "\<And>y. cont (\<lambda>x. g x y)"
+  assumes g2: "\<And>x. cont (\<lambda>y. g x y)"
+  shows "cont (\<lambda>x. let y = f x in g x y)"
+unfolding Let_def using f g2 g1 by (rule cont_apply)
 
-syntax
-  "_CLet" :: "[letbinds, 'a] => 'a" ("(Let (_)/ in (_))" 10)
-
-translations
-  "_CLet (_binds b bs) e" == "_CLet b (_CLet bs e)"
-  "Let x = a in e" == "CONST CLet\<cdot>a\<cdot>(\<Lambda> x. e)"
+lemma cont2cont_Let' [cont2cont]:
+  assumes f: "cont (\<lambda>x. f x)"
+  assumes g: "cont (\<lambda>p. g (fst p) (snd p))"
+  shows "cont (\<lambda>x. let y = f x in g x y)"
+using f
+proof (rule cont2cont_Let)
+  fix x show "cont (\<lambda>y. g x y)"
+    using g by (rule cont_fst_snd_D2)
+next
+  fix y show "cont (\<lambda>x. g x y)"
+    using g by (rule cont_fst_snd_D1)
+qed
 
 end

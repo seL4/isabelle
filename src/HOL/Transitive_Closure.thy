@@ -309,6 +309,25 @@ apply (induct rule:converse_rtrancl_induct)
 apply (blast intro:rtrancl_trans)
 done
 
+lemma Image_closed_trancl:
+  assumes "r `` X \<subseteq> X" shows "r\<^sup>* `` X = X"
+proof -
+  from assms have **: "{y. \<exists>x\<in>X. (x, y) \<in> r} \<subseteq> X" by auto
+  have "\<And>x y. (y, x) \<in> r\<^sup>* \<Longrightarrow> y \<in> X \<Longrightarrow> x \<in> X"
+  proof -
+    fix x y
+    assume *: "y \<in> X"
+    assume "(y, x) \<in> r\<^sup>*"
+    then show "x \<in> X"
+    proof induct
+      case base show ?case by (fact *)
+    next
+      case step with ** show ?case by auto
+    qed
+  qed
+  then show ?thesis by auto
+qed
+
 
 subsection {* Transitive closure *}
 
@@ -445,7 +464,7 @@ lemma trancl_insert:
    apply (rule subsetI)
    apply (simp only: split_tupled_all)
    apply (erule trancl_induct, blast)
-   apply (blast intro: rtrancl_into_trancl1 trancl_into_rtrancl r_into_trancl trancl_trans)
+   apply (blast intro: rtrancl_into_trancl1 trancl_into_rtrancl trancl_trans)
   apply (rule subsetI)
   apply (blast intro: trancl_mono rtrancl_mono
     [THEN [2] rev_subsetD] rtrancl_trancl_trancl rtrancl_into_trancl2)
@@ -484,7 +503,7 @@ lemma converse_tranclp_induct [consumes 1, case_names base step]:
   apply (rule tranclp_induct [OF tranclp_converseI, OF conversepI, OF major])
    apply (rule cases)
    apply (erule conversepD)
-  apply (blast intro: prems dest!: tranclp_converseD conversepD)
+  apply (blast intro: assms dest!: tranclp_converseD)
   done
 
 lemmas converse_trancl_induct = converse_tranclp_induct [to_set]

@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/J/Example.thy
-    ID:         $Id$
     Author:     David von Oheimb
     Copyright   1999 Technische Universitaet Muenchen
 *)
@@ -55,19 +54,16 @@ axioms
 
 declare inj_cnam' [simp] inj_vnam' [simp]
 
-syntax
-  Base :: cname
-  Ext  :: cname
-  vee  :: vname
-  x    :: vname
-  e    :: vname
-
-translations
-  "Base" == "cnam' Base'"
-  "Ext"  == "cnam' Ext'"
-  "vee"  == "VName (vnam' vee')"
-  "x"  == "VName (vnam' x')"
-  "e"  == "VName (vnam' e')"
+abbreviation Base :: cname
+  where "Base == cnam' Base'"
+abbreviation Ext :: cname
+  where "Ext == cnam' Ext'"
+abbreviation vee :: vname
+  where "vee == VName (vnam' vee')"
+abbreviation x :: vname
+  where "x == VName (vnam' x')"
+abbreviation e :: vname
+  where "e == VName (vnam' e')"
 
 axioms
   Base_not_Object: "Base \<noteq> Object"

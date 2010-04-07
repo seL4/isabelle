@@ -1,5 +1,4 @@
 (*  Title:      Sequents/simpdata.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson
     Copyright   1999  University of Cambridge
 
@@ -49,9 +48,9 @@ val mk_meta_prems =
 
 (*Congruence rules for = or <-> (instead of ==)*)
 fun mk_meta_cong rl =
-  Drule.standard(mk_meta_eq (mk_meta_prems rl))
-  handle THM _ =>
-  error("Premises and conclusion of congruence rules must use =-equality or <->");
+  Drule.export_without_context(mk_meta_eq (mk_meta_prems rl))
+    handle THM _ =>
+      error("Premises and conclusion of congruence rules must use =-equality or <->");
 
 
 (*** Standard simpsets ***)
@@ -68,7 +67,7 @@ fun safe_solver prems =
 
 (*No simprules, but basic infrastructure for simplification*)
 val LK_basic_ss =
-  Simplifier.theory_context @{theory} empty_ss
+  Simplifier.global_context @{theory} empty_ss
     setsubgoaler asm_simp_tac
     setSSolver (mk_solver "safe" safe_solver)
     setSolver (mk_solver "unsafe" unsafe_solver)

@@ -1,5 +1,4 @@
 (*  Title:      HOL/Import/Generate-HOL/GenHOL4Real.thy
-    ID:         $Id$
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
@@ -17,13 +16,13 @@ type_maps
   real > RealDef.real;
 
 const_maps
-  real_0   > 0           :: real
-  real_1   > 1           :: real
-  real_neg > uminus      :: "real => real"
-  inv      > HOL.inverse :: "real => real"
-  real_add > HOL.plus    :: "[real,real] => real"
-  real_mul > HOL.times   :: "[real,real] => real"
-  real_lt  > HOL.ord_class.less :: "[real,real] => bool";
+  real_0   > Groups.zero      :: real
+  real_1   > Groups.one       :: real
+  real_neg > Groups.uminus    :: "real => real"
+  inv      > Groups.inverse   :: "real => real"
+  real_add > Groups.plus      :: "[real,real] => real"
+  real_mul > Groups.times     :: "[real,real] => real"
+  real_lt  > Orderings.less      :: "[real,real] => bool";
 
 ignore_thms
     real_TY_DEF
@@ -51,11 +50,11 @@ import_theory real;
 const_maps
   real_gt     > HOL4Compat.real_gt
   real_ge     > HOL4Compat.real_ge
-  real_lte    > HOL.ord_class.less_eq :: "[real,real] => bool"
-  real_sub    > HOL.minus    :: "[real,real] => real"
-  "/"         > HOL.divide   :: "[real,real] => real"
-  pow         > Power.power_class.power    :: "[real,nat] => real"
-  abs         > HOL.abs      :: "real => real"
+  real_lte    > Orderings.less_eq :: "[real,real] => bool"
+  real_sub    > Groups.minus :: "[real,real] => real"
+  "/"         > Rings.divide :: "[real,real] => real"
+  pow         > Power.power :: "[real,nat] => real"
+  abs         > Groups.abs :: "real => real"
   real_of_num > RealDef.real :: "nat => real";
 
 end_import;

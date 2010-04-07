@@ -19,7 +19,7 @@ by metis
 lemma "P(n::nat) ==> ~P(0) ==> n ~= 0"
 by metis
 
-declare [[sledgehammer_modulus = 1]]
+sledgehammer_params [modulus = 1]
 
 
 (*multiple versions of this example*)
@@ -90,7 +90,7 @@ show "False"
   by (metis 31 29)
 qed
 
-declare [[sledgehammer_modulus = 2]]
+sledgehammer_params [modulus = 2]
 
 lemma (*equal_union: *)
    "(X = Y \<union> Z) =
@@ -133,7 +133,7 @@ show "False"
   by (metis 18 17)
 qed
 
-declare [[sledgehammer_modulus = 3]]
+sledgehammer_params [modulus = 3]
 
 lemma (*equal_union: *)
    "(X = Y \<union> Z) =
@@ -168,7 +168,7 @@ qed
 
 (*Example included in TPHOLs paper*)
 
-declare [[sledgehammer_modulus = 4]]
+sledgehammer_params [modulus = 4]
 
 lemma (*equal_union: *)
    "(X = Y \<union> Z) =

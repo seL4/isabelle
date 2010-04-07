@@ -46,8 +46,7 @@ specification (invKey)
 text{*The inverse of a symmetric key is itself; that of a public key
       is the private key and vice versa*}
 
-constdefs
-  symKeys :: "key set"
+definition symKeys :: "key set" where
   "symKeys == {K. invKey K = K}"
 (*>*)
 
@@ -82,18 +81,17 @@ checksum, so that garbage can be detected.
 (*<*)
 text{*Concrete syntax: messages appear as {|A,B,NA|}, etc...*}
 syntax
-  "@MTuple"      :: "['a, args] => 'a * 'b"       ("(2{|_,/ _|})")
+  "_MTuple"      :: "['a, args] => 'a * 'b"       ("(2{|_,/ _|})")
 
 syntax (xsymbols)
-  "@MTuple"      :: "['a, args] => 'a * 'b"       ("(2\<lbrace>_,/ _\<rbrace>)")
+  "_MTuple"      :: "['a, args] => 'a * 'b"       ("(2\<lbrace>_,/ _\<rbrace>)")
 
 translations
   "{|x, y, z|}"   == "{|x, {|y, z|}|}"
-  "{|x, y|}"      == "MPair x y"
+  "{|x, y|}"      == "CONST MPair x y"
 
 
-constdefs
-  keysFor :: "msg set => key set"
+definition keysFor :: "msg set => key set" where
     --{*Keys useful to decrypt elements of a message set*}
   "keysFor H == invKey ` {K. \<exists>X. Crypt K X \<in> H}"
 

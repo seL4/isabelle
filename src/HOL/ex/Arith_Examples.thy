@@ -33,7 +33,7 @@ ML {* set Lin_Arith.trace; *}
 *)
 
 subsection {* Splitting of Operators: @{term max}, @{term min}, @{term abs},
-           @{term HOL.minus}, @{term nat}, @{term Divides.mod},
+           @{term minus}, @{term nat}, @{term Divides.mod},
            @{term Divides.div} *}
 
 lemma "(i::nat) <= max i j"
@@ -123,12 +123,12 @@ lemma "(i::int) mod 1 = 0"
   (* FIXME: need to replace 1 by its numeral representation *)
   apply (subst numeral_1_eq_1 [symmetric])
   (* FIXME: arith does not know about iszero *)
-  apply (tactic {* Lin_Arith.pre_tac @{context} 1 *})
+  apply (tactic {* Lin_Arith.pre_tac @{simpset} 1 *})
 oops
 
 lemma "(i::int) mod 42 <= 41"
   (* FIXME: arith does not know about iszero *)
-  apply (tactic {* Lin_Arith.pre_tac @{context} 1 *})
+  apply (tactic {* Lin_Arith.pre_tac @{simpset} 1 *})
 oops
 
 lemma "-(i::int) * 1 = 0 ==> i = 0"

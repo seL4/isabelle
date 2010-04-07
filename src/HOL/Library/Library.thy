@@ -10,11 +10,11 @@ imports
   Char_ord
   Code_Char_chr
   Code_Integer
-  Coinductive_List
   Continuity
   ContNotDenum
   Countable
   Diagonalize
+  Dlist
   Efficient_Nat
   Enum
   Eval_Witness
@@ -28,6 +28,7 @@ imports
   Fundamental_Theorem_Algebra
   Infinite_Set
   Inner_Product
+  Lattice_Algebras
   Lattice_Syntax
   ListVector
   Kleene_Algebra
@@ -44,13 +45,19 @@ imports
   Preorder
   Product_Vector
   Quicksort
-  Quotient
+  Quotient_List
+  Quotient_Option
+  Quotient_Product
+  Quotient_Sum
+  Quotient_Syntax
+  Quotient_Type
   Ramsey
   Reflection
   RBT
   SML_Quickcheck
   State_Monad
   Sum_Of_Squares
+  Table
   Transitive_Closure_Table
   Univ_Poly
   While_Combinator

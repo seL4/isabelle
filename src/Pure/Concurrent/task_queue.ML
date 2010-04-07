@@ -34,12 +34,14 @@ sig
   val finish: task -> queue -> bool * queue
 end;
 
-structure Task_Queue:> TASK_QUEUE =
+structure Task_Queue: TASK_QUEUE =
 struct
 
 (* tasks *)
 
-datatype task = Task of int option * serial;
+abstype task = Task of int option * serial
+with
+
 val dummy_task = Task (NONE, ~1);
 fun new_task pri = Task (pri, serial ());
 
@@ -47,15 +49,20 @@ fun pri_of_task (Task (pri, _)) = the_default 0 pri;
 fun str_of_task (Task (_, i)) = string_of_int i;
 
 fun task_ord (Task t1, Task t2) = prod_ord (rev_order o option_ord int_ord) int_ord (t1, t2);
+val eq_task = is_equal o task_ord;
+
+end;
+
 structure Task_Graph = Graph(type key = task val ord = task_ord);
 
 
 (* nested groups *)
 
-datatype group = Group of
+abstype group = Group of
  {parent: group option,
   id: serial,
-  status: exn list Synchronized.var};
+  status: exn list Synchronized.var}
+with
 
 fun make_group (parent, id, status) = Group {parent = parent, id = id, status = status};
 
@@ -89,6 +96,8 @@ fun group_status (Group {parent, status, ...}) =
 
 fun str_of_group group =
   (is_canceled group ? enclose "(" ")") (string_of_int (group_id group));
+
+end;
 
 
 (* jobs *)
@@ -127,7 +136,7 @@ fun make_queue groups jobs = Queue {groups = groups, jobs = jobs};
 val empty = make_queue Inttab.empty Task_Graph.empty;
 
 fun all_passive (Queue {jobs, ...}) =
-  Task_Graph.get_first NONE
+  Task_Graph.get_first
     ((fn Job _ => SOME () | Running _ => SOME () | Passive => NONE) o #2 o #1 o #2) jobs |> is_none;
 
 
@@ -204,7 +213,7 @@ fun dequeue thread (queue as Queue {groups, jobs}) =
           if is_ready deps group then SOME (task, group, rev list) else NONE
       | ready _ = NONE;
   in
-    (case Task_Graph.get_first NONE ready jobs of
+    (case Task_Graph.get_first ready jobs of
       NONE => (NONE, queue)
     | SOME (result as (task, _, _)) =>
         let val jobs' = set_job task (Running thread) jobs
@@ -246,7 +255,7 @@ fun finish task (Queue {groups, jobs}) =
   let
     val group = get_group jobs task;
     val groups' = groups
-      |> fold (fn gid => Inttab.remove_list (op =) (gid, task)) (group_ancestry group);
+      |> fold (fn gid => Inttab.remove_list eq_task (gid, task)) (group_ancestry group);
     val jobs' = Task_Graph.del_node task jobs;
     val maximal = null (Task_Graph.imm_succs jobs task);
   in (maximal, make_queue groups' jobs') end;

@@ -1,4 +1,0 @@
-(benchmark Isabelle
-:assumption (not (= (bvadd bv27[5] bv11[5]) bv6[5]))
-:formula true
-)

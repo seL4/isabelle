@@ -10,12 +10,14 @@ may be a stack of pending proofs.
 
 signature OLD_GOALS =
 sig
+  val mk_defpair: term * term -> string * term
   val strip_context: term -> (string * typ) list * term list * term
   val metahyps_thms: int -> thm -> thm list option
   val METAHYPS: (thm list -> tactic) -> int -> tactic
   val simple_read_term: theory -> typ -> string -> term
   val read_term: theory -> string -> term
   val read_prop: theory -> string -> term
+  val get_def: theory -> xstring -> thm
   type proof
   val premises: unit -> thm list
   val reset_goals: unit -> unit
@@ -64,6 +66,13 @@ end;
 
 structure OldGoals: OLD_GOALS =
 struct
+
+fun mk_defpair (lhs, rhs) =
+  (case Term.head_of lhs of
+    Const (name, _) =>
+      (Long_Name.base_name name ^ "_def", Logic.mk_equals (lhs, rhs))
+  | _ => raise TERM ("Malformed definition: head of lhs not a constant", [lhs, rhs]));
+
 
 (**** METAHYPS -- tactical for using hypotheses as meta-level assumptions
        METAHYPS (fn prems => tac prems) i
@@ -220,6 +229,8 @@ fun read_term thy = simple_read_term thy dummyT;
 fun read_prop thy = simple_read_term thy propT;
 
 
+fun get_def thy = Thm.axiom thy o Name_Space.intern (Theory.axiom_space thy) o Thm.def_name;
+
 
 (*** Goal package ***)
 
@@ -305,7 +316,7 @@ fun prepare_proof atomic rths chorn =
             val th = Goal.conclude ath
             val thy' = Thm.theory_of_thm th
             val {hyps, prop, ...} = Thm.rep_thm th
-            val final_th = Drule.standard th
+            val final_th = Drule.export_without_context th
         in  if not check then final_th
             else if not (Theory.eq_thy(thy,thy')) then !result_error_fn state
                 ("Theory of proof state has changed!" ^
@@ -512,7 +523,7 @@ fun simple_prove_goal_cterm G f =
             0 => thm
           | i => !result_error_fn thm (string_of_int i ^ " unsolved goals!"))
   in
-    Drule.standard (implies_intr_list As
+    Drule.export_without_context (implies_intr_list As
       (check (Seq.pull (EVERY (f asms) (trivial B)))))
   end;
 
@@ -603,11 +614,11 @@ fun qed_goal name thy goal tacsf = ML_Context.ml_store_thm (name, prove_goal thy
 fun qed_goalw name thy rews goal tacsf =
   ML_Context.ml_store_thm (name, prove_goalw thy rews goal tacsf);
 fun qed_spec_mp name =
-  ML_Context.ml_store_thm (name, ObjectLogic.rulify_no_asm (result ()));
+  ML_Context.ml_store_thm (name, Object_Logic.rulify_no_asm (result ()));
 fun qed_goal_spec_mp name thy s p =
-  bind_thm (name, ObjectLogic.rulify_no_asm (prove_goal thy s p));
+  bind_thm (name, Object_Logic.rulify_no_asm (prove_goal thy s p));
 fun qed_goalw_spec_mp name thy defs s p =
-  bind_thm (name, ObjectLogic.rulify_no_asm (prove_goalw thy defs s p));
+  bind_thm (name, Object_Logic.rulify_no_asm (prove_goalw thy defs s p));
 
 end;
 

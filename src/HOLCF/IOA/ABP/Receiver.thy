@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/IOA/ABP/Receiver.thy
-    ID:         $Id$
     Author:     Olaf Müller
 *)
 

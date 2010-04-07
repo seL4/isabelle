@@ -8,7 +8,7 @@ theory Sum_Cpo
 imports Bifinite
 begin
 
-subsection {* Ordering on type @{typ "'a + 'b"} *}
+subsection {* Ordering on sum type *}
 
 instantiation "+" :: (below, below) below
 begin
@@ -128,7 +128,7 @@ instance "+" :: (cpo, cpo) cpo
  apply (erule cpo_lubI)
 done
 
-subsection {* Continuity of @{term Inl}, @{term Inr}, @{term sum_case} *}
+subsection {* Continuity of \emph{Inl}, \emph{Inr}, and case function *}
 
 lemma cont_Inl: "cont Inl"
 by (intro contI is_lub_Inl cpo_lubI)

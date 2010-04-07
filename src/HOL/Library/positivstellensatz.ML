@@ -61,9 +61,9 @@ structure Intfunc = FuncFun(type key = int val ord = int_ord);
 structure Ratfunc = FuncFun(type key = Rat.rat val ord = Rat.ord);
 structure Intpairfunc = FuncFun(type key = int*int val ord = prod_ord int_ord int_ord);
 structure Symfunc = FuncFun(type key = string val ord = fast_string_ord);
-structure Termfunc = FuncFun(type key = term val ord = TermOrd.fast_term_ord);
+structure Termfunc = FuncFun(type key = term val ord = Term_Ord.fast_term_ord);
 
-val cterm_ord = TermOrd.fast_term_ord o pairself term_of
+val cterm_ord = Term_Ord.fast_term_ord o pairself term_of
 
 structure Ctermfunc = FuncFun(type key = cterm val ord = cterm_ord);
 
@@ -275,7 +275,7 @@ val real_abs_thms1 = @{lemma
   "((a + b + min x y + c > r) = (a + b + x + c > r & a + b + y + c > r))"
   by auto};
 
-val abs_split' = @{lemma "P (abs (x::'a::ordered_idom)) == (x >= 0 & P x | x < 0 & P (-x))"
+val abs_split' = @{lemma "P (abs (x::'a::linordered_idom)) == (x >= 0 & P x | x < 0 & P (-x))"
   by (atomize (full)) (auto split add: abs_split)};
 
 val max_split = @{lemma "P (max x y) == ((x::'a::linorder) <= y & P y | x > y & P x)"
@@ -745,7 +745,7 @@ end;
 
 fun gen_prover_real_arith ctxt prover = 
  let
-  fun simple_cterm_ord t u = TermOrd.term_ord (term_of t, term_of u) = LESS
+  fun simple_cterm_ord t u = Term_Ord.term_ord (term_of t, term_of u) = LESS
   val {add,mul,neg,pow,sub,main} = 
      Normalizer.semiring_normalizers_ord_wrapper ctxt
       (the (NormalizerData.match ctxt @{cterm "(0::real) + 1"})) 

@@ -125,8 +125,15 @@ fun atomize_conv ctxt ct =
       Conv.rewr_conv @{thm atomize_all}
   | _ => Conv.all_conv) ct
 
+fun unfold_quants_conv ctxt =
+  let
+    val rules = [@{thm Ex1_def}, @{thm Ball_def}, @{thm Bex_def}]
+    val unfold_conv = Conv.try_conv (More_Conv.rewrs_conv rules)
+  in More_Conv.top_conv (K unfold_conv) ctxt end
+
 fun normalize_rule ctxt =
   Conv.fconv_rule (
+    unfold_quants_conv ctxt then_conv
     Thm.beta_conversion true then_conv
     Thm.eta_conversion then_conv
     norm_binder_conv ctxt) #>
@@ -283,7 +290,7 @@ end
 (* include additional rules *)
 
 val (unfold_defs, unfold_defs_setup) =
-  Attrib.config_bool "smt_unfold_defs" true
+  Attrib.config_bool "smt_unfold_defs" (K true)
 
 local
   val pair_rules = [@{thm fst_conv}, @{thm snd_conv}, @{thm pair_collapse}]

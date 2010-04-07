@@ -126,9 +126,41 @@ lemma random_aux_rec:
   shows "random_aux k = rhs k"
   using assms by (rule code_numeral.induct)
 
-setup {* Quickcheck.setup *}
+use "Tools/quickcheck_generators.ML"
+setup Quickcheck_Generators.setup
 
-subsection {* the Random-Predicate Monad *} 
+
+subsection {* Code setup *}
+
+code_const random_fun_aux (Quickcheck "Quickcheck'_Generators.random'_fun")
+  -- {* With enough criminal energy this can be abused to derive @{prop False};
+  for this reason we use a distinguished target @{text Quickcheck}
+  not spoiling the regular trusted code generation *}
+
+code_reserved Quickcheck Quickcheck_Generators
+
+no_notation fcomp (infixl "o>" 60)
+no_notation scomp (infixl "o\<rightarrow>" 60)
+
+
+subsection {* The Random-Predicate Monad *} 
+
+fun iter' ::
+  "'a itself => code_numeral => code_numeral => code_numeral * code_numeral => ('a::random) Predicate.pred"
+where
+  "iter' T nrandom sz seed = (if nrandom = 0 then bot_class.bot else
+     let ((x, _), seed') = random sz seed
+   in Predicate.Seq (%u. Predicate.Insert x (iter' T (nrandom - 1) sz seed')))"
+
+definition iter :: "code_numeral => code_numeral => code_numeral * code_numeral => ('a::random) Predicate.pred"
+where
+  "iter nrandom sz seed = iter' (TYPE('a)) nrandom sz seed"
+
+lemma [code]:
+  "iter nrandom sz seed = (if nrandom = 0 then bot_class.bot else
+     let ((x, _), seed') = random sz seed
+   in Predicate.Seq (%u. Predicate.Insert x (iter (nrandom - 1) sz seed')))"
+unfolding iter_def iter'.simps[of _ nrandom] ..
 
 types 'a randompred = "Random.seed \<Rightarrow> ('a Predicate.pred \<times> Random.seed)"
 
@@ -149,11 +181,15 @@ definition union :: "'a randompred \<Rightarrow> 'a randompred \<Rightarrow> 'a 
 where
   "union R1 R2 = (\<lambda>s. let
      (P1, s') = R1 s; (P2, s'') = R2 s'
-   in (upper_semilattice_class.sup P1 P2, s''))"
+   in (semilattice_sup_class.sup P1 P2, s''))"
 
 definition if_randompred :: "bool \<Rightarrow> unit randompred"
 where
   "if_randompred b = (if b then single () else empty)"
+
+definition iterate_upto :: "(code_numeral => 'a) => code_numeral => code_numeral => 'a randompred"
+where
+  "iterate_upto f n m = Pair (Code_Numeral.iterate_upto f n m)"
 
 definition not_randompred :: "unit randompred \<Rightarrow> unit randompred"
 where
@@ -167,24 +203,9 @@ definition Random :: "(Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow
 definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a randompred \<Rightarrow> 'b randompred)"
   where "map f P = bind P (single o f)"
 
-subsection {* Code setup *}
-
-use "Tools/quickcheck_generators.ML"
-setup {* Quickcheck_Generators.setup *}
-
-code_const random_fun_aux (Quickcheck "Quickcheck'_Generators.random'_fun")
-  -- {* With enough criminal energy this can be abused to derive @{prop False};
-  for this reason we use a distinguished target @{text Quickcheck}
-  not spoiling the regular trusted code generation *}
-
-code_reserved Quickcheck Quickcheck_Generators
-
-hide (open) fact empty_def single_def bind_def union_def if_randompred_def not_randompred_def Random_def map_def
+hide (open) fact iter'.simps iter_def empty_def single_def bind_def union_def if_randompred_def iterate_upto_def not_randompred_def Random_def map_def
 hide (open) type randompred
 hide (open) const random collapse beyond random_fun_aux random_fun_lift
-  empty single bind union if_randompred not_randompred Random map
-
-no_notation fcomp (infixl "o>" 60)
-no_notation scomp (infixl "o\<rightarrow>" 60)
+  iter' iter empty single bind union if_randompred iterate_upto not_randompred Random map
 
 end

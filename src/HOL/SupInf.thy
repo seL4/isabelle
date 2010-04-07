@@ -6,38 +6,6 @@ theory SupInf
 imports RComplete
 begin
 
-lemma minus_max_eq_min:
-  fixes x :: "'a::{lordered_ab_group_add, linorder}"
-  shows "- (max x y) = min (-x) (-y)"
-by (metis le_imp_neg_le linorder_linear min_max.inf_absorb2 min_max.le_iff_inf min_max.le_iff_sup min_max.sup_absorb1)
-
-lemma minus_min_eq_max:
-  fixes x :: "'a::{lordered_ab_group_add, linorder}"
-  shows "- (min x y) = max (-x) (-y)"
-by (metis minus_max_eq_min minus_minus)
-
-lemma minus_Max_eq_Min [simp]:
-  fixes S :: "'a::{lordered_ab_group_add, linorder} set"
-  shows "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> - (Max S) = Min (uminus ` S)"
-proof (induct S rule: finite_ne_induct)
-  case (singleton x)
-  thus ?case by simp
-next
-  case (insert x S)
-  thus ?case by (simp add: minus_max_eq_min) 
-qed
-
-lemma minus_Min_eq_Max [simp]:
-  fixes S :: "'a::{lordered_ab_group_add, linorder} set"
-  shows "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> - (Min S) = Max (uminus ` S)"
-proof (induct S rule: finite_ne_induct)
-  case (singleton x)
-  thus ?case by simp
-next
-  case (insert x S)
-  thus ?case by (simp add: minus_min_eq_max) 
-qed
-
 instantiation real :: Sup 
 begin
 definition
@@ -138,10 +106,10 @@ lemma Sup_insert_nonempty:
 proof (cases "Sup X \<le> a")
   case True
   thus ?thesis
-    apply (simp add: max_def) 
+    apply (simp add: max_def)
     apply (rule Sup_eq_maximum)
-    apply (metis insertCI)
-    apply (metis Sup_upper insertE le_iff_sup real_le_linear real_le_trans sup_absorb1 z)     
+    apply (rule insertI1)
+    apply (metis Sup_upper [OF _ z] insertE real_le_linear real_le_trans)
     done
 next
   case False
@@ -209,7 +177,7 @@ lemma Sup_finite_le_iff:
   fixes S :: "real set"
   assumes fS: "finite S" and Se: "S \<noteq> {}"
   shows "a \<ge> Sup S \<longleftrightarrow> (\<forall> x \<in> S. a \<ge> x)"
-by (metis Max_ge Se Sup_finite_Max Sup_finite_in fS le_iff_sup real_le_trans) 
+by (metis Max_ge Se Sup_finite_Max Sup_finite_in fS real_le_trans)
 
 lemma Sup_finite_gt_iff: 
   fixes S :: "real set"
@@ -260,6 +228,24 @@ proof-
     by  (auto simp add: setge_def setle_def)
 qed
 
+lemma Sup_lessThan[simp]: "Sup {..<x} = (x::real)"
+  by (auto intro!: Sup_eq intro: dense_le)
+
+lemma Sup_greaterThanLessThan[simp]: "y < x \<Longrightarrow> Sup {y<..<x} = (x::real)"
+  by (auto intro!: Sup_eq intro: dense_le_bounded)
+
+lemma Sup_atLeastLessThan[simp]: "y < x \<Longrightarrow> Sup {y..<x} = (x::real)"
+  by (auto intro!: Sup_eq intro: dense_le_bounded)
+
+lemma Sup_atMost[simp]: "Sup {..x} = (x::real)"
+  by (auto intro!: Sup_eq_maximum)
+
+lemma Sup_greaterThanAtMost[simp]: "y < x \<Longrightarrow> Sup {y<..x} = (x::real)"
+  by (auto intro!: Sup_eq_maximum)
+
+lemma Sup_atLeastAtMost[simp]: "y \<le> x \<Longrightarrow> Sup {y..x} = (x::real)"
+  by (auto intro!: Sup_eq_maximum)
+
 
 subsection{*Infimum of a set of reals*}
 
@@ -281,7 +267,7 @@ lemma Inf_greatest [intro]:
       and z: "\<And>x. x \<in> X \<Longrightarrow> z \<le> x"
   shows "z \<le> Inf X"
 proof -
-  have "Sup (uminus ` X) \<le> -z" using x z by (force intro: Sup_least)
+  have "Sup (uminus ` X) \<le> -z" using x z by force
   hence "z \<le> - Sup (uminus ` X)"
     by simp
   thus ?thesis 
@@ -338,15 +324,15 @@ proof (cases "a \<le> Inf X")
   case True
   thus ?thesis
     by (simp add: min_def)
-       (blast intro: Inf_eq_minimum Inf_lower real_le_refl real_le_trans z) 
+       (blast intro: Inf_eq_minimum real_le_refl real_le_trans z)
 next
   case False
   hence 1:"Inf X < a" by simp
   have "Inf (insert a X) \<le> Inf X"
     apply (rule Inf_greatest)
     apply (metis empty_psubset_nonempty psubset_eq x)
-    apply (rule Inf_lower_EX) 
-    apply (blast intro: elim:) 
+    apply (rule Inf_lower_EX)
+    apply (erule insertI2)
     apply (metis insert_iff real_le_linear real_le_refl real_le_trans z)
     done
   moreover 
@@ -369,13 +355,13 @@ by auto (metis Inf_insert_nonempty z)
 
 lemma Inf_greater:
   fixes z :: real
-  shows "X \<noteq> {} \<Longrightarrow>  Inf X < z \<Longrightarrow> \<exists>x \<in> X. x < z"
+  shows "X \<noteq> {} \<Longrightarrow> Inf X < z \<Longrightarrow> \<exists>x \<in> X. x < z"
   by (metis Inf_real_iff mem_def not_leE)
 
 lemma Inf_close:
   fixes e :: real
   shows "X \<noteq> {} \<Longrightarrow> 0 < e \<Longrightarrow> \<exists>x \<in> X. x < Inf X + e"
-  by (metis add_strict_increasing comm_monoid_add.mult_commute Inf_greater linorder_not_le pos_add_strict)
+  by (metis add_strict_increasing add_commute Inf_greater linorder_not_le pos_add_strict)
 
 lemma Inf_finite_Min:
   fixes S :: "real set"
@@ -431,12 +417,27 @@ proof -
   also have "... \<le> e" 
     apply (rule Sup_asclose) 
     apply (auto simp add: S)
-    apply (metis abs_minus_add_cancel b comm_monoid_add.mult_commute real_diff_def) 
+    apply (metis abs_minus_add_cancel b add_commute real_diff_def) 
     done
   finally have "\<bar>- Sup (uminus ` S) - l\<bar> \<le> e" .
   thus ?thesis
     by (simp add: Inf_real_def)
 qed
+
+lemma Inf_greaterThanLessThan[simp]: "y < x \<Longrightarrow> Inf {y<..<x} = (y::real)"
+  by (simp add: Inf_real_def)
+
+lemma Inf_atLeastLessThan[simp]: "y < x \<Longrightarrow> Inf {y..<x} = (y::real)"
+  by (simp add: Inf_real_def)
+
+lemma Inf_atLeast[simp]: "Inf {x..} = (x::real)"
+  by (simp add: Inf_real_def)
+
+lemma Inf_greaterThanAtMost[simp]: "y < x \<Longrightarrow> Inf {y<..x} = (y::real)"
+  by (simp add: Inf_real_def)
+
+lemma Inf_atLeastAtMost[simp]: "y \<le> x \<Longrightarrow> Inf {y..x} = (y::real)"
+  by (simp add: Inf_real_def)
 
 subsection{*Relate max and min to Sup and Inf.*}
 
@@ -473,7 +474,7 @@ lemma reals_complete_interval:
 proof (rule exI [where x = "Sup {d. \<forall>x. a \<le> x & x < d --> P x}"], auto)
   show "a \<le> Sup {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c}"
     by (rule SupInf.Sup_upper [where z=b], auto)
-       (metis prems real_le_linear real_less_def) 
+       (metis `a < b` `\<not> P b` real_le_linear real_less_def)
 next
   show "Sup {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c} \<le> b"
     apply (rule SupInf.Sup_least) 

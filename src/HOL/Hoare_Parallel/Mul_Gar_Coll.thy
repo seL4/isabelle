@@ -26,24 +26,23 @@ record mul_gar_coll_state =
 
 subsection {* The Mutators *}
 
-constdefs 
-  Mul_mut_init :: "mul_gar_coll_state \<Rightarrow> nat \<Rightarrow> bool"
+definition Mul_mut_init :: "mul_gar_coll_state \<Rightarrow> nat \<Rightarrow> bool" where
   "Mul_mut_init \<equiv> \<guillemotleft> \<lambda>n. n=length \<acute>Muts \<and> (\<forall>i<n. R (\<acute>Muts!i)<length \<acute>E 
                           \<and> T (\<acute>Muts!i)<length \<acute>M) \<guillemotright>"
 
-  Mul_Redirect_Edge  :: "nat \<Rightarrow> nat \<Rightarrow> mul_gar_coll_state ann_com"
+definition Mul_Redirect_Edge  :: "nat \<Rightarrow> nat \<Rightarrow> mul_gar_coll_state ann_com" where
   "Mul_Redirect_Edge j n \<equiv>
   .{\<acute>Mul_mut_init n \<and> Z (\<acute>Muts!j)}.
   \<langle>IF T(\<acute>Muts!j) \<in> Reach \<acute>E THEN  
   \<acute>E:= \<acute>E[R (\<acute>Muts!j):= (fst (\<acute>E!R(\<acute>Muts!j)), T (\<acute>Muts!j))] FI,, 
   \<acute>Muts:= \<acute>Muts[j:= (\<acute>Muts!j) \<lparr>Z:=False\<rparr>]\<rangle>"
 
-  Mul_Color_Target :: "nat \<Rightarrow> nat \<Rightarrow> mul_gar_coll_state ann_com"
+definition Mul_Color_Target :: "nat \<Rightarrow> nat \<Rightarrow> mul_gar_coll_state ann_com" where
   "Mul_Color_Target j n \<equiv>
   .{\<acute>Mul_mut_init n \<and> \<not> Z (\<acute>Muts!j)}. 
   \<langle>\<acute>M:=\<acute>M[T (\<acute>Muts!j):=Black],, \<acute>Muts:=\<acute>Muts[j:= (\<acute>Muts!j) \<lparr>Z:=True\<rparr>]\<rangle>"
 
-  Mul_Mutator :: "nat \<Rightarrow> nat \<Rightarrow>  mul_gar_coll_state ann_com"
+definition Mul_Mutator :: "nat \<Rightarrow> nat \<Rightarrow>  mul_gar_coll_state ann_com" where
   "Mul_Mutator j n \<equiv>
   .{\<acute>Mul_mut_init n \<and> Z (\<acute>Muts!j)}.  
   WHILE True  
@@ -156,28 +155,25 @@ done
 
 subsection {* The Collector *}
 
-constdefs
-  Queue :: "mul_gar_coll_state \<Rightarrow> nat"
+definition Queue :: "mul_gar_coll_state \<Rightarrow> nat" where
  "Queue \<equiv> \<guillemotleft> length (filter (\<lambda>i. \<not> Z i \<and> \<acute>M!(T i) \<noteq> Black) \<acute>Muts) \<guillemotright>"
 
 consts  M_init :: nodes
 
-constdefs
-  Proper_M_init :: "mul_gar_coll_state \<Rightarrow> bool"
+definition Proper_M_init :: "mul_gar_coll_state \<Rightarrow> bool" where
   "Proper_M_init \<equiv> \<guillemotleft> Blacks M_init=Roots \<and> length M_init=length \<acute>M \<guillemotright>"
 
-  Mul_Proper :: "mul_gar_coll_state \<Rightarrow> nat \<Rightarrow> bool"
+definition Mul_Proper :: "mul_gar_coll_state \<Rightarrow> nat \<Rightarrow> bool" where
   "Mul_Proper \<equiv> \<guillemotleft> \<lambda>n. Proper_Roots \<acute>M \<and> Proper_Edges (\<acute>M, \<acute>E) \<and> \<acute>Proper_M_init \<and> n=length \<acute>Muts \<guillemotright>"
 
-  Safe :: "mul_gar_coll_state \<Rightarrow> bool"
+definition Safe :: "mul_gar_coll_state \<Rightarrow> bool" where
   "Safe \<equiv> \<guillemotleft> Reach \<acute>E \<subseteq> Blacks \<acute>M \<guillemotright>"
 
 lemmas mul_collector_defs = Proper_M_init_def Mul_Proper_def Safe_def
 
 subsubsection {* Blackening Roots *}
 
-constdefs
-  Mul_Blacken_Roots :: "nat \<Rightarrow>  mul_gar_coll_state ann_com"
+definition Mul_Blacken_Roots :: "nat \<Rightarrow>  mul_gar_coll_state ann_com" where
   "Mul_Blacken_Roots n \<equiv>
   .{\<acute>Mul_Proper n}.
   \<acute>ind:=0;;
@@ -208,16 +204,14 @@ done
 
 subsubsection {* Propagating Black *} 
 
-constdefs
-  Mul_PBInv :: "mul_gar_coll_state \<Rightarrow> bool"
+definition Mul_PBInv :: "mul_gar_coll_state \<Rightarrow> bool" where
   "Mul_PBInv \<equiv>  \<guillemotleft>\<acute>Safe \<or> \<acute>obc\<subset>Blacks \<acute>M \<or> \<acute>l<\<acute>Queue 
                  \<or> (\<forall>i<\<acute>ind. \<not>BtoW(\<acute>E!i,\<acute>M)) \<and> \<acute>l\<le>\<acute>Queue\<guillemotright>"
 
-  Mul_Auxk :: "mul_gar_coll_state \<Rightarrow> bool"
+definition Mul_Auxk :: "mul_gar_coll_state \<Rightarrow> bool" where
   "Mul_Auxk \<equiv> \<guillemotleft>\<acute>l<\<acute>Queue \<or> \<acute>M!\<acute>k\<noteq>Black \<or> \<not>BtoW(\<acute>E!\<acute>ind, \<acute>M) \<or> \<acute>obc\<subset>Blacks \<acute>M\<guillemotright>"
 
-constdefs
-  Mul_Propagate_Black :: "nat \<Rightarrow>  mul_gar_coll_state ann_com"
+definition Mul_Propagate_Black :: "nat \<Rightarrow>  mul_gar_coll_state ann_com" where
   "Mul_Propagate_Black n \<equiv>
  .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
   \<and> (\<acute>Safe \<or> \<acute>l\<le>\<acute>Queue \<or> \<acute>obc\<subset>Blacks \<acute>M)}. 
@@ -296,11 +290,10 @@ done
 
 subsubsection {* Counting Black Nodes *}
 
-constdefs
-  Mul_CountInv :: "mul_gar_coll_state \<Rightarrow> nat \<Rightarrow> bool"
- "Mul_CountInv \<equiv> \<guillemotleft> \<lambda>ind. {i. i<ind \<and> \<acute>Ma!i=Black}\<subseteq>\<acute>bc \<guillemotright>"
+definition Mul_CountInv :: "mul_gar_coll_state \<Rightarrow> nat \<Rightarrow> bool" where
+  "Mul_CountInv \<equiv> \<guillemotleft> \<lambda>ind. {i. i<ind \<and> \<acute>Ma!i=Black}\<subseteq>\<acute>bc \<guillemotright>"
 
-  Mul_Count :: "nat \<Rightarrow>  mul_gar_coll_state ann_com"
+definition Mul_Count :: "nat \<Rightarrow>  mul_gar_coll_state ann_com" where
   "Mul_Count n \<equiv> 
   .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
     \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma \<and> Blacks \<acute>Ma\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
@@ -396,11 +389,10 @@ axioms
   Append_to_free2: "i \<notin> Reach e 
            \<Longrightarrow> n \<in> Reach (Append_to_free(i, e)) = ( n = i \<or> n \<in> Reach e)"
 
-constdefs
-  Mul_AppendInv :: "mul_gar_coll_state \<Rightarrow> nat \<Rightarrow> bool"
+definition Mul_AppendInv :: "mul_gar_coll_state \<Rightarrow> nat \<Rightarrow> bool" where
   "Mul_AppendInv \<equiv> \<guillemotleft> \<lambda>ind. (\<forall>i. ind\<le>i \<longrightarrow> i<length \<acute>M \<longrightarrow> i\<in>Reach \<acute>E \<longrightarrow> \<acute>M!i=Black)\<guillemotright>"
 
-  Mul_Append :: "nat \<Rightarrow>  mul_gar_coll_state ann_com"
+definition Mul_Append :: "nat \<Rightarrow>  mul_gar_coll_state ann_com" where
   "Mul_Append n \<equiv> 
   .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>Safe}.
   \<acute>ind:=0;;
@@ -438,8 +430,7 @@ done
 
 subsubsection {* Collector *}
 
-constdefs 
-  Mul_Collector :: "nat \<Rightarrow>  mul_gar_coll_state ann_com"
+definition Mul_Collector :: "nat \<Rightarrow>  mul_gar_coll_state ann_com" where
   "Mul_Collector n \<equiv>
 .{\<acute>Mul_Proper n}.  
 WHILE True INV .{\<acute>Mul_Proper n}. 

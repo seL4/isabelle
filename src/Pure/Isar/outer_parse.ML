@@ -68,12 +68,11 @@ sig
   val arity: (string * string list * string) parser
   val multi_arity: (string list * string list * string) parser
   val type_args: string list parser
+  val type_args_constrained: (string * string option) list parser
   val typ_group: string parser
   val typ: string parser
   val mixfix: mixfix parser
   val mixfix': mixfix parser
-  val opt_infix: mixfix parser
-  val opt_infix': mixfix parser
   val opt_mixfix: mixfix parser
   val opt_mixfix': mixfix parser
   val where_: string parser
@@ -254,10 +253,13 @@ val typ_group = group "type"
 
 val typ = inner_syntax typ_group;
 
-val type_args =
-  type_ident >> single ||
-  $$$ "(" |-- !!! (list1 type_ident --| $$$ ")") ||
+fun type_arguments arg =
+  arg >> single ||
+  $$$ "(" |-- !!! (list1 arg --| $$$ ")") ||
   Scan.succeed [];
+
+val type_args = type_arguments type_ident;
+val type_args_constrained = type_arguments (type_ident -- Scan.option ($$$ "::" |-- !!! sort));
 
 
 (* mixfix annotations *)
@@ -266,9 +268,9 @@ val mfix = string --
   !!! (Scan.optional ($$$ "[" |-- !!! (list nat --| $$$ "]")) [] --
     Scan.optional nat Syntax.max_pri) >> (Mixfix o triple2);
 
-val infx = $$$ "infix" |-- !!! (nat >> Infix || string -- nat >> InfixName);
-val infxl = $$$ "infixl" |-- !!! (nat >> Infixl || string -- nat >> InfixlName);
-val infxr = $$$ "infixr" |-- !!! (nat >> Infixr || string -- nat >> InfixrName);
+val infx = $$$ "infix" |-- !!! (string -- nat >> Infix);
+val infxl = $$$ "infixl" |-- !!! (string -- nat >> Infixl);
+val infxr = $$$ "infixr" |-- !!! (string -- nat >> Infixr);
 
 val binder = $$$ "binder" |--
   !!! (string -- ($$$ "[" |-- nat --| $$$ "]" -- nat || nat >> (fn n => (n, n))))
@@ -279,8 +281,6 @@ fun opt_annotation guard fix = Scan.optional (annotation guard fix) NoSyn;
 
 val mixfix = annotation !!! (mfix || binder || infxl || infxr || infx);
 val mixfix' = annotation I (mfix || binder || infxl || infxr || infx);
-val opt_infix = opt_annotation !!! (infxl || infxr || infx);
-val opt_infix' = opt_annotation I (infxl || infxr || infx);
 val opt_mixfix = opt_annotation !!! (mfix || binder || infxl || infxr || infx);
 val opt_mixfix' = opt_annotation I (mfix || binder || infxl || infxr || infx);
 

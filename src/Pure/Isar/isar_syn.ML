@@ -99,27 +99,19 @@ val _ =
   OuterSyntax.command "defaultsort" "declare default sort" K.thy_decl
     (P.sort >> (Toplevel.theory o Sign.add_defsort));
 
-val _ =
-  OuterSyntax.command "axclass" "define axiomatic type class" K.thy_decl
-    (P.binding -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
-        P.!!! (P.list1 P.xname)) []
-        -- Scan.repeat (SpecParse.thm_name ":" -- (P.prop >> single))
-      >> (fn (x, y) => Toplevel.theory (snd o Class.axclass_cmd x y)));
-
 
 (* types *)
 
 val _ =
-  OuterSyntax.command "typedecl" "type declaration" K.thy_decl
-    (P.type_args -- P.binding -- P.opt_infix >> (fn ((args, a), mx) =>
-      Toplevel.theory (ObjectLogic.typedecl (a, args, mx) #> snd)));
+  OuterSyntax.local_theory "typedecl" "type declaration" K.thy_decl
+    (P.type_args -- P.binding -- P.opt_mixfix
+      >> (fn ((args, a), mx) => Typedecl.typedecl (a, map (rpair dummyS) args, mx) #> snd));
 
 val _ =
   OuterSyntax.command "types" "declare type abbreviations" K.thy_decl
     (Scan.repeat1
-      (P.type_args -- P.binding -- (P.$$$ "=" |-- P.!!! (P.typ -- P.opt_infix')))
-      >> (Toplevel.theory o Sign.add_tyabbrs o
-        map (fn ((args, a), (T, mx)) => (a, args, T, mx))));
+      (P.type_args -- P.binding -- (P.$$$ "=" |-- P.!!! (P.typ -- P.opt_mixfix')))
+      >> (Toplevel.theory o Sign.add_tyabbrs o map (fn ((args, a), (T, mx)) => (a, args, T, mx))));
 
 val _ =
   OuterSyntax.command "nonterminals" "declare types treated as grammar nonterminal symbols"
@@ -134,7 +126,7 @@ val _ =
 
 val _ =
   OuterSyntax.command "judgment" "declare object-logic judgment" K.thy_decl
-    (P.const_binding >> (Toplevel.theory o ObjectLogic.add_judgment_cmd));
+    (P.const_binding >> (Toplevel.theory o Object_Logic.add_judgment_cmd));
 
 val _ =
   OuterSyntax.command "consts" "declare constants" K.thy_decl
@@ -186,11 +178,9 @@ val _ =
 
 (* axioms and definitions *)
 
-val named_spec = SpecParse.thm_name ":" -- P.prop >> (fn ((x, y), z) => ((x, z), y));
-
 val _ =
   OuterSyntax.command "axioms" "state arbitrary propositions (axiomatic!)" K.thy_decl
-    (Scan.repeat1 named_spec >> (Toplevel.theory o IsarCmd.add_axioms));
+    (Scan.repeat1 SpecParse.spec >> (Toplevel.theory o IsarCmd.add_axioms));
 
 val opt_unchecked_overloaded =
   Scan.optional (P.$$$ "(" |-- P.!!!
@@ -199,7 +189,8 @@ val opt_unchecked_overloaded =
 
 val _ =
   OuterSyntax.command "defs" "define constants" K.thy_decl
-    (opt_unchecked_overloaded -- Scan.repeat1 named_spec
+    (opt_unchecked_overloaded --
+      Scan.repeat1 (SpecParse.thm_name ":" -- P.prop >> (fn ((x, y), z) => ((x, z), y)))
       >> (Toplevel.theory o IsarCmd.add_defs));
 
 
@@ -231,6 +222,16 @@ val _ =
   OuterSyntax.local_theory "abbreviation" "constant abbreviation" K.thy_decl
     (opt_mode -- (Scan.option SpecParse.constdecl -- P.prop)
     >> (fn (mode, args) => Specification.abbreviation_cmd mode args));
+
+val _ =
+  OuterSyntax.local_theory "type_notation" "add notation for type constructors" K.thy_decl
+    (opt_mode -- P.and_list1 (P.xname -- P.mixfix)
+    >> (fn (mode, args) => Specification.type_notation_cmd true mode args));
+
+val _ =
+  OuterSyntax.local_theory "no_type_notation" "delete notation for type constructors" K.thy_decl
+    (opt_mode -- P.and_list1 (P.xname -- P.mixfix)
+    >> (fn (mode, args) => Specification.type_notation_cmd false mode args));
 
 val _ =
   OuterSyntax.local_theory "notation" "add notation for constants / fixed variables" K.thy_decl
@@ -390,7 +391,7 @@ val _ =
 val _ =
   OuterSyntax.command "context" "enter local theory context" K.thy_decl
     (P.name --| P.begin >> (fn name =>
-      Toplevel.print o Toplevel.begin_local_theory true (Theory_Target.context name)));
+      Toplevel.print o Toplevel.begin_local_theory true (Theory_Target.context_cmd name)));
 
 
 (* locales *)
@@ -478,6 +479,11 @@ val _ =
 val _ =
   OuterSyntax.command "code_datatype" "define set of code datatype constructors" K.thy_decl
     (Scan.repeat1 P.term >> (Toplevel.theory o Code.add_datatype_cmd));
+
+val _ =
+  OuterSyntax.command "code_abstype" "define abstract code type" K.thy_goal
+    (P.term -- P.term >> (fn (abs, rep) => Toplevel.print
+      o Toplevel.theory_to_proof (Code.add_abstype_cmd abs rep)));
 
 
 

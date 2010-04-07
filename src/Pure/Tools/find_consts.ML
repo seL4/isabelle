@@ -68,7 +68,7 @@ fun pretty_criterion (b, c) =
 
 fun pretty_const ctxt (nm, ty) =
   let
-    val ty' = Logic.unvarifyT ty;
+    val ty' = Logic.unvarifyT_global ty;
   in
     Pretty.block
      [Pretty.quote (Pretty.str nm), Pretty.fbrk,

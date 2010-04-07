@@ -52,10 +52,19 @@ use "General/file.ML";
 use "General/xml.ML";
 use "General/yxml.ML";
 
+use "General/sha1.ML";
+if String.isPrefix "polyml" ml_system
+then use "General/sha1_polyml.ML"
+else ();
+
 
 (* concurrency within the ML runtime *)
 
 use "Concurrent/simple_thread.ML";
+
+use "Concurrent/single_assignment.ML";
+if Multithreading.available then ()
+else use "Concurrent/single_assignment_sequential.ML";
 
 use "Concurrent/synchronized.ML";
 if Multithreading.available then ()
@@ -83,14 +92,14 @@ use "term.ML";
 use "term_ord.ML";
 use "term_subst.ML";
 use "old_term.ML";
-use "logic.ML";
 use "General/pretty.ML";
 use "context.ML";
 use "context_position.ML";
-use "Syntax/lexicon.ML";
-use "Syntax/simple_syntax.ML";
 use "sorts.ML";
 use "type.ML";
+use "logic.ML";
+use "Syntax/lexicon.ML";
+use "Syntax/simple_syntax.ML";
 use "config.ML";
 
 
@@ -139,7 +148,6 @@ use "conjunction.ML";
 use "assumption.ML";
 use "display.ML";
 use "goal.ML";
-use "axclass.ML";
 
 
 (* Isar -- Intelligible Semi-Automated Reasoning *)
@@ -200,6 +208,7 @@ use "Isar/obtain.ML";
 use "Isar/local_theory.ML";
 use "Isar/overloading.ML";
 use "Isar/locale.ML";
+use "axclass.ML";
 use "Isar/class_target.ML";
 use "Isar/theory_target.ML";
 use "Isar/expression.ML";
@@ -214,6 +223,7 @@ use "Isar/code.ML";
 use "Isar/spec_parse.ML";
 use "Isar/spec_rules.ML";
 use "Isar/specification.ML";
+use "Isar/typedecl.ML";
 use "Isar/constdefs.ML";
 
 (*toplevel transactions*)

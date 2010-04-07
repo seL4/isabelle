@@ -706,7 +706,7 @@ lemma dvd_imp_degree_le:
 subsection {* Polynomials form an ordered integral domain *}
 
 definition
-  pos_poly :: "'a::ordered_idom poly \<Rightarrow> bool"
+  pos_poly :: "'a::linordered_idom poly \<Rightarrow> bool"
 where
   "pos_poly p \<longleftrightarrow> 0 < coeff p (degree p)"
 
@@ -732,7 +732,7 @@ lemma pos_poly_mult: "\<lbrakk>pos_poly p; pos_poly q\<rbrakk> \<Longrightarrow>
 lemma pos_poly_total: "p = 0 \<or> pos_poly p \<or> pos_poly (- p)"
 by (induct p) (auto simp add: pos_poly_pCons)
 
-instantiation poly :: (ordered_idom) ordered_idom
+instantiation poly :: (linordered_idom) linordered_idom
 begin
 
 definition
@@ -1200,14 +1200,18 @@ proof -
     by (rule poly_dvd_antisym)
 qed
 
-lemma poly_gcd_commute: "poly_gcd x y = poly_gcd y x"
-by (rule poly_gcd_unique) (simp_all add: poly_gcd_monic)
+interpretation poly_gcd!: abel_semigroup poly_gcd
+proof
+  fix x y z :: "'a poly"
+  show "poly_gcd (poly_gcd x y) z = poly_gcd x (poly_gcd y z)"
+    by (rule poly_gcd_unique) (auto intro: dvd_trans simp add: poly_gcd_monic)
+  show "poly_gcd x y = poly_gcd y x"
+    by (rule poly_gcd_unique) (simp_all add: poly_gcd_monic)
+qed
 
-lemma poly_gcd_assoc: "poly_gcd (poly_gcd x y) z = poly_gcd x (poly_gcd y z)"
-by (rule poly_gcd_unique) (auto intro: dvd_trans simp add: poly_gcd_monic)
-
-lemmas poly_gcd_left_commute =
-  mk_left_commute [where f=poly_gcd, OF poly_gcd_assoc poly_gcd_commute]
+lemmas poly_gcd_assoc = poly_gcd.assoc
+lemmas poly_gcd_commute = poly_gcd.commute
+lemmas poly_gcd_left_commute = poly_gcd.left_commute
 
 lemmas poly_gcd_ac = poly_gcd_assoc poly_gcd_commute poly_gcd_left_commute
 

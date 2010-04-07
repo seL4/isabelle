@@ -309,6 +309,15 @@ lemma div_mult_div_if_dvd:
   apply (simp add: no_zero_divisors)
   done
 
+lemma div_mult_swap:
+  assumes "c dvd b"
+  shows "a * (b div c) = (a * b) div c"
+proof -
+  from assms have "b div c * (a div 1) = b * a div (c * 1)"
+    by (simp only: div_mult_div_if_dvd one_dvd)
+  then show ?thesis by (simp add: mult_commute)
+qed
+   
 lemma div_mult_mult2 [simp]:
   "c \<noteq> 0 \<Longrightarrow> (a * c) div (b * c) = a div b"
   by (drule div_mult_mult1) (simp add: mult_commute)
@@ -347,9 +356,27 @@ apply (induct n)
 apply(simp add: div_mult_div_if_dvd dvd_power_same)
 done
 
+lemma dvd_div_eq_mult:
+  assumes "a \<noteq> 0" and "a dvd b"  
+  shows "b div a = c \<longleftrightarrow> b = c * a"
+proof
+  assume "b = c * a"
+  then show "b div a = c" by (simp add: assms)
+next
+  assume "b div a = c"
+  then have "b div a * a = c * a" by simp
+  moreover from `a dvd b` have "b div a * a = b" by (simp add: dvd_div_mult_self)
+  ultimately show "b = c * a" by simp
+qed
+   
+lemma dvd_div_div_eq_mult:
+  assumes "a \<noteq> 0" "c \<noteq> 0" and "a dvd b" "c dvd d"
+  shows "b div a = d div c \<longleftrightarrow> b * c = a * d"
+  using assms by (auto simp add: mult_commute [of _ a] dvd_div_mult_self dvd_div_eq_mult div_mult_swap intro: sym)
+
 end
 
-class ring_div = semiring_div + idom
+class ring_div = semiring_div + comm_ring_1
 begin
 
 text {* Negation respects modular equivalence. *}
@@ -561,8 +588,16 @@ proof -
   from divmod_nat_rel have divmod_nat_m_n: "divmod_nat_rel m n (m div n, m mod n)" .
   with assms have m_div_n: "m div n \<ge> 1"
     by (cases "m div n") (auto simp add: divmod_nat_rel_def)
-  from assms divmod_nat_m_n have "divmod_nat_rel (m - n) n (m div n - Suc 0, m mod n)"
-    by (cases "m div n") (auto simp add: divmod_nat_rel_def)
+  have "divmod_nat_rel (m - n) n (m div n - Suc 0, m mod n)"
+  proof -
+    from assms have
+      "n \<noteq> 0"
+      "\<And>k. m = Suc k * n + m mod n ==> m - n = (Suc k - Suc 0) * n + m mod n"
+      by simp_all
+    then show ?thesis using assms divmod_nat_m_n 
+      by (cases "m div n")
+         (simp_all only: divmod_nat_rel_def fst_conv snd_conv, simp_all)
+  qed
   with divmod_nat_eq have "divmod_nat (m - n) n = (m div n - Suc 0, m mod n)" by simp
   moreover from divmod_nat_div_mod have "divmod_nat (m - n) n = ((m - n) div n, (m - n) mod n)" .
   ultimately have "m div n = Suc ((m - n) div n)"
@@ -657,7 +692,7 @@ structure CancelDivMod = CancelDivModFun(struct
   val trans = trans;
 
   val prove_eq_sums = Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac
-    (@{thm monoid_add_class.add_0_left} :: @{thm monoid_add_class.add_0_right} :: @{thms add_ac}))
+    (@{thm add_0_left} :: @{thm add_0_right} :: @{thms add_ac}))
 
 end)
 
@@ -1090,12 +1125,12 @@ by (simp add: nat_mult_2 [symmetric])
 lemma mod2_Suc_Suc [simp]: "Suc(Suc(m)) mod 2 = m mod 2"
 apply (subgoal_tac "m mod 2 < 2")
 apply (erule less_2_cases [THEN disjE])
-apply (simp_all (no_asm_simp) add: Let_def mod_Suc nat_1)
+apply (simp_all (no_asm_simp) add: Let_def mod_Suc)
 done
 
 lemma mod2_gr_0 [simp]: "0 < (m\<Colon>nat) mod 2 \<longleftrightarrow> m mod 2 = 1"
 proof -
-  { fix n :: nat have  "(n::nat) < 2 \<Longrightarrow> n = 0 \<or> n = 1" by (induct n) simp_all }
+  { fix n :: nat have  "(n::nat) < 2 \<Longrightarrow> n = 0 \<or> n = 1" by (cases n) simp_all }
   moreover have "m mod 2 < 2" by simp
   ultimately have "m mod 2 = 0 \<or> m mod 2 = 1" .
   then show ?thesis by auto
@@ -1139,8 +1174,11 @@ by (simp add: div_le_mono)
 lemma Suc_n_div_2_gt_zero [simp]: "(0::nat) < n ==> 0 < (n + 1) div 2"
 by (cases n) simp_all
 
-lemma div_2_gt_zero [simp]: "(1::nat) < n ==> 0 < n div 2" 
-using Suc_n_div_2_gt_zero [of "n - 1"] by simp
+lemma div_2_gt_zero [simp]: assumes A: "(1::nat) < n" shows "0 < n div 2"
+proof -
+  from A have B: "0 < n - 1" and C: "n - 1 + 1 = n" by simp_all
+  from Suc_n_div_2_gt_zero [OF B] C show ?thesis by simp 
+qed
 
   (* Potential use of algebra : Equality modulo n*)
 lemma mod_mult_self3 [simp]: "(k*n + m) mod n = m mod (n::nat)"
@@ -1655,8 +1693,8 @@ lemmas divmod_int_rel_mod_eq = divmod_int_relI [THEN divmod_int_rel_mod, THEN eq
 lemmas arithmetic_simps =
   arith_simps
   add_special
-  OrderedGroup.add_0_left
-  OrderedGroup.add_0_right
+  add_0_left
+  add_0_right
   mult_zero_left
   mult_zero_right
   mult_1_left
@@ -1929,7 +1967,7 @@ apply (subgoal_tac "b * (c - q mod c) < r * 1")
 apply (rule order_le_less_trans)
  apply (erule_tac [2] mult_strict_right_mono)
  apply (rule mult_left_mono_neg)
-  using add1_zle_eq[of "q mod c"]apply(simp add: algebra_simps pos_mod_bound)
+  using add1_zle_eq[of "q mod c"]apply(simp add: algebra_simps)
  apply (simp)
 apply (simp)
 done
@@ -1954,7 +1992,7 @@ apply (rule order_less_le_trans)
  apply (erule mult_strict_right_mono)
  apply (rule_tac [2] mult_left_mono)
   apply simp
- using add1_zle_eq[of "q mod c"] apply (simp add: algebra_simps pos_mod_bound)
+ using add1_zle_eq[of "q mod c"] apply (simp add: algebra_simps)
 apply simp
 done
 
@@ -2065,15 +2103,16 @@ next
                   div_pos_pos_trivial)
 qed
 
-lemma neg_zdiv_mult_2: "a \<le> (0::int) ==> (1 + 2*b) div (2*a) = (b+1) div a"
-apply (subgoal_tac " (1 + 2* (-b - 1)) div (2 * (-a)) = (-b - 1) div (-a) ")
-apply (rule_tac [2] pos_zdiv_mult_2)
-apply (auto simp add: right_diff_distrib)
-apply (subgoal_tac " (-1 - (2 * b)) = - (1 + (2 * b))")
-apply (simp only: zdiv_zminus_zminus diff_minus minus_add_distrib [symmetric])
-apply (simp_all add: algebra_simps)
-apply (simp only: ab_diff_minus minus_add_distrib [symmetric] number_of_Min zdiv_zminus_zminus)
-done
+lemma neg_zdiv_mult_2: 
+  assumes A: "a \<le> (0::int)" shows "(1 + 2*b) div (2*a) = (b+1) div a"
+proof -
+  have R: "1 + - (2 * (b + 1)) = - (1 + 2 * b)" by simp
+  have "(1 + 2 * (-b - 1)) div (2 * (-a)) = (-b - 1) div (-a)"
+    by (rule pos_zdiv_mult_2, simp add: A)
+  thus ?thesis
+    by (simp only: R zdiv_zminus_zminus diff_minus
+      minus_add_distrib [symmetric] mult_minus_right)
+qed
 
 lemma zdiv_number_of_Bit0 [simp]:
      "number_of (Int.Bit0 v) div number_of (Int.Bit0 w) =  
@@ -2299,7 +2338,7 @@ lemma transfer_nat_int_function_closures:
   apply auto
 done
 
-declare TransferMorphism_nat_int [transfer add return:
+declare transfer_morphism_nat_int [transfer add return:
   transfer_nat_int_functions
   transfer_nat_int_function_closures
 ]
@@ -2314,7 +2353,7 @@ lemma transfer_int_nat_function_closures:
     "is_nat x \<Longrightarrow> is_nat y \<Longrightarrow> is_nat (x mod y)"
   by (simp_all only: is_nat_def transfer_nat_int_function_closures)
 
-declare TransferMorphism_int_nat [transfer add return:
+declare transfer_morphism_int_nat [transfer add return:
   transfer_int_nat_functions
   transfer_int_nat_function_closures
 ]
@@ -2325,47 +2364,6 @@ apply (subgoal_tac "nat x div nat k < nat x")
  apply (simp add: nat_div_distrib [symmetric])
 apply (rule Divides.div_less_dividend, simp_all)
 done
-
-text {* code generator setup *}
-
-context ring_1
-begin
-
-lemma of_int_num [code]:
-  "of_int k = (if k = 0 then 0 else if k < 0 then
-     - of_int (- k) else let
-       (l, m) = divmod_int k 2;
-       l' = of_int l
-     in if m = 0 then l' + l' else l' + l' + 1)"
-proof -
-  have aux1: "k mod (2\<Colon>int) \<noteq> (0\<Colon>int) \<Longrightarrow> 
-    of_int k = of_int (k div 2 * 2 + 1)"
-  proof -
-    have "k mod 2 < 2" by (auto intro: pos_mod_bound)
-    moreover have "0 \<le> k mod 2" by (auto intro: pos_mod_sign)
-    moreover assume "k mod 2 \<noteq> 0"
-    ultimately have "k mod 2 = 1" by arith
-    moreover have "of_int k = of_int (k div 2 * 2 + k mod 2)" by simp
-    ultimately show ?thesis by auto
-  qed
-  have aux2: "\<And>x. of_int 2 * x = x + x"
-  proof -
-    fix x
-    have int2: "(2::int) = 1 + 1" by arith
-    show "of_int 2 * x = x + x"
-    unfolding int2 of_int_add left_distrib by simp
-  qed
-  have aux3: "\<And>x. x * of_int 2 = x + x"
-  proof -
-    fix x
-    have int2: "(2::int) = 1 + 1" by arith
-    show "x * of_int 2 = x + x" 
-    unfolding int2 of_int_add right_distrib by simp
-  qed
-  from aux1 show ?thesis by (auto simp add: divmod_int_mod_div Let_def aux2 aux3)
-qed
-
-end
 
 lemma zmod_eq_dvd_iff: "(x::int) mod n = y mod n \<longleftrightarrow> n dvd x - y"
 proof
@@ -2451,8 +2449,10 @@ by (rule_tac P="%x. m mod n = x - (m div n) * n"
     in subst [OF mod_div_equality [of _ n]])
    arith
 
-lemmas [nitpick_def] = mod_div_equality' [THEN eq_reflection]
+lemmas [nitpick_def] = dvd_eq_mod_eq_0 [THEN eq_reflection]
+                       mod_div_equality' [THEN eq_reflection]
                        zmod_zdiv_equality' [THEN eq_reflection]
+
 
 subsubsection {* Code generation *}
 
@@ -2486,6 +2486,45 @@ proof -
     by (auto simp add: not_less sgn_if)
   then show ?thesis by (simp add: divmod_int_pdivmod)
 qed
+
+context ring_1
+begin
+
+lemma of_int_num [code]:
+  "of_int k = (if k = 0 then 0 else if k < 0 then
+     - of_int (- k) else let
+       (l, m) = divmod_int k 2;
+       l' = of_int l
+     in if m = 0 then l' + l' else l' + l' + 1)"
+proof -
+  have aux1: "k mod (2\<Colon>int) \<noteq> (0\<Colon>int) \<Longrightarrow> 
+    of_int k = of_int (k div 2 * 2 + 1)"
+  proof -
+    have "k mod 2 < 2" by (auto intro: pos_mod_bound)
+    moreover have "0 \<le> k mod 2" by (auto intro: pos_mod_sign)
+    moreover assume "k mod 2 \<noteq> 0"
+    ultimately have "k mod 2 = 1" by arith
+    moreover have "of_int k = of_int (k div 2 * 2 + k mod 2)" by simp
+    ultimately show ?thesis by auto
+  qed
+  have aux2: "\<And>x. of_int 2 * x = x + x"
+  proof -
+    fix x
+    have int2: "(2::int) = 1 + 1" by arith
+    show "of_int 2 * x = x + x"
+    unfolding int2 of_int_add left_distrib by simp
+  qed
+  have aux3: "\<And>x. x * of_int 2 = x + x"
+  proof -
+    fix x
+    have int2: "(2::int) = 1 + 1" by arith
+    show "x * of_int 2 = x + x" 
+    unfolding int2 of_int_add right_distrib by simp
+  qed
+  from aux1 show ?thesis by (auto simp add: divmod_int_mod_div Let_def aux2 aux3)
+qed
+
+end
 
 code_modulename SML
   Divides Arith

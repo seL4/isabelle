@@ -1,5 +1,5 @@
 theory SeriesPlus
-  imports Complex_Main Nat_Int_Bij 
+  imports Complex_Main Nat_Bijection
 begin
 
 text{*From the Hurd/Coble measure theory development, translated by Lawrence Paulson.*}
@@ -16,7 +16,7 @@ lemma suminf_2dimen:
   assumes f_nneg: "!!m n. 0 \<le> f(m,n)"
       and fsums: "!!m. (\<lambda>n. f (m,n)) sums (g m)"
       and sumg: "summable g"
-  shows "(f o nat_to_nat2) sums suminf g"
+  shows "(f o prod_decode) sums suminf g"
 proof (simp add: sums_def)
   {
     fix x
@@ -31,18 +31,18 @@ proof (simp add: sums_def)
       thus "0 \<le> g m" using fsums [of m] 
         by (auto simp add: sums_iff) 
     qed
-  show "(\<lambda>n. \<Sum>x = 0..<n. f (nat_to_nat2 x)) ----> suminf g"
+  show "(\<lambda>n. \<Sum>x = 0..<n. f (prod_decode x)) ----> suminf g"
   proof (rule increasing_LIMSEQ, simp add: f_nneg)
     fix n
-    def i \<equiv> "Max (Domain (nat_to_nat2 ` {0..<n}))"
-    def j \<equiv> "Max (Range (nat_to_nat2 ` {0..<n}))"
-    have ij: "nat_to_nat2 ` {0..<n} \<subseteq> ({0..i} \<times> {0..j})" 
+    def i \<equiv> "Max (Domain (prod_decode ` {0..<n}))"
+    def j \<equiv> "Max (Range (prod_decode ` {0..<n}))"
+    have ij: "prod_decode ` {0..<n} \<subseteq> ({0..i} \<times> {0..j})" 
       by (force simp add: i_def j_def 
                 intro: finite_imageI Max_ge finite_Domain finite_Range)  
-    have "(\<Sum>x = 0..<n. f (nat_to_nat2 x)) = setsum f (nat_to_nat2 ` {0..<n})" 
-      using setsum_reindex [of nat_to_nat2 "{0..<n}" f] 
+    have "(\<Sum>x = 0..<n. f (prod_decode x)) = setsum f (prod_decode ` {0..<n})" 
+      using setsum_reindex [of prod_decode "{0..<n}" f] 
       by (simp add: o_def)
-         (metis nat_to_nat2_inj subset_inj_on subset_UNIV nat_to_nat2_inj) 
+         (metis inj_prod_decode inj_prod_decode)
     also have "... \<le> setsum f ({0..i} \<times> {0..j})"
       by (rule setsum_mono2) (auto simp add: ij) 
     also have "... = setsum (\<lambda>m. setsum (\<lambda>n. f (m,n)) {0..j}) {0..<Suc i}"
@@ -56,10 +56,10 @@ proof (simp add: sums_def)
           by (auto simp add: sums_iff) 
            (metis atLeastLessThanSuc_atLeastAtMost f_nneg series_pos_le f_nneg) 
       qed
-    finally have  "(\<Sum>x = 0..<n. f (nat_to_nat2 x)) \<le> setsum g {0..<Suc i}" .
+    finally have  "(\<Sum>x = 0..<n. f (prod_decode x)) \<le> setsum g {0..<Suc i}" .
     also have "... \<le> suminf g" 
       by (rule series_pos_le [OF sumg]) (simp add: g_nneg) 
-    finally show "(\<Sum>x = 0..<n. f (nat_to_nat2 x)) \<le> suminf g" .
+    finally show "(\<Sum>x = 0..<n. f (prod_decode x)) \<le> suminf g" .
   next
     fix e :: real
     assume e: "0 < e"
@@ -99,26 +99,25 @@ proof (simp add: sums_def)
       by auto
     have finite_IJ: "finite IJ"
       by (simp add: IJ_def) 
-    def NIJ \<equiv> "Max (nat_to_nat2 -` IJ)"
-    have IJsb: "IJ \<subseteq> nat_to_nat2 ` {0..NIJ}"
+    def NIJ \<equiv> "Max (prod_decode -` IJ)"
+    have IJsb: "IJ \<subseteq> prod_decode ` {0..NIJ}"
       proof (auto simp add: NIJ_def)
         fix i j
         assume ij:"(i,j) \<in> IJ"
-        hence "(i,j) = nat_to_nat2 (inv nat_to_nat2 (i,j))"
-          by (metis nat_to_nat2_surj surj_f_inv_f) 
-        thus "(i,j) \<in> nat_to_nat2 ` {0..Max (nat_to_nat2 -` IJ)}"
+        hence "(i,j) = prod_decode (prod_encode (i,j))"
+          by simp
+        thus "(i,j) \<in> prod_decode ` {0..Max (prod_decode -` IJ)}"
           by (rule image_eqI) 
-             (simp add: ij finite_vimageI [OF finite_IJ nat_to_nat2_inj]
-                    nat_to_nat2_surj surj_f_inv_f) 
+             (simp add: ij finite_vimageI [OF finite_IJ inj_prod_decode])
       qed
-    have "setsum f IJ \<le> setsum f (nat_to_nat2 `{0..NIJ})"
+    have "setsum f IJ \<le> setsum f (prod_decode `{0..NIJ})"
       by (rule setsum_mono2) (auto simp add: IJsb) 
-    also have "... = (\<Sum>k = 0..NIJ. f (nat_to_nat2 k))"
-      by (simp add: setsum_reindex subset_inj_on [OF nat_to_nat2_inj subset_UNIV]) 
-    also have "... = (\<Sum>k = 0..<Suc NIJ. f (nat_to_nat2 k))"
+    also have "... = (\<Sum>k = 0..NIJ. f (prod_decode k))"
+      by (simp add: setsum_reindex inj_prod_decode)
+    also have "... = (\<Sum>k = 0..<Suc NIJ. f (prod_decode k))"
       by (metis atLeast0AtMost atLeast0LessThan lessThan_Suc_atMost)
-    finally have "setsum f IJ \<le> (\<Sum>k = 0..<Suc NIJ. f (nat_to_nat2 k))" .
-    thus "\<exists>n. suminf g \<le> (\<Sum>x = 0..<n. f (nat_to_nat2 x)) + e" using glessf
+    finally have "setsum f IJ \<le> (\<Sum>k = 0..<Suc NIJ. f (prod_decode k))" .
+    thus "\<exists>n. suminf g \<le> (\<Sum>x = 0..<n. f (prod_decode x)) + e" using glessf
       by (metis add_right_mono local.glessf not_leE order_le_less_trans less_asym)
   qed
 qed

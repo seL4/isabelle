@@ -76,7 +76,7 @@ val lazy_conj_simproc =
 
 val string_eq_simp_tac = simp_tac (HOL_basic_ss 
   addsimps (@{thms list.inject} @ @{thms char.inject}
-    @ @{thms list.distinct} @ @{thms char.distinct} @ simp_thms)
+    @ @{thms list.distinct} @ @{thms char.distinct} @ @{thms simp_thms})
   addsimprocs [lazy_conj_simproc]
   addcongs [@{thm block_conj_cong}])
 
@@ -84,7 +84,7 @@ end;
 
 val lookup_ss = (HOL_basic_ss 
   addsimps (@{thms list.inject} @ @{thms char.inject}
-    @ @{thms list.distinct} @ @{thms char.distinct} @ simp_thms
+    @ @{thms list.distinct} @ @{thms char.distinct} @ @{thms simp_thms}
     @ [@{thm StateFun.lookup_update_id_same}, @{thm StateFun.id_id_cancel},
       @{thm StateFun.lookup_update_same}, @{thm StateFun.lookup_update_other}])
   addsimprocs [lazy_conj_simproc]
@@ -142,7 +142,7 @@ val lookup_simproc =
           val ctxt = Simplifier.the_context ss;
           val basic_ss = #1 (StateFunData.get (Context.Proof ctxt));
           val ss' = Simplifier.context 
-                     (Config.map MetaSimplifier.simp_depth_limit (K 100) ctxt) basic_ss;
+                     (Config.put MetaSimplifier.simp_depth_limit 100 ctxt) basic_ss;
           val thm = Simplifier.rewrite ss' ct;
         in if (op aconv) (Logic.dest_equals (prop_of thm))
            then NONE
@@ -233,7 +233,7 @@ val update_simproc =
                | mk_updterm _ t = init_seed t;
 
              val ctxt = Simplifier.the_context ss |>
-                        Config.map MetaSimplifier.simp_depth_limit (K 100);
+                        Config.put MetaSimplifier.simp_depth_limit 100;
              val ss1 = Simplifier.context ctxt ss';
              val ss2 = Simplifier.context ctxt 
                          (#1 (StateFunData.get (Context.Proof ctxt)));
@@ -267,7 +267,7 @@ val ex_lookup_eq_simproc =
     (fn thy => fn ss => fn t =>
        let
          val ctxt = Simplifier.the_context ss |>
-                    Config.map MetaSimplifier.simp_depth_limit (K 100)
+                    Config.put MetaSimplifier.simp_depth_limit 100
          val ex_lookup_ss = #2 (StateFunData.get (Context.Proof ctxt));
          val ss' = (Simplifier.context ctxt ex_lookup_ss);
          fun prove prop =
@@ -310,7 +310,7 @@ val ex_lookup_eq_simproc =
                   val prop = list_all ([("n",nT),("x",eT)],
                               Logic.mk_equals (Const ("Ex",Tex)$Abs(s,T,eq),
                                                HOLogic.true_const));
-                  val thm = Drule.standard (prove prop);
+                  val thm = Drule.export_without_context (prove prop);
                   val thm' = if swap then swap_ex_eq OF [thm] else thm
              in SOME thm' end
              handle TERM _ => NONE)

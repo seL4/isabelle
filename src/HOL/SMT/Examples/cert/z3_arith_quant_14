@@ -1,4 +1,0 @@
-(benchmark Isabelle
-:assumption (not (not (exists (?x1 Int) (?x2 Int) (?x3 Int) (= (+ (* 4 ?x1) (* (~ 6) ?x2)) 1))))
-:formula true
-)

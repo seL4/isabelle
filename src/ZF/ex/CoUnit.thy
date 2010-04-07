@@ -1,5 +1,4 @@
-(*  Title:      ZF/ex/CoUnit.ML
-    ID:         $Id$
+(*  Title:      ZF/ex/CoUnit.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 *)

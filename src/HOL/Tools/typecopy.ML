@@ -55,13 +55,13 @@ fun typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
     val vs =
       AList.make (the_default HOLogic.typeS o AList.lookup (op =) (Term.add_tfreesT ty [])) raw_vs;
     val tac = Tactic.rtac UNIV_witness 1;
-    fun add_info tyco ( { abs_type = ty_abs, rep_type = ty_rep, Abs_name = c_abs,
-      Rep_name = c_rep, Abs_inject = inject,
-      Abs_inverse = inverse, ... } : Typedef.info ) thy =
+    fun add_info tyco (({ abs_type = ty_abs, rep_type = ty_rep, Abs_name = c_abs,
+          Rep_name = c_rep, ...}, { Abs_inject = inject, Abs_inverse = inverse, ... })
+          : Typedef.info) thy =
         let
           val exists_thm =
             UNIV_I
-            |> Drule.instantiate' [SOME (ctyp_of thy (Logic.varifyT ty_rep))] [];
+            |> Drule.instantiate' [SOME (ctyp_of thy (Logic.varifyT_global ty_rep))] [];
           val inject' = inject OF [exists_thm, exists_thm];
           val proj_def = inverse OF [exists_thm];
           val info = {
@@ -80,7 +80,8 @@ fun typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
         end
   in
     thy
-    |> Typedef.add_typedef false (SOME raw_tyco) (raw_tyco, map fst vs, NoSyn)
+    |> Typedef.add_typedef_global false (SOME raw_tyco)
+      (raw_tyco, map (fn (v, _) => (v, dummyS)) vs, NoSyn)   (* FIXME keep constraints!? *)
       (HOLogic.mk_UNIV ty) (Option.map swap constr_proj) tac
     |-> (fn (tyco, info) => add_info tyco info)
   end;
@@ -91,9 +92,10 @@ fun typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
 fun add_default_code tyco thy =
   let
     val SOME { constr = c, proj = (proj, _), proj_def = proj_eq, vs = vs,
-      typ = ty_rep, ... } =  get_info thy tyco;
-    val SOME { Rep_inject = proj_inject, ... } = Typedef.get_info thy tyco;
-    val constr = (c, Logic.unvarifyT (Sign.the_const_type thy c));
+      typ = ty_rep, ... } = get_info thy tyco;
+    (* FIXME handle multiple typedef interpretations (!??) *)
+    val [(_, { Rep_inject = proj_inject, ... })] = Typedef.get_info_global thy tyco;
+    val constr = (c, Logic.unvarifyT_global (Sign.the_const_type thy c));
     val ty = Type (tyco, map TFree vs);
     val proj = Const (proj, ty --> ty_rep);
     val (t_x, t_y) = (Free ("x", ty), Free ("y", ty));
@@ -107,7 +109,7 @@ fun add_default_code tyco thy =
           THEN ALLGOALS (rtac @{thm refl});
     fun mk_eq_refl thy = @{thm HOL.eq_refl}
       |> Thm.instantiate
-         ([pairself (Thm.ctyp_of thy) (TVar (("'a", 0), @{sort eq}), Logic.varifyT ty)], [])
+         ([pairself (Thm.ctyp_of thy) (TVar (("'a", 0), @{sort eq}), Logic.varifyT_global ty)], [])
       |> AxClass.unoverload thy;
   in
     thy

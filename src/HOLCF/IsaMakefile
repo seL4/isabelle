@@ -39,6 +39,7 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Discrete.thy \
   Deflation.thy \
   Domain.thy \
+  Domain_Aux.thy \
   Eventual.thy \
   Ffun.thy \
   Fixrec.thy \
@@ -46,11 +47,11 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   HOLCF.thy \
   Lift.thy \
   LowerPD.thy \
-  NatIso.thy \
   One.thy \
   Pcpodef.thy \
   Pcpo.thy \
   Porder.thy \
+  Powerdomains.thy \
   Product_Cpo.thy \
   Representable.thy \
   Sprod.thy \
@@ -60,19 +61,19 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Universal.thy \
   UpperPD.thy \
   Up.thy \
-  Tools/adm_tac.ML \
   Tools/cont_consts.ML \
   Tools/cont_proc.ML \
+  Tools/holcf_library.ML \
   Tools/Domain/domain_extender.ML \
   Tools/Domain/domain_axioms.ML \
+  Tools/Domain/domain_constructors.ML \
   Tools/Domain/domain_isomorphism.ML \
   Tools/Domain/domain_library.ML \
-  Tools/Domain/domain_syntax.ML \
+  Tools/Domain/domain_take_proofs.ML \
   Tools/Domain/domain_theorems.ML \
   Tools/fixrec.ML \
   Tools/pcpodef.ML \
   Tools/repdef.ML \
-  holcf_logic.ML \
   document/root.tex
 	@$(ISABELLE_TOOL) usedir -b -g true -r $(OUT)/HOL HOLCF
 
@@ -95,14 +96,17 @@ $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF \
   ex/Dagstuhl.thy \
   ex/Dnat.thy \
   ex/Domain_ex.thy \
+  ex/Domain_Proofs.thy \
   ex/Fix2.thy \
   ex/Fixrec_ex.thy \
   ex/Focus_ex.thy \
   ex/Hoare.thy \
+  ex/Letrec.thy \
   ex/Loop.thy \
   ex/New_Domain.thy \
   ex/Powerdomain_ex.thy \
   ex/Stream.thy \
+  ex/Strict_Fun.thy \
   ex/ROOT.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF ex
 
@@ -111,7 +115,9 @@ $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF \
 
 HOLCF-FOCUS: HOLCF $(LOG)/HOLCF-FOCUS.gz
 
-$(LOG)/HOLCF-FOCUS.gz: $(OUT)/HOLCF FOCUS/Fstreams.thy \
+$(LOG)/HOLCF-FOCUS.gz: $(OUT)/HOLCF \
+  ex/Stream.thy \
+  FOCUS/Fstreams.thy \
   FOCUS/Fstream.thy FOCUS/FOCUS.thy \
   FOCUS/Stream_adm.thy ../HOL/Library/Continuity.thy \
   FOCUS/Buffer.thy FOCUS/Buffer_adm.thy

@@ -53,7 +53,7 @@ fun eval some_target reff postproc thy t args =
         val value_name = "Value.VALUE.value"
         val program' = program
           |> Graph.new_node (value_name,
-              Code_Thingol.Fun (Term.dummy_patternN, (([], ty), [(([], t), (Drule.dummy_thm, true))])))
+              Code_Thingol.Fun (Term.dummy_patternN, (([], ty), [(([], t), (NONE, true))])))
           |> fold (curry Graph.add_edge value_name) deps;
         val (value_code, [SOME value_name']) = Code_ML.evaluation_code_of thy
           (the_default target some_target) "" naming program' [value_name];
@@ -107,35 +107,35 @@ fun print_datatype tyco constrs all_struct_name tycos_map consts_map =
     val _ = map2 check_base constrs constrs'';
   in "datatype " ^ tyco'' ^ " = datatype " ^ Long_Name.append all_struct_name tyco'' end;
 
-fun print_code struct_name is_first print_it ctxt =
+fun print_code is_first print_it ctxt =
   let
     val (_, (_, (struct_code_name, acc_code))) = CodeAntiqData.get ctxt;
     val (ml_code, (tycos_map, consts_map)) = Lazy.force acc_code;
     val ml_code = if is_first then ml_code
       else "";
-    val all_struct_name = Long_Name.append struct_name struct_code_name;
+    val all_struct_name = "Isabelle." ^ struct_code_name;
   in (ml_code, print_it all_struct_name tycos_map consts_map) end;
 
 in
 
-fun ml_code_antiq raw_const {struct_name, background} =
+fun ml_code_antiq raw_const background =
   let
     val const = Code.check_const (ProofContext.theory_of background) raw_const;
     val is_first = is_first_occ background;
     val background' = register_const const background;
-  in (print_code struct_name is_first (print_const const), background') end;
+  in (print_code is_first (print_const const), background') end;
 
-fun ml_code_datatype_antiq (raw_tyco, raw_constrs) {struct_name, background} =
+fun ml_code_datatype_antiq (raw_tyco, raw_constrs) background =
   let
     val thy = ProofContext.theory_of background;
     val tyco = Sign.intern_type thy raw_tyco;
     val constrs = map (Code.check_const thy) raw_constrs;
-    val constrs' = (map fst o snd o Code.get_datatype thy) tyco;
+    val constrs' = (map fst o snd o Code.get_type thy) tyco;
     val _ = if eq_set (op =) (constrs, constrs') then ()
       else error ("Type " ^ quote tyco ^ ": given constructors diverge from real constructors")
     val is_first = is_first_occ background;
     val background' = register_datatype tyco constrs background;
-  in (print_code struct_name is_first (print_datatype tyco constrs), background') end;
+  in (print_code is_first (print_datatype tyco constrs), background') end;
 
 end; (*local*)
 
@@ -144,7 +144,7 @@ end; (*local*)
 
 val _ = ML_Context.add_antiq "code" (fn _ => Args.term >> ml_code_antiq);
 val _ = ML_Context.add_antiq "code_datatype" (fn _ =>
-  (Args.tyname --| Scan.lift (Args.$$$ "=")
+  (Args.type_name true --| Scan.lift (Args.$$$ "=")
     -- (Args.term ::: Scan.repeat (Scan.lift (Args.$$$ "|") |-- Args.term)))
       >> ml_code_datatype_antiq);
 

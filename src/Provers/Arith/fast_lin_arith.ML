@@ -1,5 +1,4 @@
 (*  Title:      Provers/Arith/fast_lin_arith.ML
-    ID:         $Id$
     Author:     Tobias Nipkow and Tjark Weber and Sascha Boehme
 
 A generic linear arithmetic package.  It provides two tactics
@@ -56,7 +55,7 @@ sig
   val pre_decomp: Proof.context -> typ list * term list -> (typ list * term list) list
 
   (*preprocessing, performed on the goal -- must do the same as 'pre_decomp':*)
-  val pre_tac: Proof.context -> int -> tactic
+  val pre_tac: simpset -> int -> tactic
 
   (*the limit on the number of ~= allowed; because each ~= is split
     into two cases, this can lead to an explosion*)
@@ -97,7 +96,6 @@ sig
                      number_of : serial * (theory -> typ -> int -> cterm)})
                 -> Context.generic -> Context.generic
   val trace: bool Unsynchronized.ref
-  val warning_count: int Unsynchronized.ref;
 end;
 
 functor Fast_Lin_Arith
@@ -427,9 +425,6 @@ fun trace_term ctxt msg t =
 fun trace_msg msg =
   if !trace then tracing msg else ();
 
-val warning_count = Unsynchronized.ref 0;
-val warning_count_max = 10;
-
 val union_term = union Pattern.aeconv;
 val union_bterm = union (fn ((b:bool, t), (b', t')) => b = b' andalso Pattern.aeconv (t, t'));
 
@@ -533,17 +528,11 @@ fun mkthm ss asms (just: injust) =
       val _ =
         if LA_Logic.is_False fls then ()
         else
-          let val count = CRITICAL (fn () => Unsynchronized.inc warning_count) in
-            if count > warning_count_max then ()
-            else
-              (tracing (cat_lines
-                (["Assumptions:"] @ map (Display.string_of_thm ctxt) asms @ [""] @
-                 ["Proved:", Display.string_of_thm ctxt fls, ""] @
-                 (if count <> warning_count_max then []
-                  else ["\n(Reached maximal message count -- disabling future warnings)"])));
-                warning "Linear arithmetic should have refuted the assumptions.\n\
-                  \Please inform Tobias Nipkow (nipkow@in.tum.de).")
-          end;
+         (tracing (cat_lines
+           (["Assumptions:"] @ map (Display.string_of_thm ctxt) asms @ [""] @
+            ["Proved:", Display.string_of_thm ctxt fls, ""]));
+          warning "Linear arithmetic should have refuted the assumptions.\n\
+            \Please inform Tobias Nipkow.")
     in fls end
     handle FalseE thm => trace_thm ctxt "False reached early:" thm
   end;
@@ -792,7 +781,7 @@ fun refute_tac ss (i, split_neq, justs) =
       (* rewrite "[| A1; ...; An |] ==> B" to "[| A1; ...; An; ~B |] ==> False" *)
       DETERM (resolve_tac [LA_Logic.notI, LA_Logic.ccontr] i) THEN
       (* user-defined preprocessing of the subgoal *)
-      DETERM (LA_Data.pre_tac ctxt i) THEN
+      DETERM (LA_Data.pre_tac ss i) THEN
       PRIMITIVE (trace_thm ctxt "State after pre_tac:") THEN
       (* prove every resulting subgoal, using its justification *)
       EVERY (map just1 justs)
@@ -849,17 +838,20 @@ in (ct1, ct2) end;
 
 fun splitasms ctxt (asms : thm list) : splittree =
 let val {neqE, ...} = get_data ctxt
-    fun elim_neq (asms', []) = Tip (rev asms')
-      | elim_neq (asms', asm::asms) =
-      (case get_first (fn th => SOME (asm COMP th) handle THM _ => NONE) neqE of
+    fun elim_neq [] (asms', []) = Tip (rev asms')
+      | elim_neq [] (asms', asms) = Tip (rev asms' @ asms)
+      | elim_neq (neq :: neqs) (asms', []) = elim_neq neqs ([],rev asms')
+      | elim_neq (neqs as (neq :: _)) (asms', asm::asms) =
+      (case get_first (fn th => SOME (asm COMP th) handle THM _ => NONE) [neq] of
         SOME spl =>
           let val (ct1, ct2) = extract (cprop_of spl)
               val thm1 = assume ct1
               val thm2 = assume ct2
-          in Spl (spl, ct1, elim_neq (asms', asms@[thm1]), ct2, elim_neq (asms', asms@[thm2]))
+          in Spl (spl, ct1, elim_neq neqs (asms', asms@[thm1]),
+            ct2, elim_neq neqs (asms', asms@[thm2]))
           end
-      | NONE => elim_neq (asm::asms', asms))
-in elim_neq ([], asms) end;
+      | NONE => elim_neq neqs (asm::asms', asms))
+in elim_neq neqE ([], asms) end;
 
 fun fwdproof ss (Tip asms : splittree) (j::js : injust list) = (mkthm ss asms j, js)
   | fwdproof ss (Spl (thm, ct1, tree1, ct2, tree2)) js =

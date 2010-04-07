@@ -1,4 +1,0 @@
-(benchmark Isabelle
-:assumption (not (not (exists (?x1 Int) false)))
-:formula true
-)

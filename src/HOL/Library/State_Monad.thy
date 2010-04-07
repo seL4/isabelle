@@ -159,15 +159,15 @@ let
   fun unfold_monad (Const (@{const_syntax scomp}, _) $ f $ g) =
         let
           val (v, g') = dest_abs_eta g;
-        in Const ("_scomp", dummyT) $ v $ f $ unfold_monad g' end
+        in Const (@{syntax_const "_scomp"}, dummyT) $ v $ f $ unfold_monad g' end
     | unfold_monad (Const (@{const_syntax fcomp}, _) $ f $ g) =
-        Const ("_fcomp", dummyT) $ f $ unfold_monad g
+        Const (@{syntax_const "_fcomp"}, dummyT) $ f $ unfold_monad g
     | unfold_monad (Const (@{const_syntax Let}, _) $ f $ g) =
         let
           val (v, g') = dest_abs_eta g;
-        in Const ("_let", dummyT) $ v $ f $ unfold_monad g' end
+        in Const (@{syntax_const "_let"}, dummyT) $ v $ f $ unfold_monad g' end
     | unfold_monad (Const (@{const_syntax Pair}, _) $ f) =
-        Const ("return", dummyT) $ f
+        Const (@{const_syntax "return"}, dummyT) $ f
     | unfold_monad f = f;
   fun contains_scomp (Const (@{const_syntax scomp}, _) $ _ $ _) = true
     | contains_scomp (Const (@{const_syntax fcomp}, _) $ _ $ t) =
@@ -175,18 +175,23 @@ let
     | contains_scomp (Const (@{const_syntax Let}, _) $ _ $ Abs (_, _, t)) =
         contains_scomp t;
   fun scomp_monad_tr' (f::g::ts) = list_comb
-    (Const ("_do", dummyT) $ unfold_monad (Const (@{const_syntax scomp}, dummyT) $ f $ g), ts);
-  fun fcomp_monad_tr' (f::g::ts) = if contains_scomp g then list_comb
-      (Const ("_do", dummyT) $ unfold_monad (Const (@{const_syntax fcomp}, dummyT) $ f $ g), ts)
+    (Const (@{syntax_const "_do"}, dummyT) $
+      unfold_monad (Const (@{const_syntax scomp}, dummyT) $ f $ g), ts);
+  fun fcomp_monad_tr' (f::g::ts) =
+    if contains_scomp g then list_comb
+      (Const (@{syntax_const "_do"}, dummyT) $
+        unfold_monad (Const (@{const_syntax fcomp}, dummyT) $ f $ g), ts)
     else raise Match;
-  fun Let_monad_tr' (f :: (g as Abs (_, _, g')) :: ts) = if contains_scomp g' then list_comb
-      (Const ("_do", dummyT) $ unfold_monad (Const (@{const_syntax Let}, dummyT) $ f $ g), ts)
+  fun Let_monad_tr' (f :: (g as Abs (_, _, g')) :: ts) =
+    if contains_scomp g' then list_comb
+      (Const (@{syntax_const "_do"}, dummyT) $
+        unfold_monad (Const (@{const_syntax Let}, dummyT) $ f $ g), ts)
     else raise Match;
-in [
-  (@{const_syntax scomp}, scomp_monad_tr'),
+in
+ [(@{const_syntax scomp}, scomp_monad_tr'),
   (@{const_syntax fcomp}, fcomp_monad_tr'),
-  (@{const_syntax Let}, Let_monad_tr')
-] end;
+  (@{const_syntax Let}, Let_monad_tr')]
+end;
 *}
 
 text {*

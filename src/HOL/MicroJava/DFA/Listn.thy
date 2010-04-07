@@ -9,43 +9,41 @@ theory Listn
 imports Err
 begin
 
-constdefs
-
- list :: "nat \<Rightarrow> 'a set \<Rightarrow> 'a list set"
+definition list :: "nat \<Rightarrow> 'a set \<Rightarrow> 'a list set" where
 "list n A == {xs. length xs = n & set xs <= A}"
 
- le :: "'a ord \<Rightarrow> ('a list)ord"
+definition le :: "'a ord \<Rightarrow> ('a list)ord" where
 "le r == list_all2 (%x y. x <=_r y)"
 
-syntax "@lesublist" :: "'a list \<Rightarrow> 'a ord \<Rightarrow> 'a list \<Rightarrow> bool"
+abbreviation
+  lesublist_syntax :: "'a list \<Rightarrow> 'a ord \<Rightarrow> 'a list \<Rightarrow> bool"
        ("(_ /<=[_] _)" [50, 0, 51] 50)
-syntax "@lesssublist" :: "'a list \<Rightarrow> 'a ord \<Rightarrow> 'a list \<Rightarrow> bool"
-       ("(_ /<[_] _)" [50, 0, 51] 50)
-translations
- "x <=[r] y" == "x <=_(Listn.le r) y"
- "x <[r] y"  == "x <_(Listn.le r) y"
+  where "x <=[r] y == x <=_(le r) y"
 
-constdefs
- map2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list"
+abbreviation
+  lesssublist_syntax :: "'a list \<Rightarrow> 'a ord \<Rightarrow> 'a list \<Rightarrow> bool"
+       ("(_ /<[_] _)" [50, 0, 51] 50)
+  where "x <[r] y == x <_(le r) y"
+
+definition map2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list" where
 "map2 f == (%xs ys. map (split f) (zip xs ys))"
 
-syntax "@plussublist" :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b list \<Rightarrow> 'c list"
+abbreviation
+  plussublist_syntax :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b list \<Rightarrow> 'c list"
        ("(_ /+[_] _)" [65, 0, 66] 65)
-translations  "x +[f] y" == "x +_(map2 f) y"
+  where "x +[f] y == x +_(map2 f) y"
 
-consts coalesce :: "'a err list \<Rightarrow> 'a list err"
-primrec
-"coalesce [] = OK[]"
-"coalesce (ex#exs) = Err.sup (op #) ex (coalesce exs)"
+primrec coalesce :: "'a err list \<Rightarrow> 'a list err" where
+  "coalesce [] = OK[]"
+| "coalesce (ex#exs) = Err.sup (op #) ex (coalesce exs)"
 
-constdefs
- sl :: "nat \<Rightarrow> 'a sl \<Rightarrow> 'a list sl"
+definition sl :: "nat \<Rightarrow> 'a sl \<Rightarrow> 'a list sl" where
 "sl n == %(A,r,f). (list n A, le r, map2 f)"
 
- sup :: "('a \<Rightarrow> 'b \<Rightarrow> 'c err) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list err"
+definition sup :: "('a \<Rightarrow> 'b \<Rightarrow> 'c err) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list err" where
 "sup f == %xs ys. if size xs = size ys then coalesce(xs +[f] ys) else Err"
 
- upto_esl :: "nat \<Rightarrow> 'a esl \<Rightarrow> 'a list esl"
+definition upto_esl :: "nat \<Rightarrow> 'a esl \<Rightarrow> 'a list esl" where
 "upto_esl m == %(A,r,f). (Union{list n A |n. n <= m}, le r, sup f)"
 
 lemmas [simp] = set_update_subsetI

@@ -10,9 +10,7 @@ theory Solve
 imports IOA
 begin
 
-constdefs
-
-  is_weak_pmap :: "['c => 'a, ('action,'c)ioa,('action,'a)ioa] => bool"
+definition is_weak_pmap :: "['c => 'a, ('action,'c)ioa,('action,'a)ioa] => bool" where
   "is_weak_pmap f C A ==
    (!s:starts_of(C). f(s):starts_of(A)) &
    (!s t a. reachable C s &

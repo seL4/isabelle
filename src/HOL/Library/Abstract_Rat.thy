@@ -332,7 +332,7 @@ lemma Ninv[simp]: "INum (Ninv x) = (1::'a :: {division_by_zero,field}) / (INum x
 lemma Ndiv[simp]: "INum (x \<div>\<^sub>N y) = INum x / (INum y ::'a :: {ring_char_0, division_by_zero,field})" by (simp add: Ndiv_def)
 
 lemma Nlt0_iff[simp]: assumes nx: "isnormNum x" 
-  shows "((INum x :: 'a :: {ring_char_0,division_by_zero,ordered_field})< 0) = 0>\<^sub>N x "
+  shows "((INum x :: 'a :: {ring_char_0,division_by_zero,linordered_field})< 0) = 0>\<^sub>N x "
 proof-
   have " \<exists> a b. x = (a,b)" by simp
   then obtain a b where x[simp]:"x = (a,b)" by blast
@@ -345,7 +345,7 @@ proof-
 qed
 
 lemma Nle0_iff[simp]:assumes nx: "isnormNum x" 
-  shows "((INum x :: 'a :: {ring_char_0,division_by_zero,ordered_field}) \<le> 0) = 0\<ge>\<^sub>N x"
+  shows "((INum x :: 'a :: {ring_char_0,division_by_zero,linordered_field}) \<le> 0) = 0\<ge>\<^sub>N x"
 proof-
   have " \<exists> a b. x = (a,b)" by simp
   then obtain a b where x[simp]:"x = (a,b)" by blast
@@ -357,7 +357,7 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-lemma Ngt0_iff[simp]:assumes nx: "isnormNum x" shows "((INum x :: 'a :: {ring_char_0,division_by_zero,ordered_field})> 0) = 0<\<^sub>N x"
+lemma Ngt0_iff[simp]:assumes nx: "isnormNum x" shows "((INum x :: 'a :: {ring_char_0,division_by_zero,linordered_field})> 0) = 0<\<^sub>N x"
 proof-
   have " \<exists> a b. x = (a,b)" by simp
   then obtain a b where x[simp]:"x = (a,b)" by blast
@@ -369,7 +369,7 @@ proof-
   ultimately show ?thesis by blast
 qed
 lemma Nge0_iff[simp]:assumes nx: "isnormNum x" 
-  shows "((INum x :: 'a :: {ring_char_0,division_by_zero,ordered_field}) \<ge> 0) = 0\<le>\<^sub>N x"
+  shows "((INum x :: 'a :: {ring_char_0,division_by_zero,linordered_field}) \<ge> 0) = 0\<le>\<^sub>N x"
 proof-
   have " \<exists> a b. x = (a,b)" by simp
   then obtain a b where x[simp]:"x = (a,b)" by blast
@@ -382,7 +382,7 @@ proof-
 qed
 
 lemma Nlt_iff[simp]: assumes nx: "isnormNum x" and ny: "isnormNum y"
-  shows "((INum x :: 'a :: {ring_char_0,division_by_zero,ordered_field}) < INum y) = (x <\<^sub>N y)"
+  shows "((INum x :: 'a :: {ring_char_0,division_by_zero,linordered_field}) < INum y) = (x <\<^sub>N y)"
 proof-
   let ?z = "0::'a"
   have "((INum x ::'a) < INum y) = (INum (x -\<^sub>N y) < ?z)" using nx ny by simp
@@ -391,7 +391,7 @@ proof-
 qed
 
 lemma Nle_iff[simp]: assumes nx: "isnormNum x" and ny: "isnormNum y"
-  shows "((INum x :: 'a :: {ring_char_0,division_by_zero,ordered_field})\<le> INum y) = (x \<le>\<^sub>N y)"
+  shows "((INum x :: 'a :: {ring_char_0,division_by_zero,linordered_field})\<le> INum y) = (x \<le>\<^sub>N y)"
 proof-
   have "((INum x ::'a) \<le> INum y) = (INum (x -\<^sub>N y) \<le> (0::'a))" using nx ny by simp
   also have "\<dots> = (0\<ge>\<^sub>N (x -\<^sub>N y))" using Nle0_iff[OF Nsub_normN[OF ny]] by simp

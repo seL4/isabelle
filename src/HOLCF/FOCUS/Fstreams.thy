@@ -135,7 +135,7 @@ by (simp add: fsingleton_def2)
 lemma fstreams_ind: 
   "[| adm P; P <>; !!a s. P s ==> P (<a> ooo s) |] ==> P x"
 apply (simp add: fsingleton_def2)
-apply (rule stream.ind, auto)
+apply (rule stream.induct, auto)
 by (drule not_Undef_is_Def [THEN iffD1], auto)
 
 lemma fstreams_ind2:
@@ -189,7 +189,7 @@ lemma rt_fstreams[simp]: "rt$(<a> ooo s) = s"
 by (simp add: fsingleton_def2)
 
 lemma ft_eq[simp]: "(ft$s = Def a) = (EX t. s = <a> ooo t)"
-apply (rule stream.casedist [of s],auto)
+apply (cases s, auto)
 by ((*drule sym,*) auto simp add: fsingleton_def2)
 
 lemma surjective_fstreams: "(<d> ooo y = x) = (ft$x = Def d & rt$x = y)"
@@ -208,9 +208,6 @@ lemma fsmap_fsingleton[simp]: "fsmap f$(<x>) = <(f x)>"
 by (simp add: fsmap_def fsingleton_def2 flift2_def)
 
 
-declare range_composition[simp del]
-
-
 lemma fstreams_chain_lemma[rule_format]:
   "ALL s x y. stream_take n$(s::'a fstream) << x & x << y & y << s & x ~= y --> stream_take (Suc n)$s << y"
 apply (induct_tac n, auto)
@@ -225,7 +222,7 @@ apply (erule_tac x="ya" in allE)
 apply (drule stream_prefix, auto)
 apply (case_tac "y=UU",auto)
 apply (drule stream_exhaust_eq [THEN iffD1], clarsimp)
-apply (auto simp add: stream.inverts)
+apply auto
 apply (simp add: flat_less_iff)
 apply (erule_tac x="tt" in allE)
 apply (erule_tac x="yb" in allE, auto)
@@ -243,7 +240,6 @@ lemma fstreams_lub1:
      ==> (EX j t. Y j = <a> ooo t) & (EX X. chain X & (ALL i. EX j. <a> ooo X i << Y j) & (LUB i. X i) = s)"
 apply (auto simp add: fstreams_lub_lemma1)
 apply (rule_tac x="%n. stream_take n$s" in exI, auto)
-apply (simp add: chain_stream_take)
 apply (induct_tac i, auto)
 apply (drule fstreams_lub_lemma1, auto)
 apply (rule_tac x="j" in exI, auto)
@@ -296,7 +292,6 @@ lemma fstreams_lub2:
       ==> (EX j t. Y j = (a, <m> ooo t)) & (EX X. chain X & (ALL i. EX j. (a, <m> ooo X i) << Y j) & (LUB i. X i) = ms)"
 apply (auto simp add: fstreams_lub_lemma2)
 apply (rule_tac x="%n. stream_take n$ms" in exI, auto)
-apply (simp add: chain_stream_take)
 apply (induct_tac i, auto)
 apply (drule fstreams_lub_lemma2, auto)
 apply (rule_tac x="j" in exI, auto)
@@ -329,15 +324,6 @@ by (rule stream_reach2)
 
 lemma cpo_cont_lemma:
   "[| monofun (f::'a::cpo => 'b::cpo); (!Y. chain Y --> f (lub(range Y)) << (LUB i. f (Y i))) |] ==> cont f"
-apply (rule monocontlub2cont, auto)
-apply (simp add: contlub_def, auto)
-apply (erule_tac x="Y" in allE, auto)
-apply (simp add: po_eq_conv)
-apply (frule cpo,auto)
-apply (frule is_lubD1)
-apply (frule ub2ub_monofun, auto)
-apply (drule thelubI, auto)
-apply (rule is_lub_thelub, auto)
-by (erule ch2ch_monofun, simp)
+by (erule contI2, simp)
 
 end

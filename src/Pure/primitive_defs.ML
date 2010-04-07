@@ -9,7 +9,6 @@ sig
   val dest_def: Proof.context -> (term -> bool) -> (string -> bool) -> (string -> bool) ->
     term -> (term * term) * term
   val abs_def: term -> term * term
-  val mk_defpair: term * term -> string * term
 end;
 
 structure Primitive_Defs: PRIMITIVE_DEFS =
@@ -77,11 +76,5 @@ fun abs_def eq =
     val (lhs', args) = Term.strip_comb lhs;
     val rhs' = Term.list_abs_free (map Term.dest_Free args, rhs);
   in (lhs', rhs') end;
-
-fun mk_defpair (lhs, rhs) =
-  (case Term.head_of lhs of
-    Const (name, _) =>
-      (Long_Name.base_name name ^ "_def", Logic.mk_equals (lhs, rhs))
-  | _ => raise TERM ("Malformed definition: head of lhs not a constant", [lhs, rhs]));
 
 end;

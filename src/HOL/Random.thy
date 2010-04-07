@@ -1,3 +1,4 @@
+
 (* Author: Florian Haftmann, TU Muenchen *)
 
 header {* A HOL random engine *}
@@ -154,6 +155,14 @@ val seed = Unsynchronized.ref
 
 in
 
+fun next_seed () =
+  let
+    val (seed1, seed') = @{code split_seed} (! seed)
+    val _ = seed := seed'
+  in
+    seed1
+  end
+
 fun run f =
   let
     val (x, seed') = f (! seed);
@@ -168,6 +177,7 @@ end;
 hide (open) type seed
 hide (open) const inc_shift minus_shift log "next" split_seed
   iterate range select pick select_weight
+hide (open) fact range_def
 
 no_notation fcomp (infixl "o>" 60)
 no_notation scomp (infixl "o\<rightarrow>" 60)

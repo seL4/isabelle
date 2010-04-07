@@ -30,8 +30,8 @@ lemma minf:
   "\<exists>(z ::'a::{linorder}).\<forall>x<z.(x \<le> t) = True"
   "\<exists>(z ::'a::{linorder}).\<forall>x<z.(x > t) = False"
   "\<exists>(z ::'a::{linorder}).\<forall>x<z.(x \<ge> t) = False"
-  "\<exists>z.\<forall>(x::'a::{linorder,plus,Ring_and_Field.dvd})<z. (d dvd x + s) = (d dvd x + s)"
-  "\<exists>z.\<forall>(x::'a::{linorder,plus,Ring_and_Field.dvd})<z. (\<not> d dvd x + s) = (\<not> d dvd x + s)"
+  "\<exists>z.\<forall>(x::'a::{linorder,plus,Rings.dvd})<z. (d dvd x + s) = (d dvd x + s)"
+  "\<exists>z.\<forall>(x::'a::{linorder,plus,Rings.dvd})<z. (\<not> d dvd x + s) = (\<not> d dvd x + s)"
   "\<exists>z.\<forall>x<z. F = F"
   by ((erule exE, erule exE,rule_tac x="min z za" in exI,simp)+, (rule_tac x="t" in exI,fastsimp)+) simp_all
 
@@ -46,8 +46,8 @@ lemma pinf:
   "\<exists>(z ::'a::{linorder}).\<forall>x>z.(x \<le> t) = False"
   "\<exists>(z ::'a::{linorder}).\<forall>x>z.(x > t) = True"
   "\<exists>(z ::'a::{linorder}).\<forall>x>z.(x \<ge> t) = True"
-  "\<exists>z.\<forall>(x::'a::{linorder,plus,Ring_and_Field.dvd})>z. (d dvd x + s) = (d dvd x + s)"
-  "\<exists>z.\<forall>(x::'a::{linorder,plus,Ring_and_Field.dvd})>z. (\<not> d dvd x + s) = (\<not> d dvd x + s)"
+  "\<exists>z.\<forall>(x::'a::{linorder,plus,Rings.dvd})>z. (d dvd x + s) = (d dvd x + s)"
+  "\<exists>z.\<forall>(x::'a::{linorder,plus,Rings.dvd})>z. (\<not> d dvd x + s) = (\<not> d dvd x + s)"
   "\<exists>z.\<forall>x>z. F = F"
   by ((erule exE, erule exE,rule_tac x="max z za" in exI,simp)+,(rule_tac x="t" in exI,fastsimp)+) simp_all
 
@@ -56,8 +56,8 @@ lemma inf_period:
     \<Longrightarrow> \<forall>x k. (P x \<and> Q x) = (P (x - k*D) \<and> Q (x - k*D))"
   "\<lbrakk>\<forall>x k. P x = P (x - k*D); \<forall>x k. Q x = Q (x - k*D)\<rbrakk> 
     \<Longrightarrow> \<forall>x k. (P x \<or> Q x) = (P (x - k*D) \<or> Q (x - k*D))"
-  "(d::'a::{comm_ring,Ring_and_Field.dvd}) dvd D \<Longrightarrow> \<forall>x k. (d dvd x + t) = (d dvd (x - k*D) + t)"
-  "(d::'a::{comm_ring,Ring_and_Field.dvd}) dvd D \<Longrightarrow> \<forall>x k. (\<not>d dvd x + t) = (\<not>d dvd (x - k*D) + t)"
+  "(d::'a::{comm_ring,Rings.dvd}) dvd D \<Longrightarrow> \<forall>x k. (d dvd x + t) = (d dvd (x - k*D) + t)"
+  "(d::'a::{comm_ring,Rings.dvd}) dvd D \<Longrightarrow> \<forall>x k. (\<not>d dvd x + t) = (\<not>d dvd (x - k*D) + t)"
   "\<forall>x k. F = F"
 apply (auto elim!: dvdE simp add: algebra_simps)
 unfolding mult_assoc [symmetric] left_distrib [symmetric] left_diff_distrib [symmetric]
@@ -199,16 +199,16 @@ proof
     hence "P 0" using P Pmod by simp
     moreover have "P 0 = P(0 - (-1)*d)" using modd by blast
     ultimately have "P d" by simp
-    moreover have "d : {1..d}" using dpos by(simp add:atLeastAtMost_iff)
+    moreover have "d : {1..d}" using dpos by simp
     ultimately show ?RHS ..
   next
     assume not0: "x mod d \<noteq> 0"
-    have "P(x mod d)" using dpos P Pmod by(simp add:pos_mod_sign pos_mod_bound)
+    have "P(x mod d)" using dpos P Pmod by simp
     moreover have "x mod d : {1..d}"
     proof -
       from dpos have "0 \<le> x mod d" by(rule pos_mod_sign)
       moreover from dpos have "x mod d < d" by(rule pos_mod_bound)
-      ultimately show ?thesis using not0 by(simp add:atLeastAtMost_iff)
+      ultimately show ?thesis using not0 by simp
     qed
     ultimately show ?RHS ..
   qed
@@ -243,7 +243,7 @@ next
   {fix x
     have "P x \<longrightarrow> P (x - i * d)" using step.hyps by blast
     also have "\<dots> \<longrightarrow> P(x - (i + 1) * d)" using minus[THEN spec, of "x - i * d"]
-      by (simp add:int_distrib OrderedGroup.diff_diff_eq[symmetric])
+      by (simp add: algebra_simps)
     ultimately have "P x \<longrightarrow> P(x - (i + 1) * d)" by blast}
   thus ?case ..
 qed
@@ -360,7 +360,7 @@ apply(simp add:atLeastAtMost_def atLeast_def atMost_def)
 apply(fastsimp)
 done
 
-theorem unity_coeff_ex: "(\<exists>(x::'a::{semiring_0,Ring_and_Field.dvd}). P (l * x)) \<equiv> (\<exists>x. l dvd (x + 0) \<and> P x)"
+theorem unity_coeff_ex: "(\<exists>(x::'a::{semiring_0,Rings.dvd}). P (l * x)) \<equiv> (\<exists>x. l dvd (x + 0) \<and> P x)"
   apply (rule eq_reflection [symmetric])
   apply (rule iffI)
   defer

@@ -1,7 +1,6 @@
-(*
-    Ring homomorphism
-    $Id$
-    Author: Clemens Ballarin, started 15 April 1997
+(*  Author: Clemens Ballarin, started 15 April 1997
+
+Ring homomorphism.
 *)
 
 header {* Ring homomorphism *}

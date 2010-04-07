@@ -48,8 +48,8 @@ preorder, partial order, linear order, dense linear order and wellorder.
 \smallskip
 
 \begin{supertabular}{@ {} l @ {~::~} l l @ {}}
-@{const HOL.less_eq} & @{typeof HOL.less_eq} & (\verb$<=$)\\
-@{const HOL.less} & @{typeof HOL.less}\\
+@{const Orderings.less_eq} & @{typeof Orderings.less_eq} & (\verb$<=$)\\
+@{const Orderings.less} & @{typeof Orderings.less}\\
 @{const Orderings.Least} & @{typeof Orderings.Least}\\
 @{const Orderings.min} & @{typeof Orderings.min}\\
 @{const Orderings.max} & @{typeof Orderings.max}\\
@@ -297,7 +297,7 @@ e.g.\ \mbox{@{prop"ALL (x,y):A. P"},} @{term"{(x,y). P}"}, etc.
 
 \section{Algebra}
 
-Theories @{theory OrderedGroup}, @{theory Ring_and_Field} and @{theory
+Theories @{theory Groups}, @{theory Rings}, @{theory Fields} and @{theory
 Divides} define a large collection of classes describing common algebraic
 structures from semigroups up to fields. Everything is done in terms of
 overloaded operators:
@@ -396,8 +396,8 @@ Type @{typ int}
 @{const Finite_Set.card} & @{term_type_only Finite_Set.card "'a set => nat"}\\
 @{const Finite_Set.fold} & @{term_type_only Finite_Set.fold "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b"}\\
 @{const Finite_Set.fold_image} & @{typ "('b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b"}\\
-@{const Finite_Set.setsum} & @{term_type_only Finite_Set.setsum "('a => 'b) => 'a set => 'b::comm_monoid_add"}\\
-@{const Finite_Set.setprod} & @{term_type_only Finite_Set.setprod "('a => 'b) => 'a set => 'b::comm_monoid_mult"}\\
+@{const Big_Operators.setsum} & @{term_type_only Big_Operators.setsum "('a => 'b) => 'a set => 'b::comm_monoid_add"}\\
+@{const Big_Operators.setprod} & @{term_type_only Big_Operators.setprod "('a => 'b) => 'a set => 'b::comm_monoid_mult"}\\
 \end{supertabular}
 
 

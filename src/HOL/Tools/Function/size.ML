@@ -25,7 +25,7 @@ structure SizeData = Theory_Data
 
 val lookup_size = SizeData.get #> Symtab.lookup;
 
-fun plus (t1, t2) = Const ("HOL.plus_class.plus",
+fun plus (t1, t2) = Const (@{const_name Groups.plus},
   HOLogic.natT --> HOLogic.natT --> HOLogic.natT) $ t1 $ t2;
 
 fun size_of_type f g h (T as Type (s, Ts)) =
@@ -130,8 +130,9 @@ fun prove_size_thms (info : info) new_type_names thy =
     fun define_overloaded (def_name, eq) lthy =
       let
         val (Free (c, _), rhs) = (Logic.dest_equals o Syntax.check_term lthy) eq;
-        val ((_, (_, thm)), lthy') = lthy
-          |> Local_Theory.define ((Binding.name c, NoSyn), ((Binding.name def_name, []), rhs));
+        val (thm, lthy') = lthy
+          |> Local_Theory.define ((Binding.name c, NoSyn), ((Binding.name def_name, []), rhs))
+          |-> (fn (t, (_, thm)) => Spec_Rules.add Spec_Rules.Equational ([t], [thm]) #> pair thm);
         val ctxt_thy = ProofContext.init (ProofContext.theory_of lthy');
         val thm' = singleton (ProofContext.export lthy' ctxt_thy) thm;
       in (thm', lthy') end;
@@ -153,7 +154,7 @@ fun prove_size_thms (info : info) new_type_names thy =
 
     val ctxt = ProofContext.init thy';
 
-    val simpset1 = HOL_basic_ss addsimps @{thm add_0} :: @{thm add_0_right} ::
+    val simpset1 = HOL_basic_ss addsimps @{thm Nat.add_0} :: @{thm Nat.add_0_right} ::
       size_def_thms @ size_def_thms' @ rec_rewrites @ extra_rewrites;
     val xs = map (fn i => "x" ^ string_of_int i) (1 upto length recTs2);
 
@@ -197,7 +198,7 @@ fun prove_size_thms (info : info) new_type_names thy =
 
     fun prove_size_eqs p size_fns size_ofp simpset =
       maps (fn (((_, (_, _, constrs)), size_const), T) =>
-        map (fn constr => Drule.standard (Skip_Proof.prove ctxt [] []
+        map (fn constr => Drule.export_without_context (Skip_Proof.prove ctxt [] []
           (gen_mk_size_eq p (AList.lookup op = (new_type_names ~~ size_fns))
              size_ofp size_const T constr)
           (fn _ => simp_tac simpset 1))) constrs)

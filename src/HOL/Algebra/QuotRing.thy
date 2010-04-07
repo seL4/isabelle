@@ -1,6 +1,5 @@
-(*
-  Title:     HOL/Algebra/QuotRing.thy
-  Author:    Stephan Hohe
+(*  Title:      HOL/Algebra/QuotRing.thy
+    Author:     Stephan Hohe
 *)
 
 theory QuotRing
@@ -11,10 +10,10 @@ section {* Quotient Rings *}
 
 subsection {* Multiplication on Cosets *}
 
-constdefs (structure R)
+definition
   rcoset_mult :: "[('a, _) ring_scheme, 'a set, 'a set, 'a set] \<Rightarrow> 'a set"
     ("[mod _:] _ \<Otimes>\<index> _" [81,81,81] 80)
-  "rcoset_mult R I A B \<equiv> \<Union>a\<in>A. \<Union>b\<in>B. I +> (a \<otimes> b)"
+  where "rcoset_mult R I A B = (\<Union>a\<in>A. \<Union>b\<in>B. I +>\<^bsub>R\<^esub> (a \<otimes>\<^bsub>R\<^esub> b))"
 
 
 text {* @{const "rcoset_mult"} fulfils the properties required by
@@ -89,11 +88,10 @@ qed
 
 subsection {* Quotient Ring Definition *}
 
-constdefs (structure R)
-  FactRing :: "[('a,'b) ring_scheme, 'a set] \<Rightarrow> ('a set) ring"
-     (infixl "Quot" 65)
-  "FactRing R I \<equiv>
-    \<lparr>carrier = a_rcosets I, mult = rcoset_mult R I, one = (I +> \<one>), zero = I, add = set_add R\<rparr>"
+definition
+  FactRing :: "[('a,'b) ring_scheme, 'a set] \<Rightarrow> ('a set) ring"  (infixl "Quot" 65)
+  where "FactRing R I =
+    \<lparr>carrier = a_rcosets\<^bsub>R\<^esub> I, mult = rcoset_mult R I, one = (I +>\<^bsub>R\<^esub> \<one>\<^bsub>R\<^esub>), zero = I, add = set_add R\<rparr>"
 
 
 subsection {* Factorization over General Ideals *}
@@ -180,6 +178,7 @@ apply (rule quotient_is_cring)
 apply (rule is_cring)
 done
 qed
+
 
 subsection {* Factorization over Prime Ideals *}
 

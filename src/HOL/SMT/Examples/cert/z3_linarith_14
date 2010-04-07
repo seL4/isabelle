@@ -1,8 +1,0 @@
-(benchmark Isabelle
-:extrafuns (
-  (uf_1 Int)
- )
-:assumption (< 0 uf_1)
-:assumption (not (distinct uf_1 (* uf_1 2) (- uf_1 uf_1)))
-:formula true
-)

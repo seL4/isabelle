@@ -108,7 +108,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
     let val ncon = length con_ty_list    (*number of constructors*)
         fun mk_def (((id,T,syn), name, args, prems), kcon) =
               (*kcon is index of constructor*)
-            Primitive_Defs.mk_defpair (list_comb (Const (full_name name, T), args),
+            OldGoals.mk_defpair (list_comb (Const (full_name name, T), args),
                         mk_inject npart kpart
                         (mk_inject ncon kcon (mk_tuple args)))
     in  ListPair.map mk_def (con_ty_list, 1 upto ncon)  end;
@@ -157,7 +157,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val case_const = Const (case_name, case_typ);
   val case_tm = list_comb (case_const, case_args);
 
-  val case_def = Primitive_Defs.mk_defpair
+  val case_def = OldGoals.mk_defpair
     (case_tm, Balanced_Tree.make (fn (t1, t2) => Su.elim $ t1 $ t2) (map call_case case_lists));
 
 
@@ -232,7 +232,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val recursor_cases = map call_recursor (flat case_lists ~~ flat recursor_lists);
 
   val recursor_def =
-      Primitive_Defs.mk_defpair
+      OldGoals.mk_defpair
         (recursor_tm,
          @{const Univ.Vrecursor} $
            absfree ("rec", @{typ i}, list_comb (case_const, recursor_cases)));
@@ -281,7 +281,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
         list_comb (case_free, args)));
 
   val case_trans = hd con_defs RS @{thm def_trans}
-  and split_trans = Pr.split_eq RS meta_eq_to_obj_eq RS @{thm trans};
+  and split_trans = Pr.split_eq RS @{thm meta_eq_to_obj_eq} RS @{thm trans};
 
   fun prove_case_eqn (arg, con_def) =
     Goal.prove_global thy1 [] []
@@ -290,15 +290,17 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
       (fn _ => EVERY
         [rewrite_goals_tac [con_def],
          rtac case_trans 1,
-         REPEAT (resolve_tac [refl, split_trans, Su.case_inl RS trans, Su.case_inr RS trans] 1)]);
+         REPEAT
+           (resolve_tac [@{thm refl}, split_trans,
+             Su.case_inl RS @{thm trans}, Su.case_inr RS @{thm trans}] 1)]);
 
-  val free_iffs = map Drule.standard (con_defs RL [@{thm def_swap_iff}]);
+  val free_iffs = map Drule.export_without_context (con_defs RL [@{thm def_swap_iff}]);
 
   val case_eqns = map prove_case_eqn (flat con_ty_lists ~~ case_args ~~ tl con_defs);
 
   (*** Prove the recursor theorems ***)
 
-  val recursor_eqns = case try (Drule.get_def thy1) recursor_base_name of
+  val recursor_eqns = case try (OldGoals.get_def thy1) recursor_base_name of
      NONE => (writeln "  [ No recursion operator ]";
               [])
    | SOME recursor_def =>
@@ -321,7 +323,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
                          args)),
              subst_rec (Term.betapplys (recursor_case, args))));
 
-        val recursor_trans = recursor_def RS @{thm def_Vrecursor} RS trans;
+        val recursor_trans = recursor_def RS @{thm def_Vrecursor} RS @{thm trans};
 
         fun prove_recursor_eqn arg =
           Goal.prove_global thy1 [] []
@@ -338,7 +340,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val constructors =
       map (head_of o #1 o Logic.dest_equals o #prop o rep_thm) (tl con_defs);
 
-  val free_SEs = map Drule.standard (Ind_Syntax.mk_free_SEs free_iffs);
+  val free_SEs = map Drule.export_without_context (Ind_Syntax.mk_free_SEs free_iffs);
 
   val {intrs, elim, induct, mutual_induct, ...} = ind_result
 

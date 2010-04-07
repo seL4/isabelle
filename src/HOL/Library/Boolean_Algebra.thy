@@ -24,15 +24,22 @@ locale boolean =
   assumes disj_zero_right [simp]: "x \<squnion> \<zero> = x"
   assumes conj_cancel_right [simp]: "x \<sqinter> \<sim> x = \<zero>"
   assumes disj_cancel_right [simp]: "x \<squnion> \<sim> x = \<one>"
+
+sublocale boolean < conj!: abel_semigroup conj proof
+qed (fact conj_assoc conj_commute)+
+
+sublocale boolean < disj!: abel_semigroup disj proof
+qed (fact disj_assoc disj_commute)+
+
+context boolean
 begin
 
-lemmas disj_ac =
-  disj_assoc disj_commute
-  mk_left_commute [where 'a = 'a, of "disj", OF disj_assoc disj_commute]
+lemmas conj_left_commute = conj.left_commute
 
-lemmas conj_ac =
-  conj_assoc conj_commute
-  mk_left_commute [where 'a = 'a, of "conj", OF conj_assoc conj_commute]
+lemmas disj_left_commute = disj.left_commute
+
+lemmas conj_ac = conj.assoc conj.commute conj.left_commute
+lemmas disj_ac = disj.assoc disj.commute disj.left_commute
 
 lemma dual: "boolean disj conj compl one zero"
 apply (rule boolean.intro)
@@ -178,18 +185,9 @@ subsection {* Symmetric Difference *}
 locale boolean_xor = boolean +
   fixes xor :: "'a => 'a => 'a"  (infixr "\<oplus>" 65)
   assumes xor_def: "x \<oplus> y = (x \<sqinter> \<sim> y) \<squnion> (\<sim> x \<sqinter> y)"
-begin
 
-lemma xor_def2:
-  "x \<oplus> y = (x \<squnion> y) \<sqinter> (\<sim> x \<squnion> \<sim> y)"
-by (simp only: xor_def conj_disj_distribs
-               disj_ac conj_ac conj_cancel_right disj_zero_left)
-
-lemma xor_commute: "x \<oplus> y = y \<oplus> x"
-by (simp only: xor_def conj_commute disj_commute)
-
-lemma xor_assoc: "(x \<oplus> y) \<oplus> z = x \<oplus> (y \<oplus> z)"
-proof -
+sublocale boolean_xor < xor!: abel_semigroup xor proof
+  fix x y z :: 'a
   let ?t = "(x \<sqinter> y \<sqinter> z) \<squnion> (x \<sqinter> \<sim> y \<sqinter> \<sim> z) \<squnion>
             (\<sim> x \<sqinter> y \<sqinter> \<sim> z) \<squnion> (\<sim> x \<sqinter> \<sim> y \<sqinter> z)"
   have "?t \<squnion> (z \<sqinter> x \<sqinter> \<sim> x) \<squnion> (z \<sqinter> y \<sqinter> \<sim> y) =
@@ -199,11 +197,23 @@ proof -
     apply (simp only: xor_def de_Morgan_disj de_Morgan_conj double_compl)
     apply (simp only: conj_disj_distribs conj_ac disj_ac)
     done
+  show "x \<oplus> y = y \<oplus> x"
+    by (simp only: xor_def conj_commute disj_commute)
 qed
 
-lemmas xor_ac =
-  xor_assoc xor_commute
-  mk_left_commute [where 'a = 'a, of "xor", OF xor_assoc xor_commute]
+context boolean_xor
+begin
+
+lemmas xor_assoc = xor.assoc
+lemmas xor_commute = xor.commute
+lemmas xor_left_commute = xor.left_commute
+
+lemmas xor_ac = xor.assoc xor.commute xor.left_commute
+
+lemma xor_def2:
+  "x \<oplus> y = (x \<squnion> y) \<sqinter> (\<sim> x \<squnion> \<sim> y)"
+by (simp only: xor_def conj_disj_distribs
+               disj_ac conj_ac conj_cancel_right disj_zero_left)
 
 lemma xor_zero_right [simp]: "x \<oplus> \<zero> = x"
 by (simp only: xor_def compl_zero conj_one_right conj_zero_right disj_zero_right)

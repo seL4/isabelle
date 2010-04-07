@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/IMP/Denotational.thy
-    ID:         $Id$
     Author:     Tobias Nipkow and Robert Sandner, TUM
     Copyright   1996 TUM
 *)

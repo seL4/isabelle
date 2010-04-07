@@ -1,8 +1,6 @@
-(*
-    File:        TLA/TLA.thy
-    ID:          $Id$
-    Author:      Stephan Merz
-    Copyright:   1998 University of Munich
+(*  Title:      HOL/TLA/TLA.thy
+    Author:     Stephan Merz
+    Copyright:  1998 University of Munich
 *)
 
 header {* The temporal level of TLA *}
@@ -37,12 +35,12 @@ syntax
   "_AAll"    :: "[idts, lift] => lift"                ("(3AALL _./ _)" [0,10] 10)
 
 translations
-  "_Box"      ==   "Box"
-  "_Dmd"      ==   "Dmd"
-  "_leadsto"  ==   "leadsto"
-  "_stable"   ==   "Stable"
-  "_WF"       ==   "WF"
-  "_SF"       ==   "SF"
+  "_Box"      ==   "CONST Box"
+  "_Dmd"      ==   "CONST Dmd"
+  "_leadsto"  ==   "CONST leadsto"
+  "_stable"   ==   "CONST Stable"
+  "_WF"       ==   "CONST WF"
+  "_SF"       ==   "CONST SF"
   "_EEx v A"  ==   "Eex v. A"
   "_AAll v A" ==   "Aall v. A"
 
@@ -1168,4 +1166,3 @@ lemma "|- EEX h. Init(h = #True) & [](h` = (~$h))"
   done
 
 end
-

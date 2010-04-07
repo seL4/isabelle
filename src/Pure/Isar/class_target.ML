@@ -16,12 +16,13 @@ sig
   val rules: theory -> class -> thm option * thm
   val these_params: theory -> sort -> (string * (class * (string * typ))) list
   val these_defs: theory -> sort -> thm list
-  val these_operations: theory -> sort -> (string * (class * (typ * term))) list
+  val these_operations: theory -> sort
+    -> (string * (class * (typ * term))) list
   val print_classes: theory -> unit
 
   val begin: class list -> sort -> Proof.context -> Proof.context
   val init: class -> theory -> Proof.context
-  val declare: class -> (binding * mixfix) * term -> theory -> theory
+  val declare: class -> (binding * mixfix) * (term list * term) -> theory -> theory
   val abbrev: class -> Syntax.mode -> (binding * mixfix) * term -> theory -> theory
   val class_prefix: string -> string
   val refresh_syntax: class -> Proof.context -> Proof.context
@@ -29,7 +30,7 @@ sig
 
   (*instances*)
   val init_instantiation: string list * (string * sort) list * sort
-    -> theory -> local_theory
+    -> theory -> Proof.context
   val instance_arity_cmd: xstring list * xstring list * xstring -> theory -> Proof.state
   val instantiation_instance: (local_theory -> local_theory)
     -> local_theory -> Proof.state
@@ -56,11 +57,6 @@ sig
   (*tactics*)
   val intro_classes_tac: thm list -> tactic
   val default_intro_tac: Proof.context -> thm list -> tactic
-
-  (*old axclass layer*)
-  val axclass_cmd: binding * xstring list
-    -> (Attrib.binding * string list) list
-    -> theory -> class * theory
 end;
 
 structure Class_Target : CLASS_TARGET =
@@ -233,7 +229,7 @@ fun register_operation class (c, (t, some_def)) thy =
 fun register_subclass (sub, sup) some_dep_morph some_wit export thy =
   let
     val intros = (snd o rules thy) sup :: map_filter I
-      [Option.map (Drule.standard' o Element.conclude_witness) some_wit,
+      [Option.map (Drule.export_without_context_open o Element.conclude_witness) some_wit,
         (fst o rules thy) sub];
     val tac = EVERY (map (TRYALL o Tactic.rtac) intros);
     val classrel = Skip_Proof.prove_global thy [] [] (Logic.mk_classrel (sub, sup))
@@ -258,8 +254,8 @@ fun register_subclass (sub, sup) some_dep_morph some_wit export thy =
 
 (* class context syntax *)
 
-fun these_unchecks thy =
-  map (fn (c, (_, (ty, t))) => (t, Const (c, ty))) o these_operations thy;
+fun these_unchecks thy = map (fn (c, (_, (ty, t))) => (t, Const (c, ty)))
+  o these_operations thy;
 
 fun redeclare_const thy c =
   let val b = Long_Name.base_name c
@@ -322,25 +318,25 @@ fun init class thy =
 
 val class_prefix = Logic.const_of_class o Long_Name.base_name;
 
-fun declare class ((c, mx), dict) thy =
+fun declare class ((c, mx), (type_params, dict)) thy =
   let
     val morph = morphism thy class;
     val b = Morphism.binding morph c;
     val b_def = Morphism.binding morph (Binding.suffix_name "_dict" b);
     val c' = Sign.full_name thy b;
     val dict' = Morphism.term morph dict;
-    val ty' = Term.fastype_of dict';
-    val def_eq = Logic.mk_equals (Const (c', ty'), dict')
+    val ty' = map Term.fastype_of type_params ---> Term.fastype_of dict';
+    val def_eq = Logic.mk_equals (list_comb (Const (c', ty'), type_params), dict')
       |> map_types Type.strip_sorts;
   in
     thy
     |> Sign.declare_const ((b, Type.strip_sorts ty'), mx)
     |> snd
     |> Thm.add_def false false (b_def, def_eq)
-    |>> Thm.varifyT
+    |>> Thm.varifyT_global
     |-> (fn def_thm => PureThy.store_thm (b_def, def_thm)
       #> snd
-      #> register_operation class (c', (dict', SOME (Thm.symmetric def_thm))))
+      #> null type_params ? register_operation class (c', (dict', SOME (Thm.symmetric def_thm))))
     |> Sign.add_const_constraint (c', SOME ty')
   end;
 
@@ -352,7 +348,7 @@ fun abbrev class prmode ((c, mx), rhs) thy =
     val c' = Sign.full_name thy b;
     val rhs' = Pattern.rewrite_term thy unchecks [] rhs;
     val ty' = Term.fastype_of rhs';
-    val rhs'' = map_types Logic.varifyT rhs';
+    val rhs'' = map_types Logic.varifyT_global rhs';
   in
     thy
     |> Sign.add_abbrev (#1 prmode) (b, rhs'')
@@ -422,7 +418,8 @@ fun instantiation_param lthy b = instantiation_params lthy
 
 fun read_multi_arity thy (raw_tycos, raw_sorts, raw_sort) =
   let
-    val all_arities = map (fn raw_tyco => Sign.read_arity thy
+    val ctxt = ProofContext.init thy;
+    val all_arities = map (fn raw_tyco => ProofContext.read_arity ctxt
       (raw_tyco, raw_sorts, raw_sort)) raw_tycos;
     val tycos = map #1 all_arities;
     val (_, sorts, sort) = hd all_arities;
@@ -534,7 +531,7 @@ fun gen_instantiation_instance do_proof after_qed lthy =
     val (tycos, vs, sort) = (#arities o the_instantiation) lthy;
     val arities_proof = maps (fn tyco => Logic.mk_arities (tyco, map snd vs, sort)) tycos;
     fun after_qed' results =
-      Local_Theory.theory (fold (AxClass.add_arity o Thm.varifyT) results)
+      Local_Theory.theory (fold (AxClass.add_arity o Thm.varifyT_global) results)
       #> after_qed;
   in
     lthy
@@ -628,25 +625,6 @@ val _ = Context.>> (Context.map_theory
     "back-chain introduction rules of classes" #>
   Method.setup (Binding.name "default") (Attrib.thms >> (METHOD oo default_tac))
     "apply some intro/elim rule"));
-
-
-(** old axclass command **)
-
-fun axclass_cmd (class, raw_superclasses) raw_specs thy =
-  let
-    val _ = Output.legacy_feature "command \"axclass\" deprecated; use \"class\" instead.";
-    val ctxt = ProofContext.init thy;
-    val superclasses = map (Sign.read_class thy) raw_superclasses;
-    val name_atts = map ((apsnd o map) (Attrib.attribute thy) o fst)
-      raw_specs;
-    val axiomss = ProofContext.read_propp (ctxt, map (map (rpair []) o snd)
-          raw_specs)
-      |> snd
-      |> (map o map) fst;
-  in
-    AxClass.define_class (class, superclasses) []
-      (name_atts ~~ axiomss) thy
-  end;
 
 end;
 

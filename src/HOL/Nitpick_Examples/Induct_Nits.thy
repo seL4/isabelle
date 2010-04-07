@@ -1,6 +1,6 @@
 (*  Title:      HOL/Nitpick_Examples/Induct_Nits.thy
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2009
+    Copyright   2009, 2010
 
 Examples featuring Nitpick applied to (co)inductive definitions.
 *)
@@ -11,7 +11,7 @@ theory Induct_Nits
 imports Main
 begin
 
-nitpick_params [sat_solver = MiniSatJNI, max_threads = 1, timeout = 60 s]
+nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1, timeout = 60 s]
 
 inductive p1 :: "nat \<Rightarrow> bool" where
 "p1 0" |
@@ -61,7 +61,7 @@ sorry
 lemma "q2 = {}"
 nitpick [expect = genuine]
 nitpick [dont_star_linear_preds, expect = genuine]
-nitpick [wf, expect = likely_genuine]
+nitpick [wf, expect = quasi_genuine]
 oops
 
 lemma "p2 = UNIV"
@@ -72,7 +72,7 @@ oops
 lemma "q2 = UNIV"
 nitpick [expect = none]
 nitpick [dont_star_linear_preds, expect = none]
-nitpick [wf, expect = likely_genuine]
+nitpick [wf, expect = quasi_genuine]
 sorry
 
 lemma "p2 = q2"

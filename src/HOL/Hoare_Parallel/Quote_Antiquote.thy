@@ -12,13 +12,13 @@ syntax (xsymbols)
   "_Assert"    :: "'a \<Rightarrow> 'a set"            ("(\<lbrace>_\<rbrace>)" [0] 1000)
 
 translations
-  ".{b}." \<rightharpoonup> "Collect \<guillemotleft>b\<guillemotright>"
+  ".{b}." \<rightharpoonup> "CONST Collect \<guillemotleft>b\<guillemotright>"
 
 parse_translation {*
   let
-    fun quote_tr [t] = Syntax.quote_tr "_antiquote" t
+    fun quote_tr [t] = Syntax.quote_tr @{syntax_const "_antiquote"} t
       | quote_tr ts = raise TERM ("quote_tr", ts);
-  in [("_quote", quote_tr)] end
+  in [(@{syntax_const "_quote"}, quote_tr)] end
 *}
 
 end

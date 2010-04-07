@@ -102,12 +102,12 @@ fun lift_triv_classes_conv thy conv ct =
           o apfst (fst o fst o dest_TVar) o Logic.dest_of_class) prem_props;
       in Drule.implies_elim_list thm prem_thms end;
   in ct
-    |> Drule.cterm_rule Thm.varifyT
+    |> Drule.cterm_rule Thm.varifyT_global
     |> Thm.instantiate_cterm (Thm.certify_inst thy (map (fn (v, ((sort, _), sort')) =>
         (((v, 0), sort), TFree (v, sort'))) vs, []))
     |> Drule.cterm_rule Thm.freezeT
     |> conv
-    |> Thm.varifyT
+    |> Thm.varifyT_global
     |> fold (fn (v, (_, sort')) => Thm.unconstrainT (certT (TVar ((v, 0), sort')))) vs
     |> Thm.certify_instantiate (map (fn (v, ((sort, _), _)) =>
         (((v, 0), []), TVar ((v, 0), sort))) vs, [])
@@ -164,6 +164,7 @@ fun same (Const (k, xs)) (Const (l, ys)) = k = l andalso sames xs ys
   | same _ _ = false
 and sames xs ys = length xs = length ys andalso forall (uncurry same) (xs ~~ ys);
 
+
 (* constructor functions *)
 
 fun abss n f = Abs ((n, f), []);
@@ -213,6 +214,7 @@ fun ml_fundefs ([(name, [([], e)])]) =
         |> suffix "\n"
       end;
 
+
 (* nbe specific syntax and sandbox communication *)
 
 val univs_ref = Unsynchronized.ref (NONE : (unit -> Univ list -> Univ list) option);
@@ -233,7 +235,7 @@ fun nbe_fun 0 "" = "nbe_value"
 fun nbe_dict v n = "d_" ^ v ^ "_" ^ string_of_int n;
 fun nbe_bound v = "v_" ^ v;
 fun nbe_bound_optional NONE = "_"
-  | nbe_bound_optional  (SOME v) = nbe_bound v;
+  | nbe_bound_optional (SOME v) = nbe_bound v;
 fun nbe_default v = "w_" ^ v;
 
 (*note: these three are the "turning spots" where proper argument order is established!*)
@@ -254,6 +256,7 @@ fun nbe_same v1 v2 = "(" ^ name_same ^ " " ^ nbe_bound v1 ^ " " ^ nbe_bound v2 ^
 end;
 
 open Basic_Code_Thingol;
+
 
 (* code generation *)
 
@@ -330,7 +333,7 @@ fun assemble_eqnss idx_of deps eqnss =
         val match_cont = if is_eval then NONE else SOME default_rhs;
         val assemble_arg = assemble_iterm
           (fn c => fn _ => fn ts => nbe_apps_constr idx_of c ts) NONE;
-        val assemble_rhs = assemble_iterm assemble_constapp match_cont ;
+        val assemble_rhs = assemble_iterm assemble_constapp match_cont;
         val (samepairs, args') = subst_nonlin_vars args;
         val s_args = map assemble_arg args';
         val s_rhs = if null samepairs then assemble_rhs rhs
@@ -356,6 +359,7 @@ fun assemble_eqnss idx_of deps eqnss =
     val (fun_vars, fun_vals) = map_split assemble_eqns eqnss';
     val deps_vars = ml_list (map (nbe_fun 0) deps);
   in ml_abs deps_vars (ml_Let (ml_fundefs (flat fun_vars)) (ml_list fun_vals)) end;
+
 
 (* code compilation *)
 
@@ -430,7 +434,7 @@ fun compile_stmts ctxt stmts_deps =
       #-> fold (fn (name, univ) => (Graph.map_node name o apfst) (K (SOME univ))))
   end;
 
-fun ensure_stmts ctxt naming program =
+fun ensure_stmts ctxt program =
   let
     fun add_stmts names (gr, (maxidx, idx_tab)) = if exists ((can o Graph.get_node) gr) names
       then (gr, (maxidx, idx_tab))
@@ -439,7 +443,6 @@ fun ensure_stmts ctxt naming program =
           Graph.imm_succs program name)) names);
   in
     fold_rev add_stmts (Graph.strong_conn program)
-    #> pair naming
   end;
 
 
@@ -456,6 +459,7 @@ fun eval_term ctxt gr deps (vs : (string * sort) list, t) =
     |> snd
     |> (fn t => apps t (rev dict_frees))
   end;
+
 
 (* reification *)
 
@@ -480,9 +484,9 @@ fun term_of_univ thy program idx_tab t =
       | is_dict (DFree _) = true
       | is_dict _ = false;
     fun const_of_idx idx = (case (Graph.get_node program o the o Inttab.lookup idx_tab) idx
-         of Code_Thingol.Fun (c, _) => c
-          | Code_Thingol.Datatypecons (c, _) => c
-          | Code_Thingol.Classparam (c, _) => c);
+     of Code_Thingol.Fun (c, _) => c
+      | Code_Thingol.Datatypecons (c, _) => c
+      | Code_Thingol.Classparam (c, _) => c);
     fun of_apps bounds (t, ts) =
       fold_map (of_univ bounds) ts
       #>> (fn ts' => list_comb (t, rev ts'))
@@ -503,30 +507,33 @@ fun term_of_univ thy program idx_tab t =
           |-> (fn t' => pair (Term.Abs ("u", dummyT, t')))
   in of_univ 0 t 0 |> fst end;
 
+
 (* function store *)
 
 structure Nbe_Functions = Code_Data
 (
-  type T = Code_Thingol.naming * ((Univ option * int) Graph.T * (int * string Inttab.table));
-  val empty = (Code_Thingol.empty_naming, (Graph.empty, (0, Inttab.empty)));
+  type T = (Univ option * int) Graph.T * (int * string Inttab.table);
+  val empty = (Graph.empty, (0, Inttab.empty));
 );
+
 
 (* compilation, evaluation and reification *)
 
-fun compile_eval thy naming program vs_t deps =
+fun compile_eval thy program vs_t deps =
   let
     val ctxt = ProofContext.init thy;
-    val (_, (gr, (_, idx_tab))) =
-      Nbe_Functions.change thy (ensure_stmts ctxt naming program o snd);
+    val (gr, (_, idx_tab)) =
+      Nbe_Functions.change thy (ensure_stmts ctxt program);
   in
     vs_t
     |> eval_term ctxt gr deps
     |> term_of_univ thy program idx_tab
   end;
 
+
 (* evaluation with type reconstruction *)
 
-fun normalize thy naming program ((vs0, (vs, ty)), t) deps =
+fun normalize thy program ((vs0, (vs, ty)), t) deps =
   let
     val ty' = typ_of_itype program vs0 ty;
     fun type_infer t =
@@ -538,7 +545,7 @@ fun normalize thy naming program ((vs0, (vs, ty)), t) deps =
         ^ setmp_CRITICAL show_types true (Syntax.string_of_term_global thy) t);
     val string_of_term = setmp_CRITICAL show_types true (Syntax.string_of_term_global thy);
   in
-    compile_eval thy naming program (vs, t) deps
+    compile_eval thy program (vs, t) deps
     |> traced (fn t => "Normalized:\n" ^ string_of_term t)
     |> type_infer
     |> traced (fn t => "Types inferred:\n" ^ string_of_term t)
@@ -557,11 +564,11 @@ fun mk_equals thy lhs raw_rhs =
   in Thm.mk_binop eq lhs rhs end;
 
 val (_, raw_norm_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (Binding.name "norm", fn (thy, naming, program, vsp_ty_t, deps, ct) =>
-    mk_equals thy ct (normalize thy naming program vsp_ty_t deps))));
+  (Thm.add_oracle (Binding.name "norm", fn (thy, program, vsp_ty_t, deps, ct) =>
+    mk_equals thy ct (normalize thy program vsp_ty_t deps))));
 
-fun norm_oracle thy naming program vsp_ty_t deps ct =
-  raw_norm_oracle (thy, naming, program, vsp_ty_t, deps, ct);
+fun norm_oracle thy program vsp_ty_t deps ct =
+  raw_norm_oracle (thy, program, vsp_ty_t, deps, ct);
 
 fun no_frees_conv conv ct =
   let
@@ -589,9 +596,10 @@ fun no_frees_rew rew t =
 val norm_conv = no_frees_conv (fn ct =>
   let
     val thy = Thm.theory_of_cterm ct;
-  in lift_triv_classes_conv thy (Code_Thingol.eval_conv thy (norm_oracle thy)) ct end);
+  in lift_triv_classes_conv thy (Code_Thingol.eval_conv thy (K (norm_oracle thy))) ct end);
 
-fun norm thy = lift_triv_classes_rew thy (no_frees_rew (Code_Thingol.eval thy I (normalize thy)));
+fun norm thy = lift_triv_classes_rew thy (no_frees_rew (Code_Thingol.eval thy I (K (normalize thy))));
+
 
 (* evaluation command *)
 

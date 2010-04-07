@@ -1,5 +1,4 @@
 (*  Title:      HOL/Bali/Trans.thy
-    ID:         $Id$
     Author:     David von Oheimb and Norbert Schirmer
 
 Operational transition (small-step) semantics of the 
@@ -10,7 +9,7 @@ PRELIMINARY!!!!!!!!
 
 theory Trans imports Evaln begin
 
-constdefs groundVar:: "var \<Rightarrow> bool"
+definition groundVar :: "var \<Rightarrow> bool" where
 "groundVar v \<equiv> (case v of
                    LVar ln \<Rightarrow> True
                  | {accC,statDeclC,stat}e..fn \<Rightarrow> \<exists> a. e=Lit a
@@ -35,7 +34,7 @@ proof -
     done
 qed
 
-constdefs groundExprs:: "expr list \<Rightarrow> bool"
+definition groundExprs :: "expr list \<Rightarrow> bool" where
 "groundExprs es \<equiv> list_all (\<lambda> e. \<exists> v. e=Lit v) es"
   
 consts the_val:: "expr \<Rightarrow> val"
@@ -60,13 +59,13 @@ lemma the_var_AVar_simp:
 by (simp)
 declare the_var_AVar_def [simp del]
 
-syntax (xsymbols)
-  Ref  :: "loc \<Rightarrow> expr"
-  SKIP :: "expr"
+abbreviation
+  Ref :: "loc \<Rightarrow> expr"
+  where "Ref a == Lit (Addr a)"
 
-translations
-  "Ref a" == "Lit (Addr a)"
-  "SKIP"  == "Lit Unit"
+abbreviation
+  SKIP :: "expr"
+  where "SKIP == Lit Unit"
 
 inductive
   step :: "[prog,term \<times> state,term \<times> state] \<Rightarrow> bool" ("_\<turnstile>_ \<mapsto>1 _"[61,82,82] 81)

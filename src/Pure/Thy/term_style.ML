@@ -64,8 +64,8 @@ val parse_bare = Args.context :|-- (fn ctxt => (Output.legacy_feature "Old-style
 
 fun style_lhs_rhs proj = Scan.succeed (fn ctxt => fn t =>
   let
-    val concl = ObjectLogic.drop_judgment (ProofContext.theory_of ctxt)
-      (Logic.strip_imp_concl t)
+    val concl =
+      Object_Logic.drop_judgment (ProofContext.theory_of ctxt) (Logic.strip_imp_concl t)
   in
     case concl of (_ $ l $ r) => proj (l, r)
     | _ => error ("Binary operator expected in term: " ^ Syntax.string_of_term ctxt concl)

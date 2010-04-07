@@ -62,11 +62,11 @@ struct
       val _ = if !trace then tracing ("Calling SVC:\n" ^ svc_input) else ()
       val svc_input_file  = File.tmp_path (Path.basic "SVM_in");
       val svc_output_file = File.tmp_path (Path.basic "SVM_out");
-      val _ = (File.write svc_input_file svc_input;
-               #1 (system_out (check_valid ^ " -dump-result " ^
-                        File.shell_path svc_output_file ^
-                        " " ^ File.shell_path svc_input_file ^
-                        ">/dev/null 2>&1")))
+      val _ = File.write svc_input_file svc_input;
+      val _ =
+        bash_output (check_valid ^ " -dump-result " ^
+          File.shell_path svc_output_file ^ " " ^ File.shell_path svc_input_file ^
+          ">/dev/null 2>&1")
       val svc_output =
         (case try File.read svc_output_file of
           SOME out => out
@@ -107,8 +107,8 @@ struct
                          b1 orelse b2)
                      end
                  else (*might be numeric equality*) (t, is_intnat T)
-           | Const(@{const_name HOL.less}, Type ("fun", [T,_]))  => (t, is_intnat T)
-           | Const(@{const_name HOL.less_eq}, Type ("fun", [T,_])) => (t, is_intnat T)
+           | Const(@{const_name Orderings.less}, Type ("fun", [T,_]))  => (t, is_intnat T)
+           | Const(@{const_name Orderings.less_eq}, Type ("fun", [T,_])) => (t, is_intnat T)
            | _ => (t, false)
          end
    in #1 o tag end;
@@ -146,16 +146,16 @@ struct
     (*translation of a literal*)
     val lit = snd o HOLogic.dest_number;
     (*translation of a literal expression [no variables]*)
-    fun litExp (Const(@{const_name HOL.plus}, T) $ x $ y) =
+    fun litExp (Const(@{const_name Groups.plus}, T) $ x $ y) =
           if is_numeric_op T then (litExp x) + (litExp y)
           else fail t
-      | litExp (Const(@{const_name HOL.minus}, T) $ x $ y) =
+      | litExp (Const(@{const_name Groups.minus}, T) $ x $ y) =
           if is_numeric_op T then (litExp x) - (litExp y)
           else fail t
-      | litExp (Const(@{const_name HOL.times}, T) $ x $ y) =
+      | litExp (Const(@{const_name Groups.times}, T) $ x $ y) =
           if is_numeric_op T then (litExp x) * (litExp y)
           else fail t
-      | litExp (Const(@{const_name HOL.uminus}, T) $ x)   =
+      | litExp (Const(@{const_name Groups.uminus}, T) $ x)   =
           if is_numeric_op T then ~(litExp x)
           else fail t
       | litExp t = lit t
@@ -163,21 +163,21 @@ struct
     (*translation of a real/rational expression*)
     fun suc t = Interp("+", [Int 1, t])
     fun tm (Const(@{const_name Suc}, T) $ x) = suc (tm x)
-      | tm (Const(@{const_name HOL.plus}, T) $ x $ y) =
+      | tm (Const(@{const_name Groups.plus}, T) $ x $ y) =
           if is_numeric_op T then Interp("+", [tm x, tm y])
           else fail t
-      | tm (Const(@{const_name HOL.minus}, T) $ x $ y) =
+      | tm (Const(@{const_name Groups.minus}, T) $ x $ y) =
           if is_numeric_op T then
               Interp("+", [tm x, Interp("*", [Int ~1, tm y])])
           else fail t
-      | tm (Const(@{const_name HOL.times}, T) $ x $ y) =
+      | tm (Const(@{const_name Groups.times}, T) $ x $ y) =
           if is_numeric_op T then Interp("*", [tm x, tm y])
           else fail t
-      | tm (Const(@{const_name HOL.inverse}, T) $ x) =
+      | tm (Const(@{const_name Rings.inverse}, T) $ x) =
           if domain_type T = HOLogic.realT then
               Rat(1, litExp x)
           else fail t
-      | tm (Const(@{const_name HOL.uminus}, T) $ x) =
+      | tm (Const(@{const_name Groups.uminus}, T) $ x) =
           if is_numeric_op T then Interp("*", [Int ~1, tm x])
           else fail t
       | tm t = Int (lit t)
@@ -211,13 +211,13 @@ struct
                    else fail t
             end
         (*inequalities: possible types are nat, int, real*)
-      | fm pos (t as Const(@{const_name HOL.less},  Type ("fun", [T,_])) $ x $ y) =
+      | fm pos (t as Const(@{const_name Orderings.less},  Type ("fun", [T,_])) $ x $ y) =
             if not pos orelse T = HOLogic.realT then
                 Buildin("<", [tm x, tm y])
             else if is_intnat T then
                 Buildin("<=", [suc (tm x), tm y])
             else fail t
-      | fm pos (t as Const(@{const_name HOL.less_eq},  Type ("fun", [T,_])) $ x $ y) =
+      | fm pos (t as Const(@{const_name Orderings.less_eq},  Type ("fun", [T,_])) $ x $ y) =
             if pos orelse T = HOLogic.realT then
                 Buildin("<=", [tm x, tm y])
             else if is_intnat T then

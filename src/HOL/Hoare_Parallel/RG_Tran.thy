@@ -81,8 +81,7 @@ where
 | CptnEnv: "(P, t)#xs \<in> cptn \<Longrightarrow> (P,s)#(P,t)#xs \<in> cptn"
 | CptnComp: "\<lbrakk>(P,s) -c\<rightarrow> (Q,t); (Q, t)#xs \<in> cptn \<rbrakk> \<Longrightarrow> (P,s)#(Q,t)#xs \<in> cptn"
 
-constdefs
-  cp :: "('a com) option \<Rightarrow> 'a \<Rightarrow> ('a confs) set"
+definition cp :: "('a com) option \<Rightarrow> 'a \<Rightarrow> ('a confs) set" where
   "cp P s \<equiv> {l. l!0=(P,s) \<and> l \<in> cptn}"  
 
 subsubsection {* Parallel computations *}
@@ -95,14 +94,12 @@ where
 | ParCptnEnv: "(P,t)#xs \<in> par_cptn \<Longrightarrow> (P,s)#(P,t)#xs \<in> par_cptn"
 | ParCptnComp: "\<lbrakk> (P,s) -pc\<rightarrow> (Q,t); (Q,t)#xs \<in> par_cptn \<rbrakk> \<Longrightarrow> (P,s)#(Q,t)#xs \<in> par_cptn"
 
-constdefs
-  par_cp :: "'a par_com \<Rightarrow> 'a \<Rightarrow> ('a par_confs) set"
+definition par_cp :: "'a par_com \<Rightarrow> 'a \<Rightarrow> ('a par_confs) set" where
   "par_cp P s \<equiv> {l. l!0=(P,s) \<and> l \<in> par_cptn}"  
 
 subsection{* Modular Definition of Computation *}
 
-constdefs 
-  lift :: "'a com \<Rightarrow> 'a conf \<Rightarrow> 'a conf"
+definition lift :: "'a com \<Rightarrow> 'a conf \<Rightarrow> 'a conf" where
   "lift Q \<equiv> \<lambda>(P, s). (if P=None then (Some Q,s) else (Some(Seq (the P) Q), s))"
 
 inductive_set cptn_mod :: "('a confs) set"
@@ -380,38 +377,36 @@ subsection {* Validity for Component Programs. *}
 
 types 'a rgformula = "'a com \<times> 'a set \<times> ('a \<times> 'a) set \<times> ('a \<times> 'a) set \<times> 'a set"
 
-constdefs
-  assum :: "('a set \<times> ('a \<times> 'a) set) \<Rightarrow> ('a confs) set"
+definition assum :: "('a set \<times> ('a \<times> 'a) set) \<Rightarrow> ('a confs) set" where
   "assum \<equiv> \<lambda>(pre, rely). {c. snd(c!0) \<in> pre \<and> (\<forall>i. Suc i<length c \<longrightarrow> 
                c!i -e\<rightarrow> c!(Suc i) \<longrightarrow> (snd(c!i), snd(c!Suc i)) \<in> rely)}"
 
-  comm :: "(('a \<times> 'a) set \<times> 'a set) \<Rightarrow> ('a confs) set"
+definition comm :: "(('a \<times> 'a) set \<times> 'a set) \<Rightarrow> ('a confs) set" where
   "comm \<equiv> \<lambda>(guar, post). {c. (\<forall>i. Suc i<length c \<longrightarrow> 
                c!i -c\<rightarrow> c!(Suc i) \<longrightarrow> (snd(c!i), snd(c!Suc i)) \<in> guar) \<and> 
                (fst (last c) = None \<longrightarrow> snd (last c) \<in> post)}"
 
-  com_validity :: "'a com \<Rightarrow> 'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> 'a set \<Rightarrow> bool" 
-                 ("\<Turnstile> _ sat [_, _, _, _]" [60,0,0,0,0] 45)
+definition com_validity :: "'a com \<Rightarrow> 'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> 'a set \<Rightarrow> bool" 
+                 ("\<Turnstile> _ sat [_, _, _, _]" [60,0,0,0,0] 45) where
   "\<Turnstile> P sat [pre, rely, guar, post] \<equiv> 
    \<forall>s. cp (Some P) s \<inter> assum(pre, rely) \<subseteq> comm(guar, post)"
 
 subsection {* Validity for Parallel Programs. *}
 
-constdefs
-  All_None :: "(('a com) option) list \<Rightarrow> bool"
+definition All_None :: "(('a com) option) list \<Rightarrow> bool" where
   "All_None xs \<equiv> \<forall>c\<in>set xs. c=None"
 
-  par_assum :: "('a set \<times> ('a \<times> 'a) set) \<Rightarrow> ('a par_confs) set"
+definition par_assum :: "('a set \<times> ('a \<times> 'a) set) \<Rightarrow> ('a par_confs) set" where
   "par_assum \<equiv> \<lambda>(pre, rely). {c. snd(c!0) \<in> pre \<and> (\<forall>i. Suc i<length c \<longrightarrow> 
              c!i -pe\<rightarrow> c!Suc i \<longrightarrow> (snd(c!i), snd(c!Suc i)) \<in> rely)}"
 
-  par_comm :: "(('a \<times> 'a) set \<times> 'a set) \<Rightarrow> ('a par_confs) set"
+definition par_comm :: "(('a \<times> 'a) set \<times> 'a set) \<Rightarrow> ('a par_confs) set" where
   "par_comm \<equiv> \<lambda>(guar, post). {c. (\<forall>i. Suc i<length c \<longrightarrow>   
         c!i -pc\<rightarrow> c!Suc i \<longrightarrow> (snd(c!i), snd(c!Suc i)) \<in> guar) \<and> 
          (All_None (fst (last c)) \<longrightarrow> snd( last c) \<in> post)}"
 
-  par_com_validity :: "'a  par_com \<Rightarrow> 'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set 
-\<Rightarrow> 'a set \<Rightarrow> bool"  ("\<Turnstile> _ SAT [_, _, _, _]" [60,0,0,0,0] 45)
+definition par_com_validity :: "'a  par_com \<Rightarrow> 'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set 
+\<Rightarrow> 'a set \<Rightarrow> bool"  ("\<Turnstile> _ SAT [_, _, _, _]" [60,0,0,0,0] 45) where
   "\<Turnstile> Ps SAT [pre, rely, guar, post] \<equiv> 
    \<forall>s. par_cp Ps s \<inter> par_assum(pre, rely) \<subseteq> par_comm(guar, post)"
 
@@ -419,23 +414,22 @@ subsection {* Compositionality of the Semantics *}
 
 subsubsection {* Definition of the conjoin operator *}
 
-constdefs
-  same_length :: "'a par_confs \<Rightarrow> ('a confs) list \<Rightarrow> bool"
+definition same_length :: "'a par_confs \<Rightarrow> ('a confs) list \<Rightarrow> bool" where
   "same_length c clist \<equiv> (\<forall>i<length clist. length(clist!i)=length c)"
  
-  same_state :: "'a par_confs \<Rightarrow> ('a confs) list \<Rightarrow> bool"
+definition same_state :: "'a par_confs \<Rightarrow> ('a confs) list \<Rightarrow> bool" where
   "same_state c clist \<equiv> (\<forall>i <length clist. \<forall>j<length c. snd(c!j) = snd((clist!i)!j))"
 
-  same_program :: "'a par_confs \<Rightarrow> ('a confs) list \<Rightarrow> bool"
+definition same_program :: "'a par_confs \<Rightarrow> ('a confs) list \<Rightarrow> bool" where
   "same_program c clist \<equiv> (\<forall>j<length c. fst(c!j) = map (\<lambda>x. fst(nth x j)) clist)"
 
-  compat_label :: "'a par_confs \<Rightarrow> ('a confs) list \<Rightarrow> bool"
+definition compat_label :: "'a par_confs \<Rightarrow> ('a confs) list \<Rightarrow> bool" where
   "compat_label c clist \<equiv> (\<forall>j. Suc j<length c \<longrightarrow> 
          (c!j -pc\<rightarrow> c!Suc j \<and> (\<exists>i<length clist. (clist!i)!j -c\<rightarrow> (clist!i)! Suc j \<and> 
                        (\<forall>l<length clist. l\<noteq>i \<longrightarrow> (clist!l)!j -e\<rightarrow> (clist!l)! Suc j))) \<or> 
          (c!j -pe\<rightarrow> c!Suc j \<and> (\<forall>i<length clist. (clist!i)!j -e\<rightarrow> (clist!i)! Suc j)))"
 
-  conjoin :: "'a par_confs \<Rightarrow> ('a confs) list \<Rightarrow> bool"  ("_ \<propto> _" [65,65] 64)
+definition conjoin :: "'a par_confs \<Rightarrow> ('a confs) list \<Rightarrow> bool"  ("_ \<propto> _" [65,65] 64) where
   "c \<propto> clist \<equiv> (same_length c clist) \<and> (same_state c clist) \<and> (same_program c clist) \<and> (compat_label c clist)"
 
 subsubsection {* Some previous lemmas *}

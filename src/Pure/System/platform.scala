@@ -55,15 +55,15 @@ object Platform
 
   /* Swing look-and-feel */
 
+  private def find_laf(name: String): Option[String] =
+    UIManager.getInstalledLookAndFeels().find(_.getName == name).map(_.getClassName)
+
   def look_and_feel(): String =
   {
     if (is_windows || is_macos) UIManager.getSystemLookAndFeelClassName()
-    else {
-      UIManager.getInstalledLookAndFeels().find(laf => laf.getName == "Nimbus") match {
-        case None => UIManager.getCrossPlatformLookAndFeelClassName()
-        case Some(laf) => laf.getClassName
-      }
-    }
+    else
+      find_laf("Nimbus") orElse find_laf("GTK+") getOrElse
+      UIManager.getCrossPlatformLookAndFeelClassName()
   }
 }
 

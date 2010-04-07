@@ -416,7 +416,7 @@ end
 
 subsection{*The Reals Form an Ordered Field*}
 
-instance real :: ordered_field
+instance real :: linordered_field
 proof
   fix x y z :: real
   show "x \<le> y ==> z + x \<le> z + y" by (rule real_add_left_mono)
@@ -425,8 +425,6 @@ proof
   show "sgn x = (if x=0 then 0 else if 0<x then 1 else - 1)"
     by (simp only: real_sgn_def)
 qed
-
-instance real :: lordered_ab_group_add ..
 
 text{*The function @{term real_of_preal} requires many proofs, but it seems
 to be essential for proving completeness of the reals from that of the
@@ -523,7 +521,7 @@ by auto
 
 lemma real_mult_less_iff1 [simp]: "(0::real) < z ==> (x*z < y*z) = (x < y)"
   by (force elim: order_less_asym
-            simp add: Ring_and_Field.mult_less_cancel_right)
+            simp add: mult_less_cancel_right)
 
 lemma real_mult_le_cancel_iff1 [simp]: "(0::real) < z ==> (x*z \<le> y*z) = (x\<le>y)"
 apply (simp add: mult_le_cancel_right)
@@ -585,6 +583,11 @@ by (simp add: real_of_int_def)
 
 lemma real_of_int_mult [simp]: "real(x * y) = real (x::int) * real y"
 by (simp add: real_of_int_def) 
+
+lemma real_of_int_power [simp]: "real (x ^ n) = real (x::int) ^ n"
+by (simp add: real_of_int_def of_int_power)
+
+lemmas power_real_of_int = real_of_int_power [symmetric]
 
 lemma real_of_int_setsum [simp]: "real ((SUM x:A. f x)::int) = (SUM x:A. real(f x))"
   apply (subst real_eq_of_int)+
@@ -698,6 +701,9 @@ done
 lemma real_of_int_div4: "real (n div x) <= real (n::int) / real x" 
 by (insert real_of_int_div2 [of n x], simp)
 
+lemma Ints_real_of_int [simp]: "real (x::int) \<in> Ints"
+unfolding real_of_int_def by (rule Ints_of_int)
+
 
 subsection{*Embedding the Naturals into the Reals*}
 
@@ -732,6 +738,11 @@ by (simp add: real_of_nat_def del: of_nat_Suc)
 
 lemma real_of_nat_mult [simp]: "real (m * n) = real (m::nat) * real n"
 by (simp add: real_of_nat_def of_nat_mult)
+
+lemma real_of_nat_power [simp]: "real (m ^ n) = real (m::nat) ^ n"
+by (simp add: real_of_nat_def of_nat_power)
+
+lemmas power_real_of_nat = real_of_nat_power [symmetric]
 
 lemma real_of_nat_setsum [simp]: "real ((SUM x:A. f x)::nat) = 
     (SUM x:A. real(f x))"
@@ -769,7 +780,8 @@ by (simp add: add: real_of_nat_def)
 lemma not_real_of_nat_less_zero [simp]: "~ real (n::nat) < 0"
 by (simp add: add: real_of_nat_def)
 
-lemma real_of_nat_ge_zero_cancel_iff [simp]: "(0 \<le> real (n::nat))"
+(* FIXME: duplicates real_of_nat_ge_zero *)
+lemma real_of_nat_ge_zero_cancel_iff: "(0 \<le> real (n::nat))"
 by (simp add: add: real_of_nat_def)
 
 lemma nat_less_real_le: "((n::nat) < m) = (real n + 1 <= real m)"
@@ -842,6 +854,12 @@ lemma real_nat_eq_real [simp]: "0 <= x ==> real(nat x) = real x"
   apply force
   apply (simp only: real_of_int_real_of_nat)
 done
+
+lemma Nats_real_of_nat [simp]: "real (n::nat) \<in> Nats"
+unfolding real_of_nat_def by (rule of_nat_in_Nats)
+
+lemma Ints_real_of_nat [simp]: "real (n::nat) \<in> Ints"
+unfolding real_of_nat_def by (rule Ints_of_nat)
 
 
 subsection{* Rationals *}
@@ -953,13 +971,13 @@ lemma [code_unfold_post]:
 
 text{*Collapse applications of @{term real} to @{term number_of}*}
 lemma real_number_of [simp]: "real (number_of v :: int) = number_of v"
-by (simp add:  real_of_int_def of_int_number_of_eq)
+by (simp add: real_of_int_def)
 
 lemma real_of_nat_number_of [simp]:
      "real (number_of v :: nat) =  
         (if neg (number_of v :: int) then 0  
          else (number_of v :: real))"
-by (simp add: real_of_int_real_of_nat [symmetric] int_nat_number_of)
+by (simp add: real_of_int_real_of_nat [symmetric])
 
 declaration {*
   K (Lin_Arith.add_inj_thms [@{thm real_of_nat_le_iff} RS iffD2, @{thm real_of_nat_inject} RS iffD2]
@@ -1017,7 +1035,7 @@ apply (simp add: min_def)
 done
 
 
-text{*Similar results are proved in @{text Ring_and_Field}*}
+text{*Similar results are proved in @{text Fields}*}
 lemma real_less_half_sum: "x < y ==> x < (x+y) / (2::real)"
   by auto
 
@@ -1032,7 +1050,7 @@ by (simp add: abs_if)
 
 (* FIXME: redundant, but used by Integration/RealRandVar.thy in AFP *)
 lemma abs_le_interval_iff: "(abs x \<le> r) = (-r\<le>x & x\<le>(r::real))"
-by (force simp add: OrderedGroup.abs_le_iff)
+by (force simp add: abs_le_iff)
 
 lemma abs_add_one_gt_zero [simp]: "(0::real) < 1 + abs(x)"
 by (simp add: abs_if)
@@ -1045,13 +1063,6 @@ by simp
  
 lemma abs_sum_triangle_ineq: "abs ((x::real) + y + (-l + -m)) \<le> abs(x + -l) + abs(y + -m)"
 by simp
-
-instance real :: lordered_ring
-proof
-  fix a::real
-  show "abs a = sup a (-a)"
-    by (auto simp add: real_abs_def sup_real_def)
-qed
 
 
 subsection {* Implementation of rational real numbers *}

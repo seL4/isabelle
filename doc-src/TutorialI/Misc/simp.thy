@@ -408,13 +408,28 @@ conditional rule shows the rule followed by the trace of the
 (recursive!) simplification of the conditions, the latter prefixed by
 \texttt{[}$i+1$\texttt{]} instead of \texttt{[}$i$\texttt{]}.
 Another source of recursive invocations of the simplifier are
-proofs of arithmetic formulae.
+proofs of arithmetic formulae. By default, recursive invocations are not shown,
+you must increase the trace depth via \pgmenu{Isabelle} $>$ \pgmenu{Settings} $>$ \pgmenu{Trace Simplifier Depth}.
 
 Many other hints about the simplifier's actions may appear.
 
 In more complicated cases, the trace can be very lengthy.  Thus it is
 advisable to reset the \pgmenu{Trace Simplifier} flag after having
-obtained the desired trace.  *}
+obtained the desired trace.
+Since this is easily forgotten (and may have the unpleasant effect of
+swamping the interface with trace information), here is how you can switch
+the trace on locally in a proof: *}
+
+(*<*)lemma "x=x"
+(*>*)
+using [[trace_simp=true]]
+apply simp
+(*<*)oops(*>*)
+
+text{* \noindent
+Within the current proof, all simplifications in subsequent proof steps
+will be traced, but the text reminds you to remove the \isa{using} clause
+after it has done its job. *}
 
 subsection{*Finding Theorems\label{sec:find}*}
 

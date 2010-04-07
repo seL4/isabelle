@@ -75,7 +75,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     val leafTs' = get_nonrec_types descr' sorts;
     val branchTs = get_branching_types descr' sorts;
     val branchT = if null branchTs then HOLogic.unitT
-      else Balanced_Tree.make (fn (T, U) => Type ("+", [T, U])) branchTs;
+      else Balanced_Tree.make (fn (T, U) => Type (@{type_name "+"}, [T, U])) branchTs;
     val arities = remove (op =) 0 (get_arities descr');
     val unneeded_vars =
       subtract (op =) (List.foldr OldTerm.add_typ_tfree_names [] (leafTs' @ branchTs)) (hd tyvars);
@@ -83,7 +83,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     val recTs = get_rec_types descr' sorts;
     val (newTs, oldTs) = chop (length (hd descr)) recTs;
     val sumT = if null leafTs then HOLogic.unitT
-      else Balanced_Tree.make (fn (T, U) => Type ("+", [T, U])) leafTs;
+      else Balanced_Tree.make (fn (T, U) => Type (@{type_name "+"}, [T, U])) leafTs;
     val Univ_elT = HOLogic.mk_setT (Type (node_name, [sumT, branchT]));
     val UnivT = HOLogic.mk_setT Univ_elT;
     val UnivT' = Univ_elT --> HOLogic.boolT;
@@ -104,9 +104,9 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
               val Type (_, [T1, T2]) = T
           in
             if i <= n2 then
-              Const (@{const_name "Sum_Type.Inl"}, T1 --> T) $ (mk_inj' T1 n2 i)
+              Const (@{const_name Inl}, T1 --> T) $ (mk_inj' T1 n2 i)
             else
-              Const (@{const_name "Sum_Type.Inr"}, T2 --> T) $ (mk_inj' T2 (n - n2) (i - n2))
+              Const (@{const_name Inr}, T2 --> T) $ (mk_inj' T2 (n - n2) (i - n2))
           end
       in mk_inj' sumT (length leafTs) (1 + find_index (fn T'' => T'' = T') leafTs)
       end;
@@ -190,7 +190,8 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     val (typedefs, thy3) = thy2 |>
       Sign.parent_path |>
       fold_map (fn ((((name, mx), tvs), c), name') =>
-          Typedef.add_typedef false (SOME (Binding.name name')) (name, tvs, mx)
+          Typedef.add_typedef_global false (SOME (Binding.name name'))
+            (name, map (rpair dummyS) tvs, mx)
             (Collect $ Const (c, UnivT')) NONE
             (rtac exI 1 THEN rtac CollectI 1 THEN
               QUIET_BREADTH_FIRST (has_fewer_prems 1)
@@ -253,9 +254,11 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
         val rep_const = cterm_of thy
           (Const (Sign.intern_const thy ("Rep_" ^ tname), T --> Univ_elT));
         val cong' =
-          Drule.standard (cterm_instantiate [(cterm_of thy cong_f, rep_const)] arg_cong);
+          Drule.export_without_context
+            (cterm_instantiate [(cterm_of thy cong_f, rep_const)] arg_cong);
         val dist =
-          Drule.standard (cterm_instantiate [(cterm_of thy distinct_f, rep_const)] distinct_lemma);
+          Drule.export_without_context
+            (cterm_instantiate [(cterm_of thy distinct_f, rep_const)] distinct_lemma);
         val (thy', defs', eqns', _) = fold ((make_constr_def tname T) (length constrs))
           (constrs ~~ constr_syntax) (Sign.add_path tname thy, defs, [], 1);
       in
@@ -273,11 +276,11 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
 
     val _ = message config "Proving isomorphism properties ...";
 
-    val newT_iso_axms = map (fn (_, td) =>
+    val newT_iso_axms = map (fn (_, (_, td)) =>
       (collect_simp (#Abs_inverse td), #Rep_inverse td,
        collect_simp (#Rep td))) typedefs;
 
-    val newT_iso_inj_thms = map (fn (_, td) =>
+    val newT_iso_inj_thms = map (fn (_, (_, td)) =>
       (collect_simp (#Abs_inject td) RS iffD1, #Rep_inject td RS iffD1)) typedefs;
 
     (********* isomorphisms between existing types and "unfolded" types *******)
@@ -415,7 +418,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
 
         val inj_thm = Skip_Proof.prove_global thy5 [] []
           (HOLogic.mk_Trueprop (mk_conj ind_concl1)) (fn _ => EVERY
-            [(indtac induct [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
+            [(indtac induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
              REPEAT (EVERY
                [rtac allI 1, rtac impI 1,
                 exh_tac (exh_thm_of dt_info) 1,
@@ -441,7 +444,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
         val elem_thm = 
             Skip_Proof.prove_global thy5 [] [] (HOLogic.mk_Trueprop (mk_conj ind_concl2))
               (fn _ =>
-               EVERY [(indtac induct [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
+               EVERY [(indtac induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
                 rewrite_goals_tac rewrites,
                 REPEAT ((resolve_tac rep_intrs THEN_ALL_NEW
                   ((REPEAT o etac allE) THEN' ares_tac elem_thms)) 1)]);
@@ -463,7 +466,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
           (if i < length newTs then HOLogic.true_const
            else HOLogic.mk_mem (mk_Free "x" Univ_elT i,
              Const (@{const_name image}, isoT --> HOLogic.mk_setT T --> UnivT) $
-               Const (iso_name, isoT) $ Const (@{const_name UNIV}, HOLogic.mk_setT T)))
+               Const (iso_name, isoT) $ Const (@{const_abbrev UNIV}, HOLogic.mk_setT T)))
       end;
 
     val iso_t = HOLogic.mk_Trueprop (mk_conj (map mk_iso_t
@@ -477,9 +480,9 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     val iso_thms = if length descr = 1 then [] else
       drop (length newTs) (split_conj_thm
         (Skip_Proof.prove_global thy5 [] [] iso_t (fn _ => EVERY
-           [(indtac rep_induct [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
+           [(indtac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
             REPEAT (rtac TrueI 1),
-            rewrite_goals_tac (mk_meta_eq choice_eq ::
+            rewrite_goals_tac (mk_meta_eq @{thm choice_eq} ::
               symmetric (mk_meta_eq @{thm expand_fun_eq}) :: range_eqs),
             rewrite_goals_tac (map symmetric range_eqs),
             REPEAT (EVERY
@@ -532,7 +535,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
               let
                 val dist_thm = Skip_Proof.prove_global thy5 [] [] t (fn _ =>
                   EVERY [simp_tac (HOL_ss addsimps dist_rewrites') 1])
-              in dist_thm :: Drule.standard (dist_thm RS not_sym) :: prove ts end;
+              in dist_thm :: Drule.export_without_context (dist_thm RS not_sym) :: prove ts end;
       in prove ts end;
 
     val distinct_thms = map2 (prove_distinct_thms)
@@ -615,7 +618,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
       (Logic.strip_imp_prems dt_induct_prop) (Logic.strip_imp_concl dt_induct_prop)
       (fn {prems, ...} => EVERY
         [rtac indrule_lemma' 1,
-         (indtac rep_induct [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
+         (indtac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
          EVERY (map (fn (prem, r) => (EVERY
            [REPEAT (eresolve_tac Abs_inverse_thms 1),
             simp_tac (HOL_basic_ss addsimps ((symmetric r)::Rep_inverse_thms')) 1,
@@ -649,7 +652,7 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
 
     val (tyvars, _, _, _)::_ = dts;
     val (new_dts, types_syntax) = ListPair.unzip (map (fn (tvs, tname, mx, _) =>
-      let val full_tname = Sign.full_name tmp_thy (Binding.map_name (Syntax.type_name mx) tname)
+      let val full_tname = Sign.full_name tmp_thy tname
       in
         (case duplicates (op =) tvs of
           [] =>
@@ -673,10 +676,10 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
             val _ =
               (case subtract (op =) tvs (fold (curry OldTerm.add_typ_tfree_names) cargs' []) of
                 [] => ()
-              | vs => error ("Extra type variables on rhs: " ^ commas vs))
-          in (constrs @ [(Sign.full_name_path tmp_thy tname'
-                  (Binding.map_name (Syntax.const_name mx') cname),
-                   map (dtyp_of_typ new_dts) cargs')],
+              | vs => error ("Extra type variables on rhs: " ^ commas vs));
+            val c = Sign.full_name_path tmp_thy tname' cname;
+          in
+            (constrs @ [(c, map (dtyp_of_typ new_dts) cargs')],
               constr_syntax' @ [(cname, mx')], sorts'')
           end handle ERROR msg => cat_error msg
            ("The error above occured in constructor " ^ quote (Binding.str_of cname) ^
@@ -684,14 +687,12 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
 
         val (constrs', constr_syntax', sorts') =
           fold prep_constr constrs ([], [], sorts)
-
       in
         case duplicates (op =) (map fst constrs') of
-           [] =>
-             (dts' @ [(i, (Sign.full_name tmp_thy (Binding.map_name (Syntax.type_name mx) tname),
-                map DtTFree tvs, constrs'))],
+          [] =>
+            (dts' @ [(i, (Sign.full_name tmp_thy tname, map DtTFree tvs, constrs'))],
               constr_syntax @ [constr_syntax'], sorts', i + 1)
-         | dups => error ("Duplicate constructors " ^ commas dups ^
+        | dups => error ("Duplicate constructors " ^ commas dups ^
              " in datatype " ^ quote (Binding.str_of tname))
       end;
 
@@ -731,7 +732,7 @@ fun prep_datatype_decls args =
   in (names, specs) end;
 
 val parse_datatype_decl =
-  (Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.type_args -- P.binding -- P.opt_infix --
+  (Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.type_args -- P.binding -- P.opt_mixfix --
     (P.$$$ "=" |-- P.enum1 "|" (P.binding -- Scan.repeat P.typ -- P.opt_mixfix)));
 
 val parse_datatype_decls = P.and_list1 parse_datatype_decl >> prep_datatype_decls;

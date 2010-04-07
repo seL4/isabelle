@@ -55,14 +55,10 @@ primrec
     (if s : b then Sem c1 s s' else Sem c2 s s')"
   "Sem (While b x c) s s' = (EX n. iter n b (Sem c) s s')"
 
-constdefs
-  Valid :: "'a bexp => 'a com => 'a bexp => bool"
-    ("(3|- _/ (2_)/ _)" [100, 55, 100] 50)
+definition Valid :: "'a bexp => 'a com => 'a bexp => bool" ("(3|- _/ (2_)/ _)" [100, 55, 100] 50) where
   "|- P c Q == ALL s s'. Sem c s s' --> s : P --> s' : Q"
 
-syntax (xsymbols)
-  Valid :: "'a bexp => 'a com => 'a bexp => bool"
-    ("(3\<turnstile> _/ (2_)/ _)" [100, 55, 100] 50)
+notation (xsymbols) Valid ("(3\<turnstile> _/ (2_)/ _)" [100, 55, 100] 50)
 
 lemma ValidI [intro?]:
     "(!!s s'. Sem c s s' ==> s : P ==> s' : Q) ==> |- P c Q"
@@ -228,18 +224,18 @@ syntax (xsymbols)
   "_Assert"      :: "'a => 'a set"            ("(\<lbrace>_\<rbrace>)" [0] 1000)
 
 translations
-  ".{b}."                   => "Collect .(b)."
+  ".{b}."                   => "CONST Collect .(b)."
   "B [a/\<acute>x]"                => ".{\<acute>(_update_name x (\<lambda>_. a)) \<in> B}."
-  "\<acute>x := a"                 => "Basic .(\<acute>(_update_name x (\<lambda>_. a)))."
-  "IF b THEN c1 ELSE c2 FI" => "Cond .{b}. c1 c2"
-  "WHILE b INV i DO c OD"   => "While .{b}. i c"
+  "\<acute>x := a"                 => "CONST Basic .(\<acute>(_update_name x (\<lambda>_. a)))."
+  "IF b THEN c1 ELSE c2 FI" => "CONST Cond .{b}. c1 c2"
+  "WHILE b INV i DO c OD"   => "CONST While .{b}. i c"
   "WHILE b DO c OD"         == "WHILE b INV CONST undefined DO c OD"
 
 parse_translation {*
   let
-    fun quote_tr [t] = Syntax.quote_tr "_antiquote" t
+    fun quote_tr [t] = Syntax.quote_tr @{syntax_const "_antiquote"} t
       | quote_tr ts = raise TERM ("quote_tr", ts);
-  in [("_quote", quote_tr)] end
+  in [(@{syntax_const "_quote"}, quote_tr)] end
 *}
 
 text {*
@@ -251,37 +247,30 @@ text {*
 print_translation {*
   let
     fun quote_tr' f (t :: ts) =
-          Term.list_comb (f $ Syntax.quote_tr' "_antiquote" t, ts)
+          Term.list_comb (f $ Syntax.quote_tr' @{syntax_const "_antiquote"} t, ts)
       | quote_tr' _ _ = raise Match;
 
-    val assert_tr' = quote_tr' (Syntax.const "_Assert");
+    val assert_tr' = quote_tr' (Syntax.const @{syntax_const "_Assert"});
 
-    fun bexp_tr' name ((Const ("Collect", _) $ t) :: ts) =
+    fun bexp_tr' name ((Const (@{const_syntax Collect}, _) $ t) :: ts) =
           quote_tr' (Syntax.const name) (t :: ts)
       | bexp_tr' _ _ = raise Match;
 
-    fun upd_tr' (x_upd, T) =
-      (case try (unsuffix Record.updateN) x_upd of
-        SOME x => (x, if T = dummyT then T else Term.domain_type T)
-      | NONE => raise Match);
-
-    fun update_name_tr' (Free x) = Free (upd_tr' x)
-      | update_name_tr' ((c as Const ("_free", _)) $ Free x) =
-          c $ Free (upd_tr' x)
-      | update_name_tr' (Const x) = Const (upd_tr' x)
-      | update_name_tr' _ = raise Match;
-
-    fun K_tr' (Abs (_,_,t)) = if null (loose_bnos t) then t else raise Match
-      | K_tr' (Abs (_,_,Abs (_,_,t)$Bound 0)) = if null (loose_bnos t) then t else raise Match
+    fun K_tr' (Abs (_, _, t)) =
+          if null (loose_bnos t) then t else raise Match
+      | K_tr' (Abs (_, _, Abs (_, _, t) $ Bound 0)) =
+          if null (loose_bnos t) then t else raise Match
       | K_tr' _ = raise Match;
 
     fun assign_tr' (Abs (x, _, f $ k $ Bound 0) :: ts) =
-          quote_tr' (Syntax.const "_Assign" $ update_name_tr' f)
+          quote_tr' (Syntax.const @{syntax_const "_Assign"} $ Syntax.update_name_tr' f)
             (Abs (x, dummyT, K_tr' k) :: ts)
       | assign_tr' _ = raise Match;
   in
-    [("Collect", assert_tr'), ("Basic", assign_tr'),
-      ("Cond", bexp_tr' "_Cond"), ("While", bexp_tr' "_While_inv")]
+   [(@{const_syntax Collect}, assert_tr'),
+    (@{const_syntax Basic}, assign_tr'),
+    (@{const_syntax Cond}, bexp_tr' @{syntax_const "_Cond"}),
+    (@{const_syntax While}, bexp_tr' @{syntax_const "_While_inv"})]
   end
 *}
 

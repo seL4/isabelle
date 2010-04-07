@@ -1431,7 +1431,7 @@ proof -
       moreover have "0 \<le> exp t / real (fact (get_even n)) * (real x) ^ (get_even n)"
         by (auto intro!: mult_nonneg_nonneg divide_nonneg_pos simp add: get_even zero_le_even_power exp_gt_zero)
       ultimately show ?thesis
-        using get_odd exp_gt_zero by (auto intro!: pordered_cancel_semiring_class.mult_nonneg_nonneg)
+        using get_odd exp_gt_zero by (auto intro!: mult_nonneg_nonneg)
     qed
     finally have "real (lb_exp_horner prec (get_even n) 1 1 x) \<le> exp (real x)" .
   } moreover
@@ -1451,7 +1451,7 @@ proof -
     moreover have "exp t / real (fact (get_odd n)) * (real x) ^ (get_odd n) \<le> 0"
       by (auto intro!: mult_nonneg_nonpos divide_nonpos_pos simp add: x_less_zero exp_gt_zero)
     ultimately have "exp (real x) \<le> (\<Sum>j = 0..<get_odd n. 1 / real (fact j) * real x ^ j)"
-      using get_odd exp_gt_zero by (auto intro!: pordered_cancel_semiring_class.mult_nonneg_nonneg)
+      using get_odd exp_gt_zero by (auto intro!: mult_nonneg_nonneg)
     also have "\<dots> \<le> real (ub_exp_horner prec (get_odd n) 1 1 x)"
       using bounds(2) by auto
     finally have "exp (real x) \<le> real (ub_exp_horner prec (get_odd n) 1 1 x)" .
@@ -1541,7 +1541,7 @@ proof -
     hence "real ?num \<noteq> 0" by auto
     have e_nat: "int (nat e) = e" using `0 \<le> e` by auto
     have num_eq: "real ?num = real (- floor_fl x)" using `0 < nat (- m)`
-      unfolding Float_floor real_of_float_minus real_of_float_simp real_of_nat_mult pow2_int[of "nat e", unfolded e_nat] realpow_real_of_nat[symmetric] by auto
+      unfolding Float_floor real_of_float_minus real_of_float_simp real_of_nat_mult pow2_int[of "nat e", unfolded e_nat] real_of_nat_power by auto
     have "0 < - floor_fl x" using `0 < ?num`[unfolded real_of_nat_less_iff[symmetric]] unfolding less_float_def num_eq[symmetric] real_of_float_0 real_of_nat_zero .
     hence "real (floor_fl x) < 0" unfolding less_float_def by auto
 
@@ -2950,7 +2950,8 @@ next
                (\<Sum> i = 0..<Suc n. inverse (real (\<Prod> j \<in> {k..<k+i}. j)) * ?f i (real c) * (xs!x - real c)^i) +
                inverse (real (\<Prod> j \<in> {k..<k+Suc n}. j)) * ?f (Suc n) t * (xs!x - real c)^Suc n" (is "_ = ?T")
         unfolding funpow_Suc C_def[symmetric] setsum_move0 setprod_head_Suc
-        by (auto simp add: algebra_simps setsum_right_distrib[symmetric])
+        by (auto simp add: algebra_simps)
+          (simp only: mult_left_commute [of _ "inverse (real k)"] setsum_right_distrib [symmetric])
       finally have "?T \<in> {real l .. real u}" . }
     thus ?thesis using DERIV by blast
   qed
@@ -3437,7 +3438,7 @@ ML {*
     | mk_result prec NONE = @{term "UNIV :: real set"}
 
   fun realify t = let
-      val t = Logic.varify t
+      val t = Logic.varify_global t
       val m = map (fn (name, sort) => (name, @{typ real})) (Term.add_tvars t [])
       val t = Term.subst_TVars m t
     in t end

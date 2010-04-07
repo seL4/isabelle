@@ -1,4 +1,4 @@
-(*  Title:      Pure/Isar/ML
+(*  Title:      Pure/Isar/class.ML
     Author:     Florian Haftmann, TU Muenchen
 
 Type classes derived from primitive axclasses and locales - interfaces.
@@ -86,7 +86,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
       | SOME prop => Logic.mk_implies (Morphism.term const_morph
           ((map_types o map_atyps) (K aT) prop), of_class_prop_concl);
     val sup_of_classes = map (snd o rules thy) sups;
-    val loc_axiom_intros = map Drule.standard' (Locale.axioms_of thy class);
+    val loc_axiom_intros = map Drule.export_without_context_open (Locale.axioms_of thy class);
     val axclass_intro = #intro (AxClass.get_info thy class);
     val base_sort_trivs = Thm.of_sort (Thm.ctyp_of thy aT, base_sort);
     val tac = REPEAT (SOMEGOAL
@@ -132,7 +132,7 @@ fun prep_class_elems prep_decl thy sups proto_base_sort raw_elems =
       (Syntax.add_typ_check level name (fn xs => fn ctxt =>
         let val xs' = f xs in if eq_list (op =) (xs, xs') then NONE else SOME (xs', ctxt) end));
 
-    (* preprocessing elements, retrieving base sort from typechecked elements *)
+    (* preprocessing elements, retrieving base sort from type-checked elements *)
     val init_class_body = fold (ProofContext.add_const_constraint o apsnd SOME) base_constraints
       #> redeclare_operations thy sups
       #> add_typ_check 10 "reject_bcd_etc" reject_bcd_etc
@@ -257,7 +257,7 @@ fun adjungate_axclass bname class base_sort sups supsort supparam_names global_s
         | t => t);
     val raw_pred = Locale.intros_of thy class
       |> fst
-      |> Option.map (Logic.unvarify o Logic.strip_imp_concl o Thm.prop_of);
+      |> Option.map (Logic.unvarify_global o Logic.strip_imp_concl o Thm.prop_of);
     fun get_axiom thy = case (#axioms o AxClass.get_info thy) class
      of [] => NONE
       | [thm] => SOME thm;
@@ -338,7 +338,7 @@ in
 
 val subclass = gen_subclass (K I) user_proof;
 fun prove_subclass tac = gen_subclass (K I) (tactic_proof tac);
-val subclass_cmd = gen_subclass Sign.read_class user_proof;
+val subclass_cmd = gen_subclass (ProofContext.read_class o ProofContext.init) user_proof;
 
 end; (*local*)
 

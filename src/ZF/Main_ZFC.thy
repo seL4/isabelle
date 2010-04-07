@@ -1,5 +1,4 @@
-(* $Id$ *)
-
-theory Main_ZFC imports Main_ZF InfDatatype begin
+theory Main_ZFC imports Main_ZF InfDatatype
+begin
 
 end

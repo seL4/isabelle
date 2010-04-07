@@ -55,10 +55,10 @@ syntax
   "_Return"   :: "['a, 'b, lift] => lift"    ("(Return _ _ _)" [90,90,90] 90)
 
 translations
-  "_slice"  ==  "slice"
+  "_slice"  ==  "CONST slice"
 
-  "_Call"   ==  "ACall"
-  "_Return" ==  "AReturn"
+  "_Call"   ==  "CONST ACall"
+  "_Return" ==  "CONST AReturn"
 
 defs
   slice_def:     "(PRED (x!i)) s == x s i"

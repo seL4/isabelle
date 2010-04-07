@@ -7,7 +7,7 @@ Detecting and recoding Isabelle symbols.
 package isabelle
 
 import scala.io.Source
-import scala.collection.{jcl, mutable}
+import scala.collection.mutable
 import scala.util.matching.Regex
 
 
@@ -54,9 +54,9 @@ object Symbol
   }
 
 
-  /* elements */
+  /* iterator */
 
-  def elements(text: CharSequence) = new Iterator[CharSequence]
+  def iterator(text: CharSequence) = new Iterator[CharSequence]
   {
     private val matcher = new Matcher(text)
     private var i = 0
@@ -124,12 +124,7 @@ object Symbol
       }
       (min, max)
     }
-    private val table =
-    {
-      val table = new jcl.HashMap[String, String]   // reasonably efficient?
-      for ((x, y) <- list) table + (x -> y)
-      table
-    }
+    private val table = Map[String, String]() ++ list
     def recode(text: String): String =
     {
       val len = text.length

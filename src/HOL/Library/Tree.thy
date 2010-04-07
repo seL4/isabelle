@@ -96,11 +96,11 @@ qed
 
 subsection {* Trees as mappings *}
 
-definition Tree :: "('a\<Colon>linorder, 'b) tree \<Rightarrow> ('a, 'b) map" where
-  "Tree t = Map (Tree.lookup t)"
+definition Tree :: "('a\<Colon>linorder, 'b) tree \<Rightarrow> ('a, 'b) mapping" where
+  "Tree t = Mapping (Tree.lookup t)"
 
 lemma [code, code del]:
-  "(eq_class.eq :: (_, _) map \<Rightarrow> _) = eq_class.eq" ..
+  "(eq_class.eq :: (_, _) mapping \<Rightarrow> _) = eq_class.eq" ..
 
 lemma [code, code del]:
   "Mapping.delete k m = Mapping.delete k m" ..
@@ -115,13 +115,21 @@ lemma lookup_Tree [code]:
   "Mapping.lookup (Tree t) = lookup t"
   by (simp add: Tree_def)
 
+lemma is_empty_Tree [code]:
+  "Mapping.is_empty (Tree Empty) \<longleftrightarrow> True"
+  "Mapping.is_empty (Tree (Branch v k l r)) \<longleftrightarrow> False"
+  by (simp_all only: is_empty_def lookup_Tree dom_lookup) auto
+
 lemma update_Tree [code]:
   "Mapping.update k v (Tree t) = Tree (update k v t)"
   by (simp add: Tree_def lookup_update)
 
+lemma [code, code del]:
+  "Mapping.ordered_keys = Mapping.ordered_keys " ..
+
 lemma keys_Tree [code]:
   "Mapping.keys (Tree t) = set (filter (\<lambda>k. lookup t k \<noteq> None) (remdups (keys t)))"
-  by (simp add: Tree_def dom_lookup)
+  by (simp add: Mapping.keys_def lookup_Tree dom_lookup)
 
 lemma size_Tree [code]:
   "Mapping.size (Tree t) = size t"
@@ -135,8 +143,10 @@ lemma tabulate_Tree [code]:
   "Mapping.tabulate ks f = Tree (bulkload (sort ks) f)"
 proof -
   have "Mapping.lookup (Mapping.tabulate ks f) = Mapping.lookup (Tree (bulkload (sort ks) f))"
-    by (simp add: lookup_Tree lookup_bulkload lookup_tabulate)
-  then show ?thesis by (simp add: lookup_inject)
+    by (simp add: lookup_bulkload lookup_Tree)
+  then show ?thesis by (simp only: lookup_inject)
 qed
+
+hide (open) const Empty Branch lookup update keys size bulkload Tree
 
 end

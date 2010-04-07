@@ -139,7 +139,7 @@ fun vupdate ((aU as (a, U), t), env as Envir {tyenv, ...}) =
   (case t of
     Var (nT as (name', T)) =>
       if a = name' then env     (*cycle!*)
-      else if TermOrd.indexname_ord (a, name') = LESS then
+      else if Term_Ord.indexname_ord (a, name') = LESS then
         (case lookup (env, nT) of  (*if already assigned, chase*)
           NONE => update ((nT, Var (a, T)), env)
         | SOME u => vupdate ((aU, u), env))

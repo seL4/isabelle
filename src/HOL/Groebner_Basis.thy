@@ -143,16 +143,16 @@ next show "add a (add c d) = add (add a c) d" using add_a by simp
 next show "mul (pwr x p) (pwr x q) = pwr x (p + q)" by (rule mul_pwr)
 next show "mul x (pwr x q) = pwr x (Suc q)" using pwr_Suc by simp
 next show "mul (pwr x q) x = pwr x (Suc q)" using pwr_Suc mul_c by simp
-next show "mul x x = pwr x 2" by (simp add: nat_number pwr_Suc pwr_0 mul_1 mul_c)
+next show "mul x x = pwr x 2" by (simp add: nat_number' pwr_Suc pwr_0 mul_1 mul_c)
 next show "pwr (mul x y) q = mul (pwr x q) (pwr y q)" by (rule pwr_mul)
 next show "pwr (pwr x p) q = pwr x (p * q)" by (rule pwr_pwr)
 next show "pwr x 0 = r1" using pwr_0 .
-next show "pwr x 1 = x" unfolding One_nat_def by (simp add: nat_number pwr_Suc pwr_0 mul_1 mul_c)
+next show "pwr x 1 = x" unfolding One_nat_def by (simp add: nat_number' pwr_Suc pwr_0 mul_1 mul_c)
 next show "mul x (add y z) = add (mul x y) (mul x z)" using mul_d by simp
 next show "pwr x (Suc q) = mul x (pwr x q)" using pwr_Suc by simp
-next show "pwr x (2 * n) = mul (pwr x n) (pwr x n)" by (simp add: nat_number mul_pwr)
+next show "pwr x (2 * n) = mul (pwr x n) (pwr x n)" by (simp add: nat_number' mul_pwr)
 next show "pwr x (Suc (2 * n)) = mul x (mul (pwr x n) (pwr x n))"
-    by (simp add: nat_number pwr_Suc mul_pwr)
+    by (simp add: nat_number' pwr_Suc mul_pwr)
 qed
 
 
@@ -165,7 +165,7 @@ end
 
 interpretation class_semiring: gb_semiring
     "op +" "op *" "op ^" "0::'a::{comm_semiring_1}" "1"
-  proof qed (auto simp add: algebra_simps power_Suc)
+  proof qed (auto simp add: algebra_simps)
 
 lemmas nat_arith =
   add_nat_number_of
@@ -175,7 +175,7 @@ lemmas nat_arith =
   less_nat_number_of
 
 lemma not_iszero_Numeral1: "\<not> iszero (Numeral1::'a::number_ring)"
-  by (simp add: numeral_1_eq_1)
+  by simp
 
 lemmas comp_arith =
   Let_def arith_simps nat_arith rel_simps neg_simps if_False
@@ -350,7 +350,7 @@ qed
 
 interpretation class_ringb: ringb
   "op +" "op *" "op ^" "0::'a::{idom,number_ring}" "1" "op -" "uminus"
-proof(unfold_locales, simp add: algebra_simps power_Suc, auto)
+proof(unfold_locales, simp add: algebra_simps, auto)
   fix w x y z ::"'a::{idom,number_ring}"
   assume p: "w * y + x * z = w * z + x * y" and ynz: "y \<noteq> z"
   hence ynz': "y - z \<noteq> 0" by simp
@@ -366,7 +366,7 @@ declaration {* normalizer_funs @{thm class_ringb.ringb_axioms'} *}
 
 interpretation natgb: semiringb
   "op +" "op *" "op ^" "0::nat" "1"
-proof (unfold_locales, simp add: algebra_simps power_Suc)
+proof (unfold_locales, simp add: algebra_simps)
   fix w x y z ::"nat"
   { assume p: "w * y + x * z = w * z + x * y" and ynz: "y \<noteq> z"
     hence "y < z \<or> y > z" by arith
@@ -375,13 +375,13 @@ proof (unfold_locales, simp add: algebra_simps power_Suc)
       then obtain k where kp: "k>0" and yz:"z = y + k" by blast
       from p have "(w * y + x *y) + x*k = (w * y + x*y) + w*k" by (simp add: yz algebra_simps)
       hence "x*k = w*k" by simp
-      hence "w = x" using kp by (simp add: mult_cancel2) }
+      hence "w = x" using kp by simp }
     moreover {
       assume lt: "y >z" hence "\<exists>k. y = z + k \<and> k>0" by (rule_tac x="y - z" in exI, auto)
       then obtain k where kp: "k>0" and yz:"y = z + k" by blast
       from p have "(w * z + x *z) + w*k = (w * z + x*z) + x*k" by (simp add: yz algebra_simps)
       hence "w*k = x*k" by simp
-      hence "w = x" using kp by (simp add: mult_cancel2)}
+      hence "w = x" using kp by simp }
     ultimately have "w=x" by blast }
   thus "(w * y + x * z = w * z + x * y) = (w = x \<or> y = z)" by auto
 qed
@@ -489,7 +489,13 @@ lemma add_frac_num: "y\<noteq> 0 \<Longrightarrow> (x::'a::{field, division_by_z
   by (simp add: add_divide_distrib)
 lemma add_num_frac: "y\<noteq> 0 \<Longrightarrow> z + (x::'a::{field, division_by_zero}) / y = (x + z*y) / y"
   by (simp add: add_divide_distrib)
-ML{* let open Conv in fconv_rule (arg_conv (arg1_conv (rewr_conv (mk_meta_eq @{thm mult_commute}))))   (@{thm divide_inverse} RS sym)end*}
+
+ML {*
+let open Conv
+in fconv_rule (arg_conv (arg1_conv (rewr_conv (mk_meta_eq @{thm mult_commute})))) (@{thm field_divide_inverse} RS sym)
+end
+*}
+
 ML{* 
 local
  val zr = @{cpat "0"}
@@ -504,7 +510,7 @@ local
     let
       val z = instantiate_cterm ([(zT,T)],[]) zr
       val eq = instantiate_cterm ([(eqT,T)],[]) geq
-      val th = Simplifier.rewrite (ss addsimps simp_thms)
+      val th = Simplifier.rewrite (ss addsimps @{thms simp_thms})
            (Thm.capply @{cterm "Trueprop"} (Thm.capply @{cterm "Not"}
                   (Thm.capply (Thm.capply eq t) z)))
     in equal_elim (symmetric th) TrueI
@@ -527,13 +533,13 @@ local
     val (l,r) = Thm.dest_binop ct
     val T = ctyp_of_term l
   in (case (term_of l, term_of r) of
-      (Const(@{const_name "HOL.divide"},_)$_$_, _) =>
+      (Const(@{const_name Rings.divide},_)$_$_, _) =>
         let val (x,y) = Thm.dest_binop l val z = r
             val _ = map (HOLogic.dest_number o term_of) [x,y,z]
             val ynz = prove_nz ss T y
         in SOME (implies_elim (instantiate' [SOME T] (map SOME [y,x,z]) add_frac_num) ynz)
         end
-     | (_, Const (@{const_name "HOL.divide"},_)$_$_) =>
+     | (_, Const (@{const_name Rings.divide},_)$_$_) =>
         let val (x,y) = Thm.dest_binop r val z = l
             val _ = map (HOLogic.dest_number o term_of) [x,y,z]
             val ynz = prove_nz ss T y
@@ -543,49 +549,49 @@ local
   end
   handle CTERM _ => NONE | TERM _ => NONE | THM _ => NONE
 
- fun is_number (Const(@{const_name "HOL.divide"},_)$a$b) = is_number a andalso is_number b
+ fun is_number (Const(@{const_name Rings.divide},_)$a$b) = is_number a andalso is_number b
    | is_number t = can HOLogic.dest_number t
 
  val is_number = is_number o term_of
 
  fun proc3 phi ss ct =
   (case term_of ct of
-    Const(@{const_name HOL.less},_)$(Const(@{const_name "HOL.divide"},_)$_$_)$_ =>
+    Const(@{const_name Orderings.less},_)$(Const(@{const_name Rings.divide},_)$_$_)$_ =>
       let
         val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_less_eq"}
       in SOME (mk_meta_eq th) end
-  | Const(@{const_name HOL.less_eq},_)$(Const(@{const_name "HOL.divide"},_)$_$_)$_ =>
+  | Const(@{const_name Orderings.less_eq},_)$(Const(@{const_name Rings.divide},_)$_$_)$_ =>
       let
         val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_le_eq"}
       in SOME (mk_meta_eq th) end
-  | Const("op =",_)$(Const(@{const_name "HOL.divide"},_)$_$_)$_ =>
+  | Const("op =",_)$(Const(@{const_name Rings.divide},_)$_$_)$_ =>
       let
         val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_eq_eq"}
       in SOME (mk_meta_eq th) end
-  | Const(@{const_name HOL.less},_)$_$(Const(@{const_name "HOL.divide"},_)$_$_) =>
+  | Const(@{const_name Orderings.less},_)$_$(Const(@{const_name Rings.divide},_)$_$_) =>
     let
       val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "less_divide_eq"}
       in SOME (mk_meta_eq th) end
-  | Const(@{const_name HOL.less_eq},_)$_$(Const(@{const_name "HOL.divide"},_)$_$_) =>
+  | Const(@{const_name Orderings.less_eq},_)$_$(Const(@{const_name Rings.divide},_)$_$_) =>
     let
       val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "le_divide_eq"}
       in SOME (mk_meta_eq th) end
-  | Const("op =",_)$_$(Const(@{const_name "HOL.divide"},_)$_$_) =>
+  | Const("op =",_)$_$(Const(@{const_name Rings.divide},_)$_$_) =>
     let
       val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
         val _ = map is_number [a,b,c]
@@ -621,20 +627,20 @@ in
 
 val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
            @{thm "divide_Numeral1"},
-           @{thm "Ring_and_Field.divide_zero"}, @{thm "divide_Numeral0"},
+           @{thm "Fields.divide_zero"}, @{thm "divide_Numeral0"},
            @{thm "divide_divide_eq_left"}, @{thm "mult_frac_frac"},
            @{thm "mult_num_frac"}, @{thm "mult_frac_num"},
            @{thm "mult_frac_frac"}, @{thm "times_divide_eq_right"},
            @{thm "times_divide_eq_left"}, @{thm "divide_divide_eq_right"},
            @{thm "diff_def"}, @{thm "minus_divide_left"},
            @{thm "Numeral1_eq1_nat"}, @{thm "add_divide_distrib"} RS sym,
-           @{thm divide_inverse} RS sym, @{thm inverse_divide}, 
+           @{thm field_divide_inverse} RS sym, @{thm inverse_divide}, 
            fconv_rule (arg_conv (arg1_conv (rewr_conv (mk_meta_eq @{thm mult_commute}))))   
-           (@{thm divide_inverse} RS sym)]
+           (@{thm field_divide_inverse} RS sym)]
 
 val comp_conv = (Simplifier.rewrite
 (HOL_basic_ss addsimps @{thms "Groebner_Basis.comp_arith"}
-              addsimps ths addsimps simp_thms
+              addsimps ths addsimps @{thms simp_thms}
               addsimprocs Numeral_Simprocs.field_cancel_numeral_factors
                addsimprocs [add_frac_frac_simproc, add_frac_num_simproc,
                             ord_frac_simproc]
@@ -645,15 +651,15 @@ end
 
 fun numeral_is_const ct =
   case term_of ct of
-   Const (@{const_name "HOL.divide"},_) $ a $ b =>
+   Const (@{const_name Rings.divide},_) $ a $ b =>
      can HOLogic.dest_number a andalso can HOLogic.dest_number b
- | Const (@{const_name "HOL.inverse"},_)$t => can HOLogic.dest_number t
+ | Const (@{const_name Rings.inverse},_)$t => can HOLogic.dest_number t
  | t => can HOLogic.dest_number t
 
 fun dest_const ct = ((case term_of ct of
-   Const (@{const_name "HOL.divide"},_) $ a $ b=>
+   Const (@{const_name Rings.divide},_) $ a $ b=>
     Rat.rat_of_quotient (snd (HOLogic.dest_number a), snd (HOLogic.dest_number b))
- | Const (@{const_name "HOL.inverse"},_)$t => 
+ | Const (@{const_name Rings.inverse},_)$t => 
                Rat.inv (Rat.rat_of_int (snd (HOLogic.dest_number t)))
  | t => Rat.rat_of_int (snd (HOLogic.dest_number t))) 
    handle TERM _ => error "ring_dest_const")

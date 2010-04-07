@@ -516,7 +516,7 @@ lemma not_is_empty_single:
 
 lemma is_empty_sup:
   "is_empty (A \<squnion> B) \<longleftrightarrow> is_empty A \<and> is_empty B"
-  by (auto simp add: is_empty_def intro: sup_eq_bot_eq1 sup_eq_bot_eq2)
+  by (auto simp add: is_empty_def)
 
 definition singleton :: "(unit => 'a) \<Rightarrow> 'a pred \<Rightarrow> 'a" where
   "singleton dfault A = (if \<exists>!x. eval A x then THE x. eval A x else dfault ())"

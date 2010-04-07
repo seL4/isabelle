@@ -29,6 +29,7 @@ setup {*
   #> Code_Haskell.setup
   #> Code_Scala.setup
   #> Nbe.setup
+  #> Quickcheck.setup
 *}
 
 end

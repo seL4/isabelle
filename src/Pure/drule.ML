@@ -16,7 +16,6 @@ sig
   val cterm_fun: (term -> term) -> (cterm -> cterm)
   val ctyp_fun: (typ -> typ) -> (ctyp -> ctyp)
   val forall_intr_list: cterm list -> thm -> thm
-  val forall_intr_frees: thm -> thm
   val forall_intr_vars: thm -> thm
   val forall_elim_list: cterm list -> thm -> thm
   val gen_all: thm -> thm
@@ -75,9 +74,8 @@ sig
   val beta_conv: cterm -> cterm -> cterm
   val types_sorts: thm -> (indexname-> typ option) * (indexname-> sort option)
   val flexflex_unique: thm -> thm
-  val standard: thm -> thm
-  val standard': thm -> thm
-  val get_def: theory -> xstring -> thm
+  val export_without_context: thm -> thm
+  val export_without_context_open: thm -> thm
   val store_thm: binding -> thm -> thm
   val store_standard_thm: binding -> thm -> thm
   val store_thm_open: binding -> thm -> thm
@@ -215,16 +213,6 @@ fun unconstrainTs th =
 (*Generalization over a list of variables*)
 val forall_intr_list = fold_rev forall_intr;
 
-(*Generalization over all suitable Free variables*)
-fun forall_intr_frees th =
-    let
-      val thy = Thm.theory_of_thm th;
-      val {prop, hyps, tpairs, ...} = rep_thm th;
-      val fixed = fold Term.add_frees (Thm.terms_of_tpairs tpairs @ hyps) [];
-      val frees = Term.fold_aterms (fn Free v =>
-        if member (op =) fixed v then I else insert (op =) v | _ => I) prop [];
-    in fold (forall_intr o cterm_of thy o Free) frees th end;
-
 (*Generalization over Vars -- canonical order*)
 fun forall_intr_vars th =
   fold forall_intr
@@ -303,21 +291,21 @@ fun flexflex_unique th =
     |  _   => raise THM("flexflex_unique: multiple unifiers", 0, [th]);
 
 
-(* legacy standard operations *)
+(* old-style export without context *)
 
-val standard' =
+val export_without_context_open =
   implies_intr_hyps
-  #> forall_intr_frees
+  #> Thm.forall_intr_frees
   #> `Thm.maxidx_of
   #-> (fn maxidx =>
     Thm.forall_elim_vars (maxidx + 1)
     #> Thm.strip_shyps
     #> zero_var_indexes
-    #> Thm.varifyT);
+    #> Thm.varifyT_global);
 
-val standard =
+val export_without_context =
   flexflex_unique
-  #> standard'
+  #> export_without_context_open
   #> Thm.close_derivation;
 
 
@@ -451,16 +439,14 @@ val size_of_thm = size_of_term o Thm.full_prop_of;
 
 val read_prop = certify o Simple_Syntax.read_prop;
 
-fun get_def thy = Thm.axiom thy o Name_Space.intern (Theory.axiom_space thy) o Thm.def_name;
-
 fun store_thm name th =
   Context.>>> (Context.map_theory_result (PureThy.store_thm (name, th)));
 
 fun store_thm_open name th =
   Context.>>> (Context.map_theory_result (PureThy.store_thm_open (name, th)));
 
-fun store_standard_thm name th = store_thm name (standard th);
-fun store_standard_thm_open name thm = store_thm_open name (standard' thm);
+fun store_standard_thm name th = store_thm name (export_without_context th);
+fun store_standard_thm_open name thm = store_thm_open name (export_without_context_open thm);
 
 val reflexive_thm =
   let val cx = certify (Var(("x",0),TVar(("'a",0),[])))
@@ -694,7 +680,7 @@ val remdups_rl =
 
 local
   val A = certify (Free ("A", propT));
-  val axiom = Thm.unvarify o Thm.axiom (Context.the_theory (Context.the_thread_data ()));
+  val axiom = Thm.unvarify_global o Thm.axiom (Context.the_theory (Context.the_thread_data ()));
   val prop_def = axiom "Pure.prop_def";
   val term_def = axiom "Pure.term_def";
   val sort_constraint_def = axiom "Pure.sort_constraint_def";
@@ -708,12 +694,12 @@ in
 val protect = Thm.capply (certify Logic.protectC);
 
 val protectI =
-  store_thm (Binding.conceal (Binding.name "protectI"))
-    (standard (Thm.equal_elim (Thm.symmetric prop_def) (Thm.assume A)));
+  store_standard_thm (Binding.conceal (Binding.name "protectI"))
+    (Thm.equal_elim (Thm.symmetric prop_def) (Thm.assume A));
 
 val protectD =
-  store_thm (Binding.conceal (Binding.name "protectD"))
-    (standard (Thm.equal_elim prop_def (Thm.assume (protect A))));
+  store_standard_thm (Binding.conceal (Binding.name "protectD"))
+    (Thm.equal_elim prop_def (Thm.assume (protect A)));
 
 val protect_cong =
   store_standard_thm_open (Binding.name "protect_cong") (Thm.reflexive (protect A));
@@ -730,8 +716,8 @@ fun implies_intr_protected asms th =
 (* term *)
 
 val termI =
-  store_thm (Binding.conceal (Binding.name "termI"))
-    (standard (Thm.equal_elim (Thm.symmetric term_def) (Thm.forall_intr A (Thm.trivial A))));
+  store_standard_thm (Binding.conceal (Binding.name "termI"))
+    (Thm.equal_elim (Thm.symmetric term_def) (Thm.forall_intr A (Thm.trivial A)));
 
 fun mk_term ct =
   let
@@ -759,15 +745,15 @@ val dummy_thm = mk_term (certify (Term.dummy_pattern propT));
 (* sort_constraint *)
 
 val sort_constraintI =
-  store_thm (Binding.conceal (Binding.name "sort_constraintI"))
-    (standard (Thm.equal_elim (Thm.symmetric sort_constraint_def) (mk_term T)));
+  store_standard_thm (Binding.conceal (Binding.name "sort_constraintI"))
+    (Thm.equal_elim (Thm.symmetric sort_constraint_def) (mk_term T));
 
 val sort_constraint_eq =
-  store_thm (Binding.conceal (Binding.name "sort_constraint_eq"))
-    (standard
-      (Thm.equal_intr
-        (Thm.implies_intr CA (Thm.implies_elim (Thm.assume CA) (Thm.unvarify sort_constraintI)))
-        (implies_intr_list [A, C] (Thm.assume A))));
+  store_standard_thm (Binding.conceal (Binding.name "sort_constraint_eq"))
+    (Thm.equal_intr
+      (Thm.implies_intr CA (Thm.implies_elim (Thm.assume CA)
+        (Thm.unvarify_global sort_constraintI)))
+      (implies_intr_list [A, C] (Thm.assume A)));
 
 end;
 
@@ -983,5 +969,5 @@ end;
 
 end;
 
-structure BasicDrule: BASIC_DRULE = Drule;
-open BasicDrule;
+structure Basic_Drule: BASIC_DRULE = Drule;
+open Basic_Drule;

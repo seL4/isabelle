@@ -40,7 +40,7 @@ syntax
   "_partlist"     :: "args => 'a Seq"              ("[(_)?]")
 translations
   "[x, xs!]"     == "x>>[xs!]"
-  "[x!]"         == "x>>CONST nil"
+  "[x!]"         == "x>>nil"
   "[x, xs?]"     == "x>>[xs?]"
   "[x?]"         == "x>>CONST UU"
 
@@ -163,8 +163,7 @@ by (simp add: Last_def)
 
 lemma Last_cons: "Last$(x>>xs)= (if xs=nil then Def x else Last$xs)"
 apply (simp add: Last_def Consq_def)
-apply (rule_tac x="xs" in seq.casedist)
-apply simp
+apply (cases xs)
 apply simp_all
 done
 
@@ -208,7 +207,7 @@ done
 lemma Zip_UU2: "x~=nil ==> Zip$x$UU =UU"
 apply (subst Zip_unfold)
 apply simp
-apply (rule_tac x="x" in seq.casedist)
+apply (cases x)
 apply simp_all
 done
 
@@ -259,7 +258,7 @@ done
 
 lemma Seq_exhaust: "x = UU | x = nil | (? a s. x = a >> s)"
 apply (simp add: Consq_def2)
-apply (cut_tac seq.exhaust)
+apply (cut_tac seq.nchotomy)
 apply (fast dest: not_Undef_is_Def [THEN iffD1])
 done
 
@@ -300,14 +299,11 @@ apply (simp add: Cons_not_UU)
 done
 
 lemma Cons_not_less_nil: "~a>>s << nil"
-apply (subst Consq_def2)
-apply (rule seq.rews)
-apply (rule Def_not_UU)
+apply (simp add: Consq_def2)
 done
 
 lemma Cons_not_nil: "a>>s ~= nil"
-apply (subst Consq_def2)
-apply (rule seq.rews)
+apply (simp add: Consq_def2)
 done
 
 lemma Cons_not_nil2: "nil ~= a>>s"
@@ -336,7 +332,7 @@ subsection "induction"
 
 lemma Seq_induct:
 "!! P. [| adm P; P UU; P nil; !! a s. P s ==> P (a>>s)|] ==> P x"
-apply (erule (2) seq.ind)
+apply (erule (2) seq.induct)
 apply defined
 apply (simp add: Consq_def)
 done
@@ -463,7 +459,7 @@ apply (rule_tac x="x" in Seq_induct, simp_all)
 done
 
 lemma nilConc [simp]: "s@@ nil = s"
-apply (rule_tac x="s" in seq.ind)
+apply (induct s)
 apply simp
 apply simp
 apply simp
@@ -818,9 +814,8 @@ done
 
 lemma nForall_HDFilter:
  "~Forall P y --> (? x. HD$(Filter (%a. ~P a)$y) = Def x)"
-(* Pay attention: is only admissible with chain-finite package to be added to
-        adm test *)
-apply (rule_tac x="y" in Seq_induct)
+unfolding not_Undef_is_Def [symmetric]
+apply (induct y rule: Seq_induct)
 apply (simp add: Forall_def sforall_def)
 apply simp_all
 done
@@ -854,7 +849,7 @@ subsection "take_lemma"
 
 lemma seq_take_lemma: "(!n. seq_take n$x = seq_take n$x') = (x = x')"
 apply (rule iffI)
-apply (rule seq.take_lemmas)
+apply (rule seq.take_lemma)
 apply auto
 done
 
@@ -905,15 +900,10 @@ lemma take_lemma_less1:
   shows "s1<<s2"
 apply (rule_tac t="s1" in seq.reach [THEN subst])
 apply (rule_tac t="s2" in seq.reach [THEN subst])
-apply (rule fix_def2 [THEN ssubst])
-apply (subst contlub_cfun_fun)
-apply (rule chain_iterate)
-apply (subst contlub_cfun_fun)
-apply (rule chain_iterate)
 apply (rule lub_mono)
-apply (rule chain_iterate [THEN ch2ch_Rep_CFunL])
-apply (rule chain_iterate [THEN ch2ch_Rep_CFunL])
-apply (rule prems [unfolded seq.take_def])
+apply (rule seq.chain_take [THEN ch2ch_Rep_CFunL])
+apply (rule seq.chain_take [THEN ch2ch_Rep_CFunL])
+apply (rule assms)
 done
 
 
@@ -945,7 +935,7 @@ lemma take_lemma_principle2:
                ==> A x --> (f x)=(g x)"
 apply (case_tac "Forall Q x")
 apply (auto dest!: divide_Seq3)
-apply (rule seq.take_lemmas)
+apply (rule seq.take_lemma)
 apply auto
 done
 
@@ -966,7 +956,7 @@ lemma take_lemma_induct:
                               = seq_take (Suc n)$(g (s1 @@ y>>s2)) |]
                ==> A x --> (f x)=(g x)"
 apply (rule impI)
-apply (rule seq.take_lemmas)
+apply (rule seq.take_lemma)
 apply (rule mp)
 prefer 2 apply assumption
 apply (rule_tac x="x" in spec)
@@ -987,7 +977,7 @@ lemma take_lemma_less_induct:
                               = seq_take n$(g (s1 @@ y>>s2)) |]
                ==> A x --> (f x)=(g x)"
 apply (rule impI)
-apply (rule seq.take_lemmas)
+apply (rule seq.take_lemma)
 apply (rule mp)
 prefer 2 apply assumption
 apply (rule_tac x="x" in spec)
@@ -1009,7 +999,7 @@ lemma take_lemma_in_eq_out:
                          = seq_take (Suc n)$(g (y>>s)) |]
                ==> A x --> (f x)=(g x)"
 apply (rule impI)
-apply (rule seq.take_lemmas)
+apply (rule seq.take_lemma)
 apply (rule mp)
 prefer 2 apply assumption
 apply (rule_tac x="x" in spec)

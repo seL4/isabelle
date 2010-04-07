@@ -7,7 +7,7 @@
 header{*The Message Theory, Modified for SET*}
 
 theory Message_SET
-imports Main Nat_Int_Bij
+imports Main Nat_Bijection
 begin
 
 subsection{*General Lemmas*}
@@ -48,8 +48,7 @@ specification (invKey)
 text{*The inverse of a symmetric key is itself; that of a public key
       is the private key and vice versa*}
 
-constdefs
-  symKeys :: "key set"
+definition symKeys :: "key set" where
   "symKeys == {K. invKey K = K}"
 
 text{*Agents. We allow any number of certification authorities, cardholders
@@ -71,29 +70,27 @@ datatype
 
 (*Concrete syntax: messages appear as {|A,B,NA|}, etc...*)
 syntax
-  "@MTuple"      :: "['a, args] => 'a * 'b"       ("(2{|_,/ _|})")
+  "_MTuple"      :: "['a, args] => 'a * 'b"       ("(2{|_,/ _|})")
 
 syntax (xsymbols)
-  "@MTuple"      :: "['a, args] => 'a * 'b"       ("(2\<lbrace>_,/ _\<rbrace>)")
+  "_MTuple"      :: "['a, args] => 'a * 'b"       ("(2\<lbrace>_,/ _\<rbrace>)")
 
 translations
   "{|x, y, z|}"   == "{|x, {|y, z|}|}"
-  "{|x, y|}"      == "MPair x y"
+  "{|x, y|}"      == "CONST MPair x y"
 
 
-constdefs
-  nat_of_agent :: "agent => nat"
-   "nat_of_agent == agent_case (curry nat2_to_nat 0)
-                               (curry nat2_to_nat 1)
-                               (curry nat2_to_nat 2)
-                               (curry nat2_to_nat 3)
-                               (nat2_to_nat (4,0))"
+definition nat_of_agent :: "agent => nat" where
+   "nat_of_agent == agent_case (curry prod_encode 0)
+                               (curry prod_encode 1)
+                               (curry prod_encode 2)
+                               (curry prod_encode 3)
+                               (prod_encode (4,0))"
     --{*maps each agent to a unique natural number, for specifications*}
 
 text{*The function is indeed injective*}
 lemma inj_nat_of_agent: "inj nat_of_agent"
-by (simp add: nat_of_agent_def inj_on_def curry_def
-              nat2_to_nat_inj [THEN inj_eq]  split: agent.split) 
+by (simp add: nat_of_agent_def inj_on_def curry_def prod_encode_eq split: agent.split) 
 
 
 constdefs

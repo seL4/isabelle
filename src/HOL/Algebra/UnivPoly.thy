@@ -1,7 +1,6 @@
-(*
-  Title:     HOL/Algebra/UnivPoly.thy
-  Author:    Clemens Ballarin, started 9 December 1996
-  Copyright: Clemens Ballarin
+(*  Title:      HOL/Algebra/UnivPoly.thy
+    Author:     Clemens Ballarin, started 9 December 1996
+    Copyright:  Clemens Ballarin
 
 Contributions, in particular on long division, by Jesus Aransay.
 *)
@@ -9,7 +8,6 @@ Contributions, in particular on long division, by Jesus Aransay.
 theory UnivPoly
 imports Module RingHom
 begin
-
 
 section {* Univariate Polynomials *}
 
@@ -54,11 +52,12 @@ record ('a, 'p) up_ring = "('a, 'p) module" +
   monom :: "['a, nat] => 'p"
   coeff :: "['p, nat] => 'a"
 
-definition up :: "('a, 'm) ring_scheme => (nat => 'a) set"
-  where up_def: "up R == {f. f \<in> UNIV -> carrier R & (EX n. bound \<zero>\<^bsub>R\<^esub> n f)}"
+definition
+  up :: "('a, 'm) ring_scheme => (nat => 'a) set"
+  where "up R = {f. f \<in> UNIV -> carrier R & (EX n. bound \<zero>\<^bsub>R\<^esub> n f)}"
 
 definition UP :: "('a, 'm) ring_scheme => ('a, nat => 'a) up_ring"
-  where UP_def: "UP R == (|
+  where "UP R = (|
    carrier = up R,
    mult = (%p:up R. %q:up R. %n. \<Oplus>\<^bsub>R\<^esub>i \<in> {..n}. p i \<otimes>\<^bsub>R\<^esub> q (n-i)),
    one = (%i. if i=0 then \<one>\<^bsub>R\<^esub> else \<zero>\<^bsub>R\<^esub>),
@@ -428,7 +427,8 @@ proof (rule up_eqI)
     using l [of "(\<lambda>i. coeff P p i)" "(\<lambda>i. coeff P q i)" "n"] by (simp add: Pi_def m_comm)
 qed (simp_all add: R1 R2)
 
-subsection{*Polynomials over a commutative ring for a commutative ring*}
+
+subsection {*Polynomials over a commutative ring for a commutative ring*}
 
 theorem UP_cring:
   "cring P" using UP_ring unfolding cring_def by (auto intro!: comm_monoidI UP_m_assoc UP_m_comm)
@@ -711,8 +711,9 @@ end
 
 subsection {* The Degree Function *}
 
-definition deg :: "[('a, 'm) ring_scheme, nat => 'a] => nat"
-  where "deg R p == LEAST n. bound \<zero>\<^bsub>R\<^esub> n (coeff (UP R) p)"
+definition
+  deg :: "[('a, 'm) ring_scheme, nat => 'a] => nat"
+  where "deg R p = (LEAST n. bound \<zero>\<^bsub>R\<^esub> n (coeff (UP R) p))"
 
 context UP_ring
 begin
@@ -1173,8 +1174,8 @@ lemma (in UP_ring) const_ring_hom:
 definition
   eval :: "[('a, 'm) ring_scheme, ('b, 'n) ring_scheme,
            'a => 'b, 'b, nat => 'a] => 'b"
-  where "eval R S phi s == \<lambda>p \<in> carrier (UP R).
-    \<Oplus>\<^bsub>S\<^esub>i \<in> {..deg R p}. phi (coeff (UP R) p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i"
+  where "eval R S phi s = (\<lambda>p \<in> carrier (UP R).
+    \<Oplus>\<^bsub>S\<^esub>i \<in> {..deg R p}. phi (coeff (UP R) p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
 
 context UP
 begin
@@ -1462,6 +1463,7 @@ abbreviation lcoeff :: "(nat =>'a) => 'a" where "lcoeff p == coeff P p (deg R p)
 
 lemma lcoeff_nonzero2: assumes p_in_R: "p \<in> carrier P" and p_not_zero: "p \<noteq> \<zero>\<^bsub>P\<^esub>" shows "lcoeff p \<noteq> \<zero>" 
   using lcoeff_nonzero [OF p_not_zero p_in_R] .
+
 
 subsection{*The long division algorithm: some previous facts.*}
 
@@ -1845,11 +1847,11 @@ lemma UP_pre_univ_propI:
   by (auto intro!: UP_pre_univ_prop.intro ring_hom_cring.intro
     ring_hom_cring_axioms.intro UP_cring.intro)
 
-definition  INTEG :: "int ring"
-  where INTEG_def: "INTEG == (| carrier = UNIV, mult = op *, one = 1, zero = 0, add = op + |)"
+definition
+  INTEG :: "int ring"
+  where "INTEG = (| carrier = UNIV, mult = op *, one = 1, zero = 0, add = op + |)"
 
-lemma INTEG_cring:
-  "cring INTEG"
+lemma INTEG_cring: "cring INTEG"
   by (unfold INTEG_def) (auto intro!: cringI abelian_groupI comm_monoidI
     zadd_zminus_inverse2 zadd_zmult_distrib)
 

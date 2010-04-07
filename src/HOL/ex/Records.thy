@@ -334,6 +334,16 @@ lemma "\<exists>r. xpos r = x"
   done
 
 
+subsection {* A more complex record expression *}
+
+record ('a, 'b, 'c) bar = bar1 :: 'a
+  bar2 :: 'b
+  bar3 :: 'c
+  bar21 :: "'b \<times> 'a"
+  bar32 :: "'c \<times> 'b"
+  bar31 :: "'c \<times> 'a"
+
+
 subsection {* Some code generation *}
 
 export_code foo1 foo3 foo5 foo10 foo11 in SML file -

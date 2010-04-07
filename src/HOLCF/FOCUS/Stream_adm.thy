@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/ex/Stream_adm.thy
-    ID:         $Id$
     Author:     David von Oheimb, TU Muenchen
 *)
 

@@ -156,7 +156,7 @@ let
   val big_rec_tm = list_comb(Const(big_rec_name,recT), rec_params);
 
   (*The individual sets must already be declared*)
-  val axpairs = map Primitive_Defs.mk_defpair
+  val axpairs = map OldGoals.mk_defpair
         ((big_rec_tm, fp_rhs) ::
          (case parts of
              [_] => []                        (*no mutual recursion*)
@@ -179,7 +179,7 @@ let
 
   (*fetch fp definitions from the theory*)
   val big_rec_def::part_rec_defs =
-    map (Drule.get_def thy1)
+    map (OldGoals.get_def thy1)
         (case rec_names of [_] => rec_names
                          | _   => big_rec_base_name::rec_names);
 
@@ -193,9 +193,9 @@ let
         [rtac (@{thm Collect_subset} RS @{thm bnd_monoI}) 1,
          REPEAT (ares_tac (@{thms basic_monos} @ monos) 1)]);
 
-  val dom_subset = Drule.standard (big_rec_def RS Fp.subs);
+  val dom_subset = Drule.export_without_context (big_rec_def RS Fp.subs);
 
-  val unfold = Drule.standard ([big_rec_def, bnd_mono] MRS Fp.Tarski);
+  val unfold = Drule.export_without_context ([big_rec_def, bnd_mono] MRS Fp.Tarski);
 
   (********)
   val dummy = writeln "  Proving the introduction rules...";
@@ -205,7 +205,7 @@ let
   val Part_trans =
       case rec_names of
            [_] => asm_rl
-         | _   => Drule.standard (@{thm Part_subset} RS @{thm subset_trans});
+         | _   => Drule.export_without_context (@{thm Part_subset} RS @{thm subset_trans});
 
   (*To type-check recursive occurrences of the inductive sets, possibly
     enclosed in some monotonic operator M.*)
@@ -222,7 +222,7 @@ let
      rtac disjIn 2,
      (*Not ares_tac, since refl must be tried before equality assumptions;
        backtracking may occur if the premises have extra variables!*)
-     DEPTH_SOLVE_1 (resolve_tac [refl,exI,conjI] 2 APPEND assume_tac 2),
+     DEPTH_SOLVE_1 (resolve_tac [@{thm refl}, @{thm exI}, @{thm conjI}] 2 APPEND assume_tac 2),
      (*Now solve the equations like Tcons(a,f) = Inl(?b4)*)
      rewrite_goals_tac con_defs,
      REPEAT (rtac @{thm refl} 2),
@@ -272,7 +272,7 @@ let
     rule_by_tactic
       (basic_elim_tac THEN ALLGOALS (asm_full_simp_tac ss) THEN basic_elim_tac)
       (Thm.assume A RS elim)
-      |> Drule.standard';
+      |> Drule.export_without_context_open;
 
   fun induction_rules raw_induct thy =
    let
@@ -310,7 +310,7 @@ let
        Intro rules with extra Vars in premises still cause some backtracking *)
      fun ind_tac [] 0 = all_tac
        | ind_tac(prem::prems) i =
-             DEPTH_SOLVE_1 (ares_tac [prem, refl] i) THEN ind_tac prems (i-1);
+             DEPTH_SOLVE_1 (ares_tac [prem, @{thm refl}] i) THEN ind_tac prems (i-1);
 
      val pred = Free(pred_name, Ind_Syntax.iT --> FOLogic.oT);
 
@@ -327,12 +327,12 @@ let
 
      (*We use a MINIMAL simpset. Even FOL_ss contains too many simpules.
        If the premises get simplified, then the proofs could fail.*)
-     val min_ss = Simplifier.theory_context thy empty_ss
+     val min_ss = Simplifier.global_context thy empty_ss
            setmksimps (map mk_eq o ZF_atomize o gen_all)
            setSolver (mk_solver "minimal"
                       (fn prems => resolve_tac (triv_rls@prems)
                                    ORELSE' assume_tac
-                                   ORELSE' etac FalseE));
+                                   ORELSE' etac @{thm FalseE}));
 
      val quant_induct =
        Goal.prove_global thy1 [] ind_prems
@@ -470,11 +470,11 @@ let
                       (mut_ss addsimps @{thms conj_simps} @ @{thms imp_simps} @ @{thms quant_simps}) 1
                    THEN
                    (*unpackage and use "prem" in the corresponding place*)
-                   REPEAT (rtac impI 1)  THEN
+                   REPEAT (rtac @{thm impI} 1)  THEN
                    rtac (rewrite_rule all_defs prem) 1  THEN
                    (*prem must not be REPEATed below: could loop!*)
-                   DEPTH_SOLVE (FIRSTGOAL (ares_tac [impI] ORELSE'
-                                           eresolve_tac (conjE::mp::cmonos))))
+                   DEPTH_SOLVE (FIRSTGOAL (ares_tac [@{thm impI}] ORELSE'
+                                           eresolve_tac (@{thm conjE} :: @{thm mp} :: cmonos))))
                ) i)
             THEN mutual_ind_tac prems (i-1);
 
@@ -485,7 +485,7 @@ let
            (fn {prems, ...} => EVERY
              [rtac (quant_induct RS lemma) 1,
               mutual_ind_tac (rev prems) (length prems)])
-       else TrueI;
+       else @{thm TrueI};
 
      (** Uncurrying the predicate in the ordinary induction rule **)
 
@@ -498,12 +498,12 @@ let
                                       cterm_of thy1 elem_tuple)]);
 
      (*strip quantifier and the implication*)
-     val induct0 = inst (quant_induct RS spec RSN (2, @{thm rev_mp}));
+     val induct0 = inst (quant_induct RS @{thm spec} RSN (2, @{thm rev_mp}));
 
      val Const (@{const_name Trueprop}, _) $ (pred_var $ _) = concl_of induct0
 
      val induct = CP.split_rule_var(pred_var, elem_type-->FOLogic.oT, induct0)
-                  |> Drule.standard
+                  |> Drule.export_without_context
      and mutual_induct = CP.remove_split mutual_induct_fsplit
 
      val ([induct', mutual_induct'], thy') =
@@ -514,14 +514,14 @@ let
     in ((thy', induct'), mutual_induct')
     end;  (*of induction_rules*)
 
-  val raw_induct = Drule.standard ([big_rec_def, bnd_mono] MRS Fp.induct)
+  val raw_induct = Drule.export_without_context ([big_rec_def, bnd_mono] MRS Fp.induct)
 
   val ((thy2, induct), mutual_induct) =
     if not coind then induction_rules raw_induct thy1
     else
       (thy1
       |> PureThy.add_thms [((Binding.name (co_prefix ^ "induct"), raw_induct), [])]
-      |> apfst hd |> Library.swap, TrueI)
+      |> apfst hd |> Library.swap, @{thm TrueI})
   and defs = big_rec_def :: part_rec_defs
 
 

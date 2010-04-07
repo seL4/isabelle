@@ -93,7 +93,7 @@ fun pretty_criterion ctxt (b, c) =
 
 (* matching theorems *)
 
-fun is_nontrivial thy = Term.is_Const o Term.head_of o ObjectLogic.drop_judgment thy;
+fun is_nontrivial thy = Term.is_Const o Term.head_of o Object_Logic.drop_judgment thy;
 
 (*educated guesses on HOL*)  (* FIXME broken *)
 val boolT = Type ("bool", []);
@@ -110,13 +110,13 @@ fun is_matching_thm doiff (extract_terms, refine_term) ctxt po obj term_src =
     fun check_match pat = Pattern.matches thy (if po then (pat, obj) else (obj, pat));
     fun matches pat =
       let
-        val jpat = ObjectLogic.drop_judgment thy pat;
+        val jpat = Object_Logic.drop_judgment thy pat;
         val c = Term.head_of jpat;
         val pats =
           if Term.is_Const c
           then
             if doiff andalso c = iff_const then
-              (pat :: map (ObjectLogic.ensure_propT thy) (snd (strip_comb jpat)))
+              (pat :: map (Object_Logic.ensure_propT thy) (snd (strip_comb jpat)))
                 |> filter (is_nontrivial thy)
             else [pat]
           else [];
@@ -364,7 +364,7 @@ fun nicer_shortest ctxt =
 
 fun rem_thm_dups nicer xs =
   xs ~~ (1 upto length xs)
-  |> sort (TermOrd.fast_term_ord o pairself (Thm.prop_of o #2 o #1))
+  |> sort (Term_Ord.fast_term_ord o pairself (Thm.prop_of o #2 o #1))
   |> rem_cdups nicer
   |> sort (int_ord o pairself #2)
   |> map #1;

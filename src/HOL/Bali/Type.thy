@@ -1,5 +1,4 @@
 (*  Title:      HOL/Bali/Type.thy
-    ID:         $Id$
     Author:     David von Oheimb
 *)
 
@@ -31,25 +30,13 @@ and ty                  --{* any type, cf. 4.1 *}
         = PrimT prim_ty --{* primitive type *}
         | RefT  ref_ty  --{* reference type *}
 
-translations
-  "prim_ty" <= (type) "Type.prim_ty"
-  "ref_ty"  <= (type) "Type.ref_ty"
-  "ty"      <= (type) "Type.ty"
+abbreviation "NT == RefT NullT"
+abbreviation "Iface I == RefT (IfaceT I)"
+abbreviation "Class C == RefT (ClassT C)"
+abbreviation Array :: "ty \<Rightarrow> ty"  ("_.[]" [90] 90)
+  where "T.[] == RefT (ArrayT T)"
 
-syntax
-         NT     :: "       \<spacespace> ty"
-         Iface  :: "qtname  \<Rightarrow> ty"
-         Class  :: "qtname  \<Rightarrow> ty"
-         Array  :: "ty     \<Rightarrow> ty"    ("_.[]" [90] 90)
-
-translations
-        "NT"      == "RefT   NullT"
-        "Iface I" == "RefT (IfaceT I)"
-        "Class C" == "RefT (ClassT C)"
-        "T.[]"    == "RefT (ArrayT T)"
-
-constdefs
-  the_Class :: "ty \<Rightarrow> qtname"
+definition the_Class :: "ty \<Rightarrow> qtname" where
  "the_Class T \<equiv> SOME C. T = Class C" (** primrec not possible here **)
  
 lemma the_Class_eq [simp]: "the_Class (Class C)= C"

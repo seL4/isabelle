@@ -1,8 +1,6 @@
-
-(* $Id$ *)
-
-(* code by Sara Kalvala, based on Paulson's LK
-                           and Moore's tisl.ML *)
+(*  Title:      Sequents/Washing.thy
+    Author:     Sara Kalvala
+*)
 
 theory Washing
 imports ILL

@@ -1,6 +1,6 @@
 (*  Title:      HOL/Nitpick_Examples/Special_Nits.thy
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2009
+    Copyright   2009, 2010
 
 Examples featuring Nitpick's "specialize" optimization.
 *)
@@ -11,8 +11,8 @@ theory Special_Nits
 imports Main
 begin
 
-nitpick_params [sat_solver = MiniSatJNI, max_threads = 1, timeout = 60 s,
-                card = 4]
+nitpick_params [card = 4, sat_solver = MiniSat_JNI, max_threads = 1,
+                timeout = 60 s]
 
 fun f1 :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat" where
 "f1 a b c d e = a + b + c + d + e"
@@ -110,12 +110,12 @@ sorry
 
 lemma "\<exists>one \<in> {1}. \<exists>two \<in> {2}.
        f5 (\<lambda>a. if a = one then 2 else if a = two then 1 else a) (Suc x) = x"
-nitpick [expect = potential] (* unfortunate *)
+nitpick [expect = genuine]
 oops
 
 lemma "\<exists>two \<in> {2}. \<exists>one \<in> {1}.
        f5 (\<lambda>a. if a = one then 2 else if a = two then 1 else a) (Suc x) = x"
-nitpick [expect = potential] (* unfortunate *)
+nitpick [expect = genuine]
 oops
 
 lemma "\<forall>a. g a = a

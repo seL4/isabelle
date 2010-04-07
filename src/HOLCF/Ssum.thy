@@ -12,22 +12,23 @@ defaultsort pcpo
 
 subsection {* Definition of strict sum type *}
 
-pcpodef (Ssum)  ('a, 'b) "++" (infixr "++" 10) = 
+pcpodef (Ssum)  ('a, 'b) ssum (infixr "++" 10) = 
   "{p :: tr \<times> ('a \<times> 'b).
     (fst p \<sqsubseteq> TT \<longleftrightarrow> snd (snd p) = \<bottom>) \<and>
     (fst p \<sqsubseteq> FF \<longleftrightarrow> fst (snd p) = \<bottom>)}"
 by simp_all
 
-instance "++" :: ("{finite_po,pcpo}", "{finite_po,pcpo}") finite_po
+instance ssum :: ("{finite_po,pcpo}", "{finite_po,pcpo}") finite_po
 by (rule typedef_finite_po [OF type_definition_Ssum])
 
-instance "++" :: ("{chfin,pcpo}", "{chfin,pcpo}") chfin
+instance ssum :: ("{chfin,pcpo}", "{chfin,pcpo}") chfin
 by (rule typedef_chfin [OF type_definition_Ssum below_Ssum_def])
 
-syntax (xsymbols)
-  "++"          :: "[type, type] => type"       ("(_ \<oplus>/ _)" [21, 20] 20)
-syntax (HTML output)
-  "++"          :: "[type, type] => type"       ("(_ \<oplus>/ _)" [21, 20] 20)
+type_notation (xsymbols)
+  ssum  ("(_ \<oplus>/ _)" [21, 20] 20)
+type_notation (HTML output)
+  ssum  ("(_ \<oplus>/ _)" [21, 20] 20)
+
 
 subsection {* Definitions of constructors *}
 
@@ -57,7 +58,7 @@ by (simp add: sinl_Abs_Ssum Abs_Ssum_inverse sinl_Ssum)
 lemma Rep_Ssum_sinr: "Rep_Ssum (sinr\<cdot>b) = (strictify\<cdot>(\<Lambda> _. FF)\<cdot>b, \<bottom>, b)"
 by (simp add: sinr_Abs_Ssum Abs_Ssum_inverse sinr_Ssum)
 
-subsection {* Properties of @{term sinl} and @{term sinr} *}
+subsection {* Properties of \emph{sinl} and \emph{sinr} *}
 
 text {* Ordering *}
 
@@ -150,19 +151,19 @@ apply (rule disjI2, rule disjI2, rule_tac x=b in exI)
 apply (simp add: sinr_Abs_Ssum Ssum_def)
 done
 
-lemma ssumE [cases type: ++]:
+lemma ssumE [case_names bottom sinl sinr, cases type: ssum]:
   "\<lbrakk>p = \<bottom> \<Longrightarrow> Q;
    \<And>x. \<lbrakk>p = sinl\<cdot>x; x \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> Q;
    \<And>y. \<lbrakk>p = sinr\<cdot>y; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
-by (cut_tac z=p in Exh_Ssum, auto)
+using Exh_Ssum [of p] by auto
 
-lemma ssum_induct [induct type: ++]:
+lemma ssum_induct [case_names bottom sinl sinr, induct type: ssum]:
   "\<lbrakk>P \<bottom>;
    \<And>x. x \<noteq> \<bottom> \<Longrightarrow> P (sinl\<cdot>x);
    \<And>y. y \<noteq> \<bottom> \<Longrightarrow> P (sinr\<cdot>y)\<rbrakk> \<Longrightarrow> P x"
 by (cases x, simp_all)
 
-lemma ssumE2:
+lemma ssumE2 [case_names sinl sinr]:
   "\<lbrakk>\<And>x. p = sinl\<cdot>x \<Longrightarrow> Q; \<And>y. p = sinr\<cdot>y \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 by (cases p, simp only: sinl_strict [symmetric], simp, simp)
 
@@ -203,7 +204,7 @@ by (cases z, simp_all)
 
 subsection {* Strict sum preserves flatness *}
 
-instance "++" :: (flat, flat) flat
+instance ssum :: (flat, flat) flat
 apply (intro_classes, clarify)
 apply (case_tac x, simp)
 apply (case_tac y, simp_all add: flat_below_iff)
@@ -225,6 +226,12 @@ unfolding ssum_map_def by simp
 
 lemma ssum_map_sinr [simp]: "x \<noteq> \<bottom> \<Longrightarrow> ssum_map\<cdot>f\<cdot>g\<cdot>(sinr\<cdot>x) = sinr\<cdot>(g\<cdot>x)"
 unfolding ssum_map_def by simp
+
+lemma ssum_map_sinl': "f\<cdot>\<bottom> = \<bottom> \<Longrightarrow> ssum_map\<cdot>f\<cdot>g\<cdot>(sinl\<cdot>x) = sinl\<cdot>(f\<cdot>x)"
+by (cases "x = \<bottom>") simp_all
+
+lemma ssum_map_sinr': "g\<cdot>\<bottom> = \<bottom> \<Longrightarrow> ssum_map\<cdot>f\<cdot>g\<cdot>(sinr\<cdot>x) = sinr\<cdot>(g\<cdot>x)"
+by (cases "x = \<bottom>") simp_all
 
 lemma ssum_map_ID: "ssum_map\<cdot>ID\<cdot>ID = ID"
 unfolding ssum_map_def by (simp add: expand_cfun_eq eta_cfun)
@@ -290,7 +297,7 @@ qed
 
 subsection {* Strict sum is a bifinite domain *}
 
-instantiation "++" :: (bifinite, bifinite) bifinite
+instantiation ssum :: (bifinite, bifinite) bifinite
 begin
 
 definition

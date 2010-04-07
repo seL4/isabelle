@@ -371,7 +371,7 @@ fun export_hol4_pending thy =
     fun process ((bthy,bthm), hth as (_,thm)) thy =
       let
         val thm1 = rewrite_rule (map (Thm.transfer thy) rews) (Thm.transfer thy thm);
-        val thm2 = Drule.standard thm1;
+        val thm2 = Drule.export_without_context thm1;
       in
         thy
         |> PureThy.store_thm (Binding.name bthm, thm2)
@@ -613,13 +613,13 @@ fun get_defname thyname name thy =
     end
 
 local
-    fun handle_meta [x as Appl[Appl[Constant "_constrain", Constant "==", _],_,_]] = x
-      | handle_meta [x as Appl[Appl[Constant "_constrain", Constant "all", _],_]] = x
-      | handle_meta [x as Appl[Appl[Constant "_constrain", Constant "==>", _],_,_]] = x
+    fun handle_meta [x as Appl[Appl[Constant "_constrain", Constant @{const_syntax "=="}, _],_,_]] = x
+      | handle_meta [x as Appl[Appl[Constant "_constrain", Constant @{const_syntax all}, _],_]] = x
+      | handle_meta [x as Appl[Appl[Constant "_constrain", Constant @{const_syntax "==>"}, _],_,_]] = x
       | handle_meta [x] = Appl[Constant "Trueprop",x]
       | handle_meta _ = error "hol4rews error: Trueprop not applied to single argument"
 in
-val smarter_trueprop_parsing = [("Trueprop",handle_meta)]
+val smarter_trueprop_parsing = [(@{const_syntax Trueprop},handle_meta)]
 end
 
 local

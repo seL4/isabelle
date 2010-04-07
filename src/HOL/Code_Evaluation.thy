@@ -76,7 +76,8 @@ let
         andalso can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort typerep};
     in if need_inst then add_term_of tyco raw_vs thy else thy end;
 in
-  Code.type_interpretation ensure_term_of
+  Code.datatype_interpretation ensure_term_of
+  #> Code.abstype_interpretation ensure_term_of
 end
 *}
 
@@ -86,13 +87,14 @@ let
     let
       val t = list_comb (Const (c, tys ---> ty),
         map Free (Name.names Name.context "a" tys));
-      val (arg, rhs) = pairself (Thm.cterm_of thy o map_types Logic.unvarifyT o Logic.varify)
-        (t, (map_aterms (fn t as Free (v, ty) => HOLogic.mk_term_of ty t | t => t) o HOLogic.reflect_term) t)
+      val (arg, rhs) =
+        pairself (Thm.cterm_of thy o map_types Logic.unvarifyT_global o Logic.varify_global)
+          (t, (map_aterms (fn t as Free (v, ty) => HOLogic.mk_term_of ty t | t => t) o HOLogic.reflect_term) t)
       val cty = Thm.ctyp_of thy ty;
     in
       @{thm term_of_anything}
       |> Drule.instantiate' [SOME cty] [SOME arg, SOME rhs]
-      |> Thm.varifyT
+      |> Thm.varifyT_global
     end;
   fun add_term_of_code tyco raw_vs raw_cs thy =
     let
@@ -114,7 +116,45 @@ let
       val has_inst = can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort term_of};
     in if has_inst then add_term_of_code tyco raw_vs cs thy else thy end;
 in
-  Code.type_interpretation ensure_term_of_code
+  Code.datatype_interpretation ensure_term_of_code
+end
+*}
+
+setup {*
+let
+  fun mk_term_of_eq thy ty vs tyco abs ty_rep proj =
+    let
+      val arg = Var (("x", 0), ty);
+      val rhs = Abs ("y", @{typ term}, HOLogic.reflect_term (Const (abs, ty_rep --> ty) $ Bound 0)) $
+        (HOLogic.mk_term_of ty_rep (Const (proj, ty --> ty_rep) $ arg))
+        |> Thm.cterm_of thy;
+      val cty = Thm.ctyp_of thy ty;
+    in
+      @{thm term_of_anything}
+      |> Drule.instantiate' [SOME cty] [SOME (Thm.cterm_of thy arg), SOME rhs]
+      |> Thm.varifyT_global
+    end;
+  fun add_term_of_code tyco raw_vs abs raw_ty_rep proj thy =
+    let
+      val algebra = Sign.classes_of thy;
+      val vs = map (fn (v, sort) =>
+        (v, curry (Sorts.inter_sort algebra) @{sort typerep} sort)) raw_vs;
+      val ty = Type (tyco, map TFree vs);
+      val ty_rep = map_atyps
+        (fn TFree (v, _) => TFree (v, (the o AList.lookup (op =) vs) v)) raw_ty_rep;
+      val const = AxClass.param_of_inst thy (@{const_name term_of}, tyco);
+      val eq = mk_term_of_eq thy ty vs tyco abs ty_rep proj;
+   in
+      thy
+      |> Code.del_eqns const
+      |> Code.add_eqn eq
+    end;
+  fun ensure_term_of_code (tyco, (raw_vs, ((abs, ty), (proj, _)))) thy =
+    let
+      val has_inst = can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort term_of};
+    in if has_inst then add_term_of_code tyco raw_vs abs ty proj thy else thy end;
+in
+  Code.abstype_interpretation ensure_term_of_code
 end
 *}
 

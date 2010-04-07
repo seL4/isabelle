@@ -35,12 +35,12 @@ fun thm_of_proof thy prf =
 
     fun thm_of_atom thm Ts =
       let
-        val tvars = OldTerm.term_tvars (Thm.full_prop_of thm);
-        val (fmap, thm') = Thm.varifyT' [] thm;
+        val tvars = Term.add_tvars (Thm.full_prop_of thm) [] |> rev;
+        val (fmap, thm') = Thm.varifyT_global' [] thm;
         val ctye = map (pairself (Thm.ctyp_of thy))
           (map TVar tvars @ map (fn ((_, S), ixn) => TVar (ixn, S)) fmap ~~ Ts)
       in
-        Thm.instantiate (ctye, []) (forall_intr_vars (forall_intr_frees thm'))
+        Thm.instantiate (ctye, []) (forall_intr_vars (Thm.forall_intr_frees thm'))
       end;
 
     fun thm_of _ _ (PThm (_, ((name, prop', SOME Ts), _))) =

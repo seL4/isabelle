@@ -75,7 +75,8 @@ val ABC = read_prop "A ==> B ==> C";
 val A_B = read_prop "A &&& B";
 
 val conjunction_def =
-  Thm.unvarify (Thm.axiom (Context.the_theory (Context.the_thread_data ())) "Pure.conjunction_def");
+  Thm.unvarify_global
+    (Thm.axiom (Context.the_theory (Context.the_thread_data ())) "Pure.conjunction_def");
 
 fun conjunctionD which =
   Drule.implies_intr_list [A, B] (Thm.assume (which (A, B))) COMP
@@ -136,7 +137,7 @@ val B = read_prop "B";
 
 fun comp_rule th rule =
   Thm.adjust_maxidx_thm ~1 (th COMP
-    (rule |> Drule.forall_intr_frees |> Thm.forall_elim_vars (Thm.maxidx_of th + 1)));
+    (rule |> Thm.forall_intr_frees |> Thm.forall_elim_vars (Thm.maxidx_of th + 1)));
 
 in
 

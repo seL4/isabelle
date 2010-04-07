@@ -10,11 +10,12 @@ use "ML-Systems/proper_int.ML";
 use "ML-Systems/unsynchronized.ML";
 use "ML-Systems/overloading_smlnj.ML";
 use "General/exn.ML";
+use "ML-Systems/single_assignment.ML";
 use "ML-Systems/universal.ML";
 use "ML-Systems/thread_dummy.ML";
 use "ML-Systems/multithreading.ML";
 use "ML-Systems/timing.ML";
-use "ML-Systems/system_shell.ML";
+use "ML-Systems/bash.ML";
 use "ML-Systems/ml_name_space.ML";
 use "ML-Systems/ml_pretty.ML";
 use "ML-Systems/use_context.ML";
@@ -64,10 +65,6 @@ end;
 (*prompts*)
 fun ml_prompts p1 p2 =
   (Control.primaryPrompt := p1; Control.secondaryPrompt := p2);
-
-(*dummy implementation*)
-fun magic_immutability_test _ = false;
-fun magic_immutability_mark _ = ();
 
 (*dummy implementation*)
 fun profile (n: int) f x = f x;
@@ -179,7 +176,7 @@ val pwd = OS.FileSys.getDir;
 
 (* system command execution *)
 
-val system_out = (fn (output, rc) => (output, mk_int rc)) o system_out;
+val bash_output = (fn (output, rc) => (output, mk_int rc)) o bash_output;
 
 fun process_id pid =
   Word.fmt StringCvt.DEC (Word.fromLargeWord (Posix.Process.pidToWord (Posix.ProcEnv.getpid ())));

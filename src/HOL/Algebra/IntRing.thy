@@ -1,12 +1,10 @@
-(*
-  Title:     HOL/Algebra/IntRing.thy
-  Author:    Stephan Hohe, TU Muenchen
+(*  Title:      HOL/Algebra/IntRing.thy
+    Author:     Stephan Hohe, TU Muenchen
 *)
 
 theory IntRing
 imports QuotRing Lattice Int "~~/src/HOL/Old_Number_Theory/Primes"
 begin
-
 
 section {* The Ring of Integers *}
 
@@ -22,9 +20,9 @@ done
 
 subsection {* @{text "\<Z>"}: The Set of Integers as Algebraic Structure *}
 
-constdefs
-  int_ring :: "int ring" ("\<Z>")
-  "int_ring \<equiv> \<lparr>carrier = UNIV, mult = op *, one = 1, zero = 0, add = op +\<rparr>"
+definition
+  int_ring :: "int ring" ("\<Z>") where
+  "int_ring = \<lparr>carrier = UNIV, mult = op *, one = 1, zero = 0, add = op +\<rparr>"
 
 lemma int_Zcarr [intro!, simp]:
   "k \<in> carrier \<Z>"
@@ -49,6 +47,8 @@ apply (intro domain.intro domain_axioms.intro)
  apply (unfold int_ring_def, simp+)
 done
 *)
+
+
 subsection {* Interpretations *}
 
 text {* Since definitions of derived operations are global, their
@@ -324,9 +324,9 @@ done
 
 subsection {* Ideals and the Modulus *}
 
-constdefs
-   ZMod :: "int => int => int set"
-  "ZMod k r == (Idl\<^bsub>\<Z>\<^esub> {k}) +>\<^bsub>\<Z>\<^esub> r"
+definition
+  ZMod :: "int => int => int set"
+  where "ZMod k r = (Idl\<^bsub>\<Z>\<^esub> {k}) +>\<^bsub>\<Z>\<^esub> r"
 
 lemmas ZMod_defs =
   ZMod_def genideal_def
@@ -407,9 +407,9 @@ by (rule, erule ZMod_imp_zmod, erule zmod_imp_ZMod)
 
 subsection {* Factorization *}
 
-constdefs
+definition
   ZFact :: "int \<Rightarrow> int set ring"
-  "ZFact k == \<Z> Quot (Idl\<^bsub>\<Z>\<^esub> {k})"
+  where "ZFact k = \<Z> Quot (Idl\<^bsub>\<Z>\<^esub> {k})"
 
 lemmas ZFact_defs = ZFact_def FactRing_def
 

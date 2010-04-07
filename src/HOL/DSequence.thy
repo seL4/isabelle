@@ -27,12 +27,6 @@ where
     None => None
   | Some s => Option.map (apsnd (%r i pol. Some r)) (Lazy_Sequence.yield s))"
 
-definition yieldn :: "code_numeral => 'a dseq => code_numeral => bool => 'a list * 'a dseq"
-where
-  "yieldn n dseq i pol = (case eval dseq i pol of
-    None => ([], %i pol. None)
-  | Some s => let (xs, s') = Lazy_Sequence.yieldn n s in (xs, %i pol. Some s))"
-
 fun map_seq :: "('a => 'b dseq) => 'a Lazy_Sequence.lazy_sequence => 'b dseq"
 where
   "map_seq f xq i pol = (case Lazy_Sequence.yield xq of
@@ -91,8 +85,11 @@ struct
 
 type 'a dseq = int -> bool -> 'a Lazy_Sequence.lazy_sequence option
 
-val yieldn = @{code yieldn}
 val yield = @{code yield}
+fun yieldn n s d pol = case s d pol of  
+    NONE => ([], fn d => fn pol => NONE)
+  | SOME s => let val (xs, s') = Lazy_Sequence.yieldn n s in (xs, fn d => fn pol => SOME s') end
+
 val map = @{code map}
 
 end;

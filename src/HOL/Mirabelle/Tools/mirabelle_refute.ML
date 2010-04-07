@@ -10,8 +10,8 @@ struct
 fun refute_action args timeout {pre=st, ...} = 
   let
     val subgoal = 1
-    val thy     = Proof.theory_of st
-    val thm = goal_thm_of st
+    val thy = Proof.theory_of st
+    val thm = #goal (Proof.raw_goal st)
 
     val refute = Refute.refute_goal thy args thm
     val _ = TimeLimit.timeLimit timeout refute subgoal

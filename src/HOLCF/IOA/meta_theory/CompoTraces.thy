@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/IOA/meta_theory/CompoTraces.thy
-    ID:         $Id$
     Author:     Olaf Müller
 *) 
 
@@ -208,18 +207,18 @@ apply (case_tac "a:act B")
 (* a:A, a:B *)
 apply simp
 apply (rule Forall_Conc_impl [THEN mp])
-apply (simp add: ForallPTakewhileQ intA_is_not_actB int_is_act)
+apply (simp add: intA_is_not_actB int_is_act)
 apply (rule Forall_Conc_impl [THEN mp])
-apply (simp add: ForallPTakewhileQ intA_is_not_actB int_is_act)
+apply (simp add: intA_is_not_actB int_is_act)
 (* a:A,a~:B *)
 apply simp
 apply (rule Forall_Conc_impl [THEN mp])
-apply (simp add: ForallPTakewhileQ intA_is_not_actB int_is_act)
+apply (simp add: intA_is_not_actB int_is_act)
 apply (case_tac "a:act B")
 (* a~:A, a:B *)
 apply simp
 apply (rule Forall_Conc_impl [THEN mp])
-apply (simp add: ForallPTakewhileQ intA_is_not_actB int_is_act)
+apply (simp add: intA_is_not_actB int_is_act)
 (* a~:A,a~:B *)
 apply auto
 done
@@ -231,7 +230,7 @@ apply (tactic {* Seq_induct_tac @{context} "tr"
   [@{thm Forall_def}, @{thm sforall_def}, @{thm mksch_def}] 1 *})
 apply auto
 apply (rule Forall_Conc_impl [THEN mp])
-apply (simp add: ForallPTakewhileQ intA_is_not_actB int_is_act)
+apply (simp add: intA_is_not_actB int_is_act)
 done
 
 lemma ForallAnBmksch [rule_format (no_asm)]: "!!A B. compatible A B ==>  
@@ -241,7 +240,7 @@ apply (tactic {* Seq_induct_tac @{context} "tr"
   [@{thm Forall_def}, @{thm sforall_def}, @{thm mksch_def}] 1 *})
 apply auto
 apply (rule Forall_Conc_impl [THEN mp])
-apply (simp add: ForallPTakewhileQ intA_is_not_actB int_is_act)
+apply (simp add: intA_is_not_actB int_is_act)
 done
 
 (* safe-tac makes too many case distinctions with this lemma in the next proof *)
@@ -346,13 +345,11 @@ apply (rotate_tac -2)
 apply (rule_tac x = "Takewhile (%a. a:int B) $y @@ a>>y1" in exI)
 apply (rule_tac x = "y2" in exI)
 (* elminate all obligations up to two depending on Conc_assoc *)
-apply (simp add: ForallPTakewhileQ intA_is_not_actB int_is_act int_is_not_ext FilterConc)
+apply (simp add: intA_is_not_actB int_is_act int_is_not_ext FilterConc)
 apply (simp (no_asm) add: Conc_assoc FilterConc)
 done
 
 lemmas reduceA_mksch = conjI [THEN [6] conjI [THEN [5] reduceA_mksch1]]
-
-declare FilterConc [simp del]
 
 lemma reduceB_mksch1 [rule_format]:
 " [| Finite a_s; is_asig(asig_of A); is_asig(asig_of B);compatible A B|] ==>   
@@ -394,7 +391,7 @@ apply (rotate_tac -2)
 apply (rule_tac x = "Takewhile (%a. a:int A) $x @@ a>>x1" in exI)
 apply (rule_tac x = "x2" in exI)
 (* elminate all obligations up to two depending on Conc_assoc *)
-apply (simp add: ForallPTakewhileQ intA_is_not_actB int_is_act int_is_not_ext FilterConc)
+apply (simp add: intA_is_not_actB int_is_act int_is_not_ext FilterConc)
 apply (simp (no_asm) add: Conc_assoc FilterConc)
 done
 
@@ -470,7 +467,7 @@ lemma FilterAmksch_is_schA: "!! A B. [| compatible A B; compatible B A;
   LastActExtsch A schA & LastActExtsch B schB   
   --> Filter (%a. a:act A)$(mksch A B$tr$schA$schB) = schA"
 apply (intro strip)
-apply (rule seq.take_lemmas)
+apply (rule seq.take_lemma)
 apply (rule mp)
 prefer 2 apply assumption
 back back back back
@@ -574,7 +571,7 @@ apply assumption
 apply (rule take_reduction)
 
 (* f A (tw iA) = tw ~eA *)
-apply (simp add: FilterPTakewhileQid int_is_act not_ext_is_int_or_not_act)
+apply (simp add: int_is_act not_ext_is_int_or_not_act)
 apply (rule refl)
 apply (simp add: int_is_act not_ext_is_int_or_not_act)
 apply (rotate_tac -11)
@@ -583,7 +580,7 @@ apply (rotate_tac -11)
 
 (* assumption Forall tr *)
 (* assumption schB *)
-apply (simp add: Forall_Conc ext_and_act)
+apply (simp add: ext_and_act)
 (* assumption schA *)
 apply (drule_tac x = "schA" and g = "Filter (%a. a:act A) $rs" in subst_lemma2)
 apply assumption
@@ -596,7 +593,7 @@ apply assumption
 (* assumption Forall schA *)
 apply (drule_tac s = "schA" and P = "Forall (%x. x:act A) " in subst)
 apply assumption
-apply (simp add: ForallPTakewhileQ int_is_act)
+apply (simp add: int_is_act)
 
 (* case x:actions(asig_of A) & x: actions(asig_of B) *)
 
@@ -624,7 +621,7 @@ back
 apply assumption
 
 (* f A (tw iA) = tw ~eA *)
-apply (simp add: FilterPTakewhileQid int_is_act not_ext_is_int_or_not_act)
+apply (simp add: int_is_act not_ext_is_int_or_not_act)
 
 (* rewrite assumption forall and schB *)
 apply (rotate_tac 13)
@@ -690,7 +687,7 @@ lemma FilterBmksch_is_schB: "!! A B. [| compatible A B; compatible B A;
   LastActExtsch A schA & LastActExtsch B schB   
   --> Filter (%a. a:act B)$(mksch A B$tr$schA$schB) = schB"
 apply (intro strip)
-apply (rule seq.take_lemmas)
+apply (rule seq.take_lemma)
 apply (rule mp)
 prefer 2 apply assumption
 back back back back
@@ -793,7 +790,7 @@ apply assumption
 apply (rule take_reduction)
 
 (* f B (tw iB) = tw ~eB *)
-apply (simp add: FilterPTakewhileQid int_is_act not_ext_is_int_or_not_act)
+apply (simp add: int_is_act not_ext_is_int_or_not_act)
 apply (rule refl)
 apply (simp add: int_is_act not_ext_is_int_or_not_act)
 apply (rotate_tac -11)
@@ -801,7 +798,7 @@ apply (rotate_tac -11)
 (* now conclusion fulfills induction hypothesis, but assumptions are not ready *)
 
 (* assumption schA *)
-apply (simp add: Forall_Conc ext_and_act)
+apply (simp add: ext_and_act)
 (* assumption schB *)
 apply (drule_tac x = "schB" and g = "Filter (%a. a:act B) $rs" in subst_lemma2)
 apply assumption
@@ -814,7 +811,7 @@ apply assumption
 (* assumption Forall schB *)
 apply (drule_tac s = "schB" and P = "Forall (%x. x:act B) " in subst)
 apply assumption
-apply (simp add: ForallPTakewhileQ int_is_act)
+apply (simp add: int_is_act)
 
 (* case x:actions(asig_of A) & x: actions(asig_of B) *)
 
@@ -841,7 +838,7 @@ back
 apply assumption
 
 (* f B (tw iB) = tw ~eB *)
-apply (simp add: FilterPTakewhileQid int_is_act not_ext_is_int_or_not_act)
+apply (simp add: int_is_act not_ext_is_int_or_not_act)
 
 (* rewrite assumption forall and schB *)
 apply (rotate_tac 13)

@@ -1,34 +1,38 @@
-diff -r gitweb/changelogentry.tmpl isabelle/changelogentry.tmpl
-2,8c2
-< <a class="title" href="{url}rev/#node|short#{sessionvars%urlparameter}"><span class="age">#date|age# ago</span>#desc|strip|firstline|escape#<span class="logtags"> {inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span></a>
-< </div>
-< <div class="title_text">
-< <div class="log_link">
-< <a href="{url}rev/#node|short#{sessionvars%urlparameter}">changeset</a><br/>
-< </div>
-< <i>#author|obfuscate# [#date|rfc822date#] rev #rev#</i><br/>
----
-> <a class="title" href="{url}rev/#node|short#{sessionvars%urlparameter}"><span class="age">#date|age# ago</span>#author|obfuscate# [#date|rfc822date#] rev #rev#<span class="logtags"> {inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span></a>
-12a7,9
-> <div class="files">
-> #files#
-> </div>
-diff -r gitweb/changeset.tmpl isabelle/changeset.tmpl
-19c19
-< <a class="title" href="{url}raw-rev/#node|short#">#desc|strip|escape|firstline# <span class="logtags">{inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span></a>
----
-> <a class="title" href="{url}raw-rev/#node|short#">#desc|strip|escape# <span class="logtags">{inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span></a>
-diff -r gitweb/map isabelle/map
-29c29
-< annotateline = '<tr style="font-family:monospace" class="parity#parity#"><td class="linenr" style="text-align: right;"><a href="#url#annotate/#node|short#/#file|urlescape#{sessionvars%urlparameter}#l{targetline}" title="{node|short}: {desc|escape|firstline}">#author|user#@#rev#</a></td><td><pre><a class="linenr" href="##lineid#" id="#lineid#">#linenumber#</a></pre></td><td><pre>#line|escape#</pre></td></tr>'
----
-> annotateline = '<tr style="font-family:monospace" class="parity#parity#"><td class="linenr" style="text-align: right;"><a href="#url#annotate/#node|short#/#file|urlescape#{sessionvars%urlparameter}#l{targetline}" title="{node|short}: {desc|escape}">#author|user#@#rev#</a></td><td><pre><a class="linenr" href="##lineid#" id="#lineid#">#linenumber#</a></pre></td><td><pre>#line|escape#</pre></td></tr>'
-59,60c59,60
-< shortlogentry = '<tr class="parity#parity#"><td class="age"><i>#date|age# ago</i></td><td><i>#author|person#</i></td><td><a class="list" href="{url}rev/#node|short#{sessionvars%urlparameter}"><b>#desc|strip|firstline|escape#</b> <span class="logtags">{inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span></a></td><td class="link" nowrap><a href="{url}rev/#node|short#{sessionvars%urlparameter}">changeset</a> | <a href="{url}file/#node|short#{sessionvars%urlparameter}">files</a></td></tr>'
-< filelogentry = '<tr class="parity#parity#"><td class="age"><i>#date|age# ago</i></td><td><a class="list" href="{url}rev/#node|short#{sessionvars%urlparameter}"><b>#desc|strip|firstline|escape#</b></a></td><td class="link"><a href="{url}file/#node|short#/#file|urlescape#{sessionvars%urlparameter}">file</a>&nbsp;|&nbsp;<a href="{url}diff/#node|short#/#file|urlescape#{sessionvars%urlparameter}">diff</a>&nbsp;|&nbsp;<a href="{url}annotate/#node|short#/#file|urlescape#{sessionvars%urlparameter}">annotate</a> #rename%filelogrename#</td></tr>'
----
-> shortlogentry = '<tr class="parity#parity#"><td class="age"><i>#date|age# ago</i></td><td><i>#date|shortdate#</i></td><td><i>#author|person#</i></td><td><a class="list" href="{url}rev/#node|short#{sessionvars%urlparameter}"><b>#desc|strip|escape#</b> <span class="logtags">{inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span></a></td><td class="link" nowrap><a href="{url}rev/#node|short#{sessionvars%urlparameter}">changeset</a> | <a href="{url}file/#node|short#{sessionvars%urlparameter}">files</a></td></tr>'
-> filelogentry = '<tr class="parity#parity#"><td class="age"><i>#date|age# ago</i></td><td><i>#date|shortdate#</i></td><td><i>#author|person#</i></td><td><a class="list" href="{url}rev/#node|short#{sessionvars%urlparameter}"><b>#desc|strip|escape#</b></a></td><td class="link"><a href="{url}file/#node|short#/#file|urlescape#{sessionvars%urlparameter}">file</a>&nbsp;|&nbsp;<a href="{url}diff/#node|short#/#file|urlescape#{sessionvars%urlparameter}">diff</a>&nbsp;|&nbsp;<a href="{url}annotate/#node|short#/#file|urlescape#{sessionvars%urlparameter}">annotate</a> #rename%filelogrename#</td></tr>'
-diff -r gitweb/summary.tmpl isabelle/summary.tmpl
-34d33
-< <tr><td>owner</td><td>#owner|obfuscate#</td></tr>
+diff -u gitweb/changelogentry.tmpl isabelle/changelogentry.tmpl
+--- gitweb/changelogentry.tmpl	2010-02-01 16:34:34.000000000 +0100
++++ isabelle/changelogentry.tmpl	2010-03-03 15:12:12.000000000 +0100
+@@ -1,14 +1,12 @@
+ <div>
+-<a class="title" href="{url}rev/{node|short}{sessionvars%urlparameter}"><span class="age">{date|age}</span>{desc|strip|firstline|escape|nonempty}<span class="logtags"> {inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span></a>
+-</div>
+-<div class="title_text">
+-<div class="log_link">
+-<a href="{url}rev/{node|short}{sessionvars%urlparameter}">changeset</a><br/>
+-</div>
+-<i>{author|obfuscate} [{date|rfc822date}] rev {rev}</i><br/>
++<a class="title" href="{url}rev/{node|short}{sessionvars%urlparameter}"><span class="age">{date|age}</span>
++{author|obfuscate} [{date|rfc822date}] rev {rev}<span class="logtags"> {inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span></a>
+ </div>
+ <div class="log_body">
+ {desc|strip|escape|addbreaks|nonempty}
+ <br/>
++<div class="files">
++{files}
++</div>
+ <br/>
+ </div>
+diff -u gitweb/map isabelle/map
+--- gitweb/map	2010-02-01 16:34:34.000000000 +0100
++++ isabelle/map	2010-03-03 15:13:25.000000000 +0100
+@@ -206,9 +206,10 @@
+   <tr class="parity{parity}">
+     <td class="age"><i>{date|age}</i></td>
+     <td><i>{author|person}</i></td>
++    <td><i>{date|shortdate}</i></td>
+     <td>
+       <a class="list" href="{url}rev/{node|short}{sessionvars%urlparameter}">
+-        <b>{desc|strip|firstline|escape|nonempty}</b>
++        <b>{desc|strip|escape|nonempty}</b>
+         <span class="logtags">{inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span>
+       </a>
+     </td>

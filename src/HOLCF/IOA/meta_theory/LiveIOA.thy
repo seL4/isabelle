@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/IOA/meta_theory/LiveIOA.thy
-    ID:         $Id$
     Author:     Olaf Müller
 *)
 
@@ -43,8 +42,6 @@ definition
             (! exec : executions (fst CL). (exec |== (snd CL)) -->
                                            ((corresp_ex (fst AM) f exec) |== (snd AM))))"
 
-
-declare split_paired_Ex [simp del]
 
 lemma live_implements_trans:
 "!!LC. [| live_implements (A,LA) (B,LB); live_implements (B,LB) (C,LC) |]

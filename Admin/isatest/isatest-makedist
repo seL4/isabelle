@@ -91,18 +91,12 @@ rm -f $RUNNING/*
 
 ## spawn test runs
 
-$SSH sunbroy2 "$MAKEALL $HOME/settings/sun-poly"
+$SSH macbroy21 "$MAKEALL $HOME/settings/at-poly-test"
 # give test some time to copy settings and start
 sleep 15
 $SSH macbroy22 "$MAKEALL $HOME/settings/at-poly"
 sleep 15
-$SSH macbroy20 "$MAKEALL $HOME/settings/at-poly-5.1-para-e"
-sleep 15
-#$SSH macbroy24 "$MAKEALL -l HOL proofterms $HOME/settings/at-sml-dev-p"
-#sleep 15
-$SSH macbroy21 "$MAKEALL $HOME/settings/at64-poly-5.1-para"
-sleep 15
-$SSH macbroy23 "$MAKEALL -l HOL HOL-ex $HOME/settings/at-sml-dev-e"
+$SSH macbroy23 "$MAKEALL -l HOL HOL-Library $HOME/settings/at-sml-dev-e"
 sleep 15
 $SSH macbroy24 "$MAKEALL $HOME/settings/at64-poly"
 sleep 15
@@ -111,8 +105,12 @@ sleep 15
 $SSH macbroy5 "$MAKEALL $HOME/settings/mac-poly"
 sleep 15
 $SSH macbroy6 "sleep 10800; $MAKEALL $HOME/settings/at-mac-poly-5.1-para"
+sleep 15
+$SSH atbroy102 "mount -a; $MAKEALL $HOME/settings/cygwin-poly"
 #sleep 15
 #$SSH atbroy51 "$HOME/admin/isatest/isatest-annomaly"
+#sleep 15
+#$SSH sunbroy2 "$MAKEALL $HOME/settings/sun-poly"
 
 echo ------------------- spawned tests successfully --- `date` --- $HOSTNAME >> $DISTLOG 2>&1
 

@@ -1,5 +1,7 @@
 theory Probability
-imports Measure Borel
+imports
+  Information
+  "ex/Dining_Cryptographers"
 begin
 
 end

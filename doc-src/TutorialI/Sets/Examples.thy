@@ -156,8 +156,7 @@ by blast
 lemma "{x. P x \<longrightarrow> Q x} = -{x. P x} \<union> {x. Q x}"
 by blast
 
-constdefs
-  prime   :: "nat set"
+definition prime :: "nat set" where
     "prime == {p. 1<p & (ALL m. m dvd p --> m=1 | m=p)}"
 
 lemma "{p*q | p q. p\<in>prime \<and> q\<in>prime} = 

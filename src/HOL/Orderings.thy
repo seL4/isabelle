@@ -11,6 +11,41 @@ uses
   "~~/src/Provers/quasi.ML"  (* FIXME unused? *)
 begin
 
+subsection {* Syntactic orders *}
+
+class ord =
+  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+    and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+begin
+
+notation
+  less_eq  ("op <=") and
+  less_eq  ("(_/ <= _)" [51, 51] 50) and
+  less  ("op <") and
+  less  ("(_/ < _)"  [51, 51] 50)
+  
+notation (xsymbols)
+  less_eq  ("op \<le>") and
+  less_eq  ("(_/ \<le> _)"  [51, 51] 50)
+
+notation (HTML output)
+  less_eq  ("op \<le>") and
+  less_eq  ("(_/ \<le> _)"  [51, 51] 50)
+
+abbreviation (input)
+  greater_eq  (infix ">=" 50) where
+  "x >= y \<equiv> y <= x"
+
+notation (input)
+  greater_eq  (infix "\<ge>" 50)
+
+abbreviation (input)
+  greater  (infix ">" 50) where
+  "x > y \<equiv> y < x"
+
+end
+
+
 subsection {* Quasi orders *}
 
 class preorder = ord +
@@ -258,11 +293,11 @@ lemma max_less_iff_conj [simp]:
   "max x y < z \<longleftrightarrow> x < z \<and> y < z"
 unfolding max_def le_less using less_linear by (auto intro: less_trans)
 
-lemma split_min [noatp]:
+lemma split_min [no_atp]:
   "P (min i j) \<longleftrightarrow> (i \<le> j \<longrightarrow> P i) \<and> (\<not> i \<le> j \<longrightarrow> P j)"
 by (simp add: min_def)
 
-lemma split_max [noatp]:
+lemma split_max [no_atp]:
   "P (max i j) \<longleftrightarrow> (i \<le> j \<longrightarrow> P j) \<and> (\<not> i \<le> j \<longrightarrow> P i)"
 by (simp add: max_def)
 
@@ -611,25 +646,31 @@ let
   val less_eq = @{const_syntax less_eq};
 
   val trans =
-   [((All_binder, impl, less), ("_All_less", "_All_greater")),
-    ((All_binder, impl, less_eq), ("_All_less_eq", "_All_greater_eq")),
-    ((Ex_binder, conj, less), ("_Ex_less", "_Ex_greater")),
-    ((Ex_binder, conj, less_eq), ("_Ex_less_eq", "_Ex_greater_eq"))];
+   [((All_binder, impl, less),
+    (@{syntax_const "_All_less"}, @{syntax_const "_All_greater"})),
+    ((All_binder, impl, less_eq),
+    (@{syntax_const "_All_less_eq"}, @{syntax_const "_All_greater_eq"})),
+    ((Ex_binder, conj, less),
+    (@{syntax_const "_Ex_less"}, @{syntax_const "_Ex_greater"})),
+    ((Ex_binder, conj, less_eq),
+    (@{syntax_const "_Ex_less_eq"}, @{syntax_const "_Ex_greater_eq"}))];
 
-  fun matches_bound v t = 
-     case t of (Const ("_bound", _) $ Free (v', _)) => (v = v')
-              | _ => false
-  fun contains_var v = Term.exists_subterm (fn Free (x, _) => x = v | _ => false)
-  fun mk v c n P = Syntax.const c $ Syntax.mark_bound v $ n $ P
+  fun matches_bound v t =
+    (case t of
+      Const (@{syntax_const "_bound"}, _) $ Free (v', _) => v = v'
+    | _ => false);
+  fun contains_var v = Term.exists_subterm (fn Free (x, _) => x = v | _ => false);
+  fun mk v c n P = Syntax.const c $ Syntax.mark_bound v $ n $ P;
 
   fun tr' q = (q,
-    fn [Const ("_bound", _) $ Free (v, _), Const (c, _) $ (Const (d, _) $ t $ u) $ P] =>
-      (case AList.lookup (op =) trans (q, c, d) of
-        NONE => raise Match
-      | SOME (l, g) =>
-          if matches_bound v t andalso not (contains_var v u) then mk v l u P
-          else if matches_bound v u andalso not (contains_var v t) then mk v g t P
-          else raise Match)
+    fn [Const (@{syntax_const "_bound"}, _) $ Free (v, _),
+        Const (c, _) $ (Const (d, _) $ t $ u) $ P] =>
+        (case AList.lookup (op =) trans (q, c, d) of
+          NONE => raise Match
+        | SOME (l, g) =>
+            if matches_bound v t andalso not (contains_var v u) then mk v l u P
+            else if matches_bound v u andalso not (contains_var v t) then mk v g t P
+            else raise Match)
      | _ => raise Match);
 in [tr' All_binder, tr' Ex_binder] end
 *}
@@ -1052,11 +1093,47 @@ class bot = preorder +
 
 subsection {* Dense orders *}
 
-class dense_linear_order = linorder + 
+class dense_linorder = linorder + 
   assumes gt_ex: "\<exists>y. x < y" 
   and lt_ex: "\<exists>y. y < x"
   and dense: "x < y \<Longrightarrow> (\<exists>z. x < z \<and> z < y)"
+begin
 
+lemma dense_le:
+  fixes y z :: 'a
+  assumes "\<And>x. x < y \<Longrightarrow> x \<le> z"
+  shows "y \<le> z"
+proof (rule ccontr)
+  assume "\<not> ?thesis"
+  hence "z < y" by simp
+  from dense[OF this]
+  obtain x where "x < y" and "z < x" by safe
+  moreover have "x \<le> z" using assms[OF `x < y`] .
+  ultimately show False by auto
+qed
+
+lemma dense_le_bounded:
+  fixes x y z :: 'a
+  assumes "x < y"
+  assumes *: "\<And>w. \<lbrakk> x < w ; w < y \<rbrakk> \<Longrightarrow> w \<le> z"
+  shows "y \<le> z"
+proof (rule dense_le)
+  fix w assume "w < y"
+  from dense[OF `x < y`] obtain u where "x < u" "u < y" by safe
+  from linear[of u w]
+  show "w \<le> z"
+  proof (rule disjE)
+    assume "u \<le> w"
+    from less_le_trans[OF `x < u` `u \<le> w`] `w < y`
+    show "w \<le> z" by (rule *)
+  next
+    assume "w \<le> u"
+    from `w \<le> u` *[OF `x < u` `u < y`]
+    show "w \<le> z" by (rule order_trans)
+  qed
+qed
+
+end
 
 subsection {* Wellorders *}
 

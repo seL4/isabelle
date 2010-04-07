@@ -1,5 +1,4 @@
 (*  Title:      HOL/Modelcheck/MuCalculus.thy
-    ID:         $Id$
     Author:     Olaf Mueller, Jan Philipps, Robert Sandner
     Copyright   1997  TU Muenchen
 *)
@@ -11,17 +10,16 @@ begin
 types
  'a pred = "'a=>bool"
 
-constdefs
-  Charfun :: "'a set => 'a pred"
+definition Charfun :: "'a set => 'a pred" where
   "Charfun == (% A.% x. x:A)"
 
-  monoP  :: "('a pred => 'a pred) => bool"
+definition monoP  :: "('a pred => 'a pred) => bool" where
   "monoP f == mono(Collect o f o Charfun)"
 
-  mu :: "('a pred => 'a pred) => 'a pred"    (binder "Mu " 10)
+definition mu :: "('a pred => 'a pred) => 'a pred" (binder "Mu " 10) where
   "mu f == Charfun(lfp(Collect o f o Charfun))"
 
-  nu :: "('a pred => 'a pred) => 'a pred"    (binder "Nu " 10)
+definition nu :: "('a pred => 'a pred) => 'a pred" (binder "Nu " 10) where
   "nu f == Charfun(gfp(Collect o f o Charfun))"
 
 end

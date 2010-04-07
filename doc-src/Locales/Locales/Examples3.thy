@@ -63,7 +63,7 @@ text {* Further interpretations are necessary for
 	statements:
 	@{subgoals [display]}
 	This is Presburger arithmetic, which can be solved by the
-	method @{text arith}. *}
+        method @{text arith}. *}
       by arith+
     txt {* \normalsize In order to show the equations, we put ourselves
       in a situation where the lattice theorems can be used in a

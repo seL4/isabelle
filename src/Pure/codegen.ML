@@ -76,7 +76,7 @@ sig
   val mk_term_of: codegr -> string -> bool -> typ -> Pretty.T
   val mk_gen: codegr -> string -> bool -> string list -> string -> typ -> Pretty.T
   val test_fn: (int -> term list option) Unsynchronized.ref
-  val test_term: Proof.context -> term -> int -> term list option
+  val test_term: Proof.context -> bool -> term -> int -> term list option * (bool list * bool)
   val eval_result: (unit -> term) Unsynchronized.ref
   val eval_term: theory -> term -> term
   val evaluation_conv: cterm -> thm
@@ -299,7 +299,7 @@ val add_unfold = map_unfold o MetaSimplifier.add_simp;
 val del_unfold = map_unfold o MetaSimplifier.del_simp;
 
 fun unfold_preprocessor thy =
-  let val ss = Simplifier.theory_context thy (UnfoldData.get thy)
+  let val ss = Simplifier.global_context thy (UnfoldData.get thy)
   in map (Thm.transfer thy #> Simplifier.full_simplify ss) end;
 
 
@@ -474,7 +474,7 @@ val rename_term = hd o rename_terms o single;
 (**** retrieve definition of constant ****)
 
 fun is_instance T1 T2 =
-  Type.raw_instance (T1, if null (OldTerm.typ_tfrees T2) then T2 else Logic.varifyT T2);
+  Type.raw_instance (T1, if null (OldTerm.typ_tfrees T2) then T2 else Logic.varifyT_global T2);
 
 fun get_assoc_code thy (s, T) = Option.map snd (find_first (fn ((s', T'), _) =>
   s = s' andalso is_instance T T') (#consts (CodegenData.get thy)));
@@ -871,7 +871,7 @@ fun mk_gen gr module p xs a (TVar ((s, i), _)) = str
 val test_fn : (int -> term list option) Unsynchronized.ref =
   Unsynchronized.ref (fn _ => NONE);
 
-fun test_term ctxt t =
+fun test_term ctxt report t =
   let
     val thy = ProofContext.theory_of ctxt;
     val (code, gr) = setmp_CRITICAL mode ["term_of", "test"]
@@ -897,7 +897,8 @@ fun test_term ctxt t =
           str ");"]) ^
       "\n\nend;\n";
     val _ = ML_Context.eval_in (SOME ctxt) false Position.none s;
-  in ! test_fn end;
+    val dummy_report = ([], false)
+  in (fn size => (! test_fn size, dummy_report)) end;
 
 
 

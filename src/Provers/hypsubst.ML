@@ -1,5 +1,4 @@
 (*  Title:      Provers/hypsubst.ML
-    ID:         $Id$
     Authors:    Martin D Coen, Tobias Nipkow and Lawrence C Paulson
     Copyright   1995  University of Cambridge
 
@@ -156,7 +155,7 @@ in
     let fun tac i st = SUBGOAL (fn (Bi, _) =>
       let
         val (k, _) = eq_var bnd true Bi
-        val hyp_subst_ss = Simplifier.theory_context (Thm.theory_of_thm st) empty_ss
+        val hyp_subst_ss = Simplifier.global_context (Thm.theory_of_thm st) empty_ss
           setmksimps (mk_eqs bnd)
       in EVERY [rotate_tac k i, asm_lr_simp_tac hyp_subst_ss i,
         etac thin_rl i, rotate_tac (~k) i]
@@ -165,7 +164,7 @@ in
 
 end;
 
-val ssubst = Drule.standard (Data.sym RS Data.subst);
+val ssubst = Drule.export_without_context (Data.sym RS Data.subst);
 
 fun inst_subst_tac b rl = CSUBGOAL (fn (cBi, i) =>
   case try (Logic.strip_assums_hyp #> hd #>

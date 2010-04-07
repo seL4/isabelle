@@ -15,11 +15,6 @@ definition borel_measurable where
 definition indicator_fn where
   "indicator_fn s = (\<lambda>x. if x \<in> s then 1 else (0::real))"
 
-definition mono_convergent where
-  "mono_convergent u f s \<equiv>
-        (\<forall>x m n. m \<le> n \<and> x \<in> s \<longrightarrow> u m x \<le> u n x) \<and>
-        (\<forall>x \<in> s. (\<lambda>i. u i x) ----> f x)"
-
 lemma in_borel_measurable:
    "f \<in> borel_measurable M \<longleftrightarrow>
     sigma_algebra M \<and>
@@ -73,7 +68,7 @@ lemma Collect_less_le:
     with w have "real(Suc(natceiling(inverse(g w - f w)))) > inverse(g w - f w)"
       by (metis lessI order_le_less_trans real_natceiling_ge real_of_nat_less_iff)       hence "inverse(real(Suc(natceiling(inverse(g w - f w)))))
              < inverse(inverse(g w - f w))" 
-      by (metis less_iff_diff_less_0 less_imp_inverse_less linorder_neqE_ordered_idom nz positive_imp_inverse_positive real_le_antisym real_less_def w)
+      by (metis less_iff_diff_less_0 less_imp_inverse_less linorder_neqE_linordered_idom nz positive_imp_inverse_positive real_le_antisym real_less_def w)
     hence "inverse(real(Suc(natceiling(inverse(g w - f w))))) < g w - f w"
       by (metis inverse_inverse_eq order_less_le_trans real_le_refl) 
     thus "\<exists>n. f w \<le> g w - inverse(real(Suc n))" using w
@@ -82,7 +77,7 @@ lemma Collect_less_le:
     fix w n
     assume le: "f w \<le> g w - inverse(real(Suc n))"
     hence "0 < inverse(real(Suc n))"
-      by (metis inverse_real_of_nat_gt_zero)
+      by simp
     thus "f w < g w" using le
       by arith 
   qed
@@ -191,20 +186,20 @@ qed
 
 definition
   nat_to_rat_surj :: "nat \<Rightarrow> rat" where
- "nat_to_rat_surj n = (let (i,j) = nat_to_nat2 n
-                       in Fract (nat_to_int_bij i) (nat_to_int_bij j))"
+ "nat_to_rat_surj n = (let (i,j) = prod_decode n
+                       in Fract (int_decode i) (int_decode j))"
 
 lemma nat_to_rat_surj: "surj nat_to_rat_surj"
 proof (auto simp add: surj_def nat_to_rat_surj_def) 
   fix y
-  show "\<exists>x. y = (\<lambda>(i, j). Fract (nat_to_int_bij i) (nat_to_int_bij j)) (nat_to_nat2 x)"
+  show "\<exists>x. y = (\<lambda>(i, j). Fract (int_decode i) (int_decode j)) (prod_decode x)"
   proof (cases y)
     case (Fract a b)
-      obtain i where i: "nat_to_int_bij i = a" using surj_nat_to_int_bij
+      obtain i where i: "int_decode i = a" using surj_int_decode
         by (metis surj_def) 
-      obtain j where j: "nat_to_int_bij j = b" using surj_nat_to_int_bij
+      obtain j where j: "int_decode j = b" using surj_int_decode
         by (metis surj_def)
-      obtain n where n: "nat_to_nat2 n = (i,j)" using nat_to_nat2_surj
+      obtain n where n: "prod_decode n = (i,j)" using surj_prod_decode
         by (metis surj_def)
 
       from Fract i j n show ?thesis
@@ -355,7 +350,7 @@ proof -
                     borel_measurable_add_borel_measurable f g) 
   have "(\<lambda>x. -((f x + -g x) ^ 2 * inverse 4)) = 
         (\<lambda>x. 0 + ((f x + -g x) ^ 2 * inverse -4))"
-    by (simp add: Ring_and_Field.minus_divide_right) 
+    by (simp add: minus_divide_right)
   also have "... \<in> borel_measurable M" 
     by (fast intro: affine_borel_measurable borel_measurable_square 
                     borel_measurable_add_borel_measurable 
@@ -375,6 +370,103 @@ unfolding real_diff_def
   by (fast intro: borel_measurable_add_borel_measurable 
                   borel_measurable_uminus_borel_measurable f g)
 
+lemma (in measure_space) borel_measurable_setsum_borel_measurable:
+  assumes s: "finite s"
+  shows "(!!i. i \<in> s ==> f i \<in> borel_measurable M) \<Longrightarrow> (\<lambda>x. setsum (\<lambda>i. f i x) s) \<in> borel_measurable M" using s
+proof (induct s)
+  case empty
+  thus ?case
+    by (simp add: borel_measurable_const)
+next
+  case (insert x s)
+  thus ?case
+    by (auto simp add: borel_measurable_add_borel_measurable) 
+qed
+
+lemma (in measure_space) borel_measurable_cong:
+  assumes "\<And> w. w \<in> space M \<Longrightarrow> f w = g w"
+  shows "f \<in> borel_measurable M \<longleftrightarrow> g \<in> borel_measurable M"
+using assms unfolding in_borel_measurable by (simp cong: vimage_inter_cong)
+
+lemma (in measure_space) borel_measurable_inverse:
+  assumes "f \<in> borel_measurable M"
+  shows "(\<lambda>x. inverse (f x)) \<in> borel_measurable M"
+  unfolding borel_measurable_ge_iff
+proof (safe, rule linorder_cases)
+  fix a :: real assume "0 < a"
+  { fix w
+    from `0 < a` have "a \<le> inverse (f w) \<longleftrightarrow> 0 < f w \<and> f w \<le> 1 / a"
+      by (metis inverse_eq_divide inverse_inverse_eq le_imp_inverse_le
+                linorder_not_le real_le_refl real_le_trans real_less_def
+                xt1(7) zero_less_divide_1_iff) }
+  hence "{w \<in> space M. a \<le> inverse (f w)} =
+    {w \<in> space M. 0 < f w} \<inter> {w \<in> space M. f w \<le> 1 / a}" by auto
+  with Int assms[unfolded borel_measurable_gr_iff]
+    assms[unfolded borel_measurable_le_iff]
+  show "{w \<in> space M. a \<le> inverse (f w)} \<in> sets M" by simp
+next
+  fix a :: real assume "0 = a"
+  { fix w have "a \<le> inverse (f w) \<longleftrightarrow> 0 \<le> f w"
+      unfolding `0 = a`[symmetric] by auto }
+  thus "{w \<in> space M. a \<le> inverse (f w)} \<in> sets M"
+    using assms[unfolded borel_measurable_ge_iff] by simp
+next
+  fix a :: real assume "a < 0"
+  { fix w
+    from `a < 0` have "a \<le> inverse (f w) \<longleftrightarrow> f w \<le> 1 / a \<or> 0 \<le> f w"
+      apply (cases "0 \<le> f w")
+      apply (metis inverse_eq_divide linorder_not_le xt1(8) xt1(9)
+                   zero_le_divide_1_iff)
+      apply (metis inverse_eq_divide inverse_inverse_eq inverse_le_imp_le_neg
+                   linorder_not_le real_le_refl real_le_trans)
+      done }
+  hence "{w \<in> space M. a \<le> inverse (f w)} =
+    {w \<in> space M. f w \<le> 1 / a} \<union> {w \<in> space M. 0 \<le> f w}" by auto
+  with Un assms[unfolded borel_measurable_ge_iff]
+    assms[unfolded borel_measurable_le_iff]
+  show "{w \<in> space M. a \<le> inverse (f w)} \<in> sets M" by simp
+qed
+
+lemma (in measure_space) borel_measurable_divide:
+  assumes "f \<in> borel_measurable M"
+  and "g \<in> borel_measurable M"
+  shows "(\<lambda>x. f x / g x) \<in> borel_measurable M"
+  unfolding field_divide_inverse
+  by (rule borel_measurable_inverse borel_measurable_times_borel_measurable assms)+
+
+lemma (in measure_space) borel_measurable_vimage:
+  assumes borel: "f \<in> borel_measurable M"
+  shows "f -` {X} \<inter> space M \<in> sets M"
+proof -
+  have "{w \<in> space M. f w = X} = {w. f w = X} \<inter> space M" by auto
+  with borel_measurable_eq_borel_measurable[OF borel borel_measurable_const, of X]
+  show ?thesis unfolding vimage_def by simp
+qed
+
+section "Monotone convergence"
+
+definition mono_convergent where
+  "mono_convergent u f s \<equiv>
+        (\<forall>x\<in>s. incseq (\<lambda>n. u n x)) \<and>
+        (\<forall>x \<in> s. (\<lambda>i. u i x) ----> f x)"
+
+definition "upclose f g x = max (f x) (g x)"
+
+primrec mon_upclose where
+"mon_upclose 0 u = u 0" |
+"mon_upclose (Suc n) u = upclose (u (Suc n)) (mon_upclose n u)"
+
+lemma mono_convergentD:
+  assumes "mono_convergent u f s" and "x \<in> s"
+  shows "incseq (\<lambda>n. u n x)" and "(\<lambda>i. u i x) ----> f x"
+  using assms unfolding mono_convergent_def by auto
+
+lemma mono_convergentI:
+  assumes "\<And>x. x \<in> s \<Longrightarrow> incseq (\<lambda>n. u n x)"
+  assumes "\<And>x. x \<in> s \<Longrightarrow> (\<lambda>i. u i x) ----> f x"
+  shows "mono_convergent u f s"
+  using assms unfolding mono_convergent_def by auto
+
 lemma (in measure_space) mono_convergent_borel_measurable:
   assumes u: "!!n. u n \<in> borel_measurable M"
   assumes mc: "mono_convergent u f (space M)"
@@ -388,7 +480,7 @@ proof -
         assume w: "w \<in> space M" and f: "f w \<le> a"
         hence "u i w \<le> f w"
           by (auto intro: SEQ.incseq_le
-                   simp add: incseq_def mc [unfolded mono_convergent_def])
+                   simp add: mc [unfolded mono_convergent_def])
         thus "u i w \<le> a" using f
           by auto
       next
@@ -409,17 +501,138 @@ proof -
     by (auto simp add: borel_measurable_le_iff) 
 qed
 
-lemma (in measure_space) borel_measurable_setsum_borel_measurable:
-  assumes s: "finite s"
-  shows "(!!i. i \<in> s ==> f i \<in> borel_measurable M) \<Longrightarrow> (\<lambda>x. setsum (\<lambda>i. f i x) s) \<in> borel_measurable M" using s
-proof (induct s)
-  case empty
+lemma mono_convergent_le:
+  assumes "mono_convergent u f s" and "t \<in> s"
+  shows "u n t \<le> f t"
+using mono_convergentD[OF assms] by (auto intro!: incseq_le)
+
+lemma mon_upclose_ex:
+  fixes u :: "nat \<Rightarrow> 'a \<Rightarrow> ('b\<Colon>linorder)"
+  shows "\<exists>n \<le> m. mon_upclose m u x = u n x"
+proof (induct m)
+  case (Suc m)
+  then obtain n where "n \<le> m" and *: "mon_upclose m u x = u n x" by blast
   thus ?case
-    by (simp add: borel_measurable_const)
+  proof (cases "u n x \<le> u (Suc m) x")
+    case True with min_max.sup_absorb1 show ?thesis
+      by (auto simp: * upclose_def intro!: exI[of _ "Suc m"])
+  next
+    case False
+     with min_max.sup_absorb2 `n \<le> m` show ?thesis
+       by (auto simp: * upclose_def intro!: exI[of _ n] min_max.sup_absorb2)
+  qed
+qed simp
+
+lemma mon_upclose_all:
+  fixes u :: "nat \<Rightarrow> 'a \<Rightarrow> ('b\<Colon>linorder)"
+  assumes "m \<le> n"
+  shows "u m x \<le> mon_upclose n u x"
+using assms proof (induct n)
+  case 0 thus ?case by auto
 next
-  case (insert x s)
-  thus ?case
-    by (auto simp add: borel_measurable_add_borel_measurable) 
+  case (Suc n)
+  show ?case
+  proof (cases "m = Suc n")
+    case True thus ?thesis by (simp add: upclose_def)
+  next
+    case False
+    hence "m \<le> n" using `m \<le> Suc n` by simp
+    from Suc.hyps[OF this]
+    show ?thesis by (auto simp: upclose_def intro!: min_max.le_supI2)
+  qed
+qed
+
+lemma mono_convergent_limit:
+  fixes f :: "'a \<Rightarrow> real"
+  assumes "mono_convergent u f s" and "x \<in> s" and "0 < r"
+  shows "\<exists>N. \<forall>n\<ge>N. f x - u n x < r"
+proof -
+  from LIMSEQ_D[OF mono_convergentD(2)[OF assms(1,2)] `0 < r`]
+  obtain N where "\<And>n. N \<le> n \<Longrightarrow> \<bar> u n x - f x \<bar> < r" by auto
+  with mono_convergent_le[OF assms(1,2)] `0 < r`
+  show ?thesis by (auto intro!: exI[of _ N])
+qed
+
+lemma mon_upclose_le_mono_convergent:
+  assumes mc: "\<And>n. mono_convergent (\<lambda>m. u m n) (f n) s" and "x \<in> s"
+  and "incseq (\<lambda>n. f n x)"
+  shows "mon_upclose n (u n) x <= f n x"
+proof -
+  obtain m where *: "mon_upclose n (u n) x = u n m x" and "m \<le> n"
+    using mon_upclose_ex[of n "u n" x] by auto
+  note this(1)
+  also have "u n m x \<le> f m x" using mono_convergent_le[OF assms(1,2)] .
+  also have "... \<le> f n x" using assms(3) `m \<le> n` unfolding incseq_def by auto
+  finally show ?thesis .
+qed
+
+lemma mon_upclose_mono_convergent:
+  assumes mc_u: "\<And>n. mono_convergent (\<lambda>m. u m n) (f n) s"
+  and mc_f: "mono_convergent f h s"
+  shows "mono_convergent (\<lambda>n. mon_upclose n (u n)) h s"
+proof (rule mono_convergentI)
+  fix x assume "x \<in> s"
+  show "incseq (\<lambda>n. mon_upclose n (u n) x)" unfolding incseq_def
+  proof safe
+    fix m n :: nat assume "m \<le> n"
+    obtain i where mon: "mon_upclose m (u m) x = u m i x" and "i \<le> m"
+      using mon_upclose_ex[of m "u m" x] by auto
+    hence "i \<le> n" using `m \<le> n` by auto
+
+    note mon
+    also have "u m i x \<le> u n i x"
+      using mono_convergentD(1)[OF mc_u `x \<in> s`] `m \<le> n`
+      unfolding incseq_def by auto
+    also have "u n i x \<le> mon_upclose n (u n) x"
+      using mon_upclose_all[OF `i \<le> n`, of "u n" x] .
+    finally show "mon_upclose m (u m) x \<le> mon_upclose n (u n) x" .
+  qed
+
+  show "(\<lambda>i. mon_upclose i (u i) x) ----> h x"
+  proof (rule LIMSEQ_I)
+    fix r :: real assume "0 < r"
+    hence "0 < r / 2" by auto
+    from mono_convergent_limit[OF mc_f `x \<in> s` this]
+    obtain N where f_h: "\<And>n. N \<le> n \<Longrightarrow> h x - f n x < r / 2" by auto
+
+    from mono_convergent_limit[OF mc_u `x \<in> s` `0 < r / 2`]
+    obtain N' where u_f: "\<And>n. N' \<le> n \<Longrightarrow> f N x - u n N x < r / 2" by auto
+
+    show "\<exists>N. \<forall>n\<ge>N. norm (mon_upclose n (u n) x - h x) < r"
+    proof (rule exI[of _ "max N N'"], safe)
+      fix n assume "max N N' \<le> n"
+      hence "N \<le> n" and "N' \<le> n" by auto
+      hence "u n N x \<le> mon_upclose n (u n) x"
+        using mon_upclose_all[of N n "u n" x] by auto
+      moreover
+      from add_strict_mono[OF u_f[OF `N' \<le> n`] f_h[OF order_refl]]
+      have "h x - u n N x < r" by auto
+      ultimately have "h x - mon_upclose n (u n) x < r" by auto
+      moreover
+      obtain i where "mon_upclose n (u n) x = u n i x"
+        using mon_upclose_ex[of n "u n"] by blast
+      with mono_convergent_le[OF mc_u `x \<in> s`, of n i]
+           mono_convergent_le[OF mc_f `x \<in> s`, of i]
+      have "mon_upclose n (u n) x \<le> h x" by auto
+      ultimately
+      show "norm (mon_upclose n (u n) x - h x) < r" by auto
+     qed
+  qed
+qed
+
+lemma mono_conv_outgrow:
+  assumes "incseq x" "x ----> y" "z < y"
+  shows "\<exists>b. \<forall> a \<ge> b. z < x a"
+using assms
+proof -
+  from assms have "y - z > 0" by simp
+  hence A: "\<exists>n. (\<forall> m \<ge> n. \<bar> x m + - y \<bar> < y - z)" using assms
+    unfolding incseq_def LIMSEQ_def dist_real_def real_diff_def
+    by simp
+  have "\<forall>m. x m \<le> y" using incseq_le assms by auto
+  hence B: "\<forall>m. \<bar> x m + - y \<bar> = y - x m"
+    by (metis abs_if abs_minus_add_cancel less_iff_diff_less_0 linorder_not_le real_diff_def)
+  from A B show ?thesis by auto
 qed
 
 end

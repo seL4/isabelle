@@ -6,6 +6,7 @@ Package for defining constants by specification.
 
 signature CHOICE_SPECIFICATION =
 sig
+  val close_form : term -> term
   val add_specification: string option -> (bstring * xstring * bool) list ->
     theory * thm -> theory * thm
 end
@@ -14,6 +15,10 @@ structure Choice_Specification: CHOICE_SPECIFICATION =
 struct
 
 (* actual code *)
+
+fun close_form t =
+    fold_rev (fn (s, T) => fn t => HOLogic.mk_all (s, T, t))
+             (map dest_Free (OldTerm.term_frees t)) t
 
 local
     fun mk_definitional [] arg = arg
@@ -39,9 +44,10 @@ local
         let
             fun process [] (thy,tm) =
                 let
-                    val (thms, thy') = PureThy.add_axioms [((Binding.name axname, HOLogic.mk_Trueprop tm),[])] thy
+                    val (thm, thy') =
+                      Specification.axiom ((Binding.name axname, []), HOLogic.mk_Trueprop tm) thy
                 in
-                    (thy',hd thms)
+                    (thy', Drule.export_without_context thm)
                 end
               | process ((thname,cname,covld)::cos) (thy,tm) =
                 case tm of
@@ -75,7 +81,7 @@ end
 fun add_specification axiomatic cos arg =
     arg |> apsnd Thm.freezeT
         |> proc_exprop axiomatic cos
-        |> apsnd Drule.standard
+        |> apsnd Drule.export_without_context
 
 
 (* Collect all intances of constants in term *)
@@ -85,9 +91,9 @@ fun collect_consts (        t $ u,tms) = collect_consts (u,collect_consts (t,tms
   | collect_consts (tm as Const _,tms) = insert (op aconv) tm tms
   | collect_consts (            _,tms) = tms
 
-(* Complementing Type.varify... *)
+(* Complementing Type.varify_global... *)
 
-fun unvarify t fmap =
+fun unvarify_global t fmap =
     let
         val fmap' = map Library.swap fmap
         fun unthaw (f as (a, S)) =
@@ -111,7 +117,7 @@ fun process_spec axiomatic cos alt_props thy =
           | myfoldr f [] = error "Choice_Specification.process_spec internal error"
 
         val rew_imps = alt_props |>
-          map (ObjectLogic.atomize o Thm.cterm_of thy o Syntax.read_prop_global thy o snd)
+          map (Object_Logic.atomize o Thm.cterm_of thy o Syntax.read_prop_global thy o snd)
         val props' = rew_imps |>
           map (HOLogic.dest_Trueprop o term_of o snd o Thm.dest_equals o cprop_of)
 
@@ -120,8 +126,7 @@ fun process_spec axiomatic cos alt_props thy =
                 val frees = OldTerm.term_frees prop
                 val _ = forall (fn v => Sign.of_sort thy (type_of v,HOLogic.typeS)) frees
                   orelse error "Specificaton: Only free variables of sort 'type' allowed"
-                val prop_closed = fold_rev (fn (vname, T) => fn prop =>
-                  HOLogic.mk_all (vname, T, prop)) (map dest_Free frees) prop
+                val prop_closed = close_form prop
             in
                 (prop_closed,frees)
             end
@@ -131,7 +136,7 @@ fun process_spec axiomatic cos alt_props thy =
         val prop  = myfoldr HOLogic.mk_conj (map fst props'')
         val cprop = cterm_of thy (HOLogic.mk_Trueprop prop)
 
-        val (vmap, prop_thawed) = Type.varify [] prop
+        val (vmap, prop_thawed) = Type.varify_global [] prop
         val thawed_prop_consts = collect_consts (prop_thawed,[])
         val (altcos,overloaded) = Library.split_list cos
         val (names,sconsts) = Library.split_list altcos
@@ -141,14 +146,14 @@ fun process_spec axiomatic cos alt_props thy =
 
         fun proc_const c =
             let
-                val (_, c') = Type.varify [] c
+                val (_, c') = Type.varify_global [] c
                 val (cname,ctyp) = dest_Const c'
             in
                 case filter (fn t => let val (name,typ) = dest_Const t
                                      in name = cname andalso Sign.typ_equiv thy (typ, ctyp)
                                      end) thawed_prop_consts of
                     [] => error ("Specification: No suitable instances of constant \"" ^ Syntax.string_of_term_global thy c ^ "\" found")
-                  | [cf] => unvarify cf vmap
+                  | [cf] => unvarify_global cf vmap
                   | _ => error ("Specification: Several variations of \"" ^ Syntax.string_of_term_global thy c ^ "\" found (try applying explicit type constraints)")
             end
         val proc_consts = map proc_const consts
@@ -189,8 +194,9 @@ fun process_spec axiomatic cos alt_props thy =
                     in
                         args |> apsnd (remove_alls frees)
                              |> apsnd undo_imps
-                             |> apsnd Drule.standard
-                             |> Thm.theory_attributes (map (Attrib.attribute thy) atts)
+                             |> apsnd Drule.export_without_context
+                             |> Thm.theory_attributes (map (Attrib.attribute thy)
+                                                           (Attrib.internal (K Nitpick_Choice_Specs.add) :: atts))
                              |> add_final
                              |> Library.swap
                     end

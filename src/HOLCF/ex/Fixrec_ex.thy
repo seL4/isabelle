@@ -13,7 +13,7 @@ subsection {* Basic @{text fixrec} examples *}
 text {*
   Fixrec patterns can mention any constructor defined by the domain
   package, as well as any of the following built-in constructors:
-  cpair, spair, sinl, sinr, up, ONE, TT, FF.
+  Pair, spair, sinl, sinr, up, ONE, TT, FF.
 *}
 
 text {* Typical usage is with lazy constructors. *}
@@ -50,7 +50,7 @@ text {* Notice that the patterns are not exhaustive. *}
 fixrec
   lzip :: "'a llist \<rightarrow> 'b llist \<rightarrow> ('a \<times> 'b) llist"
 where
-  "lzip\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>(lCons\<cdot>y\<cdot>ys) = lCons\<cdot><x,y>\<cdot>(lzip\<cdot>xs\<cdot>ys)"
+  "lzip\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>(lCons\<cdot>y\<cdot>ys) = lCons\<cdot>(x, y)\<cdot>(lzip\<cdot>xs\<cdot>ys)"
 | "lzip\<cdot>lNil\<cdot>lNil = lNil"
 
 text {* @{text fixrec_simp} is useful for producing strictness theorems. *}
@@ -118,7 +118,7 @@ text {*
 fixrec (permissive)
   lzip2 :: "'a llist \<rightarrow> 'b llist \<rightarrow> ('a \<times> 'b) llist"
 where
-  "lzip2\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>(lCons\<cdot>y\<cdot>ys) = lCons\<cdot><x,y>\<cdot>(lzip\<cdot>xs\<cdot>ys)"
+  "lzip2\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>(lCons\<cdot>y\<cdot>ys) = lCons\<cdot>(x, y)\<cdot>(lzip\<cdot>xs\<cdot>ys)"
 | "lzip2\<cdot>xs\<cdot>ys = lNil"
 
 text {*
@@ -130,7 +130,7 @@ text {*
 text {* Simp rules can be generated later using @{text fixrec_simp}. *}
 
 lemma lzip2_simps [simp]:
-  "lzip2\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>(lCons\<cdot>y\<cdot>ys) = lCons\<cdot><x,y>\<cdot>(lzip\<cdot>xs\<cdot>ys)"
+  "lzip2\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>(lCons\<cdot>y\<cdot>ys) = lCons\<cdot>(x, y)\<cdot>(lzip\<cdot>xs\<cdot>ys)"
   "lzip2\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>lNil = lNil"
   "lzip2\<cdot>lNil\<cdot>(lCons\<cdot>y\<cdot>ys) = lNil"
   "lzip2\<cdot>lNil\<cdot>lNil = lNil"
@@ -150,8 +150,8 @@ domain 'a tree = Leaf (lazy 'a) | Branch (lazy "'a forest")
 and    'a forest = Empty | Trees (lazy "'a tree") "'a forest"
 
 text {*
-  To define mutually recursive functions, separate the equations
-  for each function using the keyword @{text "and"}.
+  To define mutually recursive functions, give multiple type signatures
+  separated by the keyword @{text "and"}.
 *}
 
 fixrec
@@ -173,13 +173,31 @@ by fixrec_simp
 
 text {*
   Theorems generated:
-  @{text map_tree_def}
-  @{text map_forest_def}
-  @{text map_tree_unfold}
-  @{text map_forest_unfold}
-  @{text map_tree_simps}
-  @{text map_forest_simps}
-  @{text map_tree_map_forest_induct}
+  @{text map_tree_def}  @{thm map_tree_def}
+  @{text map_forest_def}  @{thm map_forest_def}
+  @{text map_tree.unfold}  @{thm map_tree.unfold}
+  @{text map_forest.unfold}  @{thm map_forest.unfold}
+  @{text map_tree.simps}  @{thm map_tree.simps}
+  @{text map_forest.simps}  @{thm map_forest.simps}
+  @{text map_tree_map_forest.induct}  @{thm map_tree_map_forest.induct}
 *}
+
+
+subsection {* Using @{text fixrec} inside locales *}
+
+locale test =
+  fixes foo :: "'a \<rightarrow> 'a"
+  assumes foo_strict: "foo\<cdot>\<bottom> = \<bottom>"
+begin
+
+fixrec
+  bar :: "'a u \<rightarrow> 'a"
+where
+  "bar\<cdot>(up\<cdot>x) = foo\<cdot>x"
+
+lemma bar_strict: "bar\<cdot>\<bottom> = \<bottom>"
+by fixrec_simp
+
+end
 
 end

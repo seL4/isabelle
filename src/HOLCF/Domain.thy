@@ -9,112 +9,14 @@ imports Ssum Sprod Up One Tr Fixrec Representable
 uses
   ("Tools/cont_consts.ML")
   ("Tools/cont_proc.ML")
+  ("Tools/Domain/domain_constructors.ML")
   ("Tools/Domain/domain_library.ML")
-  ("Tools/Domain/domain_syntax.ML")
   ("Tools/Domain/domain_axioms.ML")
   ("Tools/Domain/domain_theorems.ML")
   ("Tools/Domain/domain_extender.ML")
 begin
 
 defaultsort pcpo
-
-
-subsection {* Continuous isomorphisms *}
-
-text {* A locale for continuous isomorphisms *}
-
-locale iso =
-  fixes abs :: "'a \<rightarrow> 'b"
-  fixes rep :: "'b \<rightarrow> 'a"
-  assumes abs_iso [simp]: "rep\<cdot>(abs\<cdot>x) = x"
-  assumes rep_iso [simp]: "abs\<cdot>(rep\<cdot>y) = y"
-begin
-
-lemma swap: "iso rep abs"
-  by (rule iso.intro [OF rep_iso abs_iso])
-
-lemma abs_below: "(abs\<cdot>x \<sqsubseteq> abs\<cdot>y) = (x \<sqsubseteq> y)"
-proof
-  assume "abs\<cdot>x \<sqsubseteq> abs\<cdot>y"
-  then have "rep\<cdot>(abs\<cdot>x) \<sqsubseteq> rep\<cdot>(abs\<cdot>y)" by (rule monofun_cfun_arg)
-  then show "x \<sqsubseteq> y" by simp
-next
-  assume "x \<sqsubseteq> y"
-  then show "abs\<cdot>x \<sqsubseteq> abs\<cdot>y" by (rule monofun_cfun_arg)
-qed
-
-lemma rep_below: "(rep\<cdot>x \<sqsubseteq> rep\<cdot>y) = (x \<sqsubseteq> y)"
-  by (rule iso.abs_below [OF swap])
-
-lemma abs_eq: "(abs\<cdot>x = abs\<cdot>y) = (x = y)"
-  by (simp add: po_eq_conv abs_below)
-
-lemma rep_eq: "(rep\<cdot>x = rep\<cdot>y) = (x = y)"
-  by (rule iso.abs_eq [OF swap])
-
-lemma abs_strict: "abs\<cdot>\<bottom> = \<bottom>"
-proof -
-  have "\<bottom> \<sqsubseteq> rep\<cdot>\<bottom>" ..
-  then have "abs\<cdot>\<bottom> \<sqsubseteq> abs\<cdot>(rep\<cdot>\<bottom>)" by (rule monofun_cfun_arg)
-  then have "abs\<cdot>\<bottom> \<sqsubseteq> \<bottom>" by simp
-  then show ?thesis by (rule UU_I)
-qed
-
-lemma rep_strict: "rep\<cdot>\<bottom> = \<bottom>"
-  by (rule iso.abs_strict [OF swap])
-
-lemma abs_defin': "abs\<cdot>x = \<bottom> \<Longrightarrow> x = \<bottom>"
-proof -
-  have "x = rep\<cdot>(abs\<cdot>x)" by simp
-  also assume "abs\<cdot>x = \<bottom>"
-  also note rep_strict
-  finally show "x = \<bottom>" .
-qed
-
-lemma rep_defin': "rep\<cdot>z = \<bottom> \<Longrightarrow> z = \<bottom>"
-  by (rule iso.abs_defin' [OF swap])
-
-lemma abs_defined: "z \<noteq> \<bottom> \<Longrightarrow> abs\<cdot>z \<noteq> \<bottom>"
-  by (erule contrapos_nn, erule abs_defin')
-
-lemma rep_defined: "z \<noteq> \<bottom> \<Longrightarrow> rep\<cdot>z \<noteq> \<bottom>"
-  by (rule iso.abs_defined [OF iso.swap]) (rule iso_axioms)
-
-lemma abs_defined_iff: "(abs\<cdot>x = \<bottom>) = (x = \<bottom>)"
-  by (auto elim: abs_defin' intro: abs_strict)
-
-lemma rep_defined_iff: "(rep\<cdot>x = \<bottom>) = (x = \<bottom>)"
-  by (rule iso.abs_defined_iff [OF iso.swap]) (rule iso_axioms)
-
-lemma (in iso) compact_abs_rev: "compact (abs\<cdot>x) \<Longrightarrow> compact x"
-proof (unfold compact_def)
-  assume "adm (\<lambda>y. \<not> abs\<cdot>x \<sqsubseteq> y)"
-  with cont_Rep_CFun2
-  have "adm (\<lambda>y. \<not> abs\<cdot>x \<sqsubseteq> abs\<cdot>y)" by (rule adm_subst)
-  then show "adm (\<lambda>y. \<not> x \<sqsubseteq> y)" using abs_below by simp
-qed
-
-lemma compact_rep_rev: "compact (rep\<cdot>x) \<Longrightarrow> compact x"
-  by (rule iso.compact_abs_rev [OF iso.swap]) (rule iso_axioms)
-
-lemma compact_abs: "compact x \<Longrightarrow> compact (abs\<cdot>x)"
-  by (rule compact_rep_rev) simp
-
-lemma compact_rep: "compact x \<Longrightarrow> compact (rep\<cdot>x)"
-  by (rule iso.compact_abs [OF iso.swap]) (rule iso_axioms)
-
-lemma iso_swap: "(x = abs\<cdot>y) = (rep\<cdot>x = y)"
-proof
-  assume "x = abs\<cdot>y"
-  then have "rep\<cdot>x = rep\<cdot>(abs\<cdot>y)" by simp
-  then show "rep\<cdot>x = y" by simp
-next
-  assume "rep\<cdot>x = y"
-  then have "abs\<cdot>(rep\<cdot>x) = abs\<cdot>y" by simp
-  then show "x = abs\<cdot>y" by simp
-qed
-
-end
 
 
 subsection {* Casedist *}
@@ -222,11 +124,39 @@ lemmas con_defin_rules =
 lemmas con_defined_iff_rules =
   sinl_defined_iff sinr_defined_iff spair_strict_iff up_defined ONE_defined
 
+lemmas con_below_iff_rules =
+  sinl_below sinr_below sinl_below_sinr sinr_below_sinl con_defined_iff_rules
+
+lemmas con_eq_iff_rules =
+  sinl_eq sinr_eq sinl_eq_sinr sinr_eq_sinl con_defined_iff_rules
+
+lemmas sel_strict_rules =
+  cfcomp2 sscase1 sfst_strict ssnd_strict fup1
+
+lemma sel_app_extra_rules:
+  "sscase\<cdot>ID\<cdot>\<bottom>\<cdot>(sinr\<cdot>x) = \<bottom>"
+  "sscase\<cdot>ID\<cdot>\<bottom>\<cdot>(sinl\<cdot>x) = x"
+  "sscase\<cdot>\<bottom>\<cdot>ID\<cdot>(sinl\<cdot>x) = \<bottom>"
+  "sscase\<cdot>\<bottom>\<cdot>ID\<cdot>(sinr\<cdot>x) = x"
+  "fup\<cdot>ID\<cdot>(up\<cdot>x) = x"
+by (cases "x = \<bottom>", simp, simp)+
+
+lemmas sel_app_rules =
+  sel_strict_rules sel_app_extra_rules
+  ssnd_spair sfst_spair up_defined spair_defined
+
+lemmas sel_defined_iff_rules =
+  cfcomp2 sfst_defined_iff ssnd_defined_iff
+
+lemmas take_con_rules =
+  ID1 ssum_map_sinl' ssum_map_sinr' ssum_map_strict
+  sprod_map_spair' sprod_map_strict u_map_up u_map_strict
+
 use "Tools/cont_consts.ML"
 use "Tools/cont_proc.ML"
 use "Tools/Domain/domain_library.ML"
-use "Tools/Domain/domain_syntax.ML"
 use "Tools/Domain/domain_axioms.ML"
+use "Tools/Domain/domain_constructors.ML"
 use "Tools/Domain/domain_theorems.ML"
 use "Tools/Domain/domain_extender.ML"
 

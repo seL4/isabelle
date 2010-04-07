@@ -76,7 +76,7 @@ by (erule guard.induct, auto)
 
 subsection{*guarded sets*}
 
-constdefs Guard :: "nat => key set => msg set => bool"
+definition Guard :: "nat => key set => msg set => bool" where
 "Guard n Ks H == ALL X. X:H --> X:guard n Ks"
 
 subsection{*basic facts about @{term Guard}*}
@@ -178,12 +178,11 @@ by (erule parts.induct, auto intro: parts.Fst parts.Snd parts.Body)
 
 subsection{*number of Crypt's in a message*}
 
-consts crypt_nb :: "msg => nat"
-
-recdef crypt_nb "measure size"
-"crypt_nb (Crypt K X) = Suc (crypt_nb X)"
-"crypt_nb {|X,Y|} = crypt_nb X + crypt_nb Y"
-"crypt_nb X = 0" (* otherwise *)
+fun crypt_nb :: "msg => nat"
+where
+  "crypt_nb (Crypt K X) = Suc (crypt_nb X)"
+| "crypt_nb {|X,Y|} = crypt_nb X + crypt_nb Y"
+| "crypt_nb X = 0" (* otherwise *)
 
 subsection{*basic facts about @{term crypt_nb}*}
 
@@ -192,11 +191,10 @@ by (induct X, simp_all, safe, simp_all)
 
 subsection{*number of Crypt's in a message list*}
 
-consts cnb :: "msg list => nat"
-
-recdef cnb "measure size"
-"cnb [] = 0"
-"cnb (X#l) = crypt_nb X + cnb l"
+primrec cnb :: "msg list => nat"
+where
+  "cnb [] = 0"
+| "cnb (X#l) = crypt_nb X + cnb l"
 
 subsection{*basic facts about @{term cnb}*}
 
@@ -241,7 +239,7 @@ by (rule kparts_msg_set)
 
 subsection{*list corresponding to "decrypt"*}
 
-constdefs decrypt' :: "msg list => key => msg => msg list"
+definition decrypt' :: "msg list => key => msg => msg list" where
 "decrypt' l K Y == Y # remove l (Crypt K Y)"
 
 declare decrypt'_def [simp]
