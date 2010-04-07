@@ -106,22 +106,6 @@ fun select_certificates name = Certificates.put (
 
 local
 
-fun invoke ctxt output f problem_path =
-  let
-    fun pretty tag ls = Pretty.string_of (Pretty.big_list tag
-      (map Pretty.str ls))
-
-    val x = File.open_output output problem_path
-    val _ = trace_msg ctxt (pretty "SMT problem:" o split_lines o File.read)
-      problem_path
-
-    val (res, err) = with_timeout ctxt f problem_path
-    val _ = trace_msg ctxt (pretty "SMT solver:") err
-
-    val ls = rev (dropwhile (equal "") (rev res))
-    val _ = trace_msg ctxt (pretty "SMT result:") ls
-  in (x, ls) end
-
 fun choose {env_var, remote_name} =
   let
     val local_solver = getenv env_var
@@ -144,29 +128,40 @@ fun make_cmd solver args problem_path proof_path = space_implode " " (
   map File.shell_quote (solver @ args) @
   [File.shell_path problem_path, "2>&1", ">", File.shell_path proof_path])
 
-fun no_cmd _ _ = error ("Bad certificates cache: missing certificate")
-
-fun run ctxt cmd args problem_path =
-  let val certs = Certificates.get (Context.Proof ctxt)
-  in
-    if is_none certs 
-    then Cache_IO.run' (make_cmd (choose cmd) args) problem_path
-    else if Config.get ctxt fixed_certificates
-    then Cache_IO.cached' (the certs) (make_cmd (choose cmd) args) problem_path
-    else
-     (tracing ("Using cached certificate from " ^
-        File.shell_path (Cache_IO.cache_path_of (the certs)) ^ " ...");
-      Cache_IO.cached' (the certs) no_cmd problem_path)
-  end
+fun run ctxt cmd args input =
+  (case Certificates.get (Context.Proof ctxt) of
+    NONE => Cache_IO.run (make_cmd (choose cmd) args) input
+  | SOME certs =>
+      (case Cache_IO.lookup certs input of
+        (NONE, key) =>
+          if Config.get ctxt fixed_certificates
+          then error ("Bad certificates cache: missing certificate")
+          else Cache_IO.run_and_cache certs key (make_cmd (choose cmd) args)
+            input
+      | (SOME output, _) =>
+         (tracing ("Using cached certificate from " ^
+            File.shell_path (Cache_IO.cache_path_of certs) ^ " ...");
+          output)))
 
 in
 
-fun run_solver ctxt cmd args output =
-  Cache_IO.with_tmp_file "smt-" (invoke ctxt output (run ctxt cmd args))
+fun run_solver ctxt cmd args input =
+  let
+    fun pretty tag ls = Pretty.string_of (Pretty.big_list tag
+      (map Pretty.str ls))
+
+    val _ = trace_msg ctxt (pretty "SMT problem:" o split_lines) input
+
+    val (res, err) = with_timeout ctxt (run ctxt cmd args) input
+    val _ = trace_msg ctxt (pretty "SMT solver:") err
+
+    val ls = rev (dropwhile (equal "") (rev res))
+    val _ = trace_msg ctxt (pretty "SMT result:") ls
+  in ls end
 
 end
 
-fun make_proof_data ctxt ((recon, thms), ls) =
+fun make_proof_data ctxt (ls, (recon, thms)) =
   {context=ctxt, output=ls, recon=recon, assms=SOME thms}
 
 fun gen_solver name solver ctxt prems =
@@ -179,7 +174,8 @@ fun gen_solver name solver ctxt prems =
     val thy = ProofContext.theory_of ctxt
   in
     SMT_Normalize.normalize ctxt prems
-    ||> run_solver ctxt command arguments o SMT_Translate.translate tc thy
+    ||> SMT_Translate.translate tc thy
+    ||> apfst (run_solver ctxt command arguments)
     ||> reconstruct o make_proof_data ctxt
     |-> fold SMT_Normalize.discharge_definition
   end

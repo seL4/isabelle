@@ -61,7 +61,7 @@ val builtin_preds = T.builtin_make [
 
 (* serialization *)
 
-fun wr s stream = (TextIO.output (stream, s); stream)
+val wr = Buffer.add
 fun wr_line f = f #> wr "\n"
 
 fun sep f = wr " " #> f
@@ -118,11 +118,10 @@ fun wr_expr loc env t =
           | wr_pat (T.SNoPat ts) = wrp "nopat" ts
       in par (wr_quant q #> fold wr_var vs #> wre b #> fold wr_pat ps) end)
 
-fun serialize attributes comments ({typs, funs, preds} : T.sign) ts stream =
-  let
-    fun wr_decl (n, Ts) = wr_line (sep (par (wr n #> fold wr1 Ts)))
+fun serialize attributes comments ({typs, funs, preds} : T.sign) ts =
+  let fun wr_decl (n, Ts) = wr_line (sep (par (wr n #> fold wr1 Ts)))
   in
-    stream
+    Buffer.empty
     |> wr_line (wr "(benchmark Isabelle")
     |> wr_line (wr ":status unknown")
     |> fold (wr_line o wr) attributes
@@ -140,7 +139,7 @@ fun serialize attributes comments ({typs, funs, preds} : T.sign) ts stream =
     |> wr_line (wr ":formula true")
     |> wr_line (wr ")")
     |> fold (fn comment => wr_line (wr ("; " ^ comment))) comments
-    |> K ()
+    |> Buffer.content
   end
 
 

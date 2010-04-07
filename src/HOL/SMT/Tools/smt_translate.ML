@@ -55,11 +55,10 @@ sig
     prefixes: prefixes,
     markers: markers,
     builtins: builtins,
-    serialize: sign -> (string, string) sterm list -> TextIO.outstream -> unit}
+    serialize: sign -> (string, string) sterm list -> string}
   type recon = {typs: typ Symtab.table, terms: term Symtab.table}
 
-  val translate: config -> theory -> thm list -> TextIO.outstream ->
-    recon * thm list
+  val translate: config -> theory -> thm list -> string * (recon * thm list)
 
   val dest_binT: typ -> int
   val dest_funT: int -> typ -> typ list * typ
@@ -180,7 +179,7 @@ type config = {
   prefixes: prefixes,
   markers: markers,
   builtins: builtins,
-  serialize: sign -> (string, string) sterm list -> TextIO.outstream -> unit}
+  serialize: sign -> (string, string) sterm list -> string}
 type recon = {typs: typ Symtab.table, terms: term Symtab.table}
 
 
@@ -527,7 +526,7 @@ end
 
 (* Combination of all translation functions and invocation of serialization. *)
 
-fun translate config thy thms stream =
+fun translate config thy thms =
   let val {strict, prefixes, markers, builtins, serialize} = config
   in
     map Thm.prop_of thms
@@ -535,8 +534,8 @@ fun translate config thy thms stream =
     |> intermediate
     |> (if strict then separate thy else pair [])
     ||>> signature_of prefixes markers builtins thy
-    ||> (fn (sgn, ts) => serialize sgn ts stream)
-    |> (fn ((thms', rtab), _) => (rtab, thms' @ thms))
+    ||> (fn (sgn, ts) => serialize sgn ts)
+    |> (fn ((thms', rtab), str) => (str, (rtab, thms' @ thms)))
   end
 
 end
