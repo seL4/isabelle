@@ -13,25 +13,10 @@ Normalization steps on theorems required by SMT solvers:
 
 signature SMT_NORMALIZE =
 sig
-  val normalize_rule: Proof.context -> thm -> thm
   val instantiate_free: cterm * cterm -> thm -> thm
   val discharge_definition: cterm -> thm -> thm
 
-  val trivial_let: Proof.context -> thm list -> thm list
-  val positive_numerals: Proof.context -> thm list -> thm list
-  val nat_as_int: Proof.context -> thm list -> thm list
-  val add_pair_rules: Proof.context -> thm list -> thm list
-  val add_fun_upd_rules: Proof.context -> thm list -> thm list
-
-  datatype config =
-    RewriteTrivialLets |
-    RewriteNegativeNumerals |
-    RewriteNaturalNumbers |
-    AddPairRules |
-    AddFunUpdRules
-
-  val normalize: config list -> Proof.context -> thm list ->
-    cterm list * thm list
+  val normalize: Proof.context -> thm list -> cterm list * thm list
 end
 
 structure SMT_Normalize: SMT_NORMALIZE =
@@ -485,25 +470,15 @@ end
 
 (* combined normalization *)
 
-datatype config =
-  RewriteTrivialLets |
-  RewriteNegativeNumerals |
-  RewriteNaturalNumbers |
-  AddPairRules |
-  AddFunUpdRules
-
-fun normalize config ctxt thms =
-  let fun if_enabled c f = member (op =) config c ? f ctxt
-  in
-    thms
-    |> if_enabled RewriteTrivialLets trivial_let
-    |> if_enabled RewriteNegativeNumerals positive_numerals
-    |> if_enabled RewriteNaturalNumbers nat_as_int
-    |> if_enabled AddPairRules add_pair_rules
-    |> if_enabled AddFunUpdRules add_fun_upd_rules
-    |> map (unfold_defs ctxt #> normalize_rule ctxt)
-    |> lift_lambdas ctxt
-    |> apsnd (explicit_application ctxt)
-  end
+fun normalize ctxt thms =
+  thms
+  |> trivial_let ctxt
+  |> positive_numerals ctxt
+  |> nat_as_int ctxt
+  |> add_pair_rules ctxt
+  |> add_fun_upd_rules ctxt
+  |> map (unfold_defs ctxt #> normalize_rule ctxt)
+  |> lift_lambdas ctxt
+  |> apsnd (explicit_application ctxt)
 
 end

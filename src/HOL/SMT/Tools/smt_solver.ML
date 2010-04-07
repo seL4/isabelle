@@ -9,9 +9,6 @@ sig
   exception SMT of string
   exception SMT_COUNTEREXAMPLE of bool * term list
 
-  type interface = {
-    normalize: SMT_Normalize.config list,
-    translate: SMT_Translate.config }
   type proof_data = {
     context: Proof.context,
     output: string list,
@@ -20,7 +17,7 @@ sig
   type solver_config = {
     command: {env_var: string, remote_name: string option},
     arguments: string list,
-    interface: string list -> interface,
+    interface: string list -> SMT_Translate.config,
     reconstruct: proof_data -> thm }
 
   (*options*)
@@ -60,10 +57,6 @@ exception SMT of string
 exception SMT_COUNTEREXAMPLE of bool * term list
 
 
-type interface = {
-  normalize: SMT_Normalize.config list,
-  translate: SMT_Translate.config }
-
 type proof_data = {
   context: Proof.context,
   output: string list,
@@ -73,7 +66,7 @@ type proof_data = {
 type solver_config = {
   command: {env_var: string, remote_name: string option},
   arguments: string list,
-  interface: string list -> interface,
+  interface: string list -> SMT_Translate.config,
   reconstruct: proof_data -> thm }
 
 
@@ -182,10 +175,10 @@ fun gen_solver name solver ctxt prems =
     val comments = ("solver: " ^ name) ::
       ("timeout: " ^ string_of_int (Config.get ctxt timeout)) ::
       "arguments:" :: arguments
-    val {normalize=nc, translate=tc} = interface comments
+    val tc = interface comments
     val thy = ProofContext.theory_of ctxt
   in
-    SMT_Normalize.normalize nc ctxt prems
+    SMT_Normalize.normalize ctxt prems
     ||> run_solver ctxt command arguments o SMT_Translate.translate tc thy
     ||> reconstruct o make_proof_data ctxt
     |-> fold SMT_Normalize.discharge_definition

@@ -9,8 +9,8 @@ sig
   val basic_builtins: SMT_Translate.builtins
   val default_attributes: string list
   val gen_interface: SMT_Translate.builtins -> string list -> string list ->
-    SMT_Solver.interface
-  val interface: string list -> SMT_Solver.interface
+    SMT_Translate.config
+  val interface: string list -> SMT_Translate.config
 end
 
 structure SMTLIB_Interface: SMTLIB_INTERFACE =
@@ -154,24 +154,17 @@ val basic_builtins = {
 val default_attributes = [":logic AUFLIRA"]
 
 fun gen_interface builtins attributes comments = {
-  normalize = [
-    SMT_Normalize.RewriteTrivialLets,
-    SMT_Normalize.RewriteNegativeNumerals,
-    SMT_Normalize.RewriteNaturalNumbers,
-    SMT_Normalize.AddPairRules,
-    SMT_Normalize.AddFunUpdRules ],
-  translate = {
-    strict = true,
-    prefixes = {
-      var_prefix = "x",
-      typ_prefix = "T",
-      fun_prefix = "uf_",
-      pred_prefix = "up_" },
-    markers = {
-      term_marker = term_marker,
-      formula_marker = formula_marker },
-    builtins = builtins,
-    serialize = serialize attributes comments }}
+  strict = true,
+  prefixes = {
+    var_prefix = "x",
+    typ_prefix = "T",
+    fun_prefix = "uf_",
+    pred_prefix = "up_" },
+  markers = {
+    term_marker = term_marker,
+    formula_marker = formula_marker },
+  builtins = builtins,
+  serialize = serialize attributes comments }
 
 fun interface comments =
   gen_interface basic_builtins default_attributes comments
