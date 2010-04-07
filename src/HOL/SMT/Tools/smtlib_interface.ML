@@ -158,7 +158,6 @@ fun gen_interface builtins attributes comments = {
     SMT_Normalize.RewriteTrivialLets,
     SMT_Normalize.RewriteNegativeNumerals,
     SMT_Normalize.RewriteNaturalNumbers,
-    SMT_Normalize.AddAbsMinMaxRules,
     SMT_Normalize.AddPairRules,
     SMT_Normalize.AddFunUpdRules ],
   translate = {

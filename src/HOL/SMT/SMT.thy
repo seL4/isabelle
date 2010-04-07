@@ -76,8 +76,4 @@ further information: *}
 
 declare [[ smt_trace = false ]]
 
-text {* Unfold (some) definitions passed to the SMT solver: *}
-
-declare [[ smt_unfold_defs = true ]]
-
 end

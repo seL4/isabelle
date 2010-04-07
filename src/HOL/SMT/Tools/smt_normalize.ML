@@ -20,23 +20,18 @@ sig
   val trivial_let: Proof.context -> thm list -> thm list
   val positive_numerals: Proof.context -> thm list -> thm list
   val nat_as_int: Proof.context -> thm list -> thm list
-  val unfold_defs: bool Config.T
   val add_pair_rules: Proof.context -> thm list -> thm list
   val add_fun_upd_rules: Proof.context -> thm list -> thm list
-  val add_abs_min_max_rules: Proof.context -> thm list -> thm list
 
   datatype config =
     RewriteTrivialLets |
     RewriteNegativeNumerals |
     RewriteNaturalNumbers |
     AddPairRules |
-    AddFunUpdRules |
-    AddAbsMinMaxRules
+    AddFunUpdRules
 
   val normalize: config list -> Proof.context -> thm list ->
     cterm list * thm list
-
-  val setup: theory -> theory
 end
 
 structure SMT_Normalize: SMT_NORMALIZE =
@@ -137,7 +132,6 @@ fun unfold_quants_conv ctxt =
 
 fun normalize_rule ctxt =
   Conv.fconv_rule (
-    unfold_quants_conv ctxt then_conv
     Thm.beta_conversion true then_conv
     Thm.eta_conversion then_conv
     norm_binder_conv ctxt) #>
@@ -283,9 +277,6 @@ end
 
 (* include additional rules *)
 
-val (unfold_defs, unfold_defs_setup) =
-  Attrib.config_bool "smt_unfold_defs" (K true)
-
 local
   val pair_rules = [@{thm fst_conv}, @{thm snd_conv}, @{thm pair_collapse}]
 
@@ -304,36 +295,42 @@ fun add_fun_upd_rules _ =
 end
 
 
+(* unfold definitions of specific constants *)
+
 local
-  fun mk_entry t thm = (Term.head_of t, (thm, thm RS @{thm eq_reflection}))
+  fun mk_entry (t as Const (n, _)) thm = ((n, t), thm)
+    | mk_entry t _ = raise TERM ("mk_entry", [t])
   fun prepare_def thm =
-    (case HOLogic.dest_Trueprop (Thm.prop_of thm) of
-      Const (@{const_name "op ="}, _) $ t $ _ => mk_entry t thm
+    (case Thm.prop_of thm of
+      Const (@{const_name "=="}, _) $ t $ _ => mk_entry (Term.head_of t) thm
     | t => raise TERM ("prepare_def", [t]))
 
   val defs = map prepare_def [
-    @{thm abs_if[where 'a = int]}, @{thm abs_if[where 'a = real]},
-    @{thm min_def[where 'a = int]}, @{thm min_def[where 'a = real]},
-    @{thm max_def[where 'a = int]}, @{thm max_def[where 'a = real]}]
+    @{thm abs_if[where 'a = int, THEN eq_reflection]},
+    @{thm abs_if[where 'a = real, THEN eq_reflection]},
+    @{thm min_def[where 'a = int, THEN eq_reflection]},
+    @{thm min_def[where 'a = real, THEN eq_reflection]},
+    @{thm max_def[where 'a = int, THEN eq_reflection]},
+    @{thm max_def[where 'a = real, THEN eq_reflection]},
+    @{thm Ex1_def}, @{thm Ball_def}, @{thm Bex_def}]
 
-  fun add_sym t = if AList.defined (op =) defs t then insert (op =) t else I
-  fun add_syms thms = fold (Term.fold_aterms add_sym o Thm.prop_of) thms []
+  fun matches thy ((t as Const (n, _)), (m, p)) =
+        n = m andalso Pattern.matches thy (p, t)
+    | matches _ _ = false
 
-  fun unfold_def_conv ds ct =
-    (case AList.lookup (op =) ds (Term.head_of (Thm.term_of ct)) of
-      SOME (_, eq) => Conv.rewr_conv eq
+  fun lookup_def thy = AList.lookup (matches thy) defs
+  fun lookup_def_head thy = lookup_def thy o Term.head_of
+
+  fun occurs_def thy = Term.exists_subterm (is_some o lookup_def thy)
+
+  fun unfold_def_conv ctxt ct =
+    (case lookup_def_head (ProofContext.theory_of ctxt) (Thm.term_of ct) of
+      SOME thm => Conv.rewr_conv thm
     | NONE => Conv.all_conv) ct
-
-  fun unfold_conv ctxt thm =
-    (case filter (member (op =) (add_syms [thm]) o fst) defs of
-      [] => thm
-    | ds => thm |> Conv.fconv_rule
-        (More_Conv.bottom_conv (K (unfold_def_conv ds)) ctxt))
 in
-fun add_abs_min_max_rules ctxt thms =
-  if Config.get ctxt unfold_defs
-  then map (unfold_conv ctxt) thms
-  else map fst (map_filter (AList.lookup (op =) defs) (add_syms thms)) @ thms
+fun unfold_defs ctxt =
+  (occurs_def (ProofContext.theory_of ctxt) o Thm.prop_of) ??
+  Conv.fconv_rule (More_Conv.top_conv unfold_def_conv ctxt)
 end
 
 
@@ -493,8 +490,7 @@ datatype config =
   RewriteNegativeNumerals |
   RewriteNaturalNumbers |
   AddPairRules |
-  AddFunUpdRules |
-  AddAbsMinMaxRules
+  AddFunUpdRules
 
 fun normalize config ctxt thms =
   let fun if_enabled c f = member (op =) config c ? f ctxt
@@ -505,12 +501,9 @@ fun normalize config ctxt thms =
     |> if_enabled RewriteNaturalNumbers nat_as_int
     |> if_enabled AddPairRules add_pair_rules
     |> if_enabled AddFunUpdRules add_fun_upd_rules
-    |> if_enabled AddAbsMinMaxRules add_abs_min_max_rules
-    |> map (normalize_rule ctxt)
+    |> map (unfold_defs ctxt #> normalize_rule ctxt)
     |> lift_lambdas ctxt
     |> apsnd (explicit_application ctxt)
   end
-
-val setup = unfold_defs_setup
 
 end
