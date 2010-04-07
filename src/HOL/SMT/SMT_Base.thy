@@ -138,6 +138,6 @@ use "Tools/smt_translate.ML"
 use "Tools/smt_solver.ML"
 use "Tools/smtlib_interface.ML"
 
-setup {* SMT_Normalize.setup #> SMT_Solver.setup *}
+setup {* SMT_Solver.setup *}
 
 end

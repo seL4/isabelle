@@ -13,34 +13,18 @@ Normalization steps on theorems required by SMT solvers:
 
 signature SMT_NORMALIZE =
 sig
-  val normalize_rule: Proof.context -> thm -> thm
   val instantiate_free: cterm * cterm -> thm -> thm
   val discharge_definition: cterm -> thm -> thm
 
-  val trivial_let: Proof.context -> thm list -> thm list
-  val positive_numerals: Proof.context -> thm list -> thm list
-  val nat_as_int: Proof.context -> thm list -> thm list
-  val unfold_defs: bool Config.T
-  val add_pair_rules: Proof.context -> thm list -> thm list
-  val add_fun_upd_rules: Proof.context -> thm list -> thm list
-  val add_abs_min_max_rules: Proof.context -> thm list -> thm list
-
-  datatype config =
-    RewriteTrivialLets |
-    RewriteNegativeNumerals |
-    RewriteNaturalNumbers |
-    AddPairRules |
-    AddFunUpdRules |
-    AddAbsMinMaxRules
-
-  val normalize: config list -> Proof.context -> thm list ->
-    cterm list * thm list
-
-  val setup: theory -> theory
+  val normalize: Proof.context -> thm list -> cterm list * thm list
 end
 
 structure SMT_Normalize: SMT_NORMALIZE =
 struct
+
+infix 2 ??
+fun (test ?? f) x = if test x then f x else x
+
 
 local
   val all1 = @{lemma "All P == ALL x. P x" by (rule reflexive)}
@@ -133,7 +117,6 @@ fun unfold_quants_conv ctxt =
 
 fun normalize_rule ctxt =
   Conv.fconv_rule (
-    unfold_quants_conv ctxt then_conv
     Thm.beta_conversion true then_conv
     Thm.eta_conversion then_conv
     norm_binder_conv ctxt) #>
@@ -141,10 +124,9 @@ fun normalize_rule ctxt =
   Drule.forall_intr_vars #>
   Conv.fconv_rule (atomize_conv ctxt)
 
-fun instantiate_free (cv, ct) thm =
-  if Term.exists_subterm (equal (Thm.term_of cv)) (Thm.prop_of thm)
-  then Thm.forall_elim ct (Thm.forall_intr cv thm)
-  else thm
+fun instantiate_free (cv, ct) =
+  (Term.exists_subterm (equal (Thm.term_of cv)) o Thm.prop_of) ??
+  (Thm.forall_elim ct o Thm.forall_intr cv)
 
 fun discharge_definition ct thm =
   let val (cv, cu) = Thm.dest_equals ct
@@ -172,11 +154,10 @@ local
     | is_trivial_let _ = false
 
   fun let_conv _ = if_true_conv is_trivial_let (Conv.rewr_conv @{thm Let_def})
-
-  fun cond_let_conv ctxt = if_true_conv (Term.exists_subterm is_trivial_let)
-    (More_Conv.top_conv let_conv ctxt)
 in
-fun trivial_let ctxt = map (Conv.fconv_rule (cond_let_conv ctxt))
+fun trivial_let ctxt =
+  map ((Term.exists_subterm is_trivial_let o Thm.prop_of) ??
+    Conv.fconv_rule (More_Conv.top_conv let_conv ctxt))
 end
 
 
@@ -190,7 +171,6 @@ local
         Term.exists_subterm neg_numeral t andalso
         is_number_sort (ProofContext.theory_of ctxt) (Term.body_type T)
     | is_neg_number _ _ = false
-  fun has_neg_number ctxt = Term.exists_subterm (is_neg_number ctxt)
 
   val pos_numeral_ss = HOL_ss
     addsimps [@{thm Int.number_of_minus}, @{thm Int.number_of_Min}]
@@ -207,11 +187,10 @@ local
   fun pos_conv ctxt = if_conv (is_neg_number ctxt)
     (Simplifier.rewrite (Simplifier.context ctxt pos_numeral_ss))
     Conv.no_conv
-
-  fun cond_pos_conv ctxt = if_true_conv (has_neg_number ctxt)
-    (More_Conv.top_sweep_conv pos_conv ctxt)
 in
-fun positive_numerals ctxt = map (Conv.fconv_rule (cond_pos_conv ctxt))
+fun positive_numerals ctxt =
+  map ((Term.exists_subterm (is_neg_number ctxt) o Thm.prop_of) ??
+    Conv.fconv_rule (More_Conv.top_sweep_conv pos_conv ctxt))
 end
 
 
@@ -275,22 +254,13 @@ local
   val uses_nat_int =
     Term.exists_subterm (member (op aconv) [@{term int}, @{term nat}])
 in
-fun nat_as_int ctxt thms =
-  let
-    fun norm thm = thm
-      |> uses_nat_type (Thm.prop_of thm) ? Conv.fconv_rule (conv ctxt)
-    val thms' = map norm thms
-  in
-    if exists (uses_nat_int o Thm.prop_of) thms' then nat_embedding @ thms'
-    else thms'
-  end
+fun nat_as_int ctxt =
+  map ((uses_nat_type o Thm.prop_of) ?? Conv.fconv_rule (conv ctxt)) #>
+  exists (uses_nat_int o Thm.prop_of) ?? append nat_embedding
 end
 
 
 (* include additional rules *)
-
-val (unfold_defs, unfold_defs_setup) =
-  Attrib.config_bool "smt_unfold_defs" (K true)
 
 local
   val pair_rules = [@{thm fst_conv}, @{thm snd_conv}, @{thm pair_collapse}]
@@ -302,46 +272,50 @@ local
   val is_fun_upd = (fn Const (@{const_name fun_upd}, _) => true | _ => false)
   val exists_fun_upd = Term.exists_subterm is_fun_upd
 in
-fun add_pair_rules _ thms =
-  thms
-  |> exists (exists_pair_type o Thm.prop_of) thms ? append pair_rules
+fun add_pair_rules _ =
+  exists (exists_pair_type o Thm.prop_of) ?? append pair_rules
 
-fun add_fun_upd_rules _ thms =
-  thms
-  |> exists (exists_fun_upd o Thm.prop_of) thms ? append fun_upd_rules
+fun add_fun_upd_rules _ =
+  exists (exists_fun_upd o Thm.prop_of) ?? append fun_upd_rules
 end
 
 
+(* unfold definitions of specific constants *)
+
 local
-  fun mk_entry t thm = (Term.head_of t, (thm, thm RS @{thm eq_reflection}))
+  fun mk_entry (t as Const (n, _)) thm = ((n, t), thm)
+    | mk_entry t _ = raise TERM ("mk_entry", [t])
   fun prepare_def thm =
-    (case HOLogic.dest_Trueprop (Thm.prop_of thm) of
-      Const (@{const_name "op ="}, _) $ t $ _ => mk_entry t thm
+    (case Thm.prop_of thm of
+      Const (@{const_name "=="}, _) $ t $ _ => mk_entry (Term.head_of t) thm
     | t => raise TERM ("prepare_def", [t]))
 
   val defs = map prepare_def [
-    @{thm abs_if[where 'a = int]}, @{thm abs_if[where 'a = real]},
-    @{thm min_def[where 'a = int]}, @{thm min_def[where 'a = real]},
-    @{thm max_def[where 'a = int]}, @{thm max_def[where 'a = real]}]
+    @{thm abs_if[where 'a = int, THEN eq_reflection]},
+    @{thm abs_if[where 'a = real, THEN eq_reflection]},
+    @{thm min_def[where 'a = int, THEN eq_reflection]},
+    @{thm min_def[where 'a = real, THEN eq_reflection]},
+    @{thm max_def[where 'a = int, THEN eq_reflection]},
+    @{thm max_def[where 'a = real, THEN eq_reflection]},
+    @{thm Ex1_def}, @{thm Ball_def}, @{thm Bex_def}]
 
-  fun add_sym t = if AList.defined (op =) defs t then insert (op =) t else I
-  fun add_syms thms = fold (Term.fold_aterms add_sym o Thm.prop_of) thms []
+  fun matches thy ((t as Const (n, _)), (m, p)) =
+        n = m andalso Pattern.matches thy (p, t)
+    | matches _ _ = false
 
-  fun unfold_def_conv ds ct =
-    (case AList.lookup (op =) ds (Term.head_of (Thm.term_of ct)) of
-      SOME (_, eq) => Conv.rewr_conv eq
+  fun lookup_def thy = AList.lookup (matches thy) defs
+  fun lookup_def_head thy = lookup_def thy o Term.head_of
+
+  fun occurs_def thy = Term.exists_subterm (is_some o lookup_def thy)
+
+  fun unfold_def_conv ctxt ct =
+    (case lookup_def_head (ProofContext.theory_of ctxt) (Thm.term_of ct) of
+      SOME thm => Conv.rewr_conv thm
     | NONE => Conv.all_conv) ct
-
-  fun unfold_conv ctxt thm =
-    (case filter (member (op =) (add_syms [thm]) o fst) defs of
-      [] => thm
-    | ds => thm |> Conv.fconv_rule
-        (More_Conv.bottom_conv (K (unfold_def_conv ds)) ctxt))
 in
-fun add_abs_min_max_rules ctxt thms =
-  if Config.get ctxt unfold_defs
-  then map (unfold_conv ctxt) thms
-  else map fst (map_filter (AList.lookup (op =) defs) (add_syms thms)) @ thms
+fun unfold_defs ctxt =
+  (occurs_def (ProofContext.theory_of ctxt) o Thm.prop_of) ??
+  Conv.fconv_rule (More_Conv.top_conv unfold_def_conv ctxt)
 end
 
 
@@ -496,29 +470,15 @@ end
 
 (* combined normalization *)
 
-datatype config =
-  RewriteTrivialLets |
-  RewriteNegativeNumerals |
-  RewriteNaturalNumbers |
-  AddPairRules |
-  AddFunUpdRules |
-  AddAbsMinMaxRules
-
-fun normalize config ctxt thms =
-  let fun if_enabled c f = member (op =) config c ? f ctxt
-  in
-    thms
-    |> if_enabled RewriteTrivialLets trivial_let
-    |> if_enabled RewriteNegativeNumerals positive_numerals
-    |> if_enabled RewriteNaturalNumbers nat_as_int
-    |> if_enabled AddPairRules add_pair_rules
-    |> if_enabled AddFunUpdRules add_fun_upd_rules
-    |> if_enabled AddAbsMinMaxRules add_abs_min_max_rules
-    |> map (normalize_rule ctxt)
-    |> lift_lambdas ctxt
-    |> apsnd (explicit_application ctxt)
-  end
-
-val setup = unfold_defs_setup
+fun normalize ctxt thms =
+  thms
+  |> trivial_let ctxt
+  |> positive_numerals ctxt
+  |> nat_as_int ctxt
+  |> add_pair_rules ctxt
+  |> add_fun_upd_rules ctxt
+  |> map (unfold_defs ctxt #> normalize_rule ctxt)
+  |> lift_lambdas ctxt
+  |> apsnd (explicit_application ctxt)
 
 end

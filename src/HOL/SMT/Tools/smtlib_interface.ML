@@ -9,8 +9,8 @@ sig
   val basic_builtins: SMT_Translate.builtins
   val default_attributes: string list
   val gen_interface: SMT_Translate.builtins -> string list -> string list ->
-    SMT_Solver.interface
-  val interface: string list -> SMT_Solver.interface
+    SMT_Translate.config
+  val interface: string list -> SMT_Translate.config
 end
 
 structure SMTLIB_Interface: SMTLIB_INTERFACE =
@@ -61,7 +61,7 @@ val builtin_preds = T.builtin_make [
 
 (* serialization *)
 
-fun wr s stream = (TextIO.output (stream, s); stream)
+val wr = Buffer.add
 fun wr_line f = f #> wr "\n"
 
 fun sep f = wr " " #> f
@@ -118,11 +118,10 @@ fun wr_expr loc env t =
           | wr_pat (T.SNoPat ts) = wrp "nopat" ts
       in par (wr_quant q #> fold wr_var vs #> wre b #> fold wr_pat ps) end)
 
-fun serialize attributes comments ({typs, funs, preds} : T.sign) ts stream =
-  let
-    fun wr_decl (n, Ts) = wr_line (sep (par (wr n #> fold wr1 Ts)))
+fun serialize attributes comments ({typs, funs, preds} : T.sign) ts =
+  let fun wr_decl (n, Ts) = wr_line (sep (par (wr n #> fold wr1 Ts)))
   in
-    stream
+    Buffer.empty
     |> wr_line (wr "(benchmark Isabelle")
     |> wr_line (wr ":status unknown")
     |> fold (wr_line o wr) attributes
@@ -140,7 +139,7 @@ fun serialize attributes comments ({typs, funs, preds} : T.sign) ts stream =
     |> wr_line (wr ":formula true")
     |> wr_line (wr ")")
     |> fold (fn comment => wr_line (wr ("; " ^ comment))) comments
-    |> K ()
+    |> Buffer.content
   end
 
 
@@ -154,25 +153,17 @@ val basic_builtins = {
 val default_attributes = [":logic AUFLIRA"]
 
 fun gen_interface builtins attributes comments = {
-  normalize = [
-    SMT_Normalize.RewriteTrivialLets,
-    SMT_Normalize.RewriteNegativeNumerals,
-    SMT_Normalize.RewriteNaturalNumbers,
-    SMT_Normalize.AddAbsMinMaxRules,
-    SMT_Normalize.AddPairRules,
-    SMT_Normalize.AddFunUpdRules ],
-  translate = {
-    strict = true,
-    prefixes = {
-      var_prefix = "x",
-      typ_prefix = "T",
-      fun_prefix = "uf_",
-      pred_prefix = "up_" },
-    markers = {
-      term_marker = term_marker,
-      formula_marker = formula_marker },
-    builtins = builtins,
-    serialize = serialize attributes comments }}
+  strict = true,
+  prefixes = {
+    var_prefix = "x",
+    typ_prefix = "T",
+    fun_prefix = "uf_",
+    pred_prefix = "up_" },
+  markers = {
+    term_marker = term_marker,
+    formula_marker = formula_marker },
+  builtins = builtins,
+  serialize = serialize attributes comments }
 
 fun interface comments =
   gen_interface basic_builtins default_attributes comments

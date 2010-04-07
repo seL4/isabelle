@@ -62,11 +62,11 @@ of certificates): *}
 
 declare [[ smt_certificates = "" ]]
 
-text {* Enables or disables the addition of new certificates to
-the current certificates file (when disabled, only existing
-certificates are used and no SMT solver is invoked): *}
+text {* Allows or disallows the addition of new certificates to
+the current certificates file (when set to @{text false}, only
+existing certificates are used and no SMT solver is invoked): *}
 
-declare [[ smt_record = true ]]
+declare [[ smt_fixed = false ]]
 
 
 subsection {* Special configuration options *}
@@ -75,9 +75,5 @@ text {* Trace the problem file, the result of the SMT solver and
 further information: *}
 
 declare [[ smt_trace = false ]]
-
-text {* Unfold (some) definitions passed to the SMT solver: *}
-
-declare [[ smt_unfold_defs = true ]]
 
 end

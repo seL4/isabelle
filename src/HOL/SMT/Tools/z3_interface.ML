@@ -6,7 +6,7 @@ Interface to Z3 based on a relaxed version of SMT-LIB.
 
 signature Z3_INTERFACE =
 sig
-  val interface: string list -> SMT_Solver.interface
+  val interface: string list -> SMT_Translate.config
 end
 
 structure Z3_Interface: Z3_INTERFACE =
