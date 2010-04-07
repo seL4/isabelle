@@ -2045,15 +2045,24 @@ lemma insert_partition:
 by auto
 
 lemma finite_psubset_induct[consumes 1, case_names psubset]:
-  assumes "finite A" and "!!A. finite A \<Longrightarrow> (!!B. finite B \<Longrightarrow> B \<subset> A \<Longrightarrow> P(B)) \<Longrightarrow> P(A)" shows "P A"
-using assms(1)
-proof (induct A rule: measure_induct_rule[where f=card])
+  assumes fin: "finite A" 
+  and     major: "\<And>A. finite A \<Longrightarrow> (\<And>B. B \<subset> A \<Longrightarrow> P B) \<Longrightarrow> P A" 
+  shows "P A"
+using fin
+proof (induct A taking: card rule: measure_induct_rule)
   case (less A)
-  show ?case
-  proof(rule assms(2)[OF less(2)])
-    fix B assume "finite B" "B \<subset> A"
-    show "P B" by(rule less(1)[OF psubset_card_mono[OF less(2) `B \<subset> A`] `finite B`])
-  qed
+  have fin: "finite A" by fact
+  have ih: "\<And>B. \<lbrakk>card B < card A; finite B\<rbrakk> \<Longrightarrow> P B" by fact
+  { fix B 
+    assume asm: "B \<subset> A"
+    from asm have "card B < card A" using psubset_card_mono fin by blast
+    moreover
+    from asm have "B \<subseteq> A" by auto
+    then have "finite B" using fin finite_subset by blast
+    ultimately 
+    have "P B" using ih by simp
+  }
+  with fin show "P A" using major by blast
 qed
 
 text{* main cardinality theorem *}

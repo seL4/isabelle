@@ -1676,27 +1676,31 @@ proof -
 qed
 
 lemma finite_linorder_max_induct[consumes 1, case_names empty insert]:
- "finite A \<Longrightarrow> P {} \<Longrightarrow>
-  (!!b A. finite A \<Longrightarrow> ALL a:A. a < b \<Longrightarrow> P A \<Longrightarrow> P(insert b A))
-  \<Longrightarrow> P A"
+ assumes fin: "finite A"
+ and   empty: "P {}" 
+ and  insert: "(!!b A. finite A \<Longrightarrow> ALL a:A. a < b \<Longrightarrow> P A \<Longrightarrow> P(insert b A))"
+ shows "P A"
+using fin empty insert
 proof (induct rule: finite_psubset_induct)
-  fix A :: "'a set"
-  assume IH: "!! B. finite B \<Longrightarrow> B < A \<Longrightarrow> P {} \<Longrightarrow>
-                 (!!b A. finite A \<Longrightarrow> (\<forall>a\<in>A. a<b) \<Longrightarrow> P A \<Longrightarrow> P (insert b A))
-                  \<Longrightarrow> P B"
-  and "finite A" and "P {}"
-  and step: "!!b A. \<lbrakk>finite A; \<forall>a\<in>A. a < b; P A\<rbrakk> \<Longrightarrow> P (insert b A)"
+  case (psubset A)
+  have IH: "\<And>B. \<lbrakk>B < A; P {}; (\<And>A b. \<lbrakk>finite A; \<forall>a\<in>A. a<b; P A\<rbrakk> \<Longrightarrow> P (insert b A))\<rbrakk> \<Longrightarrow> P B" by fact 
+  have fin: "finite A" by fact 
+  have empty: "P {}" by fact
+  have step: "\<And>b A. \<lbrakk>finite A; \<forall>a\<in>A. a < b; P A\<rbrakk> \<Longrightarrow> P (insert b A)" by fact
   show "P A"
   proof (cases "A = {}")
-    assume "A = {}" thus "P A" using `P {}` by simp
+    assume "A = {}" 
+    then show "P A" using `P {}` by simp
   next
-    let ?B = "A - {Max A}" let ?A = "insert (Max A) ?B"
+    let ?B = "A - {Max A}" 
+    let ?A = "insert (Max A) ?B"
+    have "finite ?B" using `finite A` by simp
     assume "A \<noteq> {}"
     with `finite A` have "Max A : A" by auto
-    hence A: "?A = A" using insert_Diff_single insert_absorb by auto
-    moreover have "finite ?B" using `finite A` by simp
-    ultimately have "P ?B" using `P {}` step IH[of ?B] by blast
-    moreover have "\<forall>a\<in>?B. a < Max A" using Max_ge [OF `finite A`] by fastsimp
+    then have A: "?A = A" using insert_Diff_single insert_absorb by auto
+    then have "P ?B" using `P {}` step IH[of ?B] by blast
+    moreover 
+    have "\<forall>a\<in>?B. a < Max A" using Max_ge [OF `finite A`] by fastsimp
     ultimately show "P A" using A insert_Diff_single step[OF `finite ?B`] by fastsimp
   qed
 qed
