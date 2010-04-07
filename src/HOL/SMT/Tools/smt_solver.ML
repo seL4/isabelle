@@ -262,11 +262,22 @@ local
            | SMT_COUNTEREXAMPLE ce => fail_tac tracing (pretty_cex ctxt ce) st)
 
   fun smt_solver rules ctxt = solver_of (Context.Proof ctxt) ctxt rules
+
+  val has_topsort = Term.exists_type (Term.exists_subtype (fn
+      TFree (_, []) => true
+    | TVar (_, []) => true
+    | _ => false))
 in
 fun smt_tac' pass_exns ctxt rules =
   Tactic.rtac @{thm ccontr} THEN'
   SUBPROOF (fn {context, prems, ...} =>
-    SAFE pass_exns (Tactic.rtac o smt_solver (rules @ prems)) context 1) ctxt
+    let val thms = rules @ prems
+    in
+      if exists (has_topsort o Thm.prop_of) thms
+      then fail_tac (trace_msg context I)
+        "SMT: proof state contains the universal sort {}"
+      else SAFE pass_exns (Tactic.rtac o smt_solver thms) context 1
+    end) ctxt
 
 val smt_tac = smt_tac' false
 end

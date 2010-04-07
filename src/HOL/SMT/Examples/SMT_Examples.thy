@@ -539,7 +539,8 @@ section {* Higher-order problems and recursion *}
 
 lemma "i \<noteq> i1 \<and> i \<noteq> i2 \<Longrightarrow> (f (i1 := v1, i2 := v2)) i = f i" by smt
 
-lemma "(f g x = (g x \<and> True)) \<or> (f g x = True) \<or> (g x = True)" by smt
+lemma "(f g (x::'a::type) = (g x \<and> True)) \<or> (f g x = True) \<or> (g x = True)"
+  by smt
 
 lemma "id 3 = 3 \<and> id True = True" by (smt id_def)
 
