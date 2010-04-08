@@ -789,6 +789,10 @@ $(LOG)/HOL-Imperative_HOL.gz: $(OUT)/HOL Imperative_HOL/Heap.thy \
   Imperative_HOL/Ref.thy Imperative_HOL/Imperative_HOL.thy \
   Imperative_HOL/Imperative_HOL_ex.thy \
   Imperative_HOL/ex/Imperative_Quicksort.thy \
+  Imperative_HOL/ex/Imperative_Reverse.thy \
+  Imperative_HOL/ex/Linked_Lists.thy \
+  Imperative_HOL/ex/SatChecker.thy \
+  Imperative_HOL/ex/Sorted_List.thy \
   Imperative_HOL/ex/Subarray.thy \
   Imperative_HOL/ex/Sublist.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Imperative_HOL

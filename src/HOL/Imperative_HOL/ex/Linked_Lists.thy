@@ -1,3 +1,9 @@
+(*  Title:      HOL/Imperative_HOL/ex/Linked_Lists.thy
+    Author:     Lukas Bulwahn, TU Muenchen
+*)
+
+header {* Linked Lists by ML references *}
+
 theory Linked_Lists
 imports "~~/src/HOL/Imperative_HOL/Imperative_HOL" Code_Integer
 begin

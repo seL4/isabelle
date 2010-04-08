@@ -1,3 +1,9 @@
+(*  Title:      HOL/Imperative_HOL/ex/Subarray.thy
+    Author:     Lukas Bulwahn, TU Muenchen
+*)
+
+header {* Theorems about sub arrays *}
+
 theory Subarray
 imports Array Sublist
 begin

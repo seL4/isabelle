@@ -1,4 +1,8 @@
-(* Author: Lukas Bulwahn, TU Muenchen *)
+(*  Title:      HOL/Imperative_HOL/ex/Imperative_Quicksort.thy
+    Author:     Lukas Bulwahn, TU Muenchen
+*)
+
+header {* An imperative implementation of Quicksort on arrays *}
 
 theory Imperative_Quicksort
 imports "~~/src/HOL/Imperative_HOL/Imperative_HOL" Subarray Multiset Efficient_Nat

@@ -1,3 +1,6 @@
+(*  Title:      HOL/Imperative_HOL/ex/Sublist.thy
+    Author:     Lukas Bulwahn, TU Muenchen
+*)
 
 header {* Slices of lists *}
 

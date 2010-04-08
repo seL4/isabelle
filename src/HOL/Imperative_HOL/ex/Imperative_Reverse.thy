@@ -1,3 +1,9 @@
+(*  Title:      HOL/Imperative_HOL/ex/Imperative_Reverse.thy
+    Author:     Lukas Bulwahn, TU Muenchen
+*)
+
+header {* An imperative in-place reversal on arrays *}
+
 theory Imperative_Reverse
 imports "~~/src/HOL/Imperative_HOL/Imperative_HOL" Subarray
 begin
