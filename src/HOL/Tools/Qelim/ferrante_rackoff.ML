@@ -187,6 +187,7 @@ val grab_atom_bop =
    | Const ("op -->", _) $ _ $ _ => find_args bounds tm
    | Const ("==>", _) $ _ $ _ => find_args bounds tm
    | Const ("==", _) $ _ $ _ => find_args bounds tm
+   | Const ("all", _) $ _ => find_body bounds (Thm.dest_arg tm)
    | Const ("Trueprop", _) $ _ => h bounds (Thm.dest_arg tm)
    | _ => Thm.dest_fun2 tm)
   and find_args bounds tm =
