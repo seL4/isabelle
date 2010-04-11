@@ -333,8 +333,8 @@ fun declare class ((c, mx), (type_params, dict)) thy =
     |> Sign.declare_const ((b, Type.strip_sorts ty'), mx)
     |> snd
     |> Thm.add_def false false (b_def, def_eq)
-    |>> Thm.varifyT_global
-    |-> (fn def_thm => PureThy.store_thm (b_def, def_thm)
+    |>> apsnd Thm.varifyT_global
+    |-> (fn (_, def_thm) => PureThy.store_thm (b_def, def_thm)
       #> snd
       #> null type_params ? register_operation class (c', (dict', SOME (Thm.symmetric def_thm))))
     |> Sign.add_const_constraint (c', SOME ty')

@@ -91,7 +91,7 @@ fun declare_skofuns s th =
             val (c, thy') =
               Sign.declare_const ((Binding.conceal (Binding.name cname), cT), NoSyn) thy
             val cdef = cname ^ "_def"
-            val (ax, thy'') =
+            val ((_, ax), thy'') =
               Thm.add_def true false (Binding.name cdef, Logic.mk_equals (c, rhs)) thy'
             val ax' = Drule.export_without_context ax
           in dec_sko (subst_bound (list_comb (c, args), p)) (ax' :: axs, thy'') end

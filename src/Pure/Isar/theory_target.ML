@@ -315,7 +315,7 @@ fun define ta ((b, mx), ((name, atts), rhs)) lthy =
         | NONE =>
             if is_some (Class_Target.instantiation_param lthy b)
             then AxClass.define_overloaded name' (head, rhs')
-            else Thm.add_def false false (name', Logic.mk_equals (lhs', rhs')));
+            else Thm.add_def false false (name', Logic.mk_equals (lhs', rhs')) #>> snd);
     val def = Local_Defs.trans_terms lthy3
       [(*c == global.c xs*)     local_def,
        (*global.c xs == rhs'*)  global_def,

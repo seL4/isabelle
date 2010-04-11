@@ -117,7 +117,7 @@ fun primitive_typedef typedef_name newT oldT Rep_name Abs_name A thy =
 
     val typedef_deps = Term.add_consts A [];
 
-    val (axiom, axiom_thy) = consts_thy
+    val ((axiom_name, axiom), axiom_thy) = consts_thy
       |> Thm.add_axiom (typedef_name, mk_typedef newT oldT RepC AbsC A)
       ||> Theory.add_deps "" (dest_Const RepC) typedef_deps
       ||> Theory.add_deps "" (dest_Const AbsC) typedef_deps;
