@@ -47,6 +47,7 @@ proof
   show "[] \<in> ?dlist" by simp
 qed
 
+
 text {* Formal, totalized constructor for @{typ "'a dlist"}: *}
 
 definition Dlist :: "'a list \<Rightarrow> 'a dlist" where
@@ -60,7 +61,7 @@ lemma list_of_dlist_Dlist [simp]:
   "list_of_dlist (Dlist xs) = remdups xs"
   by (simp add: Dlist_def Abs_dlist_inverse)
 
-lemma Dlist_list_of_dlist [simp]:
+lemma Dlist_list_of_dlist [simp, code abstype]:
   "Dlist (list_of_dlist dxs) = dxs"
   by (simp add: Dlist_def list_of_dlist_inverse distinct_remdups_id)
 
@@ -99,9 +100,6 @@ definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a dlis
 
 
 section {* Executable version obeying invariant *}
-
-code_abstype Dlist list_of_dlist
-  by simp
 
 lemma list_of_dlist_empty [simp, code abstract]:
   "list_of_dlist empty = []"
