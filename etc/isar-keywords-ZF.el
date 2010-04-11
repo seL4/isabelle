@@ -43,7 +43,6 @@
     "classes"
     "classrel"
     "codatatype"
-    "code_abstype"
     "code_datatype"
     "code_library"
     "code_module"
@@ -416,8 +415,7 @@
   '("inductive_cases"))
 
 (defconst isar-keywords-theory-goal
-  '("code_abstype"
-    "corollary"
+  '("corollary"
     "instance"
     "interpretation"
     "lemma"
