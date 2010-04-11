@@ -415,11 +415,11 @@ fun of_sort_derivation algebra {class_relation, type_constructor, type_variable}
         SOME d1 => class_relation T d1 c2
       | NONE => raise CLASS_ERROR (NoSubsort (map #2 S1, S2))));
 
-    fun derive _ [] = []
-      | derive (T as Type (a, Us)) S =
+    fun derive (_, []) = []
+      | derive (T as Type (a, Us), S) =
           let
             val Ss = mg_domain algebra a S;
-            val dom = map2 (fn U => fn S => derive U S ~~ S) Us Ss;
+            val dom = map2 (fn U => fn S => derive (U, S) ~~ S) Us Ss;
           in
             S |> map (fn c =>
               let
@@ -427,8 +427,8 @@ fun of_sort_derivation algebra {class_relation, type_constructor, type_variable}
                 val dom' = map (fn ((U, d), S') => weaken U d S' ~~ S') ((Us ~~ dom) ~~ Ss');
               in class_relation T (type_constructor (a, Us) dom' c0, c0) c end)
           end
-      | derive T S = weaken T (type_variable T) S;
-  in uncurry derive end;
+      | derive (T, S) = weaken T (type_variable T) S;
+  in derive end;
 
 fun classrel_derivation algebra class_relation =
   let
