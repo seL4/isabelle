@@ -767,14 +767,14 @@ and translate_dicts thy (algbr as (proj_sort, algebra)) eqngr some_thm (ty, sort
           Global ((class, tyco), yss)
       | class_relation (Local (classrels, v), subclass) superclass =
           Local ((subclass, superclass) :: classrels, v);
-    fun type_constructor tyco yss class =
+    fun type_constructor (tyco, _) yss class =
       Global ((class, tyco), (map o map) fst yss);
     fun type_variable (TFree (v, sort)) =
       let
         val sort' = proj_sort sort;
       in map_index (fn (n, class) => (Local ([], (v, (n, sort'))), class)) sort' end;
     val typargs = Sorts.of_sort_derivation algebra
-      {class_relation = Sorts.classrel_derivation algebra class_relation,
+      {class_relation = K (Sorts.classrel_derivation algebra class_relation),
        type_constructor = type_constructor,
        type_variable = type_variable} (ty, proj_sort sort)
       handle Sorts.CLASS_ERROR e => not_wellsorted thy some_thm ty sort e;

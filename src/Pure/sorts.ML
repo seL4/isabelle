@@ -57,8 +57,8 @@ sig
   val meet_sort_typ: algebra -> typ * sort -> typ -> typ   (*exception CLASS_ERROR*)
   val of_sort: algebra -> typ * sort -> bool
   val of_sort_derivation: algebra ->
-    {class_relation: 'a * class -> class -> 'a,
-     type_constructor: string -> ('a * class) list list -> class -> 'a,
+    {class_relation: typ -> 'a * class -> class -> 'a,
+     type_constructor: string * typ list -> ('a * class) list list -> class -> 'a,
      type_variable: typ -> ('a * class) list} ->
     typ * sort -> 'a list   (*exception CLASS_ERROR*)
   val classrel_derivation: algebra ->
@@ -410,24 +410,24 @@ fun of_sort_derivation algebra {class_relation, type_constructor, type_variable}
   let
     val arities = arities_of algebra;
 
-    fun weaken S1 S2 = S2 |> map (fn c2 =>
+    fun weaken T S1 S2 = S2 |> map (fn c2 =>
       (case S1 |> find_first (fn (_, c1) => class_le algebra (c1, c2)) of
-        SOME d1 => class_relation d1 c2
+        SOME d1 => class_relation T d1 c2
       | NONE => raise CLASS_ERROR (NoSubsort (map #2 S1, S2))));
 
     fun derive _ [] = []
-      | derive (Type (a, Ts)) S =
+      | derive (T as Type (a, Us)) S =
           let
             val Ss = mg_domain algebra a S;
-            val dom = map2 (fn T => fn S => derive T S ~~ S) Ts Ss;
+            val dom = map2 (fn U => fn S => derive U S ~~ S) Us Ss;
           in
             S |> map (fn c =>
               let
                 val (c0, Ss') = the (AList.lookup (op =) (Symtab.lookup_list arities a) c);
-                val dom' = map2 (fn d => fn S' => weaken d S' ~~ S') dom Ss';
-              in class_relation (type_constructor a dom' c0, c0) c end)
+                val dom' = map (fn ((U, d), S') => weaken U d S' ~~ S') ((Us ~~ dom) ~~ Ss');
+              in class_relation T (type_constructor (a, Us) dom' c0, c0) c end)
           end
-      | derive T S = weaken (type_variable T) S;
+      | derive T S = weaken T (type_variable T) S;
   in uncurry derive end;
 
 fun classrel_derivation algebra class_relation =
