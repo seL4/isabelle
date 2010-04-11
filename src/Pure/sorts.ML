@@ -410,10 +410,15 @@ fun of_sort_derivation algebra {class_relation, type_constructor, type_variable}
   let
     val arities = arities_of algebra;
 
-    fun weaken T S1 S2 = S2 |> map (fn c2 =>
-      (case S1 |> find_first (fn (_, c1) => class_le algebra (c1, c2)) of
-        SOME d1 => class_relation T d1 c2
-      | NONE => raise CLASS_ERROR (NoSubsort (map #2 S1, S2))));
+    fun weaken T D1 S2 =
+      let val S1 = map snd D1 in
+        if S1 = S2 then map fst D1
+        else
+          S2 |> map (fn c2 =>
+            (case D1 |> find_first (fn (_, c1) => class_le algebra (c1, c2)) of
+              SOME d1 => class_relation T d1 c2
+            | NONE => raise CLASS_ERROR (NoSubsort (S1, S2))))
+      end;
 
     fun derive (_, []) = []
       | derive (T as Type (a, Us), S) =
