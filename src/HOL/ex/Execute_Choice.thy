@@ -58,15 +58,15 @@ lemma valuesum_choice:
 
 text {*
   Given @{text valuesum_rec} as initial description, we stepwise refine it to something executable;
-  first, we formally insert the constructor @{term AList} and split the one equation into two,
+  first, we formally insert the constructor @{term Mapping} and split the one equation into two,
   where the second one provides the necessary context:
 *}
 
-lemma valuesum_rec_AList:
-  shows [code]: "valuesum (AList []) = 0"
-  and "valuesum (AList (x # xs)) = (let l = (SOME l. l \<in> Mapping.keys (AList (x # xs))) in
-    the (Mapping.lookup (AList (x # xs)) l) + valuesum (Mapping.delete l (AList (x # xs))))"
-  by (simp_all add: valuesum_rec finite_dom_map_of is_empty_AList)
+lemma valuesum_rec_Mapping:
+  shows [code]: "valuesum (Mapping []) = 0"
+  and "valuesum (Mapping (x # xs)) = (let l = (SOME l. l \<in> Mapping.keys (Mapping (x # xs))) in
+    the (Mapping.lookup (Mapping (x # xs)) l) + valuesum (Mapping.delete l (Mapping (x # xs))))"
+  by (simp_all add: valuesum_rec finite_dom_map_of is_empty_Mapping)
 
 text {*
   As a side effect the precondition disappears (but note this has nothing to do with choice!).
@@ -76,27 +76,27 @@ text {*
 *}
 
 lemma valuesum_rec_exec [code]:
-  "valuesum (AList (x # xs)) = (let l = fst (hd (x # xs)) in
-    the (Mapping.lookup (AList (x # xs)) l) + valuesum (Mapping.delete l (AList (x # xs))))"
+  "valuesum (Mapping (x # xs)) = (let l = fst (hd (x # xs)) in
+    the (Mapping.lookup (Mapping (x # xs)) l) + valuesum (Mapping.delete l (Mapping (x # xs))))"
 proof -
-  let ?M = "AList (x # xs)"
+  let ?M = "Mapping (x # xs)"
   let ?l1 = "(SOME l. l \<in> Mapping.keys ?M)"
   let ?l2 = "fst (hd (x # xs))"
-  have "finite (Mapping.keys ?M)" by (simp add: keys_AList)
+  have "finite (Mapping.keys ?M)" by (simp add: keys_Mapping)
   moreover have "?l1 \<in> Mapping.keys ?M"
-    by (rule someI) (auto simp add: keys_AList)
+    by (rule someI) (auto simp add: keys_Mapping)
   moreover have "?l2 \<in> Mapping.keys ?M"
-    by (simp add: keys_AList)
+    by (simp add: keys_Mapping)
   ultimately have "the (Mapping.lookup ?M ?l1) + valuesum (Mapping.delete ?l1 ?M) =
     the (Mapping.lookup ?M ?l2) + valuesum (Mapping.delete ?l2 ?M)"
     by (rule valuesum_choice)
-  then show ?thesis by (simp add: valuesum_rec_AList)
+  then show ?thesis by (simp add: valuesum_rec_Mapping)
 qed
   
 text {*
   See how it works:
 *}
 
-value "valuesum (AList [(''abc'', (42::int)), (''def'', 1705)])"
+value "valuesum (Mapping [(''abc'', (42::int)), (''def'', 1705)])"
 
 end
