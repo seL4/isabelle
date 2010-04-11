@@ -335,15 +335,15 @@ fun subalgebra pp P sargs (algebra as Algebra {classes, arities}) =
 (* errors -- performance tuning via delayed message composition *)
 
 datatype class_error =
-  NoClassrel of class * class |
-  NoArity of string * class |
-  NoSubsort of sort * sort;
+  No_Classrel of class * class |
+  No_Arity of string * class |
+  No_Subsort of sort * sort;
 
-fun class_error pp (NoClassrel (c1, c2)) =
+fun class_error pp (No_Classrel (c1, c2)) =
       "No class relation " ^ Pretty.string_of_classrel pp [c1, c2]
-  | class_error pp (NoArity (a, c)) =
+  | class_error pp (No_Arity (a, c)) =
       "No type arity " ^ Pretty.string_of_arity pp (a, [], [c])
-  | class_error pp (NoSubsort (S1, S2)) =
+  | class_error pp (No_Subsort (S1, S2)) =
      "Cannot derive subsort relation " ^ Pretty.string_of_sort pp S1
        ^ " < " ^ Pretty.string_of_sort pp S2;
 
@@ -357,7 +357,7 @@ fun mg_domain algebra a S =
     val arities = arities_of algebra;
     fun dom c =
       (case AList.lookup (op =) (Symtab.lookup_list arities a) c of
-        NONE => raise CLASS_ERROR (NoArity (a, c))
+        NONE => raise CLASS_ERROR (No_Arity (a, c))
       | SOME (_, Ss) => Ss);
     fun dom_inter c Ss = ListPair.map (inter_sort algebra) (dom c, Ss);
   in
@@ -375,7 +375,7 @@ fun meet_sort algebra =
     fun meet _ [] = I
       | meet (TFree (_, S)) S' =
           if sort_le algebra (S, S') then I
-          else raise CLASS_ERROR (NoSubsort (S, S'))
+          else raise CLASS_ERROR (No_Subsort (S, S'))
       | meet (TVar (v, S)) S' =
           if sort_le algebra (S, S') then I
           else Vartab.map_default (v, S) (inters S')
@@ -417,7 +417,7 @@ fun of_sort_derivation algebra {class_relation, type_constructor, type_variable}
           S2 |> map (fn c2 =>
             (case D1 |> find_first (fn (_, c1) => class_le algebra (c1, c2)) of
               SOME d1 => class_relation T d1 c2
-            | NONE => raise CLASS_ERROR (NoSubsort (S1, S2))))
+            | NONE => raise CLASS_ERROR (No_Subsort (S1, S2))))
       end;
 
     fun derive (_, []) = []
@@ -442,7 +442,7 @@ fun classrel_derivation algebra class_relation =
   in
     fn (x, c1) => fn c2 =>
       (case Graph.irreducible_paths (classes_of algebra) (c1, c2) of
-        [] => raise CLASS_ERROR (NoClassrel (c1, c2))
+        [] => raise CLASS_ERROR (No_Classrel (c1, c2))
       | cs :: _ => path (x, cs))
   end;
 
