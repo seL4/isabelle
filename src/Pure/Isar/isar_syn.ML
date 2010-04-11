@@ -480,11 +480,6 @@ val _ =
   OuterSyntax.command "code_datatype" "define set of code datatype constructors" K.thy_decl
     (Scan.repeat1 P.term >> (Toplevel.theory o Code.add_datatype_cmd));
 
-val _ =
-  OuterSyntax.command "code_abstype" "define abstract code type" K.thy_goal
-    (P.term -- P.term >> (fn (abs, rep) => Toplevel.print
-      o Toplevel.theory_to_proof (Code.add_abstype_cmd abs rep)));
-
 
 
 (** proof commands **)

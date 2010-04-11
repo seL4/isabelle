@@ -122,6 +122,10 @@ lemma bulkload_tabulate:
   "bulkload xs = tabulate [0..<length xs] (nth xs)"
   by (rule mapping_eqI) (simp add: expand_fun_eq)
 
+lemma is_empty_empty:
+  "is_empty m \<longleftrightarrow> m = Mapping Map.empty"
+  by (cases m) (simp add: is_empty_def)
+
 
 subsection {* Some technical code lemmas *}
 

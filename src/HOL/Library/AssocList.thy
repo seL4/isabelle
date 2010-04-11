@@ -659,49 +659,49 @@ lemma map_comp_None_iff:
 
 subsection {* Implementation of mappings *}
 
-definition AList :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) mapping" where
-  "AList xs = Mapping (map_of xs)"
+definition Mapping :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) mapping" where
+  "Mapping xs = Mapping.Mapping (map_of xs)"
 
-code_datatype AList
+code_datatype Mapping
 
-lemma lookup_AList [simp, code]:
-  "Mapping.lookup (AList xs) = map_of xs"
-  by (simp add: AList_def)
+lemma lookup_Mapping [simp, code]:
+  "Mapping.lookup (Mapping xs) = map_of xs"
+  by (simp add: Mapping_def)
 
-lemma empty_AList [code]:
-  "Mapping.empty = AList []"
+lemma empty_Mapping [code]:
+  "Mapping.empty = Mapping []"
   by (rule mapping_eqI) simp
 
-lemma is_empty_AList [code]:
-  "Mapping.is_empty (AList xs) \<longleftrightarrow> null xs"
+lemma is_empty_Mapping [code]:
+  "Mapping.is_empty (Mapping xs) \<longleftrightarrow> null xs"
   by (cases xs) (simp_all add: is_empty_def)
 
-lemma update_AList [code]:
-  "Mapping.update k v (AList xs) = AList (update k v xs)"
+lemma update_Mapping [code]:
+  "Mapping.update k v (Mapping xs) = Mapping (update k v xs)"
   by (rule mapping_eqI) (simp add: update_conv')
 
-lemma delete_AList [code]:
-  "Mapping.delete k (AList xs) = AList (delete k xs)"
+lemma delete_Mapping [code]:
+  "Mapping.delete k (Mapping xs) = Mapping (delete k xs)"
   by (rule mapping_eqI) (simp add: delete_conv')
 
-lemma keys_AList [code]:
-  "Mapping.keys (AList xs) = set (map fst xs)"
+lemma keys_Mapping [code]:
+  "Mapping.keys (Mapping xs) = set (map fst xs)"
   by (simp add: keys_def dom_map_of_conv_image_fst)
 
-lemma ordered_keys_AList [code]:
-  "Mapping.ordered_keys (AList xs) = sort (remdups (map fst xs))"
-  by (simp only: ordered_keys_def keys_AList sorted_list_of_set_sort_remdups)
+lemma ordered_keys_Mapping [code]:
+  "Mapping.ordered_keys (Mapping xs) = sort (remdups (map fst xs))"
+  by (simp only: ordered_keys_def keys_Mapping sorted_list_of_set_sort_remdups)
 
-lemma size_AList [code]:
-  "Mapping.size (AList xs) = length (remdups (map fst xs))"
+lemma size_Mapping [code]:
+  "Mapping.size (Mapping xs) = length (remdups (map fst xs))"
   by (simp add: size_def length_remdups_card_conv dom_map_of_conv_image_fst)
 
-lemma tabulate_AList [code]:
-  "Mapping.tabulate ks f = AList (map (\<lambda>k. (k, f k)) ks)"
+lemma tabulate_Mapping [code]:
+  "Mapping.tabulate ks f = Mapping (map (\<lambda>k. (k, f k)) ks)"
   by (rule mapping_eqI) (simp add: map_of_map_restrict)
 
-lemma bulkload_AList [code]:
-  "Mapping.bulkload vs = AList (map (\<lambda>n. (n, vs ! n)) [0..<length vs])"
+lemma bulkload_Mapping [code]:
+  "Mapping.bulkload vs = Mapping (map (\<lambda>n. (n, vs ! n)) [0..<length vs])"
   by (rule mapping_eqI) (simp add: map_of_map_restrict expand_fun_eq)
 
 end
