@@ -415,7 +415,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Boolean_Algebra.thy Library/Countable.thy			\
   Library/Diagonalize.thy Library/RBT.thy Library/Univ_Poly.thy		\
   Library/Poly_Deriv.thy Library/Polynomial.thy Library/Preorder.thy	\
-  Library/Product_plus.thy Library/Product_Vector.thy Library/Tree.thy	\
+  Library/Product_plus.thy Library/Product_Vector.thy 			\
   Library/Enum.thy Library/Float.thy Library/Quotient_List.thy		\
   Library/Quotient_Option.thy Library/Quotient_Product.thy		\
   Library/Quotient_Sum.thy Library/Quotient_Syntax.thy			\

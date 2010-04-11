@@ -22,7 +22,6 @@ imports
   "~~/src/HOL/ex/Records"
   SetsAndFunctions
   Table
-  Tree
   While_Combinator
   Word
 begin
