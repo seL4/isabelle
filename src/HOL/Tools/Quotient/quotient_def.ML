@@ -64,7 +64,7 @@ let
   val absrep_trm = absrep_fun AbsF lthy (fastype_of rhs, lhs_ty) $ rhs
   val prop = Logic.mk_equals (lhs, Syntax.check_term lthy absrep_trm)
   val (_, prop') = Local_Defs.cert_def lthy prop
-  val (_, newrhs) = Primitive_Defs.abs_def prop'
+  val (_, newrhs) = Local_Defs.abs_def prop'
 
   val ((trm, (_ , thm)), lthy') = Local_Theory.define ((qconst_bname, mx), (attr, newrhs)) lthy
 
