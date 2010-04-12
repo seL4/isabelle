@@ -125,84 +125,12 @@ fun check_and_sort_domain
 
 (* ----- calls for building new thy and thms -------------------------------- *)
 
+type info =
+     Domain_Take_Proofs.iso_info list * Domain_Take_Proofs.take_induct_info;
+
 fun gen_add_domain
     (prep_typ : theory -> 'a -> typ)
-    (comp_dbind : binding)
-    (eqs''' : ((string * string option) list * binding * mixfix *
-               (binding * (bool * binding option * 'a) list * mixfix) list) list)
-    (thy : theory) =
-  let
-    val dtnvs : (binding * typ list * mixfix) list =
-      let
-        fun readS (SOME s) = Syntax.read_sort_global thy s
-          | readS NONE = Sign.defaultS thy;
-        fun readTFree (a, s) = TFree (a, readS s);
-      in
-        map (fn (vs,dname:binding,mx,_) =>
-                (dname, map readTFree vs, mx)) eqs'''
-      end;
-
-    fun thy_type  (dname,tvars,mx) = (dname, length tvars, mx);
-    fun thy_arity (dname,tvars,mx) =
-      (Sign.full_name thy dname, map (snd o dest_TFree) tvars, @{sort rep});
-
-    (* this theory is used just for parsing and error checking *)
-    val tmp_thy = thy
-      |> Theory.copy
-      |> Sign.add_types (map thy_type dtnvs)
-      |> fold (AxClass.axiomatize_arity o thy_arity) dtnvs;
-
-    val dbinds : binding list =
-        map (fn (_,dbind,_,_) => dbind) eqs''';
-    val cons''' :
-        (binding * (bool * binding option * 'a) list * mixfix) list list =
-        map (fn (_,_,_,cons) => cons) eqs''';
-    val cons'' :
-        (binding * (bool * binding option * typ) list * mixfix) list list =
-        map (map (upd_second (map (upd_third (prep_typ tmp_thy))))) cons''';
-    val dtnvs' : (string * typ list) list =
-      map (fn (dname,vs,mx) => (Sign.full_name thy dname,vs)) dtnvs;
-    val eqs' : ((string * typ list) *
-        (binding * (bool * binding option * typ) list * mixfix) list) list =
-        check_and_sort_domain false dtnvs' cons'' tmp_thy;
-    val dts : typ list = map (Type o fst) eqs';
-    val new_dts : (string * string list) list =
-        map (fn ((s,Ts),_) => (s, map (fst o dest_TFree) Ts)) eqs';
-    fun one_con (con,args,mx) : cons =
-        (Binding.name_of con,  (* FIXME preverse binding (!?) *)
-         ListPair.map (fn ((lazy,sel,tp),vn) =>
-           mk_arg ((lazy, Datatype_Aux.dtyp_of_typ new_dts tp), vn))
-                      (args, Datatype_Prop.make_tnames (map third args)));
-    val eqs : eq list =
-        map (fn (dtnvs,cons') => (dtnvs, map one_con cons')) eqs';
-
-    fun mk_arg_typ (lazy, dest_opt, T) = if lazy then mk_uT T else T;
-    fun mk_con_typ (bind, args, mx) =
-        if null args then oneT else foldr1 mk_sprodT (map mk_arg_typ args);
-    fun mk_eq_typ (_, cons) = foldr1 mk_ssumT (map mk_con_typ cons);
-    val repTs : typ list = map mk_eq_typ eqs';
-
-    val ((iso_infos, take_info), thy) = thy |>
-        Domain_Axioms.add_axioms
-          (map (fn ((dbind, _, mx), eq) => (dbind, mx, eq))
-            (dtnvs ~~ (dts ~~ repTs)));
-
-    val ((rewss, take_rews), theorems_thy) =
-        thy
-          |> fold_map (fn (((dbind, eq), (_,cs)), info) =>
-                Domain_Theorems.theorems (eq, eqs) dbind cs info take_info)
-             (dbinds ~~ eqs ~~ eqs' ~~ iso_infos)
-          ||>> Domain_Theorems.comp_theorems (comp_dbind, eqs) take_info;
-  in
-    theorems_thy
-      |> PureThy.add_thmss
-           [((Binding.qualified true "rews" comp_dbind,
-              flat rewss @ take_rews), [])]
-      |> snd
-  end;
-
-fun gen_add_new_domain
-    (prep_typ : theory -> 'a -> typ)
+    (add_isos : (binding * mixfix * (typ * typ)) list -> theory -> info * theory)
     (comp_dbind : binding)
     (eqs''' : ((string * string option) list * binding * mixfix *
                (binding * (bool * binding option * 'a) list * mixfix) list) list)
@@ -241,33 +169,34 @@ fun gen_add_new_domain
     val eqs' : ((string * typ list) *
         (binding * (bool * binding option * typ) list * mixfix) list) list =
         check_and_sort_domain true dtnvs' cons'' tmp_thy;
+    val dts : typ list = map (Type o fst) eqs';
 
     fun mk_arg_typ (lazy, dest_opt, T) = if lazy then mk_uT T else T;
     fun mk_con_typ (bind, args, mx) =
         if null args then oneT else foldr1 mk_sprodT (map mk_arg_typ args);
     fun mk_eq_typ (_, cons) = foldr1 mk_ssumT (map mk_con_typ cons);
-    
-    val ((iso_infos, take_info), thy) = thy |>
-      Domain_Isomorphism.domain_isomorphism
-        (map (fn ((vs, dname, mx, _), eq) =>
-                 (map fst vs, dname, mx, mk_eq_typ eq, NONE))
-             (eqs''' ~~ eqs'))
+    val repTs : typ list = map mk_eq_typ eqs';
 
-    val dts : typ list = map (Type o fst) eqs';
+    val iso_spec : (binding * mixfix * (typ * typ)) list =
+        map (fn ((dbind, _, mx), eq) => (dbind, mx, eq))
+          (dtnvs ~~ (dts ~~ repTs));
+
+    val ((iso_infos, take_info), thy) = add_isos iso_spec thy;
+
     val new_dts : (string * string list) list =
         map (fn ((s,Ts),_) => (s, map (fst o dest_TFree) Ts)) eqs';
     fun one_con (con,args,mx) : cons =
-        (Binding.name_of con,   (* FIXME preverse binding (!?) *)
+        (Binding.name_of con,  (* FIXME preverse binding (!?) *)
          ListPair.map (fn ((lazy,sel,tp),vn) =>
            mk_arg ((lazy, Datatype_Aux.dtyp_of_typ new_dts tp), vn))
-                      (args, Datatype_Prop.make_tnames (map third args))
-        );
+                      (args, Datatype_Prop.make_tnames (map third args)));
     val eqs : eq list =
         map (fn (dtnvs,cons') => (dtnvs, map one_con cons')) eqs';
+
     val ((rewss, take_rews), theorems_thy) =
         thy
-          |> fold_map (fn (((dbind, eq), (x,cs)), info) =>
-               Domain_Theorems.theorems (eq, eqs) dbind cs info take_info)
+          |> fold_map (fn (((dbind, eq), (_,cs)), info) =>
+                Domain_Theorems.theorems (eq, eqs) dbind cs info take_info)
              (dbinds ~~ eqs ~~ eqs' ~~ iso_infos)
           ||>> Domain_Theorems.comp_theorems (comp_dbind, eqs) take_info;
   in
@@ -278,11 +207,26 @@ fun gen_add_new_domain
       |> snd
   end;
 
-val add_domain = gen_add_domain Sign.certify_typ;
-val add_domain_cmd = gen_add_domain Syntax.read_typ_global;
+fun define_isos (spec : (binding * mixfix * (typ * typ)) list) =
+  let
+    fun prep (dbind, mx, (lhsT, rhsT)) =
+      let val (dname, vs) = dest_Type lhsT;
+      in (map (fst o dest_TFree) vs, dbind, mx, rhsT, NONE) end;
+  in
+    Domain_Isomorphism.domain_isomorphism (map prep spec)
+  end;
 
-val add_new_domain = gen_add_new_domain Sign.certify_typ;
-val add_new_domain_cmd = gen_add_new_domain Syntax.read_typ_global;
+val add_domain =
+    gen_add_domain Sign.certify_typ Domain_Axioms.add_axioms;
+
+val add_new_domain =
+    gen_add_domain Sign.certify_typ define_isos;
+
+val add_domain_cmd =
+    gen_add_domain Syntax.read_typ_global Domain_Axioms.add_axioms;
+
+val add_new_domain_cmd =
+    gen_add_domain Syntax.read_typ_global define_isos;
 
 
 (** outer syntax **)
