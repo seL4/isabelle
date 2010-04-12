@@ -747,7 +747,7 @@ text {*
   about the lifted theorem in a tactic.
 *}
 definition
-  "Quot_True x \<equiv> True"
+  "Quot_True (x :: 'a) \<equiv> True"
 
 lemma
   shows QT_all: "Quot_True (All P) \<Longrightarrow> Quot_True P"
