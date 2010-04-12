@@ -142,17 +142,15 @@ fun gen_add_domain
                 (dname, map readTFree vs, mx)) eqs'''
       end;
 
-    (* declare new types *)
-    val thy =
-      let
-        fun thy_type  (dname,tvars,mx) = (dname, length tvars, mx);
-        fun thy_arity (dname,tvars,mx) =
-            (Sign.full_name thy dname, map (snd o dest_TFree) tvars, pcpoS);
-      in
-        thy
-          |> Sign.add_types (map thy_type dtnvs)
-          |> fold (AxClass.axiomatize_arity o thy_arity) dtnvs
-      end;
+    fun thy_type  (dname,tvars,mx) = (dname, length tvars, mx);
+    fun thy_arity (dname,tvars,mx) =
+      (Sign.full_name thy dname, map (snd o dest_TFree) tvars, @{sort rep});
+
+    (* this theory is used just for parsing and error checking *)
+    val tmp_thy = thy
+      |> Theory.copy
+      |> Sign.add_types (map thy_type dtnvs)
+      |> fold (AxClass.axiomatize_arity o thy_arity) dtnvs;
 
     val dbinds : binding list =
         map (fn (_,dbind,_,_) => dbind) eqs''';
@@ -161,12 +159,12 @@ fun gen_add_domain
         map (fn (_,_,_,cons) => cons) eqs''';
     val cons'' :
         (binding * (bool * binding option * typ) list * mixfix) list list =
-        map (map (upd_second (map (upd_third (prep_typ thy))))) cons''';
+        map (map (upd_second (map (upd_third (prep_typ tmp_thy))))) cons''';
     val dtnvs' : (string * typ list) list =
       map (fn (dname,vs,mx) => (Sign.full_name thy dname,vs)) dtnvs;
     val eqs' : ((string * typ list) *
         (binding * (bool * binding option * typ) list * mixfix) list) list =
-        check_and_sort_domain false dtnvs' cons'' thy;
+        check_and_sort_domain false dtnvs' cons'' tmp_thy;
     val dts : typ list = map (Type o fst) eqs';
     val new_dts : (string * string list) list =
         map (fn ((s,Ts),_) => (s, map (fst o dest_TFree) Ts)) eqs';
@@ -183,9 +181,11 @@ fun gen_add_domain
         if null args then oneT else foldr1 mk_sprodT (map mk_arg_typ args);
     fun mk_eq_typ (_, cons) = foldr1 mk_ssumT (map mk_con_typ cons);
     val repTs : typ list = map mk_eq_typ eqs';
-    val dom_eqns : (binding * (typ * typ)) list = dbinds ~~ (dts ~~ repTs);
-    val ((iso_infos, take_info), thy) =
-        Domain_Axioms.add_axioms dom_eqns thy;
+
+    val ((iso_infos, take_info), thy) = thy |>
+        Domain_Axioms.add_axioms
+          (map (fn ((dbind, _, mx), eq) => (dbind, mx, eq))
+            (dtnvs ~~ (dts ~~ repTs)));
 
     val ((rewss, take_rews), theorems_thy) =
         thy

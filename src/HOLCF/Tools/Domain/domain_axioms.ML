@@ -15,7 +15,7 @@ sig
       binding * term -> theory -> thm * theory
 
   val add_axioms :
-      (binding * (typ * typ)) list -> theory ->
+      (binding * mixfix * (typ * typ)) list -> theory ->
       (Domain_Take_Proofs.iso_info list
        * Domain_Take_Proofs.take_induct_info) * theory
 end;
@@ -89,33 +89,47 @@ fun axiomatize_lub_take
   end;
 
 fun add_axioms
-    (dom_eqns : (binding * (typ * typ)) list)
+    (dom_eqns : (binding * mixfix * (typ * typ)) list)
     (thy : theory) =
   let
 
+    val dbinds = map #1 dom_eqns;
+
+    (* declare new types *)
+    fun thy_type (dbind, mx, (lhsT, _)) =
+        (dbind, (length o snd o dest_Type) lhsT, mx);
+    val thy = Sign.add_types (map thy_type dom_eqns) thy;
+
+    (* axiomatize type constructor arities *)
+    fun thy_arity (_, _, (lhsT, _)) =
+        let val (dname, tvars) = dest_Type lhsT;
+        in (dname, map (snd o dest_TFree) tvars, @{sort pcpo}) end;
+    val thy = fold (AxClass.axiomatize_arity o thy_arity) dom_eqns thy;
+
     (* declare and axiomatize abs/rep *)
     val (iso_infos, thy) =
-        fold_map axiomatize_isomorphism dom_eqns thy;
+        fold_map axiomatize_isomorphism
+          (map (fn (dbind, _, eqn) => (dbind, eqn)) dom_eqns) thy;
 
     (* define take functions *)
     val (take_info, thy) =
         Domain_Take_Proofs.define_take_functions
-          (map fst dom_eqns ~~ iso_infos) thy;
+          (dbinds ~~ iso_infos) thy;
 
     (* declare lub_take axioms *)
     val (lub_take_thms, thy) =
         fold_map axiomatize_lub_take
-          (map fst dom_eqns ~~ #take_consts take_info) thy;
+          (dbinds ~~ #take_consts take_info) thy;
 
     (* prove additional take theorems *)
     val (take_info2, thy) =
         Domain_Take_Proofs.add_lub_take_theorems
-          (map fst dom_eqns ~~ iso_infos) take_info lub_take_thms thy;
+          (dbinds ~~ iso_infos) take_info lub_take_thms thy;
 
     (* define map functions *)
     val (map_info, thy) =
         Domain_Isomorphism.define_map_functions
-          (map fst dom_eqns ~~ iso_infos) thy;
+          (dbinds ~~ iso_infos) thy;
 
   in
     ((iso_infos, take_info2), thy)
