@@ -39,7 +39,6 @@ open Domain_Library;
 
 (* ----- general testing and preprocessing of constructor list -------------- *)
 fun check_and_sort_domain
-    (definitional : bool)
     (dtnvs : (string * typ list) list)
     (cons'' : (binding * (bool * binding option * typ) list * mixfix) list list)
     (thy : theory)
@@ -80,9 +79,6 @@ fun check_and_sort_domain
           | rm_sorts (Type(s,ts)) = Type(s,remove_sorts ts)
           | rm_sorts (TVar(s,_))  = TVar(s,[])
         and remove_sorts l = map rm_sorts l;
-        val indirect_ok =
-            [@{type_name "*"}, @{type_name cfun}, @{type_name ssum},
-             @{type_name sprod}, @{type_name u}];
         fun analyse indirect (TFree(v,s))  =
             (case AList.lookup (op =) tvars v of 
                NONE => error ("Free type variable " ^ quote v ^ " on rhs.")
@@ -93,10 +89,7 @@ fun check_and_sort_domain
                                         " for type variable " ^ quote v))
           | analyse indirect (t as Type(s,typl)) =
             (case AList.lookup (op =) dtnvs s of
-               NONE =>
-                 if definitional orelse s mem indirect_ok
-                 then Type(s,map (analyse false) typl)
-                 else Type(s,map (analyse true) typl)
+               NONE => Type (s, map (analyse false) typl)
              | SOME typevars =>
                  if indirect 
                  then error ("Indirect recursion of type " ^ 
@@ -168,7 +161,7 @@ fun gen_add_domain
         map (fn (dname,vs,mx) => (Sign.full_name thy dname,vs)) dtnvs;
     val eqs' : ((string * typ list) *
         (binding * (bool * binding option * typ) list * mixfix) list) list =
-        check_and_sort_domain true dtnvs' cons'' tmp_thy;
+        check_and_sort_domain dtnvs' cons'' tmp_thy;
     val dts : typ list = map (Type o fst) eqs';
 
     fun mk_arg_typ (lazy, dest_opt, T) = if lazy then mk_uT T else T;
