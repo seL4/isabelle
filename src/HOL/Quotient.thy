@@ -606,15 +606,14 @@ lemma cond_prs:
 
 lemma if_prs:
   assumes q: "Quotient R Abs Rep"
-  shows "Abs (If a (Rep b) (Rep c)) = If a b c"
-  using Quotient_abs_rep[OF q] by auto
+  shows "(id ---> Rep ---> Rep ---> Abs) If = If"
+  using Quotient_abs_rep[OF q]
+  by (auto simp add: expand_fun_eq)
 
-(* q not used *)
 lemma if_rsp:
   assumes q: "Quotient R Abs Rep"
-  and     a: "a1 = a2" "R b1 b2" "R c1 c2"
-  shows "R (If a1 b1 c1) (If a2 b2 c2)"
-  using a by auto
+  shows "(op = ===> R ===> R ===> R) If If"
+  by auto
 
 lemma let_prs:
   assumes q1: "Quotient R1 Abs1 Rep1"
@@ -717,7 +716,8 @@ use "~~/src/HOL/Tools/Quotient/quotient_info.ML"
 declare [[map "fun" = (fun_map, fun_rel)]]
 
 lemmas [quot_thm] = fun_quotient
-lemmas [quot_respect] = quot_rel_rsp
+lemmas [quot_respect] = quot_rel_rsp if_rsp
+lemmas [quot_preserve] = if_prs
 lemmas [quot_equiv] = identity_equivp
 
 
