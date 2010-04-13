@@ -1265,9 +1265,8 @@ fun is_typedef_axiom thy boring (@{const "==>"} $ _ $ t2) =
     boring <> is_funky_typedef_name thy s andalso is_typedef thy s
   | is_typedef_axiom _ _ _ = false
 (* term -> bool *)
-fun is_class_axiom t =
-  (t |> Logic.strip_horn |> swap |> op :: |> map Logic.dest_of_class; true)
-  handle TERM _ => false
+val is_class_axiom =
+  Logic.strip_horn #> swap #> op :: #> forall (can Logic.dest_of_class)
 
 (* Distinguishes between (1) constant definition axioms, (2) type arity and
    typedef axioms, and (3) other axioms, and returns the pair ((1), (3)).

@@ -34,7 +34,7 @@ sig
   val is_one_rep : rep -> bool
   val is_lone_rep : rep -> bool
   val dest_Func : rep -> rep * rep
-  val smart_range_rep : int Typtab.table -> typ -> (unit -> int) -> rep -> rep
+  val lazy_range_rep : int Typtab.table -> typ -> (unit -> int) -> rep -> rep
   val binder_reps : rep -> rep list
   val body_rep : rep -> rep
   val one_rep : int Typtab.table -> typ -> rep -> rep
@@ -153,16 +153,16 @@ fun is_lone_rep (Opt R) = is_one_rep R
 fun dest_Func (Func z) = z
   | dest_Func R = raise REP ("Nitpick_Rep.dest_Func", [R])
 (* int Typtab.table -> typ -> (unit -> int) -> rep -> rep *)
-fun smart_range_rep _ _ _ Unit = Unit
-  | smart_range_rep _ _ _ (Vect (_, R)) = R
-  | smart_range_rep _ _ _ (Func (_, R2)) = R2
-  | smart_range_rep ofs T ran_card (Opt R) =
-    Opt (smart_range_rep ofs T ran_card R)
-  | smart_range_rep ofs (Type (@{type_name fun}, [_, T2])) _ (Atom (1, _)) =
+fun lazy_range_rep _ _ _ Unit = Unit
+  | lazy_range_rep _ _ _ (Vect (_, R)) = R
+  | lazy_range_rep _ _ _ (Func (_, R2)) = R2
+  | lazy_range_rep ofs T ran_card (Opt R) =
+    Opt (lazy_range_rep ofs T ran_card R)
+  | lazy_range_rep ofs (Type (@{type_name fun}, [_, T2])) _ (Atom (1, _)) =
     Atom (1, offset_of_type ofs T2)
-  | smart_range_rep ofs (Type (@{type_name fun}, [_, T2])) ran_card (Atom _) =
+  | lazy_range_rep ofs (Type (@{type_name fun}, [_, T2])) ran_card (Atom _) =
     Atom (ran_card (), offset_of_type ofs T2)
-  | smart_range_rep _ _ _ R = raise REP ("Nitpick_Rep.smart_range_rep", [R])
+  | lazy_range_rep _ _ _ R = raise REP ("Nitpick_Rep.lazy_range_rep", [R])
 
 (* rep -> rep list *)
 fun binder_reps (Func (R1, R2)) = R1 :: binder_reps R2
