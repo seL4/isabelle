@@ -55,20 +55,23 @@ where "bar_defl = (\<Lambda> a. fst (snd (fix\<cdot>(foo_bar_baz_deflF\<cdot>a))
 definition baz_defl :: "TypeRep \<rightarrow> TypeRep"
 where "baz_defl = (\<Lambda> a. snd (snd (fix\<cdot>(foo_bar_baz_deflF\<cdot>a))))"
 
+lemma defl_apply_thms:
+  "foo_defl\<cdot>a = fst (fix\<cdot>(foo_bar_baz_deflF\<cdot>a))"
+  "bar_defl\<cdot>a = fst (snd (fix\<cdot>(foo_bar_baz_deflF\<cdot>a)))"
+  "baz_defl\<cdot>a = snd (snd (fix\<cdot>(foo_bar_baz_deflF\<cdot>a)))"
+unfolding foo_defl_def bar_defl_def baz_defl_def by simp_all
+
 text {* Unfold rules for each combinator. *}
 
 lemma foo_defl_unfold:
   "foo_defl\<cdot>a = ssum_defl\<cdot>REP(one)\<cdot>(sprod_defl\<cdot>(u_defl\<cdot>a)\<cdot>(u_defl\<cdot>(bar_defl\<cdot>a)))"
-unfolding foo_defl_def bar_defl_def baz_defl_def
-by (subst fix_eq, simp add: foo_bar_baz_deflF_beta)
+unfolding defl_apply_thms by (subst fix_eq, simp add: foo_bar_baz_deflF_beta)
 
 lemma bar_defl_unfold: "bar_defl\<cdot>a = u_defl\<cdot>(cfun_defl\<cdot>(baz_defl\<cdot>a)\<cdot>REP(tr))"
-unfolding foo_defl_def bar_defl_def baz_defl_def
-by (subst fix_eq, simp add: foo_bar_baz_deflF_beta)
+unfolding defl_apply_thms by (subst fix_eq, simp add: foo_bar_baz_deflF_beta)
 
 lemma baz_defl_unfold: "baz_defl\<cdot>a = u_defl\<cdot>(cfun_defl\<cdot>(convex_defl\<cdot>(foo_defl\<cdot>a))\<cdot>REP(tr))"
-unfolding foo_defl_def bar_defl_def baz_defl_def
-by (subst fix_eq, simp add: foo_bar_baz_deflF_beta)
+unfolding defl_apply_thms by (subst fix_eq, simp add: foo_bar_baz_deflF_beta)
 
 text "The automation for the previous steps will be quite similar to
 how the fixrec package works."
@@ -308,6 +311,12 @@ where "bar_map = (\<Lambda> f. fst (snd (fix\<cdot>(foo_bar_baz_mapF\<cdot>f))))
 definition baz_map :: "('a \<rightarrow> 'b) \<rightarrow> ('b baz \<rightarrow> 'a baz)"
 where "baz_map = (\<Lambda> f. snd (snd (fix\<cdot>(foo_bar_baz_mapF\<cdot>f))))"
 
+lemma map_apply_thms:
+  "foo_map\<cdot>f = fst (fix\<cdot>(foo_bar_baz_mapF\<cdot>f))"
+  "bar_map\<cdot>f = fst (snd (fix\<cdot>(foo_bar_baz_mapF\<cdot>f)))"
+  "baz_map\<cdot>f = snd (snd (fix\<cdot>(foo_bar_baz_mapF\<cdot>f)))"
+unfolding foo_map_def bar_map_def baz_map_def by simp_all
+
 text {* Prove isodefl rules for all map functions simultaneously. *}
 
 lemma isodefl_foo_bar_baz:
@@ -316,8 +325,7 @@ lemma isodefl_foo_bar_baz:
   "isodefl (foo_map\<cdot>d) (foo_defl\<cdot>t) \<and>
   isodefl (bar_map\<cdot>d) (bar_defl\<cdot>t) \<and>
   isodefl (baz_map\<cdot>d) (baz_defl\<cdot>t)"
- apply (simp add: foo_map_def bar_map_def baz_map_def)
- apply (simp add: foo_defl_def bar_defl_def baz_defl_def)
+unfolding map_apply_thms defl_apply_thms
  apply (rule parallel_fix_ind)
    apply (intro adm_conj adm_isodefl cont2cont_fst cont2cont_snd cont_id)
   apply (simp only: fst_strict snd_strict isodefl_bottom simp_thms)
@@ -366,65 +374,100 @@ done
 
 (********************************************************************)
 
-subsection {* Step 5: Define copy functions, prove reach lemmas *}
-
-text {* Define copy functions just like the old domain package does. *}
+subsection {* Step 5: Define take functions, prove lub-take lemmas *}
 
 definition
-  foo_copy ::
-    "('a foo \<rightarrow> 'a foo) \<times> ('a bar \<rightarrow> 'a bar) \<times> ('a baz \<rightarrow> 'a baz) \<rightarrow>
-       'a foo \<rightarrow> 'a foo"
-where
-  "foo_copy = (\<Lambda> p. foo_abs oo
-        ssum_map\<cdot>ID\<cdot>(sprod_map\<cdot>(u_map\<cdot>ID)\<cdot>(u_map\<cdot>(fst (snd p))))
-          oo foo_rep)"
-
-definition
-  bar_copy ::
-    "('a foo \<rightarrow> 'a foo) \<times> ('a bar \<rightarrow> 'a bar) \<times> ('a baz \<rightarrow> 'a baz) \<rightarrow>
-       'a bar \<rightarrow> 'a bar"
-where
-  "bar_copy = (\<Lambda> p. bar_abs oo
-        u_map\<cdot>(cfun_map\<cdot>(snd (snd p))\<cdot>ID) oo bar_rep)"
-
-definition
-  baz_copy ::
-    "('a foo \<rightarrow> 'a foo) \<times> ('a bar \<rightarrow> 'a bar) \<times> ('a baz \<rightarrow> 'a baz) \<rightarrow>
-       'a baz \<rightarrow> 'a baz"
-where
-  "baz_copy = (\<Lambda> p. baz_abs oo
-        u_map\<cdot>(cfun_map\<cdot>(convex_map\<cdot>(fst p))\<cdot>ID) oo baz_rep)"
-
-definition
-  foo_bar_baz_copy ::
+  foo_bar_baz_takeF ::
     "('a foo \<rightarrow> 'a foo) \<times> ('a bar \<rightarrow> 'a bar) \<times> ('a baz \<rightarrow> 'a baz) \<rightarrow>
      ('a foo \<rightarrow> 'a foo) \<times> ('a bar \<rightarrow> 'a bar) \<times> ('a baz \<rightarrow> 'a baz)"
 where
-  "foo_bar_baz_copy = (\<Lambda> f. (foo_copy\<cdot>f, bar_copy\<cdot>f, baz_copy\<cdot>f))"
+  "foo_bar_baz_takeF = (\<Lambda> p.
+    ( foo_abs oo
+        ssum_map\<cdot>ID\<cdot>(sprod_map\<cdot>(u_map\<cdot>ID)\<cdot>(u_map\<cdot>(fst (snd p))))
+          oo foo_rep
+    , bar_abs oo
+        u_map\<cdot>(cfun_map\<cdot>(snd (snd p))\<cdot>ID) oo bar_rep
+    , baz_abs oo
+        u_map\<cdot>(cfun_map\<cdot>(convex_map\<cdot>(fst p))\<cdot>ID) oo baz_rep
+    ))"
 
-lemma fix_foo_bar_baz_copy:
-  "fix\<cdot>foo_bar_baz_copy = (foo_map\<cdot>ID, bar_map\<cdot>ID, baz_map\<cdot>ID)"
-unfolding foo_map_def bar_map_def baz_map_def
-apply (subst beta_cfun, simp)+
-apply (subst pair_collapse)+
-apply (rule cfun_arg_cong)
-unfolding foo_bar_baz_mapF_def split_def
-unfolding foo_bar_baz_copy_def
-unfolding foo_copy_def bar_copy_def baz_copy_def
-apply (subst beta_cfun, simp)+
-apply (rule refl)
+lemma foo_bar_baz_takeF_beta:
+  "foo_bar_baz_takeF\<cdot>p =
+    ( foo_abs oo
+        ssum_map\<cdot>ID\<cdot>(sprod_map\<cdot>(u_map\<cdot>ID)\<cdot>(u_map\<cdot>(fst (snd p))))
+          oo foo_rep
+    , bar_abs oo
+        u_map\<cdot>(cfun_map\<cdot>(snd (snd p))\<cdot>ID) oo bar_rep
+    , baz_abs oo
+        u_map\<cdot>(cfun_map\<cdot>(convex_map\<cdot>(fst p))\<cdot>ID) oo baz_rep
+    )"
+unfolding foo_bar_baz_takeF_def by (rule beta_cfun, simp)
+
+definition
+  foo_take :: "nat \<Rightarrow> 'a foo \<rightarrow> 'a foo"
+where
+  "foo_take = (\<lambda>n. fst (iterate n\<cdot>foo_bar_baz_takeF\<cdot>\<bottom>))"
+
+definition
+  bar_take :: "nat \<Rightarrow> 'a bar \<rightarrow> 'a bar"
+where
+  "bar_take = (\<lambda>n. fst (snd (iterate n\<cdot>foo_bar_baz_takeF\<cdot>\<bottom>)))"
+
+definition
+  baz_take :: "nat \<Rightarrow> 'a baz \<rightarrow> 'a baz"
+where
+  "baz_take = (\<lambda>n. snd (snd (iterate n\<cdot>foo_bar_baz_takeF\<cdot>\<bottom>)))"
+
+lemma chain_take_thms: "chain foo_take" "chain bar_take" "chain baz_take"
+unfolding foo_take_def bar_take_def baz_take_def
+by (intro ch2ch_fst ch2ch_snd chain_iterate)+
+
+lemma take_0_thms: "foo_take 0 = \<bottom>" "bar_take 0 = \<bottom>" "baz_take 0 = \<bottom>"
+unfolding foo_take_def bar_take_def baz_take_def
+by (simp only: iterate_0 fst_strict snd_strict)+
+
+lemma take_Suc_thms:
+  "foo_take (Suc n) =
+    foo_abs oo ssum_map\<cdot>ID\<cdot>(sprod_map\<cdot>(u_map\<cdot>ID)\<cdot>(u_map\<cdot>(bar_take n))) oo foo_rep"
+  "bar_take (Suc n) =
+    bar_abs oo u_map\<cdot>(cfun_map\<cdot>(baz_take n)\<cdot>ID) oo bar_rep"
+  "baz_take (Suc n) =
+    baz_abs oo u_map\<cdot>(cfun_map\<cdot>(convex_map\<cdot>(foo_take n))\<cdot>ID) oo baz_rep"
+unfolding foo_take_def bar_take_def baz_take_def
+by (simp only: iterate_Suc foo_bar_baz_takeF_beta fst_conv snd_conv)+
+
+lemma lub_take_lemma:
+  "(\<Squnion>n. foo_take n, \<Squnion>n. bar_take n, \<Squnion>n. baz_take n)
+    = (foo_map\<cdot>(ID::'a \<rightarrow> 'a), bar_map\<cdot>(ID::'a \<rightarrow> 'a), baz_map\<cdot>(ID::'a \<rightarrow> 'a))"
+apply (simp only: thelub_Pair [symmetric] ch2ch_Pair chain_take_thms)
+apply (simp only: map_apply_thms pair_collapse)
+apply (simp only: fix_def2)
+apply (rule lub_eq)
+apply (rule nat.induct)
+apply (simp only: iterate_0 Pair_strict take_0_thms)
+apply (simp only: iterate_Suc Pair_fst_snd_eq fst_conv snd_conv
+                  foo_bar_baz_mapF_beta take_Suc_thms simp_thms)
 done
 
-lemma foo_reach: "fst (fix\<cdot>foo_bar_baz_copy)\<cdot>x = x"
-unfolding fix_foo_bar_baz_copy fst_conv snd_conv
-unfolding foo_map_ID by (rule ID1)
+lemma lub_foo_take: "(\<Squnion>n. foo_take n) = ID"
+apply (rule trans [OF _ foo_map_ID])
+using lub_take_lemma
+apply (elim Pair_inject)
+apply assumption
+done
 
-lemma bar_reach: "fst (snd (fix\<cdot>foo_bar_baz_copy))\<cdot>x = x"
-unfolding fix_foo_bar_baz_copy fst_conv snd_conv
-unfolding bar_map_ID by (rule ID1)
+lemma lub_bar_take: "(\<Squnion>n. bar_take n) = ID"
+apply (rule trans [OF _ bar_map_ID])
+using lub_take_lemma
+apply (elim Pair_inject)
+apply assumption
+done
 
-lemma baz_reach: "snd (snd (fix\<cdot>foo_bar_baz_copy))\<cdot>x = x"
-unfolding fix_foo_bar_baz_copy fst_conv snd_conv
-unfolding baz_map_ID by (rule ID1)
+lemma lub_baz_take: "(\<Squnion>n. baz_take n) = ID"
+apply (rule trans [OF _ baz_map_ID])
+using lub_take_lemma
+apply (elim Pair_inject)
+apply assumption
+done
 
 end
