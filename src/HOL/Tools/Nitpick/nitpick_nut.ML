@@ -1130,8 +1130,8 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
               if is_boolean_type T then
                 bool_rep polar opt
               else
-                smart_range_rep ofs T1 (fn () => card_of_type card_assigns T)
-                                (unopt_rep R1)
+                lazy_range_rep ofs T1 (fn () => card_of_type card_assigns T)
+                               (unopt_rep R1)
                 |> opt ? opt_rep ofs T
           in s_op2 Apply T ran_R u1 u2 end
         | Op2 (Lambda, T, _, u1, u2) =>

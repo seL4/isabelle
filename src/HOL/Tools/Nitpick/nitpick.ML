@@ -225,13 +225,15 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         o Pretty.chunks o cons (Pretty.str "") o single
         o Pretty.mark Markup.hilite
       else
-        priority o Pretty.string_of
+        (fn s => (priority s; if debug then tracing s else ()))
+        o Pretty.string_of
     (* (unit -> Pretty.T) -> unit *)
     fun pprint_m f = () |> not auto ? pprint o f
     fun pprint_v f = () |> verbose ? pprint o f
     fun pprint_d f = () |> debug ? pprint o f
     (* string -> unit *)
     val print = pprint o curry Pretty.blk 0 o pstrs
+    val print_g = pprint o Pretty.str
     (* (unit -> string) -> unit *)
     val print_m = pprint_m o K o plazy
     val print_v = pprint_v o K o plazy
@@ -265,8 +267,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val original_max_potential = max_potential
     val original_max_genuine = max_genuine
 (*
-    val _ = priority ("*** " ^ Syntax.string_of_term ctxt orig_t)
-    val _ = List.app (fn t => priority ("*** " ^ Syntax.string_of_term ctxt t))
+    val _ = print_g ("*** " ^ Syntax.string_of_term ctxt orig_t)
+    val _ = List.app (fn t => print_g ("*** " ^ Syntax.string_of_term ctxt t))
                      orig_assm_ts
 *)
     val max_bisim_depth = fold Integer.max bisim_depths ~1
@@ -338,7 +340,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                           | _ => false) finitizes)
     val standard = forall snd stds
 (*
-    val _ = List.app (priority o string_for_nut ctxt) (nondef_us @ def_us)
+    val _ = List.app (print_g o string_for_nut ctxt) (nondef_us @ def_us)
 *)
 
     val unique_scope = forall (curry (op =) 1 o length o snd) cards_assigns
@@ -431,10 +433,10 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
             else
               ()
 (*
-    val _ = priority "Monotonic types:"
-    val _ = List.app (priority o string_for_type ctxt) mono_Ts
-    val _ = priority "Nonmonotonic types:"
-    val _ = List.app (priority o string_for_type ctxt) nonmono_Ts
+    val _ = print_g "Monotonic types:"
+    val _ = List.app (print_g o string_for_type ctxt) mono_Ts
+    val _ = print_g "Nonmonotonic types:"
+    val _ = List.app (print_g o string_for_type ctxt) nonmono_Ts
 *)
 
     val need_incremental = Int.max (max_potential, max_genuine) >= 2
@@ -472,10 +474,10 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                 raise TOO_LARGE ("Nitpick.pick_them_nits_in_term.\
                                  \problem_for_scope", "too large scope")
 (*
-        val _ = priority "Offsets:"
+        val _ = print_g "Offsets:"
         val _ = List.app (fn (T, j0) =>
-                             priority (string_for_type ctxt T ^ " = " ^
-                                       string_of_int j0))
+                             print_g (string_for_type ctxt T ^ " = " ^
+                                    string_of_int j0))
                          (Typtab.dest ofs)
 *)
         val all_exact = forall (is_exact_type datatypes true) all_Ts
@@ -504,7 +506,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         val nondef_us = map (choose_reps_in_nut scope unsound rep_table false)
                             nondef_us
 (*
-        val _ = List.app (priority o string_for_nut ctxt)
+        val _ = List.app (print_g o string_for_nut ctxt)
                          (free_names @ sel_names @ nonsel_names @
                           nondef_us @ def_us)
 *)
