@@ -1431,16 +1431,22 @@ fun kodkod_formula_from_nut ofs
            else if is_Cst Unrep u2 then to_compare_with_unrep u1 true_atom
            else kk_nat_less (to_integer u1) (to_integer u2)
          | @{typ int} => kk_int_less (to_integer u1) (to_integer u2)
-         | _ => double_rel_rel_let kk
-                    (fn r1 => fn r2 =>
-                        kk_rel_if
-                            (fold kk_and (map_filter (fn (u, r) =>
-                                 if is_opt_rep (rep_of u) then SOME (kk_some r)
-                                 else NONE) [(u1, r1), (u2, r2)]) KK.True)
-                            (atom_from_formula kk bool_j0 (KK.LT (pairself
-                                (int_expr_from_atom kk (type_of u1)) (r1, r2))))
-                            KK.None)
-                    (to_r u1) (to_r u2))
+         | _ =>
+           let
+             val R1 = Opt (Atom (card_of_rep (rep_of u1),
+                                 offset_of_type ofs (type_of u1)))
+           in
+             double_rel_rel_let kk
+                 (fn r1 => fn r2 =>
+                     kk_rel_if
+                         (fold kk_and (map_filter (fn (u, r) =>
+                              if is_opt_rep (rep_of u) then SOME (kk_some r)
+                              else NONE) [(u1, r1), (u2, r2)]) KK.True)
+                         (atom_from_formula kk bool_j0 (KK.LT (pairself
+                             (int_expr_from_atom kk (type_of u1)) (r1, r2))))
+                         KK.None)
+                 (to_rep R1 u1) (to_rep R1 u2)
+            end)
       | Op2 (The, _, R, u1, u2) =>
         if is_opt_rep R then
           let val r1 = to_opt (Func (unopt_rep R, bool_atom_R)) u1 in
@@ -1854,40 +1860,42 @@ fun kodkod_formula_from_nut ofs
                                        oper (KK.IntReg 0) (KK.IntReg 1))]))))
       end
     (* rep -> rep -> KK.rel_expr -> nut -> KK.rel_expr *)
-    and to_apply res_R func_u arg_u =
-      case unopt_rep (rep_of func_u) of
-        Unit =>
-        let val j0 = offset_of_type ofs (type_of func_u) in
+    and to_apply (R as Formula _) func_u arg_u =
+        raise REP ("Nitpick_Kodkod.to_apply", [R])
+      | to_apply res_R func_u arg_u =
+        case unopt_rep (rep_of func_u) of
+          Unit =>
+          let val j0 = offset_of_type ofs (type_of func_u) in
+            to_guard [arg_u] res_R
+                     (rel_expr_from_rel_expr kk res_R (Atom (1, j0)) (KK.Atom j0))
+          end
+        | Atom (1, j0) =>
           to_guard [arg_u] res_R
-                   (rel_expr_from_rel_expr kk res_R (Atom (1, j0)) (KK.Atom j0))
-        end
-      | Atom (1, j0) =>
-        to_guard [arg_u] res_R
-                 (rel_expr_from_rel_expr kk res_R (Atom (1, j0)) (to_r func_u))
-      | Atom (k, _) =>
-        let
-          val dom_card = card_of_rep (rep_of arg_u)
-          val ran_R = Atom (exact_root dom_card k,
-                            offset_of_type ofs (range_type (type_of func_u)))
-        in
-          to_apply_vect dom_card ran_R res_R (to_vect dom_card ran_R func_u)
-                        arg_u
-        end
-      | Vect (1, R') =>
-        to_guard [arg_u] res_R
-                 (rel_expr_from_rel_expr kk res_R R' (to_r func_u))
-      | Vect (k, R') => to_apply_vect k R' res_R (to_r func_u) arg_u
-      | Func (R, Formula Neut) =>
-        to_guard [arg_u] res_R (rel_expr_from_formula kk res_R
-                                    (kk_subset (to_opt R arg_u) (to_r func_u)))
-      | Func (Unit, R2) =>
-        to_guard [arg_u] res_R
-                 (rel_expr_from_rel_expr kk res_R R2 (to_r func_u))
-      | Func (R1, R2) =>
-        rel_expr_from_rel_expr kk res_R R2
-            (kk_n_fold_join kk true R1 R2 (to_opt R1 arg_u) (to_r func_u))
-        |> body_rep R2 = Formula Neut ? to_guard [arg_u] res_R
-      | _ => raise NUT ("Nitpick_Kodkod.to_apply", [func_u])
+                   (rel_expr_from_rel_expr kk res_R (Atom (1, j0)) (to_r func_u))
+        | Atom (k, _) =>
+          let
+            val dom_card = card_of_rep (rep_of arg_u)
+            val ran_R = Atom (exact_root dom_card k,
+                              offset_of_type ofs (range_type (type_of func_u)))
+          in
+            to_apply_vect dom_card ran_R res_R (to_vect dom_card ran_R func_u)
+                          arg_u
+          end
+        | Vect (1, R') =>
+          to_guard [arg_u] res_R
+                   (rel_expr_from_rel_expr kk res_R R' (to_r func_u))
+        | Vect (k, R') => to_apply_vect k R' res_R (to_r func_u) arg_u
+        | Func (R, Formula Neut) =>
+          to_guard [arg_u] res_R (rel_expr_from_formula kk res_R
+                                      (kk_subset (to_opt R arg_u) (to_r func_u)))
+        | Func (Unit, R2) =>
+          to_guard [arg_u] res_R
+                   (rel_expr_from_rel_expr kk res_R R2 (to_r func_u))
+        | Func (R1, R2) =>
+          rel_expr_from_rel_expr kk res_R R2
+              (kk_n_fold_join kk true R1 R2 (to_opt R1 arg_u) (to_r func_u))
+          |> body_rep R2 = Formula Neut ? to_guard [arg_u] res_R
+        | _ => raise NUT ("Nitpick_Kodkod.to_apply", [func_u])
     (* int -> rep -> rep -> KK.rel_expr -> nut *)
     and to_apply_vect k R' res_R func_r arg_u =
       let
