@@ -57,18 +57,16 @@ text {*
 *}
 
 domain 'a d7 = d7a "'a d7 \<oplus> int lift" | d7b "'a \<otimes> 'a d7" | d7c (lazy "'a d7 \<rightarrow> 'a")
-
-(* d7.ind is absent *)
+  -- "Indirect recursion detected, skipping proofs of (co)induction rules"
+(* d7.induct is absent *)
 
 text {*
-  Indirect recursion using previously-defined datatypes is currently
-  not allowed.  This restriction does not apply to the new definitional
-  domain package.
+  Indirect recursion is also allowed using previously-defined datatypes.
 *}
-(*
+
 domain 'a slist = SNil | SCons 'a "'a slist"
-domain 'a stree = STip | SBranch "'a stree slist" -- "illegal indirect recursion"
-*)
+
+domain 'a stree = STip | SBranch "'a stree slist"
 
 text {* Mutually-recursive datatypes can be defined using the @{text "and"} keyword. *}
 
@@ -103,6 +101,14 @@ domain triv = Triv triv triv
   -- "domain Domain_ex.triv is empty!"
 
 lemma "(x::triv) = \<bottom>" by (induct x, simp_all)
+
+text {* Lazy constructor arguments may have unpointed types. *}
+
+domain natlist = nnil | ncons (lazy "nat discr") natlist
+
+text {* Class constraints may be given for type parameters on the LHS. *}
+
+domain ('a::cpo) box = Box (lazy 'a)
 
 
 subsection {* Generated constants and theorems *}
@@ -192,24 +198,13 @@ text {* Declaring a mixfix with spaces causes some strange parse errors. *}
 (*
 domain xx = xx ("x y")
   -- "Inner syntax error: unexpected end of input"
-
-domain 'a foo = foo (sel::"'a") ("a b")
-  -- {* Inner syntax error at "= UU" *}
-*)
-
-text {* Declaring class constraints on the LHS is currently broken. *}
-(*
-domain ('a::cpo) box = Box (lazy 'a)
-  -- "Proof failed"
 *)
 
 text {*
-  Class constraints on the RHS are not supported yet.  This feature is
-  planned to replace the old-style LHS class constraints.
+  Non-cpo type parameters currently do not work.
 *}
 (*
-domain 'a box = Box (lazy "'a::cpo")
-  -- {* Inconsistent sort constraint for type variable "'a" *}
+domain ('a::type) stream = snil | scons (lazy "'a discr") "'a stream"
 *)
 
 end
