@@ -658,9 +658,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
               ();
             if not standard andalso likely_in_struct_induct_step then
               print "The existence of a nonstandard model suggests that the \
-                    \induction hypothesis is not general enough or perhaps \
-                    \even wrong. See the \"Inductive Properties\" section of \
-                    \the Nitpick manual for details (\"isabelle doc nitpick\")."
+                    \induction hypothesis is not general enough or may even be \
+                    \wrong. See the Nitpick manual's \"Inductive Properties\" \
+                    \section for details (\"isabelle doc nitpick\")."
             else
               ();
             if has_syntactic_sorts orig_t then
