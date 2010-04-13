@@ -717,8 +717,10 @@ struct
       | Const (@{const_name Groups.times}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
       | Const (@{const_name List.append}, _) => t
+(* UNSOUND
       | Const (@{const_name lfp}, _) => t
       | Const (@{const_name gfp}, _) => t
+*)
       | Const (@{const_name fst}, _) => t
       | Const (@{const_name snd}, _) => t
       (* simply-typed lambda calculus *)
@@ -896,8 +898,10 @@ struct
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
           collect_type_axioms T axs
       | Const (@{const_name List.append}, T) => collect_type_axioms T axs
+(* UNSOUND
       | Const (@{const_name lfp}, T) => collect_type_axioms T axs
       | Const (@{const_name gfp}, T) => collect_type_axioms T axs
+*)
       | Const (@{const_name fst}, T) => collect_type_axioms T axs
       | Const (@{const_name snd}, T) => collect_type_axioms T axs
       (* simply-typed lambda calculus *)
@@ -2093,7 +2097,7 @@ struct
           val HOLogic_prodT = HOLogic.mk_prodT (T1, T2)
           val HOLogic_setT  = HOLogic.mk_setT HOLogic_prodT
           (* Term.term *)
-          val HOLogic_empty_set = HOLogic.mk_set HOLogic_prodT []
+          val HOLogic_empty_set = Const (@{const_abbrev Set.empty}, HOLogic_setT)
           val HOLogic_insert    =
             Const (@{const_name insert}, HOLogic_prodT --> HOLogic_setT --> HOLogic_setT)
         in
@@ -2969,6 +2973,8 @@ struct
     | _ =>
       NONE;
 
+(* UNSOUND
+
   (* theory -> model -> arguments -> Term.term ->
     (interpretation * model * arguments) option *)
 
@@ -3078,6 +3084,7 @@ struct
       end
     | _ =>
       NONE;
+*)
 
   (* theory -> model -> arguments -> Term.term ->
     (interpretation * model * arguments) option *)
@@ -3163,7 +3170,7 @@ struct
         val HOLogic_prodT = HOLogic.mk_prodT (T1, T2)
         val HOLogic_setT  = HOLogic.mk_setT HOLogic_prodT
         (* Term.term *)
-        val HOLogic_empty_set = HOLogic.mk_set HOLogic_prodT []
+        val HOLogic_empty_set = Const (@{const_abbrev Set.empty}, HOLogic_setT)
         val HOLogic_insert    =
           Const (@{const_name insert}, HOLogic_prodT --> HOLogic_setT --> HOLogic_setT)
       in
@@ -3313,8 +3320,10 @@ struct
      add_interpreter "Nat_HOL.minus"      Nat_minus_interpreter #>
      add_interpreter "Nat_HOL.times"      Nat_times_interpreter #>
      add_interpreter "List.append" List_append_interpreter #>
+(* UNSOUND
      add_interpreter "lfp" lfp_interpreter #>
      add_interpreter "gfp" gfp_interpreter #>
+*)
      add_interpreter "fst" Product_Type_fst_interpreter #>
      add_interpreter "snd" Product_Type_snd_interpreter #>
      add_printer "stlc" stlc_printer #>
