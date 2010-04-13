@@ -165,8 +165,6 @@ structure Targets = Theory_Data
 
 val abort_allowed = snd o fst o Targets.get;
 
-val the_default_width = snd o Targets.get;
-
 fun assert_target thy target = if Symtab.defined ((fst o fst) (Targets.get thy)) target
   then target
   else error ("Unknown code target language: " ^ quote target);
