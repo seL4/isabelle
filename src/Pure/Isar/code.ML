@@ -423,7 +423,7 @@ fun get_type_spec thy tyco = case get_type_entry thy tyco
 
 fun get_abstype_spec thy tyco = case get_type_entry thy tyco
  of SOME (vs, Abstractor spec) => (vs, spec)
-  | NONE => error ("Not an abstract type: " ^ tyco);
+  | _ => error ("Not an abstract type: " ^ tyco);
  
 fun get_type thy = fst o get_type_spec thy;
 
