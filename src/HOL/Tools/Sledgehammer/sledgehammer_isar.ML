@@ -100,7 +100,10 @@ fun default_raw_params thy =
   |> fold (AList.default (op =))
           [("atps", [!atps]),
            ("full_types", [if !full_types then "true" else "false"]),
-           ("timeout", [string_of_int (!timeout) ^ " s"])]
+           ("timeout", let val timeout = !timeout in
+                         [if timeout <= 0 then "none"
+                          else string_of_int timeout ^ " s"]
+                       end)]
 
 val infinity_time_in_secs = 60 * 60 * 24 * 365
 val the_timeout = the_default (Time.fromSeconds infinity_time_in_secs)
@@ -181,7 +184,7 @@ fun minimize override_params old_style_args i fact_refs state =
       get_params thy
           [("atps", [atp]),
            ("minimize_timeout",
-            [string_of_int (Time.toSeconds timeout) ^ " s"])]
+            [string_of_int (Time.toMilliseconds timeout) ^ " ms"])]
     val prover =
       (case get_prover thy atp of
         SOME prover => prover

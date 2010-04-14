@@ -6,6 +6,7 @@ General-purpose functions used by the Sledgehammer modules.
 
 signature SLEDGEHAMMER_UTIL =
 sig
+  val plural_s : int -> string
   val serial_commas : string -> string list -> string list
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
@@ -17,12 +18,7 @@ end;
 structure Sledgehammer_Util : SLEDGEHAMMER_UTIL =
 struct
 
-(* This hash function is recommended in Compilers: Principles, Techniques, and
-   Tools, by Aho, Sethi and Ullman. The hashpjw function, which they
-   particularly recommend, triggers a bug in versions of Poly/ML up to 4.2.0. *)
-fun hashw (u, w) = Word.+ (u, Word.* (0w65599, w))
-fun hashw_char (c, w) = hashw (Word.fromInt (Char.ord c), w)
-fun hashw_string (s:string, w) = CharVector.foldl hashw_char w s
+fun plural_s n = if n = 1 then "" else "s"
 
 fun serial_commas _ [] = ["??"]
   | serial_commas _ [s] = [s]
@@ -59,5 +55,12 @@ fun parse_time_option _ "none" = NONE
       else
         SOME (Time.fromMilliseconds msecs)
     end
+
+(* This hash function is recommended in Compilers: Principles, Techniques, and
+   Tools, by Aho, Sethi and Ullman. The hashpjw function, which they
+   particularly recommend, triggers a bug in versions of Poly/ML up to 4.2.0. *)
+fun hashw (u, w) = Word.+ (u, Word.* (0w65599, w))
+fun hashw_char (c, w) = hashw (Word.fromInt (Char.ord c), w)
+fun hashw_string (s:string, w) = CharVector.foldl hashw_char w s
 
 end;

@@ -22,6 +22,7 @@ end;
 structure ATP_Minimal : ATP_MINIMAL =
 struct
 
+open Sledgehammer_Util
 open Sledgehammer_Fact_Preprocessor
 open Sledgehammer_Proof_Reconstruct
 open ATP_Manager
@@ -114,8 +115,9 @@ fun produce_answer ({success, proof, internal_thm_names, filtered_clauses, ...}
 fun sledgehammer_test_theorems (params as {full_types, ...} : params) prover
         timeout subgoal state filtered name_thms_pairs =
   let
-    val _ = priority ("Testing " ^ string_of_int (length name_thms_pairs) ^
-                      " theorems... ")
+    val num_theorems = length name_thms_pairs
+    val _ = priority ("Testing " ^ string_of_int num_theorems ^
+                      " theorem" ^ plural_s num_theorems ^ "...")
     val name_thm_pairs = maps (fn (n, ths) => map (pair n) ths) name_thms_pairs
     val axclauses = cnf_rules_pairs (Proof.theory_of state) name_thm_pairs
     val {context = ctxt, facts, goal} = Proof.goal state
@@ -161,12 +163,17 @@ fun minimize_theorems (params as {minimize_timeout, ...}) gen_min prover
             ["Minimal " ^ string_of_int (length min_thms) ^ " theorems"])
         in (SOME min_thms, metis_line i n min_names) end
     | (Timeout, _) =>
-        (NONE, "Timeout: You may need to increase the time limit of " ^
-          string_of_int msecs ^ " ms. Invoke \"atp_minimize [time=...]\".")
+        (NONE, "Timeout: You can increase the time limit using the \"timeout\" \
+               \option (e.g., \"timeout = " ^
+               string_of_int (10 + msecs div 1000) ^ " s\").")
     | (Error, msg) =>
         (NONE, "Error in prover: " ^ msg)
     | (Failure, _) =>
-        (NONE, "Failure: No proof with the theorems supplied"))
+        (* Failure sometimes mean timeout, unfortunately. *)
+        (NONE, "Failure: No proof was found with the current time limit. You \
+               \can increase the time limit using the \"timeout\" \
+               \option (e.g., \"timeout = " ^
+               string_of_int (10 + msecs div 1000) ^ " s\")."))
     handle Sledgehammer_HOL_Clause.TRIVIAL =>
         (SOME [], metis_line i n [])
       | ERROR msg => (NONE, "Error: " ^ msg)

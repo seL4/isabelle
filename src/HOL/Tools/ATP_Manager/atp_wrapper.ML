@@ -179,6 +179,8 @@ fun tptp_prover name p = (name, generic_tptp_prover (name, p));
 
 (** common provers **)
 
+fun generous_to_secs time = (Time.toMilliseconds time + 999) div 1000
+
 (* Vampire *)
 
 (* NB: Vampire does not work without explicit time limit. *)
@@ -186,7 +188,7 @@ fun tptp_prover name p = (name, generic_tptp_prover (name, p));
 val vampire_config : prover_config =
   {command = Path.explode "$VAMPIRE_HOME/vampire",
    arguments = (fn timeout => "--output_syntax tptp --mode casc -t " ^
-                              string_of_int (Time.toSeconds timeout)),
+                              string_of_int (generous_to_secs timeout)),
    failure_strs =
      ["Satisfiability detected", "Refutation not found", "CANNOT PROVE"],
    max_new_clauses = 60,
@@ -201,7 +203,7 @@ val e_config : prover_config =
   {command = Path.explode "$E_HOME/eproof",
    arguments = (fn timeout => "--tstp-in --tstp-out -l5 -xAutoDev \
                               \-tAutoDev --silent --cpu-limit=" ^
-                              string_of_int (Time.toSeconds timeout)),
+                              string_of_int (generous_to_secs timeout)),
    failure_strs =
        ["SZS status: Satisfiable", "SZS status Satisfiable",
         "SZS status: ResourceOut", "SZS status ResourceOut",
@@ -233,7 +235,7 @@ val spass_config : prover_config =
  {command = Path.explode "$SPASS_HOME/SPASS",
   arguments = (fn timeout => "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0" ^
     " -FullRed=0 -DocProof -TimeLimit=" ^
-    string_of_int (Time.toSeconds timeout)),
+    string_of_int (generous_to_secs timeout)),
   failure_strs =
     ["SPASS beiseite: Completion found.", "SPASS beiseite: Ran out of time.",
      "SPASS beiseite: Maximal number of loops exceeded."],
@@ -276,7 +278,7 @@ fun remote_prover_config prover_prefix args
          : prover_config) : prover_config =
   {command = Path.explode "$ISABELLE_ATP_MANAGER/SystemOnTPTP",
    arguments = (fn timeout =>
-     args ^ " -t " ^ string_of_int (Time.toSeconds timeout) ^ " -s " ^
+     args ^ " -t " ^ string_of_int (generous_to_secs timeout) ^ " -s " ^
      the_system prover_prefix),
    failure_strs = remote_failure_strs @ failure_strs,
    max_new_clauses = max_new_clauses,
