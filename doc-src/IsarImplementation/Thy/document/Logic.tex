@@ -560,10 +560,10 @@ The theory \isa{Pure} contains constant declarations for the
   \indexdef{}{ML}{Thm.implies\_elim}\verb|Thm.implies_elim: thm -> thm -> thm| \\
   \indexdef{}{ML}{Thm.generalize}\verb|Thm.generalize: string list * string list -> int -> thm -> thm| \\
   \indexdef{}{ML}{Thm.instantiate}\verb|Thm.instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm| \\
-  \indexdef{}{ML}{Thm.add\_axiom}\verb|Thm.add_axiom: binding * term -> theory -> thm * theory| \\
+  \indexdef{}{ML}{Thm.add\_axiom}\verb|Thm.add_axiom: binding * term -> theory -> (string * thm) * theory| \\
   \indexdef{}{ML}{Thm.add\_oracle}\verb|Thm.add_oracle: binding * ('a -> cterm) -> theory|\isasep\isanewline%
 \verb|  -> (string * ('a -> thm)) * theory| \\
-  \indexdef{}{ML}{Thm.add\_def}\verb|Thm.add_def: bool -> bool -> binding * term -> theory -> thm * theory| \\
+  \indexdef{}{ML}{Thm.add\_def}\verb|Thm.add_def: bool -> bool -> binding * term -> theory -> (string * thm) * theory| \\
   \end{mldecls}
   \begin{mldecls}
   \indexdef{}{ML}{Theory.add\_deps}\verb|Theory.add_deps: string -> string * typ -> (string * typ) list -> theory -> theory| \\

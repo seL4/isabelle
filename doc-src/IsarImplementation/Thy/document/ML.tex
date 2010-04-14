@@ -368,7 +368,7 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
   \smallskip\begin{mldecls}
   \verb|Sign.declare_const: (binding * typ) * mixfix|\isasep\isanewline%
 \verb|  -> theory -> term * theory| \\
-  \verb|Thm.add_def: bool -> bool -> binding * term -> theory -> thm * theory|
+  \verb|Thm.add_def: bool -> bool -> binding * term -> theory -> (string * thm) * theory|
   \end{mldecls}
 
   \noindent Written with naive application, an addition of constant

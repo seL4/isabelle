@@ -319,7 +319,7 @@ text {*
   \smallskip\begin{mldecls}
   @{ML "Sign.declare_const: (binding * typ) * mixfix
   -> theory -> term * theory"} \\
-  @{ML "Thm.add_def: bool -> bool -> binding * term -> theory -> thm * theory"}
+  @{ML "Thm.add_def: bool -> bool -> binding * term -> theory -> (string * thm) * theory"}
   \end{mldecls}
 
   \noindent Written with naive application, an addition of constant
