@@ -471,7 +471,7 @@ text {*
   Note that the resulting simplification and induction rules
   correspond to the transformed specification, not the one given
   originally. This usually means that each equation given by the user
-  may result in several theroems.  Also note that this automatic
+  may result in several theorems.  Also note that this automatic
   transformation only works for ML-style datatype patterns.
 
   \item @{text domintros} enables the automated generation of
