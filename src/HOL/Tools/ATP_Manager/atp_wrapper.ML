@@ -65,8 +65,8 @@ fun find_failure strs proof =
           else SOME "Ill-formed ATP output"
   | (failure :: _) => SOME failure
 
-fun generic_prover get_facts prepare write cmd args failure_strs produce_answer
-        name ({full_types, ...} : params)
+fun generic_prover overlord get_facts prepare write cmd args failure_strs
+        produce_answer name ({full_types, ...} : params)
         ({subgoal, goal, relevance_override, axiom_clauses, filtered_clauses}
          : problem) =
   let
@@ -87,11 +87,15 @@ fun generic_prover get_facts prepare write cmd args failure_strs produce_answer
       prepare goal_cls chain_ths the_axiom_clauses the_filtered_clauses thy;
 
     (* path to unique problem file *)
-    val destdir' = Config.get ctxt destdir;
+    val destdir' = if overlord then getenv "ISABELLE_HOME_USER"
+                   else Config.get ctxt destdir;
     val problem_prefix' = Config.get ctxt problem_prefix;
     fun prob_pathname nr =
-      let val probfile =
-        Path.basic (problem_prefix' ^ serial_string () ^ "_" ^ string_of_int nr)
+      let
+        val probfile =
+          Path.basic (problem_prefix' ^
+                      (if overlord then "_" ^ name else serial_string ())
+                      ^ "_" ^ string_of_int nr)
       in
         if destdir' = "" then File.tmp_path probfile
         else if File.exists (Path.explode destdir')
@@ -159,11 +163,11 @@ fun generic_prover get_facts prepare write cmd args failure_strs produce_answer
 fun generic_tptp_prover
         (name, {command, arguments, failure_strs, max_new_clauses,
                 prefers_theory_const, supports_isar_proofs})
-        (params as {respect_no_atp, relevance_threshold, convergence,
+        (params as {overlord, respect_no_atp, relevance_threshold, convergence,
                     theory_const, higher_order, follow_defs, isar_proof,
                     modulus, sorts, ...})
         timeout =
-  generic_prover
+  generic_prover overlord
       (get_relevant_facts respect_no_atp relevance_threshold convergence
                           higher_order follow_defs max_new_clauses
                           (the_default prefers_theory_const theory_const))
@@ -179,6 +183,8 @@ fun tptp_prover name p = (name, generic_tptp_prover (name, p));
 
 (** common provers **)
 
+fun generous_to_secs time = (Time.toMilliseconds time + 999) div 1000
+
 (* Vampire *)
 
 (* NB: Vampire does not work without explicit time limit. *)
@@ -186,7 +192,7 @@ fun tptp_prover name p = (name, generic_tptp_prover (name, p));
 val vampire_config : prover_config =
   {command = Path.explode "$VAMPIRE_HOME/vampire",
    arguments = (fn timeout => "--output_syntax tptp --mode casc -t " ^
-                              string_of_int (Time.toSeconds timeout)),
+                              string_of_int (generous_to_secs timeout)),
    failure_strs =
      ["Satisfiability detected", "Refutation not found", "CANNOT PROVE"],
    max_new_clauses = 60,
@@ -201,7 +207,7 @@ val e_config : prover_config =
   {command = Path.explode "$E_HOME/eproof",
    arguments = (fn timeout => "--tstp-in --tstp-out -l5 -xAutoDev \
                               \-tAutoDev --silent --cpu-limit=" ^
-                              string_of_int (Time.toSeconds timeout)),
+                              string_of_int (generous_to_secs timeout)),
    failure_strs =
        ["SZS status: Satisfiable", "SZS status Satisfiable",
         "SZS status: ResourceOut", "SZS status ResourceOut",
@@ -217,10 +223,10 @@ val e = tptp_prover "e" e_config
 fun generic_dfg_prover
         (name, ({command, arguments, failure_strs, max_new_clauses,
                  prefers_theory_const, ...} : prover_config))
-        (params as {respect_no_atp, relevance_threshold, convergence,
+        (params as {overlord, respect_no_atp, relevance_threshold, convergence,
                     theory_const, higher_order, follow_defs, ...})
         timeout =
-  generic_prover
+  generic_prover overlord
       (get_relevant_facts respect_no_atp relevance_threshold convergence
                           higher_order follow_defs max_new_clauses
                           (the_default prefers_theory_const theory_const))
@@ -233,7 +239,7 @@ val spass_config : prover_config =
  {command = Path.explode "$SPASS_HOME/SPASS",
   arguments = (fn timeout => "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0" ^
     " -FullRed=0 -DocProof -TimeLimit=" ^
-    string_of_int (Time.toSeconds timeout)),
+    string_of_int (generous_to_secs timeout)),
   failure_strs =
     ["SPASS beiseite: Completion found.", "SPASS beiseite: Ran out of time.",
      "SPASS beiseite: Maximal number of loops exceeded."],
@@ -276,7 +282,7 @@ fun remote_prover_config prover_prefix args
          : prover_config) : prover_config =
   {command = Path.explode "$ISABELLE_ATP_MANAGER/SystemOnTPTP",
    arguments = (fn timeout =>
-     args ^ " -t " ^ string_of_int (Time.toSeconds timeout) ^ " -s " ^
+     args ^ " -t " ^ string_of_int (generous_to_secs timeout) ^ " -s " ^
      the_system prover_prefix),
    failure_strs = remote_failure_strs @ failure_strs,
    max_new_clauses = max_new_clauses,

@@ -550,7 +550,7 @@ fun minimize_line _ [] = ""
   | minimize_line name xs =
       "To minimize the number of lemmas, try this command: " ^
       Markup.markup Markup.sendback
-                    ("sledgehammer minimize [atps = " ^ name ^ "] (" ^
+                    ("sledgehammer minimize [atp = " ^ name ^ "] (" ^
                      space_implode " " xs ^ ")") ^ ".\n"
 
 fun metis_lemma_list dfg name (result as (_, _, _, _, goal, i)) =

@@ -12,6 +12,7 @@ sig
   type params =
     {debug: bool,
      verbose: bool,
+     overlord: bool,
      atps: string list,
      full_types: bool,
      respect_no_atp: bool,
@@ -64,6 +65,7 @@ open Sledgehammer_Proof_Reconstruct
 type params =
   {debug: bool,
    verbose: bool,
+   overlord: bool,
    atps: string list,
    full_types: bool,
    respect_no_atp: bool,
