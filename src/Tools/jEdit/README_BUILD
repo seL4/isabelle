@@ -15,9 +15,6 @@ Requirements to build from sources
 
 * jEdit 4.3.1 (final)
   http://www.jedit.org/
-
-  
-
   Netbeans Project "jEdit": install official sources as ./contrib/jEdit/.
 
 * jEdit plugins:
