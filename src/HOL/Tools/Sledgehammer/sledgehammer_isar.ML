@@ -51,7 +51,9 @@ val default_default_params =
    ("sorts", "false"),
    ("minimize_timeout", "5 s")]
 
-val negated_params =
+val alias_params =
+  [("atp", "atps")]
+val negated_alias_params =
   [("no_debug", "debug"),
    ("quiet", "verbose"),
    ("ignore_no_atp", "respect_no_atp"),
@@ -66,21 +68,25 @@ val property_dependent_params = ["atps", "full_types", "timeout"]
 
 fun is_known_raw_param s =
   AList.defined (op =) default_default_params s orelse
-  AList.defined (op =) negated_params s orelse
+  AList.defined (op =) alias_params s orelse
+  AList.defined (op =) negated_alias_params s orelse
   member (op =) property_dependent_params s
 
 fun check_raw_param (s, _) =
   if is_known_raw_param s then ()
   else error ("Unknown parameter: " ^ quote s ^ ".")
 
-fun unnegate_raw_param (name, value) =
-  case AList.lookup (op =) negated_params name of
-    SOME name' => (name', case value of
-                            ["false"] => ["true"]
-                          | ["true"] => ["false"]
-                          | [] => ["false"]
-                          | _ => value)
-  | NONE => (name, value)
+fun unalias_raw_param (name, value) =
+  case AList.lookup (op =) alias_params name of
+    SOME name' => (name', value)
+  | NONE =>
+    case AList.lookup (op =) negated_alias_params name of
+      SOME name' => (name', case value of
+                              ["false"] => ["true"]
+                            | ["true"] => ["false"]
+                            | [] => ["false"]
+                            | _ => value)
+    | NONE => (name, value)
 
 structure Data = Theory_Data(
   type T = raw_param list
@@ -88,19 +94,20 @@ structure Data = Theory_Data(
   val extend = I
   fun merge p : T = AList.merge (op =) (K true) p)
 
-val set_default_raw_param = Data.map o AList.update (op =) o unnegate_raw_param
+val set_default_raw_param = Data.map o AList.update (op =) o unalias_raw_param
 fun default_raw_params thy =
-  [("atps", [!atps]),
-   ("full_types", [if !full_types then "true" else "false"]),
-   ("timeout", [string_of_int (!timeout) ^ " s"])] @
   Data.get thy
+  |> fold (AList.default (op =))
+          [("atps", [!atps]),
+           ("full_types", [if !full_types then "true" else "false"]),
+           ("timeout", [string_of_int (!timeout) ^ " s"])]
 
 val infinity_time_in_secs = 60 * 60 * 24 * 365
 val the_timeout = the_default (Time.fromSeconds infinity_time_in_secs)
 
 fun extract_params thy default_params override_params =
   let
-    val override_params = map unnegate_raw_param override_params
+    val override_params = map unalias_raw_param override_params
     val raw_params = rev override_params @ rev default_params
     val lookup = Option.map (space_implode " ") o AList.lookup (op =) raw_params
     val lookup_string = the_default "" o lookup
