@@ -156,7 +156,7 @@ fun extract_params thy default_params override_params =
 fun get_params thy = extract_params thy (default_raw_params thy)
 fun default_params thy = get_params thy o map (apsnd single)
 
-fun atp_minimize_command override_params old_style_args i fact_refs state =
+fun minimize override_params old_style_args i fact_refs state =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
@@ -205,6 +205,9 @@ val addN = "add"
 val delN = "del"
 val onlyN = "only"
 
+fun minimizize_raw_param_name "timeout" = "minimize_timeout"
+  | minimizize_raw_param_name name = name
+
 fun hammer_away override_params subcommand opt_i relevance_override state =
   let
     val thy = Proof.theory_of state
@@ -214,8 +217,8 @@ fun hammer_away override_params subcommand opt_i relevance_override state =
       sledgehammer (get_params thy override_params) (the_default 1 opt_i)
                    relevance_override state
     else if subcommand = minimizeN then
-      atp_minimize_command override_params [] (the_default 1 opt_i)
-                           (#add relevance_override) state
+      minimize (map (apfst minimizize_raw_param_name) override_params) []
+               (the_default 1 opt_i) (#add relevance_override) state
     else if subcommand = messagesN then
       messages opt_i
     else if subcommand = available_atpsN then
@@ -300,8 +303,7 @@ val _ =
     "minimize theorem list with external prover" K.diag
     (parse_minimize_args -- parse_fact_refs >> (fn (args, fact_refs) =>
       Toplevel.no_timing o Toplevel.unknown_proof o
-        Toplevel.keep (atp_minimize_command [] args 1 fact_refs
-                       o Toplevel.proof_of)))
+        Toplevel.keep (minimize [] args 1 fact_refs o Toplevel.proof_of)))
 
 val _ =
   OuterSyntax.improper_command "sledgehammer"
