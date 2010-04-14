@@ -233,7 +233,15 @@ the constant \texttt{DUMMY} has been introduced:
 \isa{fst\ {\isacharparenleft}a{\isacharcomma}\ \_{\isacharparenright}\ {\isacharequal}\ a} is produced by
 \begin{quote}
 \verb!@!\verb!{thm fst_conv[where b = DUMMY]}!
-\end{quote}%
+\end{quote}
+Variables that are bound by quantifiers or lambdas cannot be renamed
+like this. Instead, the attribute \texttt{rename\_abs} does the
+job. It expects a list of names or underscores, similar to the
+\texttt{of} attribute:
+\begin{quote}
+\verb!@!\verb!{thm split_paired_All[rename_abs _ l r]}!
+\end{quote}
+produces \isa{{\isacharparenleft}{\isasymforall}x{\isachardot}\ P\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}l\ r{\isachardot}\ P\ {\isacharparenleft}l{\isacharcomma}\ r{\isacharparenright}{\isacharparenright}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
