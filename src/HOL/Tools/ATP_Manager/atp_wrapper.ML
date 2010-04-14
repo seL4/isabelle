@@ -65,8 +65,8 @@ fun find_failure strs proof =
           else SOME "Ill-formed ATP output"
   | (failure :: _) => SOME failure
 
-fun generic_prover get_facts prepare write cmd args failure_strs produce_answer
-        name ({full_types, ...} : params)
+fun generic_prover overlord get_facts prepare write cmd args failure_strs
+        produce_answer name ({full_types, ...} : params)
         ({subgoal, goal, relevance_override, axiom_clauses, filtered_clauses}
          : problem) =
   let
@@ -87,11 +87,15 @@ fun generic_prover get_facts prepare write cmd args failure_strs produce_answer
       prepare goal_cls chain_ths the_axiom_clauses the_filtered_clauses thy;
 
     (* path to unique problem file *)
-    val destdir' = Config.get ctxt destdir;
+    val destdir' = if overlord then getenv "ISABELLE_HOME_USER"
+                   else Config.get ctxt destdir;
     val problem_prefix' = Config.get ctxt problem_prefix;
     fun prob_pathname nr =
-      let val probfile =
-        Path.basic (problem_prefix' ^ serial_string () ^ "_" ^ string_of_int nr)
+      let
+        val probfile =
+          Path.basic (problem_prefix' ^
+                      (if overlord then "_" ^ name else serial_string ())
+                      ^ "_" ^ string_of_int nr)
       in
         if destdir' = "" then File.tmp_path probfile
         else if File.exists (Path.explode destdir')
@@ -159,11 +163,11 @@ fun generic_prover get_facts prepare write cmd args failure_strs produce_answer
 fun generic_tptp_prover
         (name, {command, arguments, failure_strs, max_new_clauses,
                 prefers_theory_const, supports_isar_proofs})
-        (params as {respect_no_atp, relevance_threshold, convergence,
+        (params as {overlord, respect_no_atp, relevance_threshold, convergence,
                     theory_const, higher_order, follow_defs, isar_proof,
                     modulus, sorts, ...})
         timeout =
-  generic_prover
+  generic_prover overlord
       (get_relevant_facts respect_no_atp relevance_threshold convergence
                           higher_order follow_defs max_new_clauses
                           (the_default prefers_theory_const theory_const))
@@ -219,10 +223,10 @@ val e = tptp_prover "e" e_config
 fun generic_dfg_prover
         (name, ({command, arguments, failure_strs, max_new_clauses,
                  prefers_theory_const, ...} : prover_config))
-        (params as {respect_no_atp, relevance_threshold, convergence,
+        (params as {overlord, respect_no_atp, relevance_threshold, convergence,
                     theory_const, higher_order, follow_defs, ...})
         timeout =
-  generic_prover
+  generic_prover overlord
       (get_relevant_facts respect_no_atp relevance_threshold convergence
                           higher_order follow_defs max_new_clauses
                           (the_default prefers_theory_const theory_const))

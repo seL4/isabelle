@@ -40,6 +40,7 @@ type raw_param = string * string list
 val default_default_params =
   [("debug", "false"),
    ("verbose", "false"),
+   ("overlord", "false"),
    ("respect_no_atp", "true"),
    ("relevance_threshold", "50"),
    ("convergence", "320"),
@@ -56,6 +57,7 @@ val alias_params =
 val negated_alias_params =
   [("no_debug", "debug"),
    ("quiet", "verbose"),
+   ("no_overlord", "overlord"),
    ("ignore_no_atp", "respect_no_atp"),
    ("partial_types", "full_types"),
    ("no_theory_const", "theory_const"),
@@ -133,6 +135,7 @@ fun extract_params thy default_params override_params =
                                    " must be assigned an integer value.")
     val debug = lookup_bool "debug"
     val verbose = debug orelse lookup_bool "verbose"
+    val overlord = lookup_bool "overlord"
     val atps = lookup_string "atps" |> space_explode " "
     val full_types = lookup_bool "full_types"
     val respect_no_atp = lookup_bool "respect_no_atp"
@@ -148,12 +151,12 @@ fun extract_params thy default_params override_params =
     val timeout = lookup_time "timeout"
     val minimize_timeout = lookup_time "minimize_timeout"
   in
-    {debug = debug, verbose = verbose, atps = atps, full_types = full_types,
-     respect_no_atp = respect_no_atp, relevance_threshold = relevance_threshold,
-     convergence = convergence, theory_const = theory_const,
-     higher_order = higher_order, follow_defs = follow_defs,
-     isar_proof = isar_proof, modulus = modulus, sorts = sorts,
-     timeout = timeout, minimize_timeout = minimize_timeout}
+    {debug = debug, verbose = verbose, overlord = overlord, atps = atps,
+     full_types = full_types, respect_no_atp = respect_no_atp,
+     relevance_threshold = relevance_threshold, convergence = convergence,
+     theory_const = theory_const, higher_order = higher_order,
+     follow_defs = follow_defs, isar_proof = isar_proof, modulus = modulus,
+     sorts = sorts, timeout = timeout, minimize_timeout = minimize_timeout}
   end
 
 fun get_params thy = extract_params thy (default_raw_params thy)
