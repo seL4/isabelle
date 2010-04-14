@@ -88,31 +88,39 @@ class Isabelle_System extends Standard_System
 
   /* expand_path */
 
+  private val Root = new Regex("(//+[^/]*|/)(.*)")
+  private val Only_Root = new Regex("//+[^/]*|/")
+
   def expand_path(isabelle_path: String): String =
   {
     val result_path = new StringBuilder
-    def init(path: String)
+    def init(path: String): String =
     {
-      if (path.startsWith("/")) {
-        result_path.clear
-        result_path += '/'
+      path match {
+        case Root(root, rest) =>
+          result_path.clear
+          result_path ++= root
+          rest
+        case _ => path
       }
     }
     def append(path: String)
     {
-      init(path)
-      for (p <- path.split("/") if p != "" && p != ".") {
+      val rest = init(path)
+      for (p <- rest.split("/") if p != "" && p != ".") {
         if (p == "..") {
           val result = result_path.toString
-          val i = result.lastIndexOf("/")
-          if (result == "")
-            result_path ++= ".."
-          else if (result.substring(i + 1) == "..")
-            result_path ++= "/.."
-          else if (i < 1)
-            result_path.length = i + 1
-          else
-            result_path.length = i
+          if (!Only_Root.pattern.matcher(result).matches) {
+            val i = result.lastIndexOf("/")
+            if (result == "")
+              result_path ++= ".."
+            else if (result.substring(i + 1) == "..")
+              result_path ++= "/.."
+            else if (i < 0)
+              result_path.length = 0
+            else
+              result_path.length = i
+          }
         }
         else {
           val len = result_path.length
@@ -122,8 +130,8 @@ class Isabelle_System extends Standard_System
         }
       }
     }
-    init(isabelle_path)
-    for (p <- isabelle_path.split("/")) {
+    val rest = init(isabelle_path)
+    for (p <- rest.split("/")) {
       if (p.startsWith("$")) append(getenv_strict(p.substring(1)))
       else if (p == "~") append(getenv_strict("HOME"))
       else if (p == "~~") append(getenv_strict("ISABELLE_HOME"))

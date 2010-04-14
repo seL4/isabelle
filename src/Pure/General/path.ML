@@ -1,7 +1,8 @@
 (*  Title:      Pure/General/path.ML
     Author:     Markus Wenzel, TU Muenchen
 
-Abstract algebra of file paths (external encoding in Unix style).
+Abstract algebra of file paths: basic POSIX notation, extended by
+named roots (e.g. //foo) and variables (e.g. $BAR).
 *)
 
 signature PATH =
@@ -10,6 +11,7 @@ sig
   val is_current: T -> bool
   val current: T
   val root: T
+  val named_root: string -> T
   val parent: T
   val basic: string -> T
   val variable: string -> T
@@ -31,10 +33,15 @@ end;
 structure Path: PATH =
 struct
 
-
 (* path elements *)
 
-datatype elem = Root | Parent | Basic of string | Variable of string;
+datatype elem =
+  Root of string |
+  Basic of string |
+  Variable of string |
+  Parent;
+
+local
 
 fun err_elem msg chs = error (msg ^ " path element specification: " ^ quote (implode chs));
 
@@ -46,16 +53,18 @@ fun check_elem (chs as []) = err_elem "Illegal" chs
         [] => chs
       | bads => err_elem ("Illegal character(s) " ^ commas_quote bads ^ " in") chs);
 
+in
+
+val root_elem = Root o implode o check_elem;
 val basic_elem = Basic o implode o check_elem;
 val variable_elem = Variable o implode o check_elem;
 
-fun is_var (Variable _) = true
-  | is_var _ = false;
+end;
 
 
 (* type path *)
 
-datatype T = Path of elem list;
+datatype T = Path of elem list;    (*reversed elements*)
 
 fun rep (Path xs) = xs;
 
@@ -63,13 +72,16 @@ fun is_current (Path []) = true
   | is_current _ = false;
 
 val current = Path [];
-val root = Path [Root];
-val parent = Path [Parent];
+val root = Path [Root ""];
+fun named_root s = Path [root_elem (explode s)];
 fun basic s = Path [basic_elem (explode s)];
 fun variable s = Path [variable_elem (explode s)];
+val parent = Path [Parent];
 
-fun is_absolute (Path (Root :: _)) = true
-  | is_absolute _ = false;
+fun is_absolute (Path xs) =
+  (case try List.last xs of
+    SOME (Root _) => true
+  | _ => false);
 
 fun is_basic (Path [Basic _]) = true
   | is_basic _ = false;
@@ -77,37 +89,42 @@ fun is_basic (Path [Basic _]) = true
 
 (* append and norm *)
 
-(*append non-normal path (2n arg) to reversed normal one, result is normal*)
-fun rev_app xs [] = rev xs
-  | rev_app _ (Root :: ys) = rev_app [Root] ys
-  | rev_app (x :: xs) (Parent :: ys) =
-      if x = Parent orelse is_var x then rev_app (Parent :: x :: xs) ys
-      else if x = Root then rev_app (x :: xs) ys
-      else rev_app xs ys
-  | rev_app xs (y :: ys) = rev_app (y :: xs) ys;
+fun apply (y as Root _) _ = [y]
+  | apply Parent (xs as (Root _ :: _)) = xs
+  | apply Parent (Basic _ :: rest) = rest
+  | apply y xs = y :: xs;
 
-fun append (Path xs) (Path ys) = Path (rev_app (rev xs) ys);
+fun append (Path xs) (Path ys) = Path (fold_rev apply ys xs);
 fun appends paths = Library.foldl (uncurry append) (current, paths);
 val make = appends o map basic;
-fun norm path = rev_app [] path;
+
+fun norm elems = fold_rev apply elems [];
 
 
 (* implode *)
 
-fun implode_elem Root = ""
-  | implode_elem Parent = ".."
+local
+
+fun implode_elem (Root "") = ""
+  | implode_elem (Root s) = "//" ^ s
   | implode_elem (Basic s) = s
-  | implode_elem (Variable s) = "$" ^ s;
+  | implode_elem (Variable s) = "$" ^ s
+  | implode_elem Parent = "..";
+
+in
 
 fun implode_path (Path []) = "."
-  | implode_path (Path (Root :: xs)) = "/" ^ space_implode "/" (map implode_elem xs)
-  | implode_path (Path xs) = space_implode "/" (map implode_elem xs);
+  | implode_path (Path [Root ""]) = "/"
+  | implode_path (Path xs) = space_implode "/" (rev (map implode_elem xs));
+
+end;
 
 
 (* explode *)
 
-fun explode_elem "" = Root
-  | explode_elem ".." = Parent
+local
+
+fun explode_elem ".." = Parent
   | explode_elem "~" = Variable "HOME"
   | explode_elem "~~" = Variable "ISABELLE_HOME"
   | explode_elem s =
@@ -115,28 +132,35 @@ fun explode_elem "" = Root
         "$" :: cs => variable_elem cs
       | cs => basic_elem cs);
 
-val explode_elems = map explode_elem o filter_out (fn c => c = "" orelse c = ".");
+val explode_elems =
+  rev o map explode_elem o filter_out (fn c => c = "" orelse c = ".");
 
-fun explode_path str = Path (norm
-  (case space_explode "/" str of
-    "" :: ss => Root :: explode_elems ss
-  | ss => explode_elems ss));
+in
+
+fun explode_path str =
+  let val (roots, raw_elems) =
+    (case take_prefix (equal "") (space_explode "/" str) |>> length of
+      (0, es) => ([], es)
+    | (1, es) => ([Root ""], es)
+    | (_, []) => ([Root ""], [])
+    | (_, e :: es) => ([root_elem (explode e)], es))
+  in Path (norm (explode_elems raw_elems @ roots)) end;
+
+end;
 
 
 (* base element *)
 
-fun split_path f (path as Path xs) =
-  (case try split_last xs of
-    SOME (prfx, Basic s) => f (prfx, s)
-  | _ => error ("Cannot split path into dir/base: " ^ quote (implode_path path)));
+fun split_path f (Path (Basic s :: xs)) = f (Path xs, s)
+  | split_path _ path = error ("Cannot split path into dir/base: " ^ quote (implode_path path));
 
-val dir = split_path (fn (prfx, _) => Path prfx);
+val dir = split_path #1;
 val base = split_path (fn (_, s) => Path [Basic s]);
 
-fun ext "" path = path
-  | ext e path = split_path (fn (prfx, s) => append (Path prfx) (basic (s ^ "." ^ e))) path;
+fun ext "" = I
+  | ext e = split_path (fn (prfx, s) => append prfx (basic (s ^ "." ^ e)));
 
-val split_ext = split_path (fn (prfx, s) => apfst (append (Path prfx))
+val split_ext = split_path (fn (prfx, s) => apfst (append prfx)
   (case take_suffix (fn c => c <> ".") (explode s) of
     ([], _) => (Path [Basic s], "")
   | (cs, e) => (Path [Basic (implode (take (length cs - 1) cs))], implode e)));
@@ -144,13 +168,19 @@ val split_ext = split_path (fn (prfx, s) => apfst (append (Path prfx))
 
 (* expand variables *)
 
+local
+
 fun eval (Variable s) =
-    (case getenv s of
-      "" => error ("Undefined Isabelle environment variable: " ^ quote s)
-    | path => rep (explode_path path))
+      (case getenv s of
+        "" => error ("Undefined Isabelle environment variable: " ^ quote s)
+      | path => rep (explode_path path))
   | eval x = [x];
 
+in
+
 val expand = rep #> maps eval #> norm #> Path;
+
+end;
 
 
 (* source position *)
@@ -163,3 +193,4 @@ val implode = implode_path;
 val explode = explode_path;
 
 end;
+
