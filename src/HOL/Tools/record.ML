@@ -901,7 +901,7 @@ fun record_type_abbr_tr' abbr alphas zeta last_ext schemeT ctxt tm =
     val varifyT = varifyT midx;
 
     fun mk_type_abbr subst name alphas =
-      let val abbrT = Type (name, map (fn a => varifyT (TFree (a, Sign.defaultS thy))) alphas) in
+      let val abbrT = Type (name, map (fn a => varifyT (TFree (a, HOLogic.typeS))) alphas) in
         Syntax.term_of_typ (! Syntax.show_sorts) (Envir.norm_type subst abbrT)
       end;
 
@@ -912,7 +912,7 @@ fun record_type_abbr_tr' abbr alphas zeta last_ext schemeT ctxt tm =
         SOME (name, _) =>
           if name = last_ext then
             let val subst = match schemeT T in
-              if HOLogic.is_unitT (Envir.norm_type subst (varifyT (TFree (zeta, Sign.defaultS thy))))
+              if HOLogic.is_unitT (Envir.norm_type subst (varifyT (TFree (zeta, HOLogic.typeS))))
               then mk_type_abbr subst abbr alphas
               else mk_type_abbr subst (suffix schemeN abbr) (alphas @ [zeta])
             end handle Type.TYPE_MATCH => record_type_tr' ctxt tm
