@@ -193,7 +193,7 @@ val update_simproc =
 
              (* mk_updterm returns 
               *  - (orig-term-skeleton,simplified-term-skeleton, vars, b)
-              *     where boolean b tells if a simplification has occured.
+              *     where boolean b tells if a simplification has occurred.
                     "orig-term-skeleton = simplified-term-skeleton" is
               *     the desired simplification rule.
               * The algorithm first walks down the updates to the seed-state while
