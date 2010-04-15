@@ -743,7 +743,7 @@ fun record_field_types_tr more ctxt t =
                     val varifyT = varifyT midx;
                     val vartypes = map varifyT types;
 
-                    val subst = fold (Sign.typ_match thy) (vartypes ~~ argtypes) Vartab.empty
+                    val subst = Type.raw_matches (vartypes, argtypes) Vartab.empty
                       handle Type.TYPE_MATCH => err "type is no proper record (extension)";
                     val alphas' =
                       map (Syntax.term_of_typ (! Syntax.show_sorts) o Envir.norm_type subst o varifyT)
@@ -873,11 +873,10 @@ fun record_type_tr' ctxt t =
                           apfst (Sign.extern_const thy) f :: map (apfst Long_Name.base_name) fs;
                         val (args', more) = split_last args;
                         val alphavars = map varifyT (but_last alphas);
-                        val subst = fold (Sign.typ_match thy) (alphavars ~~ args') Vartab.empty;
+                        val subst = Type.raw_matches (alphavars, args') Vartab.empty;
                         val fields'' = (map o apsnd) (Envir.norm_type subst o varifyT) fields';
                       in fields'' @ strip_fields more end
-                      handle Type.TYPE_MATCH => [("", T)]
-                        | Library.UnequalLengths => [("", T)])
+                      handle Type.TYPE_MATCH => [("", T)])
                   | _ => [("", T)])
               | _ => [("", T)])
           | _ => [("", T)])
@@ -905,7 +904,7 @@ fun record_type_abbr_tr' abbr alphas zeta last_ext schemeT ctxt tm =
       let val abbrT = Type (name, map (varifyT o TFree) args)
       in Syntax.term_of_typ (! Syntax.show_sorts) (Envir.norm_type subst abbrT) end;
 
-    fun match rT T = Sign.typ_match thy (varifyT rT, T) Vartab.empty;
+    fun match rT T = Type.raw_match (varifyT rT, T) Vartab.empty;
   in
     if ! print_record_type_abbr then
       (case last_extT T of
