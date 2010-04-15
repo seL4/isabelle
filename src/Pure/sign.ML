@@ -346,15 +346,12 @@ val add_defsort_i = gen_add_defsort certify_sort;
 
 (* add type constructors *)
 
-val type_syntax = Syntax.mark_type oo full_name;
+fun type_syntax thy (b, n, mx) = (Syntax.mark_type (full_name thy b), Syntax.make_type n, mx);
 
 fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
   let
-    val syn' =
-      Syntax.update_type_gram true Syntax.mode_default
-        (map (fn (a, n, mx) => (type_syntax thy a, Syntax.make_type n, mx)) types) syn;
-    val decls = map (fn (a, n, _) => (a, n)) types;
-    val tsig' = fold (Type.add_type naming) decls tsig;
+    val syn' = Syntax.update_type_gram true Syntax.mode_default (map (type_syntax thy) types) syn;
+    val tsig' = fold (fn (a, n, _) => Type.add_type naming (a, n)) types tsig;
   in (naming, syn', tsig', consts) end);
 
 
@@ -373,9 +370,8 @@ fun gen_add_tyabbr parse_typ (b, vs, rhs, mx) thy =
     let
       val ctxt = ProofContext.init thy;
       val syn' =
-        Syntax.update_type_gram true Syntax.mode_default
-          [(type_syntax thy b, Syntax.make_type (length vs), mx)] syn;
-      val abbr = (b, vs, certify_typ_mode Type.mode_syntax thy (parse_typ ctxt rhs))
+        Syntax.update_type_gram true Syntax.mode_default [type_syntax thy (b, length vs, mx)] syn;
+      val abbr = (b, vs, parse_typ ctxt rhs)
         handle ERROR msg => cat_error msg ("in type abbreviation " ^ quote (Binding.str_of b));
       val tsig' = Type.add_abbrev naming abbr tsig;
     in (naming, syn', tsig', consts) end);
