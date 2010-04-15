@@ -513,6 +513,17 @@ next
     (cases zs, simp_all)
 qed
 
+lemma list_induct4 [consumes 3, case_names Nil Cons]:
+  "length xs = length ys \<Longrightarrow> length ys = length zs \<Longrightarrow> length zs = length ws \<Longrightarrow>
+   P [] [] [] [] \<Longrightarrow> (\<And>x xs y ys z zs w ws. length xs = length ys \<Longrightarrow>
+   length ys = length zs \<Longrightarrow> length zs = length ws \<Longrightarrow> P xs ys zs ws \<Longrightarrow>
+   P (x#xs) (y#ys) (z#zs) (w#ws)) \<Longrightarrow> P xs ys zs ws"
+proof (induct xs arbitrary: ys zs ws)
+  case Nil then show ?case by simp
+next
+  case (Cons x xs ys zs ws) then show ?case by ((cases ys, simp_all), (cases zs,simp_all)) (cases ws, simp_all)
+qed
+
 lemma list_induct2': 
   "\<lbrakk> P [] [];
   \<And>x xs. P (x#xs) [];
