@@ -62,6 +62,8 @@ sig
   val read_const_proper: Proof.context -> bool -> string -> term
   val read_const: Proof.context -> bool -> string -> term
   val allow_dummies: Proof.context -> Proof.context
+  val check_tvar: Proof.context -> indexname * sort -> indexname * sort
+  val check_tfree: Proof.context -> string * sort -> string * sort
   val decode_term: Proof.context -> term -> term
   val standard_infer_types: Proof.context -> term list -> term list
   val read_term_pattern: Proof.context -> string -> term
@@ -606,19 +608,26 @@ end;
 
 (* types *)
 
-fun get_sort ctxt def_sort raw_env =
+fun get_sort ctxt raw_env =
   let
     val tsig = tsig_of ctxt;
 
     fun eq ((xi, S), (xi', S')) =
       Term.eq_ix (xi, xi') andalso Type.eq_sort tsig (S, S');
     val env = distinct eq raw_env;
-    val _ = (case duplicates (eq_fst (op =)) env of [] => ()
+    val _ =
+      (case duplicates (eq_fst (op =)) env of
+        [] => ()
       | dups => error ("Inconsistent sort constraints for type variable(s) "
           ^ commas_quote (map (Term.string_of_vname' o fst) dups)));
 
+    fun lookup xi =
+      (case AList.lookup (op =) env xi of
+        NONE => NONE
+      | SOME S => if S = dummyS then NONE else SOME S);
+
     fun get xi =
-      (case (AList.lookup (op =) env xi, def_sort xi) of
+      (case (lookup xi, Variable.def_sort ctxt xi) of
         (NONE, NONE) => Type.defaultS tsig
       | (NONE, SOME S) => S
       | (SOME S, NONE) => S
@@ -628,6 +637,9 @@ fun get_sort ctxt def_sort raw_env =
             " inconsistent with default " ^ Syntax.string_of_sort ctxt S' ^
             " for type variable " ^ quote (Term.string_of_vname' xi)));
   in get end;
+
+fun check_tvar ctxt (xi, S) = (xi, get_sort ctxt [(xi, S)] xi);
+fun check_tfree ctxt (x, S) = apfst fst (check_tvar ctxt ((x, ~1), S));
 
 local
 
@@ -647,7 +659,7 @@ fun intern_skolem ctxt def_type x =
 in
 
 fun term_context ctxt =
-  {get_sort = get_sort ctxt (Variable.def_sort ctxt),
+  {get_sort = get_sort ctxt,
    map_const = fn a => ((true, #1 (Term.dest_Const (read_const_proper ctxt false a)))
      handle ERROR _ => (false, Consts.intern (consts_of ctxt) a)),
    map_free = intern_skolem ctxt (Variable.def_type ctxt false)};
@@ -731,9 +743,8 @@ fun parse_sort ctxt text =
 
 fun parse_typ ctxt text =
   let
-    val get_sort = get_sort ctxt (Variable.def_sort ctxt);
     val (syms, pos) = Syntax.parse_token Markup.typ text;
-    val T = Syntax.standard_parse_typ ctxt (syn_of ctxt) get_sort (syms, pos)
+    val T = Syntax.standard_parse_typ ctxt (syn_of ctxt) (get_sort ctxt) (syms, pos)
       handle ERROR msg => cat_error msg ("Failed to parse type" ^ Position.str_of pos);
   in T end;
 
