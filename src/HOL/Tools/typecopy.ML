@@ -8,7 +8,7 @@ signature TYPECOPY =
 sig
   type info = { vs: (string * sort) list, constr: string, typ: typ,
     inject: thm, proj: string * typ, proj_def: thm }
-  val typecopy: binding * string list -> typ -> (binding * binding) option
+  val typecopy: binding * (string * sort) list -> typ -> (binding * binding) option
     -> theory -> (string * info) * theory
   val get_info: theory -> string -> info option
   val interpretation: (string -> theory -> theory) -> theory -> theory
@@ -52,8 +52,9 @@ val interpretation = Typecopy_Interpretation.interpretation;
 fun typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
   let
     val ty = Sign.certify_typ thy raw_ty;
-    val vs =
-      AList.make (the_default HOLogic.typeS o AList.lookup (op =) (Term.add_tfreesT ty [])) raw_vs;
+    val ctxt = ProofContext.init thy |> Variable.declare_typ ty;
+    val vs = raw_vs |>
+      map (fn (a, S) => (a, if S = dummyS then ProofContext.default_sort ctxt (a, ~1) else S));
     val tac = Tactic.rtac UNIV_witness 1;
     fun add_info tyco (({ abs_type = ty_abs, rep_type = ty_rep, Abs_name = c_abs,
           Rep_name = c_rep, ...}, { Abs_inject = inject, Abs_inverse = inverse, ... })
@@ -80,8 +81,7 @@ fun typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
         end
   in
     thy
-    |> Typedef.add_typedef_global false (SOME raw_tyco)
-      (raw_tyco, map (fn (v, _) => (v, dummyS)) vs, NoSyn)   (* FIXME keep constraints!? *)
+    |> Typedef.add_typedef_global false (SOME raw_tyco) (raw_tyco, vs, NoSyn)
       (HOLogic.mk_UNIV ty) (Option.map swap constr_proj) tac
     |-> (fn (tyco, info) => add_info tyco info)
   end;
