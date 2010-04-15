@@ -129,9 +129,10 @@ fun generic_prover overlord get_facts prepare write cmd args failure_strs
       if File.exists cmd then
         write full_types probfile clauses
         |> pair (apfst split_time' (bash_output (cmd_line probfile)))
-      else error ("Bad executable: " ^ Path.implode cmd);
+      else error ("Bad executable: " ^ Path.implode cmd ^ ".");
 
-    (* if problemfile has not been exported, delete problemfile; otherwise export proof, too *)
+    (* If the problem file has not been exported, remove it; otherwise, export
+       the proof file too. *)
     fun cleanup probfile = if destdir' = "" then try File.rm probfile else NONE;
     fun export probfile (((proof, _), _), _) =
       if destdir' = "" then ()
@@ -140,12 +141,12 @@ fun generic_prover overlord get_facts prepare write cmd args failure_strs
     val (((proof, atp_run_time_in_msecs), rc), conj_pos) =
       with_path cleanup export run_on (prob_pathname subgoal);
 
-    (* check for success and print out some information on failure *)
+    (* Check for success and print out some information on failure. *)
     val failure = find_failure failure_strs proof;
     val success = rc = 0 andalso is_none failure;
     val (message, relevant_thm_names) =
-      if is_some failure then ("External prover failed.", [])
-      else if rc <> 0 then ("External prover failed: " ^ proof, [])
+      if is_some failure then ("ATP failed to find a proof.", [])
+      else if rc <> 0 then ("ATP error: " ^ proof ^ ".", [])
       else
         (produce_answer name (proof, internal_thm_names, conj_pos, ctxt, th,
                               subgoal));

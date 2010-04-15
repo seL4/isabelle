@@ -495,22 +495,24 @@ fun dfg_arity_clause (ArityClause{axiom_name,conclLit,premLits,...}) =
 
 (**** Produce TPTP files ****)
 
-(*Attach sign in TPTP syntax: false means negate.*)
 fun tptp_sign true s = s
   | tptp_sign false s = "~ " ^ s
 
-fun tptp_of_typeLit pos (LTVar (s,ty))  = tptp_sign pos (s ^ "(" ^ ty ^ ")")
-  | tptp_of_typeLit pos (LTFree (s,ty)) = tptp_sign pos  (s ^ "(" ^ ty ^ ")");
+fun tptp_of_typeLit pos (LTVar (s, ty))  = tptp_sign pos (s ^ "(" ^ ty ^ ")")
+  | tptp_of_typeLit pos (LTFree (s, ty)) = tptp_sign pos (s ^ "(" ^ ty ^ ")")
 
-fun gen_tptp_cls (cls_id,ax_name,Axiom,lits,tylits) =
-      "cnf(" ^ string_of_clausename (cls_id,ax_name) ^ ",axiom," ^ 
-               tptp_pack (tylits@lits) ^ ").\n"
-  | gen_tptp_cls (cls_id,ax_name,Conjecture,lits,_) =
-      "cnf(" ^ string_of_clausename (cls_id,ax_name) ^ ",negated_conjecture," ^ 
-               tptp_pack lits ^ ").\n";
+fun tptp_cnf name kind formula =
+  "cnf(" ^ name ^ ", " ^ kind ^ ",\n    " ^ formula ^ ").\n"
+
+fun gen_tptp_cls (cls_id, ax_name, Axiom, lits, tylits) =
+      tptp_cnf (string_of_clausename (cls_id, ax_name)) "axiom"
+               (tptp_pack (tylits @ lits))
+  | gen_tptp_cls (cls_id, ax_name, Conjecture, lits, _) =
+      tptp_cnf (string_of_clausename (cls_id, ax_name)) "negated_conjecture"
+               (tptp_pack lits)
 
 fun tptp_tfree_clause tfree_lit =
-    "cnf(" ^ "tfree_tcs," ^ "negated_conjecture" ^ "," ^ tptp_pack[tfree_lit] ^ ").\n";
+    tptp_cnf "tfree_tcs" "negated_conjecture" (tptp_pack [tfree_lit])
 
 fun tptp_of_arLit (TConsLit (c,t,args)) =
       tptp_sign true (make_type_class c ^ "(" ^ t ^ paren_pack args ^ ")")
@@ -518,14 +520,14 @@ fun tptp_of_arLit (TConsLit (c,t,args)) =
       tptp_sign false (make_type_class c ^ "(" ^ str ^ ")")
 
 fun tptp_arity_clause (ArityClause{axiom_name,conclLit,premLits,...}) =
-  "cnf(" ^ string_of_ar axiom_name ^ ",axiom," ^
-  tptp_pack (map tptp_of_arLit (conclLit :: premLits)) ^ ").\n";
+  tptp_cnf (string_of_ar axiom_name) "axiom"
+           (tptp_pack (map tptp_of_arLit (conclLit :: premLits)))
 
 fun tptp_classrelLits sub sup =
   let val tvar = "(T)"
   in  tptp_pack [tptp_sign false (sub^tvar), tptp_sign true (sup^tvar)]  end;
 
 fun tptp_classrel_clause (ClassrelClause {axiom_name,subclass,superclass,...}) =
-  "cnf(" ^ axiom_name ^ ",axiom," ^ tptp_classrelLits subclass superclass ^ ").\n"
+  tptp_cnf axiom_name "axiom" (tptp_classrelLits subclass superclass)
 
 end;
