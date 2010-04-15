@@ -103,18 +103,18 @@ fun isTaut (HOLClause {literals,...}) = exists isTrue literals;
 
 fun type_of dfg (Type (a, Ts)) =
       let val (folTypes,ts) = types_of dfg Ts
-      in  (Comp(make_fixed_type_const dfg a, folTypes), ts)  end
-  | type_of _ (tp as TFree (a, _)) = (AtomF (make_fixed_type_var a), [tp])
-  | type_of _ (tp as TVar (v, _)) = (AtomV (make_schematic_type_var v), [tp])
+      in  (TyConstr (make_fixed_type_const dfg a, folTypes), ts)  end
+  | type_of _ (tp as TFree (a, _)) = (TyFree (make_fixed_type_var a), [tp])
+  | type_of _ (tp as TVar (v, _)) = (TyVar (make_schematic_type_var v), [tp])
 and types_of dfg Ts =
       let val (folTyps,ts) = ListPair.unzip (map (type_of dfg) Ts)
       in  (folTyps, union_all ts)  end;
 
 (* same as above, but no gathering of sort information *)
 fun simp_type_of dfg (Type (a, Ts)) =
-      Comp(make_fixed_type_const dfg a, map (simp_type_of dfg) Ts)
-  | simp_type_of _ (TFree (a, _)) = AtomF (make_fixed_type_var a)
-  | simp_type_of _ (TVar (v, _)) = AtomV (make_schematic_type_var v);
+      TyConstr (make_fixed_type_const dfg a, map (simp_type_of dfg) Ts)
+  | simp_type_of _ (TFree (a, _)) = TyFree (make_fixed_type_var a)
+  | simp_type_of _ (TVar (v, _)) = TyVar (make_schematic_type_var v);
 
 
 fun const_type_of dfg thy (c,t) =
@@ -193,8 +193,8 @@ fun make_conjecture_clauses dfg thy = make_conjecture_clauses_aux dfg thy 0;
 (**********************************************************************)
 
 (*Result of a function type; no need to check that the argument type matches.*)
-fun result_type (Comp ("tc_fun", [_, tp2])) = tp2
-  | result_type _ = error "result_type"
+fun result_type (TyConstr ("tc_fun", [_, tp2])) = tp2
+  | result_type _ = raise Fail "Non-function type"
 
 fun type_of_combterm (CombConst (_, tp, _)) = tp
   | type_of_combterm (CombVar (_, tp)) = tp

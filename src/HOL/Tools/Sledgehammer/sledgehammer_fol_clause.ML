@@ -33,9 +33,9 @@ sig
   datatype kind = Axiom | Conjecture
   type axiom_name = string
   datatype fol_type =
-      AtomV of string
-    | AtomF of string
-    | Comp of string * fol_type list
+    TyVar of string |
+    TyFree of string |
+    TyConstr of string * fol_type list
   val string_of_fol_type : fol_type -> string
   datatype type_literal = LTVar of string * string | LTFree of string * string
   exception CLAUSE of string * term
@@ -215,14 +215,14 @@ type axiom_name = string;
 
 (**** Isabelle FOL clauses ****)
 
-(*FIXME: give the constructors more sensible names*)
-datatype fol_type = AtomV of string
-                  | AtomF of string
-                  | Comp of string * fol_type list;
+datatype fol_type =
+  TyVar of string |
+  TyFree of string |
+  TyConstr of string * fol_type list
 
-fun string_of_fol_type (AtomV x) = x
-  | string_of_fol_type (AtomF x) = x
-  | string_of_fol_type (Comp(tcon,tps)) =
+fun string_of_fol_type (TyVar s) = s
+  | string_of_fol_type (TyFree s) = s
+  | string_of_fol_type (TyConstr (tcon, tps)) =
       tcon ^ (paren_pack (map string_of_fol_type tps));
 
 (*First string is the type class; the second is a TVar or TFfree*)
@@ -230,15 +230,15 @@ datatype type_literal = LTVar of string * string | LTFree of string * string;
 
 exception CLAUSE of string * term;
 
-fun atomic_type (TFree (a,_)) = AtomF(make_fixed_type_var a)
-  | atomic_type (TVar (v,_))  = AtomV(make_schematic_type_var v);
+fun atomic_type (TFree (a,_)) = TyFree(make_fixed_type_var a)
+  | atomic_type (TVar (v,_))  = TyVar(make_schematic_type_var v);
 
 (*Flatten a type to a fol_type while accumulating sort constraints on the TFrees and
   TVars it contains.*)
 fun type_of dfg (Type (a, Ts)) =
       let val (folTyps, ts) = types_of dfg Ts
           val t = make_fixed_type_const dfg a
-      in (Comp(t,folTyps), ts) end
+      in (TyConstr (t, folTyps), ts) end
   | type_of dfg T = (atomic_type T, [T])
 and types_of dfg Ts =
       let val (folTyps,ts) = ListPair.unzip (map (type_of dfg) Ts)
@@ -401,9 +401,9 @@ fun add_arity_clause_preds (ArityClause {conclLit,premLits,...}, preds) =
 
 (*** Find occurrences of functions in clauses ***)
 
-fun add_foltype_funcs (AtomV _, funcs) = funcs
-  | add_foltype_funcs (AtomF a, funcs) = Symtab.update (a,0) funcs
-  | add_foltype_funcs (Comp(a,tys), funcs) =
+fun add_foltype_funcs (TyVar _, funcs) = funcs
+  | add_foltype_funcs (TyFree a, funcs) = Symtab.update (a,0) funcs
+  | add_foltype_funcs (TyConstr (a, tys), funcs) =
       List.foldl add_foltype_funcs (Symtab.update (a, length tys) funcs) tys;
 
 (*TFrees are recorded as constants*)
