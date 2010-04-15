@@ -135,9 +135,9 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
 
     (* rhs *)
 
-    val (_, tmp_lthy) = lthy |> Typedecl.predeclare_constraints (tname, raw_args, mx);
-    val set = prep_term tmp_lthy raw_set;
-    val tmp_lthy' = tmp_lthy |> Variable.declare_constraints set;
+    val tmp_ctxt = lthy |> fold (Variable.declare_typ o TFree) raw_args;
+    val set = prep_term tmp_ctxt raw_set;
+    val tmp_ctxt' = tmp_ctxt |> Variable.declare_term set;
 
     val setT = Term.fastype_of set;
     val oldT = HOLogic.dest_setT setT handle TYPE _ =>
@@ -149,7 +149,7 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
 
     (* lhs *)
 
-    val args = map (fn (a, _) => (a, ProofContext.default_sort tmp_lthy' (a, ~1))) raw_args;
+    val args = map (ProofContext.check_tfree tmp_ctxt') raw_args;
     val (newT, typedecl_lthy) = lthy
       |> Typedecl.typedecl (tname, args, mx)
       ||> Variable.declare_term set;

@@ -682,7 +682,7 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
             (constrs @ [(c, map (dtyp_of_typ new_dts) cargs')],
               constr_syntax' @ [(cname, mx')], sorts'')
           end handle ERROR msg => cat_error msg
-           ("The error above occured in constructor " ^ quote (Binding.str_of cname) ^
+           ("The error above occurred in constructor " ^ quote (Binding.str_of cname) ^
             " of datatype " ^ quote (Binding.str_of tname));
 
         val (constrs', constr_syntax', sorts') =

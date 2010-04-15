@@ -478,6 +478,21 @@ fun read_raw_parent ctxt raw_T =
     Type (name, Ts) => (Ts, name)
   | T => error ("Bad parent statespace specification: " ^ Syntax.string_of_typ ctxt T));
 
+fun read_typ ctxt raw_T env =
+  let
+    val ctxt' = fold (Variable.declare_typ o TFree) env ctxt;
+    val T = Syntax.read_typ ctxt' raw_T;
+    val env' = OldTerm.add_typ_tfrees (T, env);
+  in (T, env') end;
+
+fun cert_typ ctxt raw_T env =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val T = Type.no_tvars (Sign.certify_typ thy raw_T)
+      handle TYPE (msg, _, _) => error msg;
+    val env' = OldTerm.add_typ_tfrees (T, env);
+  in (T, env') end;
+
 fun gen_define_statespace prep_typ state_space args name parents comps thy =
   let (* - args distinct
          - only args may occur in comps and parent-instantiations
@@ -500,7 +515,7 @@ fun gen_define_statespace prep_typ state_space args name parents comps thy =
 
         val (Ts',env') = fold_map (prep_typ ctxt) Ts env
             handle ERROR msg => cat_error msg
-                    ("The error(s) above occured in parent statespace specification "
+                    ("The error(s) above occurred in parent statespace specification "
                     ^ quote pname);
         val err_insts = if length args <> length Ts' then
             ["number of type instantiation(s) does not match arguments of parent statespace "
@@ -539,7 +554,7 @@ fun gen_define_statespace prep_typ state_space args name parents comps thy =
 
     fun prep_comp (n,T) env =
       let val (T', env') = prep_typ ctxt T env handle ERROR msg =>
-       cat_error msg ("The error(s) above occured in component " ^ quote n)
+       cat_error msg ("The error(s) above occurred in component " ^ quote n)
       in ((n,T'), env') end;
 
     val (comps',env') = fold_map prep_comp comps env;
@@ -579,8 +594,8 @@ fun gen_define_statespace prep_typ state_space args name parents comps thy =
   end
   handle ERROR msg => cat_error msg ("Failed to define statespace " ^ quote name);
 
-val define_statespace = gen_define_statespace Record.read_typ NONE;
-val define_statespace_i = gen_define_statespace Record.cert_typ;
+val define_statespace = gen_define_statespace read_typ NONE;
+val define_statespace_i = gen_define_statespace cert_typ;
 
 
 (*** parse/print - translations ***)

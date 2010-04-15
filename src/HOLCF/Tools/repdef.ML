@@ -64,18 +64,18 @@ fun gen_add_repdef
     val _ = Theory.requires thy "Representable" "repdefs";
 
     (*rhs*)
-    val (_, tmp_lthy) =
-      thy |> Theory.copy |> Theory_Target.init NONE
-      |> Typedecl.predeclare_constraints (tname, raw_args, mx);
-    val defl = prep_term tmp_lthy raw_defl;
-    val tmp_lthy = tmp_lthy |> Variable.declare_constraints defl;
+    val tmp_ctxt =
+      ProofContext.init thy
+      |> fold (Variable.declare_typ o TFree) raw_args;
+    val defl = prep_term tmp_ctxt raw_defl;
+    val tmp_ctxt = tmp_ctxt |> Variable.declare_constraints defl;
 
     val deflT = Term.fastype_of defl;
     val _ = if deflT = @{typ "udom alg_defl"} then ()
-            else error ("Not type udom alg_defl: " ^ quote (Syntax.string_of_typ tmp_lthy deflT));
+            else error ("Not type udom alg_defl: " ^ quote (Syntax.string_of_typ tmp_ctxt deflT));
 
     (*lhs*)
-    val lhs_tfrees = map (fn (a, _) => (a, ProofContext.default_sort tmp_lthy (a, ~1))) raw_args;
+    val lhs_tfrees = map (ProofContext.check_tfree tmp_ctxt) raw_args;
     val lhs_sorts = map snd lhs_tfrees;
     val full_tname = Sign.full_name thy tname;
     val newT = Type (full_tname, map TFree lhs_tfrees);
