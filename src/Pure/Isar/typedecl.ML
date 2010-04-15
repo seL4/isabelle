@@ -45,9 +45,8 @@ fun typedecl (b, raw_args, mx) lthy =
     fun err msg = error (msg ^ " in type declaration " ^ quote (Binding.str_of b));
 
     val _ = has_duplicates (eq_fst op =) raw_args andalso err "Duplicate parameters";
-    val args = raw_args
-      |> map (fn (a, S) => (a, if S = dummyS then ProofContext.default_sort lthy (a, ~1) else S));
-    val T = Type (Local_Theory.full_name lthy b, map TFree args);
+    val args = map (TFree o ProofContext.check_tfree lthy) raw_args;
+    val T = Type (Local_Theory.full_name lthy b, args);
 
     val bad_args =
       #2 (Term.dest_Type (Logic.type_map (singleton (Variable.polymorphic lthy)) T))

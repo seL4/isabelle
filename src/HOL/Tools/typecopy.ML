@@ -53,8 +53,7 @@ fun typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
   let
     val ty = Sign.certify_typ thy raw_ty;
     val ctxt = ProofContext.init thy |> Variable.declare_typ ty;
-    val vs = raw_vs |>
-      map (fn (a, S) => (a, if S = dummyS then ProofContext.default_sort ctxt (a, ~1) else S));
+    val vs = map (ProofContext.check_tfree ctxt) raw_vs;
     val tac = Tactic.rtac UNIV_witness 1;
     fun add_info tyco (({ abs_type = ty_abs, rep_type = ty_rep, Abs_name = c_abs,
           Rep_name = c_rep, ...}, { Abs_inject = inject, Abs_inverse = inverse, ... })
