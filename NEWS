@@ -74,6 +74,8 @@ enabled or disabled via the ProofGeneral settings menu.
 
 *** Pure ***
 
+* Code generator: simple concept for abstract datatypes obeying invariants.
+
 * Local theory specifications may depend on extra type variables that
 are not present in the result type -- arguments TYPE('a) :: 'a itself
 are added internally.  For example:
@@ -105,6 +107,10 @@ terms may need to be adapted.
 
 
 *** HOL ***
+
+* Library theory 'RBT' renamed to 'RBT_Impl'; new library theory 'RBT'
+provides abstract red-black tree type which is backed by RBT_Impl
+as implementation.  INCOMPATIBILTY.
 
 * Command 'typedef' now works within a local theory context -- without
 introducing dependencies on parameters or assumptions, which is not

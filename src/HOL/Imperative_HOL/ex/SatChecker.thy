@@ -5,7 +5,7 @@
 header {* An efficient checker for proofs from a SAT solver *}
 
 theory SatChecker
-imports RBT Sorted_List "~~/src/HOL/Imperative_HOL/Imperative_HOL" 
+imports RBT_Impl Sorted_List "~~/src/HOL/Imperative_HOL/Imperative_HOL" 
 begin
 
 section{* General settings and functions for our representation of clauses *}
@@ -635,24 +635,24 @@ where
 
 section {* Functional version with RedBlackTrees *}
 
-fun tres_thm :: "(ClauseId, Clause) rbt \<Rightarrow> Lit \<times> ClauseId \<Rightarrow> Clause \<Rightarrow> Clause Heap"
+fun tres_thm :: "(ClauseId, Clause) RBT_Impl.rbt \<Rightarrow> Lit \<times> ClauseId \<Rightarrow> Clause \<Rightarrow> Clause Heap"
 where
   "tres_thm t (l, j) cli =
-  (case (RBT.lookup t j) of 
+  (case (RBT_Impl.lookup t j) of 
      None \<Rightarrow> raise (''MiniSatChecked.res_thm: No resolvant clause in thms array for Conflict step.'')
    | Some clj \<Rightarrow> res_thm' l cli clj)"
 
-fun tdoProofStep :: " ProofStep \<Rightarrow> ((ClauseId, Clause) rbt * Clause list) \<Rightarrow> ((ClauseId, Clause) rbt * Clause list) Heap"
+fun tdoProofStep :: " ProofStep \<Rightarrow> ((ClauseId, Clause) RBT_Impl.rbt * Clause list) \<Rightarrow> ((ClauseId, Clause) RBT_Impl.rbt * Clause list) Heap"
 where
   "tdoProofStep (Conflict saveTo (i, rs)) (t, rcl) =
-     (case (RBT.lookup t i) of
+     (case (RBT_Impl.lookup t i) of
        None \<Rightarrow> raise (''MiniSatChecked.doProofStep: No starting clause in thms array for Conflict step.'')
      | Some cli \<Rightarrow> (do
                       result \<leftarrow> foldM (tres_thm t) rs cli;
-                      return ((RBT.insert saveTo result t), rcl)
+                      return ((RBT_Impl.insert saveTo result t), rcl)
                     done))"
-| "tdoProofStep (Delete cid) (t, rcl) = return ((RBT.delete cid t), rcl)"
-| "tdoProofStep (Root cid clause) (t, rcl) = return (RBT.insert cid (sort clause) t, (remdups(sort clause)) # rcl)"
+| "tdoProofStep (Delete cid) (t, rcl) = return ((RBT_Impl.delete cid t), rcl)"
+| "tdoProofStep (Root cid clause) (t, rcl) = return (RBT_Impl.insert cid (sort clause) t, (remdups(sort clause)) # rcl)"
 | "tdoProofStep (Xstep cid1 cid2) (t, rcl) = raise ''MiniSatChecked.doProofStep: Xstep constructor found.''"
 | "tdoProofStep (ProofDone b) (t, rcl) = raise ''MiniSatChecked.doProofStep: ProofDone constructor found.''"
 
@@ -660,8 +660,8 @@ definition tchecker :: "nat \<Rightarrow> ProofStep list \<Rightarrow> nat \<Rig
 where
   "tchecker n p i =
   (do 
-     rcs \<leftarrow> foldM (tdoProofStep) p (RBT.Empty, []);
-     (if (RBT.lookup (fst rcs) i) = Some [] then return (snd rcs) 
+     rcs \<leftarrow> foldM (tdoProofStep) p (RBT_Impl.Empty, []);
+     (if (RBT_Impl.lookup (fst rcs) i) = Some [] then return (snd rcs) 
                 else raise(''No empty clause''))
    done)"
 
