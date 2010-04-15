@@ -169,18 +169,18 @@ fun prepare prep_term name (tname, raw_args, mx) raw_set opt_morphs thy =
     val _ = Theory.requires thy "Pcpodef" "pcpodefs";
 
     (*rhs*)
-    val (_, tmp_lthy) =
-      thy |> Theory.copy |> Theory_Target.init NONE
-      |> Typedecl.predeclare_constraints (tname, raw_args, mx);
-    val set = prep_term tmp_lthy raw_set;
-    val tmp_lthy' = tmp_lthy |> Variable.declare_constraints set;
+    val tmp_ctxt =
+      ProofContext.init thy
+      |> fold (Variable.declare_typ o TFree) raw_args;
+    val set = prep_term tmp_ctxt raw_set;
+    val tmp_ctxt' = tmp_ctxt |> Variable.declare_term set;
 
     val setT = Term.fastype_of set;
     val oldT = HOLogic.dest_setT setT handle TYPE _ =>
-      error ("Not a set type: " ^ quote (Syntax.string_of_typ tmp_lthy setT));
+      error ("Not a set type: " ^ quote (Syntax.string_of_typ tmp_ctxt setT));
 
     (*lhs*)
-    val lhs_tfrees = map (fn (a, _) => (a, ProofContext.default_sort tmp_lthy' (a, ~1))) raw_args;
+    val lhs_tfrees = map (ProofContext.check_tfree tmp_ctxt') raw_args;
     val full_tname = Sign.full_name thy tname;
     val newT = Type (full_tname, map TFree lhs_tfrees);
 

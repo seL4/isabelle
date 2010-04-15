@@ -7,14 +7,19 @@ Type declarations (within the object logic).
 signature TYPEDECL =
 sig
   val read_constraint: Proof.context -> string option -> sort
-  val predeclare_constraints: binding * (string * sort) list * mixfix ->
-    local_theory -> string * local_theory
+  val basic_typedecl: binding * int * mixfix -> local_theory -> string * local_theory
   val typedecl: binding * (string * sort) list * mixfix -> local_theory -> typ * local_theory
   val typedecl_global: binding * (string * sort) list * mixfix -> theory -> typ * theory
 end;
 
 structure Typedecl: TYPEDECL =
 struct
+
+(* constraints *)
+
+fun read_constraint _ NONE = dummyS
+  | read_constraint ctxt (SOME s) = Syntax.read_sort ctxt s;
+
 
 (* primitives *)
 
@@ -33,17 +38,7 @@ fun basic_typedecl (b, n, mx) lthy =
   end;
 
 
-(* syntactic version -- useful for internalizing additional types/terms beforehand *)
-
-fun read_constraint _ NONE = dummyS
-  | read_constraint ctxt (SOME s) = Syntax.read_sort ctxt s;
-
-fun predeclare_constraints (b, raw_args, mx) =
-  basic_typedecl (b, length raw_args, mx) ##>
-  fold (Variable.declare_constraints o Logic.mk_type o TFree) raw_args;
-
-
-(* regular version -- without dependencies on type parameters of the context *)
+(* regular typedecl -- without dependencies on type parameters of the context *)
 
 fun typedecl (b, raw_args, mx) lthy =
   let

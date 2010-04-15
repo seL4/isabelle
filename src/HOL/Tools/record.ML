@@ -2440,15 +2440,14 @@ fun add_record quiet_mode (params, binding) raw_parent raw_fields thy =
   end
   handle ERROR msg => cat_error msg ("Failed to define record " ^ quote (Binding.str_of binding));
 
-fun add_record_cmd quiet_mode (raw_params, binding) raw_parent raw_fields thy0 =
+fun add_record_cmd quiet_mode (raw_params, binding) raw_parent raw_fields thy =
   let
-    val thy = Theory.checkpoint thy0;
-    val lthy = Theory_Target.init NONE thy;
-    val params = map (apsnd (Typedecl.read_constraint lthy)) raw_params;
-    val (_, lthy1) = Typedecl.predeclare_constraints (binding, params, NoSyn) lthy;
-    val (parent, lthy2) = read_parent raw_parent lthy1;
-    val (fields, lthy3) = fold_map read_field raw_fields lthy2;
-    val params' = map (fn (a, _) => (a, ProofContext.default_sort lthy3 (a, ~1))) params;
+    val ctxt = ProofContext.init thy;
+    val params = map (apsnd (Typedecl.read_constraint ctxt)) raw_params;
+    val ctxt1 = fold (Variable.declare_typ o TFree) params ctxt;
+    val (parent, ctxt2) = read_parent raw_parent ctxt1;
+    val (fields, ctxt3) = fold_map read_field raw_fields ctxt2;
+    val params' = map (ProofContext.check_tfree ctxt3) params;
   in thy |> add_record quiet_mode (params', binding) parent fields end;
 
 end;
