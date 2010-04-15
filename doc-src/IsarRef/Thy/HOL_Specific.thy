@@ -178,7 +178,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    'record' typespec '=' (type '+')? (constdecl +)
+    'record' typespecsorts '=' (type '+')? (constdecl +)
     ;
   \end{rail}
 
