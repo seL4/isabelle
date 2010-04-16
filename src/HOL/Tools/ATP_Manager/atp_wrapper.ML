@@ -20,6 +20,7 @@ end;
 structure ATP_Wrapper : ATP_WRAPPER =
 struct
 
+open Sledgehammer_Util
 open Sledgehammer_Fact_Preprocessor
 open Sledgehammer_HOL_Clause
 open Sledgehammer_Fact_Filter
@@ -135,8 +136,11 @@ fun generic_prover overlord get_facts prepare write_file cmd args failure_strs
        the proof file too. *)
     fun cleanup probfile = if destdir' = "" then try File.rm probfile else NONE;
     fun export probfile (((proof, _), _), _) =
-      if destdir' = "" then ()
-      else File.write (Path.explode (Path.implode probfile ^ "_proof")) proof;
+      if destdir' = "" then
+        ()
+      else
+        File.write (Path.explode (Path.implode probfile ^ "_proof"))
+                   ("#" ^ timestamp () ^ "\n" ^ proof)
 
     val (((proof, atp_run_time_in_msecs), rc), conj_pos) =
       with_path cleanup export run_on (prob_pathname subgoal);
