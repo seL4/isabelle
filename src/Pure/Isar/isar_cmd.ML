@@ -13,6 +13,7 @@ sig
   val print_translation: bool * (Symbol_Pos.text * Position.T) -> theory -> theory
   val typed_print_translation: bool * (Symbol_Pos.text * Position.T) -> theory -> theory
   val print_ast_translation: bool * (Symbol_Pos.text * Position.T) -> theory -> theory
+  val add_tyabbrs: (binding * string list * string * mixfix) list -> local_theory -> local_theory
   val oracle: bstring * Position.T -> Symbol_Pos.text * Position.T -> theory -> theory
   val add_axioms: (Attrib.binding * string) list -> theory -> theory
   val add_defs: (bool * bool) * ((binding * string) * Attrib.src list) list -> theory -> theory
@@ -147,6 +148,11 @@ fun typed_print_translation (a, (txt, pos)) =
   |> Context.theory_map;
 
 end;
+
+
+(* old-style type abbreviations *)
+
+val add_tyabbrs = fold (fn (a, args, rhs, mx) => snd o Typedecl.abbrev_cmd (a, args, mx) rhs);
 
 
 (* oracles *)
