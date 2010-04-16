@@ -65,8 +65,8 @@ fun find_failure strs proof =
           else SOME "Ill-formed ATP output"
   | (failure :: _) => SOME failure
 
-fun generic_prover overlord get_facts prepare write cmd args failure_strs
-        produce_answer name ({full_types, ...} : params)
+fun generic_prover overlord get_facts prepare write_file cmd args failure_strs
+        produce_answer name ({debug, full_types, ...} : params)
         ({subgoal, goal, relevance_override, axiom_clauses, filtered_clauses}
          : problem) =
   let
@@ -100,7 +100,7 @@ fun generic_prover overlord get_facts prepare write cmd args failure_strs
         if destdir' = "" then File.tmp_path probfile
         else if File.exists (Path.explode destdir')
         then Path.append  (Path.explode destdir') probfile
-        else error ("No such directory: " ^ destdir')
+        else error ("No such directory: " ^ destdir' ^ ".")
       end;
 
     (* write out problem file and call prover *)
@@ -127,11 +127,12 @@ fun generic_prover overlord get_facts prepare write cmd args failure_strs
       if Config.get ctxt measure_runtime then split_time s else (s, 0)
     fun run_on probfile =
       if File.exists cmd then
-        write full_types probfile clauses
+        write_file debug full_types probfile clauses
         |> pair (apfst split_time' (bash_output (cmd_line probfile)))
-      else error ("Bad executable: " ^ Path.implode cmd);
+      else error ("Bad executable: " ^ Path.implode cmd ^ ".");
 
-    (* if problemfile has not been exported, delete problemfile; otherwise export proof, too *)
+    (* If the problem file has not been exported, remove it; otherwise, export
+       the proof file too. *)
     fun cleanup probfile = if destdir' = "" then try File.rm probfile else NONE;
     fun export probfile (((proof, _), _), _) =
       if destdir' = "" then ()
@@ -140,12 +141,12 @@ fun generic_prover overlord get_facts prepare write cmd args failure_strs
     val (((proof, atp_run_time_in_msecs), rc), conj_pos) =
       with_path cleanup export run_on (prob_pathname subgoal);
 
-    (* check for success and print out some information on failure *)
+    (* Check for success and print out some information on failure. *)
     val failure = find_failure failure_strs proof;
     val success = rc = 0 andalso is_none failure;
     val (message, relevant_thm_names) =
-      if is_some failure then ("External prover failed.", [])
-      else if rc <> 0 then ("External prover failed: " ^ proof, [])
+      if is_some failure then ("ATP failed to find a proof.", [])
+      else if rc <> 0 then ("ATP error: " ^ proof ^ ".", [])
       else
         (produce_answer name (proof, internal_thm_names, conj_pos, ctxt, th,
                               subgoal));
