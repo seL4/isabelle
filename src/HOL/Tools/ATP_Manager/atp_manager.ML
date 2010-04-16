@@ -223,7 +223,7 @@ fun check_thread_manager () = Synchronized.change global_state
         do
           (Synchronized.timed_access global_state (SOME o time_limit o #timeout_heap) action
             |> these
-            |> List.app (unregister "Timed out.");
+            |> List.app (unregister "Interrupted (reached timeout)");
             print_new_messages ();
             (*give threads some time to respond to interrupt*)
             OS.Process.sleep min_wait_time)
@@ -325,7 +325,7 @@ fun available_atps thy = Pretty.writeln
 fun start_prover (params as {timeout, ...}) birth_time death_time i
                  relevance_override proof_state name =
   (case get_prover (Proof.theory_of proof_state) name of
-    NONE => warning ("Unknown ATP: " ^ quote name ^ ".")
+    NONE => warning ("Unknown ATP: " ^ quote name)
   | SOME prover =>
       let
         val {context = ctxt, facts, goal} = Proof.goal proof_state;
@@ -357,10 +357,7 @@ fun sledgehammer (params as {atps, timeout, ...}) i relevance_override
   let
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, timeout)
-    val _ =
-      (* RACE w.r.t. other invocations of Sledgehammer *)
-      if null (#active (Synchronized.value global_state)) then ()
-      else (kill_atps (); priority "Killed active Sledgehammer threads.")
+    val _ = kill_atps () (* RACE w.r.t. other invocations of Sledgehammer *)
     val _ = priority "Sledgehammering..."
     val _ = List.app (start_prover params birth_time death_time i
                                    relevance_override proof_state) atps
