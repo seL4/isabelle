@@ -41,7 +41,8 @@ sig
     TyVar of name |
     TyFree of name |
     TyConstr of name * fol_type list
-  val string_of_fol_type : fol_type -> string
+  val string_of_fol_type :
+    fol_type -> name_pool option -> string * name_pool option
   datatype type_literal = LTVar of string * string | LTFree of string * string
   exception CLAUSE of string * term
   val add_typs : typ list -> type_literal list
@@ -220,7 +221,8 @@ type name_pool = string Symtab.table * string Symtab.table
 fun empty_name_pool debug = if debug then SOME (`I Symtab.empty) else NONE
 
 fun pool_map f xs =
-  fold (fn x => fn (ys, pool) => f x pool |>> (fn y => y :: ys)) xs o pair []
+  fold_rev (fn x => fn (ys, pool) => f x pool |>> (fn y => y :: ys)) xs
+  o pair []
 
 fun add_nice_name full_name nice_prefix j the_pool =
   let
@@ -283,19 +285,18 @@ datatype fol_type =
   TyFree of name |
   TyConstr of name * fol_type list
 
-fun string_of_fol_type (TyVar (s, _)) = s
-  | string_of_fol_type (TyFree (s, _)) = s
-  | string_of_fol_type (TyConstr ((tcon, _), tps)) =
-      tcon ^ (paren_pack (map string_of_fol_type tps));
+fun string_of_fol_type (TyVar sp) pool = nice_name sp pool
+  | string_of_fol_type (TyFree sp) pool = nice_name sp pool
+  | string_of_fol_type (TyConstr (sp, tys)) pool =
+    let
+      val (s, pool) = nice_name sp pool
+      val (ss, pool) = pool_map string_of_fol_type tys pool
+    in (s ^ paren_pack ss, pool) end
 
 (*First string is the type class; the second is a TVar or TFfree*)
 datatype type_literal = LTVar of string * string | LTFree of string * string;
 
 exception CLAUSE of string * term;
-
-fun atomic_type (TFree (a,_)) = TyFree (`make_fixed_type_var a)
-  | atomic_type (TVar (x, _)) =
-    TyVar (make_schematic_type_var x, string_of_indexname x)
 
 (*Make literals for sorted type variables*)
 fun sorts_on_typs_aux (_, [])   = []
@@ -334,8 +335,6 @@ fun get_tvar_strs [] = []
 
 
 (**** Isabelle arities ****)
-
-exception ARCLAUSE of string;
 
 datatype arLit = TConsLit of class * string * string list
                | TVarLit of class * string;

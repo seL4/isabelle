@@ -10,13 +10,14 @@ sig
   val serial_commas : string -> string list -> string list
   val replace_all : string -> string -> string -> string
   val remove_all : string -> string -> string
+  val timestamp : unit -> string
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
   val hashw : word * word -> word
   val hashw_char : Char.char * word -> word
   val hashw_string : string * word -> word
 end;
-
+ 
 structure Sledgehammer_Util : SLEDGEHAMMER_UTIL =
 struct
 
@@ -39,6 +40,8 @@ fun replace_all bef aft =
   in aux [] end
 
 fun remove_all bef = replace_all bef ""
+
+val timestamp = Date.fmt "%Y-%m-%d %H:%M:%S" o Date.fromTimeLocal o Time.now
 
 fun parse_bool_option option name s =
   (case s of
