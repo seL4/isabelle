@@ -54,7 +54,7 @@ fun ml_exn (txt1, "") = "fn _ => (" ^ txt1 ^ ": exn);"
 
 fun ml_structure (txt, _) = "functor XXX() = struct structure XX = " ^ txt ^ " end;";
 
-fun ml_functor _ = "";  (*no check!*)
+fun ml_functor (txt, _) = "ML_Env.check_functor " ^ ML_Syntax.print_string txt;
 
 fun index_ml name kind ml = ThyOutput.antiquotation name
   (Scan.lift (Args.name -- Scan.optional (Args.colon |-- Args.name) ""))
