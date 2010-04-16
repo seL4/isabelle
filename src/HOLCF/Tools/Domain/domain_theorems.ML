@@ -184,8 +184,7 @@ local
       val rhs = con_app2 con one_rhs args;
       val goal = mk_trp (lhs === rhs);
       val rules =
-          [ax_abs_iso]
-          @ @{thms take_con_rules ID1 cfcomp2 deflation_strict}
+          [ax_abs_iso] @ @{thms take_con_rules}
           @ take_Suc_thms @ deflation_thms @ deflation_take_thms;
       val tacs = [simp_tac (HOL_basic_ss addsimps rules) 1];
     in pg con_appls goal (K tacs) end;
