@@ -160,14 +160,22 @@ val global_state = Synchronized.var "atp_manager"
 
 (* unregister ATP thread *)
 
-fun unregister message thread = Synchronized.change global_state
+fun unregister ({verbose, ...} : params) message thread =
+  Synchronized.change global_state
   (fn state as {manager, timeout_heap, active, cancelling, messages, store} =>
     (case lookup_thread active thread of
-      SOME (_, _, description) =>
+      SOME (birth_time, _, description) =>
         let
           val active' = delete_thread thread active;
-          val cancelling' = (thread, (Time.now (), description)) :: cancelling;
-          val message' = description ^ "\n" ^ message;
+          val now = Time.now ()
+          val cancelling' = (thread, (now, description)) :: cancelling;
+          val message' =
+            description ^ "\n" ^ message ^
+            (if verbose then
+               "Total time: " ^ Int.toString (Time.toMilliseconds
+                                          (Time.- (now, birth_time))) ^ " ms.\n"
+             else
+               "")
           val messages' = message' :: messages;
           val store' = message' ::
             (if length store <= message_store_limit then store
@@ -190,7 +198,7 @@ fun print_new_messages () =
     else priority ("Sledgehammer: " ^ space_implode "\n\n" msgs)
   end;
 
-fun check_thread_manager () = Synchronized.change global_state
+fun check_thread_manager params = Synchronized.change global_state
   (fn state as {manager, timeout_heap, active, cancelling, messages, store} =>
     if (case manager of SOME thread => Thread.isActive thread | NONE => false) then state
     else let val manager = SOME (Toplevel.thread false (fn () =>
@@ -223,7 +231,7 @@ fun check_thread_manager () = Synchronized.change global_state
         do
           (Synchronized.timed_access global_state (SOME o time_limit o #timeout_heap) action
             |> these
-            |> List.app (unregister "Interrupted (reached timeout)");
+            |> List.app (unregister params "Timed out.");
             print_new_messages ();
             (*give threads some time to respond to interrupt*)
             OS.Process.sleep min_wait_time)
@@ -233,7 +241,7 @@ fun check_thread_manager () = Synchronized.change global_state
 
 (* register ATP thread *)
 
-fun register birth_time death_time (thread, desc) =
+fun register params birth_time death_time (thread, desc) =
  (Synchronized.change global_state
     (fn {manager, timeout_heap, active, cancelling, messages, store} =>
       let
@@ -241,7 +249,7 @@ fun register birth_time death_time (thread, desc) =
         val active' = update_thread (thread, (birth_time, death_time, desc)) active;
         val state' = make_state manager timeout_heap' active' cancelling messages store;
       in state' end);
-  check_thread_manager ());
+  check_thread_manager params);
 
 
 
@@ -336,7 +344,7 @@ fun start_prover (params as {timeout, ...}) birth_time death_time i
 
         val _ = Toplevel.thread true (fn () =>
           let
-            val _ = register birth_time death_time (Thread.self (), desc);
+            val _ = register params birth_time death_time (Thread.self (), desc)
             val problem =
               {subgoal = i, goal = (ctxt, (facts, goal)),
                relevance_override = relevance_override, axiom_clauses = NONE,
@@ -345,7 +353,7 @@ fun start_prover (params as {timeout, ...}) birth_time death_time i
               handle Sledgehammer_HOL_Clause.TRIVIAL =>
                   metis_line i n []
                 | ERROR msg => ("Error: " ^ msg);
-            val _ = unregister message (Thread.self ());
+            val _ = unregister params message (Thread.self ());
           in () end);
       in () end);
 
