@@ -89,7 +89,7 @@ fun gen_abbrev prep_typ (b, vs, mx) raw_rhs lthy =
       handle ERROR msg => cat_error msg ("in type abbreviation " ^ quote (Binding.str_of b));
   in
     lthy
-    |> basic_decl (fn _ => Sign.add_tyabbrs_i [(b, vs, rhs, NoSyn)]) (b, length vs, mx)
+    |> basic_decl (fn _ => Sign.add_type_abbrev (b, vs, rhs)) (b, length vs, mx)
     |> snd
     |> pair name
   end;

@@ -72,8 +72,7 @@ sig
   val add_defsort_i: sort -> theory -> theory
   val add_types: (binding * int * mixfix) list -> theory -> theory
   val add_nonterminals: binding list -> theory -> theory
-  val add_tyabbrs: (binding * string list * string * mixfix) list -> theory -> theory
-  val add_tyabbrs_i: (binding * string list * typ * mixfix) list -> theory -> theory
+  val add_type_abbrev: binding * string list * typ -> theory -> theory
   val add_syntax: (string * string * mixfix) list -> theory -> theory
   val add_syntax_i: (string * typ * mixfix) list -> theory -> theory
   val add_modesyntax: Syntax.mode -> (string * string * mixfix) list -> theory -> theory
@@ -346,38 +345,25 @@ val add_defsort_i = gen_add_defsort certify_sort;
 
 (* add type constructors *)
 
-fun type_syntax thy (b, n, mx) = (Syntax.mark_type (full_name thy b), Syntax.make_type n, mx);
-
 fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
   let
-    val syn' = Syntax.update_type_gram true Syntax.mode_default (map (type_syntax thy) types) syn;
+    fun type_syntax (b, n, mx) =
+      (Syntax.mark_type (Name_Space.full_name naming b), Syntax.make_type n, mx);
+    val syn' = Syntax.update_type_gram true Syntax.mode_default (map type_syntax types) syn;
     val tsig' = fold (fn (a, n, _) => Type.add_type naming (a, n)) types tsig;
   in (naming, syn', tsig', consts) end);
 
 
 (* add nonterminals *)
 
-fun add_nonterminals ns thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
-  let
-    val tsig' = fold (Type.add_nonterminal naming) ns tsig;
-  in (naming, syn, tsig', consts) end);
+fun add_nonterminals ns = map_sign (fn (naming, syn, tsig, consts) =>
+  (naming, syn, fold (Type.add_nonterminal naming) ns tsig, consts));
 
 
 (* add type abbreviations *)
 
-fun gen_add_tyabbr parse_typ (b, vs, rhs, mx) thy =
-  thy |> map_sign (fn (naming, syn, tsig, consts) =>
-    let
-      val ctxt = ProofContext.init thy;
-      val syn' =
-        Syntax.update_type_gram true Syntax.mode_default [type_syntax thy (b, length vs, mx)] syn;
-      val abbr = (b, vs, parse_typ ctxt rhs)
-        handle ERROR msg => cat_error msg ("in type abbreviation " ^ quote (Binding.str_of b));
-      val tsig' = Type.add_abbrev naming abbr tsig;
-    in (naming, syn', tsig', consts) end);
-
-val add_tyabbrs = fold (gen_add_tyabbr Syntax.parse_typ);
-val add_tyabbrs_i = fold (gen_add_tyabbr (K I));
+fun add_type_abbrev abbr = map_sign (fn (naming, syn, tsig, consts) =>
+  (naming, syn, Type.add_abbrev naming abbr tsig, consts));
 
 
 (* modify syntax *)
