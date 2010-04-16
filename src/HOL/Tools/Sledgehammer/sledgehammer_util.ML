@@ -33,7 +33,7 @@ fun replace_all bef aft =
   let
     fun aux seen "" = String.implode (rev seen)
       | aux seen s =
-      if String.isPrefix bef s then
+        if String.isPrefix bef s then
           aux seen "" ^ aft ^ aux [] (unprefix bef s)
         else
           aux (String.sub (s, 0) :: seen) (String.extract (s, 1, NONE))

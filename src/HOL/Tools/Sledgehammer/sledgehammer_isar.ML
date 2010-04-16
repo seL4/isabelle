@@ -27,13 +27,12 @@ fun del_from_relevance_override ns : relevance_override =
   {add = [], del = ns, only = false}
 fun only_relevance_override ns : relevance_override =
   {add = ns, del = [], only = true}
-val default_relevance_override = add_to_relevance_override []
 fun merge_relevance_override_pairwise (r1 : relevance_override)
                                       (r2 : relevance_override) =
   {add = #add r1 @ #add r2, del = #del r1 @ #del r2,
-   only = #only r1 orelse #only r2}
-fun merge_relevance_overrides rs =
-  fold merge_relevance_override_pairwise rs default_relevance_override
+   only = #only r1 andalso #only r2}
+fun merge_relevance_overrides (r, rs) =
+  fold merge_relevance_override_pairwise rs r
 
 type raw_param = string * string list
 
@@ -274,10 +273,10 @@ val parse_relevance_chunk =
 val parse_relevance_override =
   Scan.optional (Args.parens
       (Scan.optional (parse_fact_refs >> only_relevance_override)
-                     default_relevance_override
+                     (only_relevance_override [])
        -- Scan.repeat parse_relevance_chunk)
-       >> op :: >> merge_relevance_overrides)
-      default_relevance_override
+       >> merge_relevance_overrides)
+      (add_to_relevance_override [])
 val parse_sledgehammer_command =
   (Scan.optional P.short_ident runN -- parse_params -- parse_relevance_override
    -- Scan.option P.nat) #>> sledgehammer_trans
