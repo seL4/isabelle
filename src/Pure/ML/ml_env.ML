@@ -92,7 +92,7 @@ val local_context: use_context =
 val is_functor = is_some o #lookupFunct name_space;
 
 fun check_functor name =
-  if is_functor "Table" (*lookup actually works*) andalso is_functor name then ()
+  if not (is_functor "Table") (*mask dummy version of name_space*) orelse is_functor name then ()
   else error ("Unknown ML functor: " ^ quote name);
 
 end;
