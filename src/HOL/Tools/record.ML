@@ -1971,11 +1971,6 @@ fun record_definition (alphas, binding) parent (parents: parent_info list) raw_f
 
     (* prepare definitions *)
 
-    (*record (scheme) type abbreviation*)
-    val recordT_specs =
-      [(Binding.suffix_name schemeN binding, map #1 (alphas @ [zeta]), rec_schemeT0, NoSyn),
-        (binding, map #1 alphas, recT0, NoSyn)];
-
     val ext_defs = ext_def :: map #ext_def parents;
 
     (*Theorems from the iso_tuple intros.
@@ -2059,7 +2054,9 @@ fun record_definition (alphas, binding) parent (parents: parent_info list) raw_f
       ext_thy
       |> Sign.add_advanced_trfuns ([], [], advanced_print_translation, [])
       |> Sign.restore_naming thy
-      |> Sign.add_tyabbrs_i recordT_specs
+      |> Typedecl.abbrev_global (binding, map #1 alphas, NoSyn) recT0 |> snd
+      |> Typedecl.abbrev_global
+        (Binding.suffix_name schemeN binding, map #1 (alphas @ [zeta]), NoSyn) rec_schemeT0 |> snd
       |> Sign.qualified_path false binding
       |> fold (fn ((x, T), mx) => snd o Sign.declare_const ((Binding.name x, T), mx))
         (sel_decls ~~ (field_syntax @ [NoSyn]))
