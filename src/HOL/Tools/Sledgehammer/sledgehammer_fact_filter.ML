@@ -177,9 +177,8 @@ fun count_axiom_consts theory_const thy ((thm,_), tab) =
 
 (*The frequency of a constant is the sum of those of all instances of its type.*)
 fun const_frequency ctab (c, cts) =
-  let val pairs = CTtab.dest (the (Symtab.lookup ctab c))
-      fun add ((cts',m), n) = if match_types cts cts' then m+n else n
-  in  List.foldl add 0 pairs  end;
+  CTtab.fold (fn (cts', m) => match_types cts cts' ? Integer.add m)
+             (the (Symtab.lookup ctab c)) 0
 
 (*Add in a constant's weight, as determined by its frequency.*)
 fun add_ct_weight ctab ((c,T), w) =
@@ -504,19 +503,23 @@ fun is_first_order thy higher_order goal_cls =
 
 fun get_relevant_facts respect_no_atp relevance_threshold convergence
                        higher_order follow_defs max_new theory_const
-                       relevance_override (ctxt, (chain_ths, th)) goal_cls =
-  let
-    val thy = ProofContext.theory_of ctxt
-    val is_FO = is_first_order thy higher_order goal_cls
-    val included_cls = get_all_lemmas respect_no_atp ctxt
-      |> cnf_rules_pairs thy |> make_unique
-      |> restrict_to_logic thy is_FO
-      |> remove_unwanted_clauses
-  in
-    relevance_filter ctxt relevance_threshold convergence follow_defs max_new
-                     theory_const relevance_override thy included_cls
-                     (map prop_of goal_cls)
-  end;
+                       (relevance_override as {add, only, ...})
+                       (ctxt, (chain_ths, th)) goal_cls =
+  if (only andalso null add) orelse relevance_threshold > 1.0 then
+    []
+  else
+    let
+      val thy = ProofContext.theory_of ctxt
+      val is_FO = is_first_order thy higher_order goal_cls
+      val included_cls = get_all_lemmas respect_no_atp ctxt
+        |> cnf_rules_pairs thy |> make_unique
+        |> restrict_to_logic thy is_FO
+        |> remove_unwanted_clauses
+    in
+      relevance_filter ctxt relevance_threshold convergence follow_defs max_new
+                       theory_const relevance_override thy included_cls
+                       (map prop_of goal_cls)
+    end
 
 (* prepare for passing to writer,
    create additional clauses based on the information from extra_cls *)
