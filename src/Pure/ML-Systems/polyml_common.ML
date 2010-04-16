@@ -55,7 +55,7 @@ val implode = SML90.implode;
 fun ml_prompts p1 p2 = (PolyML.Compiler.prompt1 := p1; PolyML.Compiler.prompt2 := p2);
 
 
-(* print depth *)
+(* toplevel printing *)
 
 local
   val depth = Unsynchronized.ref 10;
@@ -65,6 +65,8 @@ in
 end;
 
 val error_depth = PolyML.error_depth;
+
+val ml_make_string = "PolyML.makestring";
 
 
 
