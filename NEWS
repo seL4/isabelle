@@ -71,6 +71,10 @@ Tracing is then active for all invocations of the simplifier
 in subsequent goal refinement steps. Tracing may also still be
 enabled or disabled via the ProofGeneral settings menu.
 
+* Separate commands 'hide_class', 'hide_type', 'hide_const',
+'hide_fact' replace the former 'hide' KIND command.  Minor
+INCOMPATIBILITY.
+
 
 *** Pure ***
 
