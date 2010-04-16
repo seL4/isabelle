@@ -94,8 +94,8 @@ fun gen_abbrev prep_typ (b, vs, mx) raw_rhs lthy =
     |> pair name
   end;
 
-val abbrev = gen_abbrev ProofContext.cert_typ;
-val abbrev_cmd = gen_abbrev ProofContext.read_typ;
+val abbrev = gen_abbrev ProofContext.cert_typ_syntax;
+val abbrev_cmd = gen_abbrev ProofContext.read_typ_syntax;
 
 fun abbrev_global decl rhs =
   Theory_Target.init NONE
