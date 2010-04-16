@@ -1,7 +1,7 @@
 (*  Title:      Pure/Isar/typedecl.ML
     Author:     Makarius
 
-Type declarations (within the object logic).
+Type declarations (with object-logic arities) and type abbreviations.
 *)
 
 signature TYPEDECL =
@@ -10,6 +10,9 @@ sig
   val basic_typedecl: binding * int * mixfix -> local_theory -> string * local_theory
   val typedecl: binding * (string * sort) list * mixfix -> local_theory -> typ * local_theory
   val typedecl_global: binding * (string * sort) list * mixfix -> theory -> typ * theory
+  val abbrev: binding * string list * mixfix -> typ -> local_theory -> string * local_theory
+  val abbrev_cmd: binding * string list * mixfix -> string -> local_theory -> string * local_theory
+  val abbrev_global: binding * string list * mixfix -> typ -> theory -> string * theory
 end;
 
 structure Typedecl: TYPEDECL =
@@ -28,19 +31,22 @@ fun object_logic_arity name thy =
     NONE => thy
   | SOME S => AxClass.axiomatize_arity (name, replicate (Sign.arity_number thy name) S, S) thy);
 
-fun basic_typedecl (b, n, mx) lthy =
+fun basic_decl decl (b, n, mx) lthy =
   let val name = Local_Theory.full_name lthy b in
     lthy
-    |> Local_Theory.theory (Sign.add_types [(b, n, NoSyn)] #> object_logic_arity name)
+    |> Local_Theory.theory (decl name)
     |> Local_Theory.type_notation true Syntax.mode_default [(Type (name, replicate n dummyT), mx)]
     |> Local_Theory.type_alias b name
     |> pair name
   end;
 
+fun basic_typedecl (b, n, mx) =
+  basic_decl (fn name => Sign.add_types [(b, n, NoSyn)] #> object_logic_arity name) (b, n, mx);
 
-(* regular typedecl -- without dependencies on type parameters of the context *)
 
-fun typedecl (b, raw_args, mx) lthy =
+(* global type -- without dependencies on type parameters of the context *)
+
+fun global_type lthy (b, raw_args) =
   let
     fun err msg = error (msg ^ " in type declaration " ^ quote (Binding.str_of b));
 
@@ -51,12 +57,18 @@ fun typedecl (b, raw_args, mx) lthy =
     val bad_args =
       #2 (Term.dest_Type (Logic.type_map (singleton (Variable.polymorphic lthy)) T))
       |> filter_out Term.is_TVar;
-    val _ = not (null bad_args) andalso
+    val _ = null bad_args orelse
       err ("Locally fixed type arguments " ^
         commas_quote (map (Syntax.string_of_typ lthy) bad_args));
-  in
+  in T end;
+
+
+(* type declarations *)
+
+fun typedecl (b, raw_args, mx) lthy =
+  let val T = global_type lthy (b, raw_args) in
     lthy
-    |> basic_typedecl (b, length args, mx)
+    |> basic_typedecl (b, length raw_args, mx)
     |> snd
     |> Variable.declare_typ T
     |> pair T
@@ -66,6 +78,29 @@ fun typedecl_global decl =
   Theory_Target.init NONE
   #> typedecl decl
   #> Local_Theory.exit_result_global Morphism.typ;
+
+
+(* type abbreviations *)
+
+fun gen_abbrev prep_typ (b, vs, mx) raw_rhs lthy =
+  let
+    val Type (name, _) = global_type lthy (b, map (rpair dummyS) vs);
+    val rhs = prep_typ lthy raw_rhs
+      handle ERROR msg => cat_error msg ("in type abbreviation " ^ quote (Binding.str_of b));
+  in
+    lthy
+    |> basic_decl (fn _ => Sign.add_tyabbrs_i [(b, vs, rhs, NoSyn)]) (b, length vs, mx)
+    |> snd
+    |> pair name
+  end;
+
+val abbrev = gen_abbrev ProofContext.cert_typ;
+val abbrev_cmd = gen_abbrev ProofContext.read_typ;
+
+fun abbrev_global decl rhs =
+  Theory_Target.init NONE
+  #> abbrev decl rhs
+  #> Local_Theory.exit_result_global (K I);
 
 end;
 
