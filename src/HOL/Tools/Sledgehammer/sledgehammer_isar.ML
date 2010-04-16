@@ -96,11 +96,19 @@ structure Data = Theory_Data(
   val extend = I
   fun merge p : T = AList.merge (op =) (K true) p)
 
+(* Don't even try to start ATPs that are not installed.
+   Hack: Should not rely on naming convention. *)
+val filter_atps =
+  space_explode " "
+  #> filter (fn s => String.isPrefix "remote_" s orelse
+                     getenv (String.map Char.toUpper s ^ "_HOME") <> "")
+  #> space_implode " "
+
 val set_default_raw_param = Data.map o AList.update (op =) o unalias_raw_param
 fun default_raw_params thy =
   Data.get thy
   |> fold (AList.default (op =))
-          [("atps", [!atps]),
+          [("atps", [filter_atps (!atps)]),
            ("full_types", [if !full_types then "true" else "false"]),
            ("timeout", let val timeout = !timeout in
                          [if timeout <= 0 then "none"
