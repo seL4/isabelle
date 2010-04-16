@@ -334,7 +334,7 @@ text %mlref {*
   this is a datatype with constructors @{ML Bound}, @{ML Free}, @{ML
   Var}, @{ML Const}, @{ML Abs}, @{ML "op $"}.
 
-  \item @{text "t"}~@{ML aconv}~@{text "u"} checks @{text
+  \item @{text "t"}~@{ML_text aconv}~@{text "u"} checks @{text
   "\<alpha>"}-equivalence of two terms.  This is the basic equality relation
   on type @{ML_type term}; raw datatype equality should only be used
   for operations related to parsing or printing!
