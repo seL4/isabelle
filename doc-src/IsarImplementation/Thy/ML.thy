@@ -209,7 +209,7 @@ text {*
   options} for type @{ML_type "bool"}/@{ML_type "int"}/@{ML_type
   "string"} (see structure @{ML_struct Config} and @{ML
   Attrib.config_bool} etc.), and lists of theorems (see functor
-  @{ML_functor NamedThmsFun}).
+  @{ML_functor Named_Thms}).
 
   \item Keep components with local state information
   \emph{re-entrant}.  Instead of poking initial values into (private)
@@ -623,7 +623,7 @@ text {*
   whenever such pure finite mappings are neccessary.
 
   The key type of tables must be given explicitly by instantiating
-  the @{ML_functor TableFun} functor which takes the key type
+  the @{ML_functor Table} functor which takes the key type
   together with its @{ML_type order}; for convience, we restrict
   here to the @{ML_struct Symtab} instance with @{ML_type string}
   as key type.

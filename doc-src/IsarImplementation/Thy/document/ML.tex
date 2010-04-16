@@ -222,7 +222,7 @@ Recent versions of Poly/ML (5.2.1 or later) support robust
   \secref{sec:context-data}) there are drop-in replacements that
   emulate primitive references for common cases of \emph{configuration
   options} for type \verb|bool|/\verb|int|/\verb|string| (see structure \verb|Config| and \verb|Attrib.config_bool| etc.), and lists of theorems (see functor
-  \verb|NamedThmsFun|).
+  \verb|Named_Thms|).
 
   \item Keep components with local state information
   \emph{re-entrant}.  Instead of poking initial values into (private)
@@ -763,7 +763,7 @@ Tables are an efficient representation of finite mappings without
   whenever such pure finite mappings are neccessary.
 
   The key type of tables must be given explicitly by instantiating
-  the \verb|TableFun| functor which takes the key type
+  the \verb|Table| functor which takes the key type
   together with its \verb|order|; for convience, we restrict
   here to the \verb|Symtab| instance with \verb|string|
   as key type.
