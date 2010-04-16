@@ -30,12 +30,17 @@ sig
   val make_fixed_const : bool -> string -> string
   val make_fixed_type_const : bool -> string -> string
   val make_type_class : string -> string
+  type name = string * string
+  type name_pool = string Symtab.table * string Symtab.table
+  val empty_name_pool : bool -> name_pool option
+  val pool_map : ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b
+  val nice_name : name -> name_pool option -> string * name_pool option
   datatype kind = Axiom | Conjecture
   type axiom_name = string
   datatype fol_type =
-    TyVar of string |
-    TyFree of string |
-    TyConstr of string * fol_type list
+    TyVar of name |
+    TyFree of name |
+    TyConstr of name * fol_type list
   val string_of_fol_type : fol_type -> string
   datatype type_literal = LTVar of string * string | LTFree of string * string
   exception CLAUSE of string * term
@@ -207,7 +212,65 @@ fun make_fixed_type_const dfg c = tconst_prefix ^ lookup_type_const dfg c;
 fun make_type_class clas = class_prefix ^ ascii_of clas;
 
 
-(***** definitions and functions for FOL clauses, for conversion to TPTP or DFG format. *****)
+(**** name pool ****)
+ 
+type name = string * string
+type name_pool = string Symtab.table * string Symtab.table
+
+fun empty_name_pool debug = if debug then SOME (`I Symtab.empty) else NONE
+
+fun pool_map f xs =
+  fold (fn x => fn (ys, pool) => f x pool |>> (fn y => y :: ys)) xs o pair []
+
+fun add_nice_name full_name nice_prefix j the_pool =
+  let
+    val nice_name = nice_prefix ^ (if j = 0 then "" else "_" ^ Int.toString j)
+  in
+    case Symtab.lookup (snd the_pool) nice_name of
+      SOME full_name' =>
+      if full_name = full_name' then (nice_name, the_pool)
+      else add_nice_name full_name nice_prefix (j + 1) the_pool
+    | NONE =>
+      (nice_name, (Symtab.update_new (full_name, nice_name) (fst the_pool),
+                   Symtab.update_new (nice_name, full_name) (snd the_pool)))
+  end
+
+fun translate_first_char f s =
+  String.str (f (String.sub (s, 0))) ^ String.extract (s, 1, NONE)
+
+fun clean_short_name full_name s =
+  let
+    val s = s |> Long_Name.base_name
+              |> fold remove_all ["\<^sub>", "\<^bsub>", "\<^esub>", "\<^isub>"]
+    val s' = s |> explode |> rev |> dropwhile (curry (op =) "'")
+    val s' =
+      (s' |> rev
+          |> implode
+          |> String.translate
+                 (fn c => if Char.isAlphaNum c then String.str c else ""))
+      ^ replicate_string (String.size s - length s') "_"
+    val s' =
+      if s' = "" orelse not (Char.isAlpha (String.sub (s', 0))) then "X" ^ s'
+      else s'
+    val s' = if s' = "op" then full_name else s'
+  in
+    case (Char.isLower (String.sub (full_name, 0)),
+          Char.isLower (String.sub (s', 0))) of
+      (true, false) => translate_first_char Char.toLower s'
+    | (false, true) => translate_first_char Char.toUpper s'
+    | _ => s'
+  end
+
+fun nice_name (full_name, _) NONE = (full_name, NONE)
+  | nice_name (full_name, desired_name) (SOME the_pool) =
+    case Symtab.lookup (fst the_pool) full_name of
+      SOME nice_name => (nice_name, SOME the_pool)
+    | NONE => add_nice_name full_name (clean_short_name full_name desired_name)
+                            0 the_pool
+              |> apsnd SOME
+
+(**** Definitions and functions for FOL clauses, for conversion to TPTP or DFG
+      format ****)
 
 datatype kind = Axiom | Conjecture;
 
@@ -216,13 +279,13 @@ type axiom_name = string;
 (**** Isabelle FOL clauses ****)
 
 datatype fol_type =
-  TyVar of string |
-  TyFree of string |
-  TyConstr of string * fol_type list
+  TyVar of name |
+  TyFree of name |
+  TyConstr of name * fol_type list
 
-fun string_of_fol_type (TyVar s) = s
-  | string_of_fol_type (TyFree s) = s
-  | string_of_fol_type (TyConstr (tcon, tps)) =
+fun string_of_fol_type (TyVar (s, _)) = s
+  | string_of_fol_type (TyFree (s, _)) = s
+  | string_of_fol_type (TyConstr ((tcon, _), tps)) =
       tcon ^ (paren_pack (map string_of_fol_type tps));
 
 (*First string is the type class; the second is a TVar or TFfree*)
@@ -230,19 +293,9 @@ datatype type_literal = LTVar of string * string | LTFree of string * string;
 
 exception CLAUSE of string * term;
 
-fun atomic_type (TFree (a,_)) = TyFree(make_fixed_type_var a)
-  | atomic_type (TVar (v,_))  = TyVar(make_schematic_type_var v);
-
-(*Flatten a type to a fol_type while accumulating sort constraints on the TFrees and
-  TVars it contains.*)
-fun type_of dfg (Type (a, Ts)) =
-      let val (folTyps, ts) = types_of dfg Ts
-          val t = make_fixed_type_const dfg a
-      in (TyConstr (t, folTyps), ts) end
-  | type_of dfg T = (atomic_type T, [T])
-and types_of dfg Ts =
-      let val (folTyps,ts) = ListPair.unzip (map (type_of dfg) Ts)
-      in (folTyps, union_all ts) end;
+fun atomic_type (TFree (a,_)) = TyFree (`make_fixed_type_var a)
+  | atomic_type (TVar (x, _)) =
+    TyVar (make_schematic_type_var x, string_of_indexname x)
 
 (*Make literals for sorted type variables*)
 fun sorts_on_typs_aux (_, [])   = []
@@ -402,9 +455,9 @@ fun add_arity_clause_preds (ArityClause {conclLit,premLits,...}, preds) =
 (*** Find occurrences of functions in clauses ***)
 
 fun add_foltype_funcs (TyVar _, funcs) = funcs
-  | add_foltype_funcs (TyFree a, funcs) = Symtab.update (a,0) funcs
-  | add_foltype_funcs (TyConstr (a, tys), funcs) =
-      List.foldl add_foltype_funcs (Symtab.update (a, length tys) funcs) tys;
+  | add_foltype_funcs (TyFree (s, _), funcs) = Symtab.update (s, 0) funcs
+  | add_foltype_funcs (TyConstr ((s, _), tys), funcs) =
+      List.foldl add_foltype_funcs (Symtab.update (s, length tys) funcs) tys;
 
 (*TFrees are recorded as constants*)
 fun add_type_sort_funcs (TVar _, funcs) = funcs

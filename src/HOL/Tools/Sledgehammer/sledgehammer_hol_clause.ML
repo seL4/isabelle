@@ -33,11 +33,11 @@ sig
   val get_helper_clauses : bool -> theory -> bool ->
        hol_clause list * (thm * (axiom_name * hol_clause_id)) list * string list ->
        hol_clause list
-  val write_tptp_file : bool -> Path.T ->
+  val write_tptp_file : bool -> bool -> Path.T ->
     hol_clause list * hol_clause list * hol_clause list * hol_clause list *
     classrel_clause list * arity_clause list ->
     int * int
-  val write_dfg_file : bool -> Path.T ->
+  val write_dfg_file : bool -> bool -> Path.T ->
     hol_clause list * hol_clause list * hol_clause list * hol_clause list *
     classrel_clause list * arity_clause list -> int * int
 end
@@ -102,19 +102,22 @@ fun isTrue (Literal (pol, CombConst(c,_,_))) =
 fun isTaut (HOLClause {literals,...}) = exists isTrue literals;
 
 fun type_of dfg (Type (a, Ts)) =
-      let val (folTypes,ts) = types_of dfg Ts
-      in  (TyConstr (make_fixed_type_const dfg a, folTypes), ts)  end
-  | type_of _ (tp as TFree (a, _)) = (TyFree (make_fixed_type_var a), [tp])
-  | type_of _ (tp as TVar (v, _)) = (TyVar (make_schematic_type_var v), [tp])
+    let val (folTypes,ts) = types_of dfg Ts in
+      (TyConstr (`(make_fixed_type_const dfg) a, folTypes), ts)
+    end
+  | type_of _ (tp as TFree (a, _)) = (TyFree (`make_fixed_type_var a), [tp])
+  | type_of _ (tp as TVar (x, _)) =
+    (TyVar (make_schematic_type_var x, string_of_indexname x), [tp])
 and types_of dfg Ts =
       let val (folTyps,ts) = ListPair.unzip (map (type_of dfg) Ts)
       in  (folTyps, union_all ts)  end;
 
 (* same as above, but no gathering of sort information *)
 fun simp_type_of dfg (Type (a, Ts)) =
-      TyConstr (make_fixed_type_const dfg a, map (simp_type_of dfg) Ts)
-  | simp_type_of _ (TFree (a, _)) = TyFree (make_fixed_type_var a)
-  | simp_type_of _ (TVar (v, _)) = TyVar (make_schematic_type_var v);
+      TyConstr (`(make_fixed_type_const dfg) a, map (simp_type_of dfg) Ts)
+  | simp_type_of _ (TFree (a, _)) = TyFree (`make_fixed_type_var a)
+  | simp_type_of _ (TVar (x, _)) =
+    TyVar (make_schematic_type_var x, string_of_indexname x);
 
 
 fun const_type_of dfg thy (c,t) =
@@ -193,7 +196,7 @@ fun make_conjecture_clauses dfg thy = make_conjecture_clauses_aux dfg thy 0;
 (**********************************************************************)
 
 (*Result of a function type; no need to check that the argument type matches.*)
-fun result_type (TyConstr ("tc_fun", [_, tp2])) = tp2
+fun result_type (TyConstr (("tc_fun", _), [_, tp2])) = tp2
   | result_type _ = raise Fail "Non-function type"
 
 fun type_of_combterm (CombConst (_, tp, _)) = tp
@@ -452,7 +455,7 @@ fun count_constants (conjectures, _, extra_clauses, helper_clauses, _, _) =
 
 (* TPTP format *)
 
-fun write_tptp_file full_types file clauses =
+fun write_tptp_file debug full_types file clauses =
   let
     fun section _ [] = []
       | section name ss = "\n% " ^ name ^ plural_s (length ss) ^ "\n" :: ss
@@ -480,7 +483,7 @@ fun write_tptp_file full_types file clauses =
 
 (* DFG format *)
 
-fun write_dfg_file full_types file clauses =
+fun write_dfg_file debug full_types file clauses =
   let
     val (conjectures, axclauses, _, helper_clauses,
       classrel_clauses, arity_clauses) = clauses

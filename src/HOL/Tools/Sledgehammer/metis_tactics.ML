@@ -69,10 +69,10 @@ fun fn_isa_to_met "equal" = "="
 
 fun metis_lit b c args = (b, (c, args));
 
-fun hol_type_to_fol (TyVar x) = Metis.Term.Var x
-  | hol_type_to_fol (TyFree x) = Metis.Term.Fn (x, [])
-  | hol_type_to_fol (TyConstr (tc, tps)) =
-    Metis.Term.Fn (tc, map hol_type_to_fol tps);
+fun hol_type_to_fol (TyVar (x, _)) = Metis.Term.Var x
+  | hol_type_to_fol (TyFree (s, _)) = Metis.Term.Fn (s, [])
+  | hol_type_to_fol (TyConstr ((s, _), tps)) =
+    Metis.Term.Fn (s, map hol_type_to_fol tps);
 
 (*These two functions insert type literals before the real literals. That is the
   opposite order from TPTP linkup, but maybe OK.*)

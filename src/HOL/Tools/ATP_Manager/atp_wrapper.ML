@@ -65,8 +65,8 @@ fun find_failure strs proof =
           else SOME "Ill-formed ATP output"
   | (failure :: _) => SOME failure
 
-fun generic_prover overlord get_facts prepare write cmd args failure_strs
-        produce_answer name ({full_types, ...} : params)
+fun generic_prover overlord get_facts prepare write_file cmd args failure_strs
+        produce_answer name ({debug, full_types, ...} : params)
         ({subgoal, goal, relevance_override, axiom_clauses, filtered_clauses}
          : problem) =
   let
@@ -100,7 +100,7 @@ fun generic_prover overlord get_facts prepare write cmd args failure_strs
         if destdir' = "" then File.tmp_path probfile
         else if File.exists (Path.explode destdir')
         then Path.append  (Path.explode destdir') probfile
-        else error ("No such directory: " ^ destdir')
+        else error ("No such directory: " ^ destdir' ^ ".")
       end;
 
     (* write out problem file and call prover *)
@@ -127,7 +127,7 @@ fun generic_prover overlord get_facts prepare write cmd args failure_strs
       if Config.get ctxt measure_runtime then split_time s else (s, 0)
     fun run_on probfile =
       if File.exists cmd then
-        write full_types probfile clauses
+        write_file debug full_types probfile clauses
         |> pair (apfst split_time' (bash_output (cmd_line probfile)))
       else error ("Bad executable: " ^ Path.implode cmd ^ ".");
 
