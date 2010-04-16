@@ -108,15 +108,10 @@ val _ =
       >> (fn ((args, a), mx) => Typedecl.typedecl (a, map (rpair dummyS) args, mx) #> snd));
 
 val _ =
-  OuterSyntax.local_theory "type_abbrev" "type abbreviation (input only)" K.thy_decl
-    (P.type_args -- P.binding -- P.opt_mixfix -- (P.$$$ "=" |-- P.!!! P.typ)
-      >> (fn (((args, a), mx), rhs) => Typedecl.abbrev_cmd (a, args, mx) rhs #> snd));
-
-val _ =
   OuterSyntax.local_theory "types" "declare type abbreviations" K.thy_decl
     (Scan.repeat1
       (P.type_args -- P.binding -- (P.$$$ "=" |-- P.!!! (P.typ -- P.opt_mixfix')))
-      >> (IsarCmd.add_tyabbrs o map (fn ((args, a), (T, mx)) => (a, args, T, mx))));
+      >> (fold (fn ((args, a), (rhs, mx)) => snd o Typedecl.abbrev_cmd (a, args, mx) rhs)));
 
 val _ =
   OuterSyntax.command "nonterminals" "declare types treated as grammar nonterminal symbols"
