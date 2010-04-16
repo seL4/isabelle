@@ -265,7 +265,7 @@ lemma Union_union [code]:
   "Union (Coset []) = Coset []"
   unfolding Union_def Sup_sup by simp_all
 
-hide (open) const is_empty empty remove
+hide_const (open) is_empty empty remove
   set_eq subset_eq subset inter union subtract Inf Sup Inter Union
 
 end

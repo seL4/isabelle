@@ -91,16 +91,16 @@ definition neg_map :: "('a => 'b) => 'a neg_random_dseq => 'b neg_random_dseq"
 where
   "neg_map f P = neg_bind P (neg_single o f)"
 (*
-hide const DSequence.empty DSequence.single DSequence.eval
+hide_const DSequence.empty DSequence.single DSequence.eval
   DSequence.map_seq DSequence.bind DSequence.union DSequence.if_seq DSequence.not_seq
   DSequence.map
 *)
 
-hide (open) const
+hide_const (open)
   pos_empty pos_single pos_bind pos_union pos_if_random_dseq pos_iterate_upto pos_not_random_dseq iter Random pos_map
   neg_empty neg_single neg_bind neg_union neg_if_random_dseq neg_iterate_upto neg_not_random_dseq neg_map
-hide type New_DSequence.pos_dseq New_DSequence.neg_dseq pos_random_dseq neg_random_dseq
+hide_type New_DSequence.pos_dseq New_DSequence.neg_dseq pos_random_dseq neg_random_dseq
 (* FIXME: hide facts *)
-(*hide (open) fact empty_def single_def bind_def union_def if_random_dseq_def not_random_dseq_def Random.simps map_def*)
+(*hide_fact (open) empty_def single_def bind_def union_def if_random_dseq_def not_random_dseq_def Random.simps map_def*)
 
 end

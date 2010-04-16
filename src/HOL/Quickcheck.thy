@@ -203,9 +203,9 @@ definition Random :: "(Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow
 definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a randompred \<Rightarrow> 'b randompred)"
   where "map f P = bind P (single o f)"
 
-hide (open) fact iter'.simps iter_def empty_def single_def bind_def union_def if_randompred_def iterate_upto_def not_randompred_def Random_def map_def
-hide (open) type randompred
-hide (open) const random collapse beyond random_fun_aux random_fun_lift
+hide_fact (open) iter'.simps iter_def empty_def single_def bind_def union_def if_randompred_def iterate_upto_def not_randompred_def Random_def map_def
+hide_type (open) randompred
+hide_const (open) random collapse beyond random_fun_aux random_fun_lift
   iter' iter empty single bind union if_randompred iterate_upto not_randompred Random map
 
 end

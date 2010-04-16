@@ -172,7 +172,8 @@ definition
   insert :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
   "insert x xs = (if x \<in> set xs then xs else x # xs)"
 
-hide (open) const insert hide (open) fact insert_def
+hide_const (open) insert
+hide_fact (open) insert_def
 
 primrec
   remove1 :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
@@ -4584,7 +4585,7 @@ declare SUPR_def [code_unfold]
 
 declare set_map [symmetric, code_unfold]
 
-hide (open) const length_unique
+hide_const (open) length_unique
 
 
 text {* Code for bounded quantification and summation over nats. *}

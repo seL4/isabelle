@@ -809,7 +809,7 @@ unfolding basis_prj_def
  apply (rule ubasis_until_less)
 done
 
-hide (open) const
+hide_const (open)
   node
   choose
   choose_pos

@@ -224,7 +224,7 @@ lemma eq_Mapping [code]:
   "HOL.eq (Mapping t1) (Mapping t2) \<longleftrightarrow> entries t1 = entries t2"
   by (simp add: eq Mapping_def entries_lookup)
 
-hide (open) const impl_of lookup empty insert delete
+hide_const (open) impl_of lookup empty insert delete
   entries keys bulkload map_entry map fold
 (*>*)
 

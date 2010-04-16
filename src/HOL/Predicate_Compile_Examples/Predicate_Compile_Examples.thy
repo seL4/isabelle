@@ -1168,7 +1168,7 @@ inductive_set S\<^isub>4 and A\<^isub>4 and B\<^isub>4 where
 
 code_pred (expected_modes: o => bool, i => bool) S\<^isub>4p .
 
-hide const a b
+hide_const a b
 
 subsection {* Lambda *}
 

@@ -88,7 +88,7 @@ class zero =
 class one =
   fixes one  :: 'a  ("1")
 
-hide (open) const zero one
+hide_const (open) zero one
 
 syntax
   "_index1"  :: index    ("\<^sub>1")

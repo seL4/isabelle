@@ -1567,7 +1567,7 @@ lemma [induct_simp]: "induct_implies induct_true P == P"
 lemma [induct_simp]: "(x = x) = True" 
   by (rule simp_thms)
 
-hide const induct_forall induct_implies induct_equal induct_conj induct_true induct_false
+hide_const induct_forall induct_implies induct_equal induct_conj induct_true induct_false
 
 use "~~/src/Tools/induct_tacs.ML"
 setup InductTacs.setup
@@ -1886,8 +1886,8 @@ setup {*
   Nbe.add_const_alias @{thm equals_alias_cert}
 *}
 
-hide (open) const eq
-hide const eq
+hide_const (open) eq
+hide_const eq
 
 text {* Cases *}
 

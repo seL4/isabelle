@@ -293,7 +293,7 @@ declare filter_def [simp del]
 declare mem_def [simp del]
 
 
-hide (open) const is_empty insert remove map filter forall exists card
+hide_const (open) is_empty insert remove map filter forall exists card
   Inter Union
 
 end

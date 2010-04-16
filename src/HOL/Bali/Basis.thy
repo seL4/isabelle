@@ -176,7 +176,7 @@ done
 
 section "sums"
 
-hide const In0 In1
+hide_const In0 In1
 
 notation sum_case  (infixr "'(+')"80)
 

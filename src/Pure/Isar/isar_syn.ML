@@ -285,10 +285,15 @@ val _ =
   OuterSyntax.command "local" "enable prefixing of theory name" K.thy_decl
     (Scan.succeed (Toplevel.theory Sign.local_path));
 
-val _ =
-  OuterSyntax.command "hide" "hide names from given name space" K.thy_decl
-    ((P.opt_keyword "open" >> not) -- (P.name -- Scan.repeat1 P.xname) >>
-      (Toplevel.theory o uncurry IsarCmd.hide_names));
+fun hide_names name hide what =
+  OuterSyntax.command name ("hide " ^ what ^ " from name space") K.thy_decl
+    ((P.opt_keyword "open" >> not) -- Scan.repeat1 P.xname >>
+      (Toplevel.theory o uncurry hide));
+
+val _ = hide_names "hide_class" IsarCmd.hide_class "classes";
+val _ = hide_names "hide_type" IsarCmd.hide_type "types";
+val _ = hide_names "hide_const" IsarCmd.hide_const "constants";
+val _ = hide_names "hide_fact" IsarCmd.hide_fact "facts";
 
 
 (* use ML text *)

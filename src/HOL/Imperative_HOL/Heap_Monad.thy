@@ -405,7 +405,7 @@ abbreviation "MREC == mrec.MREC"
 lemmas MREC_rule = mrec.MREC_rule
 lemmas MREC_pinduct = mrec.MREC_pinduct
 
-hide (open) const heap execute
+hide_const (open) heap execute
 
 
 subsection {* Code generator setup *}
@@ -426,7 +426,7 @@ lemma raise_raise_exc [code, code_unfold]:
   "raise s = raise_exc (Fail (STR s))"
   unfolding Fail_def raise_exc_def raise_def ..
 
-hide (open) const Fail raise_exc
+hide_const (open) Fail raise_exc
 
 
 subsubsection {* SML and OCaml *}

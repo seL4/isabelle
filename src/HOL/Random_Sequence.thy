@@ -48,14 +48,14 @@ where
   "map f P = bind P (single o f)"
 
 (*
-hide const DSequence.empty DSequence.single DSequence.eval
+hide_const DSequence.empty DSequence.single DSequence.eval
   DSequence.map_seq DSequence.bind DSequence.union DSequence.if_seq DSequence.not_seq
   DSequence.map
 *)
 
-hide (open) const empty single bind union if_random_dseq not_random_dseq Random map
+hide_const (open) empty single bind union if_random_dseq not_random_dseq Random map
 
-hide type DSequence.dseq random_dseq
-hide (open) fact empty_def single_def bind_def union_def if_random_dseq_def not_random_dseq_def Random.simps map_def
+hide_type DSequence.dseq random_dseq
+hide_fact (open) empty_def single_def bind_def union_def if_random_dseq_def not_random_dseq_def Random.simps map_def
 
 end

@@ -512,8 +512,8 @@ lemmas dsum_subset_Sigma = subset_trans [OF dsum_mono dsum_Sigma, standard]
 
 
 text {* hides popular names *}
-hide (open) type node item
-hide (open) const Push Node Atom Leaf Numb Lim Split Case
+hide_type (open) node item
+hide_const (open) Push Node Atom Leaf Numb Lim Split Case
 
 use "Tools/Datatype/datatype.ML"
 

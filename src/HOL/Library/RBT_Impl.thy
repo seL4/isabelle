@@ -1079,6 +1079,6 @@ proof -
   then show ?thesis by (simp add: bulkload_def foldl_foldr lookup_Empty split_def)
 qed
 
-hide (open) const Empty insert delete entries keys bulkload lookup map_entry map fold union sorted
+hide_const (open) Empty insert delete entries keys bulkload lookup map_entry map fold union sorted
 
 end

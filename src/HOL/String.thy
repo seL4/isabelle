@@ -217,6 +217,6 @@ fun char_codegen thy defs dep thyname b t gr =
 in Codegen.add_codegen "char_codegen" char_codegen end
 *}
 
-hide (open) type literal
+hide_type (open) literal
 
 end

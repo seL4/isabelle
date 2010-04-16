@@ -2263,7 +2263,7 @@ lemma [code]:
 lemma [code]: "nat i = nat_aux i 0"
   by (simp add: nat_aux_def)
 
-hide (open) const nat_aux
+hide_const (open) nat_aux
 
 lemma zero_is_num_zero [code, code_unfold_post]:
   "(0\<Colon>int) = Numeral0" 
@@ -2325,7 +2325,7 @@ consts_code
 
 quickcheck_params [default_type = int]
 
-hide (open) const Pls Min Bit0 Bit1 succ pred
+hide_const (open) Pls Min Bit0 Bit1 succ pred
 
 
 subsection {* Legacy theorems *}

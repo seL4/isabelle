@@ -82,7 +82,7 @@ lemma option_map_o_sum_case [simp]:
   by (rule ext) (simp split: sum.split)
 
 
-hide (open) const set map
+hide_const (open) set map
 
 subsubsection {* Code generator setup *}
 
@@ -102,7 +102,7 @@ lemma [code_unfold]:
   "eq_class.eq x None \<longleftrightarrow> is_none x"
   by (simp add: eq is_none_none)
 
-hide (open) const is_none
+hide_const (open) is_none
 
 code_type option
   (SML "_ option")

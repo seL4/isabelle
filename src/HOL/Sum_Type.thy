@@ -187,6 +187,6 @@ proof (rule set_ext)
   show "u \<in> UNIV <+> UNIV \<longleftrightarrow> u \<in> UNIV" by (cases u) auto
 qed
 
-hide (open) const Suml Sumr Projl Projr
+hide_const (open) Suml Sumr Projl Projr
 
 end

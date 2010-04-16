@@ -496,6 +496,6 @@ code_modulename OCaml
 code_modulename Haskell
   Efficient_Nat Arith
 
-hide const int
+hide_const int
 
 end

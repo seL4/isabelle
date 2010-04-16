@@ -247,6 +247,6 @@ lemma Supremum_code [code]:
 
 end
 
-hide (open) const member fold empty insert remove map filter null member length fold
+hide_const (open) member fold empty insert remove map filter null member length fold
 
 end

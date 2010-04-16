@@ -150,7 +150,7 @@ theorem S\<^isub>4_complete:
 quickcheck[generator = predicate_compile_ff_nofs, size=5, iterations=1]
 oops
 
-hide const a b
+hide_const a b
 
 subsection {* Lexicographic order *}
 (* TODO *)

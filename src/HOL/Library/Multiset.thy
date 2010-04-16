@@ -1001,7 +1001,7 @@ end
 no_notation fcomp (infixl "o>" 60)
 no_notation scomp (infixl "o\<rightarrow>" 60)
 
-hide (open) const bagify
+hide_const (open) bagify
 
 
 subsection {* The multiset order *}

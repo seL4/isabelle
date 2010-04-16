@@ -17,7 +17,7 @@ consts
   iff_keep :: "[bool, bool] => bool"
   iff_unfold :: "[bool, bool] => bool"
 
-hide const iff_keep iff_unfold
+hide_const iff_keep iff_unfold
 
 oracle svc_oracle = Svc.oracle
 

@@ -1,7 +1,7 @@
 (*<*)
 theory Option2 imports Main begin
-hide const None Some
-hide type option
+hide_const None Some
+hide_type option
 (*>*)
 
 text{*\indexbold{*option (type)}\indexbold{*None (constant)}%

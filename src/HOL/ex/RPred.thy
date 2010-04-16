@@ -47,6 +47,6 @@ definition lift_random :: "(Random.seed \<Rightarrow> ('a \<times> (unit \<Right
 definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a rpred \<Rightarrow> 'b rpred)"
   where "map f P = bind P (return o f)"
 
-hide (open) const return bind supp map
+hide_const (open) return bind supp map
   
 end
