@@ -162,6 +162,17 @@ text {*
   some extend. In particular, site-wide defaults may be overridden by
   a private @{verbatim "$ISABELLE_HOME_USER/etc/settings"}.
   
+  \item[@{setting_def ISABELLE_PLATFORM}@{text "\<^sup>*"}] is automatically
+  set to a symbolic identifier for the underlying hardware and
+  operating system.  The Isabelle platform identification always
+  refers to the 32 bit variant, even this is a 64 bit machine.  Note
+  that the ML or Java runtime may have a different idea, depending on
+  which binaries are actually run.
+
+  \item[@{setting_def ISABELLE_PLATFORM64}@{text "\<^sup>*"}] is similar to
+  @{setting ISABELLE_PLATFORM} but refers to the proper 64 bit variant
+  on a platform that supports this; the value is empty for 32 bit.
+
   \item[@{setting_def ISABELLE_PROCESS}@{text "\<^sup>*"}, @{setting
   ISABELLE_TOOL}@{text "\<^sup>*"}] are automatically set to the full path
   names of the @{executable "isabelle-process"} and @{executable

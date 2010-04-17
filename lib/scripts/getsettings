@@ -27,6 +27,9 @@ function isabelle ()
   "$ISABELLE_TOOL" "$@"
 }
 
+#platform
+. "$ISABELLE_HOME/lib/scripts/isabelle-platform"
+
 #Isabelle distribution identifier -- filled in automatically!
 ISABELLE_IDENTIFIER=""
 
