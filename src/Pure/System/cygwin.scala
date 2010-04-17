@@ -91,9 +91,9 @@ object Cygwin
 
   def check_root(): String =
   {
-    val root_env = java.lang.System.getenv("CYGWIN_ROOT")
+    val this_cygwin = java.lang.System.getenv("THIS_CYGWIN")
     val root =
-      if (root_env != null && root_env != "") root_env
+      if (this_cygwin != null && this_cygwin != "") this_cygwin
       else
         query_registry(CYGWIN_SETUP1, "rootdir") orElse
         query_registry(CYGWIN_SETUP2, "rootdir") getOrElse
