@@ -49,7 +49,10 @@ object GUI_Setup extends GUIApplication
     try {
       val isabelle_system = new Isabelle_System
       text.append("Isabelle home: " + isabelle_system.getenv("ISABELLE_HOME") + "\n")
-      text.append("Isabelle java: " + isabelle_system.this_java())
+      text.append("Isabelle platform: " + isabelle_system.getenv("ISABELLE_PLATFORM") + "\n")
+      val platform64 = isabelle_system.getenv("ISABELLE_PLATFORM64")
+      if (platform64 != "") text.append("Isabelle platform (64 bit): " + platform64 + "\n")
+      text.append("Isabelle java: " + isabelle_system.this_java() + "\n")
     } catch {
       case e: RuntimeException => text.append(e.getMessage + "\n")
     }
