@@ -43,16 +43,9 @@ object GUI_Setup extends GUIApplication
     }
 
     // values
-    Platform.defaults match {
-      case None =>
-      case Some((name, None)) => text.append("Platform: " + name + "\n")
-      case Some((name1, Some(name2))) =>
-        text.append("Main platform: " + name1 + "\n")
-        text.append("Alternative platform: " + name2 + "\n")
-    }
-    if (Platform.is_windows) {
+    text.append("JVM platform: " + Platform.jvm_platform() + "\n")
+    if (Platform.is_windows)
       text.append("Cygwin root: " + Cygwin.check_root() + "\n")
-    }
     try {
       val isabelle_system = new Isabelle_System
       text.append("Isabelle home: " + isabelle_system.getenv("ISABELLE_HOME") + "\n")
