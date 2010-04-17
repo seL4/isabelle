@@ -27,13 +27,13 @@ fun del_from_relevance_override ns : relevance_override =
   {add = [], del = ns, only = false}
 fun only_relevance_override ns : relevance_override =
   {add = ns, del = [], only = true}
-val default_relevance_override = add_to_relevance_override []
+val no_relevance_override = add_to_relevance_override []
 fun merge_relevance_override_pairwise (r1 : relevance_override)
                                       (r2 : relevance_override) =
   {add = #add r1 @ #add r2, del = #del r1 @ #del r2,
-   only = #only r1 orelse #only r2}
+   only = #only r1 andalso #only r2}
 fun merge_relevance_overrides rs =
-  fold merge_relevance_override_pairwise rs default_relevance_override
+  fold merge_relevance_override_pairwise rs (only_relevance_override [])
 
 type raw_param = string * string list
 
@@ -96,11 +96,19 @@ structure Data = Theory_Data(
   val extend = I
   fun merge p : T = AList.merge (op =) (K true) p)
 
+(* Don't even try to start ATPs that are not installed.
+   Hack: Should not rely on naming convention. *)
+val filter_atps =
+  space_explode " "
+  #> filter (fn s => String.isPrefix "remote_" s orelse
+                     getenv (String.map Char.toUpper s ^ "_HOME") <> "")
+  #> space_implode " "
+
 val set_default_raw_param = Data.map o AList.update (op =) o unalias_raw_param
 fun default_raw_params thy =
   Data.get thy
   |> fold (AList.default (op =))
-          [("atps", [!atps]),
+          [("atps", [filter_atps (!atps)]),
            ("full_types", [if !full_types then "true" else "false"]),
            ("timeout", let val timeout = !timeout in
                          [if timeout <= 0 then "none"
@@ -207,9 +215,6 @@ val kill_atpsN = "kill_atps"
 val refresh_tptpN = "refresh_tptp"
 val helpN = "help"
 
-val addN = "add"
-val delN = "del"
-val onlyN = "only"
 
 fun minimizize_raw_param_name "timeout" = "minimize_timeout"
   | minimizize_raw_param_name name = name
@@ -270,14 +275,11 @@ val parse_relevance_chunk =
   (Args.add |-- Args.colon |-- parse_fact_refs >> add_to_relevance_override)
   || (Args.del |-- Args.colon |-- parse_fact_refs
       >> del_from_relevance_override)
-  || (P.$$$ onlyN |-- Args.colon |-- parse_fact_refs >> only_relevance_override)
+  || (parse_fact_refs >> only_relevance_override)
 val parse_relevance_override =
-  Scan.optional (Args.parens
-      (Scan.optional (parse_fact_refs >> only_relevance_override)
-                     default_relevance_override
-       -- Scan.repeat parse_relevance_chunk)
-       >> op :: >> merge_relevance_overrides)
-      default_relevance_override
+  Scan.optional (Args.parens (Scan.repeat parse_relevance_chunk
+                              >> merge_relevance_overrides))
+                (add_to_relevance_override [])
 val parse_sledgehammer_command =
   (Scan.optional P.short_ident runN -- parse_params -- parse_relevance_override
    -- Scan.option P.nat) #>> sledgehammer_trans

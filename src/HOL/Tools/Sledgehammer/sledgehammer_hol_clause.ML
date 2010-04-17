@@ -502,10 +502,10 @@ fun write_tptp_file debug full_types file clauses =
         "% " ^ timestamp () ^ "\n" ::
         section "Relevant fact" ax_clss @
         section "Type variable" tfree_clss @
+        section "Conjecture" conjecture_clss @
         section "Class relationship" classrel_clss @
         section "Arity declaration" arity_clss @
-        section "Helper fact" helper_clss @
-        section "Conjecture" conjecture_clss)
+        section "Helper fact" helper_clss)
     in (length axclauses + 1, length tfree_clss + length conjecture_clss)
   end;
 
