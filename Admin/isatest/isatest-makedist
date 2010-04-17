@@ -55,7 +55,7 @@ rm -rf $DISTPREFIX >> $DISTLOG 2>&1
 
 echo "### cleaning up old isabelle-* directories" >> $DISTLOG 2>&1
 rm -rf $HOME/isabelle-*
-ssh atbroy102 "rm -rf isabelle-cygwin-poly"
+ssh atbroy102 "rm -rf /home/isatest/isabelle-cygwin-poly"
 
 echo "### building distribution"  >> $DISTLOG 2>&1
 mkdir -p $DISTPREFIX
@@ -81,6 +81,9 @@ fi
 
 cd $DISTPREFIX >> $DISTLOG 2>&1
 $TAR xvzf `cat $DISTPREFIX/ISABELLE_DIST` >> $DISTLOG 2>&1
+
+ssh atbroy102 "rm -rf /home/isatest/isadist && mkdir -p /home/isatest/isadist" && \
+rsync -a "$HOME/isadist/." atbroy102:/home/isatest/isadist/.
 
 echo ------------------- prepared test successfully --- `date` --- $HOSTNAME >> $DISTLOG 2>&1
 
