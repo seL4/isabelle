@@ -211,4 +211,17 @@ class Standard_System
       }
     }
     else jvm_path
+
+
+  /* this_java executable */
+
+  def this_java(): String =
+  {
+    val java_home = System.getProperty("java.home")
+    val java_exe =
+      if (Platform.is_windows) new File(java_home + "\\bin\\java.exe")
+      else new File(java_home + "/bin/java")
+    if (!java_exe.isFile) error("Expected this Java executable: " + java_exe.toString)
+    posix_path(java_exe.getAbsolutePath)
+  }
 }

@@ -55,7 +55,7 @@ ML_SOURCES="$ML_HOME/../src"
 ### JVM components (Scala or Java)
 ###
 
-ISABELLE_JAVA="java"
+ISABELLE_JAVA="${THIS_JAVA:-java}"
 ISABELLE_SCALA="scala"
 
 [ -z "$SCALA_HOME" ] && SCALA_HOME=$(choosefrom \

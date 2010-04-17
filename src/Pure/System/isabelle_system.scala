@@ -26,7 +26,8 @@ class Isabelle_System extends Standard_System
   {
     import scala.collection.JavaConversions._
 
-    val env0 = Map(java.lang.System.getenv.toList: _*)
+    val env0 = Map(java.lang.System.getenv.toList: _*) +
+      ("THIS_JAVA" -> this_java())
 
     val isabelle_home =
       env0.get("ISABELLE_HOME") match {

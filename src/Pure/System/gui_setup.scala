@@ -56,6 +56,7 @@ object GUI_Setup extends GUIApplication
     try {
       val isabelle_system = new Isabelle_System
       text.append("Isabelle home: " + isabelle_system.getenv("ISABELLE_HOME") + "\n")
+      text.append("Isabelle java: " + isabelle_system.this_java())
     } catch {
       case e: RuntimeException => text.append(e.getMessage + "\n")
     }
