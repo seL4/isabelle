@@ -48,7 +48,7 @@ type prover_config =
   arguments: Time.time -> string,
   failure_strs: string list,
   max_new_clauses: int,
-  prefers_theory_const: bool,
+  prefers_theory_relevant: bool,
   supports_isar_proofs: bool};
 
 
@@ -167,15 +167,15 @@ fun generic_prover overlord get_facts prepare write_file cmd args failure_strs
 
 fun generic_tptp_prover
         (name, {command, arguments, failure_strs, max_new_clauses,
-                prefers_theory_const, supports_isar_proofs})
+                prefers_theory_relevant, supports_isar_proofs})
         (params as {overlord, respect_no_atp, relevance_threshold, convergence,
-                    theory_const, higher_order, follow_defs, isar_proof,
+                    theory_relevant, higher_order, follow_defs, isar_proof,
                     modulus, sorts, ...})
         timeout =
   generic_prover overlord
       (get_relevant_facts respect_no_atp relevance_threshold convergence
                           higher_order follow_defs max_new_clauses
-                          (the_default prefers_theory_const theory_const))
+                          (the_default prefers_theory_relevant theory_relevant))
       (prepare_clauses higher_order false) write_tptp_file command
       (arguments timeout) failure_strs
       (if supports_isar_proofs andalso isar_proof then
@@ -201,7 +201,7 @@ val vampire_config : prover_config =
    failure_strs =
      ["Satisfiability detected", "Refutation not found", "CANNOT PROVE"],
    max_new_clauses = 60,
-   prefers_theory_const = false,
+   prefers_theory_relevant = false,
    supports_isar_proofs = true}
 val vampire = tptp_prover "vampire" vampire_config
 
@@ -218,7 +218,7 @@ val e_config : prover_config =
         "SZS status: ResourceOut", "SZS status ResourceOut",
         "# Cannot determine problem status"],
    max_new_clauses = 100,
-   prefers_theory_const = false,
+   prefers_theory_relevant = false,
    supports_isar_proofs = true}
 val e = tptp_prover "e" e_config
 
@@ -227,14 +227,14 @@ val e = tptp_prover "e" e_config
 
 fun generic_dfg_prover
         (name, ({command, arguments, failure_strs, max_new_clauses,
-                 prefers_theory_const, ...} : prover_config))
+                 prefers_theory_relevant, ...} : prover_config))
         (params as {overlord, respect_no_atp, relevance_threshold, convergence,
-                    theory_const, higher_order, follow_defs, ...})
+                    theory_relevant, higher_order, follow_defs, ...})
         timeout =
   generic_prover overlord
       (get_relevant_facts respect_no_atp relevance_threshold convergence
                           higher_order follow_defs max_new_clauses
-                          (the_default prefers_theory_const theory_const))
+                          (the_default prefers_theory_relevant theory_relevant))
       (prepare_clauses higher_order true) write_dfg_file command
       (arguments timeout) failure_strs (metis_lemma_list true) name params;
 
@@ -251,7 +251,7 @@ val spass_config : prover_config =
     ["SPASS beiseite: Completion found.", "SPASS beiseite: Ran out of time.",
      "SPASS beiseite: Maximal number of loops exceeded."],
   max_new_clauses = 40,
-  prefers_theory_const = true,
+  prefers_theory_relevant = true,
   supports_isar_proofs = false}
 val spass = dfg_prover ("spass", spass_config)
 
@@ -285,7 +285,7 @@ fun the_system prefix =
 val remote_failure_strs = ["Remote-script could not extract proof"];
 
 fun remote_prover_config prover_prefix args
-        ({failure_strs, max_new_clauses, prefers_theory_const, ...}
+        ({failure_strs, max_new_clauses, prefers_theory_relevant, ...}
          : prover_config) : prover_config =
   {command = Path.explode "$ISABELLE_ATP_MANAGER/SystemOnTPTP",
    arguments = (fn timeout =>
@@ -293,7 +293,7 @@ fun remote_prover_config prover_prefix args
      the_system prover_prefix),
    failure_strs = remote_failure_strs @ failure_strs,
    max_new_clauses = max_new_clauses,
-   prefers_theory_const = prefers_theory_const,
+   prefers_theory_relevant = prefers_theory_relevant,
    supports_isar_proofs = false}
 
 val remote_vampire =
