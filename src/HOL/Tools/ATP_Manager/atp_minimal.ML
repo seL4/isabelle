@@ -88,10 +88,10 @@ fun minimize_theorems (params as {minimize_timeout, isar_proof, modulus,
                       prover atp_name i state name_thms_pairs =
   let
     val msecs = Time.toMilliseconds minimize_timeout
+    val n = length name_thms_pairs
     val _ =
-      priority ("Minimize called with " ^ string_of_int (length name_thms_pairs) ^
-        " theorems, ATP: " ^ atp_name ^
-        ", time limit: " ^ string_of_int msecs ^ " ms")
+      priority ("Sledgehammer minimizer: ATP " ^ quote atp_name ^
+                " with a time limit of " ^ string_of_int msecs ^ " ms.")
     val test_thms_fun =
       sledgehammer_test_theorems params prover minimize_timeout i state
     fun test_thms filtered thms =
@@ -104,8 +104,7 @@ fun minimize_theorems (params as {minimize_timeout, isar_proof, modulus,
   in
     (* try prove first to check result and get used theorems *)
     (case test_thms_fun NONE name_thms_pairs of
-      (Success, result as {internal_thm_names, filtered_clauses,
-                           ...}) =>
+      (Success, result as {internal_thm_names, filtered_clauses, ...}) =>
         let
           val used = internal_thm_names |> Vector.foldr (op ::) []
                                         |> sort_distinct string_ord
@@ -117,8 +116,9 @@ fun minimize_theorems (params as {minimize_timeout, isar_proof, modulus,
           val (min_thms, {conjecture_pos, proof, internal_thm_names, ...}) =
             linear_minimize (test_thms (SOME filtered_clauses)) to_use
                             ([], result)
+          val n = length min_thms
           val _ = priority (cat_lines
-            ["Minimal " ^ string_of_int (length min_thms) ^ " theorems"])
+            ["Minimized: " ^ string_of_int n ^ " theorem" ^ plural_s n] ^ ".")
         in
           (SOME min_thms,
            proof_text isar_proof true modulus sorts atp_name
