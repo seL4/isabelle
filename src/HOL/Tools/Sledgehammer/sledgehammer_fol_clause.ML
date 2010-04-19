@@ -4,7 +4,7 @@
 Storing/printing FOL clauses and arity clauses.  Typed equality is
 treated differently.
 
-FIXME: combine with res_hol_clause!
+FIXME: combine with sledgehammer_hol_clause!
 *)
 
 signature SLEDGEHAMMER_FOL_CLAUSE =
@@ -57,12 +57,14 @@ sig
   val make_classrel_clauses: theory -> class list -> class list -> classrel_clause list
   val make_arity_clauses_dfg: bool -> theory -> string list -> class list -> class list * arity_clause list
   val make_arity_clauses: theory -> string list -> class list -> class list * arity_clause list
-  val add_type_sort_preds: typ * int Symtab.table -> int Symtab.table
-  val add_classrel_clause_preds : classrel_clause * int Symtab.table -> int Symtab.table
+  val add_type_sort_preds: typ -> int Symtab.table -> int Symtab.table
+  val add_classrel_clause_preds :
+    classrel_clause -> int Symtab.table -> int Symtab.table
   val class_of_arityLit: arLit -> class
-  val add_arity_clause_preds: arity_clause * int Symtab.table -> int Symtab.table
-  val add_foltype_funcs: fol_type * int Symtab.table -> int Symtab.table
-  val add_arity_clause_funcs: arity_clause * int Symtab.table -> int Symtab.table
+  val add_arity_clause_preds: arity_clause -> int Symtab.table -> int Symtab.table
+  val add_fol_type_funcs: fol_type -> int Symtab.table -> int Symtab.table
+  val add_arity_clause_funcs:
+    arity_clause -> int Symtab.table -> int Symtab.table
   val init_functab: int Symtab.table
   val dfg_sign: bool -> string -> string
   val dfg_of_typeLit: bool -> type_literal -> string
@@ -102,7 +104,7 @@ val const_prefix = "c_";
 val tconst_prefix = "tc_";
 val class_prefix = "class_";
 
-fun union_all xss = List.foldl (uncurry (union (op =))) [] xss;
+fun union_all xss = fold (union (op =)) xss []
 
 (* Provide readable names for the more common symbolic functions *)
 val const_trans_table =
@@ -315,7 +317,7 @@ fun pred_of_sort (LTVar (s,ty)) = (s,1)
   | pred_of_sort (LTFree (s,ty)) = (s,1)
 
 (*Given a list of sorted type variables, return a list of type literals.*)
-fun add_typs Ts = List.foldl (uncurry (union (op =))) [] (map sorts_on_typs Ts);
+fun add_typs Ts = fold (union (op =)) (map sorts_on_typs Ts) []
 
 (*The correct treatment of TFrees like 'a in lemmas (axiom clauses) is not clear.
   * Ignoring them leads to unsound proofs, since we do nothing to ensure that 'a
@@ -373,11 +375,11 @@ datatype classrel_clause =
 (*Generate all pairs (sub,super) such that sub is a proper subclass of super in theory thy.*)
 fun class_pairs thy [] supers = []
   | class_pairs thy subs supers =
-      let val class_less = Sorts.class_less(Sign.classes_of thy)
-          fun add_super sub (super,pairs) =
-                if class_less (sub,super) then (sub,super)::pairs else pairs
-          fun add_supers (sub,pairs) = List.foldl (add_super sub) pairs supers
-      in  List.foldl add_supers [] subs  end;
+      let
+        val class_less = Sorts.class_less (Sign.classes_of thy)
+        fun add_super sub super = class_less (sub, super) ? cons (sub, super)
+        fun add_supers sub = fold (add_super sub) supers
+      in fold add_supers subs [] end
 
 fun make_classrel_clause (sub,super) =
   ClassrelClause {axiom_name = clrelclause_prefix ^ ascii_of sub ^ "_" ^ ascii_of super,
@@ -402,18 +404,18 @@ fun arity_clause dfg _ _ (tcons, []) = []
           arity_clause dfg (class::seen) n (tcons,ars)
 
 fun multi_arity_clause dfg [] = []
-  | multi_arity_clause dfg ((tcons,ars) :: tc_arlists) =
-      arity_clause dfg [] 1 (tcons, ars)  @  multi_arity_clause dfg tc_arlists
+  | multi_arity_clause dfg ((tcons, ars) :: tc_arlists) =
+      arity_clause dfg [] 1 (tcons, ars) @ multi_arity_clause dfg tc_arlists
 
 (*Generate all pairs (tycon,class,sorts) such that tycon belongs to class in theory thy
   provided its arguments have the corresponding sorts.*)
 fun type_class_pairs thy tycons classes =
   let val alg = Sign.classes_of thy
-      fun domain_sorts (tycon,class) = Sorts.mg_domain alg tycon [class]
-      fun add_class tycon (class,pairs) =
-            (class, domain_sorts(tycon,class))::pairs
-            handle Sorts.CLASS_ERROR _ => pairs
-      fun try_classes tycon = (tycon, List.foldl (add_class tycon) [] classes)
+      fun domain_sorts tycon = Sorts.mg_domain alg tycon o single
+      fun add_class tycon class =
+        cons (class, domain_sorts tycon class)
+        handle Sorts.CLASS_ERROR _ => I
+      fun try_classes tycon = (tycon, fold (add_class tycon) classes [])
   in  map try_classes tycons  end;
 
 (*Proving one (tycon, class) membership may require proving others, so iterate.*)
@@ -435,35 +437,35 @@ val make_arity_clauses = make_arity_clauses_dfg false;
 (*FIXME: multiple-arity checking doesn't work, as update_new is the wrong
   function (it flags repeated declarations of a function, even with the same arity)*)
 
-fun update_many (tab, keypairs) = List.foldl (uncurry Symtab.update) tab keypairs;
+fun update_many keypairs = fold Symtab.update keypairs
 
-fun add_type_sort_preds (T, preds) =
-      update_many (preds, map pred_of_sort (sorts_on_typs T));
+val add_type_sort_preds = update_many o map pred_of_sort o sorts_on_typs
 
-fun add_classrel_clause_preds (ClassrelClause {subclass,superclass,...}, preds) =
-  Symtab.update (subclass,1) (Symtab.update (superclass,1) preds);
+fun add_classrel_clause_preds (ClassrelClause {subclass, superclass, ...}) =
+  Symtab.update (subclass, 1) #> Symtab.update (superclass, 1)
 
 fun class_of_arityLit (TConsLit (tclass, _, _)) = tclass
   | class_of_arityLit (TVarLit (tclass, _)) = tclass;
 
-fun add_arity_clause_preds (ArityClause {conclLit,premLits,...}, preds) =
-  let val classes = map (make_type_class o class_of_arityLit) (conclLit::premLits)
-      fun upd (class,preds) = Symtab.update (class,1) preds
-  in  List.foldl upd preds classes  end;
+fun add_arity_clause_preds (ArityClause {conclLit, premLits, ...}) =
+  let
+    val classes = map (make_type_class o class_of_arityLit)
+                      (conclLit :: premLits)
+  in fold (Symtab.update o rpair 1) classes end;
 
 (*** Find occurrences of functions in clauses ***)
 
-fun add_foltype_funcs (TyVar _, funcs) = funcs
-  | add_foltype_funcs (TyFree (s, _), funcs) = Symtab.update (s, 0) funcs
-  | add_foltype_funcs (TyConstr ((s, _), tys), funcs) =
-      List.foldl add_foltype_funcs (Symtab.update (s, length tys) funcs) tys;
+fun add_fol_type_funcs (TyVar _) = I
+  | add_fol_type_funcs (TyFree (s, _)) = Symtab.update (s, 0)
+  | add_fol_type_funcs (TyConstr ((s, _), tys)) =
+    Symtab.update (s, length tys) #> fold add_fol_type_funcs tys
 
 (*TFrees are recorded as constants*)
 fun add_type_sort_funcs (TVar _, funcs) = funcs
   | add_type_sort_funcs (TFree (a, _), funcs) =
       Symtab.update (make_fixed_type_var a, 0) funcs
 
-fun add_arity_clause_funcs (ArityClause {conclLit,...}, funcs) =
+fun add_arity_clause_funcs (ArityClause {conclLit,...}) funcs =
   let val TConsLit (_, tcons, tvars) = conclLit
   in  Symtab.update (tcons, length tvars) funcs  end;
 
