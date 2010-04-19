@@ -1931,6 +1931,12 @@ by simp
 
 declare zip_Cons [simp del]
 
+lemma [code]:
+  "zip [] ys = []"
+  "zip xs [] = []"
+  "zip (x # xs) (y # ys) = (x, y) # zip xs ys"
+  by (fact zip_Nil zip.simps(1) zip_Cons_Cons)+
+
 lemma zip_Cons1:
  "zip (x#xs) ys = (case ys of [] \<Rightarrow> [] | y#ys \<Rightarrow> (x,y)#zip xs ys)"
 by(auto split:list.split)
