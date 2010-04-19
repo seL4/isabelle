@@ -113,7 +113,7 @@ fun minimize_theorems (params as {minimize_timeout, isar_proof, modulus,
               filter (fn (name1, _) => List.exists (curry (op =) name1) used)
                      name_thms_pairs
             else name_thms_pairs
-          val (min_thms, {conjecture_pos, proof, internal_thm_names, ...}) =
+          val (min_thms, {proof, internal_thm_names, ...}) =
             linear_minimize (test_thms (SOME filtered_clauses)) to_use
                             ([], result)
           val n = length min_thms
@@ -121,9 +121,8 @@ fun minimize_theorems (params as {minimize_timeout, isar_proof, modulus,
             ["Minimized: " ^ string_of_int n ^ " theorem" ^ plural_s n] ^ ".")
         in
           (SOME min_thms,
-           proof_text isar_proof true modulus sorts atp_name
-                      (proof, internal_thm_names, conjecture_pos, ctxt, goal, i)
-           |> fst)
+           proof_text isar_proof true modulus sorts atp_name proof
+                      internal_thm_names ctxt goal i |> fst)
         end
     | (Timeout, _) =>
         (NONE, "Timeout: You can increase the time limit using the \"timeout\" \

@@ -142,22 +142,18 @@ fun generic_prover overlord get_facts prepare write_file cmd args failure_strs
         File.write (Path.explode (Path.implode probfile ^ "_proof"))
                    ("% " ^ timestamp () ^ "\n" ^ proof)
 
-    val (((proof, atp_run_time_in_msecs), rc), conjecture_pos) =
+    val (((proof, atp_run_time_in_msecs), rc), _) =
       with_path cleanup export run_on (prob_pathname subgoal);
 
     (* Check for success and print out some information on failure. *)
     val failure = find_failure failure_strs proof;
     val success = rc = 0 andalso is_none failure;
     val (message, relevant_thm_names) =
-      if is_some failure then
-        ("ATP failed to find a proof.\n", [])
-      else if rc <> 0 then
-        ("ATP error: " ^ proof ^ ".\n", [])
-      else
-        proof_text name (proof, internal_thm_names, conjecture_pos, ctxt, th,
-                         subgoal)
+      if is_some failure then ("ATP failed to find a proof.\n", [])
+      else if rc <> 0 then ("ATP error: " ^ proof ^ ".\n", [])
+      else proof_text name proof internal_thm_names ctxt th subgoal
   in
-    {success = success, message = message, conjecture_pos = conjecture_pos,
+    {success = success, message = message,
      relevant_thm_names = relevant_thm_names,
      atp_run_time_in_msecs = atp_run_time_in_msecs, proof = proof,
      internal_thm_names = internal_thm_names,

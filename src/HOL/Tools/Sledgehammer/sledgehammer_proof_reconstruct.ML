@@ -15,17 +15,14 @@ sig
   val is_proof_well_formed: string -> bool
   val metis_line: int -> int -> string list -> string
   val metis_proof_text:
-    bool -> bool -> string
-    -> string * string vector * (int * int) * Proof.context * thm * int
-    -> string * string list
+    bool -> bool -> string -> string -> string vector -> Proof.context -> thm
+    -> int -> string * string list
   val isar_proof_text:
-    bool -> int -> bool -> string
-    -> string * string vector * (int * int) * Proof.context * thm * int
-    -> string * string list
+    bool -> int -> bool -> string -> string -> string vector -> Proof.context
+    -> thm -> int -> string * string list
   val proof_text:
-    bool -> bool -> int -> bool -> string
-    -> string * string vector * (int * int) * Proof.context * thm * int
-    -> string * string list
+    bool -> bool -> int -> bool -> string -> string -> string vector
+    -> Proof.context -> thm -> int -> string * string list
 end;
 
 structure Sledgehammer_Proof_Reconstruct : SLEDGEHAMMER_PROOF_RECONSTRUCT =
@@ -517,24 +514,6 @@ fun get_step_nums proof_extract =
     val lines = split_lines proof_extract
   in map_filter (inputno o toks) lines end
   
-(* Extracting lemmas from TSTP output between the lines from above. *)
-fun extract_lemmas get_step_nums (proof, thm_names, conjecture_pos, _, _, _) =
-  let
-    (* get the names of axioms from their numbers*)
-    fun get_axiom_names thm_names step_nums =
-      let
-        val last_axiom = Vector.length thm_names
-        fun is_axiom n = n <= last_axiom
-        fun is_conj n = n >= fst conjecture_pos andalso
-                        n < fst conjecture_pos + snd conjecture_pos
-        fun name_at i = Vector.sub (thm_names, i - 1)
-      in
-        (sort_distinct string_ord (filter (fn x => x <> "??.unknown")
-          (map name_at (filter is_axiom step_nums))),
-        exists is_conj step_nums)
-      end
-  in get_axiom_names thm_names (get_step_nums (get_proof_extract proof)) end;
-
 (*Used to label theorems chained into the sledgehammer call*)
 val chained_hint = "CHAINED";
 val kill_chained = filter_out (curry (op =) chained_hint)
@@ -557,24 +536,25 @@ fun minimize_line _ _ [] = ""
                      (if isar_proof then ", isar_proof" else "") ^ "] (" ^
                      space_implode " " xs ^ ")") ^ ".\n"
 
-fun metis_proof_text isar_proof minimal atp_name
-                     (result as (_, _, _, _, goal, i)) =
+fun metis_proof_text isar_proof minimal atp_name proof thm_names
+                     (_ : Proof.context) goal i =
   let
-    val (lemmas, used_conj) = extract_lemmas get_step_nums result
+    val lemmas =
+      proof |> get_proof_extract
+            |> get_step_nums
+            |> filter (fn i => i <= Vector.length thm_names)
+            |> map (fn i => Vector.sub (thm_names, i - 1))
+            |> filter (fn x => x <> "??.unknown")
+            |> sort_distinct string_ord
     val n = Logic.count_prems (prop_of goal)
     val xs = kill_chained lemmas
   in
     (metis_line i n xs ^
-     (if minimal then "" else minimize_line isar_proof atp_name xs) ^
-     (if used_conj then
-        ""
-      else
-        "\nWarning: The goal is provable because the context is inconsistent."),
+     (if minimal then "" else minimize_line isar_proof atp_name xs),
      kill_chained lemmas)
   end
 
-fun isar_proof_text minimal modulus sorts atp_name
-                    (result as (proof, thm_names, _, ctxt, goal, i)) =
+fun isar_proof_text minimal modulus sorts atp_name proof thm_names ctxt goal i =
   let
     (* We could use "split_lines", but it can return blank lines. *)
     val lines = String.tokens (equal #"\n");
@@ -583,7 +563,7 @@ fun isar_proof_text minimal modulus sorts atp_name
     val extract = get_proof_extract proof
     val cnfs = filter (String.isPrefix "cnf(") (map kill_spaces (lines extract))
     val (one_line_proof, lemma_names) =
-      metis_proof_text true minimal atp_name result
+      metis_proof_text true minimal atp_name proof thm_names ctxt goal i
     val tokens = String.tokens (fn c => c = #" ") one_line_proof
     val isar_proof =
       if member (op =) tokens chained_hint then ""

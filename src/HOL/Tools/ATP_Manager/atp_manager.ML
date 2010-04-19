@@ -35,7 +35,6 @@ sig
   type prover_result =
     {success: bool,
      message: string,
-     conjecture_pos: int * int,
      relevant_thm_names: string list,
      atp_run_time_in_msecs: int,
      proof: string,
@@ -92,7 +91,6 @@ type problem =
 type prover_result =
   {success: bool,
    message: string,
-   conjecture_pos: int * int,
    relevant_thm_names: string list,
    atp_run_time_in_msecs: int,
    proof: string,

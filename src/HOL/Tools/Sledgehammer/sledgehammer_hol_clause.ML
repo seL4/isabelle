@@ -36,11 +36,10 @@ sig
        hol_clause list
   val write_tptp_file : bool -> bool -> Path.T ->
     hol_clause list * hol_clause list * hol_clause list * hol_clause list *
-    classrel_clause list * arity_clause list ->
-    int * int
+    classrel_clause list * arity_clause list -> unit
   val write_dfg_file : bool -> Path.T ->
     hol_clause list * hol_clause list * hol_clause list * hol_clause list *
-    classrel_clause list * arity_clause list -> int * int
+    classrel_clause list * arity_clause list -> unit
 end
 
 structure Sledgehammer_HOL_Clause : SLEDGEHAMMER_HOL_CLAUSE =
@@ -497,17 +496,16 @@ fun write_tptp_file readable_names full_types file clauses =
     val arity_clss = map tptp_arity_clause arity_clauses
     val (helper_clss, pool) = pool_map (apfst fst oo tptp_clause params)
                                        helper_clauses pool
-    val _ =
-      File.write_list file (
-        header () ::
-        section "Relevant fact" ax_clss @
-        section "Type variable" tfree_clss @
-        section "Conjecture" conjecture_clss @
-        section "Class relationship" classrel_clss @
-        section "Arity declaration" arity_clss @
-        section "Helper fact" helper_clss)
-    in (length axclauses + 1, length tfree_clss + length conjecture_clss)
-  end;
+  in
+    File.write_list file
+        (header () ::
+         section "Relevant fact" ax_clss @
+         section "Type variable" tfree_clss @
+         section "Conjecture" conjecture_clss @
+         section "Class relationship" classrel_clss @
+         section "Arity declaration" arity_clss @
+         section "Helper fact" helper_clss)
+  end
 
 
 (* DFG format *)
@@ -531,27 +529,23 @@ fun write_dfg_file full_types file clauses =
       pool_map (apfst fst oo dfg_clause params) helper_clauses pool
     val (funcs, cl_preds) = decls_of_clauses params (helper_clauses @ conjectures @ axclauses) arity_clauses
     and ty_preds = preds_of_clauses axclauses classrel_clauses arity_clauses
-    val _ =
-      File.write_list file (
-        header () ::
-        string_of_start probname ::
-        string_of_descrip probname ::
-        string_of_symbols (string_of_funcs funcs)
-          (string_of_preds (cl_preds @ ty_preds)) ::
-        "list_of_clauses(axioms, cnf).\n" ::
-        axstrs @
-        map dfg_classrel_clause classrel_clauses @
-        map dfg_arity_clause arity_clauses @
-        helper_clauses_strs @
-        ["end_of_list.\n\nlist_of_clauses(conjectures, cnf).\n"] @
-        tfree_clss @
-        conjecture_clss @
-        ["end_of_list.\n\n",
-         "end_problem.\n"])
-
   in
-    (length axclauses + length classrel_clauses + length arity_clauses +
-     length helper_clauses + 1, length tfree_clss + length conjecture_clss)
+    File.write_list file
+        (header () ::
+         string_of_start probname ::
+         string_of_descrip probname ::
+         string_of_symbols (string_of_funcs funcs)
+                           (string_of_preds (cl_preds @ ty_preds)) ::
+         "list_of_clauses(axioms, cnf).\n" ::
+         axstrs @
+         map dfg_classrel_clause classrel_clauses @
+         map dfg_arity_clause arity_clauses @
+         helper_clauses_strs @
+         ["end_of_list.\n\nlist_of_clauses(conjectures, cnf).\n"] @
+         tfree_clss @
+         conjecture_clss @
+         ["end_of_list.\n\n",
+          "end_problem.\n"])
   end
 
 end;
