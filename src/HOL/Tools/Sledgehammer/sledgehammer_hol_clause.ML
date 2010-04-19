@@ -407,7 +407,7 @@ fun count_clause (HOLClause {literals, ...}) = fold count_literal literals
 fun count_user_clause user_lemmas (HOLClause {axiom_name, literals, ...}) =
   member (op =) user_lemmas axiom_name ? fold count_literal literals
 
-fun cnf_helper_thms thy = cnf_rules_pairs thy o map pairname
+fun cnf_helper_thms thy = cnf_rules_pairs thy o map (`Thm.get_name_hint)
 
 fun get_helper_clauses dfg thy isFO (conjectures, axcls, user_lemmas) =
   if isFO then
