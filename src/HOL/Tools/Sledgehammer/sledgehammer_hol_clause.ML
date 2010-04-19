@@ -38,7 +38,7 @@ sig
     hol_clause list * hol_clause list * hol_clause list * hol_clause list *
     classrel_clause list * arity_clause list ->
     int * int
-  val write_dfg_file : bool -> bool -> Path.T ->
+  val write_dfg_file : bool -> Path.T ->
     hol_clause list * hol_clause list * hol_clause list * hol_clause list *
     classrel_clause list * arity_clause list -> int * int
 end
@@ -479,11 +479,11 @@ fun header () =
 
 (* TPTP format *)
 
-fun write_tptp_file debug full_types file clauses =
+fun write_tptp_file readable_names full_types file clauses =
   let
     fun section _ [] = []
       | section name ss = "\n% " ^ name ^ plural_s (length ss) ^ "\n" :: ss
-    val pool = empty_name_pool debug
+    val pool = empty_name_pool readable_names
     val (conjectures, axclauses, _, helper_clauses,
       classrel_clauses, arity_clauses) = clauses
     val (cma, cnh) = count_constants clauses
@@ -512,7 +512,7 @@ fun write_tptp_file debug full_types file clauses =
 
 (* DFG format *)
 
-fun write_dfg_file debug full_types file clauses =
+fun write_dfg_file full_types file clauses =
   let
     (* Some of the helper functions below are not name-pool-aware. However,
        there's no point in adding name pool support if the DFG format is on its

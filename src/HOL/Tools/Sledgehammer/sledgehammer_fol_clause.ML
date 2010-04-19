@@ -220,7 +220,8 @@ fun make_type_class clas = class_prefix ^ ascii_of clas;
 type name = string * string
 type name_pool = string Symtab.table * string Symtab.table
 
-fun empty_name_pool debug = if debug then SOME (`I Symtab.empty) else NONE
+fun empty_name_pool readable_names =
+  if readable_names then SOME (`I Symtab.empty) else NONE
 
 fun pool_map f xs =
   fold_rev (fn x => fn (ys, pool) => f x pool |>> (fn y => y :: ys)) xs
@@ -242,7 +243,7 @@ fun add_nice_name full_name nice_prefix j the_pool =
 fun translate_first_char f s =
   String.str (f (String.sub (s, 0))) ^ String.extract (s, 1, NONE)
 
-fun clean_short_name full_name s =
+fun readable_name full_name s =
   let
     val s = s |> Long_Name.base_name
               |> fold remove_all ["\<^sub>", "\<^bsub>", "\<^esub>", "\<^isub>"]
@@ -270,8 +271,8 @@ fun nice_name (full_name, _) NONE = (full_name, NONE)
   | nice_name (full_name, desired_name) (SOME the_pool) =
     case Symtab.lookup (fst the_pool) full_name of
       SOME nice_name => (nice_name, SOME the_pool)
-    | NONE => add_nice_name full_name (clean_short_name full_name desired_name)
-                            0 the_pool
+    | NONE => add_nice_name full_name (readable_name full_name desired_name) 0
+                            the_pool
               |> apsnd SOME
 
 (**** Definitions and functions for FOL clauses, for conversion to TPTP or DFG

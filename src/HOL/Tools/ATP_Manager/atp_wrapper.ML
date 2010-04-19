@@ -128,7 +128,7 @@ fun generic_prover overlord get_facts prepare write_file cmd args failure_strs
       if Config.get ctxt measure_runtime then split_time s else (s, 0)
     fun run_on probfile =
       if File.exists cmd then
-        write_file debug full_types probfile clauses
+        write_file full_types probfile clauses
         |> pair (apfst split_time' (bash_output (cmd_line probfile)))
       else error ("Bad executable: " ^ Path.implode cmd ^ ".");
 
@@ -176,7 +176,8 @@ fun generic_tptp_prover
       (get_relevant_facts respect_no_atp relevance_threshold convergence
                           higher_order follow_defs max_new_clauses
                           (the_default prefers_theory_relevant theory_relevant))
-      (prepare_clauses higher_order false) write_tptp_file command
+      (prepare_clauses higher_order false)
+      (write_tptp_file (overlord andalso not isar_proof)) command
       (arguments timeout) failure_strs
       (if supports_isar_proofs andalso isar_proof then
          structured_isar_proof modulus sorts
