@@ -290,15 +290,14 @@ fun update_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
     val SynExt.SynExt {xprods, consts = consts2, prmodes = prmodes2,
       parse_ast_translation, parse_rules, parse_translation, print_translation, print_rules,
       print_ast_translation, token_translation} = syn_ext;
-    val input' = if inout then fold (insert (op =)) xprods input else input;
-    val changed = length input <> length input';
+    val new_xprods =
+      if inout then distinct (op =) (filter_out (member (op =) input) xprods) else [];
     fun if_inout xs = if inout then xs else [];
   in
     Syntax
-    ({input = input',
-      lexicon =
-        if changed then fold Scan.extend_lexicon (SynExt.delims_of xprods) lexicon else lexicon,
-      gram = if changed then Parser.extend_gram gram xprods else gram,
+    ({input = new_xprods @ input,
+      lexicon = fold Scan.extend_lexicon (SynExt.delims_of new_xprods) lexicon,
+      gram = Parser.extend_gram gram new_xprods,
       consts = Library.merge (op =) (consts1, filter_out Lexicon.is_marked consts2),
       prmodes = insert (op =) mode (Library.merge (op =) (prmodes1, prmodes2)),
       parse_ast_trtab =
