@@ -514,7 +514,10 @@ fun write_tptp_file debug full_types file clauses =
 
 fun write_dfg_file debug full_types file clauses =
   let
-    val pool = empty_name_pool debug
+    (* Some of the helper functions below are not name-pool-aware. However,
+       there's no point in adding name pool support if the DFG format is on its
+       way out anyway. *)
+    val pool = NONE
     val (conjectures, axclauses, _, helper_clauses,
       classrel_clauses, arity_clauses) = clauses
     val (cma, cnh) = count_constants clauses
@@ -544,8 +547,6 @@ fun write_dfg_file debug full_types file clauses =
         tfree_clss @
         conjecture_clss @
         ["end_of_list.\n\n",
-        (*VarWeight=3 helps the HO problems, probably by counteracting the presence of hAPP*)
-         "list_of_settings(SPASS).\n{*\nset_flag(VarWeight, 3).\n*}\nend_of_list.\n\n",
          "end_problem.\n"])
 
   in

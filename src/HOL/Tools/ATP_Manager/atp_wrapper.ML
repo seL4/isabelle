@@ -240,10 +240,12 @@ fun generic_dfg_prover
 
 fun dfg_prover (name, p) = (name, generic_dfg_prover (name, p));
 
+(* The "-VarWeight=3" option helps the higher-order problems, probably by
+   counteracting the presence of "hAPP". *)
 val spass_config : prover_config =
  {command = Path.explode "$SPASS_HOME/SPASS",
   arguments = (fn timeout => "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0" ^
-    " -FullRed=0 -DocProof -TimeLimit=" ^
+    " -FullRed=0 -DocProof -VarWeight=3 -TimeLimit=" ^
     string_of_int (generous_to_secs timeout)),
   failure_strs =
     ["SPASS beiseite: Completion found.", "SPASS beiseite: Ran out of time.",
