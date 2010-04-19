@@ -43,9 +43,9 @@ object GUI_Setup extends GUIApplication
     }
 
     // values
-    text.append("JVM platform: " + Platform.jvm_platform + "\n")
     if (Platform.is_windows)
       text.append("Cygwin root: " + Cygwin.check_root() + "\n")
+    text.append("JVM platform: " + Platform.jvm_platform + "\n")
     try {
       val isabelle_system = new Isabelle_System
       text.append("ML platform: " + isabelle_system.getenv("ML_PLATFORM") + "\n")
