@@ -335,7 +335,7 @@ fun available_atps thy = Pretty.writeln
 fun start_prover (params as {timeout, ...}) birth_time death_time i
                  relevance_override proof_state name =
   (case get_prover (Proof.theory_of proof_state) name of
-    NONE => warning ("Unknown ATP: " ^ quote name)
+    NONE => warning ("Unknown ATP: " ^ quote name ^ ".")
   | SOME prover =>
       let
         val {context = ctxt, facts, goal} = Proof.goal proof_state;
@@ -354,7 +354,7 @@ fun start_prover (params as {timeout, ...}) birth_time death_time i
             val message = #message (prover params timeout problem)
               handle Sledgehammer_HOL_Clause.TRIVIAL =>
                   metis_line i n []
-                | ERROR msg => ("Error: " ^ msg);
+                | ERROR msg => "Error: " ^ msg ^ ".\n";
             val _ = unregister params message (Thread.self ());
           in () end);
       in () end);
