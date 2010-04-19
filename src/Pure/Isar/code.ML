@@ -533,17 +533,19 @@ fun assert_abs_eqn thy some_tyco thm =
            | THM _ => bad "Not a proper equation";
     val (rep, lhs) = dest_comb full_lhs
       handle TERM _ => bad "Not an abstract equation";
-    val tyco = (fst o dest_Type o domain_type o snd o dest_Const) rep
+    val (rep_const, ty) = dest_Const rep;
+    val (tyco, sorts) = ((apsnd o map) (snd o dest_TVar) o dest_Type o domain_type) ty
       handle TERM _ => bad "Not an abstract equation";
     val _ = case some_tyco of SOME tyco' => if tyco = tyco' then ()
           else bad ("Abstract type mismatch:" ^ quote tyco ^ " vs. " ^ quote tyco')
       | NONE => ();
-    val (_, (_, (rep', _))) = get_abstype_spec thy tyco;
-    val rep_const = (fst o dest_Const) rep;
+    val (vs', (_, (rep', _))) = get_abstype_spec thy tyco;
     val _ = if rep_const = rep' then ()
       else bad ("Projection mismatch: " ^ quote rep_const ^ " vs. " ^ quote rep');
     val _ = check_eqn thy { allow_nonlinear = false,
       allow_consts = false, allow_pats = false } thm (lhs, rhs);
+    val _ = if forall (Sign.subsort thy) (sorts ~~ map snd  vs') then ()
+      else error ("Sort constraints on type arguments are weaker than in abstype certificate.")
   in (thm, tyco) end;
 
 fun assert_eqn thy = error_thm (gen_assert_eqn thy true);
@@ -809,7 +811,7 @@ fun typargs_deps_of_cert thy (Equations (cert_thm, propers)) =
       let
         val vs = fst (typscheme_abs thy abs_thm);
         val (_, concrete_thm) = concretify_abs thy tyco abs_thm;
-      in (vs, add_rhss_of_eqn thy (Thm.prop_of abs_thm) []) end;
+      in (vs, add_rhss_of_eqn thy (map_types Logic.unvarifyT_global (Thm.prop_of concrete_thm)) []) end;
 
 fun equations_of_cert thy (cert as Equations (cert_thm, propers)) =
       let
