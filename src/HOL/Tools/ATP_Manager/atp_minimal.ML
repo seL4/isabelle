@@ -75,7 +75,8 @@ fun sledgehammer_test_theorems (params as {full_types, ...} : params) prover
     val problem =
      {subgoal = subgoal, goal = (ctxt, (facts, goal)),
       relevance_override = {add = [], del = [], only = false},
-      axiom_clauses = SOME axclauses, filtered_clauses = filtered_clauses}
+      axiom_clauses = SOME axclauses,
+      filtered_clauses = SOME (the_default axclauses filtered_clauses)}
   in
     `outcome_of_result (prover params timeout problem)
     |>> tap (priority o string_of_outcome)
