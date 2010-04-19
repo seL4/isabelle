@@ -251,7 +251,8 @@ fun clean_short_name full_name s =
       (s' |> rev
           |> implode
           |> String.translate
-                 (fn c => if Char.isAlphaNum c then String.str c else ""))
+                 (fn c => if Char.isAlphaNum c orelse c = #"_" then String.str c
+                          else ""))
       ^ replicate_string (String.size s - length s') "_"
     val s' =
       if s' = "" orelse not (Char.isAlpha (String.sub (s', 0))) then "X" ^ s'
