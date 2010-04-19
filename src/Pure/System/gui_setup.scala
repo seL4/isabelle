@@ -43,7 +43,7 @@ object GUI_Setup extends GUIApplication
     }
 
     // values
-    text.append("JVM platform: " + Platform.jvm_platform() + "\n")
+    text.append("JVM platform: " + Platform.jvm_platform + "\n")
     if (Platform.is_windows)
       text.append("Cygwin root: " + Cygwin.check_root() + "\n")
     try {
