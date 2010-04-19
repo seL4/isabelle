@@ -254,8 +254,10 @@ fun take_best max_new (newpairs : (annotd_cls*real) list) =
 fun relevant_clauses ctxt convergence follow_defs max_new
                      (relevance_override as {add, del, only}) thy ctab =
   let
-    val add_thms = maps (ProofContext.get_fact ctxt) add
-    val del_thms = maps (ProofContext.get_fact ctxt) del
+    val thms_for_facts =
+      maps (maps (cnf_axiom thy) o ProofContext.get_fact ctxt)
+    val add_thms = thms_for_facts add
+    val del_thms = thms_for_facts del
     fun iter p rel_consts =
       let
         fun relevant ([], _) [] = []  (* Nothing added this iteration *)
@@ -366,11 +368,11 @@ fun all_valid_thms respect_no_atp ctxt =
           val ths = filter_out bad_for_atp ths0;
         in
           if Facts.is_concealed facts name orelse null ths orelse
-            respect_no_atp andalso is_package_def name then I
-          else
-            (case find_first check_thms [name1, name2, name] of
-              NONE => I
-            | SOME a => cons (a, ths))
+             (respect_no_atp andalso is_package_def name) then
+            I
+          else case find_first check_thms [name1, name2, name] of
+            NONE => I
+          | SOME a => cons (a, ths)
         end);
   in valid_facts global_facts @ valid_facts local_facts end;
 
@@ -528,7 +530,8 @@ fun prepare_clauses higher_order dfg goal_cls chain_ths axcls extra_cls thy =
   let
     (* add chain thms *)
     val chain_cls =
-      cnf_rules_pairs thy (filter check_named (map pairname chain_ths))
+      cnf_rules_pairs thy (filter check_named
+                                  (map (`Thm.get_name_hint) chain_ths))
     val axcls = chain_cls @ axcls
     val extra_cls = chain_cls @ extra_cls
     val is_FO = is_first_order thy higher_order goal_cls
