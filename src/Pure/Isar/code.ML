@@ -35,8 +35,8 @@ sig
   val cert_of_eqns: theory -> string -> (thm * bool) list -> cert
   val constrain_cert: theory -> sort list -> cert -> cert
   val typargs_deps_of_cert: theory -> cert -> (string * sort) list * (string * typ list) list
-  val equations_of_cert: theory -> cert ->
-    ((string * sort) list * typ) * ((string option * (term list * term)) * (thm option * bool)) list
+  val equations_of_cert: theory -> cert -> ((string * sort) list * typ)
+    * (((term * string option) list * (term * string option)) * (thm option * bool)) list
   val bare_thms_of_cert: theory -> cert -> thm list
   val pretty_cert: theory -> cert -> Pretty.T list
 
@@ -461,6 +461,16 @@ fun is_linear thm =
   in not (has_duplicates (op =) ((fold o fold_aterms)
     (fn Var (v, _) => cons v | _ => I) args [])) end;
 
+fun check_decl_ty thy (c, ty) =
+  let
+    val ty_decl = Sign.the_const_type thy c;
+  in if Sign.typ_equiv thy (Type.strip_sorts ty_decl, Type.strip_sorts ty) then ()
+    else bad_thm ("Type\n" ^ string_of_typ thy ty
+      ^ "\nof constant " ^ quote c
+      ^ "\nis incompatible with declared type\n"
+      ^ string_of_typ thy ty_decl)
+  end; 
+
 fun check_eqn thy { allow_nonlinear, allow_consts, allow_pats } thm (lhs, rhs) =
   let
     fun bad s = bad_thm (s ^ ":\n" ^ Display.string_of_thm_global thy thm);
@@ -496,7 +506,7 @@ fun check_eqn thy { allow_nonlinear, allow_consts, allow_pats } thm (lhs, rhs) =
               then ()
               else bad (quote c ^ " is not a constructor, on left hand side of equation")
             else bad ("Partially applied constant " ^ quote c ^ " on left hand side of equation")
-          end else bad ("Pattern not allowed, but constant " ^ quote c ^ " encountered on left hand side")
+          end else bad ("Pattern not allowed here, but constant " ^ quote c ^ " encountered on left hand side")
     val _ = map (check 0) args;
     val _ = if allow_nonlinear orelse is_linear thm then ()
       else bad "Duplicate variables on left hand side of equation";
@@ -506,13 +516,7 @@ fun check_eqn thy { allow_nonlinear, allow_consts, allow_pats } thm (lhs, rhs) =
       else bad "Constructor as head in equation";
     val _ = if not (is_abstr thy c) then ()
       else bad "Abstractor as head in equation";
-    val ty_decl = Sign.the_const_type thy c;
-    val _ = if Sign.typ_equiv thy (Type.strip_sorts ty_decl, Type.strip_sorts ty)
-      then () else bad_thm ("Type\n" ^ string_of_typ thy ty
-        ^ "\nof equation\n"
-        ^ Display.string_of_thm_global thy thm
-        ^ "\nis incompatible with declared function type\n"
-        ^ string_of_typ thy ty_decl)
+    val _ = check_decl_ty thy (c, ty);
   in () end;
 
 fun gen_assert_eqn thy check_patterns (thm, proper) =
@@ -645,19 +649,21 @@ fun canonize_thms thy = desymbolize_tvars thy #> same_arity thy #> map (desymbol
 
 fun check_abstype_cert thy proto_thm =
   let
-    val thm = meta_rewrite thy proto_thm;
+    val thm = (AxClass.unoverload thy o meta_rewrite thy) proto_thm;
     fun bad s = bad_thm (s ^ ":\n" ^ Display.string_of_thm_global thy thm);
     val (lhs, rhs) = Logic.dest_equals (Thm.plain_prop_of thm)
       handle TERM _ => bad "Not an equation"
            | THM _ => bad "Not a proper equation";
-    val ((abs, raw_ty), ((rep, _), param)) = (apsnd (apfst dest_Const o dest_comb)
+    val ((abs, raw_ty), ((rep, rep_ty), param)) = (apsnd (apfst dest_Const o dest_comb)
         o apfst dest_Const o dest_comb) lhs
       handle TERM _ => bad "Not an abstype certificate";
+    val _ = pairself (fn c => if (is_some o AxClass.class_of_param thy) c
+      then error ("Is a class parameter: " ^ string_of_const thy c) else ()) (abs, rep);
+    val _ = check_decl_ty thy (abs, raw_ty);
+    val _ = check_decl_ty thy (rep, rep_ty);
     val var = (fst o dest_Var) param
       handle TERM _ => bad "Not an abstype certificate";
     val _ = if param = rhs then () else bad "Not an abstype certificate";
-    val _ = pairself (fn c => if (is_some o AxClass.class_of_param thy) c
-      then error ("Is a class parameter: " ^ string_of_const thy c) else ()) (abs, rep);
     val ((tyco, sorts), (abs, (vs, ty'))) = ty_sorts thy (abs, Logic.unvarifyT_global raw_ty);
     val ty = domain_type ty';
     val ty_abs = range_type ty';
@@ -821,22 +827,23 @@ fun equations_of_cert thy (cert as Equations (cert_thm, propers)) =
           |> Local_Defs.expand [snd (get_head thy cert_thm)]
           |> Thm.varifyT_global
           |> Conjunction.elim_balanced (length propers);
-      in (tyscm, map (pair NONE o dest_eqn thy o Thm.prop_of) thms ~~ (map SOME thms ~~ propers)) end
+        fun abstractions (args, rhs) = (map (rpair NONE) args, (rhs, NONE));
+      in (tyscm, map (abstractions o dest_eqn thy o Thm.prop_of) thms ~~ (map SOME thms ~~ propers)) end
   | equations_of_cert thy (Projection (t, tyco)) =
       let
         val (_, ((abs, _), _)) = get_abstype_spec thy tyco;
         val tyscm = typscheme_projection thy t;
         val t' = map_types Logic.varifyT_global t;
-      in (tyscm, [((SOME abs, dest_eqn thy t'), (NONE, true))]) end
+        fun abstractions (args, rhs) = (map (rpair (SOME abs)) args, (rhs, NONE));
+      in (tyscm, [((abstractions o dest_eqn thy) t', (NONE, true))]) end
   | equations_of_cert thy (Abstract (abs_thm, tyco)) =
       let
         val tyscm = typscheme_abs thy abs_thm;
         val (abs, concrete_thm) = concretify_abs thy tyco abs_thm;
-        val _ = fold_aterms (fn Const (c, _) => if c = abs
-          then error ("Abstraction violation in abstract code equation\n" ^ Display.string_of_thm_global thy abs_thm)
-          else I | _ => I) (Thm.prop_of abs_thm);
+        fun abstractions (args, rhs) = (map (rpair NONE) args, (rhs, (SOME abs)));
       in
-        (tyscm, [((SOME abs, dest_eqn thy (Thm.prop_of concrete_thm)), (SOME (Thm.varifyT_global abs_thm), true))])
+        (tyscm, [((abstractions o dest_eqn thy o Thm.prop_of) concrete_thm,
+          (SOME (Thm.varifyT_global abs_thm), true))])
       end;
 
 fun pretty_cert thy (cert as Equations _) =
@@ -1111,12 +1118,13 @@ fun register_type (tyco, vs_spec) thy =
     val (old_constrs, some_old_proj) =
       case these (Symtab.lookup ((the_types o the_exec) thy) tyco)
        of (_, (_, Constructors cos)) :: _ => (map fst cos, NONE)
-        | (_, (_, Abstractor (_, (co, _)))) :: _ => ([], SOME co)
+        | (_, (_, Abstractor ((co, _), (proj, _)))) :: _ => ([co], SOME proj)
         | [] => ([], NONE)
     val outdated_funs = case some_old_proj
      of NONE => old_constrs
       | SOME old_proj => Symtab.fold
-          (fn (c, ((_, spec), _)) => if member (op =) (the_list (associated_abstype spec)) tyco
+          (fn (c, ((_, spec), _)) =>
+            if member (op =) (the_list (associated_abstype spec)) tyco
             then insert (op =) c else I)
             ((the_functions o the_exec) thy) (old_proj :: old_constrs);
     fun drop_outdated_cases cases = fold Symtab.delete_safe
@@ -1162,7 +1170,7 @@ fun abstype_interpretation f = Abstype_Interpretation.interpretation
 fun add_abstype proto_thm thy =
   let
     val (tyco, (vs, (abs_ty as (abs, ty), (rep, cert)))) =
-      check_abstype_cert thy proto_thm;
+      error_thm (check_abstype_cert thy) proto_thm;
   in
     thy
     |> del_eqns abs
