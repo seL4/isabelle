@@ -517,20 +517,20 @@ fun get_step_nums proof_extract =
     val lines = split_lines proof_extract
   in map_filter (inputno o toks) lines end
   
-(*extracting lemmas from tstp-output between the lines from above*)
-fun extract_lemmas get_step_nums (proof, thm_names, conj_count, _, _, _) =
+(* Extracting lemmas from TSTP output between the lines from above. *)
+fun extract_lemmas get_step_nums (proof, thm_names, conjecture_pos, _, _, _) =
   let
     (* get the names of axioms from their numbers*)
     fun get_axiom_names thm_names step_nums =
       let
         val last_axiom = Vector.length thm_names
         fun is_axiom n = n <= last_axiom
-        fun is_conj n = n >= fst conj_count andalso
-                        n < fst conj_count + snd conj_count
-        fun getname i = Vector.sub(thm_names, i-1)
+        fun is_conj n = n >= fst conjecture_pos andalso
+                        n < fst conjecture_pos + snd conjecture_pos
+        fun name_at i = Vector.sub (thm_names, i - 1)
       in
         (sort_distinct string_ord (filter (fn x => x <> "??.unknown")
-          (map getname (filter is_axiom step_nums))),
+          (map name_at (filter is_axiom step_nums))),
         exists is_conj step_nums)
       end
   in get_axiom_names thm_names (get_step_nums (get_proof_extract proof)) end;
@@ -574,7 +574,7 @@ fun metis_proof_text isar_proof minimal atp_name
   end
 
 fun isar_proof_text minimal modulus sorts atp_name
-        (result as (proof, thm_names, conj_count, ctxt, goal, i)) =
+                    (result as (proof, thm_names, _, ctxt, goal, i)) =
   let
     (* We could use "split_lines", but it can return blank lines. *)
     val lines = String.tokens (equal #"\n");
