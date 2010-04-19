@@ -58,6 +58,7 @@ end;
 structure ATP_Manager : ATP_MANAGER =
 struct
 
+open Sledgehammer_Util
 open Sledgehammer_Fact_Filter
 open Sledgehammer_Proof_Reconstruct
 
@@ -191,14 +192,21 @@ fun unregister ({verbose, ...} : params) message thread =
 val min_wait_time = Time.fromMilliseconds 300;
 val max_wait_time = Time.fromSeconds 10;
 
+(* This is a workaround for Proof General's off-by-a-few sendback display bug,
+   whereby "pr" in "proof" is not highlighted. *)
+val break_into_chunks =
+  map (replace_all "\n\n" "\000") #> maps (space_explode "\000")
+
 fun print_new_messages () =
-  let val msgs = Synchronized.change_result global_state
-    (fn {manager, timeout_heap, active, cancelling, messages, store} =>
-      (messages, make_state manager timeout_heap active cancelling [] store))
-  in
-    if null msgs then ()
-    else priority ("Sledgehammer: " ^ space_implode "\n\n" msgs)
-  end;
+  case Synchronized.change_result global_state
+         (fn {manager, timeout_heap, active, cancelling, messages, store} =>
+             (messages, make_state manager timeout_heap active cancelling []
+                                   store)) of
+    [] => ()
+  | msgs =>
+    msgs |> break_into_chunks
+         |> (fn msg :: msgs => "Sledgehammer: " ^ msg :: msgs)
+         |> List.app priority
 
 fun check_thread_manager params = Synchronized.change global_state
   (fn state as {manager, timeout_heap, active, cancelling, messages, store} =>
@@ -291,7 +299,7 @@ fun running_atps () =
         space_implode "\n\n"
           ("Trying to interrupt the following ATPs:" :: map cancelling_info cancelling);
 
-  in writeln (running ^ "\n" ^ interrupting) end;
+  in priority (running ^ "\n" ^ interrupting) end;
 
 fun messages opt_limit =
   let
@@ -300,15 +308,14 @@ fun messages opt_limit =
     val header =
       "Recent ATP messages" ^
         (if length store <= limit then ":" else " (" ^ string_of_int limit ^ " displayed):");
-  in writeln (space_implode "\n\n" (header :: #1 (chop limit store))) end;
-
+  in List.app priority (header :: break_into_chunks (#1 (chop limit store))) end
 
 
 (** The Sledgehammer **)
 
 (* named provers *)
 
-fun err_dup_prover name = error ("Duplicate prover: " ^ quote name);
+fun err_dup_prover name = error ("Duplicate prover: " ^ quote name ^ ".");
 
 structure Provers = Theory_Data
 (
@@ -326,8 +333,9 @@ fun add_prover (name, prover) thy =
 fun get_prover thy name =
   Option.map #1 (Symtab.lookup (Provers.get thy) name);
 
-fun available_atps thy = Pretty.writeln
-  (Pretty.strs ("ATPs:" :: sort_strings (Symtab.keys (Provers.get thy))));
+fun available_atps thy =
+  priority ("Available ATPs: " ^
+            commas (sort_strings (Symtab.keys (Provers.get thy))) ^ ".")
 
 
 (* start prover thread *)
