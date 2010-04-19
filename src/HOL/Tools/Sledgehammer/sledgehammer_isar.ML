@@ -183,27 +183,27 @@ fun minimize override_params old_style_args i fact_refs state =
     fun get_time_limit_arg s =
       (case Int.fromString s of
         SOME t => Time.fromSeconds t
-      | NONE => error ("Invalid time limit: " ^ quote s))
+      | NONE => error ("Invalid time limit: " ^ quote s ^ "."))
     fun get_opt (name, a) (p, t) =
       (case name of
         "time" => (p, get_time_limit_arg a)
       | "atp" => (a, t)
-      | n => error ("Invalid argument: " ^ n))
+      | n => error ("Invalid argument: " ^ n ^ "."))
     val {atps, minimize_timeout, ...} = get_params thy override_params
     val (atp, timeout) = fold get_opt old_style_args (hd atps, minimize_timeout)
     val params =
       get_params thy
-          [("atps", [atp]),
-           ("minimize_timeout",
-            [string_of_int (Time.toMilliseconds timeout) ^ " ms"])]
+          (override_params @
+           [("atps", [atp]),
+            ("minimize_timeout",
+             [string_of_int (Time.toMilliseconds timeout) ^ " ms"])])
     val prover =
       (case get_prover thy atp of
         SOME prover => prover
-      | NONE => error ("Unknown ATP: " ^ quote atp))
+      | NONE => error ("Unknown ATP: " ^ quote atp ^ "."))
     val name_thms_pairs = theorems_from_refs ctxt fact_refs
   in
-    writeln (#2 (minimize_theorems params linear_minimize prover atp i state
-                                   name_thms_pairs))
+    priority (#2 (minimize_theorems params prover atp i state name_thms_pairs))
   end
 
 val runN = "run"

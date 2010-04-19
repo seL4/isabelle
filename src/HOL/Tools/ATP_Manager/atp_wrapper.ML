@@ -67,7 +67,7 @@ fun find_failure strs proof =
   | (failure :: _) => SOME failure
 
 fun generic_prover overlord get_facts prepare write_file cmd args failure_strs
-        produce_answer name ({debug, full_types, ...} : params)
+        proof_text name ({debug, full_types, ...} : params)
         ({subgoal, goal, relevance_override, axiom_clauses, filtered_clauses}
          : problem) =
   let
@@ -142,20 +142,22 @@ fun generic_prover overlord get_facts prepare write_file cmd args failure_strs
         File.write (Path.explode (Path.implode probfile ^ "_proof"))
                    ("% " ^ timestamp () ^ "\n" ^ proof)
 
-    val (((proof, atp_run_time_in_msecs), rc), conj_pos) =
+    val (((proof, atp_run_time_in_msecs), rc), conjecture_pos) =
       with_path cleanup export run_on (prob_pathname subgoal);
 
     (* Check for success and print out some information on failure. *)
     val failure = find_failure failure_strs proof;
     val success = rc = 0 andalso is_none failure;
     val (message, relevant_thm_names) =
-      if is_some failure then ("ATP failed to find a proof.\n", [])
-      else if rc <> 0 then ("ATP error: " ^ proof ^ ".\n", [])
+      if is_some failure then
+        ("ATP failed to find a proof.\n", [])
+      else if rc <> 0 then
+        ("ATP error: " ^ proof ^ ".\n", [])
       else
-        (produce_answer name (proof, internal_thm_names, conj_pos, ctxt, th,
-                              subgoal));
+        proof_text name (proof, internal_thm_names, conjecture_pos, ctxt, th,
+                         subgoal)
   in
-    {success = success, message = message,
+    {success = success, message = message, conjecture_pos = conjecture_pos,
      relevant_thm_names = relevant_thm_names,
      atp_run_time_in_msecs = atp_run_time_in_msecs, proof = proof,
      internal_thm_names = internal_thm_names,
@@ -179,10 +181,8 @@ fun generic_tptp_prover
       (prepare_clauses higher_order false)
       (write_tptp_file (overlord andalso not isar_proof)) command
       (arguments timeout) failure_strs
-      (if supports_isar_proofs andalso isar_proof then
-         structured_isar_proof modulus sorts
-       else
-         metis_lemma_list false) name params;
+      (proof_text (supports_isar_proofs andalso isar_proof) false modulus sorts)
+      name params
 
 fun tptp_prover name p = (name, generic_tptp_prover (name, p));
 
@@ -237,7 +237,8 @@ fun generic_dfg_prover
                           higher_order follow_defs max_new_clauses
                           (the_default prefers_theory_relevant theory_relevant))
       (prepare_clauses higher_order true) write_dfg_file command
-      (arguments timeout) failure_strs (metis_lemma_list true) name params;
+      (arguments timeout) failure_strs (metis_proof_text false false)
+      name params
 
 fun dfg_prover (name, p) = (name, generic_dfg_prover (name, p));
 
