@@ -436,15 +436,16 @@ fun get_helper_clauses dfg thy isFO (conjectures, axcls, user_lemmas) =
 fun count_constants_term toplev t (const_min_arity, const_needs_hBOOL) =
   let val (head, args) = strip_combterm_comb t
       val n = length args
-      val (const_min_arity, const_needs_hBOOL) = fold (count_constants_term false) args (const_min_arity, const_needs_hBOOL)
+      val (const_min_arity, const_needs_hBOOL) =
+        (const_min_arity, const_needs_hBOOL)
+        |> fold (count_constants_term false) args
   in
       case head of
           CombConst ((a, _),_,_) => (*predicate or function version of "equal"?*)
             let val a = if a="equal" andalso not toplev then "c_fequal" else a
-            val const_min_arity = Symtab.map_default (a, n) (Integer.min n) const_min_arity
             in
-              if toplev then (const_min_arity, const_needs_hBOOL)
-              else (const_min_arity, Symtab.update (a,true) (const_needs_hBOOL))
+              (const_min_arity |> Symtab.map_default (a, n) (Integer.min n),
+               const_needs_hBOOL |> not toplev ? Symtab.update (a, true))
             end
         | _ => (const_min_arity, const_needs_hBOOL)
   end;
