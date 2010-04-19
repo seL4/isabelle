@@ -655,10 +655,10 @@ and translate_term thy algbr eqngr some_abs some_thm (Const (c, ty)) =
             translate_app thy algbr eqngr some_abs some_thm ((c, ty), ts)
         | (t', ts) =>
             translate_term thy algbr eqngr some_abs some_thm t'
-            ##>> fold_map (translate_term thy algbr eqngr some_abs some_thm) ts
+            ##>> fold_map (translate_term thy algbr eqngr NONE some_thm) ts
             #>> (fn (t, ts) => t `$$ ts)
-and translate_eqn thy algbr eqngr ((some_abs, (args, rhs)), (some_thm, proper)) =
-  fold_map (translate_term thy algbr eqngr some_abs some_thm) args
+and translate_eqn thy algbr eqngr ((args, (rhs, some_abs)), (some_thm, proper)) =
+  fold_map (fn (arg, some_abs) => translate_term thy algbr eqngr some_abs some_thm arg) args
   ##>> translate_term thy algbr eqngr some_abs some_thm rhs
   #>> rpair (some_thm, proper)
 and translate_const thy algbr eqngr some_abs some_thm (c, ty) =
@@ -680,7 +680,7 @@ and translate_const thy algbr eqngr some_abs some_thm (c, ty) =
   end
 and translate_app_const thy algbr eqngr some_abs some_thm (c_ty, ts) =
   translate_const thy algbr eqngr some_abs some_thm c_ty
-  ##>> fold_map (translate_term thy algbr eqngr some_abs some_thm) ts
+  ##>> fold_map (translate_term thy algbr eqngr NONE some_thm) ts
   #>> (fn (t, ts) => t `$$ ts)
 and translate_case thy algbr eqngr some_abs some_thm (num_args, (t_pos, case_pats)) (c_ty, ts) =
   let
@@ -753,7 +753,7 @@ and translate_app_case thy algbr eqngr some_abs some_thm (case_scheme as (num_ar
     translate_case thy algbr eqngr some_abs some_thm case_scheme ((c, ty), ts)
 and translate_app thy algbr eqngr some_abs some_thm (c_ty_ts as ((c, _), _)) =
   case Code.get_case_scheme thy c
-   of SOME case_scheme => translate_app_case thy algbr eqngr some_abs some_thm case_scheme c_ty_ts
+   of SOME case_scheme => translate_app_case thy algbr eqngr NONE some_thm case_scheme c_ty_ts
     | NONE => translate_app_const thy algbr eqngr some_abs some_thm c_ty_ts
 and translate_tyvar_sort thy (algbr as (proj_sort, _)) eqngr (v, sort) =
   fold_map (ensure_class thy algbr eqngr) (proj_sort sort)
