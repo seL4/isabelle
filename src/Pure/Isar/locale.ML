@@ -142,13 +142,8 @@ fun register_locale binding parameters spec intros axioms syntax_decls notes dep
   thy |> Locales.map (Name_Space.define true (Sign.naming_of thy)
     (binding,
       mk_locale ((parameters, spec, intros, axioms),
-(* <<<<<<< local
-        ((pairself (map (fn decl => (decl, serial ()))) decls, map (fn n => (n, serial ())) notes),
-          map (fn d => (d, serial ())) dependencies))) #> snd);
-======= *)
         ((map (fn decl => (decl, serial ())) syntax_decls, map (fn n => (n, serial ())) notes),
           map (fn d => (d, serial ())) dependencies))) #> snd);
-(* >>>>>>> other *)
 
 fun change_locale name =
   Locales.map o apsnd o Symtab.map_entry name o map_locale o apsnd;
@@ -521,16 +516,7 @@ fun add_thmss loc kind args ctxt =
 
 (* Declarations *)
 
-(* <<<<<<< local
-local
-
-fun decl_attrib decl phi = Thm.declaration_attribute (K (decl phi));
-
-fun add_decls add loc decl =
-  ProofContext.theory ((change_locale loc o apfst o apfst) (add (decl, serial ()))) #>
-======= *)
 fun add_declaration loc decl =
-(* >>>>>>> other *)
   add_thmss loc ""
     [((Binding.conceal Binding.empty,
         [Attrib.internal (fn phi => Thm.declaration_attribute (K (decl phi)))]),
