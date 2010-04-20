@@ -130,24 +130,24 @@ lemma map_prs_aux:
   by (induct l)
      (simp_all add: Quotient_abs_rep[OF a] Quotient_abs_rep[OF b])
 
-
 lemma map_prs[quot_preserve]:
   assumes a: "Quotient R1 abs1 rep1"
   and     b: "Quotient R2 abs2 rep2"
   shows "((abs1 ---> rep2) ---> (map rep1) ---> (map abs2)) map = map"
-  by (simp only: expand_fun_eq fun_map_def map_prs_aux[OF a b])
-     (simp)
-
+  and   "((abs1 ---> id) ---> map rep1 ---> id) map = map"
+  by (simp_all only: expand_fun_eq fun_map_def map_prs_aux[OF a b])
+     (simp_all add: Quotient_abs_rep[OF a])
 
 lemma map_rsp[quot_respect]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   and     q2: "Quotient R2 Abs2 Rep2"
   shows "((R1 ===> R2) ===> (list_rel R1) ===> list_rel R2) map map"
-  apply(simp)
-  apply(rule allI)+
-  apply(rule impI)
-  apply(rule allI)+
-  apply (induct_tac xa ya rule: list_induct2')
+  and   "((R1 ===> op =) ===> (list_rel R1) ===> op =) map map"
+  apply simp_all
+  apply(rule_tac [!] allI)+
+  apply(rule_tac [!] impI)
+  apply(rule_tac [!] allI)+
+  apply (induct_tac [!] xa ya rule: list_induct2')
   apply simp_all
   done
 
