@@ -85,7 +85,7 @@ fun axiomatize_lub_take
 
     val (lub_take_thm, thy) = Specification.axiom ((lub_take_bind, []), lub_take_eqn) thy;
   in
-    (Drule.export_without_context lub_take_thm, thy)
+    (lub_take_thm, thy)
   end;
 
 fun add_axioms

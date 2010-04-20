@@ -167,7 +167,7 @@ fun deflation_abs_rep (info : iso_info) : thm =
     val rep_iso = #rep_inverse info;
     val thm = @{thm deflation_abs_rep} OF [abs_iso, rep_iso];
   in
-    Drule.export_without_context thm
+    Drule.zero_var_indexes thm
   end
 
 (******************************************************************************)
@@ -359,15 +359,15 @@ fun define_take_functions
         in (n, thmL):: conjuncts ns thmR end;
     val (deflation_take_thms, thy) =
       fold_map (add_qualified_thm "deflation_take")
-        (map (apsnd Drule.export_without_context)
+        (map (apsnd Drule.zero_var_indexes)
           (conjuncts dbinds deflation_take_thm)) thy;
 
     (* prove strictness of take functions *)
     fun prove_take_strict (deflation_take, dbind) thy =
       let
         val take_strict_thm =
-            Drule.export_without_context
-            (@{thm deflation_strict} OF [deflation_take]);
+            Drule.zero_var_indexes
+              (@{thm deflation_strict} OF [deflation_take]);
       in
         add_qualified_thm "take_strict" (dbind, take_strict_thm) thy
       end;
@@ -379,8 +379,8 @@ fun define_take_functions
     fun prove_take_take ((chain_take, deflation_take), dbind) thy =
       let
         val take_take_thm =
-            Drule.export_without_context
-            (@{thm deflation_chain_min} OF [chain_take, deflation_take]);
+            Drule.zero_var_indexes
+              (@{thm deflation_chain_min} OF [chain_take, deflation_take]);
       in
         add_qualified_thm "take_take" (dbind, take_take_thm) thy
       end;
@@ -392,8 +392,8 @@ fun define_take_functions
     fun prove_take_below (deflation_take, dbind) thy =
       let
         val take_below_thm =
-            Drule.export_without_context
-            (@{thm deflation.below} OF [deflation_take]);
+            Drule.zero_var_indexes
+              (@{thm deflation.below} OF [deflation_take]);
       in
         add_qualified_thm "take_below" (dbind, take_below_thm) thy
       end;
@@ -542,7 +542,7 @@ fun add_lub_take_theorems
     fun prove_reach_lemma ((chain_take, lub_take), dbind) thy =
       let
         val thm =
-            Drule.export_without_context
+            Drule.zero_var_indexes
               (@{thm lub_ID_reach} OF [chain_take, lub_take]);
       in
         add_qualified_thm "reach" (dbind, thm) thy
@@ -575,7 +575,7 @@ fun add_lub_take_theorems
       else
         let
           fun prove_take_induct (chain_take, lub_take) =
-              Drule.export_without_context
+              Drule.zero_var_indexes
                 (@{thm lub_ID_take_induct} OF [chain_take, lub_take]);
           val take_inducts =
               map prove_take_induct (chain_take_thms ~~ lub_take_thms);

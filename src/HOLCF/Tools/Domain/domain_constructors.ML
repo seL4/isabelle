@@ -200,7 +200,7 @@ fun add_constructors
           val conj = foldr1 mk_conj (eqn :: map mk_defined nonlazy);
         in Library.foldr mk_ex (vs, conj) end;
       val goal = mk_trp (foldr1 mk_disj (mk_undef y :: map one_con spec'));
-      (* first 3 rules replace "y = UU \/ P" with "rep$y = UU \/ P" *)
+      (* first rules replace "y = UU \/ P" with "rep$y = UU \/ P" *)
       val tacs = [
           rtac (iso_locale RS @{thm iso.casedist_rule}) 1,
           rewrite_goals_tac [mk_meta_eq (iso_locale RS @{thm iso.iso_swap})],
@@ -210,7 +210,7 @@ fun add_constructors
       val exhaust =
           (nchotomy RS @{thm exh_casedist0})
           |> rewrite_rule @{thms exh_casedists}
-          |> Drule.export_without_context;
+          |> Drule.zero_var_indexes;
     end;
 
     (* prove compactness rules for constructors *)
