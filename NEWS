@@ -339,6 +339,13 @@ proof terms are enabled unconditionally in the new HOL-Proofs image.
 feature since Isabelle2009).  Use ISABELLE_PROCESS and ISABELLE_TOOL,
 respectively.
 
+* Old lib/scripts/polyml-platform is superseded by the
+ISABELLE_PLATFORM setting variable, which defaults to the 32 bit
+variant, even on a 64 bit machine.  The following example setting
+prefers 64 bit if available:
+
+  ML_PLATFORM="${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM}"
+
 
 
 New in Isabelle2009-1 (December 2009)

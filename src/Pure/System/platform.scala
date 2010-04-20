@@ -31,7 +31,7 @@ object Platform
   private val Sparc = new Regex("sparc")
   private val PPC = new Regex("PowerPC|ppc")
 
-  def jvm_platform(): String =
+  lazy val jvm_platform: String =
   {
     val arch =
       java.lang.System.getProperty("os.arch") match {

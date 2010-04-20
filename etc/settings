@@ -17,7 +17,7 @@
 
 # Poly/ML 5.x (automated settings)
 POLY_HOME="$(type -p poly)"; [ -n "$POLY_HOME" ] && POLY_HOME="$(dirname "$POLY_HOME")"
-ML_PLATFORM=$("$ISABELLE_HOME/lib/scripts/polyml-platform")
+ML_PLATFORM="$ISABELLE_PLATFORM"
 ML_HOME=$(choosefrom \
   "$ISABELLE_HOME/contrib/polyml/$ML_PLATFORM" \
   "$ISABELLE_HOME/../polyml/$ML_PLATFORM" \
@@ -55,7 +55,7 @@ ML_SOURCES="$ML_HOME/../src"
 ### JVM components (Scala or Java)
 ###
 
-ISABELLE_JAVA="${THIS_JAVA:-java}"
+ISABELLE_JAVA="java"
 ISABELLE_SCALA="scala"
 
 [ -z "$SCALA_HOME" ] && SCALA_HOME=$(choosefrom \
