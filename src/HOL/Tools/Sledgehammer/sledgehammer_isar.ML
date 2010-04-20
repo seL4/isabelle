@@ -41,6 +41,7 @@ val default_default_params =
   [("debug", "false"),
    ("verbose", "false"),
    ("overlord", "false"),
+   ("explicit_apply", "false"),
    ("respect_no_atp", "true"),
    ("relevance_threshold", "50"),
    ("convergence", "320"),
@@ -58,6 +59,7 @@ val negated_alias_params =
   [("no_debug", "debug"),
    ("quiet", "verbose"),
    ("no_overlord", "overlord"),
+   ("implicit_apply", "explicit_apply"),
    ("ignore_no_atp", "respect_no_atp"),
    ("partial_types", "full_types"),
    ("theory_irrelevant", "theory_relevant"),
@@ -146,6 +148,7 @@ fun extract_params thy default_params override_params =
     val overlord = lookup_bool "overlord"
     val atps = lookup_string "atps" |> space_explode " "
     val full_types = lookup_bool "full_types"
+    val explicit_apply = lookup_bool "explicit_apply"
     val respect_no_atp = lookup_bool "respect_no_atp"
     val relevance_threshold =
       0.01 * Real.fromInt (lookup_int "relevance_threshold")
@@ -160,11 +163,12 @@ fun extract_params thy default_params override_params =
     val minimize_timeout = lookup_time "minimize_timeout"
   in
     {debug = debug, verbose = verbose, overlord = overlord, atps = atps,
-     full_types = full_types, respect_no_atp = respect_no_atp,
-     relevance_threshold = relevance_threshold, convergence = convergence,
-     theory_relevant = theory_relevant, higher_order = higher_order,
-     follow_defs = follow_defs, isar_proof = isar_proof, modulus = modulus,
-     sorts = sorts, timeout = timeout, minimize_timeout = minimize_timeout}
+     full_types = full_types, explicit_apply = explicit_apply,
+     respect_no_atp = respect_no_atp, relevance_threshold = relevance_threshold,
+     convergence = convergence, theory_relevant = theory_relevant,
+     higher_order = higher_order, follow_defs = follow_defs,
+     isar_proof = isar_proof, modulus = modulus, sorts = sorts,
+     timeout = timeout, minimize_timeout = minimize_timeout}
   end
 
 fun get_params thy = extract_params thy (default_raw_params thy)

@@ -34,10 +34,10 @@ sig
   val get_helper_clauses : bool -> theory -> bool ->
        hol_clause list * (thm * (axiom_name * hol_clause_id)) list * string list ->
        hol_clause list
-  val write_tptp_file : bool -> bool -> Path.T ->
+  val write_tptp_file : bool -> bool -> bool -> Path.T ->
     hol_clause list * hol_clause list * hol_clause list * hol_clause list *
     classrel_clause list * arity_clause list -> unit
-  val write_dfg_file : bool -> Path.T ->
+  val write_dfg_file : bool -> bool -> Path.T ->
     hol_clause list * hol_clause list * hol_clause list * hol_clause list *
     classrel_clause list * arity_clause list -> unit
 end
@@ -50,19 +50,19 @@ open Sledgehammer_FOL_Clause
 open Sledgehammer_Fact_Preprocessor
 
 (* Parameter "full_types" below indicates that full type information is to be
-exported *)
+   exported.
 
-(* If true, each function will be directly applied to as many arguments as
-   possible, avoiding use of the "apply" operator. Use of hBOOL is also
-   minimized. *)
-val minimize_applies = true;
+   If "explicit_apply" is false, each function will be directly applied to as
+   many arguments as possible, avoiding use of the "apply" operator. Use of
+   hBOOL is also minimized.
+*)
 
 fun min_arity_of const_min_arity c = the_default 0 (Symtab.lookup const_min_arity c);
 
 (*True if the constant ever appears outside of the top-level position in literals.
   If false, the constant always receives all of its arguments and is used as a predicate.*)
-fun needs_hBOOL const_needs_hBOOL c =
-  not minimize_applies orelse
+fun needs_hBOOL explicit_apply const_needs_hBOOL c =
+  explicit_apply orelse
     the_default false (Symtab.lookup const_needs_hBOOL c);
 
 
@@ -211,9 +211,10 @@ fun strip_combterm_comb u =
 
 val type_wrapper = "ti";
 
-fun head_needs_hBOOL const_needs_hBOOL (CombConst((c, _), _, _)) =
-    needs_hBOOL const_needs_hBOOL c
-  | head_needs_hBOOL _ _ = true;
+fun head_needs_hBOOL explicit_apply const_needs_hBOOL
+                     (CombConst ((c, _), _, _)) =
+    needs_hBOOL explicit_apply const_needs_hBOOL c
+  | head_needs_hBOOL _ _ _ = true
 
 fun wrap_type full_types (s, ty) pool =
   if full_types then
@@ -223,8 +224,11 @@ fun wrap_type full_types (s, ty) pool =
   else
     (s, pool)
 
-fun wrap_type_if full_types cnh (head, s, tp) =
-  if head_needs_hBOOL cnh head then wrap_type full_types (s, tp) else pair s
+fun wrap_type_if full_types explicit_apply cnh (head, s, tp) =
+  if head_needs_hBOOL explicit_apply cnh head then
+    wrap_type full_types (s, tp)
+  else
+    pair s
 
 fun apply ss = "hAPP" ^ paren_pack ss;
 
@@ -252,18 +256,22 @@ fun string_of_application full_types cma (CombConst ((s, s'), _, tvars), args)
   | string_of_application _ _ (CombVar (name, _), args) pool =
     nice_name name pool |>> (fn s => string_apply (s, args))
 
-fun string_of_combterm (params as (full_types, cma, cnh)) t pool =
+fun string_of_combterm (params as (full_types, explicit_apply, cma, cnh)) t
+                       pool =
   let
     val (head, args) = strip_combterm_comb t
     val (ss, pool) = pool_map (string_of_combterm params) args pool
     val (s, pool) = string_of_application full_types cma (head, ss) pool
-  in wrap_type_if full_types cnh (head, s, type_of_combterm t) pool end
+  in
+    wrap_type_if full_types explicit_apply cnh (head, s, type_of_combterm t)
+                 pool
+  end
 
 (*Boolean-valued terms are here converted to literals.*)
 fun boolify params c =
   string_of_combterm params c #>> prefix "hBOOL" o paren_pack o single
 
-fun string_of_predicate (params as (_, _, cnh)) t =
+fun string_of_predicate (params as (_, explicit_apply, _, cnh)) t =
   case t of
     (CombApp (CombApp (CombConst (("equal", _), _, _), t1), t2)) =>
     (* DFG only: new TPTP prefers infix equality *)
@@ -272,7 +280,8 @@ fun string_of_predicate (params as (_, _, cnh)) t =
   | _ =>
     case #1 (strip_combterm_comb t) of
       CombConst ((s, _), _, _) =>
-      (if needs_hBOOL cnh s then boolify else string_of_combterm) params t
+      (if needs_hBOOL explicit_apply cnh s then boolify else string_of_combterm)
+          params t
     | _ => boolify params t
 
 
@@ -342,8 +351,8 @@ fun dfg_clause params (cls as HOLClause {axiom_name, clause_id, kind,
 
 fun add_types tvars = fold add_fol_type_funcs tvars
 
-fun add_decls (full_types, cma, cnh) (CombConst ((c, _), _, tvars))
-              (funcs, preds) =
+fun add_decls (full_types, explicit_apply, cma, cnh)
+              (CombConst ((c, _), _, tvars)) (funcs, preds) =
       if c = "equal" then
         (add_types tvars funcs, preds)
       else
@@ -351,8 +360,10 @@ fun add_decls (full_types, cma, cnh) (CombConst ((c, _), _, tvars))
             val ntys = if not full_types then length tvars else 0
             val addit = Symtab.update(c, arity+ntys)
         in
-            if needs_hBOOL cnh c then (add_types tvars (addit funcs), preds)
-            else (add_types tvars funcs, addit preds)
+            if needs_hBOOL explicit_apply cnh c then
+              (add_types tvars (addit funcs), preds)
+            else
+              (add_types tvars funcs, addit preds)
         end
   | add_decls _ (CombVar (_, ctp)) (funcs, preds) =
       (add_fol_type_funcs ctp funcs, preds)
@@ -458,18 +469,23 @@ fun count_constants_clause (HOLClause {literals, ...})
                            (const_min_arity, const_needs_hBOOL) =
   fold count_constants_lit literals (const_min_arity, const_needs_hBOOL);
 
-fun display_arity const_needs_hBOOL (c,n) =
+fun display_arity explicit_apply const_needs_hBOOL (c,n) =
   trace_msg (fn () => "Constant: " ^ c ^
                 " arity:\t" ^ Int.toString n ^
-                (if needs_hBOOL const_needs_hBOOL c then " needs hBOOL" else ""));
+                (if needs_hBOOL explicit_apply const_needs_hBOOL c then
+                   " needs hBOOL"
+                 else
+                   ""))
 
-fun count_constants (conjectures, _, extra_clauses, helper_clauses, _, _) =
-  if minimize_applies then
+fun count_constants explicit_apply
+                    (conjectures, _, extra_clauses, helper_clauses, _, _) =
+  if not explicit_apply then
      let val (const_min_arity, const_needs_hBOOL) =
           fold count_constants_clause conjectures (Symtab.empty, Symtab.empty)
        |> fold count_constants_clause extra_clauses
        |> fold count_constants_clause helper_clauses
-     val _ = List.app (display_arity const_needs_hBOOL) (Symtab.dest (const_min_arity))
+     val _ = List.app (display_arity explicit_apply const_needs_hBOOL)
+                      (Symtab.dest (const_min_arity))
      in (const_min_arity, const_needs_hBOOL) end
   else (Symtab.empty, Symtab.empty);
 
@@ -479,15 +495,15 @@ fun header () =
 
 (* TPTP format *)
 
-fun write_tptp_file readable_names full_types file clauses =
+fun write_tptp_file readable_names full_types explicit_apply file clauses =
   let
     fun section _ [] = []
       | section name ss = "\n% " ^ name ^ plural_s (length ss) ^ "\n" :: ss
     val pool = empty_name_pool readable_names
     val (conjectures, axclauses, _, helper_clauses,
       classrel_clauses, arity_clauses) = clauses
-    val (cma, cnh) = count_constants clauses
-    val params = (full_types, cma, cnh)
+    val (cma, cnh) = count_constants explicit_apply clauses
+    val params = (full_types, explicit_apply, cma, cnh)
     val ((conjecture_clss, tfree_litss), pool) =
       pool_map (tptp_clause params) conjectures pool |>> ListPair.unzip
     val tfree_clss = map tptp_tfree_clause (fold (union (op =)) tfree_litss [])
@@ -511,7 +527,7 @@ fun write_tptp_file readable_names full_types file clauses =
 
 (* DFG format *)
 
-fun write_dfg_file full_types file clauses =
+fun write_dfg_file full_types explicit_apply file clauses =
   let
     (* Some of the helper functions below are not name-pool-aware. However,
        there's no point in adding name pool support if the DFG format is on its
@@ -519,8 +535,8 @@ fun write_dfg_file full_types file clauses =
     val pool = NONE
     val (conjectures, axclauses, _, helper_clauses,
       classrel_clauses, arity_clauses) = clauses
-    val (cma, cnh) = count_constants clauses
-    val params = (full_types, cma, cnh)
+    val (cma, cnh) = count_constants explicit_apply clauses
+    val params = (full_types, explicit_apply, cma, cnh)
     val ((conjecture_clss, tfree_litss), pool) =
       pool_map (dfg_clause params) conjectures pool |>> ListPair.unzip
     and probname = Path.implode (Path.base file)

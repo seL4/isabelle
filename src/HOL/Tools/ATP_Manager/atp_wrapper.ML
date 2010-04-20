@@ -67,7 +67,7 @@ fun find_failure strs proof =
   | (failure :: _) => SOME failure
 
 fun generic_prover overlord get_facts prepare write_file cmd args failure_strs
-        proof_text name ({debug, full_types, ...} : params)
+        proof_text name ({debug, full_types, explicit_apply, ...} : params)
         ({subgoal, goal, relevance_override, axiom_clauses, filtered_clauses}
          : problem) =
   let
@@ -128,7 +128,7 @@ fun generic_prover overlord get_facts prepare write_file cmd args failure_strs
       if Config.get ctxt measure_runtime then split_time s else (s, 0)
     fun run_on probfile =
       if File.exists cmd then
-        write_file full_types probfile clauses
+        write_file full_types explicit_apply probfile clauses
         |> pair (apfst split_time' (bash_output (cmd_line probfile)))
       else error ("Bad executable: " ^ Path.implode cmd ^ ".");
 
