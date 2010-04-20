@@ -95,15 +95,9 @@ datatype locale = Loc of {
   intros: thm option * thm option,
   axioms: thm list,
   (** dynamic part **)
-(* <<<<<<< local
-  decls: (declaration * serial) list * (declaration * serial) list,
-    (* type and term syntax declarations *)
-  notes: ((string * (Attrib.binding * (thm list * Attrib.src list) list) list) * serial) list,
-======= *)
   syntax_decls: (declaration * serial) list,
     (* syntax declarations *)
   notes: ((string * (Attrib.binding * (thm list * Attrib.src list) list) list) * serial) list,
-(* >>>>>>> other *)
     (* theorem declarations *)
   dependencies: ((string * morphism) * serial) list
     (* locale dependencies (sublocale relation) *)
