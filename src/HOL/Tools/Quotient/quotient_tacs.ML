@@ -653,10 +653,13 @@ end
 
 fun lifted qtys ctxt thm =
 let
-  val ((_, [thm']), ctxt') = Variable.import false [thm] ctxt
-  val goal = (quotient_lift_all qtys ctxt' o prop_of) thm'
+  (* When the theorem is atomized, eta redexes are contracted,
+     so we do it both in the original theorem *)
+  val thm' = Drule.eta_contraction_rule thm
+  val ((_, [thm'']), ctxt') = Variable.import false [thm'] ctxt
+  val goal = (quotient_lift_all qtys ctxt' o prop_of) thm''
 in
-  Goal.prove ctxt' [] [] goal (K (lift_tac ctxt' [thm] 1))
+  Goal.prove ctxt' [] [] goal (K (lift_tac ctxt' [thm'] 1))
   |> singleton (ProofContext.export ctxt' ctxt)
 end;
 
