@@ -377,8 +377,9 @@ fun add_clause_decls params (HOLClause {literals, ...}) decls =
     handle Symtab.DUP a => error ("function " ^ a ^ " has multiple arities")
 
 fun decls_of_clauses params clauses arity_clauses =
-  let val functab = init_functab |> Symtab.update (type_wrapper, 2)
-                                 |> Symtab.update ("hAPP", 2)
+  let val functab =
+        init_functab |> fold Symtab.update [(type_wrapper, 2), ("hAPP", 2),
+                                            ("tc_bool", 0)]
       val predtab = Symtab.empty |> Symtab.update ("hBOOL", 1)
       val (functab, predtab) =
         (functab, predtab) |> fold (add_clause_decls params) clauses
