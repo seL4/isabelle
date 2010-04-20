@@ -585,19 +585,15 @@ lemma o_prs:
   assumes q1: "Quotient R1 Abs1 Rep1"
   and     q2: "Quotient R2 Abs2 Rep2"
   and     q3: "Quotient R3 Abs3 Rep3"
-  shows "(Rep1 ---> Abs3) (((Abs2 ---> Rep3) f) o ((Abs1 ---> Rep2) g)) = f o g"
+  shows "((Abs2 ---> Rep3) ---> (Abs1 ---> Rep2) ---> (Rep1 ---> Abs3)) op \<circ> = op \<circ>"
+  and   "(id ---> (Abs1 ---> id) ---> Rep1 ---> id) op \<circ> = op \<circ>"
   using Quotient_abs_rep[OF q1] Quotient_abs_rep[OF q2] Quotient_abs_rep[OF q3]
-  unfolding o_def expand_fun_eq by simp
+  unfolding o_def expand_fun_eq by simp_all
 
 lemma o_rsp:
-  assumes q1: "Quotient R1 Abs1 Rep1"
-  and     q2: "Quotient R2 Abs2 Rep2"
-  and     q3: "Quotient R3 Abs3 Rep3"
-  and     a1: "(R2 ===> R3) f1 f2"
-  and     a2: "(R1 ===> R2) g1 g2"
-  shows "(R1 ===> R3) (f1 o g1) (f2 o g2)"
-  using a1 a2 unfolding o_def expand_fun_eq
-  by (auto)
+  "((R2 ===> R3) ===> (R1 ===> R2) ===> (R1 ===> R3)) op \<circ> op \<circ>"
+  "(op = ===> (R1 ===> op =) ===> R1 ===> op =) op \<circ> op \<circ>"
+  unfolding fun_rel_def o_def expand_fun_eq by auto
 
 lemma cond_prs:
   assumes a: "Quotient R absf repf"
@@ -716,8 +712,8 @@ use "~~/src/HOL/Tools/Quotient/quotient_info.ML"
 declare [[map "fun" = (fun_map, fun_rel)]]
 
 lemmas [quot_thm] = fun_quotient
-lemmas [quot_respect] = quot_rel_rsp if_rsp
-lemmas [quot_preserve] = if_prs
+lemmas [quot_respect] = quot_rel_rsp if_rsp o_rsp
+lemmas [quot_preserve] = if_prs o_prs
 lemmas [quot_equiv] = identity_equivp
 
 
