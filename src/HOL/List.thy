@@ -3039,6 +3039,9 @@ subsubsection {* @{text replicate} *}
 lemma length_replicate [simp]: "length (replicate n x) = n"
 by (induct n) auto
 
+lemma Ex_list_of_length: "\<exists>xs. length xs = n"
+by (rule exI[of _ "replicate n undefined"]) simp
+
 lemma map_replicate [simp]: "map f (replicate n x) = replicate n (f x)"
 by (induct n) auto
 
