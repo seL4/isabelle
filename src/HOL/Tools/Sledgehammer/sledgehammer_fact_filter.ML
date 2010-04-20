@@ -127,8 +127,8 @@ fun get_goal_consts_typs thy = List.foldl (add_term_consts_typs_rm thy) null_con
 
 (*Inserts a dummy "constant" referring to the theory name, so that relevance
   takes the given theory into account.*)
-fun const_prop_of theory_const th =
- if theory_const then
+fun const_prop_of theory_relevant th =
+ if theory_relevant then
   let val name = Context.theory_name (theory_of_thm th)
       val t = Const (name ^ ". 1", HOLogic.boolT)
   in  t $ prop_of th  end
@@ -157,7 +157,7 @@ end;
 
 structure CTtab = Table(type key = const_typ list val ord = dict_ord const_typ_ord);
 
-fun count_axiom_consts theory_const thy ((thm,_), tab) = 
+fun count_axiom_consts theory_relevant thy ((thm,_), tab) = 
   let fun count_const (a, T, tab) =
         let val (c, cts) = const_with_typ thy (a,T)
         in  (*Two-dimensional table update. Constant maps to types maps to count.*)
@@ -170,7 +170,7 @@ fun count_axiom_consts theory_const thy ((thm,_), tab) =
             count_term_consts (t, count_term_consts (u, tab))
         | count_term_consts (Abs(_,_,t), tab) = count_term_consts (t, tab)
         | count_term_consts (_, tab) = tab
-  in  count_term_consts (const_prop_of theory_const thm, tab)  end;
+  in  count_term_consts (const_prop_of theory_relevant thm, tab)  end;
 
 
 (**** Actual Filtering Code ****)
@@ -201,8 +201,8 @@ fun consts_typs_of_term thy t =
   let val tab = add_term_consts_typs_rm thy (t, null_const_tab)
   in  Symtab.fold add_expand_pairs tab []  end;
 
-fun pair_consts_typs_axiom theory_const thy (p as (thm, _)) =
-  (p, (consts_typs_of_term thy (const_prop_of theory_const thm)));
+fun pair_consts_typs_axiom theory_relevant thy (p as (thm, _)) =
+  (p, (consts_typs_of_term thy (const_prop_of theory_relevant thm)));
 
 exception ConstFree;
 fun dest_ConstFree (Const aT) = aT
@@ -254,8 +254,10 @@ fun take_best max_new (newpairs : (annotd_cls*real) list) =
 fun relevant_clauses ctxt convergence follow_defs max_new
                      (relevance_override as {add, del, only}) thy ctab =
   let
-    val add_thms = maps (ProofContext.get_fact ctxt) add
-    val del_thms = maps (ProofContext.get_fact ctxt) del
+    val thms_for_facts =
+      maps (maps (cnf_axiom thy) o ProofContext.get_fact ctxt)
+    val add_thms = thms_for_facts add
+    val del_thms = thms_for_facts del
     fun iter p rel_consts =
       let
         fun relevant ([], _) [] = []  (* Nothing added this iteration *)
@@ -294,10 +296,10 @@ fun relevant_clauses ctxt convergence follow_defs max_new
   in iter end
         
 fun relevance_filter ctxt relevance_threshold convergence follow_defs max_new
-                     theory_const relevance_override thy axioms goals = 
+                     theory_relevant relevance_override thy axioms goals = 
   if relevance_threshold > 0.0 then
     let
-      val const_tab = List.foldl (count_axiom_consts theory_const thy)
+      val const_tab = List.foldl (count_axiom_consts theory_relevant thy)
                                  Symtab.empty axioms
       val goal_const_tab = get_goal_consts_typs thy goals
       val _ =
@@ -306,7 +308,8 @@ fun relevance_filter ctxt relevance_threshold convergence follow_defs max_new
       val relevant =
         relevant_clauses ctxt convergence follow_defs max_new relevance_override
                          thy const_tab relevance_threshold goal_const_tab
-                         (map (pair_consts_typs_axiom theory_const thy) axioms)
+                         (map (pair_consts_typs_axiom theory_relevant thy)
+                              axioms)
     in
       trace_msg (fn () => "Total relevant: " ^ Int.toString (length relevant));
       relevant
@@ -365,11 +368,11 @@ fun all_valid_thms respect_no_atp ctxt =
           val ths = filter_out bad_for_atp ths0;
         in
           if Facts.is_concealed facts name orelse null ths orelse
-            respect_no_atp andalso is_package_def name then I
-          else
-            (case find_first check_thms [name1, name2, name] of
-              NONE => I
-            | SOME a => cons (a, ths))
+             (respect_no_atp andalso is_package_def name) then
+            I
+          else case find_first check_thms [name1, name2, name] of
+            NONE => I
+          | SOME a => cons (a, ths)
         end);
   in valid_facts global_facts @ valid_facts local_facts end;
 
@@ -502,7 +505,7 @@ fun is_first_order thy higher_order goal_cls =
   | SOME b => not b
 
 fun get_relevant_facts respect_no_atp relevance_threshold convergence
-                       higher_order follow_defs max_new theory_const
+                       higher_order follow_defs max_new theory_relevant
                        (relevance_override as {add, only, ...})
                        (ctxt, (chain_ths, th)) goal_cls =
   if (only andalso null add) orelse relevance_threshold > 1.0 then
@@ -517,7 +520,7 @@ fun get_relevant_facts respect_no_atp relevance_threshold convergence
         |> remove_unwanted_clauses
     in
       relevance_filter ctxt relevance_threshold convergence follow_defs max_new
-                       theory_const relevance_override thy included_cls
+                       theory_relevant relevance_override thy included_cls
                        (map prop_of goal_cls)
     end
 
@@ -527,7 +530,8 @@ fun prepare_clauses higher_order dfg goal_cls chain_ths axcls extra_cls thy =
   let
     (* add chain thms *)
     val chain_cls =
-      cnf_rules_pairs thy (filter check_named (map pairname chain_ths))
+      cnf_rules_pairs thy (filter check_named
+                                  (map (`Thm.get_name_hint) chain_ths))
     val axcls = chain_cls @ axcls
     val extra_cls = chain_cls @ extra_cls
     val is_FO = is_first_order thy higher_order goal_cls

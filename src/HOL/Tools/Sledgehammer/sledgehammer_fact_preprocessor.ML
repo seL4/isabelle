@@ -10,7 +10,6 @@ sig
   val trace_msg: (unit -> string) -> unit
   val skolem_prefix: string
   val cnf_axiom: theory -> thm -> thm list
-  val pairname: thm -> string * thm
   val multi_base_blacklist: string list
   val bad_for_atp: thm -> bool
   val type_has_topsort: typ -> bool
@@ -370,18 +369,13 @@ val already_seen = Symtab.defined o #2 o ThmCache.get;
 val update_cache = ThmCache.map o apfst o Thmtab.update;
 fun mark_seen name = ThmCache.map (apsnd (Symtab.update (name, ())));
 
-(*Exported function to convert Isabelle theorems into axiom clauses*)
+(* Convert Isabelle theorems into axiom clauses. *)
 fun cnf_axiom thy th0 =
   let val th = Thm.transfer thy th0 in
     case lookup_cache thy th of
       NONE => map Thm.close_derivation (skolem_thm (fake_name th, th))
     | SOME cls => cls
   end;
-
-
-(**** Rules from the context ****)
-
-fun pairname th = (Thm.get_name_hint th, th);
 
 
 (**** Translate a set of theorems into CNF ****)

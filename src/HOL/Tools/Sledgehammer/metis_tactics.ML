@@ -693,13 +693,19 @@ fun FOL_SOLVE mode ctxt cls ths0 =
                 val unused = th_cls_pairs |> map_filter (fn (name, cls) =>
                   if common_thm used cls then NONE else SOME name)
             in
-                if null unused then ()
-                else warning ("Metis: unused theorems " ^ commas_quote unused);
+                if not (common_thm used cls) then
+                  warning "Metis: The goal is provable because the context is \
+                          \inconsistent."
+                else if not (null unused) then
+                  warning ("Metis: Unused theorems: " ^ commas_quote unused
+                           ^ ".")
+                else
+                  ();
                 case result of
                     (_,ith)::_ =>
-                        (trace_msg (fn () => "success: " ^ Display.string_of_thm ctxt ith);
+                        (trace_msg (fn () => "Success: " ^ Display.string_of_thm ctxt ith);
                          [ith])
-                  | _ => (trace_msg (fn () => "Metis: no result");
+                  | _ => (trace_msg (fn () => "Metis: No result");
                           [])
             end
         | Metis.Resolution.Satisfiable _ =>

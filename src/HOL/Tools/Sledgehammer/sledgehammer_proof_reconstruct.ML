@@ -14,10 +14,15 @@ sig
   val strip_prefix: string -> string -> string option
   val is_proof_well_formed: string -> bool
   val metis_line: int -> int -> string list -> string
-  val metis_lemma_list: bool -> string ->
-    string * string vector * (int * int) * Proof.context * thm * int -> string * string list
-  val structured_isar_proof: int -> bool -> string ->
-    string * string vector * (int * int) * Proof.context * thm * int -> string * string list
+  val metis_proof_text:
+    bool -> bool -> string -> string -> string vector -> Proof.context -> thm
+    -> int -> string * string list
+  val isar_proof_text:
+    bool -> int -> bool -> string -> string -> string vector -> Proof.context
+    -> thm -> int -> string * string list
+  val proof_text:
+    bool -> bool -> int -> bool -> string -> string -> string vector
+    -> Proof.context -> thm -> int -> string * string list
 end;
 
 structure Sledgehammer_Proof_Reconstruct : SLEDGEHAMMER_PROOF_RECONSTRUCT =
@@ -493,45 +498,22 @@ fun is_proof_well_formed proof =
   exists (fn s => String.isSubstring s proof) end_proof_strs
 
 (* === EXTRACTING LEMMAS === *)
-(* lines have the form "cnf(108, axiom, ...",
-the number (108) has to be extracted)*)
-fun get_step_nums false extract =
+(* A list consisting of the first number in each line is returned.
+   TPTP: Interesting lines have the form "cnf(108, axiom, ...)", where the
+   number (108) is extracted.
+   DFG: Lines have the form "108[0:Inp] ...", where the first number (108) is
+   extracted. *)
+fun get_step_nums proof_extract =
   let
     val toks = String.tokens (not o Char.isAlphaNum)
     fun inputno ("cnf" :: ntok :: "axiom" :: _) = Int.fromString ntok
       | inputno ("cnf" :: ntok :: "negated" :: "conjecture" :: _) =
         Int.fromString ntok
+      | inputno (ntok::"0"::"Inp"::_) = Int.fromString ntok (* DFG *)
       | inputno _ = NONE
-    val lines = split_lines extract
+    val lines = split_lines proof_extract
   in map_filter (inputno o toks) lines end
-(*String contains multiple lines. We want those of the form
-  "253[0:Inp] et cetera..."
-  A list consisting of the first number in each line is returned. *)
-|  get_step_nums true proofextract =
-  let val toks = String.tokens (not o Char.isAlphaNum)
-  fun inputno (ntok::"0"::"Inp"::_) = Int.fromString ntok
-    | inputno _ = NONE
-  val lines = split_lines proofextract
-  in  map_filter (inputno o toks) lines  end
   
-(*extracting lemmas from tstp-output between the lines from above*)
-fun extract_lemmas get_step_nums (proof, thm_names, conj_count, _, _, _) =
-  let
-    (* get the names of axioms from their numbers*)
-    fun get_axiom_names thm_names step_nums =
-      let
-        val last_axiom = Vector.length thm_names
-        fun is_axiom n = n <= last_axiom
-        fun is_conj n = n >= fst conj_count andalso
-                        n < fst conj_count + snd conj_count
-        fun getname i = Vector.sub(thm_names, i-1)
-      in
-        (sort_distinct string_ord (filter (fn x => x <> "??.unknown")
-          (map getname (filter is_axiom step_nums))),
-        exists is_conj step_nums)
-      end
-  in get_axiom_names thm_names (get_step_nums (get_proof_extract proof)) end;
-
 (*Used to label theorems chained into the sledgehammer call*)
 val chained_hint = "CHAINED";
 val kill_chained = filter_out (curry (op =) chained_hint)
@@ -546,29 +528,33 @@ fun metis_command i n [] =
 fun metis_line i n xs =
   "Try this command: " ^
   Markup.markup Markup.sendback (metis_command i n xs) ^ ".\n" 
-fun minimize_line _ [] = ""
-  | minimize_line name xs =
+fun minimize_line _ _ [] = ""
+  | minimize_line isar_proof atp_name xs =
       "To minimize the number of lemmas, try this command: " ^
       Markup.markup Markup.sendback
-                    ("sledgehammer minimize [atp = " ^ name ^ "] (" ^
+                    ("sledgehammer minimize [atp = " ^ atp_name ^
+                     (if isar_proof then ", isar_proof" else "") ^ "] (" ^
                      space_implode " " xs ^ ")") ^ ".\n"
 
-fun metis_lemma_list dfg name (result as (_, _, _, _, goal, i)) =
+fun metis_proof_text isar_proof minimal atp_name proof thm_names
+                     (_ : Proof.context) goal i =
   let
-    val (lemmas, used_conj) = extract_lemmas (get_step_nums dfg) result
+    val lemmas =
+      proof |> get_proof_extract
+            |> get_step_nums
+            |> filter (fn i => i <= Vector.length thm_names)
+            |> map (fn i => Vector.sub (thm_names, i - 1))
+            |> filter (fn x => x <> "??.unknown")
+            |> sort_distinct string_ord
     val n = Logic.count_prems (prop_of goal)
     val xs = kill_chained lemmas
   in
-    (metis_line i n xs ^ minimize_line name xs ^
-     (if used_conj then
-        ""
-      else
-        "\nWarning: The goal is provable because the context is inconsistent."),
+    (metis_line i n xs ^
+     (if minimal then "" else minimize_line isar_proof atp_name xs),
      kill_chained lemmas)
-  end;
+  end
 
-fun structured_isar_proof modulus sorts name
-        (result as (proof, thm_names, conj_count, ctxt, goal, i)) =
+fun isar_proof_text minimal modulus sorts atp_name proof thm_names ctxt goal i =
   let
     (* We could use "split_lines", but it can return blank lines. *)
     val lines = String.tokens (equal #"\n");
@@ -576,7 +562,8 @@ fun structured_isar_proof modulus sorts name
       String.translate (fn c => if Char.isSpace c then "" else str c)
     val extract = get_proof_extract proof
     val cnfs = filter (String.isPrefix "cnf(") (map kill_spaces (lines extract))
-    val (one_line_proof, lemma_names) = metis_lemma_list false name result
+    val (one_line_proof, lemma_names) =
+      metis_proof_text true minimal atp_name proof thm_names ctxt goal i
     val tokens = String.tokens (fn c => c = #" ") one_line_proof
     val isar_proof =
       if member (op =) tokens chained_hint then ""
@@ -587,5 +574,9 @@ fun structured_isar_proof modulus sorts name
       else "\nStructured proof:\n" ^ Markup.markup Markup.sendback isar_proof),
      lemma_names)
   end
+
+fun proof_text isar_proof minimal modulus sorts =
+  if isar_proof then isar_proof_text minimal modulus sorts
+  else metis_proof_text isar_proof minimal
 
 end;
