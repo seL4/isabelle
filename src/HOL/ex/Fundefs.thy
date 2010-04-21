@@ -290,6 +290,14 @@ where
   "tinc (Leaf n) = Leaf (Suc n)"
 | "tinc (Branch l) = Branch (map tinc l)"
 
+fun testcase :: "'a tree \<Rightarrow> 'a list"
+where
+  "testcase (Leaf a) = [a]"
+| "testcase (Branch x) =
+    (let xs = concat (map testcase x);
+         ys = concat (map testcase x) in
+     xs @ ys)"
+
 
 (* Pattern matching on records *)
 record point =

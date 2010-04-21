@@ -349,12 +349,15 @@ fun mk_uniqueness_case thy globals G f ihyp ih_intro G_cases compat_store clause
     val unique_clauses =
       map2 (mk_uniqueness_clause thy globals compat_store clausei) clauses rep_lemmas
 
+    fun elim_implies_eta A AB =
+      Thm.compose_no_flatten true (A, 0) 1 AB |> Seq.list_of |> the_single
+
     val uniqueness = G_cases
       |> forall_elim (cterm_of thy lhs)
       |> forall_elim (cterm_of thy y)
       |> forall_elim P
       |> Thm.elim_implies G_lhs_y
-      |> fold Thm.elim_implies unique_clauses
+      |> fold elim_implies_eta unique_clauses
       |> implies_intr (cprop_of G_lhs_y)
       |> forall_intr (cterm_of thy y)
 
