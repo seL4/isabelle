@@ -68,6 +68,8 @@ val options = Options {
   skip_proof = false,
   compilation = Random,
   inductify = true,
+  specialise = true,
+  detect_switches = false,
   function_flattening = true,
   fail_safe_function_flattening = false,
   no_higher_order_predicate = [],
@@ -88,6 +90,8 @@ val debug_options = Options {
   skip_proof = false,
   compilation = Random,
   inductify = true,
+  specialise = true,
+  detect_switches = false,
   function_flattening = true,
   fail_safe_function_flattening = false,
   no_higher_order_predicate = [],
@@ -99,13 +103,13 @@ fun set_function_flattening b
   (Options { expected_modes = e_m, proposed_modes = p_m, proposed_names = p_n, show_steps = s_s,
     show_intermediate_results = s_ir, show_proof_trace = s_pt, show_modes = s_m,
     show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf, skip_proof = s_p,
-    compilation = c, inductify = i, function_flattening = f_f, 
+    compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = f_f, 
     fail_safe_function_flattening = fs_ff, no_higher_order_predicate = no_ho,
     no_topmost_reordering = re}) =
   (Options { expected_modes = e_m, proposed_modes = p_m, proposed_names = p_n, show_steps = s_s,
     show_intermediate_results = s_ir, show_proof_trace = s_pt, show_modes = s_m,
     show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf, skip_proof = s_p,
-    compilation = c, inductify = i, function_flattening = b,
+    compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = b,
     fail_safe_function_flattening = fs_ff, no_higher_order_predicate = no_ho,
     no_topmost_reordering = re})
 
@@ -113,13 +117,13 @@ fun set_fail_safe_function_flattening b
   (Options { expected_modes = e_m, proposed_modes = p_m, proposed_names = p_n, show_steps = s_s,
     show_intermediate_results = s_ir, show_proof_trace = s_pt, show_modes = s_m,
     show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf, skip_proof = s_p,
-    compilation = c, inductify = i, function_flattening = f_f, 
+    compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = f_f, 
     fail_safe_function_flattening = fs_ff, no_higher_order_predicate = no_ho,
     no_topmost_reordering = re}) =
   (Options { expected_modes = e_m, proposed_modes = p_m, proposed_names = p_n, show_steps = s_s,
     show_intermediate_results = s_ir, show_proof_trace = s_pt, show_modes = s_m,
     show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf, skip_proof = s_p,
-    compilation = c, inductify = i, function_flattening = f_f,
+    compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = f_f,
     fail_safe_function_flattening = b, no_higher_order_predicate = no_ho,
     no_topmost_reordering = re})
 
@@ -127,13 +131,13 @@ fun set_no_higher_order_predicate ss
   (Options { expected_modes = e_m, proposed_modes = p_m, proposed_names = p_n, show_steps = s_s,
     show_intermediate_results = s_ir, show_proof_trace = s_pt, show_modes = s_m,
     show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf, skip_proof = s_p,
-    compilation = c, inductify = i, function_flattening = f_f, 
+    compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = f_f, 
     fail_safe_function_flattening = fs_ff, no_higher_order_predicate = no_ho,
     no_topmost_reordering = re}) =
   (Options { expected_modes = e_m, proposed_modes = p_m, proposed_names = p_n, show_steps = s_s,
     show_intermediate_results = s_ir, show_proof_trace = s_pt, show_modes = s_m,
     show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf, skip_proof = s_p,
-    compilation = c, inductify = i, function_flattening = f_f,
+    compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = f_f,
     fail_safe_function_flattening = fs_ff, no_higher_order_predicate = ss, no_topmost_reordering = re})
 
 
@@ -198,7 +202,7 @@ fun compile_term compilation options ctxt t =
     val tac = fn _ => Skip_Proof.cheat_tac thy1
     val intro = Goal.prove (ProofContext.init thy1) (map fst vs') [] t tac
     val thy2 = Context.theory_map (Predicate_Compile_Alternative_Defs.add_thm intro) thy1
-    val (thy3, preproc_time) =  cpu_time "predicate preprocessing"
+    val (thy3, preproc_time) = cpu_time "predicate preprocessing"
         (fn () => Predicate_Compile.preprocess options const thy2)
     val (thy4, core_comp_time) = cpu_time "random_dseq core compilation"
         (fn () =>
@@ -209,7 +213,9 @@ fun compile_term compilation options ctxt t =
               Predicate_Compile_Core.add_new_random_dseq_equations options [full_constname] thy3
           (*| Depth_Limited_Random =>
               Predicate_Compile_Core.add_depth_limited_random_equations options [full_constname] thy3*))
-    val _ = Predicate_Compile_Core.print_all_modes compilation thy4
+    (*val _ = Predicate_Compile_Core.print_all_modes compilation thy4*)
+    val _ = Output.tracing ("Preprocessing time: " ^ string_of_int (snd preproc_time))
+    val _ = Output.tracing ("Core compilation time: " ^ string_of_int (snd core_comp_time))
     val modes = Predicate_Compile_Core.modes_of compilation thy4 full_constname
     val output_mode = fold_rev (curry Fun) (map (K Output) (binder_types constT)) Bool
     val prog =
@@ -228,7 +234,6 @@ fun compile_term compilation options ctxt t =
           Const (name, T)
         end
       else error ("Predicate Compile Quickcheck failed: " ^ commas (map string_of_mode modes))
-    
     val qc_term =
       case compilation of
           Pos_Random_DSeq => mk_bind (prog,
