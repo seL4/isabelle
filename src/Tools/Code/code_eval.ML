@@ -25,7 +25,7 @@ val eval_struct_name = "Code";
 
 fun evaluation_code thy tycos consts =
   let
-    val (consts', (naming, program)) = Code_Thingol.consts_program thy consts;
+    val (consts', (naming, program)) = Code_Thingol.consts_program thy false consts;
     val tycos' = map (the o Code_Thingol.lookup_tyco naming) tycos;
     val (ml_code, target_names) = Code_ML.evaluation_code_of thy target
       eval_struct_name naming program (consts' @ tycos');
