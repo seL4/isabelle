@@ -1282,8 +1282,28 @@ fun lex_ord ord1 ord2 (x, x') =
     EQUAL => ord2 (x, x')
   | ord => ord
 
-fun deriv_ord2' thy pred modes t1 t2 ((deriv1, mvars1), (deriv2, mvars2)) =
+fun lexl_ord [] (x, x') = EQUAL
+  | lexl_ord (ord :: ords') (x, x') =
+    case ord (x, x') of
+      EQUAL => lexl_ord ords' (x, x')
+    | ord => ord
+
+fun deriv_ord2' thy pol pred modes t1 t2 ((deriv1, mvars1), (deriv2, mvars2)) =
   let
+    (* prefer functional modes if it is a function *)
+    fun fun_ord ((t1, deriv1, mvars1), (t2, deriv2, mvars2)) =
+      let
+        fun is_functional t mode =
+          case try (fst o dest_Const o fst o strip_comb) t of
+            NONE => false
+          | SOME c => is_some (alternative_compilation_of thy c mode)
+      in
+        case (is_functional t1 (head_mode_of deriv1), is_functional t2 (head_mode_of deriv2)) of
+          (true, true) => EQUAL
+        | (true, false) => LESS
+        | (false, true) => GREATER
+        | (false, false) => EQUAL
+      end
     (* prefer modes without requirement for generating random values *)
     fun mvars_ord ((t1, deriv1, mvars1), (t2, deriv2, mvars2)) =
       int_ord (length mvars1, length mvars2)
@@ -1301,18 +1321,18 @@ fun deriv_ord2' thy pred modes t1 t2 ((deriv1, mvars1), (deriv2, mvars2)) =
     fun recursive_ord ((t1, deriv1, mvars1), (t2, deriv2, mvars2)) =
       int_ord (if is_rec_premise t1 then 0 else 1,
         if is_rec_premise t2 then 0 else 1)
-    val ord = lex_ord mvars_ord (lex_ord random_mode_ord (lex_ord output_mode_ord recursive_ord))
+    val ord = lexl_ord [mvars_ord, fun_ord, random_mode_ord, output_mode_ord, recursive_ord]
   in
     ord ((t1, deriv1, mvars1), (t2, deriv2, mvars2))
   end
 
-fun deriv_ord2 thy pred modes t = deriv_ord2' thy pred modes t t
+fun deriv_ord2 thy pol pred modes t = deriv_ord2' thy pol pred modes t t
 
 fun deriv_ord ((deriv1, mvars1), (deriv2, mvars2)) =
   int_ord (length mvars1, length mvars2)
 
-fun premise_ord thy pred modes ((prem1, a1), (prem2, a2)) =
-  rev_option_ord (deriv_ord2' thy pred modes (term_of_prem prem1) (term_of_prem prem2)) (a1, a2)
+fun premise_ord thy pol pred modes ((prem1, a1), (prem2, a2)) =
+  rev_option_ord (deriv_ord2' thy pol pred modes (term_of_prem prem1) (term_of_prem prem2)) (a1, a2)
 
 fun print_mode_list modes =
   tracing ("modes: " ^ (commas (map (fn (s, ms) => s ^ ": " ^
@@ -1322,15 +1342,16 @@ fun select_mode_prem (mode_analysis_options : mode_analysis_options) (thy : theo
   pol (modes, (pos_modes, neg_modes)) vs ps =
   let
     fun choose_mode_of_prem (Prem t) = partial_hd
-        (sort (deriv_ord2 thy pred modes t) (all_derivations_of thy pos_modes vs t))
+        (sort (deriv_ord2 thy pol pred modes t) (all_derivations_of thy pos_modes vs t))
       | choose_mode_of_prem (Sidecond t) = SOME (Context Bool, missing_vars vs t)
       | choose_mode_of_prem (Negprem t) = partial_hd
-          (sort (deriv_ord2 thy pred modes t) (filter (fn (d, missing_vars) => is_all_input (head_mode_of d))
+          (sort (deriv_ord2 thy (not pol) pred modes t)
+          (filter (fn (d, missing_vars) => is_all_input (head_mode_of d))
              (all_derivations_of thy neg_modes vs t)))
       | choose_mode_of_prem p = raise Fail ("choose_mode_of_prem: " ^ string_of_prem thy p)
   in
     if #reorder_premises mode_analysis_options then
-      partial_hd (sort (premise_ord thy pred modes) (ps ~~ map choose_mode_of_prem ps))
+      partial_hd (sort (premise_ord thy pol pred modes) (ps ~~ map choose_mode_of_prem ps))
     else
       SOME (hd ps, choose_mode_of_prem (hd ps))
   end
