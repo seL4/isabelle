@@ -8,7 +8,7 @@ theory Integration
 begin
 
 declare [[smt_certificates="~~/src/HOL/Multivariate_Analysis/Integration.cert"]]
-declare [[smt_fixed=false]]
+declare [[smt_fixed=true]]
 declare [[z3_proofs=true]]
 
 subsection {* Sundries *}
@@ -5525,5 +5525,6 @@ proof- have "\<And>m. (\<lambda>x. Inf {f j x |j. m \<le> j}) integrable_on s \<
         qed qed(insert n,auto) qed qed qed
 
 declare [[smt_certificates=""]]
+declare [[smt_fixed=false]]
 
 end
