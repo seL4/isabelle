@@ -49,8 +49,8 @@ val random_seed = Unsynchronized.ref 1.0;
 val max_mutants = 4
 val num_mutations = 1
 (* soundness check: *)
-val max_mutants = 1
-val num_mutations = 0
+(*val max_mutants = 1
+val num_mutations = 0*)
 
 (* quickcheck options *)
 (*val quickcheck_generator = "SML"*)
@@ -197,7 +197,14 @@ val forbidden =
   (@{const_name induct_conj}, "'a"),*)
   (@{const_name "undefined"}, "'a"),
   (@{const_name "default"}, "'a"),
-  (@{const_name "dummy_pattern"}, "'a::{}") (*,
+  (@{const_name "dummy_pattern"}, "'a::{}"),
+  (@{const_name "HOL.simp_implies"}, "prop => prop => prop"),
+  (@{const_name "bot_fun_inst.bot_fun"}, "'a"),
+  (@{const_name "top_fun_inst.top_fun"}, "'a"),
+  (@{const_name "Pure.term"}, "'a"),
+  (@{const_name "top_class.top"}, "'a"),
+  (@{const_name "eq_class.eq"}, "'a"),
+  (@{const_name "Quotient.Quot_True"}, "'a")(*,
   (@{const_name "uminus"}, "'a"),
   (@{const_name "Nat.size"}, "'a"),
   (@{const_name "Groups.abs"}, "'a") *)]
@@ -219,10 +226,28 @@ fun is_forbidden_theorem (s, th) =
     String.isSuffix "_raw" s
   end
 
+val forbidden_mutant_constnames =
+ ["HOL.induct_equal",
+  "HOL.induct_implies",
+  "HOL.induct_conj",
+ @{const_name undefined},
+ @{const_name default},
+ @{const_name dummy_pattern},
+ @{const_name "HOL.simp_implies"},
+ @{const_name "bot_fun_inst.bot_fun"},
+ @{const_name "top_fun_inst.top_fun"},
+ @{const_name "Pure.term"},
+ @{const_name "top_class.top"},
+ @{const_name "eq_class.eq"},
+ @{const_name "Quotient.Quot_True"}]
+
 fun is_forbidden_mutant t =
-  let val consts = Term.add_const_names t [] in
+  let
+    val consts = Term.add_const_names t []
+  in
     exists (String.isPrefix "Nitpick") consts orelse
-    exists (String.isSubstring "_sumC") consts (* internal function *)
+    exists (String.isSubstring "_sumC") consts orelse
+    exists (member (op =) forbidden_mutant_constnames) consts
   end
 
 fun is_executable_term thy t = can (TimeLimit.timeLimit (Time.fromMilliseconds 2000) (Quickcheck.test_term
@@ -340,6 +365,12 @@ fun string_of_mutant_subentry thy thm_name (t, results) =
     (map (fn (mtd_name, (outcome, timing)) => mtd_name ^ ": " ^ string_of_outcome outcome) results) ^
   "\n"
 
+(* XML.tree -> string *)
+fun plain_string_from_xml_tree t =
+  Buffer.empty |> XML.add_content t |> Buffer.content
+(* string -> string *)
+val unyxml = plain_string_from_xml_tree o YXML.parse
+
 fun string_of_mutant_subentry' thy thm_name (t, results) =
   let
     fun string_of_report (Quickcheck.Report {iterations = i, raised_match_errors = e,
@@ -352,15 +383,27 @@ fun string_of_mutant_subentry' thy thm_name (t, results) =
     fun string_of_mtd_result (mtd_name, (outcome, (timing, reports))) =
       mtd_name ^ ": " ^ string_of_outcome outcome ^ "; " ^
       space_implode "; " (map (fn (s, t) => (s ^ ": " ^ string_of_int t)) timing)
-      ^ "\n" ^ string_of_reports reports
+      (*^ "\n" ^ string_of_reports reports*)
   in
-    "mutant of " ^ thm_name ^ ":\n" ^ cat_lines (map string_of_mtd_result results)
+    "mutant of " ^ thm_name ^ ":\n"
+    ^ unyxml (Syntax.string_of_term_global thy t) ^ "\n" ^ cat_lines (map string_of_mtd_result results)
   end
 
 fun string_of_detailed_entry thy (thm_name, exec, t, mutant_subentries) = 
    thm_name ^ " " ^ (if exec then "[exe]" else "[noexe]") ^ ": " ^
-   Syntax.string_of_term_global thy t ^ "\n" ^
+   Syntax.string_of_term_global thy t ^ "\n" ^                                    
    cat_lines (map (string_of_mutant_subentry' thy thm_name) mutant_subentries) ^ "\n"
+
+fun theoryfile_string_of_mutant_subentry thy thm_name (i, (t, results)) =
+  "lemma " ^ thm_name ^ "_" ^ string_of_int (i + 1) ^ ":\n" ^
+  "\"" ^ unyxml (Syntax.string_of_term_global thy t) ^
+  "\" \nquickcheck[generator = SML]\nquickcheck[generator = predicate_compile_wo_ff]\n" ^
+  "quickcheck[generator = predicate_compile_ff_nofs]\noops\n"
+
+fun theoryfile_string_of_detailed_entry thy (thm_name, exec, t, mutant_subentries) =
+  "subsubsection {* mutants of " ^ thm_name ^ " *}\n\n" ^
+  cat_lines (map_index
+    (theoryfile_string_of_mutant_subentry thy thm_name) mutant_subentries) ^ "\n"
 
 (* subentry -> string *)
 fun string_for_subentry (mtd_name, genuine_cex, potential_cex, no_cex, donno,
@@ -390,6 +433,8 @@ fun mutate_theorems_and_write_report thy mtds thms file_name =
     (*for detailled report: *)
     val (gen_create_entry, gen_string_for_entry) =
       (create_detailed_entry, string_of_detailed_entry thy)
+    val (gen_create_entry, gen_string_for_entry) =
+      (create_detailed_entry, theoryfile_string_of_detailed_entry thy)
   in
     File.write path (
     "Mutation options = "  ^
