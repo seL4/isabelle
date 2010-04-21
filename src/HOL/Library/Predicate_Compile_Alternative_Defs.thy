@@ -141,7 +141,7 @@ where
   "less_nat 0 (Suc y)"
 | "less_nat x y ==> less_nat (Suc x) (Suc y)"
 
-lemma [code_pred_inline]:
+lemma less_nat[code_pred_inline]:
   "x < y = less_nat x y"
 apply (rule iffI)
 apply (induct x arbitrary: y)
@@ -228,6 +228,16 @@ proof -
     done
 qed
 
+section {* Simplification rules for optimisation *}
+
+lemma [code_pred_simp]: "\<not> False == True"
+by auto
+
+lemma [code_pred_simp]: "\<not> True == False"
+by auto
+
+lemma less_nat_k_0 [code_pred_simp]: "less_nat k 0 == False"
+unfolding less_nat[symmetric] by auto
 
 
 end

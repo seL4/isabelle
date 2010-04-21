@@ -135,6 +135,8 @@ sig
   val expand_tuples : theory -> thm -> thm
   val eta_contract_ho_arguments : theory -> thm -> thm
   val remove_equalities : theory -> thm -> thm
+  val remove_pointless_clauses : thm -> thm list
+  val peephole_optimisation : theory -> thm -> thm option
 end;
 
 structure Predicate_Compile_Aux : PREDICATE_COMPILE_AUX =
@@ -513,6 +515,20 @@ fun fold_map_atoms f intro s =
     (Logic.list_implies (map HOLogic.mk_Trueprop literals', head), s')
   end;
 
+fun map_premises f intro =
+  let
+    val (premises, head) = Logic.strip_horn intro
+  in
+    Logic.list_implies (map f premises, head)
+  end
+
+fun map_filter_premises f intro =
+  let
+    val (premises, head) = Logic.strip_horn intro
+  in
+    Logic.list_implies (map_filter f premises, head)
+  end
+
 fun maps_premises f intro =
   let
     val (premises, head) = Logic.strip_horn intro
@@ -808,6 +824,27 @@ fun remove_equalities thy intro =
       end
   in
     map_term thy remove_eqs intro
+  end
+
+(* Some last processing *)
+
+fun remove_pointless_clauses intro =
+  if Logic.strip_imp_prems (prop_of intro) = [@{prop "False"}] then
+    []
+  else [intro]
+
+(* some peephole optimisations *)
+
+fun peephole_optimisation thy intro =
+  let
+    val process = MetaSimplifier.rewrite_rule (Predicate_Compile_Simps.get (ProofContext.init thy))
+    fun process_False intro_t =
+      if member (op =) (Logic.strip_imp_prems intro_t) @{prop "False"} then NONE else SOME intro_t
+    fun process_True intro_t =
+      map_filter_premises (fn p => if p = @{prop True} then NONE else SOME p) intro_t
+  in
+    Option.map (Skip_Proof.make_thm thy)
+      (process_False (process_True (prop_of (process intro))))
   end
 
 end;

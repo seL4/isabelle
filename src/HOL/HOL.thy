@@ -2061,19 +2061,22 @@ structure Predicate_Compile_Alternative_Defs = Named_Thms
   val name = "code_pred_def"
   val description = "alternative definitions of constants for the Predicate Compiler"
 )
-*}
-
-ML {*
 structure Predicate_Compile_Inline_Defs = Named_Thms
 (
   val name = "code_pred_inline"
   val description = "inlining definitions for the Predicate Compiler"
+)
+structure Predicate_Compile_Simps = Named_Thms
+(
+  val name = "code_pred_simp"
+  val description = "simplification rules for the optimisations in the Predicate Compiler"
 )
 *}
 
 setup {*
   Predicate_Compile_Alternative_Defs.setup
   #> Predicate_Compile_Inline_Defs.setup
+  #> Predicate_Compile_Simps.setup
 *}
 
 

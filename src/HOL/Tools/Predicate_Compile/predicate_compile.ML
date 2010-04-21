@@ -18,16 +18,8 @@ struct
 val present_graph = Unsynchronized.ref false
 
 val intro_hook = Unsynchronized.ref NONE : (theory -> thm -> unit) option Unsynchronized.ref
-  
 
 open Predicate_Compile_Aux;
-
-(* Some last processing *)
-
-fun remove_pointless_clauses intro =
-  if Logic.strip_imp_prems (prop_of intro) = [@{prop "False"}] then
-    []
-  else [intro]
 
 fun print_intross options thy msg intross =
   if show_intermediate_results options then
@@ -121,9 +113,11 @@ fun preprocess_strong_conn_constnames options gr ts thy =
       val _ = case !intro_hook of NONE => () | SOME f => (map_specs (map (f thy2)) intross8; ())
       val _ = print_step options ("Looking for specialisations in " ^ commas (map fst intross8) ^ "...")
       val (intross9, thy3) = Predicate_Compile_Specialisation.find_specialisations [] intross8 thy2
-      val _ = print_intross options thy3 "introduction rules before registering: " intross9
+      val _ = print_intross options thy3 "introduction rules after specialisations: " intross9
+      val intross10 = map_specs (map_filter (peephole_optimisation thy3)) intross9
+      val _ = print_intross options thy3 "introduction rules before registering: " intross10
       val _ = print_step options "Registering introduction rules..."
-      val thy4 = fold Predicate_Compile_Core.register_intros intross9 thy3
+      val thy4 = fold Predicate_Compile_Core.register_intros intross10 thy3
     in
       thy4
     end;

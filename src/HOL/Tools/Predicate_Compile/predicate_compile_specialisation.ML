@@ -107,7 +107,9 @@ fun specialise_intros black_list (pred, intros) pats thy =
     val [t, specialised_t] = Variable.exportT_terms ctxt' ctxt
       [list_comb (pred, pats), list_comb (specialised_const, result_pats)]
     val thy'' = Specialisations.map (Item_Net.update (t, specialised_t)) thy'
-    val ([spec], thy''') = find_specialisations black_list [(constname, exported_intros)] thy''
+    val optimised_intros =
+      map_filter (Predicate_Compile_Aux.peephole_optimisation thy'') exported_intros
+    val ([spec], thy''') = find_specialisations black_list [(constname, optimised_intros)] thy''
     val thy'''' = Predicate_Compile_Core.register_intros spec thy'''
   in
     thy''''
