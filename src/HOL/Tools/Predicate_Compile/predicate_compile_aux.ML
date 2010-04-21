@@ -107,6 +107,7 @@ sig
     no_topmost_reordering : bool,
     function_flattening : bool,
     fail_safe_function_flattening : bool,
+    specialise : bool,
     no_higher_order_predicate : string list,
     inductify : bool,
     compilation : compilation
@@ -125,6 +126,7 @@ sig
   val no_topmost_reordering : options -> bool
   val function_flattening : options -> bool
   val fail_safe_function_flattening : options -> bool
+  val specialise : options -> bool
   val no_higher_order_predicate : options -> string list
   val is_inductify : options -> bool
   val compilation : options -> compilation
@@ -665,6 +667,7 @@ datatype options = Options of {
   skip_proof : bool,
   no_topmost_reordering : bool,
   function_flattening : bool,
+  specialise : bool,
   fail_safe_function_flattening : bool,
   no_higher_order_predicate : string list,
   inductify : bool,
@@ -688,6 +691,7 @@ fun skip_proof (Options opt) = #skip_proof opt
 
 fun function_flattening (Options opt) = #function_flattening opt
 fun fail_safe_function_flattening (Options opt) = #fail_safe_function_flattening opt
+fun specialise (Options opt) = #specialise opt
 fun no_topmost_reordering (Options opt) = #no_topmost_reordering opt
 fun no_higher_order_predicate (Options opt) = #no_higher_order_predicate opt
 
@@ -709,6 +713,7 @@ val default_options = Options {
   skip_proof = true,
   no_topmost_reordering = false,
   function_flattening = false,
+  specialise = false,
   fail_safe_function_flattening = false,
   no_higher_order_predicate = [],
   inductify = false,
@@ -717,7 +722,7 @@ val default_options = Options {
 
 val bool_options = ["show_steps", "show_intermediate_results", "show_proof_trace", "show_modes",
   "show_mode_inference", "show_compilation", "skip_proof", "inductify", "no_function_flattening",
-  "no_topmost_reordering"]
+  "specialise", "no_topmost_reordering"]
 
 fun print_step options s =
   if show_steps options then tracing s else ()
