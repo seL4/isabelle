@@ -571,21 +571,20 @@ apply (rule disjI2) by auto
 code_pred %quote lexord
 (*<*)
 proof -
-  fix r a1
-  assume lexord: "lexord r a1"
-  assume 1: "\<And> xs ys a v. a1 = (xs, ys) \<Longrightarrow> append xs (a # v) ys \<Longrightarrow> thesis"
-  assume 2: "\<And> xs ys u a v b w. a1 = (xs, ys) \<Longrightarrow> append u (a # v) xs \<Longrightarrow> append u (b # w) ys \<Longrightarrow> r (a, b) \<Longrightarrow> thesis"
-  obtain xs ys where a1: "a1 = (xs, ys)" by fastsimp
+  fix r xs ys
+  assume lexord: "lexord r (xs, ys)"
+  assume 1: "\<And> r' xs' ys' a v. r = r' \<Longrightarrow> (xs, ys) = (xs', ys') \<Longrightarrow> append xs' (a # v) ys' \<Longrightarrow> thesis"
+  assume 2: "\<And> r' xs' ys' u a v b w. r = r' \<Longrightarrow> (xs, ys) = (xs', ys') \<Longrightarrow> append u (a # v) xs' \<Longrightarrow> append u (b # w) ys' \<Longrightarrow> r' (a, b) \<Longrightarrow> thesis"
   {
     assume "\<exists>a v. ys = xs @ a # v"
-    from this 1 a1 have thesis
+    from this 1 have thesis
         by (fastsimp simp add: append)
   } moreover
   {
     assume "\<exists>u a b v w. (a, b) \<in> r \<and> xs = u @ a # v \<and> ys = u @ b # w"
-    from this 2 a1 have thesis by (fastsimp simp add: append mem_def)
+    from this 2 have thesis by (fastsimp simp add: append mem_def)
   } moreover
-  note lexord[simplified a1]
+  note lexord
   ultimately show thesis
     unfolding lexord_def
     by (fastsimp simp add: Collect_def)
