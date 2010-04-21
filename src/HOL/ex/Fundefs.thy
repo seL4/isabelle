@@ -1,5 +1,4 @@
 (*  Title:      HOL/ex/Fundefs.thy
-    ID:         $Id$
     Author:     Alexander Krauss, TU Muenchen
 *)
 
@@ -281,17 +280,10 @@ datatype 'a tree =
   Leaf 'a 
   | Branch "'a tree list"
 
-lemma lem:"x \<in> set l \<Longrightarrow> size x < Suc (list_size size l)"
-by (induct l, auto)
-
-function treemap :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a tree \<Rightarrow> 'a tree"
+fun treemap :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a tree \<Rightarrow> 'a tree"
 where
   "treemap fn (Leaf n) = (Leaf (fn n))"
 | "treemap fn (Branch l) = (Branch (map (treemap fn) l))"
-by pat_completeness auto
-termination by (lexicographic_order simp:lem)
-
-declare lem[simp]
 
 fun tinc :: "nat tree \<Rightarrow> nat tree"
 where
