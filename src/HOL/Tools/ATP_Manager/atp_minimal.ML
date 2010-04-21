@@ -71,7 +71,7 @@ fun sledgehammer_test_theorems (params as {full_types, ...} : params) prover
                       " theorem" ^ plural_s num_theorems ^ "...")
     val name_thm_pairs = maps (fn (n, ths) => map (pair n) ths) name_thms_pairs
     val axclauses = cnf_rules_pairs (Proof.theory_of state) name_thm_pairs
-    val {context = ctxt, facts, goal} = Proof.raw_goal state
+    val {context = ctxt, facts, goal} = Proof.goal state
     val problem =
      {subgoal = subgoal, goal = (ctxt, (facts, goal)),
       relevance_override = {add = [], del = [], only = false},
