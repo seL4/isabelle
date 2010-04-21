@@ -12,7 +12,7 @@ where
 definition
   "greater_than_index xs = (\<forall>i x. nth_el' xs i = Some x --> x > i)"
 
-code_pred (expected_modes: i => bool) [inductify] greater_than_index .
+code_pred (expected_modes: i => bool) [inductify, skip_proof, specialise] greater_than_index .
 ML {* Predicate_Compile_Core.intros_of @{theory} @{const_name specialised_nth_el'P} *}
 
 thm greater_than_index.equation
@@ -38,7 +38,7 @@ definition
 
 text {* In this example, max is specialised, hence the mode o => i => bool is possible *}
 
-code_pred (modes: o => i => bool) [inductify] max_of_my_Suc .
+code_pred (modes: o => i => bool) [inductify, specialise, skip_proof] max_of_my_Suc .
 
 thm max_of_my_SucP.equation
 
@@ -218,7 +218,7 @@ where
     \<Gamma> \<turnstile> t\<^isub>1 \<bullet>\<^isub>\<tau> T\<^isub>2 : T\<^isub>1\<^isub>2[0 \<mapsto>\<^isub>\<tau> T\<^isub>2]\<^isub>\<tau>"
 | T_Sub: "\<Gamma> \<turnstile> t : S \<Longrightarrow> \<Gamma> \<turnstile> S <: T \<Longrightarrow> \<Gamma> \<turnstile> t : T"
 
-code_pred [inductify, skip_proof] typing .
+code_pred [inductify, skip_proof, specialise] typing .
 
 thm typing.equation
 

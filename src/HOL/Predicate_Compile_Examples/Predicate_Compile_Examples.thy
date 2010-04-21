@@ -789,7 +789,6 @@ definition
 
 code_pred [inductify, skip_proof] case_f .
 thm case_fP.equation
-thm case_fP.intros
 
 fun fold_map_idx where
   "fold_map_idx f i y [] = (y, [])"
@@ -935,10 +934,10 @@ primrec
 code_pred [inductify] avl .
 thm avl.equation*)
 
-code_pred [random_dseq inductify] avl .
-thm avl.random_dseq_equation
+code_pred [new_random_dseq inductify] avl .
+thm avl.new_random_dseq_equation
 
-values [random_dseq 2, 1, 7] 5 "{t:: int tree. avl t}"
+values [new_random_dseq 2, 1, 7] 5 "{t:: int tree. avl t}"
 
 fun set_of
 where
