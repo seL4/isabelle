@@ -145,7 +145,10 @@ fun generic_prover overlord get_facts prepare write_file cmd args known_failures
         ()
       else
         File.write (Path.explode (Path.implode probfile ^ "_proof"))
-                   ("% " ^ timestamp () ^ "\n" ^ proof)
+                   ((if overlord then
+                       "% " ^ cmd_line probfile ^ "\n% " ^ timestamp () ^ "\n"
+                     else
+                        "") ^ proof)
 
     val (((proof, atp_run_time_in_msecs), rc), _) =
       with_path cleanup export run_on (prob_pathname subgoal);
