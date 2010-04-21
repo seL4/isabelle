@@ -9,6 +9,7 @@ Central manager component for ATP threads.
 signature ATP_MANAGER =
 sig
   type relevance_override = Sledgehammer_Fact_Filter.relevance_override
+  type minimize_command = Sledgehammer_Proof_Reconstruct.minimize_command
   type params =
     {debug: bool,
      verbose: bool,
@@ -41,7 +42,8 @@ sig
      proof: string,
      internal_thm_names: string Vector.vector,
      filtered_clauses: (thm * (string * int)) list}
-  type prover = params -> Time.time -> problem -> prover_result
+  type prover =
+    params -> minimize_command -> Time.time -> problem -> prover_result
 
   val atps: string Unsynchronized.ref
   val timeout: int Unsynchronized.ref
@@ -52,7 +54,9 @@ sig
   val add_prover: string * prover -> theory -> theory
   val get_prover: theory -> string -> prover option
   val available_atps: theory -> unit
-  val sledgehammer: params -> int -> relevance_override -> Proof.state -> unit
+  val sledgehammer:
+    params -> int -> relevance_override -> (string -> minimize_command)
+    -> Proof.state -> unit
 end;
 
 structure ATP_Manager : ATP_MANAGER =
@@ -62,7 +66,7 @@ open Sledgehammer_Util
 open Sledgehammer_Fact_Filter
 open Sledgehammer_Proof_Reconstruct
 
-(** parameters, problems, results, and provers **)
+(** problems, results, provers, etc. **)
 
 type params =
   {debug: bool,
@@ -99,7 +103,8 @@ type prover_result =
    internal_thm_names: string Vector.vector,
    filtered_clauses: (thm * (string * int)) list};
 
-type prover = params -> Time.time -> problem -> prover_result;
+type prover =
+  params -> minimize_command -> Time.time -> problem -> prover_result
 
 
 (** preferences **)
@@ -323,12 +328,12 @@ structure Provers = Theory_Data
   val empty = Symtab.empty;
   val extend = I;
   fun merge data : T = Symtab.merge (eq_snd op =) data
-    handle Symtab.DUP dup => err_dup_prover dup;
+    handle Symtab.DUP name => err_dup_prover name;
 );
 
 fun add_prover (name, prover) thy =
   Provers.map (Symtab.update_new (name, (prover, stamp ()))) thy
-    handle Symtab.DUP dup => err_dup_prover dup;
+    handle Symtab.DUP name => err_dup_prover name;
 
 fun get_prover thy name =
   Option.map #1 (Symtab.lookup (Provers.get thy) name);
@@ -341,7 +346,7 @@ fun available_atps thy =
 (* start prover thread *)
 
 fun start_prover (params as {timeout, ...}) birth_time death_time i
-                 relevance_override proof_state name =
+                 relevance_override minimize_command proof_state name =
   (case get_prover (Proof.theory_of proof_state) name of
     NONE => warning ("Unknown ATP: " ^ quote name ^ ".")
   | SOME prover =>
@@ -359,7 +364,8 @@ fun start_prover (params as {timeout, ...}) birth_time death_time i
               {subgoal = i, goal = (ctxt, (facts, goal)),
                relevance_override = relevance_override, axiom_clauses = NONE,
                filtered_clauses = NONE}
-            val message = #message (prover params timeout problem)
+            val message =
+              #message (prover params (minimize_command name) timeout problem)
               handle Sledgehammer_HOL_Clause.TRIVIAL =>
                   metis_line i n []
                 | ERROR msg => "Error: " ^ msg ^ ".\n";
@@ -371,14 +377,15 @@ fun start_prover (params as {timeout, ...}) birth_time death_time i
 (* Sledgehammer the given subgoal *)
 
 fun sledgehammer (params as {atps, timeout, ...}) i relevance_override
-                 proof_state =
+                 minimize_command proof_state =
   let
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, timeout)
     val _ = kill_atps () (* RACE w.r.t. other invocations of Sledgehammer *)
     val _ = priority "Sledgehammering..."
     val _ = List.app (start_prover params birth_time death_time i
-                                   relevance_override proof_state) atps
+                                   relevance_override minimize_command
+                                   proof_state) atps
   in () end
 
 end;

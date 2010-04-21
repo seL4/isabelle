@@ -78,7 +78,7 @@ fun sledgehammer_test_theorems (params as {full_types, ...} : params) prover
       axiom_clauses = SOME axclauses,
       filtered_clauses = SOME (the_default axclauses filtered_clauses)}
   in
-    `outcome_of_result (prover params timeout problem)
+    `outcome_of_result (prover params (K "") timeout problem)
     |>> tap (priority o string_of_outcome)
   end
 
@@ -122,8 +122,8 @@ fun minimize_theorems (params as {minimize_timeout, isar_proof, modulus,
             ["Minimized: " ^ string_of_int n ^ " theorem" ^ plural_s n] ^ ".")
         in
           (SOME min_thms,
-           proof_text isar_proof true modulus sorts atp_name proof
-                      internal_thm_names ctxt goal i |> fst)
+           proof_text isar_proof modulus sorts ctxt (K "") proof
+                      internal_thm_names goal i |> fst)
         end
     | (Timeout, _) =>
         (NONE, "Timeout: You can increase the time limit using the \"timeout\" \

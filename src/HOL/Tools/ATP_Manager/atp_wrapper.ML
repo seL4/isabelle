@@ -73,6 +73,7 @@ fun find_known_failure known_failures proof =
 
 fun generic_prover overlord get_facts prepare write_file cmd args known_failures
         proof_text name ({debug, full_types, explicit_apply, ...} : params)
+        minimize_command
         ({subgoal, goal, relevance_override, axiom_clauses, filtered_clauses}
          : problem) =
   let
@@ -105,7 +106,7 @@ fun generic_prover overlord get_facts prepare write_file cmd args known_failures
       in
         if destdir' = "" then File.tmp_path probfile
         else if File.exists (Path.explode destdir')
-        then Path.append  (Path.explode destdir') probfile
+        then Path.append (Path.explode destdir') probfile
         else error ("No such directory: " ^ destdir' ^ ".")
       end;
 
@@ -154,7 +155,7 @@ fun generic_prover overlord get_facts prepare write_file cmd args known_failures
     val success = rc = 0 andalso failure = "";
     val (message, relevant_thm_names) =
       if success then
-        proof_text name proof internal_thm_names ctxt th subgoal
+        proof_text ctxt minimize_command proof internal_thm_names th subgoal
       else if failure <> "" then
         (failure, [])
       else
@@ -176,7 +177,7 @@ fun generic_tptp_prover
         (params as {debug, overlord, respect_no_atp, relevance_threshold,
                     convergence, theory_relevant, higher_order, follow_defs,
                     isar_proof, modulus, sorts, ...})
-        timeout =
+        minimize_command timeout =
   generic_prover overlord
       (get_relevant_facts respect_no_atp relevance_threshold convergence
                           higher_order follow_defs max_new_clauses
@@ -184,8 +185,8 @@ fun generic_tptp_prover
       (prepare_clauses higher_order false)
       (write_tptp_file (debug andalso overlord andalso not isar_proof)) command
       (arguments timeout) known_failures
-      (proof_text (supports_isar_proofs andalso isar_proof) false modulus sorts)
-      name params
+      (proof_text (supports_isar_proofs andalso isar_proof) modulus sorts)
+      name params minimize_command
 
 fun tptp_prover name p = (name, generic_tptp_prover (name, p));
 
@@ -240,14 +241,14 @@ fun generic_dfg_prover
                  prefers_theory_relevant, ...} : prover_config))
         (params as {overlord, respect_no_atp, relevance_threshold, convergence,
                     theory_relevant, higher_order, follow_defs, ...})
-        timeout =
+        minimize_command timeout =
   generic_prover overlord
       (get_relevant_facts respect_no_atp relevance_threshold convergence
                           higher_order follow_defs max_new_clauses
                           (the_default prefers_theory_relevant theory_relevant))
       (prepare_clauses higher_order true) write_dfg_file command
-      (arguments timeout) known_failures (metis_proof_text false false)
-      name params
+      (arguments timeout) known_failures (K metis_proof_text)
+      name params minimize_command
 
 fun dfg_prover name p = (name, generic_dfg_prover (name, p))
 

@@ -6,6 +6,8 @@ Transfer of proofs from external provers.
 
 signature SLEDGEHAMMER_PROOF_RECONSTRUCT =
 sig
+  type minimize_command = string list -> string
+
   val chained_hint: string
   val invert_const: string -> string
   val invert_type_const: string -> string
@@ -15,14 +17,14 @@ sig
   val is_proof_well_formed: string -> bool
   val metis_line: int -> int -> string list -> string
   val metis_proof_text:
-    bool -> bool -> string -> string -> string vector -> Proof.context -> thm
-    -> int -> string * string list
+    minimize_command -> string -> string vector -> thm -> int
+    -> string * string list
   val isar_proof_text:
-    bool -> int -> bool -> string -> string -> string vector -> Proof.context
+    int -> bool -> Proof.context -> minimize_command -> string -> string vector
     -> thm -> int -> string * string list
   val proof_text:
-    bool -> bool -> int -> bool -> string -> string -> string vector
-    -> Proof.context -> thm -> int -> string * string list
+    bool -> int -> bool -> Proof.context -> minimize_command -> string
+    -> string vector -> thm -> int -> string * string list
 end;
 
 structure Sledgehammer_Proof_Reconstruct : SLEDGEHAMMER_PROOF_RECONSTRUCT =
@@ -30,6 +32,8 @@ struct
 
 open Sledgehammer_FOL_Clause
 open Sledgehammer_Fact_Preprocessor
+
+type minimize_command = string list -> string
 
 val trace_proof_path = Path.basic "atp_trace";
 
@@ -528,16 +532,15 @@ fun metis_command i n [] =
 fun metis_line i n xs =
   "Try this command: " ^
   Markup.markup Markup.sendback (metis_command i n xs) ^ ".\n" 
-fun minimize_line _ _ [] = ""
-  | minimize_line isar_proof atp_name xs =
+fun minimize_line _ [] = ""
+  | minimize_line minimize_command facts =
+    case minimize_command facts of
+      "" => ""
+    | command =>
       "To minimize the number of lemmas, try this command: " ^
-      Markup.markup Markup.sendback
-                    ("sledgehammer minimize [atp = " ^ atp_name ^
-                     (if isar_proof then ", isar_proof" else "") ^ "] (" ^
-                     space_implode " " xs ^ ")") ^ ".\n"
+      Markup.markup Markup.sendback command ^ ".\n"
 
-fun metis_proof_text isar_proof minimal atp_name proof thm_names
-                     (_ : Proof.context) goal i =
+fun metis_proof_text minimize_command proof thm_names goal i =
   let
     val lemmas =
       proof |> get_proof_extract
@@ -549,12 +552,10 @@ fun metis_proof_text isar_proof minimal atp_name proof thm_names
     val n = Logic.count_prems (prop_of goal)
     val xs = kill_chained lemmas
   in
-    (metis_line i n xs ^
-     (if minimal then "" else minimize_line isar_proof atp_name xs),
-     kill_chained lemmas)
+    (metis_line i n xs ^ minimize_line minimize_command xs, kill_chained lemmas)
   end
 
-fun isar_proof_text minimal modulus sorts atp_name proof thm_names ctxt goal i =
+fun isar_proof_text modulus sorts ctxt minimize_command proof thm_names goal i =
   let
     (* We could use "split_lines", but it can return blank lines. *)
     val lines = String.tokens (equal #"\n");
@@ -563,7 +564,7 @@ fun isar_proof_text minimal modulus sorts atp_name proof thm_names ctxt goal i =
     val extract = get_proof_extract proof
     val cnfs = filter (String.isPrefix "cnf(") (map kill_spaces (lines extract))
     val (one_line_proof, lemma_names) =
-      metis_proof_text true minimal atp_name proof thm_names ctxt goal i
+      metis_proof_text minimize_command proof thm_names goal i
     val tokens = String.tokens (fn c => c = #" ") one_line_proof
     val isar_proof =
       if member (op =) tokens chained_hint then ""
@@ -575,8 +576,7 @@ fun isar_proof_text minimal modulus sorts atp_name proof thm_names ctxt goal i =
      lemma_names)
   end
 
-fun proof_text isar_proof minimal modulus sorts =
-  if isar_proof then isar_proof_text minimal modulus sorts
-  else metis_proof_text isar_proof minimal
+fun proof_text isar_proof modulus sorts ctxt =
+  if isar_proof then isar_proof_text modulus sorts ctxt else metis_proof_text
 
 end;
