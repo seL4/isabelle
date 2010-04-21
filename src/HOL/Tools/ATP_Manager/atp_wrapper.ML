@@ -166,16 +166,16 @@ fun generic_prover overlord get_facts prepare write_file cmd args failure_strs
 fun generic_tptp_prover
         (name, {command, arguments, failure_strs, max_new_clauses,
                 prefers_theory_relevant, supports_isar_proofs})
-        (params as {overlord, respect_no_atp, relevance_threshold, convergence,
-                    theory_relevant, higher_order, follow_defs, isar_proof,
-                    modulus, sorts, ...})
+        (params as {debug, overlord, respect_no_atp, relevance_threshold,
+                    convergence, theory_relevant, higher_order, follow_defs,
+                    isar_proof, modulus, sorts, ...})
         timeout =
   generic_prover overlord
       (get_relevant_facts respect_no_atp relevance_threshold convergence
                           higher_order follow_defs max_new_clauses
                           (the_default prefers_theory_relevant theory_relevant))
       (prepare_clauses higher_order false)
-      (write_tptp_file (overlord andalso not isar_proof)) command
+      (write_tptp_file (debug andalso overlord andalso not isar_proof)) command
       (arguments timeout) failure_strs
       (proof_text (supports_isar_proofs andalso isar_proof) false modulus sorts)
       name params
@@ -236,7 +236,7 @@ fun generic_dfg_prover
       (arguments timeout) failure_strs (metis_proof_text false false)
       name params
 
-fun dfg_prover (name, p) = (name, generic_dfg_prover (name, p));
+fun dfg_prover name p = (name, generic_dfg_prover (name, p))
 
 (* The "-VarWeight=3" option helps the higher-order problems, probably by
    counteracting the presence of "hAPP". *)
@@ -251,8 +251,21 @@ val spass_config : prover_config =
   max_new_clauses = 40,
   prefers_theory_relevant = true,
   supports_isar_proofs = false}
-val spass = dfg_prover ("spass", spass_config)
+val spass = dfg_prover "spass" spass_config
 
+(* SPASS 3.7 supports both the DFG and the TPTP syntax, whereas SPASS 3.0
+   supports only the DFG syntax. As soon as all Isabelle repository/snapshot
+   users have upgraded to 3.7, we can kill "spass" (and all DFG support in
+   Sledgehammer) and rename "spass_tptp" "spass". *)
+
+val spass_tptp_config =
+  {command = #command spass_config,
+   arguments = prefix "-TPTP " o #arguments spass_config,
+   failure_strs = #failure_strs spass_config,
+   max_new_clauses = #max_new_clauses spass_config,
+   prefers_theory_relevant = #prefers_theory_relevant spass_config,
+   supports_isar_proofs = #supports_isar_proofs spass_config}
+val spass_tptp = tptp_prover "spass_tptp" spass_tptp_config
 
 (* remote prover invocation via SystemOnTPTP *)
 
@@ -304,7 +317,8 @@ val remote_e =
 val remote_spass =
   tptp_prover "remote_spass" (remote_prover_config "SPASS---" "-x" spass_config)
 
-val provers = [spass, vampire, e, remote_vampire, remote_spass, remote_e]
+val provers = [spass, spass_tptp, vampire, e, remote_vampire, remote_spass,
+               remote_e]
 val prover_setup = fold add_prover provers
 
 val setup =
