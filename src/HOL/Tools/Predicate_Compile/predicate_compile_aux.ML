@@ -38,6 +38,7 @@ sig
   (* premises *)
   datatype indprem = Prem of term | Negprem of term | Sidecond of term
     | Generator of (string * typ)
+  val dest_indprem : indprem -> term
   (* general syntactic functions *)
   val conjuncts : term -> term list
   val is_equationlike : thm -> bool
@@ -387,6 +388,11 @@ fun ascii_string_of_mode mode' =
 
 datatype indprem = Prem of term | Negprem of term | Sidecond of term
   | Generator of (string * typ);
+
+fun dest_indprem (Prem t) = t
+  | dest_indprem (Negprem t) = t
+  | dest_indprem (Sidecond t) = t
+  | dest_indprem (Generator _) = raise Fail "cannot destruct generator"
 
 (* general syntactic functions *)
 

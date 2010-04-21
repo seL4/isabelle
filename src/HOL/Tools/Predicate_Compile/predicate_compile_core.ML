@@ -1485,13 +1485,26 @@ fun infer_modes mode_analysis_options options compilation preds all_modes param_
     val prednames = map fst preds
     (* extramodes contains all modes of all constants, should we only use the necessary ones
        - what is the impact on performance? *)
+    fun predname_of (Prem t) =
+        (case try dest_Const (fst (strip_comb t)) of SOME (c, _) => insert (op =) c | NONE => I)
+      | predname_of (Negprem t) =
+        (case try dest_Const (fst (strip_comb t)) of SOME (c, _) => insert (op =) c | NONE => I)
+      | predname_of _ = I
+    val relevant_prednames = fold (fn (_, clauses') =>
+      fold (fn (_, ps) => fold Term.add_const_names (map dest_indprem ps)) clauses') clauses []
     val extra_modes =
       if #infer_pos_and_neg_modes mode_analysis_options then
         let
           val pos_extra_modes =
-            all_modes_of compilation thy |> filter_out (fn (name, _) => member (op =) prednames name)
+            map_filter (fn name => Option.map (pair name) (try (modes_of compilation thy) name))
+            relevant_prednames
+            (* all_modes_of compilation thy *)
+            |> filter_out (fn (name, _) => member (op =) prednames name)
           val neg_extra_modes =
-            all_modes_of (negative_compilation_of compilation) thy
+          map_filter (fn name => Option.map (pair name)
+            (try (modes_of (negative_compilation_of compilation) thy) name))
+            relevant_prednames
+          (*all_modes_of (negative_compilation_of compilation) thy*)
             |> filter_out (fn (name, _) => member (op =) prednames name)
         in
           map (fn (s, ms) => (s, (add_polarity_and_random_bit s true ms)
@@ -1500,7 +1513,10 @@ fun infer_modes mode_analysis_options options compilation preds all_modes param_
         end
       else
         map (fn (s, ms) => (s, (add_polarity_and_random_bit s true ms)))
-          (all_modes_of compilation thy |> filter_out (fn (name, _) => member (op =) prednames name))
+          (map_filter (fn name => Option.map (pair name) (try (modes_of compilation thy) name))
+            relevant_prednames
+          (*all_modes_of compilation thy*)
+          |> filter_out (fn (name, _) => member (op =) prednames name))
     val _ = print_extra_modes options extra_modes
     val start_modes =
       if #infer_pos_and_neg_modes mode_analysis_options then
@@ -2639,9 +2655,9 @@ fun add_equations_of steps mode_analysis_options options prednames thy =
       prepare_intrs options compilation thy prednames (maps (intros_of thy) prednames)
     val _ = print_step options "Infering modes..."
     val ((moded_clauses, errors), thy') =
-      (*Output.cond_timeit true "Infering modes"
-      (fn _ =>*) infer_modes mode_analysis_options
-        options compilation preds all_modes param_vs clauses thy
+      Output.cond_timeit true "Infering modes"
+      (fn _ => infer_modes mode_analysis_options
+        options compilation preds all_modes param_vs clauses thy)
     val modes = map (fn (p, mps) => (p, map fst mps)) moded_clauses
     val _ = check_expected_modes preds options modes
     (*val _ = check_proposed_modes preds options modes (fst extra_modes) errors*)
