@@ -71,17 +71,6 @@ fun pred_type T =
     (Ts' @ [T']) ---> HOLogic.boolT
   end;
 
-(* FIXME: create new predicate name -- does not avoid nameclashing *)
-fun pred_of f =
-  let
-    val (name, T) = dest_Const f
-  in
-    if (body_type T = @{typ bool}) then
-      (Free (Long_Name.base_name name ^ "P", T))
-    else
-      (Free (Long_Name.base_name name ^ "P", pred_type T))
-  end
-
 (* creates the list of premises for every intro rule *)
 (* theory -> term -> (string list, term list list) *)
 
@@ -274,6 +263,17 @@ fun flatten thy lookup_pred t (names, prems) =
     map (apfst Envir.eta_contract) (flatten' (Pattern.eta_long [] t) (names, prems))
   end;
 
+(* FIXME: create new predicate name -- does not avoid nameclashing *)
+fun pred_of thy f =
+  let
+    val (name, T) = dest_Const f
+    val base_name' = (Long_Name.base_name name ^ "P")
+    val name' = Sign.full_bname thy base_name'
+    val T' = if (body_type T = @{typ bool}) then T else pred_type T
+  in
+    (name', Const (name', T'))
+  end
+
 (* assumption: mutual recursive predicates all have the same parameters. *)
 fun define_predicates specs thy =
   if forall (fn (const, _) => defined_const thy const) specs then
@@ -284,14 +284,17 @@ fun define_predicates specs thy =
       val eqns = maps snd specs
       (* create prednames *)
       val ((funs, argss), rhss) = map_split dest_code_eqn eqns |>> split_list
+      val dst_funs = distinct (op =) funs
       val argss' = map (map transform_ho_arg) argss
       fun is_lifted (t1, t2) = (fastype_of t2 = pred_type (fastype_of t1))
-     (* FIXME: higher order arguments also occur in tuples! *)
+      (* FIXME: higher order arguments also occur in tuples! *)
       val lifted_args = distinct (op =) (filter is_lifted (flat argss ~~ flat argss'))
-      val preds = map pred_of funs
+      val (prednames, preds) = split_list (map (pred_of thy) funs)
+      val dst_preds = distinct (op =) preds
+      val dst_prednames = distinct (op =) prednames
       (* mapping from term (Free or Const) to term *)
       val net = fold Item_Net.update
-        ((funs ~~ preds) @ lifted_args)
+        ((dst_funs ~~ dst_preds) @ lifted_args)
           (Fun_Pred.get thy)
       fun lookup_pred t = lookup thy net t
       (* create intro rules *)
@@ -308,51 +311,42 @@ fun define_predicates specs thy =
           end
       fun mk_rewr_thm (func, pred) = @{thm refl}
       val intr_ts = maps mk_intros ((funs ~~ preds) ~~ (argss' ~~ rhss))
-      val (ind_result, thy') =
-        thy
-        |> Sign.map_naming Name_Space.conceal
-        |> Inductive.add_inductive_global
-          {quiet_mode = false, verbose = false, alt_name = Binding.empty, coind = false,
-            no_elim = false, no_ind = false, skip_mono = false, fork_mono = false}
-          (map (fn (s, T) =>
-            ((Binding.name s, T), NoSyn)) (distinct (op =) (map dest_Free preds)))
-          (map (dest_Free o snd) lifted_args)
-          (map (fn x => (Attrib.empty_binding, x)) intr_ts)
-          []
-        ||> Sign.restore_naming thy
-      val prednames = map (fst o dest_Const) (#preds ind_result)
-      (* add constants to my table *)
-      val specs = map (fn predname => (predname, filter (Predicate_Compile_Aux.is_intro predname)
-        (#intrs ind_result))) prednames
+      val (intrs, thy') = thy
+        |> Sign.add_consts_i
+          (map (fn Const (name, T) => (Binding.name (Long_Name.base_name name), T, NoSyn))
+           dst_preds)
+        |> fold_map Specification.axiom (map (pair (Binding.empty, [])) intr_ts)
+      val specs = map (fn predname => (predname,
+          map Drule.export_without_context (filter (Predicate_Compile_Aux.is_intro predname) intrs)))
+        dst_prednames
       val thy'' = Fun_Pred.map
-        (fold Item_Net.update (map (apfst Logic.varify_global)
-          (distinct (op =) funs ~~ (#preds ind_result)))) thy'
+        (fold Item_Net.update (map (pairself Logic.varify_global)
+          (dst_funs ~~ dst_preds))) thy'
       fun functional_mode_of T =
         list_fun_mode (replicate (length (binder_types T)) Input @ [Output])
       val thy''' = fold
         (fn (predname, Const (name, T)) => Predicate_Compile_Core.register_alternative_function
           predname (functional_mode_of T) name)
-      (prednames ~~ distinct (op =) funs) thy''
+      (dst_prednames ~~ dst_funs) thy''
     in
       (specs, thy''')
     end
 
 fun rewrite_intro thy intro =
   let
-    (*val _ = tracing ("Rewriting intro with registered mapping for: " ^
-      commas (Symtab.keys (Pred_Compile_Preproc.get thy)))*)
     fun lookup_pred t = lookup thy (Fun_Pred.get thy) t
+    (*val _ = tracing ("Rewriting intro " ^ Display.string_of_thm_global thy intro)*)
     val intro_t = Logic.unvarify_global (prop_of intro)
     val (prems, concl) = Logic.strip_horn intro_t
     val frees = map fst (Term.add_frees intro_t [])
     fun rewrite prem names =
       let
         (*val _ = tracing ("Rewriting premise " ^ Syntax.string_of_term_global thy prem ^ "...")*)
-        val t = (HOLogic.dest_Trueprop prem)
+        val t = HOLogic.dest_Trueprop prem
         val (lit, mk_lit) = case try HOLogic.dest_not t of
             SOME t => (t, HOLogic.mk_not)
           | NONE => (t, I)
-        val (P, args) = (strip_comb lit)
+        val (P, args) = strip_comb lit
       in
         folds_map (flatten thy lookup_pred) args (names, [])
         |> map (fn (resargs, (names', prems')) =>
@@ -365,6 +359,8 @@ fun rewrite_intro thy intro =
         rewrite concl frees'
         |> map (fn (concl'::conclprems, _) =>
           Logic.list_implies ((flat prems') @ conclprems, concl')))
+    (*val _ = tracing ("Rewritten intro to " ^
+      commas (map (Syntax.string_of_term_global thy) intro_ts'))*)
   in
     map (Drule.export_without_context o Skip_Proof.make_thm thy) intro_ts'
   end
