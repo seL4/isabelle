@@ -329,7 +329,7 @@ end; (* local *)
 
 fun code_of thy target some_width module_name cs names_stmt =
   let
-    val (names_cs, (naming, program)) = Code_Thingol.consts_program thy cs;
+    val (names_cs, (naming, program)) = Code_Thingol.consts_program thy false cs;
   in
     string (names_stmt naming)
       (serialize thy target some_width (SOME module_name) [] naming program names_cs)
@@ -347,15 +347,15 @@ fun transitivly_non_empty_funs thy naming program =
 fun read_const_exprs thy cs =
   let
     val (cs1, cs2) = Code_Thingol.read_const_exprs thy cs;
-    val (names3, (naming, program)) = Code_Thingol.consts_program thy cs2;
-    val names4 = transitivly_non_empty_funs thy naming program;
-    val cs5 = map_filter
-      (fn (c, name) => if member (op =) names4 name then SOME c else NONE) (cs2 ~~ names3);
-  in fold (insert (op =)) cs5 cs1 end;
+    val (names2, (naming, program)) = Code_Thingol.consts_program thy true cs2;
+    val names3 = transitivly_non_empty_funs thy naming program;
+    val cs3 = map_filter (fn (c, name) =>
+      if member (op =) names3 name then SOME c else NONE) (cs2 ~~ names2);
+  in union (op =) cs3 cs1 end;
 
 fun export_code thy cs seris =
   let
-    val (cs', (naming, program)) = Code_Thingol.consts_program thy cs;
+    val (cs', (naming, program)) = Code_Thingol.consts_program thy false cs;
     fun mk_seri_dest dest = case dest
      of NONE => compile
       | SOME "-" => export
