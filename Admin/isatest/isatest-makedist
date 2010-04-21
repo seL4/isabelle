@@ -55,7 +55,7 @@ rm -rf $DISTPREFIX >> $DISTLOG 2>&1
 
 echo "### cleaning up old isabelle-* directories" >> $DISTLOG 2>&1
 rm -rf $HOME/isabelle-*
-ssh atbroy102 "rm -rf /home/isatest/isabelle-cygwin-poly"
+ssh atbroy102 "rm -rf /home/isatest/isabelle-cygwin-poly-e"
 
 echo "### building distribution"  >> $DISTLOG 2>&1
 mkdir -p $DISTPREFIX
@@ -110,7 +110,7 @@ $SSH macbroy5 "$MAKEALL $HOME/settings/mac-poly"
 sleep 15
 $SSH macbroy6 "sleep 10800; $MAKEALL $HOME/settings/at-mac-poly-5.1-para"
 sleep 15
-$SSH atbroy102 "$MAKEALL $HOME/settings/cygwin-poly"
+$SSH atbroy102 "$MAKEALL $HOME/settings/cygwin-poly-e"
 #sleep 15
 #$SSH atbroy51 "$HOME/admin/isatest/isatest-annomaly"
 #sleep 15
