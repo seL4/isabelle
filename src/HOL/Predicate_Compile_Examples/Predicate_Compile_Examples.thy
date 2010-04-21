@@ -1406,6 +1406,86 @@ thm test_minus_bool.equation
 
 values "{x. test_minus_bool x}"
 
+subsection {* Examples for detecting switches *}
+
+inductive detect_switches1 where
+  "detect_switches1 [] []"
+| "detect_switches1 (x # xs) (y # ys)"
+
+code_pred [detect_switches, skip_proof] detect_switches1 .
+
+thm detect_switches1.equation
+
+inductive detect_switches2 :: "('a => bool) => bool"
+where
+  "detect_switches2 P"
+
+code_pred [detect_switches, skip_proof] detect_switches2 .
+thm detect_switches2.equation
+
+inductive detect_switches3 :: "('a => bool) => 'a list => bool"
+where
+  "detect_switches3 P []"
+| "detect_switches3 P (x # xs)" 
+
+code_pred [detect_switches, skip_proof] detect_switches3 .
+
+thm detect_switches3.equation
+
+inductive detect_switches4 :: "('a => bool) => 'a list => 'a list => bool"
+where
+  "detect_switches4 P [] []"
+| "detect_switches4 P (x # xs) (y # ys)"
+
+code_pred [detect_switches, skip_proof] detect_switches4 .
+thm detect_switches4.equation
+
+inductive detect_switches5 :: "('a => 'a => bool) => 'a list => 'a list => bool"
+where
+  "detect_switches5 P [] []"
+| "detect_switches5 P xs ys ==> P x y ==> detect_switches5 P (x # xs) (y # ys)"
+
+code_pred [detect_switches, skip_proof] detect_switches5 .
+
+thm detect_switches5.equation
+
+inductive detect_switches6 :: "(('a => 'b => bool) * 'a list * 'b list) => bool"
+where
+  "detect_switches6 (P, [], [])"
+| "detect_switches6 (P, xs, ys) ==> P x y ==> detect_switches6 (P, x # xs, y # ys)"
+
+code_pred [detect_switches, skip_proof] detect_switches6 .
+
+inductive detect_switches7 :: "('a => bool) => ('b => bool) => ('a * 'b list) => bool"
+where
+  "detect_switches7 P Q (a, [])"
+| "P a ==> Q x ==> detect_switches7 P Q (a, x#xs)"
+
+code_pred [skip_proof] detect_switches7 .
+
+thm detect_switches7.equation
+
+inductive detect_switches8 :: "nat => bool"
+where
+  "detect_switches8 0"
+| "x mod 2 = 0 ==> detect_switches8 (Suc x)"
+
+code_pred [detect_switches, skip_proof] detect_switches8 .
+
+thm detect_switches8.equation
+
+inductive detect_switches9 :: "nat => nat => bool"
+where
+  "detect_switches9 0 0"
+| "detect_switches9 0 (Suc x)"
+| "detect_switches9 (Suc x) 0"
+| "x = y ==> detect_switches9 (Suc x) (Suc y)"
+| "c1 = c2 ==> detect_switches9 c1 c2"
+
+code_pred [detect_switches, skip_proof] detect_switches9 .
+
+thm detect_switches9.equation
+
 
 
 end
