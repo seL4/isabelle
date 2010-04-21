@@ -337,7 +337,7 @@ qed
 
 section {* 4. Case Studies *}
 
-nitpick_params [max_potential = 0, max_threads = 2]
+nitpick_params [max_potential = 0]
 
 subsection {* 4.1. A Context-Free Grammar *}
 
