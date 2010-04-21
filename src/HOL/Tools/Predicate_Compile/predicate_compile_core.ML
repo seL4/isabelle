@@ -2663,24 +2663,30 @@ fun add_equations_of steps mode_analysis_options options prednames thy =
     (*val _ = check_proposed_modes preds options modes (fst extra_modes) errors*)
     val _ = print_modes options thy' modes
     val _ = print_step options "Defining executable functions..."
-    val thy'' = fold (#define_functions (dest_steps steps) options preds) modes thy'
-      |> Theory.checkpoint
+    val thy'' =
+      Output.cond_timeit true "Defining executable functions..."
+      (fn _ => fold (#define_functions (dest_steps steps) options preds) modes thy'
+      |> Theory.checkpoint)
     val _ = print_step options "Compiling equations..."
     val compiled_terms =
-      compile_preds (#comp_modifiers (dest_steps steps)) thy'' all_vs param_vs preds moded_clauses
+      Output.cond_timeit true "Compiling equations...." (fn _ =>
+      compile_preds (#comp_modifiers (dest_steps steps)) thy'' all_vs param_vs preds moded_clauses)
     val _ = print_compiled_terms options thy'' compiled_terms
     val _ = print_step options "Proving equations..."
     val result_thms =
-      #prove (dest_steps steps) options thy'' clauses preds moded_clauses compiled_terms
+      Output.cond_timeit true "Proving equations...." (fn _ =>
+      #prove (dest_steps steps) options thy'' clauses preds moded_clauses compiled_terms)
     val result_thms' = #add_code_equations (dest_steps steps) thy'' preds
       (maps_modes result_thms)
     val qname = #qname (dest_steps steps)
     val attrib = fn thy => Attrib.attribute_i thy (Attrib.internal (K (Thm.declaration_attribute
       (fn thm => Context.mapping (Code.add_eqn thm) I))))
-    val thy''' = fold (fn (name, result_thms) => fn thy => snd (PureThy.add_thmss
+    val thy''' =
+      Output.cond_timeit true "Setting code equations...." (fn _ =>
+      fold (fn (name, result_thms) => fn thy => snd (PureThy.add_thmss
       [((Binding.qualify true (Long_Name.base_name name) (Binding.name qname), result_thms),
         [attrib thy ])] thy))
-      result_thms' thy'' |> Theory.checkpoint
+      result_thms' thy'' |> Theory.checkpoint)
   in
     thy'''
   end
