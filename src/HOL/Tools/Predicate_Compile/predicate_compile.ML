@@ -162,6 +162,7 @@ fun extract_options (((expected_modes, proposed_modes), (compilation, raw_option
       no_topmost_reordering = (chk "no_topmost_reordering"),
       no_higher_order_predicate = [],
       inductify = chk "inductify",
+      detect_switches = chk "detect_switches",
       compilation = compilation
     }
   end

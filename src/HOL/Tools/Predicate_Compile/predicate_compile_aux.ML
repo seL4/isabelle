@@ -39,6 +39,7 @@ sig
   datatype indprem = Prem of term | Negprem of term | Sidecond of term
     | Generator of (string * typ)
   val dest_indprem : indprem -> term
+  val map_indprem : (term -> term) -> indprem -> indprem
   (* general syntactic functions *)
   val conjuncts : term -> term list
   val is_equationlike : thm -> bool
@@ -111,6 +112,7 @@ sig
     specialise : bool,
     no_higher_order_predicate : string list,
     inductify : bool,
+    detect_switches : bool,
     compilation : compilation
   };
   val expected_modes : options -> (string * mode list) option
@@ -130,6 +132,7 @@ sig
   val specialise : options -> bool
   val no_higher_order_predicate : options -> string list
   val is_inductify : options -> bool
+  val detect_switches : options -> bool
   val compilation : options -> compilation
   val default_options : options
   val bool_options : string list
@@ -393,6 +396,11 @@ fun dest_indprem (Prem t) = t
   | dest_indprem (Negprem t) = t
   | dest_indprem (Sidecond t) = t
   | dest_indprem (Generator _) = raise Fail "cannot destruct generator"
+
+fun map_indprem f (Prem t) = Prem (f t)
+  | map_indprem f (Negprem t) = Negprem (f t)
+  | map_indprem f (Sidecond t) = Sidecond (f t)
+  | map_indprem f (Generator (v, T)) = Generator (dest_Free (f (Free (v, T))))
 
 (* general syntactic functions *)
 
@@ -677,6 +685,7 @@ datatype options = Options of {
   fail_safe_function_flattening : bool,
   no_higher_order_predicate : string list,
   inductify : bool,
+  detect_switches : bool,
   compilation : compilation
 };
 
@@ -705,6 +714,8 @@ fun is_inductify (Options opt) = #inductify opt
 
 fun compilation (Options opt) = #compilation opt
 
+fun detect_switches (Options opt) = #detect_switches opt
+
 val default_options = Options {
   expected_modes = NONE,
   proposed_modes = NONE,
@@ -723,12 +734,13 @@ val default_options = Options {
   fail_safe_function_flattening = false,
   no_higher_order_predicate = [],
   inductify = false,
+  detect_switches = true,
   compilation = Pred
 }
 
 val bool_options = ["show_steps", "show_intermediate_results", "show_proof_trace", "show_modes",
   "show_mode_inference", "show_compilation", "skip_proof", "inductify", "no_function_flattening",
-  "specialise", "no_topmost_reordering"]
+  "detect_switches", "specialise", "no_topmost_reordering"]
 
 fun print_step options s =
   if show_steps options then tracing s else ()
