@@ -71,7 +71,7 @@ val options = Options {
   function_flattening = true,
   fail_safe_function_flattening = false,
   no_higher_order_predicate = [],
-  no_topmost_reordering = true
+  no_topmost_reordering = false
 }
 
 val debug_options = Options {
