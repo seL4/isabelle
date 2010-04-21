@@ -188,7 +188,7 @@ fun generic_tptp_prover
       (prepare_clauses higher_order false)
       (write_tptp_file (debug andalso overlord andalso not isar_proof)) command
       (arguments timeout) known_failures
-      (proof_text (supports_isar_proofs andalso isar_proof) modulus sorts)
+      (proof_text (supports_isar_proofs andalso isar_proof) debug modulus sorts)
       name params minimize_command
 
 fun tptp_prover name p = (name, generic_tptp_prover (name, p));

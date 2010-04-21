@@ -84,7 +84,7 @@ fun sledgehammer_test_theorems (params as {full_types, ...} : params) prover
 
 (* minimalization of thms *)
 
-fun minimize_theorems (params as {minimize_timeout, isar_proof, modulus,
+fun minimize_theorems (params as {debug, minimize_timeout, isar_proof, modulus,
                                   sorts, ...})
                       prover atp_name i state name_thms_pairs =
   let
@@ -122,7 +122,7 @@ fun minimize_theorems (params as {minimize_timeout, isar_proof, modulus,
             ["Minimized: " ^ string_of_int n ^ " theorem" ^ plural_s n] ^ ".")
         in
           (SOME min_thms,
-           proof_text isar_proof modulus sorts ctxt (K "") proof
+           proof_text isar_proof debug modulus sorts ctxt (K "") proof
                       internal_thm_names goal i |> fst)
         end
     | (Timeout, _) =>
