@@ -20,6 +20,7 @@ end;
 structure ATP_Wrapper : ATP_WRAPPER =
 struct
 
+open Sledgehammer_Util
 open Sledgehammer_Fact_Preprocessor
 open Sledgehammer_HOL_Clause
 open Sledgehammer_Fact_Filter
@@ -47,7 +48,7 @@ type prover_config =
   arguments: Time.time -> string,
   failure_strs: string list,
   max_new_clauses: int,
-  prefers_theory_const: bool,
+  prefers_theory_relevant: bool,
   supports_isar_proofs: bool};
 
 
@@ -65,8 +66,8 @@ fun find_failure strs proof =
           else SOME "Ill-formed ATP output"
   | (failure :: _) => SOME failure
 
-fun generic_prover get_facts prepare write cmd args failure_strs produce_answer
-        name ({full_types, ...} : params)
+fun generic_prover overlord get_facts prepare write_file cmd args failure_strs
+        proof_text name ({debug, full_types, explicit_apply, ...} : params)
         ({subgoal, goal, relevance_override, axiom_clauses, filtered_clauses}
          : problem) =
   let
@@ -87,16 +88,20 @@ fun generic_prover get_facts prepare write cmd args failure_strs produce_answer
       prepare goal_cls chain_ths the_axiom_clauses the_filtered_clauses thy;
 
     (* path to unique problem file *)
-    val destdir' = Config.get ctxt destdir;
+    val destdir' = if overlord then getenv "ISABELLE_HOME_USER"
+                   else Config.get ctxt destdir;
     val problem_prefix' = Config.get ctxt problem_prefix;
     fun prob_pathname nr =
-      let val probfile =
-        Path.basic (problem_prefix' ^ serial_string () ^ "_" ^ string_of_int nr)
+      let
+        val probfile =
+          Path.basic (problem_prefix' ^
+                      (if overlord then "_" ^ name else serial_string ())
+                      ^ "_" ^ string_of_int nr)
       in
         if destdir' = "" then File.tmp_path probfile
         else if File.exists (Path.explode destdir')
         then Path.append  (Path.explode destdir') probfile
-        else error ("No such directory: " ^ destdir')
+        else error ("No such directory: " ^ destdir' ^ ".")
       end;
 
     (* write out problem file and call prover *)
@@ -123,28 +128,30 @@ fun generic_prover get_facts prepare write cmd args failure_strs produce_answer
       if Config.get ctxt measure_runtime then split_time s else (s, 0)
     fun run_on probfile =
       if File.exists cmd then
-        write full_types probfile clauses
+        write_file full_types explicit_apply probfile clauses
         |> pair (apfst split_time' (bash_output (cmd_line probfile)))
-      else error ("Bad executable: " ^ Path.implode cmd);
+      else error ("Bad executable: " ^ Path.implode cmd ^ ".");
 
-    (* if problemfile has not been exported, delete problemfile; otherwise export proof, too *)
+    (* If the problem file has not been exported, remove it; otherwise, export
+       the proof file too. *)
     fun cleanup probfile = if destdir' = "" then try File.rm probfile else NONE;
     fun export probfile (((proof, _), _), _) =
-      if destdir' = "" then ()
-      else File.write (Path.explode (Path.implode probfile ^ "_proof")) proof;
+      if destdir' = "" then
+        ()
+      else
+        File.write (Path.explode (Path.implode probfile ^ "_proof"))
+                   ("% " ^ timestamp () ^ "\n" ^ proof)
 
-    val (((proof, atp_run_time_in_msecs), rc), conj_pos) =
+    val (((proof, atp_run_time_in_msecs), rc), _) =
       with_path cleanup export run_on (prob_pathname subgoal);
 
-    (* check for success and print out some information on failure *)
+    (* Check for success and print out some information on failure. *)
     val failure = find_failure failure_strs proof;
     val success = rc = 0 andalso is_none failure;
     val (message, relevant_thm_names) =
-      if is_some failure then ("External prover failed.", [])
-      else if rc <> 0 then ("External prover failed: " ^ proof, [])
-      else
-        (produce_answer name (proof, internal_thm_names, conj_pos, ctxt, th,
-                              subgoal));
+      if is_some failure then ("ATP failed to find a proof.\n", [])
+      else if rc <> 0 then ("ATP error: " ^ proof ^ ".\n", [])
+      else proof_text name proof internal_thm_names ctxt th subgoal
   in
     {success = success, message = message,
      relevant_thm_names = relevant_thm_names,
@@ -158,26 +165,27 @@ fun generic_prover get_facts prepare write cmd args failure_strs produce_answer
 
 fun generic_tptp_prover
         (name, {command, arguments, failure_strs, max_new_clauses,
-                prefers_theory_const, supports_isar_proofs})
-        (params as {respect_no_atp, relevance_threshold, convergence,
-                    theory_const, higher_order, follow_defs, isar_proof,
+                prefers_theory_relevant, supports_isar_proofs})
+        (params as {overlord, respect_no_atp, relevance_threshold, convergence,
+                    theory_relevant, higher_order, follow_defs, isar_proof,
                     modulus, sorts, ...})
         timeout =
-  generic_prover
+  generic_prover overlord
       (get_relevant_facts respect_no_atp relevance_threshold convergence
                           higher_order follow_defs max_new_clauses
-                          (the_default prefers_theory_const theory_const))
-      (prepare_clauses higher_order false) write_tptp_file command
+                          (the_default prefers_theory_relevant theory_relevant))
+      (prepare_clauses higher_order false)
+      (write_tptp_file (overlord andalso not isar_proof)) command
       (arguments timeout) failure_strs
-      (if supports_isar_proofs andalso isar_proof then
-         structured_isar_proof modulus sorts
-       else
-         metis_lemma_list false) name params;
+      (proof_text (supports_isar_proofs andalso isar_proof) false modulus sorts)
+      name params
 
 fun tptp_prover name p = (name, generic_tptp_prover (name, p));
 
 
 (** common provers **)
+
+fun generous_to_secs time = (Time.toMilliseconds time + 999) div 1000
 
 (* Vampire *)
 
@@ -186,11 +194,11 @@ fun tptp_prover name p = (name, generic_tptp_prover (name, p));
 val vampire_config : prover_config =
   {command = Path.explode "$VAMPIRE_HOME/vampire",
    arguments = (fn timeout => "--output_syntax tptp --mode casc -t " ^
-                              string_of_int (Time.toSeconds timeout)),
+                              string_of_int (generous_to_secs timeout)),
    failure_strs =
      ["Satisfiability detected", "Refutation not found", "CANNOT PROVE"],
    max_new_clauses = 60,
-   prefers_theory_const = false,
+   prefers_theory_relevant = false,
    supports_isar_proofs = true}
 val vampire = tptp_prover "vampire" vampire_config
 
@@ -201,13 +209,13 @@ val e_config : prover_config =
   {command = Path.explode "$E_HOME/eproof",
    arguments = (fn timeout => "--tstp-in --tstp-out -l5 -xAutoDev \
                               \-tAutoDev --silent --cpu-limit=" ^
-                              string_of_int (Time.toSeconds timeout)),
+                              string_of_int (generous_to_secs timeout)),
    failure_strs =
        ["SZS status: Satisfiable", "SZS status Satisfiable",
         "SZS status: ResourceOut", "SZS status ResourceOut",
         "# Cannot determine problem status"],
    max_new_clauses = 100,
-   prefers_theory_const = false,
+   prefers_theory_relevant = false,
    supports_isar_proofs = true}
 val e = tptp_prover "e" e_config
 
@@ -216,29 +224,32 @@ val e = tptp_prover "e" e_config
 
 fun generic_dfg_prover
         (name, ({command, arguments, failure_strs, max_new_clauses,
-                 prefers_theory_const, ...} : prover_config))
-        (params as {respect_no_atp, relevance_threshold, convergence,
-                    theory_const, higher_order, follow_defs, ...})
+                 prefers_theory_relevant, ...} : prover_config))
+        (params as {overlord, respect_no_atp, relevance_threshold, convergence,
+                    theory_relevant, higher_order, follow_defs, ...})
         timeout =
-  generic_prover
+  generic_prover overlord
       (get_relevant_facts respect_no_atp relevance_threshold convergence
                           higher_order follow_defs max_new_clauses
-                          (the_default prefers_theory_const theory_const))
+                          (the_default prefers_theory_relevant theory_relevant))
       (prepare_clauses higher_order true) write_dfg_file command
-      (arguments timeout) failure_strs (metis_lemma_list true) name params;
+      (arguments timeout) failure_strs (metis_proof_text false false)
+      name params
 
 fun dfg_prover (name, p) = (name, generic_dfg_prover (name, p));
 
+(* The "-VarWeight=3" option helps the higher-order problems, probably by
+   counteracting the presence of "hAPP". *)
 val spass_config : prover_config =
  {command = Path.explode "$SPASS_HOME/SPASS",
   arguments = (fn timeout => "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0" ^
-    " -FullRed=0 -DocProof -TimeLimit=" ^
-    string_of_int (Time.toSeconds timeout)),
+    " -FullRed=0 -DocProof -VarWeight=3 -TimeLimit=" ^
+    string_of_int (generous_to_secs timeout)),
   failure_strs =
     ["SPASS beiseite: Completion found.", "SPASS beiseite: Ran out of time.",
      "SPASS beiseite: Maximal number of loops exceeded."],
   max_new_clauses = 40,
-  prefers_theory_const = true,
+  prefers_theory_relevant = true,
   supports_isar_proofs = false}
 val spass = dfg_prover ("spass", spass_config)
 
@@ -272,15 +283,15 @@ fun the_system prefix =
 val remote_failure_strs = ["Remote-script could not extract proof"];
 
 fun remote_prover_config prover_prefix args
-        ({failure_strs, max_new_clauses, prefers_theory_const, ...}
+        ({failure_strs, max_new_clauses, prefers_theory_relevant, ...}
          : prover_config) : prover_config =
   {command = Path.explode "$ISABELLE_ATP_MANAGER/SystemOnTPTP",
    arguments = (fn timeout =>
-     args ^ " -t " ^ string_of_int (Time.toSeconds timeout) ^ " -s " ^
+     args ^ " -t " ^ string_of_int (generous_to_secs timeout) ^ " -s " ^
      the_system prover_prefix),
    failure_strs = remote_failure_strs @ failure_strs,
    max_new_clauses = max_new_clauses,
-   prefers_theory_const = prefers_theory_const,
+   prefers_theory_relevant = prefers_theory_relevant,
    supports_isar_proofs = false}
 
 val remote_vampire =

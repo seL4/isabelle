@@ -8,7 +8,7 @@ theory Imperative_Reverse
 imports "~~/src/HOL/Imperative_HOL/Imperative_HOL" Subarray
 begin
 
-hide (open) const swap rev
+hide_const (open) swap rev
 
 fun swap :: "'a\<Colon>heap array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> unit Heap" where
   "swap a i j = (do

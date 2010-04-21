@@ -1361,7 +1361,8 @@ where
 | "x : a_odd \<Longrightarrow> f x : a_even"
 
 lemma "x : a_odd"
-  refute  -- {* finds a model of size 2, as expected *}
+  (* refute  -- {* finds a model of size 2, as expected *}
+     NO LONGER WORKS since "lfp"'s interpreter is disabled *)
 oops
 
 (*****************************************************************************)

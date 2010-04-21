@@ -91,12 +91,12 @@ where
     None => Lazy_Sequence.hb_single ()
   | Some ((), xq) => Lazy_Sequence.empty)"
 
-hide (open) type pos_dseq neg_dseq
+hide_type (open) pos_dseq neg_dseq
 
-hide (open) const 
+hide_const (open)
   pos_empty pos_single pos_bind pos_union pos_if_seq pos_iterate_upto pos_not_seq pos_map
   neg_empty neg_single neg_bind neg_union neg_if_seq neg_iterate_upto neg_not_seq neg_map
-hide (open) fact
+hide_fact (open)
   pos_empty_def pos_single_def pos_bind_def pos_union_def pos_if_seq_def pos_iterate_upto_def pos_not_seq_def pos_map_def
   neg_empty_def neg_single_def neg_bind_def neg_union_def neg_if_seq_def neg_iterate_upto_def neg_not_seq_def neg_map_def
 

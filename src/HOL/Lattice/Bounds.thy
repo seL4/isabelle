@@ -6,7 +6,7 @@ header {* Bounds *}
 
 theory Bounds imports Orders begin
 
-hide (open) const inf sup
+hide_const (open) inf sup
 
 subsection {* Infimum and supremum *}
 

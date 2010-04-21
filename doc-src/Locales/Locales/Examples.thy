@@ -2,7 +2,7 @@ theory Examples
 imports Main
 begin
 
-hide %invisible const Lattices.lattice
+hide_const %invisible Lattices.lattice
 pretty_setmargin %invisible 65
 
 (*

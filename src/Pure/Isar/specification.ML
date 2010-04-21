@@ -173,7 +173,7 @@ fun gen_axioms do_print prep raw_vars raw_specs thy =
         fold_map Thm.add_axiom
           (map (apfst (fn a => Binding.map_name (K a) b))
             (PureThy.name_multi (Name.of_binding b) (map subst props)))
-        #>> (fn ths => ((b, atts), [(ths, [])])));
+        #>> (fn ths => ((b, atts), [(map #2 ths, [])])));
 
     (*facts*)
     val (facts, facts_lthy) = axioms_thy

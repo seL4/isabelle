@@ -212,8 +212,8 @@ definition hb_not_seq :: "unit hit_bound_lazy_sequence => unit lazy_sequence"
 where
   "hb_not_seq xq = (case yield xq of None => single () | Some (x, xq) => empty)"
 
-hide (open) type lazy_sequence
-hide (open) const Empty Insert Lazy_Sequence yield empty single append flat map bind if_seq iterate_upto not_seq
-hide fact yield.simps empty_def single_def append.simps flat.simps map.simps bind_def iterate_upto.simps if_seq_def not_seq_def
+hide_type (open) lazy_sequence
+hide_const (open) Empty Insert Lazy_Sequence yield empty single append flat map bind if_seq iterate_upto not_seq
+hide_fact yield.simps empty_def single_def append.simps flat.simps map.simps bind_def iterate_upto.simps if_seq_def not_seq_def
 
 end

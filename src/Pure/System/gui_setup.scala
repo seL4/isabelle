@@ -43,19 +43,17 @@ object GUI_Setup extends GUIApplication
     }
 
     // values
-    Platform.defaults match {
-      case None =>
-      case Some((name, None)) => text.append("Platform: " + name + "\n")
-      case Some((name1, Some(name2))) =>
-        text.append("Main platform: " + name1 + "\n")
-        text.append("Alternative platform: " + name2 + "\n")
-    }
-    if (Platform.is_windows) {
+    if (Platform.is_windows)
       text.append("Cygwin root: " + Cygwin.check_root() + "\n")
-    }
+    text.append("JVM platform: " + Platform.jvm_platform + "\n")
     try {
       val isabelle_system = new Isabelle_System
+      text.append("ML platform: " + isabelle_system.getenv("ML_PLATFORM") + "\n")
+      text.append("Isabelle platform: " + isabelle_system.getenv("ISABELLE_PLATFORM") + "\n")
+      val platform64 = isabelle_system.getenv("ISABELLE_PLATFORM64")
+      if (platform64 != "") text.append("Isabelle platform (64 bit): " + platform64 + "\n")
       text.append("Isabelle home: " + isabelle_system.getenv("ISABELLE_HOME") + "\n")
+      text.append("Isabelle java: " + isabelle_system.this_java() + "\n")
     } catch {
       case e: RuntimeException => text.append(e.getMessage + "\n")
     }

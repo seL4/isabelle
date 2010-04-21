@@ -990,7 +990,7 @@ Isabelle/Pure's definitional schemes support certain forms of
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcll}
-    \indexdef{}{command}{types}\hypertarget{command.types}{\hyperlink{command.types}{\mbox{\isa{\isacommand{types}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{}{command}{types}\hypertarget{command.types}{\hyperlink{command.types}{\mbox{\isa{\isacommand{types}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
     \indexdef{}{command}{typedecl}\hypertarget{command.typedecl}{\hyperlink{command.typedecl}{\mbox{\isa{\isacommand{typedecl}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
     \indexdef{}{command}{arities}\hypertarget{command.arities}{\hyperlink{command.arities}{\mbox{\isa{\isacommand{arities}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} & (axiomatic!) \\
   \end{matharray}
@@ -1268,11 +1268,14 @@ Oracles allow Isabelle to take advantage of external reasoners
 \begin{matharray}{rcl}
     \indexdef{}{command}{global}\hypertarget{command.global}{\hyperlink{command.global}{\mbox{\isa{\isacommand{global}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
     \indexdef{}{command}{local}\hypertarget{command.local}{\hyperlink{command.local}{\mbox{\isa{\isacommand{local}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
-    \indexdef{}{command}{hide}\hypertarget{command.hide}{\hyperlink{command.hide}{\mbox{\isa{\isacommand{hide}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{}{command}{hide\_class}\hypertarget{command.hide-class}{\hyperlink{command.hide-class}{\mbox{\isa{\isacommand{hide{\isacharunderscore}class}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{}{command}{hide\_type}\hypertarget{command.hide-type}{\hyperlink{command.hide-type}{\mbox{\isa{\isacommand{hide{\isacharunderscore}type}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{}{command}{hide\_const}\hypertarget{command.hide-const}{\hyperlink{command.hide-const}{\mbox{\isa{\isacommand{hide{\isacharunderscore}const}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{}{command}{hide\_fact}\hypertarget{command.hide-fact}{\hyperlink{command.hide-fact}{\mbox{\isa{\isacommand{hide{\isacharunderscore}fact}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
   \end{matharray}
 
   \begin{rail}
-    'hide' ('(open)')? name (nameref + )
+    ( 'hide\_class' | 'hide\_type' | 'hide\_const' | 'hide\_fact' ) ('(open)')? (nameref + )
     ;
   \end{rail}
 
@@ -1292,16 +1295,19 @@ Oracles allow Isabelle to take advantage of external reasoners
   Note that global names are prone to get hidden accidently later,
   when qualified names of the same base name are introduced.
   
-  \item \hyperlink{command.hide}{\mbox{\isa{\isacommand{hide}}}}~\isa{{\isachardoublequote}space\ names{\isachardoublequote}} fully removes
-  declarations from a given name space (which may be \isa{{\isachardoublequote}class{\isachardoublequote}},
-  \isa{{\isachardoublequote}type{\isachardoublequote}}, \isa{{\isachardoublequote}const{\isachardoublequote}}, or \isa{{\isachardoublequote}fact{\isachardoublequote}}); with the \isa{{\isachardoublequote}{\isacharparenleft}open{\isacharparenright}{\isachardoublequote}} option, only the base name is hidden.  Global
-  (unqualified) names may never be hidden.
-  
+  \item \hyperlink{command.hide-class}{\mbox{\isa{\isacommand{hide{\isacharunderscore}class}}}}~\isa{names} fully removes class
+  declarations from a given name space; with the \isa{{\isachardoublequote}{\isacharparenleft}open{\isacharparenright}{\isachardoublequote}}
+  option, only the base name is hidden.  Global (unqualified) names
+  may never be hidden.
+
   Note that hiding name space accesses has no impact on logical
   declarations --- they remain valid internally.  Entities that are no
   longer accessible to the user are printed with the special qualifier
   ``\isa{{\isachardoublequote}{\isacharquery}{\isacharquery}{\isachardoublequote}}'' prefixed to the full internal name.
 
+  \item \hyperlink{command.hide-type}{\mbox{\isa{\isacommand{hide{\isacharunderscore}type}}}}, \hyperlink{command.hide-const}{\mbox{\isa{\isacommand{hide{\isacharunderscore}const}}}}, and \hyperlink{command.hide-fact}{\mbox{\isa{\isacommand{hide{\isacharunderscore}fact}}}} are similar to \hyperlink{command.hide-class}{\mbox{\isa{\isacommand{hide{\isacharunderscore}class}}}}, but hide types,
+  constants, and facts, respectively.
+  
   \end{description}%
 \end{isamarkuptext}%
 \isamarkuptrue%

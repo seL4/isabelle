@@ -8,7 +8,7 @@ represented by a non-empty set.
 signature TYPEDEF =
 sig
   type info =
-   {rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string} *
+   {rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string, axiom_name: string} *
    {inhabited: thm, type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
     Abs_inverse: thm, Rep_inject: thm, Abs_inject: thm, Rep_cases: thm, Abs_cases: thm,
     Rep_induct: thm, Abs_induct: thm}
@@ -36,7 +36,7 @@ struct
 
 type info =
   (*global part*)
-  {rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string} *
+  {rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string, axiom_name: string} *
   (*local part*)
   {inhabited: thm, type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
     Abs_inverse: thm, Rep_inject: thm, Abs_inject: thm, Rep_cases: thm, Abs_cases: thm,
@@ -117,12 +117,12 @@ fun primitive_typedef typedef_name newT oldT Rep_name Abs_name A thy =
 
     val typedef_deps = Term.add_consts A [];
 
-    val (axiom, axiom_thy) = consts_thy
+    val ((axiom_name, axiom), axiom_thy) = consts_thy
       |> Thm.add_axiom (typedef_name, mk_typedef newT oldT RepC AbsC A)
       ||> Theory.add_deps "" (dest_Const RepC) typedef_deps
       ||> Theory.add_deps "" (dest_Const AbsC) typedef_deps;
 
-  in ((RepC, AbsC, axiom), axiom_thy) end;
+  in ((RepC, AbsC, axiom_name, axiom), axiom_thy) end;
 
 
 (* prepare_typedef *)
@@ -135,9 +135,9 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
 
     (* rhs *)
 
-    val (_, tmp_lthy) = lthy |> Typedecl.predeclare_constraints (tname, raw_args, mx);
-    val set = prep_term tmp_lthy raw_set;
-    val tmp_lthy' = tmp_lthy |> Variable.declare_constraints set;
+    val tmp_ctxt = lthy |> fold (Variable.declare_typ o TFree) raw_args;
+    val set = prep_term tmp_ctxt raw_set;
+    val tmp_ctxt' = tmp_ctxt |> Variable.declare_term set;
 
     val setT = Term.fastype_of set;
     val oldT = HOLogic.dest_setT setT handle TYPE _ =>
@@ -149,7 +149,7 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
 
     (* lhs *)
 
-    val args = map (fn (a, _) => (a, ProofContext.default_sort tmp_lthy' (a, ~1))) raw_args;
+    val args = map (ProofContext.check_tfree tmp_ctxt') raw_args;
     val (newT, typedecl_lthy) = lthy
       |> Typedecl.typedecl (tname, args, mx)
       ||> Variable.declare_term set;
@@ -177,20 +177,20 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
 
     val typedef_name = Binding.prefix_name "type_definition_" name;
 
-    val ((RepC, AbsC, typedef), typedef_lthy) =
+    val ((RepC, AbsC, axiom_name, typedef), typedef_lthy) =
       let
         val thy = ProofContext.theory_of set_lthy;
         val cert = Thm.cterm_of thy;
         val (defs, A) =
           Local_Defs.export_cterm set_lthy (ProofContext.init thy) (cert set') ||> Thm.term_of;
 
-        val ((RepC, AbsC, axiom), axiom_lthy) = set_lthy |>
+        val ((RepC, AbsC, axiom_name, axiom), axiom_lthy) = set_lthy |>
           Local_Theory.theory_result (primitive_typedef typedef_name newT oldT Rep_name Abs_name A);
 
         val cert = Thm.cterm_of (ProofContext.theory_of axiom_lthy);
         val typedef =
           Local_Defs.contract axiom_lthy defs (cert (mk_typedef newT oldT RepC AbsC set')) axiom;
-      in ((RepC, AbsC, typedef), axiom_lthy) end;
+      in ((RepC, AbsC, axiom_name, typedef), axiom_lthy) end;
 
     val alias_lthy = typedef_lthy
       |> Local_Theory.const_alias Rep_name (#1 (Term.dest_Const RepC))
@@ -236,8 +236,8 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
               make @{thm type_definition.Abs_induct});
 
         val info =
-          ({rep_type = oldT, abs_type = newT,
-            Rep_name = #1 (Term.dest_Const RepC), Abs_name = #1 (Term.dest_Const AbsC)},
+          ({rep_type = oldT, abs_type = newT, Rep_name = #1 (Term.dest_Const RepC),
+            Abs_name = #1 (Term.dest_Const AbsC), axiom_name = axiom_name},
            {inhabited = inhabited, type_definition = type_definition, set_def = set_def,
             Rep = Rep, Rep_inverse = Rep_inverse, Abs_inverse = Abs_inverse,
             Rep_inject = Rep_inject, Abs_inject = Abs_inject, Rep_cases = Rep_cases,

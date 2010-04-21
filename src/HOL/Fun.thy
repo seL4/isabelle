@@ -525,7 +525,7 @@ qed
 lemma bij_swap_iff: "bij (swap a b f) = bij f"
 by (simp add: bij_def)
 
-hide (open) const swap
+hide_const (open) swap
 
 
 subsection {* Inversion of injective functions *}

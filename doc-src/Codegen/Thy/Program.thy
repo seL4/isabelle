@@ -430,7 +430,7 @@ text {*
 
 subsection {* Inductive Predicates *}
 (*<*)
-hide const append
+hide_const append
 
 inductive append
 where

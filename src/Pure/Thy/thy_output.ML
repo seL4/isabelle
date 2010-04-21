@@ -599,7 +599,7 @@ in
 val _ = ml_text "ML" (fn txt => "fn _ => (" ^ txt ^ ");");
 val _ = ml_text "ML_type" (fn txt => "val _ = NONE : (" ^ txt ^ ") option;");
 val _ = ml_text "ML_struct" (fn txt => "functor XXX() = struct structure XX = " ^ txt ^ " end;");
-val _ = ml_text "ML_functor" (K "");  (*no check!*)
+val _ = ml_text "ML_functor" (fn txt => "ML_Env.check_functor " ^ ML_Syntax.print_string txt);
 val _ = ml_text "ML_text" (K "");
 
 end;

@@ -20,9 +20,8 @@ imports
   "~~/src/HOL/Number_Theory/Primes"
   Product_ord
   "~~/src/HOL/ex/Records"
+  RBT
   SetsAndFunctions
-  Table
-  Tree
   While_Combinator
   Word
 begin

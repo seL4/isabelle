@@ -227,8 +227,8 @@ values "{x. test\<^sup>*\<^sup>* x C}"
 value "test\<^sup>*\<^sup>* A C"
 value "test\<^sup>*\<^sup>* C A"
 
-hide type ty
-hide const test A B C
+hide_type ty
+hide_const test A B C
 
 end
 

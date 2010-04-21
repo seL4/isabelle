@@ -180,6 +180,17 @@ This is a reference of common Isabelle settings variables. Note that
   some extend. In particular, site-wide defaults may be overridden by
   a private \verb|$ISABELLE_HOME_USER/etc/settings|.
   
+  \item[\indexdef{}{setting}{ISABELLE\_PLATFORM}\hypertarget{setting.ISABELLE-PLATFORM}{\hyperlink{setting.ISABELLE-PLATFORM}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}PLATFORM}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}}] is automatically
+  set to a symbolic identifier for the underlying hardware and
+  operating system.  The Isabelle platform identification always
+  refers to the 32 bit variant, even this is a 64 bit machine.  Note
+  that the ML or Java runtime may have a different idea, depending on
+  which binaries are actually run.
+
+  \item[\indexdef{}{setting}{ISABELLE\_PLATFORM64}\hypertarget{setting.ISABELLE-PLATFORM64}{\hyperlink{setting.ISABELLE-PLATFORM64}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}PLATFORM{\isadigit{6}}{\isadigit{4}}}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}}] is similar to
+  \hyperlink{setting.ISABELLE-PLATFORM}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}PLATFORM}}}} but refers to the proper 64 bit variant
+  on a platform that supports this; the value is empty for 32 bit.
+
   \item[\indexdef{}{setting}{ISABELLE\_PROCESS}\hypertarget{setting.ISABELLE-PROCESS}{\hyperlink{setting.ISABELLE-PROCESS}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}PROCESS}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}}, \hyperlink{setting.ISABELLE-TOOL}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}TOOL}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}}] are automatically set to the full path
   names of the \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}} and \hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}} executables, respectively.  Thus other tools and scripts
   need not assume that the \hyperlink{file.$ISABELLE-HOME/bin}{\mbox{\isa{\isatt{{\isachardollar}ISABELLE{\isacharunderscore}HOME{\isacharslash}bin}}}} directory is

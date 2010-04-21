@@ -149,8 +149,8 @@ lemmas sel_defined_iff_rules =
   cfcomp2 sfst_defined_iff ssnd_defined_iff
 
 lemmas take_con_rules =
-  ID1 ssum_map_sinl' ssum_map_sinr' ssum_map_strict
-  sprod_map_spair' sprod_map_strict u_map_up u_map_strict
+  ssum_map_sinl' ssum_map_sinr' sprod_map_spair' u_map_up
+  deflation_strict deflation_ID ID1 cfcomp2
 
 use "Tools/cont_consts.ML"
 use "Tools/cont_proc.ML"

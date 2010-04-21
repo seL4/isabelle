@@ -54,7 +54,7 @@ primrec
   | "lookup_option None xs = None"
   | "lookup_option (Some e) xs = lookup e xs"
 
-hide const lookup_option
+hide_const lookup_option
 
 text {*
   \medskip The characteristic cases of @{term lookup} are expressed by
@@ -262,7 +262,7 @@ primrec
   | "update_option xs opt (Some e) =
       (if xs = [] then opt else Some (update xs opt e))"
 
-hide const update_option
+hide_const update_option
 
 text {*
   \medskip The characteristic cases of @{term update} are expressed by

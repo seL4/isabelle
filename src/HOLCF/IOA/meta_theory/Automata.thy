@@ -59,7 +59,7 @@ consts
 
   (* hiding and restricting *)
   hide_asig     :: "['a signature, 'a set] => 'a signature"
-  "hide"        :: "[('a,'s)ioa, 'a set] => ('a,'s)ioa"
+  hide          :: "[('a,'s)ioa, 'a set] => ('a,'s)ioa"
   restrict_asig :: "['a signature, 'a set] => 'a signature"
   restrict      :: "[('a,'s)ioa, 'a set] => ('a,'s)ioa"
 

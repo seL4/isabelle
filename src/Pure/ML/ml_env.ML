@@ -9,6 +9,7 @@ sig
   val inherit: Context.generic -> Context.generic -> Context.generic
   val name_space: ML_Name_Space.T
   val local_context: use_context
+  val check_functor: string -> unit
 end
 
 structure ML_Env: ML_ENV =
@@ -87,6 +88,12 @@ val local_context: use_context =
   str_of_pos = Position.str_of oo Position.line_file,
   print = writeln,
   error = error};
+
+val is_functor = is_some o #lookupFunct name_space;
+
+fun check_functor name =
+  if not (is_functor "Table") (*mask dummy version of name_space*) orelse is_functor name then ()
+  else error ("Unknown ML functor: " ^ quote name);
 
 end;
 

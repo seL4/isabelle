@@ -365,13 +365,13 @@ and ensure_fun thy arities eqngr c (vardeps_data as (_, (eqntab, _))) =
 fun dicts_of thy (proj_sort, algebra) (T, sort) =
   let
     fun class_relation (x, _) _ = x;
-    fun type_constructor tyco xs class =
+    fun type_constructor (tyco, _) xs class =
       inst_params thy tyco (Sorts.complete_sort algebra [class])
         @ (maps o maps) fst xs;
     fun type_variable (TFree (_, sort)) = map (pair []) (proj_sort sort);
   in
     flat (Sorts.of_sort_derivation algebra
-      { class_relation = class_relation, type_constructor = type_constructor,
+      { class_relation = K class_relation, type_constructor = type_constructor,
         type_variable = type_variable } (T, proj_sort sort)
        handle Sorts.CLASS_ERROR _ => [] (*permissive!*))
   end;

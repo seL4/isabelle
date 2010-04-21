@@ -175,7 +175,7 @@ qed
 
 end
 
-hide (open) fact add_0 add_0_right diff_0
+hide_fact (open) add_0 add_0_right diff_0
 
 instantiation nat :: comm_semiring_1_cancel
 begin
@@ -1212,7 +1212,7 @@ lemma [code]:
   "funpow (Suc n) f = f o funpow n f"
   unfolding funpow_code_def by simp_all
 
-hide (open) const funpow
+hide_const (open) funpow
 
 lemma funpow_add:
   "f ^^ (m + n) = f ^^ m \<circ> f ^^ n"
@@ -1504,7 +1504,7 @@ text {* Simplification of relational expressions involving subtraction *}
 lemma diff_diff_eq: "[| k \<le> m;  k \<le> (n::nat) |] ==> ((m-k) - (n-k)) = (m-n)"
 by (simp split add: nat_diff_split)
 
-hide (open) fact diff_diff_eq
+hide_fact (open) diff_diff_eq
 
 lemma eq_diff_iff: "[| k \<le> m;  k \<le> (n::nat) |] ==> (m-k = n-k) = (m=n)"
 by (auto split add: nat_diff_split)

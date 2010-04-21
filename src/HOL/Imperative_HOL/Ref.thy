@@ -41,7 +41,7 @@ where
                     return y
                  done)"
 
-hide (open) const new lookup update change
+hide_const (open) new lookup update change
 
 
 subsection {* Properties *}

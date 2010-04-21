@@ -162,6 +162,7 @@ class Standard_System
   /* jvm_path */
 
   private val Cygdrive = new Regex("/cygdrive/([a-zA-Z])($|/.*)")
+  private val Named_Root = new Regex("//+([^/]*)(.*)")
 
   def jvm_path(posix_path: String): String =
     if (Platform.is_windows) {
@@ -170,6 +171,11 @@ class Standard_System
         posix_path match {
           case Cygdrive(drive, rest) =>
             result_path ++= (drive + ":" + File.separator)
+            rest
+          case Named_Root(root, rest) =>
+            result_path ++= File.separator
+            result_path ++= File.separator
+            result_path ++= root
             rest
           case path if path.startsWith("/") =>
             result_path ++= platform_root
@@ -205,4 +211,17 @@ class Standard_System
       }
     }
     else jvm_path
+
+
+  /* this_java executable */
+
+  def this_java(): String =
+  {
+    val java_home = System.getProperty("java.home")
+    val java_exe =
+      if (Platform.is_windows) new File(java_home + "\\bin\\java.exe")
+      else new File(java_home + "/bin/java")
+    if (!java_exe.isFile) error("Expected this Java executable: " + java_exe.toString)
+    posix_path(java_exe.getAbsolutePath)
+  }
 }

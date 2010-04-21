@@ -90,6 +90,6 @@ code_const Typerep
 
 code_reserved Eval Term
 
-hide (open) const typerep Typerep
+hide_const (open) typerep Typerep
 
 end

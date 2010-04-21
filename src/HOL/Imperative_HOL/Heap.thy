@@ -432,6 +432,6 @@ lemma array_present_new_ref [simp]:
   "array_present a h \<Longrightarrow> array_present a (snd (ref v h))"
   by (simp add: array_present_def new_ref_def ref_def Let_def)
 
-hide (open) const empty array array_of_list upd length ref
+hide_const (open) empty array array_of_list upd length ref
 
 end

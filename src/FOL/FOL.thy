@@ -371,7 +371,7 @@ lemmas induct_rulify [symmetric, standard] = induct_atomize
 lemmas induct_rulify_fallback =
   induct_forall_def induct_implies_def induct_equal_def induct_conj_def
 
-hide const induct_forall induct_implies induct_equal induct_conj
+hide_const induct_forall induct_implies induct_equal induct_conj
 
 
 text {* Method setup. *}

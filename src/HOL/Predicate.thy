@@ -934,8 +934,8 @@ no_notation
   bot ("\<bottom>") and
   bind (infixl "\<guillemotright>=" 70)
 
-hide (open) type pred seq
-hide (open) const Pred eval single bind is_empty singleton if_pred not_pred holds
+hide_type (open) pred seq
+hide_const (open) Pred eval single bind is_empty singleton if_pred not_pred holds
   Empty Insert Join Seq member pred_of_seq "apply" adjunct null the_only eq map not_unique the
 
 end

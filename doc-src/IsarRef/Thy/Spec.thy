@@ -953,7 +953,7 @@ subsection {* Types and type abbreviations \label{sec:types-pure} *}
 
 text {*
   \begin{matharray}{rcll}
-    @{command_def "types"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "types"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "typedecl"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "arities"} & : & @{text "theory \<rightarrow> theory"} & (axiomatic!) \\
   \end{matharray}
@@ -1225,11 +1225,14 @@ text {*
   \begin{matharray}{rcl}
     @{command_def "global"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "local"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def "hide"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "hide_class"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "hide_type"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "hide_const"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "hide_fact"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
   \begin{rail}
-    'hide' ('(open)')? name (nameref + )
+    ( 'hide\_class' | 'hide\_type' | 'hide\_const' | 'hide\_fact' ) ('(open)')? (nameref + )
     ;
   \end{rail}
 
@@ -1251,17 +1254,20 @@ text {*
   Note that global names are prone to get hidden accidently later,
   when qualified names of the same base name are introduced.
   
-  \item @{command "hide"}~@{text "space names"} fully removes
-  declarations from a given name space (which may be @{text "class"},
-  @{text "type"}, @{text "const"}, or @{text "fact"}); with the @{text
-  "(open)"} option, only the base name is hidden.  Global
-  (unqualified) names may never be hidden.
-  
+  \item @{command "hide_class"}~@{text names} fully removes class
+  declarations from a given name space; with the @{text "(open)"}
+  option, only the base name is hidden.  Global (unqualified) names
+  may never be hidden.
+
   Note that hiding name space accesses has no impact on logical
   declarations --- they remain valid internally.  Entities that are no
   longer accessible to the user are printed with the special qualifier
   ``@{text "??"}'' prefixed to the full internal name.
 
+  \item @{command "hide_type"}, @{command "hide_const"}, and @{command
+  "hide_fact"} are similar to @{command "hide_class"}, but hide types,
+  constants, and facts, respectively.
+  
   \end{description}
 *}
 

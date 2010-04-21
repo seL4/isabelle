@@ -637,7 +637,7 @@ lemma internal_split_conv: "internal_split c (a, b) = c a b"
 use "Tools/split_rule.ML"
 setup Split_Rule.setup
 
-hide const internal_split
+hide_const internal_split
 
 
 lemmas prod_caseI = prod.cases [THEN iffD2, standard]

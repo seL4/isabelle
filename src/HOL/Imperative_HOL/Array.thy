@@ -92,7 +92,7 @@ where
      return a
    done)"
 
-hide (open) const new map -- {* avoid clashed with some popular names *}
+hide_const (open) new map -- {* avoid clashed with some popular names *}
 
 
 subsection {* Properties *}
@@ -115,28 +115,28 @@ subsubsection {* Logical intermediate layer *}
 
 definition new' where
   [code del]: "new' = Array.new o Code_Numeral.nat_of"
-hide (open) const new'
+hide_const (open) new'
 lemma [code]:
   "Array.new = Array.new' o Code_Numeral.of_nat"
   by (simp add: new'_def o_def)
 
 definition of_list' where
   [code del]: "of_list' i xs = Array.of_list (take (Code_Numeral.nat_of i) xs)"
-hide (open) const of_list'
+hide_const (open) of_list'
 lemma [code]:
   "Array.of_list xs = Array.of_list' (Code_Numeral.of_nat (List.length xs)) xs"
   by (simp add: of_list'_def)
 
 definition make' where
   [code del]: "make' i f = Array.make (Code_Numeral.nat_of i) (f o Code_Numeral.of_nat)"
-hide (open) const make'
+hide_const (open) make'
 lemma [code]:
   "Array.make n f = Array.make' (Code_Numeral.of_nat n) (f o Code_Numeral.nat_of)"
   by (simp add: make'_def o_def)
 
 definition length' where
   [code del]: "length' = Array.length \<guillemotright>== liftM Code_Numeral.of_nat"
-hide (open) const length'
+hide_const (open) length'
 lemma [code]:
   "Array.length = Array.length' \<guillemotright>== liftM Code_Numeral.nat_of"
   by (simp add: length'_def monad_simp',
@@ -145,14 +145,14 @@ lemma [code]:
 
 definition nth' where
   [code del]: "nth' a = Array.nth a o Code_Numeral.nat_of"
-hide (open) const nth'
+hide_const (open) nth'
 lemma [code]:
   "Array.nth a n = Array.nth' a (Code_Numeral.of_nat n)"
   by (simp add: nth'_def)
 
 definition upd' where
   [code del]: "upd' a i x = Array.upd (Code_Numeral.nat_of i) x a \<guillemotright> return ()"
-hide (open) const upd'
+hide_const (open) upd'
 lemma [code]:
   "Array.upd i x a = Array.upd' a (Code_Numeral.of_nat i) x \<guillemotright> return a"
   by (simp add: upd'_def monad_simp upd_return)

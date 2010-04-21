@@ -16,7 +16,7 @@ text {*
   below and constants declared in HOL!
 *}
 
-hide (open) const subset member quotient union inter
+hide_const (open) subset member quotient union inter
 
 text {*
   Test data for the MESON proof procedure

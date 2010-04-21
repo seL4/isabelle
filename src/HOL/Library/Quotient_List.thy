@@ -130,24 +130,24 @@ lemma map_prs_aux:
   by (induct l)
      (simp_all add: Quotient_abs_rep[OF a] Quotient_abs_rep[OF b])
 
-
 lemma map_prs[quot_preserve]:
   assumes a: "Quotient R1 abs1 rep1"
   and     b: "Quotient R2 abs2 rep2"
   shows "((abs1 ---> rep2) ---> (map rep1) ---> (map abs2)) map = map"
-  by (simp only: expand_fun_eq fun_map_def map_prs_aux[OF a b])
-     (simp)
-
+  and   "((abs1 ---> id) ---> map rep1 ---> id) map = map"
+  by (simp_all only: expand_fun_eq fun_map_def map_prs_aux[OF a b])
+     (simp_all add: Quotient_abs_rep[OF a])
 
 lemma map_rsp[quot_respect]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   and     q2: "Quotient R2 Abs2 Rep2"
   shows "((R1 ===> R2) ===> (list_rel R1) ===> list_rel R2) map map"
-  apply(simp)
-  apply(rule allI)+
-  apply(rule impI)
-  apply(rule allI)+
-  apply (induct_tac xa ya rule: list_induct2')
+  and   "((R1 ===> op =) ===> (list_rel R1) ===> op =) map map"
+  apply simp_all
+  apply(rule_tac [!] allI)+
+  apply(rule_tac [!] impI)
+  apply(rule_tac [!] allI)+
+  apply (induct_tac [!] xa ya rule: list_induct2')
   apply simp_all
   done
 
@@ -216,6 +216,52 @@ lemma foldr_rsp[quot_respect]:
   apply (rule list_rel_len)
   apply (simp_all)
   done
+
+lemma list_rel_rsp:
+  assumes r: "\<forall>x y. R x y \<longrightarrow> (\<forall>a b. R a b \<longrightarrow> S x a = T y b)"
+  and l1: "list_rel R x y"
+  and l2: "list_rel R a b"
+  shows "list_rel S x a = list_rel T y b"
+  proof -
+    have a: "length y = length x" by (rule list_rel_len[OF l1, symmetric])
+    have c: "length a = length b" by (rule list_rel_len[OF l2])
+    show ?thesis proof (cases "length x = length a")
+      case True
+      have b: "length x = length a" by fact
+      show ?thesis using a b c r l1 l2 proof (induct rule: list_induct4)
+        case Nil
+        show ?case using assms by simp
+      next
+        case (Cons h t)
+        then show ?case by auto
+      qed
+    next
+      case False
+      have d: "length x \<noteq> length a" by fact
+      then have e: "\<not>list_rel S x a" using list_rel_len by auto
+      have "length y \<noteq> length b" using d a c by simp
+      then have "\<not>list_rel T y b" using list_rel_len by auto
+      then show ?thesis using e by simp
+    qed
+  qed
+
+lemma[quot_respect]:
+  "((R ===> R ===> op =) ===> list_rel R ===> list_rel R ===> op =) list_rel list_rel"
+  by (simp add: list_rel_rsp)
+
+lemma[quot_preserve]:
+  assumes a: "Quotient R abs1 rep1"
+  shows "((abs1 ---> abs1 ---> id) ---> map rep1 ---> map rep1 ---> id) list_rel = list_rel"
+  apply (simp add: expand_fun_eq)
+  apply clarify
+  apply (induct_tac xa xb rule: list_induct2')
+  apply (simp_all add: Quotient_abs_rep[OF a])
+  done
+
+lemma[quot_preserve]:
+  assumes a: "Quotient R abs1 rep1"
+  shows "(list_rel ((rep1 ---> rep1 ---> id) R) l m) = (l = m)"
+  by (induct l m rule: list_induct2') (simp_all add: Quotient_rel_rep[OF a])
 
 lemma list_rel_eq[id_simps]:
   shows "(list_rel (op =)) = (op =)"

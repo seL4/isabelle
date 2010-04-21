@@ -19,7 +19,10 @@ sig
   val declaration: bool -> Symbol_Pos.text * Position.T -> local_theory -> local_theory
   val simproc_setup: string -> string list -> Symbol_Pos.text * Position.T -> string list ->
     local_theory -> local_theory
-  val hide_names: bool -> string * xstring list -> theory -> theory
+  val hide_class: bool -> xstring list -> theory -> theory
+  val hide_type: bool -> xstring list -> theory -> theory
+  val hide_const: bool -> xstring list -> theory -> theory
+  val hide_fact: bool -> xstring list -> theory -> theory
   val have: (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
   val hence: (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
   val show: (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
@@ -196,23 +199,19 @@ fun simproc_setup name lhss (proc, pos) identifier =
 
 (* hide names *)
 
-val hide_kinds =
- [("class", (Sign.intern_class, can o Sign.certify_class, Sign.hide_class)),
-  ("type", (Sign.intern_type, Sign.declared_tyname, Sign.hide_type)),
-  ("const", (Sign.intern_const, Sign.declared_const, Sign.hide_const)),
-  ("fact", (PureThy.intern_fact, PureThy.defined_fact, PureThy.hide_fact))];
+fun hide_names intern check hide fully xnames thy =
+  let
+    val names = map (intern thy) xnames;
+    val bads = filter_out (check thy) names;
+  in
+    if null bads then fold (hide fully) names thy
+    else error ("Attempt to hide undeclared item(s): " ^ commas_quote bads)
+  end;
 
-fun hide_names b (kind, xnames) thy =
-  (case AList.lookup (op =) hide_kinds kind of
-    SOME (intern, check, hide) =>
-      let
-        val names = map (intern thy) xnames;
-        val bads = filter_out (check thy) names;
-      in
-        if null bads then fold (hide b) names thy
-        else error ("Attempt to hide undeclared item(s): " ^ commas_quote bads)
-      end
-  | NONE => error ("Bad name space specification: " ^ quote kind));
+val hide_class = hide_names Sign.intern_class (can o Sign.certify_class) Sign.hide_class;
+val hide_type = hide_names Sign.intern_type Sign.declared_tyname Sign.hide_type;
+val hide_const = hide_names Sign.intern_const Sign.declared_const Sign.hide_const;
+val hide_fact = hide_names PureThy.intern_fact PureThy.defined_fact PureThy.hide_fact;
 
 
 (* goals *)

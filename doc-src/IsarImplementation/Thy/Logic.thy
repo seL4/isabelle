@@ -334,7 +334,7 @@ text %mlref {*
   this is a datatype with constructors @{ML Bound}, @{ML Free}, @{ML
   Var}, @{ML Const}, @{ML Abs}, @{ML "op $"}.
 
-  \item @{text "t"}~@{ML aconv}~@{text "u"} checks @{text
+  \item @{text "t"}~@{ML_text aconv}~@{text "u"} checks @{text
   "\<alpha>"}-equivalence of two terms.  This is the basic equality relation
   on type @{ML_type term}; raw datatype equality should only be used
   for operations related to parsing or printing!
@@ -552,10 +552,10 @@ text %mlref {*
   @{index_ML Thm.implies_elim: "thm -> thm -> thm"} \\
   @{index_ML Thm.generalize: "string list * string list -> int -> thm -> thm"} \\
   @{index_ML Thm.instantiate: "(ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm"} \\
-  @{index_ML Thm.add_axiom: "binding * term -> theory -> thm * theory"} \\
+  @{index_ML Thm.add_axiom: "binding * term -> theory -> (string * thm) * theory"} \\
   @{index_ML Thm.add_oracle: "binding * ('a -> cterm) -> theory
   -> (string * ('a -> thm)) * theory"} \\
-  @{index_ML Thm.add_def: "bool -> bool -> binding * term -> theory -> thm * theory"} \\
+  @{index_ML Thm.add_def: "bool -> bool -> binding * term -> theory -> (string * thm) * theory"} \\
   \end{mldecls}
   \begin{mldecls}
   @{index_ML Theory.add_deps: "string -> string * typ -> (string * typ) list -> theory -> theory"} \\

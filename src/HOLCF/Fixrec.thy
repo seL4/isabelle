@@ -608,7 +608,7 @@ setup {*
       (@{const_name UU}, @{const_name match_UU}) ]
 *}
 
-hide (open) const return bind fail run cases
+hide_const (open) return bind fail run cases
 
 lemmas [fixrec_simp] =
   run_strict run_fail run_return

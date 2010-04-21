@@ -138,7 +138,7 @@ text {*
 *}
 
 (*<*)
-hide const xor
+hide_const xor
 setup {* Sign.add_path "version1" *}
 (*>*)
 definition xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "\<oplus>" 60)
@@ -161,7 +161,7 @@ text {*
 *}
 
 (*<*)
-hide const xor
+hide_const xor
 setup {* Sign.add_path "version2" *}
 (*>*)
 definition xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "[+]\<ignore>" 60)

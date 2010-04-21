@@ -955,7 +955,7 @@ fun process_pgip_tree xml =
            end)
         | _ => raise PGIP "Invalid PGIP packet received")
      handle PGIP msg =>
-            (Output.error_msg ((msg ^ "\nPGIP error occured in XML text below:\n") ^
+            (Output.error_msg ((msg ^ "\nPGIP error occurred in XML text below:\n") ^
                                (XML.string_of xml));
              true))
 

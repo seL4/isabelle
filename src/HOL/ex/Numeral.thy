@@ -879,7 +879,7 @@ lemma [code_unfold del]: "(1::int) \<equiv> Numeral1" by simp
 declare zero_is_num_zero [code_unfold del]
 declare one_is_num_one [code_unfold del]
 
-hide (open) const sub dup
+hide_const (open) sub dup
 
 
 subsection {* Numeral equations as default simplification rules *}

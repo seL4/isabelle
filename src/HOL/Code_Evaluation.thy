@@ -280,8 +280,8 @@ in
 end
 *}
 
-hide const dummy_term App valapp
-hide (open) const Const termify valtermify term_of term_of_num
+hide_const dummy_term App valapp
+hide_const (open) Const termify valtermify term_of term_of_num
 
 subsection {* Tracing of generated and evaluated code *}
 
@@ -301,7 +301,7 @@ end
 code_const "tracing :: String.literal => 'a => 'a"
   (Eval "Code'_Evaluation.tracing")
 
-hide (open) const tracing
+hide_const (open) tracing
 code_reserved Eval Code_Evaluation
 
 subsection {* Evaluation setup *}

@@ -165,8 +165,9 @@ fun init raw_overloading thy =
 
 fun declare c_ty = pair (Const c_ty);
 
-fun define checked b (c, t) = Thm.add_def (not checked) true
-  (b, Logic.mk_equals (Const (c, Term.fastype_of t), t));
+fun define checked b (c, t) =
+  Thm.add_def (not checked) true (b, Logic.mk_equals (Const (c, Term.fastype_of t), t))
+  #>> snd;
 
 fun confirm b = map_overloading (filter_out (fn (_, (c', _)) => c' = Binding.name_of b))
   #> Local_Theory.target synchronize_syntax

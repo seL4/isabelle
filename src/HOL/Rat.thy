@@ -1019,11 +1019,9 @@ subsection {* Implementation of rational numbers as pairs of integers *}
 definition Frct :: "int \<times> int \<Rightarrow> rat" where
   [simp]: "Frct p = Fract (fst p) (snd p)"
 
-code_abstype Frct quotient_of
-proof (rule eq_reflection)
-  fix r :: rat
-  show "Frct (quotient_of r) = r" by (cases r) (auto intro: quotient_of_eq)
-qed
+lemma [code abstype]:
+  "Frct (quotient_of q) = q"
+  by (cases q) (auto intro: quotient_of_eq)
 
 lemma Frct_code_post [code_post]:
   "Frct (0, k) = 0"

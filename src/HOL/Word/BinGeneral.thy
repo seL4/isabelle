@@ -28,7 +28,7 @@ lemma BIT_B1_eq_Bit1 [simp]: "w BIT B1 = Int.Bit1 w"
 
 lemmas BIT_simps = BIT_B0_eq_Bit0 BIT_B1_eq_Bit1
 
-hide (open) const B0 B1
+hide_const (open) B0 B1
 
 lemma Min_ne_Pls [iff]:  
   "Int.Min ~= Int.Pls"

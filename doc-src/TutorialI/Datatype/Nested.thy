@@ -11,7 +11,7 @@ datatype occurs nested in some other datatype (but not inside itself!).
 Consider the following model of terms
 where function symbols can be applied to a list of arguments:
 *}
-(*<*)hide const Var(*>*)
+(*<*)hide_const Var(*>*)
 datatype ('v,'f)"term" = Var 'v | App 'f "('v,'f)term list";
 
 text{*\noindent

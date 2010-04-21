@@ -97,13 +97,13 @@ end;
 
 code_reserved Eval DSequence
 (*
-hide type Sequence.seq
+hide_type Sequence.seq
 
-hide const Sequence.Seq Sequence.yield Sequence.yieldn Sequence.empty Sequence.single
+hide_const Sequence.Seq Sequence.yield Sequence.yieldn Sequence.empty Sequence.single
   Sequence.append Sequence.flat Sequence.map Sequence.bind Sequence.ifpred Sequence.not_seq
 *)
-hide (open) const empty single eval map_seq bind union if_seq not_seq map
-hide (open) fact empty_def single_def eval.simps map_seq.simps bind_def union_def
+hide_const (open) empty single eval map_seq bind union if_seq not_seq map
+hide_fact (open) empty_def single_def eval.simps map_seq.simps bind_def union_def
   if_seq_def not_seq_def map_def
 
 end

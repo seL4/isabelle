@@ -174,6 +174,14 @@ the constant \texttt{DUMMY} has been introduced:
 \begin{quote}
 \verb!@!\verb!{thm fst_conv[where b = DUMMY]}!
 \end{quote}
+Variables that are bound by quantifiers or lambdas cannot be renamed
+like this. Instead, the attribute \texttt{rename\_abs} does the
+job. It expects a list of names or underscores, similar to the
+\texttt{of} attribute:
+\begin{quote}
+\verb!@!\verb!{thm split_paired_All[rename_abs _ l r]}!
+\end{quote}
+produces @{thm split_paired_All[rename_abs _ l r]}.
 *}
 
 subsection "Inference rules"

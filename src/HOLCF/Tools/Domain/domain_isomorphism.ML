@@ -136,7 +136,7 @@ fun deflation_abs_rep (info : Domain_Take_Proofs.iso_info) : thm =
     val rep_iso = #rep_inverse info;
     val thm = @{thm deflation_abs_rep} OF [abs_iso, rep_iso];
   in
-    Drule.export_without_context thm
+    Drule.zero_var_indexes thm
   end
 
 (******************************************************************************)
@@ -201,7 +201,7 @@ fun add_fixdefs
 
     (* register unfold theorems *)
     val (unfold_thms, thy) =
-      (PureThy.add_thms o map (Thm.no_attributes o apsnd Drule.export_without_context))
+      (PureThy.add_thms o map (Thm.no_attributes o apsnd Drule.zero_var_indexes))
         (mk_unfold_thms unfold_binds tuple_unfold_thm) thy;
   in
     ((proj_thms, unfold_thms), thy)
@@ -349,7 +349,7 @@ fun define_map_functions
     val deflation_map_binds = dbinds |>
         map (Binding.prefix_name "deflation_" o Binding.suffix_name "_map");
     val (deflation_map_thms, thy) = thy |>
-      (PureThy.add_thms o map (Thm.no_attributes o apsnd Drule.export_without_context))
+      (PureThy.add_thms o map (Thm.no_attributes o apsnd Drule.zero_var_indexes))
         (conjuncts deflation_map_binds deflation_map_thm);
 
     (* register map functions in theory data *)
@@ -519,7 +519,7 @@ fun gen_domain_isomorphism
     fun mk_iso_thms ((tbind, REP_eq), (rep_def, abs_def)) thy =
       let
         fun make thm =
-            Drule.export_without_context (thm OF [REP_eq, abs_def, rep_def]);
+            Drule.zero_var_indexes (thm OF [REP_eq, abs_def, rep_def]);
         val rep_iso_thm = make @{thm domain_rep_iso};
         val abs_iso_thm = make @{thm domain_abs_iso};
         val isodefl_thm = make @{thm isodefl_abs_rep};
@@ -607,7 +607,7 @@ fun gen_domain_isomorphism
           val thmR = thm RS @{thm conjunct2};
         in (n, thmL):: conjuncts ns thmR end;
     val (isodefl_thms, thy) = thy |>
-      (PureThy.add_thms o map (Thm.no_attributes o apsnd Drule.export_without_context))
+      (PureThy.add_thms o map (Thm.no_attributes o apsnd Drule.zero_var_indexes))
         (conjuncts isodefl_binds isodefl_thm);
     val thy = IsodeflData.map (fold Thm.add_thm isodefl_thms) thy;
 

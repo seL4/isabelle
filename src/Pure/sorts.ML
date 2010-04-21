@@ -57,8 +57,8 @@ sig
   val meet_sort_typ: algebra -> typ * sort -> typ -> typ   (*exception CLASS_ERROR*)
   val of_sort: algebra -> typ * sort -> bool
   val of_sort_derivation: algebra ->
-    {class_relation: 'a * class -> class -> 'a,
-     type_constructor: string -> ('a * class) list list -> class -> 'a,
+    {class_relation: typ -> 'a * class -> class -> 'a,
+     type_constructor: string * typ list -> ('a * class) list list -> class -> 'a,
      type_variable: typ -> ('a * class) list} ->
     typ * sort -> 'a list   (*exception CLASS_ERROR*)
   val classrel_derivation: algebra ->
@@ -335,15 +335,15 @@ fun subalgebra pp P sargs (algebra as Algebra {classes, arities}) =
 (* errors -- performance tuning via delayed message composition *)
 
 datatype class_error =
-  NoClassrel of class * class |
-  NoArity of string * class |
-  NoSubsort of sort * sort;
+  No_Classrel of class * class |
+  No_Arity of string * class |
+  No_Subsort of sort * sort;
 
-fun class_error pp (NoClassrel (c1, c2)) =
+fun class_error pp (No_Classrel (c1, c2)) =
       "No class relation " ^ Pretty.string_of_classrel pp [c1, c2]
-  | class_error pp (NoArity (a, c)) =
+  | class_error pp (No_Arity (a, c)) =
       "No type arity " ^ Pretty.string_of_arity pp (a, [], [c])
-  | class_error pp (NoSubsort (S1, S2)) =
+  | class_error pp (No_Subsort (S1, S2)) =
      "Cannot derive subsort relation " ^ Pretty.string_of_sort pp S1
        ^ " < " ^ Pretty.string_of_sort pp S2;
 
@@ -357,7 +357,7 @@ fun mg_domain algebra a S =
     val arities = arities_of algebra;
     fun dom c =
       (case AList.lookup (op =) (Symtab.lookup_list arities a) c of
-        NONE => raise CLASS_ERROR (NoArity (a, c))
+        NONE => raise CLASS_ERROR (No_Arity (a, c))
       | SOME (_, Ss) => Ss);
     fun dom_inter c Ss = ListPair.map (inter_sort algebra) (dom c, Ss);
   in
@@ -375,7 +375,7 @@ fun meet_sort algebra =
     fun meet _ [] = I
       | meet (TFree (_, S)) S' =
           if sort_le algebra (S, S') then I
-          else raise CLASS_ERROR (NoSubsort (S, S'))
+          else raise CLASS_ERROR (No_Subsort (S, S'))
       | meet (TVar (v, S)) S' =
           if sort_le algebra (S, S') then I
           else Vartab.map_default (v, S) (inters S')
@@ -410,25 +410,30 @@ fun of_sort_derivation algebra {class_relation, type_constructor, type_variable}
   let
     val arities = arities_of algebra;
 
-    fun weaken S1 S2 = S2 |> map (fn c2 =>
-      (case S1 |> find_first (fn (_, c1) => class_le algebra (c1, c2)) of
-        SOME d1 => class_relation d1 c2
-      | NONE => raise CLASS_ERROR (NoSubsort (map #2 S1, S2))));
+    fun weaken T D1 S2 =
+      let val S1 = map snd D1 in
+        if S1 = S2 then map fst D1
+        else
+          S2 |> map (fn c2 =>
+            (case D1 |> find_first (fn (_, c1) => class_le algebra (c1, c2)) of
+              SOME d1 => class_relation T d1 c2
+            | NONE => raise CLASS_ERROR (No_Subsort (S1, S2))))
+      end;
 
-    fun derive _ [] = []
-      | derive (Type (a, Ts)) S =
+    fun derive (_, []) = []
+      | derive (T as Type (a, Us), S) =
           let
             val Ss = mg_domain algebra a S;
-            val dom = map2 (fn T => fn S => derive T S ~~ S) Ts Ss;
+            val dom = map2 (fn U => fn S => derive (U, S) ~~ S) Us Ss;
           in
             S |> map (fn c =>
               let
                 val (c0, Ss') = the (AList.lookup (op =) (Symtab.lookup_list arities a) c);
-                val dom' = map2 (fn d => fn S' => weaken d S' ~~ S') dom Ss';
-              in class_relation (type_constructor a dom' c0, c0) c end)
+                val dom' = map (fn ((U, d), S') => weaken U d S' ~~ S') ((Us ~~ dom) ~~ Ss');
+              in class_relation T (type_constructor (a, Us) dom' c0, c0) c end)
           end
-      | derive T S = weaken (type_variable T) S;
-  in uncurry derive end;
+      | derive (T, S) = weaken T (type_variable T) S;
+  in derive end;
 
 fun classrel_derivation algebra class_relation =
   let
@@ -437,7 +442,7 @@ fun classrel_derivation algebra class_relation =
   in
     fn (x, c1) => fn c2 =>
       (case Graph.irreducible_paths (classes_of algebra) (c1, c2) of
-        [] => raise CLASS_ERROR (NoClassrel (c1, c2))
+        [] => raise CLASS_ERROR (No_Classrel (c1, c2))
       | cs :: _ => path (x, cs))
   end;
 

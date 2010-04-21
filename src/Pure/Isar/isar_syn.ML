@@ -108,10 +108,10 @@ val _ =
       >> (fn ((args, a), mx) => Typedecl.typedecl (a, map (rpair dummyS) args, mx) #> snd));
 
 val _ =
-  OuterSyntax.command "types" "declare type abbreviations" K.thy_decl
+  OuterSyntax.local_theory "types" "declare type abbreviations" K.thy_decl
     (Scan.repeat1
       (P.type_args -- P.binding -- (P.$$$ "=" |-- P.!!! (P.typ -- P.opt_mixfix')))
-      >> (Toplevel.theory o Sign.add_tyabbrs o map (fn ((args, a), (T, mx)) => (a, args, T, mx))));
+      >> (fold (fn ((args, a), (rhs, mx)) => snd o Typedecl.abbrev_cmd (a, args, mx) rhs)));
 
 val _ =
   OuterSyntax.command "nonterminals" "declare types treated as grammar nonterminal symbols"
@@ -280,10 +280,15 @@ val _ =
   OuterSyntax.command "local" "enable prefixing of theory name" K.thy_decl
     (Scan.succeed (Toplevel.theory Sign.local_path));
 
-val _ =
-  OuterSyntax.command "hide" "hide names from given name space" K.thy_decl
-    ((P.opt_keyword "open" >> not) -- (P.name -- Scan.repeat1 P.xname) >>
-      (Toplevel.theory o uncurry IsarCmd.hide_names));
+fun hide_names name hide what =
+  OuterSyntax.command name ("hide " ^ what ^ " from name space") K.thy_decl
+    ((P.opt_keyword "open" >> not) -- Scan.repeat1 P.xname >>
+      (Toplevel.theory o uncurry hide));
+
+val _ = hide_names "hide_class" IsarCmd.hide_class "classes";
+val _ = hide_names "hide_type" IsarCmd.hide_type "types";
+val _ = hide_names "hide_const" IsarCmd.hide_const "constants";
+val _ = hide_names "hide_fact" IsarCmd.hide_fact "facts";
 
 
 (* use ML text *)
@@ -479,11 +484,6 @@ val _ =
 val _ =
   OuterSyntax.command "code_datatype" "define set of code datatype constructors" K.thy_decl
     (Scan.repeat1 P.term >> (Toplevel.theory o Code.add_datatype_cmd));
-
-val _ =
-  OuterSyntax.command "code_abstype" "define abstract code type" K.thy_goal
-    (P.term -- P.term >> (fn (abs, rep) => Toplevel.print
-      o Toplevel.theory_to_proof (Code.add_abstype_cmd abs rep)));
 
 
 

@@ -455,7 +455,7 @@ subsection {* Record package *}
 use "Tools/record.ML"
 setup Record.setup
 
-hide (open) const Tuple_Isomorphism repr abst iso_tuple_fst iso_tuple_snd
+hide_const (open) Tuple_Isomorphism repr abst iso_tuple_fst iso_tuple_snd
   iso_tuple_fst_update iso_tuple_snd_update iso_tuple_cons
   iso_tuple_surjective_proof_assist iso_tuple_update_accessor_cong_assist
   iso_tuple_update_accessor_eq_assist tuple_iso_tuple

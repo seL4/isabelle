@@ -66,3 +66,6 @@ fun toplevel_pp context (_: string list) pp =
   use_text context (1, "pp") false
     ("PolyML.addPrettyPrinter (fn _ => fn _ => ml_pretty o Pretty.to_ML o (" ^ pp ^ "))");
 
+val ml_make_string =
+  "(fn x => Pretty.string_of (Pretty.from_ML (pretty_ml (PolyML.prettyRepresentation (x, get_print_depth ())))))";
+

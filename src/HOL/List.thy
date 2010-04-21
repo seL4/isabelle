@@ -172,7 +172,8 @@ definition
   insert :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
   "insert x xs = (if x \<in> set xs then xs else x # xs)"
 
-hide (open) const insert hide (open) fact insert_def
+hide_const (open) insert
+hide_fact (open) insert_def
 
 primrec
   remove1 :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
@@ -511,6 +512,17 @@ proof (induct xs arbitrary: ys zs)
 next
   case (Cons x xs ys zs) then show ?case by (cases ys, simp_all)
     (cases zs, simp_all)
+qed
+
+lemma list_induct4 [consumes 3, case_names Nil Cons]:
+  "length xs = length ys \<Longrightarrow> length ys = length zs \<Longrightarrow> length zs = length ws \<Longrightarrow>
+   P [] [] [] [] \<Longrightarrow> (\<And>x xs y ys z zs w ws. length xs = length ys \<Longrightarrow>
+   length ys = length zs \<Longrightarrow> length zs = length ws \<Longrightarrow> P xs ys zs ws \<Longrightarrow>
+   P (x#xs) (y#ys) (z#zs) (w#ws)) \<Longrightarrow> P xs ys zs ws"
+proof (induct xs arbitrary: ys zs ws)
+  case Nil then show ?case by simp
+next
+  case (Cons x xs ys zs ws) then show ?case by ((cases ys, simp_all), (cases zs,simp_all)) (cases ws, simp_all)
 qed
 
 lemma list_induct2': 
@@ -1930,6 +1942,12 @@ lemma zip_Cons_Cons [simp]: "zip (x # xs) (y # ys) = (x, y) # zip xs ys"
 by simp
 
 declare zip_Cons [simp del]
+
+lemma [code]:
+  "zip [] ys = []"
+  "zip xs [] = []"
+  "zip (x # xs) (y # ys) = (x, y) # zip xs ys"
+  by (fact zip_Nil zip.simps(1) zip_Cons_Cons)+
 
 lemma zip_Cons1:
  "zip (x#xs) ys = (case ys of [] \<Rightarrow> [] | y#ys \<Rightarrow> (x,y)#zip xs ys)"
@@ -4573,7 +4591,7 @@ declare SUPR_def [code_unfold]
 
 declare set_map [symmetric, code_unfold]
 
-hide (open) const length_unique
+hide_const (open) length_unique
 
 
 text {* Code for bounded quantification and summation over nats. *}

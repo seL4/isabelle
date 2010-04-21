@@ -306,11 +306,11 @@ fun declare_overloaded (c, T) thy =
     |-> (fn const' as Const (c'', _) =>
       Thm.add_def false true
         (Binding.name (Thm.def_name c'), Logic.mk_equals (Const (c, T'), const'))
-      #>> Thm.varifyT_global
-      #-> (fn thm => add_inst_param (c, tyco) (c'', thm)
-      #> PureThy.add_thm ((Binding.conceal (Binding.name c'), thm), [])
-      #> snd
-      #> pair (Const (c, T))))
+      #>> apsnd Thm.varifyT_global
+      #-> (fn (_, thm) => add_inst_param (c, tyco) (c'', thm)
+        #> PureThy.add_thm ((Binding.conceal (Binding.name c'), thm), [])
+        #> snd
+        #> pair (Const (c, T))))
     ||> Sign.restore_naming thy
   end;
 
@@ -325,7 +325,7 @@ fun define_overloaded b (c, t) thy =
   in
     thy
     |> Thm.add_def false false (b', prop)
-    |>> (fn thm =>  Drule.transitive_thm OF [eq, thm])
+    |>> (fn (_, thm) =>  Drule.transitive_thm OF [eq, thm])
   end;
 
 
@@ -515,7 +515,7 @@ local
 
 fun add_axiom (b, prop) =
   Thm.add_axiom (b, prop) #->
-  (fn thm => PureThy.add_thm ((b, Drule.export_without_context thm), []));
+  (fn (_, thm) => PureThy.add_thm ((b, Drule.export_without_context thm), []));
 
 fun axiomatize prep mk name add raw_args thy =
   let

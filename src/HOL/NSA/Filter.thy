@@ -403,6 +403,6 @@ qed
 
 lemmas freeultrafilter_Ex = UFT.freeultrafilter_ex [OF UFT.intro]
 
-hide (open) const filter
+hide_const (open) filter
 
 end

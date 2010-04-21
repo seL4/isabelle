@@ -1,6 +1,6 @@
 (*<*)theory Overloading imports Main Setup begin
 
-hide (open) "class" plus (*>*)
+hide_class (open) plus (*>*)
 
 text {* Type classes allow \emph{overloading}; thus a constant may
 have multiple definitions at non-overlapping types. *}

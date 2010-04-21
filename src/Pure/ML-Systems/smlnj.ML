@@ -61,6 +61,8 @@ in
     Control.Print.printLength := dest_int n);
 end;
 
+val ml_make_string = "(fn _ => \"?\")";
+
 
 (*prompts*)
 fun ml_prompts p1 p2 =

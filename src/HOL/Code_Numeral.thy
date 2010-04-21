@@ -278,7 +278,7 @@ proof -
   then show ?thesis by (auto simp add: int_of_def mult_ac)
 qed
 
-hide (open) const of_nat nat_of int_of
+hide_const (open) of_nat nat_of int_of
 
 subsubsection {* Lazy Evaluation of an indexed function *}
 
@@ -289,7 +289,7 @@ by pat_completeness auto
 
 termination by (relation "measure (%(f, n, m). Code_Numeral.nat_of (m + 1 - n))") auto
 
-hide (open) const iterate_upto
+hide_const (open) iterate_upto
 
 subsection {* Code generator setup *}
 
