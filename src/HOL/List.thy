@@ -2906,6 +2906,10 @@ proof -
   from length_remdups_concat[of "[xs]"] show ?thesis unfolding xs by simp
 qed
 
+lemma remdups_remdups:
+  "remdups (remdups xs) = remdups xs"
+  by (induct xs) simp_all
+
 
 subsubsection {* @{const insert} *}
 
@@ -2927,6 +2931,10 @@ lemma set_insert [simp]:
 
 lemma distinct_insert [simp]:
   "distinct xs \<Longrightarrow> distinct (List.insert x xs)"
+  by (simp add: List.insert_def)
+
+lemma insert_remdups:
+  "List.insert x (remdups xs) = remdups (List.insert x xs)"
   by (simp add: List.insert_def)
 
 
@@ -2974,6 +2982,10 @@ done
 
 lemma distinct_remove1[simp]: "distinct xs ==> distinct(remove1 x xs)"
 by (induct xs) simp_all
+
+lemma remove1_remdups:
+  "distinct xs \<Longrightarrow> remove1 x (remdups xs) = remdups (remove1 x xs)"
+  by (induct xs) simp_all
 
 
 subsubsection {* @{text removeAll} *}
