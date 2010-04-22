@@ -106,6 +106,10 @@ definition
 where
 [simp]: "fun_rel E1 E2 f g = (\<forall>x y. E1 x y \<longrightarrow> E2 (f x) (g y))"
 
+lemma fun_relI [intro]:
+  assumes "\<And>a b. P a b \<Longrightarrow> Q (x a) (y b)"
+  shows "(P ===> Q) x y"
+  using assms by (simp add: fun_rel_def)
 
 lemma fun_map_id:
   shows "(id ---> id) = id"

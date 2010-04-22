@@ -271,6 +271,15 @@ lemma list_rel_eq[id_simps]:
   apply(simp_all)
   done
 
+lemma list_rel_find_element:
+  assumes a: "x \<in> set a"
+  and b: "list_rel R a b"
+  shows "\<exists>y. (y \<in> set b \<and> R x y)"
+proof -
+  have "length a = length b" using b by (rule list_rel_len)
+  then show ?thesis using a b by (induct a b rule: list_induct2) auto
+qed
+
 lemma list_rel_refl:
   assumes a: "\<And>x y. R x y = (R x = R y)"
   shows "list_rel R x x"
