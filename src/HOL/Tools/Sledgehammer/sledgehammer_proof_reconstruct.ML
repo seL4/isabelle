@@ -24,7 +24,7 @@ sig
     -> minimize_command * string * string vector * thm * int
     -> string * string list
   val proof_text:
-    bool -> bool -> bool -> int -> bool -> Proof.context
+    bool -> bool -> int -> bool -> Proof.context
     -> minimize_command * string * string vector * thm * int
     -> string * string list
 end;
@@ -472,7 +472,7 @@ fun isar_proof_from_tstp_file cnfs modulus sorts ctxt goal i thm_names =
     isar_proof_start i ^ isar_fixes (map #1 fixes) ^ implode body ^
     isar_proof_end n ^ "\n"
   end
-  handle STREE _ => error "Could not extract proof (ATP output malformed?)";
+  handle STREE _ => raise Fail "Cannot parse ATP output";
 
 
 (*=== EXTRACTING PROOF-TEXT === *)
@@ -486,23 +486,19 @@ val end_proof_strs = ["# SZS output end CNFRefutation",
   "Formulae used in the proof"];
 
 fun get_proof_extract proof =
-  let
-    (*splits to_split by the first possible of a list of splitters*)
-    val (begin_string, end_string) =
-      (find_first (fn s => String.isSubstring s proof) begin_proof_strs,
-      find_first (fn s => String.isSubstring s proof) end_proof_strs)
-  in
-    if is_none begin_string orelse is_none end_string
-    then error "Could not extract proof (no substring indicating a proof)"
-    else proof |> first_field (the begin_string) |> the |> snd
-               |> first_field (the end_string) |> the |> fst
-  end;
+  (* Splits by the first possible of a list of splitters. *)
+  case pairself (find_first (fn s => String.isSubstring s proof))
+                (begin_proof_strs, end_proof_strs) of
+    (SOME begin_string, SOME end_string) =>
+    proof |> first_field begin_string |> the |> snd
+          |> first_field end_string |> the |> fst
+  | _ => raise Fail "Cannot extract proof"
 
 (* ==== CHECK IF PROOF WAS SUCCESSFUL === *)
 
 fun is_proof_well_formed proof =
-  exists (fn s => String.isSubstring s proof) begin_proof_strs andalso
-  exists (fn s => String.isSubstring s proof) end_proof_strs
+  forall (exists (fn s => String.isSubstring s proof))
+         [begin_proof_strs, end_proof_strs]
 
 (* === EXTRACTING LEMMAS === *)
 (* A list consisting of the first number in each line is returned.
@@ -516,7 +512,7 @@ fun get_step_nums proof_extract =
     fun inputno ("cnf" :: ntok :: "axiom" :: _) = Int.fromString ntok
       | inputno ("cnf" :: ntok :: "negated" :: "conjecture" :: _) =
         Int.fromString ntok
-      | inputno (ntok::"0"::"Inp"::_) = Int.fromString ntok (* DFG *)
+      | inputno (ntok::"0"::"Inp"::_) = Int.fromString ntok  (* DFG format *)
       | inputno _ = NONE
     val lines = split_lines proof_extract
   in map_filter (inputno o toks) lines end
@@ -585,14 +581,8 @@ fun isar_proof_text debug modulus sorts ctxt
         |> the_default "Warning: The Isar proof construction failed.\n"
   in (one_line_proof ^ isar_proof, lemma_names) end
 
-fun proof_text supports_isar_proofs isar_proof debug modulus sorts ctxt params =
-  if isar_proof then
-    if supports_isar_proofs then
-      isar_proof_text debug modulus sorts ctxt params
-    else
-      metis_proof_text params
-      |>> suffix "(Isar proof output is not supported for this ATP.)\n"
-  else
-    metis_proof_text params
+fun proof_text isar_proof debug modulus sorts ctxt =
+  if isar_proof then isar_proof_text debug modulus sorts ctxt
+  else metis_proof_text
 
 end;
