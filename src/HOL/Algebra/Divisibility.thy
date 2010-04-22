@@ -45,12 +45,7 @@ lemma comm_monoid_cancelI:
 proof -
   interpret comm_monoid G by fact
   show "comm_monoid_cancel G"
-    apply unfold_locales
-    apply (subgoal_tac "a \<otimes> c = b \<otimes> c")
-    apply (iprover intro: cancel)
-    apply (simp add: m_comm)
-    apply (iprover intro: cancel)
-    done
+    by unfold_locales (metis assms(2) m_ac(2))+
 qed
 
 lemma (in comm_monoid_cancel) is_comm_monoid_cancel:
@@ -68,15 +63,7 @@ lemma (in monoid) Units_m_closed[simp, intro]:
   shows "h1 \<otimes> h2 \<in> Units G"
 unfolding Units_def
 using assms
-apply safe
-apply fast
-apply (intro bexI[of _ "inv h2 \<otimes> inv h1"], safe)
-  apply (simp add: m_assoc Units_closed)
-  apply (simp add: m_assoc[symmetric] Units_closed Units_l_inv)
- apply (simp add: m_assoc Units_closed)
- apply (simp add: m_assoc[symmetric] Units_closed Units_r_inv)
-apply fast
-done
+by auto (metis Units_inv_closed Units_l_inv Units_m_closed Units_r_inv)
 
 lemma (in monoid) prod_unit_l:
   assumes abunit[simp]: "a \<otimes> b \<in> Units G" and aunit[simp]: "a \<in> Units G"
@@ -456,7 +443,7 @@ lemma (in monoid) division_equiv [intro, simp]:
   "equivalence (division_rel G)"
   apply unfold_locales
   apply simp_all
-  apply (rule associated_sym, assumption+)
+  apply (metis associated_def)
   apply (iprover intro: associated_trans)
   done
 
@@ -552,8 +539,7 @@ using assms
 apply (elim associatedE2, intro associatedI2)
     apply assumption
    apply (rule r_cancel[of a b])
-      apply (simp add: m_assoc Units_closed)
-      apply (simp add: m_comm Units_closed)
+      apply (metis Units_closed assms(3) assms(4) m_ac)
      apply fast+
 done
 
@@ -613,27 +599,8 @@ apply (rule, rule)
    apply (unfold Units_def, fast)
   apply assumption
 apply clarsimp
-proof -
-  fix x
-  assume xcarr: "x \<in> carrier G"
-  assume r[rule_format]: "\<forall>y. y \<in> carrier G \<longrightarrow> x divides y"
-  have "\<one> \<in> carrier G" by simp
-  hence "x divides \<one>" by (rule r)
-  hence "\<exists>x'\<in>carrier G. \<one> = x \<otimes> x'" by (rule dividesE, fast)
-  from this obtain x'
-      where x'carr: "x' \<in> carrier G"
-      and xx': "\<one> = x \<otimes> x'"
-      by auto
-
-  note xx'
-  also with xcarr x'carr
-       have "\<dots> = x' \<otimes> x" by (simp add: m_comm)
-  finally
-       have "\<one> = x' \<otimes> x" .
-
-  from x'carr xx'[symmetric] this[symmetric]
-      show "\<exists>y\<in>carrier G. y \<otimes> x = \<one> \<and> x \<otimes> y = \<one>" by fast
-qed
+apply (metis Unit_eq_dividesone Units_r_inv_ex m_ac(2) one_closed)
+done
 
 
 subsubsection {* Proper factors *}
@@ -856,27 +823,9 @@ lemma (in monoid_cancel) irreducible_cong [trans]:
 using assms
 apply (elim irreducibleE, intro irreducibleI)
 apply simp_all
-proof clarify
-  assume "a' \<in> Units G"
-  also note aa'[symmetric]
-  finally have aunit: "a \<in> Units G" by simp
-
-  assume "a \<notin> Units G"
-  with aunit
-      show "False" by fast
-next
-  fix b
-  assume r[rule_format]: "\<forall>b. b \<in> carrier G \<and> properfactor G b a \<longrightarrow> b \<in> Units G"
-    and bcarr[simp]: "b \<in> carrier G"
-  assume "properfactor G b a'"
-  also note aa'[symmetric]
-  finally
-       have "properfactor G b a" by simp
-
-  with bcarr
-     show "b \<in> Units G" by (fast intro: r)
-qed
-
+apply (metis assms(2) assms(3) assoc_unit_l)
+apply (metis assms(2) assms(3) assms(4) associated_sym properfactor_cong_r)
+done
 
 lemma (in monoid) irreducible_prod_rI:
   assumes airr: "irreducible G a"
@@ -887,16 +836,8 @@ using airr carr bunit
 apply (elim irreducibleE, intro irreducibleI, clarify)
  apply (subgoal_tac "a \<in> Units G", simp)
  apply (intro prod_unit_r[of a b] carr bunit, assumption)
-proof -
-  fix c
-  assume [simp]: "c \<in> carrier G"
-    and r[rule_format]: "\<forall>b. b \<in> carrier G \<and> properfactor G b a \<longrightarrow> b \<in> Units G"
-  assume "properfactor G c (a \<otimes> b)"
-  also have "a \<otimes> b \<sim> a" by (intro associatedI2[OF bunit], simp+)
-  finally
-       have pfa: "properfactor G c a" by simp
-  show "c \<in> Units G" by (rule r, simp add: pfa)
-qed
+apply (metis assms associatedI2 m_closed properfactor_cong_r)
+done
 
 lemma (in comm_monoid) irreducible_prod_lI:
   assumes birr: "irreducible G b"
@@ -921,7 +862,6 @@ proof (elim irreducibleE)
   show "P"
   proof (cases "a \<in> Units G")
     assume aunit: "a \<in>  Units G"
-
     have "irreducible G b"
     apply (rule irreducibleI)
     proof (rule ccontr, simp)
@@ -998,44 +938,9 @@ lemma (in monoid_cancel) prime_cong [trans]:
   shows "prime G p'"
 using pprime
 apply (elim primeE, intro primeI)
-proof clarify
-  assume pnunit: "p \<notin> Units G"
-  assume "p' \<in> Units G"
-  also note pp'[symmetric]
-  finally
-       have "p \<in> Units G" by simp
-  with pnunit
-       show False ..
-next
-  fix a b
-  assume r[rule_format]:
-         "\<forall>a\<in>carrier G. \<forall>b\<in>carrier G. p divides a \<otimes> b \<longrightarrow> p divides a \<or> p divides b"
-  assume p'dvd: "p' divides a \<otimes> b"
-    and carr'[simp]: "a \<in> carrier G"  "b \<in> carrier G"
-
-  note pp'
-  also note p'dvd
-  finally
-       have "p divides a \<otimes> b" by simp
-  hence "p divides a \<or> p divides b" by (intro r, simp+)
-  moreover {
-    note pp'[symmetric]
-    also assume "p divides a"
-    finally
-         have "p' divides a" by simp
-    hence "p' divides a \<or> p' divides b" by simp
-  }
-  moreover {
-    note pp'[symmetric]
-    also assume "p divides b"
-    finally
-         have "p' divides b" by simp
-    hence "p' divides a \<or> p' divides b" by simp
-  }
-  ultimately
-    show "p' divides a \<or> p' divides b" by fast
-qed
-
+apply (metis assms(2) assms(3) assoc_unit_l)
+apply (metis assms(2) assms(3) assms(4) associated_sym divides_cong_l m_closed)
+done
 
 subsection {* Factorization and Factorial Monoids *}
 
@@ -1261,12 +1166,7 @@ apply (induct fs)
 apply (case_tac "f = a", simp)
  apply (fast intro: dividesI)
 apply clarsimp
-apply (elim dividesE, intro dividesI)
- defer 1
- apply (simp add: m_comm)
- apply (simp add: m_assoc[symmetric])
- apply (simp add: m_comm)
-apply simp
+apply (metis assms(2) divides_prod_l multlist_closed)
 done
 
 lemma (in comm_monoid_cancel) multlist_listassoc_cong:
@@ -1383,18 +1283,8 @@ lemma (in monoid) nunit_factors:
     and fs: "factors G as a"
   shows "length as > 0"
 apply (insert fs, elim factorsE)
-proof (cases "length as = 0")
-  assume "length as = 0"
-  hence fold: "foldr op \<otimes> as \<one> = \<one>" by force
-
-  assume "foldr op \<otimes> as \<one> = a"
-  with fold
-       have "a = \<one>" by simp
-  then have "a \<in> Units G" by fast
-  with anunit
-       have "False" by simp
-  thus ?thesis ..
-qed simp
+apply (metis Units_one_closed assms(1) foldr.simps(1) length_greater_0_conv)
+done
 
 lemma (in monoid) unit_wfactors [simp]:
   assumes aunit: "a \<in> Units G"
@@ -1445,12 +1335,8 @@ lemma (in comm_monoid_cancel) wfactors_listassoc_cong_l:
   shows "wfactors G fs' a"
 using fact
 apply (elim wfactorsE, intro wfactorsI)
+apply (metis assms(2) assms(4) assms(5) irrlist_listassoc_cong)
 proof -
-  assume "\<forall>f\<in>set fs. irreducible G f"
-  also note asc
-  finally (irrlist_listassoc_cong)
-       show "\<forall>f\<in>set fs'. irreducible G f" by (simp add: carr)
-next
   from asc[symmetric]
        have "foldr op \<otimes> fs' \<one> \<sim> foldr op \<otimes> fs \<one>" 
        by (simp add: multlist_listassoc_cong carr)
@@ -2361,16 +2247,8 @@ apply (elim properfactorE)
 apply rule
  apply (intro divides_fmsubset, assumption)
   apply (rule assms)+
-proof
-  assume bna: "\<not> b divides a"
-  assume "fmset G as = fmset G bs"
-  then have "essentially_equal G as bs" by (rule fmset_ee) fact+
-  hence "a \<sim> b" by (rule ee_wfactorsD[of as bs]) fact+
-  hence "b divides a" by (elim associatedE)
-  with bna
-      show "False" ..
-qed
-
+apply (metis assms divides_fmsubset fmsubset_divides)
+done
 
 subsection {* Irreducible Elements are Prime *}
 
@@ -3429,24 +3307,10 @@ lemma (in primeness_condition_monoid) wfactors_unique__hlp_induct:
   "\<forall>a as'. a \<in> carrier G \<and> set as \<subseteq> carrier G \<and> set as' \<subseteq> carrier G \<and> 
            wfactors G as a \<and> wfactors G as' a \<longrightarrow> essentially_equal G as as'"
 apply (induct as)
-apply clarsimp defer 1
-apply clarsimp defer 1
+apply (metis Units_one_closed essentially_equal_def foldr.simps(1) is_monoid_cancel listassoc_refl monoid_cancel.assoc_unit_r perm_refl unit_wfactors_empty wfactorsE)
+apply clarsimp 
 proof -
-  fix a as'
-  assume acarr: "a \<in> carrier G"
-    and "wfactors G [] a"
-  hence aunit: "a \<in> Units G"
-    apply (elim wfactorsE)
-    apply (simp, rule assoc_unit_r[of "\<one>"], simp+)
-  done
-
-  assume "set as' \<subseteq> carrier G"  "wfactors G as' a"
-  with aunit
-      have "as' = []"
-      by (intro unit_wfactors_empty[of a])
-  thus "essentially_equal G [] as'" by simp
-next
-  fix a as ah as'
+ fix a as ah as'
   assume ih[rule_format]: 
          "\<forall>a as'. a \<in> carrier G \<and> set as' \<subseteq> carrier G \<and> 
                   wfactors G as a \<and> wfactors G as' a \<longrightarrow> essentially_equal G as as'"
@@ -3642,9 +3506,7 @@ lemma (in monoid) ee_length:
   assumes ee: "essentially_equal G as bs"
   shows "length as = length bs"
 apply (rule essentially_equalE[OF ee])
-apply (subgoal_tac "length as = length fs1'")
- apply (simp add: list_all2_lengthD)
-apply (simp add: perm_length)
+apply (metis list_all2_conv_all_nth perm_length)
 done
 
 lemma (in factorial_monoid) factorcount_exists:
@@ -3658,15 +3520,7 @@ proof -
       by (auto simp del: carr)
 
   have "ALL as'. set as' \<subseteq> carrier G \<and> wfactors G as' a \<longrightarrow> length as = length as'"
-  proof clarify
-    fix as'
-    assume [simp]: "set as' \<subseteq> carrier G"
-      and bfs: "wfactors G as' a"
-    from afs bfs
-        have "essentially_equal G as as'"
-        by (intro ee_wfactorsI[of a a as as'], simp+)
-    thus "length as = length as'" by (rule ee_length)
-  qed
+    by (metis afs ascarr assms ee_length wfactors_unique)
   thus "EX c. ALL as'. set as' \<subseteq> carrier G \<and> wfactors G as' a \<longrightarrow> c = length as'" ..
 qed
 
@@ -3784,17 +3638,10 @@ proof -
   qed
 
   with cfs have "length cs > 0"
-  apply -
-  apply (rule ccontr, simp)
-  proof -
-    assume "wfactors G [] c"
-    hence "\<one> \<sim> c" by (elim wfactorsE, simp)
-    with ccarr
-        have cunit: "c \<in> Units G" by (intro assoc_unit_r[of "\<one>" "c"], simp+)
-    assume "c \<notin> Units G"
-    with cunit show "False" by simp
-  qed
-
+    apply -
+    apply (rule ccontr, simp)
+    apply (metis Units_one_closed ccarr cscarr l_one one_closed properfactorI3 properfactor_fmset unit_wfactors)
+    done
   with fca fcb show ?thesis by simp
 qed
 
@@ -3802,23 +3649,9 @@ sublocale factorial_monoid \<subseteq> divisor_chain_condition_monoid
 apply unfold_locales
 apply (rule wfUNIVI)
 apply (rule measure_induct[of "factorcount G"])
-apply simp (* slow *) (*
-  [1]Applying congruence rule:
-  \<lbrakk>factorcount G y < factorcount G xa \<equiv> ?P'; ?P' \<Longrightarrow> P y \<equiv> ?Q'\<rbrakk> \<Longrightarrow> factorcount G y < factorcount G xa \<longrightarrow> P y \<equiv> ?P' \<longrightarrow> ?Q'
-
-  trace_simp_depth_limit exceeded!
-*)
-proof -
-  fix P x
-  assume r1[rule_format]:
-         "\<forall>y. (\<forall>z. z \<in> carrier G \<and> y \<in> carrier G \<and> properfactor G z y \<longrightarrow> P z) \<longrightarrow> P y"
-    and r2[rule_format]: "\<forall>y. factorcount G y < factorcount G x \<longrightarrow> P y"
-  show "P x"
-    apply (rule r1)
-    apply (rule r2)
-    apply (rule properfactor_fcount, simp+)
-  done
-qed
+apply simp
+apply (metis properfactor_fcount)
+done
 
 sublocale factorial_monoid \<subseteq> primeness_condition_monoid
   proof qed (rule irreducible_is_prime)
