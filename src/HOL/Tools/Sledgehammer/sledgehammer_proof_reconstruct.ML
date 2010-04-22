@@ -17,14 +17,16 @@ sig
   val is_proof_well_formed: string -> bool
   val metis_line: int -> int -> string list -> string
   val metis_proof_text:
-    minimize_command -> string -> string vector -> thm -> int
+    minimize_command * string * string vector * thm * int
     -> string * string list
   val isar_proof_text:
-    bool -> int -> bool -> Proof.context -> minimize_command -> string
-    -> string vector -> thm -> int -> string * string list
+    bool -> int -> bool -> Proof.context
+    -> minimize_command * string * string vector * thm * int
+    -> string * string list
   val proof_text:
-    bool -> bool -> int -> bool -> Proof.context -> minimize_command -> string
-    -> string vector -> thm -> int -> string * string list
+    bool -> bool -> bool -> int -> bool -> Proof.context
+    -> minimize_command * string * string vector * thm * int
+    -> string * string list
 end;
 
 structure Sledgehammer_Proof_Reconstruct : SLEDGEHAMMER_PROOF_RECONSTRUCT =
@@ -541,7 +543,7 @@ fun minimize_line _ [] = ""
       "To minimize the number of lemmas, try this command: " ^
       Markup.markup Markup.sendback command ^ ".\n"
 
-fun metis_proof_text minimize_command proof thm_names goal i =
+fun metis_proof_text (minimize_command, proof, thm_names, goal, i) =
   let
     val lemmas =
       proof |> get_proof_extract
@@ -556,8 +558,8 @@ fun metis_proof_text minimize_command proof thm_names goal i =
     (metis_line i n xs ^ minimize_line minimize_command xs, kill_chained lemmas)
   end
 
-fun isar_proof_text debug modulus sorts ctxt minimize_command proof thm_names
-                    goal i =
+fun isar_proof_text debug modulus sorts ctxt
+                    (minimize_command, proof, thm_names, goal, i) =
   let
     (* We could use "split_lines", but it can return blank lines. *)
     val lines = String.tokens (equal #"\n");
@@ -566,7 +568,7 @@ fun isar_proof_text debug modulus sorts ctxt minimize_command proof thm_names
     val extract = get_proof_extract proof
     val cnfs = filter (String.isPrefix "cnf(") (map kill_spaces (lines extract))
     val (one_line_proof, lemma_names) =
-      metis_proof_text minimize_command proof thm_names goal i
+      metis_proof_text (minimize_command, proof, thm_names, goal, i)
     val tokens = String.tokens (fn c => c = #" ") one_line_proof
     fun isar_proof_for () =
       case isar_proof_from_tstp_file cnfs modulus sorts ctxt goal i thm_names of
@@ -580,11 +582,17 @@ fun isar_proof_text debug modulus sorts ctxt minimize_command proof thm_names
         isar_proof_for ()
       else
         try isar_proof_for ()
-        |> the_default "Error: The Isar proof reconstruction failed."
+        |> the_default "Warning: The Isar proof construction failed.\n"
   in (one_line_proof ^ isar_proof, lemma_names) end
 
-fun proof_text isar_proof debug modulus sorts ctxt =
-  if isar_proof then isar_proof_text debug modulus sorts ctxt
-  else metis_proof_text
+fun proof_text supports_isar_proofs isar_proof debug modulus sorts ctxt params =
+  if isar_proof then
+    if supports_isar_proofs then
+      isar_proof_text debug modulus sorts ctxt params
+    else
+      metis_proof_text params
+      |>> suffix "(Isar proof output is not supported for this ATP.)\n"
+  else
+    metis_proof_text params
 
 end;

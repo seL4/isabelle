@@ -72,8 +72,9 @@ fun find_known_failure known_failures proof =
   | (message :: _) => message
 
 fun generic_prover overlord get_facts prepare write_file cmd args known_failures
-        proof_text name ({debug, full_types, explicit_apply, ...} : params)
-        minimize_command
+        supports_isar_proofs name
+        ({debug, full_types, explicit_apply, isar_proof, modulus, sorts, ...}
+         : params) minimize_command
         ({subgoal, goal, relevance_override, axiom_clauses, filtered_clauses}
          : problem) =
   let
@@ -167,7 +168,8 @@ fun generic_prover overlord get_facts prepare write_file cmd args known_failures
     val success = rc = 0 andalso failure = "";
     val (message, relevant_thm_names) =
       if success then
-        proof_text ctxt minimize_command proof internal_thm_names th subgoal
+        proof_text supports_isar_proofs isar_proof debug modulus sorts ctxt
+                   (minimize_command, proof, internal_thm_names, th, subgoal)
       else if failure <> "" then
         (failure ^ "\n", [])
       else
@@ -188,7 +190,7 @@ fun generic_tptp_prover
                 prefers_theory_relevant, supports_isar_proofs})
         (params as {debug, overlord, respect_no_atp, relevance_threshold,
                     convergence, theory_relevant, higher_order, follow_defs,
-                    isar_proof, modulus, sorts, ...})
+                    isar_proof, ...})
         minimize_command timeout =
   generic_prover overlord
       (get_relevant_facts respect_no_atp relevance_threshold convergence
@@ -196,8 +198,7 @@ fun generic_tptp_prover
                           (the_default prefers_theory_relevant theory_relevant))
       (prepare_clauses higher_order false)
       (write_tptp_file (debug andalso overlord andalso not isar_proof)) command
-      (arguments timeout) known_failures
-      (proof_text (supports_isar_proofs andalso isar_proof) debug modulus sorts)
+      (arguments timeout) known_failures supports_isar_proofs
       name params minimize_command
 
 fun tptp_prover name p = (name, generic_tptp_prover (name, p));
@@ -249,8 +250,8 @@ val e = tptp_prover "e" e_config
 (* SPASS *)
 
 fun generic_dfg_prover
-        (name, ({command, arguments, known_failures, max_new_clauses,
-                 prefers_theory_relevant, ...} : prover_config))
+        (name, {command, arguments, known_failures, max_new_clauses,
+                prefers_theory_relevant, supports_isar_proofs})
         (params as {overlord, respect_no_atp, relevance_threshold, convergence,
                     theory_relevant, higher_order, follow_defs, ...})
         minimize_command timeout =
@@ -259,8 +260,8 @@ fun generic_dfg_prover
                           higher_order follow_defs max_new_clauses
                           (the_default prefers_theory_relevant theory_relevant))
       (prepare_clauses higher_order true) write_dfg_file command
-      (arguments timeout) known_failures (K metis_proof_text)
-      name params minimize_command
+      (arguments timeout) known_failures supports_isar_proofs name params
+      minimize_command
 
 fun dfg_prover name p = (name, generic_dfg_prover (name, p))
 
