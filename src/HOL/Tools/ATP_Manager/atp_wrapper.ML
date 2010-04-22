@@ -112,12 +112,17 @@ fun generic_prover overlord get_facts prepare write_file cmd args known_failures
 
     (* write out problem file and call prover *)
     fun cmd_line probfile =
-      if Config.get ctxt measure_runtime then
-        "TIMEFORMAT='%3U'; { time " ^ space_implode " " [File.shell_path cmd,
-        args, File.shell_path probfile] ^ " ; } 2>&1"
-      else
-        space_implode " " ["exec", File.shell_path cmd, args,
-        File.shell_path probfile, "2>&1"];
+      (if Config.get ctxt measure_runtime then
+         "TIMEFORMAT='%3U'; { time " ^ space_implode " " [File.shell_path cmd,
+         args, File.shell_path probfile] ^ " ; } 2>&1"
+       else
+         space_implode " " ["exec", File.shell_path cmd, args,
+         File.shell_path probfile, "2>&1"]) ^
+      (if overlord then
+         " | sed 's/,/, /g' | sed 's/\\([=|]\\)/ \\1 /g' | sed 's/! =/ !=/g' \
+         \| sed 's/  / /g'"
+       else
+         "")
     fun split_time s =
       let
         val split = String.tokens (fn c => str c = "\n");
@@ -160,7 +165,7 @@ fun generic_prover overlord get_facts prepare write_file cmd args known_failures
       if success then
         proof_text ctxt minimize_command proof internal_thm_names th subgoal
       else if failure <> "" then
-        (failure, [])
+        (failure ^ "\n", [])
       else
         ("Unknown ATP error: " ^ proof ^ ".\n", [])
   in
