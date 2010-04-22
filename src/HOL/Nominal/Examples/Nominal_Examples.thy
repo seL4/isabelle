@@ -6,7 +6,7 @@ theory Nominal_Examples
 imports
   CR
   CR_Takahashi
-  Class
+  Class3
   Compile
   Fsub
   Height

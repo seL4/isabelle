@@ -1136,7 +1136,9 @@ $(LOG)/HOL-Nominal-Examples.gz: $(OUT)/HOL-Nominal 	\
   Nominal/Examples/CK_Machine.thy \
   Nominal/Examples/CR.thy \
   Nominal/Examples/CR_Takahashi.thy \
-  Nominal/Examples/Class.thy \
+  Nominal/Examples/Class1.thy \
+  Nominal/Examples/Class2.thy \
+  Nominal/Examples/Class3.thy \
   Nominal/Examples/Compile.thy \
   Nominal/Examples/Contexts.thy \
   Nominal/Examples/Crary.thy \
