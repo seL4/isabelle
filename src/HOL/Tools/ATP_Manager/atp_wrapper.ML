@@ -119,8 +119,12 @@ fun generic_prover overlord get_facts prepare write_file cmd args known_failures
          space_implode " " ["exec", File.shell_path cmd, args,
          File.shell_path probfile, "2>&1"]) ^
       (if overlord then
-         " | sed 's/,/, /g' | sed 's/\\([=|]\\)/ \\1 /g' | sed 's/! =/ !=/g' \
-         \| sed 's/  / /g'"
+         " | sed 's/,/, /g' \
+         \| sed 's/\\([^!=]\\)\\([=|]\\)\\([^=]\\)/\\1 \\2 \\3/g' \
+         \| sed 's/! =/ !=/g' \
+         \| sed 's/  / /g' | sed 's/| |/||/g' \
+         \| sed 's/ = = =/===/g' \
+         \| sed 's/= = /== /g'"
        else
          "")
     fun split_time s =
@@ -335,7 +339,8 @@ val remote_known_failures =
     "Error: The remote ATP proof is ill-formed.")]
 
 fun remote_prover_config prover_prefix args
-        ({known_failures, max_new_clauses, prefers_theory_relevant, ...}
+        ({known_failures, max_new_clauses, prefers_theory_relevant,
+          supports_isar_proofs, ...}
          : prover_config) : prover_config =
   {command = Path.explode "$ISABELLE_ATP_MANAGER/SystemOnTPTP",
    arguments = (fn timeout =>
@@ -344,7 +349,7 @@ fun remote_prover_config prover_prefix args
    known_failures = remote_known_failures @ known_failures,
    max_new_clauses = max_new_clauses,
    prefers_theory_relevant = prefers_theory_relevant,
-   supports_isar_proofs = false}
+   supports_isar_proofs = supports_isar_proofs}
 
 val remote_vampire =
   tptp_prover "remote_vampire"
