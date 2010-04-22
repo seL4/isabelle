@@ -122,7 +122,7 @@ fun minimize_theorems (params as {debug, minimize_timeout, isar_proof, modulus,
             ["Minimized: " ^ string_of_int n ^ " theorem" ^ plural_s n] ^ ".")
         in
           (SOME min_thms,
-           proof_text true isar_proof debug modulus sorts ctxt
+           proof_text isar_proof debug modulus sorts ctxt
                       (K "", proof, internal_thm_names, goal, i) |> fst)
         end
     | (Timeout, _) =>

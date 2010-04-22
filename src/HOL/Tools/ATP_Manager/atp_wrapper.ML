@@ -43,13 +43,15 @@ val (measure_runtime, measure_runtime_setup) =
 
 (* prover configuration *)
 
+val remotify = prefix "remote_"
+
 type prover_config =
- {command: Path.T,
+ {home: string,
+  executable: string,
   arguments: Time.time -> string,
   known_failures: (string list * string) list,
   max_new_clauses: int,
-  prefers_theory_relevant: bool,
-  supports_isar_proofs: bool};
+  prefers_theory_relevant: bool};
 
 
 (* basic template *)
@@ -71,8 +73,8 @@ fun find_known_failure known_failures proof =
           else "Error: The ATP output is ill-formed."
   | (message :: _) => message
 
-fun generic_prover overlord get_facts prepare write_file cmd args known_failures
-        supports_isar_proofs name
+fun generic_prover overlord get_facts prepare write_file home executable args
+        known_failures name
         ({debug, full_types, explicit_apply, isar_proof, modulus, sorts, ...}
          : params) minimize_command
         ({subgoal, goal, relevance_override, axiom_clauses, filtered_clauses}
@@ -111,14 +113,16 @@ fun generic_prover overlord get_facts prepare write_file cmd args known_failures
         else error ("No such directory: " ^ destdir' ^ ".")
       end;
 
+    val command = Path.explode (home ^ "/" ^ executable)
     (* write out problem file and call prover *)
-    fun cmd_line probfile =
+    fun command_line probfile =
       (if Config.get ctxt measure_runtime then
-         "TIMEFORMAT='%3U'; { time " ^ space_implode " " [File.shell_path cmd,
-         args, File.shell_path probfile] ^ " ; } 2>&1"
+         "TIMEFORMAT='%3U'; { time " ^
+         space_implode " " [File.shell_path command, args,
+                            File.shell_path probfile] ^ " ; } 2>&1"
        else
-         space_implode " " ["exec", File.shell_path cmd, args,
-         File.shell_path probfile, "2>&1"]) ^
+         space_implode " " ["exec", File.shell_path command, args,
+                            File.shell_path probfile, "2>&1"]) ^
       (if overlord then
          " | sed 's/,/, /g' \
          \| sed 's/\\([^!=]\\)\\([=|]\\)\\([^=]\\)/\\1 \\2 \\3/g' \
@@ -142,10 +146,10 @@ fun generic_prover overlord get_facts prepare write_file cmd args known_failures
     fun split_time' s =
       if Config.get ctxt measure_runtime then split_time s else (s, 0)
     fun run_on probfile =
-      if File.exists cmd then
+      if File.exists command then
         write_file full_types explicit_apply probfile clauses
-        |> pair (apfst split_time' (bash_output (cmd_line probfile)))
-      else error ("Bad executable: " ^ Path.implode cmd ^ ".");
+        |> pair (apfst split_time' (bash_output (command_line probfile)))
+      else error ("Bad executable: " ^ Path.implode command ^ ".");
 
     (* If the problem file has not been exported, remove it; otherwise, export
        the proof file too. *)
@@ -156,7 +160,8 @@ fun generic_prover overlord get_facts prepare write_file cmd args known_failures
       else
         File.write (Path.explode (Path.implode probfile ^ "_proof"))
                    ((if overlord then
-                       "% " ^ cmd_line probfile ^ "\n% " ^ timestamp () ^ "\n"
+                       "% " ^ command_line probfile ^ "\n% " ^ timestamp () ^
+                       "\n"
                      else
                         "") ^ proof)
 
@@ -168,7 +173,7 @@ fun generic_prover overlord get_facts prepare write_file cmd args known_failures
     val success = rc = 0 andalso failure = "";
     val (message, relevant_thm_names) =
       if success then
-        proof_text supports_isar_proofs isar_proof debug modulus sorts ctxt
+        proof_text isar_proof debug modulus sorts ctxt
                    (minimize_command, proof, internal_thm_names, th, subgoal)
       else if failure <> "" then
         (failure ^ "\n", [])
@@ -186,8 +191,8 @@ fun generic_prover overlord get_facts prepare write_file cmd args known_failures
 (* generic TPTP-based provers *)
 
 fun generic_tptp_prover
-        (name, {command, arguments, known_failures, max_new_clauses,
-                prefers_theory_relevant, supports_isar_proofs})
+        (name, {home, executable, arguments, known_failures, max_new_clauses,
+                prefers_theory_relevant})
         (params as {debug, overlord, respect_no_atp, relevance_threshold,
                     convergence, theory_relevant, higher_order, follow_defs,
                     isar_proof, ...})
@@ -197,9 +202,8 @@ fun generic_tptp_prover
                           higher_order follow_defs max_new_clauses
                           (the_default prefers_theory_relevant theory_relevant))
       (prepare_clauses higher_order false)
-      (write_tptp_file (debug andalso overlord andalso not isar_proof)) command
-      (arguments timeout) known_failures supports_isar_proofs
-      name params minimize_command
+      (write_tptp_file (debug andalso overlord andalso not isar_proof)) home
+      executable (arguments timeout) known_failures name params minimize_command
 
 fun tptp_prover name p = (name, generic_tptp_prover (name, p));
 
@@ -210,10 +214,11 @@ fun generous_to_secs time = (Time.toMilliseconds time + 999) div 1000
 
 (* Vampire *)
 
-(* NB: Vampire does not work without explicit time limit. *)
+(* Vampire requires an explicit time limit. *)
 
 val vampire_config : prover_config =
-  {command = Path.explode "$VAMPIRE_HOME/vampire",
+  {home = getenv "VAMPIRE_HOME",
+   executable = "vampire",
    arguments = (fn timeout => "--output_syntax tptp --mode casc -t " ^
                               string_of_int (generous_to_secs timeout)),
    known_failures =
@@ -222,15 +227,15 @@ val vampire_config : prover_config =
       (["Refutation not found"],
        "The ATP failed to determine the problem's status.")],
    max_new_clauses = 60,
-   prefers_theory_relevant = false,
-   supports_isar_proofs = true}
+   prefers_theory_relevant = false}
 val vampire = tptp_prover "vampire" vampire_config
 
 
 (* E prover *)
 
 val e_config : prover_config =
-  {command = Path.explode "$E_HOME/eproof",
+  {home = getenv "E_HOME",
+   executable = "eproof",
    arguments = (fn timeout => "--tstp-in --tstp-out -l5 -xAutoDev \
                               \-tAutoDev --silent --cpu-limit=" ^
                               string_of_int (generous_to_secs timeout)),
@@ -242,16 +247,15 @@ val e_config : prover_config =
         (["# Cannot determine problem status"],
          "The ATP failed to determine the problem's status.")],
    max_new_clauses = 100,
-   prefers_theory_relevant = false,
-   supports_isar_proofs = true}
+   prefers_theory_relevant = false}
 val e = tptp_prover "e" e_config
 
 
 (* SPASS *)
 
 fun generic_dfg_prover
-        (name, {command, arguments, known_failures, max_new_clauses,
-                prefers_theory_relevant, supports_isar_proofs})
+        (name, {home, executable, arguments, known_failures, max_new_clauses,
+                prefers_theory_relevant})
         (params as {overlord, respect_no_atp, relevance_threshold, convergence,
                     theory_relevant, higher_order, follow_defs, ...})
         minimize_command timeout =
@@ -259,27 +263,26 @@ fun generic_dfg_prover
       (get_relevant_facts respect_no_atp relevance_threshold convergence
                           higher_order follow_defs max_new_clauses
                           (the_default prefers_theory_relevant theory_relevant))
-      (prepare_clauses higher_order true) write_dfg_file command
-      (arguments timeout) known_failures supports_isar_proofs name params
-      minimize_command
+      (prepare_clauses higher_order true) write_dfg_file home executable
+      (arguments timeout) known_failures name params minimize_command
 
 fun dfg_prover name p = (name, generic_dfg_prover (name, p))
 
 (* The "-VarWeight=3" option helps the higher-order problems, probably by
    counteracting the presence of "hAPP". *)
 val spass_config : prover_config =
- {command = Path.explode "$SPASS_HOME/SPASS",
-  arguments = (fn timeout => "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0" ^
-    " -FullRed=0 -DocProof -VarWeight=3 -TimeLimit=" ^
-    string_of_int (generous_to_secs timeout)),
-  known_failures =
-    [(["SPASS beiseite: Completion found."], "The ATP problem is unprovable."),
-     (["SPASS beiseite: Ran out of time."], "The ATP timed out."),
-     (["SPASS beiseite: Maximal number of loops exceeded."],
-      "The ATP hit its loop limit.")],
-  max_new_clauses = 40,
-  prefers_theory_relevant = true,
-  supports_isar_proofs = false}
+  {home = getenv "SPASS_HOME",
+   executable = "SPASS",
+   arguments = (fn timeout => "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0" ^
+     " -FullRed=0 -DocProof -VarWeight=3 -TimeLimit=" ^
+     string_of_int (generous_to_secs timeout)),
+   known_failures =
+     [(["SPASS beiseite: Completion found."], "The ATP problem is unprovable."),
+      (["SPASS beiseite: Ran out of time."], "The ATP timed out."),
+      (["SPASS beiseite: Maximal number of loops exceeded."],
+       "The ATP hit its loop limit.")],
+   max_new_clauses = 40,
+   prefers_theory_relevant = true}
 val spass = dfg_prover "spass" spass_config
 
 (* SPASS 3.7 supports both the DFG and the TPTP syntax, whereas SPASS 3.0
@@ -291,7 +294,8 @@ val spass = dfg_prover "spass" spass_config
    page once the package is there (around the Isabelle2010 release). *)
 
 val spass_tptp_config =
-  {command = #command spass_config,
+  {home = #home spass_config,
+   executable = #executable spass_config,
    arguments = prefix "-TPTP " o #arguments spass_config,
    known_failures =
      #known_failures spass_config @
@@ -305,8 +309,7 @@ val spass_tptp_config =
             map Path.basic ["etc", "components"]))) ^
        "\" on a line of its own.")],
    max_new_clauses = #max_new_clauses spass_config,
-   prefers_theory_relevant = #prefers_theory_relevant spass_config,
-   supports_isar_proofs = #supports_isar_proofs spass_config}
+   prefers_theory_relevant = #prefers_theory_relevant spass_config}
 val spass_tptp = tptp_prover "spass_tptp" spass_tptp_config
 
 (* remote prover invocation via SystemOnTPTP *)
@@ -340,30 +343,31 @@ val remote_known_failures =
     "Error: The remote ATP proof is ill-formed.")]
 
 fun remote_prover_config prover_prefix args
-        ({known_failures, max_new_clauses, prefers_theory_relevant,
-          supports_isar_proofs, ...}
+        ({known_failures, max_new_clauses, prefers_theory_relevant, ...}
          : prover_config) : prover_config =
-  {command = Path.explode "$ISABELLE_ATP_MANAGER/SystemOnTPTP",
+  {home = getenv "ISABELLE_ATP_MANAGER",
+   executable = "SystemOnTPTP",
    arguments = (fn timeout =>
      args ^ " -t " ^ string_of_int (generous_to_secs timeout) ^ " -s " ^
      the_system prover_prefix),
    known_failures = remote_known_failures @ known_failures,
    max_new_clauses = max_new_clauses,
-   prefers_theory_relevant = prefers_theory_relevant,
-   supports_isar_proofs = supports_isar_proofs}
+   prefers_theory_relevant = prefers_theory_relevant}
 
 val remote_vampire =
-  tptp_prover "remote_vampire"
+  tptp_prover (remotify (fst vampire))
               (remote_prover_config "Vampire---9" "" vampire_config)
 
 val remote_e =
-  tptp_prover "remote_e" (remote_prover_config "EP---" "" e_config)
+  tptp_prover (remotify (fst e))
+              (remote_prover_config "EP---" "" e_config)
 
 val remote_spass =
-  tptp_prover "remote_spass" (remote_prover_config "SPASS---" "-x" spass_config)
+  tptp_prover (remotify (fst spass))
+              (remote_prover_config "SPASS---" "-x" spass_config)
 
-val provers = [spass, spass_tptp, vampire, e, remote_vampire, remote_spass,
-               remote_e]
+val provers =
+  [spass, spass_tptp, vampire, e, remote_vampire, remote_spass, remote_e]
 val prover_setup = fold add_prover provers
 
 val setup =
@@ -372,4 +376,9 @@ val setup =
   #> measure_runtime_setup
   #> prover_setup;
 
+fun maybe_remote (name, _) ({home, ...} : prover_config) =
+  name |> home = "" ? remotify
+
+val _ = atps := ([maybe_remote e e_config, maybe_remote spass spass_config,
+                  remotify (fst vampire)] |> space_implode " ")
 end;
