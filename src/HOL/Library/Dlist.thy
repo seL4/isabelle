@@ -47,6 +47,11 @@ proof
   show "[] \<in> ?dlist" by simp
 qed
 
+lemma dlist_ext:
+  assumes "list_of_dlist xs = list_of_dlist ys"
+  shows "xs = ys"
+  using assms by (simp add: list_of_dlist_inject)
+
 
 text {* Formal, totalized constructor for @{typ "'a dlist"}: *}
 
