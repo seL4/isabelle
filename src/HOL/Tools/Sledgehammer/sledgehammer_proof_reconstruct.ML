@@ -115,7 +115,8 @@ fun invert_type_const c =
         SOME c' => c'
       | NONE => c;
 
-fun make_tvar b = TVar(("'" ^ b, 0), HOLogic.typeS);
+fun make_tvar s = TVar (("'" ^ s, 0), HOLogic.typeS);
+fun make_tparam s = TypeInfer.param 0 (s, HOLogic.typeS)
 fun make_var (b,T) = Var((b,0),T);
 
 (*Type variables are given the basic sort, HOL.type. Some will later be constrained
@@ -136,7 +137,7 @@ fun type_of_stree t =
                   | NONE =>
                 case strip_prefix tvar_prefix a of
                     SOME b => make_tvar b
-                  | NONE => make_tvar a   (*Variable from the ATP, say X1*)
+                  | NONE => make_tparam a  (* Variable from the ATP, say "X1" *)
         end;
 
 (*Invert the table of translations between Isabelle and ATPs*)
@@ -230,14 +231,14 @@ fun fix_sorts vt =
         | tmsubst (t as Bound _) = t
         | tmsubst (Abs (a, T, t)) = Abs (a, tysubst T, tmsubst t)
         | tmsubst (t $ u) = tmsubst t $ tmsubst u;
-  in fn t => if Vartab.is_empty vt then t else tmsubst t end;
+  in not (Vartab.is_empty vt) ? tmsubst end;
 
 (*Interpret a list of syntax trees as a clause, given by "real" literals and sort constraints.
   vt0 holds the initial sort constraints, from the conjecture clauses.*)
 fun clause_of_strees ctxt vt0 ts =
   let val (vt, dt) = lits_of_strees ctxt (vt0,[]) ts in
     singleton (Syntax.check_terms ctxt) (TypeInfer.constrain HOLogic.boolT (fix_sorts vt dt))
-  end;
+  end
 
 fun gen_all_vars t = fold_rev Logic.all (OldTerm.term_vars t) t;
 
@@ -346,7 +347,7 @@ fun isar_proof_body ctxt sorts ctms =
     fun have_or_show "show" _ = "  show \""
       | have_or_show have lname = "  " ^ have ^ " " ^ lname ^ ": \""
     fun do_line _ (lname, t, []) =
-       (* No deps: it's a conjecture clause, with no proof. *)
+       (* No depedencies: it's a conjecture clause, with no proof. *)
        (case permuted_clause t ctms of
           SOME u => "  assume " ^ lname ^ ": \"" ^ string_of_term u ^ "\"\n"
         | NONE => raise TERM ("Sledgehammer_Proof_Reconstruct.isar_proof_body",
@@ -570,7 +571,8 @@ fun isar_proof_text debug modulus sorts ctxt minimize_command proof thm_names
     fun isar_proof_for () =
       case isar_proof_from_tstp_file cnfs modulus sorts ctxt goal i thm_names of
         "" => ""
-      | isar_proof => Markup.markup Markup.sendback isar_proof
+      | isar_proof =>
+        "\nStructured proof:\n" ^ Markup.markup Markup.sendback isar_proof
     val isar_proof =
       if member (op =) tokens chained_hint then
         ""
