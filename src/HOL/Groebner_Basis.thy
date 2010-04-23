@@ -627,7 +627,7 @@ in
 
 val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
            @{thm "divide_Numeral1"},
-           @{thm "Fields.divide_zero"}, @{thm "divide_Numeral0"},
+           @{thm "divide_zero"}, @{thm "divide_Numeral0"},
            @{thm "divide_divide_eq_left"}, @{thm "mult_frac_frac"},
            @{thm "mult_num_frac"}, @{thm "mult_frac_num"},
            @{thm "mult_frac_frac"}, @{thm "times_divide_eq_right"},
