@@ -518,7 +518,7 @@ by (simp add: divide_inverse algebra_simps)
 lemma divide_1 [simp]: "a / 1 = a"
   by (simp add: divide_inverse)
 
-lemma times_divide_eq_right: "a * (b / c) = (a * b) / c"
+lemma times_divide_eq_right [simp]: "a * (b / c) = (a * b) / c"
   by (simp add: divide_inverse mult_assoc)
 
 lemma minus_divide_left: "- (a / b) = (-a) / b"

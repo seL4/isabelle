@@ -52,7 +52,7 @@ lemma nonzero_mult_divide_mult_cancel_right [simp, no_atp]:
   "\<lbrakk>b \<noteq> 0; c \<noteq> 0\<rbrakk> \<Longrightarrow> (a * c) / (b * c) = a / b"
 by (simp add: mult_commute [of _ c])
 
-lemma times_divide_eq_left: "(b / c) * a = (b * a) / c"
+lemma times_divide_eq_left [simp]: "(b / c) * a = (b * a) / c"
   by (simp add: divide_inverse mult_ac)
 
 text {* These are later declared as simp rules. *}
@@ -395,7 +395,7 @@ lemma pos_le_divide_eq: "0 < c ==> (a \<le> b/c) = (a*c \<le> b)"
 proof -
   assume less: "0<c"
   hence "(a \<le> b/c) = (a*c \<le> (b/c)*c)"
-    by (simp add: mult_le_cancel_right less_not_sym [OF less])
+    by (simp add: mult_le_cancel_right less_not_sym [OF less] del: times_divide_eq)
   also have "... = (a*c \<le> b)"
     by (simp add: less_imp_not_eq2 [OF less] divide_inverse mult_assoc) 
   finally show ?thesis .
@@ -405,7 +405,7 @@ lemma neg_le_divide_eq: "c < 0 ==> (a \<le> b/c) = (b \<le> a*c)"
 proof -
   assume less: "c<0"
   hence "(a \<le> b/c) = ((b/c)*c \<le> a*c)"
-    by (simp add: mult_le_cancel_right less_not_sym [OF less])
+    by (simp add: mult_le_cancel_right less_not_sym [OF less] del: times_divide_eq)
   also have "... = (b \<le> a*c)"
     by (simp add: less_imp_not_eq [OF less] divide_inverse mult_assoc) 
   finally show ?thesis .
@@ -416,7 +416,7 @@ lemma pos_less_divide_eq:
 proof -
   assume less: "0<c"
   hence "(a < b/c) = (a*c < (b/c)*c)"
-    by (simp add: mult_less_cancel_right_disj less_not_sym [OF less])
+    by (simp add: mult_less_cancel_right_disj less_not_sym [OF less] del: times_divide_eq)
   also have "... = (a*c < b)"
     by (simp add: less_imp_not_eq2 [OF less] divide_inverse mult_assoc) 
   finally show ?thesis .
@@ -427,7 +427,7 @@ lemma neg_less_divide_eq:
 proof -
   assume less: "c<0"
   hence "(a < b/c) = ((b/c)*c < a*c)"
-    by (simp add: mult_less_cancel_right_disj less_not_sym [OF less])
+    by (simp add: mult_less_cancel_right_disj less_not_sym [OF less] del: times_divide_eq)
   also have "... = (b < a*c)"
     by (simp add: less_imp_not_eq [OF less] divide_inverse mult_assoc) 
   finally show ?thesis .
@@ -438,7 +438,7 @@ lemma pos_divide_less_eq:
 proof -
   assume less: "0<c"
   hence "(b/c < a) = ((b/c)*c < a*c)"
-    by (simp add: mult_less_cancel_right_disj less_not_sym [OF less])
+    by (simp add: mult_less_cancel_right_disj less_not_sym [OF less] del: times_divide_eq)
   also have "... = (b < a*c)"
     by (simp add: less_imp_not_eq2 [OF less] divide_inverse mult_assoc) 
   finally show ?thesis .
@@ -449,7 +449,7 @@ lemma neg_divide_less_eq:
 proof -
   assume less: "c<0"
   hence "(b/c < a) = (a*c < (b/c)*c)"
-    by (simp add: mult_less_cancel_right_disj less_not_sym [OF less])
+    by (simp add: mult_less_cancel_right_disj less_not_sym [OF less] del: times_divide_eq)
   also have "... = (a*c < b)"
     by (simp add: less_imp_not_eq [OF less] divide_inverse mult_assoc) 
   finally show ?thesis .
@@ -459,7 +459,7 @@ lemma pos_divide_le_eq: "0 < c ==> (b/c \<le> a) = (b \<le> a*c)"
 proof -
   assume less: "0<c"
   hence "(b/c \<le> a) = ((b/c)*c \<le> a*c)"
-    by (simp add: mult_le_cancel_right less_not_sym [OF less])
+    by (simp add: mult_le_cancel_right less_not_sym [OF less] del: times_divide_eq)
   also have "... = (b \<le> a*c)"
     by (simp add: less_imp_not_eq2 [OF less] divide_inverse mult_assoc) 
   finally show ?thesis .
@@ -469,7 +469,7 @@ lemma neg_divide_le_eq: "c < 0 ==> (b/c \<le> a) = (a*c \<le> b)"
 proof -
   assume less: "c<0"
   hence "(b/c \<le> a) = (a*c \<le> (b/c)*c)"
-    by (simp add: mult_le_cancel_right less_not_sym [OF less])
+    by (simp add: mult_le_cancel_right less_not_sym [OF less] del: times_divide_eq)
   also have "... = (a*c \<le> b)"
     by (simp add: less_imp_not_eq [OF less] divide_inverse mult_assoc) 
   finally show ?thesis .
@@ -486,8 +486,6 @@ lemmas field_simps[no_atp] = field_eq_simps
   pos_less_divide_eq neg_less_divide_eq
   pos_divide_le_eq neg_divide_le_eq
   pos_le_divide_eq neg_le_divide_eq
-
-thm field_eq_simps
 
 text{* Lemmas @{text sign_simps} is a first attempt to automate proofs
 of positivity/negativity needed for @{text field_simps}. Have not added @{text
@@ -609,7 +607,6 @@ lemma frac_less2: "0 < x ==>
     x <= y ==> 0 < w ==> w < z  ==> x / z < y / w"
   apply (rule mult_imp_div_pos_less)
   apply simp_all
-  apply (subst times_divide_eq_left)
   apply (rule mult_imp_less_div_pos, assumption)
   apply (erule mult_le_less_imp_less)
   apply simp_all
@@ -619,8 +616,6 @@ text{*It's not obvious whether these should be simprules or not.
   Their effect is to gather terms into one big fraction, like
   a*b*c / x*y*z. The rationale for that is unclear, but many proofs 
   seem to need them.*}
-
-declare times_divide_eq [simp]
 
 lemma less_half_sum: "a < b ==> a < (a+b) / (1+1)"
 by (simp add: field_simps zero_less_two)
