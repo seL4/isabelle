@@ -18,7 +18,7 @@ uses
   ("Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML")
   ("Tools/Sledgehammer/sledgehammer_fact_filter.ML")
   ("Tools/ATP_Manager/atp_manager.ML")
-  ("Tools/ATP_Manager/atp_wrapper.ML")
+  ("Tools/ATP_Manager/atp_systems.ML")
   ("Tools/Sledgehammer/sledgehammer_fact_minimizer.ML")
   ("Tools/Sledgehammer/sledgehammer_isar.ML")
   ("Tools/Sledgehammer/meson_tactic.ML")
@@ -101,7 +101,7 @@ use "Tools/Sledgehammer/sledgehammer_hol_clause.ML"
 use "Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML"
 use "Tools/Sledgehammer/sledgehammer_fact_filter.ML"
 use "Tools/ATP_Manager/atp_manager.ML"
-use "Tools/ATP_Manager/atp_wrapper.ML"
+use "Tools/ATP_Manager/atp_systems.ML"
 setup ATP_Systems.setup
 use "Tools/Sledgehammer/sledgehammer_fact_minimizer.ML"
 use "Tools/Sledgehammer/sledgehammer_isar.ML"

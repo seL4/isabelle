@@ -365,7 +365,7 @@ fun the_system prefix =
 
 val remote_known_failures =
   [(TimedOut, "says Timeout"),
-   (MalformedOutput, "Remote-script could not extract proof")]
+   (MalformedOutput, "Remote script could not extract proof")]
 
 fun remote_prover_config prover_prefix args
         ({proof_delims, known_failures, max_new_clauses,
