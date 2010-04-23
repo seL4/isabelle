@@ -475,7 +475,7 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
 
 fun invoke args =
   let
-    val _ = ATP_Manager.full_types := AList.defined (op =) args full_typesK
+    val _ = Sledgehammer_Isar.full_types := AList.defined (op =) args full_typesK
   in Mirabelle.register (init, sledgehammer_action args, done) end
 
 end

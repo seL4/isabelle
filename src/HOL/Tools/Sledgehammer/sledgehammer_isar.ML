@@ -53,13 +53,13 @@ val _ =
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_proof
       (Preferences.int_pref timeout
-          "Sledgehammer: Time limit"
+          "Sledgehammer: Time Limit"
           "ATPs will be interrupted after this time (in seconds)")
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_proof
       (Preferences.bool_pref full_types
-          "Sledgehammer: Full types" "ATPs will use full type information")
+          "Sledgehammer: Full Types" "ATPs will use full type information")
 
 type raw_param = string * string list
 
@@ -196,6 +196,21 @@ fun extract_params thy default_params override_params =
 fun get_params thy = extract_params thy (default_raw_params thy)
 fun default_params thy = get_params thy o map (apsnd single)
 
+(* Sledgehammer the given subgoal *)
+
+fun run {atps = [], ...} _ _ _ _ = error "No ATP is set."
+  | run (params as {atps, timeout, ...}) i relevance_override minimize_command
+        proof_state =
+    let
+      val birth_time = Time.now ()
+      val death_time = Time.+ (birth_time, timeout)
+      val _ = kill_atps ()  (* race w.r.t. other invocations of Sledgehammer *)
+      val _ = priority "Sledgehammering..."
+      val _ = List.app (start_prover_thread params birth_time death_time i
+                                            relevance_override minimize_command
+                                            proof_state) atps
+    in () end
+
 fun minimize override_params old_style_args i fact_refs state =
   let
     val thy = Proof.theory_of state
@@ -232,6 +247,9 @@ fun minimize override_params old_style_args i fact_refs state =
     priority (#2 (minimize_theorems params prover atp i state name_thms_pairs))
   end
 
+val sledgehammerN = "sledgehammer"
+val sledgehammer_paramsN = "sledgehammer_params"
+
 val runN = "run"
 val minimizeN = "minimize"
 val messagesN = "messages"
@@ -252,7 +270,7 @@ fun string_for_raw_param (key, values) =
          | value => " = " ^ value)
 
 fun minimize_command override_params i atp_name facts =
-  "sledgehammer minimize [atp = " ^ atp_name ^
+  sledgehammerN ^ " " ^ minimizeN ^ " [atp = " ^ atp_name ^
   (override_params |> filter is_raw_param_relevant_for_minimize
                    |> implode o map (prefix ", " o string_for_raw_param)) ^
   "] (" ^ space_implode " " facts ^ ")" ^
@@ -265,8 +283,8 @@ fun hammer_away override_params subcommand opt_i relevance_override state =
   in
     if subcommand = runN then
       let val i = the_default 1 opt_i in
-        sledgehammer (get_params thy override_params) i relevance_override
-                     (minimize_command override_params i) state
+        run (get_params thy override_params) i relevance_override
+            (minimize_command override_params i) state
       end
     else if subcommand = minimizeN then
       minimize (map (apfst minimizize_raw_param_name) override_params) []
@@ -355,11 +373,11 @@ val _ =
         Toplevel.keep (minimize [] args 1 fact_refs o Toplevel.proof_of)))
 
 val _ =
-  OuterSyntax.improper_command "sledgehammer"
+  OuterSyntax.improper_command sledgehammerN
     "search for first-order proof using automatic theorem provers" K.diag
     parse_sledgehammer_command
 val _ =
-  OuterSyntax.command "sledgehammer_params"
+  OuterSyntax.command sledgehammer_paramsN
     "set and display the default parameters for Sledgehammer" K.thy_decl
     parse_sledgehammer_params_command
 

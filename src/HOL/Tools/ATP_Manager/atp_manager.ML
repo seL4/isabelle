@@ -55,9 +55,9 @@ sig
   val add_prover: string * prover -> theory -> theory
   val get_prover: theory -> string -> prover option
   val available_atps: theory -> unit
-  val sledgehammer:
-    params -> int -> relevance_override -> (string -> minimize_command)
-    -> Proof.state -> unit
+  val start_prover_thread:
+    params -> Time.time -> Time.time -> int -> relevance_override
+    -> (string -> minimize_command) -> Proof.state -> string -> unit
 end;
 
 structure ATP_Manager : ATP_MANAGER =
@@ -331,8 +331,8 @@ fun available_atps thy =
 
 (* start prover thread *)
 
-fun start_prover (params as {timeout, ...}) birth_time death_time i
-                 relevance_override minimize_command proof_state name =
+fun start_prover_thread (params as {timeout, ...}) birth_time death_time i
+                        relevance_override minimize_command proof_state name =
   (case get_prover (Proof.theory_of proof_state) name of
     NONE => error ("Unknown ATP: " ^ quote name ^ ".")
   | SOME prover =>
@@ -357,21 +357,5 @@ fun start_prover (params as {timeout, ...}) birth_time death_time i
             val _ = unregister params message (Thread.self ());
           in () end);
       in () end);
-
-
-(* Sledgehammer the given subgoal *)
-
-fun sledgehammer {atps = [], ...} _ _ _ _ = error "No ATP is set."
-  | sledgehammer (params as {atps, timeout, ...}) i relevance_override
-                 minimize_command proof_state =
-    let
-      val birth_time = Time.now ()
-      val death_time = Time.+ (birth_time, timeout)
-      val _ = kill_atps ()  (* Race w.r.t. other invocations of Sledgehammer *)
-      val _ = priority "Sledgehammering..."
-      val _ = List.app (start_prover params birth_time death_time i
-                                     relevance_override minimize_command
-                                     proof_state) atps
-    in () end
 
 end;
