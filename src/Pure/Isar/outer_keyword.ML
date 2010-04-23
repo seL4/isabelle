@@ -17,6 +17,7 @@ sig
   val thy_decl: T
   val thy_script: T
   val thy_goal: T
+  val thy_schematic_goal: T
   val qed: T
   val qed_block: T
   val qed_global: T
@@ -55,6 +56,7 @@ sig
   val is_proof: string -> bool
   val is_theory_goal: string -> bool
   val is_proof_goal: string -> bool
+  val is_schematic_goal: string -> bool
   val is_qed: string -> bool
   val is_qed_global: string -> bool
 end;
@@ -81,6 +83,7 @@ val thy_heading = kind "theory-heading";
 val thy_decl = kind "theory-decl";
 val thy_script = kind "theory-script";
 val thy_goal = kind "theory-goal";
+val thy_schematic_goal = kind "theory-schematic-goal";
 val qed = kind "qed";
 val qed_block = kind "qed-block";
 val qed_global = kind "qed-global";
@@ -95,9 +98,11 @@ val prf_asm = kind "proof-asm";
 val prf_asm_goal = kind "proof-asm-goal";
 val prf_script = kind "proof-script";
 
-val kinds = [control, diag, thy_begin, thy_switch, thy_end, thy_heading, thy_decl, thy_script,
-  thy_goal, qed, qed_block, qed_global, prf_heading, prf_goal, prf_block, prf_open, prf_close,
-  prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script] |> map kind_of;
+val kinds =
+  [control, diag, thy_begin, thy_switch, thy_end, thy_heading, thy_decl, thy_script, thy_goal,
+    thy_schematic_goal, qed, qed_block, qed_global, prf_heading, prf_goal, prf_block, prf_open,
+    prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script]
+ |> map kind_of;
 
 
 (* tags *)
@@ -191,14 +196,15 @@ fun is_regular name = not (is_diag name orelse is_control name);
 val is_theory_begin = command_category [thy_begin];
 
 val is_theory = command_category
-  [thy_begin, thy_switch, thy_end, thy_heading, thy_decl, thy_script, thy_goal];
+  [thy_begin, thy_switch, thy_end, thy_heading, thy_decl, thy_script, thy_goal, thy_schematic_goal];
 
 val is_proof = command_category
   [qed, qed_block, qed_global, prf_heading, prf_goal, prf_block, prf_open, prf_close,
     prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script];
 
-val is_theory_goal = command_category [thy_goal];
+val is_theory_goal = command_category [thy_goal, thy_schematic_goal];
 val is_proof_goal = command_category [prf_goal, prf_asm_goal];
+val is_schematic_goal = command_category [thy_schematic_goal];
 val is_qed = command_category [qed, qed_block];
 val is_qed_global = command_category [qed_global];
 

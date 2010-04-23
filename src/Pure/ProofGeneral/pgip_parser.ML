@@ -63,6 +63,7 @@ val command_keywords = Symtab.empty
   |> command K.thy_decl         thy_decl
   |> command K.thy_script       thy_decl
   |> command K.thy_goal         goal
+  |> command K.thy_schematic_goal goal
   |> command K.qed              closegoal
   |> command K.qed_block        closegoal
   |> command K.qed_global       (fn text => [D.Giveupgoal {text = text}])
