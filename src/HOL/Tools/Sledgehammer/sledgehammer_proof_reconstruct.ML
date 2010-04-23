@@ -70,13 +70,13 @@ fun is_digit s = Char.isDigit (String.sub(s,0));
 val integer = Scan.many1 is_digit >> (the o Int.fromString o implode);
 
 (* needed for SPASS's nonstandard output format *)
-fun smart_Br ("equal", ts) = Br ("c_equal", rev ts)
-  | smart_Br p = Br p
+fun fix_symbol "equal" = "c_equal"
+  | fix_symbol s = s
 
 (*Generalized FO terms, which include filenames, numbers, etc.*)
 fun term x = (quoted >> atom || integer >> Int || truefalse
-              || Symbol.scan_id
-                 -- Scan.optional ($$ "(" |-- terms --| $$ ")") [] >> smart_Br
+              || (Symbol.scan_id >> fix_symbol)
+                 -- Scan.optional ($$ "(" |-- terms --| $$ ")") [] >> Br
               || $$ "(" |-- term --| $$ ")"
               || $$ "[" |-- Scan.optional terms [] --| $$ "]" >> listof) x
 and terms x = (term ::: Scan.repeat ($$ "," |-- term)) x
@@ -314,8 +314,8 @@ fun decode_proof_steps ctxt tuples =
   end
 
 (** Finding a matching assumption. The literals may be permuted, and variable names
-    may disagree. We have to try all combinations of literals (quadratic!) and
-    match up the variable names consistently. **)
+    may disagree. We must try all combinations of literals (quadratic!) and
+    match the variable names consistently. **)
 
 fun strip_alls_aux n (Const(@{const_name all}, _)$Abs(a,T,t))  =
       strip_alls_aux (n+1) (subst_bound (Var ((a,n), T), t))
@@ -323,24 +323,31 @@ fun strip_alls_aux n (Const(@{const_name all}, _)$Abs(a,T,t))  =
 
 val strip_alls = strip_alls_aux 0;
 
-exception MATCH_LITERAL;
+exception MATCH_LITERAL of unit
 
-(*Ignore types: they are not to be trusted...*)
-fun match_literal (t1$u1) (t2$u2) env =
-      match_literal t1 t2 (match_literal u1 u2 env)
+(* Remark 1: Ignore types. They are not to be trusted.
+   Remark 2: Ignore order of arguments for equality. SPASS sometimes swaps
+   them for no apparent reason. *)
+fun match_literal (Const (@{const_name "op ="}, _) $ t1 $ u1)
+                  (Const (@{const_name "op ="}, _) $ t2 $ u2) env =
+    (env |> match_literal t1 t2 |> match_literal u1 u2
+     handle MATCH_LITERAL () =>
+            env |> match_literal t1 u2 |> match_literal u1 t2)
+  | match_literal (t1 $ u1) (t2 $ u2) env =
+    env |> match_literal t1 t2 |> match_literal u1 u2
   | match_literal (Abs (_,_,t1)) (Abs (_,_,t2)) env =
-      match_literal t1 t2 env
+    match_literal t1 t2 env
   | match_literal (Bound i1) (Bound i2) env =
-      if i1=i2 then env else raise MATCH_LITERAL
+    if i1=i2 then env else raise MATCH_LITERAL ()
   | match_literal (Const(a1,_)) (Const(a2,_)) env =
-      if a1=a2 then env else raise MATCH_LITERAL
+    if a1=a2 then env else raise MATCH_LITERAL ()
   | match_literal (Free(a1,_)) (Free(a2,_)) env =
-      if a1=a2 then env else raise MATCH_LITERAL
+    if a1=a2 then env else raise MATCH_LITERAL ()
   | match_literal (Var(ix1,_)) (Var(ix2,_)) env = insert (op =) (ix1,ix2) env
-  | match_literal _ _ _ = raise MATCH_LITERAL;
+  | match_literal _ _ _ = raise MATCH_LITERAL ()
 
-(*Checking that all variable associations are unique. The list env contains no
-  repetitions, but does it contain say (x,y) and (y,y)? *)
+(* Checking that all variable associations are unique. The list "env" contains
+   no repetitions, but does it contain say (x, y) and (y, y)? *)
 fun good env =
   let val (xs,ys) = ListPair.unzip env
   in  not (has_duplicates (op=) xs orelse has_duplicates (op=) ys)  end;
@@ -355,7 +362,7 @@ fun matches_aux _ [] [] = true
                 in  (good env' andalso matches_aux env' lits (us@ts)) orelse
                     match1 (t::us) ts
                 end
-                handle MATCH_LITERAL => match1 (t::us) ts
+                handle MATCH_LITERAL () => match1 (t::us) ts
       in  match1 [] ts  end;
 
 (*Is this length test useful?*)
@@ -386,7 +393,6 @@ fun isar_proof_body ctxt sorts ctms =
        (* No depedencies: it's a conjecture clause, with no proof. *)
        (case permuted_clause t ctms of
           SOME u => "  assume " ^ lname ^ ": \"" ^ string_of_term u ^ "\"\n"
-        | NONE => "  assume? " ^ lname ^ ": \"" ^ string_of_term t ^ "\"\n"
         | NONE => raise TERM ("Sledgehammer_Proof_Reconstruct.isar_proof_body",
                               [t]))
       | do_line have (lname, t, deps) =
