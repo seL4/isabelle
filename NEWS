@@ -6,6 +6,12 @@ New in this Isabelle version
 
 *** General ***
 
+* Schematic theorem statements need to be explicitly markup as such,
+via commands 'schematic_lemma', 'schematic_theorem',
+'schematic_corollary'.  Thus the relevance of the proof is made
+syntactically clear, which impacts performance in a parallel or
+asynchronous interactive environment.  Minor INCOMPATIBILITY.
+
 * Authentic syntax for *all* logical entities (type classes, type
 constructors, term constants): provides simple and robust
 correspondence between formal entities and concrete syntax.  Within

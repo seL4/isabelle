@@ -62,6 +62,14 @@ sig
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
     Element.context list -> Element.statement ->
     bool -> local_theory -> Proof.state
+  val schematic_theorem: string -> Method.text option ->
+    (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
+    Element.context_i list -> Element.statement_i ->
+    bool -> local_theory -> Proof.state
+  val schematic_theorem_cmd: string -> Method.text option ->
+    (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
+    Element.context list -> Element.statement ->
+    bool -> local_theory -> Proof.state
   val add_theorem_hook: (bool -> Proof.state -> Proof.state) -> Context.generic -> Context.generic
 end;
 
@@ -361,7 +369,7 @@ structure TheoremHook = Generic_Data
   fun merge hooks : T = Library.merge (eq_snd op =) hooks;
 );
 
-fun gen_theorem prep_att prep_stmt
+fun gen_theorem schematic prep_att prep_stmt
     kind before_qed after_qed (name, raw_atts) raw_elems raw_concl int lthy =
   let
     val _ = Local_Theory.affirm lthy;
@@ -397,13 +405,18 @@ fun gen_theorem prep_att prep_stmt
     |> snd
     |> Proof.theorem_i before_qed after_qed' (map snd stmt)
     |> (case facts of NONE => I | SOME ths => Proof.refine_insert ths)
+    |> tap (fn state => not schematic andalso Proof.schematic_goal state andalso
+        error "Illegal schematic goal statement")
     |> Library.apply (map (fn (f, _) => f int) (rev (TheoremHook.get (Context.Proof goal_ctxt))))
   end;
 
 in
 
-val theorem = gen_theorem (K I) Expression.cert_statement;
-val theorem_cmd = gen_theorem Attrib.intern_src Expression.read_statement;
+val theorem = gen_theorem false (K I) Expression.cert_statement;
+val theorem_cmd = gen_theorem false Attrib.intern_src Expression.read_statement;
+
+val schematic_theorem = gen_theorem true (K I) Expression.cert_statement;
+val schematic_theorem_cmd = gen_theorem true Attrib.intern_src Expression.read_statement;
 
 fun add_theorem_hook f = TheoremHook.map (cons (f, stamp ()));
 

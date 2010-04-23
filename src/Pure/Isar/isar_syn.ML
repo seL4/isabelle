@@ -491,16 +491,23 @@ val _ =
 
 (* statements *)
 
-fun gen_theorem kind =
-  OuterSyntax.local_theory_to_proof' kind ("state " ^ kind) K.thy_goal
+fun gen_theorem schematic kind =
+  OuterSyntax.local_theory_to_proof'
+    (if schematic then "schematic_" ^ kind else kind)
+    ("state " ^ (if schematic then "schematic " ^ kind else kind))
+    (if schematic then K.thy_schematic_goal else K.thy_goal)
     (Scan.optional (SpecParse.opt_thm_name ":" --|
       Scan.ahead (SpecParse.locale_keyword || SpecParse.statement_keyword)) Attrib.empty_binding --
       SpecParse.general_statement >> (fn (a, (elems, concl)) =>
-        (Specification.theorem_cmd kind NONE (K I) a elems concl)));
+        ((if schematic then Specification.schematic_theorem_cmd else Specification.theorem_cmd)
+          kind NONE (K I) a elems concl)));
 
-val _ = gen_theorem Thm.theoremK;
-val _ = gen_theorem Thm.lemmaK;
-val _ = gen_theorem Thm.corollaryK;
+val _ = gen_theorem false Thm.theoremK;
+val _ = gen_theorem false Thm.lemmaK;
+val _ = gen_theorem false Thm.corollaryK;
+val _ = gen_theorem true Thm.theoremK;
+val _ = gen_theorem true Thm.lemmaK;
+val _ = gen_theorem true Thm.corollaryK;
 
 val _ =
   OuterSyntax.command "have" "state local goal"
