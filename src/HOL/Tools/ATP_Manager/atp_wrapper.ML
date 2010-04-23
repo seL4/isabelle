@@ -43,19 +43,19 @@ val (measure_runtime, measure_runtime_setup) =
 
 (* prover configuration *)
 
-val remotify = prefix "remote_"
-
 type prover_config =
- {home: string,
-  executable: string,
-  arguments: Time.time -> string,
-  proof_delims: (string * string) list,
-  known_failures: (string list * string) list,
-  max_new_clauses: int,
-  prefers_theory_relevant: bool};
+  {home: string,
+   executable: string,
+   arguments: Time.time -> string,
+   proof_delims: (string * string) list,
+   known_failures: (failure * string) list,
+   max_new_clauses: int,
+   prefers_theory_relevant: bool};
 
 
 (* basic template *)
+
+val remotify = prefix "remote_"
 
 fun with_path cleanup after f path =
   Exn.capture f path
@@ -72,17 +72,30 @@ fun extract_proof delims output =
            |> first_field end_delim |> the |> fst
   | _ => ""
 
-fun extract_proof_or_failure proof_delims known_failures output =
-  case map_filter
-           (fn (patterns, message) =>
-               if exists (fn p => String.isSubstring p output) patterns then
-                 SOME message
-               else
-                 NONE) known_failures of
+fun extract_proof_and_outcome res_code proof_delims known_failures output =
+  case map_filter (fn (failure, pattern) =>
+                      if String.isSubstring pattern output then SOME failure
+                      else NONE) known_failures of
     [] => (case extract_proof proof_delims output of
-             "" => ("", "Error: The ATP output is malformed.")
-           | proof => (proof, ""))
-  | (message :: _) => ("", message)
+             "" => ("", SOME UnknownError)
+           | proof => if res_code = 0 then (proof, NONE)
+                      else ("", SOME UnknownError))
+  | (failure :: _) => ("", SOME failure)
+
+fun string_for_failure Unprovable = "The ATP problem is unprovable."
+  | string_for_failure TimedOut = "Timed out."
+  | string_for_failure OutOfResources = "The ATP ran out of resources."
+  | string_for_failure OldSpass =
+    "Warning: Sledgehammer requires a more recent version of SPASS with \
+    \support for the TPTP syntax. To install it, download and untar the \
+    \package \"http://isabelle.in.tum.de/~blanchet/spass-3.7.tgz\" and add the \
+    \\"spass-3.7\" directory's full path to \"" ^
+    Path.implode (Path.expand (Path.appends
+        (Path.variable "ISABELLE_HOME_USER" ::
+         map Path.basic ["etc", "components"]))) ^
+    "\" on a line of its own."
+  | string_for_failure MalformedOutput = "Error: The ATP output is malformed."
+  | string_for_failure UnknownError = "Error: An unknown ATP error occurred."
 
 fun generic_prover overlord get_facts prepare write_file home executable args
         proof_delims known_failures name
@@ -176,23 +189,20 @@ fun generic_prover overlord get_facts prepare write_file home executable args
                      else
                         "") ^ output)
 
-    val (((output, atp_run_time_in_msecs), rc), _) =
+    val (((output, atp_run_time_in_msecs), res_code), _) =
       with_path cleanup export run_on (prob_pathname subgoal);
 
     (* Check for success and print out some information on failure. *)
-    val (proof, failure) =
-      extract_proof_or_failure proof_delims known_failures output
-    val success = (rc = 0 andalso failure = "")
+    val (proof, outcome) =
+      extract_proof_and_outcome res_code proof_delims known_failures output
     val (message, relevant_thm_names) =
-      if success then
-        proof_text isar_proof debug modulus sorts ctxt
-                   (minimize_command, proof, internal_thm_names, th, subgoal)
-      else if failure <> "" then
-        (failure ^ "\n", [])
-      else
-        ("Unknown ATP error: " ^ output ^ ".\n", [])
+      case outcome of
+        NONE => proof_text isar_proof debug modulus sorts ctxt
+                           (minimize_command, proof, internal_thm_names, th,
+                            subgoal)
+      | SOME failure => (string_for_failure failure ^ "\n", [])
   in
-    {success = success, message = message,
+    {outcome = outcome, message = message,
      relevant_thm_names = relevant_thm_names,
      atp_run_time_in_msecs = atp_run_time_in_msecs, output = output,
      proof = proof, internal_thm_names = internal_thm_names,
@@ -237,10 +247,9 @@ val vampire_config : prover_config =
    proof_delims = [("=========== Refutation ==========",
                     "======= End of refutation =======")],
    known_failures =
-     [(["Satisfiability detected", "CANNOT PROVE"],
-       "The ATP problem is unprovable."),
-      (["Refutation not found"],
-       "The ATP failed to determine the problem's status.")],
+     [(Unprovable, "Satisfiability detected"),
+      (OutOfResources, "CANNOT PROVE"),
+      (OutOfResources, "Refutation not found")],
    max_new_clauses = 60,
    prefers_theory_relevant = false}
 val vampire = tptp_prover "vampire" vampire_config
@@ -259,12 +268,14 @@ val e_config : prover_config =
                               string_of_int (generous_to_secs timeout)),
    proof_delims = [tstp_proof_delims],
    known_failures =
-       [(["SZS status: Satisfiable", "SZS status Satisfiable"],
-         "The ATP problem is unprovable."),
-        (["SZS status: ResourceOut", "SZS status ResourceOut"],
-         "The ATP ran out of resources."),
-        (["# Cannot determine problem status"],
-         "The ATP failed to determine the problem's status.")],
+     [(Unprovable, "SZS status: Satisfiable"),
+      (Unprovable, "SZS status Satisfiable"),
+      (TimedOut, "Failure: Resource limit exceeded (time)"),
+      (TimedOut, "time limit exceeded"),
+      (OutOfResources,
+       "# Cannot determine problem status within resource limit"),
+      (OutOfResources, "SZS status: ResourceOut"),
+      (OutOfResources, "SZS status ResourceOut")],
    max_new_clauses = 100,
    prefers_theory_relevant = false}
 val e = tptp_prover "e" e_config
@@ -298,10 +309,9 @@ val spass_config : prover_config =
      string_of_int (generous_to_secs timeout)),
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =
-     [(["SPASS beiseite: Completion found."], "The ATP problem is unprovable."),
-      (["SPASS beiseite: Ran out of time."], "The ATP timed out."),
-      (["SPASS beiseite: Maximal number of loops exceeded."],
-       "The ATP hit its loop limit.")],
+     [(Unprovable, "SPASS beiseite: Completion found"),
+      (TimedOut, "SPASS beiseite: Ran out of time"),
+      (OutOfResources, "SPASS beiseite: Maximal number of loops exceeded")],
    max_new_clauses = 40,
    prefers_theory_relevant = true}
 val spass = dfg_prover "spass" spass_config
@@ -321,15 +331,8 @@ val spass_tptp_config =
    proof_delims = #proof_delims spass_config,
    known_failures =
      #known_failures spass_config @
-     [(["unrecognized option `-TPTP'", "Unrecognized option TPTP"],
-       "Warning: Sledgehammer requires a more recent version of SPASS with \
-       \support for the TPTP syntax. To install it, download and untar the \
-       \package \"http://isabelle.in.tum.de/~blanchet/spass-3.7.tgz\" and add \
-       \the \"spass-3.7\" directory's full path to \"" ^
-       Path.implode (Path.expand (Path.appends
-           (Path.variable "ISABELLE_HOME_USER" ::
-            map Path.basic ["etc", "components"]))) ^
-       "\" on a line of its own.")],
+     [(OldSpass, "unrecognized option `-TPTP'"),
+      (OldSpass, "Unrecognized option TPTP")],
    max_new_clauses = #max_new_clauses spass_config,
    prefers_theory_relevant = #prefers_theory_relevant spass_config}
 val spass_tptp = tptp_prover "spass_tptp" spass_tptp_config
@@ -339,14 +342,10 @@ val spass_tptp = tptp_prover "spass_tptp" spass_tptp_config
 val systems = Synchronized.var "atp_wrapper_systems" ([]: string list);
 
 fun get_systems () =
-  let
-    val (answer, rc) = bash_output "\"$ISABELLE_ATP_MANAGER/SystemOnTPTP\" -w"
-  in
-    if rc <> 0 then
-      error ("Failed to get available systems at SystemOnTPTP:\n" ^ answer)
-    else
-      split_lines answer
-  end;
+  case bash_output "\"$ISABELLE_ATP_MANAGER/SystemOnTPTP\" -w" of
+    (answer, 0) => split_lines answer
+  | (answer, _) =>
+    error ("Failed to get available systems at SystemOnTPTP:\n" ^ answer)
 
 fun refresh_systems_on_tptp () =
   Synchronized.change systems (fn _ => get_systems ());
@@ -357,12 +356,13 @@ fun get_system prefix = Synchronized.change_result systems (fn systems =>
 
 fun the_system prefix =
   (case get_system prefix of
-    NONE => error ("System " ^ quote prefix ^ " not available at SystemOnTPTP")
+    NONE => error ("System " ^ quote prefix ^
+                   " not available at SystemOnTPTP.")
   | SOME sys => sys);
 
 val remote_known_failures =
-  [(["Remote-script could not extract proof"],
-    "Error: The remote ATP proof is ill-formed.")]
+  [(TimedOut, "says Timeout"),
+   (MalformedOutput, "Remote-script could not extract proof")]
 
 fun remote_prover_config prover_prefix args
         ({proof_delims, known_failures, max_new_clauses,

@@ -34,8 +34,11 @@ sig
      relevance_override: relevance_override,
      axiom_clauses: (thm * (string * int)) list option,
      filtered_clauses: (thm * (string * int)) list option}
+  datatype failure =
+    Unprovable | TimedOut | OutOfResources | OldSpass | MalformedOutput |
+    UnknownError
   type prover_result =
-    {success: bool,
+    {outcome: failure option,
      message: string,
      relevant_thm_names: string list,
      atp_run_time_in_msecs: int,
@@ -95,8 +98,12 @@ type problem =
    axiom_clauses: (thm * (string * int)) list option,
    filtered_clauses: (thm * (string * int)) list option};
 
+datatype failure =
+  Unprovable | TimedOut | OutOfResources | OldSpass | MalformedOutput |
+  UnknownError
+
 type prover_result =
-  {success: bool,
+  {outcome: failure option,
    message: string,
    relevant_thm_names: string list,
    atp_run_time_in_msecs: int,
@@ -248,7 +255,7 @@ fun check_thread_manager params = Synchronized.change global_state
         do
           (Synchronized.timed_access global_state (SOME o time_limit o #timeout_heap) action
             |> these
-            |> List.app (unregister params "Timed out.");
+            |> List.app (unregister params "Timed out.\n");
             print_new_messages ();
             (*give threads some time to respond to interrupt*)
             OS.Process.sleep min_wait_time)
