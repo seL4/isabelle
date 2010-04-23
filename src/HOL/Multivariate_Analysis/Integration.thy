@@ -3327,7 +3327,7 @@ lemma additive_tagged_division_1': fixes f::"real \<Rightarrow> 'a::real_normed_
   using additive_tagged_division_1[OF _ assms(2), of "f o dest_vec1"]
   unfolding o_def vec1_dest_vec1 using assms(1) by auto
 
-lemma split_minus[simp]:"(\<lambda>(x, k). ?f x k) x - (\<lambda>(x, k). ?g x k) x = (\<lambda>(x, k). ?f x k - ?g x k) x"
+lemma split_minus[simp]:"(\<lambda>(x, k). f x k) x - (\<lambda>(x, k). g x k) x = (\<lambda>(x, k). f x k - g x k) x"
   unfolding split_def by(rule refl)
 
 lemma norm_triangle_le_sub: "norm x + norm y \<le> e \<Longrightarrow> norm (x - y) \<le> e"

@@ -350,7 +350,7 @@ definition "ksimplex p n (s::(nat \<Rightarrow> nat) set) \<longleftrightarrow>
         (\<forall>x\<in>s. \<forall>j. j\<notin>{1..n} \<longrightarrow> (x j = p)) \<and>
         (\<forall>x\<in>s. \<forall>y\<in>s. kle n x y \<or> kle n y x))"
 
-lemma ksimplexI:"card s = n + 1 \<Longrightarrow>  \<forall>x\<in>s. \<forall>j. x j \<le> p \<Longrightarrow> \<forall>x\<in>s. \<forall>j. j \<notin> {1..?n} \<longrightarrow> x j = ?p \<Longrightarrow> \<forall>x\<in>s. \<forall>y\<in>s. kle n x y \<or> kle n y x \<Longrightarrow> ksimplex p n s"
+lemma ksimplexI:"card s = n + 1 \<Longrightarrow>  \<forall>x\<in>s. \<forall>j. x j \<le> p \<Longrightarrow> \<forall>x\<in>s. \<forall>j. j \<notin> {1..n} \<longrightarrow> x j = p \<Longrightarrow> \<forall>x\<in>s. \<forall>y\<in>s. kle n x y \<or> kle n y x \<Longrightarrow> ksimplex p n s"
   unfolding ksimplex_def by auto
 
 lemma ksimplex_eq: "ksimplex p n (s::(nat \<Rightarrow> nat) set) \<longleftrightarrow>
@@ -393,7 +393,7 @@ lemma ksimplex_extrema_strong:
 
 lemma ksimplexD:
   assumes "ksimplex p n s"
-  shows "card s = n + 1" "finite s" "card s = n + 1" "\<forall>x\<in>s. \<forall>j. x j \<le> p" "\<forall>x\<in>s. \<forall>j. j \<notin> {1..?n} \<longrightarrow> x j = p"
+  shows "card s = n + 1" "finite s" "card s = n + 1" "\<forall>x\<in>s. \<forall>j. x j \<le> p" "\<forall>x\<in>s. \<forall>j. j \<notin> {1..n} \<longrightarrow> x j = p"
   "\<forall>x\<in>s. \<forall>y\<in>s. kle n x y \<or> kle n y x" using assms unfolding ksimplex_eq by auto
 
 lemma ksimplex_successor:
