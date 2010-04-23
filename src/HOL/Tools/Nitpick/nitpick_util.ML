@@ -48,6 +48,10 @@ sig
   val is_substring_of : string -> string -> bool
   val plural_s : int -> string
   val plural_s_for_list : 'a list -> string
+  val serial_commas : string -> string list -> string list
+  val timestamp : unit -> string
+  val parse_bool_option : bool -> string -> string -> bool option
+  val parse_time_option : string -> string -> Time.time option
   val flip_polarity : polarity -> polarity
   val prop_T : typ
   val bool_T : typ
@@ -61,6 +65,8 @@ sig
   val pstrs : string -> Pretty.T list
   val unyxml : string -> string
   val maybe_quote : string -> string
+  val hashw : word * word -> word
+  val hashw_string : string * word -> word
 end;
 
 structure Nitpick_Util : NITPICK_UTIL =
@@ -82,7 +88,6 @@ val nitpick_prefix = "Nitpick."
 (* ('a * 'b * 'c -> 'd) -> 'a -> 'b -> 'c -> 'd *)
 fun curry3 f = fn x => fn y => fn z => f (x, y, z)
 
-(* ('a -> 'b) -> ('a -> 'c) -> 'a -> 'b * 'c *)
 fun pairf f g x = (f x, g x)
 
 (* (bool -> 'a) -> 'a * 'a *)
@@ -233,9 +238,19 @@ fun is_substring_of needle stack =
                                                   (Substring.full stack))))
 
 (* int -> string *)
-fun plural_s n = if n = 1 then "" else "s"
+val plural_s = Sledgehammer_Util.plural_s
 (* 'a list -> string *)
 fun plural_s_for_list xs = plural_s (length xs)
+
+(* string -> string list -> string list *)
+val serial_commas = Sledgehammer_Util.serial_commas
+
+(* unit -> string *)
+val timestamp = Sledgehammer_Util.timestamp
+(* bool -> string -> string -> bool option *)
+val parse_bool_option = Sledgehammer_Util.parse_bool_option
+(* string -> string -> Time.time option *)
+val parse_time_option = Sledgehammer_Util.parse_time_option
 
 (* polarity -> polarity *)
 fun flip_polarity Pos = Neg
@@ -289,5 +304,15 @@ fun maybe_quote y =
            not (is_long_identifier (perhaps (try (unprefix "?")) s))) orelse
            OuterKeyword.is_keyword s) ? quote
   end
+
+(* This hash function is recommended in Compilers: Principles, Techniques, and
+   Tools, by Aho, Sethi and Ullman. The hashpjw function, which they
+   particularly recommend, triggers a bug in versions of Poly/ML up to 4.2.0. *)
+(* word * word -> word *)
+fun hashw (u, w) = Word.+ (u, Word.* (0w65599, w))
+(* Char.char * word -> word *)
+fun hashw_char (c, w) = hashw (Word.fromInt (Char.ord c), w)
+(* string * word -> word *)
+fun hashw_string (s:string, w) = CharVector.foldl hashw_char w s
 
 end;

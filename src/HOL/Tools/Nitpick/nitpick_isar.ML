@@ -176,7 +176,7 @@ fun extract_params ctxt auto default_params override_params =
     (* bool -> bool option -> string -> bool option *)
     fun general_lookup_bool option default_value name =
       case lookup name of
-        SOME s => Sledgehammer_Util.parse_bool_option option name s
+        SOME s => parse_bool_option option name s
       | NONE => default_value
     (* string -> bool *)
     val lookup_bool = the o general_lookup_bool false (SOME false)
@@ -235,8 +235,7 @@ fun extract_params ctxt auto default_params override_params =
       :: map (fn (name, value) =>
                  (SOME (read (String.extract (name, size prefix + 1, NONE))),
                   value |> stringify_raw_param_value
-                        |> Sledgehammer_Util.parse_bool_option false name
-                        |> the))
+                        |> parse_bool_option false name |> the))
              (filter (String.isPrefix (prefix ^ " ") o fst) raw_params)
     (* (string -> 'a) -> string -> ('a option * bool option) list *)
     fun lookup_bool_option_assigns read prefix =
@@ -244,13 +243,13 @@ fun extract_params ctxt auto default_params override_params =
       :: map (fn (name, value) =>
                  (SOME (read (String.extract (name, size prefix + 1, NONE))),
                   value |> stringify_raw_param_value
-                        |> Sledgehammer_Util.parse_bool_option true name))
+                        |> parse_bool_option true name))
              (filter (String.isPrefix (prefix ^ " ") o fst) raw_params)
     (* string -> Time.time option *)
     fun lookup_time name =
       case lookup name of
         NONE => NONE
-      | SOME s => Sledgehammer_Util.parse_time_option name s
+      | SOME s => parse_time_option name s
     (* string -> term list *)
     val lookup_term_list =
       AList.lookup (op =) raw_params #> these #> Syntax.read_terms ctxt

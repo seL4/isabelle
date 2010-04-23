@@ -217,7 +217,6 @@ end;
 structure Nitpick_HOL : NITPICK_HOL =
 struct
 
-open Sledgehammer_Util
 open Nitpick_Util
 
 type const_table = term list Symtab.table
