@@ -33,7 +33,7 @@ val nT = HOLogic.natT;
              @{thm "real_of_nat_number_of"},
              @{thm "real_of_nat_Suc"}, @{thm "real_of_nat_one"}, @{thm "real_of_one"},
              @{thm "real_of_int_zero"}, @{thm "real_of_nat_zero"},
-             @{thm "Fields.divide_zero"}, 
+             @{thm "divide_zero"}, 
              @{thm "divide_divide_eq_left"}, @{thm "times_divide_eq_right"}, 
              @{thm "times_divide_eq_left"}, @{thm "divide_divide_eq_right"},
              @{thm "diff_def"}, @{thm "minus_divide_left"}]

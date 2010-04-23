@@ -232,7 +232,7 @@ subclass ring_no_zero_divisors ..
 thm mult_eq_0_iff
 end
 
-instantiation fract :: (idom) "{field, division_by_zero}"
+instantiation fract :: (idom) field
 begin
 
 definition
@@ -256,9 +256,6 @@ lemma divide_fract [simp]: "Fract a b / Fract c d = Fract (a * d) (b * c)"
   by (simp add: divide_fract_def)
 
 instance proof
-  show "inverse 0 = (0:: 'a fract)" by (simp add: fract_expand)
-    (simp add: fract_collapse)
-next
   fix q :: "'a fract"
   assume "q \<noteq> 0"
   then show "inverse q * q = 1" apply (cases q rule: Fract_cases_nonzero)
@@ -269,6 +266,12 @@ next
 qed
 
 end
+
+instance fract :: (idom) division_by_zero
+proof
+  show "inverse 0 = (0:: 'a fract)" by (simp add: fract_expand)
+    (simp add: fract_collapse)
+qed
 
 
 end

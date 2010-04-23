@@ -1012,7 +1012,7 @@ proof-
 qed
 
 lemma setsum_le_included:
-  fixes f :: "'a \<Rightarrow> 'b::{comm_monoid_add,ordered_ab_semigroup_add_imp_le}"
+  fixes f :: "'a \<Rightarrow> 'b::ordered_comm_monoid_add"
   assumes "finite s" "finite t"
   and "\<forall>y\<in>t. 0 \<le> g y" "(\<forall>x\<in>s. \<exists>y\<in>t. i y = x \<and> f x \<le> g y)"
   shows "setsum f s \<le> setsum g t"
@@ -1085,9 +1085,21 @@ done
 subsection {* The formula for geometric sums *}
 
 lemma geometric_sum:
-  "x ~= 1 ==> (\<Sum>i=0..<n. x ^ i) =
-  (x ^ n - 1) / (x - 1::'a::{field})"
-by (induct "n") (simp_all add: field_simps)
+  assumes "x \<noteq> 1"
+  shows "(\<Sum>i=0..<n. x ^ i) = (x ^ n - 1) / (x - 1::'a::field)"
+proof -
+  from assms obtain y where "y = x - 1" and "y \<noteq> 0" by simp_all
+  moreover have "(\<Sum>i=0..<n. (y + 1) ^ i) = ((y + 1) ^ n - 1) / y"
+  proof (induct n)
+    case 0 then show ?case by simp
+  next
+    case (Suc n)
+    moreover with `y \<noteq> 0` have "(1 + y) ^ n = (y * inverse y) * (1 + y) ^ n" by simp 
+    ultimately show ?case by (simp add: field_eq_simps divide_inverse)
+  qed
+  ultimately show ?thesis by simp
+qed
+
 
 subsection {* The formula for arithmetic sums *}
 

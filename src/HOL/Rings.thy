@@ -487,6 +487,125 @@ lemma division_ring_inverse_diff:
   "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> inverse a - inverse b = inverse a * (b - a) * inverse b"
 by (simp add: algebra_simps)
 
+lemma right_inverse_eq: "b \<noteq> 0 \<Longrightarrow> a / b = 1 \<longleftrightarrow> a = b"
+proof
+  assume neq: "b \<noteq> 0"
+  {
+    hence "a = (a / b) * b" by (simp add: divide_inverse mult_assoc)
+    also assume "a / b = 1"
+    finally show "a = b" by simp
+  next
+    assume "a = b"
+    with neq show "a / b = 1" by (simp add: divide_inverse)
+  }
+qed
+
+lemma nonzero_inverse_eq_divide: "a \<noteq> 0 \<Longrightarrow> inverse a = 1 / a"
+by (simp add: divide_inverse)
+
+lemma divide_self [simp]: "a \<noteq> 0 \<Longrightarrow> a / a = 1"
+by (simp add: divide_inverse)
+
+lemma divide_zero_left [simp]: "0 / a = 0"
+by (simp add: divide_inverse)
+
+lemma inverse_eq_divide: "inverse a = 1 / a"
+by (simp add: divide_inverse)
+
+lemma add_divide_distrib: "(a+b) / c = a/c + b/c"
+by (simp add: divide_inverse algebra_simps)
+
+lemma divide_1 [simp]: "a / 1 = a"
+  by (simp add: divide_inverse)
+
+lemma times_divide_eq_right [simp]: "a * (b / c) = (a * b) / c"
+  by (simp add: divide_inverse mult_assoc)
+
+lemma minus_divide_left: "- (a / b) = (-a) / b"
+  by (simp add: divide_inverse)
+
+lemma nonzero_minus_divide_right: "b \<noteq> 0 ==> - (a / b) = a / (- b)"
+  by (simp add: divide_inverse nonzero_inverse_minus_eq)
+
+lemma nonzero_minus_divide_divide: "b \<noteq> 0 ==> (-a) / (-b) = a / b"
+  by (simp add: divide_inverse nonzero_inverse_minus_eq)
+
+lemma divide_minus_left [simp, no_atp]: "(-a) / b = - (a / b)"
+  by (simp add: divide_inverse)
+
+lemma diff_divide_distrib: "(a - b) / c = a / c - b / c"
+  by (simp add: diff_minus add_divide_distrib)
+
+lemma nonzero_eq_divide_eq: "c \<noteq> 0 \<Longrightarrow> a = b / c \<longleftrightarrow> a * c = b"
+proof -
+  assume [simp]: "c \<noteq> 0"
+  have "a = b / c \<longleftrightarrow> a * c = (b / c) * c" by simp
+  also have "... \<longleftrightarrow> a * c = b" by (simp add: divide_inverse mult_assoc)
+  finally show ?thesis .
+qed
+
+lemma nonzero_divide_eq_eq: "c \<noteq> 0 \<Longrightarrow> b / c = a \<longleftrightarrow> b = a * c"
+proof -
+  assume [simp]: "c \<noteq> 0"
+  have "b / c = a \<longleftrightarrow> (b / c) * c = a * c" by simp
+  also have "... \<longleftrightarrow> b = a * c" by (simp add: divide_inverse mult_assoc) 
+  finally show ?thesis .
+qed
+
+lemma divide_eq_imp: "c \<noteq> 0 \<Longrightarrow> b = a * c \<Longrightarrow> b / c = a"
+  by (simp add: divide_inverse mult_assoc)
+
+lemma eq_divide_imp: "c \<noteq> 0 \<Longrightarrow> a * c = b \<Longrightarrow> a = b / c"
+  by (drule sym) (simp add: divide_inverse mult_assoc)
+
+end
+
+class division_by_zero = division_ring +
+  assumes inverse_zero [simp]: "inverse 0 = 0"
+begin
+
+lemma divide_zero [simp]:
+  "a / 0 = 0"
+  by (simp add: divide_inverse)
+
+lemma divide_self_if [simp]:
+  "a / a = (if a = 0 then 0 else 1)"
+  by simp
+
+lemma inverse_nonzero_iff_nonzero [simp]:
+  "inverse a = 0 \<longleftrightarrow> a = 0"
+  by rule (fact inverse_zero_imp_zero, simp)
+
+lemma inverse_minus_eq [simp]:
+  "inverse (- a) = - inverse a"
+proof cases
+  assume "a=0" thus ?thesis by simp
+next
+  assume "a\<noteq>0" 
+  thus ?thesis by (simp add: nonzero_inverse_minus_eq)
+qed
+
+lemma inverse_eq_imp_eq:
+  "inverse a = inverse b \<Longrightarrow> a = b"
+apply (cases "a=0 | b=0") 
+ apply (force dest!: inverse_zero_imp_zero
+              simp add: eq_commute [of "0::'a"])
+apply (force dest!: nonzero_inverse_eq_imp_eq) 
+done
+
+lemma inverse_eq_iff_eq [simp]:
+  "inverse a = inverse b \<longleftrightarrow> a = b"
+  by (force dest!: inverse_eq_imp_eq)
+
+lemma inverse_inverse_eq [simp]:
+  "inverse (inverse a) = a"
+proof cases
+  assume "a=0" thus ?thesis by simp
+next
+  assume "a\<noteq>0" 
+  thus ?thesis by (simp add: nonzero_inverse_inverse_eq)
+qed
+
 end
 
 class mult_mono = times + zero + ord +
@@ -533,17 +652,17 @@ subclass semiring_0_cancel ..
 subclass ordered_semiring ..
 
 lemma mult_nonneg_nonneg: "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> a * b"
-using mult_left_mono [of zero b a] by simp
+using mult_left_mono [of 0 b a] by simp
 
 lemma mult_nonneg_nonpos: "0 \<le> a \<Longrightarrow> b \<le> 0 \<Longrightarrow> a * b \<le> 0"
-using mult_left_mono [of b zero a] by simp
+using mult_left_mono [of b 0 a] by simp
 
 lemma mult_nonpos_nonneg: "a \<le> 0 \<Longrightarrow> 0 \<le> b \<Longrightarrow> a * b \<le> 0"
-using mult_right_mono [of a zero b] by simp
+using mult_right_mono [of a 0 b] by simp
 
 text {* Legacy - use @{text mult_nonpos_nonneg} *}
 lemma mult_nonneg_nonpos2: "0 \<le> a \<Longrightarrow> b \<le> 0 \<Longrightarrow> b * a \<le> 0" 
-by (drule mult_right_mono [of b zero], auto)
+by (drule mult_right_mono [of b 0], auto)
 
 lemma split_mult_neg_le: "(0 \<le> a & b \<le> 0) | (a \<le> 0 & 0 \<le> b) \<Longrightarrow> a * b \<le> 0" 
 by (auto simp add: mult_nonneg_nonpos mult_nonneg_nonpos2)
@@ -597,17 +716,17 @@ lemma mult_right_le_imp_le:
 by (force simp add: mult_strict_right_mono not_less [symmetric])
 
 lemma mult_pos_pos: "0 < a \<Longrightarrow> 0 < b \<Longrightarrow> 0 < a * b"
-using mult_strict_left_mono [of zero b a] by simp
+using mult_strict_left_mono [of 0 b a] by simp
 
 lemma mult_pos_neg: "0 < a \<Longrightarrow> b < 0 \<Longrightarrow> a * b < 0"
-using mult_strict_left_mono [of b zero a] by simp
+using mult_strict_left_mono [of b 0 a] by simp
 
 lemma mult_neg_pos: "a < 0 \<Longrightarrow> 0 < b \<Longrightarrow> a * b < 0"
-using mult_strict_right_mono [of a zero b] by simp
+using mult_strict_right_mono [of a 0 b] by simp
 
 text {* Legacy - use @{text mult_neg_pos} *}
 lemma mult_pos_neg2: "0 < a \<Longrightarrow> b < 0 \<Longrightarrow> b * a < 0" 
-by (drule mult_strict_right_mono [of b zero], auto)
+by (drule mult_strict_right_mono [of b 0], auto)
 
 lemma zero_less_mult_pos:
   "0 < a * b \<Longrightarrow> 0 < a \<Longrightarrow> 0 < b"
@@ -763,18 +882,18 @@ by (simp add: algebra_simps)
 
 lemma mult_left_mono_neg:
   "b \<le> a \<Longrightarrow> c \<le> 0 \<Longrightarrow> c * a \<le> c * b"
-  apply (drule mult_left_mono [of _ _ "uminus c"])
+  apply (drule mult_left_mono [of _ _ "- c"])
   apply simp_all
   done
 
 lemma mult_right_mono_neg:
   "b \<le> a \<Longrightarrow> c \<le> 0 \<Longrightarrow> a * c \<le> b * c"
-  apply (drule mult_right_mono [of _ _ "uminus c"])
+  apply (drule mult_right_mono [of _ _ "- c"])
   apply simp_all
   done
 
 lemma mult_nonpos_nonpos: "a \<le> 0 \<Longrightarrow> b \<le> 0 \<Longrightarrow> 0 \<le> a * b"
-using mult_right_mono_neg [of a zero b] by simp
+using mult_right_mono_neg [of a 0 b] by simp
 
 lemma split_mult_pos_le:
   "(0 \<le> a \<and> 0 \<le> b) \<or> (a \<le> 0 \<and> b \<le> 0) \<Longrightarrow> 0 \<le> a * b"
@@ -821,7 +940,7 @@ lemma mult_strict_right_mono_neg: "b < a \<Longrightarrow> c < 0 \<Longrightarro
 using mult_strict_right_mono [of b a "- c"] by simp
 
 lemma mult_neg_neg: "a < 0 \<Longrightarrow> b < 0 \<Longrightarrow> 0 < a * b"
-using mult_strict_right_mono_neg [of a zero b] by simp
+using mult_strict_right_mono_neg [of a 0 b] by simp
 
 subclass ring_no_zero_divisors
 proof
@@ -973,7 +1092,7 @@ begin
 
 lemma pos_add_strict:
   shows "0 < a \<Longrightarrow> b < c \<Longrightarrow> b < a + c"
-  using add_strict_mono [of zero a b c] by simp
+  using add_strict_mono [of 0 a b c] by simp
 
 lemma zero_le_one [simp]: "0 \<le> 1"
 by (rule zero_less_one [THEN less_imp_le]) 
@@ -1074,7 +1193,7 @@ lemma sgn_times:
   "sgn (a * b) = sgn a * sgn b"
 by (auto simp add: sgn_if zero_less_mult_iff)
 
-lemma abs_sgn: "abs k = k * sgn k"
+lemma abs_sgn: "\<bar>k\<bar> = k * sgn k"
 unfolding sgn_if abs_if by auto
 
 lemma sgn_greater [simp]:
@@ -1085,14 +1204,14 @@ lemma sgn_less [simp]:
   "sgn a < 0 \<longleftrightarrow> a < 0"
   unfolding sgn_if by auto
 
-lemma abs_dvd_iff [simp]: "(abs m) dvd k \<longleftrightarrow> m dvd k"
+lemma abs_dvd_iff [simp]: "\<bar>m\<bar> dvd k \<longleftrightarrow> m dvd k"
   by (simp add: abs_if)
 
-lemma dvd_abs_iff [simp]: "m dvd (abs k) \<longleftrightarrow> m dvd k"
+lemma dvd_abs_iff [simp]: "m dvd \<bar>k\<bar> \<longleftrightarrow> m dvd k"
   by (simp add: abs_if)
 
 lemma dvd_if_abs_eq:
-  "abs l = abs (k) \<Longrightarrow> l dvd k"
+  "\<bar>l\<bar> = \<bar>k\<bar> \<Longrightarrow> l dvd k"
 by(subst abs_dvd_iff[symmetric]) simp
 
 end
@@ -1110,17 +1229,7 @@ lemmas mult_compare_simps[no_atp] =
     mult_cancel_right1 mult_cancel_right2
     mult_cancel_left1 mult_cancel_left2
 
--- {* FIXME continue localization here *}
-
-subsection {* Reasoning about inequalities with division *}
-
-lemma mult_right_le_one_le: "0 <= (x::'a::linordered_idom) ==> 0 <= y ==> y <= 1
-    ==> x * y <= x"
-by (auto simp add: mult_le_cancel_left2)
-
-lemma mult_left_le_one_le: "0 <= (x::'a::linordered_idom) ==> 0 <= y ==> y <= 1
-    ==> y * x <= x"
-by (auto simp add: mult_le_cancel_right2)
+text {* Reasoning about inequalities with division *}
 
 context linordered_semidom
 begin
@@ -1137,19 +1246,33 @@ by (blast intro: less_trans zero_less_one less_add_one)
 
 end
 
+context linordered_idom
+begin
 
-subsection {* Absolute Value *}
+lemma mult_right_le_one_le:
+  "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> y \<le> 1 \<Longrightarrow> x * y \<le> x"
+  by (auto simp add: mult_le_cancel_left2)
+
+lemma mult_left_le_one_le:
+  "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> y \<le> 1 \<Longrightarrow> y * x \<le> x"
+  by (auto simp add: mult_le_cancel_right2)
+
+end
+
+text {* Absolute Value *}
 
 context linordered_idom
 begin
 
-lemma mult_sgn_abs: "sgn x * abs x = x"
+lemma mult_sgn_abs:
+  "sgn x * \<bar>x\<bar> = x"
   unfolding abs_if sgn_if by auto
 
-end
+lemma abs_one [simp]:
+  "\<bar>1\<bar> = 1"
+  by (simp add: abs_if zero_less_one [THEN less_not_sym])
 
-lemma abs_one [simp]: "abs 1 = (1::'a::linordered_idom)"
-by (simp add: abs_if zero_less_one [THEN order_less_not_sym])
+end
 
 class ordered_ring_abs = ordered_ring + ordered_ab_group_add_abs +
   assumes abs_eq_mult:
@@ -1162,39 +1285,35 @@ subclass ordered_ring_abs proof
 qed (auto simp add: abs_if not_less mult_less_0_iff)
 
 lemma abs_mult:
-  "abs (a * b) = abs a * abs b" 
+  "\<bar>a * b\<bar> = \<bar>a\<bar> * \<bar>b\<bar>" 
   by (rule abs_eq_mult) auto
 
 lemma abs_mult_self:
-  "abs a * abs a = a * a"
+  "\<bar>a\<bar> * \<bar>a\<bar> = a * a"
   by (simp add: abs_if) 
 
-end
-
 lemma abs_mult_less:
-     "[| abs a < c; abs b < d |] ==> abs a * abs b < c*(d::'a::linordered_idom)"
+  "\<bar>a\<bar> < c \<Longrightarrow> \<bar>b\<bar> < d \<Longrightarrow> \<bar>a\<bar> * \<bar>b\<bar> < c * d"
 proof -
-  assume ac: "abs a < c"
-  hence cpos: "0<c" by (blast intro: order_le_less_trans abs_ge_zero)
-  assume "abs b < d"
+  assume ac: "\<bar>a\<bar> < c"
+  hence cpos: "0<c" by (blast intro: le_less_trans abs_ge_zero)
+  assume "\<bar>b\<bar> < d"
   thus ?thesis by (simp add: ac cpos mult_strict_mono) 
 qed
 
-lemmas eq_minus_self_iff[no_atp] = equal_neg_zero
+lemma less_minus_self_iff:
+  "a < - a \<longleftrightarrow> a < 0"
+  by (simp only: less_le less_eq_neg_nonpos equal_neg_zero)
 
-lemma less_minus_self_iff: "(a < -a) = (a < (0::'a::linordered_idom))"
-  unfolding order_less_le less_eq_neg_nonpos equal_neg_zero ..
+lemma abs_less_iff:
+  "\<bar>a\<bar> < b \<longleftrightarrow> a < b \<and> - a < b" 
+  by (simp add: less_le abs_le_iff) (auto simp add: abs_if)
 
-lemma abs_less_iff: "(abs a < b) = (a < b & -a < (b::'a::linordered_idom))" 
-apply (simp add: order_less_le abs_le_iff)  
-apply (auto simp add: abs_if)
-done
+lemma abs_mult_pos:
+  "0 \<le> x \<Longrightarrow> \<bar>y\<bar> * x = \<bar>y * x\<bar>"
+  by (simp add: abs_mult)
 
-lemma abs_mult_pos: "(0::'a::linordered_idom) <= x ==> 
-    (abs y) * x = abs (y * x)"
-  apply (subst abs_mult)
-  apply simp
-done
+end
 
 code_modulename SML
   Rings Arith

@@ -204,7 +204,7 @@ apply (auto dest!: spec
 apply (simp (no_asm) add: add_divide_distrib diff_divide_distrib)
 apply (drule bex_Infinitesimal_iff2 [THEN iffD2])+
 apply (auto simp add: times_divide_eq_right [symmetric]
-            simp del: times_divide_eq)
+            simp del: times_divide_eq_right times_divide_eq_left)
 apply (drule_tac D = Db in lemma_nsderiv2, assumption+)
 apply (drule_tac
      approx_minus_iff [THEN iffD2, THEN bex_Infinitesimal_iff2 [THEN iffD2]])
