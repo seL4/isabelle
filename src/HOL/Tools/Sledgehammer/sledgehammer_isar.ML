@@ -1,4 +1,4 @@
-(*  Title:      HOL/Sledgehammer/sledgehammer_isar.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_isar.ML
     Author:     Jasmin Blanchette, TU Muenchen
 
 Adds "sledgehammer" and related commands to Isabelle/Isar's outer syntax.
@@ -19,8 +19,8 @@ struct
 
 open Sledgehammer_Util
 open ATP_Manager
-open ATP_Minimal
 open ATP_Wrapper
+open Sledgehammer_Fact_Minimizer
 
 structure K = OuterKeyword and P = OuterParse
 

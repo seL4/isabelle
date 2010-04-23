@@ -19,7 +19,7 @@ uses
   ("Tools/Sledgehammer/sledgehammer_fact_filter.ML")
   ("Tools/ATP_Manager/atp_manager.ML")
   ("Tools/ATP_Manager/atp_wrapper.ML")
-  ("Tools/ATP_Manager/atp_minimal.ML")
+  ("Tools/Sledgehammer/sledgehammer_fact_minimizer.ML")
   ("Tools/Sledgehammer/sledgehammer_isar.ML")
   ("Tools/Sledgehammer/meson_tactic.ML")
   ("Tools/Sledgehammer/metis_tactics.ML")
@@ -103,7 +103,7 @@ use "Tools/Sledgehammer/sledgehammer_fact_filter.ML"
 use "Tools/ATP_Manager/atp_manager.ML"
 use "Tools/ATP_Manager/atp_wrapper.ML"
 setup ATP_Wrapper.setup
-use "Tools/ATP_Manager/atp_minimal.ML"
+use "Tools/Sledgehammer/sledgehammer_fact_minimizer.ML"
 use "Tools/Sledgehammer/sledgehammer_isar.ML"
 
 

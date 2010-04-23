@@ -1,11 +1,11 @@
-(*  Title:      HOL/Tools/ATP_Manager/atp_minimal.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_fact_minimizer.ML
     Author:     Philipp Meyer, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 
 Minimization of theorem list for Metis using automatic theorem provers.
 *)
 
-signature ATP_MINIMAL =
+signature SLEDGEHAMMER_FACT_MINIMIZER =
 sig
   type params = ATP_Manager.params
   type prover = ATP_Manager.prover
@@ -16,7 +16,7 @@ sig
     -> (string * thm list) list option * string
 end;
 
-structure ATP_Minimal : ATP_MINIMAL =
+structure Sledgehammer_Fact_Minimizer : SLEDGEHAMMER_FACT_MINIMIZER =
 struct
 
 open Sledgehammer_Util

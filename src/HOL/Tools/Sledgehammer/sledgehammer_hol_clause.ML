@@ -1,5 +1,6 @@
-(*  Title:      HOL/Sledgehammer/sledgehammer_hol_clause.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_hol_clause.ML
     Author:     Jia Meng, NICTA
+    Author:     Jasmin Blanchette, TU Muenchen
 
 FOL clauses translated from HOL formulae.
 *)
