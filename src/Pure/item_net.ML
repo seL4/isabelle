@@ -11,6 +11,7 @@ sig
   val init: ('a * 'a -> bool) -> ('a -> term list) -> 'a T
   val content: 'a T -> 'a list
   val retrieve: 'a T -> term -> 'a list
+  val member: 'a T -> 'a -> bool
   val merge: 'a T * 'a T -> 'a T
   val remove: 'a -> 'a T -> 'a T
   val update: 'a -> 'a T -> 'a T
@@ -48,7 +49,6 @@ fun member (Items {eq, index, content, net, ...}) x =
 fun cons x (Items {eq, index, content, next, net}) =
   mk_items eq index (x :: content) (next - 1)
     (fold (fn t => Net.insert_term (K false) (t, (next, x))) (index x) net);
-
 
 fun merge (items1, Items {content = content2, ...}) =
   fold_rev (fn y => if member items1 y then I else cons y) content2 items1;

@@ -6,6 +6,7 @@ Named collections of theorems in canonical order.
 
 signature NAMED_THMS =
 sig
+  val member: Proof.context -> thm -> bool
   val get: Proof.context -> thm list
   val add_thm: thm -> Context.generic -> Context.generic
   val del_thm: thm -> Context.generic -> Context.generic
@@ -24,6 +25,8 @@ structure Data = Generic_Data
   val extend = I;
   val merge = Item_Net.merge;
 );
+
+val member = Item_Net.member o Data.get o Context.Proof;
 
 val content = Item_Net.content o Data.get;
 val get = content o Context.Proof;
