@@ -112,7 +112,7 @@ type prover =
 val message_store_limit = 20;
 val message_display_limit = 5;
 
-val atps = Unsynchronized.ref ""; (* set in "ATP_Wrapper" *)
+val atps = Unsynchronized.ref "e spass remote_vampire"; (* set in "ATP_Wrapper" *)
 val timeout = Unsynchronized.ref 60;
 val full_types = Unsynchronized.ref false;
 
