@@ -1,5 +1,6 @@
 (*  Title:      HOL/Tools/ATP_Manager/atp_wrapper.ML
     Author:     Fabian Immler, TU Muenchen
+    Author:     Jasmin Blanchette, TU Muenchen
 
 Wrapper functions for external ATPs.
 *)
@@ -14,6 +15,7 @@ sig
   val measure_runtime : bool Config.T
 
   val refresh_systems_on_tptp : unit -> unit
+  val default_atps_param_value : unit -> string
   val setup : theory -> theory
 end;
 
@@ -389,6 +391,13 @@ val remote_spass =
   tptp_prover (remotify (fst spass))
               (remote_prover_config "SPASS---" "-x" spass_config)
 
+fun maybe_remote (name, _) ({home, ...} : prover_config) =
+  name |> home = "" ? remotify
+
+fun default_atps_param_value () =
+  space_implode " " [maybe_remote e e_config, maybe_remote spass spass_config,
+                     remotify (fst vampire)]
+
 val provers =
   [spass, spass_tptp, vampire, e, remote_vampire, remote_spass, remote_e]
 val prover_setup = fold add_prover provers
@@ -397,11 +406,6 @@ val setup =
   destdir_setup
   #> problem_prefix_setup
   #> measure_runtime_setup
-  #> prover_setup;
+  #> prover_setup
 
-fun maybe_remote (name, _) ({home, ...} : prover_config) =
-  name |> home = "" ? remotify
-
-val _ = atps := ([maybe_remote e e_config, maybe_remote spass spass_config,
-                  remotify (fst vampire)] |> space_implode " ")
 end;

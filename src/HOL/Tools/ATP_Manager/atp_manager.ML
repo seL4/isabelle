@@ -49,9 +49,6 @@ sig
   type prover =
     params -> minimize_command -> Time.time -> problem -> prover_result
 
-  val atps: string Unsynchronized.ref
-  val timeout: int Unsynchronized.ref
-  val full_types: bool Unsynchronized.ref
   val kill_atps: unit -> unit
   val running_atps: unit -> unit
   val messages: int option -> unit
@@ -120,26 +117,6 @@ type prover =
 
 val message_store_limit = 20;
 val message_display_limit = 5;
-
-val atps = Unsynchronized.ref ""; (* set in "ATP_Wrapper" *)
-val timeout = Unsynchronized.ref 60;
-val full_types = Unsynchronized.ref false;
-
-val _ =
-  ProofGeneralPgip.add_preference Preferences.category_proof
-    (Preferences.string_pref atps
-      "ATP: provers" "Default automatic provers (separated by whitespace)");
-
-val _ =
-  ProofGeneralPgip.add_preference Preferences.category_proof
-    (Preferences.int_pref timeout
-      "ATP: timeout" "ATPs will be interrupted after this time (in seconds)");
-
-val _ =
-  ProofGeneralPgip.add_preference Preferences.category_proof
-    (Preferences.bool_pref full_types
-      "ATP: full types" "ATPs will use full type information");
-
 
 
 (** thread management **)

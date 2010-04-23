@@ -8,6 +8,9 @@ signature SLEDGEHAMMER_ISAR =
 sig
   type params = ATP_Manager.params
 
+  val atps: string Unsynchronized.ref
+  val timeout: int Unsynchronized.ref
+  val full_types: bool Unsynchronized.ref
   val default_params : theory -> (string * string) list -> params
 end;
 
@@ -34,6 +37,29 @@ fun merge_relevance_override_pairwise (r1 : relevance_override)
    only = #only r1 andalso #only r2}
 fun merge_relevance_overrides rs =
   fold merge_relevance_override_pairwise rs (only_relevance_override [])
+
+(*** parameters ***)
+
+val atps = Unsynchronized.ref (default_atps_param_value ())
+val timeout = Unsynchronized.ref 60
+val full_types = Unsynchronized.ref false
+
+val _ =
+  ProofGeneralPgip.add_preference Preferences.category_proof
+      (Preferences.string_pref atps
+          "Sledgehammer: ATPs"
+          "Default automatic provers (separated by whitespace)")
+
+val _ =
+  ProofGeneralPgip.add_preference Preferences.category_proof
+      (Preferences.int_pref timeout
+          "Sledgehammer: Time limit"
+          "ATPs will be interrupted after this time (in seconds)")
+
+val _ =
+  ProofGeneralPgip.add_preference Preferences.category_proof
+      (Preferences.bool_pref full_types
+          "Sledgehammer: Full types" "ATPs will use full type information")
 
 type raw_param = string * string list
 
