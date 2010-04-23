@@ -14,7 +14,6 @@ sig
   val num_typargs: theory -> string -> int
   val make_tvar: string -> typ
   val strip_prefix: string -> string -> string option
-  val is_proof_well_formed: string -> bool
   val metis_line: int -> int -> string list -> string
   val metis_proof_text:
     minimize_command * string * string vector * thm * int
@@ -69,7 +68,7 @@ val truefalse = $$ "$" |-- Symbol.scan_id >> (atom o tf);
 fun is_digit s = Char.isDigit (String.sub(s,0));
 val integer = Scan.many1 is_digit >> (the o Int.fromString o implode);
 
-(* needed for SPASS's nonstandard output format *)
+(* needed for SPASS's output format *)
 fun fix_symbol "equal" = "c_equal"
   | fix_symbol s = s
 
@@ -521,47 +520,22 @@ fun isar_proof_from_atp_proof cnfs modulus sorts ctxt goal i thm_names =
   handle STREE _ => raise Fail "Cannot parse ATP output";
 
 
-(*=== EXTRACTING PROOF-TEXT === *)
-
-val begin_proof_strs = ["# SZS output start CNFRefutation.",
-  "=========== Refutation ==========",
-  "Here is a proof"];
-
-val end_proof_strs = ["# SZS output end CNFRefutation",
-  "======= End of refutation =======",
-  "Formulae used in the proof"];
-
-fun get_proof_extract proof =
-  (* Splits by the first possible of a list of splitters. *)
-  case pairself (find_first (fn s => String.isSubstring s proof))
-                (begin_proof_strs, end_proof_strs) of
-    (SOME begin_string, SOME end_string) =>
-    proof |> first_field begin_string |> the |> snd
-          |> first_field end_string |> the |> fst
-  | _ => raise Fail "Cannot extract proof"
-
-(* ==== CHECK IF PROOF WAS SUCCESSFUL === *)
-
-fun is_proof_well_formed proof =
-  forall (exists (fn s => String.isSubstring s proof))
-         [begin_proof_strs, end_proof_strs]
-
 (* === EXTRACTING LEMMAS === *)
 (* A list consisting of the first number in each line is returned.
    TPTP: Interesting lines have the form "cnf(108, axiom, ...)", where the
    number (108) is extracted.
    DFG: Lines have the form "108[0:Inp] ...", where the first number (108) is
    extracted. *)
-fun get_step_nums proof_extract =
+fun get_step_nums proof =
   let
     val toks = String.tokens (not o is_ident_char)
     fun inputno ("cnf" :: ntok :: "axiom" :: _) = Int.fromString ntok
       | inputno ("cnf" :: ntok :: "negated_conjecture" :: _) =
         Int.fromString ntok
-      | inputno (ntok::"0"::"Inp"::_) = Int.fromString ntok  (* DFG format *)
+      | inputno (ntok :: "0" :: "Inp" :: _) =
+        Int.fromString ntok  (* SPASS's output format *)
       | inputno _ = NONE
-    val lines = split_lines proof_extract
-  in map_filter (inputno o toks) lines end
+  in map_filter (inputno o toks) (split_lines proof) end
   
 (*Used to label theorems chained into the sledgehammer call*)
 val chained_hint = "CHAINED";
@@ -588,8 +562,7 @@ fun minimize_line _ [] = ""
 fun metis_proof_text (minimize_command, proof, thm_names, goal, i) =
   let
     val lemmas =
-      proof |> get_proof_extract
-            |> get_step_nums
+      proof |> get_step_nums
             |> filter (is_axiom thm_names)
             |> map (fn i => Vector.sub (thm_names, i - 1))
             |> filter (fn x => x <> "??.unknown")
@@ -625,8 +598,7 @@ val strip_spaces = strip_spaces_in_list o String.explode
 fun isar_proof_text debug modulus sorts ctxt
                     (minimize_command, proof, thm_names, goal, i) =
   let
-    val cnfs = proof |> get_proof_extract |> split_lines |> map strip_spaces
-                     |> filter is_proof_line
+    val cnfs = proof |> split_lines |> map strip_spaces |> filter is_proof_line
     val (one_line_proof, lemma_names) =
       metis_proof_text (minimize_command, proof, thm_names, goal, i)
     val tokens = String.tokens (fn c => c = #" ") one_line_proof

@@ -39,6 +39,7 @@ sig
      message: string,
      relevant_thm_names: string list,
      atp_run_time_in_msecs: int,
+     output: string,
      proof: string,
      internal_thm_names: string Vector.vector,
      filtered_clauses: (thm * (string * int)) list}
@@ -99,6 +100,7 @@ type prover_result =
    message: string,
    relevant_thm_names: string list,
    atp_run_time_in_msecs: int,
+   output: string,
    proof: string,
    internal_thm_names: string Vector.vector,
    filtered_clauses: (thm * (string * int)) list};

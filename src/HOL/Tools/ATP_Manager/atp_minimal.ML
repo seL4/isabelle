@@ -45,6 +45,7 @@ val string_of_outcome =
    | Timeout => "Timeout"
    | Error => "Error"
 
+(* FIXME: move to "atp_wrapper.ML" *)
 val failure_strings =
   [("SPASS beiseite: Ran out of time.", Timeout),
    ("Timeout", Timeout),
@@ -52,11 +53,11 @@ val failure_strings =
    ("# Cannot determine problem status within resource limit", Timeout),
    ("Error", Error)]
 
-fun outcome_of_result (result as {success, proof, ...} : prover_result) =
+fun outcome_of_result (result as {success, output, ...} : prover_result) =
   if success then
     Success
   else case get_first (fn (s, outcome) =>
-                          if String.isSubstring s proof then SOME outcome
+                          if String.isSubstring s output then SOME outcome
                           else NONE) failure_strings of
     SOME outcome => outcome
   | NONE => Failure

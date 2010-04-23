@@ -49,6 +49,7 @@ type prover_config =
  {home: string,
   executable: string,
   arguments: Time.time -> string,
+  proof_delims: (string * string) list,
   known_failures: (string list * string) list,
   max_new_clauses: int,
   prefers_theory_relevant: bool};
@@ -60,21 +61,31 @@ fun with_path cleanup after f path =
   Exn.capture f path
   |> tap (fn _ => cleanup path)
   |> Exn.release
-  |> tap (after path);
+  |> tap (after path)
 
-fun find_known_failure known_failures proof =
-  case map_filter (fn (patterns, message) =>
-                      if exists (fn pattern => String.isSubstring pattern proof)
-                                patterns then
-                        SOME message
-                      else
-                        NONE) known_failures of
-    [] => if is_proof_well_formed proof then ""
-          else "Error: The ATP output is ill-formed."
-  | (message :: _) => message
+(* Splits by the first possible of a list of delimiters. *)
+fun extract_proof delims output =
+  case pairself (find_first (fn s => String.isSubstring s output))
+                (ListPair.unzip delims) of
+    (SOME begin_delim, SOME end_delim) =>
+    output |> first_field begin_delim |> the |> snd
+           |> first_field end_delim |> the |> fst
+  | _ => ""
+
+fun extract_proof_or_failure proof_delims known_failures output =
+  case map_filter
+           (fn (patterns, message) =>
+               if exists (fn p => String.isSubstring p output) patterns then
+                 SOME message
+               else
+                 NONE) known_failures of
+    [] => (case extract_proof proof_delims output of
+             "" => ("", "Error: The ATP output is malformed.")
+           | proof => (proof, ""))
+  | (message :: _) => ("", message)
 
 fun generic_prover overlord get_facts prepare write_file home executable args
-        known_failures name
+        proof_delims known_failures name
         ({debug, full_types, explicit_apply, isar_proof, modulus, sorts, ...}
          : params) minimize_command
         ({subgoal, goal, relevance_override, axiom_clauses, filtered_clauses}
@@ -135,14 +146,14 @@ fun generic_prover overlord get_facts prepare write_file home executable args
     fun split_time s =
       let
         val split = String.tokens (fn c => str c = "\n");
-        val (proof, t) = s |> split |> split_last |> apfst cat_lines;
+        val (output, t) = s |> split |> split_last |> apfst cat_lines;
         fun as_num f = f >> (fst o read_int);
         val num = as_num (Scan.many1 Symbol.is_ascii_digit);
         val digit = Scan.one Symbol.is_ascii_digit;
         val num3 = as_num (digit ::: digit ::: (digit >> single));
         val time = num --| Scan.$$ "." -- num3 >> (fn (a, b) => a * 1000 + b);
         val as_time = the_default 0 o Scan.read Symbol.stopper time o explode;
-      in (proof, as_time t) end;
+      in (output, as_time t) end;
     fun split_time' s =
       if Config.get ctxt measure_runtime then split_time s else (s, 0)
     fun run_on probfile =
@@ -154,7 +165,7 @@ fun generic_prover overlord get_facts prepare write_file home executable args
     (* If the problem file has not been exported, remove it; otherwise, export
        the proof file too. *)
     fun cleanup probfile = if destdir' = "" then try File.rm probfile else NONE;
-    fun export probfile (((proof, _), _), _) =
+    fun export probfile (((output, _), _), _) =
       if destdir' = "" then
         ()
       else
@@ -163,14 +174,15 @@ fun generic_prover overlord get_facts prepare write_file home executable args
                        "% " ^ command_line probfile ^ "\n% " ^ timestamp () ^
                        "\n"
                      else
-                        "") ^ proof)
+                        "") ^ output)
 
-    val (((proof, atp_run_time_in_msecs), rc), _) =
+    val (((output, atp_run_time_in_msecs), rc), _) =
       with_path cleanup export run_on (prob_pathname subgoal);
 
     (* Check for success and print out some information on failure. *)
-    val failure = find_known_failure known_failures proof;
-    val success = rc = 0 andalso failure = "";
+    val (proof, failure) =
+      extract_proof_or_failure proof_delims known_failures output
+    val success = (rc = 0 andalso failure = "")
     val (message, relevant_thm_names) =
       if success then
         proof_text isar_proof debug modulus sorts ctxt
@@ -178,12 +190,12 @@ fun generic_prover overlord get_facts prepare write_file home executable args
       else if failure <> "" then
         (failure ^ "\n", [])
       else
-        ("Unknown ATP error: " ^ proof ^ ".\n", [])
+        ("Unknown ATP error: " ^ output ^ ".\n", [])
   in
     {success = success, message = message,
      relevant_thm_names = relevant_thm_names,
-     atp_run_time_in_msecs = atp_run_time_in_msecs, proof = proof,
-     internal_thm_names = internal_thm_names,
+     atp_run_time_in_msecs = atp_run_time_in_msecs, output = output,
+     proof = proof, internal_thm_names = internal_thm_names,
      filtered_clauses = the_filtered_clauses}
   end;
 
@@ -191,8 +203,8 @@ fun generic_prover overlord get_facts prepare write_file home executable args
 (* generic TPTP-based provers *)
 
 fun generic_tptp_prover
-        (name, {home, executable, arguments, known_failures, max_new_clauses,
-                prefers_theory_relevant})
+        (name, {home, executable, arguments, proof_delims, known_failures,
+                max_new_clauses, prefers_theory_relevant})
         (params as {debug, overlord, respect_no_atp, relevance_threshold,
                     convergence, theory_relevant, higher_order, follow_defs,
                     isar_proof, ...})
@@ -203,7 +215,8 @@ fun generic_tptp_prover
                           (the_default prefers_theory_relevant theory_relevant))
       (prepare_clauses higher_order false)
       (write_tptp_file (debug andalso overlord andalso not isar_proof)) home
-      executable (arguments timeout) known_failures name params minimize_command
+      executable (arguments timeout) proof_delims known_failures name params
+      minimize_command
 
 fun tptp_prover name p = (name, generic_tptp_prover (name, p));
 
@@ -221,6 +234,8 @@ val vampire_config : prover_config =
    executable = "vampire",
    arguments = (fn timeout => "--output_syntax tptp --mode casc -t " ^
                               string_of_int (generous_to_secs timeout)),
+   proof_delims = [("=========== Refutation ==========",
+                    "======= End of refutation =======")],
    known_failures =
      [(["Satisfiability detected", "CANNOT PROVE"],
        "The ATP problem is unprovable."),
@@ -233,12 +248,16 @@ val vampire = tptp_prover "vampire" vampire_config
 
 (* E prover *)
 
+val tstp_proof_delims =
+  ("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation")
+
 val e_config : prover_config =
   {home = getenv "E_HOME",
    executable = "eproof",
    arguments = (fn timeout => "--tstp-in --tstp-out -l5 -xAutoDev \
                               \-tAutoDev --silent --cpu-limit=" ^
                               string_of_int (generous_to_secs timeout)),
+   proof_delims = [tstp_proof_delims],
    known_failures =
        [(["SZS status: Satisfiable", "SZS status Satisfiable"],
          "The ATP problem is unprovable."),
@@ -254,8 +273,8 @@ val e = tptp_prover "e" e_config
 (* SPASS *)
 
 fun generic_dfg_prover
-        (name, {home, executable, arguments, known_failures, max_new_clauses,
-                prefers_theory_relevant})
+        (name, {home, executable, arguments, proof_delims, known_failures,
+                max_new_clauses, prefers_theory_relevant})
         (params as {overlord, respect_no_atp, relevance_threshold, convergence,
                     theory_relevant, higher_order, follow_defs, ...})
         minimize_command timeout =
@@ -264,7 +283,8 @@ fun generic_dfg_prover
                           higher_order follow_defs max_new_clauses
                           (the_default prefers_theory_relevant theory_relevant))
       (prepare_clauses higher_order true) write_dfg_file home executable
-      (arguments timeout) known_failures name params minimize_command
+      (arguments timeout) proof_delims known_failures name params
+      minimize_command
 
 fun dfg_prover name p = (name, generic_dfg_prover (name, p))
 
@@ -276,6 +296,7 @@ val spass_config : prover_config =
    arguments = (fn timeout => "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0" ^
      " -FullRed=0 -DocProof -VarWeight=3 -TimeLimit=" ^
      string_of_int (generous_to_secs timeout)),
+   proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =
      [(["SPASS beiseite: Completion found."], "The ATP problem is unprovable."),
       (["SPASS beiseite: Ran out of time."], "The ATP timed out."),
@@ -297,6 +318,7 @@ val spass_tptp_config =
   {home = #home spass_config,
    executable = #executable spass_config,
    arguments = prefix "-TPTP " o #arguments spass_config,
+   proof_delims = #proof_delims spass_config,
    known_failures =
      #known_failures spass_config @
      [(["unrecognized option `-TPTP'", "Unrecognized option TPTP"],
@@ -343,13 +365,14 @@ val remote_known_failures =
     "Error: The remote ATP proof is ill-formed.")]
 
 fun remote_prover_config prover_prefix args
-        ({known_failures, max_new_clauses, prefers_theory_relevant, ...}
-         : prover_config) : prover_config =
+        ({proof_delims, known_failures, max_new_clauses,
+          prefers_theory_relevant, ...} : prover_config) : prover_config =
   {home = getenv "ISABELLE_ATP_MANAGER",
    executable = "SystemOnTPTP",
    arguments = (fn timeout =>
      args ^ " -t " ^ string_of_int (generous_to_secs timeout) ^ " -s " ^
      the_system prover_prefix),
+   proof_delims = insert (op =) tstp_proof_delims proof_delims,
    known_failures = remote_known_failures @ known_failures,
    max_new_clauses = max_new_clauses,
    prefers_theory_relevant = prefers_theory_relevant}
