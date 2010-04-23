@@ -8,11 +8,10 @@ Minimization of theorem list for Metis using automatic theorem provers.
 signature SLEDGEHAMMER_FACT_MINIMIZER =
 sig
   type params = ATP_Manager.params
-  type prover = ATP_Manager.prover
   type prover_result = ATP_Manager.prover_result
 
   val minimize_theorems :
-    params -> prover -> string -> int -> Proof.state -> (string * thm list) list
+    params -> int -> Proof.state -> (string * thm list) list
     -> (string * thm list) list option * string
 end;
 
@@ -68,14 +67,18 @@ fun sledgehammer_test_theorems (params as {full_types, ...} : params) prover
 
 (* minimalization of thms *)
 
-fun minimize_theorems (params as {debug, minimize_timeout, isar_proof, modulus,
-                                  sorts, ...})
-                      prover atp_name i state name_thms_pairs =
+fun minimize_theorems (params as {debug, atps, minimize_timeout, isar_proof,
+                                  modulus, sorts, ...})
+                      i state name_thms_pairs =
   let
+    val thy = Proof.theory_of state
+    val prover = case atps of
+                   [atp_name] => get_prover thy atp_name
+                 | _ => error "Expected a single ATP."
     val msecs = Time.toMilliseconds minimize_timeout
     val n = length name_thms_pairs
     val _ =
-      priority ("Sledgehammer minimizer: ATP " ^ quote atp_name ^
+      priority ("Sledgehammer minimizer: ATP " ^ quote (the_single atps) ^
                 " with a time limit of " ^ string_of_int msecs ^ " ms.")
     val test_thms_fun =
       sledgehammer_test_theorems params prover minimize_timeout i state

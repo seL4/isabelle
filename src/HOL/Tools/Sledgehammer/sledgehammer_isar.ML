@@ -211,40 +211,16 @@ fun run {atps = [], ...} _ _ _ _ = error "No ATP is set."
                                             proof_state) atps
     in () end
 
-fun minimize override_params old_style_args i fact_refs state =
+fun minimize override_params i fact_refs state =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
-    fun theorems_from_refs ctxt =
-      map (fn fact_ref =>
-              let
-                val ths = ProofContext.get_fact ctxt fact_ref
-                val name' = Facts.string_of_ref fact_ref
-              in (name', ths) end)
-    fun get_time_limit_arg s =
-      (case Int.fromString s of
-        SOME t => Time.fromSeconds t
-      | NONE => error ("Invalid time limit: " ^ quote s ^ "."))
-    fun get_opt (name, a) (p, t) =
-      (case name of
-        "time" => (p, get_time_limit_arg a)
-      | "atp" => (a, t)
-      | n => error ("Invalid argument: " ^ n ^ "."))
-    val {atps, minimize_timeout, ...} = get_params thy override_params
-    val (atp, timeout) = fold get_opt old_style_args (hd atps, minimize_timeout)
-    val params =
-      get_params thy
-          (override_params @
-           [("atps", [atp]),
-            ("minimize_timeout",
-             [string_of_int (Time.toMilliseconds timeout) ^ " ms"])])
-    val prover =
-      (case get_prover thy atp of
-        SOME prover => prover
-      | NONE => error ("Unknown ATP: " ^ quote atp ^ "."))
+    val theorems_from_refs =
+      map o pairf Facts.string_of_ref o ProofContext.get_fact
     val name_thms_pairs = theorems_from_refs ctxt fact_refs
   in
-    priority (#2 (minimize_theorems params prover atp i state name_thms_pairs))
+    priority (#2 (minimize_theorems (get_params thy override_params) i state
+                                    name_thms_pairs))
   end
 
 val sledgehammerN = "sledgehammer"
@@ -287,7 +263,7 @@ fun hammer_away override_params subcommand opt_i relevance_override state =
             (minimize_command override_params i) state
       end
     else if subcommand = minimizeN then
-      minimize (map (apfst minimizize_raw_param_name) override_params) []
+      minimize (map (apfst minimizize_raw_param_name) override_params)
                (the_default 1 opt_i) (#add relevance_override) state
     else if subcommand = messagesN then
       messages opt_i
@@ -344,33 +320,6 @@ val parse_sledgehammer_command =
    -- Scan.option P.nat) #>> sledgehammer_trans
 val parse_sledgehammer_params_command =
   parse_params #>> sledgehammer_params_trans
-
-val parse_minimize_args =
-  Scan.optional (Args.bracks (P.list (P.short_ident --| P.$$$ "=" -- P.xname)))
-                []
-val _ =
-  OuterSyntax.improper_command "atp_kill" "kill all managed provers" K.diag
-    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative kill_atps))
-val _ =
-  OuterSyntax.improper_command "atp_info"
-    "print information about managed provers" K.diag
-    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative running_atps))
-val _ =
-  OuterSyntax.improper_command "atp_messages"
-    "print recent messages issued by managed provers" K.diag
-    (Scan.option (P.$$$ "(" |-- P.nat --| P.$$$ ")") >>
-      (fn limit => Toplevel.no_timing
-                   o Toplevel.imperative (fn () => messages limit)))
-val _ =
-  OuterSyntax.improper_command "print_atps" "print external provers" K.diag
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_theory o
-      Toplevel.keep (available_atps o Toplevel.theory_of)))
-val _ =
-  OuterSyntax.improper_command "atp_minimize"
-    "minimize theorem list with external prover" K.diag
-    (parse_minimize_args -- parse_fact_refs >> (fn (args, fact_refs) =>
-      Toplevel.no_timing o Toplevel.unknown_proof o
-        Toplevel.keep (minimize [] args 1 fact_refs o Toplevel.proof_of)))
 
 val _ =
   OuterSyntax.improper_command sledgehammerN
