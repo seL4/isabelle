@@ -26,7 +26,7 @@ text {*
   Trivial example of term synthesis: apparently hard for some provers!
 *}
 
-lemma "a \<noteq> b \<Longrightarrow> a \<in> ?X \<and> b \<notin> ?X"
+schematic_lemma "a \<noteq> b \<Longrightarrow> a \<in> ?X \<and> b \<notin> ?X"
   by blast
 
 
@@ -60,15 +60,15 @@ lemma cantor1: "\<not> (\<exists>f:: 'a \<Rightarrow> 'a set. \<forall>S. \<exis
   -- {* Requires best-first search because it is undirectional. *}
   by best
 
-lemma "\<forall>f:: 'a \<Rightarrow> 'a set. \<forall>x. f x \<noteq> ?S f"
+schematic_lemma "\<forall>f:: 'a \<Rightarrow> 'a set. \<forall>x. f x \<noteq> ?S f"
   -- {*This form displays the diagonal term. *}
   by best
 
-lemma "?S \<notin> range (f :: 'a \<Rightarrow> 'a set)"
+schematic_lemma "?S \<notin> range (f :: 'a \<Rightarrow> 'a set)"
   -- {* This form exploits the set constructs. *}
   by (rule notI, erule rangeE, best)
 
-lemma "?S \<notin> range (f :: 'a \<Rightarrow> 'a set)"
+schematic_lemma "?S \<notin> range (f :: 'a \<Rightarrow> 'a set)"
   -- {* Or just this! *}
   by best
 

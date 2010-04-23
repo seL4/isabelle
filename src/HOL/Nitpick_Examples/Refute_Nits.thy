@@ -340,12 +340,12 @@ oops
 
 subsubsection {* Schematic Variables *}
 
-lemma "?P"
+schematic_lemma "?P"
 nitpick [expect = none]
 apply auto
 done
 
-lemma "x = ?y"
+schematic_lemma "x = ?y"
 nitpick [expect = none]
 apply auto
 done

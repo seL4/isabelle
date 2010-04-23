@@ -347,12 +347,12 @@ oops
 
 subsubsection {* Schematic variables *}
 
-lemma "?P"
+schematic_lemma "?P"
   refute
   apply auto
 done
 
-lemma "x = ?y"
+schematic_lemma "x = ?y"
   refute
   apply auto
 done

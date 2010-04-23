@@ -22,18 +22,18 @@ axioms
   revNil:  "rev(Nil,Nil)"
   revCons: "[| rev(xs,ys);  app(ys, x:Nil, zs) |] ==> rev(x:xs, zs)"
 
-lemma "app(a:b:c:Nil, d:e:Nil, ?x)"
+schematic_lemma "app(a:b:c:Nil, d:e:Nil, ?x)"
 apply (rule appNil appCons)
 apply (rule appNil appCons)
 apply (rule appNil appCons)
 apply (rule appNil appCons)
 done
 
-lemma "app(?x, c:d:Nil, a:b:c:d:Nil)"
+schematic_lemma "app(?x, c:d:Nil, a:b:c:d:Nil)"
 apply (rule appNil appCons)+
 done
 
-lemma "app(?x, ?y, a:b:c:d:Nil)"
+schematic_lemma "app(?x, ?y, a:b:c:d:Nil)"
 apply (rule appNil appCons)+
 back
 back
@@ -46,15 +46,15 @@ done
 
 lemmas rules = appNil appCons revNil revCons
 
-lemma "rev(a:b:c:d:Nil, ?x)"
+schematic_lemma "rev(a:b:c:d:Nil, ?x)"
 apply (rule rules)+
 done
 
-lemma "rev(a:b:c:d:e:f:g:h:i:j:k:l:m:n:Nil, ?w)"
+schematic_lemma "rev(a:b:c:d:e:f:g:h:i:j:k:l:m:n:Nil, ?w)"
 apply (rule rules)+
 done
 
-lemma "rev(?x, a:b:c:Nil)"
+schematic_lemma "rev(?x, a:b:c:Nil)"
 apply (rule rules)+  -- {* does not solve it directly! *}
 back
 back
@@ -65,22 +65,22 @@ ML {*
 val prolog_tac = DEPTH_FIRST (has_fewer_prems 1) (resolve_tac (@{thms rules}) 1)
 *}
 
-lemma "rev(?x, a:b:c:Nil)"
+schematic_lemma "rev(?x, a:b:c:Nil)"
 apply (tactic prolog_tac)
 done
 
-lemma "rev(a:?x:c:?y:Nil, d:?z:b:?u)"
+schematic_lemma "rev(a:?x:c:?y:Nil, d:?z:b:?u)"
 apply (tactic prolog_tac)
 done
 
 (*rev([a..p], ?w) requires 153 inferences *)
-lemma "rev(a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:Nil, ?w)"
+schematic_lemma "rev(a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:Nil, ?w)"
 apply (tactic {* DEPTH_SOLVE (resolve_tac ([@{thm refl}, @{thm conjI}] @ @{thms rules}) 1) *})
 done
 
 (*?x has 16, ?y has 32;  rev(?y,?w) requires 561 (rather large) inferences
   total inferences = 2 + 1 + 17 + 561 = 581*)
-lemma "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:Nil = ?x & app(?x,?x,?y) & rev(?y,?w)"
+schematic_lemma "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:Nil = ?x & app(?x,?x,?y) & rev(?y,?w)"
 apply (tactic {* DEPTH_SOLVE (resolve_tac ([@{thm refl}, @{thm conjI}] @ @{thms rules}) 1) *})
 done
 

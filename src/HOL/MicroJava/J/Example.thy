@@ -371,7 +371,7 @@ apply (auto simp add: appl_methds_foo_Base)
 done
 
 ML {* val t = resolve_tac @{thms ty_expr_ty_exprs_wt_stmt.intros} 1 *}
-lemma wt_test: "(tprg, empty(e\<mapsto>Class Base))\<turnstile>  
+schematic_lemma wt_test: "(tprg, empty(e\<mapsto>Class Base))\<turnstile>  
   Expr(e::=NewC Ext);; Expr({Base}LAcc e..foo({?pTs'}[Lit Null]))\<surd>"
 apply (tactic t) -- ";;"
 apply  (tactic t) -- "Expr"
@@ -400,7 +400,7 @@ ML {* val e = resolve_tac (@{thm NewCI} :: @{thms eval_evals_exec.intros}) 1 *}
 
 declare split_if [split del]
 declare init_vars_def [simp] c_hupd_def [simp] cast_ok_def [simp]
-lemma exec_test: 
+schematic_lemma exec_test: 
 " [|new_Addr (heap (snd s0)) = (a, None)|] ==>  
   tprg\<turnstile>s0 -test-> ?s"
 apply (unfold test_def)

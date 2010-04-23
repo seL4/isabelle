@@ -573,29 +573,29 @@ lemma V_rls [eval]:
 
 subsection {* Factorial *}
 
-lemma
+schematic_lemma
   "letrec f n be ncase(n,succ(zero),%x. nrec(n,zero,%y g. nrec(f(x),g,%z h. succ(h))))  
    in f(succ(succ(zero))) ---> ?a"
   by eval
 
-lemma
+schematic_lemma
   "letrec f n be ncase(n,succ(zero),%x. nrec(n,zero,%y g. nrec(f(x),g,%z h. succ(h))))  
    in f(succ(succ(succ(zero)))) ---> ?a"
   by eval
 
 subsection {* Less Than Or Equal *}
 
-lemma
+schematic_lemma
   "letrec f p be split(p,%m n. ncase(m,true,%x. ncase(n,false,%y. f(<x,y>))))
    in f(<succ(zero), succ(zero)>) ---> ?a"
   by eval
 
-lemma
+schematic_lemma
   "letrec f p be split(p,%m n. ncase(m,true,%x. ncase(n,false,%y. f(<x,y>))))
    in f(<succ(zero), succ(succ(succ(succ(zero))))>) ---> ?a"
   by eval
 
-lemma
+schematic_lemma
   "letrec f p be split(p,%m n. ncase(m,true,%x. ncase(n,false,%y. f(<x,y>))))
    in f(<succ(succ(succ(succ(succ(zero))))), succ(succ(succ(succ(zero))))>) ---> ?a"
   by eval
@@ -603,12 +603,12 @@ lemma
 
 subsection {* Reverse *}
 
-lemma
+schematic_lemma
   "letrec id l be lcase(l,[],%x xs. x$id(xs))  
    in id(zero$succ(zero)$[]) ---> ?a"
   by eval
 
-lemma
+schematic_lemma
   "letrec rev l be lcase(l,[],%x xs. lrec(rev(xs),x$[],%y ys g. y$g))  
    in rev(zero$succ(zero)$(succ((lam x. x)`succ(zero)))$([])) ---> ?a"
   by eval

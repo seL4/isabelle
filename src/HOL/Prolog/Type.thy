@@ -47,41 +47,41 @@ typeof (abs Bo) (A -> B) :- (typeof anyterm A => typeof (Bo anyterm) B)"
 
 lemmas prog_Type = prog_Func good_typeof common_typeof
 
-lemma "typeof (abs(%n. abs(%m. abs(%p. p and (n eq m))))) ?T"
+schematic_lemma "typeof (abs(%n. abs(%m. abs(%p. p and (n eq m))))) ?T"
   apply (prolog prog_Type)
   done
 
-lemma "typeof (fix (%x. x)) ?T"
+schematic_lemma "typeof (fix (%x. x)) ?T"
   apply (prolog prog_Type)
   done
 
-lemma "typeof (fix (%fact. abs(%n. (app fact (n - Z))))) ?T"
+schematic_lemma "typeof (fix (%fact. abs(%n. (app fact (n - Z))))) ?T"
   apply (prolog prog_Type)
   done
 
-lemma "typeof (fix (%fact. abs(%n. cond (n eq Z) (S Z)
+schematic_lemma "typeof (fix (%fact. abs(%n. cond (n eq Z) (S Z)
   (n * (app fact (n - (S Z))))))) ?T"
   apply (prolog prog_Type)
   done
 
-lemma "typeof (abs(%v. Z)) ?T" (*correct only solution (?A1 -> nat) *)
+schematic_lemma "typeof (abs(%v. Z)) ?T" (*correct only solution (?A1 -> nat) *)
   apply (prolog prog_Type)
   done
 
-lemma "typeof (abs(%v. Z)) ?T"
+schematic_lemma "typeof (abs(%v. Z)) ?T"
   apply (prolog bad1_typeof common_typeof) (* 1st result ok*)
   done
 
-lemma "typeof (abs(%v. Z)) ?T"
+schematic_lemma "typeof (abs(%v. Z)) ?T"
   apply (prolog bad1_typeof common_typeof)
   back (* 2nd result (?A1 -> ?A1) wrong *)
   done
 
-lemma "typeof (abs(%v. abs(%v. app v v))) ?T"
+schematic_lemma "typeof (abs(%v. abs(%v. app v v))) ?T"
   apply (prolog prog_Type)?  (*correctly fails*)
   oops
 
-lemma "typeof (abs(%v. abs(%v. app v v))) ?T"
+schematic_lemma "typeof (abs(%v. abs(%v. app v v))) ?T"
   apply (prolog bad2_typeof common_typeof) (* wrong result ((?A3 -> ?B3) -> ?A3 -> ?B3)*)
   done
 

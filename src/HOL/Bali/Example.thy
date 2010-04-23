@@ -1070,7 +1070,7 @@ by (simp add: max_spec_def appl_methds_Base_foo Collect_conv_if)
 
 section "well-typedness"
 
-lemma wt_test: "\<lparr>prg=tprg,cls=Main,lcl=empty(VName e\<mapsto>Class Base)\<rparr>\<turnstile>test ?pTs\<Colon>\<surd>"
+schematic_lemma wt_test: "\<lparr>prg=tprg,cls=Main,lcl=empty(VName e\<mapsto>Class Base)\<rparr>\<turnstile>test ?pTs\<Colon>\<surd>"
 apply (unfold test_def arr_viewed_from_def)
 (* ?pTs = [Class Base] *)
 apply (rule wtIs (* ;; *))
@@ -1122,7 +1122,7 @@ done
 
 section "definite assignment"
 
-lemma da_test: "\<lparr>prg=tprg,cls=Main,lcl=empty(VName e\<mapsto>Class Base)\<rparr>
+schematic_lemma da_test: "\<lparr>prg=tprg,cls=Main,lcl=empty(VName e\<mapsto>Class Base)\<rparr>
                   \<turnstile>{} \<guillemotright>\<langle>test ?pTs\<rangle>\<guillemotright> \<lparr>nrm={VName e},brk=\<lambda> l. UNIV\<rparr>"
 apply (unfold test_def arr_viewed_from_def)
 apply (rule da.Comp)
@@ -1241,7 +1241,7 @@ abbreviation "s9' == (Some (Xcpt (Std IndOutBound)), s8)"
 
 
 declare Pair_eq [simp del]
-lemma exec_test: 
+schematic_lemma exec_test: 
 "\<lbrakk>the (new_Addr (heap  s1)) = a;  
   the (new_Addr (heap ?s2)) = b;  
   the (new_Addr (heap ?s3)) = c\<rbrakk> \<Longrightarrow>  

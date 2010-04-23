@@ -58,11 +58,11 @@ lemma "(EX x. Q(x))  -->  (ALL x. Q(x))"
   apply fast?
   oops
 
-lemma "P(?a) --> (ALL x. P(x))"
+schematic_lemma "P(?a) --> (ALL x. P(x))"
   apply fast?
   oops
 
-lemma "(P(?a) --> (ALL x. Q(x))) --> (ALL x. P(x) --> Q(x))"
+schematic_lemma "(P(?a) --> (ALL x. Q(x))) --> (ALL x. P(x) --> Q(x))"
   apply fast?
   oops
 
@@ -76,7 +76,7 @@ lemma "(ALL x. P(x)-->Q(x)) & (EX x. P(x)) --> (EX x. Q(x))"
 lemma "(P --> (EX x. Q(x))) & P --> (EX x. Q(x))"
   by fast
 
-lemma "(ALL x. P(x)-->Q(f(x))) & (ALL x. Q(x)-->R(g(x))) & P(d) --> R(?a)"
+schematic_lemma "(ALL x. P(x)-->Q(f(x))) & (ALL x. Q(x)-->R(g(x))) & P(d) --> R(?a)"
   by fast
 
 lemma "(ALL x. Q(x))  -->  (EX x. Q(x))"

@@ -325,27 +325,27 @@ by auto
 
 subsection {* Schematic Variables *}
 
-lemma "x = ?x"
+schematic_lemma "x = ?x"
 nitpick [expect = none]
 by auto
 
-lemma "\<forall>x. x = ?x"
+schematic_lemma "\<forall>x. x = ?x"
 nitpick [expect = genuine]
 oops
 
-lemma "\<exists>x. x = ?x"
+schematic_lemma "\<exists>x. x = ?x"
 nitpick [expect = none]
 by auto
 
-lemma "\<exists>x\<Colon>'a \<Rightarrow> 'b. x = ?x"
+schematic_lemma "\<exists>x\<Colon>'a \<Rightarrow> 'b. x = ?x"
 nitpick [expect = none]
 by auto
 
-lemma "\<forall>x. ?x = ?y"
+schematic_lemma "\<forall>x. ?x = ?y"
 nitpick [expect = none]
 by auto
 
-lemma "\<exists>x. ?x = ?y"
+schematic_lemma "\<exists>x. ?x = ?y"
 nitpick [expect = none]
 by auto
 

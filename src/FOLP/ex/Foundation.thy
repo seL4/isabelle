@@ -9,7 +9,7 @@ theory Foundation
 imports IFOLP
 begin
 
-lemma "?p : A&B  --> (C-->A&C)"
+schematic_lemma "?p : A&B  --> (C-->A&C)"
 apply (rule impI)
 apply (rule impI)
 apply (rule conjI)
@@ -19,7 +19,7 @@ apply assumption
 done
 
 text {*A form of conj-elimination*}
-lemma
+schematic_lemma
   assumes "p : A & B"
     and "!!x y. x : A ==> y : B ==> f(x, y) : C"
   shows "?p : C"
@@ -30,7 +30,7 @@ apply (rule conjunct2)
 apply (rule prems)
 done
 
-lemma
+schematic_lemma
   assumes "!!A x. x : ~ ~A ==> cla(x) : A"
   shows "?p : B | ~B"
 apply (rule prems)
@@ -48,7 +48,7 @@ apply (rule disjI2)
 apply assumption
 done
 
-lemma
+schematic_lemma
   assumes "!!A x. x : ~ ~A ==> cla(x) : A"
   shows "?p : B | ~B"
 apply (rule prems)
@@ -63,7 +63,7 @@ apply (erule disjI2)
 done
 
 
-lemma
+schematic_lemma
   assumes "p : A | ~A"
     and "q : ~ ~A"
   shows "?p : A"
@@ -79,7 +79,7 @@ done
 
 subsection "Examples with quantifiers"
 
-lemma
+schematic_lemma
   assumes "p : ALL z. G(z)"
   shows "?p : ALL z. G(z)|H(z)"
 apply (rule allI)
@@ -87,20 +87,20 @@ apply (rule disjI1)
 apply (rule prems [THEN spec])
 done
 
-lemma "?p : ALL x. EX y. x=y"
+schematic_lemma "?p : ALL x. EX y. x=y"
 apply (rule allI)
 apply (rule exI)
 apply (rule refl)
 done
 
-lemma "?p : EX y. ALL x. x=y"
+schematic_lemma "?p : EX y. ALL x. x=y"
 apply (rule exI)
 apply (rule allI)
 apply (rule refl)?
 oops
 
 text {* Parallel lifting example. *}
-lemma "?p : EX u. ALL x. EX v. ALL y. EX w. P(u,x,v,y,w)"
+schematic_lemma "?p : EX u. ALL x. EX v. ALL y. EX w. P(u,x,v,y,w)"
 apply (rule exI allI)
 apply (rule exI allI)
 apply (rule exI allI)
@@ -108,7 +108,7 @@ apply (rule exI allI)
 apply (rule exI allI)
 oops
 
-lemma
+schematic_lemma
   assumes "p : (EX z. F(z)) & B"
   shows "?p : EX z. F(z) & B"
 apply (rule conjE)
@@ -122,7 +122,7 @@ apply assumption
 done
 
 text {* A bigger demonstration of quantifiers -- not in the paper. *}
-lemma "?p : (EX y. ALL x. Q(x,y)) -->  (ALL x. EX y. Q(x,y))"
+schematic_lemma "?p : (EX y. ALL x. Q(x,y)) -->  (ALL x. EX y. Q(x,y))"
 apply (rule impI)
 apply (rule allI)
 apply (rule exE, assumption)

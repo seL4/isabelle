@@ -5,14 +5,14 @@ begin
 definition "if" :: "[o,o,o]=>o" where
   "if(P,Q,R) == P&Q | ~P&R"
 
-lemma ifI:
+schematic_lemma ifI:
   assumes "!!x. x : P ==> f(x) : Q"  "!!x. x : ~P ==> g(x) : R"
   shows "?p : if(P,Q,R)"
 apply (unfold if_def)
 apply (tactic {* fast_tac (FOLP_cs addIs @{thms assms}) 1 *})
 done
 
-lemma ifE:
+schematic_lemma ifE:
   assumes 1: "p : if(P,Q,R)" and
     2: "!!x y. [| x : P; y : Q |] ==> f(x, y) : S" and
     3: "!!x y. [| x : ~P; y : R |] ==> g(x, y) : S"
@@ -22,7 +22,7 @@ apply (unfold if_def)
 apply (tactic {* fast_tac (FOLP_cs addIs [@{thm 2}, @{thm 3}]) 1 *})
 done
 
-lemma if_commute: "?p : if(P, if(Q,A,B), if(Q,C,D)) <-> if(Q, if(P,A,C), if(P,B,D))"
+schematic_lemma if_commute: "?p : if(P, if(Q,A,B), if(Q,C,D)) <-> if(Q, if(P,A,C), if(P,B,D))"
 apply (rule iffI)
 apply (erule ifE)
 apply (erule ifE)
@@ -32,11 +32,11 @@ oops
 
 ML {* val if_cs = FOLP_cs addSIs [@{thm ifI}] addSEs [@{thm ifE}] *}
 
-lemma if_commute: "?p : if(P, if(Q,A,B), if(Q,C,D)) <-> if(Q, if(P,A,C), if(P,B,D))"
+schematic_lemma if_commute: "?p : if(P, if(Q,A,B), if(Q,C,D)) <-> if(Q, if(P,A,C), if(P,B,D))"
 apply (tactic {* fast_tac if_cs 1 *})
 done
 
-lemma nested_ifs: "?p : if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,A,B))"
+schematic_lemma nested_ifs: "?p : if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,A,B))"
 apply (tactic {* fast_tac if_cs 1 *})
 done
 

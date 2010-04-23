@@ -71,7 +71,7 @@ apply (erule eqpoll_sym [THEN eqpoll_imp_lepoll, THEN lepoll_trans])
 apply (rule Un_upper1 [THEN subset_imp_lepoll]) 
 done
 
-lemma paired_bij: "?f \<in> bij({{y,z}. y \<in> x}, x)"
+schematic_lemma paired_bij: "?f \<in> bij({{y,z}. y \<in> x}, x)"
 apply (rule RepFun_bijective)
 apply (simp add: doubleton_eq_iff, blast)
 done

@@ -98,7 +98,7 @@ lemma id_idgenfp: "idgen(lam x. x) = lam x. x"
 
 (* All fixed points are lam-expressions *)
 
-lemma idgenfp_lam: "idgen(d) = d ==> d = lam x. ?f(x)"
+schematic_lemma idgenfp_lam: "idgen(d) = d ==> d = lam x. ?f(x)"
   apply (unfold idgen_def)
   apply (erule ssubst)
   apply (rule refl)
@@ -130,7 +130,7 @@ lemma po_eta:
   apply simp
   done
 
-lemma po_eta_lemma: "idgen(d) = d ==> d = lam x. ?f(x)"
+schematic_lemma po_eta_lemma: "idgen(d) = d ==> d = lam x. ?f(x)"
   apply (unfold idgen_def)
   apply (erule sym)
   done

@@ -10,13 +10,13 @@ begin
 
 subsection {* Basic examples *}
 
-lemma "3 ^ 3 == (?X::'a::{number_ring})"
+schematic_lemma "3 ^ 3 == (?X::'a::{number_ring})"
   by sring_norm
 
-lemma "(x - (-2))^5 == ?X::int"
+schematic_lemma "(x - (-2))^5 == ?X::int"
   by sring_norm
 
-lemma "(x - (-2))^5  * (y - 78) ^ 8 == ?X::int"
+schematic_lemma "(x - (-2))^5  * (y - 78) ^ 8 == ?X::int"
   by sring_norm
 
 lemma "((-3) ^ (Suc (Suc (Suc 0)))) == (X::'a::{number_ring})"

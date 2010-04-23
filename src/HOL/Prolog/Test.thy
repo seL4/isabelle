@@ -81,7 +81,7 @@ axioms
 
 lemmas prog_Test = append reverse mappred mapfun age eq bag_appl
 
-lemma "append ?x ?y [a,b,c,d]"
+schematic_lemma "append ?x ?y [a,b,c,d]"
   apply (prolog prog_Test)
   back
   back
@@ -89,56 +89,56 @@ lemma "append ?x ?y [a,b,c,d]"
   back
   done
 
-lemma "append [a,b] y ?L"
+schematic_lemma "append [a,b] y ?L"
   apply (prolog prog_Test)
   done
 
-lemma "!y. append [a,b] y (?L y)"
+schematic_lemma "!y. append [a,b] y (?L y)"
   apply (prolog prog_Test)
   done
 
-lemma "reverse [] ?L"
+schematic_lemma "reverse [] ?L"
   apply (prolog prog_Test)
   done
 
-lemma "reverse [23] ?L"
+schematic_lemma "reverse [23] ?L"
   apply (prolog prog_Test)
   done
 
-lemma "reverse [23,24,?x] ?L"
+schematic_lemma "reverse [23,24,?x] ?L"
   apply (prolog prog_Test)
   done
 
-lemma "reverse ?L [23,24,?x]"
+schematic_lemma "reverse ?L [23,24,?x]"
   apply (prolog prog_Test)
   done
 
-lemma "mappred age ?x [23,24]"
+schematic_lemma "mappred age ?x [23,24]"
   apply (prolog prog_Test)
   back
   done
 
-lemma "mappred (%x y. ? z. age z y) ?x [23,24]"
+schematic_lemma "mappred (%x y. ? z. age z y) ?x [23,24]"
   apply (prolog prog_Test)
   done
 
-lemma "mappred ?P [bob,sue] [24,23]"
+schematic_lemma "mappred ?P [bob,sue] [24,23]"
   apply (prolog prog_Test)
   done
 
-lemma "mapfun f [bob,bob,sue] [?x,?y,?z]"
+schematic_lemma "mapfun f [bob,bob,sue] [?x,?y,?z]"
   apply (prolog prog_Test)
   done
 
-lemma "mapfun (%x. h x 25) [bob,sue] ?L"
+schematic_lemma "mapfun (%x. h x 25) [bob,sue] ?L"
   apply (prolog prog_Test)
   done
 
-lemma "mapfun ?F [24,25] [h bob 24,h bob 25]"
+schematic_lemma "mapfun ?F [24,25] [h bob 24,h bob 25]"
   apply (prolog prog_Test)
   done
 
-lemma "mapfun ?F [24] [h 24 24]"
+schematic_lemma "mapfun ?F [24] [h 24 24]"
   apply (prolog prog_Test)
   back
   back
@@ -149,12 +149,12 @@ lemma "True"
   apply (prolog prog_Test)
   done
 
-lemma "age ?x 24 & age ?y 23"
+schematic_lemma "age ?x 24 & age ?y 23"
   apply (prolog prog_Test)
   back
   done
 
-lemma "age ?x 24 | age ?x 23"
+schematic_lemma "age ?x 24 | age ?x 23"
   apply (prolog prog_Test)
   back
   back
@@ -168,7 +168,7 @@ lemma "!x y. append [] x x"
   apply (prolog prog_Test)
   done
 
-lemma "age sue 24 .. age bob 23 => age ?x ?y"
+schematic_lemma "age sue 24 .. age bob 23 => age ?x ?y"
   apply (prolog prog_Test)
   back
   back
@@ -182,7 +182,7 @@ lemma "age bob 25 :- age bob 24 => age bob 25"
   done
 (*reset trace_DEPTH_FIRST;*)
 
-lemma "(!x. age x 25 :- age x 23) => age ?x 25 & age ?y 25"
+schematic_lemma "(!x. age x 25 :- age x 23) => age ?x 25 & age ?y 25"
   apply (prolog prog_Test)
   back
   back
@@ -193,7 +193,7 @@ lemma "!x. ? y. eq x y"
   apply (prolog prog_Test)
   done
 
-lemma "? P. P & eq P ?x"
+schematic_lemma "? P. P & eq P ?x"
   apply (prolog prog_Test)
 (*
   back
@@ -248,14 +248,14 @@ lemma "(!P. g P :- (P => b | a)) => g(a | b)"
   by fast
 *)
 
-lemma "!Emp Stk.(
+schematic_lemma "!Emp Stk.(
                        empty    (Emp::'b) .. 
          (!(X::nat) S. add    X (S::'b)         (Stk X S)) .. 
          (!(X::nat) S. remove X ((Stk X S)::'b) S))
  => bag_appl 23 24 ?X ?Y"
   oops
 
-lemma "!Qu. ( 
+schematic_lemma "!Qu. ( 
           (!L.            empty    (Qu L L)) .. 
           (!(X::nat) L K. add    X (Qu L (X#K)) (Qu L K)) ..
           (!(X::nat) L K. remove X (Qu (X#L) K) (Qu L K)))
@@ -266,7 +266,7 @@ lemma "D & (!y. E) :- (!x. True & True) :- True => D"
   apply (prolog prog_Test)
   done
 
-lemma "P x .. P y => P ?X"
+schematic_lemma "P x .. P y => P ?X"
   apply (prolog prog_Test)
   back
   done

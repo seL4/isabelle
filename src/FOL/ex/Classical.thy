@@ -363,7 +363,7 @@ text{*55*}
 
 text{*Non-equational version, from Manthey and Bry, CADE-9 (Springer, 1988).
   fast DISCOVERS who killed Agatha. *}
-lemma "lives(agatha) & lives(butler) & lives(charles) &  
+schematic_lemma "lives(agatha) & lives(butler) & lives(charles) &  
    (killed(agatha,agatha) | killed(butler,agatha) | killed(charles,agatha)) &  
    (\<forall>x y. killed(x,y) --> hates(x,y) & ~richer(x,y)) &  
    (\<forall>x. hates(agatha,x) --> ~hates(charles,x)) &  

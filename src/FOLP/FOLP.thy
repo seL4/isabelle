@@ -19,7 +19,7 @@ axioms
 
 (*** Classical introduction rules for | and EX ***)
 
-lemma disjCI:
+schematic_lemma disjCI:
   assumes "!!x. x:~Q ==> f(x):P"
   shows "?p : P|Q"
   apply (rule classical)
@@ -28,7 +28,7 @@ lemma disjCI:
   done
 
 (*introduction rule involving only EX*)
-lemma ex_classical:
+schematic_lemma ex_classical:
   assumes "!!u. u:~(EX x. P(x)) ==> f(u):P(a)"
   shows "?p : EX x. P(x)"
   apply (rule classical)
@@ -36,7 +36,7 @@ lemma ex_classical:
   done
 
 (*version of above, simplifying ~EX to ALL~ *)
-lemma exCI:
+schematic_lemma exCI:
   assumes "!!u. u:ALL x. ~P(x) ==> f(u):P(a)"
   shows "?p : EX x. P(x)"
   apply (rule ex_classical)
@@ -45,7 +45,7 @@ lemma exCI:
   apply (erule exI)
   done
 
-lemma excluded_middle: "?p : ~P | P"
+schematic_lemma excluded_middle: "?p : ~P | P"
   apply (rule disjCI)
   apply assumption
   done
@@ -54,7 +54,7 @@ lemma excluded_middle: "?p : ~P | P"
 (*** Special elimination rules *)
 
 (*Classical implies (-->) elimination. *)
-lemma impCE:
+schematic_lemma impCE:
   assumes major: "p:P-->Q"
     and r1: "!!x. x:~P ==> f(x):R"
     and r2: "!!y. y:Q ==> g(y):R"
@@ -65,7 +65,7 @@ lemma impCE:
   done
 
 (*Double negation law*)
-lemma notnotD: "p:~~P ==> ?p : P"
+schematic_lemma notnotD: "p:~~P ==> ?p : P"
   apply (rule classical)
   apply (erule notE)
   apply assumption
@@ -76,7 +76,7 @@ lemma notnotD: "p:~~P ==> ?p : P"
 
 (*Classical <-> elimination.  Proof substitutes P=Q in
     ~P ==> ~Q    and    P ==> Q  *)
-lemma iffCE:
+schematic_lemma iffCE:
   assumes major: "p:P<->Q"
     and r1: "!!x y.[| x:P; y:Q |] ==> f(x,y):R"
     and r2: "!!x y.[| x:~P; y:~Q |] ==> g(x,y):R"
@@ -91,7 +91,7 @@ lemma iffCE:
 
 
 (*Should be used as swap since ~P becomes redundant*)
-lemma swap:
+schematic_lemma swap:
   assumes major: "p:~P"
     and r: "!!x. x:~Q ==> f(x):P"
   shows "?p : Q"
@@ -136,7 +136,7 @@ val FOLP_dup_cs =
     addSEs [@{thm exE}, @{thm ex1E}] addEs [@{thm all_dupE}];
 *}
 
-lemma cla_rews:
+schematic_lemma cla_rews:
   "?p1 : P | ~P"
   "?p2 : ~P | P"
   "?p3 : ~ ~ P <-> P"

@@ -58,11 +58,11 @@ eval ((S N) * M) K :- eval (N * M) L & eval (L + M) K"
 
 lemmas prog_Func = eval
 
-lemma "eval ((S (S Z)) + (S Z)) ?X"
+schematic_lemma "eval ((S (S Z)) + (S Z)) ?X"
   apply (prolog prog_Func)
   done
 
-lemma "eval (app (fix (%fact. abs(%n. cond (n eq Z) (S Z)
+schematic_lemma "eval (app (fix (%fact. abs(%n. cond (n eq Z) (S Z)
                         (n * (app fact (n - (S Z))))))) (S (S (S Z)))) ?X"
   apply (prolog prog_Func)
   done

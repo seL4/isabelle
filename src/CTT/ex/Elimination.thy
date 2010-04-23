@@ -14,41 +14,41 @@ begin
 
 text "This finds the functions fst and snd!"
 
-lemma [folded basic_defs]: "A type ==> ?a : (A*A) --> A"
+schematic_lemma [folded basic_defs]: "A type ==> ?a : (A*A) --> A"
 apply (tactic {* pc_tac [] 1 *})
 done
 
-lemma [folded basic_defs]: "A type ==> ?a : (A*A) --> A"
+schematic_lemma [folded basic_defs]: "A type ==> ?a : (A*A) --> A"
 apply (tactic {* pc_tac [] 1 *})
 back
 done
 
 text "Double negation of the Excluded Middle"
-lemma "A type ==> ?a : ((A + (A-->F)) --> F) --> F"
+schematic_lemma "A type ==> ?a : ((A + (A-->F)) --> F) --> F"
 apply (tactic "intr_tac []")
 apply (rule ProdE)
 apply assumption
 apply (tactic "pc_tac [] 1")
 done
 
-lemma "[| A type;  B type |] ==> ?a : (A*B) --> (B*A)"
+schematic_lemma "[| A type;  B type |] ==> ?a : (A*B) --> (B*A)"
 apply (tactic "pc_tac [] 1")
 done
 (*The sequent version (ITT) could produce an interesting alternative
   by backtracking.  No longer.*)
 
 text "Binary sums and products"
-lemma "[| A type; B type; C type |] ==> ?a : (A+B --> C) --> (A-->C) * (B-->C)"
+schematic_lemma "[| A type; B type; C type |] ==> ?a : (A+B --> C) --> (A-->C) * (B-->C)"
 apply (tactic "pc_tac [] 1")
 done
 
 (*A distributive law*)
-lemma "[| A type;  B type;  C type |] ==> ?a : A * (B+C)  -->  (A*B + A*C)"
+schematic_lemma "[| A type;  B type;  C type |] ==> ?a : A * (B+C)  -->  (A*B + A*C)"
 apply (tactic "pc_tac [] 1")
 done
 
 (*more general version, same proof*)
-lemma
+schematic_lemma
   assumes "A type"
     and "!!x. x:A ==> B(x) type"
     and "!!x. x:A ==> C(x) type"
@@ -57,12 +57,12 @@ apply (tactic {* pc_tac (thms "prems") 1 *})
 done
 
 text "Construction of the currying functional"
-lemma "[| A type;  B type;  C type |] ==> ?a : (A*B --> C) --> (A--> (B-->C))"
+schematic_lemma "[| A type;  B type;  C type |] ==> ?a : (A*B --> C) --> (A--> (B-->C))"
 apply (tactic "pc_tac [] 1")
 done
 
 (*more general goal with same proof*)
-lemma
+schematic_lemma
   assumes "A type"
     and "!!x. x:A ==> B(x) type"
     and "!!z. z: (SUM x:A. B(x)) ==> C(z) type"
@@ -72,12 +72,12 @@ apply (tactic {* pc_tac (thms "prems") 1 *})
 done
 
 text "Martin-Lof (1984), page 48: axiom of sum-elimination (uncurry)"
-lemma "[| A type;  B type;  C type |] ==> ?a : (A --> (B-->C)) --> (A*B --> C)"
+schematic_lemma "[| A type;  B type;  C type |] ==> ?a : (A --> (B-->C)) --> (A*B --> C)"
 apply (tactic "pc_tac [] 1")
 done
 
 (*more general goal with same proof*)
-lemma
+schematic_lemma
   assumes "A type"
     and "!!x. x:A ==> B(x) type"
     and "!!z. z: (SUM x:A . B(x)) ==> C(z) type"
@@ -87,12 +87,12 @@ apply (tactic {* pc_tac (thms "prems") 1 *})
 done
 
 text "Function application"
-lemma "[| A type;  B type |] ==> ?a : ((A --> B) * A) --> B"
+schematic_lemma "[| A type;  B type |] ==> ?a : ((A --> B) * A) --> B"
 apply (tactic "pc_tac [] 1")
 done
 
 text "Basic test of quantifier reasoning"
-lemma
+schematic_lemma
   assumes "A type"
     and "B type"
     and "!!x y.[| x:A;  y:B |] ==> C(x,y) type"
@@ -103,7 +103,7 @@ apply (tactic {* pc_tac (thms "prems") 1 *})
 done
 
 text "Martin-Lof (1984) pages 36-7: the combinator S"
-lemma
+schematic_lemma
   assumes "A type"
     and "!!x. x:A ==> B(x) type"
     and "!!x y.[| x:A; y:B(x) |] ==> C(x,y) type"
@@ -113,7 +113,7 @@ apply (tactic {* pc_tac (thms "prems") 1 *})
 done
 
 text "Martin-Lof (1984) page 58: the axiom of disjunction elimination"
-lemma
+schematic_lemma
   assumes "A type"
     and "B type"
     and "!!z. z: A+B ==> C(z) type"
@@ -123,7 +123,7 @@ apply (tactic {* pc_tac (thms "prems") 1 *})
 done
 
 (*towards AXIOM OF CHOICE*)
-lemma [folded basic_defs]:
+schematic_lemma [folded basic_defs]:
   "[| A type; B type; C type |] ==> ?a : (A --> B*C) --> (A-->B) * (A-->C)"
 apply (tactic "pc_tac [] 1")
 done
@@ -131,7 +131,7 @@ done
 
 (*Martin-Lof (1984) page 50*)
 text "AXIOM OF CHOICE!  Delicate use of elimination rules"
-lemma
+schematic_lemma
   assumes "A type"
     and "!!x. x:A ==> B(x) type"
     and "!!x y.[| x:A;  y:B(x) |] ==> C(x,y) type"
@@ -149,7 +149,7 @@ apply (tactic {* typechk_tac (thm "SumE_fst" :: thms "prems") *})
 done
 
 text "Axiom of choice.  Proof without fst, snd.  Harder still!"
-lemma [folded basic_defs]:
+schematic_lemma [folded basic_defs]:
   assumes "A type"
     and "!!x. x:A ==> B(x) type"
     and "!!x y.[| x:A;  y:B(x) |] ==> C(x,y) type"
@@ -174,7 +174,7 @@ done
 text "Example of sequent_style deduction"
 (*When splitting z:A*B, the assumption C(z) is affected;  ?a becomes
     lam u. split(u,%v w.split(v,%x y.lam z. <x,<y,z>>) ` w)     *)
-lemma
+schematic_lemma
   assumes "A type"
     and "B type"
     and "!!z. z:A*B ==> C(z) type"
