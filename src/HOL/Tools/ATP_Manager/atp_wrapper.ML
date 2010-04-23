@@ -1,16 +1,16 @@
-(*  Title:      HOL/Tools/ATP_Manager/atp_wrapper.ML
+(*  Title:      HOL/Tools/ATP_Manager/atp_systems.ML
     Author:     Fabian Immler, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 
-Wrapper functions for external ATPs.
+Setup for supported ATPs.
 *)
 
-signature ATP_WRAPPER =
+signature ATP_SYSTEMS =
 sig
   type prover = ATP_Manager.prover
 
   (* hooks for problem files *)
-  val destdir : string Config.T
+  val dest_dir : string Config.T
   val problem_prefix : string Config.T
   val measure_runtime : bool Config.T
 
@@ -19,7 +19,7 @@ sig
   val setup : theory -> theory
 end;
 
-structure ATP_Wrapper : ATP_WRAPPER =
+structure ATP_Systems : ATP_SYSTEMS =
 struct
 
 open Sledgehammer_Util
@@ -29,11 +29,11 @@ open Sledgehammer_Fact_Filter
 open Sledgehammer_Proof_Reconstruct
 open ATP_Manager
 
-(** generic ATP wrapper **)
+(** generic ATP **)
 
 (* external problem files *)
 
-val (destdir, destdir_setup) = Attrib.config_string "atp_destdir" (K "");
+val (dest_dir, dest_dir_setup) = Attrib.config_string "atp_dest_dir" (K "");
   (*Empty string means create files in Isabelle's temporary files directory.*)
 
 val (problem_prefix, problem_prefix_setup) =
@@ -123,20 +123,20 @@ fun generic_prover overlord get_facts prepare write_file home executable args
       prepare goal_cls chain_ths the_axiom_clauses the_filtered_clauses thy;
 
     (* path to unique problem file *)
-    val destdir' = if overlord then getenv "ISABELLE_HOME_USER"
-                   else Config.get ctxt destdir;
-    val problem_prefix' = Config.get ctxt problem_prefix;
+    val the_dest_dir = if overlord then getenv "ISABELLE_HOME_USER"
+                       else Config.get ctxt dest_dir;
+    val the_problem_prefix = Config.get ctxt problem_prefix;
     fun prob_pathname nr =
       let
         val probfile =
-          Path.basic (problem_prefix' ^
+          Path.basic (the_problem_prefix ^
                       (if overlord then "_" ^ name else serial_string ())
                       ^ "_" ^ string_of_int nr)
       in
-        if destdir' = "" then File.tmp_path probfile
-        else if File.exists (Path.explode destdir')
-        then Path.append (Path.explode destdir') probfile
-        else error ("No such directory: " ^ destdir' ^ ".")
+        if the_dest_dir = "" then File.tmp_path probfile
+        else if File.exists (Path.explode the_dest_dir)
+        then Path.append (Path.explode the_dest_dir) probfile
+        else error ("No such directory: " ^ the_dest_dir ^ ".")
       end;
 
     val command = Path.explode (home ^ "/" ^ executable)
@@ -179,9 +179,10 @@ fun generic_prover overlord get_facts prepare write_file home executable args
 
     (* If the problem file has not been exported, remove it; otherwise, export
        the proof file too. *)
-    fun cleanup probfile = if destdir' = "" then try File.rm probfile else NONE;
+    fun cleanup probfile =
+      if the_dest_dir = "" then try File.rm probfile else NONE
     fun export probfile (((output, _), _), _) =
-      if destdir' = "" then
+      if the_dest_dir = "" then
         ()
       else
         File.write (Path.explode (Path.implode probfile ^ "_proof"))
@@ -341,7 +342,7 @@ val spass_tptp = tptp_prover "spass_tptp" spass_tptp_config
 
 (* remote prover invocation via SystemOnTPTP *)
 
-val systems = Synchronized.var "atp_wrapper_systems" ([]: string list);
+val systems = Synchronized.var "atp_systems" ([]: string list);
 
 fun get_systems () =
   case bash_output "\"$ISABELLE_ATP_MANAGER/SystemOnTPTP\" -w" of
@@ -403,7 +404,7 @@ val provers =
 val prover_setup = fold add_prover provers
 
 val setup =
-  destdir_setup
+  dest_dir_setup
   #> problem_prefix_setup
   #> measure_runtime_setup
   #> prover_setup

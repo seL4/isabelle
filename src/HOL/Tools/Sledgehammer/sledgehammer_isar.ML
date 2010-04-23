@@ -19,7 +19,7 @@ struct
 
 open Sledgehammer_Util
 open ATP_Manager
-open ATP_Wrapper
+open ATP_Systems
 open Sledgehammer_Fact_Minimizer
 
 structure K = OuterKeyword and P = OuterParse

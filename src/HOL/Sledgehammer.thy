@@ -102,7 +102,7 @@ use "Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML"
 use "Tools/Sledgehammer/sledgehammer_fact_filter.ML"
 use "Tools/ATP_Manager/atp_manager.ML"
 use "Tools/ATP_Manager/atp_wrapper.ML"
-setup ATP_Wrapper.setup
+setup ATP_Systems.setup
 use "Tools/Sledgehammer/sledgehammer_fact_minimizer.ML"
 use "Tools/Sledgehammer/sledgehammer_isar.ML"
 
