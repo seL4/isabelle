@@ -4,5 +4,5 @@
 Testing the quotient package.
 *)
 
-use_thys ["LarryInt", "LarryDatatype"];
+use_thys ["FSet", "LarryInt", "LarryDatatype"];
 
