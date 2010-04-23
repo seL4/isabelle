@@ -334,7 +334,7 @@ fun available_atps thy =
 fun start_prover (params as {timeout, ...}) birth_time death_time i
                  relevance_override minimize_command proof_state name =
   (case get_prover (Proof.theory_of proof_state) name of
-    NONE => warning ("Unknown ATP: " ^ quote name ^ ".")
+    NONE => error ("Unknown ATP: " ^ quote name ^ ".")
   | SOME prover =>
       let
         val {context = ctxt, facts, goal} = Proof.goal proof_state;
@@ -352,9 +352,8 @@ fun start_prover (params as {timeout, ...}) birth_time death_time i
                filtered_clauses = NONE}
             val message =
               #message (prover params (minimize_command name) timeout problem)
-              handle Sledgehammer_HOL_Clause.TRIVIAL =>
-                  metis_line i n []
-                | ERROR msg => "Error: " ^ msg ^ ".\n";
+              handle Sledgehammer_HOL_Clause.TRIVIAL => metis_line i n []
+                   | ERROR msg => "Error: " ^ msg ^ ".\n";
             val _ = unregister params message (Thread.self ());
           in () end);
       in () end);
@@ -362,16 +361,17 @@ fun start_prover (params as {timeout, ...}) birth_time death_time i
 
 (* Sledgehammer the given subgoal *)
 
-fun sledgehammer (params as {atps, timeout, ...}) i relevance_override
+fun sledgehammer {atps = [], ...} _ _ _ _ = error "No ATP is set."
+  | sledgehammer (params as {atps, timeout, ...}) i relevance_override
                  minimize_command proof_state =
-  let
-    val birth_time = Time.now ()
-    val death_time = Time.+ (birth_time, timeout)
-    val _ = kill_atps () (* RACE w.r.t. other invocations of Sledgehammer *)
-    val _ = priority "Sledgehammering..."
-    val _ = List.app (start_prover params birth_time death_time i
-                                   relevance_override minimize_command
-                                   proof_state) atps
-  in () end
+    let
+      val birth_time = Time.now ()
+      val death_time = Time.+ (birth_time, timeout)
+      val _ = kill_atps ()  (* Race w.r.t. other invocations of Sledgehammer *)
+      val _ = priority "Sledgehammering..."
+      val _ = List.app (start_prover params birth_time death_time i
+                                     relevance_override minimize_command
+                                     proof_state) atps
+    in () end
 
 end;
