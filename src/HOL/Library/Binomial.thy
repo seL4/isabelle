@@ -391,13 +391,13 @@ lemma binomial_fact:
   assumes kn: "k \<le> n" 
   shows "(of_nat (n choose k) :: 'a::field_char_0) = of_nat (fact n) / (of_nat (fact k) * of_nat (fact (n - k)))"
   using binomial_fact_lemma[OF kn]
-  by (simp add: field_simps of_nat_mult[symmetric])
+  by (simp add: field_eq_simps of_nat_mult [symmetric])
 
 lemma binomial_gbinomial: "of_nat (n choose k) = of_nat n gchoose k"
 proof-
   {assume kn: "k > n" 
     from kn binomial_eq_0[OF kn] have ?thesis 
-      by (simp add: gbinomial_pochhammer field_simps
+      by (simp add: gbinomial_pochhammer field_eq_simps
         pochhammer_of_nat_eq_0_iff)}
   moreover
   {assume "k=0" then have ?thesis by simp}
@@ -420,7 +420,7 @@ proof-
     from eq[symmetric]
     have ?thesis using kn
       apply (simp add: binomial_fact[OF kn, where ?'a = 'a] 
-        gbinomial_pochhammer field_simps pochhammer_Suc_setprod)
+        gbinomial_pochhammer field_eq_simps pochhammer_Suc_setprod)
       apply (simp add: pochhammer_Suc_setprod fact_altdef_nat h of_nat_setprod setprod_timesf[symmetric] eq' del: One_nat_def power_Suc)
       unfolding setprod_Un_disjoint[OF th0, unfolded eq3, of "of_nat:: nat \<Rightarrow> 'a"] eq[unfolded h]
       unfolding mult_assoc[symmetric] 
@@ -449,7 +449,7 @@ proof-
   have "?r = ((- 1) ^n * pochhammer (- a) n / of_nat (fact n)) * (of_nat n - (- a + of_nat n))"
     unfolding gbinomial_pochhammer
     pochhammer_Suc fact_Suc of_nat_mult right_diff_distrib power_Suc
-    by (simp add:  field_simps del: of_nat_Suc)
+    by (simp add:  field_eq_simps del: of_nat_Suc)
   also have "\<dots> = ?l" unfolding gbinomial_pochhammer
     by (simp add: ring_simps)
   finally show ?thesis ..

@@ -2780,7 +2780,7 @@ proof-
     from geometric_sum[OF x1, of "Suc n", unfolded x1']
     have "(- (1 - x)) * setsum (\<lambda>i. x^i) {0 .. n} = - (1 - x^(Suc n))"
       unfolding atLeastLessThanSuc_atLeastAtMost
-      using x1' apply (auto simp only: field_simps)
+      using x1' apply (auto simp only: field_eq_simps)
       apply (simp add: ring_simps)
       done
     then have ?thesis by (simp add: ring_simps) }
@@ -2815,7 +2815,7 @@ proof-
     {assume x: "x = 1"  hence ?thesis by simp}
     moreover
     {assume x: "x \<noteq> 1" hence nz: "1 - x \<noteq> 0" by simp
-      from sum_gp_multiplied[OF nm, of x] nz have ?thesis by (simp add: field_simps)}
+      from sum_gp_multiplied[OF nm, of x] nz have ?thesis by (simp add: field_eq_simps)}
     ultimately have ?thesis by metis
   }
   ultimately show ?thesis by metis

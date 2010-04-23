@@ -586,7 +586,7 @@ proof-
   from k have "real k > - log y x" by simp
   then have "ln y * real k > - ln x" unfolding log_def
     using ln_gt_zero_iff[OF yp] y1
-    by (simp add: minus_divide_left field_simps del:minus_divide_left[symmetric] )
+    by (simp add: minus_divide_left field_eq_simps del:minus_divide_left[symmetric] )
   then have "ln y * real k + ln x > 0" by simp
   then have "exp (real k * ln y + ln x) > exp 0"
     by (simp add: mult_ac)
@@ -594,7 +594,7 @@ proof-
     unfolding exp_zero exp_add exp_real_of_nat_mult
     exp_ln[OF xp] exp_ln[OF yp] by simp
   then have "x > (1/y)^k" using yp 
-    by (simp add: field_simps nonzero_power_divide )
+    by (simp add: field_eq_simps nonzero_power_divide )
   then show ?thesis using kp by blast
 qed
 lemma X_nth[simp]: "X$n = (if n = 1 then 1 else 0)" by (simp add: X_def)
