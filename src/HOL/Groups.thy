@@ -757,7 +757,7 @@ apply (simp add: diff_minus add_ac)
 done
 
 lemma less_diff_eq[algebra_simps]: "a < c - b \<longleftrightarrow> a + b < c"
-apply (subst less_iff_diff_less_0 [of "plus a b"])
+apply (subst less_iff_diff_less_0 [of "a + b"])
 apply (subst less_iff_diff_less_0 [of a])
 apply (simp add: diff_minus add_ac)
 done
@@ -966,27 +966,26 @@ lemma minus_min_eq_max:
 
 end
 
--- {* FIXME localize the following *}
+context ordered_comm_monoid_add
+begin
 
 lemma add_increasing:
-  fixes c :: "'a::{ordered_ab_semigroup_add_imp_le, comm_monoid_add}"
-  shows  "[|0\<le>a; b\<le>c|] ==> b \<le> a + c"
-by (insert add_mono [of 0 a b c], simp)
+  "0 \<le> a \<Longrightarrow> b \<le> c \<Longrightarrow> b \<le> a + c"
+  by (insert add_mono [of 0 a b c], simp)
 
 lemma add_increasing2:
-  fixes c :: "'a::{ordered_ab_semigroup_add_imp_le, comm_monoid_add}"
-  shows  "[|0\<le>c; b\<le>a|] ==> b \<le> a + c"
-by (simp add:add_increasing add_commute[of a])
+  "0 \<le> c \<Longrightarrow> b \<le> a \<Longrightarrow> b \<le> a + c"
+  by (simp add: add_increasing add_commute [of a])
 
 lemma add_strict_increasing:
-  fixes c :: "'a::{ordered_ab_semigroup_add_imp_le, comm_monoid_add}"
-  shows "[|0<a; b\<le>c|] ==> b < a + c"
-by (insert add_less_le_mono [of 0 a b c], simp)
+  "0 < a \<Longrightarrow> b \<le> c \<Longrightarrow> b < a + c"
+  by (insert add_less_le_mono [of 0 a b c], simp)
 
 lemma add_strict_increasing2:
-  fixes c :: "'a::{ordered_ab_semigroup_add_imp_le, comm_monoid_add}"
-  shows "[|0\<le>a; b<c|] ==> b < a + c"
-by (insert add_le_less_mono [of 0 a b c], simp)
+  "0 \<le> a \<Longrightarrow> b < c \<Longrightarrow> b < a + c"
+  by (insert add_le_less_mono [of 0 a b c], simp)
+
+end
 
 class abs =
   fixes abs :: "'a \<Rightarrow> 'a"
@@ -1036,7 +1035,7 @@ qed (rule abs_ge_self)
 
 lemma abs_idempotent [simp]: "\<bar>\<bar>a\<bar>\<bar> = \<bar>a\<bar>"
 by (rule antisym)
-   (auto intro!: abs_ge_self abs_leI order_trans [of "uminus (abs a)" zero "abs a"])
+   (auto intro!: abs_ge_self abs_leI order_trans [of "- \<bar>a\<bar>" 0 "\<bar>a\<bar>"])
 
 lemma abs_eq_0 [simp]: "\<bar>a\<bar> = 0 \<longleftrightarrow> a = 0"
 proof -
@@ -1045,7 +1044,7 @@ proof -
     assume zero: "\<bar>a\<bar> = 0"
     with abs_ge_self show "a \<le> 0" by auto
     from zero have "\<bar>-a\<bar> = 0" by simp
-    with abs_ge_self [of "uminus a"] have "- a \<le> 0" by auto
+    with abs_ge_self [of "- a"] have "- a \<le> 0" by auto
     with neg_le_0_iff_le show "0 \<le> a" by auto
   qed
   then show ?thesis by auto
@@ -1114,32 +1113,31 @@ lemma abs_le_D1: "\<bar>a\<bar> \<le> b \<Longrightarrow> a \<le> b"
 by (insert abs_ge_self, blast intro: order_trans)
 
 lemma abs_le_D2: "\<bar>a\<bar> \<le> b \<Longrightarrow> - a \<le> b"
-by (insert abs_le_D1 [of "uminus a"], simp)
+by (insert abs_le_D1 [of "- a"], simp)
 
 lemma abs_le_iff: "\<bar>a\<bar> \<le> b \<longleftrightarrow> a \<le> b \<and> - a \<le> b"
 by (blast intro: abs_leI dest: abs_le_D1 abs_le_D2)
 
 lemma abs_triangle_ineq2: "\<bar>a\<bar> - \<bar>b\<bar> \<le> \<bar>a - b\<bar>"
-  apply (simp add: algebra_simps)
-  apply (subgoal_tac "abs a = abs (plus b (minus a b))")
-  apply (erule ssubst)
-  apply (rule abs_triangle_ineq)
-  apply (rule arg_cong[of _ _ abs])
-  apply (simp add: algebra_simps)
-done
+proof -
+  have "\<bar>a\<bar> = \<bar>b + (a - b)\<bar>"
+    by (simp add: algebra_simps add_diff_cancel)
+  then have "\<bar>a\<bar> \<le> \<bar>b\<bar> + \<bar>a - b\<bar>"
+    by (simp add: abs_triangle_ineq)
+  then show ?thesis
+    by (simp add: algebra_simps)
+qed
+
+lemma abs_triangle_ineq2_sym: "\<bar>a\<bar> - \<bar>b\<bar> \<le> \<bar>b - a\<bar>"
+  by (simp only: abs_minus_commute [of b] abs_triangle_ineq2)
 
 lemma abs_triangle_ineq3: "\<bar>\<bar>a\<bar> - \<bar>b\<bar>\<bar> \<le> \<bar>a - b\<bar>"
-  apply (subst abs_le_iff)
-  apply auto
-  apply (rule abs_triangle_ineq2)
-  apply (subst abs_minus_commute)
-  apply (rule abs_triangle_ineq2)
-done
+  by (simp add: abs_le_iff abs_triangle_ineq2 abs_triangle_ineq2_sym)
 
 lemma abs_triangle_ineq4: "\<bar>a - b\<bar> \<le> \<bar>a\<bar> + \<bar>b\<bar>"
 proof -
-  have "abs(a - b) = abs(a + - b)" by (subst diff_minus, rule refl)
-  also have "... <= abs a + abs (- b)" by (rule abs_triangle_ineq)
+  have "\<bar>a - b\<bar> = \<bar>a + - b\<bar>" by (subst diff_minus, rule refl)
+  also have "... \<le> \<bar>a\<bar> + \<bar>- b\<bar>" by (rule abs_triangle_ineq)
   finally show ?thesis by simp
 qed
 
