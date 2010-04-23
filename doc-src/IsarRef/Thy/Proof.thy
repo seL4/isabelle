@@ -366,6 +366,9 @@ text {*
     @{command_def "lemma"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
     @{command_def "theorem"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
     @{command_def "corollary"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
+    @{command_def "schematic_lemma"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
+    @{command_def "schematic_theorem"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
+    @{command_def "schematic_corollary"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
     @{command_def "have"} & : & @{text "proof(state) | proof(chain) \<rightarrow> proof(prove)"} \\
     @{command_def "show"} & : & @{text "proof(state) | proof(chain) \<rightarrow> proof(prove)"} \\
     @{command_def "hence"} & : & @{text "proof(state) \<rightarrow> proof(prove)"} \\
@@ -406,7 +409,8 @@ text {*
   and assumptions, cf.\ \secref{sec:obtain}).
 
   \begin{rail}
-    ('lemma' | 'theorem' | 'corollary') target? (goal | longgoal)
+    ('lemma' | 'theorem' | 'corollary' |
+     'schematic\_lemma' | 'schematic\_theorem' | 'schematic\_corollary') target? (goal | longgoal)
     ;
     ('have' | 'show' | 'hence' | 'thus') goal
     ;
@@ -438,6 +442,18 @@ text {*
   "lemma"}~@{text "a: \<phi>"}, but the facts are internally marked as
   being of a different kind.  This discrimination acts like a formal
   comment.
+
+  \item @{command "schematic_lemma"}, @{command "schematic_theorem"},
+  @{command "schematic_corollary"} are similar to @{command "lemma"},
+  @{command "theorem"}, @{command "corollary"}, respectively but allow
+  the statement to contain unbound schematic variables.
+
+  Under normal circumstances, an Isar proof text needs to specify
+  claims explicitly.  Schematic goals are more like goals in Prolog,
+  where certain results are synthesized in the course of reasoning.
+  With schematic statements, the inherent compositionality of Isar
+  proofs is lost, which also impacts performance, because proof
+  checking is forced into sequential mode.
   
   \item @{command "have"}~@{text "a: \<phi>"} claims a local goal,
   eventually resulting in a fact within the current logical context.
@@ -487,26 +503,6 @@ text {*
   context introductions, (2) the resulting rule is annotated
   accordingly to support symbolic case splits when used with the
   @{method_ref cases} method (cf.\ \secref{sec:cases-induct}).
-
-  \medskip
-
-  \begin{warn}
-    Isabelle/Isar suffers theory-level goal statements to contain
-    \emph{unbound schematic variables}, although this does not conform
-    to the aim of human-readable proof documents!  The main problem
-    with schematic goals is that the actual outcome is usually hard to
-    predict, depending on the behavior of the proof methods applied
-    during the course of reasoning.  Note that most semi-automated
-    methods heavily depend on several kinds of implicit rule
-    declarations within the current theory context.  As this would
-    also result in non-compositional checking of sub-proofs,
-    \emph{local goals} are not allowed to be schematic at all.
-    Nevertheless, schematic goals do have their use in Prolog-style
-    interactive synthesis of proven results, usually by stepwise
-    refinement via emulation of traditional Isabelle tactic scripts
-    (see also \secref{sec:tactic-commands}).  In any case, users
-    should know what they are doing.
-  \end{warn}
 *}
 
 
