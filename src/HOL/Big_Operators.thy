@@ -555,7 +555,7 @@ next
 qed
 
 lemma setsum_mono2:
-fixes f :: "'a \<Rightarrow> 'b :: {ordered_ab_semigroup_add_imp_le,comm_monoid_add}"
+fixes f :: "'a \<Rightarrow> 'b :: ordered_comm_monoid_add"
 assumes fin: "finite B" and sub: "A \<subseteq> B" and nn: "\<And>b. b \<in> B-A \<Longrightarrow> 0 \<le> f b"
 shows "setsum f A \<le> setsum f B"
 proof -
@@ -1030,7 +1030,7 @@ by (subst setprod_Un_Int [symmetric], auto)
 lemma setprod_diff1: "finite A ==> f a \<noteq> 0 ==>
   (setprod f (A - {a}) :: 'a :: {field}) =
   (if a:A then setprod f A / f a else setprod f A)"
-by (erule finite_induct) (auto simp add: insert_Diff_if)
+  by (erule finite_induct) (auto simp add: insert_Diff_if)
 
 lemma setprod_inversef: 
   fixes f :: "'b \<Rightarrow> 'a::{field,division_by_zero}"
