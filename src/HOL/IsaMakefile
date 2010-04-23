@@ -136,7 +136,6 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/random_word.ML \
   $(SRC)/Tools/value.ML \
   HOL.thy \
-  Tools/Sledgehammer/named_thm_set.ML \
   Tools/hologic.ML \
   Tools/recfun_codegen.ML \
   Tools/simpdata.ML
