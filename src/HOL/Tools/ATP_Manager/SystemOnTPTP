@@ -123,7 +123,7 @@ if(!$Response->is_success) {
   $extract =~ s/\)\.cnf/\)\.\ncnf/g;
 
   print "========== ~~/lib/scripts/SystemOnTPTP extracted proof: ==========\n";
-  # orientation for res_reconstruct.ML
+  # orientation for "sledgehammer_proof_reconstruct.ML"
   print "# SZS output start CNFRefutation.\n";
   print "$extract\n";
   print "# SZS output end CNFRefutation.\n";

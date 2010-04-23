@@ -68,6 +68,10 @@ val negated_alias_params =
    ("metis_proof", "isar_proof"),
    ("no_sorts", "sorts")]
 
+val params_for_minimize =
+  ["full_types", "explicit_apply", "higher_order", "isar_proof", "modulus",
+   "sorts", "minimize_timeout"]
+
 val property_dependent_params = ["atps", "full_types", "timeout"]
 
 fun is_known_raw_param s =
@@ -98,19 +102,11 @@ structure Data = Theory_Data(
   val extend = I
   fun merge p : T = AList.merge (op =) (K true) p)
 
-(* Don't even try to start ATPs that are not installed.
-   Hack: Should not rely on naming convention. *)
-val filter_atps =
-  space_explode " "
-  #> filter (fn s => String.isPrefix "remote_" s orelse
-                     getenv (String.map Char.toUpper s ^ "_HOME") <> "")
-  #> space_implode " "
-
 val set_default_raw_param = Data.map o AList.update (op =) o unalias_raw_param
 fun default_raw_params thy =
   Data.get thy
   |> fold (AList.default (op =))
-          [("atps", [filter_atps (!atps)]),
+          [("atps", [!atps]),
            ("full_types", [if !full_types then "true" else "false"]),
            ("timeout", let val timeout = !timeout in
                          [if timeout <= 0 then "none"
@@ -219,9 +215,22 @@ val kill_atpsN = "kill_atps"
 val refresh_tptpN = "refresh_tptp"
 val helpN = "help"
 
-
 fun minimizize_raw_param_name "timeout" = "minimize_timeout"
   | minimizize_raw_param_name name = name
+
+val is_raw_param_relevant_for_minimize =
+  member (op =) params_for_minimize o fst o unalias_raw_param
+fun string_for_raw_param (key, values) =
+  key ^ (case space_implode " " values of
+           "" => ""
+         | value => " = " ^ value)
+
+fun minimize_command override_params i atp_name facts =
+  "sledgehammer minimize [atp = " ^ atp_name ^
+  (override_params |> filter is_raw_param_relevant_for_minimize
+                   |> implode o map (prefix ", " o string_for_raw_param)) ^
+  "] (" ^ space_implode " " facts ^ ")" ^
+  (if i = 1 then "" else " " ^ string_of_int i)
 
 fun hammer_away override_params subcommand opt_i relevance_override state =
   let
@@ -229,8 +238,10 @@ fun hammer_away override_params subcommand opt_i relevance_override state =
     val _ = List.app check_raw_param override_params
   in
     if subcommand = runN then
-      sledgehammer (get_params thy override_params) (the_default 1 opt_i)
-                   relevance_override state
+      let val i = the_default 1 opt_i in
+        sledgehammer (get_params thy override_params) i relevance_override
+                     (minimize_command override_params i) state
+      end
     else if subcommand = minimizeN then
       minimize (map (apfst minimizize_raw_param_name) override_params) []
                (the_default 1 opt_i) (#add relevance_override) state

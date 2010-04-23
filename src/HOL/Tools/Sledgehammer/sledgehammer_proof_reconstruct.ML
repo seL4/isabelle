@@ -6,6 +6,8 @@ Transfer of proofs from external provers.
 
 signature SLEDGEHAMMER_PROOF_RECONSTRUCT =
 sig
+  type minimize_command = string list -> string
+
   val chained_hint: string
   val invert_const: string -> string
   val invert_type_const: string -> string
@@ -15,14 +17,16 @@ sig
   val is_proof_well_formed: string -> bool
   val metis_line: int -> int -> string list -> string
   val metis_proof_text:
-    bool -> bool -> string -> string -> string vector -> Proof.context -> thm
-    -> int -> string * string list
+    minimize_command * string * string vector * thm * int
+    -> string * string list
   val isar_proof_text:
-    bool -> int -> bool -> string -> string -> string vector -> Proof.context
-    -> thm -> int -> string * string list
+    bool -> int -> bool -> Proof.context
+    -> minimize_command * string * string vector * thm * int
+    -> string * string list
   val proof_text:
-    bool -> bool -> int -> bool -> string -> string -> string vector
-    -> Proof.context -> thm -> int -> string * string list
+    bool -> bool -> int -> bool -> Proof.context
+    -> minimize_command * string * string vector * thm * int
+    -> string * string list
 end;
 
 structure Sledgehammer_Proof_Reconstruct : SLEDGEHAMMER_PROOF_RECONSTRUCT =
@@ -31,6 +35,8 @@ struct
 open Sledgehammer_FOL_Clause
 open Sledgehammer_Fact_Preprocessor
 
+type minimize_command = string list -> string
+
 val trace_proof_path = Path.basic "atp_trace";
 
 fun trace_proof_msg f =
@@ -38,9 +44,13 @@ fun trace_proof_msg f =
 
 fun string_of_thm ctxt = PrintMode.setmp [] (Display.string_of_thm ctxt);
 
+fun is_ident_char c = Char.isAlphaNum c orelse c = #"_"
+
+fun is_axiom thm_names line_no = line_no <= Vector.length thm_names
+
 (**** PARSING OF TSTP FORMAT ****)
 
-(*Syntax trees, either termlist or formulae*)
+(* Syntax trees, either term list or formulae *)
 datatype stree = Int of int | Br of string * stree list;
 
 fun atom x = Br(x,[]);
@@ -49,48 +59,88 @@ fun scons (x,y) = Br("cons", [x,y]);
 val listof = List.foldl scons (atom "nil");
 
 (*Strings enclosed in single quotes, e.g. filenames*)
-val quoted = $$"'" |-- Scan.repeat (~$$"'") --| $$"'" >> implode;
+val quoted = $$ "'" |-- Scan.repeat (~$$ "'") --| $$ "'" >> implode;
 
 (*Intended for $true and $false*)
 fun tf s = "c_" ^ str (Char.toUpper (String.sub(s,0))) ^ String.extract(s,1,NONE);
-val truefalse = $$"$" |-- Symbol.scan_id >> (atom o tf);
+val truefalse = $$ "$" |-- Symbol.scan_id >> (atom o tf);
 
 (*Integer constants, typically proof line numbers*)
 fun is_digit s = Char.isDigit (String.sub(s,0));
 val integer = Scan.many1 is_digit >> (the o Int.fromString o implode);
 
-(*Generalized FO terms, which include filenames, numbers, etc.*)
-fun termlist x = (term ::: Scan.repeat ($$"," |-- term)) x
-and term x = (quoted >> atom || integer>>Int || truefalse ||
-              Symbol.scan_id -- Scan.optional ($$"(" |-- termlist --| $$")") [] >> Br ||
-              $$"(" |-- term --| $$")" ||
-              $$"[" |-- Scan.optional termlist [] --| $$"]" >> listof) x;
+(* needed for SPASS's nonstandard output format *)
+fun smart_Br ("equal", ts) = Br ("c_equal", rev ts)
+  | smart_Br p = Br p
 
-fun negate t = Br("c_Not", [t]);
-fun equate (t1,t2) = Br("c_equal", [t1,t2]);
+(*Generalized FO terms, which include filenames, numbers, etc.*)
+fun term x = (quoted >> atom || integer >> Int || truefalse
+              || Symbol.scan_id
+                 -- Scan.optional ($$ "(" |-- terms --| $$ ")") [] >> smart_Br
+              || $$ "(" |-- term --| $$ ")"
+              || $$ "[" |-- Scan.optional terms [] --| $$ "]" >> listof) x
+and terms x = (term ::: Scan.repeat ($$ "," |-- term)) x
+
+fun negate t = Br ("c_Not", [t])
+fun equate t1 t2 = Br ("c_equal", [t1, t2]);
 
 (*Apply equal or not-equal to a term*)
 fun syn_equal (t, NONE) = t
-  | syn_equal (t1, SOME (NONE, t2)) = equate (t1,t2)
-  | syn_equal (t1, SOME (SOME _, t2)) = negate (equate (t1,t2));
+  | syn_equal (t1, SOME (NONE, t2)) = equate t1 t2
+  | syn_equal (t1, SOME (SOME _, t2)) = negate (equate t1 t2)
 
 (*Literals can involve negation, = and !=.*)
-fun literal x = ($$"~" |-- literal >> negate ||
-                 (term -- Scan.option (Scan.option ($$"!") --| $$"=" -- term) >> syn_equal)) x;
+fun literal x =
+  ($$ "~" |-- literal >> negate
+   || (term -- Scan.option (Scan.option ($$ "!") --| $$ "=" -- term)
+       >> syn_equal)) x
 
-val literals = literal ::: Scan.repeat ($$"|" |-- literal);
+val literals = literal ::: Scan.repeat ($$ "|" |-- literal);
 
 (*Clause: a list of literals separated by the disjunction sign*)
-val clause = $$"(" |-- literals --| $$")" || Scan.single literal;
+val clause = $$ "(" |-- literals --| $$ ")" || Scan.single literal;
 
-val annotations = $$"," |-- term -- Scan.option ($$"," |-- termlist);
+fun ints_of_stree (Int n) = cons n
+  | ints_of_stree (Br (_, ts)) = fold ints_of_stree ts
 
-(*<cnf_annotated> ::= cnf(<name>,<formula_role>,<cnf_formula><annotations>).
-  The <name> could be an identifier, but we assume integers.*)
-val tstp_line = (Scan.this_string "cnf" -- $$"(") |--
-                integer --| $$"," -- Symbol.scan_id --| $$"," --
-                clause -- Scan.option annotations --| $$ ")";
+val tstp_annotations =
+  Scan.optional ($$ "," |-- term --| Scan.option ($$ "," |-- terms)
+                 >> (fn source => ints_of_stree source [])) []
 
+fun retuple_tstp_line ((name, ts), deps) = (name, ts, deps)
+
+(* <cnf_annotated> ::= cnf(<name>, <formula_role>, <cnf_formula> <annotations>).
+   The <name> could be an identifier, but we assume integers. *)
+val parse_tstp_line =
+  (Scan.this_string "cnf" -- $$ "(") |-- integer --| $$ "," --| Symbol.scan_id
+   --| $$ "," -- clause -- tstp_annotations --| $$ ")" --| $$ "."
+  >> retuple_tstp_line
+
+(**** PARSING OF SPASS OUTPUT ****)
+
+val dot_name = integer --| $$ "." --| integer
+
+val spass_annotations =
+  Scan.optional ($$ ":" |-- Scan.repeat (dot_name --| Scan.option ($$ ","))) []
+
+val starred_literal = literal --| Scan.repeat ($$ "*" || $$ " ")
+
+val horn_clause =
+  Scan.repeat starred_literal --| $$ "-" --| $$ ">"
+  -- Scan.repeat starred_literal
+  >> (fn ([], []) => [atom (tf "false")]
+       | (clauses1, clauses2) => map negate clauses1 @ clauses2)
+
+fun retuple_spass_proof_line ((name, deps), ts) = (name, ts, deps)
+
+(* Syntax: <name>[0:<inference><annotations>] || -> <cnf_formula> **. *)
+val parse_spass_proof_line =
+  integer --| $$ "[" --| $$ "0" --| $$ ":" --| Symbol.scan_id
+  -- spass_annotations --| $$ "]" --| $$ "|" --| $$ "|" -- horn_clause
+  --| $$ "."
+  >> retuple_spass_proof_line
+
+val parse_proof_line = fst o (parse_tstp_line || parse_spass_proof_line)
 
 (**** INTERPRETATION OF TSTP SYNTAX TREES ****)
 
@@ -111,7 +161,8 @@ fun invert_type_const c =
         SOME c' => c'
       | NONE => c;
 
-fun make_tvar b = TVar(("'" ^ b, 0), HOLogic.typeS);
+fun make_tvar s = TVar (("'" ^ s, 0), HOLogic.typeS);
+fun make_tparam s = TypeInfer.param 0 (s, HOLogic.typeS)
 fun make_var (b,T) = Var((b,0),T);
 
 (*Type variables are given the basic sort, HOL.type. Some will later be constrained
@@ -132,7 +183,7 @@ fun type_of_stree t =
                   | NONE =>
                 case strip_prefix tvar_prefix a of
                     SOME b => make_tvar b
-                  | NONE => make_tvar a   (*Variable from the ATP, say X1*)
+                  | NONE => make_tparam a  (* Variable from the ATP, say "X1" *)
         end;
 
 (*Invert the table of translations between Isabelle and ATPs*)
@@ -178,7 +229,7 @@ fun term_of_stree args thy t =
                       | NONE =>
                     case strip_prefix schematic_var_prefix a of
                         SOME b => make_var (b,T)
-                      | NONE => make_var (a,T)    (*Variable from the ATP, say X1*)
+                      | NONE => make_var (a,T)  (* Variable from the ATP, say "X1" *)
               in  list_comb (opr, List.map (term_of_stree [] thy) (ts@args))  end;
 
 (*Type class literal applied to a type. Returns triple of polarity, class, type.*)
@@ -226,32 +277,21 @@ fun fix_sorts vt =
         | tmsubst (t as Bound _) = t
         | tmsubst (Abs (a, T, t)) = Abs (a, tysubst T, tmsubst t)
         | tmsubst (t $ u) = tmsubst t $ tmsubst u;
-  in fn t => if Vartab.is_empty vt then t else tmsubst t end;
+  in not (Vartab.is_empty vt) ? tmsubst end;
 
 (*Interpret a list of syntax trees as a clause, given by "real" literals and sort constraints.
   vt0 holds the initial sort constraints, from the conjecture clauses.*)
 fun clause_of_strees ctxt vt0 ts =
   let val (vt, dt) = lits_of_strees ctxt (vt0,[]) ts in
     singleton (Syntax.check_terms ctxt) (TypeInfer.constrain HOLogic.boolT (fix_sorts vt dt))
-  end;
+  end
 
 fun gen_all_vars t = fold_rev Logic.all (OldTerm.term_vars t) t;
 
-fun ints_of_stree_aux (Int n, ns) = n::ns
-  | ints_of_stree_aux (Br(_,ts), ns) = List.foldl ints_of_stree_aux ns ts;
-
-fun ints_of_stree t = ints_of_stree_aux (t, []);
-
-fun decode_tstp vt0 (name, role, ts, annots) ctxt =
-  let val deps = case annots of NONE => [] | SOME (source,_) => ints_of_stree source
-      val cl = clause_of_strees ctxt vt0 ts
-  in  ((name, role, cl, deps), fold Variable.declare_term (OldTerm.term_frees cl) ctxt)  end;
-
-fun dest_tstp ((((name, role), ts), annots), chs) =
-  case chs of
-          "."::_ => (name, role, ts, annots)
-        | _ => error ("TSTP line not terminated by \".\": " ^ implode chs);
-
+fun decode_proof_step vt0 (name, ts, deps) ctxt =
+  let val cl = clause_of_strees ctxt vt0 ts in
+    ((name, cl, deps), fold Variable.declare_term (OldTerm.term_frees cl) ctxt)
+  end
 
 (** Global sort constraints on TFrees (from tfree_tcs) are positive unit clauses. **)
 
@@ -268,9 +308,10 @@ fun tfree_constraints_of_clauses vt [] = vt
 
 (**** Translation of TSTP files to Isar Proofs ****)
 
-fun decode_tstp_list ctxt tuples =
-  let val vt0 = tfree_constraints_of_clauses Vartab.empty (map #3 tuples)
-  in  #1 (fold_map (decode_tstp vt0) tuples ctxt) end;
+fun decode_proof_steps ctxt tuples =
+  let val vt0 = tfree_constraints_of_clauses Vartab.empty (map #2 tuples) in
+    #1 (fold_map (decode_proof_step vt0) tuples ctxt)
+  end
 
 (** Finding a matching assumption. The literals may be permuted, and variable names
     may disagree. We have to try all combinations of literals (quadratic!) and
@@ -342,9 +383,10 @@ fun isar_proof_body ctxt sorts ctms =
     fun have_or_show "show" _ = "  show \""
       | have_or_show have lname = "  " ^ have ^ " " ^ lname ^ ": \""
     fun do_line _ (lname, t, []) =
-       (* No deps: it's a conjecture clause, with no proof. *)
+       (* No depedencies: it's a conjecture clause, with no proof. *)
        (case permuted_clause t ctms of
           SOME u => "  assume " ^ lname ^ ": \"" ^ string_of_term u ^ "\"\n"
+        | NONE => "  assume? " ^ lname ^ ": \"" ^ string_of_term t ^ "\"\n"
         | NONE => raise TERM ("Sledgehammer_Proof_Reconstruct.isar_proof_body",
                               [t]))
       | do_line have (lname, t, deps) =
@@ -368,17 +410,21 @@ fun replace_deps (old:int, new) (lno, t, deps) =
 
 (*Discard axioms; consolidate adjacent lines that prove the same clause, since they differ
   only in type information.*)
-fun add_prfline ((lno, "axiom", t, []), lines) =  (*axioms are not proof lines*)
-      if eq_types t (*must be clsrel/clsarity: type information, so delete refs to it*)
-      then map (replace_deps (lno, [])) lines
+fun add_proof_line thm_names (lno, t, []) lines =
+      (* No dependencies: axiom or conjecture clause *)
+      if is_axiom thm_names lno then
+        (* Axioms are not proof lines *)
+        if eq_types t then
+          (* Must be clsrel/clsarity: type information, so delete refs to it *)
+          map (replace_deps (lno, [])) lines
+        else
+          (case take_prefix (unequal t) lines of
+             (_,[]) => lines                  (*no repetition of proof line*)
+           | (pre, (lno', _, _) :: post) =>   (*repetition: replace later line by earlier one*)
+               pre @ map (replace_deps (lno', [lno])) post)
       else
-       (case take_prefix (unequal t) lines of
-           (_,[]) => lines                  (*no repetition of proof line*)
-         | (pre, (lno', _, _) :: post) =>   (*repetition: replace later line by earlier one*)
-             pre @ map (replace_deps (lno', [lno])) post)
-  | add_prfline ((lno, _, t, []), lines) =  (*no deps: conjecture clause*)
-      (lno, t, []) :: lines
-  | add_prfline ((lno, _, t, deps), lines) =
+        (lno, t, []) :: lines
+  | add_proof_line _ (lno, t, deps) lines =
       if eq_types t then (lno, t, deps) :: lines
       (*Type information will be deleted later; skip repetition test.*)
       else (*FIXME: Doesn't this code risk conflating proofs involving different types??*)
@@ -417,12 +463,12 @@ fun add_wanted_prfline ctxt _ ((lno, t, []), (nlines, lines)) =
 (*Replace numeric proof lines by strings, either from thm_names or sequential line numbers*)
 fun stringify_deps thm_names deps_map [] = []
   | stringify_deps thm_names deps_map ((lno, t, deps) :: lines) =
-      if lno <= Vector.length thm_names  (*axiom*)
-      then (Vector.sub(thm_names,lno-1), t, []) :: stringify_deps thm_names deps_map lines
+      if is_axiom thm_names lno then
+        (Vector.sub(thm_names,lno-1), t, []) :: stringify_deps thm_names deps_map lines
       else let val lname = Int.toString (length deps_map)
-               fun fix lno = if lno <= Vector.length thm_names
+               fun fix lno = if is_axiom thm_names lno
                              then SOME(Vector.sub(thm_names,lno-1))
-                             else AList.lookup op= deps_map lno;
+                             else AList.lookup (op =) deps_map lno;
            in  (lname, t, map_filter fix (distinct (op=) deps)) ::
                stringify_deps thm_names ((lno,lname)::deps_map) lines
            end;
@@ -435,14 +481,15 @@ fun isar_fixes [] = ""
 fun isar_proof_end 1 = "qed"
   | isar_proof_end _ = "next"
 
-fun isar_proof_from_tstp_file cnfs modulus sorts ctxt goal i thm_names =
+fun isar_proof_from_atp_proof cnfs modulus sorts ctxt goal i thm_names =
   let
-    val _ = trace_proof_msg (K "\nisar_proof_from_tstp_file: start\n")
-    val tuples = map (dest_tstp o tstp_line o explode) cnfs
+    val _ = trace_proof_msg (K "\nisar_proof_from_atp_proof: start\n")
+    val tuples = map (parse_proof_line o explode) cnfs
     val _ = trace_proof_msg (fn () =>
       Int.toString (length tuples) ^ " tuples extracted\n")
     val ctxt = ProofContext.set_mode ProofContext.mode_schematic ctxt
-    val raw_lines = List.foldr add_prfline [] (decode_tstp_list ctxt tuples)
+    val raw_lines =
+      fold_rev (add_proof_line thm_names) (decode_proof_steps ctxt tuples) []
     val _ = trace_proof_msg (fn () =>
       Int.toString (length raw_lines) ^ " raw_lines extracted\n")
     val nonnull_lines = List.foldr add_nonnull_prfline [] raw_lines
@@ -460,12 +507,12 @@ fun isar_proof_from_tstp_file cnfs modulus sorts ctxt goal i thm_names =
     val body = isar_proof_body ctxt sorts (map prop_of ccls)
                                (stringify_deps thm_names [] lines)
     val n = Logic.count_prems (prop_of goal)
-    val _ = trace_proof_msg (K "\nisar_proof_from_tstp_file: finishing\n")
+    val _ = trace_proof_msg (K "\nisar_proof_from_atp_proof: finishing\n")
   in
     isar_proof_start i ^ isar_fixes (map #1 fixes) ^ implode body ^
     isar_proof_end n ^ "\n"
   end
-  handle STREE _ => error "Could not extract proof (ATP output malformed?)";
+  handle STREE _ => raise Fail "Cannot parse ATP output";
 
 
 (*=== EXTRACTING PROOF-TEXT === *)
@@ -479,23 +526,19 @@ val end_proof_strs = ["# SZS output end CNFRefutation",
   "Formulae used in the proof"];
 
 fun get_proof_extract proof =
-  let
-    (*splits to_split by the first possible of a list of splitters*)
-    val (begin_string, end_string) =
-      (find_first (fn s => String.isSubstring s proof) begin_proof_strs,
-      find_first (fn s => String.isSubstring s proof) end_proof_strs)
-  in
-    if is_none begin_string orelse is_none end_string
-    then error "Could not extract proof (no substring indicating a proof)"
-    else proof |> first_field (the begin_string) |> the |> snd
-               |> first_field (the end_string) |> the |> fst
-  end;
+  (* Splits by the first possible of a list of splitters. *)
+  case pairself (find_first (fn s => String.isSubstring s proof))
+                (begin_proof_strs, end_proof_strs) of
+    (SOME begin_string, SOME end_string) =>
+    proof |> first_field begin_string |> the |> snd
+          |> first_field end_string |> the |> fst
+  | _ => raise Fail "Cannot extract proof"
 
 (* ==== CHECK IF PROOF WAS SUCCESSFUL === *)
 
 fun is_proof_well_formed proof =
-  exists (fn s => String.isSubstring s proof) begin_proof_strs andalso
-  exists (fn s => String.isSubstring s proof) end_proof_strs
+  forall (exists (fn s => String.isSubstring s proof))
+         [begin_proof_strs, end_proof_strs]
 
 (* === EXTRACTING LEMMAS === *)
 (* A list consisting of the first number in each line is returned.
@@ -505,11 +548,11 @@ fun is_proof_well_formed proof =
    extracted. *)
 fun get_step_nums proof_extract =
   let
-    val toks = String.tokens (not o Char.isAlphaNum)
+    val toks = String.tokens (not o is_ident_char)
     fun inputno ("cnf" :: ntok :: "axiom" :: _) = Int.fromString ntok
-      | inputno ("cnf" :: ntok :: "negated" :: "conjecture" :: _) =
+      | inputno ("cnf" :: ntok :: "negated_conjecture" :: _) =
         Int.fromString ntok
-      | inputno (ntok::"0"::"Inp"::_) = Int.fromString ntok (* DFG *)
+      | inputno (ntok::"0"::"Inp"::_) = Int.fromString ntok  (* DFG format *)
       | inputno _ = NONE
     val lines = split_lines proof_extract
   in map_filter (inputno o toks) lines end
@@ -528,55 +571,76 @@ fun metis_command i n [] =
 fun metis_line i n xs =
   "Try this command: " ^
   Markup.markup Markup.sendback (metis_command i n xs) ^ ".\n" 
-fun minimize_line _ _ [] = ""
-  | minimize_line isar_proof atp_name xs =
+fun minimize_line _ [] = ""
+  | minimize_line minimize_command facts =
+    case minimize_command facts of
+      "" => ""
+    | command =>
       "To minimize the number of lemmas, try this command: " ^
-      Markup.markup Markup.sendback
-                    ("sledgehammer minimize [atp = " ^ atp_name ^
-                     (if isar_proof then ", isar_proof" else "") ^ "] (" ^
-                     space_implode " " xs ^ ")") ^ ".\n"
+      Markup.markup Markup.sendback command ^ ".\n"
 
-fun metis_proof_text isar_proof minimal atp_name proof thm_names
-                     (_ : Proof.context) goal i =
+fun metis_proof_text (minimize_command, proof, thm_names, goal, i) =
   let
     val lemmas =
       proof |> get_proof_extract
             |> get_step_nums
-            |> filter (fn i => i <= Vector.length thm_names)
+            |> filter (is_axiom thm_names)
             |> map (fn i => Vector.sub (thm_names, i - 1))
             |> filter (fn x => x <> "??.unknown")
             |> sort_distinct string_ord
     val n = Logic.count_prems (prop_of goal)
     val xs = kill_chained lemmas
   in
-    (metis_line i n xs ^
-     (if minimal then "" else minimize_line isar_proof atp_name xs),
-     kill_chained lemmas)
+    (metis_line i n xs ^ minimize_line minimize_command xs, kill_chained lemmas)
   end
 
-fun isar_proof_text minimal modulus sorts atp_name proof thm_names ctxt goal i =
+val is_proof_line = String.isPrefix "cnf(" orf String.isSubstring "||"
+
+fun do_space c = if Char.isSpace c then "" else str c
+
+fun strip_spaces_in_list [] = ""
+  | strip_spaces_in_list [c1] = do_space c1
+  | strip_spaces_in_list [c1, c2] = do_space c1 ^ do_space c2
+  | strip_spaces_in_list (c1 :: c2 :: c3 :: cs) =
+    if Char.isSpace c1 then
+      strip_spaces_in_list (c2 :: c3 :: cs)
+    else if Char.isSpace c2 then
+      if Char.isSpace c3 then
+        strip_spaces_in_list (c1 :: c3 :: cs)
+      else
+        str c1 ^
+        (if is_ident_char c1 andalso is_ident_char c3 then " " else "") ^
+        strip_spaces_in_list (c3 :: cs)
+    else
+      str c1 ^ strip_spaces_in_list (c2 :: c3 :: cs)
+
+val strip_spaces = strip_spaces_in_list o String.explode
+
+fun isar_proof_text debug modulus sorts ctxt
+                    (minimize_command, proof, thm_names, goal, i) =
   let
-    (* We could use "split_lines", but it can return blank lines. *)
-    val lines = String.tokens (equal #"\n");
-    val kill_spaces =
-      String.translate (fn c => if Char.isSpace c then "" else str c)
-    val extract = get_proof_extract proof
-    val cnfs = filter (String.isPrefix "cnf(") (map kill_spaces (lines extract))
+    val cnfs = proof |> get_proof_extract |> split_lines |> map strip_spaces
+                     |> filter is_proof_line
     val (one_line_proof, lemma_names) =
-      metis_proof_text true minimal atp_name proof thm_names ctxt goal i
+      metis_proof_text (minimize_command, proof, thm_names, goal, i)
     val tokens = String.tokens (fn c => c = #" ") one_line_proof
+    fun isar_proof_for () =
+      case isar_proof_from_atp_proof cnfs modulus sorts ctxt goal i thm_names of
+        "" => ""
+      | isar_proof =>
+        "\nStructured proof:\n" ^ Markup.markup Markup.sendback isar_proof
     val isar_proof =
-      if member (op =) tokens chained_hint then ""
-      else isar_proof_from_tstp_file cnfs modulus sorts ctxt goal i thm_names
-  in
-    (one_line_proof ^
-     (if isar_proof = "" then ""
-      else "\nStructured proof:\n" ^ Markup.markup Markup.sendback isar_proof),
-     lemma_names)
-  end
+      if member (op =) tokens chained_hint then
+        ""
+      else if debug then
+        isar_proof_for ()
+      else
+        try isar_proof_for ()
+        |> the_default "Warning: The Isar proof construction failed.\n"
+  in (one_line_proof ^ isar_proof, lemma_names) end
 
-fun proof_text isar_proof minimal modulus sorts =
-  if isar_proof then isar_proof_text minimal modulus sorts
-  else metis_proof_text isar_proof minimal
+fun proof_text isar_proof debug modulus sorts ctxt =
+  if isar_proof then isar_proof_text debug modulus sorts ctxt
+  else metis_proof_text
 
 end;
