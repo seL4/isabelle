@@ -321,7 +321,7 @@ fun run_sh prover hard_timeout timeout dir st =
     val ({success, message, relevant_thm_names,
           atp_run_time_in_msecs = time_atp, ...}: ATP_Manager.prover_result,
         time_isa) = time_limit (Mirabelle.cpu_time
-                      (prover params (Time.fromSeconds timeout))) problem
+                      (prover params (K "") (Time.fromSeconds timeout))) problem
   in
     if success then (message, SH_OK (time_isa, time_atp, relevant_thm_names))
     else (message, SH_FAIL (time_isa, time_atp))
