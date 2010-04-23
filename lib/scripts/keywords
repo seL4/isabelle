@@ -39,6 +39,7 @@ sub collect_keywords {
     elsif (m/^Outer syntax command:\s*"(.*)"\s*\((.*)\)/) {
       my $name = $1;
       my $kind = $2;
+      if ($kind eq "theory-schematic-goal") { $kind = "theory-goal"; }
       &set_keyword($name, $kind);
     }
   }
