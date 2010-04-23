@@ -411,7 +411,7 @@ lemma quotient_of_inject_eq:
 
 subsubsection {* The field of rational numbers *}
 
-instantiation rat :: "{field, division_by_zero}"
+instantiation rat :: field
 begin
 
 definition
@@ -433,9 +433,6 @@ lemma divide_rat [simp]: "Fract a b / Fract c d = Fract (a * d) (b * c)"
   by (simp add: divide_rat_def)
 
 instance proof
-  show "inverse 0 = (0::rat)" by (simp add: rat_number_expand)
-    (simp add: rat_number_collapse)
-next
   fix q :: rat
   assume "q \<noteq> 0"
   then show "inverse q * q = 1" by (cases q rule: Rat_cases_nonzero)
@@ -446,6 +443,9 @@ next
 qed
 
 end
+
+instance rat :: division_by_zero proof
+qed (simp add: rat_number_expand, simp add: rat_number_collapse)
 
 
 subsubsection {* Various *}
