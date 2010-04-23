@@ -112,6 +112,13 @@ terms may need to be adapted.
 
 *** HOL ***
 
+* Abstract algebra:
+  * class division_by_zero includes division_ring;
+  * numerous lemmas have been ported from field to division_ring;
+  * dropped lemma eq_minus_self_iff which is a duplicate for equal_neg_zero.
+
+  INCOMPATIBILITY.
+
 * Library theory 'RBT' renamed to 'RBT_Impl'; new library theory 'RBT'
 provides abstract red-black tree type which is backed by RBT_Impl
 as implementation.  INCOMPATIBILTY.
