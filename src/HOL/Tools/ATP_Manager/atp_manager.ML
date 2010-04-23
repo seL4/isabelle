@@ -53,7 +53,7 @@ sig
   val running_atps: unit -> unit
   val messages: int option -> unit
   val add_prover: string * prover -> theory -> theory
-  val get_prover: theory -> string -> prover option
+  val get_prover: theory -> string -> prover
   val available_atps: theory -> unit
   val start_prover_thread:
     params -> Time.time -> Time.time -> int -> relevance_override
@@ -158,13 +158,13 @@ fun unregister ({verbose, ...} : params) message thread =
   Synchronized.change global_state
   (fn state as {manager, timeout_heap, active, cancelling, messages, store} =>
     (case lookup_thread active thread of
-      SOME (birth_time, _, description) =>
+      SOME (birth_time, _, desc) =>
         let
           val active' = delete_thread thread active;
           val now = Time.now ()
-          val cancelling' = (thread, (now, description)) :: cancelling;
+          val cancelling' = (thread, (now, desc)) :: cancelling;
           val message' =
-            description ^ "\n" ^ message ^
+            desc ^ "\n" ^ message ^
             (if verbose then
                "Total time: " ^ Int.toString (Time.toMilliseconds
                                           (Time.- (now, birth_time))) ^ " ms.\n"
@@ -308,7 +308,7 @@ fun messages opt_limit =
 
 fun err_dup_prover name = error ("Duplicate prover: " ^ quote name ^ ".");
 
-structure Provers = Theory_Data
+structure Data = Theory_Data
 (
   type T = (prover * stamp) Symtab.table;
   val empty = Symtab.empty;
@@ -318,44 +318,43 @@ structure Provers = Theory_Data
 );
 
 fun add_prover (name, prover) thy =
-  Provers.map (Symtab.update_new (name, (prover, stamp ()))) thy
-    handle Symtab.DUP name => err_dup_prover name;
+  Data.map (Symtab.update_new (name, (prover, stamp ()))) thy
+  handle Symtab.DUP name => err_dup_prover name;
 
 fun get_prover thy name =
-  Option.map #1 (Symtab.lookup (Provers.get thy) name);
+  case Symtab.lookup (Data.get thy) name of
+    SOME (prover, _) => prover
+  | NONE => error ("Unknown ATP: " ^ name)
 
 fun available_atps thy =
   priority ("Available ATPs: " ^
-            commas (sort_strings (Symtab.keys (Provers.get thy))) ^ ".")
+            commas (sort_strings (Symtab.keys (Data.get thy))) ^ ".")
 
 
 (* start prover thread *)
 
 fun start_prover_thread (params as {timeout, ...}) birth_time death_time i
                         relevance_override minimize_command proof_state name =
-  (case get_prover (Proof.theory_of proof_state) name of
-    NONE => error ("Unknown ATP: " ^ quote name ^ ".")
-  | SOME prover =>
+  let
+    val prover = get_prover (Proof.theory_of proof_state) name
+    val {context = ctxt, facts, goal} = Proof.goal proof_state;
+    val n = Logic.count_prems (prop_of goal)
+    val desc =
+      "ATP " ^ quote name ^ " for subgoal " ^ string_of_int i ^ ":\n" ^
+        Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i));
+    val _ = Toplevel.thread true (fn () =>
       let
-        val {context = ctxt, facts, goal} = Proof.goal proof_state;
-        val n = Logic.count_prems (prop_of goal)
-        val desc =
-          "ATP " ^ quote name ^ " for subgoal " ^ string_of_int i ^ ":\n" ^
-            Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i));
-
-        val _ = Toplevel.thread true (fn () =>
-          let
-            val _ = register params birth_time death_time (Thread.self (), desc)
-            val problem =
-              {subgoal = i, goal = (ctxt, (facts, goal)),
-               relevance_override = relevance_override, axiom_clauses = NONE,
-               filtered_clauses = NONE}
-            val message =
-              #message (prover params (minimize_command name) timeout problem)
-              handle Sledgehammer_HOL_Clause.TRIVIAL => metis_line i n []
-                   | ERROR msg => "Error: " ^ msg ^ ".\n";
-            val _ = unregister params message (Thread.self ());
-          in () end);
-      in () end);
+        val _ = register params birth_time death_time (Thread.self (), desc)
+        val problem =
+          {subgoal = i, goal = (ctxt, (facts, goal)),
+           relevance_override = relevance_override, axiom_clauses = NONE,
+           filtered_clauses = NONE}
+        val message =
+          #message (prover params (minimize_command name) timeout problem)
+          handle Sledgehammer_HOL_Clause.TRIVIAL => metis_line i n []
+               | ERROR msg => "Error: " ^ msg ^ ".\n";
+        val _ = unregister params message (Thread.self ());
+      in () end)
+  in () end
 
 end;
