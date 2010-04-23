@@ -123,9 +123,8 @@ fun minimize_theorems (params as {debug, atps, minimize_timeout, isar_proof,
                \option (e.g., \"timeout = " ^
                string_of_int (10 + msecs div 1000) ^ " s\").")
     | {message, ...} => (NONE, "ATP error: " ^ message))
-    handle Sledgehammer_HOL_Clause.TRIVIAL =>
-        (SOME [], metis_line i n [])
-      | ERROR msg => (NONE, "Error: " ^ msg)
+    handle Sledgehammer_HOL_Clause.TRIVIAL => (SOME [], metis_line i n [])
+         | ERROR msg => (NONE, "Error: " ^ msg)
   end
 
 end;

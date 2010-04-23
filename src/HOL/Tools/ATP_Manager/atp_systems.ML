@@ -51,7 +51,7 @@ type prover_config =
    arguments: Time.time -> string,
    proof_delims: (string * string) list,
    known_failures: (failure * string) list,
-   max_new_clauses: int,
+   max_axiom_clauses: int,
    prefers_theory_relevant: bool};
 
 
@@ -175,7 +175,8 @@ fun generic_prover overlord get_facts prepare write_file home executable args
       if File.exists command then
         write_file full_types explicit_apply probfile clauses
         |> pair (apfst split_time' (bash_output (command_line probfile)))
-      else error ("Bad executable: " ^ Path.implode command ^ ".");
+      else
+        error ("Bad executable: " ^ Path.implode command ^ ".");
 
     (* If the problem file has not been exported, remove it; otherwise, export
        the proof file too. *)
@@ -217,14 +218,14 @@ fun generic_prover overlord get_facts prepare write_file home executable args
 
 fun generic_tptp_prover
         (name, {home, executable, arguments, proof_delims, known_failures,
-                max_new_clauses, prefers_theory_relevant})
+                max_axiom_clauses, prefers_theory_relevant})
         (params as {debug, overlord, respect_no_atp, relevance_threshold,
                     convergence, theory_relevant, higher_order, follow_defs,
                     isar_proof, ...})
         minimize_command timeout =
   generic_prover overlord
       (get_relevant_facts respect_no_atp relevance_threshold convergence
-                          higher_order follow_defs max_new_clauses
+                          higher_order follow_defs max_axiom_clauses
                           (the_default prefers_theory_relevant theory_relevant))
       (prepare_clauses higher_order false)
       (write_tptp_file (debug andalso overlord andalso not isar_proof)) home
@@ -236,7 +237,7 @@ fun tptp_prover name p = (name, generic_tptp_prover (name, p));
 
 (** common provers **)
 
-fun generous_to_secs time = (Time.toMilliseconds time + 999) div 1000
+fun to_generous_secs time = (Time.toMilliseconds time + 999) div 1000
 
 (* Vampire *)
 
@@ -245,15 +246,16 @@ fun generous_to_secs time = (Time.toMilliseconds time + 999) div 1000
 val vampire_config : prover_config =
   {home = getenv "VAMPIRE_HOME",
    executable = "vampire",
-   arguments = (fn timeout => "--output_syntax tptp --mode casc -t " ^
-                              string_of_int (generous_to_secs timeout)),
+   arguments = fn timeout =>
+     "--output_syntax tptp --mode casc -t " ^
+     string_of_int (to_generous_secs timeout),
    proof_delims = [("=========== Refutation ==========",
                     "======= End of refutation =======")],
    known_failures =
      [(Unprovable, "Satisfiability detected"),
       (OutOfResources, "CANNOT PROVE"),
       (OutOfResources, "Refutation not found")],
-   max_new_clauses = 60,
+   max_axiom_clauses = 60,
    prefers_theory_relevant = false}
 val vampire = tptp_prover "vampire" vampire_config
 
@@ -266,9 +268,9 @@ val tstp_proof_delims =
 val e_config : prover_config =
   {home = getenv "E_HOME",
    executable = "eproof",
-   arguments = (fn timeout => "--tstp-in --tstp-out -l5 -xAutoDev \
-                              \-tAutoDev --silent --cpu-limit=" ^
-                              string_of_int (generous_to_secs timeout)),
+   arguments = fn timeout =>
+     "--tstp-in --tstp-out -l5 -xAutoDev -tAutoDev --silent --cpu-limit=" ^
+     string_of_int (to_generous_secs timeout),
    proof_delims = [tstp_proof_delims],
    known_failures =
      [(Unprovable, "SZS status: Satisfiable"),
@@ -279,7 +281,7 @@ val e_config : prover_config =
        "# Cannot determine problem status within resource limit"),
       (OutOfResources, "SZS status: ResourceOut"),
       (OutOfResources, "SZS status ResourceOut")],
-   max_new_clauses = 100,
+   max_axiom_clauses = 100,
    prefers_theory_relevant = false}
 val e = tptp_prover "e" e_config
 
@@ -288,13 +290,13 @@ val e = tptp_prover "e" e_config
 
 fun generic_dfg_prover
         (name, {home, executable, arguments, proof_delims, known_failures,
-                max_new_clauses, prefers_theory_relevant})
+                max_axiom_clauses, prefers_theory_relevant})
         (params as {overlord, respect_no_atp, relevance_threshold, convergence,
                     theory_relevant, higher_order, follow_defs, ...})
         minimize_command timeout =
   generic_prover overlord
       (get_relevant_facts respect_no_atp relevance_threshold convergence
-                          higher_order follow_defs max_new_clauses
+                          higher_order follow_defs max_axiom_clauses
                           (the_default prefers_theory_relevant theory_relevant))
       (prepare_clauses higher_order true) write_dfg_file home executable
       (arguments timeout) proof_delims known_failures name params
@@ -307,15 +309,15 @@ fun dfg_prover name p = (name, generic_dfg_prover (name, p))
 val spass_config : prover_config =
   {home = getenv "SPASS_HOME",
    executable = "SPASS",
-   arguments = (fn timeout => "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0" ^
-     " -FullRed=0 -DocProof -VarWeight=3 -TimeLimit=" ^
-     string_of_int (generous_to_secs timeout)),
+   arguments = fn timeout =>
+     "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
+     \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_generous_secs timeout),
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =
      [(Unprovable, "SPASS beiseite: Completion found"),
       (TimedOut, "SPASS beiseite: Ran out of time"),
       (OutOfResources, "SPASS beiseite: Maximal number of loops exceeded")],
-   max_new_clauses = 40,
+   max_axiom_clauses = 40,
    prefers_theory_relevant = true}
 val spass = dfg_prover "spass" spass_config
 
@@ -336,7 +338,7 @@ val spass_tptp_config =
      #known_failures spass_config @
      [(OldSpass, "unrecognized option `-TPTP'"),
       (OldSpass, "Unrecognized option TPTP")],
-   max_new_clauses = #max_new_clauses spass_config,
+   max_axiom_clauses = #max_axiom_clauses spass_config,
    prefers_theory_relevant = #prefers_theory_relevant spass_config}
 val spass_tptp = tptp_prover "spass_tptp" spass_tptp_config
 
@@ -367,17 +369,17 @@ val remote_known_failures =
   [(TimedOut, "says Timeout"),
    (MalformedOutput, "Remote script could not extract proof")]
 
-fun remote_prover_config prover_prefix args
-        ({proof_delims, known_failures, max_new_clauses,
+fun remote_prover_config atp_prefix args
+        ({proof_delims, known_failures, max_axiom_clauses,
           prefers_theory_relevant, ...} : prover_config) : prover_config =
   {home = getenv "ISABELLE_ATP_MANAGER",
    executable = "SystemOnTPTP",
-   arguments = (fn timeout =>
-     args ^ " -t " ^ string_of_int (generous_to_secs timeout) ^ " -s " ^
-     the_system prover_prefix),
+   arguments = fn timeout =>
+     args ^ " -t " ^ string_of_int (to_generous_secs timeout) ^ " -s " ^
+     the_system atp_prefix,
    proof_delims = insert (op =) tstp_proof_delims proof_delims,
    known_failures = remote_known_failures @ known_failures,
-   max_new_clauses = max_new_clauses,
+   max_axiom_clauses = max_axiom_clauses,
    prefers_theory_relevant = prefers_theory_relevant}
 
 val remote_vampire =
