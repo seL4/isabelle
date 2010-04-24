@@ -34,7 +34,6 @@ sig
     specialize: bool,
     skolemize: bool,
     star_linear_preds: bool,
-    uncurry: bool,
     fast_descrs: bool,
     peephole_optim: bool,
     timeout: Time.time option,
@@ -107,7 +106,6 @@ type params = {
   specialize: bool,
   skolemize: bool,
   star_linear_preds: bool,
-  uncurry: bool,
   fast_descrs: bool,
   peephole_optim: bool,
   timeout: Time.time option,
@@ -194,10 +192,10 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val {cards_assigns, maxes_assigns, iters_assigns, bitss, bisim_depths,
          boxes, finitizes, monos, stds, wfs, sat_solver, falsify, debug,
          verbose, overlord, user_axioms, assms, merge_type_vars, binary_ints,
-         destroy_constrs, specialize, skolemize, star_linear_preds, uncurry,
-         fast_descrs, peephole_optim, tac_timeout, max_threads, show_skolems,
-         show_datatypes, show_consts, evals, formats, max_potential,
-         max_genuine, check_potential, check_genuine, batch_size, ...} =
+         destroy_constrs, specialize, skolemize, star_linear_preds, fast_descrs,
+         peephole_optim, tac_timeout, max_threads, show_skolems, show_datatypes,
+         show_consts, evals, formats, max_potential, max_genuine,
+         check_potential, check_genuine, batch_size, ...} =
       params
     val state_ref = Unsynchronized.ref state
     val pprint =
@@ -265,14 +263,14 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
        stds = stds, wfs = wfs, user_axioms = user_axioms, debug = debug,
        binary_ints = binary_ints, destroy_constrs = destroy_constrs,
        specialize = specialize, skolemize = skolemize,
-       star_linear_preds = star_linear_preds, uncurry = uncurry,
-       fast_descrs = fast_descrs, tac_timeout = tac_timeout, evals = evals,
-       case_names = case_names, def_table = def_table,
-       nondef_table = nondef_table, user_nondefs = user_nondefs,
-       simp_table = simp_table, psimp_table = psimp_table,
-       choice_spec_table = choice_spec_table, intro_table = intro_table,
-       ground_thm_table = ground_thm_table, ersatz_table = ersatz_table,
-       skolems = Unsynchronized.ref [], special_funs = Unsynchronized.ref [],
+       star_linear_preds = star_linear_preds, fast_descrs = fast_descrs,
+       tac_timeout = tac_timeout, evals = evals, case_names = case_names,
+       def_table = def_table, nondef_table = nondef_table,
+       user_nondefs = user_nondefs, simp_table = simp_table,
+       psimp_table = psimp_table, choice_spec_table = choice_spec_table,
+       intro_table = intro_table, ground_thm_table = ground_thm_table,
+       ersatz_table = ersatz_table, skolems = Unsynchronized.ref [],
+       special_funs = Unsynchronized.ref [],
        unrolled_preds = Unsynchronized.ref [], wf_cache = Unsynchronized.ref [],
        constr_cache = Unsynchronized.ref []}
     val frees = Term.add_frees assms_t []

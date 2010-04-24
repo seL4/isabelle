@@ -2258,9 +2258,6 @@ $n_k$-tuple, the previous $n_{k-1}$ arguments as an $n_{k-1}$-tuple, and so on;
 arguments that are not accounted for are left alone, as if the specification had
 been $1,\ldots,1,n_1,\ldots,n_k$.
 
-\nopagebreak
-{\small See also \textit{uncurry} (\S\ref{optimizations}).}
-
 \opdefault{format}{int\_seq}{$\mathbf{1}$}
 Specifies the default format to use. Irrespective of the default format, the
 extra arguments to a Skolem constant corresponding to the outer bound variables
@@ -2473,15 +2470,6 @@ domain, but it is usually more efficient.
 
 {\small See also \textit{wf} (\S\ref{scope-of-search}), \textit{debug}
 (\S\ref{output-format}), and \textit{iter} (\S\ref{scope-of-search}).}
-
-\optrue{uncurry}{dont\_uncurry}
-Specifies whether Nitpick should uncurry functions. Uncurrying has on its own no
-tangible effect on efficiency, but it creates opportunities for the boxing 
-optimization.
-
-\nopagebreak
-{\small See also \textit{box} (\S\ref{scope-of-search}), \textit{debug}
-(\S\ref{output-format}), and \textit{format} (\S\ref{output-format}).}
 
 \optrue{fast\_descrs}{full\_descrs}
 Specifies whether Nitpick should optimize the definite and indefinite

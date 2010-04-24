@@ -1227,8 +1227,7 @@ fun finitize_all_types_of_funs (hol_ctxt as {thy, ...}) binarize finitizes monos
 (** Preprocessor entry point **)
 
 fun preprocess_term (hol_ctxt as {thy, stds, binary_ints, destroy_constrs,
-                                  boxes, skolemize, uncurry, ...})
-                    finitizes monos t =
+                                  boxes, skolemize, ...}) finitizes monos t =
   let
     val skolem_depth = if skolemize then 4 else ~1
     val (nondef_ts, def_ts, got_all_mono_user_axioms, no_poly_user_axioms) =
@@ -1246,13 +1245,12 @@ fun preprocess_term (hol_ctxt as {thy, stds, binary_ints, destroy_constrs,
              (binary_ints = SOME true orelse
               exists should_use_binary_ints (nondef_ts @ def_ts))
     val box = exists (not_equal (SOME false) o snd) boxes
-    val uncurry = uncurry andalso box
     val table =
       Termtab.empty
-      |> uncurry ? fold (add_to_uncurry_table thy) (nondef_ts @ def_ts)
+      |> box ? fold (add_to_uncurry_table thy) (nondef_ts @ def_ts)
     fun do_rest def =
       binarize ? binarize_nat_and_int_in_term
-      #> uncurry ? uncurry_term table
+      #> box ? uncurry_term table
       #> box ? box_fun_and_pair_in_term hol_ctxt def
       #> destroy_constrs ? (pull_out_universal_constrs hol_ctxt def
                             #> pull_out_existential_constrs hol_ctxt

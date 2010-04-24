@@ -57,7 +57,6 @@ val default_default_params =
    ("specialize", "true"),
    ("skolemize", "true"),
    ("star_linear_preds", "true"),
-   ("uncurry", "true"),
    ("fast_descrs", "true"),
    ("peephole_optim", "true"),
    ("timeout", "30 s"),
@@ -92,7 +91,6 @@ val negated_params =
    ("dont_specialize", "specialize"),
    ("dont_skolemize", "skolemize"),
    ("dont_star_linear_preds", "star_linear_preds"),
-   ("dont_uncurry", "uncurry"),
    ("full_descrs", "fast_descrs"),
    ("no_peephole_optim", "peephole_optim"),
    ("no_debug", "debug"),
@@ -254,7 +252,6 @@ fun extract_params ctxt auto default_params override_params =
     val specialize = lookup_bool "specialize"
     val skolemize = lookup_bool "skolemize"
     val star_linear_preds = lookup_bool "star_linear_preds"
-    val uncurry = lookup_bool "uncurry"
     val fast_descrs = lookup_bool "fast_descrs"
     val peephole_optim = lookup_bool "peephole_optim"
     val timeout = if auto then NONE else lookup_time "timeout"
@@ -285,9 +282,8 @@ fun extract_params ctxt auto default_params override_params =
      merge_type_vars = merge_type_vars, binary_ints = binary_ints,
      destroy_constrs = destroy_constrs, specialize = specialize,
      skolemize = skolemize, star_linear_preds = star_linear_preds,
-     uncurry = uncurry, fast_descrs = fast_descrs,
-     peephole_optim = peephole_optim, timeout = timeout,
-     tac_timeout = tac_timeout, max_threads = max_threads,
+     fast_descrs = fast_descrs, peephole_optim = peephole_optim,
+     timeout = timeout, tac_timeout = tac_timeout, max_threads = max_threads,
      show_skolems = show_skolems, show_datatypes = show_datatypes,
      show_consts = show_consts, formats = formats, evals = evals,
      max_potential = max_potential, max_genuine = max_genuine,
