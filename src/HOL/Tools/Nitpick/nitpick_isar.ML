@@ -128,9 +128,9 @@ fun unnegate_raw_param (name, value) =
 
 structure Data = Theory_Data(
   type T = raw_param list
-  val empty = default_default_params |> map (apsnd single)
+  val empty = map (apsnd single) default_default_params
   val extend = I
-  fun merge p : T = AList.merge (op =) (K true) p)
+  val merge = AList.merge (op =) (K true))
 
 val set_default_raw_param = Data.map o AList.update (op =) o unnegate_raw_param
 val default_raw_params = Data.get

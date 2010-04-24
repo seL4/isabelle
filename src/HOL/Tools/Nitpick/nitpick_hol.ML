@@ -264,7 +264,7 @@ structure Data = Theory_Data(
   val empty = {frac_types = [], codatatypes = []}
   val extend = I
   fun merge ({frac_types = fs1, codatatypes = cs1},
-               {frac_types = fs2, codatatypes = cs2}) : T =
+             {frac_types = fs2, codatatypes = cs2}) : T =
     {frac_types = AList.merge (op =) (K true) (fs1, fs2),
      codatatypes = AList.merge (op =) (K true) (cs1, cs2)})
 
