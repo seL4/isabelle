@@ -274,4 +274,255 @@ proof
 qed
 
 
+subsubsection {* The ordered field of fractions over an ordered idom *}
+
+lemma le_congruent2:
+  "(\<lambda>x y::'a \<times> 'a::linordered_idom.
+    {(fst x * snd y)*(snd x * snd y) \<le> (fst y * snd x)*(snd x * snd y)})
+    respects2 fractrel"
+proof (clarsimp simp add: congruent2_def)
+  fix a b a' b' c d c' d' :: 'a
+  assume neq: "b \<noteq> 0"  "b' \<noteq> 0"  "d \<noteq> 0"  "d' \<noteq> 0"
+  assume eq1: "a * b' = a' * b"
+  assume eq2: "c * d' = c' * d"
+
+  let ?le = "\<lambda>a b c d. ((a * d) * (b * d) \<le> (c * b) * (b * d))"
+  {
+    fix a b c d x :: 'a assume x: "x \<noteq> 0"
+    have "?le a b c d = ?le (a * x) (b * x) c d"
+    proof -
+      from x have "0 < x * x" by (auto simp add: zero_less_mult_iff)
+      hence "?le a b c d =
+          ((a * d) * (b * d) * (x * x) \<le> (c * b) * (b * d) * (x * x))"
+        by (simp add: mult_le_cancel_right)
+      also have "... = ?le (a * x) (b * x) c d"
+        by (simp add: mult_ac)
+      finally show ?thesis .
+    qed
+  } note le_factor = this
+
+  let ?D = "b * d" and ?D' = "b' * d'"
+  from neq have D: "?D \<noteq> 0" by simp
+  from neq have "?D' \<noteq> 0" by simp
+  hence "?le a b c d = ?le (a * ?D') (b * ?D') c d"
+    by (rule le_factor)
+  also have "... = ((a * b') * ?D * ?D' * d * d' \<le> (c * d') * ?D * ?D' * b * b')"
+    by (simp add: mult_ac)
+  also have "... = ((a' * b) * ?D * ?D' * d * d' \<le> (c' * d) * ?D * ?D' * b * b')"
+    by (simp only: eq1 eq2)
+  also have "... = ?le (a' * ?D) (b' * ?D) c' d'"
+    by (simp add: mult_ac)
+  also from D have "... = ?le a' b' c' d'"
+    by (rule le_factor [symmetric])
+  finally show "?le a b c d = ?le a' b' c' d'" .
+qed
+
+instantiation fract :: (linordered_idom) linorder
+begin
+
+definition
+  le_fract_def [code del]:
+   "q \<le> r \<longleftrightarrow> contents (\<Union>x \<in> Rep_fract q. \<Union>y \<in> Rep_fract r.
+      {(fst x * snd y)*(snd x * snd y) \<le> (fst y * snd x)*(snd x * snd y)})"
+
+definition
+  less_fract_def [code del]: "z < (w::'a fract) \<longleftrightarrow> z \<le> w \<and> \<not> w \<le> z"
+
+lemma le_fract [simp]:
+  assumes "b \<noteq> 0" and "d \<noteq> 0"
+  shows "Fract a b \<le> Fract c d \<longleftrightarrow> (a * d) * (b * d) \<le> (c * b) * (b * d)"
+by (simp add: Fract_def le_fract_def le_congruent2 UN_fractrel2 assms)
+
+lemma less_fract [simp]:
+  assumes "b \<noteq> 0" and "d \<noteq> 0"
+  shows "Fract a b < Fract c d \<longleftrightarrow> (a * d) * (b * d) < (c * b) * (b * d)"
+by (simp add: less_fract_def less_le_not_le mult_ac assms)
+
+instance proof
+  fix q r s :: "'a fract"
+  assume "q \<le> r" and "r \<le> s" thus "q \<le> s"
+  proof (induct q, induct r, induct s)
+    fix a b c d e f :: 'a
+    assume neq: "b \<noteq> 0"  "d \<noteq> 0"  "f \<noteq> 0"
+    assume 1: "Fract a b \<le> Fract c d" and 2: "Fract c d \<le> Fract e f"
+    show "Fract a b \<le> Fract e f"
+    proof -
+      from neq obtain bb: "0 < b * b" and dd: "0 < d * d" and ff: "0 < f * f"
+        by (auto simp add: zero_less_mult_iff linorder_neq_iff)
+      have "(a * d) * (b * d) * (f * f) \<le> (c * b) * (b * d) * (f * f)"
+      proof -
+        from neq 1 have "(a * d) * (b * d) \<le> (c * b) * (b * d)"
+          by simp
+        with ff show ?thesis by (simp add: mult_le_cancel_right)
+      qed
+      also have "... = (c * f) * (d * f) * (b * b)"
+        by (simp only: mult_ac)
+      also have "... \<le> (e * d) * (d * f) * (b * b)"
+      proof -
+        from neq 2 have "(c * f) * (d * f) \<le> (e * d) * (d * f)"
+          by simp
+        with bb show ?thesis by (simp add: mult_le_cancel_right)
+      qed
+      finally have "(a * f) * (b * f) * (d * d) \<le> e * b * (b * f) * (d * d)"
+        by (simp only: mult_ac)
+      with dd have "(a * f) * (b * f) \<le> (e * b) * (b * f)"
+        by (simp add: mult_le_cancel_right)
+      with neq show ?thesis by simp
+    qed
+  qed
+next
+  fix q r :: "'a fract"
+  assume "q \<le> r" and "r \<le> q" thus "q = r"
+  proof (induct q, induct r)
+    fix a b c d :: 'a
+    assume neq: "b \<noteq> 0"  "d \<noteq> 0"
+    assume 1: "Fract a b \<le> Fract c d" and 2: "Fract c d \<le> Fract a b"
+    show "Fract a b = Fract c d"
+    proof -
+      from neq 1 have "(a * d) * (b * d) \<le> (c * b) * (b * d)"
+        by simp
+      also have "... \<le> (a * d) * (b * d)"
+      proof -
+        from neq 2 have "(c * b) * (d * b) \<le> (a * d) * (d * b)"
+          by simp
+        thus ?thesis by (simp only: mult_ac)
+      qed
+      finally have "(a * d) * (b * d) = (c * b) * (b * d)" .
+      moreover from neq have "b * d \<noteq> 0" by simp
+      ultimately have "a * d = c * b" by simp
+      with neq show ?thesis by (simp add: eq_fract)
+    qed
+  qed
+next
+  fix q r :: "'a fract"
+  show "q \<le> q"
+    by (induct q) simp
+  show "(q < r) = (q \<le> r \<and> \<not> r \<le> q)"
+    by (simp only: less_fract_def)
+  show "q \<le> r \<or> r \<le> q"
+    by (induct q, induct r)
+       (simp add: mult_commute, rule linorder_linear)
+qed
+
+end
+
+instantiation fract :: (linordered_idom) "{distrib_lattice, abs_if, sgn_if}"
+begin
+
+definition
+  abs_fract_def: "\<bar>q\<bar> = (if q < 0 then -q else (q::'a fract))"
+
+definition
+  sgn_fract_def:
+    "sgn (q::'a fract) = (if q=0 then 0 else if 0<q then 1 else - 1)"
+
+theorem abs_fract [simp]: "\<bar>Fract a b\<bar> = Fract \<bar>a\<bar> \<bar>b\<bar>"
+  by (auto simp add: abs_fract_def Zero_fract_def le_less
+      eq_fract zero_less_mult_iff mult_less_0_iff split: abs_split)
+
+definition
+  inf_fract_def:
+    "(inf \<Colon> 'a fract \<Rightarrow> 'a fract \<Rightarrow> 'a fract) = min"
+
+definition
+  sup_fract_def:
+    "(sup \<Colon> 'a fract \<Rightarrow> 'a fract \<Rightarrow> 'a fract) = max"
+
+instance by intro_classes
+  (auto simp add: abs_fract_def sgn_fract_def
+    min_max.sup_inf_distrib1 inf_fract_def sup_fract_def)
+
+end
+
+instance fract :: (linordered_idom) linordered_field
+proof
+  fix q r s :: "'a fract"
+  show "q \<le> r ==> s + q \<le> s + r"
+  proof (induct q, induct r, induct s)
+    fix a b c d e f :: 'a
+    assume neq: "b \<noteq> 0"  "d \<noteq> 0"  "f \<noteq> 0"
+    assume le: "Fract a b \<le> Fract c d"
+    show "Fract e f + Fract a b \<le> Fract e f + Fract c d"
+    proof -
+      let ?F = "f * f" from neq have F: "0 < ?F"
+        by (auto simp add: zero_less_mult_iff)
+      from neq le have "(a * d) * (b * d) \<le> (c * b) * (b * d)"
+        by simp
+      with F have "(a * d) * (b * d) * ?F * ?F \<le> (c * b) * (b * d) * ?F * ?F"
+        by (simp add: mult_le_cancel_right)
+      with neq show ?thesis by (simp add: ring_simps)
+    qed
+  qed
+  show "q < r ==> 0 < s ==> s * q < s * r"
+  proof (induct q, induct r, induct s)
+    fix a b c d e f :: 'a
+    assume neq: "b \<noteq> 0"  "d \<noteq> 0"  "f \<noteq> 0"
+    assume le: "Fract a b < Fract c d"
+    assume gt: "0 < Fract e f"
+    show "Fract e f * Fract a b < Fract e f * Fract c d"
+    proof -
+      let ?E = "e * f" and ?F = "f * f"
+      from neq gt have "0 < ?E"
+        by (auto simp add: Zero_fract_def order_less_le eq_fract)
+      moreover from neq have "0 < ?F"
+        by (auto simp add: zero_less_mult_iff)
+      moreover from neq le have "(a * d) * (b * d) < (c * b) * (b * d)"
+        by simp
+      ultimately have "(a * d) * (b * d) * ?E * ?F < (c * b) * (b * d) * ?E * ?F"
+        by (simp add: mult_less_cancel_right)
+      with neq show ?thesis
+        by (simp add: mult_ac)
+    qed
+  qed
+qed
+
+lemma fract_induct_pos [case_names Fract]:
+  fixes P :: "'a::linordered_idom fract \<Rightarrow> bool"
+  assumes step: "\<And>a b. 0 < b \<Longrightarrow> P (Fract a b)"
+  shows "P q"
+proof (cases q)
+  have step': "\<And>a b. b < 0 \<Longrightarrow> P (Fract a b)"
+  proof -
+    fix a::'a and b::'a
+    assume b: "b < 0"
+    hence "0 < -b" by simp
+    hence "P (Fract (-a) (-b))" by (rule step)
+    thus "P (Fract a b)" by (simp add: order_less_imp_not_eq [OF b])
+  qed
+  case (Fract a b)
+  thus "P q" by (force simp add: linorder_neq_iff step step')
+qed
+
+lemma zero_less_Fract_iff:
+  "0 < b \<Longrightarrow> 0 < Fract a b \<longleftrightarrow> 0 < a"
+  by (auto simp add: Zero_fract_def zero_less_mult_iff)
+
+lemma Fract_less_zero_iff:
+  "0 < b \<Longrightarrow> Fract a b < 0 \<longleftrightarrow> a < 0"
+  by (auto simp add: Zero_fract_def mult_less_0_iff)
+
+lemma zero_le_Fract_iff:
+  "0 < b \<Longrightarrow> 0 \<le> Fract a b \<longleftrightarrow> 0 \<le> a"
+  by (auto simp add: Zero_fract_def zero_le_mult_iff)
+
+lemma Fract_le_zero_iff:
+  "0 < b \<Longrightarrow> Fract a b \<le> 0 \<longleftrightarrow> a \<le> 0"
+  by (auto simp add: Zero_fract_def mult_le_0_iff)
+
+lemma one_less_Fract_iff:
+  "0 < b \<Longrightarrow> 1 < Fract a b \<longleftrightarrow> b < a"
+  by (auto simp add: One_fract_def mult_less_cancel_right_disj)
+
+lemma Fract_less_one_iff:
+  "0 < b \<Longrightarrow> Fract a b < 1 \<longleftrightarrow> a < b"
+  by (auto simp add: One_fract_def mult_less_cancel_right_disj)
+
+lemma one_le_Fract_iff:
+  "0 < b \<Longrightarrow> 1 \<le> Fract a b \<longleftrightarrow> b \<le> a"
+  by (auto simp add: One_fract_def mult_le_cancel_right)
+
+lemma Fract_le_one_iff:
+  "0 < b \<Longrightarrow> Fract a b \<le> 1 \<longleftrightarrow> a \<le> b"
+  by (auto simp add: One_fract_def mult_le_cancel_right)
+
 end
