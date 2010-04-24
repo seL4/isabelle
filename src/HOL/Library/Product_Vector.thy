@@ -49,21 +49,37 @@ definition open_prod_def:
   "open (S :: ('a \<times> 'b) set) \<longleftrightarrow>
     (\<forall>x\<in>S. \<exists>A B. open A \<and> open B \<and> x \<in> A \<times> B \<and> A \<times> B \<subseteq> S)"
 
+lemma open_prod_elim:
+  assumes "open S" and "x \<in> S"
+  obtains A B where "open A" and "open B" and "x \<in> A \<times> B" and "A \<times> B \<subseteq> S"
+using assms unfolding open_prod_def by fast
+
+lemma open_prod_intro:
+  assumes "\<And>x. x \<in> S \<Longrightarrow> \<exists>A B. open A \<and> open B \<and> x \<in> A \<times> B \<and> A \<times> B \<subseteq> S"
+  shows "open S"
+using assms unfolding open_prod_def by fast
+
 instance proof
   show "open (UNIV :: ('a \<times> 'b) set)"
     unfolding open_prod_def by auto
 next
   fix S T :: "('a \<times> 'b) set"
-  assume "open S" "open T" thus "open (S \<inter> T)"
-    unfolding open_prod_def
-    apply clarify
-    apply (drule (1) bspec)+
-    apply (clarify, rename_tac Sa Ta Sb Tb)
-    apply (rule_tac x="Sa \<inter> Ta" in exI)
-    apply (rule_tac x="Sb \<inter> Tb" in exI)
-    apply (simp add: open_Int)
-    apply fast
-    done
+  assume "open S" "open T"
+  show "open (S \<inter> T)"
+  proof (rule open_prod_intro)
+    fix x assume x: "x \<in> S \<inter> T"
+    from x have "x \<in> S" by simp
+    obtain Sa Sb where A: "open Sa" "open Sb" "x \<in> Sa \<times> Sb" "Sa \<times> Sb \<subseteq> S"
+      using `open S` and `x \<in> S` by (rule open_prod_elim)
+    from x have "x \<in> T" by simp
+    obtain Ta Tb where B: "open Ta" "open Tb" "x \<in> Ta \<times> Tb" "Ta \<times> Tb \<subseteq> T"
+      using `open T` and `x \<in> T` by (rule open_prod_elim)
+    let ?A = "Sa \<inter> Ta" and ?B = "Sb \<inter> Tb"
+    have "open ?A \<and> open ?B \<and> x \<in> ?A \<times> ?B \<and> ?A \<times> ?B \<subseteq> S \<inter> T"
+      using A B by (auto simp add: open_Int)
+    thus "\<exists>A B. open A \<and> open B \<and> x \<in> A \<times> B \<and> A \<times> B \<subseteq> S \<inter> T"
+      by fast
+  qed
 next
   fix K :: "('a \<times> 'b) set set"
   assume "\<forall>S\<in>K. open S" thus "open (\<Union>K)"
@@ -151,6 +167,12 @@ definition dist_prod_def:
 lemma dist_Pair_Pair: "dist (a, b) (c, d) = sqrt ((dist a c)\<twosuperior> + (dist b d)\<twosuperior>)"
   unfolding dist_prod_def by simp
 
+lemma dist_fst_le: "dist (fst x) (fst y) \<le> dist x y"
+unfolding dist_prod_def by (rule real_sqrt_sum_squares_ge1)
+
+lemma dist_snd_le: "dist (snd x) (snd y) \<le> dist x y"
+unfolding dist_prod_def by (rule real_sqrt_sum_squares_ge2)
+
 instance proof
   fix x y :: "'a \<times> 'b"
   show "dist x y = 0 \<longleftrightarrow> x = y"
@@ -168,23 +190,32 @@ next
   fix S :: "('a \<times> 'b) set"
   show "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
   proof
-    assume "open S" thus "\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S"
-    unfolding open_prod_def open_dist
-    apply safe
-    apply (drule (1) bspec)
-    apply clarify
-    apply (drule (1) bspec)+
-    apply (clarify, rename_tac r s)
-    apply (rule_tac x="min r s" in exI, simp)
-    apply (clarify, rename_tac c d)
-    apply (erule subsetD)
-    apply (simp add: dist_Pair_Pair)
-    apply (rule conjI)
-    apply (drule spec, erule mp)
-    apply (erule le_less_trans [OF real_sqrt_sum_squares_ge1])
-    apply (drule spec, erule mp)
-    apply (erule le_less_trans [OF real_sqrt_sum_squares_ge2])
-    done
+    assume "open S" show "\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S"
+    proof
+      fix x assume "x \<in> S"
+      obtain A B where "open A" "open B" "x \<in> A \<times> B" "A \<times> B \<subseteq> S"
+        using `open S` and `x \<in> S` by (rule open_prod_elim)
+      obtain r where r: "0 < r" "\<forall>y. dist y (fst x) < r \<longrightarrow> y \<in> A"
+        using `open A` and `x \<in> A \<times> B` unfolding open_dist by auto
+      obtain s where s: "0 < s" "\<forall>y. dist y (snd x) < s \<longrightarrow> y \<in> B"
+        using `open B` and `x \<in> A \<times> B` unfolding open_dist by auto
+      let ?e = "min r s"
+      have "0 < ?e \<and> (\<forall>y. dist y x < ?e \<longrightarrow> y \<in> S)"
+      proof (intro allI impI conjI)
+        show "0 < min r s" by (simp add: r(1) s(1))
+      next
+        fix y assume "dist y x < min r s"
+        hence "dist y x < r" and "dist y x < s"
+          by simp_all
+        hence "dist (fst y) (fst x) < r" and "dist (snd y) (snd x) < s"
+          by (auto intro: le_less_trans dist_fst_le dist_snd_le)
+        hence "fst y \<in> A" and "snd y \<in> B"
+          by (simp_all add: r(2) s(2))
+        hence "y \<in> A \<times> B" by (induct y, simp)
+        with `A \<times> B \<subseteq> S` show "y \<in> S" ..
+      qed
+      thus "\<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S" ..
+    qed
   next
     assume "\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S" thus "open S"
     unfolding open_prod_def open_dist
@@ -222,12 +253,6 @@ qed
 end
 
 subsection {* Continuity of operations *}
-
-lemma dist_fst_le: "dist (fst x) (fst y) \<le> dist x y"
-unfolding dist_prod_def by simp
-
-lemma dist_snd_le: "dist (snd x) (snd y) \<le> dist x y"
-unfolding dist_prod_def by simp
 
 lemma tendsto_fst [tendsto_intros]:
   assumes "(f ---> a) net"
