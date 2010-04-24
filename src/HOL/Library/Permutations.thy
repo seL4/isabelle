@@ -5,7 +5,7 @@
 header {* Permutations, both general and specifically on finite sets.*}
 
 theory Permutations
-imports Finite_Cartesian_Product Parity Fact
+imports Parity Fact
 begin
 
 definition permutes (infixr "permutes" 41) where
