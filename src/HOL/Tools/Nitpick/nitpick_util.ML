@@ -85,24 +85,18 @@ exception SAME of unit
 
 val nitpick_prefix = "Nitpick."
 
-(* ('a * 'b * 'c -> 'd) -> 'a -> 'b -> 'c -> 'd *)
 fun curry3 f = fn x => fn y => fn z => f (x, y, z)
 
 fun pairf f g x = (f x, g x)
 
-(* (bool -> 'a) -> 'a * 'a *)
 fun pair_from_fun f = (f false, f true)
-(* 'a * 'a -> bool -> 'a *)
 fun fun_from_pair (f, t) b = if b then t else f
 
-(* bool -> int *)
 fun int_from_bool b = if b then 1 else 0
-(* int -> int -> int *)
 fun nat_minus i j = if i > j then i - j else 0
 
 val max_exponent = 16384
 
-(* int -> int -> int *)
 fun reasonable_power _ 0 = 1
   | reasonable_power a 1 = a
   | reasonable_power 0 _ = 0
@@ -119,7 +113,6 @@ fun reasonable_power _ 0 = 1
         c * c * reasonable_power a (b mod 2)
       end
 
-(* int -> int -> int *)
 fun exact_log m n =
   let
     val r = Math.ln (Real.fromInt n) / Math.ln (Real.fromInt m) |> Real.round
@@ -131,7 +124,6 @@ fun exact_log m n =
                  commas (map signed_string_of_int [m, n]))
   end
 
-(* int -> int -> int *)
 fun exact_root m n =
   let val r = Math.pow (Real.fromInt n, 1.0 / (Real.fromInt m)) |> Real.round in
     if reasonable_power r m = n then
@@ -141,22 +133,16 @@ fun exact_root m n =
                  commas (map signed_string_of_int [m, n]))
   end
 
-(* ('a -> 'a -> 'a) -> 'a list -> 'a *)
 fun fold1 f = foldl1 (uncurry f)
 
-(* int -> 'a list -> 'a list *)
 fun replicate_list 0 _ = []
   | replicate_list n xs = xs @ replicate_list (n - 1) xs
 
-(* int list -> int list *)
 fun offset_list ns = rev (tl (fold (fn x => fn xs => (x + hd xs) :: xs) ns [0]))
-(* int -> int -> int list *)
 fun index_seq j0 n = if j0 < 0 then j0 downto j0 - n + 1 else j0 upto j0 + n - 1
 
-(* int list -> 'a list -> 'a list *)
 fun filter_indices js xs =
   let
-    (* int -> int list -> 'a list -> 'a list *)
     fun aux _ [] _ = []
       | aux i (j :: js) (x :: xs) =
         if i = j then x :: aux (i + 1) js xs else aux (i + 1) (j :: js) xs
@@ -165,7 +151,6 @@ fun filter_indices js xs =
   in aux 0 js xs end
 fun filter_out_indices js xs =
   let
-    (* int -> int list -> 'a list -> 'a list *)
     fun aux _ [] xs = xs
       | aux i (j :: js) (x :: xs) =
         if i = j then aux (i + 1) js xs else x :: aux (i + 1) (j :: js) xs
@@ -173,86 +158,66 @@ fun filter_out_indices js xs =
                                "indices unordered or out of range")
   in aux 0 js xs end
 
-(* 'a list -> 'a list list -> 'a list list *)
 fun cartesian_product [] _ = []
   | cartesian_product (x :: xs) yss =
     map (cons x) yss @ cartesian_product xs yss
-(* 'a list list -> 'a list list *)
 fun n_fold_cartesian_product xss = fold_rev cartesian_product xss [[]]
-(* ''a list -> (''a * ''a) list *)
 fun all_distinct_unordered_pairs_of [] = []
   | all_distinct_unordered_pairs_of (x :: xs) =
     map (pair x) xs @ all_distinct_unordered_pairs_of xs
 
-(* (int * int) list -> int -> int list *)
 val nth_combination =
   let
-    (* (int * int) list -> int -> int list * int *)
     fun aux [] n = ([], n)
       | aux ((k, j0) :: xs) n =
         let val (js, n) = aux xs n in ((n mod k) + j0 :: js, n div k) end
   in fst oo aux end
 
-(* (int * int) list -> int list list *)
 val all_combinations = n_fold_cartesian_product o map (uncurry index_seq o swap)
 
-(* 'a list -> 'a list list *)
 fun all_permutations [] = [[]]
   | all_permutations xs =
     maps (fn j => map (cons (nth xs j)) (all_permutations (nth_drop j xs)))
          (index_seq 0 (length xs))
 
-(* int -> 'a list -> 'a list list *)
 fun batch_list _ [] = []
   | batch_list k xs =
     if length xs <= k then [xs]
     else List.take (xs, k) :: batch_list k (List.drop (xs, k))
 
-(* int list -> 'a list -> 'a list list *)
 fun chunk_list_unevenly _ [] = []
   | chunk_list_unevenly [] ys = map single ys
   | chunk_list_unevenly (k :: ks) ys =
     let val (ys1, ys2) = chop k ys in ys1 :: chunk_list_unevenly ks ys2 end
 
-(* ('a -> 'b -> 'c -> 'd) -> 'a list -> 'b list -> 'c list -> 'd list *)
 fun map3 _ [] [] [] = []
   | map3 f (x :: xs) (y :: ys) (z :: zs) = f x y z :: map3 f xs ys zs
   | map3 _ _ _ _ = raise UnequalLengths
 
-(* ('a * 'a -> bool) -> ('a option * 'b) list -> 'a -> 'b option *)
 fun double_lookup eq ps key =
   case AList.lookup (fn (SOME x, SOME y) => eq (x, y) | _ => false) ps
                     (SOME key) of
     SOME z => SOME z
   | NONE => ps |> find_first (is_none o fst) |> Option.map snd
-(* (''a * ''a -> bool) -> (''a option * 'b) list -> ''a -> 'b option *)
 fun triple_lookup _ [(NONE, z)] _ = SOME z
   | triple_lookup eq ps key =
     case AList.lookup (op =) ps (SOME key) of
       SOME z => SOME z
     | NONE => double_lookup eq ps key
 
-(* string -> string -> bool *)
 fun is_substring_of needle stack =
   not (Substring.isEmpty (snd (Substring.position needle
                                                   (Substring.full stack))))
 
-(* int -> string *)
 val plural_s = Sledgehammer_Util.plural_s
-(* 'a list -> string *)
 fun plural_s_for_list xs = plural_s (length xs)
 
-(* string -> string list -> string list *)
 val serial_commas = Sledgehammer_Util.serial_commas
 
-(* unit -> string *)
 val timestamp = Sledgehammer_Util.timestamp
-(* bool -> string -> string -> bool option *)
 val parse_bool_option = Sledgehammer_Util.parse_bool_option
-(* string -> string -> Time.time option *)
 val parse_time_option = Sledgehammer_Util.parse_time_option
 
-(* polarity -> polarity *)
 fun flip_polarity Pos = Neg
   | flip_polarity Neg = Pos
   | flip_polarity Neut = Neut
@@ -262,42 +227,32 @@ val bool_T = @{typ bool}
 val nat_T = @{typ nat}
 val int_T = @{typ int}
 
-(* string -> string *)
 val subscript = implode o map (prefix "\<^isub>") o explode
-(* int -> string *)
 fun nat_subscript n =
   (* cheap trick to ensure proper alphanumeric ordering for one- and two-digit
      numbers *)
   if n <= 9 then "\<^bsub>" ^ signed_string_of_int n ^ "\<^esub>"
   else subscript (string_of_int n)
 
-(* Time.time option -> ('a -> 'b) -> 'a -> 'b *)
 fun time_limit NONE = I
   | time_limit (SOME delay) = TimeLimit.timeLimit delay
 
-(* Time.time option -> tactic -> tactic *)
 fun DETERM_TIMEOUT delay tac st =
   Seq.of_list (the_list (time_limit delay (fn () => SINGLE tac st) ()))
 
-(* ('a -> 'b) -> 'a -> 'b *)
 fun setmp_show_all_types f =
   setmp_CRITICAL show_all_types
                  (! show_types orelse ! show_sorts orelse ! show_all_types) f
 
 val indent_size = 2
 
-(* string -> Pretty.T list *)
 val pstrs = Pretty.breaks o map Pretty.str o space_explode " "
 
-(* XML.tree -> string *)
 fun plain_string_from_xml_tree t =
   Buffer.empty |> XML.add_content t |> Buffer.content
-(* string -> string *)
 val unyxml = plain_string_from_xml_tree o YXML.parse
 
-(* string -> bool *)
 val is_long_identifier = forall Syntax.is_identifier o space_explode "."
-(* string -> string *)
 fun maybe_quote y =
   let val s = unyxml y in
     y |> ((not (is_long_identifier (perhaps (try (unprefix "'")) s)) andalso
@@ -308,11 +263,8 @@ fun maybe_quote y =
 (* This hash function is recommended in Compilers: Principles, Techniques, and
    Tools, by Aho, Sethi and Ullman. The hashpjw function, which they
    particularly recommend, triggers a bug in versions of Poly/ML up to 4.2.0. *)
-(* word * word -> word *)
 fun hashw (u, w) = Word.+ (u, Word.* (0w65599, w))
-(* Char.char * word -> word *)
 fun hashw_char (c, w) = hashw (Word.fromInt (Char.ord c), w)
-(* string * word -> word *)
 fun hashw_string (s:string, w) = CharVector.foldl hashw_char w s
 
 end;

@@ -21,7 +21,6 @@ open Nitpick_Util
 open Nitpick_HOL
 open Nitpick_Mono
 
-(* polarity -> string -> bool *)
 fun is_positive_existential polar quant_s =
   (polar = Pos andalso quant_s = @{const_name Ex}) orelse
   (polar = Neg andalso quant_s <> @{const_name Ex})
@@ -33,10 +32,8 @@ fun is_positive_existential polar quant_s =
    binary coding. *)
 val binary_int_threshold = 3
 
-(* bool -> term -> bool *)
 val may_use_binary_ints =
   let
-    (* bool -> term -> bool *)
     fun aux def (Const (@{const_name "=="}, _) $ t1 $ t2) =
         aux def t1 andalso aux false t2
       | aux def (@{const "==>"} $ t1 $ t2) = aux false t1 andalso aux def t2
@@ -52,10 +49,8 @@ val may_use_binary_ints =
       | aux def (Abs (_, _, t')) = aux def t'
       | aux _ _ = true
   in aux end
-(* term -> bool *)
 val should_use_binary_ints =
   let
-    (* term -> bool *)
     fun aux (t1 $ t2) = aux t1 orelse aux t2
       | aux (Const (s, T)) =
         ((s = @{const_name times} orelse s = @{const_name div}) andalso
@@ -70,10 +65,8 @@ val should_use_binary_ints =
 
 (** Uncurrying **)
 
-(* theory -> term -> int Termtab.tab -> int Termtab.tab *)
 fun add_to_uncurry_table thy t =
   let
-    (* term -> term list -> int Termtab.tab -> int Termtab.tab *)
     fun aux (t1 $ t2) args table =
         let val table = aux t2 [] table in aux t1 (t2 :: args) table end
       | aux (Abs (_, _, t')) _ table = aux t' [] table
@@ -87,14 +80,11 @@ fun add_to_uncurry_table thy t =
       | aux _ _ table = table
   in aux t [] end
 
-(* int -> int -> string *)
 fun uncurry_prefix_for k j =
   uncurry_prefix ^ string_of_int k ^ "@" ^ string_of_int j ^ name_sep
 
-(* int Termtab.tab term -> term *)
 fun uncurry_term table t =
   let
-    (* term -> term list -> term *)
     fun aux (t1 $ t2) args = aux t1 (aux t2 [] :: args)
       | aux (Abs (s, T, t')) args = betapplys (Abs (s, T, aux t' []), args)
       | aux (t as Const (s, T)) args =
@@ -131,17 +121,14 @@ fun uncurry_term table t =
 
 (** Boxing **)
 
-(* hol_context -> bool -> term -> term *)
 fun box_fun_and_pair_in_term (hol_ctxt as {thy, stds, fast_descrs, ...}) def
                              orig_t =
   let
-    (* typ -> typ *)
     fun box_relational_operator_type (Type (@{type_name fun}, Ts)) =
         Type (@{type_name fun}, map box_relational_operator_type Ts)
       | box_relational_operator_type (Type (@{type_name "*"}, Ts)) =
         Type (@{type_name "*"}, map (box_type hol_ctxt InPair) Ts)
       | box_relational_operator_type T = T
-    (* indexname * typ -> typ * term -> typ option list -> typ option list *)
     fun add_boxed_types_for_var (z as (_, T)) (T', t') =
       case t' of
         Var z' => z' = z ? insert (op =) T'
@@ -152,7 +139,6 @@ fun box_fun_and_pair_in_term (hol_ctxt as {thy, stds, fast_descrs, ...}) def
          | _ => raise TYPE ("Nitpick_Preproc.box_fun_and_pair_in_term.\
                             \add_boxed_types_for_var", [T'], []))
       | _ => exists_subterm (curry (op =) (Var z)) t' ? insert (op =) T
-    (* typ list -> typ list -> term -> indexname * typ -> typ *)
     fun box_var_in_def new_Ts old_Ts t (z as (_, T)) =
       case t of
         @{const Trueprop} $ t1 => box_var_in_def new_Ts old_Ts t1 z
@@ -170,8 +156,6 @@ fun box_fun_and_pair_in_term (hol_ctxt as {thy, stds, fast_descrs, ...}) def
         else
           T
       | _ => T
-    (* typ list -> typ list -> polarity -> string -> typ -> string -> typ
-       -> term -> term *)
     and do_quantifier new_Ts old_Ts polar quant_s quant_T abs_s abs_T t =
       let
         val abs_T' =
@@ -185,7 +169,6 @@ fun box_fun_and_pair_in_term (hol_ctxt as {thy, stds, fast_descrs, ...}) def
         $ Abs (abs_s, abs_T',
                t |> do_term (abs_T' :: new_Ts) (abs_T :: old_Ts) polar)
       end
-    (* typ list -> typ list -> string -> typ -> term -> term -> term *)
     and do_equals new_Ts old_Ts s0 T0 t1 t2 =
       let
         val (t1, t2) = pairself (do_term new_Ts old_Ts Neut) (t1, t2)
@@ -195,12 +178,10 @@ fun box_fun_and_pair_in_term (hol_ctxt as {thy, stds, fast_descrs, ...}) def
         list_comb (Const (s0, T --> T --> body_type T0),
                    map2 (coerce_term hol_ctxt new_Ts T) [T1, T2] [t1, t2])
       end
-    (* string -> typ -> term *)
     and do_description_operator s T =
       let val T1 = box_type hol_ctxt InFunLHS (range_type T) in
         Const (s, (T1 --> bool_T) --> T1)
       end
-    (* typ list -> typ list -> polarity -> term -> term *)
     and do_term new_Ts old_Ts polar t =
       case t of
         Const (s0 as @{const_name all}, T0) $ Abs (s1, T1, t1) =>
@@ -302,21 +283,16 @@ fun box_fun_and_pair_in_term (hol_ctxt as {thy, stds, fast_descrs, ...}) def
 
 val val_var_prefix = nitpick_prefix ^ "v"
 
-(* typ list -> int -> int -> int -> term -> term *)
 fun fresh_value_var Ts k n j t =
   Var ((val_var_prefix ^ nat_subscript (n - j), k), fastype_of1 (Ts, t))
 
-(* typ list -> term -> bool *)
 fun has_heavy_bounds_or_vars Ts t =
   let
-    (* typ list -> bool *)
     fun aux [] = false
       | aux [T] = is_fun_type T orelse is_pair_type T
       | aux _ = true
   in aux (map snd (Term.add_vars t []) @ map (nth Ts) (loose_bnos t)) end
 
-(* hol_context -> typ list -> bool -> int -> int -> term -> term list
-   -> term list -> term * term list *)
 fun pull_out_constr_comb ({thy, stds, ...} : hol_context) Ts relax k level t
                          args seen =
   let val t_comb = list_comb (t, args) in
@@ -336,18 +312,15 @@ fun pull_out_constr_comb ({thy, stds, ...} : hol_context) Ts relax k level t
     | _ => (t_comb, seen)
   end
 
-(* (term -> term) -> typ list -> int -> term list -> term list *)
 fun equations_for_pulled_out_constrs mk_eq Ts k seen =
   let val n = length seen in
     map2 (fn j => fn t => mk_eq (fresh_value_var Ts k n j t, t))
          (index_seq 0 n) seen
   end
 
-(* hol_context -> bool -> term -> term *)
 fun pull_out_universal_constrs hol_ctxt def t =
   let
     val k = maxidx_of_term t + 1
-    (* typ list -> bool -> term -> term list -> term list -> term * term list *)
     fun do_term Ts def t args seen =
       case t of
         (t0 as Const (@{const_name "=="}, _)) $ t1 $ t2 =>
@@ -367,8 +340,6 @@ fun pull_out_universal_constrs hol_ctxt def t =
           do_term Ts def t1 (t2 :: args) seen
         end
       | _ => pull_out_constr_comb hol_ctxt Ts def k 0 t args seen
-    (* typ list -> bool -> bool -> term -> term -> term -> term list
-       -> term * term list *)
     and do_eq_or_imp Ts eq def t0 t1 t2 seen =
       let
         val (t2, seen) = if eq andalso def then (t2, seen)
@@ -381,22 +352,18 @@ fun pull_out_universal_constrs hol_ctxt def t =
                                                          seen, concl)
   end
 
-(* term -> term -> term *)
 fun mk_exists v t =
   HOLogic.exists_const (fastype_of v) $ lambda v (incr_boundvars 1 t)
 
-(* hol_context -> term -> term *)
 fun pull_out_existential_constrs hol_ctxt t =
   let
     val k = maxidx_of_term t + 1
-    (* typ list -> int -> term -> term list -> term list -> term * term list *)
     fun aux Ts num_exists t args seen =
       case t of
         (t0 as Const (@{const_name Ex}, _)) $ Abs (s1, T1, t1) =>
         let
           val (t1, seen') = aux (T1 :: Ts) (num_exists + 1) t1 [] []
           val n = length seen'
-          (* unit -> term list *)
           fun vars () = map2 (fresh_value_var Ts k n) (index_seq 0 n) seen'
         in
           (equations_for_pulled_out_constrs HOLogic.mk_eq Ts k seen'
@@ -421,7 +388,6 @@ fun pull_out_existential_constrs hol_ctxt t =
 val let_var_prefix = nitpick_prefix ^ "l"
 val let_inline_threshold = 32
 
-(* int -> typ -> term -> (term -> term) -> term *)
 fun hol_let n abs_T body_T f t =
   if n * size_of_term t <= let_inline_threshold then
     f t
@@ -431,14 +397,11 @@ fun hol_let n abs_T body_T f t =
       $ t $ abs_var z (incr_boundvars 1 (f (Var z)))
     end
 
-(* hol_context -> bool -> term -> term *)
 fun destroy_pulled_out_constrs (hol_ctxt as {thy, stds, ...}) axiom t =
   let
-    (* styp -> int *)
     val num_occs_of_var =
       fold_aterms (fn Var z => (fn f => fn z' => f z' |> z = z' ? Integer.add 1)
                     | _ => I) t (K 0)
-    (* bool -> term -> term *)
     fun aux careful ((t0 as Const (@{const_name "=="}, _)) $ t1 $ t2) =
         aux_eq careful true t0 t1 t2
       | aux careful ((t0 as @{const "==>"}) $ t1 $ t2) =
@@ -450,7 +413,6 @@ fun destroy_pulled_out_constrs (hol_ctxt as {thy, stds, ...}) axiom t =
       | aux careful (Abs (s, T, t')) = Abs (s, T, aux careful t')
       | aux careful (t1 $ t2) = aux careful t1 $ aux careful t2
       | aux _ t = t
-    (* bool -> bool -> term -> term -> term -> term *)
     and aux_eq careful pass1 t0 t1 t2 =
       ((if careful then
           raise SAME ()
@@ -485,7 +447,6 @@ fun destroy_pulled_out_constrs (hol_ctxt as {thy, stds, ...}) axiom t =
        |> body_type (type_of t0) = prop_T ? HOLogic.mk_Trueprop)
       handle SAME () => if pass1 then aux_eq careful false t0 t2 t1
                         else t0 $ aux false t2 $ aux false t1
-    (* styp -> term -> int -> typ -> term -> term *)
     and sel_eq x t n nth_T nth_t =
       HOLogic.eq_const nth_T $ nth_t
                              $ select_nth_constr_arg thy stds x t n nth_T
@@ -494,7 +455,6 @@ fun destroy_pulled_out_constrs (hol_ctxt as {thy, stds, ...}) axiom t =
 
 (** Destruction of universal and existential equalities **)
 
-(* term -> term *)
 fun curry_assms (@{const "==>"} $ (@{const Trueprop}
                                    $ (@{const "op &"} $ t1 $ t2)) $ t3) =
     curry_assms (Logic.list_implies ([t1, t2] |> map HOLogic.mk_Trueprop, t3))
@@ -502,15 +462,12 @@ fun curry_assms (@{const "==>"} $ (@{const Trueprop}
     @{const "==>"} $ curry_assms t1 $ curry_assms t2
   | curry_assms t = t
 
-(* term -> term *)
 val destroy_universal_equalities =
   let
-    (* term list -> (indexname * typ) list -> term -> term *)
     fun aux prems zs t =
       case t of
         @{const "==>"} $ t1 $ t2 => aux_implies prems zs t1 t2
       | _ => Logic.list_implies (rev prems, t)
-    (* term list -> (indexname * typ) list -> term -> term -> term *)
     and aux_implies prems zs t1 t2 =
       case t1 of
         Const (@{const_name "=="}, _) $ Var z $ t' => aux_eq prems zs z t' t1 t2
@@ -519,8 +476,6 @@ val destroy_universal_equalities =
       | @{const Trueprop} $ (Const (@{const_name "op ="}, _) $ t' $ Var z) =>
         aux_eq prems zs z t' t1 t2
       | _ => aux (t1 :: prems) (Term.add_vars t1 zs) t2
-    (* term list -> (indexname * typ) list -> indexname * typ -> term -> term
-       -> term -> term *)
     and aux_eq prems zs z t' t1 t2 =
       if not (member (op =) zs z) andalso
          not (exists_subterm (curry (op =) (Var z)) t') then
@@ -529,15 +484,11 @@ val destroy_universal_equalities =
         aux (t1 :: prems) (Term.add_vars t1 zs) t2
   in aux [] [] end
 
-(* theory -> (typ option * bool) list -> int -> term list -> term list
-   -> (term * term list) option *)
 fun find_bound_assign thy stds j =
   let
-    (* term list -> term list -> (term * term list) option *)
     fun do_term _ [] = NONE
       | do_term seen (t :: ts) =
         let
-          (* bool -> term -> term -> (term * term list) option *)
           fun do_eq pass1 t1 t2 =
             (if loose_bvar1 (t2, j) then
                if pass1 then do_eq false t2 t1 else raise SAME ()
@@ -559,10 +510,8 @@ fun find_bound_assign thy stds j =
         end
   in do_term end
 
-(* int -> term -> term -> term *)
 fun subst_one_bound j arg t =
   let
-    (* term * int -> term *)
     fun aux (Bound i, lev) =
         if i < lev then raise SAME ()
         else if i = lev then incr_boundvars (lev - j) arg
@@ -574,10 +523,8 @@ fun subst_one_bound j arg t =
       | aux _ = raise SAME ()
   in aux (t, j) handle SAME () => t end
 
-(* hol_context -> term -> term *)
 fun destroy_existential_equalities ({thy, stds, ...} : hol_context) =
   let
-    (* string list -> typ list -> term list -> term *)
     fun kill [] [] ts = foldr1 s_conj ts
       | kill (s :: ss) (T :: Ts) ts =
         (case find_bound_assign thy stds (length ss) [] ts of
@@ -589,7 +536,6 @@ fun destroy_existential_equalities ({thy, stds, ...} : hol_context) =
            Const (@{const_name Ex}, (T --> bool_T) --> bool_T)
            $ Abs (s, T, kill ss Ts ts))
       | kill _ _ _ = raise UnequalLengths
-    (* string list -> typ list -> term -> term *)
     fun gather ss Ts (Const (@{const_name Ex}, _) $ Abs (s1, T1, t1)) =
         gather (ss @ [s1]) (Ts @ [T1]) t1
       | gather [] [] (Abs (s, T, t1)) = Abs (s, T, gather [] [] t1)
@@ -600,20 +546,15 @@ fun destroy_existential_equalities ({thy, stds, ...} : hol_context) =
 
 (** Skolemization **)
 
-(* int -> int -> string *)
 fun skolem_prefix_for k j =
   skolem_prefix ^ string_of_int k ^ "@" ^ string_of_int j ^ name_sep
 
-(* hol_context -> int -> term -> term *)
 fun skolemize_term_and_more (hol_ctxt as {thy, def_table, skolems, ...})
                             skolem_depth =
   let
-    (* int list -> int list *)
     val incrs = map (Integer.add 1)
-    (* string list -> typ list -> int list -> int -> polarity -> term -> term *)
     fun aux ss Ts js depth polar t =
       let
-        (* string -> typ -> string -> typ -> term -> term *)
         fun do_quantifier quant_s quant_T abs_s abs_T t =
           if not (loose_bvar1 (t, 0)) then
             aux ss Ts js depth polar (incr_boundvars ~1 t)
@@ -679,7 +620,6 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_table, skolems, ...})
                 else
                   (ubfp_prefix, @{const "op &"},
                    @{const_name semilattice_inf_class.inf})
-              (* unit -> term *)
               fun pos () = unrolled_inductive_pred_const hol_ctxt gfp x
                            |> aux ss Ts js depth polar
               fun neg () = Const (pref ^ s, T)
@@ -693,7 +633,6 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_table, skolems, ...})
                      val ((trunk_arg_Ts, rump_arg_T), body_T) =
                        T |> strip_type |>> split_last
                      val set_T = rump_arg_T --> body_T
-                     (* (unit -> term) -> term *)
                      fun app f =
                        list_comb (f (),
                                   map Bound (length trunk_arg_Ts - 1 downto 0))
@@ -717,21 +656,18 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_table, skolems, ...})
 
 (** Function specialization **)
 
-(* term -> term list *)
 fun params_in_equation (@{const "==>"} $ _ $ t2) = params_in_equation t2
   | params_in_equation (@{const Trueprop} $ t1) = params_in_equation t1
   | params_in_equation (Const (@{const_name "op ="}, _) $ t1 $ _) =
     snd (strip_comb t1)
   | params_in_equation _ = []
 
-(* styp -> styp -> int list -> term list -> term list -> term -> term *)
 fun specialize_fun_axiom x x' fixed_js fixed_args extra_args t =
   let
     val k = fold Integer.max (map maxidx_of_term (fixed_args @ extra_args)) 0
             + 1
     val t = map_aterms (fn Var ((s, i), T) => Var ((s, k + i), T) | t' => t') t
     val fixed_params = filter_indices fixed_js (params_in_equation t)
-    (* term list -> term -> term *)
     fun aux args (Abs (s, T, t)) = list_comb (Abs (s, T, aux [] t), args)
       | aux args (t1 $ t2) = aux (aux [] t2 :: args) t1
       | aux args t =
@@ -743,10 +679,8 @@ fun specialize_fun_axiom x x' fixed_js fixed_args extra_args t =
           end
   in aux [] t end
 
-(* hol_context -> styp -> (int * term option) list *)
 fun static_args_in_term ({ersatz_table, ...} : hol_context) x t =
   let
-    (* term -> term list -> term list -> term list list *)
     fun fun_calls (Abs (_, _, t)) _ = fun_calls t []
       | fun_calls (t1 $ t2) args = fun_calls t2 [] #> fun_calls t1 (t2 :: args)
       | fun_calls t args =
@@ -756,7 +690,6 @@ fun static_args_in_term ({ersatz_table, ...} : hol_context) x t =
                             SOME s'' => x = (s'', T')
                           | NONE => false)
          | _ => false) ? cons args
-    (* term list list -> term list list -> term list -> term list list *)
     fun call_sets [] [] vs = [vs]
       | call_sets [] uss vs = vs :: call_sets uss [] []
       | call_sets ([] :: _) _ _ = []
@@ -773,12 +706,10 @@ fun static_args_in_term ({ersatz_table, ...} : hol_context) x t =
                  | [t as Free _] => cons (j, SOME t)
                  | _ => I) indexed_sets []
   end
-(* hol_context -> styp -> term list -> (int * term option) list *)
 fun static_args_in_terms hol_ctxt x =
   map (static_args_in_term hol_ctxt x)
   #> fold1 (OrdList.inter (prod_ord int_ord (option_ord Term_Ord.term_ord)))
 
-(* (int * term option) list -> (int * term) list -> int list *)
 fun overlapping_indices [] _ = []
   | overlapping_indices _ [] = []
   | overlapping_indices (ps1 as (j1, t1) :: ps1') (ps2 as (j2, t2) :: ps2') =
@@ -786,7 +717,6 @@ fun overlapping_indices [] _ = []
     else if j1 > j2 then overlapping_indices ps1 ps2'
     else overlapping_indices ps1' ps2' |> the_default t2 t1 = t2 ? cons j1
 
-(* typ list -> term -> bool *)
 fun is_eligible_arg Ts t =
   let val bad_Ts = map snd (Term.add_vars t []) @ map (nth Ts) (loose_bnos t) in
     null bad_Ts orelse
@@ -794,7 +724,6 @@ fun is_eligible_arg Ts t =
      forall (not o is_higher_order_type) bad_Ts)
   end
 
-(* int -> string *)
 fun special_prefix_for j = special_prefix ^ string_of_int j ^ name_sep
 
 (* If a constant's definition is picked up deeper than this threshold, we
@@ -803,7 +732,6 @@ val special_max_depth = 20
 
 val bound_var_prefix = "b"
 
-(* hol_context -> int -> term -> term *)
 fun specialize_consts_in_term (hol_ctxt as {specialize, simp_table,
                                             special_funs, ...}) depth t =
   if not specialize orelse depth > special_max_depth then
@@ -812,7 +740,6 @@ fun specialize_consts_in_term (hol_ctxt as {specialize, simp_table,
     let
       val blacklist = if depth = 0 then []
                       else case term_under_def t of Const x => [x] | _ => []
-      (* term list -> typ list -> term -> term *)
       fun aux args Ts (Const (x as (s, T))) =
           ((if not (member (op =) blacklist x) andalso not (null args) andalso
                not (String.isPrefix special_prefix s) andalso
@@ -836,7 +763,6 @@ fun specialize_consts_in_term (hol_ctxt as {specialize, simp_table,
                 val extra_args = map Var vars @ map Bound bound_js @ live_args
                 val extra_Ts = map snd vars @ filter_indices bound_js Ts
                 val k = maxidx_of_term t + 1
-                (* int -> term *)
                 fun var_for_bound_no j =
                   Var ((bound_var_prefix ^
                         nat_subscript (find_index (curry (op =) j) bound_js
@@ -880,7 +806,6 @@ type special_triple = int list * term list * styp
 
 val cong_var_prefix = "c"
 
-(* typ -> special_triple -> special_triple -> term *)
 fun special_congruence_axiom T (js1, ts1, x1) (js2, ts2, x2) =
   let
     val (bounds1, bounds2) = pairself (map Var o special_bounds) (ts1, ts2)
@@ -905,7 +830,6 @@ fun special_congruence_axiom T (js1, ts1, x1) (js2, ts2, x2) =
     |> close_form (* TODO: needed? *)
   end
 
-(* hol_context -> styp list -> term list *)
 fun special_congruence_axioms (hol_ctxt as {special_funs, ...}) xs =
   let
     val groups =
@@ -914,14 +838,10 @@ fun special_congruence_axioms (hol_ctxt as {special_funs, ...}) xs =
       |> AList.group (op =)
       |> filter_out (is_equational_fun_surely_complete hol_ctxt o fst)
       |> map (fn (x, zs) => (x, zs |> member (op =) xs x ? cons ([], [], x)))
-    (* special_triple -> int *)
     fun generality (js, _, _) = ~(length js)
-    (* special_triple -> special_triple -> bool *)
     fun is_more_specific (j1, t1, x1) (j2, t2, x2) =
       x1 <> x2 andalso OrdList.subset (prod_ord int_ord Term_Ord.term_ord)
                                       (j2 ~~ t2, j1 ~~ t1)
-    (* typ -> special_triple list -> special_triple list -> special_triple list
-       -> term list -> term list *)
     fun do_pass_1 _ [] [_] [_] = I
       | do_pass_1 T skipped _ [] = do_pass_2 T skipped
       | do_pass_1 T skipped all (z :: zs) =
@@ -930,7 +850,6 @@ fun special_congruence_axioms (hol_ctxt as {special_funs, ...}) xs =
           [] => do_pass_1 T (z :: skipped) all zs
         | (z' :: _) => cons (special_congruence_axiom T z z')
                        #> do_pass_1 T skipped all zs
-    (* typ -> special_triple list -> term list -> term list *)
     and do_pass_2 _ [] = I
       | do_pass_2 T (z :: zs) =
         fold (cons o special_congruence_axiom T z) zs #> do_pass_2 T zs
@@ -938,32 +857,23 @@ fun special_congruence_axioms (hol_ctxt as {special_funs, ...}) xs =
 
 (** Axiom selection **)
 
-(* 'a Symtab.table -> 'a list *)
 fun all_table_entries table = Symtab.fold (append o snd) table []
-(* const_table -> string -> const_table *)
 fun extra_table table s = Symtab.make [(s, all_table_entries table)]
 
-(* int -> term -> term *)
 fun eval_axiom_for_term j t =
   Logic.mk_equals (Const (eval_prefix ^ string_of_int j, fastype_of t), t)
 
-(* term -> bool *)
 val is_trivial_equation = the_default false o try (op aconv o Logic.dest_equals)
 
 (* Prevents divergence in case of cyclic or infinite axiom dependencies. *)
 val axioms_max_depth = 255
 
-(* hol_context -> term -> term list * term list * bool * bool *)
 fun axioms_for_term
         (hol_ctxt as {thy, ctxt, max_bisim_depth, stds, user_axioms,
                       fast_descrs, evals, def_table, nondef_table,
                       choice_spec_table, user_nondefs, ...}) t =
   let
     type accumulator = styp list * (term list * term list)
-    (* (term list * term list -> term list)
-       -> ((term list -> term list) -> term list * term list
-           -> term list * term list)
-       -> int -> term -> accumulator -> accumulator *)
     fun add_axiom get app depth t (accum as (xs, axs)) =
       let
         val t = t |> unfold_defs_in_term hol_ctxt
@@ -977,7 +887,6 @@ fun axioms_for_term
             else add_axioms_for_term (depth + 1) t' (xs, app (cons t') axs)
           end
       end
-    (* int -> term -> accumulator -> accumulator *)
     and add_def_axiom depth = add_axiom fst apfst depth
     and add_nondef_axiom depth = add_axiom snd apsnd depth
     and add_maybe_def_axiom depth t =
@@ -986,7 +895,6 @@ fun axioms_for_term
     and add_eq_axiom depth t =
       (if is_constr_pattern_formula thy t then add_def_axiom
        else add_nondef_axiom) depth t
-    (* int -> term -> accumulator -> accumulator *)
     and add_axioms_for_term depth t (accum as (xs, axs)) =
       case t of
         t1 $ t2 => accum |> fold (add_axioms_for_term depth) [t1, t2]
@@ -1058,7 +966,6 @@ fun axioms_for_term
       | Bound _ => accum
       | Abs (_, T, t) => accum |> add_axioms_for_term depth t
                                |> add_axioms_for_type depth T
-    (* int -> typ -> accumulator -> accumulator *)
     and add_axioms_for_type depth T =
       case T of
         Type (@{type_name fun}, Ts) => fold (add_axioms_for_type depth) Ts
@@ -1080,7 +987,6 @@ fun axioms_for_term
                    (codatatype_bisim_axioms hol_ctxt T)
             else
               I)
-    (* int -> typ -> sort -> accumulator -> accumulator *)
     and add_axioms_for_sort depth T S =
       let
         val supers = Sign.complete_sort thy S
@@ -1112,15 +1018,12 @@ fun axioms_for_term
 
 (** Simplification of constructor/selector terms **)
 
-(* theory -> term -> term *)
 fun simplify_constrs_and_sels thy t =
   let
-    (* term -> int -> term *)
     fun is_nth_sel_on t' n (Const (s, _) $ t) =
         (t = t' andalso is_sel_like_and_no_discr s andalso
          sel_no_from_name s = n)
       | is_nth_sel_on _ _ _ = false
-    (* term -> term list -> term *)
     fun do_term (Const (@{const_name Rep_Frac}, _)
                  $ (Const (@{const_name Abs_Frac}, _) $ t1)) [] = do_term t1 []
       | do_term (Const (@{const_name Abs_Frac}, _)
@@ -1160,7 +1063,6 @@ fun simplify_constrs_and_sels thy t =
 
 (** Quantifier massaging: Distributing quantifiers **)
 
-(* term -> term *)
 fun distribute_quantifiers t =
   case t of
     (t0 as Const (@{const_name All}, T0)) $ Abs (s, T1, t1) =>
@@ -1199,7 +1101,6 @@ fun distribute_quantifiers t =
 
 (** Quantifier massaging: Pushing quantifiers inward **)
 
-(* int -> int -> (int -> int) -> term -> term *)
 fun renumber_bounds j n f t =
   case t of
     t1 $ t2 => renumber_bounds j n f t1 $ renumber_bounds j n f t2
@@ -1214,10 +1115,8 @@ fun renumber_bounds j n f t =
    paper). *)
 val quantifier_cluster_threshold = 7
 
-(* term -> term *)
 val push_quantifiers_inward =
   let
-    (* string -> string list -> typ list -> term -> term *)
     fun aux quant_s ss Ts t =
       (case t of
          Const (s0, _) $ Abs (s1, T1, t1 as _ $ _) =>
@@ -1237,7 +1136,6 @@ val push_quantifiers_inward =
                else
                  let
                    val typical_card = 4
-                   (* ('a -> ''b list) -> 'a list -> ''b list *)
                    fun big_union proj ps =
                      fold (fold (insert (op =)) o proj) ps []
                    val (ts, connective) = strip_any_connective t
@@ -1245,11 +1143,8 @@ val push_quantifiers_inward =
                      map (bounded_card_of_type 65536 typical_card []) Ts
                    val t_costs = map size_of_term ts
                    val num_Ts = length Ts
-                   (* int -> int *)
                    val flip = curry (op -) (num_Ts - 1)
                    val t_boundss = map (map flip o loose_bnos) ts
-                   (* (int list * int) list -> int list
-                      -> (int list * int) list *)
                    fun merge costly_boundss [] = costly_boundss
                      | merge costly_boundss (j :: js) =
                        let
@@ -1261,9 +1156,7 @@ val push_quantifiers_inward =
                          val yeas_cost = Integer.sum (map snd yeas)
                                          * nth T_costs j
                        in merge ((yeas_bounds, yeas_cost) :: nays) js end
-                   (* (int list * int) list -> int list -> int *)
                    val cost = Integer.sum o map snd oo merge
-                   (* (int list * int) list -> int list -> int list *)
                    fun heuristically_best_permutation _ [] = []
                      | heuristically_best_permutation costly_boundss js =
                        let
@@ -1287,14 +1180,12 @@ val push_quantifiers_inward =
                                      (index_seq 0 num_Ts)
                    val ts = map (renumber_bounds 0 num_Ts (nth back_js o flip))
                                 ts
-                   (* (term * int list) list -> term *)
                    fun mk_connection [] =
                        raise ARG ("Nitpick_Preproc.push_quantifiers_inward.aux.\
                                   \mk_connection", "")
                      | mk_connection ts_cum_bounds =
                        ts_cum_bounds |> map fst
                        |> foldr1 (fn (t1, t2) => connective $ t1 $ t2)
-                   (* (term * int list) list -> int list -> term *)
                    fun build ts_cum_bounds [] = ts_cum_bounds |> mk_connection
                      | build ts_cum_bounds (j :: js) =
                        let
@@ -1321,9 +1212,6 @@ val push_quantifiers_inward =
 
 (** Inference of finite functions **)
 
-(* hol_context -> bool -> (typ option * bool option) list
-   -> (typ option * bool option) list -> term list * term list
-   -> term list * term list *)
 fun finitize_all_types_of_funs (hol_ctxt as {thy, ...}) binarize finitizes monos
                                (nondef_ts, def_ts) =
   let
@@ -1338,9 +1226,6 @@ fun finitize_all_types_of_funs (hol_ctxt as {thy, ...}) binarize finitizes monos
 
 (** Preprocessor entry point **)
 
-(* hol_context -> (typ option * bool option) list
-   -> (typ option * bool option) list -> term
-   -> term list * term list * bool * bool * bool *)
 fun preprocess_term (hol_ctxt as {thy, stds, binary_ints, destroy_constrs,
                                   boxes, skolemize, uncurry, ...})
                     finitizes monos t =
@@ -1365,7 +1250,6 @@ fun preprocess_term (hol_ctxt as {thy, stds, binary_ints, destroy_constrs,
     val table =
       Termtab.empty
       |> uncurry ? fold (add_to_uncurry_table thy) (nondef_ts @ def_ts)
-    (* bool -> term -> term *)
     fun do_rest def =
       binarize ? binarize_nat_and_int_in_term
       #> uncurry ? uncurry_term table

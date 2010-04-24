@@ -141,7 +141,6 @@ type problem_extension = {
 
 type rich_problem = KK.problem * problem_extension
 
-(* Proof.context -> string -> term list -> Pretty.T list *)
 fun pretties_for_formulas _ _ [] = []
   | pretties_for_formulas ctxt s ts =
     [Pretty.str (s ^ plural_s_for_list ts ^ ":"),
@@ -152,10 +151,8 @@ fun pretties_for_formulas _ _ [] = []
                                  Pretty.str (if j = 1 then "." else ";")])
                (length ts downto 1) ts))]
 
-(* unit -> string *)
 fun install_java_message () =
   "Nitpick requires a Java 1.5 virtual machine called \"java\"."
-(* unit -> string *)
 fun install_kodkodi_message () =
   "Nitpick requires the external Java program Kodkodi. To install it, download \
   \the package from Isabelle's web page and add the \"kodkodi-x.y.z\" \
@@ -167,35 +164,27 @@ fun install_kodkodi_message () =
 val max_unsound_delay_ms = 200
 val max_unsound_delay_percent = 2
 
-(* Time.time option -> int *)
 fun unsound_delay_for_timeout NONE = max_unsound_delay_ms
   | unsound_delay_for_timeout (SOME timeout) =
     Int.max (0, Int.min (max_unsound_delay_ms,
                          Time.toMilliseconds timeout
                          * max_unsound_delay_percent div 100))
 
-(* Time.time option -> bool *)
 fun passed_deadline NONE = false
   | passed_deadline (SOME time) = Time.compare (Time.now (), time) <> LESS
 
-(* ('a * bool option) list -> bool *)
 fun none_true assigns = forall (not_equal (SOME true) o snd) assigns
 
 val syntactic_sorts =
   @{sort "{default,zero,one,plus,minus,uminus,times,inverse,abs,sgn,ord,eq}"} @
   @{sort number}
-(* typ -> bool *)
 fun has_tfree_syntactic_sort (TFree (_, S as _ :: _)) =
     subset (op =) (S, syntactic_sorts)
   | has_tfree_syntactic_sort _ = false
-(* term -> bool *)
 val has_syntactic_sorts = exists_type (exists_subtype has_tfree_syntactic_sort)
 
-(* (unit -> string) -> Pretty.T *)
 fun plazy f = Pretty.blk (0, pstrs (f ()))
 
-(* Time.time -> Proof.state -> params -> bool -> int -> int -> int
-   -> (term * term) list -> term list -> term -> string * Proof.state *)
 fun pick_them_nits_in_term deadline state (params : params) auto i n step
                            subst orig_assm_ts orig_t =
   let
@@ -218,7 +207,6 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
          check_genuine, batch_size, ...} =
       params
     val state_ref = Unsynchronized.ref state
-    (* Pretty.T -> unit *)
     val pprint =
       if auto then
         Unsynchronized.change state_ref o Proof.goal_message o K
@@ -227,22 +215,17 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       else
         (fn s => (priority s; if debug then tracing s else ()))
         o Pretty.string_of
-    (* (unit -> Pretty.T) -> unit *)
     fun pprint_m f = () |> not auto ? pprint o f
     fun pprint_v f = () |> verbose ? pprint o f
     fun pprint_d f = () |> debug ? pprint o f
-    (* string -> unit *)
     val print = pprint o curry Pretty.blk 0 o pstrs
     val print_g = pprint o Pretty.str
-    (* (unit -> string) -> unit *)
     val print_m = pprint_m o K o plazy
     val print_v = pprint_v o K o plazy
 
-    (* unit -> unit *)
     fun check_deadline () =
       if debug andalso passed_deadline deadline then raise TimeLimit.TimeOut
       else ()
-    (* unit -> 'a *)
     fun do_interrupted () =
       if passed_deadline deadline then raise TimeLimit.TimeOut
       else raise Interrupt
@@ -307,7 +290,6 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val got_all_user_axioms =
       got_all_mono_user_axioms andalso no_poly_user_axioms
 
-    (* styp * (bool * bool) -> unit *)
     fun print_wf (x, (gfp, wf)) =
       pprint (Pretty.blk (0,
           pstrs ("The " ^ (if gfp then "co" else "") ^ "inductive predicate \"")
@@ -344,7 +326,6 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
 *)
 
     val unique_scope = forall (curry (op =) 1 o length o snd) cards_assigns
-    (* typ list -> string -> string *)
     fun monotonicity_message Ts extra =
       let val ss = map (quote o string_for_type ctxt) Ts in
         "The type" ^ plural_s_for_list ss ^ " " ^
@@ -355,7 +336,6 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
            (if length ss = 1 then "is" else "are") ^ " considered monotonic") ^
         ". " ^ extra
       end
-    (* typ -> bool *)
     fun is_type_fundamentally_monotonic T =
       (is_datatype thy stds T andalso not (is_quot_type thy T) andalso
        (not (is_pure_typedef thy T) orelse is_univ_typedef thy T)) orelse
@@ -416,7 +396,6 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         ()
     (* This detection code is an ugly hack. Fortunately, it is used only to
        provide a hint to the user. *)
-    (* string * (Rule_Cases.T * bool) -> bool *)
     fun is_struct_induct_step (name, (Rule_Cases.Case {fixes, assumes, ...}, _)) =
       not (null fixes) andalso
       exists (String.isSuffix ".hyps" o fst) assumes andalso
@@ -464,7 +443,6 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
 
     val too_big_scopes = Unsynchronized.ref []
 
-    (* bool -> scope -> rich_problem option *)
     fun problem_for_scope unsound
             (scope as {card_assigns, bits, bisim_depth, datatypes, ofs, ...}) =
       let
@@ -480,7 +458,6 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                          (Typtab.dest ofs)
 *)
         val all_exact = forall (is_exact_type datatypes true) all_Ts
-        (* nut list -> rep NameTable.table -> nut list * rep NameTable.table *)
         val repify_consts = choose_reps_for_consts scope all_exact
         val main_j0 = offset_of_type ofs bool_T
         val (nat_card, nat_j0) = spec_of_type scope nat_T
@@ -604,15 +581,12 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val checked_problems = Unsynchronized.ref (SOME [])
     val met_potential = Unsynchronized.ref 0
 
-    (* rich_problem list -> int list -> unit *)
     fun update_checked_problems problems =
       List.app (Unsynchronized.change checked_problems o Option.map o cons
                 o nth problems)
-    (* string -> unit *)
     fun show_kodkod_warning "" = ()
       | show_kodkod_warning s = print_m (fn () => "Kodkod warning: " ^ s ^ ".")
 
-    (* bool -> KK.raw_bound list -> problem_extension -> bool * bool option *)
     fun print_and_check_model genuine bounds
             ({free_names, sel_names, nonsel_names, rel_table, scope, ...}
              : problem_extension) =
@@ -719,14 +693,11 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
              NONE)
         |> pair genuine_means_genuine
       end
-    (* bool * int * int * int -> bool -> rich_problem list
-       -> bool * int * int * int *)
     fun solve_any_problem (found_really_genuine, max_potential, max_genuine,
                            donno) first_time problems =
       let
         val max_potential = Int.max (0, max_potential)
         val max_genuine = Int.max (0, max_genuine)
-        (* bool -> int * KK.raw_bound list -> bool * bool option *)
         fun print_and_check genuine (j, bounds) =
           print_and_check_model genuine bounds (snd (nth problems j))
         val max_solutions = max_potential + max_genuine
@@ -826,8 +797,6 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
              (found_really_genuine, max_potential, max_genuine, donno + 1))
       end
 
-    (* int -> int -> scope list -> bool * int * int * int
-       -> bool * int * int * int *)
     fun run_batch j n scopes (found_really_genuine, max_potential, max_genuine,
                               donno) =
       let
@@ -855,8 +824,6 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                           (length scopes downto 1) scopes))])
           else
             ()
-        (* scope * bool -> rich_problem list * bool
-           -> rich_problem list * bool *)
         fun add_problem_for_scope (scope, unsound) (problems, donno) =
           (check_deadline ();
            case problem_for_scope unsound scope of
@@ -902,13 +869,10 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                            donno) true (rev problems)
       end
 
-    (* rich_problem list -> scope -> int *)
     fun scope_count (problems : rich_problem list) scope =
       length (filter (curry scopes_equivalent scope o #scope o snd) problems)
-    (* string -> string *)
     fun excipit did_so_and_so =
       let
-        (* rich_problem list -> rich_problem list *)
         val do_filter =
           if !met_potential = max_potential then filter_out (#unsound o snd)
           else I
@@ -930,7 +894,6 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
            "") ^ "."
       end
 
-    (* int -> int -> scope list -> bool * int * int * int -> KK.outcome *)
     fun run_batches _ _ []
                     (found_really_genuine, max_potential, max_genuine, donno) =
         if donno > 0 andalso max_genuine > 0 then
@@ -996,8 +959,6 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
            else
              error "Nitpick was interrupted."
 
-(* Proof.state -> params -> bool -> int -> int -> int -> (term * term) list
-   -> term list -> term -> string * Proof.state *)
 fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) auto i n
                       step subst orig_assm_ts orig_t =
   if getenv "KODKODI" = "" then
@@ -1016,12 +977,10 @@ fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) auto i n
       else error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
     end
 
-(* string list -> term -> bool *)
 fun is_fixed_equation fixes
                       (Const (@{const_name "=="}, _) $ Free (s, _) $ Const _) =
     member (op =) fixes s
   | is_fixed_equation _ _ = false
-(* Proof.context -> term list * term -> (term * term) list * term list * term *)
 fun extract_fixed_frees ctxt (assms, t) =
   let
     val fixes = Variable.fixes_of ctxt |> map snd
@@ -1030,7 +989,6 @@ fun extract_fixed_frees ctxt (assms, t) =
       |>> map Logic.dest_equals
   in (subst, other_assms, subst_atomic subst t) end
 
-(* Proof.state -> params -> bool -> int -> int -> string * Proof.state *)
 fun pick_nits_in_subgoal state params auto i step =
   let
     val ctxt = Proof.context_of state

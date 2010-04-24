@@ -125,40 +125,31 @@ val gcd_rel = (3, 10)
 val lcm_rel = (3, 11)
 val norm_frac_rel = (4, 0)
 
-(* int -> bool -> rel_expr *)
 fun atom_for_bool j0 = Atom o Integer.add j0 o int_from_bool
-(* bool -> formula *)
 fun formula_for_bool b = if b then True else False
 
-(* int * int -> int -> int *)
 fun atom_for_nat (k, j0) n = if n < 0 orelse n >= k then ~1 else n + j0
-(* int -> int *)
 fun min_int_for_card k = ~k div 2 + 1
 fun max_int_for_card k = k div 2
-(* int * int -> int -> int *)
 fun int_for_atom (k, j0) j =
   let val j = j - j0 in if j <= max_int_for_card k then j else j - k end
 fun atom_for_int (k, j0) n =
   if n < min_int_for_card k orelse n > max_int_for_card k then ~1
   else if n < 0 then n + k + j0
   else n + j0
-(* int -> int -> bool *)
 fun is_twos_complement_representable bits n =
   let val max = reasonable_power 2 bits in n >= ~ max andalso n < max end
 
-(* rel_expr -> bool *)
 fun is_none_product (Product (r1, r2)) =
     is_none_product r1 orelse is_none_product r2
   | is_none_product None = true
   | is_none_product _ = false
 
-(* rel_expr -> bool *)
 fun is_one_rel_expr (Atom _) = true
   | is_one_rel_expr (AtomSeq (1, _)) = true
   | is_one_rel_expr (Var _) = true
   | is_one_rel_expr _ = false
 
-(* rel_expr -> bool *)
 fun inline_rel_expr (Product (r1, r2)) =
     inline_rel_expr r1 andalso inline_rel_expr r2
   | inline_rel_expr Iden = true
@@ -172,7 +163,6 @@ fun inline_rel_expr (Product (r1, r2)) =
   | inline_rel_expr (RelReg _) = true
   | inline_rel_expr _ = false
 
-(* rel_expr -> rel_expr -> bool option *)
 fun rel_expr_equal None (Atom _) = SOME false
   | rel_expr_equal None (AtomSeq (k, _)) = SOME (k = 0)
   | rel_expr_equal (Atom _) None = SOME false
@@ -183,7 +173,6 @@ fun rel_expr_equal None (Atom _) = SOME false
   | rel_expr_equal (AtomSeq x1) (AtomSeq x2) = SOME (x1 = x2)
   | rel_expr_equal r1 r2 = if r1 = r2 then SOME true else NONE
 
-(* rel_expr -> rel_expr -> bool option *)
 fun rel_expr_intersects (Atom j1) (Atom j2) = SOME (j1 = j2)
   | rel_expr_intersects (Atom j) (AtomSeq (k, j0)) = SOME (j < j0 + k)
   | rel_expr_intersects (AtomSeq (k, j0)) (Atom j) = SOME (j < j0 + k)
@@ -192,30 +181,23 @@ fun rel_expr_intersects (Atom j1) (Atom j2) = SOME (j1 = j2)
   | rel_expr_intersects r1 r2 =
     if is_none_product r1 orelse is_none_product r2 then SOME false else NONE
 
-(* int -> rel_expr *)
 fun empty_n_ary_rel 0 = raise ARG ("Nitpick_Peephole.empty_n_ary_rel", "0")
   | empty_n_ary_rel n = funpow (n - 1) (curry Product None) None
 
-(* decl -> rel_expr *)
 fun decl_one_set (DeclOne (_, r)) = r
   | decl_one_set _ =
     raise ARG ("Nitpick_Peephole.decl_one_set", "not \"DeclOne\"")
 
-(* int_expr -> bool *)
 fun is_Num (Num _) = true
   | is_Num _ = false
-(* int_expr -> int *)
 fun dest_Num (Num k) = k
   | dest_Num _ = raise ARG ("Nitpick_Peephole.dest_Num", "not \"Num\"")
-(* int -> int -> int_expr list *)
 fun num_seq j0 n = map Num (index_seq j0 n)
 
-(* rel_expr -> rel_expr -> bool *)
 fun occurs_in_union r (Union (r1, r2)) =
     occurs_in_union r r1 orelse occurs_in_union r r2
   | occurs_in_union r r' = (r = r')
 
-(* rel_expr -> rel_expr -> rel_expr *)
 fun s_and True f2 = f2
   | s_and False _ = False
   | s_and f1 True = f1
@@ -258,18 +240,13 @@ type kodkod_constrs = {
 
 (* We assume throughout that Kodkod variables have a "one" constraint. This is
    always the case if Kodkod's skolemization is disabled. *)
-(* bool -> int -> int -> int -> kodkod_constrs *)
 fun kodkod_constrs optim nat_card int_card main_j0 =
   let
-    (* bool -> int *)
     val from_bool = atom_for_bool main_j0
-    (* int -> rel_expr *)
     fun from_nat n = Atom (n + main_j0)
-    (* int -> int *)
     fun to_nat j = j - main_j0
     val to_int = int_for_atom (int_card, main_j0)
 
-    (* decl list -> formula -> formula *)
     fun s_all _ True = True
       | s_all _ False = False
       | s_all [] f = f
@@ -281,12 +258,10 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
       | s_exist ds (Exist (ds', f)) = Exist (ds @ ds', f)
       | s_exist ds f = Exist (ds, f)
 
-    (* expr_assign list -> formula -> formula *)
     fun s_formula_let _ True = True
       | s_formula_let _ False = False
       | s_formula_let assigns f = FormulaLet (assigns, f)
 
-    (* formula -> formula *)
     fun s_not True = False
       | s_not False = True
       | s_not (All (ds, f)) = Exist (ds, s_not f)
@@ -299,7 +274,6 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
       | s_not (Some r) = No r
       | s_not f = Not f
 
-    (* formula -> formula -> formula *)
     fun s_or True _ = True
       | s_or False f2 = f2
       | s_or _ True = True
@@ -316,7 +290,6 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
       | s_implies f1 False = s_not f1
       | s_implies f1 f2 = if f1 = f2 then True else Implies (f1, f2)
 
-    (* formula -> formula -> formula -> formula *)
     fun s_formula_if True f2 _ = f2
       | s_formula_if False _ f3 = f3
       | s_formula_if f1 True f3 = s_or f1 f3
@@ -325,7 +298,6 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
       | s_formula_if f1 f2 False = s_and f1 f2
       | s_formula_if f f1 f2 = FormulaIf (f, f1, f2)
 
-    (* rel_expr -> int_expr list -> rel_expr *)
     fun s_project r is =
       (case r of
          Project (r1, is') =>
@@ -340,7 +312,6 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
                else Project (r, is)
              end
 
-    (* (rel_expr -> formula) -> rel_expr -> formula *)
     fun s_xone xone r =
       if is_one_rel_expr r then
         True
@@ -348,7 +319,6 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
         1 => xone r
       | arity => foldl1 And (map (xone o s_project r o single o Num)
                                  (index_seq 0 arity))
-    (* rel_expr -> formula *)
     fun s_no None = True
       | s_no (Product (r1, r2)) = s_or (s_no r1) (s_no r2)
       | s_no (Intersect (Closure (Rel x), Iden)) = Acyclic x
@@ -362,13 +332,11 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
       | s_some (Product (r1, r2)) = s_and (s_some r1) (s_some r2)
       | s_some r = if is_one_rel_expr r then True else Some r
 
-    (* rel_expr -> rel_expr *)
     fun s_not3 (Atom j) = Atom (if j = main_j0 then j + 1 else j - 1)
       | s_not3 (r as Join (r1, r2)) =
         if r2 = Rel not3_rel then r1 else Join (r, Rel not3_rel)
       | s_not3 r = Join (r, Rel not3_rel)
 
-    (* rel_expr -> rel_expr -> formula *)
     fun s_rel_eq r1 r2 =
       (case (r1, r2) of
          (Join (r11, Rel x), _) =>
@@ -427,12 +395,10 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
         else if forall is_one_rel_expr [r1, r2] then s_rel_eq r1 r2
         else Subset (r1, r2)
 
-    (* expr_assign list -> rel_expr -> rel_expr *)
     fun s_rel_let [b as AssignRelReg (x', r')] (r as RelReg x) =
         if x = x' then r' else RelLet ([b], r)
       | s_rel_let bs r = RelLet (bs, r)
 
-    (* formula -> rel_expr -> rel_expr -> rel_expr *)
     fun s_rel_if f r1 r2 =
       (case (f, r1, r2) of
          (True, _, _) => r1
@@ -443,7 +409,6 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
        | _ => raise SAME ())
       handle SAME () => if r1 = r2 then r1 else RelIf (f, r1, r2)
 
-    (* rel_expr -> rel_expr -> rel_expr *)
     fun s_union r1 (Union (r21, r22)) = s_union (s_union r1 r21) r22
       | s_union r1 r2 =
         if is_none_product r1 then r2
@@ -561,14 +526,12 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
          handle SAME () => List.foldr Join r22 [r1, r21])
       | s_join r1 r2 = Join (r1, r2)
 
-    (* rel_expr -> rel_expr *)
     fun s_closure Iden = Iden
       | s_closure r = if is_none_product r then r else Closure r
     fun s_reflexive_closure Iden = Iden
       | s_reflexive_closure r =
         if is_none_product r then Iden else ReflexiveClosure r
 
-    (* decl list -> formula -> rel_expr *)
     fun s_comprehension ds False = empty_n_ary_rel (length ds)
       | s_comprehension ds True = fold1 s_product (map decl_one_set ds)
       | s_comprehension [d as DeclOne ((1, j1), r)]
@@ -579,10 +542,8 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
           Comprehension ([d], f)
       | s_comprehension ds f = Comprehension (ds, f)
 
-    (* rel_expr -> int -> int -> rel_expr *)
     fun s_project_seq r =
       let
-        (* int -> rel_expr -> int -> int -> rel_expr *)
         fun aux arity r j0 n =
           if j0 = 0 andalso arity = n then
             r
@@ -595,7 +556,6 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
               val arity1 = arity - arity2
               val n1 = Int.min (nat_minus arity1 j0, n)
               val n2 = n - n1
-              (* unit -> rel_expr *)
               fun one () = aux arity1 r1 j0 n1
               fun two () = aux arity2 r2 (nat_minus j0 arity1) n2
             in
@@ -607,17 +567,13 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
           | _ => s_project r (num_seq j0 n)
       in aux (arity_of_rel_expr r) r end
 
-    (* rel_expr -> rel_expr -> rel_expr *)
     fun s_nat_less (Atom j1) (Atom j2) = from_bool (j1 < j2)
       | s_nat_less r1 r2 = fold s_join [r1, r2] (Rel nat_less_rel)
     fun s_int_less (Atom j1) (Atom j2) = from_bool (to_int j1 < to_int j2)
       | s_int_less r1 r2 = fold s_join [r1, r2] (Rel int_less_rel)
 
-    (* rel_expr -> int -> int -> rel_expr *)
     fun d_project_seq r j0 n = Project (r, num_seq j0 n)
-    (* rel_expr -> rel_expr *)
     fun d_not3 r = Join (r, Rel not3_rel)
-    (* rel_expr -> rel_expr -> rel_expr *)
     fun d_nat_less r1 r2 = List.foldl Join (Rel nat_less_rel) [r1, r2]
     fun d_int_less r1 r2 = List.foldl Join (Rel int_less_rel) [r1, r2]
   in
