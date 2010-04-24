@@ -91,7 +91,7 @@ lemma has_derivative_within_open:
   "a \<in> s \<Longrightarrow> open s \<Longrightarrow> ((f has_derivative f') (at a within s) \<longleftrightarrow> (f has_derivative f') (at a))"
   unfolding has_derivative_within has_derivative_at using Lim_within_open by auto
 
-subsection {* Derivatives on real = Derivatives on real^1 *}
+subsection {* Derivatives on real = Derivatives on @{typ "real^1"} *}
 
 lemma dist_vec1_0[simp]: "dist(vec1 (x::real)) 0 = norm x" unfolding vector_dist_norm by(auto simp add:vec1_dest_vec1_simps)
 
@@ -626,7 +626,7 @@ lemma differential_zero_maxmin_component: fixes f::"real^'a \<Rightarrow> real^'
     unfolding abs_mult diff_minus_eq_add scaleR.minus_left unfolding group_simps by (auto intro: mult_pos_pos)
 qed
 
-subsection {* In particular if we have a mapping into R^1. *}
+subsection {* In particular if we have a mapping into @{typ "real^1"}. *}
 
 lemma differential_zero_maxmin: fixes f::"real^'a \<Rightarrow> real"
   assumes "x \<in> s" "open s" "(f has_derivative f') (at x)"
@@ -1212,7 +1212,7 @@ lemma has_derivative_bilinear_at: fixes h::"real^'m \<Rightarrow> real^'n \<Righ
   shows "((\<lambda>x. h (f x) (g x)) has_derivative (\<lambda>d. h (f x) (g' d) + h (f' d) (g x))) (at x)"
   using has_derivative_bilinear_within[of f f' x UNIV g g' h] unfolding within_UNIV using assms by auto
 
-subsection {* Considering derivative R(^1)->R^n as a vector. *}
+subsection {* Considering derivative @{typ "real^1 \<Rightarrow> real^'n"} as a vector. *}
 
 definition has_vector_derivative :: "(real \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> ('b) \<Rightarrow> (real net \<Rightarrow> bool)"
 (infixl "has'_vector'_derivative" 12) where

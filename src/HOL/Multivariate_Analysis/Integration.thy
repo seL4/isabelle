@@ -2181,7 +2181,7 @@ lemma additive_content_tagged_division:
   unfolding operative_tagged_division[OF monoidal_monoid operative_content assms,THEN sym]
   apply(subst setsum_iterate) using assms by auto
 
-subsection {* Finally, the integral of a constant\<forall> *}
+subsection {* Finally, the integral of a constant *}
 
 lemma has_integral_const[intro]:
   "((\<lambda>x. c) has_integral (content({a..b::real^'n}) *\<^sub>R c)) ({a..b})"

@@ -114,7 +114,7 @@ begin
   instance by (intro_classes)
 end
 
-text{* The ordering on real^1 is linear. *}
+text{* The ordering on @{typ "real^1"} is linear. *}
 
 class cart_one = assumes UNIV_one: "card (UNIV \<Colon> 'a set) = Suc 0"
 begin

@@ -1350,7 +1350,7 @@ lemma brouwer_ball: fixes f::"real^'n \<Rightarrow> real^'n"
   using assms by auto
 
 text {*Still more general form; could derive this directly without using the 
-  rather involved HOMEOMORPHIC_CONVEX_COMPACT theorem, just using
+  rather involved @{text "HOMEOMORPHIC_CONVEX_COMPACT"} theorem, just using
   a scaling and translation to put the set inside the unit cube. *}
 
 lemma brouwer: fixes f::"real^'n \<Rightarrow> real^'n"
