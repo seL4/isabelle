@@ -16,6 +16,7 @@ sig
     show_skolems: bool,
     show_datatypes: bool,
     show_consts: bool}
+
   type term_postprocessor =
     Proof.context -> string -> (typ -> term list) -> typ -> term -> term
 

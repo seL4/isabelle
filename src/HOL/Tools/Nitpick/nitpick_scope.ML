@@ -235,7 +235,7 @@ fun lookup_ints_assign eq assigns key =
   | NONE => raise ARG ("Nitpick_Scope.lookup_ints_assign", "")
 (* theory -> (typ option * int list) list -> typ -> int list *)
 fun lookup_type_ints_assign thy assigns T =
-  map (curry Int.max 1) (lookup_ints_assign (type_match thy) assigns T)
+  map (Integer.max 1) (lookup_ints_assign (type_match thy) assigns T)
   handle ARG ("Nitpick_Scope.lookup_ints_assign", _) =>
          raise TYPE ("Nitpick_Scope.lookup_type_ints_assign", [T], [])
 (* theory -> (styp option * int list) list -> styp -> int list *)

@@ -439,10 +439,10 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val _ = List.app (print_g o string_for_type ctxt) nonmono_Ts
 *)
 
-    val need_incremental = Int.max (max_potential, max_genuine) >= 2
-    val effective_sat_solver =
+    val incremental = Int.max (max_potential, max_genuine) >= 2
+    val actual_sat_solver =
       if sat_solver <> "smart" then
-        if need_incremental andalso
+        if incremental andalso
            not (member (op =) (Kodkod_SAT.configured_sat_solvers true)
                        sat_solver) then
           (print_m (K ("An incremental SAT solver is required: \"SAT4J\" will \
@@ -451,15 +451,14 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         else
           sat_solver
       else
-        Kodkod_SAT.smart_sat_solver_name need_incremental
+        Kodkod_SAT.smart_sat_solver_name incremental
     val _ =
       if sat_solver = "smart" then
-        print_v (fn () => "Using SAT solver " ^ quote effective_sat_solver ^
-                          ". The following" ^
-                          (if need_incremental then " incremental " else " ") ^
-                          "solvers are configured: " ^
-                          commas (map quote (Kodkod_SAT.configured_sat_solvers
-                                                       need_incremental)) ^ ".")
+        print_v (fn () =>
+            "Using SAT solver " ^ quote actual_sat_solver ^ ". The following" ^
+            (if incremental then " incremental " else " ") ^
+            "solvers are configured: " ^
+            commas_quote (Kodkod_SAT.configured_sat_solvers incremental) ^ ".")
       else
         ()
 
@@ -495,9 +494,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         val (sel_names, rep_table) = choose_reps_for_all_sels scope rep_table
         val (nonsel_names, rep_table) = repify_consts nonsel_names rep_table
         val min_highest_arity =
-          NameTable.fold (curry Int.max o arity_of_rep o snd) rep_table 1
+          NameTable.fold (Integer.max o arity_of_rep o snd) rep_table 1
         val min_univ_card =
-          NameTable.fold (curry Int.max o min_univ_card_of_rep o snd) rep_table
+          NameTable.fold (Integer.max o min_univ_card_of_rep o snd) rep_table
                          (univ_card nat_card int_card main_j0 [] KK.True)
         val _ = check_arity min_univ_card min_highest_arity
 
@@ -524,15 +523,15 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         val comment = (if unsound then "unsound" else "sound") ^ "\n" ^
                       PrintMode.setmp [] multiline_string_for_scope scope
         val kodkod_sat_solver =
-          Kodkod_SAT.sat_solver_spec effective_sat_solver |> snd
+          Kodkod_SAT.sat_solver_spec actual_sat_solver |> snd
         val bit_width = if bits = 0 then 16 else bits + 1
-        val delay = if unsound then
-                      Option.map (fn time => Time.- (time, Time.now ()))
-                                 deadline
-                      |> unsound_delay_for_timeout
-                    else
-                      0
-        val settings = [("solver", commas (map quote kodkod_sat_solver)),
+        val delay =
+          if unsound then
+            Option.map (fn time => Time.- (time, Time.now ())) deadline
+            |> unsound_delay_for_timeout
+          else
+            0
+        val settings = [("solver", commas_quote kodkod_sat_solver),
                         ("skolem_depth", "-1"),
                         ("bit_width", string_of_int bit_width),
                         ("symmetry_breaking", signed_string_of_int sym_break),
@@ -731,7 +730,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         fun print_and_check genuine (j, bounds) =
           print_and_check_model genuine bounds (snd (nth problems j))
         val max_solutions = max_potential + max_genuine
-                            |> not need_incremental ? curry Int.min 1
+                            |> not incremental ? Integer.min 1
       in
         if max_solutions <= 0 then
           (found_really_genuine, 0, 0, donno)

@@ -83,7 +83,7 @@ fun add_to_uncurry_table thy t =
            is_sel s orelse s = @{const_name Sigma} then
           table
         else
-          Termtab.map_default (t, 65536) (curry Int.min (length args)) table
+          Termtab.map_default (t, 65536) (Integer.min (length args)) table
       | aux _ _ table = table
   in aux t [] end
 
