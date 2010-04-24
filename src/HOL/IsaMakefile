@@ -1079,6 +1079,7 @@ HOL-Multivariate_Analysis: HOL-SMT $(OUT)/HOL-Multivariate_Analysis
 
 $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL-SMT	\
   Multivariate_Analysis/ROOT.ML				\
+  Multivariate_Analysis/L2_Norm.thy			\
   Multivariate_Analysis/Multivariate_Analysis.thy	\
   Multivariate_Analysis/Determinants.thy		\
   Multivariate_Analysis/Finite_Cartesian_Product.thy	\
