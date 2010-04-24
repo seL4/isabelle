@@ -1226,14 +1226,15 @@ fun finitize_all_types_of_funs (hol_ctxt as {thy, ...}) binarize finitizes monos
 
 (** Preprocessor entry point **)
 
+val max_skolem_depth = 4
+
 fun preprocess_term (hol_ctxt as {thy, stds, binary_ints, destroy_constrs,
-                                  boxes, skolemize, ...}) finitizes monos t =
+                                  boxes, ...}) finitizes monos t =
   let
-    val skolem_depth = if skolemize then 4 else ~1
     val (nondef_ts, def_ts, got_all_mono_user_axioms, no_poly_user_axioms) =
       t |> unfold_defs_in_term hol_ctxt
         |> close_form
-        |> skolemize_term_and_more hol_ctxt skolem_depth
+        |> skolemize_term_and_more hol_ctxt max_skolem_depth
         |> specialize_consts_in_term hol_ctxt 0
         |> axioms_for_term hol_ctxt
     val binarize =

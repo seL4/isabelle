@@ -16,8 +16,9 @@ Version 2010
   * Fixed soundness bug related to higher-order constructors
   * Added cache to speed up repeated Kodkod invocations on the same problems
   * Renamed "MiniSatJNI", "zChaffJNI", "BerkMinAlloy", and "SAT4JLight" to
- 	"MiniSat_JNI", "zChaff_JNI", "BerkMin_Alloy", and "SAT4J_Light"
-  * Removed "sym_break", "flatten_prop", "sharing_depth", and "uncurry" options
+    "MiniSat_JNI", "zChaff_JNI", "BerkMin_Alloy", and "SAT4J_Light"
+  * Removed "skolemize", "uncurry", "sym_break", "flatten_prop", and
+    "sharing_depth" options
 
 Version 2009-1
 

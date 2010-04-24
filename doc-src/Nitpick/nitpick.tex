@@ -428,9 +428,6 @@ As their names suggest, the Skolem constants $\mathit{sym}.x$ and
 $\mathit{sym}.y$ are simply the bound variables $x$ and $y$
 from \textit{sym}'s definition.
 
-Although skolemization is a useful optimization, you can disable it by invoking
-Nitpick with \textit{dont\_skolemize}. See \S\ref{optimizations} for details.
-
 \subsection{Natural Numbers and Integers}
 \label{natural-numbers-and-integers}
 
@@ -2199,9 +2196,6 @@ counterexamples. Skolem constants correspond to bound variables in the original
 formula and usually help us to understand why the counterexample falsifies the
 formula.
 
-\nopagebreak
-{\small See also \textit{skolemize} (\S\ref{optimizations}).}
-
 \opfalse{show\_datatypes}{hide\_datatypes}
 Specifies whether the subsets used to approximate (co)in\-duc\-tive datatypes should
 be displayed as part of counterexamples. Such subsets are sometimes helpful when
@@ -2450,15 +2444,6 @@ higher-order functions.
 \nopagebreak
 {\small See also \textit{debug} (\S\ref{output-format}) and
 \textit{show\_consts} (\S\ref{output-format}).}
-
-\optrue{skolemize}{dont\_skolemize}
-Specifies whether the formula should be skolemized. For performance reasons,
-(positive) $\forall$-quanti\-fiers that occur in the scope of a higher-order
-(positive) $\exists$-quanti\-fier are left unchanged.
-
-\nopagebreak
-{\small See also \textit{debug} (\S\ref{output-format}) and
-\textit{show\_skolems} (\S\ref{output-format}).}
 
 \optrue{star\_linear\_preds}{dont\_star\_linear\_preds}
 Specifies whether Nitpick should use Kodkod's transitive closure operator to
