@@ -6,7 +6,7 @@
 header {* Elementary topology in Euclidean space. *}
 
 theory Topology_Euclidean_Space
-imports SEQ Euclidean_Space Product_Vector
+imports SEQ Euclidean_Space Product_Vector Glbs
 begin
 
 subsection{* General notion of a topology *}

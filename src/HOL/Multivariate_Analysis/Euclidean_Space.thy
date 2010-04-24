@@ -7,7 +7,7 @@ header {* (Real) Vectors in Euclidean space, and elementary linear algebra.*}
 theory Euclidean_Space
 imports
   Complex_Main "~~/src/HOL/Decision_Procs/Dense_Linear_Order"
-  Finite_Cartesian_Product Glbs Infinite_Set Numeral_Type
+  Finite_Cartesian_Product Infinite_Set Numeral_Type
   Inner_Product L2_Norm
 uses "positivstellensatz.ML" ("normarith.ML")
 begin
