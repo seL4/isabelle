@@ -2498,25 +2498,6 @@ peephole optimizer. These optimizations can make a significant difference.
 Unless you are tracking down a bug in Nitpick or distrust the peephole
 optimizer, you should leave this option enabled.
 
-\opdefault{sym\_break}{int}{20}
-Specifies an upper bound on the number of relations for which Kodkod generates
-symmetry breaking predicates. According to the Kodkod documentation
-\cite{kodkod-2009-options}, ``in general, the higher this value, the more
-symmetries will be broken, and the faster the formula will be solved. But,
-setting the value too high may have the opposite effect and slow down the
-solving.''
-
-\opdefault{sharing\_depth}{int}{3}
-Specifies the depth to which Kodkod should check circuits for equivalence during
-the translation to SAT. The default of 3 is the same as in Alloy. The minimum
-allowed depth is 1. Increasing the sharing may result in a smaller SAT problem,
-but can also slow down Kodkod.
-
-\opfalse{flatten\_props}{dont\_flatten\_props}
-Specifies whether Kodkod should try to eliminate intermediate Boolean variables.
-Although this might sound like a good idea, in practice it can drastically slow
-down Kodkod.
-
 \opdefault{max\_threads}{int}{0}
 Specifies the maximum number of threads to use in Kodkod. If this option is set
 to 0, Kodkod will compute an appropriate value based on the number of processor
@@ -2569,7 +2550,7 @@ equational specification entered by the user.
 Behind the scenes, Isabelle's built-in packages and theories rely on the
 following attributes to affect Nitpick's behavior:
 
-\begin{itemize}
+\begin{enum}
 \flushitem{\textit{nitpick\_def}}
 
 \nopagebreak
@@ -2623,7 +2604,7 @@ optional monotonic operator. The order of the assumptions is irrelevant.
 This attribute specifies the (free-form) specification of a constant defined
 using the \hbox{(\textbf{ax\_})}\allowbreak\textbf{specification} command.
 
-\end{itemize}
+\end{enum}
 
 When faced with a constant, Nitpick proceeds as follows:
 

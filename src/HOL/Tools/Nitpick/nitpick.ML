@@ -39,9 +39,6 @@ sig
     peephole_optim: bool,
     timeout: Time.time option,
     tac_timeout: Time.time option,
-    sym_break: int,
-    sharing_depth: int,
-    flatten_props: bool,
     max_threads: int,
     show_skolems: bool,
     show_datatypes: bool,
@@ -115,9 +112,6 @@ type params = {
   peephole_optim: bool,
   timeout: Time.time option,
   tac_timeout: Time.time option,
-  sym_break: int,
-  sharing_depth: int,
-  flatten_props: bool,
   max_threads: int,
   show_skolems: bool,
   show_datatypes: bool,
@@ -201,10 +195,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
          boxes, finitizes, monos, stds, wfs, sat_solver, falsify, debug,
          verbose, overlord, user_axioms, assms, merge_type_vars, binary_ints,
          destroy_constrs, specialize, skolemize, star_linear_preds, uncurry,
-         fast_descrs, peephole_optim, tac_timeout, sym_break, sharing_depth,
-         flatten_props, max_threads, show_skolems, show_datatypes, show_consts,
-         evals, formats, max_potential, max_genuine, check_potential,
-         check_genuine, batch_size, ...} =
+         fast_descrs, peephole_optim, tac_timeout, max_threads, show_skolems,
+         show_datatypes, show_consts, evals, formats, max_potential,
+         max_genuine, check_potential, check_genuine, batch_size, ...} =
       params
     val state_ref = Unsynchronized.ref state
     val pprint =
@@ -511,9 +504,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         val settings = [("solver", commas_quote kodkod_sat_solver),
                         ("skolem_depth", "-1"),
                         ("bit_width", string_of_int bit_width),
-                        ("symmetry_breaking", signed_string_of_int sym_break),
-                        ("sharing", signed_string_of_int sharing_depth),
-                        ("flatten", Bool.toString flatten_props),
+                        ("symmetry_breaking", "20"),
+                        ("sharing", "3"),
+                        ("flatten", "false"),
                         ("delay", signed_string_of_int delay)]
         val plain_rels = free_rels @ other_rels
         val plain_bounds = map (bound_for_plain_rel ctxt debug) plain_rels
@@ -922,8 +915,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         end
 
     val (skipped, the_scopes) =
-      all_scopes hol_ctxt binarize sym_break cards_assigns maxes_assigns
-                 iters_assigns bitss bisim_depths mono_Ts nonmono_Ts deep_dataTs
+      all_scopes hol_ctxt binarize cards_assigns maxes_assigns iters_assigns
+                 bitss bisim_depths mono_Ts nonmono_Ts deep_dataTs
                  finitizable_dataTs
     val _ = if skipped > 0 then
               print_m (fn () => "Too many scopes. Skipping " ^

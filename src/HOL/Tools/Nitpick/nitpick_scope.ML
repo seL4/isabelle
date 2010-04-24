@@ -49,7 +49,7 @@ sig
   val scopes_equivalent : scope * scope -> bool
   val scope_less_eq : scope -> scope -> bool
   val all_scopes :
-    hol_context -> bool -> int -> (typ option * int list) list
+    hol_context -> bool -> (typ option * int list) list
     -> (styp option * int list) list -> (styp option * int list) list
     -> int list -> int list -> typ list -> typ list -> typ list -> typ list
     -> int * scope list
@@ -458,9 +458,8 @@ fun datatype_spec_from_scope_descriptor (hol_ctxt as {thy, stds, ...}) binarize
      concrete = concrete, deep = deep, constrs = constrs}
   end
 
-fun scope_from_descriptor (hol_ctxt as {thy, stds, ...}) binarize sym_break
-                          deep_dataTs finitizable_dataTs
-                          (desc as (card_assigns, _)) =
+fun scope_from_descriptor (hol_ctxt as {thy, stds, ...}) binarize deep_dataTs
+                          finitizable_dataTs (desc as (card_assigns, _)) =
   let
     val datatypes =
       map (datatype_spec_from_scope_descriptor hol_ctxt binarize deep_dataTs
@@ -474,8 +473,7 @@ fun scope_from_descriptor (hol_ctxt as {thy, stds, ...}) binarize sym_break
   in
     {hol_ctxt = hol_ctxt, binarize = binarize, card_assigns = card_assigns,
      datatypes = datatypes, bits = bits, bisim_depth = bisim_depth,
-     ofs = if sym_break <= 0 then Typtab.empty
-           else offset_table_for_card_assigns card_assigns datatypes}
+     ofs = offset_table_for_card_assigns card_assigns datatypes}
   end
 
 fun repair_cards_assigns_wrt_boxing_etc _ _ [] = []
@@ -491,9 +489,9 @@ fun repair_cards_assigns_wrt_boxing_etc _ _ [] = []
 val max_scopes = 4096
 val distinct_threshold = 512
 
-fun all_scopes (hol_ctxt as {thy, ...}) binarize sym_break cards_assigns
-               maxes_assigns iters_assigns bitss bisim_depths mono_Ts nonmono_Ts
-               deep_dataTs finitizable_dataTs =
+fun all_scopes (hol_ctxt as {thy, ...}) binarize cards_assigns maxes_assigns
+               iters_assigns bitss bisim_depths mono_Ts nonmono_Ts deep_dataTs
+               finitizable_dataTs =
   let
     val cards_assigns = repair_cards_assigns_wrt_boxing_etc thy mono_Ts
                                                             cards_assigns
@@ -509,8 +507,8 @@ fun all_scopes (hol_ctxt as {thy, ...}) binarize sym_break cards_assigns
   in
     (length all - length head,
      descs |> length descs <= distinct_threshold ? distinct (op =)
-           |> map (scope_from_descriptor hol_ctxt binarize sym_break
-                                         deep_dataTs finitizable_dataTs))
+           |> map (scope_from_descriptor hol_ctxt binarize deep_dataTs
+                                         finitizable_dataTs))
   end
 
 end;

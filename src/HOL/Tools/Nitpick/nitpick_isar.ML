@@ -62,9 +62,6 @@ val default_default_params =
    ("peephole_optim", "true"),
    ("timeout", "30 s"),
    ("tac_timeout", "500 ms"),
-   ("sym_break", "20"),
-   ("sharing_depth", "3"),
-   ("flatten_props", "false"),
    ("max_threads", "0"),
    ("debug", "false"),
    ("verbose", "false"),
@@ -98,7 +95,6 @@ val negated_params =
    ("dont_uncurry", "uncurry"),
    ("full_descrs", "fast_descrs"),
    ("no_peephole_optim", "peephole_optim"),
-   ("dont_flatten_props", "flatten_props"),
    ("no_debug", "debug"),
    ("quiet", "verbose"),
    ("no_overlord", "overlord"),
@@ -263,9 +259,6 @@ fun extract_params ctxt auto default_params override_params =
     val peephole_optim = lookup_bool "peephole_optim"
     val timeout = if auto then NONE else lookup_time "timeout"
     val tac_timeout = lookup_time "tac_timeout"
-    val sym_break = Int.max (0, lookup_int "sym_break")
-    val sharing_depth = Int.max (1, lookup_int "sharing_depth")
-    val flatten_props = lookup_bool "flatten_props"
     val max_threads = Int.max (0, lookup_int "max_threads")
     val show_all = debug orelse lookup_bool "show_all"
     val show_skolems = show_all orelse lookup_bool "show_skolems"
@@ -294,13 +287,12 @@ fun extract_params ctxt auto default_params override_params =
      skolemize = skolemize, star_linear_preds = star_linear_preds,
      uncurry = uncurry, fast_descrs = fast_descrs,
      peephole_optim = peephole_optim, timeout = timeout,
-     tac_timeout = tac_timeout, sym_break = sym_break,
-     sharing_depth = sharing_depth, flatten_props = flatten_props,
-     max_threads = max_threads, show_skolems = show_skolems,
-     show_datatypes = show_datatypes, show_consts = show_consts,
-     formats = formats, evals = evals, max_potential = max_potential,
-     max_genuine = max_genuine, check_potential = check_potential,
-     check_genuine = check_genuine, batch_size = batch_size, expect = expect}
+     tac_timeout = tac_timeout, max_threads = max_threads,
+     show_skolems = show_skolems, show_datatypes = show_datatypes,
+     show_consts = show_consts, formats = formats, evals = evals,
+     max_potential = max_potential, max_genuine = max_genuine,
+     check_potential = check_potential, check_genuine = check_genuine,
+     batch_size = batch_size, expect = expect}
   end
 
 fun default_params thy =
