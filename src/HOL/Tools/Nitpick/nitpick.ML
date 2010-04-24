@@ -9,46 +9,45 @@ signature NITPICK =
 sig
   type styp = Nitpick_Util.styp
   type term_postprocessor = Nitpick_Model.term_postprocessor
-  type params = {
-    cards_assigns: (typ option * int list) list,
-    maxes_assigns: (styp option * int list) list,
-    iters_assigns: (styp option * int list) list,
-    bitss: int list,
-    bisim_depths: int list,
-    boxes: (typ option * bool option) list,
-    finitizes: (typ option * bool option) list,
-    monos: (typ option * bool option) list,
-    stds: (typ option * bool) list,
-    wfs: (styp option * bool option) list,
-    sat_solver: string,
-    blocking: bool,
-    falsify: bool,
-    debug: bool,
-    verbose: bool,
-    overlord: bool,
-    user_axioms: bool option,
-    assms: bool,
-    merge_type_vars: bool,
-    binary_ints: bool option,
-    destroy_constrs: bool,
-    specialize: bool,
-    star_linear_preds: bool,
-    fast_descrs: bool,
-    peephole_optim: bool,
-    timeout: Time.time option,
-    tac_timeout: Time.time option,
-    max_threads: int,
-    show_skolems: bool,
-    show_datatypes: bool,
-    show_consts: bool,
-    evals: term list,
-    formats: (term option * int list) list,
-    max_potential: int,
-    max_genuine: int,
-    check_potential: bool,
-    check_genuine: bool,
-    batch_size: int,
-    expect: string}
+  type params =
+    {cards_assigns: (typ option * int list) list,
+     maxes_assigns: (styp option * int list) list,
+     iters_assigns: (styp option * int list) list,
+     bitss: int list,
+     bisim_depths: int list,
+     boxes: (typ option * bool option) list,
+     finitizes: (typ option * bool option) list,
+     monos: (typ option * bool option) list,
+     stds: (typ option * bool) list,
+     wfs: (styp option * bool option) list,
+     sat_solver: string,
+     blocking: bool,
+     falsify: bool,
+     debug: bool,
+     verbose: bool,
+     overlord: bool,
+     user_axioms: bool option,
+     assms: bool,
+     merge_type_vars: bool,
+     binary_ints: bool option,
+     destroy_constrs: bool,
+     specialize: bool,
+     star_linear_preds: bool,
+     fast_descrs: bool,
+     peephole_optim: bool,
+     timeout: Time.time option,
+     tac_timeout: Time.time option,
+     max_threads: int,
+     show_datatypes: bool,
+     show_consts: bool,
+     evals: term list,
+     formats: (term option * int list) list,
+     max_potential: int,
+     max_genuine: int,
+     check_potential: bool,
+     check_genuine: bool,
+     batch_size: int,
+     expect: string}
 
   val register_frac_type : string -> (string * string) list -> theory -> theory
   val unregister_frac_type : string -> theory -> theory
@@ -80,55 +79,54 @@ open Nitpick_Model
 
 structure KK = Kodkod
 
-type params = {
-  cards_assigns: (typ option * int list) list,
-  maxes_assigns: (styp option * int list) list,
-  iters_assigns: (styp option * int list) list,
-  bitss: int list,
-  bisim_depths: int list,
-  boxes: (typ option * bool option) list,
-  finitizes: (typ option * bool option) list,
-  monos: (typ option * bool option) list,
-  stds: (typ option * bool) list,
-  wfs: (styp option * bool option) list,
-  sat_solver: string,
-  blocking: bool,
-  falsify: bool,
-  debug: bool,
-  verbose: bool,
-  overlord: bool,
-  user_axioms: bool option,
-  assms: bool,
-  merge_type_vars: bool,
-  binary_ints: bool option,
-  destroy_constrs: bool,
-  specialize: bool,
-  star_linear_preds: bool,
-  fast_descrs: bool,
-  peephole_optim: bool,
-  timeout: Time.time option,
-  tac_timeout: Time.time option,
-  max_threads: int,
-  show_skolems: bool,
-  show_datatypes: bool,
-  show_consts: bool,
-  evals: term list,
-  formats: (term option * int list) list,
-  max_potential: int,
-  max_genuine: int,
-  check_potential: bool,
-  check_genuine: bool,
-  batch_size: int,
-  expect: string}
+type params =
+  {cards_assigns: (typ option * int list) list,
+   maxes_assigns: (styp option * int list) list,
+   iters_assigns: (styp option * int list) list,
+   bitss: int list,
+   bisim_depths: int list,
+   boxes: (typ option * bool option) list,
+   finitizes: (typ option * bool option) list,
+   monos: (typ option * bool option) list,
+   stds: (typ option * bool) list,
+   wfs: (styp option * bool option) list,
+   sat_solver: string,
+   blocking: bool,
+   falsify: bool,
+   debug: bool,
+   verbose: bool,
+   overlord: bool,
+   user_axioms: bool option,
+   assms: bool,
+   merge_type_vars: bool,
+   binary_ints: bool option,
+   destroy_constrs: bool,
+   specialize: bool,
+   star_linear_preds: bool,
+   fast_descrs: bool,
+   peephole_optim: bool,
+   timeout: Time.time option,
+   tac_timeout: Time.time option,
+   max_threads: int,
+   show_datatypes: bool,
+   show_consts: bool,
+   evals: term list,
+   formats: (term option * int list) list,
+   max_potential: int,
+   max_genuine: int,
+   check_potential: bool,
+   check_genuine: bool,
+   batch_size: int,
+   expect: string}
 
-type problem_extension = {
-  free_names: nut list,
-  sel_names: nut list,
-  nonsel_names: nut list,
-  rel_table: nut NameTable.table,
-  unsound: bool,
-  scope: scope}
-
+type problem_extension =
+  {free_names: nut list,
+   sel_names: nut list,
+   nonsel_names: nut list,
+   rel_table: nut NameTable.table,
+   unsound: bool,
+   scope: scope}
+ 
 type rich_problem = KK.problem * problem_extension
 
 fun pretties_for_formulas _ _ [] = []
@@ -191,10 +189,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
          boxes, finitizes, monos, stds, wfs, sat_solver, falsify, debug,
          verbose, overlord, user_axioms, assms, merge_type_vars, binary_ints,
          destroy_constrs, specialize, star_linear_preds, fast_descrs,
-         peephole_optim, tac_timeout, max_threads, show_skolems, show_datatypes,
-         show_consts, evals, formats, max_potential, max_genuine,
-         check_potential, check_genuine, batch_size, ...} =
-      params
+         peephole_optim, tac_timeout, max_threads, show_datatypes, show_consts,
+         evals, formats, max_potential, max_genuine, check_potential,
+         check_genuine, batch_size, ...} = params
     val state_ref = Unsynchronized.ref state
     val pprint =
       if auto then
@@ -580,8 +577,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
              : problem_extension) =
       let
         val (reconstructed_model, codatatypes_ok) =
-          reconstruct_hol_model {show_skolems = show_skolems,
-                                 show_datatypes = show_datatypes,
+          reconstruct_hol_model {show_datatypes = show_datatypes,
                                  show_consts = show_consts}
               scope formats frees free_names sel_names nonsel_names rel_table
               bounds

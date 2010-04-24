@@ -14,11 +14,11 @@ sig
   type decl = Kodkod.decl
   type expr_assign = Kodkod.expr_assign
 
-  type name_pool = {
-    rels: n_ary_index list,
-    vars: n_ary_index list,
-    formula_reg: int,
-    rel_reg: int}
+  type name_pool =
+    {rels: n_ary_index list,
+     vars: n_ary_index list,
+     formula_reg: int,
+     rel_reg: int}
 
   val initial_pool : name_pool
   val not3_rel : n_ary_index
@@ -51,39 +51,38 @@ sig
   val num_seq : int -> int -> int_expr list
   val s_and : formula -> formula -> formula
 
-  type kodkod_constrs = {
-    kk_all: decl list -> formula -> formula,
-    kk_exist: decl list -> formula -> formula,
-    kk_formula_let: expr_assign list -> formula -> formula,
-    kk_formula_if: formula -> formula -> formula -> formula,
-    kk_or: formula -> formula -> formula,
-    kk_not: formula -> formula,
-    kk_iff: formula -> formula -> formula,
-    kk_implies: formula -> formula -> formula,
-    kk_and: formula -> formula -> formula,
-    kk_subset: rel_expr -> rel_expr -> formula,
-    kk_rel_eq: rel_expr -> rel_expr -> formula,
-    kk_no: rel_expr -> formula,
-    kk_lone: rel_expr -> formula,
-    kk_one: rel_expr -> formula,
-    kk_some: rel_expr -> formula,
-    kk_rel_let: expr_assign list -> rel_expr -> rel_expr,
-    kk_rel_if: formula -> rel_expr -> rel_expr -> rel_expr,
-    kk_union: rel_expr -> rel_expr -> rel_expr,
-    kk_difference: rel_expr -> rel_expr -> rel_expr,
-    kk_override: rel_expr -> rel_expr -> rel_expr,
-    kk_intersect: rel_expr -> rel_expr -> rel_expr,
-    kk_product: rel_expr -> rel_expr -> rel_expr,
-    kk_join: rel_expr -> rel_expr -> rel_expr,
-    kk_closure: rel_expr -> rel_expr,
-    kk_reflexive_closure: rel_expr -> rel_expr,
-    kk_comprehension: decl list -> formula -> rel_expr,
-    kk_project: rel_expr -> int_expr list -> rel_expr,
-    kk_project_seq: rel_expr -> int -> int -> rel_expr,
-    kk_not3: rel_expr -> rel_expr,
-    kk_nat_less: rel_expr -> rel_expr -> rel_expr,
-    kk_int_less: rel_expr -> rel_expr -> rel_expr
-  }
+  type kodkod_constrs =
+    {kk_all: decl list -> formula -> formula,
+     kk_exist: decl list -> formula -> formula,
+     kk_formula_let: expr_assign list -> formula -> formula,
+     kk_formula_if: formula -> formula -> formula -> formula,
+     kk_or: formula -> formula -> formula,
+     kk_not: formula -> formula,
+     kk_iff: formula -> formula -> formula,
+     kk_implies: formula -> formula -> formula,
+     kk_and: formula -> formula -> formula,
+     kk_subset: rel_expr -> rel_expr -> formula,
+     kk_rel_eq: rel_expr -> rel_expr -> formula,
+     kk_no: rel_expr -> formula,
+     kk_lone: rel_expr -> formula,
+     kk_one: rel_expr -> formula,
+     kk_some: rel_expr -> formula,
+     kk_rel_let: expr_assign list -> rel_expr -> rel_expr,
+     kk_rel_if: formula -> rel_expr -> rel_expr -> rel_expr,
+     kk_union: rel_expr -> rel_expr -> rel_expr,
+     kk_difference: rel_expr -> rel_expr -> rel_expr,
+     kk_override: rel_expr -> rel_expr -> rel_expr,
+     kk_intersect: rel_expr -> rel_expr -> rel_expr,
+     kk_product: rel_expr -> rel_expr -> rel_expr,
+     kk_join: rel_expr -> rel_expr -> rel_expr,
+     kk_closure: rel_expr -> rel_expr,
+     kk_reflexive_closure: rel_expr -> rel_expr,
+     kk_comprehension: decl list -> formula -> rel_expr,
+     kk_project: rel_expr -> int_expr list -> rel_expr,
+     kk_project_seq: rel_expr -> int -> int -> rel_expr,
+     kk_not3: rel_expr -> rel_expr,
+     kk_nat_less: rel_expr -> rel_expr -> rel_expr,
+     kk_int_less: rel_expr -> rel_expr -> rel_expr}
 
   val kodkod_constrs : bool -> int -> int -> int -> kodkod_constrs
 end;
@@ -94,11 +93,11 @@ struct
 open Kodkod
 open Nitpick_Util
 
-type name_pool = {
-  rels: n_ary_index list,
-  vars: n_ary_index list,
-  formula_reg: int,
-  rel_reg: int}
+type name_pool =
+  {rels: n_ary_index list,
+   vars: n_ary_index list,
+   formula_reg: int,
+   rel_reg: int}
 
 (* If you add new built-in relations, make sure to increment the counters here
    as well to avoid name clashes (which fortunately would be detected by
@@ -204,39 +203,38 @@ fun s_and True f2 = f2
   | s_and _ False = False
   | s_and f1 f2 = And (f1, f2)
 
-type kodkod_constrs = {
-  kk_all: decl list -> formula -> formula,
-  kk_exist: decl list -> formula -> formula,
-  kk_formula_let: expr_assign list -> formula -> formula,
-  kk_formula_if: formula -> formula -> formula -> formula,
-  kk_or: formula -> formula -> formula,
-  kk_not: formula -> formula,
-  kk_iff: formula -> formula -> formula,
-  kk_implies: formula -> formula -> formula,
-  kk_and: formula -> formula -> formula,
-  kk_subset: rel_expr -> rel_expr -> formula,
-  kk_rel_eq: rel_expr -> rel_expr -> formula,
-  kk_no: rel_expr -> formula,
-  kk_lone: rel_expr -> formula,
-  kk_one: rel_expr -> formula,
-  kk_some: rel_expr -> formula,
-  kk_rel_let: expr_assign list -> rel_expr -> rel_expr,
-  kk_rel_if: formula -> rel_expr -> rel_expr -> rel_expr,
-  kk_union: rel_expr -> rel_expr -> rel_expr,
-  kk_difference: rel_expr -> rel_expr -> rel_expr,
-  kk_override: rel_expr -> rel_expr -> rel_expr,
-  kk_intersect: rel_expr -> rel_expr -> rel_expr,
-  kk_product: rel_expr -> rel_expr -> rel_expr,
-  kk_join: rel_expr -> rel_expr -> rel_expr,
-  kk_closure: rel_expr -> rel_expr,
-  kk_reflexive_closure: rel_expr -> rel_expr,
-  kk_comprehension: decl list -> formula -> rel_expr,
-  kk_project: rel_expr -> int_expr list -> rel_expr,
-  kk_project_seq: rel_expr -> int -> int -> rel_expr,
-  kk_not3: rel_expr -> rel_expr,
-  kk_nat_less: rel_expr -> rel_expr -> rel_expr,
-  kk_int_less: rel_expr -> rel_expr -> rel_expr
-}
+type kodkod_constrs =
+  {kk_all: decl list -> formula -> formula,
+   kk_exist: decl list -> formula -> formula,
+   kk_formula_let: expr_assign list -> formula -> formula,
+   kk_formula_if: formula -> formula -> formula -> formula,
+   kk_or: formula -> formula -> formula,
+   kk_not: formula -> formula,
+   kk_iff: formula -> formula -> formula,
+   kk_implies: formula -> formula -> formula,
+   kk_and: formula -> formula -> formula,
+   kk_subset: rel_expr -> rel_expr -> formula,
+   kk_rel_eq: rel_expr -> rel_expr -> formula,
+   kk_no: rel_expr -> formula,
+   kk_lone: rel_expr -> formula,
+   kk_one: rel_expr -> formula,
+   kk_some: rel_expr -> formula,
+   kk_rel_let: expr_assign list -> rel_expr -> rel_expr,
+   kk_rel_if: formula -> rel_expr -> rel_expr -> rel_expr,
+   kk_union: rel_expr -> rel_expr -> rel_expr,
+   kk_difference: rel_expr -> rel_expr -> rel_expr,
+   kk_override: rel_expr -> rel_expr -> rel_expr,
+   kk_intersect: rel_expr -> rel_expr -> rel_expr,
+   kk_product: rel_expr -> rel_expr -> rel_expr,
+   kk_join: rel_expr -> rel_expr -> rel_expr,
+   kk_closure: rel_expr -> rel_expr,
+   kk_reflexive_closure: rel_expr -> rel_expr,
+   kk_comprehension: decl list -> formula -> rel_expr,
+   kk_project: rel_expr -> int_expr list -> rel_expr,
+   kk_project_seq: rel_expr -> int -> int -> rel_expr,
+   kk_not3: rel_expr -> rel_expr,
+   kk_nat_less: rel_expr -> rel_expr -> rel_expr,
+   kk_int_less: rel_expr -> rel_expr -> rel_expr}
 
 (* We assume throughout that Kodkod variables have a "one" constraint. This is
    always the case if Kodkod's skolemization is disabled. *)

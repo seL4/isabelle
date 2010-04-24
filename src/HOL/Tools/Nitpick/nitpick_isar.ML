@@ -65,7 +65,6 @@ val default_default_params =
    ("verbose", "false"),
    ("overlord", "false"),
    ("show_all", "false"),
-   ("show_skolems", "true"),
    ("show_datatypes", "false"),
    ("show_consts", "false"),
    ("format", "1"),
@@ -95,7 +94,6 @@ val negated_params =
    ("quiet", "verbose"),
    ("no_overlord", "overlord"),
    ("dont_show_all", "show_all"),
-   ("hide_skolems", "show_skolems"),
    ("hide_datatypes", "show_datatypes"),
    ("hide_consts", "show_consts"),
    ("trust_potential", "check_potential"),
@@ -255,7 +253,6 @@ fun extract_params ctxt auto default_params override_params =
     val tac_timeout = lookup_time "tac_timeout"
     val max_threads = Int.max (0, lookup_int "max_threads")
     val show_all = debug orelse lookup_bool "show_all"
-    val show_skolems = show_all orelse lookup_bool "show_skolems"
     val show_datatypes = show_all orelse lookup_bool "show_datatypes"
     val show_consts = show_all orelse lookup_bool "show_consts"
     val formats = lookup_ints_assigns read_term_polymorphic "format" 0
@@ -265,9 +262,10 @@ fun extract_params ctxt auto default_params override_params =
     val max_genuine = Int.max (0, lookup_int "max_genuine")
     val check_potential = lookup_bool "check_potential"
     val check_genuine = lookup_bool "check_genuine"
-    val batch_size = case lookup_int_option "batch_size" of
-                       SOME n => Int.max (1, n)
-                     | NONE => if debug then 1 else 64
+    val batch_size =
+      case lookup_int_option "batch_size" of
+        SOME n => Int.max (1, n)
+      | NONE => if debug then 1 else 64
     val expect = lookup_string "expect"
   in
     {cards_assigns = cards_assigns, maxes_assigns = maxes_assigns,
@@ -281,11 +279,10 @@ fun extract_params ctxt auto default_params override_params =
      star_linear_preds = star_linear_preds, fast_descrs = fast_descrs,
      peephole_optim = peephole_optim, timeout = timeout,
      tac_timeout = tac_timeout, max_threads = max_threads,
-     show_skolems = show_skolems, show_datatypes = show_datatypes,
-     show_consts = show_consts, formats = formats, evals = evals,
-     max_potential = max_potential, max_genuine = max_genuine,
-     check_potential = check_potential, check_genuine = check_genuine,
-     batch_size = batch_size, expect = expect}
+     show_datatypes = show_datatypes, show_consts = show_consts,
+     formats = formats, evals = evals, max_potential = max_potential,
+     max_genuine = max_genuine, check_potential = check_potential,
+     check_genuine = check_genuine, batch_size = batch_size, expect = expect}
   end
 
 fun default_params thy =
@@ -382,7 +379,7 @@ val parse_nitpick_command =
 val parse_nitpick_params_command = parse_params #>> nitpick_params_trans
 
 val _ = OuterSyntax.improper_command "nitpick"
-            "try to find a counterexample for a given subgoal using Kodkod"
+            "try to find a counterexample for a given subgoal using Nitpick"
             K.diag parse_nitpick_command
 val _ = OuterSyntax.command "nitpick_params"
             "set and display the default parameters for Nitpick"

@@ -10,32 +10,32 @@ sig
   type styp = Nitpick_Util.styp
   type hol_context = Nitpick_HOL.hol_context
 
-  type constr_spec = {
-    const: styp,
-    delta: int,
-    epsilon: int,
-    exclusive: bool,
-    explicit_max: int,
-    total: bool}
+  type constr_spec =
+    {const: styp,
+     delta: int,
+     epsilon: int,
+     exclusive: bool,
+     explicit_max: int,
+     total: bool}
 
-  type dtype_spec = {
-    typ: typ,
-    card: int,
-    co: bool,
-    standard: bool,
-    complete: bool * bool,
-    concrete: bool * bool,
-    deep: bool,
-    constrs: constr_spec list}
+  type dtype_spec =
+    {typ: typ,
+     card: int,
+     co: bool,
+     standard: bool,
+     complete: bool * bool,
+     concrete: bool * bool,
+     deep: bool,
+     constrs: constr_spec list}
 
-  type scope = {
-    hol_ctxt: hol_context,
-    binarize: bool,
-    card_assigns: (typ * int) list,
-    bits: int,
-    bisim_depth: int,
-    datatypes: dtype_spec list,
-    ofs: int Typtab.table}
+  type scope =
+    {hol_ctxt: hol_context,
+     binarize: bool,
+     card_assigns: (typ * int) list,
+     bits: int,
+     bisim_depth: int,
+     datatypes: dtype_spec list,
+     ofs: int Typtab.table}
 
   val datatype_spec : dtype_spec list -> typ -> dtype_spec option
   val constr_spec : dtype_spec list -> styp -> constr_spec
@@ -61,32 +61,32 @@ struct
 open Nitpick_Util
 open Nitpick_HOL
 
-type constr_spec = {
-  const: styp,
-  delta: int,
-  epsilon: int,
-  exclusive: bool,
-  explicit_max: int,
-  total: bool}
+type constr_spec =
+  {const: styp,
+   delta: int,
+   epsilon: int,
+   exclusive: bool,
+   explicit_max: int,
+   total: bool}
 
-type dtype_spec = {
-  typ: typ,
-  card: int,
-  co: bool,
-  standard: bool,
-  complete: bool * bool,
-  concrete: bool * bool,
-  deep: bool,
-  constrs: constr_spec list}
+type dtype_spec =
+  {typ: typ,
+   card: int,
+   co: bool,
+   standard: bool,
+   complete: bool * bool,
+   concrete: bool * bool,
+   deep: bool,
+   constrs: constr_spec list}
 
-type scope = {
-  hol_ctxt: hol_context,
-  binarize: bool,
-  card_assigns: (typ * int) list,
-  bits: int,
-  bisim_depth: int,
-  datatypes: dtype_spec list,
-  ofs: int Typtab.table}
+type scope =
+  {hol_ctxt: hol_context,
+   binarize: bool,
+   card_assigns: (typ * int) list,
+   bits: int,
+   bisim_depth: int,
+   datatypes: dtype_spec list,
+   ofs: int Typtab.table}
 
 datatype row_kind = Card of typ | Max of styp
 

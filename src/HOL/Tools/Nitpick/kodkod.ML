@@ -120,11 +120,10 @@ sig
     AssignRelReg of n_ary_index * rel_expr |
     AssignIntReg of int * int_expr
 
-  type 'a fold_expr_funcs = {
-    formula_func: formula -> 'a -> 'a,
-    rel_expr_func: rel_expr -> 'a -> 'a,
-    int_expr_func: int_expr -> 'a -> 'a
-  }
+  type 'a fold_expr_funcs =
+    {formula_func: formula -> 'a -> 'a,
+     rel_expr_func: rel_expr -> 'a -> 'a,
+     int_expr_func: int_expr -> 'a -> 'a}
 
   val fold_formula : 'a fold_expr_funcs -> formula -> 'a -> 'a
   val fold_rel_expr : 'a fold_expr_funcs -> rel_expr -> 'a -> 'a
@@ -132,10 +131,9 @@ sig
   val fold_decl : 'a fold_expr_funcs -> decl -> 'a -> 'a
   val fold_expr_assign : 'a fold_expr_funcs -> expr_assign -> 'a -> 'a
 
-  type 'a fold_tuple_funcs = {
-    tuple_func: tuple -> 'a -> 'a,
-    tuple_set_func: tuple_set -> 'a -> 'a
-  }
+  type 'a fold_tuple_funcs =
+    {tuple_func: tuple -> 'a -> 'a,
+     tuple_set_func: tuple_set -> 'a -> 'a}
 
   val fold_tuple : 'a fold_tuple_funcs -> tuple -> 'a -> 'a
   val fold_tuple_set : 'a fold_tuple_funcs -> tuple_set -> 'a -> 'a
@@ -144,15 +142,15 @@ sig
       'a fold_expr_funcs -> 'a fold_tuple_funcs -> bound -> 'a -> 'a
   val fold_int_bound : 'a fold_tuple_funcs -> int_bound -> 'a -> 'a
 
-  type problem = {
-    comment: string,
-    settings: setting list,
-    univ_card: int,
-    tuple_assigns: tuple_assign list,
-    bounds: bound list,
-    int_bounds: int_bound list,
-    expr_assigns: expr_assign list,
-    formula: formula}
+  type problem =
+    {comment: string,
+     settings: setting list,
+     univ_card: int,
+     tuple_assigns: tuple_assign list,
+     bounds: bound list,
+     int_bounds: int_bound list,
+     expr_assigns: expr_assign list,
+     formula: formula}
 
   type raw_bound = n_ary_index * int list list
 
@@ -291,15 +289,15 @@ and expr_assign =
   AssignRelReg of n_ary_index * rel_expr |
   AssignIntReg of int * int_expr
 
-type problem = {
-  comment: string,
-  settings: setting list,
-  univ_card: int,
-  tuple_assigns: tuple_assign list,
-  bounds: bound list,
-  int_bounds: int_bound list,
-  expr_assigns: expr_assign list,
-  formula: formula}
+type problem =
+  {comment: string,
+   settings: setting list,
+   univ_card: int,
+   tuple_assigns: tuple_assign list,
+   bounds: bound list,
+   int_bounds: int_bound list,
+   expr_assigns: expr_assign list,
+   formula: formula}
 
 type raw_bound = n_ary_index * int list list
 
@@ -313,11 +311,10 @@ datatype outcome =
 
 exception SYNTAX of string * string
 
-type 'a fold_expr_funcs = {
-  formula_func: formula -> 'a -> 'a,
-  rel_expr_func: rel_expr -> 'a -> 'a,
-  int_expr_func: int_expr -> 'a -> 'a
-}
+type 'a fold_expr_funcs =
+  {formula_func: formula -> 'a -> 'a,
+   rel_expr_func: rel_expr -> 'a -> 'a,
+   int_expr_func: int_expr -> 'a -> 'a}
 
 (** Auxiliary functions on ML representation of Kodkod problems **)
 
@@ -419,10 +416,9 @@ and fold_expr_assign F assign =
   | AssignRelReg (x, r) => fold_rel_expr F (RelReg x) #> fold_rel_expr F r
   | AssignIntReg (x, i) => fold_int_expr F (IntReg x) #> fold_int_expr F i
 
-type 'a fold_tuple_funcs = {
-  tuple_func: tuple -> 'a -> 'a,
-  tuple_set_func: tuple_set -> 'a -> 'a
-}
+type 'a fold_tuple_funcs =
+  {tuple_func: tuple -> 'a -> 'a,
+   tuple_set_func: tuple_set -> 'a -> 'a}
 
 fun fold_tuple (F : 'a fold_tuple_funcs) = #tuple_func F
 fun fold_tuple_set F tuple_set =

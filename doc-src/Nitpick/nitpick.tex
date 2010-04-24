@@ -2190,12 +2190,6 @@ option is implicitly disabled for automatic runs.
 {\small See also \textit{overlord} (\S\ref{mode-of-operation}) and
 \textit{batch\_size} (\S\ref{optimizations}).}
 
-\optrue{show\_skolems}{hide\_skolem}
-Specifies whether the values of Skolem constants should be displayed as part of
-counterexamples. Skolem constants correspond to bound variables in the original
-formula and usually help us to understand why the counterexample falsifies the
-formula.
-
 \opfalse{show\_datatypes}{hide\_datatypes}
 Specifies whether the subsets used to approximate (co)in\-duc\-tive datatypes should
 be displayed as part of counterexamples. Such subsets are sometimes helpful when
@@ -2209,8 +2203,8 @@ sometimes helpful when investigating why a counterexample is
 genuine, but they can clutter the output.
 
 \opfalse{show\_all}{dont\_show\_all}
-Enabling this option effectively enables \textit{show\_skolems},
-\textit{show\_datatypes}, and \textit{show\_consts}.
+Enabling this option effectively enables \textit{show\_datatypes} and
+\textit{show\_consts}.
 
 \opdefault{max\_potential}{int}{$\mathbf{1}$}
 Specifies the maximum number of potential counterexamples to display. Setting

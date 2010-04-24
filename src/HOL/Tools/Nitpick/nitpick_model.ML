@@ -12,10 +12,10 @@ sig
   type rep = Nitpick_Rep.rep
   type nut = Nitpick_Nut.nut
 
-  type params = {
-    show_skolems: bool,
-    show_datatypes: bool,
-    show_consts: bool}
+  type params =
+    {show_datatypes: bool,
+     show_consts: bool}
+
   type term_postprocessor =
     Proof.context -> string -> (typ -> term list) -> typ -> term -> term
 
@@ -51,10 +51,9 @@ open Nitpick_Nut
 
 structure KK = Kodkod
 
-type params = {
-  show_skolems: bool,
-  show_datatypes: bool,
-  show_consts: bool}
+type params =
+  {show_datatypes: bool,
+   show_consts: bool}
 
 type term_postprocessor =
   Proof.context -> string -> (typ -> term list) -> typ -> term -> term
@@ -840,7 +839,7 @@ fun bisimilar_values _ 0 _ = true
         t1 = t2
     end
 
-fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
+fun reconstruct_hol_model {show_datatypes, show_consts}
         ({hol_ctxt = {thy, ctxt, max_bisim_depth, boxes, stds, wfs, user_axioms,
                       debug, binary_ints, destroy_constrs, specialize,
                       star_linear_preds, fast_descrs, tac_timeout, evals,
@@ -980,7 +979,7 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
               | _ => raise TERM ("Nitpick_Model.reconstruct_hol_model",
                                  [Const x])) all_frees
     val chunks = block_of_names true "Free variable" free_names @
-                 block_of_names show_skolems "Skolem constant" skolem_names @
+                 block_of_names true "Skolem constant" skolem_names @
                  block_of_names true "Evaluated term" eval_names @
                  block_of_datatypes @ block_of_codatatypes @
                  block_of_names show_consts "Constant"
