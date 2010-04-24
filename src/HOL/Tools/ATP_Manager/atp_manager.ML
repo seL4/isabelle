@@ -352,7 +352,7 @@ fun start_prover_thread (params as {timeout, ...}) birth_time death_time i
         val message =
           #message (prover params (minimize_command name) timeout problem)
           handle Sledgehammer_HOL_Clause.TRIVIAL => metis_line i n []
-               | ERROR msg => "Error: " ^ msg ^ ".\n";
+               | ERROR message => "Error: " ^ message ^ "\n"
         val _ = unregister params message (Thread.self ());
       in () end)
   in () end
