@@ -88,6 +88,8 @@ fun string_for_failure Unprovable = "The ATP problem is unprovable."
   | string_for_failure TimedOut = "Timed out."
   | string_for_failure OutOfResources = "The ATP ran out of resources."
   | string_for_failure OldSpass =
+    (* FIXME: Change the error message below to point to the Isabelle download
+       page once the package is there (around the Isabelle2010 release). *)
     "Warning: Sledgehammer requires a more recent version of SPASS with \
     \support for the TPTP syntax. To install it, download and untar the \
     \package \"http://isabelle.in.tum.de/~blanchet/spass-3.7.tgz\" and add the \
@@ -193,7 +195,7 @@ fun generic_prover overlord get_facts prepare write_file home executable args
                      else
                         "") ^ output)
 
-    val (((output, atp_run_time_in_msecs), res_code), _) =
+    val (((output, atp_run_time_in_msecs), res_code), pool) =
       with_path cleanup export run_on (prob_pathname subgoal);
 
     (* Check for success and print out some information on failure. *)
@@ -201,12 +203,12 @@ fun generic_prover overlord get_facts prepare write_file home executable args
       extract_proof_and_outcome res_code proof_delims known_failures output
     val (message, relevant_thm_names) =
       case outcome of
-        NONE => proof_text isar_proof debug modulus sorts ctxt
+        NONE => proof_text isar_proof pool debug modulus sorts ctxt
                            (minimize_command, proof, internal_thm_names, th,
                             subgoal)
       | SOME failure => (string_for_failure failure ^ "\n", [])
   in
-    {outcome = outcome, message = message,
+    {outcome = outcome, message = message, pool = pool,
      relevant_thm_names = relevant_thm_names,
      atp_run_time_in_msecs = atp_run_time_in_msecs, output = output,
      proof = proof, internal_thm_names = internal_thm_names,
@@ -228,7 +230,7 @@ fun generic_tptp_prover
                           higher_order follow_defs max_axiom_clauses
                           (the_default prefers_theory_relevant theory_relevant))
       (prepare_clauses higher_order false)
-      (write_tptp_file (debug andalso overlord andalso not isar_proof)) home
+      (write_tptp_file (debug andalso overlord)) home
       executable (arguments timeout) proof_delims known_failures name params
       minimize_command
 
@@ -325,9 +327,6 @@ val spass = dfg_prover "spass" spass_config
    supports only the DFG syntax. As soon as all Isabelle repository/snapshot
    users have upgraded to 3.7, we can kill "spass" (and all DFG support in
    Sledgehammer) and rename "spass_tptp" "spass". *)
-
-(* FIXME: Change the error message below to point to the Isabelle download
-   page once the package is there (around the Isabelle2010 release). *)
 
 val spass_tptp_config =
   {home = #home spass_config,

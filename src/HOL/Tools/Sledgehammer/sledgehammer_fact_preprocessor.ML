@@ -1,5 +1,6 @@
 (*  Title:      HOL/Tools/Sledgehammer/sledgehammer_fact_preprocessor.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory
+    Author:     Jasmin Blanchette, TU Muenchen
 
 Transformation of axiom rules (elim/intro/etc) into CNF forms.
 *)

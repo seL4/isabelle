@@ -1,5 +1,6 @@
 (*  Title:      HOL/Tools/Sledgehammer/sledgehammer_fol_clause.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory
+    Author:     Jasmin Blanchette, TU Muenchen
 
 Storing/printing FOL clauses and arity clauses.  Typed equality is
 treated differently.

@@ -8,6 +8,7 @@ Central manager component for ATP threads.
 
 signature ATP_MANAGER =
 sig
+  type name_pool = Sledgehammer_HOL_Clause.name_pool
   type relevance_override = Sledgehammer_Fact_Filter.relevance_override
   type minimize_command = Sledgehammer_Proof_Reconstruct.minimize_command
   type params =
@@ -40,6 +41,7 @@ sig
   type prover_result =
     {outcome: failure option,
      message: string,
+     pool: name_pool option,
      relevant_thm_names: string list,
      atp_run_time_in_msecs: int,
      output: string,
@@ -102,6 +104,7 @@ datatype failure =
 type prover_result =
   {outcome: failure option,
    message: string,
+   pool: name_pool option,
    relevant_thm_names: string list,
    atp_run_time_in_msecs: int,
    output: string,

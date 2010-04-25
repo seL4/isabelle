@@ -92,13 +92,14 @@ fun minimize_theorems (params as {debug, atps, minimize_timeout, isar_proof,
   in
     (* try prove first to check result and get used theorems *)
     (case test_thms_fun NONE name_thms_pairs of
-      result as {outcome = NONE, internal_thm_names, filtered_clauses, ...} =>
+      result as {outcome = NONE, pool, internal_thm_names, filtered_clauses,
+                 ...} =>
         let
           val used = internal_thm_names |> Vector.foldr (op ::) []
                                         |> sort_distinct string_ord
           val to_use =
             if length used < length name_thms_pairs then
-              filter (fn (name1, _) => List.exists (curry (op =) name1) used)
+              filter (fn (name1, _) => exists (curry (op =) name1) used)
                      name_thms_pairs
             else name_thms_pairs
           val (min_thms, {proof, internal_thm_names, ...}) =
@@ -109,7 +110,7 @@ fun minimize_theorems (params as {debug, atps, minimize_timeout, isar_proof,
             ["Minimized: " ^ string_of_int n ^ " theorem" ^ plural_s n] ^ ".")
         in
           (SOME min_thms,
-           proof_text isar_proof debug modulus sorts ctxt
+           proof_text isar_proof pool debug modulus sorts ctxt
                       (K "", proof, internal_thm_names, goal, i) |> fst)
         end
     | {outcome = SOME TimedOut, ...} =>
