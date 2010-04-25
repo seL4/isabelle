@@ -3059,7 +3059,7 @@ fun generic_code_pred prep_const options raw_const lthy =
            ) options [const]))
       end
   in
-    Proof.theorem_i NONE after_qed (map (single o (rpair [])) cases_rules) lthy''
+    Proof.theorem NONE after_qed (map (single o (rpair [])) cases_rules) lthy''
   end;
 
 val code_pred = generic_code_pred (K I);

@@ -41,37 +41,37 @@ sig
   val raw_goal: state -> {context: context, facts: thm list, goal: thm}
   val goal: state -> {context: context, facts: thm list, goal: thm}
   val simple_goal: state -> {context: context, goal: thm}
-  val match_bind: (string list * string) list -> state -> state
-  val match_bind_i: (term list * term) list -> state -> state
-  val let_bind: (string list * string) list -> state -> state
-  val let_bind_i: (term list * term) list -> state -> state
-  val fix: (binding * string option * mixfix) list -> state -> state
-  val fix_i: (binding * typ option * mixfix) list -> state -> state
+  val match_bind: (term list * term) list -> state -> state
+  val match_bind_cmd: (string list * string) list -> state -> state
+  val let_bind: (term list * term) list -> state -> state
+  val let_bind_cmd: (string list * string) list -> state -> state
+  val fix: (binding * typ option * mixfix) list -> state -> state
+  val fix_cmd: (binding * string option * mixfix) list -> state -> state
   val assm: Assumption.export ->
-    (Attrib.binding * (string * string list) list) list -> state -> state
-  val assm_i: Assumption.export ->
     (Thm.binding * (term * term list) list) list -> state -> state
-  val assume: (Attrib.binding * (string * string list) list) list -> state -> state
-  val assume_i: (Thm.binding * (term * term list) list) list -> state -> state
-  val presume: (Attrib.binding * (string * string list) list) list -> state -> state
-  val presume_i: (Thm.binding * (term * term list) list) list -> state -> state
-  val def: (Attrib.binding * ((binding * mixfix) * (string * string list))) list -> state -> state
-  val def_i: (Thm.binding * ((binding * mixfix) * (term * term list))) list -> state -> state
+  val assm_cmd: Assumption.export ->
+    (Attrib.binding * (string * string list) list) list -> state -> state
+  val assume: (Thm.binding * (term * term list) list) list -> state -> state
+  val assume_cmd: (Attrib.binding * (string * string list) list) list -> state -> state
+  val presume: (Thm.binding * (term * term list) list) list -> state -> state
+  val presume_cmd: (Attrib.binding * (string * string list) list) list -> state -> state
+  val def: (Thm.binding * ((binding * mixfix) * (term * term list))) list -> state -> state
+  val def_cmd: (Attrib.binding * ((binding * mixfix) * (string * string list))) list -> state -> state
   val chain: state -> state
   val chain_facts: thm list -> state -> state
-  val get_thmss: state -> (Facts.ref * Attrib.src list) list -> thm list
-  val note_thmss: (Attrib.binding * (Facts.ref * Attrib.src list) list) list -> state -> state
-  val note_thmss_i: (Thm.binding * (thm list * attribute list) list) list -> state -> state
-  val from_thmss: ((Facts.ref * Attrib.src list) list) list -> state -> state
-  val from_thmss_i: ((thm list * attribute list) list) list -> state -> state
-  val with_thmss: ((Facts.ref * Attrib.src list) list) list -> state -> state
-  val with_thmss_i: ((thm list * attribute list) list) list -> state -> state
-  val using: ((Facts.ref * Attrib.src list) list) list -> state -> state
-  val using_i: ((thm list * attribute list) list) list -> state -> state
-  val unfolding: ((Facts.ref * Attrib.src list) list) list -> state -> state
-  val unfolding_i: ((thm list * attribute list) list) list -> state -> state
-  val invoke_case: string * string option list * Attrib.src list -> state -> state
-  val invoke_case_i: string * string option list * attribute list -> state -> state
+  val get_thmss_cmd: state -> (Facts.ref * Attrib.src list) list -> thm list
+  val note_thmss: (Thm.binding * (thm list * attribute list) list) list -> state -> state
+  val note_thmss_cmd: (Attrib.binding * (Facts.ref * Attrib.src list) list) list -> state -> state
+  val from_thmss: ((thm list * attribute list) list) list -> state -> state
+  val from_thmss_cmd: ((Facts.ref * Attrib.src list) list) list -> state -> state
+  val with_thmss: ((thm list * attribute list) list) list -> state -> state
+  val with_thmss_cmd: ((Facts.ref * Attrib.src list) list) list -> state -> state
+  val using: ((thm list * attribute list) list) list -> state -> state
+  val using_cmd: ((Facts.ref * Attrib.src list) list) list -> state -> state
+  val unfolding: ((thm list * attribute list) list) list -> state -> state
+  val unfolding_cmd: ((Facts.ref * Attrib.src list) list) list -> state -> state
+  val invoke_case: string * string option list * attribute list -> state -> state
+  val invoke_case_cmd: string * string option list * Attrib.src list -> state -> state
   val begin_block: state -> state
   val next_block: state -> state
   val end_block: state -> state
@@ -87,9 +87,9 @@ sig
     ((binding * 'a list) * 'b) list -> state -> state
   val local_qed: Method.text option * bool -> state -> state
   val theorem: Method.text option -> (thm list list -> context -> context) ->
-    (string * string list) list list -> context -> state
-  val theorem_i: Method.text option -> (thm list list -> context -> context) ->
     (term * term list) list list -> context -> state
+  val theorem_cmd: Method.text option -> (thm list list -> context -> context) ->
+    (string * string list) list list -> context -> state
   val global_qed: Method.text option * bool -> state -> context
   val local_terminal_proof: Method.text * Method.text option -> state -> state
   val local_default_proof: state -> state
@@ -102,13 +102,13 @@ sig
   val global_skip_proof: bool -> state -> context
   val global_done_proof: state -> context
   val have: Method.text option -> (thm list list -> state -> state) ->
-    (Attrib.binding * (string * string list) list) list -> bool -> state -> state
-  val have_i: Method.text option -> (thm list list -> state -> state) ->
     (Thm.binding * (term * term list) list) list -> bool -> state -> state
+  val have_cmd: Method.text option -> (thm list list -> state -> state) ->
+    (Attrib.binding * (string * string list) list) list -> bool -> state -> state
   val show: Method.text option -> (thm list list -> state -> state) ->
-    (Attrib.binding * (string * string list) list) list -> bool -> state -> state
-  val show_i: Method.text option -> (thm list list -> state -> state) ->
     (Thm.binding * (term * term list) list) list -> bool -> state -> state
+  val show_cmd: Method.text option -> (thm list list -> state -> state) ->
+    (Attrib.binding * (string * string list) list) list -> bool -> state -> state
   val schematic_goal: state -> bool
   val is_relevant: state -> bool
   val local_future_proof: (state -> ('a * state) Future.future) ->
@@ -535,10 +535,10 @@ fun gen_bind bind args state =
 
 in
 
-val match_bind = gen_bind (ProofContext.match_bind false);
-val match_bind_i = gen_bind (ProofContext.match_bind_i false);
-val let_bind = gen_bind (ProofContext.match_bind true);
-val let_bind_i = gen_bind (ProofContext.match_bind_i true);
+val match_bind = gen_bind (ProofContext.match_bind_i false);
+val match_bind_cmd = gen_bind (ProofContext.match_bind false);
+val let_bind = gen_bind (ProofContext.match_bind_i true);
+val let_bind_cmd = gen_bind (ProofContext.match_bind true);
 
 end;
 
@@ -554,8 +554,8 @@ fun gen_fix prep_vars args =
 
 in
 
-val fix = gen_fix (fn ctxt => fn args => fst (ProofContext.read_vars args ctxt));
-val fix_i = gen_fix (K I);
+val fix = gen_fix (K I);
+val fix_cmd = gen_fix (fn ctxt => fn args => fst (ProofContext.read_vars args ctxt));
 
 end;
 
@@ -572,12 +572,12 @@ fun gen_assume asm prep_att exp args state =
 
 in
 
-val assm      = gen_assume ProofContext.add_assms Attrib.attribute;
-val assm_i    = gen_assume ProofContext.add_assms_i (K I);
-val assume    = assm Assumption.assume_export;
-val assume_i  = assm_i Assumption.assume_export;
-val presume   = assm Assumption.presume_export;
-val presume_i = assm_i Assumption.presume_export;
+val assm = gen_assume ProofContext.add_assms_i (K I);
+val assm_cmd = gen_assume ProofContext.add_assms Attrib.attribute;
+val assume = assm Assumption.assume_export;
+val assume_cmd = assm_cmd Assumption.assume_export;
+val presume = assm Assumption.presume_export;
+val presume_cmd = assm_cmd Assumption.presume_export;
 
 end;
 
@@ -605,8 +605,8 @@ fun gen_def prep_att prep_vars prep_binds args state =
 
 in
 
-val def = gen_def Attrib.attribute ProofContext.read_vars ProofContext.match_bind;
-val def_i = gen_def (K I) ProofContext.cert_vars ProofContext.match_bind_i;
+val def = gen_def (K I) ProofContext.cert_vars ProofContext.match_bind_i;
+val def_cmd = gen_def Attrib.attribute ProofContext.read_vars ProofContext.match_bind;
 
 end;
 
@@ -646,18 +646,18 @@ fun gen_thmss more_facts opt_chain opt_result prep_atts prep_fact args state =
 
 in
 
-val note_thmss = gen_thmss (K []) I #2 Attrib.attribute ProofContext.get_fact;
-val note_thmss_i = gen_thmss (K []) I #2 (K I) (K I);
+val note_thmss = gen_thmss (K []) I #2 (K I) (K I);
+val note_thmss_cmd = gen_thmss (K []) I #2 Attrib.attribute ProofContext.get_fact;
 
-val from_thmss = gen_thmss (K []) chain #2 Attrib.attribute ProofContext.get_fact o no_binding;
-val from_thmss_i = gen_thmss (K []) chain #2 (K I) (K I) o no_binding;
+val from_thmss = gen_thmss (K []) chain #2 (K I) (K I) o no_binding;
+val from_thmss_cmd = gen_thmss (K []) chain #2 Attrib.attribute ProofContext.get_fact o no_binding;
 
-val with_thmss = gen_thmss the_facts chain #2 Attrib.attribute ProofContext.get_fact o no_binding;
-val with_thmss_i = gen_thmss the_facts chain #2 (K I) (K I) o no_binding;
+val with_thmss = gen_thmss the_facts chain #2 (K I) (K I) o no_binding;
+val with_thmss_cmd = gen_thmss the_facts chain #2 Attrib.attribute ProofContext.get_fact o no_binding;
 
 val local_results = gen_thmss (K []) I I (K I) (K I) o map (apsnd Thm.simple_fact);
 
-fun get_thmss state srcs = the_facts (note_thmss [((Binding.empty, []), srcs)] state);
+fun get_thmss_cmd state srcs = the_facts (note_thmss_cmd [((Binding.empty, []), srcs)] state);
 
 end;
 
@@ -686,10 +686,10 @@ val unfold_goals = Local_Defs.unfold_goals;
 
 in
 
-val using = gen_using append_using (K (K I)) Attrib.attribute ProofContext.get_fact;
-val using_i = gen_using append_using (K (K I)) (K I) (K I);
-val unfolding = gen_using unfold_using unfold_goals Attrib.attribute ProofContext.get_fact;
-val unfolding_i = gen_using unfold_using unfold_goals (K I) (K I);
+val using = gen_using append_using (K (K I)) (K I) (K I);
+val using_cmd = gen_using append_using (K (K I)) Attrib.attribute ProofContext.get_fact;
+val unfolding = gen_using unfold_using unfold_goals (K I) (K I);
+val unfolding_cmd = gen_using unfold_using unfold_goals Attrib.attribute ProofContext.get_fact;
 
 end;
 
@@ -709,15 +709,15 @@ fun gen_invoke_case prep_att (name, xs, raw_atts) state =
     val assumptions = asms |> map (fn (a, ts) => ((qualified_binding a, atts), map (rpair []) ts));
   in
     state'
-    |> assume_i assumptions
+    |> assume assumptions
     |> bind_terms Auto_Bind.no_facts
-    |> `the_facts |-> (fn thms => note_thmss_i [((Binding.name name, []), [(thms, [])])])
+    |> `the_facts |-> (fn thms => note_thmss [((Binding.name name, []), [(thms, [])])])
   end;
 
 in
 
-val invoke_case = gen_invoke_case Attrib.attribute;
-val invoke_case_i = gen_invoke_case (K I);
+val invoke_case = gen_invoke_case (K I);
+val invoke_case_cmd = gen_invoke_case Attrib.attribute;
 
 end;
 
@@ -901,8 +901,8 @@ fun global_goal prepp before_qed after_qed propp ctxt =
   init ctxt
   |> generic_goal (prepp #> ProofContext.auto_fixes) "" before_qed (K I, after_qed) propp;
 
-val theorem = global_goal ProofContext.bind_propp_schematic;
-val theorem_i = global_goal ProofContext.bind_propp_schematic_i;
+val theorem = global_goal ProofContext.bind_propp_schematic_i;
+val theorem_cmd = global_goal ProofContext.bind_propp_schematic;
 
 fun global_qeds txt =
   end_proof true txt
@@ -974,10 +974,10 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
 
 in
 
-val have = gen_have Attrib.attribute ProofContext.bind_propp;
-val have_i = gen_have (K I) ProofContext.bind_propp_i;
-val show = gen_show Attrib.attribute ProofContext.bind_propp;
-val show_i = gen_show (K I) ProofContext.bind_propp_i;
+val have = gen_have (K I) ProofContext.bind_propp_i;
+val have_cmd = gen_have Attrib.attribute ProofContext.bind_propp;
+val show = gen_show (K I) ProofContext.bind_propp_i;
+val show_cmd = gen_show Attrib.attribute ProofContext.bind_propp;
 
 end;
 

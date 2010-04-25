@@ -363,7 +363,7 @@ fun gen_primrec prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lth
   in
     lthy' |>
     Variable.add_fixes (map fst lsrs) |> snd |>
-    Proof.theorem_i NONE
+    Proof.theorem NONE
       (fn thss => fn goal_ctxt =>
          let
            val simps = ProofContext.export goal_ctxt lthy' (flat thss);
