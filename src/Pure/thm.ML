@@ -92,8 +92,6 @@ signature BASIC_THM =
   val instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
   val instantiate_cterm: (ctyp * ctyp) list * (cterm * cterm) list -> cterm -> cterm
   val trivial: cterm -> thm
-  val of_class: ctyp * class -> thm
-  val unconstrainT: ctyp -> thm -> thm
   val dest_state: thm * int -> (term * term) list * term list * term * term
   val lift_rule: cterm -> thm -> thm
   val incr_indexes: int -> thm -> thm
@@ -139,6 +137,9 @@ sig
   val adjust_maxidx_thm: int -> thm -> thm
   val varifyT_global: thm -> thm
   val varifyT_global': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
+  val of_class: ctyp * class -> thm
+  val unconstrainT: ctyp -> thm -> thm
+  val unconstrain_allTs: thm -> thm
   val freezeT: thm -> thm
   val assumption: int -> thm -> thm Seq.seq
   val eq_assumption: int -> thm -> thm
@@ -1239,6 +1240,11 @@ fun unconstrainT
       tpairs = map (pairself unconstrain) tpairs,
       prop = Logic.list_implies (constraints, unconstrain prop)})
   end;
+
+fun unconstrain_allTs th =
+  fold (unconstrainT o ctyp_of (theory_of_thm th) o TVar)
+    (fold_terms Term.add_tvars th []) th;
+
 
 (* Replace all TFrees not fixed or in the hyps by new TVars *)
 fun varifyT_global' fixed (Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...})) =

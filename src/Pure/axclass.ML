@@ -431,7 +431,7 @@ fun add_classrel raw_th thy =
     val (c1, c2) = cert_classrel thy rel handle TYPE _ => err ();
     val th' = th
       |> Drule.instantiate' [SOME (ctyp_of thy (TVar ((Name.aT, 0), [c1])))] []
-      |> Drule.unconstrainTs;
+      |> Thm.unconstrain_allTs;
     val _ = shyps_topped th' orelse raise Fail "add_classrel: nontop shyps after unconstrain";
   in
     thy
@@ -455,7 +455,7 @@ fun add_arity raw_th thy =
     val _ = map (Sign.certify_sort thy) Ss = Ss orelse err ();
     val th' = th
       |> Drule.instantiate' (map (SOME o ctyp_of thy o TVar o apfst (rpair 0)) names) []
-      |> Drule.unconstrainTs;
+      |> Thm.unconstrain_allTs;
     val _ = shyps_topped th' orelse raise Fail "add_arity: nontop shyps after unconstrain";
   in
     thy
