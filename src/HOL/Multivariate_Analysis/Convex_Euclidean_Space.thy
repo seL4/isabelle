@@ -2200,9 +2200,9 @@ lemma homeomorphic_convex_compact: fixes s::"(real^'n) set" and t::"(real^'n) se
 
 subsection {* Epigraphs of convex functions. *}
 
-definition "epigraph s (f::real^'n \<Rightarrow> real) = {xy. fstcart xy \<in> s \<and> f(fstcart xy) \<le> dest_vec1 (sndcart xy)}"
+definition "epigraph s (f::_ \<Rightarrow> real) = {xy. fst xy \<in> s \<and> f (fst xy) \<le> snd xy}"
 
-lemma mem_epigraph: "(pastecart x (vec1 y)) \<in> epigraph s f \<longleftrightarrow> x \<in> s \<and> f x \<le> y" unfolding epigraph_def by auto
+lemma mem_epigraph: "(x, y) \<in> epigraph s f \<longleftrightarrow> x \<in> s \<and> f x \<le> y" unfolding epigraph_def by auto
 
 (** move this**)
 lemma forall_dest_vec1: "(\<forall>x. P x) \<longleftrightarrow> (\<forall>x. P(dest_vec1 x))" 
@@ -2211,12 +2211,12 @@ lemma forall_dest_vec1: "(\<forall>x. P x) \<longleftrightarrow> (\<forall>x. P(
 (** This might break sooner or later. In fact it did already once. **)
 lemma convex_epigraph: 
   "convex(epigraph s f) \<longleftrightarrow> convex_on s f \<and> convex s"
-  unfolding convex_def convex_on_def unfolding Ball_def forall_pastecart epigraph_def
-  unfolding mem_Collect_eq fstcart_pastecart sndcart_pastecart sndcart_add sndcart_cmul [where 'a=real, unfolded smult_conv_scaleR] fstcart_add fstcart_cmul [where 'a=real, unfolded smult_conv_scaleR] Ball_def[symmetric] unfolding vector_add_component vector_scaleR_component
-  apply(subst forall_dest_vec1[THEN sym])+ 
+  unfolding convex_def convex_on_def
+  unfolding Ball_def split_paired_All epigraph_def
+  unfolding mem_Collect_eq fst_conv snd_conv fst_add snd_add fst_scaleR snd_scaleR Ball_def[symmetric]
   apply safe defer apply(erule_tac x=x in allE,erule_tac x="f x" in allE) apply safe
   apply(erule_tac x=xa in allE,erule_tac x="f xa" in allE) prefer 3
-  apply(rule_tac y="u * f x + v * f xb" in order_trans) defer by(auto intro!:mult_left_mono add_mono)
+  apply(rule_tac y="u * f a + v * f aa" in order_trans) defer by(auto intro!:mult_left_mono add_mono)
 
 lemma convex_epigraphI:
   "convex_on s f \<Longrightarrow> convex s \<Longrightarrow> convex(epigraph s f)"
@@ -2243,20 +2243,28 @@ lemma forall_of_dest_vec1': "(\<forall>v. P (dest_vec1 v)) \<longleftrightarrow>
   apply rule apply rule apply(erule_tac x="(vec1 x)" in allE) defer apply rule 
   apply(erule_tac x="dest_vec1 v" in allE) unfolding o_def vec1_dest_vec1 by auto
 
+lemma fst_setsum: "fst (\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. fst (f x))"
+by (cases "finite A", induct set: finite, simp_all)
+
+lemma snd_setsum: "snd (\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. snd (f x))"
+by (cases "finite A", induct set: finite, simp_all)
+
 lemma convex_on:
-  fixes s :: "(real ^ _) set"
   assumes "convex s"
   shows "convex_on s f \<longleftrightarrow> (\<forall>k u x. (\<forall>i\<in>{1..k::nat}. 0 \<le> u i \<and> x i \<in> s) \<and> setsum u {1..k} = 1 \<longrightarrow>
    f (setsum (\<lambda>i. u i *\<^sub>R x i) {1..k} ) \<le> setsum (\<lambda>i. u i * f(x i)) {1..k} ) "
   unfolding convex_epigraph_convex[OF assms] convex epigraph_def Ball_def mem_Collect_eq
-  unfolding sndcart_setsum[OF finite_atLeastAtMost] fstcart_setsum[OF finite_atLeastAtMost] dest_vec1_setsum[OF finite_atLeastAtMost]
-  unfolding fstcart_pastecart sndcart_pastecart sndcart_add sndcart_cmul [where 'a=real, unfolded smult_conv_scaleR] fstcart_add fstcart_cmul [where 'a=real, unfolded smult_conv_scaleR]  unfolding vector_scaleR_component
-  apply(subst forall_of_pastecart)+ apply(subst forall_of_dest_vec1)+ apply rule
-  using assms[unfolded convex] apply simp apply(rule,rule,rule)
-  apply(erule_tac x=k in allE, erule_tac x=u in allE, erule_tac x=x in allE) apply rule apply rule apply rule defer
-  apply(rule_tac j="\<Sum>i = 1..k. u i * f (x i)" in real_le_trans)
-  defer apply(rule setsum_mono) apply(erule conjE)+ apply(erule_tac x=i in allE) unfolding real_scaleR_def
+  unfolding fst_setsum snd_setsum fst_scaleR snd_scaleR
+  apply safe
+  apply (drule_tac x=k in spec)
+  apply (drule_tac x=u in spec)
+  apply (drule_tac x="\<lambda>i. (x i, f (x i))" in spec)
+  apply simp
+  using assms[unfolded convex] apply simp
+  apply(rule_tac j="\<Sum>i = 1..k. u i * f (fst (x i))" in real_le_trans)
+  defer apply(rule setsum_mono) apply(erule_tac x=i in allE) unfolding real_scaleR_def
   apply(rule mult_left_mono)using assms[unfolded convex] by auto
+
 
 subsection {* Convexity of general and special intervals. *}
 
@@ -2348,7 +2356,6 @@ by(rule ivt_decreasing_component_on_1)
 subsection {* A bound within a convex hull, and so an interval. *}
 
 lemma convex_on_convex_hull_bound:
-  fixes s :: "(real ^ _) set"
   assumes "convex_on (convex hull s) f" "\<forall>x\<in>s. f x \<le> b"
   shows "\<forall>x\<in> convex hull s. f x \<le> b" proof
   fix x assume "x\<in>convex hull s"
@@ -2451,7 +2458,7 @@ lemma cube_convex_hull:
 subsection {* Bounded convex function on open set is continuous. *}
 
 lemma convex_on_bounded_continuous:
-  fixes s :: "(real ^ _) set"
+  fixes s :: "('a::real_normed_vector) set"
   assumes "open s" "convex_on s f" "\<forall>x\<in>s. abs(f x) \<le> b"
   shows "continuous_on s f"
   apply(rule continuous_at_imp_continuous_on) unfolding continuous_at_real_range proof(rule,rule,rule)
@@ -2501,13 +2508,18 @@ lemma convex_on_bounded_continuous:
 
 subsection {* Upper bound on a ball implies upper and lower bounds. *}
 
+lemma scaleR_2:
+  fixes x :: "'a::real_vector"
+  shows "scaleR 2 x = x + x"
+unfolding one_add_one_is_two [symmetric] scaleR_left_distrib by simp
+
 lemma convex_bounds_lemma:
-  fixes x :: "real ^ _"
+  fixes x :: "'a::real_normed_vector"
   assumes "convex_on (cball x e) f"  "\<forall>y \<in> cball x e. f y \<le> b"
   shows "\<forall>y \<in> cball x e. abs(f y) \<le> b + 2 * abs(f x)"
   apply(rule) proof(cases "0 \<le> e") case True
   fix y assume y:"y\<in>cball x e" def z \<equiv> "2 *\<^sub>R x - y"
-  have *:"x - (2 *\<^sub>R x - y) = y - x" by vector
+  have *:"x - (2 *\<^sub>R x - y) = y - x" by (simp add: scaleR_2)
   have z:"z\<in>cball x e" using y unfolding z_def mem_cball dist_norm * by(auto simp add: norm_minus_commute)
   have "(1 / 2) *\<^sub>R y + (1 / 2) *\<^sub>R z = x" unfolding z_def by (auto simp add: algebra_simps)
   thus "\<bar>f y\<bar> \<le> b + 2 * \<bar>f x\<bar>" using assms(1)[unfolded convex_on_def,rule_format, OF y z, of "1/2" "1/2"]
@@ -2564,7 +2576,7 @@ subsection {* Line segments, Starlike Sets, etc.*}
    segment[a,b] is closed and segment(a,b) is open relative to affine hull. *)
 
 definition
-  midpoint :: "real ^ 'n \<Rightarrow> real ^ 'n \<Rightarrow> real ^ 'n" where
+  midpoint :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a" where
   "midpoint a b = (inverse (2::real)) *\<^sub>R (a + b)"
 
 definition
@@ -2586,24 +2598,38 @@ lemma midpoint_refl: "midpoint x x = x"
 
 lemma midpoint_sym: "midpoint a b = midpoint b a" unfolding midpoint_def by (auto simp add: scaleR_right_distrib)
 
+lemma midpoint_eq_iff: "midpoint a b = c \<longleftrightarrow> a + b = c + c"
+proof -
+  have "midpoint a b = c \<longleftrightarrow> scaleR 2 (midpoint a b) = scaleR 2 c"
+    by simp
+  thus ?thesis
+    unfolding midpoint_def scaleR_2 [symmetric] by simp
+qed
+
 lemma dist_midpoint:
+  fixes a b :: "'a::real_normed_vector" shows
   "dist a (midpoint a b) = (dist a b) / 2" (is ?t1)
   "dist b (midpoint a b) = (dist a b) / 2" (is ?t2)
   "dist (midpoint a b) a = (dist a b) / 2" (is ?t3)
   "dist (midpoint a b) b = (dist a b) / 2" (is ?t4)
 proof-
-  have *: "\<And>x y::real^'n. 2 *\<^sub>R x = - y \<Longrightarrow> norm x = (norm y) / 2" unfolding equation_minus_iff by auto
-  have **:"\<And>x y::real^'n. 2 *\<^sub>R x =   y \<Longrightarrow> norm x = (norm y) / 2" by auto
+  have *: "\<And>x y::'a. 2 *\<^sub>R x = - y \<Longrightarrow> norm x = (norm y) / 2" unfolding equation_minus_iff by auto
+  have **:"\<And>x y::'a. 2 *\<^sub>R x =   y \<Longrightarrow> norm x = (norm y) / 2" by auto
   note scaleR_right_distrib [simp]
-  show ?t1 unfolding midpoint_def dist_norm apply (rule **) by(auto,vector)
-  show ?t2 unfolding midpoint_def dist_norm apply (rule *)  by(auto,vector)
-  show ?t3 unfolding midpoint_def dist_norm apply (rule *)  by(auto,vector)
-  show ?t4 unfolding midpoint_def dist_norm apply (rule **) by(auto,vector) qed
+  show ?t1 unfolding midpoint_def dist_norm apply (rule **)
+    by (simp add: scaleR_right_diff_distrib, simp add: scaleR_2)
+  show ?t2 unfolding midpoint_def dist_norm apply (rule *)
+    by (simp add: scaleR_right_diff_distrib, simp add: scaleR_2)
+  show ?t3 unfolding midpoint_def dist_norm apply (rule *)
+    by (simp add: scaleR_right_diff_distrib, simp add: scaleR_2)
+  show ?t4 unfolding midpoint_def dist_norm apply (rule **)
+    by (simp add: scaleR_right_diff_distrib, simp add: scaleR_2)
+qed
 
 lemma midpoint_eq_endpoint:
-  "midpoint a b = a \<longleftrightarrow> a = (b::real^'n)"
+  "midpoint a b = a \<longleftrightarrow> a = b"
   "midpoint a b = b \<longleftrightarrow> a = b"
-  unfolding dist_eq_0_iff[where 'a="real^'n", THEN sym] dist_midpoint by auto
+  unfolding midpoint_eq_iff by auto
 
 lemma convex_contains_segment:
   "convex s \<longleftrightarrow> (\<forall>a\<in>s. \<forall>b\<in>s. closed_segment a b \<subseteq> s)"
