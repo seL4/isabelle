@@ -41,8 +41,6 @@ sig
   val raw_goal: state -> {context: context, facts: thm list, goal: thm}
   val goal: state -> {context: context, facts: thm list, goal: thm}
   val simple_goal: state -> {context: context, goal: thm}
-  val match_bind: (term list * term) list -> state -> state
-  val match_bind_cmd: (string list * string) list -> state -> state
   val let_bind: (term list * term) list -> state -> state
   val let_bind_cmd: (string list * string) list -> state -> state
   val fix: (binding * typ option * mixfix) list -> state -> state
@@ -523,22 +521,20 @@ fun simple_goal state =
 
 (** context elements **)
 
-(* bindings *)
+(* let bindings *)
 
 local
 
 fun gen_bind bind args state =
   state
   |> assert_forward
-  |> map_context (bind args #> snd)
+  |> map_context (bind true args #> snd)
   |> put_facts NONE;
 
 in
 
-val match_bind = gen_bind (ProofContext.match_bind_i false);
-val match_bind_cmd = gen_bind (ProofContext.match_bind false);
-val let_bind = gen_bind (ProofContext.match_bind_i true);
-val let_bind_cmd = gen_bind (ProofContext.match_bind true);
+val let_bind = gen_bind ProofContext.match_bind_i;
+val let_bind_cmd = gen_bind ProofContext.match_bind;
 
 end;
 
