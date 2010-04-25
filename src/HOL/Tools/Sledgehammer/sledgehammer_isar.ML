@@ -33,14 +33,14 @@ val neg_clausify_setup =
                (Scan.succeed (SIMPLE_METHOD' o neg_clausify_tac))
                "conversion of goal to negated conjecture clauses"
 
+(** Attribute for converting a theorem into clauses **)
+
 val parse_clausify_attribute =
   Scan.lift OuterParse.nat
   >> (fn i => Thm.rule_attribute (fn context => fn th =>
                   let val thy = Context.theory_of context in
                     Meson.make_meta_clause (nth (cnf_axiom thy th) i)
                   end))
-
-(** Attribute for converting a theorem into clauses **)
 
 val clausify_setup =
   Attrib.setup @{binding clausify} parse_clausify_attribute

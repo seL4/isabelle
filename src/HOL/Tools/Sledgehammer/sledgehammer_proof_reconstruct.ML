@@ -41,7 +41,8 @@ type minimize_command = string list -> string
 fun is_ident_char c = Char.isAlphaNum c orelse c = #"_"
 fun is_head_digit s = Char.isDigit (String.sub (s, 0))
 
-fun is_axiom thm_names line_no = line_no <= Vector.length thm_names
+fun is_axiom_clause_number thm_names line_num =
+  line_num <= Vector.length thm_names
 
 fun ugly_name NONE s = s
   | ugly_name (SOME the_pool) s =
@@ -431,44 +432,44 @@ fun unequal t (_, t', _) = not (t aconv t');
 (*No "real" literals means only type information*)
 fun eq_types t = t aconv HOLogic.true_const;
 
-fun replace_dep (old:int, new) dep = if dep=old then new else [dep];
-
-fun replace_deps (old:int, new) (lno, t, deps) =
-      (lno, t, List.foldl (uncurry (union (op =))) [] (map (replace_dep (old, new)) deps));
+fun replace_dep (old, new) dep = if dep = old then new else [dep]
+fun replace_deps p (num, t, deps) =
+  (num, t, fold (union (op =) o replace_dep p) deps [])
 
 (*Discard axioms; consolidate adjacent lines that prove the same clause, since they differ
   only in type information.*)
-fun add_proof_line thm_names (lno, t, []) lines =
+fun add_proof_line thm_names (num, t, []) lines =
       (* No dependencies: axiom or conjecture clause *)
-      if is_axiom thm_names lno then
+      if is_axiom_clause_number thm_names num then
         (* Axioms are not proof lines *)
         if eq_types t then
           (* Must be clsrel/clsarity: type information, so delete refs to it *)
-          map (replace_deps (lno, [])) lines
+          map (replace_deps (num, [])) lines
         else
           (case take_prefix (unequal t) lines of
              (_,[]) => lines                  (*no repetition of proof line*)
-           | (pre, (lno', _, _) :: post) =>   (*repetition: replace later line by earlier one*)
-               pre @ map (replace_deps (lno', [lno])) post)
+           | (pre, (num', _, _) :: post) =>   (*repetition: replace later line by earlier one*)
+               pre @ map (replace_deps (num', [num])) post)
       else
-        (lno, t, []) :: lines
-  | add_proof_line _ (lno, t, deps) lines =
-      if eq_types t then (lno, t, deps) :: lines
+        (num, t, []) :: lines
+  | add_proof_line _ (num, t, deps) lines =
+      if eq_types t then (num, t, deps) :: lines
       (*Type information will be deleted later; skip repetition test.*)
       else (*FIXME: Doesn't this code risk conflating proofs involving different types??*)
       case take_prefix (unequal t) lines of
-         (_,[]) => (lno, t, deps) :: lines  (*no repetition of proof line*)
-       | (pre, (lno', t', _) :: post) =>
-           (lno, t', deps) ::               (*repetition: replace later line by earlier one*)
-           (pre @ map (replace_deps (lno', [lno])) post);
+         (_,[]) => (num, t, deps) :: lines  (*no repetition of proof line*)
+       | (pre, (num', t', _) :: post) =>
+           (num, t', deps) ::               (*repetition: replace later line by earlier one*)
+           (pre @ map (replace_deps (num', [num])) post);
 
 (*Recursively delete empty lines (type information) from the proof.*)
-fun add_nonnull_prfline ((lno, t, []), lines) = (*no dependencies, so a conjecture clause*)
+fun add_nonnull_prfline ((num, t, []), lines) = (*no dependencies, so a conjecture clause*)
      if eq_types t (*must be type information, tfree_tcs, clsrel, clsarity: delete refs to it*)
-     then delete_dep lno lines
-     else (lno, t, []) :: lines
-  | add_nonnull_prfline ((lno, t, deps), lines) = (lno, t, deps) :: lines
-and delete_dep lno lines = List.foldr add_nonnull_prfline [] (map (replace_deps (lno, [])) lines);
+     then delete_dep num lines
+     else (num, t, []) :: lines
+  | add_nonnull_prfline ((num, t, deps), lines) = (num, t, deps) :: lines
+and delete_dep num lines =
+  List.foldr add_nonnull_prfline [] (map (replace_deps (num, [])) lines);
 
 fun bad_free (Free (a,_)) = String.isPrefix skolem_prefix a
   | bad_free _ = false;
@@ -478,28 +479,32 @@ fun bad_free (Free (a,_)) = String.isPrefix skolem_prefix a
   counts the number of proof lines processed so far.
   Deleted lines are replaced by their own dependencies. Note that the "add_nonnull_prfline"
   phase may delete some dependencies, hence this phase comes later.*)
-fun add_wanted_prfline ctxt _ ((lno, t, []), (nlines, lines)) =
-      (nlines, (lno, t, []) :: lines)   (*conjecture clauses must be kept*)
-  | add_wanted_prfline ctxt modulus ((lno, t, deps), (nlines, lines)) =
+fun add_wanted_prfline ctxt _ ((num, t, []), (nlines, lines)) =
+      (nlines, (num, t, []) :: lines)   (*conjecture clauses must be kept*)
+  | add_wanted_prfline ctxt modulus ((num, t, deps), (nlines, lines)) =
       if eq_types t orelse not (null (Term.add_tvars t [])) orelse
          exists_subterm bad_free t orelse
          (not (null lines) andalso   (*final line can't be deleted for these reasons*)
           (length deps < 2 orelse nlines mod modulus <> 0))
-      then (nlines+1, map (replace_deps (lno, deps)) lines) (*Delete line*)
-      else (nlines+1, (lno, t, deps) :: lines);
+      then (nlines+1, map (replace_deps (num, deps)) lines) (*Delete line*)
+      else (nlines+1, (num, t, deps) :: lines);
 
 (*Replace numeric proof lines by strings, either from thm_names or sequential line numbers*)
 fun stringify_deps thm_names deps_map [] = []
-  | stringify_deps thm_names deps_map ((lno, t, deps) :: lines) =
-      if is_axiom thm_names lno then
-        (Vector.sub(thm_names,lno-1), t, []) :: stringify_deps thm_names deps_map lines
-      else let val lname = Int.toString (length deps_map)
-               fun fix lno = if is_axiom thm_names lno
-                             then SOME(Vector.sub(thm_names,lno-1))
-                             else AList.lookup (op =) deps_map lno;
-           in  (lname, t, map_filter fix (distinct (op=) deps)) ::
-               stringify_deps thm_names ((lno,lname)::deps_map) lines
-           end;
+  | stringify_deps thm_names deps_map ((num, t, deps) :: lines) =
+    if is_axiom_clause_number thm_names num then
+      (Vector.sub (thm_names, num - 1), t, []) ::
+      stringify_deps thm_names deps_map lines
+    else
+      let
+        val lname = Int.toString (length deps_map)
+        fun fix num = if is_axiom_clause_number thm_names num
+                      then SOME(Vector.sub(thm_names,num-1))
+                      else AList.lookup (op =) deps_map num;
+      in
+        (lname, t, map_filter fix (distinct (op=) deps)) ::
+        stringify_deps thm_names ((num, lname) :: deps_map) lines
+      end
 
 fun isar_proof_start i =
   (if i = 1 then "" else "prefer " ^ string_of_int i ^ "\n") ^
@@ -545,24 +550,21 @@ fun isar_proof_from_atp_proof pool modulus sorts ctxt cnfs thm_names goal i =
 
 (* === EXTRACTING LEMMAS === *)
 (* A list consisting of the first number in each line is returned.
-   TPTP: Interesting lines have the form "cnf(108, axiom, ...)", where the
+   TSTP: Interesting lines have the form "cnf(108, axiom, ...)", where the
    number (108) is extracted.
-   DFG: Lines have the form "108[0:Inp] ...", where the first number (108) is
+   SPASS: Lines have the form "108[0:Inp] ...", where the first number (108) is
    extracted. *)
-fun get_step_nums proof =
+fun extract_clause_numbers_in_proof proof =
   let
-    val toks = String.tokens (not o is_ident_char)
-    fun inputno ("cnf" :: ntok :: "axiom" :: _) = Int.fromString ntok
-      | inputno ("cnf" :: ntok :: "negated_conjecture" :: _) =
-        Int.fromString ntok
-      (* SPASS's output format *)
-      | inputno (ntok :: "0" :: "Inp" :: _) = Int.fromString ntok
-      | inputno _ = NONE
-  in map_filter (inputno o toks) (split_lines proof) end
+    val tokens_of = String.tokens (not o is_ident_char)
+    fun extract_num ("cnf" :: num :: _ :: _) = Int.fromString num
+      | extract_num (num :: "0" :: "Inp" :: _) = Int.fromString num
+      | extract_num _ = NONE
+  in proof |> split_lines |> map_filter (extract_num o tokens_of) end
   
-(*Used to label theorems chained into the sledgehammer call*)
-val chained_hint = "CHAINED";
-val kill_chained = filter_out (curry (op =) chained_hint)
+(* Used to label theorems chained into the Sledgehammer call (or rather
+   goal?) *)
+val chained_hint = "sledgehammer_chained"
 
 fun apply_command _ 1 = "by "
   | apply_command 1 _ = "apply "
@@ -585,16 +587,13 @@ fun minimize_line _ [] = ""
 fun metis_proof_text (minimize_command, proof, thm_names, goal, i) =
   let
     val lemmas =
-      proof |> get_step_nums
-            |> filter (is_axiom thm_names)
+      proof |> extract_clause_numbers_in_proof
+            |> filter (is_axiom_clause_number thm_names)
             |> map (fn i => Vector.sub (thm_names, i - 1))
-            |> filter (fn x => x <> "??.unknown")
+            |> filter_out (fn s => s = "??.unknown" orelse s = chained_hint)
             |> sort_distinct string_ord
     val n = Logic.count_prems (prop_of goal)
-    val xs = kill_chained lemmas
-  in
-    (metis_line i n xs ^ minimize_line minimize_command xs, kill_chained lemmas)
-  end
+  in (metis_line i n lemmas ^ minimize_line minimize_command lemmas, lemmas) end
 
 val is_proof_line = String.isPrefix "cnf(" orf String.isSubstring "||"
 
