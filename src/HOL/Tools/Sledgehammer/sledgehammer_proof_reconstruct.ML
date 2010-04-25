@@ -411,20 +411,20 @@ fun isar_proof_body ctxt sorts ctms =
                               (print_mode_value ()))
                       (Syntax.string_of_term ctxt)
     fun have_or_show "show" _ = "  show \""
-      | have_or_show have lname = "  " ^ have ^ " " ^ lname ^ ": \""
-    fun do_line _ (lname, t, []) =
+      | have_or_show have label = "  " ^ have ^ " " ^ label ^ ": \""
+    fun do_line _ (label, t, []) =
        (* No depedencies: it's a conjecture clause, with no proof. *)
        (case permuted_clause t ctms of
-          SOME u => "  assume " ^ lname ^ ": \"" ^ string_of_term u ^ "\"\n"
+          SOME u => "  assume " ^ label ^ ": \"" ^ string_of_term u ^ "\"\n"
         | NONE => raise TERM ("Sledgehammer_Proof_Reconstruct.isar_proof_body",
                               [t]))
-      | do_line have (lname, t, deps) =
-        have_or_show have lname ^
+      | do_line have (label, t, deps) =
+        have_or_show have label ^
         string_of_term (gen_all_vars (HOLogic.mk_Trueprop t)) ^
         "\"\n    by (metis " ^ space_implode " " deps ^ ")\n"
-    fun do_lines [(lname, t, deps)] = [do_line "show" (lname, t, deps)]
-      | do_lines ((lname, t, deps) :: lines) =
-        do_line "have" (lname, t, deps) :: do_lines lines
+    fun do_lines [(label, t, deps)] = [do_line "show" (label, t, deps)]
+      | do_lines ((label, t, deps) :: lines) =
+        do_line "have" (label, t, deps) :: do_lines lines
   in setmp_CRITICAL show_sorts sorts do_lines end;
 
 fun unequal t (_, t', _) = not (t aconv t');
@@ -497,13 +497,15 @@ fun stringify_deps thm_names deps_map [] = []
       stringify_deps thm_names deps_map lines
     else
       let
-        val lname = Int.toString (length deps_map)
-        fun fix num = if is_axiom_clause_number thm_names num
-                      then SOME(Vector.sub(thm_names,num-1))
-                      else AList.lookup (op =) deps_map num;
+        val label = Int.toString (length deps_map)
+        fun string_for_num num =
+          if is_axiom_clause_number thm_names num then
+            SOME (Vector.sub (thm_names, num - 1))
+          else
+            AList.lookup (op =) deps_map num
       in
-        (lname, t, map_filter fix (distinct (op=) deps)) ::
-        stringify_deps thm_names ((num, lname) :: deps_map) lines
+        (label, t, map_filter string_for_num (distinct (op=) deps)) ::
+        stringify_deps thm_names ((num, label) :: deps_map) lines
       end
 
 fun isar_proof_start i =
