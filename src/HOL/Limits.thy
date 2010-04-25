@@ -11,62 +11,55 @@ begin
 subsection {* Nets *}
 
 text {*
-  A net is now defined as a filter base.
-  The definition also allows non-proper filter bases.
+  A net is now defined simply as a filter.
+  The definition also allows non-proper filters.
 *}
 
+locale is_filter =
+  fixes net :: "('a \<Rightarrow> bool) \<Rightarrow> bool"
+  assumes True: "net (\<lambda>x. True)"
+  assumes conj: "net (\<lambda>x. P x) \<Longrightarrow> net (\<lambda>x. Q x) \<Longrightarrow> net (\<lambda>x. P x \<and> Q x)"
+  assumes mono: "\<forall>x. P x \<longrightarrow> Q x \<Longrightarrow> net (\<lambda>x. P x) \<Longrightarrow> net (\<lambda>x. Q x)"
+
 typedef (open) 'a net =
-  "{net :: 'a set set. (\<exists>A. A \<in> net)
-    \<and> (\<forall>A\<in>net. \<forall>B\<in>net. \<exists>C\<in>net. C \<subseteq> A \<and> C \<subseteq> B)}"
+  "{net :: ('a \<Rightarrow> bool) \<Rightarrow> bool. is_filter net}"
 proof
-  show "UNIV \<in> ?net" by auto
+  show "(\<lambda>x. True) \<in> ?net" by (auto intro: is_filter.intro)
 qed
 
-lemma Rep_net_nonempty: "\<exists>A. A \<in> Rep_net net"
-using Rep_net [of net] by simp
-
-lemma Rep_net_directed:
-  "A \<in> Rep_net net \<Longrightarrow> B \<in> Rep_net net \<Longrightarrow> \<exists>C\<in>Rep_net net. C \<subseteq> A \<and> C \<subseteq> B"
+lemma is_filter_Rep_net: "is_filter (Rep_net net)"
 using Rep_net [of net] by simp
 
 lemma Abs_net_inverse':
-  assumes "\<exists>A. A \<in> net"
-  assumes "\<And>A B. A \<in> net \<Longrightarrow> B \<in> net \<Longrightarrow> \<exists>C\<in>net. C \<subseteq> A \<and> C \<subseteq> B" 
-  shows "Rep_net (Abs_net net) = net"
+  assumes "is_filter net" shows "Rep_net (Abs_net net) = net"
 using assms by (simp add: Abs_net_inverse)
-
-lemma image_nonempty: "\<exists>x. x \<in> A \<Longrightarrow> \<exists>x. x \<in> f ` A"
-by auto
 
 
 subsection {* Eventually *}
 
 definition
   eventually :: "('a \<Rightarrow> bool) \<Rightarrow> 'a net \<Rightarrow> bool" where
-  [code del]: "eventually P net \<longleftrightarrow> (\<exists>A\<in>Rep_net net. \<forall>x\<in>A. P x)"
+  [code del]: "eventually P net \<longleftrightarrow> Rep_net net P"
+
+lemma eventually_Abs_net:
+  assumes "is_filter net" shows "eventually P (Abs_net net) = net P"
+unfolding eventually_def using assms by (simp add: Abs_net_inverse)
 
 lemma eventually_True [simp]: "eventually (\<lambda>x. True) net"
-unfolding eventually_def using Rep_net_nonempty [of net] by fast
+unfolding eventually_def
+by (rule is_filter.True [OF is_filter_Rep_net])
 
 lemma eventually_mono:
   "(\<forall>x. P x \<longrightarrow> Q x) \<Longrightarrow> eventually P net \<Longrightarrow> eventually Q net"
-unfolding eventually_def by blast
+unfolding eventually_def
+by (rule is_filter.mono [OF is_filter_Rep_net])
 
 lemma eventually_conj:
   assumes P: "eventually (\<lambda>x. P x) net"
   assumes Q: "eventually (\<lambda>x. Q x) net"
   shows "eventually (\<lambda>x. P x \<and> Q x) net"
-proof -
-  obtain A where A: "A \<in> Rep_net net" "\<forall>x\<in>A. P x"
-    using P unfolding eventually_def by fast
-  obtain B where B: "B \<in> Rep_net net" "\<forall>x\<in>B. Q x"
-    using Q unfolding eventually_def by fast
-  obtain C where C: "C \<in> Rep_net net" "C \<subseteq> A" "C \<subseteq> B"
-    using Rep_net_directed [OF A(1) B(1)] by fast
-  then have "\<forall>x\<in>C. P x \<and> Q x" "C \<in> Rep_net net"
-    using A(2) B(2) by auto
-  then show ?thesis unfolding eventually_def ..
-qed
+using assms unfolding eventually_def
+by (rule is_filter.conj [OF is_filter_Rep_net])
 
 lemma eventually_mp:
   assumes "eventually (\<lambda>x. P x \<longrightarrow> Q x) net"
@@ -105,57 +98,54 @@ using assms by (auto elim!: eventually_rev_mp)
 subsection {* Standard Nets *}
 
 definition
-  sequentially :: "nat net" where
-  [code del]: "sequentially = Abs_net (range (\<lambda>n. {n..}))"
+  sequentially :: "nat net"
+where [code del]:
+  "sequentially = Abs_net (\<lambda>P. \<exists>k. \<forall>n\<ge>k. P n)"
 
 definition
-  within :: "'a net \<Rightarrow> 'a set \<Rightarrow> 'a net" (infixr "within" 70) where
-  [code del]: "net within S = Abs_net ((\<lambda>A. A \<inter> S) ` Rep_net net)"
+  within :: "'a net \<Rightarrow> 'a set \<Rightarrow> 'a net" (infixr "within" 70)
+where [code del]:
+  "net within S = Abs_net (\<lambda>P. eventually (\<lambda>x. x \<in> S \<longrightarrow> P x) net)"
 
 definition
-  at :: "'a::topological_space \<Rightarrow> 'a net" where
-  [code del]: "at a = Abs_net ((\<lambda>S. S - {a}) ` {S. open S \<and> a \<in> S})"
-
-lemma Rep_net_sequentially:
-  "Rep_net sequentially = range (\<lambda>n. {n..})"
-unfolding sequentially_def
-apply (rule Abs_net_inverse')
-apply (rule image_nonempty, simp)
-apply (clarsimp, rename_tac m n)
-apply (rule_tac x="max m n" in exI, auto)
-done
-
-lemma Rep_net_within:
-  "Rep_net (net within S) = (\<lambda>A. A \<inter> S) ` Rep_net net"
-unfolding within_def
-apply (rule Abs_net_inverse')
-apply (rule image_nonempty, rule Rep_net_nonempty)
-apply (clarsimp, rename_tac A B)
-apply (drule (1) Rep_net_directed)
-apply (clarify, rule_tac x=C in bexI, auto)
-done
-
-lemma Rep_net_at:
-  "Rep_net (at a) = ((\<lambda>S. S - {a}) ` {S. open S \<and> a \<in> S})"
-unfolding at_def
-apply (rule Abs_net_inverse')
-apply (rule image_nonempty)
-apply (rule_tac x="UNIV" in exI, simp)
-apply (clarsimp, rename_tac S T)
-apply (rule_tac x="S \<inter> T" in exI, auto simp add: open_Int)
-done
+  at :: "'a::topological_space \<Rightarrow> 'a net"
+where [code del]:
+  "at a = Abs_net (\<lambda>P. \<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> P x))"
 
 lemma eventually_sequentially:
   "eventually P sequentially \<longleftrightarrow> (\<exists>N. \<forall>n\<ge>N. P n)"
-unfolding eventually_def Rep_net_sequentially by auto
+unfolding sequentially_def
+proof (rule eventually_Abs_net, rule is_filter.intro)
+  fix P Q :: "nat \<Rightarrow> bool"
+  assume "\<exists>i. \<forall>n\<ge>i. P n" and "\<exists>j. \<forall>n\<ge>j. Q n"
+  then obtain i j where "\<forall>n\<ge>i. P n" and "\<forall>n\<ge>j. Q n" by auto
+  then have "\<forall>n\<ge>max i j. P n \<and> Q n" by simp
+  then show "\<exists>k. \<forall>n\<ge>k. P n \<and> Q n" ..
+qed auto
 
 lemma eventually_within:
   "eventually P (net within S) = eventually (\<lambda>x. x \<in> S \<longrightarrow> P x) net"
-unfolding eventually_def Rep_net_within by auto
+unfolding within_def
+by (rule eventually_Abs_net, rule is_filter.intro)
+   (auto elim!: eventually_rev_mp)
 
 lemma eventually_at_topological:
   "eventually P (at a) \<longleftrightarrow> (\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> P x))"
-unfolding eventually_def Rep_net_at by auto
+unfolding at_def
+proof (rule eventually_Abs_net, rule is_filter.intro)
+  have "open UNIV \<and> a \<in> UNIV \<and> (\<forall>x\<in>UNIV. x \<noteq> a \<longrightarrow> True)" by simp
+  thus "\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> True)" by - rule
+next
+  fix P Q
+  assume "\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> P x)"
+     and "\<exists>T. open T \<and> a \<in> T \<and> (\<forall>x\<in>T. x \<noteq> a \<longrightarrow> Q x)"
+  then obtain S T where
+    "open S \<and> a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> P x)"
+    "open T \<and> a \<in> T \<and> (\<forall>x\<in>T. x \<noteq> a \<longrightarrow> Q x)" by auto
+  hence "open (S \<inter> T) \<and> a \<in> S \<inter> T \<and> (\<forall>x\<in>(S \<inter> T). x \<noteq> a \<longrightarrow> P x \<and> Q x)"
+    by (simp add: open_Int)
+  thus "\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> P x \<and> Q x)" by - rule
+qed auto
 
 lemma eventually_at:
   fixes a :: "'a::metric_space"

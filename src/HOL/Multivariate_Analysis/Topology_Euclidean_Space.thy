@@ -968,7 +968,7 @@ subsection{* Common nets and The "within" modifier for nets. *}
 
 definition
   at_infinity :: "'a::real_normed_vector net" where
-  "at_infinity = Abs_net (range (\<lambda>r. {x. r \<le> norm x}))"
+  "at_infinity = Abs_net (\<lambda>P. \<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x)"
 
 definition
   indirection :: "'a::real_normed_vector \<Rightarrow> 'a \<Rightarrow> 'a net" (infixr "indirection" 70) where
@@ -976,23 +976,32 @@ definition
 
 text{* Prove That They are all nets. *}
 
-lemma Rep_net_at_infinity:
-  "Rep_net at_infinity = range (\<lambda>r. {x. r \<le> norm x})"
-unfolding at_infinity_def
-apply (rule Abs_net_inverse')
-apply (rule image_nonempty, simp)
-apply (clarsimp, rename_tac r s)
-apply (rule_tac x="max r s" in exI, auto)
-done
+(* TODO: move to HOL/Limits.thy *)
+lemma expand_net_eq:
+  "net = net' \<longleftrightarrow> (\<forall>P. eventually P net = eventually P net')"
+  unfolding Rep_net_inject [symmetric] expand_fun_eq eventually_def ..
 
+(* TODO: move to HOL/Limits.thy *)
 lemma within_UNIV: "net within UNIV = net"
-  by (simp add: Rep_net_inject [symmetric] Rep_net_within)
+  unfolding expand_net_eq eventually_within by simp
+
+lemma eventually_at_infinity:
+  "eventually P at_infinity \<longleftrightarrow> (\<exists>b. \<forall>x. norm x >= b \<longrightarrow> P x)"
+unfolding at_infinity_def
+proof (rule eventually_Abs_net, rule is_filter.intro)
+  fix P Q :: "'a \<Rightarrow> bool"
+  assume "\<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x" and "\<exists>s. \<forall>x. s \<le> norm x \<longrightarrow> Q x"
+  then obtain r s where
+    "\<forall>x. r \<le> norm x \<longrightarrow> P x" and "\<forall>x. s \<le> norm x \<longrightarrow> Q x" by auto
+  then have "\<forall>x. max r s \<le> norm x \<longrightarrow> P x \<and> Q x" by simp
+  then show "\<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x \<and> Q x" ..
+qed auto
 
 subsection{* Identify Trivial limits, where we can't approach arbitrarily closely. *}
 
 definition
   trivial_limit :: "'a net \<Rightarrow> bool" where
-  "trivial_limit net \<longleftrightarrow> {} \<in> Rep_net net"
+  "trivial_limit net \<longleftrightarrow> eventually (\<lambda>x. False) net"
 
 lemma trivial_limit_within:
   shows "trivial_limit (at a within S) \<longleftrightarrow> \<not> a islimpt S"
@@ -1000,21 +1009,21 @@ proof
   assume "trivial_limit (at a within S)"
   thus "\<not> a islimpt S"
     unfolding trivial_limit_def
-    unfolding Rep_net_within Rep_net_at
+    unfolding eventually_within eventually_at_topological
     unfolding islimpt_def
     apply (clarsimp simp add: expand_set_eq)
     apply (rename_tac T, rule_tac x=T in exI)
-    apply (clarsimp, drule_tac x=y in spec, simp)
+    apply (clarsimp, drule_tac x=y in bspec, simp_all)
     done
 next
   assume "\<not> a islimpt S"
   thus "trivial_limit (at a within S)"
     unfolding trivial_limit_def
-    unfolding Rep_net_within Rep_net_at
+    unfolding eventually_within eventually_at_topological
     unfolding islimpt_def
-    apply (clarsimp simp add: image_image)
-    apply (rule_tac x=T in image_eqI)
-    apply (auto simp add: expand_set_eq)
+    apply clarsimp
+    apply (rule_tac x=T in exI)
+    apply auto
     done
 qed
 
@@ -1030,24 +1039,20 @@ lemma trivial_limit_at:
 lemma trivial_limit_at_infinity:
   "\<not> trivial_limit (at_infinity :: ('a::{real_normed_vector,zero_neq_one}) net)"
   (* FIXME: find a more appropriate type class *)
-  unfolding trivial_limit_def Rep_net_at_infinity
-  apply (clarsimp simp add: expand_set_eq)
-  apply (drule_tac x="scaleR r (sgn 1)" in spec)
+  unfolding trivial_limit_def eventually_at_infinity
+  apply clarsimp
+  apply (rule_tac x="scaleR b (sgn 1)" in exI)
   apply (simp add: norm_sgn)
   done
 
 lemma trivial_limit_sequentially[intro]: "\<not> trivial_limit sequentially"
-  by (auto simp add: trivial_limit_def Rep_net_sequentially)
+  by (auto simp add: trivial_limit_def eventually_sequentially)
 
 subsection{* Some property holds "sufficiently close" to the limit point. *}
 
 lemma eventually_at: (* FIXME: this replaces Limits.eventually_at *)
   "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x)"
 unfolding eventually_at dist_nz by auto
-
-lemma eventually_at_infinity:
-  "eventually P at_infinity \<longleftrightarrow> (\<exists>b. \<forall>x. norm x >= b \<longrightarrow> P x)"
-unfolding eventually_def Rep_net_at_infinity by auto
 
 lemma eventually_within: "eventually P (at a within S) \<longleftrightarrow>
         (\<exists>d>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x)"
@@ -1059,18 +1064,20 @@ unfolding eventually_within
 by auto (metis Rats_dense_in_nn_real order_le_less_trans order_refl) 
 
 lemma eventually_happens: "eventually P net ==> trivial_limit net \<or> (\<exists>x. P x)"
-  unfolding eventually_def trivial_limit_def
-  using Rep_net_nonempty [of net] by auto
+  unfolding trivial_limit_def
+  by (auto elim: eventually_rev_mp)
 
 lemma always_eventually: "(\<forall>x. P x) ==> eventually P net"
-  unfolding eventually_def trivial_limit_def
-  using Rep_net_nonempty [of net] by auto
+proof -
+  assume "\<forall>x. P x" hence "P = (\<lambda>x. True)" by (simp add: ext)
+  thus "eventually P net" by simp
+qed
 
 lemma trivial_limit_eventually: "trivial_limit net \<Longrightarrow> eventually P net"
-  unfolding trivial_limit_def eventually_def by auto
+  unfolding trivial_limit_def by (auto elim: eventually_rev_mp)
 
 lemma eventually_False: "eventually (\<lambda>x. False) net \<longleftrightarrow> trivial_limit net"
-  unfolding trivial_limit_def eventually_def by auto
+  unfolding trivial_limit_def ..
 
 lemma trivial_limit_eq: "trivial_limit net \<longleftrightarrow> (\<forall>P. eventually P net)"
   apply (safe elim!: trivial_limit_eventually)
