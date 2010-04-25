@@ -2609,11 +2609,11 @@ definition
   "midpoint a b = (inverse (2::real)) *\<^sub>R (a + b)"
 
 definition
-  open_segment :: "real ^ 'n \<Rightarrow> real ^ 'n \<Rightarrow> (real ^ 'n) set" where
+  open_segment :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a set" where
   "open_segment a b = {(1 - u) *\<^sub>R a + u *\<^sub>R b | u::real.  0 < u \<and> u < 1}"
 
 definition
-  closed_segment :: "real ^ 'n \<Rightarrow> real ^ 'n \<Rightarrow> (real ^ 'n) set" where
+  closed_segment :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a set" where
   "closed_segment a b = {(1 - u) *\<^sub>R a + u *\<^sub>R b | u::real. 0 \<le> u \<and> u \<le> 1}"
 
 definition "between = (\<lambda> (a,b). closed_segment a b)"
@@ -2684,12 +2684,14 @@ lemma ends_in_segment: "a \<in> closed_segment a b" "b \<in> closed_segment a b"
   unfolding segment_convex_hull apply(rule_tac[!] hull_subset[unfolded subset_eq, rule_format]) by auto
 
 lemma segment_furthest_le:
+  fixes a b x y :: "real ^ 'n"
   assumes "x \<in> closed_segment a b" shows "norm(y - x) \<le> norm(y - a) \<or>  norm(y - x) \<le> norm(y - b)" proof-
   obtain z where "z\<in>{a, b}" "norm (x - y) \<le> norm (z - y)" using simplex_furthest_le[of "{a, b}" y]
     using assms[unfolded segment_convex_hull] by auto
   thus ?thesis by(auto simp add:norm_minus_commute) qed
 
 lemma segment_bound:
+  fixes x a b :: "real ^ 'n"
   assumes "x \<in> closed_segment a b"
   shows "norm(x - a) \<le> norm(b - a)" "norm(x - b) \<le> norm(b - a)"
   using segment_furthest_le[OF assms, of a]
@@ -2871,24 +2873,42 @@ lemma interior_std_simplex_nonempty: obtains a::"real^'n" where
 
 subsection {* Paths. *}
 
-definition "path (g::real \<Rightarrow> real^'n) \<longleftrightarrow> continuous_on {0 .. 1} g"
+text {* TODO: Once @{const continuous_on} is generalized to arbitrary
+topological spaces, all of these concepts should be similarly generalized. *}
 
-definition "pathstart (g::real \<Rightarrow> real^'n) = g 0"
+definition
+  path :: "(real \<Rightarrow> 'a::metric_space) \<Rightarrow> bool"
+  where "path g \<longleftrightarrow> continuous_on {0 .. 1} g"
 
-definition "pathfinish (g::real \<Rightarrow> real^'n) = g 1"
+definition
+  pathstart :: "(real \<Rightarrow> 'a::metric_space) \<Rightarrow> 'a"
+  where "pathstart g = g 0"
 
-definition "path_image (g::real \<Rightarrow> real^'n) = g ` {0 .. 1}"
+definition
+  pathfinish :: "(real \<Rightarrow> 'a::metric_space) \<Rightarrow> 'a"
+  where "pathfinish g = g 1"
 
-definition "reversepath (g::real \<Rightarrow> real^'n) = (\<lambda>x. g(1 - x))"
+definition
+  path_image :: "(real \<Rightarrow> 'a::metric_space) \<Rightarrow> 'a set"
+  where "path_image g = g ` {0 .. 1}"
 
-definition joinpaths:: "(real \<Rightarrow> real^'n) \<Rightarrow> (real \<Rightarrow> real^'n) \<Rightarrow> (real \<Rightarrow> real^'n)" (infixr "+++" 75)
-  where "joinpaths g1 g2 = (\<lambda>x. if x \<le> ((1 / 2)::real) then g1 (2 * x) else g2(2 * x - 1))"
+definition
+  reversepath :: "(real \<Rightarrow> 'a::metric_space) \<Rightarrow> (real \<Rightarrow> 'a)"
+  where "reversepath g = (\<lambda>x. g(1 - x))"
 
-definition "simple_path (g::real \<Rightarrow> real^'n) \<longleftrightarrow>
+definition
+  joinpaths :: "(real \<Rightarrow> 'a::metric_space) \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> (real \<Rightarrow> 'a)"
+    (infixr "+++" 75)
+  where "g1 +++ g2 = (\<lambda>x. if x \<le> 1/2 then g1 (2 * x) else g2 (2 * x - 1))"
+
+definition
+  simple_path :: "(real \<Rightarrow> 'a::metric_space) \<Rightarrow> bool"
+  where "simple_path g \<longleftrightarrow>
   (\<forall>x\<in>{0..1}. \<forall>y\<in>{0..1}. g x = g y \<longrightarrow> x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0)"
 
-definition "injective_path (g::real \<Rightarrow> real^'n) \<longleftrightarrow>
-  (\<forall>x\<in>{0..1}. \<forall>y\<in>{0..1}. g x = g y \<longrightarrow> x = y)"
+definition
+  injective_path :: "(real \<Rightarrow> 'a::metric_space) \<Rightarrow> bool"
+  where "injective_path g \<longleftrightarrow> (\<forall>x\<in>{0..1}. \<forall>y\<in>{0..1}. g x = g y \<longrightarrow> x = y)"
 
 subsection {* Some lemmas about these concepts. *}
 
@@ -2900,20 +2920,19 @@ lemma path_image_nonempty: "path_image g \<noteq> {}"
   unfolding path_image_def image_is_empty interval_eq_empty by auto 
 
 lemma pathstart_in_path_image[intro]: "(pathstart g) \<in> path_image g"
-  unfolding pathstart_def path_image_def apply(rule imageI)
-  unfolding mem_interval_1 vec_1[THEN sym] dest_vec1_vec by auto
+  unfolding pathstart_def path_image_def by auto
 
 lemma pathfinish_in_path_image[intro]: "(pathfinish g) \<in> path_image g"
-  unfolding pathfinish_def path_image_def apply(rule imageI)
-  unfolding mem_interval_1 vec_1[THEN sym] dest_vec1_vec by auto
+  unfolding pathfinish_def path_image_def by auto
 
 lemma connected_path_image[intro]: "path g \<Longrightarrow> connected(path_image g)"
-  unfolding path_def path_image_def apply(rule connected_continuous_image, assumption)
+  unfolding path_def path_image_def
+  apply (erule connected_continuous_image)
   by(rule convex_connected, rule convex_real_interval)
 
 lemma compact_path_image[intro]: "path g \<Longrightarrow> compact(path_image g)"
-  unfolding path_def path_image_def apply(rule compact_continuous_image, assumption)
-  by(rule compact_real_interval)
+  unfolding path_def path_image_def
+  by (erule compact_continuous_image, rule compact_real_interval)
 
 lemma reversepath_reversepath[simp]: "reversepath(reversepath g) = g"
   unfolding reversepath_def by auto
@@ -2941,7 +2960,7 @@ lemma path_reversepath[simp]: "path(reversepath g) \<longleftrightarrow> path g"
     apply(rule continuous_on_compose[unfolded o_def, of _ "\<lambda>x. 1 - x"])
     apply(rule continuous_on_sub, rule continuous_on_const, rule continuous_on_id)
     apply(rule continuous_on_subset[of "{0..1}"], assumption) by auto
-  show ?thesis using *[of g] *[of "reversepath g"] unfolding reversepath_reversepath by auto qed
+  show ?thesis using *[of "reversepath g"] *[of g] unfolding reversepath_reversepath by (rule iffI) qed
 
 lemmas reversepath_simps = path_reversepath path_image_reversepath pathstart_reversepath pathfinish_reversepath
 
@@ -3005,7 +3024,7 @@ apply(rule, rule path_image_join_subset, rule) unfolding Un_iff proof(erule disj
   fix x assume "x \<in> path_image g1"
   then obtain y where y:"y\<in>{0..1}" "x = g1 y" unfolding path_image_def image_iff by auto
   thus "x \<in> path_image (g1 +++ g2)" unfolding joinpaths_def path_image_def image_iff
-    apply(rule_tac x="(1/2) *\<^sub>R y" in bexI) by(auto simp add: vector_component_simps) next
+    apply(rule_tac x="(1/2) *\<^sub>R y" in bexI) by auto next
   fix x assume "x \<in> path_image g2"
   then obtain y where y:"y\<in>{0..1}" "x = g2 y" unfolding path_image_def image_iff by auto
   then show "x \<in> path_image (g1 +++ g2)" unfolding joinpaths_def path_image_def image_iff
@@ -3019,7 +3038,7 @@ lemma not_in_path_image_join:
 lemma simple_path_reversepath: assumes "simple_path g" shows "simple_path (reversepath g)"
   using assms unfolding simple_path_def reversepath_def apply- apply(rule ballI)+
   apply(erule_tac x="1-x" in ballE, erule_tac x="1-y" in ballE)
-  unfolding mem_interval_1 by(auto simp add:vector_component_simps)
+  unfolding mem_interval_1 by auto
 
 (** move this **)
 declare vector_scaleR_component[simp]
@@ -3035,37 +3054,37 @@ unfolding simple_path_def proof((rule ballI)+, rule impI) let ?g = "g1 +++ g2"
     assume as:"x \<le> 1 / 2" "y \<le> 1 / 2"
     hence "g1 (2 *\<^sub>R x) = g1 (2 *\<^sub>R y)" using xy(3) unfolding joinpaths_def by auto
     moreover have "2 *\<^sub>R x \<in> {0..1}" "2 *\<^sub>R y \<in> {0..1}" using xy(1,2) as
-      unfolding mem_interval_1 by(auto simp add:vector_component_simps)
+      unfolding mem_interval_1 by auto
     ultimately show ?thesis using inj(1)[of "2*\<^sub>R x" "2*\<^sub>R y"] by auto
   next assume as:"x > 1 / 2" "y > 1 / 2"
     hence "g2 (2 *\<^sub>R x - 1) = g2 (2 *\<^sub>R y - 1)" using xy(3) unfolding joinpaths_def by auto
-    moreover have "2 *\<^sub>R x - 1 \<in> {0..1}" "2 *\<^sub>R y - 1 \<in> {0..1}" using xy(1,2) as unfolding mem_interval_1 by(auto simp add:vector_component_simps)
+    moreover have "2 *\<^sub>R x - 1 \<in> {0..1}" "2 *\<^sub>R y - 1 \<in> {0..1}" using xy(1,2) as unfolding mem_interval_1 by auto
     ultimately show ?thesis using inj(2)[of "2*\<^sub>R x - 1" "2*\<^sub>R y - 1"] by auto
   next assume as:"x \<le> 1 / 2" "y > 1 / 2"
     hence "?g x \<in> path_image g1" "?g y \<in> path_image g2" unfolding path_image_def joinpaths_def
-      using xy(1,2)[unfolded mem_interval_1] by(auto simp add:vector_component_simps intro!: imageI)
+      using xy(1,2)[unfolded mem_interval_1] by auto
     moreover have "?g y \<noteq> pathstart g2" using as(2) unfolding pathstart_def joinpaths_def
       using inj(2)[of "2 *\<^sub>R y - 1" 0] and xy(2)[unfolded mem_interval_1]
-      by(auto simp add:vector_component_simps field_simps Cart_eq)
+      by (auto simp add: field_simps)
     ultimately have *:"?g x = pathstart g1" using assms(4) unfolding xy(3) by auto
     hence "x = 0" unfolding pathstart_def joinpaths_def using as(1) and xy(1)[unfolded mem_interval_1]
-      using inj(1)[of "2 *\<^sub>R x" 0] by(auto simp add:vector_component_simps)
+      using inj(1)[of "2 *\<^sub>R x" 0] by auto
     moreover have "y = 1" using * unfolding xy(3) assms(3)[THEN sym]
       unfolding joinpaths_def pathfinish_def using as(2) and xy(2)[unfolded mem_interval_1]
-      using inj(2)[of "2 *\<^sub>R y - 1" 1] by (auto simp add:vector_component_simps Cart_eq)
-    ultimately show ?thesis by auto 
+      using inj(2)[of "2 *\<^sub>R y - 1" 1] by auto
+    ultimately show ?thesis by auto
   next assume as:"x > 1 / 2" "y \<le> 1 / 2"
     hence "?g x \<in> path_image g2" "?g y \<in> path_image g1" unfolding path_image_def joinpaths_def
-      using xy(1,2)[unfolded mem_interval_1] by(auto simp add:vector_component_simps intro!: imageI)
+      using xy(1,2)[unfolded mem_interval_1] by auto
     moreover have "?g x \<noteq> pathstart g2" using as(1) unfolding pathstart_def joinpaths_def
       using inj(2)[of "2 *\<^sub>R x - 1" 0] and xy(1)[unfolded mem_interval_1]
-      by(auto simp add:vector_component_simps field_simps Cart_eq)
+      by (auto simp add: field_simps)
     ultimately have *:"?g y = pathstart g1" using assms(4) unfolding xy(3) by auto
     hence "y = 0" unfolding pathstart_def joinpaths_def using as(2) and xy(2)[unfolded mem_interval_1]
-      using inj(1)[of "2 *\<^sub>R y" 0] by(auto simp add:vector_component_simps)
+      using inj(1)[of "2 *\<^sub>R y" 0] by auto
     moreover have "x = 1" using * unfolding xy(3)[THEN sym] assms(3)[THEN sym]
       unfolding joinpaths_def pathfinish_def using as(1) and xy(1)[unfolded mem_interval_1]
-      using inj(2)[of "2 *\<^sub>R x - 1" 1] by(auto simp add:vector_component_simps Cart_eq)
+      using inj(2)[of "2 *\<^sub>R x - 1" 1] by auto
     ultimately show ?thesis by auto qed qed
 
 lemma injective_path_join:
@@ -3074,45 +3093,41 @@ lemma injective_path_join:
   shows "injective_path(g1 +++ g2)"
   unfolding injective_path_def proof(rule,rule,rule) let ?g = "g1 +++ g2"
   note inj = assms(1,2)[unfolded injective_path_def, rule_format]
-  have *:"\<And>x y::real. 2 *\<^sub>R x = 1 \<Longrightarrow> 2 *\<^sub>R y = 1 \<Longrightarrow> x = y" by auto
   fix x y assume xy:"x \<in> {0..1}" "y \<in> {0..1}" "(g1 +++ g2) x = (g1 +++ g2) y"
   show "x = y" proof(cases "x \<le> 1/2", case_tac[!] "y \<le> 1/2", unfold not_le)
     assume "x \<le> 1 / 2" "y \<le> 1 / 2" thus ?thesis using inj(1)[of "2*\<^sub>R x" "2*\<^sub>R y"] and xy
-      unfolding mem_interval_1 joinpaths_def by(auto simp add:vector_component_simps)
+      unfolding mem_interval_1 joinpaths_def by auto
   next assume "x > 1 / 2" "y > 1 / 2" thus ?thesis using inj(2)[of "2*\<^sub>R x - 1" "2*\<^sub>R y - 1"] and xy
-      unfolding mem_interval_1 joinpaths_def by(auto simp add:vector_component_simps)
+      unfolding mem_interval_1 joinpaths_def by auto
   next assume as:"x \<le> 1 / 2" "y > 1 / 2" 
     hence "?g x \<in> path_image g1" "?g y \<in> path_image g2" unfolding path_image_def joinpaths_def
-      using xy(1,2)[unfolded mem_interval_1] by(auto simp add:vector_component_simps intro!: imageI)
+      using xy(1,2)[unfolded mem_interval_1] by auto
     hence "?g x = pathfinish g1" "?g y = pathstart g2" using assms(4) unfolding assms(3) xy(3) by auto
     thus ?thesis using as and inj(1)[of "2 *\<^sub>R x" 1] inj(2)[of "2 *\<^sub>R y - 1" 0] and xy(1,2)
       unfolding pathstart_def pathfinish_def joinpaths_def mem_interval_1
-      by(auto simp add:vector_component_simps intro:*)
+      by auto
   next assume as:"x > 1 / 2" "y \<le> 1 / 2" 
     hence "?g x \<in> path_image g2" "?g y \<in> path_image g1" unfolding path_image_def joinpaths_def
-      using xy(1,2)[unfolded mem_interval_1] by(auto simp add:vector_component_simps intro!: imageI)
+      using xy(1,2)[unfolded mem_interval_1] by auto
     hence "?g x = pathstart g2" "?g y = pathfinish g1" using assms(4) unfolding assms(3) xy(3) by auto
     thus ?thesis using as and inj(2)[of "2 *\<^sub>R x - 1" 0] inj(1)[of "2 *\<^sub>R y" 1] and xy(1,2)
       unfolding pathstart_def pathfinish_def joinpaths_def mem_interval_1
-      by(auto simp add:vector_component_simps intro:*) qed qed
+      by auto qed qed
 
 lemmas join_paths_simps = path_join path_image_join pathstart_join pathfinish_join
  
 subsection {* Reparametrizing a closed curve to start at some chosen point. *}
 
-definition "shiftpath a (f::real \<Rightarrow> real^'n) =
+definition "shiftpath a (f::real \<Rightarrow> 'a::metric_space) =
   (\<lambda>x. if (a + x) \<le> 1 then f(a + x) else f(a + x - 1))"
 
 lemma pathstart_shiftpath: "a \<le> 1 \<Longrightarrow> pathstart(shiftpath a g) = g a"
   unfolding pathstart_def shiftpath_def by auto
 
-(** move this **)
-declare forall_1[simp] ex_1[simp]
-
 lemma pathfinish_shiftpath: assumes "0 \<le> a" "pathfinish g = pathstart g"
   shows "pathfinish(shiftpath a g) = g a"
   using assms unfolding pathstart_def pathfinish_def shiftpath_def
-  by(auto simp add: vector_component_simps)
+  by auto
 
 lemma endpoints_shiftpath:
   assumes "pathfinish g = pathstart g" "a \<in> {0 .. 1}" 
@@ -3127,7 +3142,7 @@ lemma closed_shiftpath:
 lemma path_shiftpath:
   assumes "path g" "pathfinish g = pathstart g" "a \<in> {0..1}"
   shows "path(shiftpath a g)" proof-
-  have *:"{0 .. 1} = {0 .. 1-a} \<union> {1-a .. 1}" using assms(3) by(auto simp add: vector_component_simps)
+  have *:"{0 .. 1} = {0 .. 1-a} \<union> {1-a .. 1}" using assms(3) by auto
   have **:"\<And>x. x + a = 1 \<Longrightarrow> g (x + a - 1) = g (x + a)"
     using assms(2)[unfolded pathfinish_def pathstart_def] by auto
   show ?thesis unfolding path_def shiftpath_def * apply(rule continuous_on_union)
@@ -3157,7 +3172,7 @@ lemma path_image_shiftpath:
 subsection {* Special case of straight-line paths. *}
 
 definition
-  linepath :: "real ^ 'n \<Rightarrow> real ^ 'n \<Rightarrow> real \<Rightarrow> real ^ 'n" where
+  linepath :: "'a::real_normed_vector \<Rightarrow> 'a \<Rightarrow> real \<Rightarrow> 'a" where
   "linepath a b = (\<lambda>x. (1 - x) *\<^sub>R a + x *\<^sub>R b)"
 
 lemma pathstart_linepath[simp]: "pathstart(linepath a b) = a"
@@ -3184,25 +3199,31 @@ lemma path_image_linepath[simp]: "path_image(linepath a b) = (closed_segment a b
 lemma reversepath_linepath[simp]:  "reversepath(linepath a b) = linepath b a"
   unfolding reversepath_def linepath_def by(rule ext, auto)
 
-lemma injective_path_linepath: assumes "a \<noteq> b" shows "injective_path(linepath a b)" proof- 
-  { obtain i where i:"a$i \<noteq> b$i" using assms[unfolded Cart_eq] by auto
-    fix x y::"real" assume "x *\<^sub>R b + y *\<^sub>R a = x *\<^sub>R a + y *\<^sub>R b"
-    hence "x * (b$i - a$i) = y * (b$i - a$i)" unfolding Cart_eq by(auto simp add:field_simps)
-    hence "x = y" unfolding mult_cancel_right Cart_eq using i(1) by(auto simp add:field_simps) }
+lemma injective_path_linepath:
+  assumes "a \<noteq> b" shows "injective_path(linepath a b)"
+proof -
+  { fix x y :: "real"
+    assume "x *\<^sub>R b + y *\<^sub>R a = x *\<^sub>R a + y *\<^sub>R b"
+    hence "(x - y) *\<^sub>R a = (x - y) *\<^sub>R b" by (simp add: algebra_simps)
+    with assms have "x = y" by simp }
   thus ?thesis unfolding injective_path_def linepath_def by(auto simp add: algebra_simps) qed
 
 lemma simple_path_linepath[intro]: "a \<noteq> b \<Longrightarrow> simple_path(linepath a b)" by(auto intro!: injective_imp_simple_path injective_path_linepath)
 
 subsection {* Bounding a point away from a path. *}
 
-lemma not_on_path_ball: assumes "path g" "z \<notin> path_image g"
+lemma not_on_path_ball:
+  fixes g :: "real \<Rightarrow> 'a::heine_borel"
+  assumes "path g" "z \<notin> path_image g"
   shows "\<exists>e>0. ball z e \<inter> (path_image g) = {}" proof-
   obtain a where "a\<in>path_image g" "\<forall>y\<in>path_image g. dist z a \<le> dist z y"
     using distance_attains_inf[OF _ path_image_nonempty, of g z]
     using compact_path_image[THEN compact_imp_closed, OF assms(1)] by auto
   thus ?thesis apply(rule_tac x="dist z a" in exI) using assms(2) by(auto intro!: dist_pos_lt) qed
 
-lemma not_on_path_cball: assumes "path g" "z \<notin> path_image g"
+lemma not_on_path_cball:
+  fixes g :: "real \<Rightarrow> 'a::heine_borel"
+  assumes "path g" "z \<notin> path_image g"
   shows "\<exists>e>0. cball z e \<inter> (path_image g) = {}" proof-
   obtain e where "ball z e \<inter> path_image g = {}" "e>0" using not_on_path_ball[OF assms] by auto
   moreover have "cball z (e/2) \<subseteq> ball z e" using `e>0` by auto
@@ -3219,14 +3240,14 @@ lemma path_component_mem: assumes "path_component s x y" shows "x \<in> s" "y \<
 
 lemma path_component_refl: assumes "x \<in> s" shows "path_component s x x"
   unfolding path_defs apply(rule_tac x="\<lambda>u. x" in exI) using assms 
-  by(auto intro!:continuous_on_intros)    
+  by(auto intro!:continuous_on_intros)
 
 lemma path_component_refl_eq: "path_component s x x \<longleftrightarrow> x \<in> s"
-  by(auto intro!: path_component_mem path_component_refl) 
+  by(auto intro!: path_component_mem path_component_refl)
 
 lemma path_component_sym: "path_component s x y \<Longrightarrow> path_component s y x"
-  using assms unfolding path_component_def apply(erule exE) apply(rule_tac x="reversepath g" in exI) 
-  by(auto simp add: reversepath_simps)
+  using assms unfolding path_component_def apply(erule exE) apply(rule_tac x="reversepath g" in exI)
+  by auto
 
 lemma path_component_trans: assumes "path_component s x y" "path_component s y z" shows "path_component s x z"
   using assms unfolding path_component_def apply- apply(erule exE)+ apply(rule_tac x="g +++ ga" in exI) by(auto simp add: path_image_join)
@@ -3261,7 +3282,9 @@ lemma path_connected_component_set: "path_connected s \<longleftrightarrow> (\<f
 
 subsection {* Some useful lemmas about path-connectedness. *}
 
-lemma convex_imp_path_connected: assumes "convex s" shows "path_connected s"
+lemma convex_imp_path_connected:
+  fixes s :: "'a::real_normed_vector set"
+  assumes "convex s" shows "path_connected s"
   unfolding path_connected_def apply(rule,rule,rule_tac x="linepath x y" in exI)
   unfolding path_image_linepath using assms[unfolded convex_contains_segment] by auto
 
@@ -3280,7 +3303,9 @@ lemma path_connected_imp_connected: assumes "path_connected s" shows "connected 
     using continuous_open_in_preimage[OF g(1)[unfolded path_def] as(1)]
     using continuous_open_in_preimage[OF g(1)[unfolded path_def] as(2)] by auto qed
 
-lemma open_path_component: assumes "open s" shows "open(path_component s x)"
+lemma open_path_component:
+  fixes s :: "'a::real_normed_vector set" (*TODO: generalize to metric_space*)
+  assumes "open s" shows "open(path_component s x)"
   unfolding open_contains_ball proof
   fix y assume as:"y \<in> path_component s x"
   hence "y\<in>s" apply- apply(rule path_component_mem(2)) unfolding mem_def by auto
@@ -3290,7 +3315,10 @@ lemma open_path_component: assumes "open s" shows "open(path_component s x)"
       apply(rule path_component_of_subset[OF e(2)]) apply(rule convex_imp_path_connected[OF convex_ball, unfolded path_connected_component, rule_format]) using `e>0`
       using as[unfolded mem_def] by auto qed qed
 
-lemma open_non_path_component: assumes "open s" shows "open(s - path_component s x)" unfolding open_contains_ball proof
+lemma open_non_path_component:
+  fixes s :: "'a::real_normed_vector set" (*TODO: generalize to metric_space*)
+  assumes "open s" shows "open(s - path_component s x)"
+  unfolding open_contains_ball proof
   fix y assume as:"y\<in>s - path_component s x" 
   then obtain e where e:"e>0" "ball y e \<subseteq> s" using assms[unfolded open_contains_ball] by auto
   show "\<exists>e>0. ball y e \<subseteq> s - path_component s x" apply(rule_tac x=e in exI) apply(rule,rule `e>0`,rule,rule) defer proof(rule ccontr)
@@ -3300,7 +3328,9 @@ lemma open_non_path_component: assumes "open s" shows "open(s - path_component s
       apply(rule convex_imp_path_connected[OF convex_ball, unfolded path_connected_component, rule_format]) by auto
     thus False using as by auto qed(insert e(2), auto) qed
 
-lemma connected_open_path_connected: assumes "open s" "connected s" shows "path_connected s"
+lemma connected_open_path_connected:
+  fixes s :: "'a::real_normed_vector set" (*TODO: generalize to metric_space*)
+  assumes "open s" "connected s" shows "path_connected s"
   unfolding path_connected_component_set proof(rule,rule,rule path_component_subset, rule)
   fix x y assume "x \<in> s" "y \<in> s" show "y \<in> path_component s x" proof(rule ccontr)
     assume "y \<notin> path_component s x" moreover
@@ -3329,8 +3359,10 @@ lemma path_connected_empty: "path_connected {}"
   unfolding path_connected_def by auto
 
 lemma path_connected_singleton: "path_connected {a}"
-  unfolding path_connected_def apply(rule,rule)
-  apply(rule_tac x="linepath a a" in exI) by(auto simp add:segment scaleR_left_diff_distrib)
+  unfolding path_connected_def pathstart_def pathfinish_def path_image_def
+  apply (clarify, rule_tac x="\<lambda>x. a" in exI, simp add: image_constant_conv)
+  apply (simp add: path_def continuous_on_const)
+  done
 
 lemma path_connected_Un: assumes "path_connected s" "path_connected t" "s \<inter> t \<noteq> {}"
   shows "path_connected (s \<union> t)" unfolding path_connected_component proof(rule,rule)
