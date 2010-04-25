@@ -401,9 +401,38 @@ lemma convex_halfspace_lt: "convex {x. inner a x < b}"
 lemma convex_halfspace_gt: "convex {x. inner a x > b}"
    using convex_halfspace_lt[of "-a" "-b"] by auto
 
+lemma convex_real_interval:
+  fixes a b :: "real"
+  shows "convex {a..}" and "convex {..b}"
+  and "convex {a<..}" and "convex {..<b}"
+  and "convex {a..b}" and "convex {a<..b}"
+  and "convex {a..<b}" and "convex {a<..<b}"
+proof -
+  have "{a..} = {x. a \<le> inner 1 x}" by auto
+  thus 1: "convex {a..}" by (simp only: convex_halfspace_ge)
+  have "{..b} = {x. inner 1 x \<le> b}" by auto
+  thus 2: "convex {..b}" by (simp only: convex_halfspace_le)
+  have "{a<..} = {x. a < inner 1 x}" by auto
+  thus 3: "convex {a<..}" by (simp only: convex_halfspace_gt)
+  have "{..<b} = {x. inner 1 x < b}" by auto
+  thus 4: "convex {..<b}" by (simp only: convex_halfspace_lt)
+  have "{a..b} = {a..} \<inter> {..b}" by auto
+  thus "convex {a..b}" by (simp only: convex_Int 1 2)
+  have "{a<..b} = {a<..} \<inter> {..b}" by auto
+  thus "convex {a<..b}" by (simp only: convex_Int 3 2)
+  have "{a..<b} = {a..} \<inter> {..<b}" by auto
+  thus "convex {a..<b}" by (simp only: convex_Int 1 4)
+  have "{a<..<b} = {a<..} \<inter> {..<b}" by auto
+  thus "convex {a<..<b}" by (simp only: convex_Int 3 4)
+qed
+
+lemma convex_box:
+  assumes "\<And>i. convex {x. P i x}"
+  shows "convex {x. \<forall>i. P i (x$i)}"
+using assms unfolding convex_def by auto
+
 lemma convex_positive_orthant: "convex {x::real^'n. (\<forall>i. 0 \<le> x$i)}"
-  unfolding convex_def apply auto apply(erule_tac x=i in allE)+
-  apply(rule add_nonneg_nonneg) by(auto simp add: mult_nonneg_nonneg)
+by (rule convex_box, simp add: atLeast_def [symmetric] convex_real_interval)
 
 subsection {* Explicit expressions for convexity in terms of arbitrary sums. *}
 
