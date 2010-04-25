@@ -13,6 +13,20 @@ theory Fields
 imports Rings
 begin
 
+text{* Lemmas @{text field_simps} multiply with denominators in (in)equations
+if they can be proved to be non-zero (for equations) or positive/negative
+(for inequations). Can be too aggressive and is therefore separate from the
+more benign @{text algebra_simps}. *}
+
+ML {*
+structure Field_Simps = Named_Thms(
+  val name = "field_simps"
+  val description = "algebra simplification rules for fields"
+)
+*}
+
+setup Field_Simps.setup
+
 class field = comm_ring_1 + inverse +
   assumes field_inverse: "a \<noteq> 0 \<Longrightarrow> inverse a * a = 1"
   assumes field_divide_inverse: "a / b = a * inverse b"
@@ -112,7 +126,7 @@ lemma divide_diff_eq_iff:
   "z \<noteq> 0 \<Longrightarrow> x / z - y = (x - z * y) / z"
   by (simp add: diff_divide_distrib)
 
-lemmas field_eq_simps[no_atp] = algebra_simps
+lemmas field_eq_simps [field_simps, no_atp] = algebra_simps
   (* pull / out*)
   add_divide_eq_iff divide_add_eq_iff
   diff_divide_eq_iff divide_diff_eq_iff
@@ -475,12 +489,7 @@ proof -
   finally show ?thesis .
 qed
 
-text{* Lemmas @{text field_simps} multiply with denominators in in(equations)
-if they can be proved to be non-zero (for equations) or positive/negative
-(for inequations). Can be too aggressive and is therefore separate from the
-more benign @{text algebra_simps}. *}
-
-lemmas field_simps[no_atp] = field_eq_simps
+lemmas [field_simps, no_atp] =
   (* multiply ineqn *)
   pos_divide_less_eq neg_divide_less_eq
   pos_less_divide_eq neg_less_divide_eq
