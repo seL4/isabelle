@@ -1444,7 +1444,7 @@ lemma infnorm_eq_1_2: "infnorm (x::real^2) = 1 \<longleftrightarrow>
 lemma infnorm_eq_1_imp: assumes "infnorm (x::real^2) = 1" shows "abs(x$1) \<le> 1" "abs(x$2) \<le> 1"
   using assms unfolding infnorm_eq_1_2 by auto
 
-lemma fashoda_unit: fixes f g::"real^1 \<Rightarrow> real^2"
+lemma fashoda_unit: fixes f g::"real \<Rightarrow> real^2"
   assumes "f ` {- 1..1} \<subseteq> {- 1..1}" "g ` {- 1..1} \<subseteq> {- 1..1}"
   "continuous_on {- 1..1} f"  "continuous_on {- 1..1} g"
   "f (- 1)$1 = - 1" "f 1$1 = 1" "g (- 1) $2 = -1" "g 1 $2 = 1"
@@ -1457,13 +1457,13 @@ lemma fashoda_unit: fixes f g::"real^1 \<Rightarrow> real^2"
   have lem2:"\<forall>z. z\<noteq>0 \<longrightarrow> infnorm(sqprojection z) = 1" unfolding sqprojection_def
     unfolding infnorm_mul[unfolded smult_conv_scaleR] unfolding abs_inverse real_abs_infnorm
     unfolding infnorm_eq_0[THEN sym] by auto
-  let ?F = "(\<lambda>w::real^2. (f \<circ> vec1 \<circ> (\<lambda>x. x$1)) w - (g \<circ> vec1 \<circ> (\<lambda>x. x$2)) w)"
-  have *:"\<And>i. vec1 ` (\<lambda>x::real^2. x $ i) ` {- 1..1} = {- 1..1::real^1}"
+  let ?F = "(\<lambda>w::real^2. (f \<circ> (\<lambda>x. x$1)) w - (g \<circ> (\<lambda>x. x$2)) w)"
+  have *:"\<And>i. (\<lambda>x::real^2. x $ i) ` {- 1..1} = {- 1..1::real}"
     apply(rule set_ext) unfolding image_iff Bex_def mem_interval apply rule defer 
-    apply(rule_tac x="dest_vec1 x" in exI) apply rule apply(rule_tac x="vec (dest_vec1 x)" in exI) by auto
-  { fix x assume "x \<in> (\<lambda>w. (f \<circ> vec1 \<circ> (\<lambda>x. x $ 1)) w - (g \<circ> vec1 \<circ> (\<lambda>x. x $ 2)) w) ` {- 1..1::real^2}"
+    apply(rule_tac x="vec x" in exI) by auto
+  { fix x assume "x \<in> (\<lambda>w. (f \<circ> (\<lambda>x. x $ 1)) w - (g \<circ> (\<lambda>x. x $ 2)) w) ` {- 1..1::real^2}"
     then guess w unfolding image_iff .. note w = this
-    hence "x \<noteq> 0" using as[of "vec1 (w$1)" "vec1 (w$2)"] unfolding mem_interval by auto} note x0=this
+    hence "x \<noteq> 0" using as[of "w$1" "w$2"] unfolding mem_interval by auto} note x0=this
   have 21:"\<And>i::2. i\<noteq>1 \<Longrightarrow> i=2" using UNIV_2 by auto
   have 1:"{- 1<..<1::real^2} \<noteq> {}" unfolding interval_eq_empty by auto
   have 2:"continuous_on {- 1..1} (negatex \<circ> sqprojection \<circ> ?F)" apply(rule continuous_on_intros continuous_on_component continuous_on_vec1)+
@@ -1494,50 +1494,50 @@ lemma fashoda_unit: fixes f g::"real^1 \<Rightarrow> real^2"
       unfolding sqprojection_def vector_component_simps Cart_nth.scaleR real_scaleR_def
       unfolding zero_less_mult_iff mult_less_0_iff by(auto simp add:field_simps) qed
   note lem3 = this[rule_format]
-  have x1:"vec1 (x $ 1) \<in> {- 1..1::real^1}" "vec1 (x $ 2) \<in> {- 1..1::real^1}" using x(1) unfolding mem_interval by auto
-  hence nz:"f (vec1 (x $ 1)) - g (vec1 (x $ 2)) \<noteq> 0" unfolding right_minus_eq apply-apply(rule as) by auto
+  have x1:"x $ 1 \<in> {- 1..1::real}" "x $ 2 \<in> {- 1..1::real}" using x(1) unfolding mem_interval by auto
+  hence nz:"f (x $ 1) - g (x $ 2) \<noteq> 0" unfolding right_minus_eq apply-apply(rule as) by auto
   have "x $ 1 = -1 \<or> x $ 1 = 1 \<or> x $ 2 = -1 \<or> x $ 2 = 1" using nx unfolding infnorm_eq_1_2 by auto 
   thus False proof- fix P Q R S 
     presume "P \<or> Q \<or> R \<or> S" "P\<Longrightarrow>False" "Q\<Longrightarrow>False" "R\<Longrightarrow>False" "S\<Longrightarrow>False" thus False by auto
-  next assume as:"x$1 = 1" hence "vec1 (x$1) = 1" unfolding Cart_eq by auto
-    hence *:"f (vec1 (x $ 1)) $ 1 = 1" using assms(6) by auto
-    have "sqprojection (f (vec1 (x$1)) - g (vec1 (x$2))) $ 1 < 0"
+  next assume as:"x$1 = 1"
+    hence *:"f (x $ 1) $ 1 = 1" using assms(6) by auto
+    have "sqprojection (f (x$1) - g (x$2)) $ 1 < 0"
       using x(2)[unfolded o_def Cart_eq,THEN spec[where x=1]]
       unfolding as negatex_def vector_2 by auto moreover
-    from x1 have "g (vec1 (x $ 2)) \<in> {- 1..1}" apply-apply(rule assms(2)[unfolded subset_eq,rule_format]) by auto
+    from x1 have "g (x $ 2) \<in> {- 1..1}" apply-apply(rule assms(2)[unfolded subset_eq,rule_format]) by auto
     ultimately show False unfolding lem3[OF nz] vector_component_simps * mem_interval 
       apply(erule_tac x=1 in allE) by auto 
-  next assume as:"x$1 = -1" hence "vec1 (x$1) = - 1" unfolding Cart_eq by auto
-    hence *:"f (vec1 (x $ 1)) $ 1 = - 1" using assms(5) by auto
-    have "sqprojection (f (vec1 (x$1)) - g (vec1 (x$2))) $ 1 > 0"
+  next assume as:"x$1 = -1"
+    hence *:"f (x $ 1) $ 1 = - 1" using assms(5) by auto
+    have "sqprojection (f (x$1) - g (x$2)) $ 1 > 0"
       using x(2)[unfolded o_def Cart_eq,THEN spec[where x=1]]
       unfolding as negatex_def vector_2 by auto moreover
-    from x1 have "g (vec1 (x $ 2)) \<in> {- 1..1}" apply-apply(rule assms(2)[unfolded subset_eq,rule_format]) by auto
+    from x1 have "g (x $ 2) \<in> {- 1..1}" apply-apply(rule assms(2)[unfolded subset_eq,rule_format]) by auto
     ultimately show False unfolding lem3[OF nz] vector_component_simps * mem_interval 
       apply(erule_tac x=1 in allE) by auto
-  next assume as:"x$2 = 1" hence "vec1 (x$2) = 1" unfolding Cart_eq by auto
-    hence *:"g (vec1 (x $ 2)) $ 2 = 1" using assms(8) by auto
-    have "sqprojection (f (vec1 (x$1)) - g (vec1 (x$2))) $ 2 > 0"
+  next assume as:"x$2 = 1"
+    hence *:"g (x $ 2) $ 2 = 1" using assms(8) by auto
+    have "sqprojection (f (x$1) - g (x$2)) $ 2 > 0"
       using x(2)[unfolded o_def Cart_eq,THEN spec[where x=2]]
       unfolding as negatex_def vector_2 by auto moreover
-    from x1 have "f (vec1 (x $ 1)) \<in> {- 1..1}" apply-apply(rule assms(1)[unfolded subset_eq,rule_format]) by auto
+    from x1 have "f (x $ 1) \<in> {- 1..1}" apply-apply(rule assms(1)[unfolded subset_eq,rule_format]) by auto
     ultimately show False unfolding lem3[OF nz] vector_component_simps * mem_interval 
      apply(erule_tac x=2 in allE) by auto
- next assume as:"x$2 = -1" hence "vec1 (x$2) = - 1" unfolding Cart_eq by auto
-    hence *:"g (vec1 (x $ 2)) $ 2 = - 1" using assms(7) by auto
-    have "sqprojection (f (vec1 (x$1)) - g (vec1 (x$2))) $ 2 < 0"
+ next assume as:"x$2 = -1"
+    hence *:"g (x $ 2) $ 2 = - 1" using assms(7) by auto
+    have "sqprojection (f (x$1) - g (x$2)) $ 2 < 0"
       using x(2)[unfolded o_def Cart_eq,THEN spec[where x=2]]
       unfolding as negatex_def vector_2 by auto moreover
-    from x1 have "f (vec1 (x $ 1)) \<in> {- 1..1}" apply-apply(rule assms(1)[unfolded subset_eq,rule_format]) by auto
+    from x1 have "f (x $ 1) \<in> {- 1..1}" apply-apply(rule assms(1)[unfolded subset_eq,rule_format]) by auto
     ultimately show False unfolding lem3[OF nz] vector_component_simps * mem_interval 
       apply(erule_tac x=2 in allE) by auto qed(auto) qed
 
-lemma fashoda_unit_path: fixes f ::"real^1 \<Rightarrow> real^2" and g ::"real^1 \<Rightarrow> real^2"
+lemma fashoda_unit_path: fixes f ::"real \<Rightarrow> real^2" and g ::"real \<Rightarrow> real^2"
   assumes "path f" "path g" "path_image f \<subseteq> {- 1..1}" "path_image g \<subseteq> {- 1..1}"
   "(pathstart f)$1 = -1" "(pathfinish f)$1 = 1"  "(pathstart g)$2 = -1" "(pathfinish g)$2 = 1"
   obtains z where "z \<in> path_image f" "z \<in> path_image g" proof-
   note assms=assms[unfolded path_def pathstart_def pathfinish_def path_image_def]
-  def iscale \<equiv> "\<lambda>z::real^1. inverse 2 *\<^sub>R (z + 1)"
+  def iscale \<equiv> "\<lambda>z::real. inverse 2 *\<^sub>R (z + 1)"
   have isc:"iscale ` {- 1..1} \<subseteq> {0..1}" unfolding iscale_def by(auto)
   have "\<exists>s\<in>{- 1..1}. \<exists>t\<in>{- 1..1}. (f \<circ> iscale) s = (g \<circ> iscale) t" proof(rule fashoda_unit) 
     show "(f \<circ> iscale) ` {- 1..1} \<subseteq> {- 1..1}" "(g \<circ> iscale) ` {- 1..1} \<subseteq> {- 1..1}"
