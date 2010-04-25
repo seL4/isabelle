@@ -1519,7 +1519,7 @@ lemma simplex_extremal_le_exists:
 subsection {* Closest point of a convex set is unique, with a continuous projection. *}
 
 definition
-  closest_point :: "(real ^ 'n) set \<Rightarrow> real ^ 'n \<Rightarrow> real ^ 'n" where
+  closest_point :: "'a::{real_inner,heine_borel} set \<Rightarrow> 'a \<Rightarrow> 'a" where
  "closest_point s a = (SOME x. x \<in> s \<and> (\<forall>y\<in>s. dist a x \<le> dist a y))"
 
 lemma closest_point_exists:
@@ -1553,7 +1553,7 @@ lemma norm_lt: "norm x < norm y \<longleftrightarrow> inner x x < inner y y"
 lemma norm_le: "norm x \<le> norm y \<longleftrightarrow> inner x x \<le> inner y y"
   unfolding norm_eq_sqrt_inner by simp
 
-lemma closer_points_lemma: fixes y::"real^'n"
+lemma closer_points_lemma:
   assumes "inner y z > 0"
   shows "\<exists>u>0. \<forall>v>0. v \<le> u \<longrightarrow> norm(v *\<^sub>R z - y) < norm y"
 proof- have z:"inner z z > 0" unfolding inner_gt_zero_iff using assms by auto
@@ -1564,7 +1564,6 @@ proof- have z:"inner z z > 0" unfolding inner_gt_zero_iff using assms by auto
   qed(rule divide_pos_pos, auto) qed
 
 lemma closer_point_lemma:
-  fixes x y z :: "real ^ 'n"
   assumes "inner (y - x) (z - x) > 0"
   shows "\<exists>u>0. u \<le> 1 \<and> dist (x + u *\<^sub>R (z - x)) y < dist x y"
 proof- obtain u where "u>0" and u:"\<forall>v>0. v \<le> u \<longrightarrow> norm (v *\<^sub>R (z - x) - (y - x)) < norm (y - x)"
@@ -1573,7 +1572,6 @@ proof- obtain u where "u>0" and u:"\<forall>v>0. v \<le> u \<longrightarrow> nor
     unfolding dist_norm by(auto simp add: norm_minus_commute field_simps) qed
 
 lemma any_closest_point_dot:
-  fixes s :: "(real ^ _) set"
   assumes "convex s" "closed s" "x \<in> s" "y \<in> s" "\<forall>z\<in>s. dist a x \<le> dist a z"
   shows "inner (a - x) (y - x) \<le> 0"
 proof(rule ccontr) assume "\<not> inner (a - x) (y - x) \<le> 0"
@@ -1582,7 +1580,7 @@ proof(rule ccontr) assume "\<not> inner (a - x) (y - x) \<le> 0"
   thus False using assms(5)[THEN bspec[where x="?z"]] and u(3) by (auto simp add: dist_commute algebra_simps) qed
 
 lemma any_closest_point_unique:
-  fixes s :: "(real ^ _) set"
+  fixes x :: "'a::real_inner"
   assumes "convex s" "closed s" "x \<in> s" "y \<in> s"
   "\<forall>z\<in>s. dist a x \<le> dist a z" "\<forall>z\<in>s. dist a y \<le> dist a z"
   shows "x = y" using any_closest_point_dot[OF assms(1-4,5)] and any_closest_point_dot[OF assms(1-2,4,3,6)]
@@ -1634,7 +1632,7 @@ by(metis continuous_at_imp_continuous_on continuous_at_closest_point[OF assms])
 subsection {* Various point-to-set separating/supporting hyperplane theorems. *}
 
 lemma supporting_hyperplane_closed_point:
-  fixes s :: "(real ^ _) set"
+  fixes z :: "'a::{real_inner,heine_borel}"
   assumes "convex s" "closed s" "s \<noteq> {}" "z \<notin> s"
   shows "\<exists>a b. \<exists>y\<in>s. inner a z < b \<and> (inner a y = b) \<and> (\<forall>x\<in>s. inner a x \<ge> b)"
 proof-
@@ -1653,7 +1651,7 @@ proof-
 qed
 
 lemma separating_hyperplane_closed_point:
-  fixes s :: "(real ^ _) set"
+  fixes z :: "'a::{real_inner,heine_borel}"
   assumes "convex s" "closed s" "z \<notin> s"
   shows "\<exists>a b. inner a z < b \<and> (\<forall>x\<in>s. inner a x > b)"
 proof(cases "s={}")
