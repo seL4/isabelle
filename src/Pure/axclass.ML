@@ -37,8 +37,6 @@ sig
   val param_of_inst: theory -> string * string -> string
   val inst_of_param: theory -> string -> (string * string) option
   val thynames_of_arity: theory -> class * string -> string list
-  val introN: string
-  val axiomsN: string
 end;
 
 structure AxClass: AX_CLASS =
@@ -63,10 +61,6 @@ fun merge_params _ ([], qs) = qs
 
 
 (* axclasses *)
-
-val introN = "intro";
-val superN = "super";
-val axiomsN = "axioms";
 
 datatype axclass = AxClass of
  {def: thm,
@@ -563,9 +557,9 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
       def_thy
       |> Sign.qualified_path true bconst
       |> PureThy.note_thmss ""
-        [((Binding.name introN, []), [([Drule.export_without_context raw_intro], [])]),
-         ((Binding.name superN, []), [(map Drule.export_without_context raw_classrel, [])]),
-         ((Binding.name axiomsN, []),
+        [((Binding.name "intro", []), [([Drule.export_without_context raw_intro], [])]),
+         ((Binding.name "super", []), [(map Drule.export_without_context raw_classrel, [])]),
+         ((Binding.name "axioms", []),
            [(map (fn th => Drule.export_without_context (class_triv RS th)) raw_axioms, [])])]
       ||> Sign.restore_naming def_thy;
 
