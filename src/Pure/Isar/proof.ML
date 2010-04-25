@@ -790,15 +790,16 @@ fun apply_end text = assert_forward #> refine_end text;
 
 local
 
-fun implicit_vars dest add props =
+val is_var =
+  can (dest_TVar o Logic.dest_type o Logic.dest_term) orf
+  can (dest_Var o Logic.dest_term);
+
+fun implicit_vars props =
   let
-    val (explicit_vars, props') = take_prefix (can dest) props |>> map dest;
-    val vars = rev (subtract (op =) explicit_vars (fold add props []));
-    val _ =
-      if null vars then ()
-      else warning ("Goal statement contains unbound schematic variable(s): " ^
-        commas_quote (map (Term.string_of_vname o fst) vars));
-  in (rev vars, props') end;
+    val (var_props, props') = take_prefix is_var props;
+    val explicit_vars = fold Term.add_vars var_props [];
+    val vars = filter_out (member (op =) explicit_vars) (fold Term.add_vars props []);
+  in map (Logic.mk_term o Var) vars end;
 
 fun refine_terms n =
   refine (Method.Basic (K (RAW_METHOD
@@ -823,11 +824,8 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
       |> map_context_result (fn ctxt => swap (prepp (ctxt, raw_propp)));
     val props = flat propss;
 
-    val (_, props') =
-      implicit_vars (dest_TVar o Logic.dest_type o Logic.dest_term) Term.add_tvars props;
-    val (vars, _) = implicit_vars (dest_Var o Logic.dest_term) Term.add_vars props';
-
-    val propss' = map (Logic.mk_term o Var) vars :: propss;
+    val vars = implicit_vars props;
+    val propss' = vars :: propss;
     val goal_propss = filter_out null propss';
     val goal =
       cert (Logic.mk_conjunction_balanced (map Logic.mk_conjunction_balanced goal_propss))
