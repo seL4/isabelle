@@ -20,6 +20,7 @@ sig
   val neg_conjecture_clauses: Proof.context -> thm -> int -> thm list * (string * typ) list
   val suppress_endtheory: bool Unsynchronized.ref
     (*for emergency use where endtheory causes problems*)
+  val neg_clausify_tac: Proof.context -> int -> tactic
   val setup: theory -> theory
 end;
 
@@ -484,26 +485,10 @@ fun neg_clausify_tac ctxt =
         REPEAT_DETERM_N (length ts) o etac thin_rl] i
      end);
 
-val neg_clausify_setup =
-  Method.setup @{binding neg_clausify} (Scan.succeed (SIMPLE_METHOD' o neg_clausify_tac))
-  "conversion of goal to conjecture clauses";
-
-
-(** Attribute for converting a theorem into clauses **)
-
-val clausify_setup =
-  Attrib.setup @{binding clausify}
-    (Scan.lift OuterParse.nat >>
-      (fn i => Thm.rule_attribute (fn context => fn th =>
-          Meson.make_meta_clause (nth (cnf_axiom (Context.theory_of context) th) i))))
-  "conversion of theorem to clauses";
-
 
 (** setup **)
 
 val setup =
-  neg_clausify_setup #>
-  clausify_setup #>
   perhaps saturate_skolem_cache #>
   Theory.at_end clause_cache_endtheory;
 

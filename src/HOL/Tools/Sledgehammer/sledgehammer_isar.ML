@@ -12,17 +12,41 @@ sig
   val timeout: int Unsynchronized.ref
   val full_types: bool Unsynchronized.ref
   val default_params : theory -> (string * string) list -> params
+  val setup: theory -> theory
 end;
 
 structure Sledgehammer_Isar : SLEDGEHAMMER_ISAR =
 struct
 
 open Sledgehammer_Util
+open Sledgehammer_Fact_Preprocessor
 open ATP_Manager
 open ATP_Systems
 open Sledgehammer_Fact_Minimizer
 
 structure K = OuterKeyword and P = OuterParse
+
+(** Proof method used in Isar proofs **)
+
+val neg_clausify_setup =
+  Method.setup @{binding neg_clausify}
+               (Scan.succeed (SIMPLE_METHOD' o neg_clausify_tac))
+               "conversion of goal to negated conjecture clauses"
+
+val parse_clausify_attribute =
+  Scan.lift OuterParse.nat
+  >> (fn i => Thm.rule_attribute (fn context => fn th =>
+                  let val thy = Context.theory_of context in
+                    Meson.make_meta_clause (nth (cnf_axiom thy th) i)
+                  end))
+
+(** Attribute for converting a theorem into clauses **)
+
+val clausify_setup =
+  Attrib.setup @{binding clausify} parse_clausify_attribute
+               "conversion of theorem to clauses"
+
+(** Sledgehammer commands **)
 
 fun add_to_relevance_override ns : relevance_override =
   {add = ns, del = [], only = false}
@@ -323,11 +347,15 @@ val parse_sledgehammer_params_command =
 
 val _ =
   OuterSyntax.improper_command sledgehammerN
-    "search for first-order proof using automatic theorem provers" K.diag
-    parse_sledgehammer_command
+      "search for first-order proof using automatic theorem provers" K.diag
+      parse_sledgehammer_command
 val _ =
   OuterSyntax.command sledgehammer_paramsN
-    "set and display the default parameters for Sledgehammer" K.thy_decl
-    parse_sledgehammer_params_command
+      "set and display the default parameters for Sledgehammer" K.thy_decl
+      parse_sledgehammer_params_command
+
+val setup =
+  neg_clausify_setup
+  #> clausify_setup
 
 end;
