@@ -176,7 +176,7 @@ fun put_trancl_classrel ((c1, c2), th) thy =
     val certT = Thm.ctyp_of thy;
 
     val classrels = fst (get_instances thy);
-    val classes = #classes (Sorts.rep_algebra (Sign.classes_of thy));
+    val classes = Sorts.classes_of (Sign.classes_of thy);
 
     fun reflcl_classrel (c1', c2') =
       if c1' = c2'

@@ -393,7 +393,7 @@ val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let
     val thy = Toplevel.theory_of state;
     val {classes = (space, algebra), ...} = Type.rep_tsig (Sign.tsig_of thy);
-    val {classes, ...} = Sorts.rep_algebra algebra;
+    val classes = Sorts.classes_of algebra;
     fun entry (c, (i, (_, cs))) =
       (i, {name = Name_Space.extern space c, ID = c, parents = cs,
             dir = "", unfold = true, path = ""});

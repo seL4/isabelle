@@ -163,7 +163,7 @@ fun print_classes thy =
       Symtab.empty
       |> Symtab.fold (fn (tyco, arities) => fold (fn (class, _) =>
            Symtab.map_default (class, []) (insert (op =) tyco)) arities)
-             ((#arities o Sorts.rep_algebra) algebra);
+             (Sorts.arities_of algebra);
     val the_arities = these o Symtab.lookup arities;
     fun mk_arity class tyco =
       let
