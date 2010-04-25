@@ -219,10 +219,10 @@ val hide_fact = hide_names PureThy.intern_fact PureThy.defined_fact PureThy.hide
 fun goal opt_chain goal stmt int =
   opt_chain #> goal NONE (K I) stmt int;
 
-val have = goal I Proof.have;
-val hence = goal Proof.chain Proof.have;
-val show = goal I Proof.show;
-val thus = goal Proof.chain Proof.show;
+val have = goal I Proof.have_cmd;
+val hence = goal Proof.chain Proof.have_cmd;
+val show = goal I Proof.show_cmd;
+val thus = goal Proof.chain Proof.show_cmd;
 
 
 (* local endings *)
@@ -393,7 +393,7 @@ val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let
     val thy = Toplevel.theory_of state;
     val {classes = (space, algebra), ...} = Type.rep_tsig (Sign.tsig_of thy);
-    val {classes, ...} = Sorts.rep_algebra algebra;
+    val classes = Sorts.classes_of algebra;
     fun entry (c, (i, (_, cs))) =
       (i, {name = Name_Space.extern space c, ID = c, parents = cs,
             dir = "", unfold = true, path = ""});
@@ -403,7 +403,7 @@ val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   in Present.display_graph gr end);
 
 fun thm_deps args = Toplevel.unknown_theory o Toplevel.keep (fn state =>
-  Thm_Deps.thm_deps (Proof.get_thmss (Toplevel.enter_proof_body state) args));
+  Thm_Deps.thm_deps (Proof.get_thmss_cmd (Toplevel.enter_proof_body state) args));
 
 
 (* find unused theorems *)
@@ -437,12 +437,12 @@ val print_cases = Toplevel.unknown_context o
 local
 
 fun string_of_stmts state args =
-  Proof.get_thmss state args
+  Proof.get_thmss_cmd state args
   |> map (Element.pretty_statement (Proof.context_of state) Thm.theoremK)
   |> Pretty.chunks2 |> Pretty.string_of;
 
 fun string_of_thms state args =
-  Pretty.string_of (Display.pretty_thms (Proof.context_of state) (Proof.get_thmss state args));
+  Pretty.string_of (Display.pretty_thms (Proof.context_of state) (Proof.get_thmss_cmd state args));
 
 fun string_of_prfs full state arg =
   Pretty.string_of
@@ -460,7 +460,7 @@ fun string_of_prfs full state arg =
         end
     | SOME args => Pretty.chunks
         (map (Proof_Syntax.pretty_proof_of (Proof.context_of state) full)
-          (Proof.get_thmss state args)));
+          (Proof.get_thmss_cmd state args)));
 
 fun string_of_prop state s =
   let

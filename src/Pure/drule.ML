@@ -106,7 +106,6 @@ sig
   val dummy_thm: thm
   val sort_constraintI: thm
   val sort_constraint_eq: thm
-  val unconstrainTs: thm -> thm
   val with_subgoal: int -> (thm -> thm) -> thm -> thm
   val comp_no_flatten: thm * int -> int -> thm -> thm
   val rename_bvars: (string * string) list -> thm -> thm
@@ -203,12 +202,6 @@ fun types_sorts thm =
 
 
 (** Standardization of rules **)
-
-(* type classes and sorts *)
-
-fun unconstrainTs th =
-  fold (Thm.unconstrainT o Thm.ctyp_of (Thm.theory_of_thm th) o TVar)
-    (Thm.fold_terms Term.add_tvars th []) th;
 
 (*Generalization over a list of variables*)
 val forall_intr_list = fold_rev forall_intr;

@@ -543,7 +543,7 @@ fun prove_strong_ind s avoids ctxt =
 
   in
     ctxt'' |>
-    Proof.theorem_i NONE (fn thss => fn ctxt =>
+    Proof.theorem NONE (fn thss => fn ctxt =>
       let
         val rec_name = space_implode "_" (map Long_Name.base_name names);
         val rec_qualified = Binding.qualify false rec_name;

@@ -283,10 +283,10 @@ fun gen_witness_proof proof after_qed wit_propss eq_props =
 in
 
 fun witness_proof after_qed wit_propss =
-  gen_witness_proof (Proof.theorem_i NONE) (fn wits => fn _ => after_qed wits)
+  gen_witness_proof (Proof.theorem NONE) (fn wits => fn _ => after_qed wits)
     wit_propss [];
 
-val witness_proof_eqs = gen_witness_proof (Proof.theorem_i NONE);
+val witness_proof_eqs = gen_witness_proof (Proof.theorem NONE);
 
 fun witness_local_proof after_qed cmd wit_propss goal_ctxt int =
   gen_witness_proof (fn after_qed' => fn propss =>

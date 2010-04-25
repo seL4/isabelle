@@ -120,7 +120,7 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config lth
       end
   in
     lthy
-    |> Proof.theorem_i NONE afterqed [[(Logic.unprotect (concl_of goalstate), [])]]
+    |> Proof.theorem NONE afterqed [[(Logic.unprotect (concl_of goalstate), [])]]
     |> Proof.refine (Method.primitive_text (fn _ => goalstate)) |> Seq.hd
   end
 
@@ -177,7 +177,7 @@ fun gen_termination_proof prep_term raw_term_opt lthy =
     |> ProofContext.note_thmss ""
        [((Binding.name "termination", [Context_Rules.intro_bang (SOME 0)]),
          [([Goal.norm_result termination], [])])] |> snd
-    |> Proof.theorem_i NONE afterqed [[(goal, [])]]
+    |> Proof.theorem NONE afterqed [[(goal, [])]]
   end
 
 val termination_proof = gen_termination_proof Syntax.check_term
