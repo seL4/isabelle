@@ -1,5 +1,6 @@
 (*  Title:      HOL/Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML
     Author:     Lawrence C Paulson and Claire Quigley, Cambridge University Computer Laboratory
+    Author:     Jasmin Blanchette, TU Muenchen
 
 Transfer of proofs from external provers.
 *)
@@ -36,7 +37,7 @@ open Sledgehammer_Fact_Preprocessor
 
 type minimize_command = string list -> string
 
-val trace_proof_path = Path.basic "atp_trace";
+val trace_proof_path = Path.basic "sledgehammer_trace_proof"
 
 fun trace_proof_msg f =
   if !trace then File.append (File.tmp_path trace_proof_path) (f ()) else ();
@@ -44,99 +45,102 @@ fun trace_proof_msg f =
 fun string_of_thm ctxt = PrintMode.setmp [] (Display.string_of_thm ctxt);
 
 fun is_ident_char c = Char.isAlphaNum c orelse c = #"_"
+fun is_head_digit s = Char.isDigit (String.sub (s, 0))
 
 fun is_axiom thm_names line_no = line_no <= Vector.length thm_names
 
 (**** PARSING OF TSTP FORMAT ****)
 
 (* Syntax trees, either term list or formulae *)
-datatype stree = Int of int | Br of string * stree list;
+datatype stree = SInt of int | SBranch of string * stree list;
 
-fun atom x = Br(x,[]);
+fun atom x = SBranch (x, [])
 
-fun scons (x,y) = Br("cons", [x,y]);
-val listof = List.foldl scons (atom "nil");
+fun scons (x, y) = SBranch ("cons", [x, y])
+val slist_of = List.foldl scons (atom "nil")
 
 (*Strings enclosed in single quotes, e.g. filenames*)
-val quoted = $$ "'" |-- Scan.repeat (~$$ "'") --| $$ "'" >> implode;
-
-(*Intended for $true and $false*)
-fun tf s = "c_" ^ str (Char.toUpper (String.sub(s,0))) ^ String.extract(s,1,NONE);
-val truefalse = $$ "$" |-- Symbol.scan_id >> (atom o tf);
+val parse_quoted = $$ "'" |-- Scan.repeat (~$$ "'") --| $$ "'" >> implode;
 
 (*Integer constants, typically proof line numbers*)
-fun is_digit s = Char.isDigit (String.sub(s,0));
-val integer = Scan.many1 is_digit >> (the o Int.fromString o implode);
+val parse_integer = Scan.many1 is_head_digit >> (the o Int.fromString o implode)
 
 (* needed for SPASS's output format *)
+fun fix_bool_literal "true" = "c_True"
+  | fix_bool_literal "false" = "c_False"
 fun fix_symbol "equal" = "c_equal"
   | fix_symbol s = s
+(* Generalized first-order terms, which include file names, numbers, etc. *)
+fun parse_term x =
+  (parse_quoted >> atom
+   || parse_integer >> SInt
+   || $$ "$" |-- Symbol.scan_id >> (atom o fix_bool_literal)
+   || (Symbol.scan_id >> fix_symbol)
+      -- Scan.optional ($$ "(" |-- parse_terms --| $$ ")") [] >> SBranch
+   || $$ "(" |-- parse_term --| $$ ")"
+   || $$ "[" |-- Scan.optional parse_terms [] --| $$ "]" >> slist_of) x
+and parse_terms x = (parse_term ::: Scan.repeat ($$ "," |-- parse_term)) x
 
-(*Generalized FO terms, which include filenames, numbers, etc.*)
-fun term x = (quoted >> atom || integer >> Int || truefalse
-              || (Symbol.scan_id >> fix_symbol)
-                 -- Scan.optional ($$ "(" |-- terms --| $$ ")") [] >> Br
-              || $$ "(" |-- term --| $$ ")"
-              || $$ "[" |-- Scan.optional terms [] --| $$ "]" >> listof) x
-and terms x = (term ::: Scan.repeat ($$ "," |-- term)) x
+fun negate_stree t = SBranch ("c_Not", [t])
+fun equate_strees t1 t2 = SBranch ("c_equal", [t1, t2]);
 
-fun negate t = Br ("c_Not", [t])
-fun equate t1 t2 = Br ("c_equal", [t1, t2]);
-
-(*Apply equal or not-equal to a term*)
-fun syn_equal (t, NONE) = t
-  | syn_equal (t1, SOME (NONE, t2)) = equate t1 t2
-  | syn_equal (t1, SOME (SOME _, t2)) = negate (equate t1 t2)
-
+(* Apply equal or not-equal to a term. *)
+fun do_equal (t, NONE) = t
+  | do_equal (t1, SOME (NONE, t2)) = equate_strees t1 t2
+  | do_equal (t1, SOME (SOME _, t2)) = negate_stree (equate_strees t1 t2)
 (*Literals can involve negation, = and !=.*)
-fun literal x =
-  ($$ "~" |-- literal >> negate
-   || (term -- Scan.option (Scan.option ($$ "!") --| $$ "=" -- term)
-       >> syn_equal)) x
+fun parse_literal x =
+  ($$ "~" |-- parse_literal >> negate_stree
+   || (parse_term -- Scan.option (Scan.option ($$ "!") --| $$ "=" -- parse_term)
+       >> do_equal)) x
 
-val literals = literal ::: Scan.repeat ($$ "|" |-- literal);
+val parse_literals = parse_literal ::: Scan.repeat ($$ "|" |-- parse_literal)
 
 (*Clause: a list of literals separated by the disjunction sign*)
-val clause = $$ "(" |-- literals --| $$ ")" || Scan.single literal;
+val parse_clause =
+  $$ "(" |-- parse_literals --| $$ ")" || Scan.single parse_literal
 
-fun ints_of_stree (Int n) = cons n
-  | ints_of_stree (Br (_, ts)) = fold ints_of_stree ts
-
-val tstp_annotations =
-  Scan.optional ($$ "," |-- term --| Scan.option ($$ "," |-- terms)
+fun ints_of_stree (SInt n) = cons n
+  | ints_of_stree (SBranch (_, ts)) = fold ints_of_stree ts
+val parse_tstp_annotations =
+  Scan.optional ($$ "," |-- parse_term --| Scan.option ($$ "," |-- parse_terms)
                  >> (fn source => ints_of_stree source [])) []
-
-fun retuple_tstp_line ((name, ts), deps) = (name, ts, deps)
 
 (* <cnf_annotated> ::= cnf(<name>, <formula_role>, <cnf_formula> <annotations>).
    The <name> could be an identifier, but we assume integers. *)
+fun retuple_tstp_line ((name, ts), deps) = (name, ts, deps)
 val parse_tstp_line =
-  (Scan.this_string "cnf" -- $$ "(") |-- integer --| $$ "," --| Symbol.scan_id
-   --| $$ "," -- clause -- tstp_annotations --| $$ ")" --| $$ "."
+  (Scan.this_string "cnf" -- $$ "(") |-- parse_integer --| $$ ","
+   --| Symbol.scan_id --| $$ "," -- parse_clause -- parse_tstp_annotations
+   --| $$ ")" --| $$ "."
   >> retuple_tstp_line
 
 (**** PARSING OF SPASS OUTPUT ****)
 
-val dot_name = integer --| $$ "." --| integer
+(* SPASS returns clause references of the form "x.y". We ignore "y", whose role
+   is not clear anyway. *)
+val parse_dot_name = parse_integer --| $$ "." --| parse_integer
 
-val spass_annotations =
-  Scan.optional ($$ ":" |-- Scan.repeat (dot_name --| Scan.option ($$ ","))) []
+val parse_spass_annotations =
+  Scan.optional ($$ ":" |-- Scan.repeat (parse_dot_name
+                                         --| Scan.option ($$ ","))) []
 
-val starred_literal = literal --| Scan.repeat ($$ "*" || $$ " ")
+(* It is not clear why some literals are followed by sequences of stars. We
+   ignore them. *)
+val parse_starred_literal = parse_literal --| Scan.repeat ($$ "*" || $$ " ")
 
-val horn_clause =
-  Scan.repeat starred_literal --| $$ "-" --| $$ ">"
-  -- Scan.repeat starred_literal
-  >> (fn ([], []) => [atom (tf "false")]
-       | (clauses1, clauses2) => map negate clauses1 @ clauses2)
+val parse_horn_clause =
+  Scan.repeat parse_starred_literal --| $$ "-" --| $$ ">"
+  -- Scan.repeat parse_starred_literal
+  >> (fn ([], []) => [atom "c_False"]
+       | (clauses1, clauses2) => map negate_stree clauses1 @ clauses2)
 
+(* Syntax: <name>[0:<inference><annotations>] || -> <cnf_formula>. *)
 fun retuple_spass_proof_line ((name, deps), ts) = (name, ts, deps)
-
-(* Syntax: <name>[0:<inference><annotations>] || -> <cnf_formula> **. *)
 val parse_spass_proof_line =
-  integer --| $$ "[" --| $$ "0" --| $$ ":" --| Symbol.scan_id
-  -- spass_annotations --| $$ "]" --| $$ "|" --| $$ "|" -- horn_clause
-  --| $$ "."
+  parse_integer --| $$ "[" --| $$ "0" --| $$ ":" --| Symbol.scan_id
+  -- parse_spass_annotations --| $$ "]" --| $$ "|" --| $$ "|"
+  -- parse_horn_clause --| $$ "."
   >> retuple_spass_proof_line
 
 val parse_proof_line = fst o (parse_tstp_line || parse_spass_proof_line)
@@ -168,8 +172,8 @@ fun make_var (b,T) = Var((b,0),T);
   by information from type literals, or by type inference.*)
 fun type_of_stree t =
   case t of
-      Int _ => raise STREE t
-    | Br (a,ts) =>
+      SInt _ => raise STREE t
+    | SBranch (a,ts) =>
         let val Ts = map type_of_stree ts
         in
           case strip_prefix tconst_prefix a of
@@ -205,10 +209,10 @@ fun const_of thy (a,Ts) = Const(a, Sign.const_instance thy (a,Ts));
   them to be inferred.*)
 fun term_of_stree args thy t =
   case t of
-      Int _ => raise STREE t
-    | Br ("hBOOL",[t]) => term_of_stree [] thy t  (*ignore hBOOL*)
-    | Br ("hAPP",[t,u]) => term_of_stree (u::args) thy t
-    | Br (a,ts) =>
+      SInt _ => raise STREE t
+    | SBranch ("hBOOL", [t]) => term_of_stree [] thy t  (*ignore hBOOL*)
+    | SBranch ("hAPP", [t, u]) => term_of_stree (u::args) thy t
+    | SBranch (a, ts) =>
         case strip_prefix const_prefix a of
             SOME "equal" =>
               list_comb(Const (@{const_name "op ="}, HOLogic.typeT), List.map (term_of_stree [] thy) ts)
@@ -231,11 +235,13 @@ fun term_of_stree args thy t =
                       | NONE => make_var (a,T)  (* Variable from the ATP, say "X1" *)
               in  list_comb (opr, List.map (term_of_stree [] thy) (ts@args))  end;
 
-(*Type class literal applied to a type. Returns triple of polarity, class, type.*)
-fun constraint_of_stree pol (Br("c_Not",[t])) = constraint_of_stree (not pol) t
+(* Type class literal applied to a type. Returns triple of polarity, class,
+   type. *)
+fun constraint_of_stree pol (SBranch ("c_Not", [t])) =
+    constraint_of_stree (not pol) t
   | constraint_of_stree pol t = case t of
-        Int _ => raise STREE t
-      | Br (a,ts) =>
+        SInt _ => raise STREE t
+      | SBranch (a, ts) =>
             (case (strip_prefix class_prefix a, map type_of_stree ts) of
                  (SOME b, [T]) => (pol, b, T)
                | _ => raise STREE t);
@@ -248,15 +254,14 @@ fun add_constraint ((false, cl, TFree(a,_)), vt) = addix ((a,~1),cl) vt
   | add_constraint ((false, cl, TVar(ix,_)), vt) = addix (ix,cl) vt
   | add_constraint (_, vt) = vt;
 
-(*False literals (which E includes in its proofs) are deleted*)
-val nofalses = filter (not o equal HOLogic.false_const);
-
-(*Final treatment of the list of "real" literals from a clause.*)
-fun finish [] = HOLogic.true_const  (*No "real" literals means only type information*)
+(* Final treatment of the list of "real" literals from a clause. *)
+fun finish [] =
+    (* No "real" literals means only type information. *)
+    HOLogic.true_const
   | finish lits =
-      case nofalses lits of
-          [] => HOLogic.false_const  (*The empty clause, since we started with real literals*)
-        | xs => foldr1 HOLogic.mk_disj (rev xs);
+    case filter_out (curry (op =) HOLogic.false_const) lits of
+      [] => HOLogic.false_const
+    | xs => foldr1 HOLogic.mk_disj (rev xs);
 
 (*Accumulate sort constraints in vt, with "real" literals in lits.*)
 fun lits_of_strees _ (vt, lits) [] = (vt, finish lits)
@@ -532,8 +537,8 @@ fun get_step_nums proof =
     fun inputno ("cnf" :: ntok :: "axiom" :: _) = Int.fromString ntok
       | inputno ("cnf" :: ntok :: "negated_conjecture" :: _) =
         Int.fromString ntok
-      | inputno (ntok :: "0" :: "Inp" :: _) =
-        Int.fromString ntok  (* SPASS's output format *)
+      (* SPASS's output format *)
+      | inputno (ntok :: "0" :: "Inp" :: _) = Int.fromString ntok
       | inputno _ = NONE
   in map_filter (inputno o toks) (split_lines proof) end
   
