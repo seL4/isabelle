@@ -3651,7 +3651,7 @@ declare dest_vec1_eq[simp del] not_less[simp] not_le[simp]
 
 lemma indefinite_integral_continuous: fixes f::"real^1 \<Rightarrow> 'a::banach"
   assumes "f integrable_on {a..b}" shows  "continuous_on {a..b} (\<lambda>x. integral {a..x} f)"
-proof(unfold continuous_on_def, safe)  fix x e assume as:"x\<in>{a..b}" "0<(e::real)"
+proof(unfold continuous_on_iff, safe)  fix x e assume as:"x\<in>{a..b}" "0<(e::real)"
   let ?thesis = "\<exists>d>0. \<forall>x'\<in>{a..b}. dist x' x < d \<longrightarrow> dist (integral {a..x'} f) (integral {a..x} f) < e"
   { presume *:"a<b \<Longrightarrow> ?thesis"
     show ?thesis apply(cases,rule *,assumption)
