@@ -143,14 +143,14 @@ lemma has_derivative_id: "((\<lambda>x. x) has_derivative (\<lambda>h. h)) net"
 lemma has_derivative_const: "((\<lambda>x. c) has_derivative (\<lambda>h. 0)) net"
   unfolding has_derivative_def apply(rule,rule bounded_linear_zero) by(simp add: Lim_const)
 
-lemma (in bounded_linear) cmul: shows "bounded_linear (\<lambda>x. (c::real) *\<^sub>R f x)" proof
-  guess K using pos_bounded ..
-  thus "\<exists>K. \<forall>x. norm ((c::real) *\<^sub>R f x) \<le> norm x * K" apply(rule_tac x="abs c * K" in exI) proof
-    fix x case goal1
-    hence "abs c * norm (f x) \<le> abs c * (norm x * K)" apply-apply(erule conjE,erule_tac x=x in allE)  
-      apply(rule mult_left_mono) by auto
-    thus ?case by(auto simp add:field_simps)
-  qed qed(auto simp add: scaleR.add_right add scaleR)
+lemma (in bounded_linear) cmul: shows "bounded_linear (\<lambda>x. (c::real) *\<^sub>R f x)"
+proof -
+  have "bounded_linear (\<lambda>x. c *\<^sub>R x)"
+    by (rule scaleR.bounded_linear_right)
+  moreover have "bounded_linear f" ..
+  ultimately show ?thesis
+    by (rule bounded_linear_compose)
+qed
 
 lemma has_derivative_cmul: assumes "(f has_derivative f') net" shows "((\<lambda>x. c *\<^sub>R f(x)) has_derivative (\<lambda>h. c *\<^sub>R f'(h))) net"
   unfolding has_derivative_def apply(rule,rule bounded_linear.cmul)
