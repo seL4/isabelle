@@ -394,6 +394,11 @@ lemma bounded_linear_vec1_dest_vec1: fixes f::"real \<Rightarrow> real"
     hence "\<exists>K. \<forall>x. \<bar>f x\<bar> \<le> \<bar>x\<bar> * K" apply(rule_tac x=K in exI)
       unfolding vec1_dest_vec1_simps by (auto simp add:field_simps) }
   thus ?thesis unfolding linear_def bounded_linear_def additive_def bounded_linear_axioms_def o_def
-    unfolding vec1_dest_vec1_simps by auto qed 
+    unfolding vec1_dest_vec1_simps by auto qed
+
+lemma vec1_le[simp]:fixes a::real shows "vec1 a \<le> vec1 b \<longleftrightarrow> a \<le> b"
+  unfolding vector_le_def by auto
+lemma vec1_less[simp]:fixes a::real shows "vec1 a < vec1 b \<longleftrightarrow> a < b"
+  unfolding vector_less_def by auto
 
 end

@@ -634,11 +634,6 @@ lemma differential_zero_maxmin: fixes f::"real^'a \<Rightarrow> real"
 
 subsection {* The traditional Rolle theorem in one dimension. *}
 
-lemma vec1_le[simp]:fixes a::real shows "vec1 a \<le> vec1 b \<longleftrightarrow> a \<le> b"
-  unfolding vector_le_def by auto
-lemma vec1_less[simp]:fixes a::real shows "vec1 a < vec1 b \<longleftrightarrow> a < b"
-  unfolding vector_less_def by auto 
-
 lemma rolle: fixes f::"real\<Rightarrow>real"
   assumes "a < b" "f a = f b" "continuous_on {a..b} f"
   "\<forall>x\<in>{a<..<b}. (f has_derivative f'(x)) (at x)"
