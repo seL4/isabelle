@@ -6,7 +6,7 @@
 header {* Multivariate calculus in Euclidean space. *}
 
 theory Derivative
-imports Brouwer_Fixpoint RealVector
+imports Brouwer_Fixpoint Vec1 RealVector
 begin
 
 
