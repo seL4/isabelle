@@ -385,7 +385,7 @@ lemma FDERIV_power_Suc:
   fixes x :: "'a::{real_normed_algebra,comm_ring_1}"
   shows "FDERIV (\<lambda>x. x ^ Suc n) x :> (\<lambda>h. (1 + of_nat n) * x ^ n * h)"
  apply (induct n)
-  apply (simp add: power_Suc FDERIV_ident)
+  apply (simp add: FDERIV_ident)
  apply (drule FDERIV_mult [OF FDERIV_ident])
  apply (simp only: of_nat_Suc left_distrib mult_1_left)
  apply (simp only: power_Suc right_distrib add_ac mult_ac)
