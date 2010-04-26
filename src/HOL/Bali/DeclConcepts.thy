@@ -1390,7 +1390,7 @@ definition accimethds :: "prog \<Rightarrow> pname \<Rightarrow> qtname \<Righta
 "accimethds G pack I
   \<equiv> if G\<turnstile>Iface I accessible_in pack 
        then imethds G I
-       else \<lambda> k. {}"
+       else (\<lambda> k. {})"
 text {* only returns imethds if the interface is accessible *}
 
 definition methd :: "prog \<Rightarrow> qtname  \<Rightarrow> (sig,qtname \<times> methd) table" where
