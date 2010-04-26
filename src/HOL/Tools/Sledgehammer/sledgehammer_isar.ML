@@ -99,7 +99,7 @@ val default_default_params =
    ("higher_order", "smart"),
    ("follow_defs", "false"),
    ("isar_proof", "false"),
-   ("modulus", "1"),
+   ("shrink_factor", "1"),
    ("sorts", "false"),
    ("minimize_timeout", "5 s")]
 
@@ -109,9 +109,9 @@ val negated_alias_params =
   [("no_debug", "debug"),
    ("quiet", "verbose"),
    ("no_overlord", "overlord"),
+   ("partial_types", "full_types"),
    ("implicit_apply", "explicit_apply"),
    ("ignore_no_atp", "respect_no_atp"),
-   ("partial_types", "full_types"),
    ("theory_irrelevant", "theory_relevant"),
    ("first_order", "higher_order"),
    ("dont_follow_defs", "follow_defs"),
@@ -119,8 +119,8 @@ val negated_alias_params =
    ("no_sorts", "sorts")]
 
 val params_for_minimize =
-  ["full_types", "explicit_apply", "higher_order", "isar_proof", "modulus",
-   "sorts", "minimize_timeout"]
+  ["debug", "verbose", "overlord", "full_types", "explicit_apply",
+   "higher_order", "isar_proof", "shrink_factor", "sorts", "minimize_timeout"]
 
 val property_dependent_params = ["atps", "full_types", "timeout"]
 
@@ -203,7 +203,7 @@ fun extract_params thy default_params override_params =
     val higher_order = lookup_bool_option "higher_order"
     val follow_defs = lookup_bool "follow_defs"
     val isar_proof = lookup_bool "isar_proof"
-    val modulus = Int.max (1, lookup_int "modulus")
+    val shrink_factor = Int.max (1, lookup_int "shrink_factor")
     val sorts = lookup_bool "sorts"
     val timeout = lookup_time "timeout"
     val minimize_timeout = lookup_time "minimize_timeout"
@@ -213,7 +213,7 @@ fun extract_params thy default_params override_params =
      respect_no_atp = respect_no_atp, relevance_threshold = relevance_threshold,
      convergence = convergence, theory_relevant = theory_relevant,
      higher_order = higher_order, follow_defs = follow_defs,
-     isar_proof = isar_proof, modulus = modulus, sorts = sorts,
+     isar_proof = isar_proof, shrink_factor = shrink_factor, sorts = sorts,
      timeout = timeout, minimize_timeout = minimize_timeout}
   end
 
