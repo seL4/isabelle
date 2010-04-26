@@ -94,7 +94,7 @@ defs
 "accObjectmheads G S T
    \<equiv> if G\<turnstile>RefT T accessible_in (pid S)
         then Objectmheads G S
-        else \<lambda>sig. {}"
+        else (\<lambda>sig. {})"
 primrec
 "mheads G S  NullT     = (\<lambda>sig. {})"
 "mheads G S (IfaceT I) = (\<lambda>sig. (\<lambda>(I,h).(IfaceT I,h)) 
