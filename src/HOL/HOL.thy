@@ -73,7 +73,7 @@ consts
 local
 
 consts
-  If            :: "[bool, 'a, 'a] => 'a"           ("(if (_)/ then (_)/ else (_))" 10)
+  If            :: "[bool, 'a, 'a] => 'a"           ("(if (_)/ then (_)/ else (_))" [0, 0, 10] 10)
 
 
 subsubsection {* Additional concrete syntax *}
@@ -118,7 +118,7 @@ syntax
   "_bind"       :: "[pttrn, 'a] => letbind"              ("(2_ =/ _)" 10)
   ""            :: "letbind => letbinds"                 ("_")
   "_binds"      :: "[letbind, letbinds] => letbinds"     ("_;/ _")
-  "_Let"        :: "[letbinds, 'a] => 'a"                ("(let (_)/ in (_))" 10)
+  "_Let"        :: "[letbinds, 'a] => 'a"                ("(let (_)/ in (_))" [0, 10] 10)
 
   "_case_syntax":: "['a, cases_syn] => 'b"               ("(case _ of/ _)" 10)
   "_case1"      :: "['a, 'b] => case_syn"                ("(2_ =>/ _)" 10)
