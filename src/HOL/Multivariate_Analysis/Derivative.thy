@@ -93,7 +93,7 @@ lemma has_derivative_within_open:
 
 subsection {* Derivatives on real = Derivatives on @{typ "real^1"} *}
 
-lemma dist_vec1_0[simp]: "dist(vec1 (x::real)) 0 = norm x" unfolding vector_dist_norm by(auto simp add:vec1_dest_vec1_simps)
+lemma dist_vec1_0[simp]: "dist(vec1 (x::real)) 0 = norm x" unfolding vector_dist_norm by auto
 
 lemma bounded_linear_vec1_dest_vec1: fixes f::"real \<Rightarrow> real"
   shows "linear (vec1 \<circ> f \<circ> dest_vec1) = bounded_linear f" (is "?l = ?r") proof-
@@ -280,6 +280,8 @@ lemma has_derivative_transform_within_open:
   apply(rule,rule) apply(drule assms(3)[rule_format]) using assms(3)[rule_format, OF assms(2)] by auto
 
 subsection {* differentiability. *}
+
+no_notation Deriv.differentiable (infixl "differentiable" 60)
 
 definition differentiable :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a net \<Rightarrow> bool" (infixr "differentiable" 30) where
   "f differentiable net \<equiv> (\<exists>f'. (f has_derivative f') net)"
@@ -754,11 +756,11 @@ lemma differentiable_bound: fixes f::"real^'a \<Rightarrow> real^'b"
 lemma onorm_vec1: fixes f::"real \<Rightarrow> real"
   shows "onorm (\<lambda>x. vec1 (f (dest_vec1 x))) = onorm f" proof-
   have "\<forall>x::real^1. norm x = 1 \<longleftrightarrow> x\<in>{vec1 -1, vec1 (1::real)}" unfolding forall_vec1 by(auto simp add:Cart_eq)
-  hence 1:"{x. norm x = 1} = {vec1 -1, vec1 (1::real)}" by(auto simp add:norm_vec1)
+  hence 1:"{x. norm x = 1} = {vec1 -1, vec1 (1::real)}" by auto
   have 2:"{norm (vec1 (f (dest_vec1 x))) |x. norm x = 1} = (\<lambda>x. norm (vec1 (f (dest_vec1 x)))) ` {x. norm x=1}" by auto
   have "\<forall>x::real. norm x = 1 \<longleftrightarrow> x\<in>{-1, 1}" by auto hence 3:"{x. norm x = 1} = {-1, (1::real)}" by auto
   have 4:"{norm (f x) |x. norm x = 1} = (\<lambda>x. norm (f x)) ` {x. norm x=1}" by auto
-  show ?thesis unfolding onorm_def 1 2 3 4 by(simp add:Sup_finite_Max norm_vec1) qed
+  show ?thesis unfolding onorm_def 1 2 3 4 by(simp add:Sup_finite_Max) qed
 
 lemma differentiable_bound_real: fixes f::"real \<Rightarrow> real"
   assumes "convex s" "\<forall>x\<in>s. (f has_derivative f' x) (at x within s)" "\<forall>x\<in>s. onorm(f' x) \<le> B" and x:"x\<in>s" and y:"y\<in>s"
@@ -1013,7 +1015,7 @@ lemma has_derivative_locally_injective: fixes f::"real^'n \<Rightarrow> real^'m"
 	  unfolding ph' * apply(rule diff_chain_within) defer apply(rule bounded_linear.has_derivative[OF assms(3)])
 	  apply(rule has_derivative_intros) defer apply(rule has_derivative_sub[where g'="\<lambda>x.0",unfolded diff_0_right])
 	  apply(rule has_derivative_at_within) using assms(5) and `u\<in>s` `a\<in>s`
-	  by(auto intro!: has_derivative_intros derivative_linear)
+          by(auto intro!: has_derivative_intros derivative_linear)
 	have **:"bounded_linear (\<lambda>x. f' u x - f' a x)" "bounded_linear (\<lambda>x. f' a x - f' u x)" apply(rule_tac[!] bounded_linear_sub)
 	  apply(rule_tac[!] derivative_linear) using assms(5) `u\<in>s` `a\<in>s` by auto
 	have "onorm (\<lambda>v. v - g' (f' u v)) \<le> onorm g' * onorm (\<lambda>w. f' a w - f' u w)" unfolding * apply(rule onorm_compose)

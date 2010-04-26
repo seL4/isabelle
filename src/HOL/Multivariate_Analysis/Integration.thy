@@ -933,7 +933,7 @@ lemma has_integral_integral:"f integrable_on s \<longleftrightarrow> (f has_inte
 lemma has_integral_vec1: assumes "(f has_integral k) {a..b}"
   shows "((\<lambda>x. vec1 (f x)) has_integral (vec1 k)) {a..b}"
 proof- have *:"\<And>p. (\<Sum>(x, k)\<in>p. content k *\<^sub>R vec1 (f x)) - vec1 k = vec1 ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - k)"
-    unfolding vec_sub Cart_eq by(auto simp add:vec1_dest_vec1_simps split_beta)
+    unfolding vec_sub Cart_eq by(auto simp add: split_beta)
   show ?thesis using assms unfolding has_integral apply safe
     apply(erule_tac x=e in allE,safe) apply(rule_tac x=d in exI,safe)
     apply(erule_tac x=p in allE,safe) unfolding * norm_vector_1 by auto qed
@@ -1356,7 +1356,7 @@ lemma integrable_eq:
 
 lemma has_integral_eq_eq:
   shows "\<forall>x\<in>s. f x = g x \<Longrightarrow> ((f has_integral k) s \<longleftrightarrow> (g has_integral k) s)"
-  using has_integral_eq[of s f g] has_integral_eq[of s g f] by auto 
+  using has_integral_eq[of s f g] has_integral_eq[of s g f] by rule auto
 
 lemma has_integral_null[dest]:
   assumes "content({a..b}) = 0" shows  "(f has_integral 0) ({a..b})"
@@ -1653,7 +1653,7 @@ lemma tagged_division_union_interval:
 proof- have *:"{a..b} = ({a..b} \<inter> {x. x$k \<le> c}) \<union> ({a..b} \<inter> {x. x$k \<ge> c})" by auto
   show ?thesis apply(subst *) apply(rule tagged_division_union[OF assms])
     unfolding interval_split interior_closed_interval
-    by(auto simp add: vector_less_def Cart_lambda_beta elim!:allE[where x=k]) qed
+    by(auto simp add: vector_less_def elim!:allE[where x=k]) qed
 
 lemma has_integral_separate_sides: fixes f::"real^'m \<Rightarrow> 'a::real_normed_vector"
   assumes "(f has_integral i) ({a..b})" "e>0"
@@ -1743,11 +1743,11 @@ lemma operative_empty: "operative opp f \<Longrightarrow> f {} = neutral opp"
 subsection {* Using additivity of lifted function to encode definedness. *}
 
 lemma forall_option: "(\<forall>x. P x) \<longleftrightarrow> P None \<and> (\<forall>x. P(Some x))"
-  by (metis map_of.simps option.nchotomy)
+  by (metis option.nchotomy)
 
 lemma exists_option:
  "(\<exists>x. P x) \<longleftrightarrow> P None \<or> (\<exists>x. P(Some x))" 
-  by (metis map_of.simps option.nchotomy)
+  by (metis option.nchotomy)
 
 fun lifted where 
   "lifted (opp::'a\<Rightarrow>'a\<Rightarrow>'b) (Some x) (Some y) = Some(opp x y)" |
@@ -1842,9 +1842,8 @@ lemma neutral_add[simp]:
 lemma operative_content[intro]: "operative (op +) content"
   unfolding operative_def content_split[THEN sym] neutral_add by auto
 
-lemma neutral_monoid[simp]: "neutral ((op +)::('a::comm_monoid_add) \<Rightarrow> 'a \<Rightarrow> 'a) = 0"
-  unfolding neutral_def apply(rule some_equality) defer
-  apply(erule_tac x=0 in allE) by auto
+lemma neutral_monoid: "neutral ((op +)::('a::comm_monoid_add) \<Rightarrow> 'a \<Rightarrow> 'a) = 0"
+  by (rule neutral_add) (* FIXME: duplicate *)
 
 lemma monoidal_monoid[intro]:
   shows "monoidal ((op +)::('a::comm_monoid_add) \<Rightarrow> 'a \<Rightarrow> 'a)"
@@ -1941,7 +1940,7 @@ proof- have ab:"\<forall>i. a$i \<le> b$i" using assms(2) by(auto intro!:less_im
     apply(rule_tac x="(k,(interval_lowerbound l)$k)" in exI) defer
     apply(rule_tac x="(k,(interval_upperbound l)$k)" in exI)
     unfolding division_points_def unfolding interval_bounds[OF ab]
-    apply (auto simp add:interval_bounds) unfolding * by auto
+    apply auto unfolding * by auto
   thus "?D1 \<subset> ?D" apply-apply(rule,rule division_points_subset[OF assms(1-4)]) by auto
 
   have *:"interval_lowerbound ({a..b} \<inter> {x. x $ k \<ge> interval_lowerbound l $ k}) $ k = interval_lowerbound l $ k"
@@ -1952,7 +1951,7 @@ proof- have ab:"\<forall>i. a$i \<le> b$i" using assms(2) by(auto intro!:less_im
     apply(rule_tac x="(k,(interval_lowerbound l)$k)" in exI) defer
     apply(rule_tac x="(k,(interval_upperbound l)$k)" in exI)
     unfolding division_points_def unfolding interval_bounds[OF ab]
-    apply (auto simp add:interval_bounds) unfolding * by auto
+    apply auto unfolding * by auto
   thus "?D2 \<subset> ?D" apply-apply(rule,rule division_points_subset[OF assms(1-4)]) by auto qed
 
 subsection {* Preservation by divisions and tagged divisions. *}
@@ -2254,7 +2253,7 @@ lemma rsum_component_le: fixes f::"real^'n \<Rightarrow> real^'m"
   assumes "p tagged_division_of {a..b}"  "\<forall>x\<in>{a..b}. (f x)$i \<le> (g x)$i"
   shows "(setsum (\<lambda>(x,k). content k *\<^sub>R f x) p)$i \<le> (setsum (\<lambda>(x,k). content k *\<^sub>R g x) p)$i"
   unfolding setsum_component apply(rule setsum_mono)
-  apply(rule mp) defer apply assumption apply(induct_tac x,rule) unfolding split_conv
+  apply(rule mp) defer apply assumption unfolding split_paired_all apply rule unfolding split_conv
 proof- fix a b assume ab:"(a,b) \<in> p" note assm = tagged_division_ofD(2-4)[OF assms(1) ab]
   from this(3) guess u v apply-by(erule exE)+ note b=this
   show "(content b *\<^sub>R f a) $ i \<le> (content b *\<^sub>R g a) $ i" unfolding b
@@ -2903,7 +2902,7 @@ lemma additive_tagged_division_1: fixes f::"real^1 \<Rightarrow> 'a::real_normed
   shows "setsum (\<lambda>(x,k). f(interval_upperbound k) - f(interval_lowerbound k)) p = f b - f a"
 proof- let ?f = "(\<lambda>k::(real^1) set. if k = {} then 0 else f(interval_upperbound k) - f(interval_lowerbound k))"
   have *:"operative op + ?f" unfolding operative_1_lt[OF monoidal_monoid] interval_eq_empty_1
-    by(auto simp add:not_less interval_bound_1 vector_less_def)
+    by(auto simp add:not_less vector_less_def)
   have **:"{a..b} \<noteq> {}" using assms(1) by auto note operative_tagged_division[OF monoidal_monoid * assms(2)]
   note * = this[unfolded if_not_P[OF **] interval_bound_1[OF assms(1)],THEN sym ]
   show ?thesis unfolding * apply(subst setsum_iterate[THEN sym]) defer
@@ -3340,7 +3339,7 @@ lemma fundamental_theorem_of_calculus_interior:
 proof- { presume *:"a < b \<Longrightarrow> ?thesis" 
     show ?thesis proof(cases,rule *,assumption)
       assume "\<not> a < b" hence "a = b" using assms(1) by auto
-      hence *:"{vec a .. vec b} = {vec b}" "f b - f a = 0" apply(auto simp add: Cart_simps) by smt
+      hence *:"{vec a .. vec b} = {vec b}" "f b - f a = 0" by(auto simp add: Cart_eq vector_le_def order_antisym)
       show ?thesis unfolding *(2) apply(rule has_integral_null) unfolding content_eq_0_1 using * `a=b` by auto
     qed } assume ab:"a < b"
   let ?P = "\<lambda>e. \<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of {vec1 a..vec1 b} \<and> d fine p \<longrightarrow>
@@ -3422,7 +3421,7 @@ proof- { presume *:"a < b \<Longrightarrow> ?thesis"
         hence "\<forall>i. u$i \<le> v$i" and uv:"{u,v}\<subseteq>{u..v}" using p(2)[OF as(1)] by auto note this(1) this(1)[unfolded forall_1]
         note result = as(2)[unfolded k interval_bounds[OF this(1)] content_1[OF this(2)]]
 
-        assume as':"x \<noteq> vec1 a" "x \<noteq> vec1 b" hence "x$1 \<in> {a<..<b}" using p(2-3)[OF as(1)] by(auto simp add:Cart_simps) note  * = d(2)[OF this] 
+        assume as':"x \<noteq> vec1 a" "x \<noteq> vec1 b" hence "x$1 \<in> {a<..<b}" using p(2-3)[OF as(1)] by(auto simp add: Cart_eq) note  * = d(2)[OF this]
         have "norm ((v$1 - u$1) *\<^sub>R f' (x$1) - (f (v$1) - f (u$1))) =
           norm ((f (u$1) - f (x$1) - (u$1 - x$1) *\<^sub>R f' (x$1)) - (f (v$1) - f (x$1) - (v$1 - x$1) *\<^sub>R f' (x$1)))" 
           apply(rule arg_cong[of _ _ norm]) unfolding scaleR_left.diff by auto 
@@ -3669,7 +3668,7 @@ proof(unfold continuous_on_iff, safe)  fix x e assume as:"x\<in>{a..b}" "0<(e::r
     from indefinite_integral_continuous_left[OF assms(1) `a<b` this `e>0`] guess d . note d=this
     show ?thesis apply(rule,rule,rule d,safe) apply(subst dist_commute)
       unfolding `x=b` vector_dist_norm apply(rule d(2)[rule_format]) unfolding norm_real by auto
-  next assume "a<x \<and> x<b" hence xl:"a<x" "x\<le>b" and xr:"a\<le>x" "x<b" by(auto simp add:Cart_simps)
+  next assume "a<x \<and> x<b" hence xl:"a<x" "x\<le>b" and xr:"a\<le>x" "x<b" by(auto simp add: vector_less_def)
     from indefinite_integral_continuous_left [OF assms(1) xl `e>0`] guess d1 . note d1=this
     from indefinite_integral_continuous_right[OF assms(1) xr `e>0`] guess d2 . note d2=this
     show ?thesis apply(rule_tac x="min d1 d2" in exI)
@@ -3726,7 +3725,7 @@ proof- { presume *:"x \<noteq> c \<Longrightarrow> ?thesis" show ?thesis apply(c
     unfolding o_def using assms(5) defer apply-apply(rule)
   proof- fix t assume as:"t\<in>{0..1} - {t. (1 - t) *\<^sub>R c + t *\<^sub>R x \<in> k}"
     have *:"c - t *\<^sub>R c + t *\<^sub>R x \<in> s - k" apply safe apply(rule conv[unfolded scaleR_simps]) 
-      using `x\<in>s` `c\<in>s` as by(auto simp add:scaleR_simps)
+      using `x\<in>s` `c\<in>s` as by(auto simp add: algebra_simps)
     have "(f \<circ> (\<lambda>t. (1 - t) *\<^sub>R c + t *\<^sub>R x) has_derivative (\<lambda>x. 0) \<circ> (\<lambda>z. (0 - z *\<^sub>R c) + z *\<^sub>R x)) (at t within {0..1})"
       apply(rule diff_chain_within) apply(rule has_derivative_add)
       unfolding scaleR_simps apply(rule has_derivative_sub) apply(rule has_derivative_const)
@@ -3949,7 +3948,7 @@ proof assume ?r show ?l unfolding negligible_def
 
 lemma has_integral_spike_set_eq: fixes f::"real^'n \<Rightarrow> 'a::banach" 
   assumes "negligible((s - t) \<union> (t - s))" shows "((f has_integral y) s \<longleftrightarrow> (f has_integral y) t)"
-  unfolding has_integral_restrict_univ[THEN sym,of f] apply(rule has_integral_spike_eq[OF assms]) by auto
+  unfolding has_integral_restrict_univ[THEN sym,of f] apply(rule has_integral_spike_eq[OF assms]) by (safe, auto split: split_if_asm)
 
 lemma has_integral_spike_set[dest]: fixes f::"real^'n \<Rightarrow> 'a::banach"
   assumes "negligible((s - t) \<union> (t - s))" "(f has_integral y) s"

@@ -813,7 +813,7 @@ qed
 lemma cramer:
   fixes A ::"real^'n^'n"
   assumes d0: "det A \<noteq> 0"
-  shows "A *v x = b \<longleftrightarrow> x = (\<chi> k. det(\<chi> i j. if j=k then b$i else A$i$j :: real^'n^'n) / det A)"
+  shows "A *v x = b \<longleftrightarrow> x = (\<chi> k. det(\<chi> i j. if j=k then b$i else A$i$j) / det A)"
 proof-
   from d0 obtain B where B: "A ** B = mat 1" "B ** A = mat 1"
     unfolding invertible_det_nz[symmetric] invertible_def by blast
@@ -821,7 +821,7 @@ proof-
   hence "A *v (B *v b) = b" by (simp add: matrix_vector_mul_assoc)
   then have xe: "\<exists>x. A*v x = b" by blast
   {fix x assume x: "A *v x = b"
-  have "x = (\<chi> k. det(\<chi> i j. if j=k then b$i else A$i$j :: real^'n^'n) / det A)"
+  have "x = (\<chi> k. det(\<chi> i j. if j=k then b$i else A$i$j) / det A)"
     unfolding x[symmetric]
     using d0 by (simp add: Cart_eq cramer_lemma field_simps)}
   with xe show ?thesis by auto
@@ -993,15 +993,15 @@ proof-
     moreover
     {assume "x = 0" "y \<noteq> 0"
       then have "dist (?g x) (?g y) = dist x y"
-        apply (simp add: dist_norm norm_mul)
+        apply (simp add: dist_norm)
         apply (rule f1[rule_format])
-        by(simp add: norm_mul field_simps)}
+        by(simp add: field_simps)}
     moreover
     {assume "x \<noteq> 0" "y = 0"
       then have "dist (?g x) (?g y) = dist x y"
-        apply (simp add: dist_norm norm_mul)
+        apply (simp add: dist_norm)
         apply (rule f1[rule_format])
-        by(simp add: norm_mul field_simps)}
+        by(simp add: field_simps)}
     moreover
     {assume z: "x \<noteq> 0" "y \<noteq> 0"
       have th00: "x = norm x *s (inverse (norm x) *s x)" "y = norm y *s (inverse (norm y) *s y)" "norm x *s f ((inverse (norm x) *s x)) = norm x *s f (inverse (norm x) *s x)"
@@ -1013,7 +1013,7 @@ proof-
         "norm (f (inverse (norm x) *s x) - f (inverse (norm y) *s y)) =
         norm (inverse (norm x) *s x - inverse (norm y) *s y)"
         using z
-        by (auto simp add: vector_smult_assoc field_simps norm_mul intro: f1[rule_format] fd1[rule_format, unfolded dist_norm])
+        by (auto simp add: vector_smult_assoc field_simps intro: f1[rule_format] fd1[rule_format, unfolded dist_norm])
       from z th0[OF th00] have "dist (?g x) (?g y) = dist x y"
         by (simp add: dist_norm)}
     ultimately have "dist (?g x) (?g y) = dist x y" by blast}
@@ -1047,7 +1047,7 @@ lemma setprod_3: "setprod f {(1::nat)..3} = f 1 * f 2 * f 3"
   by (simp add: nat_number setprod_numseg mult_commute)
 
 lemma det_1: "det (A::'a::comm_ring_1^1^1) = A$1$1"
-  by (simp add: det_def permutes_sing sign_id UNIV_1)
+  by (simp add: det_def sign_id UNIV_1)
 
 lemma det_2: "det (A::'a::comm_ring_1^2^2) = A$1$1 * A$2$2 - A$1$2 * A$2$1"
 proof-
@@ -1057,7 +1057,7 @@ proof-
   unfolding setsum_over_permutations_insert[OF f12]
   unfolding permutes_sing
   apply (simp add: sign_swap_id sign_id swap_id_eq)
-  by (simp add: arith_simps(31)[symmetric] of_int_minus of_int_1 del: arith_simps(31))
+  by (simp add: arith_simps(31)[symmetric] del: arith_simps(31))
 qed
 
 lemma det_3: "det (A::'a::comm_ring_1^3^3) =
@@ -1078,7 +1078,7 @@ proof-
 
   unfolding permutes_sing
   apply (simp add: sign_swap_id permutation_swap_id sign_compose sign_id swap_id_eq)
-  apply (simp add: arith_simps(31)[symmetric] of_int_minus of_int_1 del: arith_simps(31))
+  apply (simp add: arith_simps(31)[symmetric] del: arith_simps(31))
   by (simp add: ring_simps)
 qed
 

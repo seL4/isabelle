@@ -22,8 +22,6 @@ theory Brouwer_Fixpoint
   imports Convex_Euclidean_Space
 begin
 
-declare norm_scaleR[simp]
- 
 lemma brouwer_compactness_lemma:
   assumes "compact s" "continuous_on s f" "\<not> (\<exists>x\<in>s. (f x = (0::real^'n)))"
   obtains d where "0 < d" "\<forall>x\<in>s. d \<le> norm(f x)" proof(cases "s={}") case False
@@ -131,7 +129,7 @@ lemma image_lemma_1: assumes "finite s" "finite t" "card s = card t" "f ` s = t"
 lemma image_lemma_2: assumes "finite s" "finite t" "card s = card t" "f ` s \<subseteq> t" "f ` s \<noteq> t" "b \<in> t"
   shows "(card {s'. \<exists>a\<in>s. (s' = s - {a}) \<and> f ` s' = t - {b}} = 0) \<or>
          (card {s'. \<exists>a\<in>s. (s' = s - {a}) \<and> f ` s' = t - {b}} = 2)" proof(cases "{a\<in>s. f ` (s - {a}) = t - {b}} = {}")
-  case True thus ?thesis apply-apply(rule disjI1, rule image_lemma_0) using assms(1) by(auto simp add:card_0_eq)
+  case True thus ?thesis apply-apply(rule disjI1, rule image_lemma_0) using assms(1) by auto
 next let ?M = "{a\<in>s. f ` (s - {a}) = t - {b}}"
   case False then obtain a where "a\<in>?M" by auto hence a:"a\<in>s" "f ` (s - {a}) = t - {b}" by auto
   have "f a \<in> t - {b}" using a and assms by auto
@@ -1691,11 +1689,11 @@ proof-
       path_image(linepath(pathfinish g)(vector[(pathfinish g)$1,a$2 - 1])) \<union>
       path_image(linepath(vector[(pathfinish g)$1,a$2 - 1])(vector[b$1 + 1,a$2 - 1])) \<union>
       path_image(linepath(vector[b$1 + 1,a$2 - 1])(vector[b$1 + 1,b$2 + 3]))" using assms(1-2)
-      by(auto simp add: pathstart_join pathfinish_join path_image_join path_image_linepath path_join path_linepath) 
+      by(auto simp add: path_image_join path_linepath)
   have abab: "{a..b} \<subseteq> {?a..?b}" by(auto simp add:vector_le_def forall_2 vector_2)
   guess z apply(rule fashoda[of ?P1 ?P2 ?a ?b])
     unfolding pathstart_join pathfinish_join pathstart_linepath pathfinish_linepath vector_2 proof-
-    show "path ?P1" "path ?P2" using assms by(auto simp add: pathstart_join pathfinish_join path_join)
+    show "path ?P1" "path ?P2" using assms by auto
     have "path_image ?P1 \<subseteq> {?a .. ?b}" unfolding P1P2 path_image_linepath apply(rule Un_least)+ defer 3
       apply(rule_tac[1-4] convex_interval(1)[unfolded convex_contains_segment,rule_format])
       unfolding mem_interval forall_2 vector_2 using ab startfin abab assms(3)

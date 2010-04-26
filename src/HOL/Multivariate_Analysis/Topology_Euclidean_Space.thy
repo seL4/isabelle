@@ -48,16 +48,17 @@ lemma openin_clauses:
   "\<And>S T. openin U S \<Longrightarrow> openin U T \<Longrightarrow> openin U (S\<inter>T)"
   "\<And>K. (\<forall>S \<in> K. openin U S) \<Longrightarrow> openin U (\<Union>K)"
   using openin[of U] unfolding istopology_def Collect_def mem_def
-  by (metis mem_def subset_eq)+
+  unfolding subset_eq Ball_def mem_def by auto
 
 lemma openin_subset[intro]: "openin U S \<Longrightarrow> S \<subseteq> topspace U"
   unfolding topspace_def by blast
 lemma openin_empty[simp]: "openin U {}" by (simp add: openin_clauses)
 
 lemma openin_Int[intro]: "openin U S \<Longrightarrow> openin U T \<Longrightarrow> openin U (S \<inter> T)"
-  by (simp add: openin_clauses)
+  using openin_clauses by simp
 
-lemma openin_Union[intro]: "(\<forall>S \<in>K. openin U S) \<Longrightarrow> openin U (\<Union> K)" by (simp add: openin_clauses)
+lemma openin_Union[intro]: "(\<forall>S \<in>K. openin U S) \<Longrightarrow> openin U (\<Union> K)"
+  using openin_clauses by simp
 
 lemma openin_Un[intro]: "openin U S \<Longrightarrow> openin U T \<Longrightarrow> openin U (S \<union> T)"
   using openin_Union[of "{S,T}" U] by auto
@@ -946,7 +947,7 @@ lemma frontier_subset_closed: "closed S \<Longrightarrow> frontier S \<subseteq>
   by (metis frontier_def closure_closed Diff_subset)
 
 lemma frontier_empty[simp]: "frontier {} = {}"
-  by (simp add: frontier_def closure_empty)
+  by (simp add: frontier_def)
 
 lemma frontier_subset_eq: "frontier S \<subseteq> S \<longleftrightarrow> closed S"
 proof-
@@ -954,7 +955,7 @@ proof-
     hence "closure S \<subseteq> S" using interior_subset unfolding frontier_def by auto
     hence "closed S" using closure_subset_eq by auto
   }
-  thus ?thesis using frontier_subset_closed[of S] by auto
+  thus ?thesis using frontier_subset_closed[of S] ..
 qed
 
 lemma frontier_complement: "frontier(- S) = frontier S"
@@ -1588,7 +1589,7 @@ text{* A congruence rule allowing us to transform limits assuming not at point. 
 
 (* FIXME: Only one congruence rule for tendsto can be used at a time! *)
 
-lemma Lim_cong_within[cong add]:
+lemma Lim_cong_within(*[cong add]*):
   fixes a :: "'a::metric_space"
   fixes l :: "'b::metric_space" (* TODO: generalize *)
   shows "(\<And>x. x \<noteq> a \<Longrightarrow> f x = g x) ==> ((\<lambda>x. f x) ---> l) (at a within S) \<longleftrightarrow> ((g ---> l) (at a within S))"
@@ -1667,7 +1668,7 @@ proof-
   { fix e::real assume "e>0"
     hence "\<exists>N::nat. \<forall>n::nat\<ge>N. inverse (real n) < e"
       using real_arch_inv[of e] apply auto apply(rule_tac x=n in exI)
-      by (metis not_le le_imp_inverse_le not_less real_of_nat_gt_zero_cancel_iff real_of_nat_less_iff xt1(7))
+      by (metis le_imp_inverse_le not_less real_of_nat_gt_zero_cancel_iff real_of_nat_less_iff xt1(7))
   }
   thus ?thesis unfolding Lim_sequentially dist_norm by simp
 qed
@@ -1702,7 +1703,7 @@ lemma mem_interior_cball: "x \<in> interior S \<longleftrightarrow> (\<exists>e>
   apply (simp add: interior_def, safe)
   apply (force simp add: open_contains_cball)
   apply (rule_tac x="ball x e" in exI)
-  apply (simp add: open_ball centre_in_ball subset_trans [OF ball_subset_cball])
+  apply (simp add: subset_trans [OF ball_subset_cball])
   done
 
 lemma islimpt_ball:
@@ -1877,14 +1878,14 @@ qed
 lemma frontier_ball:
   fixes a :: "'a::real_normed_vector"
   shows "0 < e ==> frontier(ball a e) = {x. dist a x = e}"
-  apply (simp add: frontier_def closure_ball interior_open open_ball order_less_imp_le)
+  apply (simp add: frontier_def closure_ball interior_open order_less_imp_le)
   apply (simp add: expand_set_eq)
   by arith
 
 lemma frontier_cball:
   fixes a :: "'a::{real_normed_vector, perfect_space}"
   shows "frontier(cball a e) = {x. dist a x = e}"
-  apply (simp add: frontier_def interior_cball closed_cball closure_closed order_less_imp_le)
+  apply (simp add: frontier_def interior_cball closed_cball order_less_imp_le)
   apply (simp add: expand_set_eq)
   by arith
 
@@ -2004,9 +2005,10 @@ lemma bounded_cball[simp,intro]: "bounded (cball x e)"
 lemma bounded_ball[simp,intro]: "bounded(ball x e)"
   by (metis ball_subset_cball bounded_cball bounded_subset)
 
-lemma finite_imp_bounded[intro]: assumes "finite S" shows "bounded S"
+lemma finite_imp_bounded[intro]:
+  fixes S :: "'a::metric_space set" assumes "finite S" shows "bounded S"
 proof-
-  { fix a F assume as:"bounded F"
+  { fix a and F :: "'a set" assume as:"bounded F"
     then obtain x e where "\<forall>y\<in>F. dist x y \<le> e" unfolding bounded_def by auto
     hence "\<forall>y\<in>(insert a F). dist x y \<le> max e (dist x a)" by auto
     hence "bounded (insert a F)" unfolding bounded_def by (intro exI)
@@ -2216,7 +2218,7 @@ apply (rule allI, rule def_nat_rec_Suc, simp)
 apply (rule allI, rule impI, rule ext)
 apply (erule conjE)
 apply (induct_tac x)
-apply (simp add: nat_rec_0)
+apply simp
 apply (erule_tac x="n" in allE)
 apply (simp)
 done
@@ -2648,7 +2650,8 @@ proof(rule ccontr)
   { fix x y assume "x\<in>t" "y\<in>t" "f x = f y"
     hence "x \<in> f x"  "y \<in> f x \<longrightarrow> y = x" using f[THEN bspec[where x=x]] and `t\<subseteq>s` by auto
     hence "x = y" using `f x = f y` and f[THEN bspec[where x=y]] and `y\<in>t` and `t\<subseteq>s` by auto  }
-  hence "infinite (f ` t)" using assms(2) using finite_imageD[unfolded inj_on_def, of f t] by auto
+  hence "inj_on f t" unfolding inj_on_def by simp
+  hence "infinite (f ` t)" using assms(2) using finite_imageD by auto
   moreover
   { fix x assume "x\<in>t" "f x \<notin> g"
     from g(3) assms(3) `x\<in>t` obtain h where "h\<in>g" and "x\<in>h" by auto
@@ -3143,7 +3146,7 @@ proof
       using `?lhs`[unfolded continuous_within Lim_within] by auto
     { fix y assume "y\<in>f ` (ball x d \<inter> s)"
       hence "y \<in> ball (f x) e" using d(2) unfolding dist_nz[THEN sym]
-        apply (auto simp add: dist_commute mem_ball) apply(erule_tac x=xa in ballE) apply auto using `e>0` by auto
+        apply (auto simp add: dist_commute) apply(erule_tac x=xa in ballE) apply auto using `e>0` by auto
     }
     hence "\<exists>d>0. f ` (ball x d \<inter> s) \<subseteq> ball (f x) e" using `d>0` unfolding subset_eq ball_def by (auto simp add: dist_commute)  }
   thus ?rhs by auto
@@ -3875,7 +3878,7 @@ lemma continuous_levelset_open:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space" (* TODO: generalize *)
   assumes "connected s"  "continuous_on s f"  "open {x \<in> s. f x = a}"  "\<exists>x \<in> s.  f x = a"
   shows "\<forall>x \<in> s. f x = a"
-using continuous_levelset_open_in[OF assms(1,2), of a, unfolded openin_open] using assms (3,4) by auto
+using continuous_levelset_open_in[OF assms(1,2), of a, unfolded openin_open] using assms (3,4) by fast
 
 text{* Some arithmetical combinations (more to prove).                           *}
 
@@ -4387,7 +4390,7 @@ proof-
       using assms(2)[unfolded closed_sequential_limits, THEN spec[where x="\<lambda>n. sndcart (x n)"], THEN spec[where x="sndcart l"]]
       unfolding Lim_sequentially by auto
     hence "l \<in> {pastecart x y |x y. x \<in> s \<and> y \<in> t}" apply- unfolding mem_Collect_eq apply(rule_tac x="fstcart l" in exI,rule_tac x="sndcart l" in exI) by auto }
-  thus ?thesis unfolding closed_sequential_limits by auto
+  thus ?thesis unfolding closed_sequential_limits by blast
 qed
 
 lemma compact_pastecart:
@@ -4478,7 +4481,7 @@ proof-
   have "{x - y | x y . x\<in>s \<and> y\<in>s} \<noteq> {}" using `s \<noteq> {}` by auto
   then obtain x where x:"x\<in>{x - y |x y. x \<in> s \<and> y \<in> s}"  "\<forall>y\<in>{x - y |x y. x \<in> s \<and> y \<in> s}. norm y \<le> norm x"
     using compact_differences[OF assms(1) assms(1)]
-    using distance_attains_sup[where 'a="'a", unfolded dist_norm, of "{x - y | x y . x\<in>s \<and> y\<in>s}" 0] by(auto simp add: norm_minus_cancel)
+    using distance_attains_sup[where 'a="'a", unfolded dist_norm, of "{x - y | x y . x\<in>s \<and> y\<in>s}" 0] by auto
   from x(1) obtain a b where "a\<in>s" "b\<in>s" "x = a - b" by auto
   thus ?thesis using x(2)[unfolded `x = a - b`] by blast
 qed
@@ -4499,7 +4502,7 @@ proof-
     hence "norm (x - y) \<le> 2 * a" using norm_triangle_ineq[of x "-y", unfolded norm_minus_cancel] a[THEN bspec[where x=x]] a[THEN bspec[where x=y]] by (auto simp add: ring_simps)  }
   note * = this
   { fix x y assume "x\<in>s" "y\<in>s"  hence "s \<noteq> {}" by auto
-    have "norm(x - y) \<le> diameter s" unfolding diameter_def using `s\<noteq>{}` *[OF `x\<in>s` `y\<in>s`] `x\<in>s` `y\<in>s`  
+    have "norm(x - y) \<le> diameter s" unfolding diameter_def using `s\<noteq>{}` *[OF `x\<in>s` `y\<in>s`] `x\<in>s` `y\<in>s`
       by simp (blast intro!: Sup_upper *) }
   moreover
   { fix d::real assume "d>0" "d < diameter s"
@@ -4530,10 +4533,10 @@ lemma diameter_compact_attained:
 proof-
   have b:"bounded s" using assms(1) by (rule compact_imp_bounded)
   then obtain x y where xys:"x\<in>s" "y\<in>s" and xy:"\<forall>u\<in>s. \<forall>v\<in>s. norm (u - v) \<le> norm (x - y)" using compact_sup_maxdistance[OF assms] by auto
-  hence "diameter s \<le> norm (x - y)" 
-    by (force simp add: diameter_def intro!: Sup_least) 
+  hence "diameter s \<le> norm (x - y)"
+    unfolding diameter_def by clarsimp (rule Sup_least, fast+)
   thus ?thesis
-    by (metis b diameter_bounded_bound order_antisym xys) 
+    by (metis b diameter_bounded_bound order_antisym xys)
 qed
 
 text{* Related results with closure as the conclusion.                           *}
@@ -4722,7 +4725,7 @@ lemma mem_interval: fixes a :: "'a::ord^'n" shows
 lemma mem_interval_1: fixes x :: "real^1" shows
  "(x \<in> {a .. b} \<longleftrightarrow> dest_vec1 a \<le> dest_vec1 x \<and> dest_vec1 x \<le> dest_vec1 b)"
  "(x \<in> {a<..<b} \<longleftrightarrow> dest_vec1 a < dest_vec1 x \<and> dest_vec1 x < dest_vec1 b)"
-by(simp_all add: Cart_eq vector_less_def vector_le_def forall_1)
+by(simp_all add: Cart_eq vector_less_def vector_le_def)
 
 lemma vec1_interval:fixes a::"real" shows
   "vec1 ` {a .. b} = {vec1 a .. vec1 b}"
@@ -4748,7 +4751,7 @@ proof-
       have "a$i < b$i" using as[THEN spec[where x=i]] by auto
       hence "a$i < ((1/2) *\<^sub>R (a+b)) $ i" "((1/2) *\<^sub>R (a+b)) $ i < b$i"
         unfolding vector_smult_component and vector_add_component
-        by (auto simp add: less_divide_eq_number_of1)  }
+        by auto  }
     hence "{a <..< b} \<noteq> {}" using mem_interval(1)[of "?x" a b] by auto  }
   ultimately show ?th1 by blast
 
@@ -4763,7 +4766,7 @@ proof-
       have "a$i \<le> b$i" using as[THEN spec[where x=i]] by auto
       hence "a$i \<le> ((1/2) *\<^sub>R (a+b)) $ i" "((1/2) *\<^sub>R (a+b)) $ i \<le> b$i"
         unfolding vector_smult_component and vector_add_component
-        by (auto simp add: less_divide_eq_number_of1)  }
+        by auto  }
     hence "{a .. b} \<noteq> {}" using mem_interval(2)[of "?x" a b] by auto  }
   ultimately show ?th2 by blast
 qed
@@ -4826,13 +4829,13 @@ proof-
       { fix j
         have "c $ j < ?x $ j \<and> ?x $ j < d $ j" unfolding Cart_lambda_beta
           apply(cases "j=i") using as(2)[THEN spec[where x=j]]
-          by (auto simp add: less_divide_eq_number_of1 as2)  }
+          by (auto simp add: as2)  }
       hence "?x\<in>{c<..<d}" unfolding mem_interval by auto
       moreover
       have "?x\<notin>{a .. b}"
         unfolding mem_interval apply auto apply(rule_tac x=i in exI)
         using as(2)[THEN spec[where x=i]] and as2
-        by (auto simp add: less_divide_eq_number_of1)
+        by auto
       ultimately have False using as by auto  }
     hence "a$i \<le> c$i" by(rule ccontr)auto
     moreover
@@ -4841,13 +4844,13 @@ proof-
       { fix j
         have "d $ j > ?x $ j \<and> ?x $ j > c $ j" unfolding Cart_lambda_beta
           apply(cases "j=i") using as(2)[THEN spec[where x=j]]
-          by (auto simp add: less_divide_eq_number_of1 as2)  }
+          by (auto simp add: as2)  }
       hence "?x\<in>{c<..<d}" unfolding mem_interval by auto
       moreover
       have "?x\<notin>{a .. b}"
         unfolding mem_interval apply auto apply(rule_tac x=i in exI)
         using as(2)[THEN spec[where x=i]] and as2
-        by (auto simp add: less_divide_eq_number_of1)
+        by auto
       ultimately have False using as by auto  }
     hence "b$i \<ge> d$i" by(rule ccontr)auto
     ultimately
@@ -4878,7 +4881,7 @@ qed
 lemma inter_interval: fixes a :: "'a::linorder^'n" shows
  "{a .. b} \<inter> {c .. d} =  {(\<chi> i. max (a$i) (c$i)) .. (\<chi> i. min (b$i) (d$i))}"
   unfolding expand_set_eq and Int_iff and mem_interval
-  by (auto simp add: less_divide_eq_number_of1 intro!: bexI)
+  by auto
 
 (* Moved interval_open_subset_closed a bit upwards *)
 
@@ -4918,7 +4921,7 @@ lemma open_interval_real[intro]: fixes a :: "real" shows "open {a<..<b}"
   using open_interval[of "vec1 a" "vec1 b"] unfolding open_contains_ball
   apply-apply(rule,erule_tac x="vec1 x" in ballE) apply(erule exE,rule_tac x=e in exI)
   unfolding subset_eq mem_ball apply(rule) defer apply(rule,erule conjE,erule_tac x="vec1 xa" in ballE)
-  by(auto simp add: vec1_dest_vec1_simps vector_less_def forall_1) 
+  by(auto simp add: dist_vec1 dist_real_def vector_less_def)
 
 lemma closed_interval[intro]: fixes a :: "real^'n" shows "closed {a .. b}"
 proof-
@@ -4999,7 +5002,7 @@ proof-
     have "a $ i < ((1 / 2) *\<^sub>R (a + b)) $ i \<and> ((1 / 2) *\<^sub>R (a + b)) $ i < b $ i"
       using assms[unfolded interval_ne_empty, THEN spec[where x=i]]
       unfolding vector_smult_component and vector_add_component
-      by(auto simp add: less_divide_eq_number_of1)  }
+      by auto  }
   thus ?thesis unfolding mem_interval by auto
 qed
 
@@ -5041,7 +5044,7 @@ proof-
         x + (inverse (real n + 1)) *\<^sub>R (((1 / 2) *\<^sub>R (a + b)) - x)"
         by (auto simp add: algebra_simps)
       hence "f n < b" and "a < f n" using open_closed_interval_convex[OF open_interval_midpoint[OF assms] as *] unfolding f_def by auto
-      hence False using fn unfolding f_def using xc by(auto simp add: vector_mul_lcancel vector_ssub_ldistrib)  }
+      hence False using fn unfolding f_def using xc by(auto simp add: vector_ssub_ldistrib)  }
     moreover
     { assume "\<not> (f ---> x) sequentially"
       { fix e::real assume "e>0"
@@ -5457,7 +5460,7 @@ proof-
       then obtain y where y:"y\<in>t" "g y = x" by auto
       then obtain x' where x':"x'\<in>s" "f x' = y" using assms(3) by auto
       hence "x \<in> s" unfolding g_def using someI2[of "\<lambda>b. b\<in>s \<and> f b = y" x' "\<lambda>x. x\<in>s"] unfolding y(2)[THEN sym] and g_def by auto }
-    ultimately have "x\<in>s \<longleftrightarrow> x \<in> g ` t" by auto  }
+    ultimately have "x\<in>s \<longleftrightarrow> x \<in> g ` t" ..  }
   hence "g ` t = s" by auto
   ultimately
   show ?thesis unfolding homeomorphism_def homeomorphic_def
@@ -5599,7 +5602,7 @@ next
   let ?S' = "{x::real^'m. x\<in>s \<and> norm x = norm a}"
   let ?S'' = "{x::real^'m. norm x = norm a}"
 
-  have "?S'' = frontier(cball 0 (norm a))" unfolding frontier_cball and dist_norm by (auto simp add: norm_minus_cancel)
+  have "?S'' = frontier(cball 0 (norm a))" unfolding frontier_cball and dist_norm by auto
   hence "compact ?S''" using compact_frontier[OF compact_cball, of 0 "norm a"] by auto
   moreover have "?S' = s \<inter> ?S''" by auto
   ultimately have "compact ?S'" using closed_inter_compact[of s ?S''] using s(1) by auto
@@ -5646,7 +5649,7 @@ subsection{* Some properties of a canonical subspace.                           
 
 lemma subspace_substandard:
  "subspace {x::real^_. (\<forall>i. P i \<longrightarrow> x$i = 0)}"
-  unfolding subspace_def by(auto simp add: vector_add_component vector_smult_component elim!: ballE)
+  unfolding subspace_def by auto
 
 lemma closed_substandard:
  "closed {x::real^'n. \<forall>i. P i --> x$i = 0}" (is "closed ?A")
@@ -5663,7 +5666,7 @@ proof-
         then obtain B where BB:"B \<in> ?Bs" and B:"B = {x::real^'n. inner (basis i) x = 0}" by auto
         hence "x $ i = 0" unfolding B using x unfolding inner_basis by auto  }
       hence "x\<in>?A" by auto }
-    ultimately have "x\<in>?A \<longleftrightarrow> x\<in> \<Inter>?Bs" by auto }
+    ultimately have "x\<in>?A \<longleftrightarrow> x\<in> \<Inter>?Bs" .. }
   hence "?A = \<Inter> ?Bs" by auto
   thus ?thesis by(auto simp add: closed_Inter closed_hyperplane)
 qed
@@ -5839,23 +5842,23 @@ next
   case False
   { fix y assume "a \<le> y" "y \<le> b" "m > 0"
     hence "m *\<^sub>R a + c \<le> m *\<^sub>R y + c"  "m *\<^sub>R y + c \<le> m *\<^sub>R b + c"
-      unfolding vector_le_def by(auto simp add: vector_smult_component vector_add_component)
+      unfolding vector_le_def by auto
   } moreover
   { fix y assume "a \<le> y" "y \<le> b" "m < 0"
     hence "m *\<^sub>R b + c \<le> m *\<^sub>R y + c"  "m *\<^sub>R y + c \<le> m *\<^sub>R a + c"
-      unfolding vector_le_def by(auto simp add: vector_smult_component vector_add_component mult_left_mono_neg elim!:ballE)
+      unfolding vector_le_def by(auto simp add: mult_left_mono_neg)
   } moreover
   { fix y assume "m > 0"  "m *\<^sub>R a + c \<le> y"  "y \<le> m *\<^sub>R b + c"
     hence "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` {a..b}"
       unfolding image_iff Bex_def mem_interval vector_le_def
-      apply(auto simp add: vector_smult_component vector_add_component vector_minus_component vector_smult_assoc pth_3[symmetric]
+      apply(auto simp add: vector_smult_assoc pth_3[symmetric]
         intro!: exI[where x="(1 / m) *\<^sub>R (y - c)"])
       by(auto simp add: pos_le_divide_eq pos_divide_le_eq real_mult_commute diff_le_iff)
   } moreover
   { fix y assume "m *\<^sub>R b + c \<le> y" "y \<le> m *\<^sub>R a + c" "m < 0"
     hence "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` {a..b}"
       unfolding image_iff Bex_def mem_interval vector_le_def
-      apply(auto simp add: vector_smult_component vector_add_component vector_minus_component vector_smult_assoc pth_3[symmetric]
+      apply(auto simp add: vector_smult_assoc pth_3[symmetric]
         intro!: exI[where x="(1 / m) *\<^sub>R (y - c)"])
       by(auto simp add: neg_le_divide_eq neg_divide_le_eq real_mult_commute diff_le_iff)
   }
