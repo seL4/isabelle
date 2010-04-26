@@ -103,6 +103,9 @@ need to specify constant name and syntax separately.  Internal ML
 datatype constructors have been renamed from InfixName to Infix etc.
 Minor INCOMPATIBILITY.
 
+* Command 'example_proof' opens an empty proof body.  This allows to
+experiment with Isar, without producing any persistent result.
+
 * Commands 'type_notation' and 'no_type_notation' declare type syntax
 within a local theory context, with explicit checking of the
 constructors involved (in contrast to the raw 'syntax' versions).
