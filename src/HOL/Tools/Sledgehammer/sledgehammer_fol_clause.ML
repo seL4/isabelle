@@ -1,5 +1,6 @@
 (*  Title:      HOL/Tools/Sledgehammer/sledgehammer_fol_clause.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory
+    Author:     Jasmin Blanchette, TU Muenchen
 
 Storing/printing FOL clauses and arity clauses.  Typed equality is
 treated differently.
@@ -190,11 +191,15 @@ fun make_schematic_type_var (x,i) =
       tvar_prefix ^ (ascii_of_indexname (trim_type_var x,i));
 fun make_fixed_type_var x = tfree_prefix ^ (ascii_of (trim_type_var x));
 
-(* HACK because SPASS 3.0 truncates identifiers to 63 characters. (This is
-   solved in 3.7 and perhaps in earlier versions too.) *)
-(* 32-bit hash, so we expect no collisions. *)
+val max_dfg_symbol_length = 63
+
+(* HACK because SPASS 3.0 truncates identifiers to 63 characters. *)
 fun controlled_length dfg s =
-  if dfg andalso size s > 60 then Word.toString (hashw_string (s, 0w0)) else s;
+  if dfg andalso size s > max_dfg_symbol_length then
+    String.extract (s, 0, SOME (max_dfg_symbol_length div 2 - 1)) ^ "__" ^
+    String.extract (s, size s - max_dfg_symbol_length div 2 + 1, NONE)
+  else
+    s
 
 fun lookup_const dfg c =
     case Symtab.lookup const_trans_table c of

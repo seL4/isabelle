@@ -428,9 +428,6 @@ As their names suggest, the Skolem constants $\mathit{sym}.x$ and
 $\mathit{sym}.y$ are simply the bound variables $x$ and $y$
 from \textit{sym}'s definition.
 
-Although skolemization is a useful optimization, you can disable it by invoking
-Nitpick with \textit{dont\_skolemize}. See \S\ref{optimizations} for details.
-
 \subsection{Natural Numbers and Integers}
 \label{natural-numbers-and-integers}
 
@@ -2193,15 +2190,6 @@ option is implicitly disabled for automatic runs.
 {\small See also \textit{overlord} (\S\ref{mode-of-operation}) and
 \textit{batch\_size} (\S\ref{optimizations}).}
 
-\optrue{show\_skolems}{hide\_skolem}
-Specifies whether the values of Skolem constants should be displayed as part of
-counterexamples. Skolem constants correspond to bound variables in the original
-formula and usually help us to understand why the counterexample falsifies the
-formula.
-
-\nopagebreak
-{\small See also \textit{skolemize} (\S\ref{optimizations}).}
-
 \opfalse{show\_datatypes}{hide\_datatypes}
 Specifies whether the subsets used to approximate (co)in\-duc\-tive datatypes should
 be displayed as part of counterexamples. Such subsets are sometimes helpful when
@@ -2215,8 +2203,8 @@ sometimes helpful when investigating why a counterexample is
 genuine, but they can clutter the output.
 
 \opfalse{show\_all}{dont\_show\_all}
-Enabling this option effectively enables \textit{show\_skolems},
-\textit{show\_datatypes}, and \textit{show\_consts}.
+Enabling this option effectively enables \textit{show\_datatypes} and
+\textit{show\_consts}.
 
 \opdefault{max\_potential}{int}{$\mathbf{1}$}
 Specifies the maximum number of potential counterexamples to display. Setting
@@ -2257,9 +2245,6 @@ of values $n_1,\ldots,n_k$ tells Nitpick to show the last $n_k$ arguments as an
 $n_k$-tuple, the previous $n_{k-1}$ arguments as an $n_{k-1}$-tuple, and so on;
 arguments that are not accounted for are left alone, as if the specification had
 been $1,\ldots,1,n_1,\ldots,n_k$.
-
-\nopagebreak
-{\small See also \textit{uncurry} (\S\ref{optimizations}).}
 
 \opdefault{format}{int\_seq}{$\mathbf{1}$}
 Specifies the default format to use. Irrespective of the default format, the
@@ -2454,15 +2439,6 @@ higher-order functions.
 {\small See also \textit{debug} (\S\ref{output-format}) and
 \textit{show\_consts} (\S\ref{output-format}).}
 
-\optrue{skolemize}{dont\_skolemize}
-Specifies whether the formula should be skolemized. For performance reasons,
-(positive) $\forall$-quanti\-fiers that occur in the scope of a higher-order
-(positive) $\exists$-quanti\-fier are left unchanged.
-
-\nopagebreak
-{\small See also \textit{debug} (\S\ref{output-format}) and
-\textit{show\_skolems} (\S\ref{output-format}).}
-
 \optrue{star\_linear\_preds}{dont\_star\_linear\_preds}
 Specifies whether Nitpick should use Kodkod's transitive closure operator to
 encode non-well-founded ``linear inductive predicates,'' i.e., inductive
@@ -2473,15 +2449,6 @@ domain, but it is usually more efficient.
 
 {\small See also \textit{wf} (\S\ref{scope-of-search}), \textit{debug}
 (\S\ref{output-format}), and \textit{iter} (\S\ref{scope-of-search}).}
-
-\optrue{uncurry}{dont\_uncurry}
-Specifies whether Nitpick should uncurry functions. Uncurrying has on its own no
-tangible effect on efficiency, but it creates opportunities for the boxing 
-optimization.
-
-\nopagebreak
-{\small See also \textit{box} (\S\ref{scope-of-search}), \textit{debug}
-(\S\ref{output-format}), and \textit{format} (\S\ref{output-format}).}
 
 \optrue{fast\_descrs}{full\_descrs}
 Specifies whether Nitpick should optimize the definite and indefinite
@@ -2497,25 +2464,6 @@ Specifies whether Nitpick should simplify the generated Kodkod formulas using a
 peephole optimizer. These optimizations can make a significant difference.
 Unless you are tracking down a bug in Nitpick or distrust the peephole
 optimizer, you should leave this option enabled.
-
-\opdefault{sym\_break}{int}{20}
-Specifies an upper bound on the number of relations for which Kodkod generates
-symmetry breaking predicates. According to the Kodkod documentation
-\cite{kodkod-2009-options}, ``in general, the higher this value, the more
-symmetries will be broken, and the faster the formula will be solved. But,
-setting the value too high may have the opposite effect and slow down the
-solving.''
-
-\opdefault{sharing\_depth}{int}{3}
-Specifies the depth to which Kodkod should check circuits for equivalence during
-the translation to SAT. The default of 3 is the same as in Alloy. The minimum
-allowed depth is 1. Increasing the sharing may result in a smaller SAT problem,
-but can also slow down Kodkod.
-
-\opfalse{flatten\_props}{dont\_flatten\_props}
-Specifies whether Kodkod should try to eliminate intermediate Boolean variables.
-Although this might sound like a good idea, in practice it can drastically slow
-down Kodkod.
 
 \opdefault{max\_threads}{int}{0}
 Specifies the maximum number of threads to use in Kodkod. If this option is set
@@ -2569,7 +2517,7 @@ equational specification entered by the user.
 Behind the scenes, Isabelle's built-in packages and theories rely on the
 following attributes to affect Nitpick's behavior:
 
-\begin{itemize}
+\begin{enum}
 \flushitem{\textit{nitpick\_def}}
 
 \nopagebreak
@@ -2611,8 +2559,8 @@ command, this corresponds to the \textit{intros} rules. The introduction rules
 must be of the form
 
 \qquad $\lbrakk P_1;\> \ldots;\> P_m;\> M~(c\ t_{11}\ \ldots\ t_{1n});\>
-\ldots;\> M~(c\ t_{k1}\ \ldots\ t_{kn})\rbrakk \,\Longrightarrow\, c\ u_1\
-\ldots\ u_n$,
+\ldots;\> M~(c\ t_{k1}\ \ldots\ t_{kn})\rbrakk$ \\
+\hbox{}\qquad ${\Longrightarrow}\;\, c\ u_1\ \ldots\ u_n$,
 
 where the $P_i$'s are side conditions that do not involve $c$ and $M$ is an
 optional monotonic operator. The order of the assumptions is irrelevant.
@@ -2623,7 +2571,7 @@ optional monotonic operator. The order of the assumptions is irrelevant.
 This attribute specifies the (free-form) specification of a constant defined
 using the \hbox{(\textbf{ax\_})}\allowbreak\textbf{specification} command.
 
-\end{itemize}
+\end{enum}
 
 When faced with a constant, Nitpick proceeds as follows:
 

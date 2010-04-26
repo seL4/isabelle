@@ -1,5 +1,6 @@
-(*  Title:      HOL/Sledgehammer/sledgehammer_hol_clause.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_hol_clause.ML
     Author:     Jia Meng, NICTA
+    Author:     Jasmin Blanchette, TU Muenchen
 
 FOL clauses translated from HOL formulae.
 *)
@@ -7,6 +8,7 @@ FOL clauses translated from HOL formulae.
 signature SLEDGEHAMMER_HOL_CLAUSE =
 sig
   type name = Sledgehammer_FOL_Clause.name
+  type name_pool = Sledgehammer_FOL_Clause.name_pool
   type kind = Sledgehammer_FOL_Clause.kind
   type fol_type = Sledgehammer_FOL_Clause.fol_type
   type classrel_clause = Sledgehammer_FOL_Clause.classrel_clause
@@ -36,10 +38,10 @@ sig
        hol_clause list
   val write_tptp_file : bool -> bool -> bool -> Path.T ->
     hol_clause list * hol_clause list * hol_clause list * hol_clause list *
-    classrel_clause list * arity_clause list -> unit
+    classrel_clause list * arity_clause list -> name_pool option * int
   val write_dfg_file : bool -> bool -> Path.T ->
     hol_clause list * hol_clause list * hol_clause list * hol_clause list *
-    classrel_clause list * arity_clause list -> unit
+    classrel_clause list * arity_clause list -> name_pool option * int
 end
 
 structure Sledgehammer_HOL_Clause : SLEDGEHAMMER_HOL_CLAUSE =
@@ -54,7 +56,7 @@ open Sledgehammer_Fact_Preprocessor
 
    If "explicit_apply" is false, each function will be directly applied to as
    many arguments as possible, avoiding use of the "apply" operator. Use of
-   hBOOL is also minimized.
+   "hBOOL" is also minimized.
 *)
 
 fun min_arity_of const_min_arity c = the_default 0 (Symtab.lookup const_min_arity c);
@@ -499,7 +501,9 @@ fun header () =
 fun write_tptp_file readable_names full_types explicit_apply file clauses =
   let
     fun section _ [] = []
-      | section name ss = "\n% " ^ name ^ plural_s (length ss) ^ "\n" :: ss
+      | section name ss =
+        "\n% " ^ name ^ plural_s (length ss) ^ " (" ^ Int.toString (length ss) ^
+        ")\n" :: ss
     val pool = empty_name_pool readable_names
     val (conjectures, axclauses, _, helper_clauses,
       classrel_clauses, arity_clauses) = clauses
@@ -514,17 +518,19 @@ fun write_tptp_file readable_names full_types explicit_apply file clauses =
     val arity_clss = map tptp_arity_clause arity_clauses
     val (helper_clss, pool) = pool_map (apfst fst oo tptp_clause params)
                                        helper_clauses pool
-  in
-    File.write_list file
-        (header () ::
-         section "Relevant fact" ax_clss @
-         section "Type variable" tfree_clss @
-         section "Conjecture" conjecture_clss @
-         section "Class relationship" classrel_clss @
-         section "Arity declaration" arity_clss @
-         section "Helper fact" helper_clss)
-  end
-
+    val conjecture_offset =
+      length ax_clss + length classrel_clss + length arity_clss
+      + length helper_clss
+    val _ =
+      File.write_list file
+          (header () ::
+           section "Relevant fact" ax_clss @
+           section "Class relationship" classrel_clss @
+           section "Arity declaration" arity_clss @
+           section "Helper fact" helper_clss @
+           section "Conjecture" conjecture_clss @
+           section "Type variable" tfree_clss)
+  in (pool, conjecture_offset) end
 
 (* DFG format *)
 
@@ -540,30 +546,33 @@ fun write_dfg_file full_types explicit_apply file clauses =
     val params = (full_types, explicit_apply, cma, cnh)
     val ((conjecture_clss, tfree_litss), pool) =
       pool_map (dfg_clause params) conjectures pool |>> ListPair.unzip
-    and probname = Path.implode (Path.base file)
+    and problem_name = Path.implode (Path.base file)
     val (axstrs, pool) = pool_map (apfst fst oo dfg_clause params) axclauses pool
     val tfree_clss = map dfg_tfree_clause (union_all tfree_litss)
     val (helper_clauses_strs, pool) =
       pool_map (apfst fst oo dfg_clause params) helper_clauses pool
     val (funcs, cl_preds) = decls_of_clauses params (helper_clauses @ conjectures @ axclauses) arity_clauses
     and ty_preds = preds_of_clauses axclauses classrel_clauses arity_clauses
-  in
-    File.write_list file
-        (header () ::
-         string_of_start probname ::
-         string_of_descrip probname ::
-         string_of_symbols (string_of_funcs funcs)
-                           (string_of_preds (cl_preds @ ty_preds)) ::
-         "list_of_clauses(axioms, cnf).\n" ::
-         axstrs @
-         map dfg_classrel_clause classrel_clauses @
-         map dfg_arity_clause arity_clauses @
-         helper_clauses_strs @
-         ["end_of_list.\n\nlist_of_clauses(conjectures, cnf).\n"] @
-         tfree_clss @
-         conjecture_clss @
-         ["end_of_list.\n\n",
-          "end_problem.\n"])
-  end
+    val conjecture_offset =
+      length axclauses + length classrel_clauses + length arity_clauses
+      + length helper_clauses
+    val _ =
+      File.write_list file
+          (header () ::
+           string_of_start problem_name ::
+           string_of_descrip problem_name ::
+           string_of_symbols (string_of_funcs funcs)
+                             (string_of_preds (cl_preds @ ty_preds)) ::
+           "list_of_clauses(axioms, cnf).\n" ::
+           axstrs @
+           map dfg_classrel_clause classrel_clauses @
+           map dfg_arity_clause arity_clauses @
+           helper_clauses_strs @
+           ["end_of_list.\n\nlist_of_clauses(conjectures, cnf).\n"] @
+           conjecture_clss @
+           tfree_clss @
+           ["end_of_list.\n\n",
+            "end_problem.\n"])
+  in (pool, conjecture_offset) end
 
 end;

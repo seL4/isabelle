@@ -35,7 +35,6 @@ open Nitpick_Kodkod
 
 datatype rep = SRep | RRep
 
-(* Proof.context -> typ -> unit *)
 fun check_type ctxt (Type (@{type_name fun}, Ts)) =
     List.app (check_type ctxt) Ts
   | check_type ctxt (Type (@{type_name "*"}, Ts)) =
@@ -46,7 +45,6 @@ fun check_type ctxt (Type (@{type_name fun}, Ts)) =
   | check_type ctxt T =
     raise NOT_SUPPORTED ("type " ^ quote (Syntax.string_of_typ ctxt T))
 
-(* rep -> (typ -> int) -> typ -> int list *)
 fun atom_schema_of SRep card (Type (@{type_name fun}, [T1, T2])) =
     replicate_list (card T1) (atom_schema_of SRep card T2)
   | atom_schema_of RRep card (Type (@{type_name fun}, [T1, @{typ bool}])) =
@@ -56,42 +54,32 @@ fun atom_schema_of SRep card (Type (@{type_name fun}, [T1, T2])) =
   | atom_schema_of _ card (Type (@{type_name "*"}, Ts)) =
     maps (atom_schema_of SRep card) Ts
   | atom_schema_of _ card T = [card T]
-(* rep -> (typ -> int) -> typ -> int *)
 val arity_of = length ooo atom_schema_of
 
-(* (typ -> int) -> typ list -> int -> int *)
 fun index_for_bound_var _ [_] 0 = 0
   | index_for_bound_var card (_ :: Ts) 0 =
     index_for_bound_var card Ts 0 + arity_of SRep card (hd Ts)
   | index_for_bound_var card Ts n = index_for_bound_var card (tl Ts) (n - 1)
-(* (typ -> int) -> rep -> typ list -> int -> rel_expr list *)
 fun vars_for_bound_var card R Ts j =
   map (curry Var 1) (index_seq (index_for_bound_var card Ts j)
                                (arity_of R card (nth Ts j)))
-(* (typ -> int) -> rep -> typ list -> int -> rel_expr *)
 val rel_expr_for_bound_var = foldl1 Product oooo vars_for_bound_var
-(* rep -> (typ -> int) -> typ list -> typ -> decl list *)
 fun decls_for R card Ts T =
   map2 (curry DeclOne o pair 1)
        (index_seq (index_for_bound_var card (T :: Ts) 0)
                   (arity_of R card (nth (T :: Ts) 0)))
        (map (AtomSeq o rpair 0) (atom_schema_of R card T))
 
-(* int list -> rel_expr *)
 val atom_product = foldl1 Product o map Atom
 
 val false_atom = Atom 0
 val true_atom = Atom 1
 
-(* rel_expr -> formula *)
 fun formula_from_atom r = RelEq (r, true_atom)
-(* formula -> rel_expr *)
 fun atom_from_formula f = RelIf (f, true_atom, false_atom)
 
-(* Proof.context -> (typ -> int) -> styp list -> term -> formula *)
 fun kodkod_formula_from_term ctxt card frees =
   let
-    (* typ -> rel_expr -> rel_expr *)
     fun R_rep_from_S_rep (T as Type (@{type_name fun}, [T1, @{typ bool}])) r =
         let
           val jss = atom_schema_of SRep card T1 |> map (rpair 0)
@@ -117,13 +105,11 @@ fun kodkod_formula_from_term ctxt card frees =
           |> foldl1 Union
         end
       | R_rep_from_S_rep _ r = r
-    (* typ list -> typ -> rel_expr -> rel_expr *)
     fun S_rep_from_R_rep Ts (T as Type (@{type_name fun}, _)) r =
         Comprehension (decls_for SRep card Ts T,
             RelEq (R_rep_from_S_rep T
                        (rel_expr_for_bound_var card SRep (T :: Ts) 0), r))
       | S_rep_from_R_rep _ _ r = r
-    (* typ list -> term -> formula *)
     fun to_F Ts t =
       (case t of
          @{const Not} $ t1 => Not (to_F Ts t1)
@@ -154,28 +140,26 @@ fun kodkod_formula_from_term ctxt card frees =
        | Const (s, _) => raise NOT_SUPPORTED ("constant " ^ quote s)
        | _ => raise TERM ("Minipick.kodkod_formula_from_term.to_F", [t]))
       handle SAME () => formula_from_atom (to_R_rep Ts t)
-    (* typ list -> term -> rel_expr *)
     and to_S_rep Ts t =
-        case t of
-          Const (@{const_name Pair}, _) $ t1 $ t2 =>
-          Product (to_S_rep Ts t1, to_S_rep Ts t2)
-        | Const (@{const_name Pair}, _) $ _ => to_S_rep Ts (eta_expand Ts t 1)
-        | Const (@{const_name Pair}, _) => to_S_rep Ts (eta_expand Ts t 2)
-        | Const (@{const_name fst}, _) $ t1 =>
-          let val fst_arity = arity_of SRep card (fastype_of1 (Ts, t)) in
-            Project (to_S_rep Ts t1, num_seq 0 fst_arity)
-          end
-        | Const (@{const_name fst}, _) => to_S_rep Ts (eta_expand Ts t 1)
-        | Const (@{const_name snd}, _) $ t1 =>
-          let
-            val pair_arity = arity_of SRep card (fastype_of1 (Ts, t1))
-            val snd_arity = arity_of SRep card (fastype_of1 (Ts, t))
-            val fst_arity = pair_arity - snd_arity
-          in Project (to_S_rep Ts t1, num_seq fst_arity snd_arity) end
-        | Const (@{const_name snd}, _) => to_S_rep Ts (eta_expand Ts t 1)
-        | Bound j => rel_expr_for_bound_var card SRep Ts j
-        | _ => S_rep_from_R_rep Ts (fastype_of1 (Ts, t)) (to_R_rep Ts t)
-    (* term -> rel_expr *)
+      case t of
+        Const (@{const_name Pair}, _) $ t1 $ t2 =>
+        Product (to_S_rep Ts t1, to_S_rep Ts t2)
+      | Const (@{const_name Pair}, _) $ _ => to_S_rep Ts (eta_expand Ts t 1)
+      | Const (@{const_name Pair}, _) => to_S_rep Ts (eta_expand Ts t 2)
+      | Const (@{const_name fst}, _) $ t1 =>
+        let val fst_arity = arity_of SRep card (fastype_of1 (Ts, t)) in
+          Project (to_S_rep Ts t1, num_seq 0 fst_arity)
+        end
+      | Const (@{const_name fst}, _) => to_S_rep Ts (eta_expand Ts t 1)
+      | Const (@{const_name snd}, _) $ t1 =>
+        let
+          val pair_arity = arity_of SRep card (fastype_of1 (Ts, t1))
+          val snd_arity = arity_of SRep card (fastype_of1 (Ts, t))
+          val fst_arity = pair_arity - snd_arity
+        in Project (to_S_rep Ts t1, num_seq fst_arity snd_arity) end
+      | Const (@{const_name snd}, _) => to_S_rep Ts (eta_expand Ts t 1)
+      | Bound j => rel_expr_for_bound_var card SRep Ts j
+      | _ => S_rep_from_R_rep Ts (fastype_of1 (Ts, t)) (to_R_rep Ts t)
     and to_R_rep Ts t =
       (case t of
          @{const Not} => to_R_rep Ts (eta_expand Ts t 1)
@@ -282,7 +266,6 @@ fun kodkod_formula_from_term ctxt card frees =
       handle SAME () => R_rep_from_S_rep (fastype_of1 (Ts, t)) (to_S_rep Ts t)
   in to_F [] end
 
-(* (typ -> int) -> int -> styp -> bound *)
 fun bound_for_free card i (s, T) =
   let val js = atom_schema_of RRep card T in
     ([((length js, i), s)],
@@ -290,7 +273,6 @@ fun bound_for_free card i (s, T) =
                    |> tuple_set_from_atom_schema])
   end
 
-(* (typ -> int) -> typ list -> typ -> rel_expr -> formula *)
 fun declarative_axiom_for_rel_expr card Ts (Type (@{type_name fun}, [T1, T2]))
                                    r =
     if body_type T2 = bool_T then
@@ -300,15 +282,12 @@ fun declarative_axiom_for_rel_expr card Ts (Type (@{type_name fun}, [T1, T2]))
            declarative_axiom_for_rel_expr card (T1 :: Ts) T2
                (List.foldl Join r (vars_for_bound_var card SRep (T1 :: Ts) 0)))
   | declarative_axiom_for_rel_expr _ _ _ r = One r
-(* (typ -> int) -> bool -> int -> styp -> formula *)
 fun declarative_axiom_for_free card i (_, T) =
   declarative_axiom_for_rel_expr card [] T (Rel (arity_of RRep card T, i))
 
-(* Proof.context -> (typ -> int) -> term -> problem *)
 fun kodkod_problem_from_term ctxt raw_card t =
   let
     val thy = ProofContext.theory_of ctxt
-    (* typ -> int *)
     fun card (Type (@{type_name fun}, [T1, T2])) =
         reasonable_power (card T2) (card T1)
       | card (Type (@{type_name "*"}, [T1, T2])) = card T1 * card T2
@@ -328,7 +307,6 @@ fun kodkod_problem_from_term ctxt raw_card t =
      bounds = bounds, int_bounds = [], expr_assigns = [], formula = formula}
   end
 
-(* theory -> problem list -> string *)
 fun solve_any_kodkod_problem thy problems =
   let
     val {overlord, ...} = Nitpick_Isar.default_params thy []
