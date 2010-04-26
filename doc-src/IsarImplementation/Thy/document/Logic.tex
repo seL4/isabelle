@@ -139,8 +139,7 @@ The language of types is an uninterpreted order-sorted first-order
   \indexdef{}{ML}{Sign.subsort}\verb|Sign.subsort: theory -> sort * sort -> bool| \\
   \indexdef{}{ML}{Sign.of\_sort}\verb|Sign.of_sort: theory -> typ * sort -> bool| \\
   \indexdef{}{ML}{Sign.add\_types}\verb|Sign.add_types: (binding * int * mixfix) list -> theory -> theory| \\
-  \indexdef{}{ML}{Sign.add\_tyabbrs\_i}\verb|Sign.add_tyabbrs_i: |\isasep\isanewline%
-\verb|  (binding * string list * typ * mixfix) list -> theory -> theory| \\
+  \indexdef{}{ML}{Sign.add\_type\_abbrev}\verb|Sign.add_type_abbrev: binding * string list * typ -> theory -> theory| \\
   \indexdef{}{ML}{Sign.primitive\_class}\verb|Sign.primitive_class: binding * class list -> theory -> theory| \\
   \indexdef{}{ML}{Sign.primitive\_classrel}\verb|Sign.primitive_classrel: class * class -> theory -> theory| \\
   \indexdef{}{ML}{Sign.primitive\_arity}\verb|Sign.primitive_arity: arity -> theory -> theory| \\
@@ -176,9 +175,7 @@ The language of types is an uninterpreted order-sorted first-order
   type constructors \isa{{\isasymkappa}} with \isa{k} arguments and
   optional mixfix syntax.
 
-  \item \verb|Sign.add_tyabbrs_i|~\isa{{\isacharbrackleft}{\isacharparenleft}{\isasymkappa}{\isacharcomma}\ \isactrlvec {\isasymalpha}{\isacharcomma}\ {\isasymtau}{\isacharcomma}\ mx{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}}
-  defines a new type abbreviation \isa{{\isacharparenleft}\isactrlvec {\isasymalpha}{\isacharparenright}{\isasymkappa}\ {\isacharequal}\ {\isasymtau}} with
-  optional mixfix syntax.
+  \item \verb|Sign.add_type_abbrev|~\isa{{\isacharparenleft}{\isasymkappa}{\isacharcomma}\ \isactrlvec {\isasymalpha}{\isacharcomma}\ {\isasymtau}{\isacharparenright}} defines a new type abbreviation \isa{{\isacharparenleft}\isactrlvec {\isasymalpha}{\isacharparenright}{\isasymkappa}\ {\isacharequal}\ {\isasymtau}}.
 
   \item \verb|Sign.primitive_class|~\isa{{\isacharparenleft}c{\isacharcomma}\ {\isacharbrackleft}c\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlisub n{\isacharbrackright}{\isacharparenright}} declares a new class \isa{c}, together with class
   relations \isa{c\ {\isasymsubseteq}\ c\isactrlisub i}, for \isa{i\ {\isacharequal}\ {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ n}.
