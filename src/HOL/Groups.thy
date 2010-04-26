@@ -12,6 +12,15 @@ begin
 subsection {* Fact collections *}
 
 ML {*
+structure Ac_Simps = Named_Thms(
+  val name = "ac_simps"
+  val description = "associativity and commutativity simplification rules"
+)
+*}
+
+setup Ac_Simps.setup
+
+ML {*
 structure Algebra_Simps = Named_Thms(
   val name = "algebra_simps"
   val description = "algebra simplification rules"
@@ -28,16 +37,6 @@ group and ring equalities but also helps with inequalities.
 
 Of course it also works for fields, but it knows nothing about multiplicative
 inverses or division. This is catered for by @{text field_simps}. *}
-
-
-ML {*
-structure Ac_Simps = Named_Thms(
-  val name = "ac_simps"
-  val description = "associativity and commutativity simplification rules"
-)
-*}
-
-setup Ac_Simps.setup
 
 
 subsection {* Abstract structures *}
