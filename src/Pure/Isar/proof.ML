@@ -792,7 +792,7 @@ val is_var =
 
 fun implicit_vars props =
   let
-    val (var_props, props') = take_prefix is_var props;
+    val (var_props, _) = take_prefix is_var props;
     val explicit_vars = fold Term.add_vars var_props [];
     val vars = filter_out (member (op =) explicit_vars) (fold Term.add_vars props []);
   in map (Logic.mk_term o Var) vars end;
@@ -845,11 +845,10 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
 
 fun generic_qed after_ctxt state =
   let
-    val (goal_ctxt, {statement, goal, after_qed, ...}) = current_goal state;
+    val (goal_ctxt, {statement = (_, stmt, _), goal, after_qed, ...}) = current_goal state;
     val outer_state = state |> close_block;
     val outer_ctxt = context_of outer_state;
 
-    val ((_, pos), stmt, _) = statement;
     val props =
       flat (tl stmt)
       |> Variable.exportT_terms goal_ctxt outer_ctxt;
