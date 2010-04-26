@@ -1282,9 +1282,9 @@ local
   fun simple_cterm_ord t u = Term_Ord.fast_term_ord (term_of t, term_of u) = LESS
  val concl = Thm.dest_arg o cprop_of
  val shuffle1 =
-   fconv_rule (rewr_conv @{lemma "(a + x == y) == (x == y - (a::real))" by (atomize (full)) (simp add: ring_simps) })
+   fconv_rule (rewr_conv @{lemma "(a + x == y) == (x == y - (a::real))" by (atomize (full)) (simp add: field_simps) })
  val shuffle2 =
-    fconv_rule (rewr_conv @{lemma "(x + a == y) ==  (x == y - (a::real))" by (atomize (full)) (simp add: ring_simps)})
+    fconv_rule (rewr_conv @{lemma "(x + a == y) ==  (x == y - (a::real))" by (atomize (full)) (simp add: field_simps)})
  fun substitutable_monomial fvs tm = case term_of tm of
     Free(_,@{typ real}) => if not (member (op aconvc) fvs tm) then (Rat.one,tm)
                            else raise Failure "substitutable_monomial"

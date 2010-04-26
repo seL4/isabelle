@@ -213,7 +213,7 @@ lemmas Rep_simps =
 
 lemma comm_ring_1: "OFCLASS('a, comm_ring_1_class)"
 apply (intro_classes, unfold definitions)
-apply (simp_all add: Rep_simps zmod_simps ring_simps)
+apply (simp_all add: Rep_simps zmod_simps field_simps)
 done
 
 end

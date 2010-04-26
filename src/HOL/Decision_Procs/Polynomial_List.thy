@@ -283,11 +283,11 @@ apply (erule exE)
 apply (drule_tac x = "%m. if m = Suc n then a else i m" in spec, safe)
 apply (drule poly_mult_eq_zero_disj [THEN iffD1], safe)
 apply (drule_tac x = "Suc (length q)" in spec)
-apply (auto simp add: ring_simps)
+apply (auto simp add: field_simps)
 apply (drule_tac x = xa in spec)
-apply (clarsimp simp add: ring_simps)
+apply (clarsimp simp add: field_simps)
 apply (drule_tac x = m in spec)
-apply (auto simp add:ring_simps)
+apply (auto simp add:field_simps)
 done
 lemmas poly_roots_index_lemma1 = conjI [THEN poly_roots_index_lemma0, standard]
 
@@ -327,7 +327,7 @@ apply (auto simp del: poly_Nil pmult_Cons)
 apply (drule_tac x = "a#i" in spec)
 apply (auto simp only: poly_mult List.list.size)
 apply (drule_tac x = xa in spec)
-apply (clarsimp simp add: ring_simps)
+apply (clarsimp simp add: field_simps)
 done
 
 lemmas poly_roots_index_lemma2 = conjI [THEN poly_roots_index_lemma, standard]
@@ -413,7 +413,7 @@ lemma fun_eq: " (f = g) = (\<forall>x. f x = g x)"
 by (auto intro!: ext)
 
 lemma poly_add_minus_zero_iff: "(poly (p +++ -- q) = poly []) = (poly p = poly q)"
-by (auto simp add: ring_simps poly_add poly_minus_def fun_eq poly_cmult)
+by (auto simp add: field_simps poly_add poly_minus_def fun_eq poly_cmult)
 
 lemma poly_add_minus_mult_eq: "poly (p *** q +++ --(p *** r)) = poly (p *** (q +++ -- r))"
 by (auto simp add: poly_add poly_minus_def fun_eq poly_mult poly_cmult right_distrib)

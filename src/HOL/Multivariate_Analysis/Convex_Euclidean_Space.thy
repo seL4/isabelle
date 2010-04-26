@@ -646,7 +646,7 @@ proof-
       using assms(1)[unfolded convex_on_def, THEN bspec[where x=x], THEN bspec[where x=y], THEN spec[where x=u]]
       using assms(2)[unfolded convex_on_def, THEN bspec[where x=x], THEN bspec[where x=y], THEN spec[where x=u]]
       apply - apply(rule add_mono) by auto
-    hence "f (u *\<^sub>R x + v *\<^sub>R y) + g (u *\<^sub>R x + v *\<^sub>R y) \<le> u * (f x + g x) + v * (f y + g y)" by (simp add: ring_simps)  }
+    hence "f (u *\<^sub>R x + v *\<^sub>R y) + g (u *\<^sub>R x + v *\<^sub>R y) \<le> u * (f x + g x) + v * (f y + g y)" by (simp add: field_simps)  }
   thus ?thesis unfolding convex_on_def by auto 
 qed
 
@@ -654,7 +654,7 @@ lemma convex_cmul[intro]:
   assumes "0 \<le> (c::real)" "convex_on s f"
   shows "convex_on s (\<lambda>x. c * f x)"
 proof-
-  have *:"\<And>u c fx v fy ::real. u * (c * fx) + v * (c * fy) = c * (u * fx + v * fy)" by (simp add: ring_simps)
+  have *:"\<And>u c fx v fy ::real. u * (c * fx) + v * (c * fy) = c * (u * fx + v * fy)" by (simp add: field_simps)
   show ?thesis using assms(2) and mult_mono1[OF _ assms(1)] unfolding convex_on_def and * by auto
 qed
 
@@ -1060,7 +1060,7 @@ lemma convex_hull_3:
 proof-
   have fin:"finite {a,b,c}" "finite {b,c}" "finite {c}" by auto
   have *:"\<And>x y z ::real. x + y + z = 1 \<longleftrightarrow> x = 1 - y - z"
-         "\<And>x y z ::real^_. x + y + z = 1 \<longleftrightarrow> x = 1 - y - z" by (auto simp add: ring_simps)
+         "\<And>x y z ::real^_. x + y + z = 1 \<longleftrightarrow> x = 1 - y - z" by (auto simp add: field_simps)
   show ?thesis unfolding convex_hull_finite[OF fin(1)] and Collect_def and convex_hull_finite_step[OF fin(2)] and *
     unfolding convex_hull_finite_step[OF fin(3)] apply(rule ext) apply simp apply auto
     apply(rule_tac x=va in exI) apply (rule_tac x="u c" in exI) apply simp
@@ -2310,7 +2310,7 @@ lemma is_interval_convex:
   } moreover
   { fix a b assume "\<not> u * a + v * b \<le> a"
     hence "v * b > (1 - u) * a" unfolding not_le using as(4) by(auto simp add: field_simps)
-    hence "a < b" unfolding * using as(4) apply(rule_tac mult_left_less_imp_less) by(auto simp add: ring_simps)
+    hence "a < b" unfolding * using as(4) apply(rule_tac mult_left_less_imp_less) by(auto simp add: field_simps)
     hence "u * a + v * b \<le> b" unfolding ** using **(2) as(3) by(auto simp add: field_simps intro!:mult_right_mono) }
   ultimately show "u *\<^sub>R x + v *\<^sub>R y \<in> s" apply- apply(rule assms[unfolded is_interval_def, rule_format, OF as(1,2)])
     using as(3-) dimindex_ge_1 apply- by(auto simp add: vector_component) qed

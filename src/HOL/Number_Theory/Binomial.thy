@@ -208,7 +208,7 @@ proof -
   have "fact (k + 1) * fact (n - k) * (n + 1 choose (k + 1)) =
       fact (k + 1) * fact (n - k) * (n choose (k + 1)) + 
       fact (k + 1) * fact (n - k) * (n choose k)" 
-    by (subst choose_reduce_nat, auto simp add: ring_simps)
+    by (subst choose_reduce_nat, auto simp add: field_simps)
   also note one
   also note two
   also with less have "(n - k) * fact n + (k + 1) * fact n= fact (n + 1)" 
@@ -279,7 +279,7 @@ next
   also have "... = (SUM k=0..n. of_nat (n choose k) * a^k * b^(n+1-k)) +
                   (SUM k=1..n+1. of_nat (n choose (k - 1)) * a^k * b^(n+1-k))"
     by (simp add:setsum_shift_bounds_cl_Suc_ivl Suc_diff_le 
-             power_Suc ring_simps One_nat_def del:setsum_cl_ivl_Suc)
+             power_Suc field_simps One_nat_def del:setsum_cl_ivl_Suc)
   also have "... = a^(n+1) + b^(n+1) +
                   (SUM k=1..n. of_nat (n choose (k - 1)) * a^k * b^(n+1-k)) +
                   (SUM k=1..n. of_nat (n choose k) * a^k * b^(n+1-k))"
@@ -287,10 +287,10 @@ next
   also have
       "... = a^(n+1) + b^(n+1) + 
          (SUM k=1..n. of_nat(n+1 choose k) * a^k * b^(n+1-k))"
-    by (auto simp add: ring_simps setsum_addf [symmetric]
+    by (auto simp add: field_simps setsum_addf [symmetric]
       choose_reduce_nat)
   also have "... = (SUM k=0..n+1. of_nat (n+1 choose k) * a^k * b^(n+1-k))"
-    using decomp by (simp add: ring_simps)
+    using decomp by (simp add: field_simps)
   finally show "?P (n + 1)" by simp
 qed
 
