@@ -976,15 +976,6 @@ definition
 
 text{* Prove That They are all nets. *}
 
-(* TODO: move to HOL/Limits.thy *)
-lemma expand_net_eq:
-  "net = net' \<longleftrightarrow> (\<forall>P. eventually P net = eventually P net')"
-  unfolding Rep_net_inject [symmetric] expand_fun_eq eventually_def ..
-
-(* TODO: move to HOL/Limits.thy *)
-lemma within_UNIV: "net within UNIV = net"
-  unfolding expand_net_eq eventually_within by simp
-
 lemma eventually_at_infinity:
   "eventually P at_infinity \<longleftrightarrow> (\<exists>b. \<forall>x. norm x >= b \<longrightarrow> P x)"
 unfolding at_infinity_def

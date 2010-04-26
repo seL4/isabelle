@@ -45,6 +45,10 @@ lemma eventually_Abs_net:
   assumes "is_filter net" shows "eventually P (Abs_net net) = net P"
 unfolding eventually_def using assms by (simp add: Abs_net_inverse)
 
+lemma expand_net_eq:
+  shows "net = net' \<longleftrightarrow> (\<forall>P. eventually P net = eventually P net')"
+unfolding Rep_net_inject [symmetric] expand_fun_eq eventually_def ..
+
 lemma eventually_True [simp]: "eventually (\<lambda>x. True) net"
 unfolding eventually_def
 by (rule is_filter.True [OF is_filter_Rep_net])
@@ -95,6 +99,62 @@ lemma eventually_elim2:
 using assms by (auto elim!: eventually_rev_mp)
 
 
+subsection {* Finer-than relation *}
+
+text {* @{term "net \<le> net'"} means that @{term net'} is finer than
+@{term net}. *}
+
+instantiation net :: (type) "{order,top}"
+begin
+
+definition
+  le_net_def [code del]:
+    "net \<le> net' \<longleftrightarrow> (\<forall>P. eventually P net \<longrightarrow> eventually P net')"
+
+definition
+  less_net_def [code del]:
+    "(net :: 'a net) < net' \<longleftrightarrow> net \<le> net' \<and> \<not> net' \<le> net"
+
+definition
+  top_net_def [code del]:
+    "top = Abs_net (\<lambda>P. True)"
+
+lemma eventually_top [simp]: "eventually P top"
+unfolding top_net_def
+by (subst eventually_Abs_net, rule is_filter.intro, auto)
+
+instance proof
+  fix x y :: "'a net" show "x < y \<longleftrightarrow> x \<le> y \<and> \<not> y \<le> x"
+    by (rule less_net_def)
+next
+  fix x :: "'a net" show "x \<le> x"
+    unfolding le_net_def by simp
+next
+  fix x y z :: "'a net" assume "x \<le> y" and "y \<le> z" thus "x \<le> z"
+    unfolding le_net_def by simp
+next
+  fix x y :: "'a net" assume "x \<le> y" and "y \<le> x" thus "x = y"
+    unfolding le_net_def expand_net_eq by fast
+next
+  fix x :: "'a net" show "x \<le> top"
+    unfolding le_net_def by simp
+qed
+
+end
+
+lemma net_leD:
+  "net \<le> net' \<Longrightarrow> eventually P net \<Longrightarrow> eventually P net'"
+unfolding le_net_def by simp
+
+lemma net_leI:
+  "(\<And>P. eventually P net \<Longrightarrow> eventually P net') \<Longrightarrow> net \<le> net'"
+unfolding le_net_def by simp
+
+lemma eventually_False:
+  "eventually (\<lambda>x. False) net \<longleftrightarrow> net = top"
+unfolding expand_net_eq by (auto elim: eventually_rev_mp)
+
+
 subsection {* Standard Nets *}
 
 definition
@@ -128,6 +188,9 @@ lemma eventually_within:
 unfolding within_def
 by (rule eventually_Abs_net, rule is_filter.intro)
    (auto elim!: eventually_rev_mp)
+
+lemma within_UNIV: "net within UNIV = net"
+  unfolding expand_net_eq eventually_within by simp
 
 lemma eventually_at_topological:
   "eventually P (at a) \<longleftrightarrow> (\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> P x))"
