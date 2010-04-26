@@ -365,12 +365,8 @@ end
 
 subsection {* Bounded lattices and boolean algebras *}
 
-class bounded_lattice = lattice + top + bot
+class bounded_lattice_bot = lattice + bot
 begin
-
-lemma dual_bounded_lattice:
-  "bounded_lattice (op \<ge>) (op >) (op \<squnion>) (op \<sqinter>) \<top> \<bottom>"
-  by unfold_locales (auto simp add: less_le_not_le)
 
 lemma inf_bot_left [simp]:
   "\<bottom> \<sqinter> x = \<bottom>"
@@ -379,6 +375,23 @@ lemma inf_bot_left [simp]:
 lemma inf_bot_right [simp]:
   "x \<sqinter> \<bottom> = \<bottom>"
   by (rule inf_absorb2) simp
+
+lemma sup_bot_left [simp]:
+  "\<bottom> \<squnion> x = x"
+  by (rule sup_absorb2) simp
+
+lemma sup_bot_right [simp]:
+  "x \<squnion> \<bottom> = x"
+  by (rule sup_absorb1) simp
+
+lemma sup_eq_bot_iff [simp]:
+  "x \<squnion> y = \<bottom> \<longleftrightarrow> x = \<bottom> \<and> y = \<bottom>"
+  by (simp add: eq_iff)
+
+end
+
+class bounded_lattice_top = lattice + top
+begin
 
 lemma sup_top_left [simp]:
   "\<top> \<squnion> x = \<top>"
@@ -396,21 +409,18 @@ lemma inf_top_right [simp]:
   "x \<sqinter> \<top> = x"
   by (rule inf_absorb1) simp
 
-lemma sup_bot_left [simp]:
-  "\<bottom> \<squnion> x = x"
-  by (rule sup_absorb2) simp
-
-lemma sup_bot_right [simp]:
-  "x \<squnion> \<bottom> = x"
-  by (rule sup_absorb1) simp
-
 lemma inf_eq_top_iff [simp]:
   "x \<sqinter> y = \<top> \<longleftrightarrow> x = \<top> \<and> y = \<top>"
   by (simp add: eq_iff)
 
-lemma sup_eq_bot_iff [simp]:
-  "x \<squnion> y = \<bottom> \<longleftrightarrow> x = \<bottom> \<and> y = \<bottom>"
-  by (simp add: eq_iff)
+end
+
+class bounded_lattice = bounded_lattice_bot + bounded_lattice_top
+begin
+
+lemma dual_bounded_lattice:
+  "bounded_lattice (op \<ge>) (op >) (op \<squnion>) (op \<sqinter>) \<top> \<bottom>"
+  by unfold_locales (auto simp add: less_le_not_le)
 
 end
 

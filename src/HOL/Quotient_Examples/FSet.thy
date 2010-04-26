@@ -387,7 +387,7 @@ lemma append_inter_distrib:
   apply (simp add: memb_def[symmetric] memb_finter_raw)
   by (auto simp add: memb_def)
 
-instantiation fset :: (type) "{bot,distrib_lattice}"
+instantiation fset :: (type) "{bounded_lattice_bot,distrib_lattice}"
 begin
 
 quotient_definition
@@ -922,14 +922,13 @@ lemma fin_fcard_not_0: "a |\<in>| A \<Longrightarrow> fcard A \<noteq> 0"
 
 text {* funion *}
 
-lemma funion_simps[simp]:
-  shows "{||} |\<union>| S = S"
-  and   "finsert x S |\<union>| T = finsert x (S |\<union>| T)"
-  by (lifting append.simps)
+lemmas [simp] =
+  sup_bot_left[where 'a="'a fset"]
+  sup_bot_right[where 'a="'a fset"]
 
-lemma funion_empty[simp]:
-  shows "S |\<union>| {||} = S"
-  by (lifting append_Nil2)
+lemma funion_finsert[simp]:
+  shows "finsert x S |\<union>| T = finsert x (S |\<union>| T)"
+  by (lifting append.simps(2))
 
 lemma singleton_union_left:
   "{|a|} |\<union>| S = finsert a S"
