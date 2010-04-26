@@ -28,7 +28,7 @@ lemma fps_nth_Abs_fps [simp]: "Abs_fps f $ n = f n"
 
 text{* Definition of the basic elements 0 and 1 and the basic operations of addition, negation and multiplication *}
 
-instantiation fps :: (zero)  zero
+instantiation fps :: (zero) zero
 begin
 
 definition fps_zero_def:
@@ -40,7 +40,7 @@ end
 lemma fps_zero_nth [simp]: "0 $ n = 0"
   unfolding fps_zero_def by simp
 
-instantiation fps :: ("{one,zero}")  one
+instantiation fps :: ("{one, zero}") one
 begin
 
 definition fps_one_def:
@@ -2649,7 +2649,7 @@ lemma Ec_E1_eq:
 text{* The generalized binomial theorem as a  consequence of @{thm E_add_mult} *}
 
 lemma gbinomial_theorem: 
-  "((a::'a::{field_char_0, division_ring_inverse_zero})+b) ^ n = (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k))"
+  "((a::'a::{field_char_0, field_inverse_zero})+b) ^ n = (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k))"
 proof-
   from E_add_mult[of a b] 
   have "(E (a + b)) $ n = (E a * E b)$n" by simp
@@ -3252,7 +3252,7 @@ lemma fps_demoivre: "(fps_cos a + fps_const ii * fps_sin a)^n = fps_cos (of_nat 
 subsection {* Hypergeometric series *}
 
 
-definition "F as bs (c::'a::{field_char_0, division_ring_inverse_zero}) = Abs_fps (%n. (foldl (%r a. r* pochhammer a n) 1 as * c^n)/ (foldl (%r b. r * pochhammer b n) 1 bs * of_nat (fact n)))"
+definition "F as bs (c::'a::{field_char_0, field_inverse_zero}) = Abs_fps (%n. (foldl (%r a. r* pochhammer a n) 1 as * c^n)/ (foldl (%r b. r * pochhammer b n) 1 bs * of_nat (fact n)))"
 
 lemma F_nth[simp]: "F as bs c $ n =  (foldl (%r a. r* pochhammer a n) 1 as * c^n)/ (foldl (%r b. r * pochhammer b n) 1 bs * of_nat (fact n))"
   by (simp add: F_def)
@@ -3321,9 +3321,9 @@ lemma XDp_fps_integral[simp]:"XDp 0 (fps_integral a c) = X * a"
   by (simp add: fps_eq_iff fps_integral_def)
 
 lemma F_minus_nat: 
-  "F [- of_nat n] [- of_nat (n + m)] (c::'a::{field_char_0, division_ring_inverse_zero}) $ k = (if k <= n then pochhammer (- of_nat n) k * c ^ k /
+  "F [- of_nat n] [- of_nat (n + m)] (c::'a::{field_char_0, field_inverse_zero}) $ k = (if k <= n then pochhammer (- of_nat n) k * c ^ k /
     (pochhammer (- of_nat (n + m)) k * of_nat (fact k)) else 0)"
-  "F [- of_nat m] [- of_nat (m + n)] (c::'a::{field_char_0, division_ring_inverse_zero}) $ k = (if k <= m then pochhammer (- of_nat m) k * c ^ k /
+  "F [- of_nat m] [- of_nat (m + n)] (c::'a::{field_char_0, field_inverse_zero}) $ k = (if k <= m then pochhammer (- of_nat m) k * c ^ k /
     (pochhammer (- of_nat (m + n)) k * of_nat (fact k)) else 0)"
   by (auto simp add: pochhammer_eq_0_iff)
 
