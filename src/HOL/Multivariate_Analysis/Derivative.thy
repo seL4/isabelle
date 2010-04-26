@@ -763,6 +763,9 @@ lemma onorm_vec1: fixes f::"real \<Rightarrow> real"
   have 4:"{norm (f x) |x. norm x = 1} = (\<lambda>x. norm (f x)) ` {x. norm x=1}" by auto
   show ?thesis unfolding onorm_def 1 2 3 4 by(simp add:Sup_finite_Max) qed
 
+lemma convex_vec1:"convex (vec1 ` s) = convex (s::real set)"
+  unfolding convex_def Ball_def forall_vec1 unfolding vec1_dest_vec1_simps image_iff by auto
+
 lemma differentiable_bound_real: fixes f::"real \<Rightarrow> real"
   assumes "convex s" "\<forall>x\<in>s. (f has_derivative f' x) (at x within s)" "\<forall>x\<in>s. onorm(f' x) \<le> B" and x:"x\<in>s" and y:"y\<in>s"
   shows "norm(f x - f y) \<le> B * norm(x - y)" 

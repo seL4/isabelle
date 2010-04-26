@@ -3204,22 +3204,6 @@ definition
                            --> dist (f x') (f x) < e)"
 
 
-text{* Lifting and dropping *}
-
-lemma continuous_on_o_dest_vec1: fixes f::"real \<Rightarrow> 'a::real_normed_vector"
-  assumes "continuous_on {a..b::real} f" shows "continuous_on {vec1 a..vec1 b} (f o dest_vec1)"
-  using assms unfolding continuous_on_iff apply safe
-  apply(erule_tac x="x$1" in ballE,erule_tac x=e in allE) apply safe
-  apply(rule_tac x=d in exI) apply safe unfolding o_def dist_real_def dist_real 
-  apply(erule_tac x="dest_vec1 x'" in ballE) by(auto simp add:vector_le_def)
-
-lemma continuous_on_o_vec1: fixes f::"real^1 \<Rightarrow> 'a::real_normed_vector"
-  assumes "continuous_on {a..b} f" shows "continuous_on {dest_vec1 a..dest_vec1 b} (f o vec1)"
-  using assms unfolding continuous_on_iff apply safe
-  apply(erule_tac x="vec x" in ballE,erule_tac x=e in allE) apply safe
-  apply(rule_tac x=d in exI) apply safe unfolding o_def dist_real_def dist_real 
-  apply(erule_tac x="vec1 x'" in ballE) by(auto simp add:vector_le_def)
-
 text{* Some simple consequential lemmas. *}
 
 lemma uniformly_continuous_imp_continuous:
@@ -4098,9 +4082,6 @@ lemma linear_continuous_on:
   shows "bounded_linear f ==> continuous_on s f"
   using continuous_at_imp_continuous_on[of s f] using linear_continuous_at[of f] by auto
 
-lemma continuous_on_vec1:"continuous_on A (vec1::real\<Rightarrow>real^1)"
-  by(rule linear_continuous_on[OF bounded_linear_vec1])
-
 text{* Also bilinear functions, in composition form.                             *}
 
 lemma bilinear_continuous_at_compose:
@@ -4722,20 +4703,6 @@ lemma mem_interval: fixes a :: "'a::ord^'n" shows
   "x \<in> {a .. b} \<longleftrightarrow> (\<forall>i. a$i \<le> x$i \<and> x$i \<le> b$i)"
   using interval[of a b] by(auto simp add: expand_set_eq vector_less_def vector_le_def)
 
-lemma mem_interval_1: fixes x :: "real^1" shows
- "(x \<in> {a .. b} \<longleftrightarrow> dest_vec1 a \<le> dest_vec1 x \<and> dest_vec1 x \<le> dest_vec1 b)"
- "(x \<in> {a<..<b} \<longleftrightarrow> dest_vec1 a < dest_vec1 x \<and> dest_vec1 x < dest_vec1 b)"
-by(simp_all add: Cart_eq vector_less_def vector_le_def)
-
-lemma vec1_interval:fixes a::"real" shows
-  "vec1 ` {a .. b} = {vec1 a .. vec1 b}"
-  "vec1 ` {a<..<b} = {vec1 a<..<vec1 b}"
-  apply(rule_tac[!] set_ext) unfolding image_iff vector_less_def unfolding mem_interval
-  unfolding forall_1 unfolding vec1_dest_vec1_simps
-  apply rule defer apply(rule_tac x="dest_vec1 x" in bexI) prefer 3 apply rule defer
-  apply(rule_tac x="dest_vec1 x" in bexI) by auto
-
-
 lemma interval_eq_empty: fixes a :: "real^'n" shows
  "({a <..< b} = {} \<longleftrightarrow> (\<exists>i. b$i \<le> a$i))" (is ?th1) and
  "({a  ..  b} = {} \<longleftrightarrow> (\<exists>i. b$i < a$i))" (is ?th2)
@@ -4918,10 +4885,7 @@ proof-
 qed
 
 lemma open_interval_real[intro]: fixes a :: "real" shows "open {a<..<b}"
-  using open_interval[of "vec1 a" "vec1 b"] unfolding open_contains_ball
-  apply-apply(rule,erule_tac x="vec1 x" in ballE) apply(erule exE,rule_tac x=e in exI)
-  unfolding subset_eq mem_ball apply(rule) defer apply(rule,erule conjE,erule_tac x="vec1 xa" in ballE)
-  by(auto simp add: dist_vec1 dist_real_def vector_less_def)
+  by (rule open_real_greaterThanLessThan)
 
 lemma closed_interval[intro]: fixes a :: "real^'n" shows "closed {a .. b}"
 proof-
@@ -5112,56 +5076,6 @@ lemma inter_interval_mixed_eq_empty: fixes a :: "real^'n"
   unfolding closure_open_interval[OF assms, THEN sym] unfolding open_inter_closure_eq_empty[OF open_interval] ..
 
 
-(* Some special cases for intervals in R^1.                                  *)
-
-lemma interval_cases_1: fixes x :: "real^1" shows
- "x \<in> {a .. b} ==> x \<in> {a<..<b} \<or> (x = a) \<or> (x = b)"
-  unfolding Cart_eq vector_less_def vector_le_def mem_interval by(auto simp del:dest_vec1_eq)
-
-lemma in_interval_1: fixes x :: "real^1" shows
- "(x \<in> {a .. b} \<longleftrightarrow> dest_vec1 a \<le> dest_vec1 x \<and> dest_vec1 x \<le> dest_vec1 b) \<and>
-  (x \<in> {a<..<b} \<longleftrightarrow> dest_vec1 a < dest_vec1 x \<and> dest_vec1 x < dest_vec1 b)"
-  unfolding Cart_eq vector_less_def vector_le_def mem_interval by(auto simp del:dest_vec1_eq)
-
-lemma interval_eq_empty_1: fixes a :: "real^1" shows
-  "{a .. b} = {} \<longleftrightarrow> dest_vec1 b < dest_vec1 a"
-  "{a<..<b} = {} \<longleftrightarrow> dest_vec1 b \<le> dest_vec1 a"
-  unfolding interval_eq_empty and ex_1 by auto
-
-lemma subset_interval_1: fixes a :: "real^1" shows
- "({a .. b} \<subseteq> {c .. d} \<longleftrightarrow>  dest_vec1 b < dest_vec1 a \<or>
-                dest_vec1 c \<le> dest_vec1 a \<and> dest_vec1 a \<le> dest_vec1 b \<and> dest_vec1 b \<le> dest_vec1 d)"
- "({a .. b} \<subseteq> {c<..<d} \<longleftrightarrow>  dest_vec1 b < dest_vec1 a \<or>
-                dest_vec1 c < dest_vec1 a \<and> dest_vec1 a \<le> dest_vec1 b \<and> dest_vec1 b < dest_vec1 d)"
- "({a<..<b} \<subseteq> {c .. d} \<longleftrightarrow>  dest_vec1 b \<le> dest_vec1 a \<or>
-                dest_vec1 c \<le> dest_vec1 a \<and> dest_vec1 a < dest_vec1 b \<and> dest_vec1 b \<le> dest_vec1 d)"
- "({a<..<b} \<subseteq> {c<..<d} \<longleftrightarrow> dest_vec1 b \<le> dest_vec1 a \<or>
-                dest_vec1 c \<le> dest_vec1 a \<and> dest_vec1 a < dest_vec1 b \<and> dest_vec1 b \<le> dest_vec1 d)"
-  unfolding subset_interval[of a b c d] unfolding forall_1 by auto
-
-lemma eq_interval_1: fixes a :: "real^1" shows
- "{a .. b} = {c .. d} \<longleftrightarrow>
-          dest_vec1 b < dest_vec1 a \<and> dest_vec1 d < dest_vec1 c \<or>
-          dest_vec1 a = dest_vec1 c \<and> dest_vec1 b = dest_vec1 d"
-unfolding set_eq_subset[of "{a .. b}" "{c .. d}"]
-unfolding subset_interval_1(1)[of a b c d]
-unfolding subset_interval_1(1)[of c d a b]
-by auto
-
-lemma disjoint_interval_1: fixes a :: "real^1" shows
-  "{a .. b} \<inter> {c .. d} = {} \<longleftrightarrow> dest_vec1 b < dest_vec1 a \<or> dest_vec1 d < dest_vec1 c  \<or>  dest_vec1 b < dest_vec1 c \<or> dest_vec1 d < dest_vec1 a"
-  "{a .. b} \<inter> {c<..<d} = {} \<longleftrightarrow> dest_vec1 b < dest_vec1 a \<or> dest_vec1 d \<le> dest_vec1 c  \<or>  dest_vec1 b \<le> dest_vec1 c \<or> dest_vec1 d \<le> dest_vec1 a"
-  "{a<..<b} \<inter> {c .. d} = {} \<longleftrightarrow> dest_vec1 b \<le> dest_vec1 a \<or> dest_vec1 d < dest_vec1 c  \<or>  dest_vec1 b \<le> dest_vec1 c \<or> dest_vec1 d \<le> dest_vec1 a"
-  "{a<..<b} \<inter> {c<..<d} = {} \<longleftrightarrow> dest_vec1 b \<le> dest_vec1 a \<or> dest_vec1 d \<le> dest_vec1 c  \<or>  dest_vec1 b \<le> dest_vec1 c \<or> dest_vec1 d \<le> dest_vec1 a"
-  unfolding disjoint_interval and ex_1 by auto
-
-lemma open_closed_interval_1: fixes a :: "real^1" shows
- "{a<..<b} = {a .. b} - {a, b}"
-  unfolding expand_set_eq apply simp unfolding vector_less_def and vector_le_def and forall_1 and dest_vec1_eq[THEN sym] by(auto simp del:dest_vec1_eq)
-
-lemma closed_open_interval_1: "dest_vec1 (a::real^1) \<le> dest_vec1 b ==> {a .. b} = {a<..<b} \<union> {a,b}"
-  unfolding expand_set_eq apply simp unfolding vector_less_def and vector_le_def and forall_1 and dest_vec1_eq[THEN sym] by(auto simp del:dest_vec1_eq)
-
 (* Some stuff for half-infinite intervals too; FIXME: notation?  *)
 
 lemma closed_interval_left: fixes b::"real^'n"
@@ -5295,14 +5209,6 @@ lemma Lim_component_eq: fixes f :: "'a \<Rightarrow> real^'n"
   shows "l$i = b"
   using ev[unfolded order_eq_iff eventually_and] using Lim_component_ge[OF net, of b i] and Lim_component_le[OF net, of i b] by auto
 
-lemma Lim_drop_le: fixes f :: "'a \<Rightarrow> real^1" shows
-  "(f ---> l) net \<Longrightarrow> ~(trivial_limit net) \<Longrightarrow> eventually (\<lambda>x. dest_vec1 (f x) \<le> b) net ==> dest_vec1 l \<le> b"
-  using Lim_component_le[of f l net 1 b] by auto
-
-lemma Lim_drop_ge: fixes f :: "'a \<Rightarrow> real^1" shows
- "(f ---> l) net \<Longrightarrow> ~(trivial_limit net) \<Longrightarrow> eventually (\<lambda>x. b \<le> dest_vec1 (f x)) net ==> b \<le> dest_vec1 l"
-  using Lim_component_ge[of f l net b 1] by auto
-
 text{* Limits relative to a union.                                               *}
 
 lemma eventually_within_Un:
@@ -5358,22 +5264,6 @@ qed
 lemma connected_ivt_component: fixes x::"real^'n" shows
  "connected s \<Longrightarrow> x \<in> s \<Longrightarrow> y \<in> s \<Longrightarrow> x$k \<le> a \<Longrightarrow> a \<le> y$k \<Longrightarrow> (\<exists>z\<in>s.  z$k = a)"
   using connected_ivt_hyperplane[of s x y "(basis k)::real^'n" a] by (auto simp add: inner_basis)
-
-text{* Also more convenient formulations of monotone convergence.                *}
-
-lemma bounded_increasing_convergent: fixes s::"nat \<Rightarrow> real^1"
-  assumes "bounded {s n| n::nat. True}"  "\<forall>n. dest_vec1(s n) \<le> dest_vec1(s(Suc n))"
-  shows "\<exists>l. (s ---> l) sequentially"
-proof-
-  obtain a where a:"\<forall>n. \<bar>dest_vec1 (s n)\<bar> \<le>  a" using assms(1)[unfolded bounded_iff abs_dest_vec1] by auto
-  { fix m::nat
-    have "\<And> n. n\<ge>m \<longrightarrow> dest_vec1 (s m) \<le> dest_vec1 (s n)"
-      apply(induct_tac n) apply simp using assms(2) apply(erule_tac x="na" in allE) by(auto simp add: not_less_eq_eq)  }
-  hence "\<forall>m n. m \<le> n \<longrightarrow> dest_vec1 (s m) \<le> dest_vec1 (s n)" by auto
-  then obtain l where "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<bar>dest_vec1 (s n) - l\<bar> < e" using convergent_bounded_monotone[OF a] unfolding monoseq_def by auto
-  thus ?thesis unfolding Lim_sequentially apply(rule_tac x="vec1 l" in exI)
-    unfolding dist_norm unfolding abs_dest_vec1  by auto
-qed
 
 subsection{* Basic homeomorphism definitions.                                          *}
 

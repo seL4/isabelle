@@ -19,7 +19,7 @@
 header {* Results connected with topological dimension. *}
 
 theory Brouwer_Fixpoint
-  imports Convex_Euclidean_Space
+  imports Convex_Euclidean_Space Vec1
 begin
 
 lemma brouwer_compactness_lemma:

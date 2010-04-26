@@ -15,16 +15,10 @@ begin
 
 declare vector_add_ldistrib[simp] vector_ssub_ldistrib[simp] vector_smult_assoc[simp] vector_smult_rneg[simp]
 declare vector_sadd_rdistrib[simp] vector_sub_rdistrib[simp]
-declare UNIV_1[simp]
 
 (*lemma dim1in[intro]:"Suc 0 \<in> {1::nat .. CARD(1)}" by auto*)
 
 lemmas vector_component_simps = vector_minus_component vector_smult_component vector_add_component vector_le_def Cart_lambda_beta basis_component vector_uminus_component
-
-lemma dest_vec1_simps[simp]: fixes a::"real^1"
-  shows "a$1 = 0 \<longleftrightarrow> a = 0" (*"a \<le> 1 \<longleftrightarrow> dest_vec1 a \<le> 1" "0 \<le> a \<longleftrightarrow> 0 \<le> dest_vec1 a"*)
-  "a \<le> b \<longleftrightarrow> dest_vec1 a \<le> dest_vec1 b" "dest_vec1 (1::real^1) = 1"
-  by(auto simp add: vector_le_def Cart_eq)
 
 lemma norm_not_0:"(x::real^'n)\<noteq>0 \<Longrightarrow> norm x \<noteq> 0" by auto
 
@@ -47,30 +41,9 @@ lemma not_disjointI:"x\<in>A \<Longrightarrow> x\<in>B \<Longrightarrow> A \<int
 
 lemma if_smult:"(if P then x else (y::real)) *\<^sub>R v = (if P then x *\<^sub>R v else y *\<^sub>R v)" by auto
 
-lemma mem_interval_1: fixes x :: "real^1" shows
- "(x \<in> {a .. b} \<longleftrightarrow> dest_vec1 a \<le> dest_vec1 x \<and> dest_vec1 x \<le> dest_vec1 b)"
- "(x \<in> {a<..<b} \<longleftrightarrow> dest_vec1 a < dest_vec1 x \<and> dest_vec1 x < dest_vec1 b)"
-by(simp_all add: Cart_eq vector_less_def vector_le_def)
-
 lemma image_smult_interval:"(\<lambda>x. m *\<^sub>R (x::real^'n)) ` {a..b} =
   (if {a..b} = {} then {} else if 0 \<le> m then {m *\<^sub>R a..m *\<^sub>R b} else {m *\<^sub>R b..m *\<^sub>R a})"
   using image_affinity_interval[of m 0 a b] by auto
-
-lemma dest_vec1_inverval:
-  "dest_vec1 ` {a .. b} = {dest_vec1 a .. dest_vec1 b}"
-  "dest_vec1 ` {a<.. b} = {dest_vec1 a<.. dest_vec1 b}"
-  "dest_vec1 ` {a ..<b} = {dest_vec1 a ..<dest_vec1 b}"
-  "dest_vec1 ` {a<..<b} = {dest_vec1 a<..<dest_vec1 b}"
-  apply(rule_tac [!] equalityI)
-  unfolding subset_eq Ball_def Bex_def mem_interval_1 image_iff
-  apply(rule_tac [!] allI)apply(rule_tac [!] impI)
-  apply(rule_tac[2] x="vec1 x" in exI)apply(rule_tac[4] x="vec1 x" in exI)
-  apply(rule_tac[6] x="vec1 x" in exI)apply(rule_tac[8] x="vec1 x" in exI)
-  by (auto simp add: vector_less_def vector_le_def)
-
-lemma dest_vec1_setsum: assumes "finite S"
-  shows " dest_vec1 (setsum f S) = setsum (\<lambda>x. dest_vec1 (f x)) S"
-  using dest_vec1_sum[OF assms] by auto
 
 lemma dist_triangle_eq:
   fixes x y z :: "real ^ _"
@@ -358,9 +331,6 @@ lemma mem_convex:
   assumes "convex s" "a \<in> s" "b \<in> s" "0 \<le> u" "u \<le> 1"
   shows "((1 - u) *\<^sub>R a + u *\<^sub>R b) \<in> s"
   using assms unfolding convex_alt by auto
-
-lemma convex_vec1:"convex (vec1 ` s) = convex (s::real set)"
-  unfolding convex_def Ball_def forall_vec1 unfolding vec1_dest_vec1_simps image_iff by auto
 
 lemma convex_empty[intro]: "convex {}"
   unfolding convex_def by simp
@@ -1292,29 +1262,14 @@ proof(rule, rule) fix a
   qed
 qed
 
-lemma open_dest_vec1_vimage: "open S \<Longrightarrow> open (dest_vec1 -` S)"
-unfolding open_vector_def forall_1 by auto
-
-lemma tendsto_dest_vec1 [tendsto_intros]:
-  "(f ---> l) net \<Longrightarrow> ((\<lambda>x. dest_vec1 (f x)) ---> dest_vec1 l) net"
-by(rule tendsto_Cart_nth)
-
-lemma continuous_dest_vec1: "continuous net f \<Longrightarrow> continuous net (\<lambda>x. dest_vec1 (f x))"
-  unfolding continuous_def by (rule tendsto_dest_vec1)
-
 (* TODO: move *)
 lemma compact_real_interval:
   fixes a b :: real shows "compact {a..b}"
-proof -
-  have "continuous_on {vec1 a .. vec1 b} dest_vec1"
-    unfolding continuous_on
-    by (simp add: tendsto_dest_vec1 Lim_at_within Lim_ident_at)
-  moreover have "compact {vec1 a .. vec1 b}" by (rule compact_interval)
-  ultimately have "compact (dest_vec1 ` {vec1 a .. vec1 b})"
-    by (rule compact_continuous_image)
-  also have "dest_vec1 ` {vec1 a .. vec1 b} = {a..b}"
-    by (auto simp add: image_def Bex_def exists_vec1)
-  finally show ?thesis .
+proof (rule bounded_closed_imp_compact)
+  have "\<forall>y\<in>{a..b}. dist a y \<le> dist a b"
+    unfolding dist_real_def by auto
+  thus "bounded {a..b}" unfolding bounded_def by fast
+  show "closed {a..b}" by (rule closed_real_atLeastAtMost)
 qed
 
 lemma compact_convex_combinations:
@@ -2015,13 +1970,11 @@ lemma compact_frontier_line_lemma:
 proof-
   obtain b where b:"b>0" "\<forall>x\<in>s. norm x \<le> b" using compact_imp_bounded[OF assms(1), unfolded bounded_pos] by auto
   let ?A = "{y. \<exists>u. 0 \<le> u \<and> u \<le> b / norm(x) \<and> (y = u *\<^sub>R x)}"
-  have A:"?A = (\<lambda>u. dest_vec1 u *\<^sub>R x) ` {0 .. vec1 (b / norm x)}"
-    unfolding image_image[of "\<lambda>u. u *\<^sub>R x" "\<lambda>x. dest_vec1 x", THEN sym]
-    unfolding dest_vec1_inverval vec1_dest_vec1 by auto
+  have A:"?A = (\<lambda>u. u *\<^sub>R x) ` {0 .. b / norm x}"
+    by auto
   have "compact ?A" unfolding A apply(rule compact_continuous_image, rule continuous_at_imp_continuous_on)
     apply(rule, rule continuous_vmul)
-    apply (rule continuous_dest_vec1)
-    apply(rule continuous_at_id) by(rule compact_interval)
+    apply(rule continuous_at_id) by(rule compact_real_interval)
   moreover have "{y. \<exists>u\<ge>0. u \<le> b / norm x \<and> y = u *\<^sub>R x} \<inter> s \<noteq> {}" apply(rule not_disjointI[OF _ assms(2)])
     unfolding mem_Collect_eq using `b>0` assms(3) by(auto intro!: divide_nonneg_pos)
   ultimately obtain u y where obt: "u\<ge>0" "u \<le> b / norm x" "y = u *\<^sub>R x"
@@ -2232,10 +2185,6 @@ definition "epigraph s (f::_ \<Rightarrow> real) = {xy. fst xy \<in> s \<and> f 
 
 lemma mem_epigraph: "(x, y) \<in> epigraph s f \<longleftrightarrow> x \<in> s \<and> f x \<le> y" unfolding epigraph_def by auto
 
-(** move this**)
-lemma forall_dest_vec1: "(\<forall>x. P x) \<longleftrightarrow> (\<forall>x. P(dest_vec1 x))" 
-  apply safe defer apply(erule_tac x="vec1 x" in allE) by auto
-
 (** This might break sooner or later. In fact it did already once. **)
 lemma convex_epigraph: 
   "convex(epigraph s f) \<longleftrightarrow> convex_on s f \<and> convex s"
@@ -2264,16 +2213,11 @@ lemma forall_of_pastecart':
   "(\<forall>p. P (fstcart p) (sndcart p)) \<longleftrightarrow> (\<forall>x y. P x y)" apply meson
   apply(erule_tac x="pastecart x y" in allE) unfolding o_def by auto
 
-lemma forall_of_dest_vec1: "(\<forall>v. P (\<lambda>x. dest_vec1 (v x))) \<longleftrightarrow> (\<forall>x. P x)"
-  apply rule apply rule apply(erule_tac x="(vec1 \<circ> x)" in allE) unfolding o_def vec1_dest_vec1 by auto 
-
-lemma forall_of_dest_vec1': "(\<forall>v. P (dest_vec1 v)) \<longleftrightarrow> (\<forall>x. P x)"
-  apply rule apply rule apply(erule_tac x="(vec1 x)" in allE) defer apply rule 
-  apply(erule_tac x="dest_vec1 v" in allE) unfolding o_def vec1_dest_vec1 by auto
-
+(* TODO: move *)
 lemma fst_setsum: "fst (\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. fst (f x))"
 by (cases "finite A", induct set: finite, simp_all)
 
+(* TODO: move *)
 lemma snd_setsum: "snd (\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. snd (f x))"
 by (cases "finite A", induct set: finite, simp_all)
 
@@ -2322,6 +2266,7 @@ lemma is_interval_connected:
 lemma convex_interval: "convex {a .. b}" "convex {a<..<b::real^'n}"
   apply(rule_tac[!] is_interval_convex) using is_interval_interval by auto
 
+(* FIXME: rewrite these lemmas without using vec1
 subsection {* On @{text "real^1"}, @{text "is_interval"}, @{text "convex"} and @{text "connected"} are all equivalent. *}
 
 lemma is_interval_1:
@@ -2350,33 +2295,33 @@ by(metis is_interval_convex convex_connected is_interval_connected_1)
 lemma convex_connected_1:
   "connected s \<longleftrightarrow> convex (s::(real^1) set)" 
 by(metis is_interval_convex convex_connected is_interval_connected_1)
-
+*)
 subsection {* Another intermediate value theorem formulation. *}
 
-lemma ivt_increasing_component_on_1: fixes f::"real^1 \<Rightarrow> real^'n"
-  assumes "dest_vec1 a \<le> dest_vec1 b" "continuous_on {a .. b} f" "(f a)$k \<le> y" "y \<le> (f b)$k"
+lemma ivt_increasing_component_on_1: fixes f::"real \<Rightarrow> real^'n"
+  assumes "a \<le> b" "continuous_on {a .. b} f" "(f a)$k \<le> y" "y \<le> (f b)$k"
   shows "\<exists>x\<in>{a..b}. (f x)$k = y"
 proof- have "f a \<in> f ` {a..b}" "f b \<in> f ` {a..b}" apply(rule_tac[!] imageI) 
     using assms(1) by(auto simp add: vector_le_def)
   thus ?thesis using connected_ivt_component[of "f ` {a..b}" "f a" "f b" k y]
-    using connected_continuous_image[OF assms(2) convex_connected[OF convex_interval(1)]]
+    using connected_continuous_image[OF assms(2) convex_connected[OF convex_real_interval(5)]]
     using assms by(auto intro!: imageI) qed
 
-lemma ivt_increasing_component_1: fixes f::"real^1 \<Rightarrow> real^'n"
-  shows "dest_vec1 a \<le> dest_vec1 b \<Longrightarrow> \<forall>x\<in>{a .. b}. continuous (at x) f
+lemma ivt_increasing_component_1: fixes f::"real \<Rightarrow> real^'n"
+  shows "a \<le> b \<Longrightarrow> \<forall>x\<in>{a .. b}. continuous (at x) f
    \<Longrightarrow> f a$k \<le> y \<Longrightarrow> y \<le> f b$k \<Longrightarrow> \<exists>x\<in>{a..b}. (f x)$k = y"
 by(rule ivt_increasing_component_on_1)
   (auto simp add: continuous_at_imp_continuous_on)
 
-lemma ivt_decreasing_component_on_1: fixes f::"real^1 \<Rightarrow> real^'n"
-  assumes "dest_vec1 a \<le> dest_vec1 b" "continuous_on {a .. b} f" "(f b)$k \<le> y" "y \<le> (f a)$k"
+lemma ivt_decreasing_component_on_1: fixes f::"real \<Rightarrow> real^'n"
+  assumes "a \<le> b" "continuous_on {a .. b} f" "(f b)$k \<le> y" "y \<le> (f a)$k"
   shows "\<exists>x\<in>{a..b}. (f x)$k = y"
   apply(subst neg_equal_iff_equal[THEN sym]) unfolding vector_uminus_component[THEN sym]
   apply(rule ivt_increasing_component_on_1) using assms using continuous_on_neg
   by auto
 
-lemma ivt_decreasing_component_1: fixes f::"real^1 \<Rightarrow> real^'n"
-  shows "dest_vec1 a \<le> dest_vec1 b \<Longrightarrow> \<forall>x\<in>{a .. b}. continuous (at x) f
+lemma ivt_decreasing_component_1: fixes f::"real \<Rightarrow> real^'n"
+  shows "a \<le> b \<Longrightarrow> \<forall>x\<in>{a .. b}. continuous (at x) f
     \<Longrightarrow> f b$k \<le> y \<Longrightarrow> y \<le> f a$k \<Longrightarrow> \<exists>x\<in>{a..b}. (f x)$k = y"
 by(rule ivt_decreasing_component_on_1)
   (auto simp: continuous_at_imp_continuous_on)
@@ -3037,7 +2982,7 @@ lemma not_in_path_image_join:
 lemma simple_path_reversepath: assumes "simple_path g" shows "simple_path (reversepath g)"
   using assms unfolding simple_path_def reversepath_def apply- apply(rule ballI)+
   apply(erule_tac x="1-x" in ballE, erule_tac x="1-y" in ballE)
-  unfolding mem_interval_1 by auto
+  by auto
 
 lemma simple_path_join_loop:
   assumes "injective_path g1" "injective_path g2" "pathfinish g2 = pathstart g1"
@@ -3050,36 +2995,36 @@ unfolding simple_path_def proof((rule ballI)+, rule impI) let ?g = "g1 +++ g2"
     assume as:"x \<le> 1 / 2" "y \<le> 1 / 2"
     hence "g1 (2 *\<^sub>R x) = g1 (2 *\<^sub>R y)" using xy(3) unfolding joinpaths_def by auto
     moreover have "2 *\<^sub>R x \<in> {0..1}" "2 *\<^sub>R y \<in> {0..1}" using xy(1,2) as
-      unfolding mem_interval_1 by auto
+      by auto
     ultimately show ?thesis using inj(1)[of "2*\<^sub>R x" "2*\<^sub>R y"] by auto
   next assume as:"x > 1 / 2" "y > 1 / 2"
     hence "g2 (2 *\<^sub>R x - 1) = g2 (2 *\<^sub>R y - 1)" using xy(3) unfolding joinpaths_def by auto
-    moreover have "2 *\<^sub>R x - 1 \<in> {0..1}" "2 *\<^sub>R y - 1 \<in> {0..1}" using xy(1,2) as unfolding mem_interval_1 by auto
+    moreover have "2 *\<^sub>R x - 1 \<in> {0..1}" "2 *\<^sub>R y - 1 \<in> {0..1}" using xy(1,2) as by auto
     ultimately show ?thesis using inj(2)[of "2*\<^sub>R x - 1" "2*\<^sub>R y - 1"] by auto
   next assume as:"x \<le> 1 / 2" "y > 1 / 2"
     hence "?g x \<in> path_image g1" "?g y \<in> path_image g2" unfolding path_image_def joinpaths_def
-      using xy(1,2)[unfolded mem_interval_1] by auto
+      using xy(1,2) by auto
     moreover have "?g y \<noteq> pathstart g2" using as(2) unfolding pathstart_def joinpaths_def
-      using inj(2)[of "2 *\<^sub>R y - 1" 0] and xy(2)[unfolded mem_interval_1]
+      using inj(2)[of "2 *\<^sub>R y - 1" 0] and xy(2)
       by (auto simp add: field_simps)
     ultimately have *:"?g x = pathstart g1" using assms(4) unfolding xy(3) by auto
-    hence "x = 0" unfolding pathstart_def joinpaths_def using as(1) and xy(1)[unfolded mem_interval_1]
+    hence "x = 0" unfolding pathstart_def joinpaths_def using as(1) and xy(1)
       using inj(1)[of "2 *\<^sub>R x" 0] by auto
     moreover have "y = 1" using * unfolding xy(3) assms(3)[THEN sym]
-      unfolding joinpaths_def pathfinish_def using as(2) and xy(2)[unfolded mem_interval_1]
+      unfolding joinpaths_def pathfinish_def using as(2) and xy(2)
       using inj(2)[of "2 *\<^sub>R y - 1" 1] by auto
     ultimately show ?thesis by auto
   next assume as:"x > 1 / 2" "y \<le> 1 / 2"
     hence "?g x \<in> path_image g2" "?g y \<in> path_image g1" unfolding path_image_def joinpaths_def
-      using xy(1,2)[unfolded mem_interval_1] by auto
+      using xy(1,2) by auto
     moreover have "?g x \<noteq> pathstart g2" using as(1) unfolding pathstart_def joinpaths_def
-      using inj(2)[of "2 *\<^sub>R x - 1" 0] and xy(1)[unfolded mem_interval_1]
+      using inj(2)[of "2 *\<^sub>R x - 1" 0] and xy(1)
       by (auto simp add: field_simps)
     ultimately have *:"?g y = pathstart g1" using assms(4) unfolding xy(3) by auto
-    hence "y = 0" unfolding pathstart_def joinpaths_def using as(2) and xy(2)[unfolded mem_interval_1]
+    hence "y = 0" unfolding pathstart_def joinpaths_def using as(2) and xy(2)
       using inj(1)[of "2 *\<^sub>R y" 0] by auto
     moreover have "x = 1" using * unfolding xy(3)[THEN sym] assms(3)[THEN sym]
-      unfolding joinpaths_def pathfinish_def using as(1) and xy(1)[unfolded mem_interval_1]
+      unfolding joinpaths_def pathfinish_def using as(1) and xy(1)
       using inj(2)[of "2 *\<^sub>R x - 1" 1] by auto
     ultimately show ?thesis by auto qed qed
 
@@ -3092,22 +3037,22 @@ lemma injective_path_join:
   fix x y assume xy:"x \<in> {0..1}" "y \<in> {0..1}" "(g1 +++ g2) x = (g1 +++ g2) y"
   show "x = y" proof(cases "x \<le> 1/2", case_tac[!] "y \<le> 1/2", unfold not_le)
     assume "x \<le> 1 / 2" "y \<le> 1 / 2" thus ?thesis using inj(1)[of "2*\<^sub>R x" "2*\<^sub>R y"] and xy
-      unfolding mem_interval_1 joinpaths_def by auto
+      unfolding joinpaths_def by auto
   next assume "x > 1 / 2" "y > 1 / 2" thus ?thesis using inj(2)[of "2*\<^sub>R x - 1" "2*\<^sub>R y - 1"] and xy
-      unfolding mem_interval_1 joinpaths_def by auto
+      unfolding joinpaths_def by auto
   next assume as:"x \<le> 1 / 2" "y > 1 / 2" 
     hence "?g x \<in> path_image g1" "?g y \<in> path_image g2" unfolding path_image_def joinpaths_def
-      using xy(1,2)[unfolded mem_interval_1] by auto
+      using xy(1,2) by auto
     hence "?g x = pathfinish g1" "?g y = pathstart g2" using assms(4) unfolding assms(3) xy(3) by auto
     thus ?thesis using as and inj(1)[of "2 *\<^sub>R x" 1] inj(2)[of "2 *\<^sub>R y - 1" 0] and xy(1,2)
-      unfolding pathstart_def pathfinish_def joinpaths_def mem_interval_1
+      unfolding pathstart_def pathfinish_def joinpaths_def
       by auto
   next assume as:"x > 1 / 2" "y \<le> 1 / 2" 
     hence "?g x \<in> path_image g2" "?g y \<in> path_image g1" unfolding path_image_def joinpaths_def
-      using xy(1,2)[unfolded mem_interval_1] by auto
+      using xy(1,2) by auto
     hence "?g x = pathstart g2" "?g y = pathfinish g1" using assms(4) unfolding assms(3) xy(3) by auto
     thus ?thesis using as and inj(2)[of "2 *\<^sub>R x - 1" 0] inj(1)[of "2 *\<^sub>R y" 1] and xy(1,2)
-      unfolding pathstart_def pathfinish_def joinpaths_def mem_interval_1
+      unfolding pathstart_def pathfinish_def joinpaths_def
       by auto qed qed
 
 lemmas join_paths_simps = path_join path_image_join pathstart_join pathfinish_join
@@ -3178,8 +3123,7 @@ lemma pathfinish_linepath[simp]: "pathfinish(linepath a b) = b"
   unfolding pathfinish_def linepath_def by auto
 
 lemma continuous_linepath_at[intro]: "continuous (at x) (linepath a b)"
-  unfolding linepath_def
-  by (intro continuous_intros continuous_dest_vec1)
+  unfolding linepath_def by (intro continuous_intros)
 
 lemma continuous_on_linepath[intro]: "continuous_on s (linepath a b)"
   using continuous_linepath_at by(auto intro!: continuous_at_imp_continuous_on)

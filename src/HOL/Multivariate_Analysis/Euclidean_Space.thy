@@ -12,56 +12,6 @@ imports
 uses "positivstellensatz.ML" ("normarith.ML")
 begin
 
-text{* Some common special cases.*}
-
-lemma forall_1[simp]: "(\<forall>i::1. P i) \<longleftrightarrow> P 1"
-  by (metis num1_eq_iff)
-
-lemma ex_1[simp]: "(\<exists>x::1. P x) \<longleftrightarrow> P 1"
-  by auto (metis num1_eq_iff)
-
-lemma exhaust_2:
-  fixes x :: 2 shows "x = 1 \<or> x = 2"
-proof (induct x)
-  case (of_int z)
-  then have "0 <= z" and "z < 2" by simp_all
-  then have "z = 0 | z = 1" by arith
-  then show ?case by auto
-qed
-
-lemma forall_2: "(\<forall>i::2. P i) \<longleftrightarrow> P 1 \<and> P 2"
-  by (metis exhaust_2)
-
-lemma exhaust_3:
-  fixes x :: 3 shows "x = 1 \<or> x = 2 \<or> x = 3"
-proof (induct x)
-  case (of_int z)
-  then have "0 <= z" and "z < 3" by simp_all
-  then have "z = 0 \<or> z = 1 \<or> z = 2" by arith
-  then show ?case by auto
-qed
-
-lemma forall_3: "(\<forall>i::3. P i) \<longleftrightarrow> P 1 \<and> P 2 \<and> P 3"
-  by (metis exhaust_3)
-
-lemma UNIV_1: "UNIV = {1::1}"
-  by (auto simp add: num1_eq_iff)
-
-lemma UNIV_2: "UNIV = {1::2, 2::2}"
-  using exhaust_2 by auto
-
-lemma UNIV_3: "UNIV = {1::3, 2::3, 3::3}"
-  using exhaust_3 by auto
-
-lemma setsum_1: "setsum f (UNIV::1 set) = f 1"
-  unfolding UNIV_1 by simp
-
-lemma setsum_2: "setsum f (UNIV::2 set) = f 1 + f 2"
-  unfolding UNIV_2 by simp
-
-lemma setsum_3: "setsum f (UNIV::3 set) = f 1 + f 2 + f 3"
-  unfolding UNIV_3 by (simp add: add_ac)
-
 subsection{* Basic componentwise operations on vectors. *}
 
 instantiation cart :: (plus,finite) plus
@@ -114,7 +64,7 @@ begin
   instance by (intro_classes)
 end
 
-text{* The ordering on @{typ "real^1"} is linear. *}
+text{* The ordering on one-dimensional vectors is linear. *}
 
 class cart_one = assumes UNIV_one: "card (UNIV \<Colon> 'a set) = Suc 0"
 begin
@@ -122,11 +72,6 @@ begin
   proof from UNIV_one show "finite (UNIV :: 'a set)"
       by (auto intro!: card_ge_0_finite) qed
 end
-
-instantiation num1 :: cart_one begin
-instance proof
-  show "CARD(1) = Suc 0" by auto
-qed end
 
 instantiation cart :: (linorder,cart_one) linorder begin
 instance proof
@@ -667,26 +612,6 @@ next
   show ?case by (simp add: h)
 qed
 
-subsection{* The collapse of the general concepts to dimension one. *}
-
-lemma vector_one: "(x::'a ^1) = (\<chi> i. (x$1))"
-  by (simp add: Cart_eq)
-
-lemma forall_one: "(\<forall>(x::'a ^1). P x) \<longleftrightarrow> (\<forall>x. P(\<chi> i. x))"
-  apply auto
-  apply (erule_tac x= "x$1" in allE)
-  apply (simp only: vector_one[symmetric])
-  done
-
-lemma norm_vector_1: "norm (x :: _^1) = norm (x$1)"
-  by (simp add: norm_vector_def UNIV_1)
-
-lemma norm_real: "norm(x::real ^ 1) = abs(x$1)"
-  by (simp add: norm_vector_1)
-
-lemma dist_real: "dist(x::real ^ 1) y = abs((x$1) - (y$1))"
-  by (auto simp add: norm_real dist_norm)
-
 subsection {* A connectedness or intermediate value lemma with several applications. *}
 
 lemma connected_real_lemma:
@@ -747,7 +672,7 @@ proof-
     ultimately show ?thesis using alb by metis
 qed
 
-text{* One immediately useful corollary is the existence of square roots! --- Should help to get rid of all the development of square-root for reals as a special case @{typ "real^1"} *}
+text{* One immediately useful corollary is the existence of square roots! --- Should help to get rid of all the development of square-root for reals as a special case *}
 
 lemma square_bound_lemma: "(x::real) < (1 + x) * (1 + x)"
 proof-
@@ -1363,67 +1288,6 @@ lemma orthogonal_clauses:
 
 lemma orthogonal_commute: "orthogonal (x::real ^'n)y \<longleftrightarrow> orthogonal y x"
   by (simp add: orthogonal_def inner_commute)
-
-subsection{* Explicit vector construction from lists. *}
-
-primrec from_nat :: "nat \<Rightarrow> 'a::{monoid_add,one}"
-where "from_nat 0 = 0" | "from_nat (Suc n) = 1 + from_nat n"
-
-lemma from_nat [simp]: "from_nat = of_nat"
-by (rule ext, induct_tac x, simp_all)
-
-primrec
-  list_fun :: "nat \<Rightarrow> _ list \<Rightarrow> _ \<Rightarrow> _"
-where
-  "list_fun n [] = (\<lambda>x. 0)"
-| "list_fun n (x # xs) = fun_upd (list_fun (Suc n) xs) (from_nat n) x"
-
-definition "vector l = (\<chi> i. list_fun 1 l i)"
-(*definition "vector l = (\<chi> i. if i <= length l then l ! (i - 1) else 0)"*)
-
-lemma vector_1: "(vector[x]) $1 = x"
-  unfolding vector_def by simp
-
-lemma vector_2:
- "(vector[x,y]) $1 = x"
- "(vector[x,y] :: 'a^2)$2 = (y::'a::zero)"
-  unfolding vector_def by simp_all
-
-lemma vector_3:
- "(vector [x,y,z] ::('a::zero)^3)$1 = x"
- "(vector [x,y,z] ::('a::zero)^3)$2 = y"
- "(vector [x,y,z] ::('a::zero)^3)$3 = z"
-  unfolding vector_def by simp_all
-
-lemma forall_vector_1: "(\<forall>v::'a::zero^1. P v) \<longleftrightarrow> (\<forall>x. P(vector[x]))"
-  apply auto
-  apply (erule_tac x="v$1" in allE)
-  apply (subgoal_tac "vector [v$1] = v")
-  apply simp
-  apply (vector vector_def)
-  apply simp
-  done
-
-lemma forall_vector_2: "(\<forall>v::'a::zero^2. P v) \<longleftrightarrow> (\<forall>x y. P(vector[x, y]))"
-  apply auto
-  apply (erule_tac x="v$1" in allE)
-  apply (erule_tac x="v$2" in allE)
-  apply (subgoal_tac "vector [v$1, v$2] = v")
-  apply simp
-  apply (vector vector_def)
-  apply (simp add: forall_2)
-  done
-
-lemma forall_vector_3: "(\<forall>v::'a::zero^3. P v) \<longleftrightarrow> (\<forall>x y z. P(vector[x, y, z]))"
-  apply auto
-  apply (erule_tac x="v$1" in allE)
-  apply (erule_tac x="v$2" in allE)
-  apply (erule_tac x="v$3" in allE)
-  apply (subgoal_tac "vector [v$1, v$2, v$3] = v")
-  apply simp
-  apply (vector vector_def)
-  apply (simp add: forall_3)
-  done
 
 subsection{* Linear functions. *}
 
@@ -2216,33 +2080,6 @@ lemma onorm_triangle_lt: "linear (f::real ^'n \<Rightarrow> real ^'m) \<Longrigh
   apply (rule onorm_triangle)
   by assumption+
 
-(* "lift" from 'a to 'a^1 and "drop" from 'a^1 to 'a -- FIXME: potential use of transfer *)
-
-abbreviation vec1:: "'a \<Rightarrow> 'a ^ 1" where "vec1 x \<equiv> vec x"
-
-abbreviation dest_vec1:: "'a ^1 \<Rightarrow> 'a"
-  where "dest_vec1 x \<equiv> (x$1)"
-
-lemma vec1_component[simp]: "(vec1 x)$1 = x"
-  by simp
-
-lemma vec1_dest_vec1: "vec1(dest_vec1 x) = x" "dest_vec1(vec1 y) = y"
-  by (simp_all add:  Cart_eq)
-
-declare vec1_dest_vec1(1) [simp]
-
-lemma forall_vec1: "(\<forall>x. P x) \<longleftrightarrow> (\<forall>x. P (vec1 x))"
-  by (metis vec1_dest_vec1(1))
-
-lemma exists_vec1: "(\<exists>x. P x) \<longleftrightarrow> (\<exists>x. P(vec1 x))"
-  by (metis vec1_dest_vec1(1))
-
-lemma vec1_eq[simp]:  "vec1 x = vec1 y \<longleftrightarrow> x = y"
-  by (metis vec1_dest_vec1(2))
-
-lemma dest_vec1_eq[simp]: "dest_vec1 x = dest_vec1 y \<longleftrightarrow> x = y"
-  by (metis vec1_dest_vec1(1))
-
 lemma vec_in_image_vec: "vec x \<in> (vec ` S) \<longleftrightarrow> x \<in> S" by auto
 
 lemma vec_add: "vec(x + y) = vec x + vec y"  by (vector vec_def)
@@ -2250,78 +2087,11 @@ lemma vec_sub: "vec(x - y) = vec x - vec y" by (vector vec_def)
 lemma vec_cmul: "vec(c* x) = c *s vec x " by (vector vec_def)
 lemma vec_neg: "vec(- x) = - vec x " by (vector vec_def)
 
-lemma range_vec1[simp]:"range vec1 = UNIV" apply(rule set_ext,rule) unfolding image_iff defer
-  apply(rule_tac x="dest_vec1 x" in bexI) by auto
-
 lemma vec_setsum: assumes fS: "finite S"
   shows "vec(setsum f S) = setsum (vec o f) S"
   apply (induct rule: finite_induct[OF fS])
   apply (simp)
   apply (auto simp add: vec_add)
-  done
-
-lemma dest_vec1_lambda: "dest_vec1(\<chi> i. x i) = x 1"
-  by (simp)
-
-lemma dest_vec1_vec: "dest_vec1(vec x) = x"
-  by (simp)
-
-lemma dest_vec1_sum: assumes fS: "finite S"
-  shows "dest_vec1(setsum f S) = setsum (dest_vec1 o f) S"
-  apply (induct rule: finite_induct[OF fS])
-  apply simp
-  apply auto
-  done
-
-lemma norm_vec1: "norm(vec1 x) = abs(x)"
-  by (simp add: vec_def norm_real)
-
-lemma dist_vec1: "dist(vec1 x) (vec1 y) = abs(x - y)"
-  by (simp only: dist_real vec1_component)
-lemma abs_dest_vec1: "norm x = \<bar>dest_vec1 x\<bar>"
-  by (metis vec1_dest_vec1(1) norm_vec1)
-
-lemmas vec1_dest_vec1_simps = forall_vec1 vec_add[THEN sym] dist_vec1 vec_sub[THEN sym] vec1_dest_vec1 norm_vec1 vector_smult_component
-   vec1_eq vec_cmul[THEN sym] smult_conv_scaleR[THEN sym] o_def dist_real_def norm_vec1 real_norm_def
-
-lemma bounded_linear_vec1:"bounded_linear (vec1::real\<Rightarrow>real^1)"
-  unfolding bounded_linear_def additive_def bounded_linear_axioms_def 
-  unfolding smult_conv_scaleR[THEN sym] unfolding vec1_dest_vec1_simps
-  apply(rule conjI) defer apply(rule conjI) defer apply(rule_tac x=1 in exI) by auto
-
-lemma linear_vmul_dest_vec1:
-  fixes f:: "'a::semiring_1^_ \<Rightarrow> 'a^1"
-  shows "linear f \<Longrightarrow> linear (\<lambda>x. dest_vec1(f x) *s v)"
-  apply (rule linear_vmul_component)
-  by auto
-
-lemma linear_from_scalars:
-  assumes lf: "linear (f::'a::comm_ring_1 ^1 \<Rightarrow> 'a^_)"
-  shows "f = (\<lambda>x. dest_vec1 x *s column 1 (matrix f))"
-  apply (rule ext)
-  apply (subst matrix_works[OF lf, symmetric])
-  apply (auto simp add: Cart_eq matrix_vector_mult_def column_def  mult_commute UNIV_1)
-  done
-
-lemma linear_to_scalars: assumes lf: "linear (f::real ^'n \<Rightarrow> real^1)"
-  shows "f = (\<lambda>x. vec1(row 1 (matrix f) \<bullet> x))"
-  apply (rule ext)
-  apply (subst matrix_works[OF lf, symmetric])
-  apply (simp add: Cart_eq matrix_vector_mult_def row_def inner_vector_def mult_commute)
-  done
-
-lemma dest_vec1_eq_0: "dest_vec1 x = 0 \<longleftrightarrow> x = 0"
-  by (simp add: dest_vec1_eq[symmetric])
-
-lemma setsum_scalars: assumes fS: "finite S"
-  shows "setsum f S = vec1 (setsum (dest_vec1 o f) S)"
-  unfolding vec_setsum[OF fS] by simp
-
-lemma dest_vec1_wlog_le: "(\<And>(x::'a::linorder ^ 1) y. P x y \<longleftrightarrow> P y x)  \<Longrightarrow> (\<And>x y. dest_vec1 x <= dest_vec1 y ==> P x y) \<Longrightarrow> P x y"
-  apply (cases "dest_vec1 x \<le> dest_vec1 y")
-  apply simp
-  apply (subgoal_tac "dest_vec1 y \<le> dest_vec1 x")
-  apply (auto)
   done
 
 text{* Pasting vectors. *}
