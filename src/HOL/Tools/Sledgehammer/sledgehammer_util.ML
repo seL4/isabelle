@@ -38,7 +38,6 @@ fun replace_all bef aft =
         else
           aux (String.sub (s, 0) :: seen) (String.extract (s, 1, NONE))
   in aux [] end
-
 fun remove_all bef = replace_all bef ""
 
 val timestamp = Date.fmt "%Y-%m-%d %H:%M:%S" o Date.fromTimeLocal o Time.now

@@ -68,7 +68,7 @@ fun sledgehammer_test_theorems (params as {full_types, ...} : params) prover
 (* minimalization of thms *)
 
 fun minimize_theorems (params as {debug, atps, minimize_timeout, isar_proof,
-                                  modulus, sorts, ...})
+                                  shrink_factor, sorts, ...})
                       i state name_thms_pairs =
   let
     val thy = Proof.theory_of state
@@ -92,8 +92,8 @@ fun minimize_theorems (params as {debug, atps, minimize_timeout, isar_proof,
   in
     (* try prove first to check result and get used theorems *)
     (case test_thms_fun NONE name_thms_pairs of
-      result as {outcome = NONE, pool, internal_thm_names, filtered_clauses,
-                 ...} =>
+      result as {outcome = NONE, pool, internal_thm_names, conjecture_shape,
+                 filtered_clauses, ...} =>
         let
           val used = internal_thm_names |> Vector.foldr (op ::) []
                                         |> sort_distinct string_ord
@@ -110,7 +110,9 @@ fun minimize_theorems (params as {debug, atps, minimize_timeout, isar_proof,
             ["Minimized: " ^ string_of_int n ^ " theorem" ^ plural_s n] ^ ".")
         in
           (SOME min_thms,
-           proof_text isar_proof pool debug modulus sorts ctxt
+           proof_text isar_proof
+                      (pool, debug, shrink_factor, sorts, ctxt,
+                       conjecture_shape)
                       (K "", proof, internal_thm_names, goal, i) |> fst)
         end
     | {outcome = SOME TimedOut, ...} =>
