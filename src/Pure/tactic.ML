@@ -188,9 +188,6 @@ fun innermost_params i st =
   let val (_, _, Bi, _) = dest_state (st, i)
   in Term.rename_wrt_term Bi (Logic.strip_params Bi) end;
 
-(*params of subgoal i as they are printed*)
-fun params_of_state i st = rev (innermost_params i st);
-
 
 (*** Applications of cut_rl ***)
 

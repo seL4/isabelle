@@ -65,6 +65,30 @@ Proof commands perform transitions of Isar/VM machine
 }
 \isamarkuptrue%
 %
+\isamarkupsubsection{Example proofs%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{}{command}{example\_proof}\hypertarget{command.example-proof}{\hyperlink{command.example-proof}{\mbox{\isa{\isacommand{example{\isacharunderscore}proof}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ proof{\isacharparenleft}state{\isacharparenright}{\isachardoublequote}} \\
+  \end{matharray}
+
+  \begin{description}
+
+  \item \hyperlink{command.example-proof}{\mbox{\isa{\isacommand{example{\isacharunderscore}proof}}}} opens an empty proof body.  This
+  allows to experiment with Isar, without producing any persistent
+  result.
+
+  Structurally, this is like a vacous \hyperlink{command.lemma}{\mbox{\isa{\isacommand{lemma}}}} statement
+  followed by ``\hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isachardoublequote}{\isacharminus}{\isachardoublequote}}'', which means the
+  example proof may be closed by a regular \hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}}, or
+  discontinued by \hyperlink{command.oops}{\mbox{\isa{\isacommand{oops}}}}.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsubsection{Blocks%
 }
 \isamarkuptrue%

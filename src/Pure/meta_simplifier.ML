@@ -834,7 +834,6 @@ fun check_conv msg ss thm thm' =
   in if msg then trace_thm (fn () => "SUCCEEDED") ss thm' else (); SOME thm'' end
   handle THM _ =>
     let
-      val thy = Thm.theory_of_thm thm;
       val _ $ _ $ prop0 = Thm.prop_of thm;
     in
       trace_thm (fn () => "Proved wrong thm (Check subgoaler?)") ss thm';
