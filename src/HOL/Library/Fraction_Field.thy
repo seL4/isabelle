@@ -267,7 +267,7 @@ qed
 
 end
 
-instance fract :: (idom) division_by_zero
+instance fract :: (idom) division_ring_inverse_zero
 proof
   show "inverse 0 = (0:: 'a fract)" by (simp add: fract_expand)
     (simp add: fract_collapse)
@@ -450,7 +450,7 @@ proof
         by simp
       with F have "(a * d) * (b * d) * ?F * ?F \<le> (c * b) * (b * d) * ?F * ?F"
         by (simp add: mult_le_cancel_right)
-      with neq show ?thesis by (simp add: ring_simps)
+      with neq show ?thesis by (simp add: field_simps)
     qed
   qed
   show "q < r ==> 0 < s ==> s * q < s * r"

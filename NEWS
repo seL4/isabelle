@@ -119,8 +119,12 @@ terms may need to be adapted.
 *** HOL ***
 
 * Abstract algebra:
-  * class division_by_zero includes division_ring;
+  * classes division_ring_inverse_zero, field_inverse_zero, linordered_field_inverse_zero
+    include rule inverse 0 = 0 -- subsumes former division_by_zero class.
   * numerous lemmas have been ported from field to division_ring;
+  * dropped theorem group group_simps, use algebra_simps instead;
+  * dropped theorem group ring_simps, use field_simps instead;
+  * proper theorem collection field_simps subsumes former theorem groups field_eq_simps and field_simps;
   * dropped lemma eq_minus_self_iff which is a duplicate for equal_neg_zero.
 
   INCOMPATIBILITY.
