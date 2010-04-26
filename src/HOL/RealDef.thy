@@ -279,7 +279,7 @@ text{*Inverse of zero!  Useful to simplify certain equations*}
 lemma INVERSE_ZERO: "inverse 0 = (0::real)"
 by (simp add: real_inverse_def)
 
-instance real :: division_by_zero
+instance real :: division_ring_inverse_zero
 proof
   show "inverse 0 = (0::real)" by (rule INVERSE_ZERO)
 qed

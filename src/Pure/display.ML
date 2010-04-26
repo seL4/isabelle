@@ -182,7 +182,8 @@ fun pretty_full_theory verbose thy =
     val extern_const = Name_Space.extern (#1 constants);
     val {classes, default, types, ...} = Type.rep_tsig tsig;
     val (class_space, class_algebra) = classes;
-    val {classes, arities} = Sorts.rep_algebra class_algebra;
+    val classes = Sorts.classes_of class_algebra;
+    val arities = Sorts.arities_of class_algebra;
 
     val clsses = Name_Space.dest_table (class_space, Symtab.make (Graph.dest classes));
     val tdecls = Name_Space.dest_table types;

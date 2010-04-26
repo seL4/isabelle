@@ -381,7 +381,7 @@ lemma summable_geometric:
   shows "norm x < 1 \<Longrightarrow> summable (\<lambda>n. x ^ n)"
 by (rule geometric_sums [THEN sums_summable])
 
-lemma half: "0 < 1 / (2::'a::{number_ring,division_by_zero,linordered_field})"
+lemma half: "0 < 1 / (2::'a::{number_ring,division_ring_inverse_zero,linordered_field})"
   by arith 
 
 lemma power_half_series: "(\<lambda>n. (1/2::real)^Suc n) sums 1"

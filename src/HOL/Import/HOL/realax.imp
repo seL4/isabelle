@@ -101,7 +101,7 @@ thm_maps
   "REAL_LT_MUL" > "Rings.mult_pos_pos"
   "REAL_LT_IADD" > "Groups.add_strict_left_mono"
   "REAL_LDISTRIB" > "Rings.ring_eq_simps_2"
-  "REAL_INV_0" > "Rings.division_by_zero_class.inverse_zero"
+  "REAL_INV_0" > "Rings.division_ring_inverse_zero_class.inverse_zero"
   "REAL_ADD_SYM" > "Finite_Set.AC_add.f.AC_2"
   "REAL_ADD_LINV" > "HOL4Compat.REAL_ADD_LINV"
   "REAL_ADD_LID" > "Finite_Set.AC_add.f_e.left_ident"

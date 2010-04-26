@@ -350,7 +350,7 @@ lemma cong_square_int:
   apply (subst prime_dvd_mult_eq_int [symmetric], assumption)
   (* any way around this? *)
   apply (subgoal_tac "a * a - 1 = (a - 1) * (a - -1)")
-  apply (auto simp add: ring_simps)
+  apply (auto simp add: field_simps)
 done
 
 lemma cong_mult_rcancel_int:
@@ -416,7 +416,7 @@ lemma cong_less_unique_int:
 done
 
 lemma cong_iff_lin_int: "([(a::int) = b] (mod m)) = (\<exists>k. b = a + m * k)"
-  apply (auto simp add: cong_altdef_int dvd_def ring_simps)
+  apply (auto simp add: cong_altdef_int dvd_def field_simps)
   apply (rule_tac [!] x = "-k" in exI, auto)
 done
 
@@ -428,14 +428,14 @@ lemma cong_iff_lin_nat: "([(a::nat) = b] (mod m)) =
   apply (unfold dvd_def, auto)
   apply (rule_tac x = k in exI)
   apply (rule_tac x = 0 in exI)
-  apply (auto simp add: ring_simps)
+  apply (auto simp add: field_simps)
   apply (subst (asm) cong_sym_eq_nat)
   apply (subst (asm) cong_altdef_nat)
   apply force
   apply (unfold dvd_def, auto)
   apply (rule_tac x = 0 in exI)
   apply (rule_tac x = k in exI)
-  apply (auto simp add: ring_simps)
+  apply (auto simp add: field_simps)
   apply (unfold cong_nat_def)
   apply (subgoal_tac "a mod m = (a + k2 * m) mod m")
   apply (erule ssubst)back
@@ -533,7 +533,7 @@ lemma cong_dvd_modulus_nat: "[(x::nat) = y] (mod m) \<Longrightarrow> n dvd m \<
   apply (auto simp add: cong_iff_lin_nat dvd_def)
   apply (rule_tac x="k1 * k" in exI)
   apply (rule_tac x="k2 * k" in exI)
-  apply (simp add: ring_simps)
+  apply (simp add: field_simps)
 done
 
 lemma cong_dvd_modulus_int: "[(x::int) = y] (mod m) \<Longrightarrow> n dvd m \<Longrightarrow> 
@@ -559,7 +559,7 @@ lemma mod_mult_cong_nat: "(a::nat) ~= 0 \<Longrightarrow> b ~= 0
 lemma neg_cong_int: "([(a::int) = b] (mod m)) = ([-a = -b] (mod m))"
   apply (simp add: cong_altdef_int)
   apply (subst dvd_minus_iff [symmetric])
-  apply (simp add: ring_simps)
+  apply (simp add: field_simps)
 done
 
 lemma cong_modulus_neg_int: "([(a::int) = b] (mod m)) = ([a = b] (mod -m))"
@@ -603,7 +603,7 @@ lemma cong_to_1'_nat: "[(a::nat) = 1] (mod n) \<longleftrightarrow>
   apply (unfold dvd_def)
   apply auto [1]
   apply (rule_tac x = k in exI)
-  apply (auto simp add: ring_simps) [1]
+  apply (auto simp add: field_simps) [1]
   apply (subst cong_altdef_nat)
   apply (auto simp add: dvd_def)
 done
@@ -611,7 +611,7 @@ done
 lemma cong_le_nat: "(y::nat) <= x \<Longrightarrow> [x = y] (mod n) \<longleftrightarrow> (\<exists>q. x = q * n + y)"
   apply (subst cong_altdef_nat)
   apply assumption
-  apply (unfold dvd_def, auto simp add: ring_simps)
+  apply (unfold dvd_def, auto simp add: field_simps)
   apply (rule_tac x = k in exI)
   apply auto
 done

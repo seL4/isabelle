@@ -49,7 +49,7 @@ lemma bit_not_1_iff [iff]: "(x::bit) \<noteq> 1 \<longleftrightarrow> x = 0"
 
 subsection {* Type @{typ bit} forms a field *}
 
-instantiation bit :: "{field, division_by_zero}"
+instantiation bit :: "{field, division_ring_inverse_zero}"
 begin
 
 definition plus_bit_def:

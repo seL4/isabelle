@@ -45,7 +45,7 @@ let
   val goals' = map (rpair []) goals
   fun after_qed' thms = after_qed (the_single thms)
 in
-  Proof.theorem_i NONE after_qed' [goals'] ctxt
+  Proof.theorem NONE after_qed' [goals'] ctxt
 end
 
 

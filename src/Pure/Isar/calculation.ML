@@ -13,11 +13,11 @@ sig
   val sym_add: attribute
   val sym_del: attribute
   val symmetric: attribute
-  val also: (Facts.ref * Attrib.src list) list option -> bool -> Proof.state -> Proof.state Seq.seq
-  val also_i: thm list option -> bool -> Proof.state -> Proof.state Seq.seq
-  val finally: (Facts.ref * Attrib.src list) list option -> bool ->
+  val also: thm list option -> bool -> Proof.state -> Proof.state Seq.seq
+  val also_cmd: (Facts.ref * Attrib.src list) list option -> bool -> Proof.state -> Proof.state Seq.seq
+  val finally: thm list option -> bool -> Proof.state -> Proof.state Seq.seq
+  val finally_cmd: (Facts.ref * Attrib.src list) list option -> bool ->
     Proof.state -> Proof.state Seq.seq
-  val finally_i: thm list option -> bool -> Proof.state -> Proof.state Seq.seq
   val moreover: bool -> Proof.state -> Proof.state
   val ultimately: bool -> Proof.state -> Proof.state
 end;
@@ -148,10 +148,10 @@ fun calculate prep_rules final raw_rules int state =
         state |> maintain_calculation final calc))
   end;
 
-val also = calculate Proof.get_thmss false;
-val also_i = calculate (K I) false;
-val finally = calculate Proof.get_thmss true;
-val finally_i = calculate (K I) true;
+val also = calculate (K I) false;
+val also_cmd = calculate Proof.get_thmss_cmd false;
+val finally = calculate (K I) true;
+val finally_cmd = calculate Proof.get_thmss_cmd true;
 
 
 (* moreover and ultimately *)

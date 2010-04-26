@@ -1034,11 +1034,11 @@ proof (induct x y rule: gcd_nat_induct)
     thus "fst (bezw m n) * int m + snd (bezw m n) * int n = int (gcd m n)"
       apply (simp add: bezw_non_0 gcd_non_0_nat)
       apply (erule subst)
-      apply (simp add: ring_simps)
+      apply (simp add: field_simps)
       apply (subst mod_div_equality [of m n, symmetric])
       (* applying simp here undoes the last substitution!
          what is procedure cancel_div_mod? *)
-      apply (simp only: ring_simps zadd_int [symmetric]
+      apply (simp only: field_simps zadd_int [symmetric]
         zmult_int [symmetric])
       done
 qed
@@ -1389,7 +1389,7 @@ proof
   show "lcm (lcm n m) p = lcm n (lcm m p)"
     by (rule lcm_unique_nat [THEN iffD1]) (metis dvd.order_trans lcm_unique_nat)
   show "lcm m n = lcm n m"
-    by (simp add: lcm_nat_def gcd_commute_nat ring_simps)
+    by (simp add: lcm_nat_def gcd_commute_nat field_simps)
 qed
 
 interpretation lcm_int!: abel_semigroup "lcm :: int \<Rightarrow> int \<Rightarrow> int"

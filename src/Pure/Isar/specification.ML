@@ -403,7 +403,7 @@ fun gen_theorem schematic prep_att prep_stmt
     goal_ctxt
     |> ProofContext.note_thmss "" [((Binding.name Auto_Bind.assmsN, []), [(prems, [])])]
     |> snd
-    |> Proof.theorem_i before_qed after_qed' (map snd stmt)
+    |> Proof.theorem before_qed after_qed' (map snd stmt)
     |> (case facts of NONE => I | SOME ths => Proof.refine_insert ths)
     |> tap (fn state => not schematic andalso Proof.schematic_goal state andalso
         error "Illegal schematic goal statement")

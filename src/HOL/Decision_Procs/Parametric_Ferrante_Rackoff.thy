@@ -27,7 +27,7 @@ primrec
   "tmsize (CNP n c a) = 3 + polysize c + tmsize a "
 
   (* Semantics of terms tm *)
-consts Itm :: "'a::{ring_char_0,division_by_zero,field} list \<Rightarrow> 'a list \<Rightarrow> tm \<Rightarrow> 'a"
+consts Itm :: "'a::{ring_char_0,division_ring_inverse_zero,field} list \<Rightarrow> 'a list \<Rightarrow> tm \<Rightarrow> 'a"
 primrec
   "Itm vs bs (CP c) = (Ipoly vs c)"
   "Itm vs bs (Bound n) = bs!n"
@@ -239,7 +239,7 @@ recdef tmadd "measure (\<lambda> (t,s). size t + size s)"
 lemma tmadd[simp]: "Itm vs bs (tmadd (t,s)) = Itm vs bs (Add t s)"
 apply (induct t s rule: tmadd.induct, simp_all add: Let_def)
 apply (case_tac "c1 +\<^sub>p c2 = 0\<^sub>p",case_tac "n1 \<le> n2", simp_all)
-apply (case_tac "n1 = n2", simp_all add: ring_simps)
+apply (case_tac "n1 = n2", simp_all add: field_simps)
 apply (simp only: right_distrib[symmetric]) 
 by (auto simp del: polyadd simp add: polyadd[symmetric])
 
@@ -259,7 +259,7 @@ recdef tmmul "measure size"
   "tmmul t = (\<lambda> i. Mul i t)"
 
 lemma tmmul[simp]: "Itm vs bs (tmmul t i) = Itm vs bs (Mul i t)"
-by (induct t arbitrary: i rule: tmmul.induct, simp_all add: ring_simps)
+by (induct t arbitrary: i rule: tmmul.induct, simp_all add: field_simps)
 
 lemma tmmul_nb0[simp]: "tmbound0 t \<Longrightarrow> tmbound0 (tmmul t i)"
 by (induct t arbitrary: i rule: tmmul.induct, auto )
@@ -270,7 +270,7 @@ lemma tmmul_blt[simp]: "tmboundslt n t \<Longrightarrow> tmboundslt n (tmmul t i
 by (induct t arbitrary: i rule: tmmul.induct, auto simp add: Let_def)
 
 lemma tmmul_allpolys_npoly[simp]: 
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero, field})"
+  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_ring_inverse_zero, field})"
   shows "allpolys isnpoly t \<Longrightarrow> isnpoly c \<Longrightarrow> allpolys isnpoly (tmmul t c)" by (induct t rule: tmmul.induct, simp_all add: Let_def polymul_norm)
 
 definition tmneg :: "tm \<Rightarrow> tm" where
@@ -296,7 +296,7 @@ lemma tmneg_blt[simp]: "tmboundslt n t \<Longrightarrow> tmboundslt n (tmneg t)"
 using tmneg_def by simp
 lemma [simp]: "isnpoly (C (-1,1))" unfolding isnpoly_def by simp
 lemma tmneg_allpolys_npoly[simp]: 
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero, field})"
+  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_ring_inverse_zero, field})"
   shows "allpolys isnpoly t \<Longrightarrow> allpolys isnpoly (tmneg t)" 
   unfolding tmneg_def by auto
 
@@ -310,7 +310,7 @@ using tmsub_def by simp
 lemma tmsub_blt[simp]: "\<lbrakk>tmboundslt n t ; tmboundslt n s\<rbrakk> \<Longrightarrow> tmboundslt n (tmsub t s )"
 using tmsub_def by simp
 lemma tmsub_allpolys_npoly[simp]: 
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero, field})"
+  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_ring_inverse_zero, field})"
   shows "allpolys isnpoly t \<Longrightarrow> allpolys isnpoly s \<Longrightarrow> allpolys isnpoly (tmsub t s)" 
   unfolding tmsub_def by (simp add: isnpoly_def)
 
@@ -324,8 +324,8 @@ recdef simptm "measure size"
   "simptm (CNP n c t) = (let c' = polynate c in if c' = 0\<^sub>p then simptm t else tmadd (CNP n c' (CP 0\<^sub>p ), simptm t))"
 
 lemma polynate_stupid: 
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero, field})"
-  shows "polynate t = 0\<^sub>p \<Longrightarrow> Ipoly bs t = (0::'a::{ring_char_0,division_by_zero, field})" 
+  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_ring_inverse_zero, field})"
+  shows "polynate t = 0\<^sub>p \<Longrightarrow> Ipoly bs t = (0::'a::{ring_char_0,division_ring_inverse_zero, field})" 
 apply (subst polynate[symmetric])
 apply simp
 done
@@ -345,7 +345,7 @@ by (induct t rule: simptm.induct, auto simp add: Let_def)
 lemma [simp]: "isnpoly 0\<^sub>p" and [simp]: "isnpoly (C(1,1))" 
   by (simp_all add: isnpoly_def)
 lemma simptm_allpolys_npoly[simp]: 
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero, field})"
+  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_ring_inverse_zero, field})"
   shows "allpolys isnpoly (simptm p)"
   by (induct p rule: simptm.induct, auto simp add: Let_def)
 
@@ -369,14 +369,14 @@ lemma split0:
   "tmbound 0 (snd (split0 t)) \<and> (Itm vs bs (CNP 0 (fst (split0 t)) (snd (split0 t))) = Itm vs bs t)"
   apply (induct t rule: split0.induct)
   apply simp
-  apply (simp add: Let_def split_def ring_simps)
-  apply (simp add: Let_def split_def ring_simps)
-  apply (simp add: Let_def split_def ring_simps)
-  apply (simp add: Let_def split_def ring_simps)
-  apply (simp add: Let_def split_def ring_simps)
+  apply (simp add: Let_def split_def field_simps)
+  apply (simp add: Let_def split_def field_simps)
+  apply (simp add: Let_def split_def field_simps)
+  apply (simp add: Let_def split_def field_simps)
+  apply (simp add: Let_def split_def field_simps)
   apply (simp add: Let_def split_def mult_assoc right_distrib[symmetric])
-  apply (simp add: Let_def split_def ring_simps)
-  apply (simp add: Let_def split_def ring_simps)
+  apply (simp add: Let_def split_def field_simps)
+  apply (simp add: Let_def split_def field_simps)
   done
 
 lemma split0_ci: "split0 t = (c',t') \<Longrightarrow> Itm vs bs t = Itm vs bs (CNP 0 c' t')"
@@ -387,7 +387,7 @@ proof-
 qed
 
 lemma split0_nb0: 
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero, field})"
+  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_ring_inverse_zero, field})"
   shows "split0 t = (c',t') \<Longrightarrow>  tmbound 0 t'"
 proof-
   fix c' t'
@@ -395,7 +395,7 @@ proof-
   with conjunct1[OF split0[where t="t"]] show "tmbound 0 t'" by simp
 qed
 
-lemma split0_nb0'[simp]:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero, field})"
+lemma split0_nb0'[simp]:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_ring_inverse_zero, field})"
   shows "tmbound0 (snd (split0 t))"
   using split0_nb0[of t "fst (split0 t)" "snd (split0 t)"] by (simp add: tmbound0_tmbound_iff)
 
@@ -418,7 +418,7 @@ lemma tmboundslt0_split0: "tmboundslt 0 t \<Longrightarrow> Ipoly vs (fst(split0
 lemma allpolys_split0: "allpolys isnpoly p \<Longrightarrow> allpolys isnpoly (snd (split0 p))"
 by (induct p rule: split0.induct, auto simp  add: isnpoly_def Let_def split_def split0_stupid)
 
-lemma isnpoly_fst_split0:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero, field})"
+lemma isnpoly_fst_split0:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_ring_inverse_zero, field})"
   shows 
   "allpolys isnpoly p \<Longrightarrow> isnpoly (fst (split0 p))"
   by (induct p rule: split0.induct, 
@@ -447,7 +447,7 @@ lemma fmsize_pos: "fmsize p > 0"
 by (induct p rule: fmsize.induct) simp_all
 
   (* Semantics of formulae (fm) *)
-consts Ifm ::"'a::{division_by_zero,linordered_field} list \<Rightarrow> 'a list \<Rightarrow> fm \<Rightarrow> bool"
+consts Ifm ::"'a::{division_ring_inverse_zero,linordered_field} list \<Rightarrow> 'a list \<Rightarrow> fm \<Rightarrow> bool"
 primrec
   "Ifm vs bs T = True"
   "Ifm vs bs F = False"
@@ -969,24 +969,24 @@ definition "simple t = (let (c,s) = split0 (simptm t) in if c= 0\<^sub>p then le
 definition "simpeq t = (let (c,s) = split0 (simptm t) in if c= 0\<^sub>p then eq s else Eq (CNP 0 c s))"
 definition "simpneq t = (let (c,s) = split0 (simptm t) in if c= 0\<^sub>p then neq s else NEq (CNP 0 c s))"
 
-lemma simplt_islin[simp]:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+lemma simplt_islin[simp]:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_ring_inverse_zero,field})"
   shows "islin (simplt t)"
   unfolding simplt_def 
   using split0_nb0'
 by (auto simp add: lt_lin Let_def split_def isnpoly_fst_split0[OF simptm_allpolys_npoly] islin_stupid allpolys_split0[OF simptm_allpolys_npoly])
   
-lemma simple_islin[simp]:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+lemma simple_islin[simp]:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_ring_inverse_zero,field})"
   shows "islin (simple t)"
   unfolding simple_def 
   using split0_nb0'
 by (auto simp add: Let_def split_def isnpoly_fst_split0[OF simptm_allpolys_npoly] islin_stupid allpolys_split0[OF simptm_allpolys_npoly] le_lin)
-lemma simpeq_islin[simp]:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+lemma simpeq_islin[simp]:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_ring_inverse_zero,field})"
   shows "islin (simpeq t)"
   unfolding simpeq_def 
   using split0_nb0'
 by (auto simp add: Let_def split_def isnpoly_fst_split0[OF simptm_allpolys_npoly] islin_stupid allpolys_split0[OF simptm_allpolys_npoly] eq_lin)
 
-lemma simpneq_islin[simp]:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+lemma simpneq_islin[simp]:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_ring_inverse_zero,field})"
   shows "islin (simpneq t)"
   unfolding simpneq_def 
   using split0_nb0'
@@ -994,7 +994,7 @@ by (auto simp add: Let_def split_def isnpoly_fst_split0[OF simptm_allpolys_npoly
 
 lemma really_stupid: "\<not> (\<forall>c1 s'. (c1, s') \<noteq> split0 s)"
   by (cases "split0 s", auto)
-lemma split0_npoly:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+lemma split0_npoly:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_ring_inverse_zero,field})"
   and n: "allpolys isnpoly t"
   shows "isnpoly (fst (split0 t))" and "allpolys isnpoly (snd (split0 t))"
   using n
@@ -1083,7 +1083,7 @@ lemma neq_nb: "tmbound0 t \<Longrightarrow> bound0 (neq t)"
   apply (case_tac poly, auto)
   done
 
-lemma simplt_nb[simp]:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+lemma simplt_nb[simp]:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_ring_inverse_zero,field})"
   shows "tmbound0 t \<Longrightarrow> bound0 (simplt t)"
   using split0 [of "simptm t" vs bs]
 proof(simp add: simplt_def Let_def split_def)
@@ -1100,7 +1100,7 @@ proof(simp add: simplt_def Let_def split_def)
        fst (split0 (simptm t)) = 0\<^sub>p" by (simp add: simplt_def Let_def split_def lt_nb)
 qed
 
-lemma simple_nb[simp]:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+lemma simple_nb[simp]:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_ring_inverse_zero,field})"
   shows "tmbound0 t \<Longrightarrow> bound0 (simple t)"
   using split0 [of "simptm t" vs bs]
 proof(simp add: simple_def Let_def split_def)
@@ -1117,7 +1117,7 @@ proof(simp add: simple_def Let_def split_def)
        fst (split0 (simptm t)) = 0\<^sub>p" by (simp add: simplt_def Let_def split_def le_nb)
 qed
 
-lemma simpeq_nb[simp]:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+lemma simpeq_nb[simp]:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_ring_inverse_zero,field})"
   shows "tmbound0 t \<Longrightarrow> bound0 (simpeq t)"
   using split0 [of "simptm t" vs bs]
 proof(simp add: simpeq_def Let_def split_def)
@@ -1134,7 +1134,7 @@ proof(simp add: simpeq_def Let_def split_def)
        fst (split0 (simptm t)) = 0\<^sub>p" by (simp add: simpeq_def Let_def split_def eq_nb)
 qed
 
-lemma simpneq_nb[simp]:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+lemma simpneq_nb[simp]:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_ring_inverse_zero,field})"
   shows "tmbound0 t \<Longrightarrow> bound0 (simpneq t)"
   using split0 [of "simptm t" vs bs]
 proof(simp add: simpneq_def Let_def split_def)
@@ -1267,7 +1267,7 @@ recdef simpfm "measure fmsize"
 lemma simpfm[simp]: "Ifm vs bs (simpfm p) = Ifm vs bs p"
 by(induct p arbitrary: bs rule: simpfm.induct, auto)
 
-lemma simpfm_bound0:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+lemma simpfm_bound0:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_ring_inverse_zero,field})"
   shows "bound0 p \<Longrightarrow> bound0 (simpfm p)"
 by (induct p rule: simpfm.induct, auto)
 
@@ -1296,7 +1296,7 @@ by (induct p rule: simpfm.induct, auto simp add: disj_qf imp_qf iff_qf conj_qf n
 lemma disj_lin: "islin p \<Longrightarrow> islin q \<Longrightarrow> islin (disj p q)" by (simp add: disj_def)
 lemma conj_lin: "islin p \<Longrightarrow> islin q \<Longrightarrow> islin (conj p q)" by (simp add: conj_def)
 
-lemma   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+lemma   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_ring_inverse_zero,field})"
   shows "qfree p \<Longrightarrow> islin (simpfm p)" 
   apply (induct p rule: simpfm.induct)
   apply (simp_all add: conj_lin disj_lin)
@@ -1698,11 +1698,11 @@ proof (induct p rule: islin.induct)
   {assume c: "?N c > 0"
       from px pos_less_divide_eq[OF c, where a="x" and b="-?Nt x s"]  
       have px': "x < - ?Nt x s / ?N c" 
-        by (auto simp add: not_less ring_simps) 
+        by (auto simp add: not_less field_simps) 
     {assume y: "y < - ?Nt x s / ?N c" 
       hence "y * ?N c < - ?Nt x s"
         by (simp add: pos_less_divide_eq[OF c, where a="y" and b="-?Nt x s", symmetric])
-      hence "?N c * y + ?Nt x s < 0" by (simp add: ring_simps)
+      hence "?N c * y + ?Nt x s < 0" by (simp add: field_simps)
       hence ?case using tmbound0_I[OF lin(3), where bs="bs" and b="x" and b'="y"] by simp}
     moreover
     {assume y: "y > -?Nt x s / ?N c" 
@@ -1715,11 +1715,11 @@ proof (induct p rule: islin.induct)
   {assume c: "?N c < 0"
       from px neg_divide_less_eq[OF c, where a="x" and b="-?Nt x s"]  
       have px': "x > - ?Nt x s / ?N c" 
-        by (auto simp add: not_less ring_simps) 
+        by (auto simp add: not_less field_simps) 
     {assume y: "y > - ?Nt x s / ?N c" 
       hence "y * ?N c < - ?Nt x s"
         by (simp add: neg_divide_less_eq[OF c, where a="y" and b="-?Nt x s", symmetric])
-      hence "?N c * y + ?Nt x s < 0" by (simp add: ring_simps)
+      hence "?N c * y + ?Nt x s < 0" by (simp add: field_simps)
       hence ?case using tmbound0_I[OF lin(3), where bs="bs" and b="x" and b'="y"] by simp}
     moreover
     {assume y: "y < -?Nt x s / ?N c" 
@@ -1743,11 +1743,11 @@ next
   moreover
   {assume c: "?N c > 0"
       from px pos_le_divide_eq[OF c, where a="x" and b="-?Nt x s"]  
-      have px': "x <= - ?Nt x s / ?N c" by (simp add: not_less ring_simps) 
+      have px': "x <= - ?Nt x s / ?N c" by (simp add: not_less field_simps) 
     {assume y: "y < - ?Nt x s / ?N c" 
       hence "y * ?N c < - ?Nt x s"
         by (simp add: pos_less_divide_eq[OF c, where a="y" and b="-?Nt x s", symmetric])
-      hence "?N c * y + ?Nt x s < 0" by (simp add: ring_simps)
+      hence "?N c * y + ?Nt x s < 0" by (simp add: field_simps)
       hence ?case using tmbound0_I[OF lin(3), where bs="bs" and b="x" and b'="y"] by simp}
     moreover
     {assume y: "y > -?Nt x s / ?N c" 
@@ -1759,11 +1759,11 @@ next
   moreover
   {assume c: "?N c < 0"
       from px neg_divide_le_eq[OF c, where a="x" and b="-?Nt x s"]  
-      have px': "x >= - ?Nt x s / ?N c" by (simp add: ring_simps) 
+      have px': "x >= - ?Nt x s / ?N c" by (simp add: field_simps) 
     {assume y: "y > - ?Nt x s / ?N c" 
       hence "y * ?N c < - ?Nt x s"
         by (simp add: neg_divide_less_eq[OF c, where a="y" and b="-?Nt x s", symmetric])
-      hence "?N c * y + ?Nt x s < 0" by (simp add: ring_simps)
+      hence "?N c * y + ?Nt x s < 0" by (simp add: field_simps)
       hence ?case using tmbound0_I[OF lin(3), where bs="bs" and b="x" and b'="y"] by simp}
     moreover
     {assume y: "y < -?Nt x s / ?N c" 
@@ -1787,7 +1787,7 @@ next
   moreover
   {assume c: "?N c > 0" hence cnz: "?N c \<noteq> 0" by simp
     from px eq_divide_eq[of "x" "-?Nt x s" "?N c"]  cnz
-    have px': "x = - ?Nt x s / ?N c" by (simp add: ring_simps)
+    have px': "x = - ?Nt x s / ?N c" by (simp add: field_simps)
     {assume y: "y < -?Nt x s / ?N c" 
       with ly have eu: "l < - ?Nt x s / ?N c" by auto
       with noS ly yu have th: "- ?Nt x s / ?N c \<ge> u" by (cases "- ?Nt x s / ?N c < u", auto)
@@ -1802,7 +1802,7 @@ next
   moreover
   {assume c: "?N c < 0" hence cnz: "?N c \<noteq> 0" by simp
     from px eq_divide_eq[of "x" "-?Nt x s" "?N c"]  cnz
-    have px': "x = - ?Nt x s / ?N c" by (simp add: ring_simps)
+    have px': "x = - ?Nt x s / ?N c" by (simp add: field_simps)
     {assume y: "y < -?Nt x s / ?N c" 
       with ly have eu: "l < - ?Nt x s / ?N c" by auto
       with noS ly yu have th: "- ?Nt x s / ?N c \<ge> u" by (cases "- ?Nt x s / ?N c < u", auto)
@@ -1829,7 +1829,7 @@ next
   moreover
   {assume c: "?N c \<noteq> 0"
     from yne c eq_divide_eq[of "y" "- ?Nt x s" "?N c"] have ?case
-      by (simp add: ring_simps tmbound0_I[OF lin(3), of vs x bs y] sum_eq[symmetric]) }
+      by (simp add: field_simps tmbound0_I[OF lin(3), of vs x bs y] sum_eq[symmetric]) }
   ultimately show ?case by blast
 qed (auto simp add: nth_pos2 tmbound0_I[where vs=vs and bs="bs" and b="y" and b'="x"] bound0_I[where vs=vs and bs="bs" and b="y" and b'="x"])
 
@@ -1844,7 +1844,7 @@ lemma one_plus_one_nonzero[simp]: "(1::'a::{linordered_field}) + 1 \<noteq> 0"
 
 lemma half_sum_eq: "(u + u) / (1+1) = (u::'a::{linordered_field})" 
 proof-
-  have "(u + u) = (1 + 1) * u" by (simp add: ring_simps)
+  have "(u + u) = (1 + 1) * u" by (simp add: field_simps)
   hence "(u + u) / (1+1) = (1 + 1)*u / (1 + 1)" by simp
   with nonzero_mult_divide_cancel_left[OF one_plus_one_nonzero, of u] show ?thesis by simp
 qed
@@ -1987,7 +1987,7 @@ proof-
     also have "\<dots> \<longleftrightarrow> (1 + 1)*?d * (?a * (-?s / ((1 + 1)*?d)) + ?r) = 0" 
       using d mult_cancel_left[of "(1 + 1)*?d" "(?a * (-?s / ((1 + 1)*?d)) + ?r)" 0] by simp
     also have "\<dots> \<longleftrightarrow> (- ?a * ?s) * ((1 + 1)*?d / ((1 + 1)*?d)) + (1 + 1)*?d*?r= 0"
-      by (simp add: ring_simps right_distrib[of "(1 + 1)*?d"] del: right_distrib)
+      by (simp add: field_simps right_distrib[of "(1 + 1)*?d"] del: right_distrib)
     
     also have "\<dots> \<longleftrightarrow> - (?a * ?s) + (1 + 1)*?d*?r = 0" using d by simp 
     finally have ?thesis using c d 
@@ -2003,7 +2003,7 @@ proof-
     also have "\<dots> \<longleftrightarrow> (1 + 1)*?c * (?a * (-?t / ((1 + 1)*?c)) + ?r) = 0" 
       using c mult_cancel_left[of "(1 + 1)*?c" "(?a * (-?t / ((1 + 1)*?c)) + ?r)" 0] by simp
     also have "\<dots> \<longleftrightarrow> (?a * -?t)* ((1 + 1)*?c) / ((1 + 1)*?c) + (1 + 1)*?c*?r= 0"
-      by (simp add: ring_simps right_distrib[of "(1 + 1)*?c"] del: right_distrib)
+      by (simp add: field_simps right_distrib[of "(1 + 1)*?c"] del: right_distrib)
     also have "\<dots> \<longleftrightarrow> - (?a * ?t) + (1 + 1)*?c*?r = 0" using c by simp 
     finally have ?thesis using c d 
       apply (simp add: r[of "- (?t/ ((1 + 1)*?c))"] msubsteq_def Let_def evaldjf_ex del: one_add_one_is_two)
@@ -2014,19 +2014,19 @@ proof-
   {assume c: "?c \<noteq> 0" and d: "?d\<noteq>0" hence dc: "?c * ?d *(1 + 1) \<noteq> 0" by simp
     from add_frac_eq[OF c d, of "- ?t" "- ?s"]
     have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)" 
-      by (simp add: ring_simps)
+      by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d) # bs) (Eq (CNP 0 a r))" by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)) + ?r = 0" 
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"])
     also have "\<dots> \<longleftrightarrow> ((1 + 1) * ?c * ?d) * (?a * (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)) + ?r) =0 "
       using c d mult_cancel_left[of "(1 + 1) * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ ((1 + 1)*?c*?d)) + ?r" 0] by simp
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + (1 + 1)*?c*?d*?r =0" 
-      using nonzero_mult_divide_cancel_left[OF dc] c d
-      by (simp add: ring_simps diff_divide_distrib del: left_distrib)
+      using nonzero_mult_divide_cancel_left [OF dc] c d
+      by (simp add: algebra_simps diff_divide_distrib del: left_distrib)
     finally  have ?thesis using c d 
-      apply (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"] msubsteq_def Let_def evaldjf_ex ring_simps)
+      apply (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"] msubsteq_def Let_def evaldjf_ex field_simps)
       apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-      apply (simp add: ring_simps)
+      apply (simp add: field_simps)
       done }
   ultimately show ?thesis by blast
 qed
@@ -2075,7 +2075,7 @@ proof-
     also have "\<dots> \<longleftrightarrow> (1 + 1)*?d * (?a * (-?s / ((1 + 1)*?d)) + ?r) \<noteq> 0" 
       using d mult_cancel_left[of "(1 + 1)*?d" "(?a * (-?s / ((1 + 1)*?d)) + ?r)" 0] by simp
     also have "\<dots> \<longleftrightarrow> (- ?a * ?s) * ((1 + 1)*?d / ((1 + 1)*?d)) + (1 + 1)*?d*?r\<noteq> 0"
-      by (simp add: ring_simps right_distrib[of "(1 + 1)*?d"] del: right_distrib)
+      by (simp add: field_simps right_distrib[of "(1 + 1)*?d"] del: right_distrib)
     
     also have "\<dots> \<longleftrightarrow> - (?a * ?s) + (1 + 1)*?d*?r \<noteq> 0" using d by simp 
     finally have ?thesis using c d 
@@ -2091,7 +2091,7 @@ proof-
     also have "\<dots> \<longleftrightarrow> (1 + 1)*?c * (?a * (-?t / ((1 + 1)*?c)) + ?r) \<noteq> 0" 
       using c mult_cancel_left[of "(1 + 1)*?c" "(?a * (-?t / ((1 + 1)*?c)) + ?r)" 0] by simp
     also have "\<dots> \<longleftrightarrow> (?a * -?t)* ((1 + 1)*?c) / ((1 + 1)*?c) + (1 + 1)*?c*?r \<noteq> 0"
-      by (simp add: ring_simps right_distrib[of "(1 + 1)*?c"] del: right_distrib)
+      by (simp add: field_simps right_distrib[of "(1 + 1)*?c"] del: right_distrib)
     also have "\<dots> \<longleftrightarrow> - (?a * ?t) + (1 + 1)*?c*?r \<noteq> 0" using c by simp 
     finally have ?thesis using c d 
       apply (simp add: r[of "- (?t/ ((1 + 1)*?c))"] msubstneq_def Let_def evaldjf_ex del: one_add_one_is_two)
@@ -2102,7 +2102,7 @@ proof-
   {assume c: "?c \<noteq> 0" and d: "?d\<noteq>0" hence dc: "?c * ?d *(1 + 1) \<noteq> 0" by simp
     from add_frac_eq[OF c d, of "- ?t" "- ?s"]
     have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)" 
-      by (simp add: ring_simps)
+      by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d) # bs) (NEq (CNP 0 a r))" by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)) + ?r \<noteq> 0" 
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"])
@@ -2110,11 +2110,11 @@ proof-
       using c d mult_cancel_left[of "(1 + 1) * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ ((1 + 1)*?c*?d)) + ?r" 0] by simp
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + (1 + 1)*?c*?d*?r \<noteq> 0" 
       using nonzero_mult_divide_cancel_left[OF dc] c d
-      by (simp add: ring_simps diff_divide_distrib del: left_distrib)
+      by (simp add: algebra_simps diff_divide_distrib del: left_distrib)
     finally  have ?thesis using c d 
-      apply (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"] msubstneq_def Let_def evaldjf_ex ring_simps)
+      apply (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"] msubstneq_def Let_def evaldjf_ex field_simps)
       apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-      apply (simp add: ring_simps)
+      apply (simp add: field_simps)
       done }
   ultimately show ?thesis by blast
 qed
@@ -2169,7 +2169,7 @@ proof-
     from dc' have dc'': "\<not> (1 + 1)*?c *?d < 0" by simp
     from add_frac_eq[OF c d, of "- ?t" "- ?s"]
     have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)" 
-      by (simp add: ring_simps)
+      by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d) # bs) (Lt (CNP 0 a r))" by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)) + ?r < 0" 
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"])
@@ -2178,11 +2178,11 @@ proof-
       using dc' dc'' mult_less_cancel_left_disj[of "(1 + 1) * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ ((1 + 1)*?c*?d)) + ?r" 0] by simp
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + (1 + 1)*?c*?d*?r < 0" 
       using nonzero_mult_divide_cancel_left[of "(1 + 1)*?c*?d"] c d
-      by (simp add: ring_simps diff_divide_distrib del: left_distrib)
+      by (simp add: algebra_simps diff_divide_distrib del: left_distrib)
     finally  have ?thesis using dc c d  nc nd dc'
-      apply (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"] msubstlt_def Let_def evaldjf_ex ring_simps lt polyneg_norm polymul_norm) 
+      apply (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm) 
     apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-    by (simp add: ring_simps order_less_not_sym[OF dc])}
+    by (simp add: field_simps order_less_not_sym[OF dc])}
   moreover
   {assume dc: "?c*?d < 0" 
 
@@ -2191,7 +2191,7 @@ proof-
     hence c:"?c \<noteq> 0" and d: "?d\<noteq> 0" by auto
     from add_frac_eq[OF c d, of "- ?t" "- ?s"]
     have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)" 
-      by (simp add: ring_simps)
+      by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d) # bs) (Lt (CNP 0 a r))" by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)) + ?r < 0" 
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"])
@@ -2201,78 +2201,78 @@ proof-
       using dc' order_less_not_sym[OF dc'] mult_less_cancel_left_disj[of "(1 + 1) * ?c * ?d" 0 "?a * (- (?d * ?t + ?c* ?s)/ ((1 + 1)*?c*?d)) + ?r"] by simp
     also have "\<dots> \<longleftrightarrow> ?a * ((?d * ?t + ?c* ?s )) - (1 + 1)*?c*?d*?r < 0" 
       using nonzero_mult_divide_cancel_left[of "(1 + 1)*?c*?d"] c d
-      by (simp add: ring_simps diff_divide_distrib del: left_distrib)
+      by (simp add: algebra_simps diff_divide_distrib del: left_distrib)
     finally  have ?thesis using dc c d  nc nd
-      apply (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"] msubstlt_def Let_def evaldjf_ex ring_simps lt polyneg_norm polymul_norm) 
+      apply (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm) 
       apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-      by (simp add: ring_simps order_less_not_sym[OF dc]) }
+      by (simp add: field_simps order_less_not_sym[OF dc]) }
   moreover
   {assume c: "?c > 0" and d: "?d=0"  
     from c have c'': "(1 + 1)*?c > 0" by (simp add: zero_less_mult_iff)
     from c have c': "(1 + 1)*?c \<noteq> 0" by simp
-    from d have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?t / ((1 + 1)*?c)"  by (simp add: ring_simps)
+    from d have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?t / ((1 + 1)*?c)"  by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- ?t / ((1 + 1)*?c) # bs) (Lt (CNP 0 a r))" by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a* (- ?t / ((1 + 1)*?c))+ ?r < 0" by (simp add: r[of "- (?t / ((1 + 1)*?c))"])
     also have "\<dots> \<longleftrightarrow> (1 + 1)*?c * (?a* (- ?t / ((1 + 1)*?c))+ ?r) < 0"
       using c mult_less_cancel_left_disj[of "(1 + 1) * ?c" "?a* (- ?t / ((1 + 1)*?c))+ ?r" 0] c' c'' order_less_not_sym[OF c''] by simp
     also have "\<dots> \<longleftrightarrow> - ?a*?t+  (1 + 1)*?c *?r < 0" 
       using nonzero_mult_divide_cancel_left[OF c'] c
-      by (simp add: ring_simps diff_divide_distrib less_le del: left_distrib)
+      by (simp add: algebra_simps diff_divide_distrib less_le del: left_distrib)
     finally have ?thesis using c d nc nd 
-      apply(simp add: r[of "- (?t / ((1 + 1)*?c))"] msubstlt_def Let_def evaldjf_ex ring_simps lt polyneg_norm polymul_norm)
+      apply(simp add: r[of "- (?t / ((1 + 1)*?c))"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
       apply (simp only: one_add_one_is_two[symmetric] of_int_add)
       using c order_less_not_sym[OF c] less_imp_neq[OF c]
-      by (simp add: ring_simps )  }
+      by (simp add: field_simps )  }
   moreover
   {assume c: "?c < 0" and d: "?d=0"  hence c': "(1 + 1)*?c \<noteq> 0" by simp
     from c have c'': "(1 + 1)*?c < 0" by (simp add: mult_less_0_iff)
-    from d have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?t / ((1 + 1)*?c)"  by (simp add: ring_simps)
+    from d have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?t / ((1 + 1)*?c)"  by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- ?t / ((1 + 1)*?c) # bs) (Lt (CNP 0 a r))" by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a* (- ?t / ((1 + 1)*?c))+ ?r < 0" by (simp add: r[of "- (?t / ((1 + 1)*?c))"])
     also have "\<dots> \<longleftrightarrow> (1 + 1)*?c * (?a* (- ?t / ((1 + 1)*?c))+ ?r) > 0"
       using c order_less_not_sym[OF c''] less_imp_neq[OF c''] c'' mult_less_cancel_left_disj[of "(1 + 1) * ?c" 0 "?a* (- ?t / ((1 + 1)*?c))+ ?r"] by simp
     also have "\<dots> \<longleftrightarrow> ?a*?t -  (1 + 1)*?c *?r < 0" 
       using nonzero_mult_divide_cancel_left[OF c'] c order_less_not_sym[OF c''] less_imp_neq[OF c''] c''
-        by (simp add: ring_simps diff_divide_distrib del:  left_distrib)
+        by (simp add: algebra_simps diff_divide_distrib del:  left_distrib)
     finally have ?thesis using c d nc nd 
-      apply(simp add: r[of "- (?t / ((1 + 1)*?c))"] msubstlt_def Let_def evaldjf_ex ring_simps lt polyneg_norm polymul_norm)
+      apply(simp add: r[of "- (?t / ((1 + 1)*?c))"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
       apply (simp only: one_add_one_is_two[symmetric] of_int_add)
       using c order_less_not_sym[OF c] less_imp_neq[OF c]
-      by (simp add: ring_simps )    }
+      by (simp add: field_simps )    }
   moreover
   moreover
   {assume c: "?c = 0" and d: "?d>0"  
     from d have d'': "(1 + 1)*?d > 0" by (simp add: zero_less_mult_iff)
     from d have d': "(1 + 1)*?d \<noteq> 0" by simp
-    from c have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?s / ((1 + 1)*?d)"  by (simp add: ring_simps)
+    from c have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?s / ((1 + 1)*?d)"  by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- ?s / ((1 + 1)*?d) # bs) (Lt (CNP 0 a r))" by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a* (- ?s / ((1 + 1)*?d))+ ?r < 0" by (simp add: r[of "- (?s / ((1 + 1)*?d))"])
     also have "\<dots> \<longleftrightarrow> (1 + 1)*?d * (?a* (- ?s / ((1 + 1)*?d))+ ?r) < 0"
       using d mult_less_cancel_left_disj[of "(1 + 1) * ?d" "?a* (- ?s / ((1 + 1)*?d))+ ?r" 0] d' d'' order_less_not_sym[OF d''] by simp
     also have "\<dots> \<longleftrightarrow> - ?a*?s+  (1 + 1)*?d *?r < 0" 
       using nonzero_mult_divide_cancel_left[OF d'] d
-      by (simp add: ring_simps diff_divide_distrib less_le del: left_distrib)
+      by (simp add: algebra_simps diff_divide_distrib less_le del: left_distrib)
     finally have ?thesis using c d nc nd 
-      apply(simp add: r[of "- (?s / ((1 + 1)*?d))"] msubstlt_def Let_def evaldjf_ex ring_simps lt polyneg_norm polymul_norm)
+      apply(simp add: r[of "- (?s / ((1 + 1)*?d))"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
       apply (simp only: one_add_one_is_two[symmetric] of_int_add)
       using d order_less_not_sym[OF d] less_imp_neq[OF d]
-      by (simp add: ring_simps )  }
+      by (simp add: field_simps)  }
   moreover
   {assume c: "?c = 0" and d: "?d<0"  hence d': "(1 + 1)*?d \<noteq> 0" by simp
     from d have d'': "(1 + 1)*?d < 0" by (simp add: mult_less_0_iff)
-    from c have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?s / ((1 + 1)*?d)"  by (simp add: ring_simps)
+    from c have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?s / ((1 + 1)*?d)"  by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- ?s / ((1 + 1)*?d) # bs) (Lt (CNP 0 a r))" by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a* (- ?s / ((1 + 1)*?d))+ ?r < 0" by (simp add: r[of "- (?s / ((1 + 1)*?d))"])
     also have "\<dots> \<longleftrightarrow> (1 + 1)*?d * (?a* (- ?s / ((1 + 1)*?d))+ ?r) > 0"
       using d order_less_not_sym[OF d''] less_imp_neq[OF d''] d'' mult_less_cancel_left_disj[of "(1 + 1) * ?d" 0 "?a* (- ?s / ((1 + 1)*?d))+ ?r"] by simp
     also have "\<dots> \<longleftrightarrow> ?a*?s -  (1 + 1)*?d *?r < 0" 
       using nonzero_mult_divide_cancel_left[OF d'] d order_less_not_sym[OF d''] less_imp_neq[OF d''] d''
-        by (simp add: ring_simps diff_divide_distrib del:  left_distrib)
+        by (simp add: algebra_simps diff_divide_distrib del:  left_distrib)
     finally have ?thesis using c d nc nd 
-      apply(simp add: r[of "- (?s / ((1 + 1)*?d))"] msubstlt_def Let_def evaldjf_ex ring_simps lt polyneg_norm polymul_norm)
+      apply(simp add: r[of "- (?s / ((1 + 1)*?d))"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
       apply (simp only: one_add_one_is_two[symmetric] of_int_add)
       using d order_less_not_sym[OF d] less_imp_neq[OF d]
-      by (simp add: ring_simps )    }
+      by (simp add: field_simps )    }
 ultimately show ?thesis by blast
 qed
 
@@ -2325,7 +2325,7 @@ proof-
     from dc' have dc'': "\<not> (1 + 1)*?c *?d < 0" by simp
     from add_frac_eq[OF c d, of "- ?t" "- ?s"]
     have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)" 
-      by (simp add: ring_simps)
+      by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d) # bs) (Le (CNP 0 a r))" by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)) + ?r <= 0" 
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"])
@@ -2334,11 +2334,11 @@ proof-
       using dc' dc'' mult_le_cancel_left[of "(1 + 1) * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ ((1 + 1)*?c*?d)) + ?r" 0] by simp
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + (1 + 1)*?c*?d*?r <= 0" 
       using nonzero_mult_divide_cancel_left[of "(1 + 1)*?c*?d"] c d
-      by (simp add: ring_simps diff_divide_distrib del: left_distrib)
+      by (simp add: algebra_simps diff_divide_distrib del: left_distrib)
     finally  have ?thesis using dc c d  nc nd dc'
-      apply (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"] msubstle_def Let_def evaldjf_ex ring_simps lt polyneg_norm polymul_norm) 
+      apply (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm) 
     apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-    by (simp add: ring_simps order_less_not_sym[OF dc])}
+    by (simp add: field_simps order_less_not_sym[OF dc])}
   moreover
   {assume dc: "?c*?d < 0" 
 
@@ -2347,7 +2347,7 @@ proof-
     hence c:"?c \<noteq> 0" and d: "?d\<noteq> 0" by auto
     from add_frac_eq[OF c d, of "- ?t" "- ?s"]
     have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)" 
-      by (simp add: ring_simps)
+      by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d) # bs) (Le (CNP 0 a r))" by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ ((1 + 1)*?c*?d)) + ?r <= 0" 
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"])
@@ -2357,78 +2357,78 @@ proof-
       using dc' order_less_not_sym[OF dc'] mult_le_cancel_left[of "(1 + 1) * ?c * ?d" 0 "?a * (- (?d * ?t + ?c* ?s)/ ((1 + 1)*?c*?d)) + ?r"] by simp
     also have "\<dots> \<longleftrightarrow> ?a * ((?d * ?t + ?c* ?s )) - (1 + 1)*?c*?d*?r <= 0" 
       using nonzero_mult_divide_cancel_left[of "(1 + 1)*?c*?d"] c d
-      by (simp add: ring_simps diff_divide_distrib del: left_distrib)
+      by (simp add: algebra_simps diff_divide_distrib del: left_distrib)
     finally  have ?thesis using dc c d  nc nd
-      apply (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"] msubstle_def Let_def evaldjf_ex ring_simps lt polyneg_norm polymul_norm) 
+      apply (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / ((1 + 1) * ?c * ?d)"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm) 
       apply (simp only: one_add_one_is_two[symmetric] of_int_add)
-      by (simp add: ring_simps order_less_not_sym[OF dc]) }
+      by (simp add: field_simps order_less_not_sym[OF dc]) }
   moreover
   {assume c: "?c > 0" and d: "?d=0"  
     from c have c'': "(1 + 1)*?c > 0" by (simp add: zero_less_mult_iff)
     from c have c': "(1 + 1)*?c \<noteq> 0" by simp
-    from d have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?t / ((1 + 1)*?c)"  by (simp add: ring_simps)
+    from d have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?t / ((1 + 1)*?c)"  by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- ?t / ((1 + 1)*?c) # bs) (Le (CNP 0 a r))" by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a* (- ?t / ((1 + 1)*?c))+ ?r <= 0" by (simp add: r[of "- (?t / ((1 + 1)*?c))"])
     also have "\<dots> \<longleftrightarrow> (1 + 1)*?c * (?a* (- ?t / ((1 + 1)*?c))+ ?r) <= 0"
       using c mult_le_cancel_left[of "(1 + 1) * ?c" "?a* (- ?t / ((1 + 1)*?c))+ ?r" 0] c' c'' order_less_not_sym[OF c''] by simp
     also have "\<dots> \<longleftrightarrow> - ?a*?t+  (1 + 1)*?c *?r <= 0" 
       using nonzero_mult_divide_cancel_left[OF c'] c
-      by (simp add: ring_simps diff_divide_distrib less_le del: left_distrib)
+      by (simp add: algebra_simps diff_divide_distrib less_le del: left_distrib)
     finally have ?thesis using c d nc nd 
-      apply(simp add: r[of "- (?t / ((1 + 1)*?c))"] msubstle_def Let_def evaldjf_ex ring_simps lt polyneg_norm polymul_norm)
+      apply(simp add: r[of "- (?t / ((1 + 1)*?c))"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
       apply (simp only: one_add_one_is_two[symmetric] of_int_add)
       using c order_less_not_sym[OF c] less_imp_neq[OF c]
-      by (simp add: ring_simps )  }
+      by (simp add: field_simps )  }
   moreover
   {assume c: "?c < 0" and d: "?d=0"  hence c': "(1 + 1)*?c \<noteq> 0" by simp
     from c have c'': "(1 + 1)*?c < 0" by (simp add: mult_less_0_iff)
-    from d have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?t / ((1 + 1)*?c)"  by (simp add: ring_simps)
+    from d have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?t / ((1 + 1)*?c)"  by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- ?t / ((1 + 1)*?c) # bs) (Le (CNP 0 a r))" by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a* (- ?t / ((1 + 1)*?c))+ ?r <= 0" by (simp add: r[of "- (?t / ((1 + 1)*?c))"])
     also have "\<dots> \<longleftrightarrow> (1 + 1)*?c * (?a* (- ?t / ((1 + 1)*?c))+ ?r) >= 0"
       using c order_less_not_sym[OF c''] less_imp_neq[OF c''] c'' mult_le_cancel_left[of "(1 + 1) * ?c" 0 "?a* (- ?t / ((1 + 1)*?c))+ ?r"] by simp
     also have "\<dots> \<longleftrightarrow> ?a*?t -  (1 + 1)*?c *?r <= 0" 
       using nonzero_mult_divide_cancel_left[OF c'] c order_less_not_sym[OF c''] less_imp_neq[OF c''] c''
-        by (simp add: ring_simps diff_divide_distrib del:  left_distrib)
+        by (simp add: algebra_simps diff_divide_distrib del:  left_distrib)
     finally have ?thesis using c d nc nd 
-      apply(simp add: r[of "- (?t / ((1 + 1)*?c))"] msubstle_def Let_def evaldjf_ex ring_simps lt polyneg_norm polymul_norm)
+      apply(simp add: r[of "- (?t / ((1 + 1)*?c))"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
       apply (simp only: one_add_one_is_two[symmetric] of_int_add)
       using c order_less_not_sym[OF c] less_imp_neq[OF c]
-      by (simp add: ring_simps )    }
+      by (simp add: field_simps )    }
   moreover
   moreover
   {assume c: "?c = 0" and d: "?d>0"  
     from d have d'': "(1 + 1)*?d > 0" by (simp add: zero_less_mult_iff)
     from d have d': "(1 + 1)*?d \<noteq> 0" by simp
-    from c have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?s / ((1 + 1)*?d)"  by (simp add: ring_simps)
+    from c have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?s / ((1 + 1)*?d)"  by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- ?s / ((1 + 1)*?d) # bs) (Le (CNP 0 a r))" by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a* (- ?s / ((1 + 1)*?d))+ ?r <= 0" by (simp add: r[of "- (?s / ((1 + 1)*?d))"])
     also have "\<dots> \<longleftrightarrow> (1 + 1)*?d * (?a* (- ?s / ((1 + 1)*?d))+ ?r) <= 0"
       using d mult_le_cancel_left[of "(1 + 1) * ?d" "?a* (- ?s / ((1 + 1)*?d))+ ?r" 0] d' d'' order_less_not_sym[OF d''] by simp
     also have "\<dots> \<longleftrightarrow> - ?a*?s+  (1 + 1)*?d *?r <= 0" 
       using nonzero_mult_divide_cancel_left[OF d'] d
-      by (simp add: ring_simps diff_divide_distrib less_le del: left_distrib)
+      by (simp add: algebra_simps diff_divide_distrib less_le del: left_distrib)
     finally have ?thesis using c d nc nd 
-      apply(simp add: r[of "- (?s / ((1 + 1)*?d))"] msubstle_def Let_def evaldjf_ex ring_simps lt polyneg_norm polymul_norm)
+      apply(simp add: r[of "- (?s / ((1 + 1)*?d))"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
       apply (simp only: one_add_one_is_two[symmetric] of_int_add)
       using d order_less_not_sym[OF d] less_imp_neq[OF d]
-      by (simp add: ring_simps )  }
+      by (simp add: field_simps )  }
   moreover
   {assume c: "?c = 0" and d: "?d<0"  hence d': "(1 + 1)*?d \<noteq> 0" by simp
     from d have d'': "(1 + 1)*?d < 0" by (simp add: mult_less_0_iff)
-    from c have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?s / ((1 + 1)*?d)"  by (simp add: ring_simps)
+    from c have th: "(- ?t / ?c + - ?s / ?d)/(1 + 1) = - ?s / ((1 + 1)*?d)"  by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- ?s / ((1 + 1)*?d) # bs) (Le (CNP 0 a r))" by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a* (- ?s / ((1 + 1)*?d))+ ?r <= 0" by (simp add: r[of "- (?s / ((1 + 1)*?d))"])
     also have "\<dots> \<longleftrightarrow> (1 + 1)*?d * (?a* (- ?s / ((1 + 1)*?d))+ ?r) >= 0"
       using d order_less_not_sym[OF d''] less_imp_neq[OF d''] d'' mult_le_cancel_left[of "(1 + 1) * ?d" 0 "?a* (- ?s / ((1 + 1)*?d))+ ?r"] by simp
     also have "\<dots> \<longleftrightarrow> ?a*?s -  (1 + 1)*?d *?r <= 0" 
       using nonzero_mult_divide_cancel_left[OF d'] d order_less_not_sym[OF d''] less_imp_neq[OF d''] d''
-        by (simp add: ring_simps diff_divide_distrib del:  left_distrib)
+        by (simp add: algebra_simps diff_divide_distrib del:  left_distrib)
     finally have ?thesis using c d nc nd 
-      apply(simp add: r[of "- (?s / ((1 + 1)*?d))"] msubstle_def Let_def evaldjf_ex ring_simps lt polyneg_norm polymul_norm)
+      apply(simp add: r[of "- (?s / ((1 + 1)*?d))"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
       apply (simp only: one_add_one_is_two[symmetric] of_int_add)
       using d order_less_not_sym[OF d] less_imp_neq[OF d]
-      by (simp add: ring_simps )    }
+      by (simp add: field_simps )    }
 ultimately show ?thesis by blast
 qed
 
@@ -2519,7 +2519,7 @@ recdef remdps "measure size"
 lemma remdps_set[simp]: "set (remdps xs) = set xs"
   by (induct xs rule: remdps.induct, auto)
 
-lemma simpfm_lin:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+lemma simpfm_lin:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_ring_inverse_zero,field})"
   shows "qfree p \<Longrightarrow> islin (simpfm p)"
   by (induct p rule: simpfm.induct, auto simp add: conj_lin disj_lin)
 
@@ -2551,7 +2551,7 @@ proof-
   {fix c t d s assume ctU: "(c,t) \<in> set ?U" and dsU: "(d,s) \<in> set ?U"
     from U_l ctU dsU have norm: "isnpoly c" "isnpoly d" by auto
     from msubst_I[OF lq norm, of vs x bs t s] msubst_I[OF lq norm(2,1), of vs x bs s t]
-    have "?I (msubst ?q ((c,t),(d,s))) = ?I (msubst ?q ((d,s),(c,t)))" by (simp add: ring_simps)}
+    have "?I (msubst ?q ((c,t),(d,s))) = ?I (msubst ?q ((d,s),(c,t)))" by (simp add: field_simps)}
   hence th0: "\<forall>x \<in> set ?U. \<forall>y \<in> set ?U. ?I (msubst ?q (x, y)) \<longleftrightarrow> ?I (msubst ?q (y, x))" by clarsimp
   {fix x assume xUp: "x \<in> set ?Up" 
     then  obtain c t d s where ctU: "(c,t) \<in> set ?U" and dsU: "(d,s) \<in> set ?U" 
@@ -2616,7 +2616,7 @@ proof
     let ?s = "Itm vs (x # bs) s"
     let ?t = "Itm vs (x # bs) t"
     have eq2: "\<And>(x::'a). x + x = (1 + 1) * x"
-      by  (simp add: ring_simps)
+      by  (simp add: field_simps)
     {assume "?c = 0 \<and> ?d = 0"
       with ct have ?D by simp}
     moreover
@@ -2747,12 +2747,12 @@ lemma msubstpos_nb: assumes lp: "islin p" and tnb: "tmbound0 t"
 using lp tnb
 by (induct p c t rule: msubstpos.induct, auto simp add: msubsteq2_nb msubstltpos_nb msubstlepos_nb)
 
-lemma msubstneg_nb: assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})" and lp: "islin p" and tnb: "tmbound0 t"
+lemma msubstneg_nb: assumes "SORT_CONSTRAINT('a::{ring_char_0,division_ring_inverse_zero,field})" and lp: "islin p" and tnb: "tmbound0 t"
   shows "bound0 (msubstneg p c t)"
 using lp tnb
 by (induct p c t rule: msubstneg.induct, auto simp add: msubsteq2_nb msubstltneg_nb msubstleneg_nb)
 
-lemma msubst2_nb: assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})" and lp: "islin p" and tnb: "tmbound0 t"
+lemma msubst2_nb: assumes "SORT_CONSTRAINT('a::{ring_char_0,division_ring_inverse_zero,field})" and lp: "islin p" and tnb: "tmbound0 t"
   shows "bound0 (msubst2 p c t)"
 using lp tnb
 by (simp add: msubst2_def msubstneg_nb msubstpos_nb conj_nb disj_nb lt_nb simpfm_bound0)
@@ -2899,14 +2899,14 @@ proof-
         by (auto simp add: msubst2_def lt[OF stupid(3)] lt[OF stupid(1)] mult_less_0_iff zero_less_mult_iff)
       from msubst2[OF lq norm2(1) z(1), of x bs] 
         msubst2[OF lq norm2(2) z(2), of x bs] H 
-      show ?rhs by (simp add: ring_simps)
+      show ?rhs by (simp add: field_simps)
     next
       assume H: ?rhs
       hence z: "\<lparr>C (-2, 1) *\<^sub>p b *\<^sub>p d\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" "\<lparr>C (-2, 1) *\<^sub>p d *\<^sub>p b\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" 
         by (auto simp add: msubst2_def lt[OF stupid(4)] lt[OF stupid(2)] mult_less_0_iff zero_less_mult_iff)
       from msubst2[OF lq norm2(1) z(1), of x bs] 
         msubst2[OF lq norm2(2) z(2), of x bs] H 
-      show ?lhs by (simp add: ring_simps)
+      show ?lhs by (simp add: field_simps)
     qed}
   hence th0: "\<forall>x \<in> set ?U. \<forall>y \<in> set ?U. ?I (?s (x, y)) \<longleftrightarrow> ?I (?s (y, x))"
     by clarsimp
@@ -3156,54 +3156,54 @@ end
 *} "Parametric QE for linear Arithmetic over fields, Version 2"
 
 
-lemma "\<exists>(x::'a::{division_by_zero,linordered_field,number_ring}). y \<noteq> -1 \<longrightarrow> (y + 1)*x < 0"
-  apply (frpar type: "'a::{division_by_zero,linordered_field,number_ring}" pars: "y::'a::{division_by_zero,linordered_field,number_ring}")
-  apply (simp add: ring_simps)
+lemma "\<exists>(x::'a::{linordered_field, division_ring_inverse_zero, number_ring}). y \<noteq> -1 \<longrightarrow> (y + 1)*x < 0"
+  apply (frpar type: "'a::{linordered_field, division_ring_inverse_zero, number_ring}" pars: "y::'a::{linordered_field, division_ring_inverse_zero, number_ring}")
+  apply (simp add: field_simps)
   apply (rule spec[where x=y])
-  apply (frpar type: "'a::{division_by_zero,linordered_field,number_ring}" pars: "z::'a::{division_by_zero,linordered_field,number_ring}")
+  apply (frpar type: "'a::{linordered_field, division_ring_inverse_zero, number_ring}" pars: "z::'a::{linordered_field, division_ring_inverse_zero, number_ring}")
   by simp
 
 text{* Collins/Jones Problem *}
 (*
-lemma "\<exists>(r::'a::{division_by_zero,linordered_field,number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0"
+lemma "\<exists>(r::'a::{linordered_field, division_ring_inverse_zero, number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0"
 proof-
-  have "(\<exists>(r::'a::{division_by_zero,linordered_field,number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0) \<longleftrightarrow> (\<exists>(r::'a::{division_by_zero,linordered_field,number_ring}). 0 < r \<and> r < 1 \<and> 0 < 2 *(a^2 + b^2) - (3*(a^2 + b^2)) * r + (2*a)*r \<and> 2*(a^2 + b^2) - (3*(a^2 + b^2) - 4*a + 1)*r - 2*a < 0)" (is "?lhs \<longleftrightarrow> ?rhs")
-by (simp add: ring_simps)
+  have "(\<exists>(r::'a::{linordered_field, division_ring_inverse_zero, number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0) \<longleftrightarrow> (\<exists>(r::'a::{linordered_field, division_ring_inverse_zero, number_ring}). 0 < r \<and> r < 1 \<and> 0 < 2 *(a^2 + b^2) - (3*(a^2 + b^2)) * r + (2*a)*r \<and> 2*(a^2 + b^2) - (3*(a^2 + b^2) - 4*a + 1)*r - 2*a < 0)" (is "?lhs \<longleftrightarrow> ?rhs")
+by (simp add: field_simps)
 have "?rhs"
 
-  apply (frpar type: "'a::{division_by_zero,linordered_field,number_ring}" pars: "a::'a::{division_by_zero,linordered_field,number_ring}" "b::'a::{division_by_zero,linordered_field,number_ring}")
-  apply (simp add: ring_simps)
+  apply (frpar type: "'a::{linordered_field, division_ring_inverse_zero, number_ring}" pars: "a::'a::{linordered_field, division_ring_inverse_zero, number_ring}" "b::'a::{linordered_field, division_ring_inverse_zero, number_ring}")
+  apply (simp add: field_simps)
 oops
 *)
 (*
-lemma "ALL (x::'a::{division_by_zero,linordered_field,number_ring}) y. (1 - t)*x \<le> (1+t)*y \<and> (1 - t)*y \<le> (1+t)*x --> 0 \<le> y"
-apply (frpar type: "'a::{division_by_zero,linordered_field,number_ring}" pars: "t::'a::{division_by_zero,linordered_field,number_ring}")
+lemma "ALL (x::'a::{linordered_field, division_ring_inverse_zero, number_ring}) y. (1 - t)*x \<le> (1+t)*y \<and> (1 - t)*y \<le> (1+t)*x --> 0 \<le> y"
+apply (frpar type: "'a::{linordered_field, division_ring_inverse_zero, number_ring}" pars: "t::'a::{linordered_field, division_ring_inverse_zero, number_ring}")
 oops
 *)
 
-lemma "\<exists>(x::'a::{division_by_zero,linordered_field,number_ring}). y \<noteq> -1 \<longrightarrow> (y + 1)*x < 0"
-  apply (frpar2 type: "'a::{division_by_zero,linordered_field,number_ring}" pars: "y::'a::{division_by_zero,linordered_field,number_ring}")
-  apply (simp add: ring_simps)
+lemma "\<exists>(x::'a::{linordered_field, division_ring_inverse_zero, number_ring}). y \<noteq> -1 \<longrightarrow> (y + 1)*x < 0"
+  apply (frpar2 type: "'a::{linordered_field, division_ring_inverse_zero, number_ring}" pars: "y::'a::{linordered_field, division_ring_inverse_zero, number_ring}")
+  apply (simp add: field_simps)
   apply (rule spec[where x=y])
-  apply (frpar2 type: "'a::{division_by_zero,linordered_field,number_ring}" pars: "z::'a::{division_by_zero,linordered_field,number_ring}")
+  apply (frpar2 type: "'a::{linordered_field, division_ring_inverse_zero, number_ring}" pars: "z::'a::{linordered_field, division_ring_inverse_zero, number_ring}")
   by simp
 
 text{* Collins/Jones Problem *}
 
 (*
-lemma "\<exists>(r::'a::{division_by_zero,linordered_field,number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0"
+lemma "\<exists>(r::'a::{linordered_field, division_ring_inverse_zero, number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0"
 proof-
-  have "(\<exists>(r::'a::{division_by_zero,linordered_field,number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0) \<longleftrightarrow> (\<exists>(r::'a::{division_by_zero,linordered_field,number_ring}). 0 < r \<and> r < 1 \<and> 0 < 2 *(a^2 + b^2) - (3*(a^2 + b^2)) * r + (2*a)*r \<and> 2*(a^2 + b^2) - (3*(a^2 + b^2) - 4*a + 1)*r - 2*a < 0)" (is "?lhs \<longleftrightarrow> ?rhs")
-by (simp add: ring_simps)
+  have "(\<exists>(r::'a::{linordered_field, division_ring_inverse_zero, number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0) \<longleftrightarrow> (\<exists>(r::'a::{linordered_field, division_ring_inverse_zero, number_ring}). 0 < r \<and> r < 1 \<and> 0 < 2 *(a^2 + b^2) - (3*(a^2 + b^2)) * r + (2*a)*r \<and> 2*(a^2 + b^2) - (3*(a^2 + b^2) - 4*a + 1)*r - 2*a < 0)" (is "?lhs \<longleftrightarrow> ?rhs")
+by (simp add: field_simps)
 have "?rhs"
-  apply (frpar2 type: "'a::{division_by_zero,linordered_field,number_ring}" pars: "a::'a::{division_by_zero,linordered_field,number_ring}" "b::'a::{division_by_zero,linordered_field,number_ring}")
+  apply (frpar2 type: "'a::{linordered_field, division_ring_inverse_zero, number_ring}" pars: "a::'a::{linordered_field, division_ring_inverse_zero, number_ring}" "b::'a::{linordered_field, division_ring_inverse_zero, number_ring}")
   apply simp
 oops
 *)
 
 (*
-lemma "ALL (x::'a::{division_by_zero,linordered_field,number_ring}) y. (1 - t)*x \<le> (1+t)*y \<and> (1 - t)*y \<le> (1+t)*x --> 0 \<le> y"
-apply (frpar2 type: "'a::{division_by_zero,linordered_field,number_ring}" pars: "t::'a::{division_by_zero,linordered_field,number_ring}")
+lemma "ALL (x::'a::{linordered_field, division_ring_inverse_zero, number_ring}) y. (1 - t)*x \<le> (1+t)*y \<and> (1 - t)*y \<le> (1+t)*x --> 0 \<le> y"
+apply (frpar2 type: "'a::{linordered_field, division_ring_inverse_zero, number_ring}" pars: "t::'a::{linordered_field, division_ring_inverse_zero, number_ring}")
 apply (simp add: field_simps linorder_neq_iff[symmetric])
 apply ferrack
 oops

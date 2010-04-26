@@ -143,9 +143,9 @@ lemma fib_add_nat: "fib ((n::nat) + k + 1) = fib (k + 1) * fib (n + 1) +
   apply (induct n rule: fib_induct_nat)
   apply auto
   apply (subst fib_reduce_nat)
-  apply (auto simp add: ring_simps)
+  apply (auto simp add: field_simps)
   apply (subst (1 3 5) fib_reduce_nat)
-  apply (auto simp add: ring_simps Suc_eq_plus1)
+  apply (auto simp add: field_simps Suc_eq_plus1)
 (* hmmm. Why doesn't "n + (1 + (1 + k))" simplify to "n + k + 2"? *)
   apply (subgoal_tac "n + (k + 2) = n + (1 + (1 + k))")
   apply (erule ssubst) back back
@@ -184,7 +184,7 @@ text {*
 lemma fib_Cassini_aux_int: "fib (int n + 2) * fib (int n) - 
     (fib (int n + 1))^2 = (-1)^(n + 1)"
   apply (induct n)
-  apply (auto simp add: ring_simps power2_eq_square fib_reduce_int
+  apply (auto simp add: field_simps power2_eq_square fib_reduce_int
       power_add)
 done
 
@@ -222,7 +222,7 @@ lemma coprime_fib_plus_1_nat: "coprime (fib (n::nat)) (fib (n + 1))"
   apply (subst (2) fib_reduce_nat)
   apply (auto simp add: Suc_eq_plus1) (* again, natdiff_cancel *)
   apply (subst add_commute, auto)
-  apply (subst gcd_commute_nat, auto simp add: ring_simps)
+  apply (subst gcd_commute_nat, auto simp add: field_simps)
 done
 
 lemma coprime_fib_Suc_nat: "coprime (fib n) (fib (Suc n))"
@@ -305,7 +305,7 @@ lemma atMost_plus_one_nat: "{..(k::nat) + 1} = insert (k + 1) {..k}"
 theorem fib_mult_eq_setsum_nat:
     "fib ((n::nat) + 1) * fib n = (\<Sum>k \<in> {..n}. fib k * fib k)"
   apply (induct n)
-  apply (auto simp add: atMost_plus_one_nat fib_plus_2_nat ring_simps)
+  apply (auto simp add: atMost_plus_one_nat fib_plus_2_nat field_simps)
 done
 
 theorem fib_mult_eq_setsum'_nat:

@@ -251,7 +251,7 @@ thm_maps
   "REAL_INV_INV" > "Rings.inverse_inverse_eq"
   "REAL_INV_EQ_0" > "Rings.inverse_nonzero_iff_nonzero"
   "REAL_INV_1OVER" > "Rings.inverse_eq_divide"
-  "REAL_INV_0" > "Rings.division_by_zero_class.inverse_zero"
+  "REAL_INV_0" > "Rings.division_ring_inverse_zero_class.inverse_zero"
   "REAL_INVINV" > "Rings.nonzero_inverse_inverse_eq"
   "REAL_INV1" > "Rings.inverse_1"
   "REAL_INJ" > "RealDef.real_of_nat_inject"

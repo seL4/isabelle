@@ -444,7 +444,7 @@ qed
 
 end
 
-instance rat :: division_by_zero proof
+instance rat :: division_ring_inverse_zero proof
 qed (simp add: rat_number_expand, simp add: rat_number_collapse)
 
 
@@ -818,7 +818,7 @@ apply (simp add: of_rat_mult [symmetric])
 done
 
 lemma of_rat_inverse:
-  "(of_rat (inverse a)::'a::{field_char_0,division_by_zero}) =
+  "(of_rat (inverse a)::'a::{field_char_0,division_ring_inverse_zero}) =
    inverse (of_rat a)"
 by (cases "a = 0", simp_all add: nonzero_of_rat_inverse)
 
@@ -827,7 +827,7 @@ lemma nonzero_of_rat_divide:
 by (simp add: divide_inverse of_rat_mult nonzero_of_rat_inverse)
 
 lemma of_rat_divide:
-  "(of_rat (a / b)::'a::{field_char_0,division_by_zero})
+  "(of_rat (a / b)::'a::{field_char_0,division_ring_inverse_zero})
    = of_rat a / of_rat b"
 by (cases "b = 0") (simp_all add: nonzero_of_rat_divide)
 
@@ -968,7 +968,7 @@ apply (erule nonzero_of_rat_inverse [symmetric])
 done
 
 lemma Rats_inverse [simp]:
-  fixes a :: "'a::{field_char_0,division_by_zero}"
+  fixes a :: "'a::{field_char_0,division_ring_inverse_zero}"
   shows "a \<in> Rats \<Longrightarrow> inverse a \<in> Rats"
 apply (auto simp add: Rats_def)
 apply (rule range_eqI)
@@ -984,7 +984,7 @@ apply (erule nonzero_of_rat_divide [symmetric])
 done
 
 lemma Rats_divide [simp]:
-  fixes a b :: "'a::{field_char_0,division_by_zero}"
+  fixes a b :: "'a::{field_char_0,division_ring_inverse_zero}"
   shows "\<lbrakk>a \<in> Rats; b \<in> Rats\<rbrakk> \<Longrightarrow> a / b \<in> Rats"
 apply (auto simp add: Rats_def)
 apply (rule range_eqI)

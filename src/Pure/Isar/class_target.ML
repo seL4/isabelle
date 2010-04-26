@@ -163,7 +163,7 @@ fun print_classes thy =
       Symtab.empty
       |> Symtab.fold (fn (tyco, arities) => fold (fn (class, _) =>
            Symtab.map_default (class, []) (insert (op =) tyco)) arities)
-             ((#arities o Sorts.rep_algebra) algebra);
+             (Sorts.arities_of algebra);
     val the_arities = these o Symtab.lookup arities;
     fun mk_arity class tyco =
       let
@@ -370,7 +370,7 @@ fun gen_classrel mk_prop classrel thy =
   in
     thy
     |> ProofContext.init
-    |> Proof.theorem_i NONE after_qed [[(mk_prop thy classrel, [])]]
+    |> Proof.theorem NONE after_qed [[(mk_prop thy classrel, [])]]
   end;
 
 in
@@ -539,7 +539,7 @@ fun gen_instantiation_instance do_proof after_qed lthy =
   end;
 
 val instantiation_instance = gen_instantiation_instance (fn after_qed => fn ts =>
-  Proof.theorem_i NONE (after_qed o map the_single) (map (fn t => [(t, [])]) ts));
+  Proof.theorem NONE (after_qed o map the_single) (map (fn t => [(t, [])]) ts));
 
 fun prove_instantiation_instance tac = gen_instantiation_instance (fn after_qed =>
   fn ts => fn lthy => after_qed (map (fn t => Goal.prove lthy [] [] t
@@ -595,7 +595,7 @@ fun instance_arity_cmd raw_arities thy =
   in
     thy
     |> ProofContext.init
-    |> Proof.theorem_i NONE after_qed (map (fn t => [(t, [])]) arities)
+    |> Proof.theorem NONE after_qed (map (fn t => [(t, [])]) arities)
   end;
 
 

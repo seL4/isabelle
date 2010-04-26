@@ -282,7 +282,7 @@ fun gen_typedef prep_term prep_constraint ((def, name), (b, raw_args, mx), set, 
     val ((goal, goal_pat, typedef_result), lthy') =
       prepare_typedef prep_term def name (b, args, mx) set opt_morphs lthy;
     fun after_qed [[th]] = snd o typedef_result th;
-  in Proof.theorem_i NONE after_qed [[(goal, [goal_pat])]] lthy' end;
+  in Proof.theorem NONE after_qed [[(goal, [goal_pat])]] lthy' end;
 
 in
 

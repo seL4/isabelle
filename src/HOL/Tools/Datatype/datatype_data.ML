@@ -436,7 +436,7 @@ fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
   in
     thy
     |> ProofContext.init
-    |> Proof.theorem_i NONE after_qed' ((map o map) (rpair []) (flat rules))
+    |> Proof.theorem NONE after_qed' ((map o map) (rpair []) (flat rules))
   end;
 
 val rep_datatype = gen_rep_datatype Sign.cert_term;
