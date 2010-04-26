@@ -15,7 +15,6 @@ sig
   val prove_arity: string * sort list * sort -> tactic -> theory -> theory
   type info = {def: thm, intro: thm, axioms: thm list, params: (string * typ) list}
   val get_info: theory -> class -> info
-  val class_intros: theory -> thm list
   val class_of_param: theory -> string -> class option
   val cert_classrel: theory -> class * class -> class * class
   val read_classrel: theory -> xstring * xstring -> class * class
@@ -166,21 +165,12 @@ val inst_params_of = #inst_params o rep_data;
 val diff_merge_classrels_of = #diff_merge_classrels o rep_data;
 
 
-(* maintain axclasses *)
+(* axclasses with parameters *)
 
 fun get_info thy c =
   (case Symtab.lookup (axclasses_of thy) c of
     SOME info => info
   | NONE => error ("No such axclass: " ^ quote c));
-
-fun class_intros thy =
-  let
-    fun add_intro c = (case try (get_info thy) c of SOME {intro, ...} => cons intro | _ => I);
-    val classes = Sign.all_classes thy;
-  in map (Thm.class_triv thy) classes @ fold add_intro classes [] end;
-
-
-(* maintain params *)
 
 fun all_params_of thy S =
   let val params = params_of thy;
