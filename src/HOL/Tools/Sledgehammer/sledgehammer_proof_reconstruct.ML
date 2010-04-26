@@ -799,10 +799,9 @@ fun string_for_proof ctxt sorts i n =
        else
          if member (op =) qs Show then "show" else "have")
     val do_term =
-      Nitpick_Util.maybe_quote
-      o PrintMode.setmp (filter (curry (op =) Symbol.xsymbolsN)
-                                (print_mode_value ()))
-                        (Syntax.string_of_term ctxt)
+      quote o PrintMode.setmp (filter (curry (op =) Symbol.xsymbolsN)
+                                      (print_mode_value ()))
+                              (Syntax.string_of_term ctxt)
     fun do_using [] = ""
       | do_using ls = "using " ^ (space_implode " " (map do_raw_label ls)) ^ " "
     fun do_by_facts [] [] = "by blast"
