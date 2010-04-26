@@ -101,10 +101,17 @@ fun string_for_failure Unprovable = "The ATP problem is unprovable."
   | string_for_failure MalformedOutput = "Error: The ATP output is malformed."
   | string_for_failure UnknownError = "Error: An unknown ATP error occurred."
 
+fun shape_of_clauses _ [] = []
+  | shape_of_clauses j ([] :: clauses) = [] :: shape_of_clauses j clauses
+  | shape_of_clauses j ((lit :: lits) :: clauses) =
+    let val shape = shape_of_clauses (j + 1) (lits :: clauses) in
+      (j :: hd shape) :: tl shape
+    end
+
 fun generic_prover overlord get_facts prepare write_file home executable args
         proof_delims known_failures name
-        ({debug, full_types, explicit_apply, isar_proof, modulus, sorts, ...}
-         : params) minimize_command
+        ({debug, full_types, explicit_apply, isar_proof, shrink_factor, sorts,
+         ...} : params) minimize_command
         ({subgoal, goal, relevance_override, axiom_clauses, filtered_clauses}
          : problem) =
   let
@@ -112,7 +119,8 @@ fun generic_prover overlord get_facts prepare write_file home executable args
     val (ctxt, (chain_ths, th)) = goal;
     val thy = ProofContext.theory_of ctxt;
     val chain_ths = map (Thm.put_name_hint chained_hint) chain_ths;
-    val goal_cls = #1 (neg_conjecture_clauses ctxt th subgoal);
+    val goal_clss = #1 (neg_conjecture_clauses ctxt th subgoal)
+    val goal_cls = List.concat goal_clss
     val the_filtered_clauses =
       (case filtered_clauses of
         NONE => get_facts relevance_override goal goal_cls
@@ -193,25 +201,28 @@ fun generic_prover overlord get_facts prepare write_file home executable args
                        "% " ^ command_line probfile ^ "\n% " ^ timestamp () ^
                        "\n"
                      else
-                        "") ^ output)
+                       "") ^ output)
 
-    val (((output, atp_run_time_in_msecs), res_code), pool) =
+    val (((output, atp_run_time_in_msecs), res_code),
+         (pool, conjecture_offset)) =
       with_path cleanup export run_on (prob_pathname subgoal);
-
+    val conjecture_shape = shape_of_clauses (conjecture_offset + 1) goal_clss
     (* Check for success and print out some information on failure. *)
     val (proof, outcome) =
       extract_proof_and_outcome res_code proof_delims known_failures output
     val (message, relevant_thm_names) =
       case outcome of
-        NONE => proof_text isar_proof pool debug modulus sorts ctxt
-                           (minimize_command, proof, internal_thm_names, th,
-                            subgoal)
+        NONE =>
+        proof_text isar_proof
+                   (pool, debug, shrink_factor, sorts, ctxt, conjecture_shape)
+                   (minimize_command, proof, internal_thm_names, th, subgoal)
       | SOME failure => (string_for_failure failure ^ "\n", [])
   in
     {outcome = outcome, message = message, pool = pool,
      relevant_thm_names = relevant_thm_names,
      atp_run_time_in_msecs = atp_run_time_in_msecs, output = output,
      proof = proof, internal_thm_names = internal_thm_names,
+     conjecture_shape = conjecture_shape,
      filtered_clauses = the_filtered_clauses}
   end;
 

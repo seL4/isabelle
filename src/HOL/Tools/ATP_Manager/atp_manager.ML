@@ -25,7 +25,7 @@ sig
      higher_order: bool option,
      follow_defs: bool,
      isar_proof: bool,
-     modulus: int,
+     shrink_factor: int,
      sorts: bool,
      timeout: Time.time,
      minimize_timeout: Time.time}
@@ -47,6 +47,7 @@ sig
      output: string,
      proof: string,
      internal_thm_names: string Vector.vector,
+     conjecture_shape: int list list,
      filtered_clauses: (thm * (string * int)) list}
   type prover =
     params -> minimize_command -> Time.time -> problem -> prover_result
@@ -85,7 +86,7 @@ type params =
    higher_order: bool option,
    follow_defs: bool,
    isar_proof: bool,
-   modulus: int,
+   shrink_factor: int,
    sorts: bool,
    timeout: Time.time,
    minimize_timeout: Time.time}
@@ -110,6 +111,7 @@ type prover_result =
    output: string,
    proof: string,
    internal_thm_names: string Vector.vector,
+   conjecture_shape: int list list,
    filtered_clauses: (thm * (string * int)) list};
 
 type prover =
