@@ -1093,10 +1093,10 @@ apply (cases "y = 0", simp add: pdivmod_rel_by_0_iff pdivmod_rel_0_iff)
 apply (cases "r = 0")
 apply (cases "r' = 0")
 apply (simp add: pdivmod_rel_def)
-apply (simp add: pdivmod_rel_def ring_simps degree_mult_eq)
+apply (simp add: pdivmod_rel_def field_simps degree_mult_eq)
 apply (cases "r' = 0")
 apply (simp add: pdivmod_rel_def degree_mult_eq)
-apply (simp add: pdivmod_rel_def ring_simps)
+apply (simp add: pdivmod_rel_def field_simps)
 apply (simp add: degree_mult_eq degree_add_less)
 done
 

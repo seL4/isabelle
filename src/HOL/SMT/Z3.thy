@@ -19,7 +19,7 @@ setup {* Z3_Proof_Rules.setup #> Z3_Solver.setup *}
 
 lemmas [z3_rewrite] =
   refl eq_commute conj_commute disj_commute simp_thms nnf_simps
-  ring_distribs field_eq_simps if_True if_False
+  ring_distribs field_simps times_divide_eq_right times_divide_eq_left if_True if_False
 
 lemma [z3_rewrite]: "(P \<noteq> Q) = (Q = (\<not>P))" by fast
 

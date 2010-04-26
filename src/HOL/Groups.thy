@@ -20,6 +20,15 @@ structure Ac_Simps = Named_Thms(
 
 setup Ac_Simps.setup
 
+text{* The rewrites accumulated in @{text algebra_simps} deal with the
+classical algebraic structures of groups, rings and family. They simplify
+terms by multiplying everything out (in case of a ring) and bringing sums and
+products into a canonical form (by ordered rewriting). As a result it decides
+group and ring equalities but also helps with inequalities.
+
+Of course it also works for fields, but it knows nothing about multiplicative
+inverses or division. This is catered for by @{text field_simps}. *}
+
 ML {*
 structure Algebra_Simps = Named_Thms(
   val name = "algebra_simps"
@@ -29,14 +38,19 @@ structure Algebra_Simps = Named_Thms(
 
 setup Algebra_Simps.setup
 
-text{* The rewrites accumulated in @{text algebra_simps} deal with the
-classical algebraic structures of groups, rings and family. They simplify
-terms by multiplying everything out (in case of a ring) and bringing sums and
-products into a canonical form (by ordered rewriting). As a result it decides
-group and ring equalities but also helps with inequalities.
+text{* Lemmas @{text field_simps} multiply with denominators in (in)equations
+if they can be proved to be non-zero (for equations) or positive/negative
+(for inequations). Can be too aggressive and is therefore separate from the
+more benign @{text algebra_simps}. *}
 
-Of course it also works for fields, but it knows nothing about multiplicative
-inverses or division. This is catered for by @{text field_simps}. *}
+ML {*
+structure Field_Simps = Named_Thms(
+  val name = "field_simps"
+  val description = "algebra simplification rules for fields"
+)
+*}
+
+setup Field_Simps.setup
 
 
 subsection {* Abstract structures *}
@@ -138,13 +152,13 @@ use "~~/src/Provers/Arith/abel_cancel.ML"
 subsection {* Semigroups and Monoids *}
 
 class semigroup_add = plus +
-  assumes add_assoc [algebra_simps]: "(a + b) + c = a + (b + c)"
+  assumes add_assoc [algebra_simps, field_simps]: "(a + b) + c = a + (b + c)"
 
 sublocale semigroup_add < add!: semigroup plus proof
 qed (fact add_assoc)
 
 class ab_semigroup_add = semigroup_add +
-  assumes add_commute [algebra_simps]: "a + b = b + a"
+  assumes add_commute [algebra_simps, field_simps]: "a + b = b + a"
 
 sublocale ab_semigroup_add < add!: abel_semigroup plus proof
 qed (fact add_commute)
@@ -152,7 +166,7 @@ qed (fact add_commute)
 context ab_semigroup_add
 begin
 
-lemmas add_left_commute [algebra_simps] = add.left_commute
+lemmas add_left_commute [algebra_simps, field_simps] = add.left_commute
 
 theorems add_ac = add_assoc add_commute add_left_commute
 
@@ -161,13 +175,13 @@ end
 theorems add_ac = add_assoc add_commute add_left_commute
 
 class semigroup_mult = times +
-  assumes mult_assoc [algebra_simps]: "(a * b) * c = a * (b * c)"
+  assumes mult_assoc [algebra_simps, field_simps]: "(a * b) * c = a * (b * c)"
 
 sublocale semigroup_mult < mult!: semigroup times proof
 qed (fact mult_assoc)
 
 class ab_semigroup_mult = semigroup_mult +
-  assumes mult_commute [algebra_simps]: "a * b = b * a"
+  assumes mult_commute [algebra_simps, field_simps]: "a * b = b * a"
 
 sublocale ab_semigroup_mult < mult!: abel_semigroup times proof
 qed (fact mult_commute)
@@ -175,7 +189,7 @@ qed (fact mult_commute)
 context ab_semigroup_mult
 begin
 
-lemmas mult_left_commute [algebra_simps] = mult.left_commute
+lemmas mult_left_commute [algebra_simps, field_simps] = mult.left_commute
 
 theorems mult_ac = mult_assoc mult_commute mult_left_commute
 
@@ -370,7 +384,7 @@ by (simp add: diff_minus add_assoc)
 lemma add_diff_cancel: "a + b - b = a"
 by (simp add: diff_minus add_assoc)
 
-declare diff_minus[symmetric, algebra_simps]
+declare diff_minus[symmetric, algebra_simps, field_simps]
 
 lemma eq_neg_iff_add_eq_0: "a = - b \<longleftrightarrow> a + b = 0"
 proof
@@ -401,7 +415,7 @@ proof
   then show "b = c" by simp
 qed
 
-lemma uminus_add_conv_diff[algebra_simps]:
+lemma uminus_add_conv_diff[algebra_simps, field_simps]:
   "- a + b = b - a"
 by (simp add:diff_minus add_commute)
 
@@ -413,22 +427,22 @@ lemma minus_diff_eq [simp]:
   "- (a - b) = b - a"
 by (simp add: diff_minus add_commute)
 
-lemma add_diff_eq[algebra_simps]: "a + (b - c) = (a + b) - c"
+lemma add_diff_eq[algebra_simps, field_simps]: "a + (b - c) = (a + b) - c"
 by (simp add: diff_minus add_ac)
 
-lemma diff_add_eq[algebra_simps]: "(a - b) + c = (a + c) - b"
+lemma diff_add_eq[algebra_simps, field_simps]: "(a - b) + c = (a + c) - b"
 by (simp add: diff_minus add_ac)
 
-lemma diff_eq_eq[algebra_simps]: "a - b = c \<longleftrightarrow> a = c + b"
+lemma diff_eq_eq[algebra_simps, field_simps]: "a - b = c \<longleftrightarrow> a = c + b"
 by (auto simp add: diff_minus add_assoc)
 
-lemma eq_diff_eq[algebra_simps]: "a = c - b \<longleftrightarrow> a + b = c"
+lemma eq_diff_eq[algebra_simps, field_simps]: "a = c - b \<longleftrightarrow> a + b = c"
 by (auto simp add: diff_minus add_assoc)
 
-lemma diff_diff_eq[algebra_simps]: "(a - b) - c = a - (b + c)"
+lemma diff_diff_eq[algebra_simps, field_simps]: "(a - b) - c = a - (b + c)"
 by (simp add: diff_minus add_ac)
 
-lemma diff_diff_eq2[algebra_simps]: "a - (b - c) = (a + c) - b"
+lemma diff_diff_eq2[algebra_simps, field_simps]: "a - (b - c) = (a + c) - b"
 by (simp add: diff_minus add_ac)
 
 lemma eq_iff_diff_eq_0: "a = b \<longleftrightarrow> a - b = 0"
@@ -749,34 +763,28 @@ proof -
   finally show ?thesis .
 qed
 
-lemma diff_less_eq[algebra_simps]: "a - b < c \<longleftrightarrow> a < c + b"
+lemma diff_less_eq[algebra_simps, field_simps]: "a - b < c \<longleftrightarrow> a < c + b"
 apply (subst less_iff_diff_less_0 [of a])
 apply (rule less_iff_diff_less_0 [of _ c, THEN ssubst])
 apply (simp add: diff_minus add_ac)
 done
 
-lemma less_diff_eq[algebra_simps]: "a < c - b \<longleftrightarrow> a + b < c"
+lemma less_diff_eq[algebra_simps, field_simps]: "a < c - b \<longleftrightarrow> a + b < c"
 apply (subst less_iff_diff_less_0 [of "a + b"])
 apply (subst less_iff_diff_less_0 [of a])
 apply (simp add: diff_minus add_ac)
 done
 
-lemma diff_le_eq[algebra_simps]: "a - b \<le> c \<longleftrightarrow> a \<le> c + b"
+lemma diff_le_eq[algebra_simps, field_simps]: "a - b \<le> c \<longleftrightarrow> a \<le> c + b"
 by (auto simp add: le_less diff_less_eq diff_add_cancel add_diff_cancel)
 
-lemma le_diff_eq[algebra_simps]: "a \<le> c - b \<longleftrightarrow> a + b \<le> c"
+lemma le_diff_eq[algebra_simps, field_simps]: "a \<le> c - b \<longleftrightarrow> a + b \<le> c"
 by (auto simp add: le_less less_diff_eq diff_add_cancel add_diff_cancel)
 
 lemma le_iff_diff_le_0: "a \<le> b \<longleftrightarrow> a - b \<le> 0"
 by (simp add: algebra_simps)
 
-text{*Legacy - use @{text algebra_simps} *}
-lemmas group_simps[no_atp] = algebra_simps
-
 end
-
-text{*Legacy - use @{text algebra_simps} *}
-lemmas group_simps[no_atp] = algebra_simps
 
 class linordered_ab_semigroup_add =
   linorder + ordered_ab_semigroup_add

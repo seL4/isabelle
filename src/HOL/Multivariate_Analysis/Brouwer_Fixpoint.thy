@@ -1383,7 +1383,7 @@ lemma no_retraction_cball: assumes "0 < e"
     apply(rule_tac x=x in bexI) apply assumption+ apply(rule continuous_on_intros)+
     unfolding frontier_cball subset_eq Ball_def image_iff apply(rule,rule,erule bexE)
     unfolding vector_dist_norm apply(simp add: * norm_minus_commute) . note x = this
-  hence "scaleR 2 a = scaleR 1 x + scaleR 1 x" by(auto simp add:group_simps)
+  hence "scaleR 2 a = scaleR 1 x + scaleR 1 x" by(auto simp add:algebra_simps)
   hence "a = x" unfolding scaleR_left_distrib[THEN sym] by auto 
   thus False using x using assms by auto qed
 
@@ -1396,7 +1396,7 @@ lemma interval_bij_affine:
  "interval_bij (a,b) (u,v) = (\<lambda>x. (\<chi> i. (v$i - u$i) / (b$i - a$i) * x$i) +
             (\<chi> i. u$i - (v$i - u$i) / (b$i - a$i) * a$i))"
   apply rule unfolding Cart_eq interval_bij_def vector_component_simps
-  by(auto simp add:group_simps field_simps add_divide_distrib[THEN sym]) 
+  by(auto simp add: field_simps add_divide_distrib[THEN sym]) 
 
 lemma continuous_interval_bij:
   "continuous (at x) (interval_bij (a,b::real^'n) (u,v))" 

@@ -14,8 +14,8 @@ imports Groups
 begin
 
 class semiring = ab_semigroup_add + semigroup_mult +
-  assumes left_distrib[algebra_simps]: "(a + b) * c = a * c + b * c"
-  assumes right_distrib[algebra_simps]: "a * (b + c) = a * b + a * c"
+  assumes left_distrib[algebra_simps, field_simps]: "(a + b) * c = a * c + b * c"
+  assumes right_distrib[algebra_simps, field_simps]: "a * (b + c) = a * b + a * c"
 begin
 
 text{*For the @{text combine_numerals} simproc*}
@@ -230,17 +230,14 @@ by simp
 lemma minus_mult_commute: "- a * b = a * - b"
 by simp
 
-lemma right_diff_distrib[algebra_simps]: "a * (b - c) = a * b - a * c"
+lemma right_diff_distrib[algebra_simps, field_simps]: "a * (b - c) = a * b - a * c"
 by (simp add: right_distrib diff_minus)
 
-lemma left_diff_distrib[algebra_simps]: "(a - b) * c = a * c - b * c"
+lemma left_diff_distrib[algebra_simps, field_simps]: "(a - b) * c = a * c - b * c"
 by (simp add: left_distrib diff_minus)
 
 lemmas ring_distribs[no_atp] =
   right_distrib left_distrib left_diff_distrib right_diff_distrib
-
-text{*Legacy - use @{text algebra_simps} *}
-lemmas ring_simps[no_atp] = algebra_simps
 
 lemma eq_add_iff1:
   "a * e + c = b * e + d \<longleftrightarrow> (a - b) * e + c = d"
@@ -536,7 +533,7 @@ lemma divide_minus_left [simp, no_atp]: "(-a) / b = - (a / b)"
 lemma diff_divide_distrib: "(a - b) / c = a / c - b / c"
   by (simp add: diff_minus add_divide_distrib)
 
-lemma nonzero_eq_divide_eq: "c \<noteq> 0 \<Longrightarrow> a = b / c \<longleftrightarrow> a * c = b"
+lemma nonzero_eq_divide_eq [field_simps]: "c \<noteq> 0 \<Longrightarrow> a = b / c \<longleftrightarrow> a * c = b"
 proof -
   assume [simp]: "c \<noteq> 0"
   have "a = b / c \<longleftrightarrow> a * c = (b / c) * c" by simp
@@ -544,7 +541,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma nonzero_divide_eq_eq: "c \<noteq> 0 \<Longrightarrow> b / c = a \<longleftrightarrow> b = a * c"
+lemma nonzero_divide_eq_eq [field_simps]: "c \<noteq> 0 \<Longrightarrow> b / c = a \<longleftrightarrow> b = a * c"
 proof -
   assume [simp]: "c \<noteq> 0"
   have "b / c = a \<longleftrightarrow> (b / c) * c = a * c" by simp
@@ -560,7 +557,7 @@ lemma eq_divide_imp: "c \<noteq> 0 \<Longrightarrow> a * c = b \<Longrightarrow>
 
 end
 
-class division_by_zero = division_ring +
+class division_ring_inverse_zero = division_ring +
   assumes inverse_zero [simp]: "inverse 0 = 0"
 begin
 
@@ -861,9 +858,6 @@ begin
 
 subclass ordered_ab_group_add ..
 
-text{*Legacy - use @{text algebra_simps} *}
-lemmas ring_simps[no_atp] = algebra_simps
-
 lemma less_add_iff1:
   "a * e + c < b * e + d \<longleftrightarrow> (a - b) * e + c < d"
 by (simp add: algebra_simps)
@@ -1067,9 +1061,6 @@ lemma mult_less_cancel_left_neg:
 by (auto simp: mult_less_cancel_left)
 
 end
-
-text{*Legacy - use @{text algebra_simps} *}
-lemmas ring_simps[no_atp] = algebra_simps
 
 lemmas mult_sign_intros =
   mult_nonneg_nonneg mult_nonneg_nonpos

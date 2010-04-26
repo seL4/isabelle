@@ -257,14 +257,14 @@ fun vector_power where
   | "vector_power x (Suc n) = x * vector_power x n"
 
 instance cart :: (semiring,finite) semiring
-  apply (intro_classes) by (vector ring_simps)+
+  apply (intro_classes) by (vector field_simps)+
 
 instance cart :: (semiring_0,finite) semiring_0
-  apply (intro_classes) by (vector ring_simps)+
+  apply (intro_classes) by (vector field_simps)+
 instance cart :: (semiring_1,finite) semiring_1
   apply (intro_classes) by vector
 instance cart :: (comm_semiring,finite) comm_semiring
-  apply (intro_classes) by (vector ring_simps)+
+  apply (intro_classes) by (vector field_simps)+
 
 instance cart :: (comm_semiring_0,finite) comm_semiring_0 by (intro_classes)
 instance cart :: (cancel_comm_monoid_add, finite) cancel_comm_monoid_add ..
@@ -278,7 +278,7 @@ instance cart :: (ring_1,finite) ring_1 ..
 
 instance cart :: (real_algebra,finite) real_algebra
   apply intro_classes
-  apply (simp_all add: vector_scaleR_def ring_simps)
+  apply (simp_all add: vector_scaleR_def field_simps)
   apply vector
   apply vector
   done
@@ -318,19 +318,19 @@ instance cart :: (ring_char_0,finite) ring_char_0 by intro_classes
 lemma vector_smult_assoc: "a *s (b *s x) = ((a::'a::semigroup_mult) * b) *s x"
   by (vector mult_assoc)
 lemma vector_sadd_rdistrib: "((a::'a::semiring) + b) *s x = a *s x + b *s x"
-  by (vector ring_simps)
+  by (vector field_simps)
 lemma vector_add_ldistrib: "(c::'a::semiring) *s (x + y) = c *s x + c *s y"
-  by (vector ring_simps)
+  by (vector field_simps)
 lemma vector_smult_lzero[simp]: "(0::'a::mult_zero) *s x = 0" by vector
 lemma vector_smult_lid[simp]: "(1::'a::monoid_mult) *s x = x" by vector
 lemma vector_ssub_ldistrib: "(c::'a::ring) *s (x - y) = c *s x - c *s y"
-  by (vector ring_simps)
+  by (vector field_simps)
 lemma vector_smult_rneg: "(c::'a::ring) *s -x = -(c *s x)" by vector
 lemma vector_smult_lneg: "- (c::'a::ring) *s x = -(c *s x)" by vector
 lemma vector_sneg_minus1: "-x = (- (1::'a::ring_1)) *s x" by vector
 lemma vector_smult_rzero[simp]: "c *s 0 = (0::'a::mult_zero ^ 'n)" by vector
 lemma vector_sub_rdistrib: "((a::'a::ring) - b) *s x = a *s x - b *s x"
-  by (vector ring_simps)
+  by (vector field_simps)
 
 lemma vec_eq[simp]: "(vec m = vec n) \<longleftrightarrow> (m = n)"
   by (simp add: Cart_eq)
@@ -752,7 +752,7 @@ text{* One immediately useful corollary is the existence of square roots! --- Sh
 lemma square_bound_lemma: "(x::real) < (1 + x) * (1 + x)"
 proof-
   have "(x + 1/2)^2 + 3/4 > 0" using zero_le_power2[of "x+1/2"] by arith
-  thus ?thesis by (simp add: ring_simps power2_eq_square)
+  thus ?thesis by (simp add: field_simps power2_eq_square)
 qed
 
 lemma square_continuous: "0 < (e::real) ==> \<exists>d. 0 < d \<and> (\<forall>y. abs(y - x) < d \<longrightarrow> abs(y * y - x * x) < e)"
@@ -828,7 +828,7 @@ lemma norm_cauchy_schwarz_abs:
 lemma norm_triangle_sub:
   fixes x y :: "'a::real_normed_vector"
   shows "norm x \<le> norm y  + norm (x - y)"
-  using norm_triangle_ineq[of "y" "x - y"] by (simp add: ring_simps)
+  using norm_triangle_ineq[of "y" "x - y"] by (simp add: field_simps)
 
 lemma component_le_norm: "\<bar>x$i\<bar> <= norm x"
   apply (simp add: norm_vector_def)
@@ -867,7 +867,7 @@ lemma norm_eq_square: "norm(x) = a \<longleftrightarrow> 0 <= a \<and> x \<bulle
 
 lemma real_abs_le_square_iff: "\<bar>x\<bar> \<le> \<bar>y\<bar> \<longleftrightarrow> (x::real)^2 \<le> y^2"
 proof-
-  have "x^2 \<le> y^2 \<longleftrightarrow> (x -y) * (y + x) \<le> 0" by (simp add: ring_simps power2_eq_square)
+  have "x^2 \<le> y^2 \<longleftrightarrow> (x -y) * (y + x) \<le> 0" by (simp add: field_simps power2_eq_square)
   also have "\<dots> \<longleftrightarrow> \<bar>x\<bar> \<le> \<bar>y\<bar>" apply (simp add: zero_compare_simps real_abs_def not_less) by arith
 finally show ?thesis ..
 qed
@@ -898,7 +898,7 @@ lemma dot_norm: "x \<bullet> y = (norm(x + y) ^2 - norm x ^ 2 - norm y ^ 2) / 2"
   unfolding power2_norm_eq_inner inner_simps inner_commute by auto 
 
 lemma dot_norm_neg: "x \<bullet> y = ((norm x ^ 2 + norm y ^ 2) - norm(x - y) ^ 2) / 2"
-  unfolding power2_norm_eq_inner inner_simps inner_commute by(auto simp add:group_simps)
+  unfolding power2_norm_eq_inner inner_simps inner_commute by(auto simp add:algebra_simps)
 
 text{* Equality of vectors in terms of @{term "op \<bullet>"} products.    *}
 
@@ -909,7 +909,7 @@ next
   assume ?rhs
   then have "x \<bullet> x - x \<bullet> y = 0 \<and> x \<bullet> y - y \<bullet> y = 0" by simp
   hence "x \<bullet> (x - y) = 0 \<and> y \<bullet> (x - y) = 0" by (simp add: inner_simps inner_commute)
-  then have "(x - y) \<bullet> (x - y) = 0" by (simp add: ring_simps inner_simps inner_commute)
+  then have "(x - y) \<bullet> (x - y) = 0" by (simp add: field_simps inner_simps inner_commute)
   then show "x = y" by (simp)
 qed
 
@@ -930,7 +930,7 @@ lemma norm_add_rule_thm:
   by (rule order_trans [OF norm_triangle_ineq add_mono])
 
 lemma ge_iff_diff_ge_0: "(a::'a::linordered_ring) \<ge> b == a - b \<ge> 0"
-  by (simp add: ring_simps)
+  by (simp add: field_simps)
 
 lemma pth_1:
   fixes x :: "'a::real_normed_vector"
@@ -1430,15 +1430,15 @@ lemma linearI: assumes "\<And>x y. f (x + y) = f x + f y" "\<And>c x. f (c *s x)
   shows "linear f" using assms unfolding linear_def by auto
 
 lemma linear_compose_cmul: "linear f ==> linear (\<lambda>x. (c::'a::comm_semiring) *s f x)"
-  by (vector linear_def Cart_eq ring_simps)
+  by (vector linear_def Cart_eq field_simps)
 
 lemma linear_compose_neg: "linear (f :: 'a ^'n \<Rightarrow> 'a::comm_ring ^'m) ==> linear (\<lambda>x. -(f(x)))" by (vector linear_def Cart_eq)
 
 lemma linear_compose_add: "linear (f :: 'a ^'n \<Rightarrow> 'a::semiring_1 ^'m) \<Longrightarrow> linear g ==> linear (\<lambda>x. f(x) + g(x))"
-  by (vector linear_def Cart_eq ring_simps)
+  by (vector linear_def Cart_eq field_simps)
 
 lemma linear_compose_sub: "linear (f :: 'a ^'n \<Rightarrow> 'a::ring_1 ^'m) \<Longrightarrow> linear g ==> linear (\<lambda>x. f x - g x)"
-  by (vector linear_def Cart_eq ring_simps)
+  by (vector linear_def Cart_eq field_simps)
 
 lemma linear_compose: "linear f \<Longrightarrow> linear g ==> linear (g o f)"
   by (simp add: linear_def)
@@ -1460,7 +1460,7 @@ lemma linear_vmul_component:
   shows "linear (\<lambda>x. f x $ k *s v)"
   using lf
   apply (auto simp add: linear_def )
-  by (vector ring_simps)+
+  by (vector field_simps)+
 
 lemma linear_0: "linear f ==> f 0 = (0::'a::semiring_1 ^'n)"
   unfolding linear_def
@@ -1536,7 +1536,7 @@ proof-
       unfolding norm_mul
       apply (simp only: mult_commute)
       apply (rule mult_mono)
-      by (auto simp add: ring_simps norm_ge_zero) }
+      by (auto simp add: field_simps norm_ge_zero) }
     then have th: "\<forall>i\<in> ?S. norm ((x$i) *s f (basis i :: real ^'m)) \<le> norm (f (basis i)) * norm x" by metis
     from real_setsum_norm_le[OF fS, of "\<lambda>i. (x$i) *s (f (basis i))", OF th]
     have "norm (f x) \<le> ?B * norm x" unfolding th0 setsum_left_distrib by metis}
@@ -1562,7 +1562,7 @@ proof-
     {fix x::"real ^ 'n"
       have "norm (f x) \<le> ?K *  norm x"
       using B[rule_format, of x] norm_ge_zero[of x] norm_ge_zero[of "f x"] Bp
-      apply (auto simp add: ring_simps split add: abs_split)
+      apply (auto simp add: field_simps split add: abs_split)
       apply (erule order_trans, simp)
       done
   }
@@ -1631,12 +1631,12 @@ lemma  (in ab_group_add) eq_add_iff: "x = x + y \<longleftrightarrow> y = 0"
 lemma bilinear_lzero:
   fixes h :: "'a::ring^'n \<Rightarrow> _" assumes bh: "bilinear h" shows "h 0 x = 0"
   using bilinear_ladd[OF bh, of 0 0 x]
-    by (simp add: eq_add_iff ring_simps)
+    by (simp add: eq_add_iff field_simps)
 
 lemma bilinear_rzero:
   fixes h :: "'a::ring^_ \<Rightarrow> _" assumes bh: "bilinear h" shows "h x 0 = 0"
   using bilinear_radd[OF bh, of x 0 0 ]
-    by (simp add: eq_add_iff ring_simps)
+    by (simp add: eq_add_iff field_simps)
 
 lemma bilinear_lsub: "bilinear h ==> h (x - (y:: 'a::ring_1 ^ _)) z = h x z - h y z"
   by (simp  add: diff_def bilinear_ladd bilinear_lneg)
@@ -1677,7 +1677,7 @@ proof-
       apply (rule real_setsum_norm_le)
       using fN fM
       apply simp
-      apply (auto simp add: bilinear_rmul[OF bh] bilinear_lmul[OF bh] norm_mul ring_simps)
+      apply (auto simp add: bilinear_rmul[OF bh] bilinear_lmul[OF bh] norm_mul field_simps)
       apply (rule mult_mono)
       apply (auto simp add: norm_ge_zero zero_le_mult_iff component_le_norm)
       apply (rule mult_mono)
@@ -1767,7 +1767,7 @@ proof-
         by (simp add: linear_cmul[OF lf])
       finally have "f x \<bullet> y = x \<bullet> ?w"
         apply (simp only: )
-        apply (simp add: inner_vector_def setsum_left_distrib setsum_right_distrib setsum_commute[of _ ?M ?N] ring_simps)
+        apply (simp add: inner_vector_def setsum_left_distrib setsum_right_distrib setsum_commute[of _ ?M ?N] field_simps)
         done}
   }
   then show ?thesis unfolding adjoint_def
@@ -1832,7 +1832,7 @@ definition "columns(A::'a^'n^'m) = { column i A | i. i \<in> (UNIV :: 'n set)}"
 
 lemma mat_0[simp]: "mat 0 = 0" by (vector mat_def)
 lemma matrix_add_ldistrib: "(A ** (B + C)) = (A ** B) + (A ** C)"
-  by (vector matrix_matrix_mult_def setsum_addf[symmetric] ring_simps)
+  by (vector matrix_matrix_mult_def setsum_addf[symmetric] field_simps)
 
 lemma matrix_mul_lid:
   fixes A :: "'a::semiring_1 ^ 'm ^ 'n"
@@ -1951,7 +1951,7 @@ definition matrix:: "('a::{plus,times, one, zero}^'m \<Rightarrow> 'a ^ 'n) \<Ri
 where "matrix f = (\<chi> i j. (f(basis j))$i)"
 
 lemma matrix_vector_mul_linear: "linear(\<lambda>x. A *v (x::'a::comm_semiring_1 ^ _))"
-  by (simp add: linear_def matrix_vector_mult_def Cart_eq ring_simps setsum_right_distrib setsum_addf)
+  by (simp add: linear_def matrix_vector_mult_def Cart_eq field_simps setsum_right_distrib setsum_addf)
 
 lemma matrix_works: assumes lf: "linear f" shows "matrix f *v x = f (x::'a::comm_ring_1 ^ 'n)"
 apply (simp add: matrix_def matrix_vector_mult_def Cart_eq mult_commute)
@@ -2005,7 +2005,7 @@ lemma real_convex_bound_lt:
 proof-
   have uv': "u = 0 \<longrightarrow> v \<noteq> 0" using u v uv by arith
   have "a = a * (u + v)" unfolding uv  by simp
-  hence th: "u * a + v * a = a" by (simp add: ring_simps)
+  hence th: "u * a + v * a = a" by (simp add: field_simps)
   from xa u have "u \<noteq> 0 \<Longrightarrow> u*x < u*a" by (simp add: mult_compare_simps)
   from ya v have "v \<noteq> 0 \<Longrightarrow> v * y < v * a" by (simp add: mult_compare_simps)
   from xa ya u v have "u * x + v * y < u * a + v * a"
@@ -2028,7 +2028,7 @@ lemma real_convex_bound_le:
   shows "u * x + v * y \<le> a"
 proof-
   from xa ya u v have "u * x + v * y \<le> u * a + v * a" by (simp add: add_mono mult_left_mono)
-  also have "\<dots> \<le> (u + v) * a" by (simp add: ring_simps)
+  also have "\<dots> \<le> (u + v) * a" by (simp add: field_simps)
   finally show ?thesis unfolding uv by simp
 qed
 
@@ -2049,7 +2049,7 @@ lemma triangle_lemma:
   shows "x <= y + z"
 proof-
   have "y^2 + z^2 \<le> y^2 + 2*y*z + z^2" using z y  by (simp add: zero_compare_simps)
-  with xy have th: "x ^2 \<le> (y+z)^2" by (simp add: power2_eq_square ring_simps)
+  with xy have th: "x ^2 \<le> (y+z)^2" by (simp add: power2_eq_square field_simps)
   from y z have yz: "y + z \<ge> 0" by arith
   from power2_le_imp_le[OF th yz] show ?thesis .
 qed
@@ -2534,9 +2534,9 @@ next
   from h have p: "1 \<le> (1 + x) ^ n" using Suc.prems by simp
   from h have "1 + real n * x + x \<le> (1 + x) ^ n + x" by simp
   also have "\<dots> \<le> (1 + x) ^ Suc n" apply (subst diff_le_0_iff_le[symmetric])
-    apply (simp add: ring_simps)
+    apply (simp add: field_simps)
     using mult_left_mono[OF p Suc.prems] by simp
-  finally show ?case  by (simp add: real_of_nat_Suc ring_simps)
+  finally show ?case  by (simp add: real_of_nat_Suc field_simps)
 qed
 
 lemma real_arch_pow: assumes x: "1 < (x::real)" shows "\<exists>n. y < x^n"
@@ -2602,10 +2602,10 @@ proof-
     from geometric_sum[OF x1, of "Suc n", unfolded x1']
     have "(- (1 - x)) * setsum (\<lambda>i. x^i) {0 .. n} = - (1 - x^(Suc n))"
       unfolding atLeastLessThanSuc_atLeastAtMost
-      using x1' apply (auto simp only: field_eq_simps)
-      apply (simp add: ring_simps)
+      using x1' apply (auto simp only: field_simps)
+      apply (simp add: field_simps)
       done
-    then have ?thesis by (simp add: ring_simps) }
+    then have ?thesis by (simp add: field_simps) }
   ultimately show ?thesis by metis
 qed
 
@@ -2624,7 +2624,7 @@ proof-
   from setsum_reindex[OF i, of "op ^ x", unfolded f th setsum_right_distrib[symmetric]]
   have "?lhs = x^m * ((1 - x) * setsum (op ^ x) {0..n - m})" by simp
   then show ?thesis unfolding sum_gp_basic using mn
-    by (simp add: ring_simps power_add[symmetric])
+    by (simp add: field_simps power_add[symmetric])
 qed
 
 lemma sum_gp: "setsum (op ^ (x::'a::{field})) {m .. n} =
@@ -2637,7 +2637,7 @@ proof-
     {assume x: "x = 1"  hence ?thesis by simp}
     moreover
     {assume x: "x \<noteq> 1" hence nz: "1 - x \<noteq> 0" by simp
-      from sum_gp_multiplied[OF nm, of x] nz have ?thesis by (simp add: field_eq_simps)}
+      from sum_gp_multiplied[OF nm, of x] nz have ?thesis by (simp add: field_simps)}
     ultimately have ?thesis by metis
   }
   ultimately show ?thesis by metis
@@ -2646,7 +2646,7 @@ qed
 lemma sum_gp_offset: "setsum (op ^ (x::'a::{field})) {m .. m+n} =
   (if x = 1 then of_nat n + 1 else x^m * (1 - x^Suc n) / (1 - x))"
   unfolding sum_gp[of x m "m + n"] power_Suc
-  by (simp add: ring_simps power_add)
+  by (simp add: field_simps power_add)
 
 
 subsection{* A bit of linear algebra. *}
@@ -2920,14 +2920,14 @@ proof-
     apply (simp only: )
     apply (rule span_add[unfolded mem_def])
     apply assumption+
-    apply (vector ring_simps)
+    apply (vector field_simps)
     apply (clarsimp simp add: mem_def)
     apply (rule_tac x= "c*k" in exI)
     apply (subgoal_tac "c *s x - (c * k) *s b = c*s (x - k*s b)")
     apply (simp only: )
     apply (rule span_mul[unfolded mem_def])
     apply assumption
-    by (vector ring_simps)
+    by (vector field_simps)
   ultimately show "?P a" using aS span_induct[where S=S and P= "?P"] by metis
 qed
 
@@ -3073,7 +3073,7 @@ proof-
           setsum_clauses(2)[OF fS] cong del: if_weak_cong)
       also have "\<dots> = (\<Sum>v\<in>S. u v *s v) + c *s x"
         apply (simp add: setsum_Un_disjoint[OF Sss, unfolded S1[symmetric]])
-        by (vector ring_simps)
+        by (vector field_simps)
       also have "\<dots> = c*s x + y"
         by (simp add: add_commute u)
       finally have "setsum (\<lambda>v. ?u v *s v) ?S = c*s x + y" .
@@ -3110,7 +3110,7 @@ proof-
     from fS SP aP have th0: "finite ?S" "?S \<subseteq> P" "?v \<in> ?S" "?u ?v \<noteq> 0" by auto
     have s0: "setsum (\<lambda>v. ?u v *s v) ?S = 0"
       using fS aS
-      apply (simp add: vector_smult_lneg vector_smult_lid setsum_clauses ring_simps )
+      apply (simp add: vector_smult_lneg vector_smult_lid setsum_clauses field_simps )
       apply (subst (2) ua[symmetric])
       apply (rule setsum_cong2)
       by auto
@@ -3643,7 +3643,7 @@ next
   from C(1) have fC: "finite ?C" by simp
   from fB aB C(1,2) have cC: "card ?C \<le> card (insert a B)" by (simp add: card_insert_if)
   {fix x k
-    have th0: "\<And>(a::'b::comm_ring) b c. a - (b - c) = c + (a - b)" by (simp add: ring_simps)
+    have th0: "\<And>(a::'b::comm_ring) b c. a - (b - c) = c + (a - b)" by (simp add: field_simps)
     have "x - k *s (a - (\<Sum>x\<in>C. (x \<bullet> a / (x \<bullet> x)) *s x)) \<in> span C \<longleftrightarrow> x - k *s a \<in> span C"
       apply (simp only: vector_ssub_ldistrib th0)
       apply (rule span_add_eq)
@@ -3863,7 +3863,7 @@ next
       using z .
     {fix k assume k: "z - k *s a \<in> span b"
       have eq: "z - ?h z *s a - (z - k*s a) = (k - ?h z) *s a"
-        by (simp add: ring_simps vector_sadd_rdistrib[symmetric])
+        by (simp add: field_simps vector_sadd_rdistrib[symmetric])
       from span_sub[OF th0 k]
       have khz: "(k - ?h z) *s a \<in> span b" by (simp add: eq)
       {assume "k \<noteq> ?h z" hence k0: "k - ?h z \<noteq> 0" by simp
@@ -3877,7 +3877,7 @@ next
   let ?g = "\<lambda>z. ?h z *s f a + g (z - ?h z *s a)"
   {fix x y assume x: "x \<in> span (insert a b)" and y: "y \<in> span (insert a b)"
     have tha: "\<And>(x::'a^'n) y a k l. (x + y) - (k + l) *s a = (x - k *s a) + (y - l *s a)"
-      by (vector ring_simps)
+      by (vector field_simps)
     have addh: "?h (x + y) = ?h x + ?h y"
       apply (rule conjunct2[OF h, rule_format, symmetric])
       apply (rule span_add[OF x y])
@@ -3890,14 +3890,14 @@ next
   moreover
   {fix x:: "'a^'n" and c:: 'a  assume x: "x \<in> span (insert a b)"
     have tha: "\<And>(x::'a^'n) c k a. c *s x - (c * k) *s a = c *s (x - k *s a)"
-      by (vector ring_simps)
+      by (vector field_simps)
     have hc: "?h (c *s x) = c * ?h x"
       apply (rule conjunct2[OF h, rule_format, symmetric])
       apply (metis span_mul x)
       by (metis tha span_mul x conjunct1[OF h])
     have "?g (c *s x) = c*s ?g x"
       unfolding hc tha g(2)[rule_format, OF conjunct1[OF h, OF x]]
-      by (vector ring_simps)}
+      by (vector field_simps)}
   moreover
   {fix x assume x: "x \<in> (insert a b)"
     {assume xa: "x = a"
@@ -4276,7 +4276,7 @@ proof-
             fix j
             have th: "\<forall>xa \<in> ?U. (if xa = i then (c + (x$i)) * ((column xa A)$j)
            else (x$xa) * ((column xa A$j))) = (if xa = i then c * ((column i A)$j) else 0) + ((x$xa) * ((column xa A)$j))" using i(1)
-              by (simp add: ring_simps)
+              by (simp add: field_simps)
             have "setsum (\<lambda>xa. if xa = i then (c + (x$i)) * ((column xa A)$j)
            else (x$xa) * ((column xa A$j))) ?U = setsum (\<lambda>xa. (if xa = i then c * ((column i A)$j) else 0) + ((x$xa) * ((column xa A)$j))) ?U"
               apply (rule setsum_cong[OF refl])
@@ -4619,7 +4619,7 @@ proof-
   from infnorm_triangle[of "x - y" " y"] infnorm_triangle[of "x - y" "-x"]
   have ths: "infnorm x \<le> infnorm (x - y) + infnorm y"
     "infnorm y \<le> infnorm (x - y) + infnorm x"
-    by (simp_all add: ring_simps infnorm_neg diff_def[symmetric])
+    by (simp_all add: field_simps infnorm_neg diff_def[symmetric])
   from th[OF ths]  show ?thesis .
 qed
 
@@ -4718,9 +4718,9 @@ proof-
       using x y
       unfolding inner_simps smult_conv_scaleR
       unfolding power2_norm_eq_inner[symmetric] power2_eq_square diff_eq_0_iff_eq apply (simp add: inner_commute)
-      apply (simp add: ring_simps) by metis
+      apply (simp add: field_simps) by metis
     also have "\<dots> \<longleftrightarrow> (2 * norm x * norm y * (norm x * norm y - x \<bullet> y) = 0)" using x y
-      by (simp add: ring_simps inner_commute)
+      by (simp add: field_simps inner_commute)
     also have "\<dots> \<longleftrightarrow> ?lhs" using x y
       apply simp
       by metis
@@ -4766,7 +4766,7 @@ proof-
     also have "\<dots> \<longleftrightarrow> norm x *s y = norm y *s x"
       unfolding norm_cauchy_schwarz_eq[symmetric]
       unfolding power2_norm_eq_inner inner_simps
-      by (simp add: power2_norm_eq_inner[symmetric] power2_eq_square inner_commute ring_simps)
+      by (simp add: power2_norm_eq_inner[symmetric] power2_eq_square inner_commute field_simps)
     finally have ?thesis .}
   ultimately show ?thesis by blast
 qed
@@ -4852,10 +4852,10 @@ apply (erule ssubst)
 unfolding vector_smult_assoc
 unfolding norm_mul
 apply (subgoal_tac "norm x * c = \<bar>c\<bar> * norm x \<or> norm x * c = - \<bar>c\<bar> * norm x")
-apply (case_tac "c <= 0", simp add: ring_simps)
-apply (simp add: ring_simps)
-apply (case_tac "c <= 0", simp add: ring_simps)
-apply (simp add: ring_simps)
+apply (case_tac "c <= 0", simp add: field_simps)
+apply (simp add: field_simps)
+apply (case_tac "c <= 0", simp add: field_simps)
+apply (simp add: field_simps)
 apply simp
 apply simp
 done

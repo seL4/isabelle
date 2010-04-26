@@ -4442,7 +4442,7 @@ proof-
   let ?D = "{norm (x - y) |x y. x \<in> s \<and> y \<in> s}"
   obtain a where a:"\<forall>x\<in>s. norm x \<le> a" using assms[unfolded bounded_iff] by auto
   { fix x y assume "x \<in> s" "y \<in> s"
-    hence "norm (x - y) \<le> 2 * a" using norm_triangle_ineq[of x "-y", unfolded norm_minus_cancel] a[THEN bspec[where x=x]] a[THEN bspec[where x=y]] by (auto simp add: ring_simps)  }
+    hence "norm (x - y) \<le> 2 * a" using norm_triangle_ineq[of x "-y", unfolded norm_minus_cancel] a[THEN bspec[where x=x]] a[THEN bspec[where x=y]] by (auto simp add: field_simps)  }
   note * = this
   { fix x y assume "x\<in>s" "y\<in>s"  hence "s \<noteq> {}" by auto
     have "norm(x - y) \<le> diameter s" unfolding diameter_def using `s\<noteq>{}` *[OF `x\<in>s` `y\<in>s`] `x\<in>s` `y\<in>s`  
@@ -5752,7 +5752,7 @@ lemma vector_affinity_eq:
   shows "m *s x + c = y \<longleftrightarrow> x = inverse m *s y + -(inverse m *s c)"
 proof
   assume h: "m *s x + c = y"
-  hence "m *s x = y - c" by (simp add: ring_simps)
+  hence "m *s x = y - c" by (simp add: field_simps)
   hence "inverse m *s (m *s x) = inverse m *s (y - c)" by simp
   then show "x = inverse m *s y + - (inverse m *s c)"
     using m0 by (simp add: vector_smult_assoc vector_ssub_ldistrib)
@@ -5854,11 +5854,11 @@ proof-
       also have "\<dots> \<le> (1 - c) * (dist (z m) (z (m + k)) + c ^ (m + k) * d)"
         using cf_z[of "m + k"] and c by auto
       also have "\<dots> \<le> c ^ m * d * (1 - c ^ k) + (1 - c) * c ^ (m + k) * d"
-        using Suc by (auto simp add: ring_simps)
+        using Suc by (auto simp add: field_simps)
       also have "\<dots> = (c ^ m) * (d * (1 - c ^ k) + (1 - c) * c ^ k * d)"
-        unfolding power_add by (auto simp add: ring_simps)
+        unfolding power_add by (auto simp add: field_simps)
       also have "\<dots> \<le> (c ^ m) * d * (1 - c ^ Suc k)"
-        using c by (auto simp add: ring_simps)
+        using c by (auto simp add: field_simps)
       finally show ?case by auto
     qed
   } note cf_z2 = this
@@ -6015,7 +6015,7 @@ next
         apply(erule_tac x="Na+Nb+n" in allE) apply simp
         using dist_triangle_add_half[of a "f (r (Na + Nb + n)) x" "dist a b - dist (f n x) (f n y)"
           "-b"  "- f (r (Na + Nb + n)) y"]
-        unfolding ** unfolding group_simps(12) by (auto simp add: dist_commute)
+        unfolding ** by (auto simp add: algebra_simps dist_commute)
       moreover
       have "dist (f (r (Na + Nb + n)) x - f (r (Na + Nb + n)) y) (a - b) \<ge> dist a b - dist (f n x) (f n y)"
         using distf[of n "r (Na+Nb+n)", OF _ `x\<in>s` `y\<in>s`]

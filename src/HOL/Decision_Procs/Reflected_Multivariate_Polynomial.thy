@@ -230,7 +230,7 @@ by clarsimp
 
 subsection{* Semantics of the polynomial representation *}
 
-consts Ipoly :: "'a list \<Rightarrow> poly \<Rightarrow> 'a::{ring_char_0,power,division_by_zero,field}"
+consts Ipoly :: "'a list \<Rightarrow> poly \<Rightarrow> 'a::{ring_char_0,power,division_ring_inverse_zero,field}"
 primrec
   "Ipoly bs (C c) = INum c"
   "Ipoly bs (Bound n) = bs!n"
@@ -241,7 +241,7 @@ primrec
   "Ipoly bs (Pw t n) = (Ipoly bs t) ^ n"
   "Ipoly bs (CN c n p) = (Ipoly bs c) + (bs!n)*(Ipoly bs p)"
 abbreviation
-  Ipoly_syntax :: "poly \<Rightarrow> 'a list \<Rightarrow>'a::{ring_char_0,power,division_by_zero,field}" ("\<lparr>_\<rparr>\<^sub>p\<^bsup>_\<^esup>")
+  Ipoly_syntax :: "poly \<Rightarrow> 'a list \<Rightarrow>'a::{ring_char_0,power,division_ring_inverse_zero,field}" ("\<lparr>_\<rparr>\<^sub>p\<^bsup>_\<^esup>")
   where "\<lparr>p\<rparr>\<^sub>p\<^bsup>bs\<^esup> \<equiv> Ipoly bs p"
 
 lemma Ipoly_CInt: "Ipoly bs (C (i,1)) = of_int i" 
@@ -322,7 +322,7 @@ next
 qed auto
 
 lemma polyadd[simp]: "Ipoly bs (polyadd (p,q)) = (Ipoly bs p) + (Ipoly bs q)"
-by (induct p q rule: polyadd.induct, auto simp add: Let_def ring_simps right_distrib[symmetric] simp del: right_distrib)
+by (induct p q rule: polyadd.induct, auto simp add: Let_def field_simps right_distrib[symmetric] simp del: right_distrib)
 
 lemma polyadd_norm: "\<lbrakk> isnpoly p ; isnpoly q\<rbrakk> \<Longrightarrow> isnpoly (polyadd(p,q))"
   using polyadd_normh[of "p" "0" "q" "0"] isnpoly_def by simp
@@ -394,7 +394,7 @@ proof (induct p q arbitrary: m n0 n1 c rule: polyadd.induct)
 qed simp_all
 
 lemma polymul_properties:
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  assumes "SORT_CONSTRAINT('a::{field, division_ring_inverse_zero, ring_char_0})"
   and np: "isnpolyh p n0" and nq: "isnpolyh q n1" and m: "m \<le> min n0 n1"
   shows "isnpolyh (p *\<^sub>p q) (min n0 n1)" 
   and "(p *\<^sub>p q = 0\<^sub>p) = (p = 0\<^sub>p \<or> q = 0\<^sub>p)" 
@@ -565,22 +565,22 @@ next
 qed auto
 
 lemma polymul[simp]: "Ipoly bs (p *\<^sub>p q) = (Ipoly bs p) * (Ipoly bs q)"
-by(induct p q rule: polymul.induct, auto simp add: ring_simps)
+by(induct p q rule: polymul.induct, auto simp add: field_simps)
 
 lemma polymul_normh: 
-    assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+    assumes "SORT_CONSTRAINT('a::{field, division_ring_inverse_zero, ring_char_0})"
   shows "\<lbrakk>isnpolyh p n0 ; isnpolyh q n1\<rbrakk> \<Longrightarrow> isnpolyh (p *\<^sub>p q) (min n0 n1)"
   using polymul_properties(1)  by blast
 lemma polymul_eq0_iff: 
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  assumes "SORT_CONSTRAINT('a::{field, division_ring_inverse_zero, ring_char_0})"
   shows "\<lbrakk> isnpolyh p n0 ; isnpolyh q n1\<rbrakk> \<Longrightarrow> (p *\<^sub>p q = 0\<^sub>p) = (p = 0\<^sub>p \<or> q = 0\<^sub>p) "
   using polymul_properties(2)  by blast
 lemma polymul_degreen:  
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  assumes "SORT_CONSTRAINT('a::{field, division_ring_inverse_zero, ring_char_0})"
   shows "\<lbrakk> isnpolyh p n0 ; isnpolyh q n1 ; m \<le> min n0 n1\<rbrakk> \<Longrightarrow> degreen (p *\<^sub>p q) m = (if (p = 0\<^sub>p \<or> q = 0\<^sub>p) then 0 else degreen p m + degreen q m)"
   using polymul_properties(3) by blast
 lemma polymul_norm:   
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  assumes "SORT_CONSTRAINT('a::{field, division_ring_inverse_zero, ring_char_0})"
   shows "\<lbrakk> isnpoly p; isnpoly q\<rbrakk> \<Longrightarrow> isnpoly (polymul (p,q))"
   using polymul_normh[of "p" "0" "q" "0"] isnpoly_def by simp
 
@@ -591,7 +591,7 @@ lemma headconst_isnormNum: "isnpolyh p n0 \<Longrightarrow> isnormNum (headconst
   by (induct p arbitrary: n0, auto)
 
 lemma monic_eqI: assumes np: "isnpolyh p n0" 
-  shows "INum (headconst p) * Ipoly bs (fst (monic p)) = (Ipoly bs p ::'a::{ring_char_0,power,division_by_zero,field})"
+  shows "INum (headconst p) * Ipoly bs (fst (monic p)) = (Ipoly bs p ::'a::{ring_char_0,power,division_ring_inverse_zero,field})"
   unfolding monic_def Let_def
 proof(cases "headconst p = 0\<^sub>N", simp_all add: headconst_zero[OF np])
   let ?h = "headconst p"
@@ -629,13 +629,13 @@ by (simp add: polysub_def polyneg_normh polyadd_normh)
 
 lemma polysub_norm: "\<lbrakk> isnpoly p; isnpoly q\<rbrakk> \<Longrightarrow> isnpoly (polysub(p,q))"
   using polyadd_norm polyneg_norm by (simp add: polysub_def) 
-lemma polysub_same_0[simp]:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+lemma polysub_same_0[simp]:   assumes "SORT_CONSTRAINT('a::{field, division_ring_inverse_zero, ring_char_0})"
   shows "isnpolyh p n0 \<Longrightarrow> polysub (p, p) = 0\<^sub>p"
 unfolding polysub_def split_def fst_conv snd_conv
 by (induct p arbitrary: n0,auto simp add: Let_def Nsub0[simplified Nsub_def])
 
 lemma polysub_0: 
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  assumes "SORT_CONSTRAINT('a::{field, division_ring_inverse_zero, ring_char_0})"
   shows "\<lbrakk> isnpolyh p n0 ; isnpolyh q n1\<rbrakk> \<Longrightarrow> (p -\<^sub>p q = 0\<^sub>p) = (p = q)"
   unfolding polysub_def split_def fst_conv snd_conv
   apply (induct p q arbitrary: n0 n1 rule:polyadd.induct, simp_all add: Nsub0[simplified Nsub_def])
@@ -657,7 +657,7 @@ lemma polysub_0:
   done
 
 text{* polypow is a power function and preserves normal forms *}
-lemma polypow[simp]: "Ipoly bs (polypow n p) = ((Ipoly bs p :: 'a::{ring_char_0,division_by_zero,field})) ^ n"
+lemma polypow[simp]: "Ipoly bs (polypow n p) = ((Ipoly bs p :: 'a::{field, division_ring_inverse_zero, ring_char_0})) ^ n"
 proof(induct n rule: polypow.induct)
   case 1 thus ?case by simp
 next
@@ -688,7 +688,7 @@ next
 qed
 
 lemma polypow_normh: 
-    assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+    assumes "SORT_CONSTRAINT('a::{field, division_ring_inverse_zero, ring_char_0})"
   shows "isnpolyh p n \<Longrightarrow> isnpolyh (polypow k p) n"
 proof (induct k arbitrary: n rule: polypow.induct)
   case (2 k n)
@@ -701,17 +701,17 @@ proof (induct k arbitrary: n rule: polypow.induct)
 qed auto 
 
 lemma polypow_norm:   
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  assumes "SORT_CONSTRAINT('a::{field, division_ring_inverse_zero, ring_char_0})"
   shows "isnpoly p \<Longrightarrow> isnpoly (polypow k p)"
   by (simp add: polypow_normh isnpoly_def)
 
 text{* Finally the whole normalization*}
 
-lemma polynate[simp]: "Ipoly bs (polynate p) = (Ipoly bs p :: 'a ::{ring_char_0,division_by_zero,field})"
+lemma polynate[simp]: "Ipoly bs (polynate p) = (Ipoly bs p :: 'a ::{field, division_ring_inverse_zero, ring_char_0})"
 by (induct p rule:polynate.induct, auto)
 
 lemma polynate_norm[simp]: 
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  assumes "SORT_CONSTRAINT('a::{field, division_ring_inverse_zero, ring_char_0})"
   shows "isnpoly (polynate p)"
   by (induct p rule: polynate.induct, simp_all add: polyadd_norm polymul_norm polysub_norm polyneg_norm polypow_norm) (simp_all add: isnpoly_def)
 
@@ -736,29 +736,29 @@ lemma funpow_isnpolyh:
   shows "isnpolyh (funpow k f p) n"
   using f np by (induct k arbitrary: p, auto)
 
-lemma funpow_shift1: "(Ipoly bs (funpow n shift1 p) :: 'a :: {ring_char_0,division_by_zero,field}) = Ipoly bs (Mul (Pw (Bound 0) n) p)"
+lemma funpow_shift1: "(Ipoly bs (funpow n shift1 p) :: 'a :: {field, division_ring_inverse_zero, ring_char_0}) = Ipoly bs (Mul (Pw (Bound 0) n) p)"
   by (induct n arbitrary: p, simp_all add: shift1_isnpoly shift1 power_Suc )
 
 lemma shift1_isnpolyh: "isnpolyh p n0 \<Longrightarrow> p\<noteq> 0\<^sub>p \<Longrightarrow> isnpolyh (shift1 p) 0"
   using isnpolyh_mono[where n="n0" and n'="0" and p="p"] by (simp add: shift1_def)
 
 lemma funpow_shift1_1: 
-  "(Ipoly bs (funpow n shift1 p) :: 'a :: {ring_char_0,division_by_zero,field}) = Ipoly bs (funpow n shift1 1\<^sub>p *\<^sub>p p)"
+  "(Ipoly bs (funpow n shift1 p) :: 'a :: {field, division_ring_inverse_zero, ring_char_0}) = Ipoly bs (funpow n shift1 1\<^sub>p *\<^sub>p p)"
   by (simp add: funpow_shift1)
 
 lemma poly_cmul[simp]: "Ipoly bs (poly_cmul c p) = Ipoly bs (Mul (C c) p)"
-by (induct p  arbitrary: n0 rule: poly_cmul.induct, auto simp add: ring_simps)
+by (induct p  arbitrary: n0 rule: poly_cmul.induct, auto simp add: field_simps)
 
 lemma behead:
   assumes np: "isnpolyh p n"
-  shows "Ipoly bs (Add (Mul (head p) (Pw (Bound 0) (degree p))) (behead p)) = (Ipoly bs p :: 'a :: {ring_char_0,division_by_zero,field})"
+  shows "Ipoly bs (Add (Mul (head p) (Pw (Bound 0) (degree p))) (behead p)) = (Ipoly bs p :: 'a :: {field, division_ring_inverse_zero, ring_char_0})"
   using np
 proof (induct p arbitrary: n rule: behead.induct)
   case (1 c p n) hence pn: "isnpolyh p n" by simp
   from prems(2)[OF pn] 
   have th:"Ipoly bs (Add (Mul (head p) (Pw (Bound 0) (degree p))) (behead p)) = Ipoly bs p" . 
   then show ?case using "1.hyps" apply (simp add: Let_def,cases "behead p = 0\<^sub>p")
-    by (simp_all add: th[symmetric] ring_simps power_Suc)
+    by (simp_all add: th[symmetric] field_simps power_Suc)
 qed (auto simp add: Let_def)
 
 lemma behead_isnpolyh:
@@ -981,7 +981,7 @@ lemma head_nz[simp]: "isnpolyh p n0 \<Longrightarrow> (head p = 0\<^sub>p) = (p 
   by (simp add: head_eq_headn0)
 
 lemma isnpolyh_zero_iff: 
-  assumes nq: "isnpolyh p n0" and eq :"\<forall>bs. wf_bs bs p \<longrightarrow> \<lparr>p\<rparr>\<^sub>p\<^bsup>bs\<^esup> = (0::'a::{ring_char_0,power,division_by_zero,field})"
+  assumes nq: "isnpolyh p n0" and eq :"\<forall>bs. wf_bs bs p \<longrightarrow> \<lparr>p\<rparr>\<^sub>p\<^bsup>bs\<^esup> = (0::'a::{ring_char_0,power,division_ring_inverse_zero,field})"
   shows "p = 0\<^sub>p"
 using nq eq
 proof (induct "maxindex p" arbitrary: p n0 rule: less_induct)
@@ -1033,7 +1033,7 @@ qed
 
 lemma isnpolyh_unique:  
   assumes np:"isnpolyh p n0" and nq: "isnpolyh q n1"
-  shows "(\<forall>bs. \<lparr>p\<rparr>\<^sub>p\<^bsup>bs\<^esup> = (\<lparr>q\<rparr>\<^sub>p\<^bsup>bs\<^esup> :: 'a::{ring_char_0,power,division_by_zero,field})) \<longleftrightarrow>  p = q"
+  shows "(\<forall>bs. \<lparr>p\<rparr>\<^sub>p\<^bsup>bs\<^esup> = (\<lparr>q\<rparr>\<^sub>p\<^bsup>bs\<^esup> :: 'a::{ring_char_0,power,division_ring_inverse_zero,field})) \<longleftrightarrow>  p = q"
 proof(auto)
   assume H: "\<forall>bs. (\<lparr>p\<rparr>\<^sub>p\<^bsup>bs\<^esup> ::'a)= \<lparr>q\<rparr>\<^sub>p\<^bsup>bs\<^esup>"
   hence "\<forall>bs.\<lparr>p -\<^sub>p q\<rparr>\<^sub>p\<^bsup>bs\<^esup>= (0::'a)" by simp
@@ -1046,50 +1046,50 @@ qed
 
 text{* consequenses of unicity on the algorithms for polynomial normalization *}
 
-lemma polyadd_commute:   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+lemma polyadd_commute:   assumes "SORT_CONSTRAINT('a::{field, division_ring_inverse_zero, ring_char_0})"
   and np: "isnpolyh p n0" and nq: "isnpolyh q n1" shows "p +\<^sub>p q = q +\<^sub>p p"
   using isnpolyh_unique[OF polyadd_normh[OF np nq] polyadd_normh[OF nq np]] by simp
 
 lemma zero_normh: "isnpolyh 0\<^sub>p n" by simp
 lemma one_normh: "isnpolyh 1\<^sub>p n" by simp
 lemma polyadd_0[simp]: 
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  assumes "SORT_CONSTRAINT('a::{field, division_ring_inverse_zero, ring_char_0})"
   and np: "isnpolyh p n0" shows "p +\<^sub>p 0\<^sub>p = p" and "0\<^sub>p +\<^sub>p p = p"
   using isnpolyh_unique[OF polyadd_normh[OF np zero_normh] np] 
     isnpolyh_unique[OF polyadd_normh[OF zero_normh np] np] by simp_all
 
 lemma polymul_1[simp]: 
-    assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+    assumes "SORT_CONSTRAINT('a::{field, division_ring_inverse_zero, ring_char_0})"
   and np: "isnpolyh p n0" shows "p *\<^sub>p 1\<^sub>p = p" and "1\<^sub>p *\<^sub>p p = p"
   using isnpolyh_unique[OF polymul_normh[OF np one_normh] np] 
     isnpolyh_unique[OF polymul_normh[OF one_normh np] np] by simp_all
 lemma polymul_0[simp]: 
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  assumes "SORT_CONSTRAINT('a::{field, division_ring_inverse_zero, ring_char_0})"
   and np: "isnpolyh p n0" shows "p *\<^sub>p 0\<^sub>p = 0\<^sub>p" and "0\<^sub>p *\<^sub>p p = 0\<^sub>p"
   using isnpolyh_unique[OF polymul_normh[OF np zero_normh] zero_normh] 
     isnpolyh_unique[OF polymul_normh[OF zero_normh np] zero_normh] by simp_all
 
 lemma polymul_commute: 
-    assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+    assumes "SORT_CONSTRAINT('a::{field, division_ring_inverse_zero, ring_char_0})"
   and np:"isnpolyh p n0" and nq: "isnpolyh q n1"
   shows "p *\<^sub>p q = q *\<^sub>p p"
-using isnpolyh_unique[OF polymul_normh[OF np nq] polymul_normh[OF nq np], where ?'a = "'a\<Colon>{ring_char_0,power,division_by_zero,field}"] by simp
+using isnpolyh_unique[OF polymul_normh[OF np nq] polymul_normh[OF nq np], where ?'a = "'a\<Colon>{ring_char_0,power,division_ring_inverse_zero,field}"] by simp
 
 declare polyneg_polyneg[simp]
   
 lemma isnpolyh_polynate_id[simp]: 
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  assumes "SORT_CONSTRAINT('a::{field, division_ring_inverse_zero, ring_char_0})"
   and np:"isnpolyh p n0" shows "polynate p = p"
-  using isnpolyh_unique[where ?'a= "'a::{ring_char_0,division_by_zero,field}", OF polynate_norm[of p, unfolded isnpoly_def] np] polynate[where ?'a = "'a::{ring_char_0,division_by_zero,field}"] by simp
+  using isnpolyh_unique[where ?'a= "'a::{field, division_ring_inverse_zero, ring_char_0}", OF polynate_norm[of p, unfolded isnpoly_def] np] polynate[where ?'a = "'a::{field, division_ring_inverse_zero, ring_char_0}"] by simp
 
 lemma polynate_idempotent[simp]: 
-    assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+    assumes "SORT_CONSTRAINT('a::{field, division_ring_inverse_zero, ring_char_0})"
   shows "polynate (polynate p) = polynate p"
   using isnpolyh_polynate_id[OF polynate_norm[of p, unfolded isnpoly_def]] .
 
 lemma poly_nate_polypoly': "poly_nate bs p = polypoly' bs (polynate p)"
   unfolding poly_nate_def polypoly'_def ..
-lemma poly_nate_poly: shows "poly (poly_nate bs p) = (\<lambda>x:: 'a ::{ring_char_0,division_by_zero,field}. \<lparr>p\<rparr>\<^sub>p\<^bsup>x # bs\<^esup>)"
+lemma poly_nate_poly: shows "poly (poly_nate bs p) = (\<lambda>x:: 'a ::{field, division_ring_inverse_zero, ring_char_0}. \<lparr>p\<rparr>\<^sub>p\<^bsup>x # bs\<^esup>)"
   using polypoly'_poly[OF polynate_norm[unfolded isnpoly_def], symmetric, of bs p]
   unfolding poly_nate_polypoly' by (auto intro: ext)
 
@@ -1116,7 +1116,7 @@ proof-
 qed
 
 lemma degree_polysub_samehead: 
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  assumes "SORT_CONSTRAINT('a::{field, division_ring_inverse_zero, ring_char_0})"
   and np: "isnpolyh p n0" and nq: "isnpolyh q n1" and h: "head p = head q" 
   and d: "degree p = degree q"
   shows "degree (p -\<^sub>p q) < degree p \<or> (p -\<^sub>p q = 0\<^sub>p)"
@@ -1226,7 +1226,7 @@ apply (case_tac n', simp_all)
 done
 
 lemma polymul_head_polyeq: 
-   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+   assumes "SORT_CONSTRAINT('a::{field, division_ring_inverse_zero, ring_char_0})"
   shows "\<lbrakk>isnpolyh p n0; isnpolyh q n1 ; p \<noteq> 0\<^sub>p ; q \<noteq> 0\<^sub>p \<rbrakk> \<Longrightarrow> head (p *\<^sub>p q) = head p *\<^sub>p head q"
 proof (induct p q arbitrary: n0 n1 rule: polymul.induct)
   case (2 a b c' n' p' n0 n1)
@@ -1300,7 +1300,7 @@ lemma degreen_polyneg: "isnpolyh p n0 \<Longrightarrow> degreen (~\<^sub>p p) m 
   by (induct p arbitrary: n0 rule: polyneg.induct, auto)
 
 lemma degree_polymul:
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  assumes "SORT_CONSTRAINT('a::{field, division_ring_inverse_zero, ring_char_0})"
   and np: "isnpolyh p n0" and nq: "isnpolyh q n1"
   shows "degree (p *\<^sub>p q) \<le> degree p + degree q"
   using polymul_degreen[OF np nq, where m="0"]  degree_eq_degreen0 by simp
@@ -1344,7 +1344,7 @@ next
 qed
 
 lemma polydivide_aux_properties:
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  assumes "SORT_CONSTRAINT('a::{field, division_ring_inverse_zero, ring_char_0})"
   and np: "isnpolyh p n0" and ns: "isnpolyh s n1"
   and ap: "head p = a" and ndp: "degree p = n" and pnz: "p \<noteq> 0\<^sub>p"
   shows "polydivide_aux_dom (a,n,p,k,s) \<and> 
@@ -1415,19 +1415,19 @@ proof(induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
             from polyadd_normh[OF polymul_normh[OF np 
               polyadd_normh[OF polymul_normh[OF nakk' nxdn] nq]] nr']
             have nqr': "isnpolyh (p *\<^sub>p (?akk' *\<^sub>p ?xdn +\<^sub>p q) +\<^sub>p r) 0" by simp 
-            from asp have "\<forall> (bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a^\<^sub>p (k' - k) *\<^sub>p (s -\<^sub>p ?p')) = 
+            from asp have "\<forall> (bs:: 'a::{field, division_ring_inverse_zero, ring_char_0} list). Ipoly bs (a^\<^sub>p (k' - k) *\<^sub>p (s -\<^sub>p ?p')) = 
               Ipoly bs (p *\<^sub>p q +\<^sub>p r)" by simp
-            hence " \<forall>(bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a^\<^sub>p (k' - k)*\<^sub>p s) = 
+            hence " \<forall>(bs:: 'a::{field, division_ring_inverse_zero, ring_char_0} list). Ipoly bs (a^\<^sub>p (k' - k)*\<^sub>p s) = 
               Ipoly bs (a^\<^sub>p (k' - k)) * Ipoly bs ?p' + Ipoly bs p * Ipoly bs q + Ipoly bs r" 
-              by (simp add: ring_simps)
-            hence " \<forall>(bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = 
+              by (simp add: field_simps)
+            hence " \<forall>(bs:: 'a::{field, division_ring_inverse_zero, ring_char_0} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = 
               Ipoly bs (a^\<^sub>p (k' - k)) * Ipoly bs (funpow (degree s - n) shift1 1\<^sub>p *\<^sub>p p) 
               + Ipoly bs p * Ipoly bs q + Ipoly bs r"
               by (auto simp only: funpow_shift1_1) 
-            hence "\<forall>(bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = 
+            hence "\<forall>(bs:: 'a::{field, division_ring_inverse_zero, ring_char_0} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = 
               Ipoly bs p * (Ipoly bs (a^\<^sub>p (k' - k)) * Ipoly bs (funpow (degree s - n) shift1 1\<^sub>p) 
-              + Ipoly bs q) + Ipoly bs r" by (simp add: ring_simps)
-            hence "\<forall>(bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = 
+              + Ipoly bs q) + Ipoly bs r" by (simp add: field_simps)
+            hence "\<forall>(bs:: 'a::{field, division_ring_inverse_zero, ring_char_0} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = 
               Ipoly bs (p *\<^sub>p ((a^\<^sub>p (k' - k)) *\<^sub>p (funpow (degree s - n) shift1 1\<^sub>p) +\<^sub>p q) +\<^sub>p r)" by simp
             with isnpolyh_unique[OF nakks' nqr']
             have "a ^\<^sub>p (k' - k) *\<^sub>p s = 
@@ -1444,9 +1444,9 @@ proof(induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
             apply (simp) by (rule polydivide_aux_real_domintros, simp_all)
           have dom: ?dths apply (rule polydivide_aux_real_domintros) 
             using ba dn' domsp by simp_all
-          from spz isnpolyh_unique[OF polysub_normh[OF ns np'], where q="0\<^sub>p", symmetric, where ?'a = "'a::{ring_char_0,division_by_zero,field}"]
-          have " \<forall>(bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs s = Ipoly bs ?p'" by simp
-          hence "\<forall>(bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs s = Ipoly bs (?xdn *\<^sub>p p)" using np nxdn apply simp
+          from spz isnpolyh_unique[OF polysub_normh[OF ns np'], where q="0\<^sub>p", symmetric, where ?'a = "'a::{field, division_ring_inverse_zero, ring_char_0}"]
+          have " \<forall>(bs:: 'a::{field, division_ring_inverse_zero, ring_char_0} list). Ipoly bs s = Ipoly bs ?p'" by simp
+          hence "\<forall>(bs:: 'a::{field, division_ring_inverse_zero, ring_char_0} list). Ipoly bs s = Ipoly bs (?xdn *\<^sub>p p)" using np nxdn apply simp
             by (simp only: funpow_shift1_1) simp
           hence sp': "s = ?xdn *\<^sub>p p" using isnpolyh_unique[OF ns polymul_normh[OF nxdn np]] by blast
           {assume h1: "polydivide_aux (a,n,p,k,s) = (k',r)"
@@ -1501,17 +1501,17 @@ proof(induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
               and dr: "degree r = 0 \<or> degree r < degree p"
               and qr: "a ^\<^sub>p (k' - Suc k) *\<^sub>p ((a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p')) = p *\<^sub>p q +\<^sub>p r" by auto
             from kk' have kk'':"Suc (k' - Suc k) = k' - k" by arith
-            {fix bs:: "'a::{ring_char_0,division_by_zero,field} list"
+            {fix bs:: "'a::{field, division_ring_inverse_zero, ring_char_0} list"
               
             from qr isnpolyh_unique[OF polypow_normh[OF head_isnpolyh[OF np], where k="k' - Suc k", simplified ap] nasbp', symmetric]
             have "Ipoly bs (a ^\<^sub>p (k' - Suc k) *\<^sub>p ((a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p'))) = Ipoly bs (p *\<^sub>p q +\<^sub>p r)" by simp
             hence "Ipoly bs a ^ (Suc (k' - Suc k)) * Ipoly bs s = Ipoly bs p * Ipoly bs q + Ipoly bs a ^ (k' - Suc k) * Ipoly bs ?b * Ipoly bs ?p' + Ipoly bs r"
-              by (simp add: ring_simps power_Suc)
+              by (simp add: field_simps power_Suc)
             hence "Ipoly bs a ^ (k' - k)  * Ipoly bs s = Ipoly bs p * Ipoly bs q + Ipoly bs a ^ (k' - Suc k) * Ipoly bs ?b * Ipoly bs ?xdn * Ipoly bs p + Ipoly bs r"
               by (simp add:kk'' funpow_shift1_1[where n="degree s - n" and p="p"])
             hence "Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = Ipoly bs p * (Ipoly bs q + Ipoly bs a ^ (k' - Suc k) * Ipoly bs ?b * Ipoly bs ?xdn) + Ipoly bs r"
-              by (simp add: ring_simps)}
-            hence ieq:"\<forall>(bs :: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = 
+              by (simp add: field_simps)}
+            hence ieq:"\<forall>(bs :: 'a::{field, division_ring_inverse_zero, ring_char_0} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = 
               Ipoly bs (p *\<^sub>p (q +\<^sub>p (a ^\<^sub>p (k' - Suc k) *\<^sub>p ?b *\<^sub>p ?xdn)) +\<^sub>p r)" by auto 
             let ?q = "q +\<^sub>p (a ^\<^sub>p (k' - Suc k) *\<^sub>p ?b *\<^sub>p ?xdn)"
             from polyadd_normh[OF nq polymul_normh[OF polymul_normh[OF polypow_normh[OF head_isnpolyh[OF np], where k="k' - Suc k"] head_isnpolyh[OF ns], simplified ap ] nxdn]]
@@ -1532,17 +1532,17 @@ proof(induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
             apply (simp) by (rule polydivide_aux_real_domintros, simp_all)
           have dom: ?dths using sz ba dn' domsp 
             by - (rule polydivide_aux_real_domintros, simp_all)
-          {fix bs :: "'a::{ring_char_0,division_by_zero,field} list"
+          {fix bs :: "'a::{field, division_ring_inverse_zero, ring_char_0} list"
             from isnpolyh_unique[OF nth, where ?'a="'a" and q="0\<^sub>p",simplified,symmetric] spz
           have "Ipoly bs (a*\<^sub>p s) = Ipoly bs ?b * Ipoly bs ?p'" by simp
           hence "Ipoly bs (a*\<^sub>p s) = Ipoly bs (?b *\<^sub>p ?xdn) * Ipoly bs p" 
             by (simp add: funpow_shift1_1[where n="degree s - n" and p="p"])
           hence "Ipoly bs (a*\<^sub>p s) = Ipoly bs (p *\<^sub>p (?b *\<^sub>p ?xdn))" by simp
         }
-        hence hth: "\<forall> (bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a*\<^sub>p s) = Ipoly bs (p *\<^sub>p (?b *\<^sub>p ?xdn))" ..
+        hence hth: "\<forall> (bs:: 'a::{field, division_ring_inverse_zero, ring_char_0} list). Ipoly bs (a*\<^sub>p s) = Ipoly bs (p *\<^sub>p (?b *\<^sub>p ?xdn))" ..
           from hth
           have asq: "a *\<^sub>p s = p *\<^sub>p (?b *\<^sub>p ?xdn)" 
-            using isnpolyh_unique[where ?'a = "'a::{ring_char_0,division_by_zero,field}", OF polymul_normh[OF head_isnpolyh[OF np] ns] 
+            using isnpolyh_unique[where ?'a = "'a::{field, division_ring_inverse_zero, ring_char_0}", OF polymul_normh[OF head_isnpolyh[OF np] ns] 
                     polymul_normh[OF np polymul_normh[OF head_isnpolyh[OF ns] nxdn]],
               simplified ap] by simp
           {assume h1: "polydivide_aux (a,n,p,k,s) = (k', r)"
@@ -1566,7 +1566,7 @@ proof(induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
 qed
 
 lemma polydivide_properties: 
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  assumes "SORT_CONSTRAINT('a::{field, division_ring_inverse_zero, ring_char_0})"
   and np: "isnpolyh p n0" and ns: "isnpolyh s n1" and pnz: "p \<noteq> 0\<^sub>p"
   shows "(\<exists> k r. polydivide s p = (k,r) \<and> (\<exists>nr. isnpolyh r nr) \<and> (degree r = 0 \<or> degree r < degree p) 
   \<and> (\<exists>q n1. isnpolyh q n1 \<and> ((polypow k (head p)) *\<^sub>p s = p *\<^sub>p q +\<^sub>p r)))"
@@ -1698,11 +1698,11 @@ lemma swap_same_id[simp]: "swap n n t = t"
 definition "swapnorm n m t = polynate (swap n m t)"
 
 lemma swapnorm: assumes nbs: "n < length bs" and mbs: "m < length bs"
-  shows "((Ipoly bs (swapnorm n m t) :: 'a\<Colon>{ring_char_0,division_by_zero,field})) = Ipoly ((bs[n:= bs!m])[m:= bs!n]) t"
+  shows "((Ipoly bs (swapnorm n m t) :: 'a\<Colon>{field, division_ring_inverse_zero, ring_char_0})) = Ipoly ((bs[n:= bs!m])[m:= bs!n]) t"
   using swap[OF prems] swapnorm_def by simp
 
 lemma swapnorm_isnpoly[simp]: 
-    assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+    assumes "SORT_CONSTRAINT('a::{field, division_ring_inverse_zero, ring_char_0})"
   shows "isnpoly (swapnorm n m p)"
   unfolding swapnorm_def by simp
 

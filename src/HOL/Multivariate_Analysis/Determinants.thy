@@ -55,7 +55,7 @@ apply (auto intro: setprod_nonneg)
 done
 
   (* FIXME: In Finite_Set there is a useless further assumption *)
-lemma setprod_inversef: "finite A ==> setprod (inverse \<circ> f) A = (inverse (setprod f A) :: 'a:: {division_by_zero, field})"
+lemma setprod_inversef: "finite A ==> setprod (inverse \<circ> f) A = (inverse (setprod f A) :: 'a:: {division_ring_inverse_zero, field})"
   apply (erule finite_induct)
   apply (simp)
   apply simp
@@ -352,13 +352,13 @@ proof (rule setsum_cong2)
     apply (rule setprod_insert)
     apply simp
     by blast
-  also have "\<dots> = (a k $ p k * setprod (\<lambda>i. ?f i $ p i) ?Uk) + (b k$ p k * setprod (\<lambda>i. ?f i $ p i) ?Uk)" by (simp add: ring_simps)
+  also have "\<dots> = (a k $ p k * setprod (\<lambda>i. ?f i $ p i) ?Uk) + (b k$ p k * setprod (\<lambda>i. ?f i $ p i) ?Uk)" by (simp add: field_simps)
   also have "\<dots> = (a k $ p k * setprod (\<lambda>i. ?g i $ p i) ?Uk) + (b k$ p k * setprod (\<lambda>i. ?h i $ p i) ?Uk)" by (metis th1 th2)
   also have "\<dots> = setprod (\<lambda>i. ?g i $ p i) (insert k ?Uk) + setprod (\<lambda>i. ?h i $ p i) (insert k ?Uk)"
     unfolding  setprod_insert[OF th3] by simp
   finally have "setprod (\<lambda>i. ?f i $ p i) ?U = setprod (\<lambda>i. ?g i $ p i) ?U + setprod (\<lambda>i. ?h i $ p i) ?U" unfolding kU[symmetric] .
   then show "of_int (sign p) * setprod (\<lambda>i. ?f i $ p i) ?U = of_int (sign p) * setprod (\<lambda>i. ?g i $ p i) ?U + of_int (sign p) * setprod (\<lambda>i. ?h i $ p i) ?U"
-    by (simp add: ring_simps)
+    by (simp add: field_simps)
 qed
 
 lemma det_row_mul:
@@ -389,14 +389,14 @@ proof (rule setsum_cong2)
     apply (rule setprod_insert)
     apply simp
     by blast
-  also have "\<dots> = (c*s a k) $ p k * setprod (\<lambda>i. ?f i $ p i) ?Uk" by (simp add: ring_simps)
+  also have "\<dots> = (c*s a k) $ p k * setprod (\<lambda>i. ?f i $ p i) ?Uk" by (simp add: field_simps)
   also have "\<dots> = c* (a k $ p k * setprod (\<lambda>i. ?g i $ p i) ?Uk)"
     unfolding th1 by (simp add: mult_ac)
   also have "\<dots> = c* (setprod (\<lambda>i. ?g i $ p i) (insert k ?Uk))"
     unfolding  setprod_insert[OF th3] by simp
   finally have "setprod (\<lambda>i. ?f i $ p i) ?U = c* (setprod (\<lambda>i. ?g i $ p i) ?U)" unfolding kU[symmetric] .
   then show "of_int (sign p) * setprod (\<lambda>i. ?f i $ p i) ?U = c * (of_int (sign p) * setprod (\<lambda>i. ?g i $ p i) ?U)"
-    by (simp add: ring_simps)
+    by (simp add: field_simps)
 qed
 
 lemma det_row_0:
@@ -604,7 +604,7 @@ proof (simp add: det_def setsum_right_distrib cong add: setprod_cong, rule setsu
   have "setprod (\<lambda>i. c i * a i $ p i) ?U = setprod c ?U * setprod (\<lambda>i. a i $ p i) ?U"
     unfolding setprod_timesf ..
   then show "?s * (\<Prod>xa\<in>?U. c xa * a xa $ p xa) =
-        setprod c ?U * (?s* (\<Prod>xa\<in>?U. a xa $ p xa))" by (simp add: ring_simps)
+        setprod c ?U * (?s* (\<Prod>xa\<in>?U. a xa $ p xa))" by (simp add: field_simps)
 qed
 
 lemma det_mul:
@@ -681,7 +681,7 @@ proof-
         using permutes_in_image[OF q] by vector
       show "?s q * setprod (\<lambda>i. (((\<chi> i. A$i$p i *s B$p i) :: 'a^'n^'n)$i$q i)) ?U = ?s p * (setprod (\<lambda>i. A$i$p i) ?U) * (?s (q o inv p) * setprod (\<lambda>i. B$i$(q o inv p) i) ?U)"
         using ths thp pp pq permutation_inverse[OF pp] sign_inverse[OF pp]
-        by (simp add: sign_nz th00 ring_simps sign_idempotent sign_compose)
+        by (simp add: sign_nz th00 field_simps sign_idempotent sign_compose)
     qed
   }
   then have th2: "setsum (\<lambda>f. det (\<chi> i. A$i$f i *s B$f i)) ?PU = det A * det B"
@@ -772,7 +772,7 @@ proof-
   have fUk: "finite ?Uk" by simp
   have kUk: "k \<notin> ?Uk" by simp
   have th00: "\<And>k s. x$k *s row k A + s = (x$k - 1) *s row k A + row k A + s"
-    by (vector ring_simps)
+    by (vector field_simps)
   have th001: "\<And>f k . (\<lambda>x. if x = k then f k else f x) = f" by (auto intro: ext)
   have "(\<chi> i. row i A) = A" by (vector row_def)
   then have thd1: "det (\<chi> i. row i A) = det A"  by simp
@@ -793,7 +793,7 @@ proof-
     unfolding thd0
     unfolding det_row_mul
     unfolding th001[of k "\<lambda>i. row i A"]
-    unfolding thd1  by (simp add: ring_simps)
+    unfolding thd1  by (simp add: field_simps)
 qed
 
 lemma cramer_lemma:
@@ -901,7 +901,7 @@ proof-
   have th: "\<And>x::'a. x = 1 \<or> x = - 1 \<longleftrightarrow> x*x = 1" (is "\<And>x::'a. ?ths x")
   proof-
     fix x:: 'a
-    have th0: "x*x - 1 = (x - 1)*(x + 1)" by (simp add: ring_simps)
+    have th0: "x*x - 1 = (x - 1)*(x + 1)" by (simp add: field_simps)
     have th1: "\<And>(x::'a) y. x = - y \<longleftrightarrow> x + y = 0"
       apply (subst eq_iff_diff_eq_0) by simp
     have "x*x = 1 \<longleftrightarrow> x*x - 1 = 0" by simp
@@ -929,7 +929,7 @@ proof-
       unfolding dot_norm_neg dist_norm[symmetric]
       unfolding th0 fd[rule_format] by (simp add: power2_eq_square field_simps)}
   note fc = this
-  show ?thesis unfolding linear_def vector_eq smult_conv_scaleR by (simp add: inner_simps fc ring_simps)
+  show ?thesis unfolding linear_def vector_eq smult_conv_scaleR by (simp add: inner_simps fc field_simps)
 qed
 
 lemma isometry_linear:
@@ -980,7 +980,7 @@ proof-
       using H(5-9)
       apply (simp add: norm_eq norm_eq_1)
       apply (simp add: inner_simps smult_conv_scaleR) unfolding *
-      by (simp add: ring_simps) }
+      by (simp add: field_simps) }
   note th0 = this
   let ?g = "\<lambda>x. if x = 0 then 0 else norm x *s f (inverse (norm x) *s x)"
   {fix x:: "real ^'n" assume nx: "norm x = 1"
@@ -1079,7 +1079,7 @@ proof-
   unfolding permutes_sing
   apply (simp add: sign_swap_id permutation_swap_id sign_compose sign_id swap_id_eq)
   apply (simp add: arith_simps(31)[symmetric] of_int_minus of_int_1 del: arith_simps(31))
-  by (simp add: ring_simps)
+  by (simp add: field_simps)
 qed
 
 end

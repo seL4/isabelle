@@ -1095,7 +1095,7 @@ proof -
   next
     case (Suc n)
     moreover with `y \<noteq> 0` have "(1 + y) ^ n = (y * inverse y) * (1 + y) ^ n" by simp 
-    ultimately show ?case by (simp add: field_eq_simps divide_inverse)
+    ultimately show ?case by (simp add: field_simps divide_inverse)
   qed
   ultimately show ?thesis by simp
 qed

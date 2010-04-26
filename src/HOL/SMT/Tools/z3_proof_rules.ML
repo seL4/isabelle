@@ -1137,7 +1137,8 @@ local
   handle THM _ => NONE
 in
 val z3_simpset = HOL_ss addsimps @{thms array_rules}
-  addsimps @{thms ring_distribs} addsimps @{thms field_eq_simps}
+  addsimps @{thms ring_distribs} addsimps @{thms field_simps}
+  addsimps [@{thm times_divide_eq_right}, @{thm times_divide_eq_left}]
   addsimps @{thms arith_special} addsimps @{thms less_bin_simps}
   addsimps @{thms le_bin_simps} addsimps @{thms eq_bin_simps}
   addsimps @{thms add_bin_simps} addsimps @{thms succ_bin_simps}

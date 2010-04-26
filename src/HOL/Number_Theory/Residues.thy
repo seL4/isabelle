@@ -69,7 +69,7 @@ lemma cring: "cring R"
   apply (subst mod_add_eq [symmetric])
   apply (subst mult_commute)
   apply (subst zmod_zmult1_eq [symmetric])
-  apply (simp add: ring_simps)
+  apply (simp add: field_simps)
 done
 
 end

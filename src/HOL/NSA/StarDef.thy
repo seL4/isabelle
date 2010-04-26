@@ -902,7 +902,7 @@ apply (transfer, erule left_inverse)
 apply (transfer, rule divide_inverse)
 done
 
-instance star :: (division_by_zero) division_by_zero
+instance star :: (division_ring_inverse_zero) division_ring_inverse_zero
 by (intro_classes, transfer, rule inverse_zero)
 
 instance star :: (ordered_semiring) ordered_semiring
