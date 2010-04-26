@@ -77,18 +77,15 @@ datatype rep =
 
 exception REP of string * rep list
 
-(* polarity -> string *)
 fun string_for_polarity Pos = "+"
   | string_for_polarity Neg = "-"
   | string_for_polarity Neut = "="
 
-(* rep -> string *)
 fun atomic_string_for_rep rep =
   let val s = string_for_rep rep in
     if String.isPrefix "[" s orelse not (is_substring_of " " s) then s
     else "(" ^ s ^ ")"
   end
-(* rep -> string *)
 and string_for_rep Any = "X"
   | string_for_rep (Formula polar) = "F" ^ string_for_polarity polar
   | string_for_rep Unit = "U"
@@ -101,7 +98,6 @@ and string_for_rep Any = "X"
     atomic_string_for_rep R1 ^ " => " ^ string_for_rep R2
   | string_for_rep (Opt R) = atomic_string_for_rep R ^ "?"
 
-(* rep -> bool *)
 fun is_Func (Func _) = true
   | is_Func _ = false
 fun is_Opt (Opt _) = true
@@ -110,7 +106,6 @@ fun is_opt_rep (Func (_, R2)) = is_opt_rep R2
   | is_opt_rep (Opt _) = true
   | is_opt_rep _ = false
 
-(* rep -> int *)
 fun card_of_rep Any = raise REP ("Nitpick_Rep.card_of_rep", [Any])
   | card_of_rep (Formula _) = 2
   | card_of_rep Unit = 1
@@ -140,7 +135,6 @@ fun min_univ_card_of_rep Any =
     Int.max (min_univ_card_of_rep R1, min_univ_card_of_rep R2)
   | min_univ_card_of_rep (Opt R) = min_univ_card_of_rep R
 
-(* rep -> bool *)
 fun is_one_rep Unit = true
   | is_one_rep (Atom _) = true
   | is_one_rep (Struct _) = true
@@ -149,10 +143,8 @@ fun is_one_rep Unit = true
 fun is_lone_rep (Opt R) = is_one_rep R
   | is_lone_rep R = is_one_rep R
 
-(* rep -> rep * rep *)
 fun dest_Func (Func z) = z
   | dest_Func R = raise REP ("Nitpick_Rep.dest_Func", [R])
-(* int Typtab.table -> typ -> (unit -> int) -> rep -> rep *)
 fun lazy_range_rep _ _ _ Unit = Unit
   | lazy_range_rep _ _ _ (Vect (_, R)) = R
   | lazy_range_rep _ _ _ (Func (_, R2)) = R2
@@ -164,19 +156,15 @@ fun lazy_range_rep _ _ _ Unit = Unit
     Atom (ran_card (), offset_of_type ofs T2)
   | lazy_range_rep _ _ _ R = raise REP ("Nitpick_Rep.lazy_range_rep", [R])
 
-(* rep -> rep list *)
 fun binder_reps (Func (R1, R2)) = R1 :: binder_reps R2
   | binder_reps _ = []
-(* rep -> rep *)
 fun body_rep (Func (_, R2)) = body_rep R2
   | body_rep R = R
 
-(* rep -> rep *)
 fun flip_rep_polarity (Formula polar) = Formula (flip_polarity polar)
   | flip_rep_polarity (Func (R1, R2)) = Func (R1, flip_rep_polarity R2)
   | flip_rep_polarity R = R
 
-(* int Typtab.table -> rep -> rep *)
 fun one_rep _ _ Any = raise REP ("Nitpick_Rep.one_rep", [Any])
   | one_rep _ _ (Atom x) = Atom x
   | one_rep _ _ (Struct Rs) = Struct Rs
@@ -189,12 +177,10 @@ fun optable_rep ofs (Type (@{type_name fun}, [_, T2])) (Func (R1, R2)) =
 fun opt_rep ofs (Type (@{type_name fun}, [_, T2])) (Func (R1, R2)) =
     Func (R1, opt_rep ofs T2 R2)
   | opt_rep ofs T R = Opt (optable_rep ofs T R)
-(* rep -> rep *)
 fun unopt_rep (Func (R1, R2)) = Func (R1, unopt_rep R2)
   | unopt_rep (Opt R) = R
   | unopt_rep R = R
 
-(* polarity -> polarity -> polarity *)
 fun min_polarity polar1 polar2 =
   if polar1 = polar2 then
     polar1
@@ -208,7 +194,6 @@ fun min_polarity polar1 polar2 =
 
 (* It's important that Func is before Vect, because if the range is Opt we
    could lose information by converting a Func to a Vect. *)
-(* rep -> rep -> rep *)
 fun min_rep (Opt R1) (Opt R2) = Opt (min_rep R1 R2)
   | min_rep (Opt R) _ = Opt R
   | min_rep _ (Opt R) = Opt R
@@ -237,7 +222,6 @@ fun min_rep (Opt R1) (Opt R2) = Opt (min_rep R1 R2)
     else if k1 > k2 then Vect (k2, R2)
     else Vect (k1, min_rep R1 R2)
   | min_rep R1 R2 = raise REP ("Nitpick_Rep.min_rep", [R1, R2])
-(* rep list -> rep list -> rep list *)
 and min_reps [] _ = []
   | min_reps _ [] = []
   | min_reps (R1 :: Rs1) (R2 :: Rs2) =
@@ -245,7 +229,6 @@ and min_reps [] _ = []
     else if min_rep R1 R2 = R1 then R1 :: Rs1
     else R2 :: Rs2
 
-(* int -> rep -> int *)
 fun card_of_domain_from_rep ran_card R =
   case R of
     Unit => 1
@@ -255,14 +238,12 @@ fun card_of_domain_from_rep ran_card R =
   | Opt R => card_of_domain_from_rep ran_card R
   | _ => raise REP ("Nitpick_Rep.card_of_domain_from_rep", [R])
 
-(* int Typtab.table -> typ -> rep -> rep *)
 fun rep_to_binary_rel_rep ofs T R =
   let
     val k = exact_root 2 (card_of_domain_from_rep 2 R)
     val j0 = offset_of_type ofs (fst (HOLogic.dest_prodT (domain_type T)))
   in Func (Struct [Atom (k, j0), Atom (k, j0)], Formula Neut) end
 
-(* scope -> typ -> rep *)
 fun best_one_rep_for_type (scope as {card_assigns, ...} : scope)
                           (Type (@{type_name fun}, [T1, T2])) =
     (case best_one_rep_for_type scope T2 of
@@ -283,7 +264,6 @@ fun best_one_rep_for_type (scope as {card_assigns, ...} : scope)
 
 (* Datatypes are never represented by Unit, because it would confuse
    "nfa_transitions_for_ctor". *)
-(* scope -> typ -> rep *)
 fun best_opt_set_rep_for_type scope (Type (@{type_name fun}, [T1, T2])) =
     Func (best_one_rep_for_type scope T1, best_opt_set_rep_for_type scope T2)
   | best_opt_set_rep_for_type (scope as {ofs, ...}) T =
@@ -308,7 +288,6 @@ fun best_non_opt_symmetric_reps_for_fun_type (scope as {ofs, ...})
   | best_non_opt_symmetric_reps_for_fun_type _ T =
     raise TYPE ("Nitpick_Rep.best_non_opt_symmetric_reps_for_fun_type", [T], [])
 
-(* rep -> (int * int) list *)
 fun atom_schema_of_rep Any = raise REP ("Nitpick_Rep.atom_schema_of_rep", [Any])
   | atom_schema_of_rep (Formula _) = []
   | atom_schema_of_rep Unit = []
@@ -318,10 +297,8 @@ fun atom_schema_of_rep Any = raise REP ("Nitpick_Rep.atom_schema_of_rep", [Any])
   | atom_schema_of_rep (Func (R1, R2)) =
     atom_schema_of_rep R1 @ atom_schema_of_rep R2
   | atom_schema_of_rep (Opt R) = atom_schema_of_rep R
-(* rep list -> (int * int) list *)
 and atom_schema_of_reps Rs = maps atom_schema_of_rep Rs
 
-(* typ -> rep -> typ list *)
 fun type_schema_of_rep _ (Formula _) = []
   | type_schema_of_rep _ Unit = []
   | type_schema_of_rep T (Atom _) = [T]
@@ -333,12 +310,9 @@ fun type_schema_of_rep _ (Formula _) = []
     type_schema_of_rep T1 R1 @ type_schema_of_rep T2 R2
   | type_schema_of_rep T (Opt R) = type_schema_of_rep T R
   | type_schema_of_rep _ R = raise REP ("Nitpick_Rep.type_schema_of_rep", [R])
-(* typ list -> rep list -> typ list *)
 and type_schema_of_reps Ts Rs = flat (map2 type_schema_of_rep Ts Rs)
 
-(* rep -> int list list *)
 val all_combinations_for_rep = all_combinations o atom_schema_of_rep
-(* rep list -> int list list *)
 val all_combinations_for_reps = all_combinations o atom_schema_of_reps
 
 end;

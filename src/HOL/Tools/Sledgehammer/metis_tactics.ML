@@ -693,10 +693,11 @@ fun FOL_SOLVE mode ctxt cls ths0 =
                 val unused = th_cls_pairs |> map_filter (fn (name, cls) =>
                   if common_thm used cls then NONE else SOME name)
             in
-                if not (common_thm used cls) then
-                  warning "Metis: The goal is provable because the context is \
-                          \inconsistent."
-                else if not (null unused) then
+                if not (null cls) andalso not (common_thm used cls) then
+                  warning "Metis: The assumptions are inconsistent."
+                else
+                  ();
+                if not (null unused) then
                   warning ("Metis: Unused theorems: " ^ commas_quote unused
                            ^ ".")
                 else
@@ -720,7 +721,7 @@ fun metis_general_tac mode ctxt ths i st0 =
     if exists_type type_has_topsort (prop_of st0)
     then raise METIS "Metis: Proof state contains the universal sort {}"
     else
-      (Meson.MESON neg_clausify
+      (Meson.MESON (maps neg_clausify)
         (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1) ctxt i
           THEN Meson_Tactic.expand_defs_tac st0) st0
   end

@@ -10,32 +10,32 @@ sig
   type styp = Nitpick_Util.styp
   type hol_context = Nitpick_HOL.hol_context
 
-  type constr_spec = {
-    const: styp,
-    delta: int,
-    epsilon: int,
-    exclusive: bool,
-    explicit_max: int,
-    total: bool}
+  type constr_spec =
+    {const: styp,
+     delta: int,
+     epsilon: int,
+     exclusive: bool,
+     explicit_max: int,
+     total: bool}
 
-  type dtype_spec = {
-    typ: typ,
-    card: int,
-    co: bool,
-    standard: bool,
-    complete: bool * bool,
-    concrete: bool * bool,
-    deep: bool,
-    constrs: constr_spec list}
+  type dtype_spec =
+    {typ: typ,
+     card: int,
+     co: bool,
+     standard: bool,
+     complete: bool * bool,
+     concrete: bool * bool,
+     deep: bool,
+     constrs: constr_spec list}
 
-  type scope = {
-    hol_ctxt: hol_context,
-    binarize: bool,
-    card_assigns: (typ * int) list,
-    bits: int,
-    bisim_depth: int,
-    datatypes: dtype_spec list,
-    ofs: int Typtab.table}
+  type scope =
+    {hol_ctxt: hol_context,
+     binarize: bool,
+     card_assigns: (typ * int) list,
+     bits: int,
+     bisim_depth: int,
+     datatypes: dtype_spec list,
+     ofs: int Typtab.table}
 
   val datatype_spec : dtype_spec list -> typ -> dtype_spec option
   val constr_spec : dtype_spec list -> styp -> constr_spec
@@ -49,7 +49,7 @@ sig
   val scopes_equivalent : scope * scope -> bool
   val scope_less_eq : scope -> scope -> bool
   val all_scopes :
-    hol_context -> bool -> int -> (typ option * int list) list
+    hol_context -> bool -> (typ option * int list) list
     -> (styp option * int list) list -> (styp option * int list) list
     -> int list -> int list -> typ list -> typ list -> typ list -> typ list
     -> int * scope list
@@ -61,43 +61,41 @@ struct
 open Nitpick_Util
 open Nitpick_HOL
 
-type constr_spec = {
-  const: styp,
-  delta: int,
-  epsilon: int,
-  exclusive: bool,
-  explicit_max: int,
-  total: bool}
+type constr_spec =
+  {const: styp,
+   delta: int,
+   epsilon: int,
+   exclusive: bool,
+   explicit_max: int,
+   total: bool}
 
-type dtype_spec = {
-  typ: typ,
-  card: int,
-  co: bool,
-  standard: bool,
-  complete: bool * bool,
-  concrete: bool * bool,
-  deep: bool,
-  constrs: constr_spec list}
+type dtype_spec =
+  {typ: typ,
+   card: int,
+   co: bool,
+   standard: bool,
+   complete: bool * bool,
+   concrete: bool * bool,
+   deep: bool,
+   constrs: constr_spec list}
 
-type scope = {
-  hol_ctxt: hol_context,
-  binarize: bool,
-  card_assigns: (typ * int) list,
-  bits: int,
-  bisim_depth: int,
-  datatypes: dtype_spec list,
-  ofs: int Typtab.table}
+type scope =
+  {hol_ctxt: hol_context,
+   binarize: bool,
+   card_assigns: (typ * int) list,
+   bits: int,
+   bisim_depth: int,
+   datatypes: dtype_spec list,
+   ofs: int Typtab.table}
 
 datatype row_kind = Card of typ | Max of styp
 
 type row = row_kind * int list
 type block = row list
 
-(* dtype_spec list -> typ -> dtype_spec option *)
 fun datatype_spec (dtypes : dtype_spec list) T =
   List.find (curry (op =) T o #typ) dtypes
 
-(* dtype_spec list -> styp -> constr_spec *)
 fun constr_spec [] x = raise TERM ("Nitpick_Scope.constr_spec", [Const x])
   | constr_spec ({constrs, ...} :: dtypes : dtype_spec list) (x as (s, T)) =
     case List.find (curry (op =) (s, body_type T) o (apsnd body_type o #const))
@@ -105,7 +103,6 @@ fun constr_spec [] x = raise TERM ("Nitpick_Scope.constr_spec", [Const x])
       SOME c => c
     | NONE => constr_spec dtypes x
 
-(* dtype_spec list -> bool -> typ -> bool *)
 fun is_complete_type dtypes facto (Type (@{type_name fun}, [T1, T2])) =
     is_concrete_type dtypes facto T1 andalso is_complete_type dtypes facto T2
   | is_complete_type dtypes facto (Type (@{type_name fin_fun}, [T1, T2])) =
@@ -128,19 +125,15 @@ and is_concrete_type dtypes facto (Type (@{type_name fun}, [T1, T2])) =
 and is_exact_type dtypes facto =
   is_complete_type dtypes facto andf is_concrete_type dtypes facto
 
-(* int Typtab.table -> typ -> int *)
 fun offset_of_type ofs T =
   case Typtab.lookup ofs T of
     SOME j0 => j0
   | NONE => Typtab.lookup ofs dummyT |> the_default 0
 
-(* scope -> typ -> int * int *)
 fun spec_of_type ({card_assigns, ofs, ...} : scope) T =
   (card_of_type card_assigns T
    handle TYPE ("Nitpick_HOL.card_of_type", _, _) => ~1, offset_of_type ofs T)
 
-(* (string -> string) -> scope
-   -> string list * string list * string list * string list * string list *)
 fun quintuple_for_scope quote
         ({hol_ctxt = {thy, ctxt, stds, ...}, card_assigns, bits, bisim_depth,
          datatypes, ...} : scope) =
@@ -180,7 +173,6 @@ fun quintuple_for_scope quote
                    maxes (), iters (), miscs ())) ()
   end
 
-(* scope -> bool -> Pretty.T list *)
 fun pretties_for_scope scope verbose =
   let
     val (primary_cards, secondary_cards, maxes, iters, bisim_depths) =
@@ -194,14 +186,10 @@ fun pretties_for_scope scope verbose =
               else
                 [])
   in
-    if null ss then
-      []
-    else
-      Sledgehammer_Util.serial_commas "and" ss
-      |> map Pretty.str |> Pretty.breaks
+    if null ss then []
+    else serial_commas "and" ss |> map Pretty.str |> Pretty.breaks
   end
 
-(* scope -> string *)
 fun multiline_string_for_scope scope =
   let
     val (primary_cards, secondary_cards, maxes, iters, bisim_depths) =
@@ -216,47 +204,35 @@ fun multiline_string_for_scope scope =
     | lines => space_implode "\n" lines
   end
 
-(* scope * scope -> bool *)
 fun scopes_equivalent (s1 : scope, s2 : scope) =
   #datatypes s1 = #datatypes s2 andalso #card_assigns s1 = #card_assigns s2
 fun scope_less_eq (s1 : scope) (s2 : scope) =
   (s1, s2) |> pairself (map snd o #card_assigns) |> op ~~ |> forall (op <=)
 
-(* row -> int *)
 fun rank_of_row (_, ks) = length ks
-(* block -> int *)
 fun rank_of_block block = fold Integer.max (map rank_of_row block) 1
-(* int -> typ * int list -> typ * int list *)
 fun project_row column (y, ks) = (y, [nth ks (Int.min (column, length ks - 1))])
-(* int -> block -> block *)
 fun project_block (column, block) = map (project_row column) block
 
-(* (''a * ''a -> bool) -> (''a option * int list) list -> ''a -> int list *)
 fun lookup_ints_assign eq assigns key =
   case triple_lookup eq assigns key of
     SOME ks => ks
   | NONE => raise ARG ("Nitpick_Scope.lookup_ints_assign", "")
-(* theory -> (typ option * int list) list -> typ -> int list *)
 fun lookup_type_ints_assign thy assigns T =
-  map (curry Int.max 1) (lookup_ints_assign (type_match thy) assigns T)
+  map (Integer.max 1) (lookup_ints_assign (type_match thy) assigns T)
   handle ARG ("Nitpick_Scope.lookup_ints_assign", _) =>
          raise TYPE ("Nitpick_Scope.lookup_type_ints_assign", [T], [])
-(* theory -> (styp option * int list) list -> styp -> int list *)
 fun lookup_const_ints_assign thy assigns x =
   lookup_ints_assign (const_match thy) assigns x
   handle ARG ("Nitpick_Scope.lookup_ints_assign", _) =>
          raise TERM ("Nitpick_Scope.lookup_const_ints_assign", [Const x])
 
-(* theory -> (styp option * int list) list -> styp -> row option *)
 fun row_for_constr thy maxes_assigns constr =
   SOME (Max constr, lookup_const_ints_assign thy maxes_assigns constr)
   handle TERM ("lookup_const_ints_assign", _) => NONE
 
 val max_bits = 31 (* Kodkod limit *)
 
-(* hol_context -> bool -> (typ option * int list) list
-   -> (styp option * int list) list -> (styp option * int list) list -> int list
-   -> int list -> typ -> block *)
 fun block_for_type (hol_ctxt as {thy, ...}) binarize cards_assigns maxes_assigns
                    iters_assigns bitss bisim_depths T =
   if T = @{typ unsigned_bit} then
@@ -279,13 +255,9 @@ fun block_for_type (hol_ctxt as {thy, ...}) binarize cards_assigns maxes_assigns
        [_] => []
      | constrs => map_filter (row_for_constr thy maxes_assigns) constrs)
 
-(* hol_context -> bool -> (typ option * int list) list
-   -> (styp option * int list) list -> (styp option * int list) list -> int list
-   -> int list -> typ list -> typ list -> block list *)
 fun blocks_for_types hol_ctxt binarize cards_assigns maxes_assigns iters_assigns
                      bitss bisim_depths mono_Ts nonmono_Ts =
   let
-    (* typ -> block *)
     val block_for = block_for_type hol_ctxt binarize cards_assigns maxes_assigns
                                    iters_assigns bitss bisim_depths
     val mono_block = maps block_for mono_Ts
@@ -294,10 +266,8 @@ fun blocks_for_types hol_ctxt binarize cards_assigns maxes_assigns iters_assigns
 
 val sync_threshold = 5
 
-(* int list -> int list list *)
 fun all_combinations_ordered_smartly ks =
   let
-    (* int list -> int *)
     fun cost_with_monos [] = 0
       | cost_with_monos (k :: ks) =
         if k < sync_threshold andalso forall (curry (op =) k) ks then
@@ -318,16 +288,13 @@ fun all_combinations_ordered_smartly ks =
        |> sort (int_ord o pairself fst) |> map snd
   end
 
-(* typ -> bool *)
 fun is_self_recursive_constr_type T =
   exists (exists_subtype (curry (op =) (body_type T))) (binder_types T)
 
-(* (styp * int) list -> styp -> int *)
 fun constr_max maxes x = the_default ~1 (AList.lookup (op =) maxes x)
 
 type scope_desc = (typ * int) list * (styp * int) list
 
-(* hol_context -> bool -> scope_desc -> typ * int -> bool *)
 fun is_surely_inconsistent_card_assign hol_ctxt binarize
                                        (card_assigns, max_assigns) (T, k) =
   case binarized_and_boxed_datatype_constrs hol_ctxt binarize T of
@@ -338,22 +305,17 @@ fun is_surely_inconsistent_card_assign hol_ctxt binarize
         map (Integer.prod o map (bounded_card_of_type k ~1 card_assigns)
              o binder_types o snd) xs
       val maxes = map (constr_max max_assigns) xs
-      (* int -> int -> int *)
       fun effective_max card ~1 = card
         | effective_max card max = Int.min (card, max)
       val max = map2 effective_max dom_cards maxes |> Integer.sum
     in max < k end
-(* hol_context -> bool -> (typ * int) list -> (typ * int) list
-   -> (styp * int) list -> bool *)
 fun is_surely_inconsistent_scope_description hol_ctxt binarize seen rest
                                              max_assigns =
   exists (is_surely_inconsistent_card_assign hol_ctxt binarize
                                              (seen @ rest, max_assigns)) seen
 
-(* hol_context -> bool -> scope_desc -> (typ * int) list option *)
 fun repair_card_assigns hol_ctxt binarize (card_assigns, max_assigns) =
   let
-    (* (typ * int) list -> (typ * int) list -> (typ * int) list option *)
     fun aux seen [] = SOME seen
       | aux _ ((_, 0) :: _) = NONE
       | aux seen ((T, k) :: rest) =
@@ -367,7 +329,6 @@ fun repair_card_assigns hol_ctxt binarize (card_assigns, max_assigns) =
         handle SAME () => aux seen ((T, k - 1) :: rest)
   in aux [] (rev card_assigns) end
 
-(* theory -> (typ * int) list -> typ * int -> typ * int *)
 fun repair_iterator_assign thy assigns (T as Type (_, Ts), k) =
     (T, if T = @{typ bisim_iterator} then
           let
@@ -381,15 +342,12 @@ fun repair_iterator_assign thy assigns (T as Type (_, Ts), k) =
           k)
   | repair_iterator_assign _ _ assign = assign
 
-(* row -> scope_desc -> scope_desc *)
 fun add_row_to_scope_descriptor (kind, ks) (card_assigns, max_assigns) =
   case kind of
     Card T => ((T, the_single ks) :: card_assigns, max_assigns)
   | Max x => (card_assigns, (x, the_single ks) :: max_assigns)
-(* block -> scope_desc *)
 fun scope_descriptor_from_block block =
   fold_rev add_row_to_scope_descriptor block ([], [])
-(* hol_context -> bool -> block list -> int list -> scope_desc option *)
 fun scope_descriptor_from_combination (hol_ctxt as {thy, ...}) binarize blocks
                                       columns =
   let
@@ -403,11 +361,8 @@ fun scope_descriptor_from_combination (hol_ctxt as {thy, ...}) binarize blocks
   end
   handle Option.Option => NONE
 
-(* (typ * int) list -> dtype_spec list -> int Typtab.table *)
 fun offset_table_for_card_assigns assigns dtypes =
   let
-    (* int -> (int * int) list -> (typ * int) list -> int Typtab.table
-       -> int Typtab.table *)
     fun aux next _ [] = Typtab.update_new (dummyT, next)
       | aux next reusable ((T, k) :: assigns) =
         if k = 1 orelse is_iterator_type T orelse is_integer_type T
@@ -423,18 +378,14 @@ fun offset_table_for_card_assigns assigns dtypes =
                     #> aux (next + k) ((k, next) :: reusable) assigns
   in aux 0 [] assigns Typtab.empty end
 
-(* int -> (typ * int) list -> typ -> int *)
 fun domain_card max card_assigns =
   Integer.prod o map (bounded_card_of_type max max card_assigns) o binder_types
 
-(* scope_desc -> bool -> int -> (int -> int) -> int -> int -> bool * styp
-   -> constr_spec list -> constr_spec list *)
 fun add_constr_spec (card_assigns, max_assigns) co card sum_dom_cards
                     num_self_recs num_non_self_recs (self_rec, x as (_, T))
                     constrs =
   let
     val max = constr_max max_assigns x
-    (* unit -> int *)
     fun next_delta () = if null constrs then 0 else #epsilon (hd constrs)
     val {delta, epsilon, exclusive, total} =
       if max = 0 then
@@ -470,7 +421,6 @@ fun add_constr_spec (card_assigns, max_assigns) co card sum_dom_cards
      explicit_max = max, total = total} :: constrs
   end
 
-(* hol_context -> bool -> typ list -> (typ * int) list -> typ -> bool *)
 fun has_exact_card hol_ctxt facto finitizable_dataTs card_assigns T =
   let val card = card_of_type card_assigns T in
     card = bounded_exact_card_of_type hol_ctxt
@@ -478,8 +428,6 @@ fun has_exact_card hol_ctxt facto finitizable_dataTs card_assigns T =
                card_assigns T
   end
 
-(* hol_context -> bool -> typ list -> typ list -> scope_desc -> typ * int
-   -> dtype_spec *)
 fun datatype_spec_from_scope_descriptor (hol_ctxt as {thy, stds, ...}) binarize
         deep_dataTs finitizable_dataTs (desc as (card_assigns, _)) (T, card) =
   let
@@ -490,7 +438,6 @@ fun datatype_spec_from_scope_descriptor (hol_ctxt as {thy, stds, ...}) binarize
     val self_recs = map (is_self_recursive_constr_type o snd) xs
     val (num_self_recs, num_non_self_recs) =
       List.partition I self_recs |> pairself length
-    (* bool -> bool *)
     fun is_complete facto =
       has_exact_card hol_ctxt facto finitizable_dataTs card_assigns T
     fun is_concrete facto =
@@ -500,7 +447,6 @@ fun datatype_spec_from_scope_descriptor (hol_ctxt as {thy, stds, ...}) binarize
                                    card_assigns)
     val complete = pair_from_fun is_complete
     val concrete = pair_from_fun is_concrete
-    (* int -> int *)
     fun sum_dom_cards max =
       map (domain_card max card_assigns o snd) xs |> Integer.sum
     val constrs =
@@ -512,10 +458,8 @@ fun datatype_spec_from_scope_descriptor (hol_ctxt as {thy, stds, ...}) binarize
      concrete = concrete, deep = deep, constrs = constrs}
   end
 
-(* hol_context -> bool -> int -> typ list -> typ list -> scope_desc -> scope *)
-fun scope_from_descriptor (hol_ctxt as {thy, stds, ...}) binarize sym_break
-                          deep_dataTs finitizable_dataTs
-                          (desc as (card_assigns, _)) =
+fun scope_from_descriptor (hol_ctxt as {thy, stds, ...}) binarize deep_dataTs
+                          finitizable_dataTs (desc as (card_assigns, _)) =
   let
     val datatypes =
       map (datatype_spec_from_scope_descriptor hol_ctxt binarize deep_dataTs
@@ -529,12 +473,9 @@ fun scope_from_descriptor (hol_ctxt as {thy, stds, ...}) binarize sym_break
   in
     {hol_ctxt = hol_ctxt, binarize = binarize, card_assigns = card_assigns,
      datatypes = datatypes, bits = bits, bisim_depth = bisim_depth,
-     ofs = if sym_break <= 0 then Typtab.empty
-           else offset_table_for_card_assigns card_assigns datatypes}
+     ofs = offset_table_for_card_assigns card_assigns datatypes}
   end
 
-(* theory -> typ list -> (typ option * int list) list
-   -> (typ option * int list) list *)
 fun repair_cards_assigns_wrt_boxing_etc _ _ [] = []
   | repair_cards_assigns_wrt_boxing_etc thy Ts ((SOME T, ks) :: cards_assigns) =
     (if is_fun_type T orelse is_pair_type T then
@@ -548,12 +489,9 @@ fun repair_cards_assigns_wrt_boxing_etc _ _ [] = []
 val max_scopes = 4096
 val distinct_threshold = 512
 
-(* hol_context -> bool -> int -> (typ option * int list) list
-   -> (styp option * int list) list -> (styp option * int list) list -> int list
-   -> typ list -> typ list -> typ list ->typ list -> int * scope list *)
-fun all_scopes (hol_ctxt as {thy, ...}) binarize sym_break cards_assigns
-               maxes_assigns iters_assigns bitss bisim_depths mono_Ts nonmono_Ts
-               deep_dataTs finitizable_dataTs =
+fun all_scopes (hol_ctxt as {thy, ...}) binarize cards_assigns maxes_assigns
+               iters_assigns bitss bisim_depths mono_Ts nonmono_Ts deep_dataTs
+               finitizable_dataTs =
   let
     val cards_assigns = repair_cards_assigns_wrt_boxing_etc thy mono_Ts
                                                             cards_assigns
@@ -569,8 +507,8 @@ fun all_scopes (hol_ctxt as {thy, ...}) binarize sym_break cards_assigns
   in
     (length all - length head,
      descs |> length descs <= distinct_threshold ? distinct (op =)
-           |> map (scope_from_descriptor hol_ctxt binarize sym_break
-                                         deep_dataTs finitizable_dataTs))
+           |> map (scope_from_descriptor hol_ctxt binarize deep_dataTs
+                                         finitizable_dataTs))
   end
 
 end;

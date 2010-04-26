@@ -282,8 +282,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   $(SRC)/Provers/Arith/extract_common_term.ML \
   $(SRC)/Tools/Metis/metis.ML \
   Tools/ATP_Manager/atp_manager.ML \
-  Tools/ATP_Manager/atp_minimal.ML \
-  Tools/ATP_Manager/atp_wrapper.ML \
+  Tools/ATP_Manager/atp_systems.ML \
   Tools/Groebner_Basis/groebner.ML \
   Tools/Groebner_Basis/misc.ML \
   Tools/Groebner_Basis/normalizer.ML \
@@ -319,6 +318,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Sledgehammer/meson_tactic.ML \
   Tools/Sledgehammer/metis_tactics.ML \
   Tools/Sledgehammer/sledgehammer_fact_filter.ML \
+  Tools/Sledgehammer/sledgehammer_fact_minimizer.ML \
   Tools/Sledgehammer/sledgehammer_fact_preprocessor.ML \
   Tools/Sledgehammer/sledgehammer_fol_clause.ML \
   Tools/Sledgehammer/sledgehammer_hol_clause.ML \

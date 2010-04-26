@@ -55,22 +55,16 @@ val default_default_params =
    ("binary_ints", "smart"),
    ("destroy_constrs", "true"),
    ("specialize", "true"),
-   ("skolemize", "true"),
    ("star_linear_preds", "true"),
-   ("uncurry", "true"),
    ("fast_descrs", "true"),
    ("peephole_optim", "true"),
    ("timeout", "30 s"),
    ("tac_timeout", "500 ms"),
-   ("sym_break", "20"),
-   ("sharing_depth", "3"),
-   ("flatten_props", "false"),
    ("max_threads", "0"),
    ("debug", "false"),
    ("verbose", "false"),
    ("overlord", "false"),
    ("show_all", "false"),
-   ("show_skolems", "true"),
    ("show_datatypes", "false"),
    ("show_consts", "false"),
    ("format", "1"),
@@ -93,23 +87,18 @@ val negated_params =
    ("unary_ints", "binary_ints"),
    ("dont_destroy_constrs", "destroy_constrs"),
    ("dont_specialize", "specialize"),
-   ("dont_skolemize", "skolemize"),
    ("dont_star_linear_preds", "star_linear_preds"),
-   ("dont_uncurry", "uncurry"),
    ("full_descrs", "fast_descrs"),
    ("no_peephole_optim", "peephole_optim"),
-   ("dont_flatten_props", "flatten_props"),
    ("no_debug", "debug"),
    ("quiet", "verbose"),
    ("no_overlord", "overlord"),
    ("dont_show_all", "show_all"),
-   ("hide_skolems", "show_skolems"),
    ("hide_datatypes", "show_datatypes"),
    ("hide_consts", "show_consts"),
    ("trust_potential", "check_potential"),
    ("trust_genuine", "check_genuine")]
 
-(* string -> bool *)
 fun is_known_raw_param s =
   AList.defined (op =) default_default_params s orelse
   AList.defined (op =) negated_params s orelse
@@ -118,19 +107,16 @@ fun is_known_raw_param s =
          ["card", "max", "iter", "box", "dont_box", "finitize", "dont_finitize",
           "mono", "non_mono", "std", "non_std", "wf", "non_wf", "format"]
 
-(* string * 'a -> unit *)
 fun check_raw_param (s, _) =
   if is_known_raw_param s then ()
   else error ("Unknown parameter: " ^ quote s ^ ".")  
 
-(* string -> string option *)
 fun unnegate_param_name name =
   case AList.lookup (op =) negated_params name of
     NONE => if String.isPrefix "dont_" name then SOME (unprefix "dont_" name)
             else if String.isPrefix "non_" name then SOME (unprefix "non_" name)
             else NONE
   | some_name => some_name
-(* raw_param -> raw_param *)
 fun unnegate_raw_param (name, value) =
   case unnegate_param_name name of
     SOME name' => (name', case value of
@@ -142,47 +128,36 @@ fun unnegate_raw_param (name, value) =
 
 structure Data = Theory_Data(
   type T = raw_param list
-  val empty = default_default_params |> map (apsnd single)
+  val empty = map (apsnd single) default_default_params
   val extend = I
-  fun merge p : T = AList.merge (op =) (K true) p)
+  val merge = AList.merge (op =) (K true))
 
-(* raw_param -> theory -> theory *)
 val set_default_raw_param = Data.map o AList.update (op =) o unnegate_raw_param
-(* theory -> raw_param list *)
 val default_raw_params = Data.get
 
-(* string -> bool *)
 fun is_punctuation s = (s = "," orelse s = "-" orelse s = "\<midarrow>")
 
-(* string list -> string *)
 fun stringify_raw_param_value [] = ""
   | stringify_raw_param_value [s] = s
   | stringify_raw_param_value (s1 :: s2 :: ss) =
     s1 ^ (if is_punctuation s1 orelse is_punctuation s2 then "" else " ") ^
     stringify_raw_param_value (s2 :: ss)
 
-(* int -> string -> int *)
 fun maxed_int_from_string min_int s = Int.max (min_int, the (Int.fromString s))
 
-(* Proof.context -> bool -> raw_param list -> raw_param list -> params *)
 fun extract_params ctxt auto default_params override_params =
   let
     val override_params = map unnegate_raw_param override_params
     val raw_params = rev override_params @ rev default_params
-    (* string -> string *)
     val lookup =
       Option.map stringify_raw_param_value o AList.lookup (op =) raw_params
     val lookup_string = the_default "" o lookup
-    (* bool -> bool option -> string -> bool option *)
     fun general_lookup_bool option default_value name =
       case lookup name of
-        SOME s => Sledgehammer_Util.parse_bool_option option name s
+        SOME s => parse_bool_option option name s
       | NONE => default_value
-    (* string -> bool *)
     val lookup_bool = the o general_lookup_bool false (SOME false)
-    (* string -> bool option *)
     val lookup_bool_option = general_lookup_bool true NONE
-    (* string -> string option -> int *)
     fun do_int name value =
       case value of
         SOME s => (case Int.fromString s of
@@ -190,14 +165,11 @@ fun extract_params ctxt auto default_params override_params =
                    | NONE => error ("Parameter " ^ quote name ^
                                     " must be assigned an integer value."))
       | NONE => 0
-    (* string -> int *)
     fun lookup_int name = do_int name (lookup name)
-    (* string -> int option *)
     fun lookup_int_option name =
       case lookup name of
         SOME "smart" => NONE
       | value => SOME (do_int name value)
-    (* string -> int -> string -> int list *)
     fun int_range_from_string name min_int s =
       let
         val (k1, k2) =
@@ -211,17 +183,14 @@ fun extract_params ctxt auto default_params override_params =
       handle Option.Option =>
              error ("Parameter " ^ quote name ^
                     " must be assigned a sequence of integers.")
-    (* string -> int -> string -> int list *)
     fun int_seq_from_string name min_int s =
       maps (int_range_from_string name min_int) (space_explode "," s)
-    (* string -> int -> int list *)
     fun lookup_int_seq name min_int =
       case lookup name of
         SOME s => (case int_seq_from_string name min_int s of
                      [] => [min_int]
                    | value => value)
       | NONE => [min_int]
-    (* (string -> 'a) -> int -> string -> ('a option * int list) list *)
     fun lookup_ints_assigns read prefix min_int =
       (NONE, lookup_int_seq prefix min_int)
       :: map (fn (name, value) =>
@@ -229,38 +198,31 @@ fun extract_params ctxt auto default_params override_params =
                   value |> stringify_raw_param_value
                         |> int_seq_from_string name min_int))
              (filter (String.isPrefix (prefix ^ " ") o fst) raw_params)
-    (* (string -> 'a) -> string -> ('a option * bool) list *)
     fun lookup_bool_assigns read prefix =
       (NONE, lookup_bool prefix)
       :: map (fn (name, value) =>
                  (SOME (read (String.extract (name, size prefix + 1, NONE))),
                   value |> stringify_raw_param_value
-                        |> Sledgehammer_Util.parse_bool_option false name
-                        |> the))
+                        |> parse_bool_option false name |> the))
              (filter (String.isPrefix (prefix ^ " ") o fst) raw_params)
-    (* (string -> 'a) -> string -> ('a option * bool option) list *)
     fun lookup_bool_option_assigns read prefix =
       (NONE, lookup_bool_option prefix)
       :: map (fn (name, value) =>
                  (SOME (read (String.extract (name, size prefix + 1, NONE))),
                   value |> stringify_raw_param_value
-                        |> Sledgehammer_Util.parse_bool_option true name))
+                        |> parse_bool_option true name))
              (filter (String.isPrefix (prefix ^ " ") o fst) raw_params)
-    (* string -> Time.time option *)
     fun lookup_time name =
       case lookup name of
         NONE => NONE
-      | SOME s => Sledgehammer_Util.parse_time_option name s
-    (* string -> term list *)
+      | SOME s => parse_time_option name s
     val lookup_term_list =
       AList.lookup (op =) raw_params #> these #> Syntax.read_terms ctxt
     val read_type_polymorphic =
       Syntax.read_typ ctxt #> Logic.mk_type
       #> singleton (Variable.polymorphic ctxt) #> Logic.dest_type
-    (* string -> term *)
     val read_term_polymorphic =
       Syntax.read_term ctxt #> singleton (Variable.polymorphic ctxt)
-    (* string -> styp *)
     val read_const_polymorphic = read_term_polymorphic #> dest_Const
     val cards_assigns = lookup_ints_assigns read_type_polymorphic "card" 1
     val maxes_assigns = lookup_ints_assigns read_const_polymorphic "max" ~1
@@ -284,19 +246,13 @@ fun extract_params ctxt auto default_params override_params =
     val binary_ints = lookup_bool_option "binary_ints"
     val destroy_constrs = lookup_bool "destroy_constrs"
     val specialize = lookup_bool "specialize"
-    val skolemize = lookup_bool "skolemize"
     val star_linear_preds = lookup_bool "star_linear_preds"
-    val uncurry = lookup_bool "uncurry"
     val fast_descrs = lookup_bool "fast_descrs"
     val peephole_optim = lookup_bool "peephole_optim"
     val timeout = if auto then NONE else lookup_time "timeout"
     val tac_timeout = lookup_time "tac_timeout"
-    val sym_break = Int.max (0, lookup_int "sym_break")
-    val sharing_depth = Int.max (1, lookup_int "sharing_depth")
-    val flatten_props = lookup_bool "flatten_props"
     val max_threads = Int.max (0, lookup_int "max_threads")
     val show_all = debug orelse lookup_bool "show_all"
-    val show_skolems = show_all orelse lookup_bool "show_skolems"
     val show_datatypes = show_all orelse lookup_bool "show_datatypes"
     val show_consts = show_all orelse lookup_bool "show_consts"
     val formats = lookup_ints_assigns read_term_polymorphic "format" 0
@@ -306,9 +262,10 @@ fun extract_params ctxt auto default_params override_params =
     val max_genuine = Int.max (0, lookup_int "max_genuine")
     val check_potential = lookup_bool "check_potential"
     val check_genuine = lookup_bool "check_genuine"
-    val batch_size = case lookup_int_option "batch_size" of
-                       SOME n => Int.max (1, n)
-                     | NONE => if debug then 1 else 64
+    val batch_size =
+      case lookup_int_option "batch_size" of
+        SOME n => Int.max (1, n)
+      | NONE => if debug then 1 else 64
     val expect = lookup_string "expect"
   in
     {cards_assigns = cards_assigns, maxes_assigns = maxes_assigns,
@@ -319,37 +276,28 @@ fun extract_params ctxt auto default_params override_params =
      user_axioms = user_axioms, assms = assms,
      merge_type_vars = merge_type_vars, binary_ints = binary_ints,
      destroy_constrs = destroy_constrs, specialize = specialize,
-     skolemize = skolemize, star_linear_preds = star_linear_preds,
-     uncurry = uncurry, fast_descrs = fast_descrs,
+     star_linear_preds = star_linear_preds, fast_descrs = fast_descrs,
      peephole_optim = peephole_optim, timeout = timeout,
-     tac_timeout = tac_timeout, sym_break = sym_break,
-     sharing_depth = sharing_depth, flatten_props = flatten_props,
-     max_threads = max_threads, show_skolems = show_skolems,
+     tac_timeout = tac_timeout, max_threads = max_threads,
      show_datatypes = show_datatypes, show_consts = show_consts,
      formats = formats, evals = evals, max_potential = max_potential,
      max_genuine = max_genuine, check_potential = check_potential,
      check_genuine = check_genuine, batch_size = batch_size, expect = expect}
   end
 
-(* theory -> (string * string) list -> params *)
 fun default_params thy =
   extract_params (ProofContext.init thy) false (default_raw_params thy)
   o map (apsnd single)
 
-(* P.token list -> string * P.token list *)
 val parse_key = Scan.repeat1 P.typ_group >> space_implode " "
-(* P.token list -> string list * P.token list *)
 val parse_value =
   Scan.repeat1 (P.minus >> single
                 || Scan.repeat1 (Scan.unless P.minus P.name)
                 || P.$$$ "," |-- P.number >> prefix "," >> single) >> flat
-(* P.token list -> raw_param * P.token list *)
 val parse_param = parse_key -- Scan.optional (P.$$$ "=" |-- parse_value) []
-(* P.token list -> raw_param list * P.token list *)
 val parse_params =
   Scan.optional (P.$$$ "[" |-- P.list parse_param --| P.$$$ "]") []
 
-(* Proof.context -> ('a -> 'a) -> 'a -> 'a *)
 fun handle_exceptions ctxt f x =
   f x
   handle ARG (loc, details) =>
@@ -387,7 +335,6 @@ fun handle_exceptions ctxt f x =
        | Refute.REFUTE (loc, details) =>
          error ("Unhandled Refute error (" ^ quote loc ^ "): " ^ details ^ ".")
 
-(* raw_param list -> bool -> int -> int -> Proof.state -> bool * Proof.state *)
 fun pick_nits override_params auto i step state =
   let
     val thy = Proof.theory_of state
@@ -395,7 +342,6 @@ fun pick_nits override_params auto i step state =
     val _ = List.app check_raw_param override_params
     val params as {blocking, debug, ...} =
       extract_params ctxt auto (default_raw_params thy) override_params
-    (* unit -> bool * Proof.state *)
     fun go () =
       (false, state)
       |> (if auto then perhaps o try
@@ -408,17 +354,14 @@ fun pick_nits override_params auto i step state =
     else (Toplevel.thread true (fn () => (go (); ())); (false, state))
   end
 
-(* raw_param list * int -> Toplevel.transition -> Toplevel.transition *)
 fun nitpick_trans (params, i) =
   Toplevel.keep (fn st =>
       (pick_nits params false i (Toplevel.proof_position_of st)
                  (Toplevel.proof_of st); ()))
 
-(* raw_param -> string *)
 fun string_for_raw_param (name, value) =
   name ^ " = " ^ stringify_raw_param_value value
 
-(* raw_param list -> Toplevel.transition -> Toplevel.transition *)
 fun nitpick_params_trans params =
   Toplevel.theory
       (fold set_default_raw_param params
@@ -431,20 +374,17 @@ fun nitpick_params_trans params =
                                params |> map string_for_raw_param
                                       |> sort_strings |> cat_lines)))))
 
-(* P.token list
-   -> (Toplevel.transition -> Toplevel.transition) * P.token list *)
 val parse_nitpick_command =
   (parse_params -- Scan.optional P.nat 1) #>> nitpick_trans
 val parse_nitpick_params_command = parse_params #>> nitpick_params_trans
 
 val _ = OuterSyntax.improper_command "nitpick"
-            "try to find a counterexample for a given subgoal using Kodkod"
+            "try to find a counterexample for a given subgoal using Nitpick"
             K.diag parse_nitpick_command
 val _ = OuterSyntax.command "nitpick_params"
             "set and display the default parameters for Nitpick"
             K.thy_decl parse_nitpick_params_command
 
-(* Proof.state -> bool * Proof.state *)
 fun auto_nitpick state =
   if not (!auto) then (false, state) else pick_nits [] true 1 0 state
 

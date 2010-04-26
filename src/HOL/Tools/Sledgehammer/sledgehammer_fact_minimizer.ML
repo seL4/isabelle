@@ -1,21 +1,21 @@
-(*  Title:      HOL/Tools/ATP_Manager/atp_minimal.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_fact_minimizer.ML
     Author:     Philipp Meyer, TU Muenchen
+    Author:     Jasmin Blanchette, TU Muenchen
 
 Minimization of theorem list for Metis using automatic theorem provers.
 *)
 
-signature ATP_MINIMAL =
+signature SLEDGEHAMMER_FACT_MINIMIZER =
 sig
   type params = ATP_Manager.params
-  type prover = ATP_Manager.prover
   type prover_result = ATP_Manager.prover_result
 
   val minimize_theorems :
-    params -> prover -> string -> int -> Proof.state -> (string * thm list) list
+    params -> int -> Proof.state -> (string * thm list) list
     -> (string * thm list) list option * string
 end;
 
-structure ATP_Minimal : ATP_MINIMAL =
+structure Sledgehammer_Fact_Minimizer : SLEDGEHAMMER_FACT_MINIMIZER =
 struct
 
 open Sledgehammer_Util
@@ -35,33 +35,16 @@ fun linear_minimize test s =
   in aux s end
 
 
-(* failure check and producing answer *)
-
-datatype outcome = Success | Failure | Timeout | Error
-
-val string_of_outcome =
-  fn Success => "Success"
-   | Failure => "Failure"
-   | Timeout => "Timeout"
-   | Error => "Error"
-
-val failure_strings =
-  [("SPASS beiseite: Ran out of time.", Timeout),
-   ("Timeout", Timeout),
-   ("time limit exceeded", Timeout),
-   ("# Cannot determine problem status within resource limit", Timeout),
-   ("Error", Error)]
-
-fun outcome_of_result (result as {success, proof, ...} : prover_result) =
-  if success then
-    Success
-  else case get_first (fn (s, outcome) =>
-                          if String.isSubstring s proof then SOME outcome
-                          else NONE) failure_strings of
-    SOME outcome => outcome
-  | NONE => Failure
-
 (* wrapper for calling external prover *)
+
+fun string_for_failure Unprovable = "Unprovable."
+  | string_for_failure TimedOut = "Timed out."
+  | string_for_failure OutOfResources = "Failed."
+  | string_for_failure OldSpass = "Error."
+  | string_for_failure MalformedOutput = "Error."
+  | string_for_failure UnknownError = "Failed."
+fun string_for_outcome NONE = "Success."
+  | string_for_outcome (SOME failure) = string_for_failure failure
 
 fun sledgehammer_test_theorems (params as {full_types, ...} : params) prover
         timeout subgoal state filtered_clauses name_thms_pairs =
@@ -78,26 +61,30 @@ fun sledgehammer_test_theorems (params as {full_types, ...} : params) prover
       axiom_clauses = SOME axclauses,
       filtered_clauses = SOME (the_default axclauses filtered_clauses)}
   in
-    `outcome_of_result (prover params (K "") timeout problem)
-    |>> tap (priority o string_of_outcome)
+    prover params (K "") timeout problem
+    |> tap (priority o string_for_outcome o #outcome)
   end
 
 (* minimalization of thms *)
 
-fun minimize_theorems (params as {debug, minimize_timeout, isar_proof, modulus,
-                                  sorts, ...})
-                      prover atp_name i state name_thms_pairs =
+fun minimize_theorems (params as {debug, atps, minimize_timeout, isar_proof,
+                                  shrink_factor, sorts, ...})
+                      i state name_thms_pairs =
   let
+    val thy = Proof.theory_of state
+    val prover = case atps of
+                   [atp_name] => get_prover thy atp_name
+                 | _ => error "Expected a single ATP."
     val msecs = Time.toMilliseconds minimize_timeout
     val n = length name_thms_pairs
     val _ =
-      priority ("Sledgehammer minimizer: ATP " ^ quote atp_name ^
+      priority ("Sledgehammer minimizer: ATP " ^ quote (the_single atps) ^
                 " with a time limit of " ^ string_of_int msecs ^ " ms.")
     val test_thms_fun =
       sledgehammer_test_theorems params prover minimize_timeout i state
     fun test_thms filtered thms =
       case test_thms_fun filtered thms of
-        (Success, result) => SOME result
+        (result as {outcome = NONE, ...}) => SOME result
       | _ => NONE
 
     val {context = ctxt, facts, goal} = Proof.goal state;
@@ -105,13 +92,14 @@ fun minimize_theorems (params as {debug, minimize_timeout, isar_proof, modulus,
   in
     (* try prove first to check result and get used theorems *)
     (case test_thms_fun NONE name_thms_pairs of
-      (Success, result as {internal_thm_names, filtered_clauses, ...}) =>
+      result as {outcome = NONE, pool, internal_thm_names, conjecture_shape,
+                 filtered_clauses, ...} =>
         let
           val used = internal_thm_names |> Vector.foldr (op ::) []
                                         |> sort_distinct string_ord
           val to_use =
             if length used < length name_thms_pairs then
-              filter (fn (name1, _) => List.exists (curry (op =) name1) used)
+              filter (fn (name1, _) => exists (curry (op =) name1) used)
                      name_thms_pairs
             else name_thms_pairs
           val (min_thms, {proof, internal_thm_names, ...}) =
@@ -122,23 +110,24 @@ fun minimize_theorems (params as {debug, minimize_timeout, isar_proof, modulus,
             ["Minimized: " ^ string_of_int n ^ " theorem" ^ plural_s n] ^ ".")
         in
           (SOME min_thms,
-           proof_text isar_proof debug modulus sorts ctxt
+           proof_text isar_proof
+                      (pool, debug, shrink_factor, sorts, ctxt,
+                       conjecture_shape)
                       (K "", proof, internal_thm_names, goal, i) |> fst)
         end
-    | (Timeout, _) =>
+    | {outcome = SOME TimedOut, ...} =>
         (NONE, "Timeout: You can increase the time limit using the \"timeout\" \
                \option (e.g., \"timeout = " ^
                string_of_int (10 + msecs div 1000) ^ " s\").")
-    | (Error, {message, ...}) => (NONE, "ATP error: " ^ message)
-    | (Failure, _) =>
+    | {outcome = SOME UnknownError, ...} =>
         (* Failure sometimes mean timeout, unfortunately. *)
         (NONE, "Failure: No proof was found with the current time limit. You \
                \can increase the time limit using the \"timeout\" \
                \option (e.g., \"timeout = " ^
-               string_of_int (10 + msecs div 1000) ^ " s\")."))
-    handle Sledgehammer_HOL_Clause.TRIVIAL =>
-        (SOME [], metis_line i n [])
-      | ERROR msg => (NONE, "Error: " ^ msg)
+               string_of_int (10 + msecs div 1000) ^ " s\").")
+    | {message, ...} => (NONE, "ATP error: " ^ message))
+    handle Sledgehammer_HOL_Clause.TRIVIAL => (SOME [], metis_line i n [])
+         | ERROR msg => (NONE, "Error: " ^ msg)
   end
 
 end;

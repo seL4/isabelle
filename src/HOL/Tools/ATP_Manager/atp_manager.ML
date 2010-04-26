@@ -8,6 +8,7 @@ Central manager component for ATP threads.
 
 signature ATP_MANAGER =
 sig
+  type name_pool = Sledgehammer_HOL_Clause.name_pool
   type relevance_override = Sledgehammer_Fact_Filter.relevance_override
   type minimize_command = Sledgehammer_Proof_Reconstruct.minimize_command
   type params =
@@ -24,7 +25,7 @@ sig
      higher_order: bool option,
      follow_defs: bool,
      isar_proof: bool,
-     modulus: int,
+     shrink_factor: int,
      sorts: bool,
      timeout: Time.time,
      minimize_timeout: Time.time}
@@ -34,29 +35,32 @@ sig
      relevance_override: relevance_override,
      axiom_clauses: (thm * (string * int)) list option,
      filtered_clauses: (thm * (string * int)) list option}
+  datatype failure =
+    Unprovable | TimedOut | OutOfResources | OldSpass | MalformedOutput |
+    UnknownError
   type prover_result =
-    {success: bool,
+    {outcome: failure option,
      message: string,
+     pool: name_pool option,
      relevant_thm_names: string list,
      atp_run_time_in_msecs: int,
+     output: string,
      proof: string,
      internal_thm_names: string Vector.vector,
+     conjecture_shape: int list list,
      filtered_clauses: (thm * (string * int)) list}
   type prover =
     params -> minimize_command -> Time.time -> problem -> prover_result
 
-  val atps: string Unsynchronized.ref
-  val timeout: int Unsynchronized.ref
-  val full_types: bool Unsynchronized.ref
   val kill_atps: unit -> unit
   val running_atps: unit -> unit
   val messages: int option -> unit
   val add_prover: string * prover -> theory -> theory
-  val get_prover: theory -> string -> prover option
+  val get_prover: theory -> string -> prover
   val available_atps: theory -> unit
-  val sledgehammer:
-    params -> int -> relevance_override -> (string -> minimize_command)
-    -> Proof.state -> unit
+  val start_prover_thread:
+    params -> Time.time -> Time.time -> int -> relevance_override
+    -> (string -> minimize_command) -> Proof.state -> string -> unit
 end;
 
 structure ATP_Manager : ATP_MANAGER =
@@ -82,7 +86,7 @@ type params =
    higher_order: bool option,
    follow_defs: bool,
    isar_proof: bool,
-   modulus: int,
+   shrink_factor: int,
    sorts: bool,
    timeout: Time.time,
    minimize_timeout: Time.time}
@@ -94,13 +98,20 @@ type problem =
    axiom_clauses: (thm * (string * int)) list option,
    filtered_clauses: (thm * (string * int)) list option};
 
+datatype failure =
+  Unprovable | TimedOut | OutOfResources | OldSpass | MalformedOutput |
+  UnknownError
+
 type prover_result =
-  {success: bool,
+  {outcome: failure option,
    message: string,
+   pool: name_pool option,
    relevant_thm_names: string list,
    atp_run_time_in_msecs: int,
+   output: string,
    proof: string,
    internal_thm_names: string Vector.vector,
+   conjecture_shape: int list list,
    filtered_clauses: (thm * (string * int)) list};
 
 type prover =
@@ -111,26 +122,6 @@ type prover =
 
 val message_store_limit = 20;
 val message_display_limit = 5;
-
-val atps = Unsynchronized.ref "e spass remote_vampire"; (* set in "ATP_Wrapper" *)
-val timeout = Unsynchronized.ref 60;
-val full_types = Unsynchronized.ref false;
-
-val _ =
-  ProofGeneralPgip.add_preference Preferences.category_proof
-    (Preferences.string_pref atps
-      "ATP: provers" "Default automatic provers (separated by whitespace)");
-
-val _ =
-  ProofGeneralPgip.add_preference Preferences.category_proof
-    (Preferences.int_pref timeout
-      "ATP: timeout" "ATPs will be interrupted after this time (in seconds)");
-
-val _ =
-  ProofGeneralPgip.add_preference Preferences.category_proof
-    (Preferences.bool_pref full_types
-      "ATP: full types" "ATPs will use full type information");
-
 
 
 (** thread management **)
@@ -172,13 +163,13 @@ fun unregister ({verbose, ...} : params) message thread =
   Synchronized.change global_state
   (fn state as {manager, timeout_heap, active, cancelling, messages, store} =>
     (case lookup_thread active thread of
-      SOME (birth_time, _, description) =>
+      SOME (birth_time, _, desc) =>
         let
           val active' = delete_thread thread active;
           val now = Time.now ()
-          val cancelling' = (thread, (now, description)) :: cancelling;
+          val cancelling' = (thread, (now, desc)) :: cancelling;
           val message' =
-            description ^ "\n" ^ message ^
+            desc ^ "\n" ^ message ^
             (if verbose then
                "Total time: " ^ Int.toString (Time.toMilliseconds
                                           (Time.- (now, birth_time))) ^ " ms.\n"
@@ -246,7 +237,7 @@ fun check_thread_manager params = Synchronized.change global_state
         do
           (Synchronized.timed_access global_state (SOME o time_limit o #timeout_heap) action
             |> these
-            |> List.app (unregister params "Timed out.");
+            |> List.app (unregister params "Timed out.\n");
             print_new_messages ();
             (*give threads some time to respond to interrupt*)
             OS.Process.sleep min_wait_time)
@@ -322,7 +313,7 @@ fun messages opt_limit =
 
 fun err_dup_prover name = error ("Duplicate prover: " ^ quote name ^ ".");
 
-structure Provers = Theory_Data
+structure Data = Theory_Data
 (
   type T = (prover * stamp) Symtab.table;
   val empty = Symtab.empty;
@@ -332,60 +323,43 @@ structure Provers = Theory_Data
 );
 
 fun add_prover (name, prover) thy =
-  Provers.map (Symtab.update_new (name, (prover, stamp ()))) thy
-    handle Symtab.DUP name => err_dup_prover name;
+  Data.map (Symtab.update_new (name, (prover, stamp ()))) thy
+  handle Symtab.DUP name => err_dup_prover name;
 
 fun get_prover thy name =
-  Option.map #1 (Symtab.lookup (Provers.get thy) name);
+  case Symtab.lookup (Data.get thy) name of
+    SOME (prover, _) => prover
+  | NONE => error ("Unknown ATP: " ^ name)
 
 fun available_atps thy =
   priority ("Available ATPs: " ^
-            commas (sort_strings (Symtab.keys (Provers.get thy))) ^ ".")
+            commas (sort_strings (Symtab.keys (Data.get thy))) ^ ".")
 
 
 (* start prover thread *)
 
-fun start_prover (params as {timeout, ...}) birth_time death_time i
-                 relevance_override minimize_command proof_state name =
-  (case get_prover (Proof.theory_of proof_state) name of
-    NONE => warning ("Unknown ATP: " ^ quote name ^ ".")
-  | SOME prover =>
-      let
-        val {context = ctxt, facts, goal} = Proof.goal proof_state;
-        val n = Logic.count_prems (prop_of goal)
-        val desc =
-          "ATP " ^ quote name ^ " for subgoal " ^ string_of_int i ^ ":\n" ^
-            Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i));
-
-        val _ = Toplevel.thread true (fn () =>
-          let
-            val _ = register params birth_time death_time (Thread.self (), desc)
-            val problem =
-              {subgoal = i, goal = (ctxt, (facts, goal)),
-               relevance_override = relevance_override, axiom_clauses = NONE,
-               filtered_clauses = NONE}
-            val message =
-              #message (prover params (minimize_command name) timeout problem)
-              handle Sledgehammer_HOL_Clause.TRIVIAL =>
-                  metis_line i n []
-                | ERROR msg => "Error: " ^ msg ^ ".\n";
-            val _ = unregister params message (Thread.self ());
-          in () end);
-      in () end);
-
-
-(* Sledgehammer the given subgoal *)
-
-fun sledgehammer (params as {atps, timeout, ...}) i relevance_override
-                 minimize_command proof_state =
+fun start_prover_thread (params as {timeout, ...}) birth_time death_time i
+                        relevance_override minimize_command proof_state name =
   let
-    val birth_time = Time.now ()
-    val death_time = Time.+ (birth_time, timeout)
-    val _ = kill_atps () (* RACE w.r.t. other invocations of Sledgehammer *)
-    val _ = priority "Sledgehammering..."
-    val _ = List.app (start_prover params birth_time death_time i
-                                   relevance_override minimize_command
-                                   proof_state) atps
+    val prover = get_prover (Proof.theory_of proof_state) name
+    val {context = ctxt, facts, goal} = Proof.goal proof_state;
+    val n = Logic.count_prems (prop_of goal)
+    val desc =
+      "ATP " ^ quote name ^ " for subgoal " ^ string_of_int i ^ ":\n" ^
+      Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i));
+    val _ = Toplevel.thread true (fn () =>
+      let
+        val _ = register params birth_time death_time (Thread.self (), desc)
+        val problem =
+          {subgoal = i, goal = (ctxt, (facts, goal)),
+           relevance_override = relevance_override, axiom_clauses = NONE,
+           filtered_clauses = NONE}
+        val message =
+          #message (prover params (minimize_command name) timeout problem)
+          handle Sledgehammer_HOL_Clause.TRIVIAL => metis_line i n []
+               | ERROR message => "Error: " ^ message ^ "\n"
+        val _ = unregister params message (Thread.self ());
+      in () end)
   in () end
 
 end;

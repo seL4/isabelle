@@ -26,9 +26,9 @@ lemma bigo_pos_const: "(EX (c::'a::linordered_idom).
   apply (metis abs_ge_minus_self abs_ge_zero abs_minus_cancel abs_of_nonneg equation_minus_iff Orderings.xt1(6) abs_mult)
   done
 
-(*** Now various verions with an increasing modulus ***)
+(*** Now various verions with an increasing shrink factor ***)
 
-sledgehammer_params [modulus = 1]
+sledgehammer_params [shrink_factor = 1]
 
 lemma (*bigo_pos_const:*) "(EX (c::'a::linordered_idom). 
     ALL x. (abs (h x)) <= (c * (abs (f x))))
@@ -97,7 +97,7 @@ show "False"
   by (metis abs_le_iff 5 18 14)
 qed
 
-sledgehammer_params [modulus = 2]
+sledgehammer_params [shrink_factor = 2]
 
 lemma (*bigo_pos_const:*) "(EX (c::'a::linordered_idom). 
     ALL x. (abs (h x)) <= (c * (abs (f x))))
@@ -138,7 +138,7 @@ show "False"
   by (metis 8 abs_ge_zero abs_mult_pos abs_mult 1 9 3 abs_le_iff)
 qed
 
-sledgehammer_params [modulus = 3]
+sledgehammer_params [shrink_factor = 3]
 
 lemma (*bigo_pos_const:*) "(EX (c::'a::linordered_idom). 
     ALL x. (abs (h x)) <= (c * (abs (f x))))
@@ -170,7 +170,7 @@ show "False"
 qed
 
 
-sledgehammer_params [modulus = 4]
+sledgehammer_params [shrink_factor = 4]
 
 lemma (*bigo_pos_const:*) "(EX (c::'a::linordered_idom). 
     ALL x. (abs (h x)) <= (c * (abs (f x))))

@@ -136,7 +136,7 @@ if(!$Response->is_success) {
   print $Response->content;
   exit(0);
 }else {
-  print "Remote-script could not extract proof:\n".$Response->content;
+  print "Remote script could not extract proof:\n".$Response->content;
   exit(-1);
 }
 
