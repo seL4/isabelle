@@ -15,11 +15,12 @@ sig
   val bad_for_atp: thm -> bool
   val type_has_topsort: typ -> bool
   val cnf_rules_pairs: theory -> (string * thm) list -> (thm * (string * int)) list
-  val neg_clausify: thm list -> thm list
-  val combinators: thm -> thm
-  val neg_conjecture_clauses: Proof.context -> thm -> int -> thm list * (string * typ) list
   val suppress_endtheory: bool Unsynchronized.ref
     (*for emergency use where endtheory causes problems*)
+  val strip_subgoal : thm -> int -> term list * term list * term
+  val neg_clausify: thm -> thm list
+  val neg_conjecture_clauses:
+    Proof.context -> thm -> int -> thm list list * (string * typ) list
   val neg_clausify_tac: Proof.context -> int -> tactic
   val setup: theory -> theory
 end;
@@ -457,19 +458,31 @@ fun clause_cache_endtheory thy =
   lambda_free, but then the individual theory caches become much bigger.*)
 
 
+fun strip_subgoal goal i =
+  let
+    val (t, frees) = Logic.goal_params (prop_of goal) i
+    val hyp_ts = t |> Logic.strip_assums_hyp |> map (curry subst_bounds frees)
+    val concl_t = t |> Logic.strip_assums_concl |> curry subst_bounds frees
+  in (rev frees, hyp_ts, concl_t) end
+
 (*** Converting a subgoal into negated conjecture clauses. ***)
 
 fun neg_skolemize_tac ctxt =
   EVERY' [rtac ccontr, Object_Logic.atomize_prems_tac, Meson.skolemize_tac ctxt];
 
+fun neg_skolemize_tac ctxt =
+  EVERY' [rtac ccontr, Object_Logic.atomize_prems_tac, Meson.skolemize_tac ctxt];
+
 val neg_clausify =
-  Meson.make_clauses_unsorted #> map combinators #> Meson.finish_cnf;
+  single #> Meson.make_clauses_unsorted #> map combinators #> Meson.finish_cnf
 
 fun neg_conjecture_clauses ctxt st0 n =
   let
     val st = Seq.hd (neg_skolemize_tac ctxt n st0)
     val ({params, prems, ...}, _) = Subgoal.focus (Variable.set_body false ctxt) n st
-  in (neg_clausify prems, map (Term.dest_Free o Thm.term_of o #2) params) end;
+  in
+    (map neg_clausify prems, map (Term.dest_Free o Thm.term_of o #2) params)
+  end
 
 (*Conversion of a subgoal to conjecture clauses. Each clause has
   leading !!-bound universal variables, to express generality. *)
@@ -481,7 +494,7 @@ fun neg_clausify_tac ctxt =
        [Subgoal.FOCUS
          (fn {prems, ...} =>
            (Method.insert_tac
-             (map forall_intr_vars (neg_clausify prems)) i)) ctxt,
+             (map forall_intr_vars (maps neg_clausify prems)) i)) ctxt,
         REPEAT_DETERM_N (length ts) o etac thin_rl] i
      end);
 
