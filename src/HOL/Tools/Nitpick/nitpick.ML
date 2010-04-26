@@ -982,6 +982,7 @@ fun pick_nits_in_subgoal state params auto i step =
       0 => (priority "No subgoal!"; ("none", state))
     | n =>
       let
+        val t = Logic.goal_params t i |> fst
         val assms = map term_of (Assumption.all_assms_of ctxt)
         val (subst, assms, t) = extract_fixed_frees ctxt (assms, t)
       in pick_nits_in_term state params auto i n step subst assms t end
