@@ -1033,12 +1033,12 @@ lemma setprod_diff1: "finite A ==> f a \<noteq> 0 ==>
   by (erule finite_induct) (auto simp add: insert_Diff_if)
 
 lemma setprod_inversef: 
-  fixes f :: "'b \<Rightarrow> 'a::{field,division_by_zero}"
+  fixes f :: "'b \<Rightarrow> 'a::{field,division_ring_inverse_zero}"
   shows "finite A ==> setprod (inverse \<circ> f) A = inverse (setprod f A)"
 by (erule finite_induct) auto
 
 lemma setprod_dividef:
-  fixes f :: "'b \<Rightarrow> 'a::{field,division_by_zero}"
+  fixes f :: "'b \<Rightarrow> 'a::{field,division_ring_inverse_zero}"
   shows "finite A
     ==> setprod (%x. f x / g x) A = setprod f A / setprod g A"
 apply (subgoal_tac
@@ -1140,7 +1140,7 @@ proof-
       using setprod_Un_disjoint[OF fAB dj, of ?f, unfolded eq[symmetric]]
       by simp
     then have ?thesis using a cA
-      by (simp add: fA1 ring_simps cong add: setprod_cong cong del: if_weak_cong)}
+      by (simp add: fA1 field_simps cong add: setprod_cong cong del: if_weak_cong)}
   ultimately show ?thesis by blast
 qed
 

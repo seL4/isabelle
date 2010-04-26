@@ -1995,15 +1995,15 @@ lemmas divide_const_simps =
 text{*Division By @{text "-1"}*}
 
 lemma divide_minus1 [simp]:
-     "x/-1 = -(x::'a::{field,division_by_zero,number_ring})"
+     "x/-1 = -(x::'a::{field,division_ring_inverse_zero,number_ring})"
 by simp
 
 lemma minus1_divide [simp]:
-     "-1 / (x::'a::{field,division_by_zero,number_ring}) = - (1/x)"
+     "-1 / (x::'a::{field,division_ring_inverse_zero,number_ring}) = - (1/x)"
 by (simp add: divide_inverse)
 
 lemma half_gt_zero_iff:
-     "(0 < r/2) = (0 < (r::'a::{linordered_field,division_by_zero,number_ring}))"
+     "(0 < r/2) = (0 < (r::'a::{linordered_field,division_ring_inverse_zero,number_ring}))"
 by auto
 
 lemmas half_gt_zero [simp] = half_gt_zero_iff [THEN iffD2, standard]
