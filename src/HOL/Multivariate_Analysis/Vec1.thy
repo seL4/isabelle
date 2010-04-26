@@ -188,7 +188,7 @@ lemma dest_vec1_sum: assumes fS: "finite S"
   apply auto
   done
 
-lemma norm_vec1: "norm(vec1 x) = abs(x)"
+lemma norm_vec1 [simp]: "norm(vec1 x) = abs(x)"
   by (simp add: vec_def norm_real)
 
 lemma dist_vec1: "dist(vec1 x) (vec1 y) = abs(x - y)"
@@ -385,5 +385,15 @@ lemma forall_of_dest_vec1: "(\<forall>v. P (\<lambda>x. dest_vec1 (v x))) \<long
 lemma forall_of_dest_vec1': "(\<forall>v. P (dest_vec1 v)) \<longleftrightarrow> (\<forall>x. P x)"
   apply rule apply rule apply(erule_tac x="(vec1 x)" in allE) defer apply rule 
   apply(erule_tac x="dest_vec1 v" in allE) unfolding o_def vec1_dest_vec1 by auto
+
+lemma dist_vec1_0[simp]: "dist(vec1 (x::real)) 0 = norm x" unfolding vector_dist_norm by auto
+
+lemma bounded_linear_vec1_dest_vec1: fixes f::"real \<Rightarrow> real"
+  shows "linear (vec1 \<circ> f \<circ> dest_vec1) = bounded_linear f" (is "?l = ?r") proof-
+  { assume ?l guess K using linear_bounded[OF `?l`] ..
+    hence "\<exists>K. \<forall>x. \<bar>f x\<bar> \<le> \<bar>x\<bar> * K" apply(rule_tac x=K in exI)
+      unfolding vec1_dest_vec1_simps by (auto simp add:field_simps) }
+  thus ?thesis unfolding linear_def bounded_linear_def additive_def bounded_linear_axioms_def o_def
+    unfolding vec1_dest_vec1_simps by auto qed 
 
 end

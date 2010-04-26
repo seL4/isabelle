@@ -13,9 +13,6 @@ begin
 (* Because I do not want to type this all the time *)
 lemmas linear_linear = linear_conv_bounded_linear[THEN sym]
 
-(** move this **)
-declare norm_vec1[simp]
-
 subsection {* Derivatives *}
 
 text {* The definition is slightly tricky since we make it work over
@@ -93,16 +90,6 @@ lemma has_derivative_within_open:
   unfolding has_derivative_within has_derivative_at using Lim_within_open by auto
 
 subsection {* Derivatives on real = Derivatives on @{typ "real^1"} *}
-
-lemma dist_vec1_0[simp]: "dist(vec1 (x::real)) 0 = norm x" unfolding vector_dist_norm by auto
-
-lemma bounded_linear_vec1_dest_vec1: fixes f::"real \<Rightarrow> real"
-  shows "linear (vec1 \<circ> f \<circ> dest_vec1) = bounded_linear f" (is "?l = ?r") proof-
-  { assume ?l guess K using linear_bounded[OF `?l`] ..
-    hence "\<exists>K. \<forall>x. \<bar>f x\<bar> \<le> \<bar>x\<bar> * K" apply(rule_tac x=K in exI)
-      unfolding vec1_dest_vec1_simps by (auto simp add:field_simps) }
-  thus ?thesis unfolding linear_def bounded_linear_def additive_def bounded_linear_axioms_def o_def
-    unfolding vec1_dest_vec1_simps by auto qed 
 
 lemma has_derivative_within_vec1_dest_vec1: fixes f::"real\<Rightarrow>real" shows
   "((vec1 \<circ> f \<circ> dest_vec1) has_derivative (vec1 \<circ> f' \<circ> dest_vec1)) (at (vec1 x) within vec1 ` s)
