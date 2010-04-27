@@ -5187,15 +5187,19 @@ lemma Lim_within_union:
   unfolding tendsto_def
   by (auto simp add: eventually_within_Un)
 
+lemma Lim_topological:
+ "(f ---> l) net \<longleftrightarrow>
+        trivial_limit net \<or>
+        (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) net)"
+  unfolding tendsto_def trivial_limit_eq by auto
+
 lemma continuous_on_union:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space" (* TODO: generalize *)
   assumes "closed s" "closed t" "continuous_on s f" "continuous_on t f"
   shows "continuous_on (s \<union> t) f"
-  using assms unfolding continuous_on unfolding Lim_within_union
-  unfolding Lim unfolding trivial_limit_within unfolding closed_limpt by auto
+  using assms unfolding continuous_on Lim_within_union
+  unfolding Lim_topological trivial_limit_within closed_limpt by auto
 
 lemma continuous_on_cases:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space" (* TODO: generalize *)
   assumes "closed s" "closed t" "continuous_on s f" "continuous_on t g"
           "\<forall>x. (x\<in>s \<and> \<not> P x) \<or> (x \<in> t \<and> P x) \<longrightarrow> f x = g x"
   shows "continuous_on (s \<union> t) (\<lambda>x. if P x then f x else g x)"
