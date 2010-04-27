@@ -599,19 +599,6 @@ qed
 
 end
 
-lemma setsum_squares_eq_0_iff: assumes fS: "finite F" and fp: "\<forall>x \<in> F. f x \<ge> (0 ::'a::ordered_ab_group_add)" shows "setsum f F = 0 \<longleftrightarrow> (ALL x:F. f x = 0)"
-using fS fp setsum_nonneg[OF fp]
-proof (induct set: finite)
-  case empty thus ?case by simp
-next
-  case (insert x F)
-  from insert.prems have Fx: "f x \<ge> 0" and Fp: "\<forall> a \<in> F. f a \<ge> 0" by simp_all
-  from insert.hyps Fp setsum_nonneg[OF Fp]
-  have h: "setsum f F = 0 \<longleftrightarrow> (\<forall>a \<in>F. f a = 0)" by metis
-  from add_nonneg_eq_0_iff[OF Fx  setsum_nonneg[OF Fp]] insert.hyps(1,2)
-  show ?case by (simp add: h)
-qed
-
 subsection {* A connectedness or intermediate value lemma with several applications. *}
 
 lemma connected_real_lemma:
