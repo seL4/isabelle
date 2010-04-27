@@ -811,7 +811,6 @@ lemma divide_left_mono_neg: "a <= b
   apply (auto simp add: mult_commute)
 done
 
-
 text{*Simplify quotients that are compared with the value 1.*}
 
 lemma le_divide_eq_1 [no_atp]:
