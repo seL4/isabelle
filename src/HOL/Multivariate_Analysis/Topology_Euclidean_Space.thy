@@ -5329,12 +5329,6 @@ apply auto apply(rule_tac x="f x" in bexI) by auto
 
 text {* Relatively weak hypotheses if a set is compact. *}
 
-definition "inv_on f s = (\<lambda>x. SOME y. y\<in>s \<and> f y = x)"
-
-lemma assumes "inj_on f s" "x\<in>s"
-  shows "inv_on f s (f x) = x"
- using assms unfolding inj_on_def inv_on_def by auto
-
 lemma homeomorphism_compact:
   fixes f :: "'a::heine_borel \<Rightarrow> 'b::heine_borel"
     (* class constraint due to continuous_on_inverse *)
