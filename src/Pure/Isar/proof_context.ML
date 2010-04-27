@@ -610,6 +610,7 @@ end;
 
 fun get_sort ctxt raw_env =
   let
+    val thy = theory_of ctxt;
     val tsig = tsig_of ctxt;
 
     fun eq ((xi, S), (xi', S')) =
@@ -636,7 +637,7 @@ fun get_sort ctxt raw_env =
           else error ("Sort constraint " ^ Syntax.string_of_sort ctxt S ^
             " inconsistent with default " ^ Syntax.string_of_sort ctxt S' ^
             " for type variable " ^ quote (Term.string_of_vname' xi)));
-  in get end;
+  in Sign.minimize_sort thy o get end;
 
 fun check_tvar ctxt (xi, S) = (xi, get_sort ctxt [(xi, S)] xi);
 fun check_tfree ctxt (x, S) = apfst fst (check_tvar ctxt ((x, ~1), S));
@@ -736,10 +737,11 @@ local
 
 fun parse_sort ctxt text =
   let
+    val thy = theory_of ctxt;
     val (syms, pos) = Syntax.parse_token Markup.sort text;
     val S = Syntax.standard_parse_sort ctxt (syn_of ctxt) (syms, pos)
       handle ERROR msg => cat_error msg  ("Failed to parse sort" ^ Position.str_of pos)
-  in S end;
+  in Sign.minimize_sort thy S end;
 
 fun parse_typ ctxt text =
   let
