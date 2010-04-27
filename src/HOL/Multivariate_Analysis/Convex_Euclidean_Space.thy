@@ -2817,41 +2817,38 @@ lemma interior_std_simplex_nonempty: obtains a::"real^'n" where
 
 subsection {* Paths. *}
 
-text {* TODO: Once @{const continuous_on} is generalized to arbitrary
-topological spaces, all of these concepts should be similarly generalized. *}
-
 definition
-  path :: "(real \<Rightarrow> 'a::metric_space) \<Rightarrow> bool"
+  path :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> bool"
   where "path g \<longleftrightarrow> continuous_on {0 .. 1} g"
 
 definition
-  pathstart :: "(real \<Rightarrow> 'a::metric_space) \<Rightarrow> 'a"
+  pathstart :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> 'a"
   where "pathstart g = g 0"
 
 definition
-  pathfinish :: "(real \<Rightarrow> 'a::metric_space) \<Rightarrow> 'a"
+  pathfinish :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> 'a"
   where "pathfinish g = g 1"
 
 definition
-  path_image :: "(real \<Rightarrow> 'a::metric_space) \<Rightarrow> 'a set"
+  path_image :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> 'a set"
   where "path_image g = g ` {0 .. 1}"
 
 definition
-  reversepath :: "(real \<Rightarrow> 'a::metric_space) \<Rightarrow> (real \<Rightarrow> 'a)"
+  reversepath :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> (real \<Rightarrow> 'a)"
   where "reversepath g = (\<lambda>x. g(1 - x))"
 
 definition
-  joinpaths :: "(real \<Rightarrow> 'a::metric_space) \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> (real \<Rightarrow> 'a)"
+  joinpaths :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> (real \<Rightarrow> 'a)"
     (infixr "+++" 75)
   where "g1 +++ g2 = (\<lambda>x. if x \<le> 1/2 then g1 (2 * x) else g2 (2 * x - 1))"
 
 definition
-  simple_path :: "(real \<Rightarrow> 'a::metric_space) \<Rightarrow> bool"
+  simple_path :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> bool"
   where "simple_path g \<longleftrightarrow>
   (\<forall>x\<in>{0..1}. \<forall>y\<in>{0..1}. g x = g y \<longrightarrow> x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0)"
 
 definition
-  injective_path :: "(real \<Rightarrow> 'a::metric_space) \<Rightarrow> bool"
+  injective_path :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> bool"
   where "injective_path g \<longleftrightarrow> (\<forall>x\<in>{0..1}. \<forall>y\<in>{0..1}. g x = g y \<longrightarrow> x = y)"
 
 subsection {* Some lemmas about these concepts. *}
@@ -3059,7 +3056,7 @@ lemmas join_paths_simps = path_join path_image_join pathstart_join pathfinish_jo
  
 subsection {* Reparametrizing a closed curve to start at some chosen point. *}
 
-definition "shiftpath a (f::real \<Rightarrow> 'a::metric_space) =
+definition "shiftpath a (f::real \<Rightarrow> 'a::topological_space) =
   (\<lambda>x. if (a + x) \<le> 1 then f(a + x) else f(a + x - 1))"
 
 lemma pathstart_shiftpath: "a \<le> 1 \<Longrightarrow> pathstart(shiftpath a g) = g a"
