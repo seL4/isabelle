@@ -55,7 +55,7 @@ apply (auto intro: setprod_nonneg)
 done
 
   (* FIXME: In Finite_Set there is a useless further assumption *)
-lemma setprod_inversef: "finite A ==> setprod (inverse \<circ> f) A = (inverse (setprod f A) :: 'a:: {division_ring_inverse_zero, field})"
+lemma setprod_inversef: "finite A ==> setprod (inverse \<circ> f) A = (inverse (setprod f A) :: 'a:: field_inverse_zero)"
   apply (erule finite_induct)
   apply (simp)
   apply simp

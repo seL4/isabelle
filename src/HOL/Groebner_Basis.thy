@@ -473,21 +473,21 @@ subsection{* Groebner Bases for fields *}
 interpretation class_fieldgb:
   fieldgb "op +" "op *" "op ^" "0::'a::{field,number_ring}" "1" "op -" "uminus" "op /" "inverse" apply (unfold_locales) by (simp_all add: divide_inverse)
 
-lemma divide_Numeral1: "(x::'a::{field,number_ring}) / Numeral1 = x" by simp
-lemma divide_Numeral0: "(x::'a::{field,number_ring, division_ring_inverse_zero}) / Numeral0 = 0"
+lemma divide_Numeral1: "(x::'a::{field, number_ring}) / Numeral1 = x" by simp
+lemma divide_Numeral0: "(x::'a::{field_inverse_zero, number_ring}) / Numeral0 = 0"
   by simp
-lemma mult_frac_frac: "((x::'a::{field,division_ring_inverse_zero}) / y) * (z / w) = (x*z) / (y*w)"
+lemma mult_frac_frac: "((x::'a::field_inverse_zero) / y) * (z / w) = (x*z) / (y*w)"
   by simp
-lemma mult_frac_num: "((x::'a::{field, division_ring_inverse_zero}) / y) * z  = (x*z) / y"
+lemma mult_frac_num: "((x::'a::field_inverse_zero) / y) * z  = (x*z) / y"
   by simp
-lemma mult_num_frac: "((x::'a::{field, division_ring_inverse_zero}) / y) * z  = (x*z) / y"
+lemma mult_num_frac: "((x::'a::field_inverse_zero) / y) * z  = (x*z) / y"
   by simp
 
 lemma Numeral1_eq1_nat: "(1::nat) = Numeral1" by simp
 
-lemma add_frac_num: "y\<noteq> 0 \<Longrightarrow> (x::'a::{field, division_ring_inverse_zero}) / y + z = (x + z*y) / y"
+lemma add_frac_num: "y\<noteq> 0 \<Longrightarrow> (x::'a::field_inverse_zero) / y + z = (x + z*y) / y"
   by (simp add: add_divide_distrib)
-lemma add_num_frac: "y\<noteq> 0 \<Longrightarrow> z + (x::'a::{field, division_ring_inverse_zero}) / y = (x + z*y) / y"
+lemma add_num_frac: "y\<noteq> 0 \<Longrightarrow> z + (x::'a::field_inverse_zero) / y = (x + z*y) / y"
   by (simp add: add_divide_distrib)
 
 ML {*

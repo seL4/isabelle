@@ -392,27 +392,26 @@ lemma power_eq_0_iff [simp]:
   by (induct n)
     (auto simp add: no_zero_divisors elim: contrapos_pp)
 
-lemma power_diff:
-  fixes a :: "'a::field"
+lemma (in field) power_diff:
   assumes nz: "a \<noteq> 0"
   shows "n \<le> m \<Longrightarrow> a ^ (m - n) = a ^ m / a ^ n"
-  by (induct m n rule: diff_induct) (simp_all add: nz)
+  by (induct m n rule: diff_induct) (simp_all add: nz field_power_not_zero)
 
 text{*Perhaps these should be simprules.*}
 lemma power_inverse:
-  fixes a :: "'a::{division_ring,division_ring_inverse_zero,power}"
-  shows "inverse (a ^ n) = (inverse a) ^ n"
+  fixes a :: "'a::division_ring_inverse_zero"
+  shows "inverse (a ^ n) = inverse a ^ n"
 apply (cases "a = 0")
 apply (simp add: power_0_left)
 apply (simp add: nonzero_power_inverse)
 done (* TODO: reorient or rename to inverse_power *)
 
 lemma power_one_over:
-  "1 / (a::'a::{field,division_ring_inverse_zero, power}) ^ n =  (1 / a) ^ n"
+  "1 / (a::'a::{field_inverse_zero, power}) ^ n =  (1 / a) ^ n"
   by (simp add: divide_inverse) (rule power_inverse)
 
 lemma power_divide:
-  "(a / b) ^ n = (a::'a::{field,division_ring_inverse_zero}) ^ n / b ^ n"
+  "(a / b) ^ n = (a::'a::field_inverse_zero) ^ n / b ^ n"
 apply (cases "b = 0")
 apply (simp add: power_0_left)
 apply (rule nonzero_power_divide)

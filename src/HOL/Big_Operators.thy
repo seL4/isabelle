@@ -1033,12 +1033,12 @@ lemma setprod_diff1: "finite A ==> f a \<noteq> 0 ==>
   by (erule finite_induct) (auto simp add: insert_Diff_if)
 
 lemma setprod_inversef: 
-  fixes f :: "'b \<Rightarrow> 'a::{field,division_ring_inverse_zero}"
+  fixes f :: "'b \<Rightarrow> 'a::field_inverse_zero"
   shows "finite A ==> setprod (inverse \<circ> f) A = inverse (setprod f A)"
 by (erule finite_induct) auto
 
 lemma setprod_dividef:
-  fixes f :: "'b \<Rightarrow> 'a::{field,division_ring_inverse_zero}"
+  fixes f :: "'b \<Rightarrow> 'a::field_inverse_zero"
   shows "finite A
     ==> setprod (%x. f x / g x) A = setprod f A / setprod g A"
 apply (subgoal_tac

@@ -266,22 +266,15 @@ done
 
 subsection{*The Real Numbers form a Field*}
 
-instance real :: field
+lemma INVERSE_ZERO: "inverse 0 = (0::real)"
+by (simp add: real_inverse_def)
+
+instance real :: field_inverse_zero
 proof
   fix x y z :: real
   show "x \<noteq> 0 ==> inverse x * x = 1" by (rule real_mult_inverse_left)
   show "x / y = x * inverse y" by (simp add: real_divide_def)
-qed
-
-
-text{*Inverse of zero!  Useful to simplify certain equations*}
-
-lemma INVERSE_ZERO: "inverse 0 = (0::real)"
-by (simp add: real_inverse_def)
-
-instance real :: division_ring_inverse_zero
-proof
-  show "inverse 0 = (0::real)" by (rule INVERSE_ZERO)
+  show "inverse 0 = (0::real)" by (fact INVERSE_ZERO)
 qed
 
 
@@ -425,6 +418,9 @@ proof
   show "sgn x = (if x=0 then 0 else if 0<x then 1 else - 1)"
     by (simp only: real_sgn_def)
 qed
+
+instance real :: linordered_field_inverse_zero proof
+qed (fact INVERSE_ZERO)
 
 text{*The function @{term real_of_preal} requires many proofs, but it seems
 to be essential for proving completeness of the reals from that of the
