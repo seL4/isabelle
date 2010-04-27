@@ -326,7 +326,8 @@ fun repair_sorts vt =
 fun clause_of_strees ctxt vt ts =
   let val (vt, dt) = lits_of_strees (ProofContext.theory_of ctxt) (vt, []) ts in
     dt |> repair_sorts vt |> TypeInfer.constrain HOLogic.boolT
-       |> Syntax.check_term ctxt
+       |> Syntax.check_term (ProofContext.set_mode ProofContext.mode_schematic
+                                                   ctxt)
   end
 
 fun gen_all_vars t = fold_rev Logic.all (OldTerm.term_vars t) t;
