@@ -249,7 +249,7 @@ fun thynames_of_arity thy (c, a) =
   |> map_filter (fn ((c', _), (_, name)) => if c = c' then SOME name else NONE)
   |> rev;
 
-fun insert_arity_completions thy (t, ((c, Ss), ((th, thy_name)))) arities =
+fun insert_arity_completions thy t ((c, Ss), ((th, thy_name))) (finished, arities) =
   let
     val algebra = Sign.classes_of thy;
     val ars = Symtab.lookup_list arities t;
@@ -263,28 +263,31 @@ fun insert_arity_completions thy (t, ((c, Ss), ((th, thy_name)))) arities =
 
     val completions = super_class_completions |> map (fn c1 =>
       let
-        val th1 = (th RS the_classrel thy (c, c1))
+        val th1 =
+          (th RS the_classrel thy (c, c1))
           |> Drule.instantiate' std_vars []
           |> Thm.close_derivation;
       in ((th1, thy_name), c1) end);
+
+    val finished' = finished andalso null completions;
     val arities' = fold (fn (th, c1) => Symtab.cons_list (t, ((c1, Ss), th))) completions arities;
-  in (null completions, arities') end;
+  in (finished', arities') end;
 
 fun put_arity ((t, Ss, c), th) thy =
-  let val arity = (t, ((c, Ss), (th, Context.theory_name thy))) in
+  let val ar = ((c, Ss), (th, Context.theory_name thy)) in
     thy
     |> map_proven_arities
-      (Symtab.insert_list (eq_fst op =) arity #> insert_arity_completions thy arity #> #2)
+      (Symtab.insert_list (eq_fst op =) (t, ar) #>
+       curry (insert_arity_completions thy t ar) true #> #2)
   end;
 
 fun complete_arities thy =
   let
     val arities = proven_arities_of thy;
-    val (finished, arities') = arities
-      |> fold_map (insert_arity_completions thy) (Symtab.dest_list arities);
+    val (finished, arities') =
+      Symtab.fold (fn (t, ars) => fold (insert_arity_completions thy t) ars) arities (true, arities);
   in
-    if forall I finished
-    then NONE
+    if finished then NONE
     else SOME (map_proven_arities (K arities') thy)
   end;
 
