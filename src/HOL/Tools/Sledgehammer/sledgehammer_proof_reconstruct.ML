@@ -492,9 +492,9 @@ val fact_prefix = "F"
 
 fun add_fact_from_dep thm_names num =
   if is_axiom_clause_number thm_names num then
-    apsnd (cons (Vector.sub (thm_names, num - 1)))
+    apsnd (insert (op =) (Vector.sub (thm_names, num - 1)))
   else
-    apfst (cons (raw_prefix, num))
+    apfst (insert (op =) (raw_prefix, num))
 
 fun generalize_all_vars t = fold_rev Logic.all (map Var (Term.add_vars t [])) t
 fun step_for_tuple _ _ (label, t, []) = Assume ((raw_prefix, label), t)
@@ -809,11 +809,13 @@ fun string_for_proof ctxt sorts i n =
         suffix ^ "\n"
       end
     and do_block ind proof = do_steps "{ " " }" (ind + 1) proof
-    and do_proof proof =
-      (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
-      do_indent 0 ^ "proof -\n" ^
-      do_steps "" "" 1 proof ^
-      do_indent 0 ^ (if n <> 1 then "next" else "qed") ^ "\n"
+    (* One-step proofs are pointless; better use the Metis one-liner. *)
+    and do_proof [_] = ""
+      | do_proof proof =
+        (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
+        do_indent 0 ^ "proof -\n" ^
+        do_steps "" "" 1 proof ^
+        do_indent 0 ^ (if n <> 1 then "next" else "qed") ^ "\n"
   in setmp_CRITICAL show_sorts sorts do_proof end
 
 fun isar_proof_text (pool, debug, shrink_factor, sorts, ctxt, conjecture_shape)
