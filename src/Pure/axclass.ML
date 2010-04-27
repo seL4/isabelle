@@ -188,6 +188,12 @@ val arity_prefix = "arity_";
 fun instance_name (a, c) = Long_Name.base_name c ^ "_" ^ Long_Name.base_name a;
 
 
+infix 0 RSO;
+
+fun (SOME a RSO SOME b) = SOME (a RS b)
+  | (x RSO NONE) = x
+  | (NONE RSO y) = y;
+
 fun the_classrel thy (c1, c2) =
   (case Symreltab.lookup (proven_classrels_of thy) (c1, c2) of
     SOME thm => Thm.transfer thy thm
@@ -196,26 +202,22 @@ fun the_classrel thy (c1, c2) =
 
 fun put_trancl_classrel ((c1, c2), th) thy =
   let
-    val cert = Thm.cterm_of thy;
-    val certT = Thm.ctyp_of thy;
-
     val classes = Sorts.classes_of (Sign.classes_of thy);
     val classrels = proven_classrels_of thy;
 
     fun reflcl_classrel (c1', c2') =
-      if c1' = c2'
-      then Thm.trivial (cert (Logic.mk_of_class (TVar ((Name.aT, 0), []), c1')))
-      else the_classrel thy (c1', c2');
+      if c1' = c2' then NONE else SOME (the_classrel thy (c1', c2'));
     fun gen_classrel (c1_pred, c2_succ) =
       let
-        val th' = ((reflcl_classrel (c1_pred, c1) RS th) RS reflcl_classrel (c2, c2_succ))
-          |> Drule.instantiate' [SOME (certT (TVar ((Name.aT, 0), [])))] []
+        val th' =
+          the ((reflcl_classrel (c1_pred, c1) RSO SOME th) RSO reflcl_classrel (c2, c2_succ))
+          |> Drule.instantiate' [SOME (ctyp_of thy (TVar ((Name.aT, 0), [])))] []
           |> Thm.close_derivation;
       in ((c1_pred, c2_succ), th') end;
 
     val new_classrels =
       Library.map_product pair (c1 :: Graph.imm_preds classes c1) (c2 :: Graph.imm_succs classes c2)
-      |> filter_out (Symreltab.defined classrels)
+      |> filter_out ((op =) orf Symreltab.defined classrels)
       |> map gen_classrel;
     val needed = not (null new_classrels);
   in
