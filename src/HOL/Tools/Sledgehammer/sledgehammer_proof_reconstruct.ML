@@ -115,7 +115,7 @@ val parse_tstp_annotations =
                    --| Scan.option ($$ "," |-- parse_terms NONE)
                  >> (fn source => ints_of_stree source [])) []
 
-(* <cnf_annotated> ::= cnf(<name>, <formula_role>, <cnf_formula> <annotations>).
+(* cnf(<name>, <formula_role>, <cnf_formula> <annotations>).
    The <name> could be an identifier, but we assume integers. *)
 fun retuple_tstp_line ((name, ts), deps) = (name, ts, deps)
 fun parse_tstp_line pool =
@@ -256,19 +256,17 @@ fun constraint_of_stree pol (SBranch ("c_Not", [t])) =
 
 (** Accumulate type constraints in a clause: negative type literals **)
 
-fun addix (key,z)  = Vartab.map_default (key,[]) (cons z);
+fun add_var (key, z)  = Vartab.map_default (key, []) (cons z)
 
-fun add_constraint ((false, cl, TFree(a,_)), vt) = addix ((a,~1),cl) vt
-  | add_constraint ((false, cl, TVar(ix,_)), vt) = addix (ix,cl) vt
+fun add_constraint ((false, cl, TFree(a,_)), vt) = add_var ((a,~1),cl) vt
+  | add_constraint ((false, cl, TVar(ix,_)), vt) = add_var (ix,cl) vt
   | add_constraint (_, vt) = vt;
 
 fun is_positive_literal (@{const Trueprop} $ t) = is_positive_literal t
   | is_positive_literal (@{const Not} $ _) = false
   | is_positive_literal t = true
 
-fun negate_term thy (@{const Trueprop} $ t) =
-    @{const Trueprop} $ negate_term thy t
-  | negate_term thy (Const (@{const_name All}, T) $ Abs (s, T', t')) =
+fun negate_term thy (Const (@{const_name All}, T) $ Abs (s, T', t')) =
     Const (@{const_name Ex}, T) $ Abs (s, T', negate_term thy t')
   | negate_term thy (Const (@{const_name Ex}, T) $ Abs (s, T', t')) =
     Const (@{const_name All}, T) $ Abs (s, T', negate_term thy t')
@@ -279,11 +277,11 @@ fun negate_term thy (@{const Trueprop} $ t) =
   | negate_term thy (@{const "op |"} $ t1 $ t2) =
     @{const "op &"} $ negate_term thy t1 $ negate_term thy t2
   | negate_term thy (@{const Not} $ t) = t
-  | negate_term thy t =
-    if fastype_of t = @{typ prop} then
-      HOLogic.mk_Trueprop (negate_term thy (Object_Logic.atomize_term thy t))
-    else
-      @{const Not} $ t
+fun negate_formula thy (@{const Trueprop} $ t) =
+    @{const Trueprop} $ negate_term thy t
+  | negate_formula thy t =
+    if fastype_of t = @{typ prop} then Logic.mk_implies (t, @{prop False})
+    else @{const Not} $ t
 
 fun clause_for_literals _ [] = HOLogic.false_const
   | clause_for_literals _ [lit] = lit
@@ -338,7 +336,8 @@ fun decode_line vt0 (name, ts, deps) ctxt =
 
 (** Global sort constraints on TFrees (from tfree_tcs) are positive unit clauses. **)
 
-fun add_tfree_constraint ((true, cl, TFree(a,_)), vt) = addix ((a,~1),cl) vt
+fun add_tfree_constraint ((true, cl, TFree(a,_)), vt) =
+    add_var ((a, ~1) , cl) vt
   | add_tfree_constraint (_, vt) = vt;
 
 fun tfree_constraints_of_clauses vt [] = vt
@@ -614,7 +613,8 @@ fun direct_proof thy conjecture_shape hyp_ts concl_t proof =
     fun second_pass end_qs ([], assums, patches) =
         ([Have (end_qs, no_label,
                 if length assums < length concl_ls then
-                  clause_for_literals thy (map (negate_term thy o fst) assums)
+                  clause_for_literals thy
+                                      (map (negate_formula thy o fst) assums)
                 else
                   concl_t,
                 Facts (backpatch_labels patches (map snd assums)))], patches)
@@ -633,9 +633,9 @@ fun direct_proof thy conjecture_shape hyp_ts concl_t proof =
                            (proof, assums,
                             patches |>> cons (contra_l, (l :: co_ls, ss)))
                |>> cons (if member (op =) (fst (snd patches)) l then
-                           Assume (l, negate_term thy t)
+                           Assume (l, negate_formula thy t)
                          else
-                           Have (qs, l, negate_term thy t,
+                           Have (qs, l, negate_formula thy t,
                                  Facts (backpatch_label patches l)))
              else
                second_pass end_qs (proof, assums,

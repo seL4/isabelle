@@ -161,8 +161,7 @@ fun generic_prover overlord get_facts prepare write_file home executable args
                             File.shell_path probfile, "2>&1"]) ^
       (if overlord then
          " | sed 's/,/, /g' \
-         \| sed 's/\\([^!=]\\)\\([=|]\\)\\([^=]\\)/\\1 \\2 \\3/g' \
-         \| sed 's/! =/ !=/g' \
+         \| sed 's/\\([^!=<]\\)\\([=|]\\)\\([^=>]\\)/\\1 \\2 \\3/g' \
          \| sed 's/  / /g' | sed 's/| |/||/g' \
          \| sed 's/ = = =/===/g' \
          \| sed 's/= = /== /g'"
