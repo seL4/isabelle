@@ -778,15 +778,22 @@ apply (auto simp add: nonzero_divide_eq_eq)
 done
 
 text{*Simplify expressions such as @{text "0 < 1/x"} to @{text "0 < x"}*}
-lemmas zero_less_divide_1_iff = zero_less_divide_iff [of 1, simplified]
-lemmas divide_less_0_1_iff = divide_less_0_iff [of 1, simplified]
-lemmas zero_le_divide_1_iff = zero_le_divide_iff [of 1, simplified]
-lemmas divide_le_0_1_iff = divide_le_0_iff [of 1, simplified]
 
-declare zero_less_divide_1_iff [simp,no_atp]
-declare divide_less_0_1_iff [simp,no_atp]
-declare zero_le_divide_1_iff [simp,no_atp]
-declare divide_le_0_1_iff [simp,no_atp]
+lemma zero_le_divide_1_iff [simp, no_atp]:
+  "0 \<le> 1 / a \<longleftrightarrow> 0 \<le> a"
+  by (simp add: zero_le_divide_iff)
+
+lemma zero_less_divide_1_iff [simp, no_atp]:
+  "0 < 1 / a \<longleftrightarrow> 0 < a"
+  by (simp add: zero_less_divide_iff)
+
+lemma divide_le_0_1_iff [simp, no_atp]:
+  "1 / a \<le> 0 \<longleftrightarrow> a \<le> 0"
+  by (simp add: divide_le_0_iff)
+
+lemma divide_less_0_1_iff [simp, no_atp]:
+  "1 / a < 0 \<longleftrightarrow> a < 0"
+  by (simp add: divide_less_0_iff)
 
 lemma divide_right_mono:
      "[|a \<le> b; 0 \<le> c|] ==> a/c \<le> b/c"
@@ -803,7 +810,6 @@ lemma divide_left_mono_neg: "a <= b
   apply (drule divide_left_mono [of _ _ "- c"])
   apply (auto simp add: mult_commute)
 done
-
 
 
 text{*Simplify quotients that are compared with the value 1.*}
