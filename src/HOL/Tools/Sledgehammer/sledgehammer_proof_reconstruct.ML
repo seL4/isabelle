@@ -368,7 +368,7 @@ fun replace_deps p (num, t, deps) =
 (*Discard axioms; consolidate adjacent lines that prove the same clause, since they differ
   only in type information.*)
 fun add_line thm_names (num, t, []) lines =
-      (* No dependencies: axiom or conjecture clause *)
+      (* No dependencies: axiom or conjecture clause? *)
       if is_axiom_clause_number thm_names num then
         (* Axioms are not proof lines *)
         if eq_types t then
@@ -415,26 +415,6 @@ fun add_desired_line ctxt _ (num, t, []) (j, lines) =
        map (replace_deps (num, deps)) lines  (* delete line *)
      else
        (num, t, deps) :: lines)
-
-(* ### *)
-(*Replace numeric proof lines by strings, either from thm_names or sequential line numbers*)
-fun stringify_deps thm_names deps_map [] = []
-  | stringify_deps thm_names deps_map ((num, t, deps) :: lines) =
-    if is_axiom_clause_number thm_names num then
-      (Vector.sub (thm_names, num - 1), t, []) ::
-      stringify_deps thm_names deps_map lines
-    else
-      let
-        val label = Int.toString (length deps_map)
-        fun string_for_num num =
-          if is_axiom_clause_number thm_names num then
-            SOME (Vector.sub (thm_names, num - 1))
-          else
-            AList.lookup (op =) deps_map num
-      in
-        (label, t, map_filter string_for_num (distinct (op=) deps)) ::
-        stringify_deps thm_names ((num, label) :: deps_map) lines
-      end
 
 (** EXTRACTING LEMMAS **)
 
@@ -510,19 +490,16 @@ val raw_prefix = "X"
 val assum_prefix = "A"
 val fact_prefix = "F"
 
-(* ###
-fun add_fact_from_dep s =
-  case Int.fromString s of
-    SOME n => apfst (cons (raw_prefix, n))
-  | NONE => apsnd (cons s)
-*)
+fun add_fact_from_dep thm_names num =
+  if is_axiom_clause_number thm_names num then
+    apsnd (cons (Vector.sub (thm_names, num - 1)))
+  else
+    apfst (cons (raw_prefix, num))
 
-val add_fact_from_dep = apfst o cons o pair raw_prefix
-
-fun step_for_tuple _ (label, t, []) = Assume ((raw_prefix, label), t)
-  | step_for_tuple j (label, t, deps) =
+fun step_for_tuple _ _ (label, t, []) = Assume ((raw_prefix, label), t)
+  | step_for_tuple thm_names j (label, t, deps) =
     Have (if j = 1 then [Show] else [], (raw_prefix, label), t,
-          Facts (fold add_fact_from_dep deps ([], [])))
+          Facts (fold (add_fact_from_dep thm_names) deps ([], [])))
 
 fun strip_spaces_in_list [] = ""
   | strip_spaces_in_list [c1] = if Char.isSpace c1 then "" else str c1
@@ -554,7 +531,7 @@ fun proof_from_atp_proof pool ctxt shrink_factor atp_proof thm_names frees =
                  |> snd
   in
     (if null frees then [] else [Fix frees]) @
-    map2 step_for_tuple (length tuples downto 1) tuples
+    map2 (step_for_tuple thm_names) (length tuples downto 1) tuples
   end
 
 val indent_size = 2
