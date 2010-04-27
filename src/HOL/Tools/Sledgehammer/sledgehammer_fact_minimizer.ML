@@ -11,7 +11,7 @@ sig
   type prover_result = ATP_Manager.prover_result
 
   val minimize_theorems :
-    params -> int -> Proof.state -> (string * thm list) list
+    params -> int -> int -> Proof.state -> (string * thm list) list
     -> (string * thm list) list option * string
 end;
 
@@ -69,14 +69,13 @@ fun sledgehammer_test_theorems (params as {full_types, ...} : params) prover
 
 fun minimize_theorems (params as {debug, atps, minimize_timeout, isar_proof,
                                   shrink_factor, sorts, ...})
-                      i state name_thms_pairs =
+                      i n state name_thms_pairs =
   let
     val thy = Proof.theory_of state
     val prover = case atps of
                    [atp_name] => get_prover thy atp_name
                  | _ => error "Expected a single ATP."
     val msecs = Time.toMilliseconds minimize_timeout
-    val n = length name_thms_pairs
     val _ =
       priority ("Sledgehammer minimizer: ATP " ^ quote (the_single atps) ^
                 " with a time limit of " ^ string_of_int msecs ^ " ms.")
@@ -88,7 +87,6 @@ fun minimize_theorems (params as {debug, atps, minimize_timeout, isar_proof,
       | _ => NONE
 
     val {context = ctxt, facts, goal} = Proof.goal state;
-    val n = Logic.count_prems (prop_of goal)
   in
     (* try prove first to check result and get used theorems *)
     (case test_thms_fun NONE name_thms_pairs of
@@ -105,9 +103,9 @@ fun minimize_theorems (params as {debug, atps, minimize_timeout, isar_proof,
           val (min_thms, {proof, internal_thm_names, ...}) =
             linear_minimize (test_thms (SOME filtered_clauses)) to_use
                             ([], result)
-          val n = length min_thms
+          val m = length min_thms
           val _ = priority (cat_lines
-            ["Minimized: " ^ string_of_int n ^ " theorem" ^ plural_s n] ^ ".")
+            ["Minimized: " ^ string_of_int m ^ " theorem" ^ plural_s m] ^ ".")
         in
           (SOME min_thms,
            proof_text isar_proof
