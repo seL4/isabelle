@@ -445,7 +445,6 @@ fun add_arity raw_th thy =
       |> maps (these o Option.map #params o try (get_info thy))
       |> filter_out (fn (const, _) => can (get_inst_param thy) (const, t))
       |> (map o apsnd o map_atyps) (K T);
-    val _ = map (Sign.certify_sort thy) Ss = Ss orelse err ();
     val th' = th
       |> Drule.instantiate' std_vars []
       |> Thm.unconstrain_allTs;
