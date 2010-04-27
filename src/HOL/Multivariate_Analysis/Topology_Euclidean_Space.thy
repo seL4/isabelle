@@ -4697,7 +4697,7 @@ proof-
     by (auto simp add: dist_commute)
 qed
 
-(* A cute way of denoting open and closed intervals using overloading.       *)
+subsection {* Intervals *}
 
 lemma interval: fixes a :: "'a::ord^'n" shows
   "{a <..< b} = {x::'a^'n. \<forall>i. a$i < x$i \<and> x$i < b$i}" and
@@ -5108,7 +5108,7 @@ proof-
   thus ?thesis unfolding closed_limpt unfolding islimpt_approachable by blast
 qed
 
-subsection {* Intervals *}
+text {* Intervals in general, including infinite and mixtures of open and closed. *}
 
 definition "is_interval s \<longleftrightarrow> (\<forall>a\<in>s. \<forall>b\<in>s. \<forall>x. (\<forall>i. ((a$i \<le> x$i \<and> x$i \<le> b$i) \<or> (b$i \<le> x$i \<and> x$i \<le> a$i)))  \<longrightarrow> x \<in> s)"
 
