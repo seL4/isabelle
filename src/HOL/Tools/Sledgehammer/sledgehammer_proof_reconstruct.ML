@@ -405,12 +405,13 @@ and delete_dep num lines =
 fun bad_free (Free (a,_)) = String.isPrefix skolem_prefix a
   | bad_free _ = false;
 
-fun add_desired_line ctxt (num, t, []) (j, lines) =
+fun add_desired_line ctxt _ (num, t, []) (j, lines) =
     (j, (num, t, []) :: lines)  (* conjecture clauses must be kept *)
-  | add_desired_line ctxt (num, t, deps) (j, lines) =
+  | add_desired_line ctxt shrink_factor (num, t, deps) (j, lines) =
     (j + 1,
      if eq_types t orelse not (null (Term.add_tvars t [])) orelse
-        exists_subterm bad_free t orelse length deps < 2 then
+        exists_subterm bad_free t orelse
+        (length deps < 2 orelse j mod shrink_factor <> 0) then
        map (replace_deps (num, deps)) lines  (* delete line *)
      else
        (num, t, deps) :: lines)
@@ -540,7 +541,7 @@ fun strip_spaces_in_list [] = ""
       str c1 ^ strip_spaces_in_list (c2 :: c3 :: cs)
 val strip_spaces = strip_spaces_in_list o String.explode
 
-fun proof_from_atp_proof pool ctxt atp_proof thm_names frees =
+fun proof_from_atp_proof pool ctxt shrink_factor atp_proof thm_names frees =
   let
     val tuples =
       atp_proof |> split_lines |> map strip_spaces
@@ -549,7 +550,8 @@ fun proof_from_atp_proof pool ctxt atp_proof thm_names frees =
                 |> decode_lines ctxt
     val tuples = fold_rev (add_line thm_names) tuples []
     val tuples = fold_rev add_nonnull_line tuples []
-    val tuples = fold_rev (add_desired_line ctxt) tuples (0, []) |> snd
+    val tuples = fold_rev (add_desired_line ctxt shrink_factor) tuples (0, [])
+                 |> snd
   in
     (if null frees then [] else [Fix frees]) @
     map2 step_for_tuple (length tuples downto 1) tuples
@@ -714,9 +716,6 @@ val kill_duplicate_assumptions_in_proof =
     and do_proof proof = fold do_step proof ([], [], []) |> #1 |> rev
   in do_proof end
 
-(* FIXME: implement *)
-fun shrink_proof shrink_factor proof = proof
-
 val then_chain_proof =
   let
     fun aux _ [] = []
@@ -845,10 +844,10 @@ fun isar_proof_text (pool, debug, shrink_factor, sorts, ctxt, conjecture_shape)
     val (one_line_proof, lemma_names) =
       metis_proof_text (minimize_command, atp_proof, thm_names, goal, i)
     fun isar_proof_for () =
-      case proof_from_atp_proof pool ctxt atp_proof thm_names frees
+      case proof_from_atp_proof pool ctxt shrink_factor atp_proof thm_names
+                                frees
            |> direct_proof thy conjecture_shape hyp_ts concl_t
            |> kill_duplicate_assumptions_in_proof
-           |> shrink_proof shrink_factor
            |> then_chain_proof
            |> kill_useless_labels_in_proof
            |> relabel_proof
