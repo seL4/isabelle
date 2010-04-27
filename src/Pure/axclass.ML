@@ -72,8 +72,8 @@ fun add_param pp ((x, c): param) params =
 datatype data = Data of
  {axclasses: info Symtab.table,
   params: param list,
-  proven_classrels: (thm * proof) Symreltab.table,
-  proven_arities: ((class * sort list) * ((thm * string) * proof)) list Symtab.table,
+  proven_classrels: thm Symreltab.table,
+  proven_arities: ((class * sort list) * (thm * string)) list Symtab.table,
     (*arity theorems with theory name*)
   inst_params:
     (string * thm) Symtab.table Symtab.table *
@@ -189,12 +189,9 @@ fun instance_name (a, c) = Long_Name.base_name c ^ "_" ^ Long_Name.base_name a;
 
 fun the_classrel thy (c1, c2) =
   (case Symreltab.lookup (proven_classrels_of thy) (c1, c2) of
-    SOME classrel => classrel
+    SOME thm => Thm.transfer thy thm
   | NONE => error ("Unproven class relation " ^
       Syntax.string_of_classrel (ProofContext.init thy) [c1, c2]));
-
-fun the_classrel_thm thy = Thm.transfer thy o #1 o the_classrel thy;
-fun the_classrel_prf thy = #2 o the_classrel thy;
 
 fun put_trancl_classrel ((c1, c2), th) thy =
   let
@@ -207,14 +204,13 @@ fun put_trancl_classrel ((c1, c2), th) thy =
     fun reflcl_classrel (c1', c2') =
       if c1' = c2'
       then Thm.trivial (cert (Logic.mk_of_class (TVar ((Name.aT, 0), []), c1')))
-      else the_classrel_thm thy (c1', c2');
+      else the_classrel thy (c1', c2');
     fun gen_classrel (c1_pred, c2_succ) =
       let
         val th' = ((reflcl_classrel (c1_pred, c1) RS th) RS reflcl_classrel (c2, c2_succ))
           |> Drule.instantiate' [SOME (certT (TVar ((Name.aT, 0), [])))] []
           |> Thm.close_derivation;
-        val prf' = Thm.proof_of th';
-      in ((c1_pred, c2_succ), (th', prf')) end;
+      in ((c1_pred, c2_succ), th') end;
 
     val new_classrels =
       Library.map_product pair (c1 :: Graph.imm_preds classes c1) (c2 :: Graph.imm_succs classes c2)
@@ -233,7 +229,7 @@ fun complete_classrels thy =
     val diff_merge_classrels = diff_merge_classrels_of thy;
     val (needed, thy') = (false, thy) |>
       fold (fn rel => fn (needed, thy) =>
-          put_trancl_classrel (rel, Symreltab.lookup classrels rel |> the |> #1) thy
+          put_trancl_classrel (rel, Symreltab.lookup classrels rel |> the) thy
           |>> (fn b => needed orelse b))
         diff_merge_classrels;
   in
@@ -244,19 +240,16 @@ fun complete_classrels thy =
 
 fun the_arity thy a (c, Ss) =
   (case AList.lookup (op =) (Symtab.lookup_list (proven_arities_of thy) a) (c, Ss) of
-    SOME arity => arity
+    SOME (thm, _) => Thm.transfer thy thm
   | NONE => error ("Unproven type arity " ^
       Syntax.string_of_arity (ProofContext.init thy) (a, Ss, [c])));
 
-fun the_arity_thm thy a c_Ss = the_arity thy a c_Ss |> #1 |> #1 |> Thm.transfer thy;
-fun the_arity_prf thy a c_Ss = the_arity thy a c_Ss |> #2;
-
 fun thynames_of_arity thy (c, a) =
   Symtab.lookup_list (proven_arities_of thy) a
-  |> map_filter (fn ((c', _), ((_, name), _)) => if c = c' then SOME name else NONE)
+  |> map_filter (fn ((c', _), (_, name)) => if c = c' then SOME name else NONE)
   |> rev;
 
-fun insert_arity_completions thy (t, ((c, Ss), ((th, thy_name), _))) arities =
+fun insert_arity_completions thy (t, ((c, Ss), ((th, thy_name)))) arities =
   let
     val algebra = Sign.classes_of thy;
     val ars = Symtab.lookup_list arities t;
@@ -270,19 +263,15 @@ fun insert_arity_completions thy (t, ((c, Ss), ((th, thy_name), _))) arities =
 
     val completions = super_class_completions |> map (fn c1 =>
       let
-        val th1 = (th RS the_classrel_thm thy (c, c1))
+        val th1 = (th RS the_classrel thy (c, c1))
           |> Drule.instantiate' std_vars []
           |> Thm.close_derivation;
-        val prf1 = Thm.proof_of th1;
-      in (((th1, thy_name), prf1), c1) end);
-    val arities' = fold (fn (th_thy_prf1, c1) => Symtab.cons_list (t, ((c1, Ss), th_thy_prf1)))
-      completions arities;
+      in ((th1, thy_name), c1) end);
+    val arities' = fold (fn (th, c1) => Symtab.cons_list (t, ((c1, Ss), th))) completions arities;
   in (null completions, arities') end;
 
 fun put_arity ((t, Ss, c), th) thy =
-  let
-    val arity = (t, ((c, Ss), ((th, Context.theory_name thy), Thm.proof_of th)));
-  in
+  let val arity = (t, ((c, Ss), (th, Context.theory_name thy))) in
     thy
     |> map_proven_arities
       (Symtab.insert_list (eq_fst op =) arity #> insert_arity_completions thy arity #> #2)
@@ -301,6 +290,9 @@ fun complete_arities thy =
 
 val _ = Context.>> (Context.map_theory
   (Theory.at_begin complete_classrels #> Theory.at_begin complete_arities));
+
+val the_classrel_prf = Thm.proof_of oo the_classrel;
+val the_arity_prf = Thm.proof_of ooo the_arity;
 
 
 (* maintain instance parameters *)
