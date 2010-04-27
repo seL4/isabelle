@@ -79,13 +79,16 @@ datatype data = Data of
     (string * thm) Symtab.table Symtab.table *
       (*constant name ~> type constructor ~> (constant name, equation)*)
     (string * string) Symtab.table (*constant name ~> (constant name, type constructor)*),
-  diff_merge_classrels: (class * class) list};
+  diff_classrels: (class * class) list};
 
 fun make_data
-    (axclasses, params, proven_classrels, proven_arities, inst_params, diff_merge_classrels) =
+    (axclasses, params, proven_classrels, proven_arities, inst_params, diff_classrels) =
   Data {axclasses = axclasses, params = params, proven_classrels = proven_classrels,
     proven_arities = proven_arities, inst_params = inst_params,
-    diff_merge_classrels = diff_merge_classrels};
+    diff_classrels = diff_classrels};
+
+fun diff_table tab1 tab2 =
+  Symreltab.fold (fn (x, _) => if Symreltab.defined tab2 x then I else cons x) tab1 [];
 
 structure Data = Theory_Data_PP
 (
@@ -96,10 +99,10 @@ structure Data = Theory_Data_PP
   fun merge pp
       (Data {axclasses = axclasses1, params = params1, proven_classrels = proven_classrels1,
         proven_arities = proven_arities1, inst_params = inst_params1,
-        diff_merge_classrels = diff_merge_classrels1},
+        diff_classrels = diff_classrels1},
        Data {axclasses = axclasses2, params = params2, proven_classrels = proven_classrels2,
         proven_arities = proven_arities2, inst_params = inst_params2,
-        diff_merge_classrels = diff_merge_classrels2}) =
+        diff_classrels = diff_classrels2}) =
     let
       val axclasses' = Symtab.merge (K true) (axclasses1, axclasses2);
       val params' =
@@ -111,47 +114,45 @@ structure Data = Theory_Data_PP
       val proven_arities' =
         Symtab.join (K (Library.merge (eq_fst op =))) (proven_arities1, proven_arities2);
 
-      val classrels1 = Symreltab.keys proven_classrels1;
-      val classrels2 = Symreltab.keys proven_classrels2;
-      val diff_merge_classrels' =
-        subtract (op =) classrels1 classrels2 @
-        subtract (op =) classrels2 classrels1 @
-        diff_merge_classrels1 @ diff_merge_classrels2;
+      val diff_classrels' =
+        diff_table proven_classrels1 proven_classrels2 @
+        diff_table proven_classrels2 proven_classrels1 @
+        diff_classrels1 @ diff_classrels2;
 
       val inst_params' =
         (Symtab.join (K (Symtab.merge (K true))) (#1 inst_params1, #1 inst_params2),
           Symtab.merge (K true) (#2 inst_params1, #2 inst_params2));
     in
-      make_data (axclasses', params', proven_classrels', proven_arities', inst_params',
-        diff_merge_classrels')
+      make_data
+        (axclasses', params', proven_classrels', proven_arities', inst_params', diff_classrels')
     end;
 );
 
 fun map_data f =
-  Data.map (fn Data {axclasses, params, proven_classrels, proven_arities, inst_params, diff_merge_classrels} =>
-    make_data (f (axclasses, params, proven_classrels, proven_arities, inst_params, diff_merge_classrels)));
+  Data.map (fn Data {axclasses, params, proven_classrels, proven_arities, inst_params, diff_classrels} =>
+    make_data (f (axclasses, params, proven_classrels, proven_arities, inst_params, diff_classrels)));
 
 fun map_axclasses f =
-  map_data (fn (axclasses, params, proven_classrels, proven_arities, inst_params, diff_merge_classrels) =>
-    (f axclasses, params, proven_classrels, proven_arities, inst_params, diff_merge_classrels));
+  map_data (fn (axclasses, params, proven_classrels, proven_arities, inst_params, diff_classrels) =>
+    (f axclasses, params, proven_classrels, proven_arities, inst_params, diff_classrels));
 
 fun map_params f =
-  map_data (fn (axclasses, params, proven_classrels, proven_arities, inst_params, diff_merge_classrels) =>
-    (axclasses, f params, proven_classrels, proven_arities, inst_params, diff_merge_classrels));
+  map_data (fn (axclasses, params, proven_classrels, proven_arities, inst_params, diff_classrels) =>
+    (axclasses, f params, proven_classrels, proven_arities, inst_params, diff_classrels));
 
 fun map_proven_classrels f =
-  map_data (fn (axclasses, params, proven_classrels, proven_arities, inst_params, diff_merge_classrels) =>
-    (axclasses, params, f proven_classrels, proven_arities, inst_params, diff_merge_classrels));
+  map_data (fn (axclasses, params, proven_classrels, proven_arities, inst_params, diff_classrels) =>
+    (axclasses, params, f proven_classrels, proven_arities, inst_params, diff_classrels));
 
 fun map_proven_arities f =
-  map_data (fn (axclasses, params, proven_classrels, proven_arities, inst_params, diff_merge_classrels) =>
-    (axclasses, params, proven_classrels, f proven_arities, inst_params, diff_merge_classrels));
+  map_data (fn (axclasses, params, proven_classrels, proven_arities, inst_params, diff_classrels) =>
+    (axclasses, params, proven_classrels, f proven_arities, inst_params, diff_classrels));
 
 fun map_inst_params f =
-  map_data (fn (axclasses, params, proven_classrels, proven_arities, inst_params, diff_merge_classrels) =>
-    (axclasses, params, proven_classrels, proven_arities, f inst_params, diff_merge_classrels));
+  map_data (fn (axclasses, params, proven_classrels, proven_arities, inst_params, diff_classrels) =>
+    (axclasses, params, proven_classrels, proven_arities, f inst_params, diff_classrels));
 
-val clear_diff_merge_classrels =
+val clear_diff_classrels =
   map_data (fn (axclasses, params, proven_classrels, proven_arities, inst_params, _) =>
     (axclasses, params, proven_classrels, proven_arities, inst_params, []));
 
@@ -162,7 +163,7 @@ val params_of = #params o rep_data;
 val proven_classrels_of = #proven_classrels o rep_data;
 val proven_arities_of = #proven_arities o rep_data;
 val inst_params_of = #inst_params o rep_data;
-val diff_merge_classrels_of = #diff_merge_classrels o rep_data;
+val diff_classrels_of = #diff_classrels o rep_data;
 
 
 (* axclasses with parameters *)
@@ -226,15 +227,15 @@ fun put_trancl_classrel ((c1, c2), th) thy =
 fun complete_classrels thy =
   let
     val classrels = proven_classrels_of thy;
-    val diff_merge_classrels = diff_merge_classrels_of thy;
+    val diff_classrels = diff_classrels_of thy;
     val (needed, thy') = (false, thy) |>
       fold (fn rel => fn (needed, thy) =>
           put_trancl_classrel (rel, Symreltab.lookup classrels rel |> the) thy
           |>> (fn b => needed orelse b))
-        diff_merge_classrels;
+        diff_classrels;
   in
-    if null diff_merge_classrels then NONE
-    else SOME (clear_diff_merge_classrels thy')
+    if null diff_classrels then NONE
+    else SOME (clear_diff_classrels thy')
   end;
 
 
