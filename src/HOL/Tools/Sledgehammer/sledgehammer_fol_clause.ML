@@ -110,20 +110,14 @@ fun union_all xss = fold (union (op =)) xss []
 (* Provide readable names for the more common symbolic functions *)
 val const_trans_table =
   Symtab.make [(@{const_name "op ="}, "equal"),
-               (@{const_name Orderings.less_eq}, "lessequals"),
                (@{const_name "op &"}, "and"),
                (@{const_name "op |"}, "or"),
                (@{const_name "op -->"}, "implies"),
-               (@{const_name "op :"}, "in"),
-               (@{const_name fequal}, "fequal"),
-               (@{const_name COMBI}, "COMBI"),
-               (@{const_name COMBK}, "COMBK"),
-               (@{const_name COMBB}, "COMBB"),
-               (@{const_name COMBC}, "COMBC"),
-               (@{const_name COMBS}, "COMBS")];
+               (@{const_name "op :"}, "in")]
 
 val type_const_trans_table =
-  Symtab.make [("*", "prod"), ("+", "sum"), ("~=>", "map")];
+  Symtab.make [(@{type_name "*"}, "prod"),
+               (@{type_name "+"}, "sum")]
 
 (*Escaping of special characters.
   Alphanumeric characters are left unchanged.
@@ -263,7 +257,9 @@ fun readable_name full_name s =
     val s' =
       if s' = "" orelse not (Char.isAlpha (String.sub (s', 0))) then "X" ^ s'
       else s'
-    val s' = if s' = "op" then full_name else s'
+    (* Avoid "equal", since it's built into ATPs; and "op" is very ambiguous
+       ("op &", "op |", etc.). *)
+    val s' = if s' = "equal" orelse s' = "op" then full_name else s'
   in
     case (Char.isLower (String.sub (full_name, 0)),
           Char.isLower (String.sub (s', 0))) of
