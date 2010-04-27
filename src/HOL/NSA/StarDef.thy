@@ -950,10 +950,7 @@ by (intro_classes, transfer, rule zero_less_one)
 
 instance star :: (linordered_idom) linordered_idom ..
 instance star :: (linordered_field) linordered_field ..
-instance star :: (linordered_field_inverse_zero) linordered_field_inverse_zero 
-apply intro_classes
-apply (rule inverse_zero)
-done
+instance star :: (linordered_field_inverse_zero) linordered_field_inverse_zero ..
 
 
 subsection {* Power *}

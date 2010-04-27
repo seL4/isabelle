@@ -431,7 +431,7 @@ instance by intro_classes
 
 end
 
-instance fract :: (linordered_idom) linordered_field
+instance fract :: (linordered_idom) linordered_field_inverse_zero
 proof
   fix q r s :: "'a fract"
   show "q \<le> r ==> s + q \<le> s + r"

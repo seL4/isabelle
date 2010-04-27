@@ -643,12 +643,8 @@ qed
 
 end
 
-class linordered_field_inverse_zero = linordered_field +
-  assumes linordered_field_inverse_zero: "inverse 0 = 0"
+class linordered_field_inverse_zero = linordered_field + field_inverse_zero
 begin
-
-subclass field_inverse_zero proof
-qed (fact linordered_field_inverse_zero)
 
 lemma le_divide_eq:
   "(a \<le> b/c) = 

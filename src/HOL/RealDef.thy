@@ -266,16 +266,16 @@ done
 
 subsection{*The Real Numbers form a Field*}
 
-lemma INVERSE_ZERO: "inverse 0 = (0::real)"
-by (simp add: real_inverse_def)
-
 instance real :: field_inverse_zero
 proof
   fix x y z :: real
   show "x \<noteq> 0 ==> inverse x * x = 1" by (rule real_mult_inverse_left)
   show "x / y = x * inverse y" by (simp add: real_divide_def)
-  show "inverse 0 = (0::real)" by (fact INVERSE_ZERO)
+  show "inverse 0 = (0::real)" by (simp add: real_inverse_def)
 qed
+
+lemma INVERSE_ZERO: "inverse 0 = (0::real)"
+  by (fact inverse_zero)
 
 
 subsection{*The @{text "\<le>"} Ordering*}
@@ -409,7 +409,7 @@ end
 
 subsection{*The Reals Form an Ordered Field*}
 
-instance real :: linordered_field
+instance real :: linordered_field_inverse_zero
 proof
   fix x y z :: real
   show "x \<le> y ==> z + x \<le> z + y" by (rule real_add_left_mono)
@@ -418,9 +418,6 @@ proof
   show "sgn x = (if x=0 then 0 else if 0<x then 1 else - 1)"
     by (simp only: real_sgn_def)
 qed
-
-instance real :: linordered_field_inverse_zero proof
-qed (fact INVERSE_ZERO)
 
 text{*The function @{term real_of_preal} requires many proofs, but it seems
 to be essential for proving completeness of the reals from that of the
