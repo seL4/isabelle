@@ -7,35 +7,35 @@ parameters.  Proven class relations and type arities.
 
 signature AX_CLASS =
 sig
-  val define_class: binding * class list -> string list ->
-    (Thm.binding * term list) list -> theory -> class * theory
+  type info = {def: thm, intro: thm, axioms: thm list, params: (string * typ) list}
+  val get_info: theory -> class -> info
+  val class_of_param: theory -> string -> class option
+  val instance_name: string * class -> string
+  val thynames_of_arity: theory -> class * string -> string list
+  val param_of_inst: theory -> string * string -> string
+  val inst_of_param: theory -> string -> (string * string) option
+  val unoverload: theory -> thm -> thm
+  val overload: theory -> thm -> thm
+  val unoverload_conv: theory -> conv
+  val overload_conv: theory -> conv
+  val lookup_inst_param: Consts.T -> ((string * string) * 'a) list -> string * typ -> 'a option
+  val unoverload_const: theory -> string * typ -> string
+  val cert_classrel: theory -> class * class -> class * class
+  val read_classrel: theory -> xstring * xstring -> class * class
+  val declare_overloaded: string * typ -> theory -> term * theory
+  val define_overloaded: binding -> string * term -> theory -> thm * theory
   val add_classrel: thm -> theory -> theory
   val add_arity: thm -> theory -> theory
   val prove_classrel: class * class -> tactic -> theory -> theory
   val prove_arity: string * sort list * sort -> tactic -> theory -> theory
-  type info = {def: thm, intro: thm, axioms: thm list, params: (string * typ) list}
-  val get_info: theory -> class -> info
-  val class_of_param: theory -> string -> class option
-  val cert_classrel: theory -> class * class -> class * class
-  val read_classrel: theory -> xstring * xstring -> class * class
+  val define_class: binding * class list -> string list ->
+    (Thm.binding * term list) list -> theory -> class * theory
   val axiomatize_class: binding * class list -> theory -> theory
   val axiomatize_class_cmd: binding * xstring list -> theory -> theory
   val axiomatize_classrel: (class * class) list -> theory -> theory
   val axiomatize_classrel_cmd: (xstring * xstring) list -> theory -> theory
   val axiomatize_arity: arity -> theory -> theory
   val axiomatize_arity_cmd: xstring * string list * string -> theory -> theory
-  val instance_name: string * class -> string
-  val declare_overloaded: string * typ -> theory -> term * theory
-  val define_overloaded: binding -> string * term -> theory -> thm * theory
-  val unoverload: theory -> thm -> thm
-  val overload: theory -> thm -> thm
-  val unoverload_conv: theory -> conv
-  val overload_conv: theory -> conv
-  val unoverload_const: theory -> string * typ -> string
-  val lookup_inst_param: Consts.T -> ((string * string) * 'a) list -> string * typ -> 'a option
-  val param_of_inst: theory -> string * string -> string
-  val inst_of_param: theory -> string -> (string * string) option
-  val thynames_of_arity: theory -> class * string -> string list
 end;
 
 structure AxClass: AX_CLASS =
