@@ -51,8 +51,6 @@ val static_list =
    ("HaifaSat", ExternalV2 (ToStdout, "HAIFASAT_HOME", "HaifaSat", ["-p", "1"],
                             "s SATISFIABLE", "v ", "s UNSATISFIABLE"))]
 
-(* string -> sink -> string -> string -> string list -> string list
-   -> (string * (unit -> string list)) option *)
 fun dynamic_entry_for_external name dev home exec args markers =
   case getenv home of
     "" => NONE
@@ -74,8 +72,6 @@ fun dynamic_entry_for_external name dev home exec args markers =
                       if dev = ToFile then out_file else ""] @ markers @
                       (if dev = ToFile then [out_file] else []) @ args
                    end)
-(* bool -> bool -> string * sat_solver_info
-   -> (string * (unit -> string list)) option *)
 fun dynamic_entry_for_info incremental (name, Internal (Java, mode, ss)) =
     if incremental andalso mode = Batch then NONE else SOME (name, K ss)
   | dynamic_entry_for_info incremental (name, Internal (JNI, mode, ss)) =
@@ -98,20 +94,15 @@ fun dynamic_entry_for_info incremental (name, Internal (Java, mode, ss)) =
         (name, ExternalV2 (dev, home, exec, args, m1, m2, m3)) =
     dynamic_entry_for_external name dev home exec args [m1, m2, m3]
   | dynamic_entry_for_info true _ = NONE
-(* bool -> (string * (unit -> string list)) list *)
 fun dynamic_list incremental =
   map_filter (dynamic_entry_for_info incremental) static_list
 
-(* bool -> string list *)
 val configured_sat_solvers = map fst o dynamic_list
-(* bool -> string *)
 val smart_sat_solver_name = fst o hd o dynamic_list
 
-(* string -> string * string list *)
 fun sat_solver_spec name =
   let
     val dyn_list = dynamic_list false
-    (* (string * 'a) list -> string *)
     fun enum_solvers solvers =
       commas (distinct (op =) (map (quote o fst) solvers))
   in

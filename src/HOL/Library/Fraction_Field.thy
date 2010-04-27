@@ -232,7 +232,7 @@ subclass ring_no_zero_divisors ..
 thm mult_eq_0_iff
 end
 
-instantiation fract :: (idom) field
+instantiation fract :: (idom) field_inverse_zero
 begin
 
 definition
@@ -263,15 +263,12 @@ instance proof
 next
   fix q r :: "'a fract"
   show "q / r = q * inverse r" by (simp add: divide_fract_def)
-qed
-
-end
-
-instance fract :: (idom) division_ring_inverse_zero
-proof
+next
   show "inverse 0 = (0:: 'a fract)" by (simp add: fract_expand)
     (simp add: fract_collapse)
 qed
+
+end
 
 
 subsubsection {* The ordered field of fractions over an ordered idom *}
@@ -434,7 +431,7 @@ instance by intro_classes
 
 end
 
-instance fract :: (linordered_idom) linordered_field
+instance fract :: (linordered_idom) linordered_field_inverse_zero
 proof
   fix q r s :: "'a fract"
   show "q \<le> r ==> s + q \<le> s + r"

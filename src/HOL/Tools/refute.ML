@@ -1357,7 +1357,6 @@ struct
     val subst_t = Term.subst_bounds (map Free frees, strip_t)
   in
     find_model thy (actual_params thy params) assm_ts subst_t true
-    handle REFUTE (s, s') => error ("REFUTE " ^ s ^ " " ^ s') (* ### *)
   end;
 
 (* ------------------------------------------------------------------------- *)

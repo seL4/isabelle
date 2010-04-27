@@ -324,27 +324,6 @@ lemma of_int_power:
 
 end
 
-context linordered_idom
-begin
-
-lemma of_int_le_iff [simp]:
-  "of_int w \<le> of_int z \<longleftrightarrow> w \<le> z"
-by (cases w, cases z, simp add: of_int le minus algebra_simps of_nat_add [symmetric] del: of_nat_add)
-
-text{*Special cases where either operand is zero*}
-lemmas of_int_0_le_iff [simp] = of_int_le_iff [of 0, simplified]
-lemmas of_int_le_0_iff [simp] = of_int_le_iff [of _ 0, simplified]
-
-lemma of_int_less_iff [simp]:
-  "of_int w < of_int z \<longleftrightarrow> w < z"
-  by (simp add: not_le [symmetric] linorder_not_le [symmetric])
-
-text{*Special cases where either operand is zero*}
-lemmas of_int_0_less_iff [simp] = of_int_less_iff [of 0, simplified]
-lemmas of_int_less_0_iff [simp] = of_int_less_iff [of _ 0, simplified]
-
-end
-
 text{*Class for unital rings with characteristic zero.
  Includes non-ordered rings like the complex numbers.*}
 class ring_char_0 = ring_1 + semiring_char_0
@@ -358,13 +337,47 @@ apply (simp only: of_nat_add [symmetric] of_nat_eq_iff)
 done
 
 text{*Special cases where either operand is zero*}
-lemmas of_int_0_eq_iff [simp] = of_int_eq_iff [of 0, simplified]
-lemmas of_int_eq_0_iff [simp] = of_int_eq_iff [of _ 0, simplified]
+lemma of_int_eq_0_iff [simp]:
+  "of_int z = 0 \<longleftrightarrow> z = 0"
+  using of_int_eq_iff [of z 0] by simp
+
+lemma of_int_0_eq_iff [simp]:
+  "0 = of_int z \<longleftrightarrow> z = 0"
+  using of_int_eq_iff [of 0 z] by simp
 
 end
 
+context linordered_idom
+begin
+
 text{*Every @{text linordered_idom} has characteristic zero.*}
-subclass (in linordered_idom) ring_char_0 by intro_locales
+subclass ring_char_0 ..
+
+lemma of_int_le_iff [simp]:
+  "of_int w \<le> of_int z \<longleftrightarrow> w \<le> z"
+  by (cases w, cases z, simp add: of_int le minus algebra_simps of_nat_add [symmetric] del: of_nat_add)
+
+lemma of_int_less_iff [simp]:
+  "of_int w < of_int z \<longleftrightarrow> w < z"
+  by (simp add: less_le order_less_le)
+
+lemma of_int_0_le_iff [simp]:
+  "0 \<le> of_int z \<longleftrightarrow> 0 \<le> z"
+  using of_int_le_iff [of 0 z] by simp
+
+lemma of_int_le_0_iff [simp]:
+  "of_int z \<le> 0 \<longleftrightarrow> z \<le> 0"
+  using of_int_le_iff [of z 0] by simp
+
+lemma of_int_0_less_iff [simp]:
+  "0 < of_int z \<longleftrightarrow> 0 < z"
+  using of_int_less_iff [of 0 z] by simp
+
+lemma of_int_less_0_iff [simp]:
+  "of_int z < 0 \<longleftrightarrow> z < 0"
+  using of_int_less_iff [of z 0] by simp
+
+end
 
 lemma of_int_eq_id [simp]: "of_int = id"
 proof
@@ -1995,15 +2008,15 @@ lemmas divide_const_simps =
 text{*Division By @{text "-1"}*}
 
 lemma divide_minus1 [simp]:
-     "x/-1 = -(x::'a::{field,division_ring_inverse_zero,number_ring})"
+     "x/-1 = -(x::'a::{field_inverse_zero, number_ring})"
 by simp
 
 lemma minus1_divide [simp]:
-     "-1 / (x::'a::{field,division_ring_inverse_zero,number_ring}) = - (1/x)"
+     "-1 / (x::'a::{field_inverse_zero, number_ring}) = - (1/x)"
 by (simp add: divide_inverse)
 
 lemma half_gt_zero_iff:
-     "(0 < r/2) = (0 < (r::'a::{linordered_field,division_ring_inverse_zero,number_ring}))"
+     "(0 < r/2) = (0 < (r::'a::{linordered_field_inverse_zero,number_ring}))"
 by auto
 
 lemmas half_gt_zero [simp] = half_gt_zero_iff [THEN iffD2, standard]

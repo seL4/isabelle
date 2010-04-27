@@ -6,6 +6,7 @@ General-purpose functions used by the Sledgehammer modules.
 
 signature SLEDGEHAMMER_UTIL =
 sig
+  val pairf : ('a -> 'b) -> ('a -> 'c) -> 'a -> 'b * 'c
   val plural_s : int -> string
   val serial_commas : string -> string list -> string list
   val replace_all : string -> string -> string -> string
@@ -13,13 +14,12 @@ sig
   val timestamp : unit -> string
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
-  val hashw : word * word -> word
-  val hashw_char : Char.char * word -> word
-  val hashw_string : string * word -> word
 end;
  
 structure Sledgehammer_Util : SLEDGEHAMMER_UTIL =
 struct
+
+fun pairf f g x = (f x, g x)
 
 fun plural_s n = if n = 1 then "" else "s"
 
@@ -38,7 +38,6 @@ fun replace_all bef aft =
         else
           aux (String.sub (s, 0) :: seen) (String.extract (s, 1, NONE))
   in aux [] end
-
 fun remove_all bef = replace_all bef ""
 
 val timestamp = Date.fmt "%Y-%m-%d %H:%M:%S" o Date.fromTimeLocal o Time.now
@@ -72,12 +71,5 @@ fun parse_time_option _ "none" = NONE
       else
         SOME (Time.fromMilliseconds msecs)
     end
-
-(* This hash function is recommended in Compilers: Principles, Techniques, and
-   Tools, by Aho, Sethi and Ullman. The hashpjw function, which they
-   particularly recommend, triggers a bug in versions of Poly/ML up to 4.2.0. *)
-fun hashw (u, w) = Word.+ (u, Word.* (0w65599, w))
-fun hashw_char (c, w) = hashw (Word.fromInt (Char.ord c), w)
-fun hashw_string (s:string, w) = CharVector.foldl hashw_char w s
 
 end;

@@ -6,6 +6,14 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* April 2010, Florian Haftmann, TUM
+  Reorganization of abstract algebra type classes.
+
+* April 2010, Florian Haftmann, TUM
+  Code generation for data representations involving invariants;
+  various collections avaiable in theories Fset, Dlist, RBT,
+  Mapping and AssocList.
+
 
 Contributions to Isabelle2009-1
 -------------------------------

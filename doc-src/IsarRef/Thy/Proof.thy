@@ -46,6 +46,28 @@ text {*
 
 section {* Proof structure *}
 
+subsection {* Example proofs *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def "example_proof"} & : & @{text "local_theory \<rightarrow> proof(state)"} \\
+  \end{matharray}
+
+  \begin{description}
+
+  \item @{command "example_proof"} opens an empty proof body.  This
+  allows to experiment with Isar, without producing any persistent
+  result.
+
+  Structurally, this is like a vacous @{command "lemma"} statement
+  followed by ``@{command "proof"}~@{text "-"}'', which means the
+  example proof may be closed by a regular @{command "qed"}, or
+  discontinued by @{command "oops"}.
+
+  \end{description}
+*}
+
+
 subsection {* Blocks *}
 
 text {*

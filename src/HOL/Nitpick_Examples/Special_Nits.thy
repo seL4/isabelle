@@ -73,8 +73,6 @@ lemma "(\<forall>u. a = u \<longrightarrow> f3 a a a a a = f3 u u u u u)
        \<and> (\<forall>u. b = u \<longrightarrow> f3 b b u b b = f3 u u b u u)"
 nitpick [expect = none]
 nitpick [dont_specialize, expect = none]
-nitpick [dont_skolemize, expect = none]
-nitpick [dont_specialize, dont_skolemize, expect = none]
 sorry
 
 function f4 :: "nat \<Rightarrow> nat \<Rightarrow> nat" where

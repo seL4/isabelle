@@ -1,5 +1,6 @@
 (*  Title:      HOL/Tools/Sledgehammer/sledgehammer_fact_filter.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory, NICTA
+    Author:     Jasmin Blanchette, TU Muenchen
 *)
 
 signature SLEDGEHAMMER_FACT_FILTER =

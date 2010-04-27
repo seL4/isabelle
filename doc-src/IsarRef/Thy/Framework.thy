@@ -79,8 +79,7 @@ text {*
 text_raw {*\medskip\begin{minipage}{0.6\textwidth}*}
 
 (*<*)
-lemma True
-proof
+example_proof
 (*>*)
     assume "x \<in> A" and "x \<in> B"
     then have "x \<in> A \<inter> B" ..
@@ -107,8 +106,7 @@ text {*
 *}
 
 (*<*)
-lemma True
-proof
+example_proof
 (*>*)
     assume "x \<in> A" and "x \<in> B"
     then have "x \<in> A \<inter> B" by (rule IntI)
@@ -130,8 +128,7 @@ text {*
 text_raw {*\medskip\begin{minipage}{0.6\textwidth}*}
 
 (*<*)
-lemma True
-proof
+example_proof
 (*>*)
     have "x \<in> \<Inter>\<A>"
     proof
@@ -178,8 +175,7 @@ text {*
 text_raw {*\medskip\begin{minipage}{0.6\textwidth}*}
 
 (*<*)
-lemma True
-proof
+example_proof
 (*>*)
     assume "x \<in> \<Union>\<A>"
     then have C
@@ -212,8 +208,7 @@ text {*
 *}
 
 (*<*)
-lemma True
-proof
+example_proof
 (*>*)
     assume "x \<in> \<Union>\<A>"
     then obtain A where "x \<in> A" and "A \<in> \<A>" ..
@@ -817,8 +812,7 @@ text {*
 *}
 
 text_raw {* \begingroup\footnotesize *}
-(*<*)lemma True
-proof
+(*<*)example_proof
 (*>*)
   txt_raw {* \begin{minipage}[t]{0.18\textwidth} *}
   have "A \<longrightarrow> B"
@@ -877,8 +871,7 @@ text {*
 text_raw {*\begin{minipage}{0.5\textwidth}*}
 
 (*<*)
-lemma True
-proof
+example_proof
 (*>*)
   have "\<And>x y. A x \<Longrightarrow> B y \<Longrightarrow> C x y"
   proof -
@@ -987,8 +980,7 @@ text {*
 *}
 
 (*<*)
-lemma True
-proof
+example_proof
 (*>*)
   have "a = b" sorry
   also have "\<dots> = c" sorry

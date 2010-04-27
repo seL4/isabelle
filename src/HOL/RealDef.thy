@@ -266,23 +266,16 @@ done
 
 subsection{*The Real Numbers form a Field*}
 
-instance real :: field
+instance real :: field_inverse_zero
 proof
   fix x y z :: real
   show "x \<noteq> 0 ==> inverse x * x = 1" by (rule real_mult_inverse_left)
   show "x / y = x * inverse y" by (simp add: real_divide_def)
+  show "inverse 0 = (0::real)" by (simp add: real_inverse_def)
 qed
-
-
-text{*Inverse of zero!  Useful to simplify certain equations*}
 
 lemma INVERSE_ZERO: "inverse 0 = (0::real)"
-by (simp add: real_inverse_def)
-
-instance real :: division_ring_inverse_zero
-proof
-  show "inverse 0 = (0::real)" by (rule INVERSE_ZERO)
-qed
+  by (fact inverse_zero)
 
 
 subsection{*The @{text "\<le>"} Ordering*}
@@ -416,7 +409,7 @@ end
 
 subsection{*The Reals Form an Ordered Field*}
 
-instance real :: linordered_field
+instance real :: linordered_field_inverse_zero
 proof
   fix x y z :: real
   show "x \<le> y ==> z + x \<le> z + y" by (rule real_add_left_mono)

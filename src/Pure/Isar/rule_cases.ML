@@ -368,7 +368,7 @@ fun internalize_params rule =
         map (Name.internal o Name.clean o fst) (Logic.strip_params prem)
       in Logic.list_rename_params (xs, prem) end;
     fun rename_prems prop =
-      let val (As, C) = Logic.strip_horn (Thm.prop_of rule)
+      let val (As, C) = Logic.strip_horn prop
       in Logic.list_implies (map rename As, C) end;
   in Thm.equal_elim (Thm.reflexive (Drule.cterm_fun rename_prems (Thm.cprop_of rule))) rule end;
 

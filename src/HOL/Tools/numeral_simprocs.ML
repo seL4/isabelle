@@ -332,8 +332,8 @@ val combine_numerals =
 val field_combine_numerals =
   Arith_Data.prep_simproc @{theory}
     ("field_combine_numerals", 
-     ["(i::'a::{number_ring,field,division_ring_inverse_zero}) + j",
-      "(i::'a::{number_ring,field,division_ring_inverse_zero}) - j"], 
+     ["(i::'a::{field_inverse_zero, number_ring}) + j",
+      "(i::'a::{field_inverse_zero, number_ring}) - j"], 
      K FieldCombineNumerals.proc);
 
 (** Constant folding for multiplication in semirings **)
@@ -442,9 +442,9 @@ val cancel_numeral_factors =
       "(l::'a::{semiring_div,number_ring}) div (m * n)"],
      K DivCancelNumeralFactor.proc),
     ("divide_cancel_numeral_factor",
-     ["((l::'a::{division_ring_inverse_zero,field,number_ring}) * m) / n",
-      "(l::'a::{division_ring_inverse_zero,field,number_ring}) / (m * n)",
-      "((number_of v)::'a::{division_ring_inverse_zero,field,number_ring}) / (number_of w)"],
+     ["((l::'a::{field_inverse_zero,number_ring}) * m) / n",
+      "(l::'a::{field_inverse_zero,number_ring}) / (m * n)",
+      "((number_of v)::'a::{field_inverse_zero,number_ring}) / (number_of w)"],
      K DivideCancelNumeralFactor.proc)];
 
 val field_cancel_numeral_factors =
@@ -454,9 +454,9 @@ val field_cancel_numeral_factors =
       "(l::'a::{field,number_ring}) = m * n"],
      K EqCancelNumeralFactor.proc),
     ("field_cancel_numeral_factor",
-     ["((l::'a::{division_ring_inverse_zero,field,number_ring}) * m) / n",
-      "(l::'a::{division_ring_inverse_zero,field,number_ring}) / (m * n)",
-      "((number_of v)::'a::{division_ring_inverse_zero,field,number_ring}) / (number_of w)"],
+     ["((l::'a::{field_inverse_zero,number_ring}) * m) / n",
+      "(l::'a::{field_inverse_zero,number_ring}) / (m * n)",
+      "((number_of v)::'a::{field_inverse_zero,number_ring}) / (number_of w)"],
      K DivideCancelNumeralFactor.proc)]
 
 
@@ -598,8 +598,8 @@ val cancel_factors =
      ["((l::'a::idom) * m) dvd n", "(l::'a::idom) dvd (m * n)"],
      K DvdCancelFactor.proc),
     ("divide_cancel_factor",
-     ["((l::'a::{division_ring_inverse_zero,field}) * m) / n",
-      "(l::'a::{division_ring_inverse_zero,field}) / (m * n)"],
+     ["((l::'a::field_inverse_zero) * m) / n",
+      "(l::'a::field_inverse_zero) / (m * n)"],
      K DivideCancelFactor.proc)];
 
 end;

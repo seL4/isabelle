@@ -411,7 +411,7 @@ lemma quotient_of_inject_eq:
 
 subsubsection {* The field of rational numbers *}
 
-instantiation rat :: field
+instantiation rat :: field_inverse_zero
 begin
 
 definition
@@ -440,12 +440,11 @@ instance proof
 next
   fix q r :: rat
   show "q / r = q * inverse r" by (simp add: divide_rat_def)
+next
+  show "inverse 0 = (0::rat)" by (simp add: rat_number_expand, simp add: rat_number_collapse)
 qed
 
 end
-
-instance rat :: division_ring_inverse_zero proof
-qed (simp add: rat_number_expand, simp add: rat_number_collapse)
 
 
 subsubsection {* Various *}
@@ -624,7 +623,7 @@ instance by intro_classes
 
 end
 
-instance rat :: linordered_field
+instance rat :: linordered_field_inverse_zero
 proof
   fix q r s :: rat
   show "q \<le> r ==> s + q \<le> s + r"
@@ -724,8 +723,7 @@ proof -
     by (cases "b = 0", simp, simp add: of_int_rat)
   moreover have "0 \<le> Fract (a mod b) b \<and> Fract (a mod b) b < 1"
     unfolding Fract_of_int_quotient
-    by (rule linorder_cases [of b 0])
-       (simp add: divide_nonpos_neg, simp, simp add: divide_nonneg_pos)
+    by (rule linorder_cases [of b 0]) (simp add: divide_nonpos_neg, simp, simp add: divide_nonneg_pos)
   ultimately show ?thesis by simp
 qed
 
@@ -818,7 +816,7 @@ apply (simp add: of_rat_mult [symmetric])
 done
 
 lemma of_rat_inverse:
-  "(of_rat (inverse a)::'a::{field_char_0,division_ring_inverse_zero}) =
+  "(of_rat (inverse a)::'a::{field_char_0, field_inverse_zero}) =
    inverse (of_rat a)"
 by (cases "a = 0", simp_all add: nonzero_of_rat_inverse)
 
@@ -827,7 +825,7 @@ lemma nonzero_of_rat_divide:
 by (simp add: divide_inverse of_rat_mult nonzero_of_rat_inverse)
 
 lemma of_rat_divide:
-  "(of_rat (a / b)::'a::{field_char_0,division_ring_inverse_zero})
+  "(of_rat (a / b)::'a::{field_char_0, field_inverse_zero})
    = of_rat a / of_rat b"
 by (cases "b = 0") (simp_all add: nonzero_of_rat_divide)
 
@@ -968,7 +966,7 @@ apply (erule nonzero_of_rat_inverse [symmetric])
 done
 
 lemma Rats_inverse [simp]:
-  fixes a :: "'a::{field_char_0,division_ring_inverse_zero}"
+  fixes a :: "'a::{field_char_0, field_inverse_zero}"
   shows "a \<in> Rats \<Longrightarrow> inverse a \<in> Rats"
 apply (auto simp add: Rats_def)
 apply (rule range_eqI)
@@ -984,7 +982,7 @@ apply (erule nonzero_of_rat_divide [symmetric])
 done
 
 lemma Rats_divide [simp]:
-  fixes a b :: "'a::{field_char_0,division_ring_inverse_zero}"
+  fixes a b :: "'a::{field_char_0, field_inverse_zero}"
   shows "\<lbrakk>a \<in> Rats; b \<in> Rats\<rbrakk> \<Longrightarrow> a / b \<in> Rats"
 apply (auto simp add: Rats_def)
 apply (rule range_eqI)

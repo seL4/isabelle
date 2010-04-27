@@ -510,6 +510,13 @@ val _ = gen_theorem true Thm.lemmaK;
 val _ = gen_theorem true Thm.corollaryK;
 
 val _ =
+  OuterSyntax.local_theory_to_proof "example_proof"
+    "example proof body, without any result" K.thy_schematic_goal
+    (Scan.succeed
+      (Specification.schematic_theorem_cmd "" NONE (K I)
+        Attrib.empty_binding [] (Element.Shows []) false #> Proof.enter_forward));
+
+val _ =
   OuterSyntax.command "have" "state local goal"
     (K.tag_proof K.prf_goal)
     (SpecParse.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.have));

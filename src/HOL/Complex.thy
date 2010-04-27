@@ -99,7 +99,7 @@ end
 
 subsection {* Multiplication and Division *}
 
-instantiation complex :: "{field, division_ring_inverse_zero}"
+instantiation complex :: field_inverse_zero
 begin
 
 definition

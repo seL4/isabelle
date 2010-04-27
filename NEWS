@@ -103,6 +103,9 @@ need to specify constant name and syntax separately.  Internal ML
 datatype constructors have been renamed from InfixName to Infix etc.
 Minor INCOMPATIBILITY.
 
+* Command 'example_proof' opens an empty proof body.  This allows to
+experiment with Isar, without producing any persistent result.
+
 * Commands 'type_notation' and 'no_type_notation' declare type syntax
 within a local theory context, with explicit checking of the
 constructors involved (in contrast to the raw 'syntax' versions).
@@ -117,17 +120,6 @@ terms may need to be adapted.
 
 
 *** HOL ***
-
-* Abstract algebra:
-  * classes division_ring_inverse_zero, field_inverse_zero, linordered_field_inverse_zero
-    include rule inverse 0 = 0 -- subsumes former division_by_zero class.
-  * numerous lemmas have been ported from field to division_ring;
-  * dropped theorem group group_simps, use algebra_simps instead;
-  * dropped theorem group ring_simps, use field_simps instead;
-  * proper theorem collection field_simps subsumes former theorem groups field_eq_simps and field_simps;
-  * dropped lemma eq_minus_self_iff which is a duplicate for equal_neg_zero.
-
-  INCOMPATIBILITY.
 
 * Library theory 'RBT' renamed to 'RBT_Impl'; new library theory 'RBT'
 provides abstract red-black tree type which is backed by RBT_Impl
@@ -157,15 +149,10 @@ consistent names suitable for name prefixes within the HOL theories.
 INCOMPATIBILITY.
 
 * Some generic constants have been put to appropriate theories:
-
-    less_eq, less: Orderings
-    zero, one, plus, minus, uminus, times, abs, sgn: Groups
-    inverse, divide: Rings
-
+  * less_eq, less: Orderings
+  * zero, one, plus, minus, uminus, times, abs, sgn: Groups
+  * inverse, divide: Rings
 INCOMPATIBILITY.
-
-* Class division_ring also requires proof of fact divide_inverse.  However instantiation
-of parameter divide has also been required previously.  INCOMPATIBILITY.
 
 * More consistent naming of type classes involving orderings (and lattices):
 
@@ -218,33 +205,18 @@ of parameter divide has also been required previously.  INCOMPATIBILITY.
 
 INCOMPATIBILITY.
 
-* HOLogic.strip_psplit: types are returned in syntactic order, similar
-to other strip and tuple operations.  INCOMPATIBILITY.
+* Refined field classes:
+  * classes division_ring_inverse_zero, field_inverse_zero, linordered_field_inverse_zero
+    include rule inverse 0 = 0 -- subsumes former division_by_zero class.
+  * numerous lemmas have been ported from field to division_ring;
+  INCOMPATIBILITY.
 
-* Various old-style primrec specifications in the HOL theories have been
-replaced by new-style primrec, especially in theory List.  The corresponding
-constants now have authentic syntax.  INCOMPATIBILITY.
-
-* Reorganized theory Multiset: swapped notation of pointwise and multiset order:
-  * pointwise ordering is instance of class order with standard syntax <= and <;
-  * multiset ordering has syntax <=# and <#; partial order properties are provided
-      by means of interpretation with prefix multiset_order.
-Less duplication, less historical organization of sections,
-conversion from associations lists to multisets, rudimentary code generation.
-Use insert_DiffM2 [symmetric] instead of elem_imp_eq_diff_union, if needed.
-INCOMPATIBILITY.
-
-* Reorganized theory Sum_Type; Inl and Inr now have authentic syntax.
-INCOMPATIBILITY.
-
-* Code generation: ML and OCaml code is decorated with signatures.
-
-* Theory Complete_Lattice: lemmas top_def and bot_def have been
-replaced by the more convenient lemmas Inf_empty and Sup_empty.
-Dropped lemmas Inf_insert_simp and Sup_insert_simp, which are subsumed
-by Inf_insert and Sup_insert.  Lemmas Inf_UNIV and Sup_UNIV replace
-former Inf_Univ and Sup_Univ.  Lemmas inf_top_right and sup_bot_right
-subsume inf_top and sup_bot respectively.  INCOMPATIBILITY.
+* Refined algebra theorem collections:
+  * dropped theorem group group_simps, use algebra_simps instead;
+  * dropped theorem group ring_simps, use field_simps instead;
+  * proper theorem collection field_simps subsumes former theorem groups field_eq_simps and field_simps;
+  * dropped lemma eq_minus_self_iff which is a duplicate for equal_neg_zero.
+  INCOMPATIBILITY.
 
 * Theory Finite_Set and List: some lemmas have been generalized from
 sets to lattices:
@@ -259,6 +231,27 @@ sets to lattices:
   union_UNION_fold_union        ~> sup_SUPR_fold_sup
   INTER_fold_inter              ~> INFI_fold_inf
   UNION_fold_union              ~> SUPR_fold_sup
+
+* Theory Complete_Lattice: lemmas top_def and bot_def have been
+replaced by the more convenient lemmas Inf_empty and Sup_empty.
+Dropped lemmas Inf_insert_simp and Sup_insert_simp, which are subsumed
+by Inf_insert and Sup_insert.  Lemmas Inf_UNIV and Sup_UNIV replace
+former Inf_Univ and Sup_Univ.  Lemmas inf_top_right and sup_bot_right
+subsume inf_top and sup_bot respectively.  INCOMPATIBILITY.
+
+* HOLogic.strip_psplit: types are returned in syntactic order, similar
+to other strip and tuple operations.  INCOMPATIBILITY.
+
+* Reorganized theory Multiset: swapped notation of pointwise and multiset order:
+  * pointwise ordering is instance of class order with standard syntax <= and <;
+  * multiset ordering has syntax <=# and <#; partial order properties are provided
+      by means of interpretation with prefix multiset_order;
+  * less duplication, less historical organization of sections,
+      conversion from associations lists to multisets, rudimentary code generation;
+  * use insert_DiffM2 [symmetric] instead of elem_imp_eq_diff_union, if needed.
+  INCOMPATIBILITY.
+
+* Code generation: ML and OCaml code is decorated with signatures.
 
 * Theory List: added transpose.
 
