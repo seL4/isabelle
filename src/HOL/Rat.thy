@@ -440,7 +440,9 @@ instance proof
 next
   fix q r :: rat
   show "q / r = q * inverse r" by (simp add: divide_rat_def)
-qed (simp add: rat_number_expand, simp add: rat_number_collapse)
+next
+  show "inverse 0 = (0::rat)" by (simp add: rat_number_expand, simp add: rat_number_collapse)
+qed
 
 end
 
