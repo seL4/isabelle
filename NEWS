@@ -295,6 +295,14 @@ Library/Nat_Int_Bij.thy and HOLCF/NatIso.thy.  INCOMPATIBILITY.
 
 *** ML ***
 
+* Sorts.certify_sort and derived "cert" operations for types and terms
+no longer minimize sorts.  Thus certification at the boundary of the
+inference kernel becomes invariant under addition of class relations,
+which is an important monotonicity principle.  Sorts are now minimized
+in the syntax layer only, at the boundary between the end-user and the
+system.  Subtle INCOMPATIBILITY, may have to use Sign.minimize_sort
+explicitly in rare situations.
+
 * Antiquotations for basic formal entities:
 
     @{class NAME}         -- type class

@@ -189,7 +189,7 @@ fun certify_class algebra c =
   if can (Graph.get_node (classes_of algebra)) c then c
   else raise TYPE ("Undeclared class: " ^ quote c, [], []);
 
-fun certify_sort classes = minimize_sort classes o map (certify_class classes);
+fun certify_sort classes = map (certify_class classes);
 
 
 

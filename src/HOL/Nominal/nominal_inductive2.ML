@@ -223,8 +223,8 @@ fun prove_strong_ind s alt_name avoids ctxt =
     val atomTs = distinct op = (maps (map snd o #2) prems);
     val atoms = map (fst o dest_Type) atomTs;
     val ind_sort = if null atomTs then HOLogic.typeS
-      else Sign.certify_sort thy (map (fn a => Sign.intern_class thy
-        ("fs_" ^ Long_Name.base_name a)) atoms);
+      else Sign.minimize_sort thy (Sign.certify_sort thy (map (fn a => Sign.intern_class thy
+        ("fs_" ^ Long_Name.base_name a)) atoms));
     val ([fs_ctxt_tyname], _) = Name.variants ["'n"] (Variable.names_of ctxt');
     val ([fs_ctxt_name], ctxt'') = Variable.variant_fixes ["z"] ctxt';
     val fsT = TFree (fs_ctxt_tyname, ind_sort);

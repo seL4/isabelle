@@ -215,7 +215,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     fun inter_sort thy S S' = Type.inter_sort (Sign.tsig_of thy) (S, S');
     fun augment_sort_typ thy S =
-      let val S = Sign.certify_sort thy S
+      let val S = Sign.minimize_sort thy (Sign.certify_sort thy S)
       in map_type_tfree (fn (s, S') => TFree (s,
         if member (op = o apsnd fst) sorts s then inter_sort thy S S' else S'))
       end;
@@ -449,7 +449,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                 at_inst RS (pt_inst RS pt_perm_compose) RS sym,
                 at_inst RS (pt_inst RS pt_perm_compose_rev) RS sym]
             end))
-        val sort = Sign.certify_sort thy (cp_class :: pt_class);
+        val sort = Sign.minimize_sort thy (Sign.certify_sort thy (cp_class :: pt_class));
         val thms = split_conj_thm (Goal.prove_global thy [] []
           (augment_sort thy sort
             (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
@@ -654,8 +654,8 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
         perm_def), name), tvs), perm_closed) => fn thy =>
           let
             val pt_class = pt_class_of thy atom;
-            val sort = Sign.certify_sort thy
-              (pt_class :: map (cp_class_of thy atom) (remove (op =) atom dt_atoms))
+            val sort = Sign.minimize_sort thy (Sign.certify_sort thy
+              (pt_class :: map (cp_class_of thy atom) (remove (op =) atom dt_atoms)))
           in AxClass.prove_arity
             (Sign.intern_type thy name,
               map (inter_sort thy sort o snd) tvs, [pt_class])
@@ -678,10 +678,10 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     fun cp_instance (atom1, perm_closed_thms1) (atom2, perm_closed_thms2) thy =
       let
         val cp_class = cp_class_of thy atom1 atom2;
-        val sort = Sign.certify_sort thy
+        val sort = Sign.minimize_sort thy (Sign.certify_sort thy
           (pt_class_of thy atom1 :: map (cp_class_of thy atom1) (remove (op =) atom1 dt_atoms) @
            (if atom1 = atom2 then [cp_class_of thy atom1 atom1] else
-            pt_class_of thy atom2 :: map (cp_class_of thy atom2) (remove (op =) atom2 dt_atoms)));
+            pt_class_of thy atom2 :: map (cp_class_of thy atom2) (remove (op =) atom2 dt_atoms))));
         val cp1' = cp_inst_of thy atom1 atom2 RS cp1
       in fold (fn ((((((Abs_inverse, Rep),
         perm_def), name), tvs), perm_closed1), perm_closed2) => fn thy =>
@@ -1131,7 +1131,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
       fold (fn (atom, ths) => fn thy =>
         let
           val class = fs_class_of thy atom;
-          val sort = Sign.certify_sort thy (class :: pt_cp_sort)
+          val sort = Sign.minimize_sort thy (Sign.certify_sort thy (class :: pt_cp_sort));
         in fold (fn Type (s, Ts) => AxClass.prove_arity
           (s, map (inter_sort thy sort o snd o dest_TFree) Ts, [class])
           (Class.intro_classes_tac [] THEN resolve_tac ths 1)) newTs thy
@@ -1142,7 +1142,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     val pnames = if length descr'' = 1 then ["P"]
       else map (fn i => "P" ^ string_of_int i) (1 upto length descr'');
     val ind_sort = if null dt_atomTs then HOLogic.typeS
-      else Sign.certify_sort thy9 (map (fs_class_of thy9) dt_atoms);
+      else Sign.minimize_sort thy9 (Sign.certify_sort thy9 (map (fs_class_of thy9) dt_atoms));
     val fsT = TFree ("'n", ind_sort);
     val fsT' = TFree ("'n", HOLogic.typeS);
 
@@ -1423,7 +1423,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     val (rec_result_Ts', rec_fn_Ts') = Datatype_Prop.make_primrec_Ts descr' sorts used;
 
     val rec_sort = if null dt_atomTs then HOLogic.typeS else
-      Sign.certify_sort thy10 pt_cp_sort;
+      Sign.minimize_sort thy10 (Sign.certify_sort thy10 pt_cp_sort);
 
     val rec_result_Ts = map (fn TFree (s, _) => TFree (s, rec_sort)) rec_result_Ts';
     val rec_fn_Ts = map (typ_subst_atomic (rec_result_Ts' ~~ rec_result_Ts)) rec_fn_Ts';
