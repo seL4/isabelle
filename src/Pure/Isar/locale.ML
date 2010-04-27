@@ -99,7 +99,7 @@ datatype locale = Loc of {
     (* syntax declarations *)
   notes: ((string * (Attrib.binding * (thm list * Attrib.src list) list) list) * serial) list,
     (* theorem declarations *)
-  dependencies: ((string * morphism) * serial) list
+  dependencies: ((string * (morphism * morphism)) * serial) list
     (* locale dependencies (sublocale relation) *)
 };
 
@@ -143,7 +143,8 @@ fun register_locale binding parameters spec intros axioms syntax_decls notes dep
     (binding,
       mk_locale ((parameters, spec, intros, axioms),
         ((map (fn decl => (decl, serial ())) syntax_decls, map (fn n => (n, serial ())) notes),
-          map (fn d => (d, serial ())) dependencies))) #> snd);
+          map (fn d => (d |> apsnd (rpair Morphism.identity), serial ())) dependencies))) #> snd);
+          (* FIXME *)
 
 fun change_locale name =
   Locales.map o apsnd o Symtab.map_entry name o map_locale o apsnd;
@@ -223,7 +224,7 @@ fun add thy depth export (name, morph) (deps, marked) =
       then (deps, marked)
       else
         let
-          val dependencies' = map (fn (name, morph') => (name, morph' $> morph)) dependencies;
+          val dependencies' = map (fn (name, (morph', export')) => (name, morph' $> export' $> morph)) dependencies;
           val marked' = (name, instance) :: marked;
           val (deps', marked'') = fold_rev (add thy (depth + 1) export) dependencies' ([], marked');
         in
@@ -489,7 +490,7 @@ fun add_reg_activate_facts export (dep, morph) thy =
 
 fun add_dependency loc (dep, morph) export thy =
   thy
-  |> (change_locale loc o apsnd) (cons ((dep, morph $> export), serial ()))
+  |> (change_locale loc o apsnd) (cons ((dep, (morph, export)), serial ()))
   |> (fn thy => fold_rev (add_reg_activate_facts export)
       (all_registrations thy) thy);
 
