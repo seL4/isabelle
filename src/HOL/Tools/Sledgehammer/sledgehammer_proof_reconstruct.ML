@@ -331,8 +331,6 @@ fun clause_of_strees ctxt vt ts =
                                                    ctxt)
   end
 
-fun gen_all_vars t = fold_rev Logic.all (OldTerm.term_vars t) t;
-
 fun decode_line vt0 (name, ts, deps) ctxt =
   let val cl = clause_of_strees ctxt vt0 ts in
     ((name, cl, deps), fold Variable.declare_term (OldTerm.term_frees cl) ctxt)
@@ -498,9 +496,11 @@ fun add_fact_from_dep thm_names num =
   else
     apfst (cons (raw_prefix, num))
 
+fun generalize_all_vars t = fold_rev Logic.all (map Var (Term.add_vars t [])) t
 fun step_for_tuple _ _ (label, t, []) = Assume ((raw_prefix, label), t)
   | step_for_tuple thm_names j (label, t, deps) =
-    Have (if j = 1 then [Show] else [], (raw_prefix, label), t,
+    Have (if j = 1 then [Show] else [], (raw_prefix, label),
+          generalize_all_vars (HOLogic.mk_Trueprop t),
           Facts (fold (add_fact_from_dep thm_names) deps ([], [])))
 
 fun strip_spaces_in_list [] = ""
@@ -795,11 +795,11 @@ fun string_for_proof ctxt sorts i n =
         do_indent ind ^ "assume " ^ do_label l ^ do_term t ^ "\n"
       | do_step ind (Have (qs, l, t, Facts facts)) =
         do_indent ind ^ do_have qs ^ " " ^
-        do_label l ^ do_term t ^ do_facts facts ^ "\n"
+        do_label l ^ do_term t ^ " " ^ do_facts facts ^ "\n"
       | do_step ind (Have (qs, l, t, CaseSplit (proofs, facts))) =
         space_implode (do_indent ind ^ "moreover\n")
                       (map (do_block ind) proofs) ^
-        do_indent ind ^ do_have qs ^ " " ^ do_label l ^ do_term t ^
+        do_indent ind ^ do_have qs ^ " " ^ do_label l ^ do_term t ^ " " ^
         do_facts facts ^ "\n"
     and do_steps prefix suffix ind steps =
       let val s = implode (map (do_step ind) steps) in
