@@ -96,7 +96,6 @@ val default_default_params =
    ("relevance_threshold", "50"),
    ("convergence", "320"),
    ("theory_relevant", "smart"),
-   ("higher_order", "smart"),
    ("follow_defs", "false"),
    ("isar_proof", "false"),
    ("shrink_factor", "1"),
@@ -113,14 +112,13 @@ val negated_alias_params =
    ("implicit_apply", "explicit_apply"),
    ("ignore_no_atp", "respect_no_atp"),
    ("theory_irrelevant", "theory_relevant"),
-   ("first_order", "higher_order"),
    ("dont_follow_defs", "follow_defs"),
    ("metis_proof", "isar_proof"),
    ("no_sorts", "sorts")]
 
 val params_for_minimize =
   ["debug", "verbose", "overlord", "full_types", "explicit_apply",
-   "higher_order", "isar_proof", "shrink_factor", "sorts", "minimize_timeout"]
+   "isar_proof", "shrink_factor", "sorts", "minimize_timeout"]
 
 val property_dependent_params = ["atps", "full_types", "timeout"]
 
@@ -200,7 +198,6 @@ fun extract_params thy default_params override_params =
       0.01 * Real.fromInt (lookup_int "relevance_threshold")
     val convergence = 0.01 * Real.fromInt (lookup_int "convergence")
     val theory_relevant = lookup_bool_option "theory_relevant"
-    val higher_order = lookup_bool_option "higher_order"
     val follow_defs = lookup_bool "follow_defs"
     val isar_proof = lookup_bool "isar_proof"
     val shrink_factor = Int.max (1, lookup_int "shrink_factor")
@@ -212,9 +209,9 @@ fun extract_params thy default_params override_params =
      full_types = full_types, explicit_apply = explicit_apply,
      respect_no_atp = respect_no_atp, relevance_threshold = relevance_threshold,
      convergence = convergence, theory_relevant = theory_relevant,
-     higher_order = higher_order, follow_defs = follow_defs,
-     isar_proof = isar_proof, shrink_factor = shrink_factor, sorts = sorts,
-     timeout = timeout, minimize_timeout = minimize_timeout}
+     follow_defs = follow_defs, isar_proof = isar_proof,
+     shrink_factor = shrink_factor, sorts = sorts, timeout = timeout,
+     minimize_timeout = minimize_timeout}
   end
 
 fun get_params thy = extract_params thy (default_raw_params thy)
