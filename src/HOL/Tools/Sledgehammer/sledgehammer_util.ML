@@ -14,6 +14,8 @@ sig
   val timestamp : unit -> string
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
+  val unyxml : string -> string
+  val maybe_quote : string -> string
 end;
  
 structure Sledgehammer_Util : SLEDGEHAMMER_UTIL =
@@ -71,5 +73,17 @@ fun parse_time_option _ "none" = NONE
       else
         SOME (Time.fromMilliseconds msecs)
     end
+
+fun plain_string_from_xml_tree t =
+  Buffer.empty |> XML.add_content t |> Buffer.content
+val unyxml = plain_string_from_xml_tree o YXML.parse
+
+val is_long_identifier = forall Syntax.is_identifier o space_explode "."
+fun maybe_quote y =
+  let val s = unyxml y in
+    y |> ((not (is_long_identifier (perhaps (try (unprefix "'")) s)) andalso
+           not (is_long_identifier (perhaps (try (unprefix "?")) s))) orelse
+           OuterKeyword.is_keyword s) ? quote
+  end
 
 end;

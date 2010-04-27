@@ -17,7 +17,7 @@ sig
   val cnf_rules_pairs: theory -> (string * thm) list -> (thm * (string * int)) list
   val suppress_endtheory: bool Unsynchronized.ref
     (*for emergency use where endtheory causes problems*)
-  val strip_subgoal : thm -> int -> term list * term list * term
+  val strip_subgoal : thm -> int -> (string * typ) list * term list * term
   val neg_clausify: thm -> thm list
   val neg_conjecture_clauses:
     Proof.context -> thm -> int -> thm list list * (string * typ) list
@@ -463,7 +463,7 @@ fun strip_subgoal goal i =
     val (t, frees) = Logic.goal_params (prop_of goal) i
     val hyp_ts = t |> Logic.strip_assums_hyp |> map (curry subst_bounds frees)
     val concl_t = t |> Logic.strip_assums_concl |> curry subst_bounds frees
-  in (rev frees, hyp_ts, concl_t) end
+  in (rev (map dest_Free frees), hyp_ts, concl_t) end
 
 (*** Converting a subgoal into negated conjecture clauses. ***)
 

@@ -33,6 +33,7 @@ end;
 structure Sledgehammer_Proof_Reconstruct : SLEDGEHAMMER_PROOF_RECONSTRUCT =
 struct
 
+open Sledgehammer_Util
 open Sledgehammer_FOL_Clause
 open Sledgehammer_Fact_Preprocessor
 
@@ -480,7 +481,7 @@ fun merge_fact_sets (ls1, ss1) (ls2, ss2) =
 datatype qualifier = Show | Then | Moreover | Ultimately
 
 datatype step =
-  Fix of term list |
+  Fix of (string * typ) list |
   Assume of label * term |
   Have of qualifier list * label * term * byline
 and byline =
@@ -716,7 +717,7 @@ fun kill_useless_labels_in_proof proof =
   let
     val used_ls = using_of proof
     fun do_label l = if member (op =) used_ls l then l else no_label
-    fun kill (Fix ts) = Fix ts
+    fun kill (Fix xs) = Fix xs
       | kill (Assume (l, t)) = Assume (do_label l, t)
       | kill (Have (qs, l, t, by)) =
         Have (qs, do_label l, t,
@@ -765,7 +766,13 @@ val relabel_proof =
 
 fun string_for_proof ctxt sorts i n =
   let
+    fun fix_print_mode f =
+      PrintMode.setmp (filter (curry (op =) Symbol.xsymbolsN)
+                      (print_mode_value ())) f
     fun do_indent ind = replicate_string (ind * indent_size) " "
+    fun do_free (s, T) =
+      maybe_quote s ^ " :: " ^
+      maybe_quote (fix_print_mode (Syntax.string_of_typ ctxt) T)
     fun do_raw_label (s, j) = s ^ string_of_int j
     fun do_label l = if l = no_label then "" else do_raw_label l ^ ": "
     fun do_have qs =
@@ -775,29 +782,25 @@ fun string_for_proof ctxt sorts i n =
          if member (op =) qs Show then "thus" else "hence"
        else
          if member (op =) qs Show then "show" else "have")
-    val do_term =
-      quote o PrintMode.setmp (filter (curry (op =) Symbol.xsymbolsN)
-                                      (print_mode_value ()))
-                              (Syntax.string_of_term ctxt)
+    val do_term = maybe_quote o fix_print_mode (Syntax.string_of_term ctxt)
     fun do_using [] = ""
       | do_using ls = "using " ^ (space_implode " " (map do_raw_label ls)) ^ " "
     fun do_by_facts [] [] = "by blast"
       | do_by_facts _ [] = "by metis"
       | do_by_facts _ ss = "by (metis " ^ space_implode " " ss ^ ")"
-    fun do_facts ind (ls, ss) =
-      do_indent (ind + 1) ^ do_using ls ^ do_by_facts ls ss
-    and do_step ind (Fix ts) =
-        do_indent ind ^ "fix " ^ space_implode " and " (map do_term ts) ^ "\n"
+    fun do_facts (ls, ss) = do_using ls ^ do_by_facts ls ss
+    and do_step ind (Fix xs) =
+        do_indent ind ^ "fix " ^ space_implode " and " (map do_free xs) ^ "\n"
       | do_step ind (Assume (l, t)) =
         do_indent ind ^ "assume " ^ do_label l ^ do_term t ^ "\n"
       | do_step ind (Have (qs, l, t, Facts facts)) =
         do_indent ind ^ do_have qs ^ " " ^
-        do_label l ^ do_term t ^ "\n" ^ do_facts ind facts ^ "\n"
+        do_label l ^ do_term t ^ do_facts facts ^ "\n"
       | do_step ind (Have (qs, l, t, CaseSplit (proofs, facts))) =
         space_implode (do_indent ind ^ "moreover\n")
                       (map (do_block ind) proofs) ^
-        do_indent ind ^ do_have qs ^ " " ^ do_label l ^ do_term t ^ "\n" ^
-        do_facts ind facts ^ "\n"
+        do_indent ind ^ do_have qs ^ " " ^ do_label l ^ do_term t ^
+        do_facts facts ^ "\n"
     and do_steps prefix suffix ind steps =
       let val s = implode (map (do_step ind) steps) in
         replicate_string (ind * indent_size - size prefix) " " ^ prefix ^
