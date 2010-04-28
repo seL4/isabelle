@@ -209,6 +209,9 @@ fun activate_defs class thms thy =
       (eq_morph, true) (export_morphism thy cls) thy;
   in fold amend (heritage thy [class]) thy end;
 
+(*fun activate_defs class thms thy = Locale.amend_registration (class, base_morphism thy class)
+  (Element.eq_morphism thy thms, true) (export_morphism thy class) thy;*)
+
 fun register_operation class (c, (t, some_def)) thy =
   let
     val base_sort = base_sort thy class;
