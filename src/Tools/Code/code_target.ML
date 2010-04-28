@@ -6,6 +6,9 @@ Serializer from intermediate language ("Thin-gol") to target languages.
 
 signature CODE_TARGET =
 sig
+  val cert_tyco: theory -> string -> string
+  val read_tyco: theory -> string -> string
+
   type serializer
   type literals = Code_Printer.literals
   val add_target: string * (serializer * literals) -> theory -> theory
