@@ -153,7 +153,7 @@ fun gen_fun add config fixes statements int lthy =
   |> add fixes statements config
   |> by_pat_completeness_auto int
   |> Local_Theory.restore
-  |> termination_by (Function_Common.get_termination_prover lthy) int
+  |> termination_by (SIMPLE_METHOD o Function_Common.get_termination_prover lthy) int
 
 val add_fun = gen_fun Function.function
 val add_fun_cmd = gen_fun Function.function_cmd
