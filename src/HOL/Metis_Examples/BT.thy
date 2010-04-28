@@ -1,5 +1,6 @@
 (*  Title:      HOL/MetisTest/BT.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Jasmin Blanchette, TU Muenchen
 
 Testing the metis method
 *)
@@ -68,10 +69,16 @@ declare [[ atp_problem_prefix = "BT__n_leaves_reflect" ]]
 
 lemma n_leaves_reflect: "n_leaves (reflect t) = n_leaves t"
 proof (induct t)
-  case Lf thus ?case by (metis reflect.simps(1))
+  case Lf thus ?case
+  proof -
+    let "?p\<^isub>1 x\<^isub>1" = "x\<^isub>1 \<noteq> n_leaves (reflect (Lf::'a bt))"
+    have "\<not> ?p\<^isub>1 (Suc 0)" by (metis reflect.simps(1) n_leaves.simps(1))
+    hence "\<not> ?p\<^isub>1 (n_leaves (Lf::'a bt))" by (metis n_leaves.simps(1))
+    thus "n_leaves (reflect (Lf::'a bt)) = n_leaves (Lf::'a bt)" by metis
+  qed
 next
   case (Br a t1 t2) thus ?case
-    by (metis class_semiring.add_c n_leaves.simps(2) reflect.simps(2))
+    by (metis n_leaves.simps(2) nat_add_commute reflect.simps(2))
 qed
 
 declare [[ atp_problem_prefix = "BT__n_nodes_reflect" ]]
