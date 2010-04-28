@@ -5,7 +5,7 @@ Testing the metis method
 *)
 
 theory TransClosure
-imports Main
+imports Sledgehammer2d (* ### *)
 begin
 
 types addr = nat
@@ -17,45 +17,33 @@ datatype val
   | Intg int    -- "integer value" 
   | Addr addr   -- "addresses of objects in the heap"
 
-consts R::"(addr \<times> addr) set"
+consts R :: "(addr \<times> addr) set"
 
-consts f:: "addr \<Rightarrow> val"
+consts f :: "addr \<Rightarrow> val"
 
-declare [[ atp_problem_prefix = "TransClosure__test" ]]
-lemma "\<lbrakk> f c = Intg x; \<forall> y. f b = Intg y \<longrightarrow> y \<noteq> x; (a,b) \<in> R\<^sup>*; (b,c) \<in> R\<^sup>* \<rbrakk> 
-   \<Longrightarrow> \<exists> c. (b,c) \<in> R \<and> (a,c) \<in> R\<^sup>*"  
-by (metis Transitive_Closure.rtrancl_into_rtrancl converse_rtranclE trancl_reflcl)
+lemma "\<lbrakk>f c = Intg x; \<forall>y. f b = Intg y \<longrightarrow> y \<noteq> x; (a, b) \<in> R\<^sup>*; (b, c) \<in> R\<^sup>*\<rbrakk>
+       \<Longrightarrow> \<exists>c. (b, c) \<in> R \<and> (a, c) \<in> R\<^sup>*"
+by (metis converse_rtranclE transitive_closure_trans(6))
 
-lemma "\<lbrakk> f c = Intg x; \<forall> y. f b = Intg y \<longrightarrow> y \<noteq> x; (a,b) \<in> R\<^sup>*; (b,c) \<in> R\<^sup>* \<rbrakk> 
-   \<Longrightarrow> \<exists> c. (b,c) \<in> R \<and> (a,c) \<in> R\<^sup>*"
-proof (neg_clausify)
-assume 0: "f c = Intg x"
-assume 1: "(a, b) \<in> R\<^sup>*"
-assume 2: "(b, c) \<in> R\<^sup>*"
-assume 3: "f b \<noteq> Intg x"
-assume 4: "\<And>A. (b, A) \<notin> R \<or> (a, A) \<notin> R\<^sup>*"
-have 5: "b = c \<or> b \<in> Domain R"
-  by (metis Not_Domain_rtrancl 2)
-have 6: "\<And>X1. (a, X1) \<in> R\<^sup>* \<or> (b, X1) \<notin> R"
-  by (metis Transitive_Closure.rtrancl_into_rtrancl 1)
-have 7: "\<And>X1. (b, X1) \<notin> R"
-  by (metis 6 4)
-have 8: "b \<notin> Domain R"
-  by (metis 7 DomainE)
-have 9: "c = b"
-  by (metis 5 8)
-have 10: "f b = Intg x"
-  by (metis 0 9)
-show "False"
-  by (metis 10 3)
+lemma "\<lbrakk>f c = Intg x; \<forall>y. f b = Intg y \<longrightarrow> y \<noteq> x; (a, b) \<in> R\<^sup>*; (b,c) \<in> R\<^sup>*\<rbrakk>
+       \<Longrightarrow> \<exists>c. (b, c) \<in> R \<and> (a, c) \<in> R\<^sup>*"
+(* sledgehammer [isar_proof, shrink_factor = 2] *)
+proof -
+  assume A1: "f c = Intg x"
+  assume A2: "\<forall>y. f b = Intg y \<longrightarrow> y \<noteq> x"
+  assume A3: "(a, b) \<in> R\<^sup>*"
+  assume A4: "(b, c) \<in> R\<^sup>*"
+  have "(R\<^sup>*) (a, b)" using A3 by (metis mem_def)
+  hence F1: "(a, b) \<in> R\<^sup>*" by (metis mem_def)
+  have "b \<noteq> c" using A1 A2 by metis
+  hence "\<exists>x\<^isub>1. (b, x\<^isub>1) \<in> R" using A4 by (metis mem_def converse_rtranclE)
+  thus "\<exists>c. (b, c) \<in> R \<and> (a, c) \<in> R\<^sup>*" using F1 by (metis transitive_closure_trans(6))
 qed
 
-declare [[ atp_problem_prefix = "TransClosure__test_simpler" ]]
-lemma "\<lbrakk> f c = Intg x; \<forall> y. f b = Intg y \<longrightarrow> y \<noteq> x; (a,b) \<in> R\<^sup>*; (b,c) \<in> R\<^sup>* \<rbrakk> 
-   \<Longrightarrow> \<exists> c. (b,c) \<in> R \<and> (a,c) \<in> R\<^sup>*"
-apply (erule_tac x="b" in converse_rtranclE)
-apply (metis rel_pow_0_E rel_pow_0_I)
-apply (metis DomainE Domain_iff Transitive_Closure.rtrancl_into_rtrancl)
-done
+lemma "\<lbrakk>f c = Intg x; \<forall>y. f b = Intg y \<longrightarrow> y \<noteq> x; (a, b) \<in> R\<^sup>*; (b, c) \<in> R\<^sup>*\<rbrakk> 
+       \<Longrightarrow> \<exists>c. (b, c) \<in> R \<and> (a, c) \<in> R\<^sup>*"
+apply (erule_tac x = b in converse_rtranclE)
+ apply metis
+by (metis transitive_closure_trans(6))
 
 end
