@@ -7,12 +7,12 @@ Command "fun" for fully automated function definitions
 
 signature FUNCTION_FUN =
 sig
-  val add_fun : Function_Common.function_config ->
-    (binding * typ option * mixfix) list -> (Attrib.binding * term) list ->
-    bool -> local_theory -> Proof.context
-  val add_fun_cmd : Function_Common.function_config ->
-    (binding * string option * mixfix) list -> (Attrib.binding * string) list ->
-    bool -> local_theory -> Proof.context
+  val add_fun : (binding * typ option * mixfix) list ->
+    (Attrib.binding * term) list -> Function_Common.function_config ->
+    local_theory -> Proof.context
+  val add_fun_cmd : (binding * string option * mixfix) list ->
+    (Attrib.binding * string) list -> Function_Common.function_config ->
+    local_theory -> Proof.context
 
   val setup : theory -> theory
 end
@@ -55,15 +55,6 @@ fun check_pats ctxt geq =
   in
     ()
   end
-
-val by_pat_completeness_auto =
-  Proof.global_future_terminal_proof
-    (Method.Basic Pat_Completeness.pat_completeness,
-     SOME (Method.Source_i (Args.src (("HOL.auto", []), Position.none))))
-
-fun termination_by method int =
-  Function.termination NONE
-  #> Proof.global_future_terminal_proof (Method.Basic method, NONE) int
 
 fun mk_catchall fixes arity_of =
   let
@@ -148,24 +139,32 @@ val setup =
 val fun_config = FunctionConfig { sequential=true, default="%x. undefined" (*FIXME dynamic scoping*), 
   domintros=false, partials=false, tailrec=false }
 
-fun gen_fun add config fixes statements int lthy =
-  lthy
-  |> add fixes statements config
-  |> by_pat_completeness_auto int
-  |> Local_Theory.restore
-  |> termination_by (SIMPLE_METHOD o Function_Common.get_termination_prover lthy) int
+fun gen_add_fun add fixes statements config lthy =
+  let
+    fun pat_completeness_auto ctxt =
+      Pat_Completeness.pat_completeness_tac ctxt 1
+      THEN auto_tac (clasimpset_of ctxt)
+    fun prove_termination lthy =
+      Function.prove_termination NONE
+        (Function_Common.get_termination_prover lthy lthy) lthy
+  in
+    lthy
+    |> add fixes statements config pat_completeness_auto |> snd
+    |> Local_Theory.restore
+    |> prove_termination
+  end
 
-val add_fun = gen_fun Function.function
-val add_fun_cmd = gen_fun Function.function_cmd
+val add_fun = gen_add_fun Function.add_function
+val add_fun_cmd = gen_add_fun Function.add_function_cmd
 
 
 
 local structure P = OuterParse and K = OuterKeyword in
 
 val _ =
-  OuterSyntax.local_theory' "fun" "define general recursive functions (short version)" K.thy_decl
+  OuterSyntax.local_theory "fun" "define general recursive functions (short version)" K.thy_decl
   (function_parser fun_config
-     >> (fn ((config, fixes), statements) => add_fun_cmd config fixes statements));
+     >> (fn ((config, fixes), statements) => add_fun_cmd fixes statements config));
 
 end
 
