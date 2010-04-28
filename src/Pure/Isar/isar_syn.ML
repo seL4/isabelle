@@ -97,7 +97,8 @@ val _ =
 
 val _ =
   OuterSyntax.command "defaultsort" "declare default sort" K.thy_decl
-    (P.sort >> (Toplevel.theory o Sign.add_defsort));
+    (P.sort >>
+      (fn s => Toplevel.theory (fn thy => Sign.set_defsort (Syntax.read_sort_global thy s) thy)));
 
 
 (* types *)
