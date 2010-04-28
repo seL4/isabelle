@@ -9,6 +9,14 @@ signature FUNCTION =
 sig
   include FUNCTION_DATA
 
+  val add_function: (binding * typ option * mixfix) list ->
+    (Attrib.binding * term) list -> Function_Common.function_config ->
+    (Proof.context -> tactic) -> local_theory -> local_theory
+
+  val add_function_cmd: (binding * string option * mixfix) list ->
+    (Attrib.binding * string) list -> Function_Common.function_config ->
+    (Proof.context -> tactic) -> local_theory -> local_theory
+
   val function: (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> Function_Common.function_config ->
     local_theory -> Proof.state
@@ -16,6 +24,9 @@ sig
   val function_cmd: (binding * string option * mixfix) list ->
     (Attrib.binding * string) list -> Function_Common.function_config ->
     local_theory -> Proof.state
+
+  val prove_termination: term option -> tactic -> local_theory -> local_theory
+  val prove_termination_cmd: string option -> tactic -> local_theory -> local_theory
 
   val termination : term option -> local_theory -> Proof.state
   val termination_cmd : string option -> local_theory -> Proof.state
@@ -118,13 +129,30 @@ fun prepare_function is_external prep default_constraint fixspec eqns config lth
         lthy
         |> Local_Theory.declaration false (add_function_data o morph_function_data info)
       end
-  in 
+  in
     ((goal_state, afterqed), lthy')
   end
 
+fun gen_add_function is_external prep default_constraint fixspec eqns config tac lthy =
+  let
+    val ((goal_state, afterqed), lthy') =
+      prepare_function is_external prep default_constraint fixspec eqns config lthy
+    val pattern_thm =
+      case SINGLE (tac lthy') goal_state of
+        NONE => error "pattern completeness and compatibility proof failed"
+      | SOME st => Goal.finish lthy' st
+  in
+    lthy'
+    |> afterqed [[pattern_thm]]
+  end
+
+val add_function =
+  gen_add_function false Specification.check_spec (TypeInfer.anyT HOLogic.typeS)
+val add_function_cmd = gen_add_function true Specification.read_spec "_::type"
+
 fun gen_function is_external prep default_constraint fixspec eqns config lthy =
   let
-    val ((goal_state, afterqed), lthy') = 
+    val ((goal_state, afterqed), lthy') =
       prepare_function is_external prep default_constraint fixspec eqns config lthy
   in
     lthy'
@@ -135,7 +163,7 @@ fun gen_function is_external prep default_constraint fixspec eqns config lthy =
 val function =
   gen_function false Specification.check_spec (TypeInfer.anyT HOLogic.typeS)
 val function_cmd = gen_function true Specification.read_spec "_::type"
-                                                
+
 fun prepare_termination_proof prep_term raw_term_opt lthy =
   let
     val term_opt = Option.map (prep_term lthy) raw_term_opt
@@ -179,6 +207,19 @@ fun prepare_termination_proof prep_term raw_term_opt lthy =
   in
     (goal, afterqed, termination)
   end
+
+fun gen_prove_termination prep_term raw_term_opt tac lthy =
+  let
+    val (goal, afterqed, termination) =
+      prepare_termination_proof prep_term raw_term_opt lthy
+
+    val totality = Goal.prove lthy [] [] goal (K tac)
+  in
+    afterqed [[totality]] lthy
+end
+
+val prove_termination = gen_prove_termination Syntax.check_term
+val prove_termination_cmd = gen_prove_termination Syntax.read_term
 
 fun gen_termination prep_term raw_term_opt lthy =
   let
