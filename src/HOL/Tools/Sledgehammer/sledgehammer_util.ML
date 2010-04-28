@@ -25,15 +25,15 @@ struct
 
 val is_new_spass_version =
   case getenv "SPASS_VERSION" of
-    "" => case getenv "SPASS_HOME" of
-            "" => false
-          | s =>
-            (* Hack: Preliminary versions of the SPASS 3.7 package don't set
-               "SPASS_VERSION". *)
-            String.isSubstring "/spass-3.7/" s
-  | s => case s |> space_explode "." |> map Int.fromString of
-           SOME m :: SOME n :: _ => m > 3 orelse (m = 3 andalso n >= 5)
-         | _ => false
+    "" => (case getenv "SPASS_HOME" of
+             "" => false
+           | s =>
+             (* Hack: Preliminary versions of the SPASS 3.7 package don't set
+                "SPASS_VERSION". *)
+             String.isSubstring "/spass-3.7/" s)
+  | s => (case s |> space_explode "." |> map Int.fromString of
+            SOME m :: SOME n :: _ => m > 3 orelse (m = 3 andalso n >= 5)
+          | _ => false)
 
 fun pairf f g x = (f x, g x)
 
