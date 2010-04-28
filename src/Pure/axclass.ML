@@ -190,9 +190,9 @@ fun instance_name (a, c) = Long_Name.base_name c ^ "_" ^ Long_Name.base_name a;
 
 infix 0 RSO;
 
-fun (SOME a RSO SOME b) = SOME (a RS b)
-  | (x RSO NONE) = x
-  | (NONE RSO y) = y;
+fun (SOME a) RSO (SOME b) = SOME (a RS b)
+  | x RSO NONE = x
+  | NONE RSO y = y;
 
 fun the_classrel thy (c1, c2) =
   (case Symreltab.lookup (proven_classrels_of thy) (c1, c2) of
