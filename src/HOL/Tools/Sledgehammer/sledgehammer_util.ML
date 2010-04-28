@@ -14,6 +14,7 @@ sig
   val timestamp : unit -> string
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
+  val nat_subscript : int -> string
   val unyxml : string -> string
   val maybe_quote : string -> string
 end;
@@ -73,6 +74,9 @@ fun parse_time_option _ "none" = NONE
       else
         SOME (Time.fromMilliseconds msecs)
     end
+
+val subscript = implode o map (prefix "\<^isub>") o explode
+val nat_subscript = subscript o string_of_int
 
 fun plain_string_from_xml_tree t =
   Buffer.empty |> XML.add_content t |> Buffer.content
