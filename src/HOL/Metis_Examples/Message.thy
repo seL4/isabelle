@@ -4,11 +4,12 @@
 Testing the metis method.
 *)
 
-theory Message imports Main begin
+theory Message
+imports Main
+begin
 
-(*Needed occasionally with spy_analz_tac, e.g. in analz_insert_Key_newK*)
 lemma strange_Un_eq [simp]: "A \<union> (B \<union> A) = B \<union> A"
-by blast
+by (metis Un_ac(2) Un_ac(3))
 
 types 
   key = nat
@@ -20,7 +21,7 @@ consts
 specification (invKey)
   invKey [simp]: "invKey (invKey K) = K"
   invKey_symmetric: "all_symmetric --> invKey = id"
-    by (rule exI [of _ id], auto)
+by (metis id_apply)
 
 
 text{*The inverse of a symmetric key is itself; that of a public key
@@ -74,33 +75,28 @@ inductive_set
   | Snd:         "{|X,Y|}   \<in> parts H ==> Y \<in> parts H"
   | Body:        "Crypt K X \<in> parts H ==> X \<in> parts H"
 
-
-declare [[ atp_problem_prefix = "Message__parts_mono" ]]
 lemma parts_mono: "G \<subseteq> H ==> parts(G) \<subseteq> parts(H)"
 apply auto
-apply (erule parts.induct) 
-apply (metis Inj set_mp)
-apply (metis Fst)
-apply (metis Snd)
-apply (metis Body)
-done
-
+apply (erule parts.induct)
+   apply (metis parts.Inj set_rev_mp)
+  apply (metis parts.Fst)
+ apply (metis parts.Snd)
+by (metis parts.Body)
 
 text{*Equations hold because constructors are injective.*}
 lemma Friend_image_eq [simp]: "(Friend x \<in> Friend`A) = (x:A)"
-by auto
+by (metis agent.inject imageI image_iff)
 
-lemma Key_image_eq [simp]: "(Key x \<in> Key`A) = (x\<in>A)"
-by auto
+lemma Key_image_eq [simp]: "(Key x \<in> Key`A) = (x \<in> A)"
+by (metis image_iff msg.inject(4))
 
-lemma Nonce_Key_image_eq [simp]: "(Nonce x \<notin> Key`A)"
-by auto
+lemma Nonce_Key_image_eq [simp]: "Nonce x \<notin> Key`A"
+by (metis image_iff msg.distinct(23))
 
 
 subsubsection{*Inverse of keys *}
 
-declare [[ atp_problem_prefix = "Message__invKey_eq" ]]
-lemma invKey_eq [simp]: "(invKey K = invKey K') = (K=K')"
+lemma invKey_eq [simp]: "(invKey K = invKey K') = (K = K')"
 by (metis invKey)
 
 
@@ -155,7 +151,7 @@ lemma MPair_parts:
          [| X \<in> parts H; Y \<in> parts H |] ==> P |] ==> P"
 by (blast dest: parts.Fst parts.Snd) 
 
-    declare MPair_parts [elim!]  parts.Body [dest!]
+declare MPair_parts [elim!] parts.Body [dest!]
 text{*NB These two rules are UNSAFE in the formal sense, as they discard the
      compound message.  They work well on THIS FILE.  
   @{text MPair_parts} is left as SAFE because it speeds up proofs.
@@ -200,7 +196,6 @@ apply (subst insert_is_Un [of _ H])
 apply (simp only: parts_Un)
 done
 
-declare [[ atp_problem_prefix = "Message__parts_insert_two" ]]
 lemma parts_insert2:
      "parts (insert X (insert Y H)) = parts {X} \<union> parts {Y} \<union> parts H"
 by (metis Un_commute Un_empty_left Un_empty_right Un_insert_left Un_insert_right parts_Un)
@@ -237,7 +232,6 @@ by (erule parts.induct, blast+)
 lemma parts_idem [simp]: "parts (parts H) = parts H"
 by blast
 
-declare [[ atp_problem_prefix = "Message__parts_subset_iff" ]]
 lemma parts_subset_iff [simp]: "(parts G \<subseteq> parts H) = (G \<subseteq> parts H)"
 apply (rule iffI) 
 apply (metis Un_absorb1 Un_subset_iff parts_Un parts_increasing)
@@ -247,11 +241,8 @@ done
 lemma parts_trans: "[| X\<in> parts G;  G \<subseteq> parts H |] ==> X\<in> parts H"
 by (blast dest: parts_mono); 
 
-
-declare [[ atp_problem_prefix = "Message__parts_cut" ]]
 lemma parts_cut: "[|Y\<in> parts(insert X G);  X\<in> parts H|] ==> Y\<in> parts(G \<union> H)"
 by (metis Un_insert_left Un_insert_right insert_absorb mem_def parts_Un parts_idem sup1CI)
-
 
 
 subsubsection{*Rewrite rules for pulling out atomic messages *}
@@ -312,8 +303,6 @@ apply auto
 apply (erule parts.induct, auto)
 done
 
-
-declare [[ atp_problem_prefix = "Message__msg_Nonce_supply" ]]
 lemma msg_Nonce_supply: "\<exists>N. \<forall>n. N\<le>n --> Nonce n \<notin> parts {msg}"
 apply (induct_tac "msg") 
 apply (simp_all add: parts_insert2)
@@ -364,8 +353,6 @@ lemmas analz_into_parts = analz_subset_parts [THEN subsetD, standard]
 
 lemmas not_parts_not_analz = analz_subset_parts [THEN contra_subsetD, standard]
 
-
-declare [[ atp_problem_prefix = "Message__parts_analz" ]]
 lemma parts_analz [simp]: "parts (analz H) = parts H"
 apply (rule equalityI)
 apply (metis analz_subset_parts parts_subset_iff)
@@ -517,8 +504,8 @@ lemma analz_trans: "[| X\<in> analz G;  G \<subseteq> analz H |] ==> X\<in> anal
 by (drule analz_mono, blast)
 
 
-declare [[ atp_problem_prefix = "Message__analz_cut" ]]
-    declare analz_trans[intro]
+declare analz_trans[intro]
+
 lemma analz_cut: "[| Y\<in> analz (insert X H);  X\<in> analz H |] ==> Y\<in> analz H"
 (*TOO SLOW
 by (metis analz_idem analz_increasing analz_mono insert_absorb insert_mono insert_subset) --{*317s*}
@@ -535,7 +522,6 @@ by (blast intro: analz_cut analz_insertI)
 
 text{*A congruence rule for "analz" *}
 
-declare [[ atp_problem_prefix = "Message__analz_subset_cong" ]]
 lemma analz_subset_cong:
      "[| analz G \<subseteq> analz G'; analz H \<subseteq> analz H' |] 
       ==> analz (G \<union> H) \<subseteq> analz (G' \<union> H')"
@@ -612,9 +598,6 @@ text{*Converse fails: we can synth more from the union than from the
 lemma synth_Un: "synth(G) \<union> synth(H) \<subseteq> synth(G \<union> H)"
 by (intro Un_least synth_mono Un_upper1 Un_upper2)
 
-
-declare [[ atp_problem_prefix = "Message__synth_insert" ]]
- 
 lemma synth_insert: "insert X (synth H) \<subseteq> synth(insert X H)"
 by (metis insert_iff insert_subset subset_insertI synth.Inj synth_mono)
 
@@ -635,7 +618,6 @@ done
 lemma synth_trans: "[| X\<in> synth G;  G \<subseteq> synth H |] ==> X\<in> synth H"
 by (drule synth_mono, blast)
 
-declare [[ atp_problem_prefix = "Message__synth_cut" ]]
 lemma synth_cut: "[| Y\<in> synth (insert X H);  X\<in> synth H |] ==> Y\<in> synth H"
 (*TOO SLOW
 by (metis insert_absorb insert_mono insert_subset synth_idem synth_increasing synth_mono)
@@ -667,7 +649,6 @@ by (unfold keysFor_def, blast)
 
 subsubsection{*Combinations of parts, analz and synth *}
 
-declare [[ atp_problem_prefix = "Message__parts_synth" ]]
 lemma parts_synth [simp]: "parts (synth H) = parts H \<union> synth H"
 apply (rule equalityI)
 apply (rule subsetI)
@@ -679,18 +660,14 @@ apply (metis Body Crypt_synth UnCI UnE insert_absorb insert_subset parts_increas
 apply (metis Un_subset_iff parts_increasing parts_mono synth_increasing)
 done
 
-
-
-
-declare [[ atp_problem_prefix = "Message__analz_analz_Un" ]]
 lemma analz_analz_Un [simp]: "analz (analz G \<union> H) = analz (G \<union> H)"
 apply (rule equalityI);
 apply (metis analz_idem analz_subset_cong order_eq_refl)
 apply (metis analz_increasing analz_subset_cong order_eq_refl)
 done
 
-declare [[ atp_problem_prefix = "Message__analz_synth_Un" ]]
-    declare analz_mono [intro] analz.Fst [intro] analz.Snd [intro] Un_least [intro]
+declare analz_mono [intro] analz.Fst [intro] analz.Snd [intro] Un_least [intro]
+
 lemma analz_synth_Un [simp]: "analz (synth G \<union> H) = analz (G \<union> H) \<union> synth G"
 apply (rule equalityI)
 apply (rule subsetI)
@@ -702,102 +679,81 @@ apply (blast intro: analz.Decrypt)
 apply blast
 done
 
-declare [[ atp_problem_prefix = "Message__analz_synth" ]]
 lemma analz_synth [simp]: "analz (synth H) = analz H \<union> synth H"
-proof (neg_clausify)
-assume 0: "analz (synth H) \<noteq> analz H \<union> synth H"
-have 1: "\<And>X1 X3. sup (analz (sup X3 X1)) (synth X3) = analz (sup (synth X3) X1)"
-  by (metis analz_synth_Un)
-have 2: "sup (analz H) (synth H) \<noteq> analz (synth H)"
-  by (metis 0)
-have 3: "\<And>X1 X3. sup (synth X3) (analz (sup X3 X1)) = analz (sup (synth X3) X1)"
-  by (metis 1 Un_commute)
-have 4: "\<And>X3. sup (synth X3) (analz X3) = analz (sup (synth X3) {})"
-  by (metis 3 Un_empty_right)
-have 5: "\<And>X3. sup (synth X3) (analz X3) = analz (synth X3)"
-  by (metis 4 Un_empty_right)
-have 6: "\<And>X3. sup (analz X3) (synth X3) = analz (synth X3)"
-  by (metis 5 Un_commute)
-show "False"
-  by (metis 2 6)
+proof -
+  have "\<forall>x\<^isub>2 x\<^isub>1. synth x\<^isub>1 \<union> analz (x\<^isub>1 \<union> x\<^isub>2) = analz (synth x\<^isub>1 \<union> x\<^isub>2)"
+    by (metis Un_commute analz_synth_Un)
+  hence "\<forall>x\<^isub>3 x\<^isub>1. synth x\<^isub>1 \<union> analz x\<^isub>1 = analz (synth x\<^isub>1 \<union> UNION {} x\<^isub>3)"
+    by (metis UN_extend_simps(3))
+  hence "\<forall>x\<^isub>1. synth x\<^isub>1 \<union> analz x\<^isub>1 = analz (synth x\<^isub>1)"
+    by (metis UN_extend_simps(3))
+  hence "\<forall>x\<^isub>1. analz x\<^isub>1 \<union> synth x\<^isub>1 = analz (synth x\<^isub>1)"
+    by (metis Un_commute)
+  thus "analz (synth H) = analz H \<union> synth H" by metis
 qed
 
 
 subsubsection{*For reasoning about the Fake rule in traces *}
 
-declare [[ atp_problem_prefix = "Message__parts_insert_subset_Un" ]]
 lemma parts_insert_subset_Un: "X\<in> G ==> parts(insert X H) \<subseteq> parts G \<union> parts H"
-proof (neg_clausify)
-assume 0: "X \<in> G"
-assume 1: "\<not> parts (insert X H) \<subseteq> parts G \<union> parts H"
-have 2: "\<not> parts (insert X H) \<subseteq> parts (G \<union> H)"
-  by (metis 1 parts_Un)
-have 3: "\<not> insert X H \<subseteq> G \<union> H"
-  by (metis 2 parts_mono)
-have 4: "X \<notin> G \<union> H \<or> \<not> H \<subseteq> G \<union> H"
-  by (metis 3 insert_subset)
-have 5: "X \<notin> G \<union> H"
-  by (metis 4 Un_upper2)
-have 6: "X \<notin> G"
-  by (metis 5 UnCI)
-show "False"
-  by (metis 6 0)
+proof -
+  assume "X \<in> G"
+  hence "\<forall>u. X \<in> G \<union> u" by (metis Un_iff)
+  hence "X \<in> G \<union> H \<and> H \<subseteq> G \<union> H"
+    by (metis Un_upper2)
+  hence "insert X H \<subseteq> G \<union> H" by (metis insert_subset)
+  hence "parts (insert X H) \<subseteq> parts (G \<union> H)"
+    by (metis parts_mono)
+  thus "parts (insert X H) \<subseteq> parts G \<union> parts H"
+    by (metis parts_Un)
 qed
 
-declare [[ atp_problem_prefix = "Message__Fake_parts_insert" ]]
 lemma Fake_parts_insert:
      "X \<in> synth (analz H) ==>  
       parts (insert X H) \<subseteq> synth (analz H) \<union> parts H"
-proof (neg_clausify)
-assume 0: "X \<in> synth (analz H)"
-assume 1: "\<not> parts (insert X H) \<subseteq> synth (analz H) \<union> parts H"
-have 2: "\<And>X3. parts X3 \<union> synth (analz X3) = parts (synth (analz X3))"
-  by (metis parts_synth parts_analz)
-have 3: "\<And>X3. analz X3 \<union> synth (analz X3) = analz (synth (analz X3))"
-  by (metis analz_synth analz_idem)
-have 4: "\<And>X3. analz X3 \<subseteq> analz (synth X3)"
-  by (metis Un_upper1 analz_synth)
-have 5: "\<not> parts (insert X H) \<subseteq> parts H \<union> synth (analz H)"
-  by (metis 1 Un_commute)
-have 6: "\<not> parts (insert X H) \<subseteq> parts (synth (analz H))"
-  by (metis 5 2)
-have 7: "\<not> insert X H \<subseteq> synth (analz H)"
-  by (metis 6 parts_mono)
-have 8: "X \<notin> synth (analz H) \<or> \<not> H \<subseteq> synth (analz H)"
-  by (metis 7 insert_subset)
-have 9: "\<not> H \<subseteq> synth (analz H)"
-  by (metis 8 0)
-have 10: "\<And>X3. X3 \<subseteq> analz (synth X3)"
-  by (metis analz_subset_iff 4)
-have 11: "\<And>X3. X3 \<subseteq> analz (synth (analz X3))"
-  by (metis analz_subset_iff 10)
-have 12: "\<And>X3. analz (synth (analz X3)) = synth (analz X3) \<or>
-     \<not> analz X3 \<subseteq> synth (analz X3)"
-  by (metis Un_absorb1 3)
-have 13: "\<And>X3. analz (synth (analz X3)) = synth (analz X3)"
-  by (metis 12 synth_increasing)
-have 14: "\<And>X3. X3 \<subseteq> synth (analz X3)"
-  by (metis 11 13)
-show "False"
-  by (metis 9 14)
+sledgehammer
+proof -
+  assume A1: "X \<in> synth (analz H)"
+  have F1: "\<forall>x\<^isub>1. analz x\<^isub>1 \<union> synth (analz x\<^isub>1) = analz (synth (analz x\<^isub>1))"
+    by (metis analz_idem analz_synth)
+  have F2: "\<forall>x\<^isub>1. parts x\<^isub>1 \<union> synth (analz x\<^isub>1) = parts (synth (analz x\<^isub>1))"
+    by (metis parts_analz parts_synth)
+  have F3: "synth (analz H) X" using A1 by (metis mem_def)
+  have "\<forall>x\<^isub>2 x\<^isub>1\<Colon>msg set. x\<^isub>1 \<le> sup x\<^isub>1 x\<^isub>2" by (metis inf_sup_ord(3))
+  hence F4: "\<forall>x\<^isub>1. analz x\<^isub>1 \<subseteq> analz (synth x\<^isub>1)" by (metis analz_synth)
+  have F5: "X \<in> synth (analz H)" using F3 by (metis mem_def)
+  have "\<forall>x\<^isub>1. analz x\<^isub>1 \<subseteq> synth (analz x\<^isub>1)
+         \<longrightarrow> analz (synth (analz x\<^isub>1)) = synth (analz x\<^isub>1)"
+    using F1 by (metis subset_Un_eq)
+  hence F6: "\<forall>x\<^isub>1. analz (synth (analz x\<^isub>1)) = synth (analz x\<^isub>1)"
+    by (metis synth_increasing)
+  have "\<forall>x\<^isub>1. x\<^isub>1 \<subseteq> analz (synth x\<^isub>1)" using F4 by (metis analz_subset_iff)
+  hence "\<forall>x\<^isub>1. x\<^isub>1 \<subseteq> analz (synth (analz x\<^isub>1))" by (metis analz_subset_iff)
+  hence "\<forall>x\<^isub>1. x\<^isub>1 \<subseteq> synth (analz x\<^isub>1)" using F6 by metis
+  hence "H \<subseteq> synth (analz H)" by metis
+  hence "H \<subseteq> synth (analz H) \<and> X \<in> synth (analz H)" using F5 by metis
+  hence "insert X H \<subseteq> synth (analz H)" by (metis insert_subset)
+  hence "parts (insert X H) \<subseteq> parts (synth (analz H))" by (metis parts_mono)
+  hence "parts (insert X H) \<subseteq> parts H \<union> synth (analz H)" using F2 by metis
+  thus "parts (insert X H) \<subseteq> synth (analz H) \<union> parts H" by (metis Un_commute)
 qed
 
 lemma Fake_parts_insert_in_Un:
      "[|Z \<in> parts (insert X H);  X: synth (analz H)|] 
       ==> Z \<in>  synth (analz H) \<union> parts H";
-by (blast dest: Fake_parts_insert  [THEN subsetD, dest])
+by (blast dest: Fake_parts_insert [THEN subsetD, dest])
 
-declare [[ atp_problem_prefix = "Message__Fake_analz_insert" ]]
-    declare analz_mono [intro] synth_mono [intro] 
+declare analz_mono [intro] synth_mono [intro] 
+
 lemma Fake_analz_insert:
-     "X\<in> synth (analz G) ==>  
+     "X \<in> synth (analz G) ==>
       analz (insert X H) \<subseteq> synth (analz G) \<union> analz (G \<union> H)"
-by (metis Un_commute Un_insert_left Un_insert_right Un_upper1 analz_analz_Un analz_mono analz_synth_Un equalityE insert_absorb order_le_less xt1(12))
+by (metis Un_commute Un_insert_left Un_insert_right Un_upper1 analz_analz_Un
+          analz_mono analz_synth_Un insert_absorb)
 
-declare [[ atp_problem_prefix = "Message__Fake_analz_insert_simpler" ]]
-(*simpler problems?  BUT METIS CAN'T PROVE
+(* Simpler problems?  BUT METIS CAN'T PROVE THE LAST STEP
 lemma Fake_analz_insert_simpler:
-     "X\<in> synth (analz G) ==>  
+     "X \<in> synth (analz G) ==>  
       analz (insert X H) \<subseteq> synth (analz G) \<union> analz (G \<union> H)"
 apply (rule subsetI)
 apply (subgoal_tac "x \<in> analz (synth (analz G) \<union> H) ")
