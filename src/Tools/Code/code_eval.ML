@@ -171,10 +171,20 @@ fun add_eval_tyco (tyco, tyco') thy =
     |> Code_Target.add_syntax_tyco target tyco (SOME (k, pr))
   end;
 
+fun add_eval_constr (const, const') thy =
+  let
+    val k = Code.args_number thy const;
+    fun pr pr' fxy ts = Code_Printer.brackify fxy
+      (const' :: the_list (Code_ML.print_tuple pr' Code_Printer.BR (map fst ts)));
+  in
+    thy
+    |> Code_Target.add_syntax_const target const (SOME (Code_Printer.simple_const_syntax (k, pr)))
+  end;
+
 fun add_eval_const (const, const') = Code_Target.add_syntax_const target
   const (SOME (Code_Printer.simple_const_syntax (0, (K o K o K) const')));
 
-fun process (code_body, (tyco_map, const_map)) module_name NONE thy =
+fun process (code_body, (tyco_map, (constr_map, const_map))) module_name NONE thy =
       let
         val pr = Code_Printer.str o Long_Name.append module_name;
       in
@@ -182,6 +192,7 @@ fun process (code_body, (tyco_map, const_map)) module_name NONE thy =
         |> Code_Target.add_reserved target module_name
         |> Context.theory_map (ML_Context.exec (fn () => ML_Context.eval true Position.none code_body))
         |> fold (add_eval_tyco o apsnd pr) tyco_map
+        |> fold (add_eval_constr o apsnd pr) constr_map
         |> fold (add_eval_const o apsnd pr) const_map
       end
   | process (code_body, _) _ (SOME file_name) thy =
@@ -197,11 +208,15 @@ fun gen_code_reflect prep_type prep_const raw_datatypes raw_functions module_nam
   let
     val datatypes = map (fn (raw_tyco, raw_cos) =>
       (prep_type thy raw_tyco, map (prep_const thy) raw_cos)) raw_datatypes;
-    val functions = map (prep_const thy) raw_functions;
     val _ = map (uncurry (check_datatype thy)) datatypes;
+    val tycos = map fst datatypes;
+    val constrs = maps snd datatypes;
+    val functions = map (prep_const thy) raw_functions;
+    val result = evaluation_code thy module_name tycos (constrs @ functions)
+      |> (apsnd o apsnd) (chop (length constrs));
   in
     thy
-    |> process (evaluation_code thy module_name (map fst datatypes) (maps snd datatypes @ functions)) module_name some_file
+    |> process result module_name some_file
   end;
 
 val code_reflect = gen_code_reflect Code_Target.cert_tyco Code.check_const;
