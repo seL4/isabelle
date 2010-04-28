@@ -42,7 +42,14 @@ type minimize_command = string list -> string
 fun is_ident_char c = Char.isAlphaNum c orelse c = #"_"
 fun is_head_digit s = Char.isDigit (String.sub (s, 0))
 
+(* Hack: Could return false positives (e.g., a user happens to declare a
+   constant called "SomeTheory.sko_means_shoe_in_$wedish". *)
+val is_skolem_const_name =
+  Long_Name.base_name
+  #> String.isPrefix skolem_prefix andf String.isSubstring skolem_infix
+
 fun is_axiom_clause_number thm_names num = num <= Vector.length thm_names
+val index_in_shape = find_index o exists o curry (op =)
 
 fun ugly_name NONE s = s
   | ugly_name (SOME the_pool) s =
@@ -51,15 +58,13 @@ fun ugly_name NONE s = s
     | NONE => s
 
 fun smart_lambda v t =
-    Abs (case v of
-           Const (s, _) =>
-           List.last (space_explode skolem_infix (Long_Name.base_name s))
-         | Var ((s, _), _) => s
-         | Free (s, _) => s
-         | _ => "", fastype_of v, abstract_over (v, t))
-
+  Abs (case v of
+         Const (s, _) =>
+         List.last (space_explode skolem_infix (Long_Name.base_name s))
+       | Var ((s, _), _) => s
+       | Free (s, _) => s
+       | _ => "", fastype_of v, abstract_over (v, t))
 fun forall_of v t = HOLogic.all_const (fastype_of v) $ smart_lambda v t
-fun exists_of v t = HOLogic.exists_const (fastype_of v) $ smart_lambda v t
 
 datatype ('a, 'b, 'c, 'd, 'e) raw_step =
   Definition of 'a * 'b * 'c |
@@ -381,19 +386,22 @@ fun repair_sorts vt =
         | tmsubst (t as Bound _) = t
         | tmsubst (Abs (a, T, t)) = Abs (a, tysubst T, tmsubst t)
         | tmsubst (t1 $ t2) = tmsubst t1 $ tmsubst t2
-  in not (Vartab.is_empty vt) ? tmsubst end;
+  in not (Vartab.is_empty vt) ? tmsubst end
+
+fun unskolemize_term t =
+  fold forall_of (Term.add_consts t []
+                 |> filter (is_skolem_const_name o fst) |> map Const) t
 
 (* Interpret a list of syntax trees as a clause, given by "real" literals and
    sort constraints. "vt" holds the initial sort constraints, from the
    conjecture clauses. *)
 fun clause_of_nodes ctxt vt us =
-  let val (vt, dt) = lits_of_nodes (ProofContext.theory_of ctxt) (vt, []) us in
-    dt |> repair_sorts vt
+  let val (vt, t) = lits_of_nodes (ProofContext.theory_of ctxt) (vt, []) us in
+    t |> repair_sorts vt
   end
 fun check_clause ctxt =
   TypeInfer.constrain HOLogic.boolT
   #> Syntax.check_term (ProofContext.set_mode ProofContext.mode_schematic ctxt)
-fun checked_clause_of_nodes ctxt = check_clause ctxt oo clause_of_nodes ctxt
 
 (** Global sort constraints on TFrees (from tfree_tcs) are positive unit
     clauses. **)
@@ -420,22 +428,25 @@ fun clauses_in_lines (Definition (_, u, us)) = u :: us
 
 fun decode_line vt (Definition (num, u, us)) ctxt =
     let
-      val cl1 = clause_of_nodes ctxt vt [u]
-      val vars = snd (strip_comb cl1)
+      val t1 = clause_of_nodes ctxt vt [u]
+      val vars = snd (strip_comb t1)
       val frees = map unvarify_term vars
       val unvarify_args = subst_atomic (vars ~~ frees)
-      val cl2 = clause_of_nodes ctxt vt us
-      val (cl1, cl2) =
-        HOLogic.eq_const HOLogic.typeT $ cl1 $ cl2
+      val t2 = clause_of_nodes ctxt vt us
+      val (t1, t2) =
+        HOLogic.eq_const HOLogic.typeT $ t1 $ t2
         |> unvarify_args |> check_clause ctxt |> HOLogic.dest_eq
     in
-      (Definition (num, cl1, cl2),
-       fold Variable.declare_term (maps OldTerm.term_frees [cl1, cl2]) ctxt)
+      (Definition (num, t1, t2),
+       fold Variable.declare_term (maps OldTerm.term_frees [t1, t2]) ctxt)
     end
   | decode_line vt (Inference (num, us, deps)) ctxt =
-    let val cl = us |> clause_of_nodes ctxt vt |> check_clause ctxt in
-      (Inference (num, cl, deps),
-       fold Variable.declare_term (OldTerm.term_frees cl) ctxt)
+    let
+      val t = us |> clause_of_nodes ctxt vt |> unskolemize_term
+                 |> check_clause ctxt
+    in
+      (Inference (num, t, deps),
+       fold Variable.declare_term (OldTerm.term_frees t) ctxt)
     end
 fun decode_lines ctxt lines =
   let
@@ -457,9 +468,10 @@ fun replace_deps_in_line _ (line as Definition _) = line
 
 (*Discard axioms; consolidate adjacent lines that prove the same clause, since they differ
   only in type information.*)
-fun add_line _ (line as Definition _) lines = line :: lines
-  | add_line thm_names (Inference (num, t, [])) lines =
-    (* No dependencies: axiom or conjecture clause *)
+fun add_line _ _ (line as Definition _) lines = line :: lines
+  | add_line conjecture_shape thm_names (Inference (num, t, [])) lines =
+    (* No dependencies: axiom, conjecture clause, or internal axioms
+       (Vampire). *)
     if is_axiom_clause_number thm_names num then
       (* Axioms are not proof lines. *)
       if is_only_type_information t then
@@ -469,9 +481,11 @@ fun add_line _ (line as Definition _) lines = line :: lines
         (_, []) => lines (*no repetition of proof line*)
       | (pre, Inference (num', _, _) :: post) =>
         pre @ map (replace_deps_in_line (num', [num])) post
-    else
+    else if index_in_shape num conjecture_shape >= 0 then
       Inference (num, t, []) :: lines
-  | add_line _ (Inference (num, t, deps)) lines =
+    else
+      lines
+  | add_line _ _ (Inference (num, t, deps)) lines =
     (* Type information will be deleted later; skip repetition test. *)
     if is_only_type_information t then
       Inference (num, t, deps) :: lines
@@ -492,6 +506,7 @@ fun add_nontrivial_line (Inference (num, t, [])) lines =
 and delete_dep num lines =
   fold_rev add_nontrivial_line (map (replace_deps_in_line (num, [])) lines) []
 
+(* FIXME: this seems not to have worked and is obsolete anyway *)
 fun is_bad_free (Free (a, _)) = String.isPrefix skolem_prefix a
   | is_bad_free _ = false
 
@@ -596,13 +611,14 @@ fun step_for_line _ _ (Definition (num, t1, t2)) = Let (t1, t2)
           forall_vars t,
           Facts (fold (add_fact_from_dep thm_names) deps ([], [])))
 
-fun proof_from_atp_proof pool ctxt shrink_factor atp_proof thm_names frees =
+fun proof_from_atp_proof pool ctxt shrink_factor atp_proof conjecture_shape
+                         thm_names frees =
   let
     val lines =
       atp_proof ^ "$" (* the $ sign is a dummy token *)
       |> parse_proof pool
       |> decode_lines ctxt
-      |> rpair [] |-> fold_rev (add_line thm_names)
+      |> rpair [] |-> fold_rev (add_line conjecture_shape thm_names)
       |> rpair [] |-> fold_rev add_nontrivial_line
       |> rpair (0, []) |-> fold_rev (add_desired_line ctxt shrink_factor)
       |> snd
@@ -662,22 +678,20 @@ fun case_split_qualifiers proofs =
   | 1 => [Then]
   | _ => [Ultimately]
 
-val index_in_shape = find_index o exists o curry (op =)
-
 fun redirect_proof thy conjecture_shape hyp_ts concl_t proof =
   let
     val concl_ls = map (pair raw_prefix) (List.last conjecture_shape)
-    fun find_hyp (_, j) = nth hyp_ts (index_in_shape j conjecture_shape)
+    fun find_hyp num = nth hyp_ts (index_in_shape num conjecture_shape)
     fun first_pass ([], contra) = ([], contra)
       | first_pass ((step as Fix _) :: proof, contra) =
         first_pass (proof, contra) |>> cons step
       | first_pass ((step as Let _) :: proof, contra) =
         first_pass (proof, contra) |>> cons step
-      | first_pass ((step as Assume (l, t)) :: proof, contra) =
+      | first_pass ((step as Assume (l as (_, num), t)) :: proof, contra) =
         if member (op =) concl_ls l then
           first_pass (proof, contra ||> cons step)
         else
-          first_pass (proof, contra) |>> cons (Assume (l, find_hyp l))
+          first_pass (proof, contra) |>> cons (Assume (l, find_hyp num))
       | first_pass ((step as Have (qs, l, t, Facts (ls, ss))) :: proof,
                     contra) =
         if exists (member (op =) (fst contra)) ls then
@@ -773,21 +787,6 @@ val kill_duplicate_assumptions_in_proof =
     and do_proof proof = fold do_step proof ([], [], []) |> #1 |> rev
   in do_proof end
 
-
-(* Hack: Could return false positives (e.g., a user happens to declare a
-   constant called "SomeTheory.sko_means_shoe_in_$wedish". *)
-val is_skolem_const_name =
-  Long_Name.base_name
-  #> String.isPrefix skolem_prefix andf String.isSubstring skolem_infix
-
-fun unskolemize_term t =
-  fold exists_of (Term.add_consts t []
-                  |> filter (is_skolem_const_name o fst) |> map Const) t
-
-fun unskolemize_step (Have (qs, l, t, by)) =
-    Have (qs, l, unskolemize_term t, by)
-  | unskolemize_step step = step
-
 val then_chain_proof =
   let
     fun aux _ [] = []
@@ -866,7 +865,7 @@ fun string_for_proof ctxt i n =
     fun do_free (s, T) =
       maybe_quote s ^ " :: " ^
       maybe_quote (fix_print_mode (Syntax.string_of_typ ctxt) T)
-    fun do_raw_label (s, j) = s ^ string_of_int j
+    fun do_raw_label (s, num) = s ^ string_of_int num
     fun do_label l = if l = no_label then "" else do_raw_label l ^ ": "
     fun do_have qs =
       (if member (op =) qs Moreover then "moreover " else "") ^
@@ -921,11 +920,10 @@ fun isar_proof_text (pool, debug, shrink_factor, ctxt, conjecture_shape)
     val (one_line_proof, lemma_names) =
       metis_proof_text (minimize_command, atp_proof, thm_names, goal, i)
     fun isar_proof_for () =
-      case proof_from_atp_proof pool ctxt shrink_factor atp_proof thm_names
-                                frees
+      case proof_from_atp_proof pool ctxt shrink_factor atp_proof
+                                conjecture_shape thm_names frees
            |> redirect_proof thy conjecture_shape hyp_ts concl_t
            |> kill_duplicate_assumptions_in_proof
-           |> map unskolemize_step
            |> then_chain_proof
            |> kill_useless_labels_in_proof
            |> relabel_proof
