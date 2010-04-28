@@ -33,10 +33,6 @@ end;
 structure Sledgehammer_Proof_Reconstruct : SLEDGEHAMMER_PROOF_RECONSTRUCT =
 struct
 
-datatype ('a, 'b, 'c, 'd, 'e) raw_step =
-  Definition of 'a * 'b * 'c |
-  Inference of 'a * 'd * 'e list
-
 open Sledgehammer_Util
 open Sledgehammer_FOL_Clause
 open Sledgehammer_Fact_Preprocessor
@@ -53,6 +49,25 @@ fun ugly_name NONE s = s
     case Symtab.lookup (snd the_pool) s of
       SOME s' => s'
     | NONE => s
+
+(* Hack: Could return false positives (e.g., a user happens to declare a
+   constant called "SomeTheory.sko_means_shoe_in_swedish". *)
+val is_skolem_const_name = String.isPrefix skolem_prefix o Long_Name.base_name
+
+fun smart_lambda v t =
+    Abs (case v of
+           Const (s, _) => if is_skolem_const_name s then "g"
+                           else Long_Name.base_name s
+         | Var ((s, _), _) => s
+         | Free (s, _) => s
+         | _ => "", fastype_of v, abstract_over (v, t))
+
+fun forall_of v t = HOLogic.all_const (fastype_of v) $ smart_lambda v t
+fun exists_of v t = HOLogic.exists_const (fastype_of v) $ smart_lambda v t
+
+datatype ('a, 'b, 'c, 'd, 'e) raw_step =
+  Definition of 'a * 'b * 'c |
+  Inference of 'a * 'd * 'e list
 
 (**** PARSING OF TSTP FORMAT ****)
 
@@ -294,8 +309,7 @@ fun add_constraint ((false, cl, TFree(a,_)), vt) = add_var ((a,~1),cl) vt
   | add_constraint ((false, cl, TVar(ix,_)), vt) = add_var (ix,cl) vt
   | add_constraint (_, vt) = vt;
 
-fun is_positive_literal (@{const Trueprop} $ t) = is_positive_literal t
-  | is_positive_literal (@{const Not} $ _) = false
+fun is_positive_literal (@{const Not} $ _) = false
   | is_positive_literal t = true
 
 fun negate_term thy (Const (@{const_name All}, T) $ Abs (s, T', t')) =
@@ -310,11 +324,6 @@ fun negate_term thy (Const (@{const_name All}, T) $ Abs (s, T', t')) =
     @{const "op &"} $ negate_term thy t1 $ negate_term thy t2
   | negate_term _ (@{const Not} $ t) = t
   | negate_term _ t = @{const Not} $ t
-fun negate_formula thy (@{const Trueprop} $ t) =
-    @{const Trueprop} $ negate_term thy t
-  | negate_formula thy t =
-    if fastype_of t = @{typ prop} then Logic.mk_implies (t, @{prop False})
-    else @{const Not} $ t
 
 fun clause_for_literals _ [] = HOLogic.false_const
   | clause_for_literals _ [lit] = lit
@@ -559,12 +568,13 @@ fun add_fact_from_dep thm_names num =
   else
     apfst (insert (op =) (raw_prefix, num))
 
-fun quantify_over_all_vars t = fold_rev Logic.all (map Var ((*Term.add_vars t###*) [])) t
+fun forall_vars t = fold_rev forall_of (map Var (Term.add_vars t [])) t
+
 fun step_for_line _ _ (Definition (num, t1, t2)) = Let (t1, t2)
   | step_for_line _ _ (Inference (num, t, [])) = Assume ((raw_prefix, num), t)
   | step_for_line thm_names j (Inference (num, t, deps)) =
     Have (if j = 1 then [Show] else [], (raw_prefix, num),
-          quantify_over_all_vars (HOLogic.mk_Trueprop t),
+          forall_vars t,
           Facts (fold (add_fact_from_dep thm_names) deps ([], [])))
 
 fun strip_spaces_in_list [] = ""
@@ -653,25 +663,26 @@ fun case_split_qualifiers proofs =
 
 val index_in_shape = find_index o exists o curry (op =)
 
-fun direct_proof thy conjecture_shape hyp_ts concl_t proof =
+fun redirect_proof thy conjecture_shape hyp_ts concl_t proof =
   let
     val concl_ls = map (pair raw_prefix) (List.last conjecture_shape)
     fun find_hyp (_, j) = nth hyp_ts (index_in_shape j conjecture_shape)
     fun first_pass ([], contra) = ([], contra)
-      | first_pass ((ps as Fix _) :: proof, contra) =
-        first_pass (proof, contra) |>> cons ps
-      | first_pass ((ps as Let _) :: proof, contra) =
-        first_pass (proof, contra) |>> cons ps
-      | first_pass ((ps as Assume (l, t)) :: proof, contra) =
+      | first_pass ((step as Fix _) :: proof, contra) =
+        first_pass (proof, contra) |>> cons step
+      | first_pass ((step as Let _) :: proof, contra) =
+        first_pass (proof, contra) |>> cons step
+      | first_pass ((step as Assume (l, t)) :: proof, contra) =
         if member (op =) concl_ls l then
-          first_pass (proof, contra ||> cons ps)
+          first_pass (proof, contra ||> cons step)
         else
           first_pass (proof, contra) |>> cons (Assume (l, find_hyp l))
-      | first_pass ((ps as Have (qs, l, t, Facts (ls, ss))) :: proof, contra) =
+      | first_pass ((step as Have (qs, l, t, Facts (ls, ss))) :: proof,
+                    contra) =
         if exists (member (op =) (fst contra)) ls then
-          first_pass (proof, contra |>> cons l ||> cons ps)
+          first_pass (proof, contra |>> cons l ||> cons step)
         else
-          first_pass (proof, contra) |>> cons ps
+          first_pass (proof, contra) |>> cons step
       | first_pass _ = raise Fail "malformed proof"
     val (proof_top, (contra_ls, contra_proof)) =
       first_pass (proof, (concl_ls, []))
@@ -681,8 +692,7 @@ fun direct_proof thy conjecture_shape hyp_ts concl_t proof =
     fun second_pass end_qs ([], assums, patches) =
         ([Have (end_qs, no_label,
                 if length assums < length concl_ls then
-                  clause_for_literals thy
-                                      (map (negate_formula thy o fst) assums)
+                  clause_for_literals thy (map (negate_term thy o fst) assums)
                 else
                   concl_t,
                 Facts (backpatch_labels patches (map snd assums)))], patches)
@@ -701,9 +711,9 @@ fun direct_proof thy conjecture_shape hyp_ts concl_t proof =
                            (proof, assums,
                             patches |>> cons (contra_l, (l :: co_ls, ss)))
                |>> cons (if member (op =) (fst (snd patches)) l then
-                           Assume (l, negate_formula thy t)
+                           Assume (l, negate_term thy t)
                          else
-                           Have (qs, l, negate_formula thy t,
+                           Have (qs, l, negate_term thy t,
                                  Facts (backpatch_label patches l)))
              else
                second_pass end_qs (proof, assums,
@@ -747,10 +757,10 @@ val kill_duplicate_assumptions_in_proof =
   let
     fun relabel_facts subst =
       apfst (map (fn l => AList.lookup (op =) subst l |> the_default l))
-    fun do_step (ps as Assume (l, t)) (proof, subst, assums) =
+    fun do_step (step as Assume (l, t)) (proof, subst, assums) =
         (case AList.lookup (op aconv) assums t of
            SOME l' => (proof, (l', l) :: subst, assums)
-         | NONE => (ps :: proof, subst, (t, l) :: assums))
+         | NONE => (step :: proof, subst, (t, l) :: assums))
       | do_step (Have (qs, l, t, by)) (proof, subst, assums) =
         (Have (qs, l, t,
                case by of
@@ -758,14 +768,22 @@ val kill_duplicate_assumptions_in_proof =
                | CaseSplit (proofs, facts) =>
                  CaseSplit (map do_proof proofs, relabel_facts subst facts)) ::
          proof, subst, assums)
-      | do_step ps (proof, subst, assums) = (ps :: proof, subst, assums)
+      | do_step step (proof, subst, assums) = (step :: proof, subst, assums)
     and do_proof proof = fold do_step proof ([], [], []) |> #1 |> rev
   in do_proof end
+
+fun unskolemize_term t =
+  fold exists_of (Term.add_consts t []
+                  |> filter (is_skolem_const_name o fst) |> map Const) t
+
+fun unskolemize_step (Have (qs, l, t, by)) =
+    Have (qs, l, unskolemize_term t, by)
+  | unskolemize_step step = step
 
 val then_chain_proof =
   let
     fun aux _ [] = []
-      | aux _ ((ps as Assume (l, _)) :: proof) = ps :: aux l proof
+      | aux _ ((step as Assume (l, _)) :: proof) = step :: aux l proof
       | aux l' (Have (qs, l, t, by) :: proof) =
         (case by of
            Facts (ls, ss) =>
@@ -777,7 +795,7 @@ val then_chain_proof =
          | CaseSplit (proofs, facts) =>
            Have (qs, l, t, CaseSplit (map (aux no_label) proofs, facts))) ::
         aux l proof
-      | aux _ (ps :: proof) = ps :: aux no_label proof
+      | aux _ (step :: proof) = step :: aux no_label proof
   in aux no_label end
 
 fun kill_useless_labels_in_proof proof =
@@ -791,7 +809,7 @@ fun kill_useless_labels_in_proof proof =
                 CaseSplit (proofs, facts) =>
                 CaseSplit (map (map kill) proofs, facts)
               | _ => by)
-      | kill ps = ps
+      | kill step = step
   in map kill proof end
 
 fun prefix_for_depth n = replicate_string (n + 1)
@@ -827,7 +845,8 @@ val relabel_proof =
           Have (qs, l', t, by) ::
           aux subst depth (next_assum, next_fact) proof
         end
-      | aux subst depth nextp (ps :: proof) = ps :: aux subst depth nextp proof
+      | aux subst depth nextp (step :: proof) =
+        step :: aux subst depth nextp proof
   in aux [] 0 (1, 1) end
 
 fun string_for_proof ctxt i n =
@@ -896,8 +915,9 @@ fun isar_proof_text (pool, debug, shrink_factor, ctxt, conjecture_shape)
     fun isar_proof_for () =
       case proof_from_atp_proof pool ctxt shrink_factor atp_proof thm_names
                                 frees
-           |> direct_proof thy conjecture_shape hyp_ts concl_t
+           |> redirect_proof thy conjecture_shape hyp_ts concl_t
            |> kill_duplicate_assumptions_in_proof
+           |> map unskolemize_step
            |> then_chain_proof
            |> kill_useless_labels_in_proof
            |> relabel_proof
