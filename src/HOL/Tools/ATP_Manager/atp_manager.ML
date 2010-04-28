@@ -25,7 +25,6 @@ sig
      follow_defs: bool,
      isar_proof: bool,
      shrink_factor: int,
-     sorts: bool,
      timeout: Time.time,
      minimize_timeout: Time.time}
   type problem =
@@ -85,7 +84,6 @@ type params =
    follow_defs: bool,
    isar_proof: bool,
    shrink_factor: int,
-   sorts: bool,
    timeout: Time.time,
    minimize_timeout: Time.time}
 

@@ -110,8 +110,8 @@ fun shape_of_clauses _ [] = []
 
 fun generic_prover overlord get_facts prepare write_file home executable args
         proof_delims known_failures name
-        ({debug, full_types, explicit_apply, isar_proof, shrink_factor, sorts,
-         ...} : params) minimize_command
+        ({debug, full_types, explicit_apply, isar_proof, shrink_factor, ...}
+         : params) minimize_command
         ({subgoal, goal, relevance_override, axiom_clauses, filtered_clauses}
          : problem) =
   let
@@ -213,7 +213,7 @@ fun generic_prover overlord get_facts prepare write_file home executable args
       case outcome of
         NONE =>
         proof_text isar_proof
-                   (pool, debug, shrink_factor, sorts, ctxt, conjecture_shape)
+                   (pool, debug, shrink_factor, ctxt, conjecture_shape)
                    (minimize_command, proof, internal_thm_names, th, subgoal)
       | SOME failure => (string_for_failure failure ^ "\n", [])
   in
