@@ -16,7 +16,7 @@ uses
   ("Tools/Domain/domain_extender.ML")
 begin
 
-defaultsort pcpo
+default_sort pcpo
 
 
 subsection {* Casedist *}

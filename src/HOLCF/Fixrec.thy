@@ -13,7 +13,7 @@ begin
 
 subsection {* Maybe monad type *}
 
-defaultsort cpo
+default_sort cpo
 
 pcpodef (open) 'a maybe = "UNIV::(one ++ 'a u) set"
 by simp_all
@@ -463,7 +463,7 @@ done
 
 subsection {* Match functions for built-in types *}
 
-defaultsort pcpo
+default_sort pcpo
 
 definition
   match_UU :: "'a \<rightarrow> 'c maybe \<rightarrow> 'c maybe"

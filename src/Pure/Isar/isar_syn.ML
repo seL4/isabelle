@@ -96,7 +96,7 @@ val _ =
     >> (Toplevel.theory o AxClass.axiomatize_classrel_cmd));
 
 val _ =
-  OuterSyntax.local_theory "defaultsort" "declare default sort for explicit type variables"
+  OuterSyntax.local_theory "default_sort" "declare default sort for explicit type variables"
     K.thy_decl
     (P.sort >> (fn s => fn lthy => Local_Theory.set_defsort (Syntax.read_sort lthy s) lthy));
 

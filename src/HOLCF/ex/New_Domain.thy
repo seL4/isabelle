@@ -13,7 +13,7 @@ text {*
   i.e. types in class @{text rep}.
 *}
 
-defaultsort rep
+default_sort rep
 
 text {*
   Provided that @{text rep} is the default sort, the @{text new_domain}

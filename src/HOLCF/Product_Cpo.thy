@@ -8,7 +8,7 @@ theory Product_Cpo
 imports Adm
 begin
 
-defaultsort cpo
+default_sort cpo
 
 subsection {* Unit type is a pcpo *}
 

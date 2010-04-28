@@ -8,7 +8,7 @@ theory Lift
 imports Discrete Up Countable
 begin
 
-defaultsort type
+default_sort type
 
 pcpodef 'a lift = "UNIV :: 'a discr u set"
 by simp_all

@@ -10,7 +10,7 @@ begin
 
 subsection {* Compact bases of bifinite domains *}
 
-defaultsort profinite
+default_sort profinite
 
 typedef (open) 'a compact_basis = "{x::'a::profinite. compact x}"
 by (fast intro: compact_approx)

@@ -8,7 +8,7 @@ theory Sprod
 imports Bifinite
 begin
 
-defaultsort pcpo
+default_sort pcpo
 
 subsection {* Definition of strict product type *}
 

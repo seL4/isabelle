@@ -17,7 +17,7 @@ text {*
 *}
 
 classes prog < "term"
-defaultsort prog
+default_sort prog
 
 arities "fun" :: (prog, prog) prog
 

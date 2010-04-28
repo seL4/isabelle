@@ -40,7 +40,7 @@ subsection {* Primitive logic *}
 subsubsection {* Core syntax *}
 
 classes type
-defaultsort type
+default_sort type
 setup {* Object_Logic.add_base_sort @{sort type} *}
 
 arities

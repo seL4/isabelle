@@ -12,7 +12,7 @@ imports
   Sum_Cpo
 begin
 
-defaultsort pcpo
+default_sort pcpo
 
 text {* Legacy theorem names *}
 

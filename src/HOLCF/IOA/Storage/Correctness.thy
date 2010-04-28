@@ -8,7 +8,7 @@ theory Correctness
 imports SimCorrectness Spec Impl
 begin
 
-defaultsort type
+default_sort type
 
 definition
   sim_relation :: "((nat * bool) * (nat set * bool)) set" where

@@ -8,7 +8,7 @@ theory TL
 imports Pred Sequence
 begin
 
-defaultsort type
+default_sort type
 
 types
   'a temporal = "'a Seq predicate"

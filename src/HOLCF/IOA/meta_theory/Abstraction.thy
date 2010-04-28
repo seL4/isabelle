@@ -9,7 +9,7 @@ imports LiveIOA
 uses ("automaton.ML")
 begin
 
-defaultsort type
+default_sort type
 
 definition
   cex_abs :: "('s1 => 's2) => ('a,'s1)execution => ('a,'s2)execution" where

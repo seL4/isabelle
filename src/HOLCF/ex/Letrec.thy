@@ -8,7 +8,7 @@ theory Letrec
 imports HOLCF
 begin
 
-defaultsort pcpo
+default_sort pcpo
 
 definition
   CLetrec :: "('a \<rightarrow> 'a \<times> 'b) \<rightarrow> 'b" where

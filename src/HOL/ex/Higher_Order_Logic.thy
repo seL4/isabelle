@@ -20,7 +20,7 @@ text {*
 subsection {* Pure Logic *}
 
 classes type
-defaultsort type
+default_sort type
 
 typedecl o
 arities

@@ -9,7 +9,7 @@ theory Fix
 imports Cfun
 begin
 
-defaultsort pcpo
+default_sort pcpo
 
 subsection {* Iteration *}
 

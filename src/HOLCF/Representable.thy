@@ -42,7 +42,7 @@ text {*
   @{term rep}, unless specified otherwise.
 *}
 
-defaultsort rep
+default_sort rep
 
 subsection {* Representations of types *}
 
