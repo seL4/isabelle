@@ -84,6 +84,8 @@ INCOMPATIBILITY.
 
 *** Pure ***
 
+* Empty class specifications observe default sort.  INCOMPATIBILITY.
+
 * Old 'axclass' has been discontinued.  Use 'class' instead.  INCOMPATIBILITY.
 
 * Code generator: simple concept for abstract datatypes obeying invariants.
