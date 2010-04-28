@@ -23,7 +23,7 @@ consts f :: "addr \<Rightarrow> val"
 
 lemma "\<lbrakk>f c = Intg x; \<forall>y. f b = Intg y \<longrightarrow> y \<noteq> x; (a, b) \<in> R\<^sup>*; (b, c) \<in> R\<^sup>*\<rbrakk>
        \<Longrightarrow> \<exists>c. (b, c) \<in> R \<and> (a, c) \<in> R\<^sup>*"
-sledgehammer
+(* sledgehammer *)
 proof -
   assume A1: "f c = Intg x"
   assume A2: "\<forall>y. f b = Intg y \<longrightarrow> y \<noteq> x"
