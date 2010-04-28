@@ -1080,18 +1080,21 @@ HOL-Multivariate_Analysis: HOL-SMT $(OUT)/HOL-Multivariate_Analysis
 $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL-SMT	\
   Multivariate_Analysis/ROOT.ML				\
   Multivariate_Analysis/document/root.tex		\
-  Multivariate_Analysis/L2_Norm.thy			\
-  Multivariate_Analysis/Multivariate_Analysis.thy	\
-  Multivariate_Analysis/Determinants.thy		\
-  Multivariate_Analysis/Finite_Cartesian_Product.thy	\
-  Multivariate_Analysis/Euclidean_Space.thy		\
-  Multivariate_Analysis/Topology_Euclidean_Space.thy	\
-  Multivariate_Analysis/Convex_Euclidean_Space.thy      \
   Multivariate_Analysis/Brouwer_Fixpoint.thy            \
+  Multivariate_Analysis/Convex_Euclidean_Space.thy      \
   Multivariate_Analysis/Derivative.thy			\
+  Multivariate_Analysis/Determinants.thy		\
+  Multivariate_Analysis/Euclidean_Space.thy		\
+  Multivariate_Analysis/Fashoda.thy			\
+  Multivariate_Analysis/Finite_Cartesian_Product.thy	\
   Multivariate_Analysis/Integration.thy			\
   Multivariate_Analysis/Integration.cert		\
-  Multivariate_Analysis/Real_Integration.thy
+  Multivariate_Analysis/L2_Norm.thy			\
+  Multivariate_Analysis/Multivariate_Analysis.thy	\
+  Multivariate_Analysis/Operator_Norm.thy		\
+  Multivariate_Analysis/Real_Integration.thy		\
+  Multivariate_Analysis/Topology_Euclidean_Space.thy	\
+  Multivariate_Analysis/Vec1.thy
 	@cd Multivariate_Analysis; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-SMT HOL-Multivariate_Analysis
 
 
