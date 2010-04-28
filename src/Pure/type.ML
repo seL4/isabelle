@@ -32,6 +32,7 @@ sig
   val inter_sort: tsig -> sort * sort -> sort
   val cert_class: tsig -> class -> class
   val cert_sort: tsig -> sort -> sort
+  val minimize_sort: tsig -> sort -> sort
   val witness_sorts: tsig -> (typ * sort) list -> sort list -> (typ * sort) list
   type mode
   val mode_default: mode
@@ -159,6 +160,7 @@ fun inter_sort (TSig {classes, ...}) = Sorts.inter_sort (#2 classes);
 
 fun cert_class (TSig {classes, ...}) = Sorts.certify_class (#2 classes);
 fun cert_sort (TSig {classes, ...}) = Sorts.certify_sort (#2 classes);
+fun minimize_sort (TSig {classes, ...}) = Sorts.minimize_sort (#2 classes);
 
 fun witness_sorts (TSig {classes, log_types, ...}) =
   Sorts.witness_sorts (#2 classes) log_types;
