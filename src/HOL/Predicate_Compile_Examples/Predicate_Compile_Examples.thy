@@ -686,6 +686,13 @@ values [depth_limited 1] "{x. not_reachable_in_example_graph' 0 4}"*)
 (*values [depth_limit = 4] "{x. not_reachable_in_example_graph' 0 4}"*) (* fails with undefined *)
 (*values [depth_limit = 20] "{x. not_reachable_in_example_graph' 0 4}"*) (* fails with undefined *)
 
+subsection {* Free function variable *}
+
+inductive FF :: "nat => nat => bool"
+where
+  "f x = y ==> FF x y"
+
+code_pred FF .
 
 subsection {* IMP *}
 
