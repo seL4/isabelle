@@ -123,6 +123,13 @@ where
 
 subsection {* Code setup *}
 
+code_reflect
+  datatypes lazy_sequence = Lazy_Sequence
+  functions "Lazy_Sequence.map" yield
+  module_name Lazy_Sequence
+
+(* FIXME formulate yieldn in the logic with type code_numeral *)
+
 ML {*
 signature LAZY_SEQUENCE =
 sig
@@ -135,9 +142,9 @@ end;
 structure Lazy_Sequence : LAZY_SEQUENCE =
 struct
 
-@{code_datatype lazy_sequence = Lazy_Sequence}
+open Lazy_Sequence;
 
-val yield = @{code yield}
+fun map f = mapa f;
 
 fun anamorph f k x = (if k = 0 then ([], x)
   else case f x
@@ -148,16 +155,8 @@ fun anamorph f k x = (if k = 0 then ([], x)
 
 fun yieldn S = anamorph yield S;
 
-val map = @{code map}
-
 end;
 *}
-
-code_reserved Eval Lazy_Sequence
-
-code_type lazy_sequence (Eval "_/ Lazy'_Sequence.lazy'_sequence")
-
-code_const Lazy_Sequence (Eval "Lazy'_Sequence.Lazy'_Sequence")
 
 section {* With Hit Bound Value *}
 text {* assuming in negative context *}
