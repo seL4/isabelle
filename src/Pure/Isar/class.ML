@@ -287,8 +287,7 @@ fun gen_class prep_class_spec bname raw_supclasses raw_elems thy =
     |-> (fn (param_map, params, assm_axiom) =>
        `(fn thy => calculate thy class sups base_sort param_map assm_axiom)
     #-> (fn (base_morph, eq_morph, export_morph, axiom, assm_intro, of_class) =>
-       Locale.add_registration (class, base_morph $> eq_morph) NONE export_morph
-         (*FIXME should not modify base_morph, although admissible*)
+       Locale.add_registration (class, base_morph $> eq_morph (*FIXME duplication*)) (SOME (eq_morph, true)) export_morph
     #> register class sups params base_sort base_morph export_morph axiom assm_intro of_class))
     |> Theory_Target.init (SOME class)
     |> pair class
