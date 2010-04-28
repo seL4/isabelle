@@ -396,7 +396,7 @@ fun remote_prover_config atp_prefix args
 
 val remote_vampire =
   tptp_prover (remotify (fst vampire))
-              (remote_prover_config "Vampire---11" "" vampire_config)
+              (remote_prover_config "Vampire---9" "" vampire_config)
 
 val remote_e =
   tptp_prover (remotify (fst e))
