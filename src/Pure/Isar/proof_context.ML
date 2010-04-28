@@ -608,22 +608,19 @@ end;
 
 (* types *)
 
-fun get_sort ctxt raw_env =
+fun get_sort ctxt raw_text =
   let
-    val thy = theory_of ctxt;
     val tsig = tsig_of ctxt;
 
-    fun eq ((xi, S), (xi', S')) =
-      Term.eq_ix (xi, xi') andalso Type.eq_sort tsig (S, S');
-    val env = distinct eq raw_env;
+    val text = distinct (op =) (map (apsnd (Type.minimize_sort tsig)) raw_text);
     val _ =
-      (case duplicates (eq_fst (op =)) env of
+      (case duplicates (eq_fst (op =)) text of
         [] => ()
       | dups => error ("Inconsistent sort constraints for type variable(s) "
           ^ commas_quote (map (Term.string_of_vname' o fst) dups)));
 
     fun lookup xi =
-      (case AList.lookup (op =) env xi of
+      (case AList.lookup (op =) text xi of
         NONE => NONE
       | SOME S => if S = dummyS then NONE else SOME S);
 
@@ -637,7 +634,7 @@ fun get_sort ctxt raw_env =
           else error ("Sort constraint " ^ Syntax.string_of_sort ctxt S ^
             " inconsistent with default " ^ Syntax.string_of_sort ctxt S' ^
             " for type variable " ^ quote (Term.string_of_vname' xi)));
-  in Sign.minimize_sort thy o get end;
+  in get end;
 
 fun check_tvar ctxt (xi, S) = (xi, get_sort ctxt [(xi, S)] xi);
 fun check_tfree ctxt (x, S) = apfst fst (check_tvar ctxt ((x, ~1), S));
@@ -737,11 +734,10 @@ local
 
 fun parse_sort ctxt text =
   let
-    val thy = theory_of ctxt;
     val (syms, pos) = Syntax.parse_token Markup.sort text;
     val S = Syntax.standard_parse_sort ctxt (syn_of ctxt) (syms, pos)
       handle ERROR msg => cat_error msg  ("Failed to parse sort" ^ Position.str_of pos)
-  in Sign.minimize_sort thy S end;
+  in Type.minimize_sort (tsig_of ctxt) S end;
 
 fun parse_typ ctxt text =
   let

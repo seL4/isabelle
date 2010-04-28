@@ -110,8 +110,7 @@ fun type_constraint T t =
 
 fun decode_term get_sort map_const map_free tm =
   let
-    val sort_env = term_sorts tm;
-    val decodeT = typ_of_term (get_sort sort_env);
+    val decodeT = typ_of_term (get_sort (term_sorts tm));
 
     fun decode (Const ("_constrain", _) $ t $ typ) =
           type_constraint (decodeT typ) (decode t)
