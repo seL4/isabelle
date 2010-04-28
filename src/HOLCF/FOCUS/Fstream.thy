@@ -12,7 +12,7 @@ theory Fstream
 imports "../ex/Stream"
 begin
 
-defaultsort type
+default_sort type
 
 types 'a fstream = "'a lift stream"
 

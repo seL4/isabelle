@@ -15,7 +15,7 @@ begin
 global
 
 classes "term"
-defaultsort "term"
+default_sort "term"
 
 consts
 

@@ -84,6 +84,8 @@ INCOMPATIBILITY.
 
 *** Pure ***
 
+* Empty class specifications observe default sort.  INCOMPATIBILITY.
+
 * Old 'axclass' has been discontinued.  Use 'class' instead.  INCOMPATIBILITY.
 
 * Code generator: simple concept for abstract datatypes obeying invariants.
@@ -115,6 +117,9 @@ constructors involved (in contrast to the raw 'syntax' versions).
 * Commands 'types' and 'typedecl' now work within a local theory
 context -- without introducing dependencies on parameters or
 assumptions, which is not possible in Isabelle/Pure.
+
+* Command 'defaultsort' is renamed to 'default_sort', it works within
+a local theory context.  Minor INCOMPATIBILITY.
 
 * Proof terms: Type substitutions on proof constants now use canonical
 order of type variables. INCOMPATIBILITY: Tools working with proof

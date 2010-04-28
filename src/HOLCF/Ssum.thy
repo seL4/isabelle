@@ -8,7 +8,7 @@ theory Ssum
 imports Tr
 begin
 
-defaultsort pcpo
+default_sort pcpo
 
 subsection {* Definition of strict sum type *}
 

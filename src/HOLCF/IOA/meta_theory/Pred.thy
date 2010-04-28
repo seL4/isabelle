@@ -8,7 +8,7 @@ theory Pred
 imports Main
 begin
 
-defaultsort type
+default_sort type
 
 types
   'a predicate = "'a => bool"

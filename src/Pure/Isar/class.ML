@@ -100,10 +100,14 @@ fun calculate thy class sups base_sort param_map assm_axiom =
 
 (* reading and processing class specifications *)
 
-fun prep_class_elems prep_decl thy sups proto_base_sort raw_elems =
+fun prep_class_elems prep_decl thy sups raw_elems =
   let
 
     (* user space type system: only permits 'a type variable, improves towards 'a *)
+    val algebra = Sign.classes_of thy;
+    val inter_sort = curry (Sorts.inter_sort algebra);
+    val proto_base_sort = if null sups then Sign.defaultS thy
+      else fold inter_sort (map (base_sort thy) sups) [];
     val base_constraints = (map o apsnd)
       (map_type_tfree (K (TVar ((Name.aT, 0), proto_base_sort))) o fst o snd)
         (these_operations thy sups);
@@ -111,17 +115,17 @@ fun prep_class_elems prep_decl thy sups proto_base_sort raw_elems =
           if v = Name.aT then T
           else error ("No type variable other than " ^ Name.aT ^ " allowed in class specification")
       | T => T);
-    fun singleton_fixate thy algebra Ts =
+    fun singleton_fixate Ts =
       let
         fun extract f = (fold o fold_atyps) f Ts [];
         val tfrees = extract
           (fn TFree (v, sort) => insert (op =) (v, sort) | _ => I);
         val inferred_sort = extract
-          (fn TVar (_, sort) => curry (Sorts.inter_sort algebra) sort | _ => I);
+          (fn TVar (_, sort) => inter_sort sort | _ => I);
         val fixate_sort = if null tfrees then inferred_sort
           else case tfrees
            of [(_, a_sort)] => if Sorts.sort_le algebra (a_sort, inferred_sort)
-                then Sorts.inter_sort algebra (a_sort, inferred_sort)
+                then inter_sort a_sort inferred_sort
                 else error ("Type inference imposes additional sort constraint "
                   ^ Syntax.string_of_sort_global thy inferred_sort
                   ^ " of type parameter " ^ Name.aT ^ " of sort "
@@ -136,7 +140,7 @@ fun prep_class_elems prep_decl thy sups proto_base_sort raw_elems =
     val init_class_body = fold (ProofContext.add_const_constraint o apsnd SOME) base_constraints
       #> redeclare_operations thy sups
       #> add_typ_check 10 "reject_bcd_etc" reject_bcd_etc
-      #> add_typ_check ~10 "singleton_fixate" (singleton_fixate thy (Sign.classes_of thy));
+      #> add_typ_check ~10 "singleton_fixate" singleton_fixate;
     val raw_supexpr = (map (fn sup => (sup, (("", false),
       Expression.Positional []))) sups, []);
     val ((raw_supparams, _, inferred_elems), _) = ProofContext.init thy
@@ -183,11 +187,10 @@ fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
       then error ("Duplicate parameter(s) in superclasses: "
         ^ (commas o map quote o duplicates (op =)) raw_supparam_names)
       else ();
-    val given_basesort = fold inter_sort (map (base_sort thy) sups) [];
 
     (* infer types and base sort *)
     val (base_sort, supparam_names, supexpr, inferred_elems) =
-      prep_class_elems thy sups given_basesort raw_elems;
+      prep_class_elems thy sups raw_elems;
     val sup_sort = inter_sort base_sort sups;
 
     (* process elements as class specification *)

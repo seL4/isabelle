@@ -8,7 +8,7 @@ theory Adm
 imports Cont
 begin
 
-defaultsort cpo
+default_sort cpo
 
 subsection {* Definitions *}
 

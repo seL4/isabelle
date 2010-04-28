@@ -8,7 +8,7 @@ theory Domain_Proofs
 imports HOLCF
 begin
 
-defaultsort rep
+default_sort rep
 
 (*
 

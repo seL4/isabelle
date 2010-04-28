@@ -8,7 +8,7 @@ TODO: integrate this with Fstream.
 
 theory Fstreams imports "../ex/Stream" begin
 
-defaultsort type
+default_sort type
 
 types 'a fstream = "('a lift) stream"
 

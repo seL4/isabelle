@@ -31,7 +31,7 @@ setup PureThy.old_appl_syntax_setup
 global
 
 classes "term"
-defaultsort "term"
+default_sort "term"
 
 typedecl o
 

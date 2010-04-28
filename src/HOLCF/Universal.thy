@@ -340,7 +340,7 @@ by (rule udom.completion_approx_eq_principal)
 
 subsection {* Universality of \emph{udom} *}
 
-defaultsort bifinite
+default_sort bifinite
 
 subsubsection {* Choosing a maximal element from a finite set *}
 

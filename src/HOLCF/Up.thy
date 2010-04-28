@@ -8,7 +8,7 @@ theory Up
 imports Bifinite
 begin
 
-defaultsort cpo
+default_sort cpo
 
 subsection {* Definition of new type for lifting *}
 

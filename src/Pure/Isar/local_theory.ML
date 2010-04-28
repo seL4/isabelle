@@ -40,6 +40,7 @@ sig
     local_theory -> (string * thm list) list * local_theory
   val declaration: bool -> declaration -> local_theory -> local_theory
   val syntax_declaration: bool -> declaration -> local_theory -> local_theory
+  val set_defsort: sort -> local_theory -> local_theory
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> local_theory -> local_theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val class_alias: binding -> class -> local_theory -> local_theory
@@ -183,7 +184,7 @@ fun target_morphism lthy = standard_morphism lthy (target_of lthy);
 fun global_morphism lthy = standard_morphism lthy (ProofContext.init (ProofContext.theory_of lthy));
 
 
-(* basic operations *)
+(* primitive operations *)
 
 fun operation f lthy = f (#operations (get_lthy lthy)) lthy;
 fun operation1 f x = operation (fn ops => f ops x);
@@ -196,8 +197,15 @@ val notes_kind = apsnd checkpoint ooo operation2 #notes;
 val declaration = checkpoint ooo operation2 #declaration;
 val syntax_declaration = checkpoint ooo operation2 #syntax_declaration;
 
+
+
+(** basic derived operations **)
+
 val notes = notes_kind "";
 fun note (a, ths) = notes [(a, [(ths, [])])] #>> the_single;
+
+fun set_defsort S =
+  syntax_declaration false (K (Context.mapping (Sign.set_defsort S) (ProofContext.set_defsort S)));
 
 
 (* notation *)
@@ -223,6 +231,9 @@ val class_alias = alias Sign.class_alias ProofContext.class_alias;
 val type_alias = alias Sign.type_alias ProofContext.type_alias;
 val const_alias = alias Sign.const_alias ProofContext.const_alias;
 
+
+
+(** init and exit **)
 
 (* init *)
 
