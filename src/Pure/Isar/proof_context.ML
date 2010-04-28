@@ -28,6 +28,7 @@ sig
   val full_name: Proof.context -> binding -> string
   val syn_of: Proof.context -> Syntax.syntax
   val tsig_of: Proof.context -> Type.tsig
+  val set_defsort: sort -> Proof.context -> Proof.context
   val default_sort: Proof.context -> indexname -> sort
   val consts_of: Proof.context -> Consts.T
   val the_const_constraint: Proof.context -> string -> typ
@@ -178,12 +179,12 @@ val mode_abbrev    = make_mode (false, false, false, true);
 
 datatype ctxt =
   Ctxt of
-   {mode: mode,                       (*inner syntax mode*)
-    naming: Name_Space.naming,        (*local naming conventions*)
-    syntax: Local_Syntax.T,           (*local syntax*)
-    tsig: Type.tsig * Type.tsig,      (*local/global type signature -- local name space only*)
-    consts: Consts.T * Consts.T,      (*local/global consts -- local name space/abbrevs only*)
-    facts: Facts.T,                   (*local facts*)
+   {mode: mode,                  (*inner syntax mode*)
+    naming: Name_Space.naming,   (*local naming conventions*)
+    syntax: Local_Syntax.T,      (*local syntax*)
+    tsig: Type.tsig * Type.tsig, (*local/global type signature -- local name space / defsort only*)
+    consts: Consts.T * Consts.T, (*local/global consts -- local name space / abbrevs only*)
+    facts: Facts.T,              (*local facts*)
     cases: (string * (Rule_Cases.T * bool)) list};    (*named case contexts*)
 
 fun make_ctxt (mode, naming, syntax, tsig, consts, facts, cases) =
@@ -255,6 +256,7 @@ val set_syntax_mode = map_syntax o Local_Syntax.set_mode;
 val restore_syntax_mode = map_syntax o Local_Syntax.restore_mode o syntax_of;
 
 val tsig_of = #1 o #tsig o rep_context;
+val set_defsort = map_tsig o apfst o Type.set_defsort;
 fun default_sort ctxt = the_default (Type.defaultS (tsig_of ctxt)) o Variable.def_sort ctxt;
 
 val consts_of = #1 o #consts o rep_context;
