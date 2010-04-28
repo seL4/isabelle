@@ -9,16 +9,16 @@ signature FUNCTION =
 sig
   include FUNCTION_DATA
 
-  val add_function: (binding * typ option * mixfix) list ->
+  val function: (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> Function_Common.function_config ->
     local_theory -> Proof.state
 
-  val add_function_cmd: (binding * string option * mixfix) list ->
+  val function_cmd: (binding * string option * mixfix) list ->
     (Attrib.binding * string) list -> Function_Common.function_config ->
     local_theory -> Proof.state
 
-  val termination_proof : term option -> local_theory -> Proof.state
-  val termination_proof_cmd : string option -> local_theory -> Proof.state
+  val termination : term option -> local_theory -> Proof.state
+  val termination_cmd : string option -> local_theory -> Proof.state
 
   val setup : theory -> theory
   val get_congs : Proof.context -> thm list
@@ -76,7 +76,7 @@ fun prepare_function is_external prep default_constraint fixspec eqns config lth
     val defname = mk_defname fixes
     val FunctionConfig {partials, ...} = config
 
-    val ((goalstate, cont), lthy) =
+    val ((goal_state, cont), lthy') =
       Function_Mutual.prepare_function_mutual config defname fixes eqs lthy
 
     fun afterqed [[proof]] lthy =
@@ -119,22 +119,22 @@ fun prepare_function is_external prep default_constraint fixspec eqns config lth
         |> Local_Theory.declaration false (add_function_data o morph_function_data info)
       end
   in 
-    ((goalstate, afterqed), lthy)
+    ((goal_state, afterqed), lthy')
   end
 
-fun gen_add_function is_external prep default_constraint fixspec eqns config lthy =
+fun gen_function is_external prep default_constraint fixspec eqns config lthy =
   let
-    val ((goalstate, afterqed), lthy') = 
+    val ((goal_state, afterqed), lthy') = 
       prepare_function is_external prep default_constraint fixspec eqns config lthy
   in
     lthy'
-    |> Proof.theorem NONE afterqed [[(Logic.unprotect (concl_of goalstate), [])]]
-    |> Proof.refine (Method.primitive_text (fn _ => goalstate)) |> Seq.hd
+    |> Proof.theorem NONE afterqed [[(Logic.unprotect (concl_of goal_state), [])]]
+    |> Proof.refine (Method.primitive_text (K goal_state)) |> Seq.hd
   end
 
-val add_function =
-  gen_add_function false Specification.check_spec (TypeInfer.anyT HOLogic.typeS)
-val add_function_cmd = gen_add_function true Specification.read_spec "_::type"
+val function =
+  gen_function false Specification.check_spec (TypeInfer.anyT HOLogic.typeS)
+val function_cmd = gen_function true Specification.read_spec "_::type"
                                                 
 fun prepare_termination_proof prep_term raw_term_opt lthy =
   let
@@ -180,7 +180,7 @@ fun prepare_termination_proof prep_term raw_term_opt lthy =
     (goal, afterqed, termination)
   end
 
-fun gen_termination_proof prep_term raw_term_opt lthy =
+fun gen_termination prep_term raw_term_opt lthy =
   let
     val (goal, afterqed, termination) = prepare_termination_proof prep_term raw_term_opt lthy
   in
@@ -195,8 +195,8 @@ fun gen_termination_proof prep_term raw_term_opt lthy =
     |> Proof.theorem NONE afterqed [[(goal, [])]]
   end
 
-val termination_proof = gen_termination_proof Syntax.check_term
-val termination_proof_cmd = gen_termination_proof Syntax.read_term
+val termination = gen_termination Syntax.check_term
+val termination_cmd = gen_termination Syntax.read_term
 
 
 (* Datatype hook to declare datatype congs as "function_congs" *)
@@ -236,11 +236,11 @@ local structure P = OuterParse and K = OuterKeyword in
 val _ =
   OuterSyntax.local_theory_to_proof "function" "define general recursive functions" K.thy_goal
   (function_parser default_config
-     >> (fn ((config, fixes), statements) => add_function_cmd fixes statements config))
+     >> (fn ((config, fixes), statements) => function_cmd fixes statements config))
 
 val _ =
   OuterSyntax.local_theory_to_proof "termination" "prove termination of a recursive function" K.thy_goal
-  (Scan.option P.term >> termination_proof_cmd)
+  (Scan.option P.term >> termination_cmd)
 
 end
 

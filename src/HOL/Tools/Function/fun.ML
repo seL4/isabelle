@@ -62,7 +62,7 @@ val by_pat_completeness_auto =
      SOME (Method.Source_i (Args.src (("HOL.auto", []), Position.none))))
 
 fun termination_by method int =
-  Function.termination_proof NONE
+  Function.termination NONE
   #> Proof.global_future_terminal_proof (Method.Basic method, NONE) int
 
 fun mk_catchall fixes arity_of =
@@ -155,8 +155,8 @@ fun gen_fun add config fixes statements int lthy =
   |> Local_Theory.restore
   |> termination_by (Function_Common.get_termination_prover lthy) int
 
-val add_fun = gen_fun Function.add_function
-val add_fun_cmd = gen_fun Function.add_function_cmd
+val add_fun = gen_fun Function.function
+val add_fun_cmd = gen_fun Function.function_cmd
 
 
 
