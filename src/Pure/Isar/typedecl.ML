@@ -82,10 +82,12 @@ fun typedecl_global decl =
 
 (* type abbreviations *)
 
+local
+
 fun gen_abbrev prep_typ (b, vs, mx) raw_rhs lthy =
   let
     val Type (name, _) = global_type lthy (b, map (rpair dummyS) vs);
-    val rhs = prep_typ lthy raw_rhs
+    val rhs = prep_typ b lthy raw_rhs
       handle ERROR msg => cat_error msg ("in type abbreviation " ^ quote (Binding.str_of b));
   in
     lthy
@@ -94,8 +96,23 @@ fun gen_abbrev prep_typ (b, vs, mx) raw_rhs lthy =
     |> pair name
   end;
 
-val abbrev = gen_abbrev ProofContext.cert_typ_syntax;
-val abbrev_cmd = gen_abbrev ProofContext.read_typ_syntax;
+fun read_abbrev b ctxt raw_rhs =
+  let
+    val rhs = ProofContext.read_typ_syntax (ctxt |> ProofContext.set_defsort []) raw_rhs;
+    val ignored = Term.fold_atyps_sorts (fn (_, []) => I | (T, _) => insert (op =) T) rhs [];
+    val _ =
+      if null ignored then ()
+      else warning ("Ignoring sort constraints in type variables(s): " ^
+        commas_quote (map (Syntax.string_of_typ ctxt) (rev ignored)) ^
+        "\nin type abbreviation " ^ quote (Binding.str_of b));
+  in rhs end;
+
+in
+
+val abbrev = gen_abbrev (K ProofContext.cert_typ_syntax);
+val abbrev_cmd = gen_abbrev read_abbrev;
+
+end;
 
 fun abbrev_global decl rhs =
   Theory_Target.init NONE
