@@ -323,11 +323,11 @@ end;
 
 (* prove monotonicity *)
 
-fun prove_mono quiet_mode skip_mono fork_mono predT fp_fun monos ctxt =
+fun prove_mono quiet_mode skip_mono fork_mono predT fp_fun params monos ctxt =
  (message (quiet_mode orelse skip_mono andalso !quick_and_dirty orelse fork_mono)
     "  Proving monotonicity ...";
   (if skip_mono then Skip_Proof.prove else if fork_mono then Goal.prove_future else Goal.prove) ctxt
-    [] []
+    (map (fst o dest_Free) params) []
     (HOLogic.mk_Trueprop
       (Const (@{const_name Orderings.mono}, (predT --> predT) --> HOLogic.boolT) $ fp_fun))
     (fn _ => EVERY [rtac @{thm monoI} 1,
@@ -689,7 +689,7 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind
       ||> Local_Theory.restore_naming lthy';
     val preds = (case cs of [_] => [rec_const] | _ => map #1 consts_defs);
 
-    val mono = prove_mono quiet_mode skip_mono fork_mono predT fp_fun monos lthy'';
+    val mono = prove_mono quiet_mode skip_mono fork_mono predT fp_fun params monos lthy'';
     val ((_, [mono']), lthy''') =
       Local_Theory.note (apfst Binding.conceal Attrib.empty_binding, [mono]) lthy'';
 
