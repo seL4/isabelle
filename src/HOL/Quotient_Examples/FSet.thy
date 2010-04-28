@@ -1,11 +1,12 @@
-(*  Title:      Quotient.thy
-    Author:     Cezary Kaliszyk 
-    Author:     Christian Urban
+(*  Title:      HOL/Quotient_Examples/Quotient.thy
+    Author:     Cezary Kaliszyk, TU Munich
+    Author:     Christian Urban, TU Munich
 
-    provides a reasoning infrastructure for the type of finite sets
+A reasoning infrastructure for the type of finite sets.
 *)
+
 theory FSet
-imports Quotient Quotient_List List
+imports Quotient_List
 begin
 
 text {* Definiton of List relation and the quotient type *}
@@ -80,9 +81,9 @@ lemma list_rel_refl:
 lemma compose_list_refl:
   shows "(list_rel op \<approx> OOO op \<approx>) r r"
 proof
-  show c: "list_rel op \<approx> r r" by (rule list_rel_refl)
-  have d: "r \<approx> r" by (rule equivp_reflp[OF fset_equivp])
-  show b: "(op \<approx> OO list_rel op \<approx>) r r" by (rule pred_compI) (rule d, rule c)
+  have *: "r \<approx> r" by (rule equivp_reflp[OF fset_equivp])
+  show "list_rel op \<approx> r r" by (rule list_rel_refl)
+  with * show "(op \<approx> OO list_rel op \<approx>) r r" ..
 qed
 
 lemma Quotient_fset_list:
@@ -117,7 +118,8 @@ proof (intro conjI allI)
     show "(list_rel op \<approx> OOO op \<approx>) s s" by (rule compose_list_refl)
   next
     assume a: "(list_rel op \<approx> OOO op \<approx>) r s"
-    then have b: "map abs_fset r \<approx> map abs_fset s" proof (elim pred_compE)
+    then have b: "map abs_fset r \<approx> map abs_fset s"
+    proof (elim pred_compE)
       fix b ba
       assume c: "list_rel op \<approx> r b"
       assume d: "b \<approx> ba"
@@ -221,20 +223,43 @@ lemma fcard_raw_rsp_aux:
   assumes a: "xs \<approx> ys"
   shows "fcard_raw xs = fcard_raw ys"
   using a
-  apply (induct xs arbitrary: ys)
-  apply (auto simp add: memb_def)
-  apply (subgoal_tac "\<forall>x. (x \<in> set xs) = (x \<in> set ys)")
-  apply (auto)
-  apply (drule_tac x="x" in spec)
-  apply (blast)
-  apply (drule_tac x="[x \<leftarrow> ys. x \<noteq> a]" in meta_spec)
-  apply (simp add: fcard_raw_delete_one memb_def)
-  apply (case_tac "a \<in> set ys")
-  apply (simp only: if_True)
-  apply (subgoal_tac "\<forall>x. (x \<in> set xs) = (x \<in> set ys \<and> x \<noteq> a)")
-  apply (drule Suc_pred'[OF fcard_raw_gt_0])
-  apply (auto)
-  done
+  proof (induct xs arbitrary: ys)
+    case Nil
+    show ?case using Nil.prems by simp
+  next
+    case (Cons a xs)
+    have a: "a # xs \<approx> ys" by fact
+    have b: "\<And>ys. xs \<approx> ys \<Longrightarrow> fcard_raw xs = fcard_raw ys" by fact
+    show ?case proof (cases "a \<in> set xs")
+      assume c: "a \<in> set xs"
+      have "\<forall>x. (x \<in> set xs) = (x \<in> set ys)"
+      proof (intro allI iffI)
+        fix x
+        assume "x \<in> set xs"
+        then show "x \<in> set ys" using a by auto
+      next
+        fix x
+        assume d: "x \<in> set ys"
+        have e: "(x \<in> set (a # xs)) = (x \<in> set ys)" using a by simp
+        show "x \<in> set xs" using c d e unfolding list_eq.simps by simp blast
+      qed
+      then show ?thesis using b c by (simp add: memb_def)
+    next
+      assume c: "a \<notin> set xs"
+      have d: "xs \<approx> [x\<leftarrow>ys . x \<noteq> a] \<Longrightarrow> fcard_raw xs = fcard_raw [x\<leftarrow>ys . x \<noteq> a]" using b by simp
+      have "Suc (fcard_raw xs) = fcard_raw ys"
+      proof (cases "a \<in> set ys")
+        assume e: "a \<in> set ys"
+        have f: "\<forall>x. (x \<in> set xs) = (x \<in> set ys \<and> x \<noteq> a)" using a c
+          by (auto simp add: fcard_raw_delete_one)
+        have "fcard_raw ys = Suc (fcard_raw ys - 1)" by (rule Suc_pred'[OF fcard_raw_gt_0]) (rule e)
+        then show ?thesis using d e f by (simp_all add: fcard_raw_delete_one memb_def)
+      next
+        case False then show ?thesis using a c d by auto
+      qed
+      then show ?thesis using a c d by (simp add: memb_def)
+  qed
+qed
 
 lemma fcard_raw_rsp[quot_respect]:
   shows "(op \<approx> ===> op =) fcard_raw fcard_raw"
@@ -306,8 +331,8 @@ proof -
   obtain xb where e: "xb \<in> set x" and f: "xa \<in> set xb" using d by auto
   have "\<exists>y. y \<in> set x' \<and> xb \<approx> y" by (rule list_rel_find_element[OF e a])
   then obtain ya where h: "ya \<in> set x'" and i: "xb \<approx> ya" by auto
-  have j: "ya \<in> set y'" using b h by simp
-  have "\<exists>yb. yb \<in> set y \<and> ya \<approx> yb" by (rule list_rel_find_element[OF j c])
+  have "ya \<in> set y'" using b h by simp
+  then have "\<exists>yb. yb \<in> set y \<and> ya \<approx> yb" using c by (rule list_rel_find_element)
   then show ?thesis using f i by auto
 qed
 
@@ -385,7 +410,8 @@ lemma append_inter_distrib:
   apply (induct x)
   apply (simp_all add: memb_def)
   apply (simp add: memb_def[symmetric] memb_finter_raw)
-  by (auto simp add: memb_def)
+  apply (auto simp add: memb_def)
+  done
 
 instantiation fset :: (type) "{bounded_lattice_bot,distrib_lattice}"
 begin
@@ -496,10 +522,10 @@ abbreviation
 where
   "x |\<notin>| S \<equiv> \<not> (x |\<in>| S)"
 
-section {* Other constants on the Quotient Type *} 
+section {* Other constants on the Quotient Type *}
 
 quotient_definition
-  "fcard :: 'a fset \<Rightarrow> nat" 
+  "fcard :: 'a fset \<Rightarrow> nat"
 is
   "fcard_raw"
 
@@ -509,11 +535,11 @@ is
  "map"
 
 quotient_definition
-  "fdelete :: 'a fset \<Rightarrow> 'a \<Rightarrow> 'a fset" 
+  "fdelete :: 'a fset \<Rightarrow> 'a \<Rightarrow> 'a fset"
   is "delete_raw"
 
 quotient_definition
-  "fset_to_set :: 'a fset \<Rightarrow> 'a set" 
+  "fset_to_set :: 'a fset \<Rightarrow> 'a set"
   is "set"
 
 quotient_definition
@@ -701,23 +727,37 @@ lemma cons_left_idem:
   by auto
 
 lemma fset_raw_strong_cases:
-  "(xs = []) \<or> (\<exists>x ys. ((\<not> memb x ys) \<and> (xs \<approx> x # ys)))"
-  apply (induct xs)
-  apply (simp)
-  apply (rule disjI2)
-  apply (erule disjE)
-  apply (rule_tac x="a" in exI)
-  apply (rule_tac x="[]" in exI)
-  apply (simp add: memb_def)
-  apply (erule exE)+
-  apply (case_tac "x = a")
-  apply (rule_tac x="a" in exI)
-  apply (rule_tac x="ys" in exI)
-  apply (simp)
-  apply (rule_tac x="x" in exI)
-  apply (rule_tac x="a # ys" in exI)
-  apply (auto simp add: memb_def)
-  done
+  obtains "xs = []"
+    | x ys where "\<not> memb x ys" and "xs \<approx> x # ys"
+proof (induct xs arbitrary: x ys)
+  case Nil
+  then show thesis by simp
+next
+  case (Cons a xs)
+  have a: "\<lbrakk>xs = [] \<Longrightarrow> thesis; \<And>x ys. \<lbrakk>\<not> memb x ys; xs \<approx> x # ys\<rbrakk> \<Longrightarrow> thesis\<rbrakk> \<Longrightarrow> thesis" by fact
+  have b: "\<And>x' ys'. \<lbrakk>\<not> memb x' ys'; a # xs \<approx> x' # ys'\<rbrakk> \<Longrightarrow> thesis" by fact
+  have c: "xs = [] \<Longrightarrow> thesis" by (metis no_memb_nil singleton_list_eq b)
+  have "\<And>x ys. \<lbrakk>\<not> memb x ys; xs \<approx> x # ys\<rbrakk> \<Longrightarrow> thesis"
+  proof -
+    fix x :: 'a
+    fix ys :: "'a list"
+    assume d:"\<not> memb x ys"
+    assume e:"xs \<approx> x # ys"
+    show thesis
+    proof (cases "x = a")
+      assume h: "x = a"
+      then have f: "\<not> memb a ys" using d by simp
+      have g: "a # xs \<approx> a # ys" using e h by auto
+      show thesis using b f g by simp
+    next
+      assume h: "x \<noteq> a"
+      then have f: "\<not> memb x (a # ys)" using d unfolding memb_def by auto
+      have g: "a # xs \<approx> x # (a # ys)" using e h by auto
+      show thesis using b f g by simp
+    qed
+  qed
+  then show thesis using a c by blast
+qed
 
 section {* deletion *}
 
@@ -741,7 +781,7 @@ lemma finter_raw_empty:
   "finter_raw l [] = []"
   by (induct l) (simp_all add: not_memb_nil)
 
-lemma set_cong: 
+lemma set_cong:
   shows "(set x = set y) = (x \<approx> y)"
   by auto
 
@@ -812,13 +852,13 @@ next
       case (Suc m)
       have b: "l \<approx> r" by fact
       have d: "fcard_raw l = Suc m" by fact
-      have "\<exists>a. memb a l" by (rule fcard_raw_suc_memb[OF d])
+      then have "\<exists>a. memb a l" by (rule fcard_raw_suc_memb)
       then obtain a where e: "memb a l" by auto
       then have e': "memb a r" using list_eq.simps[simplified memb_def[symmetric], of l r] b by auto
       have f: "fcard_raw (delete_raw l a) = m" using fcard_raw_delete[of l a] e d by simp
       have g: "delete_raw l a \<approx> delete_raw r a" using delete_raw_rsp[OF b] by simp
-      have g': "list_eq2 (delete_raw l a) (delete_raw r a)" by (rule Suc.hyps[OF f g])
-      have h: "list_eq2 (a # delete_raw l a) (a # delete_raw r a)" by (rule list_eq2.intros(5)[OF g'])
+      have "list_eq2 (delete_raw l a) (delete_raw r a)" by (rule Suc.hyps[OF f g])
+      then have h: "list_eq2 (a # delete_raw l a) (a # delete_raw r a)" by (rule list_eq2.intros(5))
       have i: "list_eq2 l (a # delete_raw l a)"
         by (rule list_eq2.intros(3)[OF memb_delete_list_eq2[OF e]])
       have "list_eq2 l (a # delete_raw r a)" by (rule list_eq2.intros(6)[OF i h])
@@ -899,11 +939,11 @@ lemma fcard_1:
   shows "(fcard S = 1) = (\<exists>x. S = {|x|})"
   by (lifting fcard_raw_1)
 
-lemma fcard_gt_0: 
+lemma fcard_gt_0:
   shows "x \<in> fset_to_set S \<Longrightarrow> 0 < fcard S"
   by (lifting fcard_raw_gt_0)
 
-lemma fcard_not_fin: 
+lemma fcard_not_fin:
   shows "(x |\<notin>| S) = (fcard (finsert x S) = Suc (fcard S))"
   by (lifting fcard_raw_not_memb)
 
@@ -923,8 +963,8 @@ lemma fin_fcard_not_0: "a |\<in>| A \<Longrightarrow> fcard A \<noteq> 0"
 text {* funion *}
 
 lemmas [simp] =
-  sup_bot_left[where 'a="'a fset"]
-  sup_bot_right[where 'a="'a fset"]
+  sup_bot_left[where 'a="'a fset", standard]
+  sup_bot_right[where 'a="'a fset", standard]
 
 lemma funion_finsert[simp]:
   shows "finsert x S |\<union>| T = finsert x (S |\<union>| T)"
@@ -941,7 +981,8 @@ lemma singleton_union_right:
 section {* Induction and Cases rules for finite sets *}
 
 lemma fset_strong_cases:
-  "S = {||} \<or> (\<exists>x T. x |\<notin>| T \<and> S = finsert x T)"
+  obtains "xs = {||}"
+    | x ys where "x |\<notin>| ys" and "xs = finsert x ys"
   by (lifting fset_raw_strong_cases)
 
 lemma fset_exhaust[case_names fempty finsert, cases type: fset]:
@@ -953,7 +994,7 @@ lemma fset_induct_weak[case_names fempty finsert]:
   by (lifting list.induct)
 
 lemma fset_induct[case_names fempty finsert, induct type: fset]:
-  assumes prem1: "P {||}" 
+  assumes prem1: "P {||}"
   and     prem2: "\<And>x S. \<lbrakk>x |\<notin>| S; P S\<rbrakk> \<Longrightarrow> P (finsert x S)"
   shows "P S"
 proof(induct S rule: fset_induct_weak)
@@ -1016,15 +1057,15 @@ lemma fin_commute_ffold:
 
 text {* fdelete *}
 
-lemma fin_fdelete: 
+lemma fin_fdelete:
   shows "x |\<in>| fdelete S y \<longleftrightarrow> x |\<in>| S \<and> x \<noteq> y"
   by (lifting memb_delete_raw)
 
-lemma fin_fdelete_ident: 
+lemma fin_fdelete_ident:
   shows "x |\<notin>| fdelete S x"
   by (lifting memb_delete_raw_ident)
 
-lemma not_memb_fdelete_ident: 
+lemma not_memb_fdelete_ident:
   shows "x |\<notin>| S \<Longrightarrow> fdelete S x = S"
   by (lifting not_memb_delete_raw_ident)
 
@@ -1102,7 +1143,7 @@ lemma "fconcat (xs |\<union>| ys) = fconcat xs |\<union>| fconcat ys"
   by (lifting concat_append)
 
 ML {*
-fun dest_fsetT (Type ("FSet.fset", [T])) = T
+fun dest_fsetT (Type (@{type_name fset}, [T])) = T
   | dest_fsetT T = raise TYPE ("dest_fsetT: fset type expected", [T], []);
 *}
 
