@@ -65,7 +65,7 @@ fun add_simps fnames post sort extra_qualify label mod_binding moreatts
     (saved_simps, fold2 add_for_f fnames simps_by_f lthy)
   end
 
-fun gen_add_function is_external prep default_constraint fixspec eqns config lthy =
+fun prepare_function is_external prep default_constraint fixspec eqns config lthy =
   let
     val constrn_fxs = map (fn (b, T, mx) => (b, SOME (the_default default_constraint T), mx))
     val ((fixes0, spec0), ctxt') = prep (constrn_fxs fixspec) eqns lthy
@@ -118,8 +118,16 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config lth
         lthy
         |> Local_Theory.declaration false (add_function_data o morph_function_data info)
       end
+  in 
+    ((goalstate, afterqed), lthy)
+  end
+
+fun gen_add_function is_external prep default_constraint fixspec eqns config lthy =
+  let
+    val ((goalstate, afterqed), lthy') = 
+      prepare_function is_external prep default_constraint fixspec eqns config lthy
   in
-    lthy
+    lthy'
     |> Proof.theorem NONE afterqed [[(Logic.unprotect (concl_of goalstate), [])]]
     |> Proof.refine (Method.primitive_text (fn _ => goalstate)) |> Seq.hd
   end
@@ -128,7 +136,7 @@ val add_function =
   gen_add_function false Specification.check_spec (TypeInfer.anyT HOLogic.typeS)
 val add_function_cmd = gen_add_function true Specification.read_spec "_::type"
                                                 
-fun gen_termination_proof prep_term raw_term_opt lthy =
+fun prepare_termination_proof prep_term raw_term_opt lthy =
   let
     val term_opt = Option.map (prep_term lthy) raw_term_opt
     val info = the (case term_opt of
@@ -168,6 +176,13 @@ fun gen_termination_proof prep_term raw_term_opt lthy =
               #> Spec_Rules.add Spec_Rules.Equational (fs, tsimps)
             end)
         end
+  in
+    (goal, afterqed, termination)
+  end
+
+fun gen_termination_proof prep_term raw_term_opt lthy =
+  let
+    val (goal, afterqed, termination) = prepare_termination_proof prep_term raw_term_opt lthy
   in
     lthy
     |> ProofContext.note_thmss ""
