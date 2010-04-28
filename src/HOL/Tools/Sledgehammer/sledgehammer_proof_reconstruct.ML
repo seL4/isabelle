@@ -50,14 +50,10 @@ fun ugly_name NONE s = s
       SOME s' => s'
     | NONE => s
 
-(* Hack: Could return false positives (e.g., a user happens to declare a
-   constant called "SomeTheory.sko_means_shoe_in_swedish". *)
-val is_skolem_const_name = String.isPrefix skolem_prefix o Long_Name.base_name
-
 fun smart_lambda v t =
     Abs (case v of
-           Const (s, _) => if is_skolem_const_name s then "g"
-                           else Long_Name.base_name s
+           Const (s, _) =>
+           List.last (space_explode skolem_infix (Long_Name.base_name s))
          | Var ((s, _), _) => s
          | Free (s, _) => s
          | _ => "", fastype_of v, abstract_over (v, t))
@@ -771,6 +767,13 @@ val kill_duplicate_assumptions_in_proof =
       | do_step step (proof, subst, assums) = (step :: proof, subst, assums)
     and do_proof proof = fold do_step proof ([], [], []) |> #1 |> rev
   in do_proof end
+
+
+(* Hack: Could return false positives (e.g., a user happens to declare a
+   constant called "SomeTheory.sko_means_shoe_in_$wedish". *)
+val is_skolem_const_name =
+  Long_Name.base_name
+  #> String.isPrefix skolem_prefix andf String.isSubstring skolem_infix
 
 fun unskolemize_term t =
   fold exists_of (Term.add_consts t []
