@@ -487,8 +487,8 @@ fun count_constants explicit_apply
           fold count_constants_clause conjectures (Symtab.empty, Symtab.empty)
        |> fold count_constants_clause extra_clauses
        |> fold count_constants_clause helper_clauses
-     val _ = List.app (display_arity explicit_apply const_needs_hBOOL)
-                      (Symtab.dest (const_min_arity))
+     val _ = app (display_arity explicit_apply const_needs_hBOOL)
+                 (Symtab.dest (const_min_arity))
      in (const_min_arity, const_needs_hBOOL) end
   else (Symtab.empty, Symtab.empty);
 

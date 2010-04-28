@@ -206,8 +206,6 @@ show "False"
 qed
 
 
-sledgehammer_params [sorts]
-
 lemma bigo_alt_def: "O(f) = 
     {h. EX c. (0 < c & (ALL x. abs (h x) <= c * abs (f x)))}"
 by (auto simp add: bigo_def bigo_pos_const)
