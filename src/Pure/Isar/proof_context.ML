@@ -181,14 +181,14 @@ datatype ctxt =
    {mode: mode,                       (*inner syntax mode*)
     naming: Name_Space.naming,        (*local naming conventions*)
     syntax: Local_Syntax.T,           (*local syntax*)
-    tsigs: Type.tsig * Type.tsig,     (*local/global type signature -- local name space only*)
+    tsig: Type.tsig * Type.tsig,      (*local/global type signature -- local name space only*)
     consts: Consts.T * Consts.T,      (*local/global consts -- local name space/abbrevs only*)
     facts: Facts.T,                   (*local facts*)
     cases: (string * (Rule_Cases.T * bool)) list};    (*named case contexts*)
 
-fun make_ctxt (mode, naming, syntax, tsigs, consts, facts, cases) =
+fun make_ctxt (mode, naming, syntax, tsig, consts, facts, cases) =
   Ctxt {mode = mode, naming = naming, syntax = syntax,
-    tsigs = tsigs, consts = consts, facts = facts, cases = cases};
+    tsig = tsig, consts = consts, facts = facts, cases = cases};
 
 val local_naming = Name_Space.default_naming |> Name_Space.add_path "local";
 
@@ -204,39 +204,39 @@ structure ContextData = Proof_Data
 fun rep_context ctxt = ContextData.get ctxt |> (fn Ctxt args => args);
 
 fun map_context f =
-  ContextData.map (fn Ctxt {mode, naming, syntax, tsigs, consts, facts, cases} =>
-    make_ctxt (f (mode, naming, syntax, tsigs, consts, facts, cases)));
+  ContextData.map (fn Ctxt {mode, naming, syntax, tsig, consts, facts, cases} =>
+    make_ctxt (f (mode, naming, syntax, tsig, consts, facts, cases)));
 
-fun set_mode mode = map_context (fn (_, naming, syntax, tsigs, consts, facts, cases) =>
-  (mode, naming, syntax, tsigs, consts, facts, cases));
+fun set_mode mode = map_context (fn (_, naming, syntax, tsig, consts, facts, cases) =>
+  (mode, naming, syntax, tsig, consts, facts, cases));
 
 fun map_mode f =
-  map_context (fn (Mode {stmt, pattern, schematic, abbrev}, naming, syntax, tsigs, consts, facts, cases) =>
-    (make_mode (f (stmt, pattern, schematic, abbrev)), naming, syntax, tsigs, consts, facts, cases));
+  map_context (fn (Mode {stmt, pattern, schematic, abbrev}, naming, syntax, tsig, consts, facts, cases) =>
+    (make_mode (f (stmt, pattern, schematic, abbrev)), naming, syntax, tsig, consts, facts, cases));
 
 fun map_naming f =
-  map_context (fn (mode, naming, syntax, tsigs, consts, facts, cases) =>
-    (mode, f naming, syntax, tsigs, consts, facts, cases));
+  map_context (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
+    (mode, f naming, syntax, tsig, consts, facts, cases));
 
 fun map_syntax f =
-  map_context (fn (mode, naming, syntax, tsigs, consts, facts, cases) =>
-    (mode, naming, f syntax, tsigs, consts, facts, cases));
+  map_context (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
+    (mode, naming, f syntax, tsig, consts, facts, cases));
 
-fun map_tsigs f =
-  map_context (fn (mode, naming, syntax, tsigs, consts, facts, cases) =>
-    (mode, naming, syntax, f tsigs, consts, facts, cases));
+fun map_tsig f =
+  map_context (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
+    (mode, naming, syntax, f tsig, consts, facts, cases));
 
 fun map_consts f =
-  map_context (fn (mode, naming, syntax, tsigs, consts, facts, cases) =>
-    (mode, naming, syntax, tsigs, f consts, facts, cases));
+  map_context (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
+    (mode, naming, syntax, tsig, f consts, facts, cases));
 
 fun map_facts f =
-  map_context (fn (mode, naming, syntax, tsigs, consts, facts, cases) =>
-    (mode, naming, syntax, tsigs, consts, f facts, cases));
+  map_context (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
+    (mode, naming, syntax, tsig, consts, f facts, cases));
 
 fun map_cases f =
-  map_context (fn (mode, naming, syntax, tsigs, consts, facts, cases) =>
-    (mode, naming, syntax, tsigs, consts, facts, f cases));
+  map_context (fn (mode, naming, syntax, tsig, consts, facts, cases) =>
+    (mode, naming, syntax, tsig, consts, facts, f cases));
 
 val get_mode = #mode o rep_context;
 val restore_mode = set_mode o get_mode;
@@ -254,7 +254,7 @@ val syn_of = Local_Syntax.syn_of o syntax_of;
 val set_syntax_mode = map_syntax o Local_Syntax.set_mode;
 val restore_syntax_mode = map_syntax o Local_Syntax.restore_mode o syntax_of;
 
-val tsig_of = #1 o #tsigs o rep_context;
+val tsig_of = #1 o #tsig o rep_context;
 fun default_sort ctxt = the_default (Type.defaultS (tsig_of ctxt)) o Variable.def_sort ctxt;
 
 val consts_of = #1 o #consts o rep_context;
@@ -268,10 +268,10 @@ val cases_of = #cases o rep_context;
 
 fun transfer_syntax thy ctxt = ctxt |>
   map_syntax (Local_Syntax.rebuild thy) |>
-  map_tsigs (fn tsigs as (local_tsig, global_tsig) =>
+  map_tsig (fn tsig as (local_tsig, global_tsig) =>
     let val thy_tsig = Sign.tsig_of thy in
-      if Type.eq_tsig (thy_tsig, global_tsig) then tsigs
-      else (Type.merge_tsigs (Syntax.pp ctxt) (local_tsig, thy_tsig), thy_tsig)
+      if Type.eq_tsig (thy_tsig, global_tsig) then tsig
+      else (Type.merge_tsig (Syntax.pp ctxt) (local_tsig, thy_tsig), thy_tsig)
     end) |>
   map_consts (fn consts as (local_consts, global_consts) =>
     let val thy_consts = Sign.consts_of thy in
@@ -1140,8 +1140,8 @@ end;
 
 (* aliases *)
 
-fun class_alias b c ctxt = (map_tsigs o apfst) (Type.class_alias (naming_of ctxt) b c) ctxt;
-fun type_alias b c ctxt = (map_tsigs o apfst) (Type.type_alias (naming_of ctxt) b c) ctxt;
+fun class_alias b c ctxt = (map_tsig o apfst) (Type.class_alias (naming_of ctxt) b c) ctxt;
+fun type_alias b c ctxt = (map_tsig o apfst) (Type.type_alias (naming_of ctxt) b c) ctxt;
 fun const_alias b c ctxt = (map_consts o apfst) (Consts.alias (naming_of ctxt) b c) ctxt;
 
 

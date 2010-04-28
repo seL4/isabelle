@@ -89,7 +89,7 @@ sig
   val hide_type: bool -> string -> tsig -> tsig
   val add_arity: Pretty.pp -> arity -> tsig -> tsig
   val add_classrel: Pretty.pp -> class * class -> tsig -> tsig
-  val merge_tsigs: Pretty.pp -> tsig * tsig -> tsig
+  val merge_tsig: Pretty.pp -> tsig * tsig -> tsig
 end;
 
 structure Type: TYPE =
@@ -621,7 +621,7 @@ fun hide_type fully c = map_tsig (fn (classes, default, (space, types)) =>
 
 (* merge type signatures *)
 
-fun merge_tsigs pp (tsig1, tsig2) =
+fun merge_tsig pp (tsig1, tsig2) =
   let
     val (TSig {classes = (space1, classes1), default = default1, types = types1,
       log_types = _}) = tsig1;
