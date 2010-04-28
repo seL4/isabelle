@@ -125,10 +125,10 @@ subsection {* Code setup *}
 
 code_reflect
   datatypes lazy_sequence = Lazy_Sequence
-  functions "Lazy_Sequence.map" yield
+  functions map yield
   module_name Lazy_Sequence
 
-(* FIXME formulate yieldn in the logic with type code_numeral *)
+(* FIXME formulate yieldn in the logic with type code_numeral -- get rid of mapa confusion *)
 
 ML {*
 signature LAZY_SEQUENCE =
@@ -137,6 +137,7 @@ sig
   val yield : 'a lazy_sequence -> ('a * 'a lazy_sequence) option
   val yieldn : int -> 'a lazy_sequence -> ('a list * 'a lazy_sequence)
   val map : ('a -> 'b) -> 'a lazy_sequence -> 'b lazy_sequence
+  val mapa : ('a -> 'b) -> 'a lazy_sequence -> 'b lazy_sequence
 end;
 
 structure Lazy_Sequence : LAZY_SEQUENCE =
