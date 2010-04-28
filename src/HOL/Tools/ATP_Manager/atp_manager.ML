@@ -22,11 +22,9 @@ sig
      relevance_threshold: real,
      convergence: real,
      theory_relevant: bool option,
-     higher_order: bool option,
      follow_defs: bool,
      isar_proof: bool,
      shrink_factor: int,
-     sorts: bool,
      timeout: Time.time,
      minimize_timeout: Time.time}
   type problem =
@@ -59,7 +57,7 @@ sig
   val get_prover: theory -> string -> prover
   val available_atps: theory -> unit
   val start_prover_thread:
-    params -> Time.time -> Time.time -> int -> relevance_override
+    params -> Time.time -> Time.time -> int -> int -> relevance_override
     -> (string -> minimize_command) -> Proof.state -> string -> unit
 end;
 
@@ -83,11 +81,9 @@ type params =
    relevance_threshold: real,
    convergence: real,
    theory_relevant: bool option,
-   higher_order: bool option,
    follow_defs: bool,
    isar_proof: bool,
    shrink_factor: int,
-   sorts: bool,
    timeout: Time.time,
    minimize_timeout: Time.time}
 
@@ -268,6 +264,8 @@ fun kill_atps () = Synchronized.change global_state
     let
       val killing = map (fn (th, (_, _, desc)) => (th, (Time.now (), desc))) active;
       val state' = make_state manager timeout_heap [] (killing @ cancelling) messages store;
+      val _ = if null active then ()
+              else priority "Killed active Sledgehammer threads."
     in state' end);
 
 
@@ -338,12 +336,11 @@ fun available_atps thy =
 
 (* start prover thread *)
 
-fun start_prover_thread (params as {timeout, ...}) birth_time death_time i
+fun start_prover_thread (params as {timeout, ...}) birth_time death_time i n
                         relevance_override minimize_command proof_state name =
   let
     val prover = get_prover (Proof.theory_of proof_state) name
     val {context = ctxt, facts, goal} = Proof.goal proof_state;
-    val n = Logic.count_prems (prop_of goal)
     val desc =
       "ATP " ^ quote name ^ " for subgoal " ^ string_of_int i ^ ":\n" ^
       Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i));

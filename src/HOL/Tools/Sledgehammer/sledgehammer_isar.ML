@@ -96,11 +96,9 @@ val default_default_params =
    ("relevance_threshold", "50"),
    ("convergence", "320"),
    ("theory_relevant", "smart"),
-   ("higher_order", "smart"),
    ("follow_defs", "false"),
    ("isar_proof", "false"),
    ("shrink_factor", "1"),
-   ("sorts", "false"),
    ("minimize_timeout", "5 s")]
 
 val alias_params =
@@ -113,14 +111,12 @@ val negated_alias_params =
    ("implicit_apply", "explicit_apply"),
    ("ignore_no_atp", "respect_no_atp"),
    ("theory_irrelevant", "theory_relevant"),
-   ("first_order", "higher_order"),
    ("dont_follow_defs", "follow_defs"),
-   ("metis_proof", "isar_proof"),
-   ("no_sorts", "sorts")]
+   ("metis_proof", "isar_proof")]
 
 val params_for_minimize =
   ["debug", "verbose", "overlord", "full_types", "explicit_apply",
-   "higher_order", "isar_proof", "shrink_factor", "sorts", "minimize_timeout"]
+   "isar_proof", "shrink_factor", "minimize_timeout"]
 
 val property_dependent_params = ["atps", "full_types", "timeout"]
 
@@ -200,11 +196,9 @@ fun extract_params thy default_params override_params =
       0.01 * Real.fromInt (lookup_int "relevance_threshold")
     val convergence = 0.01 * Real.fromInt (lookup_int "convergence")
     val theory_relevant = lookup_bool_option "theory_relevant"
-    val higher_order = lookup_bool_option "higher_order"
     val follow_defs = lookup_bool "follow_defs"
     val isar_proof = lookup_bool "isar_proof"
     val shrink_factor = Int.max (1, lookup_int "shrink_factor")
-    val sorts = lookup_bool "sorts"
     val timeout = lookup_time "timeout"
     val minimize_timeout = lookup_time "minimize_timeout"
   in
@@ -212,28 +206,33 @@ fun extract_params thy default_params override_params =
      full_types = full_types, explicit_apply = explicit_apply,
      respect_no_atp = respect_no_atp, relevance_threshold = relevance_threshold,
      convergence = convergence, theory_relevant = theory_relevant,
-     higher_order = higher_order, follow_defs = follow_defs,
-     isar_proof = isar_proof, shrink_factor = shrink_factor, sorts = sorts,
-     timeout = timeout, minimize_timeout = minimize_timeout}
+     follow_defs = follow_defs, isar_proof = isar_proof,
+     shrink_factor = shrink_factor, timeout = timeout,
+     minimize_timeout = minimize_timeout}
   end
 
 fun get_params thy = extract_params thy (default_raw_params thy)
 fun default_params thy = get_params thy o map (apsnd single)
 
+val subgoal_count = Logic.count_prems o prop_of o #goal o Proof.goal
+
 (* Sledgehammer the given subgoal *)
 
 fun run {atps = [], ...} _ _ _ _ = error "No ATP is set."
   | run (params as {atps, timeout, ...}) i relevance_override minimize_command
-        proof_state =
-    let
-      val birth_time = Time.now ()
-      val death_time = Time.+ (birth_time, timeout)
-      val _ = kill_atps ()  (* race w.r.t. other invocations of Sledgehammer *)
-      val _ = priority "Sledgehammering..."
-      val _ = List.app (start_prover_thread params birth_time death_time i
-                                            relevance_override minimize_command
-                                            proof_state) atps
-    in () end
+        state =
+    case subgoal_count state of
+      0 => priority "No subgoal!"
+    | n =>
+      let
+        val birth_time = Time.now ()
+        val death_time = Time.+ (birth_time, timeout)
+        val _ = kill_atps ()  (* race w.r.t. other Sledgehammer invocations *)
+        val _ = priority "Sledgehammering..."
+        val _ = app (start_prover_thread params birth_time death_time i n
+                                         relevance_override minimize_command
+                                         state) atps
+      in () end
 
 fun minimize override_params i fact_refs state =
   let
@@ -243,8 +242,10 @@ fun minimize override_params i fact_refs state =
       map o pairf Facts.string_of_ref o ProofContext.get_fact
     val name_thms_pairs = theorems_from_refs ctxt fact_refs
   in
-    priority (#2 (minimize_theorems (get_params thy override_params) i state
-                                    name_thms_pairs))
+    case subgoal_count state of
+      0 => priority "No subgoal!"
+    | n => priority (#2 (minimize_theorems (get_params thy override_params) i n
+                                           state name_thms_pairs))
   end
 
 val sledgehammerN = "sledgehammer"
@@ -265,9 +266,7 @@ fun minimizize_raw_param_name "timeout" = "minimize_timeout"
 val is_raw_param_relevant_for_minimize =
   member (op =) params_for_minimize o fst o unalias_raw_param
 fun string_for_raw_param (key, values) =
-  key ^ (case space_implode " " values of
-           "" => ""
-         | value => " = " ^ value)
+  key ^ (case space_implode " " values of "" => "" | value => " = " ^ value)
 
 fun minimize_command override_params i atp_name facts =
   sledgehammerN ^ " " ^ minimizeN ^ " [atp = " ^ atp_name ^
@@ -279,7 +278,7 @@ fun minimize_command override_params i atp_name facts =
 fun hammer_away override_params subcommand opt_i relevance_override state =
   let
     val thy = Proof.theory_of state
-    val _ = List.app check_raw_param override_params
+    val _ = app check_raw_param override_params
   in
     if subcommand = runN then
       let val i = the_default 1 opt_i in

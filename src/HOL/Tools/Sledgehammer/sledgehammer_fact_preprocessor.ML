@@ -10,6 +10,7 @@ sig
   val trace: bool Unsynchronized.ref
   val trace_msg: (unit -> string) -> unit
   val skolem_prefix: string
+  val skolem_infix: string
   val cnf_axiom: theory -> thm -> thm list
   val multi_base_blacklist: string list
   val bad_for_atp: thm -> bool
@@ -17,7 +18,7 @@ sig
   val cnf_rules_pairs: theory -> (string * thm) list -> (thm * (string * int)) list
   val suppress_endtheory: bool Unsynchronized.ref
     (*for emergency use where endtheory causes problems*)
-  val strip_subgoal : thm -> int -> term list * term list * term
+  val strip_subgoal : thm -> int -> (string * typ) list * term list * term
   val neg_clausify: thm -> thm list
   val neg_conjecture_clauses:
     Proof.context -> thm -> int -> thm list list * (string * typ) list
@@ -34,6 +35,7 @@ val trace = Unsynchronized.ref false;
 fun trace_msg msg = if !trace then tracing (msg ()) else ();
 
 val skolem_prefix = "sko_"
+val skolem_infix = "$"
 
 fun freeze_thm th = #1 (Drule.legacy_freeze_thaw th);
 
@@ -65,6 +67,13 @@ exception Clausify_failure of theory;
 
 (**** SKOLEMIZATION BY INFERENCE (lcp) ****)
 
+(*Keep the full complexity of the original name*)
+fun flatten_name s = space_implode "_X" (Long_Name.explode s);
+
+fun skolem_name thm_name nref var_name =
+  skolem_prefix ^ thm_name ^ "_" ^ Int.toString (Unsynchronized.inc nref) ^
+  skolem_infix ^ (if var_name = "" then "g" else flatten_name var_name)
+
 fun rhs_extra_types lhsT rhs =
   let val lhs_vars = Term.add_tfreesT lhsT []
       fun add_new_TFrees (TFree v) =
@@ -78,10 +87,10 @@ fun rhs_extra_types lhsT rhs =
 fun declare_skofuns s th =
   let
     val nref = Unsynchronized.ref 0    (* FIXME ??? *)
-    fun dec_sko (Const (@{const_name Ex}, _) $ (xtp as Abs (_, T, p))) (axs, thy) =
+    fun dec_sko (Const (@{const_name Ex}, _) $ (xtp as Abs (s', T, p))) (axs, thy) =
           (*Existential: declare a Skolem function, then insert into body and continue*)
           let
-            val cname = skolem_prefix ^ s ^ "_" ^ Int.toString (Unsynchronized.inc nref)
+            val cname = skolem_name s nref s'
             val args0 = OldTerm.term_frees xtp  (*get the formal parameter list*)
             val Ts = map type_of args0
             val extraTs = rhs_extra_types (Ts ---> T) xtp
@@ -110,13 +119,13 @@ fun declare_skofuns s th =
 (*Traverse a theorem, accumulating Skolem function definitions.*)
 fun assume_skofuns s th =
   let val sko_count = Unsynchronized.ref 0   (* FIXME ??? *)
-      fun dec_sko (Const (@{const_name Ex}, _) $ (xtp as Abs(_,T,p))) defs =
+      fun dec_sko (Const (@{const_name Ex}, _) $ (xtp as Abs (s', T, p))) defs =
             (*Existential: declare a Skolem function, then insert into body and continue*)
             let val skos = map (#1 o Logic.dest_equals) defs  (*existing sko fns*)
                 val args = subtract (op =) skos (OldTerm.term_frees xtp) (*the formal parameters*)
                 val Ts = map type_of args
                 val cT = Ts ---> T
-                val id = skolem_prefix ^ s ^ "_" ^ Int.toString (Unsynchronized.inc sko_count)
+                val id = skolem_name s sko_count s'
                 val c = Free (id, cT)
                 val rhs = list_abs_free (map dest_Free args,
                                          HOLogic.choice_const T $ xtp)
@@ -337,9 +346,6 @@ val multi_base_blacklist =
   ["defs", "select_defs", "update_defs", "induct", "inducts", "split", "splits",
    "split_asm", "cases", "ext_cases"];
 
-(*Keep the full complexity of the original name*)
-fun flatten_name s = space_implode "_X" (Long_Name.explode s);
-
 fun fake_name th =
   if Thm.has_name_hint th then flatten_name (Thm.get_name_hint th)
   else gensym "unknown_thm_";
@@ -463,7 +469,7 @@ fun strip_subgoal goal i =
     val (t, frees) = Logic.goal_params (prop_of goal) i
     val hyp_ts = t |> Logic.strip_assums_hyp |> map (curry subst_bounds frees)
     val concl_t = t |> Logic.strip_assums_concl |> curry subst_bounds frees
-  in (rev frees, hyp_ts, concl_t) end
+  in (rev (map dest_Free frees), hyp_ts, concl_t) end
 
 (*** Converting a subgoal into negated conjecture clauses. ***)
 

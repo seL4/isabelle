@@ -6,6 +6,7 @@ General-purpose functions used by the Sledgehammer modules.
 
 signature SLEDGEHAMMER_UTIL =
 sig
+  val is_new_spass_version : bool
   val pairf : ('a -> 'b) -> ('a -> 'c) -> 'a -> 'b * 'c
   val plural_s : int -> string
   val serial_commas : string -> string list -> string list
@@ -14,10 +15,25 @@ sig
   val timestamp : unit -> string
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
+  val nat_subscript : int -> string
+  val unyxml : string -> string
+  val maybe_quote : string -> string
 end;
  
 structure Sledgehammer_Util : SLEDGEHAMMER_UTIL =
 struct
+
+val is_new_spass_version =
+  case getenv "SPASS_VERSION" of
+    "" => case getenv "SPASS_HOME" of
+            "" => false
+          | s =>
+            (* Hack: Preliminary versions of the SPASS 3.7 package don't set
+               "SPASS_VERSION". *)
+            String.isSubstring "/spass-3.7/" s
+  | s => case s |> space_explode "." |> map Int.fromString of
+           SOME m :: SOME n :: _ => m > 3 orelse (m = 3 andalso n >= 5)
+         | _ => false
 
 fun pairf f g x = (f x, g x)
 
@@ -71,5 +87,20 @@ fun parse_time_option _ "none" = NONE
       else
         SOME (Time.fromMilliseconds msecs)
     end
+
+val subscript = implode o map (prefix "\<^isub>") o explode
+val nat_subscript = subscript o string_of_int
+
+fun plain_string_from_xml_tree t =
+  Buffer.empty |> XML.add_content t |> Buffer.content
+val unyxml = plain_string_from_xml_tree o YXML.parse
+
+val is_long_identifier = forall Syntax.is_identifier o space_explode "."
+fun maybe_quote y =
+  let val s = unyxml y in
+    y |> ((not (is_long_identifier (perhaps (try (unprefix "'")) s)) andalso
+           not (is_long_identifier (perhaps (try (unprefix "?")) s))) orelse
+           OuterKeyword.is_keyword s) ? quote
+  end
 
 end;

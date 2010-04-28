@@ -248,20 +248,11 @@ val indent_size = 2
 
 val pstrs = Pretty.breaks o map Pretty.str o space_explode " "
 
-fun plain_string_from_xml_tree t =
-  Buffer.empty |> XML.add_content t |> Buffer.content
-val unyxml = plain_string_from_xml_tree o YXML.parse
-
-val is_long_identifier = forall Syntax.is_identifier o space_explode "."
-fun maybe_quote y =
-  let val s = unyxml y in
-    y |> ((not (is_long_identifier (perhaps (try (unprefix "'")) s)) andalso
-           not (is_long_identifier (perhaps (try (unprefix "?")) s))) orelse
-           OuterKeyword.is_keyword s) ? quote
-  end
+val unyxml = Sledgehammer_Util.unyxml
+val maybe_quote = Sledgehammer_Util.maybe_quote
 
 (* This hash function is recommended in Compilers: Principles, Techniques, and
-   Tools, by Aho, Sethi and Ullman. The hashpjw function, which they
+   Tools, by Aho, Sethi, and Ullman. The "hashpjw" function, which they
    particularly recommend, triggers a bug in versions of Poly/ML up to 4.2.0. *)
 fun hashw (u, w) = Word.+ (u, Word.* (0w65599, w))
 fun hashw_char (c, w) = hashw (Word.fromInt (Char.ord c), w)
