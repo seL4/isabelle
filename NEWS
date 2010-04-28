@@ -84,6 +84,8 @@ INCOMPATIBILITY.
 
 *** Pure ***
 
+* Old 'axclass' has been discontinued.  Use 'class' instead.  INCOMPATIBILITY.
+
 * Code generator: simple concept for abstract datatypes obeying invariants.
 
 * Local theory specifications may depend on extra type variables that
