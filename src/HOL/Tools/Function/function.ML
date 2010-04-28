@@ -11,11 +11,11 @@ sig
 
   val add_function: (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> Function_Common.function_config ->
-    (Proof.context -> tactic) -> local_theory -> local_theory
+    (Proof.context -> tactic) -> local_theory -> info * local_theory
 
   val add_function_cmd: (binding * string option * mixfix) list ->
     (Attrib.binding * string) list -> Function_Common.function_config ->
-    (Proof.context -> tactic) -> local_theory -> local_theory
+    (Proof.context -> tactic) -> local_theory -> info * local_theory
 
   val function: (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> Function_Common.function_config ->
@@ -126,8 +126,8 @@ fun prepare_function is_external prep default_constraint fixspec eqns config lth
           if not is_external then ()
           else Specification.print_consts lthy (K false) (map fst fixes)
       in
-        lthy
-        |> Local_Theory.declaration false (add_function_data o morph_function_data info)
+        (info, 
+         lthy |> Local_Theory.declaration false (add_function_data o morph_function_data info))
       end
   in
     ((goal_state, afterqed), lthy')
@@ -156,7 +156,7 @@ fun gen_function is_external prep default_constraint fixspec eqns config lthy =
       prepare_function is_external prep default_constraint fixspec eqns config lthy
   in
     lthy'
-    |> Proof.theorem NONE afterqed [[(Logic.unprotect (concl_of goal_state), [])]]
+    |> Proof.theorem NONE (snd oo afterqed) [[(Logic.unprotect (concl_of goal_state), [])]]
     |> Proof.refine (Method.primitive_text (K goal_state)) |> Seq.hd
   end
 
