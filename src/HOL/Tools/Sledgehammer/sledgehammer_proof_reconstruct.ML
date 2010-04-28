@@ -67,13 +67,30 @@ datatype ('a, 'b, 'c, 'd, 'e) raw_step =
 
 (**** PARSING OF TSTP FORMAT ****)
 
+fun strip_spaces_in_list [] = ""
+  | strip_spaces_in_list [c1] = if Char.isSpace c1 then "" else str c1
+  | strip_spaces_in_list [c1, c2] =
+    strip_spaces_in_list [c1] ^ strip_spaces_in_list [c2]
+  | strip_spaces_in_list (c1 :: c2 :: c3 :: cs) =
+    if Char.isSpace c1 then
+      strip_spaces_in_list (c2 :: c3 :: cs)
+    else if Char.isSpace c2 then
+      if Char.isSpace c3 then
+        strip_spaces_in_list (c1 :: c3 :: cs)
+      else
+        str c1 ^ (if forall is_ident_char [c1, c3] then " " else "") ^
+        strip_spaces_in_list (c3 :: cs)
+    else
+      str c1 ^ strip_spaces_in_list (c2 :: c3 :: cs)
+val strip_spaces = strip_spaces_in_list o String.explode
+
 (* Syntax trees, either term list or formulae *)
 datatype node = IntLeaf of int | StrNode of string * node list
 
-fun atom x = StrNode (x, [])
+fun str_leaf s = StrNode (s, [])
 
 fun scons (x, y) = StrNode ("cons", [x, y])
-val slist_of = List.foldl scons (atom "nil")
+val slist_of = List.foldl scons (str_leaf "nil")
 
 (*Strings enclosed in single quotes, e.g. filenames*)
 val parse_quoted = $$ "'" |-- Scan.repeat (~$$ "'") --| $$ "'" >> implode;
@@ -81,19 +98,22 @@ val parse_quoted = $$ "'" |-- Scan.repeat (~$$ "'") --| $$ "'" >> implode;
 (*Integer constants, typically proof line numbers*)
 val parse_integer = Scan.many1 is_head_digit >> (the o Int.fromString o implode)
 
+val parse_dollar_name =
+  Scan.repeat ($$ "$") -- Symbol.scan_id >> (fn (ss, s) => implode ss ^ s)
+
 (* needed for SPASS's output format *)
-fun repair_bool_literal "true" = "c_True"
-  | repair_bool_literal "false" = "c_False"
-fun repair_name pool "equal" = "c_equal"
+fun repair_name _ "$true" = "c_True"
+  | repair_name _ "$false" = "c_False"
+  | repair_name _ "$$e" = "c_equal" (* seen in Vampire proofs *)
+  | repair_name _ "equal" = "c_equal" (* probably not needed *)
   | repair_name pool s = ugly_name pool s
 (* Generalized first-order terms, which include file names, numbers, etc. *)
 (* The "x" argument is not strictly necessary, but without it Poly/ML loops
    forever at compile time. *)
 fun parse_term pool x =
-     (parse_quoted >> atom
+     (parse_quoted >> str_leaf
    || parse_integer >> IntLeaf
-   || $$ "$" |-- Symbol.scan_id >> (atom o repair_bool_literal)
-   || (Symbol.scan_id >> repair_name pool)
+   || (parse_dollar_name >> repair_name pool)
       -- Scan.optional ($$ "(" |-- parse_terms pool --| $$ ")") [] >> StrNode
    || $$ "(" |-- parse_term pool --| $$ ")"
    || $$ "[" |-- Scan.optional (parse_terms pool) [] --| $$ "]" >> slist_of) x
@@ -112,16 +132,16 @@ fun parse_predicate_term pool =
   parse_term pool -- Scan.option (Scan.option ($$ "!") --| $$ "="
                                   -- parse_term pool)
   >> repair_predicate_term
-(* Literals can involve "~", "=", and "!=". *)
 fun parse_literal pool x =
   ($$ "~" |-- parse_literal pool >> negate_node || parse_predicate_term pool) x
-
 fun parse_literals pool =
   parse_literal pool ::: Scan.repeat ($$ "|" |-- parse_literal pool)
-
-(* Clause: a list of literals separated by disjunction operators ("|"). *)
+fun parse_parenthesized_literals pool =
+  $$ "(" |-- parse_literals pool --| $$ ")" || parse_literals pool
 fun parse_clause pool =
-  $$ "(" |-- parse_literals pool --| $$ ")" || Scan.single (parse_literal pool)
+  parse_parenthesized_literals pool
+    ::: Scan.repeat ($$ "|" |-- parse_parenthesized_literals pool)
+  >> List.concat
 
 fun ints_of_node (IntLeaf n) = cons n
   | ints_of_node (StrNode (_, us)) = fold ints_of_node us
@@ -166,7 +186,7 @@ fun parse_starred_predicate_term pool =
 fun parse_horn_clause pool =
   Scan.repeat (parse_starred_predicate_term pool) --| $$ "-" --| $$ ">"
   -- Scan.repeat (parse_starred_predicate_term pool)
-  >> (fn ([], []) => [atom "c_False"]
+  >> (fn ([], []) => [str_leaf "c_False"]
        | (clauses1, clauses2) => map negate_node clauses1 @ clauses2)
 
 (* Syntax: <num>[0:<inference><annotations>] ||
@@ -178,7 +198,13 @@ fun parse_spass_line pool =
   -- parse_horn_clause pool --| $$ "."
   >> finish_spass_line
 
-fun parse_line pool = fst o (parse_tstp_line pool || parse_spass_line pool)
+fun parse_line pool = parse_tstp_line pool || parse_spass_line pool
+fun parse_lines pool = Scan.repeat1 (parse_line pool)
+fun parse_proof pool =
+  fst o Scan.finite Symbol.stopper
+            (Scan.error (!! (fn _ => raise Fail "unrecognized ATP output")
+                            (parse_lines pool)))
+  o explode o strip_spaces
 
 (**** INTERPRETATION OF TSTP SYNTAX TREES ****)
 
@@ -532,9 +558,6 @@ fun metis_proof_text (minimize_command, atp_proof, thm_names, goal, i) =
     val n = Logic.count_prems (prop_of goal)
   in (metis_line i n lemmas ^ minimize_line minimize_command lemmas, lemmas) end
 
-val is_valid_line =
-  String.isPrefix "fof(" orf String.isPrefix "cnf(" orf String.isSubstring "||"
-
 (** Isar proof construction and manipulation **)
 
 fun merge_fact_sets (ls1, ss1) (ls2, ss2) =
@@ -573,29 +596,11 @@ fun step_for_line _ _ (Definition (num, t1, t2)) = Let (t1, t2)
           forall_vars t,
           Facts (fold (add_fact_from_dep thm_names) deps ([], [])))
 
-fun strip_spaces_in_list [] = ""
-  | strip_spaces_in_list [c1] = if Char.isSpace c1 then "" else str c1
-  | strip_spaces_in_list [c1, c2] =
-    strip_spaces_in_list [c1] ^ strip_spaces_in_list [c2]
-  | strip_spaces_in_list (c1 :: c2 :: c3 :: cs) =
-    if Char.isSpace c1 then
-      strip_spaces_in_list (c2 :: c3 :: cs)
-    else if Char.isSpace c2 then
-      if Char.isSpace c3 then
-        strip_spaces_in_list (c1 :: c3 :: cs)
-      else
-        str c1 ^ (if forall is_ident_char [c1, c3] then " " else "") ^
-        strip_spaces_in_list (c3 :: cs)
-    else
-      str c1 ^ strip_spaces_in_list (c2 :: c3 :: cs)
-val strip_spaces = strip_spaces_in_list o String.explode
-
 fun proof_from_atp_proof pool ctxt shrink_factor atp_proof thm_names frees =
   let
     val lines =
-      atp_proof
-      |> split_lines |> map strip_spaces |> filter is_valid_line
-      |> map (parse_line pool o explode)
+      atp_proof ^ "$" (* the $ sign is a dummy token *)
+      |> parse_proof pool
       |> decode_lines ctxt
       |> rpair [] |-> fold_rev (add_line thm_names)
       |> rpair [] |-> fold_rev add_nontrivial_line

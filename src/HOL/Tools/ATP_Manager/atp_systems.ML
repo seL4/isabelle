@@ -260,8 +260,10 @@ val vampire_config : prover_config =
    arguments = fn timeout =>
      "--output_syntax tptp --mode casc -t " ^
      string_of_int (to_generous_secs timeout),
-   proof_delims = [("=========== Refutation ==========",
-                    "======= End of refutation =======")],
+   proof_delims =
+     [("=========== Refutation ==========",
+       "======= End of refutation ======="),
+      ("% SZS output start Refutation", "% SZS output end Refutation")],
    known_failures =
      [(Unprovable, "Satisfiability detected"),
       (OutOfResources, "CANNOT PROVE"),
@@ -392,7 +394,7 @@ fun remote_prover_config atp_prefix args
 
 val remote_vampire =
   tptp_prover (remotify (fst vampire))
-              (remote_prover_config "Vampire---9" "" vampire_config)
+              (remote_prover_config "Vampire---11" "" vampire_config)
 
 val remote_e =
   tptp_prover (remotify (fst e))
