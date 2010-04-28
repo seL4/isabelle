@@ -392,6 +392,21 @@ fun unskolemize_term t =
   fold forall_of (Term.add_consts t []
                  |> filter (is_skolem_const_name o fst) |> map Const) t
 
+val combinator_table =
+  [(@{const_name COMBI}, @{thm COMBI_def_raw}),
+   (@{const_name COMBK}, @{thm COMBK_def_raw}),
+   (@{const_name COMBB}, @{thm COMBB_def_raw}),
+   (@{const_name COMBC}, @{thm COMBC_def_raw}),
+   (@{const_name COMBS}, @{thm COMBS_def_raw})]
+
+fun uncombine_term (t1 $ t2) = betapply (pairself uncombine_term (t1, t2))
+  | uncombine_term (Abs (s, T, t')) = Abs (s, T, uncombine_term t')
+  | uncombine_term (t as Const (x as (s, _))) =
+    (case AList.lookup (op =) combinator_table s of
+       SOME thm => thm |> prop_of |> specialize_type @{theory} x |> Logic.dest_equals |> snd
+     | NONE => t)
+  | uncombine_term t = t
+
 (* Interpret a list of syntax trees as a clause, given by "real" literals and
    sort constraints. "vt" holds the initial sort constraints, from the
    conjecture clauses. *)
@@ -435,15 +450,16 @@ fun decode_line vt (Definition (num, u, us)) ctxt =
       val t2 = clause_of_nodes ctxt vt us
       val (t1, t2) =
         HOLogic.eq_const HOLogic.typeT $ t1 $ t2
-        |> unvarify_args |> check_clause ctxt |> HOLogic.dest_eq
+        |> unvarify_args |> uncombine_term |> check_clause ctxt
+        |> HOLogic.dest_eq
     in
       (Definition (num, t1, t2),
        fold Variable.declare_term (maps OldTerm.term_frees [t1, t2]) ctxt)
     end
   | decode_line vt (Inference (num, us, deps)) ctxt =
     let
-      val t = us |> clause_of_nodes ctxt vt |> unskolemize_term
-                 |> check_clause ctxt
+      val t = us |> clause_of_nodes ctxt vt
+                 |> unskolemize_term |> uncombine_term |> check_clause ctxt
     in
       (Inference (num, t, deps),
        fold Variable.declare_term (OldTerm.term_frees t) ctxt)
