@@ -99,7 +99,6 @@ val default_default_params =
    ("follow_defs", "false"),
    ("isar_proof", "false"),
    ("shrink_factor", "1"),
-   ("sorts", "false"),
    ("minimize_timeout", "5 s")]
 
 val alias_params =
@@ -113,12 +112,11 @@ val negated_alias_params =
    ("ignore_no_atp", "respect_no_atp"),
    ("theory_irrelevant", "theory_relevant"),
    ("dont_follow_defs", "follow_defs"),
-   ("metis_proof", "isar_proof"),
-   ("no_sorts", "sorts")]
+   ("metis_proof", "isar_proof")]
 
 val params_for_minimize =
   ["debug", "verbose", "overlord", "full_types", "explicit_apply",
-   "isar_proof", "shrink_factor", "sorts", "minimize_timeout"]
+   "isar_proof", "shrink_factor", "minimize_timeout"]
 
 val property_dependent_params = ["atps", "full_types", "timeout"]
 
@@ -201,7 +199,6 @@ fun extract_params thy default_params override_params =
     val follow_defs = lookup_bool "follow_defs"
     val isar_proof = lookup_bool "isar_proof"
     val shrink_factor = Int.max (1, lookup_int "shrink_factor")
-    val sorts = lookup_bool "sorts"
     val timeout = lookup_time "timeout"
     val minimize_timeout = lookup_time "minimize_timeout"
   in
@@ -210,7 +207,7 @@ fun extract_params thy default_params override_params =
      respect_no_atp = respect_no_atp, relevance_threshold = relevance_threshold,
      convergence = convergence, theory_relevant = theory_relevant,
      follow_defs = follow_defs, isar_proof = isar_proof,
-     shrink_factor = shrink_factor, sorts = sorts, timeout = timeout,
+     shrink_factor = shrink_factor, timeout = timeout,
      minimize_timeout = minimize_timeout}
   end
 

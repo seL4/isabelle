@@ -21,11 +21,11 @@ sig
     minimize_command * string * string vector * thm * int
     -> string * string list
   val isar_proof_text:
-    name_pool option * bool * int * bool * Proof.context * int list list
+    name_pool option * bool * int * Proof.context * int list list
     -> minimize_command * string * string vector * thm * int
     -> string * string list
   val proof_text:
-    bool -> name_pool option * bool * int * bool * Proof.context * int list list
+    bool -> name_pool option * bool * int * Proof.context * int list list
     -> minimize_command * string * string vector * thm * int
     -> string * string list
 end;
@@ -830,7 +830,7 @@ val relabel_proof =
       | aux subst depth nextp (ps :: proof) = ps :: aux subst depth nextp proof
   in aux [] 0 (1, 1) end
 
-fun string_for_proof ctxt sorts i n =
+fun string_for_proof ctxt i n =
   let
     fun fix_print_mode f =
       PrintMode.setmp (filter (curry (op =) Symbol.xsymbolsN)
@@ -883,9 +883,9 @@ fun string_for_proof ctxt sorts i n =
         do_indent 0 ^ "proof -\n" ^
         do_steps "" "" 1 proof ^
         do_indent 0 ^ (if n <> 1 then "next" else "qed") ^ "\n"
-  in setmp_CRITICAL show_sorts sorts do_proof end
+  in do_proof end
 
-fun isar_proof_text (pool, debug, shrink_factor, sorts, ctxt, conjecture_shape)
+fun isar_proof_text (pool, debug, shrink_factor, ctxt, conjecture_shape)
                     (minimize_command, atp_proof, thm_names, goal, i) =
   let
     val thy = ProofContext.theory_of ctxt
@@ -901,7 +901,7 @@ fun isar_proof_text (pool, debug, shrink_factor, sorts, ctxt, conjecture_shape)
            |> then_chain_proof
            |> kill_useless_labels_in_proof
            |> relabel_proof
-           |> string_for_proof ctxt sorts i n of
+           |> string_for_proof ctxt i n of
         "" => ""
       | proof => "\nStructured proof:\n" ^ Markup.markup Markup.sendback proof
     val isar_proof =
