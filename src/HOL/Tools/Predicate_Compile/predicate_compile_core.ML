@@ -529,19 +529,19 @@ fun prove_casesrule ctxt (pred, (pre_cases_rule, nparams)) cases_rule =
     fun instantiate i n {context = ctxt, params = p, prems = prems,
       asms = a, concl = cl, schematics = s}  =
       let
+        fun term_pair_of (ix, (ty,t)) = (Var (ix,ty), t)
+        fun inst_of_matches tts = fold (Pattern.match thy) tts (Vartab.empty, Vartab.empty)
+          |> snd |> Vartab.dest |> map (pairself (cterm_of thy) o term_pair_of)
         val (cases, (eqs, prems)) = apsnd (chop (nargs - nparams)) (chop n prems)
         val case_th = MetaSimplifier.simplify true
           (@{thm Predicate.eq_is_eq} :: map meta_eq_of eqs) (nth cases (i - 1))
         val prems' = maps (dest_conjunct_prem o MetaSimplifier.simplify true tuple_rew_rules) prems
         val pats = map (swap o HOLogic.dest_eq o HOLogic.dest_Trueprop) (take nargs (prems_of case_th))
-        val (_, tenv) = fold (Pattern.match thy) pats (Vartab.empty, Vartab.empty)
-        fun term_pair_of (ix, (ty,t)) = (Var (ix,ty), t)
-        val inst = map (pairself (cterm_of thy) o term_pair_of) (Vartab.dest tenv)
-        val case_th' = Thm.instantiate ([], inst) case_th OF (replicate nargs @{thm refl})
-        val (_, tenv) = fold (Pattern.match thy) (prems_of case_th' ~~ map prop_of prems') (Vartab.empty, Vartab.empty)
-        val inst' = map (pairself (cterm_of thy) o term_pair_of) (Vartab.dest tenv)
-        val case_th'' = Thm.instantiate ([], inst') case_th'
-        val thesis = case_th'' OF prems'
+        val case_th' = Thm.instantiate ([], inst_of_matches pats) case_th
+          OF (replicate nargs @{thm refl})
+        val thesis =
+          Thm.instantiate ([], inst_of_matches (prems_of case_th' ~~ map prop_of prems')) case_th'
+            OF prems'
       in
         (rtac thesis 1)
       end
