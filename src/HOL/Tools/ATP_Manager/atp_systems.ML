@@ -70,8 +70,10 @@ fun extract_proof delims output =
   case pairself (find_first (fn s => String.isSubstring s output))
                 (ListPair.unzip delims) of
     (SOME begin_delim, SOME end_delim) =>
-    output |> first_field begin_delim |> the |> snd
-           |> first_field end_delim |> the |> fst
+    (output |> first_field begin_delim |> the |> snd
+            |> first_field end_delim |> the |> fst
+            |> first_field "\n" |> the |> snd
+     handle Option.Option => "")
   | _ => ""
 
 fun extract_proof_and_outcome res_code proof_delims known_failures output =
