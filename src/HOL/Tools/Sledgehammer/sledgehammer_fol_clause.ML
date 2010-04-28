@@ -107,13 +107,20 @@ val class_prefix = "class_";
 
 fun union_all xss = fold (union (op =)) xss []
 
-(* Provide readable names for the more common symbolic functions *)
+(* Readable names for the more common symbolic functions. Do not mess with the
+   last six entries of the table unless you know what you are doing. *)
 val const_trans_table =
   Symtab.make [(@{const_name "op ="}, "equal"),
                (@{const_name "op &"}, "and"),
                (@{const_name "op |"}, "or"),
                (@{const_name "op -->"}, "implies"),
-               (@{const_name "op :"}, "in")]
+               (@{const_name "op :"}, "in"),
+               (@{const_name fequal}, "fequal"),
+               (@{const_name COMBI}, "COMBI"),
+               (@{const_name COMBK}, "COMBK"),
+               (@{const_name COMBB}, "COMBB"),
+               (@{const_name COMBC}, "COMBC"),
+               (@{const_name COMBS}, "COMBS")]
 
 val type_const_trans_table =
   Symtab.make [(@{type_name "*"}, "prod"),
