@@ -1092,6 +1092,7 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL-SMT	\
   Multivariate_Analysis/L2_Norm.thy			\
   Multivariate_Analysis/Multivariate_Analysis.thy	\
   Multivariate_Analysis/Operator_Norm.thy		\
+  Multivariate_Analysis/Path_Connected.thy		\
   Multivariate_Analysis/Real_Integration.thy		\
   Multivariate_Analysis/Topology_Euclidean_Space.thy	\
   Multivariate_Analysis/Vec1.thy
