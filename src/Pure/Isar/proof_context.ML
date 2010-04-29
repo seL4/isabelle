@@ -55,13 +55,13 @@ sig
   val cert_typ_abbrev: Proof.context -> typ -> typ
   val get_skolem: Proof.context -> string -> string
   val revert_skolem: Proof.context -> string -> string
-  val infer_type: Proof.context -> string -> typ
+  val infer_type: Proof.context -> string * typ -> typ
   val inferred_param: string -> Proof.context -> typ * Proof.context
   val inferred_fixes: Proof.context -> (string * typ) list * Proof.context
   val read_type_name: Proof.context -> bool -> string -> typ
   val read_type_name_proper: Proof.context -> bool -> string -> typ
   val read_const_proper: Proof.context -> bool -> string -> term
-  val read_const: Proof.context -> bool -> string -> term
+  val read_const: Proof.context -> bool -> typ -> string -> term
   val allow_dummies: Proof.context -> Proof.context
   val check_tvar: Proof.context -> indexname * sort -> indexname * sort
   val check_tfree: Proof.context -> string * sort -> string * sort
@@ -438,11 +438,10 @@ in val _ = Context.>> (Context.map_theory (Sign.add_tokentrfuns token_trans)) en
 (* inferred types of parameters *)
 
 fun infer_type ctxt x =
-  Term.fastype_of (singleton (Syntax.check_terms (set_mode mode_schematic ctxt))
-    (Free (x, dummyT)));
+  Term.fastype_of (singleton (Syntax.check_terms (set_mode mode_schematic ctxt)) (Free x));
 
 fun inferred_param x ctxt =
-  let val T = infer_type ctxt x
+  let val T = infer_type ctxt (x, dummyT)
   in (T, ctxt |> Variable.declare_term (Free (x, T))) end;
 
 fun inferred_fixes ctxt =
@@ -505,13 +504,13 @@ fun read_type_name_proper ctxt strict text =
 
 fun read_const_proper ctxt strict = prep_const_proper ctxt strict o token_content;
 
-fun read_const ctxt strict text =
+fun read_const ctxt strict ty text =
   let val (c, pos) = token_content text in
     (case (lookup_skolem ctxt c, Variable.is_const ctxt c) of
       (SOME x, false) =>
         (Position.report (Markup.name x
             (if can Name.dest_skolem x then Markup.skolem else Markup.free)) pos;
-          Free (x, infer_type ctxt x))
+          Free (x, infer_type ctxt (x, ty)))
     | _ => prep_const_proper ctxt strict (c, pos))
   end;
 

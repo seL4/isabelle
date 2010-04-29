@@ -205,7 +205,7 @@ fun type_name strict =
   >> (fn Type (c, _) => c | TFree (a, _) => a | _ => "");
 
 fun const strict =
-  Scan.peek (fn ctxt => named_term (ProofContext.read_const (Context.proof_of ctxt) strict))
+  Scan.peek (fn ctxt => named_term (ProofContext.read_const (Context.proof_of ctxt) strict dummyT))
   >> (fn Const (c, _) => c | Free (x, _) => x | _ => "");
 
 fun const_proper strict =
