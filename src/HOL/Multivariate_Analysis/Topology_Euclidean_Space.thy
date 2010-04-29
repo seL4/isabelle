@@ -66,16 +66,14 @@ lemma openin_Un[intro]: "openin U S \<Longrightarrow> openin U T \<Longrightarro
 lemma openin_topspace[intro, simp]: "openin U (topspace U)" by (simp add: openin_Union topspace_def)
 
 lemma openin_subopen: "openin U S \<longleftrightarrow> (\<forall>x \<in> S. \<exists>T. openin U T \<and> x \<in> T \<and> T \<subseteq> S)" (is "?lhs \<longleftrightarrow> ?rhs")
-proof-
-  {assume ?lhs then have ?rhs by auto }
-  moreover
-  {assume H: ?rhs
-    then obtain t where t: "\<forall>x\<in>S. openin U (t x) \<and> x \<in> t x \<and> t x \<subseteq> S"
-      unfolding Ball_def ex_simps(6)[symmetric] choice_iff by blast
-    from t have th0: "\<forall>x\<in> t`S. openin U x" by auto
-    have "\<Union> t`S = S" using t by auto
-    with openin_Union[OF th0] have "openin U S" by simp }
-  ultimately show ?thesis by blast
+proof
+  assume ?lhs then show ?rhs by auto
+next
+  assume H: ?rhs
+  let ?t = "\<Union>{T. openin U T \<and> T \<subseteq> S}"
+  have "openin U ?t" by (simp add: openin_Union)
+  also have "?t = S" using H by auto
+  finally show "openin U S" .
 qed
 
 subsection{* Closed sets *}
