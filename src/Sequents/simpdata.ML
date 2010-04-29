@@ -47,7 +47,7 @@ val mk_meta_prems =
       (REPEAT_FIRST (resolve_tac [@{thm meta_eq_to_obj_eq}, @{thm def_imp_iff}]));
 
 (*Congruence rules for = or <-> (instead of ==)*)
-fun mk_meta_cong rl =
+fun mk_meta_cong (_: simpset) rl =
   Drule.export_without_context(mk_meta_eq (mk_meta_prems rl))
     handle THM _ =>
       error("Premises and conclusion of congruence rules must use =-equality or <->");
@@ -71,7 +71,7 @@ val LK_basic_ss =
     setsubgoaler asm_simp_tac
     setSSolver (mk_solver "safe" safe_solver)
     setSolver (mk_solver "unsafe" unsafe_solver)
-    setmksimps (map mk_meta_eq o atomize o gen_all)
+    setmksimps (K (map mk_meta_eq o atomize o gen_all))
     setmkcong mk_meta_cong;
 
 val LK_simps =

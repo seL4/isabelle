@@ -26,7 +26,7 @@ val mk_meta_prems =
       (REPEAT_FIRST (resolve_tac [@{thm meta_eq_to_obj_eq}, @{thm def_imp_iff}]));
 
 (*Congruence rules for = or <-> (instead of ==)*)
-fun mk_meta_cong rl =
+fun mk_meta_cong (_: simpset) rl =
   Drule.export_without_context (mk_meta_eq (mk_meta_prems rl))
     handle THM _ =>
       error("Premises and conclusion of congruence rules must use =-equality or <->");
@@ -52,7 +52,7 @@ fun mk_atomize pairs =
          | _ => [th])
   in atoms end;
 
-fun mksimps pairs = (map mk_eq o mk_atomize pairs o gen_all);
+fun mksimps pairs (_: simpset) = map mk_eq o mk_atomize pairs o gen_all;
 
 
 (** make simplification procedures for quantifier elimination **)
