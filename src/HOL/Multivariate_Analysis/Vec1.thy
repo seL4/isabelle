@@ -205,14 +205,15 @@ lemma bounded_linear_vec1:"bounded_linear (vec1::real\<Rightarrow>real^1)"
   apply(rule conjI) defer apply(rule conjI) defer apply(rule_tac x=1 in exI) by auto
 
 lemma linear_vmul_dest_vec1:
-  fixes f:: "'a::semiring_1^_ \<Rightarrow> 'a^1"
+  fixes f:: "real^_ \<Rightarrow> real^1"
   shows "linear f \<Longrightarrow> linear (\<lambda>x. dest_vec1(f x) *s v)"
-  apply (rule linear_vmul_component)
-  by auto
+  unfolding smult_conv_scaleR
+  by (rule linear_vmul_component)
 
 lemma linear_from_scalars:
-  assumes lf: "linear (f::'a::comm_ring_1 ^1 \<Rightarrow> 'a^_)"
+  assumes lf: "linear (f::real^1 \<Rightarrow> real^_)"
   shows "f = (\<lambda>x. dest_vec1 x *s column 1 (matrix f))"
+  unfolding smult_conv_scaleR
   apply (rule ext)
   apply (subst matrix_works[OF lf, symmetric])
   apply (auto simp add: Cart_eq matrix_vector_mult_def column_def mult_commute)

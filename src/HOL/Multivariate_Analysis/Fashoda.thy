@@ -47,7 +47,7 @@ lemma fashoda_unit: fixes f g::"real \<Rightarrow> real^2"
     apply(rule continuous_on_mul ) apply(rule continuous_at_imp_continuous_on,rule) apply(rule continuous_at_inv[unfolded o_def])
     apply(rule continuous_at_infnorm) unfolding infnorm_eq_0 defer apply(rule continuous_on_id) apply(rule linear_continuous_on) proof-
     show "bounded_linear negatex" apply(rule bounded_linearI') unfolding Cart_eq proof(rule_tac[!] allI) fix i::2 and x y::"real^2" and c::real
-      show "negatex (x + y) $ i = (negatex x + negatex y) $ i" "negatex (c *s x) $ i = (c *s negatex x) $ i"
+      show "negatex (x + y) $ i = (negatex x + negatex y) $ i" "negatex (c *\<^sub>R x) $ i = (c *\<^sub>R negatex x) $ i"
 	apply-apply(case_tac[!] "i\<noteq>1") prefer 3 apply(drule_tac[1-2] 21) 
 	unfolding negatex_def by(auto simp add:vector_2 ) qed qed(insert x0, auto)
   have 3:"(negatex \<circ> sqprojection \<circ> ?F) ` {- 1..1} \<subseteq> {- 1..1}" unfolding subset_eq apply rule proof-

@@ -5515,7 +5515,7 @@ proof-
       moreover
       have "basis k \<in> span (?bas ` (insert k F))" by(rule span_superset, auto)
       hence "x$k *\<^sub>R basis k \<in> span (?bas ` (insert k F))"
-        using span_mul [where 'a=real, unfolded smult_conv_scaleR] by auto
+        using span_mul by auto
       ultimately
       have "y + x$k *\<^sub>R basis k \<in> span (?bas ` (insert k F))"
         using span_add by auto

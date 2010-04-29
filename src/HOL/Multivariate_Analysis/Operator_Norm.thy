@@ -32,8 +32,8 @@ proof-
       {assume x0: "x \<noteq> 0"
         hence n0: "norm x \<noteq> 0" by (metis norm_eq_zero)
         let ?c = "1/ norm x"
-        have "norm (?c*s x) = 1" using x0 by (simp add: n0)
-        with H have "norm (f(?c*s x)) \<le> b" by blast
+        have "norm (?c *\<^sub>R x) = 1" using x0 by (simp add: n0)
+        with H have "norm (f (?c *\<^sub>R x)) \<le> b" by blast
         hence "?c * norm (f x) \<le> b"
           by (simp add: linear_cmul[OF lf])
         hence "norm (f x) \<le> b * norm x"

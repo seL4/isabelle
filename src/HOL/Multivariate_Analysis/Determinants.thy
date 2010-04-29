@@ -421,7 +421,7 @@ proof-
 qed
 
 lemma det_row_span:
-  fixes A :: "'a:: linordered_idom^'n^'n"
+  fixes A :: "real^'n^'n"
   assumes x: "x \<in> span {row j A |j. j \<noteq> i}"
   shows "det (\<chi> k. if k = i then row i A + x else row k A) = det A"
 proof-
@@ -450,7 +450,7 @@ proof-
 
   ultimately show ?thesis
     apply -
-    apply (rule span_induct_alt[of ?P ?S, OF P0])
+    apply (rule span_induct_alt[of ?P ?S, OF P0, folded smult_conv_scaleR])
     apply blast
     apply (rule x)
     done
@@ -462,7 +462,7 @@ qed
 (* ------------------------------------------------------------------------- *)
 
 lemma det_dependent_rows:
-  fixes A:: "'a::linordered_idom^'n^'n"
+  fixes A:: "real^'n^'n"
   assumes d: "dependent (rows A)"
   shows "det A = 0"
 proof-
@@ -483,12 +483,12 @@ proof-
     from det_row_span[OF th0]
     have "det A = det (\<chi> k. if k = i then 0 *s 1 else row k A)"
       unfolding right_minus vector_smult_lzero ..
-    with det_row_mul[of i "0::'a" "\<lambda>i. 1"]
+    with det_row_mul[of i "0::real" "\<lambda>i. 1"]
     have "det A = 0" by simp}
   ultimately show ?thesis by blast
 qed
 
-lemma det_dependent_columns: assumes d: "dependent(columns (A::'a::linordered_idom^'n^'n))" shows "det A = 0"
+lemma det_dependent_columns: assumes d: "dependent(columns (A::real^'n^'n))" shows "det A = 0"
 by (metis d det_dependent_rows rows_transpose det_transpose)
 
 (* ------------------------------------------------------------------------- *)
@@ -744,7 +744,7 @@ proof-
       apply (rule span_setsum)
       apply simp
       apply (rule ballI)
-      apply (rule span_mul)+
+      apply (rule span_mul [where 'a="real^'n", folded smult_conv_scaleR])+
       apply (rule span_superset)
       apply auto
       done
@@ -761,9 +761,9 @@ qed
 (* ------------------------------------------------------------------------- *)
 
 lemma cramer_lemma_transpose:
-  fixes A:: "'a::linordered_idom^'n^'n" and x :: "'a ^'n"
+  fixes A:: "real^'n^'n" and x :: "real^'n"
   shows "det ((\<chi> i. if i = k then setsum (\<lambda>i. x$i *s row i A) (UNIV::'n set)
-                           else row i A)::'a^'n^'n) = x$k * det A"
+                           else row i A)::real^'n^'n) = x$k * det A"
   (is "?lhs = ?rhs")
 proof-
   let ?U = "UNIV :: 'n set"
@@ -780,7 +780,7 @@ proof-
     apply (rule det_row_span)
     apply (rule span_setsum[OF fUk])
     apply (rule ballI)
-    apply (rule span_mul)
+    apply (rule span_mul [where 'a="real^'n", folded smult_conv_scaleR])+
     apply (rule span_superset)
     apply auto
     done
@@ -797,8 +797,8 @@ proof-
 qed
 
 lemma cramer_lemma:
-  fixes A :: "'a::linordered_idom ^'n^'n"
-  shows "det((\<chi> i j. if j = k then (A *v x)$i else A$i$j):: 'a^'n^'n) = x$k * det A"
+  fixes A :: "real^'n^'n"
+  shows "det((\<chi> i j. if j = k then (A *v x)$i else A$i$j):: real^'n^'n) = x$k * det A"
 proof-
   let ?U = "UNIV :: 'n set"
   have stupid: "\<And>c. setsum (\<lambda>i. c i *s row i (transpose A)) ?U = setsum (\<lambda>i. c i *s column i A) ?U"
