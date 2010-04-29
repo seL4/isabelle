@@ -1147,6 +1147,21 @@ subsection{* Adjoints. *}
 
 definition "adjoint f = (SOME f'. \<forall>x y. f x \<bullet> y = x \<bullet> f' y)"
 
+lemma adjoint_unique:
+  assumes "\<forall>x y. inner (f x) y = inner x (g y)"
+  shows "adjoint f = g"
+unfolding adjoint_def
+proof (rule some_equality)
+  show "\<forall>x y. inner (f x) y = inner x (g y)" using assms .
+next
+  fix h assume "\<forall>x y. inner (f x) y = inner x (h y)"
+  hence "\<forall>x y. inner x (g y) = inner x (h y)" using assms by simp
+  hence "\<forall>x y. inner x (g y - h y) = 0" by (simp add: inner_diff_right)
+  hence "\<forall>y. inner (g y - h y) (g y - h y) = 0" by simp
+  hence "\<forall>y. h y = g y" by simp
+  thus "h = g" by (simp add: ext)
+qed
+
 lemma choice_iff: "(\<forall>x. \<exists>y. P x y) \<longleftrightarrow> (\<exists>f. \<forall>x. P x (f x))" by metis
 
 text {* TODO: The following lemmas about adjoints should hold for any
@@ -1206,16 +1221,7 @@ lemma adjoint_adjoint:
   fixes f:: "real ^'n \<Rightarrow> real ^'m"
   assumes lf: "linear f"
   shows "adjoint (adjoint f) = f"
-  apply (rule ext)
-  by (simp add: vector_eq_ldot[symmetric] adjoint_clauses[OF adjoint_linear[OF lf]] adjoint_clauses[OF lf])
-
-lemma adjoint_unique:
-  fixes f:: "real ^'n \<Rightarrow> real ^'m"
-  assumes lf: "linear f" and u: "\<forall>x y. f' x \<bullet> y = x \<bullet> f y"
-  shows "f' = adjoint f"
-  apply (rule ext)
-  using u
-  by (simp add: vector_eq_rdot[where 'a="real^'n", symmetric] adjoint_clauses[OF lf])
+  by (rule adjoint_unique, simp add: adjoint_clauses [OF lf])
 
 subsection {* Matrix operations *}
 
@@ -1383,8 +1389,7 @@ lemma matrix_vector_column:"(A::'a::comm_semiring_1^'n^_) *v x = setsum (\<lambd
   by (simp add: matrix_vector_mult_def transpose_def Cart_eq mult_commute)
 
 lemma adjoint_matrix: "adjoint(\<lambda>x. (A::real^'n^'m) *v x) = (\<lambda>x. transpose A *v x)"
-  apply (rule adjoint_unique[symmetric])
-  apply (rule matrix_vector_mul_linear)
+  apply (rule adjoint_unique)
   apply (simp add: transpose_def inner_vector_def matrix_vector_mult_def setsum_left_distrib setsum_right_distrib)
   apply (subst setsum_commute)
   apply (auto simp add: mult_ac)
