@@ -23,7 +23,16 @@ diff -u gitweb/changelogentry.tmpl isabelle/changelogentry.tmpl
  </div>
 diff -u gitweb/map isabelle/map
 --- gitweb/map	2010-02-01 16:34:34.000000000 +0100
-+++ isabelle/map	2010-03-03 15:13:25.000000000 +0100
++++ isabelle/map	2010-04-29 23:43:54.000000000 +0200
+@@ -78,7 +78,7 @@
+   <tr style="font-family:monospace" class="parity{parity}">
+     <td class="linenr" style="text-align: right;">
+       <a href="{url}annotate/{node|short}/{file|urlescape}{sessionvars%urlparameter}#l{targetline}"
+-         title="{node|short}: {desc|escape|firstline}">{author|user}@{rev}</a>
++         title="{node|short}: {desc|escape}">{author|user}@{rev}</a>
+     </td>
+     <td><pre><a class="linenr" href="#{lineid}" id="{lineid}">{linenumber}</a></pre></td>
+     <td><pre>{line|escape}</pre></td>
 @@ -206,9 +206,10 @@
    <tr class="parity{parity}">
      <td class="age"><i>{date|age}</i></td>
@@ -36,3 +45,12 @@ diff -u gitweb/map isabelle/map
          <span class="logtags">{inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span>
        </a>
      </td>
+@@ -225,6 +226,7 @@
+         <b>{desc|strip|firstline|escape|nonempty}</b>
+       </a>
+     </td>
++    <td><i>{author|person}</i></td>
+     <td class="link">
+       <a href="{url}file/{node|short}/{file|urlescape}{sessionvars%urlparameter}">file</a>&nbsp;|&nbsp;<a href="{url}diff/{node|short}/{file|urlescape}{sessionvars%urlparameter}">diff</a>&nbsp;|&nbsp;<a href="{url}annotate/{node|short}/{file|urlescape}{sessionvars%urlparameter}">annotate</a> {rename%filelogrename}</td>
+     </tr>'
+Only in isabelle/: map~
