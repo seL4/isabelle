@@ -1208,9 +1208,8 @@ lemma orthogonal_basis_basis:
   shows "orthogonal (basis i :: real^'n) (basis j) \<longleftrightarrow> i \<noteq> j"
   unfolding orthogonal_basis[of i] basis_component[of j] by simp
 
-  (* FIXME : Maybe some of these require less than comm_ring, but not all*)
 lemma orthogonal_clauses:
-  "orthogonal a (0::real ^'n)"
+  "orthogonal a 0"
   "orthogonal a x ==> orthogonal a (c *\<^sub>R x)"
   "orthogonal a x ==> orthogonal a (-x)"
   "orthogonal a x \<Longrightarrow> orthogonal a y ==> orthogonal a (x + y)"
