@@ -351,6 +351,38 @@ proof (rule topological_tendstoI)
     by simp
 qed
 
+lemma eventually_Ball_finite: (* TODO: move *)
+  assumes "finite A" and "\<forall>y\<in>A. eventually (\<lambda>x. P x y) net"
+  shows "eventually (\<lambda>x. \<forall>y\<in>A. P x y) net"
+using assms by (induct set: finite, simp, simp add: eventually_conj)
+
+lemma eventually_all_finite: (* TODO: move *)
+  fixes P :: "'a \<Rightarrow> 'b::finite \<Rightarrow> bool"
+  assumes "\<And>y. eventually (\<lambda>x. P x y) net"
+  shows "eventually (\<lambda>x. \<forall>y. P x y) net"
+using eventually_Ball_finite [of UNIV P] assms by simp
+
+lemma tendsto_vector:
+  assumes "\<And>i. ((\<lambda>x. f x $ i) ---> a $ i) net"
+  shows "((\<lambda>x. f x) ---> a) net"
+proof (rule topological_tendstoI)
+  fix S assume "open S" and "a \<in> S"
+  then obtain A where A: "\<And>i. open (A i)" "\<And>i. a $ i \<in> A i"
+    and S: "\<And>y. \<forall>i. y $ i \<in> A i \<Longrightarrow> y \<in> S"
+    unfolding open_vector_def by metis
+  have "\<And>i. eventually (\<lambda>x. f x $ i \<in> A i) net"
+    using assms A by (rule topological_tendstoD)
+  hence "eventually (\<lambda>x. \<forall>i. f x $ i \<in> A i) net"
+    by (rule eventually_all_finite)
+  thus "eventually (\<lambda>x. f x \<in> S) net"
+    by (rule eventually_elim1, simp add: S)
+qed
+
+lemma tendsto_Cart_lambda [tendsto_intros]:
+  assumes "\<And>i. ((\<lambda>x. f x i) ---> a i) net"
+  shows "((\<lambda>x. \<chi> i. f x i) ---> (\<chi> i. a i)) net"
+using assms by (simp add: tendsto_vector)
+
 subsection {* Metric *}
 
 (* TODO: move somewhere else *)
@@ -438,37 +470,9 @@ lemma Cauchy_Cart_nth:
 unfolding Cauchy_def by (fast intro: le_less_trans [OF dist_nth_le])
 
 lemma LIMSEQ_vector:
-  fixes X :: "nat \<Rightarrow> 'a::metric_space ^ 'n"
-  assumes X: "\<And>i. (\<lambda>n. X n $ i) ----> (a $ i)"
+  assumes "\<And>i. (\<lambda>n. X n $ i) ----> (a $ i)"
   shows "X ----> a"
-proof (rule metric_LIMSEQ_I)
-  fix r :: real assume "0 < r"
-  then have "0 < r / of_nat CARD('n)" (is "0 < ?s")
-    by (simp add: divide_pos_pos)
-  def N \<equiv> "\<lambda>i. LEAST N. \<forall>n\<ge>N. dist (X n $ i) (a $ i) < ?s"
-  def M \<equiv> "Max (range N)"
-  have "\<And>i. \<exists>N. \<forall>n\<ge>N. dist (X n $ i) (a $ i) < ?s"
-    using X `0 < ?s` by (rule metric_LIMSEQ_D)
-  hence "\<And>i. \<forall>n\<ge>N i. dist (X n $ i) (a $ i) < ?s"
-    unfolding N_def by (rule LeastI_ex)
-  hence M: "\<And>i. \<forall>n\<ge>M. dist (X n $ i) (a $ i) < ?s"
-    unfolding M_def by simp
-  {
-    fix n :: nat assume "M \<le> n"
-    have "dist (X n) a = setL2 (\<lambda>i. dist (X n $ i) (a $ i)) UNIV"
-      unfolding dist_vector_def ..
-    also have "\<dots> \<le> setsum (\<lambda>i. dist (X n $ i) (a $ i)) UNIV"
-      by (rule setL2_le_setsum [OF zero_le_dist])
-    also have "\<dots> < setsum (\<lambda>i::'n. ?s) UNIV"
-      by (rule setsum_strict_mono, simp_all add: M `M \<le> n`)
-    also have "\<dots> = r"
-      by simp
-    finally have "dist (X n) a < r" .
-  }
-  hence "\<forall>n\<ge>M. dist (X n) a < r"
-    by simp
-  then show "\<exists>M. \<forall>n\<ge>M. dist (X n) a < r" ..
-qed
+using assms unfolding LIMSEQ_conv_tendsto by (rule tendsto_vector)
 
 lemma Cauchy_vector:
   fixes X :: "nat \<Rightarrow> 'a::metric_space ^ 'n"
