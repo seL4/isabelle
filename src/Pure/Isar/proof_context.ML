@@ -505,7 +505,10 @@ fun read_type_name_proper ctxt strict text =
 fun read_const_proper ctxt strict = prep_const_proper ctxt strict o token_content;
 
 fun read_const ctxt strict ty text =
-  let val (c, pos) = token_content text in
+  let
+    val (c, pos) = token_content text;
+    val _ = no_skolem false c;
+  in
     (case (lookup_skolem ctxt c, Variable.is_const ctxt c) of
       (SOME x, false) =>
         (Position.report (Markup.name x
