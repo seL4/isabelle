@@ -1,4 +1,4 @@
-(*  Title:      Tools/code/code_ml.ML_
+(*  Title:      Tools/code/code_ml.ML
     Author:     Florian Haftmann, TU Muenchen
 
 Serializer for SML and OCaml.

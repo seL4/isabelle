@@ -1909,10 +1909,9 @@ where
 
 ML {* @{code cooper_test} () *}
 
-(*
-code_reserved SML oo
-export_code pa in SML module_name GeneratedCooper file "~~/src/HOL/Tools/Qelim/raw_generated_cooper.ML"
-*)
+code_reflect Generated_Cooper
+  functions pa
+  file "~~/src/HOL/Tools/Qelim/generated_cooper.ML"
 
 oracle linzqe_oracle = {*
 let

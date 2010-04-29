@@ -1,49 +1,263 @@
-(*  Title:      HOL/Tools/Qelim/generated_cooper.ML
+(* Generated from Cooper.thy; DO NOT EDIT! *)
 
-This file is generated from HOL/Decision_Procs/Cooper.thy.  DO NOT EDIT.
-*)
-
-structure GeneratedCooper = 
-struct
+structure Generated_Cooper : sig
+  type 'a eq
+  val eq : 'a eq -> 'a -> 'a -> bool
+  val eqa : 'a eq -> 'a -> 'a -> bool
+  val leta : 'a -> ('a -> 'b) -> 'b
+  val suc : IntInf.int -> IntInf.int
+  datatype num = C of IntInf.int | Bound of IntInf.int |
+    Cn of IntInf.int * IntInf.int * num | Neg of num | Add of num * num |
+    Sub of num * num | Mul of IntInf.int * num
+  datatype fm = T | F | Lt of num | Le of num | Gt of num | Ge of num |
+    Eq of num | NEq of num | Dvd of IntInf.int * num | NDvd of IntInf.int * num
+    | Not of fm | And of fm * fm | Or of fm * fm | Imp of fm * fm |
+    Iff of fm * fm | E of fm | A of fm | Closed of IntInf.int |
+    NClosed of IntInf.int
+  val map : ('a -> 'b) -> 'a list -> 'b list
+  val append : 'a list -> 'a list -> 'a list
+  val disjuncts : fm -> fm list
+  val fm_case :
+    'a -> 'a -> (num -> 'a) ->
+                  (num -> 'a) ->
+                    (num -> 'a) ->
+                      (num -> 'a) ->
+                        (num -> 'a) ->
+                          (num -> 'a) ->
+                            (IntInf.int -> num -> 'a) ->
+                              (IntInf.int -> num -> 'a) ->
+                                (fm -> 'a) ->
+                                  (fm -> fm -> 'a) ->
+                                    (fm -> fm -> 'a) ->
+                                      (fm -> fm -> 'a) ->
+(fm -> fm -> 'a) ->
+  (fm -> 'a) ->
+    (fm -> 'a) -> (IntInf.int -> 'a) -> (IntInf.int -> 'a) -> fm -> 'a
+  val eq_num : num -> num -> bool
+  val eq_fm : fm -> fm -> bool
+  val djf : ('a -> fm) -> 'a -> fm -> fm
+  val foldr : ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
+  val evaldjf : ('a -> fm) -> 'a list -> fm
+  val dj : (fm -> fm) -> fm -> fm
+  val disj : fm -> fm -> fm
+  val minus_nat : IntInf.int -> IntInf.int -> IntInf.int
+  val decrnum : num -> num
+  val decr : fm -> fm
+  val concat_map : ('a -> 'b list) -> 'a list -> 'b list
+  val numsubst0 : num -> num -> num
+  val subst0 : num -> fm -> fm
+  val minusinf : fm -> fm
+  val eq_int : IntInf.int eq
+  val zero_int : IntInf.int
+  type 'a zero
+  val zero : 'a zero -> 'a
+  val zero_inta : IntInf.int zero
+  type 'a times
+  val times : 'a times -> 'a -> 'a -> 'a
+  type 'a no_zero_divisors
+  val times_no_zero_divisors : 'a no_zero_divisors -> 'a times
+  val zero_no_zero_divisors : 'a no_zero_divisors -> 'a zero
+  val times_int : IntInf.int times
+  val no_zero_divisors_int : IntInf.int no_zero_divisors
+  type 'a one
+  val one : 'a one -> 'a
+  type 'a zero_neq_one
+  val one_zero_neq_one : 'a zero_neq_one -> 'a one
+  val zero_zero_neq_one : 'a zero_neq_one -> 'a zero
+  type 'a semigroup_mult
+  val times_semigroup_mult : 'a semigroup_mult -> 'a times
+  type 'a plus
+  val plus : 'a plus -> 'a -> 'a -> 'a
+  type 'a semigroup_add
+  val plus_semigroup_add : 'a semigroup_add -> 'a plus
+  type 'a ab_semigroup_add
+  val semigroup_add_ab_semigroup_add : 'a ab_semigroup_add -> 'a semigroup_add
+  type 'a semiring
+  val ab_semigroup_add_semiring : 'a semiring -> 'a ab_semigroup_add
+  val semigroup_mult_semiring : 'a semiring -> 'a semigroup_mult
+  type 'a mult_zero
+  val times_mult_zero : 'a mult_zero -> 'a times
+  val zero_mult_zero : 'a mult_zero -> 'a zero
+  type 'a monoid_add
+  val semigroup_add_monoid_add : 'a monoid_add -> 'a semigroup_add
+  val zero_monoid_add : 'a monoid_add -> 'a zero
+  type 'a comm_monoid_add
+  val ab_semigroup_add_comm_monoid_add :
+    'a comm_monoid_add -> 'a ab_semigroup_add
+  val monoid_add_comm_monoid_add : 'a comm_monoid_add -> 'a monoid_add
+  type 'a semiring_0
+  val comm_monoid_add_semiring_0 : 'a semiring_0 -> 'a comm_monoid_add
+  val mult_zero_semiring_0 : 'a semiring_0 -> 'a mult_zero
+  val semiring_semiring_0 : 'a semiring_0 -> 'a semiring
+  type 'a power
+  val one_power : 'a power -> 'a one
+  val times_power : 'a power -> 'a times
+  type 'a monoid_mult
+  val semigroup_mult_monoid_mult : 'a monoid_mult -> 'a semigroup_mult
+  val power_monoid_mult : 'a monoid_mult -> 'a power
+  type 'a semiring_1
+  val monoid_mult_semiring_1 : 'a semiring_1 -> 'a monoid_mult
+  val semiring_0_semiring_1 : 'a semiring_1 -> 'a semiring_0
+  val zero_neq_one_semiring_1 : 'a semiring_1 -> 'a zero_neq_one
+  type 'a cancel_semigroup_add
+  val semigroup_add_cancel_semigroup_add :
+    'a cancel_semigroup_add -> 'a semigroup_add
+  type 'a cancel_ab_semigroup_add
+  val ab_semigroup_add_cancel_ab_semigroup_add :
+    'a cancel_ab_semigroup_add -> 'a ab_semigroup_add
+  val cancel_semigroup_add_cancel_ab_semigroup_add :
+    'a cancel_ab_semigroup_add -> 'a cancel_semigroup_add
+  type 'a cancel_comm_monoid_add
+  val cancel_ab_semigroup_add_cancel_comm_monoid_add :
+    'a cancel_comm_monoid_add -> 'a cancel_ab_semigroup_add
+  val comm_monoid_add_cancel_comm_monoid_add :
+    'a cancel_comm_monoid_add -> 'a comm_monoid_add
+  type 'a semiring_0_cancel
+  val cancel_comm_monoid_add_semiring_0_cancel :
+    'a semiring_0_cancel -> 'a cancel_comm_monoid_add
+  val semiring_0_semiring_0_cancel : 'a semiring_0_cancel -> 'a semiring_0
+  type 'a semiring_1_cancel
+  val semiring_0_cancel_semiring_1_cancel :
+    'a semiring_1_cancel -> 'a semiring_0_cancel
+  val semiring_1_semiring_1_cancel : 'a semiring_1_cancel -> 'a semiring_1
+  type 'a dvd
+  val times_dvd : 'a dvd -> 'a times
+  type 'a ab_semigroup_mult
+  val semigroup_mult_ab_semigroup_mult :
+    'a ab_semigroup_mult -> 'a semigroup_mult
+  type 'a comm_semiring
+  val ab_semigroup_mult_comm_semiring : 'a comm_semiring -> 'a ab_semigroup_mult
+  val semiring_comm_semiring : 'a comm_semiring -> 'a semiring
+  type 'a comm_semiring_0
+  val comm_semiring_comm_semiring_0 : 'a comm_semiring_0 -> 'a comm_semiring
+  val semiring_0_comm_semiring_0 : 'a comm_semiring_0 -> 'a semiring_0
+  type 'a comm_monoid_mult
+  val ab_semigroup_mult_comm_monoid_mult :
+    'a comm_monoid_mult -> 'a ab_semigroup_mult
+  val monoid_mult_comm_monoid_mult : 'a comm_monoid_mult -> 'a monoid_mult
+  type 'a comm_semiring_1
+  val comm_monoid_mult_comm_semiring_1 :
+    'a comm_semiring_1 -> 'a comm_monoid_mult
+  val comm_semiring_0_comm_semiring_1 : 'a comm_semiring_1 -> 'a comm_semiring_0
+  val dvd_comm_semiring_1 : 'a comm_semiring_1 -> 'a dvd
+  val semiring_1_comm_semiring_1 : 'a comm_semiring_1 -> 'a semiring_1
+  type 'a comm_semiring_0_cancel
+  val comm_semiring_0_comm_semiring_0_cancel :
+    'a comm_semiring_0_cancel -> 'a comm_semiring_0
+  val semiring_0_cancel_comm_semiring_0_cancel :
+    'a comm_semiring_0_cancel -> 'a semiring_0_cancel
+  type 'a comm_semiring_1_cancel
+  val comm_semiring_0_cancel_comm_semiring_1_cancel :
+    'a comm_semiring_1_cancel -> 'a comm_semiring_0_cancel
+  val comm_semiring_1_comm_semiring_1_cancel :
+    'a comm_semiring_1_cancel -> 'a comm_semiring_1
+  val semiring_1_cancel_comm_semiring_1_cancel :
+    'a comm_semiring_1_cancel -> 'a semiring_1_cancel
+  type 'a diva
+  val dvd_div : 'a diva -> 'a dvd
+  val diva : 'a diva -> 'a -> 'a -> 'a
+  val moda : 'a diva -> 'a -> 'a -> 'a
+  type 'a semiring_div
+  val div_semiring_div : 'a semiring_div -> 'a diva
+  val comm_semiring_1_cancel_semiring_div :
+    'a semiring_div -> 'a comm_semiring_1_cancel
+  val no_zero_divisors_semiring_div : 'a semiring_div -> 'a no_zero_divisors
+  val one_int : IntInf.int
+  val one_inta : IntInf.int one
+  val zero_neq_one_int : IntInf.int zero_neq_one
+  val semigroup_mult_int : IntInf.int semigroup_mult
+  val plus_int : IntInf.int plus
+  val semigroup_add_int : IntInf.int semigroup_add
+  val ab_semigroup_add_int : IntInf.int ab_semigroup_add
+  val semiring_int : IntInf.int semiring
+  val mult_zero_int : IntInf.int mult_zero
+  val monoid_add_int : IntInf.int monoid_add
+  val comm_monoid_add_int : IntInf.int comm_monoid_add
+  val semiring_0_int : IntInf.int semiring_0
+  val power_int : IntInf.int power
+  val monoid_mult_int : IntInf.int monoid_mult
+  val semiring_1_int : IntInf.int semiring_1
+  val cancel_semigroup_add_int : IntInf.int cancel_semigroup_add
+  val cancel_ab_semigroup_add_int : IntInf.int cancel_ab_semigroup_add
+  val cancel_comm_monoid_add_int : IntInf.int cancel_comm_monoid_add
+  val semiring_0_cancel_int : IntInf.int semiring_0_cancel
+  val semiring_1_cancel_int : IntInf.int semiring_1_cancel
+  val dvd_int : IntInf.int dvd
+  val ab_semigroup_mult_int : IntInf.int ab_semigroup_mult
+  val comm_semiring_int : IntInf.int comm_semiring
+  val comm_semiring_0_int : IntInf.int comm_semiring_0
+  val comm_monoid_mult_int : IntInf.int comm_monoid_mult
+  val comm_semiring_1_int : IntInf.int comm_semiring_1
+  val comm_semiring_0_cancel_int : IntInf.int comm_semiring_0_cancel
+  val comm_semiring_1_cancel_int : IntInf.int comm_semiring_1_cancel
+  val abs_int : IntInf.int -> IntInf.int
+  val split : ('a -> 'b -> 'c) -> 'a * 'b -> 'c
+  val sgn_int : IntInf.int -> IntInf.int
+  val apsnd : ('a -> 'b) -> 'c * 'a -> 'c * 'b
+  val divmod_int : IntInf.int -> IntInf.int -> IntInf.int * IntInf.int
+  val snd : 'a * 'b -> 'b
+  val mod_int : IntInf.int -> IntInf.int -> IntInf.int
+  val fst : 'a * 'b -> 'a
+  val div_int : IntInf.int -> IntInf.int -> IntInf.int
+  val div_inta : IntInf.int diva
+  val semiring_div_int : IntInf.int semiring_div
+  val dvd : 'a semiring_div * 'a eq -> 'a -> 'a -> bool
+  val num_case :
+    (IntInf.int -> 'a) ->
+      (IntInf.int -> 'a) ->
+        (IntInf.int -> IntInf.int -> num -> 'a) ->
+          (num -> 'a) ->
+            (num -> num -> 'a) ->
+              (num -> num -> 'a) -> (IntInf.int -> num -> 'a) -> num -> 'a
+  val nummul : IntInf.int -> num -> num
+  val numneg : num -> num
+  val numadd : num * num -> num
+  val numsub : num -> num -> num
+  val simpnum : num -> num
+  val nota : fm -> fm
+  val iffa : fm -> fm -> fm
+  val impa : fm -> fm -> fm
+  val conj : fm -> fm -> fm
+  val simpfm : fm -> fm
+  val iupt : IntInf.int -> IntInf.int -> IntInf.int list
+  val mirror : fm -> fm
+  val size_list : 'a list -> IntInf.int
+  val alpha : fm -> num list
+  val beta : fm -> num list
+  val eq_numa : num eq
+  val member : 'a eq -> 'a -> 'a list -> bool
+  val remdups : 'a eq -> 'a list -> 'a list
+  val gcd_int : IntInf.int -> IntInf.int -> IntInf.int
+  val lcm_int : IntInf.int -> IntInf.int -> IntInf.int
+  val delta : fm -> IntInf.int
+  val a_beta : fm -> IntInf.int -> fm
+  val zeta : fm -> IntInf.int
+  val zsplit0 : num -> IntInf.int * num
+  val zlfm : fm -> fm
+  val unita : fm -> fm * (num list * IntInf.int)
+  val cooper : fm -> fm
+  val prep : fm -> fm
+  val qelim : fm -> (fm -> fm) -> fm
+  val pa : fm -> fm
+end = struct
 
 type 'a eq = {eq : 'a -> 'a -> bool};
-fun eq (A_:'a eq) = #eq A_;
+val eq = #eq : 'a eq -> 'a -> 'a -> bool;
 
-val eq_nat = {eq = (fn a => fn b => ((a : IntInf.int) = b))} : IntInf.int eq;
-
-fun eqop A_ a b = eq A_ a b;
-
-fun divmod n m = (if eqop eq_nat m 0 then (0, n) else IntInf.divMod (n, m));
-
-fun snd (a, b) = b;
-
-fun mod_nat m n = snd (divmod m n);
-
-fun gcd m n = (if eqop eq_nat n 0 then m else gcd n (mod_nat m n));
-
-fun fst (a, b) = a;
-
-fun div_nat m n = fst (divmod m n);
-
-fun lcm m n = div_nat (IntInf.* (m, n)) (gcd m n);
+fun eqa A_ a b = eq A_ a b;
 
 fun leta s f = f s;
 
-fun suc n = IntInf.+ (n, 1);
+fun suc n = IntInf.+ (n, (1 : IntInf.int));
 
-datatype num = Mul of IntInf.int * num | Sub of num * num | Add of num * num |
-  Neg of num | Cn of IntInf.int * IntInf.int * num | Bound of IntInf.int |
-  C of IntInf.int;
+datatype num = C of IntInf.int | Bound of IntInf.int |
+  Cn of IntInf.int * IntInf.int * num | Neg of num | Add of num * num |
+  Sub of num * num | Mul of IntInf.int * num;
 
-datatype fm = NClosed of IntInf.int | Closed of IntInf.int | A of fm | E of fm |
-  Iff of fm * fm | Imp of fm * fm | Or of fm * fm | And of fm * fm | Not of fm |
-  NDvd of IntInf.int * num | Dvd of IntInf.int * num | NEq of num | Eq of num |
-  Ge of num | Gt of num | Le of num | Lt of num | F | T;
-
-fun abs_int i = (if IntInf.< (i, (0 : IntInf.int)) then IntInf.~ i else i);
-
-fun zlcm i j =
-  (lcm (IntInf.max (0, (abs_int i))) (IntInf.max (0, (abs_int j))));
+datatype fm = T | F | Lt of num | Le of num | Gt of num | Ge of num | Eq of num
+  | NEq of num | Dvd of IntInf.int * num | NDvd of IntInf.int * num | Not of fm
+  | And of fm * fm | Or of fm * fm | Imp of fm * fm | Iff of fm * fm | E of fm |
+  A of fm | Closed of IntInf.int | NClosed of IntInf.int;
 
 fun map f [] = []
   | map f (x :: xs) = f x :: map f xs;
@@ -110,449 +324,441 @@ fun fm_case f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19
   | fm_case f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19 T
     = f1;
 
-fun eq_num (Mul (c, d)) (Sub (a, b)) = false
-  | eq_num (Mul (c, d)) (Add (a, b)) = false
-  | eq_num (Sub (c, d)) (Add (a, b)) = false
-  | eq_num (Mul (b, c)) (Neg a) = false
-  | eq_num (Sub (b, c)) (Neg a) = false
-  | eq_num (Add (b, c)) (Neg a) = false
-  | eq_num (Mul (d, e)) (Cn (a, b, c)) = false
-  | eq_num (Sub (d, e)) (Cn (a, b, c)) = false
-  | eq_num (Add (d, e)) (Cn (a, b, c)) = false
-  | eq_num (Neg d) (Cn (a, b, c)) = false
-  | eq_num (Mul (b, c)) (Bound a) = false
-  | eq_num (Sub (b, c)) (Bound a) = false
-  | eq_num (Add (b, c)) (Bound a) = false
-  | eq_num (Neg b) (Bound a) = false
-  | eq_num (Cn (b, c, d)) (Bound a) = false
-  | eq_num (Mul (b, c)) (C a) = false
-  | eq_num (Sub (b, c)) (C a) = false
-  | eq_num (Add (b, c)) (C a) = false
-  | eq_num (Neg b) (C a) = false
-  | eq_num (Cn (b, c, d)) (C a) = false
-  | eq_num (Bound b) (C a) = false
-  | eq_num (Sub (a, b)) (Mul (c, d)) = false
-  | eq_num (Add (a, b)) (Mul (c, d)) = false
-  | eq_num (Add (a, b)) (Sub (c, d)) = false
-  | eq_num (Neg a) (Mul (b, c)) = false
-  | eq_num (Neg a) (Sub (b, c)) = false
-  | eq_num (Neg a) (Add (b, c)) = false
-  | eq_num (Cn (a, b, c)) (Mul (d, e)) = false
-  | eq_num (Cn (a, b, c)) (Sub (d, e)) = false
-  | eq_num (Cn (a, b, c)) (Add (d, e)) = false
-  | eq_num (Cn (a, b, c)) (Neg d) = false
-  | eq_num (Bound a) (Mul (b, c)) = false
-  | eq_num (Bound a) (Sub (b, c)) = false
-  | eq_num (Bound a) (Add (b, c)) = false
-  | eq_num (Bound a) (Neg b) = false
-  | eq_num (Bound a) (Cn (b, c, d)) = false
-  | eq_num (C a) (Mul (b, c)) = false
-  | eq_num (C a) (Sub (b, c)) = false
-  | eq_num (C a) (Add (b, c)) = false
-  | eq_num (C a) (Neg b) = false
-  | eq_num (C a) (Cn (b, c, d)) = false
-  | eq_num (C a) (Bound b) = false
-  | eq_num (Mul (inta, num)) (Mul (int', num')) =
-    ((inta : IntInf.int) = int') andalso eq_num num num'
-  | eq_num (Sub (num1, num2)) (Sub (num1', num2')) =
-    eq_num num1 num1' andalso eq_num num2 num2'
-  | eq_num (Add (num1, num2)) (Add (num1', num2')) =
-    eq_num num1 num1' andalso eq_num num2 num2'
-  | eq_num (Neg num) (Neg num') = eq_num num num'
-  | eq_num (Cn (nat, inta, num)) (Cn (nat', int', num')) =
-    ((nat : IntInf.int) = nat') andalso
-      (((inta : IntInf.int) = int') andalso eq_num num num')
-  | eq_num (Bound nat) (Bound nat') = ((nat : IntInf.int) = nat')
-  | eq_num (C inta) (C int') = ((inta : IntInf.int) = int');
+fun eq_num (C intaa) (C inta) = ((intaa : IntInf.int) = inta)
+  | eq_num (Bound nata) (Bound nat) = ((nata : IntInf.int) = nat)
+  | eq_num (Cn (nata, intaa, numa)) (Cn (nat, inta, num)) =
+    ((nata : IntInf.int) = nat) andalso
+      (((intaa : IntInf.int) = inta) andalso eq_num numa num)
+  | eq_num (Neg numa) (Neg num) = eq_num numa num
+  | eq_num (Add (num1a, num2a)) (Add (num1, num2)) =
+    eq_num num1a num1 andalso eq_num num2a num2
+  | eq_num (Sub (num1a, num2a)) (Sub (num1, num2)) =
+    eq_num num1a num1 andalso eq_num num2a num2
+  | eq_num (Mul (intaa, numa)) (Mul (inta, num)) =
+    ((intaa : IntInf.int) = inta) andalso eq_num numa num
+  | eq_num (C inta) (Bound nat) = false
+  | eq_num (Bound nat) (C inta) = false
+  | eq_num (C intaa) (Cn (nat, inta, num)) = false
+  | eq_num (Cn (nat, intaa, num)) (C inta) = false
+  | eq_num (C inta) (Neg num) = false
+  | eq_num (Neg num) (C inta) = false
+  | eq_num (C inta) (Add (num1, num2)) = false
+  | eq_num (Add (num1, num2)) (C inta) = false
+  | eq_num (C inta) (Sub (num1, num2)) = false
+  | eq_num (Sub (num1, num2)) (C inta) = false
+  | eq_num (C intaa) (Mul (inta, num)) = false
+  | eq_num (Mul (intaa, num)) (C inta) = false
+  | eq_num (Bound nata) (Cn (nat, inta, num)) = false
+  | eq_num (Cn (nata, inta, num)) (Bound nat) = false
+  | eq_num (Bound nat) (Neg num) = false
+  | eq_num (Neg num) (Bound nat) = false
+  | eq_num (Bound nat) (Add (num1, num2)) = false
+  | eq_num (Add (num1, num2)) (Bound nat) = false
+  | eq_num (Bound nat) (Sub (num1, num2)) = false
+  | eq_num (Sub (num1, num2)) (Bound nat) = false
+  | eq_num (Bound nat) (Mul (inta, num)) = false
+  | eq_num (Mul (inta, num)) (Bound nat) = false
+  | eq_num (Cn (nat, inta, numa)) (Neg num) = false
+  | eq_num (Neg numa) (Cn (nat, inta, num)) = false
+  | eq_num (Cn (nat, inta, num)) (Add (num1, num2)) = false
+  | eq_num (Add (num1, num2)) (Cn (nat, inta, num)) = false
+  | eq_num (Cn (nat, inta, num)) (Sub (num1, num2)) = false
+  | eq_num (Sub (num1, num2)) (Cn (nat, inta, num)) = false
+  | eq_num (Cn (nat, intaa, numa)) (Mul (inta, num)) = false
+  | eq_num (Mul (intaa, numa)) (Cn (nat, inta, num)) = false
+  | eq_num (Neg num) (Add (num1, num2)) = false
+  | eq_num (Add (num1, num2)) (Neg num) = false
+  | eq_num (Neg num) (Sub (num1, num2)) = false
+  | eq_num (Sub (num1, num2)) (Neg num) = false
+  | eq_num (Neg numa) (Mul (inta, num)) = false
+  | eq_num (Mul (inta, numa)) (Neg num) = false
+  | eq_num (Add (num1a, num2a)) (Sub (num1, num2)) = false
+  | eq_num (Sub (num1a, num2a)) (Add (num1, num2)) = false
+  | eq_num (Add (num1, num2)) (Mul (inta, num)) = false
+  | eq_num (Mul (inta, num)) (Add (num1, num2)) = false
+  | eq_num (Sub (num1, num2)) (Mul (inta, num)) = false
+  | eq_num (Mul (inta, num)) (Sub (num1, num2)) = false;
 
-fun eq_fm (NClosed b) (Closed a) = false
-  | eq_fm (NClosed b) (A a) = false
-  | eq_fm (Closed b) (A a) = false
-  | eq_fm (NClosed b) (E a) = false
-  | eq_fm (Closed b) (E a) = false
-  | eq_fm (A b) (E a) = false
-  | eq_fm (NClosed c) (Iff (a, b)) = false
-  | eq_fm (Closed c) (Iff (a, b)) = false
-  | eq_fm (A c) (Iff (a, b)) = false
-  | eq_fm (E c) (Iff (a, b)) = false
-  | eq_fm (NClosed c) (Imp (a, b)) = false
-  | eq_fm (Closed c) (Imp (a, b)) = false
-  | eq_fm (A c) (Imp (a, b)) = false
-  | eq_fm (E c) (Imp (a, b)) = false
-  | eq_fm (Iff (c, d)) (Imp (a, b)) = false
-  | eq_fm (NClosed c) (Or (a, b)) = false
-  | eq_fm (Closed c) (Or (a, b)) = false
-  | eq_fm (A c) (Or (a, b)) = false
-  | eq_fm (E c) (Or (a, b)) = false
-  | eq_fm (Iff (c, d)) (Or (a, b)) = false
-  | eq_fm (Imp (c, d)) (Or (a, b)) = false
-  | eq_fm (NClosed c) (And (a, b)) = false
-  | eq_fm (Closed c) (And (a, b)) = false
-  | eq_fm (A c) (And (a, b)) = false
-  | eq_fm (E c) (And (a, b)) = false
-  | eq_fm (Iff (c, d)) (And (a, b)) = false
-  | eq_fm (Imp (c, d)) (And (a, b)) = false
-  | eq_fm (Or (c, d)) (And (a, b)) = false
-  | eq_fm (NClosed b) (Not a) = false
-  | eq_fm (Closed b) (Not a) = false
-  | eq_fm (A b) (Not a) = false
-  | eq_fm (E b) (Not a) = false
-  | eq_fm (Iff (b, c)) (Not a) = false
-  | eq_fm (Imp (b, c)) (Not a) = false
-  | eq_fm (Or (b, c)) (Not a) = false
-  | eq_fm (And (b, c)) (Not a) = false
-  | eq_fm (NClosed c) (NDvd (a, b)) = false
-  | eq_fm (Closed c) (NDvd (a, b)) = false
-  | eq_fm (A c) (NDvd (a, b)) = false
-  | eq_fm (E c) (NDvd (a, b)) = false
-  | eq_fm (Iff (c, d)) (NDvd (a, b)) = false
-  | eq_fm (Imp (c, d)) (NDvd (a, b)) = false
-  | eq_fm (Or (c, d)) (NDvd (a, b)) = false
-  | eq_fm (And (c, d)) (NDvd (a, b)) = false
-  | eq_fm (Not c) (NDvd (a, b)) = false
-  | eq_fm (NClosed c) (Dvd (a, b)) = false
-  | eq_fm (Closed c) (Dvd (a, b)) = false
-  | eq_fm (A c) (Dvd (a, b)) = false
-  | eq_fm (E c) (Dvd (a, b)) = false
-  | eq_fm (Iff (c, d)) (Dvd (a, b)) = false
-  | eq_fm (Imp (c, d)) (Dvd (a, b)) = false
-  | eq_fm (Or (c, d)) (Dvd (a, b)) = false
-  | eq_fm (And (c, d)) (Dvd (a, b)) = false
-  | eq_fm (Not c) (Dvd (a, b)) = false
-  | eq_fm (NDvd (c, d)) (Dvd (a, b)) = false
-  | eq_fm (NClosed b) (NEq a) = false
-  | eq_fm (Closed b) (NEq a) = false
-  | eq_fm (A b) (NEq a) = false
-  | eq_fm (E b) (NEq a) = false
-  | eq_fm (Iff (b, c)) (NEq a) = false
-  | eq_fm (Imp (b, c)) (NEq a) = false
-  | eq_fm (Or (b, c)) (NEq a) = false
-  | eq_fm (And (b, c)) (NEq a) = false
-  | eq_fm (Not b) (NEq a) = false
-  | eq_fm (NDvd (b, c)) (NEq a) = false
-  | eq_fm (Dvd (b, c)) (NEq a) = false
-  | eq_fm (NClosed b) (Eq a) = false
-  | eq_fm (Closed b) (Eq a) = false
-  | eq_fm (A b) (Eq a) = false
-  | eq_fm (E b) (Eq a) = false
-  | eq_fm (Iff (b, c)) (Eq a) = false
-  | eq_fm (Imp (b, c)) (Eq a) = false
-  | eq_fm (Or (b, c)) (Eq a) = false
-  | eq_fm (And (b, c)) (Eq a) = false
-  | eq_fm (Not b) (Eq a) = false
-  | eq_fm (NDvd (b, c)) (Eq a) = false
-  | eq_fm (Dvd (b, c)) (Eq a) = false
-  | eq_fm (NEq b) (Eq a) = false
-  | eq_fm (NClosed b) (Ge a) = false
-  | eq_fm (Closed b) (Ge a) = false
-  | eq_fm (A b) (Ge a) = false
-  | eq_fm (E b) (Ge a) = false
-  | eq_fm (Iff (b, c)) (Ge a) = false
-  | eq_fm (Imp (b, c)) (Ge a) = false
-  | eq_fm (Or (b, c)) (Ge a) = false
-  | eq_fm (And (b, c)) (Ge a) = false
-  | eq_fm (Not b) (Ge a) = false
-  | eq_fm (NDvd (b, c)) (Ge a) = false
-  | eq_fm (Dvd (b, c)) (Ge a) = false
-  | eq_fm (NEq b) (Ge a) = false
-  | eq_fm (Eq b) (Ge a) = false
-  | eq_fm (NClosed b) (Gt a) = false
-  | eq_fm (Closed b) (Gt a) = false
-  | eq_fm (A b) (Gt a) = false
-  | eq_fm (E b) (Gt a) = false
-  | eq_fm (Iff (b, c)) (Gt a) = false
-  | eq_fm (Imp (b, c)) (Gt a) = false
-  | eq_fm (Or (b, c)) (Gt a) = false
-  | eq_fm (And (b, c)) (Gt a) = false
-  | eq_fm (Not b) (Gt a) = false
-  | eq_fm (NDvd (b, c)) (Gt a) = false
-  | eq_fm (Dvd (b, c)) (Gt a) = false
-  | eq_fm (NEq b) (Gt a) = false
-  | eq_fm (Eq b) (Gt a) = false
-  | eq_fm (Ge b) (Gt a) = false
-  | eq_fm (NClosed b) (Le a) = false
-  | eq_fm (Closed b) (Le a) = false
-  | eq_fm (A b) (Le a) = false
-  | eq_fm (E b) (Le a) = false
-  | eq_fm (Iff (b, c)) (Le a) = false
-  | eq_fm (Imp (b, c)) (Le a) = false
-  | eq_fm (Or (b, c)) (Le a) = false
-  | eq_fm (And (b, c)) (Le a) = false
-  | eq_fm (Not b) (Le a) = false
-  | eq_fm (NDvd (b, c)) (Le a) = false
-  | eq_fm (Dvd (b, c)) (Le a) = false
-  | eq_fm (NEq b) (Le a) = false
-  | eq_fm (Eq b) (Le a) = false
-  | eq_fm (Ge b) (Le a) = false
-  | eq_fm (Gt b) (Le a) = false
-  | eq_fm (NClosed b) (Lt a) = false
-  | eq_fm (Closed b) (Lt a) = false
-  | eq_fm (A b) (Lt a) = false
-  | eq_fm (E b) (Lt a) = false
-  | eq_fm (Iff (b, c)) (Lt a) = false
-  | eq_fm (Imp (b, c)) (Lt a) = false
-  | eq_fm (Or (b, c)) (Lt a) = false
-  | eq_fm (And (b, c)) (Lt a) = false
-  | eq_fm (Not b) (Lt a) = false
-  | eq_fm (NDvd (b, c)) (Lt a) = false
-  | eq_fm (Dvd (b, c)) (Lt a) = false
-  | eq_fm (NEq b) (Lt a) = false
-  | eq_fm (Eq b) (Lt a) = false
-  | eq_fm (Ge b) (Lt a) = false
-  | eq_fm (Gt b) (Lt a) = false
-  | eq_fm (Le b) (Lt a) = false
-  | eq_fm (NClosed a) F = false
-  | eq_fm (Closed a) F = false
-  | eq_fm (A a) F = false
-  | eq_fm (E a) F = false
-  | eq_fm (Iff (a, b)) F = false
-  | eq_fm (Imp (a, b)) F = false
-  | eq_fm (Or (a, b)) F = false
-  | eq_fm (And (a, b)) F = false
-  | eq_fm (Not a) F = false
-  | eq_fm (NDvd (a, b)) F = false
-  | eq_fm (Dvd (a, b)) F = false
-  | eq_fm (NEq a) F = false
-  | eq_fm (Eq a) F = false
-  | eq_fm (Ge a) F = false
-  | eq_fm (Gt a) F = false
-  | eq_fm (Le a) F = false
-  | eq_fm (Lt a) F = false
-  | eq_fm (NClosed a) T = false
-  | eq_fm (Closed a) T = false
-  | eq_fm (A a) T = false
-  | eq_fm (E a) T = false
-  | eq_fm (Iff (a, b)) T = false
-  | eq_fm (Imp (a, b)) T = false
-  | eq_fm (Or (a, b)) T = false
-  | eq_fm (And (a, b)) T = false
-  | eq_fm (Not a) T = false
-  | eq_fm (NDvd (a, b)) T = false
-  | eq_fm (Dvd (a, b)) T = false
-  | eq_fm (NEq a) T = false
-  | eq_fm (Eq a) T = false
-  | eq_fm (Ge a) T = false
-  | eq_fm (Gt a) T = false
-  | eq_fm (Le a) T = false
-  | eq_fm (Lt a) T = false
-  | eq_fm F T = false
-  | eq_fm (Closed a) (NClosed b) = false
-  | eq_fm (A a) (NClosed b) = false
-  | eq_fm (A a) (Closed b) = false
-  | eq_fm (E a) (NClosed b) = false
-  | eq_fm (E a) (Closed b) = false
-  | eq_fm (E a) (A b) = false
-  | eq_fm (Iff (a, b)) (NClosed c) = false
-  | eq_fm (Iff (a, b)) (Closed c) = false
-  | eq_fm (Iff (a, b)) (A c) = false
-  | eq_fm (Iff (a, b)) (E c) = false
-  | eq_fm (Imp (a, b)) (NClosed c) = false
-  | eq_fm (Imp (a, b)) (Closed c) = false
-  | eq_fm (Imp (a, b)) (A c) = false
-  | eq_fm (Imp (a, b)) (E c) = false
-  | eq_fm (Imp (a, b)) (Iff (c, d)) = false
-  | eq_fm (Or (a, b)) (NClosed c) = false
-  | eq_fm (Or (a, b)) (Closed c) = false
-  | eq_fm (Or (a, b)) (A c) = false
-  | eq_fm (Or (a, b)) (E c) = false
-  | eq_fm (Or (a, b)) (Iff (c, d)) = false
-  | eq_fm (Or (a, b)) (Imp (c, d)) = false
-  | eq_fm (And (a, b)) (NClosed c) = false
-  | eq_fm (And (a, b)) (Closed c) = false
-  | eq_fm (And (a, b)) (A c) = false
-  | eq_fm (And (a, b)) (E c) = false
-  | eq_fm (And (a, b)) (Iff (c, d)) = false
-  | eq_fm (And (a, b)) (Imp (c, d)) = false
-  | eq_fm (And (a, b)) (Or (c, d)) = false
-  | eq_fm (Not a) (NClosed b) = false
-  | eq_fm (Not a) (Closed b) = false
-  | eq_fm (Not a) (A b) = false
-  | eq_fm (Not a) (E b) = false
-  | eq_fm (Not a) (Iff (b, c)) = false
-  | eq_fm (Not a) (Imp (b, c)) = false
-  | eq_fm (Not a) (Or (b, c)) = false
-  | eq_fm (Not a) (And (b, c)) = false
-  | eq_fm (NDvd (a, b)) (NClosed c) = false
-  | eq_fm (NDvd (a, b)) (Closed c) = false
-  | eq_fm (NDvd (a, b)) (A c) = false
-  | eq_fm (NDvd (a, b)) (E c) = false
-  | eq_fm (NDvd (a, b)) (Iff (c, d)) = false
-  | eq_fm (NDvd (a, b)) (Imp (c, d)) = false
-  | eq_fm (NDvd (a, b)) (Or (c, d)) = false
-  | eq_fm (NDvd (a, b)) (And (c, d)) = false
-  | eq_fm (NDvd (a, b)) (Not c) = false
-  | eq_fm (Dvd (a, b)) (NClosed c) = false
-  | eq_fm (Dvd (a, b)) (Closed c) = false
-  | eq_fm (Dvd (a, b)) (A c) = false
-  | eq_fm (Dvd (a, b)) (E c) = false
-  | eq_fm (Dvd (a, b)) (Iff (c, d)) = false
-  | eq_fm (Dvd (a, b)) (Imp (c, d)) = false
-  | eq_fm (Dvd (a, b)) (Or (c, d)) = false
-  | eq_fm (Dvd (a, b)) (And (c, d)) = false
-  | eq_fm (Dvd (a, b)) (Not c) = false
-  | eq_fm (Dvd (a, b)) (NDvd (c, d)) = false
-  | eq_fm (NEq a) (NClosed b) = false
-  | eq_fm (NEq a) (Closed b) = false
-  | eq_fm (NEq a) (A b) = false
-  | eq_fm (NEq a) (E b) = false
-  | eq_fm (NEq a) (Iff (b, c)) = false
-  | eq_fm (NEq a) (Imp (b, c)) = false
-  | eq_fm (NEq a) (Or (b, c)) = false
-  | eq_fm (NEq a) (And (b, c)) = false
-  | eq_fm (NEq a) (Not b) = false
-  | eq_fm (NEq a) (NDvd (b, c)) = false
-  | eq_fm (NEq a) (Dvd (b, c)) = false
-  | eq_fm (Eq a) (NClosed b) = false
-  | eq_fm (Eq a) (Closed b) = false
-  | eq_fm (Eq a) (A b) = false
-  | eq_fm (Eq a) (E b) = false
-  | eq_fm (Eq a) (Iff (b, c)) = false
-  | eq_fm (Eq a) (Imp (b, c)) = false
-  | eq_fm (Eq a) (Or (b, c)) = false
-  | eq_fm (Eq a) (And (b, c)) = false
-  | eq_fm (Eq a) (Not b) = false
-  | eq_fm (Eq a) (NDvd (b, c)) = false
-  | eq_fm (Eq a) (Dvd (b, c)) = false
-  | eq_fm (Eq a) (NEq b) = false
-  | eq_fm (Ge a) (NClosed b) = false
-  | eq_fm (Ge a) (Closed b) = false
-  | eq_fm (Ge a) (A b) = false
-  | eq_fm (Ge a) (E b) = false
-  | eq_fm (Ge a) (Iff (b, c)) = false
-  | eq_fm (Ge a) (Imp (b, c)) = false
-  | eq_fm (Ge a) (Or (b, c)) = false
-  | eq_fm (Ge a) (And (b, c)) = false
-  | eq_fm (Ge a) (Not b) = false
-  | eq_fm (Ge a) (NDvd (b, c)) = false
-  | eq_fm (Ge a) (Dvd (b, c)) = false
-  | eq_fm (Ge a) (NEq b) = false
-  | eq_fm (Ge a) (Eq b) = false
-  | eq_fm (Gt a) (NClosed b) = false
-  | eq_fm (Gt a) (Closed b) = false
-  | eq_fm (Gt a) (A b) = false
-  | eq_fm (Gt a) (E b) = false
-  | eq_fm (Gt a) (Iff (b, c)) = false
-  | eq_fm (Gt a) (Imp (b, c)) = false
-  | eq_fm (Gt a) (Or (b, c)) = false
-  | eq_fm (Gt a) (And (b, c)) = false
-  | eq_fm (Gt a) (Not b) = false
-  | eq_fm (Gt a) (NDvd (b, c)) = false
-  | eq_fm (Gt a) (Dvd (b, c)) = false
-  | eq_fm (Gt a) (NEq b) = false
-  | eq_fm (Gt a) (Eq b) = false
-  | eq_fm (Gt a) (Ge b) = false
-  | eq_fm (Le a) (NClosed b) = false
-  | eq_fm (Le a) (Closed b) = false
-  | eq_fm (Le a) (A b) = false
-  | eq_fm (Le a) (E b) = false
-  | eq_fm (Le a) (Iff (b, c)) = false
-  | eq_fm (Le a) (Imp (b, c)) = false
-  | eq_fm (Le a) (Or (b, c)) = false
-  | eq_fm (Le a) (And (b, c)) = false
-  | eq_fm (Le a) (Not b) = false
-  | eq_fm (Le a) (NDvd (b, c)) = false
-  | eq_fm (Le a) (Dvd (b, c)) = false
-  | eq_fm (Le a) (NEq b) = false
-  | eq_fm (Le a) (Eq b) = false
-  | eq_fm (Le a) (Ge b) = false
-  | eq_fm (Le a) (Gt b) = false
-  | eq_fm (Lt a) (NClosed b) = false
-  | eq_fm (Lt a) (Closed b) = false
-  | eq_fm (Lt a) (A b) = false
-  | eq_fm (Lt a) (E b) = false
-  | eq_fm (Lt a) (Iff (b, c)) = false
-  | eq_fm (Lt a) (Imp (b, c)) = false
-  | eq_fm (Lt a) (Or (b, c)) = false
-  | eq_fm (Lt a) (And (b, c)) = false
-  | eq_fm (Lt a) (Not b) = false
-  | eq_fm (Lt a) (NDvd (b, c)) = false
-  | eq_fm (Lt a) (Dvd (b, c)) = false
-  | eq_fm (Lt a) (NEq b) = false
-  | eq_fm (Lt a) (Eq b) = false
-  | eq_fm (Lt a) (Ge b) = false
-  | eq_fm (Lt a) (Gt b) = false
-  | eq_fm (Lt a) (Le b) = false
-  | eq_fm F (NClosed a) = false
-  | eq_fm F (Closed a) = false
-  | eq_fm F (A a) = false
-  | eq_fm F (E a) = false
-  | eq_fm F (Iff (a, b)) = false
-  | eq_fm F (Imp (a, b)) = false
-  | eq_fm F (Or (a, b)) = false
-  | eq_fm F (And (a, b)) = false
-  | eq_fm F (Not a) = false
-  | eq_fm F (NDvd (a, b)) = false
-  | eq_fm F (Dvd (a, b)) = false
-  | eq_fm F (NEq a) = false
-  | eq_fm F (Eq a) = false
-  | eq_fm F (Ge a) = false
-  | eq_fm F (Gt a) = false
-  | eq_fm F (Le a) = false
-  | eq_fm F (Lt a) = false
-  | eq_fm T (NClosed a) = false
-  | eq_fm T (Closed a) = false
-  | eq_fm T (A a) = false
-  | eq_fm T (E a) = false
-  | eq_fm T (Iff (a, b)) = false
-  | eq_fm T (Imp (a, b)) = false
-  | eq_fm T (Or (a, b)) = false
-  | eq_fm T (And (a, b)) = false
-  | eq_fm T (Not a) = false
-  | eq_fm T (NDvd (a, b)) = false
-  | eq_fm T (Dvd (a, b)) = false
-  | eq_fm T (NEq a) = false
-  | eq_fm T (Eq a) = false
-  | eq_fm T (Ge a) = false
-  | eq_fm T (Gt a) = false
-  | eq_fm T (Le a) = false
-  | eq_fm T (Lt a) = false
-  | eq_fm T F = false
-  | eq_fm (NClosed nat) (NClosed nat') = ((nat : IntInf.int) = nat')
-  | eq_fm (Closed nat) (Closed nat') = ((nat : IntInf.int) = nat')
-  | eq_fm (A fm) (A fm') = eq_fm fm fm'
-  | eq_fm (E fm) (E fm') = eq_fm fm fm'
-  | eq_fm (Iff (fm1, fm2)) (Iff (fm1', fm2')) =
-    eq_fm fm1 fm1' andalso eq_fm fm2 fm2'
-  | eq_fm (Imp (fm1, fm2)) (Imp (fm1', fm2')) =
-    eq_fm fm1 fm1' andalso eq_fm fm2 fm2'
-  | eq_fm (Or (fm1, fm2)) (Or (fm1', fm2')) =
-    eq_fm fm1 fm1' andalso eq_fm fm2 fm2'
-  | eq_fm (And (fm1, fm2)) (And (fm1', fm2')) =
-    eq_fm fm1 fm1' andalso eq_fm fm2 fm2'
-  | eq_fm (Not fm) (Not fm') = eq_fm fm fm'
-  | eq_fm (NDvd (inta, num)) (NDvd (int', num')) =
-    ((inta : IntInf.int) = int') andalso eq_num num num'
-  | eq_fm (Dvd (inta, num)) (Dvd (int', num')) =
-    ((inta : IntInf.int) = int') andalso eq_num num num'
-  | eq_fm (NEq num) (NEq num') = eq_num num num'
-  | eq_fm (Eq num) (Eq num') = eq_num num num'
-  | eq_fm (Ge num) (Ge num') = eq_num num num'
-  | eq_fm (Gt num) (Gt num') = eq_num num num'
-  | eq_fm (Le num) (Le num') = eq_num num num'
-  | eq_fm (Lt num) (Lt num') = eq_num num num'
+fun eq_fm T T = true
   | eq_fm F F = true
-  | eq_fm T T = true;
-
-val eq_fma = {eq = eq_fm} : fm eq;
+  | eq_fm (Lt numa) (Lt num) = eq_num numa num
+  | eq_fm (Le numa) (Le num) = eq_num numa num
+  | eq_fm (Gt numa) (Gt num) = eq_num numa num
+  | eq_fm (Ge numa) (Ge num) = eq_num numa num
+  | eq_fm (Eq numa) (Eq num) = eq_num numa num
+  | eq_fm (NEq numa) (NEq num) = eq_num numa num
+  | eq_fm (Dvd (intaa, numa)) (Dvd (inta, num)) =
+    ((intaa : IntInf.int) = inta) andalso eq_num numa num
+  | eq_fm (NDvd (intaa, numa)) (NDvd (inta, num)) =
+    ((intaa : IntInf.int) = inta) andalso eq_num numa num
+  | eq_fm (Not fma) (Not fm) = eq_fm fma fm
+  | eq_fm (And (fm1a, fm2a)) (And (fm1, fm2)) =
+    eq_fm fm1a fm1 andalso eq_fm fm2a fm2
+  | eq_fm (Or (fm1a, fm2a)) (Or (fm1, fm2)) =
+    eq_fm fm1a fm1 andalso eq_fm fm2a fm2
+  | eq_fm (Imp (fm1a, fm2a)) (Imp (fm1, fm2)) =
+    eq_fm fm1a fm1 andalso eq_fm fm2a fm2
+  | eq_fm (Iff (fm1a, fm2a)) (Iff (fm1, fm2)) =
+    eq_fm fm1a fm1 andalso eq_fm fm2a fm2
+  | eq_fm (E fma) (E fm) = eq_fm fma fm
+  | eq_fm (A fma) (A fm) = eq_fm fma fm
+  | eq_fm (Closed nata) (Closed nat) = ((nata : IntInf.int) = nat)
+  | eq_fm (NClosed nata) (NClosed nat) = ((nata : IntInf.int) = nat)
+  | eq_fm T F = false
+  | eq_fm F T = false
+  | eq_fm T (Lt num) = false
+  | eq_fm (Lt num) T = false
+  | eq_fm T (Le num) = false
+  | eq_fm (Le num) T = false
+  | eq_fm T (Gt num) = false
+  | eq_fm (Gt num) T = false
+  | eq_fm T (Ge num) = false
+  | eq_fm (Ge num) T = false
+  | eq_fm T (Eq num) = false
+  | eq_fm (Eq num) T = false
+  | eq_fm T (NEq num) = false
+  | eq_fm (NEq num) T = false
+  | eq_fm T (Dvd (inta, num)) = false
+  | eq_fm (Dvd (inta, num)) T = false
+  | eq_fm T (NDvd (inta, num)) = false
+  | eq_fm (NDvd (inta, num)) T = false
+  | eq_fm T (Not fm) = false
+  | eq_fm (Not fm) T = false
+  | eq_fm T (And (fm1, fm2)) = false
+  | eq_fm (And (fm1, fm2)) T = false
+  | eq_fm T (Or (fm1, fm2)) = false
+  | eq_fm (Or (fm1, fm2)) T = false
+  | eq_fm T (Imp (fm1, fm2)) = false
+  | eq_fm (Imp (fm1, fm2)) T = false
+  | eq_fm T (Iff (fm1, fm2)) = false
+  | eq_fm (Iff (fm1, fm2)) T = false
+  | eq_fm T (E fm) = false
+  | eq_fm (E fm) T = false
+  | eq_fm T (A fm) = false
+  | eq_fm (A fm) T = false
+  | eq_fm T (Closed nat) = false
+  | eq_fm (Closed nat) T = false
+  | eq_fm T (NClosed nat) = false
+  | eq_fm (NClosed nat) T = false
+  | eq_fm F (Lt num) = false
+  | eq_fm (Lt num) F = false
+  | eq_fm F (Le num) = false
+  | eq_fm (Le num) F = false
+  | eq_fm F (Gt num) = false
+  | eq_fm (Gt num) F = false
+  | eq_fm F (Ge num) = false
+  | eq_fm (Ge num) F = false
+  | eq_fm F (Eq num) = false
+  | eq_fm (Eq num) F = false
+  | eq_fm F (NEq num) = false
+  | eq_fm (NEq num) F = false
+  | eq_fm F (Dvd (inta, num)) = false
+  | eq_fm (Dvd (inta, num)) F = false
+  | eq_fm F (NDvd (inta, num)) = false
+  | eq_fm (NDvd (inta, num)) F = false
+  | eq_fm F (Not fm) = false
+  | eq_fm (Not fm) F = false
+  | eq_fm F (And (fm1, fm2)) = false
+  | eq_fm (And (fm1, fm2)) F = false
+  | eq_fm F (Or (fm1, fm2)) = false
+  | eq_fm (Or (fm1, fm2)) F = false
+  | eq_fm F (Imp (fm1, fm2)) = false
+  | eq_fm (Imp (fm1, fm2)) F = false
+  | eq_fm F (Iff (fm1, fm2)) = false
+  | eq_fm (Iff (fm1, fm2)) F = false
+  | eq_fm F (E fm) = false
+  | eq_fm (E fm) F = false
+  | eq_fm F (A fm) = false
+  | eq_fm (A fm) F = false
+  | eq_fm F (Closed nat) = false
+  | eq_fm (Closed nat) F = false
+  | eq_fm F (NClosed nat) = false
+  | eq_fm (NClosed nat) F = false
+  | eq_fm (Lt numa) (Le num) = false
+  | eq_fm (Le numa) (Lt num) = false
+  | eq_fm (Lt numa) (Gt num) = false
+  | eq_fm (Gt numa) (Lt num) = false
+  | eq_fm (Lt numa) (Ge num) = false
+  | eq_fm (Ge numa) (Lt num) = false
+  | eq_fm (Lt numa) (Eq num) = false
+  | eq_fm (Eq numa) (Lt num) = false
+  | eq_fm (Lt numa) (NEq num) = false
+  | eq_fm (NEq numa) (Lt num) = false
+  | eq_fm (Lt numa) (Dvd (inta, num)) = false
+  | eq_fm (Dvd (inta, numa)) (Lt num) = false
+  | eq_fm (Lt numa) (NDvd (inta, num)) = false
+  | eq_fm (NDvd (inta, numa)) (Lt num) = false
+  | eq_fm (Lt num) (Not fm) = false
+  | eq_fm (Not fm) (Lt num) = false
+  | eq_fm (Lt num) (And (fm1, fm2)) = false
+  | eq_fm (And (fm1, fm2)) (Lt num) = false
+  | eq_fm (Lt num) (Or (fm1, fm2)) = false
+  | eq_fm (Or (fm1, fm2)) (Lt num) = false
+  | eq_fm (Lt num) (Imp (fm1, fm2)) = false
+  | eq_fm (Imp (fm1, fm2)) (Lt num) = false
+  | eq_fm (Lt num) (Iff (fm1, fm2)) = false
+  | eq_fm (Iff (fm1, fm2)) (Lt num) = false
+  | eq_fm (Lt num) (E fm) = false
+  | eq_fm (E fm) (Lt num) = false
+  | eq_fm (Lt num) (A fm) = false
+  | eq_fm (A fm) (Lt num) = false
+  | eq_fm (Lt num) (Closed nat) = false
+  | eq_fm (Closed nat) (Lt num) = false
+  | eq_fm (Lt num) (NClosed nat) = false
+  | eq_fm (NClosed nat) (Lt num) = false
+  | eq_fm (Le numa) (Gt num) = false
+  | eq_fm (Gt numa) (Le num) = false
+  | eq_fm (Le numa) (Ge num) = false
+  | eq_fm (Ge numa) (Le num) = false
+  | eq_fm (Le numa) (Eq num) = false
+  | eq_fm (Eq numa) (Le num) = false
+  | eq_fm (Le numa) (NEq num) = false
+  | eq_fm (NEq numa) (Le num) = false
+  | eq_fm (Le numa) (Dvd (inta, num)) = false
+  | eq_fm (Dvd (inta, numa)) (Le num) = false
+  | eq_fm (Le numa) (NDvd (inta, num)) = false
+  | eq_fm (NDvd (inta, numa)) (Le num) = false
+  | eq_fm (Le num) (Not fm) = false
+  | eq_fm (Not fm) (Le num) = false
+  | eq_fm (Le num) (And (fm1, fm2)) = false
+  | eq_fm (And (fm1, fm2)) (Le num) = false
+  | eq_fm (Le num) (Or (fm1, fm2)) = false
+  | eq_fm (Or (fm1, fm2)) (Le num) = false
+  | eq_fm (Le num) (Imp (fm1, fm2)) = false
+  | eq_fm (Imp (fm1, fm2)) (Le num) = false
+  | eq_fm (Le num) (Iff (fm1, fm2)) = false
+  | eq_fm (Iff (fm1, fm2)) (Le num) = false
+  | eq_fm (Le num) (E fm) = false
+  | eq_fm (E fm) (Le num) = false
+  | eq_fm (Le num) (A fm) = false
+  | eq_fm (A fm) (Le num) = false
+  | eq_fm (Le num) (Closed nat) = false
+  | eq_fm (Closed nat) (Le num) = false
+  | eq_fm (Le num) (NClosed nat) = false
+  | eq_fm (NClosed nat) (Le num) = false
+  | eq_fm (Gt numa) (Ge num) = false
+  | eq_fm (Ge numa) (Gt num) = false
+  | eq_fm (Gt numa) (Eq num) = false
+  | eq_fm (Eq numa) (Gt num) = false
+  | eq_fm (Gt numa) (NEq num) = false
+  | eq_fm (NEq numa) (Gt num) = false
+  | eq_fm (Gt numa) (Dvd (inta, num)) = false
+  | eq_fm (Dvd (inta, numa)) (Gt num) = false
+  | eq_fm (Gt numa) (NDvd (inta, num)) = false
+  | eq_fm (NDvd (inta, numa)) (Gt num) = false
+  | eq_fm (Gt num) (Not fm) = false
+  | eq_fm (Not fm) (Gt num) = false
+  | eq_fm (Gt num) (And (fm1, fm2)) = false
+  | eq_fm (And (fm1, fm2)) (Gt num) = false
+  | eq_fm (Gt num) (Or (fm1, fm2)) = false
+  | eq_fm (Or (fm1, fm2)) (Gt num) = false
+  | eq_fm (Gt num) (Imp (fm1, fm2)) = false
+  | eq_fm (Imp (fm1, fm2)) (Gt num) = false
+  | eq_fm (Gt num) (Iff (fm1, fm2)) = false
+  | eq_fm (Iff (fm1, fm2)) (Gt num) = false
+  | eq_fm (Gt num) (E fm) = false
+  | eq_fm (E fm) (Gt num) = false
+  | eq_fm (Gt num) (A fm) = false
+  | eq_fm (A fm) (Gt num) = false
+  | eq_fm (Gt num) (Closed nat) = false
+  | eq_fm (Closed nat) (Gt num) = false
+  | eq_fm (Gt num) (NClosed nat) = false
+  | eq_fm (NClosed nat) (Gt num) = false
+  | eq_fm (Ge numa) (Eq num) = false
+  | eq_fm (Eq numa) (Ge num) = false
+  | eq_fm (Ge numa) (NEq num) = false
+  | eq_fm (NEq numa) (Ge num) = false
+  | eq_fm (Ge numa) (Dvd (inta, num)) = false
+  | eq_fm (Dvd (inta, numa)) (Ge num) = false
+  | eq_fm (Ge numa) (NDvd (inta, num)) = false
+  | eq_fm (NDvd (inta, numa)) (Ge num) = false
+  | eq_fm (Ge num) (Not fm) = false
+  | eq_fm (Not fm) (Ge num) = false
+  | eq_fm (Ge num) (And (fm1, fm2)) = false
+  | eq_fm (And (fm1, fm2)) (Ge num) = false
+  | eq_fm (Ge num) (Or (fm1, fm2)) = false
+  | eq_fm (Or (fm1, fm2)) (Ge num) = false
+  | eq_fm (Ge num) (Imp (fm1, fm2)) = false
+  | eq_fm (Imp (fm1, fm2)) (Ge num) = false
+  | eq_fm (Ge num) (Iff (fm1, fm2)) = false
+  | eq_fm (Iff (fm1, fm2)) (Ge num) = false
+  | eq_fm (Ge num) (E fm) = false
+  | eq_fm (E fm) (Ge num) = false
+  | eq_fm (Ge num) (A fm) = false
+  | eq_fm (A fm) (Ge num) = false
+  | eq_fm (Ge num) (Closed nat) = false
+  | eq_fm (Closed nat) (Ge num) = false
+  | eq_fm (Ge num) (NClosed nat) = false
+  | eq_fm (NClosed nat) (Ge num) = false
+  | eq_fm (Eq numa) (NEq num) = false
+  | eq_fm (NEq numa) (Eq num) = false
+  | eq_fm (Eq numa) (Dvd (inta, num)) = false
+  | eq_fm (Dvd (inta, numa)) (Eq num) = false
+  | eq_fm (Eq numa) (NDvd (inta, num)) = false
+  | eq_fm (NDvd (inta, numa)) (Eq num) = false
+  | eq_fm (Eq num) (Not fm) = false
+  | eq_fm (Not fm) (Eq num) = false
+  | eq_fm (Eq num) (And (fm1, fm2)) = false
+  | eq_fm (And (fm1, fm2)) (Eq num) = false
+  | eq_fm (Eq num) (Or (fm1, fm2)) = false
+  | eq_fm (Or (fm1, fm2)) (Eq num) = false
+  | eq_fm (Eq num) (Imp (fm1, fm2)) = false
+  | eq_fm (Imp (fm1, fm2)) (Eq num) = false
+  | eq_fm (Eq num) (Iff (fm1, fm2)) = false
+  | eq_fm (Iff (fm1, fm2)) (Eq num) = false
+  | eq_fm (Eq num) (E fm) = false
+  | eq_fm (E fm) (Eq num) = false
+  | eq_fm (Eq num) (A fm) = false
+  | eq_fm (A fm) (Eq num) = false
+  | eq_fm (Eq num) (Closed nat) = false
+  | eq_fm (Closed nat) (Eq num) = false
+  | eq_fm (Eq num) (NClosed nat) = false
+  | eq_fm (NClosed nat) (Eq num) = false
+  | eq_fm (NEq numa) (Dvd (inta, num)) = false
+  | eq_fm (Dvd (inta, numa)) (NEq num) = false
+  | eq_fm (NEq numa) (NDvd (inta, num)) = false
+  | eq_fm (NDvd (inta, numa)) (NEq num) = false
+  | eq_fm (NEq num) (Not fm) = false
+  | eq_fm (Not fm) (NEq num) = false
+  | eq_fm (NEq num) (And (fm1, fm2)) = false
+  | eq_fm (And (fm1, fm2)) (NEq num) = false
+  | eq_fm (NEq num) (Or (fm1, fm2)) = false
+  | eq_fm (Or (fm1, fm2)) (NEq num) = false
+  | eq_fm (NEq num) (Imp (fm1, fm2)) = false
+  | eq_fm (Imp (fm1, fm2)) (NEq num) = false
+  | eq_fm (NEq num) (Iff (fm1, fm2)) = false
+  | eq_fm (Iff (fm1, fm2)) (NEq num) = false
+  | eq_fm (NEq num) (E fm) = false
+  | eq_fm (E fm) (NEq num) = false
+  | eq_fm (NEq num) (A fm) = false
+  | eq_fm (A fm) (NEq num) = false
+  | eq_fm (NEq num) (Closed nat) = false
+  | eq_fm (Closed nat) (NEq num) = false
+  | eq_fm (NEq num) (NClosed nat) = false
+  | eq_fm (NClosed nat) (NEq num) = false
+  | eq_fm (Dvd (intaa, numa)) (NDvd (inta, num)) = false
+  | eq_fm (NDvd (intaa, numa)) (Dvd (inta, num)) = false
+  | eq_fm (Dvd (inta, num)) (Not fm) = false
+  | eq_fm (Not fm) (Dvd (inta, num)) = false
+  | eq_fm (Dvd (inta, num)) (And (fm1, fm2)) = false
+  | eq_fm (And (fm1, fm2)) (Dvd (inta, num)) = false
+  | eq_fm (Dvd (inta, num)) (Or (fm1, fm2)) = false
+  | eq_fm (Or (fm1, fm2)) (Dvd (inta, num)) = false
+  | eq_fm (Dvd (inta, num)) (Imp (fm1, fm2)) = false
+  | eq_fm (Imp (fm1, fm2)) (Dvd (inta, num)) = false
+  | eq_fm (Dvd (inta, num)) (Iff (fm1, fm2)) = false
+  | eq_fm (Iff (fm1, fm2)) (Dvd (inta, num)) = false
+  | eq_fm (Dvd (inta, num)) (E fm) = false
+  | eq_fm (E fm) (Dvd (inta, num)) = false
+  | eq_fm (Dvd (inta, num)) (A fm) = false
+  | eq_fm (A fm) (Dvd (inta, num)) = false
+  | eq_fm (Dvd (inta, num)) (Closed nat) = false
+  | eq_fm (Closed nat) (Dvd (inta, num)) = false
+  | eq_fm (Dvd (inta, num)) (NClosed nat) = false
+  | eq_fm (NClosed nat) (Dvd (inta, num)) = false
+  | eq_fm (NDvd (inta, num)) (Not fm) = false
+  | eq_fm (Not fm) (NDvd (inta, num)) = false
+  | eq_fm (NDvd (inta, num)) (And (fm1, fm2)) = false
+  | eq_fm (And (fm1, fm2)) (NDvd (inta, num)) = false
+  | eq_fm (NDvd (inta, num)) (Or (fm1, fm2)) = false
+  | eq_fm (Or (fm1, fm2)) (NDvd (inta, num)) = false
+  | eq_fm (NDvd (inta, num)) (Imp (fm1, fm2)) = false
+  | eq_fm (Imp (fm1, fm2)) (NDvd (inta, num)) = false
+  | eq_fm (NDvd (inta, num)) (Iff (fm1, fm2)) = false
+  | eq_fm (Iff (fm1, fm2)) (NDvd (inta, num)) = false
+  | eq_fm (NDvd (inta, num)) (E fm) = false
+  | eq_fm (E fm) (NDvd (inta, num)) = false
+  | eq_fm (NDvd (inta, num)) (A fm) = false
+  | eq_fm (A fm) (NDvd (inta, num)) = false
+  | eq_fm (NDvd (inta, num)) (Closed nat) = false
+  | eq_fm (Closed nat) (NDvd (inta, num)) = false
+  | eq_fm (NDvd (inta, num)) (NClosed nat) = false
+  | eq_fm (NClosed nat) (NDvd (inta, num)) = false
+  | eq_fm (Not fm) (And (fm1, fm2)) = false
+  | eq_fm (And (fm1, fm2)) (Not fm) = false
+  | eq_fm (Not fm) (Or (fm1, fm2)) = false
+  | eq_fm (Or (fm1, fm2)) (Not fm) = false
+  | eq_fm (Not fm) (Imp (fm1, fm2)) = false
+  | eq_fm (Imp (fm1, fm2)) (Not fm) = false
+  | eq_fm (Not fm) (Iff (fm1, fm2)) = false
+  | eq_fm (Iff (fm1, fm2)) (Not fm) = false
+  | eq_fm (Not fma) (E fm) = false
+  | eq_fm (E fma) (Not fm) = false
+  | eq_fm (Not fma) (A fm) = false
+  | eq_fm (A fma) (Not fm) = false
+  | eq_fm (Not fm) (Closed nat) = false
+  | eq_fm (Closed nat) (Not fm) = false
+  | eq_fm (Not fm) (NClosed nat) = false
+  | eq_fm (NClosed nat) (Not fm) = false
+  | eq_fm (And (fm1a, fm2a)) (Or (fm1, fm2)) = false
+  | eq_fm (Or (fm1a, fm2a)) (And (fm1, fm2)) = false
+  | eq_fm (And (fm1a, fm2a)) (Imp (fm1, fm2)) = false
+  | eq_fm (Imp (fm1a, fm2a)) (And (fm1, fm2)) = false
+  | eq_fm (And (fm1a, fm2a)) (Iff (fm1, fm2)) = false
+  | eq_fm (Iff (fm1a, fm2a)) (And (fm1, fm2)) = false
+  | eq_fm (And (fm1, fm2)) (E fm) = false
+  | eq_fm (E fm) (And (fm1, fm2)) = false
+  | eq_fm (And (fm1, fm2)) (A fm) = false
+  | eq_fm (A fm) (And (fm1, fm2)) = false
+  | eq_fm (And (fm1, fm2)) (Closed nat) = false
+  | eq_fm (Closed nat) (And (fm1, fm2)) = false
+  | eq_fm (And (fm1, fm2)) (NClosed nat) = false
+  | eq_fm (NClosed nat) (And (fm1, fm2)) = false
+  | eq_fm (Or (fm1a, fm2a)) (Imp (fm1, fm2)) = false
+  | eq_fm (Imp (fm1a, fm2a)) (Or (fm1, fm2)) = false
+  | eq_fm (Or (fm1a, fm2a)) (Iff (fm1, fm2)) = false
+  | eq_fm (Iff (fm1a, fm2a)) (Or (fm1, fm2)) = false
+  | eq_fm (Or (fm1, fm2)) (E fm) = false
+  | eq_fm (E fm) (Or (fm1, fm2)) = false
+  | eq_fm (Or (fm1, fm2)) (A fm) = false
+  | eq_fm (A fm) (Or (fm1, fm2)) = false
+  | eq_fm (Or (fm1, fm2)) (Closed nat) = false
+  | eq_fm (Closed nat) (Or (fm1, fm2)) = false
+  | eq_fm (Or (fm1, fm2)) (NClosed nat) = false
+  | eq_fm (NClosed nat) (Or (fm1, fm2)) = false
+  | eq_fm (Imp (fm1a, fm2a)) (Iff (fm1, fm2)) = false
+  | eq_fm (Iff (fm1a, fm2a)) (Imp (fm1, fm2)) = false
+  | eq_fm (Imp (fm1, fm2)) (E fm) = false
+  | eq_fm (E fm) (Imp (fm1, fm2)) = false
+  | eq_fm (Imp (fm1, fm2)) (A fm) = false
+  | eq_fm (A fm) (Imp (fm1, fm2)) = false
+  | eq_fm (Imp (fm1, fm2)) (Closed nat) = false
+  | eq_fm (Closed nat) (Imp (fm1, fm2)) = false
+  | eq_fm (Imp (fm1, fm2)) (NClosed nat) = false
+  | eq_fm (NClosed nat) (Imp (fm1, fm2)) = false
+  | eq_fm (Iff (fm1, fm2)) (E fm) = false
+  | eq_fm (E fm) (Iff (fm1, fm2)) = false
+  | eq_fm (Iff (fm1, fm2)) (A fm) = false
+  | eq_fm (A fm) (Iff (fm1, fm2)) = false
+  | eq_fm (Iff (fm1, fm2)) (Closed nat) = false
+  | eq_fm (Closed nat) (Iff (fm1, fm2)) = false
+  | eq_fm (Iff (fm1, fm2)) (NClosed nat) = false
+  | eq_fm (NClosed nat) (Iff (fm1, fm2)) = false
+  | eq_fm (E fma) (A fm) = false
+  | eq_fm (A fma) (E fm) = false
+  | eq_fm (E fm) (Closed nat) = false
+  | eq_fm (Closed nat) (E fm) = false
+  | eq_fm (E fm) (NClosed nat) = false
+  | eq_fm (NClosed nat) (E fm) = false
+  | eq_fm (A fm) (Closed nat) = false
+  | eq_fm (Closed nat) (A fm) = false
+  | eq_fm (A fm) (NClosed nat) = false
+  | eq_fm (NClosed nat) (A fm) = false
+  | eq_fm (Closed nata) (NClosed nat) = false
+  | eq_fm (NClosed nata) (Closed nat) = false;
 
 fun djf f p q =
-  (if eqop eq_fma q T then T
-    else (if eqop eq_fma q F then f p
-           else let
-                  val a = f p;
-                in
-                  (case a of T => T | F => q | Lt num => Or (f p, q)
-                     | Le num => Or (f p, q) | Gt num => Or (f p, q)
-                     | Ge num => Or (f p, q) | Eq num => Or (f p, q)
-                     | NEq num => Or (f p, q) | Dvd (inta, num) => Or (f p, q)
-                     | NDvd (inta, num) => Or (f p, q) | Not fm => Or (f p, q)
-                     | And (fm1, fm2) => Or (f p, q)
-                     | Or (fm1, fm2) => Or (f p, q)
-                     | Imp (fm1, fm2) => Or (f p, q)
-                     | Iff (fm1, fm2) => Or (f p, q) | E fm => Or (f p, q)
-                     | A fm => Or (f p, q) | Closed nat => Or (f p, q)
-                     | NClosed nat => Or (f p, q))
-                end));
+  (if eq_fm q T then T
+    else (if eq_fm q F then f p
+           else (case f p of T => T | F => q | Lt _ => Or (f p, q)
+                  | Le _ => Or (f p, q) | Gt _ => Or (f p, q)
+                  | Ge _ => Or (f p, q) | Eq _ => Or (f p, q)
+                  | NEq _ => Or (f p, q) | Dvd (_, _) => Or (f p, q)
+                  | NDvd (_, _) => Or (f p, q) | Not _ => Or (f p, q)
+                  | And (_, _) => Or (f p, q) | Or (_, _) => Or (f p, q)
+                  | Imp (_, _) => Or (f p, q) | Iff (_, _) => Or (f p, q)
+                  | E _ => Or (f p, q) | A _ => Or (f p, q)
+                  | Closed _ => Or (f p, q) | NClosed _ => Or (f p, q))));
 
 fun foldr f [] a = a
   | foldr f (x :: xs) a = f x (foldr f xs a);
@@ -562,18 +768,17 @@ fun evaldjf f ps = foldr (djf f) ps F;
 fun dj f p = evaldjf f (disjuncts p);
 
 fun disj p q =
-  (if eqop eq_fma p T orelse eqop eq_fma q T then T
-    else (if eqop eq_fma p F then q
-           else (if eqop eq_fma q F then p else Or (p, q))));
+  (if eq_fm p T orelse eq_fm q T then T
+    else (if eq_fm p F then q else (if eq_fm q F then p else Or (p, q))));
 
 fun minus_nat n m = IntInf.max (0, (IntInf.- (n, m)));
 
-fun decrnum (Bound n) = Bound (minus_nat n 1)
+fun decrnum (Bound n) = Bound (minus_nat n (1 : IntInf.int))
   | decrnum (Neg a) = Neg (decrnum a)
   | decrnum (Add (a, b)) = Add (decrnum a, decrnum b)
   | decrnum (Sub (a, b)) = Sub (decrnum a, decrnum b)
   | decrnum (Mul (c, a)) = Mul (c, decrnum a)
-  | decrnum (Cn (n, i, a)) = Cn (minus_nat n 1, i, decrnum a)
+  | decrnum (Cn (n, i, a)) = Cn (minus_nat n (1 : IntInf.int), i, decrnum a)
   | decrnum (C u) = C u;
 
 fun decr (Lt a) = Lt (decrnum a)
@@ -596,20 +801,20 @@ fun decr (Lt a) = Lt (decrnum a)
   | decr (Closed aq) = Closed aq
   | decr (NClosed ar) = NClosed ar;
 
-fun concat [] = []
-  | concat (x :: xs) = append x (concat xs);
-
-fun split f (a, b) = f a b;
+fun concat_map f [] = []
+  | concat_map f (x :: xs) = append (f x) (concat_map f xs);
 
 fun numsubst0 t (C c) = C c
-  | numsubst0 t (Bound n) = (if eqop eq_nat n 0 then t else Bound n)
+  | numsubst0 t (Bound n) =
+    (if ((n : IntInf.int) = (0 : IntInf.int)) then t else Bound n)
   | numsubst0 t (Neg a) = Neg (numsubst0 t a)
   | numsubst0 t (Add (a, b)) = Add (numsubst0 t a, numsubst0 t b)
   | numsubst0 t (Sub (a, b)) = Sub (numsubst0 t a, numsubst0 t b)
   | numsubst0 t (Mul (i, a)) = Mul (i, numsubst0 t a)
   | numsubst0 t (Cn (v, i, a)) =
-    (if eqop eq_nat v 0 then Add (Mul (i, t), numsubst0 t a)
-      else Cn (suc (minus_nat v 1), i, numsubst0 t a));
+    (if ((v : IntInf.int) = (0 : IntInf.int))
+      then Add (Mul (i, t), numsubst0 t a)
+      else Cn (suc (minus_nat v (1 : IntInf.int)), i, numsubst0 t a));
 
 fun subst0 t T = T
   | subst0 t F = F
@@ -679,49 +884,417 @@ fun minusinf (And (p, q)) = And (minusinf p, minusinf q)
   | minusinf (Closed ap) = Closed ap
   | minusinf (NClosed aq) = NClosed aq
   | minusinf (Lt (Cn (cm, c, e))) =
-    (if eqop eq_nat cm 0 then T else Lt (Cn (suc (minus_nat cm 1), c, e)))
+    (if ((cm : IntInf.int) = (0 : IntInf.int)) then T
+      else Lt (Cn (suc (minus_nat cm (1 : IntInf.int)), c, e)))
   | minusinf (Le (Cn (dm, c, e))) =
-    (if eqop eq_nat dm 0 then T else Le (Cn (suc (minus_nat dm 1), c, e)))
+    (if ((dm : IntInf.int) = (0 : IntInf.int)) then T
+      else Le (Cn (suc (minus_nat dm (1 : IntInf.int)), c, e)))
   | minusinf (Gt (Cn (em, c, e))) =
-    (if eqop eq_nat em 0 then F else Gt (Cn (suc (minus_nat em 1), c, e)))
+    (if ((em : IntInf.int) = (0 : IntInf.int)) then F
+      else Gt (Cn (suc (minus_nat em (1 : IntInf.int)), c, e)))
   | minusinf (Ge (Cn (fm, c, e))) =
-    (if eqop eq_nat fm 0 then F else Ge (Cn (suc (minus_nat fm 1), c, e)))
+    (if ((fm : IntInf.int) = (0 : IntInf.int)) then F
+      else Ge (Cn (suc (minus_nat fm (1 : IntInf.int)), c, e)))
   | minusinf (Eq (Cn (gm, c, e))) =
-    (if eqop eq_nat gm 0 then F else Eq (Cn (suc (minus_nat gm 1), c, e)))
+    (if ((gm : IntInf.int) = (0 : IntInf.int)) then F
+      else Eq (Cn (suc (minus_nat gm (1 : IntInf.int)), c, e)))
   | minusinf (NEq (Cn (hm, c, e))) =
-    (if eqop eq_nat hm 0 then T else NEq (Cn (suc (minus_nat hm 1), c, e)));
+    (if ((hm : IntInf.int) = (0 : IntInf.int)) then T
+      else NEq (Cn (suc (minus_nat hm (1 : IntInf.int)), c, e)));
 
 val eq_int = {eq = (fn a => fn b => ((a : IntInf.int) = b))} : IntInf.int eq;
 
+val zero_int : IntInf.int = (0 : IntInf.int);
+
+type 'a zero = {zero : 'a};
+val zero = #zero : 'a zero -> 'a;
+
+val zero_inta = {zero = zero_int} : IntInf.int zero;
+
+type 'a times = {times : 'a -> 'a -> 'a};
+val times = #times : 'a times -> 'a -> 'a -> 'a;
+
+type 'a no_zero_divisors =
+  {times_no_zero_divisors : 'a times, zero_no_zero_divisors : 'a zero};
+val times_no_zero_divisors = #times_no_zero_divisors :
+  'a no_zero_divisors -> 'a times;
+val zero_no_zero_divisors = #zero_no_zero_divisors :
+  'a no_zero_divisors -> 'a zero;
+
+val times_int = {times = (fn a => fn b => IntInf.* (a, b))} : IntInf.int times;
+
+val no_zero_divisors_int =
+  {times_no_zero_divisors = times_int, zero_no_zero_divisors = zero_inta} :
+  IntInf.int no_zero_divisors;
+
+type 'a one = {one : 'a};
+val one = #one : 'a one -> 'a;
+
+type 'a zero_neq_one = {one_zero_neq_one : 'a one, zero_zero_neq_one : 'a zero};
+val one_zero_neq_one = #one_zero_neq_one : 'a zero_neq_one -> 'a one;
+val zero_zero_neq_one = #zero_zero_neq_one : 'a zero_neq_one -> 'a zero;
+
+type 'a semigroup_mult = {times_semigroup_mult : 'a times};
+val times_semigroup_mult = #times_semigroup_mult :
+  'a semigroup_mult -> 'a times;
+
+type 'a plus = {plus : 'a -> 'a -> 'a};
+val plus = #plus : 'a plus -> 'a -> 'a -> 'a;
+
+type 'a semigroup_add = {plus_semigroup_add : 'a plus};
+val plus_semigroup_add = #plus_semigroup_add : 'a semigroup_add -> 'a plus;
+
+type 'a ab_semigroup_add = {semigroup_add_ab_semigroup_add : 'a semigroup_add};
+val semigroup_add_ab_semigroup_add = #semigroup_add_ab_semigroup_add :
+  'a ab_semigroup_add -> 'a semigroup_add;
+
+type 'a semiring =
+  {ab_semigroup_add_semiring : 'a ab_semigroup_add,
+    semigroup_mult_semiring : 'a semigroup_mult};
+val ab_semigroup_add_semiring = #ab_semigroup_add_semiring :
+  'a semiring -> 'a ab_semigroup_add;
+val semigroup_mult_semiring = #semigroup_mult_semiring :
+  'a semiring -> 'a semigroup_mult;
+
+type 'a mult_zero = {times_mult_zero : 'a times, zero_mult_zero : 'a zero};
+val times_mult_zero = #times_mult_zero : 'a mult_zero -> 'a times;
+val zero_mult_zero = #zero_mult_zero : 'a mult_zero -> 'a zero;
+
+type 'a monoid_add =
+  {semigroup_add_monoid_add : 'a semigroup_add, zero_monoid_add : 'a zero};
+val semigroup_add_monoid_add = #semigroup_add_monoid_add :
+  'a monoid_add -> 'a semigroup_add;
+val zero_monoid_add = #zero_monoid_add : 'a monoid_add -> 'a zero;
+
+type 'a comm_monoid_add =
+  {ab_semigroup_add_comm_monoid_add : 'a ab_semigroup_add,
+    monoid_add_comm_monoid_add : 'a monoid_add};
+val ab_semigroup_add_comm_monoid_add = #ab_semigroup_add_comm_monoid_add :
+  'a comm_monoid_add -> 'a ab_semigroup_add;
+val monoid_add_comm_monoid_add = #monoid_add_comm_monoid_add :
+  'a comm_monoid_add -> 'a monoid_add;
+
+type 'a semiring_0 =
+  {comm_monoid_add_semiring_0 : 'a comm_monoid_add,
+    mult_zero_semiring_0 : 'a mult_zero, semiring_semiring_0 : 'a semiring};
+val comm_monoid_add_semiring_0 = #comm_monoid_add_semiring_0 :
+  'a semiring_0 -> 'a comm_monoid_add;
+val mult_zero_semiring_0 = #mult_zero_semiring_0 :
+  'a semiring_0 -> 'a mult_zero;
+val semiring_semiring_0 = #semiring_semiring_0 : 'a semiring_0 -> 'a semiring;
+
+type 'a power = {one_power : 'a one, times_power : 'a times};
+val one_power = #one_power : 'a power -> 'a one;
+val times_power = #times_power : 'a power -> 'a times;
+
+type 'a monoid_mult =
+  {semigroup_mult_monoid_mult : 'a semigroup_mult,
+    power_monoid_mult : 'a power};
+val semigroup_mult_monoid_mult = #semigroup_mult_monoid_mult :
+  'a monoid_mult -> 'a semigroup_mult;
+val power_monoid_mult = #power_monoid_mult : 'a monoid_mult -> 'a power;
+
+type 'a semiring_1 =
+  {monoid_mult_semiring_1 : 'a monoid_mult,
+    semiring_0_semiring_1 : 'a semiring_0,
+    zero_neq_one_semiring_1 : 'a zero_neq_one};
+val monoid_mult_semiring_1 = #monoid_mult_semiring_1 :
+  'a semiring_1 -> 'a monoid_mult;
+val semiring_0_semiring_1 = #semiring_0_semiring_1 :
+  'a semiring_1 -> 'a semiring_0;
+val zero_neq_one_semiring_1 = #zero_neq_one_semiring_1 :
+  'a semiring_1 -> 'a zero_neq_one;
+
+type 'a cancel_semigroup_add =
+  {semigroup_add_cancel_semigroup_add : 'a semigroup_add};
+val semigroup_add_cancel_semigroup_add = #semigroup_add_cancel_semigroup_add :
+  'a cancel_semigroup_add -> 'a semigroup_add;
+
+type 'a cancel_ab_semigroup_add =
+  {ab_semigroup_add_cancel_ab_semigroup_add : 'a ab_semigroup_add,
+    cancel_semigroup_add_cancel_ab_semigroup_add : 'a cancel_semigroup_add};
+val ab_semigroup_add_cancel_ab_semigroup_add =
+  #ab_semigroup_add_cancel_ab_semigroup_add :
+  'a cancel_ab_semigroup_add -> 'a ab_semigroup_add;
+val cancel_semigroup_add_cancel_ab_semigroup_add =
+  #cancel_semigroup_add_cancel_ab_semigroup_add :
+  'a cancel_ab_semigroup_add -> 'a cancel_semigroup_add;
+
+type 'a cancel_comm_monoid_add =
+  {cancel_ab_semigroup_add_cancel_comm_monoid_add : 'a cancel_ab_semigroup_add,
+    comm_monoid_add_cancel_comm_monoid_add : 'a comm_monoid_add};
+val cancel_ab_semigroup_add_cancel_comm_monoid_add =
+  #cancel_ab_semigroup_add_cancel_comm_monoid_add :
+  'a cancel_comm_monoid_add -> 'a cancel_ab_semigroup_add;
+val comm_monoid_add_cancel_comm_monoid_add =
+  #comm_monoid_add_cancel_comm_monoid_add :
+  'a cancel_comm_monoid_add -> 'a comm_monoid_add;
+
+type 'a semiring_0_cancel =
+  {cancel_comm_monoid_add_semiring_0_cancel : 'a cancel_comm_monoid_add,
+    semiring_0_semiring_0_cancel : 'a semiring_0};
+val cancel_comm_monoid_add_semiring_0_cancel =
+  #cancel_comm_monoid_add_semiring_0_cancel :
+  'a semiring_0_cancel -> 'a cancel_comm_monoid_add;
+val semiring_0_semiring_0_cancel = #semiring_0_semiring_0_cancel :
+  'a semiring_0_cancel -> 'a semiring_0;
+
+type 'a semiring_1_cancel =
+  {semiring_0_cancel_semiring_1_cancel : 'a semiring_0_cancel,
+    semiring_1_semiring_1_cancel : 'a semiring_1};
+val semiring_0_cancel_semiring_1_cancel = #semiring_0_cancel_semiring_1_cancel :
+  'a semiring_1_cancel -> 'a semiring_0_cancel;
+val semiring_1_semiring_1_cancel = #semiring_1_semiring_1_cancel :
+  'a semiring_1_cancel -> 'a semiring_1;
+
+type 'a dvd = {times_dvd : 'a times};
+val times_dvd = #times_dvd : 'a dvd -> 'a times;
+
+type 'a ab_semigroup_mult =
+  {semigroup_mult_ab_semigroup_mult : 'a semigroup_mult};
+val semigroup_mult_ab_semigroup_mult = #semigroup_mult_ab_semigroup_mult :
+  'a ab_semigroup_mult -> 'a semigroup_mult;
+
+type 'a comm_semiring =
+  {ab_semigroup_mult_comm_semiring : 'a ab_semigroup_mult,
+    semiring_comm_semiring : 'a semiring};
+val ab_semigroup_mult_comm_semiring = #ab_semigroup_mult_comm_semiring :
+  'a comm_semiring -> 'a ab_semigroup_mult;
+val semiring_comm_semiring = #semiring_comm_semiring :
+  'a comm_semiring -> 'a semiring;
+
+type 'a comm_semiring_0 =
+  {comm_semiring_comm_semiring_0 : 'a comm_semiring,
+    semiring_0_comm_semiring_0 : 'a semiring_0};
+val comm_semiring_comm_semiring_0 = #comm_semiring_comm_semiring_0 :
+  'a comm_semiring_0 -> 'a comm_semiring;
+val semiring_0_comm_semiring_0 = #semiring_0_comm_semiring_0 :
+  'a comm_semiring_0 -> 'a semiring_0;
+
+type 'a comm_monoid_mult =
+  {ab_semigroup_mult_comm_monoid_mult : 'a ab_semigroup_mult,
+    monoid_mult_comm_monoid_mult : 'a monoid_mult};
+val ab_semigroup_mult_comm_monoid_mult = #ab_semigroup_mult_comm_monoid_mult :
+  'a comm_monoid_mult -> 'a ab_semigroup_mult;
+val monoid_mult_comm_monoid_mult = #monoid_mult_comm_monoid_mult :
+  'a comm_monoid_mult -> 'a monoid_mult;
+
+type 'a comm_semiring_1 =
+  {comm_monoid_mult_comm_semiring_1 : 'a comm_monoid_mult,
+    comm_semiring_0_comm_semiring_1 : 'a comm_semiring_0,
+    dvd_comm_semiring_1 : 'a dvd, semiring_1_comm_semiring_1 : 'a semiring_1};
+val comm_monoid_mult_comm_semiring_1 = #comm_monoid_mult_comm_semiring_1 :
+  'a comm_semiring_1 -> 'a comm_monoid_mult;
+val comm_semiring_0_comm_semiring_1 = #comm_semiring_0_comm_semiring_1 :
+  'a comm_semiring_1 -> 'a comm_semiring_0;
+val dvd_comm_semiring_1 = #dvd_comm_semiring_1 : 'a comm_semiring_1 -> 'a dvd;
+val semiring_1_comm_semiring_1 = #semiring_1_comm_semiring_1 :
+  'a comm_semiring_1 -> 'a semiring_1;
+
+type 'a comm_semiring_0_cancel =
+  {comm_semiring_0_comm_semiring_0_cancel : 'a comm_semiring_0,
+    semiring_0_cancel_comm_semiring_0_cancel : 'a semiring_0_cancel};
+val comm_semiring_0_comm_semiring_0_cancel =
+  #comm_semiring_0_comm_semiring_0_cancel :
+  'a comm_semiring_0_cancel -> 'a comm_semiring_0;
+val semiring_0_cancel_comm_semiring_0_cancel =
+  #semiring_0_cancel_comm_semiring_0_cancel :
+  'a comm_semiring_0_cancel -> 'a semiring_0_cancel;
+
+type 'a comm_semiring_1_cancel =
+  {comm_semiring_0_cancel_comm_semiring_1_cancel : 'a comm_semiring_0_cancel,
+    comm_semiring_1_comm_semiring_1_cancel : 'a comm_semiring_1,
+    semiring_1_cancel_comm_semiring_1_cancel : 'a semiring_1_cancel};
+val comm_semiring_0_cancel_comm_semiring_1_cancel =
+  #comm_semiring_0_cancel_comm_semiring_1_cancel :
+  'a comm_semiring_1_cancel -> 'a comm_semiring_0_cancel;
+val comm_semiring_1_comm_semiring_1_cancel =
+  #comm_semiring_1_comm_semiring_1_cancel :
+  'a comm_semiring_1_cancel -> 'a comm_semiring_1;
+val semiring_1_cancel_comm_semiring_1_cancel =
+  #semiring_1_cancel_comm_semiring_1_cancel :
+  'a comm_semiring_1_cancel -> 'a semiring_1_cancel;
+
+type 'a diva = {dvd_div : 'a dvd, diva : 'a -> 'a -> 'a, moda : 'a -> 'a -> 'a};
+val dvd_div = #dvd_div : 'a diva -> 'a dvd;
+val diva = #diva : 'a diva -> 'a -> 'a -> 'a;
+val moda = #moda : 'a diva -> 'a -> 'a -> 'a;
+
+type 'a semiring_div =
+  {div_semiring_div : 'a diva,
+    comm_semiring_1_cancel_semiring_div : 'a comm_semiring_1_cancel,
+    no_zero_divisors_semiring_div : 'a no_zero_divisors};
+val div_semiring_div = #div_semiring_div : 'a semiring_div -> 'a diva;
+val comm_semiring_1_cancel_semiring_div = #comm_semiring_1_cancel_semiring_div :
+  'a semiring_div -> 'a comm_semiring_1_cancel;
+val no_zero_divisors_semiring_div = #no_zero_divisors_semiring_div :
+  'a semiring_div -> 'a no_zero_divisors;
+
+val one_int : IntInf.int = (1 : IntInf.int);
+
+val one_inta = {one = one_int} : IntInf.int one;
+
+val zero_neq_one_int =
+  {one_zero_neq_one = one_inta, zero_zero_neq_one = zero_inta} :
+  IntInf.int zero_neq_one;
+
+val semigroup_mult_int = {times_semigroup_mult = times_int} :
+  IntInf.int semigroup_mult;
+
+val plus_int = {plus = (fn a => fn b => IntInf.+ (a, b))} : IntInf.int plus;
+
+val semigroup_add_int = {plus_semigroup_add = plus_int} :
+  IntInf.int semigroup_add;
+
+val ab_semigroup_add_int = {semigroup_add_ab_semigroup_add = semigroup_add_int}
+  : IntInf.int ab_semigroup_add;
+
+val semiring_int =
+  {ab_semigroup_add_semiring = ab_semigroup_add_int,
+    semigroup_mult_semiring = semigroup_mult_int}
+  : IntInf.int semiring;
+
+val mult_zero_int = {times_mult_zero = times_int, zero_mult_zero = zero_inta} :
+  IntInf.int mult_zero;
+
+val monoid_add_int =
+  {semigroup_add_monoid_add = semigroup_add_int, zero_monoid_add = zero_inta} :
+  IntInf.int monoid_add;
+
+val comm_monoid_add_int =
+  {ab_semigroup_add_comm_monoid_add = ab_semigroup_add_int,
+    monoid_add_comm_monoid_add = monoid_add_int}
+  : IntInf.int comm_monoid_add;
+
+val semiring_0_int =
+  {comm_monoid_add_semiring_0 = comm_monoid_add_int,
+    mult_zero_semiring_0 = mult_zero_int, semiring_semiring_0 = semiring_int}
+  : IntInf.int semiring_0;
+
+val power_int = {one_power = one_inta, times_power = times_int} :
+  IntInf.int power;
+
+val monoid_mult_int =
+  {semigroup_mult_monoid_mult = semigroup_mult_int,
+    power_monoid_mult = power_int}
+  : IntInf.int monoid_mult;
+
+val semiring_1_int =
+  {monoid_mult_semiring_1 = monoid_mult_int,
+    semiring_0_semiring_1 = semiring_0_int,
+    zero_neq_one_semiring_1 = zero_neq_one_int}
+  : IntInf.int semiring_1;
+
+val cancel_semigroup_add_int =
+  {semigroup_add_cancel_semigroup_add = semigroup_add_int} :
+  IntInf.int cancel_semigroup_add;
+
+val cancel_ab_semigroup_add_int =
+  {ab_semigroup_add_cancel_ab_semigroup_add = ab_semigroup_add_int,
+    cancel_semigroup_add_cancel_ab_semigroup_add = cancel_semigroup_add_int}
+  : IntInf.int cancel_ab_semigroup_add;
+
+val cancel_comm_monoid_add_int =
+  {cancel_ab_semigroup_add_cancel_comm_monoid_add = cancel_ab_semigroup_add_int,
+    comm_monoid_add_cancel_comm_monoid_add = comm_monoid_add_int}
+  : IntInf.int cancel_comm_monoid_add;
+
+val semiring_0_cancel_int =
+  {cancel_comm_monoid_add_semiring_0_cancel = cancel_comm_monoid_add_int,
+    semiring_0_semiring_0_cancel = semiring_0_int}
+  : IntInf.int semiring_0_cancel;
+
+val semiring_1_cancel_int =
+  {semiring_0_cancel_semiring_1_cancel = semiring_0_cancel_int,
+    semiring_1_semiring_1_cancel = semiring_1_int}
+  : IntInf.int semiring_1_cancel;
+
+val dvd_int = {times_dvd = times_int} : IntInf.int dvd;
+
+val ab_semigroup_mult_int =
+  {semigroup_mult_ab_semigroup_mult = semigroup_mult_int} :
+  IntInf.int ab_semigroup_mult;
+
+val comm_semiring_int =
+  {ab_semigroup_mult_comm_semiring = ab_semigroup_mult_int,
+    semiring_comm_semiring = semiring_int}
+  : IntInf.int comm_semiring;
+
+val comm_semiring_0_int =
+  {comm_semiring_comm_semiring_0 = comm_semiring_int,
+    semiring_0_comm_semiring_0 = semiring_0_int}
+  : IntInf.int comm_semiring_0;
+
+val comm_monoid_mult_int =
+  {ab_semigroup_mult_comm_monoid_mult = ab_semigroup_mult_int,
+    monoid_mult_comm_monoid_mult = monoid_mult_int}
+  : IntInf.int comm_monoid_mult;
+
+val comm_semiring_1_int =
+  {comm_monoid_mult_comm_semiring_1 = comm_monoid_mult_int,
+    comm_semiring_0_comm_semiring_1 = comm_semiring_0_int,
+    dvd_comm_semiring_1 = dvd_int, semiring_1_comm_semiring_1 = semiring_1_int}
+  : IntInf.int comm_semiring_1;
+
+val comm_semiring_0_cancel_int =
+  {comm_semiring_0_comm_semiring_0_cancel = comm_semiring_0_int,
+    semiring_0_cancel_comm_semiring_0_cancel = semiring_0_cancel_int}
+  : IntInf.int comm_semiring_0_cancel;
+
+val comm_semiring_1_cancel_int =
+  {comm_semiring_0_cancel_comm_semiring_1_cancel = comm_semiring_0_cancel_int,
+    comm_semiring_1_comm_semiring_1_cancel = comm_semiring_1_int,
+    semiring_1_cancel_comm_semiring_1_cancel = semiring_1_cancel_int}
+  : IntInf.int comm_semiring_1_cancel;
+
+fun abs_int i = (if IntInf.< (i, (0 : IntInf.int)) then IntInf.~ i else i);
+
+fun split f (a, b) = f a b;
+
 fun sgn_int i =
-  (if eqop eq_int i (0 : IntInf.int) then (0 : IntInf.int)
+  (if ((i : IntInf.int) = (0 : IntInf.int)) then (0 : IntInf.int)
     else (if IntInf.< ((0 : IntInf.int), i) then (1 : IntInf.int)
            else IntInf.~ (1 : IntInf.int)));
 
 fun apsnd f (x, y) = (x, f y);
 
-fun divmoda k l =
-  (if eqop eq_int k (0 : IntInf.int) then ((0 : IntInf.int), (0 : IntInf.int))
-    else (if eqop eq_int l (0 : IntInf.int) then ((0 : IntInf.int), k)
+fun divmod_int k l =
+  (if ((k : IntInf.int) = (0 : IntInf.int))
+    then ((0 : IntInf.int), (0 : IntInf.int))
+    else (if ((l : IntInf.int) = (0 : IntInf.int)) then ((0 : IntInf.int), k)
            else apsnd (fn a => IntInf.* (sgn_int l, a))
-                  (if eqop eq_int (sgn_int k) (sgn_int l)
-                    then (fn k => fn l => IntInf.divMod (IntInf.abs k,
-                           IntInf.abs l))
-                           k l
+                  (if (((sgn_int k) : IntInf.int) = (sgn_int l))
+                    then IntInf.divMod (IntInf.abs k, IntInf.abs l)
                     else let
-                           val a =
-                             (fn k => fn l => IntInf.divMod (IntInf.abs k,
-                               IntInf.abs l))
-                               k l;
-                           val (r, s) = a;
+                           val (r, s) =
+                             IntInf.divMod (IntInf.abs k, IntInf.abs l);
                          in
-                           (if eqop eq_int s (0 : IntInf.int)
+                           (if ((s : IntInf.int) = (0 : IntInf.int))
                              then (IntInf.~ r, (0 : IntInf.int))
                              else (IntInf.- (IntInf.~ r, (1 : IntInf.int)),
                                     IntInf.- (abs_int l, s)))
                          end)));
 
-fun mod_int a b = snd (divmoda a b);
+fun snd (a, b) = b;
+
+fun mod_int a b = snd (divmod_int a b);
+
+fun fst (a, b) = a;
+
+fun div_int a b = fst (divmod_int a b);
+
+val div_inta = {dvd_div = dvd_int, diva = div_int, moda = mod_int} :
+  IntInf.int diva;
+
+val semiring_div_int =
+  {div_semiring_div = div_inta,
+    comm_semiring_1_cancel_semiring_div = comm_semiring_1_cancel_int,
+    no_zero_divisors_semiring_div = no_zero_divisors_int}
+  : IntInf.int semiring_div;
+
+fun dvd (A1_, A2_) a b =
+  eqa A2_ (moda (div_semiring_div A1_) b a)
+    (zero ((zero_no_zero_divisors o no_zero_divisors_semiring_div) A1_));
 
 fun num_case f1 f2 f3 f4 f5 f6 f7 (Mul (inta, num)) = f7 inta num
   | num_case f1 f2 f3 f4 f5 f6 f7 (Sub (num1, num2)) = f6 num1 num2
@@ -742,11 +1315,11 @@ fun nummul i (C j) = C (IntInf.* (i, j))
 fun numneg t = nummul (IntInf.~ (1 : IntInf.int)) t;
 
 fun numadd (Cn (n1, c1, r1), Cn (n2, c2, r2)) =
-  (if eqop eq_nat n1 n2
+  (if ((n1 : IntInf.int) = n2)
     then let
            val c = IntInf.+ (c1, c2);
          in
-           (if eqop eq_int c (0 : IntInf.int) then numadd (r1, r2)
+           (if ((c : IntInf.int) = (0 : IntInf.int)) then numadd (r1, r2)
              else Cn (n1, c, numadd (r1, r2)))
          end
     else (if IntInf.<= (n1, n2)
@@ -807,10 +1380,8 @@ fun numadd (Cn (n1, c1, r1), Cn (n2, c2, r2)) =
   | numadd (Mul (at, au), Sub (hp, hq)) = Add (Mul (at, au), Sub (hp, hq))
   | numadd (Mul (at, au), Mul (hr, hs)) = Add (Mul (at, au), Mul (hr, hs));
 
-val eq_numa = {eq = eq_num} : num eq;
-
 fun numsub s t =
-  (if eqop eq_numa s t then C (0 : IntInf.int) else numadd (s, numneg t));
+  (if eq_num s t then C (0 : IntInf.int) else numadd (s, numneg t));
 
 fun simpnum (C j) = C j
   | simpnum (Bound n) = Cn (n, (1 : IntInf.int), C (0 : IntInf.int))
@@ -818,7 +1389,7 @@ fun simpnum (C j) = C j
   | simpnum (Add (t, s)) = numadd (simpnum t, simpnum s)
   | simpnum (Sub (t, s)) = numsub (simpnum t) (simpnum s)
   | simpnum (Mul (i, t)) =
-    (if eqop eq_int i (0 : IntInf.int) then C (0 : IntInf.int)
+    (if ((i : IntInf.int) = (0 : IntInf.int)) then C (0 : IntInf.int)
       else nummul i (simpnum t))
   | simpnum (Cn (v, va, vb)) = Cn (v, va, vb);
 
@@ -843,23 +1414,20 @@ fun nota (Not p) = p
   | nota (NClosed v) = Not (NClosed v);
 
 fun iffa p q =
-  (if eqop eq_fma p q then T
-    else (if eqop eq_fma p (nota q) orelse eqop eq_fma (nota p) q then F
-           else (if eqop eq_fma p F then nota q
-                  else (if eqop eq_fma q F then nota p
-                         else (if eqop eq_fma p T then q
-                                else (if eqop eq_fma q T then p
-                                       else Iff (p, q)))))));
+  (if eq_fm p q then T
+    else (if eq_fm p (nota q) orelse eq_fm (nota p) q then F
+           else (if eq_fm p F then nota q
+                  else (if eq_fm q F then nota p
+                         else (if eq_fm p T then q
+                                else (if eq_fm q T then p else Iff (p, q)))))));
 
 fun impa p q =
-  (if eqop eq_fma p F orelse eqop eq_fma q T then T
-    else (if eqop eq_fma p T then q
-           else (if eqop eq_fma q F then nota p else Imp (p, q))));
+  (if eq_fm p F orelse eq_fm q T then T
+    else (if eq_fm p T then q else (if eq_fm q F then nota p else Imp (p, q))));
 
 fun conj p q =
-  (if eqop eq_fma p F orelse eqop eq_fma q F then F
-    else (if eqop eq_fma p T then q
-           else (if eqop eq_fma q T then p else And (p, q))));
+  (if eq_fm p F orelse eq_fm q F then F
+    else (if eq_fm p T then q else (if eq_fm q T then p else And (p, q))));
 
 fun simpfm (And (p, q)) = conj (simpfm p) (simpfm q)
   | simpfm (Or (p, q)) = disj (simpfm p) (simpfm q)
@@ -868,91 +1436,80 @@ fun simpfm (And (p, q)) = conj (simpfm p) (simpfm q)
   | simpfm (Not p) = nota (simpfm p)
   | simpfm (Lt a) =
     let
-      val a' = simpnum a;
+      val aa = simpnum a;
     in
-      (case a' of C v => (if IntInf.< (v, (0 : IntInf.int)) then T else F)
-         | Bound nat => Lt a' | Cn (nat, inta, num) => Lt a' | Neg num => Lt a'
-         | Add (num1, num2) => Lt a' | Sub (num1, num2) => Lt a'
-         | Mul (inta, num) => Lt a')
+      (case aa of C v => (if IntInf.< (v, (0 : IntInf.int)) then T else F)
+        | Bound _ => Lt aa | Cn (_, _, _) => Lt aa | Neg _ => Lt aa
+        | Add (_, _) => Lt aa | Sub (_, _) => Lt aa | Mul (_, _) => Lt aa)
     end
   | simpfm (Le a) =
     let
-      val a' = simpnum a;
+      val aa = simpnum a;
     in
-      (case a' of C v => (if IntInf.<= (v, (0 : IntInf.int)) then T else F)
-         | Bound nat => Le a' | Cn (nat, inta, num) => Le a' | Neg num => Le a'
-         | Add (num1, num2) => Le a' | Sub (num1, num2) => Le a'
-         | Mul (inta, num) => Le a')
+      (case aa of C v => (if IntInf.<= (v, (0 : IntInf.int)) then T else F)
+        | Bound _ => Le aa | Cn (_, _, _) => Le aa | Neg _ => Le aa
+        | Add (_, _) => Le aa | Sub (_, _) => Le aa | Mul (_, _) => Le aa)
     end
   | simpfm (Gt a) =
     let
-      val a' = simpnum a;
+      val aa = simpnum a;
     in
-      (case a' of C v => (if IntInf.< ((0 : IntInf.int), v) then T else F)
-         | Bound nat => Gt a' | Cn (nat, inta, num) => Gt a' | Neg num => Gt a'
-         | Add (num1, num2) => Gt a' | Sub (num1, num2) => Gt a'
-         | Mul (inta, num) => Gt a')
+      (case aa of C v => (if IntInf.< ((0 : IntInf.int), v) then T else F)
+        | Bound _ => Gt aa | Cn (_, _, _) => Gt aa | Neg _ => Gt aa
+        | Add (_, _) => Gt aa | Sub (_, _) => Gt aa | Mul (_, _) => Gt aa)
     end
   | simpfm (Ge a) =
     let
-      val a' = simpnum a;
+      val aa = simpnum a;
     in
-      (case a' of C v => (if IntInf.<= ((0 : IntInf.int), v) then T else F)
-         | Bound nat => Ge a' | Cn (nat, inta, num) => Ge a' | Neg num => Ge a'
-         | Add (num1, num2) => Ge a' | Sub (num1, num2) => Ge a'
-         | Mul (inta, num) => Ge a')
+      (case aa of C v => (if IntInf.<= ((0 : IntInf.int), v) then T else F)
+        | Bound _ => Ge aa | Cn (_, _, _) => Ge aa | Neg _ => Ge aa
+        | Add (_, _) => Ge aa | Sub (_, _) => Ge aa | Mul (_, _) => Ge aa)
     end
   | simpfm (Eq a) =
     let
-      val a' = simpnum a;
+      val aa = simpnum a;
     in
-      (case a' of C v => (if eqop eq_int v (0 : IntInf.int) then T else F)
-         | Bound nat => Eq a' | Cn (nat, inta, num) => Eq a' | Neg num => Eq a'
-         | Add (num1, num2) => Eq a' | Sub (num1, num2) => Eq a'
-         | Mul (inta, num) => Eq a')
+      (case aa
+        of C v => (if ((v : IntInf.int) = (0 : IntInf.int)) then T else F)
+        | Bound _ => Eq aa | Cn (_, _, _) => Eq aa | Neg _ => Eq aa
+        | Add (_, _) => Eq aa | Sub (_, _) => Eq aa | Mul (_, _) => Eq aa)
     end
   | simpfm (NEq a) =
     let
-      val a' = simpnum a;
+      val aa = simpnum a;
     in
-      (case a' of C v => (if not (eqop eq_int v (0 : IntInf.int)) then T else F)
-         | Bound nat => NEq a' | Cn (nat, inta, num) => NEq a'
-         | Neg num => NEq a' | Add (num1, num2) => NEq a'
-         | Sub (num1, num2) => NEq a' | Mul (inta, num) => NEq a')
+      (case aa
+        of C v => (if not ((v : IntInf.int) = (0 : IntInf.int)) then T else F)
+        | Bound _ => NEq aa | Cn (_, _, _) => NEq aa | Neg _ => NEq aa
+        | Add (_, _) => NEq aa | Sub (_, _) => NEq aa | Mul (_, _) => NEq aa)
     end
   | simpfm (Dvd (i, a)) =
-    (if eqop eq_int i (0 : IntInf.int) then simpfm (Eq a)
-      else (if eqop eq_int (abs_int i) (1 : IntInf.int) then T
+    (if ((i : IntInf.int) = (0 : IntInf.int)) then simpfm (Eq a)
+      else (if (((abs_int i) : IntInf.int) = (1 : IntInf.int)) then T
              else let
-                    val a' = simpnum a;
+                    val aa = simpnum a;
                   in
-                    (case a'
-                       of C v =>
-                         (if eqop eq_int (mod_int v i) (0 : IntInf.int) then T
-                           else F)
-                       | Bound nat => Dvd (i, a')
-                       | Cn (nat, inta, num) => Dvd (i, a')
-                       | Neg num => Dvd (i, a')
-                       | Add (num1, num2) => Dvd (i, a')
-                       | Sub (num1, num2) => Dvd (i, a')
-                       | Mul (inta, num) => Dvd (i, a'))
+                    (case aa
+                      of C v =>
+                        (if dvd (semiring_div_int, eq_int) i v then T else F)
+                      | Bound _ => Dvd (i, aa) | Cn (_, _, _) => Dvd (i, aa)
+                      | Neg _ => Dvd (i, aa) | Add (_, _) => Dvd (i, aa)
+                      | Sub (_, _) => Dvd (i, aa) | Mul (_, _) => Dvd (i, aa))
                   end))
   | simpfm (NDvd (i, a)) =
-    (if eqop eq_int i (0 : IntInf.int) then simpfm (NEq a)
-      else (if eqop eq_int (abs_int i) (1 : IntInf.int) then F
+    (if ((i : IntInf.int) = (0 : IntInf.int)) then simpfm (NEq a)
+      else (if (((abs_int i) : IntInf.int) = (1 : IntInf.int)) then F
              else let
-                    val a' = simpnum a;
+                    val aa = simpnum a;
                   in
-                    (case a'
-                       of C v =>
-                         (if not (eqop eq_int (mod_int v i) (0 : IntInf.int))
-                           then T else F)
-                       | Bound nat => NDvd (i, a')
-                       | Cn (nat, inta, num) => NDvd (i, a')
-                       | Neg num => NDvd (i, a')
-                       | Add (num1, num2) => NDvd (i, a')
-                       | Sub (num1, num2) => NDvd (i, a')
-                       | Mul (inta, num) => NDvd (i, a'))
+                    (case aa
+                      of C v =>
+                        (if not (dvd (semiring_div_int, eq_int) i v) then T
+                          else F)
+                      | Bound _ => NDvd (i, aa) | Cn (_, _, _) => NDvd (i, aa)
+                      | Neg _ => NDvd (i, aa) | Add (_, _) => NDvd (i, aa)
+                      | Sub (_, _) => NDvd (i, aa) | Mul (_, _) => NDvd (i, aa))
                   end))
   | simpfm T = T
   | simpfm F = F
@@ -1025,32 +1582,40 @@ fun mirror (And (p, q)) = And (mirror p, mirror q)
   | mirror (Closed ap) = Closed ap
   | mirror (NClosed aq) = NClosed aq
   | mirror (Lt (Cn (cm, c, e))) =
-    (if eqop eq_nat cm 0 then Gt (Cn (0, c, Neg e))
-      else Lt (Cn (suc (minus_nat cm 1), c, e)))
+    (if ((cm : IntInf.int) = (0 : IntInf.int))
+      then Gt (Cn ((0 : IntInf.int), c, Neg e))
+      else Lt (Cn (suc (minus_nat cm (1 : IntInf.int)), c, e)))
   | mirror (Le (Cn (dm, c, e))) =
-    (if eqop eq_nat dm 0 then Ge (Cn (0, c, Neg e))
-      else Le (Cn (suc (minus_nat dm 1), c, e)))
+    (if ((dm : IntInf.int) = (0 : IntInf.int))
+      then Ge (Cn ((0 : IntInf.int), c, Neg e))
+      else Le (Cn (suc (minus_nat dm (1 : IntInf.int)), c, e)))
   | mirror (Gt (Cn (em, c, e))) =
-    (if eqop eq_nat em 0 then Lt (Cn (0, c, Neg e))
-      else Gt (Cn (suc (minus_nat em 1), c, e)))
+    (if ((em : IntInf.int) = (0 : IntInf.int))
+      then Lt (Cn ((0 : IntInf.int), c, Neg e))
+      else Gt (Cn (suc (minus_nat em (1 : IntInf.int)), c, e)))
   | mirror (Ge (Cn (fm, c, e))) =
-    (if eqop eq_nat fm 0 then Le (Cn (0, c, Neg e))
-      else Ge (Cn (suc (minus_nat fm 1), c, e)))
+    (if ((fm : IntInf.int) = (0 : IntInf.int))
+      then Le (Cn ((0 : IntInf.int), c, Neg e))
+      else Ge (Cn (suc (minus_nat fm (1 : IntInf.int)), c, e)))
   | mirror (Eq (Cn (gm, c, e))) =
-    (if eqop eq_nat gm 0 then Eq (Cn (0, c, Neg e))
-      else Eq (Cn (suc (minus_nat gm 1), c, e)))
+    (if ((gm : IntInf.int) = (0 : IntInf.int))
+      then Eq (Cn ((0 : IntInf.int), c, Neg e))
+      else Eq (Cn (suc (minus_nat gm (1 : IntInf.int)), c, e)))
   | mirror (NEq (Cn (hm, c, e))) =
-    (if eqop eq_nat hm 0 then NEq (Cn (0, c, Neg e))
-      else NEq (Cn (suc (minus_nat hm 1), c, e)))
+    (if ((hm : IntInf.int) = (0 : IntInf.int))
+      then NEq (Cn ((0 : IntInf.int), c, Neg e))
+      else NEq (Cn (suc (minus_nat hm (1 : IntInf.int)), c, e)))
   | mirror (Dvd (i, Cn (im, c, e))) =
-    (if eqop eq_nat im 0 then Dvd (i, Cn (0, c, Neg e))
-      else Dvd (i, Cn (suc (minus_nat im 1), c, e)))
+    (if ((im : IntInf.int) = (0 : IntInf.int))
+      then Dvd (i, Cn ((0 : IntInf.int), c, Neg e))
+      else Dvd (i, Cn (suc (minus_nat im (1 : IntInf.int)), c, e)))
   | mirror (NDvd (i, Cn (jm, c, e))) =
-    (if eqop eq_nat jm 0 then NDvd (i, Cn (0, c, Neg e))
-      else NDvd (i, Cn (suc (minus_nat jm 1), c, e)));
+    (if ((jm : IntInf.int) = (0 : IntInf.int))
+      then NDvd (i, Cn ((0 : IntInf.int), c, Neg e))
+      else NDvd (i, Cn (suc (minus_nat jm (1 : IntInf.int)), c, e)));
 
-fun size_list [] = 0
-  | size_list (a :: lista) = IntInf.+ (size_list lista, suc 0);
+fun size_list [] = (0 : IntInf.int)
+  | size_list (a :: lista) = IntInf.+ (size_list lista, suc (0 : IntInf.int));
 
 fun alpha (And (p, q)) = append (alpha p) (alpha q)
   | alpha (Or (p, q)) = append (alpha p) (alpha q)
@@ -1101,14 +1666,20 @@ fun alpha (And (p, q)) = append (alpha p) (alpha q)
   | alpha (A ao) = []
   | alpha (Closed ap) = []
   | alpha (NClosed aq) = []
-  | alpha (Lt (Cn (cm, c, e))) = (if eqop eq_nat cm 0 then [e] else [])
+  | alpha (Lt (Cn (cm, c, e))) =
+    (if ((cm : IntInf.int) = (0 : IntInf.int)) then [e] else [])
   | alpha (Le (Cn (dm, c, e))) =
-    (if eqop eq_nat dm 0 then [Add (C (~1 : IntInf.int), e)] else [])
-  | alpha (Gt (Cn (em, c, e))) = (if eqop eq_nat em 0 then [] else [])
-  | alpha (Ge (Cn (fm, c, e))) = (if eqop eq_nat fm 0 then [] else [])
+    (if ((dm : IntInf.int) = (0 : IntInf.int))
+      then [Add (C (~1 : IntInf.int), e)] else [])
+  | alpha (Gt (Cn (em, c, e))) =
+    (if ((em : IntInf.int) = (0 : IntInf.int)) then [] else [])
+  | alpha (Ge (Cn (fm, c, e))) =
+    (if ((fm : IntInf.int) = (0 : IntInf.int)) then [] else [])
   | alpha (Eq (Cn (gm, c, e))) =
-    (if eqop eq_nat gm 0 then [Add (C (~1 : IntInf.int), e)] else [])
-  | alpha (NEq (Cn (hm, c, e))) = (if eqop eq_nat hm 0 then [e] else []);
+    (if ((gm : IntInf.int) = (0 : IntInf.int))
+      then [Add (C (~1 : IntInf.int), e)] else [])
+  | alpha (NEq (Cn (hm, c, e))) =
+    (if ((hm : IntInf.int) = (0 : IntInf.int)) then [e] else []);
 
 fun beta (And (p, q)) = append (beta p) (beta q)
   | beta (Or (p, q)) = append (beta p) (beta q)
@@ -1159,24 +1730,39 @@ fun beta (And (p, q)) = append (beta p) (beta q)
   | beta (A ao) = []
   | beta (Closed ap) = []
   | beta (NClosed aq) = []
-  | beta (Lt (Cn (cm, c, e))) = (if eqop eq_nat cm 0 then [] else [])
-  | beta (Le (Cn (dm, c, e))) = (if eqop eq_nat dm 0 then [] else [])
-  | beta (Gt (Cn (em, c, e))) = (if eqop eq_nat em 0 then [Neg e] else [])
+  | beta (Lt (Cn (cm, c, e))) =
+    (if ((cm : IntInf.int) = (0 : IntInf.int)) then [] else [])
+  | beta (Le (Cn (dm, c, e))) =
+    (if ((dm : IntInf.int) = (0 : IntInf.int)) then [] else [])
+  | beta (Gt (Cn (em, c, e))) =
+    (if ((em : IntInf.int) = (0 : IntInf.int)) then [Neg e] else [])
   | beta (Ge (Cn (fm, c, e))) =
-    (if eqop eq_nat fm 0 then [Sub (C (~1 : IntInf.int), e)] else [])
+    (if ((fm : IntInf.int) = (0 : IntInf.int))
+      then [Sub (C (~1 : IntInf.int), e)] else [])
   | beta (Eq (Cn (gm, c, e))) =
-    (if eqop eq_nat gm 0 then [Sub (C (~1 : IntInf.int), e)] else [])
-  | beta (NEq (Cn (hm, c, e))) = (if eqop eq_nat hm 0 then [Neg e] else []);
+    (if ((gm : IntInf.int) = (0 : IntInf.int))
+      then [Sub (C (~1 : IntInf.int), e)] else [])
+  | beta (NEq (Cn (hm, c, e))) =
+    (if ((hm : IntInf.int) = (0 : IntInf.int)) then [Neg e] else []);
+
+val eq_numa = {eq = eq_num} : num eq;
 
 fun member A_ x [] = false
-  | member A_ x (y :: ys) = eqop A_ x y orelse member A_ x ys;
+  | member A_ x (y :: ys) = eqa A_ x y orelse member A_ x ys;
 
 fun remdups A_ [] = []
   | remdups A_ (x :: xs) =
     (if member A_ x xs then remdups A_ xs else x :: remdups A_ xs);
 
-fun delta (And (p, q)) = zlcm (delta p) (delta q)
-  | delta (Or (p, q)) = zlcm (delta p) (delta q)
+fun gcd_int k l =
+  abs_int
+    (if ((l : IntInf.int) = (0 : IntInf.int)) then k
+      else gcd_int l (mod_int (abs_int k) (abs_int l)));
+
+fun lcm_int a b = div_int (IntInf.* (abs_int a, abs_int b)) (gcd_int a b);
+
+fun delta (And (p, q)) = lcm_int (delta p) (delta q)
+  | delta (Or (p, q)) = lcm_int (delta p) (delta q)
   | delta T = (1 : IntInf.int)
   | delta F = (1 : IntInf.int)
   | delta (Lt u) = (1 : IntInf.int)
@@ -1205,110 +1791,117 @@ fun delta (And (p, q)) = zlcm (delta p) (delta q)
   | delta (Closed ap) = (1 : IntInf.int)
   | delta (NClosed aq) = (1 : IntInf.int)
   | delta (Dvd (i, Cn (cm, c, e))) =
-    (if eqop eq_nat cm 0 then i else (1 : IntInf.int))
+    (if ((cm : IntInf.int) = (0 : IntInf.int)) then i else (1 : IntInf.int))
   | delta (NDvd (i, Cn (dm, c, e))) =
-    (if eqop eq_nat dm 0 then i else (1 : IntInf.int));
-
-fun div_int a b = fst (divmoda a b);
+    (if ((dm : IntInf.int) = (0 : IntInf.int)) then i else (1 : IntInf.int));
 
 fun a_beta (And (p, q)) = (fn k => And (a_beta p k, a_beta q k))
   | a_beta (Or (p, q)) = (fn k => Or (a_beta p k, a_beta q k))
-  | a_beta T = (fn k => T)
-  | a_beta F = (fn k => F)
-  | a_beta (Lt (C bo)) = (fn k => Lt (C bo))
-  | a_beta (Lt (Bound bp)) = (fn k => Lt (Bound bp))
-  | a_beta (Lt (Neg bt)) = (fn k => Lt (Neg bt))
-  | a_beta (Lt (Add (bu, bv))) = (fn k => Lt (Add (bu, bv)))
-  | a_beta (Lt (Sub (bw, bx))) = (fn k => Lt (Sub (bw, bx)))
-  | a_beta (Lt (Mul (by, bz))) = (fn k => Lt (Mul (by, bz)))
-  | a_beta (Le (C co)) = (fn k => Le (C co))
-  | a_beta (Le (Bound cp)) = (fn k => Le (Bound cp))
-  | a_beta (Le (Neg ct)) = (fn k => Le (Neg ct))
-  | a_beta (Le (Add (cu, cv))) = (fn k => Le (Add (cu, cv)))
-  | a_beta (Le (Sub (cw, cx))) = (fn k => Le (Sub (cw, cx)))
-  | a_beta (Le (Mul (cy, cz))) = (fn k => Le (Mul (cy, cz)))
-  | a_beta (Gt (C doa)) = (fn k => Gt (C doa))
-  | a_beta (Gt (Bound dp)) = (fn k => Gt (Bound dp))
-  | a_beta (Gt (Neg dt)) = (fn k => Gt (Neg dt))
-  | a_beta (Gt (Add (du, dv))) = (fn k => Gt (Add (du, dv)))
-  | a_beta (Gt (Sub (dw, dx))) = (fn k => Gt (Sub (dw, dx)))
-  | a_beta (Gt (Mul (dy, dz))) = (fn k => Gt (Mul (dy, dz)))
-  | a_beta (Ge (C eo)) = (fn k => Ge (C eo))
-  | a_beta (Ge (Bound ep)) = (fn k => Ge (Bound ep))
-  | a_beta (Ge (Neg et)) = (fn k => Ge (Neg et))
-  | a_beta (Ge (Add (eu, ev))) = (fn k => Ge (Add (eu, ev)))
-  | a_beta (Ge (Sub (ew, ex))) = (fn k => Ge (Sub (ew, ex)))
-  | a_beta (Ge (Mul (ey, ez))) = (fn k => Ge (Mul (ey, ez)))
-  | a_beta (Eq (C fo)) = (fn k => Eq (C fo))
-  | a_beta (Eq (Bound fp)) = (fn k => Eq (Bound fp))
-  | a_beta (Eq (Neg ft)) = (fn k => Eq (Neg ft))
-  | a_beta (Eq (Add (fu, fv))) = (fn k => Eq (Add (fu, fv)))
-  | a_beta (Eq (Sub (fw, fx))) = (fn k => Eq (Sub (fw, fx)))
-  | a_beta (Eq (Mul (fy, fz))) = (fn k => Eq (Mul (fy, fz)))
-  | a_beta (NEq (C go)) = (fn k => NEq (C go))
-  | a_beta (NEq (Bound gp)) = (fn k => NEq (Bound gp))
-  | a_beta (NEq (Neg gt)) = (fn k => NEq (Neg gt))
-  | a_beta (NEq (Add (gu, gv))) = (fn k => NEq (Add (gu, gv)))
-  | a_beta (NEq (Sub (gw, gx))) = (fn k => NEq (Sub (gw, gx)))
-  | a_beta (NEq (Mul (gy, gz))) = (fn k => NEq (Mul (gy, gz)))
-  | a_beta (Dvd (aa, C ho)) = (fn k => Dvd (aa, C ho))
-  | a_beta (Dvd (aa, Bound hp)) = (fn k => Dvd (aa, Bound hp))
-  | a_beta (Dvd (aa, Neg ht)) = (fn k => Dvd (aa, Neg ht))
-  | a_beta (Dvd (aa, Add (hu, hv))) = (fn k => Dvd (aa, Add (hu, hv)))
-  | a_beta (Dvd (aa, Sub (hw, hx))) = (fn k => Dvd (aa, Sub (hw, hx)))
-  | a_beta (Dvd (aa, Mul (hy, hz))) = (fn k => Dvd (aa, Mul (hy, hz)))
-  | a_beta (NDvd (ac, C io)) = (fn k => NDvd (ac, C io))
-  | a_beta (NDvd (ac, Bound ip)) = (fn k => NDvd (ac, Bound ip))
-  | a_beta (NDvd (ac, Neg it)) = (fn k => NDvd (ac, Neg it))
-  | a_beta (NDvd (ac, Add (iu, iv))) = (fn k => NDvd (ac, Add (iu, iv)))
-  | a_beta (NDvd (ac, Sub (iw, ix))) = (fn k => NDvd (ac, Sub (iw, ix)))
-  | a_beta (NDvd (ac, Mul (iy, iz))) = (fn k => NDvd (ac, Mul (iy, iz)))
-  | a_beta (Not ae) = (fn k => Not ae)
-  | a_beta (Imp (aj, ak)) = (fn k => Imp (aj, ak))
-  | a_beta (Iff (al, am)) = (fn k => Iff (al, am))
-  | a_beta (E an) = (fn k => E an)
-  | a_beta (A ao) = (fn k => A ao)
-  | a_beta (Closed ap) = (fn k => Closed ap)
-  | a_beta (NClosed aq) = (fn k => NClosed aq)
+  | a_beta T = (fn _ => T)
+  | a_beta F = (fn _ => F)
+  | a_beta (Lt (C bo)) = (fn _ => Lt (C bo))
+  | a_beta (Lt (Bound bp)) = (fn _ => Lt (Bound bp))
+  | a_beta (Lt (Neg bt)) = (fn _ => Lt (Neg bt))
+  | a_beta (Lt (Add (bu, bv))) = (fn _ => Lt (Add (bu, bv)))
+  | a_beta (Lt (Sub (bw, bx))) = (fn _ => Lt (Sub (bw, bx)))
+  | a_beta (Lt (Mul (by, bz))) = (fn _ => Lt (Mul (by, bz)))
+  | a_beta (Le (C co)) = (fn _ => Le (C co))
+  | a_beta (Le (Bound cp)) = (fn _ => Le (Bound cp))
+  | a_beta (Le (Neg ct)) = (fn _ => Le (Neg ct))
+  | a_beta (Le (Add (cu, cv))) = (fn _ => Le (Add (cu, cv)))
+  | a_beta (Le (Sub (cw, cx))) = (fn _ => Le (Sub (cw, cx)))
+  | a_beta (Le (Mul (cy, cz))) = (fn _ => Le (Mul (cy, cz)))
+  | a_beta (Gt (C doa)) = (fn _ => Gt (C doa))
+  | a_beta (Gt (Bound dp)) = (fn _ => Gt (Bound dp))
+  | a_beta (Gt (Neg dt)) = (fn _ => Gt (Neg dt))
+  | a_beta (Gt (Add (du, dv))) = (fn _ => Gt (Add (du, dv)))
+  | a_beta (Gt (Sub (dw, dx))) = (fn _ => Gt (Sub (dw, dx)))
+  | a_beta (Gt (Mul (dy, dz))) = (fn _ => Gt (Mul (dy, dz)))
+  | a_beta (Ge (C eo)) = (fn _ => Ge (C eo))
+  | a_beta (Ge (Bound ep)) = (fn _ => Ge (Bound ep))
+  | a_beta (Ge (Neg et)) = (fn _ => Ge (Neg et))
+  | a_beta (Ge (Add (eu, ev))) = (fn _ => Ge (Add (eu, ev)))
+  | a_beta (Ge (Sub (ew, ex))) = (fn _ => Ge (Sub (ew, ex)))
+  | a_beta (Ge (Mul (ey, ez))) = (fn _ => Ge (Mul (ey, ez)))
+  | a_beta (Eq (C fo)) = (fn _ => Eq (C fo))
+  | a_beta (Eq (Bound fp)) = (fn _ => Eq (Bound fp))
+  | a_beta (Eq (Neg ft)) = (fn _ => Eq (Neg ft))
+  | a_beta (Eq (Add (fu, fv))) = (fn _ => Eq (Add (fu, fv)))
+  | a_beta (Eq (Sub (fw, fx))) = (fn _ => Eq (Sub (fw, fx)))
+  | a_beta (Eq (Mul (fy, fz))) = (fn _ => Eq (Mul (fy, fz)))
+  | a_beta (NEq (C go)) = (fn _ => NEq (C go))
+  | a_beta (NEq (Bound gp)) = (fn _ => NEq (Bound gp))
+  | a_beta (NEq (Neg gt)) = (fn _ => NEq (Neg gt))
+  | a_beta (NEq (Add (gu, gv))) = (fn _ => NEq (Add (gu, gv)))
+  | a_beta (NEq (Sub (gw, gx))) = (fn _ => NEq (Sub (gw, gx)))
+  | a_beta (NEq (Mul (gy, gz))) = (fn _ => NEq (Mul (gy, gz)))
+  | a_beta (Dvd (aa, C ho)) = (fn _ => Dvd (aa, C ho))
+  | a_beta (Dvd (aa, Bound hp)) = (fn _ => Dvd (aa, Bound hp))
+  | a_beta (Dvd (aa, Neg ht)) = (fn _ => Dvd (aa, Neg ht))
+  | a_beta (Dvd (aa, Add (hu, hv))) = (fn _ => Dvd (aa, Add (hu, hv)))
+  | a_beta (Dvd (aa, Sub (hw, hx))) = (fn _ => Dvd (aa, Sub (hw, hx)))
+  | a_beta (Dvd (aa, Mul (hy, hz))) = (fn _ => Dvd (aa, Mul (hy, hz)))
+  | a_beta (NDvd (ac, C io)) = (fn _ => NDvd (ac, C io))
+  | a_beta (NDvd (ac, Bound ip)) = (fn _ => NDvd (ac, Bound ip))
+  | a_beta (NDvd (ac, Neg it)) = (fn _ => NDvd (ac, Neg it))
+  | a_beta (NDvd (ac, Add (iu, iv))) = (fn _ => NDvd (ac, Add (iu, iv)))
+  | a_beta (NDvd (ac, Sub (iw, ix))) = (fn _ => NDvd (ac, Sub (iw, ix)))
+  | a_beta (NDvd (ac, Mul (iy, iz))) = (fn _ => NDvd (ac, Mul (iy, iz)))
+  | a_beta (Not ae) = (fn _ => Not ae)
+  | a_beta (Imp (aj, ak)) = (fn _ => Imp (aj, ak))
+  | a_beta (Iff (al, am)) = (fn _ => Iff (al, am))
+  | a_beta (E an) = (fn _ => E an)
+  | a_beta (A ao) = (fn _ => A ao)
+  | a_beta (Closed ap) = (fn _ => Closed ap)
+  | a_beta (NClosed aq) = (fn _ => NClosed aq)
   | a_beta (Lt (Cn (cm, c, e))) =
-    (if eqop eq_nat cm 0
-      then (fn k => Lt (Cn (0, (1 : IntInf.int), Mul (div_int k c, e))))
-      else (fn k => Lt (Cn (suc (minus_nat cm 1), c, e))))
+    (if ((cm : IntInf.int) = (0 : IntInf.int))
+      then (fn k =>
+             Lt (Cn ((0 : IntInf.int), (1 : IntInf.int), Mul (div_int k c, e))))
+      else (fn _ => Lt (Cn (suc (minus_nat cm (1 : IntInf.int)), c, e))))
   | a_beta (Le (Cn (dm, c, e))) =
-    (if eqop eq_nat dm 0
-      then (fn k => Le (Cn (0, (1 : IntInf.int), Mul (div_int k c, e))))
-      else (fn k => Le (Cn (suc (minus_nat dm 1), c, e))))
+    (if ((dm : IntInf.int) = (0 : IntInf.int))
+      then (fn k =>
+             Le (Cn ((0 : IntInf.int), (1 : IntInf.int), Mul (div_int k c, e))))
+      else (fn _ => Le (Cn (suc (minus_nat dm (1 : IntInf.int)), c, e))))
   | a_beta (Gt (Cn (em, c, e))) =
-    (if eqop eq_nat em 0
-      then (fn k => Gt (Cn (0, (1 : IntInf.int), Mul (div_int k c, e))))
-      else (fn k => Gt (Cn (suc (minus_nat em 1), c, e))))
+    (if ((em : IntInf.int) = (0 : IntInf.int))
+      then (fn k =>
+             Gt (Cn ((0 : IntInf.int), (1 : IntInf.int), Mul (div_int k c, e))))
+      else (fn _ => Gt (Cn (suc (minus_nat em (1 : IntInf.int)), c, e))))
   | a_beta (Ge (Cn (fm, c, e))) =
-    (if eqop eq_nat fm 0
-      then (fn k => Ge (Cn (0, (1 : IntInf.int), Mul (div_int k c, e))))
-      else (fn k => Ge (Cn (suc (minus_nat fm 1), c, e))))
+    (if ((fm : IntInf.int) = (0 : IntInf.int))
+      then (fn k =>
+             Ge (Cn ((0 : IntInf.int), (1 : IntInf.int), Mul (div_int k c, e))))
+      else (fn _ => Ge (Cn (suc (minus_nat fm (1 : IntInf.int)), c, e))))
   | a_beta (Eq (Cn (gm, c, e))) =
-    (if eqop eq_nat gm 0
-      then (fn k => Eq (Cn (0, (1 : IntInf.int), Mul (div_int k c, e))))
-      else (fn k => Eq (Cn (suc (minus_nat gm 1), c, e))))
+    (if ((gm : IntInf.int) = (0 : IntInf.int))
+      then (fn k =>
+             Eq (Cn ((0 : IntInf.int), (1 : IntInf.int), Mul (div_int k c, e))))
+      else (fn _ => Eq (Cn (suc (minus_nat gm (1 : IntInf.int)), c, e))))
   | a_beta (NEq (Cn (hm, c, e))) =
-    (if eqop eq_nat hm 0
-      then (fn k => NEq (Cn (0, (1 : IntInf.int), Mul (div_int k c, e))))
-      else (fn k => NEq (Cn (suc (minus_nat hm 1), c, e))))
+    (if ((hm : IntInf.int) = (0 : IntInf.int))
+      then (fn k =>
+             NEq (Cn ((0 : IntInf.int), (1 : IntInf.int),
+                       Mul (div_int k c, e))))
+      else (fn _ => NEq (Cn (suc (minus_nat hm (1 : IntInf.int)), c, e))))
   | a_beta (Dvd (i, Cn (im, c, e))) =
-    (if eqop eq_nat im 0
+    (if ((im : IntInf.int) = (0 : IntInf.int))
       then (fn k =>
              Dvd (IntInf.* (div_int k c, i),
-                   Cn (0, (1 : IntInf.int), Mul (div_int k c, e))))
-      else (fn k => Dvd (i, Cn (suc (minus_nat im 1), c, e))))
+                   Cn ((0 : IntInf.int), (1 : IntInf.int),
+                        Mul (div_int k c, e))))
+      else (fn _ => Dvd (i, Cn (suc (minus_nat im (1 : IntInf.int)), c, e))))
   | a_beta (NDvd (i, Cn (jm, c, e))) =
-    (if eqop eq_nat jm 0
+    (if ((jm : IntInf.int) = (0 : IntInf.int))
       then (fn k =>
              NDvd (IntInf.* (div_int k c, i),
-                    Cn (0, (1 : IntInf.int), Mul (div_int k c, e))))
-      else (fn k => NDvd (i, Cn (suc (minus_nat jm 1), c, e))));
+                    Cn ((0 : IntInf.int), (1 : IntInf.int),
+                         Mul (div_int k c, e))))
+      else (fn _ => NDvd (i, Cn (suc (minus_nat jm (1 : IntInf.int)), c, e))));
 
-fun zeta (And (p, q)) = zlcm (zeta p) (zeta q)
-  | zeta (Or (p, q)) = zlcm (zeta p) (zeta q)
+fun zeta (And (p, q)) = lcm_int (zeta p) (zeta q)
+  | zeta (Or (p, q)) = lcm_int (zeta p) (zeta q)
   | zeta T = (1 : IntInf.int)
   | zeta F = (1 : IntInf.int)
   | zeta (Lt (C bo)) = (1 : IntInf.int)
@@ -1367,64 +1960,59 @@ fun zeta (And (p, q)) = zlcm (zeta p) (zeta q)
   | zeta (Closed ap) = (1 : IntInf.int)
   | zeta (NClosed aq) = (1 : IntInf.int)
   | zeta (Lt (Cn (cm, c, e))) =
-    (if eqop eq_nat cm 0 then c else (1 : IntInf.int))
+    (if ((cm : IntInf.int) = (0 : IntInf.int)) then c else (1 : IntInf.int))
   | zeta (Le (Cn (dm, c, e))) =
-    (if eqop eq_nat dm 0 then c else (1 : IntInf.int))
+    (if ((dm : IntInf.int) = (0 : IntInf.int)) then c else (1 : IntInf.int))
   | zeta (Gt (Cn (em, c, e))) =
-    (if eqop eq_nat em 0 then c else (1 : IntInf.int))
+    (if ((em : IntInf.int) = (0 : IntInf.int)) then c else (1 : IntInf.int))
   | zeta (Ge (Cn (fm, c, e))) =
-    (if eqop eq_nat fm 0 then c else (1 : IntInf.int))
+    (if ((fm : IntInf.int) = (0 : IntInf.int)) then c else (1 : IntInf.int))
   | zeta (Eq (Cn (gm, c, e))) =
-    (if eqop eq_nat gm 0 then c else (1 : IntInf.int))
+    (if ((gm : IntInf.int) = (0 : IntInf.int)) then c else (1 : IntInf.int))
   | zeta (NEq (Cn (hm, c, e))) =
-    (if eqop eq_nat hm 0 then c else (1 : IntInf.int))
+    (if ((hm : IntInf.int) = (0 : IntInf.int)) then c else (1 : IntInf.int))
   | zeta (Dvd (i, Cn (im, c, e))) =
-    (if eqop eq_nat im 0 then c else (1 : IntInf.int))
+    (if ((im : IntInf.int) = (0 : IntInf.int)) then c else (1 : IntInf.int))
   | zeta (NDvd (i, Cn (jm, c, e))) =
-    (if eqop eq_nat jm 0 then c else (1 : IntInf.int));
+    (if ((jm : IntInf.int) = (0 : IntInf.int)) then c else (1 : IntInf.int));
 
 fun zsplit0 (C c) = ((0 : IntInf.int), C c)
   | zsplit0 (Bound n) =
-    (if eqop eq_nat n 0 then ((1 : IntInf.int), C (0 : IntInf.int))
+    (if ((n : IntInf.int) = (0 : IntInf.int))
+      then ((1 : IntInf.int), C (0 : IntInf.int))
       else ((0 : IntInf.int), Bound n))
   | zsplit0 (Cn (n, i, a)) =
     let
-      val aa = zsplit0 a;
-      val (i', a') = aa;
+      val (ia, aa) = zsplit0 a;
     in
-      (if eqop eq_nat n 0 then (IntInf.+ (i, i'), a') else (i', Cn (n, i, a')))
+      (if ((n : IntInf.int) = (0 : IntInf.int)) then (IntInf.+ (i, ia), aa)
+        else (ia, Cn (n, i, aa)))
     end
   | zsplit0 (Neg a) =
     let
-      val aa = zsplit0 a;
-      val (i', a') = aa;
+      val (i, aa) = zsplit0 a;
     in
-      (IntInf.~ i', Neg a')
+      (IntInf.~ i, Neg aa)
     end
   | zsplit0 (Add (a, b)) =
     let
-      val aa = zsplit0 a;
-      val (ia, a') = aa;
-      val ab = zsplit0 b;
-      val (ib, b') = ab;
+      val (ia, aa) = zsplit0 a;
+      val (ib, ba) = zsplit0 b;
     in
-      (IntInf.+ (ia, ib), Add (a', b'))
+      (IntInf.+ (ia, ib), Add (aa, ba))
     end
   | zsplit0 (Sub (a, b)) =
     let
-      val aa = zsplit0 a;
-      val (ia, a') = aa;
-      val ab = zsplit0 b;
-      val (ib, b') = ab;
+      val (ia, aa) = zsplit0 a;
+      val (ib, ba) = zsplit0 b;
     in
-      (IntInf.- (ia, ib), Sub (a', b'))
+      (IntInf.- (ia, ib), Sub (aa, ba))
     end
   | zsplit0 (Mul (i, a)) =
     let
-      val aa = zsplit0 a;
-      val (i', a') = aa;
+      val (ia, aa) = zsplit0 a;
     in
-      (IntInf.* (i, i'), Mul (i, a'))
+      (IntInf.* (i, ia), Mul (i, aa))
     end;
 
 fun zlfm (And (p, q)) = And (zlfm p, zlfm q)
@@ -1434,79 +2022,79 @@ fun zlfm (And (p, q)) = And (zlfm p, zlfm q)
     Or (And (zlfm p, zlfm q), And (zlfm (Not p), zlfm (Not q)))
   | zlfm (Lt a) =
     let
-      val aa = zsplit0 a;
-      val (c, r) = aa;
+      val (c, r) = zsplit0 a;
     in
-      (if eqop eq_int c (0 : IntInf.int) then Lt r
-        else (if IntInf.< ((0 : IntInf.int), c) then Lt (Cn (0, c, r))
-               else Gt (Cn (0, IntInf.~ c, Neg r))))
+      (if ((c : IntInf.int) = (0 : IntInf.int)) then Lt r
+        else (if IntInf.< ((0 : IntInf.int), c)
+               then Lt (Cn ((0 : IntInf.int), c, r))
+               else Gt (Cn ((0 : IntInf.int), IntInf.~ c, Neg r))))
     end
   | zlfm (Le a) =
     let
-      val aa = zsplit0 a;
-      val (c, r) = aa;
+      val (c, r) = zsplit0 a;
     in
-      (if eqop eq_int c (0 : IntInf.int) then Le r
-        else (if IntInf.< ((0 : IntInf.int), c) then Le (Cn (0, c, r))
-               else Ge (Cn (0, IntInf.~ c, Neg r))))
+      (if ((c : IntInf.int) = (0 : IntInf.int)) then Le r
+        else (if IntInf.< ((0 : IntInf.int), c)
+               then Le (Cn ((0 : IntInf.int), c, r))
+               else Ge (Cn ((0 : IntInf.int), IntInf.~ c, Neg r))))
     end
   | zlfm (Gt a) =
     let
-      val aa = zsplit0 a;
-      val (c, r) = aa;
+      val (c, r) = zsplit0 a;
     in
-      (if eqop eq_int c (0 : IntInf.int) then Gt r
-        else (if IntInf.< ((0 : IntInf.int), c) then Gt (Cn (0, c, r))
-               else Lt (Cn (0, IntInf.~ c, Neg r))))
+      (if ((c : IntInf.int) = (0 : IntInf.int)) then Gt r
+        else (if IntInf.< ((0 : IntInf.int), c)
+               then Gt (Cn ((0 : IntInf.int), c, r))
+               else Lt (Cn ((0 : IntInf.int), IntInf.~ c, Neg r))))
     end
   | zlfm (Ge a) =
     let
-      val aa = zsplit0 a;
-      val (c, r) = aa;
+      val (c, r) = zsplit0 a;
     in
-      (if eqop eq_int c (0 : IntInf.int) then Ge r
-        else (if IntInf.< ((0 : IntInf.int), c) then Ge (Cn (0, c, r))
-               else Le (Cn (0, IntInf.~ c, Neg r))))
+      (if ((c : IntInf.int) = (0 : IntInf.int)) then Ge r
+        else (if IntInf.< ((0 : IntInf.int), c)
+               then Ge (Cn ((0 : IntInf.int), c, r))
+               else Le (Cn ((0 : IntInf.int), IntInf.~ c, Neg r))))
     end
   | zlfm (Eq a) =
     let
-      val aa = zsplit0 a;
-      val (c, r) = aa;
+      val (c, r) = zsplit0 a;
     in
-      (if eqop eq_int c (0 : IntInf.int) then Eq r
-        else (if IntInf.< ((0 : IntInf.int), c) then Eq (Cn (0, c, r))
-               else Eq (Cn (0, IntInf.~ c, Neg r))))
+      (if ((c : IntInf.int) = (0 : IntInf.int)) then Eq r
+        else (if IntInf.< ((0 : IntInf.int), c)
+               then Eq (Cn ((0 : IntInf.int), c, r))
+               else Eq (Cn ((0 : IntInf.int), IntInf.~ c, Neg r))))
     end
   | zlfm (NEq a) =
     let
-      val aa = zsplit0 a;
-      val (c, r) = aa;
+      val (c, r) = zsplit0 a;
     in
-      (if eqop eq_int c (0 : IntInf.int) then NEq r
-        else (if IntInf.< ((0 : IntInf.int), c) then NEq (Cn (0, c, r))
-               else NEq (Cn (0, IntInf.~ c, Neg r))))
+      (if ((c : IntInf.int) = (0 : IntInf.int)) then NEq r
+        else (if IntInf.< ((0 : IntInf.int), c)
+               then NEq (Cn ((0 : IntInf.int), c, r))
+               else NEq (Cn ((0 : IntInf.int), IntInf.~ c, Neg r))))
     end
   | zlfm (Dvd (i, a)) =
-    (if eqop eq_int i (0 : IntInf.int) then zlfm (Eq a)
+    (if ((i : IntInf.int) = (0 : IntInf.int)) then zlfm (Eq a)
       else let
-             val aa = zsplit0 a;
-             val (c, r) = aa;
+             val (c, r) = zsplit0 a;
            in
-             (if eqop eq_int c (0 : IntInf.int) then Dvd (abs_int i, r)
+             (if ((c : IntInf.int) = (0 : IntInf.int)) then Dvd (abs_int i, r)
                else (if IntInf.< ((0 : IntInf.int), c)
-                      then Dvd (abs_int i, Cn (0, c, r))
-                      else Dvd (abs_int i, Cn (0, IntInf.~ c, Neg r))))
+                      then Dvd (abs_int i, Cn ((0 : IntInf.int), c, r))
+                      else Dvd (abs_int i,
+                                 Cn ((0 : IntInf.int), IntInf.~ c, Neg r))))
            end)
   | zlfm (NDvd (i, a)) =
-    (if eqop eq_int i (0 : IntInf.int) then zlfm (NEq a)
+    (if ((i : IntInf.int) = (0 : IntInf.int)) then zlfm (NEq a)
       else let
-             val aa = zsplit0 a;
-             val (c, r) = aa;
+             val (c, r) = zsplit0 a;
            in
-             (if eqop eq_int c (0 : IntInf.int) then NDvd (abs_int i, r)
+             (if ((c : IntInf.int) = (0 : IntInf.int)) then NDvd (abs_int i, r)
                else (if IntInf.< ((0 : IntInf.int), c)
-                      then NDvd (abs_int i, Cn (0, c, r))
-                      else NDvd (abs_int i, Cn (0, IntInf.~ c, Neg r))))
+                      then NDvd (abs_int i, Cn ((0 : IntInf.int), c, r))
+                      else NDvd (abs_int i,
+                                  Cn ((0 : IntInf.int), IntInf.~ c, Neg r))))
            end)
   | zlfm (Not (And (p, q))) = Or (zlfm (Not p), zlfm (Not q))
   | zlfm (Not (Or (p, q))) = And (zlfm (Not p), zlfm (Not q))
@@ -1537,10 +2125,11 @@ fun zlfm (And (p, q)) = And (zlfm p, zlfm q)
 
 fun unita p =
   let
-    val p' = zlfm p;
-    val l = zeta p';
+    val pa = zlfm p;
+    val l = zeta pa;
     val q =
-      And (Dvd (l, Cn (0, (1 : IntInf.int), C (0 : IntInf.int))), a_beta p' l);
+      And (Dvd (l, Cn ((0 : IntInf.int), (1 : IntInf.int), C (0 : IntInf.int))),
+            a_beta pa l);
     val d = delta q;
     val b = remdups eq_numa (map simpnum (beta q));
     val a = remdups eq_numa (map simpnum (alpha q));
@@ -1551,18 +2140,16 @@ fun unita p =
 
 fun cooper p =
   let
-    val a = unita p;
-    val (q, aa) = a;
-    val (b, d) = aa;
+    val (q, (b, d)) = unita p;
     val js = iupt (1 : IntInf.int) d;
     val mq = simpfm (minusinf q);
     val md = evaldjf (fn j => simpfm (subst0 (C j) mq)) js;
   in
-    (if eqop eq_fma md T then T
+    (if eq_fm md T then T
       else let
              val qd =
-               evaldjf (fn ab as (ba, j) => simpfm (subst0 (Add (ba, C j)) q))
-                 (concat (map (fn ba => map (fn ab => (ba, ab)) js) b));
+               evaldjf (fn (ba, j) => simpfm (subst0 (Add (ba, C j)) q))
+                 (concat_map (fn ba => map (fn a => (ba, a)) js) b);
            in
              decr (disj md qd)
            end)
@@ -1669,37 +2256,19 @@ fun qelim (E p) = (fn qe => dj qe (qelim p qe))
   | qelim (Or (p, q)) = (fn qe => disj (qelim p qe) (qelim q qe))
   | qelim (Imp (p, q)) = (fn qe => impa (qelim p qe) (qelim q qe))
   | qelim (Iff (p, q)) = (fn qe => iffa (qelim p qe) (qelim q qe))
-  | qelim T = (fn y => simpfm T)
-  | qelim F = (fn y => simpfm F)
-  | qelim (Lt u) = (fn y => simpfm (Lt u))
-  | qelim (Le v) = (fn y => simpfm (Le v))
-  | qelim (Gt w) = (fn y => simpfm (Gt w))
-  | qelim (Ge x) = (fn y => simpfm (Ge x))
-  | qelim (Eq y) = (fn ya => simpfm (Eq y))
-  | qelim (NEq z) = (fn y => simpfm (NEq z))
-  | qelim (Dvd (aa, ab)) = (fn y => simpfm (Dvd (aa, ab)))
-  | qelim (NDvd (ac, ad)) = (fn y => simpfm (NDvd (ac, ad)))
-  | qelim (Closed ap) = (fn y => simpfm (Closed ap))
-  | qelim (NClosed aq) = (fn y => simpfm (NClosed aq));
+  | qelim T = (fn _ => simpfm T)
+  | qelim F = (fn _ => simpfm F)
+  | qelim (Lt u) = (fn _ => simpfm (Lt u))
+  | qelim (Le v) = (fn _ => simpfm (Le v))
+  | qelim (Gt w) = (fn _ => simpfm (Gt w))
+  | qelim (Ge x) = (fn _ => simpfm (Ge x))
+  | qelim (Eq y) = (fn _ => simpfm (Eq y))
+  | qelim (NEq z) = (fn _ => simpfm (NEq z))
+  | qelim (Dvd (aa, ab)) = (fn _ => simpfm (Dvd (aa, ab)))
+  | qelim (NDvd (ac, ad)) = (fn _ => simpfm (NDvd (ac, ad)))
+  | qelim (Closed ap) = (fn _ => simpfm (Closed ap))
+  | qelim (NClosed aq) = (fn _ => simpfm (NClosed aq));
 
 fun pa p = qelim (prep p) cooper;
 
-fun neg z = IntInf.< (z, (0 : IntInf.int));
-
-fun nat_aux i n =
-  (if IntInf.<= (i, (0 : IntInf.int)) then n
-    else nat_aux (IntInf.- (i, (1 : IntInf.int))) (suc n));
-
-fun adjust b =
-  (fn a as (q, r) =>
-    (if IntInf.<= ((0 : IntInf.int), IntInf.- (r, b))
-      then (IntInf.+ (IntInf.* ((2 : IntInf.int), q), (1 : IntInf.int)),
-             IntInf.- (r, b))
-      else (IntInf.* ((2 : IntInf.int), q), r)));
-
-fun posDivAlg a b =
-  (if IntInf.< (a, b) orelse IntInf.<= (b, (0 : IntInf.int))
-    then ((0 : IntInf.int), a)
-    else adjust b (posDivAlg a (IntInf.* ((2 : IntInf.int), b))));
-
-end; (*struct GeneratedCooper*)
+end; (*struct Generated_Cooper*)

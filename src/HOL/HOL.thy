@@ -1962,6 +1962,10 @@ code_const undefined
 
 subsubsection {* Evaluation and normalization by evaluation *}
 
+text {* Avoid some named infixes in evaluation environment *}
+
+code_reserved Eval oo ooo oooo upto downto orf andf mem mem_int mem_string
+
 setup {*
   Value.add_evaluator ("SML", Codegen.eval_term o ProofContext.theory_of)
 *}
