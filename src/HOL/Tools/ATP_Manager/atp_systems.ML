@@ -141,8 +141,8 @@ fun generic_prover overlord get_facts prepare write_file home executable args
     fun prob_pathname nr =
       let
         val probfile =
-          Path.basic (the_problem_prefix ^
-                      (if overlord then "_" ^ name else serial_string ())
+          Path.basic ((if overlord then "prob_" ^ name
+                       else the_problem_prefix ^ serial_string ())
                       ^ "_" ^ string_of_int nr)
       in
         if the_dest_dir = "" then File.tmp_path probfile
