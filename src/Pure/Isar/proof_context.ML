@@ -738,7 +738,7 @@ fun parse_sort ctxt text =
   let
     val (syms, pos) = Syntax.parse_token Markup.sort text;
     val S = Syntax.standard_parse_sort ctxt (syn_of ctxt) (syms, pos)
-      handle ERROR msg => cat_error msg  ("Failed to parse sort" ^ Position.str_of pos)
+      handle ERROR msg => cat_error msg ("Failed to parse sort" ^ Position.str_of pos)
   in Type.minimize_sort (tsig_of ctxt) S end;
 
 fun parse_typ ctxt text =
@@ -1175,16 +1175,6 @@ fun revert_abbrev mode c = (map_consts o apfst) (Consts.revert_abbrev mode c);
 
 (* fixes *)
 
-local
-
-fun prep_mixfix (x, T, mx) =
-  if mx <> NoSyn andalso mx <> Structure andalso
-      (can Name.dest_internal x orelse can Name.dest_skolem x) then
-    error ("Illegal mixfix syntax for internal/skolem constant " ^ quote x)
-  else (Local_Syntax.Fixed, (x, T, mx));
-
-in
-
 fun add_fixes raw_vars ctxt =
   let
     val (vars, _) = cert_vars raw_vars ctxt;
@@ -1192,12 +1182,10 @@ fun add_fixes raw_vars ctxt =
     val ctxt'' =
       ctxt'
       |> fold_map declare_var (map2 (fn x' => fn (_, T, mx) => (x', T, mx)) xs' vars)
-      |-> (map_syntax o Local_Syntax.add_syntax (theory_of ctxt) o map prep_mixfix);
+      |-> (map_syntax o Local_Syntax.add_syntax (theory_of ctxt) o map (pair Local_Syntax.Fixed));
     val _ = (vars ~~ xs') |> List.app (fn ((b, _, _), x') =>
       Context_Position.report_visible ctxt (Markup.fixed_decl x') (Binding.pos_of b));
   in (xs', ctxt'') end;
-
-end;
 
 
 (* fixes vs. frees *)
