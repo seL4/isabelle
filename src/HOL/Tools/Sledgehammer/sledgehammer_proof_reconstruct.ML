@@ -642,11 +642,9 @@ fun proof_from_atp_proof pool ctxt shrink_factor atp_proof conjecture_shape
       |> parse_proof pool
       |> decode_lines ctxt
       |> rpair [] |-> fold_rev (add_line conjecture_shape thm_names)
-(*###
       |> rpair [] |-> fold_rev add_nontrivial_line
       |> rpair (0, []) |-> fold_rev (add_desired_line ctxt shrink_factor frees)
       |> snd
-*)
   in
     (if null frees then [] else [Fix frees]) @
     map2 (step_for_line thm_names) (length lines downto 1) lines
