@@ -3232,14 +3232,14 @@ fun eval thy stats param_user_modes (options as (compilation, arguments)) k t_co
                 (Code_Eval.eval NONE
                   ("Predicate_Compile_Core.new_random_dseq_stats_eval_ref", new_random_dseq_stats_eval_ref)
                   (fn proc => fn g => fn nrandom => fn size => fn s => fn depth => g nrandom size s depth
-                    |> Lazy_Sequence.map (apfst proc))
+                    |> Lazy_Sequence.mapa (apfst proc))
                     thy t' [] nrandom size seed depth))))
             else rpair NONE
               (fst (Lazy_Sequence.yieldn k
                 (Code_Eval.eval NONE
                   ("Predicate_Compile_Core.new_random_dseq_eval_ref", new_random_dseq_eval_ref)
                   (fn proc => fn g => fn nrandom => fn size => fn s => fn depth => g nrandom size s depth
-                    |> Lazy_Sequence.map proc)
+                    |> Lazy_Sequence.mapa proc)
                     thy t' [] nrandom size seed depth)))
           end
       | _ =>

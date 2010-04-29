@@ -267,7 +267,7 @@ fun compile_term compilation options ctxt t =
               Code_Eval.eval (SOME target)
                 ("Predicate_Compile_Quickcheck.new_test_ref", new_test_ref)
                 (fn proc => fn g => fn nrandom => fn size => fn s => fn depth =>
-                  g nrandom size s depth |> (Lazy_Sequence.map o map) proc)
+                  g nrandom size s depth |> (Lazy_Sequence.mapa o map) proc)
                   thy4 qc_term []
           in
             fn size => fn nrandom => fn depth => Option.map fst (Lazy_Sequence.yield 
