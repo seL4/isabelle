@@ -126,10 +126,6 @@ instance cart :: (ab_semigroup_idem_mult,finite) ab_semigroup_idem_mult
 instance cart :: (comm_monoid_mult,finite) comm_monoid_mult
   apply (intro_classes) by vector
 
-fun vector_power where
-  "vector_power x 0 = 1"
-  | "vector_power x (Suc n) = x * vector_power x n"
-
 instance cart :: (semiring,finite) semiring
   apply (intro_classes) by (vector field_simps)+
 
@@ -168,13 +164,6 @@ lemma of_nat_index:
 
 lemma one_index[simp]:
   "(1 :: 'a::one ^'n)$i = 1" by vector
-
-lemma one_plus_of_nat_neq_0: "(1::'a::semiring_char_0) + of_nat n \<noteq> 0"
-proof-
-  have "(1::'a) + of_nat n = 0 \<longleftrightarrow> of_nat 1 + of_nat n = (of_nat 0 :: 'a)" by simp
-  also have "\<dots> \<longleftrightarrow> 1 + n = 0" by (simp only: of_nat_add[symmetric] of_nat_eq_iff)
-  finally show ?thesis by simp
-qed
 
 instance cart :: (semiring_char_0,finite) semiring_char_0
 proof (intro_classes)
