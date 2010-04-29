@@ -84,6 +84,10 @@ INCOMPATIBILITY.
 
 *** Pure ***
 
+* 'code_reflect' allows to incorporate generated ML code into
+runtime environment;  replaces immature code_datatype antiquotation.
+INCOMPATIBILITY.
+
 * Empty class specifications observe default sort.  INCOMPATIBILITY.
 
 * Old 'axclass' has been discontinued.  Use 'class' instead.  INCOMPATIBILITY.
