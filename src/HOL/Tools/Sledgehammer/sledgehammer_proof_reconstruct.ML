@@ -525,18 +525,21 @@ fun add_nontrivial_line (Inference (num, t, [])) lines =
 and delete_dep num lines =
   fold_rev add_nontrivial_line (map (replace_deps_in_line (num, [])) lines) []
 
-(* FIXME: this seems not to have worked and is obsolete anyway *)
-fun is_bad_free (Free (a, _)) = String.isPrefix skolem_prefix a
-  | is_bad_free _ = false
+(* ATPs sometimes reuse free variable names in the strangest ways. Surprisingly,
+   removing the offending lines often does the trick. *)
+fun is_bad_free frees (Free x) = not (member (op =) frees x)
+  | is_bad_free _ _ = false
 
-fun add_desired_line _ _ (line as Definition _) (j, lines) = (j, line :: lines)
-  | add_desired_line ctxt _ (Inference (num, t, [])) (j, lines) =
+fun add_desired_line _ _ _ (line as Definition _) (j, lines) =
+    (j, line :: lines)
+  | add_desired_line ctxt _ _ (Inference (num, t, [])) (j, lines) =
     (j, Inference (num, t, []) :: lines)  (* conjecture clauses must be kept *)
-  | add_desired_line ctxt shrink_factor (Inference (num, t, deps)) (j, lines) =
+  | add_desired_line ctxt shrink_factor frees (Inference (num, t, deps))
+                     (j, lines) =
     (j + 1,
      if is_only_type_information t orelse
         not (null (Term.add_tvars t [])) orelse
-        exists_subterm is_bad_free t orelse
+        exists_subterm (is_bad_free frees) t orelse
         (not (null lines) andalso (* last line must be kept *)
          (length deps < 2 orelse j mod shrink_factor <> 0)) then
        map (replace_deps_in_line (num, deps)) lines  (* delete line *)
@@ -640,7 +643,7 @@ fun proof_from_atp_proof pool ctxt shrink_factor atp_proof conjecture_shape
       |> decode_lines ctxt
       |> rpair [] |-> fold_rev (add_line conjecture_shape thm_names)
       |> rpair [] |-> fold_rev add_nontrivial_line
-      |> rpair (0, []) |-> fold_rev (add_desired_line ctxt shrink_factor)
+      |> rpair (0, []) |-> fold_rev (add_desired_line ctxt shrink_factor frees)
       |> snd
   in
     (if null frees then [] else [Fix frees]) @
