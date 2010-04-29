@@ -545,8 +545,10 @@ end;
 
 local
 
-fun gen_write prep_arg mode args = map_context (fn ctxt =>
-  ctxt |> ProofContext.notation true mode (map (prep_arg ctxt) args));
+fun gen_write prep_arg mode args =
+  assert_forward
+  #> map_context (fn ctxt => ctxt |> ProofContext.notation true mode (map (prep_arg ctxt) args))
+  #> put_facts NONE;
 
 in
 
