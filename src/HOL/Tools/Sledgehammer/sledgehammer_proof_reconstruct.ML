@@ -612,7 +612,7 @@ datatype step =
   Assume of label * term |
   Have of qualifier list * label * term * byline
 and byline =
-  Facts of facts |
+  ByMetis of facts |
   CaseSplit of step list list * facts
 
 val raw_prefix = "X"
@@ -632,7 +632,7 @@ fun step_for_line _ _ (Definition (num, t1, t2)) = Let (t1, t2)
   | step_for_line thm_names j (Inference (num, t, deps)) =
     Have (if j = 1 then [Show] else [], (raw_prefix, num),
           forall_vars t,
-          Facts (fold (add_fact_from_dep thm_names) deps ([], [])))
+          ByMetis (fold (add_fact_from_dep thm_names) deps ([], [])))
 
 fun proof_from_atp_proof pool ctxt shrink_factor atp_proof conjecture_shape
                          thm_names frees =
@@ -642,9 +642,11 @@ fun proof_from_atp_proof pool ctxt shrink_factor atp_proof conjecture_shape
       |> parse_proof pool
       |> decode_lines ctxt
       |> rpair [] |-> fold_rev (add_line conjecture_shape thm_names)
+(*###
       |> rpair [] |-> fold_rev add_nontrivial_line
       |> rpair (0, []) |-> fold_rev (add_desired_line ctxt shrink_factor frees)
       |> snd
+*)
   in
     (if null frees then [] else [Fix frees]) @
     map2 (step_for_line thm_names) (length lines downto 1) lines
@@ -664,7 +666,7 @@ type backpatches = (label * facts) list * (label list * label list)
 
 fun used_labels_of_step (Have (_, _, _, by)) =
     (case by of
-       Facts (ls, _) => ls
+       ByMetis (ls, _) => ls
      | CaseSplit (proofs, (ls, _)) =>
        fold (union (op =) o used_labels_of) proofs ls)
   | used_labels_of_step _ = []
@@ -716,7 +718,7 @@ fun redirect_proof thy conjecture_shape hyp_ts concl_t proof =
           first_pass (proof, contra ||> cons step)
         else
           first_pass (proof, contra) |>> cons (Assume (l, find_hyp num))
-      | first_pass ((step as Have (qs, l, t, Facts (ls, ss))) :: proof,
+      | first_pass ((step as Have (qs, l, t, ByMetis (ls, ss))) :: proof,
                     contra) =
         if exists (member (op =) (fst contra)) ls then
           first_pass (proof, contra |>> cons l ||> cons step)
@@ -734,10 +736,10 @@ fun redirect_proof thy conjecture_shape hyp_ts concl_t proof =
                   clause_for_literals thy (map (negate_term thy o fst) assums)
                 else
                   concl_t,
-                Facts (backpatch_labels patches (map snd assums)))], patches)
+                ByMetis (backpatch_labels patches (map snd assums)))], patches)
       | second_pass end_qs (Assume (l, t) :: proof, assums, patches) =
         second_pass end_qs (proof, (t, l) :: assums, patches)
-      | second_pass end_qs (Have (qs, l, t, Facts (ls, ss)) :: proof, assums,
+      | second_pass end_qs (Have (qs, l, t, ByMetis (ls, ss)) :: proof, assums,
                             patches) =
         if member (op =) (snd (snd patches)) l andalso
            not (AList.defined (op =) (fst patches) l) then
@@ -753,7 +755,7 @@ fun redirect_proof thy conjecture_shape hyp_ts concl_t proof =
                            Assume (l, negate_term thy t)
                          else
                            Have (qs, l, negate_term thy t,
-                                 Facts (backpatch_label patches l)))
+                                 ByMetis (backpatch_label patches l)))
              else
                second_pass end_qs (proof, assums,
                                    patches |>> cons (contra_l, (co_ls, ss)))
@@ -803,7 +805,7 @@ val kill_duplicate_assumptions_in_proof =
       | do_step (Have (qs, l, t, by)) (proof, subst, assums) =
         (Have (qs, l, t,
                case by of
-                 Facts facts => Facts (relabel_facts subst facts)
+                 ByMetis facts => ByMetis (relabel_facts subst facts)
                | CaseSplit (proofs, facts) =>
                  CaseSplit (map do_proof proofs, relabel_facts subst facts)) ::
          proof, subst, assums)
@@ -817,12 +819,12 @@ val then_chain_proof =
       | aux _ ((step as Assume (l, _)) :: proof) = step :: aux l proof
       | aux l' (Have (qs, l, t, by) :: proof) =
         (case by of
-           Facts (ls, ss) =>
+           ByMetis (ls, ss) =>
            Have (if member (op =) ls l' then
                    (Then :: qs, l, t,
-                    Facts (filter_out (curry (op =) l') ls, ss))
+                    ByMetis (filter_out (curry (op =) l') ls, ss))
                  else
-                   (qs, l, t, Facts (ls, ss)))
+                   (qs, l, t, ByMetis (ls, ss)))
          | CaseSplit (proofs, facts) =>
            Have (qs, l, t, CaseSplit (map (aux no_label) proofs, facts))) ::
         aux l proof
@@ -868,7 +870,7 @@ val relabel_proof =
           val relabel_facts = apfst (map_filter (AList.lookup (op =) subst))
           val by =
             case by of
-              Facts facts => Facts (relabel_facts facts)
+              ByMetis facts => ByMetis (relabel_facts facts)
             | CaseSplit (proofs, facts) =>
               CaseSplit (map (aux subst (depth + 1) (1, 1)) proofs,
                          relabel_facts facts)
@@ -908,7 +910,7 @@ fun string_for_proof ctxt i n =
         do_indent ind ^ "let " ^ do_term t1 ^ " = " ^ do_term t2 ^ "\n"
       | do_step ind (Assume (l, t)) =
         do_indent ind ^ "assume " ^ do_label l ^ do_term t ^ "\n"
-      | do_step ind (Have (qs, l, t, Facts facts)) =
+      | do_step ind (Have (qs, l, t, ByMetis facts)) =
         do_indent ind ^ do_have qs ^ " " ^
         do_label l ^ do_term t ^ " " ^ do_facts facts ^ "\n"
       | do_step ind (Have (qs, l, t, CaseSplit (proofs, facts))) =
@@ -924,7 +926,10 @@ fun string_for_proof ctxt i n =
         suffix ^ "\n"
       end
     and do_block ind proof = do_steps "{ " " }" (ind + 1) proof
-    and do_proof proof =
+    (* One-step proofs are pointless; better use the Metis one-liner
+       directly. *)
+    and do_proof [Have (_, _, _, ByMetis _)] = ""
+      | do_proof proof =
         (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
         do_indent 0 ^ "proof -\n" ^
         do_steps "" "" 1 proof ^
