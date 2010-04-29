@@ -924,9 +924,7 @@ fun string_for_proof ctxt i n =
         suffix ^ "\n"
       end
     and do_block ind proof = do_steps "{ " " }" (ind + 1) proof
-    (* One-step proofs are pointless; better use the Metis one-liner. *)
-    and do_proof [_] = ""
-      | do_proof proof =
+    and do_proof proof =
         (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
         do_indent 0 ^ "proof -\n" ^
         do_steps "" "" 1 proof ^
