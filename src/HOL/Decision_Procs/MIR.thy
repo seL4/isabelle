@@ -5791,8 +5791,10 @@ ML {* @{code test3} () *}
 ML {* @{code test4} () *}
 ML {* @{code test5} () *}
 
-(*export_code mircfrqe mirlfrqe
-  in SML module_name Mir file "raw_mir.ML"*)
+(*code_reflect
+  functions mircfrqe mirlfrqe
+  module_name Mir
+  file "mir.ML"*)
 
 oracle mirfr_oracle = {* fn (proofs, ct) =>
 let
