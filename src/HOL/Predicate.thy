@@ -880,10 +880,9 @@ by (auto simp add: the_def singleton_def not_unique_def)
 
 code_abort not_unique
 
-code_reflect
+code_reflect Predicate
   datatypes pred = Seq and seq = Empty | Insert | Join
   functions map
-  module_name Predicate
 
 ML {*
 signature PREDICATE =

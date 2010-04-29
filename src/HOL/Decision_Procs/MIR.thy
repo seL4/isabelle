@@ -5791,9 +5791,8 @@ ML {* @{code test3} () *}
 ML {* @{code test4} () *}
 ML {* @{code test5} () *}
 
-(*code_reflect
+(*code_reflect Mir
   functions mircfrqe mirlfrqe
-  module_name Mir
   file "mir.ML"*)
 
 oracle mirfr_oracle = {* fn (proofs, ct) =>

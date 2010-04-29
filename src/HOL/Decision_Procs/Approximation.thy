@@ -3209,13 +3209,12 @@ lemmas interpret_form_equations = interpret_form.simps interpret_floatarith.simp
   interpret_floatarith_divide interpret_floatarith_diff interpret_floatarith_tan interpret_floatarith_powr interpret_floatarith_log
   interpret_floatarith_sin
 
-code_reflect
+code_reflect Float_Arith
   datatypes float = Float
   and floatarith = Add | Minus | Mult | Inverse | Cos | Arctan
     | Abs | Max | Min | Pi | Sqrt | Exp | Ln | Power | Var | Num
   and form = Bound | Assign | Less | LessEqual | AtLeastAtMost
   functions approx_form approx_tse_form approx' approx_form_eval
-  module_name Float_Arith
 
 ML {*
   fun reorder_bounds_tac prems i =
