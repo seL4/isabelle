@@ -189,18 +189,20 @@ fun parse_starred_predicate_term pool =
   parse_predicate_term pool --| Scan.repeat ($$ "*" || $$ " ")
 
 fun parse_horn_clause pool =
-  Scan.repeat (parse_starred_predicate_term pool) --| $$ "-" --| $$ ">"
-  -- Scan.repeat (parse_starred_predicate_term pool)
-  >> (fn ([], []) => [str_leaf "c_False"]
-       | (clauses1, clauses2) => map negate_node clauses1 @ clauses2)
+  Scan.repeat (parse_starred_predicate_term pool) --| $$ "|" --| $$ "|"
+    -- Scan.repeat (parse_starred_predicate_term pool) --| $$ "-" --| $$ ">"
+    -- Scan.repeat (parse_starred_predicate_term pool)
+  >> (fn (([], []), []) => [str_leaf "c_False"]
+       | ((clauses1, clauses2), clauses3) =>
+         map negate_node (clauses1 @ clauses2) @ clauses3)
 
-(* Syntax: <num>[0:<inference><annotations>] ||
-           <cnf_formulas> -> <cnf_formulas>. *)
+(* Syntax: <num>[0:<inference><annotations>]
+   <cnf_formulas> || <cnf_formulas> -> <cnf_formulas>. *)
 fun finish_spass_line ((num, deps), us) = Inference (num, us, deps)
+|> tap (fn _ => priority ("*** processing " ^ PolyML.makestring num)) (* ### *)
 fun parse_spass_line pool =
   parse_integer --| $$ "[" --| $$ "0" --| $$ ":" --| Symbol.scan_id
-  -- parse_spass_annotations --| $$ "]" --| $$ "|" --| $$ "|"
-  -- parse_horn_clause pool --| $$ "."
+  -- parse_spass_annotations --| $$ "]" -- parse_horn_clause pool --| $$ "."
   >> finish_spass_line
 
 fun parse_line pool = parse_tstp_line pool || parse_spass_line pool
