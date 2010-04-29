@@ -955,7 +955,8 @@ fun isar_proof_text (pool, debug, shrink_factor, ctxt, conjecture_shape)
         |> the_default "Warning: The Isar proof construction failed.\n"
   in (one_line_proof ^ isar_proof, lemma_names) end
 
-fun proof_text isar_proof isar_params =
-  if isar_proof then isar_proof_text isar_params else metis_proof_text
+fun proof_text isar_proof isar_params other_params =
+  (if isar_proof then isar_proof_text isar_params else metis_proof_text)
+      other_params
 
 end;
