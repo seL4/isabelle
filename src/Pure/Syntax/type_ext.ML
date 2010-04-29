@@ -120,11 +120,14 @@ fun decode_term get_sort map_const map_free tm =
       | decode (Abs (x, T, t)) = Abs (x, T, decode t)
       | decode (t $ u) = decode t $ decode u
       | decode (Const (a, T)) =
-          let val c =
-            (case try Lexicon.unmark_const a of
-              SOME c => c
-            | NONE => snd (map_const a))
-          in Const (c, T) end
+          (case try Lexicon.unmark_fixed a of
+            SOME x => Free (x, T)
+          | NONE =>
+              let val c =
+                (case try Lexicon.unmark_const a of
+                  SOME c => c
+                | NONE => snd (map_const a))
+              in Const (c, T) end)
       | decode (Free (a, T)) =
           (case (map_free a, map_const a) of
             (SOME x, _) => Free (x, T)

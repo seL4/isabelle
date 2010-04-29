@@ -198,7 +198,7 @@ fun mk_free ctxt name =
   if Variable.is_fixed ctxt name orelse Variable.is_declared ctxt name
   then
     let val n' = lookupI (op =) (Variable.fixes_of ctxt) name
-    in SOME (Free (n',ProofContext.infer_type ctxt n')) end
+    in SOME (Free (n',ProofContext.infer_type ctxt (n', dummyT))) end
   else NONE
 
 
@@ -430,7 +430,7 @@ fun statespace_definition state_type args name parents parent_comps components t
           let
             fun upd (n,v) =
               let
-                val nT = ProofContext.infer_type (Local_Theory.target_of lthy) n
+                val nT = ProofContext.infer_type (Local_Theory.target_of lthy) (n, dummyT)
               in Context.proof_map
                   (update_declinfo (Morphism.term phi (Free (n,nT)),v))
               end;

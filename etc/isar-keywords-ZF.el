@@ -210,6 +210,7 @@
     "using"
     "welcome"
     "with"
+    "write"
     "{"
     "}"))
 
@@ -486,7 +487,8 @@
     "txt"
     "txt_raw"
     "unfolding"
-    "using"))
+    "using"
+    "write"))
 
 (defconst isar-keywords-proof-asm
   '("assume"

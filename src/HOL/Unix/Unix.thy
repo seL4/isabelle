@@ -358,7 +358,7 @@ where
   read:
     "access root path uid {Readable} = Some (Val (att, text)) \<Longrightarrow>
       root \<midarrow>(Read uid text path)\<rightarrow> root" |
-  write:
+  "write":
     "access root path uid {Writable} = Some (Val (att, text')) \<Longrightarrow>
       root \<midarrow>(Write uid text path)\<rightarrow> update path (Some (Val (att, text))) root" |
 
@@ -436,7 +436,7 @@ proof cases
   case read
   with root' show ?thesis by cases auto
 next
-  case write
+  case "write"
   with root' show ?thesis by cases auto
 next
   case chmod

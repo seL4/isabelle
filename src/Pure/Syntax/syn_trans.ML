@@ -567,14 +567,7 @@ fun asts_to_terms ctxt trf asts =
           Term.list_comb (term_of ast, map term_of asts)
       | term_of (ast as Ast.Appl _) = raise Ast.AST ("ast_to_term: malformed ast", [ast]);
 
-    val free_fixed = Term.map_aterms
-      (fn t as Const (c, T) =>
-          (case try Lexicon.unmark_fixed c of
-            NONE => t
-          | SOME x => Free (x, T))
-        | t => t);
-
-    val exn_results = map (Exn.capture (term_of #> free_fixed)) asts;
+    val exn_results = map (Exn.capture term_of) asts;
     val exns = map_filter Exn.get_exn exn_results;
     val results = map_filter Exn.get_result exn_results
   in (case (results, exns) of ([], exn :: _) => reraise exn | _ => results) end;

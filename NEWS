@@ -64,6 +64,11 @@ diagnose syntax problems.
 
 * Type constructors admit general mixfix syntax, not just infix.
 
+* Concrete syntax may be attached to local entities without a proof
+body, too.  This works via regular mixfix annotations for 'fix',
+'def', 'obtain' etc. or via the explicit 'write' command, which is
+similar to the 'notation' command in theory specifications.
+
 * Use of cumulative prems via "!" in some proof methods has been
 discontinued (legacy feature).
 
@@ -7004,3 +7009,5 @@ have been removed;
 types;
 
 :mode=text:wrap=hard:maxLineLen=72:
+
+ LocalWords:  def
