@@ -2205,14 +2205,6 @@ by(simp add: convex_epigraph)
 
 subsection {* Use this to derive general bound property of convex function. *}
 
-lemma forall_of_pastecart:
-  "(\<forall>p. P (\<lambda>x. fstcart (p x)) (\<lambda>x. sndcart (p x))) \<longleftrightarrow> (\<forall>x y. P x y)" apply meson
-  apply(erule_tac x="\<lambda>a. pastecart (x a) (y a)" in allE) unfolding o_def by auto
-
-lemma forall_of_pastecart':
-  "(\<forall>p. P (fstcart p) (sndcart p)) \<longleftrightarrow> (\<forall>x y. P x y)" apply meson
-  apply(erule_tac x="pastecart x y" in allE) unfolding o_def by auto
-
 (* TODO: move *)
 lemma fst_setsum: "fst (\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. fst (f x))"
 by (cases "finite A", induct set: finite, simp_all)

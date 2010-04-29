@@ -1896,77 +1896,6 @@ lemma vec_setsum: assumes fS: "finite S"
   apply (auto simp add: vec_add)
   done
 
-text{* Pasting vectors. *}
-
-lemma linear_fstcart[intro]: "linear fstcart"
-  by (auto simp add: linear_def Cart_eq)
-
-lemma linear_sndcart[intro]: "linear sndcart"
-  by (auto simp add: linear_def Cart_eq)
-
-lemma fstcart_vec[simp]: "fstcart(vec x) = vec x"
-  by (simp add: Cart_eq)
-
-lemma fstcart_add[simp]:"fstcart(x + y) = fstcart (x::'a::{plus,times}^('b::finite + 'c::finite)) + fstcart y"
-  by (simp add: Cart_eq)
-
-lemma fstcart_cmul[simp]:"fstcart(c*s x) = c*s fstcart (x::'a::{plus,times}^('b::finite + 'c::finite))"
-  by (simp add: Cart_eq)
-
-lemma fstcart_neg[simp]:"fstcart(- x) = - fstcart (x::'a::ring_1^(_ + _))"
-  by (simp add: Cart_eq)
-
-lemma fstcart_sub[simp]:"fstcart(x - y) = fstcart (x::'a::ring_1^(_ + _)) - fstcart y"
-  by (simp add: Cart_eq)
-
-lemma fstcart_setsum:
-  fixes f:: "'d \<Rightarrow> 'a::semiring_1^_"
-  assumes fS: "finite S"
-  shows "fstcart (setsum f S) = setsum (\<lambda>i. fstcart (f i)) S"
-  by (induct rule: finite_induct[OF fS], simp_all add: vec_0[symmetric] del: vec_0)
-
-lemma sndcart_vec[simp]: "sndcart(vec x) = vec x"
-  by (simp add: Cart_eq)
-
-lemma sndcart_add[simp]:"sndcart(x + y) = sndcart (x::'a::{plus,times}^(_ + _)) + sndcart y"
-  by (simp add: Cart_eq)
-
-lemma sndcart_cmul[simp]:"sndcart(c*s x) = c*s sndcart (x::'a::{plus,times}^(_ + _))"
-  by (simp add: Cart_eq)
-
-lemma sndcart_neg[simp]:"sndcart(- x) = - sndcart (x::'a::ring_1^(_ + _))"
-  by (simp add: Cart_eq)
-
-lemma sndcart_sub[simp]:"sndcart(x - y) = sndcart (x::'a::ring_1^(_ + _)) - sndcart y"
-  by (simp add: Cart_eq)
-
-lemma sndcart_setsum:
-  fixes f:: "'d \<Rightarrow> 'a::semiring_1^_"
-  assumes fS: "finite S"
-  shows "sndcart (setsum f S) = setsum (\<lambda>i. sndcart (f i)) S"
-  by (induct rule: finite_induct[OF fS], simp_all add: vec_0[symmetric] del: vec_0)
-
-lemma pastecart_vec[simp]: "pastecart (vec x) (vec x) = vec x"
-  by (simp add: pastecart_eq)
-
-lemma pastecart_add[simp]:"pastecart (x1::'a::{plus,times}^_) y1 + pastecart x2 y2 = pastecart (x1 + x2) (y1 + y2)"
-  by (simp add: pastecart_eq)
-
-lemma pastecart_cmul[simp]: "pastecart (c *s (x1::'a::{plus,times}^_)) (c *s y1) = c *s pastecart x1 y1"
-  by (simp add: pastecart_eq)
-
-lemma pastecart_neg[simp]: "pastecart (- (x::'a::ring_1^_)) (- y) = - pastecart x y"
-  unfolding vector_sneg_minus1 pastecart_cmul ..
-
-lemma pastecart_sub: "pastecart (x1::'a::ring_1^_) y1 - pastecart x2 y2 = pastecart (x1 - x2) (y1 - y2)"
-  by (simp add: diff_def pastecart_neg[symmetric] del: pastecart_neg)
-
-lemma pastecart_setsum:
-  fixes f:: "'d \<Rightarrow> 'a::semiring_1^_"
-  assumes fS: "finite S"
-  shows "pastecart (setsum f S) (setsum g S) = setsum (\<lambda>i. pastecart (f i) (g i)) S"
-  by (simp  add: pastecart_eq fstcart_setsum[OF fS] sndcart_setsum[OF fS])
-
 lemma setsum_Plus:
   "\<lbrakk>finite A; finite B\<rbrakk> \<Longrightarrow>
     (\<Sum>x\<in>A <+> B. g x) = (\<Sum>x\<in>A. g (Inl x)) + (\<Sum>x\<in>B. g (Inr x))"
@@ -1980,39 +1909,6 @@ lemma setsum_UNIV_sum:
   apply (rule setsum_Plus [OF finite finite])
   done
 
-lemma norm_fstcart: "norm(fstcart x) <= norm (x::real ^('n::finite + 'm::finite))"
-proof-
-  have th0: "norm x = norm (pastecart (fstcart x) (sndcart x))"
-    by simp
-  have th1: "fstcart x \<bullet> fstcart x \<le> pastecart (fstcart x) (sndcart x) \<bullet> pastecart (fstcart x) (sndcart x)"
-    by (simp add: inner_vector_def setsum_UNIV_sum pastecart_def setsum_nonneg)
-  then show ?thesis
-    unfolding th0
-    unfolding norm_eq_sqrt_inner real_sqrt_le_iff id_def
-    by (simp add: inner_vector_def)
-qed
-
-lemma dist_fstcart: "dist(fstcart (x::real^_)) (fstcart y) <= dist x y"
-  unfolding dist_norm by (metis fstcart_sub[symmetric] norm_fstcart)
-
-lemma norm_sndcart: "norm(sndcart x) <= norm (x::real ^('n::finite + 'm::finite))"
-proof-
-  have th0: "norm x = norm (pastecart (fstcart x) (sndcart x))"
-    by simp
-  have th1: "sndcart x \<bullet> sndcart x \<le> pastecart (fstcart x) (sndcart x) \<bullet> pastecart (fstcart x) (sndcart x)"
-    by (simp add: inner_vector_def setsum_UNIV_sum pastecart_def setsum_nonneg)
-  then show ?thesis
-    unfolding th0
-    unfolding norm_eq_sqrt_inner real_sqrt_le_iff id_def
-    by (simp add: inner_vector_def)
-qed
-
-lemma dist_sndcart: "dist(sndcart (x::real^_)) (sndcart y) <= dist x y"
-  unfolding dist_norm by (metis sndcart_sub[symmetric] norm_sndcart)
-
-lemma dot_pastecart: "(pastecart (x1::real^'n) (x2::real^'m)) \<bullet> (pastecart y1 y2) =  x1 \<bullet> y1 + x2 \<bullet> y2"
-  by (simp add: inner_vector_def setsum_UNIV_sum pastecart_def)
-
 text {* TODO: move to NthRoot *}
 lemma sqrt_add_le_add_sqrt:
   assumes x: "0 \<le> x" and y: "0 \<le> y"
@@ -2022,10 +1918,6 @@ apply (simp add: real_sum_squared_expand add_nonneg_nonneg x y)
 apply (simp add: mult_nonneg_nonneg x y)
 apply (simp add: add_nonneg_nonneg x y)
 done
-
-lemma norm_pastecart: "norm (pastecart x y) <= norm x + norm y"
-  unfolding norm_vector_def setL2_def setsum_UNIV_sum
-  by (simp add: sqrt_add_le_add_sqrt setsum_nonneg)
 
 subsection {* A generic notion of "hull" (convex, affine, conic hull and closure). *}
 

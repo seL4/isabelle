@@ -4292,18 +4292,6 @@ qed
 
 subsection {* Pasted sets *}
 
-lemma bounded_pastecart:
-  fixes s :: "('a::real_normed_vector ^ _) set" (* FIXME: generalize to metric_space *)
-  assumes "bounded s" "bounded t"
-  shows "bounded { pastecart x y | x y . (x \<in> s \<and> y \<in> t)}"
-proof-
-  obtain a b where ab:"\<forall>x\<in>s. norm x \<le> a" "\<forall>x\<in>t. norm x \<le> b" using assms[unfolded bounded_iff] by auto
-  { fix x y assume "x\<in>s" "y\<in>t"
-    hence "norm x \<le> a" "norm y \<le> b" using ab by auto
-    hence "norm (pastecart x y) \<le> a + b" using norm_pastecart[of x y] by auto }
-  thus ?thesis unfolding bounded_iff by auto
-qed
-
 lemma bounded_Times:
   assumes "bounded s" "bounded t" shows "bounded (s \<times> t)"
 proof-
@@ -4313,33 +4301,6 @@ proof-
     by (auto simp add: dist_Pair_Pair real_sqrt_le_mono add_mono power_mono)
   thus ?thesis unfolding bounded_any_center [where a="(x, y)"] by auto
 qed
-
-lemma closed_pastecart:
-  fixes s :: "(real ^ 'a) set" (* FIXME: generalize *)
-  assumes "closed s"  "closed t"
-  shows "closed {pastecart x y | x y . x \<in> s \<and> y \<in> t}"
-proof-
-  { fix x l assume as:"\<forall>n::nat. x n \<in> {pastecart x y |x y. x \<in> s \<and> y \<in> t}"  "(x ---> l) sequentially"
-    { fix n::nat have "fstcart (x n) \<in> s" "sndcart (x n) \<in> t" using as(1)[THEN spec[where x=n]] by auto } note * = this
-    moreover
-    { fix e::real assume "e>0"
-      then obtain N::nat where N:"\<forall>n\<ge>N. dist (x n) l < e" using as(2)[unfolded Lim_sequentially, THEN spec[where x=e]] by auto
-      { fix n::nat assume "n\<ge>N"
-        hence "dist (fstcart (x n)) (fstcart l) < e" "dist (sndcart (x n)) (sndcart l) < e"
-          using N[THEN spec[where x=n]] dist_fstcart[of "x n" l] dist_sndcart[of "x n" l] by auto   }
-      hence "\<exists>N. \<forall>n\<ge>N. dist (fstcart (x n)) (fstcart l) < e" "\<exists>N. \<forall>n\<ge>N. dist (sndcart (x n)) (sndcart l) < e" by auto  }
-    ultimately have "fstcart l \<in> s" "sndcart l \<in> t"
-      using assms(1)[unfolded closed_sequential_limits, THEN spec[where x="\<lambda>n. fstcart (x n)"], THEN spec[where x="fstcart l"]]
-      using assms(2)[unfolded closed_sequential_limits, THEN spec[where x="\<lambda>n. sndcart (x n)"], THEN spec[where x="sndcart l"]]
-      unfolding Lim_sequentially by auto
-    hence "l \<in> {pastecart x y |x y. x \<in> s \<and> y \<in> t}" apply- unfolding mem_Collect_eq apply(rule_tac x="fstcart l" in exI,rule_tac x="sndcart l" in exI) by auto }
-  thus ?thesis unfolding closed_sequential_limits by blast
-qed
-
-lemma compact_pastecart:
-  fixes s t :: "(real ^ _) set"
-  shows "compact s \<Longrightarrow> compact t ==> compact {pastecart x y | x y . x \<in> s \<and> y \<in> t}"
-  unfolding compact_eq_bounded_closed using bounded_pastecart[of s t] closed_pastecart[of s t] by auto
 
 lemma mem_Times_iff: "x \<in> A \<times> B \<longleftrightarrow> fst x \<in> A \<and> snd x \<in> B"
 by (induct x) simp
