@@ -701,13 +701,6 @@ lemma real_div_sqrt: "0 <= x ==> x / sqrt(x) = sqrt(x)"
 
 text{* Hence derive more interesting properties of the norm. *}
 
-text {*
-  This type-specific version is only here
-  to make @{text normarith.ML} happy.
-*}
-lemma norm_0: "norm (0::real ^ _) = 0"
-  by (rule norm_zero)
-
 lemma norm_mul[simp]: "norm(a *s x) = abs(a) * norm x"
   by (simp add: norm_vector_def setL2_right_distrib abs_mult)
 

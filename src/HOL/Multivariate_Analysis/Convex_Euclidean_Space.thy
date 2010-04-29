@@ -2110,7 +2110,7 @@ proof-
         unfolding Ball_def mem_cball dist_norm by (auto simp add: norm_basis[unfolded One_nat_def])
       case True show ?thesis unfolding True continuous_at Lim_at apply(rule,rule) apply(rule_tac x="e / B" in exI)
         apply(rule) apply(rule divide_pos_pos) prefer 3 apply(rule,rule,erule conjE)
-        unfolding norm_0 scaleR_zero_left dist_norm diff_0_right norm_scaleR abs_norm_cancel proof-
+        unfolding norm_zero scaleR_zero_left dist_norm diff_0_right norm_scaleR abs_norm_cancel proof-
         fix e and x::"real^'n" assume as:"norm x < e / B" "0 < norm x" "0<e"
         hence "surf (pi x) \<in> frontier s" using pi(1)[of x] unfolding surf(5)[THEN sym] by auto
         hence "norm (surf (pi x)) \<le> B" using B fs by auto
