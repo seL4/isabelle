@@ -1190,7 +1190,7 @@ lemma brouwer_cube: fixes f::"real^'n \<Rightarrow> real^'n"
     have d':"d / real n / 8 > 0" apply(rule divide_pos_pos)+ using d(1) unfolding n_def by auto
     have *:"uniformly_continuous_on {0..1} f" by(rule compact_uniformly_continuous[OF assms(1) compact_interval])
     guess e using *[unfolded uniformly_continuous_on_def,rule_format,OF d'] apply-apply(erule exE,(erule conjE)+) .
-    note e=this[rule_format,unfolded vector_dist_norm]
+    note e=this[rule_format,unfolded dist_norm]
     show ?thesis apply(rule_tac x="min (e/2) (d/real n/8)" in exI) apply(rule) defer
       apply(rule,rule,rule,rule,rule) apply(erule conjE)+ proof-
       show "0 < min (e / 2) (d / real n / 8)" using d' e by auto
@@ -1202,7 +1202,7 @@ lemma brouwer_cube: fixes f::"real^'n \<Rightarrow> real^'n"
         show "\<bar>f x $ i - x $ i\<bar> \<le> norm (f y -f x) + norm (y - x)" apply(rule lem1[rule_format]) using as by auto
         show "\<bar>f x $ i - f z $ i\<bar> \<le> norm (f x - f z)" "\<bar>x $ i - z $ i\<bar> \<le> norm (x - z)"
           unfolding vector_minus_component[THEN sym] by(rule component_le_norm)+
-        have tria:"norm (y - x) \<le> norm (y - z) + norm (x - z)" using dist_triangle[of y x z,unfolded vector_dist_norm]
+        have tria:"norm (y - x) \<le> norm (y - z) + norm (x - z)" using dist_triangle[of y x z,unfolded dist_norm]
           unfolding norm_minus_commute by auto
         also have "\<dots> < e / 2 + e / 2" apply(rule add_strict_mono) using as(4,5) by auto
         finally show "norm (f y - f x) < d / real n / 8" apply- apply(rule e(2)) using as by auto
@@ -1355,14 +1355,14 @@ lemma brouwer: fixes f::"real^'n \<Rightarrow> real^'n"
   assumes "compact s" "convex s" "s \<noteq> {}" "continuous_on s f" "f ` s \<subseteq> s"
   obtains x where "x \<in> s" "f x = x" proof-
   have "\<exists>e>0. s \<subseteq> cball 0 e" using compact_imp_bounded[OF assms(1)] unfolding bounded_pos
-    apply(erule_tac exE,rule_tac x=b in exI) by(auto simp add: vector_dist_norm) 
+    apply(erule_tac exE,rule_tac x=b in exI) by(auto simp add: dist_norm) 
   then guess e apply-apply(erule exE,(erule conjE)+) . note e=this
   have "\<exists>x\<in> cball 0 e. (f \<circ> closest_point s) x = x"
     apply(rule_tac brouwer_ball[OF e(1), of 0 "f \<circ> closest_point s"]) apply(rule continuous_on_compose )
     apply(rule continuous_on_closest_point[OF assms(2) compact_imp_closed[OF assms(1)] assms(3)])
     apply(rule continuous_on_subset[OF assms(4)])
     using closest_point_in_set[OF compact_imp_closed[OF assms(1)] assms(3)] apply - defer
-    using assms(5)[unfolded subset_eq] using e(2)[unfolded subset_eq mem_cball] by(auto simp add:vector_dist_norm)
+    using assms(5)[unfolded subset_eq] using e(2)[unfolded subset_eq mem_cball] by(auto simp add: dist_norm)
   then guess x .. note x=this
   have *:"closest_point s x = x" apply(rule closest_point_self) 
     apply(rule assms(5)[unfolded subset_eq,THEN bspec[where x="x"],unfolded image_iff])
@@ -1380,7 +1380,7 @@ lemma no_retraction_cball: assumes "0 < e"
     apply(rule,rule,erule conjE) apply(rule brouwer_ball[OF assms]) apply assumption+
     apply(rule_tac x=x in bexI) apply assumption+ apply(rule continuous_on_intros)+
     unfolding frontier_cball subset_eq Ball_def image_iff apply(rule,rule,erule bexE)
-    unfolding vector_dist_norm apply(simp add: * norm_minus_commute) . note x = this
+    unfolding dist_norm apply(simp add: * norm_minus_commute) . note x = this
   hence "scaleR 2 a = scaleR 1 x + scaleR 1 x" by(auto simp add:algebra_simps)
   hence "a = x" unfolding scaleR_left_distrib[THEN sym] by auto 
   thus False using x using assms by auto qed

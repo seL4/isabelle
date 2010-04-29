@@ -915,11 +915,6 @@ lemma norm_pths:
   "x \<noteq> y \<longleftrightarrow> \<not> (norm (x - y) \<le> 0)"
   using norm_ge_zero[of "x - y"] by auto
 
-lemma vector_dist_norm:
-  fixes x :: "'a::real_normed_vector"
-  shows "dist x y = norm (x - y)"
-  by (rule dist_norm)
-
 use "normarith.ML"
 
 method_setup norm = {* Scan.succeed (SIMPLE_METHOD' o NormArith.norm_arith_tac)
@@ -966,12 +961,12 @@ by (rule dist_triangle_half_l, simp_all add: dist_commute)
 
 lemma norm_triangle_half_r:
   shows "norm (y - x1) < e / 2 \<Longrightarrow> norm (y - x2) < e / 2 \<Longrightarrow> norm (x1 - x2) < e"
-  using dist_triangle_half_r unfolding vector_dist_norm[THEN sym] by auto
+  using dist_triangle_half_r unfolding dist_norm[THEN sym] by auto
 
 lemma norm_triangle_half_l: assumes "norm (x - y) < e / 2" "norm (x' - (y)) < e / 2" 
   shows "norm (x - x') < e"
-  using dist_triangle_half_l[OF assms[unfolded vector_dist_norm[THEN sym]]]
-  unfolding vector_dist_norm[THEN sym] .
+  using dist_triangle_half_l[OF assms[unfolded dist_norm[THEN sym]]]
+  unfolding dist_norm[THEN sym] .
 
 lemma norm_triangle_le: "norm(x) + norm y <= e ==> norm(x + y) <= e"
   by (metis order_trans norm_triangle_ineq)

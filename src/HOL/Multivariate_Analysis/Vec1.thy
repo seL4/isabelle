@@ -386,7 +386,7 @@ lemma forall_of_dest_vec1': "(\<forall>v. P (dest_vec1 v)) \<longleftrightarrow>
   apply rule apply rule apply(erule_tac x="(vec1 x)" in allE) defer apply rule 
   apply(erule_tac x="dest_vec1 v" in allE) unfolding o_def vec1_dest_vec1 by auto
 
-lemma dist_vec1_0[simp]: "dist(vec1 (x::real)) 0 = norm x" unfolding vector_dist_norm by auto
+lemma dist_vec1_0[simp]: "dist(vec1 (x::real)) 0 = norm x" unfolding dist_norm by auto
 
 lemma bounded_linear_vec1_dest_vec1: fixes f::"real \<Rightarrow> real"
   shows "linear (vec1 \<circ> f \<circ> dest_vec1) = bounded_linear f" (is "?l = ?r") proof-

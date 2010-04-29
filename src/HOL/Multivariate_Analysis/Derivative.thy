@@ -31,14 +31,14 @@ lemma DERIV_conv_has_derivative:"(DERIV f x :> f') = (f has_derivative op * f') 
   assume ?l note as = this[unfolded deriv_def LIM_def,rule_format]
   show ?r unfolding has_derivative_def Lim_at apply- apply(rule,rule mult.bounded_linear_right)
     apply safe apply(drule as,safe) apply(rule_tac x=s in exI) apply safe
-    apply(erule_tac x="xa - x" in allE) unfolding vector_dist_norm netlimit_at[of x] unfolding diff_0_right norm_scaleR
+    apply(erule_tac x="xa - x" in allE) unfolding dist_norm netlimit_at[of x] unfolding diff_0_right norm_scaleR
     by(auto simp add:field_simps) 
 next assume ?r note this[unfolded has_derivative_def Lim_at] note as=conjunct2[OF this,rule_format]
   have *:"\<And>x xa f'. xa \<noteq> 0 \<Longrightarrow> \<bar>(f (xa + x) - f x) / xa - f'\<bar> = \<bar>(f (xa + x) - f x) - xa * f'\<bar> / \<bar>xa\<bar>" by(auto simp add:field_simps) 
   show ?l unfolding deriv_def LIM_def apply safe apply(drule as,safe)
     apply(rule_tac x=d in exI,safe) apply(erule_tac x="xa + x" in allE)
-    unfolding vector_dist_norm diff_0_right norm_scaleR
-    unfolding vector_dist_norm netlimit_at[of x] by(auto simp add:algebra_simps *) qed
+    unfolding dist_norm diff_0_right norm_scaleR
+    unfolding dist_norm netlimit_at[of x] by(auto simp add:algebra_simps *) qed
 
 lemma FDERIV_conv_has_derivative:"FDERIV f (x::'a::{real_normed_vector,perfect_space}) :> f' = (f has_derivative f') (at x)" (is "?l = ?r") proof 
   assume ?l note as = this[unfolded fderiv_def]
@@ -48,14 +48,14 @@ lemma FDERIV_conv_has_derivative:"FDERIV f (x::'a::{real_normed_vector,perfect_s
     thus "\<exists>d>0. \<forall>xa. 0 < dist xa x \<and> dist xa x < d \<longrightarrow>
       dist ((1 / norm (xa - netlimit (at x))) *\<^sub>R (f xa - (f (netlimit (at x)) + f' (xa - netlimit (at x))))) (0) < e"
       apply(rule_tac x=d in exI) apply(erule conjE,rule,assumption) apply rule apply(erule_tac x="xa - x" in allE)
-      unfolding vector_dist_norm netlimit_at[of x] by (auto simp add: diff_diff_eq) qed next
+      unfolding dist_norm netlimit_at[of x] by (auto simp add: diff_diff_eq) qed next
   assume ?r note as = this[unfolded has_derivative_def]
   show ?l unfolding fderiv_def LIM_def apply-apply(rule,rule as[THEN conjunct1]) proof(rule,rule)
     fix e::real assume "e>0"
     guess d using as[THEN conjunct2,unfolded Lim_at,rule_format,OF`e>0`] ..
     thus "\<exists>s>0. \<forall>xa. xa \<noteq> 0 \<and> dist xa 0 < s \<longrightarrow> dist (norm (f (x + xa) - f x - f' xa) / norm xa) 0 < e" apply-
       apply(rule_tac x=d in exI) apply(erule conjE,rule,assumption) apply rule apply(erule_tac x="xa + x" in allE)
-      unfolding vector_dist_norm netlimit_at[of x] by (auto simp add: diff_diff_eq add.commute) qed qed
+      unfolding dist_norm netlimit_at[of x] by (auto simp add: diff_diff_eq add.commute) qed qed
 
 subsection {* These are the only cases we'll care about, probably. *}
 
@@ -73,7 +73,7 @@ lemma has_derivative_within':
   "(f has_derivative f')(at x within s) \<longleftrightarrow> bounded_linear f' \<and>
         (\<forall>e>0. \<exists>d>0. \<forall>x'\<in>s. 0 < norm(x' - x) \<and> norm(x' - x) < d
         \<longrightarrow> norm(f x' - f x - f'(x' - x)) / norm(x' - x) < e)"
-  unfolding has_derivative_within Lim_within vector_dist_norm
+  unfolding has_derivative_within Lim_within dist_norm
   unfolding diff_0_right norm_mul by (simp add: diff_diff_eq)
 
 lemma has_derivative_at':
@@ -216,7 +216,7 @@ lemma has_derivative_vmul_component: fixes c::"real^'a \<Rightarrow> real^'b" an
       using assms[unfolded has_derivative_def Lim] by auto
     thus "eventually (\<lambda>x. dist (1 / norm (x - netlimit net) * (c x $ k - (c (netlimit net) $ k + c' (x - netlimit net) $ k))) 0 < e) net"
       proof (rule eventually_elim1)
-      case goal1 thus ?case apply - unfolding vector_dist_norm  apply(rule le_less_trans) prefer 2 apply assumption unfolding * ** and norm_vec1
+      case goal1 thus ?case apply - unfolding dist_norm  apply(rule le_less_trans) prefer 2 apply assumption unfolding * ** and norm_vec1
         using component_le_norm[of "(1 / norm (x - netlimit net)) *\<^sub>R (c x - (c (netlimit net) + c' (x - netlimit net))) - 0" k] by auto
       qed
       qed(insert assms[unfolded has_derivative_def], auto simp add:linear_conv_bounded_linear) qed 
@@ -326,7 +326,7 @@ subsection {* Differentiability implies continuity. *}
 lemma Lim_mul_norm_within: fixes f::"'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   shows "(f ---> 0) (at a within s) \<Longrightarrow> ((\<lambda>x. norm(x - a) *\<^sub>R f(x)) ---> 0) (at a within s)"
   unfolding Lim_within apply(rule,rule) apply(erule_tac x=e in allE,erule impE,assumption,erule exE,erule conjE)
-  apply(rule_tac x="min d 1" in exI) apply rule defer apply(rule,erule_tac x=x in ballE) unfolding vector_dist_norm diff_0_right norm_mul
+  apply(rule_tac x="min d 1" in exI) apply rule defer apply(rule,erule_tac x=x in ballE) unfolding dist_norm diff_0_right norm_mul
   by(auto intro!: mult_strict_mono[of _ "1::real", unfolded mult_1_left])
 
 lemma differentiable_imp_continuous_within: assumes "f differentiable (at x within s)" 
@@ -339,7 +339,7 @@ lemma differentiable_imp_continuous_within: assumes "f differentiable (at x with
     apply(rule continuous_within_compose) apply(rule continuous_intros)+
     by(rule linear_continuous_within[OF f'[THEN conjunct1]])
   show ?thesis unfolding continuous_within using f'[THEN conjunct2, THEN Lim_mul_norm_within]
-    apply-apply(drule Lim_add) apply(rule **[unfolded continuous_within]) unfolding Lim_within and vector_dist_norm
+    apply-apply(drule Lim_add) apply(rule **[unfolded continuous_within]) unfolding Lim_within and dist_norm
     apply(rule,rule) apply(erule_tac x=e in allE) apply(erule impE|assumption)+ apply(erule exE,rule_tac x=d in exI)
     by(auto simp add:zero * elim!:allE) qed
 
@@ -379,13 +379,13 @@ proof assume ?lhs thus ?rhs unfolding has_derivative_within apply-apply(erule co
     show "norm (f y - f x - f' (y - x)) \<le> e * norm (y - x)" proof(cases "y=x")
       case True thus ?thesis using `bounded_linear f'` by(auto simp add: zero) next
       case False hence "norm (f y - (f x + f' (y - x))) < e * norm (y - x)" using as(4)[rule_format, OF `y\<in>s`]
-	unfolding vector_dist_norm diff_0_right norm_mul using as(3)
-	using pos_divide_less_eq[OF False[unfolded dist_nz], unfolded vector_dist_norm]
+	unfolding dist_norm diff_0_right norm_mul using as(3)
+	using pos_divide_less_eq[OF False[unfolded dist_nz], unfolded dist_norm]
 	by (auto simp add: linear_0 linear_sub)
       thus ?thesis by(auto simp add:algebra_simps) qed qed next
   assume ?rhs thus ?lhs unfolding has_derivative_within Lim_within apply-apply(erule conjE,rule,assumption)
     apply(rule,erule_tac x="e/2" in allE,rule,erule impE) defer apply(erule exE,rule_tac x=d in exI)
-    apply(erule conjE,rule,assumption,rule,rule) unfolding vector_dist_norm diff_0_right norm_scaleR
+    apply(erule conjE,rule,assumption,rule,rule) unfolding dist_norm diff_0_right norm_scaleR
     apply(erule_tac x=xa in ballE,erule impE) proof-
     fix e d y assume "bounded_linear f'" "0 < e" "0 < d" "y \<in> s" "0 < norm (y - x) \<and> norm (y - x) < d"
         "norm (f y - f x - f' (y - x)) \<le> e / 2 * norm (y - x)"
@@ -513,7 +513,7 @@ lemma frechet_derivative_unique_within: fixes f::"real^'a \<Rightarrow> real^'b"
     guess a using UNIV_witness[where 'a='a] ..
     fix e::real assume "0<e" guess d using assms(3)[rule_format,OF`e>0`,of a] ..
     thus "\<exists>x'\<in>s. x' \<noteq> x \<and> dist x' x < e" apply(rule_tac x="x + d*\<^sub>R basis a" in bexI)
-      using basis_nonzero[of a] norm_basis[of a] unfolding vector_dist_norm by auto qed
+      using basis_nonzero[of a] norm_basis[of a] unfolding dist_norm by auto qed
   hence *:"netlimit (at x within s) = x" apply-apply(rule netlimit_within) unfolding trivial_limit_within by simp
   show ?thesis  apply(rule linear_eq_stdbasis) unfolding linear_conv_bounded_linear
     apply(rule as(1,2)[THEN conjunct1])+ proof(rule,rule ccontr)
@@ -526,7 +526,7 @@ lemma frechet_derivative_unique_within: fixes f::"real^'a \<Rightarrow> real^'b"
     also have "\<dots> = norm ((1 / abs c) *\<^sub>R (c *\<^sub>R (- (f' (basis i)) + f'' (basis i))))"  
       unfolding f'.scaleR f''.scaleR unfolding scaleR_right_distrib scaleR_minus_right by auto
     also have "\<dots> = e" unfolding e_def norm_mul using c[THEN conjunct1] using norm_minus_cancel[of "f' (basis i) - f'' (basis i)"] by (auto simp add: add.commute ab_diff_minus)
-    finally show False using c using d[THEN conjunct2,rule_format,of "x + c *\<^sub>R basis i"] using norm_basis[of i] unfolding vector_dist_norm 
+    finally show False using c using d[THEN conjunct2,rule_format,of "x + c *\<^sub>R basis i"] using norm_basis[of i] unfolding dist_norm 
       unfolding f'.scaleR f''.scaleR f'.add f''.add f'.diff f''.diff scaleR_scaleR scaleR_right_diff_distrib scaleR_right_distrib by auto qed qed
 
 lemma frechet_derivative_unique_at: fixes f::"real^'a \<Rightarrow> real^'b"
@@ -607,7 +607,7 @@ lemma differential_zero_maxmin_component: fixes f::"real^'a \<Rightarrow> real^'
       unfolding vector_component_simps matrix_vector_mul_component unfolding smult_conv_scaleR[symmetric] 
       unfolding inner_simps dot_basis smult_conv_scaleR by simp  } note * = this
   have "x + d *\<^sub>R basis j \<in> ball x e" "x - d *\<^sub>R basis j \<in> ball x e"
-    unfolding mem_ball vector_dist_norm using norm_basis[of j] d by auto
+    unfolding mem_ball dist_norm using norm_basis[of j] d by auto
   hence **:"((f (x - d *\<^sub>R basis j))$k \<le> (f x)$k \<and> (f (x + d *\<^sub>R basis j))$k \<le> (f x)$k) \<or>
          ((f (x - d *\<^sub>R basis j))$k \<ge> (f x)$k \<and> (f (x + d *\<^sub>R basis j))$k \<ge> (f x)$k)" using assms(2) by auto
   have ***:"\<And>y y1 y2 d dx::real. (y1\<le>y\<and>y2\<le>y) \<or> (y\<le>y1\<and>y\<le>y2) \<Longrightarrow> d < abs dx \<Longrightarrow> abs(y1 - y - - dx) \<le> d \<Longrightarrow> (abs (y2 - y - dx) \<le> d) \<Longrightarrow> False" by arith
@@ -787,14 +787,14 @@ lemma has_derivative_inverse_basic: fixes f::"real^'b \<Rightarrow> real^'c"
     guess d2 using assms(5)[unfolded open_dist,rule_format,OF assms(6)] .. note d2=this
     guess d using real_lbound_gt_zero[OF d1[THEN conjunct1] d2[THEN conjunct1]] .. note d=this
     thus ?case apply(rule_tac x=d in exI) apply rule defer proof(rule,rule)
-      fix z assume as:"norm (z - y) < d" hence "z\<in>t" using d2 d unfolding vector_dist_norm by auto
+      fix z assume as:"norm (z - y) < d" hence "z\<in>t" using d2 d unfolding dist_norm by auto
       have "norm (g z - g y - g' (z - y)) \<le> norm (g' (f (g z) - y - f' (g z - g y)))"
         unfolding g'.diff f'.diff unfolding assms(3)[unfolded o_def id_def, THEN fun_cong] 
 	unfolding assms(7)[rule_format,OF `z\<in>t`] apply(subst norm_minus_cancel[THEN sym]) by auto
       also have "\<dots> \<le> norm(f (g z) - y - f' (g z - g y)) * C" by(rule C[THEN conjunct2,rule_format]) 
       also have "\<dots> \<le> (e / C) * norm (g z - g y) * C" apply(rule mult_right_mono)
 	apply(rule d0[THEN conjunct2,rule_format,unfolded assms(7)[rule_format,OF `y\<in>t`]]) apply(cases "z=y") defer
-	apply(rule d1[THEN conjunct2, unfolded vector_dist_norm,rule_format]) using as d C d0 by auto
+	apply(rule d1[THEN conjunct2, unfolded dist_norm,rule_format]) using as d C d0 by auto
       also have "\<dots> \<le> e * norm (g z - g y)" using C by(auto simp add:field_simps)
       finally show "norm (g z - g y - g' (z - y)) \<le> e * norm (g z - g y)" by simp qed auto qed
   have *:"(0::real) < 1 / 2" by auto guess d using lem1[rule_format,OF *] .. note d=this def B\<equiv>"C*2"
@@ -882,36 +882,36 @@ lemma sussmann_open_mapping: fixes f::"real^'a \<Rightarrow> real^'b"
       apply(rule continuous_on_intros linear_continuous_on[OF assms(5)])+
       apply(rule continuous_on_subset[OF assms(2)]) apply(rule,unfold image_iff,erule bexE) proof-
       fix y z assume as:"y \<in>cball (f x) e"  "z = x + (g' y - g' (f x))"
-      have "dist x z = norm (g' (f x) - g' y)" unfolding as(2) and vector_dist_norm by auto
+      have "dist x z = norm (g' (f x) - g' y)" unfolding as(2) and dist_norm by auto
       also have "\<dots> \<le> norm (f x - y) * B" unfolding g'.diff[THEN sym] using B by auto
-      also have "\<dots> \<le> e * B" using as(1)[unfolded mem_cball vector_dist_norm] using B by auto
+      also have "\<dots> \<le> e * B" using as(1)[unfolded mem_cball dist_norm] using B by auto
       also have "\<dots> \<le> e1" using e unfolding less_divide_eq using B by auto
       finally have "z\<in>cball x e1" unfolding mem_cball by force
       thus "z \<in> s" using e1 assms(7) by auto qed next
     fix y z assume as:"y \<in> cball (f x) (e / 2)" "z \<in> cball (f x) e"
     have "norm (g' (z - f x)) \<le> norm (z - f x) * B" using B by auto
-    also have "\<dots> \<le> e * B" apply(rule mult_right_mono) using as(2)[unfolded mem_cball vector_dist_norm] and B unfolding norm_minus_commute by auto
+    also have "\<dots> \<le> e * B" apply(rule mult_right_mono) using as(2)[unfolded mem_cball dist_norm] and B unfolding norm_minus_commute by auto
     also have "\<dots> < e0" using e and B unfolding less_divide_eq by auto
     finally have *:"norm (x + g' (z - f x) - x) < e0" by auto
     have **:"f x + f' (x + g' (z - f x) - x) = z" using assms(6)[unfolded o_def id_def,THEN cong] by auto
     have "norm (f x - (y + (z - f (x + g' (z - f x))))) \<le> norm (f (x + g' (z - f x)) - z) + norm (f x - y)"
       using norm_triangle_ineq[of "f (x + g'(z - f x)) - z" "f x - y"] by(auto simp add:algebra_simps)
     also have "\<dots> \<le> 1 / (B * 2) * norm (g' (z - f x)) + norm (f x - y)" using e0[THEN conjunct2,rule_format,OF *] unfolding algebra_simps ** by auto 
-    also have "\<dots> \<le> 1 / (B * 2) * norm (g' (z - f x)) + e/2" using as(1)[unfolded mem_cball vector_dist_norm] by auto
+    also have "\<dots> \<le> 1 / (B * 2) * norm (g' (z - f x)) + e/2" using as(1)[unfolded mem_cball dist_norm] by auto
     also have "\<dots> \<le> 1 / (B * 2) * B * norm (z - f x) + e/2" using * and B by(auto simp add:field_simps)
     also have "\<dots> \<le> 1 / 2 * norm (z - f x) + e/2" by auto
-    also have "\<dots> \<le> e/2 + e/2" apply(rule add_right_mono) using as(2)[unfolded mem_cball vector_dist_norm] unfolding norm_minus_commute by auto
-    finally show "y + (z - f (x + g' (z - f x))) \<in> cball (f x) e" unfolding mem_cball vector_dist_norm by auto
+    also have "\<dots> \<le> e/2 + e/2" apply(rule add_right_mono) using as(2)[unfolded mem_cball dist_norm] unfolding norm_minus_commute by auto
+    finally show "y + (z - f (x + g' (z - f x))) \<in> cball (f x) e" unfolding mem_cball dist_norm by auto
   qed(insert e, auto) note lem = this
   show ?thesis unfolding mem_interior apply(rule_tac x="e/2" in exI)
     apply(rule,rule divide_pos_pos) prefer 3 proof 
     fix y assume "y \<in> ball (f x) (e/2)" hence *:"y\<in>cball (f x) (e/2)" by auto
     guess z using lem[rule_format,OF *] .. note z=this
     hence "norm (g' (z - f x)) \<le> norm (z - f x) * B" using B by(auto simp add:field_simps)
-    also have "\<dots> \<le> e * B" apply(rule mult_right_mono) using z(1) unfolding mem_cball vector_dist_norm norm_minus_commute using B by auto
+    also have "\<dots> \<le> e * B" apply(rule mult_right_mono) using z(1) unfolding mem_cball dist_norm norm_minus_commute using B by auto
     also have "\<dots> \<le> e1"  using e B unfolding less_divide_eq by auto
     finally have "x + g'(z - f x) \<in> t" apply- apply(rule e1[THEN conjunct2,unfolded subset_eq,rule_format]) 
-      unfolding mem_cball vector_dist_norm by auto
+      unfolding mem_cball dist_norm by auto
     thus "y \<in> f ` t" using z by auto qed(insert e, auto) qed
 
 text {* Hence the following eccentric variant of the inverse function theorem.    *)
@@ -1059,9 +1059,9 @@ lemma has_derivative_sequence: fixes f::"nat\<Rightarrow>real^'m\<Rightarrow>rea
 	show " \<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (f m x) (f n x) < e" apply(rule_tac x="max M N" in exI) proof(default+)
 	  fix m n assume as:"max M N \<le>m" "max M N\<le>n"
 	  have "dist (f m x) (f n x) \<le> norm (f m x0 - f n x0) + norm (f m x - f n x - (f m x0 - f n x0))"
-	    unfolding vector_dist_norm by(rule norm_triangle_sub)
+	    unfolding dist_norm by(rule norm_triangle_sub)
 	  also have "\<dots> \<le> norm (f m x0 - f n x0) + e / 2" using N[rule_format,OF _ _ `x\<in>s` `x0\<in>s`, of m n] and as and False by auto
-	  also have "\<dots> < e / 2 + e / 2" apply(rule add_strict_right_mono) using as and M[rule_format] unfolding vector_dist_norm by auto 
+	  also have "\<dots> < e / 2 + e / 2" apply(rule add_strict_right_mono) using as and M[rule_format] unfolding dist_norm by auto 
 	  finally show "dist (f m x) (f n x) < e" by auto qed qed qed qed
   then guess g .. note g = this
   have lem2:"\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>y\<in>s. norm((f n x - f n y) - (g x - g y)) \<le> e * norm(x - y)" proof(rule,rule)
@@ -1085,7 +1085,7 @@ lemma has_derivative_sequence: fixes f::"nat\<Rightarrow>real^'m\<Rightarrow>rea
 	case False hence *:"e / 2 / norm u > 0" using `e>0` by(auto intro!: divide_pos_pos)
 	guess N using assms(3)[rule_format,OF *] .. note N=this
 	show ?thesis apply(rule_tac x=N in exI) proof(rule,rule) case goal1
-	  show ?case unfolding vector_dist_norm using N[rule_format,OF goal1 `x\<in>s`, of u] False `e>0`
+	  show ?case unfolding dist_norm using N[rule_format,OF goal1 `x\<in>s`, of u] False `e>0`
 	    by (auto simp add:field_simps) qed qed qed
     show "bounded_linear (g' x)" unfolding linear_linear linear_def apply(rule,rule,rule) defer proof(rule,rule)
       fix x' y z::"real^'m" and c::real
@@ -1184,9 +1184,9 @@ lemma has_derivative_bilinear_within: fixes h::"real^'m \<Rightarrow> real^'n \<
 	apply(rule mult_mono) using B C D by (auto simp add: field_simps intro!:mult_nonneg_nonneg)
       also have "\<dots> = (B * C * D * norm (y - x)) * norm (y - x)" by(auto simp add:field_simps)
       also have "\<dots> < e * norm (y - x)" apply(rule mult_strict_right_mono)
-	using as(3)[unfolded vector_dist_norm] and as(2) unfolding pos_less_divide_eq[OF bcd] by (auto simp add:field_simps)
+	using as(3)[unfolded dist_norm] and as(2) unfolding pos_less_divide_eq[OF bcd] by (auto simp add:field_simps)
       finally show "dist ((1 / norm (y - x)) *\<^sub>R h (f' (y - x)) (g' (y - x))) 0 < e"
-	unfolding vector_dist_norm apply-apply(cases "y = x") by(auto simp add:field_simps) qed qed
+	unfolding dist_norm apply-apply(cases "y = x") by(auto simp add:field_simps) qed qed
   have "bounded_linear (\<lambda>d. h (f x) (g' d) + h (f' d) (g x))" unfolding linear_linear linear_def
     unfolding smult_conv_scaleR unfolding g'.add f'.scaleR f'.add g'.scaleR 
     unfolding h.add_right h.add_left scaleR_right_distrib h.scaleR_left h.scaleR_right by auto
