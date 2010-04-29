@@ -64,6 +64,11 @@ diagnose syntax problems.
 
 * Type constructors admit general mixfix syntax, not just infix.
 
+* Concrete syntax may be attached to local entities without a proof
+body, too.  This works via regular mixfix annotations for 'fix',
+'def', 'obtain' etc. or via the explicit 'write' command, which is
+similar to the 'notation' command in theory specifications.
+
 * Use of cumulative prems via "!" in some proof methods has been
 discontinued (legacy feature).
 
@@ -83,6 +88,10 @@ INCOMPATIBILITY.
 
 
 *** Pure ***
+
+* 'code_reflect' allows to incorporate generated ML code into
+runtime environment;  replaces immature code_datatype antiquotation.
+INCOMPATIBILITY.
 
 * Empty class specifications observe default sort.  INCOMPATIBILITY.
 

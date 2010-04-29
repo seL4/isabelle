@@ -11,14 +11,25 @@ sig
 
   val add_function: (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> Function_Common.function_config ->
-    local_theory -> Proof.state
+    (Proof.context -> tactic) -> local_theory -> info * local_theory
 
   val add_function_cmd: (binding * string option * mixfix) list ->
     (Attrib.binding * string) list -> Function_Common.function_config ->
+    (Proof.context -> tactic) -> local_theory -> info * local_theory
+
+  val function: (binding * typ option * mixfix) list ->
+    (Attrib.binding * term) list -> Function_Common.function_config ->
     local_theory -> Proof.state
 
-  val termination_proof : term option -> local_theory -> Proof.state
-  val termination_proof_cmd : string option -> local_theory -> Proof.state
+  val function_cmd: (binding * string option * mixfix) list ->
+    (Attrib.binding * string) list -> Function_Common.function_config ->
+    local_theory -> Proof.state
+
+  val prove_termination: term option -> tactic -> local_theory -> local_theory
+  val prove_termination_cmd: string option -> tactic -> local_theory -> local_theory
+
+  val termination : term option -> local_theory -> Proof.state
+  val termination_cmd : string option -> local_theory -> Proof.state
 
   val setup : theory -> theory
   val get_congs : Proof.context -> thm list
@@ -65,7 +76,7 @@ fun add_simps fnames post sort extra_qualify label mod_binding moreatts
     (saved_simps, fold2 add_for_f fnames simps_by_f lthy)
   end
 
-fun gen_add_function is_external prep default_constraint fixspec eqns config lthy =
+fun prepare_function is_external prep default_constraint fixspec eqns config lthy =
   let
     val constrn_fxs = map (fn (b, T, mx) => (b, SOME (the_default default_constraint T), mx))
     val ((fixes0, spec0), ctxt') = prep (constrn_fxs fixspec) eqns lthy
@@ -76,7 +87,7 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config lth
     val defname = mk_defname fixes
     val FunctionConfig {partials, ...} = config
 
-    val ((goalstate, cont), lthy) =
+    val ((goal_state, cont), lthy') =
       Function_Mutual.prepare_function_mutual config defname fixes eqs lthy
 
     fun afterqed [[proof]] lthy =
@@ -115,20 +126,45 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config lth
           if not is_external then ()
           else Specification.print_consts lthy (K false) (map fst fixes)
       in
-        lthy
-        |> Local_Theory.declaration false (add_function_data o morph_function_data info)
+        (info, 
+         lthy |> Local_Theory.declaration false (add_function_data o morph_function_data info))
       end
   in
-    lthy
-    |> Proof.theorem NONE afterqed [[(Logic.unprotect (concl_of goalstate), [])]]
-    |> Proof.refine (Method.primitive_text (fn _ => goalstate)) |> Seq.hd
+    ((goal_state, afterqed), lthy')
+  end
+
+fun gen_add_function is_external prep default_constraint fixspec eqns config tac lthy =
+  let
+    val ((goal_state, afterqed), lthy') =
+      prepare_function is_external prep default_constraint fixspec eqns config lthy
+    val pattern_thm =
+      case SINGLE (tac lthy') goal_state of
+        NONE => error "pattern completeness and compatibility proof failed"
+      | SOME st => Goal.finish lthy' st
+  in
+    lthy'
+    |> afterqed [[pattern_thm]]
   end
 
 val add_function =
   gen_add_function false Specification.check_spec (TypeInfer.anyT HOLogic.typeS)
 val add_function_cmd = gen_add_function true Specification.read_spec "_::type"
-                                                
-fun gen_termination_proof prep_term raw_term_opt lthy =
+
+fun gen_function is_external prep default_constraint fixspec eqns config lthy =
+  let
+    val ((goal_state, afterqed), lthy') =
+      prepare_function is_external prep default_constraint fixspec eqns config lthy
+  in
+    lthy'
+    |> Proof.theorem NONE (snd oo afterqed) [[(Logic.unprotect (concl_of goal_state), [])]]
+    |> Proof.refine (Method.primitive_text (K goal_state)) |> Seq.hd
+  end
+
+val function =
+  gen_function false Specification.check_spec (TypeInfer.anyT HOLogic.typeS)
+val function_cmd = gen_function true Specification.read_spec "_::type"
+
+fun prepare_termination_proof prep_term raw_term_opt lthy =
   let
     val term_opt = Option.map (prep_term lthy) raw_term_opt
     val info = the (case term_opt of
@@ -169,6 +205,26 @@ fun gen_termination_proof prep_term raw_term_opt lthy =
             end)
         end
   in
+    (goal, afterqed, termination)
+  end
+
+fun gen_prove_termination prep_term raw_term_opt tac lthy =
+  let
+    val (goal, afterqed, termination) =
+      prepare_termination_proof prep_term raw_term_opt lthy
+
+    val totality = Goal.prove lthy [] [] goal (K tac)
+  in
+    afterqed [[totality]] lthy
+end
+
+val prove_termination = gen_prove_termination Syntax.check_term
+val prove_termination_cmd = gen_prove_termination Syntax.read_term
+
+fun gen_termination prep_term raw_term_opt lthy =
+  let
+    val (goal, afterqed, termination) = prepare_termination_proof prep_term raw_term_opt lthy
+  in
     lthy
     |> ProofContext.note_thmss ""
        [((Binding.empty, [Context_Rules.rule_del]), [([allI], [])])] |> snd
@@ -180,8 +236,8 @@ fun gen_termination_proof prep_term raw_term_opt lthy =
     |> Proof.theorem NONE afterqed [[(goal, [])]]
   end
 
-val termination_proof = gen_termination_proof Syntax.check_term
-val termination_proof_cmd = gen_termination_proof Syntax.read_term
+val termination = gen_termination Syntax.check_term
+val termination_cmd = gen_termination Syntax.read_term
 
 
 (* Datatype hook to declare datatype congs as "function_congs" *)
@@ -221,11 +277,11 @@ local structure P = OuterParse and K = OuterKeyword in
 val _ =
   OuterSyntax.local_theory_to_proof "function" "define general recursive functions" K.thy_goal
   (function_parser default_config
-     >> (fn ((config, fixes), statements) => add_function_cmd fixes statements config))
+     >> (fn ((config, fixes), statements) => function_cmd fixes statements config))
 
 val _ =
   OuterSyntax.local_theory_to_proof "termination" "prove termination of a recursive function" K.thy_goal
-  (Scan.option P.term >> termination_proof_cmd)
+  (Scan.option P.term >> termination_cmd)
 
 end
 

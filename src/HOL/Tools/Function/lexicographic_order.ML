@@ -225,6 +225,6 @@ val setup =
   Method.setup @{binding lexicographic_order}
     (Method.sections clasimp_modifiers >> (K lexicographic_order))
     "termination prover for lexicographic orderings"
-  #> Context.theory_map (Function_Common.set_termination_prover lexicographic_order)
+  #> Context.theory_map (Function_Common.set_termination_prover (lexicographic_order_tac false))
 
 end;

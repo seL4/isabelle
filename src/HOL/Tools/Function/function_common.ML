@@ -172,7 +172,7 @@ structure Termination_Simps = Named_Thms
 
 structure TerminationProver = Generic_Data
 (
-  type T = Proof.context -> Proof.method
+  type T = Proof.context -> tactic
   val empty = (fn _ => error "Termination prover not configured")
   val extend = I
   fun merge (a, b) = b  (* FIXME ? *)

@@ -225,22 +225,22 @@ val _ =
     >> (fn (mode, args) => Specification.abbreviation_cmd mode args));
 
 val _ =
-  OuterSyntax.local_theory "type_notation" "add notation for type constructors" K.thy_decl
+  OuterSyntax.local_theory "type_notation" "add concrete syntax for type constructors" K.thy_decl
     (opt_mode -- P.and_list1 (P.xname -- P.mixfix)
     >> (fn (mode, args) => Specification.type_notation_cmd true mode args));
 
 val _ =
-  OuterSyntax.local_theory "no_type_notation" "delete notation for type constructors" K.thy_decl
+  OuterSyntax.local_theory "no_type_notation" "delete concrete syntax for type constructors" K.thy_decl
     (opt_mode -- P.and_list1 (P.xname -- P.mixfix)
     >> (fn (mode, args) => Specification.type_notation_cmd false mode args));
 
 val _ =
-  OuterSyntax.local_theory "notation" "add notation for constants / fixed variables" K.thy_decl
+  OuterSyntax.local_theory "notation" "add concrete syntax for constants / fixed variables" K.thy_decl
     (opt_mode -- P.and_list1 (P.xname -- SpecParse.locale_mixfix)
     >> (fn (mode, args) => Specification.notation_cmd true mode args));
 
 val _ =
-  OuterSyntax.local_theory "no_notation" "delete notation for constants / fixed variables" K.thy_decl
+  OuterSyntax.local_theory "no_notation" "delete concrete syntax for constants / fixed variables" K.thy_decl
     (opt_mode -- P.and_list1 (P.xname -- SpecParse.locale_mixfix)
     >> (fn (mode, args) => Specification.notation_cmd false mode args));
 
@@ -614,6 +614,12 @@ val _ =
     (K.tag_proof K.prf_decl)
     (P.and_list1 (P.and_list1 P.term -- (P.$$$ "=" |-- P.term))
       >> (Toplevel.print oo (Toplevel.proof o Proof.let_bind_cmd)));
+
+val _ =
+  OuterSyntax.command "write" "add concrete syntax for constants / fixed variables"
+    (K.tag_proof K.prf_decl)
+    (opt_mode -- P.and_list1 (P.xname -- SpecParse.locale_mixfix)
+    >> (fn (mode, args) => Toplevel.print o Toplevel.proof (Proof.write_cmd mode args)));
 
 val case_spec =
   (P.$$$ "(" |-- P.!!! (P.xname -- Scan.repeat1 (P.maybe P.name) --| P.$$$ ")") ||

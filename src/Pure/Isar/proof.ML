@@ -43,6 +43,8 @@ sig
   val simple_goal: state -> {context: context, goal: thm}
   val let_bind: (term list * term) list -> state -> state
   val let_bind_cmd: (string list * string) list -> state -> state
+  val write: Syntax.mode -> (term * mixfix) list -> state -> state
+  val write_cmd: Syntax.mode -> (string * mixfix) list -> state -> state
   val fix: (binding * typ option * mixfix) list -> state -> state
   val fix_cmd: (binding * string option * mixfix) list -> state -> state
   val assm: Assumption.export ->
@@ -535,6 +537,26 @@ in
 
 val let_bind = gen_bind ProofContext.match_bind_i;
 val let_bind_cmd = gen_bind ProofContext.match_bind;
+
+end;
+
+
+(* concrete syntax *)
+
+local
+
+fun gen_write prep_arg mode args =
+  assert_forward
+  #> map_context (fn ctxt => ctxt |> ProofContext.notation true mode (map (prep_arg ctxt) args))
+  #> put_facts NONE;
+
+in
+
+val write = gen_write (K I);
+
+val write_cmd =
+  gen_write (fn ctxt => fn (c, mx) =>
+    (ProofContext.read_const ctxt false (Syntax.mixfixT mx) c, mx));
 
 end;
 

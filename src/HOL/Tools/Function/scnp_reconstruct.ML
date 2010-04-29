@@ -10,7 +10,7 @@ sig
 
   val sizechange_tac : Proof.context -> tactic -> tactic
 
-  val decomp_scnp : ScnpSolve.label list -> Proof.context -> Proof.method
+  val decomp_scnp_tac : ScnpSolve.label list -> Proof.context -> tactic
 
   val setup : theory -> theory
 
@@ -396,13 +396,12 @@ fun gen_sizechange_tac orders autom_tac ctxt err_cont =
 fun sizechange_tac ctxt autom_tac =
   gen_sizechange_tac [MAX, MS, MIN] autom_tac ctxt (K (K all_tac))
 
-fun decomp_scnp orders ctxt =
+fun decomp_scnp_tac orders ctxt =
   let
     val extra_simps = Function_Common.Termination_Simps.get ctxt
     val autom_tac = auto_tac (clasimpset_of ctxt addsimps2 extra_simps)
   in
-    SIMPLE_METHOD
-      (gen_sizechange_tac orders autom_tac ctxt (print_error ctxt))
+     gen_sizechange_tac orders autom_tac ctxt (print_error ctxt)
   end
 
 
@@ -416,7 +415,8 @@ val orders =
   || Scan.succeed [MAX, MS, MIN]
 
 val setup = Method.setup @{binding size_change}
-  (Scan.lift orders --| Method.sections clasimp_modifiers >> decomp_scnp)
+  (Scan.lift orders --| Method.sections clasimp_modifiers >>
+    (fn orders => SIMPLE_METHOD o decomp_scnp_tac orders))
   "termination prover with graph decomposition and the NP subset of size change termination"
 
 end

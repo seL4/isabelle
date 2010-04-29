@@ -880,6 +880,10 @@ by (auto simp add: the_def singleton_def not_unique_def)
 
 code_abort not_unique
 
+code_reflect Predicate
+  datatypes pred = Seq and seq = Empty | Insert | Join
+  functions map
+
 ML {*
 signature PREDICATE =
 sig
@@ -893,15 +897,17 @@ end;
 structure Predicate : PREDICATE =
 struct
 
-@{code_datatype pred = Seq};
-@{code_datatype seq = Empty | Insert | Join};
+datatype pred = datatype Predicate.pred
+datatype seq = datatype Predicate.seq
 
-fun yield (@{code Seq} f) = next (f ())
-and next @{code Empty} = NONE
-  | next (@{code Insert} (x, P)) = SOME (x, P)
-  | next (@{code Join} (P, xq)) = (case yield P
+fun map f = Predicate.map f;
+
+fun yield (Seq f) = next (f ())
+and next Empty = NONE
+  | next (Insert (x, P)) = SOME (x, P)
+  | next (Join (P, xq)) = (case yield P
      of NONE => next xq
-      | SOME (x, Q) => SOME (x, @{code Seq} (fn _ => @{code Join} (Q, xq))));
+      | SOME (x, Q) => SOME (x, Seq (fn _ => Join (Q, xq))));
 
 fun anamorph f k x = (if k = 0 then ([], x)
   else case f x
@@ -912,18 +918,8 @@ fun anamorph f k x = (if k = 0 then ([], x)
 
 fun yieldn P = anamorph yield P;
 
-fun map f = @{code map} f;
-
 end;
 *}
-
-code_reserved Eval Predicate
-
-code_type pred and seq
-  (Eval "_/ Predicate.pred" and "_/ Predicate.seq")
-
-code_const Seq and Empty and Insert and Join
-  (Eval "Predicate.Seq" and "Predicate.Empty" and "Predicate.Insert/ (_,/ _)" and "Predicate.Join/ (_,/ _)")
 
 no_notation
   inf (infixl "\<sqinter>" 70) and

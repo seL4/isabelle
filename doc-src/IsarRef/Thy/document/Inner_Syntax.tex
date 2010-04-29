@@ -388,12 +388,15 @@ Mixfix annotations specify concrete \emph{inner syntax} of
     \indexdef{}{command}{no\_type\_notation}\hypertarget{command.no-type-notation}{\hyperlink{command.no-type-notation}{\mbox{\isa{\isacommand{no{\isacharunderscore}type{\isacharunderscore}notation}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
     \indexdef{}{command}{notation}\hypertarget{command.notation}{\hyperlink{command.notation}{\mbox{\isa{\isacommand{notation}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
     \indexdef{}{command}{no\_notation}\hypertarget{command.no-notation}{\hyperlink{command.no-notation}{\mbox{\isa{\isacommand{no{\isacharunderscore}notation}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
+    \indexdef{}{command}{write}\hypertarget{command.write}{\hyperlink{command.write}{\mbox{\isa{\isacommand{write}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}state{\isacharparenright}{\isachardoublequote}} \\
   \end{matharray}
 
   \begin{rail}
     ('type\_notation' | 'no\_type\_notation') target? mode? \\ (nameref mixfix + 'and')
     ;
     ('notation' | 'no\_notation') target? mode? \\ (nameref structmixfix + 'and')
+    ;
+    'write' mode? (nameref structmixfix + 'and')
     ;
   \end{rail}
 
@@ -414,11 +417,14 @@ Mixfix annotations specify concrete \emph{inner syntax} of
   but removes the specified syntax annotation from the present
   context.
 
+  \item \hyperlink{command.write}{\mbox{\isa{\isacommand{write}}}} is similar to \hyperlink{command.notation}{\mbox{\isa{\isacommand{notation}}}}, but
+  works within an Isar proof body.
+
   \end{description}
 
-  Compared to the underlying \hyperlink{command.syntax}{\mbox{\isa{\isacommand{syntax}}}} and \hyperlink{command.no-syntax}{\mbox{\isa{\isacommand{no{\isacharunderscore}syntax}}}} primitives (\secref{sec:syn-trans}), the above commands
-  provide explicit checking wrt.\ the logical context, and work within
-  general local theory targets, not just the global theory.%
+  Note that the more primitive commands \hyperlink{command.syntax}{\mbox{\isa{\isacommand{syntax}}}} and
+  \hyperlink{command.no-syntax}{\mbox{\isa{\isacommand{no{\isacharunderscore}syntax}}}} (\secref{sec:syn-trans}) provide raw access
+  to the syntax tables of a global theory.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

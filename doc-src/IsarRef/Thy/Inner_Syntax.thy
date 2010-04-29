@@ -365,12 +365,15 @@ text {*
     @{command_def "no_type_notation"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "notation"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "no_notation"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "write"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
   \end{matharray}
 
   \begin{rail}
     ('type\_notation' | 'no\_type\_notation') target? mode? \\ (nameref mixfix + 'and')
     ;
     ('notation' | 'no\_notation') target? mode? \\ (nameref structmixfix + 'and')
+    ;
+    'write' mode? (nameref structmixfix + 'and')
     ;
   \end{rail}
 
@@ -392,12 +395,14 @@ text {*
   but removes the specified syntax annotation from the present
   context.
 
+  \item @{command "write"} is similar to @{command "notation"}, but
+  works within an Isar proof body.
+
   \end{description}
 
-  Compared to the underlying @{command "syntax"} and @{command
-  "no_syntax"} primitives (\secref{sec:syn-trans}), the above commands
-  provide explicit checking wrt.\ the logical context, and work within
-  general local theory targets, not just the global theory.
+  Note that the more primitive commands @{command "syntax"} and
+  @{command "no_syntax"} (\secref{sec:syn-trans}) provide raw access
+  to the syntax tables of a global theory.
 *}
 
 
