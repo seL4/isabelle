@@ -302,9 +302,13 @@ fun tptp_literal params
  
 (* Given a clause, returns its literals paired with a list of literals
    concerning TFrees; the latter should only occur in conjecture clauses. *)
-fun tptp_type_literals params pos (HOLClause {literals, ctypes_sorts, ...}) =
-  pool_map (tptp_literal params) literals
-  #>> rpair (map (tptp_of_typeLit pos) (add_typs ctypes_sorts))
+fun tptp_type_literals params pos (HOLClause {literals, ctypes_sorts, ...})
+                       pool =
+  let
+    val (lits, pool) = pool_map (tptp_literal params) literals pool
+    val (tylits, pool) = pool_map (tptp_of_type_literal pos)
+                                  (add_type_literals ctypes_sorts) pool
+  in ((lits, tylits), pool) end
 
 fun tptp_clause params (cls as HOLClause {axiom_name, clause_id, kind, ...})
                 pool =
@@ -323,7 +327,7 @@ fun dfg_literal params (Literal (pos, pred)) =
 
 fun dfg_type_literals params pos (HOLClause {literals, ctypes_sorts, ...}) =
   pool_map (dfg_literal params) literals
-  #>> rpair (map (dfg_of_typeLit pos) (add_typs ctypes_sorts))
+  #>> rpair (map (dfg_of_type_literal pos) (add_type_literals ctypes_sorts))
 
 fun get_uvars (CombConst _) vars pool = (vars, pool)
   | get_uvars (CombVar (name, _)) vars pool =

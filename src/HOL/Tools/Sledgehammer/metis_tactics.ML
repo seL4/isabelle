@@ -123,14 +123,16 @@ fun literals_of_hol_thm thy mode t =
       in  (map (hol_literal_to_fol mode) lits, types_sorts) end;
 
 (*Sign should be "true" for conjecture type constraints, "false" for type lits in clauses.*)
-fun metis_of_typeLit pos (LTVar (s,x))  = metis_lit pos s [Metis.Term.Var x]
-  | metis_of_typeLit pos (LTFree (s,x)) = metis_lit pos s [Metis.Term.Fn(x,[])];
+fun metis_of_type_literals pos (TyLitVar (s, (s', _))) =
+    metis_lit pos s [Metis.Term.Var s']
+  | metis_of_type_literals pos (TyLitFree (s, (s', _))) =
+    metis_lit pos s [Metis.Term.Fn (s',[])]
 
 fun default_sort _ (TVar _) = false
   | default_sort ctxt (TFree (x, s)) = (s = the_default [] (Variable.def_sort ctxt (x, ~1)));
 
 fun metis_of_tfree tf =
-  Metis.Thm.axiom (Metis.LiteralSet.singleton (metis_of_typeLit true tf));
+  Metis.Thm.axiom (Metis.LiteralSet.singleton (metis_of_type_literals true tf));
 
 fun hol_thm_to_fol is_conjecture ctxt mode th =
   let val thy = ProofContext.theory_of ctxt
@@ -138,11 +140,12 @@ fun hol_thm_to_fol is_conjecture ctxt mode th =
              (literals_of_hol_thm thy mode o HOLogic.dest_Trueprop o prop_of) th
   in
       if is_conjecture then
-          (Metis.Thm.axiom (Metis.LiteralSet.fromList mlits), add_typs types_sorts)
+          (Metis.Thm.axiom (Metis.LiteralSet.fromList mlits),
+           add_type_literals types_sorts)
       else
-        let val tylits = add_typs (filter (not o default_sort ctxt) types_sorts)
+        let val tylits = add_type_literals (filter (not o default_sort ctxt) types_sorts)
             val mtylits = if Config.get ctxt type_lits
-                          then map (metis_of_typeLit false) tylits else []
+                          then map (metis_of_type_literals false) tylits else []
         in
           (Metis.Thm.axiom (Metis.LiteralSet.fromList(mtylits @ mlits)), [])
         end
@@ -598,7 +601,9 @@ fun const_in_metis c (pred, tm_list) =
 (*Extract TFree constraints from context to include as conjecture clauses*)
 fun init_tfrees ctxt =
   let fun add ((a,i),s) Ts = if i = ~1 then TFree(a,s) :: Ts else Ts
-  in  add_typs (Vartab.fold add (#2 (Variable.constraints_of ctxt)) []) end;
+  in
+    add_type_literals (Vartab.fold add (#2 (Variable.constraints_of ctxt)) [])
+  end;
 
 (*transform isabelle type / arity clause to metis clause *)
 fun add_type_thm [] lmap = lmap
@@ -669,7 +674,7 @@ fun FOL_SOLVE mode ctxt cls ths0 =
       val (mode, {axioms,tfrees}) = build_map mode ctxt cls ths
       val _ = if null tfrees then ()
               else (trace_msg (fn () => "TFREE CLAUSES");
-                    app (fn tf => trace_msg (fn _ => tptp_of_typeLit true tf)) tfrees)
+                    app (fn tf => trace_msg (fn _ => tptp_of_type_literal true tf NONE |> fst)) tfrees)
       val _ = trace_msg (fn () => "CLAUSES GIVEN TO METIS")
       val thms = map #1 axioms
       val _ = app (fn th => trace_msg (fn () => Metis.Thm.toString th)) thms

@@ -377,16 +377,18 @@ fun lits_of_nodes thy (vt, lits) [] = (vt, finish_clause thy lits)
 
 (*Update TVars/TFrees with detected sort constraints.*)
 fun repair_sorts vt =
-  let fun tysubst (Type (a, Ts)) = Type (a, map tysubst Ts)
-        | tysubst (TVar (xi, s)) = TVar (xi, the_default s (Vartab.lookup vt xi))
-        | tysubst (TFree (x, s)) = TFree (x, the_default s (Vartab.lookup vt (x, ~1)))
-      fun tmsubst (Const (a, T)) = Const (a, tysubst T)
-        | tmsubst (Free (a, T)) = Free (a, tysubst T)
-        | tmsubst (Var (xi, T)) = Var (xi, tysubst T)
-        | tmsubst (t as Bound _) = t
-        | tmsubst (Abs (a, T, t)) = Abs (a, tysubst T, tmsubst t)
-        | tmsubst (t1 $ t2) = tmsubst t1 $ tmsubst t2
-  in not (Vartab.is_empty vt) ? tmsubst end
+  let
+    fun do_type (Type (a, Ts)) = Type (a, map do_type Ts)
+      | do_type (TVar (xi, s)) = TVar (xi, the_default s (Vartab.lookup vt xi))
+      | do_type (TFree (x, s)) =
+        TFree (x, the_default s (Vartab.lookup vt (x, ~1)))
+    fun do_term (Const (a, T)) = Const (a, do_type T)
+      | do_term (Free (a, T)) = Free (a, do_type T)
+      | do_term (Var (xi, T)) = Var (xi, do_type T)
+      | do_term (t as Bound _) = t
+      | do_term (Abs (a, T, t)) = Abs (a, do_type T, do_term t)
+      | do_term (t1 $ t2) = do_term t1 $ do_term t2
+  in not (Vartab.is_empty vt) ? do_term end
 
 fun unskolemize_term t =
   fold forall_of (Term.add_consts t []
@@ -414,7 +416,7 @@ fun clause_of_nodes ctxt vt us =
   let val (vt, t) = lits_of_nodes (ProofContext.theory_of ctxt) (vt, []) us in
     t |> repair_sorts vt
   end
-fun check_clause ctxt =
+fun check_formula ctxt =
   TypeInfer.constrain HOLogic.boolT
   #> Syntax.check_term (ProofContext.set_mode ProofContext.mode_schematic ctxt)
 
@@ -450,7 +452,7 @@ fun decode_line vt (Definition (num, u, us)) ctxt =
       val t2 = clause_of_nodes ctxt vt us
       val (t1, t2) =
         HOLogic.eq_const HOLogic.typeT $ t1 $ t2
-        |> unvarify_args |> uncombine_term |> check_clause ctxt
+        |> unvarify_args |> uncombine_term |> check_formula ctxt
         |> HOLogic.dest_eq
     in
       (Definition (num, t1, t2),
@@ -459,7 +461,7 @@ fun decode_line vt (Definition (num, u, us)) ctxt =
   | decode_line vt (Inference (num, us, deps)) ctxt =
     let
       val t = us |> clause_of_nodes ctxt vt
-                 |> unskolemize_term |> uncombine_term |> check_clause ctxt
+                 |> unskolemize_term |> uncombine_term |> check_formula ctxt
     in
       (Inference (num, t, deps),
        fold Variable.declare_term (OldTerm.term_frees t) ctxt)
@@ -655,12 +657,13 @@ fun no_show qs = not (member (op =) qs Show)
    "drop_ls" are those that should be dropped in a case split. *)
 type backpatches = (label * facts) list * (label list * label list)
 
-fun using_of_step (Have (_, _, _, by)) =
+fun used_labels_of_step (Have (_, _, _, by)) =
     (case by of
        Facts (ls, _) => ls
-     | CaseSplit (proofs, (ls, _)) => fold (union (op =) o using_of) proofs ls)
-  | using_of_step _ = []
-and using_of proof = fold (union (op =) o using_of_step) proof []
+     | CaseSplit (proofs, (ls, _)) =>
+       fold (union (op =) o used_labels_of) proofs ls)
+  | used_labels_of_step _ = []
+and used_labels_of proof = fold (union (op =) o used_labels_of_step) proof []
 
 fun new_labels_of_step (Fix _) = []
   | new_labels_of_step (Let _) = []
@@ -681,7 +684,7 @@ val join_proofs =
           if forall (fn Have ([], l', t', _) :: _ => (l, t) = (l', t')
                       | _ => false) (tl proofs) andalso
              not (exists (member (op =) (maps new_labels_of proofs))
-                         (using_of proof_tail)) then
+                         (used_labels_of proof_tail)) then
             SOME (l, t, map rev proofs, proof_tail)
           else
             NONE
@@ -823,17 +826,17 @@ val then_chain_proof =
 
 fun kill_useless_labels_in_proof proof =
   let
-    val used_ls = using_of proof
+    val used_ls = used_labels_of proof
     fun do_label l = if member (op =) used_ls l then l else no_label
-    fun kill (Assume (l, t)) = Assume (do_label l, t)
-      | kill (Have (qs, l, t, by)) =
+    fun do_step (Assume (l, t)) = Assume (do_label l, t)
+      | do_step (Have (qs, l, t, by)) =
         Have (qs, do_label l, t,
               case by of
                 CaseSplit (proofs, facts) =>
-                CaseSplit (map (map kill) proofs, facts)
+                CaseSplit (map (map do_step) proofs, facts)
               | _ => by)
-      | kill step = step
-  in map kill proof end
+      | do_step step = step
+  in map do_step proof end
 
 fun prefix_for_depth n = replicate_string (n + 1)
 
@@ -891,11 +894,9 @@ fun string_for_proof ctxt i n =
        else
          if member (op =) qs Show then "show" else "have")
     val do_term = maybe_quote o fix_print_mode (Syntax.string_of_term ctxt)
-    fun do_using [] = ""
-      | do_using ls = "using " ^ (space_implode " " (map do_raw_label ls)) ^ " "
-    fun do_by_facts [] = "by metis"
-      | do_by_facts ss = "by (metis " ^ space_implode " " ss ^ ")"
-    fun do_facts (ls, ss) = do_using ls ^ do_by_facts ss
+    fun do_facts ([], []) = "by metis"
+      | do_facts (ls, ss) =
+        "by (metis " ^ space_implode " " (map do_raw_label ls @ ss) ^ ")"
     and do_step ind (Fix xs) =
         do_indent ind ^ "fix " ^ space_implode " and " (map do_free xs) ^ "\n"
       | do_step ind (Let (t1, t2)) =
