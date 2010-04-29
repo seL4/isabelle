@@ -726,15 +726,12 @@ lemma vector_mul_rcancel_imp: "x \<noteq> 0 \<Longrightarrow> (a::real) *s x = b
   by (metis vector_mul_rcancel)
 
 lemma norm_cauchy_schwarz:
-  fixes x y :: "real ^ 'n"
   shows "inner x y <= norm x * norm y"
   using Cauchy_Schwarz_ineq2[of x y] by auto
 
 lemma norm_cauchy_schwarz_abs:
-  fixes x y :: "real ^ 'n"
   shows "\<bar>inner x y\<bar> \<le> norm x * norm y"
-  using norm_cauchy_schwarz[of x y] norm_cauchy_schwarz[of x "-y"]
-  by (simp add: real_abs_def)
+  by (rule Cauchy_Schwarz_ineq2)
 
 lemma norm_triangle_sub:
   fixes x y :: "'a::real_normed_vector"
@@ -757,15 +754,15 @@ lemma norm_le_l1: "norm x <= setsum(\<lambda>i. \<bar>x$i\<bar>) UNIV"
 
 lemma real_abs_norm: "\<bar>norm x\<bar> = norm x"
   by (rule abs_norm_cancel)
-lemma real_abs_sub_norm: "\<bar>norm (x::real ^ 'n) - norm y\<bar> <= norm(x - y)"
+lemma real_abs_sub_norm: "\<bar>norm x - norm y\<bar> <= norm(x - y)"
   by (rule norm_triangle_ineq3)
-lemma norm_le: "norm(x::real ^ 'n) <= norm(y) \<longleftrightarrow> x \<bullet> x <= y \<bullet> y"
+lemma norm_le: "norm(x) <= norm(y) \<longleftrightarrow> x \<bullet> x <= y \<bullet> y"
   by (simp add: norm_eq_sqrt_inner) 
-lemma norm_lt: "norm(x::real ^ 'n) < norm(y) \<longleftrightarrow> x \<bullet> x < y \<bullet> y"
+lemma norm_lt: "norm(x) < norm(y) \<longleftrightarrow> x \<bullet> x < y \<bullet> y"
   by (simp add: norm_eq_sqrt_inner)
-lemma norm_eq: "norm(x::real ^ 'n) = norm (y::real ^ 'n) \<longleftrightarrow> x \<bullet> x = y \<bullet> y"
+lemma norm_eq: "norm(x) = norm (y) \<longleftrightarrow> x \<bullet> x = y \<bullet> y"
   apply(subst order_eq_iff) unfolding norm_le by auto
-lemma norm_eq_1: "norm(x::real ^ 'n) = 1 \<longleftrightarrow> x \<bullet> x = 1"
+lemma norm_eq_1: "norm(x) = 1 \<longleftrightarrow> x \<bullet> x = 1"
   unfolding norm_eq_sqrt_inner by auto
 
 text{* Squaring equations and inequalities involving norms.  *}
@@ -817,9 +814,9 @@ lemma dot_norm_neg: "x \<bullet> y = ((norm x ^ 2 + norm y ^ 2) - norm(x - y) ^ 
 
 text{* Equality of vectors in terms of @{term "op \<bullet>"} products.    *}
 
-lemma vector_eq: "(x:: real ^ 'n) = y \<longleftrightarrow> x \<bullet> x = x \<bullet> y\<and> y \<bullet> y = x \<bullet> x" (is "?lhs \<longleftrightarrow> ?rhs")
+lemma vector_eq: "x = y \<longleftrightarrow> x \<bullet> x = x \<bullet> y \<and> y \<bullet> y = x \<bullet> x" (is "?lhs \<longleftrightarrow> ?rhs")
 proof
-  assume "?lhs" then show ?rhs by simp
+  assume ?lhs then show ?rhs by simp
 next
   assume ?rhs
   then have "x \<bullet> x - x \<bullet> y = 0 \<and> x \<bullet> y - y \<bullet> y = 0" by simp
@@ -941,7 +938,7 @@ text{* Hence more metric properties. *}
 lemma dist_triangle_alt:
   fixes x y z :: "'a::metric_space"
   shows "dist y z <= dist x y + dist x z"
-using dist_triangle [of y z x] by (simp add: dist_commute)
+by (rule dist_triangle3)
 
 lemma dist_pos_lt:
   fixes x y :: "'a::metric_space"
@@ -1035,20 +1032,6 @@ next
   finally  show ?case  using "2.hyps" by simp
 qed
 
-lemma real_setsum_norm:
-  fixes f :: "'a \<Rightarrow> real ^'n"
-  assumes fS: "finite S"
-  shows "norm (setsum f S) <= setsum (\<lambda>x. norm(f x)) S"
-proof(induct rule: finite_induct[OF fS])
-  case 1 thus ?case by simp
-next
-  case (2 x S)
-  from "2.hyps" have "norm (setsum f (insert x S)) \<le> norm (f x) + norm (setsum f S)" by (simp add: norm_triangle_ineq)
-  also have "\<dots> \<le> norm (f x) + setsum (\<lambda>x. norm(f x)) S"
-    using "2.hyps" by simp
-  finally  show ?case  using "2.hyps" by simp
-qed
-
 lemma setsum_norm_le:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes fS: "finite S"
@@ -1061,18 +1044,6 @@ proof-
     by arith
 qed
 
-lemma real_setsum_norm_le:
-  fixes f :: "'a \<Rightarrow> real ^ 'n"
-  assumes fS: "finite S"
-  and fg: "\<forall>x \<in> S. norm (f x) \<le> g x"
-  shows "norm (setsum f S) \<le> setsum g S"
-proof-
-  from fg have "setsum (\<lambda>x. norm(f x)) S <= setsum g S"
-    by - (rule setsum_mono, simp)
-  then show ?thesis using real_setsum_norm[OF fS, of f] fg
-    by arith
-qed
-
 lemma setsum_norm_bound:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes fS: "finite S"
@@ -1081,16 +1052,8 @@ lemma setsum_norm_bound:
   using setsum_norm_le[OF fS K] setsum_constant[symmetric]
   by simp
 
-lemma real_setsum_norm_bound:
-  fixes f :: "'a \<Rightarrow> real ^ 'n"
-  assumes fS: "finite S"
-  and K: "\<forall>x \<in> S. norm (f x) \<le> K"
-  shows "norm (setsum f S) \<le> of_nat (card S) * K"
-  using real_setsum_norm_le[OF fS K] setsum_constant[symmetric]
-  by simp
-
 lemma setsum_vmul:
-  fixes f :: "'a \<Rightarrow> 'b::{real_normed_vector,semiring, mult_zero}"
+  fixes f :: "'a \<Rightarrow> 'b::semiring_0"
   assumes fS: "finite S"
   shows "setsum f S *s v = setsum (\<lambda>x. f x *s v) S"
 proof(induct rule: finite_induct[OF fS])
@@ -1156,10 +1119,10 @@ proof-
   finally show ?thesis .
 qed
 
-lemma dot_lsum: "finite S \<Longrightarrow> setsum f S \<bullet> (y::'a::{real_inner}^'n) = setsum (\<lambda>x. f x \<bullet> y) S "
+lemma dot_lsum: "finite S \<Longrightarrow> setsum f S \<bullet> y = setsum (\<lambda>x. f x \<bullet> y) S "
   apply(induct rule: finite_induct) by(auto simp add: inner_simps)
 
-lemma dot_rsum: "finite S \<Longrightarrow> (y::'a::{real_inner}^'n) \<bullet> setsum f S = setsum (\<lambda>x. y \<bullet> f x) S "
+lemma dot_rsum: "finite S \<Longrightarrow> y \<bullet> setsum f S = setsum (\<lambda>x. y \<bullet> f x) S "
   apply(induct rule: finite_induct) by(auto simp add: inner_simps)
 
 subsection{* Basis vectors in coordinate directions. *}
@@ -1229,23 +1192,21 @@ lemma basis_nonzero:
   shows "basis k \<noteq> (0:: 'a::semiring_1 ^'n)"
   by (simp add: basis_eq_0)
 
-lemma vector_eq_ldot: "(\<forall>x. x \<bullet> y = x \<bullet> z) \<longleftrightarrow> y = (z::real^'n)"
-  apply (auto simp add: Cart_eq dot_basis)
-  apply (erule_tac x="basis i" in allE)
-  apply (simp add: dot_basis)
-  apply (subgoal_tac "y = z")
-  apply simp
-  apply (simp add: Cart_eq)
-  done
+lemma vector_eq_ldot: "(\<forall>x. x \<bullet> y = x \<bullet> z) \<longleftrightarrow> y = z"
+proof
+  assume "\<forall>x. x \<bullet> y = x \<bullet> z"
+  hence "\<forall>x. x \<bullet> (y - z) = 0" by (simp add: inner_simps)
+  hence "(y - z) \<bullet> (y - z) = 0" ..
+  thus "y = z" by simp
+qed simp
 
-lemma vector_eq_rdot: "(\<forall>z. x \<bullet> z = y \<bullet> z) \<longleftrightarrow> x = (y::real^'n)"
-  apply (auto simp add: Cart_eq dot_basis)
-  apply (erule_tac x="basis i" in allE)
-  apply (simp add: dot_basis)
-  apply (subgoal_tac "x = y")
-  apply simp
-  apply (simp add: Cart_eq)
-  done
+lemma vector_eq_rdot: "(\<forall>z. x \<bullet> z = y \<bullet> z) \<longleftrightarrow> x = y"
+proof
+  assume "\<forall>z. x \<bullet> z = y \<bullet> z"
+  hence "\<forall>z. (x - y) \<bullet> z = 0" by (simp add: inner_simps)
+  hence "(x - y) \<bullet> (x - y) = 0" ..
+  thus "x = y" by simp
+qed simp
 
 subsection{* Orthogonality. *}
 
@@ -1273,7 +1234,7 @@ lemma orthogonal_clauses:
   "orthogonal x a \<Longrightarrow> orthogonal y a ==> orthogonal (x - y) a"
   unfolding orthogonal_def inner_simps by auto
 
-lemma orthogonal_commute: "orthogonal (x::real ^'n)y \<longleftrightarrow> orthogonal y x"
+lemma orthogonal_commute: "orthogonal x y \<longleftrightarrow> orthogonal y x"
   by (simp add: orthogonal_def inner_commute)
 
 subsection{* Linear functions. *}
@@ -1392,7 +1353,7 @@ proof-
       apply (rule mult_mono)
       by (auto simp add: field_simps) }
     then have th: "\<forall>i\<in> ?S. norm ((x$i) *s f (basis i :: real ^'m)) \<le> norm (f (basis i)) * norm x" by metis
-    from real_setsum_norm_le[OF fS, of "\<lambda>i. (x$i) *s (f (basis i))", OF th]
+    from setsum_norm_le[OF fS, of "\<lambda>i. (x$i) *s (f (basis i))", OF th]
     have "norm (f x) \<le> ?B * norm x" unfolding th0 setsum_left_distrib by metis}
   then show ?thesis by blast
 qed
@@ -1528,7 +1489,7 @@ proof-
     finally have th: "norm (h x y) = \<dots>" .
     have "norm (h x y) \<le> ?B * norm x * norm y"
       apply (simp add: setsum_left_distrib th)
-      apply (rule real_setsum_norm_le)
+      apply (rule setsum_norm_le)
       using fN fM
       apply simp
       apply (auto simp add: bilinear_rmul[OF bh] bilinear_lmul[OF bh] field_simps)
@@ -1640,7 +1601,7 @@ lemma adjoint_linear:
   fixes f:: "real ^'n \<Rightarrow> real ^'m"
   assumes lf: "linear f"
   shows "linear (adjoint f)"
-  unfolding linear_def vector_eq_ldot[symmetric] apply safe
+  unfolding linear_def vector_eq_ldot[where 'a="real^'n", symmetric] apply safe
   unfolding inner_simps smult_conv_scaleR adjoint_works[OF lf] by auto
 
 lemma adjoint_clauses:
@@ -1663,7 +1624,7 @@ lemma adjoint_unique:
   shows "f' = adjoint f"
   apply (rule ext)
   using u
-  by (simp add: vector_eq_rdot[symmetric] adjoint_clauses[OF lf])
+  by (simp add: vector_eq_rdot[where 'a="real^'n", symmetric] adjoint_clauses[OF lf])
 
 subsection {* Matrix operations *}
 

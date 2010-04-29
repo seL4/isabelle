@@ -929,7 +929,7 @@ proof-
       unfolding dot_norm_neg dist_norm[symmetric]
       unfolding th0 fd[rule_format] by (simp add: power2_eq_square field_simps)}
   note fc = this
-  show ?thesis unfolding linear_def vector_eq smult_conv_scaleR by (simp add: inner_simps fc field_simps)
+  show ?thesis unfolding linear_def vector_eq[where 'a="real^'n"] smult_conv_scaleR by (simp add: inner_simps fc field_simps)
 qed
 
 lemma isometry_linear:
