@@ -358,19 +358,19 @@ fun dfg_clause params (cls as HOLClause {axiom_name, clause_id, kind,
 fun add_types tvars = fold add_fol_type_funcs tvars
 
 fun add_decls (full_types, explicit_apply, cma, cnh)
-              (CombConst ((c, _), _, tvars)) (funcs, preds) =
-      if c = "equal" then
-        (add_types tvars funcs, preds)
-      else
-        let val arity = min_arity_of cma c
-            val ntys = if not full_types then length tvars else 0
-            val addit = Symtab.update(c, arity+ntys)
-        in
-            if needs_hBOOL explicit_apply cnh c then
-              (add_types tvars (addit funcs), preds)
-            else
-              (add_types tvars funcs, addit preds)
-        end
+              (CombConst ((c, _), ctp, tvars)) (funcs, preds) =
+      (if c = "equal" then
+         (add_types tvars funcs, preds)
+       else
+         let val arity = min_arity_of cma c
+             val ntys = if not full_types then length tvars else 0
+             val addit = Symtab.update(c, arity + ntys)
+         in
+             if needs_hBOOL explicit_apply cnh c then
+               (add_types tvars (addit funcs), preds)
+             else
+               (add_types tvars funcs, addit preds)
+         end) |>> full_types ? add_fol_type_funcs ctp
   | add_decls _ (CombVar (_, ctp)) (funcs, preds) =
       (add_fol_type_funcs ctp funcs, preds)
   | add_decls params (CombApp (P, Q)) decls =
