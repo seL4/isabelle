@@ -6,7 +6,7 @@ Generic inductive cases facility for (co)inductive definitions.
 
 signature IND_CASES =
 sig
-  val declare: string -> (simpset -> cterm -> thm) -> theory -> theory
+  val declare: string -> (Proof.context -> conv) -> theory -> theory
   val inductive_cases: (Attrib.binding * string list) list -> theory -> theory
   val setup: theory -> theory
 end;
@@ -19,7 +19,7 @@ struct
 
 structure IndCasesData = Theory_Data
 (
-  type T = (simpset -> cterm -> thm) Symtab.table;
+  type T = (Proof.context -> cterm -> thm) Symtab.table;
   val empty = Symtab.empty;
   val extend = I;
   fun merge data = Symtab.merge (K true) data;
@@ -28,16 +28,17 @@ structure IndCasesData = Theory_Data
 
 fun declare name f = IndCasesData.map (Symtab.update (name, f));
 
-fun smart_cases thy ss read_prop s =
+fun smart_cases ctxt s =
   let
+    val thy = ProofContext.theory_of ctxt;
     fun err msg = cat_error msg ("Malformed set membership statement: " ^ s);
-    val A = read_prop s handle ERROR msg => err msg;
+    val A = Syntax.read_prop ctxt s handle ERROR msg => err msg;
     val c = #1 (Term.dest_Const (Term.head_of (#2 (Ind_Syntax.dest_mem (FOLogic.dest_Trueprop
       (Logic.strip_imp_concl A)))))) handle TERM _ => err "";
   in
     (case Symtab.lookup (IndCasesData.get thy) c of
       NONE => error ("Unknown inductive cases rule for set " ^ quote c)
-    | SOME f => f ss (Thm.cterm_of thy A))
+    | SOME f => f ctxt (Thm.cterm_of thy A))
   end;
 
 
@@ -45,10 +46,10 @@ fun smart_cases thy ss read_prop s =
 
 fun inductive_cases args thy =
   let
-    val mk_cases = smart_cases thy (global_simpset_of thy) (Syntax.read_prop_global thy);
+    val ctxt = ProofContext.init thy;
     val facts = args |> map (fn ((name, srcs), props) =>
       ((name, map (Attrib.attribute thy) srcs),
-        map (Thm.no_attributes o single o mk_cases) props));
+        map (Thm.no_attributes o single o smart_cases ctxt) props));
   in thy |> PureThy.note_thmss "" facts |> snd end;
 
 
@@ -57,10 +58,7 @@ fun inductive_cases args thy =
 val setup =
   Method.setup @{binding "ind_cases"}
     (Scan.lift (Scan.repeat1 Args.name_source) >>
-      (fn props => fn ctxt =>
-        props
-        |> map (smart_cases (ProofContext.theory_of ctxt) (simpset_of ctxt) (Syntax.read_prop ctxt))
-        |> Method.erule 0))
+      (fn props => fn ctxt => Method.erule 0 (map (smart_cases ctxt) props)))
     "dynamic case analysis on sets";
 
 

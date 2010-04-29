@@ -268,9 +268,9 @@ let
       the given defs.  Cannot simply use the local con_defs because
       con_defs=[] for inference systems.
     Proposition A should have the form t:Si where Si is an inductive set*)
-  fun make_cases ss A =
+  fun make_cases ctxt A =
     rule_by_tactic
-      (basic_elim_tac THEN ALLGOALS (asm_full_simp_tac ss) THEN basic_elim_tac)
+      (basic_elim_tac THEN ALLGOALS (asm_full_simp_tac (simpset_of ctxt)) THEN basic_elim_tac)
       (Thm.assume A RS elim)
       |> Drule.export_without_context_open;
 
