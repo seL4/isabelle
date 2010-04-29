@@ -109,7 +109,7 @@ val parse_dollar_name =
 (* needed for SPASS's output format *)
 fun repair_name _ "$true" = "c_True"
   | repair_name _ "$false" = "c_False"
-  | repair_name _ "$$e" = "c_equal" (* seen in Vampire proofs *)
+  | repair_name _ "$$e" = "c_equal" (* seen in Vampire 11 proofs *)
   | repair_name _ "equal" = "c_equal" (* probably not needed *)
   | repair_name pool s = ugly_name pool s
 (* Generalized first-order terms, which include file names, numbers, etc. *)
@@ -199,7 +199,6 @@ fun parse_horn_clause pool =
 (* Syntax: <num>[0:<inference><annotations>]
    <cnf_formulas> || <cnf_formulas> -> <cnf_formulas>. *)
 fun finish_spass_line ((num, deps), us) = Inference (num, us, deps)
-|> tap (fn _ => priority ("*** processing " ^ PolyML.makestring num)) (* ### *)
 fun parse_spass_line pool =
   parse_integer --| $$ "[" --| $$ "0" --| $$ ":" --| Symbol.scan_id
   -- parse_spass_annotations --| $$ "]" -- parse_horn_clause pool --| $$ "."
@@ -491,7 +490,7 @@ fun replace_deps_in_line _ (line as Definition _) = line
 fun add_line _ _ (line as Definition _) lines = line :: lines
   | add_line conjecture_shape thm_names (Inference (num, t, [])) lines =
     (* No dependencies: axiom, conjecture clause, or internal axioms
-       (Vampire). *)
+       (Vampire 11). *)
     if is_axiom_clause_number thm_names num then
       (* Axioms are not proof lines. *)
       if is_only_type_information t then
@@ -538,7 +537,8 @@ fun add_desired_line _ _ (line as Definition _) (j, lines) = (j, line :: lines)
      if is_only_type_information t orelse
         not (null (Term.add_tvars t [])) orelse
         exists_subterm is_bad_free t orelse
-        (length deps < 2 orelse j mod shrink_factor <> 0) then
+        (not (null lines) andalso (* last line must be kept *)
+         (length deps < 2 orelse j mod shrink_factor <> 0)) then
        map (replace_deps_in_line (num, deps)) lines  (* delete line *)
      else
        Inference (num, t, deps) :: lines)
