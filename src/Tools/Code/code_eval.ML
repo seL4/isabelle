@@ -1,4 +1,4 @@
-(*  Title:      Tools/code/code_eval.ML_
+(*  Title:      Tools/code/code_eval.ML
     Author:     Florian Haftmann, TU Muenchen
 
 Runtime services building on code generation into implementation language SML.
@@ -97,19 +97,6 @@ fun register_datatype tyco constrs = register_code [tyco] constrs;
 fun print_const const all_struct_name tycos_map consts_map =
   (Long_Name.append all_struct_name o the o AList.lookup (op =) consts_map) const;
 
-fun print_datatype tyco constrs all_struct_name tycos_map consts_map =
-  let
-    val upperize = implode o nth_map 0 Symbol.to_ascii_upper o explode;
-    fun check_base name name'' =
-      if upperize (Long_Name.base_name name) = upperize name''
-      then () else error ("Name as printed " ^ quote name''
-        ^ "\ndiffers from logical base name " ^ quote (Long_Name.base_name name) ^ "; sorry.");
-    val tyco'' = (the o AList.lookup (op =) tycos_map) tyco;
-    val constrs'' = map (the o AList.lookup (op =) consts_map) constrs;
-    val _ = check_base tyco tyco'';
-    val _ = map2 check_base constrs constrs'';
-  in "datatype " ^ tyco'' ^ " = datatype " ^ Long_Name.append all_struct_name tyco'' end;
-
 fun print_code is_first print_it ctxt =
   let
     val (_, (_, (struct_code_name, acc_code))) = CodeAntiqData.get ctxt;
@@ -127,18 +114,6 @@ fun ml_code_antiq raw_const background =
     val is_first = is_first_occ background;
     val background' = register_const const background;
   in (print_code is_first (print_const const), background') end;
-
-fun ml_code_datatype_antiq (raw_tyco, raw_constrs) background =
-  let
-    val thy = ProofContext.theory_of background;
-    val tyco = Sign.intern_type thy raw_tyco;
-    val constrs = map (Code.check_const thy) raw_constrs;
-    val constrs' = (map fst o snd o Code.get_type thy) tyco;
-    val _ = if eq_set (op =) (constrs, constrs') then ()
-      else error ("Type " ^ quote tyco ^ ": given constructors diverge from real constructors")
-    val is_first = is_first_occ background;
-    val background' = register_datatype tyco constrs background;
-  in (print_code is_first (print_datatype tyco constrs), background') end;
 
 end; (*local*)
 
@@ -226,10 +201,6 @@ val code_reflect_cmd = gen_code_reflect Code_Target.read_tyco Code.read_const;
 (** Isar setup **)
 
 val _ = ML_Context.add_antiq "code" (fn _ => Args.term >> ml_code_antiq);
-val _ = ML_Context.add_antiq "code_datatype" (fn _ =>
-  (Args.type_name true --| Scan.lift (Args.$$$ "=")
-    -- (Args.term ::: Scan.repeat (Scan.lift (Args.$$$ "|") |-- Args.term)))
-      >> ml_code_datatype_antiq);
 
 local
 
@@ -238,7 +209,6 @@ and K = OuterKeyword
 
 val datatypesK = "datatypes";
 val functionsK = "functions";
-val module_nameK = "module_name";
 val fileK = "file";
 val andK = "and"
 
@@ -250,12 +220,11 @@ in
 
 val _ =
   OuterSyntax.command "code_reflect" "enrich runtime environment with generated code"
-    K.thy_decl (Scan.optional (P.$$$ datatypesK |-- (parse_datatype
+    K.thy_decl (P.name -- Scan.optional (P.$$$ datatypesK |-- (parse_datatype
       ::: Scan.repeat (P.$$$ andK |-- parse_datatype))) []
     -- Scan.optional (P.$$$ functionsK |-- Scan.repeat1 P.name) []
-    --| P.$$$ module_nameK -- P.name
     -- Scan.option (P.$$$ fileK |-- P.name)
-  >> (fn (((raw_datatypes, raw_functions), module_name), some_file) => Toplevel.theory
+  >> (fn (((module_name, raw_datatypes), raw_functions), some_file) => Toplevel.theory
     (code_reflect_cmd raw_datatypes raw_functions module_name some_file)));
 
 end; (*local*)
