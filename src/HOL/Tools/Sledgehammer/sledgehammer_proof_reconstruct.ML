@@ -186,7 +186,7 @@ val parse_spass_annotations =
 (* It is not clear why some literals are followed by sequences of stars. We
    ignore them. *)
 fun parse_starred_predicate_term pool =
-  parse_predicate_term pool --| Scan.repeat ($$ "*" || $$ " ")
+  parse_predicate_term pool --| Scan.repeat ($$ "*" || $$ "+" || $$ " ")
 
 fun parse_horn_clause pool =
   Scan.repeat (parse_starred_predicate_term pool) --| $$ "|" --| $$ "|"
