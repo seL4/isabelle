@@ -279,7 +279,7 @@ fun invoke_serializer thy abortable serializer literals reserved abs_includes
       (Symtab.lookup module_alias) (Symtab.lookup class')
       (Symtab.lookup tyco') (Symtab.lookup const')
       (Code_Printer.string_of_pretty width, Code_Printer.writeln_pretty width)
-      program4 names2
+      program4 names1
   end;
 
 fun mount_serializer thy alt_serializer target some_width module args naming program names =
