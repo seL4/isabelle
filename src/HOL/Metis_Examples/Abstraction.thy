@@ -66,13 +66,11 @@ lemma "(a, b) \<in> (SIGMA x:A. {y. x = f y}) \<Longrightarrow> a \<in> A \<and>
 proof -
   assume A1: "(a, b) \<in> (SIGMA x:A. {y. x = f y})"
   have F1: "\<forall>u. {u} = op = u" by (metis singleton_conv2 Collect_def)
-  have F2: "\<forall>x w. (\<lambda>R. w (x R)) = x -` w" by (metis vimage_Collect_eq Collect_def)
-  have F3: "\<forall>v w y. v \<in> w -` op = y \<longrightarrow> w v = y" by (metis F1 vimage_singleton_eq)
-  have F4: "b \<in> {R. a = f R}" by (metis A1 mem_Sigma_iff)
-  have F5: "a \<in> A" by (metis A1 mem_Sigma_iff)
-  have "b \<in> f -` op = a" by (metis F2 F4 Collect_def)
-  hence "f b = a" by (metis F3)
-  thus "a \<in> A \<and> a = f b" by (metis F5)
+  have F2: "\<forall>y w v. v \<in> w -` op = y \<longrightarrow> w v = y"
+    by (metis F1 vimage_singleton_eq)
+  have F3: "\<forall>x w. (\<lambda>R. w (x R)) = x -` w"
+    by (metis vimage_Collect_eq Collect_def)
+  show "a \<in> A \<and> a = f b" by (metis A1 F2 F3 mem_Sigma_iff Collect_def)
 qed
 
 (* Alternative structured proof *)
