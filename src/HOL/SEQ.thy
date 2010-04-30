@@ -532,6 +532,33 @@ by (auto simp add: convergent_def)
 lemma convergent_LIMSEQ_iff: "convergent X = (X ----> lim X)"
 by (auto intro: theI LIMSEQ_unique simp add: convergent_def lim_def)
 
+lemma convergent_const: "convergent (\<lambda>n. c)"
+by (rule convergentI, rule LIMSEQ_const)
+
+lemma convergent_add:
+  fixes X Y :: "nat \<Rightarrow> 'a::real_normed_vector"
+  assumes "convergent (\<lambda>n. X n)"
+  assumes "convergent (\<lambda>n. Y n)"
+  shows "convergent (\<lambda>n. X n + Y n)"
+using assms unfolding convergent_def by (fast intro: LIMSEQ_add)
+
+lemma convergent_setsum:
+  fixes X :: "'a \<Rightarrow> nat \<Rightarrow> 'b::real_normed_vector"
+  assumes "finite A" and "\<And>i. i \<in> A \<Longrightarrow> convergent (\<lambda>n. X i n)"
+  shows "convergent (\<lambda>n. \<Sum>i\<in>A. X i n)"
+using assms
+by (induct A set: finite, simp_all add: convergent_const convergent_add)
+
+lemma (in bounded_linear) convergent:
+  assumes "convergent (\<lambda>n. X n)"
+  shows "convergent (\<lambda>n. f (X n))"
+using assms unfolding convergent_def by (fast intro: LIMSEQ)
+
+lemma (in bounded_bilinear) convergent:
+  assumes "convergent (\<lambda>n. X n)" and "convergent (\<lambda>n. Y n)"
+  shows "convergent (\<lambda>n. X n ** Y n)"
+using assms unfolding convergent_def by (fast intro: LIMSEQ)
+
 lemma convergent_minus_iff:
   fixes X :: "nat \<Rightarrow> 'a::real_normed_vector"
   shows "convergent X \<longleftrightarrow> convergent (\<lambda>n. - X n)"
