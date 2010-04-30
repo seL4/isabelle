@@ -54,11 +54,6 @@ by (simp add: fderiv_def bounded_linear_ident)
 
 subsection {* Addition *}
 
-lemma add_diff_add:
-  fixes a b c d :: "'a::ab_group_add"
-  shows "(a + c) - (b + d) = (a - b) + (c - d)"
-by simp
-
 lemma bounded_linear_add:
   assumes "bounded_linear f"
   assumes "bounded_linear g"
@@ -401,11 +396,6 @@ lemma FDERIV_power:
 
 
 subsection {* Inverse *}
-
-lemma inverse_diff_inverse:
-  "\<lbrakk>(a::'a::division_ring) \<noteq> 0; b \<noteq> 0\<rbrakk>
-   \<Longrightarrow> inverse a - inverse b = - (inverse a * (a - b) * inverse b)"
-by (simp add: right_diff_distrib left_diff_distrib mult_assoc)
 
 lemmas bounded_linear_mult_const =
   mult.bounded_linear_left [THEN bounded_linear_compose]
