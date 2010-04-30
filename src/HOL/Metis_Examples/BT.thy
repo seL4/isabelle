@@ -133,7 +133,7 @@ lemma bt_map_ident: "bt_map (%x. x) = (%y. y)"
 apply (rule ext) 
 apply (induct_tac y)
  apply (metis bt_map.simps(1))
-by (metis COMBI_def bt_map.simps(2))
+by (metis bt_map.simps(2))
 
 declare [[ atp_problem_prefix = "BT__bt_map_appnd" ]]
 

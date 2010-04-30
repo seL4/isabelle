@@ -70,8 +70,6 @@ sig
   val is_IDT_constructor : theory -> string * typ -> bool
   val is_IDT_recursor : theory -> string * typ -> bool
   val is_const_of_class: theory -> string * typ -> bool
-  val monomorphic_term : Type.tyenv -> term -> term
-  val specialize_type : theory -> (string * typ) -> term -> term
   val string_of_typ : typ -> string
   val typ_of_dtyp : Datatype.descr -> (Datatype.dtyp * typ) list -> Datatype.dtyp -> typ
 end;  (* signature REFUTE *)
@@ -449,57 +447,8 @@ struct
       Term.all T $ Abs (x, T, abstract_over (Var ((x, i), T), t'))) vars t
   end;
 
-(* ------------------------------------------------------------------------- *)
-(* monomorphic_term: applies a type substitution 'typeSubs' for all type     *)
-(*                   variables in a term 't'                                 *)
-(* ------------------------------------------------------------------------- *)
-
-  (* Type.tyenv -> Term.term -> Term.term *)
-
-  fun monomorphic_term typeSubs t =
-    map_types (map_type_tvar
-      (fn v =>
-        case Type.lookup typeSubs v of
-          NONE =>
-          (* schematic type variable not instantiated *)
-          raise REFUTE ("monomorphic_term",
-            "no substitution for type variable " ^ fst (fst v) ^
-            " in term " ^ Syntax.string_of_term_global Pure.thy t)
-        | SOME typ =>
-          typ)) t;
-
-(* ------------------------------------------------------------------------- *)
-(* specialize_type: given a constant 's' of type 'T', which is a subterm of  *)
-(*                  't', where 't' has a (possibly) more general type, the   *)
-(*                  schematic type variables in 't' are instantiated to      *)
-(*                  match the type 'T' (may raise Type.TYPE_MATCH)           *)
-(* ------------------------------------------------------------------------- *)
-
-  (* theory -> (string * Term.typ) -> Term.term -> Term.term *)
-
-  fun specialize_type thy (s, T) t =
-  let
-    fun find_typeSubs (Const (s', T')) =
-      if s=s' then
-        SOME (Sign.typ_match thy (T', T) Vartab.empty)
-          handle Type.TYPE_MATCH => NONE
-      else
-        NONE
-      | find_typeSubs (Free _)           = NONE
-      | find_typeSubs (Var _)            = NONE
-      | find_typeSubs (Bound _)          = NONE
-      | find_typeSubs (Abs (_, _, body)) = find_typeSubs body
-      | find_typeSubs (t1 $ t2)          =
-      (case find_typeSubs t1 of SOME x => SOME x
-                              | NONE   => find_typeSubs t2)
-  in
-    case find_typeSubs t of
-      SOME typeSubs =>
-      monomorphic_term typeSubs t
-    | NONE =>
-      (* no match found - perhaps due to sort constraints *)
-      raise Type.TYPE_MATCH
-  end;
+val monomorphic_term = Sledgehammer_Util.monomorphic_term
+val specialize_type = Sledgehammer_Util.specialize_type
 
 (* ------------------------------------------------------------------------- *)
 (* is_const_of_class: returns 'true' iff 'Const (s, T)' is a constant that   *)

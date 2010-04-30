@@ -25,28 +25,28 @@ uses
   ("Tools/Sledgehammer/metis_tactics.ML")
 begin
 
-definition COMBI :: "'a \<Rightarrow> 'a"
-  where "COMBI P \<equiv> P"
+definition COMBI :: "'a \<Rightarrow> 'a" where
+[no_atp]: "COMBI P \<equiv> P"
 
-definition COMBK :: "'a \<Rightarrow> 'b \<Rightarrow> 'a"
-  where "COMBK P Q \<equiv> P"
+definition COMBK :: "'a \<Rightarrow> 'b \<Rightarrow> 'a" where
+[no_atp]: "COMBK P Q \<equiv> P"
 
-definition COMBB :: "('b => 'c) \<Rightarrow> ('a => 'b) \<Rightarrow> 'a \<Rightarrow> 'c"
-  where "COMBB P Q R \<equiv> P (Q R)"
+definition COMBB :: "('b => 'c) \<Rightarrow> ('a => 'b) \<Rightarrow> 'a \<Rightarrow> 'c" where [no_atp]:
+"COMBB P Q R \<equiv> P (Q R)"
 
-definition COMBC :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c"
-  where "COMBC P Q R \<equiv> P R Q"
+definition COMBC :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c" where
+[no_atp]: "COMBC P Q R \<equiv> P R Q"
 
-definition COMBS :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c"
-  where "COMBS P Q R \<equiv> P R (Q R)"
+definition COMBS :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c" where
+[no_atp]: "COMBS P Q R \<equiv> P R (Q R)"
 
-definition fequal :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
-  where "fequal X Y \<equiv> (X = Y)"
+definition fequal :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where [no_atp]:
+"fequal X Y \<equiv> (X = Y)"
 
-lemma fequal_imp_equal: "fequal X Y \<Longrightarrow> X = Y"
+lemma fequal_imp_equal [no_atp]: "fequal X Y \<Longrightarrow> X = Y"
   by (simp add: fequal_def)
 
-lemma equal_imp_fequal: "X = Y \<Longrightarrow> fequal X Y"
+lemma equal_imp_fequal [no_atp]: "X = Y \<Longrightarrow> fequal X Y"
   by (simp add: fequal_def)
 
 text{*These two represent the equivalence between Boolean equality and iff.
@@ -61,31 +61,31 @@ by blast
 
 text{*Theorems for translation to combinators*}
 
-lemma abs_S: "\<lambda>x. (f x) (g x) \<equiv> COMBS f g"
+lemma abs_S [no_atp]: "\<lambda>x. (f x) (g x) \<equiv> COMBS f g"
 apply (rule eq_reflection)
 apply (rule ext) 
 apply (simp add: COMBS_def) 
 done
 
-lemma abs_I: "\<lambda>x. x \<equiv> COMBI"
+lemma abs_I [no_atp]: "\<lambda>x. x \<equiv> COMBI"
 apply (rule eq_reflection)
 apply (rule ext) 
 apply (simp add: COMBI_def) 
 done
 
-lemma abs_K: "\<lambda>x. y \<equiv> COMBK y"
+lemma abs_K [no_atp]: "\<lambda>x. y \<equiv> COMBK y"
 apply (rule eq_reflection)
 apply (rule ext) 
 apply (simp add: COMBK_def) 
 done
 
-lemma abs_B: "\<lambda>x. a (g x) \<equiv> COMBB a g"
+lemma abs_B [no_atp]: "\<lambda>x. a (g x) \<equiv> COMBB a g"
 apply (rule eq_reflection)
 apply (rule ext) 
 apply (simp add: COMBB_def) 
 done
 
-lemma abs_C: "\<lambda>x. (f x) b \<equiv> COMBC f b"
+lemma abs_C [no_atp]: "\<lambda>x. (f x) b \<equiv> COMBC f b"
 apply (rule eq_reflection)
 apply (rule ext) 
 apply (simp add: COMBC_def) 

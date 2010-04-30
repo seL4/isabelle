@@ -18,6 +18,8 @@ sig
   val nat_subscript : int -> string
   val unyxml : string -> string
   val maybe_quote : string -> string
+  val monomorphic_term : Type.tyenv -> term -> term
+  val specialize_type : theory -> (string * typ) -> term -> term
 end;
  
 structure Sledgehammer_Util : SLEDGEHAMMER_UTIL =
@@ -102,5 +104,31 @@ fun maybe_quote y =
            not (is_long_identifier (perhaps (try (unprefix "?")) s))) orelse
            OuterKeyword.is_keyword s) ? quote
   end
+
+fun monomorphic_term subst t =
+  map_types (map_type_tvar (fn v =>
+      case Type.lookup subst v of
+        SOME typ => typ
+      | NONE => raise TERM ("monomorphic_term: uninstanitated schematic type \
+                            \variable", [t]))) t
+
+fun specialize_type thy (s, T) t =
+  let
+    fun subst_for (Const (s', T')) =
+      if s = s' then
+        SOME (Sign.typ_match thy (T', T) Vartab.empty)
+        handle Type.TYPE_MATCH => NONE
+      else
+        NONE
+    | subst_for (t1 $ t2) =
+      (case subst_for t1 of SOME x => SOME x | NONE => subst_for t2)
+    | subst_for (Abs (_, _, t')) = subst_for t'
+    | subst_for _ = NONE
+  in
+    case subst_for t of
+      SOME subst => monomorphic_term subst t
+    | NONE => raise Type.TYPE_MATCH
+  end
+
 
 end;

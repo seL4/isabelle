@@ -392,13 +392,14 @@ fun add_multi_names (a, ths) pairs =
 
 fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
 
-(*The single theorems go BEFORE the multiple ones. Blacklist is applied to all.*)
+(* The single-name theorems go after the multiple-name ones, so that single
+   names are preferred when both are available. *)
 fun name_thm_pairs respect_no_atp ctxt =
   let
     val (mults, singles) =
       List.partition is_multi (all_valid_thms respect_no_atp ctxt)
-    val ps = [] |> fold add_multi_names mults
-                |> fold add_single_names singles
+    val ps = [] |> fold add_single_names singles
+                |> fold add_multi_names mults
   in ps |> respect_no_atp ? filter_out (No_ATPs.member ctxt o snd) end;
 
 fun check_named ("", th) =

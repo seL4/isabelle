@@ -44,9 +44,11 @@ sig
     TyConstr of name * fol_type list
   val string_of_fol_type :
     fol_type -> name_pool option -> string * name_pool option
-  datatype type_literal = LTVar of string * string | LTFree of string * string
+  datatype type_literal =
+    TyLitVar of string * name |
+    TyLitFree of string * name
   exception CLAUSE of string * term
-  val add_typs : typ list -> type_literal list
+  val add_type_literals : typ list -> type_literal list
   val get_tvar_strs: typ list -> string list
   datatype arLit =
       TConsLit of class * string * string list
@@ -68,7 +70,7 @@ sig
     arity_clause -> int Symtab.table -> int Symtab.table
   val init_functab: int Symtab.table
   val dfg_sign: bool -> string -> string
-  val dfg_of_typeLit: bool -> type_literal -> string
+  val dfg_of_type_literal: bool -> type_literal -> string
   val gen_dfg_cls: int * string * kind * string list * string list * string list -> string
   val string_of_preds: (string * Int.int) list -> string
   val string_of_funcs: (string * int) list -> string
@@ -79,7 +81,8 @@ sig
   val dfg_classrel_clause: classrel_clause -> string
   val dfg_arity_clause: arity_clause -> string
   val tptp_sign: bool -> string -> string
-  val tptp_of_typeLit : bool -> type_literal -> string
+  val tptp_of_type_literal :
+    bool -> type_literal -> name_pool option -> string * name_pool option
   val gen_tptp_cls : int * string * kind * string list * string list -> string
   val tptp_tfree_clause : string -> string
   val tptp_arity_clause : arity_clause -> string
@@ -173,9 +176,7 @@ val undo_ascii_of = undo_ascii_aux [] o String.explode;
 fun paren_pack [] = ""   (*empty argument list*)
   | paren_pack strings = "(" ^ commas strings ^ ")";
 
-(*TSTP format uses (...) rather than the old [...]*)
-fun tptp_pack strings = "(" ^ space_implode " | " strings ^ ")";
-
+fun tptp_clause strings = "(" ^ space_implode " | " strings ^ ")"
 
 (*Remove the initial ' character from a type variable, if it is present*)
 fun trim_type_var s =
@@ -230,9 +231,9 @@ type name_pool = string Symtab.table * string Symtab.table
 fun empty_name_pool readable_names =
   if readable_names then SOME (`I Symtab.empty) else NONE
 
+fun pool_fold f xs z = pair z #> fold_rev (fn x => uncurry (f x)) xs
 fun pool_map f xs =
-  fold_rev (fn x => fn (ys, pool) => f x pool |>> (fn y => y :: ys)) xs
-  o pair []
+  pool_fold (fn x => fn ys => fn pool => f x pool |>> (fn y => y :: ys)) xs []
 
 fun add_nice_name full_name nice_prefix j the_pool =
   let
@@ -306,8 +307,10 @@ fun string_of_fol_type (TyVar sp) pool = nice_name sp pool
       val (ss, pool) = pool_map string_of_fol_type tys pool
     in (s ^ paren_pack ss, pool) end
 
-(*First string is the type class; the second is a TVar or TFfree*)
-datatype type_literal = LTVar of string * string | LTFree of string * string;
+(* The first component is the type class; the second is a TVar or TFree. *)
+datatype type_literal =
+  TyLitVar of string * name |
+  TyLitFree of string * name
 
 exception CLAUSE of string * term;
 
@@ -317,21 +320,21 @@ fun sorts_on_typs_aux (_, [])   = []
       let val sorts = sorts_on_typs_aux ((x,i), ss)
       in
           if s = "HOL.type" then sorts
-          else if i = ~1 then LTFree(make_type_class s, make_fixed_type_var x) :: sorts
-          else LTVar(make_type_class s, make_schematic_type_var (x,i)) :: sorts
+          else if i = ~1 then TyLitFree (make_type_class s, `make_fixed_type_var x) :: sorts
+          else TyLitVar (make_type_class s, (make_schematic_type_var (x,i), x)) :: sorts
       end;
 
 fun sorts_on_typs (TFree (a,s)) = sorts_on_typs_aux ((a,~1),s)
   | sorts_on_typs (TVar (v,s))  = sorts_on_typs_aux (v,s);
 
-fun pred_of_sort (LTVar (s,ty)) = (s,1)
-  | pred_of_sort (LTFree (s,ty)) = (s,1)
+fun pred_of_sort (TyLitVar (s, _)) = (s, 1)
+  | pred_of_sort (TyLitFree (s, _)) = (s, 1)
 
 (*Given a list of sorted type variables, return a list of type literals.*)
-fun add_typs Ts = fold (union (op =)) (map sorts_on_typs Ts) []
+fun add_type_literals Ts = fold (union (op =)) (map sorts_on_typs Ts) []
 
 (*The correct treatment of TFrees like 'a in lemmas (axiom clauses) is not clear.
-  * Ignoring them leads to unsound proofs, since we do nothing to ensure that 'a
+  *  Ignoring them leads to unsound proofs, since we do nothing to ensure that 'a
     in a lemma has the same sort as 'a in the conjecture.
   * Deleting such clauses will lead to problems with locales in other use of local results
     where 'a is fixed. Probably we should delete clauses unless the sorts agree.
@@ -499,8 +502,10 @@ fun string_of_type_clsname (cls_id,ax_name,idx) =
 fun dfg_sign true s = s
   | dfg_sign false s = "not(" ^ s ^ ")"
 
-fun dfg_of_typeLit pos (LTVar (s,ty))  = dfg_sign pos (s ^ "(" ^ ty ^ ")")
-  | dfg_of_typeLit pos (LTFree (s,ty)) = dfg_sign pos (s ^ "(" ^ ty ^ ")");
+fun dfg_of_type_literal pos (TyLitVar (s, (s', _))) =
+    dfg_sign pos (s ^ "(" ^ s' ^ ")")
+  | dfg_of_type_literal pos (TyLitFree (s, (s', _))) =
+    dfg_sign pos (s ^ "(" ^ s' ^ ")");
 
 (*Enclose the clause body by quantifiers, if necessary*)
 fun dfg_forall [] body = body
@@ -563,21 +568,23 @@ fun dfg_arity_clause (ArityClause{axiom_name,conclLit,premLits,...}) =
 fun tptp_sign true s = s
   | tptp_sign false s = "~ " ^ s
 
-fun tptp_of_typeLit pos (LTVar (s, ty))  = tptp_sign pos (s ^ "(" ^ ty ^ ")")
-  | tptp_of_typeLit pos (LTFree (s, ty)) = tptp_sign pos (s ^ "(" ^ ty ^ ")")
+fun tptp_of_type_literal pos (TyLitVar (s, name)) =
+    nice_name name #>> (fn s' => tptp_sign pos (s ^ "(" ^ s' ^ ")"))
+  | tptp_of_type_literal pos (TyLitFree (s, name)) =
+    nice_name name #>> (fn s' => tptp_sign pos (s ^ "(" ^ s' ^ ")"))
 
 fun tptp_cnf name kind formula =
   "cnf(" ^ name ^ ", " ^ kind ^ ",\n    " ^ formula ^ ").\n"
 
 fun gen_tptp_cls (cls_id, ax_name, Axiom, lits, tylits) =
       tptp_cnf (string_of_clausename (cls_id, ax_name)) "axiom"
-               (tptp_pack (tylits @ lits))
+               (tptp_clause (tylits @ lits))
   | gen_tptp_cls (cls_id, ax_name, Conjecture, lits, _) =
       tptp_cnf (string_of_clausename (cls_id, ax_name)) "negated_conjecture"
-               (tptp_pack lits)
+               (tptp_clause lits)
 
 fun tptp_tfree_clause tfree_lit =
-    tptp_cnf "tfree_tcs" "negated_conjecture" (tptp_pack [tfree_lit])
+    tptp_cnf "tfree_tcs" "negated_conjecture" (tptp_clause [tfree_lit])
 
 fun tptp_of_arLit (TConsLit (c,t,args)) =
       tptp_sign true (make_type_class c ^ "(" ^ t ^ paren_pack args ^ ")")
@@ -586,11 +593,11 @@ fun tptp_of_arLit (TConsLit (c,t,args)) =
 
 fun tptp_arity_clause (ArityClause{axiom_name,conclLit,premLits,...}) =
   tptp_cnf (string_of_ar axiom_name) "axiom"
-           (tptp_pack (map tptp_of_arLit (conclLit :: premLits)))
+           (tptp_clause (map tptp_of_arLit (conclLit :: premLits)))
 
 fun tptp_classrelLits sub sup =
   let val tvar = "(T)"
-  in  tptp_pack [tptp_sign false (sub^tvar), tptp_sign true (sup^tvar)]  end;
+  in  tptp_clause [tptp_sign false (sub^tvar), tptp_sign true (sup^tvar)]  end;
 
 fun tptp_classrel_clause (ClassrelClause {axiom_name,subclass,superclass,...}) =
   tptp_cnf axiom_name "axiom" (tptp_classrelLits subclass superclass)

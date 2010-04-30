@@ -8,24 +8,21 @@ theory set
 imports Main
 begin
 
+sledgehammer_params [isar_proof, debug, overlord]
+
 lemma "EX x X. ALL y. EX z Z. (~P(y,y) | P(x,x) | ~S(z,x)) &
                (S(x,y) | ~S(y,z) | Q(Z,Z))  &
                (Q(X,y) | ~Q(y,Z) | S(X,X))" 
 by metis
-(*??But metis can't prove the single-step version...*)
-
-
 
 lemma "P(n::nat) ==> ~P(0) ==> n ~= 0"
 by metis
 
 sledgehammer_params [shrink_factor = 1]
 
-
 (*multiple versions of this example*)
 lemma (*equal_union: *)
-   "(X = Y \<union> Z) =
-    (Y \<subseteq> X \<and> Z \<subseteq> X \<and> (\<forall>V. Y \<subseteq> V \<and> Z \<subseteq> V \<longrightarrow> X \<subseteq> V))"
+   "(X = Y \<union> Z) = (Y \<subseteq> X \<and> Z \<subseteq> X \<and> (\<forall>V. Y \<subseteq> V \<and> Z \<subseteq> V \<longrightarrow> X \<subseteq> V))"
 proof (neg_clausify)
 fix x
 assume 0: "Y \<subseteq> X \<or> X = Y \<union> Z"
@@ -269,15 +266,14 @@ lemma "\<exists>B. (\<forall>x \<in> B. x \<le> (0::int))"
       "P (f b) \<Longrightarrow> \<exists>s A. (\<forall>x \<in> A. P x) \<and> f s \<in> A"
       "P (f b) \<Longrightarrow> \<exists>s A. (\<forall>x \<in> A. P x) \<and> f s \<in> A"
       "\<exists>A. a \<notin> A"
-      "(\<forall>C. (0, 0) \<in> C \<and> (\<forall>x y. (x, y) \<in> C \<longrightarrow> (Suc x, Suc y) \<in> C) \<longrightarrow> (n, m) \<in> C) \<and> Q n \<longrightarrow> Q m" 
-apply (metis atMost_iff)
-apply (metis emptyE)
-apply (metis insert_iff singletonE)
+      "(\<forall>C. (0, 0) \<in> C \<and> (\<forall>x y. (x, y) \<in> C \<longrightarrow> (Suc x, Suc y) \<in> C) \<longrightarrow> (n, m) \<in> C) \<and> Q n \<longrightarrow> Q m"
+apply (metis all_not_in_conv)+
+apply (metis mem_def)
 apply (metis insertCI singletonE zless_le)
 apply (metis Collect_def Collect_mem_eq)
 apply (metis Collect_def Collect_mem_eq)
 apply (metis DiffE)
-apply (metis pair_in_Id_conv) 
+apply (metis pair_in_Id_conv)
 done
 
 end
