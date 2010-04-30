@@ -109,10 +109,9 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
               let
                 val (p, vars') = print_bind tyvars some_thm NOBR pat vars;
               in semicolon [p, str "->", print_term tyvars some_thm vars' NOBR body] end;
-          in brackify_block fxy
-            (concat [str "case", print_term tyvars some_thm vars NOBR t, str "of", str "{"])
+          in Pretty.block_enclose
+            (concat [str "(case", print_term tyvars some_thm vars NOBR t, str "of", str "{"], str "})")
             (map print_select clauses)
-            (str "}") 
           end
       | print_case tyvars some_thm vars fxy ((_, []), _) =
           (brackify fxy o Pretty.breaks o map str) ["error", "\"empty case\""];
