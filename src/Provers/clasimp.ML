@@ -70,8 +70,14 @@ type clasimpset = claset * simpset;
 fun get_css context = (Classical.get_cs context, Simplifier.get_ss context);
 
 fun map_css f context =
-  let val (cs', ss') = f (get_css context)
-  in context |> Classical.map_cs (K cs') |> Simplifier.map_ss (K ss') end;
+  let
+    val (cs, ss) = get_css context;
+    val (cs', ss') = f (cs, Simplifier.context (Context.proof_of context) ss);
+  in
+    context
+    |> Classical.map_cs (K cs')
+    |> Simplifier.map_ss (K (Simplifier.inherit_context ss ss'))
+  end;
 
 fun clasimpset_of ctxt = (Classical.claset_of ctxt, Simplifier.simpset_of ctxt);
 
