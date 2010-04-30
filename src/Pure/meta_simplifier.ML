@@ -115,6 +115,7 @@ sig
   val the_context: simpset -> Proof.context
   val context: Proof.context -> simpset -> simpset
   val global_context: theory  -> simpset -> simpset
+  val with_context: Proof.context -> (simpset -> simpset) -> simpset -> simpset
   val debug_bounds: bool Unsynchronized.ref
   val set_reorient: (theory -> term list -> term -> term -> bool) -> simpset -> simpset
   val set_solvers: solver list -> simpset -> simpset
@@ -326,7 +327,8 @@ fun warn_thm a ss th =
   print_term_global ss true a (Thm.theory_of_thm th) (Thm.full_prop_of th);
 
 fun cond_warn_thm a (ss as Simpset ({context, ...}, _)) th =
-  if is_some context then () else warn_thm a ss th;
+  if (case context of NONE => true | SOME ctxt => Context_Position.is_visible ctxt)
+  then warn_thm a ss th else ();
 
 end;
 
@@ -358,8 +360,12 @@ val global_context = context o ProofContext.init;
 fun activate_context thy ss =
   let
     val ctxt = the_context ss;
-    val ctxt' = Context.raw_transfer (Theory.merge (thy, ProofContext.theory_of ctxt)) ctxt;
+    val ctxt' = ctxt
+      |> Context.raw_transfer (Theory.merge (thy, ProofContext.theory_of ctxt))
+      |> Context_Position.set_visible false;
   in context ctxt' ss end;
+
+fun with_context ctxt f ss = inherit_context ss (f (context ctxt ss));
 
 
 (* maintain simp rules *)
