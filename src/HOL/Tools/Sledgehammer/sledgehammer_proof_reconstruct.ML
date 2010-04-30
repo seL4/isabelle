@@ -48,8 +48,10 @@ val is_skolem_const_name =
   Long_Name.base_name
   #> String.isPrefix skolem_prefix andf String.isSubstring skolem_infix
 
-fun is_axiom_clause_number thm_names num = num <= Vector.length thm_names
 val index_in_shape = find_index o exists o curry (op =)
+fun is_axiom_clause_number thm_names num = num <= Vector.length thm_names
+fun is_conjecture_clause_number conjecture_shape num =
+  index_in_shape num conjecture_shape >= 0
 
 fun ugly_name NONE s = s
   | ugly_name (SOME the_pool) s =
@@ -489,8 +491,8 @@ fun replace_deps_in_line _ (line as Definition _) = line
   only in type information.*)
 fun add_line _ _ (line as Definition _) lines = line :: lines
   | add_line conjecture_shape thm_names (Inference (num, t, [])) lines =
-    (* No dependencies: axiom, conjecture clause, or internal axioms
-       (Vampire 11). *)
+    (* No dependencies: axiom, conjecture clause, or internal axioms or
+       definitions (Vampire). *)
     if is_axiom_clause_number thm_names num then
       (* Axioms are not proof lines. *)
       if is_only_type_information t then
@@ -500,10 +502,10 @@ fun add_line _ _ (line as Definition _) lines = line :: lines
         (_, []) => lines (*no repetition of proof line*)
       | (pre, Inference (num', _, _) :: post) =>
         pre @ map (replace_deps_in_line (num', [num])) post
-    else if index_in_shape num conjecture_shape >= 0 then
+    else if is_conjecture_clause_number conjecture_shape num then
       Inference (num, t, []) :: lines
     else
-      lines
+      map (replace_deps_in_line (num, [])) lines
   | add_line _ _ (Inference (num, t, deps)) lines =
     (* Type information will be deleted later; skip repetition test. *)
     if is_only_type_information t then
@@ -530,21 +532,27 @@ and delete_dep num lines =
 fun is_bad_free frees (Free x) = not (member (op =) frees x)
   | is_bad_free _ _ = false
 
-fun add_desired_line _ _ _ (line as Definition _) (j, lines) =
+(* Vampire is keen on producing these. *)
+fun is_trivial_formula (@{const Not} $ (Const (@{const_name "op ="}, _)
+                                        $ t1 $ t2)) = (t1 aconv t2)
+  | is_trivial_formula t = false
+
+fun add_desired_line _ _ _ _ _ (line as Definition _) (j, lines) =
     (j, line :: lines)
-  | add_desired_line ctxt _ _ (Inference (num, t, [])) (j, lines) =
-    (j, Inference (num, t, []) :: lines)  (* conjecture clauses must be kept *)
-  | add_desired_line ctxt shrink_factor frees (Inference (num, t, deps))
-                     (j, lines) =
+  | add_desired_line ctxt shrink_factor conjecture_shape thm_names frees
+                     (Inference (num, t, deps)) (j, lines) =
     (j + 1,
-     if is_only_type_information t orelse
-        not (null (Term.add_tvars t [])) orelse
-        exists_subterm (is_bad_free frees) t orelse
-        (not (null lines) andalso (* last line must be kept *)
-         (length deps < 2 orelse j mod shrink_factor <> 0)) then
-       map (replace_deps_in_line (num, deps)) lines  (* delete line *)
+     if is_axiom_clause_number thm_names num orelse
+        is_conjecture_clause_number conjecture_shape num orelse
+        (not (is_only_type_information t) andalso
+         null (Term.add_tvars t []) andalso
+         not (exists_subterm (is_bad_free frees) t) andalso
+         not (is_trivial_formula t) andalso
+         (null lines orelse (* last line must be kept *)
+          (length deps >= 2 andalso j mod shrink_factor = 0))) then
+       Inference (num, t, deps) :: lines  (* keep line *)
      else
-       Inference (num, t, deps) :: lines)
+       map (replace_deps_in_line (num, deps)) lines)  (* drop line *)
 
 (** EXTRACTING LEMMAS **)
 
@@ -557,8 +565,6 @@ fun extract_clause_numbers_in_atp_proof atp_proof =
   let
     val tokens_of = String.tokens (not o is_ident_char)
     fun extract_num ("cnf" :: num :: "axiom" :: _) = Int.fromString num
-      | extract_num ("cnf" :: num :: "negated_conjecture" :: _) =
-        Int.fromString num
       | extract_num (num :: "0" :: "Inp" :: _) = Int.fromString num
       | extract_num _ = NONE
   in atp_proof |> split_lines |> map_filter (extract_num o tokens_of) end
@@ -570,10 +576,9 @@ val chained_hint = "sledgehammer_chained"
 fun apply_command _ 1 = "by "
   | apply_command 1 _ = "apply "
   | apply_command i _ = "prefer " ^ string_of_int i ^ " apply "
-fun metis_command i n [] =
-    apply_command i n ^ "metis"
-  | metis_command i n xs =
-    apply_command i n ^ "(metis " ^ space_implode " " xs ^ ")"
+fun metis_command i n [] = apply_command i n ^ "metis"
+  | metis_command i n ss =
+    apply_command i n ^ "(metis " ^ space_implode " " ss ^ ")"
 fun metis_line i n xs =
   "Try this command: " ^
   Markup.markup Markup.sendback (metis_command i n xs) ^ ".\n" 
@@ -619,6 +624,8 @@ val raw_prefix = "X"
 val assum_prefix = "A"
 val fact_prefix = "F"
 
+fun string_for_label (s, num) = s ^ string_of_int num
+
 fun add_fact_from_dep thm_names num =
   if is_axiom_clause_number thm_names num then
     apsnd (insert (op =) (Vector.sub (thm_names, num - 1)))
@@ -643,7 +650,8 @@ fun proof_from_atp_proof pool ctxt shrink_factor atp_proof conjecture_shape
       |> decode_lines ctxt
       |> rpair [] |-> fold_rev (add_line conjecture_shape thm_names)
       |> rpair [] |-> fold_rev add_nontrivial_line
-      |> rpair (0, []) |-> fold_rev (add_desired_line ctxt shrink_factor frees)
+      |> rpair (0, []) |-> fold_rev (add_desired_line ctxt shrink_factor
+                                               conjecture_shape thm_names frees)
       |> snd
   in
     (if null frees then [] else [Fix frees]) @
@@ -865,7 +873,12 @@ val relabel_proof =
               let
                 val l' = (prefix_for_depth depth fact_prefix, next_fact)
               in (l', (l, l') :: subst, next_fact + 1) end
-          val relabel_facts = apfst (map_filter (AList.lookup (op =) subst))
+          val relabel_facts =
+            apfst (map (fn l =>
+                           case AList.lookup (op =) subst l of
+                             SOME l' => l'
+                           | NONE => raise Fail ("unknown label " ^
+                                                 quote (string_for_label l))))
           val by =
             case by of
               ByMetis facts => ByMetis (relabel_facts facts)
@@ -889,8 +902,7 @@ fun string_for_proof ctxt i n =
     fun do_free (s, T) =
       maybe_quote s ^ " :: " ^
       maybe_quote (fix_print_mode (Syntax.string_of_typ ctxt) T)
-    fun do_raw_label (s, num) = s ^ string_of_int num
-    fun do_label l = if l = no_label then "" else do_raw_label l ^ ": "
+    fun do_label l = if l = no_label then "" else string_for_label l ^ ": "
     fun do_have qs =
       (if member (op =) qs Moreover then "moreover " else "") ^
       (if member (op =) qs Ultimately then "ultimately " else "") ^
@@ -899,9 +911,11 @@ fun string_for_proof ctxt i n =
        else
          if member (op =) qs Show then "show" else "have")
     val do_term = maybe_quote o fix_print_mode (Syntax.string_of_term ctxt)
-    fun do_facts ([], []) = "by metis"
-      | do_facts (ls, ss) =
-        "by (metis " ^ space_implode " " (map do_raw_label ls @ ss) ^ ")"
+    fun do_facts (ls, ss) =
+      let
+        val ls = ls |> sort_distinct (prod_ord string_ord int_ord)
+        val ss = ss |> sort_distinct string_ord
+      in metis_command 1 1 (map string_for_label ls @ ss) end
     and do_step ind (Fix xs) =
         do_indent ind ^ "fix " ^ space_implode " and " (map do_free xs) ^ "\n"
       | do_step ind (Let (t1, t2)) =
