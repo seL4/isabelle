@@ -411,7 +411,7 @@ fun easy_setup reflect trivs = method_setup [] #> Context.theory_map (map_ss (fn
     empty_ss setsubgoaler asm_simp_tac
     setSSolver safe_solver
     setSolver unsafe_solver
-    setmksimps mksimps
+    setmksimps (K mksimps)
   end));
 
 end;

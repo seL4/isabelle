@@ -57,6 +57,8 @@ sig
   val bool_T : typ
   val nat_T : typ
   val int_T : typ
+  val monomorphic_term : Type.tyenv -> term -> term
+  val specialize_type : theory -> (string * typ) -> term -> term
   val nat_subscript : int -> string
   val time_limit : Time.time option -> ('a -> 'b) -> 'a -> 'b
   val DETERM_TIMEOUT : Time.time option -> tactic -> tactic
@@ -226,6 +228,9 @@ val prop_T = @{typ prop}
 val bool_T = @{typ bool}
 val nat_T = @{typ nat}
 val int_T = @{typ int}
+
+val monomorphic_term = Sledgehammer_Util.monomorphic_term
+val specialize_type = Sledgehammer_Util.specialize_type
 
 val subscript = implode o map (prefix "\<^isub>") o explode
 fun nat_subscript n =

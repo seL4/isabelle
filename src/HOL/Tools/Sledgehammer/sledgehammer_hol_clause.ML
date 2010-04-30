@@ -302,9 +302,13 @@ fun tptp_literal params
  
 (* Given a clause, returns its literals paired with a list of literals
    concerning TFrees; the latter should only occur in conjecture clauses. *)
-fun tptp_type_literals params pos (HOLClause {literals, ctypes_sorts, ...}) =
-  pool_map (tptp_literal params) literals
-  #>> rpair (map (tptp_of_typeLit pos) (add_typs ctypes_sorts))
+fun tptp_type_literals params pos (HOLClause {literals, ctypes_sorts, ...})
+                       pool =
+  let
+    val (lits, pool) = pool_map (tptp_literal params) literals pool
+    val (tylits, pool) = pool_map (tptp_of_type_literal pos)
+                                  (add_type_literals ctypes_sorts) pool
+  in ((lits, tylits), pool) end
 
 fun tptp_clause params (cls as HOLClause {axiom_name, clause_id, kind, ...})
                 pool =
@@ -323,7 +327,7 @@ fun dfg_literal params (Literal (pos, pred)) =
 
 fun dfg_type_literals params pos (HOLClause {literals, ctypes_sorts, ...}) =
   pool_map (dfg_literal params) literals
-  #>> rpair (map (dfg_of_typeLit pos) (add_typs ctypes_sorts))
+  #>> rpair (map (dfg_of_type_literal pos) (add_type_literals ctypes_sorts))
 
 fun get_uvars (CombConst _) vars pool = (vars, pool)
   | get_uvars (CombVar (name, _)) vars pool =
@@ -354,19 +358,19 @@ fun dfg_clause params (cls as HOLClause {axiom_name, clause_id, kind,
 fun add_types tvars = fold add_fol_type_funcs tvars
 
 fun add_decls (full_types, explicit_apply, cma, cnh)
-              (CombConst ((c, _), _, tvars)) (funcs, preds) =
-      if c = "equal" then
-        (add_types tvars funcs, preds)
-      else
-        let val arity = min_arity_of cma c
-            val ntys = if not full_types then length tvars else 0
-            val addit = Symtab.update(c, arity+ntys)
-        in
-            if needs_hBOOL explicit_apply cnh c then
-              (add_types tvars (addit funcs), preds)
-            else
-              (add_types tvars funcs, addit preds)
-        end
+              (CombConst ((c, _), ctp, tvars)) (funcs, preds) =
+      (if c = "equal" then
+         (add_types tvars funcs, preds)
+       else
+         let val arity = min_arity_of cma c
+             val ntys = if not full_types then length tvars else 0
+             val addit = Symtab.update(c, arity + ntys)
+         in
+             if needs_hBOOL explicit_apply cnh c then
+               (add_types tvars (addit funcs), preds)
+             else
+               (add_types tvars funcs, addit preds)
+         end) |>> full_types ? add_fol_type_funcs ctp
   | add_decls _ (CombVar (_, ctp)) (funcs, preds) =
       (add_fol_type_funcs ctp funcs, preds)
   | add_decls params (CombApp (P, Q)) decls =

@@ -70,8 +70,10 @@ fun extract_proof delims output =
   case pairself (find_first (fn s => String.isSubstring s output))
                 (ListPair.unzip delims) of
     (SOME begin_delim, SOME end_delim) =>
-    output |> first_field begin_delim |> the |> snd
-           |> first_field end_delim |> the |> fst
+    (output |> first_field begin_delim |> the |> snd
+            |> first_field end_delim |> the |> fst
+            |> first_field "\n" |> the |> snd
+     handle Option.Option => "")
   | _ => ""
 
 fun extract_proof_and_outcome res_code proof_delims known_failures output =
@@ -139,8 +141,8 @@ fun generic_prover overlord get_facts prepare write_file home executable args
     fun prob_pathname nr =
       let
         val probfile =
-          Path.basic (the_problem_prefix ^
-                      (if overlord then "_" ^ name else serial_string ())
+          Path.basic ((if overlord then "prob_" ^ name
+                       else the_problem_prefix ^ serial_string ())
                       ^ "_" ^ string_of_int nr)
       in
         if the_dest_dir = "" then File.tmp_path probfile
@@ -260,8 +262,10 @@ val vampire_config : prover_config =
    arguments = fn timeout =>
      "--output_syntax tptp --mode casc -t " ^
      string_of_int (to_generous_secs timeout),
-   proof_delims = [("=========== Refutation ==========",
-                    "======= End of refutation =======")],
+   proof_delims =
+     [("=========== Refutation ==========",
+       "======= End of refutation ======="),
+      ("% SZS output start Refutation", "% SZS output end Refutation")],
    known_failures =
      [(Unprovable, "Satisfiability detected"),
       (OutOfResources, "CANNOT PROVE"),

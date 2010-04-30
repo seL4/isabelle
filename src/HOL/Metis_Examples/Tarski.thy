@@ -514,67 +514,44 @@ lemma (in CLF) lubH_is_fixp:
      "H = {x. (x, f x) \<in> r & x \<in> A} ==> lub H cl \<in> fix f A"
 apply (simp add: fix_def)
 apply (rule conjI)
-proof (neg_clausify)
-assume 0: "H =
-Collect
- (COMBS (COMBB op \<and> (COMBC (COMBB op \<in> (COMBS Pair f)) r)) (COMBC op \<in> A))"
-assume 1: "lub (Collect
-      (COMBS (COMBB op \<and> (COMBC (COMBB op \<in> (COMBS Pair f)) r))
-        (COMBC op \<in> A)))
- cl
-\<notin> A"
-have 2: "lub H cl \<notin> A"
-  by (metis 1 0)
-have 3: "(lub H cl, f (lub H cl)) \<in> r"
-  by (metis lubH_le_flubH 0)
-have 4: "(f (lub H cl), lub H cl) \<in> r"
-  by (metis flubH_le_lubH 0)
-have 5: "lub H cl = f (lub H cl) \<or> (lub H cl, f (lub H cl)) \<notin> r"
-  by (metis antisymE 4)
-have 6: "lub H cl = f (lub H cl)"
-  by (metis 5 3)
-have 7: "(lub H cl, lub H cl) \<in> r"
-  by (metis 6 4)
-have 8: "\<And>X1. lub H cl \<in> X1 \<or> \<not> refl_on X1 r"
-  by (metis 7 refl_onD2)
-have 9: "\<not> refl_on A r"
-  by (metis 8 2)
-show "False"
-  by (metis CO_refl_on 9);
-next --{*apparently the way to insert a second structured proof*}
-  show "H = {x. (x, f x) \<in> r \<and> x \<in> A} \<Longrightarrow>
-  f (lub {x. (x, f x) \<in> r \<and> x \<in> A} cl) = lub {x. (x, f x) \<in> r \<and> x \<in> A} cl"
-  proof (neg_clausify)
-  assume 0: "H =
-  Collect
-   (COMBS (COMBB op \<and> (COMBC (COMBB op \<in> (COMBS Pair f)) r)) (COMBC op \<in> A))"
-  assume 1: "f (lub (Collect
-           (COMBS (COMBB op \<and> (COMBC (COMBB op \<in> (COMBS Pair f)) r))
-             (COMBC op \<in> A)))
-      cl) \<noteq>
-  lub (Collect
-        (COMBS (COMBB op \<and> (COMBC (COMBB op \<in> (COMBS Pair f)) r))
-          (COMBC op \<in> A)))
-   cl"
-  have 2: "f (lub H cl) \<noteq>
-  lub (Collect
-        (COMBS (COMBB op \<and> (COMBC (COMBB op \<in> (COMBS Pair f)) r))
-          (COMBC op \<in> A)))
-   cl"
-    by (metis 1 0)
-  have 3: "f (lub H cl) \<noteq> lub H cl"
-    by (metis 2 0)
-  have 4: "(lub H cl, f (lub H cl)) \<in> r"
-    by (metis lubH_le_flubH 0)
-  have 5: "(f (lub H cl), lub H cl) \<in> r"
-    by (metis flubH_le_lubH 0)
-  have 6: "lub H cl = f (lub H cl) \<or> (lub H cl, f (lub H cl)) \<notin> r"
-    by (metis antisymE 5)
-  have 7: "lub H cl = f (lub H cl)"
-    by (metis 6 4)
-  show "False"
-    by (metis 3 7)
-  qed
+proof -
+  assume A1: "H = {x. (x, f x) \<in> r \<and> x \<in> A}"
+  have F1: "\<forall>x\<^isub>2. (\<lambda>R. R \<in> x\<^isub>2) = x\<^isub>2" by (metis Collect_def Collect_mem_eq)
+  have F2: "\<forall>x\<^isub>1 x\<^isub>2. (\<lambda>R. x\<^isub>2 (x\<^isub>1 R)) = x\<^isub>1 -` x\<^isub>2"
+    by (metis Collect_def vimage_Collect_eq)
+  have F3: "\<forall>x\<^isub>2 x\<^isub>1. (\<lambda>R. x\<^isub>1 R \<in> x\<^isub>2) = x\<^isub>1 -` x\<^isub>2"
+    by (metis Collect_def vimage_def)
+  have F4: "\<forall>x\<^isub>3 x\<^isub>1. (\<lambda>R. x\<^isub>1 R \<and> x\<^isub>3 R) = x\<^isub>1 \<inter> x\<^isub>3"
+    by (metis Collect_def Collect_conj_eq)
+  have F5: "(\<lambda>R. (R, f R) \<in> r \<and> R \<in> A) = H" using A1 by (metis Collect_def)
+  have F6: "\<forall>x\<^isub>1\<subseteq>A. glb x\<^isub>1 (dual cl) \<in> A" by (metis lub_dual_glb lub_in_lattice)
+  have F7: "\<forall>x\<^isub>2 x\<^isub>1. (\<lambda>R. x\<^isub>1 R \<in> x\<^isub>2) = (\<lambda>R. x\<^isub>2 (x\<^isub>1 R))" by (metis F2 F3)
+  have "(\<lambda>R. (R, f R) \<in> r \<and> A R) = H" by (metis F1 F5)
+  hence "A \<inter> (\<lambda>R. r (R, f R)) = H" by (metis F4 F7 Int_commute)
+  hence "H \<subseteq> A" by (metis Int_lower1)
+  hence "H \<subseteq> A" by metis
+  hence "glb H (dual cl) \<in> A" using F6 by metis
+  hence "glb (\<lambda>R. (R, f R) \<in> r \<and> R \<in> A) (dual cl) \<in> A" using F5 by metis
+  hence "lub (\<lambda>R. (R, f R) \<in> r \<and> R \<in> A) cl \<in> A" by (metis lub_dual_glb)
+  thus "lub {x. (x, f x) \<in> r \<and> x \<in> A} cl \<in> A" by (metis Collect_def)
+next
+  assume A1: "H = {x. (x, f x) \<in> r \<and> x \<in> A}"
+  have F1: "\<forall>v. (\<lambda>R. R \<in> v) = v" by (metis Collect_mem_eq Collect_def)
+  have F2: "\<forall>w u. (\<lambda>R. u R \<and> w R) = u \<inter> w"
+    by (metis Collect_conj_eq Collect_def)
+  have F3: "\<forall>x v. (\<lambda>R. v R \<in> x) = v -` x" by (metis vimage_def Collect_def)
+  hence F4: "A \<inter> (\<lambda>R. (R, f R)) -` r = H" using A1 by auto
+  hence F5: "(f (lub H cl), lub H cl) \<in> r"
+    by (metis F1 F3 F2 Int_commute flubH_le_lubH Collect_def)
+  have F6: "(lub H cl, f (lub H cl)) \<in> r"
+    by (metis F1 F3 F2 F4 Int_commute lubH_le_flubH Collect_def)
+  have "(lub H cl, f (lub H cl)) \<in> r \<longrightarrow> f (lub H cl) = lub H cl"
+    using F5 by (metis antisymE)
+  hence "f (lub H cl) = lub H cl" using F6 by metis
+  thus "H = {x. (x, f x) \<in> r \<and> x \<in> A}
+        \<Longrightarrow> f (lub {x. (x, f x) \<in> r \<and> x \<in> A} cl) =
+           lub {x. (x, f x) \<in> r \<and> x \<in> A} cl"
+    by (metis F4 F2 F3 F1 Collect_def Int_commute)
 qed
 
 lemma (in CLF) (*lubH_is_fixp:*)
@@ -744,18 +721,13 @@ lemma (in CLF) intervalPO:
      "[| a \<in> A; b \<in> A; interval r a b \<noteq> {} |]
       ==> (| pset = interval r a b, order = induced (interval r a b) r |)
           \<in> PartialOrder"
-proof (neg_clausify)
-assume 0: "a \<in> A"
-assume 1: "b \<in> A"
-assume 2: "\<lparr>pset = interval r a b, order = induced (interval r a b) r\<rparr> \<notin> PartialOrder"
-have 3: "\<not> interval r a b \<subseteq> A"
-  by (metis 2 po_subset_po)
-have 4: "b \<notin> A \<or> a \<notin> A"
-  by (metis 3 interval_subset)
-have 5: "a \<notin> A"
-  by (metis 4 1)
-show "False"
-  by (metis 5 0)
+proof -
+  assume A1: "a \<in> A"
+  assume "b \<in> A"
+  hence "\<forall>u. u \<in> A \<longrightarrow> interval r u b \<subseteq> A" by (metis interval_subset)
+  hence "interval r a b \<subseteq> A" using A1 by metis
+  hence "interval r a b \<subseteq> A" by metis
+  thus ?thesis by (metis po_subset_po)
 qed
 
 lemma (in CLF) intv_CL_lub:
@@ -1096,9 +1068,9 @@ apply (simp add: P_def A_def r_def)
 apply (blast intro!: Tarski.tarski_full_lemma [OF Tarski.intro, OF CLF.intro Tarski_axioms.intro,
   OF CL.intro CLF_axioms.intro, OF PO.intro CL_axioms.intro] cl_po cl_co f_cl)
 done
-  declare (in CLF) fixf_po[rule del] P_def [simp del] A_def [simp del] r_def [simp del]
+
+declare (in CLF) fixf_po [rule del] P_def [simp del] A_def [simp del] r_def [simp del]
          Tarski.tarski_full_lemma [rule del] cl_po [rule del] cl_co [rule del]
          CompleteLatticeI_simp [rule del]
-
 
 end

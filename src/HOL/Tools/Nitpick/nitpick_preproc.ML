@@ -914,8 +914,8 @@ fun axioms_for_term
                  val class = Logic.class_of_const s
                  val of_class = Logic.mk_of_class (TVar (("'a", 0), [class]),
                                                    class)
-                 val ax1 = try (Refute.specialize_type thy x) of_class
-                 val ax2 = Option.map (Refute.specialize_type thy x o snd)
+                 val ax1 = try (specialize_type thy x) of_class
+                 val ax2 = Option.map (specialize_type thy x o snd)
                                       (Refute.get_classdef thy class)
                in
                  fold (add_maybe_def_axiom depth) (map_filter I [ax1, ax2])
@@ -997,7 +997,7 @@ fun axioms_for_term
           map (fn t => case Term.add_tvars t [] of
                          [] => t
                        | [(x, S)] =>
-                         Refute.monomorphic_term (Vartab.make [(x, (S, T))]) t
+                         monomorphic_term (Vartab.make [(x, (S, T))]) t
                        | _ => raise TERM ("Nitpick_Preproc.axioms_for_term.\
                                           \add_axioms_for_sort", [t]))
               class_axioms

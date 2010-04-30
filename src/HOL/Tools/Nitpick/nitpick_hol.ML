@@ -1260,15 +1260,15 @@ fun term_under_def t =
   | t1 $ _ => term_under_def t1
   | _ => t
 
-(* Here we crucially rely on "Refute.specialize_type" performing a preorder
-   traversal of the term, without which the wrong occurrence of a constant could
-   be matched in the face of overloading. *)
+(* Here we crucially rely on "specialize_type" performing a preorder traversal
+   of the term, without which the wrong occurrence of a constant could be
+   matched in the face of overloading. *)
 fun def_props_for_const thy stds fast_descrs table (x as (s, _)) =
   if is_built_in_const thy stds fast_descrs x then
     []
   else
     these (Symtab.lookup table s)
-    |> map_filter (try (Refute.specialize_type thy x))
+    |> map_filter (try (specialize_type thy x))
     |> filter (curry (op =) (Const x) o term_under_def)
 
 fun normalized_rhs_of t =
@@ -1381,8 +1381,8 @@ fun is_constr_pattern_formula thy t =
     SOME t' => is_constr_pattern_lhs thy t'
   | NONE => false
 
-(* Similar to "Refute.specialize_type" but returns all matches rather than only
-   the first (preorder) match. *)
+(* Similar to "specialize_type" but returns all matches rather than only the
+   first (preorder) match. *)
 fun multi_specialize_type thy slack (s, T) t =
   let
     fun aux (Const (s', T')) ys =
@@ -1390,10 +1390,10 @@ fun multi_specialize_type thy slack (s, T) t =
           ys |> (if AList.defined (op =) ys T' then
                    I
                  else
-                   cons (T', Refute.monomorphic_term
-                                 (Sign.typ_match thy (T', T) Vartab.empty) t)
+                   cons (T', monomorphic_term (Sign.typ_match thy (T', T)
+                                                              Vartab.empty) t)
                    handle Type.TYPE_MATCH => I
-                        | Refute.REFUTE _ =>
+                        | TERM _ =>
                           if slack then
                             I
                           else
@@ -1682,7 +1682,7 @@ fun inverse_axioms_for_rep_fun thy (x as (_, T)) =
   let val abs_T = domain_type T in
     typedef_info thy (fst (dest_Type abs_T)) |> the
     |> pairf #Abs_inverse #Rep_inverse
-    |> pairself (Refute.specialize_type thy x o prop_of o the)
+    |> pairself (specialize_type thy x o prop_of o the)
     ||> single |> op ::
   end
 fun optimized_typedef_axioms thy (abs_z as (abs_s, _)) =
@@ -1697,7 +1697,7 @@ fun optimized_typedef_axioms thy (abs_z as (abs_s, _)) =
         val set_t = Const (set_name, rep_T --> bool_T)
         val set_t' =
           prop_of_Rep |> HOLogic.dest_Trueprop
-                      |> Refute.specialize_type thy (dest_Const rep_t)
+                      |> specialize_type thy (dest_Const rep_t)
                       |> HOLogic.dest_mem |> snd
       in
         [HOLogic.all_const abs_T
