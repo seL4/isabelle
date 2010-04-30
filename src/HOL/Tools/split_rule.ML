@@ -116,7 +116,7 @@ val split_rule_ss = HOL_basic_ss addsimps [@{thm split_conv}, @{thm fst_conv}, @
 
 fun split_rule_goal ctxt xss rl =
   let
-    fun one_split i s = Tactic.rule_by_tactic (pair_tac ctxt s i);
+    fun one_split i s = Tactic.rule_by_tactic ctxt (pair_tac ctxt s i);
     fun one_goal (i, xs) = fold (one_split (i + 1)) xs;
   in
     rl

@@ -208,8 +208,11 @@ fun swap_res_tac rls =
 fun dup_intr th = zero_var_indexes (th RS classical);
 
 fun dup_elim th =
-    rule_by_tactic (TRYALL (etac revcut_rl))
-      ((th RSN (2, revcut_rl)) |> Thm.assumption 2 |> Seq.hd);
+  let
+    val rl = (th RSN (2, revcut_rl)) |> Thm.assumption 2 |> Seq.hd;
+    val ctxt = ProofContext.init (Thm.theory_of_thm rl);
+  in rule_by_tactic ctxt (TRYALL (etac revcut_rl)) rl end;
+
 
 (**** Classical rule sets ****)
 
