@@ -1393,7 +1393,7 @@ fun multi_specialize_type thy slack (s, T) t =
                    cons (T', monomorphic_term (Sign.typ_match thy (T', T)
                                                               Vartab.empty) t)
                    handle Type.TYPE_MATCH => I
-                        | Refute.REFUTE _ =>
+                        | TERM _ =>
                           if slack then
                             I
                           else
