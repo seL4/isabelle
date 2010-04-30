@@ -711,7 +711,7 @@ qed
 lemma Fake_parts_insert:
      "X \<in> synth (analz H) ==>  
       parts (insert X H) \<subseteq> synth (analz H) \<union> parts H"
-sledgehammer
+(*sledgehammer*)
 proof -
   assume A1: "X \<in> synth (analz H)"
   have F1: "\<forall>x\<^isub>1. analz x\<^isub>1 \<union> synth (analz x\<^isub>1) = analz (synth (analz x\<^isub>1))"

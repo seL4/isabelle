@@ -261,7 +261,7 @@ let
       THEN (PRIMITIVE (fold_rule part_rec_defs));
 
   (*Elimination*)
-  val elim = rule_by_tactic basic_elim_tac
+  val elim = rule_by_tactic (ProofContext.init thy1) basic_elim_tac
                  (unfold RS Ind_Syntax.equals_CollectD)
 
   (*Applies freeness of the given constructors, which *must* be unfolded by
@@ -269,7 +269,7 @@ let
       con_defs=[] for inference systems.
     Proposition A should have the form t:Si where Si is an inductive set*)
   fun make_cases ctxt A =
-    rule_by_tactic
+    rule_by_tactic ctxt
       (basic_elim_tac THEN ALLGOALS (asm_full_simp_tac (simpset_of ctxt)) THEN basic_elim_tac)
       (Thm.assume A RS elim)
       |> Drule.export_without_context_open;
