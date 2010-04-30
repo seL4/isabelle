@@ -185,15 +185,15 @@ val parse_spass_annotations =
   Scan.optional ($$ ":" |-- Scan.repeat (parse_dot_name
                                          --| Scan.option ($$ ","))) []
 
-(* It is not clear why some literals are followed by sequences of stars. We
-   ignore them. *)
-fun parse_starred_predicate_term pool =
+(* It is not clear why some literals are followed by sequences of stars and/or
+   pluses. We ignore them. *)
+fun parse_decorated_predicate_term pool =
   parse_predicate_term pool --| Scan.repeat ($$ "*" || $$ "+" || $$ " ")
 
 fun parse_horn_clause pool =
-  Scan.repeat (parse_starred_predicate_term pool) --| $$ "|" --| $$ "|"
-    -- Scan.repeat (parse_starred_predicate_term pool) --| $$ "-" --| $$ ">"
-    -- Scan.repeat (parse_starred_predicate_term pool)
+  Scan.repeat (parse_decorated_predicate_term pool) --| $$ "|" --| $$ "|"
+    -- Scan.repeat (parse_decorated_predicate_term pool) --| $$ "-" --| $$ ">"
+    -- Scan.repeat (parse_decorated_predicate_term pool)
   >> (fn (([], []), []) => [str_leaf "c_False"]
        | ((clauses1, clauses2), clauses3) =>
          map negate_node (clauses1 @ clauses2) @ clauses3)
@@ -620,6 +620,9 @@ and byline =
   ByMetis of facts |
   CaseSplit of step list list * facts
 
+fun smart_case_split [] facts = ByMetis facts
+  | smart_case_split proofs facts = CaseSplit (proofs, facts)
+
 val raw_prefix = "X"
 val assum_prefix = "A"
 val fact_prefix = "F"
@@ -645,7 +648,7 @@ fun proof_from_atp_proof pool ctxt shrink_factor atp_proof conjecture_shape
                          thm_names frees =
   let
     val lines =
-      atp_proof ^ "$" (* the $ sign is a dummy token *)
+      atp_proof ^ "$" (* the $ sign acts as a sentinel *)
       |> parse_proof pool
       |> decode_lines ctxt
       |> rpair [] |-> fold_rev (add_line conjecture_shape thm_names)
@@ -788,10 +791,10 @@ fun redirect_proof thy conjecture_shape hyp_ts concl_t proof =
                   SOME (l, t, proofs, proof_tail) =>
                   Have (case_split_qualifiers proofs @
                         (if null proof_tail then end_qs else []), l, t,
-                        CaseSplit (proofs, facts)) :: proof_tail
+                        smart_case_split proofs facts) :: proof_tail
                 | NONE =>
                   [Have (case_split_qualifiers proofs @ end_qs, no_label,
-                         concl_t, CaseSplit (proofs, facts))],
+                         concl_t, smart_case_split proofs facts)],
                 patches)
              end
            | _ => raise Fail "malformed proof")
