@@ -151,7 +151,7 @@ fun gen_add_fun add fixes statements config lthy =
     lthy
     |> add fixes statements config pat_completeness_auto |> snd
     |> Local_Theory.restore
-    |> prove_termination
+    |> prove_termination |> snd
   end
 
 val add_fun = gen_add_fun Function.add_function

@@ -25,8 +25,10 @@ sig
     (Attrib.binding * string) list -> Function_Common.function_config ->
     local_theory -> Proof.state
 
-  val prove_termination: term option -> tactic -> local_theory -> local_theory
-  val prove_termination_cmd: string option -> tactic -> local_theory -> local_theory
+  val prove_termination: term option -> tactic -> local_theory -> 
+    info * local_theory
+  val prove_termination_cmd: string option -> tactic -> local_theory ->
+    info * local_theory
 
   val termination : term option -> local_theory -> Proof.state
   val termination_cmd : string option -> local_theory -> Proof.state
@@ -195,13 +197,15 @@ fun prepare_termination_proof prep_term raw_term_opt lthy =
              ((qualify "induct",
                [Attrib.internal (K (Rule_Cases.case_names case_names))]),
               tinduct)
-          |-> (fn (simps, (_, inducts)) =>
+          |-> (fn (simps, (_, inducts)) => fn lthy =>
             let val info' = { is_partial=false, defname=defname, add_simps=add_simps,
               case_names=case_names, fs=fs, R=R, psimps=psimps, pinducts=pinducts,
               simps=SOME simps, inducts=SOME inducts, termination=termination }
             in
-              Local_Theory.declaration false (add_function_data o morph_function_data info')
-              #> Spec_Rules.add Spec_Rules.Equational (fs, tsimps)
+              (info',
+               lthy 
+               |> Local_Theory.declaration false (add_function_data o morph_function_data info')
+               |> Spec_Rules.add Spec_Rules.Equational (fs, tsimps))
             end)
         end
   in
@@ -233,7 +237,7 @@ fun gen_termination prep_term raw_term_opt lthy =
     |> ProofContext.note_thmss ""
        [((Binding.name "termination", [Context_Rules.intro_bang (SOME 0)]),
          [([Goal.norm_result termination], [])])] |> snd
-    |> Proof.theorem NONE afterqed [[(goal, [])]]
+    |> Proof.theorem NONE (snd oo afterqed) [[(goal, [])]]
   end
 
 val termination = gen_termination Syntax.check_term
