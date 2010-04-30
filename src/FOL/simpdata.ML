@@ -21,13 +21,13 @@ fun mk_eq th = case concl_of th of
   | _                           => th RS @{thm iff_reflection_T};
 
 (*Replace premises x=y, X<->Y by X==Y*)
-val mk_meta_prems =
-    rule_by_tactic
+fun mk_meta_prems ctxt =
+    rule_by_tactic ctxt
       (REPEAT_FIRST (resolve_tac [@{thm meta_eq_to_obj_eq}, @{thm def_imp_iff}]));
 
 (*Congruence rules for = or <-> (instead of ==)*)
-fun mk_meta_cong (_: simpset) rl =
-  Drule.export_without_context (mk_meta_eq (mk_meta_prems rl))
+fun mk_meta_cong ss rl =
+  Drule.export_without_context (mk_meta_eq (mk_meta_prems (Simplifier.the_context ss) rl))
     handle THM _ =>
       error("Premises and conclusion of congruence rules must use =-equality or <->");
 

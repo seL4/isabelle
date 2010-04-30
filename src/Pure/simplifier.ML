@@ -108,7 +108,7 @@ structure SimpsetData = Generic_Data
 );
 
 val get_ss = SimpsetData.get;
-val map_ss = SimpsetData.map;
+fun map_ss f context = SimpsetData.map (with_context (Context.proof_of context) f) context;
 
 
 (* attributes *)

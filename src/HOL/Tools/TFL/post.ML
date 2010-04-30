@@ -128,9 +128,9 @@ fun curry_rule rl =
   Split_Rule.split_rule_var (Term.head_of (HOLogic.dest_Trueprop (concl_of rl))) rl;
 
 (*lcp: put a theorem into Isabelle form, using meta-level connectives*)
-val meta_outer =
+fun meta_outer ctxt =
   curry_rule o Drule.export_without_context o
-  rule_by_tactic (REPEAT (FIRSTGOAL (resolve_tac [allI, impI, conjI] ORELSE' etac conjE)));
+  rule_by_tactic ctxt (REPEAT (FIRSTGOAL (resolve_tac [allI, impI, conjI] ORELSE' etac conjE)));
 
 (*Strip off the outer !P*)
 val spec'= read_instantiate @{context} [(("x", 0), "P::?'b=>bool")] spec;
@@ -139,7 +139,9 @@ fun tracing true _ = ()
   | tracing false msg = writeln msg;
 
 fun simplify_defn strict thy cs ss congs wfs id pats def0 =
-   let val def = Thm.freezeT def0 RS meta_eq_to_obj_eq
+   let
+       val ctxt = ProofContext.init thy
+       val def = Thm.freezeT def0 RS meta_eq_to_obj_eq
        val {rules,rows,TCs,full_pats_TCs} =
            Prim.post_definition congs (thy, (def,pats))
        val {lhs=f,rhs} = S.dest_eq (concl def)
@@ -153,7 +155,7 @@ fun simplify_defn strict thy cs ss congs wfs id pats def0 =
                 TCs = TCs}
        val rules' = map (Drule.export_without_context o Object_Logic.rulify_no_asm)
                         (R.CONJUNCTS rules)
-         in  {induct = meta_outer (Object_Logic.rulify_no_asm (induction RS spec')),
+         in  {induct = meta_outer ctxt (Object_Logic.rulify_no_asm (induction RS spec')),
         rules = ListPair.zip(rules', rows),
         tcs = (termination_goals rules') @ tcs}
    end

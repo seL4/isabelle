@@ -446,7 +446,7 @@ fun mk_cases ctxt prop =
     val cprop = Thm.cterm_of thy prop;
     val tac = ALLGOALS (simp_case_tac ss) THEN prune_params_tac;
     fun mk_elim rl =
-      Thm.implies_intr cprop (Tactic.rule_by_tactic tac (Thm.assume cprop RS rl))
+      Thm.implies_intr cprop (Tactic.rule_by_tactic ctxt tac (Thm.assume cprop RS rl))
       |> singleton (Variable.export (Variable.auto_fixes prop ctxt) ctxt);
   in
     (case get_first (try mk_elim) elims of

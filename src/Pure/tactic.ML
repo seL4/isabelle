@@ -7,7 +7,7 @@ Fundamental tactics.
 signature BASIC_TACTIC =
 sig
   val trace_goalno_tac: (int -> tactic) -> int -> tactic
-  val rule_by_tactic: tactic -> thm -> thm
+  val rule_by_tactic: Proof.context -> tactic -> thm -> thm
   val assume_tac: int -> tactic
   val eq_assume_tac: int -> tactic
   val compose_tac: (bool * thm * int) -> int -> tactic
@@ -86,14 +86,14 @@ fun trace_goalno_tac tac i st =
                          Seq.make(fn()=> seqcell));
 
 (*Makes a rule by applying a tactic to an existing rule*)
-fun rule_by_tactic tac rl =
+fun rule_by_tactic ctxt tac rl =
   let
-    val ctxt = Variable.thm_context rl;
-    val ((_, [st]), ctxt') = Variable.import true [rl] ctxt;
+    val ctxt' = Variable.declare_thm rl ctxt;
+    val ((_, [st]), ctxt'') = Variable.import true [rl] ctxt';
   in
     (case Seq.pull (tac st) of
       NONE => raise THM ("rule_by_tactic", 0, [rl])
-    | SOME (st', _) => zero_var_indexes (singleton (Variable.export ctxt' ctxt) st'))
+    | SOME (st', _) => zero_var_indexes (singleton (Variable.export ctxt'' ctxt') st'))
   end;
 
 
