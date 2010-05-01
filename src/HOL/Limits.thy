@@ -101,26 +101,26 @@ using assms by (auto elim!: eventually_rev_mp)
 
 subsection {* Finer-than relation *}
 
-text {* @{term "net \<le> net'"} means that @{term net'} is finer than
-@{term net}. *}
+text {* @{term "net \<le> net'"} means that @{term net} is finer than
+@{term net'}. *}
 
-instantiation net :: (type) "{order,top}"
+instantiation net :: (type) "{order,bot}"
 begin
 
 definition
   le_net_def [code del]:
-    "net \<le> net' \<longleftrightarrow> (\<forall>P. eventually P net \<longrightarrow> eventually P net')"
+    "net \<le> net' \<longleftrightarrow> (\<forall>P. eventually P net' \<longrightarrow> eventually P net)"
 
 definition
   less_net_def [code del]:
     "(net :: 'a net) < net' \<longleftrightarrow> net \<le> net' \<and> \<not> net' \<le> net"
 
 definition
-  top_net_def [code del]:
-    "top = Abs_net (\<lambda>P. True)"
+  bot_net_def [code del]:
+    "bot = Abs_net (\<lambda>P. True)"
 
-lemma eventually_top [simp]: "eventually P top"
-unfolding top_net_def
+lemma eventually_bot [simp]: "eventually P bot"
+unfolding bot_net_def
 by (subst eventually_Abs_net, rule is_filter.intro, auto)
 
 instance proof
@@ -136,22 +136,22 @@ next
   fix x y :: "'a net" assume "x \<le> y" and "y \<le> x" thus "x = y"
     unfolding le_net_def expand_net_eq by fast
 next
-  fix x :: "'a net" show "x \<le> top"
+  fix x :: "'a net" show "bot \<le> x"
     unfolding le_net_def by simp
 qed
 
 end
 
 lemma net_leD:
-  "net \<le> net' \<Longrightarrow> eventually P net \<Longrightarrow> eventually P net'"
+  "net \<le> net' \<Longrightarrow> eventually P net' \<Longrightarrow> eventually P net"
 unfolding le_net_def by simp
 
 lemma net_leI:
-  "(\<And>P. eventually P net \<Longrightarrow> eventually P net') \<Longrightarrow> net \<le> net'"
+  "(\<And>P. eventually P net' \<Longrightarrow> eventually P net) \<Longrightarrow> net \<le> net'"
 unfolding le_net_def by simp
 
 lemma eventually_False:
-  "eventually (\<lambda>x. False) net \<longleftrightarrow> net = top"
+  "eventually (\<lambda>x. False) net \<longleftrightarrow> net = bot"
 unfolding expand_net_eq by (auto elim: eventually_rev_mp)
 
 
