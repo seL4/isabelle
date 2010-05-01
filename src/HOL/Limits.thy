@@ -11,7 +11,7 @@ begin
 subsection {* Nets *}
 
 text {*
-  A net is now defined simply as a filter.
+  A net is now defined simply as a filter on a set.
   The definition also allows non-proper filters.
 *}
 
@@ -52,6 +52,12 @@ unfolding Rep_net_inject [symmetric] expand_fun_eq eventually_def ..
 lemma eventually_True [simp]: "eventually (\<lambda>x. True) net"
 unfolding eventually_def
 by (rule is_filter.True [OF is_filter_Rep_net])
+
+lemma always_eventually: "\<forall>x. P x \<Longrightarrow> eventually P net"
+proof -
+  assume "\<forall>x. P x" hence "P = (\<lambda>x. True)" by (simp add: ext)
+  thus "eventually P net" by simp
+qed
 
 lemma eventually_mono:
   "(\<forall>x. P x \<longrightarrow> Q x) \<Longrightarrow> eventually P net \<Longrightarrow> eventually Q net"
@@ -104,7 +110,7 @@ subsection {* Finer-than relation *}
 text {* @{term "net \<le> net'"} means that @{term net} is finer than
 @{term net'}. *}
 
-instantiation net :: (type) "{order,bot}"
+instantiation net :: (type) complete_lattice
 begin
 
 definition
@@ -116,12 +122,64 @@ definition
     "(net :: 'a net) < net' \<longleftrightarrow> net \<le> net' \<and> \<not> net' \<le> net"
 
 definition
+  top_net_def [code del]:
+    "top = Abs_net (\<lambda>P. \<forall>x. P x)"
+
+definition
   bot_net_def [code del]:
     "bot = Abs_net (\<lambda>P. True)"
+
+definition
+  sup_net_def [code del]:
+    "sup net net' = Abs_net (\<lambda>P. eventually P net \<and> eventually P net')"
+
+definition
+  inf_net_def [code del]:
+    "inf a b = Abs_net
+      (\<lambda>P. \<exists>Q R. eventually Q a \<and> eventually R b \<and> (\<forall>x. Q x \<and> R x \<longrightarrow> P x))"
+
+definition
+  Sup_net_def [code del]:
+    "Sup A = Abs_net (\<lambda>P. \<forall>net\<in>A. eventually P net)"
+
+definition
+  Inf_net_def [code del]:
+    "Inf A = Sup {x::'a net. \<forall>y\<in>A. x \<le> y}"
+
+lemma eventually_top [simp]: "eventually P top \<longleftrightarrow> (\<forall>x. P x)"
+unfolding top_net_def
+by (rule eventually_Abs_net, rule is_filter.intro, auto)
 
 lemma eventually_bot [simp]: "eventually P bot"
 unfolding bot_net_def
 by (subst eventually_Abs_net, rule is_filter.intro, auto)
+
+lemma eventually_sup:
+  "eventually P (sup net net') \<longleftrightarrow> eventually P net \<and> eventually P net'"
+unfolding sup_net_def
+by (rule eventually_Abs_net, rule is_filter.intro)
+   (auto elim!: eventually_rev_mp)
+
+lemma eventually_inf:
+  "eventually P (inf a b) \<longleftrightarrow>
+   (\<exists>Q R. eventually Q a \<and> eventually R b \<and> (\<forall>x. Q x \<and> R x \<longrightarrow> P x))"
+unfolding inf_net_def
+apply (rule eventually_Abs_net, rule is_filter.intro)
+apply (fast intro: eventually_True)
+apply clarify
+apply (intro exI conjI)
+apply (erule (1) eventually_conj)
+apply (erule (1) eventually_conj)
+apply simp
+apply auto
+done
+
+lemma eventually_Sup:
+  "eventually P (Sup A) \<longleftrightarrow> (\<forall>net\<in>A. eventually P net)"
+unfolding Sup_net_def
+apply (rule eventually_Abs_net, rule is_filter.intro)
+apply (auto intro: eventually_conj elim!: eventually_rev_mp)
+done
 
 instance proof
   fix x y :: "'a net" show "x < y \<longleftrightarrow> x \<le> y \<and> \<not> y \<le> x"
@@ -136,8 +194,36 @@ next
   fix x y :: "'a net" assume "x \<le> y" and "y \<le> x" thus "x = y"
     unfolding le_net_def expand_net_eq by fast
 next
+  fix x :: "'a net" show "x \<le> top"
+    unfolding le_net_def eventually_top by (simp add: always_eventually)
+next
   fix x :: "'a net" show "bot \<le> x"
     unfolding le_net_def by simp
+next
+  fix x y :: "'a net" show "x \<le> sup x y" and "y \<le> sup x y"
+    unfolding le_net_def eventually_sup by simp_all
+next
+  fix x y z :: "'a net" assume "x \<le> z" and "y \<le> z" thus "sup x y \<le> z"
+    unfolding le_net_def eventually_sup by simp
+next
+  fix x y :: "'a net" show "inf x y \<le> x" and "inf x y \<le> y"
+    unfolding le_net_def eventually_inf by (auto intro: eventually_True)
+next
+  fix x y z :: "'a net" assume "x \<le> y" and "x \<le> z" thus "x \<le> inf y z"
+    unfolding le_net_def eventually_inf
+    by (auto elim!: eventually_mono intro: eventually_conj)
+next
+  fix x :: "'a net" and A assume "x \<in> A" thus "x \<le> Sup A"
+    unfolding le_net_def eventually_Sup by simp
+next
+  fix A and y :: "'a net" assume "\<And>x. x \<in> A \<Longrightarrow> x \<le> y" thus "Sup A \<le> y"
+    unfolding le_net_def eventually_Sup by simp
+next
+  fix z :: "'a net" and A assume "z \<in> A" thus "Inf A \<le> z"
+    unfolding le_net_def Inf_net_def eventually_Sup Ball_def by simp
+next
+  fix A and x :: "'a net" assume "\<And>y. y \<in> A \<Longrightarrow> x \<le> y" thus "x \<le> Inf A"
+    unfolding le_net_def Inf_net_def eventually_Sup Ball_def by simp
 qed
 
 end
