@@ -2205,14 +2205,6 @@ by(simp add: convex_epigraph)
 
 subsection {* Use this to derive general bound property of convex function. *}
 
-(* TODO: move *)
-lemma fst_setsum: "fst (\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. fst (f x))"
-by (cases "finite A", induct set: finite, simp_all)
-
-(* TODO: move *)
-lemma snd_setsum: "snd (\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. snd (f x))"
-by (cases "finite A", induct set: finite, simp_all)
-
 lemma convex_on:
   assumes "convex s"
   shows "convex_on s f \<longleftrightarrow> (\<forall>k u x. (\<forall>i\<in>{1..k::nat}. 0 \<le> u i \<and> x i \<in> s) \<and> setsum u {1..k} = 1 \<longrightarrow>
