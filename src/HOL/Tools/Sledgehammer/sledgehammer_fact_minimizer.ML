@@ -62,7 +62,8 @@ fun sledgehammer_test_theorems (params as {full_types, ...} : params) prover
       filtered_clauses = SOME (the_default axclauses filtered_clauses)}
   in
     prover params (K "") timeout problem
-    |> tap (priority o string_for_outcome o #outcome)
+    |> tap (fn result : prover_result =>
+         priority (string_for_outcome (#outcome result)))
   end
 
 (* minimalization of thms *)

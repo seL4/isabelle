@@ -35,7 +35,7 @@ val neg_clausify_setup =
 
 (** Attribute for converting a theorem into clauses **)
 
-val parse_clausify_attribute =
+val parse_clausify_attribute : attribute context_parser =
   Scan.lift OuterParse.nat
   >> (fn i => Thm.rule_attribute (fn context => fn th =>
                   let val thy = Context.theory_of context in

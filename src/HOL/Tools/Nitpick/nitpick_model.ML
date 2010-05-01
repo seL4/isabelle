@@ -62,7 +62,7 @@ structure Data = Theory_Data(
   type T = (typ * term_postprocessor) list
   val empty = []
   val extend = I
-  val merge = AList.merge (op =) (K true))
+  fun merge (x, y) = AList.merge (op =) (K true) (x, y))
 
 val irrelevant = "_"
 val unknown = "?"
