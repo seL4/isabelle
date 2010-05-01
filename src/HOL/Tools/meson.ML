@@ -555,7 +555,7 @@ fun skolemize_nnf_list _ [] = []
         skolemize_nnf_list ctxt ths);
 
 fun add_clauses th cls =
-  let val ctxt0 = Variable.thm_context th
+  let val ctxt0 = Variable.global_thm_context th
       val (cnfs, ctxt) = make_cnf [] th ctxt0
   in Variable.export ctxt ctxt0 cnfs @ cls end;
 

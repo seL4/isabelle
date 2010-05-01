@@ -35,10 +35,6 @@ val mksimps_pairs =
   [("op -->", [@{thm mp}]), ("op &", [@{thm conjunct1}, @{thm conjunct2}]),
    ("All", [@{thm spec}]), ("True", []), ("False", [])];
 
-(* ###FIXME: move to simplifier.ML
-val mk_atomize:      (string * thm list) list -> thm -> thm list
-*)
-(* ###FIXME: move to simplifier.ML *)
 fun mk_atomize pairs =
   let fun atoms th =
         (case concl_of th of

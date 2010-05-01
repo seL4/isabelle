@@ -95,7 +95,7 @@ fun mk_atomize pairs =
         fun res th = map (fn rl => th RS rl);   (*exception THM*)
         fun res_fixed rls =
           if Thm.maxidx_of (Thm.adjust_maxidx_thm ~1 thm) = ~1 then res thm rls
-          else Variable.trade (K (fn [thm'] => res thm' rls)) (Variable.thm_context thm) [thm];
+          else Variable.trade (K (fn [thm'] => res thm' rls)) (Variable.global_thm_context thm) [thm];
       in
         case concl_of thm
           of Const (@{const_name Trueprop}, _) $ p => (case head_of p

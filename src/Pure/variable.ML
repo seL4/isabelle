@@ -28,7 +28,7 @@ sig
   val declare_typ: typ -> Proof.context -> Proof.context
   val declare_prf: Proofterm.proof -> Proof.context -> Proof.context
   val declare_thm: thm -> Proof.context -> Proof.context
-  val thm_context: thm -> Proof.context
+  val global_thm_context: thm -> Proof.context
   val variant_frees: Proof.context -> term list -> (string * 'a) list -> (string * 'a) list
   val bind_term: indexname * term option -> Proof.context -> Proof.context
   val expand_binds: Proof.context -> term -> term
@@ -235,7 +235,7 @@ val declare_typ = declare_term o Logic.mk_type;
 val declare_prf = Proofterm.fold_proof_terms declare_internal (declare_internal o Logic.mk_type);
 
 val declare_thm = Thm.fold_terms declare_internal;
-fun thm_context th = declare_thm th (ProofContext.init (Thm.theory_of_thm th));
+fun global_thm_context th = declare_thm th (ProofContext.init (Thm.theory_of_thm th));
 
 
 (* renaming term/type frees *)

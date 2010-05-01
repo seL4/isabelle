@@ -342,8 +342,8 @@ fun derive_datatype_props config dt_names alt_names descr sorts
         ((Binding.empty, map (fn th => th RS notE) (flat distinct)),
           [Classical.safe_elim NONE]),
         ((Binding.empty, weak_case_congs), [Simplifier.attrib (op addcongs)]),
-        ((Binding.empty, flat (distinct @ inject)), [Induct.add_simp_rule])]
-        @ named_rules @ unnamed_rules)
+        ((Binding.empty, flat (distinct @ inject)), [Induct.induct_simp_add])] @
+          named_rules @ unnamed_rules)
     |> snd
     |> add_case_tr' case_names
     |> register dt_infos

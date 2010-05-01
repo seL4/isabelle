@@ -46,7 +46,8 @@ sig
   val coinduct_pred: string -> attribute
   val coinduct_del: attribute
   val map_simpset: (simpset -> simpset) -> Context.generic -> Context.generic
-  val add_simp_rule: attribute
+  val induct_simp_add: attribute
+  val induct_simp_del: attribute
   val no_simpN: string
   val casesN: string
   val inductN: string
@@ -320,8 +321,14 @@ val coinduct_pred = mk_att add_coinductP consumes1;
 val coinduct_del = del_att map3;
 
 fun map_simpset f = InductData.map (map4 f);
-fun add_simp_rule (ctxt, thm) =
-  (map_simpset (fn ss => ss addsimps [thm]) ctxt, thm);
+
+fun induct_simp f =
+  Thm.declaration_attribute (fn thm => fn context =>
+      (map_simpset
+        (Simplifier.with_context (Context.proof_of context) (fn ss => f (ss, [thm]))) context));
+
+val induct_simp_add = induct_simp (op addsimps);
+val induct_simp_del = induct_simp (op delsimps);
 
 end;
 
@@ -359,7 +366,7 @@ val attrib_setup =
     "declaration of induction rule" #>
   Attrib.setup @{binding coinduct} (attrib coinduct_type coinduct_pred coinduct_del)
     "declaration of coinduction rule" #>
-  Attrib.setup @{binding induct_simp} (Scan.succeed add_simp_rule)
+  Attrib.setup @{binding induct_simp} (Attrib.add_del induct_simp_add induct_simp_del)
     "declaration of rules for simplifying induction or cases rules";
 
 end;

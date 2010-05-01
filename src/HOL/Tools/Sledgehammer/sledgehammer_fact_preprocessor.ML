@@ -355,7 +355,7 @@ fun skolem_thm (s, th) =
   if member (op =) multi_base_blacklist (Long_Name.base_name s) orelse bad_for_atp th then []
   else
     let
-      val ctxt0 = Variable.thm_context th
+      val ctxt0 = Variable.global_thm_context th
       val (nnfth, ctxt1) = to_nnf th ctxt0
       val (cnfs, ctxt2) = Meson.make_cnf (assume_skolem_of_def s nnfth) nnfth ctxt1
     in  cnfs |> map combinators |> Variable.export ctxt2 ctxt0 |> Meson.finish_cnf  end
@@ -408,7 +408,7 @@ fun cnf_rules_pairs thy l = cnf_rules_pairs_aux thy [] (rev l);
 local
 
 fun skolem_def (name, th) thy =
-  let val ctxt0 = Variable.thm_context th in
+  let val ctxt0 = Variable.global_thm_context th in
     (case try (to_nnf th) ctxt0 of
       NONE => (NONE, thy)
     | SOME (nnfth, ctxt1) =>

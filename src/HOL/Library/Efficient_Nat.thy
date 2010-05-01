@@ -152,7 +152,8 @@ fun remove_suc thy thms =
       in
         case map_filter (fn th'' =>
             SOME (th'', singleton
-              (Variable.trade (K (fn [th'''] => [th''' RS th'])) (Variable.thm_context th'')) th'')
+              (Variable.trade (K (fn [th'''] => [th''' RS th']))
+                (Variable.global_thm_context th'')) th'')
           handle THM _ => NONE) thms of
             [] => NONE
           | thps =>
