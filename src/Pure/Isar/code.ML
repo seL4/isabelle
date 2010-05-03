@@ -778,7 +778,7 @@ fun cert_of_abs thy tyco c raw_abs_thm =
     val _ = if c = const_abs_eqn thy abs_thm then ()
       else error ("Wrong head of abstract code equation,\nexpected constant "
         ^ string_of_const thy c ^ "\n" ^ Display.string_of_thm_global thy abs_thm);
-  in Abstract (Thm.freezeT abs_thm, tyco) end;
+  in Abstract (Thm.legacy_freezeT abs_thm, tyco) end;
 
 fun constrain_cert thy sorts (Equations (cert_thm, propers)) =
       let

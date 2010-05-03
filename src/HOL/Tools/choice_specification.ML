@@ -79,7 +79,7 @@ fun proc_exprop axiomatic cos arg =
 end
 
 fun add_specification axiomatic cos arg =
-    arg |> apsnd Thm.freezeT
+    arg |> apsnd Thm.legacy_freezeT
         |> proc_exprop axiomatic cos
         |> apsnd Drule.export_without_context
 
@@ -217,7 +217,7 @@ fun process_spec axiomatic cos alt_props thy =
                         then writeln "specification"
                         else ()
             in
-                arg |> apsnd Thm.freezeT
+                arg |> apsnd Thm.legacy_freezeT
                     |> process_all (zip3 alt_names rew_imps frees)
             end
 

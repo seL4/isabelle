@@ -140,7 +140,7 @@ sig
   val strip_shyps: thm -> thm
   val unconstrainT: ctyp -> thm -> thm
   val unconstrain_allTs: thm -> thm
-  val freezeT: thm -> thm
+  val legacy_freezeT: thm -> thm
   val assumption: int -> thm -> thm Seq.seq
   val eq_assumption: int -> thm -> thm
   val rotate_rule: int -> int -> thm -> thm
@@ -1261,8 +1261,8 @@ fun varifyT_global' fixed (Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop
 
 val varifyT_global = #2 o varifyT_global' [];
 
-(* Replace all TVars by new TFrees *)
-fun freezeT (Thm (der, {thy_ref, shyps, hyps, tpairs, prop, ...})) =
+(* Replace all TVars by TFrees that are often new *)
+fun legacy_freezeT (Thm (der, {thy_ref, shyps, hyps, tpairs, prop, ...})) =
   let
     val prop1 = attach_tpairs tpairs prop;
     val prop2 = Type.legacy_freeze prop1;

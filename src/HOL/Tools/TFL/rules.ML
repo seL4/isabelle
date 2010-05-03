@@ -136,7 +136,7 @@ fun FILTER_DISCH_ALL P thm =
 
 (* freezeT expensive! *)
 fun UNDISCH thm =
-   let val tm = D.mk_prop (#1 (D.dest_imp (cconcl (Thm.freezeT thm))))
+   let val tm = D.mk_prop (#1 (D.dest_imp (cconcl (Thm.legacy_freezeT thm))))
    in Thm.implies_elim (thm RS mp) (ASSUME tm) end
    handle U.ERR _ => raise RULES_ERR "UNDISCH" ""
      | THM _ => raise RULES_ERR "UNDISCH" "";
@@ -265,7 +265,7 @@ fun DISJ_CASESL disjth thl =
          | DL th (th1::rst) =
             let val tm = #2(D.dest_disj(D.drop_prop(cconcl th)))
              in DISJ_CASES th th1 (DL (ASSUME tm) rst) end
-   in DL (Thm.freezeT disjth) (organize eq tml thl)
+   in DL (Thm.legacy_freezeT disjth) (organize eq tml thl)
    end;
 
 

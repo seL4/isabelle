@@ -541,7 +541,7 @@ fun lazyR_def thy fid tflCongs eqns =
        thy
        |> PureThy.add_defs false
             [Thm.no_attributes (Binding.name (fid ^ "_def"), defn)]
-     val def = Thm.freezeT def0;
+     val def = Thm.legacy_freezeT def0;
      val dummy =
        if !trace then writeln ("DEF = " ^ Display.string_of_thm_global theory def)
        else ()

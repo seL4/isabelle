@@ -307,7 +307,7 @@ val export_without_context =
   Similar code in type/freeze_thaw*)
 
 fun legacy_freeze_thaw_robust th =
- let val fth = Thm.freezeT th
+ let val fth = Thm.legacy_freezeT th
      val thy = Thm.theory_of_thm fth
      val {prop, tpairs, ...} = rep_thm fth
  in
@@ -329,7 +329,7 @@ fun legacy_freeze_thaw_robust th =
 (*Basic version of the function above. No option to rename Vars apart in thaw.
   The Frees created from Vars have nice names.*)
 fun legacy_freeze_thaw th =
- let val fth = Thm.freezeT th
+ let val fth = Thm.legacy_freezeT th
      val thy = Thm.theory_of_thm fth
      val {prop, tpairs, ...} = rep_thm fth
  in
