@@ -2065,7 +2065,7 @@ fun to_isa_thm (hth as HOLThm(_,th)) =
     let
         val (HOLThm args) = norm_hthm (theory_of_thm th) hth
     in
-        apsnd strip_shyps args
+        apsnd Thm.strip_shyps args
     end
 
 fun to_isa_term tm = tm

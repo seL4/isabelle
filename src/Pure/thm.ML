@@ -69,7 +69,6 @@ signature BASIC_THM =
   val weaken: cterm -> thm -> thm
   val weaken_sorts: sort list -> cterm -> cterm
   val extra_shyps: thm -> sort list
-  val strip_shyps: thm -> thm
 
   (*meta rules*)
   val assume: cterm -> thm
@@ -138,6 +137,7 @@ sig
   val varifyT_global: thm -> thm
   val varifyT_global': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
   val of_class: ctyp * class -> thm
+  val strip_shyps: thm -> thm
   val unconstrainT: ctyp -> thm -> thm
   val unconstrain_allTs: thm -> thm
   val freezeT: thm -> thm
@@ -475,26 +475,6 @@ fun weaken_sorts raw_sorts ct =
     val more_sorts = Sorts.make (map (Sign.certify_sort thy) raw_sorts);
     val sorts' = Sorts.union sorts more_sorts;
   in Cterm {thy_ref = Theory.check_thy thy, t = t, T = T, maxidx = maxidx, sorts = sorts'} end;
-
-
-
-(** sort contexts of theorems **)
-
-(*remove extra sorts that are witnessed by type signature information*)
-fun strip_shyps (thm as Thm (_, {shyps = [], ...})) = thm
-  | strip_shyps (thm as Thm (der, {thy_ref, tags, maxidx, shyps, hyps, tpairs, prop})) =
-      let
-        val thy = Theory.deref thy_ref;
-        val present = (fold_terms o fold_types o fold_atyps_sorts) (insert (eq_snd op =)) thm [];
-        val extra = fold (Sorts.remove_sort o #2) present shyps;
-        val witnessed = Sign.witness_sorts thy present extra;
-        val extra' = fold (Sorts.remove_sort o #2) witnessed extra
-          |> Sorts.minimal_sorts (Sign.classes_of thy);
-        val shyps' = fold (Sorts.insert_sort o #2) present extra';
-      in
-        Thm (der, {thy_ref = Theory.check_thy thy, tags = tags, maxidx = maxidx,
-          shyps = shyps', hyps = hyps, tpairs = tpairs, prop = prop})
-      end;
 
 (*dangling sort constraints of a thm*)
 fun extra_shyps (th as Thm (_, {shyps, ...})) =
@@ -1218,6 +1198,22 @@ fun of_class (cT, raw_c) =
         prop = prop})
     else raise THM ("of_class: type not of class " ^ Syntax.string_of_sort_global thy [c], 0, [])
   end;
+
+(*Remove extra sorts that are witnessed by type signature information*)
+fun strip_shyps (thm as Thm (_, {shyps = [], ...})) = thm
+  | strip_shyps (thm as Thm (der, {thy_ref, tags, maxidx, shyps, hyps, tpairs, prop})) =
+      let
+        val thy = Theory.deref thy_ref;
+        val present = (fold_terms o fold_types o fold_atyps_sorts) (insert (eq_snd op =)) thm [];
+        val extra = fold (Sorts.remove_sort o #2) present shyps;
+        val witnessed = Sign.witness_sorts thy present extra;
+        val extra' = fold (Sorts.remove_sort o #2) witnessed extra
+          |> Sorts.minimal_sorts (Sign.classes_of thy);
+        val shyps' = fold (Sorts.insert_sort o #2) present extra';
+      in
+        Thm (der, {thy_ref = Theory.check_thy thy, tags = tags, maxidx = maxidx,
+          shyps = shyps', hyps = hyps, tpairs = tpairs, prop = prop})
+      end;
 
 (*Internalize sort constraints of type variable*)
 fun unconstrainT
