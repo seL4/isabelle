@@ -61,16 +61,16 @@ fun add_numbers s =
 
 (*
 ML {*
-Quickcheck.test_term (ProofContext.init @{theory})
+Quickcheck.test_term (ProofContext.init_global @{theory})
  false (SOME "SML") 1 1 (prop_of (hd @{thms nibble_pair_of_char_simps}))
 *}
 
 ML {*
 fun is_executable thy th = can (Quickcheck.test_term
- (ProofContext.init thy) false (SOME "SML") 1 1) (prop_of th);
+ (ProofContext.init_global thy) false (SOME "SML") 1 1) (prop_of th);
 
 fun is_executable_term thy t = can (Quickcheck.test_term
- (ProofContext.init thy) false (SOME "SML") 1 1) t;
+ (ProofContext.init_global thy) false (SOME "SML") 1 1) t;
 
 fun thms_of thy = filter (fn (_, th) => not (Thm.is_internal th) andalso
    Context.theory_name (theory_of_thm th) = Context.theory_name thy andalso

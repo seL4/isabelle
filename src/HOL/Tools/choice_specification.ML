@@ -225,7 +225,7 @@ fun process_spec axiomatic cos alt_props thy =
         #1 (post_process (add_specification axiomatic (zip3 names cnames overloaded) (thy, thm))));
     in
       thy
-      |> ProofContext.init
+      |> ProofContext.init_global
       |> Proof.theorem NONE after_qed [[(HOLogic.mk_Trueprop ex_prop, [])]]
     end;
 

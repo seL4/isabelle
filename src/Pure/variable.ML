@@ -235,7 +235,7 @@ val declare_typ = declare_term o Logic.mk_type;
 val declare_prf = Proofterm.fold_proof_terms declare_internal (declare_internal o Logic.mk_type);
 
 val declare_thm = Thm.fold_terms declare_internal;
-fun global_thm_context th = declare_thm th (ProofContext.init (Thm.theory_of_thm th));
+fun global_thm_context th = declare_thm th (ProofContext.init_global (Thm.theory_of_thm th));
 
 
 (* renaming term/type frees *)

@@ -642,7 +642,7 @@ fun def_pred binding parms defs ts norm_ts thy =
       |> Sign.declare_const ((Binding.conceal binding, predT), NoSyn) |> snd
       |> PureThy.add_defs false
         [((Binding.conceal (Thm.def_binding binding), Logic.mk_equals (head, body)), [])];
-    val defs_ctxt = ProofContext.init defs_thy |> Variable.declare_term head;
+    val defs_ctxt = ProofContext.init_global defs_thy |> Variable.declare_term head;
 
     val cert = Thm.cterm_of defs_thy;
 
@@ -729,7 +729,7 @@ fun gen_add_locale prep_decl
       error ("Duplicate definition of locale " ^ quote name);
 
     val ((fixed, deps, body_elems), (parms, ctxt')) =
-      prep_decl raw_import I raw_body (ProofContext.init thy);
+      prep_decl raw_import I raw_body (ProofContext.init_global thy);
     val text as (((_, exts'), _), defs) = eval ctxt' deps body_elems;
 
     val predicate_binding =
@@ -795,7 +795,7 @@ local
 fun gen_interpretation prep_expr parse_prop prep_attr
     expression equations theory =
   let
-    val ((propss, deps, export), expr_ctxt) = ProofContext.init theory
+    val ((propss, deps, export), expr_ctxt) = ProofContext.init_global theory
       |> prep_expr expression;
 
     val eqns = map (parse_prop expr_ctxt o snd) equations |> Syntax.check_terms expr_ctxt;
@@ -809,7 +809,8 @@ fun gen_interpretation prep_expr parse_prop prep_attr
         val eqn_attrss = map2 (fn attrs => fn eqn =>
           ((apsnd o map) (Attrib.attribute_i thy) attrs, [([eqn], [])])) attrss eqns;
         fun meta_rewrite thy =
-          map (Local_Defs.meta_rewrite_rule (ProofContext.init thy) #> Drule.abs_def) o maps snd;
+          map (Local_Defs.meta_rewrite_rule (ProofContext.init_global thy) #> Drule.abs_def) o
+            maps snd;
       in
         thy
         |> PureThy.note_thmss Thm.lemmaK eqn_attrss

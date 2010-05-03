@@ -151,7 +151,7 @@ val perm_simproc =
 val meta_spec = thm "meta_spec";
 
 fun projections rule =
-  Project_Rule.projections (ProofContext.init (Thm.theory_of_thm rule)) rule
+  Project_Rule.projections (ProofContext.init_global (Thm.theory_of_thm rule)) rule
   |> map (Drule.export_without_context #> Rule_Cases.save rule);
 
 val supp_prod = thm "supp_prod";
@@ -1617,7 +1617,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
             val y = Free ("y", U);
             val y' = Free ("y'", U)
           in
-            Drule.export_without_context (Goal.prove (ProofContext.init thy11) []
+            Drule.export_without_context (Goal.prove (ProofContext.init_global thy11) []
               (map (augment_sort thy11 fs_cp_sort)
                 (finite_prems @
                    [HOLogic.mk_Trueprop (R $ x $ y),
@@ -1712,7 +1712,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
            (Const ("Nominal.supp", fsT' --> HOLogic.mk_setT aT) $ rec_ctxt))) dt_atomTs;
 
     val rec_unique_thms = split_conj_thm (Goal.prove
-      (ProofContext.init thy11) (map fst rec_unique_frees)
+      (ProofContext.init_global thy11) (map fst rec_unique_frees)
       (map (augment_sort thy11 fs_cp_sort)
         (flat finite_premss @ finite_ctxt_prems @ rec_prems @ rec_prems'))
       (augment_sort thy11 fs_cp_sort

@@ -46,7 +46,7 @@ fun smart_cases ctxt s =
 
 fun inductive_cases args thy =
   let
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     val facts = args |> map (fn ((name, srcs), props) =>
       ((name, map (Attrib.attribute thy) srcs),
         map (Thm.no_attributes o single o smart_cases ctxt) props));

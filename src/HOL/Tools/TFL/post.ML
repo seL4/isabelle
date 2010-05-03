@@ -140,7 +140,7 @@ fun tracing true _ = ()
 
 fun simplify_defn strict thy cs ss congs wfs id pats def0 =
    let
-       val ctxt = ProofContext.init thy
+       val ctxt = ProofContext.init_global thy
        val def = Thm.freezeT def0 RS meta_eq_to_obj_eq
        val {rules,rows,TCs,full_pats_TCs} =
            Prim.post_definition congs (thy, (def,pats))

@@ -206,7 +206,7 @@ fun read_term thy =
       |> add_proof_syntax
       |> add_proof_atom_consts
         (map (Long_Name.append "axm") axm_names @ map (Long_Name.append "thm") thm_names)
-      |> ProofContext.init
+      |> ProofContext.init_global
       |> ProofContext.allow_dummies
       |> ProofContext.set_mode ProofContext.mode_schematic;
   in

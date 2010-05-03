@@ -62,7 +62,7 @@ fun add_inductive_i verbose (rec_tms, dom_sum)
   raw_intr_specs (monos, con_defs, type_intrs, type_elims) thy =
 let
   val _ = Theory.requires thy "Inductive_ZF" "(co)inductive definitions";
-  val ctxt = ProofContext.init thy;
+  val ctxt = ProofContext.init_global thy;
 
   val intr_specs = map (apfst (apfst Binding.name_of)) raw_intr_specs;
   val (intr_names, intr_tms) = split_list (map fst intr_specs);
@@ -174,7 +174,7 @@ let
     |> Sign.add_path big_rec_base_name
     |> PureThy.add_defs false (map (Thm.no_attributes o apfst Binding.name) axpairs);
 
-  val ctxt1 = ProofContext.init thy1;
+  val ctxt1 = ProofContext.init_global thy1;
 
 
   (*fetch fp definitions from the theory*)
@@ -261,7 +261,7 @@ let
       THEN (PRIMITIVE (fold_rule part_rec_defs));
 
   (*Elimination*)
-  val elim = rule_by_tactic (ProofContext.init thy1) basic_elim_tac
+  val elim = rule_by_tactic (ProofContext.init_global thy1) basic_elim_tac
                  (unfold RS Ind_Syntax.equals_CollectD)
 
   (*Applies freeness of the given constructors, which *must* be unfolded by
@@ -554,7 +554,7 @@ let
 fun add_inductive (srec_tms, sdom_sum) intr_srcs
     (raw_monos, raw_con_defs, raw_type_intrs, raw_type_elims) thy =
   let
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     val read_terms = map (Syntax.parse_term ctxt #> TypeInfer.constrain Ind_Syntax.iT)
       #> Syntax.check_terms ctxt;
 

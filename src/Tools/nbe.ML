@@ -521,7 +521,7 @@ structure Nbe_Functions = Code_Data
 
 fun compile_eval thy program vs_t deps =
   let
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     val (gr, (_, idx_tab)) =
       Nbe_Functions.change thy (ensure_stmts ctxt program);
   in

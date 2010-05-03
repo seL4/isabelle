@@ -1038,7 +1038,7 @@ fun future_forward_prf_standard thy prf prop () =
   let val thm =
     if ! quick_and_dirty then Skip_Proof.make_thm thy prop
     else if Goal.future_enabled () then
-      Goal.future_result (ProofContext.init thy) (Future.fork_pri ~1 prf) prop
+      Goal.future_result (ProofContext.init_global thy) (Future.fork_pri ~1 prf) prop
     else prf ()
   in Drule.export_without_context thm end;
 
@@ -1048,7 +1048,7 @@ fun prove_common immediate stndrd thy asms prop tac =
       if ! quick_and_dirty then Skip_Proof.prove
       else if immediate orelse not (Goal.future_enabled ()) then Goal.prove
       else Goal.prove_future;
-    val prf = prv (ProofContext.init thy) [] asms prop tac;
+    val prf = prv (ProofContext.init_global thy) [] asms prop tac;
   in if stndrd then Drule.export_without_context prf else prf end;
 
 val prove_future_global = prove_common false;
@@ -1090,7 +1090,7 @@ fun get_accupd_simps thy term defset =
           else mk_comp_id acc;
         val prop = lhs === rhs;
         val othm =
-          Goal.prove (ProofContext.init thy) [] [] prop
+          Goal.prove (ProofContext.init_global thy) [] [] prop
             (fn _ =>
               simp_tac defset 1 THEN
               REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac 1) THEN
@@ -1114,7 +1114,7 @@ fun get_updupd_simp thy defset u u' comp =
       else mk_comp (u' $ f') (u $ f);
     val prop = lhs === rhs;
     val othm =
-      Goal.prove (ProofContext.init thy) [] [] prop
+      Goal.prove (ProofContext.init_global thy) [] [] prop
         (fn _ =>
           simp_tac defset 1 THEN
           REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac 1) THEN
@@ -1155,7 +1155,7 @@ fun prove_unfold_defs thy ex_simps ex_simprs prop =
     val (_, args) = strip_comb lhs;
     val simps = (if length args = 1 then get_accupd_simps else get_updupd_simps) thy lhs defset;
   in
-    Goal.prove (ProofContext.init thy) [] [] prop'
+    Goal.prove (ProofContext.init_global thy) [] [] prop'
       (fn _ =>
         simp_tac (HOL_basic_ss addsimps (simps @ [K_record_comp])) 1 THEN
         TRY (simp_tac (HOL_basic_ss addsimps ex_simps addsimprocs ex_simprs) 1))
@@ -1247,7 +1247,7 @@ fun get_upd_acc_cong_thm upd acc thy simpset =
     val insts = [("upd", cterm_of thy upd), ("acc", cterm_of thy acc)];
     val prop = Thm.concl_of (named_cterm_instantiate insts updacc_cong_triv);
   in
-    Goal.prove (ProofContext.init thy) [] [] prop
+    Goal.prove (ProofContext.init_global thy) [] [] prop
       (fn _ =>
         simp_tac simpset 1 THEN
         REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac 1) THEN
@@ -2388,7 +2388,7 @@ fun add_record quiet_mode (params, binding) raw_parent raw_fields thy =
       if quiet_mode then ()
       else writeln ("Defining record " ^ quote (Binding.str_of binding) ^ " ...");
 
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     fun cert_typ T = Type.no_tvars (ProofContext.cert_typ ctxt T)
       handle TYPE (msg, _, _) => error msg;
 
@@ -2438,7 +2438,7 @@ fun add_record quiet_mode (params, binding) raw_parent raw_fields thy =
 
 fun add_record_cmd quiet_mode (raw_params, binding) raw_parent raw_fields thy =
   let
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     val params = map (apsnd (Typedecl.read_constraint ctxt)) raw_params;
     val ctxt1 = fold (Variable.declare_typ o TFree) params ctxt;
     val (parent, ctxt2) = read_parent raw_parent ctxt1;

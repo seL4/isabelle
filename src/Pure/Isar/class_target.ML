@@ -157,7 +157,7 @@ val export_morphism = #export_morph oo the_class_data;
 
 fun print_classes thy =
   let
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     val algebra = Sign.classes_of thy;
     val arities =
       Symtab.empty
@@ -372,7 +372,7 @@ fun gen_classrel mk_prop classrel thy =
       ProofContext.theory ((fold o fold) AxClass.add_classrel results);
   in
     thy
-    |> ProofContext.init
+    |> ProofContext.init_global
     |> Proof.theorem NONE after_qed [[(mk_prop thy classrel, [])]]
   end;
 
@@ -421,7 +421,7 @@ fun instantiation_param lthy b = instantiation_params lthy
 
 fun read_multi_arity thy (raw_tycos, raw_sorts, raw_sort) =
   let
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     val all_arities = map (fn raw_tyco => ProofContext.read_arity ctxt
       (raw_tyco, raw_sorts, raw_sort)) raw_tycos;
     val tycos = map #1 all_arities;
@@ -514,7 +514,7 @@ fun init_instantiation (tycos, vs, sort) thy =
   in
     thy
     |> Theory.checkpoint
-    |> ProofContext.init
+    |> ProofContext.init_global
     |> Instantiation.put (mk_instantiation ((tycos, vs, sort), params))
     |> fold (Variable.declare_typ o TFree) vs
     |> fold (Variable.declare_names o Free o snd) params
@@ -554,7 +554,7 @@ fun prove_instantiation_exit tac = prove_instantiation_instance tac
 fun prove_instantiation_exit_result f tac x lthy =
   let
     val morph = ProofContext.export_morphism lthy
-      (ProofContext.init (ProofContext.theory_of lthy));
+      (ProofContext.init_global (ProofContext.theory_of lthy));
     val y = f morph x;
   in
     lthy
@@ -597,7 +597,7 @@ fun instance_arity_cmd raw_arities thy =
       ((fold o fold) AxClass.add_arity results);
   in
     thy
-    |> ProofContext.init
+    |> ProofContext.init_global
     |> Proof.theorem NONE after_qed (map (fn t => [(t, [])]) arities)
   end;
 

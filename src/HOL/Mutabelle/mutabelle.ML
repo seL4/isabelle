@@ -499,14 +499,14 @@ fun preprocess thy insts t = Object_Logic.atomize_term thy
 
 fun is_executable thy insts th =
  (Quickcheck.test_term
-    (ProofContext.init thy) false (SOME (!testgen_name)) 1 1 (preprocess thy insts (prop_of th));
+    (ProofContext.init_global thy) false (SOME (!testgen_name)) 1 1 (preprocess thy insts (prop_of th));
   priority "executable"; true) handle ERROR s =>
     (priority ("not executable: " ^ s); false);
 
 fun qc_recursive usedthy [] insts sz qciter acc = rev acc
  | qc_recursive usedthy (x::xs) insts sz qciter acc = qc_recursive usedthy xs insts sz qciter 
      (priority ("qc_recursive: " ^ string_of_int (length xs)); ((x, pretty (the_default [] (Quickcheck.test_term
-       (ProofContext.init usedthy) false (SOME (!testgen_name)) sz qciter (preprocess usedthy insts x)))) :: acc))
+       (ProofContext.init_global usedthy) false (SOME (!testgen_name)) sz qciter (preprocess usedthy insts x)))) :: acc))
           handle ERROR msg => (priority msg; qc_recursive usedthy xs insts sz qciter acc);
 
 

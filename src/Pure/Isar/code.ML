@@ -337,7 +337,7 @@ fun build_tsig thy =
 fun cert_signature thy = Logic.varifyT_global o Type.cert_typ (build_tsig thy) o Type.no_tvars;
 
 fun read_signature thy = cert_signature thy o Type.strip_sorts
-  o Syntax.parse_typ (ProofContext.init thy);
+  o Syntax.parse_typ (ProofContext.init_global thy);
 
 fun expand_signature thy = Type.cert_typ_mode Type.mode_syntax (Sign.tsig_of thy);
 
@@ -554,7 +554,7 @@ fun assert_abs_eqn thy some_tyco thm =
 
 fun assert_eqn thy = error_thm (gen_assert_eqn thy true);
 
-fun meta_rewrite thy = Local_Defs.meta_rewrite_rule (ProofContext.init thy);
+fun meta_rewrite thy = Local_Defs.meta_rewrite_rule (ProofContext.init_global thy);
 
 fun mk_eqn thy = error_thm (gen_assert_eqn thy false) o
   apfst (meta_rewrite thy);
@@ -941,7 +941,7 @@ val undefineds = Symtab.keys o snd o the_cases o the_exec;
 
 fun print_codesetup thy =
   let
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     val exec = the_exec thy;
     fun pretty_equations const thms =
       (Pretty.block o Pretty.fbreaks) (

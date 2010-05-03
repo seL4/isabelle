@@ -156,7 +156,7 @@ fun init raw_overloading thy =
   in
     thy
     |> Theory.checkpoint
-    |> ProofContext.init
+    |> ProofContext.init_global
     |> OverloadingData.put overloading
     |> fold (fn ((_, ty), (v, _)) => Variable.declare_names (Free (v, ty))) overloading
     |> add_improvable_syntax

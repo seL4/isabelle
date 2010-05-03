@@ -361,7 +361,7 @@ end end;
 
 (*For Isabelle, the lhs of a definition must be a constant.*)
 fun const_def sign (c, Ty, rhs) =
-  singleton (Syntax.check_terms (ProofContext.init sign))
+  singleton (Syntax.check_terms (ProofContext.init_global sign))
     (Const("==",dummyT) $ Const(c,Ty) $ rhs);
 
 (*Make all TVars available for instantiation by adding a ? to the front*)

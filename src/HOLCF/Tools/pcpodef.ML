@@ -170,7 +170,7 @@ fun prepare prep_term name (tname, raw_args, mx) raw_set opt_morphs thy =
 
     (*rhs*)
     val tmp_ctxt =
-      ProofContext.init thy
+      ProofContext.init_global thy
       |> fold (Variable.declare_typ o TFree) raw_args;
     val set = prep_term tmp_ctxt raw_set;
     val tmp_ctxt' = tmp_ctxt |> Variable.declare_term set;
@@ -207,7 +207,7 @@ fun add_podef def opt_name typ set opt_morphs tac thy =
     val ((_, (_, below_ldef)), lthy4) = lthy3
       |> Specification.definition (NONE,
           ((Binding.prefix_name "below_" (Binding.suffix_name "_def" name), []), below_eqn));
-    val ctxt_thy = ProofContext.init (ProofContext.theory_of lthy4);
+    val ctxt_thy = ProofContext.init_global (ProofContext.theory_of lthy4);
     val below_def = singleton (ProofContext.export lthy4 ctxt_thy) below_ldef;
     val thy5 = lthy4
       |> Class.prove_instantiation_instance
@@ -322,7 +322,7 @@ local
 fun gen_cpodef_proof prep_term prep_constraint
     ((def, name), (b, raw_args, mx), set, opt_morphs) thy =
   let
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     val args = map (apsnd (prep_constraint ctxt)) raw_args;
     val (goal1, goal2, make_result) =
       prepare_cpodef prep_term def name (b, args, mx) set opt_morphs thy;
@@ -333,7 +333,7 @@ fun gen_cpodef_proof prep_term prep_constraint
 fun gen_pcpodef_proof prep_term prep_constraint
     ((def, name), (b, raw_args, mx), set, opt_morphs) thy =
   let
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     val args = map (apsnd (prep_constraint ctxt)) raw_args;
     val (goal1, goal2, make_result) =
       prepare_pcpodef prep_term def name (b, args, mx) set opt_morphs thy;

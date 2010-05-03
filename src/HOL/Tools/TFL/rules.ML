@@ -814,7 +814,7 @@ fun prove strict (ptm, tac) =
   let
     val thy = Thm.theory_of_cterm ptm;
     val t = Thm.term_of ptm;
-    val ctxt = ProofContext.init thy |> Variable.auto_fixes t;
+    val ctxt = ProofContext.init_global thy |> Variable.auto_fixes t;
   in
     if strict then Goal.prove ctxt [] [] t (K tac)
     else Goal.prove ctxt [] [] t (K tac)
