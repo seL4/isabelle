@@ -25,6 +25,21 @@ lemma nonneg_neg_part[intro!]:
   shows "nonneg (neg_part f)"
   unfolding nonneg_def neg_part_def min_def by auto
 
+lemma pos_neg_part_abs:
+  fixes f :: "'a \<Rightarrow> real"
+  shows "pos_part f x + neg_part f x = \<bar>f x\<bar>"
+unfolding real_abs_def pos_part_def neg_part_def by auto
+
+lemma pos_part_abs:
+  fixes f :: "'a \<Rightarrow> real"
+  shows "pos_part (\<lambda> x. \<bar>f x\<bar>) y = \<bar>f y\<bar>"
+unfolding pos_part_def real_abs_def by auto
+
+lemma neg_part_abs:
+  fixes f :: "'a \<Rightarrow> real"
+  shows "neg_part (\<lambda> x. \<bar>f x\<bar>) y = 0"
+unfolding neg_part_def real_abs_def by auto
+
 lemma (in measure_space)
   assumes "f \<in> borel_measurable M"
   shows pos_part_borel_measurable: "pos_part f \<in> borel_measurable M"
@@ -1273,6 +1288,22 @@ proof -
   thus "?int S" and "?I S" by auto
 qed
 
+lemma (in measure_space) integrable_abs:
+  assumes "integrable f"
+  shows "integrable (\<lambda> x. \<bar>f x\<bar>)"
+using assms
+proof -
+  from assms obtain p q where pq: "p \<in> nnfis (pos_part f)" "q \<in> nnfis (neg_part f)"
+    unfolding integrable_def by auto
+  hence "p + q \<in> nnfis (\<lambda> x. pos_part f x + neg_part f x)"
+    using nnfis_add by auto
+  hence "p + q \<in> nnfis (\<lambda> x. \<bar>f x\<bar>)" using pos_neg_part_abs[of f] by simp
+  thus ?thesis unfolding integrable_def
+    using ext[OF pos_part_abs[of f], of "\<lambda> y. y"]
+      ext[OF neg_part_abs[of f], of "\<lambda> y. y"]
+    using nnfis_0 by auto
+qed
+
 lemma markov_ineq:
   assumes "integrable f" "0 < a" "integrable (\<lambda>x. \<bar>f x\<bar>^n)"
   shows "measure M (f -` {a ..} \<inter> space M) \<le> integral (\<lambda>x. \<bar>f x\<bar>^n) / a^n"
@@ -1308,6 +1339,61 @@ proof -
   finally show "measure M (f -` {a ..} \<inter> space M) \<le> integral (\<lambda>x. \<bar>f x\<bar>^n) / a^n"
     unfolding atLeast_def
     by (auto intro!: mult_imp_le_div_pos[OF `0 < a ^ n`], simp add: real_mult_commute)
+qed
+
+lemma (in measure_space) integral_0:
+  fixes f :: "'a \<Rightarrow> real"
+  assumes "integrable f" "integral f = 0" "nonneg f" and borel: "f \<in> borel_measurable M"
+  shows "measure M ({x. f x \<noteq> 0} \<inter> space M) = 0"
+proof -
+  have "{x. f x \<noteq> 0} = {x. \<bar>f x\<bar> > 0}" by auto
+  moreover
+  { fix y assume "y \<in> {x. \<bar> f x \<bar> > 0}"
+    hence "\<bar> f y \<bar> > 0" by auto
+    hence "\<exists> n. \<bar>f y\<bar> \<ge> inverse (real (Suc n))"
+      using ex_inverse_of_nat_Suc_less[of "\<bar>f y\<bar>"] less_imp_le unfolding real_of_nat_def by auto
+    hence "y \<in> (\<Union> n. {x. \<bar>f x\<bar> \<ge> inverse (real (Suc n))})"
+      by auto }
+  moreover
+  { fix y assume "y \<in> (\<Union> n. {x. \<bar>f x\<bar> \<ge> inverse (real (Suc n))})"
+    then obtain n where n: "y \<in> {x. \<bar>f x\<bar> \<ge> inverse (real (Suc n))}" by auto
+    hence "\<bar>f y\<bar> \<ge> inverse (real (Suc n))" by auto
+    hence "\<bar>f y\<bar> > 0"
+      using real_of_nat_Suc_gt_zero
+        positive_imp_inverse_positive[of "real_of_nat (Suc n)"] by fastsimp
+    hence "y \<in> {x. \<bar>f x\<bar> > 0}" by auto }
+  ultimately have fneq0_UN: "{x. f x \<noteq> 0} = (\<Union> n. {x. \<bar>f x\<bar> \<ge> inverse (real (Suc n))})"
+    by blast
+  { fix n
+    have int_one: "integrable (\<lambda> x. \<bar>f x\<bar> ^ 1)" using integrable_abs assms by auto
+    have "measure M (f -` {inverse (real (Suc n))..} \<inter> space M)
+           \<le> integral (\<lambda> x. \<bar>f x\<bar> ^ 1) / (inverse (real (Suc n)) ^ 1)"
+      using markov_ineq[OF `integrable f` _ int_one] real_of_nat_Suc_gt_zero by auto
+    hence le0: "measure M (f -` {inverse (real (Suc n))..} \<inter> space M) \<le> 0"
+      using assms unfolding nonneg_def by auto
+    have "{x. f x \<ge> inverse (real (Suc n))} \<inter> space M \<in> sets M"
+      apply (subst Int_commute) unfolding Int_def
+      using borel[unfolded borel_measurable_ge_iff] by simp
+    hence m0: "measure M ({x. f x \<ge> inverse (real (Suc n))} \<inter> space M) = 0 \<and>
+      {x. f x \<ge> inverse (real (Suc n))} \<inter> space M \<in> sets M"
+      using positive le0 unfolding atLeast_def by fastsimp }
+  moreover hence "range (\<lambda> n. {x. f x \<ge> inverse (real (Suc n))} \<inter> space M) \<subseteq> sets M"
+    by auto
+  moreover
+  { fix n
+    have "inverse (real (Suc n)) \<ge> inverse (real (Suc (Suc n)))"
+      using less_imp_inverse_less real_of_nat_Suc_gt_zero[of n] by fastsimp
+    hence "\<And> x. f x \<ge> inverse (real (Suc n)) \<Longrightarrow> f x \<ge> inverse (real (Suc (Suc n)))" by (rule order_trans)
+    hence "{x. f x \<ge> inverse (real (Suc n))} \<inter> space M
+         \<subseteq> {x. f x \<ge> inverse (real (Suc (Suc n)))} \<inter> space M" by auto }
+  ultimately have "(\<lambda> x. 0) ----> measure M (\<Union> n. {x. f x \<ge> inverse (real (Suc n))} \<inter> space M)"
+    using monotone_convergence[of "\<lambda> n. {x. f x \<ge> inverse (real (Suc n))} \<inter> space M"]
+    unfolding o_def by (simp del: of_nat_Suc)
+  hence "measure M (\<Union> n. {x. f x \<ge> inverse (real (Suc n))} \<inter> space M) = 0"
+    using LIMSEQ_const[of 0] LIMSEQ_unique by simp
+  hence "measure M ((\<Union> n. {x. \<bar>f x\<bar> \<ge> inverse (real (Suc n))}) \<inter> space M) = 0"
+    using assms unfolding nonneg_def by auto
+  thus "measure M ({x. f x \<noteq> 0} \<inter> space M) = 0" using fneq0_UN by simp
 qed
 
 section "Lebesgue integration on countable spaces"
@@ -1551,10 +1637,6 @@ definition
 
 end
 
-locale finite_measure_space = measure_space +
-  assumes finite_space: "finite (space M)"
-  and sets_eq_Pow: "sets M = Pow (space M)"
-
 lemma sigma_algebra_cong:
   fixes M :: "('a, 'b) algebra_scheme" and M' :: "('a, 'c) algebra_scheme"
   assumes *: "sigma_algebra M"
@@ -1610,7 +1692,7 @@ qed
 lemma (in finite_measure_space) RN_deriv_finite_singleton:
   fixes v :: "'a set \<Rightarrow> real"
   assumes ms_v: "measure_space (M\<lparr>measure := v\<rparr>)"
-  and eq_0: "\<And>x. measure M {x} = 0 \<Longrightarrow> v {x} = 0"
+  and eq_0: "\<And>x. \<lbrakk> x \<in> space M ; measure M {x} = 0 \<rbrakk> \<Longrightarrow> v {x} = 0"
   and "x \<in> space M" and "measure M {x} \<noteq> 0"
   shows "RN_deriv v x = v {x} / (measure M {x})" (is "_ = ?v x")
   unfolding RN_deriv_def
@@ -1621,7 +1703,7 @@ next
   fix a assume "a \<in> sets M"
   hence "a \<subseteq> space M" and "finite a"
     using sets_into_space finite_space by (auto intro: finite_subset)
-  have *: "\<And>x a. (if measure M {x} = 0 then 0 else v {x} * indicator_fn a x) =
+  have *: "\<And>x a. x \<in> space M \<Longrightarrow> (if measure M {x} = 0 then 0 else v {x} * indicator_fn a x) =
     v {x} * indicator_fn a x" using eq_0 by auto
 
   from measure_space.measure_real_sum_image[OF ms_v, of a]
