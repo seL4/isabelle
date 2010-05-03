@@ -684,6 +684,18 @@ by (force simp add: mult_right_mono not_le [symmetric])
 end
 
 class linordered_semiring_1 = linordered_semiring + semiring_1
+begin
+
+lemma convex_bound_le:
+  assumes "x \<le> a" "y \<le> a" "0 \<le> u" "0 \<le> v" "u + v = 1"
+  shows "u * x + v * y \<le> a"
+proof-
+  from assms have "u * x + v * y \<le> u * a + v * a"
+    by (simp add: add_mono mult_left_mono)
+  thus ?thesis using assms unfolding left_distrib[symmetric] by simp
+qed
+
+end
 
 class linordered_semiring_strict = semiring + comm_monoid_add + linordered_cancel_ab_semigroup_add +
   assumes mult_strict_left_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c * a < c * b"
@@ -803,6 +815,21 @@ qed
 end
 
 class linordered_semiring_1_strict = linordered_semiring_strict + semiring_1
+begin
+
+subclass linordered_semiring_1 ..
+
+lemma convex_bound_lt:
+  assumes "x < a" "y < a" "0 \<le> u" "0 \<le> v" "u + v = 1"
+  shows "u * x + v * y < a"
+proof -
+  from assms have "u * x + v * y < u * a + v * a"
+    by (cases "u = 0")
+       (auto intro!: add_less_le_mono mult_strict_left_mono mult_left_mono)
+  thus ?thesis using assms unfolding left_distrib[symmetric] by simp
+qed
+
+end
 
 class mult_mono1 = times + zero + ord +
   assumes mult_mono1: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"
@@ -1108,6 +1135,7 @@ class linordered_idom = comm_ring_1 +
   (*previously linordered_ring*)
 begin
 
+subclass linordered_semiring_1_strict ..
 subclass linordered_ring_strict ..
 subclass ordered_comm_ring ..
 subclass idom ..

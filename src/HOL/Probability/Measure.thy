@@ -365,6 +365,18 @@ proof -
     by arith
 qed
 
+lemma (in measure_space) measure_mono:
+  assumes "a \<subseteq> b" "a \<in> sets M" "b \<in> sets M"
+  shows "measure M a \<le> measure M b"
+proof -
+  have "b = a \<union> (b - a)" using assms by auto
+  moreover have "{} = a \<inter> (b - a)" by auto
+  ultimately have "measure M b = measure M a + measure M (b - a)"
+    using measure_additive[of a "b - a"] local.Diff[of b a] assms by auto
+  moreover have "measure M (b - a) \<ge> 0" using positive assms by auto
+  ultimately show "measure M a \<le> measure M b" by auto
+qed
+
 lemma disjoint_family_Suc:
   assumes Suc: "!!n. A n \<subseteq> A (Suc n)"
   shows "disjoint_family (\<lambda>i. A (Suc i) - A i)"
@@ -1044,5 +1056,13 @@ proof -
       unfolding disjoint_family_on_def by auto
   qed
 qed
+
+locale finite_measure_space = measure_space +
+  assumes finite_space: "finite (space M)"
+  and sets_eq_Pow: "sets M = Pow (space M)"
+
+lemma (in finite_measure_space) sum_over_space: "(\<Sum>x\<in>space M. measure M {x}) = measure M (space M)"
+  using measure_finitely_additive''[of "space M" "\<lambda>i. {i}"]
+  by (simp add: sets_eq_Pow disjoint_family_on_def finite_space)
 
 end

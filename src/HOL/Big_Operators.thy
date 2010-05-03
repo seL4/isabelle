@@ -554,6 +554,26 @@ next
   case False thus ?thesis by (simp add: setsum_def)
 qed
 
+lemma setsum_nonneg_leq_bound:
+  fixes f :: "'a \<Rightarrow> 'b::{ordered_ab_group_add}"
+  assumes "finite s" "\<And>i. i \<in> s \<Longrightarrow> f i \<ge> 0" "(\<Sum>i \<in> s. f i) = B" "i \<in> s"
+  shows "f i \<le> B"
+proof -
+  have "0 \<le> (\<Sum> i \<in> s - {i}. f i)" and "0 \<le> f i"
+    using assms by (auto intro!: setsum_nonneg)
+  moreover
+  have "(\<Sum> i \<in> s - {i}. f i) + f i = B"
+    using assms by (simp add: setsum_diff1)
+  ultimately show ?thesis by auto
+qed
+
+lemma setsum_nonneg_0:
+  fixes f :: "'a \<Rightarrow> 'b::{ordered_ab_group_add}"
+  assumes "finite s" and pos: "\<And> i. i \<in> s \<Longrightarrow> f i \<ge> 0"
+  and "(\<Sum> i \<in> s. f i) = 0" and i: "i \<in> s"
+  shows "f i = 0"
+  using setsum_nonneg_leq_bound[OF assms] pos[OF i] by auto
+
 lemma setsum_mono2:
 fixes f :: "'a \<Rightarrow> 'b :: ordered_comm_monoid_add"
 assumes fin: "finite B" and sub: "A \<subseteq> B" and nn: "\<And>b. b \<in> B-A \<Longrightarrow> 0 \<le> f b"

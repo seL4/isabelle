@@ -8,7 +8,7 @@ theory Euclidean_Space
 imports
   Complex_Main "~~/src/HOL/Decision_Procs/Dense_Linear_Order"
   Finite_Cartesian_Product Infinite_Set Numeral_Type
-  Inner_Product L2_Norm
+  Inner_Product L2_Norm Convex
 uses "positivstellensatz.ML" ("normarith.ML")
 begin
 
@@ -1410,40 +1410,6 @@ lemma seq_mono_lemma: assumes "\<forall>(n::nat) \<ge> m. (d n :: real) < e n" a
   apply auto
   done
 
-
-lemma real_convex_bound_lt:
-  assumes xa: "(x::real) < a" and ya: "y < a" and u: "0 <= u" and v: "0 <= v"
-  and uv: "u + v = 1"
-  shows "u * x + v * y < a"
-proof-
-  have uv': "u = 0 \<longrightarrow> v \<noteq> 0" using u v uv by arith
-  have "a = a * (u + v)" unfolding uv  by simp
-  hence th: "u * a + v * a = a" by (simp add: field_simps)
-  from xa u have "u \<noteq> 0 \<Longrightarrow> u*x < u*a" by (simp add: mult_strict_left_mono)
-  from ya v have "v \<noteq> 0 \<Longrightarrow> v * y < v * a" by (simp add: mult_strict_left_mono)
-  from xa ya u v have "u * x + v * y < u * a + v * a"
-    apply (cases "u = 0", simp_all add: uv')
-    apply(rule mult_strict_left_mono)
-    using uv' apply simp_all
-
-    apply (rule add_less_le_mono)
-    apply(rule mult_strict_left_mono)
-    apply simp_all
-    apply (rule mult_left_mono)
-    apply simp_all
-    done
-  thus ?thesis unfolding th .
-qed
-
-lemma real_convex_bound_le:
-  assumes xa: "(x::real) \<le> a" and ya: "y \<le> a" and u: "0 <= u" and v: "0 <= v"
-  and uv: "u + v = 1"
-  shows "u * x + v * y \<le> a"
-proof-
-  from xa ya u v have "u * x + v * y \<le> u * a + v * a" by (simp add: add_mono mult_left_mono)
-  also have "\<dots> \<le> (u + v) * a" by (simp add: field_simps)
-  finally show ?thesis unfolding uv by simp
-qed
 
 lemma infinite_enumerate: assumes fS: "infinite S"
   shows "\<exists>r. subseq r \<and> (\<forall>n. r n \<in> S)"

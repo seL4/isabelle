@@ -21,22 +21,23 @@ definition
 definition
   "distribution X = (\<lambda>s. prob ((X -` s) \<inter> (space M)))"
 
-definition
-  "probably e \<longleftrightarrow> e \<in> events \<and> prob e = 1"
+abbreviation
+  "joint_distribution X Y \<equiv> distribution (\<lambda>x. (X x, Y x))"
+
+(*
+definition probably :: "('a \<Rightarrow> bool) \<Rightarrow> bool" (binder "\<forall>\<^sup>*" 10) where
+  "probably P \<longleftrightarrow> { x. P x } \<in> events \<and> prob { x. P x } = 1"
+definition possibly :: "('a \<Rightarrow> bool) \<Rightarrow> bool" (binder "\<exists>\<^sup>*" 10) where
+  "possibly P \<longleftrightarrow> { x. P x } \<in> events \<and> prob { x. P x } \<noteq> 0"
+*)
 
 definition
-  "possibly e \<longleftrightarrow> e \<in> events \<and> prob e \<noteq> 0"
+  "conditional_expectation X M' \<equiv> SOME f. f \<in> measurable M' borel_space \<and>
+    (\<forall> g \<in> sets M'. measure_space.integral M' (\<lambda>x. f x * indicator_fn g x) =
+                    measure_space.integral M' (\<lambda>x. X x * indicator_fn g x))"
 
 definition
-  "joint_distribution X Y \<equiv> (\<lambda>a. prob ((\<lambda>x. (X x, Y x)) -` a \<inter> space M))"
-
-definition
-  "conditional_expectation X s \<equiv> THE f. random_variable borel_space f \<and>
-    (\<forall> g \<in> s. integral (\<lambda>x. f x * indicator_fn g x) =
-              integral (\<lambda>x. X x * indicator_fn g x))"
-
-definition
-  "conditional_prob e1 e2 \<equiv> conditional_expectation (indicator_fn e1) e2"
+  "conditional_prob E M' \<equiv> conditional_expectation (indicator_fn E) M'"
 
 lemma positive': "positive M prob"
   unfolding positive_def using positive empty_measure by blast
@@ -389,14 +390,61 @@ end
 
 locale finite_prob_space = prob_space + finite_measure_space
 
-lemma (in finite_prob_space) finite_marginal_product_space_POW2:
+lemma finite_prob_space_eq:
+  "finite_prob_space M \<longleftrightarrow> finite_measure_space M \<and> measure M (space M) = 1"
+  unfolding finite_prob_space_def finite_measure_space_def prob_space_def prob_space_axioms_def
+  by auto
+
+lemma (in prob_space) not_empty: "space M \<noteq> {}"
+  using prob_space empty_measure by auto
+
+lemma (in finite_prob_space) sum_over_space_eq_1: "(\<Sum>x\<in>space M. measure M {x}) = 1"
+  using prob_space sum_over_space by simp
+
+lemma (in finite_prob_space) positive_distribution: "0 \<le> distribution X x"
+  unfolding distribution_def using positive sets_eq_Pow by simp
+
+lemma (in finite_prob_space) joint_distribution_restriction_fst:
+  "joint_distribution X Y A \<le> distribution X (fst ` A)"
+  unfolding distribution_def
+proof (safe intro!: measure_mono)
+  fix x assume "x \<in> space M" and *: "(X x, Y x) \<in> A"
+  show "x \<in> X -` fst ` A"
+    by (auto intro!: image_eqI[OF _ *])
+qed (simp_all add: sets_eq_Pow)
+
+lemma (in finite_prob_space) joint_distribution_restriction_snd:
+  "joint_distribution X Y A \<le> distribution Y (snd ` A)"
+  unfolding distribution_def
+proof (safe intro!: measure_mono)
+  fix x assume "x \<in> space M" and *: "(X x, Y x) \<in> A"
+  show "x \<in> Y -` snd ` A"
+    by (auto intro!: image_eqI[OF _ *])
+qed (simp_all add: sets_eq_Pow)
+
+lemma (in finite_prob_space) distribution_order:
+  shows "0 \<le> distribution X x'"
+  and "(distribution X x' \<noteq> 0) \<longleftrightarrow> (0 < distribution X x')"
+  and "r \<le> joint_distribution X Y {(x, y)} \<Longrightarrow> r \<le> distribution X {x}"
+  and "r \<le> joint_distribution X Y {(x, y)} \<Longrightarrow> r \<le> distribution Y {y}"
+  and "r < joint_distribution X Y {(x, y)} \<Longrightarrow> r < distribution X {x}"
+  and "r < joint_distribution X Y {(x, y)} \<Longrightarrow> r < distribution Y {y}"
+  and "distribution X {x} = 0 \<Longrightarrow> joint_distribution X Y {(x, y)} = 0"
+  and "distribution Y {y} = 0 \<Longrightarrow> joint_distribution X Y {(x, y)} = 0"
+  using positive_distribution[of X x']
+    positive_distribution[of "\<lambda>x. (X x, Y x)" "{(x, y)}"]
+    joint_distribution_restriction_fst[of X Y "{(x, y)}"]
+    joint_distribution_restriction_snd[of X Y "{(x, y)}"]
+  by auto
+
+lemma (in finite_prob_space) finite_product_measure_space:
   assumes "finite s1" "finite s2"
   shows "finite_measure_space \<lparr> space = s1 \<times> s2, sets = Pow (s1 \<times> s2), measure = joint_distribution X Y\<rparr>"
     (is "finite_measure_space ?M")
 proof (rule finite_Pow_additivity_sufficient)
   show "positive ?M (measure ?M)"
     unfolding positive_def using positive'[unfolded positive_def] assms sets_eq_Pow
-    by (simp add: joint_distribution_def)
+    by (simp add: distribution_def)
 
   show "additive ?M (measure ?M)" unfolding additive_def
   proof safe
@@ -406,7 +454,7 @@ proof (rule finite_Pow_additivity_sufficient)
     assume "x \<inter> y = {}"
     from additive[unfolded additive_def, rule_format, OF A B] this
     show "measure ?M (x \<union> y) = measure ?M x + measure ?M y"
-      apply (simp add: joint_distribution_def)
+      apply (simp add: distribution_def)
       apply (subst Int_Un_distrib2)
       by auto
   qed
@@ -418,11 +466,58 @@ proof (rule finite_Pow_additivity_sufficient)
     by simp
 qed
 
-lemma (in finite_prob_space) finite_marginal_product_space_POW:
+lemma (in finite_prob_space) finite_product_measure_space_of_images:
   shows "finite_measure_space \<lparr> space = X ` space M \<times> Y ` space M,
                                 sets = Pow (X ` space M \<times> Y ` space M),
                                 measure = joint_distribution X Y\<rparr>"
     (is "finite_measure_space ?M")
-  using finite_space by (auto intro!: finite_marginal_product_space_POW2)
+  using finite_space by (auto intro!: finite_product_measure_space)
+
+lemma (in finite_prob_space) finite_measure_space:
+  shows "finite_measure_space \<lparr> space = X ` space M, sets = Pow (X ` space M), measure = distribution X\<rparr>"
+    (is "finite_measure_space ?S")
+proof (rule finite_Pow_additivity_sufficient, simp_all)
+  show "finite (X ` space M)" using finite_space by simp
+
+  show "positive ?S (distribution X)" unfolding distribution_def
+    unfolding positive_def using positive'[unfolded positive_def] sets_eq_Pow by auto
+
+  show "additive ?S (distribution X)" unfolding additive_def distribution_def
+  proof (simp, safe)
+    fix x y
+    have x: "(X -` x) \<inter> space M \<in> sets M"
+      and y: "(X -` y) \<inter> space M \<in> sets M" using sets_eq_Pow by auto
+    assume "x \<inter> y = {}"
+    from additive[unfolded additive_def, rule_format, OF x y] this
+    have "prob (((X -` x) \<union> (X -` y)) \<inter> space M) =
+      prob ((X -` x) \<inter> space M) + prob ((X -` y) \<inter> space M)"
+      apply (subst Int_Un_distrib2)
+      by auto
+    thus "prob ((X -` x \<union> X -` y) \<inter> space M) = prob (X -` x \<inter> space M) + prob (X -` y \<inter> space M)"
+      by auto
+  qed
+qed
+
+lemma (in finite_prob_space) finite_prob_space_of_images:
+  "finite_prob_space \<lparr> space = X ` space M, sets = Pow (X ` space M), measure = distribution X\<rparr>"
+  (is "finite_prob_space ?S")
+proof (simp add: finite_prob_space_eq, safe)
+  show "finite_measure_space ?S" by (rule finite_measure_space)
+  have "X -` X ` space M \<inter> space M = space M" by auto
+  thus "distribution X (X`space M) = 1"
+    by (simp add: distribution_def prob_space)
+qed
+
+lemma (in finite_prob_space) finite_product_prob_space_of_images:
+  "finite_prob_space \<lparr> space = X ` space M \<times> Y ` space M, sets = Pow (X ` space M \<times> Y ` space M), 
+    measure = joint_distribution X Y\<rparr>"
+  (is "finite_prob_space ?S")
+proof (simp add: finite_prob_space_eq, safe)
+  show "finite_measure_space ?S" by (rule finite_product_measure_space_of_images)
+
+  have "X -` X ` space M \<inter> Y -` Y ` space M \<inter> space M = space M" by auto
+  thus "joint_distribution X Y (X ` space M \<times> Y ` space M) = 1"
+    by (simp add: distribution_def prob_space vimage_Times comp_def)
+qed
 
 end

@@ -130,7 +130,7 @@ structure Data = Theory_Data(
   type T = raw_param list
   val empty = map (apsnd single) default_default_params
   val extend = I
-  val merge = AList.merge (op =) (K true))
+  fun merge (x, y) = AList.merge (op =) (K true) (x, y))
 
 val set_default_raw_param = Data.map o AList.update (op =) o unnegate_raw_param
 val default_raw_params = Data.get

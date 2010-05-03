@@ -990,6 +990,15 @@ by blast
 lemma Times_Diff_distrib1: "(A - B) <*> C = (A <*> C) - (B <*> C)"
 by blast
 
+lemma Times_empty[simp]: "A \<times> B = {} \<longleftrightarrow> A = {} \<or> B = {}"
+  by auto
+
+lemma fst_image_times[simp]: "fst ` (A \<times> B) = (if B = {} then {} else A)"
+  by (auto intro!: image_eqI)
+
+lemma snd_image_times[simp]: "snd ` (A \<times> B) = (if A = {} then {} else B)"
+  by (auto intro!: image_eqI)
+
 lemma insert_times_insert[simp]:
   "insert a A \<times> insert b B =
    insert (a,b) (A \<times> insert b B \<union> insert a A \<times> B)"
@@ -999,13 +1008,20 @@ lemma vimage_Times: "f -` (A \<times> B) = ((fst \<circ> f) -` A) \<inter> ((snd
   by (auto, rule_tac p = "f x" in PairE, auto)
 
 lemma swap_inj_on:
-  "inj_on (%(i, j). (j, i)) (A \<times> B)"
-  by (unfold inj_on_def) fast
+  "inj_on (\<lambda>(i, j). (j, i)) A"
+  by (auto intro!: inj_onI)
 
 lemma swap_product:
   "(%(i, j). (j, i)) ` (A \<times> B) = B \<times> A"
   by (simp add: split_def image_def) blast
 
+lemma image_split_eq_Sigma:
+  "(\<lambda>x. (f x, g x)) ` A = Sigma (f ` A) (\<lambda>x. g ` (f -` {x} \<inter> A))"
+proof (safe intro!: imageI vimageI)
+  fix a b assume *: "a \<in> A" "b \<in> A" and eq: "f a = f b"
+  show "(f b, g a) \<in> (\<lambda>x. (f x, g x)) ` A"
+    using * eq[symmetric] by auto
+qed simp_all
 
 subsubsection {* Code generator setup *}
 

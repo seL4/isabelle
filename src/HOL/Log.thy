@@ -145,6 +145,21 @@ apply (rule_tac [2] powr_less_cancel)
 apply (drule_tac a = "log a x" in powr_less_mono, auto)
 done
 
+lemma log_inj: assumes "1 < b" shows "inj_on (log b) {0 <..}"
+proof (rule inj_onI, simp)
+  fix x y assume pos: "0 < x" "0 < y" and *: "log b x = log b y"
+  show "x = y"
+  proof (cases rule: linorder_cases)
+    assume "x < y" hence "log b x < log b y"
+      using log_less_cancel_iff[OF `1 < b`] pos by simp
+    thus ?thesis using * by simp
+  next
+    assume "y < x" hence "log b y < log b x"
+      using log_less_cancel_iff[OF `1 < b`] pos by simp
+    thus ?thesis using * by simp
+  qed simp
+qed
+
 lemma log_le_cancel_iff [simp]:
      "[| 1 < a; 0 < x; 0 < y |] ==> (log a x \<le> log a y) = (x \<le> y)"
 by (simp add: linorder_not_less [symmetric])

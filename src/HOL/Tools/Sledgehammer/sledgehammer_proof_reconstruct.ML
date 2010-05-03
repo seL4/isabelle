@@ -48,7 +48,8 @@ val is_skolem_const_name =
   Long_Name.base_name
   #> String.isPrefix skolem_prefix andf String.isSubstring skolem_infix
 
-val index_in_shape = find_index o exists o curry (op =)
+val index_in_shape : int -> int list list -> int =
+  find_index o exists o curry (op =)
 fun is_axiom_clause_number thm_names num = num <= Vector.length thm_names
 fun is_conjecture_clause_number conjecture_shape num =
   index_in_shape num conjecture_shape >= 0

@@ -5,7 +5,7 @@
 header {* Convex sets, functions and related things. *}
 
 theory Convex_Euclidean_Space
-imports Topology_Euclidean_Space
+imports Topology_Euclidean_Space Convex
 begin
 
 
@@ -315,176 +315,6 @@ lemma affine_hull_span:
   shows "affine hull s = {a + v | v. v \<in> span {x - a | x. x \<in> s - {a}}}"
   using affine_hull_insert_span[of a "s - {a}", unfolded insert_Diff[OF assms]] by auto
 
-subsection {* Convexity. *}
-
-definition
-  convex :: "'a::real_vector set \<Rightarrow> bool" where
-  "convex s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u\<ge>0. \<forall>v\<ge>0. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> s)"
-
-lemma convex_alt: "convex s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u. 0 \<le> u \<and> u \<le> 1 \<longrightarrow> ((1 - u) *\<^sub>R x + u *\<^sub>R y) \<in> s)"
-proof- have *:"\<And>u v::real. u + v = 1 \<longleftrightarrow> u = 1 - v" by auto
-  show ?thesis unfolding convex_def apply auto
-    apply(erule_tac x=x in ballE) apply(erule_tac x=y in ballE) apply(erule_tac x="1 - u" in allE)
-    by (auto simp add: *) qed
-
-lemma mem_convex:
-  assumes "convex s" "a \<in> s" "b \<in> s" "0 \<le> u" "u \<le> 1"
-  shows "((1 - u) *\<^sub>R a + u *\<^sub>R b) \<in> s"
-  using assms unfolding convex_alt by auto
-
-lemma convex_empty[intro]: "convex {}"
-  unfolding convex_def by simp
-
-lemma convex_singleton[intro]: "convex {a}"
-  unfolding convex_def by (auto simp add:scaleR_left_distrib[THEN sym])
-
-lemma convex_UNIV[intro]: "convex UNIV"
-  unfolding convex_def by auto
-
-lemma convex_Inter: "(\<forall>s\<in>f. convex s) ==> convex(\<Inter> f)"
-  unfolding convex_def by auto
-
-lemma convex_Int: "convex s \<Longrightarrow> convex t \<Longrightarrow> convex (s \<inter> t)"
-  unfolding convex_def by auto
-
-lemma convex_halfspace_le: "convex {x. inner a x \<le> b}"
-  unfolding convex_def apply auto
-  unfolding inner_add inner_scaleR
-  by (metis real_convex_bound_le)
-
-lemma convex_halfspace_ge: "convex {x. inner a x \<ge> b}"
-proof- have *:"{x. inner a x \<ge> b} = {x. inner (-a) x \<le> -b}" by auto
-  show ?thesis apply(unfold *) using convex_halfspace_le[of "-a" "-b"] by auto qed
-
-lemma convex_hyperplane: "convex {x. inner a x = b}"
-proof-
-  have *:"{x. inner a x = b} = {x. inner a x \<le> b} \<inter> {x. inner a x \<ge> b}" by auto
-  show ?thesis unfolding * apply(rule convex_Int)
-    using convex_halfspace_le convex_halfspace_ge by auto
-qed
-
-lemma convex_halfspace_lt: "convex {x. inner a x < b}"
-  unfolding convex_def
-  by(auto simp add: real_convex_bound_lt inner_add)
-
-lemma convex_halfspace_gt: "convex {x. inner a x > b}"
-   using convex_halfspace_lt[of "-a" "-b"] by auto
-
-lemma convex_real_interval:
-  fixes a b :: "real"
-  shows "convex {a..}" and "convex {..b}"
-  and "convex {a<..}" and "convex {..<b}"
-  and "convex {a..b}" and "convex {a<..b}"
-  and "convex {a..<b}" and "convex {a<..<b}"
-proof -
-  have "{a..} = {x. a \<le> inner 1 x}" by auto
-  thus 1: "convex {a..}" by (simp only: convex_halfspace_ge)
-  have "{..b} = {x. inner 1 x \<le> b}" by auto
-  thus 2: "convex {..b}" by (simp only: convex_halfspace_le)
-  have "{a<..} = {x. a < inner 1 x}" by auto
-  thus 3: "convex {a<..}" by (simp only: convex_halfspace_gt)
-  have "{..<b} = {x. inner 1 x < b}" by auto
-  thus 4: "convex {..<b}" by (simp only: convex_halfspace_lt)
-  have "{a..b} = {a..} \<inter> {..b}" by auto
-  thus "convex {a..b}" by (simp only: convex_Int 1 2)
-  have "{a<..b} = {a<..} \<inter> {..b}" by auto
-  thus "convex {a<..b}" by (simp only: convex_Int 3 2)
-  have "{a..<b} = {a..} \<inter> {..<b}" by auto
-  thus "convex {a..<b}" by (simp only: convex_Int 1 4)
-  have "{a<..<b} = {a<..} \<inter> {..<b}" by auto
-  thus "convex {a<..<b}" by (simp only: convex_Int 3 4)
-qed
-
-lemma convex_box:
-  assumes "\<And>i. convex {x. P i x}"
-  shows "convex {x. \<forall>i. P i (x$i)}"
-using assms unfolding convex_def by auto
-
-lemma convex_positive_orthant: "convex {x::real^'n. (\<forall>i. 0 \<le> x$i)}"
-by (rule convex_box, simp add: atLeast_def [symmetric] convex_real_interval)
-
-subsection {* Explicit expressions for convexity in terms of arbitrary sums. *}
-
-lemma convex: "convex s \<longleftrightarrow>
-  (\<forall>(k::nat) u x. (\<forall>i. 1\<le>i \<and> i\<le>k \<longrightarrow> 0 \<le> u i \<and> x i \<in>s) \<and> (setsum u {1..k} = 1)
-           \<longrightarrow> setsum (\<lambda>i. u i *\<^sub>R x i) {1..k} \<in> s)"
-  unfolding convex_def apply rule apply(rule allI)+ defer apply(rule ballI)+ apply(rule allI)+ proof(rule,rule,rule,rule)
-  fix x y u v assume as:"\<forall>(k::nat) u x. (\<forall>i. 1 \<le> i \<and> i \<le> k \<longrightarrow> 0 \<le> u i \<and> x i \<in> s) \<and> setsum u {1..k} = 1 \<longrightarrow> (\<Sum>i = 1..k. u i *\<^sub>R x i) \<in> s"
-    "x \<in> s" "y \<in> s" "0 \<le> u" "0 \<le> v" "u + v = (1::real)"
-  show "u *\<^sub>R x + v *\<^sub>R y \<in> s" using as(1)[THEN spec[where x=2], THEN spec[where x="\<lambda>n. if n=1 then u else v"], THEN spec[where x="\<lambda>n. if n=1 then x else y"]] and as(2-)
-    by (auto simp add: setsum_head_Suc) 
-next
-  fix k u x assume as:"\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u\<ge>0. \<forall>v\<ge>0. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> s" 
-  show "(\<forall>i::nat. 1 \<le> i \<and> i \<le> k \<longrightarrow> 0 \<le> u i \<and> x i \<in> s) \<and> setsum u {1..k} = 1 \<longrightarrow> (\<Sum>i = 1..k. u i *\<^sub>R x i) \<in> s" apply(rule,erule conjE) proof(induct k arbitrary: u)
-  case (Suc k) show ?case proof(cases "u (Suc k) = 1")
-    case True hence "(\<Sum>i = Suc 0..k. u i *\<^sub>R x i) = 0" apply(rule_tac setsum_0') apply(rule ccontr) unfolding ball_simps apply(erule bexE) proof-
-      fix i assume i:"i \<in> {Suc 0..k}" "u i *\<^sub>R x i \<noteq> 0"
-      hence ui:"u i \<noteq> 0" by auto
-      hence "setsum (\<lambda>k. if k=i then u i else 0) {1 .. k} \<le> setsum u {1 .. k}" apply(rule_tac setsum_mono) using Suc(2) by auto
-      hence "setsum u {1 .. k} \<ge> u i" using i(1) by(auto simp add: setsum_delta) 
-      hence "setsum u {1 .. k} > 0"  using ui apply(rule_tac less_le_trans[of _ "u i"]) using Suc(2)[THEN spec[where x=i]] and i(1) by auto
-      thus False using Suc(3) unfolding setsum_cl_ivl_Suc and True by simp qed
-    thus ?thesis unfolding setsum_cl_ivl_Suc using True and Suc(2) by auto
-  next
-    have *:"setsum u {1..k} = 1 - u (Suc k)" using Suc(3)[unfolded setsum_cl_ivl_Suc] by auto
-    have **:"u (Suc k) \<le> 1" unfolding not_le using Suc(3) using setsum_nonneg[of "{1..k}" u] using Suc(2) by auto
-    have ***:"\<And>i k. (u i / (1 - u (Suc k))) *\<^sub>R x i = (inverse (1 - u (Suc k))) *\<^sub>R (u i *\<^sub>R x i)" unfolding real_divide_def by (auto simp add: algebra_simps)
-    case False hence nn:"1 - u (Suc k) \<noteq> 0" by auto
-    have "(\<Sum>i = 1..k. (u i / (1 - u (Suc k))) *\<^sub>R x i) \<in> s" apply(rule Suc(1)) unfolding setsum_divide_distrib[THEN sym] and *
-      apply(rule_tac allI) apply(rule,rule) apply(rule divide_nonneg_pos) using nn Suc(2) ** by auto
-    hence "(1 - u (Suc k)) *\<^sub>R (\<Sum>i = 1..k. (u i / (1 - u (Suc k))) *\<^sub>R x i) + u (Suc k) *\<^sub>R x (Suc k) \<in> s"
-      apply(rule as[THEN bspec, THEN bspec, THEN spec, THEN mp, THEN spec, THEN mp, THEN mp]) using Suc(2)[THEN spec[where x="Suc k"]] and ** by auto
-    thus ?thesis unfolding setsum_cl_ivl_Suc and *** and scaleR_right.setsum [symmetric] using nn by auto qed qed auto qed
-
-
-lemma convex_explicit:
-  fixes s :: "'a::real_vector set"
-  shows "convex s \<longleftrightarrow>
-  (\<forall>t u. finite t \<and> t \<subseteq> s \<and> (\<forall>x\<in>t. 0 \<le> u x) \<and> setsum u t = 1 \<longrightarrow> setsum (\<lambda>x. u x *\<^sub>R x) t \<in> s)"
-  unfolding convex_def apply(rule,rule,rule) apply(subst imp_conjL,rule) defer apply(rule,rule,rule,rule,rule,rule,rule) proof-
-  fix x y u v assume as:"\<forall>t u. finite t \<and> t \<subseteq> s \<and> (\<forall>x\<in>t. 0 \<le> u x) \<and> setsum u t = 1 \<longrightarrow> (\<Sum>x\<in>t. u x *\<^sub>R x) \<in> s" "x \<in> s" "y \<in> s" "0 \<le> u" "0 \<le> v" "u + v = (1::real)"
-  show "u *\<^sub>R x + v *\<^sub>R y \<in> s" proof(cases "x=y")
-    case True show ?thesis unfolding True and scaleR_left_distrib[THEN sym] using as(3,6) by auto next
-    case False thus ?thesis using as(1)[THEN spec[where x="{x,y}"], THEN spec[where x="\<lambda>z. if z=x then u else v"]] and as(2-) by auto qed
-next 
-  fix t u assume asm:"\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u\<ge>0. \<forall>v\<ge>0. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> s" "finite (t::'a set)"
-  (*"finite t" "t \<subseteq> s" "\<forall>x\<in>t. (0::real) \<le> u x" "setsum u t = 1"*)
-  from this(2) have "\<forall>u. t \<subseteq> s \<and> (\<forall>x\<in>t. 0 \<le> u x) \<and> setsum u t = 1 \<longrightarrow> (\<Sum>x\<in>t. u x *\<^sub>R x) \<in> s" apply(induct t rule:finite_induct)
-    prefer 2 apply (rule,rule) apply(erule conjE)+ proof-
-    fix x f u assume ind:"\<forall>u. f \<subseteq> s \<and> (\<forall>x\<in>f. 0 \<le> u x) \<and> setsum u f = 1 \<longrightarrow> (\<Sum>x\<in>f. u x *\<^sub>R x) \<in> s"
-    assume as:"finite f" "x \<notin> f" "insert x f \<subseteq> s" "\<forall>x\<in>insert x f. 0 \<le> u x" "setsum u (insert x f) = (1::real)"
-    show "(\<Sum>x\<in>insert x f. u x *\<^sub>R x) \<in> s" proof(cases "u x = 1")
-      case True hence "setsum (\<lambda>x. u x *\<^sub>R x) f = 0" apply(rule_tac setsum_0') apply(rule ccontr) unfolding ball_simps apply(erule bexE) proof-
-        fix y assume y:"y \<in> f" "u y *\<^sub>R y \<noteq> 0"
-        hence uy:"u y \<noteq> 0" by auto
-        hence "setsum (\<lambda>k. if k=y then u y else 0) f \<le> setsum u f" apply(rule_tac setsum_mono) using as(4) by auto
-        hence "setsum u f \<ge> u y" using y(1) and as(1) by(auto simp add: setsum_delta) 
-        hence "setsum u f > 0" using uy apply(rule_tac less_le_trans[of _ "u y"]) using as(4) and y(1) by auto
-        thus False using as(2,5) unfolding setsum_clauses(2)[OF as(1)] and True by auto qed
-      thus ?thesis unfolding setsum_clauses(2)[OF as(1)] using as(2,3) unfolding True by auto
-    next
-      have *:"setsum u f = setsum u (insert x f) - u x" using as(2) unfolding setsum_clauses(2)[OF as(1)] by auto
-      have **:"u x \<le> 1" unfolding not_le using as(5)[unfolded setsum_clauses(2)[OF as(1)]] and as(2)
-        using setsum_nonneg[of f u] and as(4) by auto
-      case False hence "inverse (1 - u x) *\<^sub>R (\<Sum>x\<in>f. u x *\<^sub>R x) \<in> s" unfolding scaleR_right.setsum and scaleR_scaleR
-        apply(rule_tac ind[THEN spec, THEN mp]) apply rule defer apply rule apply rule apply(rule mult_nonneg_nonneg)
-        unfolding setsum_right_distrib[THEN sym] and * using as and ** by auto
-      hence "u x *\<^sub>R x + (1 - u x) *\<^sub>R ((inverse (1 - u x)) *\<^sub>R setsum (\<lambda>x. u x *\<^sub>R x) f) \<in>s" 
-        apply(rule_tac asm(1)[THEN bspec, THEN bspec, THEN spec, THEN mp, THEN spec, THEN mp, THEN mp]) using as and ** False by auto 
-      thus ?thesis unfolding setsum_clauses(2)[OF as(1)] using as(2) and False by auto qed
-  qed auto thus "t \<subseteq> s \<and> (\<forall>x\<in>t. 0 \<le> u x) \<and> setsum u t = 1 \<longrightarrow> (\<Sum>x\<in>t. u x *\<^sub>R x) \<in> s" by auto
-qed
-
-lemma convex_finite: assumes "finite s"
-  shows "convex s \<longleftrightarrow> (\<forall>u. (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1
-                      \<longrightarrow> setsum (\<lambda>x. u x *\<^sub>R x) s \<in> s)"
-  unfolding convex_explicit apply(rule, rule, rule) defer apply(rule,rule,rule)apply(erule conjE)+ proof-
-  fix t u assume as:"\<forall>u. (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<longrightarrow> (\<Sum>x\<in>s. u x *\<^sub>R x) \<in> s" " finite t" "t \<subseteq> s" "\<forall>x\<in>t. 0 \<le> u x" "setsum u t = (1::real)"
-  have *:"s \<inter> t = t" using as(3) by auto
-  show "(\<Sum>x\<in>t. u x *\<^sub>R x) \<in> s" using as(1)[THEN spec[where x="\<lambda>x. if x\<in>t then u x else 0"]]
-    unfolding if_smult and setsum_cases[OF assms] using as(2-) * by auto
-qed (erule_tac x=s in allE, erule_tac x=u in allE, auto)
-
 subsection {* Cones. *}
 
 definition
@@ -595,49 +425,15 @@ subsection {* One rather trivial consequence. *}
 lemma connected_UNIV[intro]: "connected (UNIV :: 'a::real_normed_vector set)"
   by(simp add: convex_connected convex_UNIV)
 
-subsection {* Convex functions into the reals. *}
+subsection {* Balls, being convex, are connected. *}
 
-definition
-  convex_on :: "'a::real_vector set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> bool" where
-  "convex_on s f \<longleftrightarrow>
-  (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u\<ge>0. \<forall>v\<ge>0. u + v = 1 \<longrightarrow> f (u *\<^sub>R x + v *\<^sub>R y) \<le> u * f x + v * f y)"
+lemma convex_box:
+  assumes "\<And>i. convex {x. P i x}"
+  shows "convex {x. \<forall>i. P i (x$i)}"
+using assms unfolding convex_def by auto
 
-lemma convex_on_subset: "convex_on t f \<Longrightarrow> s \<subseteq> t \<Longrightarrow> convex_on s f"
-  unfolding convex_on_def by auto
-
-lemma convex_add[intro]:
-  assumes "convex_on s f" "convex_on s g"
-  shows "convex_on s (\<lambda>x. f x + g x)"
-proof-
-  { fix x y assume "x\<in>s" "y\<in>s" moreover
-    fix u v ::real assume "0 \<le> u" "0 \<le> v" "u + v = 1"
-    ultimately have "f (u *\<^sub>R x + v *\<^sub>R y) + g (u *\<^sub>R x + v *\<^sub>R y) \<le> (u * f x + v * f y) + (u * g x + v * g y)"
-      using assms(1)[unfolded convex_on_def, THEN bspec[where x=x], THEN bspec[where x=y], THEN spec[where x=u]]
-      using assms(2)[unfolded convex_on_def, THEN bspec[where x=x], THEN bspec[where x=y], THEN spec[where x=u]]
-      apply - apply(rule add_mono) by auto
-    hence "f (u *\<^sub>R x + v *\<^sub>R y) + g (u *\<^sub>R x + v *\<^sub>R y) \<le> u * (f x + g x) + v * (f y + g y)" by (simp add: field_simps)  }
-  thus ?thesis unfolding convex_on_def by auto 
-qed
-
-lemma convex_cmul[intro]:
-  assumes "0 \<le> (c::real)" "convex_on s f"
-  shows "convex_on s (\<lambda>x. c * f x)"
-proof-
-  have *:"\<And>u c fx v fy ::real. u * (c * fx) + v * (c * fy) = c * (u * fx + v * fy)" by (simp add: field_simps)
-  show ?thesis using assms(2) and mult_mono1[OF _ assms(1)] unfolding convex_on_def and * by auto
-qed
-
-lemma convex_lower:
-  assumes "convex_on s f"  "x\<in>s"  "y \<in> s"  "0 \<le> u"  "0 \<le> v"  "u + v = 1"
-  shows "f (u *\<^sub>R x + v *\<^sub>R y) \<le> max (f x) (f y)"
-proof-
-  let ?m = "max (f x) (f y)"
-  have "u * f x + v * f y \<le> u * max (f x) (f y) + v * max (f x) (f y)" apply(rule add_mono) 
-    using assms(4,5) by(auto simp add: mult_mono1)
-  also have "\<dots> = max (f x) (f y)" using assms(6) unfolding distrib[THEN sym] by auto
-  finally show ?thesis using assms(1)[unfolded convex_on_def, THEN bspec[where x=x], THEN bspec[where x=y], THEN spec[where x=u]]
-    using assms(2-6) by auto 
-qed
+lemma convex_positive_orthant: "convex {x::real^'n. (\<forall>i. 0 \<le> x$i)}"
+  by (rule convex_box) (simp add: atLeast_def[symmetric] convex_real_interval)
 
 lemma convex_local_global_minimum:
   fixes s :: "'a::real_normed_vector set"
@@ -661,76 +457,6 @@ proof(rule ccontr)
   ultimately show False using mult_strict_left_mono[OF y `u>0`] unfolding left_diff_distrib by auto
 qed
 
-lemma convex_distance[intro]:
-  fixes s :: "'a::real_normed_vector set"
-  shows "convex_on s (\<lambda>x. dist a x)"
-proof(auto simp add: convex_on_def dist_norm)
-  fix x y assume "x\<in>s" "y\<in>s"
-  fix u v ::real assume "0 \<le> u" "0 \<le> v" "u + v = 1"
-  have "a = u *\<^sub>R a + v *\<^sub>R a" unfolding scaleR_left_distrib[THEN sym] and `u+v=1` by simp
-  hence *:"a - (u *\<^sub>R x + v *\<^sub>R y) = (u *\<^sub>R (a - x)) + (v *\<^sub>R (a - y))"
-    by (auto simp add: algebra_simps)
-  show "norm (a - (u *\<^sub>R x + v *\<^sub>R y)) \<le> u * norm (a - x) + v * norm (a - y)"
-    unfolding * using norm_triangle_ineq[of "u *\<^sub>R (a - x)" "v *\<^sub>R (a - y)"]
-    using `0 \<le> u` `0 \<le> v` by auto
-qed
-
-subsection {* Arithmetic operations on sets preserve convexity. *}
-
-lemma convex_scaling: "convex s \<Longrightarrow> convex ((\<lambda>x. c *\<^sub>R x) ` s)"
-  unfolding convex_def and image_iff apply auto
-  apply (rule_tac x="u *\<^sub>R x+v *\<^sub>R y" in bexI) by (auto simp add: algebra_simps)
-
-lemma convex_negations: "convex s \<Longrightarrow> convex ((\<lambda>x. -x)` s)"
-  unfolding convex_def and image_iff apply auto
-  apply (rule_tac x="u *\<^sub>R x+v *\<^sub>R y" in bexI) by auto
-
-lemma convex_sums:
-  assumes "convex s" "convex t"
-  shows "convex {x + y| x y. x \<in> s \<and> y \<in> t}"
-proof(auto simp add: convex_def image_iff scaleR_right_distrib)
-  fix xa xb ya yb assume xy:"xa\<in>s" "xb\<in>s" "ya\<in>t" "yb\<in>t"
-  fix u v ::real assume uv:"0 \<le> u" "0 \<le> v" "u + v = 1"
-  show "\<exists>x y. u *\<^sub>R xa + u *\<^sub>R ya + (v *\<^sub>R xb + v *\<^sub>R yb) = x + y \<and> x \<in> s \<and> y \<in> t"
-    apply(rule_tac x="u *\<^sub>R xa + v *\<^sub>R xb" in exI) apply(rule_tac x="u *\<^sub>R ya + v *\<^sub>R yb" in exI)
-    using assms(1)[unfolded convex_def, THEN bspec[where x=xa], THEN bspec[where x=xb]]
-    using assms(2)[unfolded convex_def, THEN bspec[where x=ya], THEN bspec[where x=yb]]
-    using uv xy by auto
-qed
-
-lemma convex_differences: 
-  assumes "convex s" "convex t"
-  shows "convex {x - y| x y. x \<in> s \<and> y \<in> t}"
-proof-
-  have "{x - y| x y. x \<in> s \<and> y \<in> t} = {x + y |x y. x \<in> s \<and> y \<in> uminus ` t}" unfolding image_iff apply auto
-    apply(rule_tac x=xa in exI) apply(rule_tac x="-y" in exI) apply simp
-    apply(rule_tac x=xa in exI) apply(rule_tac x=xb in exI) by simp
-  thus ?thesis using convex_sums[OF assms(1)  convex_negations[OF assms(2)]] by auto
-qed
-
-lemma convex_translation: assumes "convex s" shows "convex ((\<lambda>x. a + x) ` s)"
-proof- have "{a + y |y. y \<in> s} = (\<lambda>x. a + x) ` s" by auto
-  thus ?thesis using convex_sums[OF convex_singleton[of a] assms] by auto qed
-
-lemma convex_affinity: assumes "convex s" shows "convex ((\<lambda>x. a + c *\<^sub>R x) ` s)"
-proof- have "(\<lambda>x. a + c *\<^sub>R x) ` s = op + a ` op *\<^sub>R c ` s" by auto
-  thus ?thesis using convex_translation[OF convex_scaling[OF assms], of a c] by auto qed
-
-lemma convex_linear_image:
-  assumes c:"convex s" and l:"bounded_linear f"
-  shows "convex(f ` s)"
-proof(auto simp add: convex_def)
-  interpret f: bounded_linear f by fact
-  fix x y assume xy:"x \<in> s" "y \<in> s"
-  fix u v ::real assume uv:"0 \<le> u" "0 \<le> v" "u + v = 1"
-  show "u *\<^sub>R f x + v *\<^sub>R f y \<in> f ` s" unfolding image_iff
-    apply(rule_tac x="u *\<^sub>R x + v *\<^sub>R y" in bexI)
-    unfolding f.add f.scaleR
-    using c[unfolded convex_def] xy uv by auto
-qed
-
-subsection {* Balls, being convex, are connected. *}
-
 lemma convex_ball:
   fixes x :: "'a::real_normed_vector"
   shows "convex (ball x e)" 
@@ -739,7 +465,7 @@ proof(auto simp add: convex_def)
   fix u v ::real assume uv:"0 \<le> u" "0 \<le> v" "u + v = 1"
   have "dist x (u *\<^sub>R y + v *\<^sub>R z) \<le> u * dist x y + v * dist x z" using uv yz
     using convex_distance[of "ball x e" x, unfolded convex_on_def, THEN bspec[where x=y], THEN bspec[where x=z]] by auto
-  thus "dist x (u *\<^sub>R y + v *\<^sub>R z) < e" using real_convex_bound_lt[OF yz uv] by auto 
+  thus "dist x (u *\<^sub>R y + v *\<^sub>R z) < e" using convex_bound_lt[OF yz uv] by auto
 qed
 
 lemma convex_cball:
@@ -750,7 +476,7 @@ proof(auto simp add: convex_def Ball_def)
   fix u v ::real assume uv:" 0 \<le> u" "0 \<le> v" "u + v = 1"
   have "dist x (u *\<^sub>R y + v *\<^sub>R z) \<le> u * dist x y + v * dist x z" using uv yz
     using convex_distance[of "cball x e" x, unfolded convex_on_def, THEN bspec[where x=y], THEN bspec[where x=z]] by auto
-  thus "dist x (u *\<^sub>R y + v *\<^sub>R z) \<le> e" using real_convex_bound_le[OF yz uv] by auto 
+  thus "dist x (u *\<^sub>R y + v *\<^sub>R z) \<le> e" using convex_bound_le[OF yz uv] by auto 
 qed
 
 lemma connected_ball:

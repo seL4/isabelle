@@ -2,10 +2,10 @@ theory Dining_Cryptographers
 imports Information
 begin
 
-lemma finite_prob_spaceI:
-  "\<lbrakk> finite_measure_space M ; measure M (space M) = 1 \<rbrakk> \<Longrightarrow> finite_prob_space M"
-  unfolding finite_measure_space_def finite_measure_space_axioms_def
-    finite_prob_space_def prob_space_def prob_space_axioms_def
+lemma finite_information_spaceI:
+  "\<lbrakk> finite_measure_space M ; measure M (space M) = 1 ; 1 < b \<rbrakk> \<Longrightarrow> finite_information_space M b"
+  unfolding finite_information_space_def finite_measure_space_def finite_measure_space_axioms_def
+    finite_prob_space_def prob_space_def prob_space_axioms_def finite_information_space_axioms_def
   by auto
 
 locale finite_space =
@@ -21,8 +21,8 @@ lemma (in finite_space)
   and measure_M[simp]: "measure M s = real (card s) / real (card S)"
   by (simp_all add: M_def)
 
-sublocale finite_space \<subseteq> finite_prob_space M
-proof (rule finite_prob_spaceI)
+sublocale finite_space \<subseteq> finite_information_space M 2
+proof (rule finite_information_spaceI)
   let ?measure = "\<lambda>s::'a set. real (card s) / real (card S)"
 
   show "finite_measure_space M"
@@ -40,9 +40,7 @@ proof (rule finite_prob_spaceI)
         by (cases "card S = 0") (simp_all add: field_simps)
     qed
   qed
-
-  show "measure M (space M) = 1" by simp
-qed
+qed simp_all
 
 lemma set_of_list_extend:
   "{xs. length xs = Suc n \<and> (\<forall>x\<in>set xs. x \<in> A)} =
@@ -82,19 +80,6 @@ lemma
   shows finite_lists: "finite {xs. length xs = n \<and> (\<forall>x\<in>set xs. x \<in> A)}"
   and card_list_length: "card {xs. length xs = n \<and> (\<forall>x\<in>set xs. x \<in> A)} = (card A)^n"
   using card_finite_list_length[OF assms, of n] by auto
-
-lemma product_not_empty:
-  "A \<noteq> {} \<Longrightarrow> B \<noteq> {} \<Longrightarrow> A \<times> B \<noteq> {}"
-  by auto
-
-lemma fst_product[simp]: "fst ` (A \<times> B) = (if B = {} then {} else A)"
-  by (auto intro!: image_eqI)
-
-lemma snd_product[simp]: "snd ` (A \<times> B) = (if A = {} then {} else B)"
-  by (auto intro!: image_eqI)
-
-lemma Ex_eq_length[simp]: "\<exists>xs. length xs = n"
-  by (rule exI[of _ "replicate n undefined"]) simp
 
 section "Define the state space"
 
@@ -197,10 +182,10 @@ proof -
   have *: "{xs. length xs = n} \<noteq> {}"
     by (auto intro!: exI[of _ "replicate n undefined"])
   show ?thesis
-    unfolding payer_def_raw dc_crypto fst_product if_not_P[OF *] ..
+    unfolding payer_def_raw dc_crypto fst_image_times if_not_P[OF *] ..
 qed
 
-lemma image_ex1_eq: "inj_on f A \<Longrightarrow> (b \<in> f ` A) = (\<exists>!x \<in> A. b = f x)"
+lemma image_ex1_eq: "inj_on f A \<Longrightarrow> (b \<in> f ` A) \<longleftrightarrow> (\<exists>!x \<in> A. b = f x)"
   by (unfold inj_on_def) blast
 
 lemma Ex1_eq: "\<exists>! x. P x \<Longrightarrow> P x \<Longrightarrow> P y \<Longrightarrow> x = y"
@@ -495,26 +480,24 @@ proof
   show "finite dc_crypto" using finite_dc_crypto .
   show "dc_crypto \<noteq> {}"
     unfolding dc_crypto
-    apply (rule product_not_empty)
     using n_gt_3 by (auto intro: exI[of _ "replicate n True"])
 qed
 
 notation (in dining_cryptographers_space)
-  finite_mutual_information_2 ("\<I>'( _ ; _ ')")
+  finite_mutual_information ("\<I>'( _ ; _ ')")
 
 notation (in dining_cryptographers_space)
-  finite_entropy_2 ("\<H>'( _ ')")
+  finite_entropy ("\<H>'( _ ')")
 
 notation (in dining_cryptographers_space)
-  finite_conditional_entropy_2 ("\<H>'( _ | _ ')")
+  finite_conditional_entropy ("\<H>'( _ | _ ')")
 
 theorem (in dining_cryptographers_space)
   "\<I>( inversion ; payer ) = 0"
 proof -
-  have b: "1 < (2 :: real)" by simp
   have n: "0 < n" using n_gt_3 by auto
 
-  have lists: "{xs. length xs = n} \<noteq> {}" by auto
+  have lists: "{xs. length xs = n} \<noteq> {}" using Ex_list_of_length by auto
 
   have card_image_inversion:
     "real (card (inversion ` dc_crypto)) = 2^n / 2"
@@ -526,7 +509,7 @@ proof -
 
   { have "\<H>(inversion|payer) =
         - (\<Sum>x\<in>inversion`dc_crypto. (\<Sum>z\<in>Some ` {0..<n}. ?dIP {(x, z)} * log 2 (?dIP {(x, z)} / ?dP {z})))"
-      unfolding finite_conditional_entropy_reduce[OF b] joint_distribution
+      unfolding conditional_entropy_eq
       by (simp add: image_payer_dc_crypto setsum_Sigma)
     also have "... =
         - (\<Sum>x\<in>inversion`dc_crypto. (\<Sum>z\<in>Some ` {0..<n}. 2 / (real n * 2^n) * (1 - real n)))"
@@ -560,7 +543,7 @@ proof -
     finally have "\<H>(inversion|payer) = real n - 1" . }
   moreover
   { have "\<H>(inversion) = - (\<Sum>x \<in> inversion`dc_crypto. ?dI {x} * log 2 (?dI {x}))"
-      unfolding finite_entropy_reduce[OF b] by simp
+      unfolding entropy_eq by simp
     also have "... = - (\<Sum>x \<in> inversion`dc_crypto. 2 * (1 - real n) / 2^n)"
       unfolding neg_equal_iff_equal
     proof (rule setsum_cong[OF refl])
@@ -577,7 +560,7 @@ proof -
     finally have "\<H>(inversion) = real n - 1" .
   }
   ultimately show ?thesis
-    unfolding finite_mutual_information_eq_entropy_conditional_entropy[OF b]
+    unfolding mutual_information_eq_entropy_conditional_entropy
     by simp
 qed
 
