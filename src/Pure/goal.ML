@@ -137,7 +137,8 @@ fun future_result ctxt result prop =
         Thm.adjust_maxidx_thm ~1 #>
         Drule.implies_intr_list assms #>
         Drule.forall_intr_list fixes #>
-        Thm.generalize (map #1 tfrees, []) 0);
+        Thm.generalize (map #1 tfrees, []) 0 #>
+        Thm.strip_shyps);
     val local_result =
       Thm.future global_result global_prop
       |> Thm.instantiate (instT, [])

@@ -565,14 +565,13 @@ fun status_of (Thm (Deriv {promises, body}, _)) =
 
 (* future rule *)
 
-fun future_result i orig_thy orig_shyps orig_prop raw_thm =
+fun future_result i orig_thy orig_shyps orig_prop thm =
   let
-    val _ = Theory.check_thy orig_thy;
-    val thm = strip_shyps (transfer orig_thy raw_thm);
-    val _ = Theory.check_thy orig_thy;
     fun err msg = raise THM ("future_result: " ^ msg, 0, [thm]);
+    val Thm (Deriv {promises, ...}, {thy_ref, shyps, hyps, tpairs, prop, ...}) = thm;
 
-    val Thm (Deriv {promises, ...}, {shyps, hyps, tpairs, prop, ...}) = thm;
+    val _ = Theory.eq_thy (Theory.deref thy_ref, orig_thy) orelse err "bad theory";
+    val _ = Theory.check_thy orig_thy;
     val _ = prop aconv orig_prop orelse err "bad prop";
     val _ = null tpairs orelse err "bad tpairs";
     val _ = null hyps orelse err "bad hyps";
