@@ -134,9 +134,8 @@ fun FILTER_DISCH_ALL P thm =
  in  fold_rev (fn tm => fn th => if check tm then DISCH tm th else th) (chyps thm) thm
  end;
 
-(* freezeT expensive! *)
 fun UNDISCH thm =
-   let val tm = D.mk_prop (#1 (D.dest_imp (cconcl (Thm.legacy_freezeT thm))))
+   let val tm = D.mk_prop (#1 (D.dest_imp (cconcl thm)))
    in Thm.implies_elim (thm RS mp) (ASSUME tm) end
    handle U.ERR _ => raise RULES_ERR "UNDISCH" ""
      | THM _ => raise RULES_ERR "UNDISCH" "";
@@ -252,7 +251,7 @@ fun organize eq =    (* a bit slow - analogous to insertion sort *)
        | place _ _ = raise RULES_ERR "organize" "not a permutation.2"
  in place
  end;
-(* freezeT expensive! *)
+
 fun DISJ_CASESL disjth thl =
    let val c = cconcl disjth
        fun eq th atm = exists (fn t => HOLogic.dest_Trueprop t
@@ -265,7 +264,7 @@ fun DISJ_CASESL disjth thl =
          | DL th (th1::rst) =
             let val tm = #2(D.dest_disj(D.drop_prop(cconcl th)))
              in DISJ_CASES th th1 (DL (ASSUME tm) rst) end
-   in DL (Thm.legacy_freezeT disjth) (organize eq tml thl)
+   in DL disjth (organize eq tml thl)
    end;
 
 
