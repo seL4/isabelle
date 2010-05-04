@@ -381,7 +381,7 @@ lemmas LIM_scaleR = scaleR.LIM
 lemmas LIM_of_real = of_real.LIM
 
 lemma LIM_power:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::{power,real_normed_algebra}"
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::{power,real_normed_algebra}"
   assumes f: "f -- a --> l"
   shows "(\<lambda>x. f x ^ n) -- a --> l ^ n"
 by (induct n, simp, simp add: LIM_mult f)
@@ -399,7 +399,7 @@ lemma LIM_inverse_fun:
 by (rule LIM_inverse [OF LIM_ident a])
 
 lemma LIM_sgn:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "\<lbrakk>f -- a --> l; l \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>x. sgn (f x)) -- a --> sgn l"
 unfolding sgn_div_norm
 by (simp add: LIM_scaleR LIM_inverse LIM_norm)
@@ -408,12 +408,12 @@ by (simp add: LIM_scaleR LIM_inverse LIM_norm)
 subsection {* Continuity *}
 
 lemma LIM_isCont_iff:
-  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::metric_space"
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::topological_space"
   shows "(f -- a --> f a) = ((\<lambda>h. f (a + h)) -- 0 --> f a)"
 by (rule iffI [OF LIM_offset_zero LIM_offset_zero_cancel])
 
 lemma isCont_iff:
-  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::metric_space"
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::topological_space"
   shows "isCont f x = (\<lambda>h. f (x + h)) -- 0 --> f x"
 by (simp add: isCont_def LIM_isCont_iff)
 
@@ -424,7 +424,7 @@ lemma isCont_const [simp]: "isCont (\<lambda>x. k) a"
   unfolding isCont_def by (rule LIM_const)
 
 lemma isCont_norm:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "isCont f a \<Longrightarrow> isCont (\<lambda>x. norm (f x)) a"
   unfolding isCont_def by (rule LIM_norm)
 
@@ -432,27 +432,27 @@ lemma isCont_rabs: "isCont f a \<Longrightarrow> isCont (\<lambda>x. \<bar>f x :
   unfolding isCont_def by (rule LIM_rabs)
 
 lemma isCont_add:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. f x + g x) a"
   unfolding isCont_def by (rule LIM_add)
 
 lemma isCont_minus:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "isCont f a \<Longrightarrow> isCont (\<lambda>x. - f x) a"
   unfolding isCont_def by (rule LIM_minus)
 
 lemma isCont_diff:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. f x - g x) a"
   unfolding isCont_def by (rule LIM_diff)
 
 lemma isCont_mult:
-  fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_algebra"
+  fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_algebra"
   shows "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. f x * g x) a"
   unfolding isCont_def by (rule LIM_mult)
 
 lemma isCont_inverse:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_div_algebra"
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_div_algebra"
   shows "\<lbrakk>isCont f a; f a \<noteq> 0\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. inverse (f x)) a"
   unfolding isCont_def by (rule LIM_inverse)
 
@@ -495,12 +495,12 @@ lemma isCont_of_real:
   unfolding isCont_def by (rule LIM_of_real)
 
 lemma isCont_power:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::{power,real_normed_algebra}"
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::{power,real_normed_algebra}"
   shows "isCont f a \<Longrightarrow> isCont (\<lambda>x. f x ^ n) a"
   unfolding isCont_def by (rule LIM_power)
 
 lemma isCont_sgn:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "\<lbrakk>isCont f a; f a \<noteq> 0\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. sgn (f x)) a"
   unfolding isCont_def by (rule LIM_sgn)
 
@@ -508,7 +508,7 @@ lemma isCont_abs [simp]: "isCont abs (a::real)"
 by (rule isCont_rabs [OF isCont_ident])
 
 lemma isCont_setsum:
-  fixes f :: "'a \<Rightarrow> 'b::metric_space \<Rightarrow> 'c::real_normed_vector"
+  fixes f :: "'a \<Rightarrow> 'b::topological_space \<Rightarrow> 'c::real_normed_vector"
   fixes A :: "'a set" assumes "finite A"
   shows "\<forall> i \<in> A. isCont (f i) x \<Longrightarrow> isCont (\<lambda> x. \<Sum> i \<in> A. f i x) x"
   using `finite A`
