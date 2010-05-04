@@ -237,7 +237,7 @@ by (rule flatdom_strict2mono [THEN chfindom_monofun2cont])
 
 text {* functions with discrete domain *}
 
-lemma cont_discrete_cpo [simp]: "cont (f::'a::discrete_cpo \<Rightarrow> 'b::cpo)"
+lemma cont_discrete_cpo [cont2cont]: "cont (f::'a::discrete_cpo \<Rightarrow> 'b::cpo)"
 apply (rule contI)
 apply (drule discrete_chain_const, clarify)
 apply (simp add: lub_const)
