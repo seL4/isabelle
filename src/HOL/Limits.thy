@@ -241,6 +241,34 @@ lemma eventually_False:
 unfolding expand_net_eq by (auto elim: eventually_rev_mp)
 
 
+subsection {* Map function for nets *}
+
+definition
+  netmap :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a net \<Rightarrow> 'b net"
+where [code del]:
+  "netmap f net = Abs_net (\<lambda>P. eventually (\<lambda>x. P (f x)) net)"
+
+lemma eventually_netmap:
+  "eventually P (netmap f net) = eventually (\<lambda>x. P (f x)) net"
+unfolding netmap_def
+apply (rule eventually_Abs_net)
+apply (rule is_filter.intro)
+apply (auto elim!: eventually_rev_mp)
+done
+
+lemma netmap_ident: "netmap (\<lambda>x. x) net = net"
+by (simp add: expand_net_eq eventually_netmap)
+
+lemma netmap_netmap: "netmap f (netmap g net) = netmap (\<lambda>x. f (g x)) net"
+by (simp add: expand_net_eq eventually_netmap)
+
+lemma netmap_mono: "net \<le> net' \<Longrightarrow> netmap f net \<le> netmap f net'"
+unfolding le_net_def eventually_netmap by simp
+
+lemma netmap_bot [simp]: "netmap f bot = bot"
+by (simp add: expand_net_eq eventually_netmap)
+
+
 subsection {* Standard Nets *}
 
 definition
@@ -254,9 +282,14 @@ where [code del]:
   "net within S = Abs_net (\<lambda>P. eventually (\<lambda>x. x \<in> S \<longrightarrow> P x) net)"
 
 definition
+  nhds :: "'a::topological_space \<Rightarrow> 'a net"
+where [code del]:
+  "nhds a = Abs_net (\<lambda>P. \<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x))"
+
+definition
   at :: "'a::topological_space \<Rightarrow> 'a net"
 where [code del]:
-  "at a = Abs_net (\<lambda>P. \<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> P x))"
+  "at a = nhds a within - {a}"
 
 lemma eventually_sequentially:
   "eventually P sequentially \<longleftrightarrow> (\<exists>N. \<forall>n\<ge>N. P n)"
@@ -278,23 +311,27 @@ by (rule eventually_Abs_net, rule is_filter.intro)
 lemma within_UNIV: "net within UNIV = net"
   unfolding expand_net_eq eventually_within by simp
 
-lemma eventually_at_topological:
-  "eventually P (at a) \<longleftrightarrow> (\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> P x))"
-unfolding at_def
+lemma eventually_nhds:
+  "eventually P (nhds a) \<longleftrightarrow> (\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x))"
+unfolding nhds_def
 proof (rule eventually_Abs_net, rule is_filter.intro)
-  have "open UNIV \<and> a \<in> UNIV \<and> (\<forall>x\<in>UNIV. x \<noteq> a \<longrightarrow> True)" by simp
-  thus "\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> True)" by - rule
+  have "open UNIV \<and> a \<in> UNIV \<and> (\<forall>x\<in>UNIV. True)" by simp
+  thus "\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. True)" by - rule
 next
   fix P Q
-  assume "\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> P x)"
-     and "\<exists>T. open T \<and> a \<in> T \<and> (\<forall>x\<in>T. x \<noteq> a \<longrightarrow> Q x)"
+  assume "\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x)"
+     and "\<exists>T. open T \<and> a \<in> T \<and> (\<forall>x\<in>T. Q x)"
   then obtain S T where
-    "open S \<and> a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> P x)"
-    "open T \<and> a \<in> T \<and> (\<forall>x\<in>T. x \<noteq> a \<longrightarrow> Q x)" by auto
-  hence "open (S \<inter> T) \<and> a \<in> S \<inter> T \<and> (\<forall>x\<in>(S \<inter> T). x \<noteq> a \<longrightarrow> P x \<and> Q x)"
+    "open S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x)"
+    "open T \<and> a \<in> T \<and> (\<forall>x\<in>T. Q x)" by auto
+  hence "open (S \<inter> T) \<and> a \<in> S \<inter> T \<and> (\<forall>x\<in>(S \<inter> T). P x \<and> Q x)"
     by (simp add: open_Int)
-  thus "\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> P x \<and> Q x)" by - rule
+  thus "\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x \<and> Q x)" by - rule
 qed auto
+
+lemma eventually_at_topological:
+  "eventually P (at a) \<longleftrightarrow> (\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> P x))"
+unfolding at_def eventually_within eventually_nhds by simp
 
 lemma eventually_at:
   fixes a :: "'a::metric_space"
