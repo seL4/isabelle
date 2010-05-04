@@ -13,12 +13,12 @@ begin
 text{*Standard Definitions*}
 
 abbreviation
-  LIM :: "['a::metric_space \<Rightarrow> 'b::metric_space, 'a, 'b] \<Rightarrow> bool"
+  LIM :: "['a::topological_space \<Rightarrow> 'b::topological_space, 'a, 'b] \<Rightarrow> bool"
         ("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60) where
   "f -- a --> L \<equiv> (f ---> L) (at a)"
 
 definition
-  isCont :: "['a::metric_space \<Rightarrow> 'b::metric_space, 'a] \<Rightarrow> bool" where
+  isCont :: "['a::topological_space \<Rightarrow> 'b::topological_space, 'a] \<Rightarrow> bool" where
   "isCont f a = (f -- a --> (f a))"
 
 definition
@@ -61,23 +61,23 @@ lemma LIM_D:
 by (simp add: LIM_eq)
 
 lemma LIM_offset:
-  fixes a :: "'a::real_normed_vector" and L :: "'b::metric_space"
+  fixes a :: "'a::real_normed_vector"
   shows "f -- a --> L \<Longrightarrow> (\<lambda>x. f (x + k)) -- a - k --> L"
-unfolding LIM_def dist_norm
-apply clarify
-apply (drule_tac x="r" in spec, safe)
-apply (rule_tac x="s" in exI, safe)
+apply (rule topological_tendstoI)
+apply (drule (2) topological_tendstoD)
+apply (simp only: eventually_at dist_norm)
+apply (clarify, rule_tac x=d in exI, safe)
 apply (drule_tac x="x + k" in spec)
 apply (simp add: algebra_simps)
 done
 
 lemma LIM_offset_zero:
-  fixes a :: "'a::real_normed_vector" and L :: "'b::metric_space"
+  fixes a :: "'a::real_normed_vector"
   shows "f -- a --> L \<Longrightarrow> (\<lambda>h. f (a + h)) -- 0 --> L"
 by (drule_tac k="a" in LIM_offset, simp add: add_commute)
 
 lemma LIM_offset_zero_cancel:
-  fixes a :: "'a::real_normed_vector" and L :: "'b::metric_space"
+  fixes a :: "'a::real_normed_vector"
   shows "(\<lambda>h. f (a + h)) -- 0 --> L \<Longrightarrow> f -- a --> L"
 by (drule_tac k="- a" in LIM_offset, simp)
 
@@ -87,60 +87,61 @@ by (rule tendsto_const)
 lemma LIM_cong_limit: "\<lbrakk> f -- x --> L ; K = L \<rbrakk> \<Longrightarrow> f -- x --> K" by simp
 
 lemma LIM_add:
-  fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   assumes f: "f -- a --> L" and g: "g -- a --> M"
   shows "(\<lambda>x. f x + g x) -- a --> (L + M)"
 using assms by (rule tendsto_add)
 
 lemma LIM_add_zero:
-  fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "\<lbrakk>f -- a --> 0; g -- a --> 0\<rbrakk> \<Longrightarrow> (\<lambda>x. f x + g x) -- a --> 0"
 by (drule (1) LIM_add, simp)
 
 lemma LIM_minus:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "f -- a --> L \<Longrightarrow> (\<lambda>x. - f x) -- a --> - L"
 by (rule tendsto_minus)
 
 (* TODO: delete *)
 lemma LIM_add_minus:
-  fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "[| f -- x --> l; g -- x --> m |] ==> (%x. f(x) + -g(x)) -- x --> (l + -m)"
 by (intro LIM_add LIM_minus)
 
 lemma LIM_diff:
-  fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "\<lbrakk>f -- x --> l; g -- x --> m\<rbrakk> \<Longrightarrow> (\<lambda>x. f x - g x) -- x --> l - m"
 by (rule tendsto_diff)
 
 lemma LIM_zero:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "f -- a --> l \<Longrightarrow> (\<lambda>x. f x - l) -- a --> 0"
-by (simp add: LIM_def dist_norm)
+unfolding tendsto_iff dist_norm by simp
 
 lemma LIM_zero_cancel:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "(\<lambda>x. f x - l) -- a --> 0 \<Longrightarrow> f -- a --> l"
-by (simp add: LIM_def dist_norm)
+unfolding tendsto_iff dist_norm by simp
 
 lemma LIM_zero_iff:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   shows "(\<lambda>x. f x - l) -- a --> 0 = f -- a --> l"
-by (simp add: LIM_def dist_norm)
+unfolding tendsto_iff dist_norm by simp
 
 lemma metric_LIM_imp_LIM:
   assumes f: "f -- a --> l"
   assumes le: "\<And>x. x \<noteq> a \<Longrightarrow> dist (g x) m \<le> dist (f x) l"
   shows "g -- a --> m"
-apply (rule metric_LIM_I, drule metric_LIM_D [OF f], safe)
-apply (rule_tac x="s" in exI, safe)
-apply (drule_tac x="x" in spec, safe)
+apply (rule tendstoI, drule tendstoD [OF f])
+apply (simp add: eventually_at_topological, safe)
+apply (rule_tac x="S" in exI, safe)
+apply (drule_tac x="x" in bspec, safe)
 apply (erule (1) order_le_less_trans [OF le])
 done
 
 lemma LIM_imp_LIM:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
-  fixes g :: "'a::metric_space \<Rightarrow> 'c::real_normed_vector"
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
+  fixes g :: "'a::topological_space \<Rightarrow> 'c::real_normed_vector"
   assumes f: "f -- a --> l"
   assumes le: "\<And>x. x \<noteq> a \<Longrightarrow> norm (g x - m) \<le> norm (f x - l)"
   shows "g -- a --> m"
@@ -149,24 +150,24 @@ apply (simp add: dist_norm le)
 done
 
 lemma LIM_norm:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "f -- a --> l \<Longrightarrow> (\<lambda>x. norm (f x)) -- a --> norm l"
 by (rule tendsto_norm)
 
 lemma LIM_norm_zero:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "f -- a --> 0 \<Longrightarrow> (\<lambda>x. norm (f x)) -- a --> 0"
-by (drule LIM_norm, simp)
+by (rule tendsto_norm_zero)
 
 lemma LIM_norm_zero_cancel:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "(\<lambda>x. norm (f x)) -- a --> 0 \<Longrightarrow> f -- a --> 0"
-by (erule LIM_imp_LIM, simp)
+by (rule tendsto_norm_zero_cancel)
 
 lemma LIM_norm_zero_iff:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "(\<lambda>x. norm (f x)) -- a --> 0 = f -- a --> 0"
-by (rule iffI [OF LIM_norm_zero_cancel LIM_norm_zero])
+by (rule tendsto_norm_zero_iff)
 
 lemma LIM_rabs: "f -- a --> (l::real) \<Longrightarrow> (\<lambda>x. \<bar>f x\<bar>) -- a --> \<bar>l\<bar>"
 by (fold real_norm_def, rule LIM_norm)
@@ -180,40 +181,32 @@ by (fold real_norm_def, rule LIM_norm_zero_cancel)
 lemma LIM_rabs_zero_iff: "(\<lambda>x. \<bar>f x\<bar>) -- a --> (0::real) = f -- a --> 0"
 by (fold real_norm_def, rule LIM_norm_zero_iff)
 
+lemma at_neq_bot:
+  fixes a :: "'a::real_normed_algebra_1"
+  shows "at a \<noteq> bot"  -- {* TODO: find a more appropriate class *}
+unfolding eventually_False [symmetric]
+unfolding eventually_at dist_norm
+by (clarsimp, rule_tac x="a + of_real (d/2)" in exI, simp)
+
 lemma LIM_const_not_eq:
   fixes a :: "'a::real_normed_algebra_1"
+  fixes k L :: "'b::metric_space"
   shows "k \<noteq> L \<Longrightarrow> \<not> (\<lambda>x. k) -- a --> L"
-apply (simp add: LIM_def)
-apply (rule_tac x="dist k L" in exI, simp add: zero_less_dist_iff, safe)
-apply (rule_tac x="a + of_real (s/2)" in exI, simp add: dist_norm)
-done
+by (simp add: tendsto_const_iff at_neq_bot)
 
 lemmas LIM_not_zero = LIM_const_not_eq [where L = 0]
 
 lemma LIM_const_eq:
   fixes a :: "'a::real_normed_algebra_1"
+  fixes k L :: "'b::metric_space"
   shows "(\<lambda>x. k) -- a --> L \<Longrightarrow> k = L"
-apply (rule ccontr)
-apply (blast dest: LIM_const_not_eq)
-done
+by (simp add: tendsto_const_iff at_neq_bot)
 
 lemma LIM_unique:
   fixes a :: "'a::real_normed_algebra_1" -- {* TODO: find a more appropriate class *}
+  fixes L M :: "'b::metric_space"
   shows "\<lbrakk>f -- a --> L; f -- a --> M\<rbrakk> \<Longrightarrow> L = M"
-apply (rule ccontr)
-apply (drule_tac r="dist L M / 2" in metric_LIM_D, simp add: zero_less_dist_iff)
-apply (drule_tac r="dist L M / 2" in metric_LIM_D, simp add: zero_less_dist_iff)
-apply (clarify, rename_tac r s)
-apply (subgoal_tac "min r s \<noteq> 0")
-apply (subgoal_tac "dist L M < dist L M / 2 + dist L M / 2", simp)
-apply (subgoal_tac "dist L M \<le> dist (f (a + of_real (min r s / 2))) L +
-                               dist (f (a + of_real (min r s / 2))) M")
-apply (erule le_less_trans, rule add_strict_mono)
-apply (drule spec, erule mp, simp add: dist_norm)
-apply (drule spec, erule mp, simp add: dist_norm)
-apply (subst dist_commute, rule dist_triangle)
-apply simp
-done
+by (drule (1) tendsto_dist, simp add: tendsto_const_iff at_neq_bot)
 
 lemma LIM_ident [simp]: "(\<lambda>x. x) -- a --> a"
 by (rule tendsto_ident_at)
@@ -221,37 +214,33 @@ by (rule tendsto_ident_at)
 text{*Limits are equal for functions equal except at limit point*}
 lemma LIM_equal:
      "[| \<forall>x. x \<noteq> a --> (f x = g x) |] ==> (f -- a --> l) = (g -- a --> l)"
-by (simp add: LIM_def)
+unfolding tendsto_def eventually_at_topological by simp
 
 lemma LIM_cong:
   "\<lbrakk>a = b; \<And>x. x \<noteq> b \<Longrightarrow> f x = g x; l = m\<rbrakk>
    \<Longrightarrow> ((\<lambda>x. f x) -- a --> l) = ((\<lambda>x. g x) -- b --> m)"
-by (simp add: LIM_def)
+by (simp add: LIM_equal)
 
 lemma metric_LIM_equal2:
   assumes 1: "0 < R"
   assumes 2: "\<And>x. \<lbrakk>x \<noteq> a; dist x a < R\<rbrakk> \<Longrightarrow> f x = g x"
   shows "g -- a --> l \<Longrightarrow> f -- a --> l"
-apply (unfold LIM_def, safe)
-apply (drule_tac x="r" in spec, safe)
-apply (rule_tac x="min s R" in exI, safe)
+apply (rule topological_tendstoI)
+apply (drule (2) topological_tendstoD)
+apply (simp add: eventually_at, safe)
+apply (rule_tac x="min d R" in exI, safe)
 apply (simp add: 1)
 apply (simp add: 2)
 done
 
 lemma LIM_equal2:
-  fixes f g :: "'a::real_normed_vector \<Rightarrow> 'b::metric_space"
+  fixes f g :: "'a::real_normed_vector \<Rightarrow> 'b::topological_space"
   assumes 1: "0 < R"
   assumes 2: "\<And>x. \<lbrakk>x \<noteq> a; norm (x - a) < R\<rbrakk> \<Longrightarrow> f x = g x"
   shows "g -- a --> l \<Longrightarrow> f -- a --> l"
-apply (unfold LIM_def dist_norm, safe)
-apply (drule_tac x="r" in spec, safe)
-apply (rule_tac x="min s R" in exI, safe)
-apply (simp add: 1)
-apply (simp add: 2)
-done
+by (rule metric_LIM_equal2 [OF 1 2], simp_all add: dist_norm)
 
-text{*Two uses in Transcendental.ML*}
+text{*Two uses in Transcendental.ML*} (* BH: no longer true; delete? *)
 lemma LIM_trans:
   fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   shows "[| (%x. f(x) + -g(x)) -- a --> 0;  g -- a --> l |] ==> f -- a --> l"
@@ -263,24 +252,52 @@ lemma LIM_compose:
   assumes g: "g -- l --> g l"
   assumes f: "f -- a --> l"
   shows "(\<lambda>x. g (f x)) -- a --> g l"
-proof (rule metric_LIM_I)
-  fix r::real assume r: "0 < r"
-  obtain s where s: "0 < s"
-    and less_r: "\<And>y. \<lbrakk>y \<noteq> l; dist y l < s\<rbrakk> \<Longrightarrow> dist (g y) (g l) < r"
-    using metric_LIM_D [OF g r] by fast
-  obtain t where t: "0 < t"
-    and less_s: "\<And>x. \<lbrakk>x \<noteq> a; dist x a < t\<rbrakk> \<Longrightarrow> dist (f x) l < s"
-    using metric_LIM_D [OF f s] by fast
-
-  show "\<exists>t>0. \<forall>x. x \<noteq> a \<and> dist x a < t \<longrightarrow> dist (g (f x)) (g l) < r"
-  proof (rule exI, safe)
-    show "0 < t" using t .
+proof (rule topological_tendstoI)
+  fix C assume C: "open C" "g l \<in> C"
+  obtain B where B: "open B" "l \<in> B"
+    and gC: "\<And>y. y \<in> B \<Longrightarrow> y \<noteq> l \<Longrightarrow> g y \<in> C"
+    using topological_tendstoD [OF g C]
+    unfolding eventually_at_topological by fast
+  obtain A where A: "open A" "a \<in> A"
+    and fB: "\<And>x. x \<in> A \<Longrightarrow> x \<noteq> a \<Longrightarrow> f x \<in> B"
+    using topological_tendstoD [OF f B]
+    unfolding eventually_at_topological by fast
+  show "eventually (\<lambda>x. g (f x) \<in> C) (at a)"
+  unfolding eventually_at_topological
+  proof (intro exI conjI ballI impI)
+    show "open A" and "a \<in> A" using A .
   next
-    fix x assume "x \<noteq> a" and "dist x a < t"
-    hence "dist (f x) l < s" by (rule less_s)
-    thus "dist (g (f x)) (g l) < r"
-      using r less_r by (case_tac "f x = l", simp_all)
+    fix x assume "x \<in> A" and "x \<noteq> a"
+    then show "g (f x) \<in> C"
+      by (cases "f x = l", simp add: C, simp add: gC fB)
   qed
+qed
+
+lemma LIM_compose_eventually:
+  assumes f: "f -- a --> b"
+  assumes g: "g -- b --> c"
+  assumes inj: "eventually (\<lambda>x. f x \<noteq> b) (at a)"
+  shows "(\<lambda>x. g (f x)) -- a --> c"
+proof (rule topological_tendstoI)
+  fix C assume C: "open C" "c \<in> C"
+  obtain B where B: "open B" "b \<in> B"
+    and gC: "\<And>y. y \<in> B \<Longrightarrow> y \<noteq> b \<Longrightarrow> g y \<in> C"
+    using topological_tendstoD [OF g C]
+    unfolding eventually_at_topological by fast
+  obtain A where A: "open A" "a \<in> A"
+    and fB: "\<And>x. x \<in> A \<Longrightarrow> x \<noteq> a \<Longrightarrow> f x \<in> B"
+    using topological_tendstoD [OF f B]
+    unfolding eventually_at_topological by fast
+  have "eventually (\<lambda>x. f x \<noteq> b \<longrightarrow> g (f x) \<in> C) (at a)"
+  unfolding eventually_at_topological
+  proof (intro exI conjI ballI impI)
+    show "open A" and "a \<in> A" using A .
+  next
+    fix x assume "x \<in> A" and "x \<noteq> a" and "f x \<noteq> b"
+    then show "g (f x) \<in> C" by (simp add: gC fB)
+  qed
+  with inj show "eventually (\<lambda>x. g (f x) \<in> C) (at a)"
+    by (rule eventually_rev_mp)
 qed
 
 lemma metric_LIM_compose2:
@@ -288,31 +305,8 @@ lemma metric_LIM_compose2:
   assumes g: "g -- b --> c"
   assumes inj: "\<exists>d>0. \<forall>x. x \<noteq> a \<and> dist x a < d \<longrightarrow> f x \<noteq> b"
   shows "(\<lambda>x. g (f x)) -- a --> c"
-proof (rule metric_LIM_I)
-  fix r :: real
-  assume r: "0 < r"
-  obtain s where s: "0 < s"
-    and less_r: "\<And>y. \<lbrakk>y \<noteq> b; dist y b < s\<rbrakk> \<Longrightarrow> dist (g y) c < r"
-    using metric_LIM_D [OF g r] by fast
-  obtain t where t: "0 < t"
-    and less_s: "\<And>x. \<lbrakk>x \<noteq> a; dist x a < t\<rbrakk> \<Longrightarrow> dist (f x) b < s"
-    using metric_LIM_D [OF f s] by fast
-  obtain d where d: "0 < d"
-    and neq_b: "\<And>x. \<lbrakk>x \<noteq> a; dist x a < d\<rbrakk> \<Longrightarrow> f x \<noteq> b"
-    using inj by fast
-
-  show "\<exists>t>0. \<forall>x. x \<noteq> a \<and> dist x a < t \<longrightarrow> dist (g (f x)) c < r"
-  proof (safe intro!: exI)
-    show "0 < min d t" using d t by simp
-  next
-    fix x
-    assume "x \<noteq> a" and "dist x a < min d t"
-    hence "f x \<noteq> b" and "dist (f x) b < s"
-      using neq_b less_s by simp_all
-    thus "dist (g (f x)) c < r"
-      by (rule less_r)
-  qed
-qed
+using f g inj [folded eventually_at]
+by (rule LIM_compose_eventually)
 
 lemma LIM_compose2:
   fixes a :: "'a::real_normed_vector"
@@ -326,7 +320,7 @@ lemma LIM_o: "\<lbrakk>g -- l --> g l; f -- a --> l\<rbrakk> \<Longrightarrow> (
 unfolding o_def by (rule LIM_compose)
 
 lemma real_LIM_sandwich_zero:
-  fixes f g :: "'a::metric_space \<Rightarrow> real"
+  fixes f g :: "'a::topological_space \<Rightarrow> real"
   assumes f: "f -- a --> 0"
   assumes 1: "\<And>x. x \<noteq> a \<Longrightarrow> 0 \<le> g x"
   assumes 2: "\<And>x. x \<noteq> a \<Longrightarrow> g x \<le> f x"
@@ -593,7 +587,7 @@ by (rule isUCont [THEN isUCont_Cauchy])
 subsection {* Relation of LIM and LIMSEQ *}
 
 lemma LIMSEQ_SEQ_conv1:
-  fixes a :: "'a::metric_space"
+  fixes a :: "'a::metric_space" and L :: "'b::metric_space"
   assumes X: "X -- a --> L"
   shows "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L"
 proof (safe intro!: metric_LIMSEQ_I)
@@ -614,7 +608,7 @@ qed
 
 
 lemma LIMSEQ_SEQ_conv2:
-  fixes a :: real
+  fixes a :: real and L :: "'a::metric_space"
   assumes "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L"
   shows "X -- a --> L"
 proof (rule ccontr)
@@ -682,7 +676,7 @@ qed
 
 lemma LIMSEQ_SEQ_conv:
   "(\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> (a::real) \<longrightarrow> (\<lambda>n. X (S n)) ----> L) =
-   (X -- a --> L)"
+   (X -- a --> (L::'a::metric_space))"
 proof
   assume "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L"
   thus "X -- a --> L" by (rule LIMSEQ_SEQ_conv2)

@@ -14,7 +14,7 @@ imports Limits
 begin
 
 abbreviation
-  LIMSEQ :: "[nat \<Rightarrow> 'a::metric_space, 'a] \<Rightarrow> bool"
+  LIMSEQ :: "[nat \<Rightarrow> 'a::topological_space, 'a] \<Rightarrow> bool"
     ("((_)/ ----> (_))" [60, 60] 60) where
   "X ----> L \<equiv> (X ---> L) sequentially"
 
@@ -153,13 +153,10 @@ by (simp add: LIMSEQ_iff)
 lemma LIMSEQ_const: "(\<lambda>n. k) ----> k"
 by (rule tendsto_const)
 
-lemma LIMSEQ_const_iff: "(\<lambda>n. k) ----> l \<longleftrightarrow> k = l"
-apply (safe intro!: LIMSEQ_const)
-apply (rule ccontr)
-apply (drule_tac r="dist k l" in metric_LIMSEQ_D)
-apply (simp add: zero_less_dist_iff)
-apply auto
-done
+lemma LIMSEQ_const_iff:
+  fixes k l :: "'a::metric_space"
+  shows "(\<lambda>n. k) ----> l \<longleftrightarrow> k = l"
+by (rule tendsto_const_iff, rule sequentially_bot)
 
 lemma LIMSEQ_norm:
   fixes a :: "'a::real_normed_vector"
@@ -168,8 +165,9 @@ by (rule tendsto_norm)
 
 lemma LIMSEQ_ignore_initial_segment:
   "f ----> a \<Longrightarrow> (\<lambda>n. f (n + k)) ----> a"
-apply (rule metric_LIMSEQ_I)
-apply (drule (1) metric_LIMSEQ_D)
+apply (rule topological_tendstoI)
+apply (drule (2) topological_tendstoD)
+apply (simp only: eventually_sequentially)
 apply (erule exE, rename_tac N)
 apply (rule_tac x=N in exI)
 apply simp
@@ -177,8 +175,9 @@ done
 
 lemma LIMSEQ_offset:
   "(\<lambda>n. f (n + k)) ----> a \<Longrightarrow> f ----> a"
-apply (rule metric_LIMSEQ_I)
-apply (drule (1) metric_LIMSEQ_D)
+apply (rule topological_tendstoI)
+apply (drule (2) topological_tendstoD)
+apply (simp only: eventually_sequentially)
 apply (erule exE, rename_tac N)
 apply (rule_tac x="N + k" in exI)
 apply clarify
@@ -196,7 +195,7 @@ lemma LIMSEQ_Suc_iff: "(\<lambda>n. f (Suc n)) ----> l = f ----> l"
 by (blast intro: LIMSEQ_imp_Suc LIMSEQ_Suc)
 
 lemma LIMSEQ_linear: "\<lbrakk> X ----> x ; l > 0 \<rbrakk> \<Longrightarrow> (\<lambda> n. X (n * l)) ----> x"
-  unfolding LIMSEQ_def
+  unfolding tendsto_def eventually_sequentially
   by (metis div_le_dividend div_mult_self1_is_m le_trans nat_mult_commute)
 
 lemma LIMSEQ_add:
@@ -219,7 +218,9 @@ lemma LIMSEQ_diff:
   shows "\<lbrakk>X ----> a; Y ----> b\<rbrakk> \<Longrightarrow> (\<lambda>n. X n - Y n) ----> a - b"
 by (rule tendsto_diff)
 
-lemma LIMSEQ_unique: "\<lbrakk>X ----> a; X ----> b\<rbrakk> \<Longrightarrow> a = b"
+lemma LIMSEQ_unique:
+  fixes a b :: "'a::metric_space"
+  shows "\<lbrakk>X ----> a; X ----> b\<rbrakk> \<Longrightarrow> a = b"
 apply (rule ccontr)
 apply (drule_tac r="dist a b / 2" in metric_LIMSEQ_D, simp add: zero_less_dist_iff)
 apply (drule_tac r="dist a b / 2" in metric_LIMSEQ_D, simp add: zero_less_dist_iff)
@@ -750,9 +751,10 @@ qed
 
 lemma LIMSEQ_subseq_LIMSEQ:
   "\<lbrakk> X ----> L; subseq f \<rbrakk> \<Longrightarrow> (X o f) ----> L"
-apply (auto simp add: LIMSEQ_def) 
-apply (drule_tac x=r in spec, clarify)  
-apply (rule_tac x=no in exI, clarify) 
+apply (rule topological_tendstoI)
+apply (drule (2) topological_tendstoD)
+apply (simp only: eventually_sequentially)
+apply (clarify, rule_tac x=N in exI, clarsimp)
 apply (blast intro: seq_suble le_trans dest!: spec) 
 done
 
@@ -836,12 +838,8 @@ apply (drule_tac y = "X n" in isLubD2)
 apply (blast dest: order_antisym)+
 done
 
-text{* The best of both worlds: Easier to prove this result as a standard
-   theorem and then use equivalence to "transfer" it into the
-   equivalent nonstandard form if needed!*}
-
 lemma Bmonoseq_LIMSEQ: "\<forall>n. m \<le> n --> X n = X m ==> \<exists>L. (X ----> L)"
-apply (simp add: LIMSEQ_def)
+unfolding tendsto_def eventually_sequentially
 apply (rule_tac x = "X m" in exI, safe)
 apply (rule_tac x = m in exI, safe)
 apply (drule spec, erule impE, auto)

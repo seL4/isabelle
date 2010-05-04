@@ -269,12 +269,38 @@ lemma netmap_bot [simp]: "netmap f bot = bot"
 by (simp add: expand_net_eq eventually_netmap)
 
 
-subsection {* Standard Nets *}
+subsection {* Sequentially *}
 
 definition
   sequentially :: "nat net"
 where [code del]:
   "sequentially = Abs_net (\<lambda>P. \<exists>k. \<forall>n\<ge>k. P n)"
+
+lemma eventually_sequentially:
+  "eventually P sequentially \<longleftrightarrow> (\<exists>N. \<forall>n\<ge>N. P n)"
+unfolding sequentially_def
+proof (rule eventually_Abs_net, rule is_filter.intro)
+  fix P Q :: "nat \<Rightarrow> bool"
+  assume "\<exists>i. \<forall>n\<ge>i. P n" and "\<exists>j. \<forall>n\<ge>j. Q n"
+  then obtain i j where "\<forall>n\<ge>i. P n" and "\<forall>n\<ge>j. Q n" by auto
+  then have "\<forall>n\<ge>max i j. P n \<and> Q n" by simp
+  then show "\<exists>k. \<forall>n\<ge>k. P n \<and> Q n" ..
+qed auto
+
+lemma sequentially_bot [simp]: "sequentially \<noteq> bot"
+unfolding expand_net_eq eventually_sequentially by auto
+
+lemma eventually_False_sequentially [simp]:
+  "\<not> eventually (\<lambda>n. False) sequentially"
+by (simp add: eventually_False)
+
+lemma le_sequentially:
+  "net \<le> sequentially \<longleftrightarrow> (\<forall>N. eventually (\<lambda>n. N \<le> n) net)"
+unfolding le_net_def eventually_sequentially
+by (safe, fast, drule_tac x=N in spec, auto elim: eventually_rev_mp)
+
+
+subsection {* Standard Nets *}
 
 definition
   within :: "'a net \<Rightarrow> 'a set \<Rightarrow> 'a net" (infixr "within" 70)
@@ -290,17 +316,6 @@ definition
   at :: "'a::topological_space \<Rightarrow> 'a net"
 where [code del]:
   "at a = nhds a within - {a}"
-
-lemma eventually_sequentially:
-  "eventually P sequentially \<longleftrightarrow> (\<exists>N. \<forall>n\<ge>N. P n)"
-unfolding sequentially_def
-proof (rule eventually_Abs_net, rule is_filter.intro)
-  fix P Q :: "nat \<Rightarrow> bool"
-  assume "\<exists>i. \<forall>n\<ge>i. P n" and "\<exists>j. \<forall>n\<ge>j. Q n"
-  then obtain i j where "\<forall>n\<ge>i. P n" and "\<forall>n\<ge>j. Q n" by auto
-  then have "\<forall>n\<ge>max i j. P n \<and> Q n" by simp
-  then show "\<exists>k. \<forall>n\<ge>k. P n \<and> Q n" ..
-qed auto
 
 lemma eventually_within:
   "eventually P (net within S) = eventually (\<lambda>x. x \<in> S \<longrightarrow> P x) net"
@@ -598,6 +613,16 @@ unfolding tendsto_def eventually_within eventually_at_topological by auto
 lemma tendsto_const [tendsto_intros]: "((\<lambda>x. k) ---> k) net"
 by (simp add: tendsto_def)
 
+lemma tendsto_const_iff:
+  fixes k l :: "'a::metric_space"
+  assumes "net \<noteq> bot" shows "((\<lambda>n. k) ---> l) net \<longleftrightarrow> k = l"
+apply (safe intro!: tendsto_const)
+apply (rule ccontr)
+apply (drule_tac e="dist k l" in tendstoD)
+apply (simp add: zero_less_dist_iff)
+apply (simp add: eventually_False assms)
+done
+
 lemma tendsto_dist [tendsto_intros]:
   assumes f: "(f ---> l) net" and g: "(g ---> m) net"
   shows "((\<lambda>x. dist (f x) (g x)) ---> dist l m) net"
@@ -618,13 +643,24 @@ proof (rule tendstoI)
   qed
 qed
 
+lemma norm_conv_dist: "norm x = dist x 0"
+unfolding dist_norm by simp
+
 lemma tendsto_norm [tendsto_intros]:
   "(f ---> a) net \<Longrightarrow> ((\<lambda>x. norm (f x)) ---> norm a) net"
-apply (simp add: tendsto_iff dist_norm, safe)
-apply (drule_tac x="e" in spec, safe)
-apply (erule eventually_elim1)
-apply (erule order_le_less_trans [OF norm_triangle_ineq3])
-done
+unfolding norm_conv_dist by (intro tendsto_intros)
+
+lemma tendsto_norm_zero:
+  "(f ---> 0) net \<Longrightarrow> ((\<lambda>x. norm (f x)) ---> 0) net"
+by (drule tendsto_norm, simp)
+
+lemma tendsto_norm_zero_cancel:
+  "((\<lambda>x. norm (f x)) ---> 0) net \<Longrightarrow> (f ---> 0) net"
+unfolding tendsto_iff dist_norm by simp
+
+lemma tendsto_norm_zero_iff:
+  "((\<lambda>x. norm (f x)) ---> 0) net \<longleftrightarrow> (f ---> 0) net"
+unfolding tendsto_iff dist_norm by simp
 
 lemma add_diff_add:
   fixes a b c d :: "'a::ab_group_add"
