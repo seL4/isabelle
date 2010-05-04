@@ -393,7 +393,7 @@ definition
     (\<lambda>x y. \<Lambda> f. x\<cdot>f +\<flat> y\<cdot>f)"
 
 lemma ACI_lower_bind:
-  "ab_semigroup_idem_mult (\<lambda>x y. \<Lambda> f. x\<cdot>f +\<flat> y\<cdot>f)"
+  "class.ab_semigroup_idem_mult (\<lambda>x y. \<Lambda> f. x\<cdot>f +\<flat> y\<cdot>f)"
 apply unfold_locales
 apply (simp add: lower_plus_assoc)
 apply (simp add: lower_plus_commute)

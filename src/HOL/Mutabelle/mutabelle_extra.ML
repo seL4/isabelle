@@ -97,7 +97,7 @@ fun preprocess thy insts t = Object_Logic.atomize_term thy
 fun invoke_quickcheck quickcheck_generator thy t =
   TimeLimit.timeLimit (Time.fromSeconds (! Auto_Counterexample.time_limit))
       (fn _ =>
-          case Quickcheck.gen_test_term (ProofContext.init thy) true true (SOME quickcheck_generator)
+          case Quickcheck.gen_test_term (ProofContext.init_global thy) true true (SOME quickcheck_generator)
                                     size iterations (preprocess thy [] t) of
             (NONE, (time_report, report)) => (NoCex, (time_report, report))
           | (SOME _, (time_report, report)) => (GenuineCex, (time_report, report))) ()
@@ -133,7 +133,7 @@ open Nitpick_Nut
 
 fun invoke_nitpick thy t =
   let
-    val ctxt = ProofContext.init thy
+    val ctxt = ProofContext.init_global thy
     val state = Proof.init ctxt
   in
     let
@@ -251,7 +251,7 @@ fun is_forbidden_mutant t =
   end
 
 fun is_executable_term thy t = can (TimeLimit.timeLimit (Time.fromMilliseconds 2000) (Quickcheck.test_term
- (ProofContext.init thy) false (SOME "SML") 1 0)) (preprocess thy [] t)
+ (ProofContext.init_global thy) false (SOME "SML") 1 0)) (preprocess thy [] t)
 fun is_executable_thm thy th = is_executable_term thy (prop_of th)
 
 val freezeT =

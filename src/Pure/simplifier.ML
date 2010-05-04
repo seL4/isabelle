@@ -127,7 +127,7 @@ val cong_del = attrib (op delcongs);
 fun map_simpset f = Context.theory_map (map_ss f);
 fun change_simpset f = Context.>> (Context.map_theory (map_simpset f));
 fun global_simpset_of thy =
-  MetaSimplifier.context (ProofContext.init thy) (get_ss (Context.Theory thy));
+  MetaSimplifier.context (ProofContext.init_global thy) (get_ss (Context.Theory thy));
 
 fun Addsimprocs args = change_simpset (fn ss => ss addsimprocs args);
 fun Delsimprocs args = change_simpset (fn ss => ss delsimprocs args);

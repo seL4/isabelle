@@ -181,7 +181,8 @@ fun standard_morphism lthy ctxt =
   Morphism.binding_morphism (Name_Space.transform_binding (naming_of lthy));
 
 fun target_morphism lthy = standard_morphism lthy (target_of lthy);
-fun global_morphism lthy = standard_morphism lthy (ProofContext.init (ProofContext.theory_of lthy));
+fun global_morphism lthy =
+  standard_morphism lthy (ProofContext.init_global (ProofContext.theory_of lthy));
 
 
 (* primitive operations *)
@@ -270,7 +271,7 @@ fun exit_result f (x, lthy) =
 fun exit_result_global f (x, lthy) =
   let
     val thy = exit_global lthy;
-    val thy_ctxt = ProofContext.init thy;
+    val thy_ctxt = ProofContext.init_global thy;
     val phi = standard_morphism lthy thy_ctxt;
   in (f phi x, thy) end;
 

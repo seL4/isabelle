@@ -105,14 +105,14 @@ fun lift_triv_classes_conv thy conv ct =
     |> Drule.cterm_rule Thm.varifyT_global
     |> Thm.instantiate_cterm (Thm.certify_inst thy (map (fn (v, ((sort, _), sort')) =>
         (((v, 0), sort), TFree (v, sort'))) vs, []))
-    |> Drule.cterm_rule Thm.freezeT
+    |> Drule.cterm_rule Thm.legacy_freezeT
     |> conv
     |> Thm.varifyT_global
     |> fold (fn (v, (_, sort')) => Thm.unconstrainT (certT (TVar ((v, 0), sort')))) vs
     |> Thm.certify_instantiate (map (fn (v, ((sort, _), _)) =>
         (((v, 0), []), TVar ((v, 0), sort))) vs, [])
     |> strip_of_class
-    |> Thm.freezeT
+    |> Thm.legacy_freezeT
   end;
 
 fun lift_triv_classes_rew thy rew t =
@@ -521,7 +521,7 @@ structure Nbe_Functions = Code_Data
 
 fun compile_eval thy program vs_t deps =
   let
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     val (gr, (_, idx_tab)) =
       Nbe_Functions.change thy (ensure_stmts ctxt program);
   in

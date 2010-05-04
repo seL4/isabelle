@@ -47,7 +47,7 @@ fun evaluation_code thy struct_name_hint tycos consts =
 
 fun eval some_target reff postproc thy t args =
   let
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     fun evaluator naming program ((_, (_, ty)), t) deps =
       let
         val _ = if Code_Thingol.contains_dictvar t then

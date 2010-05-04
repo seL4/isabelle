@@ -33,8 +33,8 @@ class complete_lattice = bounded_lattice + Inf + Sup +
 begin
 
 lemma dual_complete_lattice:
-  "complete_lattice Sup Inf (op \<ge>) (op >) (op \<squnion>) (op \<sqinter>) \<top> \<bottom>"
-  by (auto intro!: complete_lattice.intro dual_bounded_lattice)
+  "class.complete_lattice Sup Inf (op \<ge>) (op >) (op \<squnion>) (op \<sqinter>) \<top> \<bottom>"
+  by (auto intro!: class.complete_lattice.intro dual_bounded_lattice)
     (unfold_locales, (fact bot_least top_greatest
         Sup_upper Sup_least Inf_lower Inf_greatest)+)
 

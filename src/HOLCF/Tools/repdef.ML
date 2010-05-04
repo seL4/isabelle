@@ -65,7 +65,7 @@ fun gen_add_repdef
 
     (*rhs*)
     val tmp_ctxt =
-      ProofContext.init thy
+      ProofContext.init_global thy
       |> fold (Variable.declare_typ o TFree) raw_args;
     val defl = prep_term tmp_ctxt raw_defl;
     val tmp_ctxt = tmp_ctxt |> Variable.declare_constraints defl;
@@ -119,7 +119,7 @@ fun gen_add_repdef
         Specification.definition (NONE, (prj_bind, prj_eqn)) lthy;
     val ((_, (_, approx_ldef)), lthy) =
         Specification.definition (NONE, (approx_bind, approx_eqn)) lthy;
-    val ctxt_thy = ProofContext.init (ProofContext.theory_of lthy);
+    val ctxt_thy = ProofContext.init_global (ProofContext.theory_of lthy);
     val emb_def = singleton (ProofContext.export lthy ctxt_thy) emb_ldef;
     val prj_def = singleton (ProofContext.export lthy ctxt_thy) prj_ldef;
     val approx_def = singleton (ProofContext.export lthy ctxt_thy) approx_ldef;
@@ -161,7 +161,7 @@ fun add_repdef def opt_name typ defl opt_morphs thy =
 
 fun repdef_cmd ((def, name), (b, raw_args, mx), A, morphs) thy =
   let
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     val args = map (apsnd (Typedecl.read_constraint ctxt)) raw_args;
   in snd (gen_add_repdef Syntax.read_term def name (b, args, mx) A morphs thy) end;
 

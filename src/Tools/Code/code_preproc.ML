@@ -87,7 +87,7 @@ val del_post = map_post o MetaSimplifier.del_simp;
 
 fun add_unfold_post raw_thm thy =
   let
-    val thm = Local_Defs.meta_rewrite_rule (ProofContext.init thy) raw_thm;
+    val thm = Local_Defs.meta_rewrite_rule (ProofContext.init_global thy) raw_thm;
     val thm_sym = Thm.symmetric thm;
   in
     thy |> map_pre_post (fn (pre, post) =>
@@ -157,7 +157,7 @@ fun postprocess_term thy = term_of_conv thy (postprocess_conv thy);
 
 fun print_codeproc thy =
   let
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     val pre = (#pre o the_thmproc) thy;
     val post = (#post o the_thmproc) thy;
     val functrans = (map fst o #functrans o the_thmproc) thy;

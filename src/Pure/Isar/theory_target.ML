@@ -114,7 +114,7 @@ fun class_target (Target {target, ...}) f =
 fun import_export_proof ctxt (name, raw_th) =
   let
     val thy = ProofContext.theory_of ctxt;
-    val thy_ctxt = ProofContext.init thy;
+    val thy_ctxt = ProofContext.init_global thy;
     val certT = Thm.ctyp_of thy;
     val cert = Thm.cterm_of thy;
 
@@ -213,7 +213,7 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx)
 
 fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t) lthy =
   let
-    val thy_ctxt = ProofContext.init (ProofContext.theory_of lthy);
+    val thy_ctxt = ProofContext.init_global (ProofContext.theory_of lthy);
     val target_ctxt = Local_Theory.target_of lthy;
 
     val (mx1, mx2, mx3) = fork_mixfix ta mx;
@@ -286,7 +286,7 @@ in
 fun define ta ((b, mx), ((name, atts), rhs)) lthy =
   let
     val thy = ProofContext.theory_of lthy;
-    val thy_ctxt = ProofContext.init thy;
+    val thy_ctxt = ProofContext.init_global thy;
 
     val name' = Thm.def_binding_optional b name;
 
@@ -342,7 +342,7 @@ fun init_target _ NONE = global_target
 fun init_ctxt (Target {target, is_locale, is_class, instantiation, overloading}) =
   if not (null (#1 instantiation)) then Class_Target.init_instantiation instantiation
   else if not (null overloading) then Overloading.init overloading
-  else if not is_locale then ProofContext.init
+  else if not is_locale then ProofContext.init_global
   else if not is_class then Locale.init target
   else Class_Target.init target;
 
@@ -364,7 +364,7 @@ and init_lthy_ctxt ta = init_lthy ta o init_ctxt ta;
 
 fun gen_overloading prep_const raw_ops thy =
   let
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     val ops = raw_ops |> map (fn (name, const, checked) =>
       (name, Term.dest_Const (prep_const ctxt const), checked));
   in thy |> init_lthy_ctxt (make_target "" false false ([], [], []) ops) end;

@@ -1493,7 +1493,7 @@ setup {*
   Context.theory_map (Induct.map_simpset (fn ss => ss
     setmksimps (fn ss => Simpdata.mksimps Simpdata.mksimps_pairs ss #>
       map (Simplifier.rewrite_rule (map Thm.symmetric
-        @{thms induct_rulify_fallback induct_true_def induct_false_def})))
+        @{thms induct_rulify_fallback})))
     addsimprocs
       [Simplifier.simproc @{theory} "swap_induct_false"
          ["induct_false ==> PROP P ==> PROP Q"]
@@ -1886,7 +1886,6 @@ setup {*
 *}
 
 hide_const (open) eq
-hide_const eq
 
 text {* Cases *}
 

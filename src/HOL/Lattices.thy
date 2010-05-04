@@ -67,8 +67,8 @@ begin
 text {* Dual lattice *}
 
 lemma dual_semilattice:
-  "semilattice_inf (op \<ge>) (op >) sup"
-by (rule semilattice_inf.intro, rule dual_order)
+  "class.semilattice_inf (op \<ge>) (op >) sup"
+by (rule class.semilattice_inf.intro, rule dual_order)
   (unfold_locales, simp_all add: sup_least)
 
 end
@@ -235,8 +235,8 @@ context lattice
 begin
 
 lemma dual_lattice:
-  "lattice (op \<ge>) (op >) sup inf"
-  by (rule lattice.intro, rule dual_semilattice, rule semilattice_sup.intro, rule dual_order)
+  "class.lattice (op \<ge>) (op >) sup inf"
+  by (rule class.lattice.intro, rule dual_semilattice, rule class.semilattice_sup.intro, rule dual_order)
     (unfold_locales, auto)
 
 lemma inf_sup_absorb: "x \<sqinter> (x \<squnion> y) = x"
@@ -347,8 +347,8 @@ lemma inf_sup_distrib2:
 by(simp add: inf_sup_aci inf_sup_distrib1)
 
 lemma dual_distrib_lattice:
-  "distrib_lattice (op \<ge>) (op >) sup inf"
-  by (rule distrib_lattice.intro, rule dual_lattice)
+  "class.distrib_lattice (op \<ge>) (op >) sup inf"
+  by (rule class.distrib_lattice.intro, rule dual_lattice)
     (unfold_locales, fact inf_sup_distrib1)
 
 lemmas sup_inf_distrib =
@@ -419,7 +419,7 @@ class bounded_lattice = bounded_lattice_bot + bounded_lattice_top
 begin
 
 lemma dual_bounded_lattice:
-  "bounded_lattice (op \<ge>) (op >) (op \<squnion>) (op \<sqinter>) \<top> \<bottom>"
+  "class.bounded_lattice (op \<ge>) (op >) (op \<squnion>) (op \<sqinter>) \<top> \<bottom>"
   by unfold_locales (auto simp add: less_le_not_le)
 
 end
@@ -431,8 +431,8 @@ class boolean_algebra = distrib_lattice + bounded_lattice + minus + uminus +
 begin
 
 lemma dual_boolean_algebra:
-  "boolean_algebra (\<lambda>x y. x \<squnion> - y) uminus (op \<ge>) (op >) (op \<squnion>) (op \<sqinter>) \<top> \<bottom>"
-  by (rule boolean_algebra.intro, rule dual_bounded_lattice, rule dual_distrib_lattice)
+  "class.boolean_algebra (\<lambda>x y. x \<squnion> - y) uminus (op \<ge>) (op >) (op \<squnion>) (op \<sqinter>) \<top> \<bottom>"
+  by (rule class.boolean_algebra.intro, rule dual_bounded_lattice, rule dual_distrib_lattice)
     (unfold_locales, auto simp add: inf_compl_bot sup_compl_top diff_eq)
 
 lemma compl_inf_bot:

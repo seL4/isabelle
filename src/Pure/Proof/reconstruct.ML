@@ -376,8 +376,7 @@ fun expand_proof thy thms prf =
             val varify = map_type_tfree (fn p as (a, S) =>
               if member (op =) tfrees p then TVar ((a, ~1), S) else TFree p)
           in
-            (maxidx', prfs', map_proof_terms (subst_TVars tye o
-               map_types varify) (typ_subst_TVars tye o varify) prf)
+            (maxidx', prfs', map_proof_types (typ_subst_TVars tye o varify) prf)
           end
       | expand maxidx prfs prf = (maxidx, prfs, prf);
 

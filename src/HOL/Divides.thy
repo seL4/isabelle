@@ -379,6 +379,8 @@ end
 class ring_div = semiring_div + comm_ring_1
 begin
 
+subclass ring_1_no_zero_divisors ..
+
 text {* Negation respects modular equivalence. *}
 
 lemma mod_minus_eq: "(- a) mod b = (- (a mod b)) mod b"

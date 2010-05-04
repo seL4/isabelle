@@ -502,7 +502,7 @@ fun norm_term thy t =
             t |> disamb_bound thy
               |> chain (Simplifier.full_rewrite ss)
               |> chain eta_conversion
-              |> strip_shyps
+              |> Thm.strip_shyps
         val _ = message ("norm_term: " ^ (string_of_thm th))
     in
         th

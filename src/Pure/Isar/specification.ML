@@ -169,7 +169,7 @@ end;
 
 fun gen_axioms do_print prep raw_vars raw_specs thy =
   let
-    val ((vars, specs), _) = prep raw_vars raw_specs (ProofContext.init thy);
+    val ((vars, specs), _) = prep raw_vars raw_specs (ProofContext.init_global thy);
     val xs = map (fn ((b, T), _) => (Name.of_binding b, T)) vars;
 
     (*consts*)

@@ -100,7 +100,7 @@ fun add_equality vs dtcos thy =
         val def' = Syntax.check_term lthy def;
         val ((_, (_, thm)), lthy') = Specification.definition
           (NONE, (Attrib.empty_binding, def')) lthy;
-        val ctxt_thy = ProofContext.init (ProofContext.theory_of lthy);
+        val ctxt_thy = ProofContext.init_global (ProofContext.theory_of lthy);
         val thm' = singleton (ProofContext.export lthy' ctxt_thy) thm;
       in (thm', lthy') end;
     fun tac thms = Class.intro_classes_tac []

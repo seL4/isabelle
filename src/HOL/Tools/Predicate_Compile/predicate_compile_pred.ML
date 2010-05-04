@@ -64,7 +64,7 @@ fun case_rewrites thy Tcon =
 fun instantiated_case_rewrites thy Tcon =
   let
     val rew_ths = case_rewrites thy Tcon
-    val ctxt = ProofContext.init thy
+    val ctxt = ProofContext.init_global thy
     fun instantiate th =
     let
       val f = (fst (strip_comb (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of th))))))
@@ -128,9 +128,10 @@ fun flatten constname atom (defs, thy) =
       | SOME raw_split_thm =>
         let
           val (f, args) = strip_comb atom
-          val split_thm = prepare_split_thm (ProofContext.init thy) raw_split_thm
+          val split_thm = prepare_split_thm (ProofContext.init_global thy) raw_split_thm
           (* TODO: contextify things - this line is to unvarify the split_thm *)
-          (*val ((_, [isplit_thm]), _) = Variable.import true [split_thm] (ProofContext.init thy)*)
+          (*val ((_, [isplit_thm]), _) =
+            Variable.import true [split_thm] (ProofContext.init_global thy)*)
           val (assms, concl) = Logic.strip_horn (prop_of split_thm)
           val (P, [split_t]) = strip_comb (HOLogic.dest_Trueprop concl) 
           val Tcons = datatype_names_of_case_name thy (fst (dest_Const f))
@@ -188,7 +189,7 @@ fun flatten constname atom (defs, thy) =
 
 fun flatten_intros constname intros thy =
   let
-    val ctxt = ProofContext.init thy
+    val ctxt = ProofContext.init_global thy
     val ((_, intros), ctxt') = Variable.import true intros ctxt
     val (intros', (local_defs, thy')) = (fold_map o fold_map_atoms)
       (flatten constname) (map prop_of intros) ([], thy)
@@ -206,7 +207,7 @@ fun select_disj 1 1 = []
 
 fun introrulify thy ths = 
   let
-    val ctxt = ProofContext.init thy
+    val ctxt = ProofContext.init_global thy
     val ((_, ths'), ctxt') = Variable.import true ths ctxt
     fun introrulify' th =
       let
@@ -277,7 +278,7 @@ fun preprocess options (constname, specs) thy =
     SOME specss => (specss, thy)
   | NONE =>*)
     let
-      val ctxt = ProofContext.init thy
+      val ctxt = ProofContext.init_global thy
       val intros =
         if forall is_pred_equation specs then 
           map (map_term thy (maps_premises (split_conjs thy))) (introrulify thy (map rewrite specs))

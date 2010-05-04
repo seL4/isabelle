@@ -78,10 +78,9 @@ fun proc_exprop axiomatic cos arg =
       | NONE => mk_definitional cos arg
 end
 
-fun add_specification axiomatic cos arg =
-    arg |> apsnd Thm.freezeT
-        |> proc_exprop axiomatic cos
-        |> apsnd Drule.export_without_context
+fun add_specification axiomatic cos =
+    proc_exprop axiomatic cos
+    #> apsnd Drule.export_without_context
 
 
 (* Collect all intances of constants in term *)
@@ -217,15 +216,16 @@ fun process_spec axiomatic cos alt_props thy =
                         then writeln "specification"
                         else ()
             in
-                arg |> apsnd Thm.freezeT
+                arg |> apsnd Thm.unvarify_global
                     |> process_all (zip3 alt_names rew_imps frees)
             end
 
-      fun after_qed [[thm]] = ProofContext.theory (fn thy =>
-        #1 (post_process (add_specification axiomatic (zip3 names cnames overloaded) (thy, thm))));
+      fun after_qed [[thm]] = (ProofContext.theory (fn thy =>
+        #1 (post_process (add_specification axiomatic (zip3 names cnames overloaded) (thy, thm)))));
     in
       thy
-      |> ProofContext.init
+      |> ProofContext.init_global
+      |> Variable.declare_term ex_prop
       |> Proof.theorem NONE after_qed [[(HOLogic.mk_Trueprop ex_prop, [])]]
     end;
 

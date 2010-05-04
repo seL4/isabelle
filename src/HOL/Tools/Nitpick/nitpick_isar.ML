@@ -286,7 +286,7 @@ fun extract_params ctxt auto default_params override_params =
   end
 
 fun default_params thy =
-  extract_params (ProofContext.init thy) false (default_raw_params thy)
+  extract_params (ProofContext.init_global thy) false (default_raw_params thy)
   o map (apsnd single)
 
 val parse_key = Scan.repeat1 P.typ_group >> space_implode " "

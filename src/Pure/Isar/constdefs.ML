@@ -26,7 +26,7 @@ fun gen_constdef prep_vars prep_prop prep_att
 
     fun err msg ts = error (cat_lines (msg :: map (Syntax.string_of_term_global thy) ts));
 
-    val thy_ctxt = ProofContext.init thy;
+    val thy_ctxt = ProofContext.init_global thy;
     val struct_ctxt = #2 (ProofContext.add_fixes structs thy_ctxt);
     val ((d, mx), var_ctxt) =
       (case raw_decl of
@@ -62,7 +62,7 @@ fun gen_constdef prep_vars prep_prop prep_att
 
 fun gen_constdefs prep_vars prep_prop prep_att (raw_structs, specs) thy =
   let
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     val (structs, _) = prep_vars (map (fn (x, T) => (x, T, Structure)) raw_structs) ctxt;
     val (decls, thy') = fold_map (gen_constdef prep_vars prep_prop prep_att structs) specs thy;
   in Pretty.writeln (Proof_Display.pretty_consts ctxt (K true) decls); thy' end;

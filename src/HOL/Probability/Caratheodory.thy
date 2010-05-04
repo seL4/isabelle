@@ -1,7 +1,7 @@
 header {*Caratheodory Extension Theorem*}
 
 theory Caratheodory
-  imports Sigma_Algebra SupInf SeriesPlus
+  imports Sigma_Algebra SeriesPlus
 begin
 
 text{*From the Hurd/Coble measure theory development, translated by Lawrence Paulson.*}

@@ -200,7 +200,7 @@ fun compile_term compilation options ctxt t =
       (map HOLogic.mk_Trueprop (prems @ [HOLogic.mk_not concl]),
        HOLogic.mk_Trueprop (list_comb (Const (full_constname, constT), map Free vs')))
     val tac = fn _ => Skip_Proof.cheat_tac thy1
-    val intro = Goal.prove (ProofContext.init thy1) (map fst vs') [] t tac
+    val intro = Goal.prove (ProofContext.init_global thy1) (map fst vs') [] t tac
     val thy2 = Context.theory_map (Predicate_Compile_Alternative_Defs.add_thm intro) thy1
     val (thy3, preproc_time) = cpu_time "predicate preprocessing"
         (fn () => Predicate_Compile.preprocess options const thy2)

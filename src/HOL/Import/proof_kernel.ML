@@ -213,7 +213,7 @@ exception SMART_STRING
 fun smart_string_of_cterm ct =
     let
         val thy = Thm.theory_of_cterm ct
-        val ctxt = ProofContext.init thy
+        val ctxt = ProofContext.init_global thy
         val {t,T,...} = rep_cterm ct
         (* Hack to avoid parse errors with Trueprop *)
         val ct  = (cterm_of thy (HOLogic.dest_Trueprop t)
@@ -2065,7 +2065,7 @@ fun to_isa_thm (hth as HOLThm(_,th)) =
     let
         val (HOLThm args) = norm_hthm (theory_of_thm th) hth
     in
-        apsnd strip_shyps args
+        apsnd Thm.strip_shyps args
     end
 
 fun to_isa_term tm = tm

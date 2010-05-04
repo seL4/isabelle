@@ -822,7 +822,7 @@ fun gen_generate_code prep_term thy modules module xs =
 
 val generate_code_i = gen_generate_code Sign.cert_term;
 val generate_code =
-  gen_generate_code (Syntax.read_term o ProofContext.allow_dummies o ProofContext.init);
+  gen_generate_code (Syntax.read_term o ProofContext.allow_dummies o ProofContext.init_global);
 
 
 (**** Reflection ****)
@@ -908,7 +908,7 @@ val eval_result = Unsynchronized.ref (fn () => Bound 0);
 
 fun eval_term thy t =
   let
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     val e =
       let
         val _ = (null (Term.add_tvars t []) andalso null (Term.add_tfrees t [])) orelse

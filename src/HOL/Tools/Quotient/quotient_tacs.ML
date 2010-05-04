@@ -48,7 +48,7 @@ fun RANGE_WARN tacs = RANGE (map WARN tacs)
 
 fun atomize_thm thm =
 let
-  val thm' = Thm.freezeT (forall_intr_vars thm) (* FIXME/TODO: is this proper Isar-technology? *)
+  val thm' = Thm.legacy_freezeT (forall_intr_vars thm) (* FIXME/TODO: is this proper Isar-technology? *)
   val thm'' = Object_Logic.atomize (cprop_of thm')
 in
   @{thm equal_elim_rule1} OF [thm'', thm']

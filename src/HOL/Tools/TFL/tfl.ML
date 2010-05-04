@@ -361,7 +361,7 @@ end end;
 
 (*For Isabelle, the lhs of a definition must be a constant.*)
 fun const_def sign (c, Ty, rhs) =
-  singleton (Syntax.check_terms (ProofContext.init sign))
+  singleton (Syntax.check_terms (ProofContext.init_global sign))
     (Const("==",dummyT) $ Const(c,Ty) $ rhs);
 
 (*Make all TVars available for instantiation by adding a ? to the front*)
@@ -541,7 +541,7 @@ fun lazyR_def thy fid tflCongs eqns =
        thy
        |> PureThy.add_defs false
             [Thm.no_attributes (Binding.name (fid ^ "_def"), defn)]
-     val def = Thm.freezeT def0;
+     val def = Thm.unvarify_global def0;
      val dummy =
        if !trace then writeln ("DEF = " ^ Display.string_of_thm_global theory def)
        else ()

@@ -1,5 +1,5 @@
 theory Information
-imports Probability_Space Product_Measure "../Multivariate_Analysis/Convex"
+imports Probability_Space Product_Measure Convex
 begin
 
 section "Convex theory"

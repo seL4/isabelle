@@ -99,7 +99,7 @@ datatype locale = Loc of {
     (* syntax declarations *)
   notes: ((string * (Attrib.binding * (thm list * Attrib.src list) list) list) * serial) list,
     (* theorem declarations *)
-  dependencies: ((string * morphism) * serial) list
+  dependencies: ((string * (morphism * morphism)) * serial) list
     (* locale dependencies (sublocale relation) *)
 };
 
@@ -143,7 +143,8 @@ fun register_locale binding parameters spec intros axioms syntax_decls notes dep
     (binding,
       mk_locale ((parameters, spec, intros, axioms),
         ((map (fn decl => (decl, serial ())) syntax_decls, map (fn n => (n, serial ())) notes),
-          map (fn d => (d, serial ())) dependencies))) #> snd);
+          map (fn d => (d |> apsnd (rpair Morphism.identity), serial ())) dependencies))) #> snd);
+          (* FIXME *)
 
 fun change_locale name =
   Locales.map o apsnd o Symtab.map_entry name o map_locale o apsnd;
@@ -223,7 +224,7 @@ fun add thy depth export (name, morph) (deps, marked) =
       then (deps, marked)
       else
         let
-          val dependencies' = map (fn (name, morph') => (name, morph' $> morph)) dependencies;
+          val dependencies' = map (fn (name, (morph', export')) => (name, morph' $> export' $> morph)) dependencies;
           val marked' = (name, instance) :: marked;
           val (deps', marked'') = fold_rev (add thy (depth + 1) export) dependencies' ([], marked');
         in
@@ -308,7 +309,7 @@ fun activate_facts dep context =
 
 fun init name thy =
   activate_all name thy Element.init (Element.transfer_morphism o Context.theory_of)
-    ([], Context.Proof (ProofContext.init thy)) |-> put_idents |> Context.proof_of;
+    ([], Context.Proof (ProofContext.init_global thy)) |-> put_idents |> Context.proof_of;
 
 fun print_locale thy show_facts raw_name =
   let
@@ -408,11 +409,10 @@ fun activate_facts' export dep context =
 
 (* Diagnostic *)
 
-fun print_registrations thy raw_name =
+fun pretty_reg thy (name, morph) =
   let
-    val name = intern thy raw_name;
     val name' = extern thy name;
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     fun prt_qual (qual, mand) = Pretty.str (qual ^ (if mand then "!" else "?"));
     fun prt_quals qs = Pretty.separate "." (map prt_qual qs) |> Pretty.block;
     val prt_term = Pretty.quote o Syntax.pretty_term ctxt;
@@ -422,22 +422,21 @@ fun print_registrations thy raw_name =
       else prt_term t;
     fun prt_inst ts =
       Pretty.block (Pretty.breaks (Pretty.str name' :: map prt_term' ts));
-    fun prt_reg (name, morph) =
-      let
-        val qs = Binding.name "x" |> Morphism.binding morph |> Binding.prefix_of;
-        val ts = instance_of thy name morph;
-      in
-        case qs of
-           [] => prt_inst ts
-         | qs => Pretty.block [prt_quals qs, Pretty.brk 1, Pretty.str ":",
-             Pretty.brk 1, prt_inst ts]
-      end;
+
+    val qs = Binding.name "x" |> Morphism.binding morph |> Binding.prefix_of;
+    val ts = instance_of thy name morph;
   in
-    (case these_registrations thy name of
-        [] => Pretty.str ("no interpretations")
-      | regs => Pretty.big_list "interpretations:" (map prt_reg (rev regs)))
-    |> Pretty.writeln
+    case qs of
+       [] => prt_inst ts
+     | qs => Pretty.block [prt_quals qs, Pretty.brk 1, Pretty.str ":",
+         Pretty.brk 1, prt_inst ts]
   end;
+
+fun print_registrations thy raw_name =
+  (case these_registrations thy (intern thy raw_name) of
+      [] => Pretty.str ("no interpretations")
+    | regs => Pretty.big_list "interpretations:" (map (pretty_reg thy) (rev regs)))
+  |> Pretty.writeln;
 
 
 (* Add and extend registrations *)
@@ -489,7 +488,7 @@ fun add_reg_activate_facts export (dep, morph) thy =
 
 fun add_dependency loc (dep, morph) export thy =
   thy
-  |> (change_locale loc o apsnd) (cons ((dep, morph $> export), serial ()))
+  |> (change_locale loc o apsnd) (cons ((dep, (morph, export)), serial ()))
   |> (fn thy => fold_rev (add_reg_activate_facts export)
       (all_registrations thy) thy);
 

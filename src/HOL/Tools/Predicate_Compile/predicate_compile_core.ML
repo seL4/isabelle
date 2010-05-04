@@ -580,7 +580,7 @@ fun preprocess_elim thy elimrule =
     fun replace_eqs (Const ("Trueprop", _) $ (Const ("op =", T) $ lhs $ rhs)) =
        HOLogic.mk_Trueprop (Const (@{const_name Predicate.eq}, T) $ lhs $ rhs)
      | replace_eqs t = t
-    val ctxt = ProofContext.init thy
+    val ctxt = ProofContext.init_global thy
     val ((_, [elimrule]), ctxt') = Variable.import false [elimrule] ctxt
     val prems = Thm.prems_of elimrule
     val nargs = length (snd (strip_comb (HOLogic.dest_Trueprop (hd prems))))
@@ -608,7 +608,7 @@ fun expand_tuples_elim th = th
 val no_compilation = ([], ([], []))
 
 fun fetch_pred_data thy name =
-  case try (Inductive.the_inductive (ProofContext.init thy)) name of
+  case try (Inductive.the_inductive (ProofContext.init_global thy)) name of
     SOME (info as (_, result)) => 
       let
         fun is_intro_of intro =
@@ -621,7 +621,7 @@ fun fetch_pred_data thy name =
         val pre_elim = nth (#elims result) index
         val pred = nth (#preds result) index
         val nparams = length (Inductive.params_of (#raw_induct result))
-        val ctxt = ProofContext.init thy
+        val ctxt = ProofContext.init_global thy
         val elim_t = mk_casesrule ctxt pred intros
         val elim =
           prove_casesrule ctxt (pred, (pre_elim, nparams)) elim_t
@@ -636,7 +636,7 @@ fun add_predfun_data name mode data =
   in PredData.map (Graph.map_node name (map_pred_data add)) end
 
 fun is_inductive_predicate thy name =
-  is_some (try (Inductive.the_inductive (ProofContext.init thy)) name)
+  is_some (try (Inductive.the_inductive (ProofContext.init_global thy)) name)
 
 fun depending_preds_of thy (key, value) =
   let
@@ -688,7 +688,7 @@ fun register_intros (constname, pre_intros) thy =
     val pred = Const (constname, T)
     val pre_elim = 
       (Drule.export_without_context o Skip_Proof.make_thm thy)
-      (mk_casesrule (ProofContext.init thy) pred pre_intros)
+      (mk_casesrule (ProofContext.init_global thy) pred pre_intros)
   in register_predicate (constname, pre_intros, pre_elim) thy end
 
 fun defined_function_of compilation pred =
@@ -1160,7 +1160,7 @@ fun collect_non_invertible_subterms ctxt (f as Free _) (names, eqs) = (f, (names
 fun is_possible_output thy vs t =
   forall
     (fn t => is_eqT (fastype_of t) andalso forall (member (op =) vs) (term_vs t))
-      (non_invertible_subterms (ProofContext.init thy) t)
+      (non_invertible_subterms (ProofContext.init_global thy) t)
   andalso
     (forall (is_eqT o snd)
       (inter (fn ((f', _), f) => f = f') vs (Term.add_frees t [])))
@@ -1367,7 +1367,7 @@ fun check_mode_clause' (mode_analysis_options : mode_analysis_options) thy pred 
           val modes = map (fn (s, ms) => (s, map (fn ((p, m), r) => m) ms)) modes'
         in (modes, modes) end
     val (in_ts, out_ts) = split_mode mode ts
-    val in_vs = maps (vars_of_destructable_term (ProofContext.init thy)) in_ts
+    val in_vs = maps (vars_of_destructable_term (ProofContext.init_global thy)) in_ts
     val out_vs = terms_vs out_ts
     fun known_vs_after p vs = (case p of
         Prem t => union (op =) vs (term_vs t)
@@ -1939,7 +1939,7 @@ fun compile_switch compilation_modifiers ctxt all_vs param_vs additional_argumen
 
 fun compile_pred options compilation_modifiers thy all_vs param_vs s T (pol, mode) moded_cls =
   let
-    val ctxt = ProofContext.init thy
+    val ctxt = ProofContext.init_global thy
     val compilation_modifiers = if pol then compilation_modifiers else
       negative_comp_modifiers_of compilation_modifiers
     val additional_arguments = Comp_Mod.additional_arguments compilation_modifiers
@@ -2072,11 +2072,11 @@ fun create_intro_elim_rule mode defthm mode_id funT pred thy =
     val simprules = [defthm, @{thm eval_pred},
       @{thm "split_beta"}, @{thm "fst_conv"}, @{thm "snd_conv"}, @{thm pair_collapse}]
     val unfolddef_tac = Simplifier.asm_full_simp_tac (HOL_basic_ss addsimps simprules) 1
-    val introthm = Goal.prove (ProofContext.init thy)
+    val introthm = Goal.prove (ProofContext.init_global thy)
       (argnames @ hoarg_names' @ ["y"]) [] introtrm (fn _ => unfolddef_tac)
     val P = HOLogic.mk_Trueprop (Free ("P", HOLogic.boolT));
     val elimtrm = Logic.list_implies ([funpropE, Logic.mk_implies (predpropE, P)], P)
-    val elimthm = Goal.prove (ProofContext.init thy)
+    val elimthm = Goal.prove (ProofContext.init_global thy)
       (argnames @ ["y", "P"]) [] elimtrm (fn _ => unfolddef_tac)
     val opt_neg_introthm =
       if is_all_input mode then
@@ -2090,7 +2090,7 @@ fun create_intro_elim_rule mode defthm mode_id funT pred thy =
             Simplifier.asm_full_simp_tac (HOL_basic_ss addsimps
               (@{thm if_False} :: @{thm Predicate.not_pred_eq} :: simprules)) 1
             THEN rtac @{thm Predicate.singleI} 1
-        in SOME (Goal.prove (ProofContext.init thy) (argnames @ hoarg_names') []
+        in SOME (Goal.prove (ProofContext.init_global thy) (argnames @ hoarg_names') []
             neg_introtrm (fn _ => tac))
         end
       else NONE
@@ -2604,7 +2604,7 @@ fun prove_other_direction options ctxt pred mode moded_clauses =
 
 fun prove_pred options thy clauses preds pred (pol, mode) (moded_clauses, compiled_term) =
   let
-    val ctxt = ProofContext.init thy
+    val ctxt = ProofContext.init_global thy
     val clauses = case AList.lookup (op =) clauses pred of SOME rs => rs | NONE => []
   in
     Goal.prove ctxt (Term.add_free_names compiled_term []) [] compiled_term
@@ -2667,7 +2667,7 @@ fun prepare_intrs options compilation thy prednames intros =
     val preds = map (fn c => Const (c, Sign.the_const_type thy c)) prednames
     val (preds, intrs) = unify_consts thy preds intrs
     val ([preds, intrs], _) = fold_burrow (Variable.import_terms false) [preds, intrs]
-      (ProofContext.init thy)
+      (ProofContext.init_global thy)
     val preds = map dest_Const preds
     val all_vs = terms_vs intrs
     val all_modes = 
@@ -2744,7 +2744,7 @@ fun check_intros_elim_match thy prednames =
         val nparams = nparams_of thy predname
         val elim' =
           (Drule.export_without_context o Skip_Proof.make_thm thy)
-          (mk_casesrule (ProofContext.init thy) nparams intros)
+          (mk_casesrule (ProofContext.init_global thy) nparams intros)
       in
         if not (Thm.equiv_thm (elim, elim')) then
           error "Introduction and elimination rules do not match!"
@@ -2757,7 +2757,7 @@ fun check_intros_elim_match thy prednames =
 
 fun add_code_equations thy preds result_thmss =
   let
-    val ctxt = ProofContext.init thy
+    val ctxt = ProofContext.init_global thy
     fun add_code_equation (predname, T) (pred, result_thms) =
       let
         val full_mode = fold_rev (curry Fun) (map (K Input) (binder_types T)) Bool
@@ -3047,7 +3047,7 @@ fun generic_code_pred prep_const options raw_const lthy =
     fun after_qed thms goal_ctxt =
       let
         val global_thms = ProofContext.export goal_ctxt
-          (ProofContext.init (ProofContext.theory_of goal_ctxt)) (map the_single thms)
+          (ProofContext.init_global (ProofContext.theory_of goal_ctxt)) (map the_single thms)
       in
         goal_ctxt |> Local_Theory.theory (fold set_elim global_thms #>
           ((case compilation options of
@@ -3164,7 +3164,7 @@ fun analyze_compr thy compfuns param_user_modes (compilation, arguments) t_compr
           | DSeq => dseq_comp_modifiers
           | Pos_Random_DSeq => pos_random_dseq_comp_modifiers
           | New_Pos_Random_DSeq => new_pos_random_dseq_comp_modifiers
-        val t_pred = compile_expr comp_modifiers (ProofContext.init thy)
+        val t_pred = compile_expr comp_modifiers (ProofContext.init_global thy)
           (body, deriv) additional_arguments;
         val T_pred = dest_predT compfuns (fastype_of t_pred)
         val arrange = split_lambda (HOLogic.mk_tuple outargs) output_tuple
