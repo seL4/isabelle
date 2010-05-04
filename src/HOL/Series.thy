@@ -672,8 +672,8 @@ proof -
     by (rule convergentI)
   hence Cauchy: "Cauchy (\<lambda>n. setsum ?f (?S1 n))"
     by (rule convergent_Cauchy)
-  have "Zseq (\<lambda>n. setsum ?f (?S1 n - ?S2 n))"
-  proof (rule ZseqI, simp only: norm_setsum_f)
+  have "Zfun (\<lambda>n. setsum ?f (?S1 n - ?S2 n)) sequentially"
+  proof (rule ZfunI, simp only: eventually_sequentially norm_setsum_f)
     fix r :: real
     assume r: "0 < r"
     from CauchyD [OF Cauchy r] obtain N
@@ -694,14 +694,15 @@ proof -
       finally show "setsum ?f (?S1 n - ?S2 n) < r" .
     qed
   qed
-  hence "Zseq (\<lambda>n. setsum ?g (?S1 n - ?S2 n))"
-    apply (rule Zseq_le [rule_format])
+  hence "Zfun (\<lambda>n. setsum ?g (?S1 n - ?S2 n)) sequentially"
+    apply (rule Zfun_le [rule_format])
     apply (simp only: norm_setsum_f)
     apply (rule order_trans [OF norm_setsum setsum_mono])
     apply (auto simp add: norm_mult_ineq)
     done
   hence 2: "(\<lambda>n. setsum ?g (?S1 n) - setsum ?g (?S2 n)) ----> 0"
-    by (simp only: LIMSEQ_Zseq_iff setsum_diff finite_S1 S2_le_S1 diff_0_right)
+    unfolding LIMSEQ_conv_tendsto tendsto_Zfun_iff diff_0_right
+    by (simp only: setsum_diff finite_S1 S2_le_S1)
 
   with 1 have "(\<lambda>n. setsum ?g (?S2 n)) ----> (\<Sum>k. a k) * (\<Sum>k. b k)"
     by (rule LIMSEQ_diff_approach_zero2)

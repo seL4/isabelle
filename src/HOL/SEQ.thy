@@ -14,11 +14,6 @@ imports Limits
 begin
 
 definition
-  Zseq :: "[nat \<Rightarrow> 'a::real_normed_vector] \<Rightarrow> bool" where
-    --{*Standard definition of sequence converging to zero*}
-  [code del]: "Zseq X = (\<forall>r>0. \<exists>no. \<forall>n\<ge>no. norm (X n) < r)"
-
-definition
   LIMSEQ :: "[nat \<Rightarrow> 'a::metric_space, 'a] \<Rightarrow> bool"
     ("((_)/ ----> (_))" [60, 60] 60) where
     --{*Standard definition of convergence of sequence*}
@@ -119,79 +114,6 @@ apply (auto intro: BseqI2')
 done
 
 
-subsection {* Sequences That Converge to Zero *}
-
-lemma ZseqI:
-  "(\<And>r. 0 < r \<Longrightarrow> \<exists>no. \<forall>n\<ge>no. norm (X n) < r) \<Longrightarrow> Zseq X"
-unfolding Zseq_def by simp
-
-lemma ZseqD:
-  "\<lbrakk>Zseq X; 0 < r\<rbrakk> \<Longrightarrow> \<exists>no. \<forall>n\<ge>no. norm (X n) < r"
-unfolding Zseq_def by simp
-
-lemma Zseq_conv_Zfun: "Zseq X \<longleftrightarrow> Zfun X sequentially"
-unfolding Zseq_def Zfun_def eventually_sequentially ..
-
-lemma Zseq_zero: "Zseq (\<lambda>n. 0)"
-unfolding Zseq_def by simp
-
-lemma Zseq_const_iff: "Zseq (\<lambda>n. k) = (k = 0)"
-unfolding Zseq_def by force
-
-lemma Zseq_norm_iff: "Zseq (\<lambda>n. norm (X n)) = Zseq (\<lambda>n. X n)"
-unfolding Zseq_def by simp
-
-lemma Zseq_imp_Zseq:
-  assumes X: "Zseq X"
-  assumes Y: "\<And>n. norm (Y n) \<le> norm (X n) * K"
-  shows "Zseq (\<lambda>n. Y n)"
-using X Y Zfun_imp_Zfun [of X sequentially Y K]
-unfolding Zseq_conv_Zfun by simp
-
-lemma Zseq_le: "\<lbrakk>Zseq Y; \<forall>n. norm (X n) \<le> norm (Y n)\<rbrakk> \<Longrightarrow> Zseq X"
-by (erule_tac K="1" in Zseq_imp_Zseq, simp)
-
-lemma Zseq_add:
-  "Zseq X \<Longrightarrow> Zseq Y \<Longrightarrow> Zseq (\<lambda>n. X n + Y n)"
-unfolding Zseq_conv_Zfun by (rule Zfun_add)
-
-lemma Zseq_minus: "Zseq X \<Longrightarrow> Zseq (\<lambda>n. - X n)"
-unfolding Zseq_def by simp
-
-lemma Zseq_diff: "\<lbrakk>Zseq X; Zseq Y\<rbrakk> \<Longrightarrow> Zseq (\<lambda>n. X n - Y n)"
-by (simp only: diff_minus Zseq_add Zseq_minus)
-
-lemma (in bounded_linear) Zseq:
-  "Zseq X \<Longrightarrow> Zseq (\<lambda>n. f (X n))"
-unfolding Zseq_conv_Zfun by (rule Zfun)
-
-lemma (in bounded_bilinear) Zseq:
-  "Zseq X \<Longrightarrow> Zseq Y \<Longrightarrow> Zseq (\<lambda>n. X n ** Y n)"
-unfolding Zseq_conv_Zfun by (rule Zfun)
-
-lemma (in bounded_bilinear) Zseq_prod_Bseq:
-  "Zseq X \<Longrightarrow> Bseq Y \<Longrightarrow> Zseq (\<lambda>n. X n ** Y n)"
-unfolding Zseq_conv_Zfun Bseq_conv_Bfun
-by (rule Zfun_prod_Bfun)
-
-lemma (in bounded_bilinear) Bseq_prod_Zseq:
-  "Bseq X \<Longrightarrow> Zseq Y \<Longrightarrow> Zseq (\<lambda>n. X n ** Y n)"
-unfolding Zseq_conv_Zfun Bseq_conv_Bfun
-by (rule Bfun_prod_Zfun)
-
-lemma (in bounded_bilinear) Zseq_left:
-  "Zseq X \<Longrightarrow> Zseq (\<lambda>n. X n ** a)"
-by (rule bounded_linear_left [THEN bounded_linear.Zseq])
-
-lemma (in bounded_bilinear) Zseq_right:
-  "Zseq X \<Longrightarrow> Zseq (\<lambda>n. a ** X n)"
-by (rule bounded_linear_right [THEN bounded_linear.Zseq])
-
-lemmas Zseq_mult = mult.Zseq
-lemmas Zseq_mult_right = mult.Zseq_right
-lemmas Zseq_mult_left = mult.Zseq_left
-
-
 subsection {* Limits of Sequences *}
 
 lemma [trans]: "X=Y ==> Y ----> z ==> X ----> z"
@@ -208,8 +130,8 @@ unfolding LIMSEQ_def dist_norm ..
 lemma LIMSEQ_iff_nz: "X ----> L = (\<forall>r>0. \<exists>no>0. \<forall>n\<ge>no. dist (X n) L < r)"
   by (auto simp add: LIMSEQ_def) (metis Suc_leD zero_less_Suc)  
 
-lemma LIMSEQ_Zseq_iff: "((\<lambda>n. X n) ----> L) = Zseq (\<lambda>n. X n - L)"
-by (simp only: LIMSEQ_iff Zseq_def)
+lemma LIMSEQ_Zfun_iff: "((\<lambda>n. X n) ----> L) = Zfun (\<lambda>n. X n - L) sequentially"
+by (simp only: LIMSEQ_iff Zfun_def eventually_sequentially)
 
 lemma metric_LIMSEQ_I:
   "(\<And>r. 0 < r \<Longrightarrow> \<exists>no. \<forall>n\<ge>no. dist (X n) L < r) \<Longrightarrow> X ----> L"
@@ -1380,7 +1302,7 @@ lemma LIMSEQ_power_zero:
   fixes x :: "'a::{real_normed_algebra_1}"
   shows "norm x < 1 \<Longrightarrow> (\<lambda>n. x ^ n) ----> 0"
 apply (drule LIMSEQ_realpow_zero [OF norm_ge_zero])
-apply (simp only: LIMSEQ_Zseq_iff, erule Zseq_le)
+apply (simp only: LIMSEQ_Zfun_iff, erule Zfun_le)
 apply (simp add: power_abs norm_power_ineq)
 done
 
