@@ -585,7 +585,7 @@ lemma tendsto_ident_at [tendsto_intros]: "((\<lambda>x. x) ---> a) (at a)"
 unfolding tendsto_def eventually_at_topological by auto
 
 lemma tendsto_ident_at_within [tendsto_intros]:
-  "a \<in> S \<Longrightarrow> ((\<lambda>x. x) ---> a) (at a within S)"
+  "((\<lambda>x. x) ---> a) (at a within S)"
 unfolding tendsto_def eventually_within eventually_at_topological by auto
 
 lemma tendsto_const [tendsto_intros]: "((\<lambda>x. k) ---> k) net"
