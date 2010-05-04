@@ -329,14 +329,9 @@ next
   thus "\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x \<and> Q x)" by - rule
 qed auto
 
-lemma eventually_at_topological:
-  "eventually P (at a) \<longleftrightarrow> (\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> P x))"
-unfolding at_def eventually_within eventually_nhds by simp
-
-lemma eventually_at:
-  fixes a :: "'a::metric_space"
-  shows "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. x \<noteq> a \<and> dist x a < d \<longrightarrow> P x)"
-unfolding eventually_at_topological open_dist
+lemma eventually_nhds_metric:
+  "eventually P (nhds a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. dist x a < d \<longrightarrow> P x)"
+unfolding eventually_nhds open_dist
 apply safe
 apply fast
 apply (rule_tac x="{x. dist x a < d}" in exI, simp)
@@ -345,6 +340,15 @@ apply (rule_tac x="d - dist x a" in exI, clarsimp)
 apply (simp only: less_diff_eq)
 apply (erule le_less_trans [OF dist_triangle])
 done
+
+lemma eventually_at_topological:
+  "eventually P (at a) \<longleftrightarrow> (\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> P x))"
+unfolding at_def eventually_within eventually_nhds by simp
+
+lemma eventually_at:
+  fixes a :: "'a::metric_space"
+  shows "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. x \<noteq> a \<and> dist x a < d \<longrightarrow> P x)"
+unfolding at_def eventually_within eventually_nhds_metric by auto
 
 
 subsection {* Boundedness *}
@@ -543,6 +547,9 @@ structure Tendsto_Intros = Named_Thms
 *}
 
 setup Tendsto_Intros.setup
+
+lemma tendsto_mono: "net \<le> net' \<Longrightarrow> (f ---> l) net' \<Longrightarrow> (f ---> l) net"
+unfolding tendsto_def le_net_def by fast
 
 lemma topological_tendstoI:
   "(\<And>S. open S \<Longrightarrow> l \<in> S \<Longrightarrow> eventually (\<lambda>x. f x \<in> S) net)
