@@ -313,10 +313,6 @@ qed
 
 end
 
-lemma LIMSEQ_Cart_nth:
-  "(X ----> a) \<Longrightarrow> (\<lambda>n. X n $ i) ----> a $ i"
-unfolding LIMSEQ_conv_tendsto by (rule tendsto_Cart_nth)
-
 lemma LIM_Cart_nth:
   "(f -- x --> y) \<Longrightarrow> (\<lambda>x. f x $ i) -- x --> y $ i"
 unfolding LIM_conv_tendsto by (rule tendsto_Cart_nth)
@@ -324,11 +320,6 @@ unfolding LIM_conv_tendsto by (rule tendsto_Cart_nth)
 lemma Cauchy_Cart_nth:
   "Cauchy (\<lambda>n. X n) \<Longrightarrow> Cauchy (\<lambda>n. X n $ i)"
 unfolding Cauchy_def by (fast intro: le_less_trans [OF dist_nth_le])
-
-lemma LIMSEQ_vector:
-  assumes "\<And>i. (\<lambda>n. X n $ i) ----> (a $ i)"
-  shows "X ----> a"
-using assms unfolding LIMSEQ_conv_tendsto by (rule tendsto_vector)
 
 lemma Cauchy_vector:
   fixes X :: "nat \<Rightarrow> 'a::metric_space ^ 'n"
@@ -371,7 +362,7 @@ proof
     using Cauchy_Cart_nth [OF `Cauchy X`]
     by (simp add: Cauchy_convergent_iff convergent_LIMSEQ_iff)
   hence "X ----> Cart_lambda (\<lambda>i. lim (\<lambda>n. X n $ i))"
-    by (simp add: LIMSEQ_vector)
+    by (simp add: tendsto_vector)
   then show "convergent X"
     by (rule convergentI)
 qed

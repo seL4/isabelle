@@ -100,7 +100,7 @@ by (simp add: sums_def summable_def, blast)
 
 lemma summable_sums: "summable f ==> f sums (suminf f)"
 apply (simp add: summable_def suminf_def sums_def)
-apply (blast intro: theI LIMSEQ_unique)
+apply (fast intro: theI LIMSEQ_unique)
 done
 
 lemma summable_sumr_LIMSEQ_suminf: 
@@ -701,7 +701,7 @@ proof -
     apply (auto simp add: norm_mult_ineq)
     done
   hence 2: "(\<lambda>n. setsum ?g (?S1 n) - setsum ?g (?S2 n)) ----> 0"
-    unfolding LIMSEQ_conv_tendsto tendsto_Zfun_iff diff_0_right
+    unfolding tendsto_Zfun_iff diff_0_right
     by (simp only: setsum_diff finite_S1 S2_le_S1)
 
   with 1 have "(\<lambda>n. setsum ?g (?S2 n)) ----> (\<Sum>k. a k) * (\<Sum>k. b k)"

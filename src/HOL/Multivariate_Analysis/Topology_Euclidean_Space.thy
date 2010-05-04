@@ -2507,15 +2507,14 @@ proof
   ultimately have "\<exists>l\<in>closure (range f). (f ---> l) sequentially"
     using `Cauchy f` unfolding complete_def by auto
   then show "convergent f"
-    unfolding convergent_def LIMSEQ_conv_tendsto [symmetric] by auto
+    unfolding convergent_def by auto
 qed
 
 lemma complete_univ: "complete (UNIV :: 'a::complete_space set)"
 proof(simp add: complete_def, rule, rule)
   fix f :: "nat \<Rightarrow> 'a" assume "Cauchy f"
   hence "convergent f" by (rule Cauchy_convergent)
-  hence "\<exists>l. f ----> l" unfolding convergent_def .  
-  thus "\<exists>l. (f ---> l) sequentially" unfolding LIMSEQ_conv_tendsto .
+  thus "\<exists>l. f ----> l" unfolding convergent_def .  
 qed
 
 lemma complete_imp_closed: assumes "complete s" shows "closed s"

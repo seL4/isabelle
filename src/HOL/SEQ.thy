@@ -13,11 +13,10 @@ theory SEQ
 imports Limits
 begin
 
-definition
+abbreviation
   LIMSEQ :: "[nat \<Rightarrow> 'a::metric_space, 'a] \<Rightarrow> bool"
     ("((_)/ ----> (_))" [60, 60] 60) where
-    --{*Standard definition of convergence of sequence*}
-  [code del]: "X ----> L = (\<forall>r>0. \<exists>no. \<forall>n\<ge>no. dist (X n) L < r)"
+  "X ----> L \<equiv> (X ---> L) sequentially"
 
 definition
   lim :: "(nat \<Rightarrow> 'a::metric_space) \<Rightarrow> 'a" where
@@ -119,8 +118,8 @@ subsection {* Limits of Sequences *}
 lemma [trans]: "X=Y ==> Y ----> z ==> X ----> z"
   by simp
 
-lemma LIMSEQ_conv_tendsto: "(X ----> L) \<longleftrightarrow> (X ---> L) sequentially"
-unfolding LIMSEQ_def tendsto_iff eventually_sequentially ..
+lemma LIMSEQ_def: "X ----> L = (\<forall>r>0. \<exists>no. \<forall>n\<ge>no. dist (X n) L < r)"
+unfolding tendsto_iff eventually_sequentially ..
 
 lemma LIMSEQ_iff:
   fixes L :: "'a::real_normed_vector"
@@ -128,10 +127,10 @@ lemma LIMSEQ_iff:
 unfolding LIMSEQ_def dist_norm ..
 
 lemma LIMSEQ_iff_nz: "X ----> L = (\<forall>r>0. \<exists>no>0. \<forall>n\<ge>no. dist (X n) L < r)"
-  by (auto simp add: LIMSEQ_def) (metis Suc_leD zero_less_Suc)  
+  unfolding LIMSEQ_def by (metis Suc_leD zero_less_Suc)
 
 lemma LIMSEQ_Zfun_iff: "((\<lambda>n. X n) ----> L) = Zfun (\<lambda>n. X n - L) sequentially"
-by (simp only: LIMSEQ_iff Zfun_def eventually_sequentially)
+by (rule tendsto_Zfun_iff)
 
 lemma metric_LIMSEQ_I:
   "(\<And>r. 0 < r \<Longrightarrow> \<exists>no. \<forall>n\<ge>no. dist (X n) L < r) \<Longrightarrow> X ----> L"
@@ -152,7 +151,7 @@ lemma LIMSEQ_D:
 by (simp add: LIMSEQ_iff)
 
 lemma LIMSEQ_const: "(\<lambda>n. k) ----> k"
-by (simp add: LIMSEQ_def)
+by (rule tendsto_const)
 
 lemma LIMSEQ_const_iff: "(\<lambda>n. k) ----> l \<longleftrightarrow> k = l"
 apply (safe intro!: LIMSEQ_const)
@@ -165,7 +164,7 @@ done
 lemma LIMSEQ_norm:
   fixes a :: "'a::real_normed_vector"
   shows "X ----> a \<Longrightarrow> (\<lambda>n. norm (X n)) ----> norm a"
-unfolding LIMSEQ_conv_tendsto by (rule tendsto_norm)
+by (rule tendsto_norm)
 
 lemma LIMSEQ_ignore_initial_segment:
   "f ----> a \<Longrightarrow> (\<lambda>n. f (n + k)) ----> a"
@@ -203,22 +202,22 @@ lemma LIMSEQ_linear: "\<lbrakk> X ----> x ; l > 0 \<rbrakk> \<Longrightarrow> (\
 lemma LIMSEQ_add:
   fixes a b :: "'a::real_normed_vector"
   shows "\<lbrakk>X ----> a; Y ----> b\<rbrakk> \<Longrightarrow> (\<lambda>n. X n + Y n) ----> a + b"
-unfolding LIMSEQ_conv_tendsto by (rule tendsto_add)
+by (rule tendsto_add)
 
 lemma LIMSEQ_minus:
   fixes a :: "'a::real_normed_vector"
   shows "X ----> a \<Longrightarrow> (\<lambda>n. - X n) ----> - a"
-unfolding LIMSEQ_conv_tendsto by (rule tendsto_minus)
+by (rule tendsto_minus)
 
 lemma LIMSEQ_minus_cancel:
   fixes a :: "'a::real_normed_vector"
   shows "(\<lambda>n. - X n) ----> - a \<Longrightarrow> X ----> a"
-by (drule LIMSEQ_minus, simp)
+by (rule tendsto_minus_cancel)
 
 lemma LIMSEQ_diff:
   fixes a b :: "'a::real_normed_vector"
   shows "\<lbrakk>X ----> a; Y ----> b\<rbrakk> \<Longrightarrow> (\<lambda>n. X n - Y n) ----> a - b"
-unfolding LIMSEQ_conv_tendsto by (rule tendsto_diff)
+by (rule tendsto_diff)
 
 lemma LIMSEQ_unique: "\<lbrakk>X ----> a; X ----> b\<rbrakk> \<Longrightarrow> a = b"
 apply (rule ccontr)
@@ -233,16 +232,16 @@ done
 
 lemma (in bounded_linear) LIMSEQ:
   "X ----> a \<Longrightarrow> (\<lambda>n. f (X n)) ----> f a"
-unfolding LIMSEQ_conv_tendsto by (rule tendsto)
+by (rule tendsto)
 
 lemma (in bounded_bilinear) LIMSEQ:
   "\<lbrakk>X ----> a; Y ----> b\<rbrakk> \<Longrightarrow> (\<lambda>n. X n ** Y n) ----> a ** b"
-unfolding LIMSEQ_conv_tendsto by (rule tendsto)
+by (rule tendsto)
 
 lemma LIMSEQ_mult:
   fixes a b :: "'a::real_normed_algebra"
   shows "[| X ----> a; Y ----> b |] ==> (%n. X n * Y n) ----> a * b"
-by (rule mult.LIMSEQ)
+by (rule mult.tendsto)
 
 lemma increasing_LIMSEQ:
   fixes f :: "nat \<Rightarrow> real"
@@ -287,19 +286,17 @@ done
 lemma Bseq_inverse:
   fixes a :: "'a::real_normed_div_algebra"
   shows "\<lbrakk>X ----> a; a \<noteq> 0\<rbrakk> \<Longrightarrow> Bseq (\<lambda>n. inverse (X n))"
-unfolding LIMSEQ_conv_tendsto Bseq_conv_Bfun
-by (rule Bfun_inverse)
+unfolding Bseq_conv_Bfun by (rule Bfun_inverse)
 
 lemma LIMSEQ_inverse:
   fixes a :: "'a::real_normed_div_algebra"
   shows "\<lbrakk>X ----> a; a \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>n. inverse (X n)) ----> inverse a"
-unfolding LIMSEQ_conv_tendsto
 by (rule tendsto_inverse)
 
 lemma LIMSEQ_divide:
   fixes a b :: "'a::real_normed_field"
   shows "\<lbrakk>X ----> a; Y ----> b; b \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>n. X n / Y n) ----> a / b"
-by (simp add: LIMSEQ_mult LIMSEQ_inverse divide_inverse)
+by (rule tendsto_divide)
 
 lemma LIMSEQ_pow:
   fixes a :: "'a::{power, real_normed_algebra}"
@@ -310,7 +307,7 @@ lemma LIMSEQ_setsum:
   fixes L :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes n: "\<And>n. n \<in> S \<Longrightarrow> X n ----> L n"
   shows "(\<lambda>m. \<Sum>n\<in>S. X n m) ----> (\<Sum>n\<in>S. L n)"
-using n unfolding LIMSEQ_conv_tendsto by (rule tendsto_setsum)
+using assms by (rule tendsto_setsum)
 
 lemma LIMSEQ_setprod:
   fixes L :: "'a \<Rightarrow> 'b::{real_normed_algebra,comm_ring_1}"
@@ -334,21 +331,21 @@ next
     by (simp add: setprod_def LIMSEQ_const)
 qed
 
-lemma LIMSEQ_add_const:
+lemma LIMSEQ_add_const: (* FIXME: delete *)
   fixes a :: "'a::real_normed_vector"
   shows "f ----> a ==> (%n.(f n + b)) ----> a + b"
-by (simp add: LIMSEQ_add LIMSEQ_const)
+by (intro tendsto_intros)
 
 (* FIXME: delete *)
 lemma LIMSEQ_add_minus:
   fixes a b :: "'a::real_normed_vector"
   shows "[| X ----> a; Y ----> b |] ==> (%n. X n + -Y n) ----> a + -b"
-by (simp only: LIMSEQ_add LIMSEQ_minus)
+by (intro tendsto_intros)
 
-lemma LIMSEQ_diff_const:
+lemma LIMSEQ_diff_const: (* FIXME: delete *)
   fixes a b :: "'a::real_normed_vector"
   shows "f ----> a ==> (%n.(f n  - b)) ----> a - b"
-by (simp add: LIMSEQ_diff LIMSEQ_const)
+by (intro tendsto_intros)
 
 lemma LIMSEQ_diff_approach_zero:
   fixes L :: "'a::real_normed_vector"
