@@ -544,10 +544,12 @@ using assms unfolding convergent_def by (fast intro: LIMSEQ_add)
 
 lemma convergent_setsum:
   fixes X :: "'a \<Rightarrow> nat \<Rightarrow> 'b::real_normed_vector"
-  assumes "finite A" and "\<And>i. i \<in> A \<Longrightarrow> convergent (\<lambda>n. X i n)"
+  assumes "\<And>i. i \<in> A \<Longrightarrow> convergent (\<lambda>n. X i n)"
   shows "convergent (\<lambda>n. \<Sum>i\<in>A. X i n)"
-using assms
-by (induct A set: finite, simp_all add: convergent_const convergent_add)
+proof (cases "finite A")
+  case True with assms show ?thesis
+    by (induct A set: finite) (simp_all add: convergent_const convergent_add)
+qed (simp add: convergent_const)
 
 lemma (in bounded_linear) convergent:
   assumes "convergent (\<lambda>n. X n)"
