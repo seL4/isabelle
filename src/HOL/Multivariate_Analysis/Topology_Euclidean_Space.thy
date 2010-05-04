@@ -5336,7 +5336,7 @@ proof-
     unfolding dist_norm
     apply (auto simp add: pos_divide_less_eq mult_strict_left_mono)
     unfolding continuous_on
-    by (intro ballI tendsto_intros, simp, assumption)+
+    by (intro ballI tendsto_intros, simp)+
 next
   have *:"\<bar>e / d\<bar> > 0" "\<bar>d / e\<bar> >0" using assms using divide_pos_pos by auto
   show ?cth unfolding homeomorphic_minimal
@@ -5346,7 +5346,7 @@ next
     unfolding dist_norm
     apply (auto simp add: pos_divide_le_eq)
     unfolding continuous_on
-    by (intro ballI tendsto_intros, simp, assumption)+
+    by (intro ballI tendsto_intros, simp)+
 qed
 
 text{* "Isometry" (up to constant bounds) of injective linear map etc.           *}
