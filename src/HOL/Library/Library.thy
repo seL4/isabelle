@@ -12,6 +12,7 @@ imports
   Code_Integer
   Continuity
   ContNotDenum
+  Convex
   Countable
   Diagonalize
   Dlist

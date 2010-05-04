@@ -423,7 +423,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Nat_Bijection.thy $(SRC)/Tools/float.ML			\
   $(SRC)/HOL/Tools/float_arith.ML Library/positivstellensatz.ML		\
   Library/reify_data.ML Library/reflection.ML Library/LaTeXsugar.thy	\
-  Library/OptionalSugar.thy \
+  Library/OptionalSugar.thy Library/Convex.thy                          \
   Library/Predicate_Compile_Quickcheck.thy Library/SML_Quickcheck.thy
 	@cd Library; $(ISABELLE_TOOL) usedir $(OUT)/HOL Library
 

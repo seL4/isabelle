@@ -1,3 +1,10 @@
+(*  Title:      HOL/Library/Convex.thy
+    Author:     Armin Heller, TU Muenchen
+    Author:     Johannes Hoelzl, TU Muenchen
+*)
+
+header {* Convexity in real vector spaces *}
+
 theory Convex
 imports Product_Vector
 begin
