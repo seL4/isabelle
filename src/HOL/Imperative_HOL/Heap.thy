@@ -216,6 +216,9 @@ lemma noteq_refs_sym: "r =!= s \<Longrightarrow> s =!= r"
   and unequal_arrs [simp]: "a \<noteq> a' \<longleftrightarrow> a =!!= a'"
 unfolding noteq_refs_def noteq_arrs_def by auto
 
+lemma noteq_refs_irrefl: "r =!= r \<Longrightarrow> False"
+  unfolding noteq_refs_def by auto
+
 lemma present_new_ref: "ref_present r h \<Longrightarrow> r =!= fst (ref v h)"
   by (simp add: ref_present_def new_ref_def ref_def Let_def noteq_refs_def)
 
