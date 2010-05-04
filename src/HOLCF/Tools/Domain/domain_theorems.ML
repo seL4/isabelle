@@ -71,7 +71,7 @@ fun intern_term thy =
 end;
 
 fun legacy_infer_term thy t =
-  let val ctxt = ProofContext.set_mode ProofContext.mode_schematic (ProofContext.init thy)
+  let val ctxt = ProofContext.set_mode ProofContext.mode_schematic (ProofContext.init_global thy)
   in singleton (Syntax.check_terms ctxt) (intern_term thy t) end;
 
 fun pg'' thy defs t tacs =
@@ -347,7 +347,7 @@ let
 
 (* ----- theorems concerning finiteness and induction ----------------------- *)
 
-  val global_ctxt = ProofContext.init thy;
+  val global_ctxt = ProofContext.init_global thy;
 
   val _ = trace " Proving ind...";
   val ind =
@@ -422,7 +422,7 @@ val case_ns =
           bot :: map (fn (c,_) => Long_Name.base_name c) cons;
   in adms @ flat (map2 one_eq bottoms eqs) end;
 
-val inducts = Project_Rule.projections (ProofContext.init thy) ind;
+val inducts = Project_Rule.projections (ProofContext.init_global thy) ind;
 fun ind_rule (dname, rule) =
     ((Binding.empty, [rule]),
      [Rule_Cases.case_names case_ns, Induct.induct_type dname]);
@@ -470,7 +470,7 @@ end;
 local
 
   fun legacy_infer_term thy t =
-      singleton (Syntax.check_terms (ProofContext.init thy)) (intern_term thy t);
+      singleton (Syntax.check_terms (ProofContext.init_global thy)) (intern_term thy t);
   fun legacy_infer_prop thy t = legacy_infer_term thy (TypeInfer.constrain propT t);
   fun infer_props thy = map (apsnd (legacy_infer_prop thy));
   fun add_defs_i x = PureThy.add_defs false (map Thm.no_attributes x);

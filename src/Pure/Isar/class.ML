@@ -32,7 +32,7 @@ local
 
 fun calculate thy class sups base_sort param_map assm_axiom =
   let
-    val empty_ctxt = ProofContext.init thy;
+    val empty_ctxt = ProofContext.init_global thy;
 
     (* instantiation of canonical interpretation *)
     val aT = TFree (Name.aT, base_sort);
@@ -143,7 +143,7 @@ fun prep_class_elems prep_decl thy sups raw_elems =
       #> add_typ_check ~10 "singleton_fixate" singleton_fixate;
     val raw_supexpr = (map (fn sup => (sup, (("", false),
       Expression.Positional []))) sups, []);
-    val ((raw_supparams, _, inferred_elems), _) = ProofContext.init thy
+    val ((raw_supparams, _, inferred_elems), _) = ProofContext.init_global thy
       |> prep_decl raw_supexpr init_class_body raw_elems;
     fun fold_element_types f (Element.Fixes fxs) = fold (fn (_, SOME T, _) => f T) fxs
       | fold_element_types f (Element.Constrains cnstrs) = fold (f o snd) cnstrs
@@ -194,7 +194,7 @@ fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
     val sup_sort = inter_sort base_sort sups;
 
     (* process elements as class specification *)
-    val class_ctxt = begin sups base_sort (ProofContext.init thy);
+    val class_ctxt = begin sups base_sort (ProofContext.init_global thy);
     val ((_, _, syntax_elems), _) = class_ctxt
       |> Expression.cert_declaration supexpr I inferred_elems;
     fun check_vars e vs = if null vs
@@ -340,7 +340,7 @@ in
 
 val subclass = gen_subclass (K I) user_proof;
 fun prove_subclass tac = gen_subclass (K I) (tactic_proof tac);
-val subclass_cmd = gen_subclass (ProofContext.read_class o ProofContext.init) user_proof;
+val subclass_cmd = gen_subclass (ProofContext.read_class o ProofContext.init_global) user_proof;
 
 end; (*local*)
 

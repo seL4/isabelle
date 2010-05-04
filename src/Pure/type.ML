@@ -53,6 +53,7 @@ sig
   val arity_sorts: Pretty.pp -> tsig -> string -> sort -> sort list
 
   (*special treatment of type vars*)
+  val sort_of_atyp: typ -> sort
   val strip_sorts: typ -> typ
   val no_tvars: typ -> typ
   val varify_global: (string * sort) list -> term -> ((string * sort) * indexname) list * term
@@ -270,6 +271,13 @@ fun arity_sorts _ tsig a [] = replicate (arity_number tsig a) []
 
 
 (** special treatment of type vars **)
+
+(* sort_of_atyp *)
+
+fun sort_of_atyp (TFree (_, S)) = S
+  | sort_of_atyp (TVar (_, S)) = S
+  | sort_of_atyp T = raise TYPE ("sort_of_atyp", [T], []);
+
 
 (* strip_sorts *)
 

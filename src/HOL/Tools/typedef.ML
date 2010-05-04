@@ -182,7 +182,8 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
         val thy = ProofContext.theory_of set_lthy;
         val cert = Thm.cterm_of thy;
         val (defs, A) =
-          Local_Defs.export_cterm set_lthy (ProofContext.init thy) (cert set') ||> Thm.term_of;
+          Local_Defs.export_cterm set_lthy (ProofContext.init_global thy) (cert set')
+          ||> Thm.term_of;
 
         val ((RepC, AbsC, axiom_name, axiom), axiom_lthy) = set_lthy |>
           Local_Theory.theory_result (primitive_typedef typedef_name newT oldT Rep_name Abs_name A);

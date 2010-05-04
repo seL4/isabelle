@@ -308,7 +308,7 @@ fun activate_facts dep context =
 
 fun init name thy =
   activate_all name thy Element.init (Element.transfer_morphism o Context.theory_of)
-    ([], Context.Proof (ProofContext.init thy)) |-> put_idents |> Context.proof_of;
+    ([], Context.Proof (ProofContext.init_global thy)) |-> put_idents |> Context.proof_of;
 
 fun print_locale thy show_facts raw_name =
   let
@@ -412,7 +412,7 @@ fun print_registrations thy raw_name =
   let
     val name = intern thy raw_name;
     val name' = extern thy name;
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     fun prt_qual (qual, mand) = Pretty.str (qual ^ (if mand then "!" else "?"));
     fun prt_quals qs = Pretty.separate "." (map prt_qual qs) |> Pretty.block;
     val prt_term = Pretty.quote o Syntax.pretty_term ctxt;

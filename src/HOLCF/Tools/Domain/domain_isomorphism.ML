@@ -189,7 +189,7 @@ fun add_fixdefs
         (K (beta_tac 1));
     val tuple_unfold_thm =
       (@{thm def_cont_fix_eq} OF [tuple_fixdef_thm, cont_thm])
-      |> Local_Defs.unfold (ProofContext.init thy) @{thms split_conv};
+      |> Local_Defs.unfold (ProofContext.init_global thy) @{thms split_conv};
 
     fun mk_unfold_thms [] thm = []
       | mk_unfold_thms (n::[]) thm = [(n, thm)]
@@ -380,7 +380,7 @@ fun define_map_functions
 
 fun read_typ thy str sorts =
   let
-    val ctxt = ProofContext.init thy
+    val ctxt = ProofContext.init_global thy
       |> fold (Variable.declare_typ o TFree) sorts;
     val T = Syntax.read_typ ctxt str;
   in (T, Term.add_tfreesT T sorts) end;

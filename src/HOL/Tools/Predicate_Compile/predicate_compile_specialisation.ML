@@ -65,7 +65,7 @@ fun is_nontrivial_constrt thy t =
 
 fun specialise_intros black_list (pred, intros) pats thy =
   let
-    val ctxt = ProofContext.init thy
+    val ctxt = ProofContext.init_global thy
     val maxidx = fold (Term.maxidx_term o prop_of) intros ~1
     val pats = map (Logic.incr_indexes ([],  maxidx + 1)) pats
     val (((pred, intros), pats), ctxt') = import (pred, intros) pats ctxt

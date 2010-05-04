@@ -137,7 +137,7 @@ fun mk_realizes_eqn n vs nparms intrs =
 
 fun fun_of_prem thy rsets vs params rule ivs intr =
   let
-    val ctxt = ProofContext.init thy
+    val ctxt = ProofContext.init_global thy
     val args = map (Free o apfst fst o dest_Var) ivs;
     val args' = map (Free o apfst fst)
       (subtract (op =) params (Term.add_vars (prop_of intr) []));
@@ -484,7 +484,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
 fun add_ind_realizers name rsets thy =
   let
     val (_, {intrs, induct, raw_induct, elims, ...}) =
-      Inductive.the_inductive (ProofContext.init thy) name;
+      Inductive.the_inductive (ProofContext.init_global thy) name;
     val vss = sort (int_ord o pairself length)
       (subsets (map fst (relevant_vars (concl_of (hd intrs)))))
   in

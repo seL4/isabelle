@@ -52,7 +52,7 @@ val interpretation = Typecopy_Interpretation.interpretation;
 fun typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
   let
     val ty = Sign.certify_typ thy raw_ty;
-    val ctxt = ProofContext.init thy |> Variable.declare_typ ty;
+    val ctxt = ProofContext.init_global thy |> Variable.declare_typ ty;
     val vs = map (ProofContext.check_tfree ctxt) raw_vs;
     val tac = Tactic.rtac UNIV_witness 1;
     fun add_info tyco (({ abs_type = ty_abs, rep_type = ty_rep, Abs_name = c_abs,

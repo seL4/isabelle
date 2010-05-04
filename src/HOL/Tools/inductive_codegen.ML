@@ -66,7 +66,7 @@ fun add optmod optnparms = Thm.declaration_attribute (fn thm => Context.mapping 
           val nparms = (case optnparms of
             SOME k => k
           | NONE => (case rules of
-             [] => (case try (Inductive.the_inductive (ProofContext.init thy)) s of
+             [] => (case try (Inductive.the_inductive (ProofContext.init_global thy)) s of
                  SOME (_, {raw_induct, ...}) =>
                    length (Inductive.params_of raw_induct)
                | NONE => 0)
@@ -84,7 +84,7 @@ fun add optmod optnparms = Thm.declaration_attribute (fn thm => Context.mapping 
 fun get_clauses thy s =
   let val {intros, graph, ...} = CodegenData.get thy
   in case Symtab.lookup intros s of
-      NONE => (case try (Inductive.the_inductive (ProofContext.init thy)) s of
+      NONE => (case try (Inductive.the_inductive (ProofContext.init_global thy)) s of
         NONE => NONE
       | SOME ({names, ...}, {intrs, raw_induct, ...}) =>
           SOME (names, Codegen.thyname_of_const thy s,

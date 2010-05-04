@@ -9,7 +9,7 @@ elements.  See also structure Variable and Assumption.
 signature PROOF_CONTEXT =
 sig
   val theory_of: Proof.context -> theory
-  val init: theory -> Proof.context
+  val init_global: theory -> Proof.context
   type mode
   val mode_default: mode
   val mode_stmt: mode

@@ -778,7 +778,7 @@ fun expand_tuples thy intro =
       let
         val (_, args) = strip_comb atom
       in rewrite_args args end
-    val ctxt = ProofContext.init thy
+    val ctxt = ProofContext.init_global thy
     val (((T_insts, t_insts), [intro']), ctxt1) = Variable.import false [intro] ctxt
     val intro_t = prop_of intro'
     val concl = Logic.strip_imp_concl intro_t
@@ -860,7 +860,8 @@ fun remove_pointless_clauses intro =
 
 fun peephole_optimisation thy intro =
   let
-    val process = MetaSimplifier.rewrite_rule (Predicate_Compile_Simps.get (ProofContext.init thy))
+    val process =
+      MetaSimplifier.rewrite_rule (Predicate_Compile_Simps.get (ProofContext.init_global thy))
     fun process_False intro_t =
       if member (op =) (Logic.strip_imp_prems intro_t) @{prop "False"} then NONE else SOME intro_t
     fun process_True intro_t =

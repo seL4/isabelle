@@ -299,7 +299,7 @@ fun print_term ss warn a t ctxt = prnt ss warn (a () ^ "\n" ^
 in
 
 fun print_term_global ss warn a thy t =
-  print_term ss warn (K a) t (ProofContext.init thy);
+  print_term ss warn (K a) t (ProofContext.init_global thy);
 
 fun if_enabled (Simpset ({context, ...}, _)) flag f =
   (case context of
@@ -355,7 +355,7 @@ fun the_context (Simpset ({context = SOME ctxt, ...}, _)) = ctxt
 fun context ctxt =
   map_simpset1 (fn (rules, prems, bounds, depth, _) => (rules, prems, bounds, depth, SOME ctxt));
 
-val global_context = context o ProofContext.init;
+val global_context = context o ProofContext.init_global;
 
 fun activate_context thy ss =
   let

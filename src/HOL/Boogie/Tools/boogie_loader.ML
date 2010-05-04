@@ -232,7 +232,7 @@ local
     in apsnd sort_fst_str (fold split axs ([], [])) end
 
   fun mark_axioms thy axs =
-    Boogie_Axioms.get (ProofContext.init thy)
+    Boogie_Axioms.get (ProofContext.init_global thy)
     |> Termtab.make o map (fn thm => (Thm.prop_of thm, Unused thm))
     |> fold mark axs
     |> split_list_kind thy o Termtab.dest

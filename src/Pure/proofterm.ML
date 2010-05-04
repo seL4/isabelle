@@ -58,8 +58,10 @@ sig
   val strip_combt: proof -> proof * term option list
   val strip_combP: proof -> proof * proof list
   val strip_thm: proof_body -> proof_body
-  val map_proof_terms_option: (term -> term option) -> (typ -> typ option) -> proof -> proof
+  val map_proof_terms_same: term Same.operation -> typ Same.operation -> proof Same.operation
+  val map_proof_types_same: typ Same.operation -> proof Same.operation
   val map_proof_terms: (term -> term) -> (typ -> typ) -> proof -> proof
+  val map_proof_types: (typ -> typ) -> proof -> proof
   val fold_proof_terms: (term -> 'a -> 'a) -> (typ -> 'a -> 'a) -> proof -> 'a -> 'a
   val maxidx_proof: proof -> int -> int
   val size_of_proof: proof -> int
@@ -80,7 +82,7 @@ sig
   val implies_intr_proof: term -> proof -> proof
   val forall_intr_proof: term -> string -> proof -> proof
   val varify_proof: term -> (string * sort) list -> proof -> proof
-  val freezeT: term -> proof -> proof
+  val legacy_freezeT: term -> proof -> proof
   val rotate_proof: term list -> term -> int -> proof -> proof
   val permute_prems_prf: term list -> int -> int -> proof -> proof
   val generalize: string list * string list -> int -> proof -> proof
@@ -106,6 +108,8 @@ sig
   val combination: term -> term -> term -> term -> typ -> proof -> proof -> proof
   val equal_intr: term -> term -> proof -> proof -> proof
   val equal_elim: term -> term -> proof -> proof -> proof
+  val strip_shyps_proof: Sorts.algebra -> (typ * sort) list -> (typ * sort) list ->
+    sort list -> proof -> proof
   val axm_proof: string -> term -> proof
   val oracle_proof: string -> term -> oracle * proof
   val promise_proof: theory -> serial -> term -> proof
@@ -273,10 +277,8 @@ fun strip_thm (body as PBody {proof, ...}) =
 val mk_Abst = fold_rev (fn (s, T:typ) => fn prf => Abst (s, NONE, prf));
 fun mk_AbsP (i, prf) = funpow i (fn prf => AbsP ("H", NONE, prf)) prf;
 
-fun map_proof_terms_option f g =
+fun map_proof_same term typ ofclass =
   let
-    val term = Same.function f;
-    val typ = Same.function g;
     val typs = Same.map typ;
 
     fun proof (Abst (s, T, prf)) =
@@ -292,22 +294,23 @@ fun map_proof_terms_option f g =
           (proof prf1 %% Same.commit proof prf2
             handle Same.SAME => prf1 %% proof prf2)
       | proof (PAxm (a, prop, SOME Ts)) = PAxm (a, prop, SOME (typs Ts))
-      | proof (OfClass (T, c)) = OfClass (typ T, c)
+      | proof (OfClass T_c) = ofclass T_c
       | proof (Oracle (a, prop, SOME Ts)) = Oracle (a, prop, SOME (typs Ts))
       | proof (Promise (i, prop, Ts)) = Promise (i, prop, typs Ts)
       | proof (PThm (i, ((a, prop, SOME Ts), body))) =
           PThm (i, ((a, prop, SOME (typs Ts)), body))
       | proof _ = raise Same.SAME;
-  in Same.commit proof end;
+  in proof end;
+
+fun map_proof_terms_same term typ = map_proof_same term typ (fn (T, c) => OfClass (typ T, c));
+fun map_proof_types_same typ = map_proof_terms_same (Term_Subst.map_types_same typ) typ;
 
 fun same eq f x =
   let val x' = f x
   in if eq (x, x') then raise Same.SAME else x' end;
 
-fun map_proof_terms f g =
-  map_proof_terms_option
-   (fn t => SOME (same (op =) f t) handle Same.SAME => NONE)
-   (fn T => SOME (same (op =) g T) handle Same.SAME => NONE);
+fun map_proof_terms f g = Same.commit (map_proof_terms_same (same (op =) f) (same (op =) g));
+fun map_proof_types f = Same.commit (map_proof_types_same (same (op =) f));
 
 fun fold_proof_terms f g (Abst (_, SOME T, prf)) = g T #> fold_proof_terms f g prf
   | fold_proof_terms f g (Abst (_, NONE, prf)) = fold_proof_terms f g prf
@@ -652,7 +655,7 @@ fun freeze_one alist (ix, sort) = (case AList.lookup (op =) alist ix of
 
 in
 
-fun freezeT t prf =
+fun legacy_freezeT t prf =
   let
     val used = OldTerm.it_term_types OldTerm.add_typ_tfree_names (t, [])
     and tvars = map #1 (OldTerm.it_term_types OldTerm.add_typ_tvars (t, []));
@@ -696,17 +699,17 @@ fun permute_prems_prf prems j k prf =
 (***** generalization *****)
 
 fun generalize (tfrees, frees) idx =
-  map_proof_terms_option
-    (Term_Subst.generalize_option (tfrees, frees) idx)
-    (Term_Subst.generalizeT_option tfrees idx);
+  Same.commit (map_proof_terms_same
+    (Term_Subst.generalize_same (tfrees, frees) idx)
+    (Term_Subst.generalizeT_same tfrees idx));
 
 
 (***** instantiation *****)
 
 fun instantiate (instT, inst) =
-  map_proof_terms_option
-    (Term_Subst.instantiate_option (instT, map (apsnd remove_types) inst))
-    (Term_Subst.instantiateT_option instT);
+  Same.commit (map_proof_terms_same
+    (Term_Subst.instantiate_same (instT, map (apsnd remove_types) inst))
+    (Term_Subst.instantiateT_same instT));
 
 
 (***** lifting *****)
@@ -757,9 +760,8 @@ fun lift_proof Bi inc prop prf =
   end;
 
 fun incr_indexes i =
-  map_proof_terms_option
-    (Same.capture (Logic.incr_indexes_same ([], i)))
-    (Same.capture (Logic.incr_tvar_same i));
+  Same.commit (map_proof_terms_same
+    (Logic.incr_indexes_same ([], i)) (Logic.incr_tvar_same i));
 
 
 (***** proof by assumption *****)
@@ -882,6 +884,22 @@ fun equal_intr A B prf1 prf2 =
 
 fun equal_elim A B prf1 prf2 =
   equal_elim_axm %> remove_types A %> remove_types B %% prf1 %% prf2;
+
+
+(**** sort hypotheses ****)
+
+fun strip_shyps_proof algebra present witnessed extra_sorts prf =
+  let
+    fun get S2 (T, S1) = if Sorts.sort_le algebra (S1, S2) then SOME T else NONE;
+    val extra = map (fn S => (TFree (Name.aT, S), S)) extra_sorts;
+    val replacements = present @ extra @ witnessed;
+    fun replace T =
+      if exists (fn (T', _) => T' = T) present then raise Same.SAME
+      else
+        (case get_first (get (Type.sort_of_atyp T)) replacements of
+          SOME T' => T'
+        | NONE => raise Fail "strip_shyps_proof: bad type variable in proof term");
+  in Same.commit (map_proof_types_same (Term_Subst.map_atypsT_same replace)) prf end;
 
 
 (***** axioms and theorems *****)

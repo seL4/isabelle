@@ -210,7 +210,7 @@ fun find_theorems (req as ScgiReq.Req {request_method, query_string, ...},
 
     fun do_find () =
       let
-        val ctxt = ProofContext.init (theory thy_name);
+        val ctxt = ProofContext.init_global (theory thy_name);
         val query = get_query ();
         val (othmslen, thms) = apsnd rev
           (Find_Theorems.find_theorems ctxt NONE (SOME limit) with_dups query);
