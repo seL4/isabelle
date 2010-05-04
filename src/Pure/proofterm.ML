@@ -80,7 +80,7 @@ sig
   val implies_intr_proof: term -> proof -> proof
   val forall_intr_proof: term -> string -> proof -> proof
   val varify_proof: term -> (string * sort) list -> proof -> proof
-  val freezeT: term -> proof -> proof
+  val legacy_freezeT: term -> proof -> proof
   val rotate_proof: term list -> term -> int -> proof -> proof
   val permute_prems_prf: term list -> int -> int -> proof -> proof
   val generalize: string list * string list -> int -> proof -> proof
@@ -652,7 +652,7 @@ fun freeze_one alist (ix, sort) = (case AList.lookup (op =) alist ix of
 
 in
 
-fun freezeT t prf =
+fun legacy_freezeT t prf =
   let
     val used = OldTerm.it_term_types OldTerm.add_typ_tfree_names (t, [])
     and tvars = map #1 (OldTerm.it_term_types OldTerm.add_typ_tvars (t, []));

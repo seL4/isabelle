@@ -1268,7 +1268,7 @@ fun legacy_freezeT (Thm (der, {thy_ref, shyps, hyps, tpairs, prop, ...})) =
     val prop2 = Type.legacy_freeze prop1;
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2);
   in
-    Thm (deriv_rule1 (Pt.freezeT prop1) der,
+    Thm (deriv_rule1 (Pt.legacy_freezeT prop1) der,
      {thy_ref = thy_ref,
       tags = [],
       maxidx = maxidx_of_term prop2,
